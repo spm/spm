@@ -1253,10 +1253,15 @@ if nsc
 			end
 		end
 	end
+
+	%-Place covariance components in xVi.Vi
+	%---------------------------------------------------------------
 	xVi.Vi   = Q;
 	xVi.form = 'non-sphericity correction';
 else
-	xVi.Vi   = speye(nScan);
+	% otherwise the nonpshericity xVi.V is i.i.d.
+	%---------------------------------------------------------------
+	xVi.V    = speye(nScan);
 	xVi.form = 'i.i.d.';
 end
 
