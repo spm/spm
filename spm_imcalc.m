@@ -1,6 +1,6 @@
-function sf=spm_imcalc(Vi,Vo,f,flags,varargin)
+function pinfo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Perform algebraic functions on images
-% FORMAT sf=spm_imcalc(Vi,Vo,f,flags,Xtra_vars...)
+% FORMAT Vo.pinfo = spm_imcalc(Vi,Vo,f,flags,Xtra_vars...)
 % Vi            - vector of mapped image volumes to work on (from spm_vol)
 % Vo            - handle structure for output image volume
 % f             - expression to be evaluated
@@ -11,8 +11,8 @@ function sf=spm_imcalc(Vi,Vo,f,flags,varargin)
 %                 [defaults (missing or empty) to 0]
 % hold          - interpolation hold (see spm_slice_vol)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
-% Xtra_vars...  - additional parameters which can be used in expression
-% sf            - scalefactor for output image
+% Xtra_vars...  - additional variables which can be used in expression
+% Vo.pinfo      - plane info matrix of written image
 %
 % With no arguments, spm_imcalc_ui is called.
 %_______________________________________________________________________
@@ -30,7 +30,7 @@ function sf=spm_imcalc(Vi,Vo,f,flags,varargin)
 %=======================================================================
 if nargin==0, sf=spm_imcalc_ui; return, end
 if nargin<3, error('insufficient arguments'), end
-if Vo.dim(4)~=4, error('only 16 bit signed short output images supported'), end
+if Vo.dim(4)~=16, error('only float output images supported'), end
 
 if nargin<4, flags={}; end
 
@@ -42,11 +42,11 @@ if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
 if isempty(dmtx), dmtx=0; end
 
 
-%-Process any additional parameters
+%-Process any additional variables
 %-----------------------------------------------------------------------
 if nargin>4
 	reserved = {'Vi','Vo','f','flags','hold','mask','dmtx','varargin',...
-			'n','Y','p','B','X','i','M','d','sf'};
+			'reserved','n','Y','p','B','X','i','M','d','sf'};
 	for i=5:nargin
 		if any(strcmp(inputname(i),reserved))
 			error(['additional parameter (',inputname(i),...
@@ -79,7 +79,7 @@ for p = 1:Vo.dim(3),
 	for i = 1:n
 		M = inv(B*inv(Vo.mat)*Vi(i).mat);
 		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),hold);
-		if mask & Vi.dim(4)<16, d(d==0)=NaN; end
+		if mask & Vi(i).dim(4)<16, d(d==0)=NaN; end
 		if dmtx, X(i,:) = d(:)'; else, eval(['i',num2str(i),'=d;']); end
 	end
 
@@ -92,10 +92,11 @@ for p = 1:Vo.dim(3),
 end
 
 
-%-Write output image (16 bit signed)
-%=======================================================================
-sf = max(abs(Y(:)))/32767;		%-compute scale factor
-if sf==0, sf = 1; end			%-for images of all zeros
+%-Write output image (float)
+%-----------------------------------------------------------------------
+% sf = max(abs(Y(:)))/32767;		%-compute scale factor
+% if sf==0, sf = 1; end			%-for images of all zeros
+sf=1; %*%-floats!
 Vo.pinfo = [sf 0 0]';			%-set scalefactor
 spm_create_image(Vo);			%-Create header
 for p = 1:Vo.dim(3), spm_write_plane(Vo,Y(:,:,p),p); end
