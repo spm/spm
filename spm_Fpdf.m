@@ -1,57 +1,108 @@
-function pdf = spm_Fpdf(f,df)
-% Probability Density Function (PDF) of F distribution
-% FORMAT pdf = spm_Fpdf(f,df)
-% f      - F-variate
-% df     - (vector of) degrees of freedom
+function f = spm_Fpdf(x,v,w)
+% Probability Density Function (PDF) of F (Fisher-Snedecor) distribution
+% FORMAT f = spm_Fpdf(x,df)
+% FORMAT f = spm_Fpdf(x,v,w)
 %
-%        - Multiple f may be supplied, with either constant df, or matrix of
-%          pairs of df corresponding to the elements of f(:)'
-%        - df must be a 2 x n (or n x 2) matrix of pairs of degrees of 
-%          freedom. (2x2 matrices are read as having df pairs in columns)
+% x  - F-variate   (F has range [0,Inf) )
+% df - Degrees of freedom, concatenated along last dimension
+%      Eg. Scalar (or column vector) v & w. Then df=[v,w];
+% v  - Shape parameter 1 /   numerator degrees of freedom (v>0)
+% w  - Shape parameter 2 / denominator degrees of freedom (w>0)
+% f  - PDF of F-distribution with [v,w] degrees of freedom at points x
+%_______________________________________________________________________
 %
-%__________________________________________________________________________
+% spm_Fpdf implements the Probability Density Function of the F-distribution.
+%
+% Definition:
+%-----------------------------------------------------------------------
+% The PDF of the F-distribution with degrees of freedom v & w, defined
+% for positive integer degrees of freedom v>0 & w>0, and for x in
+% [0,Inf) by: (See Evans et al., Ch16)
+%
+%             gamma((v+w)/2)  * (v/w)^(v/2) x^(v/2-1)
+%    f(x) = --------------------------------------------
+%           gamma(v/2)*gamma(w/2) * (1+(v/w)x)^((v+w)/2)
+%
+% Variate relationships: (Evans et al., Ch16 & 37)
+%-----------------------------------------------------------------------
+% The square of a Student's t variate with w degrees of freedom is
+% distributed as an F-distribution with [1,w] degrees of freedom.
+%
+% For X an F-variate with v,w degrees of freedom, w/(w+v*X^2) has
+% distributed related to a Beta random variable with shape parameters
+% w/2 & v/2.
+%
+% Algorithm:
+%-----------------------------------------------------------------------
+% Direct computation using the beta function for
+%       gamma(v/2)*gamma(w/2) / gamma((v+w)/2)  =  beta(v/2,w/2)
+%
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
+%
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
+%
+%_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1b	- 24/08/94 - streamlined code
+%-Format arguments, note & check sizes
+%-----------------------------------------------------------------------
+if nargin<2, error('Insufficient arguments'), end
 
-%-Argument range and size checks
-%---------------------------------------------------------------------------
-if nargin<2 error('insufficient arguments'), end
-if any(df(:)<=0) error('df must be strictly positive'), end
+%-Unpack degrees of freedom v & w from single df parameter (v)
+if nargin<3
+	vs = size(v);
+	if prod(vs)==2
+		%-DF is a 2-vector
+		w = v(2); v = v(1);
+	elseif vs(end)==2
+		%-DF has last dimension 2 - unpack v & w
+		nv = prod(vs);
+		w  = reshape(v(nv/2+1:nv),vs(1:end-1));
+		v  = reshape(v(1:nv/2)   ,vs(1:end-1));
+	else
+		error('Can''t unpack both df components from single argument')
+	end
+end
 
-%-re-orient df to 2 x n size, if n x 2 with n~=2.
-%---------------------------------------------------------------------------
-if (size(df,1) ~= 2) & (size(df,2) == 2) df = df'; end
-if  size(df,1) ~= 2 error('df must have 2 rows or 2 columns'), end
+%-Check argument sizes
+ad = [ndims(x);ndims(v);ndims(w)];
+rd = max(ad);
+as = [	[size(x),ones(1,rd-ad(1))];...
+	[size(v),ones(1,rd-ad(2))];...
+	[size(w),ones(1,rd-ad(3))]     ];
+rs = max(as);
+xa = prod(as,2)>1;
+if sum(xa)>1 & any(any(diff(as(xa,:)),1))
+	error('non-scalar args must match in size'), end
 
-%-check sizes of arguments
-%---------------------------------------------------------------------------
-if prod(size(f)) == size(df,2)
-elseif length(f) == 1
-	f  = f*ones(1,size(df,2));
-elseif size(df,2) == 1
-	df = meshgrid(df,1:prod(size(f)))';
-else
-	error('f and df not of compatible size'), end
-end % if (size)
+%-Computation
+%-----------------------------------------------------------------------
+%-Initialise result to zeros
+f = zeros(rs);
 
-%-Store sizes-reshape arguments to rows
-%---------------------------------------------------------------------------
-[rdim,cdim] = size(f);
-f   = f(:)';
-n   = length(f);
+%-Only defined for strictly positive v & w. Return NaN if undefined.
+md = ( ones(size(x))  &  v>0  &  w>0 );
+if any(~md(:)), f(~md) = NaN;
+	warning('Returning NaN for out of range arguments'), end
 
-%-Computation - avoid cases f<=0 where pdf=0
+%-Non-zero where defined and x>0
+Q  = find( md  &  x>0 );
+if isempty(Q), return, end
+if xa(1), Qx=Q; else Qx=1; end
+if xa(2), Qv=Q; else Qv=1; end
+if xa(3), Qw=Q; else Qw=1; end
 
-%---------------------------------------------------------------------------
-pdf = zeros(n,1);
-K   = find(f>0);
-if length(K)>0;
-	df1K   = df(1,K); df2K=df(2,K);
-	scK    = 1./beta(df2K/2,df1K/2);
-	pdf(K) = scK.*(df1K./df2K).^(df1K/2).*f(K).^(df1K/2-1).*...
-		(1+(df1K./df2K).*f(K)).^(-(df1K+df2K)/2);
-end % f>0 cases
-
-pdf = reshape(pdf,rdim,cdim);
+%-Compute
+f(Q) = (v(Qv)./w(Qw)).^(v(Qv)/2) .* x(Qx).^(v(Qv)/2-1) ./ ...
+	(1+(v(Qv)./w(Qw)).*x(Qx)).^((v(Qv)+w(Qw))/2) ./ ...
+		beta(v(Qv)/2,w(Qw)/2);

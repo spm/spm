@@ -1,42 +1,53 @@
-function x = spm_invXcdf(p,df)
+function x = spm_invXcdf(F,v)
 % Inverse Cumulative Distribution Function (CDF) of Chi-squared distribution
-% FORMAT x = spm_invXcdf(p,df)
-% p   - Lower tail probability
-% df  - degrees of freedom
-%     - p and df must be compatible for addition.
+% FORMAT x = spm_invXcdf(F,v)
+%
+% F - CDF (lower tail p-value)
+% v - degrees of freedom (v>0, non-integer d.f. accepted)
+% x - Chi-squared ordinates at which CDF F(x)=F
 %__________________________________________________________________________
 %
 % spm_invXcdf implements the inverse Cumulative Distribution of the
-% Chi-squared distributions.
+% Chi-squared distribution.
 %
-% Returns the Chi-squared variate x such that Pr(X <= x) = p for X a 
-% Chi-squared random variable on df degrees of freedom.
+% Definition:
+%-----------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is defined for
+% positive integer v and x in [0,Inf). The Cumulative Distribution
+% Function (CDF) F(x) is the probability that a realisation of a
+% Chi-squared random variable X has value less than x. F(x)=Pr{X<x}:
+% (See Evans et al., Ch8)
 %
-% x = spm_invTcdf(1 - p,df) therefore returns the Chi-squared variate 
-% corresponding to a (probability) threshold of p : Pr(T > t) = p.
+% Variate relationships: (Evans et al., Ch8 & Ch18)
+%-----------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is equivalent
+% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
 %
-% Works using spm_fzero to find the point where spm_Xcdf equals p.
+% Algorithm:
+%-----------------------------------------------------------------------
+% Using routine spm_invXcdf for Gamma distribution, with appropriate parameters.
 %
-% A Chi-Squared distribution on df degrees of freedom is a Gamma
-% distribution with [df/2,1/2] degrees of freedom. This identity
-% is used to compute the PDF with spm_Gcdf
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
 %
-% p &/or df can be matrices, in which case elements of p and df are
-% paired. p & df must be compatible for addition.
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-Argument range and size checks
-%---------------------------------------------------------------------------
-if nargin<2 error('insufficient arguments'), end
-
-if any(abs(p(:)-0.5)>0.5) error('p must be in [0,1]'), end
-if any(df(:)<=0) error('df out of range'), end
-% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+%-Check enough arguments
+%-----------------------------------------------------------------------
+if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
 %---------------------------------------------------------------------------
-Gdf=[df(:)'/2; ones(1,length(df(:)))/2];
-
-x=spm_invGcdf(p,Gdf);
+x = spm_invGcdf(F,v/2,2);

@@ -1,32 +1,55 @@
-function pdf = spm_Xpdf(x,df)
+function f = spm_Xpdf(x,v)
 % Probability Density Function (PDF) of Chi-Squared distribution
-% FORMAT pdf = spm_Xpdf(x,df)
-% x      - Chi-squared variate
-% df     - degrees of freedom
-%        - x and df must be compatible for addition.
-% pdf    - PDF of Chi-squared distribution with df degrees of freedom,
-%          at points x
+% FORMAT f = spm_Xpdf(x,v)
+%
+% x - Chi-squared variate
+% v - degrees of freedom (v>0, non-integer d.f. accepted)
+% f - PDF at x of Chi-squared distribution with v degrees of freedom
 %__________________________________________________________________________
 %
 % spm_Xpdf implements the Probability Density Function of the 
 % Chi-squared distributions.
 %
-% A Chi-Squared distribution on df degrees of freedom is a Gamma
-% distribution with [df/2,1/2] degrees of freedom. This identity
-% is used to compute the PDF with spm_Gpdf
+% Definition:
+%-----------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is defined for
+% positive integer v and x in [0,Inf), and has Probability Distribution
+% Function (PDF) f(x) given by: (See Evans et al., Ch8)
+%
+%           x^((v-2)/2) exp(-x/2)
+%    f(x) = ---------------------
+%           2^(v/2) * gamma(v/2)
+%
+% Variate relationships: (Evans et al., Ch8 & Ch18)
+%-----------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is equivalent
+% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+%
+% Algorithm:
+%-----------------------------------------------------------------------
+% Using routine spm_Gpdf for Gamma distribution, with appropriate parameters.
+%
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
+%
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-Argument range and size checks
-%---------------------------------------------------------------------------
-if nargin<2 error('insufficient arguments'), end
-
-if any(df(:)<=0) error('df must be strictly positive'), end
-% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+%-Check enough arguments
+%-----------------------------------------------------------------------
+if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
 %---------------------------------------------------------------------------
-Gdf=[df(:)'/2; ones(1,length(df(:)))/2];
-
-pdf=spm_Gpdf(x,Gdf);
+f = spm_Gpdf(x,v/2,2);
