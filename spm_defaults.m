@@ -147,8 +147,8 @@ sptl_QckCrg = 0;	% Full
 
 % Option to use Mutual Information coregistration.
 %-----------------------------------------------------------------------
-sptl_UsMtlInfrmtn = 0; % Dont use MI
-%sptl_UsMtlInfrmtn = 1; % Use MI
+%sptl_UsMtlInfrmtn = 0; % Dont use MI
+sptl_UsMtlInfrmtn = 1; % Use MI
 
 % Spatial Normalisation defaults
 %=======================================================================

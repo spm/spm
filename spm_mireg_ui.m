@@ -46,14 +46,14 @@ function spm_mireg_ui
 % orientations, and the final orientations.  The registered images are
 % displayed at the bottom.
 %
-% Realignment parameters are stored in the ".mat" files of the "object" and
+% Realignment parameters are stored in the ".mat" files of the "source" and
 % the "other" images.
 % _______________________________________________________________________
 % %W% John Ashburner %E%
 
 global BCH
 
-SPMid = spm('FnBanner',mfilename,'2.8');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MI Coregister');
 spm_help('!ContextHelp','spm_mireg_ui.m');
 
@@ -80,11 +80,11 @@ if p == 1 | p == 3,
 		end;
 		mireg(i).VG = spm_vol(PG);
 		
-		% select object(s)
+		% select source(s)
 		if isempty(BCH),
-			PF = spm_get(1,'.img', ['select object image for subject ' num2str(i)]);
+			PF = spm_get(1,'.img', ['select source image for subject ' num2str(i)]);
 		else,
-			PF = spm_input('batch',{},'object_image',i);
+			PF = spm_input('batch',{},'source_image',i);
 		end;
 		mireg(i).VF = spm_vol(PF);
 
@@ -118,7 +118,7 @@ if p==2,
 		else,
 			PO = spm_input('batch',{},'reslice_image',i);
 		end;
-		mireg(i).VO = PO;
+		mireg(i).PO = PO;
 	end;
 end;
 
