@@ -131,9 +131,8 @@ return;
 %_______________________________________________________________________
 function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 
-X  = x'*ones(1,length(y));
-Y  = ones(length(x),1)*y;
-d  = [flags.interp*[1 1 1]' flags.wrap(:)];
+[X,Y] = ndgrid(x,y);
+d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',prod(size(V)),'Resampling','volumes completed');
 for i=1:prod(size(V)),
@@ -157,7 +156,6 @@ for i=1:prod(size(V)),
 		if flags.preserve, dat = dat*detAff; end;
 		dat(msk{j}) = NaN;
 
-		if spm_flip_analyze_images, dat = flipud(dat); end;
 		if nargout>0,
 			Dat(:,:,j) = single(dat);
 		else,
@@ -186,8 +184,7 @@ return;
 %_______________________________________________________________________
 function VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk)
 
-X  = x'*ones(1,length(y));
-Y  = ones(length(x),1)*y;
+[X,Y] = ndgrid(x,y);
 Tr = prm.Tr;
 BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
@@ -229,7 +226,6 @@ for i=1:prod(size(V)),
 		dat(msk{j}) = NaN;
 
 		if ~flags.preserve,
-			if spm_flip_analyze_images, dat = flipud(dat); end;
 			if nargout>0,
 				Dat(:,:,j) = single(dat);
 			else,
@@ -243,7 +239,6 @@ for i=1:prod(size(V)),
 			% The determinant of the Jacobian reflects relative volume changes.
 			%------------------------------------------------------------------
 			dat       = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
-			if spm_flip_analyze_images, dat = flipud(dat); end;
 			Dat(:,:,j) = single(dat);
 		end;
 		if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
@@ -279,6 +274,7 @@ for i=1:prod(size(V)),
 	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 	[bb, vox]   = bbvox_from_V(VO);
 	[x,y,z,mat] = get_xyzmat(prm,bb,vox);
+	[X,Y,Z]     = ndgrid(x,y,1);
 
 	if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
 
@@ -286,13 +282,11 @@ for i=1:prod(size(V)),
 
 	if isempty(Tr),
 		for j=1:length(z),   % Cycle over planes
-			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0) * detAff;
+			dat        = spm_sample_vol(V(i),X,Y,Z*z(j),0) * detAff;
 			Dat(:,:,j) = single(dat);
 			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 		end;
 	else,
-		X  = x'*ones(1,length(y));
-		Y  = ones(length(x),1)*y;
 		BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 		BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
 		BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
@@ -312,7 +306,7 @@ for i=1:prod(size(V)),
 
 			% The determinant of the Jacobian reflects relative volume changes.
 			%------------------------------------------------------------------
-			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
+			dat        = spm_sample_vol(V(i),X,Y,Z*z(j),0);
 			dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
 			Dat(:,:,j) = single(dat);
 
@@ -339,10 +333,6 @@ function VO = make_hdr_struct(V,x,y,z,mat)
 VO          = V;
 VO.fname    = prepend(V.fname,'w');
 VO.mat      = mat;
-if spm_flip_analyze_images,
-	Flp    = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
-	VO.mat = VO.mat*Flp;
-end;
 VO.dim(1:3) = [length(x) length(y) length(z)];
 VO.descrip  = ['spm - 3D normalized'];
 return;
@@ -409,8 +399,7 @@ t1 = cat(3,V.mat);
 t2 = cat(1,V.dim);
 t  = [reshape(t1,[16 length(V)])' t2(:,1:3)];
 Tr = prm.Tr;
-X  = x'*ones(1,length(y));
-Y  = ones(length(x),1)*y;
+[X,Y] = ndgrid(x,y);
 
 BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
@@ -489,5 +478,11 @@ of  = -vox.*(round(-bb(1,:)./vox)+1);
 M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
 mat = prm.VG(1).mat*inv(M1)*M2;
+
+if (spm_flip_analyze_images & det(mat(1:3,1:3))>0) | (~spm_flip_analyze_images & det(mat(1:3,1:3))<0),
+	Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+	mat = mat*Flp;
+	x   = flipud(x);
+end;
 return;
 
