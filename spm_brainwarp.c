@@ -12,19 +12,19 @@ extern void MtimesX(double *, double *, double *);
 /*
 INPUTS
 T[3*nz*ny*nx + ni*4] - current transform
-vol2            - image to normalize
+VF              - image to normalize
 ni              - number of templates
 vols2[ni]       - templates
 
 nx              - number of basis functions in x
-BX[dim1[0]*nx]  - basis functions in x
-dBX[dim1[0]*nx] - derivatives of basis functions in x
+B0[dim1[0]*nx]  - basis functions in x
+dB0[dim1[0]*nx] - derivatives of basis functions in x
 ny              - number of basis functions in y 
-BY[dim1[1]*ny]  - basis functions in y
-dBY[dim1[1]*ny] - derivatives of basis functions in y
+B1[dim1[1]*ny]  - basis functions in y
+dB1[dim1[1]*ny] - derivatives of basis functions in y
 nz              - number of basis functions in z
-BZ[dim1[2]*nz]  - basis functions in z
-dBZ[dim1[2]*nz] - derivatives of basis functions in z
+B2[dim1[2]*nz]  - basis functions in z
+dB2[dim1[2]*nz] - derivatives of basis functions in z
 
 M[4*4]          - transformation matrix
 samp[3]         - frequency of sampling template.
@@ -38,39 +38,61 @@ pnsamp[1*1]                - number of voxels sampled
 ss_deriv[3]                - sum of squares of derivatives of residuals
 */
 
+static void matmul(int m, int l, int n, double B[], double C[], double A[])
+{
+	int i, j, k;
+	double tmp;
+	for(i=0; i<m; i++)
+		for(j=0; j<n; j++)
+		{
+			tmp = 0.0;
+			for(k=0; k<l; k++)
+				tmp += B[i+m*k]*C[k+l*j];
+			A[i+m*j] = tmp;
+		}
+}
+
+static void transform_grads(double M[16], double x[3])
+{
+	double x0, x1;
+	x0   = M[0+4*0]*x[0] + M[1+4*0]*x[1] + M[2+4*0]*x[2];
+	x1   = M[0+4*1]*x[0] + M[1+4*1]*x[1] + M[2+4*1]*x[2];
+	x[2] = M[0+4*2]*x[0] + M[1+4*2]*x[1] + M[2+4*2]*x[2];
+	x[1] = x1;
+	x[0] = x0;
+}
 
 static void mrqcof(double T[], double alpha[], double beta[], double pss[],
-	MAPTYPE *vol2, int ni, MAPTYPE *vols1,
-	int nx, double BX[], double dBX[],
-	int ny, double BY[], double dBY[],
-	int nz, double BZ[], double dBZ[],
+	MAPTYPE *VF, int ni, MAPTYPE *VG,
+	int nx, double B0[], double dB0[],
+	int ny, double B1[], double dB1[],
+	int nz, double B2[], double dB2[],
 	double M[16], int samp[], int edgeskip[],
 	double *pnsamp, double ss_deriv[3],
-	MAPTYPE *weight, MAPTYPE *weight2 )
+	MAPTYPE *VWG, MAPTYPE *VWF )
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, ni4;
-	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
-		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scale1a;
+	double *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
+		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scal;
 	double *Jz[3][3], *Jy[3][3], J[3][3];
 	double *bz3[3], *by3[3], *bx3[3];
-	double wt = 1.0, wt3 = 1.0, nsamp = 0.0;
+	double nsamp = 0.0;
 	int *dim1;
 	double MW[16];
 
-	/* flag for presence of weighting */
-	int wF = 1;
-	if ((weight == (MAPTYPE *)0) && (weight2 == (MAPTYPE *)0))
-		wF = 0;
-
-	if (weight2 != (MAPTYPE *)0)
-		if (AbackslashB(weight2->mat, vol2->mat, MW))
+	if (VWF != (MAPTYPE *)0)
+	{
+		double MW1[16];
+		if (AbackslashB(VWF->mat, VF->mat, MW1))
 			mexErrMsgTxt("Can't invert matrix");
+		matmul(4,4,4, M, MW1, MW);
+	}
 
-	dim1 = vols1[0].dim;
+	dim1 = VG[0].dim;
 
-	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2] =  BX;
-	by3[0] =  BY;	by3[1] = dBY;	by3[2] =  BY;
-	bz3[0] =  BZ;	bz3[1] =  BZ;	bz3[2] = dBZ;
+	bx3[0] = dB0;	bx3[1] =  B0;	bx3[2] =  B0;
+	by3[0] =  B1;	by3[1] = dB1;	by3[2] =  B1;
+	bz3[0] =  B2;	bz3[1] =  B2;	bz3[2] = dB2;
 
 	ni4 = ni*4;
 
@@ -95,7 +117,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	}
 
 	/* pointer to scales for each of the template images */
-	scale1a = T + 3*nx*ny*nz;
+	scal = T + 3*nx*ny*nz;
 
 	/* only zero half the matrix */
 	m1 = 3*nx*ny*nz+ni4;
@@ -116,7 +138,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 				/* intermediate step in computing nonlinear deformation field */
 				tmp = 0.0;
 				for(z1=0; z1<nz; z1++)
-					tmp  += ptr1[x1+z1*ny*nx] * BZ[dim1[2]*z1+s0[2]];
+					tmp  += ptr1[x1+z1*ny*nx] * B2[dim1[2]*z1+s0[2]];
 				Tz[ny*nx*i1 + x1] = tmp;
 
 				/* intermediate step in computing Jacobian of nonlinear deformation field */
@@ -148,7 +170,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					/* intermediate step in computing nonlinear deformation field */
 					tmp = 0.0;
 					for(y1=0; y1<ny; y1++)
-						tmp  += ptr1[x1+y1*nx] *  BY[dim1[1]*y1+s0[1]];
+						tmp  += ptr1[x1+y1*nx] *  B1[dim1[1]*y1+s0[1]];
 					Ty[nx*i1 + x1] = tmp;
 
 					/* intermediate step in computing Jacobian of nonlinear deformation field */
@@ -181,7 +203,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					/* compute nonlinear deformation field */
 					tmp = 0.0;
 					for(x1=0; x1<nx; x1++)
-						tmp  += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
+						tmp  += ptr1[x1] * B0[dim1[0]*x1+s0[0]];
 					trans[i1] = tmp + s0[i1];
 
 					/* compute Jacobian of nonlinear deformation field */
@@ -195,107 +217,78 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 				}
 
 				/* Affine component */
-				s2[0] = M[0+4*0]*trans[0] + M[0+4*1]*trans[1] + M[0+4*2]*trans[2] + M[0+4*3];
-				s2[1] = M[1+4*0]*trans[0] + M[1+4*1]*trans[1] + M[1+4*2]*trans[2] + M[1+4*3];
-				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3];
-
+				MtimesX(M, trans, s2);
 
 				/* is the transformed position in range? */
-				if (	s2[0]>=1+edgeskip[0] && s2[0]<vol2->dim[0]-edgeskip[0] &&
-					s2[1]>=1+edgeskip[1] && s2[1]<vol2->dim[1]-edgeskip[1] &&
-					s2[2]>=1+edgeskip[2] && s2[2]<vol2->dim[2]-edgeskip[2] )
+				if (	s2[0]>=1+edgeskip[0] && s2[0]<VF->dim[0]-edgeskip[0] &&
+					s2[1]>=1+edgeskip[1] && s2[1]<VF->dim[1]-edgeskip[1] &&
+					s2[2]>=1+edgeskip[2] && s2[2]<VF->dim[2]-edgeskip[2] )
 				{
-					double v,dv;
+					double f, df[3], dv, dv1, dvds0[3];
+					double wtf, dwtf[3], wtg, wt;
 					double s0d[3];
 					s0d[0]=s0[0];s0d[1]=s0[1];s0d[2]=s0[2];
 
-					resample_d(1,vol2,&v,dvds0,dvds0+1,dvds0+2,s2,s2+1,s2+2, 1, 0.0);
+					resample_d(1,VF,&f,&df[0],&df[1],&df[2],s2,s2+1,s2+2, 1, 0.0);
+					transform_grads(M, df);
 
-					/* weighting */
-					if (wF) 
+					if (VWG != (MAPTYPE *)0) resample(1,VWG,&wtg,s0d,s0d+1,s0d+2, 1, 0.0);
+					else wtg = 1.0;
+
+					if (VWF != (MAPTYPE *)0)
 					{
-						/* Weights are treated similar to 1/variance */
-
-						if (weight != (MAPTYPE *)0)
-							resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.0);
-						else
-							wt = 1.0;
-
-						if (weight2 != (MAPTYPE *)0)
-						{
-							static double s3[3];
-							MtimesX(MW, s2, s3);
-							resample(1,weight2,&wt3,s3,s3+1,s3+2, 1, 0.0);
-						}
-						else
-							wt3 = 1.0;
-
-						if (wt && wt3)
-						{
-							/* Variances are additive */
-							wt = 1.0 /(1.0/wt + 1.0/wt3);
-						}
-						else
-							wt = 0.0;
-
-						/* Convert to reciprocal of standard deviation */
-						wt = sqrt(wt);
-
-						v        *= wt;
-						dvds0[0] *= wt;
-						dvds0[1] *= wt;
-						dvds0[2] *= wt;
+						double s3[3];
+						MtimesX(MW, trans, s3);
+						resample_d(1,VWF,&wtf,&dwtf[0],&dwtf[1],&dwtf[2],s3,s3+1,s3+2, 1, 0.0);
+						transform_grads(MW, dwtf);
+					}
+					else
+					{
+						wtf = 1.0;
+						dwtf[0] = dwtf[1] = dwtf[2] = 0.0;
 					}
 
-					/* affine transform the gradients of object image*/
-					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
-					dvds1[1] = M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2];
-					dvds1[2] = M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2];
+					if (wtf && wtg) wt = sqrt(1.0 /(1.0/wtf + 1.0/wtg));
+					else wt = 0.0;
 
 					/* nonlinear transform the gradients to the same space as the template */
-					dvds0[0] = J[0][0]*dvds1[0] + J[0][1]*dvds1[1] + J[0][2]*dvds1[2];
-					dvds0[1] = J[1][0]*dvds1[0] + J[1][1]*dvds1[1] + J[1][2]*dvds1[2];
-					dvds0[2] = J[2][0]*dvds1[0] + J[2][1]*dvds1[1] + J[2][2]*dvds1[2];
+					dvds0[0] = J[0][0]*df[0] + J[0][1]*df[1] + J[0][2]*df[2];
+					dvds0[1] = J[1][0]*df[0] + J[1][1]*df[1] + J[1][2]*df[2];
+					dvds0[2] = J[2][0]*df[0] + J[2][1]*df[1] + J[2][2]*df[2];
 
-					/* there is no change in the contribution from BY and BZ, so only
-					   work from BX */
-					for(i1=0; i1<3; i1++)
-					{
-						for(x1=0; x1<nx; x1++)
-							dvdt[i1*nx+x1] = -dvds1[i1] * BX[dim1[0]*x1+s0[0]];
-					}
-
-					dv = v;
+					dv = f;
 					for(i1=0; i1<ni; i1++)
 					{
-						double tmp, tmp2, grads[3];
-						resample_d(1,&vols1[i1],&tmp,grads,grads+1,grads+2,s0d,s0d+1,s0d+2, 1, 0.0);
-						if (wF)  /** use weight */
-						{
-							tmp      *= wt;
-							grads[0] *= wt;
-							grads[1] *= wt;
-							grads[2] *= wt;
-						}
+						double g, dg[3], tmp;
+						resample_d(1,&VG[i1],&g,dg,dg+1,dg+2,s0d,s0d+1,s0d+2, 1, 0.0);
+
 						/* linear combination of image and image modulated by constant
 						   gradients in x, y and z */
-						dvdt[i1*4  +3*nx] = tmp;
-						dvdt[i1*4+1+3*nx] = tmp*s2[0];
-						dvdt[i1*4+2+3*nx] = tmp*s2[1];
-						dvdt[i1*4+3+3*nx] = tmp*s2[2];
+						dvdt[i1*4  +3*nx] = wt*g;
+						dvdt[i1*4+1+3*nx] = wt*g*s2[0];
+						dvdt[i1*4+2+3*nx] = wt*g*s2[1];
+						dvdt[i1*4+3+3*nx] = wt*g*s2[2];
 
-						dv -= dvdt[i1*4  +3*nx]*scale1a[i1*4  ];
-						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1*4+1];
-						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1*4+2];
-						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1*4+3];
+						tmp = scal[i1*4] + s2[0]*scal[i1*4+1] +
+							s2[1]*scal[i1*4+2] + s2[2]*scal[i1*4+3];
 
-						tmp2 = scale1a[i1*4] + s2[0]*scale1a[i1*4+1] +
-							s2[1]*scale1a[i1*4+2] + s2[2]*scale1a[i1*4+3];
-						dvds0[0] -= grads[0]*tmp2;
-						dvds0[1] -= grads[1]*tmp2;
-						dvds0[2] -= grads[2]*tmp2;
+						dv       -= tmp*g;
+						dvds0[0] -= tmp*dg[0];
+						dvds0[1] -= tmp*dg[1];
+						dvds0[2] -= tmp*dg[2];
 					}
 
+					if (wtf>1e-6)
+						dv1 = wt*wt*wt*dv/(wtf*wtf*wtf);
+					else
+						dv1 = 0.0;
+
+					for(i1=0; i1<3; i1++)
+					{
+						double tmp = dv1*dwtf[i1]-wt*df[i1];
+						for(x1=0; x1<nx; x1++)
+							dvdt[i1*nx+x1] = tmp * B0[dim1[0]*x1+s0[0]];
+					}
 
 					/* cf Numerical Recipies "mrqcof.c" routine */
 					m1 = 3*nx+ni4;
@@ -303,15 +296,16 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					{
 						for (x2=0;x2<=x1;x2++)
 							alphax[m1*x1+x2] += dvdt[x1]*dvdt[x2];
-						betax[x1] += dvdt[x1]*dv;
+						betax[x1] += dvdt[x1]*dv*wt;
 					}
 
 					/* sum of squares */
-					nsamp       += wt*wt;
-					ss          += dv*dv;
-					ss_deriv[0] += dvds0[0]*dvds0[0];
-					ss_deriv[1] += dvds0[1]*dvds0[1];
-					ss_deriv[2] += dvds0[2]*dvds0[2];
+					wt          *= wt;
+					nsamp       += wt;
+					ss          += wt*dv*dv;
+					ss_deriv[0] += wt*dvds0[0]*dvds0[0];
+					ss_deriv[1] += wt*dvds0[1]*dvds0[1];
+					ss_deriv[2] += wt*dvds0[2]*dvds0[2];
 				}
 			}
 
@@ -321,7 +315,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 			/* Kronecker tensor products */
 			for(y1=0; y1<ny; y1++)
 			{
-				double wt1 = BY[dim1[1]*y1+s0[1]];
+				double wt1 = B1[dim1[1]*y1+s0[1]];
 
 				for(i1=0; i1<3; i1++)	/* loop over deformations in x, y and z */
 				{
@@ -330,8 +324,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					{
 						for(y2=0; y2<=y1; y2++)
 						{
-							/* Kronecker tensor products with BY'*BY */
-							double wt2 = wt1 * BY[dim1[1]*y2+s0[1]];
+							/* Kronecker tensor products with B1'*B1 */
+							double wt2 = wt1 * B1[dim1[1]*y2+s0[1]];
 
 							ptr1 = alphaxy + nx*(m1*(ny*i1 + y1) + ny*i2 + y2);
 							ptr2 = alphax  + nx*(m2*i1 + i2);
@@ -377,7 +371,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 		/* Kronecker tensor products */
 		for(z1=0; z1<nz; z1++)
 		{
-			double wt1 = BZ[dim1[2]*z1+s0[2]];
+			double wt1 = B2[dim1[2]*z1+s0[2]];
 
 			for(i1=0; i1<3; i1++)	/* loop over deformations in x, y and z */
 			{
@@ -386,8 +380,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 				{
 					for(z2=0; z2<=z1; z2++)
 					{
-						/* Kronecker tensor products with BZ'*BZ */
-						double wt2 = wt1 * BZ[dim1[2]*z2+s0[2]];
+						/* Kronecker tensor products with B2'*B2 */
+						double wt2 = wt1 * B2[dim1[2]*z2+s0[2]];
 
 						ptr1 = alpha   + nx*ny*(m1*(nz*i1 + z1) + nz*i2 + z2);
 						ptr2 = alphaxy + nx*ny*(m2*i1 + i2);
@@ -497,14 +491,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2;
 	int i, nx,ny,nz,ni=1, samp[3], edgeskip[3];
-	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
+	double *M, *B0, *B1, *B2, *dB0, *dB1, *dB2, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3], nsamp;
 
 	/* also accept 13th argument - object volume weighting */
 	int iW;
         if (((nrhs != 11) && (nrhs != 12) && (nrhs != 13)) || (nlhs > 4))
         {
-                mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
+                mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,B0,B1,B2,dB0,dB1,dB2,T,fwhm);)");
         }
 
         map1 = get_maps(prhs[0], &ni);
@@ -542,7 +536,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	nx = mxGetN(prhs[3]);
-	BX = mxGetPr(prhs[3]);
+	B0 = mxGetPr(prhs[3]);
 	if ( mxGetM(prhs[6]) != map1[0].dim[0] || mxGetN(prhs[6]) != nx)
 	{
 		free_maps(map1, ni);
@@ -550,7 +544,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Wrong sized X basis function derivatives.");
 	}
 
-	dBX = mxGetPr(prhs[6]);
+	dB0 = mxGetPr(prhs[6]);
 
 	if ( mxGetM(prhs[4]) != map1[0].dim[1])
 	{
@@ -560,7 +554,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	ny = mxGetN(prhs[4]);
-	BY = mxGetPr(prhs[4]);
+	B1 = mxGetPr(prhs[4]);
 	if ( mxGetM(prhs[7]) != map1[0].dim[1] || mxGetN(prhs[7]) != ny)
 	{
 		free_maps(map1, ni);
@@ -568,7 +562,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Wrong sized Y basis function derivatives.");
 	}
 
-	dBY = mxGetPr(prhs[7]);
+	dB1 = mxGetPr(prhs[7]);
 
 	if ( mxGetM(prhs[5]) != map1[0].dim[2])
 	{
@@ -577,14 +571,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Wrong sized Z basis functions.");
 	}
 	nz = mxGetN(prhs[5]);
-	BZ = mxGetPr(prhs[5]);
+	B2 = mxGetPr(prhs[5]);
 	if ( mxGetM(prhs[8]) != map1[0].dim[2] || mxGetN(prhs[8]) != nz)
 	{
 		free_maps(map1, ni);
 		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized Z basis function derivatives.");
 	}
-	dBZ = mxGetPr(prhs[8]);
+	dB2 = mxGetPr(prhs[8]);
 
 	T = mxGetPr(prhs[9]);
 	if (mxGetM(prhs[9])*mxGetN(prhs[9]) != 3*nx*ny*nz+ni*4)
@@ -666,7 +660,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
 		map2, ni,map1,
-		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip,
+		nx,B0,dB0, ny,B1,dB1, nz,B2,dB2, M, samp, edgeskip,
 		&nsamp, ss_deriv, mapw, mapw2);
 
 	fwhm3 = ((pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
