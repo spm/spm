@@ -72,7 +72,9 @@ function spm_segment(PF,PG,opts)
 %        - 'f' - fix number of voxels in each cluster
 %        - 'c' - attempt to correct small intensity inhomogeneities
 %        - 'C' - attempt to correct large intensity inhomogeneities
-
+%        - 'w' - write inhomogeneity corrected image(s) (with the 'c'
+%                or 'C' options only)
+%
 debug = 0;
 
 if nargin<3
@@ -123,18 +125,18 @@ if (nargin==0)
 		else
 			ok = 0;
 			while (~ok)
-				PG = spm_get(Inf,'.img',['Select Template(s) for affine matching'],...
-					'', DIR1);
+				PG = spm_get(Inf,'.img',['Select Template(s) for affine matching'],DIR1);
 				if (size(PG,1)>0)
-					dims = zeros(size(PG,1),9);
-					for i=1:size(PG,1)
-						[dim vox dummy dummy dummy origin dummy]...
-							 = spm_hread(deblank(PG(i,:)));
-						dims(i,:) = [dim vox origin];
-					end
-					if size(dims,1) == 1 | ~any(diff(dims))
+					vv = spm_vol(PG);
+					if prod(size(vv))==1,
 						ok = 1;
-					end
+					else,
+						tmp1 = cat(1,vv.dim);
+						tmp2 = cat(3,vv.mat);
+						if ~any(any(diff(tmp1(:,1:3)))) & ~any(any(any(diff(tmp2,1,3)))),
+							ok=1;
+						end;
+					end;
 				else
 					ok = 0;
 				end
@@ -142,13 +144,21 @@ if (nargin==0)
 		end
 	end
 
-	tmp = spm_input('Attempt to correct intensity inhomogeneities?','+1','m',...
+	tmp = spm_input('Attempt to correct intensity inhomogeneities?',...
+		'+1','m',...
 		['No inhomogeneity correction|' ...
 		 'A little inhomogeneity correction|' ...
 		 'Lots of inhomogeneity correction'],...
 		[' ' 'c' 'C'],1);
 	opts = [tmp opts];
-
+	if any(opts == 'c') | any(opts == 'C'),
+		tmp = spm_input('Save inhomogeneity corrected images ?',...
+			'+1','m',...
+			['Don''t save corrected images|' ...
+			 'Save inhomogeneity corrected images'],...
+			[' ' 'w'],1);
+		opts = [tmp opts];
+	end;
 	for i = 1:n
 		eval(['PF = PF' num2str(i) ';']);
 		set(spm_figure('FindWin','Interactive'),'Name',...
@@ -172,10 +182,6 @@ nc        = [1 1 1 3]; % Number of clusters for each probability image
 
 % Determine matrix MM that will transform the image to Talairach space.
 %_______________________________________________________________________
-MF=zeros(4,4,size(PF,1));
-for i=1:size(PF,1)
-	MF(:,:,i) = spm_get_space(PF(i,:));
-end
 if ~isempty(PG) & isstr(PG)
 	% Affine normalisation
 	%-----------------------------------------------------------------------
@@ -208,16 +214,8 @@ else
 	MM = spm_matrix([0 0 0 0 0 0 1 1 1 0 0 0]');
 end
 
-
-for i=1:size(PF,1)
-	VF(:,i) = spm_map(PF(i,:));
-end
-
-Mat = zeros(4,4,size(PB,1));
-for j=1:size(PB,1)
-	VB(:,j)    = spm_map(PB(j,:));
-	Mat(:,:,j) = spm_get_space(PB(j,:));
-end
+VF = spm_vol(PF);
+VB = spm_vol(PB);
 
 m  = size(PF,1);
 %-----------------------------------------------------------------------
@@ -237,9 +235,9 @@ bb1 = [ [-88 88]' [-122 86]' [-60 95]'];
 M0 = [diag(diff(bb1)/2) mean(bb1)';[0 0 0 1]];
 
 % The mapping from voxels to Talairach space is
-% MM*MF(:,:,1), so the ellipse in the space
+% MM*VF(1).mat, so the ellipse in the space
 % of the first image becomes:
-M0 = inv(MM*MF(:,:,1))*M0;
+M0 = inv(MM*VF(1).mat)*M0;
 
 % So to work out the bounding box in the space of the
 % image that just encloses the hyper-ellipse.
@@ -248,7 +246,7 @@ tmp = diag(tmp*tmp'/diag(sqrt(diag(tmp*tmp'))));
 bb  = round([M0(1:3,4)-tmp M0(1:3,4)+tmp])';
 
 % Want to sample about every 4mm
-tmp  = inv(MF(:,:,1));
+tmp  = inv(VF(1).mat);
 tmp  = tmp(1:3,1:3);
 samp = round(max(abs(tmp*[4 4 4]'), [1 1 1]'));
 %-----------------------------------------------------------------------
@@ -266,17 +264,18 @@ if any(opts == 'c') | any(opts == 'C')
 	% Stuff for intensity modulation
 	%-----------------------------------------------------------------------
 	% Set up basis functions
-	nbas = max(round((VF(1:3,1).*VF(4:6,1))/co)',[1 1 1]);
-	B1=spm_dctmtx(VF(1,1),nbas(1),bb(1,1):samp(1):bb(2,1));
-	B2=spm_dctmtx(VF(2,1),nbas(2),bb(1,2):samp(2):bb(2,2));
-	B3=spm_dctmtx(VF(3,1),nbas(3),bb(1,3):samp(3):bb(2,3));
+	tmp = sqrt(sum(VF(1).mat(1:3,1:3).^2));
+	nbas = max(round((VF(1).dim(1:3).*tmp)/co),[1 1 1]);
+	B1=spm_dctmtx(VF(1).dim(1),nbas(1),bb(1,1):samp(1):bb(2,1));
+	B2=spm_dctmtx(VF(1).dim(2),nbas(2),bb(1,2):samp(2):bb(2,2));
+	B3=spm_dctmtx(VF(1).dim(3),nbas(3),bb(1,3):samp(3):bb(2,3));
 
 	d = [size(B1,1) size(B2,1) size(B3,1)];
 
 	% Set up a priori covariance matrix
-	kx=(pi*((1:nbas(1))'-1)/VF(1,1)).^2; ox=ones(nbas(1),1);
-	ky=(pi*((1:nbas(2))'-1)/VF(2,1)).^2; oy=ones(nbas(2),1);
-	kz=(pi*((1:nbas(3))'-1)/VF(3,1)).^2; oz=ones(nbas(3),1);
+	kx=(pi*((1:nbas(1))'-1)/VF(1).dim(1)).^2; ox=ones(nbas(1),1);
+	ky=(pi*((1:nbas(2))'-1)/VF(1).dim(2)).^2; oy=ones(nbas(2),1);
+	kz=(pi*((1:nbas(3))'-1)/VF(1).dim(3)).^2; oz=ones(nbas(3),1);
 	if (0),
 		% based upon bending energy
 		IC0 = (	kron(kz.*kz,kron(oy,ox)) + ...
@@ -298,14 +297,14 @@ if any(opts == 'c') | any(opts == 'C')
 
 	% Mode of the a priori distribution
 	X0    = zeros(prod(nbas),1);
-	X0(1) = sqrt(prod(VF(1:3,1)));
+	X0(1) = sqrt(prod(VF(1).dim(1:3)));
 
 	% Initial estimate for intensity modulation field
 	T =zeros(nbas(1),nbas(2),nbas(3),m);
-	T(1,1,1,:)=sqrt(prod(VF(1:3,1)));
+	T(1,1,1,:)=sqrt(prod(VF(1).dim(1:3)));
 	%-----------------------------------------------------------------------
 else
-	T = sqrt(prod(VF(1:3,1)));
+	T = sqrt(prod(VF(1).dim(1:3)));
 	nbas = [1 1 1];
 end
 
@@ -316,7 +315,7 @@ for i=1:size(nc,2)
 end
 
 n  = size(lkp,2);
-nb = size(VB,2);
+nb = prod(size(VB));
 
 sumbp = zeros(1,n);
 osumpr = -Inf;
@@ -359,8 +358,8 @@ for iter = 1:niter
 
 
 		for i=1:m
-			M = inv(B);
-			tmp = spm_slice_vol(VF(:,i),M, d(1:2),1);
+			M = VF(i).mat\VF(1).mat*inv(B);
+			tmp = spm_slice_vol(VF(i),M, d(1:2),1);
 			msk = msk | tmp(:)==0;
 			if reg~=0
 				% Non-uniformity correct.
@@ -381,8 +380,8 @@ for iter = 1:niter
 			% A priori probability data for eg WM GM CSF scalp etc..
 			bp = zeros(d(1)*d(2),nb+1);
 			for j=1:nb
-				M = inv(B*inv(MM*MF(:,:,1))*Mat(:,:,j));
-				tmp = spm_slice_vol(VB(:,j),M, d(1:2),1)/nc(j);
+				M = inv(B*inv(MM*VF(1).mat)*VB(j).mat);
+				tmp = spm_slice_vol(VB(j),M, d(1:2),1)/nc(j);
 				bp(:,j) = tmp(:);
 			end
 			% Other tissue
@@ -528,11 +527,11 @@ spm_chi2_plot('Clear');
 
 % Create headers, open files etc...
 %-----------------------------------------------------------------------
-dm     = VF(1:3,1);
-vx     = VF(4:6,1);
-orgn   = MF(:,:,1)\[0 0 0 1]';
+dm     = VF(1).dim(1:3);
+vx     = sqrt(sum(VF(1).mat(1:3,1:3).^2));
+orgn   = VF(1).mat\[0 0 0 1]';
 orgn   = round(orgn(1:3)');
-planes = 1:VF(3,1);
+planes = 1:VF(1).dim(3);
 
 k = prod(dm(1:2));
 
@@ -545,9 +544,9 @@ else
 end
 
 
-B1=spm_dctmtx(VF(1,1),nbas(1));
-B2=spm_dctmtx(VF(2,1),nbas(2));
-B3=spm_dctmtx(VF(3,1),nbas(3));
+B1=spm_dctmtx(VF(1).dim(1),nbas(1));
+B2=spm_dctmtx(VF(1).dim(2),nbas(2));
+B3=spm_dctmtx(VF(1).dim(3),nbas(3));
 
 for j=1:nimg
 	iname = [spm_str_manip(PF(1,:),'rd') app num2str(j)];
@@ -558,40 +557,62 @@ for j=1:nimg
 	end
 	spm_hwrite([iname '.img'],dm,vx,1/255,2,0,orgn,...
 		'Segmented image');
-	spm_get_space(iname,MF(:,:,1));
+	spm_get_space(iname,VF(1).mat);
 end
+
+if any(opts == 'w'),
+	fpc = ones(m,1)*(-1);
+	for j=1:m,
+		p  = spm_str_manip(VF(j).fname,'d');
+		q  = max([find(p == '/') 0]);
+		q  = [p(1:q) 'corr_' p((q + 1):length(p))];
+		spm_hwrite(q,dm,vx,VF(j).pinfo(1),VF(j).dim(4),0,orgn,...
+			'Corrected image');
+		spm_get_space(q,VF(1).mat);
+		if j==1,
+			corrfnames = q;
+		else,
+			corrfnames = str2mat(corrfnames,q);
+		end;
+		fpc(j) = fopen(q, 'w');
+		if (fpc(j) == -1),
+			open_error_message(q);
+			error(['Failed to open ' q]);
+		end;
+	end;
+end;
 
 
 % Write the segmented images.
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',dm(3),'Writing Segmented','planes completed');
 disp('Writing Segmented');
-clear pr bp dat
+clear pr bp dat dat0
 
 for pp=1:size(planes,2)
 	p = planes(pp);
 	B  = spm_matrix([0 0 -p]);
-	M2 = B*inv(MM*MF(:,:,1));
+	M2 = B*inv(MM*VF(1).mat);
 
 	for i=1:m
 		% The image data
-		M1 = inv(B*(MF(:,:,1)\MF(:,:,i)));
-		tmp = spm_slice_vol(VF(:,i), M1, dm(1:2), 1);
+		M1 = inv(B*(VF(1).mat\VF(i).mat));
+		tmp = spm_slice_vol(VF(i), M1, dm(1:2), 1);
 		if reg~=0
 			% Apply non-uniformity correction
 			t = reshape(reshape(T(:,:,:,i),...
 				nbas(1)*nbas(2),nbas(3))*B3(pp,:)', nbas(1), nbas(2));
 			t = B1*t*B2';
-			dat(:,i) = tmp(:).*t(:);
+			dat0(:,i) = tmp(:).*t(:);
 		else
-			dat(:,i) = tmp(:);
+			dat0(:,i) = tmp(:);
 		end
 	end
 
-	bp = zeros(size(dat,1),nb+1);
+	bp = zeros(size(dat0,1),nb+1);
 	for j=1:nb
-		M = inv(M2*Mat(:,:,j));
-		tmp = spm_slice_vol(VB(:,j), M, dm(1:2),1);
+		M = inv(M2*VB(j).mat);
+		tmp = spm_slice_vol(VB(j), M, dm(1:2),1);
 		bp(:,j) = tmp(:)/nc(j);
 	end
 
@@ -599,7 +620,7 @@ for pp=1:size(planes,2)
 
 	for i=1:n
 		amp = 1/sqrt((2*pi)^m * det(cv(:,:,i)));
-		dst = (dat-ones(k,1)*mn(:,i)')/sqrtm(cv(:,:,i));
+		dst = (dat0-ones(k,1)*mn(:,i)')/sqrtm(cv(:,:,i));
 		dst = sum(dst.*dst,2);
 		pr(:,i) = amp*exp(-0.5*dst).*(bp(:,lkp(i))*(mg(1,i)/sumbp(i)));
 	end
@@ -620,6 +641,39 @@ for pp=1:size(planes,2)
 		end
 	end
 
+	if any(opts == 'w'),
+		% Write nonuniformity corrected images.
+		%-----------------------------------------------------------------------
+		for i=1:m,
+			d = dat0(:,i)/VF(i).pinfo(1,1);
+			% Deal with different data types
+			%-----------------------------------------------------------------------
+			if (VF(i).dim(4) == 2)
+				d = round(d);
+				tmp = find(d > 255);
+				d(tmp) = zeros(size(tmp))+255;
+				tmp = find(d < 0);
+				d(tmp) = zeros(size(tmp));
+			elseif (VF(i).dim(4) == 4)
+				d = round(d);
+				tmp = find(d > 32767);
+				d(tmp) = zeros(size(tmp))+32767;
+				tmp = find(d < -32768);
+				d(tmp) = zeros(size(tmp))-32768;
+			elseif (VF(i).dim(4) == 8)
+				d = round(d);
+				tmp = find(d > 2^31-1);
+				d(tmp) = zeros(size(tmp))+(2^31-1);
+				tmp = find(d < -2^31);
+				d(tmp) = zeros(size(tmp))-2^31;
+			end
+			if fwrite(fpc(i),d,spm_type(VF(i).dim(4))) ~= prod(size(d))
+				spm_progress_bar('Clear');
+				write_error_message(corrfnames(i,:));
+				error(['Error writing ' corrfnames(i,:) '. Check your disk space.']);
+			end;
+		end;
+	end;
 	spm_progress_bar('Set',pp);
 end
 spm_progress_bar('Clear');
@@ -627,10 +681,11 @@ spm_progress_bar('Clear');
 for j=1:nimg
 	fclose(fp(j));
 end
-
-for v=[VF VB]
-	spm_unmap(v);
-end
+if any(opts == 'w'),
+	for i=1:m,
+		fclose(fpc(i));
+	end;
+end;
 
 
 % Do the graphics
@@ -654,7 +709,7 @@ for j=1:nb
 	text((j+0.5)/(nb+2),0.40, num2str(mn(1,j)),...
 		'FontSize',12,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
-	text((j+0.5)/(nb+2),0.30, num2str(sqrt(cv(1,j))),...
+	text((j+0.5)/(nb+2),0.30, num2str(sqrt(cv(1,1,j))),...
 		'FontSize',12,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
 	text((j+0.5)/(nb+2),0.20, num2str(mg(1,j)/sum(mg(1,:))),...
@@ -669,23 +724,23 @@ end
 
 % and display a few images.
 %-----------------------------------------------------------------------
-V = spm_map(deblank(PF(1,:)));
+V = spm_vol(deblank(PF(1,:)));
 for j=1:nimg
 	iname = [spm_str_manip(PF(1,:),'rd') app num2str(j) '.img'];
-	VS(:,j) = spm_map(iname);
+	VS(j) = spm_vol(iname);
 end
-M1 = spm_get_space(iname);
-M2 = spm_get_space(PF(1,:));
+M1 = VS(1).mat;
+M2 = VF(1).mat;
 for i=1:5
-	M = spm_matrix([0 0 i*V(3)/6]);
-	img = spm_slice_vol(V,M,V(1:2),0);
+	M = spm_matrix([0 0 i*V(1).dim(3)/6]);
+	img = spm_slice_vol(V(1),M,V(1).dim(1:2),1);
 	img(1,1) = eps;
 	ax=axes('Position',[0.05 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],'Visible','off','Parent',fg);
 	imagesc(rot90(img), 'Parent', ax);
 	set(ax,'Visible','off','DataAspectRatio',[1 1 1]);
 
 	for j=1:nimg
-		img = spm_slice_vol(VS(:,j),M2\M1*M,V(1:2),0);
+		img = spm_slice_vol(VS(j),M2\M1*M,V(1).dim(1:2),1);
 		ax=axes('Position',...
 			[0.05+j*0.9/(nb+2) 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],...
 			'Visible','off','Parent',fg);
@@ -693,11 +748,6 @@ for i=1:5
 		set(ax,'Visible','off','DataAspectRatio',[1 1 1]);
 	end
 end
-spm_unmap(V);
-for i=1:size(VS,2)
-	spm_unmap(VS(:,i));
-end
-clear VS;
 
 spm_print;
 drawnow;
