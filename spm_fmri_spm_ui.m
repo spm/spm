@@ -385,7 +385,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 gSF   = GM./g;
 if strcmp(SPM.xGX.iGXcalc,'None')
 	for i = 1:nsess
-		gSF(Sess(i).row) = GM./mean(g(Sess(i).row));
+		gSF(SPM.Sess(i).row) = GM./mean(g(SPM.Sess(i).row));
 	end
 end
 
