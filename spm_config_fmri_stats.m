@@ -761,9 +761,9 @@ if ~classical
     if isfield(job.estim.Method.Bayesian.space,'Slices')
         SPM.PPM.space_type='Slices';
         SPM.PPM.AN_slices=job.estim.Method.Bayesian.space.Slices;
+    else
+        SPM.PPM.space_type='Volume';
     end
-else
-    SPM.PPM.space_type='Volume';
 end
 
 if strcmp(job.estim.when,'At Run Time')
