@@ -1,25 +1,23 @@
 function varargout=spm_mip_ui(varargin)
 % GUI for displaying MIPs with interactive pointers
-% FORMAT hMIPax = spm_mip_ui(t,VOL,F)
-% t      - SPM point list for MIP
-% VOL    - the structure returned by spm_getSPM.  The required fields
-%          are:
-%            VOL.XYZ  - location of voxels {mm}
-%            VOL.DIM  - image dimensions {voxels}
-%            VOL.M    - voxels - > mm matrix
-% F      - Figure to work in [Defaults to gcf]
-% hMIPax - handle of MIP axes
+% FORMAT hMIPax = spm_mip_ui(Z,XYZ,M,DIM,F)
+% Z       - {1 x ?} vector point list of SPM values for MIP
+% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
+% M       - voxels - > mm matrix
+% DIM     - image dimensions {voxels}
+% F       - Figure (or axes) to work in [Defaults to gcf]
+% hMIPax  - handle of MIP axes
 %
 % FORMAT xyz = spm_mip_ui('GetCoords',h)
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% xyz    - Current Talairach coordinates of cursor
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% xyz     - Current Talairach coordinates of cursor
 %
 % FORMAT [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
-% xyz    - (Input) {3 x 1} vector of desired Talairach coordinates
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% hC     - Handle of calling object, if used as a callback. [Default 0]
-% xyz    - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d      - Euclidian distance between desired co-ords & nearest voxel centre 
+% xyz     - (Input) {3 x 1} vector of desired Talairach coordinates
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% hC      - Handle of calling object, if used as a callback. [Default 0]
+% xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
+% d       - Euclidian distance between desired co-ords & nearest voxel centre 
 %_______________________________________________________________________
 %
 % spm_mip_ui displays a maximum intensity projection (using spm_mip)
@@ -64,53 +62,51 @@ function varargout=spm_mip_ui(varargin)
 %( MatLab's command-function duality: `spm_figure Create` is           )
 %( equivalent to `spm('Create')`.                                      )
 %
-% FORMAT hMIPax = spm_mip_ui(t,XYZ,V,F)
-% [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',t,XYZ,V,F)
+% FORMAT hMIPax = spm_mip_ui(Z,XYZ,V,F)
+% [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',Z,XYZ,V,F)
 %
-% FORMAT hMIPax = spm_mip_ui('Display',t,VOL,F)
+% FORMAT hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F)
 % Displays the MIP and sets up cursors
-% t      - SPM point list for MIP
-% VOL    - the structure returned by spm_getSPM.  The required fields
-%          are:
-%            VOL.XYZ  - location of voxels {mm}
-%            VOL.DIM  - image dimensions {voxels}
-%            VOL.M    - voxels - > mm matrix
-% F      - Figure to work in [Defaults to gcf]
-% hMIPax - handle of MIP axes
+% Z       - {1 x ?} vector point list of SPM values for MIP
+% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
+% M       - voxels - > mm matrix
+% DIM     - image dimensions {voxels}
+% F       - Handle of figure (or axes) to work in [Defaults to gcf]
+% hMIPax  - handle of MIP axes
 %
 % FORMAT xyz = spm_mip_ui('GetCoords',h)
 % Returns coordinates of current cursor position
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% xyz    - Current Talairach coordinates of cursor
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% xyz     - Current Talairach coordinates of cursor
 %
 % FORMAT [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
 % Sets cursor position
-% xyz    - (Input) {3 x 1} vector of desired Talairach coordinates
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% hC     - Handle of calling object, if used as a callback. [Default 0]
-% xyz    - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d      - Euclidian distance between desired co-ords & nearest voxel centre 
+% xyz     - (Input) {3 x 1} vector of desired Talairach coordinates
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% hC      - Handle of calling object, if used as a callback. [Default 0]
+% xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
+% d       - Euclidian distance between desired co-ords & nearest voxel centre 
 %
 % FORMAT spm_mip_ui('PosnMarkerPoints',xyz,h,r)
 % Utility routine: Positions cursor markers
-% xyz    - {3 x 1} vector of Talairach coordinates for cursor
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% r      - 'r' to move visible red cursors, 'g' to move invisible green cursors
+% xyz     - {3 x 1} vector of Talairach coordinates for cursor
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% r       - 'r' to move visible red cursors, 'g' to move invisible green cursors
 %
 % FORMAT spm_mip_ui('ShowGreens',xyz,h)
 % Shows green secondary cursors at location xyz
-% xyz    - {3 x 1} vector of Talairach coordinates for cursor
+% xyz     - {3 x 1} vector of Talairach coordinates for cursor
 %           [Default UserData of gco]
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
 %
 % FORMAT spm_mip_ui('HideGreens',h)
 % Hides green secondary marker points
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
 %
 % FORMAT hMIPax = spm_mip_ui('FindMIPax',h)
 % Looks for / checks MIP axes 'Tag'ged 'hMIPax'... errors if no valid MIP axes
-% h      - Handle of MIP axes, or figure containing (one) MIP axes [default gcf]
-% hMIPax - Handle of valid MIP axis found (errors if multiple found)
+% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% hMIPax  - Handle of valid MIP axis found (errors if multiple found)
 %
 % FORMAT spm_mip_ui('MoveStart')
 % Utility routine: CallBack for starting cursor dragging
@@ -158,12 +154,12 @@ Po(4)  = DXYZ(2)         +CXYZ(1) -2;
 %=======================================================================
 switch lower(varargin{1}), case 'display'
 %=======================================================================
-% hMIPax = spm_mip_ui('Display',t,VOL,F)
-if nargin<4
+% hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F)
+if nargin<5
 	F      = gcf;
 	hMIPax = [];
 else
-	F = varargin{4};
+	F = varargin{6};
 	if isstr(F), F=spm_figure('FindWin',F); end
 	if ~ishandle(F), error('Invalid handle'), end
 	switch get(F,'Type'), case 'figure'
@@ -175,13 +171,13 @@ else
 		error('F not a figure or axis handle')
 	end
 end
-if nargin<3, error('Insufficient arguments'), end
-M       = varargin{3}.M;
-D       = varargin{3}.DIM;
-XYZ     = varargin{3}.XYZ;
-t       = varargin{2};
+if nargin<4, error('Insufficient arguments'), end
+DIM     = varargin{5};
+M       = varargin{4};
+XYZ     = varargin{3};
+Z       = varargin{2};
 
-xyz = spm_XYZreg('RoundCoords',[0;0;0],M,D);
+xyz = spm_XYZreg('RoundCoords',[0;0;0],M,DIM);
 
 
 %-Display MIP
@@ -194,10 +190,9 @@ else
 	axes(hMIPax), cla reset
 end
 
-%**** Sort out this CurrentFigure stuff! - spm_mip's image uses a newplot &
-%     screws stuff, and without the figure & the DrawNow whole thing disappears!
+%-NB: spm_mip's `image` uses a newplot, & screws stuff without the figure.
 figure(F)
-spm_mip(t,varargin{3});
+spm_mip(Z,XYZ,M,DIM);
 
 %-Canonicalise axis positioning & save
 %-----------------------------------------------------------------------
@@ -215,7 +210,7 @@ set(hMIPax,'Position',MIPaxPos)
 
 %-Create point markers
 %-----------------------------------------------------------------------
-if D(3) == 1
+if DIM(3) == 1
 	%-2 dimensional data
 	%---------------------------------------------------------------
 	hXr    = text(xyz(1),xyz(2),'<','Color','r','Fontsize',16,...
@@ -249,10 +244,6 @@ else
 	hXg = [hX1g,hX2g,hX3g];
 end
 
-%-For some bizzare reason, the whole thing disappears without this drawnow!
-%-----------------------------------------------------------------------
-drawnow
-
 %-Print coordinates
 %-----------------------------------------------------------------------
 hMIPxyz = text(0,0,'{\bfSPM}{\itmip}',...
@@ -270,9 +261,9 @@ set(hMIPax,'Tag','hMIPax','UserData',...
 	struct(	'hReg',		[],...
 		'hMIPxyz',	hMIPxyz,...
 		'XYZ',		XYZ,...
-		't',		t,...
+		'Z',		Z,...
 		'M',		M,...
-		'D',		D,...
+		'DIM',		DIM,...
 		'hXr',		hXr,...
 		'hXg',		hXg))
 
@@ -305,7 +296,7 @@ MD  = get(h,'UserData');
 %-Check validity of coords only when called without a caller handle
 %-----------------------------------------------------------------------
 if hC<=0
-	[xyz,d] = spm_XYZreg('RoundCoords',xyz,MD.M,MD.D);
+	[xyz,d] = spm_XYZreg('RoundCoords',xyz,MD.M,MD.DIM);
 	if d>0 & nargout<2, warning(sprintf(...
 	    '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
 		mfilename,d)), end
@@ -418,7 +409,7 @@ set(cO,'UserData',struct(...
 	'MIPaxPos',	get(hMIPax,'Position')*[1,0;0,1;0,0;0,0],...
 	'hMIPxyz',	MD.hMIPxyz,...
 	'M',		MD.M,...
-	'D',		MD.D,...
+	'DIM',		MD.DIM,...
 	'hX',		MD.hXr))
 
 %-Initiate dragging
@@ -466,7 +457,7 @@ cO = gco(cF);
 %-Get useful data from UserData of gcbo, the object to be dragged
 %-----------------------------------------------------------------------
 MS  = get(cO,'UserData');
-b2d = MS.D(3) == 1;
+b2d = MS.DIM(3) == 1;
 
 %-Work out where we are moving to - Use HandleGraphics to give positon
 %-----------------------------------------------------------------------
@@ -497,9 +488,9 @@ end
 %-Round coordinates according to DragType & set in hMIPxyz's UserData
 %-----------------------------------------------------------------------
 if DragType==0
-	xyz    = spm_XYZreg('RoundCoords',xyz,MS.M,MS.D);
+	xyz    = spm_XYZreg('RoundCoords',xyz,MS.M,MS.DIM);
 elseif DragType==1
-	xyz    = spm_XYZreg('RoundCoords',xyz,MS.M,MS.D);
+	xyz    = spm_XYZreg('RoundCoords',xyz,MS.M,MS.DIM);
 	hMIPax = get(cO,'Parent');
 	MD     = get(hMIPax,'UserData');
 	i      = spm_XYZreg('FindXYZ',xyz,MD.XYZ);
@@ -532,13 +523,13 @@ elseif DragType==1
 		str = sprintf('{\\bfSPM}{\\itmip}: [%.2f, %.2f, %.2f]: ??',xyz);
 	else
 		str = sprintf('{\\bfSPM}{\\itmip}: [%.2f, %.2f, %.2f]: %.4f',...
-				xyz,MD.t(i));
+				xyz,MD.Z(i));
 	end
 	set(MD.hMIPxyz,'String',str)
 elseif DragType==2
 	set(MD.hMIPxyz,'String',...
 		sprintf('{\\bfSPM}{\\itmip}: [%.2f, %.2f, %.2f]: %.4f',...
-		xyz,MD.t(i)) )
+		xyz,MD.Z(i)) )
 else
 	error('Illegal DragType')
 end
