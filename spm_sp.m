@@ -172,7 +172,7 @@ function varargout = spm_sp(varargin)
 % x - space structure
 % b - true if the basic fields are non-empty
 %_______________________________________________________________________
-% %W% Jean-Baptiste Poline %E%
+% @(#)spm_sp.m	2.8 Jean-Baptiste Poline 99/05/01
 
 if nargin==0
 	error('Do what? no arguments given...')
@@ -1053,14 +1053,18 @@ if r > 0
 	if q >= p  %- the null space is entirely in v
 		if r == p, n = zeros(p,1); else, n = sX.v(:,r+1:p); end
 	else %- only part of n is in v: same as computing the null sp of sX'
-		v = zeros(p,p-q); j = 1; i = 1; z = zeros(p,1);
-		while i <= p
-			o = z; o(i) = 1; vpoi = [sX.v(i,:) v(i,1:j-1)]';
-			o = sf_tol(o - [sX.v v(:,1:j-1)]*vpoi,sX.tol);
-			if any(o), v(:,j) = o/((o'*o)^(1/2)); j = j + 1; end;
-			i = i + 1; %- if i>p, error('gramm shmidt error'); end;
-		end
-		n = [sX.v(:,r+1:q) v];
+
+		n = null(sX.X); 
+%----- BUG !!!! in that part ----------------------------------------
+%-		v = zeros(p,p-q); j = 1; i = 1; z = zeros(p,1);
+%-		while i <= p
+%-			o = z; o(i) = 1; vpoi = [sX.v(i,:) v(i,1:j-1)]';
+%-			o = sf_tol(o - [sX.v v(:,1:j-1)]*vpoi,sX.tol);
+%-			if any(o), v(:,j) = o/((o'*o)^(1/2)); j = j + 1; end;
+%-			i = i + 1; %- if i>p, error('gramm shmidt error'); end;
+%-		end
+%-		n = [sX.v(:,r+1:q) v];
+%--------------------------------------------------------------------
 	end
 else 
 	n = eye(p);
