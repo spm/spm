@@ -25,9 +25,14 @@ return;
 %_______________________________________________________________________
 function sts = write_analyze_plane(V,A,p)
 sts   = 0;
-
 % Check datatype is OK
-s = find(V.dim(4) == [2 4 8 16 64]);
+dt = V.dim(4);
+
+% Convert to native datatype
+if dt>256,
+	dt = dt/256;
+end;
+s = find(dt == [2 4 8 16 64]);
 if isempty(s)
 	sts = -1;
 	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
@@ -48,27 +53,46 @@ if fp == -1,
 	end;
 end;
 
-% Rescale for writing
-A = A/V.pinfo(1,1);
-
-% Truncate and round if necessary
-if any(V.dim(4) == [2 4 8]),
-	A = round(A);
-	if V.dim(4) == 2,
+% Rescale to fit appropriate range
+if any(dt == [2 4 8]),
+	if dt == 2,
+		maxval = max(255*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/255;
+		A      = round(A/scale);
 		A(find(A <   0)) =   0;
 		A(find(A > 255)) = 255;
-	elseif (V.dim(4) == 4)
+	elseif dt == 4,
+		maxval = max(32767*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/32767;
+		A      = round(A/scale);
 		A(find(A >  32767)) =  32767;
 		A(find(A < -32768)) = -32768;
-	elseif (V.dim(4) == 8)
+	elseif (dt == 8)
+		maxval = max((2^31-1)*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/(2^31-1);
+		A      = round(A/scale);
 		A(find(A >  2^31-1)) =  2^31-1;
 		A(find(A < -2^31  )) = -2^31;
-	end
+	end;
 end;
 
-% Write the plane at the appropriate offset
-off   = V.pinfo(3,1) + (p-1)*datasize*prod(V.dim(1:2));
-fseek(fp,off,'bof');
+% Seek to the appropriate offset
+off   = (p-1)*datasize*prod(V.dim(1:2)); % + V.pinfo(3,1);
+if fseek(fp,off,'bof')==-1,
+	% Need this because fseek in Matlab does not
+	% seek past the EOF
+	fseek(fp,0,'eof');
+	curr_off = ftell(fp)
+	blanks = zeros(off-curr_off,1);
+	if fwrite(fp,blanks,'uchar') ~= prod(size(blanks)),
+		fclose(fp);
+		sts = -1;
+		return;
+	end;
+	fseek(fp,off,'bof');
+end;
+
+sts=0;
 if fwrite(fp,A,spm_type(V.dim(4))) ~= prod(size(A)),
 	fclose(fp);
 	sts = -1;

@@ -13,8 +13,9 @@ if create_analyze_image(V) == -1,
 	error(['Error opening ' V.fname '. Check that you have write permission.']);
 end;
 return;
+%_______________________________________________________________________
 
-
+%_______________________________________________________________________
 function sts = create_analyze_image(V)
 sts  = 0;
 
@@ -29,10 +30,38 @@ if isfield(V,'descrip'),
 else
 	descrip = 'SPM compatible';
 end;
+% Check datatype is OK
+dt = V.dim(4);
+
+% Convert to native datatype
+if dt>256,
+	dt = dt/256;
+end;
+s = find(dt == [2 4 8 16 64]);
+if isempty(s)
+	sts = -1;
+	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
+	return;
+end;
+
+% Compute an appropriate scalefactor
+if dt == 2,
+	maxval = max(255*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/255;
+elseif dt == 4,
+	maxval = max(32767*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/32767;
+elseif (dt == 8)
+	maxval = max((2^31-1)*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/(2^31-1);
+else
+	scale = 1.0;
+end;
+
 
 % Write the header
 s    = spm_hwrite(deblank(V.fname), [V.dim(1:3) 1],...
-	vx, V.pinfo(1,1), V.dim(4), V.pinfo(3,1), orgn, descrip);
+	vx, scale, V.dim(4), 0, orgn, descrip);
 if s~= 348,
 	sts = -1;
 end;
@@ -40,7 +69,9 @@ end;
 % Write the matrix
 spm_get_space(deblank(V.fname),V.mat);
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function open_error_message(q)
 f=spm_figure('findwin','Graphics'); 
 if ~isempty(f), 
@@ -53,3 +84,4 @@ if ~isempty(f),
 	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
 end
 return
+%_______________________________________________________________________
