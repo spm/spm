@@ -25,8 +25,8 @@ return;
 function V = create_vol(V,varargin)
 if ~isfield(V,'n')           | isempty(V.n),           V.n           = 1;                 end;
 if ~isfield(V,'descrip')     | isempty(V.descrip),     V.descrip     = 'SPM2 compatible'; end;
-if ~isfield(V,'private'),                              V.private     = struct('hdr',[]);  end;
-if ~isfield(V.private,'hdr') | isempty(V.private.hdr), V.private.hdr = create_defaults;   end;
+V.private     = struct('hdr',[]);
+V.private.hdr = create_defaults;
 
 % Orientation etc...
 M  = V.mat;
