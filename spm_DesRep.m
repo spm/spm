@@ -147,7 +147,7 @@ function varargout = spm_DesRep(varargin)
 %          [defaults to load(spm_get(SPM{_fMRIDesMtx,cfg,}.mat))
 % .xX    - design matrix structure
 %          (See spm_{fmri_}spm_ui.m & spm_spm.m for formats)
-% .VY    - array of file handles (from spm_{fmri_}spm_ui.m)
+% .VY    - array of mmap file handles (from spm_{fmri_}spm_ui.m)
 % .xM    - Masking structure
 % .F_iX0 - default F-contrast specifications
 %          (see spm_{fmri_}spm_ui.m & spm_spm.m for formats)
