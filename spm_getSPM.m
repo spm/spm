@@ -207,18 +207,19 @@ for i=1:length(xCon)
 	if isstruct(xCon(i).Vspm), xCon(i).Vspm=xCon(i).Vspm.fname; end
 end
 
-%-See if can write to current directory (by trying to resave xCon.mat)
+%-See if can write to current directory (by trying to open for appending)
 %-----------------------------------------------------------------------
 wOK = 1;
-try
-	save(fullfile(swd,'xCon.mat'),'xCon')
-catch
-	wOK = 0;
-	str = {	'Can''t write to the results directory:',...
-        	'(problem saving xCon.mat)',...
-		['        ',swd],...
-		' ','-> results restricted to contrasts already computed'};
-	spm('alert!',str,mfilename,1);
+fid = fopen(fullfile(swd,'xCon.mat'),'a');
+if fid < 0
+   wOK = 0;
+   str = {	'Can''t write to the results directory:',...
+         '(problem saving xCon.mat)',...
+         ['        ',swd],...
+         ' ','-> results restricted to contrasts already computed'};
+   spm('alert!',str,mfilename,1);
+else
+   fclose(fid);
 end
 
 
