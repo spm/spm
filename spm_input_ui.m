@@ -53,13 +53,14 @@ function varargout = spm_input(varargin)
 %                                           e.g. "tmp"
 %
 % The last three options provide a great deal of power: spm_load will
-% load a matrix from an ASCII data file and return the results, and is
-% easily used from the ContextMenu. The second example assummes a
-% custom funcion called input_cov has been written which expects two
-% arguments, for example the following file saved as input_cov.m
-% somewhere on the MATLABPATH (~/matlab, the matlab subdirectory of
-% your home area, and the current directory, are on the MATLABPATH by
-% default):
+% load a matrix from an ASCII data file and return the results. When
+% called without an argument, spm_load will pop up a file selection
+% dialog. Alternatively, this facility can be gained from the
+% ContextMenu. The second example assummes a custom funcion called
+% input_cov has been written which expects two arguments, for example
+% the following file saved as input_cov.m somewhere on the MATLABPATH
+% (~/matlab, the matlab subdirectory of your home area, and the current
+% directory, are on the MATLABPATH by default):
 %
 %       function [x] = input_cov(n,decay)
 %       % data input routine - mono-exponential covariate
