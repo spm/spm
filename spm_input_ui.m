@@ -1621,8 +1621,9 @@ else
 	%---------------------------------------------------------------
 	h = uicontrol(Finter,'Style','Text',...
 		'String',Prompt(1:min(length(Prompt),56)),...
+		'FontWeight','bold',...
 		'Tag',['GUIinput_',int2str(YPos)],...
-		'HorizontalAlignment','Center',...
+		'HorizontalAlignment','Left',...
 		'ForegroundColor',dCol,...
 		'UserData',Prompt,...
 		'Position',QRec);
@@ -1641,7 +1642,7 @@ else
 			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
 	end
 end
-varargout={[],YPos};
+if nargout>0, varargout={[],YPos}; end
 
 
 
@@ -1817,21 +1818,21 @@ Prompt = cellstr(Prompt);
 
 if ~isempty(TipStr)
   tmp    = 8 + length(Prompt{end}) + length(TipStr);
-  if tmp < 60
-    TipStr = sprintf('%s(%s)',repmat(' ',1,68-tmp),TipStr);
+  if tmp < 62
+    TipStr = sprintf('%s(%s)',repmat(' ',1,70-tmp),TipStr);
   else
-    TipStr = sprintf('\n%s(%s)',repmat(' ',1,max(0,68-length(TipStr))),TipStr);
+    TipStr = sprintf('\n%s(%s)',repmat(' ',1,max(0,70-length(TipStr))),TipStr);
   end
 end
 
 if isempty(Title)
-	fprintf('\n%s\n',repmat('=',1,70))
+	fprintf('\n%s\n',repmat('~',1,72))
 else
-	fprintf('\n= %s %s\n',Title,repmat('=',1,70-length(Title)-3))
+	fprintf('\n= %s %s\n',Title,repmat('~',1,72-length(Title)-3))
 end
 fprintf('\t%s',Prompt{1})
 for i=2:prod(size(Prompt)), fprintf('\n\t%s',Prompt{i}), end
-fprintf('%s\n%s\n',TipStr,repmat('=',1,70))
+fprintf('%s\n%s\n',TipStr,repmat('~',1,72))
 
 
 case '!inputrects'
