@@ -4,13 +4,14 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %___________________________________________________________________________
-% M.f  - f(x,u,P)
-% M.g  - g(x,u,P)
+% M.f - f(x,u,P)
+% M.g - g(x,u,P)
 %	x - state  variables
 %	u - inputs or causes
 %	P - free parameters
-% M.pE - prior expectation  - E{P}
-% M.pC - prior covariance   - Cov{P}
+% M.pE  - prior expectation  - E{P}
+% M.pC  - prior covariance   - Cov{P}
+% M.IS - integration scheme (function name or handle f(P,M,U,varargin))
 %
 %
 % U.u  - inputs
@@ -54,17 +55,25 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
+% integration scheme
+%---------------------------------------------------------------------------
+try
+    f = fcnchk(M.IS);
+catch
+    f = 'spm_int';
+end
+
 % data y
 %---------------------------------------------------------------------------
-y      = Y.y;
-[ns m] = size(y);			% number of samples and responses
+y       = Y.y;
+[ns nr] = size(y);			% number of samples and responses
 
 % covariance components
 %---------------------------------------------------------------------------
 if isfield(Y,'Ce')
     Q = Y.Ce;
 else
-    Q = spm_Ce(ns*ones(1,m));
+    Q = spm_Ce(ns*ones(1,nr));
 end
 nh    = length(Q);          % number of variance components
 ne    = length(Q{1});       % number of error terms
@@ -81,76 +90,74 @@ for i = 1:nh
 end
 iS    = inv(S);
 
-% priors
+% prior and conditional [posterior] moments
 %---------------------------------------------------------------------------
-pE     = M.pE;
-pC     = M.pC;
+pE    = M.pE;
+pC    = M.pC;
+Cp    = pC;
+Ep    = pE;
 
 % confounds (if specified)
 %---------------------------------------------------------------------------
 if isfield(Y,'X0')
-    Ju = kron(speye(m,m),Y.X0);
+    Ju = kron(speye(nr,nr),Y.X0);
 else
     Ju = [];
 end
 
-% SVD of prior covariance
-%---------------------------------------------------------------------------
-Vp     = spm_svd(pC,1e-16);
-np     = size(Vp,2);		% number of parameters (effective)
-nu     = size(Ju,2);		% number of parameters (confounds)
-ip     = [1:np];
-iu     = [1:nu] + np;
-
 % treat confounds as fixed effects
 %---------------------------------------------------------------------------
-uE     = sparse(nu,1);
-uC     = speye(nu,nu)*1e6;
+nu    = size(Ju,2);		              % number of parameters (confounds)
+uE    = sparse(nu,1);
+uC    = speye(nu,nu)*1e6;
 
-% combine priors on free parameters and confounds
+% dimension reduction of parameter space
 %---------------------------------------------------------------------------
-pC     = blkdiag(Vp'*pC*Vp, uC);
-ipC    = inv(pC);
+V     = spm_svd(Cp,1e-16);
+np    = size(V,2);		              % number of parameters (effective)
+ip    = [1:np];
+iu    = [1:nu] + np;
 
-% initialise free parameters
+% moments (in reduced space)
 %---------------------------------------------------------------------------
-p      = [sparse(np,1); inv(Ju'*Ju)*Ju'*y(:)];
+p     = [sparse(np,1); inv(Ju'*Ju)*Ju'*y(:)];
+Cp    = V'*pC*V;
+ipC   = inv(blkdiag(V'*pC*V, uC));
 
 
-% EM 
+% EM
 %===========================================================================
-dv     = 1e-6;
-lm     = 0;
-F      = -Inf;
+C.F    = -Inf;
+dv     = 1/128;
 dFdh   = sparse(nh,1);
 dFdhh  = sparse(nh,nh);
-for  k = 1:32
+lm     = 0;
+for  k = 1:64
     
-    % integrate
-    %-------------------------------------------------------------------
-    p0     = pE + Vp*p(ip);
-    fp     = spm_int(p0,M,U,ns);
     
-    % compute partial derivatives [Jp] df(p)/dp*Vp {p = parameters}
-    %-------------------------------------------------------------------
-    for  i = ip
-        pi      = p0 + Vp(:,i)*dv;
-        dfp     = spm_int(pi,M,U,ns) - fp;
-        Jp(:,i) = dfp(:)/dv;
-    end
-    
-    % e and dedp = J
-    %-------------------------------------------------------------------
-    e      = y(:) - fp(:) - Ju*p(iu);
-    J      = - [Jp Ju];				
-    
-    % M-Step: ReML estimator of variance components:  h = max{F(p)}
+    % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %===================================================================
-    h0    = h;
+    
+    % prediction and errors
+    %-------------------------------------------------------------------
+    g     = feval(f,Ep,M,U,ns);
+    e     = y(:) - g(:) - Ju*p(iu);
+    
+    % compute partial derivatives [Jp] df(p)/dp*V {p = parameters}
+    %-------------------------------------------------------------------
+    for i = ip
+        dV      = dv*sqrt(Cp(i,i));
+        dg      = feval(f,Ep + V(:,i)*dV,M,U,ns) - g;
+        Jp(:,i) = dg(:)/dV;
+    end
+    J     = -[Jp Ju];		
+
+    % iterate a Fisher scoring scheme to find h = max{F(p,h)}
+    %-------------------------------------------------------------------
     for m = 1:8
         
         % precision and conditional covariance
-        %-------------------------------------------------------------------
+        %---------------------------------------------------------------
         S     = sparse(ne,ne);
         for i = 1:nh
             S = S + h(i)*Q{i};
@@ -159,7 +166,7 @@ for  k = 1:32
         Cp    = inv(J'*iS*J  + ipC);
         
         % precision operators for M-Step
-        %-------------------------------------------------------------------
+        %---------------------------------------------------------------
         for i = 1:nh
             PS{i} = -iS*Q{i};
             P{i}  = PS{i}*iS;
@@ -170,7 +177,7 @@ for  k = 1:32
         %---------------------------------------------------------------
         for i = 1:nh
             dFdh(i,1)      =  trace(PS{i})/2 - e'*P{i}*e/2 ...
-                              -sum(sum(Cp.*(J'*PJ{i})))/2;
+                             -sum(sum(Cp.*(J'*PJ{i})))/2;
             for j = i:nh
                 dFdhhij    = -sum(sum(PS{i}.*PS{j}))/2 ...
                              -sum(sum(Cp.*(PJ{i}'*S*PJ{j})));
@@ -186,93 +193,100 @@ for  k = 1:32
         
         % convergence
         %---------------------------------------------------------------
-        nmh   = norm(dh);
+        nmh   = norm(dh)/norm(h);
         if nmh < 1e-5, break, end
         
     end
     
-    % objective function
+    % E-Step with Levenburg-Marquardt regularisation
     %===================================================================
-    Fp    = - e'*iS*e/2 ...
-            - p'*ipC*p/2 ...
-            - ne*log(8*atan(1))/2 ...
-            - spm_logdet(S)/2 ...
-            - spm_logdet(pC)/2 ...
-            + spm_logdet(Cp)/2;
     
-    % Levenburg-Marquardt regularisation
+    % objective function: F(p) (= log evidence - divergence)
     %-------------------------------------------------------------------
-    if Fp < F
-        if ~lm
-            lm = 2^-8;
-        else
-            lm = lm*2;
-        end
+    F     =   - e'*iS*e/2 ...
+              - p'*ipC*p/2 ...
+              - ne*log(8*atan(1))/2 ...
+              + spm_logdet(iS )/2 ...
+              + spm_logdet(ipC)/2 ...
+              + spm_logdet(Cp )/2;
+    
+    
+    % if F has increased, update gradients and curvatures for E-Step
+    %-------------------------------------------------------------------
+    if F > C.F
+        
+        % accept current estimates
+        %---------------------------------------------------------------
+        C.p   = p;
+        C.h   = h;
+        C.F   = F;
 
-        % reset parameters and hyper-parameters    
-        %--------------------------------------------------------------
-        p   = p - dp;
-        h   = h0;
-
-        str   = 'E-Step*';
-    else
-
-        % update gradients, curvatures and F
-        %--------------------------------------------------------------
+        % E-Step: Conditional update of gradients and curvature
+        %---------------------------------------------------------------
         dFdp  = -J'*iS*e - ipC*p;
         dFdpp = -J'*iS*J - ipC;
-        F     = Fp;
 
-        str   = 'E-Step';
-    end
-    
-    
-    % E-Step: Conditional estimator of new expansion point E{p|y}
-    %===================================================================
-
-    % ensure the system is dissipative (and break if not)
-    %-------------------------------------------------------------------
-    l      = lm*speye(np + nu)*norm(full(dFdpp));
-    dp     = inv(-dFdpp + l)*dFdp;
-    for  i = 1:8
-        p0   = pE + Vp*(p(ip) + dp(ip));
-        A    = spm_bi_reduce(M,p0);
-        s    = max(real(eig(full(A))));
-        if s > 0
-            l  = (lm + 2^(i - 8))*speye(np + nu)*norm(full(dFdpp));
-            dp = inv(-dFdpp + l)*dFdp;
-        else
-            break
+        % decrease regularization
+        %---------------------------------------------------------------
+        lm    = lm/2;
+        str   = 'E-Step(-)';
+        
+        % graphics
+        %---------------------------------------------------------------
+        if length(dbstack) < 3
+            
+            % subplot parameters
+            %-----------------------------------------------------------
+            subplot(2,1,1)
+            plot([1:ns]*Y.dt,g),                        hold on
+            plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
+            xlabel('time')
+            title(sprintf('%s: %i','E-Step',k))
+            grid on
+            drawnow
+            
+            % subplot parameters
+            %-----------------------------------------------------------
+            subplot(2,1,2)
+            bar(V*p(ip))
+            xlabel('parameter')
+            title('conditional [minus prior] expectation')
+            grid on
+            drawnow
         end
-    end
-    if i == 8, warndlg('system is unstable'), break, end
-
+        
+    else
+        
+        % reset expansion point
+        %---------------------------------------------------------------
+        p     = C.p;
+        h     = C.h;
     
-    % update
-    %-------------------------------------------------------------------
-    p     = p + dp;
+        % and increase regularization
+        %---------------------------------------------------------------
+        lm    = max(lm*4,1/512);
+        str   = 'E-Step(+)';
+        
+    end
+    
+    % E-Step: update
+    %==================================================================
+    l     = lm*norm(full(dFdpp))*speye(np + nu);
+    dp    = inv(-dFdpp + l)*dFdp;
+    p     = p  + dp;
+    Ep    = pE + V*p(ip);
     
     % convergence
     %-------------------------------------------------------------------
-    nmp   = dp(ip)'*dp(ip);
-    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',F,'dp:',nmp)
+    nmp    = dp(ip)'*dp(ip);
+    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(nmp))
     if nmp < 1e-5, break, end
     
-    % graphics
-    %-------------------------------------------------------------------
-    if length(dbstack) < 3
-        bar(pE + Vp*p(ip))
-        xlabel('parameter')
-        ylabel('conditional expectation')
-        title(sprintf('%s: %i','E-Step',j))
-        grid on
-        drawnow
-    end
 end
 
 % outputs
-%---------------------------------------------------------------------------
-Ep     = pE + Vp*p(ip);
-Cp     = Vp*Cp(ip,ip)*Vp';
+%-----------------------------------------------------------------------
+Ep     = pE + V*p(ip);
+Cp     = V*Cp(ip,ip)*V';
 
 return
