@@ -86,6 +86,13 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 % lowest frequency components of a 3D discrete cosine transform.
 % What is entered here is the dimensions of this transform.
 %
+% 'Nonlinear Regularization'
+% Pick a medium value.  However, if your normalized images appear
+% distorted, then it may be an idea to increase the amount of
+% regularization - or even just use an affine normalization.
+% The regularization influences the smoothness of the deformation
+% fields.
+%
 % Options for Write Normalised:
 % 'select Normalisation Parameter Set'
 % Select the '_sn3d.mat' file.
@@ -162,17 +169,18 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 %             the program to perform only the affine
 %             normalization.
 % params(5) - smoothing for image (mm).
-% params(6) - 'smoothness' of deformation field.
+% params(6) - amount of regularization.  Higher values produce smoother deformation
+%             fields.
 % spms      - template image(s).
 % aff_parms - starting parameters for affine normalisation.
 
-global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr;
+global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn;
 
 
 bboxes  = [   -78 78 -112 76  -50 85         
 	      -64 64 -104 68  -28 72         
 	      -90 91 -126 91  -72 109];
-bbprompt =  [' -78:78 -112:76  -50:85  (MNI)     |'...
+bbprompt =  [' -78:78 -112:76  -50:85  (Default)|'...
 	    ' -64:64 -104:68  -28:72  (SPM95)   |'...
 	    ' -90:91 -126:91  -72:109 (Template)'];
 voxdims    = [ 1   1   1 ; 1.5 1.5 1.5 ; 2   2   2 ; 3   3   3 ; 4   4   4 ; 1   1   2 ; 2   2   4];
@@ -284,16 +292,29 @@ if (nargin == 0)
 					nbasis = nbasis(:)';
 				end
 				pos = pos+1;
+
+				% Get the amount of regularization
+				%-----------------------------------------------------------------------
+				tmp2 = [1 0.1 0.01 0.001 0.0001];
+				tmp = find(tmp2 == sptl_Rglrztn);
+				if isempty(tmp) tmp = length(tmp2); end;
+					rglrztn = spm_input('Nonlinear Regularization',pos,'m',...
+					['Extremely Heavy regularization|Heavy regularization|'...
+					 'Medium regularization|Light regularization|'...
+					 'Very Light regularization'], tmp2, tmp);
+				pos = pos+1;
+
 			elseif (a2 == 1)
 				nbasis     = [0 0 0];
 				iterations = 0;
-				smoothness = 0;
+				rglrztn    = 0;
 			end
 		else
 			nbasis     = sptl_NBss;
 			iterations = sptl_NItr;
+			rglrztn = sptl_Rglrztn;
 		end
-	
+
 
 		% Affine starting estimate
 		%-----------------------------------------------------------------------
@@ -329,7 +350,7 @@ if (nargin == 0)
 		% Get interpolation method (for writing images)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?',pos,'m',['Nearest Neighbour|Bilinear Interpolation|'...
-			'Sinc Interpolation'],[0 1 -9], 3);
+			'Sinc Interpolation (11x11x11)'],[0 1 -11], 3);
 		pos = pos + 1;
 
 
@@ -382,8 +403,6 @@ if (nargin == 0)
 		Vox    = [4 4 4];
 	end
 
-	global sptl_Rglrztn
-	rglrztn = sptl_Rglrztn;
 
 	% Go and do the work
 	%-----------------------------------------------------------------------
@@ -513,6 +532,16 @@ elseif strcmp(P,'Defaults')
 		sptl_NItr = 0;
 	end
 
+	% Get the amount of regularization
+	%-----------------------------------------------------------------------
+	tmp2 = [1 0.1 0.01 0.001 0.0001];
+	tmp = find(tmp2 == sptl_Rglrztn);
+	if isempty(tmp) tmp = length(tmp2); end;
+	sptl_Rglrztn = spm_input('Nonlinear Regularization',pos,'m',...
+		['Extremely Heavy regularization|Heavy regularization|'...
+		 'Medium regularization|Light regularization|'...
+		 'Very Light regularization'], tmp2, tmp);
+	pos = pos+1;
 
 	% Get default bounding box
 	%-----------------------------------------------------------------------
@@ -606,7 +635,7 @@ end
 % Map the image to normalize.
 %-----------------------------------------------------------------------
 fprintf('smoothing..');
-spm_smooth(P,'./spm_sn3d_tmp.img',params(5));
+spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
 VF = spm_map('./spm_sn3d_tmp.img');
 fprintf(' ..done\n');
 
@@ -624,7 +653,13 @@ prms   = p1(1:12);
 scales = p1(13:length(p1));
 Affine = inv(inv(MG)*spm_matrix(prms')*MF);
 
-if (~any(params==0))
+fov = VF(1:3).*VF(4:6);
+if any(fov<60),
+	fprintf('The field of view is too small to attempt nonlinear registration\n');
+	params(1:4)=0;
+end
+
+if (~any(params(1:4)==0) & params(6)~=Inf)
 	fprintf('3D Cosine Transform Normalization\n');
 	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
 else
@@ -639,13 +674,12 @@ mgc = 960209;
 eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
 
 for v=VG, spm_unmap_vol(v); end
+spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
 
 % Do the display stuff
 %-----------------------------------------------------------------------
 fg = spm_figure('FindWin','Graphics');
-if isempty(fg)
-	spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
-else
+if ~isempty(fg)
 	spm_figure('Clear','Graphics');
 	ax=axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fg);
 	text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
@@ -665,7 +699,7 @@ else
 	text(0,0.45, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),...
 		'Interpreter','none','Parent',ax);
 
-	if (~any(params==0))
+	if (~any(params(1:4)==0) & params(6)~=Inf)
 		text(0,0.35, sprintf('%d nonlinear iterations',params(4)),...
 			'Interpreter','none','Parent',ax);
 		text(0,0.30, sprintf('%d x %d x %d basis functions',params(1:3)),...
@@ -676,11 +710,12 @@ else
 	end
 
 	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
-	spm_write_sn('./spm_sn3d_tmp.img',matname,bb,Vox,1);
-	h2=spm_orthviews('Image','./nspm_sn3d_tmp.img',[.5 0.1 .5 .5]);
+	spm_write_sn(P(1,:),matname,bb,Vox,1);
+	p  = spm_str_manip(P(1,:), 'd');
+	q  = max([find(p == '/') 0]);
+	q  = [p(1:q) 'n' p((q + 1):length(p))];
+	h2=spm_orthviews('Image',q,[.5 0.1 .5 .5]);
 	spm_orthviews('Space',h2);
 	spm_print;
 	drawnow;
-	spm_unlink  ./spm_sn3d_tmp.img  ./spm_sn3d_tmp.hdr  ./spm_sn3d_tmp.mat
-	spm_unlink ./nspm_sn3d_tmp.img ./nspm_sn3d_tmp.hdr ./nspm_sn3d_tmp.mat
 end
