@@ -258,9 +258,9 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [P] = spm_affsub2(ifun,VG,VF,VW,VW2, Hold,samp, P,free,pdesc,gorder,mean0,icovar0)
+function P = spm_affsub2(ifun,VG,VF,VW,VW2, Hold,samp, P,free,pdesc,gorder,mean0,icovar0)
 % Another subroutine involved in affine transformations.
-% FORMAT [P] = spm_affsub2(ifun,VG,VF,VW,VW2,Hold,samp,P,free,pdesc,gorder)
+% FORMAT P = spm_affsub2(ifun,VG,VF,VW,VW2,Hold,samp,P,free,pdesc,gorder)
 %
 % ifun      - Function generating affine transformation matrix from 12
 %             parameters.
@@ -283,32 +283,27 @@ function [P] = spm_affsub2(ifun,VG,VF,VW,VW2, Hold,samp, P,free,pdesc,gorder,mea
 % Sorry, but the clearest description of what this subroutine does can only
 % be obtained by reading the Matlab code.
 %__________________________________________________________________________
-% %W% John Ashburner FIL %E%
 
 
 % Minimal amount of input checking.
 %-----------------------------------------------------------------------
-if nargin ~= 13 & nargin ~= 11
-	error('Incorrect usage.');
-end
+if nargin ~= 13 & nargin ~= 11, error('Incorrect usage.'); end;
 tmp = sum(pdesc ~= 0);
-if size(tmp,2) ~= size(VF,1)
+if size(tmp,2) ~= size(VF,1),
 	error(['Incompatible number of object images']);
-end
-for i=1:length(tmp)
-	if tmp(i) ~= 12+sum(gorder == i)
+end;
+for i=1:length(tmp),
+	if tmp(i) ~= 12+sum(gorder == i),
 		error(['Problem with column ' num2str(i) ' of pdesc']);
-	end
+	end;
 
-end
-if any(gorder > size(VG,1))
-	error(['Problem with gorder']);
-end
-if ~all(size(free) == size(P)) | ~(size(pdesc,1) == size(P,1)) | size(P,2) ~= 1
+end;
+if any(gorder > size(VG,1)), error(['Problem with gorder']); end;
+if ~all(size(free) == size(P)) | ~(size(pdesc,1) == size(P,1)) | size(P,2) ~= 1,
 	error('Problem with vector sizes');
-end
+end;
 
-if nargin == 13
+if nargin == 13,
 	useW = 1;
 	if any(size(mean0) ~= size(P))
 		error('A-priori means are wrong size');
@@ -332,39 +327,31 @@ IC0   = icovar0(qq,qq);
 P0    = mean0(qq);
 
 W = ones(size(pdesc,2),3)*Inf;
-while iter <= 128 & countdown < 4
+while iter <= 128 & countdown < 4,
 
 	% generate alpha and beta
 	%-----------------------------------------------------------------------
 	alpha = zeros(length(P));
 	beta  = zeros(length(P),1);
 
-	for im = 1:size(pdesc,2)
+	for im = 1:size(pdesc,2),
 		pp  = find(pdesc(:,im));
 		vf  = VF(im);
 		vg  = VG(find(gorder == im));
-		if ~isempty(VW)
-			vw  = VW(im);
-		else
-			vw  = [];
-		end
-		if ~isempty(VW2)
-			vw2  = VW2(im);
-		else
-			vw2  = [];
-		end
+		if ~isempty(VW ), vw   = VW(im ); else, vw   = []; end;
+		if ~isempty(VW2), vw2  = VW2(im); else, vw2  = []; end;
 
 		if useW,
 			[alpha_t, beta_t, chi2_t, W(im,:)] = ...
 				spm_affsub1(ifun,vg, vf, vw, vw2, Hold,samp,P(pp),W(im,:));
-		else
+		else,
 			[alpha_t, beta_t, chi2_t] = ...
 				spm_affsub1(ifun,vg, vf, vw, vw2, Hold,samp,P(pp));
-		end
+		end;
 
 		beta(pp)     = beta(pp)     + beta_t;
 		alpha(pp,pp) = alpha(pp,pp) + alpha_t;
-	end
+	end;
 
 	% Remove the `fixed' elements
 	%----------------------------------------------------------------------
@@ -372,6 +359,11 @@ while iter <= 128 & countdown < 4
 	beta  = beta(qq);
 
 	% This should give a good indication of the tightness of the fit
+	% - providing that the images are all independant.
+	% However, future work may involve optimizing Wilk's Lambda for
+	% multivariate image registration (i.e., find the registration
+	% parameters that maximise the dependance of a linear combination
+	% of one set of images upon another set).
 	%----------------------------------------------------------------------
 	logdet = sum(log(eps+svd(alpha+IC0)));
 	spm_chi2_plot('Set', logdet);
@@ -379,22 +371,20 @@ while iter <= 128 & countdown < 4
 	% Check stopping criteria. If satisfied then just do another few more
 	% iterations before stopping.
 	%-----------------------------------------------------------------------
-	if (2*(logdet-bestlogdet)/(logdet+bestlogdet) < 0.0002) countdown = countdown + 1;
-	else countdown = 0; end;
+	if 2*(logdet-bestlogdet)/(logdet+bestlogdet) < 0.0002, countdown = countdown + 1;
+	else, countdown = 0; end;
 
 	% If the likelihood is better than the previous best, then save the
 	% parameters from the previous iteration.
 	%-----------------------------------------------------------------------
-	if (logdet > bestlogdet & iter > 1)
-		bestlogdet = logdet;
-	end;
+	if logdet > bestlogdet & iter > 1, bestlogdet = logdet; end;
 
 	% Update parameter estimates
 	%----------------------------------------------------------------------
 	P(qq) = pinv(alpha + IC0) * (alpha*P(qq) - beta + IC0*P0);
 
 	iter = iter + 1;
-end
+end;
 return;
 %__________________________________________________________________________
 
@@ -439,7 +429,6 @@ function [alpha, beta, chi2, W] = spm_affsub1(ifun,VG,VF,VW,VW2,Hold,samp,P,minW
 % template images.
 %
 %__________________________________________________________________________
-% %W% John Ashburner FIL %E%
 
 fun = inline(ifun,'P');
 
@@ -512,7 +501,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 				YW    = MatW(2,1)*X + MatW(2,2)*Y + (MatW(2,3)*p + MatW(2,4));
 				ZW    = MatW(3,1)*X + MatW(3,2)*Y + (MatW(3,3)*p + MatW(3,4));
 				wt2   = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
-				wt    = (wt.^(-1) + wt2.^(-1)).^(-1);
+				wt    = ((wt+eps).^(-1) + (wt2+eps).^(-1)).^(-1);
 			end;
 		else,    %only object weights
 			MatW  = inv(VG(1).mat\fun(P')*VW2(1).mat);
@@ -528,8 +517,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 		mask1 = find((Z1>=1-t) & (Z1<=VF(1).dim(3)+t) ...
 			   & (Y1>=1-t) & (Y1<=VF(1).dim(2)+t) ...
 			   & (X1>=1-t) & (X1<=VF(1).dim(1)+t) & wt>0.005);
-		wt = wt(mask1);
-		wt = sqrt(wt);
+		wt = sqrt(wt(mask1));
 	else,
 		% Only resample from within the volume VF.
 		%-----------------------------------------------------------------------
@@ -542,7 +530,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 
 	% Don't waste time on an empty plane.
 	%-----------------------------------------------------------------------
-	if (length(mask1>0))
+	if length(mask1>0),
 
 		% Only resample from within the volume VF.
 		%-----------------------------------------------------------------------
@@ -550,9 +538,9 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 			X1 = X1(mask1);
 			Y1 = Y1(mask1);
 			Z1 = Z1(mask1);
-			X = X(mask1);
-			Y = Y(mask1);
-		end
+			X  = X(mask1);
+			Y  = Y(mask1);
+		end;
 		Z = zeros(size(mask1))+p;
 
 		% Rate of change of residuals w.r.t parameters
@@ -567,6 +555,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 		%-----------------------------------------------------------------------
 		for i=1:length(VG),
 			if nargout>=4,
+				% For computing gradients of residuals
 				[Gi,dxt,dyt,dzt] = spm_sample_vol(VG(i), X, Y, Z, Hold);
 				if i==1,
 					res = F   - Gi*P(i+12); % Residuals
@@ -581,33 +570,31 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 				end;
 			else,
 				Gi = spm_sample_vol(VG(i), X, Y, Z, Hold);
-				if i==1,
-					res = F   - Gi*P(i+12); % Residuals
-				else,
-					res = res - Gi*P(i+12);
-				end;
+				if i==1, res = F   - Gi*P(i+12); % Residuals
+				else,    res = res - Gi*P(i+12); end;
 			end;
 			if wF, Gi = Gi.*wt; end;
 			dResdM(:,12+i) = -Gi;
-		end
-
-		dx = dxF;
-		dy = dyF;
-		dz = dzF;
+		end;
 
 		if wF,
-			dx  = dx.*wt;
-			dy  = dy.*wt;
-			dz  = dz.*wt;
+			dxF  = dxF.*wt;
+			dyF  = dyF.*wt;
+			dzF  = dzF.*wt;
+			if nargout>=4,
+				dxG  = dxG.*wt;
+				dyG  = dyG.*wt;
+				dzG  = dzG.*wt;
+			end;
 			res = res.*wt;
 		end;
 
 		% Generate Design Matrix from rate of change of residuals wrt matrix
 		% elements.
 		%-----------------------------------------------------------------------
-		dResdM(:,1:12) = [	X.*dx Y.*dx p*dx dx ...
-	       	            		X.*dy Y.*dy p*dy dy ...
-	       	            		X.*dz Y.*dz p*dz dz ];
+		dResdM(:,1:12) = [	X.*dxF Y.*dxF p*dxF dxF ...
+	       	            		X.*dyF Y.*dyF p*dyF dyF ...
+	       	            		X.*dzF Y.*dzF p*dzF dzF ];
 
 		% alpha = alpha + A'*A and beta = beta + A'*b
 		%-----------------------------------------------------------------------
@@ -618,11 +605,8 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 		% Assorted variables which are used later.
 		%-----------------------------------------------------------------------
 		chi2  = chi2 + res'*res;		% Sum of squares of residuals
-		if wF,
-			n = n + sum(wt);
-		else,
-			n = n + prod(size(F));		% Number of observations
-		end;
+		if wF, n = n + sum(wt.*wt);
+		else,  n = n + prod(size(F)); end;
 
 		if nargout>=4,
 			% Spatial derivatives of residuals derived from
@@ -630,28 +614,23 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 			%-----------------------------------------------------------------------
 			tmp = Mat(1:3,1:3)';
 			dF  = [dxF dyF dzF]*tmp';
-			dx  = dF(:,1) - dxG;
-			dy  = dF(:,2) - dyG;
-			dz  = dF(:,3) - dzG;
-			dch2  = dch2 + [dx'*dx dy'*dy dz'*dz];	% S.o.sq of derivs of residls
+			dxF  = dF(:,1) - dxG;
+			dyF  = dF(:,2) - dyG;
+			dzF  = dF(:,3) - dzG;
+			dch2  = dch2 + [dxF'*dxF dyF'*dyF dzF'*dzF];	% S.o.sq of derivs of residls
 		end;
 	end;
 end;
 
-if n<=1,
-	f=spm_figure('findwin','Graphics');
-	if ~isempty(f),
-		figure(f);
-		spm_figure('Clear','Graphics');
-		spm_figure('Clear','Interactive');
-		ax=axes('Visible','off','Parent',f);
-		text(0,0.60,'There is not enough overlap in the', 'FontSize', 25,...
-			'Interpreter', 'none','Parent',ax);
-		text(0,0.55,'    images to obtain a solution.', 'FontSize', 25,...
-			'Interpreter', 'none','Parent',ax);
-		text(0,0.40,'  Please check that your header information is OK.','FontSize', 16,...
-			'Interpreter', 'none','Parent',ax);
-	end;
+if n<=32,
+	str = {...
+		'There is not enough overlap in the',...
+		'    images to obtain a solution.',...
+		' ',...
+		'  Please check that your header information is OK.'};
+
+	spm('alert*',str,mfilename,sqrt(-1));
+
 	error('There is not enough overlap of the images to obtain a solution');
 end;
 
