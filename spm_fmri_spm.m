@@ -1,6 +1,6 @@
-function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA)
+function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA,FLIP)
 % Statistical analysis with the General linear model
-% FORMAT spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA);
+% FORMAT spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA,FLIP);
 %
 % V   - {12 x q} matrix of identifiers of memory mapped data {q scans}
 %
@@ -14,6 +14,9 @@ function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA)
 % GX        - Global activities
 % RT        - Repeat time
 % SIGMA     - temporal smoothing if SIGMA == 1
+% FLIP  -       right-left orientation
+%	           - 0 left = left  - neurological convention
+%	           - 1 left = right - radiological convention
 %____________________________________________________________________________
 %
 % spm_fmri_spm is the heart of the SPM package and implemets the general
@@ -141,7 +144,7 @@ global CWD UFp
 
 % radiological convention (image left = subject right) assumed for T2* data
 %---------------------------------------------------------------------------
-FLIP  = (V(3) ~= 1);				
+% FLIP  = (V(3) ~= 1); % Commented out.
 
 % degrees of freedom (specifed by the sizes of the design matrix partitions)
 %---------------------------------------------------------------------------
@@ -206,11 +209,7 @@ if FLIP; Xq(1,:) = -Xq(1,:); end
 % variables saved (at voxels satisfying P{F > x} < UFp)
 %---------------------------------------------------------------------------
 eval(['cd ' CWD]);
-delete XA.mat
-delete BETA.mat
-delete XYZ.mat
-delete SPMF.mat
-delete SPMt.mat
+spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat
 
 % open image files for SPM{Z} and write the headers. SCALE = 1, TYPE = 16
 %---------------------------------------------------------------------------
@@ -234,6 +233,7 @@ dI    = 256;					% number of voxels per cycle
 
 % cycle over 'sets' of dI voxels to avoid working memory problems
 %---------------------------------------------------------------------------
+spm_progress_bar('Init',length(Xp)/prod(V(1:2,1)),'Running SPM','Planes Complete');
 for i   = 0:dI:length(Xp)
 
   I     = [1:dI] + i;
@@ -327,8 +327,9 @@ for i   = 0:dI:length(Xp)
         	fwrite(U(j),zeros(length(I),1),spm_type(16));
 	end
   end					% end conditional on non-zero voxels
-end					% end cycle over planes
-
+  spm_progress_bar('Set',i/prod(V(1:2,1)));
+end					% end cycle over sets of voxels
+spm_progress_bar('Clear');
 % smoothness estimates %---------------------------------------------------------------------------
 W     = [];
 FWHM  = [];

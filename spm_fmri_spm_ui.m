@@ -299,6 +299,9 @@ while size(CONTRAST,1) ~= t
 	d = d(:)';
      	CONTRAST = [CONTRAST; d]; end
 end
+%-Get orientation of images
+%-----------------------------------------------------------------------
+FLIP   = spm_input('Image left = subject''s ',10,'right|left',[1,0]);
 
 
 
@@ -398,5 +401,5 @@ spm_print
 
 % implement analysis proper
 %---------------------------------------------------------------------------
-spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA);
+spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA,FLIP);
 
