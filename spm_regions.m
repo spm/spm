@@ -222,7 +222,7 @@ if isfield(xY,'Sess')
 	%---------------------------------------------------------------
 	j       = [];
 	for   i = 1:length(xY.Sess)
-		j = [j xSDM.Sess{xY.Sess(xY.Sess)}.row];
+		j = [j xSDM.Sess{xY.Sess(i)}.row];
 	end
 	y       =  y(j,:);
 end
