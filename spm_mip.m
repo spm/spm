@@ -18,7 +18,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % This routine loads a mip putline from MIP.mat. This is an image with
 % contours and grids defining the space of Talairach & Tournoux (1988).
 % mip95 corresponds to the Talairach atlas, mip96 to the MNI templates.
-% The outline and grid are superimposed at intensity GRID (global default),
+% The outline and grid are superimposed at intensity defaults.grid,
 % defaulting to 0.6.
 %
 % A default colormap of 64 levels is assumed. The pointlist image is
@@ -31,8 +31,12 @@ function spm_mip(Z,XYZ,M,DIM)
 
 %-Get GRID value
 %-----------------------------------------------------------------------
-GRID = spm('GetGlobal','GRID');
-if isempty(GRID), GRID = 0.6; end
+global defaults
+if ~isempty(defaults) & isfield(defaults,'grid'),
+	GRID = defaults.grid;
+else,
+	GRID = 0.6;
+end;
 
 %-Scale & offset point list values to fit in [0.25,1]
 %-----------------------------------------------------------------------

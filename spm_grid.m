@@ -6,14 +6,19 @@ function I = spm_grid(I)
 %___________________________________________________________________________
 %
 % spm_grid adds a grid to the input argument.  The grid is scaled
-% to GRID times the imput's maximum, where GRID is a user sepcified
-% global variable
+% to defaults.grid times the imput's maximum, where defaults.grid is a user
+% specified global variable
 %
 %__________________________________________________________________________
 % %W% %E%
 
 %---------------------------------------------------------------------------
-global GRID
+global defaults
+if ~isempty(defaults) & isfield(defaults,'grid'),
+	GRID = defaults.grid;
+else,
+	return;
+end;
 
 if GRID
 	load('Grid.mat','i','j');
