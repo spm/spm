@@ -122,15 +122,6 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % 'Interactive'. If there is no such window, then the current figure is
 % used, or an 'Interactive' window created if no windows are open.
 %
-% ( - Technical note - : This form of interactive GUI forces the code to )
-% ( wait for a response in a computer intensive loop. To avoid           )
-% ( hammering the CPU when queries are left unattended, spm_input has    )
-% ( "sleep" modes. Wake spm_input by clicking in any MatLab window. For  )
-% ( GUI menu selections using spm_input, you have 60s to make a          )
-% ( selection before sleep mode sets in. For GUI button selections, you  )
-% ( have 10s to release the chosen button, after which a further GUI     )
-% ( event will accept the selection.                                     )
-%
 %-----------------------------------------------------------------------
 % Programers help is contained in the main body of spm_input.m
 %-----------------------------------------------------------------------
@@ -293,12 +284,13 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % F       - Interactive Figure, Defaults to 'Interactive'
 % Finter  - Handle of figure to use
 %
-% FORMAT PLoc = spm_input('!PointerJump',RRec,F,XDisp)
+% FORMAT [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
 % Raise window & jump pointer over question
 % RRec  - Response rectangle of current question
 % F     - Interactive Figure, Defaults to 'Interactive'
 % XDisp - X-displacement of cursor relative to RRec
 % PLoc  - Pointer location before jumping
+% cF    - Current figure before making F current.
 %
 % FORMAT spm_input('!PrntPrmpt',Prompt)
 % Print prompt for CmdLine questioning
@@ -411,7 +403,7 @@ end % (any(Type(1)=='desbm'))
 if Type(1)=='d'
 %-Display message
 %=======================================================================
-if strcmp(Type,'d!'), fprintf('%c',7), dCol='r'; else, dCol='k'; end
+if strcmp(Type,'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
 if CmdLine
 	fprintf('\n%s+-',setstr(ones(1,5)*' '))
 		fprintf('%s',Labels),
@@ -449,9 +441,9 @@ else
 			'Tag',['GUIinput_',int2str(YPos)],...
 			'UserData',h,...
 			'CallBack',[...
-			  'set(gco,''Visible'',''off''),',...
-			  'spm_input(''!dScroll'',get(gco,''UserData'')),',...
-			  'set(gco,''Visible'',''on'')'],...
+			 'set(gcbo,''Visible'',''off''),',...
+			 'spm_input(''!dScroll'',get(gcbo,''UserData'')),',...
+			 'set(gcbo,''Visible'',''on'')'],...
 			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
 	end
 end
@@ -467,18 +459,17 @@ if CmdLine
 	if ~isempty(DefString)
 		Prompt=[Prompt,' (Default: ',DefString,' )']; end
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefString; end
-	if Type(1)=='e', p=eval(['[',str,']'],'sprintf(''<ERROR>'')');
+	if Type(1)=='e', p=evalin('base',['[',str,']'],'''<ERROR>''');
 		else, p=str; end
 
-	%-Catch eval errors for Type 'e', make sure 
-	%-(Input can do this by itself, but doesn't return the typed string)
+	%-Eval Type 'e' in Base workspace, catch eval errors
 	while (strcmp(p,'<ERROR>') & Type(1)=='e') | isempty(p)
-		fprintf('%c! spm_input : ',7)
+		spm('Beep'), fprintf('! spm_input : ')
 		if isempty(p), fprintf('enter something!\n')
 			else,  fprintf('evaluation error\n'), end
 		str = input([Prompt,' : '],'s');
 		if isempty(str), str=DefString; end
-		if Type(1)=='e', p=eval(['[',str,']'],'sprintf(''<ERROR>'')');
+		if Type(1)=='e', p=evalin('base',['[',str,']'],'''<ERROR>''');
 			else, p=str; end
 	end % (while)
 
@@ -492,85 +483,62 @@ else
 		'HorizontalAlignment','Right',...
 		'Position',PRec);
 	
-	%-Construct callback for edit widget - if evaluating input,
-	% do it in the callback, so that base workspace variables can be used
-	if Type(1)=='e'
-		cb = ['set(gco,''UserData'',',...
-			'eval([''['',get(gco,''String''),'']''],',...
-				' ''sprintf(''''<ERROR>'''')''))'];
-	else
-		cb = 'set(gco,''UserData'',get(gco,''String'') )';
-	end
-
-	%-Edit widget: Callback sets UserData to result when edited
+	%-Edit widget: Callback sets UserData to true when edited
 	h = uicontrol(Finter,'Style','Edit',...
 		'String',DefString,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'UserData',[],...
-		'CallBack',cb,...
+		'CallBack','set(gcbo,''UserData'',1)',...
 		'Horizontalalignment','Left',...
 		'BackgroundColor',COLOR,...
 		'Position',RRec);
 
 	%-Setup FigureKeyPressFcn to enable editing of entry widget
-	% without clicking in it. Return for entry handled in actual
-	% callback string (rather than callback function) so that evals
-	% are made in the base workspace where users may have setup
-	% variables.
-	%-If edit widget is clicked in, then it grabs all keyboard input
+	% without clicking in it.
+	%-If edit widget is clicked in, then it grabs all keyboard input.
 	%-Store handle of entry widget in figure UserData
-	if Type(1)=='e'
-	    cb = ['set(get(gcf,''UserData''),''UserData'',',...
-	    'eval([''['',get(get(gcf,''UserData''),''String''),'']''],',...
-			' ''sprintf(''''<ERROR>'''')''))'];
-	else
-	    cb = ['set(get(gcf,''UserData''),''UserData'',',...
-			'get(get(gcf,''UserData''),''String'') )'];
-	end
-	set(Finter,'UserData',h)
 	set(Finter,'KeyPressFcn',[...
-		'if abs(get(gcf,''CurrentCharacter''))==13,',...
-			cb,',',...
-		'else,',...
-			'spm_input(''!EditableKeyPressFcn'',',...
-				'get(gcf,''UserData''),',...
-				'get(gcf,''CurrentCharacter'')),',...
-		'end'])
+	    'spm_input(''!EditableKeyPressFcn'',',...
+	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
+	    	'''Style'',''edit''),',...
+	    'get(gcbf,''CurrentCharacter''))'])
 
 	%-Bring window to fore & jump pointer to edit widget
-	PLoc=spm_input('!PointerJump',RRec,Finter);
+	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
 
-	%-Wait for edit, evaluate string if input not a string variable
+	%-Wait for edit, evaluate string in Base workspace if Type 'e',
+	% catch evaluation errors.
 	%---------------------------------------------------------------
-	while isempty(get(h,'UserData'))
-		waitforbuttonpress; pause(0.1), pause(0.1), end
-
-	p = get(h,'UserData');
+	waitfor(h,'UserData')
+	str = get(h,'String');
 	if Type(1)=='e'
-		while strcmp(p,'<ERROR>')	%-Catch eval errors
-			fprintf('%c',7)
-			set(h,'UserData',[])
-			tmp = uicontrol(Finter,'Style','Text',...
+		p = evalin('base',['[',str,']'],'''<ERROR>''');
+		while strcmp(p,'<ERROR>')
+			spm('Beep')
+			set(h,'Style','Text',...
 				'String','<ERROR>',...
-				'Tag',['GUIinput_',int2str(YPos)],...
 				'Horizontalalignment','Center',...
-				'BackgroundColor',COLOR,...
-				'ForegroundColor','r',...
-				'Position',RRec);
-			drawnow, pause(2)
-			delete(tmp)
-			while isempty(get(h,'UserData'));
-			    waitforbuttonpress; pause(0.1), pause(0.1), end
-			p = get(h,'UserData');
+				'ForegroundColor','r')
+			pause(2)
+			set(h,'Style','Edit',...
+				'String',str,...
+				'Horizontalalignment','Left',...
+				'ForegroundColor','k',...
+				'UserData',0)
+			waitfor(h,'UserData')
+			str = get(h,'String')
+			p = evalin('base',['[',str,']'],'''<ERROR>''')
 		end % (while)
+	else
+		p = str;
 	end
 
-	%-Fix edit window, clean up, reposition pointer
+	%-Fix edit window, clean up, reposition pointer, set CurrentFig back
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'BackgroundColor',[.7,.7,.7]), drawnow
 	set(Finter,'UserData',[],'KeyPressFcn','')
-	set(0,'PointerLocation',PLoc)
+	set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
 
 end % (if CmdLine)
 
@@ -704,12 +672,12 @@ elseif Type(1)=='b'
 	
 		dX = RRec(3)/NoLabels;
 	
-		%-Tag buttons with their button number
+		%-Store button # in 'Max' property
 		%-Store handle of prompt string in buttons UserData
 		%-Button callback sets UserData of prompt string to
 		% number of pressed button
-		cb = ['set(get(gco,''UserData''),''UserData'',',...
-			'eval(get(gco,''Tag'')))'];
+		cb = ['set(get(gcbo,''UserData''),''UserData'',',...
+			'get(gcbo,''Max''))'];
 		H = [];
 		XDisp = [];
 		for lab=1:NoLabels
@@ -725,7 +693,8 @@ elseif Type(1)=='b'
 			end
 			h = uicontrol(Finter,'Style','Pushbutton',...
 				'String',deblank(Labels(lab,:)),...
-				'Tag',num2str(lab),...
+				'Tag',Tag,...
+				'Max',lab,...
 				'UserData',hPrmpt,...
 				'BackgroundColor',COLOR,...
 				'Callback',cb,...
@@ -739,31 +708,17 @@ elseif Type(1)=='b'
 		% & return (ASCII-13) is pressed
 		set(Finter,'KeyPressFcn',...
 			['spm_input(''!ButtonKeyPressFcn'',',...
-			'findobj(gcf,''Tag'',''',Tag,'''),',...
+			'findobj(gcf,''Tag'',''',Tag,''',',...
+				'''Style'',''text''),',...
 			'''',lower(Keys),''',',num2str(DefItem),',',...
-			'get(gcf,''CurrentCharacter''))'])
+			'get(gcbf,''CurrentCharacter''))'])
 	
 		%-Bring window to fore & jump pointer to default button
-		PLoc=spm_input('!PointerJump',RRec,Finter,XDisp);
+		[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,XDisp);
 
 		%-Wait for button press, process results
 		%-------------------------------------------------------
-		while isempty(get(hPrmpt,'UserData'))
-			waitforbuttonpress;
-			%-Give 10s grace for release of button
-			%-After this time spm_input "sleeps", and the user
-			% will have to press another button to have choice
-			% registered
-			% ( This loop hammers the CPU, but there's no other )
-			% ( way to do an interruptible pause without        ) 
-			% ( requiring a second buttonpress event! NB: pause )
-			% ( (ML4.2c) only works for integer seconds!        )
-			tic, while(toc<10)
-				if ~isempty(get(hPrmpt,'UserData'))
-					break, end
-				pause(0.25)
-			end
-		end
+		waitfor(hPrmpt,'UserData')
 		k = get(hPrmpt,'UserData');
 		p = Values(k,:); if isstr(p), p=deblank(p); end
 		
@@ -776,7 +731,7 @@ elseif Type(1)=='b'
 			'Horizontalalignment','Center',...
 			'BackgroundColor',[.7,.7,.7],...
 			'Position',RRec);
-		set(0,'PointerLocation',PLoc)
+		set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
 
 	end % (if CmdLine)
 
@@ -811,17 +766,15 @@ elseif Type(1)=='m'
 		Labs=[setstr(ones(NoLabels,2)*' '),Labels];
 		if DefItem
 			Labs(DefItem,1)='*';
-			cb = ['if (get(gco,''Value'')>1),',...
-				'set(gco,''UserData'',''Selected''), end'];
 			H = uicontrol(Finter,'Style','Frame',...
 				'BackGroundColor','k',...
 				'ForeGroundColor','k',...
 				'Position',QRec+[-1,-1,+2,+2]);
 		else
-			cb = ['if (get(gco,''Value'')>1),',...
-				'set(gco,''UserData'',''Selected''), end'];
 			H = [];
 		end
+		cb = ['if (get(gcbo,''Value'')>1),',...
+			'set(gcbo,''UserData'',''Selected''), end'];
 		hPopUp = uicontrol(Finter,'Style','PopUp',...
 			'HorizontalAlignment','Left',...
 			'ForegroundColor','k',...
@@ -839,26 +792,11 @@ elseif Type(1)=='m'
 		set(Finter,'KeyPressFcn',cb)
 
 		%-Bring window to fore & jump pointer to menu widget
-		PLoc=spm_input('!PointerJump',RRec,Finter,XDisp);
+		[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
 		%-Wait for menu selection
 		%-------------------------------------------------------
-		while ~isstr(get(hPopUp,'UserData'))
-			%-Give approx 60s grace for menu selection
-			%-After this time spm_input "sleeps", waiting for
-			% a buttonpress to reactivate.
-			% ( This loop hammers the CPU, but there's no other )
-			% ( way to do an interruptible pause for PullDowns. )
-			% ( NB: pause (ML4.2c) only works for integer       )
-			% ( seconds!                                        )
-			tic, while(toc<60)
-				if isstr(get(hPopUp,'UserData')), break, end
-				pause(0.25)
-			end
-			if ~isstr(get(hPopUp,'UserData'))
-				waitforbuttonpress; end
-		end
-		
+		waitfor(hPopUp,'UserData')
 		k = get(hPopUp,'Value')-1;
 	
 		%-Display answer, cleanup window
@@ -868,7 +806,7 @@ elseif Type(1)=='m'
 			'Horizontalalignment','Center',...
 			'String',deblank(Labels(k,:)),...
 			'BackgroundColor',[.7,.7,.7])
-		set(0,'PointerLocation',PLoc)
+		set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
 	end % (if CmdLine)
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
@@ -933,20 +871,21 @@ return
 
 elseif strcmp(lower(Type),lower('!PointerJump'))
 %=======================================================================
-% PLoc = spm_input('!PointerJump',RRec,F,XDisp)
+% [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
 %-Raise window & jump pointer over question
 if nargin<4, XDisp=[]; else, XDisp=P4; end
 if nargin<3, F='Interactive'; else, F=P3; end
 if nargin<2, error('Insufficient arguments'), else, RRec=P2; end
 Finter = spm_figure('FindWin',F);
 if isempty(Finter), error('Interactive figure not found'), end
+PLoc = get(0,'PointerLocation');
+cF   = get(0,'CurrentFigure');
 figure(F)
 FRec = get(F,'Position');
-PLoc = get(0,'PointerLocation');
 if isempty(XDisp), XDisp=RRec(3)*4/5; end
 set(0,'PointerLocation',...
 	[(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)]);
-R1 = PLoc;
+R1 = PLoc; R2=cF;
 return
 
 
@@ -1109,12 +1048,15 @@ elseif strcmp(lower(Type),lower('!EditableKeyPressFcn'))
 %=======================================================================
 % spm_input('!EditableKeyPressFcn',h,ch)
 if nargin<2, error('Insufficient arguments'), else, h=P2; end
-if isempty(h), set(gcf,'KeyPressFcn','',UserData,[]), return, end
+if isempty(h), set(gcbf,'KeyPressFcn','','UserData',[]), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
 
 tmp = get(h,'String');
 
-if any(abs(ch)==[32:126])
+if isempty(ch)
+	%- shift / control / &c. pressed
+	return
+elseif any(abs(ch)==[32:126])
 	tmp = [tmp, ch];
 elseif abs(ch)==21
 	%- ^U - kill
@@ -1123,7 +1065,7 @@ elseif any(abs(ch)==[8,127])
 	%-BackSpace or Delete
 	if length(tmp), tmp(length(tmp))=''; end
 elseif abs(ch)==13
-	fprintf('Return shouldn''t be passed to this routine!')
+	if ~isempty(tmp), set(h,'UserData',1), end
 else
 	%-Illegal character
 	return
@@ -1145,7 +1087,10 @@ if nargin<3, error('Insufficient arguments'); else, Keys=P3; end
 if nargin<4, DefItem=0; else, DefItem=P4; end
 if nargin<5, ch=get(gcf,'CurrentCharacter'); else, ch=P5; end
 
-if (DefItem & ch==13)
+if isempty(ch)
+	%- shift / control / &c. pressed
+	return
+elseif (DefItem & ch==13)
 	But = DefItem;
 else
 	But = find(ch==Keys);
@@ -1167,16 +1112,19 @@ Pval = get(h,'Value');
 
 if Pmax==1, return, end
 
-if abs(ch)==13
+if isempty(ch)
+	%- shift / control / &c. pressed
+	return
+elseif abs(ch)==13
 	if Pval==1
 		if DefItem, set(h,'Value',max(2,min(DefItem+1,Pmax))), end
 	else
 		set(h,'UserData','Selected')
 	end
-elseif ch=='b' | ch=='p' | ch=='u'
+elseif any(ch=='bpu')
 	%-Move "b"ack "u"p to "p"revious entry
 	set(h,'Value',max(2,Pval-1))
-elseif ch=='f' | ch=='n' | ch=='d'
+elseif any(ch=='fnd')
 	%-Move "f"orward "d"own to "n"ext entry
 	set(h,'Value',min(Pval+1,Pmax))
 elseif any(ch=='123456789')
