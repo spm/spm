@@ -1,11 +1,18 @@
-function [con] = spm_dcm_contrasts (DCM_filename,D)
+function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Make contrast vector for a DCM model 
-% FORMAT [con] = spm_dcm_contrasts (DCM_filename,D)
+% FORMAT [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 %
 % DCM_filename  DCM file name
 % D             'A','B' or 'C' ie. contrast for which connectivity matrix
 %
-% con           Column vector specifying contrast of parameters
+% con_vec       Column vector specifying contrast of parameters
+% con_mat       The same contrast but in matrix format
+%
+%               The contrasts are also saved in the DCM structure
+%
+%               DCM.contrast().con_vec
+%               DCM.contrast().con_mat
+%               DCM.contrast().con_type ('A', 'B' or 'C')
 %
 % %W% Will Penny %E%
 
@@ -15,7 +22,7 @@ set(Finter,'Name','Dynamic Causal Modelling')
 WS     = spm('WinScale');
 
 P{1} = DCM_filename;
-load(P{:})
+load(P{:});
 
 m=DCM.n;
 xY=DCM.xY;
@@ -39,6 +46,22 @@ wy=20;
 d     = uicontrol(Finter,'String','done',...
     'Position',[300 50 060 020].*WS);
 
+% Define left edge dialogue
+% itext_left=080;
+% inum_left=180;
+
+itext_left=030;
+inum_left=80;
+name_length=8; % number of characters in short names
+for i=1:m
+    if length(xY(i).name) > name_length
+        short_name(i).str=xY(i).name(1:name_length);
+    else
+        short_name(i).str=xY(i).name;
+    end
+end
+text_top=336;
+
 switch D,
     
 case 'A' % intrinsic
@@ -49,20 +72,20 @@ case 'A' % intrinsic
         
     % Print names and numbers of regions
     for i = 1:m
-        str    = sprintf('%s %i',xY(i).name,i);
+        str    = sprintf('%s   %i',short_name(i).str,i);
         h1(i)  = uicontrol(Finter,'String',str,...
             'Style','text',...
             'HorizontalAlignment','right',...
-            'Position',[080 356-dx*i 080 020].*WS);
+            'Position',[itext_left text_top-dx*i 080 020].*WS);
         h2(i)  = uicontrol(Finter,'String',sprintf('%i',i),...
             'Style','text',...
-            'Position',[180+dx*i 356 020 020].*WS);
+            'Position',[inum_left+dx*i text_top 020 020].*WS);
     end
     
     % Set contrast values to zero and display
     for i = 1:m
         for j = 1:m
-            cc=ceil([180+dx*j 360-dx*i wx wy].*WS);
+            cc=ceil([inum_left+dx*j text_top+4-dx*i wx wy].*WS);
             h3(i,j) = uicontrol(Finter,...
                 'Position',cc,...
                 'Style','edit');
@@ -89,27 +112,29 @@ case 'A' % intrinsic
             end
         end
     end
-    delete(d)
-    con=a(:);
-    
+    con_mat=a;
     
 case 'B' % modulatory
     %---------------------------------------------------
     
     for k = 1:n,
         str   = sprintf(...
-            'Enter contrast for B: effects of %-12s',...
+            'Enter contrast for B: effects of input  %-12s',...
             U.name{k});
         spm_input(str,1,'d')
         
         for i = 1:m
-            h1(i)  = uicontrol(Finter,'String',xY(i).name,...
+            str    = sprintf('%s   %i',short_name(i).str,i);
+            h1(i)  = uicontrol(Finter,'String',str,...
                 'Style','text',...
-                'Position',[080 356-dx*i 080 020].*WS);
+                'Position',[itext_left text_top-dx*i 080 020].*WS);
+            h2(i)  = uicontrol(Finter,'String',sprintf('%i',i),...
+            'Style','text',...
+            'Position',[inum_left+dx*i text_top 020 020].*WS);
         end
         for i = 1:m
             for j = 1:m
-                cc=ceil([180+dx*j 360-dx*i wx wy].*WS);
+                cc=ceil([inum_left+dx*j text_top+4-dx*i wx wy].*WS);
                 h3(i,j) = uicontrol(Finter,...
                     'Position',cc,...
                     'Style','edit');
@@ -130,7 +155,7 @@ case 'B' % modulatory
                             b(i,j,k) = str2num(get(h3(i,j),'string'));
                         end
                     end
-                    delete([h1(:); h3(:)])
+                    delete([h1(:); h2(:); h3(:)])
                     spm_input(' ',1,'d')
                     break
                     
@@ -139,25 +164,24 @@ case 'B' % modulatory
         end
         
     end
-    delete(d)
-    con=b(:);
-    
+    con_mat=b;
     
 case 'C' % input
     %---------------------------------------------------
     
     for k = 1:n,
         str   = sprintf(...
-            'Enter contrast for C: Effects of %-12s',...
+            'Enter contrast for C: Effects of input %-12s',...
             U.name{k});
         spm_input(str,1,'d');
         
         for i = 1:m
-            h1(i)  = uicontrol(Finter,'String',xY(i).name,...
+            str    = sprintf('%s   %i',short_name(i).str,i);
+            h1(i)  = uicontrol(Finter,'String',str,...
                 'Style','text',...
-                'Position',[080 356-dx*i 080 020].*WS);
+                'Position',[itext_left text_top-dx*i 080 020].*WS);
             h2(i)  = uicontrol(Finter,...
-                'Position',[160 360-dx*i wx wy].*WS,...
+                'Position',[inum_left+dx text_top+4-dx*i wx wy].*WS,...
                 'Style','edit');
             set(h2(i),'String','0');
         end
@@ -185,13 +209,33 @@ case 'C' % input
             end
         end
     end
-    delete(d)
-    con=c(:);
+    con_mat=c;
+    
     
 otherwise,
     disp('Error in spm_dcm_contrasts: contrast must be for A, B or C');
+    close
     return
 end
+
+delete(d);
+
+% disp('Contrast:');
+% disp(con_mat);
+con_vec=con_mat(:);
+
+
+% Save contrast in DCM file
+if isfield(DCM,'contrast')
+    num_contrast=length(DCM.contrast)+1;
+else
+    num_contrast=1;
+end
+DCM.contrast(num_contrast).con_vec=con_vec;
+DCM.contrast(num_contrast).con_mat=con_mat;
+DCM.contrast(num_contrast).con_type=D;
+
+save(P{:},'DCM');
 
 if nargin < 2
     close 
