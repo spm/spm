@@ -164,6 +164,8 @@ inameG = inameG(2:size(inameG,1),:);
 inameF = inameF(2:size(inameF,1),:);
 VG = spm_vol(inameG);
 VF = spm_vol(inameF);
+
+% Rescale images so that globals are better conditioned
 for i=1:prod(size(VG)),
 	VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/spm_global(VG(i));
 end;
@@ -204,6 +206,16 @@ PPF = str2mat(	fullfile('.','spm_coreg_tmpG.img'),...
 PPG = str2mat(PGG(1,:), PFG(1,:));
 VF  = spm_vol(PPF);
 VG  = spm_vol(PPG);
+
+% Rescale images so that globals are better conditioned
+for i=1:prod(size(VF)),
+	gl = spm_global(VF(i));
+	VF(i).pinfo(1:2,:) = VF(i).pinfo(1:2,:)/gl;
+end;
+for i=1:prod(size(VG)),
+        gl = spm_global(VG(i));
+        VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/gl;
+end;
 
 spm_chi2_plot('Init','Rough Coregistration','Convergence','Iteration');
 % Be careful here with the order of the matrix multiplications.
