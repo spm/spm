@@ -16,6 +16,8 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % R          - RESEL counts {adimensional}
 %
 %___________________________________________________________________________
+% For one or two dimensional spaces the appropriate manifold is
+% used (e.g. sphere -> disc -> line).  
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %
@@ -24,9 +26,25 @@ function [R] = spm_resels(FWHM,L,SPACE)
 
 % Dimensionality
 %---------------------------------------------------------------------------
-D     = length(FWHM);
+switch SPACE
 
-% Default {sphere - assuming L = volume)
+case 'S'                                                            % Sphere
+	%-------------------------------------------------------------------
+	s     = L(:)./FWHM(:);
+        s     = s(s > 0);
+        if length(s) == 2,  SPACE = 'D';  end
+        if length(s) == 1,  SPACE = 'L';  end
+
+case 'B'                                                               % Box
+	%-------------------------------------------------------------------
+	s     = L(:)./FWHM(:);
+        s     = s(s > 0);
+        if length(s) == 2,  SPACE = 'R';  end
+        if length(s) == 1,  SPACE = 'L';  end
+end
+
+
+% Default {sphere - assuming L = volume i.e. number of voxels)
 %---------------------------------------------------------------------------
 if nargin < 3
 	SPACE = 'S';
@@ -37,16 +55,29 @@ end
 % RESEL Counts (R)
 %===========================================================================
 
-switch SPACE, case 'S'                                              % Sphere
+switch SPACE
+
+case 'S'                                                            % Sphere
 	%-------------------------------------------------------------------
-	s     = L(:)./FWHM(:);
-	s     = prod(s).^(1/D);
+	s     = prod(s).^(1/3);
 	R     = [1 4*s 2*pi*s^2 (4/3)*pi*s^3];
+
+case 'D'                                                              % Disc
+	%-------------------------------------------------------------------
+	s     = prod(s).^(1/2);
+	R     = [1 pi*s pi*s^2 0];
 
 case 'B'                                                               % Box
 	%-------------------------------------------------------------------
-	s     = L(:)./FWHM(:);
 	R     = [1 sum(s) (s(1)*s(2) + s(2)*s(3) + s(1)*s(3)) prod(s)];
+
+case 'R'                                                         % Rectangle
+	%-------------------------------------------------------------------
+	R     = [1 sum(s) prod(s) 0];
+
+case 'L'                                                              % Line
+	%-------------------------------------------------------------------
+	R     = [1 s 0 0];
 
 case 'V'                                                            % Voxels
 	%-------------------------------------------------------------------
@@ -55,8 +86,6 @@ case 'V'                                                            % Voxels
 case 'I'                                                             % Image
 	%-------------------------------------------------------------------
 	R     = spm_resels_vol(L,FWHM);
-	R     = R' .* [1 2/3 2/3 1];	%-KJW "knobliness" correction
-
-
+	R     = R' .* [1 2/3 2/3 1];	       %-KJW "knobliness" correction
 end
 
