@@ -101,12 +101,19 @@ if exist('ERI')
 	hold on
 	dx    = 0.1;
 	x     = -4:dx:32;
+	if length(x) ~= size(DER,1)
+		DER = [zeros(4/dx,size(DER,2)), DER];
+		x   = [0:(size(DER,1) - 1)]*dx - 4;
+	end
 	K     = spm_sptop(SIGMA*RT/dx,length(x));
 	KDER  = K*DER;
 	for i = j
 		Y      = KDER*BETA(ERI(:,i));
 		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
-		y      = C(:,ERI(:,i))*BETA(ERI(:,i)) + R;
+		pst    = PST(:,i);
+		d      = round(pst + 4)/dx;
+		q      = find( (d > 0) & (d <= size(KDER,1)) );
+		y      = KDER(d(q),:)*BETA(ERI(:,i)) + R(q);
 		d      = min(find(abs(Y) > max(abs(Y))/3));
 		T      = x(d);
 		dYdt   = gradient(Y')'/dx;
@@ -126,7 +133,7 @@ if exist('ERI')
 				'LineWidth',6,'Color',COL(i))
 
 		elseif Cp == 4
-			plot(x,Y,PST(:,i),y,'.',...
+			plot(x,Y,pst,y,'.',...
 				'MarkerSize',MSize,'Color',COL(i))
 
 		end
