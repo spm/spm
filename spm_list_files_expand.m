@@ -32,10 +32,9 @@ if strcmp(Filter,'IMAGE'),
 		end;
 	end;
 	Files = strvcat(t{:});
-	return;
+else,
+	[Files,Dirs] = spm_list_files(WDir,Filter);
 end;
-
-[Files,Dirs] = spm_list_files(WDir,Filter);
 
 if  isempty(defaults) | ~isfield(defaults,'multivol') | ~defaults.multivol |...
 	(nargin>=3 & ~isempty(strmatch('noexpand',lower(opts)))),
