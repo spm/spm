@@ -6,7 +6,7 @@ function spm_choose(varargin)
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  Statistical Parametric Mapping
 % \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
-% (___/(__)  (_/\/\_)  University College London
+% (___/(__)  (_/\/\_)  Institute of Neurology, University College London
 %
 %_______________________________________________________________________
 %
