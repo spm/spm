@@ -887,11 +887,12 @@ set(hAxes(1),'Ylim',[0,y0])
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'FontWeight','bold','Color','r');
+else	%-Lose "." directories, only show .. as a dir if not in /
+	Dirs(Dirs(:,1)=='.',:)=[];
+	if ~strcmp(WDir,'/'), Dirs=strvcat('..',Dirs); end
 end
-%-Lose dot files & directories, only show .. as a dir if not in /
+%-Lose dot files
 if ~isempty(Files), Files(Files(:,1)=='.',:)=[]; end
-Dirs(Dirs(:,1)=='.',:)=[];
-if ~strcmp(WDir,'/'), Dirs=strvcat('..',Dirs); end
 
 %-Create list of directories in pulldown menu
 %-----------------------------------------------------------------------
