@@ -2,6 +2,7 @@ function varargout = spm_AnCova(C,G,sigma,Y,CON,Xd)
 % General Linear Model & inference for serially correlated regression
 %
 % FORMAT [Fdf,F,BETA,T,RES,BCOV,Xd] = spm_AnCova(C,G,sigma,Y,CON,Xd);
+% FORMAT [Fdf,F,BETA,T,RES,BCOV,Xd] = spm_AnCova(C,G,K,Y,CON,Xd);
 % FORMAT [Fdf,Xd] = spm_AnCova(C,G,sigma);
 %
 % C     - Design matrix partition of interest (K*C)
@@ -76,7 +77,11 @@ if size(G,2) == 0; G = zeros(q,1); end
 if ~bXd
 	%-Temporal convolution kernel - A sparse Toeplitz matrix
 	%---------------------------------------------------------------
-	K      = spm_sptop(sigma,q);
+	if prod(size(sigma))==1
+		K = spm_sptop(sigma,q);
+	else
+		K = sigma;
+	end
 	V      = K*K';
 
 	%-Cunning piece of code to compute expectations of variances and 
