@@ -1,5 +1,106 @@
 function spm_realign(P,Flags)
 % within mode image realignment routine
+%
+%
+% FORMAT spm_realign
+% With no arguments, spm_realign acts as a user interface for setting
+% up the realignment parameters.
+%____________________________________________________________________________
+% The prompts are:
+% 'number of subjects'
+% Enter the number of subjects you wish to realign.
+%
+% 'select scans for subject ..'
+% Select the scans you wish to realign. All operations are relative
+% to the first image selected.
+%
+% 'Which option?'
+% 	'Coregister only'
+% 	Only determine the parameters required to transform each of the
+% 	images 2..n to the same space as image 1.
+% 	The determined parameters for image XXXX.img are saved in the
+%	file XXXX.mat. This is a Matlab file, containing the matrix 'M'.
+% 	The location of an image voxel (in mm) can be determined by
+% 	computing M(1:3,:)*[xcoord ycoord zcoord 1].
+%
+% 	'Reslice Only'
+% 	Reslice the specified images according to the contents of the
+% 	previously determined parameters. The images are resliced to be
+% 	in the same space as the first one selected.
+%
+% 	'Coregister & Reslice'
+% 	Combine the above two steps together.
+%
+% 'Interpolation Method?'
+% 	'Bilinear Interpolation'
+% 	Use bilinear interpolation to sample the images when
+% 	determining parameters/reslicing.
+%
+% 	'Sinc Interpolation'
+% 	Use a modified sinc interpolation to sample the images.
+% 	This is slower than bilinear interpolation, but produces better
+% 	results. It is especially recommended for fMRI time series.
+%
+% Options for coregistering:
+%
+% 'Coregister 2 with 1 only?'
+% This is for if you wish to register a group of scans,
+% to a scan of the same subject which was performed at a different time.
+% This option allows the user to determine the parameters which would
+% transform image 2 to the space of image 1, and apply same transformation
+% parameters to images 3..n.
+%
+% 'More iterations?'
+% By default, the coregistration uses 5 iterations. This is usually fine for
+% simple subject movement when in the scanner.
+% However, it is sometimes desirable to realign two data sets aquired at
+% different times, with large differences in subject positioning.
+% This option allows for 25 iterations of the algorithm to be performed,
+% which should be enough to correct large displacements.
+%
+%
+% Options for reslicing:
+%
+% 'Create what?'
+% 	'All Images (1..n)'
+% 	This reslices all the images - including the first image selected
+% 	- which will remain in it's original position.
+%
+%	'Images 2..n'
+% 	Reslices images 2..n only. Useful for if you wish to reslice
+% 	(for example) a PET image to fit a structural MRI, without
+% 	creating a second identical MRI volume.
+%
+%	'All Images + Mean Image'
+% 	In addition to reslicing the images, it also creates a mean of the
+% 	resliced image.
+%
+%	'Mean Image Only'
+% 	Creates the mean image only.
+%
+% 'Mask the images?'
+% To avoid artifactual movement-related variance.
+%
+% 'Adjust for motion in Z?' (fMRI only)
+% Adjust the data (fMRI) to remove movement-related components.
+% The adjustment procedure is based on a autoregression-moving average-like
+% model of the effect of position on signal and explicitly includes a spin
+% excitation history effect.
+%
+%____________________________________________________________________________
+% TO OBTAIN SIMILAR RESULTS TO SPM95, select:
+% 'Which option?'        	'Coregister & Reslice'
+% 'Interpolation Method?'	'Bilinear Interpolation' (for PET)
+% 'Interpolation Method?'	'Sinc Interpolation'     (for fMRI)
+%
+% 'Coregister 2 with 1 only?'	NO
+% 'More iterations?'         	NO
+%
+% 'Create what?'        	'All Images + Mean Image'
+% 'Mask the images?'       	YES
+% 'Adjust for motion in Z?'	YES
+%____________________________________________________________________________
+%
 % FORMAT spm_realign(P, Flags)
 % P     - matrix of filenames {one string per row}
 %         All operations are performed relative to the first image.
@@ -43,7 +144,7 @@ function spm_realign(P,Flags)
 %
 %         k - mask output images
 %             To avoid artifactual movement-related variance the realigned set
-%             of images are internally masked, within the set (i.e. if any image
+%             of images can be internally masked, within the set (i.e. if any image
 %             has a zero value at a voxel than all images have zero values at that
 %             voxel).  Zero values occur when regions 'outside' the image are moved 
 %             'inside' the image during realignment.
@@ -60,7 +161,6 @@ function spm_realign(P,Flags)
 %             resample it.
 %
 %         N - don't reslice any of the images - except possibly create a mean image.
-%
 %____________________________________________________________________________
 %
 %
@@ -75,6 +175,56 @@ function spm_realign(P,Flags)
 %
 %__________________________________________________________________________
 % %W% Karl Friston - modified by John Ashburner %E%
+
+
+global MODALITY
+
+if (nargin == 0)
+	spm_figure('Clear','Interactive');
+	set(spm_figure('FindWin','Interactive'),'Name','Realignment')
+
+	n     = spm_input('number of subjects',1);
+	for i = 1:n
+		P = spm_get(Inf,'.img',['select scans for subject ' num2str(i)]);
+		eval(['P' num2str(i) ' = P;']);
+	end
+
+	Flags = 'm';
+	p = spm_input('Which option?',1,'m','Coregister only|Reslice Only|Coregister & Reslice',[1 2 3]);
+	if (p == 1 | p == 3) Flags = [Flags 'e']; end
+	if (p == 2 | p == 3) Flags = [Flags 'r']; end
+	p = spm_input('Interpolation Method?',2,'m','Bilinear Interpolation|Sinc Interpolation',[1 2]);
+	if (p == 2) Flags = [Flags 'sS']; end
+
+	if (any(Flags == 'e'))
+		if (spm_input('Coregister 2 with 1 only?',3,'y/n') == 'y')
+			Flags = [Flags 'a']; end
+		if (spm_input('More iterations?'         ,4,'y/n') == 'y')
+			Flags = [Flags 'E']; end
+	end
+
+	if (any(Flags == 'r'))
+		p = spm_input('Create what?',5,'m',' All Images (1..n)| Images 2..n| All Images + Mean Image| Mean Image Only',[1 2 3 4]);
+		if (p == 2) Flags = [Flags 'n']; end
+		if (p == 3) Flags = [Flags 'i']; end
+		if (p == 4) Flags = [Flags 'Ni']; end
+		if (~any(Flags == 'N'))
+			if (spm_input('Mask the images?'       ,6,'y/n') == 'y') Flags = [Flags 'k']; end
+			if (strcmp(MODALITY,'FMRI'))
+				if (spm_input('Adjust for motion in Z?',7,'y/n') == 'y') Flags = [Flags 'c']; end
+			end
+		end
+	end
+
+	set(spm_figure('FindWin','Interactive'),'Name','executing','Pointer','Watch'); drawnow
+	for i = 1:n
+		eval(['P = P' num2str(i) ';'])
+		spm_realign(P,Flags);
+	end
+	spm_figure('Clear','Interactive');
+	set(spm_figure('FindWin','Interactive'),'Name','','Pointer','Arrow'); drawnow
+	return;
+end
 
 
 %----------------------------------------------------------------------------
@@ -156,15 +306,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	% The estimate is repeated iteratively h times and the estimates of Q
 	% are cumulated arithmetically (an aproximation but good enough)
 	%---------------------------------------------------------------------------
-	figure(2);
-	delete(get(2,'Children'));
-	ax = axes('Position', [0.45 0.2 0.1 0.6],...
-		'XTick',[],...
-		'Xlim', [0 1],...
-		'Ylim', [0 nreg]);
-	xlabel('Coregistering');
-	ylabel('volumes completed');
-	drawnow;
+	spm_progress_bar('Init',nreg,'Coregistering','volumes completed');
 
 	% Base starting estimates on solution for previous run
 
@@ -175,7 +317,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	    spm_smooth(spm_str_manip(P(k,:),'d'),'spm_mov.img',8);
 	    V2 = spm_map('spm_mov.img');
 
-	    for i = 1:h;
+	    for i = 1:h
 	  	for j = 1:length(S)
 			B      = spm_matrix([-bb(1,1) -bb(1,2) -S(j) 0 0 0 1 1 1]);
 			y      = spm_slice_vol(V2,inv(B*inv(C1)*spm_matrix(q)*C2),[M N],Hold);
@@ -187,23 +329,21 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	    end
 	    Q(k,:) = q;
 
-	    spm_unmap(V2); delete spm_mov.img spm_mov.hdr
+	    spm_unmap(V2); spm_unlink spm_mov.img spm_mov.hdr spm_mov.mat
 
-	    line(...
-		'Xdata',[0.5 0.5],...
-		'Ydata',[0 k],...
-		'LineWidth',16,...
-		'Color', [1 0 0]);
-	    drawnow;
+	    spm_progress_bar('Set',k);
 	end
 	Q((nreg+1):size(P,1),:) = ones(size(P,1)-nreg,1)*Q(nreg,:);
-	spm_unmap(V1); delete spm_ref.img spm_ref.hdr
+	spm_unmap(V1); spm_unlink spm_ref.img spm_ref.hdr spm_ref.mat
+	spm_clf('Interactive');
 
 	% display results
 	% translation and rotation over time series
 	%---------------------------------------------------------------------------
-	figure(3); spm_clf; subplot(3,1,1); axis off
-
+	spm_figure('FindWin','Graphics');
+	spm_clf('Graphics');
+	subplot(3,1,1);
+	axis off
 	title('Image realignment','FontSize',16,'FontWeight','Bold')
 	x     = -0.1;
 	y     =  0.9;
@@ -276,15 +416,7 @@ if any(Flags == 'r')
 
 	% Start progress plot
 	%----------------------------------------------------------------------------
-	figure(2);
-	delete(get(2,'Children'));
-	ax = axes('Position', [0.45 0.2 0.1 0.6],...
-		'XTick',[],...
-		'Xlim', [0 1],...
-		'Ylim', [0 DIM(3)]);
-	xlabel('Reslicing');
-	ylabel('planes completed');
-	drawnow;
+	spm_progress_bar('Init',DIM(3),'Reslicing','planes completed');
 
 	Xm = kron(ones(DIM(2),1),[1:DIM(1)]');
 	Ym = kron([1:DIM(2)]',ones(DIM(1),1));
@@ -437,10 +569,7 @@ if any(Flags == 'r')
 			end
 		end
 		open_mode = 'a';
-
-		line('Xdata',[0.5 0.5], 'Ydata',[0 j],...
-			'LineWidth',16, 'Color', [1 0 0]);
-		drawnow;
+		spm_progress_bar('Set',j);
 	end
 
 	% Write headers and matrixes
@@ -489,4 +618,4 @@ if (any(Flags == 'm') & any(Flags == 'e'))
 	end
 end
 
-
+spm_clf('Interactive');
