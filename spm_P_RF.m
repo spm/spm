@@ -3,8 +3,8 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n)
 % FORMAT [P p Em En EN] = spm_P(c,k,Z,df,STAT,R,n)
 %
 % c     - cluster number 
-% Z     - height {minium over n values}
 % k     - extent {RESELS}
+% Z     - height {minimum over n values}
 % df    - [df{interest} df{error}]
 % STAT  - Statisical feild
 %		'Z' - Gaussian feild
@@ -12,7 +12,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n)
 %		'X' - Chi squared feild
 %		'F' - F - feild
 % R     - RESEL Count {defining search volume}
-% n     - number of conjoint SPMs
+% n     - number of component SPMs in conjunction
 %
 % P     - corrected   P value  - P(n > kmax}
 % p     - uncorrected P value  - P(n > k}
@@ -61,8 +61,7 @@ P       = triu(toeplitz(EC'.*G))^n;
 P       = P(1,:)';
 Em      = (R./G)*P;
 EN      = P(1)*R(D);
-Em      = Em + eps;
-En      = EN/Em;
+En      = G(D)*P(1)/P(D);				% i.e. En = EN/Em;
 
 
 % get P{n > k}
@@ -100,7 +99,7 @@ end
 
 % Poisson clumping heuristic {for multiple clusters}
 %===========================================================================
-P       = 1 - spm_Pcdf(c - 1,Em*p);
+P       = 1 - spm_Pcdf(c - 1,(Em + eps)*p);
 
 
 % set P and p = [] for non-implemented cases
