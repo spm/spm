@@ -38,7 +38,6 @@ for  k = 1:m_sel;
     i=input_nos(k);
     if ~(i<=u)
         disp(sprintf('Error in spm_dcm_U: input number %d not in SPM file',i));
-        keyboard
         return
     end
     U.u             = [U.u Sess.U(i).u(33:end,1)];
