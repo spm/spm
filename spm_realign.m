@@ -135,11 +135,6 @@ function spm_realign(P,Flags)
 %             transformations to the subsequent images (which should be in
 %             the same space as image 1).
 %
-%         m - write transformation matrixes
-%             Matrixes are written which define the space of the images.
-%             From these matrixes it is possible to reslice any of the
-%             images, to the same space as any other image.
-%
 %         r - reslice images
 %             The spatially realigned and adjusted images are written to
 %             the orginal subdirectory with the same filename but prefixed
@@ -199,7 +194,7 @@ if (nargin == 0)
 		eval(['P' num2str(i) ' = P;']);
 	end
 
-	Flags = 'm';
+	Flags = '';
 
 	if sptl_WhchPtn == 1
 		p = 3;
@@ -423,6 +418,21 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	spm_unmap(V1); spm_unlink spm_ref.img spm_ref.hdr spm_ref.mat
 	spm_figure('Clear','Interactive');
 
+
+	% Saving of Realignment Parameters
+	%---------------------------------------------------------------------------
+	Matrixes = zeros(16,size(P,1));
+	for i=2:size(P,1)
+		M = spm_get_space(deblank(P(i,:)));
+		Matrixes(:,i) = M(:);
+	end
+
+	for i=2:size(P,1)
+		M = reshape(Matrixes(:,i),4,4);
+		spm_get_space(deblank(P(i,:)), spm_matrix(Q(i,:))*M);
+	end
+
+
 	% display results
 	% translation and rotation over time series
 	%-------------------------------------------------------------------
@@ -466,7 +476,8 @@ end
 
 
 
-% Application of Realignment Parameters - uses P & Q
+
+% Application of Realignment Parameters - uses P
 %---------------------------------------------------------------------------
 if any(Flags == 'r')
 
@@ -485,11 +496,9 @@ if any(Flags == 'r')
 	Matrixes = zeros(16,size(P,1));
 	V     = zeros(12,size(P,1));
 	for i = 1:size(P,1)
-		p  = spm_str_manip(P(i,:), 'd');
+		p  = deblank(P(i,:));
 
-		A  = spm_matrix(Q(i,:));
-		C2 = spm_get_space(p);
-		M1  = inv(M)*A*C2;
+		M1  = M\spm_get_space(p);
 		Matrixes(:,i) = M1(:);
 
 		[dim dummy scale typ dummy dummy] = spm_hread(p);
@@ -596,8 +605,15 @@ if any(Flags == 'r')
 					q  = max([find(p == '/') 0]);
 					q  = [p(1:q) 'r' p((q + 1):length(p))];
 					fp = fopen(q, open_mode);
-					fwrite(fp,d,spm_type(Headers(i,5)));
-					fclose(fp);
+					if (fp ~= -1)
+						if fwrite(fp,d,spm_type(Headers(i,5))) ~= prod(size(d))
+							fclose(fp);
+							error(['Error writing ' q '. Check your disk space.']);
+						end
+						fclose(fp);
+					else
+						error(['Error opening ' q '. Check that you have write permission.']);
+					end
 				end
 			else
 				X(:,i) = d(:);
@@ -667,9 +683,18 @@ if any(Flags == 'r')
 
 				q      = max([find(p == '/') 0]);
 				q      = [p(1:q) 'r' p((q + 1):length(p))];
+
 				fp = fopen(q, open_mode);
-				fwrite(fp,d,spm_type(Headers(i,5)));
-				fclose(fp);
+				if (fp ~= -1)
+					if fwrite(fp,d,spm_type(Headers(i,5))) ~= prod(size(d))
+						fclose(fp);
+						error(['Error writing ' q '. Check your disk space.']);
+					end
+					fclose(fp);
+				else
+					error(['Error opening ' q '. Check that you have write permission.']);
+				end
+
 			end
 		end
 		open_mode = 'a';
@@ -685,7 +710,7 @@ if any(Flags == 'r')
 			q = [p(1:q) 'r' p((q + 1):length(p))];
 			spm_hwrite(q,DIM,VOX,Headers(i,4),Headers(i,5),...
 				0,ORIGIN,'spm - realigned');
-			if (any(Flags == 'm')) spm_get_space(q,M); end
+			spm_get_space(q,M);
 		end
 	end
 
@@ -699,28 +724,27 @@ if any(Flags == 'r')
 		q      = max([find(p == '/') 0]);
 		q      = [p(1:q) 'mean' p((q + 1):length(p))];
 		fp = fopen(q,'w');
-		for j = 1:DIM(3)
-			d = round(Integral(:,j)/SCALE);
-			tmp = find(d > 32767);
-			d(tmp) = zeros(size(tmp))+32767;
-			tmp = find(d < -32768);
-			d(tmp) = zeros(size(tmp))-32768;
-			fwrite(fp,d,spm_type(4));
+		if (fp ~= -1)
+			for j = 1:DIM(3)
+				d = round(Integral(:,j)/SCALE);
+				tmp = find(d > 32767);
+				d(tmp) = zeros(size(tmp))+32767;
+				tmp = find(d < -32768);
+				d(tmp) = zeros(size(tmp))-32768;
+				if fwrite(fp,d,spm_type(4)) ~= prod(size(d))
+					fclose(fp);
+					error(['Error writing ' q '. Check your disk space.']);
+				end
+			end
+			spm_hwrite(q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - mean image');
+			spm_get_space(q,M);
+		else
+			error(['Error opening ' q '. Check that you have write permission.']);
 		end
-		spm_hwrite(q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - mean image');
-		if (any(Flags == 'm')) spm_get_space(q,M); end
 	end
 
 	for i = 1:size(P,1); spm_unmap(V(:,i)); end
 end
 
-% Saving of Realignment Parameters - uses P & Q
-%---------------------------------------------------------------------------
-if (any(Flags == 'm') & any(Flags == 'e'))
-	for k = 1:size(P,1)
-		C2 = spm_get_space(spm_str_manip(P(k,:), 'd'));
-		spm_get_space(P(k,:), spm_matrix(Q(k,:))*C2);
-	end
-end
 
 spm_figure('Clear','Interactive');
