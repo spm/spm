@@ -7,7 +7,7 @@ function LOGFILE = spm_log(varargin)
 %
 % spm_log implements logging for the SPM package.
 %
-% The log file is specified in the global LOGFILE.
+% The log file is specified in the global defaults.logfile.
 %
 % If this is non-empty, then spm_log writes the passed string matrices 
 % to the log file.
@@ -20,7 +20,11 @@ function LOGFILE = spm_log(varargin)
 
 %-Find out LogFile name, return if not logging.
 %=======================================================================
-LOGFILE = spm('GetGlobal','LOGFILE');
+global defaults;
+LOGFILE = '';
+if ~isempty(defaults) & isfield(defaults,'logfile'),
+	LOGFILE = defaults.logfile;
+end;
 if nargin==0 | isempty(LOGFILE), return, end
 
 %-Open LogFile
@@ -34,7 +38,7 @@ if fid==-1
 		['      ',spm_str_manip(LOGFILE,'p')],' ',...
 		['-> ',msg],' ',...
 		'Resetting LOGFILE'},mfilename)
-	global LOGFILE, LOGFILE = '';
+	defaults.logfile = '';
 	return
 end
 
@@ -64,5 +68,5 @@ if fid==-1
 	spm('alert!',{	'Error closing LOGFILE:',' ',...
 		['      ',spm_str_manip(LOGFILE,'p')],' ',...
 		'Resetting LOGFILE'},mfilename)
-	global LOGFILE, LOGFILE = '';
+	defaults.logfile = '';
 end
