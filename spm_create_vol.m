@@ -83,7 +83,7 @@ else,
 end;
 
 d                              = 1:min([length(V.descrip) 79]);
-hist.descrip	               = char(zeros(1,80));
+V.private.hdr.hist.descrip     = char(zeros(1,80));
 V.private.hdr.hist.descrip(d)  = V.descrip(d);
 V.private.hdr.hk.db_name       = char(zeros(1,18));
 [pth,nam,ext]                  = fileparts(V.fname);
@@ -196,7 +196,7 @@ fwrite(fid,hk.db_name,		'char' );
 fwrite(fid,hk.extents,		'int32');
 fwrite(fid,hk.session_error,'int16');
 fwrite(fid,hk.regular,		'char' );
-if fwrite(fid,hk.hkey_un0,		'char' )~= 1,
+if fwrite(fid,hk.hkey_un0,	'char' )~= 1,
 	error(['Error writing '  fopen(fid) '. Check your disk space.']);
 end;
 return;
