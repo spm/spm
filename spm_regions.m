@@ -11,14 +11,15 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %       xY.xyz          - centre of VOI {mm}
 %       xY.name         - name of VOI
 %       xY.Ic           - contrast used to adjust data (0 - no adjustment)
-%       xY.Sess         - session indices
+%       xY.Sess         - session index
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
 %       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
-%       xY.y            - voxel-wise data
+%       xY.y            - [whitened and filtered] voxel-wise data
 %       xY.u            - first eigenvariate {scaled - c.f. mean response}
 %       xY.v            - first eigenimage
 %       xY.s            - eigenvalues
+%       xY.X0           - [whitened] confounds (including drift terms)
 %
 % Y and xY are also saved in VOI_*.mat in the SPM working directory
 %
@@ -105,7 +106,7 @@ if isfield(SPM,'Sess')
 	if ~isfield(xY,'Sess')
 		s         = length(SPM.Sess);
 		if s > 1
-			s = spm_input('which session[s]','+0','n',1,[1 Inf],s);
+			s = spm_input('which session','!+1','n1',s,s);
 		end
 		xY.Sess   = s;
 	end
@@ -171,30 +172,32 @@ if xY.Ic
 
 	%-Parameter estimates: beta = xX.pKX*xX.K*y
 	%---------------------------------------------------------------
-	beta   = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
+	beta  = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
 
 	%-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
 	%---------------------------------------------------------------
-	y      = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
+	y     = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
 
 end
 
-
-% fMRI-specific operations
+% confounds
 %-----------------------------------------------------------------------
-if isfield(xY,'Sess')
+xY.X0     = SPM.xX.xKXs.X(:,[SPM.xX.iB SPM.xX.iG]);
 
-	% extract row indices for specified session (j)
-	%---------------------------------------------------------------
-	j     = [];
-	for i = 1:length(xY.Sess)
-		j = [j SPM.Sess(xY.Sess(i)).row];
-	end
-
-	% extract sessions
-	%---------------------------------------------------------------
-	y       = y(j,:);
+% extract session-specific rows from data and confounds
+%-----------------------------------------------------------------------
+try
+	i     = SPM.Sess(xY.Sess).row;
+	y     = y(i,:);
+	xY.X0 = xY.X0(i,:);
 end
+
+% and add session-specific filter confounds
+%-----------------------------------------------------------------------
+try
+	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH];
+end
+
 
 % compute regional response in terms of first eigenvariate
 %-----------------------------------------------------------------------
