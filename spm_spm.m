@@ -1,6 +1,6 @@
-function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT,PST)
+function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % Statistical analysis with the General linear model
-% FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT,PST);
+% FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT);
 %
 % V   - {12 x q} matrix of identifiers of memory mapped data {q scans}
 % H   - {q  x h} condition subpartition of the design matrix {h conditions}
@@ -15,7 +15,6 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT,PST)
 % Fnames   - string matrix of Filenames corresponding to observations
 % SIGMA    - Gaussian parameter of K for correlated observations
 % RT       - Repeat time for EPI fMRI (generally interscan interval)
-% PST      - peri-stimulus time (for epoch or event related fMRI)
 %_______________________________________________________________________
 %
 % spm_spm is the heart of the SPM package and implements the general
@@ -244,7 +243,7 @@ while(1)
 
 	%-AnCova; employing pseudoinverse to allow for non-unique designs	
 	%---------------------------------------------------------------
-	[Fdf F BETA T] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
+	[Fdf F BETA T RES] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
 
 
 	%-Remove voxels with (uncorrected) non-significant F-statistic
@@ -262,6 +261,7 @@ while(1)
 		%-Cumulate remaining voxels
 		%-------------------------------------------------------
 		spm_append('XA',XA);
+		spm_append('RES',RES(P));
 		spm_append('SPMF',F(P) );
 		spm_append('BETA',BETA(:,P));
 		spm_append('XYZ',XYZ(:,P));
@@ -326,7 +326,8 @@ for i  = 1:q; spm_unmap(V(:,i)); end
 %-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
-save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT PST
+
+save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT
 
 
 %-Display and print SPM{F}, Design matrix and textual information
