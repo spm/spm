@@ -126,10 +126,13 @@ line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 %-----------------------------------------------------------------------
 set(gca,'DefaultTextFontName','Helvetica','DefaultTextFontSize',FS(8))
 
-text(0.01,y,		'set-level','FontSize',FS(9))
-line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.02,y-9*dy/8,	'\itp ')
-text(0.09,y-9*dy/8,	'\itc ')
+if max(A) > 1
+
+	text(0.01,y,		'set-level','FontSize',FS(9))
+	line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
+	text(0.02,y-9*dy/8,	'\itp ')
+	text(0.09,y-9*dy/8,	'\itc ')
+end
 
 text(0.22,y,		'cluster-level','FontSize',FS(9))
 line([0.16,0.42],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
@@ -144,7 +147,7 @@ text(0.60,y-9*dy/8,	sprintf('\\it%c',STAT))
 text(0.68,y-9*dy/8,	'(\itZ\rm_\equiv)')
 text(0.75,y-9*dy/8,	'\itp \rm_{uncorrected}')
 
-text(0.90,y-dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
+text(0.90,y - dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
 
 %-Headers for text table...
 TabDat.tit = title;
@@ -181,8 +184,7 @@ Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
 
 % do not display if reporting a single cluster
 %-----------------------------------------------------------------------
-mfile = dbstack;
-if length(mfile) == 1;
+if c > 1;
 
 	h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
 		'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
@@ -325,9 +327,9 @@ end
 %-Table filtering note
 %===========================================================================
 str = sprintf(['table shows at most %d subsidiary maxima ',...
-	'>%.1fmm apart per cluster'],Num,Dis);
-text(0.5,4,str,'HorizontalAlignment','Center',...
-	'FontAngle','Italic','FontSize',FS(8))
+	'> %.1fmm apart per cluster'],Num,Dis);
+text(0.5,4,str,'HorizontalAlignment','Center','FontName','Helvetica',...
+    'FontSize',FS(8),'FontAngle','Italic')
 
 
 %-Volume, resels and smoothness 
@@ -344,10 +346,10 @@ set(gca,'DefaultTextFontName','Helvetica',...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 TabFut = cell(4,2);
 TabFut{1} = ...
-	sprintf('Height threshold %c = %0.2f, p = %0.3f (%0.3f corr)',...
+	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f corrected)',...
 		 STAT,u,Pz,Pu);
 TabFut{2} = ...
-	sprintf('Extent threshold k = %0.0f voxels, p = %0.3f (%0.3f corr)',...
+sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f corrected)',...
 	         k/v2r,Pn,P);
 TabFut{3} = ...
 	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
