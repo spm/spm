@@ -254,14 +254,14 @@ if p == 1 | p == 3,
 		if isempty(PO),
 			mireg(i).PO = PF;
 		else,
-			mireg(i).PO = str2mat(PF,PO);
+			mireg(i).PO = strvcat(PF,PO);
 		end;
 	end;
 end;
 
 if p==2,
 	for i = 1:nsubjects,
-		mireg(i) = struct('VG',[],'VF',[],'VO',[]);
+		mireg(i) = struct('VG',[],'VF',[],'PO',[]);
 
 		% select target space
 		PG          = spm_get(1,'IMAGE', ['Space defining image, subj ' num2str(i)]);
@@ -292,7 +292,7 @@ for i=1:nsubjects,
 	if p == 2 | p == 3,
 		 spm('FigName',['Reslice subj ' num2str(i)],Finter,CmdLine);
 		fprintf('Reslicing Subject %d\n', i);
-		P         = str2mat(mireg(i).VG.fname,mireg(i).PO);
+		P         = strvcat(mireg(i).VG.fname,mireg(i).PO);
 		flg       = flags.write;
 		flg.mean  = 0;
 		flg.which = 1;
