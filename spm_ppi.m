@@ -1,10 +1,11 @@
 function [y1,y] = spm_ppi(x,phi,rt,p)
 % Does the thing mentioned in Methods meeting 20/03/00
-% FORMAT [y1,y] = spm_ppi_thingy(x,phi,rt[,p])
+% FORMAT [y1,y] = spm_ppi(x,phi,rt[,p])
 %             y1  - processed data
 %             y   - estimated deconvolved x
 %             x   - raw data
 %             phi - the effect of interest
+%                   - can contain more than one (column) vector
 %             rt  - repeat time
 %             p   - other assorted parameters - see spm_hrf.m.
 %
@@ -30,7 +31,10 @@ hrf1      = zeros(n,1); hrf2 = zeros(n,1);
 hrf1(1:l) = hrf(1:l); hrf2(1) = hrf(1);
 H         = toeplitz(hrf1,hrf2);
 y         = reml(H,x);
-y1        = H*(phi(:).*y);
+y1        = zeros(size(phi));
+for i=1:size(phi,2),
+	y1(:,i) = H*(phi(:,i).*y);
+end;
 return;
 
 function [bet,w]=reml(X,y)
