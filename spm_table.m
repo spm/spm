@@ -24,11 +24,16 @@ L     = XYZ(:,i);
 if V(3) == 1
 	set(h1,'String',sprintf('%0.0f',L(1)));
 	set(h2,'String',sprintf('%0.0f',L(2)));
+	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
+	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
 	set(X1,'Position',[L(1)  L(2) 1]);
 else
 	set(h1,'String',sprintf('%0.0f',L(1)));
 	set(h2,'String',sprintf('%0.0f',L(2)));
 	set(h3,'String',sprintf('%0.0f',L(3)));
+	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
+	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
+	set(hZstr,'String',sprintf('z = %0.0f',L(3)));
 	set(X1,'Position',[(P1 + L(2))  (P2 + L(1)) 1]);
 	set(X2,'Position',[(P1 + L(2))  (P3 - L(3)) 1]);
 	set(X3,'Position',[(P4 + L(1))  (P3 - L(3)) 1]);
@@ -49,9 +54,9 @@ d      = min(find(CONTRAST(con,:)));
 
 % delete previous axis
 %----------------------------------------------------------------------------
-subplot(2,1,2); delete(gca)
+subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 subplot(2,1,2); axis off
-text(0,1.1,CWD,'FontWeight','bold');
+text(0,1.1,spm('DirTrunc',CWD),'FontWeight','bold');
 text(0,1.0,sprintf('Location {x,y,z}  =  %0.0f %0.0f %0.0f mm',L'));
 str    = sprintf('Z = %0.2f;   P = %0.2f (corrected), %0.2e (uncorrected)',Z,Pz,Pu);
 text(0,0.9,str);
