@@ -406,6 +406,7 @@ while prod(size(find(finite(Z))))
 	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
 	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
+
 	Nv      = N(i)/v2r;			% extent        {voxels}
 	if Pz<tol				% Equivalent Z-variate
 	    Ze  = Inf;	 			% (underflow => can't compute)
