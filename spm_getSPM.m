@@ -111,6 +111,8 @@ elseif ~isfield(xSDM,'M')
 	%-SPM.mat from SPM99b (which saved mmapped handles) **
 	xSDM.M      = xSDM.Vbeta(1).mat;
 	xSDM.DIM    = xSDM.Vbeta(1).dim(1:3)';
+	%-**xSDM.VY     = reshape({xSDM.VY.fname},size(xSDM.VY));
+	%-**if isstruct(xSDM.xM.VM), xSDM.xM.VM = {xSDM.xM.VM.fname}'; end
 	xSDM.VM     = 'mask.img';
 	xSDM.Vbeta  = {xSDM.Vbeta.fname}';
 	xSDM.VResMS = xSDM.VResMS.fname;
@@ -517,13 +519,14 @@ end
 %-Degrees of Fredom and STAT string describing marginal distribution
 %-----------------------------------------------------------------------
 edf   = [xCon(Ic(1)).eidf xX.erdf];
-if     length(Ic) > 1
+if length(Ic) > 1
 	str = sprintf('^{%d}',length(Ic));
 elseif nVar > 1
-	str = sprintf('^{%i-variate}',nVar);
+	str = sprintf('^{%d-variate}',nVar);
 else
 	str = '';
 end
+
 switch xCon(Ic(1)).STAT
 case 'T'
 	STATstr = sprintf('%c%s_{%.4g}','T',str,edf(2));
@@ -540,10 +543,10 @@ spm_progress_bar('Set',100)                                          %-#
 %=======================================================================
 if wOK
     for i = [Ic,Im];
-	if length(xCon(i).Vcon)
+	if ~isempty(xCon(i).Vcon)
         	xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
 	end
-	if length(xCon(i).Vspm)
+	if ~isempty(xCon(i).Vspm)
         	xCon(i).Vspm = spm_str_manip(xCon(i).Vspm.fname,'t');
 	end
     end
@@ -665,9 +668,5 @@ VOL    = struct('S',		S,...
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------
-if isfield(xSDM,'VRVP')
-
-	VOL.VRVP  = spm_vol(xSDM.VRVP);
-
-end % (isfield(xSDM,'VRVP')
+if isfield(xSDM,'VRVP'), VOL.VRVP = spm_vol(xSDM.VRVP); end
 
