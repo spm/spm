@@ -654,6 +654,7 @@ end
 if (length(sessions)==1),
 	linfun('Registering images..');
 	P = realign_series(P,PW,Flags);
+	save_parameters(P);
 else
 	linfun('Registering together the first image of each session..');
 	tmp = [1 sessions(1:(end-1))+1];
