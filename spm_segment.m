@@ -16,6 +16,8 @@
 % FORMAT spm_segment(PF,PG,opts)
 % PF   - name(s) of image(s) to segment (must have same dimensions).
 % PG   - name(s) of template image(s) for realignment.
+%      - or a 4x4 transformation matrix which maps from the image to
+%        the set of templates.
 % opts - options string.
 %        - 'p' - produce a 'pseudo-pet' image.
 %        - 'n' - dont produce the _seg images.
@@ -54,8 +56,7 @@
 % The template image, and a-priori likelihood images are modified
 % versions of those kindly supplied by Alan Evans, MNI, Canada
 % (ICBM, NIH P-20 project, Principal Investigator John Mazziotta).
-%
-
+%_______________________________________________________________________
 % %W% (c) John Ashburner %E%
 
 function spm_segment(PF,PG,opts)
@@ -132,33 +133,27 @@ petscales = [1 0.3 0.1 0.1 0.1 0]';
 
 % Starting parameters for affine normalisation.
 % - assume input image uses neurological convention
-prms = [0 0 0 0 0 0 1 1 1 0 0 0];
 
 MF = spm_get_space(PF(1,:));
-if (~isempty(PG))
+if ~isempty(PG) & isstr(PG)
 	% Affine normalisation
 	MG = spm_get_space(PG(1,:));
 	spm_smooth(PF(1,:),'./spm_seg_tmp.img',8);
-	VF = spm_map('./spm_seg_tmp.img');
-	VG = [];
-	for i=1:size(PG,1)
-		VG = [VG spm_map(PG(i,:))];
-	end
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
-	[prms,scales] = spm_affine(VG,VF,MG,MF,prms,ones(1,9),1,1.5,8);
-	[prms,scales] = spm_affine(VG,VF,MG,MF,prms,ones(1,12),1,0.5,8);
-	[prms,scales] = spm_affine(VG,VF,MG,MF,prms,ones(1,12),1,0.5,6);
-	[prms,scales] = spm_affine(VG,VF,MG,MF,prms,ones(1,12),1,0.25,4);
+	prms = spm_affsub3('affine3', PG, PF, 1, 8);
+	prms = spm_affsub3('affine3', PG, PF, 1, 4, prms);
 
-	for i=1:size(VG,2)
-		spm_unmap(VG(:,i));
-	end
-	spm_unmap(VF);
 	spm_unlink ./spm_seg_tmp.img ./spm_seg_tmp.hdr ./spm_seg_tmp.mat
+	MM = spm_matrix(prms);
+
+elseif all(size(PG) == [4 4])
+	MM = PG;
+else
+	MM = spm_matrix([0 0 0 0 0 0 1 1 1 0 0 0]');
 end
-MM = spm_matrix(prms');
+
 
 for i=1:size(PF,1)
 	VF(:,i) = spm_map(PF(i,:));
