@@ -75,7 +75,7 @@ if all(finite(range)),
 	mn     = min(data,[],1);
 	scale  = (mx-mn)/(range(2)-range(1));
 	scale(find(scale==0)) = 1;
-	off    = mn;
+	off    = mn - scale*range(1);
 	rescale = 1;
 else,
 	scale = ones(1,size(data,2));
