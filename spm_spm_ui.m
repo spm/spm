@@ -404,7 +404,9 @@ function varargout=spm_spm_ui(varargin)
 %                 (with "_"'s converted to spaces) in bold as topics, with
 %                 the corresponding text to the right
 % 
-% Fc            - F - contrast
+% F_iX0         - Design matrix columns of effects of no interest
+%                (For F-test)
+%                (Used in spm_spm.m for filtering data saved for plotting)
 % 
 % SPMid         - String identifying SPM and program versions
 %_______________________________________________________________________
@@ -1275,7 +1277,6 @@ tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
 xX     = struct(	'I',		I,...
 			'sF',		{D.sF},...
 			'X',		X,...
-			'RT',		{[]},...
 			'sigma',	0,...
 			'iH',		[1:size(H,2)],...
 			'iC',		[1:size(C,2)] + tmp(1),...
@@ -1288,25 +1289,11 @@ xX     = struct(	'I',		I,...
 %-Pre-specified contrast for F-test on effects of interest
 %=======================================================================
 if ~isempty([H,C])
-	%-Effects designated "of interest" - constuct an F-contrast
-	% to test for any significant effects of interest, for use in
-	% spm_spm F-thresholding of interesting voxels to save for plotting.
-	%-Have a first guess at a simple F-contrast!
-	Fc = [diff(eye(size(H,2))), zeros(size(H,2)-1,size([C,B,G],2));...
-		zeros(size(C,2),size(H,2)), eye(size(C,2)),...
-			zeros(size(C,2),size([B,G],2))]';
-
-	%-If that's not equivalent to a test of [BH;BC]=0 for BH & BC the
-	% parameters corresponding to the H & C partitions,
-	% then make a fancy F-contrast
-	if ~spm_SpUtil('AllCon',X,Fc) | rank(Fc)~=(rank(X)-rank([B,G]))
-		Fc = spm_SpUtil('FCon',X,size([H,C],2)+[1:size([B,G],2)]);
-	end
-	
+	%-Some effects designated "of interest"
+	F_iX0 = (size(H,2)+size(C,2)) + [1:size(B,2)+size(G,2)];
 else
-	%-No effects designated "of interest" - F-contrast for B=0
-	% (i.e. total model fit, comparing raw SS w/ ResSS)
-	Fc = spm_SpUtil('FCon',X,[]);
+	%-No effects designated "of interest" - F-test for B=0
+	F_iX0 = [];
 end
 
 
@@ -1326,11 +1313,11 @@ xsDes = struct(	'Design',			{D.DesName},...
 
 
 %-Save SPMcfg.mat file
-save SPMcfg SPMid D xsDes VY xX xC xGX xM Fc
+save SPMcfg SPMid D xsDes VY xX xC xGX xM F_iX0
 
 %-Display Design report & "Run" button
 %=======================================================================
-spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,Fc)
+spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
 
 
 %-End: Cleanup GUI
@@ -1459,7 +1446,7 @@ case {'desrep','desrepui','run'}
 % - A N A L Y S I S   P A R A M E T E R S   /   R U N
 %=======================================================================
 % spm_spm_ui({'DesRep','DesRepUI','Run'},SPMcfg)
-% spm_spm_ui({'DesRep','DesRepUI','Run'},VY,xX,xC,xsDes,xM,Fc)
+% spm_spm_ui({'DesRep','DesRepUI','Run'},VY,xX,xC,xsDes,xM,F_iX0)
 if nargin==1
 	SPMcfg = load(spm_get(1,'SPMcfg.mat','Select SPMcfg.mat'));
 elseif nargin==2
@@ -1476,7 +1463,7 @@ elseif nargin==7
 				'xC',		varargin{4},...
 				'xsDes',	varargin{5},...
 				'xM',		varargin{6},...
-				'Fc',		varargin{7}	);
+				'F_iX0',	varargin{7}	);
 else
 	error('insufficient arguments')
 end
@@ -1522,7 +1509,7 @@ end
 %-Run
 %-----------------------------------------------------------------------
 if strcmp(lower(Action),'run')
-	spm_spm(SPMcfg.VY,SPMcfg.xX,SPMcfg.xM,SPMcfg.Fc,SPMcfg.xC,SPMcfg.xsDes)
+	spm_spm(SPMcfg.VY,SPMcfg.xX,SPMcfg.xM,SPMcfg.F_iX0,SPMcfg.xC,SPMcfg.xsDes)
 end
 
 
@@ -1635,7 +1622,7 @@ D = struct(...
 	'nC',[Inf,Inf],'iCC',{{[-1,3,8],[-1,8]}},'iCFI',{{[1,3],1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[1,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
 	'b',struct('aTime',1));
 
 D = [D, struct(...
