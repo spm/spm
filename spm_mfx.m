@@ -164,6 +164,10 @@ end
 %-----------------------------------------------------------------------
 S.xX.X    = X2;
 S.xX.name = name;
+S.xX.iH   = [];
+S.xX.iC   = [1:size(X2,2)];
+S.xX.iB   = [];
+S.xX.iG   = [];
 
 
 % mixed covariance components
@@ -220,11 +224,6 @@ S.xVi.h  = sparse(V2);
 % smoothness and volume infomation
 %-----------------------------------------------------------------------
 S.xVol   = SPM.xVol;
-
-% implicit masking
-%-----------------------------------------------------------------------
-S.xM.TH  = -ones(nY,1)/0
-S.xM.I   = 1;
 
 %-Change to SPM.swd/mfx and save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
