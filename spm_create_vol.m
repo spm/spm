@@ -25,8 +25,7 @@ return;
 function V = create_vol(V,varargin)
 if ~isfield(V,'n')           | isempty(V.n),           V.n           = 1;                 end;
 if ~isfield(V,'descrip')     | isempty(V.descrip),     V.descrip     = 'SPM2 compatible'; end;
-V.private     = struct('hdr',[]);
-V.private.hdr = create_defaults;
+V.private = struct('hdr',[]);
 
 % Orientation etc...
 M  = V.mat;
@@ -36,87 +35,35 @@ if det(M(1:3,1:3))<0, vx(1) = -vx(1); end;
 origin = M\[0 0 0 1]';
 origin = round(origin(1:3));
 
-V.private.hdr.dime.pixdim(2:4) = vx;
-V.private.hdr.dime.dim(2:4)    = V.dim(1:3);
-V.private.hdr.dime.dim(5)      = V.n;
-V.private.hdr.hist.origin(1:3) = origin;
-
-dt = spm_type(spm_type(V.dim(4)));
-if any(dt == [128+2 128+4 128+8]),
-	% Convert to a form that Analyze will support
-	dt = dt - 128;
-	if spm_type(V.dim(4),'swapped')
-		V.dim(4) = dt*256;
-	end;
-end;
-V.private.hdr.dime.datatype    = dt;
-V.private.hdr.dime.bitpix      = spm_type(dt,'bits');
-
-if spm_type(dt,'intt'),
-
-	V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
-	V.private.hdr.dime.glmin    = spm_type(dt,'minval');
-
-	if 0, % Allow DC offset
-		V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-		V.private.hdr.dime.cal_min  = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
-		V.private.hdr.dime.funused1 = 0;
-		scal                = (V.private.hdr.dime.cal_max - V.private.hdr.dime.cal_min)/...
-		                      (V.private.hdr.dime.glmax   - V.private.hdr.dime.glmin);
-		dcoff               =  V.private.hdr.dime.cal_min - V.private.hdr.dime.glmin*scal;
-		V.pinfo             = [scal dcoff 0]';
-	else, % Don't allow DC offset
-		cal_max                     = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-		cal_min                     = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
-		V.private.hdr.dime.funused1 = cal_max/V.private.hdr.dime.glmax;
-		if V.private.hdr.dime.glmin,
-			V.private.hdr.dime.funused1 = max(V.private.hdr.dime.funused1,...
-		                                  cal_min/V.private.hdr.dime.glmin);
-		end;
-		V.private.hdr.dime.cal_max  = V.private.hdr.dime.glmax*V.private.hdr.dime.funused1;
-		V.private.hdr.dime.cal_min  = V.private.hdr.dime.glmin*V.private.hdr.dime.funused1;
-		V.pinfo             = [V.private.hdr.dime.funused1 0 0]';
-	end;
-else,
-	V.private.hdr.dime.glmax    = 1;
-	V.private.hdr.dime.glmin    = 0;
-	V.private.hdr.dime.cal_max  = 1;
-	V.private.hdr.dime.cal_min  = 0;
-	V.private.hdr.dime.funused1 = 1;
-end;
-
-d                              = 1:min([length(V.descrip) 79]);
-V.private.hdr.hist.descrip     = char(zeros(1,80));
-V.private.hdr.hist.descrip(d)  = V.descrip(d);
-V.private.hdr.hk.db_name       = char(zeros(1,18));
-[pth,nam,ext]                  = fileparts(V.fname);
-d                              = 1:min([length(nam) 17]);
-V.private.hdr.hk.db_name(d)    = nam(d);
-mach                           = 'native';
-
+[pth,nam,ext] = fileparts(V.fname);
 fname         = fullfile(pth,[nam, '.hdr']);
 [hdr,swapped] = spm_read_hdr(fname);
 
 if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 	% cannot simply overwrite the header
 
-	hdr.dime.dim(5) = max(V.private.hdr.dime.dim(5),hdr.dime.dim(5));
-	if any(V.private.hdr.dime.dim(2:4) ~= hdr.dime.dim(2:4))
+	hdr.dime.dim(5) = max(V.n,hdr.dime.dim(5));
+	if any(V.dim(1:3) ~= hdr.dime.dim(2:4))
 		error('Incompatible image dimensions');
 	end;
 
-	if sum((V.private.hdr.dime.pixdim(2:4)-hdr.dime.pixdim(2:4)).^2)>1e-6,
+	if sum((vx-hdr.dime.pixdim(2:4)).^2)>1e-6,
 		error('Incompatible voxel sizes');
 	end;
 
 	V.dim(4) = spm_type(spm_type(hdr.dime.datatype));
+	mach = 'native';
 	if swapped,
 		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
 	end;
 
-	if hdr.dime.funused1,
+	if finite(hdr.dime.funused1) & hdr.dime.funused1,
 		scal  = hdr.dime.funused1;
-		dcoff = 0;
+		if finite(hdr.dime.funused2),
+			dcoff = hdr.dime.funused2;
+		else,
+			dcoff = 0;
+		end;
 	else
 		if hdr.dime.glmax-hdr.dime.glmin & hdr.dime.cal_max-hdr.dime.cal_min,
 			scal  = (hdr.dime.cal_max-hdr.dime.cal_min)/(hdr.dime.glmax-hdr.dime.glmin);
@@ -128,8 +75,73 @@ if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 		end;
 	end;
 	V.pinfo(1:2)    = [scal dcoff]';
-	hdr.dime.dim(5) = max(hdr.dime.dim(5),V.private.hdr.dime.dim(5));
 	V.private.hdr   = hdr;
+else,
+
+	V.private.hdr = create_defaults;
+
+	mach = 'native';
+	dt   = spm_type(spm_type(V.dim(4)));
+	if any(dt == [128+2 128+4 128+8]),
+		% Convert to a form that Analyze will support
+		dt = dt - 128;
+		if spm_type(V.dim(4),'swapped')
+			V.dim(4) = dt*256;
+		end;
+	end;
+
+	if spm_type(V.dim(4),'swapped')
+		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
+	end;
+
+	V.private.hdr.dime.datatype    = dt;
+	V.private.hdr.dime.bitpix      = spm_type(dt,'bits');
+
+	if spm_type(dt,'intt'),
+
+		V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
+		V.private.hdr.dime.glmin    = spm_type(dt,'minval');
+
+		if 0, % Allow DC offset
+			V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+			V.private.hdr.dime.cal_min  = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
+			V.private.hdr.dime.funused1 = 0;
+			scal                = (V.private.hdr.dime.cal_max - V.private.hdr.dime.cal_min)/...
+		                	      (V.private.hdr.dime.glmax   - V.private.hdr.dime.glmin);
+			dcoff               =  V.private.hdr.dime.cal_min - V.private.hdr.dime.glmin*scal;
+			V.pinfo             = [scal dcoff 0]';
+		else, % Don't allow DC offset
+			cal_max                     = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+			cal_min                     = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
+			V.private.hdr.dime.funused1 = cal_max/V.private.hdr.dime.glmax;
+			if V.private.hdr.dime.glmin,
+				V.private.hdr.dime.funused1 = max(V.private.hdr.dime.funused1,...
+		                                  cal_min/V.private.hdr.dime.glmin);
+			end;
+			V.private.hdr.dime.cal_max  = V.private.hdr.dime.glmax*V.private.hdr.dime.funused1;
+			V.private.hdr.dime.cal_min  = V.private.hdr.dime.glmin*V.private.hdr.dime.funused1;
+			V.pinfo             = [V.private.hdr.dime.funused1 0 0]';
+		end;
+	else,
+		V.private.hdr.dime.glmax    = 1;
+		V.private.hdr.dime.glmin    = 0;
+		V.private.hdr.dime.cal_max  = 1;
+		V.private.hdr.dime.cal_min  = 0;
+		V.private.hdr.dime.funused1 = 1;
+	end;
+
+	V.private.hdr.dime.pixdim(2:4) = vx;
+	V.private.hdr.dime.dim(2:4)    = V.dim(1:3);
+	V.private.hdr.dime.dim(5)      = V.n;
+	V.private.hdr.hist.origin(1:3) = origin;
+
+	d                              = 1:min([length(V.descrip) 79]);
+	V.private.hdr.hist.descrip     = char(zeros(1,80));
+	V.private.hdr.hist.descrip(d)  = V.descrip(d);
+	V.private.hdr.hk.db_name       = char(zeros(1,18));
+	[pth,nam,ext]                  = fileparts(V.fname);
+	d                              = 1:min([length(nam) 17]);
+	V.private.hdr.hk.db_name(d)    = nam(d);
 end;
 
 V.pinfo(3) = prod(V.private.hdr.dime.dim(2:4))*V.private.hdr.dime.bitpix/8*(V.n-1);

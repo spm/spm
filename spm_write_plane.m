@@ -30,6 +30,7 @@ minval  = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0,     0  -2^15  -2^3
 intt    = [    1      1      1    0    0     1      1      1,     1      1      1    0     0     1      1      1];
 prec = str2mat('uint8','int16','int32','float','double','int8','uint16','uint32','uint8','int16','int32','float','double','int8','uint16','uint32');
 swapped = [    0      0      0    0    0     0      0      0,     1      1      1    1     1     1      1      1];
+bits    = [    8     16     32   32   64     8     16     32,     8     16     32   32    64     8     16     32];
 
 dt      = find(types==V.dim(4));
 if isempty(dt), error('Unknown datatype'); end;
@@ -62,6 +63,10 @@ if ~isfield(V,'private') | ~isfield(V.private,'fid') | isempty(V.private.fid),
 	end;
 else,
 	if isempty(fopen(V.private.fid)),
+		mach = 'native';
+		if swapped(dt),
+			if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
+		end;
 		V.private.fid = fopen(fname,'r+',mach);
 		if V.private.fid == -1,
 			error(['Error opening ' fname '. Check that you have write permission.']);
@@ -71,7 +76,7 @@ else,
 end;
 
 % Seek to the appropriate offset
-datasize = V.private.hdr.dime.bitpix/8;
+datasize = bits(dt)/8;
 off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
 if fseek(fid,off,'bof')==-1,
 	% Need this because fseek in Matlab does not seek past the EOF
