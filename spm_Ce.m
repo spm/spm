@@ -8,6 +8,7 @@ function [C] = spm_Ce(v,a)
 %  C{2} = h(1)*AR(a) + h(2)*dAR(a)/da(1);
 %  C{3} = h(1)*AR(a) + h(2)*dAR(a)/da(1) + h(3)*dAR(a)/da(2);
 %
+% thisfunction is rubbish
 % See also; spm_Q.m
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
