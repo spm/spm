@@ -156,7 +156,7 @@ spm('Pointer','Watch')
 %-Extract required data from results files
 %=======================================================================
 
-%-Get raw data, whiten and filter
+%-Get raw data, whiten and filter 
 %-----------------------------------------------------------------------
 y        = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,Q));
 y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
@@ -195,8 +195,14 @@ end
 % and add session-specific filter confounds
 %-----------------------------------------------------------------------
 try
-	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH];
+	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).X0];
 end
+
+%=======================================================================
+try
+	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH]; Compatibility check
+end
+%=======================================================================
 
 
 % compute regional response in terms of first eigenvariate
