@@ -1,6 +1,5 @@
 
-% Statistical Parametric Mapping - SPM2b
-% SPM2 is the beta public release of SPM'2   -   released XX/11/2002
+% Statistical Parametric Mapping - SPM2
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -117,9 +116,9 @@
 % eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 % special toolboxes are required).
 % 
-% SPM2b is written for Matlab versions 5.2.1, 6.0 and 6.5 under UNIX,
+% SPM2 is written for Matlab versions 5.3, 6.0 and 6.5 under UNIX,
 % LINUX and Windows(95/98/NT). (SPM will not work with versions of
-% Matlab 5 prior to 5.2.1, including Matlab 4.)
+% Matlab 5 prior to 5.3.)
 % 
 % Binaries of the external C-mex routines are provided for Solaris and
 % Linux only, users of other UNIX platforms need an ANSI C
