@@ -426,6 +426,16 @@ set([Fmenu,Finter,Fgraph],'Visible','on')
 fprintf('SPM present working directory:\n\t%s\n',pwd)
 
 
+%-Nag user to upgrade if this is old software                       ****
+%-----------------------------------------------------------------------
+if now>datenum('01-Oct-1999')
+	spm('alert"',{	'This is beta software!',' ',...
+			'SPM99b was released on 17/05/1999, over four months',...
+			'ago, so this beta version is rather old.',' ',...
+			'Please upgrade to the most recent release of SPM99.',...
+			' ','See http://www.fil.ion.ucl.ac.uk/spm'},...
+		'Beta testing is over!',[],1)
+end
 
 
 case 'createmenuwin'
@@ -964,9 +974,9 @@ case 'colour'
 %-Developmental livery
 % varargout = {[0.7,1.0,0.7],'flourescent green'};
 %-Alpha release livery
-varargout = {[0.9,0.9,0.5],'over-ripe banana'};
+% varargout = {[0.9,0.9,0.5],'over-ripe banana'};
 %-Beta release livery
-% varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
+varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
 %-Distribution livery
 % varargout = {[0.8 0.8 1.0],'vile violet'};
 
@@ -1120,7 +1130,7 @@ if wait
 	end
 end
 
-varargout = {h};
+if nargout, varargout = {h}; end
 
 
 case {'fnbanner','sfnbanner','ssfnbanner'}
