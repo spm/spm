@@ -165,8 +165,9 @@ function varargout = spm_input(varargin)
 %   - real    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
 % - condition - FORMAT [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
 % - button    - FORMAT [p,YPos]= spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
-% - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - natural 1 - FORMAT [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr)
 % - whole 1   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr)
+% - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
 % - display   - FORMAT     spm_input(Message,YPos,'d',Label)
 % - alert     - FORMAT     spm_input(Alert,YPos,'d!',Label)
 %
@@ -195,7 +196,14 @@ function varargout = spm_input(varargin)
 % Type     - type of interrogation
 %                          - 's'tring
 %                          - 'e'valuated string
+%                             - 'n'atural numbers
+%                             - 'w'hole numbers
+%                             - 'i'ntegers
+%                             - 'r'eals
+%                          - 'c'ondition indicator vector
 %                          - 'b'uttons
+%                          - 'n1' - single natural number (buttons & edit)
+%                          - 'w1' - single whole number   (buttons & edit)
 %                          - 'm'enu pulldown
 %                          - 'y/n' : Yes or No buttons
 %                                    (See shortcuts below)
@@ -1014,14 +1022,19 @@ if exist('spm_log')==2
 
 
 
-case 'w1'   %-Single whole {0,1,2,...} number - button/entry combination
+case {'w1','n1'}   %-Single whole/natural number - button/entry combination
 %=======================================================================
 if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
 DefStr = DefStr(:)';
 
 if CmdLine
-	spm_input('!PrntPrmpt',sprintf('%s\t(enter a whole number)',Prompt))
+	switch lower(Type)
+	case 'w1', tstr='whole';
+	case 'n1', tstr='natural';
+	otherwise, str=''; end
+	
+	spm_input('!PrntPrmpt',sprintf('%s\t(enter a %s number)',Prompt,tstr))
 	if ~isempty(DefStr)
 		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
@@ -1038,7 +1051,11 @@ if CmdLine
 else
 
 	Tag = ['GUIinput_',int2str(YPos)];		%-Tag for widgets
-	n   = 5;					%-#buttons
+	n   = 6;					%-#buttons
+	switch lower(Type)
+	case 'w1', iButs=0:n-1;
+	case 'n1', iButs=1:n;
+	otherwise, str=''; end
 
 	%-Create text and edit control objects
 	%-'UserData' of prompt contains answer
@@ -1057,20 +1074,19 @@ else
 	%-Store button # in 'Max' property
 	%-Callback sets UserData of prompt string to button value.
 	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''Max''))'];
-	if TTips, str = ['select 0-',num2str(n),' by mouse ',...
-		'or enter in text widget'];
-	else, str=''; end
+	if TTips, str=sprintf('select %d-%d by mouse or enter in text widget',...
+		iButs(1),iButs(end)); else, str=''; end
 	H = [];
-	for i=0:n
+	for i=1:n
 		h = uicontrol(Finter,'Style','Pushbutton',...
-			'String',int2str(i),...
-			'Max',i,...
+			'String',int2str(iButs(i)),...
+			'Max',iButs(i),...
 			'ToolTipString',str,...
 			'Tag',Tag,...
 			'UserData',hPrmpt,...
 			'BackgroundColor',COLOR,...
 			'Callback',cb,...
-			'Position',[RRec(1)+i*dX+1 RRec(2) dX-2 RRec(4)]);
+			'Position',[RRec(1)+(i-1)*dX+1 RRec(2) dX-2 RRec(4)]);
 		H = [H,h];
 	end
 
@@ -1080,7 +1096,7 @@ else
 		'BackGroundColor','k',...
 		'ForeGroundColor','k',...
 		'Position',...
-		[RRec(1)+(n+1)*dX RRec(2)-1 1.3*dX RRec(4)+2]);
+		[RRec(1)+n*dX RRec(2)-1 2*dX RRec(4)+2]);
 	H = [H,h];
 	%-Edit widget: Callback puts string into hPrompts UserData
 	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))'];
@@ -1092,9 +1108,9 @@ else
 		'CallBack',cb,...
 		'Horizontalalignment','Center',...
 		'BackgroundColor',COLOR,...
-		'Position',[RRec(1)+(n+1)*dX+1 RRec(2) 1.3*dX-2 RRec(4)]);
+		'Position',[RRec(1)+n*dX+1 RRec(2) 2*dX-2 RRec(4)]);
 	H = [H,h];
-	XDisp = (n+6/3)*dX;
+	XDisp = (n+1)*dX;
 
 
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
@@ -1119,7 +1135,7 @@ else
 	if ~ishandle(hPrmpt), error(['Input objects cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	p = get(hPrmpt,'UserData');
-	if isstr(p), [p,msg] = sf_eEval(p,'w1'); end
+	if isstr(p), [p,msg] = sf_eEval(p,Type); end
 	while isstr(p)
 		set(H,'Visible','off')
 		h = uicontrol('Style','Text','String',msg,...
@@ -1133,7 +1149,7 @@ else
 		if ~ishandle(hPrmpt), error(['Input objects cleared ',...
 			'whilst waiting for response: Bailing out!']),end
 		p = get(hPrmpt,'UserData');
-		if isstr(p), [p,msg] = sf_eEval(p,'w1'); end
+		if isstr(p), [p,msg] = sf_eEval(p,Type); end
 	end
 
 	%-Clean up
@@ -1638,6 +1654,17 @@ case 'w'
 		p='!'; msg='whole number(s) required';
 	elseif ~any(isnan(n(:)))
 		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
+case 'n1'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif length(p)>1
+		p='!'; msg='scalar required';
+	elseif p~=floor(p) | p<1 | ~isreal(p)
+		p='!'; msg='natural number required';
 	else
 		msg='';
 	end
