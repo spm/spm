@@ -119,7 +119,7 @@ if length(Sess(s).U) >= i
 	%---------------------------------------------------------------
 	for p = 1:length(Sess(s).U(i).P)
 
-	    if Sess(s).U(i).P.h
+	    if Sess(s).U(i).P(p).h
 
 		% onsets and parametric modulation
 		%-------------------------------------------------------
