@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include <math.h>
@@ -26,9 +26,9 @@ Matrix *plhs[], *prhs[];
 
 	map=get_map(prhs[0]);
 
-	xdim = abs(nint(map->xdim));
-	ydim = abs(nint(map->ydim));
-	zdim = abs(nint(map->zdim));
+	xdim = abs((int)map->xdim);
+	ydim = abs((int)map->ydim);
+	zdim = abs((int)map->zdim);
 
 	for(k=1; k<=3; k++)
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
@@ -46,7 +46,7 @@ Matrix *plhs[], *prhs[];
 		mxGetM(prhs[4])*mxGetN(prhs[4]) != 1)
 		mexErrMsgTxt("Bad hold argument.");
 
-	hold = nint(*(mxGetPr(prhs[4])));
+	hold = abs((int)(*(mxGetPr(prhs[4]))));
 
 	plhs[0] = mxCreateFull(m,n,REAL);
 	img = mxGetPr(plhs[0]);

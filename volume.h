@@ -4,11 +4,8 @@
 #ifndef lint
 static char hdr_sccsid[]="%W% John Ashburner %E%";
 #endif
-#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
-#include <unistd.h>
 #include "cmex.h"
 
 #define MAGIC 110494
@@ -25,9 +22,6 @@ typedef struct maptype
 	int magic;
 	int prot;
 	int flags;
-/*
-	int fd;
-*/
 	pid_t pid;
 }	MAPTYPE;
 
@@ -53,7 +47,6 @@ MAPTYPE *get_map(matrix_ptr)
 Matrix *matrix_ptr;
 {
 	MAPTYPE *map;
-	static struct stat stbuf;
 	int xdim, ydim, zdim, datasize;
 
 	if ((!mxIsNumeric(matrix_ptr) || mxIsComplex(matrix_ptr) ||
@@ -76,23 +69,13 @@ Matrix *matrix_ptr;
 	if (datasize == 0)
 		mexErrMsgTxt("Bad datatype in image handle.");
 
-	xdim = abs(nint(map->xdim));
-	ydim = abs(nint(map->ydim));
-	zdim = abs(nint(map->zdim));
+	xdim = abs((int)map->xdim);
+	ydim = abs((int)map->ydim);
+	zdim = abs((int)map->zdim);
 	if ((xdim*ydim*zdim*datasize+7)/8 != map->len)
 	{
 		mexErrMsgTxt("Who screwed up the handle??");
 	}
-/*
-	if (fstat(map->fd, &stbuf) == -1)
-	{
-		mexErrMsgTxt("Cant stat image file.");
-	}
-	if (stbuf.st_size < map->off+map->len)
-	{
-		mexErrMsgTxt("Image file too small.");
-	}
-*/
 	return(map);
 }
 #endif

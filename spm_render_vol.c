@@ -3,7 +3,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include "cmex.h"
-#include<math.h>
+#include <math.h>
 
 void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, bytedat, xdim2, ydim2, zdim2, thresh)
 double  mat[16];
@@ -69,13 +69,13 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 					double x4 = (x3 + x*mat[0]);
 					double y4 = (y3 + x*mat[1]);
 					double z4 = (z3 + x*mat[2]);
-					ixstart = nint(x4);
+					ixstart = (int)(x4+0.5);
 					if (ixstart < 0) ixstart = 0;
-					ixend = nint(x4+xs);
+					ixend = (int)(x4+xs+0.5);
 					if (ixend >= xdim1) ixend = xdim1-1;
-					iystart = nint(y4);
+					iystart = (int)(y4+0.5);
 					if (iystart < 0) iystart = 0;
-					iyend = nint(y4+ys);
+					iyend = (int)(y4+ys+0.5);
 					if (iyend >= ydim1) iyend = ydim1-1;
 					for(iy4 = iystart ; iy4<=iyend; iy4++)
 						for(ix4 = ixstart ; ix4<=ixend; ix4++)
@@ -178,9 +178,9 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Can only handle 8 bit volume.");
 	}
 
-	xdim = abs(nint(map->xdim));
-	ydim = abs(nint(map->ydim));
-	zdim = abs(nint(map->zdim));
+	xdim = abs((int)map->xdim);
+	ydim = abs((int)map->ydim);
+	zdim = abs((int)map->zdim);
 
 	for(k=1; k<nrhs; k++)
 	{

@@ -59,15 +59,15 @@ Matrix *plhs[], *prhs[];
 	map = (MAPTYPE *)mxGetPr(plhs[0]);
 
 	map->magic = MAGIC;
-	map->xdim = nint(ptr[0]);
-	map->ydim = nint(ptr[1]);
-	map->zdim = nint(ptr[2]);
+	map->xdim = abs((int)ptr[0]);
+	map->ydim = abs((int)ptr[1]);
+	map->zdim = abs((int)ptr[2]);
 	map->xpixdim = ptr[3];
 	map->ypixdim = ptr[4];
 	map->zpixdim = ptr[5];
 	map->scalefactor = ptr[6];
-	map->datatype = abs(nint(ptr[7]));
-	map->off = abs(nint(ptr[8]));
+	map->datatype = abs((int)ptr[7]);
+	map->off = abs((int)ptr[8]);
 	map->pid = getpid();
 	if (map->xdim < 1 || map->ydim < 1 || map->zdim < 1)
 		mexErrMsgTxt("Dimensions too small.");
@@ -90,25 +90,25 @@ Matrix *plhs[], *prhs[];
 
 	if (fstat(fd, &stbuf) == -1)
 	{
-		close(fd);
+		(void)close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Cant stat image file.");
 	}
 	if (stbuf.st_size < map->off+map->len)
 	{
-		close(fd);
+		(void)close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Image file too small.");
 	}
 
-	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, 0);
+	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, (off_t)0);
 	if (map->map == (caddr_t)-1)
 	{
-		close(fd);
+		(void)close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Cant map image file.");
 	}
 	map->data = (unsigned char *)(map->map) + map->off;
 	mxFree(str);
-	close(fd);
+	(void)close(fd);
 }

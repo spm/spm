@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #define PI 3.14159265358979
@@ -112,9 +112,9 @@ IMAGE_DTYPE vol[];
 	for (i=0; i<m; i++)
 	{
 		int xcoord, ycoord, zcoord;
-		xcoord = nint(x[i]);
-		ycoord = nint(y[i]);
-		zcoord = nint(z[i]);
+		xcoord = x[i]+0.5;
+		ycoord = y[i]+0.5;
+		zcoord = z[i]+0.5;
 		if (xcoord>=1 && xcoord<=xdim && ycoord>=1 &&
 			ycoord<=ydim && zcoord>=1 && zcoord<=zdim)
 			out[i] = vol[xcoord  + xdim*(ycoord  + ydim*(zcoord))];
@@ -244,9 +244,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			int ix4, iy4, iz4;
 			s3 += ds3;
 			if (s3 == 0.0) return(-1);
-			ix4 = nint((x3 += dx3)/s3);
-			iy4 = nint((y3 += dy3)/s3);
-			iz4 = nint((z3 += dz3)/s3);
+			ix4 = (x3 += dx3)/s3 + 0.5;
+			iy4 = (y3 += dy3)/s3 + 0.5;
+			iz4 = (z3 += dz3)/s3 + 0.5;
 			if (iz4>=1 && iz4<=zdim2 && iy4>=1 && iy4<=ydim2 && ix4>=1 && ix4<=xdim2)
 				image[t] = (double)vol[ix4 + xdim2*(iy4 + ydim2*iz4)];
 			t++;
@@ -283,7 +283,6 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 
 		for(x=1; x<=xdim1; x++)
 		{
-			int ix4, iy4, iz4;
 			double x4,y4,z4;
 			s3 += ds3;
 			if (s3 == 0.0) return(-1);

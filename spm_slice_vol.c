@@ -16,7 +16,7 @@ Matrix *plhs[], *prhs[];
 {
 	MAPTYPE *map;
 	int m,n, k, hold, xdim, ydim, zdim, status;
-	double *mat, *ptr, scalefactor, *img;
+	double *mat, *ptr, *img;
 
 	if (nrhs != 4 || nlhs > 1)
 	{
@@ -25,9 +25,9 @@ Matrix *plhs[], *prhs[];
 
 	map = get_map(prhs[0]);
 
-	xdim = abs(nint(map->xdim));
-	ydim = abs(nint(map->ydim));
-	zdim = abs(nint(map->zdim));
+	xdim = abs((int)map->xdim);
+	ydim = abs((int)map->ydim);
+	zdim = abs((int)map->zdim);
 
 	for(k=1; k<=3; k++)
 	{
@@ -51,8 +51,8 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Output dimensions must have two elements.");
 	}
 	ptr = mxGetPr(prhs[2]);
-	m = abs(nint(ptr[0]));
-	n = abs(nint(ptr[1]));
+	m = abs((int)ptr[0]);
+	n = abs((int)ptr[1]);
 	plhs[0] = mxCreateFull(m,n,REAL);
 	img = mxGetPr(plhs[0]);
 
@@ -60,7 +60,7 @@ Matrix *plhs[], *prhs[];
 	{
 		mexErrMsgTxt("Hold argument must have one element.");
 	}
-	hold = nint(*(mxGetPr(prhs[3])));
+	hold = abs((int)(*(mxGetPr(prhs[3]))));
 
 	if (hold > 127 || hold == 2)
 		mexErrMsgTxt("Bad hold value.");
