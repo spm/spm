@@ -412,6 +412,11 @@ case 'nrmax'
 case 'glmax'
 	str       = 'global maxima';
 	i         = find(MD.Z==max(MD.Z));
+	if length(i) > 1
+           % For PPMs many voxels may have Z=1, 
+           % so pick first arbitrarily
+           i=i(1);
+	end
 	xyz       = MD.XYZ(:,i);
 	d         = sqrt(sum((oxyz-xyz).^2));
 otherwise
