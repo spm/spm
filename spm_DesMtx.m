@@ -198,7 +198,7 @@ elseif size(I,2)==1
 	%-Sort out unique factor levels
 	if ~all(floor(I)==ceil(I)) error('Non-integer indicator vector'), end
 	temp=sort(I);
-	Index=temp([1;diff(temp(:))>0]);
+	Index=temp(logical([1;diff(temp(:))>0]));
 	clear temp
 	
 	%-Determine sizes of design matrix X
