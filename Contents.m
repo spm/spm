@@ -223,7 +223,7 @@ help Contents
 % spm_uc_RF.m                    2.4
 % spm_unlink.m                   2.1
 % spm_VOI.m                      2.18
-% spm_vol.m                      2.14
+% spm_vol.m                      2.15
 % spm_vol_ana.m                  2.6
 % spm_vol_check.m                1.2
 % spm_vol_ecat7.m                2.11
