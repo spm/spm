@@ -1,67 +1,79 @@
-function pdf = spm_Npdf(z,Mu,V)
-% Probability Density Function (PDF) of multivariate Normal distribution
-% FORMAT pdf = spm_Npdf(z,Mu,V)
+function f = spm_Npdf(x,u,v)
+% Probability Density Function (PDF) of univariate Normal distribution
+% FORMAT f = spm_Npdf(x,u,v)
 %
-% z  - ordinates
-% Mu - mean (a d-vector)
-% V  - d x d variance-covariance matrix
+% x - ordinates
+% u - mean		[Defaults to 0]
+% v - variance	(v>0)	[Defaults to 1]
+% f - pdf of N(u,v) at x
 %_______________________________________________________________________
 %
 % spm_Npdf returns the Probability Density Function (PDF) for the
-% multivariate Normal (Gaussian) family of distributions.
+% univariate Normal (Gaussian) family of distributions.
 %
-% The dimension of the Normal distribution is taken as the length of Mu.
-% V must be a d x d variance-covariance matrix.
+% Definition:
+%-----------------------------------------------------------------------
+% Let random variable X have a Normal distribution with mean u and
+% variance v, then Z~N(u,v). The Probability Density Function (PDF) of
+% the Normal (sometimes called Gaussian) family is f(x), defined on all
+% real x, given by: (See Evans et al., Ch29)
 %
-% For the univariate Normal distribution (d=1), z can be a matrix of
-% arbitrary dimensions - each entry is treated seperately and the PDF
-% returned as the corresponding element in a matrix of the same size.
+%                 1           ( (x-u)^2 )
+%    f(r) = ------------ x exp| ------  |
+%           sqrt(v*2*pi)      (   2v    )
 %
-% For multivarate PDFs, the ordinates must be in the columns of z, so
-% z must have column dimension d. Multiple columns can be entered. 
+% The PDF of the standard Normal distribution, with zero mean and unit
+% variance, Z~N(0,1), is commonly referred to as \phi(z).
+%
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
+%
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-Condition arguments
-%-----------------------------------------------------------------------
-if nargin<1,   pdf=[]; return, end
-if isempty(z), pdf=[]; return, end
-if nargin<2,   Mu=0;           end
 
-%-Check Mu, make a column vector, get dimension
+%-Format arguments, note & check sizes
 %-----------------------------------------------------------------------
-if min(size(Mu)) > 1, error('Mu must be a vector'); end
-Mu = Mu(:)';
-d  = length(Mu);
-n  = size(z,2);
-
-if nargin<3, V=eye(d); end
-
-%-Size & range checks
-%-----------------------------------------------------------------------
-if any(any(V~=V')),     error('V must be symmetric'); end
-if any(size(V)~=[d,d]), error('V wrong dimension'),   end
+if nargin<3, v=1; end
+if nargin<2, u=0; end
+if nargin<1, f=[]; return, end
+ad = [ndims(x);ndims(u);ndims(v)];
+rd = max(ad);
+as = [	[size(x),ones(1,rd-ad(1))];...
+	[size(u),ones(1,rd-ad(2))];...
+	[size(v),ones(1,rd-ad(3))]     ];
+rs = max(as);
+xa = prod(as,2)>1;
+if sum(xa)>1 & any(any(diff(as(xa,:)),1))
+	error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
-if d==1
-	%-Simpler computation for univariate normal
-	%---------------------------------------------------------------
-	pdf = exp(-(z - Mu).^2/(2*V))./sqrt(2*pi*V);
-else
-	if size(z,1) ~= d, error('z wrong dimension'), end
-	z   = z - Mu(:)*ones(1,size(z,2));
-	pdf = exp(-0.5*sum((sqrtm(inv(V))*z).^2))/((2*pi)^(d/2)*sqrt(det(V)));
-end
+%-Initialise result to zeros
+f = zeros(rs);
 
-return
+%-Only defined for strictly positive variance v. Return NaN if undefined.
+md = ( ones(size(x))  &  ones(size(u))  &  v>0 );
+if any(~md(:)), f(~md) = NaN;
+	warning('Returning NaN for out of range arguments'), end
 
-%-Notes
-%=======================================================================
-%-The following line computes the PDF in one go for all the ordinates,
-% The diag()'s allow for the multiplicity.
-% This way is inefficient for large numbers of ordinates.
-%
-% pdf = ...
-%  exp(-0.5*diag((x-Mu)'*inv(V)*(x-Mu))' ) / ( (2*pi)^(d/2) * sqrt(det(V)) );
+%-Non-zero where defined
+Q  = find( md );
+if isempty(Q), return, end
+if xa(1), Qx=Q; else Qx=1; end
+if xa(2), Qu=Q; else Qu=1; end
+if xa(3), Qv=Q; else Qv=1; end
+
+%-Compute
+f(Q) = exp( -(x(Qx)-u(Qu)).^2 ./ (2*v(Qv)) ) ./ sqrt(2*pi*v(Qv));
