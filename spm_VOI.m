@@ -19,7 +19,7 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}
-% .iM    - mm -> voxels matrix
+% .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 %
 % Dis    - Minimum distance between maxima
@@ -78,6 +78,7 @@ SPACE   = spm_input('Search volume...',-1,'m',...
 		{['Sphere',str],['Box',str],'Nearest cluster',...
 		'Image'},['S','B','V','I']);
 Q       = ones(1,size(SPM.XYZmm,2));
+vsc     = [1 1 1];				%-Voxel size scaling for FWHM
 
 switch SPACE, case 'S'                                          % Sphere
 	%---------------------------------------------------------------
@@ -113,16 +114,18 @@ case 'V'                                                        %-Voxels
 
 case 'I'                                                         % Image
 	%---------------------------------------------------------------
-	%-The image must be in the same (real) space as the SPM:
-	%-Although the voxel thresholding does take account of the
+	%-The VOI image must be in the same (real) space as the SPM:
+	%-Although the masking code below does take account of the
 	% .mat file for the VOI image, the orientation of the VOI image
 	% .mat file is *not* used in the resel calculation,
 	% (see spm_resels_vol.c) so any mat file should contain
-	% no rotations / shears, for accuracy.
+	% no rotations / shears relative to the SPM, for accuracy.
 	im    = spm_get(1,'img','Image defining volume subset');
 	D     = spm_vol(im);
-	if any(D.mat([2:5,7:10,12]))
+	tM    = D.mat \ VOL.M;
+	if any(tM([2:5,7:10,12]))
 		spm('alert!',{	'Mask image rotated/sheared!',...
+				'(relative to SPM image)',...
 				'Can''t use for SVC.'},mfilename,0);
 		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
 		return
@@ -133,8 +136,8 @@ case 'I'                                                         % Image
 	%-Compute in-mask volume S:
 	% Correct for differences in mask and SPM voxel sizes
 	Y     = spm_read_vols(D);
-	vsc   = prod(sqrt(sum(D.mat(1:3,1:3).^2))) / prod(VOL.VOX);
-	S     = sum(Y(:)>0) * vsc;
+	vsc   = sqrt(sum(D.mat(1:3,1:3).^2)) ./ VOL.VOX';
+	S     = sum(Y(:)>0) * prod(vsc);
 
 end
 
@@ -145,7 +148,7 @@ spm('Pointer','Watch')
 SPM.Z     = SPM.Z(j);
 SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
-VOL.R     = spm_resels(VOL.FWHM,D,SPACE);
+VOL.R     = spm_resels(VOL.FWHM./vsc,D,SPACE);
 VOL.S     = S;
 
 
