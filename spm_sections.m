@@ -33,59 +33,50 @@ set([Finter,Fgraph],'Pointer','Watch');
 %-----------------------------------------------------------------------
 spm_results_ui('ClearPane',Fgraph,'RNP');
 
-
-% memory map background image and create transformation matrix {A}
-%-----------------------------------------------------------------------
-V      = [VOL.DIM; VOL.VOX; VOL.ORG];
-XYZ    = VOL.XYZ;
+IM     = inv(VOL.M);
+XYZ    = IM(1:3,:)*[VOL.XYZ ; ones(1,size(VOL.XYZ,2))];
 L      = spm_XYZreg('GetCoords',hReg);
-L      = spm_XYZreg('RoundCoords',L,V);
-Vs     = spm_vol(spms);					% memory mapped
-Nx     = round(V(1)*V(4));				% SPM size (mm)
-Ny     = round(V(2)*V(5));				% SPM size (mm)
-O      = round(V(3)*V(6));				% SPM size (mm)
-J      = round(V(7)*V(4));				% corner of SPM (mm)
-R      = round(V(8)*V(5));				% corner of SPM (mm)
-I      = round(V(9)*V(6));				% corner of SPM (mm)
-A      = spm_matrix([J R 0])*Vs.mat;			% re-center to corner
+L      = round(IM(1:3,:)*[L ; 1]);
 
 
 % extract data from SPM{t} [sagittal {Ts} coronal {Tc} transverse {Tt}]
+% and get background slices
 %----------------------------------------------------------------------
-t      = SPM.Z;
-Q      = find(abs(XYZ(1,:) - L(1)) < V(4)/2);
-Ts     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(2,Q) + R)/V(5),t(Q),O/V(6),Ny/V(5));
-Ts     = spm_resize(full(Ts),O,Ny);
+vox    = sqrt(sum(VOL.M(1:3,1:3).^2));
+dim    = ceil(VOL.DIM(1:3)'.*vox);
+Vs     = spm_vol(spms);
+A      = VOL.M\Vs.mat;
+hld    = 1;
 
-Q      = find(abs(XYZ(2,:) - L(2)) < V(5)/2);
-Tc     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(1,Q) + J)/V(4),t(Q),O/V(6),Nx/V(4));
-Tc     = spm_resize(full(Tc),O,Nx);
+Q      = find(abs(XYZ(1,:) - L(1)) < 0.5);
+Ts     = full(sparse(XYZ(3,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(2)));
+zoomM  = spm_matrix([0 0 -1  0 0 0  vox([3 2]) 1]);
+Ts     = spm_slice_vol(Ts,inv(zoomM),dim([3 2]),hld);
+D      = zoomM*[0 0 1 0;0 1 0 0;1 0 0 -L(1);0 0 0 1]*A;
+Ds     = spm_slice_vol(Vs,inv(D),dim([3 2]),1);
 
-Q      = find(abs(XYZ(3,:) - L(3)) < V(6)/2);
-Tt     = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + R)/V(5),t(Q),Nx/V(4),Ny/V(5));
-Tt     = spm_resize(full(Tt),Nx,Ny);
+Q      = find(abs(XYZ(2,:) - L(2)) < 0.5);
+Tc     = full(sparse(XYZ(3,Q),XYZ(1,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(1)));
+zoomM  = spm_matrix([0 0 -1  0 0 0  vox([3 1]) 1]);
+Tc     = spm_slice_vol(Tc,inv(zoomM),dim([3 1]),hld);
+D      = zoomM*[0 0 1 0;1 0 0 0;0 1 0 -L(2);0 0 0 1]*A;
+Dc     = spm_slice_vol(Vs,inv(D),dim([3 1]),1);
 
+Q      = find(abs(XYZ(3,:) - L(3)) < 0.5);
+Tt     = full(sparse(XYZ(1,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
+zoomM  = spm_matrix([0 0 -1  0 0 0  vox([1 2]) 1]);
+Tt     = spm_slice_vol(Tt,inv(zoomM),dim([1 2]),hld);
+D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -L(3);0 0 0 1]*A;
+Dt     = spm_slice_vol(Vs,inv(D),dim([1 2]),1);
 
-% get background slices and combine
-%-----------------------------------------------------------------------
-D      = [0 0 1 I;0 1 0 0;-1 0 0 (J + L(1));0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[O Ny],1);
-Ds     = D/max(D(:));
+P = L.*vox';
 
-D      = [0 0 1 I;1 0 0 0;0 -1 0 (R + L(2));0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[O Nx],1);
-Dc     = D/max(D(:));
-
-D      = [1 0 0 0;0 1 0 0;0 0 1 -L(3);0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[Nx Ny],1);
-Dt     = D/max(D(:));
-
-
-
-% configure {128 level} colormap
-%-----------------------------------------------------------------------
 colormap([gray(64); pink(64)])
 
+scal   = max([Ds(:) ; Dc(:) ; Dt(:)]);
+Dt     = Dt/scal;
+Ds     = Ds/scal;
+Dc     = Dc/scal;
 d      = max([Ts(:); Tc(:); Tt(:)]);
 D      = length(colormap)/2;
 Q      = Ts(:) > SPM.u; Ts = Ts(Q)/d; Ds(Q) = 1 + Ts; Ts = D*Ds;
@@ -93,43 +84,40 @@ Q      = Tc(:) > SPM.u; Tc = Tc(Q)/d; Dc(Q) = 1 + Tc; Tc = D*Dc;
 Q      = Tt(:) > SPM.u; Tt = Tt(Q)/d; Dt(Q) = 1 + Tt; Tt = D*Dt;
 
 
-% compute axes to correct for anisotropy of voxels and (normalized) window
-%-----------------------------------------------------------------------
 set(Fgraph,'Units','pixels')
-WIN    = get(gcf,'Position');
-WIN    = WIN(3)/WIN(4);
-Y      = 0.36;
-X      = Y*Nx/Ny;
-Z      = Y*O/Ny;
+siz    = get(Fgraph,'Position');
+siz    = siz(3:4);
+zm     = min([(siz(1) - 60)/(dim(2)+dim(1)),(siz(2)/2 - 100)/(dim(1)+dim(3))]);
+xo     = (siz(1)-(dim(2)+dim(1))*zm-60)/2;
+yo     = (siz(2)/2 - (dim(1)+dim(3))*zm - 100)/2;
 
 % render activation foci on background image
 %-----------------------------------------------------------------------
-axes('Position',[0.1 (0.46 - Z*WIN) Y Z*WIN])
+axes('Units','pixels','Parent',Fgraph,'Position',[20+xo dim(1)*zm+60+yo dim(2)*zm dim(3)*zm]);
 image(Ts)
 axis image; axis('xy'); axis off;
 title 'sagittal'
-line([0 Ny],([I I] + L(3)),'Color','w')
-line(([R R] + L(2)),[0 O],'Color','w')
+line([0 dim(2)],[1 1]*P(3),'Color','w')
+line([1 1]*P(2),[0 dim(3)],'Color','w')
 
-axes('Position',[(0.2 + Y) (0.46 - Z*WIN) X Z*WIN])
+axes('Units','pixels','Parent',Fgraph,'Position',[dim(2)*zm+40+xo dim(1)*zm+60+yo dim(1)*zm dim(3)*zm]);
 image(Tc)
 axis image; axis('xy'); axis off;
 title 'coronal'
-line([0 Nx],([I I] + L(3)),'Color','w')
-line(([J J] + L(1)),[0 O],'Color','w')
+line([0 dim(1)],[1 1]*P(3),'Color','w')
+line([1 1]*P(1),[0 dim(3)],'Color','w')
 
-axes('Position',[0.1 (0.46 - Z*WIN - 0.1*WIN - X*WIN) Y X*WIN])
+axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(2)*zm dim(1)*zm])
 image(Tt)
 axis image; axis off;
 title 'transverse'
-line([0 Ny],([J J] + L(1)),'Color','w')
-line(([R R] + L(2)),[0 Nx],'Color','w')
-
+line([0 dim(2)],[1 1]*P(1),'Color','w')
+line([1 1]*P(2),[0 dim(1)],'Color','w')
 
 % colorbar
 %-----------------------------------------------------------------------
-q      = [(0.2 + Y) (0.46 - Z*WIN - 0.1*WIN - X*WIN) 0.02 X*WIN];
-axes('Position',q,'Visible','off')
+q      = [dim(2)*zm+40+xo 20+yo 20 dim(1)*zm];
+axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off')
 image([0 d/32],[0 d],[1:D]' + D)
 str    = [SPM.STAT ' value'];
 
