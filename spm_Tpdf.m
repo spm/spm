@@ -13,14 +13,10 @@ function pdf = spm_Tpdf(t,df)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V2a	- 06/08/93 - used two gamma functions
-% V2b	- 13/12/93 - changed to use one Beta function call
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<2 error('insufficient arguments'), end
-
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 if any(df(:)<=0) error('df must be strictly positive'), end
 
 %-Computation
