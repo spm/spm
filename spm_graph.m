@@ -313,10 +313,9 @@ case 'Fitted and adjusted responses'
 case 'Event/epoch-related responses'
 
 
-	% get sessions
+	% averge over sessions?
 	%--------------------------------------------------------------
 	ss    = length(Sess);
-	tr    = [];
 	if ss > 1
 
 		% determine if the same basis functions have been used
@@ -340,31 +339,19 @@ case 'Event/epoch-related responses'
 			rep   = spm_input(str,'+1','y/n',[1 0]);
 		end
 
-		% remove session by effect interactions
+		% selected sessions
 		%------------------------------------------------------
 		if rep
-			b     = 0;
-			for i = 1:ss
-				b = b + beta(Sess{i}.col);
-			end
-			b     = b/ss;
-			for i = 1:length(Sess)
-				beta(Sess{i}.col) = b;
-			end
 			ss    = 1:ss;
-
 		else
-			str   = sprintf('which sessions (1 to %d)',ss);
-			ss    = spm_input(str,'+1','n');
+			str   = sprintf('which session (1 to %d)',ss);
+			ss    = spm_input(str,'+1','n','1',[1 1]);
 		end
 	end
 
 	% get trials
 	%--------------------------------------------------------------
-	for s = ss
-		tr    = [tr length(Sess{s}.pst)];
-	end
-	tr    = min(tr);
+	tr    = length(Sess{ss(1)}.pst);
 	if tr > 1
 		str   = sprintf('which trials or conditions (1 to %d)',tr);
 		tr    = spm_input(str,'+1','n');
@@ -374,7 +361,7 @@ case 'Event/epoch-related responses'
 			'fitted response +/- standard error',...
 			'fitted response and adjusted data'};
 
-	if isempty(y), Rplot = Rplot([1 3 4]); end
+	if isempty(y), Rplot = Rplot([1 3]); end
 	Cr      = spm_input('plot in terms of','+1','m',Rplot);
 	TITLE   = Rplot{Cr};
 	YLAB    = ['response',XYZstr];
@@ -392,40 +379,55 @@ case 'Event/epoch-related responses'
 	hold on
 	XLim  = 0;
 	u     = 1;
-	for s = ss
-	    for t = tr
+	for t = tr
 
-		% basis functions, filter and parameters
-		%------------------------------------------------------
-		i      = Sess{s}.row(:);
-		j      = 1:size(Sess{s}.sf{t},2):length(Sess{s}.ind{t});
-		j      = Sess{s}.col(Sess{s}.ind{t}(j));
-		B      = beta(j);
-		X      = Sess{s}.bf{t};
-		q      = 1:size(X,1);
-		x      = (q - 1)*dx;
-		K{1}   = struct('HChoice',	'none',...
-				'HParam',	[],...
-				'LChoice',	xX.K{s}.LChoice,...
-				'LParam',	xX.K{s}.LParam,...
-				'row',		q,...
-				'RT',		dx);
+		for s = ss
 
-		% fitted responses, adjusted data and standard error
+			% basis functions, filter and parameters
+			%----------------------------------------------
+			i    = Sess{s}.row(:);
+			j    = 1:size(Sess{s}.sf{t},2):length(Sess{s}.ind{t});
+			j    = Sess{s}.col(Sess{s}.ind{t}(j));
+			B    = beta(j);
+			X    = Sess{s}.bf{t};
+			q    = 1:size(X,1);
+			x    = (q - 1)*dx;
+			K{1} = struct(  'HChoice',	'none',...
+			 		'HParam',	[],...
+					'LChoice',	xX.K{s}.LChoice,...
+					'LParam',	xX.K{s}.LParam,...
+					'row',		q,...
+					'RT',		dx);
+
+			% fitted and adjusted responses with standard error
+			%----------------------------------------------
+			KX       = spm_filter('apply',K,X);
+			Y(q,s)   = KX*B;
+			se(:,s)  = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+		end
+
+		% average over sessions
 		%------------------------------------------------------
-		KX     = spm_filter('apply',K,X);
-		Y      = KX*B;
-		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
-		pst    = Sess{s}.pst{t};
-		bin    = round(pst/dx);
-		q      = find((bin >= 0) & (bin < size(X,1)));
-		y      = zeros(size(i));
-		y(q)   = Y(bin(q) + 1);
-		y      = y + R(i);
+		Y     = Y*ones(length(ss))/length(ss);
+
+		% peristimulus times
+		%------------------------------------------------------
+		pst   = [];
+		y     = [];
+		for s = ss
+			p       = Sess{s}.pst{t}(:);
+			bin     = round(p/dx);
+			q       = find((bin >= 0) & (bin < size(X,1)));
+			pst     = [pst; p];
+			p       = R(i);
+			p(q)    = p(q) + Y(bin(q) + 1);
+			y       = [y; p];
+		end
+
 
 		% PSTH
 		%------------------------------------------------------
-		INT    = min(pst):2:max(pst);
+		INT    = -8:2:max(pst);
 		PSTH   = [];
 		SEM    = [];
 		PST    = [];
@@ -438,7 +440,7 @@ case 'Event/epoch-related responses'
 				PST  = [PST mean(pst(q))];
 			end
 		end
-		
+
 		% plot
 		%------------------------------------------------------
 		switch TITLE
@@ -467,12 +469,10 @@ case 'Event/epoch-related responses'
 
 		% xlabel
 		%------------------------------------------------------
-		str  = [Sess{s}.name{t} sprintf(' (Session %d) - ',s)];
-		XLAB{end + 1} = [str COL(u)];
+		XLAB{end + 1} = [Sess{s}.name{t} ' - ' COL(u)];
 		u    = u + 1;
 		XLim = max([XLim max(x)]);
 
-	    end
 	end
 
 	hold off; axis on
