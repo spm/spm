@@ -884,71 +884,27 @@ TxC = spm_input('time x response interactions','!+1','yes|no',[1 0]);
 
 if TxC
 
-	% number of scans
-	%-------------------------------------------------------------------
-	k     = sum(nscan);
-
 	% basis functions - Type
 	%-------------------------------------------------------------------
-	D     = [];
 	Ttype = str2mat(...
 		'basis functions (Discrete Cosine Set)',...
-		'Exponential decay',...
-		'Linear decay',...
-		'User specified');
+		'Exponential',...
+		'Linear');
 	str   = 'Select type of response';
 	Tov   = spm_input(str,'!+1','m',Ttype,[1:size(Ttype,1)]);
 
-	% basis functions - create
+
+	% get paramters
 	%-------------------------------------------------------------------
+	h      = 1
 	if Tov == 1
-		for i = 1:spm_input('number of basis functions','!+0','e',2);
-			d = cos(i*pi*[0:(k - 1)]/(k - 1));
-			D = [D d(:)];
-		end
+		h = spm_input('number of basis functions','!+0','e',2);
 
 	elseif Tov == 2
-		d   = spm_input('time constant {secs}','!+0','e',round(k/3*RT));
-		D   = exp(-[0:(k - 1)]/(d/RT))';
-
-	elseif Tov == 3
-		D   = [0:(k - 1)]'/(k - 1);
-
-	elseif Tov == 4
-		% get covariates of interest
-		%----------------------------------------------------------
-		t     = spm_input('number of functions','!+0');
-		while size(D,2) < t
-			str = sprintf('[%d]-variate %d',k,size(D,2) + 1);
-			d   = spm_input(str,'!+1');
-			if size(d,2) == k
-				d    = d';    
-			end
-			if size(d,1) == k
-				D    = [D d];
-			end	
-		end
+		tau = round(nscan(1)/4*RT);
+		tau = spm_input('time constant {secs}','!+0','e',tau);
 	end
 
-	% basis functions - select effects for interaction and apply
-	%-------------------------------------------------------------------
-	T     = [];
-	D     = spm_detrend(D);
-	t     = spm_input('which responses eg 1:2','!+0','e',1);
-	for i = 1:length(t)
-		d = C(:,t(i));
-		d = spm_detrend(d);
-		d = (d*ones(1,size(D,2))).*D;
-		T = [T d];
-	end
-
-	% create labels
-	%-------------------------------------------------------------------
-	Tnames = [];
-	for i  = 1:size(T,2);
-		Tnames = str2mat(Tnames,'Interactions');
-	end
-	Tnames(1,:) = [];
 
 	% determine which partition to them in
 	%-------------------------------------------------------------------
@@ -958,6 +914,51 @@ if TxC
 		'as confounds');
 	str   = 'treat interactions';
 	Tf    = spm_input(str,'!+1','m',Tinf,[1:size(Tinf,1)]);
+
+
+	% compute interaction effects
+	%-------------------------------------------------------------------
+	T     = [];
+	for i = spm_input('apply to effects eg 1:2','!+0','e',1)
+
+		% find session and number of scans
+		%-----------------------------------------------------------
+		s     = find(any(B(find(C(:,i)),:)));
+		k     = nscan(s);
+		j     = find(B(:,s));
+
+
+		% basis functions - create
+		%-----------------------------------------------------------
+		t     = [];
+		if Tov == 1
+			for l = 1:h
+				d = cos(l*pi*[0:(k - 1)]/(k - 1));
+				t = [t d(:)];
+			end
+
+		elseif Tov == 2
+			t   = exp(-[0:(k - 1)]/(tau/RT))';
+
+		elseif Tov == 3
+			t   = [0:(k - 1)]'/(k - 1);
+
+		end
+
+		% fill in T
+		%-----------------------------------------------------------
+		d      = zeros(sum(nscan),h);
+		d(j,:) = (spm_detrend(C(j,i))*ones(1,h)).*spm_detrend(t);
+		T      = [T d];
+	end
+
+	% create labels
+	%-------------------------------------------------------------------
+	Tnames = [];
+	for i  = 1:size(T,2);
+		Tnames = str2mat(Tnames,'Interactions');
+	end
+	Tnames(1,:) = [];
 
 	% asign these effects
 	%-------------------------------------------------------------------
