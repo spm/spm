@@ -372,13 +372,14 @@ if bAskCov
                 %-Single covariate entered - ask about interactions
                 Gcnames = str2mat(Gcnames,dnames);
                 if bAskFDCs
+                    iCovEffInt(iCovEffInt==2)=[];
                     i = spm_input(['Confound',int2str(nGcs + 1),...
                             ': specific fits'],J,'b',...
                             sCovEffInt(iCovEffInt,:),iCovEffInt,1);
-                     if (i==2) %-Interaction with study      
+                     if (i==3) %-Interaction with study      
                          [d,dnames] = spm_DesMtx([iStud',d],...
                          'FxC',str2mat('Stud',dnames));
-                     elseif (i==3) %-Interaction with subject
+                     elseif (i==4) %-Interaction with subject
                          [d,dnames]=spm_DesMtx([iSUBJ',d],...
                          'FxC',str2mat('SUBJ',dnames));
                      end % (if)
@@ -426,7 +427,7 @@ if iGMsca>9
 	% don't offer study specifics if not bMStud
 	if (iGloNorm==2 | ~bMStud) & any(tmp==3), tmp(find(tmp==3))=[]; end
 	iGMsca=spm_input...
-	    ('Grand mean scaling',J,'m',sGMsca(tmp,:),tmp);
+	    ('Grand mean scaling',J,'m',sGMsca(tmp,:),tmp,max(tmp));
 	J=J+1;
 end
 if iGMsca>1,	GM = spm_input('Value for grand mean ?',J,'e',50); J=J+1;
