@@ -8,7 +8,7 @@ function [X,Sess] = spm_fMRI_design(nscan,RT,BM)
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
-% X.DesN  - X.DesN{1} study type, X.DesN{2} basis function description
+% X.DesN  - basis function description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
@@ -25,6 +25,58 @@ function [X,Sess] = spm_fMRI_design(nscan,RT,BM)
 %
 % saves fMRIDesMtx.mat (X Sess)
 %___________________________________________________________________________
+%
+% spm_fMRI_design allows you to build design matrices with separable
+% session-specific partitions.  Each partition may be the same (in which
+% case it is only necessary to specify it once) or different.  Responses
+% can be either event- or epoch related, where the latter model prolonged
+% and possibly time-varying responses to state-related changes in
+% experimental conditions.  Event-related response are modelled in terms
+% of responses to instantaneous events.  Mathematically they are both
+% modelled by convolving a series of delta (or stick) functions,
+% indicating the onset of an event or epoch with a set of basis
+% functions.  These basis functions can be very simple, like a box car,
+% or may model voxel-specific forms of evoked responses with a linear
+% combination of several basis functions (e.g.  a Fourier set).  Basis
+% functions can be used to plot estimated responses to single events or
+% epochs once the parameters (i.e.  basis function coefficients) have
+% been estimated.  The importance of basis functions is that they provide
+% a graceful transition between simple fixed response models (like the
+% box-car) and finite impulse response (FIR) models, where there is one
+% basis function for each scan following an event or epoch onset.  The
+% nice thing about basis functions, compared to FIR models, is that data
+% sampling and stimulus presentation does not have to be sychronized
+% thereby allowing a uniform and unbiased sampling of peri-stimulus time.
+%
+%
+% see spm_fmri_spm_ui for details
+%
+% NB:
+%
+% spm_fMRI_design allows you to combine both event- and epoch-related
+% responses in the same model.  You are asked to specify the number
+% of event and epoch types. Enter 0 to skip either (or both if you only
+% want to use regressors you have designed outside spm_fMRI_design).
+%
+% Burst Mode is a specialist design for intermittent epochs of acquisitions
+% (used for example to allow for intercalated EEG recording).  Each burst
+% is treated as a session but consistent within session effects (e.g. T1
+% effects) are modelled in X.bX.  The primary use of this mode is to generate
+% parameter estimate images for a second level analysis.
+% 
+% The design matrix is assembled on a much finer time scale (X.dt) than the 
+% TR and is then subsampled at the acquisition times.
+%
+% Sess{s}.ons{i} contains stimulus onset times in seconds relative to the
+% timing of the first scan and are provided to contruct stimuli.
+%
+% Parametric variations in evoked responses are modelled by modulating
+% event or epoch specific delta functions with a spcified vector of
+% parameters.  This could be trial-specific reaction times or another
+% perfomance or stimulus attribute.  Time effects are modelled at this
+% level.
+%
+%---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
 % construct Design matrix {X} - cycle over sessions
@@ -82,21 +134,9 @@ for s = 1:nsess
 	%===================================================================
 	k       = nscan(s);
 
-	% Study type - epoch or event-related fMRI
-	%-------------------------------------------------------------------
-	SType   = {'event-related (stochastic: stationary)',...
-		   'event-related (stochastic: modulated)',...
-		   'event-related (deterministic: fixed SOA)',...
-		   'event-related (deterministic: variable SOA)',...
-		   'epoch-related responses'};
-	str     = 'Model';
-	ST      = spm_input(str,1,'m',SType);
-	STstr   = deblank(SType{ST});
-
-
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons,W,name,para] = spm_get_ons(ST,k,T,dt);
+	[ons,W,name,para] = spm_get_ons(k,T,dt);
 
 
 	% get basis functions for responses
@@ -138,19 +178,18 @@ for s = 1:nsess
 
 	% get user specified regressors
 	%===================================================================
-	c     = spm_input('user specified regressors',1,'e',0);
+	c     = spm_input('user specified regressors',1,'w1',0);
 	while size(D,2) < c
-		str = sprintf('[%d]-variate %i',k,size(D,2) + 1);
-		d   = spm_input(str,2);
-		if size(d,2) == k, d = d';    end
-		if size(d,1) == k, D = [D d]; end	
+		str = sprintf('regressor %i',size(D,2) + 1);
+		D   = spm_input(str,2,'e',[],[k Inf]);
 	end
 
 	% append regressors and names
 	%-------------------------------------------------------------------
 	for i = 1:size(D,2)
 		X      = [X D(:,i)];
-		Xn{qx} = sprintf('regressor: %i',i);
+		str    = sprintf('regressor: %i',i);
+		Xn{qx} = spm_input(str,2,'s',str);
 		qx     = qx + 1;
 	end
 
@@ -211,7 +250,7 @@ end
 %---------------------------------------------------------------------------
 X.dt    = dt;
 X.RT    = RT;
-X.DesN  = {STstr BFstr{:}};
+X.DesN  = BFstr;
 X.xX    = xX;
 X.bX    = bX;
 X.Xname = Xname;
