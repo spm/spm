@@ -50,39 +50,32 @@ dbasX = spm_dctmtx(VG(1).dim(1),k(1),'diff')*stabilise;
 dbasY = spm_dctmtx(VG(1).dim(2),k(2),'diff')*stabilise;
 dbasZ = spm_dctmtx(VG(1).dim(3),k(3),'diff')*stabilise;
 
-if (0)
-	% BENDING ENERGY REGULARIZATION
-	% Estimate a suitable sparse diagonal inverse covariance matrix for
-	% the parameters (IC0).
-	%-----------------------------------------------------------------------
-	kx=(pi*((1:k(1))'-1)/VG(1).dim(1)).^2;ox=ones(k(1),1);
-	ky=(pi*((1:k(2))'-1)/VG(1).dim(2)).^2; oy=ones(k(2),1);
-	kz=(pi*((1:k(3))'-1)/VG(1).dim(3)).^2; oz=ones(k(3),1);
+vx = sqrt(sum(VG(1).mat(1:3,1:3).^2));
+kx = (pi*((1:k(1))'-1)/VG(1).dim(1)/vx(1)).^2; ox=ones(k(1),1);
+ky = (pi*((1:k(2))'-1)/VG(1).dim(2)/vx(2)).^2; oy=ones(k(2),1);
+kz = (pi*((1:k(3))'-1)/VG(1).dim(3)/vx(3)).^2; oz=ones(k(3),1);
 
-	IC0 = 	kron(kron(oz    ,oy    ),kx.*kx)   + ...
-		kron(kron(oz    ,ky.*ky),ox    )   + ...
-		kron(kron(kz.*kz,oy    ),ox    )   + ...
-		kron(kron(oz    ,ky    ),kx    )*2 + ...
-		kron(kron(kz    ,oy    ),kx    )*2 + ...
-		kron(kron(kz    ,ky    ),ox    )*2;
+%% BENDING ENERGY REGULARIZATION - unused
+%% Estimate a suitable sparse diagonal inverse covariance matrix for
+%% the parameters (IC0).
+%%-----------------------------------------------------------------------
+%IC0 = 	kron(kron(oz    ,oy    ),kx.*kx)   + ...
+%	kron(kron(oz    ,ky.*ky),ox    )   + ...
+%	kron(kron(kz.*kz,oy    ),ox    )   + ...
+%	kron(kron(oz    ,ky    ),kx    )*2 + ...
+%	kron(kron(kz    ,oy    ),kx    )*2 + ...
+%	kron(kron(kz    ,ky    ),ox    )*2;
+%
+%IC0 = lambda*IC0*stabilise^6;
+%IC0 = [IC0*vx(1)^4 ; IC0*vx(2)^4 ; IC0*vx(3)^4 ; zeros(prod(size(VG))*4,1)];
+%IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 
-	IC0 = lambda*IC0*stabilise^6;
-	IC0 = [IC0 ; IC0 ; IC0 ; zeros(prod(size(VG))*4,1)];
-	IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
-end
-if (1)
-	% MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
-	%-----------------------------------------------------------------------
-	kx=(pi*((1:k(1))'-1)/VG(1).dim(1)).^2; ox=ones(k(1),1);
-	ky=(pi*((1:k(2))'-1)/VG(1).dim(2)).^2; oy=ones(k(2),1);
-	kz=(pi*((1:k(3))'-1)/VG(1).dim(3)).^2; oz=ones(k(3),1);
-
-	IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
-
-	IC0 = lambda*IC0*stabilise^6;
-	IC0 = [IC0 ; IC0 ; IC0 ; zeros(prod(size(VG))*4,1)];
-	IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
-end
+% MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
+%-----------------------------------------------------------------------
+IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
+IC0 = lambda*IC0*stabilise^6;
+IC0 = [IC0*vx(1)^2 ; IC0*vx(2)^2 ; IC0*vx(3)^2 ; zeros(prod(size(VG))*4,1)];
+IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 
 % Generate starting estimates.
 %-----------------------------------------------------------------------
