@@ -1,7 +1,470 @@
 function varargout=spm_spm_ui(varargin)
+% Setting up the general linear model
+% FORMATs (given in Programmers Help)
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston %E%
+%
+% spm_spm_ui.m configures the design matrix (describing the general
+% linear model), data specification, and other parameters necessary for
+% the statistical analysis. These parameters are saved in a
+% configuration file (SPMcfg.mat) in the current directory, and are
+% passed on to spm_spm.m which estimates the design. Inference on these
+% estimated parameters is then handled by the SPM results section.
+%
+% A separate program (spm_spm_fmri_ui.m) handles design configuration
+% for fMRI time series, though this program can be used for fMRI data
+% when observations can be regarded as independent.
+%
+% ----------------------------------------------------------------------
+%
+% Various data and parameters need to be supplied to specify the design:
+%	* the image files
+%	* indicators of the corresponding condition/subject/group
+%	* any covariates, nuisance variables, or design matrix partitions
+%	* the type of global normalisation (if any)
+%	* grand mean scaling options
+%	* thresholds and masks defining the image volume to analyse
+%
+% The interface supports a comprehensive range of options for all these
+% parameters, which are described below in the order in which the
+% information is requested. Rather than ask for all these parameters,
+% spm_spm_ui.m uses a "Design Definition", a structure describing the
+% options and defaults appropriate for a particular analysis. Thus,
+% once the user has chosen a design, a subset of the following prompts
+% will be presented.
+%
+%                           ----------------
+%
+% Design class & Design type
+% ==========================
+%
+% Unless a design definition is passed to spm_spm_ui.m as a parameter,
+% the user is prompted first to select a design class, and then to
+% select a design type from that class.
+%
+% The designs are split into three classes:
+%   i) Basic stats: basic models for simple statistics
+%      These specify designs suitable for simple voxel-by-voxel analyses.
+%       - one-sample t-test
+%       - two-sample t-test
+%       - paired t-test
+%       - one way Anova (ANalysis Of VAriance)
+%       - simple regression (equivalent to correlation)
+%       - multiple regression
+%       - basic AnCova (ANalysis of COVAriance)
+%         (essentially a two-sample t-test witha nuisance covariate)
+%
+%  ii) SPM98 PET models: models suitable for analysis of PET/SPECT experiments
+%       - Single-subject: conditions & covariates
+%       - Single-subject: covariates only
+%
+%       - Multi-subj: conditions & covariates
+%       - Multi-subj: cond x subj  interaction & covariates
+%       - Multi-subj: covariates only
+%       - Multi-study: conditions & covariates
+%       - Multi-study: covariates only
+%
+%       - Population main effect: 2 cond's, 1 scan/cond (paired t-test)
+%       - Dodgy population main effect: >2 cond's, 1 scan/cond
+%       - Compare-populations: 1 scan/subject (two sample t-test)
+%
+%       - The Full Monty... (asks you everything!)
+%
+% iii) SPM96 PET models: models used in SPM96 for PET/SPECT
+%      These models are provided for backward compatibility, but as they
+%      don't include some of the advanced modelling features, we recommend
+%      you switch to the SPM98 models at the earliest opportunity.
+%       - SPM96:Single-subject: replicated conditions
+%       - SPM96:Single-subject: replicated conditions & covariates
+%       - SPM96:Single-subject: covariates only
+%       - SPM96:Multi-subject: different conditions
+%       - SPM96:Multi-subject: replicated conditions
+%       - SPM96:Multi-subject: different conditions & covariates
+%       - SPM96:Multi-subject: replicated conditions & covariates
+%       - SPM96:Multi-subject: covariates only
+%       - SPM96:Multi-study: different conditions
+%       - SPM96:Multi-study: replicated conditions
+%       - SPM96:Multi-study: different conditions & covariates
+%       - SPM96:Multi-study: replicated conditions & covariates
+%       - SPM96:Multi-study: covariates only
+%       - SPM96:Compare-groups: 1 scan per subject
+%
+%
+% NB: Random effects, generalisability, population inference...
+%
+% Note that SPM only considers a single component of variance, the
+% residual error variance. When there are repeated measures, all
+% analyses with SPM are fixed effects analyses, and inference only
+% extends to the particular subjects under consideration (at the times
+% they were imaged).
+%
+% In particular, the multi-subject and multi-study designs ignore the
+% variability in response from subject to subject. Since the
+% scan-to-scan (within-condition, within-subject variability is much
+% smaller than the between subject variance which is ignored), this can
+% lead to detection of group effects that are not representative of the
+% population(s) from which the subjects are drawn. This is particularly
+% serious for multi-study designs comparing two groups. If inference
+% regarding the population is required, a random effects analysis is
+% required.
+%
+% However, random effects analyses can be effected by appropriately
+% summarising the data, thereby collapsing the model such that the
+% residual variance for the new model contains precisely the variance
+% components needed for a random effects analysis. In many cases, the
+% fixed effects models here can be used as the first stage in such a
+% two-stage procedure to produce appropriate summary data, which can
+% then be used as raw data for a second-level analysis. For instance,
+% the "Multi-subj: cond x subj  interaction & covariates" design can be
+% used to write out an image of the activation for each subject. A
+% simple t-test on these activation images then turns out to be
+% equivalent to a mixed-effects analysis with random subject and
+% subject by condition interaction effects, inferring for the
+% population based on this sample of subjects (strictly speaking the
+% design would have to be balanced, with equal numbers of scans per
+% condition per subject, and also only two conditions per subject). For
+% further details, see spm_RandFX.man.
+%
+%                           ----------------
+%
+% Selecting image files & indicating conditions
+% =============================================
+%
+% You may now be prompted to specify how many studys, subjects and
+% conditions you have, and then will be promted to select the scans.
+%
+% The data should all have the same orientation and image and voxel size.
+%
+% File selection is handled by spm_get.m - the help for which describes
+% efficient use of the interface.
+%
+% You may be asked to indicate the conditions for a set of scans, with
+% a prompt like "[12] Enter conditions? (2)". For this particular
+% example you need to indicate for 12 scans the corresponding
+% condition, in this case from 2 conditions. Enter a vector of
+% indicators, like '0 1 0 1...', or a string of indicators, like
+% '010101010101' or '121212121212', or 'rararararara'. (This
+% "conditions" input is handled by spm_input.m, where comprehensive
+% help can be found.)
+%
+%                           ----------------
+%
+% Covariate & nuisance variable entry
+% ===================================
+%
+% * If applicable, you'll be asked to specify covariates and nuisance
+% variables. Unlike SPM94/5/6, where the design was partitioned into
+% effects of interest and nuisance effects for the computation of
+% adjusted data and the F-statistic (which was used to thresh out
+% voxels where there appeared to be no effects of interest), SPM98 does
+% not partition the design in this way. The only remaining distinction
+% between effects of interest (including covariates) and nuisance
+% effects is their location in the design matrix, which we have
+% retained for continuity.  Pre-specified design matrix partitions can
+% be entered. (The number of covariates / nuisance variables specified,
+% is actually the number of times you are prompted for entry, not the
+% number of resulting design matrix columns.) You will be given the
+% opportunity to name the covariate.
+% 
+% * Factor by covariate interactions: For covariate vectors, you may be
+% offered a choice of interaction options. (This was called "covariate
+% specific fits" in SPM95/6.) The full list of possible options is:
+%       - <none>
+%       - with replication
+%       - with condition (across study)
+%       - with subject (across study)
+%       - with study
+%       - with condition (within study)
+%       - with subject (within study)
+%
+% * Covariate centering: At this stage may also be offered "covariate
+% centering" options. The default is usually that appropriate for the
+% interaction chosen, and ensures that main effects of the interacting
+% factor aren't affected by the covariate. You are advised to choose
+% the default, unless you have other modelling considerations. The full
+% list of possible options is:
+%       - around overall mean
+%       - around replication means
+%       - around condition means (across study)
+%       - around subject means (across study)
+%       - around study means
+%       - around condition means (within study)
+%       - around subject means (within study)
+%       - <no centering>
+%
+%                           ----------------
+%
+% Global options
+% ==============
+%
+% Depending on the design configuration, you may be offered a selection
+% of global normalisation and scaling options:
+%
+% * Method of global flow calculation
+%       - SPM96:Compare-groups: 1 scan per subject
+%       - None (assumming no other options requiring the global value chosen)
+%       - User defined (enter your own vector of global values)
+%       - SPM standard: mean voxel value (within per image fullmean/8 mask)
+%
+% * Grand mean scaling : Scaling of the overall grand mean simply
+% scales all the data by a common factor such that the mean of all the
+% global values is the value specified. For qualitative data, this puts
+% the data into an intuitively accessible scale without altering the
+% statistics. When proportional scaling global normalisation is used
+% (see below), each image is seperately scaled such that it's global
+% value is that specified (in which case the grand mean is also
+% implicitly scaled to that value). When using AnCova or no global
+% normalisation, with data from different subjects or sessions, an
+% intermediate situation may be appropriate, and you may be given the
+% option to scale study, session or subject grand means seperately. The
+% full list of possible options is:
+%       - scaling of overall grand mean
+%       - caling of replication grand means
+%       - caling of condition grand means (across study)
+%       - caling of subject grand means (across study)
+%       - caling of study grand means
+%       - caling of condition (within study) grand means
+%       - caling of subject (within study) grand means
+%       - implicit in PropSca global normalisation)
+%       - no grand Mean scaling>'
+%
+% * Global normalisation option : Global nuisance effects are usually
+% accounted for either by scaling the images so that they all have the
+% same global value (proportional scaling), or by including the global
+% covariate as a nuisance effect in the general linear model (AnCova).
+% Much has been written on which to use, and when. Basically, since
+% proportional scaling also scales the variance term, it is appropriate
+% for situations where the global measurement predominantly reflects
+% gain or sensitivity. Where variance is constant across the range of
+% global values, linear modelling in an AnCova approach has more
+% flexibility, since the model is not restricted to a simple
+% proportional regression.
+%
+% Considering AnCova global normalisation, since subjects are unlikely
+% to have the same relationship between global and local measurements,
+% a subject-specific AnCova ("AnCova by subject"), fitting a different
+% slope and intercept for each subject, would be preferred to the
+% single common slope of a straight AnCova. (Assumming there's enough
+% scans per subject to estimate such an effect.) This is basically an
+% interaction of the global covariate with the subject factor. You may
+% be offered various AnCova options, corresponding to interactions with
+% various factors according to the design definition: The full list of
+% possible options is:
+%       - AnCova
+%       - AnCova by replication
+%       - AnCova by condition (across study)
+%       - AnCova by subject (across study)
+%       - AnCova by study
+%       - AnCova by condition (within study)
+%       - AnCova by subject (within study)
+%       - Proportional scaling
+%       - <no global normalisation>
+%
+% Since differences between subjects may be due to gain and sensitivity
+% effects, AnCova by subject could be combined with "grand mean scaling
+% by subject" to obtain a combination of between subject proportional
+% scaling and within subject AnCova.
+%
+% * Global centering: Lastly, for some designs using AnCova, you will
+% be offered a choice of centering options for the global covariate. As
+% with covariate centering, this is only relevant if you have a
+% particular interest in the parameter estimates. Usually, the default
+% of a centering corresponding to the AnCova used is chosen. The full
+% list of possible options is:
+%       - around overall mean
+%       - around replication means
+%       - around condition means (across study)
+%       - around subject means (across study)
+%       - around study means
+%       - around condition means (within study)
+%       - around subject means (within study)
+%       - <no centering>
+%       - around user specified value
+%       - (as implied by AnCova)
+%       - GM (The grand mean scaled value)
+%       - (redundant: not doing AnCova)
+%
+%
+%
+% Note that this is a logical ordering for the global options, which is
+% not the order used by the interface due to algorithm constraints. The
+% interface asks for the options in this order:
+%       - Global normalisation
+%       - Grand mean scaling options
+%         (if not using proportional scaling global normalisation)
+%       - Value for grand mean scaling  proportional scaling GloNorm
+%         (if appropriate)
+%       - Global centering options
+%       - Value for global centering (if "user-defined" chosen)
+%       - Method of calculation
+%
+%                           ----------------
+%
+% Masking options
+% ===============
+%
+% The mask specifies the voxels within the image volume which are to be
+% assessed. SPM supports three methods of masking. The volume analysed
+% is the intersection of all masks:
+%
+%   i) Threshold masking : "Analysis threshold"
+%       - images are thresholded at a given value and only voxels at
+%         which all images exceed the threshold are included in the
+%         analysis.
+%       - The threshold can be absolute, or a proportion of the global
+%         value (after scaling), or "-Inf" for no threshold masking.
+%       - (This was called "Grey matter threshold" in SPM94/5/6)
+%
+%  ii) Implicit masking
+%       - An "implicit mask" is a mask implied by a particular voxel
+%         value. Voxels with this mask value are excluded from the
+%         analysis.
+%       - For image data-types with a representation of NaN
+%         (see spm_type.m), NaN's is the implicit mask value, (and
+%         NaN's are always masked out).
+%       - For image data-types without a representation of NaN, zero is
+%         the mask value, and the user can choose whether zero voxels
+%          should be masked out or not.
+%
+% iii) Explicit masking
+%       - Explicit masks are other images containing (implicit) masks
+%         that are to be applied to the current analysis.
+%       - All voxels with value NaN (for image data-types with a
+%         representation of NaN), or zero (for other data types) are
+%         excluded from the analysis.
+%       - Explicit mask images can have any orientation and voxel/image
+%         size. Nearest neighbour interpolation of a mask image is used if
+%         the voxel centers of the input images do not coincide with that
+%         of the mask image.
+%
+% ----------------------------------------------------------------------
+%
+% Variables saved in the SPMcfg.mat file
+% D             - design definition structure
+%                 (See definition in main body of spm_spm_ui.m)
+% VY            - nScan x 1 struct array of memory mapped input images
+%                 (see spm_vol for definition of the map structure)
+% 
+% xX            - structure describing design matrix
+% xX.I          - nScan x 4 matrix of factor level indicators
+%                 I(n,i) is the level of factor i corresponding to image n
+% xX.sF         - 1x4 cellstr containing the names of the four factors
+%                 D.sF{i} is the name of factor i
+% xX.rX         - raw design matrix (prior to any orthogonalisation)
+% xX.X          - desgin matrix
+% xX.K          - temporal convolution matrix (sparse toeplitz usually)
+% xX.iH         - vector of H partition (condition effects) indices,
+%                 identifying columns of X correspoding to H
+% xX.iC         - vector of C partition (covariates of interest) indices
+% xX.iB         - vector of B partition (block effects) indices
+% xX.iG         - vector of G partition (nuisance variables) indices
+% xX.Xnames     - p x 1 cellstr of effect names corresponding to columns
+%                 of the design matrix
+% xX.sXorth     - cellstr of strings describing any design orthogonalisation
+% 
+% xC            - structure array of covariate details
+% xC(i).rc      - raw (as entered) i-th covariate
+% xC(i).rcname  - name of this covariate (string)
+% xC(i).c       - covariate as appears in design matrix (after any scaling,
+%                 centering of interactions)
+% xC(i).cname   - cellstr containing names for effects corresponding to
+%                 columns of xC(i).c
+% xC(i).iCC     - covariate centering option
+% xC(i).iCFI    - covariate by factor interaction option
+% xC(i).type    - covariate type: 1=interest, 2=nuisance, 3=global
+% xC(i).cols    - columns of design matrix corresponding to xC(i).c
+% xC(i).descrip - cellstr containing a description of the covariate
+% 
+% xGX           - structure describing global options and values
+% xGX.iGXcalc   - global calculation option used
+% xGX.sGXcalc   - string describing global calculation used
+% xGX.rg        - raw globals (before scaling and such like)
+% xGX.iGMsca    - grand mean scaling option
+% xGX.sGMsca    - string describing grand mean scaling
+% xGX.GM        - value for grand mean (/proportional) scaling
+% xGX.gSF       - global scaling factor (applied to xGX.rg)
+% xGX.iGC       - global covariate centering option
+% xGX.sGC       - string describing global covariate centering option
+% xGX.gc        - center for global covariate
+% xGX.iGloNorm  - Global normalisation option
+% xGX.sGloNorm  - string describing global normalisation option
+% 
+% xM            - structure describing masking options
+% xM.T          - Threshold masking value (-Inf=>None,
+%                 complex=>proportional, real=>absolute (i.e. times global))
+% xM.TH         - nScan x 1 vector of analysis thresholds, one per image
+% xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
+% xM.VM         - struct array of explicit mask images
+% 		  (empty if no explicit masks)
+% xM.xs         - structure describing masking options
+% 		  (format is same as for xsDes described below)
+% 
+% xsDes         - structure of strings describing the design:
+%                 Fieldnames are essentially topic strings (use "_"'s for
+%                 spaces), and the field values should be strings or cellstr's
+%                 of information regarding that topic. spm_DesRep.m (via
+%                 spm_spm_ui('DesRep') uses this structure to produce a
+%                 printed description of the design, displaying the fieldnames
+%                 (with "_"'s converted to spaces) in bold as topics, with
+%                 the corresponding text to the right
+% 
+% xCon          - structure array of contrasts
+% xCon(i).name  - name of contrast i
+% xCon(i).con   - contrast vector / matrix (for F-contrasts)
+% xCon(i).V     - memory mapping structure of numerator image - contrast
+%                 of parameter estimates (for vector contrasts), or
+%                 extra sum-of-squares (for F-contrasts)
+% 
+% SPMid         - String identifying SPM and program versions
+%_______________________________________________________________________
+% %E% Andrew Holmes %W%
 SCCSid  = '%I%';
+
+%=======================================================================
+% - FORMAT specifications for programers
+%=======================================================================
+%( This is a multi function function, the first argument is an action  )
+%( string, specifying the particular action function to take.          )
+%
+% FORMAT spm_spm_ui('CFG',D)
+% Configure design
+% D       - design definition structure - see format definition below
+% (If D is a struct array, then the user is asked to choose from the
+% design definitions in the array. If D is not specified as an
+% argument, then user is asked to choose from the standard internal
+% definitions)
+%
+% FORMAT [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime)
+% PET/SPECT file & factor level input
+% DsF     - 1x4 cellstr of factor names (ie D.sF)
+% Dn      - 1x4 vector indicating the number of levels (ie D.n)
+% DbaTime - ask for F3 images in time order, with F2 levels input by user?
+% P       - nScan x 1 cellsrt of image filenames
+% I       - nScan x 4 matrix of factor level indices
+%
+% FORMAT spm_spm_ui('DesRep',SPMcfg)
+% FORMAT spm_spm_ui('DesRepUI',SPMcfg)
+% FORMAT spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM
+% FORMAT spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM))
+% Design reporting (with UserInterface) - an interface to spm_DesRep.m
+% SPMcfg - name of SPMcfg.mat file
+% VY     - struct array of mapped image files
+% xX     - design matrix description structure (defined above)
+% xC     - struct array of covariate definitions (defined above)
+% xsDes  - struct of strings describing the design  (defined above)
+% xM     - masking description structure (defined above)
+%
+% FORMAT D = spm_spm_ui('DesDefs_Stats')
+% Design definitions for simple statistics
+% D      - struct array of design definitions (see definition below)
+%
+% FORMAT D = spm_spm_ui('DesDefs_SPM98PET')
+% Design definitions for SPM98 PET/SPECT models
+% D      - struct array of design definitions (see definition below)
+%
+% FORMAT D = spm_spm_ui('DesDefs_SPM96PET')
+% Design definitions for SPM96 PET/SPECT models
+% D      - struct array of design definitions (see definition below)
+
 %=======================================================================
 % Design definitions specification for programers & power users
 %=======================================================================
@@ -84,7 +547,7 @@ SCCSid  = '%I%';
 % variables. The covariates of interest and nuisance variables are put
 % into the C & G partitions of the design matrox (the final design
 % matrix is [H,C,B,G], where global nuisance covariates are appended to
-% G). In SPM94-96 the design matrix was partitioned into effects of
+% G). In SPM94/5/6 the design matrix was partitioned into effects of
 % interest [H,C] and effects of no interest [B,G], with an F-test for
 % no effects of interest and adjusted data (for effects of no interest)
 % following from these partitions. SPM98 is more freestyle, with
@@ -803,7 +1266,7 @@ if ~isempty(M_P)
 	VM = spm_vol(char(M_P));
 	xsM.Explicit_masking = [{'Yes: mask images :'};{VM.fname}'];
 else
-	VM={};
+	VM=[];
 	xsM.Explicit_masking = 'No';
 end
 xM = struct('T',M_T, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
@@ -1163,7 +1626,19 @@ D = [D, struct(...
 	'n',	[Inf 1 1 1],	'sF',{{'repl','','',''}},...
 	'Hform',		'[]',...
 	'Bform',		'I(:,2),''-'',''\mu''',...
-	'nC',[1,0],'iCC',{{1,8}},'iCFI',{{1,1}},...
+	'nC',[1,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'iGXcalc',[-1,2,3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multiple regression',...
+	'n',	[Inf 1 1 1],	'sF',{{'repl','','',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,2),''-'',''\mu''',...
+	'nC',[Inf,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
 	'iGXcalc',[-1,2,3],'iGMsca',[1,-9],'GM',[],...
 	'iGloNorm',9,'iGC',12,...
 	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
@@ -1233,8 +1708,7 @@ D = [D, struct(...
 	'b',struct('aTime',1))];
 
 D = [D, struct(...
-	'DesName',...
-	'Multi-subj: cond x subj  interaction & covariates (FixedFX)',...
+	'DesName','Multi-subj: cond x subj  interaction & covariates',...
 	'n',[Inf Inf Inf 1],	'sF',{{'repl','condition','subject',''}},...
 	'Hform',		'I(:,[3,2]),''-'',{''subj'',''cond''}',...
 	'Bform',		'I(:,3),''-'',''subj''',...
@@ -1411,7 +1885,7 @@ D = [D, struct(...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
-	'DesName','SPM96:Multi-subject: different conditions, & covariates',...
+	'DesName','SPM96:Multi-subject: different conditions & covariates',...
 	'n',	[1 Inf Inf 1],	'sF',{{'','condition','subject',''}},...
 	'Hform',		'I(:,2),''-'',''cond''',...
 	'Bform',		'I(:,3),''-'',''subj''',...
@@ -1449,7 +1923,7 @@ D = [D, struct(...
 %-Multi-study
 %-----------------------------------------------------------------------
 D = [D, struct(...
-	'DesName','SPM98:Multi-study: different conditions',...
+	'DesName','SPM96:Multi-study: different conditions',...
 	'n',[1 Inf Inf Inf],	'sF',{{'','cond','subj','study'}},...
 	'Hform',		'I(:,[4,2]),''-'',{''study'',''cond''}',...
 	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
@@ -1461,7 +1935,7 @@ D = [D, struct(...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
-	'DesName','SPM98:Multi-study: replicated conditions',...
+	'DesName','SPM96:Multi-study: replicated conditions',...
 	'n',[Inf Inf Inf Inf],	'sF',{{'repl','cond','subj','study'}},...
 	'Hform',		'I(:,[4,2]),''-'',{''study'',''condition''}',...
 	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
@@ -1473,7 +1947,7 @@ D = [D, struct(...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
-	'DesName','SPM98:Multi-study: different conditions & covariates',...
+	'DesName','SPM96:Multi-study: different conditions & covariates',...
 	'n',[1 Inf Inf Inf],	'sF',{{'','cond','subj','study'}},...
 	'Hform',		'I(:,[4,2]),''-'',{''study'',''cond''}',...
 	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
@@ -1485,7 +1959,7 @@ D = [D, struct(...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
-	'DesName','SPM98:Multi-study: replicated conditions & covariates',...
+	'DesName','SPM96:Multi-study: replicated conditions & covariates',...
 	'n',[Inf Inf Inf Inf],	'sF',{{'','cond','subj','study'}},...
 	'Hform',		'I(:,[4,2]),''-'',{''study'',''condition''}',...
 	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
@@ -1497,7 +1971,7 @@ D = [D, struct(...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
-	'DesName','SPM98:Multi-study: covariates only',...
+	'DesName','SPM96:Multi-study: covariates only',...
 	'n',[Inf 1 Inf Inf],	'sF',{{'repl','','subj','study'}},...
 	'Hform',		'[]',...
 	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
@@ -1511,7 +1985,7 @@ D = [D, struct(...
 %-Group comparisons
 %-----------------------------------------------------------------------
 D = [D, struct(...
-	'DesName','Compare-groups: 1 scan per subject',...
+	'DesName','SPM96:Compare-groups: 1 scan per subject',...
 	'n',[Inf Inf 1 1],	'sF',{{'subject','group','',''}},...
 	'Hform',		'I(:,2),''-'',''group''',...
 	'Bform',		'[]',...
