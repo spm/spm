@@ -38,6 +38,10 @@ basX = spm_dctmtx(VG(1),k(1))*stabilise;
 basY = spm_dctmtx(VG(2),k(2))*stabilise;
 basZ = spm_dctmtx(VG(3),k(3))*stabilise;
 
+dbasX = spm_dctmtx(VG(1),k(1),'diff')*stabilise;
+dbasY = spm_dctmtx(VG(2),k(2),'diff')*stabilise;
+dbasZ = spm_dctmtx(VG(3),k(3),'diff')*stabilise;
+
 % Guess the Inverse Covariance matrix for brain deformations.
 % These are based on gradients of deformation functions
 % in the direction of the warp.
@@ -69,7 +73,7 @@ T(s1+(1:4:size(VG,2)*4)) = ones(size(VG,2),1);
 
 for iter=1:param(4)
 	fprintf('iteration # %d: ', iter);
-	[Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,T,fwhm);
+	[Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm);
 	if (iter > 0)
 		% Parameter estimates biased towards affine.
 		%
@@ -107,7 +111,7 @@ for iter=1:param(4)
 		% The simple straightforward solution.
 		T = T + Alpha\Beta;
 	end
-	%disp(Var);
+	disp(Var);
 end
 
 % Dimensions and values of the 3D-DCT

@@ -92,13 +92,6 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 % What is entered here is the dimensions of this transform.
 % Try 4 5 4.
 %
-% 'Deformation Smoothness'
-% A 'fudge factor' which allows a smooth transition between an affine
-% only normalisation and an affine+nonlinear normalisation. Low values
-% result in smoother deformations (and hence closer to affine). Higher
-% values give more warped images.
-% Try 0.001.
-%
 % Options for Write Normalised:
 % 'select Normalisation Parameter Set'
 % Select the '_sn3d.mat' file.

@@ -25,10 +25,13 @@ dat1[ni*dim1[2]*dim1[1]*dim1[0]] - voxels of templates
 
 nx            - number of basis functions in x
 BX[dim1[0]*nx]- basis functions in x
+dBX[dim1[0]*nx]- derivatives of basis functions in x
 ny            - number of basis functions in y 
 BY[dim1[1]*ny]- basis functions in y
+dBY[dim1[1]*ny]- derivatives of basis functions in y
 nz            - number of basis functions in z
 BZ[dim1[2]*nz]- basis functions in z
+dBZ[dim1[2]*nz]- derivatives of basis functions in z
 
 M[4*4]        - transformation matrix
 samp[3]       - frequency of sampling template.
@@ -43,14 +46,21 @@ pnsamp[1*1]                - number of voxels sampled
 */
 
 
-void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX, ny,BY, nz,BZ, M, samp, pnsamp)
-double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], M[], scale2, scale1[];
+void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, pnsamp)
+double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], dBX[], dBY[], dBZ[], M[], scale2, scale1[];
 int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
 unsigned char *dat1[], dat2[];
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
-	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,dtmp,
+	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0, *scale1a;
+
+	double *Jz[3][3], *Jy[3][3], J[3][3];
+	double *bz3[3], *by3[3], *bx3[3];
+
+	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2]  = BX;
+	by3[0] =  BY;	by3[1] = dBY;	by3[2] =  BY;
+	bz3[0] =  BZ;	bz3[1] =  BZ;	bz3[2] = dBZ;
 
 	ni4 = ni*4;
 
@@ -58,12 +68,21 @@ unsigned char *dat1[], dat2[];
 	dvdt    = (double *)mxCalloc( 3*nx    + ni4                 , sizeof(double));
 
 	/* Intermediate storage arrays */
-	Tz      = (double *)mxCalloc( 2*3*nx*ny                     , sizeof(double));
-	Ty      = (double *)mxCalloc( 2*3*nx                        , sizeof(double));
+	Tz      = (double *)mxCalloc( 3*nx*ny                       , sizeof(double));
+	Ty      = (double *)mxCalloc( 3*nx                          , sizeof(double));
 	betax   = (double *)mxCalloc( 3*nx    + ni4                 , sizeof(double));
 	betaxy  = (double *)mxCalloc( 3*nx*ny + ni4                 , sizeof(double));
 	alphax  = (double *)mxCalloc((3*nx    + ni4)*(3*nx    + ni4), sizeof(double));
 	alphaxy = (double *)mxCalloc((3*nx*ny + ni4)*(3*nx*ny + ni4), sizeof(double));
+
+	for (i1=0; i1<3; i1++)
+	{
+		for(i2=0; i2<3; i2++)
+		{
+			Jz[i1][i2] = (double *)mxCalloc(nx*ny, sizeof(double));
+			Jy[i1][i2] = (double *)mxCalloc(nx   , sizeof(double));
+		}
+	}
 
 	/* pointer to scales for each of the template images */
 	scale1a = T + 3*nx*ny*nz;
@@ -77,26 +96,26 @@ unsigned char *dat1[], dat2[];
 		beta[x1]= 0.0;
 	}
 
-	for(s0[2]=0; s0[2]<dim1[2]-1; s0[2]+=samp[2]) /* For each plane of the template images */
+	for(s0[2]=0; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
 	{
-		/* build up the deformation field from it's seperable form */
-		for(i1=0, ptr1=T, ptr2=Tz; i1<3; i1++, ptr1 += nz*ny*nx, ptr2 += ny*nx)
+		/* build up the deformation field (and derivatives) from it's seperable form */
+		for(i1=0, ptr1=T; i1<3; i1++, ptr1 += nz*ny*nx)
 			for(x1=0; x1<nx*ny; x1++)
 			{
-				dtmp = tmp = 0.0;
+				/* intermediate step in computing nonlinear deformation field */
+				tmp = 0.0;
 				for(z1=0; z1<nz; z1++)
+					tmp  += ptr1[x1+z1*ny*nx] * BZ[dim1[2]*z1+s0[2]];
+				Tz[ny*nx*i1 + x1] = tmp;
+
+				/* intermediate step in computing Jacobian of nonlinear deformation field */
+				for(i2=0; i2<3; i2++)
 				{
-					tmp  += ptr1[x1+z1*ny*nx] *  BZ[dim1[2]*z1+s0[2]];
-					if (i1==2)
-						dtmp += ptr1[x1+z1*ny*nx] * BZ[dim1[2]*z1+s0[2]+1];					
+					tmp = 0;
+					for(z1=0; z1<nz; z1++)
+						tmp += ptr1[x1+z1*ny*nx] * bz3[i2][dim1[2]*z1+s0[2]];
+					Jz[i2][i1][x1] = tmp;
 				}
-
-				ptr2[x1] = tmp;
-
-				if (i1==2)
-					ptr2[x1 + 3*nx*ny] = dtmp;
-				else
-					ptr2[x1 + 3*nx*ny] = tmp;
 			}
 
 		/* only zero half the matrix */
@@ -108,25 +127,27 @@ unsigned char *dat1[], dat2[];
 			betaxy[x1]= 0.0;
 		}
 
-		for(s0[1]=0; s0[1]<dim1[1]-1; s0[1]+=samp[1]) /* For each row of the template images plane */
+		for(s0[1]=0; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
 		{
-			/* build up the deformation field (and gradients) from it's seperable form */
-			for(i1=0, ptr1=Tz, ptr2=Ty; i1<3; i1++, ptr1+=ny*nx, ptr2+=nx)
+			/* build up the deformation field (and derivatives) from it's seperable form */
+			for(i1=0, ptr1=Tz; i1<3; i1++, ptr1+=ny*nx)
 			{
 				for(x1=0; x1<nx; x1++)
 				{
-					dtmp = tmp = 0.0;
+					/* intermediate step in computing nonlinear deformation field */
+					tmp = 0.0;
 					for(y1=0; y1<ny; y1++)
-					{
 						tmp  += ptr1[x1+y1*nx] *  BY[dim1[1]*y1+s0[1]];
-						if (i1==1)
-							dtmp += ptr1[x1+nx*(y1+3*ny)] * BY[dim1[1]*y1+s0[1]+1];
-						else
-							dtmp += ptr1[x1+nx*(y1+3*ny)] * BY[dim1[1]*y1+s0[1]  ];
+					Ty[nx*i1 + x1] = tmp;
 
+					/* intermediate step in computing Jacobian of nonlinear deformation field */
+					for(i2=0; i2<3; i2++)
+					{
+						tmp = 0;
+						for(y1=0; y1<ny; y1++)
+							tmp += Jz[i2][i1][x1+y1*nx] * by3[i2][dim1[1]*y1+s0[1]];
+						Jy[i2][i1][x1] = tmp;
 					}
-					ptr2[x1     ] = tmp;
-					ptr2[x1+3*nx] = dtmp;
 				}
 			}
 
@@ -139,24 +160,27 @@ unsigned char *dat1[], dat2[];
 				betax[x1]= 0.0;
 			}
 
-			for(s0[0]=0; s0[0]<dim1[0]-1; s0[0]+=samp[0]) /* For each pixel in the row */
+			for(s0[0]=0; s0[0]<dim1[0]; s0[0]+=samp[0]) /* For each pixel in the row */
 			{
-				double trans[3], dtrans[3];
+				double trans[3];
 
 				/* nonlinear deformation of the template space, followed by the affine transform */
 				for(i1=0, ptr1 = Ty; i1<3; i1++, ptr1 += nx)
 				{
-					dtmp = tmp = 1.0;
+					/* compute nonlinear deformation field */
+					tmp = 1.0;
 					for(x1=0; x1<nx; x1++)
-					{
 						tmp  += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
-						if (i1==0)
-							dtmp += ptr1[x1+3*nx] * BX[dim1[0]*x1+s0[0]+1];
-						else
-							dtmp += ptr1[x1+3*nx] * BX[dim1[0]*x1+s0[0]  ];
+					trans[i1] = tmp + s0[i1];
+
+					/* compute Jacobian of nonlinear deformation field */
+					for(i2=0; i2<3; i2++)
+					{
+						if (i1 == i2) tmp = 1.0; else tmp = 0;
+						for(x1=0; x1<nx; x1++)
+							tmp += Jy[i2][i1][x1] * bx3[i2][dim1[0]*x1+s0[0]];
+						J[i2][i1] = tmp;
 					}
-					 trans[i1] = tmp + s0[i1];
-					dtrans[i1] = 1 + dtmp - tmp; /* derivative */
 				}
 
 				/* Affine component */
@@ -247,26 +271,30 @@ unsigned char *dat1[], dat2[];
 
 					/* local gradients accross resampled pixel (in space of object image) */
 					dvds0[0] = ((dy2*(val011-val111) + dy1*(val001-val101))*dz2
-						 + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2;
+						  + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2;
 
 					dvds0[1] = ((dx2*(val101-val111) + dx1*(val001-val011))*dz2
-						 + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2;
+						  + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2;
 
 					dvds0[2] = ((dx2*(val110-val111) + dx1*(val010-val011))*dy2
-						 + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2;
+						  + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2;
 
-					/* transform the gradients to the same space as the template */
-					dvds1[0] = (M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2])*dtrans[0];
-					dvds1[1] = (M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2])*dtrans[1];
-					dvds1[2] = (M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2])*dtrans[2];
+					/* affine transform the gradients of object image*/
+					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
+					dvds1[1] = M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2];
+					dvds1[2] = M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2];
 
+					/* nonlinear transform the gradients to the same space as the template */
+					dvds0[0] = J[0][0]*dvds1[0] + J[0][1]*dvds1[1] + J[0][2]*dvds1[2];
+					dvds0[1] = J[1][0]*dvds1[0] + J[1][1]*dvds1[1] + J[1][2]*dvds1[2];
+					dvds0[2] = J[2][0]*dvds1[0] + J[2][1]*dvds1[1] + J[2][2]*dvds1[2];
 
 					/* there is no change in the contribution from BY and BZ, so only
 					   work from BX */
 					for(i1=0; i1<3; i1++)
 					{
 						for(x1=0; x1<nx; x1++)
-							dvdt[i1*nx+x1] = -dvds1[i1] * BX[dim1[0]*x1+s0[0]];
+							dvdt[i1*nx+x1] = -dvds0[i1] * BX[dim1[0]*x1+s0[0]];
 					}
 
 					/* coordinate of template voxel to sample */
@@ -500,6 +528,15 @@ unsigned char *dat1[], dat2[];
 	mxFree((char *)alphax);
 	mxFree((char *)alphaxy);
 
+	for (i1=0; i1<3; i1++)
+	{
+		for(i2=0; i2<3; i2++)
+		{
+			mxFree((char *)Jz[i1][i2]);
+			mxFree((char *)Jy[i1][i2]);
+		}
+	}
+
 	mexPrintf("\n");
 }
 
@@ -517,12 +554,12 @@ Matrix *plhs[], *prhs[];
 	MAPTYPE **map1, *map2;
 	int i, nx,ny,nz,ni=1, samp[3];
 	int dim1[3], dim2[3], dt1[32], dt2, nsamp;
-        double *M, *BX, *BY, *BZ, *T, scale1[32], scale2, fwhm;
+        double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, scale1[32], scale2, fwhm;
 	unsigned char *dat1[32], *dat2;
 
-        if (nrhs != 8 || nlhs > 3)
+        if (nrhs != 11 || nlhs > 3)
         {
-                mexErrMsgTxt("Inappropriate usage. ([A,B,var]=f(V1,V2,M,BX,BY,BZ,T,fwhm);)");
+                mexErrMsgTxt("Inappropriate usage. ([A,B,var]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
         }
 
         map1 = get_maps(prhs[0], &ni);
@@ -533,7 +570,7 @@ Matrix *plhs[], *prhs[];
 	dim1[2]   = map1[0]->zdim;
 
 
-	for (i=0; i<8; i++)
+	for (i=0; i<11; i++)
 		if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) ||
 			!mxIsFull(prhs[i]) || !mxIsDouble(prhs[i]))
 			mexErrMsgTxt("Inputs must be numeric, real, full and double.");
@@ -543,24 +580,30 @@ Matrix *plhs[], *prhs[];
 	M = mxGetPr(prhs[2]);
 
 
-	if ( mxGetM (prhs[3]) != dim1[0]) mexErrMsgTxt("Wrong sized X basis functions.");
-	nx = mxGetN (prhs[3]);
+	if ( mxGetM(prhs[3]) != dim1[0]) mexErrMsgTxt("Wrong sized X basis functions.");
+	nx = mxGetN(prhs[3]);
 	BX = mxGetPr(prhs[3]);
+	if ( mxGetM(prhs[6]) != dim1[0] || mxGetN(prhs[6]) != nx) mexErrMsgTxt("Wrong sized X basis function derivatives.");
+	dBX = mxGetPr(prhs[6]);
 
-	if ( mxGetM (prhs[4]) != dim1[1]) mexErrMsgTxt("Wrong sized Y basis functions.");
-	ny = mxGetN (prhs[4]);
+	if ( mxGetM(prhs[4]) != dim1[1]) mexErrMsgTxt("Wrong sized Y basis functions.");
+	ny = mxGetN(prhs[4]);
 	BY = mxGetPr(prhs[4]);
+	if ( mxGetM(prhs[7]) != dim1[1] || mxGetN(prhs[7]) != ny) mexErrMsgTxt("Wrong sized Y basis function derivatives.");
+	dBY = mxGetPr(prhs[7]);
 
-	if ( mxGetM (prhs[5]) != dim1[2]) mexErrMsgTxt("Wrong sized Z basis functions.");
-	nz = mxGetN (prhs[5]);
+	if ( mxGetM(prhs[5]) != dim1[2]) mexErrMsgTxt("Wrong sized Z basis functions.");
+	nz = mxGetN(prhs[5]);
 	BZ = mxGetPr(prhs[5]);
+	if ( mxGetM(prhs[8]) != dim1[2] || mxGetN(prhs[8]) != nz) mexErrMsgTxt("Wrong sized Z basis function derivatives.");
+	dBZ = mxGetPr(prhs[8]);
 
-	T = mxGetPr(prhs[6]);
-	if (mxGetM(prhs[6])*mxGetN(prhs[6]) != 3*nx*ny*nz+ni*4)
+	T = mxGetPr(prhs[9]);
+	if (mxGetM(prhs[9])*mxGetN(prhs[9]) != 3*nx*ny*nz+ni*4)
 		mexErrMsgTxt("Transform is wrong size.");
 
-	if ( mxGetM(prhs[7])*mxGetN(prhs[7]) != 1) mexErrMsgTxt("FWHM should be a single value.");
-	fwhm = mxGetPr(prhs[7])[0];
+	if ( mxGetM(prhs[10])*mxGetN(prhs[10]) != 1) mexErrMsgTxt("FWHM should be a single value.");
+	fwhm = mxGetPr(prhs[10])[0];
 
 	/* sample about every fwhm/2 */
 	samp[0]   = rint(fwhm/2.0/map1[0]->xpixdim); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
@@ -591,7 +634,7 @@ Matrix *plhs[], *prhs[];
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), mxGetPr(plhs[2]),
 		dt2,scale2,dim2,dat2,
 		ni,dt1,scale1,dim1,dat1,
-		nx, BX, ny, BY, nz, BZ, M, samp, &nsamp);
+		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp);
 
 	mxGetPr(plhs[2])[0] = mxGetPr(plhs[2])[0] / (nsamp - (3*nx*ny*nz + ni*4));
 	free_maps(map1);
