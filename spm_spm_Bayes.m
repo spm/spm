@@ -70,19 +70,17 @@ if ~nargin
 	load(fullfile(swd,'SPM.mat'))
 	cd(swd)
 end
-helpdlg('This could take some time');
-spm('Pointer','Watch')
-
-
-%-maxMem is the maximum amount of data processed at a time (bytes)
-%-----------------------------------------------------------------------
-global defaults
-MAXMEM = defaults.stats.maxmem;
-
-M      = SPM.xVol.M;
-DIM    = SPM.xVol.DIM;
-xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
-XYZ    = SPM.xVol.XYZ;
+try
+	M      = SPM.xVol.M;
+	DIM    = SPM.xVol.DIM;
+	xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
+	XYZ    = SPM.xVol.XYZ;
+catch
+	helpdlg({	'Please do a ML estimation first',...
+			'This identifies the voxels to analyse'});
+	spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+	return
+end
 
 
 %=======================================================================
@@ -220,7 +218,6 @@ for i = 1:s
 end
 
 
-
 %=======================================================================
 % - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
 %=======================================================================
@@ -228,12 +225,16 @@ end
 %-Cycle to avoid memory problems (plane by plane)
 %=======================================================================
 spm_progress_bar('Init',100,'Bayesian estimation','');
+helpdlg('This could take some time');
+spm('Pointer','Watch')
 
-%-Find a suitable block size for loop over planes (2D or 3D data)
+%-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
-blksz = ceil(MAXMEM/8/nScan);
-SHp   = 0;				% sum of hyperparameters
-for z = 1:zdim
+global defaults
+MAXMEM = defaults.stats.maxmem;
+blksz  = ceil(MAXMEM/8/nScan);
+SHp    = 0;				% sum of hyperparameters
+for  z = 1:zdim
 
     % current plane-specific parameters
     %-------------------------------------------------------------------
