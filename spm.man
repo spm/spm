@@ -218,6 +218,7 @@
 % 		2.5.2 Software implementation
 % 	2.6 Hemodynamic deconvolution
 % 	2.7 Bias correction
+%       2.8 fMRI Unwarping
 % 3. IMPROVEMENTS - STRUCTURAL
 % 	3.1 Software architecture
 % 	3.2 File formats
@@ -564,6 +565,63 @@
 % in that the cost function is based on histograms of the original
 % intensities, but includes a correction so that the solution is not biased
 % towards a uniform scaling of all zeros.
+%
+% 2.8 fMRI Unwarping
+% In addition to realigning (transforming the images according to a rigid
+% body model) the time series there is the option of modelling the residual
+% movement related variance in an EPI (fMRI) time series that can be
+% explained by a model for suceptibility-by-movement interactions. This
+% is given by the "Realign & Unwarp" option.
+%
+% Susceptibility artefacts in EPI time series is a consequence of the
+% "field disturbances" caused by the presence of an object in the field.
+% Susceptibility is a property of a material, and can be thought of as
+% the "resistance" put up by that material against being magnetised.
+% At the interface between materials with different susceptibility
+% rather severe field disturbancies will ensue. I.e. the field is
+% no longer nice and homogenous. Since varying field strenght (gradients)
+% is used to encode position in MRI, these disturbances cause spatial
+% misplacement of RF signal, i.e. geometric distortions. Because of
+% the low bandwidth in the phase encode direction these distortions
+% will be appreciable mainly in that direction (typically the Ant-Post
+% direction). The distortions are noticable mainly near air-tissue
+% interfaces inside the scull, i.e. near the sinuses and the auditory
+% canals.
+%
+% In these areas in particular the observed image is a severly warped
+% version of reality, much like a funny mirror at a fair ground. When
+% one moves in front of such a mirror ones image will distort in
+% different ways and ones head may change from very elongated to
+% seriously flattened. If we were to take digital snapshots of the
+% reflection at these different positions it is rather obvious that
+% realignment alone will not suffice to bring them into a common space.
+%
+% The situation is similar with EPI images, and an image collected
+% for a given subject position will not be identical to that collected
+% at another. We call this effect suscebtibility-by-movement interaction.
+% The "Unwarp" toolbox is predicated on the assumption that the
+% suscebtibility-by-movement interaction is responsible for a sizeable
+% part of residual movement related variance.
+%
+% Assume that we know how the deformations change when the subject changes
+% position (i.e. we know the derivatives of the deformations with respect
+% to subject position). That means that for a given time series and a
+% given set of subject movements we should be able to predict the "shape
+% changes" in the object and the ensuing variance in the time series.
+% It also means that, in principle, we should be able to formulate the
+% inverse problem, i.e. given the observed variance (after realignment)
+% and known (estimated) movements we should be able to estimate how
+% deformations change with subject movement.
+%
+% We have made an attempt at formulating such an inverse model, and at
+% solving for the "derivative fields". A deformation field can be thought
+% of as little vectors at each position in space showing how that particular
+% location has been deflected. A "derivative field" is then the rate of
+% change of those vectors with respect to subject movement. Given these
+% "derivative fields" we should be able to remove the variance caused by
+% the suscebtibility-by-movement interaction. Since the underlying model
+% is so restricted we would also expect experimentally induced variance
+% to be preserved.
 % 
 % 
 % 
