@@ -295,12 +295,9 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %
 %-----------------------------------------------------------------------
 %
-% For those interested, the analysis proceeds a "plank" at a time,
-% where a "plank" is a bunch of lines (parallel to the x-axis) within a
-% plane. The plank width is determined at run-time as the maximum
-% possible (at most the plane width) plank width satisfying the memory
-% constraint parameterised in the code in variable maxMem. maxMem can
-% be tweaked for your system by editing the code.
+% For those interested, the analysis proceeds a "block" at a time,
+% The block size conforms to maxMem that can be set as a global variable
+% MAXMEM (in bytes) [default = 2^20]
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
@@ -313,8 +310,13 @@ Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 
 %-Parameters
 %-----------------------------------------------------------------------
+global MAXMEM 
+if length(MAXMEM)	
+	maxMem = MAXMEM;	
+else
+	maxMem = 2^20;	%-Max data chunking size, in bytes
+end
 Def_UFp  = 0.001;	%-Default F-threshold for Y.mad pointlist filtering
-maxMem   = 2^20;	%-Max data chunking size, in bytes
 maxRes   = 64;		%-Maximum #res images for smoothness estimation
 
 %-Condition arguments
@@ -564,11 +566,8 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 %-----------------------------------------------------------------------
 if ydim < 2, error('ydim < 2'), end		    %-need at least 2 lines
 
-blksz  = maxMem/8/nScan/nVar;			    %-block size (in bytes)
-nl     = max(min(round(blksz/xdim),ydim),1); 	    %-max # lines / block
-clines = 1:nl:ydim;				    %-bunch start line #'s
-blines = diff([clines ydim+1]);			    %-# lines per bunch
-nbch   = length(clines);			    %-# bunches
+blksz  = maxMem/8/nScan/nVar;			    %-block size
+nbch   = ceil(xdim*ydim/blksz);			    %-# blocks
 
 
 %-Intialise other variables used through the loop 
@@ -576,18 +575,12 @@ nbch   = length(clines);			    %-# bunches
 xords  = [1:xdim]'*ones(1,ydim); xords = xords(:)'; % plane X coordinates
 yords  = ones(xdim,1)*[1:ydim];  yords = yords(:)'; % plane Y coordinates
 S      = 0;                                         % Volume (voxels)
+Cy     = 0;					    % <Y*Y'> for ReML
 i_res  = round(linspace(1,nScan,nSres))';	    % Indices for residual
-
 
 %-Initialise XYZ matrix of in-mask voxel co-ordinates (real space)
 %-----------------------------------------------------------------------
 XYZ    = zeros(3,xdim*ydim*zdim);
-
-
-%-<Y*Y'> over non-masked voxels (used by REML)
-%-----------------------------------------------------------------------
-Cy     = zeros(nScan,nScan);			    %-estimated covariance	
-
 
 %-Cycle over bunches of lines within planes (planks) to avoid memory problems
 %=======================================================================
@@ -607,22 +600,20 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-# Print progress information in command window
 	%---------------------------------------------------------------
-	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, plank %3d/%-3d',...
+	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, batch %3d/%-3d',...
 		z,zdim,bch,nbch),' ')                                %-#
 
-	cl    = clines(bch); 	 	%-line index of first line of bunch
-	bl    = blines(bch);  		%-number of lines for this bunch
-
-	%-construct list of voxels in this bunch of lines
+	%-construct list of voxels in this block
 	%---------------------------------------------------------------
-	I     = ((cl-1)*xdim+1):((cl+bl-1)*xdim);	%-lines cl:cl+bl-1
+	I     = [1:blksz] + (bch - 1)*blksz;		%-voxel indices
+	I     = I(I <= xdim*ydim);
 	xyz   = [xords(I); yords(I); zords(I)];		%-voxel coords in bch
-
+	nVox  = size(xyz,2);				%-number of voxels
 
 	%-Get data & construct analysis mask for this bunch of lines
 	%===============================================================
 	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
-	CrLm  = logical(ones(1,xdim*bl));		%-current lines mask
+	CrLm  = logical(ones(1,nVox));			%-current block mask
 
 
 	%-Compute explicit mask
@@ -630,7 +621,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%---------------------------------------------------------------
 	for i = 1:length(xM.VM)
 		tM   = inv(xM.VM(i).mat)*M;		%-Reorientation matrix
-		tmp  = tM * [xyz;ones(1,size(xyz,2))];	%-Coords in mask image
+		tmp  = tM * [xyz;ones(1,nVox)];		%-Coords in mask image
 
 		%-Load mask image within current mask & update mask
 		%-------------------------------------------------------
@@ -640,14 +631,14 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	
 	%-Get the data in mask, compute threshold & implicit masks
 	%---------------------------------------------------------------
-	Y     = zeros(nScan,xdim*bl);
+	Y     = zeros(nScan,nVox);
 	for i = 1:nScan
 		if ~any(CrLm), break, end		%-Break if empty mask
 		Y(i,CrLm)  = spm_sample_vol(VY(i,1),... %-Load data in mask
 				xyz(1,CrLm),xyz(2,CrLm),xyz(3,CrLm),0);
 		CrLm(CrLm) = Y(i,CrLm) > xM.TH(i,1);	%-Threshold (& NaN) mask
-		if xM.I & ~YNaNrep & xM.TH(i,1)<0	%-Use implicit 0 mask
-			CrLm(CrLm) = abs(Y(i,CrLm))>eps;
+		if xM.I & ~YNaNrep & xM.TH(i,1) < 0	%-Use implicit 0 mask
+			CrLm(CrLm) = abs(Y(i,CrLm)) > eps;
 		end
 	end
 
@@ -662,12 +653,6 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%-Proceed with General Linear Model (if there are voxels)
 	%===============================================================
 	if CrS
-
-		%-Assemble <Y*Y'> for ReML covariance estimation
-		%-----------------------------------------------------------
-		if iscell(xX.xVi.Vi)
-			Cy = Cy + Y*Y';
-		end
 
 		%-Temporal filtering
 		%-------------------------------------------------------
@@ -699,16 +684,28 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			    % append data and save indices to coords
 			    %-------------------------------------------
 			    spm_append(Y,'Y.mad',2);
-			    Yidx = [Yidx,S+[1:CrS]];
+			    Yidx = [Yidx,S + [1:CrS]];
 
 			else
 
 			    % F-threshold
 			    %-------------------------------------------
 			    tmp  = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
-			    spm_append(Y(:,tmp),'Y.mad',2);
-			    Yidx = [Yidx, (S + find(tmp))];
+			    tmp   = find(tmp);
+			    spm_append(Y,'Y.mad',2);
+			    Yidx = [Yidx, (S + tmp)];
+
+			    %-Assemble <Y*Y'> for ReML covariance estimation
+			    %-------------------------------------------
+			    if iscell(xX.xVi.Vi)
+				q    = size(tmp,2);
+				q    = spdiags(sqrt(trRV./ResSS(tmp)'),0,q,q);
+			    	Y    = Y(:,tmp)*q;
+				Cy   = Cy + Y*Y';
+			    end
+
 			end
+
 		end
 		clear Y					%-Clear to save memory
 
@@ -793,7 +790,7 @@ if iscell(xX.xVi.Vi)
 	%---------------------------------------------------------------
 	fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation') %-#
 
-	[Vi,h]       = spm_reml(Cy/S,xX.X,xX.xVi.Vi);
+	[Vi,h]       = spm_reml(Cy/length(Yidx),xX.X,xX.xVi.Vi);
 	Vi           = Vi*nScan/trace(Vi);
 	xX.xVi.Param = h;
 end
@@ -847,7 +844,6 @@ clear VResI
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...tidying file handles') %-#
 VM     = VM.fname;
 Vbeta  = {Vbeta.fname}';
-%VResI  = {VResI.fname}';
 VResMS = VResMS.fname;
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
@@ -869,6 +865,7 @@ SPMvars = {	'SPMid','VY','xX','xM',...		%-Design parameters
 		'VM','Vbeta','VResMS',...		%-Filenames
 		'XYZ',...				%-InMask XYZ coords
 		'F_iX0','UFp','UF',...			%-F-thresholding data
+		'Cy',...				%-ReML operand
 		'S','R','FWHM'};			%-Smoothness data
 
 if nargin > 4
