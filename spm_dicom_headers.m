@@ -48,7 +48,7 @@ if ~strcmp(dcm,'DICM'),
 	tag.element = fread(fp,1,'ushort');
 	%t          = dict.tags(tag.group+1,tag.element+1);
 	t           = find(dict.group==tag.group & dict.element==tag.element);
-	if t == 0  % entry not found in DICOM dict
+	if isempty(t),  % entry not found in DICOM dict
 		fclose(fp);
 		warning(['"' P '" is not a DICOM file.']);
 		return;
