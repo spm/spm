@@ -1,0 +1,79 @@
+
+% SPM{Z} section display and rendering
+%___________________________________________________________________________
+%
+% SEE ALSO:
+% spm_results_ui.m      - Results section user interface
+%       spm_graph.m             - Graphing routine.
+%       spm_maxima.m            - Routine for listing regional maxima,
+%                                 locations, statistic values and p-values.
+%       spm_transverse.m        - Plots stats overlaid on
+%                                 three transverse slices of a second image.
+%       spm_sections.m          - Plots stats overlaid on orthogonal sections
+%                                 of a second image.
+%
+% spm_mip_ui.m                  - GUI for moving around MIPs
+%
+% spm_projections_ui.m  - Thresholding & significance computation
+%                         for Gaussianised t-statistic images SPM{Z}
+% spm_projectionsF_ui.m - Thresholding & significance computation
+%                         for F statistic images SPM{F}
+%
+%___________________________________________________________________________
+%
+% The SPM results section is for the interactive exploration and
+% characterisation of the results of a statistical analysis.
+% 
+% A maximum intensity projection (MIP) of the chosen statistic image is
+% displayed, thresholded at user specified levels. Cursors are provided
+% which can be dragged around the MIP, allowing interrogation of the
+% statistical results at any voxel. (Specifically, at any voxel saved
+% by the statistical analysis which survives the specified thresholds.)
+% 
+% At each voxel various options are available:
+%
+% (i)     Graphs of adjusted and fitted activity against various
+% ordinates. (Note that the cursor is repositioned to the nearest voxel
+% with data by this option.) Additionally, writes out adjusted data to
+% the MatLab command window.
+%         See spm_graph.m for details
+%
+% (ii)  Tables of all local maxima in the suprathreshold region
+% containing the cursor, going over onto multiple pages if necessary.
+% The table lists all local maxima, their locations, statistic values
+% and p-values. (Note that the cursor is repositioned to the nearest
+% local maxima by this option.)
+%	See spm_maxima.m for details.
+%
+% (iii) Slices of the thresholded statistic image overlaid on a
+% secondary image chosen by the user. Three transverse slices are
+% shown, being those at the level of the cursor in the z-axis and the
+% two adjacent to it.
+%       See spm_transverse.m for details.
+%
+% (iv)  Orthogonal sections of the thresholded statistic image
+% overlaid on a secondary image chosen by the user. The sections are
+% through the cursor position.
+%       See spm_sections.m for details
+%
+%-----------------------------------------------------------------------
+%
+% spm_results_ui is the program that launches the SPM Results section.
+% It is a MatLab M-file (a macro) rather than a function. Thus, all
+% variables (location, p-values, cluster definitions etc.) are
+% available to the (advanced) user in the MatLab workspace.
+%
+% The MIP uses a template outline in Talairach space. Consequently for
+% the results section to display properly the input images to the
+% statistics section should either be in Talairach space (with the
+% ORIGIN correctly specified), or the ORIGIN header fields should be
+% set to the voxel coordinates of the mid-point of the AC-PC line in
+% the input images. See spm_format.man ("Data Format" in the help
+% facility) for further details of headers.
+%
+% Similarly, secondary images should be aligned with the input images
+% used for the statistical analysis. In particular the ORIGIN must
+% correspond to (0,0,0) in XYZ, the vector of locations.
+%
+%__________________________________________________________________________
+% %W% Andrew Holmes %E%
