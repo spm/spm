@@ -2,7 +2,7 @@
 static char sccsid[] = "%W% John Ashburner %E%";
 #endif
 #include "math.h"
-#define local_rint(a) floor((a)+0.5)
+#include "spm_sys_deps.h"
 
 float samp(const int d[3], unsigned char f[], float x, float y, float z)
 {
@@ -67,8 +67,8 @@ double H[65536], float s[3])
 				if (zp>=1.0 && zp<df[2] && yp>=1.0 && yp<df[1] && xp>=1.0 && xp<df[0])
 				{
 					int vf, vg;
-					vg = (int)local_rint(samp(dg, g, rx,ry,rz));
-					vf = (int)local_rint(samp(df, f, xp,yp,zp));
+					vg = (int)rint(samp(dg, g, rx,ry,rz));
+					vf = (int)rint(samp(df, f, xp,yp,zp));
 					H[vf+vg*256] ++;
 				}
 			}
