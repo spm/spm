@@ -260,12 +260,10 @@ set(F,'Pointer','Arrow','Visible','on')
 
 case 'asciiwelcome'
 %=======================================================================
-disp( ' ___  ____  __  __                                                  ')
+disp([' ___  ____  __  __   ',spm('Ver')])
 disp( '/ __)(  _ \(  \/  )  Statistical Parametric Mapping                 ')
 disp( '\__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology ')
-disp(['(___/(__)  (_/\/\_)  Version: ',spm('Ver')])
-disp(' ')
-% disp('  John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline')
+disp( '(___/(__)  (_/\/\_)  http://www.fil.ion.ucl.ac.uk/spm               ')
 fprintf('\n')
 
 
