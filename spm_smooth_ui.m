@@ -1,11 +1,24 @@
 function spm_smooth_ui
-% user interface routine for spm_conv_vol
-% FORMAT spm_smooth_ui
-%____________________________________________________________________________
+% Smoothing or convolving
+%___________________________________________________________________________
 %
-% spm_smooth_ui sets up a list of images to smooth or convolve with a 
-% Gaussian kernel of specified width. Convolved images are prefixed with 's'
-% (headers are created automatically)
+% Convolves image files with an isotropic (in real space) Gaussian kernel 
+% of a specified width.
+%
+% Uses:
+%
+% As a preprocessing step to suppress noise and effects due to residual 
+% differences in functional and gyral anatomy during inter-subject 
+% averaging.
+%
+% Inputs
+%
+% *.img conforming to SPM data format (see 'Data')
+%
+% Outputs
+%
+% The smoothed images are written to the same subdirectories as the 
+% original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
 % %W% %E%
