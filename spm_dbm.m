@@ -270,7 +270,6 @@ Mat = (tmp*MF)*Affine*inv(MG);
 
 global SWD;
 V = spm_vol([SWD '/apriori/brainmask.img']);
-V = spm_vol('/data/methods/structurals/symmetric_brainmask.img');
 
 Vox = [2 2 2];
 bb  = reshape([-90 91 -126 91  -72 109],2,3);
@@ -403,7 +402,6 @@ Dims = [
 
 global SWD;
 V = spm_vol([SWD '/apriori/gray.img']);
-V = spm_vol('/data/methods/structurals/symmetric_meangm.img');
 
 Vox = [2 2 2];
 bb = reshape([-90 91 -126 91  -72 109],2,3);
