@@ -339,7 +339,7 @@ osumpr = -Inf;
 % from var(rand(1000000,1)).  It prbably isn't the best way of doing
 % things, but it appears to work.
 cv0= zeros(m,m);
-for i=1:m, cv0(i,i)=0.083*mean(VF.pinfo(1,:)); end;
+for i=1:m, cv0(i,i)=0.083*mean(VF(i).pinfo(1,:)); end;
 
 cv = zeros(m,m,n);	% (Co)variances
 mn = zeros(m,n);	% Means
@@ -557,7 +557,7 @@ if any(opts == 't')
 	nimg = 2;
 else
 	app  = '_seg';
-	nimg = nb+1;
+	nimg = nb;
 end
 
 
@@ -674,13 +674,13 @@ text(0,0.40, 'Means:','FontSize',12,'FontWeight','Bold','Parent',ax);
 text(0,0.30, 'Std devs:' ,'FontSize',12,'FontWeight','Bold','Parent',ax);
 text(0,0.20, 'N vox:','FontSize',12,'FontWeight','Bold','Parent',ax);
 for j=1:nb
-	text((j+0.5)/(nb+2),0.40, num2str(mn(1,j)),...
+	text((j+0.5)/(nb+1),0.40, num2str(mn(1,j)),...
 		'FontSize',12,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
-	text((j+0.5)/(nb+2),0.30, num2str(sqrt(cv(1,1,j))),...
+	text((j+0.5)/(nb+1),0.30, num2str(sqrt(cv(1,1,j))),...
 		'FontSize',12,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
-	text((j+0.5)/(nb+2),0.20, num2str(mg(1,j)/sum(mg(1,:))),...
+	text((j+0.5)/(nb+1),0.20, num2str(mg(1,j)/sum(mg(1,:))),...
 		'FontSize',12,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
 end
@@ -703,14 +703,14 @@ for i=1:5
 	M = spm_matrix([0 0 i*V(1).dim(3)/6]);
 	img = spm_slice_vol(V(1),M,V(1).dim(1:2),1);
 	img(1,1) = eps;
-	ax=axes('Position',[0.05 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],'Visible','off','Parent',fg);
+	ax=axes('Position',[0.05 0.75*(1-i/5)+0.05 0.9/(nb+1) 0.75/5],'Visible','off','Parent',fg);
 	imagesc(rot90(img), 'Parent', ax);
 	set(ax,'Visible','off','DataAspectRatio',[1 1 1]);
 
 	for j=1:nimg
 		img = spm_slice_vol(VS(j),M2\M1*M,V(1).dim(1:2),1);
 		ax=axes('Position',...
-			[0.05+j*0.9/(nb+2) 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],...
+			[0.05+j*0.9/(nb+1) 0.75*(1-i/5)+0.05 0.9/(nb+1) 0.75/5],...
 			'Visible','off','Parent',fg);
 		image(rot90(img*64), 'Parent', ax);
 		set(ax,'Visible','off','DataAspectRatio',[1 1 1]);
