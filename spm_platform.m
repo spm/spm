@@ -63,11 +63,6 @@ case 'user'
 % return user string
 varargout{1} = spm_plat_vars.user;
 
-case 'shoes'
-% warn about potential soling pitfalls
-disp('Footwear fashion catastrophe');
-error('Please retire to place of safety and destroy offensive walkwear');
-
 case 'tempdir'
 % return temporary directory
 twd = getenv('SPMTMP');
@@ -139,18 +134,13 @@ switch (spm_plat_vars.filesys)
 end
 
 % gets user name
-User = [];
 switch (spm_plat_vars.filesys)
 	case 'unx'
-		User = getenv('USER');
-	case 'win'
-		User = getenv('USER');
+	spm_plat_vars.user = getenv('USER');
+case 'win'
+	spm_plat_vars.user = getenv('USER');
+otherwise
+	spm_plat_vars.user = '';
 end
-if isempty(User), User='user'; end
-spm_plat_vars.user = User;
 
 % may want to set fonts etc here
-
-
-% end of initialisation
-return
