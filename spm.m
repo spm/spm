@@ -968,7 +968,7 @@ case 'checkmodality'              %-Check & canonicalise modality string
 if nargin<2, Modality=''; else, Modality=upper(varargin{2}); end
 if isempty(Modality)
 	global defaults
-	if ~isfield(defaults,'modality'); Modality = defaults.modality;
+	if isfield(defaults,'modality'); Modality = defaults.modality;
 	else, Modality = 'UNKNOWN'; end
 end
 if isstr(Modality)
