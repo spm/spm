@@ -1,6 +1,9 @@
-function spm_list(SPM,VOL,Dis,Num,title)
+function varargout = spm_list(varargin)
 % Display and analysis of SPM{.}
-% FORMAT spm_list(SPM,VOL,Dis,Num,title)
+% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,title)
+% Summary list of local maxima for entire volume of interest
+% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,title)
+% List of local maxima for a single suprathreshold cluster
 %
 % SPM    - structure containing SPM, distribution & filtering details
 %        - required fields are:
@@ -18,67 +21,115 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .XYZmm - location of voxels {mm}
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 %
-% Dis    - Minimum distance between maxima                 {default = 8mm}
-% Num    - Maxiumum number of maxima tabulated per cluster {default = 2}
+% (see spm_getSPM for further details of SPM & VOL structures)
+%
+% Dis    - Minimum distance between maxima
+%          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
+% Num    - Maxiumum number of local maxima tabulated per cluster
+%          {defaults (missing or empty) to 2   for 'List', 16  for 'ListCluster'}
 % title  - title text for table
 %
-% (see spm_getSPM for further details of SPM & VOL structures)
+% TabDat - Structure containing table data
+%        - fields are
+% .tit   - table title (string)
+% .hdr   - table header (2x10 cell array)
+% .fmt   - fprintf format strings for table data (1x10 cell array)
+% .str   - table filtering note (string)
+% .ftr   - table footnote information (4x2 cell array)
+% .dat   - table data (Nx10 cell array)
+%
+%                           ----------------
+% FORMAT spm_list('TxtList',TabDat,c)
+% Prints a tab-delimited text version of the table
+% TabDat - Structure containing table data (format as above)
+% c      - Column of table data to start text table at
+%          (E.g. c=3 doesn't print set-level results contained in columns 1 & 2)
 %_______________________________________________________________________
 %
 % spm_list characterizes SPMs (thresholded at u and k) in terms of
-% excursion sets (a collection of face, edge and vertex connected subsets
-% or clusters).  The significance of the results are based on set, cluster
-% and voxel-level inferences using distributional approximations from the
-% Theory of Gaussian Feilds.  These distributions assume that the SPM is
-% a reasonable lattice approximation with known component field smoothness.
+% excursion sets (a collection of face, edge and vertex connected
+% subsets or clusters).  The currected significance of the results are
+% based on set, cluster and voxel-level inferences using distributional
+% approximations from the Theory of Gaussian Feilds.  These
+% distributions assume that the SPM is a reasonable lattice
+% approximation of a continuous random field with known component field
+% smoothness.
 %
 % The p values are based on the probability of obtaining c, or more,
 % clusters of k, or more, resels above u, in the volume S analysed =
 % P(u,k,c).  For specified thresholds u, k, the set-level inference is
-% based on the observed number of clusters C = P(u,k,C).  For each cluster
-% of size K the cluster-level inference is based on P(u,K,1) and for each
-% voxel (or selected maxima) of height U, in that cluster, the voxel-level
-% inference is based on P(U,0,1).  All three levels of inference are
-% supported with a tabular presentation of the p values and the underlying
-% statistic (u, k or c).  The table is grouped by regions and sorted on
-% the Z-variate of the primary maxima.  See 'Sections' in the help facility
-% and spm_maxima.m for a more complete characterization of maxima within
-% a region. Z-variates (based on the uncorrected p value) are the Z score
-% equivalent of the statistic. Volumes are expressed in voxels.
+% based on the observed number of clusters C = P(u,k,C).  For each
+% cluster of size K the cluster-level inference is based on P(u,K,1)
+% and for each voxel (or selected maxima) of height U, in that cluster,
+% the voxel-level inference is based on P(U,0,1).  All three levels of
+% inference are supported with a tabular presentation of the p values
+% and the underlying statistic (voxel statistic U, k or c).  The table
+% is grouped by regions and sorted on the Z-variate of the primary
+% maxima.  Z-variates (based on the uncorrected p value) are the Z
+% score equivalent of the statistic. Volumes are expressed in voxels.
 %
-% Click on co-ordinates to jump results cursor to location ****
-% Click on tabulated data to extract accurate value to MatLab
-% workspace. (Look in the MatLab command window.)
+% Clicking on values in the table returns the value to the Matlab
+% workspace. In addition, clicking on the co-ordinates jumps the
+% results section cursor to that locatioin. The table has a contextmenu
+% (obtained by right-clicking in the background of the table),
+% providing options to print the current table as a text table, and to
+% extract the table data to the Matlab workspace.
 %
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
+
+
+%-Parse arguments, default to 'list' if varargin{1} not an Action string
+%-----------------------------------------------------------------------
+if nargin==0, error('Insufficient arguments'), end
+if ~ischar(varargin{1})
+	warning('Direct usage Grandfathered: Use an action string!')
+	spm_list('list',varargin{:});
+	return
+end
+
+
+
+%=======================================================================
+switch lower(varargin{1}), case 'list'                            %-List
+%=======================================================================
+% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,title)
+
 
 %-Tolerance for p-value underflow, when computing equivalent Z's
 %-----------------------------------------------------------------------
 tol = eps*10;
 
-
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin < 2,   error('insufficient arguments'), end
-if nargin < 5,   title = spm_str_manip(SPM.swd,'a50'); end
-if nargin < 4,   Num = []; end
+if nargin<3,   error('insufficient arguments'), end
+if nargin<6,   title = ['volume summary',...
+			' (p-values corrected for entire volume)'];
+	else,  title = varargin{6}; end
+if nargin<5,     Num = [];
+	else,    Num = varargin{5}; end
 if isempty(Num), Num = 3;  end
-if nargin < 3,   Dis = []; end
+if nargin<4,     Dis = [];
+	else,    Dis = varargin{4}; end
 if isempty(Dis), Dis = 8;  end
+% VOL is varargin{3} - Use by reference for speed
+% SPM is varargin{2} - Don't copy into local variables
 
 %-Extract data from structures
 %-----------------------------------------------------------------------
-v2r       = 1/prod(VOL.FWHM);				%-voxels to resels
-n         = SPM.n;
-STAT      = SPM.STAT;
-df        = SPM.df;
-u         = SPM.u;
-k         = SPM.k*v2r;
-R         = VOL.R;
+S         = varargin{3}.S;
+R         = varargin{3}.R;
+FWHM      = varargin{3}.FWHM;
+v2r       = 1/prod(FWHM);			%-voxels to resels
+n         = varargin{2}.n;
+STAT      = varargin{2}.STAT;
+df        = varargin{2}.df;
+u         = varargin{2}.u;
+k         = varargin{2}.k*v2r;
 
 %-Setup graphics pane
 %-----------------------------------------------------------------------
@@ -140,14 +191,18 @@ text(0.90,y - dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
 TabDat.tit = title;
 TabDat.hdr = {	'set',		'c';...
 		'set',		'p';...
-		'cluster',	'p (cor)';...
+		'cluster',	'p(cor)';...
 		'cluster',	'k';...
-		'cluster',	'p (unc)';...
-		'voxel',	'p (cor)';...
+		'cluster',	'p(unc)';...
+		'voxel',	'p(cor)';...
 		'voxel',	STAT;...
 		'voxel',	'equivZ';...
-		'voxel',	'p (unc)';...
+		'voxel',	'p(unc)';...
 		'',		'x,y,z {mm}'}';
+TabDat.fmt = {	'%-0.3f', '%g',...				%-Set
+		'%0.3f',  '%0.0f',  '%0.3f',...			%-Cluster
+		'%0.3f',  '%6.2f',  '(%5.2f)',  '%0.3f',...	%-Voxel
+		'%3.0f %3.0f %3.0f'};				%-XYZ
 
 y     = y - 7*dy/4;
 line([0 1],[y y],'LineWidth',1,'Color','r')
@@ -157,15 +212,15 @@ y0    = y;
 
 %-Table filtering note
 %-----------------------------------------------------------------------
-str = sprintf(['table shows at most %d subsidiary maxima ',...
+TabDat.str = sprintf(['table shows at most %d subsidiary maxima ',...
 	'> %.1fmm apart per cluster'],Num,Dis);
-text(0.5,4,str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
+text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
 
 
 %-Volume, resels and smoothness 
 %-----------------------------------------------------------------------
-FWHMmm          = VOL.FWHM.*VOL.VOX'; 				% FWHM {mm}
+FWHMmm          = FWHM.*varargin{3}.VOX'; 			% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n);
 Pu              = spm_P(1,0,u,df,STAT,R,n);
 [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n);
@@ -176,44 +231,44 @@ Pu              = spm_P(1,0,u,df,STAT,R,n);
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 set(gca,'DefaultTextFontName',PF.helvetica,...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-TabFut = cell(4,2);
-TabFut{1} = ...
+TabDat.ftr = cell(4,2);
+TabDat.ftr{1} = ...
 	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f corrected)',...
 		 STAT,u,Pz,Pu);
-TabFut{2} = ...
+TabDat.ftr{2} = ...
 sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f corrected)',...
 	         k/v2r,Pn,P);
-TabFut{3} = ...
+TabDat.ftr{3} = ...
 	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
-TabFut{4} = ...
+TabDat.ftr{4} = ...
 	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
-TabFut{5} = ...
+TabDat.ftr{5} = ...
 	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
-TabFut{6} = ...
+TabDat.ftr{6} = ...
 	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
-		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
-TabFut{7} = ...
+		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,FWHM);
+TabDat.ftr{7} = ...
 	sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
-	         '(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
-TabFut{8} = ...
+	         '(1 resel = %0.1f voxels)'],S,R(end),prod(FWHM));
+TabDat.ftr{8} = ...
 	sprintf('');
 
-text(0.0,-1*dy,TabFut{1},...
+text(0.0,-1*dy,TabDat.ftr{1},...
 	'UserData',[u,Pz,Pu],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-2*dy,TabFut{2},...
+text(0.0,-2*dy,TabDat.ftr{2},...
 	'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-3*dy,TabFut{3},...
+text(0.0,-3*dy,TabDat.ftr{3},...
 	'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-4*dy,TabFut{4},...
+text(0.0,-4*dy,TabDat.ftr{4},...
 	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-1*dy,TabFut{5},...
+text(0.5,-1*dy,TabDat.ftr{5},...
 	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-2*dy,TabFut{6},...
+text(0.5,-2*dy,TabDat.ftr{6},...
 	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-3*dy,TabFut{7},...
-	'UserData',[VOL.S,R(end),prod(VOL.FWHM)],...
+text(0.5,-3*dy,TabDat.ftr{7},...
+	'UserData',[S,R(end),prod(FWHM)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-4*dy,TabFut{8},...
+text(0.5,-4*dy,TabDat.ftr{8},...
 	'UserData',[],'ButtonDownFcn','get(gcbo,''UserData'')')
 
 
@@ -222,16 +277,18 @@ text(0.5,-4*dy,TabFut{8},...
 %-Characterize excursion set in terms of maxima
 % (sorted on Z values and grouped by regions)
 %=======================================================================
-if ~length(SPM.Z)
+if ~length(varargin{2}.Z)
 	text(0.5,y-6*dy,'no suprathreshold clusters',...
 		'HorizontalAlignment','Center',...
 		'FontAngle','Italic','FontWeight','Bold',...
 		'FontSize',FS(16),'Color',[1,1,1]*.5);
+	TabDat.dat = cell(0,10);
+	varargout = {TabDat};
 	spm('Pointer','Arrow')
 	return
 end
 
-[N Z XYZ A] = spm_max(SPM.Z,SPM.XYZ);
+[N Z XYZ A] = spm_max(varargin{2}.Z,varargin{2}.XYZ);
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
@@ -239,7 +296,7 @@ N         = N*v2r;
 
 %-Convert maxima locations from voxels to mm
 %-----------------------------------------------------------------------
-XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+XYZmm     = varargin{3}.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
 
@@ -258,18 +315,18 @@ c     = max(A);					%-Number of clusters
 Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
 
 if c > 1;
-	h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
+	h     = text(0.00,y,sprintf(TabDat.fmt{1},Pc),'FontWeight','Bold',...
 		'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
+	h     = text(0.08,y,sprintf(TabDat.fmt{2},c),'FontWeight','Bold',...
 		'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 else
 	set(Hc,'Visible','off')
 end
 
-TabDat = {Pc,c};				%-Table data
-TabLin = 1;					%-Table data line
+TabDat.dat = {Pc,c};				%-Table data
+TabLin     = 1;					%-Table data line
 
 
 %-Local maxima p-values & statistics
@@ -309,40 +366,40 @@ while max(Z)
 
 	%-Print cluster and maximum voxel-level p values {Z}
     	%---------------------------------------------------------------
-	h     = text(0.17,y,sprintf('%0.3f',Pk),	'FontWeight','Bold',...
+	h     = text(0.17,y,sprintf(TabDat.fmt{3},Pk),	'FontWeight','Bold',...
 		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.27,y,sprintf('%0.0f',Nv),	'FontWeight','Bold',...
+	h     = text(0.27,y,sprintf(TabDat.fmt{4},Nv),	'FontWeight','Bold',...
 		'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.35,y,sprintf('%0.3f',Pn),	'FontWeight','Bold',...
+	h     = text(0.35,y,sprintf(TabDat.fmt{5},Pn),	'FontWeight','Bold',...
 		'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 
-	h     = text(0.49,y,sprintf('%0.3f',Pu),	'FontWeight','Bold',...
+	h     = text(0.49,y,sprintf(TabDat.fmt{6},Pu),	'FontWeight','Bold',...
 		'UserData',Pu,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.57,y,sprintf('%6.2f',U),		'FontWeight','Bold',...
+	h     = text(0.57,y,sprintf(TabDat.fmt{7},U),	'FontWeight','Bold',...
 		'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.66,y,sprintf('(%5.2f)',Ze),	'FontWeight','Bold',...
+	h     = text(0.66,y,sprintf(TabDat.fmt{8},Ze),	'FontWeight','Bold',...
 		'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.77,y,sprintf('%0.3f',Pz),	'FontWeight','Bold',...
+	h     = text(0.77,y,sprintf(TabDat.fmt{9},Pz),	'FontWeight','Bold',...
 		'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 
-	h     = text(0.88,y,sprintf('%3.0f %3.0f %3.0f',XYZmm(:,i)),...
+	h     = text(0.88,y,sprintf(TabDat.fmt{10},XYZmm(:,i)),...
 		'FontWeight','Bold',...
-		'ButtonDownFcn',['get(gcbo,''UserData'')'',',...
-			'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));'],...
+		'ButtonDownFcn',...
+		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));',...
 		'Interruptible','off','BusyAction','Cancel',...
 		'UserData',XYZmm(:,i));
 	hPage = [hPage, h];
  
 	y     = y - dy;
 	
-	[TabDat{TabLin,3:10}] = deal(Pk,Nv,Pn,Pu,U,Ze,Pz,XYZmm(:,i));
+	[TabDat.dat{TabLin,3:10}] = deal(Pk,Nv,Pn,Pu,U,Ze,Pz,XYZmm(:,i));
 	TabLin = TabLin + 1;
 
 	%-Print Num secondary maxima (> Dis mm apart)
@@ -360,25 +417,25 @@ while max(Z)
 			Pu    = spm_P(1,0,Z(d),df,STAT,R,n);
 			if Pz<tol, Ze=Inf; else, Ze = spm_invNcdf(1 - Pz); end
 
-			h     = text(0.49,y,sprintf('%0.3f',Pu),...
+			h     = text(0.49,y,sprintf(TabDat.fmt{6},Pu),...
 				'UserData',Pu,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
-			h     = text(0.57,y,sprintf('%6.2f',Z(d)),...
+			h     = text(0.57,y,sprintf(TabDat.fmt{7},Z(d)),...
 				'UserData',Z(d),...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
-			h     = text(0.66,y,sprintf('(%5.2f)',Ze),...
+			h     = text(0.66,y,sprintf(TabDat.fmt{8},Ze),...
 				'UserData',Ze,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
-			h     = text(0.77,y,sprintf('%0.3f',Pz),...
+			h     = text(0.77,y,sprintf(TabDat.fmt{9},Pz),...
 				'UserData',Pz,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
 			h     = text(0.88,y,...
-				sprintf('%3.0f %3.0f %3.0f',XYZmm(:,d)),...
-				'ButtonDownFcn',['get(gcbo,''UserData'')'',',...
+				sprintf(TabDat.fmt{10},XYZmm(:,d)),...
+				'ButtonDownFcn',[...
 					'spm_mip_ui(''SetCoords'',',...
 					'get(gcbo,''UserData''));'],...
 				'Interruptible','off','BusyAction','Cancel',...
@@ -386,7 +443,8 @@ while max(Z)
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - dy;
-			[TabDat{TabLin,6:10}] = deal(Pu,Z(d),Ze,Pz,XYZmm(:,d));
+			[TabDat.dat{TabLin,6:10}] = ...
+				deal(Pu,Z(d),Ze,Pz,XYZmm(:,d));
 			TabLin = TabLin+1;
 		end
 	    end
@@ -405,32 +463,125 @@ end
 
 
 
-%-Store TabDat in UserData of axes
+%-End: Store TabDat in UserData of axes & reset pointer
 %=======================================================================
-% TabDat, TabHdr, TabFut
-h      = uicontextmenu('Tag','TabDat');
+h      = uicontextmenu('Tag','TabDat',...
+		'UserData',TabDat);
 set(gca,'UIContextMenu',h,...
 	'Visible','on',...
 	'XColor','w','YColor','w')
-uimenu(h,'Label','Extract table data in cell array',...
+uimenu(h,'Label','Table')
+uimenu(h,'Separator','on','Label','Print text table',...
+	'Tag','TD_TxtTab',...
+	'CallBack',...
+	'spm_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
+	'Interruptible','off','BusyAction','Cancel');
+uimenu(h,'Separator','off','Label','Extract table data structure',...
 	'Tag','TD_Xdat',...
-	'CallBack','',...
-	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','on','Label','Print table as text',...
-	'Tag','TD_TxtTab',...
-	'CallBack','',...
-	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','off','Label','Print table (to cluster level) as text',...
-	'Tag','TD_TxtTab',...
-	'CallBack','',...
-	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','off','Label','Print table (to voxel level) as text',...
-	'Tag','TD_TxtTab',...
-	'CallBack','',...
+	'CallBack','get(get(gcbo,''Parent''),''UserData'')',...
 	'Interruptible','off','BusyAction','Cancel');
 
-
-
-%-End
-%=======================================================================
+varargout = {TabDat};
 spm('Pointer','Arrow')
+
+
+
+
+
+%=======================================================================
+case 'listcluster'                       %-List for current cluster only
+%=======================================================================
+% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,title)
+
+spm('Pointer','Watch')
+
+%-Parse arguments
+%-----------------------------------------------------------------------
+if nargin<3,   error('insufficient arguments'), end
+if nargin<6,   title = ['single cluster summary',...
+			' (p-values corrected for entire volume)'];
+	else,  title = varargin{6}; end
+if nargin<5,     Num = [];
+	else,    Num = varargin{5}; end
+if isempty(Num), Num = 16; end
+if nargin<4,     Dis = [];
+	else,    Dis = varargin{4}; end
+if isempty(Dis), Dis = 4;  end
+% VOL is varargin{3} - Use by reference for speed
+SPM = varargin{2};
+
+
+%-if there are suprathreshold voxels, filter out all but current cluster
+%-----------------------------------------------------------------------
+if length(SPM.Z)
+	%-Jump to voxel nearest current location
+	[xyzmm,i] = spm_XYZreg('NearestXYZ',...
+			spm_results_ui('GetCoords'),SPM.XYZmm);
+	spm_results_ui('SetCoords',SPM.XYZmm(:,i));
+	
+	%-Find selected cluster
+	A         = spm_clusters(SPM.XYZ);
+	j         = find(A == A(i));
+	SPM.Z     = SPM.Z(j);
+	SPM.XYZ   = SPM.XYZ(:,j);
+	SPM.XYZmm = SPM.XYZmm(:,j);
+end
+
+%-Call 'list' functionality to produce table
+%-----------------------------------------------------------------------
+varargout = {spm_list('list',SPM,varargin{3},Dis,Num,title)};
+
+
+
+
+
+%=======================================================================
+case 'txtlist'                                  %-Print ASCII text table
+%=======================================================================
+% FORMAT spm_list('TxtList',TabDat,c)
+
+if nargin<2, error('Insufficient arguments'), end
+if nargin<3, c=1; else, c=varargin{3}; end
+TabDat = varargin{2};
+
+%-Table title
+%-----------------------------------------------------------------------
+fprintf('\n\nSTATISTICS: %s\n',TabDat.tit)
+fprintf('%c','='*ones(1,80)), fprintf('\n')
+
+%-Table header
+%-----------------------------------------------------------------------
+fprintf('%s\t',TabDat.hdr{1,c:end-1}), fprintf('%s\n',TabDat.hdr{1,end})
+fprintf('%s\t',TabDat.hdr{2,c:end-1}), fprintf('%s\n',TabDat.hdr{2,end})
+fprintf('%c','-'*ones(1,80)), fprintf('\n')
+
+%-Table data
+%-----------------------------------------------------------------------
+for i = 1:size(TabDat.dat,1)
+	for j=c:size(TabDat.dat,2)
+		fprintf(TabDat.fmt{j},TabDat.dat{i,j})
+		fprintf('\t')
+	end
+	fprintf('\n')
+end
+for i=1:max(1,10-size(TabDat.dat,1)), fprintf('\n'), end
+fprintf('%s\n',TabDat.str)
+fprintf('%c','-'*ones(1,80)), fprintf('\n')
+
+%-Table footer
+%-----------------------------------------------------------------------
+fprintf('%s\n',TabDat.ftr{:})
+fprintf('%c','='*ones(1,80)), fprintf('\n\n')
+
+
+
+
+%=======================================================================
+otherwise                                        %-Unknown action string
+%=======================================================================
+error('Unknown action string')
+
+
+%=======================================================================
+end
+%=======================================================================
