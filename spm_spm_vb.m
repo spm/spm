@@ -57,8 +57,7 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %	SPM.VCbeta     - Handles of posterior parameter estimates (Cbeta_????)
 %   SPM.VPsd       - Handles of SD of posterior parameter estimates (SDbeta_????)
-%	SPM.VHp        - Handle of standard deviation of the error (SDerror)
-%   SPM.VAR        - Handles of AR coefficient images (AR_????)
+
 %
 %   SPM.PPM        - Posterior Probability Map data structure
 %
@@ -70,7 +69,7 @@ function [SPM] = spm_spm_vb(SPM)
 %                   .priors, type of priors used (eg. 'Spatial-GMRF')
 %                            see spm_vb_set_priors.m
 %
-%                   .compute_F, whether model evidence was computed
+%                   .update_F, whether model evidence was computed
 %
 %                   .Gamma, default effect size threshold (used in spm_getSPM)
 %
@@ -79,11 +78,22 @@ function [SPM] = spm_spm_vb(SPM)
 %                   The following parameters are set if the space
 %                   to be analysed chosen as 'Slices'
 %                       .AN_slices, numbers of slices analysed
-%                       .slice(z), further info about GLM-AR model at slice z
+%                       .Sess(s).slice(z), further info about GLM-AR model at slice z
 %                                  eg. slice(z).F is evidence for slice z 
 %                                  (if computed)
-%                       These fields are used later in spm_contrasts.m, spm_graph.m
+%                       where s is the session number
 %
+%   For each session the following fields are also specified:
+%
+%	SPM.PPM.Sess(s).VHp        - Handle of standard deviation of the error (SDerror)
+%   SPM.PPM.Sess(s).VAR        - Handles of AR coefficient images (AR_????)
+%
+%   If contrasts have been specified the following fields are also updated:
+%
+%   SPM.xCon(ic).Vcon    
+%   SPM.PPM.Vcon_sd(ic)
+%
+%   where ic is the contrast index. 
 % ________________________________________________________________________________                         
 %
 % The following images are written to file:
@@ -112,23 +122,27 @@ function [SPM] = spm_spm_vb(SPM)
 % design matrix. Voxels outside the analysis mask (mask.img) are given
 % value NaN.
 %
-% SDerror.{img,hdr} 
-% This is a 16-bit (float) image of the standard deviation of the error.
+% Sess%s%_SDerror.{img,hdr} 
+% This is a 16-bit (float) image of the standard deviation of the error
+% for session s.
 % Voxels outside the analysis mask (mask.img) are given value NaN.
 %
-% AR_????.{img,hdr} 
-% This is a 16-bit (float) image of the AR coefficient.
+% Sess%s%_AR_????.{img,hdr} 
+% This is a 16-bit (float) image of AR coefficients for session s.
 % The image files are numbered according to the order of the corresponding
 % AR coefficient.
 % Voxels outside the analysis mask (mask.img) are given value NaN.
 %
 %                           ----------------
 %
-% %W% Will Penny %E%
+% @(#)spm_spm_vb.m	1.1 Will Penny 04/08/04
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
 SPM.PPM.VB=1;
+
+% Get number of sessions
+nsess=length(SPM.Sess);
 
 try 
     SPM.PPM.window;
@@ -269,7 +283,7 @@ end
 try
     SPM.PPM.priors.overA;
 catch
-    PPM.priors.overA='none';
+    SPM.PPM.priors.overA='none';
 end
 
 % Compute evidence at each iteration ?
@@ -279,18 +293,20 @@ catch
     SPM.PPM.update_F=0;
 end
 
-% Initialise Error SD image
-VHp        = deal(struct(...
-    'fname',	[],...
-    'dim',		[DIM',spm_type('double')],...
-    'mat',		M,...
-    'pinfo',	[1 0 0]',...
-    'descrip',	''));
-
-VHp.fname   = sprintf('SDerror.img');
-VHp.descrip = sprintf('Error SD');
-spm_unlink(VHp.fname)
-VHp   = spm_create_vol(VHp,'noopen');
+% Initialise Error SD image(s)
+for s=1:nsess,
+    SPM.PPM.Sess(s).VHp        = deal(struct(...
+        'fname',	[],...
+        'dim',		[DIM',spm_type('double')],...
+        'mat',		M,...
+        'pinfo',	[1 0 0]',...
+        'descrip',	''));
+    
+    SPM.PPM.Sess(s).VHp.fname   = sprintf('Sess%d_SDerror.img',s);
+    SPM.PPM.Sess(s).VHp.descrip = sprintf('Sess%d Error SD',s);
+    spm_unlink(SPM.PPM.Sess(s).VHp.fname);
+    SPM.PPM.Sess(s).VHp   = spm_create_vol(SPM.PPM.Sess(s).VHp,'noopen');
+end
 
 % Initialise Posterior SD images
 nPsd=size(SPM.xX.X,2);
@@ -308,20 +324,50 @@ end
 VPsd   = spm_create_vol(VPsd,'noopen');
 
 % Initialise AR images
-VAR(1:SPM.PPM.AR_P)        = deal(struct(...
-			'fname',	[],...
-			'dim',		[DIM',spm_type('double')],...
-			'mat',		M,...
-			'pinfo',	[1 0 0]',...
-			'descrip',	''));
-for i = 1:SPM.PPM.AR_P
-	VAR(i).fname   = sprintf('AR_%04d.img',i);
-	VAR(i).descrip = sprintf('Autoregressive coefficient (%04d)',i);
-	spm_unlink(VAR(i).fname)
+for s=1:nsess,
+    SPM.PPM.Sess(s).VAR(1:SPM.PPM.AR_P)        = deal(struct(...
+        'fname',	[],...
+        'dim',		[DIM',spm_type('double')],...
+        'mat',		M,...
+        'pinfo',	[1 0 0]',...
+        'descrip',	''));
+    for i = 1:SPM.PPM.AR_P
+        SPM.PPM.Sess(s).VAR(i).fname   = sprintf('Sess%d_AR_%04d.img',s,i);
+        SPM.PPM.Sess(s).VAR(i).descrip = sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
+        spm_unlink(SPM.PPM.Sess(s).VAR(i).fname)
+    end
+    SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR,'noopen');
 end
-VAR   = spm_create_vol(VAR,'noopen');
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
+% Find number of pre-specified contrasts
+if isfield(SPM,'xCon')
+    ncon=length(SPM.xCon);
+else
+    ncon=0;
+end
+
+% Initialise contrast and contrast SD images
+%-----------------------------------------------------------
+for ic=1:ncon,
+    SPM.xCon(ic).Vcon = struct(...
+        'fname',  sprintf('con_%04d.img',ic),...
+        'dim',    [DIM',16],...
+        'mat',    M,...
+        'pinfo',  [1,0,0]',...
+        'descrip',sprintf('SPM contrast - %d: %s',ic,SPM.xCon(ic).name));
+    
+    V= struct(...
+        'fname',  sprintf('con_sd_%04d.img',ic),...
+        'dim',    [DIM',16],...
+        'mat',    M,...
+        'pinfo',  [1,0,0]',...
+        'descrip',sprintf('PPM contrast SD - %d: %s',ic,SPM.xCon(ic).name));
+    
+    SPM.xCon(ic).Vcon = spm_create_vol(SPM.xCon(ic).Vcon,'noopen');
+    V=spm_create_vol(V,'noopen');
+    SPM.PPM.Vcon_sd(ic) = V;
+end
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised');        %-#
 
 % Set up masking details
 %-If xM is not a structure then assumme its a vector of thresholds
@@ -424,8 +470,17 @@ yords = ones(xdim,1)*[1:ydim];  yords = yords(:)';  % plane Y coordinates
 S     = 0;                                          % Number of in-mask voxels
 s     = 0;                                          % Volume (voxels > UF)
 
+
 % Initialise aspects of slice variables common to all slices
-slice_template = spm_vb_init_volume (SPM.xX.X,SPM.PPM.AR_P);
+if nsess > 1
+    for s=1:nsess,
+        X=SPM.xX.X(SPM.Sess(s).row,SPM.Sess(s).col);
+        X=[X ones(length(SPM.Sess(s).row),1)]; % Add on constant 
+        slice_template(s) = spm_vb_init_volume (X,SPM.PPM.AR_P);
+    end
+else
+    slice_template(1) = spm_vb_init_volume (SPM.xX.X,SPM.PPM.AR_P);
+end
 
 % Set maximum number of VB iterations per slice
 try
@@ -433,12 +488,14 @@ try
 catch
     SPM.PPM.maxits=4;
 end
-slice_template.maxits=SPM.PPM.maxits;
-slice_template.verbose=1;
-slice_template.update_w=1;
-slice_template.update_lambda=1;
-slice_template.update_F=SPM.PPM.update_F;
-                
+for s=1:nsess,
+    slice_template(s).maxits=SPM.PPM.maxits;
+    slice_template(s).verbose=1;
+    slice_template(s).update_w=1;
+    slice_template(s).update_lambda=1;
+    slice_template(s).update_F=SPM.PPM.update_F;
+end
+
 index=1;
 for  z = 1:zdim,
 
@@ -446,9 +503,13 @@ for  z = 1:zdim,
     %-------------------------------------------------------------------
     zords   = z*ones(xdim*ydim,1)';	%-plane Z coordinates
     CrBl    = [];	%-conditional parameter estimates
-    CrHp    = [];	% VB hyperparameter estimates
     CrPsd    = [];	% 
-    CrAR    = [];	% 
+    for s=1:nsess,
+        Sess(s).CrAR    = [];	% AR estimates
+        Sess(s).CrHp    = [];	% 
+    end
+    Cr_con  = [];   % Contrasts
+    Cr_con_var = []; % Contrast variances
     Q       = [];	%-in mask indices for this plane
     
     analyse_slice = length(find((SPM.PPM.AN_slices-z)==0));
@@ -469,7 +530,7 @@ for  z = 1:zdim,
         
         %-Get data & construct analysis mask
         %===============================================================
-        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...read & mask data')%-#
+        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
         Cm    = logical(ones(1,nVox));			%-current mask
         
         %-Compute explicit mask
@@ -507,7 +568,6 @@ for  z = 1:zdim,
         Cm(Cm) = any(diff(Y(:,Cm),1));
         CrS    = sum(Cm);				%- Number of current voxels
         
-        
         if CrS
             
             if strcmp(SPM.PPM.space_type,'Region')
@@ -523,38 +583,91 @@ for  z = 1:zdim,
             %-Conditional estimates (per partition, per voxel)
             %---------------------------------------------------------------
             beta  = zeros(nBeta,CrS);
-            Hp    = zeros(1,  CrS);
-            AR    = zeros(SPM.PPM.AR_P, CrS);
             Psd   = zeros(nPsd, CrS);
             
-            % - Assume single session 
+            for s=1:nsess,
+                Sess(s).Hp    = zeros(1,  CrS);
+                Sess(s).AR    = zeros(SPM.PPM.AR_P, CrS);
+            end
             
+            if ncon > 0
+                con   = zeros(ncon,CrS);
+                con_var = zeros(ncon,CrS);
+            end
             vxyz  = spm_vb_neighbors(xyz(:,Cm)');
             
-            slice = slice_template;
-            slice=spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
-            slice=spm_vb_glmar(Y,slice);
+            % Estimate model for each session separately
+            for s=1:nsess;
+                
+                slice = slice_template(s);
+                slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
+                slice = spm_vb_glmar(Y(SPM.Sess(s).row,:),slice);
+                
+                % Report AR values 
+                if SPM.PPM.AR_P > 0
+                    % Report AR values averaged over sessions
+                    %AR(1:SPM.PPM.AR_P,:)=AR(1:SPM.PPM.AR_P,:) + slice.ap_mean/nsess;
+                    
+                    % Report session specific AR values
+                    Sess(s).AR(1:SPM.PPM.AR_P,:)=slice.ap_mean;
+                end
+                
+                if SPM.PPM.update_F
+                    SPM.PPM.Sess(s).slice(z).F=slice.F;
+                end
+                
+                % Update regression coefficients 
+                ncols=length(SPM.Sess(s).col);
+                beta(SPM.Sess(s).col,:) = slice.wk_mean(1:ncols,:);
+                if ncols==0
+                    % Design matrix empty except for constant
+                    mean_col_index=s;
+                else
+                    mean_col_index=SPM.Sess(nsess).col(end)+s;
+                end
+                beta(mean_col_index,:) = slice.wk_mean(ncols+1,:); % Session mean
+                
+                % Report noise variances averaged over sessions
+                % Hp(1,:)        = Hp(1,:)+(1/nsess)*sqrt(1./slice.mean_lambda');
+                
+                % Report session-specific noise variances 
+                Sess(s).Hp(1,:)        = sqrt(1./slice.mean_lambda');
+                
+                % Store regression coefficient posterior standard deviations 
+                Psd (SPM.Sess(s).col,:) = slice.w_dev(1:ncols,:);
+                Psd (mean_col_index,:) = slice.w_dev(ncols+1,:);
+                
+                % Update contrast variances
+                if ncon > 0
+                    for ic=1:ncon,
+                        CC=SPM.xCon(ic).c;
+                        % Get relevant columns of contrast
+                        CC=[CC(SPM.Sess(s).col) ; 0];
+                        for i=1:CrS,
+                            con_var(ic,i)=con_var(ic,i)+CC'*slice.w_cov{i}*CC;
+                        end
+                    end
+                end
+                
+                % Get slice-wise Taylor approximation to posterior correlation
+                slice = spm_vb_taylor_R (Y,slice);
+                SPM.PPM.Sess(s).slice(z).mean=slice.mean;
+                SPM.PPM.Sess(s).slice(z).elapsed_seconds=slice.elapsed_seconds;
+                
+                % Save Coefficient RESELS and number of voxels
+                SPM.PPM.Sess(s).slice(z).gamma_tot=slice.gamma_tot;
+                SPM.PPM.Sess(s).slice(z).N=slice.N;
             
-            if SPM.PPM.AR_P > 0
-                AR(1:SPM.PPM.AR_P,:)=slice.ap_mean;
+                clear slice;
+            end % loop over sessions
+            
+            % Get contrasts 
+            if ncon > 0
+                for ic=1:ncon,
+                    CC=SPM.xCon(ic).c;
+                    con(ic,:)=CC'*beta;
+                end
             end
-            
-            if SPM.PPM.update_F
-                SPM.PPM.slice(z).F=slice.F;
-            end
-            
-            beta           = slice.wk_mean;
-            Hp(1,:)        = sqrt(1./slice.mean_lambda');
-            Psd            = slice.w_dev;
-            
-            % Get slice-wise Taylor approximation to posterior correlation
-            slice = spm_vb_taylor_R (Y,slice);
-            SPM.PPM.slice(z).mean=slice.mean;
-            SPM.PPM.slice(z).elapsed_seconds=slice.elapsed_seconds;
-            
-            % Save Coefficient RESELS and number of voxels
-            SPM.PPM.slice(z).gamma_tot=slice.gamma_tot;
-            SPM.PPM.slice(z).N=slice.N;
             
             %-Append new inmask voxel locations and volumes
             %---------------------------------------------------------------
@@ -563,15 +676,21 @@ for  z = 1:zdim,
             S                  = S + CrS;		%-Volume analysed (voxels)
             
             % Sum of noise variance hyperparameters
-            SHp       = SHp + sum(Hp(1,:));
+            SHp       = SHp + (1/nsess)*sum(Sess(s).Hp(1,:));
             
             %-Save for current plane in memory as we go along
             %---------------------------------------------------------------
             CrBl = [CrBl beta];
-            CrHp = [CrHp Hp];
             CrPsd = [CrPsd Psd];
-            CrAR = [CrAR AR];
-            
+            for s=1:nsess,
+                Sess(s).CrHp = [Sess(s).CrHp Sess(s).Hp];
+                Sess(s).CrAR = [Sess(s).CrAR Sess(s).AR];
+            end
+            if ncon > 0
+                Cr_con = [Cr_con con];
+                Cr_con_var = [Cr_con_var con_var];
+            end
+        
         end % if CrS
         
     end % (if analyse_slice)
@@ -584,7 +703,7 @@ for  z = 1:zdim,
 
     %-Write conditional beta images
     %-------------------------------------------------------------------
-    j   = NaN*ones(xdim,ydim);
+    j   = repmat(NaN,xdim,ydim);
     for i = 1:nBeta
         if length(Q), j(Q) = CrBl(i,:); end
 	    Vbeta(i)  = spm_write_plane(Vbeta(i),j,z);
@@ -592,14 +711,15 @@ for  z = 1:zdim,
 
     %-Write SD error images
     %-------------------------------------------------------------------
-    j   = NaN*ones(xdim,ydim);
-	if length(Q), j(Q) = CrHp(1,:); end
-	VHp    = spm_write_plane(VHp,j,z);
-    
+    for s=1:nsess,
+        j = repmat(NaN,xdim,ydim);
+        if length(Q), j(Q) = Sess(s).CrHp(1,:); end
+        SPM.PPM.Sess(s).VHp    = spm_write_plane(SPM.PPM.Sess(s).VHp,j,z);
+    end
     
     %-Write posterior standard-deviation of beta images
     %-------------------------------------------------------------------
-    j   = NaN*ones(xdim,ydim);
+    j   = repmat(NaN,xdim,ydim);
     for i = 1:nPsd
 	    if length(Q), j(Q) = CrPsd(i,:); end
 	    VPsd(i)    = spm_write_plane(VPsd(i),j,z);
@@ -607,12 +727,29 @@ for  z = 1:zdim,
     
     %-Write AR images
     %-------------------------------------------------------------------
-    j   = NaN*ones(xdim,ydim);
-    for i = 1:SPM.PPM.AR_P
-	    if length(Q), j(Q) = CrAR(i,:); end
-	    VAR(i)    = spm_write_plane(VAR(i),j,z);
+    for s=1:nsess,
+        j   = repmat(NaN,xdim,ydim);
+        for i = 1:SPM.PPM.AR_P
+            if length(Q), j(Q) = Sess(s).CrAR(i,:); end
+            SPM.PPM.Sess(s).VAR(i)    = spm_write_plane(SPM.PPM.Sess(s).VAR(i),j,z);
+        end
     end
     
+    
+    % Write contrast and contrast SD images
+    if ncon > 0
+        j   = repmat(NaN,xdim,ydim);
+        for ic=1:ncon
+            if length(Q), j(Q) = Cr_con(ic,:); end
+	        SPM.xCon(ic).Vcon    = spm_write_plane(SPM.xCon(ic).Vcon,j,z);
+        end
+        j   = repmat(NaN,xdim,ydim);
+        for ic=1:ncon
+            if length(Q), j(Q) = sqrt(Cr_con_var(ic,:)); end
+	        SPM.PPM.Vcon_sd(ic)    = spm_write_plane(SPM.PPM.Vcon_sd(ic),j,z);
+        end
+    end
+
     if SPM.PPM.window
         %-Report progress
         %-------------------------------------------------------------------
@@ -636,14 +773,22 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 
  %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
 Vbeta      = spm_close_vol(Vbeta);
-VHp        = spm_close_vol(VHp);
-VPsd        = spm_close_vol(VPsd);
-VAR        = spm_close_vol(VAR);
 VM         = spm_close_vol(VM);
-
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
+VPsd        = spm_close_vol(VPsd);
+for s=1:nsess,
+    SPM.PPM.Sess(s).VAR        = spm_close_vol(SPM.PPM.Sess(s).VAR);
+    SPM.PPM.Sess(s).VHp        = spm_close_vol(SPM.PPM.Sess(s).VHp);
+end
+% Close contrast and contrast variance images
+if ncon > 0
+    for ic=1:ncon,
+        SPM.xCon(ic).Vcon    = spm_close_vol(SPM.xCon(ic).Vcon);
+        SPM.PPM.Vcon_sd(ic)    = spm_close_vol(SPM.PPM.Vcon_sd(ic));
+    end
+end
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 %-Create 1st contrast for 'effects of interest' (all if not specified)
 %=======================================================================
@@ -683,9 +828,7 @@ SPM.xVol.R     = 100;           % Set R - number of RESELS - to arbitrary value
 SPM.xVol.FWHM = 10;             % Set to arbitrary value so spm_getSPM is happy
                                 
 SPM.VCbeta = Vbeta;			    % Filenames - parameters
-SPM.VHp    = VHp;			    % Filenames - hyperparameters
 SPM.VPsd   = VPsd;			    % Filenames - hyperparameters
-SPM.VAR    = VAR;			    % Filenames - hyperparameters
 SPM.VM     = VM;				%-Filehandle - Mask
 
 SPM.PPM.Gamma  = 1;             % Default threshold for effect size (1 per cent)
@@ -693,11 +836,9 @@ SPM.PPM.Gamma  = 1;             % Default threshold for effect size (1 per cent)
 SPM.xX     = xX;                %-design structure
 SPM.xM     = xM;				%-mask structure
 
-SPM.xCon   = xCon;				%-contrast structure
-
 save SPM SPM
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
 if SPM.PPM.window
