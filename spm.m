@@ -1119,6 +1119,13 @@ end
 varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 
 %=======================================================================
+case 'mlver'                       %-MatLab major & point version number
+%=======================================================================
+% v = spm('MLver')
+v = version; tmp = find(v=='.');
+if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
+
+%=======================================================================
 case 'setcmdwinlabel'      %-Set command window label (Sun OpenWin only)
 %=======================================================================
 % spm('SetCmdWinLabel',WinStripe,IconLabel)
