@@ -3,7 +3,7 @@ function [K] = spm_sptop(sigma,q,c)
 % FORMAT [K] = spm_sptop(sigma,q)
 % sigma - of Gaussian kernel K (or kernel itself)
 % q     - order of matrix
-% c     - kernel index at t = 0 {default c = 1) 
+% c     - kernel index at t = 0 {default c = length(sigma)/2) 
 %
 % K     - q x q sparse convolution matrix
 %_______________________________________________________________________
@@ -11,7 +11,8 @@ function [K] = spm_sptop(sigma,q,c)
 % Returns a q x q sparse convolution matrix.  If sigma is a scalar then
 % a symmetrical Gaussian convolution matrix is returned with kernel width
 % = sigma.  If sigma is a vector than sigma constitutes the kernel.  To
-% obtain a symmetrical convolution matrix set c = length(sigma)/2.
+% obtain an assymmetrical convolution matrix (i.e. implement a phase shift
+% set c = 1.
 %
 % Boundary handling: The row-wise sum of K is set to unity.
 %
@@ -22,7 +23,6 @@ function [K] = spm_sptop(sigma,q,c)
 %-----------------------------------------------------------------------
 if ~any(sigma); K = speye(q); return; end
 if q == 1;      K = 1;        return; end
-if nargin < 3;  c = 1;                end
 
 % otherwise get kernel function
 %-----------------------------------------------------------------------
@@ -32,6 +32,9 @@ if length(sigma) == 1
 	x  = [-E:E];
 	k  = exp(-x.^2/(2*sigma^2));
 else
+	if nargin < 3
+		c = length(sigma)/2;
+	end
 	E  = length(sigma);
 	x  = [1:E] - fix(c);
 	k  = sigma;
