@@ -127,9 +127,9 @@ function varargout = spm_FcUtil(varargin)
 %- NB : for the "null" part, checks if the contrast is in the null space 
 %- of sX (completely non estimable !)
 %=======================================================================
-
+%
 %_______________________________________________________________________
-% @(#)spm_FcUtil.m	2.8 Jean-Baptiste Poline 99/05/01
+% %W% Jean-Baptiste Poline %E%
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -830,7 +830,7 @@ function hsqr = sf_Hsqr(Fc,sX)
 % so hsrq is set to oxa1'*ax : a (qo,r)*(r,p) operation!  -:)) 
 % + computation of oxa1.
 
-fprintf('v%d\n',sf_ver(Fc));
+%-**** fprintf('v%d\n',sf_ver(Fc));
 if sf_ver(Fc) > 1,    
    hsqr = spm_sp('ox',spm_sp('set',Fc.X1o.ukX1o))' * spm_sp('cukx',sX);
 else, 
@@ -850,7 +850,7 @@ function H = sf_H(Fc,sX)
 %- because dimensions are only (q,q). See sf_hsqr for notations.
 %- Fc.c and Fc.X1o should match. This is ensure by using FcUtil.
 
-fprintf('v%d\n',sf_ver(Fc));
+%-**** fprintf('v%d\n',sf_ver(Fc));
 if sf_ver(Fc) > 1, 
    hsqr = sf_Hsqr(Fc,sX);
    H    = hsqr' * hsqr;
