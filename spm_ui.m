@@ -151,14 +151,13 @@ c  = ['if exist(''' USER ''');' USER '; else;spm_help_disp(''spm_BUTTON.m''); en
 uicontrol(1,'String',USER,              'Position',[200 20 80 24]*A,...
 	'CallBack',c,                   'Interruptible','yes');
 
-% Tag objects in main menu (figure 1)
+%-Tag objects in main menu (figure 1)
 %----------------------------------------------------------------------------
 set(get(1,'Children'),'Tag','Empty')
 
-% reveal windows and configure graphics bar
+%-Reveal windows and configure graphics bar
 %----------------------------------------------------------------------------
-spm_figure('Create','Graphics');
-colormap(gray)
+spm_figure('CreateBar','Graphics');
 set(1,'Visible','on')
 set(2,'Visible','on')
 set(3,'Visible','on')
