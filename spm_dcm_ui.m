@@ -651,6 +651,18 @@ case 'review'
             hold on
             X0=DCM.Y.X0;
             
+            % Remove zero columns from X0 if there are any 
+            % (although there should'nt be !)
+            % Otherwise we won't be able to evaluate inv(X0'X0)
+            ncol_X0=size(X0,2);
+            new_X0=[];
+            for col_X0=1:ncol_X0,
+                if ~(length(find(X0(:,col_X0)==0))==DCM.v)
+                    new_X0=[new_X0 X0(:,col_X0)];
+                end
+            end
+            X0=new_X0;
+         
             % Note: adding on X0*beta to DCM prediction y
             % is equivalent to orthogonalising y WRT X0
             % because data have already been orth wrt X0
