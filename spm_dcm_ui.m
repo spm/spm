@@ -231,28 +231,22 @@ case 'specify'
 		X0    = ones(v,1);
 	end
 
-
 	% response variables
 	%-------------------------------------------------------------------
 	n     = length(xY);
 	Y.dt  = SPM.xY.RT;
 	Y.X0  = X0;
-	Y.pC  = eye(n)*(Y.dt/2).^2;          		% priors on timing
 	for i = 1:n
 
-		% response
+		% regional responses
 		%-----------------------------------------------------------
 		Y.y(:,i)  = xY(i).u;
 		Y.name{i} = xY(i).name;
-
-		% error correlations
-		%-----------------------------------------------------------
-		Ce        = sparse(n*v,n*v);
-		j         = [1:v] + (i - 1)*v;
-		Ce(j,j)   = xY(i).V;
-		Y.Ce{i}   = Ce;
-
 	end
+
+	% error components (one for each region)
+	%-------------------------------------------------------------------
+	Y.Ce  = spm_Ce(ones(1,n)*v);
 
 
 	% priors - expectations
@@ -290,7 +284,7 @@ case 'specify'
 
 	% Bayesian inference and reshape {threshold T1/2 = log(2)/T}
 	%-------------------------------------------------------------------
-	T          = log(2)/4;			
+	T          = log(2)/8;			
 	pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
 	[ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
 	[pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
@@ -339,8 +333,19 @@ case 'review'
 	%-------------------------------------------------------------------
 	P     = spm_get(1,'DCM*.mat',{'select DCM_???.mat'});
 	load(P{:})
-	m     = size(DCM.U.u,2);
-	l     = size(DCM.Y.y,2);
+	m     = DCM.M.m;
+	n     = DCM.M.n;
+	l     = DCM.M.l;
+
+	%-get threshold and recompute posterior probabilities
+	%-------------------------------------------------------------------
+	str        = 'Threshold {Hz}'
+	DCM.T      = spm_input(str,1,'e',0,[1 1]);
+	pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
+	[pA pB pC] = spm_dcm_reshape(pp,m,l,1);
+	DCM.pA     = pA;
+	DCM.pB     = pB;
+	DCM.pC     = pC;
 
 	while(1)
 	% get options
@@ -358,7 +363,7 @@ case 'review'
 				'1st order Kernels',...
 				'quit'};
 
-	OPT   = spm_input('display',1,'m',str);
+	OPT   = spm_input('display',2,'m',str);
 	figure(Fgraph)
 	spm_figure('Clear',Fgraph)
 
@@ -471,10 +476,33 @@ case 'review'
 
 		%-get contrast
 		%-----------------------------------------------------------
-		str     = 'contrast for [A(:);B1(:),..Bm(:),C(:)]'
-		C       = spm_input(str,2,'e',[],[Inf 1]);
-		i       = find(C);
-		C       = sparse(i + 1,1,C(i),length(DCM.Ep),1);
+		str     = 'contrast for'
+		D       = spm_input(str,1,'b',{'A','B','C'});
+
+		switch D
+
+			case 'A' % intrinsic
+			%---------------------------------------------------
+			str     = sprintf('[%.0f]contrast for A(:)',l*l);
+			C       = spm_input(str,1,'e');
+			i       = find(C); j = 1;
+			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+
+			case 'B' % intrinsic
+			%---------------------------------------------------
+			str     = sprintf('[%.0f]contrast for B(:)',l*l*m);
+			C       = spm_input(str,1,'e');
+			i       = find(C); j = 1 + l*l;
+			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+
+			case 'C' % intrinsic
+			%---------------------------------------------------
+			str     = sprintf('[%.0f]contrast for C(:)',l*m);
+			C       = spm_input(str,1,'e');
+			i       = find(C); j = 1 + l*l + l*l*m;
+			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+
+		end
 
 		%-posterior density and inference
 		%-----------------------------------------------------------
@@ -485,7 +513,7 @@ case 'review'
 
 		figure(Fgraph)
 		subplot(2,1,1)
-		plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
+		plot(x,p,[1 1]*DCM.T*sign(c),[0 max(p)],'-.');
 		title('Posterior density of contrast','FontSize',12)
 		xlabel('contrast')
 		ylabel('probability density')
