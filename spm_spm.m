@@ -625,7 +625,8 @@ if iscell(xVi.Vi)
 
 	%-REML estimate of residual correlations through hyperparameters (h)
 	%---------------------------------------------------------------
-	fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation') %-#
+	str    = 'Temporal non-sphericity (over space)'
+	fprintf('%-40s: %30s\n',str,'...REML estimation') %-#
 	Cy            = Cy/s;
 
 	% ReML for separable designs and covariance components
