@@ -44,5 +44,5 @@ if (nargin<8), S=[]; end
 % Use lower Bonferroni P value (if possible)
 %===========================================================================
 if ~isempty(S) & (c==1 & k==0) & ~(length(R)==1 & R==1)
-    p = min(p,spm_P_Bonf(Z,df,STAT,S,n));
+    P = min(P,spm_P_Bonf(Z,df,STAT,S,n));
 end
