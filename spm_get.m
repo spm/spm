@@ -2,11 +2,10 @@ function varargout = spm_get(varargin)
 % User interface : filename selection
 % FORMAT P = spm_get(n,Filter,Prompt,NewWDir,CmdLine);
 % n          - 0 - returns with empty P
-%            - Positive         : prompts for files
-%            - Negative         : prompts for directories
-%            - Finite & real    : requires exactly n items to be selected
-%            - Finite & complex : allows up to n items to be selected
-%            - Infinite         : allows selection of any number of items
+%            - [mn,mx]		: prompts for between mn & mx items
+%            - scalar n => [n,n], i.e. must select n items
+%            - all(n) positive  : prompts for files
+%            - any(n) negative  : prompts for directories
 % Filter     - Filename filter {'*' is prepended} 
 %            - numeric 0 for previous filtering
 % Prompt     - Prompt string
@@ -161,7 +160,7 @@ function varargout = spm_get(varargin)
 % (Re)Initialise SelFileWin, create one if necessary.
 % F        - Figure used.
 % Vis      - Figure visibility (string, 'on'|'off'|'close')
-% n        - Number of filepaths/directories to obtain
+% n        - Items struct: .fi (get files), .mn (min #items), .mx (max #items)
 % Prompt   - Prompt string.
 % Filter   - Filename filter.
 % WDir     - [optional] New Working directory
@@ -170,7 +169,7 @@ function varargout = spm_get(varargin)
 % FORMAT spm_get('StatusLine',nP,n,F)
 % Updates FileSelWin status line
 % nP       - #Items already selected
-% n        - #Items to select
+% n        - Items struct: .fi (get files), .mn (min #items), .mx (max #items)
 % F        - Figure used [defaults to 'SelFileWin' 'Tag'ged figure]
 %
 % FORMAT spm_get('cd',NewDir,bNoDir)
@@ -231,7 +230,7 @@ function varargout = spm_get(varargin)
 %
 % FORMAT P = spm_get('CmdLine',n,Prompt,P,WDir)
 % Uses command line to get items
-% n        - # items to get
+% n        - Items struct: .fi (get files), .mn (min #items), .mx (max #items)
 % Prompt   - Prompt string
 % P        - Currently selected items
 % WDir     - Working directory to use (defaults to pwd)
@@ -292,14 +291,21 @@ CmdLine = spm('CmdLine',CmdLine);
 if nargin<4 NewWDir=''; else NewWDir=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
 if nargin<2 | isempty(varargin{2}), Filter=0; else Filter=varargin{2}; end
-n = Action;
 
-if (n==0)
-	if iscellstr(Prompt), varargout={{}}; else, varargout={[]}; end
+%-Parse number of items parameter (Passed as "Action" parameter)
+%-----------------------------------------------------------------------
+n  = struct(	'fi',	~any(Action(:)<0),...		%-Get files flag
+		'mn',	min(abs(Action(:))),...		%-Min # items
+		'mx',	max(abs(Action(:)))	);	%-Max # items
+if isinf(n.mn), n.mn=0; end
+
+if n.mx==0
+	if iscellstr(Prompt), varargout={{}}; else, varargout={''}; end
 	return
 end
 
 %-NB: spm_get callbacks use Filter=0 for previous filtering
+%-----------------------------------------------------------------------
 if ischar(Filter)
 	if ~any(Filter=='*'), Filter = ['*',Filter]; end
 else
@@ -659,7 +665,7 @@ case 'initialise'
 if nargin<6 WDir=''; else WDir=varargin{6}; end
 if nargin<5 Filter=0; else Filter=varargin{5}; end
 if nargin<4 Prompt='Select files...'; else Prompt=varargin{4}; end
-if nargin<3 n=Inf; else n=varargin{3}; end
+if nargin<3 n=struct('fi',1,'mn',0,'mx',Inf); else n=varargin{3}; end
 if nargin<2 Vis='on'; else Vis=varargin{2}; end
 
 
@@ -732,8 +738,8 @@ if nargin<3, n=get(findobj(F,'Tag','Prompt'),'UserData');else,n=varargin{3}; end
 if nargin<2, nP=size(get(findobj(F,'Tag','P'),'UserData'),1);else,nP=varargin{2}; end
 
 str=['Selected ',int2str(nP)];
-if isreal(n) & isfinite(n), str=sprintf('%s/%d',str,abs(n)); end
-if (n>=0)
+if (n.mn==n.mx), str=sprintf('%s/%d',str,abs(n.mx)); end
+if n.fi
 	str = [str,' file'];
 	if nP~=1, str=[str,'s']; end
 else
@@ -741,12 +747,23 @@ else
 	if nP==1, str=[str,'y']; else, str=[str,'ies']; end
 end
 
-if ~isreal(n) & isfinite(n), str=sprintf('%s (max %d)',str,abs(n)); end
+if (n.mn~=n.mx)
+	if n.mn==0
+		if isfinite(n.mx)
+			str=sprintf('%s (max %d)',str,n.mx);
+		end
+	else
+		if isinf(n.mx)
+			str=sprintf('%s (min %d)',str,n.mn);
+		else
+			str=sprintf('%s (min %d, max %d)',str,n.mn,n.mx);
+		end
+	end
+end
 
-if isinf(n)
+
+if (nP>=n.mn) & (nP<=n.mx)
 	str = [str,', press "Done" when finished.'];
-elseif nP==abs(n)
-	str = [str,', press "Done".'];
 else
 	str = [str,'.'];
 end
@@ -932,9 +949,10 @@ else
     my = 0;
 end
 
-%-Files or directories (n<0)
+%-Files or directories?
 %-----------------------------------------------------------------------
-if n>0	%-Select file(s) - omit ".*" dot files
+if n.fi
+	%-Select file(s) - omit ".*" dot files
 	if ~isempty(Files), Files(Files(:,1)=='.',:)=[]; end
 	Items = Files;
 else	%-Select directory/ies
@@ -1220,7 +1238,7 @@ for h = H'
 
 	%-Don't add any more if #items has been specified,
 	% and P would be overfull
-	if isfinite(n), if (nP+nItems>abs(n)), break, end, end
+	if (nP+nItems>n.mx), break, end
 
 	%-Add items to P
 	if WDir(end)~=filesep, WDir = [WDir,filesep]; end
@@ -1303,12 +1321,13 @@ if nargin<5, WDir=''; else WDir=varargin{5}; end
 if isempty(WDir), WDir=pwd; else, WDir=deblank(WDir); end
 if nargin<4, P=[]; else P=varargin{4}; end
 if nargin<3, Prompt='Select files...'; else Prompt=varargin{3}; end
-if nargin<2, n=Inf; else n=varargin{2}; end
+if nargin<2, n=struct('fi',1,'mn',0,'mx',Inf); else n=varargin{2}; end
 
-if n==0, return, end
-
+if n.mx==0, varargout={''}; return, end
 nP=size(P,1);
 
+%-Print prompt
+%-----------------------------------------------------------------------
 fprintf('\n'), fprintf('%c',repmat('=',1,70)), fprintf('\n')
 fprintf('\t%s\n',Prompt)
 fprintf('%c',repmat('=',1,70)), fprintf('\n')
@@ -1318,33 +1337,71 @@ if nP>0
 	fprintf('\nAlready selected:\n')
 	for pP = [1:size(P,1)], fprintf('\t%s\n',P(pP,:)), end
 end
-fprintf('\nEnter paths :')
-AllowEnd = AllowEnd | isinf(n);
-Tstr = 'END';
-if AllowEnd, fprintf(' (Type "END" to terminate input.)\n')
-	else fprintf(' to %d items:\n',abs(n)-nP), end
 
+if nP>=n.mx
+	fprintf('\nMax # items already selected: Returning...\n\n' )
+	varargout={P};
+	return
+end
+
+%-Print prompts for input
+%-----------------------------------------------------------------------
+fprintf('\nEnter paths ')
+if n.fi
+	str = 'file'; if n.mx>1, str=[str,'s']; end
+else
+	str = 'director'; if n.mx==1, str=[str,'y']; else, str=[str,'ies']; end
+end
+if AllowEnd | n.mn==0
+	if isfinite(n.mx)
+		fprintf('to at most %d %s:\n',n.mx,str)
+	else
+		fprintf('to %s:\n',str)
+	end
+else
+	if (n.mn==n.mx)
+		fprintf('to %d %s:\n',n.mx,str)
+	else
+		if isinf(n.mx)
+			fprintf('to at least %d %s:\n',n.mn,str)
+		else
+			fprintf('to %d-%d %s:\n',n.mn,n.mx,str)
+		end
+	end
+end
+
+%-AllowEnd if asked for, or if a range of item numbers is OK
+%-----------------------------------------------------------------------
+Tstr = 'END';
+if AllowEnd | (n.mn~=n.mx)
+	fprintf(' (Type "%s" to terminate input.)\n',Tstr)
+end
+
+%-Get files
+%-----------------------------------------------------------------------
 Done=0;
-while ~Done
+while ~( Done | (nP>=n.mx) )
 	%-Get input
 	str = []; while isempty(str)
 		str=ddeblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 	%-Prepend WDir to incomplete pathnames
 	if (~isabspath(str))&(~strcmp(str,Tstr)), str=fullfile(WDir,str); end
-	if (n>0),OK=exist(str)==2;else,OK=exist(str)==7;end
-	while ~( OK | (strcmp(str,Tstr) & AllowEnd) )
+	if n.fi,OK=exist(str)==2;else,OK=exist(str)==7;end
+	OKend = AllowEnd | (nP>=n.mn&nP<=n.mx);
+	while ~( OK | (strcmp(str,Tstr) & OKend) )
 		if strcmp(str,Tstr)
-			fprintf('%c\tSelect %d files!',7,abs(n))
-			else, fprintf('%c\t%s isn''t a file!\n',7,str), end
+			fprintf('%c\tSelect %d-%d items!\n',7,n.mn,n.mx)
+			else, fprintf('%c\t%s isn''t valid!\n',7,str), end
 		str=[]; while isempty(str)
 			str=ddeblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 		if (~isabspath(str))&(~strcmp(str,Tstr))
 			str = fullfile(WDir,str); end
-		if (n>0),OK=exist(str)==2;else,OK=exist(str)==7;end
+		if n.fi,OK=exist(str)==2;else,OK=exist(str)==7;end
+		OKend = AllowEnd | (nP>=n.mn&nP<=n.mx);
 	end
 	if ~strcmp(str,Tstr), P=strvcat(P,str); end
 	nP = nP+1;
-	Done = (strcmp(str,Tstr) | (nP==abs(n)));
+	Done = strcmp(str,Tstr);
 end
 
 varargout = {P};
@@ -1462,7 +1519,7 @@ h = uicontrol(F,'Style','Frame',...
 	'Position',[001 001 400 030].*WS);
 EditHandles = [EditHandles, h];
 
-str=[]; if isfinite(n), str=['Use only top ',int2str(abs(n)),' lines.  ']; end
+str=[]; if isfinite(n.mx), str=['Use only top ',int2str(n.mx),' lines.  ']; end
 h = uicontrol(F,'Style','Text',...
 	'String',[str,'(Blank lines will be removed)'],...
 	'FontAngle','Italic',...
@@ -1490,7 +1547,7 @@ if OK & get(h_EditWindow,'UserData')
 	n = get(findobj(F,'Tag','Prompt'),'UserData');
 	%-Condition P, by removing blank lines and truncating to n items.
 	P = P(~strcmp(P,''));
-	if (isfinite(n))&(~isempty(P)), P=P(1:min(length(P),abs(n))); end
+	if (isfinite(n.mx))&(~isempty(P)), P=P(1:min(length(P),n.mx)); end
 	%-Write P to 'P' 'Tag'ged object
 	set(findobj(F,'Tag','P'),'UserData',char(P));
 	%-Redo directory listing
@@ -1508,21 +1565,17 @@ F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 n = get(findobj(F,'Tag','Prompt'),'UserData');
 
 %-If #files was specified, and not enough have been selected, then return
-if isfinite(n) & isreal(n)
-	P = get(findobj(F,'Tag','P'),'UserData');
-	if (size(P,1)<abs(n))
-		if n== 1,	str = 'Must select a file!';
-		elseif n==-1,	str = 'Must select a directory!';
-		elseif n>1,	str = sprintf('Must select %d files!',n);
-		elseif n<-1,	str = sprintf('Must select %d directories!',-n);
-		else
-				str = 'should never see this!';
-		end
-		spm('Beep')
-		msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
-			spm('GetUser',' (%s)'),mfilename),'error','modal')
-		return
+nP = size(get(findobj(F,'Tag','P'),'UserData'),1);
+if (nP<n.mn | nP>n.mx)
+	if (n.mn==n.mx)
+		str = sprintf('Must select %d item(s)!',n.mx);
+	else
+		str = sprintf('Must select %d-%d items!',n.mn,n.mx);
 	end
+	spm('Beep')
+	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'error','modal')
+	return
 end
 
 %-Done, set Done UserData tag for handling
