@@ -12,6 +12,9 @@ function [strout,R2] = spm_str_manip(strin,options)
 %			   only if it is either '.img', '.hdr', '.mat' or '.mnc'
 % 	'e'              - remove everything except the suffix
 % 	'h'              - remove trailing pathname component
+% 	'H'              - always remove trailing pathname component
+%                          (returns '.' for straight filenames like 'test.img' )
+%                          (wheras 'h' option mimics csh & returns 'test.img'  )
 % 	't'              - remove leading pathname component
 % 	['f' num2str(n)] - remove all except first n characters
 % 	['l' num2str(n)] - remove all except last n characters
@@ -25,6 +28,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %			   are returned.
 %       'v'              - delete non valid filename characters
 %                          Valid are './abc...xyzAbc...XYZ0123456789_-'
+%       'p'              - canonicalise pathname (see spm_get('CPath',strin))
 % 	'c'		 - remove leading components common to all strings
 %                          returns leading component as a second output argument
 %	'd'		 - deblank - this is always done!
@@ -58,10 +62,12 @@ while (~isempty(options))
 	end
 
 
+	%-Process option
+	%---------------------------------------------------------------
 	for i=1:prod(size(strout))
 		str = deblank(strout{i});
-		switch options(1)
-		
+
+		switch options(1)		
 		case 'r'	% Remove a trailing suffix of the form `.xxx',
 				% leaving the basename.
 			d1 = max([find(str == '/') 0]);
@@ -82,6 +88,15 @@ while (~isempty(options))
 			d1 = max([find(str == '/') 0]);
 			if (d1>0)
 				str = str(1:(d1-1));
+			end
+
+		case 'H'	% Remove a trailing pathname component,
+				% leaving the head.
+			d1 = max([find(str == '/') 0]);
+			if (d1>0)
+				str = str(1:(d1-1));
+			else
+				str = '.';
 			end
 
 		case 't'	% Remove all leading  pathname  components,
@@ -136,7 +151,16 @@ while (~isempty(options))
 				  str=='.' | str=='/' );
 			str = str(tmp);
 
-		end
+		case 'p'
+			str = spm_get('CPath',str);
+
+		case {'c','d'}
+			%-Allow these options (implemented below)
+		otherwise
+			warning(['ignoring unrecognised option: ',options(1)])
+
+		end % (case)
+
 		strout{i} = str;
 	end
 		
