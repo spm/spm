@@ -191,18 +191,18 @@ clear VF1 VG1
 flags.version = '%W% %E%';
 flags.date    = date;
 
+params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
+
 if flags.graphics, spm_normalise_disp(params,VF); end;
 
 % Remove dat fields before saving
 %-----------------------------------------------------------------------
 if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
-
 if ~isempty(matname),
 	fprintf('Saving Parameters..\n');
 	save(matname,'Affine','Tr','VF','VG','flags');
 end;
-params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
 return;
 %_______________________________________________________________________
 
