@@ -36,23 +36,15 @@ if xCon(Ic(1)).STAT == 'P'
 
 	% Conditional estimators and error variance hyperparameters
 	%----------------------------------------------------------------
-    if isfield(SPM.PPM,'VB')
-        Vbeta = SPM.VCbeta;
-        VHp   = SPM.VHp;
-        VPsd  = SPM.VPsd;
-        VAR   = SPM.VAR;
-    else
-        Vbeta = SPM.VCbeta;
-        VHp   = SPM.VHp;
-    end
-
+    Vbeta = SPM.VCbeta;
+    VHp   = SPM.VHp;
 else
+    
 	% OLS estimators and error variance estimate
 	%----------------------------------------------------------------
 	Vbeta = SPM.Vbeta;
 	VHp   = SPM.VResMS;
 end
-
 
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
@@ -153,9 +145,11 @@ for i = 1:length(Ic)
     
     %-Write inference SPM/PPM
     %===================================================================
-    if isempty(xCon(ic).Vspm)
-	
-        fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,i),...
+     if isempty(xCon(ic).Vspm) | xCon(ic).STAT=='P'
+        % As PPM effect size threshold, gamma, may have changed
+        % always update PPM file
+
+         fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,i),...
                                                     '...computing')  %-#
 
 	switch(xCon(ic).STAT)
@@ -173,61 +167,33 @@ for i = 1:length(Ic)
         %---------------------------------------------------------------
 	c     = xCon(ic).c;
 	cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-    if isfield(SPM.PPM,'VB');
-        % Get approximate posterior covariance at ic
-        % using Taylor-series approximation
-        
-        % Get posterior SD beta's
-        Nk=size(SPM.xX.X,2);
-        for k=1:Nk,
-            sd_beta(k,:) = spm_get_data(VPsd(k),XYZ);
-        end
-        
-        % Get AR coefficients
-        for p=1:SPM.PPM.AR_P
-            a(p,:) = spm_get_data(VAR(p),XYZ);
-        end
-        
-        % Get noise SD
-        lambda = spm_get_data(VHp,XYZ);
-        
-        % Loop over voxels
-        Nvoxels=size(XYZ,2);
-        for v=1:Nvoxels,
-            % Which slice are we in ?
-            slice_index=XYZ(3,v);
-            
-            % Reconstuct approximation to voxel wise correlation matrix
-            R=SPM.PPM.slice(slice_index).mean.R;
-            dh=a(:,v)'-SPM.PPM.slice(slice_index).mean.a;
-            dh=[dh lambda(v)-SPM.PPM.slice(slice_index).mean.lambda];
-            for i=1:length(dh),
-                R=R+SPM.PPM.slice(slice_index).mean.dR(:,:,i)*dh(i);
-            end 
-            % Reconstuct approximation to voxel wise covariance matrix
-            Sigma_post = (sd_beta(:,v)*sd_beta(:,v)').*R;
-            
-            VcB (v) = c'*Sigma_post*c;
-        end
-            
-  
-    else
-        VcB   = c'*SPM.PPM.Cby*c;
-        for j = 1:length(SPM.PPM.l)
+        if isfield(SPM.PPM,'VB');
+           % If posterior variance image for that contrast does
+           % not already exist, then compute it
+           try
+             SPM.PPM.Vcon_var(ic);
+           catch
+             SPM = spm_vb_contrasts(SPM,XYZ,xCon,ic);
+           end
+           % Read in posterior variance image for contrast
+           VcB = spm_get_data(SPM.PPM.Vcon_var(ic),XYZ);
+	else
+          VcB   = c'*SPM.PPM.Cby*c;
+          for j = 1:length(SPM.PPM.l)
             
             % hyperparameter and Taylor approximation
             %-------------------------------------------------------
             l   = spm_get_data(VHp(j),XYZ);
             VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
+          end
         end
-    end
     
 	% posterior probability cB > g
         %---------------------------------------------------------------
  	Gamma         = xCon(ic).eidf;
 	Z             = 1 - spm_Ncdf(Gamma,cB,VcB);
-    str           = sprintf('[%.2f]',Gamma);
-	xCon(ic).name = [xCon(ic).name ' ' str];
+        str           = sprintf('[%.2f]',Gamma);
+	%xCon(ic).name = [xCon(ic).name ' ' str];
 
 
 	case 'F'                                  %-Compute SPM{F} image
