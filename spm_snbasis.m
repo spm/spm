@@ -88,45 +88,39 @@ for iter=1:param(4)
 	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm);
 	fwhm(2) = min([fw fwhm(2)]);
 
-fprintf('FWHM = %g\n', fw);
-	if (iter > 0)
-		% Parameter estimates biased towards affine.
-		%
-		% Assume that the problem is linear.
-		% The unbiased solution would be:
-		% X = T + Alpha\Beta;
-		%
-		% If we assume that each observation F has the same amount
-		% of Gaussian noise, we can approximate the variance of this noise
-		% by:
-		% Var = \sum((F - A*T)^2)/(n-1) - where n is something like
-		% the number of 'resels' in the image F, and A is the design matrix.
-		% The formal covariance matrix of the solution X, is:
-		% inv(Alpha)*Var
-		%
-		% The covariance matrix describing the distribution of warps among
-		% the population is estimated as inv(IC0).
-		% These warps are deviations away from the affine, ie. the origin
-		% of the parameter space.
-		%
-		% The solution we require is the weighted mean of 0 and T + Alpha\Beta,
-		% where the weights are the inverses of the covariance matrixes:
-		%
-		% ie.
-		% (inv(C1) + inv(C2))\(inv(C1)*X1 + inv(C2)*X2)
-		% where:	X1 = T + Alpha\Beta
-		% 		C1 = inv(Alpha)*Var
-		% 		X2 = 0
-		% 		C2 = inv(IC0)
-		%
-		% Which simplifies to: (Alpha + IC0*Var)\(Alpha*T + Beta)
-		%-----------------------------------------------------------------------
-		T = (Alpha + IC0)\(Alpha*T + Beta);
-	else
-		% The simple straightforward solution.
-		T = T + Alpha\Beta;
-	end
-	disp(Var);
+	fprintf('FWHM = %g\tVar = %g\n', fw,Var);
+	% Parameter estimates biased towards affine.
+	%
+	% Assume that the problem is linear.
+	% The unbiased solution would be:
+	% X = T + Alpha\Beta;
+	%
+	% If we assume that each observation F has the same amount
+	% of Gaussian noise, we can approximate the variance of this noise
+	% by:
+	% Var = \sum((F - A*T)^2)/(n-1) - where n is something like
+	% the number of 'resels' in the image F, and A is the design matrix.
+	% The formal covariance matrix of the solution X, is:
+	% inv(Alpha)*Var
+	%
+	% The covariance matrix describing the distribution of warps among
+	% the population is estimated as inv(IC0).
+	% These warps are deviations away from the affine, ie. the origin
+	% of the parameter space.
+	%
+	% The solution we require is the weighted mean of 0 and T + Alpha\Beta,
+	% where the weights are the inverses of the covariance matrixes:
+	%
+	% ie.
+	% (inv(C1) + inv(C2))\(inv(C1)*X1 + inv(C2)*X2)
+	% where:	X1 = T + Alpha\Beta
+	% 		C1 = inv(Alpha)*Var
+	% 		X2 = 0
+	% 		C2 = inv(IC0)
+	%
+	% Which simplifies to: (Alpha + IC0*Var)\(Alpha*T + Beta)
+	%-----------------------------------------------------------------------
+	T = (Alpha + IC0)\(Alpha*T + Beta);
 end
 
 % Dimensions and values of the 3D-DCT
