@@ -79,7 +79,7 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % 
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_graph.m	2.25 Karl Friston 00/02/10
 
 
 %-Get Graphics figure handle
