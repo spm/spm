@@ -4,25 +4,19 @@ static char sccsid[]="%W% John Ashburner FIL %E%";
 
 /* Do a silent deletion of files on disk */
 
-#include "cmex.h"
+#include "mex.h"
 #include <unistd.h>
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	int i;
 	if (nlhs != 0) mexErrMsgTxt("Too many output arguments.");
 
 	for(i=0; i<nrhs; i++)
 	{
-		Matrix *matptr;
+		const mxArray *matptr;
 		matptr = prhs[i];
-		if (mxIsString(matptr))
+		if (!mxIsNumeric(matptr))
 		{
 			char *str;
 			int k, stlen;

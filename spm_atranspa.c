@@ -2,7 +2,7 @@
 static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
-#include "cmex.h"
+#include "mex.h"
 
 /* C = A'*A */
 void atranspa(m,n,A,C)
@@ -37,13 +37,7 @@ double A[/* m,n */], C[/* n,n */];
 }
 
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	unsigned int n;
 	unsigned int m;
@@ -54,13 +48,13 @@ Matrix *plhs[], *prhs[];
 	if (nrhs != 1) mexErrMsgTxt("Only 1 input argument required.");
 	if (nlhs > 1) mexErrMsgTxt("Only 1 output argument required.");
 
-	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || !mxIsFull(prhs[0]) || !mxIsDouble(prhs[0]))
+	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
 		mexErrMsgTxt("spm_atranspa: A must be numeric, real, full and double");
 	A = mxGetPr(prhs[0]);
 	m = mxGetM(prhs[0]);
 	n = mxGetN(prhs[0]);
 
-	plhs[0] = mxCreateFull(n,n, REAL);
+	plhs[0] = mxCreateDoubleMatrix(n,n, mxREAL);
 	C = mxGetPr(plhs[0]);
 
 	atranspa(m,n,A,C);

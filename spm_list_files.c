@@ -18,8 +18,7 @@ Checks for numeric values in the strings, so that strings like
 'image1.img' 'image10.img' 'image11.img' 'image12.img' 'image2.img' etc
 are ordered more sensibly.
 */
-num_strcmp(str1, str2)
-char *str1, *str2;
+num_strcmp(char *str1, char *str2)
 {
 	char *p1, *p2;
 	int i1, i2;
@@ -47,9 +46,7 @@ char *str1, *str2;
 }
 
 
-slowsort(argc, argv)
-char **argv;
-int argc;
+slowsort(int argc,char **argv)
 {
 	int i, j;
 	for(i=argc; i>1; i--)
@@ -65,9 +62,7 @@ int argc;
 		}
 }
 
-wildcard(attempt, actual)
-char *attempt;
-char *actual;
+wildcard(char *attempt, char *actual)
 {
 	char *p1, *p2;
 
@@ -89,10 +84,7 @@ char *actual;
 	return 0;
 }
 
-void list2mat(m,n,list,ptr)
-int m,n;
-char *list[];
-Matrix **ptr;
+void list2mat(int m, int n, char *list[], mxArray **ptr)
 {
 	char *buf2;
 	int i;
@@ -119,13 +111,7 @@ Matrix **ptr;
 }
 
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	int ndirs = 0, nfiles = 0, len, uid, gids[128], ngids, maxdlen = 0, maxflen = 0;
 	DIR *dirp;
@@ -136,7 +122,7 @@ Matrix *plhs[], *prhs[];
 	if ((nrhs != 2) || (nlhs != 2))
 		mexErrMsgTxt("Incorrect Usage.");
 
-	if (!mxIsString(prhs[0]) || !mxIsString(prhs[1]))
+	if (mxIsNumeric(prhs[0]) || mxIsNumeric(prhs[1]))
 		mexErrMsgTxt("Arguments must be strings.");
 
 	if (mxGetM(prhs[0]) != 1 || mxGetM(prhs[1]) != 1)

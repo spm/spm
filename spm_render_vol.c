@@ -2,14 +2,17 @@
 static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
-#include "cmex.h"
+#include "mex.h"
 #include <math.h>
+#include "spm_vol_utils.h"
+extern double sqrt(), rint();
 
-void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, bytedat, xdim2, ydim2, zdim2, thresh)
+void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, vol, thresh)
 double  mat[16];
 double xcords[], ycords[], zcords[], zbuff[];
-unsigned char bytedat[];
-int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
+MAPTYPE *vol;
+int xdim1, ydim1;
+double thresh;
 {
 	/*
 	Project the coordinates of voxels which lie on the surface of the object
@@ -34,16 +37,30 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 	Note that elements 12-15 are unused, and that the projection is a parallel one.
 	
 	*/
-	int z;
+	int z, i,off1;
 	double xs, ys;
-	unsigned char *p;
+	char *tmp, *current, *prev, *next;
+	double mat1[16]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+	double *dat;
 
-	/* size of rectangle which is projected */
+	/* size of rectangle that is projected */
 	xs = (0.01+sqrt(mat[0]*mat[0]+mat[4]*mat[4]+mat[8]*mat[8]));
 	ys = (0.01+sqrt(mat[1]*mat[1]+mat[5]*mat[5]+mat[9]*mat[9]));
 
-	p = bytedat;
-	for(z=1; z<=zdim2; z++)
+	dat     = (double *)mxCalloc(vol->dim[1]*vol->dim[0],sizeof(double));
+	current = (char   *)mxCalloc(vol->dim[1]*vol->dim[0],sizeof(char));
+	prev    = (char   *)mxCalloc(vol->dim[1]*vol->dim[0],sizeof(char));
+	next    = (char   *)mxCalloc(vol->dim[1]*vol->dim[0],sizeof(char));
+
+	mat1[14]=1.0;
+	slice(mat1, dat, vol->dim[0],vol->dim[1], vol, 0,0);
+	for(i=0; i<vol->dim[0]*vol->dim[1]; i++)
+	{
+		current[i] = ((dat[i]>thresh) ? 1 : 0);
+		prev[i]=0;
+	}
+
+	for(z=1; z<=vol->dim[2]; z++)
 	{
 		int y;
 		double x2, y2, z2;
@@ -51,31 +68,36 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 		y2 = mat[13] + z*mat[9] -1.0;
 		z2 = mat[14] + z*mat[10];
 
-		for(y=1; y<=ydim2; y++)
+		mat1[14]=z+1.0;
+		slice(mat1, dat, vol->dim[0],vol->dim[1], vol, 0,0);
+		for(i=0; i<vol->dim[0]*vol->dim[1]; i++)
+			next[i] = ((dat[i]>thresh) ? 1 : 0);
+		off1 = 0;
+		for(y=1; y<=vol->dim[1]; y++)
 		{
 			int x;
 			double x3 = x2 + y*mat[4];
 			double y3 = y2 + y*mat[5];
 			double z3 = z2 + y*mat[6];
 
-			for(x=1; x<=xdim2; x++)
+			for(x=1; x<=vol->dim[0]; x++)
 			{
-				/* check for surface voxel - this could be optimised greatly */
-				if (*p > thresh && ((x<xdim2 && *(p+1) < thresh) || (x>1 && *(p-1) < thresh)
-					|| (y<ydim2 && *(p+xdim2)<thresh) || (y>1 && *(p-xdim2)<thresh)
-					|| (z<zdim2 && *(p+xdim2*ydim2)<thresh) || (z>1 && *(p-xdim2*ydim2)<thresh)))
+				if (current[off1] && (
+					x<=1 || x>=vol->dim[0] || !current[off1-          1] || !current[off1+          1] ||
+					y<=1 || y>=vol->dim[1] || !current[off1-vol->dim[0]] || !current[off1+vol->dim[0]] ||
+					!next[off1] || !prev[off1]))
 				{
 					int ix4, iy4, ixstart, ixend, iystart, iyend;
 					double x4 = (x3 + x*mat[0]);
 					double y4 = (y3 + x*mat[1]);
 					double z4 = (z3 + x*mat[2]);
-					ixstart = (int)(x4+0.5);
+					ixstart = (int)rint(x4);
 					if (ixstart < 0) ixstart = 0;
-					ixend = (int)(x4+xs+0.5);
+					ixend = (int)rint(x4+xs);
 					if (ixend >= xdim1) ixend = xdim1-1;
-					iystart = (int)(y4+0.5);
+					iystart = (int)rint(y4);
 					if (iystart < 0) iystart = 0;
-					iyend = (int)(y4+ys+0.5);
+					iyend = (int)rint(y4+ys);
 					if (iyend >= ydim1) iyend = ydim1-1;
 					for(iy4 = iystart ; iy4<=iyend; iy4++)
 						for(ix4 = ixstart ; ix4<=ixend; ix4++)
@@ -84,28 +106,44 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 							/* is new voxel closer than original one */
 							if (z4 < zbuff[off])
 							{
-								zbuff[off] = z4;
+								 zbuff[off] = z4;
 								xcords[off] = x;
 								ycords[off] = y;
 								zcords[off] = z;
 							}
 						}
 				}
-				p++;
+				off1++;
 			}
 		}
+		tmp     = prev;
+		prev    = current;
+		current = next;
+		next    = tmp;
 	}
+	mxFree((char *)dat);
+	mxFree((char *)current);
+	mxFree((char *)prev);
+	mxFree((char *)next);
 }
 
-void render(xcords, ycords, zcords, xdim1, ydim1, out, bytedat, xdim2, ydim2, zdim2, light, thresh, nn)
+void render(xcords, ycords, zcords, xdim1, ydim1, out, vol, light, thresh, nn)
 double light[3];
 double out[], xcords[], ycords[], zcords[];
-unsigned char bytedat[];
-int xdim1, ydim1, xdim2, ydim2, zdim2;
-int thresh, nn;
+MAPTYPE *vol;
+int xdim1, ydim1;
+int nn;
+double thresh;
 {
 	double	*filt, *filtp;
-	int	dx, dy, dz, i;
+	int	dx, dy, dz, i, nnn;
+	double *X, *Y, *Z, *dat;
+
+	nnn = (nn*2+1)*(nn*2+1)*(nn*2+1);
+	X  =(double *)mxCalloc(nnn, sizeof(double));
+	Y  =(double *)mxCalloc(nnn, sizeof(double));
+	Z  =(double *)mxCalloc(nnn, sizeof(double));
+	dat=(double *)mxCalloc(nnn, sizeof(double));
 
 	if ((filt = (double *)mxCalloc((nn*2+1)*(nn*2+1)*(nn*2+1), sizeof(double))) == (double *)0)
 		return;
@@ -121,29 +159,38 @@ int thresh, nn;
 	for(i=0; i<xdim1*ydim1; i++)
 		if (xcords[i])
 		{
-			int x, y, z;
+			int x, y, z, j;
 			double val;
-			x = xcords[i]-1;
-			y = ycords[i]-1;
-			z = zcords[i]-1;
-			filtp = filt;
-			val = 0.0;
+			x = xcords[i];
+			y = ycords[i];
+			z = zcords[i];
+			j = 0;
 			for(dz=z-nn; dz<=z+nn; dz++)
 				for(dy=y-nn; dy<=y+nn; dy++)
 					for(dx=x-nn; dx<=x+nn; dx++)
 					{
-						if (dx>=0 && dx<xdim2 &&
-							dy>=0 && dy<ydim2 && dz>=0 && dz<zdim2)
-						{
-							if (bytedat[dx+xdim2*(dy+ydim2*dz)]<thresh)
-								val += *filtp;
-						}
-						filtp++;
+						X[j] = dx;
+						Y[j] = dy;
+						Z[j] = dz;
+						j++;
 					}
+			resample(nnn,vol,dat,X,Y,Z,0, 0.0);
+
+			val = 0.0;
+			for(j=0; j<nnn; j++)
+			{
+				if (dat[j]<thresh)
+					val+=filt[j];
+			}
 			if (val<0) val = 0.0;
 			out[i] = val;
 		}
+
 	(void)mxFree((char *)filt);
+	(void)mxFree((char *)X);
+	(void)mxFree((char *)Y);
+	(void)mxFree((char *)Z);
+	(void)mxFree((char *)dat);
 }
 
 void initdat(dat, size,val)
@@ -154,39 +201,30 @@ int size;
 	for(i=0; i<size; dat[i++] = val);
 }
 
-#include "volume.h"
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	MAPTYPE *map;
-	int m, n, xdim, ydim, zdim, k;
+	MAPTYPE *map, *get_maps();
+	int m, n, k;
 	double *mat;
 	double *out, *odims, *params, *zbuff, *x, *y, *z;
 	double light[3];
 
 	if (nrhs != 4 || nlhs > 5) mexErrMsgTxt("Inappropriate usage.");
 
-	map = get_map(prhs[0]);
-	if (map->datatype != UNSIGNED_CHAR)
+	map = get_maps(prhs[0], &n);
+	if (n!=1)
 	{
-		mexErrMsgTxt("Can only handle 8 bit volume.");
+		free_maps(map);
+		mexErrMsgTxt("Inappropriate usage.");
 	}
-
-	xdim = abs((int)map->xdim);
-	ydim = abs((int)map->ydim);
-	zdim = abs((int)map->zdim);
 
 	for(k=1; k<nrhs; k++)
 	{
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
-			!mxIsFull(prhs[k]) || !mxIsDouble(prhs[k]))
+			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
+			free_maps(map);
 			mexErrMsgTxt("Arguments must be numeric, real, full and double.");
 		}
 	}
@@ -194,37 +232,45 @@ Matrix *plhs[], *prhs[];
 	/* get transformation matrix */
 	if (mxGetM(prhs[1]) != 4 && mxGetN(prhs[1]) != 4)
 	{
+		free_maps(map);
 		mexErrMsgTxt("Transformation matrix must be 4 x 4.");
 	}
 	mat = mxGetPr(prhs[1]);
 
 	if (mxGetM(prhs[2])*mxGetN(prhs[2]) != 2)
+	{
+		free_maps(map);
 		mexErrMsgTxt("Output dimensions must have two elements.");
+	}
 	odims = mxGetPr(prhs[2]);
 	m = (int)odims[0];
 	n = (int)odims[1];
 
 	if (mxGetM(prhs[3])*mxGetN(prhs[3]) != 2)
+	{
+		free_maps(map);
 		mexErrMsgTxt("Parameters must have 2 elements.");
+	}
 	params = mxGetPr(prhs[3]);
 
-	plhs[0] = mxCreateFull(m,n, REAL);
+	plhs[0] = mxCreateDoubleMatrix(m,n, mxREAL);
 	out = mxGetPr(plhs[0]);
-	plhs[1] = mxCreateFull(m,n, REAL);
+	plhs[1] = mxCreateDoubleMatrix(m,n, mxREAL);
 	zbuff = mxGetPr(plhs[1]);
-	plhs[2] = mxCreateFull(m,n, REAL);
+	plhs[2] = mxCreateDoubleMatrix(m,n, mxREAL);
 	x = mxGetPr(plhs[2]);
-	plhs[3] = mxCreateFull(m,n, REAL);
+	plhs[3] = mxCreateDoubleMatrix(m,n, mxREAL);
 	y = mxGetPr(plhs[3]);
-	plhs[4] = mxCreateFull(m,n, REAL);
+	plhs[4] = mxCreateDoubleMatrix(m,n, mxREAL);
 	z = mxGetPr(plhs[4]);
 
 	initdat(zbuff,m*n,1024.0);
-	surface(mat, zbuff, x, y, z, m, n, map->data, xdim, ydim, zdim, (int)params[0]);
+	surface(mat, zbuff, x, y, z, m, n, map, params[0]);
 
 	light[0] = mat[2];
 	light[1] = mat[6];
 	light[2] = mat[10];
 
-	render(x, y, z, m, n, out, map->data, xdim, ydim, zdim, light, (int)params[0], (int)params[1]);
+	render(x, y, z, m, n, out, map, light, params[0], (int)params[1]);
+	free_maps(map);
 }

@@ -40,23 +40,12 @@ spm_mean.c
 #include <fcntl.h>
 
 #include "mex.h"
-#include "volume.h"
+#include "spm_vol_utils.h"
 
 
-#ifdef __STDC__
-void mexFunction(
-	int		nlhs,
-	Matrix	*plhs[],
-	int		nrhs,
-	Matrix	*prhs[]
-	)
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	MAPTYPE **maps;
+	MAPTYPE *maps, *get_maps();
 	double *sptr, *scales, *image, scale;
 	short **dptr;
 	int ni, nj, nk, i, j, k, fo;
@@ -71,17 +60,19 @@ Matrix *plhs[], *prhs[];
 
 	for(i=1; i<ni; i++)
 	{
-		if (	maps[i]->xdim != maps[0]->xdim ||
-			maps[i]->ydim != maps[0]->ydim ||
-			maps[i]->zdim != maps[0]->zdim)
+		if (	maps[i].dim[0] != maps[0].dim[0] ||
+			maps[i].dim[1] != maps[0].dim[1] ||
+			maps[i].dim[2] != maps[0].dim[2])
 			{
+				free_maps(maps);
 				mexErrMsgTxt("Incompatible image dimensions.");
 			}
 
-		if (	maps[i]->xpixdim != maps[0]->xpixdim ||
-			maps[i]->ypixdim != maps[0]->ypixdim ||
-			maps[i]->zpixdim != maps[0]->zpixdim)
+		if (	maps[i].pixdim[0] != maps[0].pixdim[0] ||
+			maps[i].pixdim[1] != maps[0].pixdim[1] ||
+			maps[i].pixdim[2] != maps[0].pixdim[2])
 			{
+				free_maps(maps);
 				mexErrMsgTxt("Incompatible voxel sizes.");
 			}
 	}
@@ -91,15 +82,15 @@ Matrix *plhs[], *prhs[];
 	if (fo == -1)
 		mexErrMsgTxt("Cant open output file.");
 
-	nj = maps[0]->zdim;
-	nk = maps[0]->xdim*maps[0]->ydim;
+	nj = maps[0].dim[2];
+	nk = maps[0].dim[0]*maps[0].dim[1];
 
 	scales = (double *)mxCalloc(nj, sizeof(double));
 	sptr   = (double *)mxCalloc(nk, sizeof(double));
 	image  = (double *)mxCalloc(nk, sizeof(double));
 	dptr   = (short **)mxCalloc(nj, sizeof(double));
 
-	for(j=0; j<maps[0]->zdim; j++)
+	for(j=0; j<maps[0].dim[2]; j++)
 	{
 		double mx, mn;
 		mat[14] = j+1.0;
@@ -109,9 +100,7 @@ Matrix *plhs[], *prhs[];
 
 		for(i=0; i<ni; i++)
 		{
-			slice(mat, image, (int)maps[0]->xdim,(int)maps[0]->ydim, maps[i]->data,
-				(int)maps[i]->xdim,(int)maps[i]->ydim,(int)maps[i]->zdim, 0, 0.0,
-				maps[i]->scalefactor,0.0, maps[i]->datatype);
+			slice(mat, image, maps[i].dim[0],maps[i].dim[1], maps[i], 0, 0.0);
 			for(k=0; k<nk; k++)
 				sptr[k] += image[k];
 		}
@@ -162,7 +151,7 @@ Matrix *plhs[], *prhs[];
 
 	if (nlhs == 1)
 	{
-		plhs[0] = mxCreateFull(1,1, REAL);
+		plhs[0] = mxCreateDoubleMatrix(1,1, mxREAL);
 		mxGetPr(plhs[0])[0] = scale;
 	}
 }

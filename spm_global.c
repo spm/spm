@@ -16,63 +16,57 @@ static char sccsid[]="%W% anon %E%";
 #endif
 
 #include <math.h>
-#include "cmex.h"
-#include "volume.h"
+#include "mex.h"
+#include "spm_vol_utils.h"
 
-#define macro\
-	for(i=0, s1=0.0; i<m; i++)\
-		s1=s1+d[i];\
-	s1=s1/m/8.0;\
-	for(i=0, s2=0.0, n=0.0; i<m; i++)\
-		if (d[i]>s1){n++;s2+=d[i];}\
-	s2=s2/n;
-
-
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int i, m, n;
+	int i, j, m, n;
 	double s1=0.0, s2=0.0;
-	MAPTYPE *map;
+	double *dat;
+	MAPTYPE *map, *get_maps();
+	static double M[] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 
 	if (nrhs != 1 || nlhs > 1)
 	{
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 
-	map = get_map(prhs[0]);
-	m = map->zdim*map->ydim*map->xdim;
+	map = get_maps(prhs[0], &j);
+	if (j != 1)
+	{
+		free_maps(map);
+		mexErrMsgTxt("Inappropriate usage.");
+	}
+	n = map->dim[0]*map->dim[1];
+	dat = (double *)mxCalloc(m, sizeof(double));
 
-	if (map->datatype == UNSIGNED_CHAR)
+	s1 = 0.0;
+	for (i=0; i<map->dim[2]; i++)
 	{
-		unsigned char *d = (unsigned char *)(map->data);
-		macro
+		M[14] = i;
+		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
+		for(j=0;j<n; j++)
+			s1 += dat[j];
 	}
-	else if (map->datatype == SIGNED_SHORT)
+	s1/=(8.0*map->dim[2]*n);
+
+	s2=0.0;
+	m =0;
+	for (i=0; i<map->dim[2]; i++)
 	{
-		short *d = (short *)(map->data);
-		macro
+		M[14] = i;
+		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
+		for(j=0;j<n; j++)
+			if (dat[j]>s1)
+			{
+				m++;
+				s2+=dat[j];
+			}
 	}
-	else if (map->datatype == SIGNED_INT)
-	{
-		int *d = (int *)(map->data);
-		macro
-	}
-	else if (map->datatype == FLOAT)
-	{
-		float *d = (float *)(map->data);
-		macro
-	}
-	else if (map->datatype == DOUBLE)
-	{
-		double *d = (double *)(map->data);
-		macro
-	}
-	plhs[0] = mxCreateFull(1,1,REAL);
-	mxGetPr(plhs[0])[0]=s2*map->scalefactor;
+	s2/=m;
+
+	plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
+	mxGetPr(plhs[0])[0]=s2;
+	free_maps(map);
 }

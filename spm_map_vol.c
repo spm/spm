@@ -7,28 +7,22 @@ static char sccsid[]="%W% John Ashburner %E%";
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include "mex.h"
-#include "volume.h"
+#include "spm_map.h"
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	char *str, errstr[2048];
 	int k,stlen, datasize, fd;
-	MAPTYPE *map;
+	MAP *map;
 	double *ptr;
 	static struct stat stbuf;
 
 	if (nrhs != 2 || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
 
-	/* get filename */
+	/* get filename 
 	if (!mxIsString(prhs[0]))
-		mexErrMsgTxt("filename should be a string");
+		mexErrMsgTxt("filename should be a string"); */
 	stlen = mxGetN(prhs[0]);
 	str = (char *)mxCalloc(stlen+1, sizeof(char));
 	mxGetString(prhs[0],str,stlen+1);
@@ -43,7 +37,7 @@ Matrix *plhs[], *prhs[];
 
 	/* get options */
 	if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
-		!mxIsFull(prhs[1]) || !mxIsDouble(prhs[1]))
+		mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
 	{
 		mxFree(str);
 		mexErrMsgTxt("Options vector must be numeric, real, full and double.");
@@ -55,30 +49,30 @@ Matrix *plhs[], *prhs[];
 	}
 	ptr = mxGetPr(prhs[1]);
 
-	plhs[0] = mxCreateFull((sizeof(MAPTYPE)+sizeof(double)-1)/sizeof(double),1,REAL);
-	map = (MAPTYPE *)mxGetPr(plhs[0]);
+	plhs[0] = mxCreateDoubleMatrix((sizeof(MAP)+sizeof(double)-1)/sizeof(double),1,mxREAL);
+	map = (MAP *)mxGetPr(plhs[0]);
 
 	map->magic = MAGIC;
-	map->xdim = abs((int)ptr[0]);
-	map->ydim = abs((int)ptr[1]);
-	map->zdim = abs((int)ptr[2]);
-	map->xpixdim = ptr[3];
-	map->ypixdim = ptr[4];
-	map->zpixdim = ptr[5];
-	map->scalefactor = ptr[6];
-	map->datatype = abs((int)ptr[7]);
+	map->dim[0] = abs((int)ptr[0]);
+	map->dim[1] = abs((int)ptr[1]);
+	map->dim[2] = abs((int)ptr[2]);
+	map->pixdim[0] = ptr[3];
+	map->pixdim[1] = ptr[4];
+	map->pixdim[2] = ptr[5];
+	map->scale = ptr[6];
+	map->dtype = abs((int)ptr[7]);
 	map->off = abs((int)ptr[8]);
 	map->pid = getpid();
-	if (map->xdim < 1 || map->ydim < 1 || map->zdim < 1)
+	if (map->dim[0] < 1 || map->dim[1] < 1 || map->dim[2] < 1)
 		mexErrMsgTxt("Dimensions too small.");
 
-	datasize = get_datasize(map->datatype);
+	datasize = get_datasize(map->dtype);
 	if (datasize == 0)
 	{
 		mxFree(str);
 		mexErrMsgTxt("Unrecognised datatype.");
 	}
-	map->len = ((int)(map->xdim*map->ydim*map->zdim)*datasize+7)/8;
+	map->len = ((int)(map->dim[0]*map->dim[1]*map->dim[2])*datasize+7)/8;
 	map->prot = PROT_READ;
 	map->flags = MAP_SHARED;
 

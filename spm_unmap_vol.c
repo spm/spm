@@ -2,29 +2,40 @@
 static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
-#include "cmex.h"
-#include "volume.h"
+#include "mex.h"
+#include "spm_map.h"
 
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	MAPTYPE *map;
-	int i, n;
-	double *dat;
+	mxArray *matrix_ptr;
+	MAP *current_map;
+	int j, n;
+
 	if (nrhs != 1 || nlhs > 0)
 		mexErrMsgTxt("Inappropriate usage.");
 
-	map=get_map(prhs[0]);
-	(void)munmap(map->map, map->off+map->len);
+	matrix_ptr = (mxArray *)prhs[0];
+	if ((!mxIsNumeric(matrix_ptr) || mxIsComplex(matrix_ptr) ||
+		mxIsSparse(matrix_ptr) || !mxIsDouble(matrix_ptr) ||
+		mxGetM(matrix_ptr) != (sizeof(MAP)+sizeof(double)-1)/sizeof(double)))
 
-	dat = mxGetPr(prhs[0]);
-	n = mxGetN(prhs[0])*mxGetM(prhs[0]);
-	for(i=0; i< n; i++)
-		dat[i] = 0.0;
+	n = mxGetN(matrix_ptr);
+
+	for (j=0; j<n; j++)
+	{
+		current_map = (MAP *)(mxGetPr(matrix_ptr)
+			+ j*((sizeof(MAP)+sizeof(double)-1)/sizeof(double)));
+		if (current_map->magic != MAGIC)
+			mexErrMsgTxt("Bad magic number in image handle.");
+		if (current_map->pid != getpid())
+			mexErrMsgTxt("Invalid image handle (from old session).");
+
+		(void)munmap(current_map->map, current_map->off+current_map->len);
+		current_map->map=0;
+		current_map->off=0;
+		current_map->len=0;
+		current_map->magic=0;
+		current_map->pid=0;
+	}
 }

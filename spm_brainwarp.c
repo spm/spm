@@ -3,7 +3,7 @@ static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL %E%";
 #endif lint
 
 #include "mex.h"
-#include "volume.h"
+#include "spm_vol_utils.h"
 #include <math.h>
 extern double floor(), fabs();
 
@@ -11,30 +11,22 @@ extern double floor(), fabs();
 /*
 INPUTS
 T[3*nz*ny*nx + ni*4] - current transform
+vol2            - image to normalize
+ni              - number of templates
+vols2[ni]       - templates
 
-dt2           - data type of image to normalize
-scale2        - scalefactor of image to normalize
-dim2[3]       - x, y & z dimensions of image to normalize
-dat2[dim2[2]*dim2[1]*dim2[0]]     - voxels of image to normalize
+nx              - number of basis functions in x
+BX[dim1[0]*nx]  - basis functions in x
+dBX[dim1[0]*nx] - derivatives of basis functions in x
+ny              - number of basis functions in y 
+BY[dim1[1]*ny]  - basis functions in y
+dBY[dim1[1]*ny] - derivatives of basis functions in y
+nz              - number of basis functions in z
+BZ[dim1[2]*nz]  - basis functions in z
+dBZ[dim1[2]*nz] - derivatives of basis functions in z
 
-ni            - number of templates
-dt1[ni]       - data types of templates
-scale1[ni]    - scalefactors of templates
-dim1[3]       - x, y & z dimensions of templates
-dat1[ni*dim1[2]*dim1[1]*dim1[0]] - voxels of templates
-
-nx            - number of basis functions in x
-BX[dim1[0]*nx]- basis functions in x
-dBX[dim1[0]*nx]- derivatives of basis functions in x
-ny            - number of basis functions in y 
-BY[dim1[1]*ny]- basis functions in y
-dBY[dim1[1]*ny]- derivatives of basis functions in y
-nz            - number of basis functions in z
-BZ[dim1[2]*nz]- basis functions in z
-dBZ[dim1[2]*nz]- derivatives of basis functions in z
-
-M[4*4]        - transformation matrix
-samp[3]       - frequency of sampling template.
+M[4*4]          - transformation matrix
+samp[3]         - frequency of sampling template.
 
 
 OUTPUTS
@@ -42,21 +34,24 @@ alpha[(3*nz*ny*nx+ni*4)^2] - A'A
  beta[(3*nz*ny*nx+ni*4)]   - A'b
 pss[1*1]                   - sum of squares difference
 pnsamp[1*1]                - number of voxels sampled
-
+ss_deriv[3]                - sum of squares of derivatives of residuals
 */
 
 
-void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, pnsamp, ss_deriv)
-double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], dBX[], dBY[], dBZ[], M[], scale2, scale1[], ss_deriv[3];
-int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
-unsigned char *dat1[], dat2[];
+static void mrqcof(double T[], double alpha[], double beta[], double pss[],
+	MAPTYPE *vol2, int ni, MAPTYPE *vols1,
+	int nx, double BX[], double dBX[],
+	int ny, double BY[], double dBY[],
+	int nz, double BZ[], double dBZ[],
+	double M[16], int samp[], int *pnsamp, double ss_deriv[3])
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scale1a;
-
 	double *Jz[3][3], *Jy[3][3], J[3][3];
 	double *bz3[3], *by3[3], *bx3[3];
+	int *dim1;
+	dim1 = vols1[0].dim;
 
 	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2]  = BX;
 	by3[0] =  BY;	by3[1] = dBY;	by3[2] =  BY;
@@ -191,94 +186,12 @@ unsigned char *dat1[], dat2[];
 
 
 				/* is the transformed position in range? */
-				if (s2[0]>=1 && s2[0]<dim2[0] && s2[1]>=1 &&
-					s2[1]<dim2[1] && s2[2]>=1 && s2[2]<dim2[2])
+				if (s2[0]>=1 && s2[0]<vol2->dim[0] && s2[1]>=1 &&
+					s2[1]<vol2->dim[1] && s2[2]>=1 && s2[2]<vol2->dim[2])
 				{
-					double val000, val001, val010, val011, val100, val101, val110, val111;
-					double dx1, dy1, dz1, dx2, dy2, dz2;
 					double v,dv;
-					int xcoord, ycoord, zcoord, off1, off2;
-
 					nsamp ++;
-
-					/* coordinates to resample from */
-					xcoord = (int)floor(s2[0]);
-					ycoord = (int)floor(s2[1]);
-					zcoord = (int)floor(s2[2]);
-
-					/* Calculate the interpolation weighting factors*/
-					dx1=s2[0]-xcoord; dx2=1.0-dx1;
-					dy1=s2[1]-ycoord; dy2=1.0-dy1;
-					dz1=s2[2]-zcoord; dz2=1.0-dz1;
-
-					/* get pixel values of 8 nearest neighbours */
-					off1 = xcoord-1 + dim2[0]*(ycoord-1  + dim2[1]*(zcoord-1));
-					switch (dt2)
-					{
-					case UNSIGNED_CHAR:
-						val111 = dat2[off1]; val011 = dat2[off1+1];
-						off2 = off1+dim2[0];
-						val101 = dat2[off2]; val001 = dat2[off2+1];
-						off1+= dim2[0]*dim2[1];
-						val110 = dat2[off1]; val010 = dat2[off1+1];
-						off2 = off1+dim2[0];
-						val100 = dat2[off2]; val000 = dat2[off2+1];
-						break;
-					case SIGNED_SHORT:
-						val111 = ((short *)dat2)[off1]; val011 = ((short *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val101 = ((short *)dat2)[off2]; val001 = ((short *)dat2)[off2+1];
-						off1+= dim2[0]*dim2[1];
-						val110 = ((short *)dat2)[off1]; val010 = ((short *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val100 = ((short *)dat2)[off2]; val000 = ((short *)dat2)[off2+1];
-						break;
-					case SIGNED_INT:
-						val111 = ((int *)dat2)[off1]; val011 = ((int *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val101 = ((int *)dat2)[off2]; val001 = ((int *)dat2)[off2+1];
-						off1+= dim2[0]*dim2[1];
-						val110 = ((int *)dat2)[off1]; val010 = ((int *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val100 = ((int *)dat2)[off2]; val000 = ((int *)dat2)[off2+1];
-						break;
-					case FLOAT:
-						val111 = ((float *)dat2)[off1]; val011 = ((float *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val101 = ((float *)dat2)[off2]; val001 = ((float *)dat2)[off2+1];
-						off1+= dim2[0]*dim2[1];
-						val110 = ((float *)dat2)[off1]; val010 = ((float *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val100 = ((float *)dat2)[off2]; val000 = ((float *)dat2)[off2+1];
-						break;
-					case DOUBLE:
-						val111 = ((double *)dat2)[off1]; val011 = ((double *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val101 = ((double *)dat2)[off2]; val001 = ((double *)dat2)[off2+1];
-						off1+= dim2[0]*dim2[1];
-						val110 = ((double *)dat2)[off1]; val010 = ((double *)dat2)[off1+1];
-						off2 = off1+dim2[0];
-						val100 = ((double *)dat2)[off2]; val000 = ((double *)dat2)[off2+1];
-						break;
-					default:
-						mexErrMsgTxt("Bad data type.");
-					}
-
-					/* resampled pixel value */
-					v =     (((val111*dx2 + val011*dx1)*dy2
-						+ (val101*dx2 + val001*dx1)*dy1)*dz2
-						+((val110*dx2 + val010*dx1)*dy2
-						+ (val100*dx2 + val000*dx1)*dy1)*dz1)*scale2;
-
-					/* local gradients accross resampled pixel (in space of object image) */
-					dvds0[0] = ((dy2*(val011-val111) + dy1*(val001-val101))*dz2
-						  + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2;
-
-					dvds0[1] = ((dx2*(val101-val111) + dx1*(val001-val011))*dz2
-						  + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2;
-
-					dvds0[2] = ((dx2*(val110-val111) + dx1*(val010-val011))*dy2
-						  + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2;
+					resample_d(1,vol2,&v,dvds0,dvds0+1,dvds0+2,s2,s2+1,s2+2, 1, 0.0);
 
 					/* affine transform the gradients of object image*/
 					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
@@ -298,51 +211,13 @@ unsigned char *dat1[], dat2[];
 							dvdt[i1*nx+x1] = -dvds1[i1] * BX[dim1[0]*x1+s0[0]];
 					}
 
-					/* coordinate of template voxel to sample */
-					off2 = s0[0] + dim1[0]*(s0[1] + dim1[1]*s0[2]);
-
-					/* dv will be the difference between the object image
-					   and the linear combination of templates */
 					dv = v;
 					for(i1=0; i1<ni; i1++)
 					{
 						double tmp, tmp2, grads[3];
-
-						switch (dt1[i1])
-						{
-						case UNSIGNED_CHAR:
-							tmp      = ((unsigned char *)(dat1[i1]))[off2]*scale1[i1];
-							grads[0] = tmp - ((unsigned char *)(dat1[i1]))[off2-1]*scale1[i1];
-							grads[1] = tmp - ((unsigned char *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
-							grads[2] = tmp - ((unsigned char *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
-							break;
-						case SIGNED_SHORT:
-							tmp      = ((short         *)(dat1[i1]))[off2]*scale1[i1];
-							grads[0] = tmp - ((short         *)(dat1[i1]))[off2-1]*scale1[i1];
-							grads[1] = tmp - ((short         *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
-							grads[2] = tmp - ((short         *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
-							break;
-						case SIGNED_INT:
-							tmp = ((int           *)(dat1[i1]))[off2]*scale1[i1];
-							grads[0] = tmp - ((int           *)(dat1[i1]))[off2-1]*scale1[i1];
-							grads[1] = tmp - ((int           *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
-							grads[2] = tmp - ((int           *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
-							break;
-						case FLOAT:
-							tmp = ((float         *)(dat1[i1]))[off2]*scale1[i1];
-							grads[0] = tmp - ((float         *)(dat1[i1]))[off2-1]*scale1[i1];
-							grads[1] = tmp - ((float         *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
-							grads[2] = tmp - ((float         *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
-							break;
-						case DOUBLE:
-							tmp = ((double        *)(dat1[i1]))[off2]*scale1[i1];
-							grads[0] = tmp - ((double        *)(dat1[i1]))[off2-1]*scale1[i1];
-							grads[1] = tmp - ((double        *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
-							grads[2] = tmp - ((double        *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
-							break;
-						default:
-							mexErrMsgTxt("Bad data type.");
-						}
+						double s0d[3];
+						s0d[0]=s0[0];s0d[1]=s0[1];s0d[2]=s0[2];
+						resample_d(1,&vols1[i1],&tmp,grads,grads+1,grads+2,s0d,s0d+1,s0d+2, 1, 0.0);
 
 						/* linear combination of image and image modulated by constant
 						   gradients in x, y and z */
@@ -555,9 +430,7 @@ unsigned char *dat1[], dat2[];
 	mexPrintf("\n");
 }
 
-void scale(m,dat,s)
-int m;
-double dat[], s;
+static void scale(int m, double dat[], double s)
 {
 	int i;
 	for(i=0; i<m; i++)
@@ -566,20 +439,12 @@ double dat[], s;
 
 #define MAX(a,b) (((a)>(b)) ? (b) : (a))
 
-#ifdef __STDC__
-void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	extern double rint();
-	MAPTYPE **map1, *map2;
-	int i, nx,ny,nz,ni=1, samp[3];
-	int dim1[3], dim2[3], dt1[32], dt2, nsamp;
-	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, scale1[32], scale2, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
-	unsigned char *dat1[32], *dat2;
+	extern double rint(double);
+	MAPTYPE *map1, *map2, *get_maps();
+	int i, nx,ny,nz,ni=1, samp[3], nsamp;
+	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 
         if (nrhs != 11 || nlhs > 4)
         {
@@ -587,44 +452,91 @@ Matrix *plhs[], *prhs[];
         }
 
         map1 = get_maps(prhs[0], &ni);
-        map2 = get_map(prhs[1]);
-
-	dim1[0]   = map1[0]->xdim;
-	dim1[1]   = map1[0]->ydim;
-	dim1[2]   = map1[0]->zdim;
-
+        map2 = get_maps(prhs[1], &i);
+	if (i!=1)
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Inappropriate usage.");
+	}
 
 	for (i=0; i<11; i++)
 		if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) ||
-			!mxIsFull(prhs[i]) || !mxIsDouble(prhs[i]))
+			mxIsSparse(prhs[i]) || !mxIsDouble(prhs[i]))
+		{
+			free_maps(map1);
+			free_maps(map2);
 			mexErrMsgTxt("Inputs must be numeric, real, full and double.");
+		}
 
 	if (mxGetM(prhs[2]) != 4 || mxGetN(prhs[2]) != 4)
+	{
+		free_maps(map1);
+		free_maps(map2);
 		mexErrMsgTxt("Transformation matrix must be 4x4.");
+	}
 	M = mxGetPr(prhs[2]);
 
 
-	if ( mxGetM(prhs[3]) != dim1[0]) mexErrMsgTxt("Wrong sized X basis functions.");
+	if ( mxGetM(prhs[3]) != map1[0].dim[0])
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized X basis functions.");
+	}
+
 	nx = mxGetN(prhs[3]);
 	BX = mxGetPr(prhs[3]);
-	if ( mxGetM(prhs[6]) != dim1[0] || mxGetN(prhs[6]) != nx) mexErrMsgTxt("Wrong sized X basis function derivatives.");
+	if ( mxGetM(prhs[6]) != map1[0].dim[0] || mxGetN(prhs[6]) != nx)
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized X basis function derivatives.");
+	}
+
 	dBX = mxGetPr(prhs[6]);
 
-	if ( mxGetM(prhs[4]) != dim1[1]) mexErrMsgTxt("Wrong sized Y basis functions.");
+	if ( mxGetM(prhs[4]) != map1[0].dim[1])
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized Y basis functions.");
+	}
+
 	ny = mxGetN(prhs[4]);
 	BY = mxGetPr(prhs[4]);
-	if ( mxGetM(prhs[7]) != dim1[1] || mxGetN(prhs[7]) != ny) mexErrMsgTxt("Wrong sized Y basis function derivatives.");
+	if ( mxGetM(prhs[7]) != map1[0].dim[1] || mxGetN(prhs[7]) != ny)
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized Y basis function derivatives.");
+	}
+
 	dBY = mxGetPr(prhs[7]);
 
-	if ( mxGetM(prhs[5]) != dim1[2]) mexErrMsgTxt("Wrong sized Z basis functions.");
+	if ( mxGetM(prhs[5]) != map1[0].dim[2])
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized Z basis functions.");
+	}
 	nz = mxGetN(prhs[5]);
 	BZ = mxGetPr(prhs[5]);
-	if ( mxGetM(prhs[8]) != dim1[2] || mxGetN(prhs[8]) != nz) mexErrMsgTxt("Wrong sized Z basis function derivatives.");
+	if ( mxGetM(prhs[8]) != map1[0].dim[2] || mxGetN(prhs[8]) != nz)
+	{
+		free_maps(map1);
+		free_maps(map2);
+		mexErrMsgTxt("Wrong sized Z basis function derivatives.");
+	}
 	dBZ = mxGetPr(prhs[8]);
 
 	T = mxGetPr(prhs[9]);
 	if (mxGetM(prhs[9])*mxGetN(prhs[9]) != 3*nx*ny*nz+ni*4)
+	{
+		free_maps(map1);
+		free_maps(map2);
 		mexErrMsgTxt("Transform is wrong size.");
+	}
 
 	if (mxGetM(prhs[10])*mxGetN(prhs[10]) == 1)
 	{
@@ -640,40 +552,28 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("FWHM should contain one or two values.");
 
 	/* sample about every fwhm/2 */
-	samp[0]   = rint(fwhm/2.0/map1[0]->xpixdim); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
-	samp[1]   = rint(fwhm/2.0/map1[0]->ypixdim); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
-	samp[2]   = rint(fwhm/2.0/map1[0]->zpixdim); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
+	samp[0]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
+	samp[1]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
+	samp[2]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
 
 	for(i=0; i<ni; i++)
 	{
-		dat1[i]   = map1[i]->data;
-		dt1[i]    = map1[i]->datatype;
-		scale1[i] = map1[i]->scalefactor;
-		if (dim1[0] != map1[i]->xdim || dim1[1] != map1[i]->ydim || dim1[2] != map1[i]->zdim)
+		if (map1[0].dim[0] != map1[i].dim[0] || map1[0].dim[1] != map1[i].dim[1] || map1[0].dim[2] != map1[i].dim[2])
 			mexErrMsgTxt("Volumes must have same dimensions.");
 	}
 
-	dat2      = map2->data;
-	dim2[0]   = map2->xdim;
-	dim2[1]   = map2->ydim;
-	dim2[2]   = map2->zdim;
-	dt2       = map2->datatype;
-	scale2    = map2->scalefactor;
-
-
-	plhs[0] = mxCreateFull(3*nx*ny*nz+ni*4,3*nx*ny*nz+ni*4,REAL);
-	plhs[1] = mxCreateFull(3*nx*ny*nz+ni*4,1,REAL);
-	plhs[2] = mxCreateFull(1,1,REAL);
-	plhs[3] = mxCreateFull(1,1,REAL);
+	plhs[0] = mxCreateDoubleMatrix(3*nx*ny*nz+ni*4,3*nx*ny*nz+ni*4,mxREAL);
+	plhs[1] = mxCreateDoubleMatrix(3*nx*ny*nz+ni*4,1,mxREAL);
+	plhs[2] = mxCreateDoubleMatrix(1,1,mxREAL);
+	plhs[3] = mxCreateDoubleMatrix(1,1,mxREAL);
 
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
-		dt2,scale2,dim2,dat2,
-		ni,dt1,scale1,dim1,dat1,
+		map2, ni,map1,
 		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp, ss_deriv);
 
-	fwhm3 = ((map1[0]->xpixdim/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
-	         (map1[0]->ypixdim/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
-	         (map1[0]->zpixdim/sqrt(2.0*ss_deriv[2]/chi2))*sqrt(8.0*log(2.0)))/3.0;
+	fwhm3 = ((map1[0].pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
+	         (map1[0].pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
+	         (map1[0].pixdim[2]/sqrt(2.0*ss_deriv[2]/chi2))*sqrt(8.0*log(2.0)))/3.0;
 
 	*mxGetPr(plhs[3]) = fwhm3;
 
@@ -684,9 +584,9 @@ Matrix *plhs[], *prhs[];
 
 	/* W = fwhm/sqrt(8*log(2))
 	   W*sqrt(2*pi) = fwhm*1.0645 */
-	df = (MAX((map1[0]->xpixdim*samp[0])/(fwhm2*1.0645),1.0) *
-	      MAX((map1[0]->ypixdim*samp[1])/(fwhm2*1.0645),1.0) *
-	      MAX((map1[0]->zpixdim*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
+	df = (MAX((map1[0].pixdim[0]*samp[0])/(fwhm2*1.0645),1.0) *
+	      MAX((map1[0].pixdim[1]*samp[1])/(fwhm2*1.0645),1.0) *
+	      MAX((map1[0].pixdim[2]*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
 
 	chi2 /= df;
 	mxGetPr(plhs[2])[0] = chi2;
@@ -695,5 +595,6 @@ Matrix *plhs[], *prhs[];
 	scale((3*nx*ny*nz+ni*4)                  , mxGetPr(plhs[1]), 1.0/chi2);
 
 	free_maps(map1);
+	free_maps(map2);
 }
 
