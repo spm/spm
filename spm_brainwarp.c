@@ -279,7 +279,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					}
 
 					if (wtf>1e-6)
-						dv1 = wt*wt*wt*dv/(wtf*wtf*wtf);
+						dv1 = 0.5*wt*wt*wt*dv/(wtf*wtf);
 					else
 						dv1 = 0.0;
 

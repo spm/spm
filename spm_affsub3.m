@@ -359,7 +359,7 @@ while iter <= 128 & countdown < 4,
 
 	% Update parameter estimates
 	%----------------------------------------------------------------------
-	P(qq) = pinv(alpha + IC0) * (alpha*P(qq) - beta + IC0*P0);
+	P(qq) = pinv(IC0 + alpha) * (IC0*P0 + alpha*P(qq) - beta);
 
 	iter = iter + 1;
 end;
@@ -410,13 +410,6 @@ function [alpha, beta, chi2, W] = spm_affsub1(ifun,VG,VF,VW,VW2,Hold,samp,P,minW
 
 fun = inline(ifun,'P');
 
-% Flag for masking of template or object
-if ~isempty(VW) | ~isempty(VW2)
-	wF = 1;
-else
-	wF = 0;
-end
-
 % Sample about every samp mm
 %-----------------------------------------------------------------------
 vx = sqrt(sum(VG(1).mat(1:3,1:3).^2));
@@ -455,69 +448,55 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 
 	% Coordinates of templates
 	%-----------------------------------------------------------------------
-	[Y,X] = meshgrid(1:skipy:VG(1).dim(2), 1:skipx:VG(1).dim(1));
+	[X,Y] = ndgrid(1:skipx:VG(1).dim(1), 1:skipy:VG(1).dim(2));
 	X=X(:); Y=Y(:);
 
 	% Transformed template coordinates.
 	%-----------------------------------------------------------------------
-	X1 = Mat(1,1)*X + Mat(1,2)*Y + (Mat(1,3)*p + Mat(1,4));
-	Y1 = Mat(2,1)*X + Mat(2,2)*Y + (Mat(2,3)*p + Mat(2,4));
-	Z1 = Mat(3,1)*X + Mat(3,2)*Y + (Mat(3,3)*p + Mat(3,4));
+	[X1,Y1,Z1] = aff_transform(Mat,X,Y,p);
 
-	if wF,
-		if ~isempty(VW),
-			% Sample weighting image
-			%---------------------------------------------------------------
-			MatW  = inv(VG(1).mat\VW(1).mat);
-			XW    = MatW(1,1)*X + MatW(1,2)*Y + (MatW(1,3)*p + MatW(1,4));
-			YW    = MatW(2,1)*X + MatW(2,2)*Y + (MatW(2,3)*p + MatW(2,4));
-			ZW    = MatW(3,1)*X + MatW(3,2)*Y + (MatW(3,3)*p + MatW(3,4));
-			wt    = spm_sample_vol(VW(1), XW, YW, ZW, 1);
-			if ~isempty(VW2),
-				MatW  = inv(VG(1).mat\fun(P')*VW2(1).mat);
-				XW    = MatW(1,1)*X + MatW(1,2)*Y + (MatW(1,3)*p + MatW(1,4));
-				YW    = MatW(2,1)*X + MatW(2,2)*Y + (MatW(2,3)*p + MatW(2,4));
-				ZW    = MatW(3,1)*X + MatW(3,2)*Y + (MatW(3,3)*p + MatW(3,4));
-				wt2   = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
-				wt    = ((wt+eps).^(-1) + (wt2+eps).^(-1)).^(-1);
-			end;
-		else,    %only object weights
-			MatW  = inv(VG(1).mat\fun(P')*VW2(1).mat);
-			XW    = MatW(1,1)*X + MatW(1,2)*Y + (MatW(1,3)*p + MatW(1,4));
-			YW    = MatW(2,1)*X + MatW(2,2)*Y + (MatW(2,3)*p + MatW(2,4));
-			ZW    = MatW(3,1)*X + MatW(3,2)*Y + (MatW(3,3)*p + MatW(3,4));
-			wt    = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
-		end;
-
-		% Only resample from within the volume VF and where the weight > 0.005.
-		%-----------------------------------------------------------------------
-		t = 4.9e-2;
-		mask1 = find((Z1>=1-t) & (Z1<=VF(1).dim(3)+t) ...
-			   & (Y1>=1-t) & (Y1<=VF(1).dim(2)+t) ...
-			   & (X1>=1-t) & (X1<=VF(1).dim(1)+t) & wt>0.005);
-		wt = sqrt(wt(mask1));
-	else,
-		% Only resample from within the volume VF.
-		%-----------------------------------------------------------------------
-		t = 4.9e-2;
-		mask1 = find((Z1>=1-t) & (Z1<=VF(1).dim(3)+t) ...
-			   & (Y1>=1-t) & (Y1<=VF(1).dim(2)+t) ...
-			   & (X1>=1-t) & (X1<=VF(1).dim(1)+t));
-	end;
-
+	% Only resample from within the volume VF.
+	%-----------------------------------------------------------------------
+	t = 4.9e-2;
+	mask1 = find((Z1>=1-t) & (Z1<=VF(1).dim(3)+t) ...
+		   & (Y1>=1-t) & (Y1<=VF(1).dim(2)+t) ...
+		   & (X1>=1-t) & (X1<=VF(1).dim(1)+t));
 
 	% Don't waste time on an empty plane.
 	%-----------------------------------------------------------------------
 	if length(mask1>0),
 
-		% Only resample from within the volume VF.
-		%-----------------------------------------------------------------------
 		if length(mask1) ~= prod(size(X1)),
 			X1 = X1(mask1);
 			Y1 = Y1(mask1);
 			Z1 = Z1(mask1);
 			X  = X(mask1);
 			Y  = Y(mask1);
+		end;
+
+		if ~isempty(VW),
+			[XW,YW,ZW] = aff_transform(inv(VG(1).mat\VW(1).mat),X,Y,p);
+			wg         = spm_sample_vol(VW(1), XW, YW, ZW, 1);
+		else,   wg         = ones(size(X)); end;
+
+		if ~isempty(VW2),
+			MatW             = inv(VG(1).mat\fun(P')*VW2(1).mat);
+			[XW,YW,ZW]       = aff_transform(MatW,X,Y,p);
+			[wf,dxW,dyW,dzW] = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
+			[dxW,dyW,dzW]    = transform_derivs(VW2(1).mat\VF(1).mat,dxW,dyW,dzW);
+		else,
+			wf               = ones(size(X));
+			dxW              = zeros(size(X));
+			dyW              = dxW;
+			dzW              = dxW;
+		end;
+		wt    = sqrt(1./(1./(wg+eps) + 1./(wf+eps)));
+
+		% Only resample from within the volume VF.
+		%-----------------------------------------------------------------------
+		if length(mask1) ~= prod(size(X1)),
+			X1 = X1(mask1); Y1 = Y1(mask1); Z1 = Z1(mask1);
+			X  =  X(mask1); Y  =  Y(mask1);
 		end;
 		Z = zeros(size(mask1))+p;
 
@@ -527,52 +506,50 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 
 		% Sample object image & get local derivatives
 		%-----------------------------------------------------------------------
-		[F,dxF,dyF,dzF] = spm_sample_vol(VF, X1, Y1, Z1, Hold);
+		[F,dxF,dyF,dzF]  = spm_sample_vol(VF, X1, Y1, Z1, Hold);
 
 		% Sample referance image(s) and derivatives
 		%-----------------------------------------------------------------------
+		res = -F;
 		for i=1:length(VG),
+			[XW,YW,ZW] = aff_transform(VG(i).mat\VG(1).mat,X,Y,p);
 			if nargout>=4,
 				% For computing gradients of residuals
-				[Gi,dxt,dyt,dzt] = spm_sample_vol(VG(i), X, Y, Z, Hold);
+				[Gi,dxt,dyt,dzt] = spm_sample_vol(VG(i), XW, YW, ZW, Hold);
+				[dxt,dyt,dzt]    = transform_derivs(VG(i).mat\VG(1).mat,dxt,dyt,dzt);
 				if i==1,
-					res = F   - Gi*P(i+12); % Residuals
 					dxG = dxt*P(i+12);
 					dyG = dyt*P(i+12);
 					dzG = dzt*P(i+12);
 				else,
-					res = res - Gi*P(i+12);
 					dxG = dxG+dxt*P(i+12);
 					dyG = dyG+dyt*P(i+12);
 					dzG = dzG+dzt*P(i+12);
 				end;
 			else,
-				Gi = spm_sample_vol(VG(i), X, Y, Z, Hold);
-				if i==1, res = F   - Gi*P(i+12); % Residuals
-				else,    res = res - Gi*P(i+12); end;
+				Gi = spm_sample_vol(VG(i), XW, YW, ZW, Hold);
 			end;
-			if wF, Gi = Gi.*wt; end;
-			dResdM(:,12+i) = -Gi;
+			res = res + Gi*P(i+12);
+			dResdM(:,12+i) = Gi.*wt;
 		end;
 
-		if wF,
-			dxF  = dxF.*wt;
-			dyF  = dyF.*wt;
-			dzF  = dzF.*wt;
-			if nargout>=4,
-				dxG  = dxG.*wt;
-				dyG  = dyG.*wt;
-				dzG  = dzG.*wt;
-			end;
-			res = res.*wt;
-		end;
-
-		% Generate Design Matrix from rate of change of residuals wrt matrix
-		% elements.
+		% Generate matrix from rate of change of residuals wrt matrix elements.
 		%-----------------------------------------------------------------------
-		dResdM(:,1:12) = [	X.*dxF Y.*dxF p*dxF dxF ...
-	       	            		X.*dyF Y.*dyF p*dyF dyF ...
-	       	            		X.*dzF Y.*dzF p*dzF dzF ];
+		% Derivatives obtained by:
+		% maple diff((1/w1+1/w2(p1*b1(x)+p2*b2(x)))^(-1/2) * (p3*g-f(p1*b1(x)+p2*b2(x))),p1)
+		% to give something like:
+		% 	w = sqrt(1/(1/w1+1/w2))
+		% 	(1/2*w^3*(p3*g-f)/w2^2*D(w2)-w*D(f))*b1(x)
+
+		w1  = 0.5*(wt.*wt.*wt.*res+1e-20)./(wf.*wf+1e-12);
+		dx1 = w1.*dxW - wt.*dxF;
+		dy1 = w1.*dyW - wt.*dyF;
+		dz1 = w1.*dzW - wt.*dzF;
+		dResdM(:,1:12) = [	X.*dx1 Y.*dx1 p*dx1 dx1 ...
+	       	            		X.*dy1 Y.*dy1 p*dy1 dy1 ...
+	       	            		X.*dz1 Y.*dz1 p*dz1 dz1 ];
+
+		res = res.*wt;
 
 		% alpha = alpha + A'*A and beta = beta + A'*b
 		%-----------------------------------------------------------------------
@@ -580,22 +557,20 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 		beta  = beta  + dResdM'*res;
 		clear dResdM
 
-		% Assorted variables which are used later.
+		% Assorted variables that are used later.
 		%-----------------------------------------------------------------------
 		chi2  = chi2 + res'*res;		% Sum of squares of residuals
-		if wF, n = n + sum(wt.*wt);
-		else,  n = n + prod(size(F)); end;
+		n     = n    + wt'*wt;
 
 		if nargout>=4,
 			% Spatial derivatives of residuals derived from
 			% (derivatives of F rotated to space of G) - (derivatives of G).
 			%-----------------------------------------------------------------------
-			tmp = Mat(1:3,1:3)';
-			dF  = [dxF dyF dzF]*tmp';
-			dxF  = dF(:,1) - dxG;
-			dyF  = dF(:,2) - dyG;
-			dzF  = dF(:,3) - dzG;
-			dch2  = dch2 + [dxF'*dxF dyF'*dyF dzF'*dzF];	% S.o.sq of derivs of residls
+			[dxF,dyF,dzF] = transform_derivs(Mat,dxF,dyF,dzF);
+			dxF  = wt.*(dxF - dxG);
+			dyF  = wt.*(dyF - dyG);
+			dzF  = wt.*(dzF - dzG);
+			dch2  = dch2 + [dxF'*dxF dyF'*dyF dzF'*dzF];
 		end;
 	end;
 end;
@@ -636,3 +611,33 @@ alpha = dMdP'*alpha*dMdP/chi2;
 beta  = dMdP'*beta      /chi2;
 
 return;
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function [X1,Y1,Z1] = aff_transform(Mat,X,Y,Z)
+t1 = eye(4);
+if sum((t1(:)-Mat(:)).^2) < 1e-12,
+	X1 = X;
+	Y1 = Y;
+	Z1 = Z; if prod(size(Z1))==1, Z1 = zeros(size(X1))+Z1; end;
+else,
+	X1    = Mat(1,1)*X + Mat(1,2)*Y + (Mat(1,3)*Z + Mat(1,4));
+	Y1    = Mat(2,1)*X + Mat(2,2)*Y + (Mat(2,3)*Z + Mat(2,4));
+	Z1    = Mat(3,1)*X + Mat(3,2)*Y + (Mat(3,3)*Z + Mat(3,4));
+end;
+return;
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function [X1,Y1,Z1] = transform_derivs(Mat,X,Y,Z)
+t1 = Mat(1:3,1:3);
+t2 = eye(3);
+if sum((t1(:)-t2(:)).^2) < 1e-12,
+	X1 = X;Y1 = Y; Z1 = Z;
+else,
+	X1    = Mat(1,1)*X + Mat(1,2)*Y + Mat(1,3)*Z;
+	Y1    = Mat(2,1)*X + Mat(2,2)*Y + Mat(2,3)*Z;
+	Z1    = Mat(3,1)*X + Mat(3,2)*Y + Mat(3,3)*Z;
+end;
+return;
+%__________________________________________________________________________
