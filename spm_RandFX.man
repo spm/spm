@@ -2,6 +2,11 @@
 % Random effects analyses for SPM'96 using a multi-level approach
 %_______________________________________________________________________
 %
+%     ^                                                            ^    
+%    / \                  Last updated 20/02/1998                 / \   
+%   / ! \       *   U N D E R   C O N S T R U C T I O N   *      / ! \  
+%  /_____\            Still to be updated for SPM99!            /_____\ 
+%
 % In general mixed effects models (with both random and fixed effects)
 % are difficult to analyse. However, in functional neuroimaging the
 % models are fairly simple, balanced, and the only random effect of

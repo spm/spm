@@ -2,6 +2,12 @@
 % The analysis of fMRI activation studies
 %_______________________________________________________________________
 %
+%     ^                                                            ^    
+%    / \                 Last updated 28/09/1996!                 / \   
+%   / ! \       *   U N D E R   C O N S T R U C T I O N   *      / ! \  
+%  /_____\            Still to be updated for SPM99!            /_____\ 
+%
+%_______________________________________________________________________
 % SEE ALSO
 %    spm_fmri_spm_ui.m   -   User interface to fMRI statistics
 %    spm_spm.m           -   Main statistical routine
