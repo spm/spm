@@ -2,7 +2,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Conditional parameter estimation of a General Linear Model
 % FORMAT [SPM] = spm_spm_Bayes(SPM)
 %_______________________________________________________________________
-% spm_spm_Bayes returns to voxels identified by spm_spm (OLS parameter
+% spm_spm_Bayes returns to voxels identified by spm_spm (ML parameter
 % estimation) to get conditional parameter estimates and ReML hyper-
 % parameter estimates.  These estimates use prior covariances, on the
 % parameters, from emprical Bayes.  These PEB prior variances come from
@@ -14,7 +14,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % analysis at each voxel, using emprical Bayesian prior variance
 % estimators over voxels.
 %
-% Each separable partition (i.e. Session) is assigned its own
+% Each separable partition (i.e. session) is assigned its own
 % hyperparameter but within session covariance components are lumped
 % together, using their relative expectations over voxels.  This makes
 % things much more computationally efficient and avoids inefficient
@@ -32,8 +32,8 @@ function [SPM] = spm_spm_Bayes(SPM)
 %	SPM.PPM.ddC{i} = ddC/dldl
 %
 % The derivatives are used to compute the conditional variance of various
-% contrasts in spm_getSPM, using a second order Taylor expansion about the
-% hyperparameter means.
+% contrasts in spm_getSPM, using a Taylor expansion about the hyperparameter
+% means.
 %
 %
 %                           ----------------
@@ -70,14 +70,14 @@ if ~nargin
 	load(fullfile(swd,'SPM.mat'))
 	cd(swd)
 end
+helpdlg('This could take some time');
 spm('Pointer','Watch')
 
 
-global defaults
- 
 %-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
-MAXMEM   = defaults.stats.maxmem;
+global defaults
+MAXMEM = defaults.stats.maxmem;
 
 M      = SPM.xVol.M;
 DIM    = SPM.xVol.DIM;
@@ -112,8 +112,14 @@ Vbeta = spm_create_vol(Vbeta,'noopen');
 
 %-Intialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
-nHp     = length(SPM.nscan);
-VHp(1:nHp)     = deal(struct(...
+try
+	nHp       = length(SPM.nscan);
+catch
+	nHp       = nScan;
+	SPM.nscan = nScan;
+end
+
+VHp(1:nHp)        = deal(struct(...
 			'fname',	[],...
 			'dim',		[DIM',spm_type('double')],...
 			'mat',		M,...
@@ -124,7 +130,7 @@ for i = 1:nHp
 	VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
 	spm_unlink(VHp(i).fname)
 end
-VHp = spm_create_vol(VHp,'noopen');
+VHp   = spm_create_vol(VHp,'noopen');
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 
@@ -134,7 +140,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 %=======================================================================
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...estimatng priors')   %-#
 
-% get row u{i} and column {vi}/v0{i} indices for separable designs
+% get row u{i} and column v{i}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
 s      = nHp;
 if isfield(SPM,'Sess')
@@ -146,7 +152,7 @@ if isfield(SPM,'Sess')
 else
 	 u{1} = [1:nScan];
 	 v{1} = [xX.iH xX.iC];
-	v0{1} = [xX.iB xX.iG]
+	v0{1} = [xX.iB xX.iG];
 end
 
 % cycle over separarable partitions
@@ -156,9 +162,9 @@ for i = 1:s
 	% Get design X and confounds X0
 	%---------------------------------------------------------------
 	fprintf('%-30s- %i\n','  ReML Session',i);
-	X      = xX.X(u{i}, v{i});
-	X0     = xX.X(u{i},v0{i});
-	[m n]  = size(X);
+	X     = xX.X(u{i}, v{i});
+	X0    = xX.X(u{i},v0{i});
+	[m n] = size(X);
 
 	% add confound in 'filter'
 	%---------------------------------------------------------------
@@ -168,55 +174,34 @@ for i = 1:s
 
 	% orthogonalize X w.r.t. X0
 	%---------------------------------------------------------------
-	X      = X - X0*(pinv(X0)*X);
+	X     = X - X0*(pinv(X0)*X);
 
 	% covariance components induced by parameter variations {Q}
 	%---------------------------------------------------------------
-	for  j = 1:n
+	for j = 1:n
 		Q{j} = X*sparse(j,j,1,n,n)*X';
 	end
 
 	% covariance components induced by error non-sphericity {V}
 	%---------------------------------------------------------------
-	V      = {};
-	if iscell(SPM.xVi.Vi)
-		for j = 1:length(SPM.xVi.Vi)
-			q  = SPM.xVi.Vi{j}(u{i},u{i});
-			if any(find(q));
-				V{end + 1} = q;
-			end
-		end
-	else
-		V     = {speye(m,m)};
-	end
+	Q{n + 1} = SPM.xVi.V(u{i},u{i});
 
 	% ReML covariance component estimation
 	%---------------------------------------------------------------
-	[C h W] = spm_reml(SPM.xVi.CY,X0,{Q{:} V{:}});
+	[C h W] = spm_reml(SPM.xVi.CY,X0,Q);
 
 	% check for negative variance component estimates
 	%---------------------------------------------------------------
 	if any(h < 0)
-		W     = diag(W);
-		Xname = SPM.xX.name{find(W == min(W))};
+		Xname = SPM.xX.name{find(h == min(h))};
 		str = {	'Bayesian estimation is compromised';...
 			'by negative variance component estimates';...
 			[Xname 'was estimated imprecisely'];...
-			'Recommendation: Remove and this related';...
-			'regressors from the model'};
+			'Recommendation: Use a more';...
+			'parsimonious model'};
 		if spm_input(str,1,'bd','stop|continue',[1,0],1)
 			return
 		end
-	end
-
-	% lump error covariance components togther to form V
-	%---------------------------------------------------------------
-	if length(V) > 1
-		q     = sparse(m,m);
-		for j = 1:length(V)
-			q = q + V{j}*h(n + j);
-		end
-		V     = {q*m/trace(q)};
 	end
 
 	% 2-level model for this partition using prior variances sP(i)
@@ -225,15 +210,13 @@ for i = 1:s
 	n0      = size(X0,2);
 	Cb      = blkdiag(diag(h(1:n)),speye(n0,n0)*1e8);
 	P{1}.X  = [X X0];
-	P{1}.C  = V;
+	P{1}.C  = {SPM.xVi.V};
 	P{2}.X  = sparse(size(P{1}.X,2),1);
 	P{2}.C  = Cb;
 
 	sP(i).P = P;
 	sP(i).u = u{:};
 	sP(i).v = [v{:} v0{:}];
-	sP(i).h = h;
-
 end
 
 
@@ -249,7 +232,7 @@ spm_progress_bar('Init',100,'Bayesian estimation','');
 %-Find a suitable block size for loop over planes (2D or 3D data)
 %-----------------------------------------------------------------------
 blksz = ceil(MAXMEM/8/nScan);
-SHp   = 0;
+SHp   = 0;				% sum of hyperparameters
 for z = 1:zdim
 
     % current plane-specific parameters
@@ -269,17 +252,13 @@ for z = 1:zdim
 
 	%-Get response variable
 	%---------------------------------------------------------------
-	Y     = zeros(nScan,nVox);
-	for i = 1:nScan
-		Y(i,:) = ...
-		spm_sample_vol(SPM.xY.VY(i),xyz(1,:),xyz(2,:),xyz(3,:),0);
-	end
+	Y     = spm_get_data(SPM.xY.VY,xyz);
 
 	%-Conditional estimates (per partition, per voxel)
 	%---------------------------------------------------------------
 	beta  = zeros(nBeta,nVox);
 	Hp    = zeros(nHp,  nVox);
-	for j = 1:length(sP)
+	for j = 1:s
 		P     = sP(j).P;
 		u     = sP(j).u;
 		v     = sP(j).v;
@@ -296,7 +275,7 @@ for z = 1:zdim
 	CrHp(:,I) = Hp;
 	SHp       = SHp + sum(Hp,2);
 
-    end   % (bch)
+    end % (bch)
 
 
     %-write out plane data to image files
@@ -338,9 +317,9 @@ fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation') %-#
 
 % expansion point (mean hyperparameters)
 %-----------------------------------------------------------------------
-l     = SHp/S;
+l     = SHp/SPM.xVol.S;
 
-% change on conditional coavriance w.r.t. hyperparameters
+% change in conditional coavriance w.r.t. hyperparameters
 %-----------------------------------------------------------------------
 n     = size(xX.X,2);
 PPM.l = l;
@@ -350,11 +329,11 @@ for i = 1:s
 end
 for i = 1:s
 
-	P     = sP(j).P;
-	u     = sP(j).u;
-	v     = sP(j).v;
+	P     = sP(i).P;
+	u     = sP(i).u;
+	v     = sP(i).v;
 
-	% derivatives
+	% derivatives of conditional covariance w.r.t. hyperparameters
 	%---------------------------------------------------------------
 	d     = P{1}.X'*inv(P{1}.C{1})*P{1}.X;
 	Cby   = inv(d/l(i) + inv(P{2}.C));
@@ -375,8 +354,8 @@ end
 %-"close" written image files, updating scalefactor information
 %=======================================================================
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
-Vbeta = spm_close_vol(Vbeta);
-VHp   = spm_close_vol(VHp);
+Vbeta      = spm_close_vol(Vbeta);
+VHp        = spm_close_vol(VHp);
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
