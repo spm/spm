@@ -444,8 +444,8 @@ static double sample(double c[], int m0, int m1, int m2,
 
 	/* Create lookups of voxel locations - for coping with edges */
 	for(k=0; k<=d[0]; k++) o0[k] = bnd[0](k+i0, m0);
-	for(k=0; k<=d[0]; k++) o1[k] = bnd[1](k+i1, m1)*m0;
-	for(k=0; k<=d[0]; k++) o2[k] = bnd[2](k+i2, m2)*(m0*m1);
+	for(k=0; k<=d[1]; k++) o1[k] = bnd[1](k+i1, m1)*m0;
+	for(k=0; k<=d[2]; k++) o2[k] = bnd[2](k+i2, m2)*(m0*m1);
 
 	/* Convolve coefficients with basis functions */
 	d2 = 0.0;
