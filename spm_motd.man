@@ -1,20 +1,20 @@
 
-% Welcome to SPM99
+% Welcome to SPM2
 %_______________________________________________________________________
 %
-% This is SPM99, the final public release of SPM'99 - released 25/01/2000
-% Please refer to this version as "SPM99" in papers and communications.
+% This is SPM2, the beta release of SPM2 - released 01/07/2002
+% Please refer to this version as "SPM2" in papers and communications.
 %
 %                           ----------------
 %
-% Although SPM99 will read image files from previous versions of SPM,
+% Although SPM2 will read image files from previous versions of SPM,
 % there are differences in the algorithms, templates and models used.
 % Therefore, we recommend you use a single SPM version for any given
 % project.
 %
 % Please take time to review the the (mostly updated) help, in
 % particular the "About SPM" topic (spm.man), which lists new features
-% of SPM99.
+% of SPM2.
 %
 % Further information may be found at the SPMweb site:
 %                  http://www.fil.ion.ucl.ac.uk/spm
@@ -45,4 +45,4 @@
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
-% (c) 1991,1994-2000                                        spm_motd.man
+% (c) 1991,1994-2002                                        spm_motd.man
