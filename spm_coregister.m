@@ -66,7 +66,7 @@ function spm_coregister(PGF, PFF, PGG, PFG, others,flags)
 % This form simply does a graphic display of how well the coregistration has
 % worked.
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 do_disp = 0;
 

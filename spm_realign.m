@@ -453,7 +453,7 @@ take_abs = 0; if any(Flags == 'a'), take_abs = 1; end;
 
 P=spm_vol(P);
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 linfun('Reslicing images..');
 
 Hold = 1;
@@ -628,7 +628,7 @@ function realign_images(P,Q,sessions)
 %         over the first image of the series.
 %
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 global MODALITY
 P=spm_vol(P);
@@ -1089,7 +1089,7 @@ if any(Flags == 'F'),
 	end;
 end;
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 if any(Flags == 'k') | any(Flags == 'i'),
 	linfun('Computing mask..');
