@@ -235,9 +235,12 @@ if isempty(c), varargout={[]}; return, end
 
 switch lower(action)
 	case 'iscon'
-		varargout = { spm_sp('isinspp',sX,c) };
+		for k = 1:size(c,2)
+		    answ(k) = spm_sp('isinspp',sX,c(:,k));
+		    varargout = { answ };
+		end
 	case 'allcon'
-		varargout = {all(spm_sp('isinspp',sX,c))};
+		varargout = {spm_sp('isinspp',sX,c)};
 	case 'conr'
 		if size(c,1) ~= spm_sp('size',sX,2) 
 			error('Contrast not of the right size'), end
@@ -332,13 +335,26 @@ sL	= spm_sp('size',sX,2);
 i0 	= sf_check_i0(i0,spm_sp('size',sX,2));
 %--------- end argument check --------- 
 
-opp 	= spm_sp('oPp',sX);
+
 c0	= eye(sL); c0 = c0(:,i0);
 c1	= eye(sL); c1 = c1(:,setdiff(1:sL,i0));
+
+% opp 	= spm_sp('oPp',sX);
+%- try to avoid the matlab error when doing svd of matrices with
+%- high multiplicities. (svd convergence pb)
+
+if ~ spm_sp('isinspp',sX,c0), c0 = spm_sp('oPp:',sX,c0); end;
+if ~ spm_sp('isinspp',sX,c1), c1 = spm_sp('oPp:',sX,c1); end;
+
 if ~isempty(c1)
    if ~isempty(c0) 
-      varargout = { spm_sp('res',spm_sp('set',opp*c0),opp*c1) };
-   else varargout = { xpx }; end;
+      %- varargout = { spm_sp('res',spm_sp('set',opp*c0),opp*c1) };
+      %-  varargout = { c1 - c0*pinv(c0)*c1 }; NB: matlab pinv uses
+      %- svd: will fail if spm_sp('set')  fails. 
+
+      varargout = { spm_sp('r:',spm_sp('set',c0),c1) };
+
+   else varargout = { spm_sp('xpx',sX) }; end;
 else
    varargout = { [] };	%- not zeros(sL,1) : this is return when  
 			%- appropriate
@@ -367,20 +383,22 @@ if	spm_sp('size',sX,1) ~= size(X0,1) & ~isempty(X0),
 %--------- end argument check --------- 
 
 if ~isempty(X0)
-	sc0 = spm_sp('set',spm_sp('x-',sX)*X0);
-	if  sc0.rk
-   	c = spm_sp('oPp',sX,spm_sp('res',sc0));
-	else 
-		c = spm_sp('oPp',sX);
-	end;
-   c = c(:,any(c));
-	sL = spm_sp('size',sX,2);
 
-	if isempty(c) & size(X0,2) ~= sL
+   sc0 = spm_sp('set',spm_sp('x-',sX)*X0);
+   if  sc0.rk
+   	c = spm_sp('oPp',sX,spm_sp('res',sc0));
+   else 
+	c = spm_sp('oPp',sX);
+   end;
+   c = c(:,any(c));
+   sL = spm_sp('size',sX,2);
+
+   if isempty(c) & size(X0,2) ~= sL
    	varargout = { zeros(sL,1) };
-	else 
+   else 
    	varargout = { c };
-	end
+   end
+
 else 
    varargout = { spm_sp('xpx',sX) };
 end
@@ -403,7 +421,7 @@ varargout = { spm_sp('==',sX,c) };
 
 
 case {'c->h','betarc'}  %-Extra sum of squares matrix for beta's from 
-								%- contrast : use F-contrast if possible
+                        %- contrast : use F-contrast if possible
 %=======================================================================
 % H = spm_SpUtil('c->H',sX,c)
 if nargin<3, error('insufficient arguments');
