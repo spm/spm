@@ -34,6 +34,9 @@ function spm_surf(P,mode)
 %    axis image;
 %    rotate3d on;
 %
+%
+% The surface can also be save as OBJ format, as used by Alias|Wavefront.
+% See e.g. http://www.nada.kth.se/~asa/Ray/matlabobj.html
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -108,16 +111,11 @@ if any(mode==[2 3 4]),
 		save(matname,'faces','vertices');
 	end;
 	if any(mode==[4]),
-		fname = fullfile(pth,['surf_' nam '.obj']);
+		fname = fullfile(pth,[nam '.obj']);
 		fid   = fopen(fname,'w');
-		%for i=1:size(v,1),
-		%	fprintf(fid,'v %f %f %f\n',vertices(i,1),vertices(i,2),vertices(i,3));
-		%end;
-		fprintf(fid,'v %f %f %f\n',vertices');
+		fprintf(fid,'# Created with SPM2 (%s v %s) on %s\n', mfilename,'%I%',date);
+		fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
 		fprintf(fid,'g Cortex\n'); % Group Cortex
-		%for i=1:size(f,1),
-		%	fprintf(fid,'f %d %d %d\n',faces(i,1),faces(i,2),faces(i,3));
-		%end;
 		fprintf(fid,'f %d %d %d\n',faces');
 		fprintf(fid,'g\n');
 		fclose(fid);
