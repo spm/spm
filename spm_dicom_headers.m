@@ -63,6 +63,7 @@ while ~isempty(tag),
 		case {'PixelData'},
 			ret.StartOfPixelData = ftell(fp);
 			ret.SizeOfPixelData  = tag.length;
+			ret.VROfPixelData    = tag.vr;
 			fseek(fp,tag.length,'cof');
 		case {'CSAData'}, % raw data
 			ret.StartOfCSAData = ftell(fp);
