@@ -579,6 +579,7 @@ return;
 function run_stats(job)
 % Set up the design matrix and run a design.
 
+spm_defaults;
 global defaults
 
 original_dir = pwd;
@@ -725,7 +726,15 @@ SPM.xX.K(1).HParam = job.sess(i).hpf;
 
 % Autocorrelation
 %-------------------------------------------------------------
-SPM.xVi.form = job.cvi;
+classical=isfield(job.estim.Method,'Classical');
+
+if classical,
+    SPM.xVi.form = job.estim.Method.Classical.cvi;
+else
+    % Autocorrelation is specified in a different way
+    % for Bayesian estimation
+    SPM.xVi.form = 'none';
+end
 
 % Let SPM configure the design
 %-------------------------------------------------------------
@@ -747,7 +756,13 @@ end;
 
 fprintf('%30s\n','...SPM.mat with mask saved')                     %-#
 
-SPM = spm_spm(SPM);
+if strcmp(job.estim.when,'At Run Time')
+    if classical
+        SPM = spm_spm(SPM);
+    else
+        SPM = spm_spm_vb(SPM);
+    end
+end
 
 my_cd(original_dir); % Change back
 
