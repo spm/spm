@@ -14,8 +14,8 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % 	f        - function value at minimum
 %
 %_______________________________________________________________________
-% Method is based on Powell's optimisation method from Numerical Recipes
-% in C (Press, Flannery, Teukolsky & Vetterling).
+% Method is based on Powell's optimisation method described in
+% Numerical Recipes (Press, Flannery, Teukolsky & Vetterling).
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -28,7 +28,7 @@ for iter=1:128,
 	del  = 0;
 	for i=1:length(p),
 		ft = f;
-		[p,junk,f] = linmin(p,xi(:,i),func,f,tolsc,varargin{:});
+		[p,junk,f] = min1d(p,xi(:,i),func,f,tolsc,varargin{:});
 		if abs(ft-f) > del,
 			del  = abs(ft-f);
 			ibig = i;
@@ -37,7 +37,7 @@ for iter=1:128,
 	if sqrt(sum(((p(:)-pp(:))./tolsc(:)).^2))<1, return; end;
 	ft = feval(func,2.0*p-pp,varargin{:});
 	if ft < f,
-		[p,xi(:,ibig),f] = linmin(p,p-pp,func,f,tolsc,varargin{:});
+		[p,xi(:,ibig),f] = min1d(p,p-pp,func,f,tolsc,varargin{:});
 	end;
 end;
 warning('Too many optimisation iterations');
@@ -45,59 +45,59 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [p,pi,f] = linmin(p,pi,func,f,tolsc,varargin)
+function [p,pi,f] = min1d(p,pi,func,f,tolsc,varargin)
 % Line search for minimum.
 
-global lnm % used in linmineval
+global lnm % used in funeval
 lnm      = struct('p',p,'pi',pi,'func',func,'args',[]);
 lnm.args = varargin;
 
-linmin_plot('Init', 'Line Minimisation','Function','Parameter Value');
-linmin_plot('Set', 0, f);
+min1d_plot('Init', 'Line Minimisation','Function','Parameter Value');
+min1d_plot('Set', 0, f);
 
 tol      = 1/sqrt(sum((pi(:)./tolsc(:)).^2));
 t        = bracket(f);
-[f,pmin] = brents(t,tol);
+[f,pmin] = search(t,tol);
 pi       = pi*pmin;
 p        = p + pi;
 
 for i=1:length(p), fprintf('%-8.4g ', p(i)); end;
 fprintf('| %.5g\n', f);
-linmin_plot('Clear');
+min1d_plot('Clear');
 
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function f = linmineval(p)
+function f = funeval(p)
 % Reconstruct parameters and evaluate.
 
-global lnm % defined in linmin
+global lnm % defined in min1d
 pt = lnm.p+p.*lnm.pi;
 f  = feval(lnm.func,pt,lnm.args{:});
-linmin_plot('Set',p,f);
+min1d_plot('Set',p,f);
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
 function t = bracket(f)
-% Bracket the minimum (t(2)) between t(1) and t(2)
+% Bracket the minimum (t(2)) between t(1) and t(3)
 
 gold   = (1+sqrt(5))/2; % Golden ratio
 
 t(1)   = struct('p',0,'f',f);
 t(2).p = 1;
-t(2).f = linmineval(t(2).p);
+t(2).f = funeval(t(2).p);
 
-% if not better then swap
+% if t(2) not better than t(1) then swap
 if t(2).f > t(1).f,
-	tmp  = t(1);
+	t(3) = t(1);
 	t(1) = t(2);
-	t(2) = tmp;
+	t(2) = t(3);
 end;
 
 t(3).p = t(2).p + gold*(t(2).p-t(1).p);
-t(3).f = linmineval(t(3).p);
+t(3).f = funeval(t(3).p);
 
 while t(2).f > t(3).f,
 
@@ -107,13 +107,24 @@ while t(2).f > t(3).f,
 
 	% minimum is when gradient of polynomial is zero
 	% sign of pol(3) (the 2nd deriv) should be +ve
-	d   = -pol(2)/(2*pol(3)+eps);
-	u.p = t(2).p+d;
+	if pol(3)>0,
+		% minimum is when gradient of polynomial is zero
+		d    = -pol(2)/(2*pol(3)+eps);
+		if d > 10*(t(3).p-t(2).p),
+			d = 10*(t(3).p-t(2).p);
+		end;
+		u.p  = t(2).p+d;
+	else,
+		% sign of pol(3) (the 2nd deriv) is not +ve
+		% so extend out by golden ratio instead
+		u.p  = t(3).p+gold*(t(3).p-t(2).p);
+	end;
 
-	ulim = t(2).p+100*(t(3).p-t(2).p);
-	if (t(2).p-u.p)*(u.p-t(3).p) > 0.0,
+	% FUNCTION EVALUATION
+	u.f  = funeval(u.p);
+
+	if (t(2).p < u.p) == (u.p < t(3).p),
 		% u is between t(2) and t(3)
-		u.f = linmineval(u.p);
 		if u.f < t(3).f,
 			% minimum between t(2) and t(3) - done
 			t(1) = t(2);
@@ -124,31 +135,6 @@ while t(2).f > t(3).f,
 			t(3) = u;
 			return;
 		end;
-		% try golden search instead
-		u.p = t(3).p+gold*(t(3).p-t(2).p);
-		u.f = linmineval(u.p);
-
-	elseif (t(3).p-u.p)*(u.p-ulim) > 0.0
-		% u is between t(3) and ulim
-		u.f = linmineval(u.p);
-		if u.f < t(3).f,
-			% still no minimum as function is still decreasing
-			% t(1) = t(2);
-			t(2) = t(3);
-			t(3) = u;
-			u.p  = t(3).p+gold*(t(3).p-t(2).p);
-			u.f  = linmineval(u.p);
-		end;
-
-	elseif (u.p-ulim)*(ulim-t(3).p) >= 0.0,
-		% gone too far - constrain it
-		u.p = ulim;
-		u.f = linmineval(u.p);
-
-	else,
-		% try golden search instead
-		u.p = t(3).p+gold*(t(3).p-t(2).p);
-		u.f = linmineval(u.p);
 	end;
 
 	% Move all 3 points along
@@ -160,34 +146,19 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [f,p] = brents(t, tol)
+function [f,p] = search(t, tol)
 % Brent's method for line searching - given that minimum is bracketed
 
-% 1 - golden ratio
-Cgold = 1 - (sqrt(5)-1)/2;
+gold1 = 1-(sqrt(5)-1)/2;
 
 % Current and previous displacements
 d     = Inf;
 pd    = Inf;
 
-% t(1) and t(3) bracket the minimum
-if t(1).p>t(3).p,
-	brk(1) = t(3).p;
-	brk(2) = t(1).p;
-else,
-	brk(1) = t(1).p;
-	brk(2) = t(3).p;
-end;
-
 % sort t into best first order
-tmp  = t(1);
-t(1) = t(2);
-t(2) = tmp;
-if t(2).f>t(3).f,
-	tmp  = t(2);
-	t(2) = t(3);
-	t(3) = tmp;
-end;
+[junk,ind] = sort(cat(1,t.f));
+t   = t(ind);
+brk = [min(cat(1,t.p)) max(cat(1,t.p))];
 
 for iter=1:128,
 	% check stopping criterion
@@ -211,21 +182,20 @@ for iter=1:128,
 
 	% check so that displacement is less than the last but two,
 	% that the displaced point is between the brackets
-	% and (not sure if it is necessary) that the solution is a minimum
-	% rather than a maximum
+	% and that the solution is a minimum rather than a maximum
 	eps2 = 2*eps*abs(t(1).p)+eps;
-	if abs(d) >= abs(ppd)/2 | u.p <= brk(1)+eps2 | u.p >= brk(2)-eps2 | pol(3)<=0,
+	if abs(d) > abs(ppd)/2 | u.p < brk(1)+eps2 | u.p > brk(2)-eps2 | pol(3)<=0,
 		% if criteria are not met, then golden search into the larger part
 		if t(1).p >= 0.5*(brk(1)+brk(2)),
-			d = Cgold*(brk(1)-t(1).p);
+			d = gold1*(brk(1)-t(1).p);
 		else,
-			d = Cgold*(brk(2)-t(1).p);
+			d = gold1*(brk(2)-t(1).p);
 		end;
 		u.p = t(1).p+d;
 	end;
 
 	% FUNCTION EVALUATION
-	u.f = linmineval(u.p);
+	u.f = funeval(u.p);
 
 	% Insert the new point into the appropriate position and update
 	% the brackets if necessary
@@ -236,25 +206,24 @@ for iter=1:128,
 		t(1) = u;
 	else,
 		if u.p < t(1).p, brk(1)=u.p; else, brk(2)=u.p; end;
-		if u.f <= t(2).f | t(1).p==t(2).p,
+		if u.f <= t(2).f,
 			t(3) = t(2);
 			t(2) = u;
-		elseif u.f <= t(3).f | t(1).p==t(3).p | t(2).p==t(3).p,
+		elseif u.f <= t(3).f,
 			t(3) = u;
 		end;
 	end;
 end;
-warning('Too many iterations in Brents');
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function linmin_plot(action,arg1,arg2,arg3,arg4)
+function min1d_plot(action,arg1,arg2,arg3,arg4)
 % Visual output for line minimisation
-global linminplot
+persistent min1dplot
 %-----------------------------------------------------------------------
 if (nargin == 0)
-	linmin_plot('Init');
+	min1d_plot('Init');
 else
 	% initialize
 	%---------------------------------------------------------------
@@ -271,20 +240,20 @@ else
 		fg = spm_figure('FindWin','Interactive');
 
 		if ~isempty(fg)
-			linminplot = struct('pointer',get(fg,'Pointer'),'name',get(fg,'Name'),'ax',[]);
-			linmin_plot('Clear');
+			min1dplot = struct('pointer',get(fg,'Pointer'),'name',get(fg,'Name'),'ax',[]);
+			min1d_plot('Clear');
 			set(fg,'Pointer','watch');
 			% set(fg,'Name',arg1);
-			linminplot.ax = axes('Position', [0.15 0.1 0.8 0.75],...
+			min1dplot.ax = axes('Position', [0.15 0.1 0.8 0.75],...
 				'Box', 'on','Parent',fg);
-			lab = get(linminplot.ax,'Xlabel');
+			lab = get(min1dplot.ax,'Xlabel');
 			set(lab,'string',arg3,'FontSize',10);
-			lab = get(linminplot.ax,'Ylabel');
+			lab = get(min1dplot.ax,'Ylabel');
 			set(lab,'string',arg2,'FontSize',10);
-			lab = get(linminplot.ax,'Title');
+			lab = get(min1dplot.ax,'Title');
 			set(lab,'string',arg1);
 			line('Xdata',[], 'Ydata',[],...
-				'LineWidth',2,'Tag','LinMinPlot','Parent',linminplot.ax,...
+				'LineWidth',2,'Tag','LinMinPlot','Parent',min1dplot.ax,...
 				'LineStyle','-','Marker','o');
 			drawnow;
 		end
@@ -306,10 +275,10 @@ else
 	%---------------------------------------------------------------
 	elseif (strcmp(lower(action),'clear'))
 		fg = spm_figure('FindWin','Interactive');
-		if isstruct(linminplot),
-			if ishandle(linminplot.ax), delete(linminplot.ax); end;
-			set(fg,'Pointer',linminplot.pointer);
-			set(fg,'Name',linminplot.name);
+		if isstruct(min1dplot),
+			if ishandle(min1dplot.ax), delete(min1dplot.ax); end;
+			set(fg,'Pointer',min1dplot.pointer);
+			set(fg,'Name',min1dplot.name);
 		end;
 		spm_figure('Clear',fg);
 		drawnow;
