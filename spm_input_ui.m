@@ -197,6 +197,14 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % p        - results
 %
 %-----------------------------------------------------------------------
+% WINDOWS:
+%
+% spm_input uses the SPM 'Interactive' 'Tag'ged window. If this isn't
+% available and no figures are open, an 'Interactive' SPM window is
+% created (`spm('CreateIntWin')`). If figures are available, then the
+% current figure is used *unless* it is 'Tag'ged.
+%
+%-----------------------------------------------------------------------
 % SHORTCUTS:
 %
 % Buttons SHORTCUT - If the Type parameter is a bar delimited string, then
@@ -322,11 +330,14 @@ if CmdLine
 	fprintf('\t%s\n',Prompt)
 	fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
 else
-	%-Locate (or open) figure to work in
+	%-Locate (or open) figure to work in (Don't 'Tag'ged figs)
 	%---------------------------------------------------------------
 	Finter = spm_figure('FindWin','Interactive');
-	if isempty(Finter), if any(get(0,'Children')), Finter = gcf;
-				else, Finter = spm('CreateIntWin'); end
+	if isempty(Finter)
+		if any(get(0,'Children'))
+			if isempty(get(gcf,'Tag')), Finter = gcf;
+			else, Finter = spm('CreateIntWin'); end
+		else, Finter = spm('CreateIntWin'); end
 	end
 
 	%-Find out which Y-position to use - CmdLine over-rides
