@@ -2146,9 +2146,9 @@ case {'choice'}
     for i=1:length(c.values)
         c.values{i} = tidy_struct(c.values{i});
     end;
-    %if ~isfield(c,'val') || ~iscell(c.val) || length(c.val) ~= 1
-    %    c.val = {c.values{1}};
-    %end;
+    if ~isfield(c,'val') || ~iscell(c.val) || length(c.val) ~= 1
+        c.val = {c.values{1}};
+    end;
     c.expanded = true;
     if ~isfield(c,'help'), c.help = {'Choice structure'}; end;
 
