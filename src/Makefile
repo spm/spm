@@ -480,19 +480,11 @@ verb.mexsol:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
-verb.mexlx:
-	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
-	@ echo ""
-	@ echo "Linux compilation (Matlab 5.x) - using gcc"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
 verb.mexglx:
 	@ echo "_____________________________________________________________"
 	@ echo "%M% %I% %E%"
 	@ echo ""
-	@ echo "Linux compilation (Matlab 6.x) - using gcc"
+	@ echo "Linux compilation - using gcc"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 

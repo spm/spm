@@ -240,9 +240,15 @@ for i = 1:v
 	ton       = round(ons*TR/dt) + 32;			% onsets
 	tof       = round(dur*TR/dt) + ton + 1;			% offset
 	sf        = sparse((k*T + 128),size(u,2));
+	ton       = max(ton,1);
+	tof       = max(tof,1);
 	for j = 1:length(ton)
-		sf(ton(j),:) = sf(ton(j),:) + u(j,:);
-		sf(tof(j),:) = sf(tof(j),:) - u(j,:);
+		if numel(sf)>ton(j),
+			sf(ton(j),:) = sf(ton(j),:) + u(j,:);
+		end;
+		if numel(sf)>tof(j),
+			sf(tof(j),:) = sf(tof(j),:) - u(j,:);
+		end;
 	end
 	sf        = cumsum(sf);					% integrate
 	sf        = sf(1:(k*T + 32),:);				% stimulus

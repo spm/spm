@@ -70,5 +70,9 @@ if ~(round(DCM.v*DCM.Y.dt/DCM.U.dt) == num_inputs)
     return
 end
 
-instr=['save ',DCM_filename,' DCM'];
-eval(instr);
+if str2num(version('-release'))>=14,
+    save(DCM_filename, 'DCM','-V6');
+else
+    save(DCM_filename, 'DCM');
+end;
+

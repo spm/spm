@@ -28,7 +28,7 @@ elseif nargin==1,
 		spm_figure('Clear','Graphics');
 	end;
 	if ischar(images), images=spm_vol(images); end;
-
+	spm_orthviews('Reset');
 	mn = length(images);
 	n  = round(mn^0.4);
 	m  = ceil(mn/n);

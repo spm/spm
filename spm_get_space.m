@@ -22,9 +22,9 @@ end;
 
 N = nifti(P);
 if nargin==2,
+    N.mat_intent = 'Aligned';
     if n(1)==1,
         N.mat        = M;
-	N.mat_intent = 'Aligned';
         if ~isempty(N.extras) && isstruct(N.extras) && isfield(N.extras,'mat') &&...
             size(N.extras.mat,3)>=1,
             N.extras.mat(:,:,n(1)) = M;

@@ -126,9 +126,14 @@ else
     dat.scl_inter = 0;
 end;
 
-N.dat      = dat;
-N.mat      = mat;
-N.mat0     = mat;
+N.dat  = dat;
+flp    = false;
+if det(mat)>0,
+    flp = true;
+    mat = mat*[diag([-1 1 1]) [size(dat,1)+1 0 0]' ; 0 0 0 1];
+end;
+N.mat  = mat;
+N.mat0 = mat;
 create(N);
 for i6=1:size(idat,6),
 	for i5=1:size(idat,5),
@@ -137,16 +142,18 @@ for i6=1:size(idat,6),
 				scale1 = scale(:,:,i3,i4,i5,i6);
 				dcoff1 = dcoff(:,:,i3,i4,i5,i6);
 				if numel(scale1)==1,
-					N.dat(:,:,i3,i4,i5,i6) = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
+					slice = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
 				elseif size(scale1,1)>1 && size(scale1,2)>1,
-					N.dat(:,:,i3,i4,i5,i6) = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
+					slice = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
 				elseif size(scale1,1)==1,
-					N.dat(:,:,i3,i4,i5,i6) = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
-					                                                        repmat(dcoff1,[size(idat,1) 1]);
+					slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
+					                                       repmat(dcoff1,[size(idat,1) 1]);
 				else
-					N.dat(:,:,i3,i4,i5,i6) = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
-					                                                        repmat(dcoff1,[1 size(idat,2)]);
+					slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
+					                                       repmat(dcoff1,[1 size(idat,2)]);
 				end;
+                                if flp, slice = flipud(slice); end;
+                                N.dat(:,:,i3,i4,i5,i6) = slice;
 			end;
 		end;
 	end;

@@ -243,4 +243,9 @@ end % (for i = 1:length(Ic))
 % place xCon back in SPM
 %-----------------------------------------------------------------------
 SPM.xCon = xCon;
-save SPM SPM
+if str2num(version('-release'))>=14,
+        save('SPM', 'SPM', '-V6');
+else
+        save('SPM', 'SPM');
+end;
+

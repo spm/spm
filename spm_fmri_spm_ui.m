@@ -367,7 +367,7 @@ fprintf('%30s\n','...done')                                 	     %-#
 
 %-check internal consistency of images
 %-----------------------------------------------------------------------
-if any(any(diff(cat(1,VY.dim),1,1),1) & [1,1,1,0])
+if any(any(diff(cat(1,VY.dim),1,1),1))
 error('images do not all have the same dimensions'),           end
 if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 error('images do not all have same orientation & voxel size'), end
@@ -444,7 +444,11 @@ SPM.xsDes = struct(...
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                        %-#
-save SPM SPM;
+if str2num(version('-release'))>=14,
+	save('SPM', 'SPM', '-V6');
+else
+	save('SPM', 'SPM');
+end;
 fprintf('%30s\n','...SPM.mat saved')                                 %-#
 
  

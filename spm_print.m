@@ -26,7 +26,7 @@ try,
     else
         nam1 = sprintf('%s_%3d',nam,1);
         for i=1:100000,
-            nam1 = fullfile(pwd,sprintf('%s_%3d%s',nam,i,pd.ext));
+            nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
             if ~exist(nam1,'file'), break; end;
         end;
     end;

@@ -1488,7 +1488,12 @@ case 'cfg'
     %-Save SPM.mat and set output argument
     %-------------------------------------------------------------------
     fprintf('%-40s: ','Saving SPM configuration')                    %-#
-    save SPM SPM;
+
+    if str2num(version('-release'))>=14,
+        save('SPM', 'SPM', '-V6');
+    else
+        save('SPM', 'SPM');
+    end;
     fprintf('%30s\n','...SPM.mat saved')                             %-#
     varargout = {SPM};
     

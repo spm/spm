@@ -118,7 +118,13 @@ end
 DCM.Y = Y;
 
 % Save synthetic DCM
-eval (['save ' syn_model ' DCM']);
+%eval (['save ' syn_model ' DCM']);
+if str2num(version('-release'))>=14,
+    save(syn_model, 'DCM', '-V6');
+else
+    save(syn_model, 'DCM');
+end;
+
 
 % Display the generated time series
 F = spm_figure('CreateWin','Simulated BOLD time series');

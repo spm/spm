@@ -844,7 +844,11 @@ SPM.PPM.Gamma  = 1;             % Default threshold for effect size (1 per cent)
 SPM.xX     = xX;                %-design structure
 SPM.xM     = xM;				%-mask structure
 
-save SPM SPM
+if str2num(version('-release'))>=14,
+    save('SPM', 'SPM', '-V6');
+else
+    save('SPM', 'SPM');
+end;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 

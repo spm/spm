@@ -425,8 +425,12 @@ SPM = spm_eeg_get_vc(SPM);
 %-End: Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('\t%-32s: ','Saving ERP design')                            %-#
+if str2num(version('-release'))>=14,
+    save('SPM', 'SPM', '-V6');
+else
+    save('SPM', 'SPM');
+end;
 fprintf('%30s\n','...done')                                 %-#
-save SPM SPM;
 
 spm_input('!DeleteInputObj')
 

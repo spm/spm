@@ -305,18 +305,22 @@ end
 %-----------------------------------------------------------------------
 try
 	cd(SPM.swd);
+catch
 end
 
 % added to make it work for SPM/ERP 1st level, conventional designs
 %-----------------------------------------------------------------------
-if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
+if strcmp(spm('CheckModality'), 'EEG') && rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
     SPM.Vbeta = SPM.xY.VY;
     SPM.xVol.M = SPM.xY.VY(1).mat;
     SPM.xVol.DIM = SPM.xY.VY(1).dim(1:3)';
     SPM.xX.xKXs = spm_sp('Set', spm_filter(1, SPM.xX.X));		% KWX
     SPM.xCon = struct([]);
-    
-    save SPM SPM;
+    if str2num(version('-release'))>=14,
+        save('SPM', 'SPM', '-V6');
+    else
+        save('SPM', 'SPM');
+    end;
     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
     spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
     fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
@@ -349,7 +353,7 @@ if exist(fullfile('.','mask.img'),'file') == 2
 		spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
 		return
 	else
-		str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd)
+		str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd);
 		warning(str)
 		drawnow
 	end
@@ -580,8 +584,8 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 
 %-Intialise variables used in the loop 
 %=======================================================================
-xords = [1:xdim]'*ones(1,ydim); xords = xords(:)';  % plane X coordinates
-yords = ones(xdim,1)*[1:ydim];  yords = yords(:)';  % plane Y coordinates
+xords = (1:xdim)'*ones(1,ydim); xords = xords(:)';  % plane X coordinates
+yords = ones(xdim,1)*(1:ydim);  yords = yords(:)';  % plane Y coordinates
 S     = 0;                                          % Volume (voxels)
 s     = 0;                                          % Volume (voxels > UF)
 Cy    = 0;					    % <Y*Y'> spatially whitened
@@ -616,7 +620,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-construct list of voxels in this block
 	%---------------------------------------------------------------
-	I     = [1:blksz] + (bch - 1)*blksz;		%-voxel indices
+	I     = (1:blksz) + (bch - 1)*blksz;		%-voxel indices
 	I     = I(I <= xdim*ydim);			%-truncate
 	xyz   = [xords(I); yords(I); zords(I)];		%-voxel coordinates
 	nVox  = size(xyz,2);				%-number of voxels
@@ -624,7 +628,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%-Get data & construct analysis mask
 	%===============================================================
 	fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...read & mask data')%-#
-	Cm    = logical(ones(1,nVox));			%-current mask
+	Cm    = true(1,nVox);				%-current mask
 
 
 	%-Compute explicit mask
@@ -652,7 +656,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
 
 		Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
-		if xM.I & ~YNaNrep & xM.TH(i) < 0	%-Use implicit mask
+		if xM.I && ~YNaNrep && xM.TH(i) < 0	%-Use implicit mask
 			Cm(Cm) = abs(Y(i,Cm)) > eps;
 		end
 	end
@@ -674,6 +678,20 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering')	%-#
 
 		KWY   = spm_filter(xX.K,W*Y);
+
+if isfield(xX,'W') && any(~finite(KWY(:))),
+	% Try to find the wierd Matlab 7 bug that I
+	% was getting on my Linux machine -JA
+	drawnow
+	t1 = spm_filter(xX.K,W*Y);
+	if any(finite(t1(:)) ~= finite(KWY(:))),
+		disp('Please inform the SPM developers about');
+		disp('the configuration of your machine, and the');
+		disp('MATLAB version that you are running.');
+		error('Found non-finite values in KWY.');
+	end;
+	warning('Found non-finite values in KWY (could be the data).');
+end;
 
 		%-General linear model: Weighted least squares estimation
 		%------------------------------------------------------
@@ -726,7 +744,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-Append new inmask voxel locations and volumes
 	%---------------------------------------------------------------
-	XYZ(:,S + [1:CrS]) = xyz(:,Cm);		%-InMask XYZ voxel coords
+	XYZ(:,S + (1:CrS)) = xyz(:,Cm);		%-InMask XYZ voxel coords
 	Q                  = [Q I(Cm)];		%-InMask XYZ voxel indices
 	S                  = S + CrS;		%-Volume analysed (voxels)
 
@@ -758,7 +776,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	for i = 1:nSres
 		if length(Q), j(Q) = CrResI(i,:); end
 		VResI(i) = spm_write_plane(VResI(i), j, z);
-   	end
+	end
 
 	%-Write ResSS into ResMS (variance) image scaled by tr(RV) above
 	%-------------------------------------------------------------------
@@ -823,6 +841,7 @@ if ~isfield(xVi,'V')
 			Xp         = xX.X(q,:);
 			try
 				Xp = [Xp xX.K(i).X0];
+			catch
 			end
 
 			% ReML
@@ -847,7 +866,11 @@ if ~isfield(xVi,'V')
 	% If xX.W is not specified use W*W' = inv(V) to give ML estimators
 	%---------------------------------------------------------------
 	if ~isfield(xX,'W')
-		save SPM SPM
+		if str2num(version('-release'))>=14,
+			save('SPM', 'SPM', '-V6');
+		else
+			save('SPM', 'SPM');
+		end;
 		clear
 		load SPM
 		SPM = spm_spm(SPM);
@@ -936,7 +959,11 @@ SPM.swd        = pwd;
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-save SPM SPM
+if str2num(version('-release'))>=14,
+	save('SPM', 'SPM', '-V6');
+else
+	save('SPM', 'SPM');
+end;
 
 %=======================================================================
 %- E N D: Cleanup GUI

@@ -112,6 +112,9 @@ DCM.vB=vB;
 DCM.vC=vC;
 
 % Save new DCM
-instr=['save DCM_avg_',name,' DCM'];
-eval(instr);
-        
+if str2num(version('-release'))>=14,
+    save(['DCM_avg_' name], 'DCM', '-V6');
+else
+    save(['DCM_avg_' name], 'DCM');
+end;
+

@@ -33,7 +33,11 @@ fn = fieldnames(p);
 for i=1:length(fn),
     eval([fn{i} '= p.' fn{i} ';']);
 end;
-save(fnam,fn{:});
+if str2num(version('-release'))>=14,
+    save(fnam,'-V6',fn{:});
+else
+    save(fnam,fn{:});
+end;
 return;
 %=======================================================================
 
@@ -64,7 +68,6 @@ vr  = p.flags.vr;
 K   = length(p.flags.mg);
 Kb  = length(p.flags.ngaus);
 
-fn = {[nam '_seg1.img'],[nam '_seg2.img'],[nam '_seg3.img']};
 for k1=1:size(sopts,1),
     if any(sopts(k1,1:2)),
         dat{k1}                 = uint8(0);

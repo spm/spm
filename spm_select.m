@@ -110,7 +110,7 @@ sel = uicontrol(fg,...
     'Min',0,...
     'String',already,...
     'Value',1);
-c0 = uicontextmenu;
+c0 = uicontextmenu('Parent',fg);;
 set(sel,'uicontextmenu',c0);
 uimenu('Label','Unselect All', 'Parent',c0,'Callback',@unselect_all);
 
@@ -224,7 +224,7 @@ tmp = uicontrol(fg,...
     'Min',0,...
     'String','',...
     'Value',1);
-c0 = uicontextmenu;
+c0 = uicontextmenu('Parent',fg);
 set(tmp,'uicontextmenu',c0);
 uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
@@ -721,14 +721,17 @@ msg(ob,['Listing ' num2str(numel(f)) ' files...']);
 [f,ind] = sortrows(f(:));
 ii      = ii(ind);
 msk     = true(1,numel(f));
+if ~isempty(f), f{1} = deblank(f{1}); end;
 for i=2:numel(f),
+    f{i} = deblank(f{i});
     if strcmp(f{i-1},f{i}),
         if filt.isim==1,
-            ii{i}    = [ii{i}(:) ; ii{i-1}(:)];
+            %ii{i}   = sort([ii{i}(:) ; ii{i-1}(:)]);
             tmp      = sort([ii{i}(:) ; ii{i-1}(:)]);
             tmp(~diff(tmp,1)) = [];
+            ii{i}    = tmp;
         end;
-        msk(i-1) = 0;
+        msk(i-1) = false;
     end;
 end;
 f        = f(msk);

@@ -45,7 +45,7 @@ defaults.mask.thresh    = 0.8;
 
 % Realignment defaults
 %=======================================================================
-defaults.realign.estimate.quality = 0.75;
+defaults.realign.estimate.quality = 0.9;
 defaults.realign.estimate.weight = 0;
 defaults.realign.estimate.interp = 2;
 defaults.realign.estimate.wrap   = [0 0 0];
@@ -144,7 +144,7 @@ defaults.imcalc.dtype  = spm_type('int16'); % Data Type
 
 % User Interface Defaults
 %=======================================================================
-defaults.ui.print   = struct('opt',{'-dpsc2','-append'},'append',true,'ext','.ps');
+defaults.ui.print   = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.ps');
 defaults.ui.colour1 = [0.8 0.8 1.0];
 defaults.ui.colour2 = [1.0 1.0 0.8];
 defaults.ui.colour3 = [0.0 0.0 0.0];

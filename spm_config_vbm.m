@@ -58,7 +58,9 @@ p0 = spm_justify(w,[...
 'These should be prior probability maps of grey matter, white matter ',...
 'and cerebro-spinal fluid. '...
 'A nonlinear deformation field is estimated that best overlays the '...
-'prior probability images on the individual subjects'' image.']);
+'prior probability images on the individual subjects'' image. '...
+'The default tissue probability maps are modified versions of the '...
+'ICBM Tissue Probabilistic Atlases (see http:// www.loni.ucla.edu/ ICBM/ ICBM_TissueProb.html). ']);
 
 p1 = spm_justify(w,[...
 'Rather than assuming stationary prior probabilities based upon mixing '...
@@ -389,8 +391,9 @@ p1 = spm_justify(w,...
 output.help = {p0{:},'',p1{:}};
 %------------------------------------------------------------------------
 
-job      = branch('VBM Preproc','preproc',{data,opts,output});
-job.prog = @execute;
+job        = branch('VBM Preproc','preproc',{data,opts,output});
+job.prog   = @execute;
+job.vfiles = @vfiles;
 p0 = spm_justify(w,...
 'Segment, bias correct and spatially normalise - all in the same model.',...
 'It can be used for bias correcting, spatially normalising',...
@@ -432,24 +435,57 @@ return;
 %------------------------------------------------------------------------
 function execute(job)
 job.opts.tpm = strvcat(job.opts.tpm{:});
-for i=1:length(job.data),
+for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);
     [sn(i),isn]   = spm_prep2sn(res);
-    [pth,nam,ext] = fileparts(job.data{i});
-    savefields([nam '_vbm_sn.mat'],sn(i));
-    savefields([nam '_vbm_inv_sn.mat'],isn);
+    [pth,nam,ext] = spm_fileparts(job.data{i});
+    savefields(fullfile(pth,[nam '_vbm_sn.mat']),sn(i));
+    savefields(fullfile(pth,[nam '_vbm_inv_sn.mat']),isn);
 end;
 spm_preproc_write(sn,job.output);
 return;
+%------------------------------------------------------------------------
 
-%=======================================================================
+%------------------------------------------------------------------------
 function savefields(fnam,p)
 if length(p)>1, error('Can''t save fields.'); end;
 fn = fieldnames(p);
+if numel(fn)==0, return; end;
 for i=1:length(fn),
     eval([fn{i} '= p.' fn{i} ';']);
 end;
 save(fnam,fn{:});
 return;
-%=======================================================================
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function vf = vfiles(job)
+opts  = job.output;
+sopts = [opts.GM;opts.WM;opts.CSF];
+vf    = cell(numel(job.data),2);
+for i=1:numel(job.data),
+    [pth,nam,ext,num] = spm_fileparts(job.data{i});
+    vf{i,1} = fullfile(pth,[nam '_vbm_sn.mat']);
+    vf{i,2} = fullfile(pth,[nam '_vbm_inv_sn.mat']);
+    j       = 3;
+    if opts.biascor,
+        vf{i,j} = fullfile(pth,['m' nam ext ',1']);
+        j       = j + 1;
+    end;
+    for k1=1:3,
+        if sopts(k1,3),
+            vf{i,j} = fullfile(pth,[nam '_seg' num2str(k1) ext ',1']);
+            j       = j + 1;
+        end;
+        if sopts(k1,2),
+            vf{i,j} = fullfile(pth,['w' nam '_seg' num2str(k1) ext ',1']);
+            j       = j + 1;
+        end;
+        if sopts(k1,1),
+           vf{i,j} = fullfile(pth,['mw' nam '_seg' num2str(k1) ext ',1']);
+           j       = j + 1;
+        end;
+    end;
+end;
+vf = vf(:);
 

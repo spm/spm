@@ -263,7 +263,11 @@ end
 try
 	cd mfx
 	SPM.swd = pwd;
-	save SPM SPM
+	if str2num(version('-release'))>=14,
+		save('SPM', 'SPM', '-V6');
+	else
+		save('SPM', 'SPM');
+	end;
 catch
 	warning('could not save SPM.mat in mfx')
 end

@@ -367,6 +367,11 @@ SPM.xX.name   = {Xname{:} Bname{:}};
 %-End: Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('\t%-32s:\n ','Saving fMRI design')                            %-#
-save SPM SPM;
+if str2num(version('-release'))>=14,
+    save('SPM', 'SPM', '-V6');
+else
+    save('SPM', 'SPM');
+end;
+fprintf('%30s\n','...SPM.mat saved')
 spm_input('!DeleteInputObj')
 

@@ -375,7 +375,11 @@ SPM.VCbeta = Vbeta;			% Filenames - parameters
 SPM.VHp    = VHp;			% Filenames - hyperparameters
 SPM.PPM    = PPM;			% PPM structure
 
-save SPM SPM
+if str2num(version('-release'))>=14,
+	save('SPM', 'SPM', '-V6');
+else
+	save('SPM', 'SPM');
+end;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 

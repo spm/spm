@@ -101,4 +101,8 @@ switch(xCon(Ic).STAT)
 
 end
 SPM.xCon = xCon;
-save SPM SPM
+if str2num(version('-release'))>=14,
+	save('SPM', 'SPM', '-V6');
+else
+	save('SPM', 'SPM');
+end;

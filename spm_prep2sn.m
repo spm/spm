@@ -43,7 +43,11 @@ flags       = struct(...
 if nargout==0,
     [pth,nam,ext] = fileparts(VF.fname);
     fnam          = fullfile(pth,['vbm_' nam '_sn.mat']);
-    save(fnam,'VG','VF','Tr','Affine','flags');
+    if str2num(version('-release'))>=14,
+        save(fnam,'-V6','VG','VF','Tr','Affine','flags');
+    else
+        save(fnam,'VG','VF','Tr','Affine','flags');
+    end;
 else
     po = struct(...
         'VG',     VG,...
