@@ -591,15 +591,16 @@ else
 	end;
 end
 
-
-plot_parameters(P);
-
 % Save Realignment Parameters
 %---------------------------------------------------------------------------
-fprintf('Saving parameters..\n');
+fprintf('Saving parameters..');
 for i=1:prod(size(P)),
 	spm_get_space(P(i).fname, P(i).mat);
 end;
+fprintf(' ..done\n');
+
+plot_parameters(P);
+
 return;
 %_______________________________________________________________________
 
