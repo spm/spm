@@ -241,7 +241,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 % The voxel sizes (x, y & z, in mm) of the written normalised images.
 %
 %_______________________________________________________________________
-% %W% John Ashburner MRCCU/FIL %E%
+% @(#)spm_sn3d.m	2.20 John Ashburner MRCCU/FIL 99/08/23
 % With suggested modifications by Matthew Brett of the MRCCU
 
 % Programmers notes
@@ -274,6 +274,8 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 global SWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn;
 global sptl_MskBrn sptl_MskObj;
 
+global batch_mat iA;
+
 bboxes  = [   -78 78 -112 76  -50 85         
 	      -64 64 -104 68  -28 72         
 	      -90 91 -126 91  -72 109
@@ -290,15 +292,15 @@ basprompt = 'none|2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x
 
 if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
-	SPMid = spm('FnBanner',mfilename,'%I%');
+	SPMid = spm('FnBanner',mfilename,'2.20');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Normalize');
 	spm_help('!ContextHelp','spm_sn3d.m');
 
 	%-----------------------------------------------------------------------
-	a1 = spm_input('Which option?',1,'m',...
-		'Determine Parameters Only|Write Normalised Only|Determine Parameters & Write Normalised',...
-		[1 2 3],3);
-	nsubjects = spm_input('# Subjects','+1','w',1, 1);
+	a1 = spm_input('Which option?',1,'m','Determine Parameters Only|Write Normalised Only|Determine Parameters & Write Normalised',...
+		[1 2 3],3,'batch',batch_mat,{'normalize',iA},'option');
+	nsubjects = spm_input('# Subjects','+1','w',1, 1,...
+     'batch',batch_mat,{'normalize',iA},'nbsubjects');
 	if nsubjects < 1,
 		spm_figure('Clear','Interactive');
 		return;
@@ -307,32 +309,53 @@ if (nargin == 0)
 	object_masking = sptl_MskObj;
 	if (a1 == 1 | a1 == 3) & sptl_CO ~= 1,
 		object_masking = spm_input('Mask object brain when registering?', '+1', 'm',...
-			'Mask object|Dont Mask object',[1 0],find([1 0] == object_masking));
-	end;
+			'Mask object|Dont Mask object',[1 0],find([1 0] == object_masking),...
+         'batch',batch_mat,{'normalize',iA},'object_masking');	
+   end;
 
 	% Select images..
 	%-----------------------------------------------------------------------
 	for i=1:nsubjects,
 		subj(i) = struct('P','','PP','','objmask','','matname','');
 		if a1 == 1 | a1 == 3,
-			subj(i).P = spm_get(1,'.img',['subj ' num2str(i) ...
-				' - Image to determine parameters from']);
+         if isempty(batch_mat)
+            subj(i).P = spm_get(1,'.img',['subj ' num2str(i) ...
+            ' - Image to determine parameters from']);
+         else
+            subj(i).P = spm_input('batch',batch_mat,...
+            {'normalize',iA},'image',i);
+         end
 
 			% object weight
  	 		if object_masking==1,
-				subj(i).objmask = spm_get(1+sqrt(-1),'.img',...
-					['Select object masking image (or Done for none)']);
+           if isempty(batch_mat)
+             subj(i).objmask = spm_get(1+sqrt(-1),'.img',...
+             ['Select object masking image (or Done for none)']);
+           else
+             subj(i).objmask = spm_input('batch',batch_mat,...
+             {'normalize',iA},objmask',i);
+           end
 			end;
 
 			subj(i).matname = [spm_str_manip(subj(i).P,'sd') '_sn3d.mat'];
 		else,
+        if isempty(batch_mat)       
 			subj(i).matname = spm_get(1,'_sn3d.mat',['subj ' num2str(i) ...
 				' - Normalisation parameter set:']);
+        else
+          subj(i).matname = spm_input('batch',batch_mat,...
+          {'normalize',iA},'matname',i);
+        end
 		end;
 	
 		if a1 == 2 | a1 == 3,
-			subj(i).PP = spm_get(Inf,'.img',['subj ' num2str(i) ...
-				' - Images to write normalised']);
+        if isempty(batch_mat)     
+			 subj(i).PP = spm_get(Inf,'.img',['subj ' num2str(i) ...
+		    ' - Images to write normalised']);
+        else
+          subj(i).PP = spm_input('batch',batch_mat,....
+          {'normalize',iA},'images',i);
+        end
 		end;
 	end;
 
@@ -341,8 +364,13 @@ if (nargin == 0)
 		% Get template(s)
 		ok = 0;
 		while ~ok,
-			Template = spm_get(Inf,'.img',['Template image(s)'],...
-				fullfile(SWD,'templates'));
+        if isempty(batch_mat)  
+			 Template = spm_get(Inf,'.img',['Template image(s)'],...
+			 fullfile(SWD,'templates'));
+         else
+          Template = spm_input('batch',batch_mat,....
+          {'normalize',iA},'template');
+         end
 			vv=spm_vol(Template);
 			if prod(size(vv))==1,
 				ok = 1;
@@ -366,7 +394,8 @@ if (nargin == 0)
 			% Customise the normalisation
 			%-----------------------------------------------------------------------
 			a2  = spm_input('Normalisation Type?', '+1', 'm',...
-				'Default Normalisation|Custom Normalisation', [0 1],1);
+				'Default Normalisation|Custom Normalisation', [0 1],1,...
+            'batch',batch_mat,{'normalize',iA},'type');
 
 			if a2 == 1,
 
@@ -380,12 +409,14 @@ if (nargin == 0)
 					tmp = size(bases,1)+2;
 				end;
 				nb = spm_input('# Nonlinear Basis Functions?','+1','m',...
-					[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
+					[basprompt '|Custom'],[1:size(bases,1) 0], tmp,...
+               'batch',batch_mat,{'normalize',iA},'nonlin_func_nb');
 				if (nb>0), nbasis = bases(nb,:);
 				elseif nb == 0,
 					if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
 					tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
-					NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3);
+					NBss = spm_input('# Basis Functions (x y z)','+0', 'w',...
+               tmp, 3,'batch',batch_mat,{'normalize',iA},'func_nb');
 					NBss = NBss(:)';
 					nbasis = NBss(:)';
 				else, nbasis = 0; end;
@@ -402,7 +433,8 @@ if (nargin == 0)
 					iterations = spm_input('# Nonlinear Iterations?','+1','m',...
 						['1  nonlinear iteration |3  nonlinear iterations|' ...
 						 '5  nonlinear iterations|8  nonlinear iterations|' ...
-						 '12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
+						 '12 nonlinear iterations|16 nonlinear iterations'],...
+                   tmp2, tmp,{'normalize',iA},'nonlin_ite_nb');
 
 					% Get the amount of regularization
 					%-----------------------------------------------------------------------
@@ -412,12 +444,15 @@ if (nargin == 0)
 					rglrztn = spm_input('Nonlinear Regularization','+1','m',...
 						['Extremely Heavy regularization|Heavy regularization|'...
 						 'Medium regularization|Light regularization|'...
-						 'Very Light regularization'], tmp2, tmp);
+						 'Very Light regularization'], tmp2, tmp,...
+                   'batch',batch_mat,{'normalize',iA},'nonlin_regular');
 				end;
 
 				brainmask = '';
 				tmp = spm_input('Mask brain when registering?', '+1', 'm',...
-					'Mask Brain|Dont Mask Brain',[1 0],find([1 0] == sptl_MskBrn));
+					'Mask Brain|Dont Mask Brain',[1 0],find([1 0] == sptl_MskBrn),...
+               'batch',batch_mat,{'normalize',iA},'mask_brain');
+
 				if tmp == 1, brainmask = fullfile(SWD,'apriori','brainmask.img'); end;
 			end;
 		end;
@@ -430,14 +465,16 @@ if (nargin == 0)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?','+1','m',...
 			['Nearest Neighbour|Bilinear Interpolation|'...
-			'Sinc Interpolation (9x9x9)'],[0 1 -9], 2);
+			'Sinc Interpolation (9x9x9)'],[0 1 -9], 2,...
+         'batch',batch_mat,{'normalize',iA},'interp');
 
 		% Get bounding box.
 		%-----------------------------------------------------------------------
 		if prod(size(sptl_BB)) == 6, bb = sptl_BB;
 		else,
 			ans = spm_input('Bounding Box?','+1','m',...
-				[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1);
+				[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1,...
+            'batch',batch_mat,{'normalize',iA},'bounding_box');
 			if ans>0, bb=reshape(bboxes(ans,:),2,3);
 			else,
 				directions = 'XYZ';
@@ -445,7 +482,8 @@ if (nargin == 0)
 				for d=1:3,
 					str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
 					bb(:,d) = spm_input(['Bounding Box ' directions(d) ],...
-						'+1', 'e', str,2);
+				   '+1', 'e', str,2,'batch',batch_mat,{'normalize',iA},...
+               sprintf('direction%d',d));
 				end;
 			end;
 		end
@@ -456,10 +494,14 @@ if (nargin == 0)
 		if prod(size(sptl_Vx)) == 3, Vox = sptl_Vx;
 		else,
 			ans = spm_input('Voxel Sizes?','+1','m',...
-				[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3);
+				[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3,...
+            'batch',batch_mat,{'normalize',iA},'voxel_sizes');
+
 			if ans>0, Vox = voxdims(ans,:);
 			else,
-				Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3)';
+				Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3,...
+            'batch',batch_mat,{'normalize',iA},'voxel_sizes_custom');
+            Vox = reshape(Vox,1,3);
 			end;
 		end;
 	else,
@@ -474,6 +516,7 @@ if (nargin == 0)
 		for i=1:length(subj),
 			spm('FigName',['Normalize: working on subj ' num2str(i)],Finter,CmdLine);
 			fprintf('\rSubject %d:  ', i);
+
 			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,...
 				[nbasis(:)' iterations 8 rglrztn],Template,...
 				brainmask, subj(i).objmask);
@@ -499,7 +542,7 @@ elseif strcmp(P,'Defaults')
 	if spm_input(['Defaults for..?'],1,'m',...
 		['Defaults for Parameter Estimation|'...
 		 'Defaults for Writing Normalized'],...
-		[1 0]),
+		[1 0],'batch',batch_mat,{'Normalisation',iA},'defaults'),
 
 
 		% Starting estimates for image position
@@ -512,7 +555,7 @@ elseif strcmp(P,'Defaults')
 			['Neurological Convention (R is R)|'...
 			 'Radiological Convention (L is R)|'...
 			 'Custom Affine Starting Estimates'],...
-			[0 1 2], tmp1);
+			[0 1 2],tmp1,'batch',batch_mat,{'Normalisation',iA},'estimates');
 
 		if tmp == 0,     sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
 		elseif tmp == 1, sptl_Ornt = [0 0 0 0 0 0 -1 1 1 0 0 0];
@@ -526,7 +569,10 @@ elseif strcmp(P,'Defaults')
 					str = [str ' ' num2str(sptl_Ornt(i))];
 				end;
 			end;
-			sptl_Ornt = spm_input('Enter Affine Starting Estimates:','+1', 'e', str, 12)';
+			sptl_Ornt = spm_input('Enter Affine Starting Estimates:','+1','e',...
+         str, 12,'batch',batch_mat,{'Normalisation',iA},'custom_estimates')';
+         sptl_Ornt = reshape(sptl_Ornt,1,12);
+
 		end;
 
 
@@ -535,7 +581,9 @@ elseif strcmp(P,'Defaults')
 		tmp = 1;
 		if sptl_CO == 1, tmp = 2; end;
 		sptl_CO  = spm_input(['Allow customised normalisation?'], '+1', 'm',...
-			'   Allow customised|Disallow Customised',[-1 1], tmp);
+			'   Allow customised|Disallow Customised',[-1 1], tmp,...
+         'batch',batch_mat,{'Normalisation',iA},'custom_norm');
+
 
 		% Get number of nonlinear basis functions
 		%-----------------------------------------------------------------------
@@ -544,12 +592,15 @@ elseif strcmp(P,'Defaults')
 			if isempty(tmp),tmp = size(bases,1)+1; end;
 		else, tmp = size(bases,1)+2; end;
 
-		nb = spm_input(['# Nonlinear Basis Functions?'],'+1','m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
+		nb = spm_input(['# Nonlinear Basis Functions?'],'+1','m',...
+          [basprompt '|Custom'],[1:size(bases,1) 0], tmp,...
+          'batch',batch_mat,{'Normalisation',iA},'nonlin_func_nb');
 		if nb>0, sptl_NBss = bases(nb,:);
 		elseif nb == 0,
 			if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
 			tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
-			NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3);
+			NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3,...
+         'batch',batch_mat,{'Normalisation',iA},'func_nb');
 			NBss = NBss(:)';
 			sptl_NBss = NBss(:)';
 		else, sptl_NBss = 0; end;
@@ -564,7 +615,8 @@ elseif strcmp(P,'Defaults')
 			sptl_NItr = spm_input(['# Nonlinear Iterations?'],'+1','m',...
 				['1  nonlinear iteration |3  nonlinear iterations'...
 				'|5  nonlinear iterations|8  nonlinear iterations'...
-				'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
+				'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp,...
+            'batch',batch_mat,{'Normalisation',iA},'nonlin_ite_nb');
 		else, sptl_NItr = 0; end;
 
 		% Get the amount of regularization
@@ -575,15 +627,21 @@ elseif strcmp(P,'Defaults')
 		sptl_Rglrztn = spm_input('Nonlinear Regularization','+1','m',...
 			['Extremely Heavy regularization|Heavy regularization|'...
 			 'Medium regularization|Light regularization|'...
-			 'Very Light regularization'], tmp2, tmp);
+			 'Very Light regularization'], tmp2, tmp,...
+          'batch',batch_mat,{'Normalisation',iA},'nonlin_regular');
 
 		tmp = [1 0];
 		sptl_MskBrn = spm_input('Mask brain when registering?', '+1', 'm',...
-			'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
+			'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn),...
+         'batch',batch_mat,{'Normalisation',iA},'mask_brain');
+
    
 		% ask for object image weighting
-		sptl_MskObj = spm_input('Mask object brain when registering?', '+1', 'm',...
-		'Mask object|Dont Mask object',[1 0],find([1 0] == sptl_MskObj));
+		sptl_MskObj = spm_input('Mask object brain when registering?',...
+      '+1', 'm','Mask object|Dont Mask object',[1 0],...
+      find([1 0] == sptl_MskObj),'batch',batch_mat,{'Normalisation',iA},...
+      'mask_object_brain');
+
 	else,
 		% Get default bounding box
 		%-----------------------------------------------------------------------
@@ -597,7 +655,9 @@ elseif strcmp(P,'Defaults')
 			sptl_BB = reshape(bboxes(1,:),2,3);
 		end;
 
-		ans = spm_input('Bounding Box?','+1','m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
+		ans = spm_input('Bounding Box?','+1','m',...
+         [ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1],...
+         tmp,'batch',batch_mat,{'Normalisation',iA},'bounding_box');
 		if ans>0, sptl_BB=reshape(bboxes(ans,:),2,3);
 		elseif ans == 0,
 			if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
@@ -605,7 +665,9 @@ elseif strcmp(P,'Defaults')
 			bb = zeros(2,1);
 			for d=1:3,
 				str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
-				sptl_BB(:,d) = spm_input(['Bounding Box ' directions(d) ], '+1', 'e', str, 2);
+				sptl_BB(:,d) = spm_input(['Bounding Box ' directions(d) ],....
+            '+1', 'e',str, 2,'batch',batch_mat,{'Normalisation',iA},...
+            sprintf('direction%d',d));
 			end;
 		else, sptl_BB = 0; end;
 
@@ -617,13 +679,19 @@ elseif strcmp(P,'Defaults')
 			if isempty(tmp), tmp = size(voxdims,1)+1; end;
 		else, tmp = size(voxdims,1)+2; end;
 		ans = spm_input(...
-			['Voxel Sizes?'], '+1','m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
+			['Voxel Sizes?'], '+1','m', [ voxprompts ....
+         '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1],....
+          tmp,'batch',batch_mat,{'Normalisation',iA},'voxel_sizes');
+
 
 		if ans>0, sptl_Vx = voxdims(ans,:);
 		elseif ans == 0,
 			Vox = [];
 			if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
-			sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3)';
+			sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', ...
+         sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3,...
+         'batch',batch_mat,{'Normalisation',iA},'voxel_sizes_custom')';
+         sptl_Vx = reshape(sptl_Vx,1,3);
 		else, sptl_Vx = 0; end;
 	end;
 	return;
