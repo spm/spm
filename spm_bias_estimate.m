@@ -99,7 +99,7 @@ for iter = 1:128,
 		drawnow;
 	end;
 
-	if olpp-lpp < 1e-5, break; delete([ax1 ax2])end;
+	if olpp-lpp < 1e-5, delete([ax1 ax2]); break; end;
 	olpp = lpp;
 end;
 return;
