@@ -335,7 +335,7 @@ switch cVi
 	otherwise		% otherwise assume AR(0.2) in xVi.Vi
 	%---------------------------------------------------------------
 	SPM.xVi.Vi = spm_Ce(nscan,0.2);
-	cVi        = 'i.i.d';
+	cVi        = 'AR(0.2)';
 
 end
 SPM.xVi.form = cVi;
