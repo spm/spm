@@ -421,8 +421,8 @@ if STAT ~= 'P'
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    str = 'FWE|FDR|none';  % let people get used to FDR in tables first
-    str = 'FWE|none';
+    str = 'FWE|FDR|none';
+    % str = 'FWE|none';      % Use this line to disable FDR threshold
     switch spm_input('p value adjustment to control','+1','b',str,[],1)
 
 
