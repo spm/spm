@@ -58,7 +58,7 @@ X    = X/max(X);
 load MIP
 mip  = mip96*GRID;
 d    = zeros(size(mip));
-spm_project96(X,L,d,V);
+spm_project(X,L,d,V);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
 
