@@ -680,8 +680,7 @@ function mx = maxval(vol)
 if isstruct(vol),
 	mx = -Inf;
 	for i=1:vol.dim(3),
-		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2), ...
-				    0);
+		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
 		imx = max(tmp(find(finite(tmp))));
 		if ~isempty(imx),mx = max(mx,imx);end
 	end;
@@ -693,8 +692,7 @@ function mn = minval(vol)
 if isstruct(vol),
         mn = Inf;
         for i=1:vol.dim(3),
-                tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2), ...
-				    0);
+                tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
 		imn = min(tmp(find(finite(tmp))));
 		if ~isempty(imn),mn = min(mn,imn);end
         end;
@@ -900,9 +898,9 @@ for i = valid_handles(arg1),
 
 					vol  = st.vols{i}.blobs{j}.vol;
 					M    = st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
-					tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[1 NaN])'/(mx-mn)+mn;
-					tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[1 NaN])'/(mx-mn)+mn;
-					tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[1 NaN])'/(mx-mn)+mn;
+					tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])'/(mx-mn)+mn;
+					tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])'/(mx-mn)+mn;
+					tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])'/(mx-mn)+mn;
 					tmpt(find(~finite(tmpt))) = 0;
 					tmpc(find(~finite(tmpc))) = 0;
 					tmps(find(~finite(tmps))) = 0;
