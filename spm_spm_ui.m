@@ -347,6 +347,25 @@ function varargout=spm_spm_ui(varargin)
 %
 %                           ----------------
 %
+% Non-sphericity correction
+% =========================
+%
+% In some instances the i.i.d. assumptions about the errors do not hold.
+% For example in 2nd-level analyses serial correlations can be expressed
+% as correlations among contrasts.  If you request a non-sphericity
+% correction you will be asked to specify whether the error distribution
+% is (i) identical over different levels of each factor and (ii) whether
+% the errors of repeated measures are independent over levels of each
+% factor.  The implied correlation structure will be estimated in spm_spm
+% (assuming the same for all voxels) and used to adjust the statistics and
+% degrees of freedom during inference.  Because an OLS estimator is used
+% (as opposed to a Gauss-Markov estimator) the parameter estimates will not
+% be affected.  The constraints will be found in xX.xVi and enter exactly
+% as the serial correlations in fMRI models.
+% 
+% 
+%                           ----------------
+%
 % Multivariate analyses
 % =====================
 %
@@ -366,8 +385,9 @@ function varargout=spm_spm_ui(varargin)
 % xX.I          - nScan x 4 matrix of factor level indicators
 %                 I(n,i) is the level of factor i corresponding to image n
 % xX.sF         - 1x4 cellstr containing the names of the four factors
-%                 D.sF{i} is the name of factor i
-% xX.X          - desgin matrix
+%                 xX.sF{i} is the name of factor i
+% xX.X          - design matrix
+% xX.xVi        - correlation constraints for non-spericity correction
 % xX.iH         - vector of H partition (condition effects) indices,
 %                 identifying columns of X correspoding to H
 % xX.iC         - vector of C partition (covariates of interest) indices
@@ -1164,6 +1184,71 @@ end
 sGXcalc = sGXcalc{iGXcalc};
 
 
+
+% Non-sphericity correction
+%=======================================================================
+if spm_input('non-sphericity correction?','+1','y/n',[1,0],2);
+
+	% identically distributed assumptions
+	%---------------------------------------------------------------
+	spm_input('Are the errors distributed identically','+1','d')
+	d     = spm_input_ui('!NextPos');
+	Q     = {};
+	nf    = max(find(any(diff(I))));
+	for i = 1:nf
+		p     = max(I(:,i));
+		if spm_input(['over ' D.sF{i} 's?'],d,'y/n',[0,1],2);
+			for j = 1:p
+				u          = find(I(:,i) == j);
+				q          = sparse(u,u,1,nScan,nScan);
+				Q{end + 1} = q;
+			end
+		end
+	end
+
+	% all identically distributed
+	%---------------------------------------------------------------
+	if length(Q) == 0
+		Q{1}  = speye(nScan,nScan);
+	end
+	
+	% independently distributed assumptions
+	%---------------------------------------------------------------
+	spm_input('Are the repeated measures independent',d - 1,'d')
+	for i = 1:nf
+		p     = max(I(:,i));
+		w     = 1:nf;
+		w(i)  = [];
+		if spm_input(['over ' D.sF{i} 's?'],d,'y/n',[0,1],2);
+
+			for j = 1:p
+			for k = 1:(j - 1)
+
+				% identify repeated measures
+				%---------------------------------------
+				q     = sparse(nScan,nScan);
+				for u = 1:nScan
+				for v = 1:nScan
+					if I(u,i) == j & I(v,i) == k
+					if all( I(u,w) == I(v,w) )
+						q(u,v) = 1;
+					end
+					end
+				end
+				end
+				Q{end + 1} = q + q';
+			end
+			end
+		end
+	end
+	xVi.Vi   = Q;
+	xVi.form = 'non-sphericity correction';
+else
+	xVi.Vi   = speye(nScan);
+	xVi.form = 'i.i.d.';
+end
+
+
 %=======================================================================
 % - C O N F I G U R E   D E S I G N
 %=======================================================================
@@ -1368,6 +1453,7 @@ xX     = struct(	'I',		I,...
 			'sF',		{D.sF},...
 			'X',		X,...
 			'sigma',	0,...
+			'xVi',		xVi,...
 			'iH',		[1:size(H,2)],...
 			'iC',		[1:size(C,2)] + tmp(1),...
 			'iB',		[1:size(B,2)] + tmp(2),...
