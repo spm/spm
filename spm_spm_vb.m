@@ -18,8 +18,9 @@ function [SPM] = spm_spm_vb(SPM)
 % Paper VB4: W.Penny et al. (2004) Beyond the voxel: Comparing spatially extended
 %            fMRI models. Manuscript in preparation.
 %
-% The space to be analysed is a 'Volume', 'Masked Volume' or 'Slices'
+% The space to be analysed is a 'Volume', 'Slices' or 'Region'
 % For 'Slices' the numbers of the slices to be analysed are then entered
+% For 'Region' the centre and radius of a circular region must be specified
 %
 % ________________________________________________________________________________
 %
@@ -123,23 +124,30 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %                           ----------------
 %
-% %W% Will Penny %E%
+% @(#)spm_spm_vb.m	1.1 Will Penny 04/08/04
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
-PPM.VB=1;
+SPM.PPM.VB=1;
 
-%-Say hello
-%-----------------------------------------------------------------------
-Finter   = spm('FigName','Stats: Bayesian Specification ...'); 
-spm('Pointer','Arrow');
+try 
+    SPM.PPM.window;
+catch
+    SPM.PPM.window=1;
+end
 
-%-Get SPM.mat if necessary
-%-----------------------------------------------------------------------
+if SPM.PPM.window
+    %-Say hello
+    %-----------------------------------------------------------------------
+    Finter   = spm('FigName','Stats: Bayesian Specification ...'); 
+    spm('Pointer','Arrow');
+end
+
 if nargin ==0
-	swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
-	load(fullfile(swd,'SPM.mat'));
-	SPM.swd = swd;
+    %-Get SPM.mat 
+    swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+    load(fullfile(swd,'SPM.mat'));
+    SPM.swd = swd;
 end
 
 %-Change to SPM.swd if specified
@@ -159,23 +167,25 @@ catch
 	return
 end
 
-%-Delete files from previous analyses
-%-----------------------------------------------------------------------
-if exist(fullfile('.','mask.img'),'file') == 2
-
-	str   = {'Current directory contains SPM estimation files:',...
-		 'pwd = ',pwd,...
-		 'Existing results will be overwritten!'};
-
-	abort = spm_input(str,1,'bd','stop|continue',[1,0],1);
-	if abort
-		spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-		return
-	else
-		str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd)
-		warning(str)
-		drawnow
-	end
+if SPM.PPM.window
+    %-Delete files from previous analyses
+    %-----------------------------------------------------------------------
+    if exist(fullfile('.','mask.img'),'file') == 2
+        
+        str   = {'Current directory contains SPM estimation files:',...
+                'pwd = ',pwd,...
+                'Existing results will be overwritten!'};
+        
+        abort = spm_input(str,1,'bd','stop|continue',[1,0],1);
+        if abort
+            spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+            return
+        else
+            str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd)
+            warning(str)
+            drawnow
+        end
+    end
 end
 
 files = {	'mask.???','ResMS.???','RVP.???',...
@@ -233,30 +243,41 @@ Vbeta = spm_create_vol(Vbeta,'noopen');
 %-----------------------------------------------------------------------
 
 % Set number of AR coefficients
-str=' AR model order';
-PPM.AR_P      = spm_input(str,1,'e',0,[1 1]);
+try 
+    SPM.PPM.AR_P;
+catch
+    str=' AR model order';
+    SPM.PPM.AR_P      = spm_input(str,1,'e',0,[1 1]);
+end
 
 % Specify type of prior
-spm_input('Overall Priors ...',1,'d');
-Ctype = {
-    'Spatial - GMRF',...
-    'Spatial - LORETA',...
-        'Voxel - Shrinkage',...
-        'Voxel - Uninformative'};
-str   = 'Select prior';
-Sel   = spm_input(str,2,'m',Ctype);
-PPM.priors.WA = Ctype{Sel};
+try
+    SPM.PPM.priors.WA;
+catch
+    spm_input('Overall Priors ...',1,'d');
+    Ctype = {
+        'Spatial - GMRF',...
+            'Spatial - LORETA',...
+            'Voxel - Shrinkage',...
+            'Voxel - Uninformative'};
+    str   = 'Select prior';
+    Sel   = spm_input(str,2,'m',Ctype);
+    SPM.PPM.priors.WA = Ctype{Sel};
+end
 
 % Override option for prior on A - none
-PPM.priors.overA='none';
+try
+    SPM.PPM.priors.overA;
+catch
+    PPM.priors.overA='none';
+end
 
-% Compute evidence ?
-str = 'Compute evidence ?';
-PPM.compute_F = spm_input(str,1,'b',{'yes','no'},[1 0]);
-
-% Set number of VB iterations
-%str='Number of VB iterations';
-%maxVBits      = spm_input(str,1,'e',0,[1 1]);
+% Compute evidence at each iteration ?
+try
+    SPM.PPM.update_F;
+catch
+    SPM.PPM.update_F=0;
+end
 
 % Initialise Error SD image
 VHp        = deal(struct(...
@@ -287,13 +308,13 @@ end
 VPsd   = spm_create_vol(VPsd,'noopen');
 
 % Initialise AR images
-VAR(1:PPM.AR_P)        = deal(struct(...
+VAR(1:SPM.PPM.AR_P)        = deal(struct(...
 			'fname',	[],...
 			'dim',		[DIM',spm_type('double')],...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	''));
-for i = 1:PPM.AR_P
+for i = 1:SPM.PPM.AR_P
 	VAR(i).fname   = sprintf('AR_%04d.img',i);
 	VAR(i).descrip = sprintf('Autoregressive coefficient (%04d)',i);
 	spm_unlink(VAR(i).fname)
@@ -303,7 +324,7 @@ VAR   = spm_create_vol(VAR,'noopen');
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised');        %-#
 
 % Set up masking details
-%-If xM is not a structure then assumme it's a vector of thresholds
+%-If xM is not a structure then assumme its a vector of thresholds
 %-----------------------------------------------------------------------
 try
 	xM = SPM.xM;
@@ -311,36 +332,54 @@ catch
 	xM = -ones(nScan,1)/0;
 end
 
-% Analyse volume/masked volume/slices ?
-spm_input('Data to analyse...',1,'d')
-Ctype = {
-    'Volume',...
-        'Masked Volume',...
-        'Slices'};
-str   = 'Select space';
-Sel   = spm_input(str,2,'m',Ctype);
-space_type = Ctype{Sel};
-
-switch space_type,
-case 'Masked Volume',
-    PPM.M_X=1;
-    PPM.AN_slices=[1:1:zdim];
-case 'Volume',
-    PPM.M_X=0;
-    PPM.AN_slices=[1:1:zdim];
-case 'Slices',
-    PPM.M_X=0;
-    PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
+% Explicit masking ?
+try
+    SPM.PPM.M_X;
+catch
+    SPM.PPM.M_X = spm_input('Explicitly mask images?','+1','y/n',[1,0],2);
 end
 
-
-% Explicit masking ?
-%M_X = spm_input('explicitly mask images?','+1','y/n',[1,0],2);
-
-if PPM.M_X, 
-    M_P = spm_get(Inf,'*.img',{'select mask images'}); 
+if SPM.PPM.M_X, 
+    M_P = spm_get(Inf,'*.img',{'Select mask images'}); 
 else, 
     M_P = {}; 
+end
+
+% Analyse volume/slices ?
+try 
+    SPM.PPM.space_type;
+catch
+    spm_input('Data to analyse...',1,'d')
+    Ctype = {
+        'Volume',...
+            'Slices',...
+            'Region'};
+    str   = 'Select space';
+    Sel   = spm_input(str,2,'m',Ctype);
+    SPM.PPM.space_type = Ctype{Sel};
+end
+
+switch SPM.PPM.space_type,
+case 'Volume',
+    SPM.PPM.AN_slices=[1:1:zdim];
+case 'Slices',
+    try
+        SPM.PPM.AN_slices;
+    catch
+        SPM.PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
+    end
+case 'Region',
+    try 
+        SPM.PPM.centre;
+    catch
+        SPM.PPM.centre = spm_input(['Enter centre co-ordinates eg. 3 14 2'],'+1');
+    end
+    SPM.PPM.AN_slices=SPM.PPM.centre(3);
+    try 
+        SPM.PPM.radius;
+    catch
+        SPM.PPM.radius = spm_input(['Enter radius (in voxels) eg. 5'],'+1');
+    end
 end
 
 if ~isempty(M_P)
@@ -370,16 +409,14 @@ VM    = spm_create_vol(VM);
 %=======================================================================
 
 %-Cycle to avoid memory problems (plane by plane)
-%=======================================================================
-spm_progress_bar('Init',100,'VB estimation','');
-spm('Pointer','Watch')
 
-%-maxMem is the maximum amount of data processed at a time (bytes)
-%-----------------------------------------------------------------------
+if SPM.PPM.window
+    %=======================================================================
+    spm_progress_bar('Init',100,'VB estimation','');
+    spm('Pointer','Watch')
+end
+
 global defaults
-MAXMEM = defaults.stats.maxmem*10;
-blksz  = ceil(MAXMEM/8/nScan);
-nbch     = ceil(xdim*ydim/blksz);				%-# blocks
 
 SHp=0; % Sum of noise variance hyperparameters
 xords = [1:xdim]'*ones(1,ydim); xords = xords(:)';  % plane X coordinates
@@ -388,8 +425,20 @@ S     = 0;                                          % Number of in-mask voxels
 s     = 0;                                          % Volume (voxels > UF)
 
 % Initialise aspects of slice variables common to all slices
-slice_template = spm_vb_init_volume (SPM.xX.X,PPM.AR_P);
+slice_template = spm_vb_init_volume (SPM.xX.X,SPM.PPM.AR_P);
 
+% Set maximum number of VB iterations per slice
+try
+    SPM.PPM.maxits;
+catch
+    SPM.PPM.maxits=4;
+end
+slice_template.maxits=SPM.PPM.maxits;
+slice_template.verbose=1;
+slice_template.update_w=1;
+slice_template.update_lambda=1;
+slice_template.update_F=SPM.PPM.update_F;
+                
 index=1;
 for  z = 1:zdim,
 
@@ -402,106 +451,110 @@ for  z = 1:zdim,
     CrAR    = [];	% 
     Q       = [];	%-in mask indices for this plane
     
-    analyse_slice = length(find((PPM.AN_slices-z)==0));
+    analyse_slice = length(find((SPM.PPM.AN_slices-z)==0));
     if analyse_slice
-        for bch = 1:nbch			%-loop over bunches of lines (planks)
+        % Only ever use 1 bunch of lines (planks)
+        bch=1; nbch=1;
+        
+        %-# Print progress information in command window
+        %---------------------------------------------------------------
+        str   = sprintf('Plane %3d/%-3d',z,zdim);
+        fprintf('\r%-40s: %30s',str,' ')                                %-#
+        
+        %-construct list of voxels 
+        %---------------------------------------------------------------
+        I     = [1:xdim*ydim];
+        xyz   = [xords(I); yords(I); zords(I)];		%-voxel coordinates
+        nVox  = size(xyz,2);
+        
+        %-Get data & construct analysis mask
+        %===============================================================
+        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
+        Cm    = logical(ones(1,nVox));			%-current mask
+        
+        %-Compute explicit mask
+        % (note that these may not have same orientations)
+        %---------------------------------------------------------------
+        for i = 1:length(xM.VM)
             
-            %-# Print progress information in command window
-            %---------------------------------------------------------------
-            str   = sprintf('Plane %3d/%-3d, block %3d/%-3d',z,zdim,bch,nbch);
-            fprintf('\r%-40s: %30s',str,' ')                                %-#
+            %-Coordinates in mask image
+            %-------------------------------------------------------
+            j      = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
             
-            %-construct list of voxels in this block
-            %---------------------------------------------------------------
-            I     = [1:blksz] + (bch - 1)*blksz;
-            I     = I(I <= xdim*ydim);			%-truncate
-            xyz   = [xords(I); yords(I); zords(I)];		%-voxel coordinates
-            nVox  = size(xyz,2);
+            %-Load mask image within current mask & update mask
+            %-------------------------------------------------------
+            Cm(Cm) = spm_get_data(xM.VM(i),j(:,Cm)) > 0;
+        end
+        
+        %-Get the data in mask, compute threshold & implicit masks
+        %---------------------------------------------------------------
+        Y     = zeros(nScan,nVox);
+        for i = 1:nScan
             
-            %-Get data & construct analysis mask
-            %===============================================================
-            fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
-            Cm    = logical(ones(1,nVox));			%-current mask
+            %-Load data in mask
+            %-------------------------------------------------------
+            if ~any(Cm), break, end			%-Break if empty mask
+            Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
             
-            %-Compute explicit mask
-            % (note that these may not have same orientations)
-            %---------------------------------------------------------------
-            for i = 1:length(xM.VM)
-                
-                %-Coordinates in mask image
-                %-------------------------------------------------------
-                j      = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
-                
-                %-Load mask image within current mask & update mask
-                %-------------------------------------------------------
-                Cm(Cm) = spm_get_data(xM.VM(i),j(:,Cm)) > 0;
+            Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
+            if xM.I & ~YNaNrep & xM.TH(i) < 0	%-Use implicit mask
+                Cm(Cm) = abs(Y(i,Cm)) > eps;
+            end
+        end
+        
+        %-Mask out voxels where data is constant
+        %---------------------------------------------------------------
+        Cm(Cm) = any(diff(Y(:,Cm),1));
+        CrS    = sum(Cm);				%- Number of current voxels
+        
+        
+        if CrS
+            
+            if strcmp(SPM.PPM.space_type,'Region')
+                % Update current mask to specify only this region
+                d=[xyz(1,:)-SPM.PPM.centre(1);
+                    xyz(2,:)-SPM.PPM.centre(2)];
+                Cm(find(sum(d.^2) > SPM.PPM.radius))=0;
             end
             
-            %-Get the data in mask, compute threshold & implicit masks
-            %---------------------------------------------------------------
-            Y     = zeros(nScan,nVox);
-            for i = 1:nScan
-                
-                %-Load data in mask
-                %-------------------------------------------------------
-                if ~any(Cm), break, end			%-Break if empty mask
-                Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
-                
-                Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
-                if xM.I & ~YNaNrep & xM.TH(i) < 0	%-Use implicit mask
-                    Cm(Cm) = abs(Y(i,Cm)) > eps;
-                end
-            end
-            
-            %-Mask out voxels where data is constant
-            %---------------------------------------------------------------
-            Cm(Cm) = any(diff(Y(:,Cm),1));
-            Y      = Y(:,Cm);				%-Data within mask
-            CrS    = sum(Cm);				%- Number of current voxels
+            CrS = sum(Cm);
+            Y   = Y(:,Cm);				%-Data within mask
             
             %-Conditional estimates (per partition, per voxel)
             %---------------------------------------------------------------
             beta  = zeros(nBeta,CrS);
             Hp    = zeros(1,  CrS);
-            AR    = zeros(PPM.AR_P, CrS);
+            AR    = zeros(SPM.PPM.AR_P, CrS);
             Psd   = zeros(nPsd, CrS);
             
-            if CrS
-                
-                % - Assume single session 
-                vxyz  = spm_vb_neighbors(xyz(:,Cm)');
-                
-                slice = slice_template;
-                slice.verbose=1;
-                slice.update_w=1;
-                slice.update_lambda=1;
-                slice.update_F=0;
-                
-                slice=spm_vb_set_priors(slice,PPM.priors,vxyz);
-                slice=spm_vb_glmar(Y,slice);
-                
-                if PPM.AR_P > 0
-                    AR(1:PPM.AR_P,:)=slice.ap_mean;
-                end
-                
-                if PPM.compute_F
-                    slice.F=spm_vb_F(Y,slice);
-                    PPM.slice(z).F=slice.F;
-                end
-                
-                beta           = slice.wk_mean;
-                Hp(1,:)        = sqrt(1./slice.mean_lambda');
-                Psd            = slice.w_dev;
-                
-                % Get slice-wise Taylor approximation to posterior correlation
-                slice = spm_vb_taylor_R (Y,slice);
-                PPM.slice(z).mean=slice.mean;
-                PPM.slice(z).elapsed_seconds=slice.elapsed_seconds;
-                
-                
-                
-            end % if CrS
+            % - Assume single session 
             
+            vxyz  = spm_vb_neighbors(xyz(:,Cm)');
+            
+            slice = slice_template;
+            slice=spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
+            slice=spm_vb_glmar(Y,slice);
+            
+            if SPM.PPM.AR_P > 0
+                AR(1:SPM.PPM.AR_P,:)=slice.ap_mean;
+            end
+            
+            if SPM.PPM.update_F
+                SPM.PPM.slice(z).F=slice.F;
+            end
+            
+            beta           = slice.wk_mean;
+            Hp(1,:)        = sqrt(1./slice.mean_lambda');
+            Psd            = slice.w_dev;
+            
+            % Get slice-wise Taylor approximation to posterior correlation
+            slice = spm_vb_taylor_R (Y,slice);
+            SPM.PPM.slice(z).mean=slice.mean;
+            SPM.PPM.slice(z).elapsed_seconds=slice.elapsed_seconds;
+            
+            % Save Coefficient RESELS and number of voxels
+            SPM.PPM.slice(z).gamma_tot=slice.gamma_tot;
+            SPM.PPM.slice(z).N=slice.N;
             
             %-Append new inmask voxel locations and volumes
             %---------------------------------------------------------------
@@ -519,7 +572,8 @@ for  z = 1:zdim,
             CrPsd = [CrPsd Psd];
             CrAR = [CrAR AR];
             
-        end % (bch)
+        end % if CrS
+        
     end % (if analyse_slice)
 
     %-Write Mask image
@@ -554,21 +608,25 @@ for  z = 1:zdim,
     %-Write AR images
     %-------------------------------------------------------------------
     j   = NaN*ones(xdim,ydim);
-    for i = 1:PPM.AR_P
+    for i = 1:SPM.PPM.AR_P
 	    if length(Q), j(Q) = CrAR(i,:); end
 	    VAR(i)    = spm_write_plane(VAR(i),j,z);
     end
     
-    %-Report progress
-    %-------------------------------------------------------------------
-    spm_progress_bar('Set',100*(z - 1)/zdim);
-
+    if SPM.PPM.window
+        %-Report progress
+        %-------------------------------------------------------------------
+        spm_progress_bar('Set',100*(z - 1)/zdim);
+    end
 
 end % (for z = 1:zdim)
 
-fprintf('\n')                                                        %-#
-spm_progress_bar('Clear')
-spm('Pointer','Arrow');
+fprintf('\n')   %-#
+if SPM.PPM.window
+    spm_progress_bar('Clear')
+    spm('Pointer','Arrow');
+end
+
 %=======================================================================
 % - P O S T   E S T I M A T I O N
 %=======================================================================
@@ -612,8 +670,6 @@ xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 %=======================================================================
 fprintf('%-40s: %30s','Saving results','...writing')                 %-#
 
-
-
 %-place fields in SPM
 %-----------------------------------------------------------------------
 SPM.xVol.XYZ   = XYZ(:,1:S);	%-InMask XYZ coords (voxels)
@@ -632,10 +688,7 @@ SPM.VPsd   = VPsd;			    % Filenames - hyperparameters
 SPM.VAR    = VAR;			    % Filenames - hyperparameters
 SPM.VM     = VM;				%-Filehandle - Mask
 
-%PPM.Cb = 1;                     % Default threshold for effect size (1 per cent)
-
-PPM.Gamma  = 1;                 % Default threshold for effect size (1 per cent)
-SPM.PPM    = PPM;			    % PPM structure
+SPM.PPM.Gamma  = 1;             % Default threshold for effect size (1 per cent)
 
 SPM.xX     = xX;                %-design structure
 SPM.xM     = xM;				%-mask structure
@@ -647,11 +700,13 @@ save SPM SPM
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
-%=======================================================================
-%- E N D: Cleanup GUI
-%=======================================================================
-spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
-fprintf('...use the results section for assessment\n\n')             %-#
+if SPM.PPM.window
+    %=======================================================================
+    %- E N D: Cleanup GUI
+    %=======================================================================
+    spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+    fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
+    fprintf('...use the results section for assessment\n\n')             %-#
+end
 
 
