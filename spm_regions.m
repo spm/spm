@@ -200,7 +200,7 @@ end
 
 %=======================================================================
 try
-	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH]; Compatibility check
+	xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH]; % Compatibility check
 end
 %=======================================================================
 

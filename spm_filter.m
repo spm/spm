@@ -29,7 +29,7 @@ function [vargout] = spm_filter(K,Y)
 %===========================================================================
 try
 	for s = 1:length(K)
-		K(s).HP = K(s).HParam 	% compatibility check
+		K(s).HP = K(s).HParam; 	% compatibility check
 	end
 end
 %===========================================================================
