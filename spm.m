@@ -145,10 +145,6 @@ function [R1,R2]=spm(Action,P2,P3)
 % WinStripe defaults to a summary line identifying the user, host and
 % MatLab version; IconLabel to 'MatLab'.
 %
-% FORMAT TDname = spm('DirTrunc',Dname,len)
-% Truncates directory names to maximum length len characters,
-% prepending '...' and keeping components intact.
-%
 %_______________________________________________________________________
 
 %-Parameters
@@ -777,20 +773,23 @@ return
 
 elseif strcmp(lower(Action),lower('DirTrunc'))
 %=======================================================================
-% TDname = spm('DirTrunc',Dname,len)
+% TDname = spm('DirTrunc',Dname,len) *GrandFathered* feature!
 %-----------------------------------------------------------------------
 if nargin < 3, len = 50; else, len = P3; end
 if nargin < 2, Dname = spm('Dir'); else, Dname = P2; end
-if length(Dname) > len
-	lDname = length(Dname);
-	tmp    = min(find(Dname(lDname-len:lDname)=='/')) + lDname-len -1;
-	if isempty(tmp), tmp=max(find(Dname=='/')); end
-	TDname = ['...',Dname(tmp:lDname)];
-else
-	TDname=Dname;
-end
+%if length(Dname) > len
+%	lDname = length(Dname);
+%	tmp    = min(find(Dname(lDname-len:lDname)=='/')) + lDname-len -1;
+%	if isempty(tmp), tmp=max(find(Dname=='/')); end
+%	TDname = ['...',Dname(tmp:lDname)];
+%else
+%	TDname=Dname;
+%end
+%R1    = TDname;
 
-R1    = TDname;
+fprintf(['%s\nWARNING: spm(''DirTrunc''... grandfathered:\n\t',...
+		'Use the ''a'' function of spm_str_manip instead...\n'],7)
+R1 = spm_str_manip(Dname,['a',num2str(len)]);
 return
 
 
