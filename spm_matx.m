@@ -21,9 +21,12 @@ function varargout = spm_matx(matfile,varargin)
 %
 %
 % NB: Unfortunately this function has to load the *entire* mat-file
-% into memory. Since the file format of the mat-files from MatLab5
-% onwards is complex (and unsupported externally by MathWorks), a more
-% elegent solution reading direct from mat-files is not practicable.
+% into memory. To load individual data structures from mat-files
+% requires an external C routine using the mat* functions of the mat.h
+% Matlab C API. (See the MatLab Application Program Interface Guide",
+% section 5 for details.) Since this is rather involved, and this
+% functionality is intended for small mat-files, this m-file function
+% implementation is more practicable.
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
