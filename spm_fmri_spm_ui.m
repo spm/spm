@@ -115,27 +115,32 @@ function [xX,Sess] = spm_fmri_spm_ui
 % See spm_fMRI_design for more details about how designs are specified.
 %
 % Serial correlations in fast fMRI time-series are dealt with as
-% described in spm_spm.  At this stage you need to specific the filtering
-% that will be applied to the data (and design matrix).  This filtering
-% is important to ensure that bias in estimates of the standard error are
-% minimized.  This bias results from a discrepancy between the estimated
-% (or assumed) auto-correlation structure of the data and the actual
-% intrinsic correlations.  The serial correlations will be estimated
-% with an REML (restricted maximum likelihood) algorithm using an AR(1)
-% plus white noise model during parameter estimation.  This estimate
-% assumes the same correlation structure for each voxel, within each
-% session.  The REML estimates are then used to correct for
-% non-sphericity during inference by adjusting the statistics and degrees
-% of freedom appropriately.
-% The discrepancy between estimated and actual intrinsic (i.e. prior to
+% described in spm_spm.  At this stage you need to specify the filtering
+% that will be applied to the data (and design matrix) to give a
+% generalized least squares (GLS) estimate of the parameters required.
+% This filtering is important to ensure that the GLS estimate is
+% efficient and that the error variance is estimated in an unbiased way.
+% 
+% The serial correlations will be estimated with a ReML (restricted
+% maximum likelihood) algorithm using an AR(1) plus white noise model
+% during parameter estimation.  This estimate assumes the same
+% correlation structure for each voxel, within each session.  The ReML
+% estimates are then used to correct for non-sphericity during inference
+% by adjusting the statistics and degrees of freedom appropriately.  The
+% discrepancy between estimated and actual intrinsic (i.e. prior to
 % filtering) correlations are greatest at low frequencies.  Therefore
-% specification of the high-pass component of the filter is particularly
-% important.  High-pass filtering is now implemented at the level of the
+% specification of the high-pass filter is particularly important.
+% Furthermore, high-pass filtering whitens the data and renders parameter
+% estimation more efficient (by Gauss-Markov theorum).  Low-pass
+% filtering (i.e. smoothing) has been removed as an option because the
+% ReML estimator of serial correlations resolves the robustenss issues to
+% a degree. High-pass filtering is implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
 % matrix).  The default cutoff period is twice the maximum time interval
-% between the most frequently occurring event or epoch (i.e the minium of
-% all maximum intervals over event or epochs).
-%
+% between the most frequently occurring event or epoch (i.e the minimum of
+% all maximum intervals over event or epochs).  This is only a guide
+% and can be adjusted depending on the frequency structure of the
+% contrasts of interest.
 %
 %-----------------------------------------------------------------------
 % Refs:
@@ -318,10 +323,9 @@ spm_input('Temporal autocorrelation options','+1','d',mfilename,'batch')
 
 % High-pass filtering
 %-----------------------------------------------------------------------
-cLF = spm_input('High-pass filter?','+1','b','none|specify',...
+cF    = spm_input('High-pass filter?','+1','b','none|specify',...
 			'batch',{},'HF_fil');
-
-switch cLF
+switch cF
 
 	case 'specify'
 
@@ -342,43 +346,23 @@ switch cLF
 
 	% LF description
 	%---------------------------------------------------------------
-	LFstr = sprintf('[min] Cutoff period %d seconds',min(HParam));
+	Fstr   = sprintf('[min] Cutoff period %d seconds',min(HParam));
 
 	case 'none'
 	%---------------------------------------------------------------
 	HParam = cell(1,nsess);
-	LFstr  = cLF;
+	Fstr   = cLF;
 
 end
 
 
-% Low-pass filtering
-%-----------------------------------------------------------------------
-cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf',...
-			'batch',{},'LF_fil');
-switch cHF
-
-	case 'Gaussian'
-	%---------------------------------------------------------------
-	LParam  = spm_input('Gaussian FWHM (secs)','+1','r',4,...
-			    'batch',{},'LF_cut');
-	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',LParam);
-	LParam  = LParam/sqrt(8*log(2));
-
-	case {'hrf', 'none'}
-	%---------------------------------------------------------------
-	LParam  = [];
-	HFstr   = cHF;
-
-end
-
-% create filter struct and band-pass specification
+% create filter struct
 %-----------------------------------------------------------------------
 for i = 1:nsess
-	K{i} = struct(	'HChoice',	cLF,...
+	K{i} = struct(	'HChoice',	cF,...
 			'HParam',	HParam(i),...
-			'LChoice',	cHF,...
-			'LParam',	LParam,...
+			'LChoice',	'none',...
+			'LParam',	[],...
 			'row',		row{i},...
 			'RT',		RT);
 end
@@ -387,7 +371,7 @@ end
 % intrinsic autocorrelations (Vi)
 %-----------------------------------------------------------------------
 str     = 'Correct for serial correlations?';
-cVimenu = {'none','AR(1)'};
+cVimenu = {'none','AR(1) + w'};
 cVi     = spm_input(str,'+1','b',cVimenu,'batch',{},'int_corr');
 
 
@@ -426,7 +410,7 @@ K       = spm_filter('set',K);
 %-----------------------------------------------------------------------
 switch cVi
 
-	case 'AR(1)'
+	case 'AR(1) + w'
 	%---------------------------------------------------------------
 	Q  = spm_Ce(nscan,2);
 
@@ -545,8 +529,7 @@ xsDes    = struct(	'Design',			DSstr,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
 			'Conditions_per_session',	sprintf('%-3d',ntr),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
-			'High_pass_Filter',		LFstr,...
-			'Low_pass_Filter',		HFstr,...
+			'High_pass_Filter',		Fstr,...
 			'Intrinsic_correlations',	xVi.form,...
 			'Global_calculation',		sGXcalc,...
 			'Grand_mean_scaling',		sGMsca,...
