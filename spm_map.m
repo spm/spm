@@ -1,5 +1,5 @@
 function V = spm_map(P,ID)
-% memory map of a volume image
+% memory map of a volume image - an obsolete function
 % FORMAT V = spm_map(P,[ID])
 % P - filename
 % ID - Image descriptors passed to spm_map_vol
@@ -11,10 +11,14 @@ function V = spm_map(P,ID)
 % Information about the image is read from *.hdr if is exists, otherwise
 % the global default variables are used.  
 %
+% SPM_MAP is obsolete and will be eliminated.  Please use spm_vol.m.
+%
 % see also spm_map_vol.m
 %
 %__________________________________________________________________________
 % %W% %E%
+
+warning('SPM_MAP is obsolete and will be eliminated.');
 
 % ensure correct suffix for header filename
 %-----------------------------------------------------------------------
