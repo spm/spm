@@ -312,7 +312,7 @@ case 'Fitted responses'
 
 		% fitted (predicted) data (Y = X1*beta)
 		%--------------------------------------------------------
-		Y = xX.X*xCon(2).c*pinv(xCon(2).c)*beta;
+		Y = xX.X*xCon(Ic).c*pinv(xCon(Ic).c)*beta;
 	else
 
 		% fitted (adjusted) data (Y = X1o*beta)
