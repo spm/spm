@@ -17,6 +17,16 @@ function [BF,BFstr] = spm_get_bf(W,dt)
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 
+% if no trials
+%---------------------------------------------------------------------------
+if length(W) == 0
+
+	BF    = [];
+	BFstr = 'none';
+	return
+end
+
+
 % assemble basis functions {bf}
 %---------------------------------------------------------------------------
 if     all(W == 0)
