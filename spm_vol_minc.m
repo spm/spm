@@ -66,7 +66,7 @@ switch datatype,
 	otherwise,
 		is_flt = 1;
 end;
-if ~spm_platform('bigend') & datatype~=2, datatype = datatype*256; end;
+if ~spm_platform('bigend') & datatype~=2 & datatype~=2+128, datatype = datatype*256; end;
 
 dim   = [dim(1:3) datatype];
 
