@@ -293,7 +293,10 @@ fg = spm_figure('GetWin','Graphics');
 if isempty(fg), error('Can''t create graphics window'); end
 spm_figure('Clear','Graphics');
 
-P = deblank(varargin{1});
+P = varargin{1};
+if ischar(P), P = spm_vol(P); end;
+P = P(1);
+
 spm_orthviews('Reset');
 spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
 if isempty(st.vols{1}), return; end;

@@ -351,7 +351,6 @@ if a1 == 1 | a1 == 3,
 			Finter,CmdLine);
 		spm_normalise(Template, subj(i).P, subj(i).matname,...
 			defs.estimate.weight, subj(i).objmask,defs.estimate);
-		spm_normalise_disp(subj(i).matname);
 	end;
 end;
 

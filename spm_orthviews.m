@@ -202,6 +202,7 @@ switch lower(action),
 case 'image',
 	H = specify_image(varargin{1});
 	if ~isempty(H)
+		st.vols{H}.area = [0 0 1 1];
 		if length(varargin)>=2, st.vols{H}.area = varargin{2}; end;
 		if isempty(st.bb), st.bb = maxbb; end;
 		bbox;
@@ -410,7 +411,11 @@ return;
 function addimage(handle, fname)
 global st
 for i=valid_handles(handle),
-	vol = spm_vol(fname);
+	if isstruct(fname),
+		vol = fname(1);
+	else,
+		vol = spm_vol(fname);
+	end;
 	mat = vol.mat;
 	st.vols{i}.blobs=cell(1,1);
 	if st.mode == 0,
@@ -457,8 +462,11 @@ return;
 function addcolouredimage(handle, fname,colour)
 global st
 for i=valid_handles(handle),
-
-	vol = spm_vol(fname);
+	if isstruct(fname),
+		vol = fname(1);
+	else,
+		vol = spm_vol(fname);
+	end;
 	mat = vol.mat;
 	if ~isfield(st.vols{i},'blobs'),
 		st.vols{i}.blobs=cell(1,1);
@@ -478,17 +486,21 @@ function addtruecolourimage(handle,fname,colourmap,prop,mx,mn)
 % adds true colour image to current displayed image  
 global st
 for i=valid_handles(handle),
-  vol = spm_vol(fname);
-  mat = vol.mat;
-  if ~isfield(st.vols{i},'blobs'),
-    st.vols{i}.blobs=cell(1,1);
-    bset = 1;
-  else,
-    bset = length(st.vols{i}.blobs)+1;
-  end;
-% axpos = get(st.vols{i}.ax{2}.ax,'Position');
-  c = struct('cmap', colourmap,'prop',prop);
-  st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',c);
+	if isstruct(fname),
+		vol = fname(1);
+	else,
+		vol = spm_vol(fname);
+	end;
+	mat = vol.mat;
+	if ~isfield(st.vols{i},'blobs'),
+		st.vols{i}.blobs=cell(1,1);
+		bset = 1;
+	else,
+		bset = length(st.vols{i}.blobs)+1;
+	end;
+	% axpos = get(st.vols{i}.ax{2}.ax,'Position');
+	c = struct('cmap', colourmap,'prop',prop);
+	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',c);
 end;
 return;
 %_______________________________________________________________________
@@ -643,10 +655,15 @@ function H = specify_image(arg1, arg2)
 global st
 H=[];
 ok = 1;
-eval('V = spm_vol(arg1);','ok=0;');
-if ok == 0,
-	fprintf('Can not use image "%s"\n', arg1);
-	return;
+if isstruct(arg1),
+	V = arg1(1);
+else,
+	try,
+		V = spm_vol(arg1);
+	catch,
+		fprintf('Can not use image "%s"\n', arg1);
+		return;
+	end;
 end;
 
 ii = 1;

@@ -1,11 +1,13 @@
-function spm_segment(VF,PG,flags)
+function VO = spm_segment(VF,PG,flags)
 % Segment an MR image into Gray, White & CSF.
 %
-% FORMAT spm_segment(PF,PG,flags)
-% PF   - name(s) of image(s) to segment (must have same dimensions).
-% PG   - name(s) of template image(s) for realignment.
-%      - or a 4x4 transformation matrix which maps from the image to
-%        the set of templates.
+% FORMAT VO = spm_segment(PF,PG,flags)
+% PF    - name(s) of image(s) to segment (must have same dimensions).
+% PG    - name(s) of template image(s) for realignment.
+%       - or a 4x4 transformation matrix which maps from the image to
+%         the set of templates.
+% flags - a structure normally based on defaults.segment
+% VO    - optional output volume
 %
 %                      The algorithm is three step:
 %
@@ -24,9 +26,9 @@ function spm_segment(VF,PG,flags)
 %    in order to more accurately identify brain tissue. This is then used
 %    to clean up the grey and white matter segments. 
 %
-% 4) Write the segmented image. The names of these images have
-%    "_seg1", "_seg2" & "_seg3" appended to the name of the
-%    first image passed.
+% 4) If no output argument is specified, then the segmented images are
+%    written to disk. The names of these images have "_seg1", "_seg2"
+%    & "_seg3" appended to the name of the first image passed.
 %
 %_______________________________________________________________________
 % Refs:
@@ -42,6 +44,47 @@ function spm_segment(VF,PG,flags)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
+% Create some suitable default values
+%-----------------------------------------------------------------------
+
+def_flags.estimate.priors = str2mat(...
+        fullfile(spm('Dir'),'apriori','gray.mnc'),...
+        fullfile(spm('Dir'),'apriori','white.mnc'),...
+        fullfile(spm('Dir'),'apriori','csf.mnc'));
+def_flags.estimate.reg    = 0.01;
+def_flags.estimate.cutoff = 30;
+def_flags.estimate.samp   = 3;
+def_flags.estimate.bb     =  [[-88 88]' [-122 86]' [-60 95]'];
+def_flags.estimate.affreg.smosrc = 8;
+def_flags.estimate.affreg.regtyp = 'mni';
+def_flags.estimate.affreg.weight = '';
+def_flags.write.cleanup   = 1;
+def_flags.write.wrt_cor   = 1;
+def_flags.graphics        = 1;
+
+if nargin<2, flags = def_flags; end;
+if ~isfield(flags,'estimate'),        flags.estimate        = def_flags.estimate;        end;
+if ~isfield(flags.estimate,'priors'), flags.estimate.priors = def_flags.estimate.priors; end;
+if ~isfield(flags.estimate,'reg'),    flags.estimate.reg    = def_flags.estimate.reg;    end;
+if ~isfield(flags.estimate,'cutoff'), flags.estimate.cutoff = def_flags.estimate.cutoff; end;
+if ~isfield(flags.estimate,'samp'),   flags.estimate.samp   = def_flags.estimate.samp;   end;
+if ~isfield(flags.estimate,'bb'),     flags.estimate.bb     = def_flags.estimate.bb;     end;
+if ~isfield(flags.estimate,'affreg'), flags.estimate.affreg = def_flags.estimate.affreg; end;
+if ~isfield(flags.estimate.affreg,'smosrc'),
+	flags.estimate.affreg.smosrc = def_flags.estimate.affreg.smosrc;
+end;
+if ~isfield(flags.estimate.affreg,'regtyp'),
+	flags.estimate.affreg.regtyp = def_flags.estimate.affreg.regtyp;
+end;
+if ~isfield(flags.estimate.affreg,'weight'),
+	flags.estimate.affreg.weight = def_flags.estimate.affreg.weight;
+end;
+if ~isfield(flags,'write'),         flags.write         = def_flags.write;         end;
+if ~isfield(flags.write,'cleanup'), flags.write.cleanup = def_flags.write.cleanup; end;
+if ~isfield(flags.write,'wrt_cor'), flags.write.wrt_cor = def_flags.write.wrt_cor; end;
+if ~isfield(flags,'graphics'),      flags.graphics      = def_flags.graphics;      end;
+
+%-----------------------------------------------------------------------
 
 if ischar(VF), VF= spm_vol(VF); end;
 
@@ -62,13 +105,15 @@ CP   = shake_cp(CP);
 
 [CP,BP,SP] = run_segment(CP,BP,SP,VF,sums,x1,x2,x3);
 
-save segmentation_results.mat CP BP SP VF sums
+%save segmentation_results.mat CP BP SP VF sums
 
 [g,w,c] = get_gwc(VF,BP,SP,CP,sums,flags.write.wrt_cor);
 if flags.write.cleanup, [g,w,c] = clean_gwc(g,w,c); end;
 
-% Write the segmented images.
+% Create the segmented images.
 %-----------------------------------------------------------------------
+offs  = cumsum(repmat(prod(VF(1).dim(1:2)),1,VF(1).dim(3)))-prod(VF(1).dim(1:2));
+pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
 for j=1:3,
 	VO(j) = struct(...
 		'fname',  [spm_str_manip(VF(1).fname,'rd') '_seg' num2str(j) '.img'],...
@@ -77,19 +122,27 @@ for j=1:3,
 		'pinfo',  [1/255 0 0]',...
 		'descrip','Segmented image');
 end;
-VO = spm_create_vol(VO);
 
-spm_progress_bar('Init',VF(1).dim(3),'Writing Segmented','planes completed');
-for pp=1:VF(1).dim(3),
-	VO(1) = spm_write_plane(VO(1),double(g(:,:,pp))/255,pp);
-	VO(2) = spm_write_plane(VO(2),double(w(:,:,pp))/255,pp);
-	VO(3) = spm_write_plane(VO(3),double(c(:,:,pp))/255,pp);
-	spm_progress_bar('Set',pp);
+if nargout==0,
+	VO = spm_create_vol(VO);
+
+	spm_progress_bar('Init',VF(1).dim(3),'Writing Segmented','planes completed');
+	for pp=1:VF(1).dim(3),
+		VO(1) = spm_write_plane(VO(1),double(g(:,:,pp))/255,pp);
+		VO(2) = spm_write_plane(VO(2),double(w(:,:,pp))/255,pp);
+		VO(3) = spm_write_plane(VO(3),double(c(:,:,pp))/255,pp);
+		spm_progress_bar('Set',pp);
+	end;
+	VO = spm_close_vol(VO);
+	spm_progress_bar('Clear');
 end;
-VO = spm_close_vol(VO);
-spm_progress_bar('Clear');
 
-display_graphics(VF,VO,CP.mn,CP.cv,CP.mg);
+VO(1).dat = g; VO(1).pinfo = VO(1).pinfo(1:2,:); VO(1).fname = 'GM.img';
+VO(2).dat = w; VO(2).pinfo = VO(2).pinfo(1:2,:); VO(2).fname = 'WM.img';
+VO(3).dat = c; VO(3).pinfo = VO(3).pinfo(1:2,:); VO(3).fname = 'CSF.img';
+
+if flags.graphics, display_graphics(VF,VO,CP.mn,CP.cv,CP.mg); end;
+
 return;
 %=======================================================================
 

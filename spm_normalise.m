@@ -1,7 +1,7 @@
-function spm_normalise(VG,VF,matname,VWG,VWF,flags)
+function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Spatial (stereotactic) normalization
 %
-% FORMAT spm_normalise(VG,VF,matname,VWG,VWF,flags)
+% FORMAT params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % VG        - template handle(s)
 % VF        - handle of image to estimate params from
 % matname   - name of file to store deformation definitions
@@ -122,14 +122,21 @@ function spm_normalise(VG,VF,matname,VWG,VWF,flags)
 if nargin<2, error('Incorrect usage.'); end;
 if ischar(VF), VF = spm_vol(VF); end;
 if ischar(VG), VG = spm_vol(VG); end;
-if nargin<3, matname = [spm_str_manip(VF.fname,'sd') '_sn.mat']; end;
+if nargin<3,
+	if nargout==0,
+		matname = [spm_str_manip(VF.fname,'sd') '_sn.mat'];
+	else,
+		matname = '';
+	end;
+end;
 if nargin<4, VWG = ''; end;
 if nargin<5, VWF = ''; end;
 if ischar(VWG), VWG=spm_vol(VWG); end;
 if ischar(VWF), VWF=spm_vol(VWF); end;                                                                     
 
+
 def_flags = struct('smosrc',8,'smoref',0,'regtyp','mni',...
-	'cutoff',30,'nits',16,'reg',0.1);
+	'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
 if nargin < 6,
 	flags = def_flags;
 else,
@@ -184,8 +191,12 @@ clear VF1 VG1
 flags.version = '%W% %E%';
 flags.date    = date;
 
-fprintf('Saving Parameters..\n');
-save(matname,'Affine','Tr','VF','VG','flags');
+if ~isempty(matname),
+	fprintf('Saving Parameters..\n');
+	save(matname,'Affine','Tr','VF','VG','flags');
+end;
+params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
+if flags.graphics, spm_normalise_disp(params); end;
 return;
 %_______________________________________________________________________
 

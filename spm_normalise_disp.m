@@ -10,7 +10,12 @@ if isempty(fg), return; end;
 
 if nargin<1, matname = spm_get(1,'*_sn3d.mat'); end;
 
-t = load(deblank(matname));
+if ischar(matname),
+	t = load(deblank(matname));
+else, %assume it is a structure
+	t = matname;
+end;
+
 Q = t.VG(1).mat*inv(t.Affine)/t.VF(1).mat;
 
 spm_figure('Clear','Graphics');
@@ -48,10 +53,8 @@ end;
 
 spm_orthviews('Reset');
 h1 = spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
-spm_write_sn(t.VF.fname,matname);
-[pth,nm,xt,vr] = fileparts(t.VF(1).fname);
-q              = fullfile(pth,['n' nm xt vr]);
-h2 = spm_orthviews('Image',q,[.51 0.1 .48 .6]);
+VN = spm_write_sn(t.VF.fname,matname);
+h2 = spm_orthviews('Image',VN,[.51 0.1 .48 .6]);
 spm_orthviews('Space',h2);
 spm_print;
 drawnow;
