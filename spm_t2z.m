@@ -42,7 +42,6 @@ Tol         = 10^(-14);
 if nargin<2 error('insufficient arguments'), end
 if (length(df)~=1) error('df must be a scalar'), end
 if df<=0 error('df must be strictly positive'), end
-if floor(df)~=ceil(df) error('df must be integer'), end
 
 %-Computation
 %===========================================================================

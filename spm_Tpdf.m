@@ -22,7 +22,6 @@ function pdf = spm_Tpdf(t,df)
 if nargin<2 error('insufficient arguments'), end
 
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-Computation
 %---------------------------------------------------------------------------
