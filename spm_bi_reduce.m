@@ -6,13 +6,13 @@ function [M0,M1,L] = spm_bi_reduce(M,P,O)
 % Required fields:
 %   M.fx  - dx/dt    = f(x,u,P)                     {function string or m-file}
 %   M.lx  - y(t)     = l(x,P)                       {function string or m-file}
-%   M.J   - bilinear form for df(x,u,P)/dx          {function string or m-file}
+%   M.bi  - bilinear form [M0,M1,L] = bi(M,P)       {function string or m-file}
 %   M.m   - m inputs
 %   M.n   - n states
-%   M.l   - l ouputs
+%   M.l   - l outputs
 %   M.x   - (n x 1) = x(0) = expanston point
 % P   - model parameters
-% O   - order [default] = 2 
+% O   - order [default] = 1 
 %
 % if called with O = 1 a 1st order Bilinear approximation is returned where
 % the implcit states are
@@ -42,9 +42,17 @@ function [M0,M1,L] = spm_bi_reduce(M,P,O)
 % set up
 %===========================================================================
 
+% use M.bi if provided
+%---------------------------------------------------------------------------
+if isfield(M,'bi')
+	funbi     = fcnchk(M.bi,'M','P');
+	[M0,M1,L] = feval(funbi,M,P);
+	return
+end
+
 % default = 2nd order
 %---------------------------------------------------------------------------
-if nargin ~= 3, O = 2; end
+if nargin ~= 3, O = 1; end
 
 m     = M.m;					% m inputs
 n     = M.n;					% n states
@@ -53,16 +61,6 @@ x     = M.x(:);					% expansion point
 dx    = 1e-6;
 du    = 1e-6;
 u     = zeros(m,1);
-
-
-% use M.J if provided
-%---------------------------------------------------------------------------
-if isfield(M,'J')
-	funJ      = fcnchk(M.J,'x','u','P');
-	[M0,M1,L] = feval(funJ,x,u,P);
-	return
-end
-M1    = {};
 
 % create inline functions
 %---------------------------------------------------------------------------
