@@ -3,8 +3,8 @@ function varargout=spm_help(varargin)
 % FORMAT spm_help
 %_______________________________________________________________________
 %  ___  ____  __  __
-% / __)(  _ \(  \/  )  Statistical Parametric Mapping
-% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+% / __)(  _ \(  \/  )  
+% \__ \ )___/ )    (   Statistical Parametric Mapping
 % (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %
 %_______________________________________________________________________
