@@ -4,7 +4,7 @@ function [] = spm_dcm_generate(DCM_filename,SNR,show_data)
 % 
 % DCM_filename  Name of DCM data structure
 % SNR           Signal to noise ratio (default=1)
-% show_data     plot data 0 (no) or 1 (yes) (default=0)
+% show_data     plot data 0 (no) or 1 (yes) (default=0 )
 %
 % This routine will update the DCM.Y field as follows: 
 %           Y.y     synthetic BOLD data
