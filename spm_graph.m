@@ -427,7 +427,8 @@ case 'Event/epoch-related responses'
 
 		% PSTH
 		%------------------------------------------------------
-		INT    = -8:2:max(pst);
+		BIN    = 2;
+		INT    = -BIN:BIN:max(pst);
 		PSTH   = [];
 		SEM    = [];
 		PST    = [];
