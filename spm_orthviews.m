@@ -162,11 +162,11 @@ end;
 
 
 if strcmp(action,'reposition'),
-	centre = [];
 	if (nargin == 1),
-		cp = [];
 		obj = get(fig,'CurrentObject');
-		a = 0;
+		% a    = 0;
+		cent = [];
+		cp   = [];
 		for i=1:24,
 			if ~isempty(st.vols{i}),
 				for j=1:3,
@@ -178,24 +178,25 @@ if strcmp(action,'reposition'),
 						cp = get(obj,'CurrentPoint');
 					end;
 					if ~isempty(cp),
-						cp = cp(1,1:2);
-						centre = st.centre;
+						cp     = cp(1,1:2);
+						is     = inv(st.Space);
+						cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 						switch j,
 							case 1,
-							centre([1 2])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,2)];
+							cent([1 2])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,2)];
 							case 2,
-							centre([1 3])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,3)];
+							cent([1 3])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,3)];
 							case 3,
-							centre([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
+							cent([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
 						end;
 						break;
 					end;
 				end;
-				if ~isempty(centre), break; end;
+				if ~isempty(cent), break; end;
 			end;
 		end;
-		if isempty(centre), return; end;
-		centre = st.Space(1:3,1:3)*centre + st.Space(1:3,4);
+		if isempty(cent), return; end;
+		centre = st.Space(1:3,1:3)*cent(:) + st.Space(1:3,4);
 	else,
 		centre = arg1;
 	end;
@@ -203,8 +204,8 @@ if strcmp(action,'reposition'),
 	bb = st.bb;
 	Dims = diff(bb)';
 
-	is = inv(st.Space);
-	centre = is(1:3,1:3)*centre(:) + is(1:3,4);
+	is   = inv(st.Space);
+	cent = is(1:3,1:3)*centre(:) + is(1:3,4);
 
 	for i=1:24,
 		if ~isempty(st.vols{i}),
@@ -212,19 +213,19 @@ if strcmp(action,'reposition'),
 			TM0 = [
 				1 0 0 -bb(1,1)
 				0 1 0 -bb(1,2)
-				0 0 1 -centre(3)
+				0 0 1 -cent(3)
 				0 0 0 1];
 
 			CM0 = [
 				1 0 0 -bb(1,1)
 				0 0 1 -bb(1,3)
-				0 1 0 -centre(2)
+				0 1 0 -cent(2)
 				0 0 0 1];
 	
 			SM0 = [
 				0 0 1 -bb(1,3)
 				0 1 0 -bb(1,2)
-				1 0 0 -centre(1)
+				1 0 0 -cent(1)
 				0 0 0 1];
 
 			TM = inv(TM0*(st.Space\M)); TD = Dims([1 2]);
@@ -240,8 +241,8 @@ if strcmp(action,'reposition'),
 			else,
 				scal = 64/max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
 	
-				posn = [centre(1)+bb(1,1) centre(2)+bb(1,2) centre(3)+bb(1,3) 1]';
-				posn = [centre(1)-bb(1,1) centre(2)-bb(1,2) centre(3)-bb(1,3) 1]';
+				posn = [cent(1)+bb(1,1) cent(2)+bb(1,2) cent(3)+bb(1,3) 1]';
+				posn = [cent(1)-bb(1,1) cent(2)-bb(1,2) cent(3)-bb(1,3) 1]';
 				posn = posn(1:3);
 	
 				callback = 'spm_orthviews(''Reposition'');';
@@ -275,7 +276,7 @@ end;
 
 if strcmp(action,'space'),
 	Space = eye(4);
-	bb = [ [-64 64]' [-104 68]' [-28 72]' ];
+	bb = [[-78 -112 -50];[78 76 85]];
 	if (nargin>1),
 		if ~isempty(st.vols{arg1})
 			num = arg1;
@@ -288,8 +289,6 @@ if strcmp(action,'space'),
 			bb=bb(:,1:3);
 		end;
 	end;
-	st.centre = (Space\st.Space)*[st.centre';1];
-	st.centre = st.centre(1:3)';
 	st.Space  = Space;
 	st.bb = bb;
 	spm_orthviews('BB',bb);
@@ -362,7 +361,8 @@ if (strcmp(action,'reset')),
 end;
 
 if (strcmp(action,'pos')),
-	H = st.Space(1:3,1:3)*st.centre(:) + st.Space(1:3,4);
+	H = st.centre(:);
+	% H = st.Space(1:3,1:3)*st.centre(:) + st.Space(1:3,4);
 	if nargin >= 2,
 		if arg1<24 & ~isempty(st.vols{arg1}),
 			is = inv(st.vols{arg1}.mat);
