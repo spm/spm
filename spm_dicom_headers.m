@@ -62,12 +62,14 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function ret = read_dicom(fp, flg, dict,lim)
+function [ret,len] = read_dicom(fp, flg, dict,lim)
 if nargin<4, lim=Inf; end;
+%if lim==2^32-1, lim=Inf; end;
 len = 0;
 ret = struct('Filename',fopen(fp));
 tag = read_tag(fp,flg,dict);
-while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357 & tag.length==0),
+while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==0),
+	%fprintf('%.4x/%.4x %d\n', tag.group, tag.element, tag.length);
 	if tag.length>0,
 		switch tag.name,
 		case {'GroupLength'},
@@ -115,7 +117,7 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357 & tag.length==0),
 				% Character strings
 				dat = fread(fp,tag.length,'char')';
 				if any(dat<0 | dat>127),
-					disp(dat);
+					%disp(dat);
 					disp(tag.vr);
 					disp(tag.name);
 				end;
@@ -170,8 +172,18 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357 & tag.length==0),
 		end;
 	end;
 	len = len + tag.le + tag.length;
-	if len>=lim, break; end;
+	if len>=lim, return; end;
 	tag = read_tag(fp,flg,dict);
+end;
+if ~isempty(tag),
+	len = len + tag.le;
+
+	% I can't find this bit in the DICOM standard, but it seems to
+	% be needed for Philips Integra
+	if tag.group==65534 & tag.element==57357 & tag.length~=0,
+		fseek(fp,-4,'cof');
+		len = len-4;
+	end;
 end;
 return;
 %_______________________________________________________________________
@@ -186,23 +198,44 @@ while len<lim,
 	tag.element = fread(fp,1,'ushort');
 	tag.length  = fread(fp,1,'uint');
 	if isempty(tag.length), return; end;
-	if tag.length == 2^32-1,
-		% Philips Integra has "Stack Sequence" tag, group 2001/xx5F (hex)
-		% which has trouble being read - this skips it.
-		fseek(fp,lim-(len+8),'cof');
-		return,
-	end;
+
+	%if tag.length == 2^32-1, % FFFFFFFF
+		%tag.length = Inf;
+	%end;
 	if tag.length==13, tag.length=10; end;
-	len         = len + 8 + tag.length;
-	if (tag.group == 65534) & (tag.element == 57344),
-		Item   = read_dicom(fp, flg, dict, tag.length);
+
+	len         = len + 8;
+	if (tag.group == 65534) & (tag.element == 57344), % FFFE/E000
+		[Item,len1] = read_dicom(fp, flg, dict, tag.length);
+		len    = len + len1;
 		Item   = rmfield(Item,'Filename');
 		n      = n + 1;
 		ret{n} = Item;
-	elseif (tag.group == 65534) & (tag.element == 57565),
+	elseif (tag.group == 65279) & (tag.element == 224), % FEFF/00E0
+		% Byte-swapped
+		[fname,perm,fmt] = fopen(fp);
+		flg1 = flg;
+		if flg(2)=='b',
+			flg1(2) = 'l';
+		else,
+			flg1(2) = 'b';
+		end;
+		[Item,len1] = read_dicom(fp, flg1, dict, tag.length);
+		len    = len + len1;
+		Item   = rmfield(Item,'Filename');
+		n      = n + 1;
+		ret{n} = Item;
+		pos    = ftell(fp);
+		fclose(fp);
+		fp     = fopen(fname,perm,fmt); 
+		fseek(fp,pos,'bof');
+	elseif (tag.group == 65534) & (tag.element == 57565), % FFFE/E0DD
+		break;
+	elseif (tag.group == 65279) & (tag.element == 56800), % FEFF/DDE0
+		% Byte-swapped
 		break;
 	else,
-		error([num2str(tag.group) '/' num2str(tag.element) ' unexpected.']);
+		warning([num2str(tag.group) '/' num2str(tag.element) ' unexpected.']);
 	end;
 end;
 return;
