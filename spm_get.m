@@ -906,7 +906,8 @@ set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
 %-Create list of directories with appropriate 'ButtonDownFcn': -
 %-----------------------------------------------------------------------
 y     = y0-dy;
-for i = 1:size(Dirs,1)
+if size(Dirs,1)
+    for i = 1:size(Dirs,1)
 	h = text(0,y,deblank(Dirs(i,:)),...
 		'Parent',hAxes,...
 		'Tag','DirName',...
@@ -915,10 +916,13 @@ for i = 1:size(Dirs,1)
 		'ButtonDownFcn','spm_get(''cd'',get(gcbo,''UserData''))',...
 		'HandleVisibility','off');
 	y = y - dy;
+    end
+    %-Note lowest position used (in points)
+    set(h,'Units','Points')
+    my = get(h,'Position')*[0;1;0];
+else
+    my = 0;
 end
-%-Note lowest position used (in points)
-set(h,'Units','Points')
-my = get(h,'Position')*[0;1;0];
 
 %-Files or directories (n<0)
 %-----------------------------------------------------------------------
@@ -954,7 +958,8 @@ end
 %-Create list of Items with appropriate 'ButtonDownFcn': -
 %-----------------------------------------------------------------------
 y     = y0-dy;
-for i = 1:size(IName,1)
+if size(IName,1)
+    for i = 1:size(IName,1)
 	cIName   = IName(i,IName(i,:)~=' ');
 	cItemPos = ItemPos(i,ItemPos(i,:)>0);
 	nItems   = length(cItemPos);
@@ -979,10 +984,11 @@ for i = 1:size(IName,1)
 			'HandleVisibility','off');
 	end
 	y = y - dy;
+    end
+    %-Note lowest position used (in points)
+    set(h,'Units','Points')
+    my = min(my,get(h,'Position')*[0;1;0]);
 end
-%-Note lowest position used (in points)
-set(h,'Units','Points')
-my = min(my,get(h,'Position')*[0;1;0]);
 
 %-Setup scrollbar
 %-----------------------------------------------------------------------
@@ -1404,7 +1410,7 @@ EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Text',...
 	'String',get(findobj(F,'Tag','Prompt'),'String'),...
-	'FontName','Times',...
+	'FontName',spm_platform('font','times'),...
 	'FontWeight','Bold',...
 	'FontAngle','Italic',...
 	'FontSize',spm('FontSize',16),...
