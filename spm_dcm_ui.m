@@ -28,6 +28,34 @@ function [DCM] = spm_dcm_ui(Action)
 %	DCM.T      - threshold for inference based on posterior p.d.f
 %
 %___________________________________________________________________________
+%
+% DCM is a causal modelling procedure for dynamical systems in which
+% causality is inherent in the differential equations that specify the model.
+% The basic idea is to treat the system of interest, in this case the brain,
+% as an input-state-output system.  By perturbing the system with known
+% inputs, measured responses are used to estimate various parameters that
+% govern the evolution of brain states.  Although there are no restrictions
+% on the parameterisation of the model, a bilinear approximation affords a
+% simple re-parameterisation in terms of effective connectivity.  This
+% effective connectivity can be latent or intrinsic or, through bilinear
+% terms, model input-dependent changes in effective connectivity.  Parameter
+% estimation proceeds using fairly standard approaches to system
+% identification that rest upon Bayesian inference.
+% 
+% Dynamic causal modelling represents a fundamental departure from
+% conventional approaches to modelling effective connectivity in
+% neuroscience.  The critical distinction between DCM and other approaches,
+% such as structural equation modelling or multivariate autoregressive
+% techniques is that the input is treated as known, as opposed to stochastic.
+% In this sense DCM is much closer to conventional analyses of neuroimaging
+% time series because the causal or explanatory variables enter as known
+% fixed quantities.  The use of designed and known inputs in characterising
+% neuroimaging data with the general linear model or DCM is a more natural
+% way to analyse data from designed experiments.  Given that the vast
+% majority of imaging neuroscience relies upon designed experiments we
+% consider DCM a potentially useful complement to existing techniques.  In
+% the remainder of this section we consider two potential limitations of DCM
+%___________________________________________________________________________
 % %W% Karl Friston %E%
 
 % get figure handles
