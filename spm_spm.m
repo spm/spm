@@ -176,10 +176,10 @@ sz_res = 0;
 nx     = 0;
 ny     = 0;
 nz     = 0;
-i_res  = round(linspace(1,q,min([q 64])));		% RSSQ used for smoothness
+i_res  = round(linspace(1,q,min([q 64])));		% RSSQ for smoothness
 N      = prod(V(1:3));					% number of voxels
 I      = 0;						% voxel counter
-xyz    = [1;1;1];					% starting location
+xyz    = [1;1;1];					% starting voxel
 p      = size(Xs,2);					% voxels per cycle
 
 
@@ -200,14 +200,14 @@ while(1)
 	z     = xyz(3) + Xs(3,:);
 
 
-	%-identify intracranial voxels
+	%-identify intracranial voxels in first scan
 	%---------------------------------------------------------------
 	X     = spm_sample_vol(V(:,1),x,y,z,0);
 	Q     = find(X > TH(1));
 
 	if length(Q) % proceed
 
-	%-get data
+	%-get data and check all voxels survive threshold
 	%---------------------------------------------------------------
 	U     = Q;
 	X     = zeros(q,length(Q));
@@ -228,7 +228,7 @@ while(1)
 	Q     = Q(U);
 	Y     = X(:,U); clear X
 	S     = S + length(Q); 
-	XYZ   = Xq*[x; y; z; ones(size(x))];
+	XYZ   = Xq*[x(U); y(U); z(U); ones(size(U))];
 
 
 	%-Remove the grand mean and replace it later
@@ -236,7 +236,7 @@ while(1)
 	EX    = mean(Y);
 	Y     = Y - ones(q,1)*EX;
 
-	%-Convolve
+	%-Convolve over scans
 	%---------------------------------------------------------------
 	X     = K*Y; clear Y
 
