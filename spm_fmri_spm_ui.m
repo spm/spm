@@ -318,13 +318,14 @@ end
 
 % create Vi struct
 %-----------------------------------------------------------------------
-switch cVi
 
-	case ~ischar(cVi)	% AR coeficient[s] specified
-	%---------------------------------------------------------------
+if ~ischar(cVi)	% AR coeficient[s] specified
+%-----------------------------------------------------------------------
 	SPM.xVi.Vi = spm_Ce(nscan,cVi(1:3));
-	cVi        = sprintf('AR(%0.1f)',cVi(1));
+	cVi        = ['AR( ' sprintf('%0.1f ',cVi) ')'];
 
+else
+    switch lower(cVi)
 
 	case 'none'		%  xVi.V is i.i.d
 	%---------------------------------------------------------------
@@ -337,6 +338,7 @@ switch cVi
 	SPM.xVi.Vi = spm_Ce(nscan,0.2);
 	cVi        = 'AR(0.2)';
 
+    end
 end
 SPM.xVi.form = cVi;
 
@@ -386,7 +388,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 % scale if specified (otherwise session specific grand mean scaling)
 %-----------------------------------------------------------------------
 gSF   = GM./g;
-if strcmp(SPM.xGX.iGXcalc,'None')
+if strcmp(lower(SPM.xGX.iGXcalc),'none')
 	for i = 1:nsess
 		gSF(SPM.Sess(i).row) = GM./mean(g(SPM.Sess(i).row));
 	end
