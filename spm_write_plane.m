@@ -44,7 +44,7 @@ end;
 datasize = spm_type(dt,'bits')/8;
 
 % Open the image file
-fname = [spm_str_manip(V.fname,'svd') '.img'];
+fname = [spm_str_manip(V.fname,'sd') '.img'];
 fp    = fopen(fname,'r+');
 if fp == -1,
 	fp = fopen(fname,'w');
