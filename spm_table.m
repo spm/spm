@@ -29,9 +29,10 @@ else
 	set(h1,'String',sprintf('%0.0f',L(1)));
 	set(h2,'String',sprintf('%0.0f',L(2)));
 	set(h3,'String',sprintf('%0.0f',L(3)));
-	set(X1,'Position',[(124 + L(2))  (248 + L(1)) 1]);
-	set(X2,'Position',[(124 + L(2))  (112 - L(3)) 1]);
-	set(X3,'Position',[(276 + L(1))  (112 - L(3)) 1]);
+	set(X1,'Position',[(P1 + L(2))  (P2 + L(1)) 1]);
+	set(X2,'Position',[(P1 + L(2))  (P3 - L(3)) 1]);
+	set(X3,'Position',[(P4 + L(1))  (P3 - L(3)) 1]);
+
 end
 
 % Z score and P(Zmax > u)
