@@ -4,13 +4,13 @@ function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
-% X.BFstr - basis function description string
-% X.DSstr - Design description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
+% Sess{s}.BFstr   - basis function description string
+% Sess{s}.DSstr   - Design description string
 % Sess{s}.row     - scan   indices      for session s
 % Sess{s}.col     - effect indices      for session s
 % Sess{s}.name{i} - of ith trial type   for session s
@@ -19,28 +19,21 @@ function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
 % Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
 % Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
 % Sess{s}.para{i} - vector of paramters for ith trial type
-%___________________________________________________________________________
+%_______________________________________________________________________
 % %W% Karl Friston %E%
 
-% display Design matrix {X}
-%===========================================================================
-
-
-% Initialize variables and menu
-%---------------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
-figure(Fgraph);
 
 % X and Sess
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if nargin == 0
 	load(spm_get(1,'.mat','select fMRIDesMtx'))
-	set(1,'UserData',{X Sess})
+elseif nargin<2
+	error('insufficient arguments')
 end
 
+
 % Do not proceed unless there are trials specified
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 for j = 1:length(Sess)
     if ~length(Sess{j}.name)
         spm('alert*','User-specifed regressors only!',mfilename,sqrt(-1));
@@ -49,43 +42,75 @@ for j = 1:length(Sess)
 end
 
 
-% defaults
-%---------------------------------------------------------------------------
-if nargin < 4
+%-Defaults: Setup GUI 
+%-----------------------------------------------------------------------
+if nargin < 3
 	s = 1;
 	i = 1;
 
-	hC    = uimenu(Finter,'Label','Display model for:',...
-		'HandleVisibility','CallBack','Separator','on');
+	%-Get Interactive window and delete any previous fMRIDesShow menu
+	%---------------------------------------------------------------
+	Finter = spm_figure('GetWin','Interactive');
+	delete(findobj(get(Finter,'Children'),'flat','Tag','fMRIDesShow'))
+
+	%-Add a scaled design matrix to the design data structure
+	%---------------------------------------------------------------
+	if ~isfield(X,'nxbX'), X.nxbX = spm_DesMtx('Sca',[X.xX X.bX]); end
+
+	%-Draw menu
+	%---------------------------------------------------------------
+	hC     = uimenu(Finter,'Label','explore fMRI design',...
+		'Separator','on',...
+		'Tag','fMRIDesShow',...
+		'UserData',struct('X',X,'Sess',{Sess}),...
+		'HandleVisibility','on');
 	for j = 1:length(Sess)
 		h = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
-	                      'HandleVisibility','CallBack');
+			'HandleVisibility','off');
 		for k = 1:length(Sess{j}.name)
-			str = ['q = get(1,''UserData'');',...
-			sprintf('spm_fMRI_design_show(q{1},q{2},%d,%d);',j,k)];
+			cb = ['tmp = get(get(gcbo,''UserData''),',...
+					'''UserData''); ',...
+				sprintf(['spm_fMRI_design_show(',...
+					'tmp.X,tmp.Sess,%d,%d);'],j,k)];
 			uimenu(h,'Label',Sess{j}.name{k},...
-	     	   	         'HandleVisibility','CallBack','CallBack',str)
+	     	   	         'CallBack',cb,...
+	     	   	         'UserData',hC,...
+	     	   	         'HandleVisibility','off')
 		end
 	end
 
-	% Quit
-	%-------------------------------------------------------------------
-	str = 'spm_clf; h = get(gcf,''Children''); delete(h(end));';
-	uimenu(hC,'Label','Quit',...
-	'HandleVisibility','CallBack','CallBack',str,'Separator','on');
-
-	% Display X
-	%-------------------------------------------------------------------
-	subplot(3,4,1)
-	imagesc(spm_en([X.xX X.bX]))
-	xlabel('effect')
-	ylabel('scan')
-	title('Design Matrix','FontSize',16)
+% 	uimenu(hC,'Label','Quit','Separator','on',...
+% 		'CallBack','delete(get(gcbo,''UserData''))',...
+% 		'UserData',hC,...
+% 		'HandleVisibility','off')
 
 end
 
+
+%-Graphics...
+%=======================================================================
+
+%-Get Graphics window
+%-----------------------------------------------------------------------
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph,0)
+
+
+% Display X
+%-----------------------------------------------------------------------
+subplot(3,4,1)
+if isfield(X,'nxbX')
+	image(X.nxbX*32+32)
+else
+	imagesc(spm_en([X.xX X.bX]))
+end
+xlabel('effect')
+ylabel('scan')
+title('Design Matrix','FontSize',16)
+
+
 % Session subpartition
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,4,3)
 sX   = X.xX(Sess{s}.row,Sess{s}.col);
 imagesc(spm_en(sX)')
@@ -94,14 +119,14 @@ set(gca,'YTickLabel',X.Xname(Sess{s}.col)')
 title(sprintf('Session %d',s),'FontSize',16)
 
 % Collinearity
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,4,4)
 imagesc(corrcoef(sX))
 title('correlations')
 axis off, axis square
 
 % Trial-specific regressors
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,2,3)
 plot(Sess{s}.row,sX(:,Sess{s}.ind{i}))
 xlabel('scan')
@@ -111,7 +136,7 @@ axis tight
 
 
 % Basis set and peristimulus sampling
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,2,4)
 t    = [1:size(Sess{s}.bf{i},1)]*X.dt;
 pst  = Sess{s}.pst{i};
@@ -122,7 +147,7 @@ axis tight
 grid on
 
 % onsets and parametric modulation
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,2,6)
 plot(Sess{s}.ons{i},Sess{s}.para{i},'.','MarkerSize',8)
 xlabel('time (secs)')
@@ -130,7 +155,7 @@ title('trial specific onsets or causes')
 grid on
 
 % textual data
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 subplot(3,2,5)
 cla
 q     = 0.1;
@@ -144,4 +169,7 @@ text(0,1 - 8*q,sprintf('%0.0f of %0.0f trial[s],',i,length(Sess{s}.name)),'FontS
 text(0,1 - 10*q,Sess{s}.name{i},'FontWeight','bold')
 axis off
 
-return
+
+%-Pop up Graphics figure window
+%-----------------------------------------------------------------------
+figure(Fgraph);
