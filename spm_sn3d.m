@@ -231,7 +231,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 % 	'Sinc Interpolation'
 %		- With sinc interpolation, a sinc function with a
 %		  Hanning filter envelope is used to resample the data
-%		  (11x11x11 kernel).
+%		  (9x9x9 kernel).
 %
 % 'Bounding Box?'
 % The bounding box (in mm) of the volume which is to be written
@@ -428,7 +428,7 @@ if (nargin == 0)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?','+1','m',...
 			['Nearest Neighbour|Bilinear Interpolation|'...
-			'Sinc Interpolation (11x11x11)'],[0 1 -11], 2);
+			'Sinc Interpolation (9x9x9)'],[0 1 -9], 2);
 
 		% Get bounding box.
 		%-----------------------------------------------------------------------
@@ -723,13 +723,12 @@ if ~isempty(fg),
 			'Interpreter','none','Parent',ax);
 	end;
 
-	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
+	h1 = spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
 	linfun('Writing Image for Display..');
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
-	p  = spm_str_manip(P(1,:), 'd');
-	q  = max([find(p == spm_platform('sepchar')) 0]);
-	q  = [p(1:q) 'n' p((q + 1):length(p))];
-	h2=spm_orthviews('Image',q,[.5 0.1 .5 .5]);
+	[pth,nm,xt,vr] = fileparts(deblank(P(1,:)));
+	q              = fullfile(pth,['n' nm xt vr]);
+	h2 = spm_orthviews('Image',q,[.5 0.1 .5 .5]);
 	spm_orthviews('Space',h2);
 	spm_print;
 	drawnow;

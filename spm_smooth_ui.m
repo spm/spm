@@ -25,7 +25,7 @@ function spm_smooth_ui
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,'%W%');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Smooth');
 spm_help('!ContextHelp','spm_smooth_ui.m');
 
@@ -39,11 +39,9 @@ spm('Pointer','Watch');
 spm('FigName','Smooth: working',Finter,CmdLine);
 spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
-	Q = P(i,:);
-	Q = Q(Q ~= ' ');
-	d = max([find(Q == spm_platform('sepchar')) 0]);
-	U = [Q(1:d) 's' Q((d + 1):length(Q))];
-	if ~strcmp(U([1:4] + length(U) - 4),'.img'); U = [U '.img']; end
+	Q = deblank(P(i,:));
+	[pth,nm,xt,vr] = fileparts(deblank(Q));
+	U = fullfile(pth,['s' nm xt vr]);
 	spm_smooth(Q,U,s);
 	spm_progress_bar('Set',i);
 end

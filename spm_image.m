@@ -48,7 +48,11 @@ function spm_image(op,varargin)
 global st
 
 if nargin==0,
-	% get the image's filename {P} and set output filename {Q}
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Display',0);
+	SPMid = spm('FnBanner',mfilename,'%I%');
+	spm_help('!ContextHelp',[mfilename,'.m'])
+
+	% get the image's filename {P}
 	%-----------------------------------------------------------------------
 	P      = spm_get(1,'.img','please select image',[]);
 	spm_image('init',P);
@@ -149,9 +153,8 @@ if strcmp(op,'rmblobs'),
 end;
 
 if strcmp(op,'window'),
-	spm_figure('Clear','Interactive');
-	typ = spm_input('Windowing type','+1','b','automatic|manual',['a','m'],1);
-	if typ == 'a',
+	op = get(st.win,'Value');
+	if op == 1,
 		spm_orthviews('window',1);
 	else,
 		spm_orthviews('window',1,spm_input('Range','+1','e','',2));
@@ -260,7 +263,7 @@ else,
 	spm_figure('Clear','Graphics');
 end;
 
-P = varargin{1};
+P = deblank(varargin{1});
 spm_orthviews('Reset');
 spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
 if isempty(st.vols{1}), return; end;
@@ -269,11 +272,6 @@ spm_orthviews('MaxBB');
 st.callback = 'spm_image(''shopos'');';
 
 st.B = [0 0 0  0 0 0  1 1 1  0 0 0];
-
-P      = P(P ~= ' ');
-d      = max([find(P == spm_platform('sepchar')) 0]);
-Q      = [P(1:d) 't' P((d + 1):length(P))];
-B      = [0 0 0 0 0 0 1 1 1];			% tranformation matrix
 
 % locate Graphics window and clear it
 %-----------------------------------------------------------------------
@@ -407,8 +405,10 @@ uicontrol(fg,'Style','popupmenu' ,'Position',[450 55 125 20].*WS,...
 	'String',str2mat('NN interp','bilin interp','sinc interp'),...
 	'Callback','tmp_ = [0 1 -4];spm_orthviews(''Interp'',tmp_(get(gco,''Value'')))',...
 	'Value',2,'ToolTipString','interpolation method for displaying images');
-uicontrol(fg,'Style','pushbutton','Position',[315 35 125 20].*WS,...
-	'String','Window','Callback','spm_image(''window'');','ToolTipString','range of voxel intensities displayed');
+st.win = uicontrol(fg,'Style','popupmenu','Position',[315 35 125 20].*WS,...
+	'String',str2mat('Auto Window','Manual Window'),'Callback','spm_image(''window'');','ToolTipString','range of voxel intensities displayed');
+% uicontrol(fg,'Style','pushbutton','Position',[315 35 125 20].*WS,...
+% 	'String','Window','Callback','spm_image(''window'');','ToolTipString','range of voxel intensities % displayed');
 st.blobber = uicontrol(fg,'Style','pushbutton','Position',[450 35 125 20].*WS,...
 	'String','Add Blobs','Callback','spm_image(''addblobs'');','ToolTipString','superimpose activations');
 end;

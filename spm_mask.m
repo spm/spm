@@ -48,11 +48,8 @@ m2=prod(size(V2));
 % Create headers
 VO=V2;
 for i=1:m2,
-	p  = spm_str_manip(VO(i).fname, 'd');
-	q  = max([find(p == spm_platform('sepchar')) 0]);
-	q  = [p(1:q) 'm' p((q + 1):length(p))];
-	VO(i).fname    = q;
-
+	[pth,nm,xt,vr] = fileparts(deblank(p));
+	VO(i).fname    = fullfile(pth,['m' nm xt vr]);
 	VO(i).descrip  = 'Masked';
 	VO(i).mat      = VO(1).mat;
 	VO(i).dim(1:3) = VO(1).dim(1:3);
