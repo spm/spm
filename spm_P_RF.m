@@ -61,7 +61,7 @@ P       = triu(toeplitz(EC'.*G))^n;
 P       = P(1,:)';
 Em      = (R./G)*P;
 EN      = P(1)*R(D);
-En      = G(D)*P(1)/P(D);				% i.e. En = EN/Em;
+En      = G(D)*P(1)/(eps+P(D));				% i.e. En = EN/Em;
 
 
 % get P{n > k}
