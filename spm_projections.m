@@ -318,48 +318,38 @@ elseif SPMF
 	Pu = 1 - spm_Fcdf(u,df);
 	Pn = NaN;
 	Em = -log( 1 - spm_pF(S,W,df,u));
-	En = NaN;
+	EN = Pu*S;
+	En = EN/Em;
 	Pk = 1;
 end
 
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
-y  = y + 0.5;
+y   = y + 0.5;
 line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
-y  = y - 0.5;
+y   = y - 0.5;
 str = sprintf('Height threshold {u} = %0.2f, p = %0.3f',u,Pu);
 text(0,y,str,'FontSize',8);
-y  = y - 1;
+y   = y - 1;
 str = sprintf('Extent threshold {k} = %i voxels, p = %0.3f',k,Pn);
 text(0,y,str,'FontSize',8);
-y  = y - 1;
+y   = y - 1;
 str = sprintf('Expected voxels per cluster, E{n} = %0.1f',En);
 text(0,y,str,'FontSize',8);
-y  = y - 1;
+y   = y - 1;
 str = sprintf('Expected number of clusters, E{m} = %0.1f',Em*Pk);
 text(0,y,str,'FontSize',8);
-y  = y + 3;
+y   = y + 3;
 str = sprintf('Volume {S} = %i voxels or %0.1f Resels ',S,RESEL);
 text(0.6,y,str,'FontSize',8);
-y  = y - 1;
-str = sprintf('Degrees of freedom due to error = %i %i ',df);
+y   = y - 1;
+str = sprintf('Degrees of freedom due to error = %0.1f %0.1f ',df);
 text(0.6,y,str,'FontSize',8);
-y  = y - 1;
-
-if D == 2
-    str = sprintf('Smoothness = %0.1f %0.1f mm {FWHM}',FWHM);
-end
-if D == 3
-    str = sprintf('Smoothness = %0.1f %0.1f %0.1f mm {FWHM}',FWHM);
-end
+y   = y - 1;
+str = sprintf('Smoothness = %0.1f %0.1f %0.1f mm {FWHM}',FWHM);
 text(0.6,y,str,'FontSize',8);
-y  = y - 1;
-if D == 2
-    str = sprintf(' = %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
-end
-if D == 3
-    str = sprintf(' = %0.1f %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
-end
+y   = y - 1;
+str = sprintf(' = %0.1f %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
 text(0.6,y,str,'FontSize',8);
 
