@@ -170,7 +170,6 @@ for i=1:prod(size(V)),
 			VO = spm_close_vol(VO);
 		end;
 	else,
-		VO.fname  = 'normalized.img';
 		VO.pinfo  = [1 0]';
 		VO.dim(4) = spm_type('float');
 		VO.dat    = Dat;
@@ -250,7 +249,6 @@ for i=1:prod(size(V)),
 			VO = spm_close_vol(VO);
 		end;
 	else,
-		VO.fname  = 'normalized.img';
 		VO.pinfo  = [1 0]';
 		VO.dim(4) = spm_type('float');
 		VO.dat    = Dat;
@@ -316,7 +314,6 @@ for i=1:prod(size(V)),
 	if nargout==0,
 		VO = spm_write_vol(VO,Dat);
 	else,
-		VO.fname  = 'modulated.img';
 		VO.pinfo  = [1 0]';
 		VO.dim(4) = spm_type('float');
 		VO.dat    = Dat;
