@@ -22,7 +22,11 @@ defaults.grid     = 0.4;
 defaults.cmdline  = 0;
 defaults.logfile  = '';
 defaults.printstr =  [spm_figure('DefPrintCmd'),'spm2.ps'];
-defaults.multivol = 0;
+
+% File format specific
+%=======================================================================
+defaults.analyze.multivol = 0;
+defaults.analyze.flip     = 1; % <<= Very important.  Relates to L/R
 
 % Stats defaults
 %=======================================================================

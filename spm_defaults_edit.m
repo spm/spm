@@ -121,8 +121,8 @@ case 'misc'                             %-Miscellaneous defaults
 			'GUI for files, CmdLine for input'},...
 		[0,1,-1],def);
 
-	defaults.multivol = spm_input('Allow multi-volume Analyze files?',4*c,'y/n',...
-		[1,0],2-defaults.multivol);
+	defaults.analyze.multivol = spm_input('Allow multi-volume Analyze files?',4*c,'y/n',...
+		[1,0],2-defaults.analyze.multivol);
 
 	defaults.grid = spm_input('Grid value (0-1):', 5*c, 'e', defaults.grid);
 

@@ -9,7 +9,7 @@ function [Files,Dirs] = spm_list_files_expand(WDir,Filter,opts)
 % Files  - filenames
 % Dirs   - directories
 %
-% If the global variable defaults.multivol is set, then
+% If the global variable defaults.analyze.multivol is set, then
 % spm_list_files_expand will list volumes within each Analyze image.
 % This can be disabled by setting opts to {'noexpand'}.
 %_______________________________________________________________________
@@ -42,7 +42,8 @@ else,
 	[Files,Dirs] = spm_list_files(WDir,Filter);
 end;
 
-if  isempty(defaults) | ~isfield(defaults,'multivol') | ~defaults.multivol |...
+if  isempty(defaults) | ~isfield(defaults,'analyze') |...
+	 ~isfield(defaults.analyze,'multivol') | ~defaults.analyze.multivol |...
 	(nargin>=3 & ~isempty(strmatch('noexpand',lower(opts)))),
 	return;
 end;
