@@ -366,6 +366,9 @@ uimenu(hC,'Label','Help','Separator','on',...
 	'CallBack','spm_help(''spm_DesRep'')',...
 	'HandleVisibility','off');
 
+%-Pop open 'Interactive' window
+%-----------------------------------------------------------------------
+figure(Finter)
 
 %-Return handle of menu
 %-----------------------------------------------------------------------
