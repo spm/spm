@@ -14,7 +14,6 @@
 %__________________________________________________________________________
 % %W% %E%
 
-
 %----------------------------------------------------------------------------
 [d i] = min(sum(([(XYZ(1,:) - L(1));(XYZ(2,:) - L(2));(XYZ(3,:) - L(3))]).^2));
 L     = XYZ(:,i);
@@ -39,7 +38,7 @@ end
 %----------------------------------------------------------------------------
 Y      = XA(:,i);
 Z      = t(i);					% Z value
-Pz     = spm_Pz(W,Z,S);				% corrected p value
+Pz     = spm_P(1,W,Z,0,S);			% corrected p value
 Pu     = 1 - spm_Ncdf(Z);			% uncorrected p value
 
 
@@ -51,11 +50,10 @@ d      = min(find(CONTRAST(con,:)));
 %----------------------------------------------------------------------------
 subplot(2,1,2); delete(gca)
 subplot(2,1,2); axis off
-text(0,1.1,CWD,'FontSize',16,'FontWeight','bold');
-text(0,1.0,sprintf('Location {x,y,z}  =  %0.0f %0.0f %0.0f mm',L'),...
-'FontSize',12,'FontWeight','bold');
-str    = sprintf('Z = %0.3f;   P(Zmax > Z) = %0.2f (corrected) and %0.2e (uncorrected)',Z,Pz,Pu);
-text(0,0.9,str,'FontSize',12,'FontWeight','bold');
+text(0,1.1,CWD,'FontWeight','bold');
+text(0,1.0,sprintf('Location {x,y,z}  =  %0.0f %0.0f %0.0f mm',L'));
+str    = sprintf('Z = %0.2f;   P = %0.2f (corrected), %0.2e (uncorrected)',Z,Pz,Pu);
+text(0,0.9,str);
 
 
 if d > (size(H,2) + size(K,2));	% covariate
@@ -67,8 +65,8 @@ if d > (size(H,2) + size(K,2));	% covariate
 		end
 		Y     = y/size(B,2);
 	end
-	text(0,0.8,sprintf('[Adjusted] activity (scans %0.0f - %0.0f )',...
-	[1 length(Y)]),'FontSize',12,'FontWeight','bold');
+	str  = sprintf('[Adjusted] activity (scans %0.0f - %0.0f )',[1 length(Y)])
+	text(0,0.8,str);
 
 else				% condition means
 
@@ -84,7 +82,7 @@ else				% condition means
 	sprintf('Adjusted activity (conditions %0.0f - %0.0f)',1,length(Y));
 	str   = ...
 	[str sprintf('  Effect size: %0.2f (%0.2f percent)',ES,ES*100/mean(Y))];
-	text(0,0.8,str,'FontSize',12,'FontWeight','bold');
+	text(0,0.8,str);
 end
 
 % display data
@@ -92,7 +90,7 @@ end
 y     = 0.7;
 x     = 0;
 for i = 1:length(Y)
-	text(x,y,sprintf('%0.0f  %-12.2f',i,Y(i)),'FontSize',10)
+	text(x,y,sprintf('%0.0f  %-12.2f',i,Y(i)),'FontSize',8)
 	y = y - 0.05;
 	if y < -.24; y = 0.7; x = x + 0.16; end
 end
