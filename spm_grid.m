@@ -16,7 +16,7 @@ function I = spm_grid(I)
 global GRID
 
 if GRID
-	load Grid
+	load('Grid.mat','i','j');
 	[x y] = size(I);
 	i     = round(1 + (i - 1)*(x - 1)/64);
 	j     = round(1 + (j - 1)*(y - 1)/86);
