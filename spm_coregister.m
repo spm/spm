@@ -238,7 +238,7 @@ else 	% Different modalities
 			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
 			PPG = str2mat(PPG, [iname2 '.img']);
 		end
-		PPG = PPG(2:5,:);
+		PPG = PPG(2:size(PPG,1),:);
 
 		% Partition the object image(s) into smoothed segments
 		%-----------------------------------------------------------------------
@@ -259,7 +259,7 @@ else 	% Different modalities
 			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
 			PPF = str2mat(PPF, [iname2 '.img']);
 		end
-		PPF = PPF(2:5,:);
+		PPF = PPF(2:size(PPF,1),:);
 
 		% Coregister the segments together
 		%-----------------------------------------------------------------------
