@@ -75,6 +75,7 @@ CWD = strrep(tmp,'/SPMt.mat','');
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMt'])
+load([CWD,'/RES']);
 
 QQ = (1:size(XYZ,2))';
 
