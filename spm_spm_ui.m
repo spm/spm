@@ -1183,7 +1183,7 @@ sGXcalc = sGXcalc{iGXcalc};
 
 % if there are multilevel factors, ask for correction
 %-----------------------------------------------------------------------
-if any(max(I) > 1)
+if length(find(max(I) > 1)) > 1
 	xVi.iid  = spm_input('non-sphericity correction?','+1','y/n',[0,1],1);
 else
 	xVi.iid  = 1;
@@ -1197,8 +1197,8 @@ if xVi.iid
 	xVi.V    = speye(nScan);
 
 else
-	%-otherwise specify the form of non-sphericity
-	%---------------------------------------------------------------
+	% otherwise, we have repeated measures design 
+	%===============================================================
 	nL      = max(I);		% number of levels
 	mL      = find(nL > 1);		% multilevel factors
 	xVi.I   = I;
@@ -1207,35 +1207,26 @@ else
 	xVi.dep = sparse(1,4);
 
 
-	% If one factor, assume unequal variances over its levels
+	% eliminate replication factor from mL
 	%---------------------------------------------------------------
-	if length(mL) == 1
-		xVi.var(mL) = 1;
-
-	% otherwise, we have repeated measures design 
-	%===============================================================
-	else
-		% eliminate replication factor from mL
-		%-------------------------------------------------------
-		for i = 1:4
-			mstr{i} = sprintf('%s (%i)',D.sF{i},nL(i));
-		end
-		str   = 'replications are over?';
-		r     = spm_input(str,'+1','m',mstr(mL),1:length(mL));
-		mL(r) = [];
-
-		% and ask whether repeated measures are independent
-		%-------------------------------------------------------
-		str   = 'correlated repeated measures';
-		dep   = spm_input(str,'+1','b',{'yes','no'},[1 0],1);
-
-		xVi.var(mL) = 1;
-		xVi.dep(mL) = dep;
+	for i = 1:4
+		mstr{i} = sprintf('%s (%i)',D.sF{i},nL(i));
 	end
+	str   = 'replications are over?';
+	rep   = spm_input(str,'+1','m',mstr(mL),1:length(mL));
+
+	% and ask whether repeated measures are independent
+	%---------------------------------------------------------------
+	str   = 'correlated repeated measures';
+	dep   = spm_input(str,'+1','b',{'yes','no'},[1 0],1);
+
 
 	%-Place covariance components Q{:} in xVi.Vi
 	%---------------------------------------------------------------
-	xVi     = spm_non_sphericity(xVi);
+	mL(rep)     = [];
+	xVi.var(mL) = 1;
+	xVi.dep(mL) = dep;
+	xVi         = spm_non_sphericity(xVi);
 
 end
 
