@@ -1,5 +1,6 @@
 function varargout=spm_platform(varargin)
-% Multifunction.  Platform specific routines for various spm functions
+% Platform specific configuration parameters for SPM
+%
 % FORMAT ans = spm_platform(arg)
 % arg  - optional string argument, can be
 %        - 'bigend'  - return whether this architecture is bigendian
@@ -12,135 +13,222 @@ function varargout=spm_platform(varargin)
 %                      - 'mac' - Macintosh
 %                      - 'vms' - VMS
 %        - 'sepchar' - returns directory separator
+%        - 'rootlen' - returns number of chars in root directory name
 %        - 'user'    - returns username
 %        - 'tempdir' - returns name of temp directory
 %
-% Without input arguments, initialises the platform specific functions
-% For calls with arguments, see body of function
+% FORMAT PlatFontName = spm_platform('font',GenFontName)
+% Maps generic (UNIX) FontNames to platform specific FontNames
+%
+% FORMAT SPM_PLATFORM = spm_platform('init',comp)
+% Initialises platform specific parameters in global SPM_PLATFORM
+% (External gateway to init_platform(comp) subfunction)
+% comp         - computer to use [defaults to MatLab's `computer`]
+% SPM_PLATFORM - copy of global SPM_PLATFORM
+%
+% FORMAT spm_platform
+% Initialises platform specific parameters in global SPM_PLATFORM
+% (External gateway to init_platform(computer) subfunction)
+%
+% FORMAT spm_platform('clear')
+% Clears global SPM_PLATFORM containing platform specific parameters 
+%
+%                           ----------------
+% SUBFUNCTIONS:
+%
+% FORMAT init_platform(comp)
+% Initialise platform specific parameters in global SPM_PLATFORM
+% comp         - computer to use [defaults to MatLab's `computer`]
+%
+%-----------------------------------------------------------------------
+%
+% Since calls to spm_platform will be made frequently, most platform
+% specific parameters are stored as a structure in the global variable
+% SPM_PLATFORM. Subsequent calls use the information from this global
+% variable, if it exists.
+%
+% Platform specific difinitions are contained in the data structures at
+% the beginning of the init_platform subfunction at the end of this
+% file.
 %_______________________________________________________________________
 % %W% Matthew Brett %E%
 
-% Calls to the function work in one of two ways.  Calls which may be made
-% often, and return values that are always the same over the spm session
-% use the global variable spm_plat_vars as a static structure, initialised at
-% first call to spm_platform, and return values from this structure.
-% Other calls are standard, and process / return arguments at time of call
 
-global spm_plat_vars
+%-Initialise
+%-----------------------------------------------------------------------
+global SPM_PLATFORM
+if isempty(SPM_PLATFORM), init_platform, end
 
-if isempty(spm_plat_vars)
-	init_platform; end
+if nargin==0, return, end
 
-if (nargin == 0)
-	varargout={[]};
-	return;
-else
-	Action = varargin{1};
+
+switch lower(varargin{1}), case 'init'                  %-(re)initialise
+%=======================================================================
+init_platform(varargin{2:end})
+varargout = {SPM_PLATFORM};
+   
+case 'clear'                                       %-Clear SPM_PLATFORM
+%=======================================================================
+clear global SPM_PLATFORM
+
+case 'bigend'                      %-Return endian for this architecture
+%=======================================================================
+varargout = {SPM_PLATFORM.bigend};
+if ~finite(SPM_PLATFORM.bigend),
+	if isnan(SPM_PLATFORM.bigend)
+		error(['I don''t know if "',computer,'" is big-endian.'])
+	else
+		error(['I don''t think that "',computer,...
+			'" uses IEEE floating point ops.'])
+	end
 end
 
-switch lower(Action)
-	
-case 'bigend'
-% return whether this architecture is big or little endian, with errors
-varargout{1} = spm_plat_vars.bigend;
-if ~finite(spm_plat_vars.bigend),
-	if isnan(spm_plat_vars.bigend),
-		error(['I don''t know if "' computer '" is big-endian.']);
-	else,
-		error(['I don''t think that "' computer '" uses IEEE floating point ops.']);
-	end;
-end
+case 'filesys'                                      %-Return file system
+%=======================================================================
+varargout = {SPM_PLATFORM.filesys};
 
-case 'filesys'
-% return file system
-varargout{1} = spm_plat_vars.filesys;
+case 'sepchar'                         %-Return file separator character
+%=======================================================================
+varargout = {SPM_PLATFORM.sepchar};
 
-case 'sepchar'
-% return file separator character
-varargout{1} = spm_plat_vars.sepchar;
+case 'rootlen'           %-Return length in chars of root directory name 
+%=======================================================================
+varargout = {SPM_PLATFORM.rootlen};
 
-case 'user'
-% return user string
-varargout{1} = spm_plat_vars.user;
+case 'user'                                         %-Return user string
+%=======================================================================
+varargout = {SPM_PLATFORM.user};
 
-case 'tempdir'
-% return temporary directory
+case 'tempdir'                              %-Return temporary directory
+%=======================================================================
 twd = getenv('SPMTMP');
 if isempty(twd)
-	switch spm_plat_vars.filesys
-		case 'unx'
-			twd = '/tmp';
-		case 'win'
-			twd = getenv(TEMP);
-		otherwise
-			error('Do not know how to set temp directory');
-	end
-end	
-varargout{1} = twd;
+    switch SPM_PLATFORM.filesys
+    case 'unx'
+        twd = '/tmp';
+    case 'win'
+        twd = getenv('TEMP');
+        if isempty(twd)
+            for tmp = {'c:\temp',[getenv('WINDIR'),'\Temp']}
+                if mkdir('',tmp), twd=tmp; break, end
+            end
+            if isempty(twd)
+                error('Could not find or create temporary directory')
+            end
+        end
+    otherwise
+        error('Do not know how to set temp directory');
+    end
+end 
+varargout = {twd};
 
+
+case 'font'              %-Map default font names to platform font names
+%=======================================================================
+if nargin<2, error('Please specify font type to return'), end
+switch varargin{2}
+case 'default'
+	varargout = {SPM_PLATFORM.font.helvetica};
+case 'times'
+	varargout = {SPM_PLATFORM.font.times};
+case 'courier'
+	varargout = {SPM_PLATFORM.font.courier};
+case 'helvetica'
+	varargout = {SPM_PLATFORM.font.helvetica};
 otherwise
-error('Illegal Action string')
-
+	warning(['Unknown font ',varargin{2},', using default'])
+	varargout = {SPM_PLATFORM.font.helvetica};
 end
 
-%====================================================
-% subfunctions
-%====================================================
+otherwise                                        %-Unknown Action string
+%=======================================================================
+error('Unknown Action string')
 
-function init_platform
-% Initialise variables on basis of architecture
-global spm_plat_vars
-
-% this and following arrays in matching order
-computers = str2mat('PCWIN','MAC2','SUN4','SOL2','HP700','SGI','SGI64','IBM_RS',...
-		'ALPHA','AXP_VMSG','AXP_VMSIEEE','LNX86','VAX_VMSG','VAX_VMSD');
-% file systems
-filesyses = str2mat('win','mac','unx','unx','vms','unx','unx','unx',...
-			'unx','vms','vms','unx','vms','vms');
-% endian codes
-% NaN is don't know, Inf = not IEEE floating point, 0 is little end, 1 big end
-endians = [0 1 1 1 1 1 1 1 0 Inf 0 0 Inf Inf];
-
-% index into arrays
-c = computer;
-ci = NaN;
-for i=1:size(computers,1),
-	if strcmp(c,deblank(computers(i,:))),
-		ci = i;
-		break
-	end
-end
-if isnan(ci)
-	error(['Do not recognise architecture ' c]), end
-
-% flag for big-endian.
-spm_plat_vars.bigend =endians(ci);
-
-% Last check for absence of IEEE floating point maths
-if ~isieee
-	spm_plat_vars.bigend =Inf; end
-
-% assigns filesystem
-spm_plat_vars.filesys = filesyses(ci, :);
-switch (spm_plat_vars.filesys)
-	case 'unx'
-		spm_plat_vars.sepchar = '/';
-	case 'win'
-		spm_plat_vars.sepchar = '\';
-	case 'mac'
-		spm_plat_vars.sepchar = ':';
-	otherwise
-		error(['Do not know filesystem ' spm_plat_vars.filesys])
+%=======================================================================
 end
 
-% gets user name
-switch (spm_plat_vars.filesys)
-	case 'unx'
-	spm_plat_vars.user = getenv('USER');
+
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+
+function init_platform(comp)             %-Initialise platform variables
+%=======================================================================
+if nargin<1, comp=computer; end
+global SPM_PLATFORM
+
+%-Platform definitions
+%-----------------------------------------------------------------------
+PDefs = {	'PCWIN',	'win',	0;...
+		'MAC2',		'mac',	1;...
+		'SUN4',		'unx',	1;...
+		'SOL2',		'unx',	1;...
+		'HP700',	'vms',	1;...
+		'SGI',		'unx',	1;...
+		'SGI64',	'unx',	1;...
+		'IBM_RS',	'unx',	1;...
+		'ALPHA',	'unx',	0;...
+		'AXP_VMSG',	'vms',	Inf;...
+		'AXP_VMSIEEE',	'vms',	0;...
+		'LNX86',	'unx',	0;...
+		'VAX_VMSG',	'vms',	Inf;...
+		'VAX_VMSD',	'vms',	Inf	};
+
+PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
+
+
+%-Which computer?
+%-----------------------------------------------------------------------
+ci = find(strcmp({PDefs.computer},comp));
+if isempty(ci), error([comp,' not supported architecture for SPM']), end
+
+
+%-Set bigend
+%-----------------------------------------------------------------------
+SPM_PLATFORM.bigend = PDefs(ci).endian;
+%-Last check for absence of IEEE floating point maths
+if ~isieee, SPM_PLATFORM.bigend = Inf; end	%-Last check for IEEE math
+
+
+%-Set filesys
+%-----------------------------------------------------------------------
+SPM_PLATFORM.filesys = PDefs(ci).filesys;
+
+
+%-Set filesystem dependent stuff
+%-----------------------------------------------------------------------
+%-File separators character
+%-Length of root directory strings
+%-User name finding
+%-(mouse button labels in due course)
+switch (SPM_PLATFORM.filesys)
+case 'unx'
+	SPM_PLATFORM.sepchar = '/';
+	SPM_PLATFORM.rootlen = 1;
+	SPM_PLATFORM.user    = getenv('USER');
 case 'win'
-	spm_plat_vars.user = getenv('USER');
+	SPM_PLATFORM.sepchar = '\';
+	SPM_PLATFORM.rootlen = 3;
+	SPM_PLATFORM.user    = getenv('USER');
+case 'mac'
+	SPM_PLATFORM.sepchar = ':';
+	SPM_PLATFORM.rootlen = 1;			%-** Not sure!?
+	SPM_PLATFORM.user    = '';			%-** Dunno!
 otherwise
-	spm_plat_vars.user = '';
+	error(['Don''t know filesystem ',SPM_PLATFORM.filesys])
 end
 
-% may want to set fonts etc here
+%-Fonts
+%-----------------------------------------------------------------------
+switch comp
+case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86'}
+	SPM_PLATFORM.font.helvetica = 'Helvetica';
+	SPM_PLATFORM.font.times     = 'Times';
+	SPM_PLATFORM.font.courier   = 'Courier';
+case {'PCWIN'}
+	SPM_PLATFORM.font.helvetica = 'Arial Narrow';
+	SPM_PLATFORM.font.times     = 'Times New Roman';
+	SPM_PLATFORM.font.courier   = 'Courier New';
+end
