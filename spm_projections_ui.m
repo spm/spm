@@ -1,7 +1,7 @@
-function spm_projections_ui
+function [R1,R2,R3,R4,R5,R6]=spm_projections_ui(Action,P2)
 % used to review results of statistical analysis (SPM{Z})
 % FORMAT spm_projections_ui
-%___________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_projections_ui allows the SPM{Z} created by spm_spm.m to be re-displayed
 % and characterized in terms of regionally significant effects.  Note that
@@ -25,39 +25,46 @@ function spm_projections_ui
 %
 % see spm_projections.m for further details
 %
-%__________________________________________________________________________
-% %W% %E%
+%_______________________________________________________________________
+% %W% Karl Friston %E%
+
+%-Format arguments
+if nargin==0, Action='Display'; end
 
 
-% get CWD and results
-%---------------------------------------------------------------------------
+if strcmp(lower(Action),lower('Display'))
+%=======================================================================
+
+%-Get SPMt.mat for analysis, and load results
+%-----------------------------------------------------------------------
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set(Finter,'Name','SPM{Z} projections')
+
 global CWD
-set(2,'Name','SPM{Z} projections')
-
-tmp   = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
-CWD   = strrep(tmp,'/SPMt.mat','');
-K     = [];
+tmp = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
+CWD = strrep(tmp,'/SPMt.mat','');
+K   = [];
 
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMt'])
 
-% get contrast[s]
-%---------------------------------------------------------------------------
+%-Get contrast[s]
+%-----------------------------------------------------------------------
 i    = 0;
 while any(i < 1 | i > size(CONTRAST,1))
 	i = spm_input(sprintf('contrast[s] ? 1 - %i',size(CONTRAST,1)),1);
 	c = CONTRAST(i,:);
 end
 
-
-% get height threshold [default = 3.2]
-%---------------------------------------------------------------------------
+%-Get height threshold [default = 3.2]
+%-----------------------------------------------------------------------
 u    = spm_input('height threshold {Z value}',2,'e',3.2);
 
-% get extent threshold [default = E{n} - expected voxels per cluster]
+%-Get extent threshold [default = E{n} - expected voxels per cluster]
 % Omit spatial extent threshold for multiple contrasts.
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if size(c,1) == 1
 	[P,EN,Em,En,Pk] = spm_P(1,W,u,0,S);
 	k    = spm_input('extent threshold {voxels}',3,'e',round(En));
@@ -66,65 +73,102 @@ else
 end
 
 
-% pass arguments to spm_projections
-%---------------------------------------------------------------------------
-set(2,'Name','Thankyou','Pointer','watch')
-
-[t XYZ] = spm_projections(SPMt(i,:),XYZ,u,k,V,W,S,[K H C B G],c,df);
-
-
-%-Write out filtered SPM{Z} ? (APH addition - 23/06/95)
+%-Pass arguments to spm_projections
 %-----------------------------------------------------------------------
-if size(XYZ,2) %-Only proceed if there's something to work on
-    set(2,'Name','SPM{Z} projections','Pointer','arrow')
-    if spm_input('Write filtered SPM{Z} to file?',5,'y/n')=='y'
-	FName=sprintf('SPM%d_filtered',i);
-	FName=spm_input('Filename ?',6,'s',FName);
-	str=sprintf('spm{Z}-filtered: corrected p<%6.4f',pV);
+set(Finter,'Name','Thankyou','Pointer','watch')
 
-	%-Reconstruct filtered image from XYZ & t
-	%---------------------------------------------------------------
-	n=size(XYZ,2);
-	if exist('FLIP')~=1, FLIP=0; end
-	%-Unflip flipped images - Negate X values if FLIP==1
-	rcp=round(XYZ./meshgrid([1-2*FLIP;1;1].*V(4:6),1:n)' + ...
-		meshgrid(V(7:9),1:n)');
-	DimMult=cumprod([1,V(1:2)']);
-	OffSets=meshgrid([0,1,1],1:n)';
-	e=((rcp-OffSets)'*DimMult')';
-	t=t.*(t>0); %-Ensure positivity of z-values
-	T=zeros(1,prod(V(1:3)));
-	T(e)=t;
+[t,XYZ] = spm_projections(SPMt(i,:),XYZ,u,k,V,W,S,[K H C B G],c,df);
 
-	%-Write out to analyze file
-	%---------------------------------------------------------------
-	spm_hwrite([FName,'.hdr'],V(1:3),V(4:6),1/16,2,0,V(7:9),str);
-	fid = fopen([FName,'.img'],'w');
-	fwrite(fid,T*16,spm_type(2));
-	fclose(fid);
-    end % (if)
-end % (if)
+
+%-Store essential variables in UserData of various text objects,
+% Create button to write filtered SPM{Z}
+%=======================================================================
+h = findobj(Fgraph,'Tag','Empty');
+set(h(1),'Tag','XYZ','UserData',XYZ)
+set(h(2),'Tag','t','UserData',t)
+set(h(3),'Tag','V','UserData',V)
+set(h(4),'Tag','u','UserData',u)
+set(h(5),'Tag','k','UserData',k)
+if exist('FLIP')~=1, FLIP=0; end
+set(h(6),'Tag','FLIP','UserData',FLIP)
+
+set(Fgraph,'Units','Normalized')
+uicontrol(Fgraph,'Style','PushButton',...
+	'String','Write filtered SPM{Z} to Analyze file',...
+	'Tag','WriteButton',...
+	'Callback','spm_projections_ui(''WriteFiltered'')',...
+	'Interruptible','yes',...
+	'Position',[060 500 300 20].*spm('GetWinScale'))
+uicontrol(Fgraph,'Style','PushButton',...
+	'String','Get details of filtered image',...
+	'Tag','GetFilteredPramsButton',...
+	'Callback',[...
+		'[XYZ,t,V,u,k,FLIP]=',...
+			'spm_projections_ui(''GetFilteredPrams'');',...
+		'disp(''XYZ,t,V,u,k,FLIP now exist in base workspace'')'],...
+	'Interruptible','yes',...
+	'Position',[060 480 300 20].*spm('GetWinScale'))
 
 %-Finished
-%---------------------------------------------------------------------------
-figure(2); clf
-set(2,'Name','','Pointer','arrow')
+%-----------------------------------------------------------------------
+spm_clf(Finter)
+return
 
 
+elseif strcmp(lower(Action),lower('WriteFiltered'))
+%=======================================================================
+% spm_projections_ui('WriteFiltered',FName)
+[XYZ,t,V,u,k,FLIP] = spm_projections_ui('GetFilteredPrams');
+if isempty(XYZ), disp('No Voxels'), return, end
 
+%-Get filename
+%-----------------------------------------------------------------------
+if nargin<2
+	FName=spm_input('Filename ?',6,'s','SPM_filtered');
+else
+	FName = P2;
+end
+str=sprintf('spm{Z}-filtered: u= %5.3f, k=%d',u,k);
 
+%-Reconstruct filtered image from XYZ & t
+%-----------------------------------------------------------------------
+n       = size(XYZ,2);
+%-Unflip flipped images - Negate X values if FLIP==1
+rcp     = round(XYZ./meshgrid([1-2*FLIP;1;1].*V(4:6),1:n)' + ...
+	meshgrid(V(7:9),1:n)');
+DimMult = cumprod([1,V(1:2)']);
+OffSets = meshgrid([0,1,1],1:n)';
+e       = ((rcp-OffSets)'*DimMult')';
+t       = t.*(t>0); %-Ensure positivity of z-values
+T       = zeros(1,prod(V(1:3)));
+T(e)    = t;
 
+%-Write out to analyze file
+%-----------------------------------------------------------------------
+spm_hwrite([FName,'.hdr'],V(1:3),V(4:6),1/16,2,0,V(7:9),str);
+fid = fopen([FName,'.img'],'w');
+fwrite(fid,T*16,spm_type(2));
+fclose(fid);
 
+spm_clf(Finter)
 
+return
 
+elseif strcmp(lower(Action),lower('GetFilteredPrams'))
+%=======================================================================
+% [XYZ,t,V,u,k,FLIP] = spm_projections_ui('GetFilteredPrams')
+Fgraph = spm_figure('FindWin','Graphics');
+R1 = get(findobj(Fgraph,'Tag','XYZ'),'UserData');
+R2 = get(findobj(Fgraph,'Tag','t'),'UserData');
+R3 = get(findobj(Fgraph,'Tag','V'),'UserData');
+R4 = get(findobj(Fgraph,'Tag','u'),'UserData');
+R5 = get(findobj(Fgraph,'Tag','k'),'UserData');
+R6 = get(findobj(Fgraph,'Tag','FLIP'),'UserData');
+return
 
+else
+%=======================================================================
+error('Unknown action string')
 
-
-
-
-
-
-
-
-
-
+%=======================================================================
+end
