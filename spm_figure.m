@@ -1,7 +1,7 @@
 function varargout=spm_figure(varargin)
 % Setup and callback functions for Graphics window
 % FORMAT varargout=spm_figure(varargin)
-%	- An embedded callback, multi-function function
+%       - An embedded callback, multi-function function
 %       - For detailed programmers comments, see the format specifications
 %         below
 %_______________________________________________________________________
@@ -43,6 +43,8 @@ function varargout=spm_figure(varargin)
 %
 % Editing: Right button ('alt' button) cancels operations
 % * Cut  : Deletes the graphics object next selected (if deletable)
+%          Select with middle mouse button to delete blocks of text,
+%          or to delete individual elements from a plot.
 % * Move : To re-position a text, uicontrol or axis object using a
 %          'drag and drop' implementation (i.e. depress - move - release)
 %          Using the middle 'extend' mouse button on a text object moves
@@ -104,7 +106,8 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT F = spm_figure('GetWin',Tag)
 % Like spm_figure('FindWin',Tag), except that if 'Tag' is 'Graphics' or
-% 'Interactive' and no such 'Tag'ged figure is found, one is created.
+% 'Interactive' and no such 'Tag'ged figure is found, one is created. Further,
+% the "got" window is made current.
 % Tag	- Figure 'Tag' to get, defaults to 'Graphics'
 % F	- Figure number (if found/created) or empty (if not).
 %
@@ -124,13 +127,14 @@ function varargout=spm_figure(varargin)
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
-% FORMAT spm_figure('Print',F,PFile)
+% FORMAT str = spm_figure('DefPrintCmd')
+% Returns default print command for SPM, as a string
+%
+% FORMAT spm_figure('Print',F)
 % SPM print function: Appends footnote & executes PRINTSTR
 % F	- [Optional] Figure to print. ('Tag' or figure number)
 %	  Defaults to figure 'Tag'ed as 'Graphics'.
 %	  If none found, uses CurrentFigure if avaliable.
-% PFile - [Optional] File to print to.
-%	  If specified then PRINTSTR is overridden.
 % PRINTSTR - global variable holding print command to be evaluated
 %	  Defaults to 'print -dps2 fig.ps'
 % If objects 'Tag'ed 'NextPage' and 'PrevPage' are found, then the
@@ -140,11 +144,11 @@ function varargout=spm_figure(varargin)
 % object, while the 'PrevPage' object holds the current page number.
 % See spm_help('!Disp') for details on setting up paging axes.
 %
-% FORMAT spm_figure('NewPage',hPage,MoveOn)
+% FORMAT [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',hPage)
 % SPM pagination function: Makes objects with handles hPage paginated
 % Creates pagination buttons if necessary.
-% hPage	 - Handles of objects to stick to this page
-% MoveOn - If specified, causes hPage objects to be made invisible
+% hPage	                        - Handles of objects to stick to this page
+% hNextPage, hPrevPage, hPageNo - Handles of pagination controls
 %
 % FORMAT spm_figure('TurnPage',move,F)
 % SPM pagination function: Turn to specified page
@@ -153,6 +157,9 @@ function varargout=spm_figure(varargin)
 % SPM pagination function: Deletes page controls
 % F	- [Optional] Figure in which to attempt to turn the page
 %         Defaults to 'Graphics' 'Tag'ged window
+%
+% FORMAT n = spm_figure('#page')
+% Returns the current page number.
 %
 % FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 % Adds watermark to figure windows.
@@ -168,6 +175,16 @@ function varargout=spm_figure(varargin)
 % Tag	  - Tag for window
 % Name    - Name for window
 % Visible - 'on' or 'off'
+%
+% FORMAT WS = spm_figure('GetWinScale')
+% Returns ratios of current display dimensions to that of a 1152 x 900
+% Sun display. WS=[Xratio,Yratio,Xratio,Yratio]. Used for scaling other
+% GUI elements.
+% (Function duplicated in spm.m, repeated to reduce inter-dependencies.)
+%
+% FORMAT FS = spm_figure('FontSize')
+% Returns a vector of fontsizes [08,10,12,14,16], scaled to the nearest
+% two points for the current display.
 %
 % FORMAT spm_figure('CreateBar',F)
 % Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
@@ -270,12 +287,17 @@ case 'getwin'
 if nargin<2, Tag='Graphics'; else, Tag=varargin{2}; end
 F = spm_figure('FindWin',Tag);
 
-if isempty(F) & ischar(Tag)
-	switch Tag, case 'Graphics'
-		F = spm_figure('Create','Graphics','Graphics');
-	case 'Interactive'
-		F = spm('CreateIntWin');
+if isempty(F)
+	if ischar(Tag)
+		switch Tag, case 'Graphics'
+			F = spm_figure('Create','Graphics','Graphics');
+		case 'Interactive'
+			F = spm('CreateIntWin');
+		end
 	end
+else
+	%set(0,'CurrentFigure',F);
+	figure(F)
 end
 varargout = {F};
 
@@ -329,21 +351,26 @@ end
 set(F,'Pointer','Arrow')
 
 
+case 'defprintcmd'
+%=======================================================================
+% spm_figure('DefPrintCmd')
+varargout = {'print -dpsc2 -append -noui '};
+
+
 case 'print'
 %=======================================================================
-% spm_figure('Print',F,PFile)
+% spm_figure('Print',F)
 
 %-Arguments & defaults
-if nargin<3, PFile='spm.ps'; else, PFile=varargin{3}; end
 if nargin<2, F='Graphics'; else, F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
 F=spm_figure('FindWin',F);
-if isempty(F), if any(get(0,'Children')), F = gcf; end, end
+if isempty(F), F = get(0,'CurrentFigure'); end
 if isempty(F), return, end
 
-%-Switch to figure to print
+%-Note current figure, & switch to figure to print
 cF = get(0,'CurrentFigure');
 set(0,'CurrentFigure',F)
 
@@ -353,13 +380,12 @@ hPrevPage = findobj(F,'Tag','PrevPage');
 hPageNo   = findobj(F,'Tag','PageNo');
 iPaged    = ~isempty(hNextPage);
 
-%-Retrieve print command
+%-Construct print command
 %-----------------------------------------------------------------------
-global PRINTSTR
-if isempty(PRINTSTR) | (nargin>3)
-	PrintCmd = ['print -dpsc2 -append ',PFile];
+if any(strcmp(who('global'),'PRINTSTR'))
+	global PRINTSTR
 else
-	PrintCmd = PRINTSTR;
+	PRINTSTR = [spm_figure('DefPrintCmd'),'spm.ps'];
 end
 
 %-Create footnote with SPM version, username, date and time.
@@ -375,21 +401,21 @@ text(0,0,FNote,'FontSize',6);
 %-Print
 %-----------------------------------------------------------------------
 if ~iPaged
-	eval(PrintCmd)
+	eval(PRINTSTR)
 else
-	hAxes     = get(hNextPage,'UserData');
+	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
-	nPages    = size(hAxes,1);
+	nPages    = size(hPg,1);
 
 	set([hNextPage,hPrevPage,hPageNo],'Visible','off')
 	if Cpage~=1
-		set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','off'), end
+		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
-		set(hAxes(p,hAxes(p,:)~=0),'Visible','on')
-		eval(PrintCmd)
-		set(hAxes(p,hAxes(p,:)~=0),'Visible','off')
+		set(hPg{p,1},'Visible','on')
+		eval(PRINTSTR)
+		set(hPg{p,1},'Visible','off')
 	end
-	set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','on')
+	set(hPg{Cpage,1},'Visible','on')
 	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
 set(0,'CurrentFigure',cF)
@@ -397,65 +423,62 @@ set(0,'CurrentFigure',cF)
 
 case 'newpage'
 %=======================================================================
-% h = spm_figure('NewPage',hPage,MoveOn)
-if nargin<3, MoveOn=0; else, MoveOn=1; end
+% [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',h)
 if nargin<2 | isempty(varargin{2}), error('No handles to paginate')
-	else, hPage=varargin{2}(:)'; end
+	else, h=varargin{2}(:)'; end
 
 %-Work out which figure we're in
-Fgraph = spm_figure('ParentFig',hPage(1));
+F = spm_figure('ParentFig',h(1));
 
-hNextPage = findobj(Fgraph,'Tag','NextPage');
-hPrevPage = findobj(Fgraph,'Tag','PrevPage');
-hPageNo   = findobj(Fgraph,'Tag','PageNo');
+hNextPage = findobj(F,'Tag','NextPage');
+hPrevPage = findobj(F,'Tag','PrevPage');
+hPageNo   = findobj(F,'Tag','PageNo');
 
 %-Create pagination widgets if required
 %-----------------------------------------------------------------------
 if isempty(hNextPage)
-	hNextPage = uicontrol(Fgraph,'Style','Pushbutton',...
+	hNextPage = uicontrol(F,'Style','Pushbutton',...
 		'HandleVisibility','on',...
 		'String','>','FontSize',10,'ToolTipString','next page',...
-		'Callback','spm_figure(''TurnPage'',''+1'',gcf)',...
+		'Callback','spm_figure(''TurnPage'',''+1'',gcbf)',...
 		'Position',[580 020 015 015].*spm('GetWinScale'),...
 		'ForegroundColor',[0 0 0],...
 		'Tag','NextPage','UserData',[]);
-	hPrevPage = uicontrol(Fgraph,'Style','Pushbutton',...
+	hPrevPage = uicontrol(F,'Style','Pushbutton',...
 		'HandleVisibility','on',...
 		'String','<','FontSize',10,'ToolTipString','previous page',...
-		'Callback','spm_figure(''TurnPage'',''-1'',gcf)',...
+		'Callback','spm_figure(''TurnPage'',''-1'',gcbf)',...
 		'Position',[565 020 015 015].*spm('GetWinScale'),...
 		'Visible','on',...
-		'ForegroundColor',[1 1 1]*0.5,...
+		'Enable','off',...
 		'Tag','PrevPage');
-	hPageNo = uicontrol(Fgraph,'Style','Text',...
+	hPageNo = uicontrol(F,'Style','Text',...
 		'HandleVisibility','on',...
-		'String','',...
+		'String','1',...
 		'FontSize',8,...
 		'HorizontalAlignment','center',...
 		'BackgroundColor','w',...
 		'Position',[560 005 040 015].*spm('GetWinScale'),...
 		'Visible','on',...
+		'UserData',1,...
 		'Tag','PageNo','UserData',1);
 end
 
 %-Add handles for this page to UserData of hNextPage
+%-Make handles for this page invisible if PageNo>1
 %-----------------------------------------------------------------------
-hAxes     = get(hNextPage,'UserData');
-tmp       = max(size(hAxes,2),length(hPage));
-hAxes     = [ [hAxes, zeros(size(hAxes,1),tmp-size(hAxes,2))];...
-		[hPage, zeros(1,tmp-length(hPage))] ];
-set(hNextPage,'UserData',hAxes)
-
-%-Make handles for this page invisible if requested
-%-----------------------------------------------------------------------
-if MoveOn
-	set(get(hPage,'Children'),'Visible','off')
+mVis    = strcmp('on',get(h,'Visible'));
+hPg     = get(hNextPage,'UserData');
+if isempty(hPg)
+	hPg = {h(mVis), h(~mVis)};
+else
+	hPg = [hPg; {h(mVis), h(~mVis)}];
+	set(h(mVis),'Visible','off')
 end
+set(hNextPage,'UserData',hPg)
 
 %-Return handles to pagination controls if requested
-if nargout>0
-	varargout = {[hNextPage, hPrevPage, hPageNo]};
-end
+if nargout>0, varargout = {[hNextPage, hPrevPage, hPageNo]}; end
 
 
 case 'turnpage'
@@ -463,36 +486,31 @@ case 'turnpage'
 % spm_figure('TurnPage',move,F)
 if nargin<3, F='Graphics'; else, F=varargin{3}; end
 if nargin<2, move=1; else, move=varargin{2}; end
-Fgraph = spm_figure('FindWin',F);
-if isempty(Fgraph), error('No Graphics window'), end
+F = spm_figure('FindWin',F);
+if isempty(F), error('No Graphics window'), end
 
-hNextPage = findobj(Fgraph,'Tag','NextPage');
-hPrevPage = findobj(Fgraph,'Tag','PrevPage');
-hPageNo   = findobj(Fgraph,'Tag','PageNo');
+hNextPage = findobj(F,'Tag','NextPage');
+hPrevPage = findobj(F,'Tag','PrevPage');
+hPageNo   = findobj(F,'Tag','PageNo');
 if isempty(hNextPage), return, end
-hAxes     = get(hNextPage,'UserData');
+hPg       = get(hNextPage,'UserData');
 Cpage     = get(hPageNo,  'UserData');
-nPages    = size(hAxes,1);
+nPages    = size(hPg,1);
 
 %-Sort out new page number
-if ischar(move)
-	Npage = Cpage+eval(move);
-else
-	Npage = move;
-end
+if ischar(move), Npage = Cpage+eval(move); else, Npage = move; end
 Npage = max(min(Npage,nPages),1);
 
 %-Make current page invisible, new page visible, set page number string
-set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','off')
-set(hAxes(Npage,hAxes(Npage,:)~=0),'Visible','on')
+set(hPg{Cpage,1},'Visible','off')
+set(hPg{Npage,1},'Visible','on')
 set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
 
-%-Set dimness of page turning controls (just for neatness)
-if Npage==1, set(hPrevPage,'ForegroundColor',[1 1 1]*0.5)
-else, set(hPrevPage,'ForegroundColor',[0 0 0]), end
-
-if Npage==nPages, set(hNextPage,'ForegroundColor',[1 1 1]*0.5)
-else, set(hNextPage,'ForegroundColor',[0 0 0]), end
+%-Disable appropriate page turning control if on first/last page (for neatness)
+if Npage==1, set(hPrevPage,'Enable','off')
+else, set(hPrevPage,'Enable','on'), end
+if Npage==nPages, set(hNextPage,'Enable','off')
+else, set(hNextPage,'Enable','on'), end
 
 
 
@@ -500,14 +518,30 @@ case 'deletepagecontrols'
 %=======================================================================
 % spm_figure('DeletePageControls',F)
 if nargin<2, F='Graphics'; else, F=varargin{2}; end
-Fgraph = spm_figure('FindWin',F);
-if isempty(Fgraph), error('No Graphics window'), end
+F = spm_figure('FindWin',F);
+if isempty(F), error('No Graphics window'), end
 
-hNextPage = findobj(Fgraph,'Tag','NextPage');
-hPrevPage = findobj(Fgraph,'Tag','PrevPage');
-hPageNo   = findobj(Fgraph,'Tag','PageNo');
+hNextPage = findobj(F,'Tag','NextPage');
+hPrevPage = findobj(F,'Tag','PrevPage');
+hPageNo   = findobj(F,'Tag','PageNo');
 
 delete([hNextPage hPrevPage hPageNo])
+
+
+case '#page'
+%=======================================================================
+% n = spm_figure('#Page',F)
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
+F = spm_figure('FindWin',F);
+if isempty(F), error('No Graphics window'), end
+
+hNextPage = findobj(F,'Tag','NextPage');
+if isempty(hNextPage)
+	n = 1;
+else
+	n = size(get(hNextPage,'UserData'),1)+1;
+end
+varargout = {n};
 
 
 case 'watermark'
@@ -566,8 +600,7 @@ if nargin<4 | isempty(varargin{4}), Visible='on'; else, Visible=varargin{4}; end
 if nargin<3, Name=''; else, Name = varargin{3}; end
 if nargin<2, Tag='';  else, Tag  = varargin{2}; end
 
-S0   = get(0,'ScreenSize');
-WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
+WS = spm_figure('GetWinScale');
 
 F      = figure(...
 	'Tag',Tag,...
@@ -589,8 +622,8 @@ F      = figure(...
 	'DefaultPatchEdgeColor','k',...
 	'DefaultSurfaceEdgeColor','k',...
 	'DefaultLineColor','k',...
-	'PaperPosition',[.75 1.5 7 9.5],...
 	'PaperType','A4',...
+	'PaperPositionMode','auto',...
 	'InvertHardcopy','off',...
 	'Visible','off');
 if ~isempty(Name)
@@ -598,6 +631,19 @@ if ~isempty(Name)
 spm_figure('FigContextMenu',F);
 set(F,'Visible',Visible)
 varargout = {F};
+
+
+case 'getwinscale'
+%=======================================================================
+% WS = spm_figure('GetWinScale')
+S   = get(0,'ScreenSize');
+varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
+
+
+case 'fontsizes'
+%=======================================================================
+% FS = spm_figure('FontSizes')
+varargout = {round([08,10,12,14,16]*min(spm_figure('GetWinScale')))};
 
 
 case 'createbar'
@@ -921,9 +967,10 @@ end
 case 'graphicscut'
 %=======================================================================
 % spm_figure('GraphicsCut',F)
-% Delete next object clicked, provided it's deletable & in this gcbf
-% "normal" mouse button deletes
-% "extend" mouse button deletes blocks of text (deletes parent axes)
+% Delete next object clicked, provided it's deletable, in this gcbf & not UIcon
+% "normal" mouse button deletes object (or parent if image, line, patch, surface)
+% "extend" mouse button deletes parent (if text), or object (if image, line,
+%          patch, surface)
 % "alt"    mouse button cancels operation
 
 if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
@@ -932,8 +979,7 @@ if isempty(F), return, end
 hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
-set(F,'Name',...
-	'Cut: Select item to delete, RightMouse=cancel...');
+set(F,'Name','Cut: Select object to delete. RightMouse=cancel...');
 set(F,'Pointer','Circle')
 waitforbuttonpress;
 h        = gco(F);
@@ -945,13 +991,14 @@ if strcmp(get(h,'HandleVisibility'),'on') & ...
 		~strcmp(SelnType,'alt') & ...
 		~strcmp(hType,{'root','figure','uimenu','uicontrol'}) & ...
 		gcf==F
-	tmp  = get(h,'Type');
-	if any(strcmp(hType,{'image','line','patch','surface'}))
-		delete(get(h,'Parent'))
-	elseif strcmp(SelnType,'extend') & strcmp(hType,'text')
-		delete(get(h,'Parent'))
-	elseif any(strcmp(tmp,{'text','axes'}))
+	if strcmp(hType,'axes')
 		delete(h)
+	elseif strcmp(hType,'text')
+		if strcmp(SelnType,'extend'), delete(get(h,'Parent'))
+			else, delete(h), end
+	elseif any(strcmp(hType,{'image','line','patch','surface'}))
+		if strcmp(SelnType,'extend'), delete(h)
+			else, delete(get(h,'Parent')), end
 	end
 end
 set(hBut,'ForegroundColor','k')
@@ -961,7 +1008,8 @@ case 'graphicsmove'
 %=======================================================================
 % spm_figure('GraphicsMove',F)
 % Move the next object clicked, provided it's movable and in this figure
-% "extend" mouse button moves blocks of text
+% "normal" mouse button moves object (or parent if image, line, patch, surface)
+% "extend" mouse button moves parent (if text)
 % "alt"    mouse button cancels operation
 
 if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
@@ -970,7 +1018,7 @@ if isempty(F), return, end
 hMoveBut   = gcbo;
 set(hMoveBut,'ForegroundColor','r')
 tmp        = get(F,'Name');
-set(F,'Name','Move: MiddleMouse moves blocks of text. RightMouse=cancel');
+set(F,'Name','Move: MiddleMouse moves parent. RightMouse=cancel');
 set(F,'Pointer','CrossHair')
 waitforbuttonpress;
 hPress     = gco(F);
@@ -985,11 +1033,11 @@ if ~strcmp(get(hPress,'HandleVisibility'),'off') & ...
 	MS.cFUnits = get(F,'Units');
 	set(F,'Units','Pixels')
 	MS.OPt  = get(F,'CurrentPoint');
-	if any(strcmp(hPressType,{'image','line','patch','surface'}))
+
+	if ( strcmp(SelnType,'extend') & strcmp(hPressType,'text') ) | ...
+			any(strcmp(hPressType,{'image','line','patch','surface'}))
 		hMove = get(hPress,'Parent');
-	elseif strcmp(SelnType,'extend') & strcmp(hPressType,'text')
-		hMove = get(hPress,'Parent');
-	elseif any(strcmp(hPressType,{'text','axes'}))
+	elseif any(strcmp(hPressType,{'axes','text'}))
 		hMove = hPress;
 	else
 		set(hMoveBut,'ForegroundColor','k')
