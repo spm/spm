@@ -374,7 +374,7 @@ if ~isempty(CONTRAST)
 	load SPMt
 	for i = 1:size(CONTRAST,1)
 	    spm_projections...
-	    (SPMt(i,:),XYZ,Ut,V,W,S,[K H C B G],CONTRAST(i,:),df,1,names);
+	    (SPMt(i,:),XYZ,Ut,0,V,W,S,[K H C B G],CONTRAST(i,:),df);
 	    spm_print
 	end % (for ...)
 end % (if ...)
