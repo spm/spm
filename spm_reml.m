@@ -1,12 +1,12 @@
-function [Ce,h,W] = spm_reml(Cy,X,Q);
+function [Ce,h] = spm_reml(Cy,X,Q);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W] = spm_reml(Cy,X,Q);
+% FORMAT [Ce,h] = spm_reml(Cy,X,Q);
 %
 % Cy  - (m x m) data covariance matrix y*y'
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance constraints
 %
-% Ce  - (m x m) estimated errors = h(1)&Q{1} + h(2)*Q{2} + ...
+% Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) hyperparameters
 %___________________________________________________________________________
 % %W% John Ashburner, Karl Friston %E%
@@ -20,42 +20,16 @@ q     = length(Q);
 %---------------------------------------------------------------------------
 X     = spm_svd(X);
 
-% REML	objective function = r'*iCe*r + log(det(Ce)) + log(det(XiCeX));
+% REML	objective function 2F = -r'*iCe*r - log(det(Ce)) - log(det(XiCeX));
 %---------------------------------------------------------------------------
-iCe   = speye(m,m);
-W     = zeros(q,q);
-u     = zeros(q,1);
-H     = zeros(q,1);
-for k = 1:128
+J     = zeros(q,q);
+g     = zeros(q,1);
+h     = zeros(q,1);
+for i = 1:length(Q)
+	h(i) = any(diag(Q{i}));
+end
+for k = 1:32
 
-
-	% E-step
-	%------------------------------------------------------------------
-	iCeX  = iCe*X;
-	Cb    = inv(X'*iCeX);
-	R     = iCe - iCeX*Cb*iCeX';
-
-	% M-step
-	%------------------------------------------------------------------
-	RCy   = full(R)*Cy;
-	for i = 1:q
-		RQ{i}  = R*Q{i};
-		u(i)   = sum(sum(RCy.*RQ{i}));		% trace{R*Cy*R*Q{i}}
-	end
-
-	for i = 1:q
-	for j = 1:q
-		W(i,j) = sum(sum(RQ{j}.*RQ{i}));	% trace{R*Q{j}*R*Q{i}}
-	end
-	end
-	h     = pinv(W)*u;
-
-	% convergence
-	%------------------------------------------------------------------
-	dh    = (H - h)'*(H - h);
-	if dh < 1e-6, break, end
-        fprintf('%-30s: %i %30s%e\n','REML Iteration',k,'...',full(dh));
-	H     = h;
 
 	% esitmate of Ce
 	%------------------------------------------------------------------
@@ -64,5 +38,39 @@ for k = 1:128
 		Ce = Ce + h(i)*Q{i};
 	end
 	iCe   = inv(Ce);
+
+	% E-step {conditional covariance Cby}
+	%===================================================================
+	iCeX  = iCe*X;
+	Cby   = inv(X'*iCeX);
+
+	% M-step {Gauss-Newton ascent on log(p(h|y)}
+	%===================================================================
+
+	% 1st derivatives g = 2dF/dhi
+	%------------------------------------------------------------------
+	R     = iCe - iCeX*Cby*iCeX';
+	RCyR  = R*Cy*R';
+	for i = 1:q
+		QC{i}  = Q{i}*iCe;
+		g(i)   = sum(sum(R.*Q{i})) - sum(sum(RCyR.*Q{i}));
+	end
+
+	% 2nd derivatives J = 2ddF/didhj
+	%------------------------------------------------------------------
+	for i = 1:q
+	for j = i:q
+		J(i,j) = sum(sum(QC{i}.*QC{j}));
+		J(j,i) = J(i,j);	
+	end
+	end
+	dh    = -J\g;
+	h     = h + dh;
+
+	% Convergence
+	%===================================================================
+	w     = dh'*dh;
+	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+	if w < 1e-6, break, end
 
 end
