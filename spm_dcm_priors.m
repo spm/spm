@@ -54,75 +54,9 @@ pE    = [b; A(:); B(:); C(:)];
 [qE,qC] = spm_hdm_priors(0);
 
 
-% Reduce rank of prior covariances for computational expediancy
-%---------------------------------------------------------------------------
-
-% model specification (single node)
-%---------------------------------------------------------------------------
-M.fx  = 'spm_fx_dcm';
-M.lx  = 'spm_lx_dcm';
-M.x   = sparse(5,1);
-M.m   = 1;
-M.n   = 5;
-M.l   = 1;
-M.N   = 32;
-M.dt  = 16/M.N;
-
-% papermeters (C = 1)
-%---------------------------------------------------------------------------
-P     = [1; -1; 0; 1; qE];
-p     = length(P);
-
-% compute partial derivatives w.r.t. hemodynamic parameters [J] dy(t)/dp
-%---------------------------------------------------------------------------
-dp    = 1e-6;
-M.pE  = P;
-[k J] = spm_nlsi(M);
-for i = 1:5
-	M.pE    = P + sparse(4 + i,1,dp,p,1);
-	[k q]   = spm_nlsi(M);
-	Jq(:,i) = (q - J)/dp;
-end
-
-% implied covariance of impulse response
-%---------------------------------------------------------------------------
-Cq    = Jq*qC*Jq';
-
-% reduce to h hemodynamic modes in measurement space
-%---------------------------------------------------------------------------
-h     = 1:2;					
-[v s] = spm_svd(Cq);
-v     = v(:,h);
-Cq    = v*v'*Cq*v*v';
-qC    = pinv(Jq)*Cq*pinv(Jq');
-
-
 % combine connectivity and hemodynamic priors
 %===========================================================================
 qC    = kron(qC,eye(n,n));
 qE    = kron(qE,ones(n,1));
 pE    = [pE; qE];
 pC    = blkdiag(pC,qC);
-
-
-return
-
-
-% NOTES: graphics - eigenvalues of qC
-%---------------------------------------------------------------------------
-subplot(2,2,1)
-bar(diag(s))
-xlabel('eigen mode')
-title('eigenvalue')
-set(gca,'XLim',[0 6])
-axis square
-grid on
-
-% graphics - response differentials
-%---------------------------------------------------------------------------
-subplot(2,2,2)
-plot([1:M.N]*M.dt,v(:,1),[1:M.N]*M.dt,v(:,2),'-.')
-xlabel('PST {secs}')
-title('hemodynamic modes')
-axis square
-grid on
