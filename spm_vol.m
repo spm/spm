@@ -49,16 +49,16 @@ end;
 return;
 
 function V = subfunc1(P)
-if size(P,1)==0, V = []; end;
+if size(P,1)==0,
+	V = [];
+else,
+	V(size(P,1),1) = struct('fname','', 'dim', [0 0 0 0], 'mat',eye(4), 'pinfo', [1 0 0]');
+end;
 for i=1:size(P,1),
-	if i~=1,
-		v = subfunc(P(i,:));
-		f = fieldnames(v);
-		for j=1:size(f,1),
-			eval(['V(i).' f{j} ' = v.' f{j} ';']);
-		end;
-	else,
-		V(i) = subfunc(P(i,:));
+	v = subfunc(P(i,:));
+	f = fieldnames(v);
+	for j=1:size(f,1),
+		eval(['V(i).' f{j} ' = v.' f{j} ';']);
 	end;
 end;
 return;
@@ -68,6 +68,10 @@ p = deblank(p);
 
 % Try MINC format first
 V=spm_vol_minc([spm_str_manip(p,'sd') '.mnc']);
+if ~isempty(V), return; end;
+
+% Try Ecat 7
+V=spm_vol_ecat7(p);
 if ~isempty(V), return; end;
 
 % Try Analyze format
