@@ -11,6 +11,8 @@ function varargout = spm_DesRep(varargin)
 % experimental design, embodied in the design matrix structure and
 % other associated data structures.
 %
+%                           ----------------
+%
 % By default, spm_DesRep prompts for selection of an SPMstats design
 % file. The SPMstats design files that are supported are:
 %     SPM_fMRIDesMtx.mat  - fMRI design matrix configuration
@@ -33,13 +35,15 @@ function varargout = spm_DesRep(varargin)
 %     around the design matrix image reports the corresponding value of the
 %     design matrix ('normal' click - "left" mouse button usually), the
 %     image filename ('extend' mouse click - "middle" mouse), or parameter
-%     name ('alt' click - "right" mouse).
+%     name ('alt' click - "right" mouse). Double clicking the design matrix
+%     image extracts the design matrix into the base MatLab workspace.
 %
 %     Under the design matrix the parameter estimability is displayed as a
 %     1xp matrix of grey and white squares. Parameters that are not
 %     uniquely specified by the model are shown with a grey patch. Surfing
 %     the estimability image reports the parameter names and their
-%     estimability.
+%     estimability. Double clicking extracts the estimability vector into
+%     the base MatLab workspace.
 %
 % * Design orthogonality - Displays orthogonality matrix for this design
 %
@@ -68,7 +72,9 @@ function varargout = spm_DesRep(varargin)
 %     The design orthogonality matrix is "surfable": Clicking (and
 %     holding or dragging) the cursor around the design orthogonality
 %     image reports the orthogonality of the correponding pair of
-%     columns.
+%     columns. Double clicking on the orthogonality matrix extracts
+%     the contrast orthogonality matrix into the base MatLab
+%     workspace.
 %
 %
 % * Explore design - Sub-menu's for detailed design exploration.
@@ -106,6 +112,22 @@ function varargout = spm_DesRep(varargin)
 %              & design matrix graphics (if in the results section).
 % * Help     - displays this text!
 %
+%                           ----------------
+%
+% spm_DesRep also handles "surfing" of contrast depictions, which are
+% bar-graphs for T-contrasts and images for F-contrasts. Clicking
+% ('normal' click - "left" mouse button usually) with the on the bars
+% of the bar-graphs, or anywhere in an image, and dragging, dynamically
+% reports the contrast weight depicted under the cursor. The format of
+% the report string is:
+%	#{T/F}: <name> (ij) = <weight>
+% ...where # is the contrast number, T/F indicates the type of
+% contrast, <name> the name given to the contrast, ij the index into
+% the contrast vector/matrix weight under the cursor, and <weight> the
+% corresponding contrast weight.
+%
+% Double clicking on a contrast depiction extracts the contrast weights
+% into the base workspace.
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
@@ -116,7 +138,7 @@ function varargout = spm_DesRep(varargin)
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take. Recall   )
 %( MatLab's command-function duality: `spm_figure Create` is           )
-%( equivalent to `spm('Create')`.                                      )
+%( equivalent to `spm_figure('Create')`.                               )
 %
 % FORMAT h = spm_DesRep('DesRepUI',D)
 % Setup "design" menu for design reporting.
@@ -157,6 +179,8 @@ function varargout = spm_DesRep(varargin)
 %
 % FORMAT spm_DesRep('DesMtx',xX,fnames,xs)
 % Produces a one-page graphical summary of the design matrix
+% FORMAT spm_DesRep('DesOrth',xX,fnames)
+% Produces a one-page graphical summary of the design orthogonality
 % xX      - Structure containing design matrix information
 %         - the first of {xX.nX, xKXs.X, xX.X} is used for display
 % .nX     - Desgin matrix already scaled for display
@@ -214,6 +238,32 @@ function varargout = spm_DesRep(varargin)
 % fields 'est' & 'Xnames' respectively. The code is robust to any of
 % these being empty or mis-specified - surfing simply reports "no
 % cached data".
+%
+% FORMAT spm_DesRep('SurfDesO_CB')
+% 'ButtonDownFcn' CallBack for surfing clickable design orthogonality images
+% FORMAT spm_DesRep('SurfDesOMo_CB')
+% 'WindowButtonMotionFcn' CallBack for surfing design orthogonality images
+% FORMAT spm_DesRep('SurfDesOUp_CB')
+% 'ButtonUpFcn' CallBack for ending surfing of design orthogonality images
+%
+% The design orthogonality matrix (cosine of angle between vectors),
+% correlation index matrix (1 when both columns have zero mean, when
+% cos(\theta) equals the correlation), and parameter names should be
+% saved in the UserData of the image object as a structure with fields
+% 'O', 'bC' & 'Xnames' respectively.
+%
+% FORMAT spm_DesRep('SurfCon_CB')
+% 'ButtonDownFcn' CallBack for surfing clickable contrast depictions
+% FORMAT spm_DesRep('SurfConOMo_CB')
+% 'WindowButtonMotionFcn' CallBack for surfing contrast depictions
+% FORMAT spm_DesRep('SurfConOUp_CB')
+% 'ButtonUpFcn' CallBack for ending surfing of contrast depictions
+%
+% The contrast number, handle of text object to use for reporting and
+% contrast structure (for this contrast) should be saved in the
+% UserData of the image object as a structure with fields 'i', 'h' &
+% 'xCon' respectively.
+%
 %_______________________________________________________________________
 
 
@@ -1005,6 +1055,11 @@ case 'alt'
 		istr = 'tex';
 	catch, str='(no cached parameter names to surf)'; end
 case 'open'
+	try,	assignin('base','ans',subsref(get(gco,'UserData'),...
+			struct('type',{'.'},'subs',{'X'})))
+		evalin('base','ans')
+	catch,	fprintf('%s GUI: can''t find design matrix\n',mfilename)
+	end
 	return
 end
 
@@ -1053,7 +1108,16 @@ case 'normal'
 			struct('type',{'.','()'},'subs',{'est',{i}}))+1});
 		istr = 'tex';
 	catch, str='(no cached data to surf)'; end
-case {'extend','alt','open'}
+case {'extend','alt'}
+	return
+case 'open'
+	try,	UD = get(gco,'UserData');
+		assignin('base','ans',...
+			subsref(get(gco,'UserData'),...
+				struct('type',{'.'},'subs',{'est'})))
+		evalin('base','ans')
+	catch,	fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+	end
 	return
 end
 
@@ -1114,7 +1178,79 @@ case 'normal'
 			['\rightarrow ',str]};
 		istr = 'tex';
 	catch, str='(no cached data to surf)'; end
-case {'extend','alt','open'}
+case {'extend','alt'}
+	return
+case 'open'
+	try,	UD = get(gco,'UserData');
+		assignin('base','ans',UD.O)
+		evalin('base','ans')
+	catch,	fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+	end
+	return
+end
+
+set(h,'String',str,'Interpreter',istr)
+
+
+%=======================================================================
+case {'surfcon_cb','surfconmo_cb','surfconup_cb'}        %-Surf Contrast
+%=======================================================================
+% spm_DesRep('SurfCon_CB')
+% spm_DesRep('SurfConOMo_CB')
+% spm_DesRep('SurfConOUp_CB')
+
+cUD = get(gco,'UserData');
+if ~isstruct(cUD) | ~isfield(cUD,'h')
+	warning('contrast GUI objects setup incorrectly'), return
+end
+h    = cUD.h;
+
+if strcmp(lower(varargin{1}),'surfconup_cb')
+	UD = get(h,'UserData');
+	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+		'UserData',UD.UserData)
+	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+	return
+end
+
+if strcmp(lower(varargin{1}),'surfcon_cb')
+	UD = struct(	'String',	get(h,'String'),...
+			'Interpreter',	get(h,'Interpreter'),...
+			'UserData',	get(h,'UserData'));
+	set(h,'UserData',UD)
+	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfConMo_CB'')',...
+		 'WindowButtonUpFcn',    'spm_DesRep(''SurfConUp_CB'')')
+end
+
+mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
+ij  = get(gca,'CurrentPoint');
+ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
+
+istr = 'none';
+switch get(gcbf,'SelectionType')
+case 'normal'
+	try
+		if cUD.i>0, str = sprintf('%d',cUD.i); else, str = ''; end
+		switch get(gco,'Type')
+		case 'image'
+			str = sprintf('%s\\{F\\}: {\\bf%s} (%d,%d) = %.2f',...
+				str,cUD.xCon.name,ij(2),ij(1),...
+				cUD.xCon.c(ij(2),ij(1)));
+		case 'patch'
+			str = sprintf('%s\\{T\\}: {\\bf%s} (%d) = %.2f',...
+				str,cUD.xCon.name,ij(2),...
+				cUD.xCon.c(ij(2)));
+		otherwise, error('unexpected object type')
+		end
+		istr = 'TeX';
+	catch, str='(no cached data to surf)'; end
+case {'alt','extend'}
+	return
+case 'open'
+	try,	assignin('base','ans',cUD.xCon.c')
+		evalin('base','ans')
+	catch,	fprintf('%s GUI: can''t find contrast\n',mfilename)
+	end
 	return
 end
 
