@@ -76,30 +76,32 @@ MAC:
 	       MEX="mex -O -DBIGENDIAN"
 
 windows:
+#
+# This lot can be compiled using CygWin, which you can obtain from
+#     http://sourceware.org/cygwin/
+# Install the Default configuration, along with the gcc C compiler, and make
+# from the "Devel" options.
+#
 # Consider adding either of the following, depending on your platform:
 #       -march=pentium3
 #       -march=pentium4
+# Consider also: -mfpmath=sse and: -mno-cygwin
 #
 # See Matthew's web page on mex files for Windows:
 #    http://gnumex.sourceforge.net/
 #
-# A minimalist version of GNU can be obtained by picking up MinGW-xxx-rc.exe from
-#     http://www.mingw.org/download.shtml
-# Simply download from a suitable mirror site and execute the program.  This will
-# install it on your system.
-#
-# Alternatively, you could try Cygwin.  This gives a much wider selection of Unix
-# functions.
-#
-# GNUmex may also be needed.  This can be installed from
-#     https://sourceforge.net/projects/gnumex
-#
 # After this, I have no idea what to do... because it's Windows
 #
 	make all SUF=dll\
-	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -mfpmath=sse -DSPM_WIN32"\
+	        CC="gcc -O3 -mno-cygwin -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
 	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"\
 	        ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+
+CYGWIN_NT-4.0: windows
+
+CYGWIN_NT-5.0: windows
+
+CYGWIN_NT-6.0: windows
 
 ###############################################################################
 # Architecture specific cleaning
@@ -467,9 +469,9 @@ verb.dll:
 	@ echo "_____________________________________________________________"
 	@ echo "%M% %I% %E%"
 	@ echo ""
-	@ echo "Windows compile with gcc/mingw"
-	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
-	@ echo "for instructions about installing gcc/mingw for"
+	@ echo "Windows compile with gcc/cygwin"
+	@ echo "see http://gnumex.sourceforge.net/"
+	@ echo "for instructions about installing gcc/cygwin for"
 	@ echo "compiling Mex files."
 	@ echo "_____________________________________________________________"
 	@ echo ""

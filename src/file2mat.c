@@ -379,7 +379,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
         }
 
 #ifdef SPM_WIN32
-        file_mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 0x01400000, buf);
+        file_mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, map->len, buf);
         if (file_mapping == NULL)
         {
             mxFree(buf);

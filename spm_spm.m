@@ -885,7 +885,7 @@ VResMS          = spm_create_vol(VResMS,'noopen');
 
 % Do not store a default effects of interest F-contrast
 % and do not create other contrasts automatically
-% xCon = struct([]);
+xCon = struct([]);
 
 
 
