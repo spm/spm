@@ -411,7 +411,7 @@ return;
 
 %=======================================================================
 function BP = update_bp_est(BP,p,cor,CP,msk,x1,x2,x3)
-if prod(BP.nbas<=1), return; end;
+if prod(BP.nbas)<=1, return; end;
 B1 = BP.B1(x1,:);
 B2 = BP.B2(x2,:);
 B3 = BP.B3(x3,:);
@@ -436,7 +436,7 @@ return;
  
 %=======================================================================
 function BP = update_bp(BP)
-if prod(BP.nbas<=1), return; end;
+if prod(BP.nbas)<=1, return; end;
 for j=1:size(BP.Alpha,3),
 	x     = BP.T(:,:,:,j);
 	x     = x(:);
@@ -455,7 +455,7 @@ return;
 %=======================================================================
 function bf = get_bp(BP,x1,x2,x3)
 bf = ones(length(x1),length(x2),size(BP.Alpha,3));
-if prod(BP.nbas<=1), return; end;
+if prod(BP.nbas)<=1, return; end;
 B1 = BP.B1(x1,:);
 B2 = BP.B2(x2,:);
 B3 = BP.B3(x3,:);
