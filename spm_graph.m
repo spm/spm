@@ -63,10 +63,11 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % constructing explanatory variables such as in a psychophysiological
 % interaction). To remove or correct for specific effects, specify an
 % appropriate F contrast and simply plot the fitted (and adjusted)
-% responses after selecting that F contrast.  The vectors Y and y in the
-% workspace will now be corrected for the effects in the reduced design
-% matrix (X0) specified in the contrast manager with the column indices
-% (iX0) of the confounds in this adjustment.
+% responses after selecting that F contrast.  The vectors Y (fitted)
+% and y (adjusted) in the workspace will now be corrected for the
+% effects in the reduced design matrix (X0) specified in the contrast
+% manager with the column indices (iX0) of the confounds in this
+% adjustment.
 % 
 % Plotting data:
 % All data and graphics use filtered data and residuals.    In PET
@@ -139,10 +140,11 @@ else
 	y    = spm_extract('Y.mad',SPM.QQ(i));
 end
 
-% reset pointer and compute voxel indices
+%-Reset pointer, compute voxel indices, compute location string
 %-----------------------------------------------------------------------
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
+XYZstr  = sprintf(' at [%g, %g, %g]',xyz);
 
 
 %-Get parameter estimates, ResMS, (compute) fitted data & residuals
@@ -256,8 +258,8 @@ case 'Contrast of parameter estimates'
 			    'LineWidth',3,'Color','r')
 	end
 	set(gca,'XLim',[0.4 (length(cbeta) + 0.6)])
-	XLAB  = {'effect'};
-	YLAB  = 'size of effect';
+	XLAB  = 'effect';
+	YLAB  = ['size of effect',XYZstr];
 
 
 % all fitted effects or selected effects
@@ -314,7 +316,7 @@ case 'Fitted and adjusted responses'
 		set(gca,'XLim',xlim)
 
 	end
-	YLAB  = 'response';
+	YLAB  = ['response',XYZstr];
 
 
 % modeling evoked responses based on Sess
@@ -370,7 +372,7 @@ case 'Event/epoch-related responses'
 	if isempty(y), Rplot = Rplot([1 3 4]); end
 	Cr      = spm_input('plot in terms of','+1','m',Rplot);
 	TITLE   = Rplot{Cr};
-	YLAB    = 'response';
+	YLAB    = ['response',XYZstr];
 	XLAB{1} = 'peri-stimulus time {secs}';
 
 
@@ -527,7 +529,7 @@ case 'Plots of parametric responses'
 	TITLE = Sess{s}.name{t};
 	XLAB  = 'perstimulus time (secs)';
 	YLAB  = Sess{s}.Pname{t};
-	zlabel('respones');
+	zlabel(['responses',XYZstr]);
 
 
 % modeling evoked responses based on Sess
@@ -588,7 +590,7 @@ case 'Volterra Kernels'
 
 		TITLE = {'First order Volterra Kernel' Sess{s}.name{t}};
 		XLAB  = 'perstimulus time (secs)';
-		YLAB  = 'respones';
+		YLAB  = ['responses',XYZstr];
 
 	end
 end
