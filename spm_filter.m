@@ -66,9 +66,11 @@ switch Action
 			case 'Gaussian'
 			%---------------------------------------------------
 			sigma   = K{s}.LParam/K{s}.RT;
-			h       = exp(-[-4*sigma:4*sigma].^2/(2*sigma^2));
+			h       = round(4*sigma);
+			h       = exp(-[-h:h].^2/(2*sigma^2));
 			n       = length(h);
 			d       = [1:n] - (n + 1)/2;
+			if      n == 1, h = 1; end
 
 			otherwise
 			%---------------------------------------------------
@@ -95,11 +97,12 @@ switch Action
 			%---------------------------------------------------
 			n       = fix(2*(k*K{s}.RT)/K{s}.HParam + 1);
 			X       = spm_dctmtx(k,n);
-			K{s}.KH = X(:,[2:n]);
+			K{s}.KH = sparse(X(:,[2:n]));
 
 			otherwise
 			%---------------------------------------------------
-			warning('High pass Filter option unknown');
+			error('High pass Filter option unknown');
+			return
 
 		end
 
