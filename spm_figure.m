@@ -269,13 +269,10 @@ elseif strcmp(lower(Action),lower('Clear'))
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if (nargin<2)
-	if any(get(0,'Children')), F = gcf; else, F=[], end
-else
-	F = P2;
-end
-F=spm_figure('FindWin',F);
-if isempty(F), return, end
+if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
+	else, F=P2; end
+F = spm_figure('FindWin',F);
+if isempty(F), error('Figure not found'), end
 
 %-Clear figure, leaving 'NoDelete' 'Tag'ed objects
 %-----------------------------------------------------------------------
@@ -476,20 +473,47 @@ delete([hNextPage hPrevPage hPageNo])
 return
 
 
+elseif strcmp(lower(Action),lower('WaterMark'))
+%=======================================================================
+% spm_figure('WaterMark',F,str,Tag)
+if nargin<4, Tag=''; else, Tag=P4; end
+if nargin<3, str=''; else, str=P3; end
+if isempty(str), str='SPM'; end
+if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
+	else, F=P2; end
+F = spm_figure('FindWin',F);
+if isempty(F), error('Figure not found'), end
+
+delete(findobj(F,'UserData','WaterMark'))
+Units=get(F,'Units');
+set(F,'Units','normalized');
+axes('Position',[0.45 0.35 0.1 0.1],...
+	'Units','normalized',...
+	'Visible','off',...
+	'Tag',Tag,...
+	'UserData','WaterMark');
+set(F,'Units',Units)
+text(0.5,0.5,str,...
+	'FontSize',96,...
+	'FontWeight','Bold',...
+	'FontName','Times',...
+	'Rotation',-60,...
+	'HorizontalAlignment','Center',...
+	'VerticalAlignment','middle',...
+	'EraseMode','Background',...
+	'Color',[1 1 1]*0.98,...
+	'ButtonDownFcn',[...
+		'if strcmp(get(gcf,''SelectionType''),''alt''),',...
+			'delete(gco),',...
+		'end'])
+return
+
+
 elseif strcmp(lower(Action),lower('CreateBar'))
 %=======================================================================
 % spm_figure('CreateBar',F)
-
-if (nargin<2)
-	if any(get(0,'Children'))
-		F = gcf;
-	else
-		error('No figures available to create tool bar in!')
-	end
-else
-	F = P2;
-end
-
+if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
+	else, F=P2; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('Figure not found'), end
 
