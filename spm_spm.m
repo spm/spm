@@ -803,19 +803,6 @@ if ~isfield(xVi,'V')
 	else
 		[V,h] = spm_reml(Cy,xX.X,xVi.Vi);
 	end
-
-	% check for negative variance component hyperparameters
-	%---------------------------------------------------------------
-	if any(h < 0) & ~isfield(SPM,'Sess')
-		str = {	'Variance component [hyperparameter]';...
-			'estimation has been been compromised';...
-			'by negative estimates.';...
-			'Could you specify a slightly less';...
-			'exuberant non-sphericity for this model?'};
-		if spm_input(str,1,'bd','abort|continue',[1,0],1)
-				return
-		end
-	end
 	
 	% normalize non-sphericity and save hyperparameters
 	%---------------------------------------------------------------
@@ -852,12 +839,12 @@ xX.Bcov         = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
 VResMS.pinfo(1) = 1/xX.trRV;
 VResMS          = spm_create_vol(VResMS,'noopen');
 
+
 %-Create 1st contrast for 'effects of interest'
 %=======================================================================
-Fcname    = 'effects of interest';
-iX        = [xX.iH xX.iC];
-c         = sparse(iX,1:length(iX),1,nBeta,length(iX));
-xCon      = spm_FcUtil('Set',Fcname,'F','c',c,xX.xKXs);
+Fcname          = 'effects of interest';
+iX0             = [xX.iB xX.iG];
+xCon            = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
 
 %-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
 %-----------------------------------------------------------------------
