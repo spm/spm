@@ -608,10 +608,10 @@ case 'review'
 
 		% graph
 		%-----------------------------------------------------------
-		x     = [1:length(DCM.U.u)]*DCM.U.dt;
+		x     = [1:length(full(DCM.U.u))]*DCM.U.dt;
 		for i = 1:m
 			subplot(m,1,i)
-			plot(x,DCM.U.u(:,i))
+			plot(x,full(DCM.U.u(:,i)))
 			title(['Input - ' DCM.U.name{i}],'FontSize',12)
 			%axis tight
 			ylabel('event density {Hz}')
@@ -621,8 +621,8 @@ case 'review'
 			%axis square tight
 			grid on
             % Change axis so we can see boxcars properly
-            u_min=min(DCM.U.u(:,i));
-            u_max=max(DCM.U.u(:,i));
+            u_min=min(full(DCM.U.u(:,i)));
+            u_max=max(full(DCM.U.u(:,i)));
             u_range=u_max-u_min;
             axis([0 max(x) u_min-0.1*u_range u_max*1.1]);
 		end
