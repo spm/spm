@@ -17,7 +17,7 @@ function varargout=spm_mip_ui(varargin)
 % h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
 % hC      - Handle of calling object, if used as a callback. [Default 0]
 % xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d       - Euclidian distance between desired co-ords & nearest voxel centre 
+% d       - Euclidian distance from desired co-ords & nearest voxel 
 %_______________________________________________________________________
 %
 % spm_mip_ui displays a maximum intensity projection (using spm_mip)
@@ -39,6 +39,11 @@ function varargout=spm_mip_ui(varargin)
 % (3) Magnetic drag & drop: As with "Dynamic drag & drop", except the cursors
 %     jump to the voxel centre in the pointlist nearest to the cursor. Use the
 %     right "alt" mouse button for "magnetic drag & drop".
+%
+% In addition a ContextMenu is provided, giving the option to jump the
+% cursors to the nearest suprathreshold voxel, the nearest local
+% maxima, or to the global maxima. (Right click on the MIP to bring up
+% the ContextMenu.)
 %
 % The current cursor position (constrained to lie on a voxel) can be
 % obtained by xyz=spm_mip_ui('GetCoords',hMIPax), and set with
@@ -76,22 +81,33 @@ function varargout=spm_mip_ui(varargin)
 %
 % FORMAT xyz = spm_mip_ui('GetCoords',h)
 % Returns coordinates of current cursor position
-% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
 % xyz     - Current Talairach coordinates of cursor
 %
 % FORMAT [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
 % Sets cursor position
 % xyz     - (Input) {3 x 1} vector of desired Talairach coordinates
-% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
 % hC      - Handle of calling object, if used as a callback. [Default 0]
 % xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d       - Euclidian distance between desired co-ords & nearest voxel centre 
+% d       - Euclidian distance from desired co-ords & nearest voxel 
 %
 % FORMAT spm_mip_ui('PosnMarkerPoints',xyz,h,r)
 % Utility routine: Positions cursor markers
 % xyz     - {3 x 1} vector of Talairach coordinates for cursor
-% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
+% h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
 % r       - 'r' to move visible red cursors, 'g' to move invisible green cursors
+%
+%
+% FORMAT [xyz,d] = spm_mip_ui('Jump',h,loc)
+% Utility routine (CallBack of UIcontextMenu) to jump cursor
+% h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
+% loc     - String defining jump: 'dntmv' - don't move
+%                                 'nrvox' - nearest suprathreshold voxel
+%                                 'nrmax' - nearest local maxima
+%                                 'glmax' - global maxima
+% xyz     - co-ordinates of voxel centre jumped to {3 x 1} vector
+% d       - (square) Euclidian distance jumped 
 %
 % FORMAT spm_mip_ui('ShowGreens',xyz,h)
 % Shows green secondary cursors at location xyz
@@ -207,6 +223,7 @@ MIPaxPos = get(hMIPax,'Position');
 if (MIPaxPos(3)/MIPaxPos(4) > AR), MIPaxPos(3) = MIPaxPos(4)*AR;
 	else, MIPaxPos(4) = MIPaxPos(3)./AR; end
 set(hMIPax,'Position',MIPaxPos)
+hMIPim = get(gca,'Children');
 
 %-Print coordinates
 %-----------------------------------------------------------------------
@@ -256,6 +273,25 @@ else
 	hXg = [hX1g,hX2g,hX3g];
 end
 
+%-Create UIContextMenu for marker jumping
+%-----------------------------------------------------------------------
+h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
+uimenu(h,'Label','MIP')
+if isempty(XYZ), str='off'; else, str='on'; end
+uimenu(h,'Separator','on','Label','goto nearest suprathreshold voxel',...
+	'CallBack',['spm_mip_ui(''Jump'',',...
+		'get(get(gcbo,''Parent''),''UserData''),''nrvox'');'],...
+	'Interruptible','off','BusyAction','Cancel','Enable',str);
+uimenu(h,'Separator','off','Label','goto nearest local maxima',...
+	'CallBack',['spm_mip_ui(''Jump'',',...
+		'get(get(gcbo,''Parent''),''UserData''),''nrmax'');'],...
+	'Interruptible','off','BusyAction','Cancel','Enable',str);
+uimenu(h,'Separator','off','Label','goto global maxima',...
+	'CallBack',['spm_mip_ui(''Jump'',',...
+		'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
+	'Interruptible','off','BusyAction','Cancel','Enable',str);
+set(hMIPim,'UIContextMenu',h)
+
 %-Save handles and data
 %-----------------------------------------------------------------------
 set(hMIPax,'Tag','hMIPax','UserData',...
@@ -288,9 +324,6 @@ case 'setcoords'
 if nargin<4, hC=0; else, hC=varargin{4}; end
 if nargin<3, h=spm_mip_ui('FindMIPax'); else, h=varargin{3}; end
 if nargin<2, error('Set co-ords to what!'), else, xyz=varargin{2}; end
-
-%-If this is an internal call, then don't do anything
-if h==hC, return, end
 
 MD  = get(h,'UserData');
 
@@ -344,6 +377,59 @@ else
 	set(hX(3),'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
 end
 
+
+%=======================================================================
+case 'jump'
+%=======================================================================
+% [xyz,d] = spm_mip_ui('Jump',h,loc)
+if nargin<3, loc='nrvox'; else, loc=varargin{3}; end
+if nargin<2, h=spm_mip_ui('FindMIPax'); else, h=varargin{2}; end
+
+%-Get current location & MipData
+%-----------------------------------------------------------------------
+oxyz = spm_mip_ui('GetCoords',h);
+MD   = get(h,'UserData');
+
+
+%-Compute location to jump to
+%-----------------------------------------------------------------------
+if isempty(MD.XYZ), loc='dntmv'; end
+switch lower(loc), case 'dntmv'
+	msgbox('No suprathreshold voxels to jump to!',...
+		sprintf('%s%s: %s...',spm('ver'),...
+			spm('GetUser',' (%s)'),mfilename),...
+		'warn','modal')
+	varargout = {oxyz, 0};
+	return
+case 'nrvox'
+	str       = 'nearest suprathreshold voxel';
+	[xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,MD.XYZ);
+case 'nrmax'
+	str       = 'nearest local maxima';
+	iM        = inv(MD.M);
+	XYZvox    = iM(1:3,:)*[MD.XYZ; ones(1,size(MD.XYZ,2))];
+	[null,null,XYZvox,null] = spm_max(MD.Z,XYZvox);
+	XYZ       = MD.M(1:3,:)*[XYZvox; ones(1,size(XYZvox,2))];
+	[xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,XYZ);
+case 'glmax'
+	str       = 'global maxima';
+	i         = find(MD.Z==max(MD.Z));
+	xyz       = MD.XYZ(:,i);
+	d         = sum((oxyz-xyz).^2);
+otherwise
+	warning('Unknown jumpmode')
+	varargout = {xyz,0};
+	return
+end
+
+%-Write jump report, jump, and return arguments
+%-----------------------------------------------------------------------
+fprintf(['\n\t%s:\tJumped %0.2fmm from [%3.0f, %3.0f, %3.0f],\n\t\t\t',...
+		'to %s at [%3.0f, %3.0f, %3.0f]\n'],...
+	mfilename, sqrt(d), oxyz, str, xyz)
+
+spm_mip_ui('SetCoords',xyz,h,h);
+varargout = {xyz, d};
 
 
 %=======================================================================
