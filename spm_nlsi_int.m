@@ -41,6 +41,9 @@ u            = size(U.u,1);				% input times
 %---------------------------------------------------------------------------
 x0           = spm_bilinear(A,B,C,D,M.x,1,v*U.dt);
 y0           = feval(lx,x0,P);
+if any(isnan(x0) | x0 > 1e+16)
+	error('system is not dissipative - please use more contraints')
+end
 
 % make Lie matrices sparse
 %---------------------------------------------------------------------------
