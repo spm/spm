@@ -40,7 +40,7 @@ fp  = fopen(P,'r','ieee-le');
 if fp==-1, warning(['Cant open "' P '".']); return; end;
 
 fseek(fp,128,'bof');
-dcm = char(fread(fp,4,'char'))';
+dcm = fread(fp,4,'*char')';
 if ~strcmp(dcm,'DICM'),
 	% Try truncated DICOM file fomat
 	fseek(fp,0,'bof');
@@ -52,11 +52,12 @@ if ~strcmp(dcm,'DICM'),
 		fclose(fp);
 		warning(['"' P '" is not a DICOM file.']);
 		return;
-	else,
+	else
 		fseek(fp,0,'bof');
 	end;
 end;
-ret = read_dicom(fp, 'le',dict);
+ret = read_dicom(fp, 'el',dict);
+ret.Filename = fopen(fp);
 fclose(fp);
 return;
 %_______________________________________________________________________
@@ -66,9 +67,9 @@ function [ret,len] = read_dicom(fp, flg, dict,lim)
 if nargin<4, lim=Inf; end;
 %if lim==2^32-1, lim=Inf; end;
 len = 0;
-ret = struct('Filename',fopen(fp));
+ret = [];
 tag = read_tag(fp,flg,dict);
-while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==0),
+while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.length==0),
 	%fprintf('%.4x/%.4x %d\n', tag.group, tag.element, tag.length);
 	if tag.length>0,
 		switch tag.name,
@@ -86,11 +87,11 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==
 			fseek(fp,tag.length,'cof');
 		case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1210','Private_0029_1220'},
 			dat  = decode_csa(fp,tag.length);
-			ret  = setfield(ret,tag.name,dat);
+			ret.(tag.name) = dat;
 		case {'TransferSyntaxUID'},
-			dat = char(fread(fp,tag.length,'char'))';
+			dat = fread(fp,tag.length,'*char')';
 			dat = deblank(dat);
-			ret  = setfield(ret,tag.name,dat);
+			ret.(tag.name) = dat;
 			switch dat,
 			case {'1.2.840.10008.1.2'},      % Implicit VR Little Endian
 				flg = 'il';
@@ -115,13 +116,7 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==
 			case {'AE', 'AS', 'CS', 'DA', 'DS', 'DT', 'IS', 'LO', 'LT',...
 				  'PN', 'SH', 'ST', 'TM', 'UI', 'UT'},
 				% Character strings
-				dat = fread(fp,tag.length,'char')';
-				if any(dat<0 | dat>127),
-					%disp(dat);
-					disp(tag.vr);
-					disp(tag.name);
-				end;
-				dat = char(dat);
+				dat = fread(fp,tag.length,'*char')';
 
 				switch tag.vr,
 				case {'UI','ST'},
@@ -136,12 +131,12 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==
 				case {'TM'},
 					if any(dat==':'),
 						[h,m,s] = strread(dat,'%d:%d:%f');
-					else,
+					else
 						[h,m,s] = strread(dat,'%2d%2d%f');
 					end;
-					if isempty(h), h = 0, end;
-					if isempty(m), m = 0, end;
-					if isempty(s), s = 0, end;
+					if isempty(h), h = 0; end;
+					if isempty(m), m = 0; end;
+					if isempty(s), s = 0; end;
 					dat = s+60*(m+60*h);
 				otherwise,
 				end;
@@ -168,7 +163,7 @@ while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357), % & tag.length==
 				fseek(fp,tag.length,'cof');
 				warning(['Unknown VR "' tag.vr '" in "' fopen(fp) '".']);
 			end;
-			ret  = setfield(ret,tag.name,dat);
+			ret.(tag.name) = dat;
 		end;
 	end;
 	len = len + tag.le + tag.length;
@@ -180,7 +175,7 @@ if ~isempty(tag),
 
 	% I can't find this bit in the DICOM standard, but it seems to
 	% be needed for Philips Integra
-	if tag.group==65534 & tag.element==57357 & tag.length~=0,
+	if tag.group==65534 && tag.element==57357 && tag.length~=0,
 		fseek(fp,-4,'cof');
 		len = len-4;
 	end;
@@ -189,7 +184,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [ret,len] = read_sq(fp, flg, dict,lim);
+function [ret,len] = read_sq(fp, flg, dict,lim)
 ret = {};
 n   = 0;
 len = 0;
@@ -205,36 +200,34 @@ while len<lim,
 	if tag.length==13, tag.length=10; end;
 
 	len         = len + 8;
-	if (tag.group == 65534) & (tag.element == 57344), % FFFE/E000
+	if (tag.group == 65534) && (tag.element == 57344), % FFFE/E000
 		[Item,len1] = read_dicom(fp, flg, dict, tag.length);
 		len    = len + len1;
-		Item   = rmfield(Item,'Filename');
 		n      = n + 1;
 		ret{n} = Item;
-	elseif (tag.group == 65279) & (tag.element == 224), % FEFF/00E0
+	elseif (tag.group == 65279) && (tag.element == 224), % FEFF/00E0
 		% Byte-swapped
 		[fname,perm,fmt] = fopen(fp);
 		flg1 = flg;
 		if flg(2)=='b',
 			flg1(2) = 'l';
-		else,
+		else
 			flg1(2) = 'b';
 		end;
 		[Item,len1] = read_dicom(fp, flg1, dict, tag.length);
 		len    = len + len1;
-		Item   = rmfield(Item,'Filename');
 		n      = n + 1;
 		ret{n} = Item;
 		pos    = ftell(fp);
 		fclose(fp);
 		fp     = fopen(fname,perm,fmt); 
 		fseek(fp,pos,'bof');
-	elseif (tag.group == 65534) & (tag.element == 57565), % FFFE/E0DD
+	elseif (tag.group == 65534) && (tag.element == 57565), % FFFE/E0DD
 		break;
-	elseif (tag.group == 65279) & (tag.element == 56800), % FEFF/DDE0
+	elseif (tag.group == 65279) && (tag.element == 56800), % FEFF/DDE0
 		% Byte-swapped
 		break;
-	else,
+	else
 		warning([num2str(tag.group) '/' num2str(tag.element) ' unexpected.']);
 	end;
 end;
@@ -252,7 +245,7 @@ t           = find(dict.group==tag.group & dict.element==tag.element);
 if t>0,
 	tag.name = dict.values(t).name;
 	tag.vr   = dict.values(t).vr{1};
-else,
+else
 	tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
 	tag.vr   = 'UN';
 end;
@@ -268,12 +261,12 @@ if flg(2) == 'b',
 end;
 
 if flg(1) =='e',
-	tag.vr      = char(fread(fp,2,'char'))';
+	tag.vr      = fread(fp,2,'*char')';
 	tag.le      = 6;
 	switch tag.vr,
 	case {'OB','OW','SQ','UN','UT'}
-		if ~strcmp(tag.vr,'UN') | tag.group~=65534,
-			res        = fread(fp,1,'ushort');
+		if ~strcmp(tag.vr,'UN') || tag.group~=65534,
+			fseek(fp,2,0);
 		end;
 		tag.length = double(fread(fp,1,'uint'));
 		tag.le     = tag.le + 6;
@@ -281,30 +274,31 @@ if flg(1) =='e',
 		tag.length = double(fread(fp,1,'ushort'));
 		tag.le     = tag.le + 2;
 	otherwise,
-		res        = fread(fp,1,'ushort');
+		fseek(fp,2,0);
 		tag.length = double(fread(fp,1,'uint'));
 		tag.le     = tag.le + 6;
 	end;
-else,
+else
 	tag.le =  8;
 	tag.length = double(fread(fp,1,'uint'));
 end;
-if isempty(tag.vr) | isempty(tag.length)
+if isempty(tag.vr) || isempty(tag.length),
 	tag = [];
 	return;
 end;
 
-if tag.length==4294967295, tag.length = Inf; return; end;
-
-if tag.length==13,
-	% disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
-	% For some bizarre reason, known only to themselves, they confuse lengths of
-	% 13 with lengths of 10.
-	tag.length = 10;
-end;
-if rem(tag.length,2),
-	warning(['Unknown odd numbered Value Length (' num2str(tag.length) ') in "' fopen(fp) '".']);
-	tag = [];
+if ~rem(tag.length,2),
+	if tag.length==4294967295, tag.length = Inf; return; end;
+else
+	if tag.length==13,
+		% disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
+		% For some bizarre reason, known only to themselves, they confuse lengths of
+		% 13 with lengths of 10.
+		tag.length = 10;
+	else
+		warning(['Unknown odd numbered Value Length (' num2str(tag.length) ') in "' fopen(fp) '".']);
+		tag = [];
+	end;
 end;
 return;
 %_______________________________________________________________________
@@ -322,10 +316,10 @@ clear values
 i = 0;
 for i0=1:length(file),
 	words = strread(file{i0},'%s','delimiter','\t');
-	if length(words)>=5 & ~strcmp(words{1}(3:4),'xx'),
+	if length(words)>=5 && ~strcmp(words{1}(3:4),'xx'),
 		grp = sscanf(words{1},'%x');
 		ele = sscanf(words{2},'%x');
-		if ~isempty(grp) & ~isempty(ele),
+		if ~isempty(grp) && ~isempty(ele),
 			i          = i + 1;
 			group(i)   = grp;
 			element(i) = ele;
@@ -376,7 +370,7 @@ fseek(fp,pos,'bof');
 
 if all(c'==[83 86 49 48]), % "SV10"
 	t = decode_csa2(fp,lim);
-else,
+else
 	t = decode_csa1(fp,lim);
 end;
 
@@ -391,19 +385,19 @@ return;
 %_______________________________________________________________________
 function t = decode_csa1(fp,lim)
 n   = fread(fp,1,'uint32');
-if n>128 | n < 0,
+if n>128 || n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
 	return;
 end;
-xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
+xx  = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 tot = 2*4;
 for i=1:n,
 	t(i).name    = fread(fp,64,'char')';
 	msk          = find(~t(i).name)-1;
 	if ~isempty(msk),
 		t(i).name    = char(t(i).name(1:msk(1)));
-	else,
+	else
 		t(i).name    = char(t(i).name);
 	end;
 	t(i).vm      = fread(fp,1,'int32')';
@@ -417,13 +411,13 @@ for i=1:n,
 		% This bit is just wierd
 		t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
 		len              = t(i).item(j).xx(1)-t(1).nitems;
-		if len<0 | len+tot+4*4>lim,
+		if len<0 || len+tot+4*4>lim,
 			t(i).item(j).val = '';
 			tot              = tot + 4*4;
 			break;
 		end;
-		t(i).item(j).val = char(fread(fp,len,'char'))';
-		fread(fp,4-rem(len,4),'char')';
+		t(i).item(j).val = fread(fp,len,'*char')';
+		fread(fp,4-rem(len,4),'char');
 		tot              = tot + 4*4+len+(4-rem(len,4));
 	end;
 end;
@@ -432,21 +426,21 @@ return;
 
 %_______________________________________________________________________
 function t = decode_csa2(fp,lim)
-c   = fread(fp,4,'char');
-n   = fread(fp,4,'char');
+c   = fread(fp,4,'char'); % Unused
+n   = fread(fp,4,'char'); % Unused
 n   = fread(fp,1,'uint32');
-if n>128 | n < 0,
+if n>128 || n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
 	return;
 end;
-xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
+xx  = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 for i=1:n,
 	t(i).name    = fread(fp,64,'char')';
 	msk          = find(~t(i).name)-1;
 	if ~isempty(msk),
 		t(i).name    = char(t(i).name(1:msk(1)));
-	else,
+	else
 		t(i).name    = char(t(i).name);
 	end;
 	t(i).vm      = fread(fp,1,'int32')';
@@ -458,7 +452,7 @@ for i=1:n,
 	for j=1:t(i).nitems
 		t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
 		len              = t(i).item(j).xx(2);
-		t(i).item(j).val = char(fread(fp,len,'char'))';
+		t(i).item(j).val = fread(fp,len,'*char')';
 		fread(fp,rem(4-rem(len,4),4),'char');
 	end;
 end;
