@@ -29,6 +29,21 @@ spm_mean.c
 
 #include "mex.h"
 
+double rescale(n,d, mx)
+int    n;
+double d[], mx;
+{
+	int    i;
+	double dmx = 0.0;
+
+	for(i=0; i<n; i++)
+		if (d[i] > dmx) dmx = d[i];
+	dmx = mx/dmx;
+	for(i=0; i<n; i++)
+		d[i] *= dmx;
+	return(1.0/dmx);
+}
+
 #ifdef __STDC__
 void mexFunction(
 	int		nlhs,
@@ -51,10 +66,11 @@ Matrix *plhs[], *prhs[];
      float	        *kf;
      double		*pixel;
      double	        *kd;
+     double		scale;
      int 		i,j,g,h;
      int		fo, fp[1024];
 
-     if (nrhs != 4 || nlhs > 0)
+     if ((nrhs != 4 && nrhs != 5) || nlhs > 1)
          mexErrMsgTxt("Inappropriate usage.");
 
      /* open destination file */
@@ -63,6 +79,12 @@ Matrix *plhs[], *prhs[];
      p   = mxGetPr(prhs[2]);
      h   = (int) mxGetN(prhs[3]);
      g   = (int) mxGetM(prhs[3]);
+
+     if (nrhs == 5)
+     {
+          if (mxGetN(prhs[4])*mxGetM(prhs[4]) != mxGetM(prhs[3]))
+              mexErrMsgTxt("Incorrect number of scalefactors passed.");
+     }
 
      for (i = 0; i < mxGetN(prhs[2]); i++) label[i] = (char) p[i];
      label[i] = 0;
@@ -96,65 +118,80 @@ Matrix *plhs[], *prhs[];
      if ((int) b[0] == 2) {
          ku     = (unsigned char *) mxCalloc((int) n[0], sizeof(unsigned char));
          for (j = 0; j < g; j++) {
+            if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
+
             read(fp[j], ku, sizeof(unsigned char)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
-               pixel[i] += (double) ku[i];
+               pixel[i] += (double) ku[i]*scale;
 	    close(fp[j]);
          }
+         scale = rescale(g,pixel, 255.0);
          for (i = 0; i < (int) n[0]; i++)
-             ku[i] = (unsigned char) (pixel[i]/((double) g));
+             ku[i] = (unsigned char) pixel[i];
          write(fo, ku, sizeof(unsigned char)*(int) n[0]);
       }
 
       else if ((int) b[0] == 4) {
          ks     = (short *) mxCalloc((int) n[0], sizeof(short));
          for (j = 0; j < g; j++) {
+            if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
+
             read(fp[j], ks, sizeof(short)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
-               pixel[i] += (double) ks[i];
+               pixel[i] += (double) ks[i]*scale;
 	    close(fp[j]);
          }
+         scale = rescale(g,pixel, 32767.0);
          for (i = 0; i < (int) n[0]; i++)
-             ks[i] = (short) (pixel[i]/((double) g));
+             ks[i] = (short) pixel[i];
          write(fo, ks, sizeof(short)*(int) n[0]);
       }
 
       else if ((int) b[0] == 8) {
          ki     = (int *) mxCalloc((int) n[0], sizeof(int));
          for (j = 0; j < g; j++) {
+            if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
+
             read(fp[j], ki, sizeof(int)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
-               pixel[i] += (double) ki[i];
+               pixel[i] += (double) ki[i]*scale;
 	    close(fp[j]);
          }
+         scale = rescale(g,pixel, 2147483647.0);
          for (i = 0; i < (int) n[0]; i++)
-             ki[i] = (int) (pixel[i]/((double) g));
+             ki[i] = (int) pixel[i];
          write(fo, ki, sizeof(int)*(int) n[0]);
       }
 
       else if ((int) b[0] == 16) {
          kf     = (float *) mxCalloc((int) n[0], sizeof(float));
          for (j = 0; j < g; j++) {
+            if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
+
             read(fp[j], kf, sizeof(float)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
-               pixel[i] += (double) kf[i];
+               pixel[i] += (double) kf[i]*scale;
 	    close(fp[j]);
          }
+         scale = 1.0;
          for (i = 0; i < (int) n[0]; i++)
-             kf[i] = (float) (pixel[i]/((double) g));
+             kf[i] = (float) pixel[i];
          write(fo, kf, sizeof(float)*(int) n[0]);
       }
 
       else if ((int) b[0] == 32) {
          kd     = (double *) mxCalloc((int) n[0], sizeof(double));
          for (j = 0; j < g; j++) {
+            if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
+
             read(fp[j], kd, sizeof(double)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
-               pixel[i] += (double) kd[i];
+               pixel[i] += (double) kd[i]*scale;
 	    close(fp[j]);
          }
+         scale = 1.0;
          for (i = 0; i < (int) n[0]; i++)
-             kd[i] = (double) (pixel[i]/((double) g));
+             kd[i] = (double) pixel[i];
          write(fo, kd, sizeof(double)*(int) n[0]);
       }
 
@@ -162,6 +199,11 @@ Matrix *plhs[], *prhs[];
              mexErrMsgTxt("Data type not supported");
       }
 
-     /* close files */
      close(fo);
+
+     if (nlhs == 1)
+     {
+          plhs[0] = mxCreateFull(1,1, REAL);
+          mxGetPr(plhs[0])[0] = scale;
+     }
 }

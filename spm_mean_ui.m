@@ -16,9 +16,20 @@ P    = spm_get(Inf,'.img','Select images to be averaged');
 Q    = P(1,:);
 Q    = [Q([1:max(find(Q == '/'))]) 'average.img'];
 
-[DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
-spm_hwrite(Q,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP);
+scales = zeros(size(P,1),1);
+for i=1:size(P,1)
+	[DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(deblank(P(i,:)));
+	scales(i) = SCALE;
+	if (i==1)
+		DIM1 = DIM;
+		TYPE1 = TYPE;
+	end
+	if DIM ~= DIM1 | TYPE ~= TYPE1 | OFFSET ~= 0
+		error(['spm_mean can not cope with image "' deblank(P(i,:)) '".']);
+	end
+end
 
-spm_mean(prod(DIM),TYPE,Q,P)
+scale = spm_mean(prod(DIM),TYPE,Q,P,scales/length(scales));
+spm_hwrite(Q,DIM,VOX,scale,TYPE,OFFSET,ORIGIN,DESCRIP);
 spm_get_space(Q,spm_get_space(P(1,:)));
 
