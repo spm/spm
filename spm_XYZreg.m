@@ -34,6 +34,12 @@ function varargout=spm_XYZreg(varargin)
 % i   - Column of XYZ containing co-ordinates of nearest pointlist location
 % d   - Euclidean distance between requested xyz & nearest pointlist location
 %
+% FORMAT d = spm_XYZreg('Edist',xyz,XYZ)
+% Euclidean distances between co-ordinates xyz & points in XYZ pointlist
+% xyz - 3-vector of co-ordinates
+% XYZ - Pointlist: 3xn matrix of co-ordinates
+% d   - n row-vector of Euclidean distances between xyz & points of XYZ
+%
 %                           ----------------
 % Registry functions
 %
@@ -367,15 +373,25 @@ case 'nearestxyz'
 %=======================================================================
 % [xyz,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ)
 if nargin<3, error('Insufficient arguments'), end
-XYZ = varargin{3};
-xyz = varargin{2};
 	
-%-Find XYZ (Euclidean) nearest point to coordinates xyz
+%-Find in XYZ nearest point to coordinates xyz (Euclidean distance) 
 %-----------------------------------------------------------------------
-[d,i] = min( sum([	(XYZ(1,:) - xyz(1));...
-			(XYZ(2,:) - xyz(2));...
-			(XYZ(3,:) - xyz(3))	].^2));
-varargout = {XYZ(:,i),i,sqrt(d)};
+[d,i] = min(spm_XYZreg('Edist',varargin{2},varargin{3}));
+varargout = {varargin{3}(:,i),i,d};
+
+
+
+%=======================================================================
+case 'edist'
+%=======================================================================
+% d = spm_XYZreg('Edist',xyz,XYZ)
+if nargin<3, error('Insufficient arguments'), end
+	
+%-Calculate (Euclidean) distances from pointlist co-ords to xyz
+%-----------------------------------------------------------------------
+varargout = {sqrt(sum([	(varargin{3}(1,:) - varargin{2}(1));...
+			(varargin{3}(2,:) - varargin{2}(2));...
+			(varargin{3}(3,:) - varargin{2}(3))	].^2))};
 
 
 
@@ -475,13 +491,18 @@ end
 %-Sort out valid handles, eliminate caller handle, update co-ords with
 % registered handles via their functions
 %-----------------------------------------------------------------------
-if nargin<5, Reg = spm_XYZreg('VReg',RD.Reg); else, Reg=varargin{5}; end
+if nargin<5
+	RD.Reg = spm_XYZreg('VReg',RD.Reg);
+	Reg    = RD.Reg;
+else
+	Reg = spm_XYZreg('VReg',varargin{5});
+end
 if hC>0 & length(Reg), Reg(find([Reg{:,1}]==varargin{4}),:) = []; end
 for i = 1:size(Reg,1)
 	feval(Reg{i,2},'SetCoords',xyz,Reg{i,1},hReg);
 end
 
-%-Write xyz into registry if using hReg's registry, rather than Reg arg.
+%-Update registry (if using hReg) with location & cleaned Reg cellarray
 %-----------------------------------------------------------------------
 if nargin<5
 	RD.xyz  = xyz;
@@ -498,6 +519,11 @@ case 'xreg'		% Cross register object handles & functions
 % nReg = spm_XYZreg('XReg',hReg,{h,Fcn}pairs)
 if nargin<4, error('Insufficient arguments'), end
 hReg = varargin{2};
+
+%-Quick check of registry handle
+%-----------------------------------------------------------------------
+if isempty(hReg),	warning('Empty registry handle'), return, end
+if ~ishandle(hReg),	warning('Invalid registry handle'), return, end
 
 %-Condition nReg cell array & check validity of handles to be registered
 %-----------------------------------------------------------------------
@@ -535,7 +561,12 @@ case 'add2reg'		% Add handle(s) & function(s) to registry
 if nargin<4, error('Insufficient arguments'), end
 hReg = varargin{2};
 
-%-Check validity of handles to be registered
+%-Quick check of registry handle
+%-----------------------------------------------------------------------
+if isempty(hReg),	warning('Empty registry handle'), return, end
+if ~ishandle(hReg),	warning('Invalid registry handle'), return, end
+
+%-Condition nReg cell array & check validity of handles to be registered
 %-----------------------------------------------------------------------
 nReg = varargin(3:end);
 if mod(length(nReg),2), error('Registry items must be in pairs'), end
