@@ -186,12 +186,14 @@ for s = 1:nsess
 	% specify design for this session?
 	%---------------------------------------------------------------
         if   (s == 1) | ~rep
-	X       = [];
-	B       = [];
-	D       = [];
-	PST     = {};
-	ONS     = {};
-	IND     = {};
+	X       = [];				% design matrix
+	B       = [];				% block partition
+	D       = [];				% covariates
+	PST     = {};				% Peri-stimulus times
+	ONS     = {};				% onset times
+	IND     = {};				% design matrix indices
+	name    = {};				% condition names
+	Xn      = {};				% regressor names
 
 	% Event/epoch related responses			
 	%===============================================================
@@ -231,17 +233,22 @@ for s = 1:nsess
 
 	% convolve with basis functions
 	%---------------------------------------------------------------
-	str     = 'interactions among trials (Volterra)';
-	if spm_input(str,'+1','y/n',[1 0])
-		[X Xn IND BF name] = spm_Volterra(SF,BF,name,2);
-	else
-		[X Xn IND]         = spm_Volterra(SF,BF,name,1);
+	if ntrial
+
+		str    = 'interactions among trials (Volterra)';
+		if spm_input(str,'+1','y/n',[1 0]);
+
+			[X Xn IND BF name] = spm_Volterra(SF,BF,name,2);
+		else
+			[X Xn IND]         = spm_Volterra(SF,BF,name,1);
+		end
+
+		% Resample design matrix {X} at acquisition times
+		%-------------------------------------------------------
+		X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
 	end
 
 
-	% Resample design matrix {X} at acquisition times
-	%---------------------------------------------------------------
-	X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
 
 
 	% get user specified regressors
