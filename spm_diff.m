@@ -25,11 +25,13 @@ if length(n) == 1
 	%------------------------------------------------------------------
 	f0    = feval(f,x{:});
 	J     = sparse(length(f0(:)),length(x{n}(:)));
-	for i = 1:length(x{n}(:))
-		xi         = x;
-		xi{n}(i)   = xi{n}(i) + dx;
-		dfdx       = (feval(f,xi{:}) - f0)/dx;
-		J(:,i)     = sparse(dfdx(:));
+	if size(J,1)
+		for i = 1:length(x{n}(:))
+			xi       = x;
+			xi{n}(i) = xi{n}(i) + dx;
+			dfdx     = (feval(f,xi{:}) - f0)/dx;
+			J(:,i)   = sparse(dfdx(:));
+		end
 	end
 else
 	% dfdxdx
