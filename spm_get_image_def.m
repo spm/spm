@@ -104,7 +104,7 @@ end
 %
 if isfield(ds,'sfield')
    if ~isempty(ds.sfield)
-      def = def + ds.sfield;
+      def = def - ds.sfield;
    end
 end
 
