@@ -830,14 +830,6 @@ else
 		'ForegroundColor','g',...
 		'Position',[S2(3)-20 5 15 15]);
 end
-
-
-%-Clear figure & make 'HelpMenu' objects invisible
-%-----------------------------------------------------------------------
-for h = get(F,'Children')'
-	if ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
-end
-set(findobj(F,'UserData','HelpMenu'),'Visible','off')
 return
 
 
