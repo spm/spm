@@ -4,9 +4,9 @@ function spm_choose(varargin)
 % SPMverCode - [optional] short string identifier for SPM version to run
 %_______________________________________________________________________
 %  ___  ____  __  __
-% / __)(  _ \(  \/  )  Statistical Parametric Mapping
-% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
-% (___/(__)  (_/\/\_)  
+% / __)(  _ \(  \/  )  
+% \__ \ )___/ )    (   Statistical Parametric Mapping
+% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %
 %_______________________________________________________________________
 %
@@ -58,8 +58,8 @@ function spm_choose(varargin)
 %-------+---------------------+---------------+-------------------------
 SPMs ={	'SPMdevel',		'devel',	'/local/spm/spm_devel';...
 	'SPM99  (FIL)',		'99',		'/local/spm/spm99_fil';...
-	'SPM99  (public)',	'99p',		'/local/spm/spm99_pub';...
-	'SPM99b (public)',	'99b',		'/local/spm/spm99b_pub';...
+	'SPM99  (release)',	'99r',		'/local/spm/spm99_rel';...
+	'SPM99b (release)',	'99b',		'/local/spm/spm99b_rel';...
 	'invalid',		'inv',		'/local/nowhere';
 	'worse still'		'worse',	{'/tmp','/var/tmp'}};
 
