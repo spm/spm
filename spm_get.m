@@ -965,9 +965,10 @@ end
 if n.fi
 	%-Select file(s) - omit ".*" dot files
 	if ~isempty(Files), Files(Files(:,1)=='.',:)=[]; end
-	Items = Files;
-else	%-Select directory/ies
-	Items = DirItems;
+	Items  = Files;
+else	%-Select directory/ies - don't compress the listing
+	Items  = DirItems;
+	NoComp = 1;
 end
 
 %-Compressed summary view, or full view?
