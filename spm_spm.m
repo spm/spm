@@ -298,6 +298,23 @@ try
 	cd(SPM.swd);
 end
 
+% added to make it work for SPM/ERP 1st level, conventional designs
+if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
+    SPM.Vbeta = SPM.xY.VY;
+    SPM.xVol.M = SPM.xY.VY(1).mat;
+    SPM.xVol.DIM = SPM.xY.VY(1).dim(1:3)';
+    SPM.xX.xKXs = spm_sp('Set', spm_filter(1, SPM.xX.X));		% KWX
+    SPM.xCon = struct([]);
+    
+    save SPM SPM;
+    fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+    spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+    fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
+    fprintf('...use the results section for assessment\n\n')             %-#
+    
+    return;
+end
+
 %-Ensure data are assigned
 %-----------------------------------------------------------------------
 try
@@ -432,6 +449,7 @@ end
 %-Design space and projector matrix [pseudoinverse] for WLS
 %=======================================================================
 xX.xKXs = spm_sp('Set',spm_filter(xX.K,W*xX.X));		% KWX
+xX.xKXs.X = full(xX.xKXs.X);
 xX.pKX  = spm_sp('x-',xX.xKXs);				% projector
 
 %-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
