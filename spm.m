@@ -974,6 +974,7 @@ Fs = get(0,'Children');
 Fs = findobj(Fs,'flat','Visible','on');
 for F=Fs', figure(F), end
 set(0,'CurrentFigure',cF)
+spm('FnBanner','GUI show');
 varargout={Fs};
 
 
