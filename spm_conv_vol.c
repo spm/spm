@@ -55,11 +55,12 @@ double out[], filtx[], filty[], buff[];
 }
 
 
-static int convxyz(vol, filtx, filty, filtz, fxdim, fydim, fzdim, xoff, yoff, zoff, fp, ovol)
+static int convxyz(vol, filtx, filty, filtz, fxdim, fydim, fzdim, xoff, yoff, zoff, oVol, wplane_args)
 MAPTYPE *vol;
 int fxdim, fydim, fzdim, xoff, yoff, zoff;
-double filtx[], filty[], filtz[], *ovol;
-FILE *fp;
+double filtx[], filty[], filtz[];
+double *oVol;
+mxArray *wplane_args[3];
 {
 	double *tmp, *buff, **sortedv, *obuf;
 	int xy, z, k, fstart, fend, startz, endz;
@@ -72,8 +73,8 @@ FILE *fp;
 
 	tmp = (double *)mxCalloc(xdim*ydim*fzdim,sizeof(double));
 	buff = (double *)mxCalloc(((ydim>xdim) ? ydim : xdim),sizeof(double));
-	obuf = (double *)mxCalloc(xdim*ydim,sizeof(double));
 	sortedv = (double **)mxCalloc(fzdim, sizeof(double *));
+
 
 	startz = ((fzdim+zoff-1<0) ? fzdim+zoff-1 : 0);
 	endz   = zdim+fzdim+zoff-1;
@@ -91,8 +92,6 @@ FILE *fp;
 		}
 		if (z-fzdim-zoff+1>=0 && z-fzdim-zoff+1<zdim)
 		{
-			int t = z-fzdim-zoff+1;
-
 			fstart = ((z >= zdim) ? z-zdim+1 : 0);
 			fend = ((z-fzdim < 0) ? z+1 : fzdim);
 
@@ -104,6 +103,11 @@ FILE *fp;
 
 			for(k=fstart, sum2=0.0; k<fend; k++)
 				sum2 += filtz[k];
+
+			if (!oVol)
+				obuf = mxGetPr(wplane_args[1]);
+			else
+				obuf = &oVol[(z-fzdim-zoff+1)*ydim*xdim];
 
 			if (sum2)
 			{
@@ -120,72 +124,15 @@ FILE *fp;
 				for(xy=0; xy<xdim*ydim; xy++)
 					obuf[xy] = 0.0;
 
-			if (fp != (FILE *)0) {
-			  switch (vol->dtype)
-			    {
-			    case UNSIGNED_CHAR:
-			      for(xy=0; xy<xdim*ydim; xy++)
-				{
-				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
-				  if (obuf[xy] > 255.0) obuf[xy]=255.0;
-				  if (obuf[xy] < 0.0) obuf[xy]=0.0;
-				  ((unsigned char *)obuf)[xy] = obuf[xy] + 0.5;
-				}
-			      break;
-			    case SIGNED_SHORT:
-			      for(xy=0; xy<xdim*ydim; xy++)
-				{
-				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
-				  if (obuf[xy] > 32767.0) obuf[xy]=32767.0;
-				  if (obuf[xy] < -32768.0) obuf[xy]=-32768.0;
-				  ((short *)obuf)[xy] = floor(obuf[xy]+0.5);
-				}
-			      break;
-			    case SIGNED_INT:
-			      for(xy=0; xy<xdim*ydim; xy++)
-			      {
-				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
-				  ((int *)obuf)[xy] = floor(obuf[xy]+0.5);
-			      }
-			      break;
-			    case FLOAT:
-			      for(xy=0; xy<xdim*ydim; xy++)
-			      {
-				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
-				((float *)obuf)[xy] = obuf[xy];
-			      }
-			      break;
-			    case DOUBLE:
-			      for(xy=0; xy<xdim*ydim; xy++)
-			      {
-				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
-			          /* nothing needed */
-			      }
-			      break;
-			    default:
-			      mexErrMsgTxt("This should not happen.");
-			      break;
-			    }
-
-			  if (fwrite((char *)obuf,
-				     get_datasize(vol->dtype)/8, xdim*ydim, fp) != xdim*ydim)
-			    {
-			      mxFree((char *)tmp);
-			      mxFree((char *)buff);
-			      mxFree((char *)obuf);
-			      mxFree((char *)sortedv);
-			      return(-1);
-			    }
-
-			} else {
-			  for(xy=0; xy<xdim*ydim; xy++)
-			    *(ovol++) = obuf[xy];
+			if (!oVol)
+			{
+				mxGetPr(wplane_args[2])[0] = z-fzdim-zoff+2.0;
+				mexCallMATLAB(0, NULL, 3, wplane_args, "spm_write_plane");
 			}
 		}
 	}
 	mxFree((char *)tmp);
 	mxFree((char *)buff);
-	mxFree((char *)obuf);
 	mxFree((char *)sortedv);
 	return(0);
 }
@@ -195,13 +142,10 @@ FILE *fp;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-        MAPTYPE *map, *get_maps(), vol;
-        int k, stlen;
-	FILE *fp;
-	double *offsets;
-	char *str;
-	int FileOffset=0;
-	double *VolInfo, *oVol;
+        MAPTYPE *map, *get_maps();
+        int k;
+	double *offsets, *oVol = NULL;
+	mxArray *wplane_args[3];
 
 	if (nrhs < 6 || nlhs > 0)
 	{
@@ -214,54 +158,36 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		free_maps(map, k);
 		mexErrMsgTxt("Too many images to smooth at once.");
 	}
-	/* Sorry Tom - maybe I'll put this stuff back in later:
-	lmap=(MAP *)mxGetPr(prhs[0]);
-	FileOffset = lmap->off; */
-	FileOffset = 0;
 
-	/* Non string-ness of destination img flags use of memory for output */
-	if (mxIsChar(prhs[1]))
+	if (!mxIsNumeric(prhs[1]))
 	{
-		stlen = mxGetN(prhs[1]);
-		str = (char *)mxCalloc(stlen+1, sizeof(char));
-		if (mxGetString(prhs[1],str,stlen+1))
-		{
-			mxFree(str);
-			free_maps(map, 1);
-			mexErrMsgTxt("Could not convert string data.");
-		}
-		if ((fp = fopen(str,"r+")) == (FILE *)0)
-		{
-			if ((fp = fopen(str,"w")) == (FILE *)0)
-			{
-				mxFree(str);
-				free_maps(map, 1);
-				mexErrMsgTxt("Cant open output file.");
-			}
-		}
-		(void)fseek(fp, (long)FileOffset, 0);
+		/* The compiler doesn't like this line - but I think it's OK */
+		wplane_args[0] = prhs[1];
+		wplane_args[1] = mxCreateDoubleMatrix(map->dim[0],map->dim[1],mxREAL);
+		wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
+		oVol = (double *)0;
 	}
 	else
 	{
-		if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
+		if (   mxIsComplex(prhs[1]) ||
 			mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]) ||
 			mxGetM(prhs[1])*mxGetN(prhs[1]) != map->dim[0]*map->dim[1]*map->dim[2])
 		{
 			free_maps(map, 1);
 			mexErrMsgTxt("Bad output array");
 		}
-		fp = (FILE *)0;
 		oVol = (double *)mxGetPr(prhs[1]);
 	}
-	  
 
         for(k=2; k<=5; k++)
+	{
                 if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
                         mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
 			free_maps(map, 1);
                         mexErrMsgTxt("Functions must be numeric, real, full and double.");
 		}
+	}
 
 	if (mxGetM(prhs[5])*mxGetN(prhs[5]) != 3)
 	{
@@ -276,12 +202,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mxGetM(prhs[3])*mxGetN(prhs[3]),
 		mxGetM(prhs[4])*mxGetN(prhs[4]),
 		(int)floor(offsets[0]), (int)floor(offsets[1]), (int)floor(offsets[2]),
-		fp, oVol) != 0)
+		oVol, wplane_args) != 0)
 	{
-		(void)fclose(fp);
 		free_maps(map, 1);
 		mexErrMsgTxt("Error writing data.");
 	}
-	(void)fclose(fp);
 	free_maps(map, 1);
+	if (!oVol)
+	{
+		mxDestroyArray(wplane_args[1]);
+		mxDestroyArray(wplane_args[2]);
+	}
 }
