@@ -1,5 +1,8 @@
+function flip = spm_flip_analyze_images
 % Do Analyze format images need to be left-right flipped?
 %-----------------------------------------------------------------------
+% %W% %E%
+
 function flip = spm_flip_analyze_images
 global defaults
 if isempty(defaults) | ~isfield(defaults,'analyze') |...
