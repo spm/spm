@@ -27,7 +27,7 @@ function spm_reslice(P,flags)
 %                transformations.  Voxel sizes must all be identical and
 %                isotropic.
 %
-%         what - Values of 0, 1 or 2 are allowed.
+%         which - Values of 0, 1 or 2 are allowed.
 %                0   - don't create any resliced images.
 %                      Useful if you only want a mean resliced image.
 %                1   - don't reslice the first image.
@@ -154,7 +154,7 @@ function reslice_images_volbyvol(P,flags)
 %         hold - the interpolation method (see spm_slice_vol or spm_sample_vol).
 %                Non-finite values result in Fourier interpolation
 %
-%         what - Values of 0, 1 or 2 are allowed.
+%         which - Values of 0, 1 or 2 are allowed.
 %                0   - don't create any resliced images.
 %                      Useful if you only want a mean resliced image.
 %                1   - don't reslice the first image.
@@ -165,7 +165,6 @@ function reslice_images_volbyvol(P,flags)
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
-
 
 if ~finite(flags.hold), % Use Fourier method
 	% Check for non-rigid transformations in the matrixes
@@ -207,11 +206,17 @@ if flags.mask | flags.mean,
 end;
 
 linfun('Reslicing images..');
-spm_progress_bar('Init',prod(size(P)),'Reslicing','volumes completed');
+nread = prod(size(P));
+if ~flags.mean,
+	if flags.which == 1, nread = nread - 1; end;
+	if flags.which == 0, nread = 0; end;
+end;
+spm_progress_bar('Init',nread,'Reslicing','volumes completed');
 
 tiny = 5e-2; % From spm_vol_utils.c
 
 PO = P;
+nread = 0;
 for i = 1:prod(size(P)),
 
 	if (i>1 & flags.which==1) | flags.which==2, write_vol = 1; else, write_vol = 0; end;
@@ -247,8 +252,9 @@ for i = 1:prod(size(P)),
 				end;
 			end;
 		end;
+		nread = nread + 1;
 	end;
-	spm_progress_bar('Set',i);
+	spm_progress_bar('Set',nread);
 end;
 
 if flags.mean
@@ -419,7 +425,7 @@ function reslice_adjust(P,flags,sessions)
 %         hold - the interpolation method (see spm_slice_vol or spm_sample_vol).
 %                Non-finite values result in Fourier interpolation
 %
-%         what - Values of 0, 1 or 2 are allowed.
+%         which - Values of 0, 1 or 2 are allowed.
 %                0   - don't create any resliced images.
 %                      Useful if you only want a mean resliced image.
 %                1   - don't reslice the first image.

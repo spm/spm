@@ -194,7 +194,7 @@ if (nargin == 0)
 			if prod(size(others))>0,
 				P = str2mat(P,others);
 			end;
-			spm_realign('Reslice',P,'n');
+			spm_reslice(P,struct('mask',0,'mean',0,'hold',1,'which',1));
 		end;
 	end;
 	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));

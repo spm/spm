@@ -77,6 +77,7 @@ fMRI_UFp = 0.001;
 % Realignment defaults
 %=======================================================================
 global sptl_WhchPtn sptl_CrtWht sptl_DjstFMRI sptl_MskOptn sptl_RlgnQlty
+global sptl_WghtRg
 
 % Which Option?
 % This gives the flexibility for coregistering and reslicing images
@@ -119,7 +120,19 @@ sptl_MskOptn =  1;	% Always mask
 % The idea is that some voxels contribute little to the estimation of
 % the realignment parameters.  The sptl_RlgnQlty variable selects the
 % number of voxels that are used.
+%-----------------------------------------------------------------------
 sptl_RlgnQlty = 0.5;
+% sptl_RlgnQlty = 1.0; % Best, but slowest
+
+% Weight Registration? 
+% Give the option of providing a weighting image to weight each voxel
+% of the reference image differently when estimating the realignment
+% parameters.  The weights are proportional to the inverses of the
+% standard deviations.
+%-----------------------------------------------------------------------
+sptl_WghtRg = 0;     % Dont give option to supply a weighting image.
+%sptl_WghtRg = 1;     % Give option to supply a weighting image.
+
 
 % Coregistration defaults
 %=======================================================================
