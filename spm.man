@@ -111,24 +111,25 @@
 % ========================
 % 2) New features in SPM96
 % ========================
-%    i)    [S]PET vs. Functional MRI
-%   ii)    Alignment
-%  iii)    Spatial Normalisation
-%   iv)    Statistics
-%    v)    Non parametric Statistical Methods (a planned toolbox)
-%   vi)    Interface improvements
-%  vii)    Help
-% viii)    Source code control
-%   ix)    Defaults
-%    x)    Tissue Classification
-%   xi)    Rendering
-%  xii)    Image Calculator
-% xiii)    SPM{F} - inference and display
-%  xiv)    Displaying results
-%   xv)    left-right orientation
-%  xvi)    P values and statistical inference
-% xvii)    Conjunctions and masking
-%xviii)    Smoothness estimators
+%     i)    [S]PET vs. Functional MRI 
+%    ii)    Alignment
+%   iii)    Spatial Normalisation
+%    iv)    Statistics
+%     v)    Non parametric Statistical Methods (a planned toolbox)
+%    vi)    Interface improvements
+%   vii)    Help
+%  viii)    Source code control
+%    ix)    Defaults
+%     x)    Tissue Classification
+%    xi)    Rendering
+%   xii)    Image Calculator
+%  xiii)    SPM{F} - inference and display
+%   xiv)    Displaying results
+%    xv)    left-right orientation
+%   xvi)    P values and statistical inference
+%  xvii)    Conjunctions and masking
+% xviii)    Smoothness estimators
+%   xix)    Directory independence
 %
 %  ???)    Miscellaneous
 % 
@@ -261,21 +262,32 @@
 %
 % New features - iv - Statistics
 % 
-% Clearly statistics do not change, however we have, or more exactly
-% Andrew Holmes has, increased the flexibility and ease of specifying
-% the design matrix.  Using pull down menus one can select the
-% experimental design pertinent to your experiment and answer only the
-% necessary questions.  These designs now include replications of a
-% condition within a subject (previously each scan was considered a
-% distinct condition) and the facility to estimate both covariates and
-% confounds in a subject-specific or study-specific fashion.  Anyone
-% familiar with MATLAB should be able to customise their menu and
-% extend it to suit their own needs (or accommodate 'special'
-% designs).
-% 
+% Clearly statistics do not change...
+%
 % _____________________________________________________
 % 
-% New features - v - Non-Parametric Statistical Methods
+% New features - v - Non-Parametric Statistical Methods (SnPM)
+%
+% A suite of routines implementing non-parametric
+% randomisation/permutation based tests for analysing PET/SPECT
+% functional mapping experiments will be made available in the near
+% future. This combines the general linear model for computation of
+% statistic with the non-parametric tests described by Holmes et al.
+%
+% The software has been developed by Andrew Holmes and Tom Nichols (of
+% Carnegie Mellon University). The approach is modular: Plug-in code
+% modules are required for each type of design, defining the design
+% matrix and possible permutations of appropriate labels on the data.
+% Modules for simple single subject activation and correlation
+% (parametric) designs are already complete.
+%
+% It is envisaged that the non-parametric approach (incorporating
+% variance smoothing and 'pseudo' t-statistic images) will be most
+% powerful for experiments yielding t-statistic images with low degrees
+% of freedom, such as single subject experiments.
+%
+% Since this SnPM suite is somewhat distinct from mainstream SPM, it
+% will be available as an add-on "toolbox".
 %
 % _____________________________________________________
 % 
@@ -293,13 +305,28 @@
 % menu on the SPM Menu window. This changes some of the Menu buttons,
 % sets the MODALITY global variable, and sets the default values for
 % the modality.
+%
+% The initial splash screen can be bypassed with `spm pet` and `spm
+% fmri` as appropriate.
+%
+% The toolbar in the Graphics window has been improved.
+%
 % _____________________________________________________
 % 
 % New features - vii - Help
 % 
-% The Help facility has been improved to to allow previous topics to be
-% recalled, enhancing the recursive help facility. Also, multi-page
-% help files now print properly.
+% The Help facility has been improved. A new help window is used for
+% help display and interaction. A pulldown menu of previous topics is
+% maintained in addition to a pulldown menu of topics referenced by the
+% current topic, enhancing the recursive help facility. Long topics are
+% paged, with page controls appearing in the bottom right when
+% required. These multi-page help files now print properly.
+%
+% Context sensitive help has been added in a number of locations.
+%
+% The special "message of the day" help file (spm_motd.man) is
+% displayed (if it exists in the SPM directory) in the Graphics window
+% at startup.
 %
 % Many of the Help pages have changed slightly so please take time to
 % review them.
@@ -307,13 +334,16 @@
 % 
 % New features - viii - Source code control
 %
-% We now use SCCS source control for SPM development. The SCCS
-% subdirectory is shipped with SPM. At it's most basic, this enables
-% you to see the improvements/alterations between releases, and to
-% compare any customised versions you may have with the SCCS history.
-% SCCS was introduced after the release of SPM'95, so most of SPM'95's
-% routines can be regarded as v1.1, although some were edited between
-% release and introduction of source control.
+% We now use SCCS source code control for SPM development. At it's most
+% basic, this enables you to see the improvements/alterations between
+% releases, and to compare any customised versions you may have with
+% the SCCS history.  SCCS was introduced after the release of SPM'95,
+% so most of SPM'95's routines can be regarded as v1.1, although some
+e and introduction of source control.
+%
+% The SCCS subdirectory is *not* shipped with SPM (it's quite large),
+% but will be made available to interested developers upon request.
+%
 % _____________________________________________________
 % 
 % New features - ix - Defaults
@@ -322,10 +352,16 @@
 % of these defaults should remain until the end of the SPM session.
 % Resetting the defaults sets them back to those specified in the file
 % spm_defaults.m.
+%
 % The spm_defaults.m file is intended to be customised by whoever maintains
 % SPM. It should be reasonably clear what the different options mean.
 % Probably the most important default to check is "sptl_Ornt" which
 % contains the orientation of the images before spatial normalisation.
+%
+% Defaults now govern the way many routines behave, including how much
+% control the user is given over the parameters of routines.
+%
+% A wide variety or printing options are available, including EPS.
 %
 % _____________________________________________________
 %
@@ -352,9 +388,9 @@
 % images and divide by a third, this can be done with a simple expression
 % like "(i1+i2)./i3".
 %
-%_______________________________________________________________________
+% _____________________________________________________
 %
-% xiii)    SPM{F} - inference and display
+% New features - xiii - SPM{F} - inference and display
 % 
 % SPM{F} now emulates SPM{Z} in providing summary data on the SPMs.  P
 % values corrected for the volume analyzed are available for the SPM{F}
@@ -367,9 +403,9 @@
 % analysis.
 % 
 %
-%_______________________________________________________________________
+% _____________________________________________________
 %
-%  xiv)    Displaying results
+% New features - xiv - Displaying results
 %
 % As noted above 'results' display now includes the facility to view
 % SPM{F}s.  The plotting routines have been generalized such that one can
@@ -383,9 +419,20 @@
 % constant then column vectors are returned.  The variable Fnames
 % contains the filenames of the associated data.
 %
-%_______________________________________________________________________
+% Dragging of the pointers in the MIP is now dynamic, and is faster.
+% Coordinate information appears on printouts. Tables of maxima are
+% "dynamic" - pressing the coordinates leads to the location being
+% highlighted.
 %
-%   xv)    left-right orientation
+% Tables of results may now occupy more than one page, allowing a full
+% characterisation of all local maxima within a region. The first page
+% of the table is displayed, and paging controls provided to move to
+% subsequent pages. Printing a multi-page figure prints each page
+% individually.
+%
+% _____________________________________________________
+%
+% New features - xv - left-right orientation
 %
 % This has always been a difficult area for people analyzing data.  We
 % have chosen the simplest option - namely orientate your images to the
@@ -403,20 +450,20 @@
 % normalised images is specified by the global variable "sptl_Ornt" in
 % spm_defaults.m.
 % 
-%_______________________________________________________________________
+% _____________________________________________________
 %
-%  xvi)    P values and statistical inference
+% New features - xvi - P values and statistical inference
 %
 % The P values associated with the thresholds SPMs now include
 %
-% 1 uncorrected P values based on Z - the voxel height
-% 2 uncorrected P values based on k - the cluster size
+%     1 uncorrected P values based on Z - the voxel height
+%     2 uncorrected P values based on k - the cluster size
 %
 % and corrected P values based on
-
-% 3 Z - the voxel height
-% 4 Z - the voxel height and k - the cluster size
-% 5 c - the number of clusters
+%
+%     3 Z - the voxel height
+%     4 Z - the voxel height and k - the cluster size
+%     5 c - the number of clusters
 %
 % It is important to distinguish between corrected and uncorrected P
 % values (the former are only used if you did not have an apriori
@@ -432,25 +479,40 @@
 % interpretation.
 % 
 % 
-%_______________________________________________________________________
+% _____________________________________________________
 %
-%  xvii)    Conjunctions and masking
+% New features - xvii - Conjunctions and masking
 %
 % 
-%_______________________________________________________________________
+% _____________________________________________________
 %
-% xviii)    Smoothness estimators
+% New features - xviii - Smoothness estimators
 %
 % The smoothness estimator is now based on the normalized residuals and
 % is, we hope, a much more robust estimator.  In particular it is not
 % affected by deviations from the null hypothesis or the contrasts
 % specified
 %
-% ______________________________________________________________________
+% _____________________________________________________
+%
+% New features - xix - Directory independence
+%
+% SPM is now largely "directory independent". Results (spm.ps files,
+% *.mat files etc.) are written in the current directory, rather than
+% the directory in which SPM was started. A "CD" button has been added
+% to the interface. The only exception here is the spatial routines,
+% which write realigned and normalised images (and the respective *.mat
+% files) in the same directory as the source images (clearly the
+% realignment *.mat files have to go alongside the original images).
+% However, the spm.ps file will still be written in the current
+% directory :-)
+%
+% _____________________________________________________
 %
 % New features - ??? - Miscellaneous
 %
 % Filtered SPM{Z} can be written out to Analyze files (spm_projections_ui)
+%
 %_______________________________________________________________________
 %
 % 3) Bibliography.
@@ -765,7 +827,7 @@
 % hemodynamics responses to changing tasks or conditions.
 % 
 %__________________________________________________________________________
-% %W% The FIL methods group. %E%
+% %W% The FIL methods group %E%
 
 %=======================================================================
 % PROGRAMMERS NOTE:
