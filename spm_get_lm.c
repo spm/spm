@@ -5,9 +5,7 @@
  ** the coordinate list for those maxima.
  **
  ***************************************************************/
-#ifndef lint
-static char sccsid[] = "%W% Jesper Andersson %E%";
-#endif
+/* %W% Jesper Andersson 16/12-03 %E% */
 
 #include "mex.h"
 #include <math.h>
@@ -145,6 +143,7 @@ int is_maxima(double       *v,
       if ((i=index(x-1,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
       if ((i=index(x-1,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
    }
+     
    return(1);
 }
 
@@ -155,7 +154,8 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
                  int             nrhs,      /* No. of input arguments. */
                  const mxArray   *prhs[])   /* Input arguments. */
 {
-   int                  i = 0;
+   int                  i = 0, j = 0, k = 0;
+   int                  tmpint = 0;
    unsigned int         ndim = 0;
    const unsigned int   *pdim = NULL;
    unsigned int         vdim[3];
@@ -163,7 +163,8 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    unsigned int         n_lindex = 0;
    unsigned int         *lindex = NULL;
    double               *vol = NULL;
-   double               *l = NULL;
+   double               *lp = NULL;
+   double               *list = NULL;
    double               *plindex = NULL;
    
    if (nrhs == 0) mexErrMsgTxt("usage: Lindex=spm_get_lm(VOL,L)");
@@ -177,12 +178,13 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
       mexErrMsgTxt("spm_get_lm: VOL must be numeric, real, full and double");
    }
    ndim = mxGetNumberOfDimensions(prhs[0]);
-   if (ndim != 3)
+   if (ndim != 3 && ndim != 2)
    {
-      mexErrMsgTxt("spm_get_lm: VOL must 3-dimensional");
+      mexErrMsgTxt("spm_get_lm: VOL must 2- or 3-dimensional");
    }
    pdim = mxGetDimensions(prhs[0]);
-   vdim[0] = pdim[0]; vdim[1] = pdim[1]; vdim[2] = pdim[2]; 
+   vdim[0] = pdim[0]; vdim[1] = pdim[1]; 
+   if (ndim == 2) {vdim[2]=1;} else {vdim[2]=pdim[2];} 
    vol = mxGetPr(prhs[0]);
 
    /* Get list of coordinates */
@@ -193,15 +195,38 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    }
    lm = mxGetM(prhs[1]);
    ln = mxGetN(prhs[1]);
-   if (lm != 3)
+   if (!((lm==3 && ndim==3) || (lm==3 && ndim==2) || (lm==2 && ndim==2)))
    {
-      mexErrMsgTxt("spm_get_lm: L must be 3xn list of voxel coordinates");
+      mexErrMsgTxt("spm_get_lm: L must be 3xn (or 2xn) list of voxel coordinates");
    }
-   l = mxGetPr(prhs[1]);
+   lp = mxGetPr(prhs[1]);
+   if (lm==3 && ndim==2)  /* Make sure all z-coordinates equal 1 if 3xn list used with 2D map. */
+   {
+      for (i=0, j=0; i<ln; i++, j+=3)
+      {
+	 tmpint = ((int) lp[j+2]+0.1);
+         if (tmpint != 1)
+	 {
+            mexErrMsgTxt("spm_get_lm: z-coordinate must be 1 when using 3xn list with 2D map");
+         }
+      }
+   }
+   list = (double *) mxCalloc(3*ln,sizeof(double));
+   if (lm==2) /* Extend to 3xn list if 2xn list was supplied with 2D-map. */
+   {
+      for (i=0, j=0, k=0; i<ln; i++, j+=3, k+=2)
+      {
+	 list[j] = lp[k]; list[j+1] = lp[k+1]; list[j+2] = 1.0; 
+      }
+   }
+   else
+   {
+      memcpy(list,lp,3*ln*sizeof(double));
+   }
 
    /* Find list if indicies to local maxima. */
 
-   n_lindex = get_maxima(vol,vdim,l,ln,18,&lindex);
+   n_lindex = get_maxima(vol,vdim,list,ln,18,&lindex);
 
    /* Turn indicies into doubles in a Matlab array. */
 
@@ -209,6 +234,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    plindex = mxGetPr(plhs[0]);
    for (i=0; i<n_lindex; i++) {plindex[i] = ((double) lindex[i]);}
 
+   mxFree(list);
    mxFree(lindex);
 
    return;
