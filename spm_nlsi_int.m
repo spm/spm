@@ -1,10 +1,11 @@
-function [y] = spm_nlsi_int(P,M,U,v)
+function [y] = spm_nlsi_int(P,M,U,v,w)
 % integrates a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
-% FORMAT [y] = spm_nlsi_int(P,M,U,v)
+% FORMAT [y] = spm_nlsi_int(P,M,U,v,w)
 % P   - model  paramters
 % M   - model  structure
 % U   - input  structure
 % v   - number of sample points [default = 256]
+% w   - delay {secs}            [default = 0  ]
 %
 % y     - (v x l)  response y = l(x,P)
 %___________________________________________________________________________
@@ -22,6 +23,9 @@ function [y] = spm_nlsi_int(P,M,U,v)
 %---------------------------------------------------------------------------
 if nargin < 4,
 	v    = 256;
+end
+if nargin < 5,
+	w    = 0;
 end
 n            = M.n;					% n states
 m            = M.m;					% m inputs
@@ -48,38 +52,42 @@ end
 
 % evaluation time points (when response is sampled or input changes)
 %---------------------------------------------------------------------------
-s      = ceil([1:v]*u/v);
-s      = sparse(s,1,1,u,1);			% observation times
-t      = ~[~s & [0; all(~diff(U.u),2)]];	% time points
-dt     = U.dt*diff(find(t));			% time intervals
-s      = s(t);					% sample times
-u      = U.u(t,:);
-
-% Preliminary computations
-%---------------------------------------------------------------------------
-C      = C*u';
-for  i = 1:n
-	C(i,:) = C(i,:) + D(i);
-end
+s      = [1:v]*u/v + w/U.dt;			% output times
+t      = find(any(diff(U.u),2))';		% input  times
+[T s]  = sort([s t]);				% update times
+dt     = U.dt*diff(T);				% update intervals
+U      = U.u(t + 1,:);		
 
 % Integrate
 %---------------------------------------------------------------------------
 q      = length(dt);
-y      = zeros(q + 1,l);
+y      = zeros(v,l);
 x      = x0;
 y(1,:) = y0;
+J      = A;
+K      = D;
 for  i = 1:q
 
-	% f(x)
-        %-------------------------------------------------------------------
-        J     = A;
-        for j = 1:m
-                J  = J + u(i,j)*E{j};
-        end
+	% input - update J and K
+	%------------------------------------------------------------------
+	if s(i) > v
+
+		u     = U(s(i) - v,:);
+		J     = A;
+		for j = 1:m
+			J  = J + u(j)*E{j};
+		end
+		K     = C*u' + D;
+
+	% output - implement l(x)
+	%-------------------------------------------------------------------
+	else
+		y(s(i),:) = feval(M.lx,x,P);
+	end
 
         % compute dx = (expm(J*dt) - eye(n))*inv(J)*fx;
         %-------------------------------------------------------------------
-        fx    = (J*x + C(:,i))*dt(i);
+        fx    = (J*x + K)*dt(i);
         dx    = fx;
         for j = 1:32
 
@@ -92,16 +100,9 @@ for  i = 1:q
 			break
 		end
         end
+
+	% update
+	%-------------------------------------------------------------------
         x     = x + dx;
 
-	% implement l(x)
-	%-------------------------------------------------------------------
-	if s(i + 1)
-		y(i + 1,:) = feval(M.lx,x,P);
-	end 
-
 end
-
-% Subsample 
-%---------------------------------------------------------------------------
-y     = y(find(s),:);
