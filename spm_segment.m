@@ -118,8 +118,8 @@ if (nargin==0)
 	end
 	options = ['   '; 'np '; 'r  '; 'npr'];
 	opts = options(spm_input('Generate:',2,'m',...
-		'Image Segments|Pseudo Pet|Reduced Image Segments|Reduced Pseudo Pet',...
-		[1 2 3 4]),:);
+		'Image Segments|Pseudo Pet',...
+		[1 2]),:);
 
 	for i = 1:n
 		eval(['PF = PF' num2str(i) ';']);
