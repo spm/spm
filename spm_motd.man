@@ -1,97 +1,51 @@
 
-% This is SPM98a...
+% Welcome to SPM99b, the public beta release of SPM99
 %_______________________________________________________________________
 %
-% This is SPM98a, the developers alpha release of SPM98, released 03/11/1998
+% This is SPM96b, the public beta release of SPM'99 - released 17/05/1999
 %
-%    - This is a limited developer only release, for registered developers only
-%    - Please do *not* redistribute or make generally available
-%    - SPM98a is work in progress: some bits don't work, others are incomplete...
-%    - Please report bugs, comments and quirks to <spm-authors@fil.ion.ucl.ac.uk>
-%     (Please do *not* discuss SPM98a on the SPM email discussion list)
-%    - SPM98 is Matlab 5.2 only (& won't work in earlier versions of Matlab)
+% SPM99 is a major update to the SPM software, containing substantial
+% theoretical, algorithmic, organisational and interface enhancements
+% over previous versions. The core of SPM99 is now feature-complete,
+% and has undergone alpha testing in-house. We are now seeking final
+% testing and feedback through a public beta release.
 %
-%                           ----------------
+%            There will be bugs!  Please report bugs to:
+%     ^                  <spm-bugs@fil.ion.ucl.ac.uk>
+%    / \     Peculiarities, feedback, and general queries on the use and 
+%   / ! \    theory of the software should be raised on the SPM email list:
+%  /_____\               <spm@mailbase.ac.uk>
+%            Bugs and fixes will be posted on the list and SPM99 web page:
+%                         http://www.fil.ion.ucl.ac.uk/spm/spm99.html
 %
-% SPM98a is a developer release, made available to SPM collaborators
-% and developers to facilitate alpha testing and to allow initial work
-% on ports/rewrites for platforms other than Matlab5.2/UNIX.
+% Please refer to this software in all communications and publications
+% as SPM99b, citing the Wellcome Department of Cognitive Neurology.
 %
-% As SPM98a is still work in progress, we ask that use of this release
-% be restricted to those collaborating with the FIL on SPM development.
-% Further, we request that every potential SPM98a user register with
-% the authors to use/develop this alpha release. and respectfully
-% reserve the right to refuse permission.
-%
-% Please address comments, suggestions, queries and bug reports
-% directly to the SPM authors at <spm-authors@fil.ion.ucl.ac.uk>. As
-% this is *not* a public release, and is not publicly supported, please
-% do *not* discuss SPM98a on the SPM email discussion list.
+% We envisage making a full SPM99 release early in the autumn of 1999
 %
 %                           ----------------
 %
-% SPM98 status:
-% ============
-% (1) The following components are fairly mature: (and are in routine use at FIL)
-%    - The GUI subsystems
-%      (spm_get.m, spm_list_files.m, spm_input.m, spm.m, spm_figure.m, spm_help.m
-%    - The (new) memory mapping and i/o subsystems
-%    - The spatial analysis procedures
-%      (realignment, coregistration, normalisation, segmentation & smoothing)
-%    - Most of the "utilities" in the lower panel of the SPM UI
-%      (CheckReg, Render, Means (& adjusted means), ImCalc,...)
+% Although SPM99 will read image files from previous versions of SPM,
+% there are differences in the algorithms, templates and models used.
+% Therefore, we recommend you use a single SPM version for any given
+% project.
 %
-% (2) The following components are still maturing: (but are nearly complete)
-%    - Stats configuration of PET/SPECT and Basic models (spm_spm_ui.m)
-%    - General Linear Model estimation (spm_spm.m & associated functions)
-%    - The new UI for the results section
+% Please take time to review the the (mostly updated) help, in
+% particular the "About SPM" topic (spm.man), which lists new features
+% of SPM99.
+%                           ----------------
 %
-% (3) The following components require substantial work for SPM98/ML5
-%    - The fMRI stats configuration function (spm_fmri_spm_ui.m)
-%    - The results section - currently only the GUI has been updated, but the
-%      functions currently analyse SPM97d results files. (SPM98 stats results
-%      files are saved as images, and contrasts (including F-contrasts) will be
-%      specified in the results section *after* parameter estimation.
-%      (spm_results{,_ui}.m, spm_projections{,F,_ui,F_ui}.m, spm_mip{,_ui}.m,...)
-%    - Eigenimage analysis
-%    - Chloe's display toolbox     - (not included in the alpha release)
-%      ...and upgrading of the SPM display utility (spm_image.m &c...)
-%    - JB's Multivariate toolbox   - (not included in the alpha release)
-%    - Tom & andrew's SnPM toolbox - (not included in the alpha release)
-%    - Most of the *.man overview help files, including the spm.man file
-%      describing the current version.
-%
-% Only the mature components (1) should be used for data analysis. We
-% cannot guarantee that any code will remain unchanged for either the
-% public beta or final releases of SPM98.
+% SPM (being the collection of files given in the manifest in the
+% Contents.m file) is free but copyright software, distributed under
+% the terms of the GNU General Public Licence as published by the Free
+% Software Foundation (either version 2, as given in file spm_LICENCE.man,
+% or at your option, any later version). Further details on "copyleft"
+% can be found at http://www.gnu.org/copyleft/.
 %
 %                           ----------------
 %
-% I'm afraid we don't have a definitive list of new features - this is
-% still under construction in file spm.man (the "About SPM98a" topic in
-% the SPM help system). A (relatively) up to date feature list will be
-% maintained on the SPM98 web page.
-%
-% Function version numbers for this release are contained in the
-% Contents.m file (compare with the Contents.m file of SPM96). Most
-% functions edited for SPM98/ML5 are version 2.1 or above.
-%
-%                           ----------------
-%
-% Substantial work has gone into upgrading SPM to Matlab5, in the order
-% of two man years. In addition to substantial re-writing to take
-% advantage of Matlab5's new graphics, data structures and
-% computational features, and our usual efforts to improve the
-% functionality and quality of the algorithms, we have taken this
-% opportunity to implement many new theoretical and technical advances
-% which will be the subject of various papers in due course. This is
-% the biggest update to SPM since SPMclassic->SPM94. We look forward to
-% your comments...
-%
-% Thanks for your continued support and use of SPM...
-%
-% Warmest regards,
-%            the authors.                                   spm_motd.man
+% Thank you for participating in the beta testing programme for SPM99!
+% Warm regards,
+%      John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 %_______________________________________________________________________
-% The FIL methods group : The Wellcome Department of Cognitive Neurology
-% (c) 1991, 1994-1998   : The Wellcome Department of Cognitive Neurology
+% (c) 1991,1994-1999      The Wellcome Department of Cognitive Neurology
