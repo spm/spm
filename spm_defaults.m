@@ -12,7 +12,7 @@
 %_______________________________________________________________________
 % %W% %E%
 
-global CWD PRINTSTR LOGFILE CMDLINE GRID
+global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
 global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
@@ -36,6 +36,15 @@ CMDLINE = 0;
 % on displayed images.
 %-----------------------------------------------------------------------
 GRID = 0.6;
+
+% proj_MultiPage controls whether multi-page tables of cluster
+% statistics are printed out by spm_projections when called from
+% spm_projections_ui (the SPM{Z} button)
+% This paging facility enables a more exhaustive listing of the 
+% suprathreshold clusters in an SPM
+%-----------------------------------------------------------------------
+proj_MultiPage = 0;	% No multipage tables
+%proj_MultiPage = 1;	% Enable paging
 
 % PET header defaults
 %-----------------------------------------------------------------------

@@ -20,6 +20,8 @@ function spm_defaults_edit(arg1, arg2)
 %       the Matlab window.
 %     * The intensity of any grid which superimposed on any
 %       displayed images.
+%     * Specification of paging option for tabular output of cluster
+%       statistics, enabling more exhaustive classifications
 % 
 % Header Defaults
 %     The values to be taken as default when there are no Analyze
@@ -47,7 +49,7 @@ function spm_defaults_edit(arg1, arg2)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-global CWD PRINTSTR LOGFILE CMDLINE GRID MODALITY
+global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage MODALITY
 global DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
 global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
@@ -84,7 +86,7 @@ if nargin == 0
 elseif strcmp(arg1, 'Directory')
 
 	% Default directory for results files etc..
-	%-----------------------------------------------------------------------
+	%---------------------------------------------------------------
 	CWD = deblank(spm_get(-1,'*','Directory'));
 	chdir(CWD);
 
@@ -92,7 +94,7 @@ elseif strcmp(arg1, 'Directory')
 elseif strcmp(arg1, 'Misc')
 
 	% Miscellaneous
-	%-----------------------------------------------------------------------
+	%---------------------------------------------------------------
 	tmp = 'no';
 	if ~isempty(LOGFILE), tmp = 'yes'; end;
 	if (spm_input(['Log to file? (' tmp ')'], 2, 'y/n') == 'y')
@@ -105,10 +107,14 @@ elseif strcmp(arg1, 'Misc')
 	CMDLINE = spm_input(['Command Line Input (' tmp ')?'], 3, 'y/n') == 'y';
 	GRID = spm_input('Grid value (0-1):', 4, 'e', GRID);
 
+	if proj_MultiPage, tmp='yes'; else, tmp='no'; end
+	proj_MultiPage = ...
+		spm_input(['Paging of stats (' tmp ')?'],5,'y/n') == 'y';
+
 elseif strcmp(arg1, 'Printing')
 
 	% Printing Defaults
-	%-----------------------------------------------------------------------
+	%---------------------------------------------------------------
 	a0 = spm_input('Printing Mode?', 2, 'm', [...
 			'Postscript to File|'...
 			'Postscript to Printer|'...
@@ -168,7 +174,7 @@ elseif strcmp(arg1, 'Printing')
 elseif strcmp(arg1, 'Hdr')
 
 	% Header Defaults
-	%-----------------------------------------------------------------------
+	%---------------------------------------------------------------
 
 	n = 0;
 	while n ~= 3
