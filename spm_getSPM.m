@@ -84,8 +84,8 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % see spm_results_ui.m for further details
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes & Karl Friston %E%
-SCCSid = '%I%';
+% @(#)spm_getSPM.m	2.17 Andrew Holmes & Karl Friston 99/04/28
+SCCSid   = '%I%';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -146,15 +146,12 @@ if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; en
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-tol = 1e-10;				%-Tolerance
 
-%-Form concatenated contrast data weights to see if orthogonalisation needed
 % (Don't want to ask orthogonalisation order if not needed.)
 % NB: This amalgamates columns of F-contrasts, perhaps causing
 % orthogonalisation when only an F-contrast has non-ortho. cols
-tmp = (cat(2,xCon(Ic).c)' * xX.pKX)';
 
-if length(Ic) > 1 & any(any(triu(abs(tmp'*tmp),1)>tol))
+if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
     %-Get orthogonalisation order from user
     Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
@@ -168,38 +165,30 @@ if length(Ic) > 1 & any(any(triu(abs(tmp'*tmp),1)>tol))
     
 	%-Orthogonalise (subspace spanned by) contrast i wirit previous
 	%---------------------------------------------------------------
-	cpX = (cat(2,xCon(Ic(i    )).c)' * xX.pKX)';
-	CpX = (cat(2,xCon(Ic(1:i-1)).c)' * xX.pKX)';
-	cpX = cpX - CpX*pinv(CpX)*cpX;
-	c   = (cpX'*xX.xKXs.X)';
-	oxCon = spm_FcUtil('Set','tmp',xCon(Ic(i)).STAT,'c',c,xX.xKXs);
-%-**	oxCon = spm_FcUtil('|_',xCon(Ic(i)),xCon(Ic(1:i-1)), xX.xKXs);
-
+	oxCon = spm_FcUtil('|_',xCon(Ic(i)), xX.xKXs, xCon(Ic(1:i-1)));
     
 	%-See if this orthogonalised contrast has already been entered
 	% or is colinear with a previous one. Define a new contrast if
 	% neither is the case.
 	%---------------------------------------------------------------
-	d = spm_FcUtil('In',oxCon,xCon,xX.xKXs);
+	d = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
 
-	if all(max(abs(c))<tol) %-** spm_FcUtil('0|[]',oxCon)
+	if spm_FcUtil('0|[]',oxCon,xX.xKXs)
 	    %-Contrast was colinear with a previous one - drop it
 	    %-----------------------------------------------------------
 	    Ic(i)    = [];
 	    i        = i - 1;
-
 	elseif any(d)
 	    %-Contrast unchanged or already defined - note index
 	    %-----------------------------------------------------------
 	    Ic(i)    = min(d);
-
 	else
 	    %-Define orthogonalised contrast as new contrast
 	    %-----------------------------------------------------------
 	    oxCon.name = [xCon(Ic(i)).name,' (orthogonalized w.r.t {',...
     	    	sprintf('%d,',Ic(1:i-2)), sprintf('%d})',Ic(i-1))];
     	    xCon  = [xCon, oxCon];
-	    Ic(i) = length(xCon);
+	    Ic(i) = length(xCon); 
 	end
 
     end % while...
