@@ -57,12 +57,22 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %          ( ...except that xX & XYZ are removed, being returned separately
 %          ( ...and xSDM.Vbeta & xSDM.VResMS are re-mmapped
 %
+% In addition, the xCon.mat file is updated. For newly evaluated
+% contrasts, SPM images (spmT_????.{img,hdr}) are written, along with
+% contrast (con_????.{img,hdr}) images for SPM{T}'s, or Extra
+% Sum-of-Squares images (ess_????.{img,hdr}) for SPM{F}'s.
+% 
+% The contrast images are the weighted sum of the parameter images,
+% where the weights are the contrast weights, and are uniquely
+% estimable since contrasts are checked for estimability by the
+% contrast manager. These contrast images (for appropriate contrases)
+% are suitable summary images of an effect at this level, and can be
+% used as input at a higher level when effecting a random effects
+% analysis. (Note that the ess_????.{img,hdr} and
+% SPM{T,F}_????.{img,hdr} images are not suitable input for a higher
+% level analysis.) See spm_RandFX.man for further details.
+%
 %_______________________________________________________________________
-%
-% **** files written
-% **** reference to contrast manager
-% **** orthogonalisation order
-%
 %
 % spm_getSPM prompts for an SPM and applies thresholds {u & k}
 % to a point list of voxel values (specified with their locations {XYZ})
@@ -70,11 +80,37 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % significant effects by subsequent routines.
 % 
 % Either single contrasts can be examined or conjunctions of different
-% contrasts.  In the latter case a new SPM is created, that reflects
-% the miminum of all specified effects.  A conjunction is therefore
-% the conjoint expression of two or more effects.  The contrasts are
-% successively enforced to be orthogonal so the order of non-orthogonal
-% contrast specification is important.
+% contrasts. Contrasts are estimable linear combinations of the
+% parameters, and are specified using the SPM contrast manager
+% interface [spm_conman.m]. SPMs are generated for the null hypotheses
+% that the contrast is zero (or zero vector in the case of
+% F-contrasts).
+% 
+% For general linear model Y = XB + E with data Y, desgin matrix X,
+% parameter vector B, and (independent) errors E, a contrast c'B of the
+% parameter estimates (with contrast weights c) is estimated by c'b,
+% where b are the parameter estimates given by b=pinv(X)*Y.
+% 
+% A conjunction assesses the conjoint expression of two or more
+% effects. The conjunction SPM is the minimum of the component SPMs
+% defined by the multiple contrasts. The distributional results used
+% for minimum fileds require the SPMs to be identically distributed and
+% independent. Thus, all component SPMs must be either SPM{t}'s, or
+% SPM{F}'s with the same degrees of freedom. Independence is roughly
+% guaranteed for large degrees of freedom (and independent data) by
+% ensuring that the contrasts are "orthogonal". Note that it is *not*
+% the contrast weight vectors themselves that are required to be
+% orthogonal, but the subspaces of the data space implied by the null
+% hypotheses defined by the contrasts (c'pinv(X)).
+% 
+% To ensure approximate independence of the component SPMs in a
+% conjunction, non-orthogonal contrasts for a conjunction are
+% successively enforced to be orthogonal. If this is required, you will
+% be asked to specify the orthogonalisation order (as a permutation of
+% the contrast indices). The contrasts are then serially orthogonalised
+% in this order, possibly generating new contrasts, such that the
+% second is orthogonal to the first, the third to the first two, and so
+% on.
 %
 % Masking simply eliminates voxels from the current contrast if they
 % do not survive an uncorrected p value (based on height) in one or
@@ -89,8 +125,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % instance the 'set-level' inference can be considered an 'omnibus test'
 % based on the number of clusters that obtain.
 % 
-% see spm_results_ui.m for further details
-%
+% see spm_results_ui.m for further details of the SPM results section.
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
 SCCSid   = '%I%';
@@ -302,7 +337,7 @@ titlestr = spm_input('title for comparison','+1','s',str);
 spm('Pointer','Watch')
 spm_progress_bar('Init',100,'computing...')                          %-#
 nPar   = size(xX.X,2);
-I      = [Ic,Im];
+I      = unique([Ic,Im]);
 for ii = 1:length(I)
 
     i  = I(ii);
@@ -402,7 +437,7 @@ for ii = 1:length(I)
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*(2*ii-1)/(2*length([Ic,Im])+2))       %-#
+    spm_progress_bar('Set',100*(2*ii-1)/(2*length(I)+2))             %-#
 
     %-Write statistic image(s)
     %-------------------------------------------------------------------
@@ -474,7 +509,7 @@ for ii = 1:length(I)
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*(2*ii-0)/(2*length([Ic,Im])+2))       %-#
+    spm_progress_bar('Set',100*(2*ii-0)/(2*length(I)+2))             %-#
 
 end % (for ii = 1:length(I))
 
@@ -508,7 +543,7 @@ for i = Im
 	if isempty(Q), break, end
 end
 
-spm_progress_bar('Set',100*((2*length([Ic,Im])+1)/(2*length([Ic,Im])+2)))%-#
+spm_progress_bar('Set',100*((2*length(I)+1)/(2*length(I)+2)))        %-#
 
 %-Compute conjunction SPM (as minimum SPM) within mask...
 %-----------------------------------------------------------------------
@@ -550,7 +585,7 @@ spm_progress_bar('Set',100)                                          %-#
 %-Save contrast structure (if wOK), with relative pathnames to image files
 %=======================================================================
 if wOK
-    for i = [Ic,Im];
+    for i = I;
 	if ~isempty(xCon(i).Vcon)
         	xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
 	end
