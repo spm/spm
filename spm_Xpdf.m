@@ -18,15 +18,12 @@ function pdf = spm_Xpdf(x,df)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 13/12/93 - Andrew Holmes
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<2 error('insufficient arguments'), end
 
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-Computation
 %---------------------------------------------------------------------------

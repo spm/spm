@@ -27,15 +27,13 @@ function x = spm_invXcdf(p,df)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 14/12/93 - Andrew Holmes
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<2 error('insufficient arguments'), end
 
 if any(abs(p(:)-0.5)>0.5) error('p must be in [0,1]'), end
 if any(df(:)<=0) error('df out of range'), end
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-Computation
 %---------------------------------------------------------------------------

@@ -23,9 +23,6 @@ function p = spm_Xcdf(x,df,OffSet)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 14/12/93 - 
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<3 OffSet=0; end
@@ -33,7 +30,7 @@ if nargin<2 error('insufficient arguments'), end
 
 if any(abs(OffSet(:)-0.5)>0.5) error('OffSet must be in [0,1]'), end
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-Computation
 %---------------------------------------------------------------------------
