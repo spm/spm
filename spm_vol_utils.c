@@ -75,6 +75,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #include <math.h>
 
 #ifndef NOLOOKUP
+/* Generate a sinc lookup table with a Hanning filter envelope */
 void make_lookup(coord,nn,dim, d1, table,ptpend)
 double coord;
 double table[], **ptpend;
@@ -82,21 +83,34 @@ int nn, dim, *d1;
 {
 	register int d2, d, fcoord;
 	register double *tp, *tpend, dtmp;
-	fcoord = floor(coord);
-	*d1 = fcoord-nn;
-	if (*d1<1) *d1=1;
-	d2 = fcoord+nn;
-	if (d2>dim) d2 = dim;
 
-	*ptpend = tpend = table+(d2 - *d1);
-	d = *d1, tp = table;
-	while (tp <= tpend)
+	if (fabs(coord-rint(coord))<0.00001)
 	{
-		dtmp = PI*(coord-(d++));
-		if (dtmp != 0)
-			*(tp++) = sin(dtmp)/dtmp* 0.5*(1.0 + cos(dtmp/nn)) ;
+		/* Close enough to use nearest neighbour */
+		*d1=rint(coord);
+		if (*d1<1 || *d1>dim) /* Pixel location outside image */
+			*ptpend = table-1;
 		else
-			*(tp++) = 1.0;
+		{
+			table[0]=1.0;
+			*ptpend = table;
+		}
+	}
+	else
+	{
+		fcoord = floor(coord);
+		*d1 = fcoord-nn;
+		if (*d1<1) *d1=1;
+		d2 = fcoord+nn;
+		if (d2>dim) d2 = dim;
+
+		*ptpend = tpend = table+(d2 - *d1);
+		d = *d1, tp = table;
+		while (tp <= tpend)
+		{
+			dtmp = PI*(coord-(d++));
+			*(tp++) = sin(dtmp)/dtmp* 0.5*(1.0 + cos(dtmp/nn)) ;
+		}
 	}
 }
 #endif
@@ -244,9 +258,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			int ix4, iy4, iz4;
 			s3 += ds3;
 			if (s3 == 0.0) return(-1);
-			ix4 = (x3 += dx3)/s3 + 0.5;
-			iy4 = (y3 += dy3)/s3 + 0.5;
-			iz4 = (z3 += dz3)/s3 + 0.5;
+			ix4 = rint((x3 += dx3)/s3);
+			iy4 = rint((y3 += dy3)/s3);
+			iz4 = rint((z3 += dz3)/s3);
 			if (iz4>=1 && iz4<=zdim2 && iy4>=1 && iy4<=ydim2 && ix4>=1 && ix4<=xdim2)
 				image[t] = (double)vol[ix4 + xdim2*(iy4 + ydim2*iz4)];
 			t++;
@@ -267,7 +281,6 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 	double y, x2, y2, z2, s2, dx3=mat[0], dy3=mat[1], dz3=mat[2], ds3=mat[3];
 	int t = 0, dim1xdim2 = xdim2*ydim2;
 	vol -= (1 + xdim2*(1 + ydim2));
-
 	x2 = mat[12] + 0*mat[8];
 	y2 = mat[13] + 0*mat[9];
 	z2 = mat[14] + 0*mat[10];
@@ -280,7 +293,6 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 		double y3 = y2 + y*mat[5];
 		double z3 = z2 + y*mat[6];
 		double s3 = s2 + y*mat[7];
-
 		for(x=1; x<=xdim1; x++)
 		{
 			double x4,y4,z4;
@@ -298,9 +310,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 				double dx1, dx2, dy1, dy2, dz1, dz2;
 				int off1, off2, offx, offy, offz, ix4, iy4, iz4;
 
-				ix4 = x4; dx1=x4-ix4; dx2=1.0-dx1;
-				iy4 = y4; dy1=y4-iy4; dy2=1.0-dy1;
-				iz4 = z4; dz1=z4-iz4; dz2=1.0-dz1;
+				ix4 = floor(x4); dx1=x4-ix4; dx2=1.0-dx1;
+				iy4 = floor(y4); dy1=y4-iy4; dy2=1.0-dy1;
+				iz4 = floor(z4); dz1=z4-iz4; dz2=1.0-dz1;
 
 				ix4 = (ix4 < 1) ? ((offx=0),1) : ((offx=(ix4>=xdim2) ? 0 : 1        ),ix4);
 				iy4 = (iy4 < 1) ? ((offy=0),1) : ((offy=(iy4>=ydim2) ? 0 : xdim2    ),iy4);
