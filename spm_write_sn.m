@@ -60,6 +60,8 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
+if isempty(V), return; end;
+
 if ischar(prm), prm = load(prm);  end;
 if ischar(V),   V   = spm_vol(V); end;                                                                                                                
 
