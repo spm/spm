@@ -425,7 +425,7 @@ if ER
 
 		% no relevent psts
 		%-----------------------------------------------------------
-		PST   = [];
+		PSTD  = [];
 		a     = E(:,([1:h] + (u(1) - 1)*h));
 		b     = E(:,([1:h] + (u(2) - 1)*h));
 
@@ -723,7 +723,7 @@ if ~ER
 		if HRF
 			d = length(hrf);
 			D = [ones(d,1)*D(1,:); D];
-			D = spm_sptop(hrf,k + d)*D;
+			D = spm_sptop(hrf,k + d,1)*D;
 			D = D([1:k] + d,:);
 		end
 
