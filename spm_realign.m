@@ -273,9 +273,7 @@ for i=2:length(P),
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end;
-fprintf('%g ', ss);
 	end;
-fprintf('\n');
 	if flags.rtm,
 		% Generate mean and derivatives of mean
 		tiny = 5e-2; % From spm_vol_utils.c
