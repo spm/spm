@@ -2,7 +2,7 @@ function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 % returns onset times for events
 % FORMAT [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 %
-% k    - scans per session
+% k    - number of scans
 % T    - time bins per scan
 % dt   - time bin length (secs)
 %
@@ -13,8 +13,12 @@ function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 % DSstr   - Design string
 %_______________________________________________________________________
 % spm_get_ons contructs a matrix of delta functions specifying the onset
-% of events or epochs (or both).
+% of events or epochs (or both). These are convolved with a basis set at
+% a later stage to give regressors that enter into the deisgn matrix.
+% The length of the beasis functions is determined by W:
 %
+% W = 0 - implies an event
+% W > 0 - implies an epoch
 %-----------------------------------------------------------------------
 % %W% Karl Friston %E%
 
@@ -66,19 +70,19 @@ if v
 		soa     = spm_input('SOA (scans)','+1','r',2)*T;
 		on      = fix(1:soa:(k*T));
 		ns      = length(on);
-		
+		DSstr   = [DSstr sprintf('(Stochastic: %.2fsec SOA) ',soa*dt)];
+
 		% occurence probabilities - stationary
 		%-------------------------------------------------------
 		str     = 'occurence probability';
 		if spm_input(str,'+1','stationary|modulated',[1 0])
-
-			DSstr = [DSstr '(stochastic: stationary) '];
+			DSstr = [DSstr '-stationary '];
 			P     = ones((v + ne),ns);
  
 		% occurence probabilities - modulated (32 sec period)
 		%-------------------------------------------------------
 		else
-			DSstr = [DSstr '(stochastic: modulated) '];
+			DSstr = [DSstr '-modulated '];
 			P     = ones((v + ne),ns);
 			dc    = 32/dt;
 			for i = 1:(v + ne);
@@ -168,9 +172,9 @@ if u
 	%-------------------------------------------------------
 	set(Finter,'Name','epoch specification')
 	if length(DSstr)
-		DSstr  = [DSstr '& epoch-related'];
+		DSstr  = [DSstr '& epoch-related '];
 	else
-		DSstr  = 'epoch-related';
+		DSstr  = 'epoch-related ';
 	end
 
 	% vector of conditions
@@ -210,9 +214,10 @@ end
 
 % get parameters, contruct interactions and append
 %=======================================================================
-v     = length(W);
 set(Finter,'Name','')
-if spm_input('model parametric or time effects',1,'y/n',[1 0])
+v     = length(W);
+if v
+    if spm_input('model parametric or time effects',1,'y/n',[1 0])
 
 
 	% cycle over selected trial types
@@ -269,9 +274,8 @@ if spm_input('model parametric or time effects',1,'y/n',[1 0])
 		W     = [W W(i)];
 
 	end
+    end
 end
-
-
 
 % paramteric representation of causes
 %-----------------------------------------------------------------------
@@ -282,7 +286,4 @@ end
 % finished
 %-----------------------------------------------------------------------
 set(Finter,'Name','')
-
-% clf
-%-----------------------------------------------------------------------
 spm_clf(Finter)
