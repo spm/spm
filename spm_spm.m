@@ -177,13 +177,13 @@ nx     = 0;
 ny     = 0;
 nz     = 0;
 i_res  = round(linspace(1,q,min([q 64])));		% RSSQ for smoothness
-N      = prod(V(1:3));					% number of voxels
+N      = prod(ceil(V(1:3)/r));				% number of cubes
 I      = 0;						% voxel counter
 xyz    = [1;1;1];					% starting voxel
 p      = size(Xs,2);					% voxels per cycle
 
 
-%-Cycle over cubic regions to avoid memory problems
+%-Cycle over cubes to avoid memory problems
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',100,'AnCova',' ');
 
@@ -191,7 +191,7 @@ while(1)
 
 	%-next location
 	%---------------------------------------------------------------
-	I     = I + p;
+	I     = I + 1;
 	if xyz(1) > V(1); xyz(1) = 1; xyz(2) = xyz(2) + r; end
 	if xyz(2) > V(2); xyz(2) = 1; xyz(3) = xyz(3) + r; end
 	if xyz(3) > V(3); break; end
