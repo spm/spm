@@ -24,7 +24,6 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 %                                   grey/white/CSF or other masks
 %
 % vxyz      locations of voxels 
-%
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 

@@ -1,6 +1,6 @@
-function [F,Lav, KL] = spm_vb_F (Y,slice)
-% Compute lower bound on evidence, F, for VB GLMAR models
-% FORMAT [F,Lav, KL] = spm_vb_F (Y,slice)
+function [F,Lav,KL] = spm_vb_F (Y,slice)
+% Compute lower bound on evidence, F, for VB-GLM-AR models
+% FORMAT [F,Lav,KL] = spm_vb_F (Y,slice)
 %
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
@@ -10,15 +10,12 @@ function [F,Lav, KL] = spm_vb_F (Y,slice)
 % KL            Kullback-Liebler Divergences with fields
 %               .w, .alpha, .beta, .Lambda, .a
 %
-% blah, blah, blah !!
 % This function implements equation 18 in paper VB4
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny and Nelson Trujillo-Barreto
+% Will Penny 
 % $Id$
-
-
 
 if slice.verbose
     disp('Updating F');
@@ -32,12 +29,14 @@ X=slice.X;
 
 C2=slice.C2;  
 
-Bk = kron(diag(slice.mean_alpha),slice.D);
+Bk = kron(diag(slice.mean_alpha),slice.Dw);
 B=slice.Hw*Bk*slice.Hw';
 
 if slice.p>0
-    Jk = kron(diag(slice.mean_beta),slice.D);
-    J=slice.Ha*Jk*slice.Ha';
+    if ~strcmp(slice.priors.A,'Discrete')
+        Jk = kron(diag(slice.mean_beta),slice.Da);
+        J=slice.Ha*Jk*slice.Ha';
+    end
 end
 
 tr_B_qcov=0;
@@ -58,8 +57,10 @@ for n=1:slice.N,
     ablock_n          = [(n-1)*p+1:n*p];
     if slice.p > 0
         G(n,1)=spm_vb_get_Gn(Y,slice,n);
-        tr_J_acov=tr_J_acov+trace(J(ablock_n,ablock_n)*slice.a_cov{n});
-        log_det_acov=log_det_acov+log(det(slice.a_cov{n}));
+        if ~strcmp(slice.priors.A,'Discrete')
+            tr_J_acov=tr_J_acov+trace(J(ablock_n,ablock_n)*slice.a_cov{n});
+            log_det_acov=log_det_acov+log(det(slice.a_cov{n}));
+        end
     else
         wc=slice.w_cov{n};
         en=(Y(:,n)-X*slice.w_mean(block_n,1));
@@ -90,6 +91,13 @@ term1=-0.5*N*log_det_alphas;
 % Get KL-beta 
 if slice.p > 0
     KL_beta=0;
+    if strcmp(slice.priors.A,'Discrete')
+        for j=1:p,
+            for s=1:slice.priors.S,
+                KL_beta=KL_beta+spm_kl_gamma(slice.b_beta(j,s),slice.c_beta(j,s),slice.b_beta_prior(j,s),slice.c_beta_prior(j,s));
+            end
+        end
+    else
     log_det_betas=0;
     for j = 1:p,
         KL_beta=KL_beta+spm_kl_gamma(slice.b_beta(j),slice.c_beta(j),slice.b_beta_prior(j),slice.c_beta_prior(j));
@@ -97,23 +105,27 @@ if slice.p > 0
     end
     beta_term1=-0.5*N*log_det_betas;
 end
+end
 
 % Get KL-w
-try 
-    % We only log determinant of spatial precision matrix
-    % if we are comparing different spatial priors
-    slice.log_det_D;
-catch
-    [vvv,ddd]=eig(full(slice.D));
-    slice.log_det_D=sum(log(diag(ddd)));
-end
-term1=term1-0.5*k*slice.log_det_D;
+term1=term1-0.5*k*slice.log_det_Dw;
 KL_w=term1-0.5*log_det_qcov+0.5*tr_B_qcov+0.5*slice.w_mean'*B*slice.w_mean-0.5*N*k;
 
 % Get KL-a and add up terms to get F
 if slice.p > 0
-    beta_term1=beta_term1-0.5*p*slice.log_det_D;
-    KL_a=beta_term1-0.5*log_det_acov+0.5*tr_J_acov+0.5*slice.a_mean'*J*slice.a_mean-0.5*N*p;
+    if strcmp(slice.priors.A,'Discrete')
+        KL_a=0;
+        for n=1:N,
+            block_n= [(n-1)*p+1:n*p]; % Index for AR coeffs
+            a_mean=slice.a_mean(block_n,1);
+            ibeta_n=diag(slice.priors.gamma(n,:)*(1./slice.mean_beta'));
+            a_n=slice.priors.gamma(n,:)*slice.as';
+            KL_a=KL_a+spm_kl_normal(a_mean,slice.a_cov{n},a_n,ibeta_n);
+        end
+    else 
+        beta_term1=beta_term1-0.5*p*slice.log_det_Da;
+        KL_a=beta_term1-0.5*log_det_acov+0.5*tr_J_acov+0.5*slice.a_mean'*J*slice.a_mean-0.5*N*p;
+    end
     F = Lav - (KL_w+KL_alpha+KL_lambda+KL_a+KL_beta);
 else
     F = Lav - (KL_w+KL_alpha+KL_lambda);

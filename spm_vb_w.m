@@ -4,12 +4,11 @@ function [slice] = spm_vb_w (Y,slice)
 %
 % Y             [T x N] time series 
 % slice         data structure 
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Nelson Trujillo-Barreto & Will Penny
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
-
 
 if slice.verbose
     disp('Updating w');
@@ -20,7 +19,7 @@ T = slice.T;
 p = slice.p;
 N = slice.N;
 k = slice.k;
-Bk = kron(diag(slice.mean_alpha),slice.D);
+Bk = kron(diag(slice.mean_alpha),slice.Dw);
 B = slice.Hw*Bk*slice.Hw';
 
 if p > 0

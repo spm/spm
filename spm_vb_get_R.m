@@ -6,10 +6,10 @@ function [R] = spm_vb_get_R (slice,h0)
 % slice     data structure
 % 
 % R         posterior correlation matrix of regression coefficients
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny
+% Will Penny 
 % $Id$
 
 

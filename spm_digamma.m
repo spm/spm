@@ -1,7 +1,7 @@
-function y = spm_digamma(x)
+function [y] = spm_digamma(x)
 % Digamma function (logarithmic derivative of the gamma function)
-% 
-% FORMAT: y = spm_digamma(x)
+% FORMAT [y] = spm_digamma(x)
+%
 % x - nonnegative, real values
 % y - gamma function evaluated at each value x
 %
@@ -16,6 +16,5 @@ function y = spm_digamma(x)
 
 % Will Penny
 % $Id$
-
 
 error('spm_digamma.c has not been compiled')

@@ -1,16 +1,15 @@
 function [G,G1,G2,G3] = spm_vb_get_Gn (Y,slice,n)
-% Compute Gn for VB GLMAR modelling 
+% Compute Gn for VB-GLM-AR modelling 
 % FORMAT [G,G1,G2,G3] = spm_vb_get_Gn (Y,slice,n)
 %
 % Y             [T x N] time series 
 % slice         data structure 
 % n             voxel number
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
-
 
 p=slice.p;
 k=slice.k;

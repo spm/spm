@@ -6,14 +6,11 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % XYZ   voxel list
 % xCon  Contrast info
 % ic    contrast number
-%
-% xCon  Updated contrast info
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny
+% Will Penny 
 % $Id$
-
 
 
 % Get approximate posterior covariance for ic
@@ -87,18 +84,18 @@ spm_progress_bar('Clear');
 % Create handle
 V = struct(...
     'fname',  sprintf('con_sd_%04d.img',ic),...
-    'dim',    SPM.xVol.DIM',...
-    'dt',     [16, spm_platform('bigend')],...
+    'dim',    [SPM.xVol.DIM',16],...
     'mat',    SPM.xVol.M,...
     'pinfo',  [1,0,0]',...
     'descrip',sprintf('PPM contrast SD - %d: %s',ic,xCon(ic).name));
 
 %-Write image
 %-----------------------------------------------------------
-V  = spm_create_vol(V);
-V  = spm_write_vol(V,Y);
+V = spm_create_vol(V,'noopen');
+V = spm_write_vol(V,Y);
+V = spm_close_vol(V);
 
 SPM.PPM.Vcon_sd(ic)=V;
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
     '...written %s',spm_str_manip(V.fname,'t')))%-#

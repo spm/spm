@@ -5,12 +5,11 @@ function [slice] = spm_vb_gamma (Y,slice)
 %
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
-
 
 if slice.verbose
     disp('Updating gamma');
@@ -20,7 +19,7 @@ N = slice.N;
 k = slice.k;
 k = slice.k;
 
-Bk = kron(diag(slice.mean_alpha),slice.D);
+Bk = kron(diag(slice.mean_alpha),slice.Dw);
 B = slice.Hw*Bk*slice.Hw';
 
 for n=1:N,

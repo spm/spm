@@ -4,12 +4,11 @@ function [slice] = spm_vb_taylor_R (Y,slice)
 %
 % Y     data
 % slice VB-GLMAR data structure
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny
+% Will Penny 
 % $Id$
-
 
 % Get mean hyperparameter values
 h0=[];

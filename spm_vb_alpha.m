@@ -4,12 +4,11 @@ function [slice] = spm_vb_alpha (Y,slice)
 %
 % Y             [T x N] time series 
 % slice         data structure 
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
-
 
 if slice.verbose
     disp('Updating alpha');
@@ -27,7 +26,7 @@ end
     
 for j = 1:k,
     block_k = j:k:N*k;
-    H  = sum(spdiags(slice.D,0).*w_cov_k(:,j)) + slice.w_mean(block_k)'*slice.D*slice.w_mean(block_k);
+    H  = sum(spdiags(slice.Dw,0).*w_cov_k(:,j)) + slice.w_mean(block_k)'*slice.Dw*slice.w_mean(block_k);
     % Equation 15 in paper VB4
     slice.b_alpha(j)    = 1./(H./2 + 1./slice.b_alpha_prior(j));
     slice.mean_alpha(j) = slice.c_alpha(j)*slice.b_alpha(j);
