@@ -279,7 +279,7 @@ elseif strcmp(lower(Action),lower('Clear'))
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 	else, F=P2; end
 F = spm_figure('FindWin',F);
-if isempty(F), error('Figure not found'), end
+if isempty(F), return, end
 
 %-Clear figure, leaving 'NoDelete' 'Tag'ed objects
 %-----------------------------------------------------------------------
@@ -490,7 +490,7 @@ if isempty(str), str='SPM'; end
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 	else, F=P2; end
 F = spm_figure('FindWin',F);
-if isempty(F), error('Figure not found'), end
+if isempty(F), return, end
 
 %-Specify watermark color from background colour
 %-----------------------------------------------------------------------
@@ -532,7 +532,7 @@ elseif strcmp(lower(Action),lower('CreateBar'))
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 	else, F=P2; end
 F = spm_figure('FindWin',F);
-if isempty(F), error('Figure not found'), end
+if isempty(F), return, end
 
 %-Get position and size parameters
 %-----------------------------------------------------------------------
