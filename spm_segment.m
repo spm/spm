@@ -531,9 +531,6 @@ spm_chi2_plot('Clear');
 % Create headers, open files etc...
 %-----------------------------------------------------------------------
 dm     = VF(1).dim(1:3);
-vx     = sqrt(sum(VF(1).mat(1:3,1:3).^2));
-orgn   = VF(1).mat\[0 0 0 1]';
-orgn   = round(orgn(1:3)');
 planes = 1:VF(1).dim(3);
 
 k = prod(dm(1:2));
@@ -552,36 +549,28 @@ B2=spm_dctmtx(VF(1).dim(2),nbas(2));
 B3=spm_dctmtx(VF(1).dim(3),nbas(3));
 
 for j=1:nimg
-	iname = [spm_str_manip(PF(1,:),'rd') app num2str(j)];
-	fp(j) = fopen([iname '.img'],'w');
-	if (fp(j) == -1)
-		open_error_message([iname '.img']);
-		error(['Failed to open ' iname '.img']);
-	end
-	spm_hwrite([iname '.img'],dm,vx,1/255,2,0,orgn,...
-		'Segmented image');
-	spm_get_space(iname,VF(1).mat);
+	VO(j) = struct(...
+		'fname',  [spm_str_manip(PF(1,:),'rd') app num2str(j) '.img'],...
+		'dim',    [VF(1).dim(1:3) 2],...
+		'mat',    VF(1).mat,...
+		'pinfo',  [1/255 0 0]',...
+		'descrip','Segmented image');
+	spm_create_image(VO(j));
 end
 
 if any(opts == 'w'),
 	fpc = ones(m,1)*(-1);
 	for j=1:m,
+
 		p  = spm_str_manip(VF(j).fname,'d');
 		q  = max([find(p == '/') 0]);
-		q  = [p(1:q) 'corr_' p((q + 1):length(p))];
-		spm_hwrite(q,dm,vx,VF(j).pinfo(1),VF(j).dim(4),0,orgn,...
-			'Corrected image');
-		spm_get_space(q,VF(1).mat);
-		if j==1,
-			corrfnames = q;
-		else,
-			corrfnames = str2mat(corrfnames,q);
-		end;
-		fpc(j) = fopen(q, 'w');
-		if (fpc(j) == -1),
-			open_error_message(q);
-			error(['Failed to open ' q]);
-		end;
+		VC(j) = struct(...
+			'fname',  [p(1:q) 'corr_' p((q + 1):length(p))],...
+			'dim',    [VF(1).dim(1:3) VF(j).dim(4)],...
+			'mat',    VF(1).mat,...
+			'pinfo',  VF(j).pinfo(:,1),...
+			'descrip','Corrected image');
+		spm_create_image(VC(j));
 	end;
 end;
 
@@ -628,7 +617,7 @@ for pp=1:size(planes,2)
 		pr(:,i) = amp*exp(-0.5*dst).*(bp(:,lkp(i))*(mg(1,i)/sumbp(i)));
 	end
 
-	sp = (sum(pr,2)+eps)/255;
+	sp = (sum(pr,2)+eps);
 
 	for j=1:nimg
 		tmp = find(lkp(1:(length(lkp)-1))==j);
@@ -637,59 +626,19 @@ for pp=1:size(planes,2)
 		else
 			dat = sum(pr(:,tmp),2);
 		end
-		dat = round(dat./sp);
-		if fwrite(fp(j),dat,'uchar') ~= prod(size(dat))
-			write_error_message([spm_str_manip(PF(1,:),'rd') app num2str(j)]);
-			error(['Failed to write ' [spm_str_manip(PF(1,:),'rd') app num2str(j)]]);
-		end
+		spm_write_plane(VO(j),reshape(dat./sp,VO(j).dim(1:2)),pp);
 	end
 
 	if any(opts == 'w'),
 		% Write nonuniformity corrected images.
 		%-----------------------------------------------------------------------
 		for i=1:m,
-			d = dat0(:,i)/VF(i).pinfo(1,1);
-			% Deal with different data types
-			%-----------------------------------------------------------------------
-			if (VF(i).dim(4) == 2)
-				d = round(d);
-				tmp = find(d > 255);
-				d(tmp) = zeros(size(tmp))+255;
-				tmp = find(d < 0);
-				d(tmp) = zeros(size(tmp));
-			elseif (VF(i).dim(4) == 4)
-				d = round(d);
-				tmp = find(d > 32767);
-				d(tmp) = zeros(size(tmp))+32767;
-				tmp = find(d < -32768);
-				d(tmp) = zeros(size(tmp))-32768;
-			elseif (VF(i).dim(4) == 8)
-				d = round(d);
-				tmp = find(d > 2^31-1);
-				d(tmp) = zeros(size(tmp))+(2^31-1);
-				tmp = find(d < -2^31);
-				d(tmp) = zeros(size(tmp))-2^31;
-			end
-			if fwrite(fpc(i),d,spm_type(VF(i).dim(4))) ~= prod(size(d))
-				spm_progress_bar('Clear');
-				write_error_message(corrfnames(i,:));
-				error(['Error writing ' corrfnames(i,:) '. Check your disk space.']);
-			end;
+			spm_write_plane(VC(i),reshape(dat0(:,i),VC(i).dim(1:2)),pp);
 		end;
 	end;
 	spm_progress_bar('Set',pp);
 end
 spm_progress_bar('Clear');
-
-for j=1:nimg
-	fclose(fp(j));
-end
-if any(opts == 'w'),
-	for i=1:m,
-		fclose(fpc(i));
-	end;
-end;
-
 
 % Do the graphics
 %=======================================================================
@@ -766,33 +715,3 @@ if any(opts == 't')
 	end
 end
 return;
-
-
-
-
-function open_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
-return;
-
-function write_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
-return;
-
