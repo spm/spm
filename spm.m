@@ -275,7 +275,7 @@ close all,							fprintf('.')
 %-----------------------------------------------------------------------
 Fmenu = spm('CreateMenuWin','off');				fprintf('.')
 Finter = spm('CreateIntWin','off');				fprintf('.')
-spm_figure('WaterMark',Finter,spm('Ver'),'NoDelete',45),	fprintf('.')
+spm_figure('WaterMark',Finter,spm('Ver'),'',45),		fprintf('.')
 spm('SetWinDefaults'),						fprintf('.')
 Fgraph = spm_figure('Create','Graphics','Graphics','off');	fprintf('.')
 
