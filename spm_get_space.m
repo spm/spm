@@ -57,7 +57,7 @@ elseif (nargin == 2)
 	mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
 
 	% only write the .mat file if necessary
-	if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > 0.0001)
+	if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > eps*eps*12)
 		eval(['save ' matname ' M']);
 	end
 else
