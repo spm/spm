@@ -32,33 +32,41 @@ function spm_mip(Z,XYZ,M,DIM)
 %-Get GRID value
 %-----------------------------------------------------------------------
 global defaults
-if ~isempty(defaults) & isfield(defaults,'grid'),
-	GRID = defaults.grid;
-else,
-	GRID = 0.6;
-end;
+try
+	GRID  = defaults.grid;
+catch
+	GRID  = 0.6;
+end
+try
+	units = defaults.units;
+catch
+	units = {'mm' 'mm' 'mm'};
+end
 
 %-Scale & offset point list values to fit in [0.25,1]
 %-----------------------------------------------------------------------
 Z    = Z(:)';
 Z    = Z - min(Z);
-mZ   = max(Z);
-if mZ	%-Scale
-	Z = (1 + 3*Z/mZ)/4;
-else	%-Image is flat: set to ones:
+m    = max(Z);
+if m
+	Z = (1 + 3*Z/m)/4;
+else
 	Z = ones(1,length(Z));
 end
 
 %-Single slice case
 %=======================================================================
 if DIM(3) == 1,
-	VOX = sqrt(sum(M(1:3,1:3).^2));
-	XYZ = round(M\[XYZ; ones(1,size(XYZ,2))]);
-	mip = full(sparse(XYZ(1,:),XYZ(2,:),Z,DIM(1),DIM(2)));
-	image([1 DIM(1)]*VOX(1),[1 DIM(2)]*VOX(2),(1-mip'/max(mip(:)))*64);
-	axis xy image; 
-	set(gca,'FontSize',8,'TickDir','in','XTick',[],'YTick',[])
-	%xlabel('x'), ylabel('y')
+        set(gca,'Position',[0.08 0.62 0.48 0.32])
+	IJK = round(M\[XYZ; ones(1,size(XYZ,2))]);
+	MIP = full(sparse(IJK(1,:),IJK(2,:),Z,DIM(1),DIM(2)));
+	MIP = (1 - MIP'/max(MIP(:)))*64;
+        x   = M(1:2,1:2)*[1 DIM(1); 1 DIM(2)];
+	image([x(1,1) x(1,2)],[x(2,1) x(2,2)],MIP);
+        axis xy
+        xlabel(units{1})
+	axis tight
+        set(gca,'XTick',[],'YTick',[],'XTickLabel',[],'YTickLabel',[])
 	return
 end
 
@@ -69,9 +77,9 @@ end
 load MIP
 mip  = mip96*GRID;
 c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
-	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1] -0.5;
+	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1] - 0.5;
 c    = (M(1:3,1:3)*c')';
-dim  = [(max(c)-min(c)) size(mip)];
+dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim);
 mip  = max(d,mip);
-image(rot90((1 - mip)*64)); axis image; axis off;
+image(rot90((1 - mip)*64)); axis tight; axis off;
