@@ -29,7 +29,7 @@
 function spm_segment(PF)
 
 if (nargin==0)
-	PF = spm_get(Inf,'.img','Registered MRI(s) - T1 first');
+	PF = spm_get(Inf,'.img','MRI(s)');
 	set(2,'Name','Segmenting..','Pointer','Watch'); drawnow;
 	spm_segment(PF);
 	set(2,'Name','','Pointer','Arrow'); drawnow;
@@ -46,7 +46,7 @@ DIR   = [SWD '/mni/'];
 PB    = str2mat([DIR 'spgray.img'],[DIR 'spwhite.img'],[DIR 'spcsf.img']);
 
 %- Template image
-PG    = [DIR 'scolin.img'];
+PG    = str2mat([DIR 'scolin.img'],PB);
 niter = 24;
 nc    = [1 1 1 3]; % Number of clusters for each probability image
 
@@ -178,9 +178,6 @@ for iter = 1:niter
 	end
 
 	if iter==1
-		% Background
-		mn(:,n)=zeros(m,1);
-
 		nn = 0;
 		for j=1:length(nc)
 			% Split the clusters
@@ -190,7 +187,10 @@ for iter = 1:niter
 			end
 			nn = nn + nc(j);
 		end
-	end		
+	end
+
+	% Background.
+	mn(:,n)=zeros(m,1);
 	fprintf('\n');
 end
 
