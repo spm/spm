@@ -398,10 +398,10 @@ function varargout=spm_spm_ui(varargin)
 % xsDes         - structure of strings describing the design:
 %                 Fieldnames are essentially topic strings (use "_"'s for
 %                 spaces), and the field values should be strings or cellstr's
-%                 of information regarding that topic. spm_DesRep.m (via
-%                 spm_spm_ui('DesRep') uses this structure to produce a
-%                 printed description of the design, displaying the fieldnames
-%                 (with "_"'s converted to spaces) in bold as topics, with
+%                 of information regarding that topic. spm_DesRep.m
+%                 uses this structure to produce a printed description
+%                 of the design, displaying the fieldnames (with "_"'s 
+%                 converted to spaces) in bold as topics, with
 %                 the corresponding text to the right
 % 
 % F_iX0         - Design matrix columns of effects of no interest
@@ -434,21 +434,6 @@ SCCSid  = '%I%';
 % DbaTime - ask for F3 images in time order, with F2 levels input by user?
 % P       - nScan x 1 cellsrt of image filenames
 % I       - nScan x 4 matrix of factor level indices
-%
-% FORMAT spm_spm_ui('DesRep',SPMcfg)
-% FORMAT spm_spm_ui('DesRepUI',SPMcfg)
-% FORMAT spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM)
-% FORMAT spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM)
-% Design reporting (with UserInterface) - an interface to spm_DesRep.m
-% FORMAT spm_spm_ui('Run',SPMcfg)
-% FORMAT spm_spm_ui('Run',VY,xX,xC,xsDes,xM)
-% Utility to run spm_spm.m with supplied parameters.
-% SPMcfg - name of SPMcfg.mat file (If missing then user is prompted for SPMcfg)
-% VY     - struct array of mapped image files
-% xX     - design matrix description structure (defined above)
-% xC     - struct array of covariate definitions (defined above)
-% xsDes  - struct of strings describing the design  (defined above)
-% xM     - masking description structure (defined above)
 %
 % FORMAT D = spm_spm_ui('DesDefs_Stats')
 % Design definitions for simple statistics
@@ -1343,16 +1328,7 @@ fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 %-Display Design reports
 %=======================================================================
 fprintf('%-40s: ','Design reporting')                                %-#
-spm_DesRep('Files&Factors',{VY.fname}',xX.I,xC,xX.sF,xM.xs)
-spm_print
-
-if ~isempty(xC)
-	spm_DesRep('Covs',xX,xC)
-	spm_print
-end
-
 spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
-spm_print
 fprintf('%30s\n','...done')                                          %-#
 
 
@@ -1368,8 +1344,15 @@ if spm_input('estimate?','_+0','b','now|later',[1,0],1)
 else
 	spm('FigName','Stats: configured',Finter,CmdLine);
 	spm('Pointer','Arrow')
-	% spm_DesRep(****
-	% spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
+	spm_DesRep('DesRepUI',struct(	'xX',		xX,...
+					'VY',		VY,...
+					'xM',		xM,...
+					'F_iX0',	F_iX0,...
+					'xC',		xC,...
+					'xsDes',	xsDes,...
+					'swd',		pwd,...
+					'SPMid',	SPMid,...
+					'cfg',		'SPMcfg'));
 end
 fprintf('\n\n')
 
@@ -1488,78 +1471,6 @@ for j4  = 1:n4
     end                                         % (if DbaTime & Dn(2)>1)
 end                                             % (for j4)
 varargout = {P,[i1,i2,i3,i4]};
-
-
-case {'desrep','desrepui','run'}
-%=======================================================================
-% - A N A L Y S I S   P A R A M E T E R S   /   R U N
-%=======================================================================
-% spm_spm_ui({'DesRep','DesRepUI','Run'},SPMcfg)
-% spm_spm_ui({'DesRep','DesRepUI','Run'},VY,xX,xC,xsDes,xM,F_iX0)
-if nargin==1
-	SPMcfg = load(spm_get(1,'SPMcfg.mat','Select SPMcfg.mat'));
-elseif nargin==2
-	if isstruct(varargin{2})
-		SPMcfg = varargin{2};
-	elseif isstr(varargin{2}) & exist(varargin{2},'file')==2
-		SPMcfg = load(varargin{2});
-	else
-		error('Mis-specified SPMcfg')
-	end
-elseif nargin==7
-	SPMcfg = struct(	'VY',		varargin{2},...
-				'xX',		varargin{3},...
-				'xC',		varargin{4},...
-				'xsDes',	varargin{5},...
-				'xM',		varargin{6},...
-				'F_iX0',	varargin{7}	);
-else
-	error('insufficient arguments')
-end
-
-
-%-Action 'DesRep' - print all reports
-%-----------------------------------------------------------------------
-if strcmp(lower(Action),'desrep')
-	%-Files, factor indices, covariates... & masking options
-	spm_DesRep('Files&Factors',{SPMcfg.VY.fname}',SPMcfg.xX.I,SPMcfg.xC,...
-		SPMcfg.xX.sF,SPMcfg.xM.xs)
-	spm_print
-	
-	%-Design matrix & design descriptions
-	spm_DesRep('DesMtx',SPMcfg.xX,{SPMcfg.VY.fname}',SPMcfg.xsDes)
-	spm_print
-	
-	%-Covariates
-	spm_DesRep('Covs',SPMcfg.xX,SPMcfg.xC)
-	spm_print
-
-	spm_figure('Clear','Graphics')
-end
-
-
-%-GUI setup (Action 'DesRep' & 'DesRepUI')
-%-----------------------------------------------------------------------
-if any(strcmp(lower(Action),{'desrep','desrepui'}))
-	Labels = {'Files & factors';'Design matrix';'Covariates'};
-	cb = {	['spm_DesRep(''Files&Factors'',',...
-			'{UD.VY.fname}'',UD.xX.I,UD.xC,UD.xX.sF,UD.xM.xs)'],...
-		['spm_DesRep(''DesMtx'',UD.xX,{UD.VY.fname}'',UD.xsDes)'],...
-		['spm_DesRep(''Covs'',UD.xX,UD.xC)']	};
-	if ~length(SPMcfg.xC), Labels(3)=[]; cb(3)=[]; end
-	spm_input('','!_-1','b!',Labels,cb,SPMcfg,1);
-
-	spm_input('select design summary, or ->','!_','b!','estimate...',...
-		'spm_spm_ui(''run'',get(gcbo,''UserData''))',SPMcfg);
-end
-
-
-%-Run
-%-----------------------------------------------------------------------
-if strcmp(lower(Action),'run')
-	spm_spm(SPMcfg.VY,SPMcfg.xX,SPMcfg.xM,SPMcfg.F_iX0,SPMcfg.xC,SPMcfg.xsDes)
-end
-
 
 
 case 'desdefs_stats'
