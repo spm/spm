@@ -845,10 +845,14 @@ VResMS.pinfo(1) = 1/xX.trRV;
 VResMS          = spm_create_vol(VResMS,'noopen');
 
 
-%-Create 1st contrast for 'effects of interest'
+%-Create 1st contrast for 'effects of interest' (all if not specified)
 %=======================================================================
 Fcname          = 'effects of interest';
-iX0             = [xX.iB xX.iG];
+try
+	iX0     = [xX.iB xX.iG];
+catch
+	iX0     = [];
+end
 xCon            = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
 
 %-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
