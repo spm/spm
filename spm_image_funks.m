@@ -17,13 +17,14 @@
 function spm_image_funks(P,Q,func)
 
 if (nargin==0)
+	spm_figure('Clear','Interactive');
 	P = spm_get(Inf,'.img','Images to work on');
 	Q = spm_input('Output filename',1,'s');
 	func = spm_input('Evaluated Function',2,'s');
-	set(2,'Name','Computing..','Pointer','Watch'); drawnow;
+	set(spm_figure('FindWin','Interactive'),'Name','Computing..','Pointer','Watch');
+	drawnow;
 	spm_image_funks(P,Q,func);
-	set(2,'Name','','Pointer','Arrow'); drawnow;
-	figure(2);clf
+	spm_figure('Clear','Interactive');
 	return;
 end
 
@@ -65,15 +66,7 @@ Y = kron([1:DIM(2)]',ones(DIM(1),1));
 
 % Start progress plot
 %----------------------------------------------------------------------------
-figure(2);
-delete(get(2,'Children'));
-ax = axes('Position', [0.45 0.2 0.1 0.6],...
-	'XTick',[],...
-	'Xlim', [0 1],...
-	'Ylim', [0 DIM(3)]);
-xlabel(func);
-ylabel('planes completed');
-drawnow;
+spm_progress_bar('Init',DIM(3),func,'planes completed');
 
 for j = 1:DIM(3)
 	B     = spm_matrix([0 0 -j 0 0 0 1 1 1]);
@@ -90,10 +83,7 @@ for j = 1:DIM(3)
 	if (prod(size(d)) ~= prod(size(d1))) error(['"' func '" produced incompatible image.']); end
 	Output(:,j) = d1(:);
 
-	line('Parent', ax, 'Xdata',[0.5 0.5], 'Ydata',[0 j],...
-		'LineWidth',16, 'Color', [1 0 0]);
-	drawnow;
-
+	spm_progress_bar('Set',j);
 end
 
 % Write output image (16 bit signed)
@@ -113,3 +103,4 @@ spm_hwrite(Q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - algebra');
 spm_get_space(Q,M);
 
 for i = 1:m; spm_unmap(V(:,i)); end
+spm_progress_bar('Clear');
