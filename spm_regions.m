@@ -204,6 +204,18 @@ try
 end
 %=======================================================================
 
+% Remove zero columns from X0 if there are any 
+% (eg. SPM.xX.iB columns may be all-zero for a particular session)
+ncol_X0=size(xY.X0,2);
+nrow_X0=size(xY.X0,1);
+new_X0=[];
+for col_X0=1:ncol_X0,
+    if ~(length(find(xY.X0(:,col_X0)==0))==nrow_X0)
+        new_X0=[new_X0 xY.X0(:,col_X0)];
+    end
+end
+xY.X0=new_X0;
+
 
 % compute regional response in terms of first eigenvariate
 %-----------------------------------------------------------------------
