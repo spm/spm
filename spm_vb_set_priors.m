@@ -46,7 +46,7 @@ switch priors.WA,
         % See equation in Woolrich et al. (ref 26 in paper VB2) 
         % Also described in dicussion in paper VB2
         % Warning: D for this prior can be singular !
-        disp('\n');
+        fprintf('\n');
         disp('Using GMRF');
         voxels=size(vxyz,1);
         slice.D=speye(voxels);
@@ -76,7 +76,7 @@ switch priors.WA,
         % Unbiased LORETA PRIOR
         % Ensures normalisation is correct for edges/corners 
         % - see discussion in section 2 of paper VB2
-        disp('\n');
+        fprintf('\n');
         disp('Using LORETA prior');
         voxels=size(vxyz,1);
         L=4*speye(voxels);
@@ -90,12 +90,12 @@ switch priors.WA,
         % Regularised Thin Plate Splines - Buckley, 1994.
         
     case 'Voxel - Shrinkage',
-        disp('\n');
+        fprintf('\n');
         disp('Using Voxel Shrinkage priors for W and A');
         slice.D=speye(N);
         
     case 'Voxel - Uninformative',
-        disp('\n');
+        fprintf('\n');
         disp('Using Voxel Uninformative priors for W and A');
         slice.D=speye(N);
         slice.mean_alpha=0.000001*ones(k,1);
