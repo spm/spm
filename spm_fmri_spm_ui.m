@@ -558,7 +558,9 @@ else
 
 			% cutoff period
 			%---------------------------------------------------
-			CUT   = min([CUT max(diff(ons))]);
+			for i = 0:ncond
+				CUT   = min([CUT max(diff(ons(a == i)))]);
+			end
 
 		end
 
@@ -1042,7 +1044,7 @@ y     = y - dy;
 
 %---------------------------------------------------------------------------
 if size(F,2)
-	str = sprintf('Hi-Pass cutoff %0.2f cycles/min',60/CUT);
+	str = sprintf('Hi-Pass cutoff period %0.0f secs',CUT);
 	text(0,y,str); y = y - dy;
 end
 
