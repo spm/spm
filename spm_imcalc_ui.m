@@ -1,4 +1,4 @@
-function Q = spm_imcalc_ui(P,Q,f,flags,varargin)
+function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Perform algebraic functions on images
 % FORMAT Q = spm_imcalc_ui(P,Q,f,flags,Xtra_vars...)
 % P             - matrix of input image filenames
@@ -19,6 +19,7 @@ function Q = spm_imcalc_ui(P,Q,f,flags,varargin)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
 % Xtra_vars...  - additional variables which can be used in expression
 % Q (output)    - full pathname of image written
+% Vo            - structure containing information on output image (see spm_vol)
 %
 %_______________________________________________________________________
 %
@@ -32,6 +33,15 @@ function Q = spm_imcalc_ui(P,Q,f,flags,varargin)
 % If the dmtx flag is set, then images are read into a data matrix X
 % (rather than into seperate variables i1, i2, i3,...). The data matrix
 % should be referred to as X, and contains images in rows.
+%
+% Computation is plane by plane, so in data-matrix mode, X is a NxK
+% matrix, where N is the number of input images [prod(size(Vi))], and K
+% is the number of voxels per plane [prod(Vi(1).dim(1:2))].
+%
+% For data types without a representation of NaN, implicit zero masking
+% assummes that all zero voxels are to be treated as missing, and
+% treats them as NaN. NaN's are written as zero (by spm_write_plane),
+% for data types without a representation of NaN.
 %
 % With images of different sizes and orientations, the size and
 % orientation of the first is used for the output image. A warning is
@@ -101,8 +111,7 @@ if isempty(f), f = spm_input('Evaluated Function',2,'s'); end
 if length(flags)<4, hold=[]; else, hold=flags{4}; end
 if isempty(hold), hold=0; end
 if length(flags)<3, type=[]; else, type=flags{3}; end
-if isempty(type), type=16; end, if ischar(type), type=spm_type(type); end
-if ~any(type==[16]), error('invalid type'), end
+if isempty(type), type=4; end, if ischar(type), type=spm_type(type); end
 if length(flags)<2, mask=[]; else, mask=flags{2}; end
 if isempty(mask), mask=0; end
 if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
@@ -145,8 +154,8 @@ Vo = struct(	'fname',	Q,...
 
 %-Call spm_imcalc to handle computations
 %------------------------------------------------------------------
-args     = {{dmtx,mask,hold},varargin{:}};
-Vo.pinfo = spm_imcalc(Vi,Vo,f,args{:});
+args = {{dmtx,mask,hold},varargin{:}};
+Vo   = spm_imcalc(Vi,Vo,f,args{:});
 
 %-End
 %------------------------------------------------------------------
