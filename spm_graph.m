@@ -364,7 +364,7 @@ elseif Cp == 3
 		X      = xSDM.Sess{s}.bf{t};
 		q      = size(X,1);
 		x      = [1:q]*dx;
-		K      = spm_make_filter(q,dx,xX.filterHF(s),xX.filterLF(s));
+		K      = spm_make_filter(q,dx,xX.filterHF{s},xX.filterLF{s});
 
 		% fitted responses, adjusted data and standard error
 		%------------------------------------------------------
