@@ -40,14 +40,14 @@ on each iteration, T is updated by T = T + alpha\beta;
 
 */
 
-void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX, ny,BY, nz,BZ, M, samp)
+void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX, ny,BY, nz,BZ, M, samp, pnsamp)
 double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], M[], scale2, scale1[];
-int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[];
+int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
 unsigned char *dat1[], dat2[];
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
-		*betaxy, *betax, *alphaxy, *alphax, ss=0.0;
+		*betaxy, *betax, *alphaxy, *alphax, ss=0.0, *scale1a;
 	extern double floor();
 
 	dvdt    = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
@@ -57,6 +57,8 @@ unsigned char *dat1[], dat2[];
 	betaxy  = (double *)mxCalloc( 3*nx*ny + ni                , sizeof(double));
 	alphax  = (double *)mxCalloc((3*nx    + ni)*(3*nx    + ni), sizeof(double));
 	alphaxy = (double *)mxCalloc((3*nx*ny + ni)*(3*nx*ny + ni), sizeof(double));
+
+	scale1a = T + 3*nx*ny*nz;
 
 	/* only zero half the matrix */
 	m1 = 3*nx*ny*nz+ni;
@@ -230,30 +232,32 @@ unsigned char *dat1[], dat2[];
 					}
 
 					off2 = s0[0] + dim1[0]*(s0[1] + dim1[1]*s0[2]);
-					dv = -v;
+					dv = v;
 					for(i1=0; i1<ni; i1++)
 					{
+						double tmp;
 						switch (dt1[i1])
 						{
 						case UNSIGNED_CHAR:
-							dvdt[i1+3*nx] = dat1[i1][off2]*scale1[i1];
+							tmp = ((unsigned char *)(dat1[i1]))[off2]*scale1[i1];
 							break;
 						case SIGNED_SHORT:
-							dvdt[i1+3*nx] = ((short  *)(dat1[i1]))[off2]*scale1[i1];
+							tmp = ((short         *)(dat1[i1]))[off2]*scale1[i1];
 							break;
 						case SIGNED_INT:
-							dvdt[i1+3*nx] = ((int    *)(dat1[i1]))[off2]*scale1[i1];
+							tmp = ((int           *)(dat1[i1]))[off2]*scale1[i1];
 							break;
 						case FLOAT:
-							dvdt[i1+3*nx] = ((float  *)(dat1[i1]))[off2]*scale1[i1];
+							tmp = ((float         *)(dat1[i1]))[off2]*scale1[i1];
 							break;
 						case DOUBLE:
-							dvdt[i1+3*nx] = ((double *)(dat1[i1]))[off2]*scale1[i1];
+							tmp = ((double        *)(dat1[i1]))[off2]*scale1[i1];
 							break;
 						default:
 							mexErrMsgTxt("Bad data type.");
 						}
-						dv += dvdt[i1+3*nx];
+						dvdt[i1+3*nx] = tmp;
+						dv -= dvdt[i1+3*nx]*scale1a[i1];
 					}
 
 					ss += dv*dv;
@@ -263,7 +267,7 @@ unsigned char *dat1[], dat2[];
 					{
 						for (x2=0;x2<=x1;x2++)
 							alphax[m1*x1+x2] += dvdt[x1]*dvdt[x2];
-						betax[x1] += dvdt[x1]*v;
+						betax[x1] += dvdt[x1]*dv;
 					}
 
 				}
@@ -405,14 +409,8 @@ unsigned char *dat1[], dat2[];
 		for (x2=0; x2<x1; x2++)
 			ptr1[m1*x2+x1] = ptr1[m1*x1+x2];
 
-	/* Rescale matrixes */
-	for(i1=0; i1<m1; i1++)
-	{
-		beta[i1] /= (double)nsamp;
-		for(i2=0; i2<m1; i2++)
-			alpha[i1*m1+i2] /= (double)nsamp;
-	}
-	*pss = ss/(double)nsamp;
+	*pss = ss;
+	*pnsamp = nsamp;
 
 	mxFree((char *)dvdt);
 	mxFree((char *)Tz);
@@ -438,13 +436,13 @@ Matrix *plhs[], *prhs[];
 	extern double rint();
 	MAPTYPE **map1, *map2;
 	int i, nx,ny,nz,ni=1, samp[3];
-	int dim1[3], dim2[3], dt1[32], dt2;
-        double *M, *BX, *BY, *BZ, *T, scale1[32], scale2;
+	int dim1[3], dim2[3], dt1[32], dt2, nsamp;
+        double *M, *BX, *BY, *BZ, *T, scale1[32], scale2, fwhm, resels;
 	unsigned char *dat1[32], *dat2;
 
-        if (nrhs != 7 || nlhs > 3)
+        if (nrhs != 8 || nlhs > 3)
         {
-                mexErrMsgTxt("Inappropriate usage. ([A,B,SS]=f(V1,V2,M,BX,BY,BZ,T);)");
+                mexErrMsgTxt("Inappropriate usage. ([A,B,var]=f(V1,V2,M,BX,BY,BZ,T,fwhm);)");
         }
 
         map1 = get_maps(prhs[0], &ni);
@@ -454,12 +452,8 @@ Matrix *plhs[], *prhs[];
 	dim1[1]   = map1[0]->ydim;
 	dim1[2]   = map1[0]->zdim;
 
-	/* sample about every 4mm */
-	samp[0]   = rint(3.0/map1[0]->xpixdim); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
-	samp[1]   = rint(3.0/map1[0]->ypixdim); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
-	samp[2]   = rint(3.0/map1[0]->zpixdim); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
 
-	for (i=0; i<7; i++)
+	for (i=0; i<8; i++)
 		if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) ||
 			!mxIsFull(prhs[i]) || !mxIsDouble(prhs[i]))
 			mexErrMsgTxt("Inputs must be numeric, real, full and double.");
@@ -485,6 +479,14 @@ Matrix *plhs[], *prhs[];
 	if (mxGetM(prhs[6])*mxGetN(prhs[6]) != 3*nx*ny*nz+ni)
 		mexErrMsgTxt("Transform is wrong size.");
 
+	if ( mxGetM(prhs[7])*mxGetN(prhs[7]) != 1) mexErrMsgTxt("FWHM should be a single value.");
+	fwhm = mxGetPr(prhs[7])[0];
+
+	/* sample about every fwhm/2 */
+	samp[0]   = rint(fwhm/2.0/map1[0]->xpixdim); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
+	samp[1]   = rint(fwhm/2.0/map1[0]->ypixdim); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
+	samp[2]   = rint(fwhm/2.0/map1[0]->zpixdim); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
+
 	for(i=0; i<ni; i++)
 	{
 		dat1[i]   = map1[i]->data;
@@ -509,8 +511,11 @@ Matrix *plhs[], *prhs[];
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), mxGetPr(plhs[2]),
 		dt2,scale2,dim2,dat2,
 		ni,dt1,scale1,dim1,dat1,
-		nx, BX, ny, BY, nz, BZ, M, samp);
+		nx, BX, ny, BY, nz, BZ, M, samp, &nsamp);
 
+	resels = nsamp * map1[0]->xpixdim*samp[0] * map1[0]->ypixdim*samp[1] * map1[0]->ypixdim*samp[1]
+		/ fwhm*fwhm*fwhm;
+	mxGetPr(plhs[2])[0] = mxGetPr(plhs[2])[0] / (resels - (3*nx*ny*nz + ni));
 	free_maps(map1);
 }
 

@@ -116,9 +116,9 @@ int nn, dim, *d1;
 #endif
 
 /* Zero order hold resampling - nearest neighbour */
-void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim)
+void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale)
 int m, xdim,ydim,zdim;
-double out[], x[], y[], z[];
+double out[], x[], y[], z[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	int i;
@@ -131,15 +131,16 @@ IMAGE_DTYPE vol[];
 		zcoord = z[i]+0.5;
 		if (xcoord>=1 && xcoord<=xdim && ycoord>=1 &&
 			ycoord<=ydim && zcoord>=1 && zcoord<=zdim)
-			out[i] = vol[xcoord  + xdim*(ycoord  + ydim*(zcoord))];
+			out[i] = scale*vol[xcoord  + xdim*(ycoord  + ydim*(zcoord))];
+		else out[i] = background;
 	}
 }
 
 
 /* First order hold resampling - trilinear interpolation */
-void RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim)
+void RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale)
 int m, xdim,ydim,zdim;
-double out[], x[], y[], z[];
+double out[], x[], y[], z[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	int i, dim1xdim2 = xdim*ydim;
@@ -174,9 +175,10 @@ IMAGE_DTYPE vol[];
 			k211 = vol[off2]; k111 = vol[off2+offx];
 
 			/* resampled pixel value (trilinear interpolation) */
-			out[i] = ((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
-					  + ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1;
-			}
+			out[i] = scale*(((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
+				+ ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1);
+		}
+		else out[i] = background;
 
 	}
 }
@@ -184,9 +186,9 @@ IMAGE_DTYPE vol[];
 
 
 /* Sinc resampling */
-void RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, nn)
+void RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, nn,background, scale)
 int m, xdim,ydim,zdim, nn;
-double out[], x[], y[], z[];
+double out[], x[], y[], z[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	int i, dim1xdim2 = xdim*ydim;
@@ -196,42 +198,48 @@ IMAGE_DTYPE vol[];
 	vol -= (1 + xdim*(1 + ydim));
 	for (i=0; i<m; i++)
 	{
-		IMAGE_DTYPE *dp1;
-		double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
-
-		make_lookup(x[i], nn, xdim, &dx1, tablex, &tp3end);
-		make_lookup(y[i], nn, ydim, &dy1, tabley, &tp2end);
-		make_lookup(z[i], nn, zdim, &dz1, tablez, &tp1end);
-
-		tp1 = tablez;
-		dy1 *= xdim;
-		dp1 = vol + dim1xdim2*dz1;
-
-		while(tp1 <= tp1end)
+		if (z[i]>=1-TINY && z[i]<=zdim+TINY &&
+			y[i]>=1-TINY && y[i]<=ydim+TINY &&
+			x[i]>=1-TINY && x[i]<=xdim+TINY)
 		{
-			IMAGE_DTYPE *dp2 = dp1 + dy1;
-			double dat2 = 0.0,
-			*tp2 = tabley;
-			while (tp2 <= tp2end)
+			IMAGE_DTYPE *dp1;
+			double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
+
+			make_lookup(x[i], nn, xdim, &dx1, tablex, &tp3end);
+			make_lookup(y[i], nn, ydim, &dy1, tabley, &tp2end);
+			make_lookup(z[i], nn, zdim, &dz1, tablez, &tp1end);
+
+			tp1 = tablez;
+			dy1 *= xdim;
+			dp1 = vol + dim1xdim2*dz1;
+
+			while(tp1 <= tp1end)
 			{
-				register double dat3 = 0.0, *tp3 = tablex;
-				register IMAGE_DTYPE *dp3 = dp2 + dx1;
-				while(tp3 <= tp3end)
-					dat3 += *(dp3++) * *(tp3++);
-				dat2 += dat3 * *(tp2++);
-				dp2 += xdim;
+				IMAGE_DTYPE *dp2 = dp1 + dy1;
+				double dat2 = 0.0,
+				*tp2 = tabley;
+				while (tp2 <= tp2end)
+				{
+					register double dat3 = 0.0, *tp3 = tablex;
+					register IMAGE_DTYPE *dp3 = dp2 + dx1;
+					while(tp3 <= tp3end)
+						dat3 += *(dp3++) * *(tp3++);
+					dat2 += dat3 * *(tp2++);
+					dp2 += xdim;
+				}
+				dat += dat2 * *(tp1++);
+				dp1 += dim1xdim2;
 			}
-			dat += dat2 * *(tp1++);
-			dp1 += dim1xdim2;
+			out[i] = scale*dat;
 		}
-		out[i] = dat;
+		else out[i] = background;
 	}
 }
 
 
 /* Zero order hold resampling - nearest neighbour */
-SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2)
-double  mat[16];
+SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale)
+double  mat[16], background, scale;
 double image[];
 IMAGE_DTYPE vol[];
 int xdim1, ydim1, xdim2, ydim2, zdim2;
@@ -262,7 +270,8 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			iy4 = rint((y3 += dy3)/s3);
 			iz4 = rint((z3 += dz3)/s3);
 			if (iz4>=1 && iz4<=zdim2 && iy4>=1 && iy4<=ydim2 && ix4>=1 && ix4<=xdim2)
-				image[t] = (double)vol[ix4 + xdim2*(iy4 + ydim2*iz4)];
+				image[t] = scale*(double)vol[ix4 + xdim2*(iy4 + ydim2*iz4)];
+			else image[t] = background;
 			t++;
 		}
 	}
@@ -272,8 +281,8 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 #define TINY 5e-2
 
 /* First order hold resampling - trilinear interpolation */
-SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2)
-double  mat[16];
+SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale)
+double  mat[16], background, scale;
 double image[];
 IMAGE_DTYPE vol[];
 int xdim1, ydim1, xdim2, ydim2, zdim2;
@@ -325,9 +334,10 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 				k211 = vol[off2]; k111 = vol[off2+offx];
 
 				/* resampled pixel value (trilinear interpolation) */
-				image[t] = ((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
-					  + ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1;
+				image[t] = scale*(((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
+					  + ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1);
 			}
+			else image[t] = background; 
 			t++;
 		}
 	}
@@ -336,9 +346,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 
 
 /* Sinc resampling */
-SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, nn)
+SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, nn, background, scale)
 int ydim1,xdim1, xdim2,ydim2,zdim2, nn;
-double image[], mat[];
+double image[], mat[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	int dim1xdim2 = xdim2*ydim2;
@@ -363,66 +373,77 @@ IMAGE_DTYPE vol[];
 
 		for(x=1; x<=xdim1; x++)
 		{
-			IMAGE_DTYPE *dp1;
-			double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
-
+			double x4,y4,z4;
 			s3 += ds3;
 			if (s3 == 0.0) return(-1);
-			make_lookup((x3 += dx3)/s3, nn, xdim2, &dx1, tablex, &tp3end);
-			make_lookup((y3 += dy3)/s3, nn, ydim2, &dy1, tabley, &tp2end);
-			make_lookup((z3 += dz3)/s3, nn, zdim2, &dz1, tablez, &tp1end);
+			x4=(x3 += dx3)/s3;
+			y4=(y3 += dy3)/s3;
+			z4=(z3 += dz3)/s3;
 
-			tp1 = tablez;
-			dy1 *= xdim2;
-			dp1 = vol + dim1xdim2*dz1;
-
-			while(tp1 <= tp1end)
+			if (z4>=1-TINY && z4<=zdim2+TINY &&
+				y4>=1-TINY && y4<=ydim2+TINY &&
+				x4>=1-TINY && x4<=xdim2+TINY)
 			{
-				IMAGE_DTYPE *dp2 = dp1 + dy1;
-				double dat2 = 0.0,
-				*tp2 = tabley;
-				while (tp2 <= tp2end)
+				IMAGE_DTYPE *dp1;
+				double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
+
+				make_lookup(x4, nn, xdim2, &dx1, tablex, &tp3end);
+				make_lookup(y4 , nn, ydim2, &dy1, tabley, &tp2end);
+				make_lookup(z4, nn, zdim2, &dz1, tablez, &tp1end);
+
+				tp1 = tablez;
+				dy1 *= xdim2;
+				dp1 = vol + dim1xdim2*dz1;
+
+				while(tp1 <= tp1end)
 				{
-					register double dat3 = 0.0, *tp3 = tablex;
-					register IMAGE_DTYPE *dp3 = dp2 + dx1;
-					while(tp3 <= tp3end)
-						dat3 += *(dp3++) * *(tp3++);
-					dat2 += dat3 * *(tp2++);
-					dp2 += xdim2;
+					IMAGE_DTYPE *dp2 = dp1 + dy1;
+					double dat2 = 0.0,
+					*tp2 = tabley;
+					while (tp2 <= tp2end)
+					{
+						register double dat3 = 0.0, *tp3 = tablex;
+						register IMAGE_DTYPE *dp3 = dp2 + dx1;
+						while(tp3 <= tp3end)
+							dat3 += *(dp3++) * *(tp3++);
+						dat2 += dat3 * *(tp2++);
+						dp2 += xdim2;
+					}
+					dat += dat2 * *(tp1++);
+					dp1 += dim1xdim2;
 				}
-				dat += dat2 * *(tp1++);
-				dp1 += dim1xdim2;
+				*(image++) = scale*dat;
 			}
-			*(image++) = dat;
+			else *(image++) = background;
 		}
 	}
 	return(0);
 }
 
 
-SLICE(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold)
+SLICE(mat, image, xdim1,ydim1, vol, xdim2,ydim2,zdim2, hold,background, scale)
 int ydim1,xdim1, xdim2,ydim2,zdim2, hold;
-double image[], mat[];
+double image[], mat[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	if (hold == 0)
-		return(SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2));
+		return(SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale));
 	if (hold == 1)
-		return(SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2));
+		return(SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale));
 	else
-		return(SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold));
+		return(SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold, background, scale));
 }
 
 
-void RESAMPLE(m,vol,out,x,y,z,xdim,ydim,zdim, hold)
+void RESAMPLE(m,vol,out,x,y,z,xdim,ydim,zdim, hold, background, scale)
 int m, xdim,ydim,zdim, hold;
-double out[], x[], y[], z[];
+double out[], x[], y[], z[], background, scale;
 IMAGE_DTYPE vol[];
 {
 	if (hold == 0)
-		RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim);
+		RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale);
 	else if (hold == 1)
-		RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim);
+		RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale);
 	else
-		RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, hold);
+		RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, hold, background, scale);
 }

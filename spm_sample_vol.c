@@ -17,7 +17,7 @@ Matrix *plhs[], *prhs[];
 {
 	MAPTYPE *map;
 	int m,n, k, hold, xdim,ydim,zdim;
-	double *img;
+	double *img, background=0.0;
 
 	if (nrhs != 5 || nlhs > 1)
 	{
@@ -43,10 +43,13 @@ Matrix *plhs[], *prhs[];
 
 	if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) ||
 		!mxIsFull(prhs[4]) || !mxIsDouble(prhs[4]) ||
-		mxGetM(prhs[4])*mxGetN(prhs[4]) != 1)
-		mexErrMsgTxt("Bad hold argument.");
+		(mxGetM(prhs[4])*mxGetN(prhs[4]) != 1 && mxGetM(prhs[4])*mxGetN(prhs[4]) != 2))
+		mexErrMsgTxt("Bad hold & background argument.");
 
 	hold = abs((int)(*(mxGetPr(prhs[4]))));
+
+	if (mxGetM(prhs[4])*mxGetN(prhs[4]) > 1)
+		background = mxGetPr(prhs[4])[1];
 
 	plhs[0] = mxCreateFull(m,n,REAL);
 	img = mxGetPr(plhs[0]);
@@ -56,24 +59,24 @@ Matrix *plhs[], *prhs[];
 
 	if (map->datatype == UNSIGNED_CHAR)
 		resample_uchar(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+				hold, background, map->scalefactor);
 	else if (map->datatype == SIGNED_SHORT)
 		resample_short(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+				hold, background, map->scalefactor);
 	else if (map->datatype == SIGNED_INT)
 		resample_int(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+				hold, background, map->scalefactor);
 	else if (map->datatype == FLOAT)
 		resample_float(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+				hold, background, map->scalefactor);
 	else if (map->datatype == DOUBLE)
 		resample_double(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+				hold, background, map->scalefactor);
 	else
 		mexErrMsgTxt("Bad datatype.");
-
-	/* final rescale */
-	if (map->scalefactor != 1.0 && map->scalefactor != 0)
-		for (k=0; k<m*n; k++)
-			img[k] *= map->scalefactor;
 }

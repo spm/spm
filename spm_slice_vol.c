@@ -16,7 +16,7 @@ Matrix *plhs[], *prhs[];
 {
 	MAPTYPE *map;
 	int m,n, k, hold, xdim, ydim, zdim, status;
-	double *mat, *ptr, *img;
+	double *mat, *ptr, *img, background=0.0;
 
 	if (nrhs != 4 || nlhs > 1)
 	{
@@ -56,31 +56,33 @@ Matrix *plhs[], *prhs[];
 	plhs[0] = mxCreateFull(m,n,REAL);
 	img = mxGetPr(plhs[0]);
 
-	if (mxGetM(prhs[3])*mxGetN(prhs[3]) != 1)
+	if (mxGetM(prhs[3])*mxGetN(prhs[3]) != 1 && mxGetM(prhs[3])*mxGetN(prhs[3]) != 2)
 	{
-		mexErrMsgTxt("Hold argument must have one element.");
+		mexErrMsgTxt("Hold & background argument must have one or two element(s).");
 	}
 	hold = abs((int)(*(mxGetPr(prhs[3]))));
-
 	if (hold > 127 || hold == 2)
 		mexErrMsgTxt("Bad hold value.");
 
+	if (mxGetM(prhs[3])*mxGetN(prhs[3]) > 1)
+		background = mxGetPr(prhs[3])[1];
+
 	status = 1;
 	if (map->datatype == UNSIGNED_CHAR)
-		status = slice_uchar(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
+		status = slice_uchar(mat, img, m, n, map->data, xdim, ydim, zdim,
+			hold, background, map->scalefactor);
 	else if (map->datatype == SIGNED_SHORT)
-		status = slice_short(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
+		status = slice_short(mat, img, m, n, map->data, xdim, ydim, zdim,
+			hold, background, map->scalefactor);
 	else if (map->datatype == SIGNED_INT)
-		status = slice_int(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
+		status = slice_int(mat, img, m, n, map->data, xdim, ydim, zdim,
+			hold, background, map->scalefactor);
 	else if (map->datatype == FLOAT)
-		status = slice_float(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
+		status = slice_float(mat, img, m, n, map->data, xdim, ydim, zdim,
+			hold, background, map->scalefactor);
 	else if (map->datatype == DOUBLE)
-		status = slice_double(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
+		status = slice_double(mat, img, m, n, map->data, xdim, ydim, zdim,
+			hold, background, map->scalefactor);
 	if (status)
 		mexErrMsgTxt("Slicing failed.");
-
-	/* final rescale */
-	if (map->scalefactor != 1.0 && map->scalefactor != 0)
-		for (k=0; k<m*n; k++)
-			img[k] *= map->scalefactor;
 }
