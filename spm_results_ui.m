@@ -203,11 +203,14 @@ SCCSid = '%I%';
 % FORMAT spm_results_ui('PlotUiCB')
 % CallBack handler for Plot attribute GUI
 %
-% FORMAT Fgraph = spm_results_ui('Clear',F,RNP)
-% Clears results subpane of Graphics window, deletes PageControls, sets new axes
+% FORMAT Fgraph = spm_results_ui('Clear',F,mode)
+% Clears results subpane of Graphics window, deleting all but semi-permanent 
+% results section stuff
 % F      - handle of Graphics window [Default spm_figure('FindWin','Graphics')]
-% RNP    - If specified, respects 'NextPlot' axes attribute, and won't delete
-%          axes with NextPlot set to 'add' (which is set by `hold on`)
+% mode   - 1 [default] - clear results subpane
+%        - 0           - clear results subpane and hide results stuff
+%        - 2           - clear, but respect 'NextPlot' 'add' axes
+%                        (which is set by `hold on`)
 % Fgraph - handle of Graphics window
 %
 % FORMAT hMP = spm_results_ui('LaunchMP',M,DIM,hReg,hBmp)
