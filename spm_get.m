@@ -276,17 +276,13 @@ if ~ischar(Action)
 %-Condition arguments
 %-----------------------------------------------------------------------
 if nargin<5 CmdLine=[]; else CmdLine=varargin{5}; end
+if isempty(CmdLine), CmdLine = spm('isGCmdLine'); end
 if nargin<4 NewWDir=''; else NewWDir=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
 if nargin<2 | isempty(varargin{2}), Filter=0; else Filter=varargin{2}; end
 n = Action;
 
 if (n==0), varargout={[]}; return, end
-
-if isempty(CmdLine)
-	global CMDLINE
-	if ~isempty(CMDLINE), CmdLine = CMDLINE; else, CmdLine=0; end
-end
 
 %-NB: spm_get callbacks use Filter=0 for previous filtering
 if ischar(Filter)
