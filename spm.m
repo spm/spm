@@ -435,8 +435,8 @@ case {'pet','fmri'}             %-Initialise SPM in PET or fMRI modality
 %=======================================================================
 % spm(Modality)
 
-%-Turn on warning messages for debugging
-warning always, warning backtrace
+%-Turn on warning messages for debugging - disabled as syntax for Matlab 6.5 has changed
+%warning always, warning backtrace
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
@@ -1011,9 +1011,9 @@ case 'winsize'                 %-Standard SPM window locations and sizes
 if nargin<3, raw=0; else, raw=1; end
 if nargin<2, Win=''; else, Win=varargin{2}; end
 
-Rect = [	[108 429 400 445];...
-		[108 008 400 395];...
-		[515 008 600 865] ];
+Rect = [	[108 466 400 445];...
+		[108 045 400 395];...
+		[515 045 600 865] ];
 
 WS = spm('WinScale');
 
@@ -1160,17 +1160,18 @@ if nargin<2, error('insufficient arguments'), end
 
 %-Addpath (& report)
 %-----------------------------------------------------------------------
-if isempty(findstr(varargin{2}(i).dir,path))
-	addpath(varargin{2}(i).dir,'-begin')
-	spm('alert"',{'Toolbox directory prepended to MatLab path:',...
-		varargin{2}(i).dir},...
-		[varargin{2}(i).name,' toolbox'],1);
-end
+if i>0,
+	if isempty(findstr(varargin{2}(i).dir,path))
+		addpath(varargin{2}(i).dir,'-begin')
+		spm('alert"',{'Toolbox directory prepended to MatLab path:',...
+			varargin{2}(i).dir},...
+			[varargin{2}(i).name,' toolbox'],1);
+	end
 
-%-Launch
-%-----------------------------------------------------------------------
-evalin('base',varargin{2}(i).prog)
-
+	%-Launch
+	%-----------------------------------------------------------------------
+	evalin('base',varargin{2}(i).prog)
+end;
 
 
 %=======================================================================
