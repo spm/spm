@@ -378,9 +378,11 @@ if spm_input(['Defaults for..?'],1,'m',...
 	 'Defaults for Writing Normalised'],[1 0]),
 	defs.estimate.weight = get_weight(defs.estimate.weight);
 	defs.estimate.wtsrc  = get_wtsrc(defs.estimate.wtsrc);
-	defs.estimate.reg    = get_reg(defs.estimate.reg);
 	defs.estimate.cutoff = get_cutoff(defs.estimate.cutoff);
-	defs.estimate.nits   = get_nits(defs.estimate.nits);
+	if ~isinf(defs.estimate.cutoff),
+		defs.estimate.reg    = get_reg(defs.estimate.reg);
+		defs.estimate.nits   = get_nits(defs.estimate.nits);
+	end;
 else,
 	defs.write.preserve = get_preserve(defs.write.preserve);
 	defs.write.bb       = get_bb(defs.write.bb);
@@ -397,8 +399,8 @@ function wtsrc = get_wtsrc(wtsrc)
 % FORMAT wtsrc = get_wtsrc(wtsrc)
 
 wtsrc = spm_input('Weight source images when registering?',...
-	'+1', 'm','Weight sources|Dont weight sources',[1 0],...
-	find([1 0] == wtsrc));
+	'+1', 'm','Dont weight sources|Weight sources',[0 1],...
+	find([0 1] == wtsrc));
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -552,7 +554,7 @@ interp = spm_input('Interpolation Method?','+1','m',...
 	['Nearest Neighbour|Trilinear Interpolation|',...
 	 '2nd Order B-spline|3rd Order B-spline|4th Order B-spline|',...
 	 '5th Order B-spline|6th Order B-spline|7th Order B-spline'],...
-	 [0 1 2 3 4 5 6 7], interp);
+	 [0 1 2 3 4 5 6 7], interp+1);
 return;
 %_______________________________________________________________________
 
@@ -568,11 +570,5 @@ p = spm_input('Way to wrap images?','+1','m',...
 	['No wrapping|Wrap in X & Y|Wrap in X, Y & Z'],...
 	[1 2 3], t);
 wrap = wraps(p,:);
-return;
-
-%_______________________________________________________________________
-function delete_image(iname)
-iname = spm_str_manip(iname,'sd');
-spm_unlink([iname '.img'], [iname '.hdr'], [iname '.mat'], [iname '.mnc']);
 return;
 
