@@ -1,6 +1,6 @@
-function [Ce,h,W] = spm_REML(Cy,X,Q);
+function [Ce,h,W] = spm_reml(Cy,X,Q);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W] = spm_REML(Cy,X,Q);
+% FORMAT [Ce,h,W] = spm_reml(Cy,X,Q);
 %
 % Cy  - (m x m) data covariance matrix y*y'
 % X   - (m x p) design matrix
@@ -25,8 +25,9 @@ X     = spm_svd(X);
 iCe   = speye(m,m);
 W     = zeros(q,q);
 u     = zeros(q,1);
-H     = ones(q,1);
+H     = zeros(q,1);
 for k = 1:128
+
 
 	% E-step
 	%------------------------------------------------------------------
@@ -34,25 +35,26 @@ for k = 1:128
 	Cb    = inv(X'*iCeX);
 	R     = iCe - iCeX*Cb*iCeX';
 
-	% M-step    NB trace(AB) = sum(sum(A.*B'))
+	% M-step
 	%------------------------------------------------------------------
-	RCy   = R*Cy;
+	RCy   = full(R)*Cy;
 	for i = 1:q
 		RQ{i}  = R*Q{i};
-		u(i)   = sum(sum(RCy.*RQ{i}'));
+		u(i)   = sum(sum(RCy.*RQ{i}));		% trace{R*Cy*R*Q{i}}
 	end
 
 	for i = 1:q
 	for j = 1:q
-		W(i,j) = sum(sum(RQ{i}.*RQ{j}'));
+		W(i,j) = sum(sum(RQ{j}.*RQ{i}));	% trace{R*Q{j}*R*Q{i}}
 	end
 	end
 	h     = pinv(W)*u;
 
 	% convergence
 	%------------------------------------------------------------------
-	dh    = H - h;
-	if dh'*dh < 1e-16, break, end
+	dh    = (H - h)'*(H - h);
+	if dh < 1e-16, break, end
+        fprintf('%-30s: %i %30s%e\n','REML Iteration',k,'...',full(dh));
 	H     = h;
 
 	% esitmate of Ce
@@ -62,4 +64,5 @@ for k = 1:128
 		Ce = Ce + h(i)*Q{i};
 	end
 	iCe   = inv(Ce);
+
 end
