@@ -47,23 +47,24 @@ double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], M[], scale2, scale1[];
 int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
 unsigned char *dat1[], dat2[];
 {
-	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0;
+	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *ptr3, *ptr4, *Tz, *Ty, tmp,dtmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0, *scale1a;
 	extern double floor();
+	ni4 = ni*4;
 
-	dvdt    = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
-	Tz      = (double *)mxCalloc( 2*3*nx*ny                   , sizeof(double));
-	Ty      = (double *)mxCalloc( 2*3*nx                      , sizeof(double));
-	betax   = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
-	betaxy  = (double *)mxCalloc( 3*nx*ny + ni                , sizeof(double));
-	alphax  = (double *)mxCalloc((3*nx    + ni)*(3*nx    + ni), sizeof(double));
-	alphaxy = (double *)mxCalloc((3*nx*ny + ni)*(3*nx*ny + ni), sizeof(double));
+	dvdt    = (double *)mxCalloc( 3*nx    + ni4                 , sizeof(double));
+	Tz      = (double *)mxCalloc( 2*3*nx*ny                     , sizeof(double));
+	Ty      = (double *)mxCalloc( 2*3*nx                        , sizeof(double));
+	betax   = (double *)mxCalloc( 3*nx    + ni4                 , sizeof(double));
+	betaxy  = (double *)mxCalloc( 3*nx*ny + ni4                 , sizeof(double));
+	alphax  = (double *)mxCalloc((3*nx    + ni4)*(3*nx    + ni4), sizeof(double));
+	alphaxy = (double *)mxCalloc((3*nx*ny + ni4)*(3*nx*ny + ni4), sizeof(double));
 
 	scale1a = T + 3*nx*ny*nz;
 
 	/* only zero half the matrix */
-	m1 = 3*nx*ny*nz+ni;
+	m1 = 3*nx*ny*nz+ni4;
 	for (x1=0;x1<m1;x1++)
 	{
 		for (x2=0;x2<=x1;x2++)
@@ -92,7 +93,7 @@ unsigned char *dat1[], dat2[];
 			}
 
 		/* only zero half the matrix */
-		m1 = 3*nx*ny+ni;
+		m1 = 3*nx*ny+ni4;
 		for (x1=0;x1<m1;x1++)
 		{
 			for (x2=0;x2<=x1;x2++)
@@ -123,7 +124,7 @@ unsigned char *dat1[], dat2[];
 			}
 
 			/* only zero half the matrix */
-			m1 = 3*nx+ni;
+			m1 = 3*nx+ni4;
 			for(x1=0;x1<m1;x1++)
 			{
 				for (x2=0;x2<=x1;x2++)
@@ -284,13 +285,20 @@ unsigned char *dat1[], dat2[];
 						default:
 							mexErrMsgTxt("Bad data type.");
 						}
-						dvdt[i1+3*nx] = tmp;
-						dv -= dvdt[i1+3*nx]*scale1a[i1];
+						dvdt[i1*4  +3*nx] = tmp;
+						dvdt[i1*4+1+3*nx] = tmp*s2[0];
+						dvdt[i1*4+2+3*nx] = tmp*s2[1];
+						dvdt[i1*4+3+3*nx] = tmp*s2[2];
+
+						dv -= dvdt[i1*4  +3*nx]*scale1a[i1];
+						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1+1];
+						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1+2];
+						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1+3];
 					}
 
 					ss += dv*dv;
 
-					m1 = 3*nx+ni;
+					m1 = 3*nx+ni4;
 					for(x1=0; x1<m1; x1++)
 					{
 						for (x2=0;x2<=x1;x2++)
@@ -301,8 +309,8 @@ unsigned char *dat1[], dat2[];
 			}
 
 			/* Kronecker tensor products with BY'*BY */
-			m1 = 3*nx*ny+ni;
-			m2 = 3*nx+ni;
+			m1 = 3*nx*ny+ni4;
+			m2 = 3*nx+ni4;
 			for(i1=0; i1<3; i1++)
 			{
 				for(y1=0; y1<ny; y1++)
@@ -324,7 +332,7 @@ unsigned char *dat1[], dat2[];
 					ptr1 = alphaxy + nx*(m1*ny*3 + ny*i1 + y1);
 					ptr2 = alphax  + nx*(m2*3 + i1);
 
-					for(x1=0; x1<ni; x1++)
+					for(x1=0; x1<ni4; x1++)
 					{
 						for (x2=0;x2<nx;x2++)
 							ptr1[m1*x1+x2] += ptr2[m2*x1+x2] * BY[dim1[1]*y1+s0[1]];
@@ -335,7 +343,7 @@ unsigned char *dat1[], dat2[];
 			}
 			ptr1 = alphaxy + nx*(m1*ny*3 + ny*3);
 			ptr2 = alphax  + nx*(m2*3 + 3);
-			for(x1=0; x1<ni; x1++)
+			for(x1=0; x1<ni4; x1++)
 			{
 				for (x2=0; x2<=x1; x2++)
 					ptr1[m1*x1 + x2] += ptr2[m2*x1 + x2];
@@ -344,8 +352,8 @@ unsigned char *dat1[], dat2[];
 		}
 
 		/* Kronecker tensor products with BZ'*BZ */
-		m1 = 3*nx*ny*nz+ni;
-		m2 = 3*nx*ny+ni;
+		m1 = 3*nx*ny*nz+ni4;
+		m2 = 3*nx*ny+ni4;
 		for(z1=0; z1<nz; z1++)
 		{
 			for(i1=0; i1<3; i1++)
@@ -367,7 +375,7 @@ unsigned char *dat1[], dat2[];
 				ptr1 = alpha   + nx*ny*(m1*nz*3 + nz*i1 + z1);
 				ptr2 = alphaxy + nx*ny*(m2*3 + i1);
 
-				for(y1=0; y1<ni; y1++)
+				for(y1=0; y1<ni4; y1++)
 				{
 					for (y2=0;y2<ny*nx;y2++)
 						ptr1[m1*y1+y2] += ptr2[m2*y1+y2]*BZ[dim1[2]*z1+s0[2]];
@@ -378,7 +386,7 @@ unsigned char *dat1[], dat2[];
 		}
 		ptr1 = alpha   + nx*ny*(m1*nz*3 + nz*3);
 		ptr2 = alphaxy + nx*ny*(m2*3 + 3);
-		for(y1=0; y1<ni; y1++)
+		for(y1=0; y1<ni4; y1++)
 		{
 			for(y2=0;y2<=y1;y2++)
 				ptr1[m1*y1 + y2] += ptr2[m2*y1 + y2];
@@ -393,7 +401,7 @@ unsigned char *dat1[], dat2[];
 	/* Fill in the symmetric bits
 	   - OK I know some bits are done more than once - but it shouldn't matter. */
 
-	m1 = 3*nx*ny*nz+ni;
+	m1 = 3*nx*ny*nz+ni4;
 	for(i1=0; i1<3; i1++)
 	{
 		double *ptrz, *ptry, *ptrx;
@@ -428,11 +436,11 @@ unsigned char *dat1[], dat2[];
 	ptr1 = alpha + nx*ny*nz*3;
 	ptr2 = alpha + nx*ny*nz*3*m1;
 	for(x1=0; x1<nx*ny*nz*3; x1++)
-		for(x2=0; x2<ni; x2++)
+		for(x2=0; x2<ni4; x2++)
 			ptr1[m1*x1+x2] = ptr2[m1*x2+x1];
 
 	ptr1 = alpha + nx*ny*nz*3*(m1+1);
-	for(x1=0; x1<ni; x1++)
+	for(x1=0; x1<ni4; x1++)
 		for (x2=0; x2<x1; x2++)
 			ptr1[m1*x2+x1] = ptr1[m1*x1+x2];
 
@@ -503,7 +511,7 @@ Matrix *plhs[], *prhs[];
 	BZ = mxGetPr(prhs[5]);
 
 	T = mxGetPr(prhs[6]);
-	if (mxGetM(prhs[6])*mxGetN(prhs[6]) != 3*nx*ny*nz+ni)
+	if (mxGetM(prhs[6])*mxGetN(prhs[6]) != 3*nx*ny*nz+ni*4)
 		mexErrMsgTxt("Transform is wrong size.");
 
 	if ( mxGetM(prhs[7])*mxGetN(prhs[7]) != 1) mexErrMsgTxt("FWHM should be a single value.");
@@ -531,8 +539,8 @@ Matrix *plhs[], *prhs[];
 	scale2    = map2->scalefactor;
 
 
-        plhs[0] = mxCreateFull(3*nx*ny*nz+ni,3*nx*ny*nz+ni,REAL);
-        plhs[1] = mxCreateFull(3*nx*ny*nz+ni,1,REAL);
+        plhs[0] = mxCreateFull(3*nx*ny*nz+ni*4,3*nx*ny*nz+ni*4,REAL);
+        plhs[1] = mxCreateFull(3*nx*ny*nz+ni*4,1,REAL);
 	plhs[2] = mxCreateFull(1,1,REAL);
 
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), mxGetPr(plhs[2]),
@@ -542,7 +550,7 @@ Matrix *plhs[], *prhs[];
 
 	resels = nsamp * map1[0]->xpixdim*samp[0] * map1[0]->ypixdim*samp[1] * map1[0]->ypixdim*samp[1]
 		/ fwhm*fwhm*fwhm;
-	mxGetPr(plhs[2])[0] = mxGetPr(plhs[2])[0] / (resels - (3*nx*ny*nz + ni));
+	mxGetPr(plhs[2])[0] = mxGetPr(plhs[2])[0] / (resels - (3*nx*ny*nz + ni*4));
 	free_maps(map1);
 }
 
