@@ -1,8 +1,8 @@
 function varargout = spm_list(varargin)
 % Display and analysis of SPM{.}
-% FORMAT TabDat = spm_list('List',SPM,hReg)
+% FORMAT TabDat = spm_list('List',SPM,hReg,[Num,Dis,Str])
 % Summary list of local maxima for entire volume of interest
-% FORMAT TabDat = spm_list('ListCluster',SPM,hReg)
+% FORMAT TabDat = spm_list('ListCluster',SPM,hReg,[Num,Dis,Str])
 % List of local maxima for a single suprathreshold cluster
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -27,6 +27,10 @@ function varargout = spm_list(varargin)
 % (see spm_getSPM for further details of xSPM structures)
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
+%
+% Num    - number of maxima per cluster
+% Dis    - distance among clusters (mm)
+% Str    - header string
 %
 % TabDat - Structure containing table data
 %        - fields are
@@ -115,14 +119,11 @@ switch lower(varargin{1}), case 'list'                            %-List
 %-----------------------------------------------------------------------
 tol = eps*10;
 
-%-Parse arguments
+%-Parse arguments and set maxima number and separation
 %-----------------------------------------------------------------------
 if nargin < 2,	error('insufficient arguments'), end
 if nargin < 3,	hReg=[]; else, hReg = varargin{3}; end
 
-Title  = ['volume summary',' (p-values adjusted for volume)'];
-Num    = 03;		% number of maxima per cluster
-Dis    = 08;		% distance among clusters (mm)
 
 %-Get current location (to highlight selected voxel in table)
 %-----------------------------------------------------------------------
@@ -144,6 +145,24 @@ k     = varargin{2}.k*v2r;
 Vspm  = varargin{2}.Vspm;				% Needed for FDR
 Msk   = varargin{2}.Msk;				%      "
 nZ    = length(varargin{2}.Z);				%      "
+
+
+%-get number and separation for maxima to be reported
+%-----------------------------------------------------------------------
+if length(varargin) > 3
+
+	Num    = varargin{4};		% number of maxima per cluster
+	Dis    = varargin{5};		% distance among clusters (mm)
+else
+	Num    = 3;
+	Dis    = 8;
+end
+if length(varargin) > 5
+
+	Title  = varargin{6};
+else
+	Title  = 'p-values adjusted for search volume';
+end
 
 
 %-Setup graphics panel
@@ -207,7 +226,7 @@ h  = text(0.26,y-9*dy/8,	'\itk \rm_E');
 text(0.60,y,		'voxel-level','FontSize',FS(9));
 line([0.46,0.86],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
 h  = text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}');		Hp = [Hp,h];
-h  = text(0.55,y-9*dy/8,     '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
+h  = text(0.55,y-9*dy/8,        '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
 h  = text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
 h  = text(0.64,y-9*dy/8,	 sprintf('\\it%c',STAT));
 h  = text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)');
@@ -225,14 +244,14 @@ TabDat.hdr = {	'set',		'c';...
 		'cluster',	'p(unc)';...
 		'voxel',	'p(FWE-cor)';...
 		'voxel',	'p(FDR-cor)';...
-		'voxel',	STAT;...
+		'voxel',	 STAT;...
 		'voxel',	'equivZ';...
 		'voxel',	'p(unc)';...
 		'',		'x,y,z {mm}'}';...
 		
-TabDat.fmt = {	'%-0.3f', '%g',...				%-Set
-		'%0.3f',  '%0.0f',  '%0.3f',...			%-Cluster
-		'%0.3f',  '%0.3f',  '%6.2f', '(%5.2f)', '%0.3f',...%-Voxel
+TabDat.fmt = {	'%-0.3f','%g',...				%-Set
+		'%0.3f', '%0.0f', '%0.3f',...			%-Cluster
+		'%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...	%-Voxel
 		'%3.0f %3.0f %3.0f'};				%-XYZ
 
 %-Column Locations
@@ -255,8 +274,8 @@ y0    = y;
 if isinf(Num)
 	TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
 else
-	TabDat.str = sprintf(['table shows at most %d local maxima ',...
-		'> %.1fmm apart per cluster'],Num,Dis);
+	TabDat.str = sprintf(['table shows %d local maxima ',...
+		'more than %.1fmm apart'],Num,Dis);
 end
 text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
@@ -280,17 +299,17 @@ set(gca,'DefaultTextFontName',PF.helvetica,...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 TabDat.ftr    = cell(5,2);
 TabDat.ftr{1} = ...
-	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f FWE, %0.3f FDR)',...
-		 STAT,u,Pz,Pu,Qu);
+	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',...
+		 STAT,u,Pz,Pu);
 TabDat.ftr{2} = ...
-	sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f corrected)',...
+	sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)',...
 	         k/v2r,Pn,P);
 TabDat.ftr{3} = ...
 	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
 TabDat.ftr{4} = ...
 	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
 TabDat.ftr{5} = ...
-	sprintf('Expected false discoveries, <#FD|R> <= %0.2f',Qu*nZ);
+	sprintf('Expected false discoveries, <= %0.2f',Qu*nZ);
 TabDat.ftr{6} = ...
 	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
 TabDat.ftr{7} = ...
@@ -335,7 +354,7 @@ if ~length(varargin{2}.Z)
 		'FontAngle','Italic','FontWeight','Bold',...
 		'FontSize',FS(16),'Color',[1,1,1]*.5);
 	TabDat.dat = cell(0,11);
-	varargout = {TabDat};
+	varargout  = {TabDat};
 	spm('Pointer','Arrow')
 	return
 end
@@ -648,13 +667,20 @@ spm('Pointer','Watch')
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin < 2,	error('insufficient arguments'), end
-if nargin < 3,	hReg=[]; else, hReg = varargin{3}; end
-
-Title  = ['volume summary',' (p-values adjusted for volume)'];
-Num    = 03;		% number of maxima per cluster
-Dis    = 08;		% distance among clusters (mm)
+if nargin < 2,	error('insufficient arguments'),     end
+if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
 SPM    = varargin{2};
+
+%-get number and separation for maxima to be reported
+%-----------------------------------------------------------------------
+if length(varargin) > 3
+
+	Num    = varargin{4};		% number of maxima per cluster
+	Dis    = varargin{5};		% distance among clusters (mm)
+else
+	Num    = 32;
+	Dis    = 4;
+end
 
 
 %-if there are suprathreshold voxels, filter out all but current cluster
@@ -679,7 +705,7 @@ end
 
 %-Call 'list' functionality to produce table
 %-----------------------------------------------------------------------
-varargout = {spm_list('list',SPM,hReg)};
+varargout = {spm_list('list',SPM,hReg,Num,Dis)};
 
 
 
