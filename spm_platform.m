@@ -231,7 +231,7 @@ end
 %-----------------------------------------------------------------------
 switch comp
 case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86'}
-	SPM_PLATFORM.font.helvetica = 'Helvetica';
+	SPM_PLATFORM.font.helvetica = 'Times'; % 'Helvetica';
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';
 	SPM_PLATFORM.font.symbol    = 'Symbol';
