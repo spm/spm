@@ -59,11 +59,10 @@ if length(n) == 1
     %-----------------------------------------------------------------------
     if ~length(x{n}(:))
         J = sparse(length(f0(:)),0);
-    end
     
     % if there are no arguments to differentiate
     %-----------------------------------------------------------------------
-    if ~size(J{1},1)
+    elseif ~size(f0,1)
         J = sparse(0,length(x{n}(:)));
     end
 
