@@ -10,6 +10,11 @@
 % stereotactic  space   is  based  on  152   brains  from  Montréal
 % Neurological  Institute,  and  will eventually be replaced in due
 % course by a 450-brain version for the entire ICBM consortium.
+%
+% Subject details:
+%    Age: mean=25.0, median=24.0, mode=19.0, stdev=4.9, range=18-44
+%    Sex: female=66 (43.4%), male=86 (56.6%)
+%    Handedness: right=129 (90.2%), left=14 (9.8%), unknown=9
 % 
 % In SPM96, we released  a  single  subject  brain  for  use  as  a
 % template.   Although  the  MNI  gave  us  this  data,  they never
@@ -36,7 +41,8 @@
 % project, Principal Investigator John Mazziotta).  The  image  was
 % reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
 % Gaussian filter.
-% 
+% Sequence Details: Spoiled FLASH sequence, TE=10, TR=18, FA=30.
+%
 % templates/T2.img
 % ----------------
 % Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
@@ -44,6 +50,7 @@
 % project, Principal Investigator John Mazziotta).  The  image  was
 % reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
 % Gaussian filter.
+% Sequence Details: Dual echo spin echo, TE=120ms, TR=3300ms, FA=90.
 % 
 % templates/PD.img
 % ----------------
@@ -52,6 +59,7 @@
 % project, Principal Investigator John Mazziotta).  The  image  was
 % reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
 % Gaussian filter.
+% Sequence Details: Dual echo spin echo, TE=35ms, TR=3300ms, FA=90.
 % 
 % templates/EPI.img
 % -------------
