@@ -174,15 +174,15 @@ function varargout=spm_figure(varargin)
 % If the figure is 'Tag'ed as 'Graphics' (SPM usage), then the Print button
 % callback is set to attempt to clear an 'Interactive' figure too.
 %
-% FORMAT h = spm_figure('FigContextMenu'[,SPMclear])
-% Creates UIcontextMenu with functionality of Figure ToolBar.
-% If SPMclear then 'Clear' is an SPM workspace clear.
-% SPMclear - SPMclear flag [Default 0]
-% h        - handle of UIcontextMenu
+% FORMAT h = spm_figure('FigContextMenu',F)
+% Creates figure UIcontextMenu, with functionality of Figure ToolBar.
+% F - handle of Figure for UIcontextMenu [default gcf]
+% h - handle of UIContextMenu
 %
-% FORMAT h = spm_figure('TxtContextMenu')
+% FORMAT h = spm_figure('TxtContextMenu',t)
 % Creates UIcontextMenu for text objects
-% h        - handle of UIcontextMenu
+% t - handle of text object to ContextMenu, or figure to work in [default gcf]
+% h - handle of UIcontextMenu
 %
 % FORMAT spm_figure('ColorMap')
 % Callback for "ColorMap" buttons
@@ -248,7 +248,7 @@ if nargin<2, F='Graphics'; else, F=varargin{2}; end
 
 if isempty(F)
 	% Leave F empty
-elseif isstr(F)
+elseif ischar(F)
 	% Finds Graphics window with 'Tag' string - delete multiples
 	Tag=F;
 	F = findobj(get(0,'Children'),'Flat','Tag',Tag);
@@ -270,7 +270,7 @@ case 'getwin'
 if nargin<2, Tag='Graphics'; else, Tag=varargin{2}; end
 F = spm_figure('FindWin',Tag);
 
-if isempty(F) & isstr(Tag)
+if isempty(F) & ischar(Tag)
 	switch Tag, case 'Graphics'
 		F = spm_figure('Create','Graphics','Graphics');
 	case 'Interactive'
@@ -316,7 +316,7 @@ else
 	%-Clear specified objects from figure
 	cSHH = get(0,'ShowHiddenHandles');
 	set(0,'ShowHiddenHandles','on')
-	if isstr(Tags); Tags=cellstr(Tags); end
+	if ischar(Tags); Tags=cellstr(Tags); end
 	if any(strcmp(Tags(:),'!all'))
 		delete(get(F,'Children'))
 	else
@@ -475,7 +475,7 @@ Cpage     = get(hPageNo,  'UserData');
 nPages    = size(hAxes,1);
 
 %-Sort out new page number
-if isstr(move)
+if ischar(move)
 	Npage = Cpage+eval(move);
 else
 	Npage = move;
@@ -595,7 +595,7 @@ F      = figure(...
 	'Visible','off');
 if ~isempty(Name)
 	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
-set(F,'UIcontextMenu',spm_figure('FigContextMenu',strcmp(Tag,'Graphics')))
+spm_figure('FigContextMenu',F);
 set(F,'Visible',Visible)
 varargout = {F};
 
@@ -724,19 +724,22 @@ set(F,'Units',cUnits)
 
 case 'figcontextmenu'
 %=======================================================================
-% h = spm_figure('FigContextMenu',SPMclear)
-if nargin<2, SPMclear=0; else, SPMclear=varargin{2}; end
+% h = spm_figure('FigContextMenu',F)
+if nargin<2
+	F = get(0,'CurrentFigure');
+	if isempty(F), error('no figure'), end
+else
+	F = spm_figure('FindWin',varargin{2});
+	if isempty(F), error('no such figure'), end
+end
 
-h = uicontextmenu('HandleVisibility','CallBack');
+h = uicontextmenu('Parent',F,'HandleVisibility','CallBack');
 uimenu(h,'Label','Print','HandleVisibility','CallBack',...
 	'CallBack','spm_figure(''Print'',gcf)')
-if ~SPMclear
-	uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
- 	   	'CallBack','spm_figure(''Clear'',gcbf)');
-else
-	uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
-		'CallBack','spm(''Clear'',''Interactive'',gcbf)');
-end
+uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
+	    'CallBack','spm_figure(''Clear'',gcbf)');
+%uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
+%	'CallBack','spm(''Clear'',''Interactive'',gcbf)');
 
 hC = uimenu(h,'Label','Colormap','HandleVisibility','CallBack','Separator','on');
 uimenu(hC,'Label','gray','HandleVisibility','CallBack',...
@@ -771,14 +774,38 @@ uimenu(h,'Label','help','HandleVisibility','CallBack','Separator','on',...
 %uimenu(h,'Label','Identify handle','HandleVisibility','CallBack','Separator','on',...
 %	'CallBack','spm_figure(''GraphicsHandle'')')
 
+set(F,'UIContextMenu',h)
 varargout = {h};
 
 
 case 'txtcontextmenu'
 %=======================================================================
-% h = spm_figure('TxtContextMenu')
+% h = spm_figure('TxtContextMenu',t)
+if nargin<2
+	F = get(0,'CurrentFigure'); t=[];
+	if isempty(F), error('no figure'), end
+elseif ischar(varargin{2})		%-Figure 'Tag'
+	F = spm_figure('FindWin',varargin{2}); t=[];
+	if isempty(F), error(sprintf('no figure ''Tag''ged ''%s''',...
+		varargin{2})), end
+elseif ishandle(varargin{2})	%-handle: figure or text object
+	switch get(varargin{2},'Type')
+	case 'figure'
+		F = varargin{2};
+		t = [];
+	case 'text'
+		t = varargin{2};
+		F = spm_figure('ParentFig',t);
+	otherwise
+		error('handle not a figure or text object')
+	end
+else
+	error('invalid handle')
+end
 
-h = uicontextmenu;
+
+
+h = uicontextmenu('Parent',F);
 uimenu(h,'Label','Delete','CallBack','delete(gco)')
 uimenu(h,'Label','Move','CallBack','spm_figure(''GraphicsMove'')')
 
@@ -823,6 +850,7 @@ uimenu(tmp,	'Label','TeX','CallBack','set(gco,''Interpreter'',''tex'')')
 
 %uimenu(h,'Separator','on','Label','Get handle','CallBack','gco')
 
+if ~isempty(t), set(t,'UIContextMenu',h), end
 varargout = {h};
 
 
@@ -831,7 +859,7 @@ case 'colormap'
 % spm_figure('Colormap',ColAction,h)
 if nargin<3, h=[]; else, h=varargin{3}; end
 if nargin<2, ColAction='gray'; else, ColAction=varargin{2}; end
-if ~isstr(ColAction)
+if ~ischar(ColAction)
 	if ColAction==1, return, end
 	Actions   = get(gcbo,'String');
 	ColAction = deblank(Actions(ColAction,:));
