@@ -494,12 +494,20 @@ end
 %-Make sure Values are in rows
 if size(Values,1)==1, Values = Values'; end
 
+%-Check some labels were specified
 if isempty(Labels), error('No Labels specified'), end
+
+%-Check numbers of Labels and Values match
 if (size(Labels,1)~=size(Values,1))
 	error('Labels & Values incompatible sizes'), end
 
+if size(Labels,1)==1
+%=======================================================================
+%-Only one choice : just return the appropriate Value
+	p = Values;
 
-if Type(1)=='b'
+
+elseif Type(1)=='b'
 %=======================================================================
 	%-Process button type
 	NoLabels = size(Labels,1);
@@ -537,7 +545,8 @@ if Type(1)=='b'
 			    Prmpt=[Prmpt,'/ [',Keys(lab),'] ']; end
 		end
 		if DefItem
-		    Prmpt=[Prmpt,' (Default: ',deblank(Labels(DefItem,:)),' )'];
+		    Prmpt = [Prmpt,...
+		    	' (Default: ',deblank(Labels(DefItem,:)),' )'];
 		end
 
 		%-Ask for user response
@@ -646,7 +655,6 @@ if Type(1)=='b'
 		set(0,'PointerLocation',CPos)
 
 	end % (if CmdLine)
-R1 = p;
 
 
 elseif Type(1)=='m'
@@ -688,7 +696,7 @@ elseif Type(1)=='m'
 			'HorizontalAlignment','Left',...
 			'ForegroundColor','k',...
 			'BackgroundColor',COLOR,...
-			'String',str2mat(Prompt,Labs),...
+			'String',str2mat([Prompt,'...'],Labs),...
 			'Tag',Tag,...
 			'UserData',DefItem,...
 			'CallBack',cb,...
@@ -715,9 +723,11 @@ elseif Type(1)=='m'
 	end % (if CmdLine)
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
-	R1 = p;
 
 end % (if Type(1)==...) switch for 'b' or 'm' within any(Type(1)=='bm')
+
+%-Set return value
+R1 = p;
 
 %-Log the transaction
 %-----------------------------------------------------------------------
