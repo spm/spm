@@ -92,57 +92,62 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 		i   = spm_input(str,1);
 		CON = CONTRAST(i,:);
 	end
+	str   = 'eliminate interactions at p <';
+	pF    = spm_input(str,2,'b','.05|.01|.001',[.05 .01 .001]);
+
 	set(Finter,'Name','please wait a moment','Pointer','watch')
 
 
-		
-	% create sequential models (i.e. design matrix partitions)
+	% get sequential statistics by roation of previous estimates
 	%---------------------------------------------------------------
-	% 0 - null space
-	% 1 - interactions among contrasts
-	% 2 - main effect of contrasts
+	% This implementation is at variance with the published method
+	% and is more conservative.  It sacrifices the advantages of 
+	% rendering the statistics independent in order to model main 
+	% effects when testing for interactions.
 	%
 	% get parameter estimates and contruct new partitions
 	%---------------------------------------------------------------
 	load([CWD,'/BETA'])
 	load([CWD,'/RES'])
 
-	X0    = [spm_detrend([H C]) B G];
-	X1    = X0*CONTRAST(i,:)';
-	X2    = sum(X1')';
-	X0    = X0 - X1*(pinv(X1)*X0);
-	X1    = X1 - X2*(pinv(X2)*X1);
-	X0    = orth(X0);
-	X1    = orth(X1);
-	X2    = orth(X2);
-
-	% get sequential statistics by roation of previous estimates
+	% 1 - t statistic for main effect of contrasts
 	%---------------------------------------------------------------
-	D     = pinv([X2 X1 X0]);
-	D     = D(1,:)*DM;
-	PE    = D*BETA;
-	SSQ2  = PE.^2;
-	T     = PE./sqrt(RES*(D*BCOV*D'));
+	c     = sum(CON);
+	T     = c*BETA./sqrt(RES*(c*BCOV*c'));
 	Z     = spm_t2z(T,Fdf(2));
 
+	% 1 - F statistic for interactions among contrasts
+	%---------------------------------------------------------------
+	X0    = spm_detrend([H C]);			% space of interest
+	X1    = X0*CON(:,[1:size(X0,2)])';		% spanned by contrasts
+	X0    = X0 - X1*(pinv(X1)*X0);			% null space
+	X2    = sum(X1')';				% main effect
+	X1    = X1 - X2*(pinv(X2)*X1);			% interactions
+
+	% assess X1 only using the F statistic
+	%---------------------------------------------------------------
+	X0    = [X2 X0 B G];
+	X1    = X1 - X0*(pinv(X0)*X1);			
+	X0    = orth(X0);
+	X1    = orth(X1);
 	D     = pinv([X1 X0]);
 	D     = D(1:size(X1,2),:)*DM;
 	PE    = D*BETA;
-	SSQ1  = PE.^2;
-	if size(SSQ1,1) > 1; SSQ1 = sum(SSQ1); end
+	SSQ   = PE.^2;
+	if size(SSQ,1) > 1; SSQ = sum(SSQ); end
 	Fdf0  = spm_AnCova(X1,X0,SIGMA);
 	global trRV trR0V
-	F     = (trRV/trR0V)*SSQ1./(RES + SSQ2);
+	F     = (trRV/trR0V)*SSQ./RES;
 
 	% find voxels with significant interactions
 	%---------------------------------------------------------------
-	U     = spm_invFcdf((1 - 0.05),Fdf0);
+	U     = spm_invFcdf((1 - pF),Fdf0);
 	Q     = find(F < U);
-	S     = S - (length(Z) - length(Q));
 	Z     = Z(Q);
 	SPMt  = SPMt(:,Q);
 	XYZ   = XYZ(:,Q);
 	QQ    = QQ(Q);
+
 
 	% finished
 	%---------------------------------------------------------------
@@ -154,7 +159,7 @@ else
 	if size(CONTRAST,1) > 1
 		while any(i < 1 | i > size(CONTRAST,1))
 			str = sprintf('contrast ? 1 - %i',size(CONTRAST,1));
-			i   = spm_input(str,1);
+			i   = spm_input(str,'!+1');
 			CON = CONTRAST(i(1),:);
 		end
 	else
