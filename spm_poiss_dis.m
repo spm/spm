@@ -11,6 +11,15 @@ function [y] = spm_poiss_dis(x,q)
 %__________________________________________________________________________
 % %W% %E%
 
+fprintf('%s\nWARNING: spm_poiss_dis is grandfathered: Use spm_Ppdf instead...\n',7)
+
+y = spm_Ppdf(x,q);
+
+return
+
+
+
+
 %---------------------------------------------------------------------------
 X = x;
 x = 1:max(x);
