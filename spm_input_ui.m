@@ -987,7 +987,6 @@ switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 				end
 				h = uicontrol(Finter,'Style','Pushbutton',...
 					'String',deblank(Labels(i,:)),...
-					'FontSize',10,...
 					'ToolTipString',str,...
 					'Tag',Tag,...
 					'Max',hPrmpt,...
@@ -1739,11 +1738,11 @@ Yo   = round(2*min(WS));	%-Y offset for responses
 
 a = 5.5/10;
 y = Ydim - Se*YPos;
-QRec   = [Pd            y         Xdim-2*Pd        Sz];	%-Question
-PRec   = [Pd            y     floor(a*Xdim)-2*Pd   Sz];	%-Prompt
-RRec   = [ceil(a*Xdim)  y+Yo  floor((1-a)*Xdim)-Pd Sz];	%-Response
-% MRec = [010           y         Xdim-50          Sz];	%-Menu PullDown
-% BRec = MRec + [Xdim-50+1, 0+1, 50-Xdim+30, 0];	%-Menu PullDown OK butt.
+QRec   = [Pd            y         Xdim-2*Pd        Sz]; %-Question
+PRec   = [Pd            y     floor(a*Xdim)-2*Pd   Sz]; %-Prompt
+RRec   = [ceil(a*Xdim)  y+Yo  floor((1-a)*Xdim)-Pd Sz]; %-Response
+% MRec = [010           y         Xdim-50          Sz]; %-Menu PullDown
+% BRec = MRec + [Xdim-50+1, 0+1, 50-Xdim+30, 0];        %-Menu PullDown OK butt
 
 if ~isempty(rec)
 	varargout = {eval(rec)};
