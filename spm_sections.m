@@ -1,4 +1,4 @@
-function spm_sections(SPM,hReg)
+function spm_sections(SPM,hReg,spms)
 % rendering of regional effects [SPM{Z}] on orthogonal sections
 % FORMAT spm_sections(SPM,hReg)
 %
@@ -15,8 +15,11 @@ function spm_sections(SPM,hReg)
 %_______________________________________________________________________
 % %W%	John Ashburner %E%
 
+if nargin < 3 | isempty(spms)
+	spms   = spm_get(1,'IMAGE','select image for rendering on');
+end
+
 Fgraph = spm_figure('FindWin','Graphics');
-spms   = spm_get(1,'IMAGE','select image for rendering on');
 spm_results_ui('Clear',Fgraph);
 spm_orthviews('Reset');
 global st
@@ -26,3 +29,7 @@ spm_orthviews MaxBB;
 spm_orthviews('register',hReg);
 spm_orthviews('addblobs',1,SPM.XYZ,SPM.Z,SPM.M);
 spm_orthviews('Redraw');
+
+global prevsect
+prevsect = spms;
+
