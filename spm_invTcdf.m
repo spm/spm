@@ -23,8 +23,6 @@ function t = spm_invTcdf(p,df)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-% - Mfiles: spm_fzero spm_Tcdf
-
 %-Parameters
 %---------------------------------------------------------------------------
 Tol=[];
@@ -45,8 +43,8 @@ elseif length(df)==1
 elseif length(p)==1
 	p=p*ones(size(df));
 else
-	error('p and df not compatible for addition'), end
-end % if (size)
+	error('p and df not compatible for addition')
+end
 
 %-Computation
 %---------------------------------------------------------------------------
@@ -59,4 +57,4 @@ InitGuess=0;
 trace=0;
 for k=find(abs(p-0.5)<0.5)
 	t(k)=spm_fzero('spm_Tcdf',InitGuess,Tol,trace,df(k),p(k));
-end % for
+end
