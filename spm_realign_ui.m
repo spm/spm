@@ -621,7 +621,6 @@ defs.estimate.regwgt = lambdas(defs.estimate.regwgt);
 defs.estimate.rem = spm_input('Re-estimation of movement parameters?','+1','m',...
                               ['Yes|No'],[1 0],1);
 
-keyboard
 defs.estimate.jm = spm_input('Include Jacobian intensity modulation?','+1','m',...
                              ['Yes|No'],[1 0],2);
 
