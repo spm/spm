@@ -90,13 +90,7 @@ end
 %=======================================================================
 
 %=======================================================================
-switch lower(varargin{1}), case '*****'
-%=======================================================================
-% spm_conman('
-
-
-%=======================================================================
-case 'initialise'
+switch lower(varargin{1}), case 'initialise'
 %=======================================================================
 % [F,cF] = spm_conman('Initialise',Vis,xX,xCon,STATmode,n,Prompt,Mcstr,OK2chg)
 
@@ -163,7 +157,7 @@ case 'on'
 	spm_conman('ListCon',H.hConList,xCon,STAT,[])	%-List contrasts
 	if OK2chg, tmp='on'; else, tmp='off'; end	%-OK to change xCon?
 	set(H.hNew,'Enable',tmp)			%-En/dis-able change UI
-%-***	if isempty(xCon), spm_conman(); end		%-Go straight to DNewUI
+%-****	if isempty(xCon), spm_conman(); end		%-Go straight to DNewUI
 
 	%-Popup figure, retaining CurrentFigure
 	%---------------------------------------------------------------
