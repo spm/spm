@@ -85,8 +85,8 @@ function varargout = spm_input(varargin)
 % of evaluated input described above are complimented as follows:
 %   v)  - a compressed list of digits 0-9   e.g. "12121212"
 %  ii)  - a list of indicator characters    e.g. "abababab"
-%         (chars mapped to whole numbers in alphabetical order)
-%         (case insensitive, [A:Z,a:z] only)
+%         a-z mapped to 1-26 in alphabetical order, *except* r ("rest")
+%         which is mapped to zero (case insensitive, [A:Z,a:z] only)
 % ...in addition the response is checked to ensure integer condition indices.
 % Occasionally a specific number of conditions will be required: This
 % will be indicated in the prompt, which will end with (#), where # is
@@ -159,6 +159,10 @@ function varargout = spm_input(varargin)
 % - generic   - FORMAT [p,YPos] = spm_input(Prompt,YPos,Type,...)
 % - string    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
 % - evaluated - FORMAT [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
+%   - natural - FORMAT [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n)
+%   - whole   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n)
+%   - integer - FORMAT [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
+%   - real    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
 % - condition - FORMAT [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
 % - button    - FORMAT [p,YPos]= spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
@@ -170,6 +174,8 @@ function varargout = spm_input(varargin)
 % - buttons (shortcut) where Labels is a bar delimited string
 %             - FORMAT p = spm_input(Prompt,YPos,Labels,Values,DefItem)
 %
+% NB: Natural numbers are [1:Inf), Whole numbers are [0:Inf)
+% 
 % -- Parameters (input) --
 %
 % Prompt   - prompt string
@@ -205,7 +211,7 @@ function varargout = spm_input(varargin)
 %          - NaN for 'e' type implies no checking - returns input as evaluated
 %          - length of n(:) specifies dimension - elements specify dimension
 %          - Inf implies no restriction
-%          - Scalar n expanded to [n,1] (i.e. column vector)
+%          - Scalar n expanded to [n,1] (i.e. a column vector)
 %          - E.g: [n,1] & [1,n] (scalar n) prompt for an n-vector,
 %                         returned as column or row vector respectively
 %                 [1,Inf] & [Inf,1] prompt for a single vector,
@@ -278,7 +284,10 @@ function varargout = spm_input(varargin)
 %       p = spm_input(str,2,'e',[],5)
 %               Evaluated string input, prompted by contents of string str,
 %               in second position of the dialog figure.
-%               Vector of length 5 required.
+%               Vector of length 5 required - returned as column vector
+%       p = spm_input(str,2,'e',[],[Inf,5])
+%               ...as above, but can enter multiple 5-vectors in a matrix,
+%               returned with 5-vectors in rows
 %       p = spm_input(str,0,'c','ababab')
 %               Condition string input, prompted by contents of string str
 %               Uses command line interface.
@@ -452,7 +461,7 @@ function varargout = spm_input(varargin)
 % SUBFUNCTIONS:
 %
 % FORMAT [p,msg] = sf_eEval(str,Type,n,m)
-% Common code for evaluating 'e', 'c' & 'w1' types.
+% Common code for evaluating various input types.
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -537,13 +546,14 @@ end
 varargout={[],YPos};
 
 
-case {'e','s','c'}                   %-String and evaluated string input
+case {'s','e','n','w','i','r','c'}          %-String and evaluated input
 %=======================================================================
 %-Condition arguments
 if nargin<6|isempty(varargin{6}), m=Inf; else, m=varargin{6}; end
 if nargin<5|isempty(varargin{5}), n=NaN; else, n=varargin{5}; end
 if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
+DefStr = DefStr(:)';
 
 if CmdLine
 	strN = sf_SzStr(n,1);
@@ -554,8 +564,8 @@ if CmdLine
 		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
 
-	%-Eval Types 'e' & 'c' in Base workspace, catch errors
-	if any(Type=='ec')
+	%-Do Eval Types in Base workspace, catch errors
+	if any(Type=='enwirc')
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
@@ -591,10 +601,14 @@ else
 		'Position',RRec);
 	if TTips
 		switch lower(Type)
-		case 'e', str='enter expression to evaluate';
 		case 's', str='enter string';
+		case 'e', str='enter expression to evaluate';
+		case 'n', str='enter expression - natural number(s)';
+		case 'w', str='enter expression - whole number(s)';
+		case 'i', str='enter expression - integer(s)';
+		case 'r', str='enter expression - real number(s)';
 		case 'c', str='enter conditions e.g. 0101...  or abab...';
-		end
+		otherwise, str='enter expression'; end
 		set(h,'ToolTipString',str)
 	end
 
@@ -620,13 +634,13 @@ else
 	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
 
-	%-Wait for edit, evaluate 'e' & 'c' Types in Base workspace, catch errors
+	%-Wait for edit, do eval Types in Base workspace, catch errors
 	%---------------------------------------------------------------
 	waitfor(h,'UserData')
 	if ~ishandle(h), error(['Input window cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	str = get(h,'String');
-	if any(Type=='ec')
+	if any(Type=='enwirc')
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			set(h,'Style','Text',...
@@ -660,10 +674,10 @@ end % (if CmdLine)
 %-Log the transaction
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
-	if any(Type=='ec')
-		spm_log(['spm_input : ',Prompt,': (',str,')'],p);
-	else
+	if Type=='s'
 		spm_log(['spm_input : ',Prompt,':',p]);
+	else
+		spm_log(['spm_input : ',Prompt,': (',str,')'],p);
 	end
 end
 varargout = {p,YPos};
@@ -770,7 +784,7 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 			k = 1;
 			fprintf('%s: %s\t(only option)',Prmpt,Labels)
 		else
-			str = input([Prmpt,'? '],'s');
+			str = input([Prmpt,' ? '],'s');
 			if isempty(str), str=DefString; end
 			while ~any(lower(Keys)==lower(str(1)))
 				spm('beep')
@@ -1004,16 +1018,13 @@ case 'w1'   %-Single whole {0,1,2,...} number - button/entry combination
 %=======================================================================
 if CmdLine
 	spm_input('!PrntPrmpt',sprintf('%s\t(enter a whole number)',Prompt))
-	if ~isempty(DefString)
-		Prompt=[Prompt,' (Default: ',DefString,' )']; end
-	str = input([Prompt,' : '],'s'); if isempty(str), str=DefString; end
+	str = input([Prompt,' : '],'s');
 
 	%-Eval in Base workspace, catch errors
 	[p,msg] = sf_eEval(str,Type);
 	while isstr(p)
 		spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 		str = input([Prompt,' : '],'s');
-		if isempty(str), str=DefString; end
 		[p,msg] = sf_eEval(str,Type);
 	end
 
@@ -1069,8 +1080,7 @@ else
 	end
 
 	%-Callback for KeyPress, to store valid button # in
-	% UserData of Prompt, DefItem if (DefItem~=0)
-	% & return (ASCII-13) is pressed
+	% UserData of Prompt, DefItem of 1 if return (ASCII-13) is pressed
 	set(Finter,'KeyPressFcn',...
 		['spm_input(''!ButtonKeyPressFcn'',',...
 		'findobj(gcf,''Tag'',''',Tag,''',',...
@@ -1153,7 +1163,7 @@ case '!icond'
 % [iCond,msg] = spm_input('!iCond',str,n,m)
 % Parse condition spec strings:
 %	'2 3 2 3', '0 1 0 1', '2323', '0101', 'abab', 'R A R A'
-if nargin<4, m=Inf, else, m=varargin{4}; end
+if nargin<4, m=Inf; else, m=varargin{4}; end
 if nargin<3, n=NaN; else, n=varargin{3}; end
 if any(isnan(n(:)))
 	n=Inf;
@@ -1169,7 +1179,7 @@ if ischar(i)
 		%-Leading zeros in a digit list
 		msg = sprintf('%s expanded',i);
 		z = min(find(diff(i=='0')));
-		i = [zeros(1,z), spm_input('!iCond',i(z+1:end))];
+		i = [zeros(1,z), spm_input('!iCond',i(z+1:end))'];
 	else
 		%-Try an eval, for functions & string #s
 		i = evalin('base',['[',i,']'],'i');
@@ -1179,10 +1189,14 @@ end
 if ischar(i)
 	%-Evaluation error from above: see if it's an 'abab' or 'a b a b' type:
 	[c,null,i] = unique(lower(i(~isspace(i))));
-	if ~all(ismember(c,setstr(abs('a'):abs('z'))))
-		i = '!'; msg = 'evaluation error';
+	if all(ismember(c,setstr(abs('a'):abs('z'))))
+		%-Map characters a-z to 1-26, but let 'r' be zero (rest)
+		tmp = c-'a'+1; tmp(tmp=='r'-'a'+1)=0;
+		i   = tmp(i);
+		msg = [sprintf('[%s] mapped to [%d',c,tmp(1)),...
+			sprintf(',%d',tmp(2:end)),']'];
 	else
-		msg = sprintf('[%s] mapped to [1:%d]',c,length(c));
+		i = '!'; msg = 'evaluation error';
 	end
 elseif ~all(floor(i(:))==i(:))
 	i = '!'; msg = 'must be integers';
@@ -1602,20 +1616,63 @@ case 'e'
 	else
 		msg='';
 	end
-case 'c'
-	[p,msg] = spm_input('!iCond',str,n,m);
+case 'n'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif any(floor(p(:))~=p(:)|p(:)<1|~isreal(p(:)))
+		p='!'; msg='natural number(s) required';
+	elseif ~any(isnan(n(:)))
+		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
+case 'w'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif any(floor(p(:))~=p(:)|p(:)<0|~isreal(p(:)))
+		p='!'; msg='whole number(s) required';
+	elseif ~any(isnan(n(:)))
+		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
 case 'w1'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
 	elseif length(p)>1
 		p='!'; msg='scalar required';
-	elseif p~=floor(p) | p<0
+	elseif p~=floor(p) | p<0 | ~isreal(p)
 		p='!'; msg='whole number required';
 	else
 		msg='';
 	end
-
+case 'i'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif any(floor(p(:))~=p(:)|~isreal(p(:)))
+		p='!'; msg='integer(s) required';
+	elseif ~any(isnan(n(:)))
+		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
+case 'r'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif any(~isreal(p(:)))
+		p='!'; msg='real number(s) required';
+	elseif ~any(isnan(n(:)))
+		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
+case 'c'
+	[p,msg] = spm_input('!iCond',str,n,m);
 end
 
 
@@ -1629,7 +1686,7 @@ if any(isnan(n)) | (prod(n)==1 & dn<=2) | (dn==2 & min(n)==1 & isinf(max(n)))
 elseif dn==2 & min(n)==1
 	str = sprintf('[%d]',max(n));	lstr = [str,'-vector'];
 elseif dn==2 & sum(isinf(n))==1
-	str = sprintf('[%d]',min(n));	lstr = [str,'-vector(s)']
+	str = sprintf('[%d]',min(n));	lstr = [str,'-vector(s)'];
 else
 	str=''; for i = 1:dn
 		if isfinite(n(i)), str = sprintf('%s,%d',str,n(i));
