@@ -43,10 +43,10 @@ if nargin<3, Dis=8; end
 %-Setup graphics pane
 %-----------------------------------------------------------------------
 spm('Pointer','Watch')
-Fgraph = spm_figure('GetWin','Graphics');
+Fgraph    = spm_figure('GetWin','Graphics');
 spm_results_ui('ClearPane',Fgraph)
 figure(Fgraph)
-FS = spm_figure('FontSizes');
+FS        = spm_figure('FontSizes');
 
 
 %-Characterize excursion set in terms of maxima
@@ -66,16 +66,17 @@ N         = N/prod(FWHM); % voxels -> resels
 
 %-Table axes & headings
 %=======================================================================
-hAx = axes('Position',[0.1 0.1 0.8 0.42],...
+hAx   = axes('Position',[0.1 0.1 0.8 0.42],...
 	'DefaultTextFontSize',FS(1),...
 	'Units','points',...
 	'Visible','off');
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
-dy = FS(2); y = floor(AxPos(4)) -dy;
+dy    = FS(2);
+y     = floor(AxPos(4)) - dy;
 
 text(0,y,['Statistics:  ',spm_str_manip(CWD,'a50')],...
-	'FontSize',FS(3),'FontWeight','Bold');	y=y-dy;
-line([0 1],[y y],'LineWidth',3,'Color','r'),	y=y-dy;
+	'FontSize',FS(3),'FontWeight','Bold');	y = y - dy;
+line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - dy;
 
 %-Construct tables
 %-----------------------------------------------------------------------
@@ -85,9 +86,9 @@ text(0.42,y,'voxel-level {Z}'    ,'FontSize',FS(2));
 text(0.62,y,'uncorrected k & Z'  ,'FontSize',FS(2));
 text(0.86,y,'x,y,z {mm}'         ,'FontSize',FS(2));
 
-y=y-dy;
+y     = y - dy;
 line([0 1],[y y],'LineWidth',1,'Color','r')
-y=y-dy;
+y     = y - dy;
 
 %-Pagination variables
 %-----------------------------------------------------------------------
@@ -112,7 +113,8 @@ while max(T)
 	% Paginate if necessary
 	%---------------------------------------------------------------
 	if y < (Num+1)*dy
-		h     = text(0.5,-5*dy,sprintf('Page %d',spm_figure('#page')),...
+		h     = text(0.5,-5*dy,...
+			sprintf('Page %d',spm_figure('#page')),...
 			'FontSize',FS(1),'FontAngle','Italic');
 		spm_figure('NewPage',[hPage,h])
 		hPage = [];
