@@ -1,5 +1,5 @@
 
-% Sets the defaults which are used by SPM
+% Sets the initial defaults which are used by SPM at startup
 %
 % FORMAT spm_defaults
 %_______________________________________________________________________
@@ -11,11 +11,14 @@
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% %W% %E%
+% %W% John Ashburner %E%
 
 global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
-global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+
+% Misc defaults
+%=======================================================================
 
 % Default command for printing
 %-----------------------------------------------------------------------
@@ -47,6 +50,10 @@ GRID = 0.6;
 proj_MultiPage = 0;	% No multipage tables
 %proj_MultiPage = 1;	% Enable paging
 
+
+% Header defaults
+%=======================================================================
+
 % PET header defaults
 %-----------------------------------------------------------------------
 PET_DIM      = [128 128 43];		% Dimensions [x y z]
@@ -67,6 +74,13 @@ fMRI_OFFSET  = 0;			% Offset in bytes
 fMRI_ORIGIN  = [0 0 0];			% Origin in voxels
 fMRI_DESCRIP = 'SPM-compatible';
 
+% Stats defaults
+%=======================================================================
+
+% UFp - Upper tail F probability threshold used to filter voxels after stats
+%-----------------------------------------------------------------------
+PET_UFp  = 0.05;
+fMRI_UFp = 0.001;
 
 % Realignment defaults
 %=======================================================================
