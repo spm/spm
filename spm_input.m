@@ -111,14 +111,26 @@ if ~isempty(cind)
    indices = cind(2);
    
    for k = 3:2:length(cind)
-      try
+      if ~any(cind{k+1}), 
+        if nbchin >= 2 %- a null indice and an argument after the
+	               %- indices section => return 0
+	   varargout = {0}; 
+           return;
+	 else	       %- null indice but no arg after the 
+	               %- indice section => return empty
+	   varargout = {[]}; 
+           return;
+        end
+      else     
+        try
           indices{1} = getfield(lastvar,indices,cind{k},cind(k+1));
           lastvar = sf_get_var(bchmat,cind{k});
-      catch
+        catch
           indices, lastvar, cind,
 	  error('parsing indices catch 1');
           return
-      end  
+	end  
+      end 
    end %- for k = 3:2:length(cind)
 
  else
