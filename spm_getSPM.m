@@ -53,6 +53,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %
 % **** files written
 % **** reference to contrast manager
+% **** orthogonalisation order
 %
 %
 % spm_getSPM prompts for an SPM and applies thresholds {u & k}
@@ -145,15 +146,15 @@ if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; en
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-tol = 1e-10;				%-Tolerance ****
+tol = 1e-10;				%-Tolerance
 
-Xc  = xX.xKXs.X*cat(2,xCon(Ic).c);	%-NB: This amalgamates columns of
-					% F-contrasts, perhaps causing
-					% orthogonalisation when only an
-					% F-contrast has non-ortho. cols
-% if colinear
-%-----------------------------------------------------------------------
-if length(Ic) > 1 & any(any(triu(abs(Xc'*Xc),1) > tol))
+%-Form concatenated contrast data weights to see if orthogonalisation needed
+% (Don't want to ask orthogonalisation order if not needed.)
+% NB: This amalgamates columns of F-contrasts, perhaps causing
+% orthogonalisation when only an F-contrast has non-ortho. cols
+tmp = (cat(2,xCon(Ic).c)' * xX.pKX)';
+
+if length(Ic) > 1 & any(any(triu(abs(tmp'*tmp),1)>tol))
 
     %-Get orthogonalisation order from user
     Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
@@ -163,53 +164,44 @@ if length(Ic) > 1 & any(any(triu(abs(Xc'*Xc),1) > tol))
     i = 1; while(i < length(Ic)), i = i + 1;
 	%-NB: This loop is peculiarly controlled to account for the
 	%     possibility that Ic may shrink if some contrasts diasppear
-	%     on orthogonalisation (i.e. if there are colineaities)
+	%     on orthogonalisation (i.e. if there are colinearities)
     
 	%-Orthogonalise (subspace spanned by) contrast i wirit previous
 	%---------------------------------------------------------------
-	Xc = xX.xKXs.X*cat(2,xCon(Ic(i    )).c);
-	XC = xX.xKXs.X*cat(2,xCon(Ic(1:i-1)).c);
-	Xc = Xc - XC*pinv(XC)*Xc;
-	c  = xX.pKX*Xc;
+	cpX = (cat(2,xCon(Ic(i    )).c)' * xX.pKX)';
+	CpX = (cat(2,xCon(Ic(1:i-1)).c)' * xX.pKX)';
+	cpX = cpX - CpX*pinv(CpX)*cpX;
+	c   = (cpX'*xX.xKXs.X)';
+	oxCon = spm_FcUtil('Set','tmp',xCon(Ic(i)).STAT,'c',c,xX.xKXs);
+%-**	oxCon = spm_FcUtil('|_',xCon(Ic(i)),xCon(Ic(1:i-1)), xX.xKXs);
+
     
 	%-See if this orthogonalised contrast has already been entered
 	% or is colinear with a previous one. Define a new contrast if
 	% neither is the case.
 	%---------------------------------------------------------------
-	d     = ones(1,length(xCon));
-	for j = 1:length(xCon)
-	    if xCon(Ic(i)).STAT==xCon(j).STAT & size(c,2)==size(xCon(j).c,2)
-		d(j) = max(max(abs(c - xCon(j).c)));
-	    end
-	end 
-	if any(max(abs(c)) < tol)
-	    %-A contrast column was colinear with a previous one
-	    % (NB: Might be a single constraint of an F-contrast)
-	    %-----------------------------------------------------------
-	    c(:,max(abs(c)) < tol) = [];
+	d = spm_FcUtil('In',oxCon,xCon,xX.xKXs);
 
-	end
-	if isempty(c)
-	    %-Contrast was completely colinear with a previous one - drop it
+	if all(max(abs(c))<tol) %-** spm_FcUtil('0|[]',oxCon)
+	    %-Contrast was colinear with a previous one - drop it
 	    %-----------------------------------------------------------
 	    Ic(i)    = [];
 	    i        = i - 1;
 
-	elseif any(d < tol)
+	elseif any(d)
 	    %-Contrast unchanged or already defined - note index
 	    %-----------------------------------------------------------
-	    Ic(i)    = min(find(d < tol));
+	    Ic(i)    = min(d);
 
 	else
 	    %-Define orthogonalised contrast as new contrast
 	    %-----------------------------------------------------------
-	    j        = length(xCon) + 1;
-	    str      = [xCon(Ic(i)).name,'  (orthogonalized w.r.t {',...
-    	    	sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))];
-    	    xCon(j)  = spm_FcUtil('Set',str,xCon(Ic(i)).STAT,'c',c,xX.xKXs);
-	    Ic(i)    = j;
-
+	    oxCon.name = [xCon(Ic(i)).name,' (orthogonalized w.r.t {',...
+    	    	sprintf('%d,',Ic(1:i-2)), sprintf('%d})',Ic(i-1))];
+    	    xCon  = [xCon, oxCon];
+	    Ic(i) = length(xCon);
 	end
+
     end % while...
 end % if length(Ic)...
 
@@ -428,7 +420,7 @@ fprintf('\t%-32s: %30s','SPM computation','...initialising')         %-#
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
 if (length(Ic) > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
-		       any(diff(cat(1,xCon(Ic).eidf)) > tol) )
+		       any(abs(diff(cat(1,xCon(Ic).eidf))) > 1e-6) )
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
 end
 
@@ -469,10 +461,9 @@ end
 %-----------------------------------------------------------------------
 if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
 switch xCon(Ic(1)).STAT
-
-	case 'T'
+case 'T'
 	STATstr = sprintf('%c%s_{%.4g}',xCon(Ic(1)).STAT,str,xX.erdf);
-	case 'F'
+case 'F'
 	STATstr = sprintf('%c%s_{[%.4g,%.4g]}',...
 			xCon(Ic(1)).STAT,str,xCon(Ic(1)).eidf,xX.erdf);
 end
