@@ -1,3 +1,4 @@
+function spm_write_sn(P,matname,bb,Vox,Hold)
 % Write Out Normalized Images.
 % FORMAT spm_write_sn(P,matname,bb,Vox, Hold)
 % P         - Image to transform.
@@ -5,10 +6,9 @@
 % bb        - Bounding box (mm).
 % Vox       - Required voxel size (mm).
 % Hold      - Sampling method (see spm_sample_vol).
-
+%_______________________________________________________________________
 % %W% John Ashburner MRCCU/FIL %E%
 
-function spm_write_sn(P,matname,bb,Vox,Hold)
 
 load(deblank(matname))
 if (exist('mgc') ~= 1)
