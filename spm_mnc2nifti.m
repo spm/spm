@@ -35,7 +35,7 @@ idat.fname  = fname;
 idat.dim    = fliplr(cat(2,cdf.dim_array(:).dim_length));
 signed      = findvar(img.vatt_array,'signtype');
 signed      = strcmp(signed.val,'signed__');
-idat.dtype  = [d_types(signed+1,img.nc_type) 0];
+idat.dtype  = [d_types(signed+1,img.nc_type) 1];
 range       = [mns(signed+1,img.nc_type) mxs(signed+1,img.nc_type)];
 idat.offset = img.begin;
 

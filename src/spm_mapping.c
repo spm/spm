@@ -324,7 +324,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 
 		/* http://msdn.microsoft.com/library/default.asp?
 		       url=/library/en-us/fileio/base/mapviewoffile.asp */
-		maps[i].addr    = MapViewOfFile(hMapping, FILE_MAP_READ, 0, maps[i].len, 0);
+		maps[i].addr    = MapViewOfFileEx(hMapping, FILE_MAP_READ, 0, 0, maps[i].len, 0);
 		(void)CloseHandle(hMapping);
 		if (maps[i].addr == NULL)
 			mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");

@@ -4,6 +4,45 @@ function varargout = spm_jobman(varargin)
 % This code is based on an earlier version by Philippe Ciuciu and
 % Guillaume Flandin of Orsay, France.
 %
+% FORMAT spm_jobman
+%        spm_jobman('interactive')
+%        spm_jobman('interactive',job)
+%        spm_jobman('interactive',job,node)
+%        spm_jobman('interactive','',node)
+% Runs the user interface in interactive mode.
+%
+% FORMAT spm_jobman('serial')
+%        spm_jobman('serial',job)
+%        spm_jobman('serial',job,node)
+%        spm_jobman('serial','',node)
+% Runs the user interface in serial mode.
+%
+% FORMAT spm_jobman('run',job)
+% Runs a job.
+%
+% FORMAT spm_jobman('help',node)
+%        spm_jobman('help',node,width)
+% Creates a cell array containing help information.  This is justified
+% to be 'width' characters wide. e.g.
+%     h = spm_jobman('help','jobs.spatial.coreg.estimate');
+%     for i=1:numel(h),fprintf('%s\n',h{i}); end;
+%
+%     node - indicates which part of the configuration is to be used.
+%            For example, it could be 'jobs.spatial.coreg'.
+%
+%     job  - can be the name of a jobfile (as a .mat or a .xml), or a
+%            'jobs' variable loaded from a jobfile.
+%
+%
+% FORMAT spm_jobman('defaults')
+% Runs the interactive defaults editor.
+%
+% FORMAT spm_jobman('pulldown')
+% Creates a pulldown 'TASKS' menu in the Graphics window.
+%
+% FORMAT spm_jobman('chmod')
+% Changes the modality for the TASKS pulldown.
+% 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -53,9 +92,6 @@ else
             varargout{1} = showdoc;
         end;
 
-    %case {'help'},
-    %    show_help(varargin{2:nargin})
-
     otherwise
         error(['"' varargin{1} '" - unknown option']);
     end;
@@ -69,23 +105,19 @@ function w = helpwidth
 % A bit inelegant, but it seems to work. Can't figure out how
 % to find the width of the scroll-bar though.
 
-%persistent pw
-%if isempty(pw)
-    h   = findobj('tag','help_box');
-    if isempty(h)
-        w = 50;
-        return;
-    end;
-    h = h(1);
-    txt = get(h,'String');
-    set(h,'String','                    ');
-    workaround(h);
-    ext = get(h,'Extent');
-    pos = get(h,'position');
-    set(h,'String',txt);
-    pw   = floor(pos(3)/ext(3)*21-4);
-%end;
-w = pw;
+h   = findobj('tag','help_box');
+if isempty(h)
+    w = 50;
+    return;
+end;
+h = h(1);
+txt = get(h,'String');
+set(h,'String','                    ');
+workaround(h);
+ext = get(h,'Extent');
+pos = get(h,'position');
+set(h,'String',txt);
+w   = floor(pos(3)/ext(3)*21-4);
 return;
 %------------------------------------------------------------------------
 
@@ -984,11 +1016,20 @@ case {'repeat'}
     valtxt = ['A series containing ' num2str(length(c.val)) ' item' s '.'];
     % col    = [0.5 0.5 0.5];
 
-otherwise
+case {'branch'}
     ln     = length(c.val); s = 's'; if ln==1, s = ''; end;
-    valtxt = ['A branch holding ' num2str(length(c.val)) ' item' s '.'];
+    valtxt = {['A branch holding ' num2str(length(c.val)) ' item' s '.']};
+    if isfield(c,'prog'),
+        valtxt = {valtxt{:}, '', '   User specified values',...
+                                 '   from this branch will be',...
+                                 '   collected and passed to',...
+                                 '   an executable function',...
+                                 '   when the job is run.'};
+    end;
     % col    = [0.5 0.5 0.5];
 
+otherwise
+    valtxt = 'What on earth is this???';
 end;
 val_box = findobj(0,'tag','val_box');
 if ~isempty(val_box)
@@ -1961,6 +2002,7 @@ return;
 %------------------------------------------------------------------------
 function [c,defused] = defsub(c,defused)
 if nargin<2, defused = {}; end;
+if isfield(c,'prog'), c = rmfield(c,'prog'); end;
 switch c.type,
 case {'const'}
     c = [];
