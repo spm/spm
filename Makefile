@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.10 2002-08-15 12:07:19 john Exp $
+# $Id: Makefile,v 2.11 2002-08-16 15:46:27 john Exp $
 #
 ###############################################################################
 #
@@ -37,6 +37,8 @@ SunOS:
 	make all SUF=mexsol  CC="cc -xO5"                   MEX="mex COPTIMFLAGS=-xO5"
 Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
+Linux.5:
+	make all SUF=mexlx   CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable" MEX="mex COPTIMFLAGS=-O"
 IRIX:
@@ -59,6 +61,8 @@ clean.SunOS:
 	make clean SUF=mexsol
 clean.Linux:
 	make clean SUF=mexglx
+clean.Linux.5:
+	make clean SUF=mexlx
 clean.HP-UX:
 	make clean SUF=mexhp7
 clean.IRIX:
