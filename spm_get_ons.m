@@ -99,7 +99,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %
 %
 %_______________________________________________________________________
-% @(#)spm_get_ons.m	2.26 Karl Friston 99/11/09
+% %W% Karl Friston %E%
 
 % Programmers Guide
 % Batch system implemented on this routine. See spm_bch.man
