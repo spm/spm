@@ -99,46 +99,51 @@ function spm_fmri_spm_ui
 % Frith CD, Turner R & Frackowiak RSJ (1995) Characterising evoked 
 % hemodynamics with fMRI Friston KJ, NeuroImage 2:157-165
 %
-%__________________________________________________________________________
+%___________________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline %E%
 
 
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 
 
 % get filenames and other user specified parameters
-%============================================================================
+%===========================================================================
 
-% get filenames and create design matrix
-%----------------------------------------------------------------------------
+% Initialize variables
+%---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 Fgraph = spm_figure('FindWin','Graphics');
-set(Finter,'Name','fMRI analysis');
 
-Q     = [];				% matrix of filename strings
-X     = [];				% data matrix {q x pixels}
-H     = [];				% Factors of interest
-C     = [];				% covariates of interest
-B     = [];				% Factors of no interest
-G     = [];				% covariates of no interest
-F     = [];				% Low frequency confounds
+Q      = [];				% matrix of filename strings
+H      = [];				% Factors of interest
+C      = [];				% covariates of interest
+B      = [];				% Factors of no interest
+G      = [];				% covariates of no interest
+F      = [];				% Low frequency confounds
+E      = [];				% event-specific effects
+Hnames = ' ';				% design matrix effect labels
+Bnames = ' ';				% design matrix effect labels
+Cnames = ' ';				% design matrix effect labels
+Gnames = ' ';				% design matrix effect labels
+GM     = 100;				% grand mean for fMRI
+TD     = 0;				% switch for temporal differences
+REP    = 0;				% switch for session replications
+ons    = [];				% epoch or event onset times
+PST    = [];				% peri-stimulus times
+
 CONTRAST = [];				% row matrix of contrasts
 
 
-% get Repeat time
-%----------------------------------------------------------------------------
-RT     = spm_input('Interscan interval {secs}',1);
-
-
-% set value to be assigned to the rand mean; 100 is usual for fMRI %----------------------------------------------------------------------------
-GM     = 100;
-
 
 % get filenames
-%----------------------------------------------------------------------------
-nsubj  = spm_input(['# of subjects or sessions'],'!+1','e',1);
-nscan  = zeros(1,nsubj);
-for i  = 1:nsubj
+%---------------------------------------------------------------------------
+set(Finter,'Name','fMRI analysis');
+nsess  = spm_input(['# of sessions or subjects'],1,'e',1);
+nscan  = zeros(1,nsess);
+if nsess > 1
+	REP = spm_input(['are these replications'],'!+0','yes|no',[1 0]);
+end
+for i  = 1:nsess
 	str      = sprintf('select scans for session %0.0f',i);
 	P        = spm_get(Inf,'.img',str);
  	Q        = str2mat(Q,P);
@@ -148,197 +153,539 @@ Q(1,:) = []; P = Q;
 q      = size(P,1);
 
 
-% design matrix effect names
-%---------------------------------------------------------------------------
-Hnames = ' ';
-Bnames = ' ';
-Cnames = ' ';
-Gnames = ' ';
-
-
 % get ORIGIN
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
 
+% get Repeat time
+%---------------------------------------------------------------------------
+RT    = spm_input('Interscan interval {secs}','!+1');
 
-% covariates of interest - Type
-%----------------------------------------------------------------------------
-CovF  = str2mat(...
-	'User specified',...
-	'2 temporal basis functions',...
-	'half sine-wave',...
-	'delayed box-car');
-Cov   = spm_input('Select type of response','!+1','m',CovF,[1:size(CovF,1)]);
+% Study type - epoch or event-related fMRI
+%---------------------------------------------------------------------------
+ER    = spm_input('epoch or event-related fMRI','!+1','epoch|event',[0 1]);
 
-% if box-car ask for temporal differences
-%----------------------------------------------------------------------------
-TD    = 0;
-if Cov == 4
-	TD = spm_input('add temporal derivative','!+1','b','no|yes',[0 1]);
+% estimated hemodynamic response function
+%---------------------------------------------------------------------------
+u     = 0:16/RT;
+Del   = 6/RT;
+Dis   = 2.4/RT;
+hrf   = spm_Gpdf(u,[ (Del/Dis)^2 Del/Dis^2 ]);
+hrf   = hrf/sum(hrf);
+
+
+% construct responses C [and G]
+%---------------------------------------------------------------------------
+if ER
+
+	% model event-related responses
+	%-------------------------------------------------------------------
+	Ctype = str2mat(...
+		'basis functions (Windowed Fourier set)',...
+		'basis functions (Gamma functions)');
+	str   = 'Select basis set';
+	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
+
+	% order of basis functions - h
+	%-------------------------------------------------------------------
+	if Cov == 1
+		str = 'order of Fourier series';
+		h   = spm_input(str,'!+1','e',4);
+
+	elseif Cov == 2
+
+		h   = 6;
+	else
+		h   = 1;
+	end
+
+	% scans (model the same event for all sessions)
+	%-------------------------------------------------------------------
+	k     = sum(nscan);
+
+	% cycle over events
+	%-------------------------------------------------------------------
+	for v = 1:spm_input('number of event types','!+1','e',1)
+	
+		str   = 'inter-stimulus intervals';
+		if spm_input(str,'!+1','fixed|variable',[1 0]);
+			isi = spm_input('interstimulus interval (scans)','!+1');
+			ons = spm_input('first stimulus (scans)','!+1','e',1);
+			ons = ons:isi:k;
+		else
+			ons = spm_input('stimulus onset times (scans)','!+1');
+		end
+
+		% sort in ascending order
+		%-----------------------------------------------------------
+		ons   = sort(ons);
+
+		% peri-stimulus time {PST}
+		%-----------------------------------------------------------
+		pst   = zeros(k,1);			
+		for i = 1:length(ons)
+			u  = ([1:k] - ons(i));
+			j  = find(u >= -1);
+			pst(j) = u(j)*RT;
+		end
+
+		% Windowed (Hanning) Fourier set
+		%-----------------------------------------------------------
+		if Cov == 1
+
+			% hanning window
+			%--------------------------------------------------
+			L     = (16 + RT);
+			g     = (1 - cos(2*pi*(pst + RT)/L))/2;
+			g(pst > L) = 0*g(pst > L);
+
+			% zeroth and higher terms
+			%--------------------------------------------------
+			D     = g;
+			for i = 1:h
+			    W = g.*sin(i*2*pi*pst/L);
+			    D = [D W(:)];
+			    W = g.*cos(i*2*pi*pst/L);
+			    D = [D W(:)];	
+			end
+		end
+
+		% Gamma functions and derivatives
+		%-----------------------------------------------------------
+		if Cov == 2
+			dx     = 0.01;
+			D      = spm_Volt_W(pst);
+			D      = [D (spm_Volt_W(pst - dx) - D)/dx];
+		end
+
+		D     = D(1:k,:);
+
+
+		% append to E and PST
+		%-----------------------------------------------------------
+		E     = [E D];
+		PST   = [PST pst];
+
+	end
+
+
+	% modeling evoked responses
+	%-------------------------------------------------------------------
+	Cinf  = str2mat(...
+		'all events',...
+		'one or more',...
+		'pairwise differencs');
+	str   = 'Make inferences about';
+	Cf    = spm_input(str,'!+1','m',Cinf,[1:size(Cinf,1)]);
+
+	% all events
+	%-------------------------------------------------------------------
+	nevent = v;
+	if Cf == 1
+
+		% append to C
+		%-----------------------------------------------------------
+		C     = [C E];
+
+		% append labels
+		%-----------------------------------------------------------
+		for i = 1:nevent
+			for j = 1:h
+				str    = sprintf('Event %0.0f (%0.0f)',i,j);
+				Cnames = str2mat(Cnames,str);
+			end
+		end
+	end
+
+	% some events
+	%-------------------------------------------------------------------
+	if Cf == 2
+
+		d     = 1:nevent;
+		u     = spm_input('events of interest {e.g 1 2}','!+1');
+		d(u)  = [];
+
+		% select relevent psts
+		%-----------------------------------------------------------
+		PST   = PST(:,u)
+
+		for i = 1:length(u)
+
+			% append to C
+			%---------------------------------------------------
+			C     = [C E(:,([1:h] + (u(i) - 1)*h))];
+
+			% append labels
+			%---------------------------------------------------
+			for j = 1:h
+				str    = sprintf('Event %0.0f (%0.0f)',u(i),j);
+				Cnames = str2mat(Cnames,str);
+			end
+		end
+		for i = 1:length(d)
+
+			% append to G
+			%---------------------------------------------------
+			G     = [G E(:,([1:h] + (d(i) - 1)*h))];
+
+			% append labels
+			%---------------------------------------------------
+			for j = 1:h
+				str    = sprintf('Event %0.0f (%0.0f)',d(i),j);
+				Gnames = str2mat(Gnames,str);
+			end
+		end
+	end
+
+
+	% differences
+	%-------------------------------------------------------------------
+	if Cf == 3
+
+		d     = 1:nevent;
+		u     = spm_input('which pair of events {e.g 1 2}','!+1');
+		d(u)  = [];
+
+		% no relevent psts
+		%-----------------------------------------------------------
+		PST   = [];
+		a     = E(:,([1:h] + (u(1) - 1)*h));
+		b     = E(:,([1:h] + (u(2) - 1)*h));
+
+
+		% append to C
+		%-----------------------------------------------------------
+		C     = [C (a - b)];
+
+		% append to G
+		%-----------------------------------------------------------
+		G     = [G (a + b)];
+
+		% append labels
+		%-----------------------------------------------------------
+		for j = 1:h
+			str    = sprintf('Events %0.0f - %0.0f (%0.0f)',...
+				 u(1),u(2),j);
+			Cnames = str2mat(Cnames,str);
+			str    = sprintf('Events %0.0f + %0.0f (%0.0f)',...
+				 u(1),u(2),j);
+			Gnames = str2mat(Gnames,str);
+		end
+
+		for i = 1:length(d)
+
+			% append to G
+			%---------------------------------------------------
+			G     = [G E(:,([1:h] + (d(i) - 1)*h))];
+
+			% append labels
+			%---------------------------------------------------
+			for j = 1:h
+				str    = sprintf('Event %0.0f (%0.0f)',d(i),j);
+				Gnames = str2mat(Gnames,str);
+			end
+		end
+	end
+
+
+% Epoch-related fMRI
+%---------------------------------------------------------------------------
+else
+
+	% covariates of interest - Type
+	%-------------------------------------------------------------------
+	Ctype = str2mat(...
+		'basis functions (Discrete Cosine Set)',...
+		'basis functions (Two Exponential sines)',...
+		'fixed response  (Half-sine)',...
+		'fixed response  (Box-car)',...
+		'User specified');
+	str   = 'Select type of response';
+	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
+
+	% order of basis functions - h
+	%-------------------------------------------------------------------
+	if Cov == 1
+		str = 'number of basis functions';
+		h   = spm_input(str,'!+1','e',2);
+
+	elseif Cov == 2
+		h   = 2;
+	else
+		h   = 1;
+	end
+
+	% if fixed response ask for temporal differences
+	%-------------------------------------------------------------------
+	if Cov == 3 | Cov == 5
+		str = 'add temporal derivative';
+		TD  = spm_input(str,'!+1','b','no|yes',[0 1]);
+	end
+
+
+	% for each session
+	%-------------------------------------------------------------------
+	for v = 1:nsess
+
+
+	% reset name
+	%-------------------------------------------------------------------
+	set(Finter,'Name',sprintf('Session or subject %0.0f',v));
+
+	% scans for this session
+	%-------------------------------------------------------------------
+	k     = nscan(v);
+
+	% user specified
+	%-------------------------------------------------------------------
+	if Cov == 5
+
+		% if replications assume previous parameters
+		%-----------------------------------------------------------
+		if (v == 1) | ~REP
+
+			% get covariates of interest
+			%---------------------------------------------------
+			c     = spm_input('number of covariates',4);
+			D     = [];
+			while size(D,2) < c
+				u   = size(D,2) + 1;
+				str = sprintf('[%d]-variate %d, sess %d',k,u,v);
+				d   = spm_input(str,'!+1');
+				if size(d,2) == k
+					d    = d';    
+				end
+				if size(d,1) == k
+					D    = [D d];
+				end	
+			end
+			pst    = [];
+		end
+
+		% add labels
+		%-----------------------------------------------------------
+	     	for i = 1:size(D,2)
+			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
+			Cnames = str2mat(Cnames,str);
+		end
+
+	else % build response partition
+	%-------------------------------------------------------------------
+
+		% if replications assume previous parameters
+		%-----------------------------------------------------------
+		if (v == 1) | ~REP
+
+			% vector of conditions
+			%---------------------------------------------------
+			str   = 'order of epochs eg 1 2 1 2....';
+			a     = spm_input(str,4);
+			a     = a(:); a = a';
+			ncond = max(a);
+	
+			% vector of epoch lengths
+			%---------------------------------------------------
+			e     = [];
+			while any(~e) | sum(e) ~= k
+				str = 'scans per epoch eg 8 or 8 6... ';
+				e   = spm_input(str,'!+1');
+				while length(e) < length(a)
+					e = [e e(:)'];
+				end
+				e   = e(1:length(a));
+			end
+			e     = e(:);
+			e     = e';
+
+			% epoch onsets (starting at 0)
+			%---------------------------------------------------
+			ons   = cumsum(e) - e;
+
+		end
+
+
+		% peri-stimulus time {PST}
+		%-----------------------------------------------------------
+		pst   = ones(sum(nscan),ncond)*NaN;
+		for i = 1:ncond
+			on    = ons(find(a == i));
+			for j = 1:length(on)
+				u  = ([1:k]' - on(j));
+				d  = find(u >= -1);
+				pst(d + sum(nscan(1:(v - 1))),i) = u(d)*RT;
+			end
+		end
+
+
+		% Discrete cos set
+		%-----------------------------------------------------------
+		if Cov == 1			
+		    D     = zeros(k,ncond*h);
+		    for i = 1:length(e)
+			for j = 1:h
+			    W = cos((j - 1)*pi*[1:e(i)]/e(i));
+			    D([1:length(W)] + ons(i),(a(i) - 1)*h + j) = W(:);	
+			end
+		    end
+
+
+		% Exponential sine functions
+		%-----------------------------------------------------------
+		elseif Cov == 2			
+		    D     = zeros(k,ncond*h);
+		    for i = 1:length(e)
+			u     = [1:e(i)];
+			for j = 1:2
+			    W = sin(pi*u/e(i)).*exp((1.5 - j)*u/2);
+			    W = W(:)/max(W);
+			    D([1:length(W)] + ons(i),(a(i) - 1)*h + j) = W;	
+			end
+		    end
+		    D     = D(1:k,:);
+	
+
+		% sine wave
+		%-----------------------------------------------------------
+		elseif Cov == 3
+
+			D     = zeros(k,ncond);
+			for i = 1:length(e)
+				W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1));
+				D(([1:size(W,1)] + ons(i)),a(i)) = W/max(W);
+			end
+			D     = D(1:k,:);
+
+		% box car
+		%-----------------------------------------------------------
+		elseif Cov == 4
+			D     = zeros(k,ncond);
+			for i = 1:length(e)
+				D([1:e(i)] + ons(i),a(i)) = ones(e(i),1);
+			end
+			D     = spm_detrend(D);
+		end
+
+		% trim
+		%-----------------------------------------------------------
+		D     = D(1:k,:);
+
+		% append labels
+		%-----------------------------------------------------------
+		for i = 1:ncond
+		    for j = 1:h
+			str    = sprintf('Sess %0.0f Cond %0.0f (%0.0f)',v,i,j);
+			Cnames = str2mat(Cnames,str);
+		    end
+		end
+
+		% convolve with hemodynamic response function - hrf
+		%-----------------------------------------------------------
+		if Cov ~= 5
+			d = length(hrf);
+			D = [ones(d,1)*D(1,:); D];
+			D = spm_sptop(hrf,k + d)*D;
+			D = D([1:k] + d,:);
+		end
+
+		% add temporal differences if specified
+		%-----------------------------------------------------------
+		if TD
+			% append labels
+			%---------------------------------------------------
+			for i = 1:size(D,2)
+				str    = sprintf('timing (%0.0f)',i);
+				Cnames = str2mat(Cnames,str);
+			end
+
+			% append to D
+			%---------------------------------------------------
+			D     = [D [diff(D); zeros(1,size(D,2))]];
+		end
+
+
+	end % (else)
+
+	% append to C
+	%-------------------------------------------------------------------
+	[x y]  = size(C);
+	[i j]  = size(D);
+	C(([1:i] + x),([1:j] + y)) = D;
+
+	% append to PST
+	%-------------------------------------------------------------------
+	PST    = [PST pst];
+
+	end % (nsess)
+
+end
+
+% contruct block (session or subject) partition - B
+%---------------------------------------------------------------------------
+for v = 1:nsess
+
+	% append to B
+	%-------------------------------------------------------------------
+	k        = nscan(v);
+	[x y]    = size(B);
+	B(([1:k] + x),(1 + y)) = ones(k,1);
+
+	% append labels
+	%-------------------------------------------------------------------
+	Bnames   = str2mat(Bnames,sprintf('Session %0.0f',v));
 end
 
 
-% for each subject
+% confound parition - G
 %---------------------------------------------------------------------------
-for v = 1:nsubj
+for v = 1:nsess
 
-    % reset name
-    %-----------------------------------------------------------------------
-    set(Finter,'Name',sprintf('Session or subject %0.0f',v));
-
-    % conditions for this session
-    %-----------------------------------------------------------------------
-    k = nscan(v);
-
-    % user specified
-    %-----------------------------------------------------------------------
-    if Cov == 1
-
-    	% number of covariates of interest
+	% number of scans
 	%-------------------------------------------------------------------
-	c     = spm_input('# of waveforms or conditions',4);
-	D     = [];
-	while size(D,2) < c
-		u   = size(D,2) + 1;
-		str = sprintf('[%d]-covariate %d, session %d',k,u,v);
-		d   = spm_input(str,'!+1');
-		if size(d,2) == k
-			d    = d';    end
-		if size(d,1) == k
-			D    = [D d]; end	
-	end
-	for i = 1:size(D,2)
-		Cnames = str2mat(Cnames,sprintf('Sess %0.0f Cond %0.0f',v,i));
-	end
+	k     = nscan(v);
 
-    else
-
-	% vector of conditions
+	% if replications assume previous parameters
 	%-------------------------------------------------------------------
-	a     = spm_input('order of epochs eg 1 2 1 2....',4);
-	a     = a(:); a = a';
-	
-	% vector of epoch lengths
-	%-------------------------------------------------------------------
-	e     = [];
-	while length(e) ~= length(a) & all(e > 0) & (sum(e) ~= k)
-		e = spm_input('scans/epoch eg 10 or 8 6 8.... ','!+1');
-		if length(e) == 1; e = e*ones(1,length(a)); end
-	end
-	e     = e(:); e = e';
-
-	% onsets for all conditions  
-	%-------------------------------------------------------------------
-	ons   = [1 (cumsum(e) + 1)]; ons = ons(1:(length(ons) - 1));
-	
-
-	% 2 modulated sine waves
-	%-------------------------------------------------------------------
-	if Cov == 2			
-		D = zeros(k,max(a)*2);
-		for i = 1:length(e)
-		  W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1)).*exp((-[0:(e(i) + 1)]')/e(i)*4);
-		  W = [W sin(pi*[0:(e(i) + 1)]'/(e(i) + 1)).*exp(([0:(e(i) + 1)]')/e(i))];
-		  W = W./(ones(size(W,1),1)*max(W));
-		  D(([1:size(W,1)] + (ons(i) - 1)),((a(i) - 1)*2 + [1 2])) = W;
-		end
-		D     = D(1:k,:);
-		for i = 1:size(D,2)/2
-			str    = sprintf('Sess %0.0f Cond %0.0f e',v,i);
-			Cnames = str2mat(Cnames,str);
-			str    = sprintf('Sess %0.0f Cond %0.0f l',v,i);
-			Cnames = str2mat(Cnames,str);
-		end
-
-	
-	% single sine wave
-	%-------------------------------------------------------------------
-	elseif Cov == 3
-		D = zeros(k,max(a));
-		for i = 1:length(e)
-		  W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1));
-		  W = W./ ( ones(size(W,1),1)*max(W) );
-		  D(([1:size(W,1)] + (ons(i) - 1)),a(i)) = W;
-		end
-		D = D(1:k,:);
-		for i = 1:size(D,2)
-			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
-			Cnames = str2mat(Cnames,str);
-		end
-
-
-	% 6 second delayed box-car
-	%-------------------------------------------------------------------
-	elseif Cov == 4
-		D     = zeros(k,max(a)); 
-		for i = 1:length(e)
-			D([ons(i):(ons(i) + e(i) - 1)],a(i)) = ones(e(i),1);
-		end
-		delay = round(6/RT);
-		D((delay + 1):k,:) = D(1:(k - delay),:); 
-		D(1:delay,:) = ones(delay,1)*D((delay + 1),:);
-		D     = spm_detrend(D);
-		for i = 1:size(D,2)
-			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
-			Cnames = str2mat(Cnames,str);
-		end
-		if TD
-			for i = 1:size(D,2)
-				str    = sprintf('Cond %0.0f - timing',i);
-				Cnames = str2mat(Cnames,str);
+	if (v == 1) | ~REP
+		g = spm_input('# of confounds','!+1','e',0);
+		D = [];
+		while size(D,2) < g
+			u   = size(D,2) + 1;
+			str = sprintf('[%d]-confound %d, session %d',k,u,v);
+			d   = spm_input(str,'!+1','e',0);
+			if size(d,2) == k
+				d = d';
 			end
-			D      = [D [diff(D); zeros(1,size(D,2))]];
+			if size(d,1) == k
+				D = [D d];
+			end
 		end
 	end
 
-	
+	% append to G
+	%-------------------------------------------------------------------
+	[x y] = size(G);
+	[i j] = size(D);
+	G(([1:i] + x),([1:j] + y)) = D;
 
-    end % (else)
+	% append labels
+	%-------------------------------------------------------------------
+	for i = 1:size(D,2)
+		Gnames = str2mat(Gnames,sprintf('Confound %0.0f',i));
+	end
 
-    % append to C
-    %-----------------------------------------------------------------------
-    [x y]  = size(C);
-    [i j]  = size(D);
-    C(([1:k] + sum(nscan(1:(v - 1)))),([1:j] + y)) = D;
-
-    % append to B
-    %-----------------------------------------------------------------------
-    [x y]  = size(B);
-    B(([1:k] + x),(1 + y))   = ones(k,1);
-    Bnames = str2mat(Bnames,sprintf('Session %0.0f',v));
-
-    % covariates not of interest
-    %---------------------------------------------------------------------------
-    g      = spm_input('# of covariates of no interest','!+1','e',0);
-    D      = [];
-    while size(D,2) < g
-	u   = size(D,2) + 1;
-	str = sprintf('[%d]-confound %d, session %d',k,u,v);
-	d   = spm_input(str,'!+1','e',0);
-	if size(d,2) == k
-		d = d'; 	end
-	if size(d,1) == k
-		D = [D d];	end
-
-    end
-
-    % append to G
-    %-----------------------------------------------------------------------
-    [x y]  = size(G);
-    [i j]  = size(D);
-    G(([1:k] + sum(nscan(1:(v - 1)))),([1:j] + y)) = D;
-    for i = 1:size(D,2)
-    	Gnames = str2mat(Gnames,sprintf('Confound %0.0f',i));
-    end
-
-end % loop over sessions
+end
 
 
 % high pass filter using discrete cosine set
 %---------------------------------------------------------------------------
 if spm_input('high pass filter','!+1','yes|no',[1 0])
-	CUT   = spm_input('cut-off period {secs}','!+0','e',120);
-	for v = 1:nsubj
+	if length(ons)
+		CUT   = 2*round(mean(diff(ons))*RT);
+	else
+		CUT   = 120;
+	end
+	CUT   = spm_input('cut-off period {secs}','!+0','e',CUT);
+	for v = 1:nsess
 		D     = [];
 		k     = nscan(v);
 		u     = [1:k/2];
@@ -348,30 +695,34 @@ if spm_input('high pass filter','!+1','yes|no',[1 0])
 			D = [D d(:)];
 		end
 
-    		% append to G
+    		% append to F
    		%-----------------------------------------------------------
     		[x y] = size(F);
     		[i j] = size(D);
-   		F(([1:i] + x),([1:j] + y))   = D;
+   		F(([1:i] + x),([1:j] + y)) = D;
 
+	end
+
+	% protect effects of interest
+	%-------------------------------------------------------------------
+	F      = spm_detrend(F);
+	F      = F - C*(pinv(C)*F);
+
+	%-combine confounds and append confound effect names
+	%-------------------------------------------------------------------
+	G      = spm_en([G F]);
+	for i  = 1:size(F,2);
+		Gnames = str2mat(Gnames,sprintf('Low Hz (%0.0f)',i));
 	end
 end
 
 
-%-combine confounds and append confound effect names
+% global normalization
 %---------------------------------------------------------------------------
-G      = spm_en([G F]);
-for i  = 1:size(F,2);
-	Gnames = str2mat(Gnames,sprintf('Low Hz %0.0f',i));
-end
-
-% global normalization with ANCOVA as the default
-%----------------------------------------------------------------------------
-GLOBAL = 'None';
-str    = 'global normalization';
-if spm_input(str,'!+1','yes|no',[1 0])
-	GLOBAL = spm_input(str,'!+0','Scaling|AnCova');        end
-if strcmp(GLOBAL,'AnCova'); Gnames = str2mat(Gnames,'Global'); end
+str    = 'remove global effects';
+GLOBAL = spm_input(str,'!+1','yes|no',[1 0]);
+str    = 'remove effects on response';
+GXxC   = spm_input(str,'!+1','yes|no',[1 0]);
 
 
 %-Construct full design matrix and name matrices for display
@@ -379,7 +730,6 @@ if strcmp(GLOBAL,'AnCova'); Gnames = str2mat(Gnames,'Global'); end
 Hnames(1,:) = [];
 Cnames(1,:) = [];
 Bnames(1,:) = [];
-Gnames(1,:) = [];
 
 % display design matrix partition C to help contrast specification
 %---------------------------------------------------------------------------
@@ -389,14 +739,12 @@ imagesc(spm_DesMtxSca(C)')
 set(gca,'FontSize',8)
 set(gca,'YTick',[1:size(Cnames)],'YTickLabels',Cnames)
 xlabel('scan')
-title(['Covariates of interest'],'Fontsize',16,'Fontweight','Bold')
+title(['Effects of interest'],'Fontsize',16,'Fontweight','Bold')
 drawnow
 
-% get contrasts or linear compound for parameters of interest [H C]
+% get contrasts or linear compound for parameters of interest - C
 %---------------------------------------------------------------------------
-t         = 0;
-if size([H C],2)
-	t = spm_input('# of contrasts','!+1'); end
+t     = spm_input('# of contrasts','!+1'); end
 
 while size(CONTRAST,1) ~= t
 	d   = [];
@@ -426,22 +774,52 @@ for i = 1:q; V(:,i) = spm_map(P(i,:));  end
 
 % check for consistency of image size and voxel size
 %---------------------------------------------------------------------------
-if ~(all(all(~diff(V([1:3],:)'))))
-	error('images are not compatible'); end
+if ~(all(all(~diff(V([1:3],:)')))); error('images are not compatible'); end
 
 
 % adjust scaling coefficients so that Grand mean - <GM> = GM
 %---------------------------------------------------------------------------
 GX     = zeros(q,1);
-for i  = 1:q
-	GX(i) = spm_global(V(:,i)); end
-
-
+for i  = 1:q; GX(i) = spm_global(V(:,i)); end
 V(7,:) = V(7,:)*GM/mean(GX);
 GX     = GX*GM/mean(GX);
 
-if strcmp(GLOBAL,'AnCova'); G = [G GX]; end
-if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX; end
+% remove global effects
+%---------------------------------------------------------------------------
+if GLOBAL
+	G      = [G GX];
+	Gnames = str2mat(Gnames,'Global'); 
+end
+
+% remove global x response interactions
+%---------------------------------------------------------------------------
+if GXxC
+
+	% interaction terms
+	%-------------------------------------------------------------------
+	if REP
+		d     = size(C,2)/nsess;
+		I     = zeros(size(C,1),d);
+		for i = 1:nsess;
+			I      = I + C(:,[1:d] + (i - 1)*d);
+		end
+	else
+		I     = C;
+	end
+	I     = orth(spm_detrend(I));
+	I     = [I.*(spm_detrend(GX)*ones(1,size(I,2)))];
+
+	% append to G
+	%-------------------------------------------------------------------
+	G     = [G I]; 
+
+	% append names
+	%-------------------------------------------------------------------
+	for i = 1:size(I,2)
+		Gnames = str2mat(Gnames,'Glob x response');
+	end
+	
+end
 
 
 % zero pad contrast 
@@ -450,9 +828,11 @@ if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX; end
 CONTRAST = [CONTRAST zeros(i,(size([H C B G],2) - j))];
 
 
-%-centre confounds (Not block, which can embody the constant term)
+%-centre confounds (not block, which can embody the constant term)
 %---------------------------------------------------------------------------
-G     = spm_detrend(G,0);
+G           = spm_detrend(G);
+Gnames(1,:) = [];
+
 
 [nHCBG,HCBGnames] = spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
 
@@ -465,48 +845,59 @@ set(gca,'FontSize',8)
 set(gca,'YTick',[1:size(nHCBG)],'YTickLabels',HCBGnames)
 xlabel('scan')
 title(['Design Matrix'],'Fontsize',16,'Fontweight','Bold')
-
 axes('Visible','off')
-text(0.00,0.40,...
-	['AnCova for ' spm_str_manip(pwd,'a24')],'Fontsize',16);
+
+% print details
+%---------------------------------------------------------------------------
+text(0.00,0.40,['AnCova for ' spm_str_manip(pwd,'a24')],'Fontsize',16);
 text(0.00,0.32,'Session, scan and Filename');
 y     = 0.28;
 dy    = 0.03;
-if size(B,2)
-	for i = 1:size(B,2)
-		u = min(find(B(:,i) > 0));
-		v = max(find(B(:,i) > 0));
-		d = sprintf('%d  %d to %d ',i,u,v);
-		text(0,y,d,'FontSize',10)
-		text(0.2,y, [P(u,:) '...'],'FontSize',8)
-		y = y - dy;
-	end
-else
-	d = sprintf('%d  %d to %d ',1,1,size(P,1));
+for i = 1:size(B,2)
+	u = min(find(B(:,i) > 0));
+	v = max(find(B(:,i) > 0));
+	d = sprintf('%d  %d to %d ',i,u,v);
 	text(0,y,d,'FontSize',10)
-	text(0.2,y, [P(1,:) '...'],'FontSize',10)
+	text(0.2,y, [P(u,:) '...'],'FontSize',8)
 	y = y - dy;
 end
-y = y - dy;
-if SIGMA
-	text(0,y,['Temporal Smoothing {2.8sec Gaussian Kernel}']); y = y - dy;
-end
+
+%---------------------------------------------------------------------------
+y     = y - dy;
+str   = sprintf('Temporal Smoothing: {%0.1f sec Kernel}',RT*SIGMA);
+text(0,y,str);
+y     = y - dy;
+
+%---------------------------------------------------------------------------
 if size(F,2)
 	str = sprintf('Hi-Pass cutoff %0.1f cycles/min',60/CUT);
 	text(0,y,str); y = y - dy;
 end
+
+%---------------------------------------------------------------------------
 text(0,y,sprintf('Grand Mean = %0.2f a.u.',GM)); y = y - dy;
 text(0,y,sprintf('Interscan Interval = %0.2f secs',RT)); y = y - dy;
-text(0,y,['Response Form: ' CovF(Cov,:)  ]); y = y - dy;
-text(0,y,['Global Normalization: ' GLOBAL]); y = y - dy;
+text(0,y,['Response Form: ' Ctype(Cov,:)  ]); y = y - dy;
 
+%---------------------------------------------------------------------------
+if GLOBAL
+	text(0,y,'Global effects modelled'); y = y - dy;
+end
+if GXxC
+	text(0,y,'Global x response interactions modelled'); y = y - dy;
+end
 
+% print
+%---------------------------------------------------------------------------
 spm_print
+
 
 
 % implement analysis proper
 %--------------------------------------------------------------------------
-spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT);
+spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT,PST);
+
+
 
 %-Clear figure
 %-----------------------------------------------------------------------
