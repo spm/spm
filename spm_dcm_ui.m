@@ -474,7 +474,6 @@ case 'review'
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
             
-            keyboard
             
 			case 'B' % intrinsic
 			%---------------------------------------------------
@@ -612,7 +611,9 @@ case 'review'
 			title(['Input - ' DCM.U.name{i}],'FontSize',12)
 			%axis tight
 			ylabel('event density {Hz}')
-			xlabel('time {seconds}')
+			if i==m	
+				xlabel('time {seconds}')
+			end
 			%axis square tight
 			grid on
             % Change axis so we can see boxcars properly
@@ -633,7 +634,9 @@ case 'review'
 		for i = 1:l
             subplot(l,1,i);
             plot(x,DCM.Y.y(:,i));
-            xlabel('time {seconds}');
+            if i==l
+		xlabel('time {seconds}');
+	    end
  			grid on
             hold on
             X0=DCM.Y.X0;
