@@ -46,7 +46,6 @@ V0.dat    = uint8(0);
 V0.dat(VO.dim(1:3)) = uint8(0);
 VO.pinfo  = [];
 
-t = zeros(V.dim([1 3]));
 for i=1:V.dim(3)+r{3}.s,
 	if i<=V.dim(3),
 		img      = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
@@ -64,7 +63,6 @@ for i=1:V.dim(3)+r{3}.s,
 		img     = reshape(buff,[prod(V.dim(1:2)) r{3}.s*2+1])*kern;
 		img     = reshape(img,V.dim(1:2));
 		ii      = i-r{3}.s;
-                t(:,ii) = img(:,50);
 		mx      = max(img(:));
 		mn      = min(img(:));
 		if mx==mn, mx=mn+eps; end;
