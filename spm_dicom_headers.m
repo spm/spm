@@ -44,7 +44,7 @@ if ~strcmp(dcm,'DICM'),
 	warning(['"' P '" is not a DICOM file.']);
 	return;
 end;
-ret = read_dicom(fp, 'e',dict);
+ret = read_dicom(fp, 'le',dict);
 fclose(fp);
 return;
 %_______________________________________________________________________
@@ -70,7 +70,7 @@ while ~isempty(tag),
 			ret.StartOfCSAData = ftell(fp);
 			ret.SizeOfCSAData = tag.length;
 			fseek(fp,tag.length,'cof');
-		case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo'},
+		case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1210','Private_0029_1220'},
 			dat  = decode_csa(fp,tag.length);
 			ret  = setfield(ret,tag.name,dat);
 		case {'TransferSyntaxUID'},
@@ -215,13 +215,19 @@ if flg(1) =='e',
 	tag.le      = 6;
 	switch tag.vr,
 	case {'OB','OW','SQ','UN','UT'}
-		res        = fread(fp,1,'ushort');
+		if ~strcmp(tag.vr,'UN') | tag.group~=65534,
+			res        = fread(fp,1,'ushort');
+		end;
 		tag.length = double(fread(fp,1,'uint'));
 		% should check for length of FFFFFFFFH
 		tag.le     = tag.le + 6;
-	otherwise,
+	case {'AE','AS','AT','CS','DA','DS','DT','FD','FL','IS','LO','LT','PN','SH','SL','SS','ST','TM','UI','UL','US'},
 		tag.length = double(fread(fp,1,'ushort'));
 		tag.le     = tag.le + 2;
+	otherwise,
+		res        = fread(fp,1,'ushort');
+		tag.length = double(fread(fp,1,'uint'));
+		tag.le     = tag.le + 6;
 	end;
 else,
 	tag.le =  8;
