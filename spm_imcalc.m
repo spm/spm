@@ -11,6 +11,7 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 %                 [defaults (missing or empty) to 0 - no]
 % mask          - implicit zero mask?
 %                 [defaults (missing or empty) to 0]
+%                  ( negative value implies NaNs should be zeroed )
 % hold          - interpolation hold (see spm_slice_vol)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
 % Xtra_vars...  - additional variables which can be used in expression
@@ -35,7 +36,7 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 %
 % See spm_imcalc_ui for example usage...
 %_______________________________________________________________________
-% %W% John Ashburner, Andrew Holmes %E%
+% @(#)spm_imcalc.m	2.6 John Ashburner, Andrew Holmes 98/08/18
 
 
 %-Parameters & arguments
@@ -89,13 +90,14 @@ for p = 1:Vo.dim(3),
 	for i = 1:n
 		M = inv(B*inv(Vo.mat)*Vi(i).mat);
 		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),[hold,NaN]);
-		if mask & ~spm_type(Vi(i).dim(4),'nanrep'), d(d==0)=NaN; end
+		if (mask>0) & ~spm_type(Vi(i).dim(4),'nanrep'), d(d==0)=NaN; end
 		if dmtx, X(i,:) = d(:)'; else, eval(['i',num2str(i),'=d;']); end
 	end
 
 	eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
 	if (prod(Vo.dim(1:2)) ~= prod(size(Yp)))
 		error(['"',f,'" produced incompatible image.']); end
+	if (mask<0), Yp(isnan(Yp))=0; end
 	Y(:,:,p) = reshape(Yp,Vo.dim(1:2));
 
 	spm_progress_bar('Set',p);
