@@ -76,7 +76,9 @@ if nargin==0,
 	end;
 end;
 
+spm('FigName','Xbrain: working',Finter,CmdLine);
 do_it(P,mode);
+spm('FigName','Xbrain: done',Finter,CmdLine);
 
 return;
 %_______________________________________________________________________
@@ -87,8 +89,6 @@ function do_it(P,mode)
 linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
 
 spm('Pointer','Watch')
-spm('FigName','Xbrain: working',Finter,CmdLine);
-
 
 VG=spm_vol(P(1,:));	% Grey matter
 VW=spm_vol(P(2,:));	% White matter
@@ -183,7 +183,6 @@ if any(mode==[1 4 5 7]),
 end;
 
 linfun(' ');
-spm('FigName','Xbrain: done',Finter,CmdLine);
 spm('Pointer')
 
 return;
