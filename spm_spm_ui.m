@@ -47,10 +47,8 @@ function spm_spm_ui
 % The data should all have the same image and voxel size and these are
 % taken from the first image specified.
 %
-%-----------------------------------------------------------------------
-% - Karl Friston  - 01/06/94 - V1
-% - Andrew Holmes - 09/02/95 - V2
-% %W% %E%
+%__________________________________________________________________________
+% %W% Andrew Holmes, Karl Friston %E%
 
 %-----------------------------------------------------------------------
 clear
