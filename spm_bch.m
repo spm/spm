@@ -68,7 +68,7 @@ end
 %---------------------------------------------------------------
 cwd = pwd;
 
-for cA = 1:length(spm_input_b('batch',ana_mat,{'analyses',1},'index'))
+for cA = 1:length(spm_input('batch',ana_mat,{'analyses',1},'index'))
 
 	% go back to current dir (useful if path are relative) 
 	%---------------------------------------------------------------
@@ -76,15 +76,15 @@ for cA = 1:length(spm_input_b('batch',ana_mat,{'analyses',1},'index'))
 	%- go into working directory 
 	%---------------------------------------------------------------
 	try 
-	  wk_dir = spm_input_b('batch',ana_mat,{'analyses',1,'work_dir',cA},1);
+	  wk_dir = spm_input('batch',ana_mat,{'analyses',1,'work_dir',cA},1);
 	  eval(['cd ' wk_dir]);
 	catch 
 	   pwd
 	   error(['can''t go to work dir '  wk_dir]); 
 	end
-	typeA 	= spm_input_b('batch',ana_mat,{'analyses',1,'type',cA},1);
-   	mfileA 	= spm_input_b('batch',ana_mat,{'analyses',1,'mfile',cA},1);
-	iA  	= spm_input_b('batch',ana_mat,{'analyses',1},'index',cA);
+	typeA 	= spm_input('batch',ana_mat,{'analyses',1,'type',cA},1);
+   mfileA 	= spm_input('batch',ana_mat,{'analyses',1,'mfile',cA},1);
+	iA  	= spm_input('batch',ana_mat,{'analyses',1},'index',cA);
 
 	%- m->mat file for sub analyses  
    	batch_mat = spm_bch_bchmat(mfileA,typeA);
@@ -99,20 +99,19 @@ for cA = 1:length(spm_input_b('batch',ana_mat,{'analyses',1},'index'))
 
 		%- get the default areas (number) to work on
 		%-------------------------------------------
-		areas = spm_input_b('batch',batch_mat, ...
+		areas = spm_input('batch',batch_mat, ...
 				{'defaults_edit',iA_save},'type_area');
 
 		%- get the indexes of these default areas
 		%-------------------------------------------
-		index = spm_input_b('batch',batch_mat, ...
+		index = spm_input('batch',batch_mat, ...
 				{'defaults_edit',iA_save},'index');
 
 		for i_area = 1:length(areas)
-		    str_area = spm_input_b('batch',batch_mat,...
+		    str_area = spm_input('batch',batch_mat,...
 				{'defaults_edit',iA_save,'type_area',i_area},1);
-		    iA 	= index(i_area)
-		    str_area
-		    spm_defaults_edit(str_area);
+		    iA 	= index(i_area);
+			 spm_defaults_edit(str_area);
 	  	end
 
 		%------------ restore iA 
@@ -137,11 +136,11 @@ for cA = 1:length(spm_input_b('batch',ana_mat,{'analyses',1},'index'))
 		s = spm_means(batch_mat,iA)
 	    
 	    %---------------------------------------------------------------
-	    case 'realignment'
+	    case 'realign'
 		spm_realign;
     
 	    %---------------------------------------------------------------
-	    case 'normalisation'
+	    case 'normalize'
 		spm_sn3d;
     
 	    %---------------------------------------------------------------
