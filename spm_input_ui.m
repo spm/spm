@@ -1,4 +1,4 @@
-function [R1,R2,R3,R4,R5,R6] = spm_input(P1,P2,P3,P4,P5,P6)
+function varargout = spm_input(varargin)
 % Comprehensive graphical and command line input function
 % FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Defaults)
 %_______________________________________________________________________
@@ -354,7 +354,7 @@ PJump = 0;		%-Jumping of pointer to question?
 
 %-Condition arguments
 %=======================================================================
-if nargin<1, Prompt=''; else, Prompt=P1; end
+if nargin<1, Prompt=''; else, Prompt=varargin{1}; end
 if isempty(Prompt), Prompt='Enter an expression'; end
 
 if Prompt(1)=='!'
@@ -362,10 +362,10 @@ if Prompt(1)=='!'
 	Type = Prompt;
 else
 	%-Condition arguments for question types
-	if nargin<6, DefItem=[];  else, DefItem=P6; end
-	if nargin<5, Values=[]; else, Values=P5; end
-	if nargin<4, Labels=[]; else, Labels=P4; end
-	if nargin<3, Type='';   else, Type=P3; end
+	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
+	if nargin<5, Values=[]; else, Values=varargin{5}; end
+	if nargin<4, Labels=[]; else, Labels=varargin{4}; end
+	if nargin<3, Type='';   else, Type=varargin{3}; end
 	if isempty(Type), Type='e'; end
 	if strcmp(Type,'y/n')
 		Type = 'b';
@@ -379,7 +379,7 @@ else
 		Labels=Type;
 		Type='b';
 	end
-	if nargin<2, YPos=[];   else, YPos=P2; end
+	if nargin<2, YPos=[];   else, YPos=varargin{2}; end
 	if isempty(YPos), YPos='+1'; end
 end
 
@@ -555,7 +555,7 @@ if exist('spm_log')==2
 		spm_log(['spm_input : ',Prompt,':',p]);
 	end
 end
-R1 = p;
+varargout = {p};
 return
 
 
@@ -818,7 +818,7 @@ elseif Type(1)=='m'
 end % (if Type(1)==...) switch for 'b' or 'm' within any(Type(1)=='bm')
 
 %-Set return value
-R1 = p;
+varargout = {p};
 
 %-Log the transaction
 %-----------------------------------------------------------------------
@@ -839,7 +839,7 @@ switch lower(Type), case '!cmdline'
 %=======================================================================
 % [CmdLine,YPos] = spm_input('!CmdLine',YPos)
 %-Sorts out whether to use CmdLine or not & canonicalises YPos
-if nargin<2, YPos=''; else, YPos=P2; end
+if nargin<2, YPos=''; else, YPos=varargin{2}; end
 if isempty(YPos), YPos='+1'; end
 
 %-Global CMDLINE
@@ -854,14 +854,14 @@ elseif YPos<0
 	CmdLine=0;
 	YPos=-YPos;
 end
-R1 = CmdLine; R2 = YPos;
-return
+varargout = {CmdLine,YPos};
+
 
 case '!getwin'
 %=======================================================================
 % Finter = spm_input('!GetWin',F)
 %-Locate (or create) figure to work in (Don't use 'Tag'ged figs)
-if nargin<2, F='Interactive'; else, F=P2; end
+if nargin<2, F='Interactive'; else, F=varargin{2}; end
 Finter = spm_figure('FindWin',F);
 if isempty(Finter)
 	if any(get(0,'Children'))
@@ -869,17 +869,16 @@ if isempty(Finter)
 		else, Finter = spm('CreateIntWin'); end
 	else, Finter = spm('CreateIntWin'); end
 end
-R1 = Finter;
-return
+varargout = {Finter};
 
 
 case '!pointerjump'
 %=======================================================================
 % [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
 %-Raise window & jump pointer over question
-if nargin<4, XDisp=[]; else, XDisp=P4; end
-if nargin<3, F='Interactive'; else, F=P3; end
-if nargin<2, error('Insufficient arguments'), else, RRec=P2; end
+if nargin<4, XDisp=[]; else, XDisp=varargin{4}; end
+if nargin<3, F='Interactive'; else, F=varargin{3}; end
+if nargin<2, error('Insufficient arguments'), else, RRec=varargin{2}; end
 Finter = spm_figure('FindWin',F);
 if isempty(Finter), error('Interactive figure not found'), end
 PLoc = get(0,'PointerLocation');
@@ -889,16 +888,15 @@ FRec = get(F,'Position');
 if isempty(XDisp), XDisp=RRec(3)*4/5; end
 if PJump, set(0,'PointerLocation',...
 	floor([(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)])); end
-R1 = PLoc; R2=cF;
-return
+varargout = {PLoc,cF};
 
 
 case '!pointerjumpback'
 %=======================================================================
 % spm_input('!PointerJumpBack',PLoc,cF)
 %-Replace pointer and reset CurrentFigure back
-if nargin<4, cF=[]; else, F=P3; end
-if nargin<2, error('Insufficient arguments'), else, PLoc=P2; end
+if nargin<4, cF=[]; else, F=varargin{3}; end
+if nargin<2, error('Insufficient arguments'), else, PLoc=varargin{2}; end
 if PJump, set(0,'PointerLocation',PLoc), end
 cF = spm_figure('FindWin',cF);
 if ~isempty(cF), set(0,'CurrentFigure',cF); end
@@ -909,7 +907,7 @@ case '!prntprmpt'
 %=======================================================================
 % spm_input('!PrntPrmpt',Prompt)
 %-Print prompt for CmdLine questioning
-if nargin<2, Prompt=''; else, Prompt=P2; end
+if nargin<2, Prompt=''; else, Prompt=varargin{2}; end
 if isempty(Prompt), Prompt='Enter an expression'; end
 
 fprintf('\n'), fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
@@ -921,9 +919,9 @@ return
 case '!inputrects'
 %=======================================================================
 % [Frec,QRec,PRec,RRec,Sz,Se] = spm_input('!InputRects',YPos,rec,F)
-if nargin<4, F='Interactive'; else, F=P4; end
-if nargin<3, rec=''; else, rec=P3; end
-if nargin<2, YPos=1; else, YPos=P2; end
+if nargin<4, F='Interactive'; else, F=varargin{4}; end
+if nargin<3, rec=''; else, rec=varargin{3}; end
+if nargin<2, YPos=1; else, YPos=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('Figure not found'), end
 
@@ -948,25 +946,19 @@ RRec   = [ceil(a*Xdim)  y+Yo  floor((1-a)*Xdim)-Pd Sz];	%-Response
 % BRec = MRec + [Xdim-50+1, 0+1, 50-Xdim+30, 0];	%-Menu PullDown OK butt.
 
 if ~isempty(rec)
-	R1 = eval(rec);
+	varargout = {eval(rec)};
 else
-	R1 = FRec;
-	R2 = QRec;
-	R3 = PRec;
-	R4 = RRec;
-	R5 = Sz;
-	R6 = Se;
+	varargout = {FRec,QRec,PRec,RRec,Sz,Se};
 end
-return
 
 
 case '!currentpos'
 %=======================================================================
 % [CPos,hCPos] = spm_input('!CurrentPos',F)
 % hPos contains handles: Columns contain handles corresponding to Pos
-if nargin<2, F='Interactive'; else, F=P2; end
+if nargin<2, F='Interactive'; else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
-if isempty(F), R1=0; R2=[]; return, end
+if isempty(F), varargout={0}; R2=[]; return, end
 
 %-Find tags and YPos positions of 'GUIinput_' 'Tag'ged objects
 H    = [];
@@ -998,17 +990,17 @@ else
 		hCPos(1:nPerPos(i),i) = H(YPos==CPos(i))';
 	end
 end
-R1 = CPos;
-R2 = hCPos;
-return
+varargout = {CPos,hCPos};
+
 
 case '!nextpos'
 %=======================================================================
 % [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
 %-Return next position to use
-if nargin<3, F='Interactive'; else, F=P3; end
-if nargin<2, YPos='+1'; else, YPos=P2; end
-if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos); else, CmdLine=P4; end
+if nargin<3, F='Interactive'; else, F=varargin{3}; end
+if nargin<2, YPos='+1'; else, YPos=varargin{2}; end
+if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos);
+	else, CmdLine=varargin{4}; end
 
 F = spm_figure('FindWin',F);
 
@@ -1040,8 +1032,7 @@ else
 	end
 	NPos = min(max(1,YPos),MPos);
 end
-R1=NPos; R2=CPos; R3=hCPos;
-return
+varargout = {NPos,CPos,hCPos};
 
 
 case '!maxpos'
@@ -1049,7 +1040,7 @@ case '!maxpos'
 % MPos = spm_input('!MaxPos',F,FRec3)
 %
 if nargin<3
-	if nargin<2, F='Interactive'; else, F=P2; end
+	if nargin<2, F='Interactive'; else, F=varargin{2}; end
 	F = spm_figure('FindWin',F);
 	if isempty(F)
 		FRec3=spm('WinSize','Interactive')*[0;0;0;1];
@@ -1065,15 +1056,15 @@ end
 Se   = 2*round(25*min(spm('GetWinScale'))/2);
 MPos = floor((FRec3-5)/Se);
 
-R1 = MPos;
-return
+varargout = {MPos};
+
 
 case '!editablekeypressfcn'
 %=======================================================================
 % spm_input('!EditableKeyPressFcn',h,ch)
-if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcbf,'KeyPressFcn','','UserData',[]), return, end
-if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
+if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};end
 
 tmp = get(h,'String');
 
@@ -1095,7 +1086,6 @@ else
 	return
 end
 set(h,'String',tmp)
-return
 
 
 case '!buttonkeypressfcn'
@@ -1105,11 +1095,11 @@ case '!buttonkeypressfcn'
 % DefItem if (DefItem~=0) & return (ASCII-13) is pressed
 
 %-Condition arguments
-if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcf,'KeyPressFcn','','UserData',[]), return, end
-if nargin<3, error('Insufficient arguments'); else, Keys=P3; end
-if nargin<4, DefItem=0; else, DefItem=P4; end
-if nargin<5, ch=get(gcf,'CurrentCharacter'); else, ch=P5; end
+if nargin<3, error('Insufficient arguments'); else, Keys=varargin{3}; end
+if nargin<4, DefItem=0; else, DefItem=varargin{4}; end
+if nargin<5, ch=get(gcf,'CurrentCharacter'); else, ch=varargin{5}; end
 
 if isempty(ch)
 	%- shift / control / &c. pressed
@@ -1120,16 +1110,15 @@ else
 	But = find(ch==Keys);
 end
 if ~isempty(But), set(h,'UserData',But), end
-return
 
 
 case '!pulldownkeypressfcn'
 %=======================================================================
 % spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
-if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcf,'KeyPressFcn',''), return, end
-if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
-if nargin<4, DefItem=get(h,'UserData'); else, ch=P4; end
+if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};end
+if nargin<4, DefItem=get(h,'UserData'); else, ch=varargin{4}; end
 
 Pmax = get(h,'Max');
 Pval = get(h,'Value');
@@ -1157,15 +1146,14 @@ elseif any(ch=='123456789')
 else
 	%-Illegal character
 end
-return
 
 
 case '!dscroll'
 %=======================================================================
 % spm_input('!dScroll',h,Prompt)
 %-Scroll text in object h
-if nargin<2, return, else, h=P2; end
-if nargin<3, Prompt = get(h,'UserData'); else, Prompt=P3; end
+if nargin<2, return, else, h=varargin{2}; end
+if nargin<3, Prompt = get(h,'UserData'); else, Prompt=varargin{3}; end
 tmp = Prompt;
 if length(Prompt)>56
 	while length(tmp)>56
@@ -1176,7 +1164,6 @@ if length(Prompt)>56
 	pause(1)
 	set(h,'String',Prompt(1:min(length(Prompt),56)))
 end
-return
 
 
 otherwise
