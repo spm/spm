@@ -384,8 +384,9 @@ spm_print
 if exist('SPMt.mat')
 	load SPMt
 	U     = spm_invNcdf(1 - 0.01);
-	[P,EN,Em,En] = spm_P(1,W,U,0,S);
-	K     = round(En);
+	% [P,EN,Em,En] = spm_P(1,W,U,0,S);
+	% K     = round(En);
+	K = 0;
 	for i = 1:size(CONTRAST,1)
 	    spm_projections(SPMt(i,:),XYZ,U,K,V,W,S,DESMTX,CONTRAST(i,:),df);
 	    spm_print
