@@ -1,6 +1,6 @@
 function varargout = spm_input(varargin)
 % Comprehensive graphical and command line input function
-% FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Defaults)
+% FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Default)
 %_______________________________________________________________________
 %
 % spm_input handles most forms of user input for SPM. (File selection
@@ -279,7 +279,7 @@ function varargout = spm_input(varargin)
 %
 % FORMAT Finter = spm_input('!GetWin',F)
 % Locates (or creates) figure to work in
-% F       - Interactive Figure, Defaults to 'Interactive'
+% F       - Interactive Figure, defaults to 'Interactive'
 % Finter  - Handle of figure to use
 %
 % FORMAT [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
@@ -325,13 +325,24 @@ function varargout = spm_input(varargin)
 % F - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 % h - vector of object handles
 %
-% FORMAT [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F)
+% FORMAT [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
 % Returns next position index, specified by YPos
-% YPos  - Absolute (integer) or relative (string) position index
-%         Defaults to '+1'
-% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
-% NPos  - Next position index
+% YPos    - Absolute (integer) or relative (string) position index
+%           Defaults to '+1'
+% F       - Interactive Figure, defaults to spm_figure('FindWin','Interactive')
+% CmdLine - Command line? Defaults to spm_input('!CmdLine',YPos)
+% NPos    - Next position index
 % CPos & hCPos - as for !CurrentPos
+%
+% FORMAT NPos = spm_input('!SetNextPos',YPos,F,CmdLine)
+% Sets up for input at next position index, specified by YPos. This utility
+% function can be used stand-alone to implicitly set the next position
+% by clearing positions NPos and greater.
+% YPos    - Absolute (integer) or relative (string) position index
+%           Defaults to '+1'
+% F       - Interactive Figure, defaults to spm_figure('FindWin','Interactive')
+% CmdLine - Command line? Defaults to spm_input('!CmdLine',YPos)
+% NPos    - Next position index
 %
 % FORMAT MPos = spm_input('!MaxPos',F,FRec3)
 % Returns maximum position index for figure F
@@ -388,6 +399,7 @@ else
 		Type    = 'b';
 	end
 	if nargin<2|isempty(varargin{2}), YPos='+1'; else, YPos=varargin{2}; end
+	if iscell(Labels), Labels=char(Labels); end
 end
 
 
@@ -399,11 +411,8 @@ if ~CmdLine
 	%-Locate (or create) figure to work in
 	Finter = spm_input('!GetWin');
 
-	%-Find out which Y-position to use
-	[YPos,CPos,hCPos] = spm_input('!NextPos',YPos,Finter,CmdLine);
-
-	%-Delete any previous inputs using positions YPos and after
-	if any(CPos>=YPos), h=hCPos(:,CPos>=YPos); delete(h(h>0)), end
+	%-Find out which Y-position to use, setup for use
+	YPos = spm_input('!SetNextPos',YPos,Finter,CmdLine);
 
 	%-Determine position of objects
 	[FRec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,'',Finter);
@@ -966,7 +975,6 @@ case {'!currentpos','!findinputobj'}
 % hPos contains handles: Columns contain handles corresponding to Pos
 if nargin<2, F='Interactive'; else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
-if isempty(F), varargout={0}; R2=[]; return, end
 
 %-Find tags and YPos positions of 'GUIinput_' 'Tag'ged objects
 H    = [];
@@ -976,7 +984,7 @@ for h = get(F,'Children')'
 	if ~isempty(tmp)
 		if strcmp(tmp(1:min(length(tmp),9)),'GUIinput_')
 			H    = [H, h];
-			YPos = [YPos, eval(tmp(10:length(tmp)))];
+			YPos = [YPos, eval(tmp(10:end))];
 		end
 	end
 end
@@ -985,7 +993,7 @@ switch lower(Type), case '!findinputobj'
 	varargout = {H};
 case '!currentpos'
 	if nargout<2
-		varargout = {max([YPos,0]),[]};
+		varargout = {max(YPos),[]};
 	elseif isempty(H)
 		varargout = {[],[]};
 	else
@@ -1043,6 +1051,22 @@ else
 end
 varargout = {NPos,CPos,hCPos};
 
+case '!setnextpos'
+%=======================================================================
+% NPos = spm_input('!SetNextPos',YPos,F,CmdLine)
+%-Set next position to use
+if nargin<3, F='Interactive'; else, F=varargin{3}; end
+if nargin<2, YPos='+1'; else, YPos=varargin{2}; end
+if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos);
+	else, CmdLine=varargin{4}; end
+
+%-Find out which Y-position to use
+[NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine);
+
+%-Delete any previous inputs using positions NPos and after
+if any(CPos>=NPos), h=hCPos(:,CPos>=NPos); delete(h(h>0)), end
+
+varargout = {NPos};
 
 case '!maxpos'
 %=======================================================================
