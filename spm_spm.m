@@ -425,12 +425,12 @@ if iscell(xX.xVi.Vi)
 else
 	Vi    = xX.xVi.Vi;
 end
-KVi           = spm_filter('apply',xX.K, Vi);
-V             = spm_filter('apply',xX.K,KVi');
+KVi           = spm_filter(xX.K, Vi);
+V             = spm_filter(xX.K,KVi');
 
 %-Parameter projection matrix and traces
 %-----------------------------------------------------------------------
-xX.xKXs       = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
+xX.xKXs       = spm_sp('Set',spm_filter(xX.K, xX.X));
 xX.pKX        = spm_sp('x-',xX.xKXs);
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,V);
 erdf          = trRV^2/trRVRV;
@@ -659,7 +659,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...temporal filtering')     %-#
 
-		KY         = spm_filter('apply',xX.K, Y);
+		KY         = spm_filter(xX.K,Y);
 
 		%-General linear model: least squares estimation
 		% (Using pinv to allow for non-unique designs
@@ -682,10 +682,10 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			% F-threshold
 			%-----------------------------------------------
 			if UFp == 1			%-Save all data
-			    tmp  = [1:CrS];
+			    tmp = [1:CrS];
 			else
-			    tmp  = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
-			    tmp  = find(tmp);
+			    tmp = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
+			    tmp = find(tmp);
 			end
 
 			% append data and save indices to coords
@@ -785,17 +785,58 @@ if iscell(xX.xVi.Vi)
 	%-REML estimate of residual correlations through hyperparameters (h)
 	%---------------------------------------------------------------
 	fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation') %-#
+	Cy            = Cy/length(Yidx);
 
-	[Vi,h]       = spm_reml(Cy/length(Yidx),xX.X,xX.xVi.Vi);
+	% ReML for separable designs and covariance components
+	%---------------------------------------------------------------
+	if iscell(xX.K)
+		m     = length(xX.xVi.Vi);
+		h     = zeros(m,1);
+		Vi    = sparse(nScan,nScan); 
+		for i = 1:length(xX.K)
+
+			% extract blocks from bases
+			%-----------------------------------------------
+			q     = xX.K{i}.row;
+			p     = [];
+			Qp    = {};
+			for j = 1:m
+				if any(xX.xVi.Vi{j}(q,q))
+					Qp{end + 1} = xX.xVi.Vi{j}(q,q);
+					p           = [p j];
+				end
+			end
+
+			% design space for ReML (with confounds in filter)	
+			%-----------------------------------------------
+			Xp    = xX.X(q,:);
+			if isfield(xX.K{i}.KH)
+				Xp = [Xp xX.K{i}.KH];
+			end
+
+			% ReML
+			%-----------------------------------------------
+			fprintf('%-30s- %i\n','  ReML Block',i);
+			[Vip,hp] = spm_reml(Cy(q,q),Xp,Qp);
+			Vi(q,q)  = Vi(q,q) + Vip;
+			h(p)     = hp;
+		end
+	else
+		[Vi,h] = spm_reml(Cy,xX.X,xX.xVi.Vi);
+	end
+
+	% normalize non-sphericity and save hyperparameters
+	%---------------------------------------------------------------
 	Vi           = Vi*nScan/trace(Vi);
 	xX.xVi.Param = h;
+
 end
 
 
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
-KVi      = spm_filter('apply',xX.K, Vi);
-xX.V     = spm_filter('apply',xX.K,KVi'); 		%-Non-sphericity V
+KVi      = spm_filter(xX.K, Vi);
+xX.V     = spm_filter(xX.K,KVi'); 		%-Non-sphericity V
 xX.pKXV  = xX.pKX*xX.V;					%-for contrast variance 
 xX.Bcov  = xX.pKXV*xX.pKX';				%-for Cov(Beta)
 [xX.trRV xX.trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);	%-Variance expectations
@@ -827,7 +868,7 @@ R      = spm_resels_vol(VM,FWHM)';
 
 %-Delete the residuals images
 %=======================================================================
-for i=1:nSres,
+for  i = 1:nSres,
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.img']);
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.hdr']);
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.mat']);
