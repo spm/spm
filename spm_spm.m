@@ -115,6 +115,8 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 
 % ANALYSIS PROPER
 %=======================================================================
+% disp('This version of spm_spm is hacked for zero to be a missing value')
+mV = 0;
 global UFp
 
 
@@ -206,10 +208,10 @@ while(1)
 	z     = xyz(3) + Xs(3,:);
 
 
-	%-identify intracranial voxels in first scan
+	%-identify intracranial voxels in first scan - implicit mask
 	%---------------------------------------------------------------
 	X     = spm_sample_vol(V(:,1),x,y,z,0);
-	Q     = find(X > TH(1));
+	Q     = find(finite(X) & X>TH(1) & X~=mV);
 
 	if length(Q) % proceed
 
@@ -222,7 +224,7 @@ while(1)
 	z     = z(Q);
 	for j = 1:q
 		d      = spm_sample_vol(V(:,j),x,y,z,0);
-		U      = U & (d > TH(j));
+		U      = U & (finite(d) & d>TH(j) & d~=mV);
 		X(j,:) = d;
 	end
 	U     = find(U);
@@ -253,7 +255,7 @@ while(1)
 
 	if length(P) % proceed
 
-		%-Adjustment: remove confounds and replace grand mean
+		%-Adjustment: remove confounds
 		%-------------------------------------------------------
 		d     = [1:size([B G],2)] + size([H C],2);
 		XA    = X(:,P) - [B G]*BETA(d,P);
