@@ -1,18 +1,18 @@
  function [slice] = spm_vb_init_volume (X,p)
-% Initialise generic aspects of slice structure for VB GLMAR models
+% Initialise generic aspects of slice structure for VB-GLM-AR models
 % FORMAT [slice] = spm_vb_init_volume (X,p)
 %
 % X design matrix
 % p AR model order
 %
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
 
-
-disp('Initialising volume');
-disp(' ');
+% disp('Initialising volume');
+% disp(' ');
 
 
 slice.X=X;

@@ -5,11 +5,11 @@ function [slice] = spm_vb_init_slice (Y,slice)
 % Y             [T x N] time series with T time points, N voxels
 % slice         GLM-AR data structure
 %
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
-
 
 k=slice.k;
 p=slice.p;
@@ -44,14 +44,27 @@ end
 slice.mean_alpha=slice.b_alpha.*slice.c_alpha;
 
 % Initialise approximate beta posterior
-slice.b_beta=slice.b_beta_prior;
-if slice.update_beta
-    slice.c_beta  = p/2 + slice.c_beta_prior;
+if strcmp(slice.priors.A,'Discrete')
+    S=slice.priors.S;
+    slice.c_beta_prior=slice.c_beta_prior*ones(1,S);
+    slice.b_beta_prior=slice.b_beta_prior*ones(1,S);
+    slice.as=rand(slice.p,S);
+    
+    slice.b_beta=slice.b_beta_prior;
+    if slice.update_beta
+        slice.c_beta=0.5*ones(slice.p,1)*slice.priors.N+slice.c_beta_prior;
+    else
+        slice.c_beta  = slice.c_beta_prior;
+    end
 else
-    slice.c_beta  = slice.c_beta_prior;
+    slice.b_beta=slice.b_beta_prior;
+    if slice.update_beta
+        slice.c_beta  = N/2 + slice.c_beta_prior;
+    else
+        slice.c_beta  = slice.c_beta_prior;
+    end
 end
 slice.mean_beta=slice.b_beta.*slice.c_beta;
-
 
 % Initialise approximate lambda posterior
 slice.b_lambda=slice.b_lambda_prior;
@@ -62,7 +75,9 @@ else
 end
 slice.mean_lambda=slice.b_lambda.*slice.c_lambda;
 
-disp('Initialising regression coefficient posterior');
+if slice.verbose
+    disp('Initialising regression coefficient posterior');
+end
 % Initialise approximate w posterior
 try
     Xp=slice.Xp;
@@ -92,7 +107,9 @@ slice.wk_mean      = reshape(slice.w_mean,k,N);
 slice.wk_ols      = reshape(slice.w_ols,k,N);
 
 % Initialise AR coefficient posterior
-disp('Initialising AR coefficients');
+if slice.verbose
+    disp('Initialising AR coefficients');
+end
 % Embed data
 for pp=1:p,
     dy(pp,1:T-p,:)=Y(p-pp+1:T-pp,:);
@@ -118,7 +135,7 @@ if p>0
     slice.ap_ols=slice.ap_mean;
     slice.a_mean=slice.ap_mean(:);
     
-    if strcmp(slice.priors.overA,'Slice')
+    if strcmp(slice.priors.A,'Slice-Limiting')
         if p==1
             a_mean=mean(slice.ap_mean);
             slice.ap_mean=a_mean*ones(1,N);
@@ -127,7 +144,9 @@ if p>0
 end
 
 if p>0
-    disp('Setting up cross-covariance matrices');
+    if slice.verbose
+        disp('Setting up cross-covariance matrices');
+    end
     % Get input-output lagged covariances (I.rxy, I.gxy, I.Gxy and I.D) 
     % and (I.Gy, I.gy)
     slice.I.gxy=slice.X(p+1:T,:)'*Y(p+1:T,:);
@@ -153,7 +172,9 @@ if p>0
     end
 end
 
-disp('Setting up spatial permutation matrices');
+if slice.verbose
+    disp('Setting up spatial permutation matrices');
+end
 % Set up permutation matrix for regression coefficients
 Nk = N*k;
 slice.Hw=sparse(Nk,Nk);
@@ -177,19 +198,46 @@ if p > 0
     end
 end
 
-% if slice.update_F
-%     disp('Computing log determinant of spatial precision matrix for evidence');
-%     % Get log determinant of D
-%     [vvv,ddd]=eig(full(slice.D));
-%     dd=diag(ddd);
-%     if strcmp(slice.priors.WA,'Spatial - LORETA')
-%         % Ignore 1st eigenvalue which is zero
-%         dd=dd(2:end);
-%     end
-%     slice.log_det_D=sum(log(dd));
-% end
+try
+    slice.compute_det_D;
+catch
+    slice.compute_det_D=0;
+end
 
-disp('Computing data projections');
+if slice.update_F
+    if slice.compute_det_D
+        if slice.verbose
+            disp('Computing log determinant of spatial precision matrices');
+        end
+        % Get log determinant of Dw
+        [vvv,ddd]=eig(full(slice.Dw));
+        dd=diag(ddd);
+        dd=dd(dd>eps);
+        slice.log_det_Dw=sum(log(dd));
+        if p>0
+            if isfield(slice,'Da')
+                if slice.Da==slice.Dw
+                    slice.log_det_Da=slice.log_det_Dw;
+                else
+                    % Get log determinant of Da
+                    [vvv,ddd]=eig(full(slice.Da));
+                    dd=diag(ddd);
+                    dd=dd(dd>eps);
+                    slice.log_det_Da=sum(log(dd));
+                end
+            end
+        end
+    else
+        slice.log_det_Dw=0;
+        if p>0
+            slice.log_det_Da=0;
+        end
+    end
+end
+
+if slice.verbose
+    disp('Computing data projections');
+end
 % Set up design and data projections
 try 
     slice.XT;

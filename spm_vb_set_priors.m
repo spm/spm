@@ -3,28 +3,37 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 % FORMAT [slice] = spm_vb_set_priors (slice,priors,vxyz)
 %
 % slice     VB-GLM-AR data structure
-% priors    For Regression and AR coefficients:
+% priors    For regression coefficients:
 %
-%           .WA='Spatial - GMRF' : W and A coeffs that are spatially regularised
+%           .W= 'Spatial - GMRF' : coeffs that are spatially regularised
 %               'Spatial - LORETA' : as above but different spatial prior
-%               'Voxel - Shrinkage' : W and A coeffs that are shrunk voxel-wise
-%               'Voxel - Uninformative' : W and A coeffs without prior
+%               'Voxel - Shrinkage' : that are shrunk voxel-wise
+%               'Voxel - Uninformative' : coeffs without prior
 %
-%           For AR coefficients, override options:
+%           For AR coefficients:
 %
-%           .overA='Voxel' : Override spatial prior to have voxel-specific coeffs
-%                 ='Slice' : Override spatial prior to have slice-specific coeffs
+%           .A= 'Spatial - GMRF' : coeffs that are spatially regularised
+%               'Spatial - LORETA' : as above but different spatial prior
+%               'Voxel - Shrinkage' : that are shrunk voxel-wise
+%               'Voxel - Uninformative' : coeffs without prior
+%               'Voxel - Limiting' :  Voxel-specific coeffs as limiting case of
+%                                   a LORETA prior
+%               'Slice - Limiting' :   Slice-specific coeffs as limiting case of
+%                                   a LORETA prior
+%               'Discrete'  :   Different coeffs as function of
+%                                   grey/white/CSF or other masks
 %
 % vxyz      locations of voxels 
 %
-% Because slice.D, the spatial precision matrix, is the same for W and A,
-% the options for the priors are currently limited to the above
-%
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny
+% Will Penny 
 % $Id$
 
+if ~isfield(slice,'verbose')
+    slice.verbose=0;
+end
 
 N=size(vxyz,1);
 k=size(slice.X,2);
@@ -42,95 +51,89 @@ slice.mean_alpha=ones(k,1);
 slice.mean_beta=ones(p,1);
 slice.mean_lambda=ones(N,1);
 
-switch priors.WA,
-    % Get relevant spatial precision or roughness matrix
-    
+switch priors.W,
     case 'Spatial - GMRF',
-        % Gaussian Markov Random Field with geometric boundary conditions
-        % See equation in Woolrich et al. (ref 26 in paper VB2) 
-        % Also described in dicussion in paper VB2
-        % Warning: D for this prior can be singular !
-        fprintf('\n');
-        disp('Using GMRF');
-        voxels=size(vxyz,1);
-        slice.D=speye(voxels);
-        for j=1:voxels,
-            num_neighbors(j)=length(nonzeros(vxyz(j,:)));
-        end
-        for j=1:voxels,
-            neighbors=nonzeros(vxyz(j,:));
-            geom_means=sqrt(num_neighbors(j)*num_neighbors(neighbors));
-            slice.D(j,neighbors)=-1./geom_means;
-        end
-        
-%     case 'Spatial - LORETA',
-%         % This produces the 
-%         % Laplacian used in LORETA, with biased boundary conditions
-%         % - see discussion in section 2 of paper VB2
-%         disp('');
-%         disp('Using LORETA prior');
-%         voxels=size(vxyz,1);
-%         L=4*speye(voxels);
-%         for j=1:voxels,
-%             L(j,nonzeros(vxyz(j,:)))=-1;
-%         end
-%         slice.D=L'*L;
+        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - GMRF');
         
     case 'Spatial - LORETA',
-        % Unbiased LORETA PRIOR
-        % Ensures normalisation is correct for edges/corners 
-        % - see discussion in section 2 of paper VB2
-        fprintf('\n');
-        disp('Using LORETA prior');
-        voxels=size(vxyz,1);
-        L=4*speye(voxels);
-        for j=1:voxels,
-            L(j,nonzeros(vxyz(j,:)))=-1;
-            L(j,j)=length(nonzeros(vxyz(j,:)));
-        end
-        slice.D=L'*L;
+        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
         
-    case 'Spatial - RTPS',
-        % Regularised Thin Plate Splines - Buckley, 1994.
+    case 'Spatial - LORETAu',
+        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - LORETAu');
         
     case 'Voxel - Shrinkage',
-        fprintf('\n');
-        disp('Using Voxel Shrinkage priors for W and A');
-        slice.D=speye(N);
+        slice.Dw=speye(N);
+        slice.update_alpha=1;
         
     case 'Voxel - Uninformative',
-        fprintf('\n');
-        disp('Using Voxel Uninformative priors for W and A');
-        slice.D=speye(N);
+        slice.Dw=speye(N);
         slice.mean_alpha=0.000001*ones(k,1);
         slice.update_alpha=0;
-        slice.mean_beta=0.000001*ones(k,1);
-        slice.update_beta=0;
-        
+end
+
+if slice.verbose
+    fprintf('\n');
+    disp(sprintf('%s priors for W',priors.W));
 end
 
 if slice.p > 0
     slice.update_a=1;
 end
 
-if (strcmp(priors.WA,'Spatial - GMRF')) | (strcmp(priors.WA,'Spatial - LORETA'))
-    switch priors.overA
-        case 'Voxel',
-            % Very low (fixed) spatial precision ensures spatial prior is 
-            % effectively ignored
-            slice.update_beta=0;
-            slice.mean_beta=1e-4*ones(p,1);
-            disp('Voxel-wise AR coeffs');
-        case 'Slice',
-            % Very high (fixed) spatial precision ensures AR coefficients are
-            % (nearly) identical over the slice
-            slice.update_beta=0;
-            slice.mean_beta=1e4*ones(p,1);
-            disp('Slice-wise AR coeffs');
-        otherwise
-            % Estimate spatial precision from data
-            
-    end
+switch priors.A,
+    
+    case 'Spatial - GMRF',
+        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - GMRF');
+        
+    case 'Spatial - LORETA',
+        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        
+    case 'Spatial - LORETAu',
+        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETAu');
+        
+    case 'Voxel - Shrinkage',
+        slice.Da=speye(N);
+        slice.update_beta=1;
+        
+    case 'Voxel - Uninformative',
+        slice.Da=speye(N);
+        slice.mean_beta=0.000001*ones(p,1);
+        slice.update_beta=0;
+        
+    case 'Voxel - Limiting',
+        % Very low (fixed) spatial precision ensures spatial prior is 
+        % effectively ignored
+        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.update_beta=0;
+        slice.mean_beta=1e-4*ones(p,1);
+        
+    case 'Slice - Limiting',
+        % Very high (fixed) spatial precision ensures AR coefficients are
+        % (nearly) identical over the slice
+        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.update_beta=0;
+        slice.mean_beta=1e4*ones(p,1);
+    
+    case 'Discrete',
+        disp('Different AR coeff priors for masked regions');
+        if ~(isfield(priors,'gamma'))
+            disp('Must enter class labels');
+            return
+        end
+        priors.S=size(priors.gamma,2);
+        priors.N=sum(priors.gamma(:,:));
+        for s=1:priors.S
+            priors.voxel(s).i=find(priors.gamma(:,s)==1);  
+        end
+        slice.mean_beta=100*ones(p,1);
+        
+    otherwise
+        % Estimate spatial precision from data
+end
+
+if slice.verbose
+    fprintf('\n');
+    disp(sprintf('%s priors for A',priors.A));
 end
 
 % Set b coefficients of Gamma priors

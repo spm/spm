@@ -70,9 +70,10 @@ function [slice] = spm_vb_glmar (Y,slice)
 %
 %               There are other fields that are used internally
 %
+%___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Will Penny & Nelson Trujillo-Barreto
+% Will Penny and Nelson Trujillo-Barreto
 % $Id$
 
 
@@ -80,28 +81,28 @@ tic;
 
 % Check arguments and set defaults
 if nargin < 2, 
-   disp('Error in  in spm_vbglmar_slice: function needs two arguments'); 
+   disp('Error in spm_vb_glmar: function needs two arguments'); 
    return
 end
 [T,N]=size(Y);
 slice.T=T;
 slice.N=N;
 if ~isfield(slice,'X')
-    disp('Error in spm_vbglmar_slice: mandatory field X missing');
+    disp('Error in spm_vb_glmar: mandatory field X missing');
     return
 else
     X=slice.X;
 end
 [tmp,k]=size(X);
 if ~(tmp==T)
-   disp('Error in spm_vbglmar_slice: X is not of compatible size to Y');
+   disp('Error in spm_vb_glmar: X is not of compatible size to Y');
    return
 end
 slice.k=k;
 p=slice.p;
 
-if ~isfield(slice,'D')
-    disp('Error in spm_vbglmar_slice: mandatory field D missing');
+if ~isfield(slice,'Dw')
+    disp('Error in spm_vb_glmar: mandatory field Dw missing');
     return
 end
 
@@ -144,7 +145,10 @@ for it = 1:slice.maxits, % Loop over iterations
         if it > 2
             if delta_F < 0
                 disp(sprintf('********** Warning: decrease in F of %1.4f per cent *************',100*(delta_F/F)));
+                keyboard
                 break;
+                
+                
             elseif abs(delta_F/F) < slice.tol,
                 break;
             end;     
