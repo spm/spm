@@ -276,6 +276,7 @@ global st
 tmp = uicontrol('Position',[0 0 1 1],'Visible','off','Parent',st.fig);
 st.registry = struct('hReg',hreg,'hMe', tmp);
 spm_XYZreg('Add2Reg',st.registry.hReg,st.registry.hMe, 'spm_orthviews');
+st.centre = spm_XYZreg('GetCoords',st.registry.hReg);
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -309,6 +310,9 @@ return;
 %_______________________________________________________________________
 function my_reset
 global st
+if ~isempty(st) & isfield(st,'registry') & ishandle(st.registry.hMe),
+	delete(st.registry.hMe); st = rmfield(st,'registry');
+end;
 my_delete(1:24);
 reset_st;
 return;
@@ -578,12 +582,15 @@ for i = valid_handles(arg1),
 
 					tmp  = cat(3,tmpt*(colour(1)/mx),tmpt*(colour(2)/mx),tmpt*(colour(3)/mx));
 					imgt = (repmat((1-tmpt/mx),[1 1 3]).*imgt+tmp);
+					tmp = find(imgt<0); imgt(tmp)=0; tmp = find(imgt>1); imgt(tmp)=1;
 
 					tmp  = cat(3,tmpc*(colour(1)/mx),tmpc*(colour(2)/mx),tmpc*(colour(3)/mx));
 					imgc = (repmat((1-tmpc/mx),[1 1 3]).*imgc+tmp);
+					tmp = find(imgc<0); imgc(tmp)=0; tmp = find(imgc>1); imgc(tmp)=1;
 
 					tmp  = cat(3,tmps*(colour(1)/mx),tmps*(colour(2)/mx),tmps*(colour(3)/mx));
 					imgs = (repmat((1-tmps/mx),[1 1 3]).*imgs+tmp);
+					tmp = find(imgs<0); imgs(tmp)=0; tmp = find(imgs>1); imgs(tmp)=1;
 				end;
 			end;
 		else,

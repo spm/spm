@@ -224,6 +224,11 @@ if strcmp(op,'update_info'),
 	return;
 end;
 
+if strcmp(op,'reset'),
+	spm_orthviews('reset');
+	spm_figure('Clear');
+end;
+
 if strcmp(op,'zoom_in'),
 	op = get(st.zoomer,'Value');
 	if op==1,
@@ -277,7 +282,7 @@ WS = spm('GetWinScale');
 
 % Widgets for re-orienting images.
 %-----------------------------------------------------------------------
-uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS);
+uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_image(''reset'');');
 uicontrol(fg,'Style','Text', 'Position',[90 220 100 016].*WS,'String','right  {mm}');
 uicontrol(fg,'Style','Text', 'Position',[90 200 100 016].*WS,'String','foward  {mm}');
 uicontrol(fg,'Style','Text', 'Position',[90 180 100 016].*WS,'String','up  {mm}');
