@@ -57,7 +57,7 @@ Matrix *plhs[], *prhs[];
 #endif
 {
     double		*spm,*l,*v,*dim;
-    unsigned int 	m,m1,n,i,j,k;
+    int 	m,m1,n,i,j,k;
     int			x,y,z,xdim,ydim,zdim;
     double		q;
 
@@ -82,42 +82,44 @@ Matrix *plhs[], *prhs[];
     {
 	/* go though point list */
 	for (i = 0; i < n; i++) {
-	    x = (int)l[i*3 + 0]-xdim/2 + CX;
-	    y = (int)l[i*3 + 1]-ydim/2 + CY;
-	    z = (int)l[i*3 + 2]-zdim/2 + CZ;
-    
-	    if (x>=0 && x+xdim<DX && y>=0 && y+ydim<DY) /* transverse */
+	    x = (int)l[i*3 + 0] + CX;
+	    y = (int)l[i*3 + 1] + CY;
+	    z = (int)l[i*3 + 2] + CZ;
+
+	    if (x-xdim/2>=0 && x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
 	    {
 		    q = v[i];
 		    if (q > spm[y + (DX-x)*m])
 		    {
-			    for (j = 0; j < ydim; j++) {
-				    for (k = 0; k < xdim; k++) {
-						spm[j + y + (k + DX-x-1)*m] = q;
+			    for (j = -ydim/2; j <= ydim/2; j++) {
+				    for (k = -xdim/2; k <= xdim/2; k++) {
+						spm[j + y - 2 + (k + DX - x - 2)*m] = q;
 				    }
 			    }
 		    }
 	    }
-	    if (z>=0 && z+zdim<DZ && y>=0 && y+ydim<DY) /* sagittal */
+
+	    if (z-zdim/2>=0 && z+zdim/2<DZ && y-ydim/2>=0 && y+ydim/2<DY) /* sagittal */
 	    {
 		    q = v[i];
 		    if (q > spm[y + (DX+z)*m])
 		    {
-			    for (j = 0; j < ydim; j++) {
-				    for (k = 0; k < zdim; k++) {
-						spm[j + y + (DX + k + z)*m] = q;
+			    for (j = -ydim/2; j <= ydim/2; j++) {
+				    for (k = -zdim/2; k <= zdim/2; k++) {
+						spm[j + y - 2 + (DX + k + z - 2)*m] = q;
 				    }
 			    }
 		    }
 	    }
-	    if (x>=0 && x+xdim<DX && z>=0 && z+zdim<DZ) /* coronal */
+
+	    if (x-xdim/2>=0 && x+xdim/2<DX && z-zdim/2>=0 && z+zdim/2<DZ) /* coronal */
 	    {
 		    q = v[i];
 		    if (q > spm[DY+x + (DX+z)*m])
 		    {
-			    for (j = 0; j < xdim; j++) {
-				    for (k = 0; k < zdim; k++) {
-						spm[DY + j + x + (DX + k + z)*m] = q;
+			    for (j = -xdim/2; j <= xdim/2; j++) {
+				    for (k = -zdim/2; k <= zdim/2; k++) {
+						spm[DY + j + x - 2 + (DX + k + z - 2)*m] = q;
 				    }
 			    }
 		    }
