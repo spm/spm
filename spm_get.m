@@ -260,8 +260,7 @@ if nargin<6 CmdLine=[]; else CmdLine=varargin{6}; end
 if nargin<5 NewWDir=''; else NewWDir=varargin{5}; end
 if nargin<4 Prefix=''; else Prefix=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
-if nargin<2 Suffix=[]; else Suffix=varargin{2}; end
-if isempty(Suffix), Suffix=0; end
+if nargin<2 | isempty(varargin{2}), Suffix=0; else Suffix=varargin{2}; end
 n = Action;
 
 if (n==0), P=[]; return, end
@@ -314,7 +313,7 @@ else
 	%-Jump cursor back to previous location
 	if PJump, set(0,'PointerLocation',PLoc), end
 
-end % (if CmdLine)
+end
 
 %-Log the transaction
 %-----------------------------------------------------------------------
@@ -336,8 +335,7 @@ switch lower(Action), case 'createfig'
 %-Condition arguments
 %-----------------------------------------------------------------------
 if nargin<3 Filter=[]; else Filter=varargin{3}; end
-if nargin<2 LastDirs=[]; else LastDirs=varargin{2}; end
-if isempty(LastDirs), LastDirs=pwd; end
+if nargin<2 | isempty(varargin{2}), LastDirs=pwd; else LastDirs=varargin{2}; end
 LastDirs=strvcat(LastDirs,getenv('HOME'));
 if (exist('spm.m')==2), LastDirs=strvcat(LastDirs,spm('Dir')); end
 	
@@ -677,7 +675,7 @@ if (n>=0)
 else
 	str = [str,' director'];
 	if nP==1, str=[str,'y']; else, str=[str,'ies']; end
-end % (if)
+end
 
 if isinf(n)
 	str = [str,', press "Done" when finished.'];
@@ -713,7 +711,7 @@ if nargin<2
 	end
 else
 	NewDir=varargin{2};
-end % (if)
+end
 if isempty(NewDir), NewDir=WDir; end
 NewDir=deblank(NewDir);
 
@@ -734,8 +732,8 @@ if NewDir(1)~='/'
 			NewDir(1)=[];
 		end
 		NewDir=[WDir,NewDir];
-	end % (if NewDir(1)~='.')
-end % (if NewDir...)
+	end
+end
 
 if length(NewDir)>=3
 	%-Sort out trailing '/..'
@@ -766,7 +764,7 @@ if length(NewDir)>=2
 			NewDir='/';
 		end
 	elseif tmp(1)=='/'
-		NewDir=NewDir(1:length(NewDir)-1);
+		NewDir=NewDir(1:end-1);
 	end
 end
 
@@ -780,30 +778,29 @@ set(0,'CurrentFigure',F), delete(gca)
 %-Set up LastDirs
 %-----------------------------------------------------------------------
 %-Recover LastDirs & size of fixed part from popup menu object
-LastDirs=get(findobj(F,'Tag','LastDirsPopup'),'String'); LastDirs(1,:)=[];
-Fs=get(findobj(F,'Tag','LastDirsPopup'),'UserData');
+LastDirs  = get(findobj(F,'Tag','LastDirsPopup'),'String'); LastDirs(1,:)=[];
+Fs        = get(findobj(F,'Tag','LastDirsPopup'),'UserData');
 
 %-Add new directory
-LastDirs=strvcat(NewDir,LastDirs);
+LastDirs  = strvcat(NewDir,LastDirs);
 
 %-Extract fixed and variable parts of LastDirs
-FLastDirs=LastDirs(size(LastDirs,1)-[Fs-1:-1:0],:);
-LastDirs(size(LastDirs,1)-[Fs-1:-1:0],:)=[];
+FLastDirs = LastDirs(end-Fs+1:end,:);
+LastDirs(end-Fs+1:end,:)=[];
 
 %-Delete any replications of NewDir within the variable part of LastDirs
 if size(LastDirs,1)>1
-	IDRows=[0, all( LastDirs(2:size(LastDirs,1),:)'==...
-		setstr(ones(size(LastDirs,1)-1,1)*LastDirs(1,:))' ) ];
-	LastDirs(find(IDRows),:)=[];
-end % (if)
+	IDRows = 1+find(all( LastDirs(2:end,:) == ...
+		repmat(LastDirs(1,:),size(LastDirs,1)-1,1) ,2 ) );
+	LastDirs(IDRows,:)=[];
+end
 
 %-Delete NewDir from top of LastDirs if present in fixed part of LastDirs
-if any( all(FLastDirs'==setstr(ones(size(FLastDirs,1),1)*LastDirs(1,:))') )
-	LastDirs(1,:)=[]; end
+if any(all(FLastDirs==repmat(LastDirs(1,:),Fs,1),2)), LastDirs(1,:)=[]; end
 
 %-Lose directories from the bottom of variable LastDirs if oversize
 Vs = 10; %-Maximum allowable number of variable LastDirs entries
-if size(LastDirs,1)>Vs LastDirs(Vs+1:size(LastDirs,1),:)=[]; end
+if size(LastDirs,1)>Vs, LastDirs(Vs+1:end,:)=[]; end
 
 %-Put LastDirs and FLastDirs back together
 LastDirs = [LastDirs; FLastDirs];
@@ -846,9 +843,11 @@ delete(gca), drawnow
 %-----------------------------------------------------------------------
 if nargin<4, NoComp=0; else, NoComp=1; end
 if nargin<3, Filter=''; else, Filter=varargin{3}; end
-if nargin<2, WDir=''; else, WDir = varargin{2}; end
-if isempty(WDir), WDir = get(findobj(F,'Tag','WDir'),'UserData');
-	else, WDir = deblank(WDir); end
+if nargin<2 | isempty(varargin{2})
+	WDir = get(findobj(F,'Tag','WDir'),'UserData');
+else
+	WDir = deblank(varargin{2});
+end
 
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
 
@@ -1014,13 +1013,11 @@ case 'filesummary'
 %=======================================================================
 % [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
 if nargin<5, len = 3; else len = varargin{5}; end
-if nargin<4, Filter = ''; else Filter = varargin{4}; end
-if isempty(Filter), Filter='*'; end
+if nargin<4 | isempty(varargin{4}), Filter = '*'; else Filter = varargin{4}; end
 if nargin<3, Cend='both'; else, Cend = varargin{3}; end
-if nargin<2, error('Specify Fnames to summarise'), else Fnames = varargin{2}; end
+if nargin<2 | isempty(varargin{2}), error('Specify Fnames to summarise')
+else Fnames = varargin{2}; end
 %-Implicit assumption in this code is that no two files have the same name
-
-if isempty(Fnames), error('Null Fnames'), end
 
 if strcmp(Cend,'front')
 	if size(Fnames,1) == 1	%-Only one filename!
@@ -1041,13 +1038,13 @@ if strcmp(Cend,'front')
 		nCfnames = size(Cfnames,1);
 		if nCfnames == 1
 			tmp    = max(find(Cfnames~=' '));
-			FSpecs = str2mat(FSpecs,Cfnames(1,1:tmp));
+			FSpecs = strvcat(FSpecs,Cfnames(1,1:tmp));
 		elseif nCfnames == 2
 			tmp    = min(find([diff(abs(Cfnames)),1]))-1;
-			FSpecs = str2mat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
+			FSpecs = strvcat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
 		else
 			tmp    = min(find([any(diff(abs(Cfnames))),1]))-1;
-			FSpecs = str2mat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
+			FSpecs = strvcat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
 		end
 		tI       = I(cI);
 		tmp	 = max([nCfnames,size(FnamePos,2)]);
@@ -1055,7 +1052,6 @@ if strcmp(Cend,'front')
 				zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
 				tI', zeros(1,tmp-length(tI))];
 	end
-	FSpecs(1,:)   = [];
 elseif strcmp(Cend,'end')
 	fFnames           = spm_get('strfliplr',Fnames);
 	[FSpecs,FnamePos] = spm_get('FileSummary',fFnames,'front');
@@ -1068,7 +1064,7 @@ elseif strcmp(Cend,'both')
 	    chI          = hI(i,hI(i,:)>0);
 	    if length(chI) == 1
 		%-Single file
-		FSpecs   = str2mat(FSpecs,hSpecs(i,hSpecs(i,:)~=' '));
+		FSpecs   = strvcat(FSpecs,hSpecs(i,hSpecs(i,:)~=' '));
 		tmp      = max([1,size(FnamePos,2)]);
 		FnamePos = [FnamePos,...
 			zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
@@ -1079,11 +1075,10 @@ elseif strcmp(Cend,'both')
 		%-Chop off common beginning
 		Cfnames(:,1:find(hSpecs(i,:)=='*')-1) = [];
 		%-Watch out for blank lines (e.g for files abc & abcde)
-		% Append blank line to prevent any working on a vector
-		bI = find(all(str2mat(Cfnames',' ')==' '));
+		bI = find(all(Cfnames==' ',2));
 		if ~isempty(bI)
 		    % There'll be one blank line at most
-		    FSpecs   = str2mat(FSpecs,...
+		    FSpecs   = strvcat(FSpecs,...
 			hSpecs(i,1:find(hSpecs(i,:)=='*')-1) );
 		    tmp      = max([1,size(FnamePos,2)]);
 		    FnamePos = [FnamePos,...
@@ -1106,7 +1101,7 @@ elseif strcmp(Cend,'both')
 		        cFSpec = [hSpecs(i,hSpecs(i,:)~=' '),...
 				tSpecs(j,2:max(find(tSpecs(j,:)~=' ')) ) ];
 		    end
-		    FSpecs   = str2mat(FSpecs,cFSpec);
+		    FSpecs   = strvcat(FSpecs,cFSpec);
 		    tmp      = max([length(cI),size(FnamePos,2)]);
 		    FnamePos = [FnamePos,...
 			zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
@@ -1114,7 +1109,6 @@ elseif strcmp(Cend,'both')
 		end
 	    end
 	end
-	FSpecs(1,:)   = [];
 else
 	error('Invalid Cend specifier')
 end
@@ -1170,7 +1164,7 @@ for h = H'
 	if finite(n), if (nP+nItems>abs(n)), break, end, end
 
 	%-Add items to P
-	FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
+	FPath  = [repmat([WDir,'/'],nItems,1),Items];
 	P      = strvcat(P,FPath);
 	if nItems==1
 		tmp = [int2str(nP+1),' :',IName];
@@ -1185,7 +1179,7 @@ end
 %-Chop off any redundant trailing spaces
 %-----------------------------------------------------------------------
 % (Don't have to worry about spaces within strings 'cos filenames)
-if ~isempty(P), P(:,all(P==' ',1))=[]; end
+if ~isempty(P), P(:,all(P==' ',1))=[]; else, P=''; end
 
 %-Return new P to holding object
 %-----------------------------------------------------------------------
@@ -1208,14 +1202,14 @@ IName  = get(h,'String');
 IName(1:find(IName==':')) = [];
 Items  = get(h,'UserData');
 nItems = size(Items,1);
-FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
+FPath  = [repmat([WDir,'/'],nItems,1),Items];
 nP     = size(P,1);
 
 %-Compare Items with end of P (Can only delete from the end)
 tmp    = strvcat(P(nP-(nItems-1):nP,:),FPath);
 if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
 	P(nP-(nItems-1):nP,:)=[];
-	if ~isempty(P), P(:,all(P==' ',1))=[]; end
+	if ~isempty(P), P(:,all(P==' ',1))=[]; else, P=''; end
 	set(findobj(F,'Tag','P'),'UserData',P);
 	set(h,'String',IName,'Color','k',...
 		'Tag','IName',...
@@ -1257,9 +1251,9 @@ if n==0, return, end
 
 nP=size(P,1);
 
-fprintf('\n'), fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
+fprintf('\n'), fprintf('%c',repmat('=',1,70)), fprintf('\n')
 fprintf('\t%s\n',Prompt)
-fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
+fprintf('%c',repmat('=',1,70)), fprintf('\n')
 fprintf('Current working directory: %s\n',WDir)
 fprintf('(Prepended to relative paths)\n')
 if nP>0
@@ -1269,8 +1263,8 @@ end
 fprintf('\nEnter paths :')
 AllowEnd = AllowEnd | isinf(n);
 Tstr = 'END';
-if AllowEnd, fprintf(' (Type "END" to terminate input.)')
-	else fprintf(' to %d items:',abs(n)-nP), end
+if AllowEnd, fprintf(' (Type "END" to terminate input.)\n')
+	else fprintf(' to %d items:\n',abs(n)-nP), end
 
 Done=0;
 while ~Done
@@ -1292,7 +1286,7 @@ while ~Done
 	if ~strcmp(str,Tstr), P=strvcat(P,str); end
 	nP = nP+1;
 	Done = (strcmp(str,Tstr) | (nP==abs(n)));
-end % (while)
+end
 
 varargout = {P};
 
