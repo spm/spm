@@ -28,7 +28,11 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm} - column vector
 % .DIM   - image dimensions {voxels} - column vector
-% 
+% .Vspm  - Mapped statistic image(s)
+% .Msk   - Mask in 1 of 3 forms
+%            o Scalar, indicating implicit mask value in statistic image(s)
+%            o Vector of indicies of elements within mask
+%            o Mapped mask image
 %
 % xX     - Design Matrix structure
 %        - (see spm_spm.m for structure)
@@ -129,7 +133,8 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % see spm_results_ui.m for further details of the SPM results section.
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
-SCCSid   = '%I%';
+
+SCCSid   = '2.37';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -544,6 +549,11 @@ for i = Im
 	QQ    = QQ(Q);
 	if isempty(Q), break, end
 end
+if ~isempty(Im) & ~isempty(Q)
+  Msk = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
+else
+  Msk = 0;  %-Statistic images are zero-masked
+end
 
 spm_progress_bar('Set',100*((2*length(I)+1)/(2*length(I)+2)))        %-#
 
@@ -583,6 +593,8 @@ end
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 spm_progress_bar('Set',100)                                          %-#
 
+%-Save mappped statistic image(s) to put in VOL
+VspmSv = cat(1,xCon(Ic).Vspm);
 
 %-Save contrast structure (if wOK), with relative pathnames to image files
 %=======================================================================
@@ -622,9 +634,14 @@ if ~isempty(XYZ)
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    if spm_input('corrected height threshold','+1','y/n',[1,0],2)
-	u  = spm_input('corrected p value','+0','r',0.05,1,[0,1]);
+    str   = 'FWE|FDR|uncorrected';
+    d = spm_input('corrected height threshold','+1','b',str,[],3);
+    if strcmp(d,'FWE')
+	u  = spm_input('FWE-corrected p value','+0','r',0.05,1,[0,1]);
 	u  = spm_uc(u,edf,STAT,xSDM.R,n,xSDM.S);
+    elseif strcmp(d,'FDR')
+	u  = spm_input('FDR-corrected p value','+0','r',0.05,1,[0,1]);
+	u  = spm_uc_FDR(u,edf,STAT,n,VspmSv,0);
     else
 	%-NB: Uncorrected p for conjunctions is p of the conjunction SPM
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
@@ -709,7 +726,9 @@ VOL    = struct('S',		S,...
 		'M',		M,...
 		'iM',		iM,...
 		'VOX',		sqrt(sum(M(1:3,1:3).^2))',...
-		'DIM',		DIM);
+		'DIM',		DIM,...
+		'Vspm',		VspmSv,...
+		'Msk',		Msk);
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------
