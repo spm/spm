@@ -516,7 +516,7 @@ VM    = struct(		'fname',	'mask.img',...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:resultant analysis mask');
-VM    = spm_create_vol(VM);
+VM    = spm_create_vol(VM,'noopen');
 
 
 %-Intialise beta image files
@@ -559,7 +559,7 @@ for i = 1:nSres
 	VResI(i).descrip = sprintf('spm_spm:ResI (%04d)', i);
 	spm_unlink(VResI(i).fname);
 end
-VResI = spm_create_vol(VResI);
+VResI = spm_create_vol(VResI,'noopen');
 end % (xX,'W')
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
