@@ -30,11 +30,11 @@ img         = findvar(cdf.var_array,'image');
 nd          = length(img.dimid);
 
 if nd<3, error(['Not enough dimensions in "' fname '"']); end;
-for i=1:3,
-	if ~strcmp(space_names{i},cdf.dim_array(img.dimid(nd+1-i)).name),
-		error(['Incompatible dimension names in "' fname '"']);
-	end;
-end;
+%for i=1:3,
+%	if ~strcmp(space_names{i},cdf.dim_array(img.dimid(nd+1-i)).name),
+%		error(['Incompatible dimension names in "' fname '"']);
+%	end;
+%end;
 
 dim = zeros(1,nd);
 for i=1:nd,
