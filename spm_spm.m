@@ -310,24 +310,24 @@ end
 
 % added to make it work for SPM/ERP 1st level, conventional designs
 %-----------------------------------------------------------------------
-if strcmp(spm('CheckModality'), 'EEG') && rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
-    SPM.Vbeta = SPM.xY.VY;
-    SPM.xVol.M = SPM.xY.VY(1).mat;
-    SPM.xVol.DIM = SPM.xY.VY(1).dim(1:3)';
-    SPM.xX.xKXs = spm_sp('Set', spm_filter(1, SPM.xX.X));		% KWX
-    SPM.xCon = struct([]);
-    if str2num(version('-release'))>=14,
-        save('SPM', 'SPM', '-V6');
-    else
-        save('SPM', 'SPM');
-    end;
-    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
-    spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-    fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
-    fprintf('...use the results section for assessment\n\n')             %-#
-    
-    return;
+if strcmp(spm('CheckModality'), 'EEG')
+    [Ishortcut, SPM] = spm_eeg_shortcut(SPM);
+
+    if Ishortcut
+        if str2num(version('-release'))>=14,
+            save('SPM', 'SPM', '-V6');
+        else
+            save('SPM', 'SPM');
+        end;
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
+        spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+        fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
+        fprintf('...use the results section for assessment\n\n')             %-#
+
+        return;
+    end
 end
+
 
 %-Ensure data are assigned
 %-----------------------------------------------------------------------
@@ -466,6 +466,8 @@ xX.xKXs = spm_sp('Set',spm_filter(xX.K,W*xX.X));		% KWX
 xX.xKXs.X = full(xX.xKXs.X);
 xX.pKX  = spm_sp('x-',xX.xKXs);				% projector
 
+global     defaults
+
 %-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
 %-----------------------------------------------------------------------
 if ~isfield(xVi,'V')
@@ -498,7 +500,6 @@ YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
 
 %-Maximum number of residual images for smoothness estimation
 %-----------------------------------------------------------------------
-global     defaults
 MAXRES   = defaults.stats.maxres;
 
 %-maxMem is the maximum amount of data processed at a time (bytes)

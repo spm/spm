@@ -13,7 +13,6 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Stefan Kiebel
 % $Id$
 
-
 %-GUI setup
 %-----------------------------------------------------------------------
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG stats model setup', 0);
@@ -61,7 +60,10 @@ catch
             if j < 1:SPM.eeg.Nfactors-1, str = [str ', ']; end
         end
         Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
-        q = spm_get(Nimages, '.img', str);
+        
+        % Problem, spm_get doesn't know about 4D-images
+        % q = spm_get(Nimages, '.img', str);
+        q = spm_get(inf, '.img', str);
 		P = strvcat(P, q);
 	end
 
@@ -141,10 +143,10 @@ q     = length(VY);
 % g     = zeros(q, 1);
 % fprintf('%-40s: %30s','Calculating globals',' ')                     %-#
 % for i = 1:q
-% 	fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',i,q)) %-#
+% 	fprintf('%s%30s',sprintf('\b')*ones(1,30),sprintf('%4d/%-4d',i,q)) %-#
 % 	g(i) = spm_global(VY(i));
 % end
-% fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
+% fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 % 
 % gSF = ones(sum(nscan), 1);
 % 
@@ -199,11 +201,11 @@ end
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                        %-#
-if str2num(version('-release'))>=14,
-    save('SPM', 'SPM', '-V6');
+if str2num(version('-release'))>=14
+    save('SPM, '-V6', 'SPM');
 else
     save('SPM', 'SPM');
-end;
+end
 fprintf('%30s\n','...SPM.mat saved')                                 %-#
 
  

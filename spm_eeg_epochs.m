@@ -6,8 +6,8 @@ function D = spm_eeg_epochs(S)
 % (optional) fields of S:
 % D			- filename of EEG mat-file with continuous data
 % events    - struct with various entries:
-%    start     - samples to include before start of stimulus
-%    stop	   - samples to include after start of stimulus
+%    start     - pre-stimulus start of epoch [ms]
+%    stop	   - post-stimulus end of epoch [ms]
 %    types	   - events to extract (vector of event types)
 %    Inewlist  - switch (0/1) to have new list of event codes
 %    Ec        - list of new event codes
@@ -29,8 +29,9 @@ function D = spm_eeg_epochs(S)
 % Stefan Kiebel
 % $Id$
 
-
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
+
+
 
 try
     D = S.D;
@@ -54,14 +55,14 @@ try
     D.events.start = S.events.start;
 catch
     D.events.start =...
-        spm_input('Nr of samples before stimulus onset', '+1', 'i', '', 1);
+        spm_input('start of pres-stimulus time [ms]', '+1', 'r', '', 1);
 end
 
 try
     D.events.stop = S.events.stop;
 catch
     D.events.stop = ...
-        spm_input('Nr of samples after stimulus onset', '+1', 'i', '', 1);
+        spm_input('end of post-stimulus time [ms]', '+1', 'r', '', 1);
 end
 
 try
@@ -96,7 +97,20 @@ D.datatype = 'int16';
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
+
+% transform ms to samples
+D.events.start = ceil(-D.events.start*D.Radc/1000);
+D.events.stop = ceil(D.events.stop*D.Radc/1000);
+if D.events.start <= 1
+    error('Start of pre-stimulus time must be less than %f ms', floor(-D.Radc/1000));
+end
+
+if D.events.stop <= 1
+    error('End of post-stimulus time must be more than %f ms', ceil(D.Radc/1000));
+end
+
 % Allocate space for epoched data
+
 D.Nsamples = D.events.stop + D.events.start+1;
 d = zeros(D.Nchannels, D.Nsamples);
 
@@ -105,6 +119,11 @@ k = 1;
 D.scale.dim = [1 3];
 
 D.scale.values = zeros(D.Nchannels, D.Nevents);
+D.datatype  = 'int16';
+
+spm_progress_bar('Init', length(D.events.time), 'Events read'); drawnow;
+if length(D.events.time) > 100, Ibar = floor(linspace(1, length(D.events.time),100));
+else, Ibar = [1:length(D.events.time)]; end
 
 for i = 1:length(D.events.time)
 	if any(D.events.code(i) == D.events.types)
@@ -123,18 +142,22 @@ for i = 1:length(D.events.time)
 					D.events.time(i) + D.events.stop, 1);
                 
             % baseline subtraction
-			d = d - ...
-			repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
-			
-			D.scale.values(:, k) = max(abs(d'))./32767;
-			d = int16(d./repmat(D.scale.values(:, k), 1, D.Nsamples));
-			fwrite(fpd, d, 'int16');
-						
+            
+            d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
+            
+            D.scale.values(:, k) = spm_eeg_write(fpd, d, 2, D.datatype);
+            						
 			index(k) = i;
 			k = k +1;
 		end
-	end
+    end
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i);
+        drawnow;
+    end
 end
+
+spm_progress_bar('Clear');
 
 fclose(fpd);
 
@@ -151,7 +174,6 @@ if ~isfield(D.events, 'reject')
     D.events.reject = zeros(1, D.Nevents);
 end
 
-D.datatype  = 'int16';
 
 if Inewlist & D.Nevents ~= length(Ec)
 	warning('Not all events in event list used!')

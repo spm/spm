@@ -17,8 +17,6 @@ function [SPM] = spm_eeg_contrasts_conv(SPM, Ic)
 % Stefan Kiebel
 % $Id$
 
-
-
 % Get and change to results directory
 %-----------------------------------------------------------------------
 try
@@ -36,71 +34,77 @@ catch
     xCon  = [];
 end
 
-xCon(Ic).eidf = 0;
 
+for i = 1:length(Ic)
+        ic  = Ic(i);
 
-switch(xCon(Ic).STAT)
-    
-    case 'T'
-        fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d', Ic),...
-            '(spm_add)','...initialising') %-#
-        
-        Q = find(abs(xCon(Ic).c) > 0);
-        V = SPM.Vbeta(Q);
-        
-        for j = 1:length(Q)
-            V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(Ic).c(Q(j));
+        xCon(ic).eidf = 0;
+
+        switch(xCon(ic).STAT)
+
+            case 'T'
+                fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d', ic),...
+                    '(spm_add)','...initialising') %-#
+
+                Q = find(abs(xCon(ic).c) > 0);
+                V = SPM.Vbeta(Q);
+
+                for j = 1:length(Q)
+                    V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(ic).c(Q(j));
+                end
+
+                %-Prepare handle for contrast image
+                %-----------------------------------------------------------
+                xCon(ic).Vcon = struct(...
+                    'fname', sprintf('con_%04d.img', ic),...
+                    'dim', [SPM.xVol.DIM', 16],...
+                    'mat', SPM.xVol.M,...
+                    'pinfo', [1, 0, 0]',...
+                    'descrip', sprintf('SPM contrast - %d: %s', ic, xCon(ic).name));
+
+                %-Write image
+                %-----------------------------------------------------------
+                fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
+                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
+                xCon(ic).Vcon.pinfo(1,1) = spm_add(V, xCon(ic).Vcon);
+                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
+                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon, 'noopen');
+                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
+
+                fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+                    '...written %s',spm_str_manip(xCon(ic).Vcon.fname, 't')))%-#
+
+                % multi-dimensional contrast, ESS
+            case 'F'  %-Implement ESS as sum of squared weighted beta images
+                %-----------------------------------------------------------
+                fprintf('\t%-32s: %30s',sprintf('ESS image %2d',i),...
+                    '...computing') %-#
+
+                %-Residual (in parameter space) forming mtx
+                %-----------------------------------------------------------
+                h       = spm_FcUtil('Hsqr',xCon(ic),SPM.xX.xKXs);
+
+                %-Prepare handle for ESS image
+                %-----------------------------------------------------------
+                xCon(ic).Vcon = struct(...
+                    'fname',  sprintf('ess_%04d.img',ic),...
+                    'dim',    [SPM.xVol.DIM',16],...
+                    'mat',    SPM.xVol.M,...
+                    'pinfo',  [1,0,0]',...
+                    'descrip',sprintf('SPM ESS -contrast %d: %s',ic,xCon(ic).name));
+
+                %-Write image
+                %-----------------------------------------------------------
+                fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
+                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
+                xCon(ic).Vcon = spm_resss(SPM.Vbeta,xCon(ic).Vcon,h);
+                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
+                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon,'noopen');
+                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
         end
-        
-        %-Prepare handle for contrast image
-        %-----------------------------------------------------------
-        xCon(Ic).Vcon = struct(...
-            'fname', sprintf('con_%04d.img', Ic),...
-            'dim', SPM.xVol.DIM',...
-	    'dt',  [16, spm_platform('bigend')],...
-            'mat', SPM.xVol.M,...
-            'pinfo', [1, 0, 0]',...
-            'descrip', sprintf('SPM contrast - %d: %s', Ic, xCon(Ic).name));
-        
-        %-Write image
-        %-----------------------------------------------------------
-        fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
-        xCon(Ic).Vcon.pinfo(1,1) = spm_add(V, xCon(Ic).Vcon);
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
-        
-        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-            '...written %s',spm_str_manip(xCon(Ic).Vcon.fname, 't')))%-#
-        
-        % multi-dimensional contrast, ESS
-    case 'F'  %-Implement ESS as sum of squared weighted beta images
-        %-----------------------------------------------------------
-        fprintf('\t%-32s: %30s',sprintf('ESS image %2d',i),...
-            '...computing') %-#
-        
-        %-Residual (in parameter space) forming mtx
-        %-----------------------------------------------------------
-        h       = spm_FcUtil('Hsqr',xCon(Ic),SPM.xX.xKXs);
-        
-        %-Prepare handle for ESS image
-        %-----------------------------------------------------------
-        xCon(Ic).Vcon = struct(...
-            'fname',  sprintf('ess_%04d.img',Ic),...
-            'dim',    SPM.xVol.DIM',...
-	    'dt',     [16, spm_platform('bigend')],...
-            'mat',    SPM.xVol.M,...
-            'pinfo',  [1,0,0]',...
-            'descrip',sprintf('SPM ESS -contrast %d: %s',Ic,xCon(Ic).name));
-        
-        %-Write image
-        %-----------------------------------------------------------
-        fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
-        xCon(Ic).Vcon = spm_resss(SPM.Vbeta,xCon(Ic).Vcon,h);
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
-
 end
 SPM.xCon = xCon;
+
 if str2num(version('-release'))>=14,
 	save('SPM', 'SPM', '-V6');
 else

@@ -19,9 +19,8 @@ function spm_eeg_convertmat2ana(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel & Christophe Phillips
+% Stefan Kiebel
 % $Id$
-
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -31,117 +30,55 @@ try
 catch
     Fname = spm_get(inf, '.mat', 'Select EEG mat file');
 end
-    
+
 Nsub = size(Fname, 1);
 
 try
     n = S.n;
-catch    
+catch
     n = spm_input('Output image dimension', '+1', 'n', '32', 1);
 end
 
-spm('Pointer', 'Watch');
+if length(n) > 1
+    error('n must be scalar');
+end
+
+try
+    interpolate_bad = S.interpolate_bad;
+catch
+    interpolate_bad = spm_input('Interpolate bad channels or mask out?',...
+        '+1', 'b', 'Interpolate|Mask out', [1,0]);
+end
+
+spm('Pointer', 'Watch'); drawnow
 
 % Load data set into structures
 clear D
 for i = 1:Nsub
-	D{i} = spm_eeg_ldata(deblank(Fname(i,:)));
+    D{i} = spm_eeg_ldata(deblank(Fname(i,:)));
 end
-
-% load channel template file (contains location of channels)
-Ctf = load(fullfile(spm('dir'), 'EEGtemplates', D{1}.channels.ctf));
-
-Cel = [];
-Nchannels = D{1}.Nchannels;
-
-% find channel positions on 2D plane
-for j = 1:Nchannels
-    % don't use eog channels
-	if j ~= D{1}.channels.heog & j ~= D{1}.channels.veog
-		Cel = [Cel; Ctf.Cpos(:, D{1}.channels.order(j))'];
-	end
-end
-Cel = round(Cel*n);
-Nel = size(Cel, 1);
-
-% Include all electrodes that lie within this circle (where the
-% radius to the image edge is -0.5n to 0.5n).
-r = 0.47*n;
-[x, y] = meshgrid(1:n, 1:n);
-Ip = find(((x-n/2).^2 + (y-n/2).^2) <= r^2);
-x = x(Ip); y = y(Ip);
-
-% Generation of projection matrix
-%------------------
-% matrix E
-E = ones(Nel, 6);
-E(:,2:3) = Cel;
-E(:,[4 6]) = Cel.^2;
-E(:, 5) = prod(Cel')';
-
-% matrix K
-K1 = repmat(Cel(:, 1), 1, Nel);
-K1 = (K1 - K1').^2 + eps;
-K2 = repmat(Cel(:, 2)', Nel, 1);
-K2 = (K2 - K2').^2 + eps;
-K  = (K1 + K2).^2 .* log(K1 + K2);
-
-% Main matrices of the interpolation
-%	[K  E] . [P] = [V]
-%	[E' 0]   [Q] = [0]
-% to solve for P and Q
-M  = [K E; E' zeros(6)];
-IM = pinv(M);
-
-Mx = (repmat(x, 1, Nel)' - repmat(Cel(:, 1), 1, length(Ip)));
-My = (repmat(y, 1, Nel)' - repmat(Cel(:, 2), 1, length(Ip)));
-T = Mx.^2 + My.^2 + eps;
-T = T.^2 .* log(T);
-
-% structure for spm_vol
-if isfield(D{1}, 'tf')
-    Vi.dim = [n n D{1}.Nsamples 16];
-    Vi.mat = eye(4);
-    Vi.pinfo = zeros(3,1);
-    Vi.pinfo(1,1) = 1;
-else
-    Vi.dim = [n n 1 16];
-    Vi.mat = eye(4);
-    Vi.pinfo = zeros(3,1);
-    Vi.pinfo(1,1) = 1;
-end
-
-% preparing some variables for faster exexcution of main loop
-g0 = zeros(n, n)+NaN;
-Tt = T';
-XYZ = [ones(length(Ip), 1) x y x.^2 x.*y y.^2];
 
 for k = 1:Nsub
+
+    [Cel, Cind, x, y] = spm_eeg_locate_channels(D{k}, n, interpolate_bad);
+
+    % nr of (good) channels
+    Nel = length(Cel);
+
+    % structure for spm_vol
+    Vi.dim = [n n 1];
+    Vi.mat = eye(4);
+    Vi.pinfo = zeros(3,1);
+    Vi.pinfo(1,1) = 1;
+    Vi.dt(1) = 16; % float in old and new version...
+    Vi.dt(2) = spm_platform('bigend');
     
     % generate data directory into which converted data goes
     [P, F] = fileparts(spm_str_manip(Fname(k, :), 'r'));
-	[m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
-	cd(fullfile(P, F));
+    [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
+    cd(fullfile(P, F));
     
-    Cind = [1:Nchannels];
-    
-    % throw out EOG channels
-    tmp = [];
-    if D{k}.channels.veog
-        tmp = D{k}.channels.veog;
-    end
-    if D{k}.channels.heog
-        tmp = [tmp D{k}.channels.heog];
-    end
-    
-    Cind(tmp) = [];
-    
-    % works also for time-frequency data, but only on one frequency!!
-    if isfield(D{k}, 'tf')
-        d = squeeze(D{k}.data(Cind, 1, :, :));
-    else
-        d = squeeze(D{k}.data(Cind, :,:));
-    end
+    d = squeeze(D{k}.data(Cind, :,:));
     
     for i = 1 : D{k}.events.Ntypes % trial types
         
@@ -156,51 +93,28 @@ for k = 1:Nsub
             % otherwise just write images to trialtype directory
             if D{k}.Nevents ~= D{k}.events.Ntypes
                 % single trial data
-                dname = sprintf('trial%d', l);
+                dname = sprintf('trial%d.img', l);
+                fname = dname;
                 [m, sta] = mkdir(dname);
                 cd(dname);
+            else
+                fname = 'average.img';
             end
             
-            fname = sprintf('trial%d', l);
             Vi.fname = fname;
-            
-            if isfield(D{k}, 'tf')
-                dg = zeros(Vi.dim(1:3));
-            end
+                        
+            % remove file, if there is one
+            spm_unlink([fname, '.hdr'], [fname, '.img']);
             
             for j = 1 : D{k}.Nsamples % time bins
+                di = zeros(n, n);                
+                di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l),x,y, 'linear');
                 
-                
-                % Define grid
-                g = g0;
-                
-                V = d(:, j, l);
-                
-                b  = [V; zeros(6, 1)];
-                PQ = IM * b;
-                
-                P = PQ(1:Nel);
-                Q = PQ(Nel+1 : Nel+6);
-                
-                t1 = Tt * P;
-                t2 = XYZ * Q;
-                C = t1 + t2;
-                
-                g(Ip) = C;
-                g = g';
-                
-                if isfield(D{k}, 'tf')
-                    dg(:,:, j) = g;
-                else
-                    Vi.n = j;
-                    Vo = spm_write_vol(Vi, g);
-                end
+                Vi.n = j;
+                Vo = spm_write_vol(Vi, di);
                 
             end        
             
-            if isfield(D{k}, 'tf')
-                Vo = spm_write_vol(Vi, dg);
-            end
             if D{k}.Nevents ~= D{k}.events.Ntypes
                 % single trial data
                 disp(sprintf('Subject %d, type %d, trial %d', k, i, l))
@@ -213,19 +127,7 @@ for k = 1:Nsub
         end
         cd ..
     end
+    cd ..
 end
 
 spm('Pointer', 'Arrow');
-
-% test to check data conversion
-% --> I found that data is correctly interpolated
-%P = spm_get(inf, '*.img', 'Select img-files');
-%for i = 1:size(P,1)
-%	Vt(i) = spm_vol(deblank(P(i,:)));
-%end
-%[x, y] = meshgrid(1:Vt(1).dim(1), 1:Vt(1).dim(2));
-%z = ones(size(x));
-%X = zeros(Vt(1).dim(1), Vt(1).dim(2), length(Vt));
-%for i = 1:length(Vt)
-%	X(:,:,i) = spm_sample_vol(Vt(i),x,y,z,0);
-%end

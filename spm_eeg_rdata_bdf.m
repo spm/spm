@@ -21,7 +21,6 @@ function D = spm_eeg_rdata_bdf(S)
 % Stefan Kiebel
 % $Id$
 
-
 try
     Fdata = S.Fdata;
 catch
@@ -34,9 +33,7 @@ catch
     Fchannels = spm_get(1, '.mat', 'Select channel template file', fullfile(spm('dir'), 'EEGtemplates'));
 end
 
-
-spm('Pointer','Watch'); drawnow;
-
+D.channels.ctf = spm_str_manip(Fchannels, 't');
 Csetup = load(Fchannels);
 F = spm_str_manip(Fdata, 'rt');
 P = spm_str_manip(Fdata, 'H');
@@ -52,6 +49,9 @@ Hdata = openbdf(Fdata);
 Cind = strmatch('Active Electrode', Hdata.Head.Transducer);
 D.Nchannels = length(Cind);
 
+% Bad channels entry
+D.channels.Bad = [];
+
 % read channel names
 for i = 1:D.Nchannels
     D.channels.name{i} = deblank(Hdata.Head.Label(i,:));
@@ -60,39 +60,61 @@ end
 % go through 'external' channels and ask what they are
 Cexg = find(strncmpi('exg', D.channels.name, 3));
 
-for i = 1:length(Cexg)
-    try
-        D.channels.name{D.Nchannels-length(Cexg) + i} = S.exg_name{i};
-    catch        
-        D.channels.name{D.Nchannels-length(Cexg) + i} = spm_input(sprintf('Type of exg%d-channel', D.Nchannels-length(Cexg) + i), 'i+1','heog|veog|reference|other');
-    end
+% HEOG, VEOG and reference
+try
+    Cheog = S.Cheog;
+catch
+    Cheog = spm_input('Heog channel(s)', 'i+1', 'i', '', inf, length(Cexg));
 end
 
-% find heog, veog and reference channels
-D.channels.heog = find(strncmpi('heog', D.channels.name, 4));
-if isempty(D.channels.heog)
-    warning(sprintf('No HEOG channel found.'));
-    D.channels.heog = 0;
+try
+    Cveog = S.Cveog;
+catch
+    Cveog = spm_input('Veog channel(s)', 'i+1', 'i', '', inf, length(Cexg));
+end
+
+try
+    Creference = S.Creference;
+catch
+    Creference = spm_input('Reference channel(s)', 'i+1', 'i', '', inf, length(Cexg));
+end
+
+spm('Pointer','Watch'); drawnow;
+
+% number of EEG channels
+Neeg = D.Nchannels - length(Cexg);
+
+% save EEG channel indices
+D.channels.eeg = [1:Neeg];
+
+if Cheog == 0
+    warning(sprintf('No HEOG channel.'));
+    Cheog = 0;
+elseif length(Cheog) > 2
+    error('Only up 2 heog channels allowed');
 else
-    D.channels.heog = D.channels.heog(1);
+    Cheog = Cheog + Neeg;
 end
 
-D.channels.veog = find(strncmpi('veog', D.channels.name, 4));
-if isempty(D.channels.veog)
-    warning(sprintf('No VEOG channel found.'));
-    D.channels.veog = 0;
+if Cveog == 0
+    warning(sprintf('No VEOG channel.'));
+    Cveog = 0;
+elseif length(Cveog) > 2
+    error('Only up 2 veog channels allowed');
 else
-    D.channels.veog = D.channels.veog(1);
+    Cveog = Cveog + Neeg;
 end
 
-D.channels.reference = find(strncmpi('reference', D.channels.name, 9));
-if isempty(D.channels.reference)
-    warning(sprintf('No reference channel found.'));
-    D.channels.reference = 0;
+if Creference == 0
+    warning(sprintf('No reference channel.'));
+    Creference = 0;
+else
+    Creference = Creference + Neeg;
 end
 
-% Map name of channels to channel order specified in channel template file
-for i = setdiff(Cind, Cexg)
+% Map name of channels (EEG only) to channel order specified in channel
+% template file. EOG channels will be added further below!
+for i = D.channels.eeg
 	index = [];
 	for j = 1:Csetup.Nchannels
 		if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
@@ -116,9 +138,62 @@ D.Radc = Hdata.Head.SampleRate(Cind(1));
 %---------------------------------------------------
 Fout = [F '.dat'];
 D.fnamedat = Fout;
-fpout = fopen(Fout, 'w');
+fpout = fopen(fullfile(P, D.fnamedat), 'w');
 
-% No scaling
+
+counter = 0;
+if Cheog ~= 0
+    counter = counter + 1;
+    D.channels.name{Neeg + counter} = 'HEOG';
+    D.channels.heog = Neeg + counter;
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi('HEOG', Csetup.Cnames{j})))
+            index = j; break;
+        end
+    end
+    if isempty(index)
+        warning(sprintf('No HEOG channel found in channel template file.'));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(Neeg+counter) = index;
+    end
+
+
+end
+
+if Cveog ~= 0
+    counter = counter + 1;
+    D.channels.name{Neeg + counter} = 'VEOG';
+    D.channels.veog = Neeg + counter;
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi('VEOG', Csetup.Cnames{j})))
+            index = j; break;
+        end
+    end
+    if isempty(index)
+        warning(sprintf('No VEOG channel found in channel template file.'));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(Neeg+counter) = index;
+    end
+
+end
+
+if Creference ~= 0
+    counter = counter + 1;
+    D.channels.name{Neeg + counter} = 'reference';
+    D.channels.reference = Neeg + counter;
+    
+end
+
+D.Nchannels = Neeg + counter;
+if D.Nchannels < length(D.channels.name);
+    D.channels.name(D.Nchannels+1:end) = [];
+end
+
+% No scaling, represent as float
 D.scale.dim = 1;
 D.scale.values = ones(D.Nchannels, 1);
 
@@ -127,41 +202,153 @@ D.events.time = [];
 D.Nsamples = 0;
 
 % loop over seconds
-% Nblocks = 500;
 Nblocks = Hdata.Head.NRec;
-for t = 1: Nblocks
-    disp(sprintf('Second %d/%d', t, Hdata.Head.NRec))
+
+% sometimes Hdata.Head.NRec indicates more Nblocks than are actually there.
+flen = dir(Fdata);
+flen = flen.bytes;
+Nblocks_alt = (flen-Hdata.Head.HeadLen)/Hdata.Head.SampleRate(1)/Hdata.Head.NS/3;
+if Nblocks_alt < Nblocks
+    warning('Nblocks too large. True Nblocks = %f', Nblocks_alt);
+    Nblocks = floor(Nblocks_alt);
+end
+
+% identify channel which stores event coding
+Echannel = strmatch('Status', Hdata.Head.Label);
+if length(Echannel) > 1
+    Echannel = Echannel(1);
+end
+
+lidiffs = 0;
+lastevent = 0;
+
+% check whether data would is too long for 32-Bit Windows system with 2 GB
+% maximum memory, and downsample.
+if D.Nchannels*Nblocks*D.Radc > 2^27
+    f = ceil(log2(D.Nchannels*Nblocks*D.Radc) - 27); % downsampling factor 2^f
+    warning('Data set will be downsampled from %d to %d Hz', D.Radc, D.Radc/(2^f));
+    D.Radc = D.Radc/(2^f);
+else
+    f = 0;
+end
+
+% progress bars
+spm_progress_bar('Init', Hdata.Head.NRec, 'Seconds converted'); drawnow;
+if Hdata.Head.NRec > 100, Ibar = floor(linspace(1, Hdata.Head.NRec,100));
+else, Ibar = [1:Hdata.Head.NRec]; end
+
+for t = 1:Nblocks
     
     data = readbdf(Hdata,t,0);
     
     % calibrate the data
     % data.Record = data.Record.*repmat(data.Head.Cal, 1, size(data.Record, 2));
 
-    Nsamples = size(data.Record, 2);
-    D.Nsamples = D.Nsamples + Nsamples;
     
     % store data
-    fwrite(fpout, data.Record(1:D.Nchannels,:), 'float');
+    %-----------------------------------------------------
+    % the EEG data
+    d = data.Record(D.channels.eeg, :);
+        
+    % horizontal EOG
+    if Cheog ~= 0
+        if length(Cheog) == 2
+            % take difference
+            d = [d; data.Record(Cheog(1), :) - data.Record(Cheog(2), :)];
+        else
+            d = [d; data.Record(Cheog(1), :)];
+        end        
+    end
     
+    % vertical EOG
+    if Cveog ~= 0
+        if length(Cveog) == 2
+            % take difference
+            d = [d; data.Record(Cveog(1), :) - data.Record(Cveog(2), :)];
+        else
+            d = [d; data.Record(Cveog(1), :)];
+        end              
+    end
+    
+    % reference
+    if Creference ~= 0
+        if length(Creference) > 1
+            % take average
+            ref = mean(data.Record(Creference, :));
+        else
+            data.Record(Creference(1), :);
+        end    
+        d = [d; ref];
+        d = d - repmat(ref, D.Nchannels, 1);
+    end
+    
+    % downsampling by simple decimating
+    d = d(:, 1:2^f:end);
+    fwrite(fpout, d, 'float');
+    Nsamples = size(data.Record, 2); % the original size is needed for events below
+    D.Nsamples = D.Nsamples + size(d, 2); % save downsampled Nsamples
+
     % identify events
-    
-    if size(data.Record, 1) >= 144
-        diffs=diff(data.Record(144,:));
+    Ezero = 0;
+    if ~isempty(Echannel)
+        diffs=diff(data.Record(Echannel,:));
         idiffs=find(diffs~=0);
-        idiffs=idiffs+1;
+		idiffs=idiffs+1;
+        
+        % safe-guard against some unexplained zeroing of Echannel
+        if data.Record(Echannel, 1) == 0
+            warning('Event channel is all zero.');
+            Ezero = 1;
+            break;
+        end
+		bytes=dec2bin(data.Record(Echannel,1));
+		bytes=bytes(end-7:end);
+		bytes=flipdim(bytes,2);
+		test_event=bin2dec(bytes);
+		if test_event~=lastevent
+			idiffs=[1,idiffs];
+		end
+		idsf=find(diff(idiffs)==1);
+		if ~isempty(idsf)
+			idiffs(idsf)='';
+        end
+        
+
         if ~isempty(idiffs)
+			if idiffs(1)==1 & lidiffs==1
+				D.events.code=D.events.code(1,1:end-1);
+				D.events.time=D.events.time(1,1:end-1);
+			end
             for i = idiffs
-                bytes=dec2bin(data.Record(144,i));
+                bytes=dec2bin(data.Record(Echannel,i));
                 bytes=bytes(end-7:end);
                 bytes=flipdim(bytes,2);
                 event=bin2dec(bytes);
+			
                 D.events.code = [D.events.code event];
-                
+                if i==512
+					lidiffs=1;
+				else
+					lidiffs=0;
+				end
+				lastevent=event;
             end
             D.events.time = [D.events.time idiffs+(t-1)*Nsamples];
         end
-    end    
+    end   
+    
+    if ismember(t, Ibar)
+        spm_progress_bar('Set', t);
+        drawnow;
+    end
+
 end
+
+if f ~= 0 
+   % if downsampling
+    D.events.time = ceil(D.events.time/2^f);
+end
+
 D.Nevents = 1;
 D.events.types = unique(D.events.code);
 D.datatype = 'float';
@@ -175,5 +362,7 @@ if str2num(version('-release'))>=14
 else
     save(fullfile(P, D.fname), 'D');
 end
+
+spm_progress_bar('Clear');
 
 spm('Pointer','Arrow');

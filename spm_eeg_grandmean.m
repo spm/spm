@@ -1,56 +1,80 @@
-function Dout = spm_eeg_grandmean(S)
-% average over different EEG/MEG data sets
-% FORMAT Dout = spm_eeg_average(S)
+function Do = spm_eeg_grandmean(S)
+% average over multiple data sets
+% FORMAT Do = spm_eeg_grandmean(S)
 % 
 % S		    - struct (optional)
 % (optional) fields of S:
-% D			- filenames (char matrix) of EEG mat-file containing epoched
+% P			- filenames (char matrix) of EEG mat-file containing epoched
 %             data  
 % 
 % Output:
-% Dout			- EEG data struct, result files are saved in the same
+% Do		- EEG data struct, result files are saved in the same
 %                 directory as first input file.
 %_______________________________________________________________________
 % 
-% spm_eeg_grandmean low-pass filters EEG/MEG epoched data.
+% spm_eeg_grandmean averages data over multiple ERPs. The data must have
+% the same dimensionality and sampling rate. This function can be used for
+% grand mean averaging, i.e. computing the average over multiple subjects.
+% The output is written to a new file that has the same name as the first
+% selected input file, but is prefixed with a 'g'.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
 % $Id$
 
-
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
 try
-    E = S.D;
+    P = S.P;
 catch
-    E = spm_get(inf, '.mat', 'Select EEG mat files');
+    P = spm_get(inf, '.mat', 'Select EEG mat files');
 end
 
-P = spm_str_manip(deblank(E(1, :)), 'H');
-
 clear D
-for i = 1:size(E, 1)
+for i = 1:size(P, 1)
     try
-        D{i} = spm_eeg_ldata(deblank(E(i, :)));
+        D{i} = spm_eeg_ldata(deblank(P(i, :)));
     catch    
-        error(sprintf('Trouble reading files %s', deblank(E(i, :))));
+        error(sprintf('Trouble reading files %s', deblank(P(i, :))));
     end
 end
 
+% check dimensionality of data
+try
+    dim = []; s = [];
+    for i = 1:length(D)
+        dim(i,:) = size(D{i}.data);
+        s(i) = D{i}.Radc;
+    end
+catch
+    error('Data doesn''t have the same dimensionality');
+end
+
+if ~all(repmat(dim(1,:), size(dim, 1), 1) == dim)
+    error('Data doesn''t have the same dimensionality');
+end
+if ~all(s(1) == s)
+    error('Data doesn''t have the same sampling rate');
+end
+
+% test whether data are ERPs
+% if D{1}.Nevents ~= D{1}.events.Ntypes
+%     error('Data must be ERPs');
+% end
+
 % output
-Dout = D{1};
-Dout.fnamedat = ['g' D{1}.fnamedat];
+Do = D{1};
+Do.fnamedat = ['g' D{1}.fnamedat];
 
-fpd = fopen(fullfile(P, Dout.fnamedat), 'w');
+fpd = fopen(fullfile(Do.path, Do.fnamedat), 'w');
 
-spm('Pointer', 'Watch');
+spm('Pointer', 'Watch'); drawnow;
 
-Dout.scale.dim = [1 3];
-Dout.scale.values = zeros(D{1}.Nchannels, D{1}.Nevents);
+Do.scale.dim = [1 3];
+Do.scale.values = zeros(D{1}.Nchannels, D{1}.Nevents);
 	
-for i = 1:D{1}.events.Ntypes
+for i = 1:D{1}.Nevents
         
     d = zeros(D{1}.Nchannels, D{1}.Nsamples);
 
@@ -61,24 +85,23 @@ for i = 1:D{1}.events.Ntypes
         d(j, :) = d(j, :)./length(D);
     end
     
-    Dout.scale.values(:, i) = max(abs(d'))./32767;
-    d = int16(d./repmat(Dout.scale.values(:, i), 1, Dout.Nsamples));
-    fwrite(fpd, d, 'int16');	
+    Do.scale.values(:, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
+
 end
 
 fclose(fpd);
 
+Do.data = [];
 
-Dout.data = [];
+Do.fname = ['g' D{1}.fname];
 
-Dout.fname = ['g' D{1}.fname];
-Dout.datatype = 'int16';
+D = Do;
 
-D = Dout;
 if str2num(version('-release'))>=14
-    save(fullfile(P, Dout.fname), '-V6', 'D');
+    save(fullfile(P, D.fname), '-V6', 'D');
 else
-    save(fullfile(P, Dout.fname), 'D');
+    save(fullfile(P, D.fname), 'D');
 end
+
 
 spm('Pointer', 'Arrow');

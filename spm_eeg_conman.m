@@ -478,7 +478,7 @@ if ~w
     end
 
     c_out = spm_eeg_contrast(SPM, xCon);
-        
+    
     % output
     handles.output.c_out = c_out;
     handles.output.c = c; % components
@@ -667,5 +667,4 @@ function Generate7_Callback(hObject, eventdata, handles)
 % hObject    handle to Generate7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 

@@ -287,9 +287,19 @@ uimenu(h,'Separator','off','Label','goto global maxima',...
 	'CallBack',['spm_mip_ui(''Jump'',',...
 		'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
 	'Interruptible','off','BusyAction','Cancel','Enable',str);
+
+% overlay channel positions for EEG/MEG
+if strcmp(spm('CheckModality'), 'EEG')
+    uimenu(h,'Separator','on','Label','Channels',...
+	'CallBack',['spm_mip_ui(''Channels'', ',...
+		'get(get(gcbo,''Parent''),''UserData''));'],...
+	'Interruptible','off','BusyAction','Cancel','Enable',str);
+end
+
 uimenu(h,'Separator','on','Label','help',...
 	'CallBack','spm_help(''spm_mip_ui'')',...
 	'Interruptible','off','BusyAction','Cancel','Enable',str);
+
 set(hMIPim,'UIContextMenu',h)
 
 %-Save handles and data
@@ -416,11 +426,6 @@ case 'nrmax'
 case 'glmax'
 	str       = 'global maxima';
 	i         = find(MD.Z==max(MD.Z));
-	if length(i) > 1
-           % For PPMs many voxels may have Z=1, 
-           % so pick first arbitrarily
-           i=i(1);
-	end
 	xyz       = MD.XYZ(:,i);
 	d         = sqrt(sum((oxyz-xyz).^2));
 otherwise
@@ -658,6 +663,91 @@ if ~isempty(MS.hReg)
 	spm_XYZreg('SetCoords',get(MS.hMIPxyz,'UserData'),MS.hReg,hMIPax);
 end
 
+%=======================================================================
+case 'channels'
+%=======================================================================
+% this is EEG/MEG specific to display channels on 1-slice MIP
+
+if nargin<2, h=spm_mip_ui('FindMIPax'); else, h=varargin{2}; end
+MD  = get(h,'UserData');
+
+if ~isfield(MD, 'hChanPlot')
+    % first time call
+    D = spm_eeg_ldata;
+
+    [Cel, Cind, x, y] = spm_eeg_locate_channels(D, 64, 1);
+    ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
+
+    hold on, hChanPlot = plot(Cel(:, 1), Cel(:, 2), 'g*');
+    clear hChanText
+    for i = 1:size(Cel, 1)
+        hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), ctf.Cnames{Cind(i)}, 'Color', 'g');
+    end
+
+    MD.hChanPlot = hChanPlot;
+    MD.hChanText = hChanText;
+    set(h, 'UserData', MD);
+else
+    if strcmp(get(MD.hChanPlot, 'Visible'), 'on');
+        % switch it off
+        set(MD.hChanPlot, 'Visible', 'off');
+        for i = 1:length(MD.hChanText)
+            set(MD.hChanText{i}, 'Visible', 'off');
+        end
+    else
+        % switch it on
+        set(MD.hChanPlot, 'Visible', 'on');
+        for i = 1:length(MD.hChanText)
+            set(MD.hChanText{i}, 'Visible', 'on');
+        end
+    end
+
+        
+end
+    
+    % %-Get MipData
+% %-----------------------------------------------------------------------
+% oxyz = spm_mip_ui('GetCoords',h);
+% MD   = get(h,'UserData');
+% 
+% % xyz are coords of pointer...
+% spm_mip_ui('SetCoords',xyz,h,h);
+% 
+% %-Compute location to jump to
+% %-----------------------------------------------------------------------
+% if isempty(MD.XYZ), loc='dntmv'; end
+% switch lower(loc), case 'dntmv'
+% 	spm('alert!','No suprathreshold voxels to jump to!',mfilename,0);
+% 	varargout = {oxyz, 0};
+% 	return
+% case 'nrvox'
+% 	str       = 'nearest suprathreshold voxel';
+% 	[xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,MD.XYZ);
+% case 'nrmax'
+% 	str       = 'nearest local maxima';
+% 	iM        = inv(MD.M);
+% 	XYZvox    = iM(1:3,:)*[MD.XYZ; ones(1,size(MD.XYZ,2))];
+% 	[null,null,XYZvox,null] = spm_max(MD.Z,XYZvox);
+% 	XYZ       = MD.M(1:3,:)*[XYZvox; ones(1,size(XYZvox,2))];
+% 	[xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,XYZ);
+% case 'glmax'
+% 	str       = 'global maxima';
+% 	i         = find(MD.Z==max(MD.Z));
+% 	xyz       = MD.XYZ(:,i);
+% 	d         = sqrt(sum((oxyz-xyz).^2));
+% otherwise
+% 	warning('Unknown jumpmode')
+% 	varargout = {xyz,0};
+% 	return
+% end
+% 
+% %-Write jump report, jump, and return arguments
+% %-----------------------------------------------------------------------
+% fprintf(['\n\t%s:\tJumped %0.2fmm from [%3.0f, %3.0f, %3.0f],\n\t\t\t',...
+% 		'to %s at [%3.0f, %3.0f, %3.0f]\n'],...
+% 	mfilename, d, oxyz, str, xyz)
+% 
+% varargout = {xyz, d};
 
 
 %=======================================================================
@@ -667,3 +757,4 @@ error('Unknown action string')
 
 %=======================================================================
 end
+

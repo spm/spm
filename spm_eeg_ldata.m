@@ -34,9 +34,9 @@ end
 
 spm('Pointer', 'Watch');
 if ~isfield(D, 'datatype')
-    dtype = spm_type('int16');
+    dtype = spm_type_old('int16');
 else
-    dtype = spm_type(D.datatype);
+    dtype = spm_type_old(D.datatype);
 end
 
 % save path temporarily in structure

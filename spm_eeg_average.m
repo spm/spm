@@ -23,8 +23,6 @@ function D = spm_eeg_average(S);
 % Stefan Kiebel
 % $Id$
 
-
-
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
 try
@@ -62,7 +60,8 @@ D.fnamedat = ['m' D.fnamedat];
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
-spm('Pointer', 'Watch');
+spm('Pointer', 'Watch'); drawnow;
+
 
 if isfield(D, 'Nfrequencies');
 	D.scale.dim = [1 4];
@@ -80,7 +79,11 @@ else
 	D.scale.dim = [1 3];
 	D.scale.values = zeros(D.Nchannels, size(c, 2));
 	
-	for i = 1:size(c, 2)
+    spm_progress_bar('Init', size(c, 2), 'Averages done'); drawnow;
+    if size(c, 2) > 100, Ibar = floor(linspace(1, size(c, 2),100));
+    else, Ibar = [1:size(c, 2)]; end
+
+    for i = 1:size(c, 2)
         
         c_tmp = zeros(D.Nevents, 1);
         for j = 1:size(c, 1)
@@ -90,14 +93,16 @@ else
             end
         end
 
-        % when difference is involved, weight contrast vector accordingly
-        if ~isempty(find(c_tmp == 1)) & ~isempty(find(c_tmp == -1))
+        % weight contrast vectors
+        if ~isempty(find(c_tmp == 1))
             w1 = sum(c_tmp == 1);
-            wm1 = sum(c_tmp == -1);
             c_tmp(c_tmp == 1) = 1/w1*c_tmp(c_tmp == 1);
+        end
+        if ~isempty(find(c_tmp == -1))
+            wm1 = sum(c_tmp == -1);
             c_tmp(c_tmp == -1) = 1/wm1*c_tmp(c_tmp == -1);
         end
-        
+
         % identify the case when there is only one observation (single
         % trial)
 		ni(i) = sum(c_tmp ~= 0);
@@ -114,8 +119,16 @@ else
         end           
         
         D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i);
+            drawnow;
+        end
+
 	end
 end
+
+spm_progress_bar('Clear');
 
 fclose(fpd);
 
@@ -164,4 +177,5 @@ if str2num(version('-release'))>=14
 else
     save(fullfile(P, D.fname), 'D');
 end
+
 spm('Pointer', 'Arrow');

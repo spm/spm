@@ -38,6 +38,7 @@ defaults.stats.fmri.ufp = 0.001;
 defaults.stats.fmri.t   = 16;
 defaults.stats.fmri.t0  = 1;
 defaults.stats.pet.ufp  = 0.05;
+defaults.stats.eeg.ufp  = 1;
 
 % Mask defaults
 %=======================================================================
@@ -150,4 +151,7 @@ defaults.ui.colour2 = [1.0 1.0 0.8];
 defaults.ui.colour3 = [0.0 0.0 0.0];
 defaults.ui.fs      = 14;
 
+% EEG specific
+%=======================================================================
+defaults.eeg.dtype = 'float';
 

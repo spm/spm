@@ -33,15 +33,17 @@ elseif dtype == 'int16'
     if direc == 1
         scales = scales';
     end
-    d = int16(d./repmat(scales, 1, size(d, 2)));
+    ind = find(scales == 0);
+    scales(ind) = ones(size(ind));
+    d = int16(round(d./repmat(scales, 1, size(d, 2))));
     fwrite(fpout, d, dtype);
  elseif dtype == 'int32'
     scales = max(abs(d), [], direc)./2147483647;
     if direc == 1
         scales = scales';
     end
+    ind = find(scales == 0);
+    scales(ind) = ones(size(ind));
     d = int32(d./repmat(scales, 1, size(d, 2)));
-    fwrite(fpout, d, dtype);
-    
-   
+    fwrite(fpout, d, dtype);   
 end

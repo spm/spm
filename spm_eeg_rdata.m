@@ -18,7 +18,6 @@ function D = spm_eeg_rdata(S)
 % Stefan Kiebel
 % $Id$
 
-
 try
     Fdata = S.Fdata;
 catch
@@ -31,13 +30,13 @@ catch
     Fchannels = spm_get(1, '.mat', 'Select channel template file', fullfile(spm('dir'), 'EEGtemplates'));
 end
 
-% There doesn't seem to be information in the CNT-file which channel(s) is the reference
-% so ask for it now
-try
-    S.reference;
-catch
-    S.reference{1} = spm_input('Input reference channel', '+1', 's');
-end
+% % There doesn't seem to be information in the CNT-file which channel(s) is the reference
+% % so ask for it now
+% try
+%     S.reference;
+% catch
+%     S.reference{1} = spm_input('Input reference channel', '+1', 's');
+% end
 
 spm('Pointer','Watch'); drawnow;
 
@@ -141,11 +140,11 @@ for i = 1:Nchannels
 	
 end
 
-% Read HEOG channel number (doesn't seem to be stored in header)
+% Read HEOG channel number (but doesn't seem to be stored in header)
 s = fseek(fp, 406, -1);
 D.channels.heog = fread(fp, 1, 'short');
 
-% Read VEOG channel number (doesn't seem to be stored in header)
+% Read VEOG channel number (but doesn't seem to be stored in header)
 s = fseek(fp, 408, -1);
 D.channels.veog = fread(fp, 1, 'short');
 
@@ -168,7 +167,7 @@ if D.channels.veog == 0
 		D.channels.veog = D.channels.veog(1);
 	end
 end
- 
+
 % Map name of channels to channel order specified in channel template file
 for i = 1:length(D.channels.name)
 	index = [];
@@ -186,6 +185,9 @@ for i = 1:length(D.channels.name)
 	end
 
 end
+
+% indices of EEG channels (without EOGs)
+D.channels.eeg = setdiff(1:length(D.channels.order), [D.channels.heog D.channels.veog]);
 
 % Read baseline, sensitivity and calibration to convert to microvolts.
 for i = 1:Nchannels	
@@ -220,28 +222,6 @@ end
 
 fclose(fp);
 fclose(fpd);
-
-
-% We assume that there is only one (valid) reference channel. Take first identified
-% channel name as reference.
-found = 0;
-for i = 1:length(S.reference)
-	index = [];
-	for j = 1:Csetup.Nchannels
-		if ~isempty(find(strcmpi(S.reference{i}, Csetup.Cnames{j})))
-			D.channels.reference = S.reference{i};
-            D.channels.order_ref = j;
-            found = 1;
-            break;
-		end
-	end
-    if found, break, end
-end
-if ~found
-    warning('Reference channel name not found');
-    D.channels.reference = {};
-    D.channels.order_ref = [];
-end
 
 D.Nchannels = Nchannels;
 D.Nsamples = Nsamples;
