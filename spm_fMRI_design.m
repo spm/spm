@@ -30,7 +30,7 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % Sess{s}.Pv{i}    - vector of paramters for ith trial type
 % Sess{s}.Pname{i} - name   of paramters for ith trial type
 %
-% saves fMRIDesMtx.mat (X Sess)
+% saves SPM_fMRIDesMtx.mat (X Sess)
 %___________________________________________________________________________
 %
 % spm_fMRI_design allows you to build design matrices with separable
@@ -310,10 +310,10 @@ xX     = struct(	'X',		[Xx Xb],...
 			'Xnames',	{[Xname Bname]});
 
 
-%-End: Save fMRIDesMtx.mat & Cleanup GUI
+%-End: Save SPM_fMRIDesMtx.mat & Cleanup GUI
 %---------------------------------------------------------------------------
 fprintf('\t%-32s: ','Saving fMRI design')                                %-#
-save fMRIDesMtx xX Sess
-fprintf('%30s\n','...fMRIDesMtx.mat saved')                              %-#
+save SPM_fMRIDesMtx SPMid xX Sess
+fprintf('%30s\n\n','...SPM_fMRIDesMtx.mat saved')                        %-#
 
 spm_clf(Finter);
