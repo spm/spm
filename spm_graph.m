@@ -312,13 +312,29 @@ case 'Fitted and adjusted responses'
 %----------------------------------------------------------------------
 case 'Event/epoch-related responses'
 
-	
+
 	% get sessions
 	%--------------------------------------------------------------
 	ss    = length(Sess);
 	tr    = [];
-	rep   = Sess{1}.rep;
 	if ss > 1
+
+		% determine if the same basis functions have been used
+		%------------------------------------------------------
+		for s = 1:ss
+		    rep     = length(Sess{s}.bf) == length(Sess{1}.bf);
+		    if ~rep, break, end
+		    for t   = 1:length(Sess{s}.bf)
+			rep = all(size(Sess{s}.bf{t}) == size(Sess{1}.bf{t}));
+			if ~rep, break, end
+			rep = all(all( Sess{s}.bf{t}  == Sess{1}.bf{t} ));
+			if ~rep, break, end
+		    end
+		    if ~rep, break, end
+		end
+
+		% average over sessions?
+		%------------------------------------------------------
 		if rep
 			str   = 'average over sessions?';
 			rep   = spm_input(str,'+1','y/n',[1 0]);
