@@ -5,12 +5,15 @@
 	#ifdef SPM_WIN32
 		#define rint(x) floor((x)+0.5)  /* round to nearest int */
 		#define finite(x) mxIsFinite(x) /* finite */
-		#define MAXNAMLEN 1024          /* maximum filename length */
 		#define SEPS      "\\"          /* directory separator */
 		#include <process.h>
 	#else /* SPM_WIN32 */
 		#define SEPS      "/"           /* directory separator */
 		extern double rint(double);
 	#endif /* SPM_WIN32 */
+	#ifndef MAXNAMLEN
+		/* default (very long) maximum filename length */
+		#define MAXNAMLEN 1024
+	#endif
 #endif /* SYS_DEP */
 
