@@ -26,9 +26,9 @@ function [SPM,xSPM] = spm_getSPM
 % .VOX      - voxel dimensions {mm} - column vector
 % .DIM      - image dimensions {voxels} - column vector
 % .Vspm     - Mapped statistic image(s)
-% .Msk      - Mask in 1 of 3 forms
+% .Msk      - Mask in 1 of 3 forms (used when computing FDR)
 %            o Scalar, indicating implicit mask value in statistic image(s)
-%            o Vector of indicies of elements within mask
+%            o Vector of indices of elements within mask
 %            o Mapped maskimage
 %
 % Required feilds of SPM
@@ -66,7 +66,7 @@ function [SPM,xSPM] = spm_getSPM
 % The contrast images are the weighted sum of the parameter images,
 % where the weights are the contrast weights, and are uniquely
 % estimable since contrasts are checked for estimability by the
-% contrast manager. These contrast images (for appropriate contrases)
+% contrast manager. These contrast images (for appropriate contrasts)
 % are suitable summary images of an effect at this level, and can be
 % used as input at a higher level when effecting a random effects
 % analysis. (Note that the ess_????.{img,hdr} and
@@ -101,18 +101,16 @@ function [SPM,xSPM] = spm_getSPM
 % SPM{F}'s with the same degrees of freedom. Independence is roughly
 % guaranteed for large degrees of freedom (and independent data) by
 % ensuring that the contrasts are "orthogonal". Note that it is *not*
-% the contrast weight vectors themselves that are required to be
+% the contrast weight vectors per se that are required to be
 % orthogonal, but the subspaces of the data space implied by the null
-% hypotheses defined by the contrasts (c'pinv(X)).
+% hypotheses defined by the contrasts (c'pinv(X)). Furthermore,
+% this assumes that the errors are i.i.d. (i.e. the estimates are
+% maximum likelihood or Gauss-Markov. This is the default in spm_spm). 
 % 
 % To ensure approximate independence of the component SPMs in a
-% conjunction, non-orthogonal contrasts for a conjunction are
-% successively enforced to be orthogonal. If this is required, you will
-% be asked to specify the orthogonalisation order (as a permutation of
-% the contrast indices). The contrasts are then serially orthogonalised
-% in this order, possibly generating new contrasts, such that the
-% second is orthogonal to the first, the third to the first two, and so
-% on.
+% conjunction, non-orthogonal contrasts are serially orthogonalised
+% in the order specified, possibly generating new contrasts, such that the
+% second is orthogonal to the first, the third to the first two, and so on.
 %
 % Masking simply eliminates voxels from the current contrast if they
 % do not survive an uncorrected p value (based on height) in one or
@@ -134,7 +132,7 @@ function [SPM,xSPM] = spm_getSPM
 % or 'classical' (using GRF).  If you choose Bayesian the contrasts are of
 % conditional (i.e. MAP) estimators and the inference image is a
 % posterior probability map (PPM).  PPMs encode the probability that the
-% contrast exceeds some specified threshold.  This threshold is stored in
+% contrast exceeds a specified threshold.  This threshold is stored in
 % the xCon.eidf.  Subsequent plotting and tables will use the conditional
 % estimates and associated posterior or conditional probabilities.
 % 
@@ -152,7 +150,7 @@ spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 
 %-Preliminaries...
 %=======================================================================
@@ -168,6 +166,8 @@ xX     = SPM.xX;			%-Design definition structure
 XYZ    = SPM.xVol.XYZ;			%-XYZ coordinates
 S      = SPM.xVol.S;			%-search Volume {voxels}
 R      = SPM.xVol.R;			%-search Volume {resels}
+M      = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
+VOX    = sqrt(diag(M'*M))';		%-voxel dimensions
 
 
 %-Contrast definitions
@@ -178,7 +178,7 @@ R      = SPM.xVol.R;			%-search Volume {resels}
 try
 	xCon = SPM.xCon;
 catch
-	xCon = [];
+	xCon = {};
 end
 
 
@@ -195,12 +195,8 @@ end
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-% (Don't ask orthogonalisation order if not needed.)
 if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
-    %-Get orthogonalisation order from user
-    %-------------------------------------------------------------------
-    Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
     
     %-Successively orthogonalise
     %-NB: This loop is peculiarly controlled to account for the
@@ -223,20 +219,20 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
 	    %-Contrast was colinear with a previous one - drop it
 	    %-----------------------------------------------------------
-	    Ic(i)    = [];
-	    i        = i - 1;
+	    Ic(i) = [];
+	    i     = i - 1;
 
 	elseif any(d)
 
 	    %-Contrast unchanged or already defined - note index
 	    %-----------------------------------------------------------
-	    Ic(i)    = min(d);
+	    Ic(i) = min(d);
 
 	else
 
 	    %-Define orthogonalised contrast as new contrast
 	    %-----------------------------------------------------------
-	    oxCon.name = [xCon(Ic(i)).name,' (orthogonalized w.r.t {',...
+	    oxCon.name = [xCon(Ic(i)).name,' (orth. w.r.t {',...
     	    	sprintf('%d,',Ic(1:i-2)), sprintf('%d})',Ic(i-1))];
     	    xCon  = [xCon, oxCon];
 	    Ic(i) = length(xCon); 
@@ -274,9 +270,9 @@ else
 	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
 end
 if Ex
-	mstr = 'masked [exclusive] by';
+	mstr = 'masked [excl.] by';
 else
-	mstr = 'masked [inclusive] by';
+	mstr = 'masked [incl.] by';
 end
 if length(Im) == 1
 	str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
@@ -293,14 +289,17 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
 if isfield(SPM,'PPM') & xCon(Ic).STAT == 'T'
+
     if length(Ic) == 1 & isempty(xCon(Ic).Vcon)
+
 	if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
 
 	% set STAT to 'P'
         %---------------------------------------------------------------
 	xCon(Ic).STAT = 'P';
 
-	% get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
+	%-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
+	% The default is one conditional s.d. of the contrast
         %---------------------------------------------------------------
 	str           = 'contrast threshold (default: prior s.d)';
 	Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
@@ -348,7 +347,7 @@ end
 if ~isempty(Im) & ~isempty(Q)
 	Msk  =   XYZ(1,:) + ...
 		(XYZ(2,:) - 1)*SPM.xVol.DIM(1) + ...
-		(XYZ(3,:)-1)*SPM.xVol.DIM(1)*SPM.xVol.DIM(2);
+		(XYZ(3,:) - 1)*SPM.xVol.DIM(1)*SPM.xVol.DIM(2);
 else
 	Msk  = 0;  %-Statistic images are zero-masked
 end
@@ -358,7 +357,7 @@ end
 %-----------------------------------------------------------------------
 if isempty(XYZ)
     fprintf('\n')                                                    %-#
-    warning(sprintf('No voxels survive masking at p=%4.3g',pm))
+    warning(sprintf('No voxels survive masking at p=%4.2f',pm))
     Z     = [];
 else
     Z     = Inf;
@@ -378,9 +377,9 @@ end
 
 switch xCon(Ic(1)).STAT
 case 'T'
-	STATstr = sprintf('%c%s_{%.1f}','T',str,edf(2));
+	STATstr = sprintf('%c%s_{%.0f}','T',str,edf(2));
 case 'F'
-	STATstr = sprintf('%c%s_{%.1f,%.1f}','F',str,edf(1),edf(2));
+	STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,edf(1),edf(2));
 case 'P'
 	STATstr = sprintf('%s^{%0.2f}','PPM',edf(1));
 end
@@ -517,7 +516,7 @@ xSPM   = struct('swd',		swd,...
 		'M',		SPM.xVol.M,...
 		'iM',		SPM.xVol.iM,...
 		'DIM',		SPM.xVol.DIM,...
-		'VOX',		SPM.xVol.M([1 6 11]),...
+		'VOX',		VOX,...
 		'Vspm',		VspmSv,...
 		'Msk',		Msk);
 

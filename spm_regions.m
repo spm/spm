@@ -1,5 +1,5 @@
 function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
-% VOI time-series extraction of adjusted data (local eigenimage analysis)
+% VOI time-series extraction of adjusted data (& local eigenimage analysis)
 % FORMAT [Y xY] = spm_regions(xSPM,SPM,hReg,[xY]);
 %
 % xSPM   - structure containing specific SPM, distribution & filtering details
@@ -11,7 +11,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %       xY.xyz          - centre of VOI {mm}
 %       xY.name         - name of VOI
 %       xY.Ic           - contrast used to adjust data (0 - no adjustment)
-%       xY.filter       - filtering (1 = yes| 0 = no)
+%       xY.filter       - filtering (1 = yes | 0 = no)
 %       xY.Sess         - session indices
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
@@ -28,23 +28,20 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %
 %_______________________________________________________________________
 %
-% spm_regions extracts a representative time course from voxel data in
-% Y.mad in terms of the first eigenvariate of the filtered abd adjusted
-% data in all suprathreshold voxels saved (in Y.mad) within a spherical VOI
-% centered on the nearest Y.mad voxel to the selected location.
+% spm_regions extracts a representative time course from voxel data 
+% in terms of the first eigenvariate of the filtered and adjusted
+% response in all suprathreshold voxels within a specified VOI
+% centered on the current MIP cursor location.
 %
-% If temporal filtering has been specified (fMRI), then the data is
+% If temporal filtering has been specified, then the data can be
 % temporally filtered. Adjustment is with respect to the null space of
 % a selected contrast, or can be omitted.
 %
-% For a VOI of radius 0, the (filtered &) adjusted voxel time-series is
-% returned, scaled to have a 2-norm or 1. The actual (filtered &)
-% adjusted voxel time series can be extracted from xY.y, and will be
-% the same as the (filtered &) adjusted data returned by the plotting
+% For a VOI of radius 0, the [adjusted] voxel time-series is
+% returned, and scaled to have a 2-norm or 1. The actual [adjusted]
+% voxel time series can be extracted from xY.y, and will be
+% the same as the [adjusted] data returned by the plotting
 % routine (spm_graph.m) for the same contrast.
-%
-% See spm_spm.m for further details of how voxels are selected for the
-% saving of their raw data in Y.mad.
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -55,7 +52,9 @@ Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');
 header = get(Finter,'Name');
 set(Finter,'Name','VOI time-series extraction')
-if ~exist('xY')
+try
+	xY;
+catch
 	xY = {};
 end
 
@@ -66,13 +65,12 @@ if ~length(xSPM.XYZmm)
 	Y = []; xY = [];
 	return
 end
-
-if ~isfield(xY,'xyz')
+try
+	xyz     = xY.xyz;
+catch
 	[xyz,i] = spm_XYZreg('NearestXYZ',...
 		      spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
 	xY.xyz  = xyz;
-else
-	xyz     = xY.xyz;
 end
 
 % and update GUI location
@@ -175,7 +173,7 @@ xY.XYZmm = xSPM.XYZmm(:,Q);
 %-Computation
 %=======================================================================
 
-% remove null space of contrast (prior to filering)
+% remove null space of contrast (prior to filtering)
 %-----------------------------------------------------------------------
 if xY.Ic
 
@@ -215,8 +213,8 @@ if isfield(xY,'Sess')
 
 	% extract row indices for specified session (j)
 	%---------------------------------------------------------------
-	j       = [];
-	for   i = 1:length(xY.Sess)
+	j     = [];
+	for i = 1:length(xY.Sess)
 		j = [j SPM.Sess(xY.Sess(i)).row];
 	end
 
