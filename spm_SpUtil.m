@@ -241,10 +241,11 @@ if nargin==0, error('do what? no arguments given...')
 switch lower(action), case {'iscon','allcon','conr','cono'}
 %=======================================================================
 % i = spm_SpUtil('isCon',x,c)
-if nargin==1, varargout={[]}; end;
+if nargin==1, varargout={[]}, end
 
 if spm_sp('isspc',varargin{2})		%-Working with a space structure
 	if nargin==2, c=eye(size(varargin{2}.X,2)); else, c=varargin{3}; end
+	if isempty(c), varargout={[]}; return, end
 	switch lower(action)
 	case 'iscon'
 		varargout = {    spm_sp('isinspp',varargin{2},c) };
@@ -270,6 +271,7 @@ if spm_sp('isspc',varargin{2})		%-Working with a space structure
 
 else					%-Working with a raw design matrix
 	if nargin==2, c=eye(size(varargin{2},2)); else, c=varargin{3}; end
+	if isempty(c), varargout={[]}; return, end
 	if size(c,1) ~= size(varargin{2},2)
 		error('Contrast not of the right size'), end
 	tol=max(size(varargin{2}))*norm(varargin{2})*eps;
