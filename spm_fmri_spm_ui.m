@@ -153,6 +153,13 @@ CovF  = str2mat(...
 	'delayed box-car');
 Cov   = spm_input('Select type of response','!+1','m',CovF,[1:size(CovF,1)]);
 
+% if box-car ask for temporal differences
+%----------------------------------------------------------------------------
+TD    = 0;
+if Cov == 4
+	TD = spm_input('add temporal derivative','!+1','b','no|yes',[0 1]);
+end
+
 
 % for each subject
 %---------------------------------------------------------------------------
@@ -197,7 +204,7 @@ for v = 1:nsubj
 	% vector of epoch lengths
 	%-------------------------------------------------------------------
 	e     = [];
-	while length(e) ~= length(a) & all(e > 0)
+	while length(e) ~= length(a) & all(e > 0) & (sum(e) ~= k)
 		e = spm_input('scans/epoch eg 10 or 8 6 8.... ','!+1');
 		if length(e) == 1; e = e*ones(1,length(a)); end
 	end
@@ -248,7 +255,7 @@ for v = 1:nsubj
 	elseif Cov == 4
 		D     = zeros(k,max(a)); 
 		for i = 1:length(e)
-			D(ons(i):ons(i)+e(i)-1,a(i)) = ones(e(i),1);
+			D([ons(i):(ons(i) + e(i) - 1)],a(i)) = ones(e(i),1);
 		end
 		delay = round(6/RT);
 		D((delay + 1):k,:) = D(1:(k - delay),:); 
@@ -257,7 +264,14 @@ for v = 1:nsubj
 			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
 			Cnames = str2mat(Cnames,str);
 		end
+		if TD
+			for i = 1:size(D,2)
+				str    = sprintf('Cond %0.0f - timing',i);
+				Cnames = str2mat(Cnames,str);
+			end
+			D      = [D [diff(D); zeros(1,size(D,2))]];
 
+		end
 	end
 
 	
@@ -339,7 +353,7 @@ end
 GLOBAL = 'None';
 str    = 'global normalization';
 if spm_input(str,'!+1','yes|no',[1 0])
-	GLOBAL = 'Scaling'; end
+	GLOBAL = spm_input(str,'!+0','Scaling|AnCova'); end
 
 
 % get contrasts or linear compound for parameters of interest [H C]
