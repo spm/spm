@@ -1,11 +1,12 @@
 function [X,Sess] = spm_fMRI_design(nscan,RT)
-% Assembles a deign matrix for fMRI studies
+% Assembles a design matrix for fMRI studies
 % FORMAT [X,Sess] = spm_fMRI_design(nscan,RT)
 %
 % nscan   - n vector {nscan(n) = number of scans in session n}
 % RT      - intercans interval {seconds}
 %
-% X.DesN  - {1} general description, {2} basis function description
+% X.dt    - time bin {secs}
+% X.DesN  - {1} study type, {2} basis function description
 % X.xX    - regressors
 % X.bX    - session effects
 % X.cX    - low frequency confounds
@@ -13,12 +14,13 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % X.Bname - names of subpartiton columns {1xn}
 % X.Cname - names of subpartiton columns {1xn}
 %
-% For session s:
-% Sess{s}.row    - scan indices 
-% Sess{s}.col    - zeroth index of design matrix columns
-% Sess{s}.ind{i} - index of design matrix columns for event/epoch i
-% Sess{s}.bf{i}  - array of basis functions       for event/epoch i
-% Sess{s}.pst{i} - array of peristimulus times    for event/epoch i
+% Sess{s}.row     - scan indices for session s
+% Sess{s}.col     - zeroth index for session s
+% Sess{s}.name{i} - name of ith trial type for session s
+% Sess{s}.ind{i}  - indices for         for ith trial type
+% Sess{s}.bf{i}   - basis functions     for ith trial type
+% Sess{s}.pst{i}  - peristimulus times  for ith trial type
+% Sess{s}.para{i} - vector of paramters for ith trial type
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -29,8 +31,8 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 nsess  = length(nscan);
-dt     = 0.1;						% time bin {secs}
-T      = RT/dt;						% bins per scan
+T      = 16;						% bins per scan
+dt     = RT/T;						% time bin {secs}
 
 
 % default cutoff period (bin) for High-pass filtering
@@ -74,26 +76,30 @@ for s = 1:nsess
 
 	% Study type - epoch or event-related fMRI
 	%-------------------------------------------------------------------
-	str     = 'epoch or event-related fMRI';
-	ER      = spm_input(str,1,'epoch|event',{'epoch' 'event'});
+	SType   = {'event-related fMRI (single events)',...
+		   'event-related fMRI (epochs of events)',...
+		   'epoch-related fMRI (fixed length epochs)'};
+	str     = 'Select study type';
+	ST      = spm_input(str,1,'m',SType);
+	STstr   = deblank(SType{ST});
 
 
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons W] = spm_get_ons(ER,k,T);
+	[ons,W,name,para] = spm_get_ons(ST,k,T);
 
 
 	% get basis functions for responses
 	%-------------------------------------------------------------------
-	[BF BFstr]    = spm_get_bf(ER,W,dt);
+	[BF BFstr] = spm_get_bf(ST,W,dt);
 
 
 	% peri-stimulus time {PST} in seconds
 	%-------------------------------------------------------------------
-	ntrial  = length(W);
+	ntrial  = size(ons,2);
 	for   i = 1:ntrial
 
-		e     = find(ons(:,i))*dt;
+		e     = find(diff(~ons(:,i)) < 0)*dt;
 		pst   = [1:k]*RT - e(1);			
 		for j = 1:length(e)
 			u      = [1:k]*RT - e(j);
@@ -116,7 +122,7 @@ for s = 1:nsess
 		IND{i} = [];
 		for  j = 1:size(BF{i},2)
 			X      = [X conv(ons(:,i),BF{i}(:,j))];
-			Xn{qx} = [ER{1} sprintf(': %i bf: %i',i,j)];
+			Xn{qx} = [name{i} sprintf(': bf: %i',j)];
 			IND{i} = [IND{i} qx];
 			qx     = qx + 1;
 		end
@@ -167,30 +173,25 @@ for s = 1:nsess
 			tau = spm_input('time constant {secs}',3,'e',tau);
 		end
 
-		% compute interaction effects
+		% basis functions - create
 		%-----------------------------------------------------------
-		str   = 'model for which ';
-		str   = [str ER{1} '[s] 1 to ' sprintf('%d',ntrial)];
+		if     Tov == 1
+			t  = exp(-[0:(k - 1)]*RT/tau)';
+
+		elseif Tov == 2
+			t  = [0:(k - 1)]'/(k - 1);
+		end
+		t     = spm_detrend(t);
+
+		% compute interaction effects and append
+		%-----------------------------------------------------------
+		str   = sprintf('model for which trial[s] 1 to %d',ntrial);
 		for i = spm_input(str,3,'e',1)
 
-			% basis functions - create
-			%---------------------------------------------------
-			t     = [];
-			if     Tov == 1
-				t  = exp(-[0:(k - 1)]*RT/tau)';
-
-			elseif Tov == 3
-				t  = [0:(k - 1)]'/(k - 1);
-			end
-			
-			% append
-			%---------------------------------------------------
-			t     = spm_detrend(t);
-			Q     = X(:,IND{i});
-			Q     = spm_detrend(Q);
+			Q     = spm_detrend(X(:,IND{i}));
 			for j = 1:size(Q,2);
 				X      = [X Q(:,j).*t];
-				Xn{qx} = [ER{1} sprintf(' %d x Time',i)];
+				Xn{qx} = [name{i} sprintf(' x t: bf %d',j)];
 				qx     = qx + 1;
 			end
 		end
@@ -221,11 +222,13 @@ for s = 1:nsess
 
 	% Session structure
 	%-------------------------------------------------------------------
-	Sess{s}.row = [1:k] + size(xX,1);
-	Sess{s}.col = size(xX,2);
-	Sess{s}.ind = IND;
-	Sess{s}.bf  = BF;
-	Sess{s}.pst = PST;
+	Sess{s}.row  = [1:k] + size(xX,1);
+	Sess{s}.col  = size(xX,2);
+	Sess{s}.name = name;
+	Sess{s}.ind  = IND;
+	Sess{s}.bf   = BF;
+	Sess{s}.pst  = PST;
+	Sess{s}.para = para;
 
 	% Append names
 	%-------------------------------------------------------------------
@@ -259,7 +262,8 @@ end
 
 % finished
 %---------------------------------------------------------------------------
-X.DesN  = {[ER{1} '-related fMRI'] {BFstr}};
+X.dt    = dt;
+X.DesN  = {STstr BFstr};
 X.xX    = spm_detrend(xX);
 X.bX    = bX;
 X.cX    = spm_detrend(cX);

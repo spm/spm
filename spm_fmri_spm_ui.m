@@ -66,19 +66,6 @@ function spm_fmri_spm_ui
 % again as a vector (list of numbers).  If the epochs were all the same
 % length, then just type in that length once.
 %
-% The CONTRAST is simply a list or vector of coefficients that are used
-% to test for a pattern of effects.  The number of coefficients (length
-% of the CONTRAST) should be the same as the number of covariates of interest
-% By specifying different contrasts one can effect a wide variety of analyses.
-%
-% ER.mat is saved if event-related designs ares specified
-%-----------------------------------------------------------------------
-% variables pertaining to event-related fMRI in ER.mat
-%
-%	ERI 	- indices of DER pertaing to each event type
-%	DER 	- Design matrix containing the basis functions for each event
-%	PST	- Peri-stimulus time for each scan
-%
 % Refs:
 %
 % Friston KJ, Holmes A, Poline J-B, Grasby PJ, Williams SCR, Frackowiak
@@ -138,7 +125,6 @@ Global = spm_input(str,3,'scale|none',{'Scaling' 'None'});
 % get Repeat time
 %---------------------------------------------------------------------------
 RT     = spm_input('Interscan interval {secs}',4);	% interscan interval
-dt     = 0.1;						% time bin {secs}
 
 % temporal smoothing
 %---------------------------------------------------------------------------
@@ -186,12 +172,15 @@ q      = sum(nscan);
 g      = zeros(q,1);
 for i  = 1:q, g(i) = spm_global(VY(i)); end
 
-% scale if specified 
+% scale if specified (session specific grand mean scaling)
 %---------------------------------------------------------------------------
 if strcmp(Global,'Scaling')
 	gSF    = GM./g;
 else
-	gSF    = GM./mean(g);
+	for i = 1:length(Sess)
+		j      = Sess{i}.row;
+		gSF(j) = GM./mean(g(j));
+	end
 end
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
@@ -203,7 +192,7 @@ for i = 1:q, VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i); end
 %---------------------------------------------------------------------------
 xM = struct(	'T',	ones(q,1),...
 		'TH',	g.*gSF,...
-		'I',	1,...
+		'I',	0,...
 		'VM',	{[]},...
 		'xs',	struct('Masking','analysis threshold'));
 
@@ -215,7 +204,7 @@ Xnames = [X.Xname X.Bname X.Cname];
 xX     = struct(	'X',		[X.xX X.bX X.cX],...
 			'K',		K,...
 			'RT',		RT,...
-			'dt',		dt,...
+			'dt',		X.dt,...
 			'sigma',	sigma,...
 			'iB',		[1:nsess] + size(X.xX,2),...
 			'Xnames',	{Xnames'});
@@ -229,14 +218,13 @@ if ~isempty(X.xX)
 	%-Effects designated "of interest" - constuct an F-contrast
 	%------------------------------------------------------------------
 	Fc = [diff(eye(size(X.xX,2))), zeros(size(X.xX,2) - 1,...
-	      (size(X.bX,2) + size(X.cX,2)))]';
+	     (size(X.bX,2) + size(X.cX,2)))]';
 end
 
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
-str = X.DesN{2}{:};
-str =  {X.DesN{2}{:};
+str =  {X.DesN{2};
 	sprintf('number of sessions: %d',nsess);
 	sprintf('interscan interval: %0.2f secs',RT);
 	sprintf('temporal smoothing: %0.2f secs',SIGMA);

@@ -1,8 +1,12 @@
-function [BF,BFstr] = spm_get_bf(ER,W,dt)
+function [BF,BFstr] = spm_get_bf(ST,W,dt)
 % creates basis functions for each trial type {i} in struct BF{i}
-% FORMAT [BF BFstr] = spm_get_bf(ER,W,dt)
+% FORMAT [BF BFstr] = spm_get_bf(ST,W,dt)
 %
-% ER    - 'event'|'epoch'
+% ST    - Study type
+% 	1  - event-related fMRI (single events)
+% 	2  - event-related fMRI (epochs of events)
+% 	3  - epoch-related fMRI (fixed length epochs)
+%
 % W     - W(i) window length {time bins} for trial type {i}
 % dt    - time bin length {seconds}
 %
@@ -15,7 +19,7 @@ function [BF,BFstr] = spm_get_bf(ER,W,dt)
 
 % assemble basis functions {bf}
 %-----------------------------------------------------------------------
-if     strcmp(ER,'event')
+if     ST == 1 | ST == 2
  
 
 	% model event-related responses
@@ -115,7 +119,7 @@ if     strcmp(ER,'event')
 	end
 
 
-elseif strcmp(ER,'epoch')
+elseif ST == 3
 
 
 	% covariates of interest - Type
