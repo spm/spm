@@ -1,14 +1,12 @@
 #!make -f
 #
-# %W% John Ashburner %E%
-# $Id: Makefile,v 2.5 2002-07-30 17:10:26 john Exp $
+# %W% John Ashburner & Matthew Brett %E%
+# $Id: Makefile,v 2.6 2002-08-08 17:54:13 john Exp $
 #
 ###############################################################################
 #
-# Suggestions for how to make this file a bit more elegent are welcome.  So far
-# it works under SunOS and Linux (at the FIL) - but I'm pretty sure it wont
-# work for anything else.
-#
+# Suggestions for how to make this file a bit more elegant are welcome.  So far
+# it works under SunOS, Linux (at the FIL) and some Windows systems.
 # $Log: not supported by cvs2svn $
 #
 ###############################################################################
@@ -27,6 +25,10 @@ tidy:
 
 MEX = mex -O
 CC  = cc
+# mex output object suffix
+MOSUF = o
+CHMODIT = chmod 644 
+ADDED_OBS=
 
 SunOS:
 	make all SUF=mexsol  CC="cc -xO5"                   MEX="mex COPTIMFLAGS=-xO5"
@@ -43,7 +45,7 @@ AIX:
 OSF1:
 	make all SUF=mexaxp  MEX="mex -O"
 windows:
-	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32"
+	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o
 
 ###############################################################################
 # Architecture specific cleaning
@@ -64,7 +66,6 @@ clean.OSF1:
 	make clean SUF=mexaxp
 clean.windows:
 	make clean SUF=dll
-	rm -f win32mmap.dll.o
 
 ###############################################################################
 # Objects to go in the archive and mexfiles
@@ -79,7 +80,7 @@ OBS =	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
 	utils_ushort_s.$(SUF).o utils_uint_s.$(SUF).o\
 	utils_float_s.$(SUF).o utils_double_s.$(SUF).o\
 	spm_make_lookup.$(SUF).o spm_getdata.$(SUF).o spm_vol_access.$(SUF).o\
-	spm_mapping.$(SUF).o
+	spm_mapping.$(SUF).o $(ADDED_OBS)
 
 SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
@@ -126,70 +127,65 @@ CC  = cc
 spm_vol_utils.$(SUF).a: $(OBS)
 	rm -f $@
 	ar rcv $@ $(OBS)
-	@ chmod 644 $@
-
-spm_vol_utils.dll.a: $(OBS) win32mmap.o
-	rm -f $@
-	ar rcv $@ $(OBS) win32mmap.o
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 UTILS=spm_vol_utils.c spm_sys_deps.h spm_make_lookup.h spm_getdata.h
 
 utils_uchar.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_CHAR
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_short.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_int.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_INT
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_schar.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_CHAR
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_ushort.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_uint.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_float.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_FLOAT
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_double.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_DOUBLE
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_short_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_int_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_INT -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_ushort_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_uint_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_float_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_FLOAT -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 utils_double_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 ###############################################################################
 # Compile a few additional C routines for linking
@@ -197,7 +193,7 @@ utils_double_s.$(SUF).o: $(UTILS)
 
 %.$(SUF).o : %.c spm_sys_deps.h
 	$(CC) -c -o $@ $<
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
 
@@ -205,12 +201,12 @@ spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
 
 spm_mapping.$(SUF).o:     spm_mapping.c spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) -c spm_mapping.c
-	mv spm_mapping.o $@
-	@ chmod 644 $@
+	mv spm_mapping.$(MOSUF) $@
+	@ $(CHMODIT) $@
 
 win32mmap.$(SUF).o: win32mmap.c win32mmap.h
 	$(CC) -c -o $@ win32mmap.c
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 ###############################################################################
 # Compile the mex files themselves
@@ -218,22 +214,22 @@ win32mmap.$(SUF).o: win32mmap.c win32mmap.h
 MEX = mex -O
 %.$(SUF) : %.c spm_sys_deps.h
 	$(MEX) $<
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_add.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_brainwarp.$(SUF): spm_brainwarp.c  spm_vol_utils.$(SUF).a spm_matfuns.c\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
 	$(MEX) spm_bsplins.c
@@ -241,17 +237,17 @@ spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) spm_conv_vol.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_getxyz.$(SUF): spm_getxyz.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_getxyz.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_global.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_hist2.$(SUF):      spm_hist2.c spm_sys_deps.h
 
@@ -264,24 +260,24 @@ spm_project.$(SUF): spm_project.c spm_sys_deps.h
 spm_render_vol.$(SUF): spm_render_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_render_vol.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_resels_vol.$(SUF): spm_resels_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_resels_vol.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_sample_vol.c spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
-	@ chmod 644 $@
+	@ $(CHMODIT) $@
 
 ###############################################################################
 # Assorted architecture dependent messages
@@ -333,9 +329,9 @@ verb.mexsg64:
 verb.dll:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "Windows compile with EGCS gcc/mingw32"
+	@ echo "Windows compile with gcc/mingw"
 	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
-	@ echo "for instructions about installing gcc for"
+	@ echo "for instructions about installing gcc/mingw for"
 	@ echo "compiling Mex files."
 	@ echo "_____________________________________________________________"
 	@ echo ""
