@@ -21,10 +21,6 @@ function f = spm_invFcdf(p,df)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 14/12/93 - 
-% V1b	- 24/08/94 - streamlined code
-
 %-Parameters
 %---------------------------------------------------------------------------
 Tol = [];
@@ -48,8 +44,8 @@ elseif length(p)==1
 elseif size(df,2)==1
 	df = meshgrid(df,1:prod(size(p)))';
 else
-	error('p and df not of compatible size'), end
-end % if (size)
+	error('p and df not of compatible size')
+end
 
 %-Computation
 %---------------------------------------------------------------------------
@@ -63,4 +59,4 @@ trace = 0;
 %---------------------------------------------------------------------------
 for k = find(abs(p-0.5)<0.5)
 	f(k) = spm_fzero('spm_Fcdf',InitGuess,Tol,trace,df(:,k),p(k));
-end % for
+end
