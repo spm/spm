@@ -216,9 +216,9 @@ elseif nargin == 2
 	MG = VG.mat;
 
 	Q = MG\MF;
-	text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)),'Parent',ax);
-	text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)),'Parent',ax);
-	text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),'Parent',ax);
+	text(0,0.85, sprintf('X1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(1,:)),'Parent',ax);
+	text(0,0.80, sprintf('Y1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(2,:)),'Parent',ax);
+	text(0,0.75, sprintf('Z1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(3,:)),'Parent',ax);
 	text(0.25,0.65, spm_str_manip(PFF,'k22'),...
 		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold','Parent',ax);
 	text(0.75,0.65, spm_str_manip(PGF,'k22'),...
