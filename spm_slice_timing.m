@@ -66,8 +66,8 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %
 % Written by Darren Gitelman at Northwestern U., 1998
 %
-% Based (in large part) on ACQCORRECT.PRO from Mark D'Exposito,
-%  and Geof Aquirre and Eric Zarahn at U. Penn.
+% Based (in large part) on ACQCORRECT.PRO from Geof Aquirre and
+% Eric Zarahn at U. Penn.
 %
 % v1.0	07/04/98	DRG
 % v1.1  07/09/98	DRG	fixed code to reflect 1-based indices
