@@ -317,7 +317,7 @@ else
 	set(0,'ShowHiddenHandles',cSHH)
 end
 set(F,'Pointer','Arrow')
-
+movegui(F);
 
 case 'defprintcmd'
 %=======================================================================
