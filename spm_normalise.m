@@ -177,7 +177,7 @@ spm_chi2_plot('Clear');
 % Basis function Normalisation
 %-----------------------------------------------------------------------
 fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
-if any(fov<60),
+if any(fov<7.5*flags.smosrc),
 	fprintf('Field of view too small for nonlinear registration\n');
 	Tr = [];
 elseif finite(flags.cutoff) & flags.nits & ~isinf(flags.reg),
