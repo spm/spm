@@ -14,7 +14,7 @@ function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
 % nscana - 
 % rowa   - 
 %_______________________________________________________________________
-% @(#)spm_bch_tsampl.m	2.6 Stephanie Rouquette 99/10/27
+% %W% Stephanie Rouquette %E%
 
 %=======================================================================
 % Programmers Guide
