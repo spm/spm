@@ -1,6 +1,7 @@
 function spm_visdef_ui
 % Visualise deformations
-P = spm_get(3,'*y?_*.img','Select deformation field');
+P = spm_get(1,{'*y_*.img','noexpand'},'Select deformation field');
+P = [repmat([deblank(P) ','],3,1) num2str([1 2 3]')];
 
 bb = [-78 -112 0 ; 78 76 0];
 directions = 'XYZ';

@@ -21,9 +21,9 @@ VF.uint8 = loaduint8(VF); % Surce image
 % Try loading pre-existing deformation fields.  Otherwise, create
 % deformation fields from uniform affine transformations.
 %-----------------------------------------------------------------------
-P = str2mat(prepend(VF.fname, 'y1_'), ...
-            prepend(VF.fname, 'y2_'), ...
-            prepend(VF.fname, 'y3_'));
+P = str2mat([prepend(VF.fname, 'y_') ',1'], ...
+            [prepend(VF.fname, 'y_') ',2'], ...
+            [prepend(VF.fname, 'y_') ',3']);
 ok = 1;
 for i=1:3,
 	if exist(deblank(P(i,:)))~=2,
@@ -82,18 +82,20 @@ spm_affdef(y1,y2,y3,VF.mat);
 % Write the deformations
 %-----------------------------------------------------------------------
 VO         = VG;
-VO.fname   = prepend(VF.fname, 'y1_');
-VO.dim(4)  = spm_type('float');
 VO.pinfo   = [1 0 0]';
-VO.descrip = 'Deformation field - X';
+VO.dim(4)  = spm_type('float');
+VO.descrip = 'Deformation field';
+
+VO.fname   = prepend(VF.fname, 'y_');
+VO.n       = 1;
 spm_write_vol(VO,y1);
 
-VO.fname   = prepend(VF.fname, 'y2_');
-VO.descrip = 'Deformation field - Y';
+VO.fname   = prepend(VF.fname, 'y_');
+VO.n       = 2;
 spm_write_vol(VO,y2);
 
-VO.fname   = prepend(VF.fname, 'y3_');
-VO.descrip = 'Deformation field - Z';
+VO.fname   = prepend(VF.fname, 'y_');
+VO.n       = 3;
 spm_write_vol(VO,y3);
 
 return;

@@ -8,15 +8,14 @@ function spm_invdef_ui
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-n       = spm_input('Number of subjects','+0', 'n', '1', 1)';
-for i=1:n,
-	P{i}    = spm_get(3,'*y?_*.img',['Select deformation field ' num2str(i)]);
-	PT{i}   = spm_get(1,'*.img',['Image to base inverse (' num2str(i) ') on']);
-end;
+P    = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
+n    = size(P,1);
+PT   = spm_get(n,'*.img',['Images to base inverses on']);
 
 spm_progress_bar('Init',n,'Inverting deformations','volumes completed');
 for i=1:n,
-	doit(P{i},PT{i});
+	Pi = [repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')];
+	doit(Pi,PT(i,:));
 	spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear')
@@ -24,35 +23,37 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function doit(P,PT)
-V  = spm_vol(P);
+function doit(V,VT)
+if ischar(V),  V  = spm_vol(V);  end;
+if ischar(VT), VT = spm_vol(VT); end;
+
 y1 = spm_load_float(V(1));
 y2 = spm_load_float(V(2));
 y3 = spm_load_float(V(3));
 
-VT            = spm_vol(PT);
 [iy1,iy2,iy3] = spm_invdef(y1,y2,y3,VT.dim(1:3),inv(VT.mat),V(1).mat);
 
-VO         = VT;
-VO.fname   = prepend(V(1).fname, 'i');
-VO.dim(4)  = spm_type('float');
-VO.pinfo   = [1 0 0]';
-VO.descrip = 'Inverse deformation field - X';
-spm_write_vol(VO,iy1);
+VO              = V;
+VO(1).fname     = prepend(VO(1).fname, 'i');
+VO(1).dim(1:3)  = VT.dim(1:3);
+VO(1).pinfo     = [1 0 0]';
+VO(1).mat       = VT.mat;
+VO(1).descrip   = 'Inverse deformation field';
+spm_write_vol(VO(1),iy1);
 
-VO         = VT;
-VO.fname   = prepend(V(2).fname, 'i');
-VO.dim(4)  = spm_type('float');
-VO.pinfo   = [1 0 0]';
-VO.descrip = 'Inverse deformation field - Y';
-spm_write_vol(VO,iy2);
+VO(2).fname     = prepend(VO(2).fname, 'i');
+VO(2).dim(1:3)  = VT.dim(1:3);
+VO(2).pinfo     = [1 0 0]';
+VO(2).mat       = VT.mat;
+VO(2).descrip   = 'Inverse deformation field';
+spm_write_vol(VO(2),iy2);                                                                                   
 
-VO         = VT;
-VO.fname   = prepend(V(3).fname, 'i');
-VO.dim(4)  = spm_type('float');
-VO.pinfo   = [1 0 0]';
-VO.descrip = 'Inverse deformation field - Y';
-spm_write_vol(VO,iy3);
+VO(3).fname     = prepend(VO(3).fname, 'i');
+VO(3).dim(1:3)  = VT.dim(1:3);
+VO(3).pinfo     = [1 0 0]';
+VO(3).mat       = VT.mat;
+VO(3).descrip   = 'Inverse deformation field';
+spm_write_vol(VO(3),iy3);
 return;
 %_______________________________________________________________________
 

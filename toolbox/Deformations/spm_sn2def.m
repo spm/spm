@@ -7,7 +7,7 @@ function spm_sn2def(varargin)
 % (DBM), or tensor-based morphometry (TBM).
 %
 % Deformations:
-% Writes out the deformation fields as y1_*.img, y2_*.img and y3_*.img.
+% Writes out the deformation fields as y_*.img.
 % These fields are the voxel to voxel mappings between an image
 % normalised with the specified bounding-box and voxel sizes, and the
 % original images.  The deformations can be used for multivariate
@@ -16,9 +16,8 @@ function spm_sn2def(varargin)
 % and possibly size (Procrustes shape).
 %
 % Jacobian Matrices:
-% Writes out the Jacobian matrix field as images a11_*.img, a12_*.img,
-% a13_*.img, a21_*.img, a22_*.img, a23_*.img, a31_*.img, a32_*.img
-% and a33_*.img.
+% Writes out the Jacobian matrix field as a single file.  The order
+% of the elements are 11, 12, 13, 21, 22, 23, 31, 32, 33.
 %
 % Jacobian Determinants:
 % Writes out the volume change at each location in j_*.img.  Fields
@@ -149,14 +148,19 @@ return;
 %_______________________________________________________________________
 function write_jacobianm(sn,vox,bb)
 vo = init_vo(sn,vox,bb);
+[pth,nm,xt,vr]  = fileparts(deblank(sn.VF.fname));
+vo.fname   = fullfile(pth,['a_' nm '.img']);
+vo.dim(4)  = spm_type('float');
+vo.pinfo   = [1 0 0]';
+vo.descrip = ['Jacobian_Matrix'];
+vo.n       = 1;
 for i=1:3,
 	for j=1:3,
-		[pth,nm,xt,vr]  = fileparts(deblank(sn.VF.fname));
-		VO(i,j)         = vo;
-		VO(i,j).fname   = fullfile(pth,['a' num2str(i) num2str(j) '_' nm '.img']);
-		VO(i,j).dim(4)  = spm_type('float');
-		VO(i,j).pinfo   = [1 0 0]';
-		VO(i,j).descrip = ['Jacobian_Matrix(' num2str(i) ',' num2str(j) ')'];
+		VO(i,j)          = vo;
+		VO(i,j).n        = (i-1)*3+j;
+		%VO(i,j).fname   = fullfile(pth,['a' num2str(i) num2str(j) '_' nm '.img']);
+		%VO(i,j).descrip = ['Jacobian_Matrix(' num2str(i) ',' num2str(j) ')'];
+		%VO(i,j).n       = 1;
 	end;
 end;
 VO = spm_create_vol(VO);
@@ -196,14 +200,19 @@ return;
 %_______________________________________________________________________
 function write_tensor(sn,vox,bb,m)
 vo = init_vo(sn,vox,bb);
-ij = [1 1; 2 1; 3 1; 2 2; 3 2; 3 3];
+%ij = [1 1; 2 1; 3 1; 2 2; 3 2; 3 3];
+[pth,nm,xt,vr] = fileparts(deblank(sn.VF.fname));
+vo.fname    = fullfile(pth,['e' num2str(m) '_' nm '.img']);
+vo.descrip  =  ['Strain_Tensor - m=' num2str(m)];
+vo.dim(4)   = spm_type('float');
+vo.pinfo    = [1 0 0]';
+vo.n        = 1;
 for i=1:6,
-	[pth,nm,xt,vr]  = fileparts(deblank(sn.VF.fname));
-	VO(i)         = vo;
-	VO(i).fname   = fullfile(pth,['e' num2str(ij(i,1)) num2str(ij(i,2)) 'm' num2str(m) '_' nm '.img']);
-	VO(i).dim(4)  = spm_type('float');
-	VO(i).pinfo   = [1 0 0]';
-	VO(i).descrip = ['Strain_Tensor(' num2str(ij(i,1)) ',' num2str(ij(i,2)) ') - m=' num2str(m)];
+	VO(i)          = vo;
+	VO(i).n        = i;
+	%VO(i).fname   = fullfile(pth,['e' num2str(ij(i,1)) num2str(ij(i,2)) 'm' num2str(m) '_' nm '.img']);
+	%VO(i).descrip = ['Strain_Tensor(' num2str(ij(i,1)) ',' num2str(ij(i,2)) ') - m=' num2str(m)];
+	%VO(i).n       = 1;
 end;
 VO = spm_create_vol(VO);
 
@@ -400,7 +409,6 @@ function spm_write_defs(sn, vox,bb)
 %         normalization parameters.
 % The deformations are stored in y1.img, y2.img and y3.img
 %_______________________________________________________________________
-%W% John Ashburner %E%
 
 [bb0,vox0] = bbvox_from_V(sn.VG);
 if any(~finite(vox)), vox = vox0; end;
@@ -445,13 +453,17 @@ else,
 end;
 
 [pth,nm,xt,vr]  = fileparts(deblank(sn.VF.fname));
-VX = struct('fname',fullfile(pth,['y1_' nm '.img']),  'dim',[dim 16], ...
-	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - X');
-VY = struct('fname',fullfile(pth,['y2_' nm '.img']),  'dim',[dim 16], ...
-	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - Y');
-VZ = struct('fname',fullfile(pth,['y3_' nm '.img']),  'dim',[dim 16], ...
-	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - Z');
+%VX = struct('fname',fullfile(pth,['y1_' nm '.img']),  'dim',[dim 16], ...
+%	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - X');
+%VY = struct('fname',fullfile(pth,['y2_' nm '.img']),  'dim',[dim 16], ...
+%	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - Y');
+%VZ = struct('fname',fullfile(pth,['y3_' nm '.img']),  'dim',[dim 16], ...
+%	'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field - Z');
 
+VX = struct('fname',fullfile(pth,['y_' nm '.img']),  'dim',[dim 16], ...
+        'mat',mat,  'pinfo',[1 0 0]',  'descrip','Deformation field', 'n',1);
+VY = VX; VY.n = 2;
+VZ = VX; VZ.n = 3;
 
 X = x'*ones(1,VX.dim(2));
 Y = ones(VX.dim(1),1)*y;

@@ -1,14 +1,11 @@
-function spm_applydef_ui
+function spm_combdef_ui
 % Combines deformation fields
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-n       = spm_input('Number of defs to combine','+0', 'n', '2', 1)';
-for i=1:n,
-	P{i}    = spm_get(3,'*y?_*.img',['Select deformation field ' num2str(i)]);
-end;
-for i=1:n,
-	V{i} = spm_vol(P{i});
+P = spm_get(Inf,{'*y_*.img','noexpand'},['Select deformation fields']);
+for i=1:size(P,1),
+	V{i}   = spm_vol([repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')]);
 end;
 hld = 1;
 

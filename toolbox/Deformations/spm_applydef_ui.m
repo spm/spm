@@ -5,15 +5,15 @@ function spm_applydef_ui
 
 n       = spm_input('Number of subjects','+0', 'n', '1', 1)';
 for i=1:n,
-        P{i}    = spm_get(3,'*y?_*.img',['Select deformation field ' num2str(i)]);
-;
+        P{i}    = spm_get(1,{'*y_*.img','noexpand'},['Select deformation field ' num2str(i)]);
         PT{i}   = spm_get(Inf,'*.img',['Image(s) to warp (' num2str(i) ')'
 ]);
 end;
 
 spm_progress_bar('Init',n,'Applying deformations','subjects completed');
-for i=1:n,
-        doit(P{i},PT{i});
+for i=1:length(P),
+	Pi = [repmat([P{i} ','],3,1) num2str([1 2 3]')];
+        spm_applydef(Pi,PT{i});
         spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear')
@@ -21,16 +21,16 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function doit(PD,PI)
-VD = spm_vol(PD);
-VI = spm_vol(PI);
+function spm_applydef(VD,VI)
+if ischar(VD), VD = spm_vol(VD); end;
+if ischar(VI), VI = spm_vol(VI); end;
 VO = VI;
 for i=1:length(VO),
 	VO(i).fname    = prepend(VO(i).fname,'n');
 	VO(i).dim(1:3) = VD(1).dim(1:3);
 	VO(i).mat      = VD(1).mat;
 	if ~isfield(VO,'descrip'), VO(i).descrip = ''; end;
-	VO(i).descrip  = ['warped' VO(i).descrip];
+	VO(i).descrip  = ['warped ' VO(i).descrip];
 end;
 VO = spm_create_vol(VO(i));
 

@@ -9,18 +9,14 @@ function spm_procrustes_ui
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-n       = spm_input('Number of subjects','+0', 'n', '1', 1)';
-for i=1:n,
-	P{i}    = spm_get(3,'*y?_*.img',['Select deformation field ' num2str(i)]);
-end;
-PW = spm_get(1,'*.img','Weighting image');
-
+P   = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
+PW  = spm_get(1,'*.img','Weighting image');
 flg = spm_input('Remove size?','+1','y/n',[1,0],1);
-
-VW = spm_vol(PW);
+n   = size(P,1);
 spm_progress_bar('Init',n,'Tweaking deformations','volumes completed');
 for i=1:n,
-	doit(P{i},VW,flg);
+	Pi = spm_vol([repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')]);
+	doit(Pi,PW,flg);
 	spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear')
@@ -28,8 +24,9 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function doit(P,VW,flg)
-V  = spm_vol(P);
+function doit(V,VW,flg)
+if ischar(V),  V  = spm_vol(V);  end;
+if ischar(VW), VW = spm_vol(VW); end;
 y1 = spm_load_float(V(1));
 y2 = spm_load_float(V(2));
 y3 = spm_load_float(V(3));
@@ -42,21 +39,21 @@ VO         = V(1);
 VO.fname   = prepend(V(1).fname, 'p');
 VO.dim(4)  = spm_type('float');
 VO.pinfo   = [1 0 0]';
-VO.descrip = 'Shape field - X';
+VO.descrip = 'Shape field';
 spm_write_vol(VO,y1);
 
 VO         = V(2);
 VO.fname   = prepend(V(2).fname, 'p');
 VO.dim(4)  = spm_type('float');
 VO.pinfo   = [1 0 0]';
-VO.descrip = 'Shape field - Y';
+VO.descrip = 'Shape field';
 spm_write_vol(VO,y2);
 
 VO         = V(3);
 VO.fname   = prepend(V(3).fname, 'p');
 VO.dim(4)  = spm_type('float');
 VO.pinfo   = [1 0 0]';
-VO.descrip = 'Shape field - Z';
+VO.descrip = 'Shape field';
 spm_write_vol(VO,y3);
 return;
 %_______________________________________________________________________

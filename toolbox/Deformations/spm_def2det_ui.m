@@ -3,14 +3,12 @@ function spm_def2det_ui
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-n       = spm_input('Number of subjects','+0', 'n', '1', 1)';
-for i=1:n,
-        P{i}    = spm_get(3,'*y?_*.img',['Select deformation field ' num2str(i)]);
-end;
-
+P    = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
+n    = size(P,1);
 spm_progress_bar('Init',n,'Writing Jacobian Determinants','volumes completed');
 for i=1:n,
-        doit(P{i});
+	Pi = [repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')];
+        doit(Pi);
         spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear')
@@ -18,8 +16,8 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function doit(P)
-V  = spm_vol(P);
+function doit(V)
+if ischar(V), V  = spm_vol(V); end;
 y1 = spm_load_float(V(1));
 y2 = spm_load_float(V(2));
 y3 = spm_load_float(V(3));
