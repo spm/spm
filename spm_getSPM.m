@@ -172,11 +172,10 @@ catch
 	%---------------------------------------------------------------
 	str = {	'This model has not been estimated.';...
 		'Would you like to estimate it now?'};
-		if spm_input(str,1,'bd','yes|no',[1,0],1)
-			[SPM] = spm_spm(SPM);
-		else
-			return
-		end
+	if spm_input(str,1,'bd','yes|no',[1,0],1)
+		[SPM] = spm_spm(SPM);
+	else
+		return
 	end
 end
 
