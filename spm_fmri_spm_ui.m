@@ -131,7 +131,7 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % efficient and that the error variance is estimated in an unbiased way.
 % 
 % The serial correlations will be estimated with a ReML (restricted
-% maximum likelihood) algorithm using an AR(1) plus white noise model
+% maximum likelihood) algorithm using an autoregressive AR(1) model 
 % during parameter estimation.  This estimate assumes the same
 % correlation structure for each voxel, within each session.  The ReML
 % estimates are then used to correct for non-sphericity during inference
@@ -139,14 +139,15 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % discrepancy between estimated and actual intrinsic (i.e. prior to
 % filtering) correlations are greatest at low frequencies.  Therefore
 % specification of the high-pass filter is particularly important.
-% Furthermore, high-pass filtering whitens the data and renders parameter
-% estimation more efficient (by Gauss-Markov theorum).  Low-pass
-% filtering (i.e. smoothing) has been removed as an option because the
-% ReML estimator of serial correlations resolves the robustenss issues to
-% a degree. High-pass filtering is implemented at the level of the
+%
+% High-pass filtering is implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
 % matrix).  The default cutoff period is 128 seconds.  Use 'explore design'
 % to ensure this cuttof is not removing too much experimental variance.
+% Note that high-pass filtering uses a residual forming matrix (i.e.
+% it is not a convolution) and is simply to a way to remove confounds
+% without estimating their parameters explicitly.  The constant term
+% is also incorportated into this filter matrix.
 %
 %-----------------------------------------------------------------------
 % Refs:
@@ -274,8 +275,8 @@ SPM.xGX.sGMsca  = 'session specific';
 % low frequency confounds
 %-----------------------------------------------------------------------
 try
-	HParam = SPM.xX.K(1).HParam;
-	HParam = HParam*ones(1,nsess);
+	HP   = SPM.xX.K(1).HP;
+	HP   = HP*ones(1,nsess);
 catch
 	% specify low frequnecy confounds
 	%---------------------------------------------------------------
@@ -284,22 +285,22 @@ catch
 
 		case 'specify'  % default 128 seconds
 		%-------------------------------------------------------
-		HParam = 128*ones(1,nsess);
-		str    = 'session cutoff period (secs)';
-		HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
+		HP     = 128*ones(1,nsess);
+		str    = 'cutoff period (secs)';
+		HP     = spm_input(str,'+1','e',HP,[1 nsess]);
 
-		case 'none'  % Inf seconds
+		case 'none'     % Inf seconds (i.e. constant term only)
 		%-------------------------------------------------------
-		HParam = Inf*ones(1,nsess);
+		HP     = Inf*ones(1,nsess);
 	end
 end
 
 % create and set filter struct
 %---------------------------------------------------------------
 for  i = 1:nsess
-	K(i) = struct(	'HParam',	HParam(i),...
-			'row',		SPM.Sess(i).row,...
-			'RT',		SPM.xY.RT);
+	K(i) = struct(	'HP',	HP(i),...
+			'row',	SPM.Sess(i).row,...
+			'RT',	SPM.xY.RT);
 end
 SPM.xX.K = spm_filter(K);
 
@@ -409,13 +410,13 @@ SPM.xM        = struct(	'T',	ones(q,1),...
 %-Design description - for saving and display
 %=======================================================================
 for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
-Fstr      = sprintf('[min] Cutoff period %d seconds',min(HParam));
+Fstr      = sprintf('[min] Cutoff period %d seconds',min(HP));
 SPM.xsDes = struct(...
 	'Basis_functions',	SPM.xBF.name,...
 	'Number_of_sessions',	sprintf('%d',nsess),...
 	'Trials_per_session',	sprintf('%-3d',ntr),...
 	'Interscan_interval',	sprintf('%0.2f {s}',SPM.xY.RT),...
-	'High_pass_Filter',	sprintf('Cutoff: %d {s}',SPM.xX.K(1).HParam),...
+	'High_pass_Filter',	sprintf('Cutoff: %d {s}',SPM.xX.K(1).HP),...
 	'Serial_correlations',	SPM.xVi.form,...
 	'Global_calculation',	SPM.xGX.sGXcalc,...
 	'Grand_mean_scaling',	SPM.xGX.sGMsca,...
