@@ -126,6 +126,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 				case {'IS'},
 					dat = strread(dat,'%d','delimiter','\\')';
 				case {'DA'},
+					dat     = strrep(dat,'.',' ');
 					[y,m,d] = strread(dat,'%4d%2d%2d');
 					dat     = datenum(y,m,d);
 				case {'TM'},
