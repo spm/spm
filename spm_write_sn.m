@@ -162,7 +162,14 @@ for j=1:length(z)
 		q  = max([find(p == '/') 0]);
 		q  = [p(1:q) 'n' p((q + 1):length(p))];
 		fp = fopen(q, open_mode);
-		fwrite(fp,d,spm_type(Headers(8,i)));
+		if (fp == -1)
+			spm_progress_bar('Clear');
+			error(['Error opening ' q '. Check that you have write permission.']);
+		end
+		if fwrite(fp,d,spm_type(Headers(8,i))) ~= prod(size(d))
+			spm_progress_bar('Clear');
+			error(['Error writing ' q '. Check your disk space.']);
+		end
 		fclose(fp);
 	end
 

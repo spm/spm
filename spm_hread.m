@@ -99,6 +99,10 @@ smin		= fread(fid,1,'int32');
 
 fclose(fid);
 
+if isempty(smin)
+	error(['There is a problem with the header file ' P '.']);
+end
+
 % convert to SPM global variables
 %---------------------------------------------------------------------------
 DIM    	  	= dim(2:4)';

@@ -33,6 +33,9 @@ if P(q - 3) == '.'; P = P(1:(q - 4)); end
 P     		= [P '.hdr'];
 fid             = fopen(P,'w');
 
+if (fid == -1)
+	error(['Error opening ' P '. Check that you have write permission.']);
+end
 %---------------------------------------------------------------------------
 data_type 	= ['dsr      ' 0];
 
@@ -113,7 +116,11 @@ fwrite(fid,descrip,	'char');
 fwrite(fid,aux_file,    'char');
 fwrite(fid,0,           'char');
 fwrite(fid,origin,      'int16');
-fwrite(fid,zeros(1,85), 'char');
+if fwrite(fid,zeros(1,85), 'char')~=85
+	fclose(fid);
+	spm_unlink(P);
+	error(['Error writing ' P '. Check your disk space.']);
+end
 
 s   = ftell(fid);
 fclose(fid);
