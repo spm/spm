@@ -838,7 +838,7 @@ varargout = {[0.7,1.0,0.7],'Lime Green'};
 case 'isgcmdline'
 %=======================================================================
 % CmdLine = spm('isGCmdLine')
-global CMDLINE
+if any(strcmp(who('global'),'CMDLINE')), global CMDLINE; else, CMDLINE=[]; end
 if isempty(CMDLINE), varargout = {0}; else, varargout = {CMDLINE}; end
 
 
