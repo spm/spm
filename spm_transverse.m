@@ -46,7 +46,7 @@ vox    = sqrt(sum(VOL.M(1:3,1:3).^2));
 dim    = ceil(VOL.DIM(1:3)'.*vox);
 Vs     = spm_vol(spms);
 A      = VOL.M\Vs.mat;
-hld    = 1;
+hld    = 0;
 
 zoomM  = spm_matrix([0 0 -1  0 0 0  vox([1 2]) 1]);
 
@@ -111,21 +111,21 @@ if VOL.DIM(3) > 1
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',(L0(3) - vox(3))))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
-	line([0 dim(1)],[1 1]*P(2),'Color','w')
+	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T2)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L0(3)))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
-	line([0 dim(1)],[1 1]*P(2),'Color','w')
+	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T3)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',(L0(3) + vox(3))))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
-	line([0 dim(1)],[1 1]*P(2),'Color','w')
+	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	% colorbar
 	%-----------------------------------------------------------------------
@@ -146,7 +146,7 @@ else,
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L0(3)))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
-	line([0 dim(1)],[1 1]*P(2),'Color','w')
+	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	% colorbar
 	%-----------------------------------------------------------------------
