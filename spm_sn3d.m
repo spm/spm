@@ -211,63 +211,48 @@ if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
 
 	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),'Name','Spatial Normalisation')
+	set(spm_figure('FindWin','Interactive'),'Name','Spatial Normalisation');
 	spm_help('!ContextHelp','spm_sn3d.m');
 
-	pos = 1;
-
 	%-----------------------------------------------------------------------
-	a1 = spm_input('Which option?',pos,'m',...
+	a1 = spm_input('Which option?',1,'m',...
 		'Determine Parameters Only|Write Normalised Only|Determine Parameters & Write Normalised',...
 		[1 2 3],3);
-	pos = pos + 1;
-	nsubjects = spm_input('# Subjects',pos,'e',1);
-	if (nsubjects < 1)
+	nsubjects = spm_input('# Subjects','+1','w',1, 1);
+	if nsubjects < 1,
 		spm_figure('Clear','Interactive');
 		return;
-	end
+	end;
 
-	pos = pos + 1;
+	object_masking = sptl_MskObj;
+	if (a1 == 1 | a1 == 3) & sptl_CO ~= 1,
+		object_masking = spm_input('Mask object brain when registering?', '+1', 'm',...
+			'Mask object|Dont Mask object',[1 0],find([1 0] == object_masking));
+	end;
 
 	% Select images..
 	%-----------------------------------------------------------------------
-	for i=1:nsubjects
-		if (a1 == 1 | a1 == 3)
-			P = spm_get(1,'.img',['subj ' num2str(i) ' - Image to determine parameters from']);
-			eval(['P' num2str(i) '=P;']);
-			matname = [spm_str_manip(P,'sd') '_sn3d.mat'];
-		else
-			matname = spm_get(1,'_sn3d.mat',['subj ' num2str(i) ' - Normalisation parameter set:']);
-		end
-		eval(['matname' num2str(i) '=matname;']);
+	for i=1:nsubjects,
+		subj(i) = struct('P','','PP','','objmask','','matname','');
+		if a1 == 1 | a1 == 3,
+			subj(i).P = spm_get(1,'.img',['subj ' num2str(i) ' - Image to determine parameters from']);
+
+			% object weight
+ 	 		if object_masking==1,
+				subj(i).objmask = spm_get(1+sqrt(-1),'.img',['Select object masking image (or Done for none)']);
+			end;
+
+			subj(i).matname = [spm_str_manip(P,'sd') '_sn3d.mat'];
+		else,
+			subj(i).matname = spm_get(1,'_sn3d.mat',['subj ' num2str(i) ' - Normalisation parameter set:']);
+		end;
 	
-		if (a1 == 2 | a1 == 3)
-			P = spm_get(Inf,'.img',['subj ' num2str(i) ' - Images to write normalised']);
-			eval(['PP' num2str(i) '=P;']);
-		end
-	end
-
-	aff_parms = [0 0 0 0 0 0 1 1 1 0 0 0];
-
-	if (a1 == 1 | a1 == 3)
-
-		if sptl_MskBrn==1,
-			brainmask = [SWD '/apriori/brainmask.img'];
-		else,
-			brainmask = '';
+		if a1 == 2 | a1 == 3,
+			subj(i).P = spm_get(Inf,'.img',['subj ' num2str(i) ' - Images to write normalised']);
 		end;
-		% object weight
-  		if sptl_MskObj==1,
-			objmask = spm_get(1,'.img',['Object masking image']);
-		else,
-			objmask = '';
-		end;
+	end;
 
-		nbasis     = sptl_NBss;
-		iterations = sptl_NItr;
-		rglrztn = sptl_Rglrztn;
-		aff_parms = sptl_Ornt;
-
+	if a1 == 1 | a1 == 3,
 
 		% Get template(s)
 		ok = 0;
@@ -276,7 +261,7 @@ if (nargin == 0)
 			vv=spm_vol(Template);
 			if prod(size(vv))==1,
 				ok = 1;
-			else,
+			elseif prod(size(vv)) ~= 0,
 				tmp1 = cat(1,vv.dim);
 				tmp2 = reshape(cat(3,vv.mat),4*4,prod(size(vv)));
 				if ~any(any(diff(tmp1(:,1:3)))) & ~any(any(diff(tmp2,1,2))),
@@ -285,85 +270,63 @@ if (nargin == 0)
 			end;
 		end;
 
-		if sptl_CO ~= 1
+		nbasis     = sptl_NBss;
+		iterations = sptl_NItr;
+		rglrztn    = sptl_Rglrztn;
+		aff_parms  = sptl_Ornt;
+
+		brainmask = '';
+		if sptl_MskBrn==1, brainmask = [SWD '/apriori/brainmask.img']; end;
+
+		if sptl_CO ~= 1,
 			% Customise the normalisation
 			%-----------------------------------------------------------------------
-			a2  = spm_input('Normalisation Type?', pos, 'm',...
-				'Default Normalisation|Affine Only|Custom Affine & Nonlinear', [0 1 2],1);
-			pos = pos + 1;
+			a2  = spm_input('Normalisation Type?', '+1', 'm',...
+				'Default Normalisation|Custom Normalisation', [0 1],1);
 
-			if (a2 == 2)
-				tmp2 = [1 3 5 8 12 16];
-				tmp = find(iterations == tmp2);
-				if isempty(tmp) tmp = length(tmp2); end
-
-				% Nonlinear options - # iterations
-				%-----------------------------------------------------------------------
-				tmp2 = [1 3 5 8 12 16];
-				tmp = find(tmp2 == sptl_NItr);
-				if isempty(tmp) tmp = length(tmp2); end;
-				iterations = spm_input('# Nonlinear Iterations?',pos,'m','1  nonlinear iteration |3  nonlinear iterations|5  nonlinear iterations|8  nonlinear iterations|12 nonlinear iterations|16 nonlinear iterations',tmp2, tmp);
-				pos = pos + 1;
+			if a2 == 1,
 
 				% Nonlinear options - # basis functions
 				%-----------------------------------------------------------------------
 				nbasis = [];
-				if (prod(size(sptl_NBss)) == 3)
-					tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
-					if isempty(tmp)
-						tmp = size(bases,1)+1;
-					end
-				else
+				if prod(size(nbasis)) == 3,
+					tmp = find(bases(:,1) == nbasis(1) & bases(:,2) == nbasis(2) & bases(:,3) == nbasis(3));
+					if isempty(tmp), tmp = size(bases,1)+1; end
+				else,
 					tmp = size(bases,1)+2;
-				end
+				end;
 
-				nb = spm_input('# Nonlinear Basis Functions?',pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
+				nb = spm_input('# Nonlinear Basis Functions?','+1','m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
 				if (nb>0), nbasis = bases(nb,:); end
-				while prod(size(nbasis)) ~= 3 | any(nbasis < 1) | prod(nbasis) > 1000
-					tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
-					nbasis = spm_input('# Basis Functions (x y z)',pos, 'e', tmp);
-					nbasis = nbasis(:)';
-				end
-				pos = pos+1;
+				tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
+				nbasis = spm_input('# Basis Functions (x y z)','+1', 'w', tmp, 3);
 
-				% Get the amount of regularization
-				%-----------------------------------------------------------------------
-				tmp2 = [1 0.1 0.01 0.001 0.0001];
-				tmp = find(tmp2 == sptl_Rglrztn);
-				if isempty(tmp) tmp = length(tmp2); end;
-					rglrztn = spm_input('Nonlinear Regularization',pos,'m',...
-					['Extremely Heavy regularization|Heavy regularization|'...
-					 'Medium regularization|Light regularization|'...
-					 'Very Light regularization'], tmp2, tmp);
-				pos = pos+1;
-
-			elseif (a2 == 1)
-				nbasis     = [0 0 0];
-				iterations = 0;
-				rglrztn    = 0;
-			end
-
-			if a2==1 | a2==2,
-				tmp = [1 0];
-				tmp = spm_input('Mask brain when registering?', pos, 'm',...
-					'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
-				pos = pos + 1;
-				if tmp == 1,
-					brainmask = [SWD '/apriori/brainmask.img'];
+				if prod(nbasis==0),
+					iterations = 0;
+					rglrztn    = 0;
 				else,
-					brainmask = '';
+					% Nonlinear options - # iterations
+					%-----------------------------------------------------------------------
+					tmp2 = [1 3 5 8 12 16];
+					tmp = find(iterations == tmp2);
+					if isempty(tmp) tmp = length(tmp2); end
+					iterations = spm_input('# Nonlinear Iterations?','+1','m','1  nonlinear iteration |3  nonlinear iterations|5  nonlinear iterations|8  nonlinear iterations|12 nonlinear iterations|16 nonlinear iterations',tmp2, tmp);
+
+					% Get the amount of regularization
+					%-----------------------------------------------------------------------
+					tmp2 = [1 0.1 0.01 0.001 0.0001];
+					tmp = find(tmp2 == rglrztn);
+					if isempty(tmp) tmp = length(tmp2); end;
+					rglrztn = spm_input('Nonlinear Regularization','+1','m',...
+						['Extremely Heavy regularization|Heavy regularization|'...
+						 'Medium regularization|Light regularization|'...
+						 'Very Light regularization'], tmp2, tmp);
 				end;
-            
-				% get object weighting 
-				tmp = [1 0];
-				tmp = spm_input('Mask object brain when registering?', pos, 'm',...
-					'Mask object|Dont Mask object',[1 0],find(tmp == sptl_MskObj));
-				pos = pos + 1;
-				if tmp == 1,
-					objmask = spm_get(1,'.img',['Object masking image']);
-				else,
-					objmask = '';
-				end;
+
+				brainmask = '';
+				tmp = spm_input('Mask brain when registering?', '+1', 'm',...
+					'Mask Brain|Dont Mask Brain',[1 0],find([1 0] == sptl_MskBrn));
+				if tmp == 1, brainmask = [SWD '/apriori/brainmask.img']; end;
 			end;
 		end;
 
@@ -371,304 +334,214 @@ if (nargin == 0)
 		% Affine starting estimate
 		%-----------------------------------------------------------------------
 		if prod(size(sptl_Ornt))<12
-			tmp = spm_input('Affine Starting Estimates?',pos,'m',...
+			tmp = spm_input('Affine Starting Estimates?','+1','m',...
 				['Neurological Convention (R is R)|'...
 				 'Radiological Convention (L is R)|'...
 				 'Custom Affine Starting Estimates'],...
 				[0 1 2]);
-			pos = pos + 1;
 
-			if (tmp == 0)
-				aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
-			elseif (tmp == 1)
-				aff_parms = [0 0 0 0 0 0 -1 1 1 0 0 0];
-			elseif (tmp == 2)
-				aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
-				se = 0;
-				while prod(size(se)) > 12 | prod(size(se)) < 8
-					se = spm_input('Enter Affine Starting Estimates:',pos);
-					se = se(:)';
-				end
-				aff_parms(1:prod(size(se))) = se(:);
-			end
-		end
-	end
+			if (tmp == 0),       aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
+			elseif (tmp == 1),   aff_parms = [0 0 0 0 0 0 -1 1 1 0 0 0];
+			elseif (tmp == 2),
+				str = '[0 0 0 0 0 0  1 1 1 0 0 0]';
+				aff_parms = spm_input('Enter Affine Starting Estimates:','+1', 'e', str, 12)';
+			end;
+		end;
+	end;
 
-	if (a1 == 2 | a1 == 3)
+	if a1 == 2 | a1 == 3,
 
 		% Get interpolation method (for writing images)
 		%-----------------------------------------------------------------------
-		Hold = spm_input('Interpolation Method?',pos,'m',['Nearest Neighbour|Bilinear Interpolation|'...
-			'Sinc Interpolation (11x11x11)'],[0 1 -11], 3);
-		pos = pos + 1;
-
+		Hold = spm_input('Interpolation Method?','+1','m',['Nearest Neighbour|Bilinear Interpolation|'...
+			'Sinc Interpolation (11x11x11)'],[0 1 -11], 2);
 
 		% Get bounding box.
 		%-----------------------------------------------------------------------
-		if prod(size(sptl_BB)) ~= 6
-			ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1);
-			if (ans>0)
-				pos = pos + 1;
-				bb=reshape(bboxes(ans,:),2,3);
-			else
+		if prod(size(sptl_BB)) == 6, bb = sptl_BB;
+		else,
+			ans = spm_input('Bounding Box?','+1','m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1);
+			if ans>0, bb=reshape(bboxes(ans,:),2,3);
+			else,
 				directions = 'XYZ';
 				bb = zeros(2,1);
-				for d=1:3
-					bbx = [];
-					while size(bbx,1) ~= 2
-						str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
-						bbx = spm_input(['Bounding Box ' directions(d) ], pos, 'e', str);
-						bbx = bbx(:);
-					end
-					bb(:,d) = bbx;
-					pos = pos + 1;
-				end
-			end
-		else
-			bb = sptl_BB;
+				for d=1:3,
+					str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
+					bb(:,d) = spm_input(['Bounding Box ' directions(d) ], '+1', 'e', str,2);
+				end;
+			end;
 		end
 
 
 		% Get output voxel sizes.
 		%-----------------------------------------------------------------------
-		if prod(size(sptl_Vx)) ~= 3
-			ans = spm_input('Voxel Sizes?',pos,'m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3);
-			if (ans>0)
-				Vox = voxdims(ans,:);
-			else
-				Vox = [];
-				while size(Vox,2) ~= 3
-					Vox = spm_input('Voxel Sizes ',pos, 'e', '2 2 2');
-					Vox = Vox(:)';
-				end
-			end
-			pos = pos + 1;
-		else
-			Vox = sptl_Vx;
-		end
-
-	else
+		if prod(size(sptl_Vx)) == 3, Vox = sptl_Vx;
+		else,
+			ans = spm_input('Voxel Sizes?','+1','m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3);
+			if ans>0, Vox = voxdims(ans,:);
+			else, Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3); end;
+		end;
+	else,
 		bb     = sptl_BB;
 		Vox    = sptl_Vx;
-	end
-
+	end;
 
 	% Go and do the work
 	%-----------------------------------------------------------------------
-	set(spm_figure('FindWin','Interactive'),'Name','Normalising','Pointer','Watch'); drawnow;
-	if (a1 == 1 | a1 == 3)
-		for i=1:nsubjects
-			eval(['matname=matname' num2str(i) ';']);
-			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,...
-			brainmask, objmask);
-		end
-	end
-	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch');
-	drawnow;
+	if a1 == 1 | a1 == 3,
+		for i=1:length(subj),
+			set(spm_figure('FindWin','Interactive'),'Name',['Normalising, subj ' num2str(i)],'Pointer','Watch');
+			drawnow;
+			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,...
+				brainmask, subj(i).objmask);
+		end;
+	end;
 	
-	if (a1 == 2 | a1 == 3)
-		for i=1:nsubjects
-			eval(['matname=matname' num2str(i) ';']);
-			eval(['P=PP' num2str(i) ';']);
-			spm_write_sn(P,matname,bb,Vox,Hold);
-		end
-	end
+	if a1 == 2 | a1 == 3,
+		for i=1:length(subj),
+			set(spm_figure('FindWin','Interactive'),'Name',['Writing Normalised, subj' num2str(i)],'Pointer','Watch');
+			drawnow;
+			spm_write_sn(subj(i).P,subj(i).matname,bb,Vox,Hold);
+		end;
+	end;
 	
 	spm_figure('Clear','Interactive');
 	return;
 
 elseif strcmp(P,'Defaults')
 
+	spm_figure('Clear','Interactive');
 	% Edit defaults
 	%_______________________________________________________________________
 
-	pos = 2;
 
 	% Starting estimates for image position
 	%-----------------------------------------------------------------------
-	if sptl_Ornt == 0
-		tmp1 = 4;
-	elseif sum(sptl_Ornt==[0 0 0 0 0 0  1 1 1 0 0 0])==12
-		tmp1 = 1;
-	elseif sum(sptl_Ornt==[0 0 0 0 0 0 -1 1 1 0 0 0])==12
-		tmp1 = 2;
-	else
-		tmp1 = 3;
-	end
-	tmp = spm_input(['Affine Starting Estimates?'],pos,'m',...
+	if sptl_Ornt == 0, tmp1 = 4;
+	elseif sum(sptl_Ornt==[0 0 0 0 0 0  1 1 1 0 0 0])==12, tmp1 = 1;
+	elseif sum(sptl_Ornt==[0 0 0 0 0 0 -1 1 1 0 0 0])==12, tmp1 = 2;
+	else, tmp1 = 3; end;
+	tmp = spm_input(['Affine Starting Estimates?'],1,'m',...
 		['Neurological Convention (R is R)|'...
 		 'Radiological Convention (L is R)|'...
 		 'Custom Affine Starting Estimates|'...
 		 'Runtime option'],...
 		[0 1 2 -1], tmp1);
-	pos = pos + 1;
 
-	if (tmp == 0)
-		sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
-	elseif (tmp == 1)
-		sptl_Ornt = [0 0 0 0 0 0 -1 1 1 0 0 0];
-	elseif (tmp == 2)
+	if tmp == 0,     sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
+	elseif tmp == 1, sptl_Ornt = [0 0 0 0 0 0 -1 1 1 0 0 0];
+	elseif tmp == 2,
 		se = 0;
 
-		if prod(size(sptl_Ornt)) > 12 | prod(size(sptl_Ornt)) < 8
+		if prod(size(sptl_Ornt)) > 12 | prod(size(sptl_Ornt)) < 8,
 			str = '[0 0 0 0 0 0  1 1 1 0 0 0]';
-		else
+		else,
 			str = [num2str(sptl_Ornt(1))];
 			for i=2:prod(size(sptl_Ornt))
 				str = [str ' ' num2str(sptl_Ornt(i))];
 			end
-		end
-		while prod(size(se)) > 12 | prod(size(se)) < 8
-			se = spm_input('Enter Affine Starting Estimates:',pos, 'e', str);
-			se = se(:)';
-		end
-		sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
-		sptl_Ornt(1:prod(size(se))) = se(:);
-	elseif (tmp == -1)
-		sptl_Ornt = 0;
-	end
+		end;
+		sptl_Ornt = spm_input('Enter Affine Starting Estimates:','+1', 'e', str, 12)';
+	elseif tmp == -1, sptl_Ornt = 0; end;
 
 
 	% Give option to customise the normalisation
 	%-----------------------------------------------------------------------
 	tmp = 1;
 	if sptl_CO == 1, tmp = 2; end;
-	sptl_CO  = spm_input(['Allow customised normalisation?'], pos, 'm',...
+	sptl_CO  = spm_input(['Allow customised normalisation?'], '+1', 'm',...
 		'   Allow customised|Disallow Customised',[-1 1], tmp);
-	pos = pos + 1;
 
 	% Get number of nonlinear basis functions
 	%-----------------------------------------------------------------------
-	if (prod(size(sptl_NBss)) == 3)
+	if prod(size(sptl_NBss)) == 3,
 		tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
-		if isempty(tmp)
-			tmp = size(bases,1)+1;
-		end
-	else
-		tmp = size(bases,1)+2;
-	end
+		if isempty(tmp),tmp = size(bases,1)+1; end;
+	else, tmp = size(bases,1)+2; end;
 
-	nb = spm_input(['# Nonlinear Basis Functions?'],pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
-	if (nb>0)
-		sptl_NBss = bases(nb,:);
-	elseif nb == 0
+	nb = spm_input(['# Nonlinear Basis Functions?'],'+1','m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
+	if nb>0, sptl_NBss = bases(nb,:);
+	elseif nb == 0,
 		if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
-		NBss = [];
-		while prod(size(NBss)) ~= 3 | any(NBss < 0) | prod(NBss) > 1000
-			tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
-			NBss = spm_input('# Basis Functions (x y z)',pos, 'e', tmp);
-			NBss = NBss(:)';
-		end
+		tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
+		NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3);
+		NBss = NBss(:)';
 		sptl_NBss = NBss(:)';
-	else
-		sptl_NBss = 0;
-	end
-	pos = pos+1;
+	else, sptl_NBss = 0; end;
 
 
 	% Get number of nonlinear iterations
 	%-----------------------------------------------------------------------
-	if prod(sptl_NItr) > 0
+	if prod(sptl_NItr) > 0,
 		tmp2 = [1 3 5 8 12 16];
 		tmp = find(tmp2 == sptl_NItr);
 		if isempty(tmp) tmp = length(tmp2); end;
-		sptl_NItr = spm_input(['# Nonlinear Iterations?'],pos,'m',...
+		sptl_NItr = spm_input(['# Nonlinear Iterations?'],'+1','m',...
 			['1  nonlinear iteration |3  nonlinear iterations'...
 			'|5  nonlinear iterations|8  nonlinear iterations'...
 			'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
-		pos = pos + 1;
-	else
-		sptl_NItr = 0;
-	end
+	else, sptl_NItr = 0; end;
 
 	% Get the amount of regularization
 	%-----------------------------------------------------------------------
 	tmp2 = [1 0.1 0.01 0.001 0.0001];
 	tmp = find(tmp2 == sptl_Rglrztn);
 	if isempty(tmp) tmp = length(tmp2); end;
-	sptl_Rglrztn = spm_input('Nonlinear Regularization',pos,'m',...
+	sptl_Rglrztn = spm_input('Nonlinear Regularization','+1','m',...
 		['Extremely Heavy regularization|Heavy regularization|'...
 		 'Medium regularization|Light regularization|'...
 		 'Very Light regularization'], tmp2, tmp);
-	pos = pos+1;
 
 	tmp = [1 0];
-	sptl_MskBrn = spm_input('Mask brain when registering?', pos, 'm',...
+	sptl_MskBrn = spm_input('Mask brain when registering?', '+1', 'm',...
 		'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
-	pos = pos + 1;
    
-   % ask for object image weighting
-   tmp = [1 0];
-	sptl_MskObj = spm_input('Mask object brain when registering?', pos, 'm',...
-		'Mask object|Dont Mask object',[1 0],find(tmp == sptl_MskObj));
-   pos = pos + 1;
+	% ask for object image weighting
+	sptl_MskObj = spm_input('Mask object brain when registering?', '+1', 'm',...
+		'Mask object|Dont Mask object',[1 0],find([1 0] == sptl_MskObj));
    
-   % Get default bounding box
+	% Get default bounding box
 	%-----------------------------------------------------------------------
-	if prod(size(sptl_BB)) == 6
+	if prod(size(sptl_BB)) == 6,
 		tmp = find(	sptl_BB(1) == bboxes(:,1) & sptl_BB(2) == bboxes(:,2) & ...
 				sptl_BB(3) == bboxes(:,3) & sptl_BB(4) == bboxes(:,4) & ...
 				sptl_BB(5) == bboxes(:,5) & sptl_BB(6) == bboxes(:,6));
-		if isempty(tmp) tmp = size(bboxes,1)+1; end;
-	else
+		if isempty(tmp), tmp = size(bboxes,1)+1; end;
+	else,
 		tmp = size(bboxes,1)+2;
 		sptl_BB = reshape(bboxes(1,:),2,3);
-	end
+	end;
 
-	ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
-	if (ans>0)
-		pos = pos + 1;
-		sptl_BB=reshape(bboxes(ans,:),2,3);
-	elseif (ans == 0)
+	ans = spm_input('Bounding Box?','+1','m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
+	if ans>0, sptl_BB=reshape(bboxes(ans,:),2,3);
+	elseif ans == 0,
 		if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
 		directions = 'XYZ';
 		bb = zeros(2,1);
-		for d=1:3
-			bbx = [];
-			while size(bbx,1) ~= 2
-				str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
-				bbx = spm_input(['Bounding Box ' directions(d) ], pos, 'e', str);
-				bbx = bbx(:);
-			end
-			sptl_BB(:,d) = bbx;
-			pos = pos + 1;
-		end
-	else
-		sptl_BB = 0;
-		pos = pos + 1;
-	end
+		for d=1:3,
+			str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
+			sptl_BB(:,d) = spm_input(['Bounding Box ' directions(d) ], '+1', 'e', str, 2);
+		end;
+	else, sptl_BB = 0; end;
 
 
 	% Get default voxel sizes
 	%-----------------------------------------------------------------------
-	if (prod(size(sptl_Vx)) == 3)
+	if prod(size(sptl_Vx)) == 3,
 		tmp = find(voxdims(:,1) == sptl_Vx(1) & voxdims(:,2) == sptl_Vx(2) & voxdims(:,3) == sptl_Vx(3));
-		if isempty(tmp)
-			tmp = size(voxdims,1)+1;
-		end
-	else
-		tmp = size(voxdims,1)+2;
-	end
+		if isempty(tmp), tmp = size(voxdims,1)+1; end;
+	else, tmp = size(voxdims,1)+2; end;
 	ans = spm_input(...
-		['Voxel Sizes?'], pos,'m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
+		['Voxel Sizes?'], '+1','m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
 
-	if (ans>0)
-		sptl_Vx = voxdims(ans,:);
-	elseif (ans == 0)
+	if ans>0, sptl_Vx = voxdims(ans,:);
+	elseif ans == 0,
 		Vox = [];
 		if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
-		while size(Vox,2) ~= 3
-			Vox = spm_input('Voxel Sizes ',pos, 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)));
-		end
-		sptl_Vx = Vox(:)';
-	else
-		sptl_Vx = 0;
-	end
-	pos = pos + 1;
-
+		sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3);
+	else, sptl_Vx = 0; end;
 	return;
-end
+end;
 
 
 
@@ -708,13 +581,9 @@ if ~any(params(1:4)==0) & params(6)~=Inf,
 	VW  = [];
 	VW2 = [];
 	if nargin >= 8,
-		if ~isempty(brainmask),
-			VW=spm_vol(brainmask);
-		end;
+		if ~isempty(brainmask), VW=spm_vol(brainmask); end;
 		if nargin >= 9,
-			if ~isempty(objmask),
-				VW2=spm_vol(objmask);
-			end;
+			if ~isempty(objmask), VW2=spm_vol(objmask); end;
 		end;
 	end;
    
