@@ -414,7 +414,7 @@ set(cO,'UserData',struct(...
 
 %-Initiate dragging
 %-----------------------------------------------------------------------
-if strcmp(get(cF,'SelectionType'),'normal')
+if strcmp(get(cF,'SelectionType'),'normal') | isempty(MD.XYZ)
 	%-Set Figure callbacks for drop but no drag (DragType 0)
 	%---------------------------------------------------------------
 	set(MD.hMIPxyz,'Visible','on','String',...
