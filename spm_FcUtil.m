@@ -1,22 +1,18 @@
 function varargout = spm_FcUtil(varargin)
-%-----------------------------------------------------------------------
-% F contrast utilities
+% Contrast utilities
 % FORMAT varargout = spm_FcUtil(action,varargin)
-%=======================================================================
-%
 %_______________________________________________________________________
 %
 % spm_FcUtil is a multi-function function containing various utilities
-% for F contrast construction and manipulation. In
-% general, it accepts design matrices as plain matrices or as space
-% structures setup by spm_sp.
+% for contrast construction and manipulation. In general, it accepts
+% design matrices as plain matrices or as space structures setup by
+% spm_sp.
 % 
 % The use of spm_FcUtil should help with robustness issues and
-% maintainability of SPM. 
-%
-% Note that when space structures are passed as arguments is is
-% assummed that their basic fields are filled in. See spm_sp for
-% details of (design) space structures and their manipulation.
+% maintainability of SPM.  % Note that when space structures are passed
+% as arguments is is assummed that their basic fields are filled in.
+% See spm_sp for details of (design) space structures and their
+% manipulation.
 %
 % ======================================================================
 %
@@ -27,7 +23,8 @@ function varargout = spm_FcUtil(varargin)
 %                           ----------------
 % FORMAT Fcon = spm_FcUtil('Set',name, STAT, action, value, sX)
 %                           ----------------
-% ======================================================================
+%_______________________________________________________________________
+% %W% Jean-Baptiste Poline %E%
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -91,8 +88,11 @@ Fc.STAT = varargin{3};
 [sC sL] = spm_sp('size',sX);
 
 switch varargin{4},
-	case 'c'
+	case {'c','c+'}
 		c = varargin{5};
+		if (varargin{4} == 'c+')  
+		   if ~spm_sp('isinspp',sX,c), c = spm_sp('oPp',sX,c); end;
+		end;
 		if isempty(c)
 			Fc.c 	= [];
 			Fc.X1o 	= [];
@@ -300,6 +300,90 @@ end
 
 
 
+case 'y0'     %- Fitted data corrected for confounds defined by Fc 
+%=======================================================================
+% Y0 = spm_FcUtil('Y0',Fc, sX, b)
+
+if nargin < 4, error('Insufficient arguments'), end
+if nargout > 1, error('Too many output argument.'), end
+
+Fc = varargin{2}; sX = varargin{3}; b = varargin{4};
+
+if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
+if isempty(Fc.name), error('Fcon must be set'); end; 
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
+if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+	error('sX and Fc must be compatible'), end;
+if spm_sp('size',sX,2) ~= size(b,1), 
+	error('sX and b must be compatible'), end;
+
+if isempty(Fc.X1o) | isempty(Fc.c)
+	if ~isempty(Fc.X0)
+	   %- if space of interest empty or null, returns zeros !
+	   varargout = { sX.X*b };
+	else 	
+	   error(' Fc must be set ');
+	end
+else
+	varargout = { sf_Y0(Fc,sX,b) };  
+end
+
+
+
+
+
+case {'|_','fcortho'}     %-  Fc orthogonalisation 
+%=======================================================================
+% Fc = spm_FcUtil('|_',Fc1, Fc2, sX)
+%
+% returns Fc1 orthogonolised wrt Fc2 
+
+if nargin < 4, error('Insufficient arguments'), end
+if nargout > 1, error('Too many output argument.'), end
+
+Fc1 = varargin{2}; Fc2 = varargin{3}; sX = varargin{4};
+
+if ~sf_IsFcon(Fc1), error('Fc1 must be F-contrast'), end
+L = length(Fc2);
+for i=1:L
+    if ~sf_IsFcon(Fc2(i)), error('Fc2(i) must be F-contrast'), end
+end
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
+
+
+if sf_isempty(Fc1) | sf_isnull(Fc1)
+	%- Fc1 is an empty or null F-contrast : orthognonal to anything
+	varargout = { Fc1 };
+else
+	%- create an F-contrast for all the Fc2
+
+	str  = Fc2(1).name;
+	for i=2:L str = [str ' ' Fc2(i).name]; end;
+
+	Fc2  = spm_FcUtil('Set',str,Fc1.STAT,'c',cat(2,Fc2(:).c),sX);
+
+	if sf_isempty(Fc2) | sf_isnull(Fc2)
+		varargout = { Fc1 };
+	else 
+		varargout = { sf_fcortho(Fc1, Fc2, sX) };  
+	end
+end
+
+
+case {'0|[]','[]|0','isemptyornull'}     %-  Fc orthogonalisation 
+%=======================================================================
+% Fc = spm_FcUtil('0|[]',Fc)
+%
+% returns 1 if F-contrast is empty or null; assumes the contrast is set.
+
+if nargin < 2, error('Insufficient arguments'), end
+Fc = varargin{2}; 
+
+if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
+
+varargout = { sf_isempty(Fc) | sf_isnull(Fc) };
+
+ 
 
 
 %=======================================================================
@@ -325,8 +409,8 @@ function Fc = sf_FconFields
 Fc = struct(...
 	'name',		'',...
 	'STAT',		'',...
-	'c',			[],...
-	'X0',			[],...
+	'c',		[],...
+	'X0',		[],...
 	'iX0',		[],...
 	'X1o',		[],...
 	'eidf',		[],...
@@ -340,7 +424,7 @@ Fc = struct(...
 
 
 
-% warning('not to be used')
+% To investigate
 % Hb = spm_SpUtil('H',sX,Fc);
 % if ~V_flag
 %   Vb = (spm_sp('x-',sX)*V)*spm_sp('x-',sX)';
@@ -401,7 +485,7 @@ function H = sf_H(Fc)
 %- because the dimension should be small.
 
 H = Fc.c * pinv(Fc.X1o' * Fc.X1o) * Fc.c';
-% varargout = { c*spm_sp('x-',spm_sp('Set',c'*spm_sp('xpx-',sX)*c) )*c' }
+% varargout = {c*spm_sp('x-',spm_sp('Set',c'*spm_sp('xpx-',sX)*c) )*c'}
 
 %=======================================================================
 % Yc = spm_FcUtil('Yc',Fc,sX,b)
@@ -410,4 +494,43 @@ function Yc = sf_Yc(Fc,sX,b)
 
 Yc =  sX.X*spm_sp('xpx-',sX)*sf_H(Fc)*b;
 
+%=======================================================================
+% Y0 = spm_FcUtil('Y0',Fc,sX,b)
+%
+function Y0 = sf_Y0(Fc,sX,b)
+
+Y0 =  sX.X*( eye(spm_sp('size',sX,2)) - spm_sp('xpx-',sX)*sf_H(Fc) )*b;
+
+%=======================================================================
+% Fc = spm_FcUtil('|_',Fc1, Fc2, sX)
+%
+function Fc1o = sf_fcortho(Fc1, Fc2, sX)
+
+%--- use the space facility to ensure the proper tolerance dealing...
+sC2   = spm_sp('set',Fc2.c);
+c1o   = spm_sp('xpx',sX)*spm_sp('res',sC2,Fc1.c);
+%--  to put in spm_sp ?
+%--  NB : usually, the tol of sX will be much greater than the tol of sC2
+c1o( abs(c1o) < max(sX.tol,sC2.tol) ) = 0;
+Fc1o  = spm_FcUtil('Set',['(' Fc1.name ' |_ (' Fc2.name '))'], ...
+		    Fc1.STAT, 'c',c1o,sX);
+
+
+%=======================================================================
+% Fc = spm_FcUtil('0|[]',Fc)
+%
+% returns 1 if F-contrast is empty or null; assumes the contrast is set.
+%
+
+function boul = sf_isnull(Fc)
+%
+%- Assumes that if Fc.c contains only zeros, so does Fc.X1o. 
+%- this is ensured if spm_FcUtil is used
+boul = ~any(any(Fc.c));
+
+function boul = sf_isempty(Fc)
+%
+%- Assumes that if Fc.c is empty, so is Fc.X1o. 
+%- this is ensured if spm_FcUtil is used
+boul = isempty(Fc.c);
 
