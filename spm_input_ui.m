@@ -390,34 +390,43 @@ function varargout = spm_input(varargin)
 %               Position used is returned in YPos.
 %
 %-----------------------------------------------------------------------
-% FORMAT h = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB);
-% PullDown menu utility - creates a pulldown menu in the Interactive window
+% FORMAT h = spm_input(Prompt,YPos,'p!',Labels,cb,UD,XCB);
+% GUI PullDown menu utility - creates a pulldown menu in the Interactive window
+% FORMAT H = spm_input(Prompt,YPos,'b!',Labels,cb,UD,XCB);
+% GUI Buttons utility - creates GUI buttons in the Interactive window
 %
-% Prompt, YPos, Labels - as with 'm'enu type
+% Prompt, YPos, Labels - as with 'm'enu/'b'utton types
 % cb  - CallBack string
 % UD  - UserData
 % XCB - Extended CallBack handling - allows different CallBack for each item,
-%       and use of CB in CallBack strings.
-% h   - Handle of 'PullDown' uicontrol
+%       and use of UD in CallBack strings. [Defaults to 1 for PullDown type
+%       when multiple CallBacks specified, 0 o/w.]
+% H   - Handle of 'PullDown' uicontrol / 'Button's
 %
 % In "normal" mode (when XCB is false), this is essentially a utility
-% to create a PullDown menu widget in the SPM 'Interactive' figure,
-% using positioning and Label definition conveniences of the spm_input
-% 'm'enu type. If Prompt is not empty, then the PullDown appears on the
-% right, with the Prompt on the left, otherwise the PullDown uses the
-% whole width of the Interactive figure. The PopUp's CallBack string is
+% to create a PullDown menu widget or set of buttons in the SPM
+% 'Interactive' figure, using positioning and Label definition
+% conveniences of the spm_input 'm'enu & 'b'utton types. If Prompt is
+% not empty, then the PullDown/Buttons appears on the right, with the
+% Prompt on the left, otherwise the PullDown/Buttons use the whole
+% width of the Interactive figure. The PopUp's CallBack string is
 % specified in cb, and [optional] UserData may be passed as UD.
 %
-% In "extended callback" mode (when XCB is true), you can specify a
-% different CallBack string for each item (pass cb as a string matrix
-% or cellstr with same number of items as there are Labels), and can
-% use UD in the CallBack strings. (What happens is this: The cb & UD
-% are stored as fields in the PopUp's UserData structure, and the
-% PopUp's callback is set to spm_input('!p_cb'), which reads UD into
-% the functions workspace and eval's the appropriate CallBack string.
-% Note that this means that base workspace variables are inaccessible
-% (put what you need in UD), and that any return arguments from
-% CallBack functions are not passed back to the base workspace).
+% For buttons, a separate callback can be specified for each button, by
+% passing the callbacks corresponding to the Labels as rows of a
+% cellstr or string matrix.
+%
+% This "different CallBacks" facility can also be extended to the
+% PullDown type, using the "extended callback" mode (when XCB is
+% true).  % In addition, in "extended callback", you can use UD to
+% refer to the UserData argument in the CallBack strings. (What happens
+% is this: The cb & UD are stored as fields in the PopUp's UserData
+% structure, and the PopUp's callback is set to spm_input('!p_cb'),
+% which reads UD into the functions workspace and eval's the
+% appropriate CallBack string.  Note that this means that base
+% workspace variables are inaccessible (put what you need in UD), and
+% that any return arguments from CallBack functions are not passed back
+% to the base workspace).
 % 
 %
 %-----------------------------------------------------------------------
@@ -755,9 +764,9 @@ end % (if CmdLine)
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
 	if Type=='s'
-		spm_log(['spm_input : ',Prompt,':',p]);
+		spm_log([mfilename,' : ',Prompt,':',p]);
 	else
-		spm_log(['spm_input : ',Prompt,': (',str,')'],p);
+		spm_log([mfilename,' : ',Prompt,': (',str,')'],p);
 	end
 end
 varargout = {p,YPos};
@@ -1341,23 +1350,25 @@ end % (switch lower(Type) within case {'b','b|','y/n'})
 %-Log the transaction & return response
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
-	spm_log(['spm_input : ',Prompt,': (',deblank(Labels(k,:)),')'],p); end
+	spm_log([mfilename,' : ',Prompt,': (',deblank(Labels(k,:)),')'],p); end
 varargout = {p,YPos};
 
 
+%-===============================-*@*-=================================-
 
-case 'p'                                         %-PullDown menu utility
+case {'p!','b!'}                          %-GUI PullDown/Buttons utility
 %=======================================================================
-% h = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB)
+% H = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB)
 %-Condition arguments
 if nargin<7, XCB    = 0;  else, XCB    = varargin{7}; end
 if nargin<6, UD     = []; else, UD     = varargin{6}; end
 if nargin<5, cb     = ''; else, cb     = varargin{5}; end
 if nargin<4, Labels = []; else, Labels = varargin{4}; end
 
-if CmdLine, error('Can''t do CmdLine PullDowns!'), end
+if CmdLine, error('Can''t do CmdLine GUI utilities!'), end
 if isempty(cb), cb = 'disp(''(CallBack not set)'')'; end
-if length(cb)>1, XCB=1; end
+if ischar(cb), cb = cellstr(cb); end
+if length(cb)>1 & strcmp(lower(Type),'p!'), XCB=1; end
 
 if iscellstr(Labels), Labels=char(Labels); end
 %-Convert Labels "option" string to string matrix if required
@@ -1370,18 +1381,12 @@ if any(Labels=='|')
 	end
 end
 
-%-Sort out UserData for extended callbacks (handled by spm_input('!p_cb')
-%-----------------------------------------------------------------------
-if XCB
-	if ischar(cb), cb = cellstr(cb); end
-	if ~( length(cb)==1 | (length(cb)==size(Labels,1)) )
-		error('Labels & Callbacks size mismatch'), end
-	if iscell(UD), UD={UD}; end
-	UD = struct('UD',UD,'cb',{cb});
-	cb = 'spm_input(''!p_cb'')';
-end
+%-Check #CallBacks
+if ~( length(cb)==1 | (length(cb)==size(Labels,1)) )
+	error('Labels & Callbacks size mismatch'), end
 
-%-Draw Prompt & PullDown
+
+%-Draw Prompt
 %-----------------------------------------------------------------------
 Tag = ['GUIinput_',int2str(YPos)];			%-Tag for widgets
 
@@ -1396,21 +1401,54 @@ else
 	Rec = QRec;
 end
 
-h = uicontrol(Finter,'Style','PopUp',...
-	'HorizontalAlignment','Left',...
-	'ForegroundColor','k',...
-	'BackgroundColor',COLOUR,...
-	'String',Labels,...
-	'Tag',['GUIinput_',int2str(YPos)],...
-	'UserData',UD,...
-	'CallBack',cb,...
-	'Position',Rec);
+
+%-Sort out UserData for extended callbacks (handled by spm_input('!p_cb')
+%-----------------------------------------------------------------------
+if XCB, if iscell(UD), UD={UD}; end, UD = struct('UD',UD,'cb',{cb}); end
+
+
+%-Draw PullDown or Buttons
+%-----------------------------------------------------------------------
+switch lower(Type), case 'p!'
+	if XCB, UD.cb=cb; cb = {'spm_input(''!p_cb'')'}; end
+	H = uicontrol(Finter,'Style','PopUp',...
+		'HorizontalAlignment','Left',...
+		'ForegroundColor','k',...
+		'BackgroundColor',COLOUR,...
+		'String',Labels,...
+		'Tag',Tag,...
+		'UserData',UD,...
+		'CallBack',char(cb),...
+		'Position',Rec);
+
+case 'b!'
+	nLabels = size(Labels,1);
+	dX = Rec(3)/nLabels;
+
+	H = [];
+	for i=1:nLabels
+		if length(cb)>1, tcb=cb(i); else, tcb=cb; end
+		if XCB, UD.cb=tcb; tcb = {'spm_input(''!p_cb'')'}; end
+		h = uicontrol(Finter,'Style','Pushbutton',...
+			'String',deblank(Labels(i,:)),...
+			'ToolTipString','',...
+			'Tag',Tag,...
+			'UserData',UD,...
+			'BackgroundColor',COLOUR,...
+			'Callback',char(tcb),...
+			'Position',[Rec(1)+(i-1)*dX+1 ...
+					Rec(2) dX-2 Rec(4)]);
+		H = [H,h];
+	end
+
+
+end
 
 
 %-Bring window to fore & jump pointer to menu widget
 [PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
-varargout = {h};
+varargout = {H};
 
 
 
@@ -1739,9 +1777,9 @@ else
 		%-Relative YPos
 		%-Strip any '!' prefix from YPos
 		if(YPos(1)=='!'), YPos(1)=[]; end
-		if strcmp(YPos,'_')
+		if strncmp(YPos,'_',1)
 			%-YPos='_' means bottom
-			NPos=MPos;
+			YPos=eval(['MPos+',YPos(2:end)],'MPos');
 		else
 			YPos = max([0,CPos])+eval(YPos);
 		end
