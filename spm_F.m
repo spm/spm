@@ -28,5 +28,6 @@ while abs(d) > 1e-3
 	q     = spm_pF(S,s,Fdf,u);
 	dqdu  = (spm_pF(S,s,Fdf,u + du) - q)/du;
 	d     = (q - a)/dqdu;
+	while abs(d) > 1; d = d/2; end
 	u     = u - d;
 end
