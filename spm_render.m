@@ -46,22 +46,23 @@ if nargin<1
 					't',	SPM.Z',...
 					'mat',	VOL.M,...
 					'dim',	VOL.DIM);
-	end
-else
+	end;
+	showbar = 1;
+else,
 	num = length(dat);
-end
+	showbar = 0;
+end;
 
-if nargin<3
+if nargin<3,
 	rendfile = spm_get(1,'render*.mat','Render file',fullfile(SWD,'rend'));
-end
+end;
 
-if nargin<2
+if nargin<2,
 	flg = 0;
-	if num==1
+	if num==1,
 		flg = spm_input('Style',1,'new|old',[0 1], 1);
-	end
-
-end
+	end;
+end;
 
 
 
@@ -81,8 +82,8 @@ if (exist('rend') ~= 1), % Assume old format...
 	end;
 end;
 
-spm_progress_bar('Init', size(dat,1)*length(rend),...
-			'Formatting Renderings', 'Number completed');
+if showbar, spm_progress_bar('Init', size(dat,1)*length(rend),...
+			'Formatting Renderings', 'Number completed'); end;
 for i=1:length(rend),
 	rend{i}.max=0;
 	rend{i}.data = cell(size(dat,1),1);
@@ -99,12 +100,12 @@ for i=1:length(rend),
 	end;
 	msk = find(rend{i}.ren>1);rend{i}.ren(msk)=1;
 	msk = find(rend{i}.ren<0);rend{i}.ren(msk)=0;
-	spm_progress_bar('Set', i);
+	if showbar, spm_progress_bar('Set', i); end;
 end;
-spm_progress_bar('Clear');
+if showbar, spm_progress_bar('Clear'); end;
 
-spm_progress_bar('Init', size(dat,1)*length(rend),...
-			'Making pictures', 'Number completed');
+if showbar, spm_progress_bar('Init', size(dat,1)*length(rend),...
+			'Making pictures', 'Number completed'); end;
 
 mx = zeros(length(rend),1)+eps;
 for j=1:size(dat,1),
@@ -158,17 +159,21 @@ for j=1:size(dat,1),
 		mx(j) = max([mx(j) max(max(X))]);
 		rend{i}.data{j} = X;
 
-		spm_progress_bar('Set', i+(j-1)*length(rend));
+		if showbar, spm_progress_bar('Set', i+(j-1)*length(rend)); end;
 	end;
 end;
 
 mxmx = max(mx);
 
-spm_progress_bar('Clear');
+if showbar, spm_progress_bar('Clear'); end;
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 
 nrow = ceil(length(rend)/2);
+if showbar, hght = 0.95; else, hght = 0.5; end;
+% subplot('Position',[0, 0, 1, hght]);
+ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
+image(0,'Parent',ax);
 
 if flg==1,
 	% Old style split colourmap display.
@@ -180,11 +185,14 @@ if flg==1,
 		X   = rend{i}.data{1}/mxmx;
 		msk = find(X);
 		ren(msk) = X(msk)+1;
-		subplot(nrow,2,i);
-		image(ren*64);
-		axis image off xy
+		ax=axes('Parent',Fgraph,'units','normalized',...
+			'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+			'Visible','off');
+		image(ren*64,'Parent',ax);
+		set(ax,'DataAspectRatio',[1 1 1], ...
+			'PlotBoxAspectRatioMode','auto')
+		set(ax,'XDir','normal'); set(ax,'YDir','normal');
 	end;
-
 else,
 	% Combine the brain surface renderings with the blobs, and display using
 	% 24 bit colour.
@@ -205,11 +213,16 @@ else,
 		rgb(:,:,2) = tmp + X{2};
 		rgb(:,:,3) = tmp + X{3};
 
-		subplot(nrow,2,i);
-		image(rgb);
-		axis image off xy
+		ax=axes('Parent',Fgraph,'units','normalized',...
+			'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+			'Visible','off');
+		image(rgb,'Parent',ax);
+		set(ax,'DataAspectRatio',[1 1 1], ...
+			'PlotBoxAspectRatioMode','auto')
+		set(ax,'XDir','normal'); set(ax,'YDir','normal');
 	end;
 end;
 
 spm('Pointer')
+return;
 
