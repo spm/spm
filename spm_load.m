@@ -6,5 +6,5 @@ function [x] = spm_load(f)
 %___________________________________________________________________________
 % %E% Karl Friston %W%
 
-eval(['load ' f ' -ascii; x = ' f ';']);
+eval(['load ' f ' -ascii; x = ' spm_str_manip(spm_str_manip(f,'t'),'r') ';']);
 
