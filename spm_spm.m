@@ -393,7 +393,7 @@ KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
 xX.V          = spm_filter('apply',xX.K,KVi');  %-V matrix
 KX            = spm_filter('apply',xX.K, xX.X);
 xX.xKXs       = spm_sp('Set',KX);		%-Design space structure
-xX.pKX        = spm_sp('pinv',xX.xKXs);		%-Pseudoinverse of KX
+xX.pKX        = spm_sp('x-',xX.xKXs);		%-Pseudoinverse of KX
 [xX.trRV xX.trRVRV] ...				%-Variance expectations
               = spm_SpUtil('trRV',xX.xKXs,xX.V);%-(trRV & trRV2 in spm_AnCova)
 xX.erdf       = xX.trRV^2/xX.trRVRV;		%-Effective residual d.f.
@@ -640,7 +640,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...parameter estimation')   %-#
 		beta  = xX.pKX * KY;			%-Parameter estimates
-		res   = spm_sp('res',xX.xKXs,KY);	%-Residuals
+		res   = spm_sp('r',xX.xKXs,KY);	%-Residuals
 		ResMS = sum(res.^2)/xX.trRV;		%-Residual mean square
 		clear KY				%-Clear to save memory
 
