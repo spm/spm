@@ -101,7 +101,7 @@ v     = zeros(size(Ix,1),N);
 ssq   = zeros(size(Ix,1),1);
 for i = 1:length(V) % for all residual images
 	
-	[d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, -5);
+	[d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
 	
 	if N >= 1. v(:, 1) = v(:, 1) + dx.^2;  end
 	if N >= 2. v(:, 2) = v(:, 2) + dy.^2;  end
