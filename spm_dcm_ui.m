@@ -367,7 +367,7 @@ case 'review'
 
 	%-get threshold and recompute posterior probabilities
 	%-------------------------------------------------------------------
-	str        = 'Threshold {Hz}'
+	str        = 'Threshold {Hz}';
 	DCM.T      = spm_input(str,1,'e',0,[1 1]);
 	pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
 	[pA pB pC] = spm_dcm_reshape(pp,m,l,1);
@@ -504,7 +504,7 @@ case 'review'
 
 		%-get contrast
 		%-----------------------------------------------------------
-		str     = 'contrast for'
+		str     = 'contrast for';
 		D       = spm_input(str,1,'b',{'A','B','C'});
 
 		switch D
@@ -534,18 +534,27 @@ case 'review'
 
 		%-posterior density and inference
 		%-----------------------------------------------------------
+
 		c    = C'*DCM.Ep;
 		v    = C'*DCM.Cp*C;
 		x    = c + [-32:32]*sqrt(v)*6/32;
 		p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
+		PP   = 1 - spm_Ncdf(DCM.T,c,v);
 
 		figure(Fgraph)
 		subplot(2,1,1)
-		plot(x,p,[1 1]*DCM.T*sign(c),[0 max(p)],'-.');
-		title('Posterior density of contrast','FontSize',12)
+		plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
+		title({'Posterior density of contrast',...
+		sprintf('P(contrast > %0.2f) = %.1f%s',DCM.T,PP*100,'%')},...
+			'FontSize',12)
 		xlabel('contrast')
 		ylabel('probability density')
+
+		i    = find(x >= DCM.T);
+		hold on
+		fill([x(i) fliplr(x(i))],[i*0 fliplr(p(i))],[1 1 1]*.8)
 		axis square, grid on
+		hold off
 
 		%-contrast
 		%-----------------------------------------------------------
