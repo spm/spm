@@ -1,43 +1,68 @@
-function [samef, msg] = spm_vol_check(varargin)
-% FORMAT [samef, msg] = spm_vol_check(V1, V2, ...)
+function [samef, msg, chgf] = spm_vol_check(varargin)
+% FORMAT [samef, msg, chgf] = spm_vol_check(V1, V2, ...)
 % checks spm_vol structs are in same space
 %
 % V1, V2, etc      - arrays of spm_vol structs
 %
 % samef            - true if images have same dims, mats
 % msg              - cell array containing helpful message if not
+% chgf             - logical Nx2 array of difference flags
 %_______________________________________________________________________
 % %W% Matthew Brett %E%
 
-[dims mats fnames samef msg] = deal([],[],{},1,{});
+[fnames samef msg] = deal({},1,{});
 
-if nargin < 1
-	return
-end
+if nargin < 1,
+	return;
+end;
 
 for i = 1:prod(size(varargin)),
 	vols   = varargin{i};
-	dims   = cat(3,dims,vols(:).dim);
-	mats   = cat(3, mats,vols(:).mat);
-	fnames = {fnames{:}, vols(:).fname};
-end
+	if ~isempty(vols),
+		if i == 1,
+			dims   = cat(3,vols(:).dim);
+			mats   = cat(3,vols(:).mat);
+		else,
+			dims   = cat(3,dims,vols(:).dim);
+			mats   = cat(3,mats,vols(:).mat);
+		end;
+		fnames = {fnames{:}, vols(:).fname};
+	end;
+end;
   
 nimgs = size(dims, 3);
-if nimgs < 2 
-	return
-end
+if nimgs < 2,
+	return;
+end;
+
 labs = {'dimensions', 'orientation & voxel size'};
 
 dimf = any(diff(dims(:,1:3,:),1,3));
 matf = any(any(diff(mats,1,3)));
-chgf = [dimf(:) matf(:)];
+chgf = logical([dimf(:) matf(:)]);
 chgi = find(any(chgf, 2));
-if ~isempty(chgi)
+if ~isempty(chgi),
 	samef = 0;
 	e1    = chgi(1);
-	msg   = {['Images don''t all have the same ' labs{chgf(e1)}],...
+	msg   = {['Images don''t all have the same ' ...
+		  sepcat(labs(chgf(e1,:)),', ')],...
 		'First difference between image pair:',...
 		fnames{e1},...
 		fnames{e1+1}};
+end;
+return;
+
+function s = sepcat(strs, sep)
+% returns cell array of strings as one char string, separated by sep
+if nargin < 2,
+	sep = ';';
 end
-return
+if isempty(strs),
+	s = '';
+	return;
+end
+strs = strs(:)';
+strs = [strs; repmat({sep}, 1, length(strs))];
+s    = [strs{1:end-1}];
+return;
+
