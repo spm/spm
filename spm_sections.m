@@ -16,7 +16,7 @@ function spm_sections(SPM,hReg)
 % %W%	John Ashburner %E%
 
 Fgraph = spm_figure('FindWin','Graphics');
-spms   = spm_get(1,'.img','select image for rendering on');
+spms   = spm_get(1,'IMAGE','select image for rendering on');
 spm_results_ui('Clear',Fgraph);
 spm_orthviews('Reset');
 global st
