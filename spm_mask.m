@@ -1,7 +1,10 @@
-function spm_mask(P)
+function spm_mask(P1,P2)
 % Masks Images.
-% FORMAT spm_mask(P)
-% P     - matrix of input image filenames.
+% FORMAT spm_mask(P1,P2)
+% P1     - matrix of input image filenames from which
+%          to compute the mask.
+% P2     - matrix of input image filenames on which
+%          to apply the mask.
 % The masked images are prepended with the prefix `m'.
 %
 % If any voxel in the series of images is zero or does
@@ -15,17 +18,22 @@ function spm_mask(P)
 % %W% John Ashburner %E%
 
 if nargin==0,
-	P=spm_get(Inf,'.img','Images to mask');
+	P1=spm_get(Inf,'.img','Images to compute mask from');
+	P2=spm_get(Inf,'.img','Images to apply mask to');
+end;
+if nargin==1,
+	P2 = P1;
 end;
 
-V=spm_vol(P);
+V1=spm_vol(P1);
+V2=spm_vol(P2);
 
-M=V(1).mat;
-m=prod(size(V));
+m1=prod(size(V1));
+m2=prod(size(V2));
 
 % Create headers
-VO=V;
-for i=1:prod(size(VO)),
+VO=V2;
+for i=1:m2,
 	p  = spm_str_manip(VO(i).fname, 'd');
 	q  = max([find(p == '/') 0]);
 	q  = [p(1:q) 'm' p((q + 1):length(p))];
@@ -36,42 +44,33 @@ for i=1:prod(size(VO)),
 	VO(i).dim(1:3) = VO(1).dim(1:3);
 	spm_create_image(VO(i));
 end;
+M   = VO(1).mat;
+dim = VO(1).dim(1:3);
 
-A = zeros([V(1).dim(1:2) m]);
 spm_progress_bar('Init',V(1).dim(3),'Masking','planes completed')
-for j=1:V(1).dim(3),
+for j=1:dim(3),
+
+	msk = zeros(dim(1:2));
+	Mi  = spm_matrix([0 0 j]);
 
 	% Load slice j from all images
-	Mi=spm_matrix([0 0 j]);
-	for i=1:m
-		M1 = (M\V(i).mat)\Mi;
-		A(:,:,i) = spm_slice_vol(V(i),M1,V(1).dim(1:2),[1 NaN]);
+	for i=1:m1
+		M1  = M\V1(i).mat\Mi;
+		img = spm_slice_vol(V1(i),M1,dim(1:2),[1 0]);
+		msk = msk + (img~=0 & finite(img));
 	end;
 
-	% Get and apply the mask
-	msk = get_mask(A);
-	A   = apply_mask(A,msk);
+	msk = find(msk~=m1);
 
 	% Write the images.
-	for i=1:m,
-		tmp = A(:,:,i);
-		spm_write_plane(VO(i),A(:,:,i),j);
+	for i=1:m2,
+		M1  = M\V2(i).mat\Mi;
+		img = spm_slice_vol(V2(i),M1,dim(1:2),[1 0]);
+		img(msk) = NaN;
+		spm_write_plane(VO(i),img,j);
 	end;
+
 	spm_progress_bar('Set',j);
 end;
 spm_progress_bar('Clear');
-return;
-
-
-function msk = get_mask(A)
-	msk = find(any(~finite(A) | ~A,3));
-return;
-
-function A = apply_mask(A,msk)
-	d = size(A);
-	A = reshape(A,d(1)*d(2),d(3));
-	for i=1:size(A,3),
-		A(msk,:) = NaN;
-	end;
-	A = reshape(A,d);
 return;
