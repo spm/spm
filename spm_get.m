@@ -20,8 +20,11 @@ function varargout = spm_get(varargin)
 % spm_get allows interactive selection of filepaths/directory names
 % from disk.
 %
-% if global CMDLINE exists and is true, the command line is used. The
-% CmdLine parameter overrides this choice.
+% if global CMDLINE exists and is >0, the command line is used. The
+% CmdLine parameter overrides this choice. Note that since spm_input
+% uses the command line if CMDLINE is true (unless overridden), setting
+% CMDLINE to -1 results in the command line being used for questions,
+% but the GUI for file selection.
 %
 % Otherwise, selection of files is via GUI. The select files window,
 % enables the interactive directory display and selection of
@@ -285,7 +288,7 @@ if ~ischar(Action)
 %-Condition arguments
 %-----------------------------------------------------------------------
 if nargin<5 CmdLine=[]; else CmdLine=varargin{5}; end
-if isempty(CmdLine), CmdLine = spm('CmdLine'); end
+CmdLine = spm('CmdLine',CmdLine);
 if nargin<4 NewWDir=''; else NewWDir=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
 if nargin<2 | isempty(varargin{2}), Filter=0; else Filter=varargin{2}; end
@@ -303,7 +306,7 @@ end
 %-Computation
 %=======================================================================
 
-if CmdLine
+if CmdLine>0
 
 	%-Command line version, if global CMDLINE is true, & not overridden
 	%---------------------------------------------------------------
