@@ -1,6 +1,7 @@
 
-% Part of nonlinear spatial normalisation.
-% [Alpha,Beta,Var] = spm_brainwarp2(VG,VF,Affine,basX,basY,basZ,...
+% Part of nonlinear spatial normalisation
+%_______________________________________________________________________
+% [Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,...
 %                                   dbasX,dbasY,dbasZ,T,fwhm)
 % VG	- Mapped templates (must have same dimensions)
 % VF	- Mapped object image
@@ -18,15 +19,15 @@
 % Alpha	- A*A - where A is the design matrix
 % Beta	- A*b - where f is the object image
 % Var	- the approximate chi^2 (corrected for number of resels).
-% -----------------------------------------------------------------------
+%_______________________________________________________________________
 % 
 % The voxels of g1, g2.. are sampled according to the smoothness of the
-% image (fwhm). The corresponding voxels of f are determined according to
-% the current parameter estimates and the affine transform.
-% See "spm_write_sn.m" for more details about how this is done.
+% image (fwhm). The corresponding voxels of f are determined according
+% to the current parameter estimates and the affine transform.  See
+% "spm_write_sn.m" for more details about how this is done.
 % 
 % 
-% -----------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % The design matrix A is generated internally from:
 % 
@@ -51,3 +52,5 @@
 % 
 % 
 % The vector b contains [(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
+%_______________________________________________________________________
+% %W% (c) John Ashburner MRCCU/FIL %E%
