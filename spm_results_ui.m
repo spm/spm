@@ -318,12 +318,14 @@ text(0,0,sprintf('Extent threshold k = %0.0f voxels',SPM.k),'Parent',hResAx)
 %-----------------------------------------------------------------------
 hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
 hDesMtxIm = image((xX.nKX+1)*32);
-set(hDesMtx,'YTick',spm_DesRep('ScanTick',size(xX.nKX,1),24),'TickDir','out')
+set(hDesMtx,...
+	'XTick',spm_DesRep('ScanTick',size(xX.nKX,2),10),...
+	'YTick',spm_DesRep('ScanTick',size(xX.nKX,1),24),'TickDir','out')
 xlabel('Design matrix')
-set(hDesMtxIm,'UserData',...
-	struct('X',xX.xKXs.X,'fnames',{{xSDM.VY.fname}'},'Xnames',{xX.Xnames}))
-set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
-
+set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')',...
+	'UserData',	struct(	'X',xX.xKXs.X,...
+				'fnames',{{xSDM.VY.fname}'},...
+				'Xnames',{xX.Xnames}	)	)
 
 %-Plot contrasts
 %-----------------------------------------------------------------------
@@ -337,24 +339,30 @@ for ii = nCon:-1:1
 
 	%-Single vector contrast for SPM{t} - bar
 	%---------------------------------------------------------------
-
 	yy = [zeros(1,nPar);repmat(xCon(SPM.Ic(ii)).c',2,1);zeros(1,nPar)];
 	patch(xx,yy,[1,1,1]*.5)
-	set(gca,'Box','off','XTick',[],'YTick',[])
-	set(gca,'Tag','ConGrphAx')
+	set(gca,'Tag','ConGrphAx',...
+		'Box','off','TickDir','out',...
+		'XTick',spm_DesRep('ScanTick',nPar,10)-0.5,'XTickLabel','',...
+		'XLim',	[0,nPar],...
+		'YTick',[-1,0,+1],'YTickLabel','',...
+		'YLim',	[min(xCon(SPM.Ic(ii)).c),max(xCon(SPM.Ic(ii)).c)] + ...
+			[-1 +1] * max(abs(xCon(SPM.Ic(ii)).c))/10	)
 
     else
 
 	%-F-contrast - image
 	%---------------------------------------------------------------
-	sca = 1/max(abs(xCon(SPM.Ic(ii)).c(:)));
-	image((xCon(SPM.Ic(ii)).c'*sca+1)*32)
-	set(gca,'Box','on','XTick',[],'YTick',[])
-	set(gca,'Tag','ConGrphAx')
+	image((xCon(SPM.Ic(ii)).c'/max(abs(xCon(SPM.Ic(ii)).c(:)))+1)*32)
+	set(gca,'Tag','ConGrphAx',...
+		'Box','on','TickDir','out',...
+		'XTick',spm_DesRep('ScanTick',nPar,10),'XTickLabel','',...
+		'XLim',	[0,nPar]+0.5,...
+		'YTick',[0:size(xCon(SPM.Ic(ii)).c,2)]+0.5,'YTickLabel','',...
+		'YLim',	[0,size(xCon(SPM.Ic(ii)).c,2)]+0.5	)
 
     end
     ylabel(num2str(SPM.Ic(ii)))
-    axis tight
 end
 title('Contrast(s)')
 

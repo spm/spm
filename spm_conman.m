@@ -307,8 +307,8 @@ else
 	nPar = size(xCon(1).c,1);
 	xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
 	nCon = length(I);
-	
 	dy    = 0.2/max(nCon,2);
+
 	for ii = nCon:-1:1
 	    i  = abs(I(ii));
 	    axes('Position',[0.65 (0.7 + dy*(nCon-ii+.1)) 0.3 dy*.9])
@@ -316,17 +316,24 @@ else
 		%-Single vector contrast for SPM{t} - bar
 		yy = [zeros(1,nPar);repmat(xCon(i).c',2,1);zeros(1,nPar)];
 		patch(xx,yy,[1,1,1]*.5)
-		set(gca,'Box','off','XTick',[],'YTick',[])
-		set(gca,'Tag','ConGrphAx')
+		set(gca,'Tag','ConGrphAx',...
+			'Box','off','TickDir','out',...
+			'XTick',[],...
+			'XLim',	[0,nPar],...
+			'YTick',[-1,0,+1],'YTickLabel','',...
+			'YLim',	[min(xCon(i).c),max(xCon(i).c)] + ...
+				[-1 +1] * max(abs(xCon(i).c))/10	)
 	    else
 		%-F-contrast - image
-		sca = 1/max(abs(xCon(i).c(:)));
-		image((xCon(i).c'*sca+1)*32)
-		set(gca,'Box','on','XTick',[],'YTick',[])
-		set(gca,'Tag','ConGrphAx')
+		image((xCon(i).c'/max(abs(xCon(i).c(:)))+1)*32)
+		set(gca,'Tag','ConGrphAx',...
+			'Box','on','TickDir','out',...
+			'XTick',[],...
+			'XLim',	[0,nPar]+0.5,...
+			'YTick',[0:size(xCon(i).c,2)]+0.5,'YTickLabel','',...
+			'YLim',	[0,size(xCon(i).c,2)]+0.5	)
 	    end
-	   if I(ii)>0, ylabel(num2str(i)), end
-	   axis tight
+	    if I(ii)>0, ylabel(num2str(i)), end
 	end
 	title('Contrast(s)')
 
