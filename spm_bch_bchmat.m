@@ -158,26 +158,23 @@ end
 
 %-create bch_names with existing variables only
 %-----------------------------------------------------------------------
-str = '';
+str = {};
 names = {};
 
 for i=1:length(bch_names), 
    if exist(bch_names{i})
-       str = [str ' ' bch_names{i}];
+       str = {str{:},bch_names{i}};
        names{length(names)+1} = bch_names{i};
    end
 end
 
 bch_names = names;
-str = [str  ' bch_names'];
+str = {str{:},'bch_names'};
 
 % .mat saved here: here bch_mat does contain the path of the 
 % bch_mfile (because we are in the working dir).
 %-----------------------------------------------------------------------
-%eval(['save ' spm_str_manip(bch_mfile,'rp') ' ' str]);
-save(spm_str_manip(bch_mfile,'rp'),str);
+save(spm_str_manip(bch_mfile,'rp'),str{:});
 
 bch_mat = spm_str_manip(bch_mfile,'rp'); %-here contains the path
-
-
 
