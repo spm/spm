@@ -99,6 +99,8 @@ DesDefaults = [ ...
 1,	1,	0,	1,	3,	1,	1,	12345;...	%-3d
 1,	1,	0,	0,	6,	0,	0,	123	];	%-4
 
+bAskNCCs = 0;
+
 sGloNorm = str2mat(...
 	'No Global Normalisation',...
 	'Proportional scaling',...
@@ -131,8 +133,9 @@ end
 % iHForm   - Index to HForm for this design
 % bAskCov  - Ask for covariates and confounds?
 % iGloNorm - Global normalisation code, or allowable codes
-% bAskFDCs - Ask for [confounding] factor dependent covariate modelling
+% bAskFDCs - Ask for [confounding] factor dependent covariate modelling?
 %            (Seperate slope parameter for each subject/study)
+% bAskNCCs - Ask about not centering covariates?
 % sStudP   - study # prompt string (for i/o)
 % sSubjP   - subject # prompt string (for i/o)
 % nStud    - number of studies
@@ -153,7 +156,7 @@ J       = 1;		% Position of user interafce input
 
 %-Get design type
 %-----------------------------------------------------------------------
-DesType = spm_input('Select design type...',1,'m',Designs); J = J + 1;
+DesType = spm_input('Select design type...',J,'m',Designs); J = J + 1;
 DesName = deblank(Designs(DesType,:));
 for p   = 1:size(DesPrams,1)
     eval([deblank(DesPrams(p,:)),' = DesDefaults(DesType,p);']), end
@@ -167,22 +170,15 @@ if ~bBetGrp, sStud='Study'; else, sStud='Group'; end
 %-Get filenames, accrue study, subject, condition & replication indicies
 %-----------------------------------------------------------------------
 nStud     = 1;
-if bMStud
-    nStud = spm_input(['Number of ',lower(sStud),'s ?'],J); J = J + 1; end
+if bMStud, nStud = spm_input(['Number of ',lower(sStud),'s ?'],J); J=J+1; end
 J0        = J;
 for stud  = 1:nStud
 	J     = J0;
 	sStudP = []; if bMStud, sStudP = [sStud,' ',int2str(stud),': ']; end
 	nSubj = 1;
-	if bMSubj
-		nSubj = spm_input([sStudP,'# of subjects ?'],J); J = J + 1;
-	end
-
-	if bMCond
-		nCond = spm_input([sStudP,'# of conditions ? '],J); J = J + 1;
-	else
-		nCond = 1;
-	end
+	if bMSubj, nSubj = spm_input([sStudP,'# of subjects ?'],J); J=J+1; end
+	if bMCond, nCond = spm_input([sStudP,'# of conditions ? '],J); J=J+1;
+		else, nCond = 1; end
 
 	if nCond == 1 & ~bMRepl %-Single scan per subject case
 		t_str = [sStudP,'Select scans, subjects 1 - ',int2str(nSubj)];
@@ -265,7 +261,7 @@ else
 	% MatLabs pinv. See spm_DesMtx for more information on this.
 	%---------------------------------------------------------------
 	[B,Bnames] = spm_DesMtx(iSUBJ,'+0m','SUBJ');
-end % 
+end
 
 
 
@@ -294,15 +290,21 @@ if bAskCov
         d    = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),J);
         if size(d,1) == 1, d = d'; end
         if size(d,1) == q
-            if spm_input('Centre this covariate ?',J,'yes|no',[1 0]);
-                d  = d - ones(q,1)*mean(d); end
-            dnames = ['CovInt#',int2str(nCcs + 1)];
+            %-Save raw covariates for printing later on
+            Cc = [Cc,d];
+            %-Centre the covariate?
+            if bAskNCCs
+                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0]);
+            else, tmp = 1; end
+            if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
+            dnames = [str,'CovInt#',int2str(nCcs + 1)];
             if size(d,2) == 1
-                %-Single covariate entered - ask about interactions
-                Cc = [Cc,d];
+                %-Single covariate entered - ask about interactions?
                 Ccnames = str2mat(Ccnames,dnames);
                 if bAskFDCs
-                    i = spm_input(['Covariate',int2str(nCcs+1), ': specific fits'],J,'b',sCovEffInt(iCovEffInt,:),iCovEffInt);
+                    i = spm_input(['Covariate',int2str(nCcs+1),...
+                            ': specific fits'],J,'b',...
+                            sCovEffInt(iCovEffInt,:),iCovEffInt);
                     if (i==2) %-Interaction with condition
                         [d,dnames] = spm_DesMtx([iCOND',d],...
                         'FxC',str2mat('Cond',dnames));
@@ -320,7 +322,6 @@ if bAskCov
                 %-Block of covariates entered - add to design matrix
                 for i = nCcs+1:nCcs+size(d,1)
                     dnames = str2mat(dnames,['CovInt#',int2str(i)]); end
-                Cc = [Cc,d];
                 Ccnames = str2mat(Ccnames,dnames);
                 C = [C, d];
                 Cnames = str2mat(Cnames,dnames);
@@ -347,15 +348,21 @@ if bAskCov
         d = spm_input(sprintf('[%d] - Covariate %d',[q,nGcs + 1]),J);
         if (size(d,1) == 1), d = d'; end
         if size(d,1) == q
-            if spm_input('Centre this covariate ?',J,'yes|no',[1 0]);
-                d  = d - ones(q,1)*mean(d); end
-            dnames = ['ConfCov#',int2str(nGcs+1)];
+            %-Save raw covariates for printing later on
+            Gc = [Gc,d];
+            %-Centre the covariate?
+            if bAskNCCs
+                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0]);
+            else, tmp = 1; end
+            if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
+            dnames = [str,'ConfCov#',int2str(nGcs+1)];
             if size(d,2) == 1
                 %-Single covariate entered - ask about interactions
-                Gc = [Gc,d];
                 Gcnames = str2mat(Gcnames,dnames);
                 if bAskFDCs
-                    i = spm_input(['Confound',int2str(nGcs + 1) ': specific fits'],J,'b',sCovEffInt(iCovEffInt,:),iCovEffInt);
+                    i = spm_input(['Confound',int2str(nGcs + 1),...
+                            ': specific fits'],J,'b',...
+                            sCovEffInt(iCovEffInt,:),iCovEffInt);
                      if (i==2) %-Interaction with study      
                          [d,dnames] = spm_DesMtx([iStud',d],...
                          'FxC',str2mat('Stud',dnames));
@@ -368,7 +375,6 @@ if bAskCov
                 %-Block of covariates entered - add to design matrix
                 for i = nGcs+1:nGcs+size(d,1)
                      dnames = str2mat(dnames,['ConfCov#',int2str(i)]); end
-                Gc = [Gc,d];
                 Gcnames = str2mat(Gcnames,dnames);
             end % (if)
             G = [G, d];
@@ -559,7 +565,7 @@ if bMSubj, text(+0.00,0.85,'Subject',    'Rotation',90); end
 if bMCond, text(+0.05,0.85,'Condition',  'Rotation',90); end
 if bMRepl, text(+0.10,0.85,'Replication','Rotation',90); end
 x0    = 0.15; y0 = 0.83;
-dx    = 0.15; dy = 0.02;
+dx    = 0.10; dy = 0.02;
 x     = x0;
 for i = 1:size(Cc,2)
 	text(x + 0.02,0.85,Ccnames(i,:),'Rotation',90);
@@ -603,6 +609,10 @@ if (GM~=0)
 end
 text(0,y,sprintf(...
     'Gray matter threshold is %6.0f%% of the whole brain mean',THRESH*100))
+y = y - dy;
+tmp = [str2mat(' ',Cnames,Gnames)];
+if any(tmp(:,1)=='r'), str=' (except those tagged ''r'')'; else str=''; end
+text(0,y,['Covariates',str,' are centered before inclusion in design matrix'])
 
 spm_print
 
