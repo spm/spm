@@ -635,6 +635,9 @@ function dim = read_AcquisitionMatrixText(hdr)
 str = hdr.CSAImageHeaderInfo;
 val = get_numaris4_val(str,'AcquisitionMatrixText');
 dim = sscanf(val','%d*%d')';
+if length(dim)==1,
+	dim = sscanf(val','%dp*%d')';
+end;
 if isempty(dim), dim=[]; end;
 return;
 %_______________________________________________________________________
