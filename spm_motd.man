@@ -2,7 +2,6 @@
 % Welcome to SPM2
 %_______________________________________________________________________
 %
-% This is SPM2, the beta release of SPM2 - released 01/07/2002
 % Please refer to this version as "SPM2" in papers and communications.
 %
 %                           ----------------
@@ -24,17 +23,17 @@
 %                           ----------------
 %
 % SPM is developed under the auspices of Functional Imaging Laboratory
-% (FIL) The Wellcome Department of Imaging neuroscience, in the Institute
+% (FIL) The Wellcome Department of Imaging Neuroscience, in the Institute
 % of Neurology at University College London (UCL), UK.
 %
-% SPM2 was primarily developed by: Jesper Andersson (KS), John Ashburner
-% (FIL), Karl Friston (FIL), Andrew Holmes (FIL), Jean-Baptiste Poline
-% (CEA/DRM/SHFJ, Orsay, France); with contributions from Matthew Brett
-% (MRC-CBU, Cambridge, England) Stephanie Rouquette (CEA/DRM/SHFJ,
-% Orsay, France); Tom Nichols (Dept. Biostatistics, University of Michigan,
-% MI, USA); Darren Gitelman (Northwestern University, IL,USA); and
-% theoretical input from Keith Worsley (Department of Statistics, McGill 
-% University, Montreal, Canada). (See spm.man for further details.)
+% SPM2 was primarily developed by: Jesper Andersson (KS, Stockholm),
+% John Ashburner (FIL), Karl Friston (FIL), Andrew Holmes (FIL),
+% Jean-Baptiste Poline (CEA/DRM/SHFJ, Orsay, France); with contributions
+% from Matthew Brett (MRC-CBU, Cambridge, England) Stephanie Rouquette
+% (CEA/DRM/SHFJ, Orsay, France); Tom Nichols (Dept. Biostatistics,
+% University of Michigan, MI, USA); Darren Gitelman (Northwestern
+% University, IL,USA); and theoretical input from Keith Worsley
+% (Department of Statistics, McGill University, Montreal, Canada).
 %
 %                           ----------------
 %
@@ -45,4 +44,4 @@
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
-% (c) 1991,1994-2002                                        spm_motd.man
+% %W% %E%
