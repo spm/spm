@@ -33,6 +33,7 @@
 % object handles required by CallBack strings and the spm_*.m routines
 % that are invoked have to be in working memory
 
+WS = spm('GetWinScale');
 % Get directory, data, contrast and thresholds
 %---------------------------------------------------------------------------
 tmp  = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
@@ -220,10 +221,10 @@ set(gca,'Units','normalized')
 
 % frames and text
 %---------------------------------------------------------------------------
-uicontrol(3,'Style','Frame','Position',[20 500 100 256]);
-uicontrol(3,'Style','Text', 'Position',[30 720 16 16],'String','x');
-uicontrol(3,'Style','Text', 'Position',[30 700 16 16],'String','y');
-uicontrol(3,'Style','Text', 'Position',[30 680 16 16],'String','z');
+uicontrol(3,'Style','Frame','Position',[20 500 100 256].*WS);
+uicontrol(3,'Style','Text', 'Position',[30 720 16 16].*WS,'String','x');
+uicontrol(3,'Style','Text', 'Position',[30 700 16 16].*WS,'String','y');
+uicontrol(3,'Style','Text', 'Position',[30 680 16 16].*WS,'String','z');
 
 
 % objects with callbacks that adjust the position of the dot
@@ -233,11 +234,11 @@ set(X2,'ButtonDownFcn',['set(3,''WindowButtonUpFcn'',C2)']);
 set(X3,'ButtonDownFcn',['set(3,''WindowButtonUpFcn'',C3)']);
 
 h1   = uicontrol(3,'Style','edit','String','1','Callback',c,...
-         'Position',[60 720 40 16]);
+         'Position',[60 720 40 16].*WS);
 h2   = uicontrol(3,'Style','edit','String','1','Callback',c,...
-         'Position',[60 700 40 16]);
+         'Position',[60 700 40 16].*WS);
 h3   = uicontrol(3,'Style','edit','String','1','Callback',c,...
-         'Position',[60 680 40 16]);
+         'Position',[60 680 40 16].*WS);
 
 
 % objects with calls to spm_*.m routines
@@ -246,17 +247,17 @@ c    = ['L = [eval(get(h1,''String'')) eval(get(h2,''String'')) ',...
 	 'eval(get(h3,''String''))];'];
 
 uicontrol(3,'Style','Pushbutton','String','table',   'Callback',...
-	[c 'spm_table'   ],  'Position',[40 640 60 20],'Interruptible','yes');
+	[c 'spm_table'   ],  'Position',[40 640 60 20].*WS,'Interruptible','yes');
 uicontrol(3,'Style','Pushbutton','String','plot',    'Callback',...
-	[c 'spm_plot'],      'Position',[40 610 60 20],'Interruptible','yes');
+	[c 'spm_plot'],      'Position',[40 610 60 20].*WS,'Interruptible','yes');
 uicontrol(3,'Style','Pushbutton','String','slices','Callback',...
-	[c 'spm_transverse'],'Position',[40 580 60 20],'Interruptible','yes');
+	[c 'spm_transverse'],'Position',[40 580 60 20].*WS,'Interruptible','yes');
 uicontrol(3,'Style','Pushbutton','String','maxima','Callback',...
-	[c 'spm_maxima'],    'Position',[40 520 60 20],'Interruptible','yes');
+	[c 'spm_maxima'],    'Position',[40 520 60 20].*WS,'Interruptible','yes');
 
 if V(3) > 1
 	uicontrol(3,'Style','Pushbutton','String','sections',  'Callback',...
-	[c 'spm_sections'],  'Position',[40 550 60 20],'Interruptible','yes');
+	[c 'spm_sections'],  'Position',[40 550 60 20].*WS,'Interruptible','yes');
 end
 
 
