@@ -457,7 +457,8 @@ if ~isempty(fg),
 	ax=axes('Position',[0.1 0.35 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
 	plot(Params(:,1:3),'Parent',ax)
 	s = ['x translation';'y translation';'z translation'];
-	text([2 2 2], Params(2, 1:3), s, 'Fontsize',10,'Parent',ax)
+	%text([2 2 2], Params(2, 1:3), s, 'Fontsize',10,'Parent',ax)
+	legend(ax, s, 0)
 	set(get(ax,'Title'),'String','translation','FontSize',16,'FontWeight','Bold');
 	set(get(ax,'Xlabel'),'String','image');
 	set(get(ax,'Ylabel'),'String','mm');
@@ -466,7 +467,8 @@ if ~isempty(fg),
 	ax=axes('Position',[0.1 0.05 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
 	plot(Params(:,4:6)*180/pi,'Parent',ax)
 	s = ['pitch';'roll ';'yaw  '];
-	text([2 2 2], Params(2, 4:6)*180/pi, s, 'Fontsize',10,'Parent',ax)
+	%text([2 2 2], Params(2, 4:6)*180/pi, s, 'Fontsize',10,'Parent',ax)
+	legend(ax, s, 0)
 	set(get(ax,'Title'),'String','rotation','FontSize',16,'FontWeight','Bold');
 	set(get(ax,'Xlabel'),'String','image');
 	set(get(ax,'Ylabel'),'String','degrees');
