@@ -192,7 +192,7 @@ if strcmp(op,'reorient'),
 		spm_progress_bar('Set',i);
 	end;
 	spm_progress_bar('Clear');
-	tmp = spm_get_space(st.vols{1}.fname);
+	tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
 	if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
 		spm_image('init',st.vols{1}.fname);
 	end;
@@ -222,7 +222,7 @@ if strcmp(op,'resetorient'),
 		spm_progress_bar('Set',i);
 	end;
 	spm_progress_bar('Clear');
-	tmp = spm_get_space(st.vols{1}.fname);
+	tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
 	if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
 		spm_image('init',st.vols{1}.fname);
 	end;

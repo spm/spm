@@ -22,6 +22,7 @@ defaults.grid     = 0.4;
 defaults.cmdline  = 0;
 defaults.logfile  = '';
 defaults.printstr =  [spm_figure('DefPrintCmd'),'spm2.ps'];
+defaults.multivol = 0;
 
 % Stats defaults
 %=======================================================================

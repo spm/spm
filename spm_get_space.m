@@ -40,7 +40,7 @@ if nargin == 1,
 	if exist(mfname) == 2,
 		clear M
 		str = load(mfname);
-		if isfield(str,'mat') & n<=size(str.mat,3),
+		if isfield(str,'mat') & n<=size(str.mat,3) & any(any(str.mat(:,:,n))),
 			M = str.mat(:,:,n);
 			return;
 		elseif isfield(str,'M'),
@@ -87,7 +87,8 @@ if nargin == 1,
 		end;
 	end;
 elseif nargin == 2,
-	v = spm_vol(sprintf('%s,%d', imagename, n));
+	%v = spm_vol(sprintf('%s,%d', imagename, n));
+	v = spm_vol(imagename);
 	if sum((mat(:) - v.mat(:)).*(mat(:) - v.mat(:))) > eps*eps*12,
 		% only do something if matrices are not identical
 		if exist(mfname)==2,

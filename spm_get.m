@@ -6,7 +6,7 @@ function varargout = spm_get(varargin)
 %            - scalar n => [n,n], i.e. must select n items
 %            - all(n) positive  : prompts for files
 %            - any(n) negative  : prompts for directories
-% Filter     - Filename filter {'*' is prepended} 
+% Filter     - Filename filter {'*' is prepended}
 %            - numeric 0 for previous filtering
 % Prompt     - Prompt string
 % NewWDir    - New working directory
@@ -84,6 +84,11 @@ function varargout = spm_get(varargin)
 % displayed, in summary view if there are sufficient files. Clicking
 % the outline of the filter editable widget resets the filter string to
 % the original filter string passed by the calling program.
+%
+% Filter can also be a cell array of the form {'*.img', 'noexpand'}.
+% When it is a cell array, the first element is taken as the filter
+% to use, and subsequent elements are passed as the third argument to
+% spm_list_files_expand.m.
 %
 % Selecting Directories
 % ---------------------
@@ -284,6 +289,10 @@ function varargout = spm_get(varargin)
 %_______________________________________________________________________
 % Andrew Holmes (X-platform stuff with Matthew Brett)
 
+% Options to pass to spm_list_files_expand
+%=======================================================================
+persistent ListOpts
+if isempty(ListOpts), ListOpts = {''}; end;
 
 %-Parameters
 %=======================================================================
@@ -301,7 +310,19 @@ if nargin<5 CmdLine=[]; else CmdLine=varargin{5}; end
 CmdLine = spm('CmdLine',CmdLine);
 if nargin<4 NewWDir=''; else NewWDir=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
-if nargin<2 | isempty(varargin{2}), Filter=0; else Filter=varargin{2}; end
+if nargin<2 | isempty(varargin{2}),
+	Filter=0;
+else
+	Filter   = varargin{2};
+	ListOpts = {''};
+	if any(Action(:)<0),
+		ListOpts = {'noexpand'};
+	end;
+	if iscell(Filter),
+		ListOpts = Filter(2:end);
+		Filter   = Filter{1};
+	end;
+end
 
 %-Parse number of items parameter (Passed as "Action" parameter)
 %-----------------------------------------------------------------------
@@ -393,11 +414,14 @@ switch lower(Action), case 'createfig'
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<3 Filter=[]; else Filter=varargin{3}; end
+if nargin<3 Filter=[];
+else
+	Filter=varargin{3};
+end
 if nargin<2 | isempty(varargin{2}), LastDirs=pwd; else LastDirs=varargin{2}; end
 LastDirs=strvcat(LastDirs,getenv('HOME'));
 if (exist('spm.m')==2), LastDirs=strvcat(LastDirs,spm('Dir')); end
-	
+
 %-Save current figure
 cF = get(0,'CurrentFigure');
 
@@ -674,11 +698,14 @@ case 'initialise'
 % (Re)Initialise SelFileWin, create one if necessary.
 
 if nargin<6 WDir=''; else WDir=varargin{6}; end
-if nargin<5 Filter=0; else Filter=varargin{5}; end
+if nargin<5
+	Filter=0;
+else
+	Filter=varargin{5};
+end
 if nargin<4 Prompt='Select files...'; else Prompt=varargin{4}; end
 if nargin<3 n=struct('fi',1,'mn',0,'mx',Inf); else n=varargin{3}; end
 if nargin<2 Vis='on'; else Vis=varargin{2}; end
-
 
 %-Recover SelFileWin figure number
 F  = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
@@ -881,7 +908,11 @@ delete(get(F,'CurrentAxes')), drawnow
 %-Condition parameters and setup variables
 %-----------------------------------------------------------------------
 if nargin<4, NoComp=0; else, NoComp=1; end
-if nargin<3, Filter=''; else, Filter=varargin{3}; end
+if nargin<3,
+	Filter='';
+else,
+	Filter=varargin{3};
+end
 if nargin<2 | isempty(varargin{2})
 	WDir = get(findobj(F,'Tag','WDir'),'UserData');
 else
@@ -920,7 +951,7 @@ set(hAxes,'Ylim',[0,y0])
 
 %-List current directory
 %-----------------------------------------------------------------------
-[Files,Dirs] = spm_list_files(WDir,Filter);
+[Files,Dirs] = spm_list_files_expand(WDir,Filter,ListOpts);
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'Parent',hAxes,'FontWeight','bold','Color','r');
@@ -1091,7 +1122,11 @@ case 'filesummary'
 %=======================================================================
 % [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
 if nargin<5, len = 3; else len = varargin{5}; end
-if nargin<4 | isempty(varargin{4}), Filter = '*'; else Filter = varargin{4}; end
+if nargin<4 | isempty(varargin{4}),
+	Filter = '*';
+else
+	Filter = varargin{4};
+end
 if nargin<3, Cend='both'; else, Cend = varargin{3}; end
 if nargin<2 | isempty(varargin{2}), error('Specify Fnames to summarise')
 else Fnames = varargin{2}; end
@@ -1707,10 +1742,14 @@ varargout = ...
 case 'files'
 %=======================================================================
 % FORMAT [P,dir] = spm_get('Files',dir,fil)
-if nargin<3, fil='*'; else, fil = varargin{3}; end
+if nargin<3,
+	fil='*';
+else,
+	fil = varargin{3};
+end
 if nargin<2, dir='.'; else, dir = varargin{2}; end
 dir = spm_get('CPath',dir);
-[P,null] = spm_list_files(dir,fil);
+[P,null] = spm_list_files_expand(dir,fil,ListOpts);
 
 %-Make into full pathnames if nargout<2
 if ~isempty(P) & nargout<2

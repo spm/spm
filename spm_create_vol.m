@@ -125,7 +125,7 @@ if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 		end;
 	end;
 	V.pinfo(1:2)    = [scal dcoff]';
-	hdr.dime.dim(5) = max(hdr.dime.dim(5),V.hdr.dime.dim(5));
+	hdr.dime.dim(5) = max(hdr.dime.dim(5),V.private.hdr.dime.dim(5));
 	V.private.hdr   = hdr;
 end;
 

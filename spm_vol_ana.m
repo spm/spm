@@ -76,10 +76,8 @@ else,
 	if exist(mfname)==2,
 		t   = load(mfname);
 		if isfield(t,'mat'),
-			if size(t.mat,3)>1,
-				mat = t.mat(:,:,i);
-			else,
-				mat = t.mat;
+			if size(t.mat,3)>=n  & any(any(t.mat(:,:,n))),
+				mat = t.mat(:,:,n);
 			end;
 		elseif isfield(t,'M'),
 			mat = t.M;
@@ -106,7 +104,7 @@ end;
 if hdr.dime.funused1,
 	scal  = hdr.dime.funused1;
 	dcoff = 0;
-else
+else,
 	if hdr.dime.glmax-hdr.dime.glmin & hdr.dime.cal_max-hdr.dime.cal_min,
 		scal  = (hdr.dime.cal_max-hdr.dime.cal_min)/(hdr.dime.glmax-hdr.dime.glmin);
 		dcoff = hdr.dime.cal_min - scal*hdr.dime.glmin;

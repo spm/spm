@@ -135,15 +135,18 @@ mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
 matname = [spm_str_manip(fname,'sd') '.mat'];
 if exist(matname) == 2,
 	str=load(matname);
-	if isfield(str,'M'),
-		mat = str.M;
+	if isfield(str,'mat'),
+		if size(str.mat,3)>=n  & any(any(str.mat(:,:,n))),
+			mat = str.mat(:,:,n);
+		end;
 	elseif isfield(str,'M'),
-		mat = str.mat;
+		mat = str.M;
 	end;
 end;
 
 private = struct('cdf',cdf);
-V       = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'descrip','MINC file','private',private);
+V       = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'n',1,...
+		'descrip','MINC file','private',private);
 return;
 %_______________________________________________________________________
 

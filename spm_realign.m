@@ -123,7 +123,7 @@ if nargout==0,
 	%---------------------------------------------------------------------------
 	for s=1:prod(size(P)),
 		for i=1:prod(size(P{s})),
-			spm_get_space(P{s}(i).fname, P{s}(i).mat);
+			spm_get_space([P{s}(i).fname ',' num2str(P{s}(i).n)], P{s}(i).mat);
 		end;
 	end;
 end;

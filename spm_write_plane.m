@@ -54,13 +54,19 @@ if ~isfield(V,'private') | ~isfield(V.private,'fid') | isempty(V.private.fid),
 	[pth,nam,ext] = fileparts(V.fname);
 	fname         = fullfile(pth,[nam, '.img']);
 	fid           = fopen(fname,'r+',mach);
-	if (fid == -1),
+	if fid == -1,
 		fid   = fopen(fname,'w',mach);
-		if (fid == -1),
+		if fid == -1,
 			error(['Error opening ' fname '. Check that you have write permission.']);
 		end;
 	end;
 else,
+	if isempty(fopen(V.private.fid)),
+		V.private.fid = fopen(fname,'r+',mach);
+		if V.private.fid == -1,
+			error(['Error opening ' fname '. Check that you have write permission.']);
+		end;
+	end;
 	fid = V.private.fid;
 end;
 
