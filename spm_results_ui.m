@@ -47,13 +47,14 @@ function varargout = spm_results_ui(varargin)
 % voxel level utilities:
 %
 % Volume level:
-%	  (i) List - tabulates p values and statistics
-%						- see spm_list.m
-%	 (ii) 
-%	(iii) Write - write out thresholded SPM
-%                                    		- see spm_write_filtered.m
-%	 (iv) 
-%	  (v) Multiplanar - Launches a MultiPlanar lightbox viewing window
+%         (i) List - tabulates p values and statistics
+%                                               - see spm_list.m
+%        (ii) 
+%       (iii) Write - write out thresholded SPM
+%                                               - see spm_write_filtered.m
+%        (iv) Render - render on a (previously extracted) cortical surface
+%                                               - see spm_render.m
+%         (v) Multiplanar - Launches a MultiPlanar lightbox viewing window
 %                                               - see spm_????.m
 %
 % Cluster level:
@@ -62,35 +63,35 @@ function varargout = spm_results_ui(varargin)
 %             The table lists all local maxima, their locations, statistic
 %             values and p-values. (Note that the cursor is repositioned to the
 %             nearest local maxima by this option.)
-%                                  		- see spm_maxima.m
+%                                               - see spm_maxima.m
 %
-%	 (ii) Small Volume Correction (S.V.C) computes a p value corrected
+%        (ii) Small Volume Correction (S.V.C) computes a p value corrected
 %             for a small specified volume of interest for, and centred on,
 %             the current voxel.
-%                                 		- see spm_VOI.m
-%	(iii) 
-%	 (iv) 
-%	  (v)
+%                                               - see spm_VOI.m
+%       (iii) 
+%        (iv) 
+%         (v)
 %
 % Voxel level:
 %         (i) Plot - Graphs of adjusted and fitted activity against various
 %             ordinates. (Note that the cursor is repositioned to the nearest
 %             voxel with data by this option.) Additionally, writes out 
 %             adjusted data to the MatLab command window.
-%                                 		- see spm_graph.m
+%                                               - see spm_graph.m
 %
-%	 (ii) Slices - slices of the thresholded statistic image overlaid
+%        (ii) Slices - slices of the thresholded statistic image overlaid
 %             on a secondary image chosen by the user. Three transverse
 %             slices are shown, being those at the level of the cursor
 %             in the z-axis and the two adjacent to it.
-%                                 		- see spm_transverse.m
+%                                               - see spm_transverse.m
 %
-%	(iii) Sections - orthogonal sections of the thresholded statistic image
+%       (iii) Sections - orthogonal sections of the thresholded statistic image
 %             overlaid on a secondary image chosen by the user. The sections
 %             are through the cursor position.
-%                                    		- see spm_sections.m
-%	 (iv) 
-%	  (v) 
+%                                               - see spm_sections.m
+%        (iv) 
+%         (v) 
 %
 % Graphics appear in the bottom half of the graphics window, additional
 % controls and questions appearing in the interactive window.
@@ -141,7 +142,7 @@ SCCSid = '%I%';
 % hReg    - handle of XYZ registry object
 %
 % FORMAT [hFvolB,hFclusB,hFvoxB] = ...
-%	spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
+%       spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS)
 % Draw GUI buttons
 % hReg    - handle of XYZ registry object
 % DIM     - 3 vector of image X, Y & Z dimensions
@@ -442,10 +443,15 @@ uicontrol(Finter,'Style','PushButton','String','write','FontSize',FS(10),...
 			'SPM.STAT,SPM.u,SPM.k));'],...
 	'Interruptible','on','Enable','on',...
 	'Position',[165 135 070 020].*WS)
-uicontrol(Finter,'Style','PushButton','String','','FontSize',FS(10),...
-	'ToolTipString','',...
-	'Callback','',...
-	'Interruptible','on','Enable','off',...
+uicontrol(Finter,'Style','PushButton','String','Render','FontSize',FS(10),...
+	'ToolTipString',...
+	'Render activations on previously extracted cortical surface',...
+	'Callback',[...
+		'spm_render(	struct(	 ''XYZ'',SPM.XYZ,',...
+					'''t'',  SPM.Z'',',...
+					'''mat'',VOL.M,',...
+					'''dim'',VOL.DIM))'],...
+	'Interruptible','on','Enable','on',...
 	'Position',[240 135 070 020].*WS)
 uicontrol(Finter,'Style','PushButton','String','multiplane','FontSize',FS(10),...
 	'ToolTipString','Launch MultiPlanar viewing toolbox',...
