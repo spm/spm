@@ -319,6 +319,10 @@
 %
 % The toolbar in the Graphics window has been improved.
 %
+% An SPM version chooser function, spm_choose, is included to allow
+% users to choose which SPM version to use without recourse to manually
+% editing their MATLABPATH.
+%
 % _____________________________________________________
 % 
 % New features - vii - Help
