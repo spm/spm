@@ -3,7 +3,7 @@
 #ifndef SYS_DEP
 #define SYS_DEP
 #ifdef SPM_WIN32
-#define rint(x) floor((x)+0.5)  /* round to nearest int */
+/* #define rint(x) floor((x)+0.5) */ /* round to nearest int */
 #define finite(x) mxIsFinite(x) /* finite */
 #define SEPCHAR      '\\'          /* directory separator */
 #include <process.h>
