@@ -152,7 +152,7 @@ global SPM_PLATFORM
 %-Platform definitions
 %-----------------------------------------------------------------------
 PDefs = {	'PCWIN',	'win',	0;...
-		'MAC2',		'mac',	1;...
+		'MAC',		'unx',	1;...
 		'SUN4',		'unx',	1;...
 		'SOL2',		'unx',	1;...
 		'HP700',	'unx',	1;...
@@ -206,10 +206,6 @@ case 'win'
 	SPM_PLATFORM.user    = getenv('USERNAME');
 	if isempty(SPM_PLATFORM.user)
 		SPM_PLATFORM.user = spm_win32utils('username'); end
-case 'mac'
-	SPM_PLATFORM.sepchar = ':';
-	SPM_PLATFORM.rootlen = 1;			%-** Not sure!?
-	SPM_PLATFORM.user    = '';			%-** Dunno!
 otherwise
 	error(['Don''t know filesystem ',SPM_PLATFORM.filesys])
 end
@@ -222,7 +218,7 @@ case {'SOL2'}	%-Some Sol2 platforms give segmentation violations with Helvetica
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';
 	SPM_PLATFORM.font.symbol    = 'Symbol';
-case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86'}
+case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','MAC'}
 	SPM_PLATFORM.font.helvetica = 'Helvetica';
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';
