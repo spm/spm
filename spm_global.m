@@ -1,9 +1,9 @@
-function [G] = spm_global(V)
+function GX = spm_global(V)
 % returns the global mean for a memory mapped volume image
-% FORMAT [G] = spm_global(V)
+% FORMAT GX = spm_global(V)
 % V   - memory mapped volume
-% G   - mean global activity
-%____________________________________________________________________________
+% GX  - mean global activity
+%_______________________________________________________________________
 %
 % spm_global returns the mean counts integrated over all the  
 % slices from the volume
@@ -11,7 +11,5 @@ function [G] = spm_global(V)
 % The mean is estimated after discounting voxels outside the object
 % using a criteria of greater than > (global mean)/8
 %
-% see also spm_box.m
-%
-%__________________________________________________________________________
-% %W% %E%
+%_______________________________________________________________________
+% %W% Anon %E%
