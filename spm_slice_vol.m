@@ -1,4 +1,4 @@
-
+function varargout = spm_slice_vol(varargin)
 % returns a slice through a memory mapped image - a compiled routine
 % FORMAT X = spm_slice_vol(V,A,dim,hold);
 % V      -  is a memory mapped image volume
@@ -13,13 +13,16 @@
 %                      different holds (second-order upwards).
 %          -127 - -1   Different orders of sinc interpolation.
 % X      -  output image
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
-% spm_slice_vol returns a section through a memory mapped image
-% volume on disk.  This section is the transverse slice at z = 0 after
-% linear transformation according to matrix A
+% spm_slice_vol returns a section through a memory mapped image volume
+% on disk.  This section is the transverse slice at z = 0 after linear
+% transformation according to matrix A
 %
 % see also spm_sample_vol.m
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% John Ashburner %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_slice_vol.c not compiled - see spm_MAKE.sh')

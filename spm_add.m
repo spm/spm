@@ -1,4 +1,4 @@
-
+function varargout = spm_add(varargin)
 % add a series of images - a compiled routine
 % FORMAT s = spm_add(VI,VO)
 % VI    - Vector of mapped volumes (from spm_map or spm_vol).
@@ -18,3 +18,6 @@
 % using different weightings for image scalefactors.
 %_______________________________________________________________________
 % %W% John Ashburner (from JB's original spm_mean.c) %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_add.c not compiled - see spm_MAKE.sh')

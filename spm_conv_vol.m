@@ -1,4 +1,4 @@
-
+function varargout = spm_conv_vol(varargin)
 % Convolves a mapped volume with a three dimensional separable function
 % FORMAT spm_conv_vol(V,Q,fx,fy,fz,offsets)
 % V        -  the input volume
@@ -32,3 +32,6 @@
 %
 %_______________________________________________________________________
 % %W% John Ashburner, Tom Nichols %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_conv_vol.c not compiled - see spm_MAKE.sh')

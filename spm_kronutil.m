@@ -1,4 +1,5 @@
-% A mex routine for doing things with Kronecker Tensor Products
+function varargout = spm_kronutil(varargin)
+% doing things with Kronecker Tensor Products - a compiled routine
 % FORMAT [alpha,beta]=spm_kronutil(img1,img2,b1,b2)
 %
 % Performs:
@@ -25,3 +26,6 @@
 % 	beta  = A'*b;
 %_______________________________________________________________________
 % %W% John Ashburner %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_kronutil.c not compiled - see spm_MAKE.sh')

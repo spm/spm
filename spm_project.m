@@ -1,4 +1,4 @@
-
+function varargout = spm_project(varargin)
 % forms maximium intensity projections - a compiled routine
 % FORMAT spm_project(X,L,dims)
 % X	-	a matrix of voxel values
@@ -6,7 +6,7 @@
 % dims  -       assorted dimensions.
 %               dims(1:3) - the sizes of the projected rectangles.
 %               dims(4:5) - the dimensions of the mip image.
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_project 'fills in' a matrix (SPM) in the workspace to create
 % a maximum intensity projection according to a point list of voxel
@@ -15,5 +15,8 @@
 %
 % see also spm_mip.m
 %
-%__________________________________________________________________________
-% %W% %E%
+%_______________________________________________________________________
+% %W% FIL %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_project.c not compiled - see spm_MAKE.sh')

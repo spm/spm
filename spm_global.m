@@ -1,5 +1,5 @@
 function GX = spm_global(V)
-% returns the global mean for a memory mapped volume image
+% returns the global mean for a memory mapped volume image - a compiled routine
 % FORMAT GX = spm_global(V)
 % V   - memory mapped volume
 % GX  - mean global activity
@@ -13,3 +13,6 @@ function GX = spm_global(V)
 %
 %_______________________________________________________________________
 % %W% Anon %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_global.c not compiled - see spm_MAKE.sh')

@@ -1,14 +1,15 @@
-
-% compiled routine that lists files and directories
+function varargout = spm_list_files(varargin)
+% Compiled routine that lists files and directories
 % FORMAT [Files,Dirs] = spm_list_files(Dir,Filter)
 % Dir    - directory to list
 % Filter - e.g. '*.img'
-%
 % Files  - filenames
 % Dirs   - directories
-%___________________________________________________________________________
+%_______________________________________________________________________
 %
-% see also: spm_get.m
-%
-%__________________________________________________________________________
+% See also: spm_get.m
+%_______________________________________________________________________
 % %W% John Ashburner %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_list_files.c not compiled - see spm_MAKE.sh')

@@ -1,4 +1,4 @@
-
+function varargout = spm_sample_vol(varargin)
 % returns voxel values from a memory mapped image - a compiled routine
 % FORMAT X = spm_sample_vol(V,x,y,z,hold);
 % V      -  is a memory mapped image volume
@@ -16,13 +16,17 @@
 % OR     [X,dX,dY,dZ] = spm_sample_vol(V,x,y,z,hold);
 % Similar to above, except that the derivatives in the three orthogonal
 % directions are also returned.
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
-% spm_sample_vol will return the voxel values from a memory mapped volume
-% indicated by V at coordinates x,y,z.  Values from coordinates outside the
-% image are set to zero. x, y and z must be matrices of the same dimensions
+% spm_sample_vol will return the voxel values from a memory mapped
+% volume indicated by V at coordinates x,y,z.  Values from coordinates
+% outside the image are set to zero. x, y and z must be matrices of the
+% same dimensions
 %
 % see also spm_slice_vol.m
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% John Ashburner %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_sample_vol.c not compiled - see spm_MAKE.sh')

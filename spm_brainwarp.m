@@ -1,5 +1,5 @@
-
-% Part of nonlinear spatial normalisation
+function varargout = spm_brainwarp(varargin)
+% Part of nonlinear spatial normalisation - a compiled routine
 %_______________________________________________________________________
 % [Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,...
 %                                   dbasX,dbasY,dbasZ,T,fwhm,VW,VW2)
@@ -66,3 +66,6 @@
 % The vector b contains [diag(w)*(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
 %_______________________________________________________________________
 % %W% (c) John Ashburner MRCCU/FIL %E%
+
+%-This is merely the help file for the compiled routine
+error('spm_brainwarp.c not compiled - see spm_MAKE.sh')
