@@ -106,7 +106,8 @@ if isstruct(Vs)
     end
   end
   Ts(isnan(Ts)) = [];
-  Ts = flipud(sort(Ts(:)));
+  Ts = sort(Ts(:));
+  if STAT ~= 'P', Ts = flipud(Ts); end
 end
 
 
