@@ -135,7 +135,10 @@ if any(mode==[3 5 6 7]),
 	% complains otherwise...
 	eval('[faces,vertices] = isosurface(br,0.5);');
 
-	vertices = (VG.mat(1:3,:)*[vertices' ; ones(1,size(vertices,1))])';
+	% Swap around x and y because isosurface does for some
+	% wierd and wonderful reason.
+	Mat = VG.mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
+	vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
 	save(matname,'faces','vertices');
 end;
 
