@@ -21,26 +21,27 @@ if nargin < 4, TOL = 1e-6; end
 %---------------------------------------------------------------------------
 X     = spm_svd(X);
 
-% find independent partitions (encoded in d)
+% find independent partitions (encoded in W)
 %---------------------------------------------------------------------------
 m     = length(Q);
-d     = sparse(m,m);
+n     = length(Cy);
+d     = zeros(m,m);
 for i = 1:m
-	XQX{i} = X'*Q{i}*X;
+	RQ{i} = Q{i} - X*(X'*Q{i});
 end
 for i = 1:m
 for j = i:m
-	k      = (nnz(XQX{i}*XQX{j}));
-	d(i,j) = k;
-	d(j,i) = k;
+	q      = trace(RQ{i}*RQ{j});
+	d(i,j) = q;
+	d(j,i) = q;
 end
 end
 
 % recursive calling for (p) seperable partitions 
 %---------------------------------------------------------------------------
-u     = spm_svd(d^length(d) > 0);
+u     = spm_blk_diag(d);
 h     = zeros(m,1);
-n     = length(Cy);
+W     = zeros(m,m); 
 Ce    = sparse(n,n); 
 p     = size(u,2);
 if p > 1
@@ -51,7 +52,7 @@ if p > 1
 	%-------------------------------------------------------------------
 	for i = 1:p
 
-		fprintf('%-30s: %i %30s\n','  ReML Partition',i,'...');
+		fprintf('%-30s- %i\n','  ReML Partition',i);
 
 		% find subset of bases (indexed by j) and partitions (by q)
 		%-----------------------------------------------------------
@@ -69,9 +70,11 @@ if p > 1
 
 		% ReML
 		%-----------------------------------------------------------
-		[Cep,hp] = spm_reml(Cy(q,q),X(q,:),C);
-		Ce(q,q)  = Ce(q,q) + Cep;
-		h(j)     = hp;
+		[Cep,hp,Wp] = spm_reml(Cy(q,q),X(q,:),C,1e-16);
+		Ce(q,q)     = Ce(q,q) + Cep;
+		h(j)        = hp;
+		W(j,j)      = Wp;
+		
 	end
 
 	return
@@ -80,16 +83,16 @@ end
 % If one partition proceed to ReML
 %===========================================================================
 
-% initialize hyperparamters (h)
+% initialize hyperparameters
 %---------------------------------------------------------------------------
 for i = 1:m
-	h(i)   = any(diag(Q{i}));
+	h(i) = any(diag(Q{i}));
 end
+h     = d*pinv(d)*h;
 
 % Iterative EM
 %---------------------------------------------------------------------------
 dFdh  = zeros(m,1);
-W     = zeros(m,m);
 for k = 1:32
 
 	% Q are variance components		
@@ -125,20 +128,19 @@ for k = 1:32
 	%-------------------------------------------------------------------
 	for i = 1:m
 		for j = i:m
-		if d(i,j)
+		   if d(i,j)
 
 			% ddF/dhh = -trace{P*Q{i}*P*Q{j}}
 			%---------------------------------------------------
 			ddFdhh = sum(sum(PQ{i}.*PQ{j}'))/2;
 			W(i,j) = ddFdhh;
 			W(j,i) = ddFdhh;
-		end
+		    end
 		end
 	end
 
 	% Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
 	%-------------------------------------------------------------------
-	if rank(W) < m, warning('inestimable hyperparameters'); end
 	dh    = pinv(W)*dFdh;
 	h     = h + dh;
 
