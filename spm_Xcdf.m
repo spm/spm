@@ -24,7 +24,7 @@ function F = spm_Xcdf(x,v)
 % Variate relationships: (Evans et al., Ch8 & Ch18)
 %-----------------------------------------------------------------------
 % The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
 %-----------------------------------------------------------------------
@@ -53,4 +53,4 @@ if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
 %---------------------------------------------------------------------------
-F = spm_Gcdf(x,v/2,2);
+F = spm_Gcdf(x,v/2,1/2);
