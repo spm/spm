@@ -682,6 +682,8 @@ cSHH = get(0,'ShowHiddenHandles');
 set(0,'ShowHiddenHandles','on')
 
 t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
+if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
+
 set(findobj(t0,'Position',1),'Separator','on');
 t1 = uimenu(t0,'Position',1,...
 	'Label','SPM web',...
