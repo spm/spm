@@ -28,16 +28,16 @@ V.pinfo(2,:)=0;
 if ~isempty(s),
 	if size(V.pinfo,2) ~= 1,
 		for p=1:dim(3),
-			mx = max(max(Y(:,:,p)));
-			mn = min(min(Y(:,:,p)));
+			mx = double(max(max(Y(:,:,p))));
+			mn = double(min(min(Y(:,:,p))));
 			if mx~=mn, V.pinfo(1,p) = (mx-mn)/(dmnmx(2)-dmnmx(1));
 			else, V.pinfo(1,p) = 1; end;
 			V.pinfo(2,p) = ...
 				(dmnmx(2)*mn -dmnmx(1)*mx)/(dmnmx(2) -dmnmx(1));
 		end;
 	else,
-		mx = max(max(max(Y)));
-		mn = min(min(min(Y)));
+		mx = double(max(max(max(Y))));
+		mn = double(min(min(min(Y))));
 		if mx~=mn, V.pinfo(1,1) = (mx-mn)/(dmnmx(2)-dmnmx(1));
 		else, V.pinfo(1,1) = 1; end;
 		V.pinfo(2,1) = (dmnmx(2)*mn - dmnmx(1)*mx)/(dmnmx(2) - dmnmx(1));
