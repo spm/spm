@@ -305,9 +305,20 @@ MAPTYPE *get_maps_oldstyle(const mxArray *matrix_ptr, int *pn)
 
 MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 {
-	int num_dims, jj, t;
+	int num_dims, jj, t, dtype;
 	const int *dims;
 	MAPTYPE *maps;
+	unsigned char *dptr;
+
+	if      (mxIsDouble(ptr)) dtype = SPM_DOUBLE;
+	else if (mxIsSingle(ptr)) dtype = SPM_FLOAT;
+	else if (mxIsInt32 (ptr)) dtype = SPM_SIGNED_INT;
+	else if (mxIsUint32(ptr)) dtype = SPM_UNSIGNED_INT;
+	else if (mxIsInt16 (ptr)) dtype = SPM_SIGNED_SHORT;
+	else if (mxIsUint16(ptr)) dtype = SPM_UNSIGNED_SHORT;
+	else if (mxIsInt8  (ptr)) dtype = SPM_SIGNED_CHAR;
+	else if (mxIsUint8 (ptr)) dtype = SPM_UNSIGNED_CHAR;
+	else mexErrMsgTxt("Unknown volume datatype.");
 
 	maps = (MAPTYPE *)mxCalloc(1, sizeof(MAPTYPE));
 
@@ -323,18 +334,20 @@ MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 	for(jj=0; jj<4; jj++)
 		maps->mat[jj + jj*4] = 1.0;
 
-	maps->dtype     = SPM_DOUBLE;
+	maps->dtype     = dtype;
 
 	maps->data   = (void  **)mxCalloc(maps->dim[2],sizeof(void *));
 	maps->scale  = (double *)mxCalloc(maps->dim[2],sizeof(double));
 	maps->offset = (double *)mxCalloc(maps->dim[2],sizeof(double));
 
-	t = maps->dim[0]*maps->dim[1];
+	t     = maps->dim[0]*maps->dim[1]*get_datasize(maps->dtype)/8;
+	dptr   = (unsigned char *)mxGetPr(ptr);
+
 	for(jj=0; jj<maps->dim[2]; jj++)
 	{
 		maps->scale[jj]  = 1.0;
 		maps->offset[jj] = 0.0;
-		maps->data[jj]   = &(mxGetPr(ptr)[jj*t]);
+		maps->data[jj]   = &(dptr[jj*t]);
 	}
 
 	maps->addr      = 0;
@@ -354,7 +367,7 @@ MAPTYPE *get_maps(const mxArray *ptr, int *n)
 		return(get_maps_oldstyle(ptr, n));
 	else if (mxGetNumberOfDimensions(ptr) <= 3 &&
 		mxIsNumeric(ptr) && !mxIsComplex(ptr) &&
-		!mxIsSparse(ptr) && mxIsDouble(ptr))
+		!mxIsSparse(ptr))
 		return(get_maps_3dvol(ptr, n));
 	else
 		mexErrMsgTxt("What do I do with this?");
