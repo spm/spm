@@ -25,7 +25,7 @@ if P(q - 3) == '.'; P = P(1:(q - 4)); end
 
 % get image descriptors and memory map
 %-----------------------------------------------------------------------
-if (nargin = 1)
+if (nargin == 1)
 	[DIM VOX SCALE TYPE OFFSET] = spm_hread([P '.hdr']);
 	ID = [DIM(1:3) VOX(1:3) SCALE TYPE OFFSET];
 end
