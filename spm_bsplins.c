@@ -411,8 +411,6 @@ Work out what to do with positions outside the FOV
 
         For MRI, it may be better to wrap the boundaries
         - especially in the read and phase encode directions.
-
-	NOTE THAT THIS IS NOT WORKING YET
 */
 static int wrap(int i, int m)
 {
