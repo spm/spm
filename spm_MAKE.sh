@@ -32,13 +32,14 @@ echo
 echo "SPM mex file compile for $arch"
 echo 
 
+added_objs="spm_mapping.o"
+
 case $arch in
     sun)
 	# (default) unix compile for Sun CC
 	CC="cc -xO5"
 	cmex5="mex     COPTIMFLAGS=-xO5"
-	cmex4="mex -V4 COPTIMFLAGS=-xO5"
-	added_objs="spm_mapping.o";;
+	cmex4="mex -V4 COPTIMFLAGS=-xO5";;
     windows)
 	# windows compile with EGCS gcc/mingw32
 	# see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html
@@ -46,36 +47,33 @@ case $arch in
 	# compiling Mex files.
 	deff=-DSPM_WIN32
 	CC="gcc -mno-cygwin $deff"
-	cmex5="cmd /c mex $deff "
-	cmex4="cmd /c mex $deff -V4 "
-	# Windows added utility file
+	cmex5="mex.bat $deff "
+	cmex4="mex.bat $deff -V4 "
+	# Windows added utility files
 	$CC -c -o win32mmap.o win32mmap.c
+	$cmex5 spm_win32utils.c
 	added_objs="win32mmap.o spm_mapping.obj";;
     gcc)
 	# optimised standard unix compile for gcc
 	# this should work on Sun, Linux etc
 	CC="gcc -O2"
 	cmex5="mex     COPTIMFLAGS=-O2"
-	cmex4="mex -V4 COPTIMFLAGS=-O2"
-	added_objs="spm_mapping.o";;
+	cmex4="mex -V4 COPTIMFLAGS=-O2";;
     sgi)
 	# not optimised unix compile for CC
 	CC="cc"
 	cmex5="mex"
-	cmex4="mex -V4"
-	added_objs="spm_mapping.o";;
+	cmex4="mex -V4";;
     sgi64)
 	# not optimised sgi 64 bit compile for CC
 	CC="cc -64"
 	cmex5="mex"
-	cmex4="mex -V4"
-	added_objs="spm_mapping.o";;
+	cmex4="mex -V4";;
     hpux)
 	# unix compile for hpux cc, and maybe aix cc
 	CC="cc -O +Z"
 	cmex5="mex     COPTIMFLAGS=-O"
-	cmex4="mex -V4 COPTIMFLAGS=-O"
-	added_objs="spm_mapping.o";;
+	cmex4="mex -V4 COPTIMFLAGS=-O";;
    *)
 	echo "Sorry, not set up for architecture $arch"
 	exit;;
