@@ -41,11 +41,13 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .X0    - Reduced design matrix data (spans design space under Ho)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
 %          (Matrix in SPM99b)  Extract using X0 = spm_FcUtil('X0',...
-% .iX0   - Indicies of design matrix columns to form the reduced design matrix.
+% .iX0   - Indicates how contrast was specified:
+%          If by columns for reduced design matrix then iX0 contains the
+%          column indices. Otherwise, it's a string containing the
+%          spm_FcUtil 'Set' action: Usuall one of {'c','c+','X0'}
 % .X1o   - Remaining design space data (X1o is orthogonal to X0)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
 %          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
-% .nativ - Indicates how the contrast was defined: One of {'c','c+','X0','iX0'}
 % .eidf  - Effective interest degrees of freedom (numerator df)
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
 % .Vspm  - Name of SPM image

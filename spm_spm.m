@@ -232,14 +232,15 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %                  It is in the form of a matrix (spm99b) or the
 %                  coordinates of this matrix in the orthogonal basis
 %                  of xX.X defined in spm_sp. 
-%     xCon.iX0   - Indicies of design matrix columns to form the reduced
-%                  design matrix. (Input argument F_iX0 in this case.)
-%                - (Is 0 if X0 was specified, [] if c was specified.)
+%     xCon.iX0   - Indicates how contrast was specified:
+%                  If by columns for reduced design matrix then iX0 contains the
+%                  column indices. Otherwise, it's a string containing the
+%                  spm_FcUtil 'Set' action: Usuall one of {'c','c+','X0'}
+%                  (Usually this is the input argument F_iX0.)
 %     xCon.X1o   - Remaining design space (orthogonal to X0).
 %                  It is in the form of a matrix (spm99b) or the
 %                  coordinates of this matrix in the orthogonal basis
 %                  of xX.X defined in spm_sp.
-%     xCon.nativ - How the contrast was defined: One of {'c','c+','X0','iX0'}
 %     xCon.eidf  - Effective interest degrees of freedom (numerator df)
 %     xCon.Vcon  - ...for handle of contrast/ESS image (empty at this stage)
 %     xCon.Vspm  - ...for handle of SPM image (empty at this stage)
