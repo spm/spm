@@ -250,6 +250,6 @@ tc = diag([2 2 1 1])*R*mat*c;
 tc = tc(1:3,:)';
 mx = max(tc);
 mn = min(tc);
-M  = spm_matrix(-[mn(1) mn(2)])*diag([2 2 1 1])*R;
+M  = spm_matrix(-mn(1:2))*diag([2 2 1 1])*R;
 d  = ceil(abs(mx(1:2)-mn(1:2)))+1;
 return;
