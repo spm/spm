@@ -244,7 +244,7 @@ switch MT
 
 	% get design matrix
 	%-------------------------------------------------------------------
-	[X,Sess] = spm_fMRI_design(nscan,RT,0);
+	[X,Sess] = spm_fMRI_design(nscan,RT);
 
 end
 

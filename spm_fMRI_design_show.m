@@ -41,8 +41,8 @@ end
 
 % Do not proceed unless there are trials specified
 %---------------------------------------------------------------------------
-for i = 1:length(Sess)
-	if ~length(Sess{i}.name)
+for j = 1:length(Sess)
+	if ~length(Sess{j}.name)
 		 msgbox('User-specifed regressors only','Warning','warn')
 		return
 	end
