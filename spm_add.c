@@ -66,7 +66,7 @@ Matrix *plhs[], *prhs[];
 
      for (i = 0; i < mxGetN(prhs[2]); i++) label[i] = (char) p[i];
      label[i] = 0;
-     fo  = open(label, O_RDWR);
+     fo  = open(label, O_RDWR|O_CREAT, 0644);
      if (fo == -1)
          mexErrMsgTxt("Cant open output file.");
 
