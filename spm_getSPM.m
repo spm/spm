@@ -32,9 +32,17 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % xX     - Design Matrix structure
 %        - (see spm_spm.m for structure)
 %
-% xCon   - Contrast definitions structure
-%        - (see also spm_SpUtil.m for structure, rules & handling)
-% .****
+% xCon   - Contrast definitions structure array
+%        - (see also spm_FcUtil.m for structure, rules & handling)
+% .name  - Contrast name
+% .STAT  - Statistic indicator character ('T' or 'F')
+% .c     - Contrast weights (column vector contrasts)
+% .X0    - Reduced design matrix (spans design space under Ho)
+% .iX0   - Indicies of design matrix columns to form the reduced design matrix.
+% .X1o   - Remaining design space (orthogonal to X0).
+% .eidf  - Effective interest degrees of freedom (numerator df)
+% .Vcon  - Handle of contrast (for 'T's) or ESS (for 'F's) image
+% .Vspm  - Handle of SPM image
 %
 % xSDM   - structure containing contents of SPM.mat file
 %          ( see spm_spm.m for contents...
@@ -43,7 +51,6 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %_______________________________________________________________________
 %
 % **** files written
-% **** format of xCon
 % **** reference to contrast manager
 %
 %
@@ -75,10 +82,10 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % inference can be considered an 'omnibus test' based on the number of
 % clusters that obtain.
 % 
-% see spm_list.m and spm_P.m for further details
+% see spm_results_ui.m for further details
 %
 %_______________________________________________________________________
-% %W% Karl Friston, Andrew Holmes %E%
+% %W% Andrew Holmes & Karl Friston %E%
 SCCSid = '%I%';
 
 %-GUI setup
@@ -183,20 +190,18 @@ if length(Ic)>1 & any(any(triu(Xc'*Xc,1)>tol))	%-(Probably) need 2 orthogonalise
 	end
 	if isempty(c)
 	    %-Contrast was completely colinear with a previous one - drop it
-	    Ic(i)  = [];
-	    i      = i -1;
+	    Ic(i)   = [];
+	    i       = i -1;
 	elseif any(d<tol)
 	    %-Contrast unchanged or already defined - note index
-	    Ic(i)  = min(find(d<tol));
+	    Ic(i)   = min(find(d<tol));
 	else
 	    %-Define orthogonalised contrast as new contrast
-	    j = length(xCon)+1;
-    
-	    xCon(j).name = [xCon(Ic(i)).name,'  (orthogonalized wirit {',...
-		    sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))];
-	    xCon(j).c    = c;
-	    xCon(j).STAT = xCon(Ic(i)).STAT;
-	    Ic(i)        = j;
+	    j       = length(xCon)+1;
+	    str     = [xCon(Ic(i)).name,'  (orthogonalized wirit {',...
+    	    	sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))]
+    	    xCon(j) = spm_FcUtil('Set',str,xCon(Ic(i)).STAT,'c',c,xX.xKXs);
+	    Ic(i)   = j;
 	end
     end % while...
 end % if length(Ic)...
@@ -258,11 +263,8 @@ for i=[Ic,Im]
 
     %-Canonicalise contrast structure with required fields
     %-------------------------------------------------------------------
-    if ~isfield(xCon(i),'X1o') | isempty(xCon(i).X1o)
-	xCon(i).KX1o = spm_SpUtil('cTestSp',xX.xKXs,xCon(i).c);
-    end
     if ~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf)
-	[trMV,trMVMV] = spm_SpUtil('trMV',xCon(i).KX1o,xX.V);
+	[trMV,trMVMV] = spm_SpUtil('trMV',xCon(i).X1o,xX.V);
         xCon(i).eidf  = trMV^2 / trMVMV;
     else
         trMV = []; trMVMV = [];
@@ -307,8 +309,7 @@ for i=[Ic,Im]
                                                      '...computing') %-#
 
             %-Residual (in parameter space) forming mtx
-            [u,s,v] = svd(spm_SpUtil('BetaRC',xX.xKXs,xCon(i).c));
-            RB      = u*sqrt(s)*v';
+            h       = spm_FcUtil('Hsqr',xCon(i),xX.xKXs);
 
 	    %-Prepare handle for ESS image
 	    xCon(i).Vcon = struct(...
@@ -321,7 +322,7 @@ for i=[Ic,Im]
             %-Write image
             fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
-            xCon(i).Vcon = spm_resss(xSDM.Vbeta,xCon(i).Vcon,RB);
+            xCon(i).Vcon = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
 
 	otherwise
@@ -351,7 +352,7 @@ for i=[Ic,Im]
 
 	case 'F'                                  %-Compute SPM{F} image
         %---------------------------------------------------------------
-	if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).KX1o,xX.V); end
+	if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).X1o,xX.V); end
 	Z = (spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
 	    (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
         str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
