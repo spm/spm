@@ -31,7 +31,7 @@ function ima = spm_erode(varargin)
 % The actual job is done by spm_dilate_erode.c that serves both
 % spm_dilate.m and op_erode.m
 %__________________________________________________________________
-% @(#)spm_erode.m	1.1 Jesper Andersson 04/02/19
+% Jesper Andersson $Id$
 
 if exist('spm_dilate_erode')~=3 
    error('mex-file spm_dilate_erode.c has not been compiled');

@@ -1,4 +1,11 @@
 function M = spm_get_space(P,M)
+% Get/set the voxel-to-world mapping of an image
+% FORMAT M = spm_get_space(P)
+%            spm_get_space(P,M)
+% M - voxel-to-world mapping
+% P - image filename
+%_______________________________________________________________________
+% John Ashburner $Id$
 
 [pth,nam,ext] = fileparts(P);
 t = find(ext==',');

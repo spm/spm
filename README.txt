@@ -33,12 +33,12 @@ MathWorks, Inc.  Natick, MA, USA. http://www.mathworks.com/
 eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 special toolboxes are required).
 
-SPM2 is written for Matlab versions 5.3, 6.0 and 6.5 under UNIX. (SPM2
-will not work with versions of Matlab 5 prior to 5.3, including
-Matlab 4.) Binaries of the external C-mex routines are provided for]
+SPM5 is written for Matlab versions 6.5.1 and 7.0.1 under UNIX. (SPM5
+will not work with versions of Matlab prior to 6.5.
+Binaries of the external C-mex routines are provided for
 Solaris, Linux, Windows and MacOS X only, users of other UNIX platforms
 need an ANSI C compiler to compile the supplied C source (Makefile
-provided). See http://www.fil.ion.ucl.ac.uk/spm/spm2b.html for details.
+provided). See http://www.fil.ion.ucl.ac.uk/spm/spm5.html for details.
 
 ( Whilst the majority of the code is implemented as MatLab functions    )
 ( & scripts containing standard MatLab commands, a number of features   )
@@ -74,18 +74,8 @@ perhaps the most useful starting point are the SPM course notes, which
 explain the concepts and theories implemented in SPM at a lower level
 than the articles in the peer reviewed literature. There is no manual.
 
-Note that SPM uses Analyze format images as standard, although it can
-also read MINC & ECAT-7 images. You will either need to convert your
-image files to one of these formats (preferably Analyze), or construct
-an additional module for the SPM memory mapping subsystem to read your
-file format. Image conversion utilities for your image file format may
-be available in other packages, or may have been specially written by
-other SPM users. (Consult the SPM email discussion list, described
-below, by first searching the archives, and posting a query if
-necessary.) Unfortunately we have no resources to provide image
-conversion software, although we will collaborate in developing SPM
-memory mapping read-modules for popular image formats for inclusion in
-SPM.
+Note that SPM uses NIFTI-1 format images as standard.  See
+http://nifti.nimh.nih.gov/dfwg/ for more information on this.
 
 ________________________________________________________________________
                                                                Resources
@@ -95,13 +85,10 @@ The SPMweb site is the central repository for SPM resources:
 Introductory material, installation details, documentation, course
 details and patches are published on the site.
 
-There is an SPM eMail discussion list, hosted at <spm@mailbase.ac.uk>.
+There is an SPM eMail discussion list, hosted at <spm@jiscmail.ac.uk>.
 The list is monitored by the authors, and discusses theoretical,
 methodological and practical issues of Statistical Parametric Mapping
-and SPM. Subscribe by sending the one line message: "join spm firstname
-lastname" to <mailbase@mailbase.ac.uk>. (Users at NIH or UC-Davis
-should join their local SPM feeds.) The SPMweb site has further
-details:
+and SPM. The SPMweb site has further details:
                  http://www.fil.ion.ucl.ac.uk/spm/help
 
 Please report bugs to the authors at <spm-authors@fil.ion.ucl.ac.uk>.
@@ -124,4 +111,4 @@ ________________________________________________________________________
 SPM is developed by members and collaborators of the
                               Wellcome Department of Cognitive Neurology
 
-@(#)README.txt 2.6 02/11/21
+$Id$

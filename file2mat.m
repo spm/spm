@@ -1,3 +1,4 @@
+function file2mat
 % Function for reading from file_array objects.
 % FORMAT val = file2mat(a,ind1,ind2,ind3,...)
 % a      - file_array object
@@ -6,6 +7,6 @@
 %
 % This function is normally called by file_array/subsref
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 error('This function needs to be compiled.');

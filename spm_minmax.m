@@ -1,4 +1,17 @@
 function [mnv,mxv] = spm_minmax(g)
+% Compute a suitable range of intensities for VBM preprocessing stuff
+% FORMAT [mnv,mxv] = spm_minmax(g)
+% g    - array of data
+% mnv  - minimum value
+% mxv  - maximum value
+%
+% A MOG with two Gaussians is fitted to the intensities.  The lower
+% Gaussian is assumed to represent background.  The lower value is
+% where there is a 50% probability of being above background.  The
+% upper value is one that encompases 99.5% of the values.
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 d   = [size(g) 1];
 mxv = max(g(:));
 h   = zeros(256,1);

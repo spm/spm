@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 %
 % (Note second order effects are already in L1 for the 2nd order expansion)
 %---------------------------------------------------------------------------
-% @(#)spm_bi_reduce.m	2.5 Karl Friston 03/03/18
+% Karl Friston $Id$
 
 % set up
 %===========================================================================

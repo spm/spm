@@ -104,7 +104,7 @@ function varargout = spm_orthviews(action,varargin)
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %
 %_______________________________________________________________________
-% @(#)spm_orthviews.m	2.43 John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche 04/12/14
+% John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche $Id$
 
 
 % The basic fields of st are:

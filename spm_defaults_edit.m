@@ -32,8 +32,8 @@ function spm_defaults_edit(varargin)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% @(#)spm_defaults_edit.m	2.25 John Ashburner 03/01/27
-SCCSid = '2.25';
+% John Ashburner $Id$
+SCCSid = '$Rev$';
 
 %-Format arguments
 %-----------------------------------------------------------------------

@@ -19,7 +19,7 @@ function T = spm_type(x, arg)
 %
 % With no arguments, a list of data types is returned.
 %_______________________________________________________________________
-% %W% John Ashburner, Andrew Holmes %E%
+% John Ashburner & Andrew Holmes $Id$
 
 
 prec = str2mat('uint8','int16','int32','float32','float64','int8','uint16','uint32');

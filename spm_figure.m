@@ -72,7 +72,7 @@ function varargout=spm_figure(varargin)
 % See also: spm_print, spm_clf
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% Andrew Holmes $Id$
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

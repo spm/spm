@@ -57,7 +57,7 @@ function c = spm_nCr(n,r)
 %	 Cambridge
 %
 %_______________________________________________________________________
-% @(#)spm_nCr.m	2.1 Andrew Holmes 98/03/23
+% Andrew Holmes $Id$
 
 
 %-Format arguments, note & check sizes

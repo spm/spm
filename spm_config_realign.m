@@ -1,8 +1,7 @@
 function opts = spm_config_realign
 % Configuration file for realign jobs
 %_______________________________________________________________________
-% %W% %E%
-% DRG CS-RCS: $Id: spm_config_realign.m,v 1.3 2005-02-09 11:15:17-06 drg Exp drg $
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 
@@ -31,8 +30,6 @@ weight.name   = 'Weighting';
 weight.tag    = 'weight';
 weight.filter = 'image';
 weight.num    = [0 1];
-% weight.val    = {{''}};
-% Don't need cell in a cell constructions for optional field values.
 weight.val    = {''};
 weight.help   = spm_justify(w,...
 'The option of providing a weighting image to weight each voxel',...
@@ -104,11 +101,11 @@ fwhm.type    = 'entry';
 fwhm.name    = 'Smoothing (FWHM)';
 fwhm.tag     = 'fwhm';
 fwhm.num     = [1 1];
+fwhm.def     = 'realign.estimate.fwhm';
 fwhm.strtype = 'e';
 p1           = spm_justify(w,...
 'The FWHM of the Gaussian smoothing kernel (mm) applied to the',...
 'images before estimating the realignment parameters.');
-
 p2           = spm_justify(w,...
 'PET images typically use a 7 mm kernel.');
 p3          = spm_justify(w,...
@@ -122,7 +119,8 @@ sep.name = 'Separation';
 sep.tag  = 'sep';
 sep.num  = [1 1];
 sep.strtype = 'e';
-sep.val  = {4};
+sep.def  = 'realign.estimate.sep';
+%sep.val = {4};
 sep.help = spm_justify(w,...
 'The separation (in mm) between the points sampled in the',...
 'reference image.  Smaller sampling distances gives more accurate',...
@@ -135,27 +133,31 @@ rtm.name   = 'Num Passes';
 rtm.tag    = 'rtm';
 rtm.labels = {'Register to first','Register to mean'};
 rtm.values = {0,1};
+rtm.def    = 'realign.estimate.rtm';
 p1         = spm_justify(w,...
 'Register to first: Images are registered to the first image in the series.',...
 'Register to mean:   A two pass procedure is used in order to register the',...
 'images to the mean of the images after the first realignment.');
 p2         = spm_justify(w,...
-'PET images are typically registered to the mean.');
+'PET images are typically registered to the mean. This is because PET data are',...
+'more noisy than fMRI and there are fewer of them, so time is less of an issue.');
 p3         = spm_justify(w,...
-'MRI images are typically registered to the first image.');
+'MRI images are typically registered to the first image.  The more accurate way',...
+'would be to use a two pass procedure, but this probably wouldn''t improve the results',...
+'so much and would take twice as long to run.');
 rtm.help    = {p1{:},'',p2{:},'',p3{:}};
 
 %------------------------------------------------------------------------
 
-global defaults
-if ~isempty(defaults) && isfield(defaults,'modality') ...
-	&& strcmp(lower(defaults.modality),'pet'),
-	fwhm.val = {7};
-	rtm.val  = {1};
-else
-	fwhm.val = {5};
-	rtm.val  = {0};
-end;
+% global defaults
+% if ~isempty(defaults) && isfield(defaults,'modality') ...
+%                       && strcmp(lower(defaults.modality),'pet'),
+%     fwhm.val = {7};
+%     rtm.val  = {1};
+% else
+%     fwhm.val = {5};
+%     rtm.val  = {0};
+% end;
 
 eoptions.type = 'branch';
 eoptions.name = 'Estimation Options';

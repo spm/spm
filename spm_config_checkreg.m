@@ -1,7 +1,7 @@
 function opts = spm_config_checkreg
 % Configuration file for check-reg jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

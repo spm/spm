@@ -40,7 +40,7 @@ function f = spm_Npdf(x,u,v)
 %        Cambridge
 %
 %_______________________________________________________________________
-% @(#)spm_Npdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 
 %-Format arguments, note & check sizes

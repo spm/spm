@@ -10,7 +10,7 @@ function VO = spm_bias_apply(V,T)
 % disk, prefixed by 'm'.
 %
 %_______________________________________________________________________
-% @(#)spm_bias_apply.m	2.4 John Ashburner 03/03/04
+% John Ashburner $Id$
 
 if ischar(V),
 	V = spm_vol(V);

@@ -4,7 +4,7 @@ function P = spm_imatrix(M)
 % M      - Affine transformation matrix
 % P      - Parameters (see spm_matrix for definitions)
 %___________________________________________________________________________
-% @(#)spm_imatrix.m	2.1 John Ashburner & Stefan Kiebel 98/12/18
+% John Ashburner & Stefan Kiebel $Id$
 
 % Translations and zooms
 %-----------------------------------------------------------------------

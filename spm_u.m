@@ -14,7 +14,7 @@ function [u] = spm_u(a,df,STAT)
 % spm_u returns the uncorrected critical threshold at a specified significance
 %
 %___________________________________________________________________________
-% @(#)spm_u.m	2.2 Karl Friston 02/03/08
+% Karl Friston $Id$
 
 if     STAT == 'Z'
 

@@ -8,7 +8,7 @@ function R = spm_Pec_resels(L,W)
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %___________________________________________________________________________
-% @(#)spm_Pec_resels.m	2.1 Karl Friston 98/11/16
+% Karl Friston $Id$
 
 % Resel Counts
 %---------------------------------------------------------------------------

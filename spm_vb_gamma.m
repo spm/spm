@@ -6,7 +6,7 @@ function [slice] = spm_vb_gamma (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
 %
-% @(#)spm_vb_gamma.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 if slice.verbose
     disp('Updating gamma');

@@ -20,7 +20,7 @@ function savexml(filename, varargin)
 
 %  Copyright 2003 Guillaume Flandin. 
 %  INRIA Sophia Antipolis / CEA-SHFJ
-%  Revision: 1.0 $  $Date: 2003/07/10 13:50 $
+%  Guillaume Flandin $Id$
 
 if nargin == 0
 	filename = 'matlab.xml';

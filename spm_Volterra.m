@@ -19,7 +19,7 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % and are used to assemble the second order kernel in spm_graph.m.
 % Second order effects are computed for only the first column of U.u.
 %___________________________________________________________________________
-% @(#)spm_Volterra.m	2.4 Karl Friston 03/07/01
+% Karl Friston $Id$
 
 
 % 1st order terms

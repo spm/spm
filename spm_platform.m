@@ -55,7 +55,7 @@ function varargout=spm_platform(varargin)
 % the beginning of the init_platform subfunction at the end of this
 % file.
 %_______________________________________________________________________
-% @(#)spm_platform.m	2.11 Matthew Brett 02/08/14
+% Matthew Brett $Id$
 
 
 %-Initialise

@@ -1,8 +1,8 @@
 function spm_Deformations
 %_______________________________________________________________________
-% @(#)spm_Deformations.m	1.2 John Ashburner 03/02/12
+% John Ashburner $Id$
 
-SPMid = spm('FnBanner',mfilename,'1.2');
+SPMid = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Deformations');
 spm_help('!ContextHelp',mfilename);
 

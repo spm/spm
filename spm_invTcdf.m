@@ -61,7 +61,7 @@ function x = spm_invTcdf(F,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% @(#)spm_invTcdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

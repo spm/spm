@@ -17,7 +17,7 @@ function spm_eeg_convertmat2ana(S)
 % images, i.e. the data of each single trial or ERP is contained in one
 % image file.
 %_______________________________________________________________________
-% @(#)spm_eeg_convertmat2ana.m	1.1 Stefan Kiebel, Christophe Phillips 04/06/28
+% Stefan Kiebel & Christophe Phillips $Id$
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 

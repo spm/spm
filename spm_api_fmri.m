@@ -2,7 +2,7 @@ function varargout = spm_api_fmri(varargin)
 % API for SPM.mat {fMRI}
 % FORMAT spm_api_fmri(action,....)
 %____________________________________________________________________________
-% @(#)spm_api_fmri.m	2.3 Karl Friston 04/11/26
+% Karl Friston $Id$
 
 % set action
 %----------------------------------------------------------------------------

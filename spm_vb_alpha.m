@@ -5,7 +5,7 @@ function [slice] = spm_vb_alpha (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure 
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 if slice.verbose
     disp('Updating alpha');

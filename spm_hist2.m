@@ -16,4 +16,4 @@
 % interpolation artifacts.
 %
 %_______________________________________________________________________
-% @(#)spm_hist2.m	2.3 John Ashburner 01/07/06
+% John Ashburner $Id$

@@ -175,7 +175,7 @@ function spm_adjmean_ui
 % GX            Global means after scaling
 %
 %_______________________________________________________________________
-% @(#)spm_adjmean_ui.m	2.8 Andrew Holmes 02/07/31
+% Andrew Holmes $Id$
 
 
 %=======================================================================

@@ -23,7 +23,7 @@ function P = spm_P_Bonf(Z,df,STAT,S,n)
 % is returned
 %
 %___________________________________________________________________________
-% @(#)spm_P_Bonf.m	2.3 Thomas Nichols 02/03/08
+% Thomas Nichols $Id$
 
 if      STAT == 'Z'
   P = 1 - spm_Ncdf(Z);

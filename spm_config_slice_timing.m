@@ -1,8 +1,7 @@
 function opts = spm_config_slice_timing
 % configuration file for slice timing
 %____________________________________________________________________
-% D Gitelman 03/07/01
-% DRG CS-RCS: $Id: spm_config_slice_timing.m,v 1.2 2005-02-08 21:03:45-06 drg Exp drg $
+% Darren Gitelman $Id$
 
 w = spm_jobman('HelpWidth');
 

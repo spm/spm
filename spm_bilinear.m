@@ -23,7 +23,7 @@ function [H0,H1,H2] = spm_bilinear(A,B,C,D,x0,N,dt)
 %  y(t) = x(t)
 %
 %---------------------------------------------------------------------------
-% @(#)spm_bilinear.m	2.2 Karl Friston 01/03/16 
+% Karl Friston $Id$ 
 
 % Volterra kernels for bilinear systems
 %===========================================================================

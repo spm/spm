@@ -5,7 +5,7 @@ function varargout = spm_jobman(varargin)
 % Guillaume Flandin of Orsay, France.
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 if nargin==0
     setup_ui;
@@ -804,7 +804,7 @@ cntxtmnu(newstring);
 strM='';
 switch lower(c.strtype)
 case 's', TTstr='enter string';
-case 'e', TTstr='enter expression to evaluate';
+case 'e', TTstr='enter expression - evaluated';
 case 'n', TTstr='enter expression - natural number(s)';
         if ~isempty(m), strM=sprintf(' (in [1,%d])',m); TTstr=[TTstr,strM]; end
 case 'w', TTstr='enter expression - whole number(s)';
@@ -820,11 +820,14 @@ end
 if isempty(n), n=NaN; end
 n=n(:); if length(n)==1, n=[n,1]; end; dn=length(n);
 if any(isnan(n)) || (prod(n)==1 && dn<=2) || (dn==2 && min(n)==1 && isinf(max(n)))
-    str = ''; lstr = '';
+    str = '';
+   lstr = '';
 elseif dn==2 && min(n)==1
-    str = sprintf('[%d]',max(n));   lstr = [str,'-vector'];
+    str = sprintf('[%d]',max(n));
+   lstr = [str,'-vector: '];
 elseif dn==2 && sum(isinf(n))==1
-    str = sprintf('[%d]',min(n));   lstr = [str,'-vector(s)'];
+    str = sprintf('[%d]',min(n));
+   lstr = [str,'-vector(s): '];
 else
     str='';
     for i = 1:dn,
@@ -834,9 +837,10 @@ else
             str = sprintf('%s,*',str);
         end
     end
-    str = ['[',str(2:end),']'];     lstr = [str,'-matrix'];
+     str = ['[',str(2:end),']'];
+    lstr = [str,'-matrix: '];
 end
-strN = sprintf('\t%s',lstr);
+strN = sprintf('%s',lstr);
 col  = get(gcf,'Color');
 uicontrol(gcf,'Style','text',...
     'Units','normalized',...
@@ -856,7 +860,21 @@ if isfield(c,'val') && ~isempty(c.val)
         tmp = tmp(:)';
         set(newstring,'String',tmp);
     elseif isnumeric(val)
-        set(newstring,'String',num2str(val(:)'));
+        if ndims(val)>2,
+            set(newstring,'String',['reshape([', num2str(val(:)'), '],[' num2str(size(val)) '])']);
+        else
+            if size(val,1)==1,
+                set(newstring,'String',num2str(val(:)'));
+            elseif size(val,2)==1,
+                set(newstring,'String',['[' num2str(val(:)') ']''']);
+            else
+                str = '';
+                for i=1:size(val,1),
+                    str = [str ' ' num2str(val(i,:)) ';'];
+                end;
+                set(newstring,'String',str);
+            end;
+        end;
     end;
 end;
 
@@ -1699,7 +1717,6 @@ function c = run_ui(c,varargin)
 
 pos = 2;
 nnod=1;
-getit=1;
 while(1),
     nod = nnod;
     [ci,unused,hlp] = get_node(c,nod);
@@ -1716,11 +1733,11 @@ while(1),
         nnod = nod + 1;
 
         vl = {'<UNDEFINED>'};
-        if isfield(c,'def'), vl = getdef(c.def); end;
+        if isfield(ci,'def'), vl = getdef(ci.def); end;
         if numel(vl)~=0 && (~ischar(vl{1}) || ~strcmp(vl{1},'<UNDEFINED>')),
             getit = 0;
-            if ~isfield(c,'val') || ~iscell(c.val) || isempty(c.val),
-                c.val = vl;
+            if ~isfield(ci,'val') || ~iscell(ci.val) || isempty(ci.val),
+                ci.val = vl;
             end;
         else
             getit = 1;

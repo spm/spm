@@ -1,7 +1,7 @@
 function opts = spm_config_ecat
 % Configuration file for ecat import jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

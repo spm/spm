@@ -41,7 +41,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % the spatial extent of activation foci
 % Ref: Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %___________________________________________________________________________
-% @(#)spm_P_RF.m	2.12 Karl Friston 02/10/16
+% Karl Friston $Id$
 
 
 % get expectations

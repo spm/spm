@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,TOL)
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %___________________________________________________________________________
-% @(#)spm_PEB.m	2.13 Karl Friston, John Ashburner 04/08/26
+% Karl Friston $Id$
 
 % set tolerance if not specified
 %---------------------------------------------------------------------------

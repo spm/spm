@@ -51,7 +51,7 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % (though still significant) results.
 %
 %__________________________________________________________________________
-% @(#)spm_t2z.m	2.2 Andrew Holmes 99/05/27
+% Andrew Holmes $Id$
 
 %-Initialisation
 %===========================================================================

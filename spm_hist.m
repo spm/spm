@@ -9,7 +9,7 @@ function h = spm_hist(ind,val)
 %     h = full(sparse(double(ind)+1,ones(size(ind)),wt,256,1));
 % For Matlab 7, the accumarray function could be used 
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 persistent flg
 
@@ -22,12 +22,12 @@ persistent flg
 %    end;
 %end;
 
-if isempty(flg), % flg==0,
+if isempty(flg),
     try,
         h   = accumarray(double(ind(:))+1,double(val(:)),[256 1]);
     catch,
-        flg = 1;
-        h = full(sparse(double(ind)+1,ones(size(ind)),val,256,1));
+        flg = true;
+        h   = full(sparse(double(ind)+1,ones(size(ind)),val,256,1));
     end;
 else
     h = full(sparse(double(ind)+1,ones(size(ind)),val,256,1));

@@ -135,7 +135,7 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %                           ----------------
 %
-% @(#)spm_spm_vb.m	1.1 Will Penny 04/08/04
+% Will Penny $Id$
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB

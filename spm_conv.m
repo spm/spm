@@ -13,7 +13,7 @@ function [X] = spm_conv(X,sx,sy)
 % restricted to non near-zero values
 %
 %__________________________________________________________________________
-% @(#)spm_conv.m	1.5 Karl Friston 03/02/24
+% Karl Friston $Id$
 
 % assume isomorphic smoothing
 %---------------------------------------------------------------------------

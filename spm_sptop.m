@@ -17,7 +17,7 @@ function [K] = spm_sptop(sigma,q,c)
 % Boundary handling: The row-wise sum of K is set to unity (kernel truncation)
 %
 %_______________________________________________________________________
-% @(#)spm_sptop.m	1.7 Karl Friston 98/01/22
+% Karl Friston $Id$
 
 % if sigma = 0, return identity matrix; if q = 1, return 1.
 %-----------------------------------------------------------------------

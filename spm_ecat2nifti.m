@@ -3,7 +3,7 @@ function N = spm_ecat2nifti(fname,opts)
 % FORMAT N = spm_ecat2nifti(fname)
 %  fname     - name of ECAT file
 % _______________________________________________________________________
-% %W% John Ashburner and Roger Gunn %E%
+% John Ashburner & Roger Gunn $Id$
 
 if nargin==1,
     opts = struct('ext','.nii');

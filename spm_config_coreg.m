@@ -1,8 +1,7 @@
 function opts = spm_config_coreg
 % Configuration file for coregister jobs
 %_______________________________________________________________________
-% %W% %E%
-% DRG CS-RCS: $Id: spm_config_coreg.m,v 1.1 2005-02-08 21:06:31-06 drg Exp drg $
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

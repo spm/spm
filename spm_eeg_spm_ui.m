@@ -8,7 +8,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Most of the code is taken from spm_fmri_spm_ui and the functionality is
 % the same.
 %_______________________________________________________________________
-% @(#)spm_eeg_spm_ui.m	1.2 Stefan Kiebel 04/12/09
+% Stefan Kiebel $Id$
 
 %-GUI setup
 %-----------------------------------------------------------------------

@@ -9,7 +9,7 @@ function [U,S,V] = spm_svd(X,U,T)
 % V    - {m x p} singular variates
 % S    - {p x p} singular values
 %___________________________________________________________________________
-% @(#)spm_svd.m	2.3 Karl Friston 04/06/23
+% Karl Friston $Id$
 
 
 % default thresholds

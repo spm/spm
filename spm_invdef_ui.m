@@ -6,7 +6,7 @@ function spm_invdef_ui
 % as the original deformation field, but with "i" prefixed to the
 % filenames.
 %_______________________________________________________________________
-% @(#)spm_invdef_ui.m	1.2 John Ashburner 02/08/16
+% John Ashburner $Id$
 
 P    = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
 n    = size(P,1);

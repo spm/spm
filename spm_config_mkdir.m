@@ -1,7 +1,7 @@
 function opts = spm_config_mkdir
 % Configuration file for making directory function
 %_______________________________________________________________________
-% DRG CS-RCS: $Id: spm_config_mkdir.m,v 1.1 2005-02-09 21:42:37-06 drg Exp drg $
+% Darren Gitelman $Id$
 
 %_______________________________________________________________________
 

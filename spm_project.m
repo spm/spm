@@ -16,7 +16,7 @@ function varargout = spm_project(varargin)
 % see also spm_mip.m
 %
 %_______________________________________________________________________
-% @(#)spm_project.m	2.2 FIL 99/04/19
+% $Id$
 
 %-This is merely the help file for the compiled routine
 error('spm_project.c not compiled - see spm_MAKE.sh')

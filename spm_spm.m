@@ -276,8 +276,8 @@ function [SPM] = spm_spm(SPM)
 % MAXMEM (in bytes) [default = 2^20]
 %
 %_______________________________________________________________________
-% @(#)spm_spm.m	2.76 Andrew Holmes, Jean-Baptiste Poline, Karl Friston 04/12/09
-SCCSid   = '2.76';
+% Andrew Holmes, Jean-Baptiste Poline & Karl Friston $Id$
+SCCSid   = '$Rev$';
 
 %-Say hello
 %-----------------------------------------------------------------------

@@ -10,7 +10,7 @@ function [y] = spm_lx_dcm(x,u,P)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %___________________________________________________________________________
-% @(#)spm_lx_dcm.m	2.3 Karl Friston 03/02/18
+% Karl Friston $Id$
 
 % resting venous volume
 %---------------------------------------------------------------------------

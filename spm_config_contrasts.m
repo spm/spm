@@ -1,10 +1,7 @@
 function con = spm_config_contrasts
 % Configuration file for contrast jobs
 %_______________________________________________________________________
-% Darren Gitelman, baseline 05/02/06
-% JA recommended removing extra choice node. Adjusted setupcon code
-% accordingly. 05/02/07.
-% DRG CS-RCS: $Id: spm_config_contrasts.m,v 1.1 2005-02-08 21:07:14-06 drg Exp drg $
+% Darren Gitelman $Id$
 
 %_______________________________________________________________________
 

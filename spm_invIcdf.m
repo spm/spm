@@ -44,7 +44,7 @@ function r = spm_invIcdf(F,n,p)
 %        Cambridge
 %
 %_______________________________________________________________________
-% @(#)spm_invIcdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 
 %-Format arguments, note & check sizes

@@ -18,7 +18,7 @@ function A = spm_clusters(L)
 % version has the same functionality, but because it is not recursive 
 % it will (hopefully) not crash.
 %_______________________________________________________________________
-% @(#)spm_clusters.m	2.4 Jesper Andersson 03/12/16
+% Jesper Andersson $Id$
 
 %
 % Turn location list to binary 3D volume.

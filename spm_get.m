@@ -140,7 +140,7 @@ function varargout = spm_get(varargin)
 % body of the code.
 %
 %_______________________________________________________________________
-% @(#)spm_get.m	2.45 Andrew Holmes (X-platform stuff with Matthew Brett) 04/05/17
+% Andrew Holmes (X-platform stuff with Matthew Brett) $Id$
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

@@ -8,7 +8,7 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % num   - comma separated list of values
 %
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 num = '';
 [pth,nam,ext] = fileparts(fname);

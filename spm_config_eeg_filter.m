@@ -1,5 +1,7 @@
 function S = spm_config_eeg_filter
 % configuration file for EEG Filtering
+%_______________________________________________________________________
+% $Id$
 
 w = spm_jobman('HelpWidth');
 

@@ -86,11 +86,11 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % the n images).
 %
 %_______________________________________________________________________
-% @(#)spm_imcalc_ui.m	2.7 John Ashburner, Andrew Holmes 02/09/05
+% John Ashburner & Andrew Holmes $Id$
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '2.7';
+SCCSid = '$Rev$';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 SPMid = spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])

@@ -30,12 +30,12 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %_______________________________________________________________________
-% @(#)spm_render.m	2.19 John Ashburner FIL 02/10/29
+% John Ashburner $Id$
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-	SPMid = spm('FnBanner',mfilename,'2.19');
+	SPMid = spm('FnBanner',mfilename,'$Rev$');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);

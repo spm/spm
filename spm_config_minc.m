@@ -1,7 +1,7 @@
 function opts = spm_config_minc
 % Configuration file for minc import jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

@@ -87,7 +87,7 @@ function varargout = spm_nlsi(M,U,Y)
 % SEE NOTES AT THE END OF THIS SCRIPT FOT EXAMPLES
 %
 %---------------------------------------------------------------------------
-% @(#)spm_nlsi.m	2.6 Karl Friston 03/02/18
+% Karl Friston $Id$
 
 % Expansion point (in parameter space) for Bilinear and kernel representations
 %---------------------------------------------------------------------------

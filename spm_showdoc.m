@@ -8,7 +8,7 @@ function spm_showdoc(c)
 %   diary('spmdoc.txt'); spm_showdoc; diary off
 %
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 if nargin==0,
 	c = spm_config;

@@ -31,7 +31,7 @@ function varargout = spm_conv_vol(varargin)
 % See also spm_conv.m and spm_smooth.m spm_write_plane.m
 %
 %_______________________________________________________________________
-% @(#)spm_conv_vol.m	2.1 John Ashburner, Tom Nichols 99/04/19
+% John Ashburner, Tom Nichols $Id$
 
 %-This is merely the help file for the compiled routine
 error('spm_conv_vol.c not compiled - see spm_MAKE.sh')

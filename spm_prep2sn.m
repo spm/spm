@@ -7,11 +7,11 @@ function [po,pin] = spm_prep2sn(p)
 % pin - the inverse transform in a form that can be
 %       used by spm_write_sn.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 if ischar(p), p = load(p); end;
 
-VG          = p.priors;
+VG          = p.tpm;
 VF          = p.image;
 [Y1,Y2,Y3]  = create_def(p.Twarp,VF,VG(1),p.Affine);
 [Y1,Y2,Y3]  =     spm_invdef(Y1,Y2,Y3,VG(1).dim(1:3),eye(4),eye(4));
@@ -52,14 +52,14 @@ if nargout>=2,
    % Parameterisation for the inverse
     pin = struct(...
         'VG',     p.image,...
-        'VF',     p.priors(1),...
+        'VF',     p.tpm(1),...
         'Tr',     p.Twarp,...
-        'Affine', p.priors(1).mat\p.Affine*p.image.mat,...
+        'Affine', p.tpm(1).mat\p.Affine*p.image.mat,...
         'flags',  flags);
     % VG = p.image;
-    % VF = p.priors(1);
+    % VF = p.tpm(1);
     % Tr = p.Twarp;
-    % Affine = p.priors(1).mat\p.Affine*p.image.mat;
+    % Affine = p.tpm(1).mat\p.Affine*p.image.mat;
     % save('junk_sn.mat','VG','VF','Tr','Affine');
 end;
 return;

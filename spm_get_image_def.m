@@ -39,7 +39,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 %              coordinates.
 %
 %_______________________________________________________________________
-% @(#)spm_get_image_def.m	1.2 Jesper Andersson 04/02/19
+% Jesper Andersson $Id$
 
 
 if nargin > 2 & ~isempty(defa)

@@ -8,7 +8,7 @@ function spm_dcm_display(varargin)
 % M     - margin (mm) 				[default = 24 ]
 % U     - theshold for plotting connections 	[default = 0.9]
 %___________________________________________________________________________
-% @(#)spm_dcm_display.m	2.5 Karl Friston 02/10/29
+% Karl Friston $Id$
 
 
 % null input arguments

@@ -1,7 +1,7 @@
 function opts = spm_config_cd
 % Configuration file for changing directory function
 %_______________________________________________________________________
-% $Id: $
+% Darren Gitelmann $Id$
 
 %_______________________________________________________________________
 

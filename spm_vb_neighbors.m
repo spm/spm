@@ -9,7 +9,7 @@ function [vxyz] = spm_vb_neighbors (xyz)
 %          of voxel j, and their numbers (ie. where they appear in the xyz list) 
 %          are N1, N2 and N3
 %
-% %W% Will Penny %E%
+% Will Penny $Id$
 
 [voxels,Ndims]=size(xyz);
 % if voxels<Ndims

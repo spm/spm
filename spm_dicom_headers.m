@@ -11,7 +11,7 @@ function hdr = spm_dicom_headers(P)
 % extremely complicated "standard".
 %
 %_______________________________________________________________________
-% @(#)spm_dicom_headers.m	2.22 John Ashburner 05/01/19
+% John Ashburner $Id$
 
 ver = sscanf(version,'%d');
 if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;

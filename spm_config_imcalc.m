@@ -1,7 +1,7 @@
 function opts = spm_config_imcalc
 % Configuration file for image calculator
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
  
 %_______________________________________________________________________
  
@@ -56,7 +56,8 @@ dmtx.name = 'Data Matrix';
 dmtx.tag  = 'dmtx';
 dmtx.labels = {'No - don''t read images into data matrix','Yes -  read images into data matrix'};
 dmtx.values = {0,1};
-dmtx.val  = {0};
+dmtx.def  = 'imcalc.dmtx';
+%dmtx.val = {0};
 dmtx.help = spm_justify(w,...
 'If the dmtx flag is set, then images are read into a data matrix X',...
 '(rather than into seperate variables i1, i2, i3,...). The data matrix',...
@@ -71,7 +72,8 @@ mask.name = 'Masking';
 mask.tag  = 'mask';
 mask.labels = {'No implicit zero mask','Implicit zero mask','NaNs should be zeroed'};
 mask.values = {0,1,-1};
-mask.val  = {0};
+mask.def  = 'imcalc.mask';
+%mask.val = {0};
 mask.help = spm_justify(w,...
 'For data types without a representation of NaN, implicit zero masking',...
 'assummes that all zero voxels are to be treated as missing, and',...
@@ -85,7 +87,8 @@ intrp.labels = {'Nearest neighbour','Trilinear','2nd Degree Sinc',...
 '3rd Degree Sinc','4th Degree Sinc','5th Degree Sinc',...
 '6th Degree Sinc','7th Degree Sinc'};
 intrp.values = {0,1,-2,-3,-4,-5,-6,-7};
-intrp.val    = {1};
+intrp.def    = 'imcalc.interp';
+%intrp.val   = {1};
 h1 = spm_justify(w,...
 'With images of different sizes and orientations, the size and',...
 'orientation of the first is used for the output image. A warning is',...
@@ -108,7 +111,8 @@ dtype.name = 'Data Type';
 dtype.tag  = 'dtype';
 dtype.labels = {'UINT8  - unsigned char','INT16 - signed short','INT32 - signed int','FLOAT - single prec. float','DOUBLE - double prec. float'};
 dtype.values = {spm_type('uint8'),spm_type('int16'),spm_type('int32'),spm_type('float32'),spm_type('float64')};
-dtype.val = {spm_type('int16')};
+dtype.def  = 'imcalc.dtype';
+%dtype.val = {spm_type('int16')};
 dtype.help = spm_justify(w,...
 'Data-type of output image');
 

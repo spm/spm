@@ -1,7 +1,7 @@
 function opts = spm_config_norm
 % Configuration file for normalise jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
  

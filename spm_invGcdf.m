@@ -51,7 +51,7 @@ function x = spm_invGcdf(F,h,l,tol)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% @(#)spm_invGcdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 
 %-Parameters

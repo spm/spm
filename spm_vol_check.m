@@ -8,7 +8,7 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % msg              - cell array containing helpful message if not
 % chgf             - logical Nx2 array of difference flags
 %_______________________________________________________________________
-% @(#)spm_vol_check.m	1.2 Matthew Brett 02/11/18
+% Matthew Brett $Id$
 
 [fnames samef msg] = deal({},1,{});
 

@@ -308,7 +308,7 @@ function spm_realign_ui(opt)
 % needed to unwarp the appurtenant time-series, and to assess exactly how the
 % estimation was done.
 %__________________________________________________________________________
-% @(#)spm_realign_ui.m	2.15 John Ashburner, Jesper Andersson and Oliver Josephs 04/02/19
+% John Ashburner, Jesper Andersson and Oliver Josephs $Id$
 
 global defaults
 
@@ -328,7 +328,7 @@ return;
 function run_ui(defs, modality, unwarp)
 % User interface.
 %_______________________________________________________________________
-SPMid                   = spm('FnBanner',mfilename,'2.15');
+SPMid                   = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 spm_help('!ContextHelp',mfilename);
 

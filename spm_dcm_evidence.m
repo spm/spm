@@ -14,7 +14,7 @@ function [evidence] = spm_dcm_evidence (DCM)
 %
 %            All of the above are in units of NATS (not bits)
 %
-% @(#)spm_dcm_evidence.m	2.4 Will Penny 03/11/03
+% Will Penny $Id$
 
 v=DCM.v;
 

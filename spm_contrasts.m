@@ -3,7 +3,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % FORMAT [SPM] = spm_contrasts(SPM,Ic);
 % Ic  - indices of xCon to compute
 %_______________________________________________________________________
-% @(#)spm_contrasts.m	2.3 Andrew Holmes, Karl Friston & Jean-Baptiste Poline 02/12/30
+% Andrew Holmes, Karl Friston & Jean-Baptiste Poline $Id$
 
 
 %-Get and change to results directory

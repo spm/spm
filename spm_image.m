@@ -50,13 +50,13 @@ function spm_image(op,varargin)
 % changed.
 %
 %_______________________________________________________________________
-% @(#)spm_image.m	2.20 John Ashburner 02/10/29
+% John Ashburner $Id$
 
 global st
 
 if nargin == 0,
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Display',0);
-	SPMid  = spm('FnBanner',mfilename,'2.20');
+	SPMid  = spm('FnBanner',mfilename,'$Rev$');
 	spm_help('!ContextHelp',[mfilename,'.m']);
 
 	% get the image's filename {P}

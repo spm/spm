@@ -58,7 +58,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %  as an optional step in performing voxel based morphometry.
 %
 %_______________________________________________________________________
-% @(#)spm_write_sn.m	2.20 John Ashburner 04/02/10
+% John Ashburner $Id$
 
 if isempty(V), return; end;
 

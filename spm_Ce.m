@@ -10,7 +10,7 @@ function [C] = spm_Ce(v,a)
 %
 % See also; spm_Q.m
 %___________________________________________________________________________
-% @(#)spm_Ce.m	2.8 Karl Friston 04/08/10
+% Karl Friston $Id$
 
 
 % defaults

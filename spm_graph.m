@@ -51,7 +51,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % based on conditonal estimates.
 %
 %_______________________________________________________________________
-% @(#)spm_graph.m	2.40 Karl Friston 03/03/25
+% Karl Friston $Id$
 
 
 %-Get Graphics figure handle

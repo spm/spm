@@ -8,7 +8,7 @@ function [x] = spm_vec(varargin)
 % e.g.:
 % spm_vec({eye(2) 3}) = [1 0 0 1 3]'
 %____________________________________________________________________________
-% @(#)spm_vec.m	2.1 Karl Friston 05/01/04
+% Karl Friston $Id$
 
 % de-reference input cell if possible
 %----------------------------------------------------------------------------

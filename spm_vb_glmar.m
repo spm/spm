@@ -70,7 +70,7 @@ function [slice] = spm_vb_glmar (Y,slice)
 %
 %               There are other fields that are used internally
 %
-% @(#)spm_vb_glmar.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 tic;
 

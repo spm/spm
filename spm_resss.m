@@ -72,7 +72,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % or to combine the global scaling factors in the residual forming
 % matrix.
 %_______________________________________________________________________
-% @(#)spm_resss.m	2.10 Andrew Holmes, John Ashburner 04/12/09
+% Andrew Holmes & John Ashburner $Id$
 
 
 %-Argument checks

@@ -6,7 +6,7 @@ function [M,h] = spm_maff(varargin)
 % V    - image filename/handle
 % opts -  a structure containing optional fields
 %         M       - starting estimate
-%         priors  - filenames of belonging probability images
+%         tpm     - filenames of belonging probability images
 %         regtype - regularisation type, a string of either
 %                   'mni'   - registration with MNI space
 %                   'rigid' - rigid(ish)-body registration
@@ -34,7 +34,7 @@ function [M,h] = spm_maff(varargin)
 % regtype - regularisation type (see above)
 % ff      - a fudge factor (derived from the one above)
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 if nargin>2,
     M = affreg(varargin{:});
@@ -53,7 +53,7 @@ B = strvcat(...
     fullfile(spm('Dir'),'apriori','white.mnc'),...
     fullfile(spm('Dir'),'apriori','csf.mnc'));
 
-opts0 = struct('M',eye(4), 'priors',B,'regtyp','mni','fudge',9,'samp',2);
+opts0 = struct('M',eye(4), 'tpm',B,'regtyp','mni','fudge',9,'samp',2);
 
 if nargin < 2
     opts = opts0;
@@ -65,7 +65,7 @@ else
     end;
 end;
 
-B  = spm_vol(opts.priors);
+B  = spm_vol(opts.tpm);
 b0 = spm_load_priors(B);
 
 % Load the image

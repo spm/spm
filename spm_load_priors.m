@@ -1,4 +1,11 @@
 function b0 = spm_load_priors(B)
+% Loads the tissue probability maps for segmentation
+% FORMAT b0 = spm_load_priors(B)
+% B  - structures of image volume information (or filenames)
+% b0 - a cell array of tissue probabilities
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 deg = 3;
 lm  = 0;
 if ~isstruct(B), B  = spm_vol(B); end;

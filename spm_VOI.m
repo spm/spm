@@ -49,7 +49,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 %
 % See also: spm_list
 %_______________________________________________________________________
-% @(#)spm_VOI.m	2.18 Karl Friston 02/10/30
+% Karl Friston $Id$
 
 %-Parse arguments
 %-----------------------------------------------------------------------

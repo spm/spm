@@ -4,7 +4,7 @@ function [W] = spm_Volt_W(u)
 % u  - times {seconds}
 % W  - basis functions (mixture of Gammas)
 %_______________________________________________________________________
-% @(#)spm_Volt_W.m	1.2 Karl Friston 97/09/30
+% Karl Friston $Id$
 
 u     = u(:);
 W     = [];

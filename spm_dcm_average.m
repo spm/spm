@@ -22,7 +22,7 @@ function [] = spm_dcm_average (num_models,P,name)
 % particular contrast using the spm_dcm_sessions.m function
 %
 % -------------------------------------------------------
-% %W% Will Penny %E%
+% Will Penny $Id$
 
 if nargin < 1
     % Function called via UI

@@ -12,7 +12,7 @@ function GX = spm_global(V)
 % using a criteria of greater than > (global mean)/8
 %
 %_______________________________________________________________________
-% @(#)spm_global.m	2.2 Anon 99/04/19
+% Anon $Id$
 
 %-This is merely the help file for the compiled routine
 error('spm_global.c not compiled - see spm_MAKE.sh')

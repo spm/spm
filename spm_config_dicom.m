@@ -1,7 +1,7 @@
 function opts = spm_config_dicom
 % Configuration file for dicom import jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

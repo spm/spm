@@ -479,8 +479,8 @@ function varargout = spm_spm_ui(varargin)
 % will have been pre-scaled to effect any grand mean or global
 % scaling.
 %_______________________________________________________________________
-% @(#)spm_spm_ui.m	2.54 Andrew Holmes 04/12/09
-SCCSid  = '2.54';
+% Andrew Holmes $Id$
+SCCSid  = '$Rev$';
 
 %=======================================================================
 % - FORMAT specifications for programers

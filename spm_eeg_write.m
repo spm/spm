@@ -15,7 +15,7 @@ function scales = spm_eeg_write(fpout, d, direc, dtype)
 % scales. The only reason for writing to a format like int16 is to save
 % disk space.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% Stefan Kiebel $Id$
 
 if dtype == 'float'
     if direc == 1

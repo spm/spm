@@ -65,7 +65,7 @@ function varargout=spm_mip_ui(varargin)
 % main body of the function.
 % 
 %_______________________________________________________________________
-% @(#)spm_mip_ui.m	2.14 Andrew Holmes 04/12/02
+% Andrew Holmes $Id$
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

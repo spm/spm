@@ -11,7 +11,7 @@ function spm_defaults
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% @(#)spm_defaults.m	2.24 John Ashburner, Andrew Holmes 04/02/19
+% John Ashburner, Andrew Holmes $Id$
 
 global defaults
 
@@ -20,7 +20,6 @@ global defaults
 defaults.grid     = 0.4;
 defaults.cmdline  = 0;
 defaults.logfile  = '';
-defaults.printstr =  [spm_figure('DefPrintCmd'),'spm2.ps'];
 
 % File format specific
 %=======================================================================
@@ -46,6 +45,9 @@ defaults.realign.estimate.quality = 0.75;
 defaults.realign.estimate.weight = 0;
 defaults.realign.estimate.interp = 2;
 defaults.realign.estimate.wrap   = [0 0 0];
+defaults.realign.estimate.sep    = 4;
+defaults.realign.estimate.fwhm   = 5;
+defaults.realign.estimate.rtm    = 1;
 defaults.realign.write.mask      = 1;
 defaults.realign.write.interp    = 4;
 defaults.realign.write.wrap      = [0 0 0];
@@ -109,9 +111,38 @@ defaults.segment.estimate.affreg.weight = '';
 defaults.segment.write.cleanup   = 1;
 defaults.segment.write.wrt_cor   = 1;
 
-% Bias field estimation defaults
+% Bias field estimation defaults (UNUSED)
 %=======================================================================
 defaults.bias.nbins  = 256;	% Number of histogram bins
 defaults.bias.reg    = 0.01;	% Regularisation
 defaults.bias.cutoff = 30;	% DCT frequency cutoff (mm)
+
+% VBM Preprocessing defaults
+%=======================================================================
+defaults.preproc.tpm     = str2mat(...
+    fullfile(spm('Dir'),'tpm','gray.nii'),...
+    fullfile(spm('Dir'),'tpm','white.nii'),...
+    fullfile(spm('Dir'),'tpm','csf.nii')); % Prior probability maps
+defaults.preproc.ngaus    = [2 2 2 4];     % Gaussians per class
+defaults.preproc.warpreg  = 1;             % Warping Regularisation
+defaults.preproc.warpco   = 25;            % Warp Frequency Cutoff
+defaults.preproc.biasreg  = 0.0001;        % Bias regularisation
+defaults.preproc.biasfwhm = 60;            % Bias FWHM
+defaults.preproc.regtype  = 'mni';         % Affine Regularisation
+defaults.preproc.samp     = 3;             % Sampling distance
+
+% ImCalc defaults
+%=======================================================================
+defaults.imcalc.dmtx   = 0;                 % Data Matrix
+defaults.imcalc.mask   = 0;                 % Masking
+defaults.imcalc.interp = 1;                 % Interpolation
+defaults.imcalc.dtype  = spm_type('int16'); % Data Type
+
+% User Interface Defaults
+%=======================================================================
+defaults.ui.print   = struct('opt',{'-dpsc2','-append'},'append',true,'ext','.ps');
+defaults.ui.colour1 = [0.8 0.8 1.0];
+defaults.ui.colour2 = [1.0 1.0 0.8];
+defaults.ui.colour3 = [0.0 0.0 0.0];
+
 

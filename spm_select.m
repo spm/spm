@@ -21,6 +21,8 @@ function [t,sts] = spm_select(varargin)
 % The list can be cleared by
 %     spm_select('clearvfiles')
 %
+%____________________________________________________________________________
+% John Ashburner $Id$
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
     vfiles('add',varargin{2:end});

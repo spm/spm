@@ -58,9 +58,9 @@ function varargout=spm(varargin)
 % SPM is developed by members and collaborators of the
 %                             Wellcome Department of Cognitive Neurology
 
-%-SCCS ID and authorship of this program...
+%-SVN ID and authorship of this program...
 %-----------------------------------------------------------------------
-% @(#)spm.m	2.92 Andrew Holmes 05/02/09
+% Andrew Holmes $Id$
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

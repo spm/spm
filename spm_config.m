@@ -120,13 +120,7 @@ function vals = spm_config
 % The easiest way to figure this stuff out is to look at examples in the
 % spm_config_*.m files.
 %_______________________________________________________________________
-% %W% %E%
-
-%persistent cnf
-%if ~isempty(cnf),
-%	vals = cnf;
-%	return;
-%end;
+% John Ashburner $Id$
 
 w       = spm_jobman('HelpWidth');
 

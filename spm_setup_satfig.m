@@ -3,10 +3,8 @@
 % spm_setup_satfig sets up a satellite figure to allow simultaneous display
 % of table values and overlays.
 %----------------------------------------------------------------------------
-% @(#)spm_setup_satfig.m	2.1 Darren R Gitelman 02/02/15
+% Darren R Gitelman $Id$
 
-% $Id: spm_setup_satfig.m 1.1 2002-02-14 16:14:37+00 drg Exp drg $
-%----------------------------------------------------------------------------
 global SatWindow
 
 FS   = spm('FontSizes');                   %-Scaled font sizes

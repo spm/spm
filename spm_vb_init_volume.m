@@ -5,7 +5,7 @@
 % X design matrix
 % p AR model order
 %
-% @(#)spm_vb_init_volume.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 disp('Initialising volume');
 disp(' ');

@@ -4,7 +4,7 @@ function results = spm_preproc(varargin)
 % FORMAT results = spm_preproc(V,opts)
 %  V    - image to work with
 %  opts - options
-%  opts.priors   - n prior probability images for each class
+%  opts.tpm   - n prior probability images for each class
 %  opts.ngaus    - number of Gaussians per class (n+1 classes)
 %  opts.warpreg  - warping regularisation
 %  opts.warpco   - cutoff distance for DCT basis functions
@@ -15,10 +15,10 @@ function results = spm_preproc(varargin)
 %  opts.msk      - unused
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 [dir,nam,ext]  = fileparts(which(mfilename));
-opts0.priors   = str2mat(...
+opts0.tpm   = str2mat(...
                fullfile(dir,'tpm','grey.img'),...
                fullfile(dir,'tpm','white.img'),...
                fullfile(dir,'tpm','csf.img'));
@@ -49,7 +49,7 @@ else
     end;
 end;
 
-if length(opts.ngaus)~= size(opts.priors,1)+1,
+if length(opts.ngaus)~= size(opts.tpm,1)+1,
     error('Number of Gaussians per class is not compatible with number of classes');
 end;
 K   = sum(opts.ngaus);
@@ -59,7 +59,7 @@ for k=1:Kb,
     lkp = [lkp ones(1,opts.ngaus(k))*k];
 end;
 
-B         = spm_vol(opts.priors);
+B         = spm_vol(opts.tpm);
 b0        = spm_load_priors(B);
 
 d         = V(1).dim(1:3);
@@ -516,7 +516,7 @@ spm_chi2_plot('Clear');
 
 results        = opts;
 results.image  = V;
-results.priors = B;
+results.tpm    = B;
 results.Affine = Affine;
 results.Twarp  = Twarp;
 results.Tbias  = Tbias;

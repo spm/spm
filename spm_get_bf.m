@@ -25,7 +25,7 @@ function [xBF] = spm_get_bf(xBF)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %_______________________________________________________________________
-% @(#)spm_get_bf.m	2.23  Karl Friston 05/02/14
+% Karl Friston $Id$
 
 %-GUI setup
 %-----------------------------------------------------------------------

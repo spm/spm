@@ -1,7 +1,7 @@
 function opts = spm_config_smooth
 % Configuration file for smoothing jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

@@ -56,7 +56,7 @@ function F = spm_Pcdf(x,l)
 %        Cambridge
 %
 %_______________________________________________________________________
-% @(#)spm_Pcdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

@@ -10,7 +10,7 @@ function data = spm_chi2_plot(action,arg1,arg2,arg3,arg4)
 % Clears the 'Interactive' window.
 %
 %-----------------------------------------------------------------------
-% @(#)spm_chi2_plot.m	1.2 John Ashburner 97/09/11
+% John Ashburner $Id$
 
 global pb_pointer pb_name ax
 %-----------------------------------------------------------------------

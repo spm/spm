@@ -1,4 +1,8 @@
-function do_print
+function spm_print
+% Print the graphics window
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 global defaults
 try,
 

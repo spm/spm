@@ -18,7 +18,7 @@ function [Ce,h,W,u,F] = spm_reml(Cy,X,Q);
 % components with its principal axes to ensure all components are estimated
 % with finite precision.
 %_______________________________________________________________________
-% @(#)spm_reml.m	2.33 John Ashburner, Karl Friston 04/09/27
+% John Ashburner & Karl Friston $Id$
 
 % Tolerances 
 %-----------------------------------------------------------------------

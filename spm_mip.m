@@ -26,7 +26,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % are scaled to 1*64.
 %
 %_______________________________________________________________________
-% @(#)spm_mip.m	2.8 Karl Friston et al. 04/06/24
+% Karl Friston et al. $Id$
 
 
 %-Get GRID value

@@ -12,8 +12,8 @@ function spm_mean_ui
 %
 % This is not a "softmean" - zero voxels are treated as zero.
 %_______________________________________________________________________
-% @(#)spm_mean_ui.m	2.5 John Ashburner, Andrew Holmes 02/07/31
-SCCSid = '2.5';
+% John Ashburner, Andrew Holmes $Id$
+SCCSid = '$Rev$';
 
 
 %-Say hello

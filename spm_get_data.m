@@ -9,7 +9,7 @@ function [Y] = spm_get_data(V,XYZ)
 %
 % see spm_sample_vol
 %___________________________________________________________________________
-% @(#)spm_get_data.m	2.1 Karl Friston 02/04/25
+% Karl Friston $Id$
 
 % ensure V is an array of handle structures
 %---------------------------------------------------------------------------

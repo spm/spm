@@ -21,8 +21,7 @@ function pdf = spm_Npdf(z,Mu,V)
 % z must have column dimension d. Multiple columns can be entered. 
 %
 %_______________________________________________________________________
-
-% @(#)spm_mvNpdf.m	2.1 Andrew Holmes 98/05/11
+% Andrew Holmes $Id$
 
 %-Condition arguments
 %-----------------------------------------------------------------------

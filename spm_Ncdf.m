@@ -48,7 +48,7 @@ function F = spm_Ncdf(x,u,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% @(#)spm_Ncdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

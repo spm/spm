@@ -31,7 +31,7 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % as one of it's entries! (I think?)
 %
 %_______________________________________________________________________
-% @(#)spm_XYZreg_Ex2.m	2.1 Andrew Holmes 98/03/23
+% Andrew Holmes $Id$
 
 %=======================================================================
 switch lower(varargin{1}), case 'create'

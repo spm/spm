@@ -16,11 +16,10 @@ function krn = spm_smoothkern(fwhm,x,t)
 % function (by default). A Gaussian convolved with a hat
 % function (0th degree B-spline) can also be returned.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
-if nargin<3
-    t = 1;
-end;
+if nargin<3, t = 1; end;
+
 % Variance from FWHM
 s = (fwhm/sqrt(8*log(2)))^2+eps;
 

@@ -162,9 +162,9 @@ function [SPM] = spm_fMRI_design(SPM)
 % are computed for only the first column of U(u).u.
 %
 %_______________________________________________________________________
-% @(#)spm_fMRI_design.m	2.36 Karl Friston 04/09/16
+% Karl Friston $Id$
 
-SCCSid  = '2.36';
+SCCSid  = '$Rev$';
 
 %-GUI setup
 %-----------------------------------------------------------------------

@@ -7,7 +7,7 @@ function [R] = spm_vb_get_R (slice,h0)
 % 
 % R         posterior correlation matrix of regression coefficients
 %
-% @(#)spm_vb_get_R.m	1.1 Will Penny 04/08/04
+% Will Penny $Id$
 
 lambda=h0(end);
 k=slice.k;

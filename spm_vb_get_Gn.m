@@ -6,7 +6,7 @@ function [G,G1,G2,G3] = spm_vb_get_Gn (Y,slice,n)
 % slice         data structure 
 % n             voxel number
 %
-% @(#)spm_vb_get_Gn.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 p=slice.p;
 k=slice.k;

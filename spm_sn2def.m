@@ -61,7 +61,7 @@ function spm_sn2def(varargin)
 %
 %
 %_______________________________________________________________________
-% @(#)spm_sn2def.m	1.4 John Ashburner 03/11/26
+% John Ashburner $Id$
 
 global defaults
 defs = defaults.normalise.write;

@@ -40,7 +40,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %       'd'              - deblank - this is always done!
 %
 %_______________________________________________________________________
-% @(#)spm_str_manip.m	2.10 John Ashburner 99/11/26
+% John Ashburner $Id$
 
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end

@@ -1,4 +1,10 @@
 function V = spm_create_vol(V,varargin)
+% Create a volume
+% FORMAT V = spm_create_vol(V)
+% V - image volume information (see spm_vol.m)
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 for i=1:prod(size(V)),
     if nargin>1,
         v = create_vol(V(i),varargin{:});

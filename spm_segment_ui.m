@@ -127,7 +127,7 @@ function spm_segment_ui(P)
 % applied during affine registration.
 %
 %_______________________________________________________________________
-% @(#)spm_segment_ui.m	2.4 John Ashburner 03/02/17
+% John Ashburner $Id$
 
 global defaults
 if nargin==1 & strcmp(lower(P),'defaults');
@@ -141,7 +141,7 @@ return;
 %=======================================================================
 function segment_ui(flags)
 
-SPMid = spm('FnBanner',mfilename,'2.4');
+SPMid = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Segment');
 spm_help('!ContextHelp',mfilename);
 

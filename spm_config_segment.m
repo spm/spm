@@ -1,9 +1,7 @@
 function opts = spm_config_segment
 % Configuration file for segment jobs
 %_______________________________________________________________________
-% %W% %E%
-% DRG CS-RCS: $Id: spm_config_segment.m,v 1.1 2005-02-08 21:04:19-06 drg Exp drg $
-%_______________________________________________________________________
+% John Ashburner $Id$
 
 w = spm_jobman('HelpWidth');
 

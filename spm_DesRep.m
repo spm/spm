@@ -125,7 +125,7 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %_______________________________________________________________________
-% @(#)spm_DesRep.m	2.32 Andrew Holmes 04/01/16
+% Andrew Holmes $Id$
 
 
 %=======================================================================

@@ -4,7 +4,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 %
 % DCM_filename  - the DCM model
 %
-% %W% Will Penny %E%
+% Will Penny $Id$
  
 if nargin < 1
     %-display model details

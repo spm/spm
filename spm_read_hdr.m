@@ -5,7 +5,7 @@ function [hdr,otherendian] = spm_read_hdr(fname)
 % hdr         - structure containing Analyze header
 % otherendian - byte swapping necessary flag
 %_______________________________________________________________________
-% @(#)spm_read_hdr.m	2.2 John Ashburner 03/07/17
+% John Ashburner $Id$
 
 fid         = fopen(fname,'r','native');
 otherendian = 0;

@@ -167,7 +167,7 @@ function ds = spm_uw_estimate(P,par)
 %
 % 
 %_______________________________________________________________________
-% @(#)spm_uw_estimate.m	1.6 Jesper Andersson 04/02/19
+% Jesper Andersson $Id$
 
 global defaults
 

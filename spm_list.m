@@ -103,7 +103,7 @@ function varargout = spm_list(varargin)
 % extract the table data to the Matlab workspace.
 %
 %_______________________________________________________________________
-% @(#)spm_list.m	2.47 Karl Friston, Andrew Holmes 05/02/09
+% Karl Friston & Andrew Holmes $Id$
 
 
 % satellite figure global variable

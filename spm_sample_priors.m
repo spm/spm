@@ -1,4 +1,16 @@
 function [s,ds1,ds2,ds3] = spm_sample_priors(b,x1,x2,x3,bg)
+% Sample prior probability maps
+% FORMAT [s,ds1,ds2,ds3] = spm_sample_priors(b,x1,x2,x3,bg)
+% b           - a cell array containing the tissue probability
+%               data (see spm_load_priors)
+% x1,x2,x3    - coordinates to sample
+% bg          - background intensity (i.e. value for points
+%               outside FOV)
+% s           - sampled values
+% ds1,ds2,ds3 - spatial derivatives of sampled values
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 deg = 3;
 lm  = 0;
 bg = min(max(bg,lm),(1-lm));

@@ -11,7 +11,7 @@ function [voxel] = spm_vb_get_Ab (Y,slice)
 % The above quantities are estimated using pre-computed
 % cross-covariance matrices
 %
-% @(#)spm_vb_get_Ab.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 k=slice.k;
 N=slice.N;

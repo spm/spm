@@ -76,7 +76,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % in multiple testing under dependency". To appear, Annals of Statistics.
 % Available at http://www.math.tau.ac.il/~benja 
 %___________________________________________________________________________
-% @(#)spm_uc_FDR.m	2.11 Thomas Nichols 04/10/19
+% Thomas Nichols $Id$
 
 if (nargin<6), Vm = []; end
 

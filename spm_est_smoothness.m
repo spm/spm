@@ -34,7 +34,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Mathematics and Statistics, McGill University
 %
 %_______________________________________________________________________
-% @(#)spm_est_smoothness.m	2.7 Stefan Kiebel 04/08/31
+% Stefan Kiebel $Id$
 
 % assign input argumants
 %-----------------------------------------------------------------------

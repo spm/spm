@@ -1,7 +1,7 @@
 function opts = spm_config_realign_and_unwarp
 % Configuration file for realign and unwarping jobs
 %_______________________________________________________________________
-% %W% Darren R. Gitelman %E%
+% Darren R. Gitelman $Id$
 
 %_______________________________________________________________________
 

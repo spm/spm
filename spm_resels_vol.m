@@ -18,7 +18,7 @@ function varargout = spm_resels_vol(varargin)
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %_______________________________________________________________________
-% @(#)spm_resels_vol.m	2.2 John Ashburner 99/04/19
+% John Ashburner $Id$
 
 %-This is merely the help file for the compiled routine
 error('spm_resels_vol.c not compiled - see spm_MAKE.sh')

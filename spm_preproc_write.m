@@ -1,5 +1,15 @@
 function spm_preproc_apply(p,opts)
-% A quick and dirty script for VBM preprocessing
+% Write out VBM preprocessed data
+% FORMAT spm_preproc_apply(p,opts)
+% p    - results from spm_preproc
+% opts - writing options.  A struct containing these fields:
+%        biascor - write bias corrected image
+%        GM      - flags for which images should be written
+%        WM      - similar to GM
+%        CSF     - similar to GM
+%____________________________________________________________________________
+% John Ashburner $Id$
+
 if nargin==1,
     opts = struct('biascor',0,'GM',[0 0 1],'WM',[0 0 1],'CSF',[0 0 0]);
 end;

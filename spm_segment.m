@@ -42,7 +42,7 @@ function VO = spm_segment(VF,PG,flags)
 % versions of those kindly supplied by Alan Evans, MNI, Canada
 % (ICBM, NIH P-20 project, Principal Investigator John Mazziotta).
 %_______________________________________________________________________
-% @(#)spm_segment.m	2.28 John Ashburner 04/04/01
+% John Ashburner $Id$
 
 % Create some suitable default values
 %-----------------------------------------------------------------------

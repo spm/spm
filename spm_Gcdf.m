@@ -56,7 +56,7 @@ function F = spm_Gcdf(x,h,l)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% @(#)spm_Gcdf.m	2.2 Andrew Holmes 99/04/26
+% Andrew Holmes $Id$
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

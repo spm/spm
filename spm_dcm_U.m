@@ -10,8 +10,8 @@
 % This function can be used, for example, to replace subject X's inputs by subject Y's.
 % The model can then be re-estimated without having to go through
 % model specification again.
-%
-% @(#)spm_dcm_U.m	2.5 Will Penny 03/11/03
+%_______________________________________________________________________
+% Will Penny $Id$
 
 load(DCM_filename);
 load(SPM_filename);

@@ -5,6 +5,7 @@ function V = spm_vol_nifti(fname,n)
 %  n - volume id (a 1x2 array, e.g. [3,1])
 %  V - a structure containing the image volume information.
 %____________________________________________________________________________
+% John Ashburner $Id$
 
 if nargin<2,  n = [1 1];      end;
 if ischar(n), n = str2num(n); end;

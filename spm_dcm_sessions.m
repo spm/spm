@@ -24,7 +24,7 @@ function [] = spm_dcm_sessions ()
 % data (eg. subjects) are drawn.
 %
 % -------------------------------------------------------
-% %W% Will Penny %E%
+% Will Penny $Id$
 
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');

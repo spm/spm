@@ -4,7 +4,7 @@ function [x] = spm_load(f)
 % f  - file {ascii file containing a regular array of numbers
 % x  - corresponding data matrix
 %_______________________________________________________________________
-% @(#)spm_load.m	2.4 Karl Friston 05/01/10
+% Karl Friston $Id$
 
 
 %-Get a filename if none was passed

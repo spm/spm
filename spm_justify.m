@@ -17,7 +17,7 @@ function out = spm_justify(n,varargin)
 %    strvcat(out{:})
 %
 %------------------------------------------------------------------------
-% %W% John Ashburner %E%
+% John Ashburner $Id$
 
 
 % Collect varargs into a single string

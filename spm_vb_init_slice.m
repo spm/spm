@@ -5,7 +5,7 @@ function [slice] = spm_vb_init_slice (Y,slice)
 % Y             [T x N] time series with T time points, N voxels
 % slice         GLM-AR data structure
 %
-% @(#)spm_vb_init_slice.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
+% Will Penny & Nelson Trujillo-Barreto $Id$
 
 k=slice.k;
 p=slice.p;

@@ -1,7 +1,7 @@
 function spm_applydef_ui(P,PT)
 % Applies a deformation field to an image
 %_______________________________________________________________________
-% @(#)spm_applydef_ui.m	1.4 John Ashburner 04/03/24
+% John Ashburner $Id$
 
 if nargin<2
 	n = spm_input('Number of subjects','+0', 'n', '1', 1)';

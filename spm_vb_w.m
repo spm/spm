@@ -5,7 +5,7 @@ function [slice] = spm_vb_w (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure 
 %
-% @(#)spm_vb_w.m	1.1 Nelson Trujillo-Barreto and Will Penny 04/08/04
+% Nelson Trujillo-Barreto & Will Penny $Id$
 
 if slice.verbose
     disp('Updating w');

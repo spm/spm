@@ -6,7 +6,7 @@ function [H] = spm_logdet(C)
 % spm_logdet is a computationally efficient operator that can deal with
 % sparse matrices
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% Karl Friston $Id$
 
 % assume diagonal form
 %---------------------------------------------------------------------------

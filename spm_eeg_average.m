@@ -18,7 +18,7 @@ function D = spm_eeg_average(S);
 % between trial types.
 %
 %_______________________________________________________________________
-% @(#)spm_eeg_average.m	1.1 Stefan Kiebel 04/06/28
+% Stefan Kiebel $Id$
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);

@@ -1,7 +1,7 @@
 function opts = spm_config_display
 % Configuration file for display jobs
 %_______________________________________________________________________
-% %W% %E%
+% John Ashburner $Id$
 
 %_______________________________________________________________________
 

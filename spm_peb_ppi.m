@@ -71,7 +71,7 @@ function PPI = spm_peb_ppi(SPM)
 % uniform variance over frequencies.
 %
 %---------------------------------------------------------------------
-% @(#)spm_peb_ppi.m	2.10 Darren Gitelman 03/03/13
+% Darren Gitelman $Id$
 
 % set up the graphical interface
 %----------------------------------------------------------------------

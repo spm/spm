@@ -18,7 +18,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % existing model.
 %
 %
-% @(#)spm_dcm_create.m	2.4 Will Penny & Klaas Enno Stephan 04/04/22
+% Will Penny & Klaas Enno Stephan $Id$
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');

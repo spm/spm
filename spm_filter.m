@@ -23,7 +23,7 @@ function [vargout] = spm_filter(K,Y)
 %.spm_filter also configures the filter structure in accord with the 
 % specification fields if called with one argument
 %___________________________________________________________________________
-% @(#)spm_filter.m	2.10 Karl Friston 03/03/04
+% Karl Friston $Id$
 
 
 % set or apply

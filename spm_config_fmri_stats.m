@@ -1,7 +1,7 @@
 function conf = spm_config_fmri_stats
 % Configuration file for fmri statistics jobs
-
-% DRG CS-RCS: $Id: spm_config_fmri_stats.m,v 1.1 2005-02-08 20:26:51-06 drg Exp drg $
+%_______________________________________________________________________
+% Daren Gitelman $Id$
 
 % Define inline types.
 %-----------------------------------------------------------------------

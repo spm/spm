@@ -67,7 +67,7 @@ function [DCM] = spm_dcm_ui(Action)
 % majority of imaging neuroscience relies upon designed experiments we
 % consider DCM a potentially useful complement to existing techniques.  
 %___________________________________________________________________________
-% @(#)spm_dcm_ui.m	2.17 Karl Friston 04/07/26
+% Karl Friston $Id$
 
 
 % get figure handles

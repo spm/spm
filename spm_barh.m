@@ -5,7 +5,7 @@ function spm_barh(E,C,P)
 % C   - (n x 1) variances
 % P   - (n x 1) priors
 %___________________________________________________________________________
-% @(#)spm_barh.m	2.2 Karl Friston 02/10/23
+% Karl Friston $Id$
 
 
 % densities

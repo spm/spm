@@ -12,6 +12,6 @@ function y = spm_digamma(x)
 %   ACM Transactions on Mathematical Software, 1983.
 %   Obtained from NETLIB: http://www.netlib.org/toms/610.
 %_______________________________________________________________________
-% %W% Will Penny %E%
+% Will Penny $Id$
 
 error('spm_digamma.c has not been compiled')
