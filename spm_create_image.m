@@ -33,10 +33,8 @@ end;
 dt = V.dim(4);
 
 % Convert to native datatype
-if dt>256,
-	dt = dt/256;
-end;
-s = find(dt == [2 4 8 16 64 128+2 128+4 128+8]);
+dt = spm_type(spm_type(dt));
+s  = find(dt == spm_type);
 if isempty(s)
 	sts = -1;
 	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
@@ -44,29 +42,15 @@ if isempty(s)
 end;
 
 % Compute an appropriate scalefactor
-if dt == 2,
-	maxval = max(255*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/255;
-elseif dt == 4,
-	maxval = max(32767*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/32767;
-elseif (dt == 8)
-	maxval = max((2^31-1)*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/(2^31-1);
-elseif dt == 128+2,
-	maxval = max(127*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/255;
-	dt     = dt - 128;
-elseif dt == 128+4,
-	maxval = max(65535*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/32767;
-	dt     = dt - 128;
-elseif (dt == 128+8)
-	maxval = max((2^32-1)*V.pinfo(1,:) + V.pinfo(2,:));
-	scale  = maxval/(2^31-1);
-	dt     = dt - 128;
+if spm_type(dt,'intt'),
+	maxval = max(spm_type(dt,'maxval')*V.pinfo(1,:) + V.pinfo(2,:));
+	if any(dt == [128+2 128+4 128+8]),
+		 % Convert to a form that Analyze will support
+		dt = dt - 128; 
+	end;
+	scale  = maxval/spm_type(dt,'maxval');
 else
-	scale = 1.0;
+	scale = max(V.pinfo(1,:));
 end;
 
 V.pinfo = [scale 0 0]';
