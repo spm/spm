@@ -219,7 +219,7 @@ spm_hwrite(q,DIM,VOX,SCALE,TYPE,0,ORIGIN,'spm - mean image');
 
 % unmap and close files
 %---------------------------------------------------------------------------
-for i = 1:size(P,1); spm_unmap_vol(V(:,i)); end
+for i = 1:size(P,1); spm_unmap(V(:,i)); end
 fclose('all');
 
 

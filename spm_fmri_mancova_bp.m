@@ -230,7 +230,7 @@ end					% end cycle over planes
 
 % unmap volumes and retain image dimensions
 %---------------------------------------------------------------------------
-for i  = 1:q; spm_unmap_vol(V(:,i)); end
+for i  = 1:q; spm_unmap(V(:,i)); end
 V      = [V(1:6,1); ORIGIN(:)];
 
 
