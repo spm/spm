@@ -10,6 +10,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #include "mex.h"
 
+#define MAXDIRS 10240
+#define MAXFILES 102400
 
 /*
 Checks for numeric values in the strings, so that strings like
@@ -128,7 +130,7 @@ Matrix *plhs[], *prhs[];
 	int ndirs = 0, nfiles = 0, len, uid, gids[128], ngids, maxdlen = 0, maxflen = 0;
 	DIR *dirp;
 	struct dirent *dp;
-	char *filenames[1024], *directories[1024], *ptr, *buf = (char *)0, *bufp, *fullpathname, *filter;
+	char *filenames[MAXFILES], *directories[MAXDIRS], *ptr, *buf = (char *)0, *bufp, *fullpathname, *filter;
 	static struct stat stbuf;
 
 	if ((nrhs != 2) || (nlhs != 2))
@@ -179,7 +181,7 @@ Matrix *plhs[], *prhs[];
 
 					if ((stbuf.st_mode & S_IFMT) == S_IFDIR && (mask & 0555 & stbuf.st_mode))
 					{
-						if (ndirs == 1024)
+						if (ndirs == MAXDIRS)
 							mexErrMsgTxt("Too many subdirectories.");
 
 						len = strlen(dp->d_name);
@@ -191,7 +193,7 @@ Matrix *plhs[], *prhs[];
 					}
 					else if ((stbuf.st_mode & S_IFMT) == S_IFREG &&  (mask & 0444 & stbuf.st_mode))
 					{
-						if (nfiles == 1024)
+						if (nfiles == MAXFILES)
 							mexErrMsgTxt("Too many files match.");
 						len = strlen(dp->d_name);
 						if (len > maxflen) maxflen = len;
