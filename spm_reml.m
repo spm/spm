@@ -1,6 +1,8 @@
 function [Ce,h,W,u,Q] = spm_reml(Cy,X,Q);
 % REML estimation of covariance components from Cov{y}
 % FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q);
+% Version that realigns the bases with the principal axes of curvature
+% See also spm_reml
 %
 % Cy  - (m x m) data covariance matrix y*y'  {y = (m x n) data matrix}
 % X   - (m x p) design matrix
@@ -15,8 +17,8 @@ function [Ce,h,W,u,Q] = spm_reml(Cy,X,Q);
 
 % Tolerances 
 %---------------------------------------------------------------------------
-TOL = 1e-6;		% for convergence [norm of gradient df/dh]
-TOS = 1e-16;	% for SVD of curvature [ddf/dhdh]
+TOL   = 1e-6;       % for convergence [norm of gradient df/dh]
+TOS   = 1e-16;	    % for SVD of curvature [ddf/dhdh]
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
@@ -43,7 +45,7 @@ end
 % eliminate inestimable components
 %---------------------------------------------------------------------------
 [u s] = spm_svd(W,TOS);
-u     = u*inv(s);
+u     = u*inv(sqrt(s));
 for i = 1:size(u,2)
     C{i}  = sparse(n,n);
     for j = 1:m
@@ -63,19 +65,37 @@ for i = 1:m
 end
 I     = speye(n,n);
 h     = inv(C'*C)*(C'*I(:));
+dh    = sparse(m,1);
 
+% and Ce		
+%------------------------------------------------------------------
+Ce    = sparse(n,n);
+for i = 1:m
+    Ce = Ce + h(i)*Q{i};
+end
 
 % Iterative EM
 %---------------------------------------------------------------------------
-for k = 1:64
+for k = 1:32
     
     % Q are variance components		
     %------------------------------------------------------------------
-    Ce    = sparse(n,n);
+    dC    = sparse(n,n);
     for i = 1:m
-        Ce = Ce + h(i)*Q{i};
+        dC = dC + dh(i)*Q{i};
+    end
+    
+    % Check Ce is positive semi-definite
+    %-------------------------------------------------------------------
+    if any(diag(Ce + dC) < 0)
+        Ce = Ce + dC/2;
+        h  = h  + dh/2;
+    else
+        Ce = Ce + dC;
+        h  = h  + dh;
     end
     iCe   = inv(Ce);
+    
     
     % E-step: conditional covariance cov(B|y) {Cby}
     %===================================================================
@@ -95,7 +115,6 @@ for k = 1:64
         %---------------------------------------------------
         PQ{i}   = P*Q{i};
         dFdh(i) = sum(sum(PCy.*PQ{i}))/2;
-        
     end
     
     % Expected curvature E{ddF/dhh} (second derivatives)
@@ -113,21 +132,14 @@ for k = 1:64
     
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %-------------------------------------------------------------------
-    dh    = inv(W)*dFdh;
-    h     = h + dh;
+    dh    = pinv(W)*dFdh(:);
     
     % Convergence (or break if there is only one hyperparameter)
     %===================================================================
     w     = dFdh'*dFdh;
-    if w < TOL | m == 1, break, end
+    if w < TOL, break, end
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
-end
-
-% estimate of cov{e}
-%---------------------------------------------------------------------------
-Ce    = sparse(n,n);
-for i = 1:m
-    Ce = Ce + h(i)*Q{i};
+    
 end
 
 % rotate hyperparameter esimates and precision back
