@@ -333,7 +333,7 @@ if bAskCov
             else
                 %-Block of covariates entered - add to design matrix
                 for i = nCcs+1:nCcs+size(d,1)
-                    dnames = str2mat(dnames,['CovInt#',int2str(i)]); end
+                    dnames = str2mat(dnames,['rCovInt#',int2str(i)]); end
                 Ccnames = str2mat(Ccnames,dnames);
                 C = [C, d];
                 Cnames = str2mat(Cnames,dnames);
@@ -387,7 +387,7 @@ if bAskCov
             else
                 %-Block of covariates entered - add to design matrix
                 for i = nGcs+1:nGcs+size(d,1)
-                     dnames = str2mat(dnames,['ConfCov#',int2str(i)]); end
+                     dnames = str2mat(dnames,['rConfCov#',int2str(i)]); end
                 Gcnames = str2mat(Gcnames,dnames);
             end % (if)
             G = [G, d];
