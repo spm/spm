@@ -1,10 +1,13 @@
-function sf=spm_imcalc(Vi,Vo,f,hold)
+function sf=spm_imcalc(Vi,Vo,f,hold,mask)
 % Perform algebraic functions on images
-% FORMAT sf=spm_imcalc(Vi,Vo,f,hold)
+% FORMAT sf=spm_imcalc(Vi,Vo,f,hold,mask)
 % Vi    - vector of mapped image volumes to work on (from spm_vol)
 % Vo    - handle structure for output image volume
 % f     - expression to be evaluated
-% hold  - interpolation hold (see spm_slice_vol) [default=1]
+% hold  - interpolation hold (see spm_slice_vol)
+%         [defaults (missing or empty) to 0 - nearest neighbour]
+% mask  - implicit zero mask?
+%         [defaults (missing or empty) to 0]
 % sf    - scalefactor for output image
 %
 % With no arguments, spm_imcalc_ui is called.
@@ -12,16 +15,20 @@ function sf=spm_imcalc(Vi,Vo,f,hold)
 %
 % The images specified in Vi, are referred to as i1, i2, i3,...
 % in the expression to be evaluated.
+%
+% See spm_imcalc_ui for example usage...
 %_______________________________________________________________________
 % %W% John Ashburner, Andrew Holmes %E%
 
 
 %-Parameters & arguments
 %=======================================================================
-if nargin<4, hold=1; end
+if nargin<5, mask=[]; end, if isempty(mask), mask=0; end
+if nargin<4, hold=[]; end, if isempty(hold), hold=0; end
 if nargin==0, sf=spm_imcalc_ui; return, end
 if nargin<3, error('insufficient arguments'), end
-if Vo.dim(4)~=4, error('only 16 bit signed output images supported'), end
+
+if Vo.dim(4)~=4, error('only 16 bit signed short output images supported'), end
 
 
 %=======================================================================
@@ -45,6 +52,7 @@ for p = 1:Vo.dim(3),
 	for i = 1:n
 		M = inv(B*inv(Vo.mat)*Vi(i).mat);
 		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),hold);
+		if mask & Vi.dim(4)<16, d(d==0)=NaN; end
 		eval(['i',num2str(i) '=d;']);
 	end
 
@@ -59,9 +67,10 @@ end
 
 %-Write output image (16 bit signed)
 %=======================================================================
-sf = max(abs(Y(:)))/32767;
-if sf==0, sf = 1; end		%-for images of all zeros
-Vo.pinfo = [sf 0 0]';
+sf = max(abs(Y(:)))/32767;		%-compute scale factor
+if sf==0, sf = 1; end			%-for images of all zeros
+Vo.pinfo = [sf 0 0]';			%-set scalefactor
+Y(isnan(Y))=0;				%-implicit zero mask for spm_type(4)
 for p = 1:Vo.dim(3), spm_write_plane(Vo,Y(:,:,p),p); end
 
 
