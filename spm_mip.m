@@ -14,11 +14,14 @@ function spm_mip(X,L,V)
 % spm_mip creates and displays a maximum intensity projection of a point
 % list of voxel values (X) and their location (L) in three orthogonal
 % views of the brain.  It is assumed voxel locations conform to the space
-% defined in the atlas of Talairach and Tournoux (1988), otherwise disable
-% the GRID.
+% defined in the atlas of Talairach and Tournoux (1988).
 %
-% This routine loads mip (in MIP.mat).  mip is a 360 x 352 matrix with
-% contours and grids defining the space of Talairach & Tournoux (1988)
+% This routine loads a mip putline from MIP.mat. This is an image with
+% contours and grids defining the space of Talairach & Tournoux (1988).
+% mip95 corresponds to the Talairach atlas, mip96 to the MNI templates.
+% The outline and grid are superimposed at intensity GRID (global default),
+% defaulting to 0.6.
+%
 % A default colormap of 64 levels is assumed.
 %
 % If global XVIEWER is set to a PGM viewer program, images are also
@@ -27,37 +30,37 @@ function spm_mip(X,L,V)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-global GRID XVIEWER TWD
 
-% default GRID value
+%-Get GRID value
 %-----------------------------------------------------------------------
-if isempty(GRID)
-	GRID = 0.6; end
+global GRID, if isempty(GRID), GRID = 0.6; end
 
 
 % single slice case
 %=======================================================================
-% NB: Doesn't work for FLIPped data, since ORIGIN is not mirrored
-% within image matrix
+% NB: Doesn't work for FLIPped data (ORIGIN not mirrored within image matrix)
 if V(3) == 1
+	X=X(:)'; X=X/max(X);
 	if length(V)==6, V=[V; 0;0;0]; end
 	M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3), 1]];
 	rcp = inv(M)*[L; ones(1,size(L,2))];
+%	%-Range checks
 %	d   = rcp(1,:) > 1 & rcp(1,:) < V(1) & rcp(2) > 1 & rcp(2,:) < V(2);
 %	mip = full(sparse(rcp(1,d),rcp(2,d),X(d),V(1),V(2)));
 	mip = full(sparse(rcp(1,:),rcp(2,:),X,V(1),V(2)));
-	%-NB: rot90(X) & axis xy is equivalent to X' & axis ij
-	imagesc([V(4)*(1-V(7)):V(4):V(4)*(V(1)-V(7))],...
-		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],(1 - mip)')
-	axis xy image off
+	%-NB: rot90(X) & axis ij is equivalent to X' & axis xy
+	image([V(4)*(1-V(7)):V(4):V(4)*(V(1)-V(7))],...
+		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],rot90(1-mip)*64)
+	set(gca,'FontSize',8,'TickDir','in')
+	axis image
 	xlabel('x'), ylabel('y')
 	return
 end
 
-% 3d case
+%-3d case
 %=======================================================================
 
-% remove negtive values from point list and scale to a maximium of unity
+%-Remove negtive values from point list and scale to a maximium of unity
 %-----------------------------------------------------------------------
 X    = X(:)';
 d    = X > 0;
@@ -65,7 +68,7 @@ L    = round(L(:,d));
 X    = X(d);
 X    = X/max(X);
 
-% load mip and create maximum intensity projection
+%-Load mip and create maximum intensity projection
 %-----------------------------------------------------------------------
 load MIP
 mip  = mip96*GRID;
@@ -74,9 +77,11 @@ spm_project(X,L,d,V(1:6));
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
 
-%
-%
-%
+
+
+%-PGM file to viewer app
+%=======================================================================
+global XVIEWER TWD
 if ~isempty(XVIEWER) & isstr(XVIEWER)
         if isempty(TWD); TWD = '/tmp'; end
         % This should really be a subroutine...
