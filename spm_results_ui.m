@@ -1,6 +1,6 @@
 function varargout = spm_results_ui(varargin)
 % User interface for SPM results: Display and analysis of regional effects
-% FORMAT [hReg,SPM,VOL,xX,xSDM] = spm_results_ui
+% FORMAT [hReg,SPM,VOL,xX,xCon,xSDM] = spm_results_ui
 %
 % hReg   - handle of MIP XYZ registry object
 %          (see spm_XYZreg for details)
@@ -10,8 +10,10 @@ function varargout = spm_results_ui(varargin)
 %          (see spm_getSPM.m for contents)
 % xX     - Design Matrix structure
 %          (see spm_getSPM.m for contents)
+% xCon   - Contrast structure
+%          (see spm_conman.m for contents)
 % xSDM   - structure containing contents of SPM.mat file
-%          ( see spm_spm.m for contents...
+%          (see spm_spm.m for contents...
 %          ( ...except that xX & XYZ are removed
 %
 % NB: Results section GUI CallBacks use these data structures by name, which
