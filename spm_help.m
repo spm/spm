@@ -1,21 +1,116 @@
-function R1=spm_help(Action,P2,P3)
-% SPM Interactive help and manual facility
+function [R1,R2]=spm_help(Action,P2,P3,P4)
+% SPM help and manual facilities
 % FORMAT spm_help
 %_______________________________________________________________________
-%
-% spm_help sets up a GUI help system for the SPM package. A layout of
-% the SPM components and special topics is drawn. The buttons display
-% the relevant help in the Graphics window. Referenced routines and
-% previous topics are listed in the Interactive window, permitting
-% recursive navigation of the package architecture and it's help.
-% 
-% From the graphics window the help topics can be printed. Multi page
-% topics are paged on screen, and printed page by page. (See
-% spm_figure)
+%  ___  ____  __  __
+% / __)(  _ \(  \/  )  Statistical Parametric Mapping
+% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+% (___/(__)  (_/\/\_)  University College London
 %
 %_______________________________________________________________________
-% %W% Karl Friston, Andrew Holmes %E%
 %
+% SEE ALSO:   spm.man      - "About SPM"
+%
+% There is no 'manual' for SPM; these help routines and the code
+% itself constitute a manual.
+%
+% The "Help" facilities are about software and implementation. The
+% underlying mathematics, concepts and operational equations have been
+% (or will be) published in the peer reviewed literature and the
+% interested user is referred to these sources. An intermediate
+% theoretical exposition is given in the SPM course notes. This and
+% other resources are available via the SPM Web site. Visit
+% http://www.fil.ion.ucl.ac.uk/spm
+%
+%-----------------------------------------------------------------------
+%
+% spm_help sets up a GUI help system for the SPM package.
+%
+% Help topics are displayed in a special help window. Initially, a
+% representation of the SPM Menu window is drawn. Clicking buttons in
+% this representation leads to the help pages for the appropriate
+% topic.
+% 
+% The SPM Help ToolBar contains controls for the help system.
+%
+%  ---  Routines and manual pages (generically referred to as help
+%       "topics") referenced by the currently displayed help file are
+%       listed in the "Referenced Topics..." pull-down menu on the help
+%       interface. Selecting a routine there displays it's help
+%       information.
+%
+%  ---  Alternatively, a specific function name (with the ".m"
+%       extension) can be entered into the lilac editable text widget in
+%       the help window toolbar. It's help will be displayed.
+%
+%  ---  As the tree of routines is explored, the "Previous Topics"
+%       pulldown menu keeps track of recently visited help topics,
+%       allowing easy backtracking and exploration of the "tree" of SPM
+%       functions and dependencies.
+%
+% Special topic buttons lead to "About SPM", "Menu", and "Help" topics.
+% "About SPM" displays the introduction file for this version of SPM.
+% "Menu" displays the help representation of the SPM Menu window.
+% "Help" displays this file.
+%
+% Multi-page help files are displayed by the help facility with pagination
+% controls at the bottom right of the Graphics window.
+%
+% The print button enables printing to the specified Print device. This
+% is set in the Defaults area, initially to the PostScript file
+% "spm.ps" in the current directory. Multi page topics are paged on
+% screen, and printed page by page.
+%
+%
+%-----------------------------------------------------------------------
+% The SPM package provides help at three levels, the first two being
+% available via the SPM graphical help system:
+%
+% (i)   Manual pages on specific topics.
+%       These give an overview of specific components or topics its
+%       relation to other components, the inputs and outputs and
+%       references to further information.
+%
+%       Many of the buttons in the help menu window lead to such "man"
+%       pages.  These are contained in ASCII files named spm_*.man.
+%       These can be viewed on the MatLab command line with the `help`
+%       command, e.g. `help spm_help.m` prints out this manual file in
+%       the MatLab command window.
+%
+% (ii)  Help information for each routine within SPM (E.g. This is the).
+%       help information for spm_help.m - the help function.)
+%       This help information is the help header of the actual MatLab
+%       function, and can be displayed on the command line with the
+%       `help` command, e.g. `help spm_help`.
+%
+%       Commented header text from that spm_*.m file is displayed in the 
+%       following format:
+%
+%	     A one line description
+%	     FORMAT [outputs] = spm_routine(inputs);
+%	     inputs  -  the input arguments
+%	     outputs -  the output arguments
+%	     A short paragraph detailing what the routine does and other
+%	     pertinent information
+%	     ref:  citations
+%
+% (iii) SPM is (mainly) implemented as MatLab functions and scripts.
+%       These are ASCII files named spm_*.m, which can be viewed in the
+%       MatLab command window with the `type` command, e.g. `type
+%       spm_svd`, or read in a text editor.
+%
+%  ---  Matlab syntax is very similar to standard matrix notation that
+%       would be found in much of the literature on matrices. In this
+%       sense the SPM routines can be used (with Matlab) for data
+%       analysis, or they can be regarded as the ultimate pseudocode
+%       specification of the underlying ideas.
+%
+%  ---  The coding is concise but clear, and annotated with comments
+%       where necessary.
+%
+%__________________________________________________________________________
+% %W% Andrew Holmes, Karl Friston %E%
+
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
@@ -25,237 +120,350 @@ function R1=spm_help(Action,P2,P3)
 %( `spm('Menu')`.                                                      )
 %
 % FORMAT spm_help
-% Defaults to spm_help('Menu')
-%
-% FORMAT spm_help('Menu')
-% Finds or creates (spm_help('CreateWin')) the Help window, and then
-% makes it visible for use.
+% Makes Help window visible if there is one around. Otherwise
+% defaults to spm_help('Topic').
 %
 % FORMAT spm_help('Quit')
-% Clears the Graphics and Interactive windows, and hides the Help window.
+% Hides the Help window.
+% (Re)Shows the welcome splash screen if it exists.
 %
-% FORMAT spm_help('CreateWin')
-% Creates the help window ('Tag'ed 'Help'), which mirrors the layout of
-% the SPM Menu window.
+% FORMAT spm_help('DrawMenu')
+% Draws representation of Menu window in help window, with button
+% CallBacks for the appropriate help topics.
 %
 % FORMAT spm_('Topic',Fname)
 % Fname     - Name of file from which to display help
+%             Defaults to the "Menu" topic.
 % Loads file Fname (which must be on the MATLABPATH), parses it for
-% references to other spm_* routines, displays these in the Interactive
-% window (with callbacks to display their help) (creates one if
-% necessary), and sets up a "Previous topics" pulldown in the
-% Interactive window along with a window for direct editing of the
-% Fname topic to display. Then calls spm_help('Disp') to display the
-% help portion of the file in the Graphics window.
+% references to other spm_* routines, puts these in the Help ToolBars
+% "Referenced routines" pulldown (with callbacks to display their
+% help), and sets up the "Previous topics" pulldown. Puts Fname in the
+% editable topic window on the ToolBar. Then calls spm_help('Disp') to
+% display the help portion of the file.
+% Special topic "Menu" prints a short message and displays the help
+% representation of the Menu window.
 %
-% FORMAT spm_help('Disp',Fname,S)
+% FORMAT spm_help('Disp',Fname,S,F)
 % Fname     - Name of file from which to display help
 % S         - [Optional] String vector containing a previously read in
 %             contents of file Fname
-% Displays the help for the given file in the Graphics window (creating
+% F         - Figure to use
+% Displays the help for the given file in the Help window (creating
 % one if required). Paginates and provides paging buttons if necessary.
+%
+% FORMAT F = spm_help('Create')
+% F        - Handle of figure created
+% Creates central Help window 'Tag'ged 'Help', with Help ToolBar
+%
+% FORMAT F = spm_help('CreateHelpWin')
+% F        - Handle of figure created
+% Creates central Help window 'Tag'ged 'Help'. If one already exists
+% then it's handle is returned.
+%
+% FORMAT spm_help('CreateBar',F)
+% F        - Handle (or 'Tag') of window to use. Defaults to 'Help'.
+% Creates Help ToolBar.
+%
+% spm_help('Clear',F)
+% F        - Handle (or 'Tag') of window to use. Defaults to 'Help'.
+% Clears help window, leaving ToolBar intact. Any 'HelpMenu' objects
+% (with 'UserData' 'HelpMenu') are merely hidden, to speed up
+% subsequent use.
 %
 %_______________________________________________________________________
 
 
 %-Condition arguments for all uses
 %-----------------------------------------------------------------------
-if nargin==0, Action='Menu'; end
-
-if strcmp(lower(Action),lower('Menu'))
-%=======================================================================
-% spm_help('Menu')
-
-%-Find Help window, create one if none exists, show it
-%-----------------------------------------------------------------------
-Fhelp = spm_figure('FindWin','Help');
-Finter = spm_figure('FindWin','Interactive');
-if isempty(Fhelp), Fhelp=spm_help('CreateWin'); end
-if ~isempty(Finter), spm_clf(Finter), end
-set(Fhelp,'Visible','on')
-return
-
-
-elseif strcmp(lower(Action),lower('Quit'))
-%=======================================================================
-Fwelcom = spm_figure('FindWin','Welcome');
-Fmenu = spm_figure('FindWin','Menu');
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
-Fhelp = spm_figure('FindWin','Help');
-if isempty(Fmenu)
-	close([Finter,Fgraph,Fhelp])
-else
-	spm_clf(Fgraph)
-	spm_clf(Finter)
-	set(Fmenu,'Visible','on')
-	if isempty(Fhelp), return, else, set(Fhelp,'Visible','off'), end
+if nargin==0
+	Fhelp = spm_figure('FindWin','Help');
+	if ~isempty(Fhelp)
+		set(Fhelp,'Visible','on')
+		return
+	else
+		Action='Topic';
+	end
 end
+
+if strcmp(lower(Action),lower('Quit'))
+%=======================================================================
+Fhelp   = spm_figure('FindWin','Help');
+set(Fhelp,'Visible','off')
+Fwelcom = spm_figure('FindWin','Welcome');
 if ~isempty(Fwelcom), set(Fwelcom,'Visible','on'), end
 return
 
 
-elseif strcmp(lower(Action),lower('CreateWin'))
+elseif strcmp(lower(Action),lower('DrawMenu'))
 %=======================================================================
-% Fhelp = spm_help('CreateWin');
+% Fhelp = spm_help('DrawMenu');
 
-%-Create help window
+%-Find help window
 %-----------------------------------------------------------------------
 Fhelp = spm_figure('FindWin','Help');
-if ~isempty(Fhelp), close(Fhelp), end
+if isempty(Fhelp), error('No Help window'), end
 
-%-Create window
-S     = get(0,'ScreenSize');
-A     = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
-S4    = [108 429 400 445].*A;
-Fhelp = figure('Tag','Help',...
-	'Name','SPM Help facility',...
-	'Color',spm('Colour'),...
-	'Position',S4,...
-	'NumberTitle','off',...
-	'Resize','off',...
-	'Visible','off');
-R1    = Fhelp;
+H = findobj(Fhelp,'UserData','HelpMenu');
+if length(H)
+	set(H,'Visible','on')
+	return
+end
+
+%-Create window frame
+%-----------------------------------------------------------------------
+S     = get(Fhelp,'Position');
+A     = [S(3)/600 S(4)/865 S(3)/600 S(4)/865];
+O     = [600/2-400/2 100 0 0].*A;
+
+uicontrol(Fhelp,'Style','Frame',...
+	'Position',[-2,447,404,30]+O,...
+	'Tag','NoDelete','UserData','HelpMenu')
+
+uicontrol(Fhelp,'Style','Text','String',spm('Ver'),...
+	'Position',[0,452,400,20]+O,...
+	'Tag','NoDelete','UserData','HelpMenu')
+
+uicontrol(Fhelp,'Style','Frame',...
+	'Position',[-2,-2,404,449]+O,...
+	'Tag','NoDelete','UserData','HelpMenu')
+
+uicontrol(Fhelp,'Style','Frame',...
+	'Position',[0,0,400,445]+O,...
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'BackgroundColor',spm('Colour'))
 
 %-Create help buttons with callbacks
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 %-Special overview man pages
 uicontrol(Fhelp,'String','About SPM',...
-	'Position',[010 410 087 30].*A,...
+	'Position',[010 410 087 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm.man'');',...
-	'ForegroundColor',[0 1 1]);
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor',[0 1 1])
 uicontrol(Fhelp,'String','Data format',...
-	'Position',[107 410 088 30].*A,...
+	'Position',[107 410 088 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_format.man'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 uicontrol(Fhelp,'String','Methods',...
-	'Position',[205 410 088 30].*A,...
+	'Position',[205 410 088 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_methods.man'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 uicontrol(Fhelp,'String','Variables',...
-	'Position',[303 410 087 30].*A,...
+	'Position',[303 410 087 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_ui.man'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 
 uicontrol(Fhelp,'String','PET Overview',...
-	'Position',[040 285 140 30].*A,...
+	'Position',[040 285 140 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_pet.man'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 uicontrol(Fhelp,'String','fMRI Overview',...
-	'Position',[220 285 140 30].*A,...
+	'Position',[220 285 140 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_fmri.man'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 
 uicontrol(Fhelp,'String','Graphics',...
-	'Position',[165 122 070 24].*A,...
+	'Position',[165 122 070 24].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_figure.m'');',...
-	'ForegroundColor','b');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'ForegroundColor','b')
 
 %-Man pages for specific functions
 uicontrol(Fhelp,'String','Realign',...
-	'Position',[040 370 080 30].*A,...
+	'Position',[040 370 080 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_realign.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Normalize',...
-	'Position',[150 350 100 30].*A,...
+	'Position',[150 350 100 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_sn3d.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Smooth',...
-	'Position',[280 370 080 30].*A,...
+	'Position',[280 370 080 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_smooth.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Coregister',...
-	'Position',[040 330 080 30].*A,...
+	'Position',[040 330 080 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_coregister.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Segment',...
-	'Position',[280 330 080 30].*A,...
+	'Position',[280 330 080 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_segment.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 
 
 uicontrol(Fhelp,'String','PET Statistics',...
-	'Position',[040 245 140 30].*A,...
+	'Position',[040 245 140 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_spm.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','fMRI Statistics',...
-	'Position',[040 215 140 30].*A,...
+	'Position',[040 215 140 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_fmri_spm.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Eigenimages',...
-	'Position',[220 245 140 30].*A,...
+	'Position',[220 245 140 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_svd.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 
 uicontrol(Fhelp,'String','SPM{F}',...
-	'Position',[045 165 070 30].*A,...
+	'Position',[045 165 070 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_F.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Results',...
-	'Position',[165 165 070 30].*A,...
+	'Position',[165 165 070 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_results.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','SPM{Z}',...
-	'Position',[285 165 070 30].*A,...
+	'Position',[285 165 070 30].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_projections.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 
 uicontrol(Fhelp,'String','Analyze',...
-	'Position',[020 088 082 024].*A,...
-	'CallBack','',...
-	'Interruptible','yes');
+	'Position',[020 088 082 024].*A+O,...
+	'CallBack','spm_help(''Topic'',''Analyze_Button'');',...
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Display',...
-	'Position',[112 088 083 024].*A,...
+	'Position',[112 088 083 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_image.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Render',...
-	'Position',[205 088 083 024].*A,...
+	'Position',[205 088 083 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_render.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','PET/fMRI',...
-	'Position',[298 088 082 024].*A,...
+	'Position',[298 088 082 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_modality.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
+uicontrol(Fhelp,'String','GhostView',...
+	'Position',[020 054 082 024].*A+O,...
+	'CallBack','spm_help(''Topic'',''GhostView_Button'');',...
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
+uicontrol(Fhelp,'String','CD',...
+	'Position',[112 054 083 024].*A+O,...
+	'CallBack','spm_help(''Topic'',''CD_Button'');',...
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Mean',...
-	'Position',[020 054 082 024].*A,...
+	'Position',[205 054 083 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_average.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','ImCalc',...
-	'Position',[112 054 083 024].*A,...
+	'Position',[298 054 082 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_image_funks.m'');',...
-	'Interruptible','yes');
-%uicontrol(Fhelp,'String','MRI to PET',...
-%	'Position',[205 054 083 024].*A,...
-%	'CallBack','spm_help(''Topic'',''spm_mri2pet.m'');',...
-%	'Interruptible','yes');
-%uicontrol(Fhelp,'String','MRsegment',...
-%	'Position',[298 054 082 024].*A,...
-%	'CallBack','spm_help(''Topic'',''spm_segment.m'');',...
-%	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Help',...
-	'Position',[020 020 082 024].*A,...
-	'CallBack','spm_help(''Topic'',''spm_help.man'');',...
-	'Interruptible','yes');
+	'Position',[020 020 082 024].*A+O,...
+	'CallBack','spm_help(''Topic'',''spm_help.m'');',...
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Defaults',...
-	'Position',[112 020 083 024].*A,...
+	'Position',[112 020 083 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_defaults_edit.m'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String',['<',getenv('USER'),'>'],...
-	'Position',[205 020 083 024].*A,...
+	'Position',[205 020 083 024].*A+O,...
 	'CallBack','spm_help(''Topic'',''spm_button.man'');',...
-	'Interruptible','yes');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'Interruptible','yes')
 uicontrol(Fhelp,'String','Quit',...
-	'Position',[298 020 082 024].*A,...
+	'Position',[298 020 082 024].*A+O,...
 	'ForegroundColor','r',...
-	'CallBack','spm_help(''Quit'')');
+	'Tag','NoDelete','UserData','HelpMenu',...
+	'CallBack','spm_help(''Quit'')')
 return
 
+
+elseif strcmp(lower(Action),lower('ShortTopics'))
+%=======================================================================
+% [S,Err] = spm_help('ShortTopics',Topic)
+if nargin<2, Topic='!Topics'; else, Topic=P2; end
+
+Usep = sprintf('%%%s',setstr('_'*ones(1,71)));
+Err = 0;
+
+if strcmp(Topic,'!Topics')
+	S = 'Menu';
+elseif strcmp(Topic,'Menu')
+	S = sprintf([...
+		'\n%% %s : Statistical Parametric Mapping\n',...
+		'%s\n%%\n',...
+		'%% SPM functions are called from the main SPM window.\n',...
+		'%% Click on the buttons in the representation below for',...
+			' for help on that topic...\n',...
+		'%%\n',...
+		'%% Click on "Help" for instructions on using SPMhelp.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],...
+		spm('Ver'),Usep,Usep);
+elseif strcmp(Topic,'Analyze_Button')
+	S = sprintf([...
+		'\n%% Launches Mayo Analyze\n',...
+		'%s\n%%\n',...
+		'%% Executes `!analyze` in the base MatLab workspace.\n',...
+		'%% Requires the `analyze` binary to be in the path',...
+			' of the users shell.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],Usep,Usep);
+elseif strcmp(Topic,'GhostView_Button')
+	S = sprintf([...
+		'\n%% Launches GhostView for a selected file\n',...
+		'%s\n%%\n',...
+		'%% Calls spm_get prompting for a PostScript file, and\n',...
+		'%% uses MatLab''s `unix` command to call `ghostscript`',...
+			' view it.\n',...
+		'%% Requires the `ghostview` binary to be in the path',...
+			' of the users shell.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],Usep,Usep);
+elseif strcmp(Topic,'CD_Button')
+	S = sprintf([...
+		'\n%% Change current working directory\n',...
+		'%s\n%%\n',...
+		'%% Calls spm_get prompting for a directory, and',...
+			' changes directory to it.\n',...
+		'%%\n',...
+		'%% With the exception of the spatial routines, SPM now',...
+			' writes results\n',...
+		'%% (i.e. spm.ps and results "mat" files) in the current',...
+			' working directory.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],Usep,Usep);
+else
+	S = sprintf([...
+		'\n%% ! - Topic not found\n',...
+		'%s\n%%\n',...
+		'%% This topic is not recognised by the help system.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],Usep,Usep);
+	Err = 1;
+end
+R1 = S; R2 = Err;
+return
 
 
 elseif strcmp(lower(Action),lower('Topic'))
 %=======================================================================
 % spm_help('Topic',Fname)
-if nargin<2, P2='spm'; else, Fname=P2; end
+if nargin<2, Fname='Menu'; else, Fname=P2; end
+bMenu = strcmp(Fname,'Menu');
 
 %-Callback from PrevTopics passes integer Fname
 if ~isstr(Fname)
@@ -266,73 +474,52 @@ if ~isstr(Fname)
 	Fname = deblank(Fname(n,:));
 end
 
-%-Find (or create) window to print in
-Finter = spm_figure('FindWin','Interactive');
-if isempty(Finter), Finter = spm('CreateIntWin'); end
-set(Finter,'Pointer','Watch')
+%-Find (or create) help window. Create Help control bar if required
+%-----------------------------------------------------------------------
+Fhelp = spm_figure('FindWin','Help');
+if isempty(Fhelp)
+	Fhelp = spm_help('CreateHelpWin');
+else
+	set(Fhelp,'Visible','on')
+end
+set(Fhelp,'Pointer','Watch')
+if isempty(findobj(Fhelp,'UserData','HelpBar'))
+	spm_help('CreateBar',Fhelp)
+end
 
-%-Load text file
+
+%-Load text file or get text from 'ShortTopics'
 %-----------------------------------------------------------------------
 fid = fopen(Fname,'r');
 if fid<0
-	errordlg(['File ',Fname,' not found'],'SPMerror','on');
-	set(Finter,'Pointer','Arrow')
-	return
+	[S,Err] = spm_help('ShortTopics',Fname);
+else
+	S = setstr(fread(fid))';
+	Err = 0;
+	fclose(fid);
 end
-S   = setstr(fread(fid))';
-fclose(fid);
 
 %-Display the current help comments
 %-----------------------------------------------------------------------
-spm_help('Disp',Fname,S);
+spm_help('Disp',Fname,S,Fhelp);
 
-if isempty(findobj(Finter,'Tag','SPMhelp'))
-	%-Create control objects
-	%---------------------------------------------------------------
-	spm_figure('Clear',Finter);
-	A = spm('GetWinScale');
-	set(Finter,'Name','SPM routines')
-	uicontrol(Finter,'Style','Frame','Tag','hAxes',...
-		'Position',[001 345 400 050].*A);
-	uicontrol(Finter,'Style','Text','Tag','SPMhelp',...
-		'String','Routines referenced by ',...
-		'HorizontalAlignment','Right',...
-		'Position',[005 370 165 020].*A)
-	uicontrol(Finter,'Style','Edit','Tag','Fname',...
-		'String','<filename>',...
-		'ForegroundColor','r','BackgroundColor',[.8,.8,1],...
-		'HorizontalAlignment','Left',...
-		'CallBack','spm_help(''Topic'',get(gco,''String''))',...
-		'Position',[170 370 225 020].*A)
-	uicontrol(Finter,'Style','PopUp','Tag','PrevTopics',...
-		'String',str2mat('Previous Topics...','spm.man'),...
-		'HorizontalAlignment','Left',...
-		'ForegroundColor','r',...
-		'UserData',1,...
-		'Callback',...
-		'spm_help(''Topic'',get(gco,''Value''))',...
-		'Position',[170-1 350-1 225+1 020].*A)
-	uicontrol(Finter,'Style','Frame','Tag','StatusArea',...
-		'Position',[001 001 400 030].*A);
-	uicontrol(Finter,'Style','Text','Tag','StatusLine',...
-		'String','Select routine to display help',...
-		'HorizontalAlignment','Center',...
-		'ForegroundColor','w',...
-		'Position',[020 005 360 020].*A)
-	
-	figure(Finter)
-	hAxes = axes('Position',[020 035 320 280]./[400 395 400 395],...
-			'Units','Points','Visible','off');
-	set(findobj(Finter,'Tag','hAxes'),'UserData',hAxes);
+%-Display Menu graphic if required
+%-----------------------------------------------------------------------
+if bMenu
+	spm_help('DrawMenu')
 end
 
 %-Sort out control objects
 %-----------------------------------------------------------------------
-set(findobj(Finter,'Tag','Fname'),'String',Fname);
+set(findobj(Fhelp,'UserData','Fname'),'String',Fname);
+
+%-If unknown topic then return
+%-----------------------------------------------------------------------
+if Err, set(Fhelp,'Pointer','Arrow'), return, end
 
 %-Sort out previous topics pulldown
 %-----------------------------------------------------------------------
-hPTopics   = findobj(Finter,'Tag','PrevTopics');
+hPTopics   = findobj(Fhelp,'UserData','PrevTopics');
 PrevTopics = get(hPTopics,'String');
 Prompt     = PrevTopics(1,:); PrevTopics(1,:)=[];
 PrevTopics = str2mat(Fname,PrevTopics);
@@ -347,53 +534,50 @@ if size(PrevTopics,1)>20 PrevTopics(21:size(PrevTopics,1),:)=[]; end
 %-Update popup
 set(hPTopics,'String',str2mat(Prompt,PrevTopics),'Value',1)
 
-
-%-Sort out axes for printing area
+%-Find referenced topics
 %-----------------------------------------------------------------------
-hAxes = get(findobj(Finter,'Tag','hAxes'),'UserData');
-delete(get(hAxes,'Children'))
-axes(hAxes)
-y     = floor(get(hAxes,'Position'));
-y0    = y(3);
-set(hAxes(1),'Ylim',[0,y0])
-
-%-Find subroutines and create text objects and their CallBacks
-%-----------------------------------------------------------------------
+hRTopics   = findobj(Fhelp,'UserData','RefdTopics');
+RefdTopics = get(hRTopics,'String');
+RefdTopics = [deblank(RefdTopics(1,:)),'|',Fname];
 q     = findstr(S,'spm_');
-y     = y0;
-x     = 0;
-U     = Fname;
 for i = 1:length(q)
     d = [0:32] + q(i);
     Q = S(d(d <= length(S)));
     d = find((Q == ';') | (Q == '(') | (Q == 10) | (Q == '.') | (Q == ' '));
 	if length(d)
-	  Q   = [Q(1:(min(d) - 1)) '.m'];
-	  if exist(Q) == 2 & ~length(findstr(U,Q))
-	    text(x,y,Q,...
-	    	'ButtonDownFcn',['spm_help(''Topic'',''' Q ''')'])
-	    y = y - 18;
-	    U = [U ';' Q];
+	  tmp = [0:3]+min(d); tmp = Q(tmp(tmp<=length(Q)));
+	  if strcmp(tmp,'.man')
+	    Q   = [Q(1:(min(d) - 1)) '.man'];
+	  else
+	    Q   = [Q(1:(min(d) - 1)) '.m'];
 	  end
+	  if exist(Q) == 2 & ~length(findstr(RefdTopics,Q))
+	    RefdTopics = [RefdTopics,'|',Q]; end
     end
-    if y < 0; x = x + 0.5; y = y0; end
 end
+%-Update popup
+set(hRTopics,'String',strrep(RefdTopics,['|',Fname],''),'Value',1)
 
-set(Finter,'Pointer','Arrow')
+set(Fhelp,'Pointer','Arrow')
 return
 
 
 elseif strcmp(lower(Action),lower('Disp'))
 %=======================================================================
-% spm_help('Disp',Fname,S)
+% spm_help('Disp',Fname,S,F)
+if nargin<4, F='Help'; else, F=P4; end
 if nargin<3, S=''; else, S=P3; end
-if nargin<2, P2='spm'; else, Fname=P2; end
+if nargin<2, Fname='spm.man'; else, Fname=P2; end
 
 %-Find (or create) window to print in
-Fgraph = spm_figure('FindWin','Graphics');
-if isempty(Fgraph), Fgraph = spm_figure('Create','Graphics'); end
-spm_clf(Fgraph)
-set(Fgraph,'Pointer','Watch')
+Fhelp = spm_figure('FindWin',F);
+if isempty(Fhelp)
+	Fhelp = spm_help('CreateHelpWin')
+else
+	set(Fhelp,'Visible','on')
+end
+set(Fhelp,'Pointer','Watch')
+spm_help('Clear',Fhelp)
 
 %-Parse text file/string
 %-----------------------------------------------------------------------
@@ -405,12 +589,12 @@ if isempty(S)
 	end
 	S   = setstr(fread(fid))';
 	fclose(fid);
-end	
+end
 q     = min([length(S),findstr(S,setstr([10 10]))]);	% find empty lines
 q     = find(S(1:q(1)) == 10);				% find line breaks
 
-figure(Fgraph)
-hAxes = axes('Position',[0.05,0.05,0.8,0.9],...
+figure(Fhelp)
+hAxes = axes('Position',[0.05,0.05,0.8,0.85],...
 		'Units','Points','Visible','off');
 y     = floor(get(hAxes(1),'Position'));
 y0    = y(3);
@@ -443,7 +627,7 @@ for i = 1:(length(q) - 1)
 			'FontSize',8,'FontAngle','Italic',...
 			'Visible',Vis)
 		spm_figure('NewPage',get(gca,'Children'))
-		hAxes = [hAxes,axes('Position',[0.05,0.05,0.8,0.9],...
+		hAxes = [hAxes,axes('Position',[0.05,0.05,0.8,0.85],...
 			'Units','Points','Visible','off')];
 		set(hAxes(length(hAxes)),'Ylim',[0,y0])
 		y     = y0;
@@ -457,27 +641,203 @@ if strcmp(Vis,'off')
 		'Visible',Vis)
 	spm_figure('NewPage',get(gca,'Children'))
 end
+set(Fhelp,'Pointer','Arrow')
+return
 
-%-If no 'Help' window then make buttons to bring one up
+
+elseif strcmp(lower(Action),lower('Create'))
+%=======================================================================
+% F = spm_help('Create')
+%-Condition arguments
+
+F = spm_help('CreateHelpWin');
+spm_help('CreateBar',F)
+R1 = F;
+return
+
+
+elseif strcmp(lower(Action),lower('CreateHelpWin'))
+%=======================================================================
+% F = spm_help('CreateHelpWin')
+
+F = spm_figure('FindWin','Help');
+if any(F), return, end
+
+%-Condition arguments
 %-----------------------------------------------------------------------
-Fhelp = spm_figure('FindWin','Help');
-if isempty(Fhelp)
-	h = uicontrol(Fgraph,'String','Quit',...
-		'ForegroundColor','r',...
-		'Position',[540 810 050 020].*spm('GetWinScale'),...
-		'CallBack','spm_help(''Quit'')',...
-		'Interruptible','yes');
-	uicontrol(Fgraph,'String','Help',...
-		'Position',[540 790 050 020].*spm('GetWinScale'),...
-		'CallBack',[...
-			'delete([gco,get(gco,''UserData'')]),',...
-			'spm_help(''Menu''),',...
-			'spm_help(''Topic'',''spm_help.man'')'],...
-		'UserData',h,...
-		'Interruptible','yes');
-end
-set(Fgraph,'Pointer','Arrow')
+S0     = get(0,'ScreenSize');
+WS     = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
 
+F      = figure('Position',[S0(3)/2-300 008 600 865].*WS,...
+	'Name','SPMhelp',...
+	'Tag','Help',...
+	'NumberTitle','off',...	'Tag','Help',...
+	'Resize','off',...
+	'Visible','on',...
+	'PaperPosition',[.75 1.5 7 9.5]);
+whitebg(F,'w')
+colormap gray
+% set(F,'DefaultTextFontSize',2*round(12*min(WS)/2));
+R1 = F;
+return
+
+
+elseif strcmp(lower(Action),lower('CreateBar'))
+%=======================================================================
+% spm_help('CreateBar',F)
+%-----------------------------------------------------------------------
+% Print | Clear		| Current Topic		| Menu	| Help | Quit
+%   SPMver		| Referenced Topics	| Previous Topics
+%-----------------------------------------------------------------------
+
+if nargin<2, F='Help'; else, F = P2; end
+F=spm_figure('FindWin',F);
+if isempty(F), error('Help figure not found'), end
+
+%-Get position and size parameters
+%-----------------------------------------------------------------------
+figure(F);
+set(F,'Units','Pixels');
+P     = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
+S_Gra = P./[600, 865];				% x & y scaling coefs
+
+nBut  = 10;
+nGap  = 4;
+sx    = floor(P(1)./(nBut+(nGap+2)/6));		% uicontrol object width
+dx    = floor(2*sx/6);				% inter-uicontrol gap
+sy    = floor(20*S_Gra(1));			% uicontrol object height
+x0    = dx;					% initial x position
+x     = dx;					% uicontrol x position
+y     = P(2) - sy;				% uicontrol y position
+y2    = P(2) - 2.25*sy;				% uicontrol y position
+
+%-Delete any existing 'NoDelete' ToolBar objects
+%-----------------------------------------------------------------------
+h = findobj(F,'Tag','NoDelete');
+delete(h);
+
+%-Create Frame for controls
+%-----------------------------------------------------------------------
+uicontrol(F,'Style', 'Frame',...
+	'Position',[-4 (P(2) - 2.50*sy) P(1)+8 2.50*sy+4],...
+	'Tag','NoDelete','UserData','HelpBar');
+
+%-Create uicontrol objects
+%-----------------------------------------------------------------------
+uicontrol(F,'String','Print' ,'Position',[x y sx sy],...
+	'CallBack','spm_figure(''Print'',gcf)',...
+	'Interruptible','No',...
+	'Tag','NoDelete','ForegroundColor','b'); x = x+sx;
+
+uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
+	'CallBack','spm_help(''Clear'',gcf)',...
+	'Interruptible','No',...
+        'Tag','NoDelete','ForegroundColor','b'); x = x+sx+dx;
+
+uicontrol(F,'String',sprintf('About %s',spm('Ver')),...
+	'Position',[x0 y2 2*sx sy],...
+	'HorizontalAlignment','Center',...
+	'Callback','spm_help(''Topic'',''spm.man'')',...
+	'Tag','NoDelete','ForegroundColor',[0 1 1])
+
+uicontrol(F,'Style','Text','String','Topic ',...
+	'Position',[x y sx sy],...
+	'HorizontalAlignment','Right',...
+	'Tag','NoDelete','ForegroundColor','k')
+
+uicontrol(F,'Style','PopUp',...
+	'Position',[x-1,y2-1,4*sx+1,sy],...
+	'String','Referenced Topics...',...
+	'Callback',...
+		'spm_help(''Topic'',get(gco,''Value''))',...
+	'Tag','NoDelete',...
+	'UserData','RefdTopics',...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','k'), x = x+sx;
+
+uicontrol(F,'Style','Edit',	'String','<filename>',...
+	'Position',[x y 3*sx sy],...
+	'CallBack','spm_help(''Topic'',get(gco,''String''))',...
+	'Tag','NoDelete',...
+	'UserData','Fname',...
+	'ForegroundColor','k','BackgroundColor',[.8,.8,1],...
+	'HorizontalAlignment','Center'), x = x+3*sx+dx;
+
+uicontrol(F,'String','Menu',   'Position',[x y sx sy],...
+	'CallBack','spm_help(''Topic'',''Menu'')',...
+	'Interruptible','No',...
+	'Tag','NoDelete','ForegroundColor',[0 1 1])
+
+uicontrol(F,'Style','PopUp',...
+	'Position',[x-1,y2-1,3*sx+2*dx+1,sy],...
+	'String',str2mat('Previous Topics...','spm.man'),...
+	'Callback',...
+		'spm_help(''Topic'',get(gco,''Value''))',...
+	'Tag','NoDelete',...
+	'UserData','PrevTopics',...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','k'), x = x+sx+dx;
+
+uicontrol(F,'String','Help',   'Position',[x y sx sy],...
+	'CallBack','spm_help(''Topic'',''spm_help.m'')',...
+	'Interruptible','No',...
+	'Tag','NoDelete','ForegroundColor','g'), x = x+sx+dx;
+
+uicontrol(F,'String','Quit',   'Position',[x y sx sy],...
+	'CallBack','spm_help(''Quit'')',...
+	'Interruptible','No',...
+	'Tag','NoDelete','ForegroundColor','r')
+return
+
+
+elseif strcmp(lower(Action),lower('Clear'))
+%=======================================================================
+% spm_help('Clear',F)
+%-Clear window, leaving 'NoDelete' 'Tag'ed objects, hiding 'HelpMenu'
+% 'UserData' Tagged objects.
+
+%-Sort out arguments
+%-----------------------------------------------------------------------
+if nargin<2, F='Help'; else, F = P2; end
+F=spm_figure('FindWin',F);
+if isempty(F), return, end
+
+%-Clear figure & make 'HelpMenu' objects invisible
+%-----------------------------------------------------------------------
+for h = get(F,'Children')'
+	if ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
+end
+set(findobj(F,'UserData','HelpMenu'),'Visible','off')
+return
+
+
+elseif strcmp(lower(Action),lower('ContextHelp'))
+%=======================================================================
+% spm_help('ContextHelp',Topic)
+if nargin<2, return, end
+
+global CMDLINE
+if ~isempty(CMDLINE), CmdLine = CMDLINE; else, CmdLine=0; end
+
+if CmdLine
+	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
+else
+	Finter = spm_figure('FindWin','Interactive');
+	if isempty(Finter), error('Can''t find interactive window'), end
+	S2 = get(Finter,'Position');
+	h = uicontrol(Finter,'String','?',...
+		'CallBack',['spm_help(''Topic'',''',Topic,''')'],...
+		'ForegroundColor','g',...
+		'Position',[S2(3)-20 5 15 15]);
+end
+
+
+%-Clear figure & make 'HelpMenu' objects invisible
+%-----------------------------------------------------------------------
+for h = get(F,'Children')'
+	if ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
+end
+set(findobj(F,'UserData','HelpMenu'),'Visible','off')
 return
 
 
