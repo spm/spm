@@ -1,26 +1,24 @@
-function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
+function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % Statistical analysis with the General linear model
-% FORMAT spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
-% V   - {12 x q} matrix of identifiers of memory mapped data {q scans}
+% FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT);
 %
-% K   - {q  x 1} constant  subpartition of the design matrix {if it exists}
+% V   - {12 x q} matrix of identifiers of memory mapped data {q scans}
 % H   - {q  x h} condition subpartition of the design matrix {h conditions}
 % C   - {q  x c} covariate subpartition of the design matrix {c covariates}
 % B   - {q  x n} block     subpartition of the design matrix {n subjects}
 % G   - {q  x g} confound  subpartition of the design matrix {g covariates}
 %
-% names      - string matrix holding the names of the effects
-% CONTRAST   - matrix of contrasts, one per row, with p elements.
-% Ut         - threshold for SPM{Z}
-% ORIGIN     - the voxel correpsonding to [0 0 0] in mm
-% TH         - thresholds for each image defining voxels of interest
-% FLIP       - Left-right orientation
-%	           - 0 left = left  - neurological convention
-%	           - 1 left = right - radiological convention
+% CONTRAST - matrix of contrasts, one per row, with p elements.
+% ORIGIN   - the voxel correpsonding to [0 0 0] in mm
+% TH       - thresholds for each image defining voxels of interest
+% Dnames   - string matrix of Dnames for effects in the design matrix
+% Fnames   - string matrix of Filenames corresponding to observations
+% SIGMA    - Gaussian parameter of K for correlated observations
+% RT       - Repeat time for EPI fMRI (generally interscan interval)
 %_______________________________________________________________________
 %
 % spm_spm is the heart of the SPM package and implements the general
-% linear model in terms of a design matrix (composed of K H C B
+% linear model in terms of a design matrix (composed of H C B
 % and G) and the data (V).  Significant compounds of the estimated
 % parameters are assessed with a quotient that has the t distribution
 % under the null hyypothesis.  The resulting SPM{t} is transformed to
@@ -61,9 +59,9 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 % contrasts supplied for all N voxels at locations XYZ.
 %
 %   SPM.mat  contains a collection of matrices that pertain to the 
-% analysis; including the partitions of the design matrix [K H C B G], the
+% analysis; including the partitions of the design matrix [H C B G], the
 % number of voxels analyzed (S), image and voxel dimensions [V],
-% smoothness estimates of the SPM{Z} [W FWHM], threshold for SPM{F}
+% smoothness estimates of the SPM{Z} [W], threshold for SPM{F}
 % [UF] and the contrasts used [CONTRAST].  See below for a complete
 % listing.
 %
@@ -73,7 +71,6 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 %
 % Variables saved in SPM.mat
 %-----------------------------------------------------------------------
-% K	-	column of ones {constant partition}
 % H	-	condition partition of design matrix
 % C	-	covariate partition of design matrix
 % B	-	block     partition of design matrix
@@ -90,313 +87,195 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 % V(8)	-       y origin {voxels}
 % V(9)	-       z origin {voxels}
 % W     -       Smoothness {Guassian parameter - voxels}
-% FWHM	-       Smoothness {FWHM - mm}
-% names -       Sting matrix of parameters in the design matrix
 % df    -       degrees of freedom due to error
 % Fdf   -       degrees of freedom for the F ratio [Fdf(2) = df]
 % TH    -       vector of thresholds used to eliminate extracranial voxels
-% FLIP  -       right-left orientation
-%	           - 0 left = left  - neurological convention
-%	           - 1 left = right - radiological convention
-% CONTRAST      - a row vector of contrasts
-%
-% Image format SPM{Z}
-%-----------------------------------------------------------------------
-% For each contrast an ANALYZE compatible image format SPM is written to
-% a file:  The SPM*.img [and .hdr] are '8 bit' images with the same image
-% and voxel sizes as the original data.  Only the positive t values are
-% written and the values are scaled by a factor of 16 (i.e. 32 = a Z value
-% of 2)
+% SIGMA -       Gaussian parameter of K for correlated observations
+% RT    -       Repeat time for EPI fMRI (generally interscan interval)
+% Dnames   -    Sting matrix of parameters in the design matrix
+% Fnames   -    string matrix of Filenames corresponding to observations
+% CONTRAST -    row vectors of contrasts
 %
 % Results matrices in .mat files (at voxels satisfying P{F > f} < UFp)
 %-----------------------------------------------------------------------
 % XA 	-	adjusted data  		{with grand mean}
 % BETA 	-	parameter estimates	{mean corrected}
 % XYZ	-	location 		{mm [Talairach]}
-% SPMF	-	omnibus F statistic
+% SPMF	-	SPM{F}
 % SPMt	-	SPM{Z}
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston %E%
 
 % ANALYSIS PROPER
 %=======================================================================
 global UFp
 
+
 %-Delete files from previous analyses, if they exist
 %-----------------------------------------------------------------------
-delete XA.mat
-delete BETA.mat
-delete XYZ.mat
-delete SPMF.mat
-delete SPMt.mat
+spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat
 
-%-Location vectors (flipping if the data are radiologically oriented
+
+%-Location vectors
 %-----------------------------------------------------------------------
-[y x] = meshgrid([1:V(2,1)],[1:V(1,1)]');
-z     = ones(size(x));
-x     = (x(:) - ORIGIN(1))*V(4,1);
-y     = (y(:) - ORIGIN(2))*V(5,1);
-z     =  z(:);
+[y x]  = meshgrid([1:V(2,1)],[1:V(1,1)]');
+z      = ones(size(x));
+x      = (x(:) - ORIGIN(1))*V(4,1);
+y      = (y(:) - ORIGIN(2))*V(5,1);
+z      = z(:);
 
-% left right orientation
+
+%-Critical value for F comparison at probability threshold (UFp)
 %-----------------------------------------------------------------------
-if FLIP; x = -x; end 			
-
-%-Open image files for SPM{Z}, write headers. SCALE = 1/16, TYPE = 2
-%-----------------------------------------------------------------------
-for i = 1:size(CONTRAST,1)
-	str  = sprintf('SPM%d',i);
-	U(i) = fopen([str '.img'],'w');
-	spm_hwrite([str '.hdr'],V(1:3,1),V(4:6,1),1/16,2,0,ORIGIN,['spm{Z}']);
-end
-
-%-Critical value for F comparison at probability threshold \alpha=UFp
-%-----------------------------------------------------------------------
-%-NB K, constant partition is only present if H is empty (see spm_spm_ui)
-% As we always want to remove mean, a Ko partition is generated for testing
-q       = size([K H C B G],1);
-r       = rank([K H C B G]);
-df      = q - r;
-Ko      = ones(q,1);
-
-if ~isempty([H C])
-	Fdf = [r - rank([Ko B G]),df];
-else
-	Fdf = [r - rank(Ko),df];
-end
-UF      = spm_invFcdf(1 - UFp,Fdf);
+DESMTX = [H C B G];
+q      = size(DESMTX,1);
+Fdf    = spm_AnCova([H C],[B G],SIGMA);
+UF     = spm_invFcdf(1 - UFp,Fdf);
+df     = Fdf(2);
 
 
 %-Initialise variables
 %-----------------------------------------------------------------------
-D     = zeros(V(1,1)*V(2,1),size(CONTRAST,1)); % dummy matrix for smoothness
+TH     = TH*ones(1,V(1,1)*V(2,1));              	% global activities
+S      = 0;                                     	% Volume analyzed
+n_res  = min([q 32]);					% Residuals to be
+i_res  = linspace(1,q,n_res);				% used in smoothness
+PrevPl = zeros(V(1,1)*V(2,1),n_res);			% estimation
+sx_res = 0;              
+sy_res = 0;             
+sz_res = 0; 
+nx_res = 0;
+ny_res = 0;
+nz_res = 0;            
 
-
-TH    = TH*ones(1,V(1,1)*V(2,1));              	% global activities
-S     = 0;                                     	% Volume analyzed
-W     = [NaN NaN NaN];
-MaxSmooEst	= 32;				% Maximum number of 
-						% Resi. fields for W asess.
-PrevPlane       = zeros(V(1,1)*V(2,1),MaxSmooEst);
-sx_res    = zeros(MaxSmooEst, 2);              
-sy_res    = zeros(MaxSmooEst, 2);             
-sz_res    = zeros(MaxSmooEst, 2);             
 
 
 %-Cycle over planes to avoid working memory problems
 %-----------------------------------------------------------------------
-for i = 1:V(3,1)
+spm_progress_bar('Init',100,'AnCova',' ');
+for i = 1:V(3)
 
   %-Form data matrix for this slice
   %---------------------------------------------------------------------
   X     = zeros(q,V(1,1)*V(2,1));
   for j = 1:q
-	tmp    = spm_slice_vol(V(:,j),spm_matrix([0 0 i]),[V(1,1) V(2,1)],0);
-	X(j,:) = tmp(:)';
+	d      = spm_slice_vol(V(:,j),spm_matrix([0 0 i]),[V(1,1) V(2,1)],0);
+	X(j,:) = d(:)';
   end
 
-  %-Eliminate background voxels (based on global threshold TH),
-  % and eliminate voxels where there are no differences across scans.
+  %-Eliminate voxels below threshold (TH) and those with no variance
   %---------------------------------------------------------------------
-  Q = find(all(X > TH) & any(diff(X)));
+  Q     = find(all(X > TH) & any(diff(X)));
 
 
   if length(Q)
+
+	%-select voxels
+	%---------------------------------------------------------------
 	X     = X(:,Q);
 	S     = S + length(Q); 					%-Volume 
 	XYZ   = [x(Q) y(Q) z(Q)*(i - ORIGIN(3))*V(6,1)]'; 	%-Locations
 
-	%-if K does not exist remove the grand mean and replace it later.
-	% This is simply a device to prevent arbitrary partitoning of
-	% the grand mean between the effects modeled in H and B
-	%-------------------------------------------------------------------
-	if ~size(K,2)
-		EX = Ko*mean(X); X = X - EX; end
+	%-Remove the grand mean and replace it later
+	%---------------------------------------------------------------
+	EX    = ones(q,1)*mean(X);
+	X     = X - EX;
 
-	%-Estimate parameters and sum of squares due to error
-	%-Use pseudo inverse rather than BETA=inv(D'*D)*D'*X for D = DesMtx,
-	% to allow for non-unique designs. See matlab help.
-	%-------------------------------------------------------------------
-	clear BETA
-	BETA  = pinv([K H C B G])*X;
-	Res = X - [K H C B G]*BETA;	
-	ResSS = sum(Res.^2);
+	%-AnCova; employing pseudoinverse to allow for non-unique designs	
+	%---------------------------------------------------------------
+	[Fdf F BETA T] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
+	Res            = X(i_res,:) - DESMTX(i_res,:)*BETA;	
+	ResSS          = sqrt(sum(Res.^2));
 
-
-	%-------------------------------------------------------------------
-	%------ Smoothness estimation
-	%-------------------------------------------------------------------
-
-	%--- subsampling the nb of scan for quicker smoothness estimation -- 
-	if (size(V, 2) > MaxSmooEst) 
-		ListScanEst = ceil( [1:size(V, 2)]*MaxSmooEst/size(V, 2));
-		tmp = zeros(1,MaxSmooEst);
-		for ii 		= 1:MaxSmooEst 
-			tmp(ii) = min(find(ListScanEst == ii));
-		end;
-		Res		= Res(tmp,:);
-		clear tmp;
-	end;
-
-	%-Compute sums of squares of SPM{Z}, and spatial derivatives
-	%-----------------------------------------------------------
-
-	for k = 1:min(size(V, 2),MaxSmooEst)
-		CurrPlane       = zeros(V(1,1)*V(2,1),1);
-
-		%------------ Remove mean of Residuals
-		CurrPlane(Q) = Res(k, :) - mean(Res(k, :));
-
-		dz_res      = PrevPlane(:,k) - CurrPlane(:);
-
-		CurrPlane       = reshape(CurrPlane,V(1,1),V(2,2));
-		[dy_res dx_res] = gradient(CurrPlane);
-		Y       = ~CurrPlane;
-		Y       = ~(Y | abs(gradient(Y))); 
-		Y       = Y(:);
-		sx_res(k,1) = sx_res(k,1) + sum( CurrPlane(Y).^2);
-		sx_res(k,2) = sx_res(k,2) + sum(dx_res(Y).^2);
-		sy_res(k,1) = sy_res(k,1) + sum( CurrPlane(Y).^2);
-		sy_res(k,2) = sy_res(k,2) + sum(dy_res(Y).^2);
-		sz_res(k,1) = sz_res(k,1) + ...
-				sum( CurrPlane(PrevPlane(:,k) & CurrPlane(:)).^2);
-
-		sz_res(k,2) = sz_res(k,2) + ...
-				sum(dz_res(PrevPlane(:,k) & CurrPlane(:)).^2);
-		PrevPlane(:,k)  = CurrPlane(:);
+	% Normalize residuals
+	%---------------------------------------------------------------
+	for j = 1:size(Res,1)
+		Res(j,:) = Res(j,:)./ResSS;
 	end
 
-	%----------------------------------
-	% clear residuals for that plane
-	clear Res;
-	%-------------------------------------------------------------------
+	%-Compute spatial derivatives
+	%---------------------------------------------------------------
+	Qx     = zeros(V(1)*V(2),1);
+	Qx(Q)  = Q;
+	Qx     = reshape(Qx,V(1),V(2));
+	Qx     = find(~(~Qx | abs(gradient(~Qx))));
+	Qy     = Qx;
+	Qz     = zeros(V(1)*V(2),1);
+	Qz(Q)  = Q;
+	Qz     = find(PrevPl(:,1) & Qz(:));
+	nx_res = nx_res + length(Qx);
+	ny_res = ny_res + length(Qy);
+	nz_res = nz_res + length(Qz);
 
+	for j  = 1:size(Res,1)
+		CurrPl      = zeros(V(1)*V(2),1);
+		CurrPl(Q)   = Res(j,:);
+		dz          = PrevPl(:,j) - CurrPl;
+		PrevPl(:,j) = CurrPl;
+		[dy dx]     = gradient(reshape(CurrPl,V(1),V(2)));
 
-	%-Test for overall evidence of effects of interest
-	%-Use the likelihood ratio F test - the "extra sum of squares"
-	% principle, giving SPM{F} as the F ratio of variances.
-	%-------------------------------------------------------------------
-	if ~isempty([H C])
-		N = sum((X - [Ko B G]*pinv([Ko B G])*X).^2);
-	else
-		%-Compute F-statistic for confounds & block
-		%-(since [H C] is empty there's a K (constant) partition)
-		%-Compute adjusted sum of squares, = sum((X - Ko*pinv(Ko)*X).^2)
-		N = sum((X - Ko*mean(X)).^2);
+		d       = dx(Qx); d = d(finite(d));
+		sx_res  = sx_res + sum(d.^2);
+		d       = dy(Qy); d = d(finite(d));
+		sy_res  = sy_res + sum(d.^2);
+		d       = dz(Qz); d = d(finite(d));
+		sz_res  = sz_res + sum(d.^2);
 	end
-	F = (N - ResSS)/Fdf(1)./(ResSS/Fdf(2));
 
-
-	%-Compute t-statistics for specified compounds of parameters,
-	% giving SPM{t}, perform univariate probability transform to z-scores, 
-	% giving SPM{Z}.
-	%-------------------------------------------------------------------
-
-	T     = zeros(size(CONTRAST,1),size(BETA,2));
-	ResMS = ResSS / df;
-	for j = 1:size(CONTRAST,1)
-		t       = CONTRAST(j,:);
-		SE      = sqrt(ResMS*(t*pinv([K H C B G]'*[K H C B G])*t'));
-		d       = t*BETA./SE;
-		T(j,:)  = spm_t2z(d,df);
-		d       = zeros(V(1,1)*V(2,1),1);
-		d(Q)    = T(j,:);
-
-        	%-write SPM{Z}
-		%-----------------------------------------------------------
-        	fwrite(U(j),d.*(d > 0)*16,spm_type(2));
-	end % (for j)
-
-	%-Adjustment (remove effects of no interest)
-	%-------------------------------------------------------------------
-	clear XA
-	XA = X - [zeros(size([K H C])) B G]*BETA;
-	if ~size(K,2)
-		XA = XA + EX; end
+	%-Adjustment: remove confounds and replace grand mean
+	%---------------------------------------------------------------
+	clear XA; XA    = X - [zeros(size([H C])) B G]*BETA + EX;
 
 	%-Remove voxels with (uncorrected) non-significant F-statistic
-	% from further analysis
-	%-------------------------------------------------------------------
-	Q = find(F > UF);
+	%---------------------------------------------------------------
+	Q     = find(F > UF);
 
-	%-Cumulate these voxels
-	%-------------------------------------------------------------------
+	%-Cumulate remaining voxels
+	%---------------------------------------------------------------
 	if length(Q)
 		spm_append('XA',XA(:,Q));
 		spm_append('SPMF',F(Q) );
 		spm_append('BETA',BETA(:,Q));
 		spm_append('XYZ',XYZ(:,Q));
-		if ~isempty(T); spm_append('SPMt',T(:,Q)); end
-	end	% (if length(Q))
-
-  else %-No voxels to analyze in this plane
-
-	for j = 1:size(CONTRAST,1)
-		fwrite(U(j),zeros(V(1,1)*V(2,1),1),spm_type(2));
+		if ~isempty(T)
+			spm_append('SPMt',spm_t2z(T(:,Q),df)); end
 	end
-  end 			% (conditional on non-zero voxels)
-end			% (loop over planes)
 
-
-
+  end 		% (conditional on non-zero voxels)
+  spm_progress_bar('Set',i*100/V(3));
+end		% (loop over planes)
+spm_progress_bar('Clear');
 
 
 %-Smoothness estimates %-----------------------------------------------------------------------
-sx_res = sx_res(1:min(size(V, 2),MaxSmooEst),:);
-sy_res = sy_res(1:min(size(V, 2),MaxSmooEst),:);
-sz_res = sz_res(1:min(size(V, 2),MaxSmooEst),:);
-
-% remove zero component from the s?_res (null residual fields) 
-%-------------------------------------------------------------
-if V(3,1) == 1 
-	i_res = ~any( [[any(~(sx_res'))]; [any(~(sy_res'))]] );
-	sx_res = sx_res(i_res,:);
-	sy_res = sy_res(i_res,:);
-	if ~isempty(sx_res)
-	   Wresid = sqrt([	sx_res(:,1)./sx_res(:,2)...
-			 	sy_res(:,1)./sy_res(:,2)]/2);
-	end
-else
-	i_res = ~any( [	[any(~(sx_res'))];...
-			[any(~(sy_res'))]; [any(~(sy_res'))]] );
-	sx_res = sx_res(i_res,:);
-	sy_res = sy_res(i_res,:);
-	sz_res = sz_res(i_res,:);
-
-
-	if ~isempty(sx_res)
-		Wresid = sqrt([	 sx_res(:,1)./sx_res(:,2)...
-			 sy_res(:,1)./sy_res(:,2)...
-			 sz_res(:,1)./sz_res(:,2)]/2);
-	end
-end
-
-W = (spm_lambda_n(df+1))^(-1/2)*Wresid;
-
-if size(W,1) > 1; W = mean(W); end			% average over residual
-
-FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
+Lc2z   = spm_lambda(df);
+L_res  = [sx_res/nx_res sy_res/ny_res sz_res/nz_res]*(df - 2)/(df - 1);
+W      = (2*Lc2z*L_res).^(-1/2);
+if V(3) == 1
+	W = W(:,[1:2]); end		% 2 dimnesional data
 
 %-Unmap volumes
 %-----------------------------------------------------------------------
 for i  = 1:q; spm_unmap(V(:,i)); end
 
-%-Save design matrix, and other key variables; S UF CONTRAST W V and FWHM
+%-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
-TH     = TH(1,:);
-save SPM K H C B G S UF V W Wresid FWHM CONTRAST df Fdf TH FLIP names
+TH     = TH(:,1);
+save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT
 
 
 %-Display and print SPM{F}, Design matrix and textual information
 %=======================================================================
+FWHM   = sqrt(8*log(2))*W.*V(([1:length(W)] + 3))';
+
 figure(3); spm_clf
 load XYZ
 load SPMF
 axes('Position',[-0.05 0.5 0.8 0.4]);
 spm_mip(sqrt(SPMF),XYZ,V(1:6))
-title(sprintf('SPM{F} p < %f, df: %d,%d',UFp,Fdf),'FontSize',14,'Fontweight','Bold')
+title(sprintf('SPM{F} p < %0.2f, df: %0.1f,%0.1f',UFp,Fdf),'FontSize',16)
 text(240,220,sprintf('Search volume: %d voxels',S))
 text(240,240,sprintf('Image size: %d %d %d voxels',V(1:3)))
 text(240,260,sprintf('Voxel size  %0.1f %0.1f %0.1f mm',V(4:6)))
@@ -415,18 +294,19 @@ text(0,0.96,'Results directory:')
 text(0.23,0.96,pwd,'FontSize',12,'Fontweight','Bold')
 text(0,0.88,'Contrasts','FontSize',12,'Fontweight','Bold')
 
-x0 = 0.25; y0 = 0.82; dx = 0.1; dy = 0.04;
-for j = 1 + size(K,2):size([K H C],2)
-	text(0,y0 - (j - 1 - size(K,2))*dy,names(j,:),'FontSize',10)
-end % (for)
+x0 = 0.25; y0 = 0.82; dx = 0.8/size(CONTRAST,1); dy = 0.04;
+for j = 1:size([H C],2)
+	text(0,y0 - (j - 1)*dy,Dnames(j,:),'FontSize',10)
+end
+
 line([0 1],[1,1]*(y0 - size([H C],2)*dy),'LineWidth',1);
 for i = 1:size(CONTRAST,1)
 	text(x0 + dx*(i - 1),0.88,int2str(i),'FontSize',10)
-	for j = 1 + size(K,2):size([K H C],2)
-		text(x0 + dx*(i - 1),y0 - (j - 1 - size(K,2))*dy,...
-			sprintf('%-6.4g',CONTRAST(i,j)),'FontSize',10)
-	end % (for)
-end % (for)
+	for j = 1:size([H C],2)
+		text(x0 + dx*(i - 1),y0 - (j - 1)*dy,...
+		sprintf('%-6.4g',CONTRAST(i,j)),'FontSize',10)
+	end
+end
 
 spm_print
 
@@ -435,14 +315,15 @@ spm_print
 %-----------------------------------------------------------------------
 if ~isempty(CONTRAST)
 	load SPMt
+	U     = spm_invNcdf(1 - 0.01);
+	[P,EN,Em,En] = spm_P(1,W,U,0,S);
+	K     = round(En);
 	for i = 1:size(CONTRAST,1)
-	    spm_projections...
-	    (SPMt(i,:),XYZ,Ut,0,V,W,S,[K H C B G],CONTRAST(i,:),df);
+	    spm_projections(SPMt(i,:),XYZ,U,K,V,W,S,DESMTX,CONTRAST(i,:),df);
 	    spm_print
-	end % (for ...)
-end % (if ...)
+	end
+end
 
 %-Clear figure 2, the input window
 %-----------------------------------------------------------------------
-figure(2); clf
-set(2,'Name',' ','Pointer','Arrow');
+figure(2); clf; set(2,'Name',' ','Pointer','Arrow');
