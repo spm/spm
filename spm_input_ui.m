@@ -195,7 +195,7 @@ function varargout = spm_input(varargin)
 %                                Labels,Values,DefItem,Title)
 % - menu          - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
 % - display       -            spm_input(Message,YPos,'d',Label)
-% - alert         -            spm_input(Alert,YPos,'d!',Label)
+% - display (GUI only) -       spm_input(Alert,YPos,'d!',Label)
 %
 % - yes/no        - [p,YPos] = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
@@ -424,9 +424,9 @@ function varargout = spm_input(varargin)
 %               as a numbered list.
 %       spm_input('AnCova, GrandMean scaling',0,'d')
 %               Displays message in a box in the MatLab command window
-%       [null,YPos]=spm_input('Contrast must sum to zero','+1','d!','Warning')
-%		Displays message in next GUI position in red.
-%               Message is labelled as a 'Warning'.
+%       [null,YPos]=spm_input('Session 1','+1','d!','fMRI')
+%		Displays 'fMRI: Session 1' in next GUI position of the
+%               'Interactive' window. If CMDLINE is 1, then nothing is done.
 %               Position used is returned in YPos.
 %
 %-----------------------------------------------------------------------
@@ -1603,8 +1603,7 @@ case {'d','d!'}                                        %-Display message
 %-Condition arguments
 if nargin<4, Label=''; else, Label=varargin{4}; end
 
-if strcmp(lower(Type),'d!'), dCol='r'; else, dCol='k'; end
-if CmdLine
+if CmdLine & strcmp(lower(Type),'d')
 	fprintf('\n     +-%s%s+',Label,repmat('-',1,57-length(Label)))
 	Prompt = [Prompt,' '];
 	while length(Prompt)>0
@@ -1614,7 +1613,7 @@ if CmdLine
 		Prompt(1:tmp)=[];
 	end
 	fprintf('\n     +-%s+\n',repmat('-',1,57))
-else
+elseif ~CmdLine
 	if ~isempty(Label), Prompt = [Label,': ',Prompt]; end
 	figure(Finter)
 	%-Create text axes and edit control objects
@@ -1624,7 +1623,7 @@ else
 		'FontWeight','bold',...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'HorizontalAlignment','Left',...
-		'ForegroundColor',dCol,...
+		'ForegroundColor','k',...
 		'UserData',Prompt,...
 		'Position',QRec);
 	if length(Prompt)>56
@@ -1992,7 +1991,7 @@ if nargin<3
 		%-Get figure size
 		Units = get(F,'Units');
 		set(F,'Units','pixels')
-		FRec3 = get(F,'Position')*[0;0;1;0];
+		FRec3 = get(F,'Position')*[0;0;0;1];
 		set(F,'Units',Units);
 	end
 end
