@@ -725,7 +725,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     %-Mask image
     %-------------------------------------------------------------------
     %-BePm (& BeVox) now contains a complete plane mask
-    spm_write_plane(VM, reshape(BePm,xdim,ydim), z);
+    VM = spm_write_plane(VM, reshape(BePm,xdim,ydim), z);
 
     %-Construct voxel indices for BePm
     %-------------------------------------------------------------------
@@ -737,13 +737,13 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     %-------------------------------------------------------------------
     for i = 1:nbeta
         if length(Q), tmp(Q) = CrBl(i,:); end
-	spm_write_plane(Vbeta(i),tmp,z);
+	Vbeta(i) = spm_write_plane(Vbeta(i),tmp,z);
     end
 	    
     %-Write ResMS (variance) image
     %-------------------------------------------------------------------
     if length(Q), tmp(Q) = CrResMS; end
-    spm_write_plane(VResMS,tmp,z);		   
+    VResMS = spm_write_plane(VResMS,tmp,z);		   
 
 	   
     %-Report progress
