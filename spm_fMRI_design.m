@@ -30,7 +30,7 @@ function [SPM] = spm_fMRI_design(SPM)
 %           bf: - basis set matrix 
 %
 %    SPM.Sess(s)
-%            U: - Inpout structure array
+%            U: - Input structure array
 %            C: - User specified covariate structure
 %          row: - scan   indices for session s
 %          col: - effect indices for session s
@@ -304,10 +304,10 @@ for s = 1:length(SPM.nscan)
 			end
 		end
 
-		% append regressors and names
+		% append mean-corrected regressors and names
 		%-------------------------------------------------------
-		X      = [X C];
-		Xn     = {Xn{:} Cname{:}};
+		X      = [X spm_detrend(C)];
+		Xn     = {Xn{:}   Cname{:}};
 
 		% Confounds: Session effects 
 		%=======================================================
