@@ -108,23 +108,23 @@ function varargout = spm_sp(varargin)
 %     - ('isinspp' usage) true if c is in the column space of X
 % 
 %
-% FORMAT N = spm_sp('null',x)
+% FORMAT N = spm_sp('n',x)
 % Simply returns the null space of matrix X (same as matlab NULL)
 % (Null space = vectors associated with zero eigenvalues)
 % x - space structure of matrix X
 % N - null space
 %
 %
-% FORMAT r = spm_sp('opnull',x[,Y])
+% FORMAT r = spm_sp('nop',x[,Y])
 % Orthogonal projector onto null space of X, or projection of data Y (if passed)
 % x - space structure of matrix X
 % Y - (optional) data
 % r - (if no Y passed) orthogonal projection matrix  into the null space of X
 %   - (if Y passed   ) orthogonal projection of data into the null space of X
 % ( Note that if xp = spm_sp('set',x.X'), we have:                    )
-% (       spm_sp('opnull',x) == spm_sp('res',xp)                      )
+% (       spm_sp('nop',x) == spm_sp('res',xp)                      )
 % ( or, equivalently:                                                 )
-% (       spm_sp('opnull',x) + spm_sp('oP',xp) == eye(size(xp.X,1));  )
+% (       spm_sp('nop',x) + spm_sp('oP',xp) == eye(size(xp.X,1));  )
 %
 %
 % FORMAT r = spm_sp('res',x[,Y])
@@ -180,309 +180,479 @@ else
 	action = varargin{1};
 end
 
+%- check the very basics arguments
 
-switch lower(action), case 'create'             %-Create space structure
+switch lower(action), 
+case {'create','set','issetspc','isspc'}
+	%- do nothing
+otherwise,
+	if nargin==1, error('No space : can''t do much!'), end
+	[ok,str] = spm_sp('issetspc',varargin{2}); 
+	if ~ok, error(str), else, sX = varargin{2}; end;
+end;
+
+
+
+switch lower(action), 
+
+case 'create'             %-Create space structure
 %=======================================================================
 % x = spm_sp('Create')
-varargout = {struct(...
-	'X',	[],...		% Matrix
-	'tol',	[],...		% tolerance
-	'ds',	[],...		% vectors of singular values 
-	'u',	[],...		% u as in X = u*diag(ds)*v'
-	'v',	[], ...		% v as in X = u*diag(ds)*v'
-	'rk',	[],...		% rank
-	'oP', 	[],...		% orthogonal projector on X
-	'oPp',	[],...		% orthogonal projector on X'
-	'ups',	[],...		% space in which this one is embeded
-	'sus',	[])};		% subspace 
-
+varargout = {sf_create};
 
 case 'set'          %-Set singular values, space basis, rank & tolerance
 %=======================================================================
 % x = spm_sp('Set',X)
 
-if nargin==1 error('No design matrix : can''t do much!'), end
-if isempty(varargin{2}), varargout = {spm_sp('create')}; return, end
+if nargin==1 error('No design matrix : can''t do much!'), 
+else X = varargin{2}; end
+if isempty(X), varargout = {sf_create}; return, end
 
-x   = spm_sp('create');
-x.X = varargin{2};
+%- only sets plain matrices
+%- check X has 2 dim only
 
-%-- Compute the svd with svd(X,0) : find all the singular values of x.X
-%-- SVD(FULL(A)) will usually perform better than SVDS(A,MIN(SIZE(A)))
+if max(size(size(X))) > 2, error('Too many dim in the set'), end 
+if ~isnumeric(X), error('only sets numeric matrices'), end
 
-[x.u, s, x.v] = svd(full(x.X),0);
-
-if size(x.X,1)==1, x.ds = s; else, x.ds = diag(s); end
-clear s
-
-%-- compute the tolerance
-x.tol =  max(size(x.X))*max(abs(x.ds))*eps;
-
-%-- compute the rank
-x.rk =  sum(x.ds > x.tol);
-
-varargout = {x};	
+varargout = {sf_set(X)};
 
 
-case {'op', 'opp'}                               %-Orthogonal projectors
+case {'p', 'transp'}   %-Transpose space of X
 %=======================================================================
-% r = spm_sp('oP', x[,Data])   
-% r = spm_sp('oPp',x[,Data])   
+switch nargin
+case 2	
+	varargout = {sf_transp(sX)};
+otherwise
+	error('too many input argument in spm_sp');
 
-%-Check arguments
+end % switch nargin
+
+
+case {'op', 'op:'}   %-Orthogonal projectors on space of X
+%=======================================================================
+% r = spm_sp('oP', sX[,Y])   
+% r = spm_sp('oP:', sX[,Y])   %- set to 0 less than tolerence values
+%
+% if isempty(Y) returns as if Y not given
 %-----------------------------------------------------------------------
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
-%-Compute
+switch nargin
+case 2	
+  switch lower(action), 		
+  case 'op'
+     varargout = {sf_op(sX)};
+  case 'op:'
+     varargout = {sf_tol(sf_op(sX),sX.tol)};
+  end %- switch lower(action), 
+
+case 3
+   Y = varargin{3};
+   if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+   if size(Y,1) ~= spm_sp('size',sX,1), error('Dim dont match'); end;
+
+   switch lower(action), 
+   case 'op'
+     varargout = {sf_op(sX)*Y};
+   case 'op:'
+     varargout = {sf_tol(sf_op(sX)*Y,sX.tol)};
+   end % switch lower(action)
+
+otherwise
+	error('too many input argument in spm_sp');
+
+end % switch nargin
+
+case {'opp', 'opp:'}   %-Orthogonal projectors on space of X'
+%=======================================================================
+% r = spm_sp('oPp',sX[,Y])   
+% r = spm_sp('oPp:',sX[,Y])   %- set to 0 less than tolerence values
+%
+% if isempty(Y) returns as if Y not given
 %-----------------------------------------------------------------------
-rk = varargin{2}.rk;
-if nargin==2	
-  switch lower(action), 			%!!!! check tolerance
-    case 'op'
-	    if rk > 0 
-       varargout = {varargin{2}.u(:,[1:rk])*varargin{2}.u(:,[1:rk])'};
-       else   varargout = { zeros( spm_sp('size',varargin{2},1) ) }; end;
-	 case 'opp'
-	    if rk > 0 
-       varargout = {varargin{2}.v(:,[1:rk])*varargin{2}.v(:,[1:rk])'};	
-       else   varargout = { zeros( spm_sp('size',varargin{2},2) ) }; end;
-  end % switch lower(action), 
 
-else % nargin==2
-  switch lower(action), 
-    case 'op'
-      if size(varargin{3},1) ~= spm_sp('size',varargin{2},1),
-	  		error('Dimension dont match'); end;
+switch nargin
+case 2	
+   switch lower(action), 		
+	case 'opp'
+       varargout = {sf_opp(sX)};
+	case 'opp:'
+       varargout = {sf_tol(sf_opp(sX),sX.tol)};
+   end %- switch lower(action), 
 
-	   if rk > 0 
-         varargout = {varargin{2}.u(:,[1:rk])* ...
-		   (varargin{2}.u(:,[1:rk])' * varargin{3})};
-      else   varargout = { zeros( size(varargin{3}) ) }; end;
+case 3
+   Y = varargin{3};
+   if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+   if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
 
-    case 'opp'
-      if size(varargin{3},1) ~= spm_sp('size',varargin{2},2),
-	  		error('Dimension dont match'); end 
-	   if rk > 0 
-      	varargout = varargin{2}.v(:,[1:rk])* ...
-			(varargin{2}.v(:,[1:rk])' * varargin{3});
-      	%?? check tolerance 
-      else   varargout = { zeros( size(varargin{3}) ) }; end;
+   switch lower(action), 
+   case 'opp'
+      varargout = {sf_opp(sX)*Y};
+   case 'opp:'
+      varargout = {sf_tol(sf_opp(sX)*Y,sX.tol)};
+   end % switch lower(action)
 
+otherwise
+   error('too many input argument in spm_sp');
 
-	varargout(abs(varargout) < varargin{2}.tol) = 0;
-	varargout = {varargout};
-
-  end % switch lower(action), 
-end % nargin==2
+end % switch nargin
 
 
 case {'pinv','x-'}                       %-Pseudo-inverse of X - pinv(X)
 %=======================================================================
 % pX = spm_sp('pinv',x) 
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
-r   = varargin{2}.rk;
-p   = max(size(varargin{2}.ds));
-ds1 = ones(r,1)./varargin{2}.ds([1:r]);
-if p == size(varargin{2}.v,1) %- no flip
-   varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.u(:,1:r)' };
-else
-   %- then p < size(varargin{2}.v,1) : space flipped
-   varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.u(:,1:r)' };
-end
-
+varargout = { sf_pinv(sX) };
 
 
 case {'xp-','x-p'}                              %-Pseudo-inverse of X'
 %=======================================================================
 % pX = spm_sp('xp-',x) 
-varargout = { spm_sp('x-',varargin{2})' };
 
-case {'pinvxpx', 'xpx-'}          %-Pseudo-inverse of (X'X) - pinv(X'*X)
+varargout = {  sf_pinv(sX)' };
+
+case {'pinvxpx', 'xpx-', 'pinvxpx:', 'xpx-:',} %- Pseudo-inv of (X'X)
 %=======================================================================
-% pXpX = spm_sp('pinvxpx',x, [Y]) 
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
+% pXpX = spm_sp('pinvxpx',x [,Y]) 
 
-if nargin == 3 
-   if size(varargin{3},1) ~= size(varargin{2}.X,2)
-	error('Inconsistant arg size(Y,1)~=size(x.X,2)'), end
-end
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'xpx-','pinvxpx'}
+		varargout = {sf_pinvxpx(sX)};
+	case {'xpx-:','pinvxpx:'}
+      varargout = {sf_tol(sf_pinvxpx(sX),sX.tol)};
+   end %- 
+
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'xpx-','pinvxpx'}
+		varargout = {sf_pinvxpx(sX)*Y};
+	case {'xpx-:','pinvxpx:'}
+      varargout = {sf_tol(sf_pinvxpx(sX)*Y,sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
 
 
-r   = varargin{2}.rk;
-p   = max(size(varargin{2}.ds));
-ds1 = varargin{2}.ds(1:r).^(-2);
+case {'xpx','xpx:'}              %-Computation of (X'*X)
+%=======================================================================
+% XpX = spm_sp('xpx',x [,Y])
 
-if p == size(varargin{2}.v,1)
-    %-- no flip of space
-    switch nargin
-    	case 2
-    	   varargout={ 	varargin{2}.v(:,1:r)* ...
-			diag(ds1)*varargin{2}.v(:,1:r)'};
-	case 3
-    	   varargout= varargin{2}.v(:,1:r)* ...
-		      diag(ds1)*varargin{2}.v(:,1:r)' * varargin{3};
-	   varargout(abs(varargout) < varargin{2}.tol) = 0;
-	   varargout = {varargout};
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'xpx'}
+		varargout = {sf_xpx(sX)};
+	case {'xpx:'}
+      varargout = {sf_tol(sf_xpx(sX),sX.tol)};
+   end %- 
 
-	otherwise
-	   error('Too many input arguments.');
-    end; % switch nargin
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'xpx'}
+		varargout = {sf_xpx(sX)*Y};
+	case {'xpx:'}
+      varargout = {sf_tol(sf_xpx(sX)*Y,sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
+
+
+case {'xxp-','xxp-:','pinvxxp','pinvxxp:'}    %-Pseudo-inverse of (XX')
+%=======================================================================
+% pXXp = spm_sp('pinvxxp',x [,Y])
+
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'xxp-','pinvxxp'}
+		varargout = {sf_pinvxxp(sX)};
+	case {'xxp-:','pinvxxp:'}
+      varargout = {sf_tol(sf_pinvxxp(sX),sX.tol)};
+   end %- 
+
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,1), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'xxp-','pinvxxp'}
+		varargout = {sf_pinvxxp(sX)*Y};
+	case {'xxp-:','pinvxxp:'}
+      varargout = {sf_tol(sf_pinvxxp(sX)*Y,sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
 	
-else
-    %-- then p < size(varargin{2}.v,1) : flip of space
-    %- warning('spm_sp will not work with flipped space in the future');
-    switch nargin
-    	case 2
-	   varargout = ...
-		{ varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
-	case 3
-	   varargout =  varargin{2}.v(:,1:r)* ...
-			 diag(ds1)*varargin{2}.v(:,1:r)' * varargin{3} ;
-	   varargout(abs(varargout) < varargin{2}.tol) = 0;
-	   varargout = {varargout};
 
-	otherwise
-	   error('Too many input arguments.');
-    end; % switch nargin
-
-end
-
-
-case 'xpx'                                       %-Computation of (X'*X)
-%=======================================================================
-% XpX = spm_sp('xpx',x)
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
-
-r   = varargin{2}.rk;
-p   = max(size(varargin{2}.ds));
-% ds1 = zeros(size(varargin{2}.ds)); 
-ds1 = varargin{2}.ds(1:r).^(2);
-
-if p == size(varargin{2}.v,1) % no flip
-	varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
-else
-	%- then p < size(varargin{2}.v,1)
-	varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
-end
-
-
-case 'pinvxxp'                    %-Pseudo-inverse of (XX') - pinv(X*X')
-%=======================================================================
-% pXXp = spm_sp('pinvxxp',x)
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
-
-ds1 = zeros(size(varargin{2}.ds)); 
-ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^(-2);
-varargout = { varargin{2}.u*diag(ds1)*varargin{2}.u' }; clear ds1;
-	
-
-case 'xxp'                                       %-Computation of (X*X')
+case {'xxp','xxp:'}                         %-Computation of (X*X')
 %=======================================================================
 % XXp = spm_sp('xxp',x)
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
-
-ds1 = zeros(size(varargin{2}.ds)); 
-ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^2;
-varargout = { varargin{2}.u*diag(ds1)*varargin{2}.u' }; clear ds1;
-	
 
 
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'xxp'}
+		varargout = {sf_xxp(sX)};
+	case {'xxp:'}
+      varargout = {sf_tol(sf_xxp(sX),sX.tol)};
+   end %- 
 
-case {'null', 'opnull'}    %-Null space / projector(ion) into null space
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,1), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'xxp'}
+		varargout = {sf_xxpY(sX,Y)};
+	case {'xxp:'}
+      varargout = {sf_tol(sf_xxpY(sX,Y),sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
+
+case {'jbp_1','jbp_1:'}                         %-Computation of (X*X')
 %=======================================================================
-% N = spm_sp('null',x)
-% r = spm_sp('opnull',x[,Y])
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
-rk = varargin{2}.rk;
-p  = size(varargin{2}.X,2);
-if p==rk | rk == 0, varargout = {[]}; return, end %- should be zeros ? ****
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'jbp_1'}
+		varargout = {sf_jbp_1(sX)};
+	case {'jbp_1:'}
+      varargout = {sf_tol(sf_jbp_1(sX),sX.tol)};
+   end %- 
 
-switch lower(action)
-case 'null'
-	% null space = vectors associated with 0 eigenvalues
-	if nargin==3 error('too many input arguments'), end
-	varargout = {varargin{2}.v(:,rk+1:p)};
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
 
-case 'opnull'
-	if nargin==3	% Apply to arg proj. on the 0-space of x.X 
-			% check consistency of third argument
-		if size(varargin{3},1) ~= size(varargin{2}.X,2)
-			error('Inconsistant arg size(Y,1)~=size(x.X,2)'), end
-		varargout = {varargin{2}.v(:,rk+1:p)*varargin{2}.v(:,rk+1:p)'...
-			*varargin{3} }; 
-		%- check tol ? ****
-		%- no flip space ? ****
-	else
-		varargout = {varargin{2}.v(:,rk+1:p)*varargin{2}.v(:,rk+1:p)'};
-		% or varargout = {eye(size(varargin{2}.oPp))-varargin{2}.oPp};
-	end
-end
+   switch lower(action), 		
+	case {'jbp_1'}
+		varargout = {sf_jbp_1(sX)*Y};
+	case {'jbp_1:'}
+      varargout = {sf_tol(sf_jbp_1(sX)*Y,sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
 
 
-case 'res'                        %-Residual formaing matrix / residuals
+case {'jbp1','jbp1:'}                         %-Computation of (X*X')
 %=======================================================================
-% r = spm_sp('res',x[,Y])
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
-rk = varargin{2}.rk;
-if rk > 0 
-    switch nargin
-    case 2
-	if isempty(varargin{2}.oP)
-		%-avoid storing varargin{2}.oP = spm_sp('oP',varargin{2});
-		varargout = { eye(size(varargin{2}.X,1)) - ...
-			varargin{2}.u(:,[1:rk])*varargin{2}.u(:,[1:rk])' };
-	 else
-	 	varargout = {eye(size(varargin{2}.oP))-varargin{2}.oP};
-	 end
-	
-    case 3
-	if size(varargin{3},1) ~= size(varargin{2}.X,1) 
-		error('Data and space dim. dont match '); 
-	 else 
-		varargout = varargin{3} - varargin{2}.u(:,[1:rk])* ...
-			    	(varargin{2}.u(:,[1:rk])'*varargin{3}) ;
-		varargout(abs(varargout) < varargin{2}.tol) = 0;
-		varargout = {varargout};
-	 end
-	
-    end % (switch nargin)
+switch nargin
+case 2	
+   switch lower(action), 		
+	case {'jbp1'}
+		varargout = {sf_jbp1(sX)};
+	case {'jbp1:'}
+      varargout = {sf_tol(sf_jbp1(sX),sX.tol)};
+   end %- 
 
-else
-	varargout = { 0 };
-end
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'jbp1'}
+		varargout = {sf_jbp1(sX)*Y};
+	case {'jbp1:'}
+      varargout = {sf_tol(sf_jbp1(sX)*Y,sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
+
+case {'n'}    %-Null space of sX
+%=======================================================================
+
+switch nargin
+case 2	
+	varargout = {sf_n(sX)};
+otherwise
+   error('too many input argument in spm_sp');
+end % switch nargin
+
+
+case {'np'}    %-Null space of sX'
+%=======================================================================
+
+switch nargin
+case 2	
+	varargout = {sf_n(sf_transp(sX))};
+otherwise
+   error('too many input argument in spm_sp');
+end % switch nargin
+
+
+case {'nop', 'nop:'}    %- projector(ion) into null space
+%=======================================================================
+%
+%
+% 
+
+switch nargin
+
+case 2	
+   switch lower(action), 		
+	case {'nop'}
+		n = sf_n(sX);
+		varargout = {n*n'};
+	case {'nop:'}
+		n = sf_n(sX);
+		varargout = {sf_tol(n*n',sX.tol)};
+   end %-
+
+case 3
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,2), error('Dim dont match'); end;
+
+   switch lower(action), 		
+	case {'nop'}
+		n = sf_n(sX);
+		varargout = {n*(n'*Y)};
+	case {'nop:'}
+		n = sf_n(sX);
+		varargout = {sf_tol(n*(n'*Y),sX.tol)};
+   end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
+
+
+case {'nopp', 'nopp:'}    %- projector(ion) into null space of X'
+%=======================================================================
+%
+%
+
+switch nargin
+
+case 2	
+	switch lower(action), 		
+	case {'nopp'}
+		varargout = {spm_sp('nop',sf_transp(sX))};
+	case {'nopp:'}
+		varargout = {spm_sp('nop:',sf_transp(sX))};
+	end %-
+case 3	
+	switch lower(action), 		
+	case {'nopp'}
+		varargout = {spm_sp('nop',sf_transp(sX),varargin{3})};
+	case {'nopp:'}
+		varargout = {spm_sp('nop:',sf_transp(sX),varargin{3})};
+	end %-
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
+
+case {'res', 'r','r:'}             %-Residual formaing matrix / residuals
+%=======================================================================
+% r = spm_sp('res',sX[,Y])
+%
+%- 'res' will become obsolete : use 'r' or 'r:' instead
+%- At some stage, should be merged with 'nop'
+
+
+switch nargin
+
+case 2	
+	switch lower(action) 
+	case {'r','res'} 
+		varargout = {sf_r(sX)};
+	case {'r:','res:'} 
+		varargout = {sf_tol(sf_r(sX),sX.tol)};
+	end %-
+case 3
+
+	%- check dimensions of Y	
+	Y = varargin{3};
+	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+	if size(Y,1) ~= spm_sp('size',sX,1), error('Dim dont match'); end;
+	
+	switch lower(action) 
+	case {'r','res'} 
+		varargout = {sf_rY(sX,Y)};
+	case {'r:','res:'} 
+		varargout = {sf_tol(sf_rY(sX,Y),sX.tol)};
+	end %-
+
+otherwise
+   error('too many input argument in spm_sp');
+
+end % switch nargin
+
 
 
 case {'ox', 'oxp'}                    %-Orthonormal basis sets for X / X'
 %=======================================================================
 % oX  = spm_sp('ox', x)
 % oXp = spm_sp('oxp',x)
-if nargin==1, error('No structure : can''t do much!'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
-rk = varargin{2}.rk;
-if rk > 0 
+if sX.rk > 0 
 	switch lower(action)
 	case 'ox'
-		varargout = {varargin{2}.u(:,[1:rk])};
+		varargout = {sX.u(:,1:sX.rk)};
 	case 'oxp'
-		varargout = {varargin{2}.v(:,[1:rk])};
+		varargout = {sX.v(:,1:sX.rk)};
 	end
 else
-	varargout = {0};
+	switch lower(action)
+	case 'ox'
+		varargout = {zeros(size(sX.X,1),1)};
+	case 'oxp'
+		varargout = {zeros(size(sX.X,2),1)};
+	end
 end
 
-case {'isinsp', 'isinspp'}
+
+
+case {'isinsp', 'isinspp'}    %- is in space or is in dual space
 %=======================================================================
 % b = spm_sp('isinsp',x,c[,tol])
 % b = spm_sp('isinspp',x,c[,tol])
@@ -491,8 +661,8 @@ case {'isinsp', 'isinspp'}
 %-Check arguments
 %-----------------------------------------------------------------------
 if nargin<3, error('insufficient arguments - action,x,c required'), end
-[ok,str] = spm_sp('isspc',varargin{2}); if ~ok, error(str), end
-if nargin<4, tol=varargin{2}.tol; else, tol = varargin{4}; end
+c = varargin{3}; %- if isempty(c), dim wont match exept for empty sp.
+if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
 
 %-Compute according to case
 %-----------------------------------------------------------------------
@@ -500,48 +670,46 @@ switch lower(action)
 
 case 'isinsp'
 	%-Check dimensions
-	if size(varargin{2}.X,1) ~= size(varargin{3},1) 
-		warning('Vector dimensions don''t match column dimension...'); 
+	if size(sX.X,1) ~= size(c,1) 
+		warning('Vector dim don''t match col. dim : not in space !'); 
 		varargout = { 0 }; return;
 	end
-	if ~isempty(varargin{2}.oP)
-		varargout = {all(abs(varargin{2}.oP*varargin{3} - ...
-							varargin{3})<=tol)};
-	else
-		varargout = {all(abs(spm_sp('oP',varargin{2},varargin{3}) - ...
-							varargin{3})<=tol )};
-	end
+	varargout = {all(abs(sf_op(sX)*c - c) <= tol )};
 
 case 'isinspp'
 	%- check dimensions
-	if size(varargin{2}.X,2) ~= size(varargin{3},1) 
-		warning('Vector dimensions don''t match X row dimension...'); 
+	if size(sX.X,2) ~= size(c,1) 
+		warning('Vector dim don''t match row dim : not in space !'); 
 		varargout = { 0 }; return;
 	end
-	if ~isempty(varargin{2}.oPp)
-		varargout = {all(abs(varargin{2}.oPp*varargin{3} - ...
-							varargin{3})<=tol)};
-	else
-		varargout = {all(abs(spm_sp('oPp',varargin{2},varargin{3}) - ...
-							varargin{3})<=tol)};
-	end
+	varargout = {all(abs(sf_opp(sX)*c - c) <= tol)};
 end
+
 
 case '=='		% test wether two spaces are the same
 %=======================================================================
 % b = spm_sp('==',x1,X2)
-if nargin~=3, error('too few/many input arguments - need 2');
-else x1 = varargin{2}; X2 = varargin{3}; end;
-if isempty(x1.X)
+if nargin~=3, error('too few/many input arguments - need 3');
+else X2 = varargin{3}; end;
+
+if isempty(sX.X)
    if isempty(X2), 
-		varargout = { 1 };
       warning('Both spaces empty');
-   else varargout = { 0 }; end;
+		varargout = { 1 };
+   else 
+      warning('one space empty');
+		varargout = { 0 }; 
+	end;
 
 else 
 	x2 = spm_sp('Set',X2);
-	varargout = { all( spm_sp('isinsp',x1,X2)) & ...
-   all( spm_sp('isinsp',x2,x1.X,max(x1.tol,x2.tol)) ) };
+	maxtol = max(sX.tol,x2.tol);
+	varargout = { all( spm_sp('isinsp',sX,X2,maxtol)) & ...
+   	all( spm_sp('isinsp',x2,sX.X,maxtol) ) };
+
+	%- I have encountered one case where the max was needed.
+	%- 
+
 end;
 
 case 'isspc'                                     %-Space structure check
@@ -556,9 +724,10 @@ if ~isstruct(varargin{2}), varargout={0}; return, end
 % (Get fieldnames once and compare: isfield doesn't work for multiple )
 % (fields, and repeated calls to isfield would result in unnecessary  )
 % (replicate calls to fieldnames(varargin{2}).                        )
+
 b       = 1;
 fnames  = fieldnames(varargin{2});
-for str = fieldnames(spm_sp('Create'))'
+for str = fieldnames(sf_create)'
 	b = b & any(strcmp(str,fnames));
 	if ~b, break, end
 end
@@ -614,6 +783,67 @@ end % (case lower(action))
 %- S U B - F U N C T I O N S
 %=======================================================================
 
+function x = sf_create
+%=======================================================================
+
+x = struct(...
+	'X',	[],...		   % Matrix
+	'tol',	[],...		% tolerance
+	'ds',	[],...		   % vectors of singular values 
+	'u',	[],...		   % u as in X = u*diag(ds)*v'
+	'v',	[], ...		   % v as in X = u*diag(ds)*v'
+	'rk',	[],...		   % rank
+	'oP', 	[],...		% orthogonal projector on X
+	'oPp',	[],...		% orthogonal projector on X'
+	'ups',	[],...		% space in which this one is embeded
+	'sus',	[]);		   % subspace 
+
+
+
+function x = sf_set(X)
+%=======================================================================
+
+x   = sf_create;
+x.X = X;
+
+%-- Compute the svd with svd(X,0) : find all the singular values of x.X
+%-- SVD(FULL(A)) will usually perform better than SVDS(A,MIN(SIZE(A)))
+
+%- if more column that lines, performs on X'
+
+if size(X,1) < size(X,2)
+	[x.v, s, x.u] = svd(full(X'),0);
+else  
+	[x.u, s, x.v] = svd(full(X),0);
+end
+
+x.ds = diag(s); clear s;
+
+%-- compute the tolerance
+x.tol =  max(size(x.X))*max(abs(x.ds))*eps;
+
+%-- compute the rank
+x.rk =  sum(x.ds > x.tol);
+
+
+function x = sf_transp(x)
+%=======================================================================
+%
+%- Tranpspose the space : note that tmp is not touched, therefore
+%- only contains the address, no duplication of data is performed.
+
+x.X 	= x.X';
+
+tmp 	= x.v;
+x.v 	= x.u;
+x.u 	= tmp;
+
+tmp 	= x.oP;
+x.oP 	= x.oPp;
+x.oPp = tmp;
+clear tmp;
+
+
 function b = sf_isset(x)
 %=======================================================================
 b = ~(	isempty(x.X) 	|...
@@ -622,3 +852,167 @@ b = ~(	isempty(x.X) 	|...
 	isempty(x.ds)	|...
 	isempty(x.tol)	|...
 	isempty(x.rk)	);
+
+
+function x = sf_tol(x,t)
+%=======================================================================
+x(abs(x) < t) = 0;
+
+
+function op = sf_op(sX)
+%=======================================================================
+if sX.rk > 0 
+	op = sX.u(:,[1:sX.rk])*sX.u(:,[1:sX.rk])';
+else  
+	op = zeros( size(sX.X,1) ); 
+end;
+
+%!!!! to implement : a clever version of sf_opY (see sf_rY)
+
+
+function opp = sf_opp(sX)
+%=======================================================================
+if sX.rk > 0 
+	opp = sX.v(:,[1:sX.rk])*sX.v(:,[1:sX.rk])';
+else  
+	opp = zeros( size(sX.X,2) ); 
+end;
+
+%!!!! to implement : a clever version of sf_oppY (see sf_rY)
+
+
+function px = sf_pinv(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	px = sX.v(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.u(:,1:r)';
+else 
+	px = zeros(size(sX.X,2),size(sX.X,1));
+end
+
+function px = sf_pinvxpx(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	px = sX.v(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.v(:,1:r)';
+else
+	px = zeros(size(sX.X,2));
+end
+
+function px = sf_jbp_1(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	px = sX.v(:,1:r)*diag( sX.ds(1:r).^(-1) )*sX.v(:,1:r)';
+else
+	px = zeros(size(sX.X,2));
+end
+function px = sf_jbp1(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	px = sX.v(:,1:r)*diag( sX.ds(1:r).^(1) )*sX.v(:,1:r)';
+else
+	px = zeros(size(sX.X,2));
+end
+
+
+function x = sf_xpx(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	x = sX.v(:,1:r)*diag( sX.ds(1:r).^2 )*sX.v(:,1:r)';
+else
+	x = zeros(size(sX.X,2));
+end
+
+function x = sf_xxp(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*sX.u(:,1:r)';
+else
+	x = zeros(size(sX.X,1));
+end
+
+function x = sf_xxpY(sX,Y)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*(sX.u(:,1:r)'*Y);
+else
+	x = zeros(size(sX.X,1),size(Y,2));
+end
+
+function x = sf_pinvxxp(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	x = sX.u(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.u(:,1:r)';
+else
+	x = zeros(size(sX.X,1));
+end
+
+function n = sf_n(sX)
+%=======================================================================
+% if the null space is in sX.v, returns it
+% otherwise, performs Gramm Schmidt orthogonalisation.
+% 
+%
+r = sX.rk;
+[q p]= size(sX.X);
+if r > 0
+	if q >= p  %- the null space is entirely in v
+		if r == p, n = zeros(p,1); else, n = sX.v(:,r+1:p); end
+	else %- only part of n is in v: same as computing the null sp of sX'
+		v = zeros(p,p-q); j = 1; i = 1; z = zeros(p,1);
+		while i <= p
+			o = z; o(i) = 1; vpoi = [sX.v(i,:) v(i,1:j-1)]';
+			o = sf_tol(o - [sX.v v(:,1:j-1)]*vpoi,sX.tol);
+			if any(o), v(:,j) = o/((o'*o)^(1/2)); j = j + 1; end;
+			i = i + 1; %- if i>p, error('gramm shmidt error'); end;
+		end
+		n = [sX.v(:,r+1:q) v];
+	end
+else 
+	n = eye(p);
+end
+
+
+
+function r = sf_r(sX)
+%=======================================================================
+%-
+%- returns the residual forming matrix for the space sX
+%- for internal use. doesn't Check whether oP exist.
+
+r = eye(size(sX.X,1)) - sf_op(sX) ;
+
+
+function Y = sf_rY(sX,Y)
+%=======================================================================
+% r = spm_sp('r',sX[,Y])
+% 
+%- tries to minimise the computation by looking whether we should do
+%- I - u*(u'*Y) or n*(n'*Y) as in 'nop'
+
+r = sX.rk;
+[q p]= size(sX.X);
+
+if r > 0 %- else returns the input;
+	
+	if r < q-r %- we better do I - u*u' 
+		Y = Y - sX.u(:,[1:r])*(sX.u(:,[1:r])'*Y); % warning('route1');
+	else
+		%- is it worth computing the n ortho basis ? 
+		if size(Y,2) < 5*q
+			Y = sf_r(sX)*Y; 								% warning('route2');
+		else 
+			n = sf_n(sf_transp(sX)); 					% warning('route3');
+			Y = n*(n'*Y);
+		end
+	end
+
+end
+
+
