@@ -1,10 +1,10 @@
-function x = spm_invGcdf(F,h,c,tol)
+function x = spm_invGcdf(F,h,l,tol)
 % Inverse Cumulative Distribution Function (CDF) of Gamma distribution
-% FORMAT x = spm_invGcdf(p,h,c,tol)
+% FORMAT x = spm_invGcdf(p,h,l,tol)
 %
 % F   - CDF (lower tail p-value)
 % h   - Shape parameter (h>0)
-% c   - Scale parameter (c>0)
+% l   - Scale parameter (l>0)
 % x   - Gamma ordinates at which CDF F(x)=F
 % tol - tolerance [default 10^-6]
 %__________________________________________________________________________
@@ -12,13 +12,13 @@ function x = spm_invGcdf(F,h,c,tol)
 % spm_invGcdf implements the inverse Cumulative Distribution Function
 % for Gamma distributions.
 %
-% Returns the Gamma-variate x such that Pr{X<x} = F for X a Gamma
-% random variable with shape parameter h and scale c.
-%
 % Definition:
 %-----------------------------------------------------------------------
-% The Gamma distribution has shape parameter h and scale c, and is
-% defined for h>0 & c>0 and for x in [0,Inf) (See Evans et al., Ch18).
+% The Gamma distribution has shape parameter h and scale l, and is
+% defined for h>0 & l>0 and for x in [0,Inf) (See Evans et al., Ch18,
+% but note that this reference uses the alternative parameterisation of
+% the Gamma with scale parameter c=1/l)
+%
 % The Cumulative Distribution Function (CDF) F(x) is the probability
 % that a realisation of a Gamma random variable X has value less than
 % x. F(x)=Pr{X<x}:  (See Evans et al., Ch18)
@@ -28,10 +28,10 @@ function x = spm_invGcdf(F,h,c,tol)
 % For natural (strictly +ve integer) shape h this is an Erlang distribution.
 %
 % The Standard Gamma distribution has a single parameter, the shape h.
-% The scale taken as c=1.
+% The scale taken as l=1.
 %
 % The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
 %-----------------------------------------------------------------------
@@ -64,11 +64,11 @@ maxIt = 10000;
 if nargin<4, tol = Dtol; end
 if nargin<3, error('Insufficient arguments'), end
 
-ad = [ndims(F);ndims(h);ndims(c)];
+ad = [ndims(F);ndims(h);ndims(l)];
 rd = max(ad);
 as = [	[size(F),ones(1,rd-ad(1))];...
 	[size(h),ones(1,rd-ad(2))];...
-	[size(c),ones(1,rd-ad(3))]     ];
+	[size(l),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
@@ -79,9 +79,9 @@ if sum(xa)>1 & any(any(diff(as(xa,:)),1))
 %-Initialise result to zeros
 x = zeros(rs);
 
-%-Only defined for F in [0,1] & strictly positive h & c.
+%-Only defined for F in [0,1] & strictly positive h & l.
 % Return NaN if undefined.
-md = ( F>=0  &  F<=1  &  h>0  &  c>0 );
+md = ( F>=0  &  F<=1  &  h>0  &  l>0 );
 if any(~md(:)), x(~md) = NaN;
 	warning('Returning NaN for out of range arguments'), end
 
@@ -94,29 +94,29 @@ Q  = find( md  &  F>0  &  F<1 );
 if isempty(Q), return, end
 if xa(1), FQ=F(Q); FQ=FQ(:); else, FQ=F*ones(length(Q),1); end
 if xa(2), hQ=h(Q); hQ=hQ(:); else, hQ=h*ones(length(Q),1); end
-if xa(3), cQ=c(Q); cQ=cQ(:); else, cQ=c*ones(length(Q),1); end
+if xa(3), lQ=l(Q); lQ=lQ(:); else, lQ=l*ones(length(Q),1); end
 %-?Q=?Q(:) stuff is to avoid discrepant orientations of vector arguments!
 
 %-Compute initial interval estimates [0,mean] & Grow to encompass F(QF);
 %-----------------------------------------------------------------------
 a  = zeros(length(Q),1);
-b  = hQ.*cQ./2;
+b  = hQ./(2*lQ);
 QQ = 1:length(Q);
 while length(QQ)
 	b(QQ) = 2*b(QQ);
-	QQ    = find(spm_Gcdf(b,hQ,cQ) < FQ);
+	QQ    = find(spm_Gcdf(b,hQ,lQ) < FQ);
 end
 
 %-Interval bisection
 %-----------------------------------------------------------------------
-fa = spm_Gcdf(a,hQ,cQ)-FQ;
-fb = spm_Gcdf(b,hQ,cQ)-FQ;
+fa = spm_Gcdf(a,hQ,lQ)-FQ;
+fb = spm_Gcdf(b,hQ,lQ)-FQ;
 i  = 0;
 xQ = a+(b-a)/2;
 QQ = 1:length(Q);
 
 while length(QQ) &  i<maxIt
-	fxQQ        = spm_Gcdf(xQ(QQ),hQ(QQ),cQ(QQ))-FQ(QQ);
+	fxQQ        = spm_Gcdf(xQ(QQ),hQ(QQ),lQ(QQ))-FQ(QQ);
 	mQQ         = fa(QQ).*fxQQ > 0;
 	a(QQ(mQQ))  = xQ(QQ(mQQ));   fa(QQ(mQQ))  = fxQQ(mQQ);
 	b(QQ(~mQQ)) = xQ(QQ(~mQQ));  fb(QQ(~mQQ)) = fxQQ(~mQQ);

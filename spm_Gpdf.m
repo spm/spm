@@ -1,11 +1,11 @@
-function f = spm_Gpdf(x,h,c)
+function f = spm_Gpdf(x,h,l)
 % Probability Density Function (PDF) of Gamma distribution
-% FORMAT f = spm_Gpdf(g,h,c)
+% FORMAT f = spm_Gpdf(g,h,l)
 %
 % x - Gamma-variate   (Gamma has range [0,Inf) )
 % h - Shape parameter (h>0)
-% c - Scale parameter (c>0)
-% f - PDF of Gamma-distribution with v degrees of freedom at points x
+% l - Scale parameter (l>0)
+% f - PDF of Gamma-distribution with shape & scale parameters h & l
 %_______________________________________________________________________
 %
 % spm_Gpdf implements the Probability Density Function of the Gamma
@@ -13,22 +13,24 @@ function f = spm_Gpdf(x,h,c)
 %
 % Definition:
 %-----------------------------------------------------------------------
-% The PDF of the Gamma distribution with shape parameter h and scale c
-% is defined for h>0 & c>0 and for x in [0,Inf) by: (See Evans et al., Ch18)
+% The PDF of the Gamma distribution with shape parameter h and scale l
+% is defined for h>0 & l>0 and for x in [0,Inf) by: (See Evans et al.,
+% Ch18, but note that this reference uses the alternative
+% parameterisation of the Gamma with scale parameter c=1/l)
 %
-%           (x/c)^(h-1) exp(-x/c)
+%           l^h * x^(h-1) exp(-lx)
 %    f(x) = ---------------------
-%               c * gamma(h)
+%                gamma(h)
 %
 % Variate relationships: (Evans et al., Ch18 & Ch8)
 %-----------------------------------------------------------------------
 % For natural (strictly +ve integer) shape h this is an Erlang distribution.
 %
 % The Standard Gamma distribution has a single parameter, the shape h.
-% The scale taken as c=1.
+% The scale taken as l=1.
 %
 % The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
 %-----------------------------------------------------------------------
@@ -54,11 +56,11 @@ function f = spm_Gpdf(x,h,c)
 %-----------------------------------------------------------------------
 if nargin<3, error('Insufficient arguments'), end
 
-ad = [ndims(x);ndims(h);ndims(c)];
+ad = [ndims(x);ndims(h);ndims(l)];
 rd = max(ad);
 as = [	[size(x),ones(1,rd-ad(1))];...
 	[size(h),ones(1,rd-ad(2))];...
-	[size(c),ones(1,rd-ad(3))]     ];
+	[size(l),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
@@ -69,24 +71,24 @@ if sum(xa)>1 & any(any(diff(as(xa,:)),1))
 %-Initialise result to zeros
 f = zeros(rs);
 
-%-Only defined for strictly positive h & c. Return NaN if undefined.
-md = ( ones(size(x))  &  h>0  &  c>0 );
+%-Only defined for strictly positive h & l. Return NaN if undefined.
+md = ( ones(size(x))  &  h>0  &  l>0 );
 if any(~md(:)), f(~md) = NaN;
 	warning('Returning NaN for out of range arguments'), end
 
-%-Degenerate cases at x==0: h<1 => f=Inf; h==1 => f=1/c; h>1 => f=0
+%-Degenerate cases at x==0: h<1 => f=Inf; h==1 => f=l; h>1 => f=0
 ml = ( md  &  x==0  &  h<1 );
 f(ml) = Inf;
-ml = ( md  &  x==0  &  h==1 ); if xa(3), mlc=ml; else mlc=1; end
-f(ml) = 1./c(mlc);
+ml = ( md  &  x==0  &  h==1 ); if xa(3), mll=ml; else mll=1; end
+f(ml) = l(mll);
 
 %-Compute where defined and x>0
 Q  = find( md  &  x>0 );
 if isempty(Q), return, end
 if xa(1), Qx=Q; else Qx=1; end
 if xa(2), Qh=Q; else Qh=1; end
-if xa(3), Qc=Q; else Qc=1; end
+if xa(3), Ql=Q; else Ql=1; end
 
 %-Compute
-f(Q) = exp( (h(Qh)-1).*log(x(Qx)) -h(Qh).*log(c(Qc)) - x(Qx)./c(Qc)...
+f(Q) = exp( (h(Qh)-1).*log(x(Qx)) +h(Qh).*log(l(Ql)) - l(Ql).*x(Qx)...
 		-gammaln(h(Qh)) );

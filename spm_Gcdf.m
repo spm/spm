@@ -1,11 +1,11 @@
-function F = spm_Gcdf(x,h,c)
+function F = spm_Gcdf(x,h,l)
 % Cumulative Distribution Function (CDF) of Gamma distribution
-% FORMAT F = spm_Gcdf(x,h,c)
+% FORMAT F = spm_Gcdf(x,h,l)
 %
 % x - Gamma-variate   (Gamma has range [0,Inf) )
 % h - Shape parameter (h>0)
-% c - Scale parameter (c>0)
-% F - CDF of Gamma-distribution with shape & scale parameters h & c
+% l - Scale parameter (l>0)
+% F - CDF of Gamma-distribution with shape & scale parameters h & l
 %__________________________________________________________________________
 %
 % spm_Gcdf implements the Cumulative Distribution of the Gamma-distribution.
@@ -13,31 +13,32 @@ function F = spm_Gcdf(x,h,c)
 % Definition:
 %-----------------------------------------------------------------------
 % The CDF F(x) of the Gamma distribution with shape parameter h and
-% scale c is the probability that a realisation of a Gamma random
-% variable X has value less than x F(x)=Pr{X<x} for X~G(h,c). The Gamma
-% distribution is defined for h>0 & c>0 and for x in [0,Inf) (See Evans
-% et al., Ch18).
+% scale l is the probability that a realisation of a Gamma random
+% variable X has value less than x F(x)=Pr{X<x} for X~G(h,l). The Gamma
+% distribution is defined for h>0 & l>0 and for x in [0,Inf) (See Evans
+% et al., Ch18, but note that this reference uses the alternative
+% parameterisation of the Gamma with scale parameter c=1/l)
 %
 % Variate relationships: (Evans et al., Ch18 & Ch8)
 %-----------------------------------------------------------------------
 % For natural (strictly +ve integer) shape h this is an Erlang distribution.
 %
 % The Standard Gamma distribution has a single parameter, the shape h.
-% The scale taken as c=1.
+% The scale taken as l=1.
 %
 % The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
 %-----------------------------------------------------------------------
-% The CDF of the Gamma distribution with scale parameter c and shape h
+% The CDF of the Gamma distribution with scale parameter l and shape h
 % is related to the incomplete Gamma function by
 %
-%	F(x) = gammainc(x/c,h)
+%	F(x) = gammainc(l*x,h)
 %
 % See Abramowitz & Stegun, 6.5.1; Press et al., Sec6.2 for definitions
 % of the incomplete Gamma function. The relationship is easily verified
-% by substituting for t/c in the integral.
+% by substituting for t/c in the integral, where c=1/l.
 %
 % MatLab's implementation of the incomplete gamma function is used.
 %
@@ -61,11 +62,11 @@ function F = spm_Gcdf(x,h,c)
 %-----------------------------------------------------------------------
 if nargin<3, error('Insufficient arguments'), end
 
-ad = [ndims(x);ndims(h);ndims(c)];
+ad = [ndims(x);ndims(h);ndims(l)];
 rd = max(ad);
 as = [	[size(x),ones(1,rd-ad(1))];...
 	[size(h),ones(1,rd-ad(2))];...
-	[size(c),ones(1,rd-ad(3))]     ];
+	[size(l),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
@@ -76,8 +77,8 @@ if sum(xa)>1 & any(any(diff(as(xa,:)),1))
 %-Initialise result to zeros
 F = zeros(rs);
 
-%-Only defined for strictly positive h & c. Return NaN if undefined.
-md = ( ones(size(x))  &  h>0  &  c>0 );
+%-Only defined for strictly positive h & l. Return NaN if undefined.
+md = ( ones(size(x))  &  h>0  &  l>0 );
 if any(~md(:)), F(~md) = NaN;
 	warning('Returning NaN for out of range arguments'), end
 
@@ -86,7 +87,7 @@ Q  = find( md  &  x>0 );
 if isempty(Q), return, end
 if xa(1), Qx=Q; else Qx=1; end
 if xa(2), Qh=Q; else Qh=1; end
-if xa(3), Qc=Q; else Qc=1; end
+if xa(3), Ql=Q; else Ql=1; end
 
 %-Compute
-F(Q) = gammainc(x(Qx)./c(Qc),h(Qh));
+F(Q) = gammainc(l(Ql).*x(Qx),h(Qh));
