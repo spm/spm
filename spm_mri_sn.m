@@ -118,12 +118,12 @@ end
 q      = P(1,:);
 q      = q(q ~= ' ');
 d      = max([find(q == '/') 0]);
-d      = [q(1:d) 'gray' q((d + 1):length(q))];
-Ug     = fopen(d,'w');
-spm_hwrite(q,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
-d      = [q(1:d) 'white' q((d + 1):length(q))];
-Uw     = fopen(d,'w');
-spm_hwrite(q,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
+str    = [q(1:d) 'gray' q((d + 1):length(q))];
+Ug     = fopen(str,'w');
+spm_hwrite(str,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
+str    = [q(1:d) 'white' q((d + 1):length(q))];
+Uw     = fopen(str,'w');
+spm_hwrite(str,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
 
 
 % memory map the MRI image and model image (rCBF or gray matter-like)
