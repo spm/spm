@@ -1,12 +1,10 @@
-function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL,TOS);
+function [Ce,h,W,u] = spm_reml(Cy,X,Q,W,h);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL,TOS);
+% FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q,W,h);
 %
 % Cy  - (m x m) data covariance matrix y*y'  {y = (m x n) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
-% TOL - Tolerance for convergence [norm of gradient df/dh; default = 1e-6]
-% TOS - Tolerance for SVD of curvature [ddf/dhdh;          default = 1e-6]
 %
 % Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) hyperparameters
@@ -15,10 +13,10 @@ function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL,TOS);
 %___________________________________________________________________________
 % %W% John Ashburner, Karl Friston %E%
 
-% set tolerance if not specified
+% Tolerances 
 %---------------------------------------------------------------------------
-if nargin < 4, TOL = 1e-6; end
-if nargin < 5, TOS = 1e-6; end
+TOL = 1e-6;		% for convergence [norm of gradient df/dh]
+TOS = 1e-16;		% for SVD of curvature [ddf/dhdh]
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
@@ -30,20 +28,22 @@ X     = sparse(X);
 %---------------------------------------------------------------------------
 m     = length(Q);
 n     = length(Cy);
-W     = zeros(m,m);
-for i = 1:m
-	RQ{i}  = Q{i} - X*(X'*Q{i});
-end
-for i = 1:m
-for j = i:m
-	dFdhh  = sum(sum(RQ{i}.*RQ{j}'));
-	W(i,j) = dFdhh;
-	W(j,i) = dFdhh;
-end
+try
+	W;
+catch
+	W     = zeros(m,m);
+	for i = 1:m
+		RQ{i}  = Q{i} - X*(X'*Q{i});
+	end
+	for i = 1:m
+	for j = i:m
+		dFdhh  = sum(sum(RQ{i}.*RQ{j}'));
+		W(i,j) = dFdhh;
+		W(j,i) = dFdhh;
+	end
 end
 
 % eliminate inestimable components
-% NB: The threshold for normalized eigenvalues is 1e-6 in spm_svd
 %---------------------------------------------------------------------------
 u     = spm_svd(W,TOS);
 for i = 1:size(u,2)
@@ -63,8 +63,12 @@ C     = [];
 for i = 1:m
 	C = [C Q{i}(:)];
 end
-I     = speye(n,n);
-h     = inv(C'*C)*(C'*I(:));
+try
+	h;
+catch
+	I     = speye(n,n);
+	h     = inv(C'*C)*(C'*I(:));
+end
 
 % Iterative EM
 %---------------------------------------------------------------------------
@@ -121,6 +125,11 @@ for k = 1:32
 	%===================================================================
 	w     = dFdh'*dFdh;
 	if w < TOL | m == 1, break, end
+	if k == 32
+		W          = u*W*u';
+		[Ce,h,W,u] = spm_reml(Cy,X,Q,W,h)
+		return
+	end
 	fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
 end
 
