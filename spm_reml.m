@@ -19,7 +19,7 @@ if nargin < 4, TOL = 1e-6; end
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
-X     = spm_svd(X);
+X     = spm_svd(X,1e-16);
 
 % find independent partitions (encoded in W)
 %---------------------------------------------------------------------------
@@ -29,56 +29,20 @@ d     = zeros(m,m);
 RQR   = sparse(n,n);
 for i = 1:m
 	RQ{i} = Q{i} - X*(X'*Q{i});
-	RQR   = RQR | RQ{i};
 end
 for i = 1:m
 for j = i:m
-	q      = trace(RQ{i}*RQ{j});
+	q      = sum(sum(RQ{i}.*RQ{j}'));
 	d(i,j) = q;
 	d(j,i) = q;
 end
 end
 
-% recursive calling for (p) separable partitions 
-%---------------------------------------------------------------------------
-u     = spm_blk_diag(RQR);
-h     = zeros(m,1);
-W     = zeros(m,m); 
-Ce    = sparse(n,n); 
-p     = size(u,2);
-if p > 1
-	for i = 1:p
-
-		% find subset of bases (indexed by J) and partitions (by q)
-		%-----------------------------------------------------------
-		J     = [];
-		C     = {};
-		q     = find(u(:,i));
-		for j = 1:m
-			if nnz(Q{j}(q,q))
-				C{end + 1} = Q{j}(q,q);
-				J(end + 1) = j;
-			end
-		end
-
-		% ReML
-		%-----------------------------------------------------------
-		fprintf('%-30s- %i\n','  ReML Partition',i);
-		[Cep,hp,Wp] = spm_reml(Cy(q,q),X(q,:),C,1e-16);
-		Ce(q,q)     = Ce(q,q) + Cep;
-		h(J)        = hp;
-		W(J,J)      = Wp;
-		
-	end
-
-	return
-end
-
-% If one partition proceed to ReML
-%===========================================================================
-
 % initialize hyperparameters
 %---------------------------------------------------------------------------
+dFdh  = zeros(m,1);
+h     = zeros(m,1);
+W     = zeros(m,m); 
 for i = 1:m
 	h(i) = any(diag(Q{i}));
 end
@@ -86,7 +50,6 @@ h     = d*pinv(d)*h;
 
 % Iterative EM
 %---------------------------------------------------------------------------
-dFdh  = zeros(m,1);
 for k = 1:32
 
 	% Q are variance components		
