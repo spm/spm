@@ -25,7 +25,7 @@ function b = spm_fzero(varargin)
 
 %-Print warning of obsolescence
 %-----------------------------------------------------------------------
-warning('spm_fzero is grandfathered in ML5, use fzero instead')
+warning('spm_fzero is grandfathered in ML5, using fzero instead')
 
 
 %-Pass on arguments to MatLab5 fzero
