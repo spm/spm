@@ -55,6 +55,7 @@ if nargin == 0
 	spm_figure('Clear','Interactive');
 	set(spm_figure('FindWin','Interactive'),...
 		'Name','Defaults Edit');
+	spm_help('!ContextHelp','spm_defaults_edit.m')
 	pos = 1;
 
 	callbacks = str2mat(...
@@ -90,21 +91,22 @@ elseif strcmp(arg1, 'Misc')
 
 	% Miscellaneous
 	%---------------------------------------------------------------
-	tmp = 'no';
-	if ~isempty(LOGFILE), tmp = 'yes'; end;
-	if (spm_input(['Log to file? (' tmp ')'], 2, 'y/n') == 'y')
-		LOGFILE = [spm_str_manip(spm_input('Logfile Name:',2,'s', LOGFILE),'td') '.spmlog'];
+	if ~isempty(LOGFILE), tmp='yes'; def=1; else, tmp='no'; def=2; end
+	if spm_input(['Log to file? (' tmp ')'],2,'y/n',[1,0],def)
+		LOGFILE = ...
+			deblank(spm_input('Logfile Name:',2,'s', LOGFILE));
+	else
+		LOGFILE = '';
 	end
 
-	tmp = 'no';
-	if CMDLINE ~= 0, tmp = 'yes'; end;
-
-	CMDLINE = spm_input(['Command Line Input (' tmp ')?'], 3, 'y/n') == 'y';
+	if CMDLINE ~= 0, tmp='yes'; def=1; else, tmp='no'; def=2; end
+	CMDLINE = ...
+	    spm_input(['Command Line Input (' tmp ')?'],3,'y/n',[1,0],def);
 	GRID = spm_input('Grid value (0-1):', 4, 'e', GRID);
 
-	if proj_MultiPage, tmp='yes'; else, tmp='no'; end
+	if proj_MultiPage, tmp='yes'; def=1; else, tmp='no'; def=2; end
 	proj_MultiPage = ...
-		spm_input(['Paging of stats (' tmp ')?'],5,'y/n') == 'y';
+		spm_input(['Paging of stats (' tmp ')?'],5,'y/n',[1,0],def);
 
 elseif strcmp(arg1, 'Printing')
 
