@@ -47,7 +47,7 @@ fig = spm_figure('FindWin','Graphics');
 
 if isempty(st)
 	bb     = [ [-78 78]' [-112 76]' [-50 85]' ];
-	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback','disp(centre)');
+	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';');
 	st.vols = cell(24,1);
 end
 
@@ -57,19 +57,16 @@ if strcmp(action,'image')
 	if (nargin<2), return; end;
 
 	ok = 1;
-	eval('[DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(arg1);','ok=0;');
-	eval('M = spm_get_space(arg1);','ok=0;');
+	eval('V = spm_vol(arg1);','ok=0;');
 	if ok == 0,
 		fprintf('Can not use image "%s"\n', arg1);
 		return;
 	end
 
-	D = [DIM VOX SCALE TYPE OFFSET];
-
 	if nargin>2,
-		area = arg2;
+		V.area = arg2;
 	else
-		area = [0. 0. 1. 1.];
+		V.area = [0. 0. 1. 1.];
 	end
 
 	ii = 1;
@@ -77,10 +74,8 @@ if strcmp(action,'image')
 		ii = ii + 1;
 	end
 
-	st.vols{ii} = struct('V',0,'D',D,'M',M,'name',arg1,...
-		'area',area,'ax',[]);
-	ax = cell(3,1);
 	DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
+	V.ax = cell(3,1);
 	for i=1:3
 		ax = axes('Visible','off','DrawMode','fast','Parent',fig,'DeleteFcn',DeleteFcn,...
 			'YDir','normal');
@@ -89,9 +84,10 @@ if strcmp(action,'image')
 		set(ax,'Ydir','normal');
 		lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 		ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
-		axx{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
+		V.ax{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
 	end
-	st.vols{ii}.ax = axx;
+
+	st.vols{ii} = V;
 
 	H = ii;
 	if isempty(st.bb),
@@ -200,7 +196,7 @@ if strcmp(action,'reposition')
 
 	for i=1:24
 		if ~isempty(st.vols{i})
-			M=st.vols{i}.M;
+			M=st.vols{i}.mat;
 			TM0 = [
 				1 0 0 -bb(1,1)
 				0 1 0 -bb(1,2)
@@ -223,25 +219,13 @@ if strcmp(action,'reposition')
 			CM = inv(CM0*(st.Space\M)); CD = Dims([1 3]);
 			SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
 
-			mapped = 1;
-			if isempty(st.vols{i}.V) | st.vols{i}.V == 0
-				mapped = 1;
-				eval('V = spm_map_vol(st.vols{i}.name,st.vols{i}.D);','mapped = 0;');
-				if isempty(st.vols{i}.V),
-					st.vols{i}.V = V;
-				end
+			ok=1;
+			eval('imgt  = (spm_slice_vol(st.vols{i},TM,TD,1))'';','ok=0;');
+			eval('imgc  = (spm_slice_vol(st.vols{i},CM,CD,1))'';','ok=0;');
+			eval('imgs  = (spm_slice_vol(st.vols{i},SM,SD,1))'';','ok=0;');
+			if (ok==0)
+				fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
 			else
-				V = st.vols{i}.V;
-			end
-			if (mapped == 0)
-				fprintf('Image "%s" can not be resampled\n', st.vols{i}.name);
-			else
-				imgt  = (spm_slice_vol(V,TM,TD,1))';
-				imgc  = (spm_slice_vol(V,CM,CD,1))';
-				imgs  = (spm_slice_vol(V,SM,SD,1))';
-	
-	
-				if ~isempty(st.vols{i}.V) & st.vols{i}.V==0, spm_unmap_vol(V); end;
 	
 				scal = 64/max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
 	
@@ -281,14 +265,13 @@ end
 if (strcmp(action,'space'))
 	Space = eye(4);
 	bb = [ [-64 64]' [-104 68]' [-28 72]' ];
-	
 	if (nargin>1)
 		if ~isempty(st.vols{arg1})
 			num = arg1;
-			Mat = st.vols{num}.M(1:3,1:3);
+			Mat = st.vols{num}.mat(1:3,1:3);
 			Mat = diag([sqrt(sum(Mat.^2)) 1]);
-			Space = st.vols{num}.M/Mat;
-			bb = [1 1 1;st.vols{num}.D(1:3)];
+			Space = st.vols{num}.mat/Mat;
+			bb = [1 1 1;st.vols{num}.dim(1:3)];
 			bb = [bb [1;1]];
 			bb=bb*Mat';
 			bb=bb(:,1:3);
@@ -306,7 +289,7 @@ if (strcmp(action,'maxbb'))
 	mx = -mn;
 	for i=1:24
 		if ~isempty(st.vols{i})
-			bb = [[1 1 1];st.vols{i}.D(1:3)];
+			bb = [[1 1 1];st.vols{i}.dim(1:3)];
 			c = [	bb(1,1) bb(1,2) bb(1,3) 1
 				bb(1,1) bb(1,2) bb(2,3) 1
 				bb(1,1) bb(2,2) bb(1,3) 1
@@ -315,7 +298,7 @@ if (strcmp(action,'maxbb'))
 				bb(2,1) bb(1,2) bb(2,3) 1
 				bb(2,1) bb(2,2) bb(1,3) 1
 				bb(2,1) bb(2,2) bb(2,3) 1]';
-			tc = st.Space*st.vols{i}.M*c;
+			tc = st.Space*st.vols{i}.mat*c;
 			tc = tc(1:3,:)';
 			mx = max([tc ; mx]);
 			mn = min([tc ; mn]);
@@ -347,7 +330,6 @@ if (strcmp(action,'delete'))
 					delete(st.vols{i}.ax{j}.ax);
 				end
 			end
-			if ~isempty(st.vols{i}.V) & all(st.vols{i}.V~=0), spm_unmap(st.vols{i}.V); end;
 			st.vols{i} = [];
 		end
 	end
