@@ -645,12 +645,17 @@ SPMid = spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
 
+%-Print warning that results section isn't complete yet!
+%-----------------------------------------------------------------------
+spm_input('Note that SPM98d results aren''t available!',1,'d!','Warning');
+
+
 %-Delete files from previous analyses...
 %-----------------------------------------------------------------------
 if exist('./SPMcfg.mat','file')==2
 	warning(sprintf(['\tCurrent directory contains an SPMcfg.mat...\n',...
 			'\t\t(pwd = %s)'],pwd))
-	if ~spm_input('Overwrite existing SPMcfg?',1,'y/n',[1,0],2)
+	if ~spm_input('Overwrite existing SPMcfg?','+1','y/n',[1,0],2)
 		error('Existing SPMcfg.mat: Run in another directory...')
 	end
 end
@@ -731,7 +736,7 @@ sGXcalc  = {	'omit';...						%-1
 %-Get design type
 %-----------------------------------------------------------------------
 if isempty(D)
-	tmp = spm_input('Select design class...',1,'m',...
+	tmp = spm_input('Select design class...','+1','m',...
 		{'Basic stats','SPM98 PET designs','SPM96 PET designs'});
 	switch tmp
 	case 1,	D = spm_spm_ui('DesDefs_Stats');
@@ -741,7 +746,7 @@ if isempty(D)
 	end
 end
 
-D = D(spm_input('Select design type...',1,'m',{D.DesName}'));
+D = D(spm_input('Select design type...','+1','m',{D.DesName}'));
 
 %-Set factor names for this design
 %-----------------------------------------------------------------------
@@ -1304,7 +1309,7 @@ if ~isempty([H,C])
 	end
 	
 	xCon = struct(	'name',	'no effects of interest',...
-			'c',	c,...
+			'c',	c',...
 			'V',	[]);
 
 %elseif ~isempty(G)
@@ -1337,7 +1342,7 @@ save con xCon
 
 %-Display Design report & "Run" button
 %=======================================================================
-spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM,xCon)
+spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,xCon)
 
 %-Analysis Proper
 %=======================================================================
