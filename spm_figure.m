@@ -300,6 +300,14 @@ if isempty(F), return, end
 if isempty(Tags)
 	%-Clear figure of objects with 'HandleVisibility' 'on'
 	delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
+	%-Reset figures callback functions
+	set(F,'KeyPressFcn','',...
+		'WindowButtonDownFcn','',...
+		'WindowButtonMotionFcn','',...
+		'WindowButtonUpFcn')
+	%-If this is the 'Interactive' window, reset name & UserData
+	if strcmp(get(F,'Tag'),'Interactive')
+		set(F,'Name','','UserData',[]), end
 else
 	%-Clear specified objects from figure
 	cSHH = get(0,'ShowHiddenHandles');
@@ -315,14 +323,6 @@ else
 	set(0,'ShowHiddenHandles',cSHH)
 end
 set(F,'Pointer','Arrow')
-
-%-If this is the 'Interactive' window, reset the name, UserData & callbacks
-if strcmp(get(F,'Tag'),'Interactive')
-	set(F,'Name','',...
-		'UserData',[],...
-		'ButtonDownFcn','',...
-		'KeyPressFcn','')
-end
 
 
 case 'print'
