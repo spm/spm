@@ -470,6 +470,13 @@ function varargout = spm_input(varargin)
 %
 % FORMAT [p,msg] = sf_eEval(str,Type,n,m)
 % Common code for evaluating various input types.
+%
+% FORMAT str = sf_SzStr(n,l)
+% Common code to construct prompt strings for pre-specified vector/matrix sizes
+%
+% FORMAT [p,msg] = sf_SzChk(p,n,msg)
+% Common code to check (& canonicalise) sizes of input vectors/matrices
+%
 %_______________________________________________________________________
 % Andrew Holmes
 
