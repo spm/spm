@@ -38,7 +38,9 @@ function spm_image(op,varargin)
 % etc.  You can also flip between voxel space (as would be displayed
 % by Analyze) or world space (the orientation that SPM considers the
 % image to be in).  If you are re-orienting the images, make sure that
-% world space is specified.
+% world space is specified.  Blobs (from activation studies) can be
+% superimposed on the images and the intensity windowing can also be
+% changed.
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
@@ -53,6 +55,8 @@ if nargin==0,
 	return;
 end;
 
+if ~strcmp(op,'init') & isempty(st.vols{1}), warning('Lost all the image information'); return; end;
+
 if strcmp(op,'repos'),
 	% The widgets for translation rotation or zooms have been modified.
 	%-----------------------------------------------------------------------
@@ -61,7 +65,7 @@ if strcmp(op,'repos'),
 	i = varargin{1};
 	st.B(i) = eval(get(gco,'String'),num2str(st.B(i)));
 	set(gco,'String',st.B(i));
-	st.vols{1}.mat = spm_matrix(st.B)*st.vols{1}.omat;
+	st.vols{1}.premul = spm_matrix(st.B);
 	% spm_orthviews('MaxBB');
 	spm_image('zoom_in');
 	spm_image('update_info');
@@ -115,11 +119,43 @@ if strcmp(op,'setposvx'),
 			if length(pos)~=3,
 				pos = spm_orthviews('pos',1);
 			end;
-			pos = st.vols{1}.mat(1:3,:)*[pos ; 1];
+			tmp = st.vols{1}.premul*st.vols{1}.mat;
+			pos = tmp(1:3,:)*[pos ; 1];
 			spm_orthviews('Reposition',pos);
 		end;
 	end;
 	return;
+end;
+
+
+if strcmp(op,'addblobs'),
+	% Add blobs to the image - in full colour
+	spm_figure('Clear','Interactive');
+	nblobs = spm_input('Number of sets of blobs',1,'1|2|3|4|5|6',[1 2 3 4 5 6],1);
+	for i=1:nblobs,
+		[SPM,VOL,DES] = spm_getSPM;
+		c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+		colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+		spm_orthviews('addcolouredblobs',1,VOL.XYZ,SPM.Z,VOL.M,colours(c,:));
+		set(st.blobber,'String','Remove Blobs','Callback','spm_image(''rmblobs'');');
+	end;
+	spm_orthviews('Redraw');
+end;
+
+if strcmp(op,'rmblobs'),
+	% Remove all blobs from the images
+	spm_orthviews('rmblobs',1);
+	set(st.blobber,'String','Add Blobs','Callback','spm_image(''addblobs'');');
+end;
+
+if strcmp(op,'window'),
+	spm_figure('Clear','Interactive');
+	typ = spm_input('Windowing type','+1','b','automatic|manual',['a','m'],1);
+	if typ == 'a',
+		spm_orthviews('window',1);
+	else,
+		spm_orthviews('window',1,spm_input('Range','+1','e','',2));
+	end;
 end;
 
 
@@ -148,7 +184,7 @@ if strcmp(op,'reorient'),
 	end;
 	spm_progress_bar('Clear');
 	tmp = spm_get_space(st.vols{1}.fname);
-	if sum((tmp(:)-st.vols{1}.omat(:)).^2) > 1e-8,
+	if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
 		spm_image('init',st.vols{1}.fname);
 	end;
 	return;
@@ -157,7 +193,7 @@ end;
 if strcmp(op,'update_info'),
 	% Modify the positional information in the right hand panel.
 	%-----------------------------------------------------------------------
-	mat = st.vols{1}.mat;
+	mat = st.vols{1}.premul*st.vols{1}.mat;
 	Z = spm_imatrix(mat);
 	Z = Z(7:9);
 
@@ -191,7 +227,8 @@ end;
 if strcmp(op,'zoom_in'),
 	op = get(st.zoomer,'Value');
 	if op==1,
-		spm_orthviews('resolution',1);spm_orthviews('MaxBB');
+		spm_orthviews('resolution',1);
+		spm_orthviews('MaxBB');
 	else,
 		vx = sqrt(sum(st.Space(1:3,1:3).^2));
 		vx = vx.^(-1);
@@ -208,6 +245,7 @@ if strcmp(op,'zoom_in'),
 	return;
 end;
 
+if strcmp(op,'init'),
 fg = spm_figure('Findwin','Graphics');
 if isempty(fg)
 	fg=spm_figure('Create','Graphics');
@@ -226,7 +264,6 @@ if isempty(st.vols{1}), return; end;
 spm_orthviews('MaxBB');
 st.callback = 'spm_image(''shopos'');';
 
-st.vols{1}.omat = st.vols{1}.mat;
 st.B = [0 0 0  0 0 0  1 1 1  0 0 0];
 
 P      = P(P ~= ' ');
@@ -251,18 +288,18 @@ uicontrol(fg,'Style','Text', 'Position',[90 100 100 016].*WS,'String','resize  {
 uicontrol(fg,'Style','Text', 'Position',[90  80 100 016].*WS,'String','resize  {y}');
 uicontrol(fg,'Style','Text', 'Position',[90  60 100 016].*WS,'String','resize  {z}');
 
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',1)','Position',[190 220 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',2)','Position',[190 200 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',3)','Position',[190 180 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',4)','Position',[190 160 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',5)','Position',[190 140 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',6)','Position',[190 120 050 020].*WS,'String','0');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',7)','Position',[190 100 050 020].*WS,'String','1');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',8)','Position',[190  80 050 020].*WS,'String','1');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',9)','Position',[190  60 050 020].*WS,'String','1');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',1)','Position',[190 220 050 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',2)','Position',[190 200 050 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',3)','Position',[190 180 050 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',4)','Position',[190 160 050 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',5)','Position',[190 140 050 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',6)','Position',[190 120 050 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',7)','Position',[190 100 050 020].*WS,'String','1','ToolTipString','zoom');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',8)','Position',[190  80 050 020].*WS,'String','1','ToolTipString','zoom');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',9)','Position',[190  60 050 020].*WS,'String','1','ToolTipString','zoom');
 
 uicontrol(fg,'Style','Pushbutton','String','Reorient images...','Callback','spm_image(''reorient'')',...
-         'Position',[90 35 150 020].*WS);
+         'Position',[90 35 150 020].*WS,'ToolTipString','modify position information of selected images');
 
 % Crosshair position
 %-----------------------------------------------------------------------
@@ -272,26 +309,26 @@ uicontrol(fg,'Style','Text', 'Position',[75 300 35 016].*WS,'String','mm:');
 uicontrol(fg,'Style','Text', 'Position',[75 280 35 016].*WS,'String','vx:');
 uicontrol(fg,'Style','Text', 'Position',[75 260 65 016].*WS,'String','Intensity:');
 
-st.mp = uicontrol(fg,'Style','edit', 'Position',[110 300 135 020].*WS,'String','','Callback','spm_image(''setposmm'')');
-st.vp = uicontrol(fg,'Style','edit', 'Position',[110 280 135 020].*WS,'String','','Callback','spm_image(''setposvx'')');
+st.mp = uicontrol(fg,'Style','edit', 'Position',[110 300 135 020].*WS,'String','','Callback','spm_image(''setposmm'')','ToolTipString','move crosshairs to mm coordinates');
+st.vp = uicontrol(fg,'Style','edit', 'Position',[110 280 135 020].*WS,'String','','Callback','spm_image(''setposvx'')','ToolTipString','move crosshairs to voxel coordinates');
 st.in = uicontrol(fg,'Style','Text', 'Position',[140 260  85 016].*WS,'String','');
 
 % General information
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[305  25 280 325].*WS);
-uicontrol(fg,'Style','Text','Position' ,[310 310 50 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 330 50 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'File:');
-uicontrol(fg,'Style','Text','Position' ,[360 310 210 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[360 330 210 016].*WS,...
 	'HorizontalAlignment','left', 'String', spm_str_manip(st.vols{1}.fname,'k25'),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 290 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 310 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Dimensions:');
-uicontrol(fg,'Style','Text','Position' ,[410 290 160 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[410 310 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', sprintf('%d x %d x %d', st.vols{1}.dim(1:3)),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 270 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 290 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Datatype:');
-uicontrol(fg,'Style','Text','Position' ,[410 270 160 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[410 290 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', spm_type(st.vols{1}.dim(4)),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 250 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 270 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Intensity:');
 str = 'varied';
 if size(st.vols{1}.pinfo,2) == 1,
@@ -301,49 +338,49 @@ if size(st.vols{1}.pinfo,2) == 1,
 		str = sprintf('Y = %g X', st.vols{1}.pinfo(1)');
 	end;
 end;
-uicontrol(fg,'Style','Text','Position' ,[410 250 160 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[410 270 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', str,'FontWeight','bold');
 
 if isfield(st.vols{1}, 'descrip'),
-	uicontrol(fg,'Style','Text','Position' ,[310 230 260 016].*WS,...
+	uicontrol(fg,'Style','Text','Position' ,[310 250 260 016].*WS,...
 	'HorizontalAlignment','center', 'String', st.vols{1}.descrip,'FontWeight','bold');
 end;
 
 
 % Positional information
 %-----------------------------------------------------------------------
-mat = st.vols{1}.mat;
+mat = st.vols{1}.premul*st.vols{1}.mat;
 Z = spm_imatrix(mat);
 Z = Z(7:9);
-uicontrol(fg,'Style','Text','Position' ,[310 190 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 210 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Vox size:');
-st.posinf = struct('z',uicontrol(fg,'Style','Text','Position' ,[410 190 160 016].*WS,...
+st.posinf = struct('z',uicontrol(fg,'Style','Text','Position' ,[410 210 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', sprintf('%.3g x %.3g x %.3g', Z),'FontWeight','bold'));
 
 O = mat\[0 0 0 1]'; O=O(1:3)';
-uicontrol(fg,'Style','Text','Position' ,[310 170 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 190 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Origin:');
-st.posinf.o = uicontrol(fg,'Style','Text','Position' ,[410 170 160 016].*WS,...
+st.posinf.o = uicontrol(fg,'Style','Text','Position' ,[410 190 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', sprintf('%.3g %.3g %.3g', O),'FontWeight','bold');
 
 R = spm_imatrix(mat);
 R = spm_matrix([0 0 0 R(4:6)]);
 R = R(1:3,1:3);
 
-uicontrol(fg,'Style','Text','Position' ,[310 150 100 016].*WS,...
+uicontrol(fg,'Style','Text','Position' ,[310 170 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Dir Cos:');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(find(tmp2=='+')) = ' ';
-st.posinf.m1 = uicontrol(fg,'Style','Text','Position' ,[410 150 160 016].*WS,...
+st.posinf.m1 = uicontrol(fg,'Style','Text','Position' ,[410 170 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(find(tmp2=='+')) = ' ';
-st.posinf.m2 = uicontrol(fg,'Style','Text','Position' ,[410 130 160 016].*WS,...
+st.posinf.m2 = uicontrol(fg,'Style','Text','Position' ,[410 150 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(find(tmp2=='+')) = ' ';
-st.posinf.m3 = uicontrol(fg,'Style','Text','Position' ,[410 110 160 016].*WS,...
+st.posinf.m3 = uicontrol(fg,'Style','Text','Position' ,[410 130 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
 
 tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
-st.posinf.w = uicontrol(fg,'Style','Text','Position' ,[310 90 260 016].*WS,...
+st.posinf.w = uicontrol(fg,'Style','Text','Position' ,[310 110 260 016].*WS,...
 	'HorizontalAlignment','center', 'String', '','FontWeight','bold');
 if sum(tmp(:).^2)>1e-8,
 	set(st.posinf.w, 'String', 'Warning: shears involved');
@@ -351,19 +388,24 @@ end;
 
 % Assorted other buttons.
 %-----------------------------------------------------------------------
-uicontrol(fg,'Style','Frame','Position',[310 30 270 50].*WS);
-st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20].*WS,...
+uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
+st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 75 125 20].*WS,...
 	'String',str2mat('Full Volume','160x160x160mm','80x80x80mm','40x40x40mm','20x20x20mm','10x10x10mm'),...
-	'Callback','spm_image(''zoom_in'')');
+	'Callback','spm_image(''zoom_in'')','ToolTipString','zoom in by different amounts');
 c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom_in'')';
-uicontrol(fg,'Style','popupmenu' ,'Position',[315 35 125 20].*WS,...
+uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20].*WS,...
 	'String',str2mat('World Space','Voxel Space'),...
-	'Callback',c);
+	'Callback',c,'ToolTipString','display in aquired/world orientation');
 c = 'if get(gco,''Value'')==1, spm_orthviews(''Xhairs'',''off''), else, spm_orthviews(''Xhairs'',''on''); end;';
-uicontrol(fg,'Style','togglebutton','Position',[450 55 125 20].*WS,...
-	'String','Hide Crosshairs','Callback',c);
-uicontrol(fg,'Style','popupmenu' ,'Position',[450 35 125 20].*WS,...
+uicontrol(fg,'Style','togglebutton','Position',[450 75 125 20].*WS,...
+	'String','Hide Crosshairs','Callback',c,'ToolTipString','show/hide crosshairs');
+uicontrol(fg,'Style','popupmenu' ,'Position',[450 55 125 20].*WS,...
 	'String',str2mat('NN interp','bilin interp','sinc interp'),...
 	'Callback','tmp_ = [0 1 -4];spm_orthviews(''Interp'',tmp_(get(gco,''Value'')))',...
-	'Value',2);
+	'Value',2,'ToolTipString','interpolation method for displaying images');
+uicontrol(fg,'Style','pushbutton','Position',[315 35 125 20].*WS,...
+	'String','Window','Callback','spm_image(''window'');','ToolTipString','range of voxel intensities displayed');
+st.blobber = uicontrol(fg,'Style','pushbutton','Position',[450 35 125 20].*WS,...
+	'String','Add Blobs','Callback','spm_image(''addblobs'');','ToolTipString','superimpose activations');
+end;
 return;
