@@ -227,6 +227,16 @@ function varargout = spm_SpUtil(varargin)
 %       parameters B = [B1;B0]. Ho:B1=0
 % V   - V matrix
 %
+%                           ----------------
+%
+% FORMAT  sz           = spm_SpUtil('size',x,dim)
+% FORMAT [sz1,sz2,...] = spm_SpUtil('size',x)
+% Returns size of design matrix
+% (Like MatLab's `size`, but copes with design matrices inside structures.)
+% x   - Design matrix X, or structure containing design matrix in field X
+%       (Structure needn't be a space structure.)
+% dim - dimension which to size
+% sz  - size
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes, Jean-Baptiste Poline %E%
@@ -636,6 +646,30 @@ end
 [trMpV,trMpVMpV] = spm_SpUtil('trMV',spm_SpUtil('iTestSp',varargin{2}, i0),...
 			varargin{4});
 varargout = {trMpV^2/trMpVMpV, trRV^2/trRVRV};
+
+
+case 'size'                                      %-Size of design matrix
+%=======================================================================
+% sz = spm_SpUtil('size',x,dim)
+
+if nargin<3, dim=[]; else, dim = varargin{3}; end
+if nargin<2, error('insufficient arguments'), end
+
+if isstruct(varargin{2}) & isfield(varargin{2},'X')
+	sz = size(varargin{2}.X);
+else
+	sz = size(varargin{2});
+end
+
+if ~isempty(dim)
+	if dim>length(sz), sz = 1; else, sz = sz(dim); end
+	varargout = {sz};
+elseif nargout>1
+	varargout = cell(1,min(nargout,length(sz)));
+	for i=1:min(nargout,length(sz)), varargout{i} = sz(i); end
+else
+	varargout = {sz};
+end
 
 
 otherwise
