@@ -37,7 +37,7 @@ $cmex5 spm_slice_vol.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_brainwarp.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_map_vol.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_unmap_vol.c	spm_vol_utils.a spm_mapping.c
-$cmex5 spm_mean.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_add.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_conv_vol.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_render_vol.c	spm_vol_utils.a spm_mapping.c
 $cmex5 spm_global.c	spm_vol_utils.a spm_mapping.c
