@@ -237,64 +237,118 @@ if nargin==1, error('No structure : can''t do much!'), end
 %-Compute
 %-----------------------------------------------------------------------
 rk = varargin{2}.rk;
-if rk > 0 
-  if nargin==2	
-    switch lower(action), 
+if nargin==2	
+  switch lower(action), 			%!!!! check tolerance
     case 'op'
-      varargout = {varargin{2}.u(:,[1:rk])*varargin{2}.u(:,[1:rk])'};
-    case 'opp'
-      varargout = {varargin{2}.v(:,[1:rk])*varargin{2}.v(:,[1:rk])'};	
-    end
-  else % nargin==2
-     switch lower(action), 
+	    if rk > 0 
+       varargout = {varargin{2}.u(:,[1:rk])*varargin{2}.u(:,[1:rk])'};
+       else   varargout = { zeros( spm_sp('size',varargin{2},1) ) }; end;
+	 case 'opp'
+	    if rk > 0 
+       varargout = {varargin{2}.v(:,[1:rk])*varargin{2}.v(:,[1:rk])'};	
+       else   varargout = { zeros( spm_sp('size',varargin{2},2) ) }; end;
+  end % switch lower(action), 
+
+else % nargin==2
+  switch lower(action), 
     case 'op'
-      if size(varargin{3},1) ~= size(varargin{2}.X,1),
-	  error('Dimension dont match'); end 
-      varargout = {varargin{2}.u(:,[1:rk])* ...
-		(varargin{2}.u(:,[1:rk])' * varargin{3})};
+      if size(varargin{3},1) ~= spm_sp('size',varargin{2},1),
+	  		error('Dimension dont match'); end;
+
+	   if rk > 0 
+         varargout = {varargin{2}.u(:,[1:rk])* ...
+		   (varargin{2}.u(:,[1:rk])' * varargin{3})};
+      else   varargout = { zeros( size(varargin{3}) ) }; end;
 
     case 'opp'
-      if size(varargin{3},1) ~= size(varargin{2}.X,2),
-	  error('Dimension dont match'); end 
-      varargout = {varargin{2}.v(:,[1:rk])* ...
-		(varargin{2}.v(:,[1:rk])' * varargin{3})};
-    end
-  end % nargin==2
+      if size(varargin{3},1) ~= spm_sp('size',varargin{2},2),
+	  		error('Dimension dont match'); end 
+	   if rk > 0 
+      	varargout = varargin{2}.v(:,[1:rk])* ...
+			(varargin{2}.v(:,[1:rk])' * varargin{3});
+      	%?? check tolerance 
+      else   varargout = { zeros( size(varargin{3}) ) }; end;
 
-else varargout = {0}; end; %if rk > 0
+
+	varargout(abs(varargout) < varargin{2}.tol) = 0;
+	varargout = {varargout};
+
+  end % switch lower(action), 
+end % nargin==2
 
 
-case 'pinv'                              %-Pseudo-inverse of X - pinv(X)
+case {'pinv','x-'}                       %-Pseudo-inverse of X - pinv(X)
 %=======================================================================
 % pX = spm_sp('pinv',x) 
 if nargin==1, error('No structure : can''t do much!'), end
 [ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
+r   = varargin{2}.rk;
 p   = max(size(varargin{2}.ds));
-ds1 = zeros(size(varargin{2}.ds)); 
-ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^(-1);
-if p == size(varargin{2}.v,1)
-	varargout = { varargin{2}.v*diag(ds1)*varargin{2}.u' };
+ds1 = ones(r,1)./varargin{2}.ds([1:r]);
+if p == size(varargin{2}.v,1) %- no flip
+   varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.u(:,1:r)' };
 else
-	%- then p < size(varargin{2}.v,1)
-	varargout = { varargin{2}.v(:,1:p)*diag(ds1)*varargin{2}.u' };
+   %- then p < size(varargin{2}.v,1) : space flipped
+   varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.u(:,1:r)' };
 end
 
 
-case 'pinvxpx'                    %-Pseudo-inverse of (X'X) - pinv(X'*X)
+
+case {'xp-','x-p'}                              %-Pseudo-inverse of X'
 %=======================================================================
-% pXpX = spm_sp('pinvxpx',x) 
+% pX = spm_sp('xp-',x) 
+varargout = { spm_sp('x-',varargin{2})' };
+
+case {'pinvxpx', 'xpx-'}          %-Pseudo-inverse of (X'X) - pinv(X'*X)
+%=======================================================================
+% pXpX = spm_sp('pinvxpx',x, [Y]) 
 if nargin==1, error('No structure : can''t do much!'), end
 [ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
+if nargin == 3 
+   if size(varargin{3},1) ~= size(varargin{2}.X,2)
+	error('Inconsistant arg size(Y,1)~=size(x.X,2)'), end
+end
+
+
+r   = varargin{2}.rk;
 p   = max(size(varargin{2}.ds));
-ds1 = zeros(size(varargin{2}.ds)); 
-ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^(-2);
+ds1 = varargin{2}.ds(1:r).^(-2);
+
 if p == size(varargin{2}.v,1)
-	varargout = { varargin{2}.v*diag(ds1)*varargin{2}.v' };
+    %-- no flip of space
+    switch nargin
+    	case 2
+    	   varargout={ 	varargin{2}.v(:,1:r)* ...
+			diag(ds1)*varargin{2}.v(:,1:r)'};
+	case 3
+    	   varargout= varargin{2}.v(:,1:r)* ...
+		      diag(ds1)*varargin{2}.v(:,1:r)' * varargin{3};
+	   varargout(abs(varargout) < varargin{2}.tol) = 0;
+	   varargout = {varargout};
+
+	otherwise
+	   error('Too many input arguments.');
+    end; % switch nargin
+	
 else
-	%- then p < size(varargin{2}.v,1)
-	varargout = { varargin{2}.v(:,1:p)*diag(ds1)*varargin{2}.v(:,1:p)' };
+    %-- then p < size(varargin{2}.v,1) : flip of space
+    %- warning('spm_sp will not work with flipped space in the future');
+    switch nargin
+    	case 2
+	   varargout = ...
+		{ varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
+	case 3
+	   varargout =  varargin{2}.v(:,1:r)* ...
+			 diag(ds1)*varargin{2}.v(:,1:r)' * varargin{3} ;
+	   varargout(abs(varargout) < varargin{2}.tol) = 0;
+	   varargout = {varargout};
+
+	otherwise
+	   error('Too many input arguments.');
+    end; % switch nargin
+
 end
 
 
@@ -304,14 +358,16 @@ case 'xpx'                                       %-Computation of (X'*X)
 if nargin==1, error('No structure : can''t do much!'), end
 [ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
 
+r   = varargin{2}.rk;
 p   = max(size(varargin{2}.ds));
-ds1 = zeros(size(varargin{2}.ds)); 
-ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^2;
-if p == size(varargin{2}.v,1)
-	varargout = { varargin{2}.v*diag(ds1)*varargin{2}.v' };
+% ds1 = zeros(size(varargin{2}.ds)); 
+ds1 = varargin{2}.ds(1:r).^(2);
+
+if p == size(varargin{2}.v,1) % no flip
+	varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
 else
 	%- then p < size(varargin{2}.v,1)
-	varargout = { varargin{2}.v(:,1:p)*diag(ds1)*varargin{2}.v(:,1:p)' };
+	varargout = { varargin{2}.v(:,1:r)*diag(ds1)*varargin{2}.v(:,1:r)' };
 end
 
 
@@ -337,44 +393,6 @@ ds1([1:varargin{2}.rk]) = varargin{2}.ds([1:varargin{2}.rk]).^2;
 varargout = { varargin{2}.u*diag(ds1)*varargin{2}.u' }; clear ds1;
 	
 
-case {'isinsp', 'isinspp'}
-                    %-Check whether vectors are in row/column space of X
-%=======================================================================
-% b = spm_sp('isinsp',x,c[,tol])
-% b = spm_sp('isinspp',x,c[,tol])
-
-%-Check arguments
-%-----------------------------------------------------------------------
-if nargin<3, error('insufficient arguments - action,x,c required'), end
-[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
-if nargin<4, tol=varargin{2}.tol; else, tol = varargin{4}; end
-
-%-Compute according to case
-%-----------------------------------------------------------------------
-switch lower(action)
-case 'isinsp'
-	%-Check dimensions
-	if size(varargin{2}.X,1) ~= size(varargin{3},1) 
-		error('Vector dimensions don''t match column dimension...'); end
-	if ~isempty(varargin{2}.oP)
-		varargout = {all((varargin{2}.oP*varargin{3} - ...
-							varargin{3})<tol)};
-	else
-		varargout = {all((spm_sp('oP',varargin{2},varargin{3}) - ...
-							varargin{3})<tol )};
-	end
-case 'isinspp'
-	%- check dimensions
-	if size(varargin{2}.X,2) ~= size(varargin{3},1) 
-		error('Vector dimensions don''t match X row dimension...'); end
-	if ~isempty(varargin{2}.oPp)
-		varargout = {all((varargin{2}.oPp*varargin{3} - ...
-							varargin{3})<tol)};
-	else
-		varargout = {all((spm_sp('oPp',varargin{2},varargin{3}) - ...
-							varargin{3})<tol)};
-	end
-end
 
 
 case {'null', 'opnull'}    %-Null space / projector(ion) into null space
@@ -386,7 +404,7 @@ if nargin==1, error('No structure : can''t do much!'), end
 
 rk = varargin{2}.rk;
 p  = size(varargin{2}.X,2);
-if p==rk | rk == 0, varargout = {[]}; return, end
+if p==rk | rk == 0, varargout = {[]}; return, end %- should be zeros ? ****
 
 switch lower(action)
 case 'null'
@@ -401,6 +419,8 @@ case 'opnull'
 			error('Inconsistant arg size(Y,1)~=size(x.X,2)'), end
 		varargout = {varargin{2}.v(:,rk+1:p)*varargin{2}.v(:,rk+1:p)'...
 			*varargin{3} }; 
+		%- check tol ? ****
+		%- no flip space ? ****
 	else
 		varargout = {varargin{2}.v(:,rk+1:p)*varargin{2}.v(:,rk+1:p)'};
 		% or varargout = {eye(size(varargin{2}.oPp))-varargin{2}.oPp};
@@ -430,8 +450,10 @@ if rk > 0
 	if size(varargin{3},1) ~= size(varargin{2}.X,1) 
 		error('Data and space dim. dont match '); 
 	 else 
-		varargout = {varargin{3} - varargin{2}.u(:,[1:rk])* ...
-			    	(varargin{2}.u(:,[1:rk])'*varargin{3}) };
+		varargout = varargin{3} - varargin{2}.u(:,[1:rk])* ...
+			    	(varargin{2}.u(:,[1:rk])'*varargin{3}) ;
+		varargout(abs(varargout) < varargin{2}.tol) = 0;
+		varargout = {varargout};
 	 end
 	
     end % (switch nargin)
@@ -460,10 +482,71 @@ else
 	varargout = {0};
 end
 
+case {'isinsp', 'isinspp'}
+%=======================================================================
+% b = spm_sp('isinsp',x,c[,tol])
+% b = spm_sp('isinspp',x,c[,tol])
+%-Check whether vectors are in row/column space of X
+
+%-Check arguments
+%-----------------------------------------------------------------------
+if nargin<3, error('insufficient arguments - action,x,c required'), end
+[ok,str] = spm_sp('isspc',varargin{2}); if ~ok, error(str), end
+if nargin<4, tol=varargin{2}.tol; else, tol = varargin{4}; end
+
+%-Compute according to case
+%-----------------------------------------------------------------------
+switch lower(action)
+
+case 'isinsp'
+	%-Check dimensions
+	if size(varargin{2}.X,1) ~= size(varargin{3},1) 
+		warning('Vector dimensions don''t match column dimension...'); 
+		varargout = { 0 }; return;
+	end
+	if ~isempty(varargin{2}.oP)
+		varargout = {all((varargin{2}.oP*varargin{3} - ...
+							varargin{3})<=tol)};
+	else
+		varargout = {all((spm_sp('oP',varargin{2},varargin{3}) - ...
+							varargin{3})<=tol )};
+	end
+
+case 'isinspp'
+	%- check dimensions
+	if size(varargin{2}.X,2) ~= size(varargin{3},1) 
+		warning('Vector dimensions don''t match X row dimension...'); 
+		varargout = { 0 }; return;
+	end
+	if ~isempty(varargin{2}.oPp)
+		varargout = {all((varargin{2}.oPp*varargin{3} - ...
+							varargin{3})<=tol)};
+	else
+		varargout = {all((spm_sp('oPp',varargin{2},varargin{3}) - ...
+							varargin{3})<=tol)};
+	end
+end
+
+case '=='
+%=======================================================================
+% b = spm_sp('==',x1,X2)
+if nargin~=3, error('too few/many input arguments - need 2');
+else x1 = varargin{2}; X2 = varargin{3}; end;
+if isempty(x1.X)
+   if isempty(X2), 
+		varargout = { 1 };
+      warning('Both spaces empty');
+   else varargout = { 0 }; end;
+
+else 
+	x2 = spm_sp('Set',X2);
+	varargout = { all( spm_sp('isinsp',x1,X2)) & ...
+   all( spm_sp('isinsp',x2,x1.X,max(x1.tol,x2.tol)) ) };
+end;
 
 case 'isspc'                                     %-Space structure check
 %=======================================================================
-% b = spm_sp('isspc',x)
+% [b,str] = spm_sp('isspc',x)
 if nargin~=2, error('too few/many input arguments - need 2'), end
 
 %-Check we've been passed a structure
@@ -479,7 +562,10 @@ for str = fieldnames(spm_sp('Create'))'
 	b = b & any(strcmp(str,fnames));
 	if ~b, break, end
 end
-varargout = {b};
+if nargout > 1, 
+	if b, str = 'ok'; else, str = 'not a space'; end;
+	varargout = {b,str};
+else, varargout = {b}; end;
 
 
 case 'issetspc'                   %-Is this a completed space structure?
@@ -493,6 +579,26 @@ elseif ~sf_isset(varargin{2})
 	varargout = {0,'space not defined (use ''set'')'};
 else
 	varargout = {1,'OK!'};
+end
+
+case 'size'                   	%- gives the size of 
+%=======================================================================
+% size = spm_sp('size',x,dim)
+if nargin < 2 | nargin > 3, 
+	error('too few input arguments - need  2 or 3'), end
+[ok,str] = spm_sp('issetspc',varargin{2}); if ~ok, error(str), end
+if nargin == 2, dim = []; else dim = varargin{3}; end;
+if prod(size(dim)) > 1,  error('give one dim'), end;
+sz = size(varargin{2}.X);
+
+if ~isempty(dim)
+	if dim>length(sz), sz = 1; else, sz = sz(dim); end
+	varargout = {sz};
+elseif nargout>1
+	varargout = cell(1,min(nargout,length(sz)));
+	for i=1:min(nargout,length(sz)), varargout{i} = sz(i); end
+else
+	varargout = {sz};
 end
 
 
