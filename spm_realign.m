@@ -130,6 +130,8 @@ end;
 
 if flags.graphics, plot_parameters(P); end;
 
+if length(P)==1, P=P{1}; end;
+
 return;
 %_______________________________________________________________________
 
@@ -185,10 +187,10 @@ n = prod(size(x1));
 
 % Compute rate of change of chi2 w.r.t changes in parameters (matrix A)
 %-----------------------------------------------------------------------
-V = smooth_vol(P(1),flags.interp,flags.wrap,flags.fwhm);
-d = [flags.interp*[1 1 1]' flags.wrap(:)];
+V   = smooth_vol(P(1),flags.interp,flags.wrap,flags.fwhm);
+deg = [flags.interp*[1 1 1]' flags.wrap(:)];
 
-[G,dG1,dG2,dG3] = spm_bsplins(V,x1,x2,x3,d);
+[G,dG1,dG2,dG3] = spm_bsplins(V,x1,x2,x3,deg);
 clear V
 A0 = make_A(P(1).mat,x1,x2,x3,dG1,dG2,dG3,wt,lkp);
 
@@ -249,7 +251,7 @@ for i=2:length(P),
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),d);
+		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -279,7 +281,7 @@ for i=2:length(P),
 		                   y2>=(1-tiny) & y2<=(d(2)+tiny) &...
 		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
-		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),d);
+		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),deg);
 		ave(msk)   = ave(msk)   +   G.*soln(end);
 		grad1(msk) = grad1(msk) + dG1.*soln(end);
 		grad2(msk) = grad2(msk) + dG2.*soln(end);
@@ -310,7 +312,7 @@ for i=1:length(P),
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),d);
+		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];

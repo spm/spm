@@ -89,7 +89,6 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 % %W% John Ashburner %E%
 
-if ischar(P), P = spm_vol(P); end;
 
 def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]');
 if nargin < 2,
@@ -102,7 +101,9 @@ else,
 		end;
 	end;
 end;
+
 if iscell(P), P = cat(1,P{:}); end;
+if ischar(P), P = spm_vol(P); end;
 reslice_images(P,flags);
 return;
 %_______________________________________________________________________
