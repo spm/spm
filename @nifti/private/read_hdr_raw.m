@@ -51,8 +51,7 @@ elseif nd<1 || nd>7
     if be, mach = 'ieee-be';
     else   mach = 'ieee-le';
     end;
-    fp = fopen(hname,'r','ieee-be');
-    be = true;
+    fp = fopen(hname,'r',mach);
     if fp==-1
         hdr = [];
         ok  = false;
