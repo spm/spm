@@ -26,10 +26,7 @@ function [SPM,xSPM] = spm_getSPM
 % .VOX      - voxel dimensions {mm} - column vector
 % .DIM      - image dimensions {voxels} - column vector
 % .Vspm     - Mapped statistic image(s)
-% .Msk      - Mask in 1 of 3 forms (used when computing FDR)
-%            o Scalar, indicating implicit mask value in statistic image(s)
-%            o Vector of indices of elements within mask
-%            o Mapped maskimage
+% .Ps       - list of P values for voxels at SPM.xVol.XYZ (used by FDR)
 %
 % Required feilds of SPM
 %
@@ -288,7 +285,7 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
-if isfield(SPM,'PPM') & xCon(Ic).STAT == 'T'
+if isfield(SPM,'PPM') & xCon(Ic(1)).STAT == 'T'
 
     if length(Ic) == 1 & isempty(xCon(Ic).Vcon)
 
@@ -315,20 +312,60 @@ end
 SPM.xCon = xCon;
 SPM      = spm_contrasts(SPM,unique([Ic,Im]));
 xCon     = SPM.xCon;
+VspmSv   = cat(1,xCon(Ic).Vspm);
+STAT     = xCon(Ic(1)).STAT;
+n        = length(Ic);
 
-%-Compute (unfiltered) SPM pointlist for requested masked conjunction
+%-Check conjunctions - Must be same STAT w/ same df
+%-----------------------------------------------------------------------
+if (n > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
+	      any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
+	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
+end
+
+
+%-Degrees of Freedom and STAT string describing marginal distribution
+%-----------------------------------------------------------------------
+df          = [xCon(Ic(1)).eidf xX.erdf];
+if n > 1
+	str = sprintf('^{%d}',n);
+else
+	str = '';
+end
+
+switch STAT
+case 'T'
+	STATstr = sprintf('%c%s_{%.0f}','T',str,df(2));
+case 'F'
+	STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,df(1),df(2));
+case 'P'
+	STATstr = sprintf('%s^{%0.2f}','PPM',df(1));
+end
+
+
+%-Compute (unfiltered) SPM pointlist for masked conjunction requested
 %=======================================================================
 fprintf('\t%-32s: %30s\n','SPM computation','...initialising')         %-#
 
 
-%-Check conjunctions - Must be same STAT w/ same df
+%-Compute conjunction as minimum of SPMs
 %-----------------------------------------------------------------------
-if (length(Ic) > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
-		       any(abs(diff(cat(1,xCon(Ic).eidf))) > 1) )
-	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
+Z         = Inf;
+for i     = Ic
+	Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
 end
 
-%-Compute mask
+% P values for False Discovery FDR rate computation (all search voxels)
+%=======================================================================
+switch STAT
+case 'T'
+	Ps = (1-spm_Tcdf(Z,df(2))).^n;
+case 'F'
+	Ps = (1-spm_Fcdf(Z,df)).^n;
+end
+
+
+%-Compute mask and eliminate masked voxels
 %-----------------------------------------------------------------------
 for i = Im
 	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking')
@@ -340,66 +377,20 @@ for i = Im
 	else
 		Q = Mask >  um;
 	end
-	XYZ  = XYZ(:,Q);
-	if isempty(Q), break, end
+	XYZ       = XYZ(:,Q);
+	Z         = Z(Q);
+	if isempty(Q)
+		fprintf('\n')                                           %-#
+    		warning(sprintf('No voxels survive masking at p=%4.2f',pm))
+		break
+	end
 end
-
-if ~isempty(Im) & ~isempty(Q)
-	Msk  =   XYZ(1,:) + ...
-		(XYZ(2,:) - 1)*SPM.xVol.DIM(1) + ...
-		(XYZ(3,:) - 1)*SPM.xVol.DIM(1)*SPM.xVol.DIM(2);
-else
-	Msk  = 0;  %-Statistic images are zero-masked
-end
-
-
-%-Compute conjunction SPM (as minimum SPM) within mask...
-%-----------------------------------------------------------------------
-if isempty(XYZ)
-    fprintf('\n')                                                    %-#
-    warning(sprintf('No voxels survive masking at p=%4.2f',pm))
-    Z     = [];
-else
-    Z     = Inf;
-    for i = Ic
-        Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
-    end
-end
-
-%-Degrees of Freedom and STAT string describing marginal distribution
-%-----------------------------------------------------------------------
-edf   = [xCon(Ic(1)).eidf xX.erdf];
-if length(Ic) > 1
-	str = sprintf('^{%d}',length(Ic));
-else
-	str = '';
-end
-
-switch xCon(Ic(1)).STAT
-case 'T'
-	STATstr = sprintf('%c%s_{%.0f}','T',str,edf(2));
-case 'F'
-	STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,edf(1),edf(2));
-case 'P'
-	STATstr = sprintf('%s^{%0.2f}','PPM',edf(1));
-end
-
-
-%-Save mappped statistic image(s) to put in xSPM
-%-----------------------------------------------------------------------
-VspmSv = cat(1,xCon(Ic).Vspm);
-
-%-other parameters...
-%-----------------------------------------------------------------------
-STAT   = xCon(Ic(1)).STAT;
-n      = length(Ic);
-u      = -Inf;
-k      = 0;
 
 %-clean up interface
 %-----------------------------------------------------------------------
 fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
 spm('Pointer','Arrow')
+
 
 
 %=======================================================================
@@ -408,6 +399,8 @@ spm('Pointer','Arrow')
 
 %-Height threshold - classical inference
 %-----------------------------------------------------------------------
+u      = -Inf;
+k      = 0;
 if STAT ~= 'P'
 
 
@@ -421,18 +414,18 @@ if STAT ~= 'P'
 	case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
 	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
-	u  = spm_uc(u,edf,STAT,R,n,S);
+	u  = spm_uc(u,df,STAT,R,n,S);
 
 	case 'FDR' % False discovery rate
 	%---------------------------------------------------------------	
 	u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
-	u  = spm_uc_FDR(u,edf,STAT,n,VspmSv,0);
+	u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
 
 	otherwise  %-NB: no adjustment
 	% p for conjunctions is p of the conjunction SPM
    	%---------------------------------------------------------------
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
-	if u <= 1; u = spm_u(u^(1/n),edf,STAT); end
+	if u <= 1; u = spm_u(u^(1/n),df,STAT); end
 
     end
 
@@ -501,7 +494,7 @@ xSPM   = struct('swd',		swd,...
 		'Z',		Z,...
 		'n',		n,...
 		'STAT',		STAT,...
-		'df',		edf,...
+		'df',		df,...
 		'STATstr',	STATstr,...
 		'Ic',		Ic,...
 		'Im',		Im,...
@@ -519,7 +512,7 @@ xSPM   = struct('swd',		swd,...
 		'DIM',		SPM.xVol.DIM,...
 		'VOX',		VOX,...
 		'Vspm',		VspmSv,...
-		'Msk',		Msk);
+		'Ps',		Ps);
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------
