@@ -362,8 +362,11 @@ case 'addcontext',
 case 'rmcontext',
 	rmcontexts(varargin{1});
 
-case 'context_menu'
-  c_menu(varargin{:});
+case 'context_menu',
+	c_menu(varargin{:});
+
+case 'set_pos2cm',
+	cm_pos(varargin{:});
 
 otherwise,
   addonaction = strcmp(st.plugins,action);
@@ -675,13 +678,17 @@ for i=1:3,
 	ax = axes('Visible','off','DrawMode','fast','Parent',st.fig,'DeleteFcn',DeleteFcn,...
 		'YDir','normal','ButtonDownFcn',...
 		['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
+		'spm_orthviews(''set_pos2cm'');',...
 		'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''Reposition'');',...
+		'spm_orthviews(''set_pos2cm'');',...
 		'spm_orthviews(''context_menu'',''ts'',1);end;']);
 	d  = image(0,'Tag','Transverse','Parent',ax,...
 		'DeleteFcn',DeleteFcn);
 	set(ax,'Ydir','normal','ButtonDownFcn',...
 		['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
+		'spm_orthviews(''set_pos2cm'');',...
 		'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''reposition'');',...
+		'spm_orthviews(''set_pos2cm'');',...
 		'spm_orthviews(''context_menu'',''ts'',1);end;']);
 
 	lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
@@ -1174,29 +1181,30 @@ if nargin < 5, miscol=1;end
 cml = size(cmap,1);
 scf = (cml-1)/(mx-mn);
 img = round((inpimg-mn)*scf)+1;
-img(find(img<1))=1; 
-img(find(img>cml))=cml;
-img(~finite(img)) = miscol;
+img(find(img<1))   = 1; 
+img(find(img>cml)) = cml;
+img(~finite(img))  = miscol;
+return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function cmap = getcmap(acmapname)
 % get colormap of name acmapname
-if ~isempty(acmapname)
-  cmap = evalin('base',acmapname,'[]');
-  if isempty(cmap) % not a matrix, is .mat file?
-    [p f e] = fileparts(acmapname);
-    acmat = fullfile(p, [f '.mat']);
-    if exist(acmat, 'file')
-      s = struct2cell(load(acmat));
-      cmap = s{1};
-    end
-  end
-end
-if size(cmap, 2)~=3
-  warning('Colormap was not an N by 3 matrix')
-  cmap = [];
-end
-return
+if ~isempty(acmapname),
+	cmap = evalin('base',acmapname,'[]');
+	if isempty(cmap), % not a matrix, is .mat file?
+		[p f e] = fileparts(acmapname);
+		acmat   = fullfile(p, [f '.mat']);
+		if exist(acmat, 'file'),
+			s    = struct2cell(load(acmat));
+			cmap = s{1};
+		end;
+	end;
+end;
+if size(cmap, 2)~=3,
+	warning('Colormap was not an N by 3 matrix')
+	cmap = [];
+end;
+return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function item_parent = addcontext(volhandle)
@@ -1206,85 +1214,65 @@ fg = spm_figure('Findwin','Graphics');set(0,'CurrentFigure',fg);
 %contextmenu
 item_parent = uicontextmenu;
 
+%contextsubmenu 0
+item0a    = uimenu(item_parent,'UserData','pos_mm');
+item0b    = uimenu(item_parent,'UserData','pos_vx');
+item0c    = uimenu(item_parent,'UserData','v_value');
+
 %contextsubmenu 1
 item1     = uimenu(item_parent,'Label','Zoom');
-  item1_1   = uimenu(item1,'Label','Full Volume', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',6);', 'Checked','on');
-  item1_2   = uimenu(item1,'Label','160x160x160mm', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',5);');
-  item1_3   = uimenu(item1,'Label','80x80x80mm', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',4);');
-  item1_4   = uimenu(item1,'Label','40x40x40mm', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',3);');
-  item1_5   = uimenu(item1,'Label','20x20x20mm', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',2);');
-  item1_6   = uimenu(item1,'Label','10x10x10mm', ...
-      'Callback','spm_orthviews(''context_menu'',''zoom'',1);');
+item1_1   = uimenu(item1,      'Label','Full Volume',   'Callback','spm_orthviews(''context_menu'',''zoom'',6);', 'Checked','on');
+item1_2   = uimenu(item1,      'Label','160x160x160mm', 'Callback','spm_orthviews(''context_menu'',''zoom'',5);');
+item1_3   = uimenu(item1,      'Label','80x80x80mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',4);');
+item1_4   = uimenu(item1,      'Label','40x40x40mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',3);');
+item1_5   = uimenu(item1,      'Label','20x20x20mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',2);');
+item1_6   = uimenu(item1,      'Label','10x10x10mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',1);');
 
 %contextsubmenu 2
 item2     = uimenu(item_parent,'Label','Crosshairs');
-  item2_1   = uimenu(item2,'Label','on', ...
-      'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked','on');
-  item2_2   = uimenu(item2,'Label','off', ...
-      'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');');
+item2_1   = uimenu(item2,      'Label','on', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked','on');
+item2_2   = uimenu(item2,      'Label','off', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');');
 
 %contextsubmenu 3
 item3     = uimenu(item_parent,'Label','Orientation');
-  item3_1   = uimenu(item3,'Label','World space', ...
-      'Callback','spm_orthviews(''context_menu'',''orientation'',2);');
-item3_2   = uimenu(item3,'Label','Voxel space', ...
-    'Callback','spm_orthviews(''context_menu'',''orientation'',1);','Checked','on');
+item3_1   = uimenu(item3,      'Label','World space', 'Callback','spm_orthviews(''context_menu'',''orientation'',2);');
+item3_2   = uimenu(item3,      'Label','Voxel space', 'Callback','spm_orthviews(''context_menu'',''orientation'',1);','Checked','on');
 
 %contextsubmenu 4
 item4     = uimenu(item_parent,'Label','Interpolation');
-  item4_1   = uimenu(item4,'Label','NN', ...
-      'Callback','spm_orthviews(''context_menu'',''interpolation'',3);');
-  item4_2   = uimenu(item4,'Label','Bilin', ...
-      'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked','on');
-item4_3   = uimenu(item4,'Label','Sinc', ...
-    'Callback','spm_orthviews(''context_menu'',''interpolation'',1);');
+item4_1   = uimenu(item4,      'Label','NN',    'Callback','spm_orthviews(''context_menu'',''interpolation'',3);');
+item4_2   = uimenu(item4,      'Label','Bilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked','on');
+item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''context_menu'',''interpolation'',1);');
 
 %contextsubmenu 5
-% item5     = uimenu(item_parent,'Label','Position', ...
-%    'Callback','spm_orthviews(''context_menu'',''position'');');
+% item5     = uimenu(item_parent,'Label','Position', 'Callback','spm_orthviews(''context_menu'',''position'');');
 
 %contextsubmenu 6
-item6     = uimenu(item_parent,'Label','Image','Separator','on');
-  item6_1   = uimenu(item6,'Label','Window');
-    item6_1_1 = uimenu(item6_1,'Label','local');
-      item6_1_1_1 = uimenu(item6_1_1,'Label','auto', ...
-	  'Callback','spm_orthviews(''context_menu'',''window'',2);');
-      item6_1_1_2 = uimenu(item6_1_1,'Label','manual', ...
-	  'Callback','spm_orthviews(''context_menu'',''window'',1);');
-    item6_1_2 = uimenu(item6_1,'Label','global');
-      item6_1_2_1 = uimenu(item6_1_2,'Label','auto', ...
-	  'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
-      item6_1_2_2 = uimenu(item6_1_2,'Label','manual', ...
-	  'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
-  item6_2   = uimenu(item6,'Label','Swap image', ...
-      'Callback','spm_orthviews(''context_menu'',''swap_img'');');
+item6       = uimenu(item_parent,'Label','Image','Separator','on');
+item6_1     = uimenu(item6,      'Label','Window');
+item6_1_1   = uimenu(item6_1,    'Label','local');
+item6_1_1_1 = uimenu(item6_1_1,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window'',2);');
+item6_1_1_2 = uimenu(item6_1_1,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window'',1);');
+item6_1_2   = uimenu(item6_1,    'Label','global');
+item6_1_2_1 = uimenu(item6_1_2,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
+item6_1_2_2 = uimenu(item6_1_2,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
+item6_2     = uimenu(item6,      'Label','Swap image', 'Callback','spm_orthviews(''context_menu'',''swap_img'');');
 
 %contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Blobs');
-  item7_1   = uimenu(item7,'Label','Add blobs');
-    item7_1_1 = uimenu(item7_1,'Label','local', ...
-	'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
-    item7_1_2 = uimenu(item7_1,'Label','global', ...
-	'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
-  item7_2   = uimenu(item7,'Label','Add colored blobs');
-    item7_2_1 = uimenu(item7_2,'Label','local', ...
-	'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
-    item7_2_2 = uimenu(item7_2,'Label','global', ...
-	'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
-  item7_3 = uimenu(item7,'Label','Add colored image');
-    item7_3_1 = uimenu(item7_3,'Label','local', ...
-	'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
-    item7_3_2 = uimenu(item7_3,'Label','global', ...
-	'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
-  item7_4   = uimenu(item7,'Label','Remove blobs','Visible','off','Separator','on');
-  item7_5   = uimenu(item7,'Label','Remove colored blobs','Visible','off');
-    item7_5_1 = uimenu(item7_5,'Label','local','Visible','on');
-    item7_5_2 = uimenu(item7_5,'Label','global','Visible','on');
+item7_1   = uimenu(item7,      'Label','Add blobs');
+item7_1_1 = uimenu(item7_1,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
+item7_1_2 = uimenu(item7_1,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
+item7_2   = uimenu(item7,      'Label','Add colored blobs');
+item7_2_1 = uimenu(item7_2,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
+item7_2_2 = uimenu(item7_2,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
+item7_3   = uimenu(item7,      'Label','Add colored image');
+item7_3_1 = uimenu(item7_3,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
+item7_3_2 = uimenu(item7_3,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
+item7_4   = uimenu(item7,      'Label','Remove blobs',        'Visible','off','Separator','on');
+item7_5   = uimenu(item7,      'Label','Remove colored blobs','Visible','off');
+item7_5_1 = uimenu(item7_5,    'Label','local', 'Visible','on');
+item7_5_2 = uimenu(item7_5,    'Label','global','Visible','on');
 
 if ~isempty(st.plugins) % process any plugins
 	for k = 1:prod(size(st.plugins)),
@@ -1297,179 +1285,206 @@ return;
 %_______________________________________________________________________
 function c_menu(varargin)
 global st
-str = lower(varargin{1});
-switch lower(str),
 
+switch lower(varargin{1}),
 case 'zoom'
-  zoom_all(varargin{2});
-  bbox;
-  redraw_all;
+	zoom_all(varargin{2});
+	bbox;
+	redraw_all;
 
-case 'xhair'
-  spm_orthviews('Xhairs',varargin{2});
-  cm_handles = get_cm_handles;
-  for i = 1:length(cm_handles)
-    z_handle = get(findobj(cm_handles(i),'label','Crosshairs'),'Children');
-    set(z_handle,'Checked','off'); %reset check
-    if strcmp(varargin{2},'off'), op = 1; else op = 2; end
-    set(z_handle(op),'Checked','on');
-  end
+case 'xhair',
+	spm_orthviews('Xhairs',varargin{2});
+	cm_handles = get_cm_handles;
+	for i = 1:length(cm_handles),
+		z_handle = get(findobj(cm_handles(i),'label','Crosshairs'),'Children');
+		set(z_handle,'Checked','off'); %reset check
+		if strcmp(varargin{2},'off'), op = 1; else op = 2; end
+		set(z_handle(op),'Checked','on');
+	end;
 
-case 'orientation'
-  if varargin{2} == 2
-    spm_orthviews('Space');
-  else spm_orthviews('Space',1);
-  end
-  cm_handles = get_cm_handles;
-  for i = 1:length(cm_handles)
-    z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
-    set(z_handle,'Checked','off');
-    set(z_handle(varargin{2}),'Checked','on');
-  end
+case 'orientation',
+	if varargin{2} == 2,
+		spm_orthviews('Space');
+	else,
+		spm_orthviews('Space',1);
+	end;
+	cm_handles = get_cm_handles;
+	for i = 1:length(cm_handles),
+		z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
+		set(z_handle,'Checked','off');
+		set(z_handle(varargin{2}),'Checked','on');
+	end;
 
-case 'interpolation'
-  tmp = [-4 1 0];
-  st.hld = tmp(varargin{2});
-  cm_handles = get_cm_handles;
-  for i = 1:length(cm_handles)
-    z_handle = get(findobj(cm_handles(i),'label','Interpolation'),'Children');
-    set(z_handle,'Checked','off');
-    set(z_handle(varargin{2}),'Checked','on');
-  end
-  redraw_all;
+case 'interpolation',
+	tmp        = [-4 1 0];
+	st.hld     = tmp(varargin{2});
+	cm_handles = get_cm_handles;
+	for i = 1:length(cm_handles),
+		z_handle = get(findobj(cm_handles(i),'label','Interpolation'),'Children');
+		set(z_handle,'Checked','off');
+		set(z_handle(varargin{2}),'Checked','on');
+	end;
+	redraw_all;
 
-case 'window'
-  current_handle = get_current_handle;
-  if varargin{2} == 2, spm_orthviews('window',current_handle);
-  else spm_orthviews('window',current_handle,spm_input('Range','+1','e','',2));
-  end;
+case 'window',
+	current_handle = get_current_handle;
+	if varargin{2} == 2,
+		spm_orthviews('window',current_handle);
+	else
+		spm_orthviews('window',current_handle,spm_input('Range','+1','e','',2));
+	end;
 
-case 'window_gl'
-  if varargin{2} == 2,
-    for i = 1:length(get_cm_handles)
-      st.vols{i}.window = 'auto';
-    end;
-  else
-    data = spm_input('Range','+1','e','',2);
-    for i = 1:length(get_cm_handles)
-      st.vols{i}.window = data;
-    end;
-  end;
-  redraw_all;
+case 'window_gl',
+	if varargin{2} == 2,
+		for i = 1:length(get_cm_handles),
+			st.vols{i}.window = 'auto';
+		end;
+	else,
+		data = spm_input('Range','+1','e','',2);
+		for i = 1:length(get_cm_handles),
+			st.vols{i}.window = data;
+		end;
+	end;
+	redraw_all;
 
-case 'swap_img'
-  current_handle = get_current_handle;
-  new_info = spm_vol(spm_get(1,'IMAGE','select new image'));
-  st.vols{current_handle}.fname   = new_info.fname;
-  st.vols{current_handle}.dim     = new_info.dim;
-  st.vols{current_handle}.mat     = new_info.mat;
-  st.vols{current_handle}.pinfo   = new_info.pinfo;
-  st.vols{current_handle}.descrip = new_info.descrip;
-  redraw_all;
+case 'swap_img',
+	current_handle = get_current_handle;
+	new_info = spm_vol(spm_get(1,'IMAGE','select new image'));
+	st.vols{current_handle}.fname   = new_info.fname;
+	st.vols{current_handle}.dim     = new_info.dim;
+	st.vols{current_handle}.mat     = new_info.mat;
+	st.vols{current_handle}.pinfo   = new_info.pinfo;
+	st.vols{current_handle}.descrip = new_info.descrip;
+	redraw_all;
 
-case 'add_blobs'
-  % Add blobs to the image - in split colortable
-  cm_handles = valid_handles(1:24);
-  if varargin{2} == 2, cm_handles = get_current_handle;end;
-  spm_figure('Clear','Interactive');
-  [SPM,VOL] = spm_getSPM;
-  for i = 1:length(cm_handles)
-    addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
-    c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
-    set(c_handle,'Visible','on');
-    delete(get(c_handle,'Children'));
-    item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
-    if varargin{2} == 1
-      item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
-    end
-  end
-  redraw_all;
+case 'add_blobs',
+	% Add blobs to the image - in split colortable
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle; end;
+	spm_figure('Clear','Interactive');
+	[SPM,VOL] = spm_getSPM;
+	for i = 1:length(cm_handles),
+		addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
+		c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+		set(c_handle,'Visible','on');
+		delete(get(c_handle,'Children'));
+		item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+		if varargin{2} == 1,
+			item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+		end;
+	end;
+	redraw_all;
 
-case 'remove_blobs'
-  cm_handles = valid_handles(1:24);
-  if varargin{2} == 2, cm_handles = get_current_handle;end;
-  for i = 1:length(cm_handles)
-    rmblobs(cm_handles(i));
-    c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
-    delete(get(c_handle,'Children'));
-    set(c_handle,'Visible','off');
-  end
-  redraw_all;
+case 'remove_blobs',
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle; end;
+	for i = 1:length(cm_handles),
+		rmblobs(cm_handles(i));
+		c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+		delete(get(c_handle,'Children'));
+		set(c_handle,'Visible','off');
+	end;
+	redraw_all;
 
-case 'add_c_blobs'
-  % Add blobs to the image - in full colour
-  cm_handles = valid_handles(1:24);
-  if varargin{2} == 2, cm_handles = get_current_handle;end;
-  spm_figure('Clear','Interactive');
-  [SPM,VOL] = spm_getSPM;
-  c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-  colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-  c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-  for i = 1:length(cm_handles)
-    addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
-    c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
-    ch_c_handle = get(c_handle,'Children');
-    set(c_handle,'Visible','on');
-    %set(ch_c_handle,'Visible',on');
-    item7_4_1 = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
-    if varargin{2} == 1
-      item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);','UserData',c);
-    end
-  end
-  redraw_all;
+case 'add_c_blobs',
+	% Add blobs to the image - in full colour
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle; end;
+	spm_figure('Clear','Interactive');
+	[SPM,VOL] = spm_getSPM;
+	c         = spm_input('Colour','+1','m',...
+		'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+	colours   = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+	c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+	for i = 1:length(cm_handles),
+		addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
+		c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+		ch_c_handle = get(c_handle,'Children');
+		set(c_handle,'Visible','on');
+		%set(ch_c_handle,'Visible',on');
+		item7_4_1   = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+			'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);',...
+			'UserData',c);
+		if varargin{2} == 1,
+			item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+				'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
+				'UserData',c);
+		end;
+	end;
+	redraw_all;
 
-case 'remove_c_blobs'
-  cm_handles = valid_handles(1:24);
-  if varargin{2} == 2, cm_handles = get_current_handle;end;
-  colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-  c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-  for i = 1:length(cm_handles)
-    if isfield(st.vols{cm_handles(i)},'blobs'),
-      for j = 1:length(st.vols{cm_handles(i)}.blobs)
-	if st.vols{cm_handles(i)}.blobs{j}.colour == colours(varargin{3},:);
-	  st.vols{cm_handles(i)}.blobs(j) = [];
-	  break
+case 'remove_c_blobs',
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle; end;
+	colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+	c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+	for i = 1:length(cm_handles),
+		if isfield(st.vols{cm_handles(i)},'blobs'),
+			for j = 1:length(st.vols{cm_handles(i)}.blobs),
+				if st.vols{cm_handles(i)}.blobs{j}.colour == colours(varargin{3},:);
+					st.vols{cm_handles(i)}.blobs(j) = [];
+					break;
+				end;
+			end;
+			rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
+			delete(findobj(rm_c_menu,'Label',c_names{varargin{3}}));
+			if isempty(st.vols{cm_handles(i)}.blobs),
+				st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
+				set(rm_c_menu, 'Visible', 'off');
+			end;
+		end;
+	end;
+	redraw_all;
+
+case 'add_c_image',
+	% Add truecolored image
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle;end;
+	spm_figure('Clear','Interactive');
+	fname   = spm_get(1,'IMAGE','select image');
+	c       = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+	colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+	c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+	for i = 1:length(cm_handles),
+		addcolouredimage(cm_handles(i),fname,colours(c,:));
+		c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+		ch_c_handle = get(c_handle,'Children');
+		set(c_handle,'Visible','on');
+		%set(ch_c_handle,'Visible',on');
+		item7_4_1 = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+			'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
+		if varargin{2} == 1
+			item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+				'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
+				'UserData',c);
+		end
 	end
-      end
-      rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
-      delete(findobj(rm_c_menu,'Label',c_names{varargin{3}}));
-      if isempty(st.vols{cm_handles(i)}.blobs)
-	st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
-	set(rm_c_menu, 'Visible', 'off');
-      end;
-    end
-  end
-  redraw_all;
-
-case 'add_c_image'
-  % Add truecolored image
-  cm_handles = valid_handles(1:24);
-  if varargin{2} == 2, cm_handles = get_current_handle;end;
-  spm_figure('Clear','Interactive');
-  fname = spm_get(1,'IMAGE','select image');
-  c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-  colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-  c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-  for i = 1:length(cm_handles)
-    addcolouredimage(cm_handles(i),fname,colours(c,:));
-    c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
-    ch_c_handle = get(c_handle,'Children');
-    set(c_handle,'Visible','on');
-    %set(ch_c_handle,'Visible',on');
-    item7_4_1 = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
-    if varargin{2} == 1
-      item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);','UserData',c);
-    end
-  end
-  redraw_all;
+	redraw_all;
 end;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function current_handle = get_current_handle
 global st
-cm_handle = get(gca,'UIContextMenu');
-cm_handles = get_cm_handles;
+cm_handle      = get(gca,'UIContextMenu');
+cm_handles     = get_cm_handles;
 current_handle = find(cm_handles==cm_handle);
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function cm_pos
+global st
+for i = 1:length(valid_handles(1:24)),
+	if isfield(st.vols{i}.ax{1},'cm')
+		set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_mm'),...
+			'Label',sprintf('mm:  %.1f %.1f %.1f',spm_orthviews('pos')));
+		pos = spm_orthviews('pos',i);
+		set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_vx'),...
+			'Label',sprintf('vx:  %.1f %.1f %.1f',pos));
+		set(findobj(st.vols{i}.ax{1}.cm,'UserData','v_value'),...
+			'Label',sprintf('Y = %g',spm_sample_vol(st.vols{i},pos(1),pos(2),pos(3),st.hld)));
+	end
+end;
+return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function cm_handles = get_cm_handles
@@ -1478,6 +1493,7 @@ cm_handles = [];
 for i=valid_handles(1:24),
 	cm_handles = [cm_handles st.vols{i}.ax{1}.cm];
 end
+return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function zoom_all(op)
@@ -1507,4 +1523,4 @@ for i = 1:length(cm_handles)
 	set(z_handle,'Checked','off');
 	set(z_handle(op),'Checked','on');
 end
-
+return;
