@@ -620,7 +620,7 @@ y     = 0.1;
 dx    = 1/size(nKHCBG,2);
 for i = 1:size(nKHCBG,2)
 	text((i - 0.5)*dx,y,deblank(KHCBGnames(i,:)),...
-		'Fontsize',8,'Rotation',90), end
+		'Fontsize',8,'Rotation',90)
 end % (for)
 
 
