@@ -33,6 +33,7 @@ for  i = 1:h
 	if length(Q)
 		k = k - Q*(pinv(Q)*k);
 	end
+	k      = k/max(k);
 	Q(:,i) = k;
 end
 
