@@ -892,7 +892,8 @@ end
 
 % temporal smoothing
 %---------------------------------------------------------------------------
-SIGMA  = spm_input('Temporal smoothing','!+1','yes|no',[sqrt(8)/RT 0]);
+SIGMA  = spm_input('temporal smoothing fwhm-secs','!+1','e',6);
+SIGMA  = SIGMA/sqrt(8*log(2))/RT;
 
 
 % the interactive parts of spm_spm_ui are now finished
@@ -999,7 +1000,7 @@ end
 
 %---------------------------------------------------------------------------
 y     = y - dy;
-str   = sprintf('Temporal Smoothing: {%0.1f sec Kernel}',RT*SIGMA);
+str   = sprintf('Temporal Smoothing: {%0.1f sec FWHM}',RT*SIGMA*sqrt(8*log(2)));
 text(0,y,str);
 y     = y - dy;
 
