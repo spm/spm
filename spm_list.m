@@ -132,7 +132,7 @@ while max(T)
 	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
 	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
-	Ze      = 1 - spm_invNcdf(Pz);		% Equivalent Z-variate
+	Ze      = spm_invNcdf(1 - Pz);		% Equivalent Z-variate
 
 
 	%-Print cluster and maximum voxel-level p values {Z}
@@ -172,7 +172,7 @@ while max(T)
 			%-----------------------------------------------
 			Pz    = spm_P(1,0,T(d),df,STAT,1,n);
 			Pu    = spm_P(1,0,T(d),df,STAT,R,n);
-			Ze    = 1 - spm_invNcdf(Pz);
+			Ze    = spm_invNcdf(1 - Pz);
 
         		str   = sprintf('%-0.3f   (%-0.2f)',Pu,Ze);
 			h     = text(0.44,y,str,'FontSize',8);
