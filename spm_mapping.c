@@ -149,6 +149,7 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 				free_maps(maps,i+1);
 				mexErrMsgTxt("Cant map image file.");
 			}
+			(void)close(fd);
 			mxFree(buf);
 		}
 
