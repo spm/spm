@@ -31,7 +31,7 @@ B2             = spm_dctmtx(V(1).dim(2),nbas(2));
 B3             = spm_dctmtx(V(1).dim(3),nbas(3));
 
 VO             = V;
-VO.dt          = [spm_type('float') spm_platform('bigend')];
+VO.dt          = [spm_type('float32') spm_platform('bigend')];
 
 if nargout==0,
 	[pth,nm,xt,vr] = fileparts(deblank(V.fname));

@@ -41,21 +41,21 @@ disp(T)
 
 VO         = V(1);
 VO.fname   = prepend(V(1).fname, 'p');
-VO.dim(4)  = spm_type('float');
+VO.dt      = [spm_type('float32') spm_platform('bigend')];
 VO.pinfo   = [1 0 0]';
 VO.descrip = 'Shape field';
 spm_write_vol(VO,y1);
 
 VO         = V(2);
 VO.fname   = prepend(V(2).fname, 'p');
-VO.dim(4)  = spm_type('float');
+VO.dt      = [spm_type('float32') spm_platform('bigend')];
 VO.pinfo   = [1 0 0]';
 VO.descrip = 'Shape field';
 spm_write_vol(VO,y2);
 
 VO         = V(3);
 VO.fname   = prepend(V(3).fname, 'p');
-VO.dim(4)  = spm_type('float');
+VO.dt      = [spm_type('float32') spm_platform('bigend')];
 VO.pinfo   = [1 0 0]';
 VO.descrip = 'Shape field';
 spm_write_vol(VO,y3);

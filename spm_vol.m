@@ -5,8 +5,9 @@ function V = spm_vol(P)
 % V - a vector of structures containing image volume information.
 % The elements of the structures are:
 %       V.fname - the filename of the image.
-%       V.dim   - the x, y and z dimensions of the volume, and the
-%                 datatype of the image.
+%       V.dim   - the x, y and z dimensions of the volume
+%       V.dt    - A 1x2 array.  First element is datatype (see spm_types).
+%                 The second is 1 or 0 depending on the endian-ness.
 %       V.mat   - a 4x4 affine transformation matrix mapping from
 %                 voxel coordinates to real world coordinates.
 %       V.pinfo - plane info for each plane of the volume.
