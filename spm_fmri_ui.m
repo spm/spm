@@ -30,13 +30,16 @@ clear global
 
 % Set default values for gobal variables
 %----------------------------------------------------------------------------
-global SWD CWD PRINTSTR LOGFILE CMDLINE GRID DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP 
+global SWD CWD PRINTSTR LOGFILE CMDLINE GRID DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP TWD UFp
 
 SWD      = spm_get_path;				% SPM directory
 CWD      = pwd;						% working directory
+TWD      = getenv('SPMTMP');				% temporary directory
+           if (TWD == []); TWD = '/tmp';end
 PRINTSTR = ['print -dpsc -append ' CWD '/spm.ps'];    	% print string
 LOGFILE  = '';						% SPM log file
-CMDLINE  = 0;						% command line input
+if CMDLINE == [];                                       % command line input
+        CMDLINE  = 0; end                               %   don't reset value
 GRID     = 0.6;			    			% grid value
 
 DIM	 = [128 64 10];					% dimensions {x y z]
@@ -47,6 +50,7 @@ OFFSET   = 0;			    			% offset in bytes
 ORIGIN   = [0 0 0];					% origin in voxels
 DESCRIP	 = 'spm compatible';				% description
 
+UFp      = 0.05;					% Upper tail F-prob
 
 USER     = getenv('USER');
 
