@@ -1,6 +1,6 @@
 
 % Statistical Parametric Mapping - SPM99b
-% SPM99 is the final public release of SPM'99   -   released 25/01/2000
+% SPM2 is the beta public release of SPM'2   -   released 01/10/2002
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -20,14 +20,15 @@
 %
 %                           ----------------
 %
-% Please refer to this version as "SPM99" in papers and communications.
+% Please refer to this version as "SPM2" in papers and communications.
 %
 %                           ----------------
 % Contents:
 %      1) SPM - The software
-%      2) New features in SPM99
+%      2) Release notes for SPM99
 %      3) SPM99b: Updates since the beta release
-%      4) SPM Toolboxes
+%      4) Release notes for SPM2
+%      5) SPM Toolboxes
 % 
 %
 % ======================================================================
@@ -213,10 +214,10 @@
 %
 %
 % ======================================================================
-% 2)           N e w   f e a t u r e s   i n   S P M 9 9
+% 2)               Release Notes for   S P M 9 9
 % ======================================================================
 %
-% SPM99 is a major update to the SPM software, containing substantial
+% SPM99 was a major update to the SPM software, containing substantial
 % theoretical, algorithmic, organisational and interface enhancements
 % over previous versions.
 % 
@@ -757,8 +758,590 @@
 %    * Enhanced GUI file & directory handling - mkdir, rmdir &amp;c
 %    * Conversion program for SPM96/7 Stats results files
 %
+%
+%
+%
 % ======================================================================
-% 4)                    S P M   T o o l B o x e s
+% 4)                RELEASE NOTES FOR  S P M 2
+% ======================================================================
+% 
+% 1. OVERVIEW
+% 2. NEW FUNCTIONALITY
+% 	2.1 Non-sphericity and ML estimation
+% 		2.1.2 User specification
+% 		2.1.2 Software implementation
+% 	2.2 Bayesian estimation and inference
+% 		2.2.1 User specification
+% 		2.2.2 Software implementation
+% 	2.3 Inference based on False Discovery rate
+% 	2.4 Dynamic Causal Modelling
+% 		2.4.1 User specification
+% 		2.4.2 Software implementation
+% 	2.5 Hemodynamic modelling
+% 		2.5.1 User specification
+% 		2.5.2 Software implementation
+% 	2.6 Hemodynamic deconvolution
+% 	2.7 Bias correction
+% 3. IMPROVEMENTS - STRUCTURAL
+% 	3.1 Software architecture
+% 	3.2 File formats
+% 4. IMPROVEMENTS - FUNCTIONAL
+% 	4.1 Interpolation
+% 	4.2 Realignment
+% 	4.3 Coregistration
+% 	4.4 Spatial normalisation
+% 	4.5 Segmentation
+% 	4.6 Specifying fMRI designs
+% 	4.7 Estimation
+% 	4.8 Results
+% 
+% 
+% 
+% 1. OVERVIEW
+% SPM2 is a software package for the analysis of brain imaging data
+% sequences. The sequences can be a series of images from different cohorts,
+% or time-series from the same subject. The current release is designed for
+% the analysis of fMRI, PET, SPECT and similar modalities. Future releases
+% will incorporate the analysis of EEG and MEG, enabling multimodality
+% integration or fusion. Data analysis can be divided into three parts. The
+% first comprises spatial pre-processing components that apply spatial
+% operators to the data in order to register, warp or smooth the images into
+% the same space. Registration and spatial normalisation do not change the
+% voxel values but simply relocates them. The subsequent two parts are
+% estimation of the models parameters (e.g. activations) and inferences about
+% those estimates. The model used is the general linear model that can
+% embrace simple variants, like a single-sample t-test, through to very
+% complicated models such as generalised convolution models for dynamical
+% systems. Previously, SPM has used unbiased ordinary least squares (OLS)
+% estimators that, under assumptions of identically and independently
+% distributed errors (i.e. i.i.d. or sphericity) are the same as maximum
+% likelihood (ML) estimators. 
+%  SPM2 now uses restricted maximum likelihood (ReML) estimates of variance
+% components (pooled over voxels) to allow departures from i.i.d.
+% assumptions.  The ensuing non-sphericity estimates are then used to form ML
+% estimates using weighted least squares (WLS).   This increases the scope of
+% data that can be analysed with SPM and provides more efficient and precise
+% [hyper-]parameter estimates.
+% Classical inference about parameters, or contrasts of the model parameters,
+% proceeds using conventional parametric statistics to provide P values
+% pertaining to the maxima, spatial extent of voxel-clusters or number of
+% clusters. These P values are used to reject the null hypothesis. The P
+% values have to be adjusted to protect against family-wise false-positives
+% over the search volume. This adjustment uses a Gaussian field correction
+% that, for spatially extended continuous data, plays the same role as a
+% Bonferroni correction does with discrete data. 
+% In addition to WLS estimators and classical inference, SPM2 also supports
+% conditional or Bayesian estimators and conditional inference. In this
+% instance the statistical parametric maps become posterior probability maps
+% (PPMs), where the posterior probability is a probability of an effect given
+% the data. There is no multiple comparison problem in Bayesian inference and
+% the posterior P values do not require adjustment. 
+% In what follows we describe the key changes from SPM99. These are described
+% in terms of new functionality, improved implementation of existing
+% functions and, finally, changes to the software architecture.
+% 
+% 2. NEW FUNCTIONALITY
+% Many new components of SPM2 rely on an Expectation Maximisation (EM)
+% algorithm that is used to estimate restricted maximum likelihood (ReML)
+% estimates of various hyperparameters or variance components. This enables a
+% number of useful things. For example, non-sphericity can be estimated in
+% single-level observation models and, in hierarchical observation models,
+% one can adopt a parametric empirical Bayesian (PEB) approach to parameter
+% estimation and inference. Furthermore, the EM algorithm allows fully
+% Bayesian estimation for any general linear model under Gaussian
+% assumptions. Examples of all these applications will be found in SPM2.
+% 
+% 2.1 Non-sphericity and ML estimation
+% Sphericity refers to the assumption of identically and independently
+% distributed errors. Departures from this assumption can either be in terms
+% of non-identical distributions (e.g. heterogeneity of variance among
+% conditions or groups, known as heteroscedasticy). Departure from
+% independence implies correlations amongst the errors that may be induced by
+% observing different things in the same subject. The two most pertinent
+% sources of non-sphericity in neuroimaging are heteroscedasticy (e.g. when
+% entering the coefficients of different basis functions into a second-level
+% analysis), and serial correlations in fMRI. It is important to estimate
+% non-sphericity for two reasons: (i) Proper estimates of the co-variances
+% among the error terms are needed to construct valid statistics.  In this
+% instance non-sphericity enters twice, first in the estimate of the variance
+% component hyperparameters (e.g. error variance) and second in the
+% computation of the degrees of freedom. The effective or adjusted degrees of
+% freedom relies upon the Satterthwaite approximation as described in Worsley
+% & Friston (1995) and is commonly employed in things like the
+% Greenhouse-Geisser correction. (ii) The second reason why non-sphericity
+% estimation is important is that it enables multivariate analyses to be
+% implemented within a univariate framework. For example, it is entirely
+% possible to combine PET and fMRI data within the same statistical model
+% allowing for different error variances and serial correlations between the
+% two modalities. The parameter estimates that are obtained from a
+% multivariate analysis and the equivalent univariate analysis are identical.
+% The only point of departure is at the point of inference. In the univariate
+% framework this is based upon an F ratio using the Satterthwaite
+% approximation, whereas multivariate inference uses a slightly different
+% statistic and distributional approximation (usually one based upon Wilk's
+% Lambda). The critical thing here is that multivariate analyses can now
+% proceed within the univariate framework provided by SPM2.
+% By default SPM2 uses WLS to provide ML estimators based on the
+% non-sphericity.  In this case the weighting 'whitens' the errors rendering
+% them i.i.d.  The effective degrees of freedom then revert to the classical
+% degrees of freedom and the Satterthwaite approximation becomes exact.  It
+% is possible the use any WLS estimate (SPM2 will automatically compute the
+% effective degrees of freedom) but this is not provided as an option in the
+% user interface).  This departure from SPM99 has been enables by highly
+% precise non-sphericity estimates that obtain by pooling over voxels using
+% ReML.
+% In addition to finessing the computation of the t statistics and effective
+% degrees of freedom the non-sphericity estimates are also used to provide
+% conditional estimates in the Bayesian analysis stream (see below).
+% 
+% 2.1.2 User specification
+% For PET, you are requested to specify whether or not the errors are
+% identically and independently distributed over the different levels of each
+% factor. In any experimental design there will be one factor whose different
+% levels are assumed to be replications. This is necessary in order to pool
+% the sum of squared residuals over these levels to estimate the error
+% variance hyperparameter.  By default, SPM2 assumes that this factor is the
+% one with the greatest number of levels. A common use of this non-sphericity
+% option would be in the second-level analysis of basis function coefficients
+% from a first-level fMRI experiment. Clearly, the coefficients for different
+% basis functions will have different scaling and error variance properties
+% and will not be identically distributed. Furthermore, they may not be
+% independent because the error terms from any two basis functions maybe
+% coupled because they were observed in the same subject. Using the
+% non-sphericity option allows one to take up multiple contrasts from the
+% same subject to a second level, to emulate a mixed or random effects
+% analysis. In fMRI the key non-sphericity is attributable to serial
+% correlations in the fMRI time series. SPM2 assumes that an auto-regressive
+% process with white noise can model these. Critical to this assumption is
+% the decomposition of fMRI time-series into three components. Induced
+% experimental effects embodied in the design matrix, fixed deterministic
+% drifts in the confounds (that are used in high pass filtering) and,
+% finally, a stochastic error term that shows short-term correlations
+% conforming to an AR(1) process. The AR(1) characterisation is only
+% appropriate when long-term correlations due to drift have been modelled
+% deterministically through high-pass filtering or, equivalently by inclusion
+% in the design matrix as nuisance variables.
+% If non-sphericity is modelled a weighted least squares (WLS) will be used
+% during estimation to render the residuals i.i.d.  This WLS estimator then
+% becomes a ML estimator, which is the most efficient of linear unbiased
+% estimators.  To over-ride this default WLS simply specify the required
+% weighting matrix before estimation (this matrix is in SPM.xX.W, see below).
+% 
+% 2.1.2 Software implementation
+% The hyperparameters or coefficients governing the different variance
+% components of the error co-variances are estimated using ReML. The form of
+% the variance components is described by covariance basis in the
+% non-sphericity sub-field of the SPM structure (SPM.xVi.Vi, see below). In
+% SPM2 a multiple hyperparameter problem is reduced to a single
+% hyperparameter problem by factorising the non-sphericity into a single
+% voxel-specific hyperparameter and the remaining hyperparameters that are
+% invariant over voxels. By reformulating a multiple hyperparameter problem
+% like this one can employ standard least squares estimators and classical
+% statistics in the usual way. The voxel invariant hyperparameters are
+% estimated at voxels that survive the default F test for all effects of
+% interest (assuming sphericity) during the estimation stage in SPM.  This
+% entails a first pass of the data to identify the voxels that contribute to
+% the ReML hyperparameter estimation.  A second pass then uses the
+% non-sphericity V (in SPM.xVi.V) to compute the appropriate weighting matrix
+% (in SPM.xX.W) such that WW' = inv(V).  [If W is already specified only a
+% single estimation pass is required.]
+% 
+% 2.2 Bayesian estimation and inference
+% Having performed a weighted least squares estimation one can optionally
+% revisit all the 'within mask' voxels to obtain conditional or posterior
+% estimates. Conditional estimates are the most likely parameters estimates
+% given the data. This is in contrast to the least squares maximum likelihood
+% estimators that are the estimates that render the data most likely. The
+% critical distinction between the two estimators relies upon prior
+% information about the parameters. Effectively, under Gaussian assumptions
+% and the sorts of hierarchical models used in SPM2, the conditional
+% estimators are shrinkage estimators. This means that the estimates shrink
+% toward their prior expectation that is typically zero. The degree of
+% shrinkage depends upon the relative variance of the errors and the prior
+% distribution. Although the likelihood estimator is the most accurate from
+% the point of view of any one voxel, the conditional estimators minimize the
+% equivalent cost function over the voxels analysed. Currently, in SPM2,
+% these voxels are all 'in mask' or intracranial voxels. In short, the
+% conditional estimators will not be the best for each voxel but will, on
+% average the best over all voxels. The conditional estimators provided in
+% SPM2 rely upon an empirical Bayesian approach, where the priors are
+% estimated from the data. Empirical Bayes rest on a hierarchical observation
+% model. The one employed by SPM2 is perhaps, the simplest and harnesses the
+% fact that imaging time-series implicitly look for the same effect over many
+% voxels. Consequently, a second level, in the observation hierarchy, is
+% provided by voxel to voxel variation in the parameter estimates that is
+% used as the prior variance. Put simply, the priors are estimated by
+% partitioning the observed variance at each and every voxel into a
+% voxel-specific error term and a voxel wide component generated by voxel to
+% voxel variations in the parameter estimates. Giving the prior variance, one
+% is in a position to work out the posterior or conditional distribution of
+% the parameter estimates. In turn, this allows the computation of the
+% posterior probability that the estimate exceeds some specified threshold.
+% These posterior probabilities constitute a posterior probability map (PPM)
+% that is a summary of the posterior density specific to the specified
+% threshold. 
+% 
+% 2.2.1 User specification
+% Having performed the usual least squares estimation simply select Bayesian
+% estimators and the appropriate SPM.mat file. Additional Beta images will be
+% created that are prefixed with a C to denote conditional estimates. When
+% proceeding to inference, if the contrast specified is a t contrast (and
+% conditional estimates are available) you will be asked whether the
+% inference should be Bayesian or Classical. If you select Bayesian you will
+% then be prompted for a threshold to form the posterior probability maps. By
+% default this is one standard deviation of the prior distribution. The
+% resulting PPM is treated in exactly the same way as the SPM, with the
+% exception of P value adjustments that are required only in a classical
+% context. Inferences based upon PPMs will generally have higher face
+% validity, in that they refer to activation effects or differences among
+% cohorts that exceed a meaningful size. Furthermore, by thresholding the PPM
+% appropriately one can infer that activation did not occur. This is
+% important in terms of characterising treatment effects or indeed true
+% functional segregation.
+% 
+% 2.2.2 Software implementation
+% The expected variance components over voxels attributable to error and
+% parameter variation at the second level (i.e. voxels) are estimated using
+% ReML overall intracranial voxels. spm_spm_Bayes.m then revisits each voxel
+% in turn to compute conditional parameter estimates and voxel-specific
+% hyper-parameters. The conditional variance is computed using a first-order
+% Taylor expansion about the expectation of the hyperparameters over voxels. 
+% 
+% 2.3 Inference based on False Discovery rate
+% In addition to the Gaussian field correction 'adjusted' p values are now
+% provided based on FDR.  For a given threshold on n SPM, the False Discovery
+% Rate is the proportion of supra-threshold voxels which are false positives.
+%   Recall that the thresholding of each voxel consists of a hypothesis test,
+% where the null hypothesis is rejected if the statistic is larger than
+% threshold.  In this terminology, the FDR is the proportion of rejected
+% tests where the null hypothesis is actually true.  A FDR procedure produces
+% a threshold that controls the expected FDR at or below q.  In comparison, a
+% traditional multiple comparisons procedure (e.g. Bonferroni or random field
+% correction) controls Family-wise Error rate (FWE) at or below alpha.  FWER
+% is the chance of one or more false positives anywhere (not just among
+% supra-threshold voxels).  If there is truly no signal in the image
+% anywhere, then a FDR procedure controls FWER, just as Bonferroni and random
+% field methods do. (Precisely, controlling E(FDR) yields weak control of
+% FWE).  If there is some signal in the image, a FDR method will be more
+% powerful than a traditional method.
+%  For careful definition of FDR-adjusted p-values (and distinction between
+% corrected and adjusted p-values) see Yekutieli & Benjamini (1999).
+% 
+% 2.4 Dynamic Causal Modelling
+% Dynamic causal modelling is the final option in the data analysis stream
+% and enables inferences about inter-regional coupling. It is based upon a
+% generalised convolution model of how experimentally manipulated inputs
+% evoked changes in particular cortical areas and how these changes induced
+% changes elsewhere in the brain. The underlying model is an
+% input-state-output dynamical model that incorporates the hemodynamic model
+% described in the literature. Critically, the most important [coupling]
+% parameters of this model are connection strengths among pre-selected
+% volumes of interest. Conditional estimates of these connection strengths
+% are derived using a posterior mode analysis that rests upon exactly the
+% same EM algorithm used in the previous sections. In other words, the
+% algorithm performs a gradient assent on the log posterior probability of
+% the connection strengths given the data. The utility of dynamic causal
+% modelling is that it enables inferences about connection strengths and the
+% modulation of connection strengths by experimentally defined effects. For
+% example, one can make inferences about the existence of effective
+% connections from posterior parietal cortex to V5 and how attention
+% increases or decreases this effective connectivity. Interestingly, if one
+% took the dynamic causal model, focussed on a single region and linearised
+% it through a first-order Taylor expansion, one would end up with exactly
+% the same convolution model used in conventional analyses with a hemodynamic
+% response function and various partial derivatives. This means that the
+% standard approach to fMRI time-series is a special case of a dynamic causal
+% model. In contradistinction to previous approaches to effective
+% connectivity, dynamic causal modelling views all measured brain responses
+% as evoked by experimental design. The only noise or stochastic component is
+% observation error. This contrasts with structural equation modelling, and
+% other variants, where it is assumes that the dynamics are driven by
+% unobservable noise. We regard dynamic causal modelling (DCM) as a much more
+% plausible approach to effective connectivity given fMRI data from designed
+% experiments. 
+% 
+% 2.4.1 User specification
+% To specify s DCM, first extract the required volumes of interest using VOI
+% in the results section. These are stored in VOI.mat files. You will be
+% requested to select from these files. In addition you will be asked to
+% specify the experimental inputs or causes that are exactly the same as
+% those used to construct the original design matrix. Once the program knows
+% the number of regions, and experimental inputs it has to accommodate, it
+% will ask you to specify the connectivity structure, first in terms of
+% intrinsic connections and then in terms of those that are modulated by each
+% input. Once the specification is complete the model parameters will be
+% estimated and can be reviewed using the DCM results section. Inferences for
+% DCM are based upon posterior probabilities and require no correction for
+% multiple comparisons.
+% 
+% 2.4.2 Software implementation
+% The identification of a DCM uses a generic set of routines for non-linear
+% system identification under Gaussian assumptions. Essentially, these can be
+% regarded as Gauss-Newton assent upon the log of the posterior probability.
+% This provides the maximum aposteriori or posterior mode and can therefore
+% be regarded as a posterior mode analysis using a Gaussian approximation to
+% the posterior density. The posterior probabilities are based upon fully
+% Bayesian priors that, in turn, reflect natural constraints upon the system
+% that ensure it does not exponentially diverge. Priors on the biophysical
+% parameters of the hemodynamic response per se were determined using
+% previous empirical studies. See spm_dcm_ui.m and spm_nlsi.m for operational
+% details.
+% 
+% 2.5 Hemodynamic modelling
+% This, from a technical point of view, is exactly the same as DCM but is
+% restricted to a single voxel or region. In this instance the interesting
+% parameters are the connection of the experimentally designed inputs or
+% causes to flow-inducing state variables of the hemodynamic model. The
+% posterior distributions of these connections or efficacies are provided to
+% enable inferences about the ability of a particular input or compound of
+% causes to evoke a response.
+% 
+% 2.5.1 User specification
+% Within the results section, having placed the cursor over the volume of
+% interest, you will be asked to specify which experimental causes you want
+% to enter into the model. The computation then proceeds automatically and a
+% separate figures window will show the results. 
+% 
+% 2.5.2 Software implementation
+% This is a streamlined version of the DCM. See spm_hdm_ui.m for details.
+% 
+% 2.6 Hemodynamic deconvolution
+% There is an option in the main menu to form PPIs from fMRI data.  PPIs are
+% psychophysiological or physiophysiological interaction terms that are
+% usually entered into a linear model as bilinear terms.  Because the
+% interaction takes place at a neuronal level (as opposed to hemodynamic it
+% is necessary to deconvolve the observed fMRI time-series to estimate the
+% underlying neuronal responses.  This deconvolution uses the same EM
+% procedure and hierarchical principles used by the Bayesian analyses above.
+% It can be regarded as Weiner filtering using empirically determined priors
+% on the frequency structure of the neuronal signal.
+% 
+% 2.7 Bias Correction
+% A module for bias correcting MR images has been incorporated into SPM2.
+% Applying bias correction to MR images may allow more accurate spatial
+% registration (or other processing) to be achieved with images corrupted by
+% smooth intensity variations.
+% The correction model is non-parametric, and is based on minimising a
+% function related to the entropy of the image intensity histogram. A number
+% of approaches already exist that minimise the entropy of the intensity
+% histogram of the log-transformed image. This approach is slightly different
+% in that the cost function is based on histograms of the original
+% intensities, but includes a correction so that the solution is not biased
+% towards a uniform scaling of all zeros.
+% 
+% 
+% 
+% 3 IMPROVEMENTS - STRUCTURAL
+% Although the look and feel and SPM2 is very similar to SPM99 there have
+% been a number of implementation improvements. The general strategy is to
+% ensure the code is as simple and accessible as possible and yet maintain a
+% degree of robustness and efficiency. Specific changes are detailed below:
+% 
+% 
+% 3.1 Software architecture
+% A number of the revisions detailed above emphasise that modularity has been
+% preserved and that we have tried to make the code as simple and readable as
+% possible. A key change in terms of the architecture is the consolidation of
+% the .mat files that contain the analysis variables and parameters. These
+% files have been consolidated in such a way that to use SPM in batch mode
+% should be much easier. We have done this as a prelude to planned work using
+% mark-up languages (XML) to facilitate the review, specification and
+% implementation of SPM procedures. In brief, SPM2 sets up a single structure
+% (SPM) at the beginning of each analysis and, as the analysis proceeds,
+% fills in sub-fields in a hierarchical fashion. This enables one to fill in
+% early fields automatically and bypass the user interface prompting. After
+% the design specification fields have been filled in the design matrix is
+% computed and placed in a design matrix structure. This, along with a data
+% structure and non-sphericity structure is used by SPM to compute the
+% parameters and hyperparameters. These are saved (as handles to the
+% parameter and hyperparameter images) as sub-fields of SPM. A contrast
+% sub-structure is generated automatically and can be augmented at any stage.
+% This structure array can be filled in automatically after estimation using
+% spm_contrasts.m. The hierarchical organisation of the sub-function calls
+% and the SPM structure means that, after a few specification fields are set
+% in the SPM structure, an entire analysis, complete with contrasts can be
+% implemented automatically. An example of a text file that fills in the
+% initial fields of SPM and then calls the required functions can be found in
+% spm_batch.m.  Key fields include
+% 
+% SPM.xY:		- data structure
+% SPM.nscan:		- vector of scans per session
+% SPM.xBF:		- Basis function structure
+% SPM.Sess:		- Session structure  
+% SPM.xX: 		- Design matrix structure 
+% SPM.xGX		- Global variate structure
+% SPM.xVi:		- Non-sphericity structure
+% SPM.xM:		- Masking structure
+% SPM.xsDes:		- Design description structure
+% SPM.xCon: 		- Contrast Structure
+% 
+% 
+% 3.2 File formats
+% Currently, the Neuroimaging Information Technology Initiative (NIfTI) is
+% deciding on a strategy to allow different software to share data more
+% easily. This may involve the development of a new file format for possible
+% adoption by the neuro-imaging community. No decisions have yet been made,
+% but eventually, the recommendations by the group should be incorporated
+% into SPM. Unfortunately, this will not be SPM2.
+% There will however be slight changes to the SPM file format. By default,
+% images are currently flipped in the left-right direction during spatial
+% normalisation. This is for historical reasons and relates to the
+% co-ordinate system of Talairach and Tournoux being a right-handed
+% co-ordinate system, whereas the co-ordinate system adopted for storing
+% Analyze images is left-handed. This will be streamlined, but will require
+% each site to adopt a consistent co-ordinates system handedness for their
+% images (specified in a file in the SPM2 distribution). One side effect of
+% this is that images spatially normalised using SPM99 or earlier will need
+% to be spatially normalised again.
+% 
+% 4 IMPROVEMENTS - FUNCTIONAL
+% 
+% 4.1 Interpolation
+% Sinc interpolation is a classical interpolation method that locally
+% convolves the image with some form of interpolant. Much more efficient
+% re-sampling can be performed using generalised interpolation (Thévenaz,
+% 2000), where an image is modelled by a linear combination of basis
+% functions. A continuous representation of the image intensities can be
+% obtained by fitting the basis functions through the original intensities of
+% the image. The matrix of basis functions can be considered as square and
+% Toeplitz, and the bases usually have compact support. In particular,
+% spatial interpolation in the realignment and spatial normalisation modules
+% of SPM2 will use B-splines, which are a family of functions of varying
+% degree. Interpolation using B-splines of degree 0 or 1 is almost identical
+% to nearest neighbour or linear interpolation respectively. Higher degree
+% interpolation (2 and above) begins with a very efficient deconvolution of
+% the basis functions from the original image, to produce an image of basis
+% function coefficients. Image intensities at new positions can then be
+% reconstructed using the appropriate linear combination the basis functions.
+% Much of the interpolation code was based on (with permission from Philippe
+% Thévenaz) algorithms released by the School of Engineering at the Swiss
+% Federal Institute of Technology at Lausanne.
+% 
+% 4.2 Realignment
+% Image realignment involves estimating a set of 6 rigid-body transformation
+% parameters for each image in the time series. For each image, this is done
+% by finding the parameters that minimise the mean squared difference between
+% it and a reference image. It is not possible to exhaustively search through
+% the whole 6-dimensional (7 if the intensity scaling is included) parameter
+% space, so the algorithm makes an initial parameter estimate (zero rotations
+% and translations), and begins to iteratively search from there. At each
+% iteration, the model is evaluated using the current parameter estimates,
+% and the cost function re-computed. A judgement is then made about how the
+% parameter estimates should be modified, before continuing on to the next
+% iteration. This optimisation is terminated when the cost function stops
+% decreasing.
+% In order to be successful, the cost function needs to be smooth.
+% Interpolation artefacts are one reason why the cost function may not be
+% smooth. Using trilinear interpolation, sampling in the centre of 8 voxels
+% effectively involves taking the weighted average of these voxels, which
+% introduces smoothing. Therefore, an image translated by half of a voxel in
+% three directions will be smoother than an image that has been translated by
+% a whole number of voxels. The mean squared difference between smoothed
+% images tends to be slightly lower than that for un-smoothed ones, which has
+% the effect of introducing unwanted "texture" into the cost function
+% landscape. Dithering the way that the images are sampled has the effect of
+% reducing this texture. This has been done for the SPM2 realignment, which
+% means that less spatial smoothing is necessary for the algorithm to work.
+% Re-sampling the images uses B-spline interpolation, which is more efficient
+% than the windowed sinc interpolation of SPM99 and earlier.
+% The optional adjustment step has been removed, mostly because it is more
+% correct to include the estimated motion parameters as confounds in the
+% statistical model than it is to remove them at the stage of image
+% realignment. This also means that each image can be re-sliced one at a
+% time, which allows more efficient image I/O to be used. This extra
+% efficiency should be seen throughout SPM2.
+% 
+% 4.3 Coregistration
+% The old default three-step coregistration procedure of SPM99 is now
+% obsolete. The approach in SPM2 involves optimising an information theoretic
+% objective function. The original mutual information coregistration in the
+% original SPM99 release exhibited occasional problems due to interpolation
+% artefact, but these have now been largely resolved using spatial dithering
+% (see above). Information theoretic measures allow much more flexible image
+% registration as they make fewer assumptions about the images. A whole range
+% of different types of images can now be more easily coregistered in SPM.
+% 
+% 4.4 Spatial Normalisation
+% Estimating the spatial transformation that best warps an image to match one
+% of the SPM template images is a two step procedure, beginning with a local
+% optimisation of the 12-parameters of an affine transformation. This step
+% has been made more robust by making the procedure more internally
+% consistent. Affine registering image A to match image B should now produce
+% a result that is much closer to the inverse of the affine transformation
+% that matches image B to image A. The regularisation (a procedure for
+% increasing stability) of the affine registration has also changed. The
+% penalty for unlikely warps is now based on the matrix log of the affine
+% transformation matrix (after removing rotation and translation components)
+% being multivariate and normal.
+% The non-linear component has also changed slightly, in that the bending
+% energy of the warps is used to regularise the procedure, rather than the
+% membrane energy. The bending-energy model seems to produce more realistic
+% looking distortions.
+% 
+% 4.5 Segmentation
+% The segmentation model has been updated in order to improve the bias
+% correction component. The version in SPM99 tended to produce a dip in the
+% middle of the bias corrected images. This is because the bias correction
+% had a tendency towards scaling the image uniformly by zero (lowest entropy
+% solution), but was prevented from doing so because the bias field was
+% constrained to have an average value of one. Because the bias was only
+% determined from grey and white matter, it tended to push down the intensity
+% in these regions, and compensated by increasing the intensity of other
+% regions. This is now fixed with a new objective function.
+% 
+% 4.6 Specifying fMRI designs (spm_fmri_spm_ui.m)
+% fMRI design specification is now simpler. The distinction between event-
+% and epoch-related designs has been effectively removed by allowing the user
+% to specify stimulus functions that comprise a series of variable-length
+% boxcars. If the length reduces to zero one is implicitly modelling an
+% event. This contrasts with SPM99 where the distinction between event- and
+% epoch-related responses was made at the level of the basis functions (a
+% hemodynamic basis set or a boxcar epoch set). The main reason for putting
+% all the design-specific effects in the input functions, as opposed to the
+% basis functions, is to finesse the specification of inputs to DCM and
+% hemodynamic models. From the point of view of dynamical modelling the basis
+% functions simply serve to approximate the impulse response function of the
+% input-state-output model that each voxel represents. Consequently, the
+% basis functions you specify pertain to and only to the hemodynamic response
+% function and these basis functions are assumed to be the same for all
+% sessions. Onsets and durations of various trials or conditions can now be
+% specified in scans or seconds. The option to perform a second-order or
+% generalised convolution analysis using Volterra kernels is now assumed to
+% be the same for all sessions. You can now also specify negative onset times
+% up to 32 time bins (that default to 1/16 inter-scan intervals). 
+% 
+% 4.7 Estimation (spm_spm.m)
+% spm_spm.m has been considerably simplified. Firstly, the Y.mad file, which
+% used to store the time-series of voxels surviving an F test for all the
+% effects of interest, has been removed. This means that you have to keep the
+% original data in order to plot the responses. Although this decreases
+% robustness it very much simplifies the software and allows you to
+% interrogate any brain region using spm_graph.m at the point of inference
+% and reviewing your results. The second simplification is that smoothness
+% estimation is now performed on the residual fields after estimation. This
+% means that spm_spm.m calls separate subroutines after the estimation has
+% completed. This smoothness estimation is slower but is much more accurate
+% because it computes the partial derivatives of the residual fields using a
+% more finessed interpolation scheme. 
+% As mentioned above spm_spm.m now performs WLS that defaults to ML
+% estimation using the estimated of specified non-sphericity in SPM.xVi.V.
+% The weighting matrix is in SPM.xX.W.  If  SPM.xVi.V is not specified ReML
+% hyperparameters are estimated in a first pass of the data according to the
+% covariance components in SPM.xVi.Vi.
+% 
+% 4.8 Results (spm_results_ui.m)
+% The main revision to the results section has been in terms of plotting
+% where the standard error bars have now been replaced by 90 confidence
+% intervals.   The plotting of event-related responses has been upgraded to
+% provide true fixed impulse response (FIR) estimates, for both event- and
+% epoch-related designs.  This is equivalent to a peri-stimulus time
+% histogram of hemodynamic responses and is estimated by refitting an FIR
+% model at the selected voxel.
+% 
+% 
+% 
+% ======================================================================
+% 5)                    S P M   T o o l B o x e s
 % ======================================================================
 %
 % SPM toolboxes are MatLab applications that enhance or build upon the
