@@ -591,7 +591,7 @@ if ~isempty(fnames)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(8),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i=s, text(0,i,spm_str_manip(fnames{i},'a40')), end
+	for i=s, text(0,i,spm_str_manip(fnames{i},'a35')), end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
@@ -605,7 +605,7 @@ set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 %-Parameter estimability/uniqueness
 %-----------------------------------------------------------------------
-hPEstAx   = axes('Position',[.07 .325 .6 .025],'DefaultTextInterpreter','TeX');
+hPEstAx   = axes('Position',[.07 .315 .6 .025],'DefaultTextInterpreter','TeX');
 if iX,	est = spm_SpUtil('IsCon',varargin{2}.xKXs);
 else,	est = spm_SpUtil('IsCon',varargin{2}.X); end
 hParEstIm = image((est+1)*32);
@@ -613,7 +613,7 @@ set(hPEstAx,...
 	'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
 	'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
 	'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
-xlabel('paremeter estimability')
+xlabel('parameter estimability')
 text((nPar+0.5 + nPar/30),1,...
 	'(gray \rightarrow \beta not uniquely specified)',...
 	'Interpreter','TeX','FontSize',FS(8))
