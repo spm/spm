@@ -193,8 +193,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 		'Color', [1 0 0]);
 	    drawnow;
 	end
-	Q((nreg+1):size(P,1),:) = Q(k,:)'*ones(1,size(P,1)-nreg);
-
+	Q((nreg+1):size(P,1),:) = ones(size(P,1)-nreg,1)*Q(nreg,:);
 	spm_unmap(V1); delete spm_ref.img spm_ref.hdr
 
 	% display results
