@@ -1,8 +1,9 @@
-function spm_barh(E,C)
+function spm_barh(E,C,P)
 % density plotting function (c.f. bar - horizontal)
-% FORMAT spm_barh(E,C)
+% FORMAT spm_barh(E,C,[P])
 % E   - (n x 1) expectation
 % C   - (n x 1) variances
+% P   - (n x 1) priors
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -24,6 +25,9 @@ grid on
 for i = 1:n
 	z           = spm_invNcdf(0.05)*sqrt(C(i));
 	line([-z z] + E(i),[i i],'LineWidth',4);
+	if nargin == 3
+		line([P(i) P(i)],[-.4 .4] + i,'LineWidth',2,'Color','r');
+	end
 end
 
 
