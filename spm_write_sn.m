@@ -103,7 +103,7 @@ if nargin==4,
 	end;
 end;
 
-if nargout>0 & length(V)>1,
+if nargout>0 & length(V)>8,
 	error('Too many images to save in memory');
 end;
 
