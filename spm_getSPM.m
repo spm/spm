@@ -135,7 +135,7 @@ SCCSid   = '%I%';
 SPMid  = spm('SFnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
-%-Select SPM.mat & go to that directory
+%-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
 swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 
