@@ -119,7 +119,6 @@ for p=1:Vo.dim(3)
 	spm_progress_bar('Set',p);
 end
 
-pinfo = Vo.pinfo;					%-Set output argument
 
 %-End
 %-----------------------------------------------------------------------
