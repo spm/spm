@@ -20,3 +20,5 @@ Q    = [Q([1:max(find(Q == '/'))]) 'average.img'];
 spm_hwrite(Q,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP);
 
 spm_mean(prod(DIM),TYPE,Q,P)
+spm_get_space(Q,spm_get_space(P(1,:)));
+
