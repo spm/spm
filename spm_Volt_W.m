@@ -11,5 +11,5 @@ W     = [];
 for i = 2:4
 	m   = (2^i);
 	s   = sqrt(m);
-	W   = [W spm_Gpdf(u,[(m/s)^2 m/s^2])];
+	W   = [W spm_Gpdf(u,(m/s)^2,m/s^2)];
 end
