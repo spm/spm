@@ -870,6 +870,7 @@ uimenu(tmp,'Separator','on',...
 		'Label','Helvetica','CallBack','set(gco,''FontName'',''helvetica'')')
 uimenu(tmp,	'Label','Times','CallBack','set(gco,''FontName'',''times'')')
 uimenu(tmp,	'Label','Courier','CallBack','set(gco,''FontName'',''courier'')')
+uimenu(tmp,	'Label','Symbol','CallBack','set(gco,''FontName'',''symbol'')')
 
 uimenu(tmp,'Separator','on',...
 		'Label','light','CallBack','set(gco,''FontWeight'',''light'')')
