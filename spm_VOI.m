@@ -21,6 +21,7 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 % .FWHM  - smoothness {voxels}
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
+% .DIM   - image dimensions {voxels} - column vector
 % .Msk   - mask: a list of scalar indicies into image voxel space
 %
 % Dis    - Minimum distance between maxima
