@@ -6,6 +6,8 @@ function [slice] = spm_vb_a (Y,slice)
 % slice         data structure 
 %
 % Will Penny & Nelson Trujillo-Barreto $Id$
+%
+% Test change - to show off SVN
 
 if slice.verbose
     disp('Updating a');
