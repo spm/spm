@@ -247,8 +247,7 @@ function varargout = spm_get(varargin)
 %=======================================================================
 %-Default to unlimited file get when no arguments
 if nargin == 0, Action=+Inf'; else, Action = varargin{1}; end
-%-Allow pointer jumping?
-PJump = 0;
+PJump = 1;		%-Allow pointer jumping?
 
 if ~ischar(Action)
 %=======================================================================

@@ -369,7 +369,7 @@ function varargout = spm_input(varargin)
 %-Parameters
 %=======================================================================
 COLOR = [.8,.8,1];	%-Question background colour
-PJump = 0;		%-Jumping of pointer to question?
+PJump = 1;		%-Jumping of pointer to question?
 
 
 %-Condition arguments
