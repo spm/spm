@@ -15,7 +15,9 @@ function varargout=spm_figure(varargin)
 % facilitates editing and printing of the current graphic display,
 % enabling interactive editing of graphic output prior to printing
 % (e.g. selection of color maps, deleting, moving and editing graphics
-% objects or adding text)
+% objects or adding text). (This menu is also provided as a figure
+% background "ContextMenu" - right-clicking on the figure background
+% should bring up the menu.)
 %
 % Print: Creates a footnote (detailing the SPM version, user & date)
 % and evaluates PRINTSTR (see spm_defaults.m). Graphics windows with
@@ -50,9 +52,14 @@ function varargout=spm_figure(varargin)
 %          of 1.24 (or increase/decrease FontSize by 2 dpi)
 % * Text : Creates an editable text widget that produces a text object as
 %          its CallBack.
-%          This text object can then be manipulated using the edit facilities.
+%          The text object is provided with a ContextMenu, obtained by
+%          right-clicking ('alt') on the text, allowing text attributes
+%          to be changed. Alternatively, the edit facilities on the window
+%          menu bar or ContextMenu can be used.
 % * Edit : To edit text, select a text object with the circle cursor,
 %          and edit the text in the editable text widget that appears.
+%          A middle 'extend' mouse click places a context menu on the text
+%          object, facilitating easy modification of text atributes.
 %
 % For SPM usage, the figure should be 'Tag'ed as 'Graphics'.
 %
@@ -82,7 +89,7 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT F = spm_figure('Create',Tag,Name,Visible)
 % Create a full length WhiteBg figure 'Tag'ed Tag (if specified),
-% with a ToolBar.
+% with a ToolBar and background context menu.
 % Equivalent to spm_figure('CreateWin','Tag') and spm_figure('CreateBar')
 % Tag	  - 'Tag' string for figure.
 % Name    - Name for window
@@ -117,18 +124,6 @@ function varargout=spm_figure(varargin)
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
-% FORMAT F = spm_figure('CreateWin',Tag,Name,Visible)
-% Creates a full length WhiteBg figure 'Tag'ged Tag (if specified).
-% F	  - Figure created
-% Tag	  - Tag for window
-% Name    - Name for window
-% Visible - 'on' or 'off'
-%
-% FORMAT spm_figure('CreateBar',F)
-% Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
-% If the figure is 'Tag'ed as 'Graphics' (SPM usage), then the Print button
-% callback is set to attempt to clear an 'Interactive' figure too.
-%
 % FORMAT spm_figure('Print',F,PFile)
 % SPM print function: Appends footnote & executes PRINTSTR
 % F	- [Optional] Figure to print. ('Tag' or figure number)
@@ -151,6 +146,9 @@ function varargout=spm_figure(varargin)
 % hPage	 - Handles of objects to stick to this page
 % MoveOn - If specified, causes hPage objects to be made invisible
 %
+% FORMAT spm_figure('TurnPage',move,F)
+% SPM pagination function: Turn to specified page
+%
 % FORMAT spm_figure('DeletePageControls',F)
 % SPM pagination function: Deletes page controls
 % F	- [Optional] Figure in which to attempt to turn the page
@@ -164,17 +162,43 @@ function varargout=spm_figure(varargin)
 % Angle - Angle for watermark. Defaults to -45
 % Perm  - If specified, then watermark is permanent (HandleVisibility 'off')
 %
-% FORMAT spm_figure('TurnPage',move,F)
-% SPM pagination function: Turn to specified page
+% FORMAT F = spm_figure('CreateWin',Tag,Name,Visible)
+% Creates a full length WhiteBg figure 'Tag'ged Tag (if specified).
+% F	  - Figure created
+% Tag	  - Tag for window
+% Name    - Name for window
+% Visible - 'on' or 'off'
+%
+% FORMAT spm_figure('CreateBar',F)
+% Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
+% If the figure is 'Tag'ed as 'Graphics' (SPM usage), then the Print button
+% callback is set to attempt to clear an 'Interactive' figure too.
+%
+% FORMAT h = spm_figure('FigContextMenu'[,SPMclear])
+% Creates UIcontextMenu with functionality of Figure ToolBar.
+% If SPMclear then 'Clear' is an SPM workspace clear.
+% SPMclear - SPMclear flag [Default 0]
+% h        - handle of UIcontextMenu
+%
+% FORMAT h = spm_figure('TxtContextMenu')
+% Creates UIcontextMenu for text objects
+% h        - handle of UIcontextMenu
 %
 % FORMAT spm_figure('ColorMap')
 % Callback for "ColorMap" buttons
 %
-% FORMAT spm_figure('GraphicsCut')
-% Callback for "Cut" button
+% FORMAT h = spm_figure('GraphicsHandle',F)
+% GUI choose object for handle identification. LeftMouse 'normal' returns
+% handle, MiddleMouse 'extend' returns parents handle, RightMouse 'alt' cancels.
+% F - figure to do a GUI "handle ID" in [Default gcbf]
 %
-% FORMAT spm_figure('GraphicsMoveStart')
-% Callback for "Move" button
+% FORMAT spm_figure('GraphicsCut',F)
+% Graphics cut - Callback for "Cut" button
+% F - figure to do a GUI "cut" in [Default gcbf]
+%
+% FORMAT spm_figure('GraphicsMove',F)
+% Graphics move - Callback for "Move" button
+% F - figure to do a GUI "move" in [Default gcbf]
 %
 % FORMAT spm_figure('GraphicsMoveMotion')
 % Callback for move function
@@ -182,14 +206,17 @@ function varargout=spm_figure(varargin)
 % FORMAT spm_figure('GraphicsMoveEnd')
 % Callback for move function
 %
-% FORMAT spm_figure('GraphicsSize')
-% Callback for "Size" button
+% FORMAT spm_figure('GraphicsReSize',F)
+% Graphics resize - Callback for "Size" button
+% F - figure to do a GUI "size" in [Default gcbf]
 %
-% FORMAT spm_figure('GraphicsText')
-% Callback for "Text" button
+% FORMAT spm_figure('GraphicsText',F)
+% Graphcis create text - Callback for "Text" button
+% F - figure to do a GUI "text" in [Default gcbf]
 %
-% FORMAT spm_figure('GraphicsTextEdit')
-% Callback for "Edit" button
+% FORMAT spm_figure('GraphicsTextEdit',F)
+% Graphics text edit - Callback for "Edit" button
+% F - figure to do a GUI "edit" in [Default gcbf]
 %_______________________________________________________________________
 
 
@@ -207,49 +234,6 @@ if nargin<2, Tag=''; else, Tag=varargin{2}; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F)
-varargout = {F};
-
-
-case 'createwin'
-%=======================================================================
-% F=spm_figure('CreateWin',Tag,Name,Visible)
-
-%-Condition arguments
-%-----------------------------------------------------------------------
-if nargin<4 | isempty(varargin{4}), Visible='on'; else, Visible=varargin{4}; end
-if nargin<3, Name=''; else, Name = varargin{3}; end
-if nargin<2, Tag='';  else, Tag  = varargin{2}; end
-
-S0   = get(0,'ScreenSize');
-WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
-
-F      = figure(...
-	'Tag',Tag,...
-	'Position',[515 008 600 865].*WS,...
-	'Resize','off',...
-	'MenuBar','none',...
-	'DefaultTextInterpreter','none',...
-	'DefaultTextFontSize',2*round(12*min(WS)/2),...
-	'DefaultUicontrolFontSize',2*round(12*min(WS)/2),...
-	'DefaultUicontrolInterruptible','on',...
-	'Color','w',...
-	'ColorMap',gray(64),...
-	'DefaultTextColor','k',...
-	'DefaultAxesColor','w',...
-	'DefaultAxesXColor','k',...
-	'DefaultAxesYColor','k',...
-	'DefaultAxesZColor','k',...
-	'DefaultPatchFaceColor','k',...
-	'DefaultPatchEdgeColor','k',...
-	'DefaultSurfaceEdgeColor','k',...
-	'DefaultLineColor','k',...
-	'PaperPosition',[.75 1.5 7 9.5],...
-	'PaperType','a4letter',...
-	'InvertHardcopy','off',...
-	'Visible','off');
-if ~isempty(Name)
-	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
-set(F,'Visible',Visible)
 varargout = {F};
 
 
@@ -430,14 +414,14 @@ hPageNo   = findobj(Fgraph,'Tag','PageNo');
 if isempty(hNextPage)
 	hNextPage = uicontrol(Fgraph,'Style','Pushbutton',...
 		'HandleVisibility','on',...
-		'String','>','FontSize',10,...
+		'String','>','FontSize',10,'ToolTipString','next page',...
 		'Callback','spm_figure(''TurnPage'',''+1'',gcf)',...
 		'Position',[580 020 015 015].*spm('GetWinScale'),...
 		'ForegroundColor',[0 0 0],...
 		'Tag','NextPage','UserData',[]);
 	hPrevPage = uicontrol(Fgraph,'Style','Pushbutton',...
 		'HandleVisibility','on',...
-		'String','<','FontSize',10,...
+		'String','<','FontSize',10,'ToolTipString','previous page',...
 		'Callback','spm_figure(''TurnPage'',''-1'',gcf)',...
 		'Position',[565 020 015 015].*spm('GetWinScale'),...
 		'Visible','on',...
@@ -572,6 +556,50 @@ set(h,'HandleVisibility',HVis)
 set(0,'CurrentFigure',cF)
 
 
+case 'createwin'
+%=======================================================================
+% F=spm_figure('CreateWin',Tag,Name,Visible)
+
+%-Condition arguments
+%-----------------------------------------------------------------------
+if nargin<4 | isempty(varargin{4}), Visible='on'; else, Visible=varargin{4}; end
+if nargin<3, Name=''; else, Name = varargin{3}; end
+if nargin<2, Tag='';  else, Tag  = varargin{2}; end
+
+S0   = get(0,'ScreenSize');
+WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
+
+F      = figure(...
+	'Tag',Tag,...
+	'Position',[515 008 600 865].*WS,...
+	'Resize','off',...
+	'MenuBar','none',...
+	'DefaultTextInterpreter','none',...
+	'DefaultTextFontSize',2*round(12*min(WS)/2),...
+	'DefaultUicontrolFontSize',2*round(12*min(WS)/2),...
+	'DefaultUicontrolInterruptible','on',...
+	'Color','w',...
+	'ColorMap',gray(64),...
+	'DefaultTextColor','k',...
+	'DefaultAxesColor','w',...
+	'DefaultAxesXColor','k',...
+	'DefaultAxesYColor','k',...
+	'DefaultAxesZColor','k',...
+	'DefaultPatchFaceColor','k',...
+	'DefaultPatchEdgeColor','k',...
+	'DefaultSurfaceEdgeColor','k',...
+	'DefaultLineColor','k',...
+	'PaperPosition',[.75 1.5 7 9.5],...
+	'PaperType','a4letter',...
+	'InvertHardcopy','off',...
+	'Visible','off');
+if ~isempty(Name)
+	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
+set(F,'UIcontextMenu',spm_figure('FigContextMenu',strcmp(Tag,'Graphics')))
+set(F,'Visible',Visible)
+varargout = {F};
+
+
 case 'createbar'
 %=======================================================================
 % spm_figure('CreateBar',F)
@@ -614,24 +642,28 @@ uicontrol(F,'Style', 'Frame',...
 
 %-Create uicontrol objects
 %-----------------------------------------------------------------------
-uicontrol(F,'String','Print' ,'Position',[x y sx sy],...
+uicontrol(F,'String','Print','ToolTipString','print figure',...
+	'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Print'',gcf)',...
 	'FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback',...
 	'ForegroundColor','b'); x = x+sx;
 
-h = uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
+h = uicontrol(F,'String','Clear','ToolTipString','clear figure',...
+	'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Clear'',gcbf)',...
 	'FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
         'Tag','ToolBar','HandleVisibility','callback',...
 	'ForegroundColor','b'); x = x+sx+dx;
 if strcmp(get(F,'Tag'),'Graphics')	%-Do a full SPM interface clear
-	set(h,'CallBack','spm(''Clear'',''Interactive'',gcbf)')
+	set(h,'CallBack','spm(''Clear'',''Interactive'',gcbf)',...
+		'ToolTipString','clear SPM workspace')
 end
 
 uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
+	'ToolTipString','change colormap',...
 	'Position',[x,y,2*sx,sy],...
 	'CallBack',['if (get(gco,''Value'') > 1),',...
 			'set(gco,''UserData'',get(gco,''Value'')),',...
@@ -643,6 +675,7 @@ uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
 	'UserData','Pop'); x = x + 2*sx;
 
 uicontrol(F,'Style','PopUp','String','Effects|invert|brighten|darken',...
+	'ToolTipString','colormap effects',...
 	'Position',[x,y,2*sx,sy],...
 	'CallBack',['if (get(gco,''Value'') > 1),',...
 			'set(gco,''UserData'',get(gco,''Value'')),',...
@@ -653,34 +686,144 @@ uicontrol(F,'Style','PopUp','String','Effects|invert|brighten|darken',...
 	'Tag','ToolBar','HandleVisibility','callback',...
 	'UserData','Pop'); x = x + 2*sx + dx;
 
-uicontrol(F,'String','cut',   'Position',[x y sx sy],...
+uicontrol(F,'String','cut','ToolTipString','delete a graphics object',...
+	'Position',[x y sx sy],...
 	'CallBack','spm_figure(''GraphicsCut'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
-uicontrol(F,'String','move',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsMoveStart'')','FontSize',FS,...
+uicontrol(F,'String','move','ToolTipString','move a graphics object',...
+	'Position',[x y sx sy],...
+	'CallBack','spm_figure(''GraphicsMove'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
-uicontrol(F,'String','size',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsSize'')','FontSize',FS,...
+uicontrol(F,'String','resize','ToolTipString','resize a graphics object',...
+	'Position',[x y sx sy],...
+	'CallBack','spm_figure(''GraphicsReSize'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
-uicontrol(F,'String','text',  'Position',[x y sx sy],...
+uicontrol(F,'String','text','ToolTipString','create text annotation',...
+	'Position',[x y sx sy],...
 	'CallBack','spm_figure(''GraphicsText'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
-uicontrol(F,'String','edit',  'Position',[x y sx sy],...
+uicontrol(F,'String','edit','ToolTipString','edit a text string',...
+	'Position',[x y sx sy],...
 	'CallBack','spm_figure(''GraphicsTextEdit'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx+dx;
 
-uicontrol(F,'String','?',     'Position',[x y dx sy],...
+uicontrol(F,'String','?','ToolTipString','spm_figure help',...
+	'Position',[x y dx sy],...
 	'CallBack','spm_help(''spm_figure.m'')','FontSize',FS,...
 	'Interruptible','off','BusyAction','queue',...
 	'Tag','ToolBar','HandleVisibility','callback',...
 	'ForegroundColor','g'); x = x+2*dx;
 
 set(F,'Units',cUnits)
+
+
+case 'figcontextmenu'
+%=======================================================================
+% h = spm_figure('FigContextMenu',SPMclear)
+if nargin<2, SPMclear=0; else, SPMclear=varargin{2}; end
+
+h = uicontextmenu('HandleVisibility','CallBack');
+uimenu(h,'Label','Print','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''Print'',gcf)')
+if ~SPMclear
+	uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
+ 	   	'CallBack','spm_figure(''Clear'',gcbf)');
+else
+	uimenu(h,'Label','Clear','HandleVisibility','CallBack',...
+		'CallBack','spm(''Clear'',''Interactive'',gcbf)');
+end
+
+hC = uimenu(h,'Label','Colormap','HandleVisibility','CallBack','Separator','on');
+uimenu(hC,'Label','gray','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''gray'')')
+uimenu(hC,'Label','hot','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''hot'')')
+uimenu(hC,'Label','split','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''split'')')
+
+hE = uimenu(h,'Label','Effects','HandleVisibility','CallBack');
+uimenu(hE,'Label','invert','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''invert'')')
+uimenu(hE,'Label','brighten','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''brighten'')')
+uimenu(hE,'Label','darken','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''darken'')')
+
+uimenu(h,'Label','cut','HandleVisibility','CallBack','Separator','on',...
+	'CallBack','spm_figure(''GraphicsCut'')')
+uimenu(h,'Label','move','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''GraphicsMove'')')
+uimenu(h,'Label','resize','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''GraphicsReSize'')')
+uimenu(h,'Label','text','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''GraphicsText'')')
+uimenu(h,'Label','edit','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''GraphicsTextEdit'')')
+
+uimenu(h,'Label','help','HandleVisibility','CallBack','Separator','on',...
+	'CallBack','spm_help(''spm_figure.m'')')
+
+%uimenu(h,'Label','Identify handle','HandleVisibility','CallBack','Separator','on',...
+%	'CallBack','spm_figure(''GraphicsHandle'')')
+
+varargout = {h};
+
+
+case 'txtcontextmenu'
+%=======================================================================
+% h = spm_figure('TxtContextMenu')
+
+h = uicontextmenu;
+uimenu(h,'Label','Delete','CallBack','delete(gco)')
+uimenu(h,'Label','Move','CallBack','spm_figure(''GraphicsMove'')')
+
+tmp = uimenu(h,'Label','Font','Separator','on');
+uimenu(tmp,	'Label','normal','CallBack','set(gco,''FontAngle'',''normal'')')
+uimenu(tmp,	'Label','italic','CallBack','set(gco,''FontAngle'',''italic'')')
+uimenu(tmp,	'Label','oblique','CallBack','set(gco,''FontAngle'',''oblique'')')
+
+uimenu(tmp,'Separator','on',...
+		'Label','Helvetica','CallBack','set(gco,''FontName'',''helvetica'')')
+uimenu(tmp,	'Label','Times','CallBack','set(gco,''FontName'',''times'')')
+uimenu(tmp,	'Label','Courier','CallBack','set(gco,''FontName'',''courier'')')
+
+uimenu(tmp,'Separator','on',...
+		'Label','light','CallBack','set(gco,''FontWeight'',''light'')')
+uimenu(tmp,	'Label','normal','CallBack','set(gco,''FontWeight'',''normal'')')
+uimenu(tmp,	'Label','demi','CallBack','set(gco,''FontWeight'',''demi'')')
+uimenu(tmp,	'Label','bold','CallBack','set(gco,''FontWeight'',''bold'')')
+
+tmp = uimenu(h,'Label','FontSize');
+uimenu(tmp,	'Label', '6','CallBack','set(gco,''FontSize'', 6)')
+uimenu(tmp,	'Label', '8','CallBack','set(gco,''FontSize'', 8)')
+uimenu(tmp,	'Label','10','CallBack','set(gco,''FontSize'',10)')
+uimenu(tmp,	'Label','12','CallBack','set(gco,''FontSize'',12)')
+uimenu(tmp,	'Label','14','CallBack','set(gco,''FontSize'',14)')
+uimenu(tmp,	'Label','16','CallBack','set(gco,''FontSize'',16)')
+uimenu(tmp,	'Label','18','CallBack','set(gco,''FontSize'',18)')
+uimenu(tmp,	'Label','20','CallBack','set(gco,''FontSize'',20)')
+uimenu(tmp,	'Label','24','CallBack','set(gco,''FontSize'',24)')
+
+tmp = uimenu(h,'Label','Rotation');
+uimenu(tmp,	'Label',  '0','CallBack','set(gco,''Rotation'',0)')
+uimenu(tmp,	'Label', '90','CallBack','set(gco,''Rotation'',90)')
+uimenu(tmp,	'Label','180','CallBack','set(gco,''Rotation'',180)')
+uimenu(tmp,	'Label','-90','CallBack','set(gco,''Rotation'',270)')
+
+uimenu(h,	'Label','Edit','CallBack','set(gco,''Editing'',''on'')')
+
+tmp = uimenu(h,	'Label','Interpreter');
+uimenu(tmp,	'Label','none','CallBack','set(gco,''Interpreter'',''none'')')
+uimenu(tmp,	'Label','TeX','CallBack','set(gco,''Interpreter'',''tex'')')
+
+%uimenu(h,'Separator','on','Label','Get handle','CallBack','gco')
+
+varargout = {h};
 
 
 case 'colormap'
@@ -690,35 +833,74 @@ if nargin<3, h=[]; else, h=varargin{3}; end
 if nargin<2, ColAction='gray'; else, ColAction=varargin{2}; end
 if ~isstr(ColAction)
 	if ColAction==1, return, end
-	Actions   = get(gco,'String');
+	Actions   = get(gcbo,'String');
 	ColAction = deblank(Actions(ColAction,:));
 end
-if strcmp(ColAction,'gray')
+
+switch lower(ColAction), case 'gray'
 	colormap(gray(64))
-elseif strcmp(ColAction,'hot')
+case 'hot'
 	colormap(hot(64))
-elseif strcmp(ColAction,'split')
+case 'split'
 	load Split; colormap(split)
-elseif strcmp(ColAction,'invert')
+case 'invert'
 	colormap(flipud(colormap))
-elseif strcmp(ColAction,'brighten')
+case 'brighten'
 	colormap(brighten(colormap, 0.2))
-elseif strcmp(ColAction,'darken')
+case 'darken'
 	colormap(brighten(colormap, -0.2))
-else
+otherwise
 	error('Illegal ColAction specification')
 end
+
+case 'graphicshandle'
+%=======================================================================
+% h = spm_figure('GraphicsHandle',F)
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
+tmp = get(F,'Name');
+set(F,'Name',...
+	'Handle: Select item to identify, MiddleMouse=parent, RightMouse=cancel...');
+set(F,'Pointer','CrossHair')
+waitforbuttonpress;
+h        = gco(F);
+hType    = get(h,'Type');
+SelnType = get(gcf,'SelectionType');
+set(F,'Pointer','Arrow','Name',tmp)
+
+if ~strcmp(SelnType,'alt') & ~isempty(h) & gcf==F
+	str = sprintf('Selected (%s) object',get(h,'Type'));
+	if strcmp(SelnType,'normal')
+		str = sprintf('%s: handle',str);
+	else
+		h = get(h,'Parent');
+		str = sprintf('%s: handle of parent (%s) object',str,get(h,'Type'));
+	end
+	if nargout==0
+		assignin('base','ans',h)
+		fprintf('\n%s: \n',str)
+		ans = h
+	else
+		varargout={h};
+	end
+else
+	varargout={[]};
+end
+
 
 
 case 'graphicscut'
 %=======================================================================
+% spm_figure('GraphicsCut',F)
 % Delete next object clicked, provided it's deletable & in this gcbf
 % "normal" mouse button deletes
 % "extend" mouse button deletes blocks of text (deletes parent axes)
 % "alt"    mouse button cancels operation
-% spm_figure('GraphicsCut')
 
-F = gcbf;
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
 hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
@@ -729,8 +911,7 @@ waitforbuttonpress;
 h        = gco(F);
 hType    = get(h,'Type');
 SelnType = get(gcf,'SelectionType');
-set(F,'Pointer','Arrow')
-set(F,'Name',tmp)
+set(F,'Pointer','Arrow','Name',tmp)
 
 if strcmp(get(h,'HandleVisibility'),'on') & ...
 		~strcmp(SelnType,'alt') & ...
@@ -748,14 +929,16 @@ end
 set(hBut,'ForegroundColor','k')
 
 
-case 'graphicsmovestart'
+case 'graphicsmove'
 %=======================================================================
+% spm_figure('GraphicsMove',F)
 % Move the next object clicked, provided it's movable and in this figure
 % "extend" mouse button moves blocks of text
 % "alt"    mouse button cancels operation
-% spm_figure('GraphicsMoveStart')
 
-F          = gcbf;
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
 hMoveBut   = gcbo;
 set(hMoveBut,'ForegroundColor','r')
 tmp        = get(F,'Name');
@@ -833,15 +1016,17 @@ set(gcf,'Units',MS.cFUnits,...
 set(MS.hMoveBut,'ForegroundColor','k')
 
 
-case 'graphicssize'
+case 'graphicsresize'
 %=======================================================================
+% spm_figure('GraphicsReSize',F)
 % Change size of next object clicked, provided it's editable and in figure
 % "normal" mouse button decreases size
 % "extend" mouse button increases size
 % "alt"    mouse button cancels operation
-% spm_figure('GraphicsSize')
 
-F     = gcbf;
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
 hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp   = get(F,'Name');
@@ -853,8 +1038,7 @@ h        = gco(F);
 hType    = get(h,'Type');
 SelnType = get(gcf,'SelectionType');
 u = 2*strcmp(SelnType,'extend')-1;
-set(F,'Pointer','Arrow')
-set(F,'Name',tmp)
+set(F,'Pointer','Arrow','Name',tmp)
 
 if ~strcmp(get(h,'HandleVisibility'),'off') & ...
 		~strcmp(SelnType,'alt') & ...
@@ -876,10 +1060,12 @@ set(hBut,'ForegroundColor','k')
 
 case 'graphicstext'
 %=======================================================================
+% spm_figure('GraphicsText',F)
 % Add text annotation to a figure
-% spm_figure('GraphicsText')
 
-F     = gcbf;
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
 hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
@@ -887,25 +1073,28 @@ set(F,'Name',...
 	'Select starting position, edit text widget. RightMouse=cancel..');
 set(F,'Pointer','BotL')
 waitforbuttonpress;
-set(F,'Pointer','Arrow')
-set(F,'Name',tmp)
+set(F,'Pointer','Arrow','Name',tmp)
 
 if ~strcmp(get(gcf,'SelectionType'),'alt') & gcf==F
 	cUnits = get(F,'Units');
 	set(F,'Units','Normalized')
 	CPt = get(F,'CurrentPoint');
 	
-	%-Set up axes for text widget
+	%-Set up axes for text widget - draw empty text object
 	axes('Position',[CPt, 0.1, 0.1],'Visible','off');
+	h = text(0,0,'','UIContextMenu',spm_figure('TxtContextMenu'));
 	
 	%-Set uicontrol object and Callback
 	set(F,'Units','Pixels')
 	P = get(F,'Position');
 	uicontrol(F,'Style','Edit',...
+		'ToolTipString','enter text here',...
 		'Position',[CPt(1:2).*P(3:4), (1-CPt(1))*P(3), 22],...
 		'BackGroundColor',[0.8,0.8,1.0],...
 		'HorizontalAlignment','Left',...
-		'Callback','text(0,0,get(gcbo,''String'')); delete(gcbo)');
+		'UserData',h,...
+		'Callback',['set(get(gcbo,''UserData''),'...
+			'''String'',get(gcbo,''String'')), delete(gcbo)']);
 	set(F,'Units',cUnits)
 end
 set(hBut,'ForegroundColor','k')
@@ -913,10 +1102,12 @@ set(hBut,'ForegroundColor','k')
 
 case 'graphicstextedit'
 %=======================================================================
+% spm_figure('GraphicsTextEdit',F)
 % Edit text annotation to a figure
-% spm_figure('GraphicsTextEdit')
 
-F        = gcbf;
+if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if isempty(F), return, end
+
 hBut     = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp      = get(F,'Name');
@@ -924,14 +1115,20 @@ set(F,'Name','Select text to edit. RightMouse=cancel..');
 set(F,'Pointer','Circle')
 waitforbuttonpress;
 h        = gco(F);
-set(F,'Pointer','Arrow')
-set(F,'Name',tmp)
+SelnType = get(gcf,'SelectionType');
+set(F,'Pointer','Arrow','Name',tmp)
 
 if strcmp(get(h,'HandleVisibility'),'off') | ...
-		strcmp(get(gcf,'SelectionType'),'alt') | ...
+		strcmp(SelnType,'alt') | ...
 		~strcmp(get(h,'Type'),'text') | ...
 		gcf ~= F
 	set(hBut,'ForegroundColor','k')
+	return
+end
+
+if strcmp(SelnType,'extend')
+	set(hBut,'ForegroundColor','k')
+	set(h,'UIContextMenu',spm_figure('TxtCOntextMenu'))
 	return
 end
 
@@ -953,6 +1150,7 @@ tmp = [1,1,0,0].*get(gca,'Position') ...
 
 %-Create editable text widget to adjust text string
 uicontrol(F,'Style','Edit',...
+	'ToolTipString','edit text & press return',...
 	'String',get(h,'String'),...
 	'FontAngle',get(h,'FontAngle'),...
 	'FontName',get(h,'FontName'),...
@@ -973,7 +1171,7 @@ set(h,'FontUnits',chFontUnits)
 
 otherwise
 %=======================================================================
-warning('Illegal Action string')
+warning(['Illegal Action string: ',Action])
 
 
 %=======================================================================
