@@ -167,7 +167,7 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 %	of realigned images.
 % 	This is slower than bilinear interpolation, but produces better
 % 	results. It is especially recommended for fMRI time series.
-%	An 11x11x11 kernel is used to resample the images. 
+%	An 9x9x9 kernel is used to resample the images. 
 %
 %	'Fourier space Interpolation' (fMRI only)
 %	Rigid body rotations are executed as a series of shears, which
@@ -427,7 +427,7 @@ function reslice_images(P,Flags,sessions)
 %             The average of all the realigned scans is written to
 %             mean*.img.
 %
-%         S - use sinc interpolation for reslicing (11x11x11).
+%         S - use sinc interpolation for reslicing (9x9x9).
 %
 %         n - don't reslice the first image
 %             The first image is not actually moved, so it may not be
@@ -457,7 +457,7 @@ linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
 linfun('Reslicing images..');
 
 Hold = 1;
-if (any(Flags == 'S')) Hold = -11; end
+if (any(Flags == 'S')) Hold = -9; end
 
 start_vol = 1;
 if (any(Flags == 'n') & ~any(Flags == 'i')) start_vol = 2; end
@@ -1074,7 +1074,7 @@ function reslice_images_volbyvol(P,Flags,sessions)
 %             The average of all the realigned scans is written to
 %             mean*.img.
 %
-%         S - use sinc interpolation for reslicing (11x11x11).
+%         S - use sinc interpolation for reslicing (9x9x9).
 %
 %         n - don't reslice the first image
 %             The first image is not actually moved, so it may not be
@@ -1125,7 +1125,7 @@ end;
 
 linfun('Reslicing images..');
 Hold = 1;
-if (any(Flags == 'S')) Hold = -11; end
+if (any(Flags == 'S')) Hold = -9; end
 spm_progress_bar('Init',prod(size(P)),'Reslicing','volumes completed');
 
 
@@ -1395,13 +1395,8 @@ return;
 
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
-head = spm_str_manip(PI,'h');
-tail = spm_str_manip(PI,'t');
-if strcmp(head,tail),
-	PO = [pre tail];
-else,
-	PO   = [head spm_platform('sepchar') pre tail];
-end;
+[pth,nm,xt,vr] = fileparts(deblank(PI));
+PO             = fullfile(pth,[pre nm xt vr]);
 return;
 
 %_______________________________________________________________________

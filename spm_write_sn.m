@@ -146,10 +146,9 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function q = prepend(p,n)
-p  = spm_str_manip(p, 'd');
-q  = max([find(p == spm_platform('sepchar')) 0]);
-q  = [p(1:q) n p((q + 1):length(p))];
+function PO = prepend(PI,pre)
+[pth,nm,xt,vr] = fileparts(deblank(PI));
+PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________
 
