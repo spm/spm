@@ -11,6 +11,7 @@ function spm_dicom_convert(hdr,opts)
 % Converted files are written to the current directory
 %_______________________________________________________________________
 % %W% John Ashburner %E%
+
 if nargin<2, opts = 'all'; end;
 
 [images,guff]     = select_tomographic_images(hdr);
@@ -84,7 +85,7 @@ for i=1:length(hdr),
 	% y increases posterior to anterior
 	% z increases  inferior to superior
 
-	analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1];
+	analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 
 	vox    = [hdr{i}.PixelSpacing hdr{i}.SpacingBetweenSlices];
 	pos    = hdr{i}.ImagePositionPatient';
@@ -173,11 +174,11 @@ for i=2:length(hdr),
 end;
 
 for j=1:length(vol),
-	orient = reshape(hdr{j}.ImageOrientationPatient,[3 2]);
+	orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
 	proj   = null(orient');
 	if det([orient proj])<0, proj = -proj; end;
 
-	z         = zeros(length(vol{j}),1);
+	z      = zeros(length(vol{j}),1);
 	for i=1:length(vol{j}),
 		z(i)  = vol{j}{i}.ImagePositionPatient*proj;
 	end;
@@ -228,7 +229,7 @@ dim    = [nc nr length(hdr) spm_type('int16')];
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1];
+analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
 orient(:,3)      = null(orient');
 if det(orient)<0, orient(:,3) = -orient(:,3); end;
@@ -351,7 +352,7 @@ end;
 
 prec = ['ubit' num2str(hdr.BitsAllocated) '=>' 'uint32'];
 
-if strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') & strcmp(hdr.VROfPixelData,'OW'),
+if isfield(hdr,'TransferSyntaxUID') & strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') & strcmp(hdr.VROfPixelData,'OW'),
 	fp = fopen(hdr.Filename,'r','ieee-be');
 else,
 	fp = fopen(hdr.Filename,'r','ieee-le');
