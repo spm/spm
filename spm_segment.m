@@ -12,7 +12,7 @@
 %
 % 2) Perform Cluster Analysis with a modified Mixture Model and a-priori
 %    information about the likelihoods of each voxel being one of a number
-%    of different data types. If more than one image is passed, then they
+%    of different tissue types. If more than one image is passed, then they
 %    they are all assumed to be in register, and the voxel values are fitted
 %    to multi-normal distributions.
 %
@@ -33,9 +33,12 @@ global SWD
 DIR   = [SWD '/mni/'];
 
 if (nargin==0)
-	global SWD
-	PF = spm_get(Inf,'.img','MRI(s)');
-	if (size(PF,1)==0) return; end
+	n     = spm_input('number of subjects',1);
+	for i = 1:n
+		PF = spm_get(Inf,'.img',['select MRI(s) for subject ' num2str(i)]);
+		eval(['PF' num2str(i) ' = PF;']);
+	end
+
 	% Get template(s)
 	ok = 0;
 	PG = '';
@@ -53,8 +56,11 @@ if (nargin==0)
 		end
 	end
 
-	set(2,'Name','Segmenting..','Pointer','Watch'); drawnow;
-	spm_segment(PF,PG);
+	for i = 1:n
+		eval(['PF = PF' num2str(i) ';']);
+		set(2,'Name',['Segmenting ' num2str(i) '..'],'Pointer','Watch'); drawnow;
+		if (size(PF,1)~=0) spm_segment(PF,PG); end
+	end
 	set(2,'Name','','Pointer','Arrow'); drawnow;
 	figure(2);clf
 	return;
@@ -65,7 +71,7 @@ end
 PB    = str2mat([DIR 'spgray.img'],[DIR 'spwhite.img'],[DIR 'spcsf.img']);
 
 niter = 24;
-nc    = [1 1 1 3]; % Number of clusters for each probability image
+nc    = [1 1 1 4]; % Number of clusters for each probability image
 
 MF = spm_get_space(PF(1,:));
 if (~isempty(PG))
@@ -186,7 +192,7 @@ for iter = 1:niter
 	end
 
 	% Compute new n, mean & var for each cluster - step 2
-	for i=1:n
+	for i=1:n-2
 		mg(:,i) = mom0(:,i)/sumbp(i);
 		mn(:,i) = mom1(:,i)/mom0(:,i);
 		tmp = (mom0(:,i).*mn(:,i))*mn(:,i)';
@@ -199,15 +205,20 @@ for iter = 1:niter
 		for j=1:length(nc)
 			% Split the clusters
 			for i=2:nc(j)
-				cv(:,nn+i) = cv(:,nn+i)*0.3^(i-1);
-				mn(:,nn+i) = mn(:,nn+i)*0.3^(i-1);
+				cv(:,nn+i) = cv(:,nn+i)*0.8^(1-i);
+				mn(:,nn+i) = mn(:,nn+i)*0.8^(1-i);
 			end
 			nn = nn + nc(j);
 		end
 	end
 
-	% Background.
-	mn(:,n)=zeros(m,1);
+	% Background (two clusters, since there is likely to be a load of pixels which have been set to zero).
+	mn(:,n-1) = zeros(m,1);
+	mg(:,n-1) = 2*mg(:,n-1);
+	cv(:,n-1) = (0.000001+mom2(:,n-1))/mom0(:,n-1);
+	mn(:,n)   = zeros(m,1);
+	mg(:,n)   = 2*mg(:,n);
+	cv(:,n)   = (0.000001+mom2(:,n))/mom0(:,n);
 	fprintf('\n');
 end
 
@@ -255,7 +266,7 @@ for p=1:VF(3)
 	nn = 1;
 	for j=1:(length(nc))
 		dat = pr(:,nn);
-		ncj = nc(j); if (j==length(nc)) ncj = ncj - 1; end;
+		ncj = nc(j); if (j==length(nc)) ncj = ncj - 2; end;
 		for i=2:ncj
 			dat = dat + pr(:,(nn+i-1));
 		end
