@@ -66,6 +66,9 @@ debug = 0;
 
 if nargin<3
 	opts = '';
+	if nargin<2
+		PG = '';
+	end
 end
 
 global SWD
@@ -144,8 +147,9 @@ if ~isempty(PG) & isstr(PG)
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
-	prms = spm_affsub3('affine3', PG, PF, 1, 8);
-	prms = spm_affsub3('affine3', PG, PF, 1, 4, prms);
+	prms = [sptl_Ornt ones(1,size(PG,1))];
+	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 8);
+	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 4, prms);
 
 	spm_unlink ./spm_seg_tmp.img ./spm_seg_tmp.hdr ./spm_seg_tmp.mat
 	MM = spm_matrix(prms);
@@ -173,7 +177,6 @@ end
 sxy    = 1/4;
 sz     = 6;
 
-%bb1   = [ [-90 91]' [-126 91]' [-72 109]'];
 bb1    = [ [-78 78]' [-112 76]' [-50 85]'];
 
 faces = MM*MF*[
@@ -197,6 +200,7 @@ end
 
 n  = size(lkp,2);
 m  = size(PF,1);
+nb = size(VB,2);
 
 mn = zeros(m,n);	% Means
 cv = zeros(m*m,n);	% (Co)variances
@@ -221,18 +225,19 @@ for iter = 1:niter
 			dt = spm_slice_vol(VF(:,i),M, d(1:2),0);
 			dat(:,i) = dt(:);
 		end
+
 		k = size(dat,1);
 		% A priori probability data for eg WM GM CSF scalp etc..
-		bp = zeros(k,size(VB,2)+1);
-		for j=1:size(VB,2)
+		bp = zeros(k,nb+1);
+		for j=1:nb
 			M = inv(B*reshape(Mat(:,j),4,4));
 			tmp = spm_slice_vol(VB(:,j),M, d(1:2),1)/nc(j);
 			bp(:,j) = tmp(:);
 		end
 		% Other tissue
-		bp(:,size(VB,2)+1) = ...
+		bp(:,nb+1) = ...
 			abs(ones(k,1) -...
-			sum(bp(1:k,1:size(VB,2))')')/nc(size(VB,2)+1);
+			bp(:,1:nb)*nc(1:nb)')/nc(nb+1);
 
 		if (iter==1)
 			% Initial probability estimates based upon
@@ -262,7 +267,6 @@ for iter = 1:niter
 
 		for i=1:n
 			pr(:,i) = pr(:,i)./sp;
-
 			if (debug ~= 0)
 				figure(3);
 				subplot(3,3,i);
@@ -353,7 +357,7 @@ else
 end
 
 if ~any(opts == 'n')
-	for j=1:(size(VB,2)+1)
+	for j=1:(nb+1)
 		iname = [spm_str_manip(PF(1,:),'rd') app num2str(j)];
 		fp(j) = fopen([iname '.img'],'w');
 		spm_hwrite([iname '.img'],dm,vx,1/255,2,0,orgn,...
@@ -395,15 +399,16 @@ for pp=1:size(planes,2)
 		dat(:,i) = tmp(:);
 	end
 
-	bp = zeros(size(dat,1),size(VB,2)+1);
-	for j=1:size(VB,2)
+	bp = zeros(size(dat,1),nb+1);
+	for j=1:nb
 		M = inv(M2*reshape(Mat(:,j),4,4));
 		tmp = spm_slice_vol(VB(:,j), M, dm(1:2),1);
 		bp(:,j) = tmp(:)/nc(j);
 	end
 
-	bp(:,size(VB,2)+1) = abs(ones(k,1) -...
-		sum(bp(:,1:size(VB,2))')')/nc(size(VB,2)+1);
+	bp(:,nb+1) = ...
+		abs(ones(k,1) -...
+		bp(:,1:nb)*nc(1:nb)')/nc(nb+1);
 
 	for i=1:n
 		c = reshape(cv(:,i),m,m);
@@ -447,7 +452,7 @@ spm_progress_bar('Clear');
 
 spm_figure('Clear','Graphics');
 if ~any(opts == 'n')
-	for j=1:(size(VB,2)+1)
+	for j=1:(nb+1)
 		fclose(fp(j));
 	end
 end
