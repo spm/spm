@@ -144,9 +144,7 @@ SCCSid = '%I%';
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
 %( This is a multi function function, the first argument is an action  )
-%( string, specifying the particular action function to take. Recall   )
-%( MatLab's command-function duality: `spm_figure Create` is           )
-%( equivalent to `spm('Create')`.                                      )
+%( string, specifying the particular action function to take.          )
 %
 % spm_results_ui sets up and handles the SPM results graphical user
 % unterface, initialising an XYZ registry (see spm_XYZreg.m) to co-ordinate
