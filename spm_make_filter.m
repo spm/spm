@@ -31,7 +31,7 @@ switch filterLF.Choice
 		n      = fix(2*(k*RT)/filterLF.Param + 1);
 		X      = spm_dctmtx(k,n);
 		X      = X(:,[2:n]);
-		KLF    = eye(k) - X*X';
+		KLF    = speye(k) - X*X';
 
 	case {'specify -FIR'}
 
@@ -73,26 +73,22 @@ switch filterHF.Choice
 
 		h      = spm_hrf(RT);
 		h      = [h; zeros(size(h))];
+		g      = abs(fft(h));
+		h      = real(ifft(g));
 		n      = length(h);
-		R      = conv(h,flipud(h));
-		R      = R([1:n] + n - 1);
-		V      = toeplitz(R);
-		K      = sqrtm(V);
-		FIL    = K(n/2,[1:n/2] + n/2 -1);
-		FIL    = [FIL zeros(1,k - n/2)];
+		h      = h([1:n/2]);
+		FIL    = [h' zeros(1,k - n/2)];
 		KHF    = sparse(toeplitz(FIL));
 
 	case 'hrf -derivative'
 
 		h      = gradient(spm_hrf(RT));
 		h      = [h; zeros(size(h))];
+		g      = abs(fft(h));
+		h      = real(ifft(g));
 		n      = length(h);
-		R      = conv(h,flipud(h));
-		R      = R([1:n] + n - 1);
-		V      = toeplitz(R);
-		K      = sqrtm(V);
-		FIL    = K(n/2,[1:n/2] + n/2 -1);
-		FIL    = [FIL zeros(1,k - n/2)];
+		h      = h([1:n/2]);
+		FIL    = [h' zeros(1,k - n/2)];
 		KHF    = sparse(toeplitz(FIL));
 	
 	case 'Gaussian'
