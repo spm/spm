@@ -1,8 +1,10 @@
-function TabDat = spm_VOI(SPM,hReg)
+function TabDat = spm_VOI(SPM,xSPM,hReg)
 % List of local maxima and adjusted p-values for a small Volume of Interest
-% FORMAT TabDat = spm_VOI(SPM,hReg)
+% FORMAT TabDat = spm_VOI(SPM,xSPM,hReg)
 %
-% SPM    - structure containing SPM, distribution & filtering details
+% SPM   - structure containing analysis details (see spm_spm)
+%
+% xSPM  - structure containing SPM, distribution & filtering details
 %        - required fields are:
 % .swd   - SPM working directory - directory containing current SPM.mat
 % .Z     - minimum of n Statistics {filtered on u and k}
@@ -20,7 +22,7 @@ function TabDat = spm_VOI(SPM,hReg)
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels} - column vector
 % .Vspm  - Mapped statistic image(s)
-% .Msk   - mask: a list of scalar indices into image voxel space
+% .Ps    - P vlues in searched voxels (for FDR)
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
@@ -33,19 +35,17 @@ function TabDat = spm_VOI(SPM,hReg)
 % SPM to compute p-values corrected for a specified volume of interest.
 %
 % The volume of interest may be defined as a box or sphere centred on
-% the current voxel, by the cluster in which it is embedded, or by an
-% external mask image.
+% the current voxel or by a mask image.
 %
-% If the VOI is defined by the cluster in which it is embedded, this
-% cluster must have been defined independently of the SPM using a mask
-% based on an orthogonal contrast and u = -Inf (i.e. p = 1)
+% If the VOI is defined by a mask this mask must have been defined
+% independently of the SPM (e.g.using a mask based on an orthogonal
+% contrast)
 %
 % External mask images should be in the same orientation as the SPM
 % (i.e. as the input used in stats estimation). The VOI is defined by
 % voxels with values greater than 0.
 %
-% FDR computations are not resticted by the small search volume unless
-% a mask image is used.
+% FDR computations are similarly resticted by the small search volume
 %
 % See also: spm_list
 %_______________________________________________________________________
@@ -53,98 +53,84 @@ function TabDat = spm_VOI(SPM,hReg)
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin < 1,   error('insufficient arguments'), end
-if nargin < 2,	 hReg = []; end
+if nargin < 2,   error('insufficient arguments'), end
+if nargin < 3,	 hReg = []; end
 
-Num     = 16;			% maxima per cluster
-Dis     = 04;			% distance among maxima (mm)
+Num      = 16;			% maxima per cluster
+Dis      = 04;			% distance among maxima (mm)
 
 %-Title
 %-----------------------------------------------------------------------
-spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
+spm('FigName',['SPM{',xSPM.STAT,'}: Small Volume Correction']);
 
-%-Get current location
+%-Get current location {mm}
 %-----------------------------------------------------------------------
-xyzmm   = spm_results_ui('GetCoords');
-VSF     = [1 1 1];   		% voxel scaling factor for Mask image VOIs
+xyzmm    = spm_results_ui('GetCoords');
 
 %-Specify search volume
 %-----------------------------------------------------------------------
-str     = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
-SPACE   = spm_input('Search volume...',-1,'m',...
-		{['Sphere',str],['Box',str],'Nearest cluster',...
-		'Image'},['S','B','V','I']);
-Q       = ones(1,size(SPM.XYZmm,2));
+str      = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
+SPACE    = spm_input('Search volume...',-1,'m',...
+		{['Sphere',str],['Box',str],'Image'},['S','B','I']);
+
+% voxels in entire search volume {mm}
+%-----------------------------------------------------------------------
+XYZmm    = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; ones(1, SPM.xVol.S)];
+Q        = ones(1,size(xSPM.XYZmm,2));
+O        = ones(1,size(     XYZmm,2));
+FWHM     = xSPM.FWHM;
+
 
 switch SPACE
 
 	case 'S' %-Sphere
 	%---------------------------------------------------------------
-	D     = spm_input('radius of spherical VOI {mm}',-2);
-	str   = sprintf('%0.1fmm sphere',D);
-	j     = find(sum((SPM.XYZmm - xyzmm*Q).^2) <= D^2);
-	D     = D./SPM.VOX;
-	S     = (4/3)*pi*prod(D);
+	D          = spm_input('radius of VOI {mm}',-2);
+	str        = sprintf('%0.1fmm sphere',D);
+	j          = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
+	k          = find(sum((     XYZmm - xyzmm*O).^2) <= D^2);
+	D          = D./xSPM.VOX;
+
 
 	case 'B' %-Box
 	%---------------------------------------------------------------
-	D     = spm_input('box dimensions [k l m] {mm}',-2);
-	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	j     = find(all(abs(SPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
-	D     = D(:)./SPM.VOX(:);
-	S     = prod(D);
+	D          = spm_input('box dimensions [k l m] {mm}',-2);
+	str        = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
+	j          = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
+	k          = find(all(abs(     XYZmm - xyzmm*O) <= D(:)*O/2));
+	D          = D./xSPM.VOX;
 
-	case 'V' %-Voxel cluster
-	%---------------------------------------------------------------
-	if ~length(SPM.XYZ)
-		spm('alert!','No suprathreshold clusters!',mfilename,0);
-		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
-		return
-	end
-
-	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyzmm,SPM.XYZmm);
-	spm_results_ui('SetCoords',xyzmm);
-	A     = spm_clusters(SPM.XYZ);
-	j     = find(A == A(i));
-	str   = sprintf('%0.0f voxel cluster',length(j));
-	D     = SPM.XYZ(:,j);
-	S     = length(j);
 
 	case 'I' %-Mask Image
 	%---------------------------------------------------------------
 	Msk   = spm_get(1,'.img','Image defining search volume');
 	D     = spm_vol(Msk);
 	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-	M     = D.mat(1:3,1:3);
-	VSF   = SPM.VOX./sqrt(diag(M'*M))';
-	XYZ   = D.mat \ [SPM.XYZmm; ones(1, size(SPM.XYZmm, 2))];
-	j     = find(spm_sample_vol(D, XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > 0);
-	S     = length(find(spm_read_vols(D)));
-
-	% reset mask volume for FDR
-	%---------------------------------------------------------------
-	SPM.Msk = D;
+	VOX   = sqrt(sum(D.mat(1:3,1:3).^2));
+	FWHM  = FWHM.*(xSPM.VOX./VOX);
+	XYZ   = D.mat \ [xSPM.XYZmm; ones(1, size(xSPM.XYZmm, 2))];
+	j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+	XYZ   = D.mat \ [     XYZmm; ones(1, size(    XYZmm, 2))];
+	k     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
 
 end
-spm('Pointer','Watch')
 
-%-Select voxels within subspace
-%-----------------------------------------------------------------------
-SPM.Z     = SPM.Z(j);
-SPM.XYZ   = SPM.XYZ(:,j);
-SPM.XYZmm = SPM.XYZmm(:,j);
-SPM.R     = spm_resels(SPM.FWHM.*VSF,D,SPACE);
-SPM.S     = S/prod(VSF);
+xSPM.S     = length(k);
+xSPM.R     = spm_resels(FWHM,D,SPACE);
+xSPM.Z     = xSPM.Z(j);
+xSPM.XYZ   = xSPM.XYZ(:,j);
+xSPM.XYZmm = xSPM.XYZmm(:,j);
+xSPM.Ps    = xSPM.Ps(k);
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
 str       = sprintf('search volume: %s',str);
-if any(strcmp(SPACE,{'S','B','V'}))
+if any(strcmp(SPACE,{'S','B'}))
 	str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
 end
 
-TabDat    = spm_list('List',SPM,hReg,Num,Dis,str);
+TabDat    = spm_list('List',xSPM,hReg,Num,Dis,str);
 
 %-Reset title
 %-----------------------------------------------------------------------
-spm('FigName',['SPM{',SPM.STAT,'}: Results']);
+spm('FigName',['SPM{',xSPM.STAT,'}: Results']);
