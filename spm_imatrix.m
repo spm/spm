@@ -60,6 +60,9 @@ for p=perm
 	M1 =	[1 0 0; 0 cos(Pt(4)) sin(Pt(4)); 0 -sin(Pt(4)) cos(Pt(4))] * ...
 		[cos(Pt(5)) 0 sin(Pt(5)); 0 1 0; -sin(Pt(5)) 0 cos(Pt(5))] * ...
 		[cos(Pt(6)) sin(Pt(6)) 0; -sin(Pt(6)) cos(Pt(6)) 0; 0 0 1];
-	s = sum((M1(:)-R1(:)).^2);
+
+	% use the parameters that produce the closest matrix
+	% but also have the smallest magnitude.
+	s = sum((M1(:)-R1(:)).^2) + (Pt(4)+Pt(5)+Pt(6))/1000;
 	if (s<ss), ss = s; P = Pt; end
 end
