@@ -262,7 +262,20 @@ else
 	
 	%-Wait until filenames have been selected
 	hDone = findobj(F,'Tag','Done');
-	while ~get(hDone,'UserData'), pause(0.01), end
+	while ~get(hDone,'UserData')
+		waitforbuttonpress;
+		%-Give 1s grace for "Done" processing
+		%-After this time spm_input "sleeps", and the user
+		% will have to click in a ML window to have choice registered
+		% ( This loop hammers the CPU, but there's no other )
+		% ( way to do an interruptible pause without        ) 
+		% ( requiring a second buttonpress event! NB: pause )
+		% ( (ML4.2c) only works for integer seconds!        )
+		tic, while(toc<1)
+			if get(hDone,'UserData'), break, end
+			pause(0.25)
+		end
+	end
 	
 	%-Recover P
 	P=get(findobj(F,'Tag','P'),'UserData');
@@ -415,6 +428,7 @@ uicontrol(F,'Style','Pushbutton','String','Done',...
 	'ForegroundColor','m',...
 	'Tag','Done','UserData',0,...
 	'Callback','spm_get(''Done'')',...
+	'Interruptible','no',...
 	'Position',[345 280 045 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','',...
