@@ -1,18 +1,27 @@
-
-% Rendering of regional effects [SPM{Z/F}] on transverse sections
-% FORMAT spm_transverse
+function spm_transverse(SPM,VOL,hReg)
+% Rendering of regional effects [SPM{T/F}] on transverse sections
+% FORMAT spm_transverse(SPM,VOL,hReg)
+%
+% SPM  - SPM structure      {'Z' 'n' 'STAT' 'df' 'u' 'k'}
+% VOL  - Spatial structure  {'R' 'FWHM' 'S' 'DIM' 'VOX' 'ORG' 'M' 'XYZ' 'QQ'}
+% hReg - handle of MIP register
+%
+% see spm_getSPM for details
 %_______________________________________________________________________
 %
-% spm_transverse is called by spm_results and uses variable in working
-% memory to create three transverse sections though a background image.
-% Regional foci from the selected SPM{Z/F} are rendered on this image.
+% spm_transverse is called by spm_results and uses variables in SPM and
+% VOL  to create three transverse  sections though a background image.
+% Regional foci from the selected SPM{T/F} are rendered on this image.
 %
 % Although the SPM{Z} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
-%
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
+%-Get figure handles and filenames
+%-----------------------------------------------------------------------
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
 
 % get the image on which to render
 %-----------------------------------------------------------------------
@@ -21,6 +30,9 @@ set([Finter,Fgraph],'Pointer','Watch');
 
 % memory map the background image and create transformation matrix {A}
 %-----------------------------------------------------------------------
+V      = [VOL.DIM; VOL.VOX; VOL.ORG];
+XYZ    = VOL.XYZ;
+L      = spm_XYZreg('GetCoords',hReg);
 L      = spm_XYZreg('RoundCoords',L,V);
 Vs     = spm_vol(spms);					% memory mapped
 Nx     = round(V(1)*V(4));				% SPM size (mm)
@@ -30,8 +42,9 @@ Z      = round(V(8)*V(5));				% corner of SPM (mm)
 A      = spm_matrix([J Z 0])*Vs.mat;			% re-center to corner
 
 
-% extract data from SPM{t} [at one plane separation]
+% extract data from SPM [at one plane separation]
 %-----------------------------------------------------------------------
+t      = SPM.Z;
 Q      = find(abs(XYZ(3,:) - L(3)) < V(6));
 T      = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),Nx/V(4),Ny/V(5));
 Tc     = spm_resize(full(T),Nx,Ny);
@@ -68,16 +81,15 @@ spm_results_ui('ClearPane',Fgraph,'RNP');
 
 % configure {128 level} colormap
 %-----------------------------------------------------------------------
-load Split
-colormap(split)
+colormap([gray(64); pink(64)])
 
 d      = max([Ts(:); Tc(:); Tt(:)]);
 D      = length(colormap)/2;
-Q      = Tc(:) > U; Tc = Tc(Q)/d; Dc(Q) = 1 + Tc; Tc = D*Dc;
+Q      = Tc(:) > SPM.u; Tc = Tc(Q)/d; Dc(Q) = 1 + Tc; Tc = D*Dc;
 
 if V(3) > 1
-    Q  = Ts(:) > U; Ts = Ts(Q)/d; Ds(Q) = 1 + Ts; Ts = D*Ds;
-    Q  = Tt(:) > U; Tt = Tt(Q)/d; Dt(Q) = 1 + Tt; Tt = D*Dt;
+    Q  = Ts(:) > SPM.u; Ts = Ts(Q)/d; Ds(Q) = 1 + Ts; Ts = D*Ds;
+    Q  = Tt(:) > SPM.u; Tt = Tt(Q)/d; Dt(Q) = 1 + Tt; Tt = D*Dt;
 end
 
 % render activation foci on background images
@@ -87,42 +99,39 @@ if V(3) > 1
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L(3)))
-	line(([J J] + L(1)),[0 Ny])
-	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny],'Color','w')
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)),'Color','w')
 
 	subplot(2,4,5)
 	image(rot90(spm_grid(Tt)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',(L(3) - V(6))))
-	line(([J J] + L(1)),[0 Ny])
-	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny],'Color','w')
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)),'Color','w')
 
 	subplot(2,4,7)
 	image(rot90(spm_grid(Ts)))
 	axis image; axis off; title(sprintf('z = %0.0fmm',(L(3) + V(6))))
-	line(([J J] + L(1)),[0 Ny])
-	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny],'Color','w')
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)),'Color','w')
 else
 	axes('position', [0.3 0.1 0.4 0.3])
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L(3)))
-	line(([J J] + L(1)),[0 Ny])
-	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny],'Color','w')
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)),'Color','w')
 end
 
 % colorbar
 %-----------------------------------------------------------------------
-u     = get(gca,'Position');
+u      = get(gca,'Position');
 axes('position', [(u(1) + u(3) + 0.1) u(2) 0.01 u(3)])
 image([0 d/32],[0 d],[1:D]' + D)
-if SPMZ str = 'Z value'; end;
-if SPMF str = 'F-value'; end;
+str    = [SPM.STAT ' value'];
 
-axis xy; ylabel(str);
-
+axis xy; title(str,'FontSize',9);
 set(gca,'XTickLabel',[])
-
 
 % reset pointer
 %-----------------------------------------------------------------------

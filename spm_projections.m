@@ -1,31 +1,28 @@
-function [Z,XYZ] = spm_projections(Z,XYZ,u,k,V,W,S,G,C,df)
+function spm_projections(Z,df,STAT,R,S,FWHM,u,k,XYZ,V,G,C)
 % display and analysis of SPM{Z} [SPM{t}]
-% FORMAT [Z,XYZ] = spm_projections(Z,XYZ,u,k,V,W,S,G,C,df);
+% FORMAT spm_projections(Z,df,STAT,R,S,FWHM,u,k,XYZ,V,G,C)
 %
-% Z   - row vector of {n} Z or F statistic voxel values
-% XYZ - {3 x n} matrix of spatial locations {mm}
-% u   - height threshold (uncorrected)
-% k   - extent threshold (uncorrected)
-% V   - vector of image and voxel sizes (see spm_map.m)
-% W   - vector of smoothness estimates (one element for each dimension)
-% S   - Lebesgue measure or volume of search space
-% G   - design matrix for the experiment
-% C   - row vector contrast for the SPM{Z}
-% df  - degrees of freedom due to error 
-% NB:   if df = [df1 df2] then F statistics are assumed (otherwise Z).
+% Z    - matrix of {n x m} statistic voxel values
+% df   - [df{interest} df{error}]
+% STAT - statistic ('Z', 'T', 'X' or 'F')
+% R    - RESEL count defining search volume {resels}
+% S    - Lebesgue measure or volume of search space {voxels}
+% FWHM - vector of effective smoothness estimates {voxels}
+% u    - height threshold
+% k    - extent threshold {resels}
+% XYZ  - {3 x m} matrix of spatial locations {mm}
+% V    - vector of image and voxel sizes (see spm_map.m)
+% G    - design matrix for the experiment
+% C    - row vector contrast[s]
 %
-% Z & XYZ - filtered according to threshold criteria
 %___________________________________________________________________________
 %
-% spm_projections applies thresholds {u & k} to a point list of voxel values
-% (specified with their locations {XYZ}) and characterizes the resulting
-% excursion set as a collection of face, edge and vertex connected subsets
-% or clusters.  The significance of the results are based on set, cluster
+% spm_projections characterizes SPMs (thresholded at u and k) in terms of
+% excursion sets (a collection of face, edge and vertex connected subsets
+% or clusters).  The significance of the results are based on set, cluster
 % and voxel-level inferences using distributional approximations from the
 % Theory of Gaussian Feilds.  These distributions assume that the SPM is
-% a reasonable lattice approximation to a Gaussian field of smoothness
-% {W = FWHM/sqrt(8.ln2)} (or in the instance of SPM{F} the component feilds
-% have this smoothness
+% a reasonable lattice approximation with known component field smoothness.
 %
 % The p values are based on the probability of obtaining c, or more,
 % clusters of k, or more, voxels above u, in the volume S analysed =
@@ -36,12 +33,10 @@ function [Z,XYZ] = spm_projections(Z,XYZ,u,k,V,W,S,G,C,df)
 % inference is based on P(U,0,1).  All three levels of inference are
 % supported with a tabular presentation of the p values and the underlying
 % statistic (u, k or c).  The table is grouped by regions and sorted on
-% the Z value of the primary maxima.  See 'Sections' in the help facility
+% the Z-variate of the primary maxima.  See 'Sections' in the help facility
 % and spm_maxima.m for a more complete characterization of maxima within
-% a region. For SPM{F} only voxel-level inferences are available at
-% the present time. NaN means not a number.  When expressions for these
-% corrected p values become available the NaNs will be replaced by
-% proper values.
+% a region. Z-variates (based on the uncorredcted p value) are the Z score
+% equivalent of the statistic and are preferred for tabular reporting.
 %
 % The secondary maxima are selected to be at least 8mm apart.
 %
@@ -65,59 +60,30 @@ figure(Fgraph)
 spm_clf
 set(Fgraph,'Units','Normalized');
 
-% SPM{Z} or SPM{F}
+%-find minima of SPM
 %-----------------------------------------------------------------------
-SPMZ = length(df) == 1;
-SPMF = length(df) == 2;
+n      = size(Z,1);
+Z      = min(Z,[],1);
 
-% eliminate voxels on the basis of u
-%-----------------------------------------------------------------------
-Q     = find(Z > u);
-if ~length(Q); return; end
-Z     = Z(Q);
-XYZ   = XYZ(:,Q);
-
-% eliminate voxels on the basis of k
-%-----------------------------------------------------------------------
-A     = spm_clusters(XYZ,V([4 5 6]));
-Q     = [];
-for i = 1:max(A)
-	j = find(A == i);
-	if length(j) >= k
-		Q = [Q j];
-	end
-end
-if ~length(Q); return; end
-Z     = Z(Q);
-XYZ   = XYZ(:,Q);
-
-
-%-Maximium intensity projection of SPM{Z}
+%-Maximium intensity projection of SPM
 %-----------------------------------------------------------------------
 axes('Position',[0.05 0.5 0.5 0.5],'Tag','Empty');
 spm_mip(Z,XYZ,V); axis image
-if SPMZ
-	title('SPM{Z}','FontSize',16,'Fontweight','Bold')
-elseif SPMF
-	title('SPM{F}','FontSize',16,'Fontweight','Bold')
-end
+title(['SPM{' STAT '}'],'FontSize',16,'Fontweight','Bold')
 
 
 %-Show design matrix & contrast
 %-----------------------------------------------------------------------
 axes('Position',[0.65 0.6 0.2 0.2],'Tag','Empty')
-imagesc(spm_DesMtxSca(G))
+imagesc(spm_DesMtx('sca',G))
 xlabel 'design matrix'
-if SPMZ
-	dy    = 0.1/size(C,1);
-	for i = 1:size(C,1)
-		axes('Position',[0.65 (0.8 + dy*(i - 1)) 0.2 dy],'Tag','Empty')
-		[p q]   = bar(C(i,:));
-		fill(p,q,[1 1 1]*.8);
-		set(gca,'Xlim',[min(p) max(p)]); axis off
-	end
-	title 'contrast'
+dy    = 0.1/size(C,1);
+for i = 1:size(C,1)
+	axes('Position',[0.65 (0.8 + dy*(i - 1)) 0.2 dy],'Tag','Empty')
+	bar(C(i,:));
+	axis tight, axis off
 end
+
 
 
 %-Display (sorted on Z values and grouped by regions)
@@ -125,63 +91,45 @@ end
 
 %-Characterize excursion set in terms of maxima 
 %-----------------------------------------------------------------------
-[N Zm M A] = spm_max(Z,XYZ,V([4 5 6]));
+[N T M A] = spm_max(Z,XYZ,V([4 5 6]));
+N         = N*max(R)/S; 			      % voxels -> resels
 
 
 %-Table headings
 %-----------------------------------------------------------------------
-y   = 25;
+y     = 25;
 axes('Position',[0.1 0.06 0.8 0.46],'Tag','Empty'); axis off
 text(0,y,['P values & statistics:   ' spm_str_manip(CWD,'a40')],...
 	'FontSize',12,'FontWeight','Bold');
-y   = y - 1;
+y     = y - 1;
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
-y   = y - 1;
+y     = y - 1;
 
 %-Construct tables
 %-----------------------------------------------------------------------
-if SPMF
-	text(0.00,y,'set-level {c}'      ,'FontSize',10,'Tag','Empty');
-	text(0.18,y,'cluster-level {k,F}','FontSize',10,'Tag','Empty');
-	text(0.42,y,'voxel-level {F}'    ,'FontSize',10,'Tag','Empty');
-	text(0.62,y,'      uncorrected'  ,'FontSize',10,'Tag','Empty');
-	text(0.86,y,'x,y,z {mm}'         ,'FontSize',10,'Tag','Empty');
+text(0.00,y,'set-level {c}'      ,'FontSize',10,'Tag','Empty');
+text(0.18,y,'cluster-level {k}  ','FontSize',10,'Tag','Empty');
+text(0.42,y,'voxel-level {Z}'    ,'FontSize',10,'Tag','Empty');
+text(0.62,y,'uncorrected k & Z'  ,'FontSize',10,'Tag','Empty');
+text(0.86,y,'x,y,z {mm}'         ,'FontSize',10,'Tag','Empty');
 
-elseif SPMZ
-
-	text(0.00,y,'set-level {c}'      ,'FontSize',10,'Tag','Empty');
-	text(0.18,y,'cluster-level {k,Z}','FontSize',10,'Tag','Empty');
-	text(0.42,y,'voxel-level {Z}'    ,'FontSize',10,'Tag','Empty');
-	text(0.62,y,'uncorrected k & Z'  ,'FontSize',10,'Tag','Empty');
-	text(0.86,y,'x,y,z {mm}'         ,'FontSize',10,'Tag','Empty');
-end
 
 %-Pagination variables
 %-----------------------------------------------------------------------
 y     = y - 1;
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
-y     = y - 1;
-y0    = y;
-hPage = [];
-nPage = 1;
-Vis   = 'on';
+y     = y - 1; y0 = y; hPage = []; nPage = 1; Vis = 'on';
 
 %-Set-level p values {c}
 %-----------------------------------------------------------------------
 c     = max(A);					% number of clusters
-if SPMF
-	Pc = NaN;				% set-level p value
+Pc    = spm_P(c,k,u,df,STAT,R,n);		% set-level p value
 
-elseif SPMZ
-
-	Pc = spm_P(c,W,u,k,S);			% set-level p value
-
-end
 str   = sprintf('%-0.3f   (%i)',Pc,c);
 h     = text(0.00,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
 hPage = [hPage, h];
 
-while max(Zm) & ((y > 2) | proj_MultiPage)
+while max(T) & ((y > 2) | proj_MultiPage)
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
@@ -199,39 +147,24 @@ while max(Zm) & ((y > 2) | proj_MultiPage)
 
     	%-Find largest remaining local maximum
     	%---------------------------------------------------------------
-	[U i] = max(Zm);			% largest Z maxima
-	j     = find(A == A(i));		% maxima in cluster
+	[U i]   = max(T);			% largest maxima
+	j       = find(A == A(i));		% maxima in cluster
 
-        if SPMZ
-
-    	%-Compute cluster {k} and voxel-level p values for this cluster
+    	%-Compute cluster {k} and voxel-level {u} p values for this cluster
     	%---------------------------------------------------------------
-	Pk    = spm_P(1,W,u,N(i),S);		% cluster-level p value
-	Pkn   = spm_Pkn(N(i),(U - u),W,u,S);	% cluster-level (Bivariate)
-	Pu    = spm_P(1,W,U,0,S);		% voxel-level p value
-	Pn    = 1 - spm_kcdf(N(i),u,W);		% uncorrected p value (k)
-	Pz    = 1 - spm_Ncdf(U);		% uncorrected p value (Z)
-
-	elseif SPMF
-
-    	%-Compute cluster {k} and voxel-level p values for this cluster
-    	%---------------------------------------------------------------
-	Pk    = NaN;				% cluster-level p value
-	Pkn   = NaN;				% cluster-level (Bivariate)
-	Pu    = spm_pF(S,W,df,U);		% voxel-level p value
-	Pn    = [];				% uncorrected p value (k)
-	Pz    = 1 - spm_Fcdf(U,df);		% uncorrected p value (F)
-
-	end
+	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
+	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected   {based on height)
+	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
+	Ze      = 1 - spm_invNcdf(Pz);		% Equivalent Z-variate
 
         if N(i) < k; break; end
 
 	%-Print cluster and maximum voxel-level p values {Z}
     	%---------------------------------------------------------------
-        str   = sprintf('%-0.3f   (%i, %0.2f)',Pkn,N(i),U);
+        str   = sprintf('%-0.3f   (%-0.2f)',Pk,N(i));
 	h     = text(0.18,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
 	hPage = [hPage, h];
-        str   = sprintf('%-0.3f   (%-0.2f)',Pu,U);
+        str   = sprintf('%-0.3f   (%-0.2f)',Pu,Ze);
 	h     = text(0.44,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
 	hPage = [hPage, h];
         str   = sprintf('%-0.3f',Pn);
@@ -248,28 +181,20 @@ while max(Zm) & ((y > 2) | proj_MultiPage)
 
 	%-Print 2 secondary maxima (> 8mm apart)
     	%---------------------------------------------------------------
-	[l q] = sort(-Zm(j));				% sort on Z value
+	[l q] = sort(-T(j));				% sort on Z value
 	D     = i;
 	for i = 1:length(q)
 		d    = j(q(i));
 		if min(sqrt(sum((M(:,D) - M(:,d)*ones(1,size(D,2))).^2))) > 8;
-		    if length(D) < 3
+		if length(D) < 3
 			
 			% voxel-level p values {Z}
 			%-----------------------------------------------
-			if SPMZ
+			Pz    = spm_P(1,0,T(d),df,STAT,1,n);
+			Pu    = spm_P(1,0,T(d),df,STAT,R,n);
+			Ze    = 1 - spm_invNcdf(Pz);
 
-			Pu    = spm_P(1,W,Zm(d),0,S);	% voxel-level p value
-			Pz    = 1 - spm_Ncdf(Zm(d));	% uncorrected p value
-
-			elseif SPMF
-
-			Pu    = spm_pF(S,W,df,Zm(d));	% voxel-level p value
-			Pz    = 1 - spm_Fcdf(Zm(d),df);	% uncorrected p value
-
-			end
-
-        		str   = sprintf('%-0.3f   (%-0.2f)',Pu,Zm(d));
+        		str   = sprintf('%-0.3f   (%-0.2f)',Pu,Ze);
 			h     = text(0.44,y,str,'FontSize',8,'Visible',Vis);
 			hPage = [hPage, h];
         		str   = sprintf('%-0.3f',Pz);
@@ -280,14 +205,14 @@ while max(Zm) & ((y > 2) | proj_MultiPage)
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - 1;
-		    end
+		end
 		end
 	end
-	Zm(j) = Zm(j)*0;		% Zero local maxima for this cluster
+	T(j) = T(j)*0;		% Zero local maxima for this cluster
 end					% end region
 
 %-Number and paginate last page (if pagination was required)
-%-----------------------------------------------------------------------
+%---------------------------------------------------------------------------
 if strcmp(Vis,'off')
 	%-Label last page
 	h = text(0.5,-2,['Page ',num2str(nPage)],...
@@ -297,60 +222,40 @@ if strcmp(Vis,'off')
 	spm_figure('NewPage',hPage);
 end
 
-y = min(3,y);
+y      = min(3,y);
 
 %-Volume, resels and smoothness 
-%=======================================================================
-D      = length(W);					% dimension
-VFWHM  = sqrt(8*log(2))*W;				% FWHM {voxels}
-FWHM   = VFWHM.*V(([1:D] + 3),1)'; 			% FWHM {mm}
-RESEL  = S/prod(VFWHM);					% RESELS
-
-if SPMZ
-
-	Pu              = 1 - spm_Ncdf(u);
-	Pn              = 1 - spm_kcdf(k,u,W);
-	[P,EN,Em,En,Pk] = spm_P(1,W,u,k,S);
-
-elseif SPMF
-
-	Pu = 1 - spm_Fcdf(u,df);
-	Pn = NaN;
-	Em = -log( 1 - spm_pF(S,W,df,u));
-	EN = Pu*S;
-	En = EN/Em;
-	Pk = 1;
-end
-
+%===========================================================================
+FWHMmm          = FWHM.*V(([1:length(FWHM)] + 3),1)'; 		% FWHM {mm}
+Pz              = spm_P(1,0,u,df,STAT,1,n);
+[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n)
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
 y   = y + 0.5;
 line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
 y   = y - 0.5;
-str = sprintf('Height threshold {u} = %0.2f, p = %0.3f',u,Pu);
+str = sprintf('Height threshold {u} = %0.2f, p = %0.3f (%0.3f)',u,Pz,P);
 text(0,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Extent threshold {k} = %0.1f voxels, p = %0.3f',k,Pn);
+str = sprintf('Extent threshold {k} = %0.2f resels, p = %0.3f',k,Pn);
 text(0,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Expected voxels per cluster, E{n} = %0.1f',En);
+str = sprintf('Expected resels per cluster, E{n} = %0.1f',En);
 text(0,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Expected number of clusters, E{m} = %0.1f',Em*Pk);
+str = sprintf('Expected number of clusters, E{m} = %0.1f',Em*Pn);
 text(0,y,str,'FontSize',8);
 y   = y + 3;
-str = sprintf('Volume {S} = %i voxels or %0.1f Resels ',S,RESEL);
+str = sprintf('Volume {S} = %i voxels or %0.1f Resels ',S,max(R));
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Degrees of freedom due to error = %0.1f %0.1f ',df);
+str = sprintf('Degrees of freedom = %0.1f %0.1f ',df);
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Smoothness FWHM {mm} = %0.1f %0.1f %0.1f',FWHM);
+str = sprintf('Smoothness FWHM {mm} = %0.1f %0.1f %0.1f',FWHMmm);
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',VFWHM);
-h   = text(0.6,y,str,'FontSize',8);
-if  any(VFWHM < 3)
-	set(h,'Color','r'); end
+str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',FWHM);
+text(0.6,y,str,'FontSize',8);
 
