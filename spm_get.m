@@ -338,8 +338,8 @@ switch lower(Action), case 'createfig'
 if nargin<3 Filter=[]; else Filter=varargin{3}; end
 if nargin<2 LastDirs=[]; else LastDirs=varargin{2}; end
 if isempty(LastDirs), LastDirs=pwd; end
-LastDirs=str2mat(LastDirs,getenv('HOME'));
-if (exist('spm.m')==2), LastDirs=str2mat(LastDirs,spm('Dir')); end
+LastDirs=strvcat(LastDirs,getenv('HOME'));
+if (exist('spm.m')==2), LastDirs=strvcat(LastDirs,spm('Dir')); end
 	
 
 %-Create window, compute scaling for screen size
@@ -382,7 +382,7 @@ uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...
 	'Position',[010 370 380 022].*WS);
 
 uicontrol(F,'Style','PopUp','Tag','LastDirsPopup',...
-	'String',str2mat('Previous Directories...',LastDirs),...
+	'String',strvcat('Previous Directories...',LastDirs),...
 	'HorizontalAlignment','Left',...
 	'ForegroundColor','r',...
 	'UserData',size(LastDirs,1),...
@@ -784,7 +784,7 @@ LastDirs=get(findobj(F,'Tag','LastDirsPopup'),'String'); LastDirs(1,:)=[];
 Fs=get(findobj(F,'Tag','LastDirsPopup'),'UserData');
 
 %-Add new directory
-LastDirs=str2mat(NewDir,LastDirs);
+LastDirs=strvcat(NewDir,LastDirs);
 
 %-Extract fixed and variable parts of LastDirs
 FLastDirs=LastDirs(size(LastDirs,1)-[Fs-1:-1:0],:);
@@ -812,7 +812,7 @@ LastDirs = [LastDirs; FLastDirs];
 %-Write LastDirs to LastDirsPopup, write new directory to WDir Edit widget
 %-----------------------------------------------------------------------
 set(findobj(F,'Tag','LastDirsPopup'),'Value',1,...
-	'String',str2mat('Previous Directories...',LastDirs))
+	'String',strvcat('Previous Directories...',LastDirs))
 set(findobj(F,'Tag','WDir'),'String',NewDir,'UserData',NewDir)
 
 
@@ -897,7 +897,7 @@ if ~strcmp(WDir,'/'), Dirs=strvcat('..',Dirs); end
 %-Create list of directories in pulldown menu
 %-----------------------------------------------------------------------
 set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
-	'String',str2mat('SubDirectories...',Dirs))
+	'String',strvcat('SubDirectories...',Dirs))
 
 %-Create list of directories with appropriate 'ButtonDownFcn': -
 % NB: Gave MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
@@ -946,8 +946,8 @@ for i = 1:size(IName,1)
 	nItems   = length(cItemPos);
 	cItems   = Items(cItemPos,:);
 	%-Next line strips off redundant space at end of string matrix
-	% (The str2mat bit ensures single strings are handled by column)
-	cItems(:,all(str2mat(cItems,' ')==' '))=[];
+	% (Don't have to worry about spaces within strings 'cos filenames)
+	cItems(:,all(cItems==' ',1))=[];
 	text(0.35,y,cIName,...
 		'Tag','IName',...
 		'UserData',cItems,...
@@ -1171,7 +1171,7 @@ for h = H'
 
 	%-Add items to P
 	FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
-	if isempty(P), P=FPath; else, P=str2mat(P,FPath); end
+	P      = strvcat(P,FPath);
 	if nItems==1
 		tmp = [int2str(nP+1),' :',IName];
 	else
@@ -1184,8 +1184,8 @@ end
 
 %-Chop off any redundant trailing spaces
 %-----------------------------------------------------------------------
-% (The str2mat bit ensures single strings are handled by column)
-if size(P,1), P(:,all(str2mat(P,' ')==' '))=[]; end
+% (Don't have to worry about spaces within strings 'cos filenames)
+if ~isempty(P), P(:,all(P==' ',1))=[]; end
 
 %-Return new P to holding object
 %-----------------------------------------------------------------------
@@ -1212,13 +1212,10 @@ FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
 nP     = size(P,1);
 
 %-Compare Items with end of P (Can only delete from the end)
-tmp    = str2mat(P(nP-(nItems-1):nP,:),FPath);
+tmp    = strvcat(P(nP-(nItems-1):nP,:),FPath);
 if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
 	P(nP-(nItems-1):nP,:)=[];
-	if ~isempty(P)
-		%-Chop off any redundant trailing spaces
-		P(:,all(str2mat(P,' ')==' '))=[];
-	end
+	if ~isempty(P), P(:,all(P==' ',1))=[]; end
 	set(findobj(F,'Tag','P'),'UserData',P);
 	set(h,'String',IName,'Color','k',...
 		'Tag','IName',...
@@ -1292,8 +1289,7 @@ while ~Done
 		if (str(1)~='/')&(~strcmp(str,Tstr)), str=[WDir,'/',str]; end
 		if (n>0),OK=exist(str)==2;else,OK=~unix(['test -d ',str]);end
 	end
-	if ~strcmp(str,Tstr)
-		if isempty(P), P=str; else, P=str2mat(P,str); end, end
+	if ~strcmp(str,Tstr), P=strvcat(P,str); end
 	nP = nP+1;
 	Done = (strcmp(str,Tstr) | (nP==abs(n)));
 end % (while)
