@@ -6,10 +6,12 @@ function [R] = spm_resels(FWHM,L,SPACE)
 %                L = radius                {Sphere}
 %                L = [height width length] {Box}
 %                L = XYZ pointlist         {Discrete voxels}
+%                L = Mapped image volume   {Image}
 % SPACE      - Search space
 %               'S' - Sphere
 %               'B' - Box
 %               'V' - Discrete voxels
+%               'I' - Image VOI
 %
 % R          - RESEL counts {adimensional}
 %
@@ -18,7 +20,7 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston, Matthew Brett %E%
 
 % Dimensionality
 %---------------------------------------------------------------------------
@@ -34,26 +36,27 @@ end
 
 % RESEL Counts (R)
 %===========================================================================
-if      SPACE == 'S'
 
-	% Sphere
+switch SPACE, case 'S'                                              % Sphere
 	%-------------------------------------------------------------------
 	s     = L(:)./FWHM(:);
 	s     = prod(s).^(1/D);
 	R     = [1 4*s 2*pi*s^2 (4/3)*pi*s^3];
 
-elseif  SPACE == 'B'
-
-	% Box
+case 'B'                                                               % Box
 	%-------------------------------------------------------------------
 	s     = L(:)./FWHM(:);
 	R     = [1 sum(s) (s(1)*s(2) + s(2)*s(3) + s(1)*s(3)) prod(s)];
 
-elseif  SPACE == 'V'
-
-	% Voxels
+case 'V'                                                            % Voxels
 	%-------------------------------------------------------------------
 	R     = spm_Pec_resels(L,FWHM);
+
+case 'I'                                                             % Image
+	%-------------------------------------------------------------------
+	R     = spm_resels_vol(L,FWHM);
+	R     = R' .* [1 2/3 2/3 1];	%-KJW "knobliness" correction
+
 
 end
 
