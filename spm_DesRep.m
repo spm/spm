@@ -88,7 +88,7 @@ if nargin<6, xs=[]; else, xs = varargin{6}; end
 			%-Structure of description strings
 
 [P,CPath] = spm_str_manip(P,'c');	%-extract common path component
-nScan     = size(I,1);			%-#scans
+nScan     = size(I,1);			%-#images
 bL        = any(diff(I,1),1); 		%-Multiple factor levels?
 
 %-Get graphics window & window scaling
@@ -110,7 +110,7 @@ text(0.5,1,'Statistical analysis: Image files & covariates...',...
 dx1 = 0.05;
 dx2 = 0.08;
 
-x = 0; text(x+.02,.1,'scan#','Rotation',90)
+x = 0; text(x+.02,.1,'image #','Rotation',90)
 if bL(4), x=x+dx1; text(x+.01,.1,sF{4},'Rotation',90), end
 if bL(3), x=x+dx1; text(x+.01,.1,sF{3},'Rotation',90), end
 if bL(2), x=x+dx1; text(x+.01,.1,sF{2},'Rotation',90), end
@@ -180,13 +180,6 @@ end
 
 line('XData',[0 1],'YData',[y y],'LineWidth',3,'Color','r')
 
-%-Register last page if paginated
-if spm_figure('#page')>1
-	text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-		'FontSize',FS(1),'FontAngle','italic')
-	spm_figure('NewPage',[hAx;get(hAx,'Children')])
-end
-
 
 %-Display description strings
 % (At bottom of current page - hope there's enough room!)
@@ -206,6 +199,12 @@ if ~isempty(xs)
 	end
 end
 
+%-Register last page if paginated
+if spm_figure('#page')>1
+	text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
+		'FontSize',FS(1),'FontAngle','italic')
+	spm_figure('NewPage',[hAx;get(hAx,'Children')])
+end
 
 
 
@@ -245,7 +244,7 @@ nX = spm_DesMtx('sca',X,Xnames);
 hDesMtx = axes('Position',[.07 .4 .6 .4]);
 hDesMtxIm = image((nX + 1)*32);
 set(hDesMtx,'TickDir','out')
-ylabel('scans')
+ylabel('images')
 xlabel('parameters')
 
 %-Parameter names
@@ -255,14 +254,17 @@ axes('Position',[.07 .8 .6 .1],'Visible','off',...
 for i = 1:size(nX,2), text(i,.05,Xnames{i},'Rotation',90), end
 
 %-Filenames
+% ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
+% ( down to <32 items. Always show last item so #images is indicated.    )     
 if ~isempty(P)
-	nScan = size(nX,1);
-	s = [1,floor([2:32]*max(1,nScan/31))];
+	nScan = size(X,1);
+	p = max(1,ceil(nScan/32));
+	s = 1:p:nScan; s(end)=nScan;
 	set(hDesMtx,'YTick',s)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(1),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i=1:nScan, text(0,i,spm_str_manip(P{i},'a40')), end
+	for i=s, text(0,i,spm_str_manip(P{i},'a40')), end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
@@ -384,7 +386,7 @@ for i = 1:length(xC)
 			'XLim',[0,nScan]+0.5);
 	plot(xC(i).rc,'LineWidth',2)
 	if nScan<48, plot(xC(i).rc,'.k','MarkerSize',20); end
-	xlabel('scan number')
+	xlabel('image #')
 	ylabel('covariate value')
 
 
