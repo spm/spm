@@ -132,7 +132,7 @@ N             = M.N;
 
 % outputs
 %---------------------------------------------------------------------------
-K0    = feval(M.lx,x0,Ep);
+K0    = feval(fcnchk(M.lx,'x','P'),x0,Ep);
 K1    = zeros(N,l,m);
 K2    = zeros(N,N,l,m,m);
 for i = 1:m
