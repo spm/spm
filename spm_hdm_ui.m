@@ -37,7 +37,7 @@ spm_input('Input specification:...  ',1,'d');
 U.dt = Sess.U(1).dt;
 u    = length(Sess.U);
 if u == 1 & length(Sess.U(1).name) == 1
-	U.name = Sess.U(1).name{1};
+	U.name = Sess.U(1).name;
 	U.u    = Sess.U(1).u(33:end,1);
 else
 	U.name = {};
