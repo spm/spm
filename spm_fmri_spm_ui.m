@@ -177,11 +177,10 @@ q      = sum(nscan);
 g      = zeros(q,1);
 for i  = 1:q, g(i) = spm_global(VY(i)); end
 
-% scale if specified (session specific grand mean scaling)
+% scale if specified (otherwise session specific grand mean scaling)
 %---------------------------------------------------------------------------
-if strcmp(Global,'Scaling')
-	gSF    = GM./g;
-else
+gSF    = GM./g;
+if strcmp(Global,'None')
 	for i = 1:length(nscan)
 		j      = find(X.bX(:,i));
 		gSF(j) = GM./mean(g(j));
