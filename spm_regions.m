@@ -142,7 +142,7 @@ if m > n
 	[v s v] = svd(spm_atranspa(y));
 	s       = diag(s);
 	v       = v(:,1);
-	u       = y'*v/sqrt(s(1));
+	u       = y*v/sqrt(s(1));
 else
 	[u s u] = svd(spm_atranspa(y'));
 	s       = diag(s);
