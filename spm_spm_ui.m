@@ -1,7 +1,7 @@
-function spm_spm_ui
+%****function spm_spm_ui
 % Setting up the general linear model
 % FORMAT spm_spm_ui
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_spm_ui configures the design matrix, data specification and
 % thresholds that specify the ensuing statistical analysis. These
@@ -47,231 +47,201 @@ function spm_spm_ui
 % The data should all have the same image and voxel size and these are
 % taken from the first image specified.
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %E% Andrew Holmes, Karl Friston %W%
 
-
-%-Clear and label Interactive window
 %=======================================================================
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
-spm_clf(Finter), spm_clf(Fgraph)
-set(Finter,'Name','Statistical analysis');
+% - S E T U P
+%=======================================================================
+SCCSid = '%I%';
+spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Statistical analysis',1);
+spm_help('!ContextHelp',[mfilename,'.m'])
 
 %-Design parameters
 %=======================================================================
+%-Note: struct expands cell array values to give multiple records:
+%       => embed cell arrays within another cell array
+D = struct(...
+	'DesName',	'Single-subject: replication of conditions',...
+	'n',	[Inf 2 1 1],	'sL',	{{'repl','cond','subj','stud'}},...
+	'nCcov',Inf,		'nGcov',Inf,...
+	'Hform',		'i2,''+0m'',''cond''',...
+	'Bform',		'i3,''-'',''const''',...
+	'iGMsca',1,		'GM',[],...
+	'b',struct('aTime',1,'aNCCs',0),...
+	'iCFI',1,		'iGloNorm',[1 2 3]);
+iDD = length(D); %-Above design is the default design definition
 
-Designs = str2mat(...
-	'SPM94 style questioning',...					%-0
-	'Single-subject: replication of conditions',...			%-1a
-	'Single-subject: replicate conditions & covariates',...		%-1b
-	'Single-Subject: covariates only');				%-1c
-Designs = str2mat(Designs,...
-	'Multi-subject: different conditions',...			%-2a
-	'Multi-subject: replication of conditions',...			%-2b
-	'Multi-subject: condition & covariates',...			%-2c
-	'Multi-subject: replicate conditions & covariates',...		%-2d
-	'Multi-subject: covariates only');				%-2e
-Designs = str2mat(Designs,...
-	'Multi-study: different conditions',...				%-3a
-	'Multi-study: replication of conditions',...			%-3b
-	'Multi-study: condition & covariates',...			%-3c
-	'Multi-study: replicate conditions & covariates',...		%-3d
-	'Multi-study: covariates only');				%-3e
-Designs = str2mat(Designs,...
-	'Compare-groups: 1 scan per subject');				%-4
+%D = [D, struct(...
+%	'DesName',	'Single-subject: replicate conditions & covariates',...
+%	'n',[Inf Inf 1 1],	'sL',	{{'repl','scan','',''}},...
+%	'Hform',	'i2,''+0m'',''scan''',...
+%	'iGMsca',1,	'GM',[],...
+%	'b',struct('aTime',1,'aCov',1,'aFDCs',0,'aNCCs',0),...
+%	'iGloNorm',[1 2 3])];
 
-DesPrams = str2mat(...
-	'bMStud','bMSubj','bMCond','bMRepl','iHForm',...
-	'bAskCov','bAskFDCs','iGloNorm');
 
-DesDefaults = [ ...
-1,	1,	1,	0,	4,	1,	1,	12345;...	%-0
-0,	0,	1,	1,	2,	0,	0,	123;...		%-1a
-0,	0,	1,	1,	1,	1,	1,	123;...		%-1b
-0,	0,	0,	1,	3,	1,	0,	123;...		%-1c
-0,	1,	1,	0,	1,	0,	0,	1234;...	%-2a
-0,	1,	1,	1,	2,	0,	0,	1234;...	%-2b
-0,	1,	1,	0,	1,	1,	1,	1234;...	%-2c
-0,	1,	1,	1,	2,	1,	1,	1234;...	%-2d
-0,	1,	0,	1,	3,	1,	1,	1234;...	%-2e
-1,	1,	1,	0,	4,	0,	0,	12345;...	%-3a
-1,	1,	1,	1,	5,	0,	0,	12345;...	%-3b
-1,	1,	1,	0,	4,	1,	1,	12345;...	%-3c
-1,	1,	1,	1,	5,	1,	1,	12345;...	%-3d
-1,	1,	0,	1,	3,	1,	1,	12345;...	%-3e
-1,	1,	0,	0,	6,	1,	0,	123	];	%-4
+%-Parameters for all design specs
+%-----------------------------------------------------------------------
+% Naming contrasts?
+% Writing contrasts?
+% Selecting scans in time order & specifying conditions as input
 
-bAskNCCs = 0;
+%-Option definitions
+%-----------------------------------------------------------------------
+%-Generic level names
+sL = {'sL1','sL2','sL3','sL4'}
 
-sGloNorm = str2mat(...
-	'No Global Normalisation',...
-	'Proportional scaling',...
-	'AnCova',...
-	'AnCova {subject-specific}',...
-	'AnCova {study-specific}');
+%-Covariate by factor interaction options
+sCFI = {'no','sL2','sL3','sL4'};
 
-sGMsca = str2mat(...
-	'No Grand Mean Scaling',...
-	'Scaling of overall Grand Mean',...
-	'Scaling of study Grand Means');
-iGMsca = 123;
-%-NB: Grand mean scaling by study is redundent for proportional scaling
+%-Global normalization options
+sGloNorm = {	'no global normalisation',...				%-1
+		'proportional scaling',...				%-2
+		'AnCova {sL2-specific}',...				%-3
+		'AnCova {sL3-specific}',...				%-4
+		'AnCova {sL4-specific}',...				%-5
+		'AnCova'};						%-6
 
-HForms = str2mat(...
-	'iCond,''+0m'',''Scan''',...
-	'iCond,''+0m'',''Cond''',...
-	'[]',...
-	'[iStud'',iCond''],''+j0m'',str2mat(''Stud'',''Scan'')',...
-	'[iStud'',iCond''],''+j0m'',str2mat(''Stud'',''Cond'')',...
-	'iStud,''-'',''Group''');
-dBetGrp = 6; %-Between group designs
+%-Grand mean scaling options
+sGMsca = {	'no Grand Mean scaling',...				%-1
+		'scaling of sL1. Grand means',...			%-2
+		'scaling of sL2. Grand means',...			%-2
+		'scaling of sL3. Grand means',...			%-3
+		'scaling of sL4. Grand means',...			%-4
+		'scaling of overall Grand mean',...			%-5
+		'(implicit in PropSca global normalisation)'};		%-6
+%-NB: Grand mean scaling by subject is redundent for proportional scaling
 
-if ( size(Designs,1) ~= size(DesDefaults,1)) | ...
-	(size(DesPrams,1) ~= size(DesDefaults,2))
-	fprintf('%cSize mismatch in design parameter specification\n',7)
-	return
-end
+%-Adjustment options for AnCova designs (for centering of globals)
+%-If Grand mean scaling, then would usually AnCova adjust in a similar
+% fashion, i.e. to GM.
+sAdjTo = {	'specify...',...					%-1
+		'Grand mean (mean of all globals)',...			%-2
+		'sL3 grand mean (mean of sL3. globals)',...		%-3
+		'sL4 grand mean (mean of sL4. globals)',...		%-4
+		'(redundant: not doing AnCova)'};			%-5
 
 %-Variable "decoder"
 %-----------------------------------------------------------------------
-% bMStud   - Multi-study ?
-% bMSubj   - Multi-Subject ?
-% bMCond   - Multi-Condition ? (No for correlation studies)
-% bMRepl   - Multiple replications per condition ?
-% bBetGrp  - Between group comparison?
-% iHForm   - Index to HForm for this design
-% bAskCov  - Ask for covariates and confounds?
-% iGloNorm - Global normalisation code, or allowable codes
-% bAskFDCs - Ask for [confounding] factor dependent covariate modelling?
-%            (Seperate slope parameter for each subject/study)
-% bAskNCCs - Ask about not centering covariates?
-% sStudP   - study # prompt string (for i/o)
-% sSubjP   - subject # prompt string (for i/o)
-% nStud    - number of studies
-% nSubj    - number of subjects (current study)
-% bBalCond - balanced conditions (scans) per subject (current study)
-% nCond    - number of conditions (for subjects within current study)
-% subj     - current subject index (within current study)
-% cond     - current condition (within current subject)
-
-%-Initialise indicies, and get study parameters
-%-----------------------------------------------------------------------
-iStud   = [];		% study index
-iSubj   = [];		% subject (per study) index
-iCond   = [];		% condition (or scan) (per subject) index
-iRepl   = [];		% replication (per condition) index
-P       = [];		% string matrix of filenames
-J       = 1;		% Position of user interafce input
+%-****
 
 %-Get design type
 %-----------------------------------------------------------------------
-DesType = spm_input('Select design type...',J,'m',Designs); J=J+1;
-DesName = deblank(Designs(DesType,:));
-for p   = 1:size(DesPrams,1)
-    eval([deblank(DesPrams(p,:)),' = DesDefaults(DesType,p);']), end
-HForm   = HForms(iHForm,:);
+D = D(spm_input('Select design type...',1,'m',{D.DesName}',[],iDD));
 
-%-Specials for between group comparison design
-%-----------------------------------------------------------------------
-bBetGrp = any(dBetGrp==iHForm);
-if ~bBetGrp, sStud='Study';
-else, sStud='Group'; sGMsca(3,:)=strrep(sGMsca(3,:),'study','group'); end
 
 %-Get filenames, accrue study, subject, condition & replication indicies
 %-----------------------------------------------------------------------
-nStud  = 1;
-if bMStud, nStud = spm_input(['Number of ',lower(sStud),'s ?'],J); J=J+1; end
-bMStud = nStud>1;
-J0     = J;
-for stud  = 1:nStud
-	J     = J0;
-	sStudP = []; if bMStud, sStudP = [sStud,' ',int2str(stud),': ']; end
-	nSubj = 1;
-	if bMSubj, nSubj = spm_input([sStudP,'# of subjects ?'],J); J=J+1; end
-	if bMCond, nCond = spm_input([sStudP,'# of conditions ? '],J); J=J+1;
-		else, nCond = 1; end
+i4 = [];		% Level 4 index (usually study)
+i3 = [];		% Level 3 index (usually subject), per l4
+i2 = [];		% Level 2 index (usually condition), per l3/l4
+i1 = [];		% Level 1 index (usually replication), per l2/l3/l4
+P  = {};		% cell array of string filenames
 
-	if nCond == 1 & ~bMRepl %-Single scan per subject case
-		t_str = [sStudP,'Select scans, subjects 1 - ',int2str(nSubj)];
- 		P     = str2mat(P,spm_get(nSubj,'.img',t_str));
-		iStud = [iStud, stud*ones(1,nSubj)];
-		iSubj = [iSubj, [1:nSubj]];
-		iCond = [iCond, ones(1,nSubj)];
-		iRepl = [iRepl, ones(1,nSubj)];
-	else %-Multi scan per subject case
-		for subj      = 1:nSubj
-			sSubjP = [];
-			if bMSubj sSubjP = ['Subj.',int2str(subj),': ']; end
-			if ~bMRepl %-No replications within conditions
-				t_str = [sStudP,sSubjP,'Select scans ',...
-					 'conditions 1 -',int2str(nCond)];
- 				P = str2mat(P,spm_get(nCond,'.img',t_str));
-				iStud = [iStud, stud*ones(1,nCond)];
-				iSubj = [iSubj, subj*ones(1,nCond)];
-				iCond = [iCond, 1:nCond];
-				iRepl = [iRepl, ones(1,nCond)];
+if isinf(D.n(4)), n4 = spm_input(['#',D.sL{4},'.s ?'],'+1');
+	else, n4 = D.n(4); end
+bL4 = n4>1;
+
+ti2 = '121212...';
+GUIpos = spm_input('!NextPos');
+for j4  = 1:n4
+	spm_input('!SetNextPos',GUIpos);
+	sL4P=''; if bL4, sL4P = [D.sL{4},'.',int2str(j4),': ']; end
+	if isinf(D.n(3)), n3 = spm_input([sL4P,'#',D.sL{3},'.s ?'],'+1');
+		else n3 = D.n(3); end
+	bL3 = n3>1;
+	
+	if D.b.aTime & D.n(2)>1
+	    disp('selecting in time order - manually specify conditions')%-**
+	    %-NB: This means l2 levels might not be 1:n2
+	    GUIpos2 = spm_input('!NextPos');
+	    for j3 = 1:n3
+		sL3P=[D.sL{3},'.',int2str(j3),': '];
+		str = [sL4P,sL3P,'select scans...'];
+	 	tP = spm_get(D.n(2)*D.n(1),'.img',{str});
+	 	n21 = length(tP);
+		str = [sL4P,sL3P,'iCond?'];
+		ti2 = spm_input(str,GUIpos2,'c',ti2,n21,D.n(2));
+		[tl2,null,j] = unique(ti2);
+		tn1 = zeros(size(tl2)); ti1 = zeros(size(ti2));
+		for i=1:length(tl2)
+			tn1(i)=sum(j==i); ti1(ti2==tl2(i))=1:tn1(i); end
+		if isfinite(D.n(1)) & any(tn1~=D.n(1))
+			%-#i1 levels mismatches specification in D.n(1)
+			error(sprintf('#%s not as pre-specified',D.sL{1})), end
+	 	P   = [P;tP];
+		i4 = [i4, j4*ones(1,n21)];
+		i3 = [i3, j3*ones(1,n21)];
+		i2 = [i2, ti2];
+		i1 = [i1, ti1];
+	    end
+
+	else
+
+	    if isinf(D.n(2)), n2 = spm_input([sL4P,'#',D.sL{2},'.s ?'],'+1');
+		else n2 = D.n(2); end
+	    bL2 = n2>1;
+
+	    if n2==1 & D.n(1)==1 %-single scan per l3 (subj)
+		disp('single scan per l3')%-**
+		str = [sL4P,'select scans, ',D.sL{3},' 1-',int2str(n3)];
+ 		P     = [P;spm_get(n3,'.img',{str})];
+		i4 = [i4, j4*ones(1,n3)];
+		i3 = [i3, [1:n3]];
+		i2 = [i2, ones(1,n3)];
+		i1 = [i1, ones(1,n3)];
+	    else
+		%-multi scan per l3 (subj) case
+		disp('multi scan per l3')%-**
+		for j3 = 1:n3
+			sL3P=''; if bL3, sL3P=[D.sL{3},'.',int2str(j3),': ']; end
+			if D.n(1)==1
+				%-No l1 (repl) within l2 (cond)
+				disp('no l1 within l2')%-**
+				str = [sL4P,sL3P,'select scans: ',D.sL{2},...
+					 ' 1-',int2str(n2)];
+ 				P = [P;spm_get(n2,'.img',{str})];
+				i4 = [i4, j4*ones(1,n2)];
+				i3 = [i3, j3*ones(1,n2)];
+				i2 = [i2, 1:n2];
+				i1 = [i1, ones(1,n2)];
 			else
-			    for cond  = 1:nCond
-				t_str = [];
-				if nCond > 1
-					t_str = sprintf('Condition %d:',cond);
-				end
-				t_str = [sStudP,sSubjP,t_str,...
-					' Select scans...'];
-				tP    = spm_get(Inf,'.img',t_str);
-				nRepl = size(tP,1);
-				P     = str2mat(P,tP);
-				iStud = [iStud, stud*ones(1,nRepl)];
-				iSubj = [iSubj, subj*ones(1,nRepl)];
-				iCond = [iCond, cond*ones(1,nRepl)];
-				iRepl = [iRepl, 1:nRepl];
+			    disp('l1 within l2')%-**
+			    for j2 = 1:n2
+				sL2P='';
+				if bL2, sL2P=[D.sL{2},'.',int2str(j2),': ']; end
+				str = [sL4P,sL3P,sL2P,' select scans...'];
+				tP  = spm_get(D.n(1),'.img',{str});
+				n1 = size(tP,1);
+				P   = [P;tP];
+				i4 = [i4, j4*ones(1,n1)];
+				i3 = [i3, j3*ones(1,n1)];
+				i2 = [i2, j2*ones(1,n1)];
+				i1 = [i1, 1:n1];
 
-			    end 		% (for cond)
-			end 			% (if ~bMRepl)
-		end 				% (for subject)
-	end 					% (if  nCond==...)
-end 						% (for study)
-
-P(find(all(P'==' ')),:)  = [];
+			    end 		% (for j2)
+			end 			% (if D.n(1)==1)
+		end 				% (for j3)
+	    end					% (if  n2==1 &...)
+	end					% (if D.b.aTime & D.n(2)>1)
+end 						% (for j4)
 
 %-Total #observations
 %-----------------------------------------------------------------------
-q       = length(iStud);
-
-%-Create iSUBJ & iCOND indicators, indicating subjects and conditions
-% uniquely across studies. Watch out for unbalanced designs!
-%-Construct nSUBJ & nCOND as total numbers of subjects and conditions
-% across studies and studies & subjects respectively.
-%-----------------------------------------------------------------------
-nSubj	= iSubj([diff(iStud),1]);   			%-#subject per study
-nSUBJ	= sum(nSubj);               			%-#subjects in total
-tmp	= cumsum([0,nSubj]);
-iSUBJ	= iSubj+tmp(cumsum([1,diff(iStud)])); 		%-Index to subjects
-nCond   = []; for stud=1:nStud, nCond=[nCond,max(iCond(iStud==stud))]; end
-nCOND	= sum(nCond);               			%-#conditions in total
-tmp	= cumsum([0,nCond]);
-iCOND   = iCond+tmp(cumsum([1,diff(iStud)])); 		%-Index to conditions
+nScan = length(P);
+clear n1 n2 n3 n4
 
 
-%-Build Constant, Condition and Block partitions
+%-Build Condition (H) and Block (B) partitions
 %=======================================================================
+eval(['[H,Hnames] = spm_DesMtx(',D.Hform,');'])
+if rank(H)==size(H,1), error('Unestimable condition effects'), end
+eval(['[B,Bnames] = spm_DesMtx(',D.Bform,');'])
+if rank(B)==size(B,1), error('Unestimable block effects'), end
 
-%-Condition partition
-%-----------------------------------------------------------------------
-eval(['[H,Hnames] = spm_DesMtx(',HForm,');'])
-if (nCOND == 1) | (nCOND == q)			%-Unestimable effects
-	H = []; Hnames = ''; end
-
-
-%-Always model block (subject/constant) effects
-%-----------------------------------------------------------------------
-if (nSUBJ == 1) | (nSUBJ == q)
-  	B = ones(q,1); Bnames = 'Constant';
-else
-	[B,Bnames] = spm_DesMtx(iSUBJ,'-','SUBJ');
-end
-
+return
 
 
 %-Covariate partition
@@ -279,124 +249,117 @@ end
 
 %-Generate options for factor by covariate interactions
 %-----------------------------------------------------------------------
-sCovEffInt = str2mat('no','cond','stud','subj');
-iCovEffInt = 1;
-if any(nCOND>1), iCovEffInt = [iCovEffInt,2]; end
-if nStud  > 1, iCovEffInt = [iCovEffInt,3]; end
-if (nSUBJ > 1) & (nSUBJ < q), iCovEffInt = [iCovEffInt,4]; end
-bAskFDCs   = bAskFDCs & (length(iCovEffInt) > 1);
+sCFI = sf_estrrep(sCFI,[sL',D.sL']);
+
+
+% sCovEffInt = strvcat('no','cond','stud','subj');
+% iCovEffInt = 1;
+% if any(nCOND>1), iCovEffInt = [iCovEffInt,2]; end
+% if nStud  > 1, iCovEffInt = [iCovEffInt,3]; end
+% if (nSUBJ > 1) & (nSUBJ < q), iCovEffInt = [iCovEffInt,4]; end
+% bAskFDCs   = bAskFDCs & (length(iCovEffInt) > 1);
 
 
 %-Get covariates of interest
 %-----------------------------------------------------------------------
 C = []; Cnames = ''; Cc = []; Ccnames = '';
 if bAskCov
-    c = spm_input('# of covariates (of interest)',J,'0|1|2|3|4|5|>',0:6,1);
-    if (c == 6), c = spm_input('# of covariates (of interest)',J); end
-    J=J+1;
+    c = spm_input('# of covariates (of interest)','+1','0|1|2|3|4|5|>',0:6,1);
+    if (c == 6), c = spm_input('# of covariates (of interest)','+0'); end
+    GUIpos = spm_input('!NextPos');
     while size(Cc,2) < c
         nCcs = size(Cc,2);
-        d    = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),J);
+        d    = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),GUIpos);
         if size(d,1) == 1, d = d'; end
         if size(d,1) == q
             %-Save raw covariates for printing later on
             Cc = [Cc,d];
             %-Centre the covariate?
             if bAskNCCs
-                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0],1);
+                tmp=spm_input('Centre covariate(s) ?',GUIpos,'yes|no',[1,0],1);
             else, tmp = 1; end
             if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
             dnames = [str,'CovInt#',int2str(nCcs + 1)];
             if size(d,2) == 1
                 %-Single covariate entered - ask about interactions?
-                Ccnames = str2mat(Ccnames,dnames);
+                Ccnames = strvcat(Ccnames,dnames);
                 if bAskFDCs
                     i = spm_input(['Covariate',int2str(nCcs+1),...
-                            ': specific fits'],J,'b',...
+                            ': specific fits'],GUIpos,'b',...
                             sCovEffInt(iCovEffInt,:),iCovEffInt,1);
                     if (i==2) %-Interaction with condition
                         [d,dnames] = spm_DesMtx([iCOND',d],...
-                        'FxC',str2mat('Cond',dnames));
+                        'FxC',strvcat('Cond',dnames));
                     elseif (i==3) %-Interaction with study
-                        [d,dnames] = spm_DesMtx([iStud',d],...
-                        'FxC',str2mat('Stud',dnames));
+                        [d,dnames] = spm_DesMtx([i4',d],...
+                        'FxC',strvcat('Stud',dnames));
                     elseif (i==4) %-Interaction with subject
                         [d,dnames]=spm_DesMtx([iSUBJ',d],...
-                        'FxC',str2mat('SUBJ',dnames));
-                    end % (if)
-                end % (if bAskFDCs)
+                        'FxC',strvcat('SUBJ',dnames));
+                    end
+                end
                 C = [C, d];
-                Cnames = str2mat(Cnames,dnames);
+                Cnames = strvcat(Cnames,dnames);
             else
                 %-Block of covariates entered - add to design matrix
                 for i = nCcs+1:nCcs+size(d,1)
-                    dnames = str2mat(dnames,['rCovInt#',int2str(i)]); end
-                Ccnames = str2mat(Ccnames,dnames);
+                    dnames = strvcat(dnames,['rCovInt#',int2str(i)]); end
+                Ccnames = strvcat(Ccnames,dnames);
                 C = [C, d];
-                Cnames = str2mat(Cnames,dnames);
+                Cnames = strvcat(Cnames,dnames);
             end % (if)
         end % (if)
     end % (while)
 end % (if bAskCov)
-
-
-%-Strip off blank line from str2mat concatenations
-%-----------------------------------------------------------------------
-if size(Cc,2), Cnames(1,:) = []; Ccnames(1,:) = []; end
 
 
 %-Get confounding covariates
 %-----------------------------------------------------------------------
 G = []; Gnames = ''; Gc = []; Gcnames = '';
 if bAskCov
-    g = spm_input('# of confounding covariates',J,'0|1|2|3|4|5|>',0:6,1);
-    if (g == 6), g = spm_input('# of confounding covariates',J); end
-    J=J+1;
+    g = spm_input('# of confounding covariates','+1','0|1|2|3|4|5|>',0:6,1);
+    if (g == 6), g = spm_input('# of confounding covariates','+0'); end
+    GUIpos = spm_input('!NextPos');
     while size(Gc,2) < g
         nGcs = size(Gc,2);
-        d = spm_input(sprintf('[%d] - Covariate %d',[q,nGcs + 1]),J);
+        d = spm_input(sprintf('[%d] - Covariate %d',[q,nGcs + 1]),GUIpos);
         if (size(d,1) == 1), d = d'; end
         if size(d,1) == q
             %-Save raw covariates for printing later on
             Gc = [Gc,d];
             %-Centre the covariate?
             if bAskNCCs
-                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0],1);
+                tmp=spm_input('Centre covariate(s) ?',GUIpos,'yes|no',[1,0],1);
             else, tmp = 1; end
             if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
             dnames = [str,'ConfCov#',int2str(nGcs+1)];
             if size(d,2) == 1
                 %-Single covariate entered - ask about interactions
-                Gcnames = str2mat(Gcnames,dnames);
+                Gcnames = strvcat(Gcnames,dnames);
                 if bAskFDCs
                     iCovEffInt(iCovEffInt==2)=[];
                     i = spm_input(['Confound',int2str(nGcs + 1),...
-                            ': specific fits'],J,'b',...
+                            ': specific fits'],GUIpos,'b',...
                             sCovEffInt(iCovEffInt,:),iCovEffInt,1);
                      if (i==3) %-Interaction with study      
-                         [d,dnames] = spm_DesMtx([iStud',d],...
-                         'FxC',str2mat('Stud',dnames));
+                         [d,dnames] = spm_DesMtx([i4',d],...
+                         'FxC',strvcat('Stud',dnames));
                      elseif (i==4) %-Interaction with subject
                          [d,dnames]=spm_DesMtx([iSUBJ',d],...
-                         'FxC',str2mat('SUBJ',dnames));
-                     end % (if)
-                end % (if bAskFDCs)
+                         'FxC',strvcat('SUBJ',dnames));
+                     end
+                end
             else
                 %-Block of covariates entered - add to design matrix
                 for i = nGcs+1:nGcs+size(d,1)
-                     dnames = str2mat(dnames,['rConfCov#',int2str(i)]); end
-                Gcnames = str2mat(Gcnames,dnames);
-            end % (if)
+                     dnames = strvcat(dnames,['rConfCov#',int2str(i)]); end
+                Gcnames = strvcat(Gcnames,dnames);
+            end
             G = [G, d];
-            Gnames = str2mat(Gnames,dnames);
+            Gnames = strvcat(Gnames,dnames);
         end % (if)
     end % (while)
 end % (if bAskCov)
-
-
-%-Strip off blank line from str2mat concatenations
-%-----------------------------------------------------------------------
-if size(Gc,2), Gnames(1,:)=[]; Gcnames(1,:)=[]; end
 
 
 %-Global normalization options
@@ -408,8 +371,7 @@ if iGloNorm>9
 	str = int2str(iGloNorm);
 	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
 	iGloNorm=spm_input...
-	    ('Select global normalisation',J,'m',sGloNorm(tmp,:),tmp);
-	J   = J + 1;
+	    ('Select global normalisation','+1','m',sGloNorm(tmp,:),tmp);
 end
 
 %-Grand mean scaling options
@@ -424,34 +386,33 @@ if iGMsca>9
 	% don't offer study specifics if not bMStud
 	if (iGloNorm==2 | ~bMStud) & any(tmp==3), tmp(find(tmp==3))=[]; end
 	iGMsca=spm_input...
-	    ('Grand mean scaling',J,'m',sGMsca(tmp,:),tmp,max(tmp));
-	J=J+1;
+	    ('Grand mean scaling','+1','m',sGMsca(tmp,:),tmp,max(tmp));
 end
-if iGMsca>1,	GM = spm_input('Value for grand mean ?',J,'e',50); J=J+1;
+if iGMsca>1,	GM = spm_input('Value for grand mean ?','+1','e',50);
 		if GM==0, iGMsca=1; end
 else, GM=0; end
 
 %-Get threshold defining voxels to analyse
 %-----------------------------------------------------------------------
-THRESH = spm_input('Gray matter threshold ?',J,'e',0.8); J=J+1;
+THRESH = spm_input('Gray matter threshold ?','+1','e',0.8);
 
 
 %-Get contrasts or linear compound for parameters of interest [H C]
 %-----------------------------------------------------------------------
 a     = size([H C],2);
-if a>0, t = spm_input('# of contrasts',J); J=J+1;
-	else, t=0; end
+if a>0, t = spm_input('# of contrasts','+1'); else, t=0; end
 CONTRAST = [];
 while size(CONTRAST,1) < t
-	d = spm_input(sprintf('[%d] - contrast %d',a,size(CONTRAST,1) + 1),J);
+	d = spm_input(sprintf('[%d] - contrast %d',a,size(CONTRAST,1)+1),'+0');
  	if (size(d,2) ~= a), d = d'; end
 	if (size(d,2) == a), CONTRAST = [CONTRAST; d]; end
-end % (while)
+end
 
 
 %-The interactive parts of spm_spm_ui are now finished
 %-----------------------------------------------------------------------
-set(Finter,'Name','thankyou','Pointer','Watch')
+set(Finter,'Name','thankyou')
+spm('Pointer','Watch')
 
 
 
@@ -491,8 +452,8 @@ elseif iGMsca==2
 	GX     = GX*GM/mean(GX);
 elseif iGMsca==3
 	%-Grand mean scaling by block
-	for i = 1:max(iStud)
-		SStu_d = find(iStud==i); SStu_m = mean(GX(SStu_d));
+	for i = 1:max(i4)
+		SStu_d = find(i4==i); SStu_m = mean(GX(SStu_d));
 		V(7,SStu_d)  = V(7,SStu_d) *GM/SStu_m;
 		GX(SStu_d)   = GX(SStu_d)  *GM/SStu_m;
 	end
@@ -502,9 +463,8 @@ else, error('Invalid iGMsca option'), end
 %-Centre global means if included in AnCova models, by mean correction.
 %-----------------------------------------------------------------------
 %-Save scaled globals for printing later on
-Gc    = [Gc,GX];
-if isempty(Gcnames), Gcnames = 'Global';
-    else Gcnames = str2mat(Gcnames,'Global'); end
+Gc      = [Gc,GX];
+Gcnames = strvcat(Gcnames,'Global');
 
 if iGloNorm == 1				%-No global adjustment
 %-----------------------------------------------------------------------
@@ -519,32 +479,29 @@ elseif iGloNorm == 2				%-Proportional scaling
 
 elseif iGloNorm == 3				%-AnCova
 %-----------------------------------------------------------------------
-    G = [G,(GX - mean(GX))];
-    if isempty(Gnames), Gnames = 'Global';
-        else Gnames = str2mat(Gnames,'Global'); end
+    G      = [G,(GX - mean(GX))];
+    Gnames = strvcat(Gnames,'Global');
 
 elseif iGloNorm == 4				%-AnCova by subject
 %-----------------------------------------------------------------------
     [GL,GLnames] = spm_DesMtx([iSUBJ',GX-mean(GX)],'FxC',['SUBJ  ';'Global']);
-    G = [G,GL];
-    if isempty(Gnames), Gnames = GLnames;
-        else Gnames = str2mat(Gnames,GLnames); end
+    G      = [G,GL];
+    Gnames = strvcat(Gnames,GLnames);
 
 elseif iGloNorm == 5				%-AnCova by study
 %-----------------------------------------------------------------------
-    [GL,GLnames] = spm_DesMtx([iStud',GX-mean(GX)],'FxC',['Stud  ';'Global']);
-    G = [G,GL];
-    if isempty(Gnames), Gnames = GLnames;
-        else Gnames = str2mat(Gnames,GLnames); end
+    [GL,GLnames] = spm_DesMtx([i4',GX-mean(GX)],'FxC',['Stud  ';'Global']);
+    G      = [G,GL];
+    Gnames = strvcat(Gnames,GLnames);
 else
 
     fprintf('%cError: invalid iGloNorm option\n',7)
 
-end % (if)
+end % (if iGloNorm)
 
 %-Construct full design matrix and name matrices for display
 %-----------------------------------------------------------------------
-[nHCBG,HCBGnames] = spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
+[nHCBG,HCBGnames] = spm_DesMtx('sca',H,Hnames,C,Cnames,B,Bnames,G,Gnames);
 
 
 %-Ensure validity of contrast of condition effects, zero pad
@@ -556,7 +513,7 @@ if ~isempty(CONTRAST)
 			tmp = ones(size(H,2),1);
 		else
 			tmp = zeros(size(H,2),1);
-			tmp(cumsum([1,nCond(1:nStud-1)])) = ones(nStud,1);
+			tmp(cumsum([1,n2(1:nStud-1)])) = ones(nStud,1);
 			tmp = cumsum(tmp);
 		end
 		d        = 1:size(H,2);
@@ -603,10 +560,10 @@ text(x,0.87,'Filename Tails');
 y     = y0;
 for i = 1:q
 	text(-0.12,y,sprintf('%02d :',i));
-	if bMStud, text(-0.06,y,sprintf('%2d',iStud(i))); end
-	if bMSubj, text(-0.01,y,sprintf('%2d',iSubj(i))); end
-	if bMCond, text(+0.04,y,sprintf('%2d',iCond(i))); end
-	if bMRepl, text(+0.09,y,sprintf('%2d',iRepl(i))); end
+	if bMStud, text(-0.06,y,sprintf('%2d',i4(i))); end
+	if bMSubj, text(-0.01,y,sprintf('%2d',i3(i))); end
+	if bMCond, text(+0.04,y,sprintf('%2d',i2(i))); end
+	if bMRepl, text(+0.09,y,sprintf('%2d',i1(i))); end
 	x     = x0;
 	for j = 1:size(Cc,2)
 		text(x,y,sprintf('%-8.6g',Cc(i,j)),'FontSize',10)
@@ -622,8 +579,8 @@ for i = 1:q
 		y = y0;
 		text(0.16,1.02,['Statistical analysis (continued)'],...
 		    'Fontsize',16,'Fontweight','Bold');
-	end % (if y < 0)
-end % (for i = 1:q)
+	end
+end
 
 y      = y - dy;
 dy     = dy*1.2;
@@ -638,7 +595,7 @@ end
 text(0,y,sprintf(...
     'Gray matter threshold is %6.0f%% of the whole brain mean',THRESH*100))
 y = y - dy;
-tmp = [str2mat(' ',Cnames,Gnames)];
+tmp = [strvcat(' ',Cnames,Gnames)];
 if any(tmp(:,1)=='r'), str=' (except those tagged ''r'')'; else str=''; end
 text(0,y,['Covariates',str,' are centered before inclusion in design matrix'])
 
@@ -662,7 +619,7 @@ dx    = 1/size(nHCBG,2);
 for i = 1:size(nHCBG,2)
 	text((i - 0.5)*dx,y,deblank(HCBGnames(i,:)),...
 		'Fontsize',8,'Rotation',90)
-end % (for)
+end
 
 
 %-Display parameter summary
@@ -693,4 +650,6 @@ spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
 
 %-Clear figure
 %-----------------------------------------------------------------------
-spm_clf(Finter); set(Finter,'Name',' ','Pointer','Arrow');
+spm_clf(Finter)
+set(Finter,'Name',' ')
+spm('Pointer','Arrow')
