@@ -233,7 +233,7 @@ for stud  = 1:nStud
 	end 					% (if  nCond==...)
 end 						% (for study)
 
-P(1,:)  = [];
+P(find(all(P'==' ')),:)  = [];
 
 %-Total #observations
 %-----------------------------------------------------------------------
