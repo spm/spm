@@ -1,8 +1,8 @@
-function LogFile = spm_log(varargin)
+function LOGFILE = spm_log(varargin)
 % SPM logging function. Writes string arguments out to a log file.
-% FORMAT LogFile = spm_log(varargin)
+% FORMAT LOGFILE = spm_log(varargin)
 % varargin - Matrices to be written to the log file.
-% LogFile  - The name of the log file.
+% LOGFILE  - The name of the log file.
 %__________________________________________________________________________
 %
 % spm_log implements logging for the SPM package. The log file is
@@ -15,22 +15,18 @@ function LogFile = spm_log(varargin)
 
 %-Find out LogFile name, return if not logging.
 %============================================================================
-global LOGFILE; LogFile=LOGFILE;
-if isempty(LogFile), return, end
-
-if nargin==0, return, end
+if any(strcmp(who('global'),'LOGFILE')), global LOGFILE; else, LOGFILE=''; end
+if nargin==0 | isempty(LOGFILE), return, end
 
 %-Open LogFile
 %----------------------------------------------------------------------------
-[fid,message] = fopen(LogFile,'a');
+[fid,msg] = fopen(LOGFILE,'a');
 if fid==-1
-    if strcmp(message,'Sorry. No help in figuring out the problem . . .')
-	tmp = LogFile;
-	if (tmp(1)~='/'); tmp = [pwd '/' tmp]; end
-	fprintf('%cspm_log error:  No write permission for ''%s''\n',...
-		7,tmp);
+    if strcmp(msg,'Sorry. No help in figuring out the problem . . .')
+	warning(sprintf('spm_log error:  No write permission for %s',...
+		spm_str_manip(tmp,'p')))
     else    
-	fprintf('%cspm_log error:  No logging!\n\t%s\n\n',7,message);
+	warning(['spm_log error: ',msg])
     end    
     return
 end
@@ -46,12 +42,9 @@ for arg = 1:nargin
 	        Str = '[]';
 	else
 		%-Build string matrix representation of numeric matrix
-		fmt = '%8.6g ';
-		%if all(floor(tmp(:))==ceil(tmp(:)))
-		%fmt=['%',int2str(ceil(log10(max([1,abs(tmp(:))])))+1),'d '];end
-		Str = sprintf(fmt,tmp(1,:));
-		for r = 2:size(tmp,1)
-			Str = str2mat(Str,sprintf(fmt,tmp(r,:))); end
+		Str = '';
+		for r = 1:size(tmp,1)
+			Str = strvcat(Str,sprintf('%8.6g ',tmp(r,:))); end
 	end
 	for str = Str', fprintf(fid,[str','\n']); end
 end
@@ -60,4 +53,4 @@ fprintf(fid,'\n');
 %-Close log
 %----------------------------------------------------------------------------
 status = fclose(fid);
-if fid==-1, fprintf('%cspm_log : error closing file, fid = %d\n',7,fid); end
+if fid==-1, warning('spm_log : error closing file'), end
