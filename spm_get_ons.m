@@ -102,7 +102,8 @@ for i = 1:v
 	% onsets
 	%---------------------------------------------------------------
 	try
-		ons = U(i).ons(:);
+		ons = U(i).ons;
+		ons = ons(:);
 	catch
 		ons = [];
 	end
@@ -116,7 +117,8 @@ for i = 1:v
 	% durations
 	%---------------------------------------------------------------
 	try
-		dur = U(i).dur(:);
+		dur = U(i).dur;
+		dur = dur(:);
 	catch
 		dur = [];
 	end
