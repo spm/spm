@@ -646,12 +646,15 @@ spm_help('!ContextHelp',mfilename)
 
 %-Delete files from previous analyses...
 %-----------------------------------------------------------------------
-if exist('./SPMcfg.mat','file')==2
-	warning(sprintf(['Current directory contains an SPMcfg.mat...\n',...
-			'\t(pwd = %s)'],pwd))
-	if ~spm_input('Overwrite existing SPMcfg?','+1','y/n',[1,0],2)
-		error('Existing SPMcfg.mat: Run in another directory...')
-	end
+if exist(fullfile('.','SPMcfg.mat'),'file')==2
+    spm('alert*',{...
+        'Current directory already contains an SPM stats configuration.',...
+        ['        (pwd = ',pwd,')'],...
+        ' ','Rerun in a directory without an SPMcfg.mat file!',...
+        ' ','(The SPMcfg.mat file contains design configuration data)'},...
+        mfilename,sqrt(-1));
+	error(['current directory contains an existing ',...
+		'SPMcfg.mat design setup file...'])
 end
 
 
@@ -1315,15 +1318,37 @@ xsDes = struct(	'Design',			{D.DesName},...
 %-Save SPMcfg.mat file
 save SPMcfg SPMid D xsDes VY xX xC xGX xM F_iX0
 
-%-Display Design report & "Run" button
+
+%-Display Design reports
 %=======================================================================
-spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
+spm_DesRep('Files&Factors',{VY.fname}',xX.I,xC,xX.sF,xM.xs)
+spm_print
+
+if ~isempty(xC)
+	spm_DesRep('Covs',xX,xC)
+	spm_print
+end
+
+spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
+spm_print
 
 
-%-End: Cleanup GUI
-%=======================================================================
-spm('FigName','Stats: configured',Finter,CmdLine); spm('Pointer','Arrow')
+%-Analysis Proper?
+%===========================================================================
+spm('Pointer','Arrow')
+if spm_input('estimate?','_+0','b','now|later',[1,0],1)
+	drawnow
+	spm('Pointer','Watch')
+	spm_spm(VY,xX,xM,F_iX0,xC,xsDes)
+	spm('FigName','Stats: estimating...',Finter,CmdLine);
+else
+	% spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
+	spm('FigName','Stats: configured',Finter,CmdLine);
+	spm('Pointer','Arrow')
+end
+spm('Pointer','Arrow')
 fprintf('\n\n')
+
 
 
 
@@ -1482,7 +1507,7 @@ if strcmp(lower(Action),'desrep')
 	spm_print
 	
 	%-Covariates
-	spm_DesRep('Covs',SPMcfg.xC,SPMcfg.xX.X,SPMcfg.xX.Xnames)
+	spm_DesRep('Covs',SPMcfg.xX,SPMcfg.xC)
 	spm_print
 
 	spm_figure('Clear','Graphics')
@@ -1496,8 +1521,7 @@ if any(strcmp(lower(Action),{'desrep','desrepui'}))
 	cb = {	['spm_DesRep(''Files&Factors'',',...
 			'{UD.VY.fname}'',UD.xX.I,UD.xC,UD.xX.sF,UD.xM.xs)'],...
 		['spm_DesRep(''DesMtx'',UD.xX,{UD.VY.fname}'',UD.xsDes)'],...
-		['spm_DesRep(''Covs'',',...
-			'UD.xC,UD.xX.X,UD.xX.Xnames)']	};
+		['spm_DesRep(''Covs'',UD.xX,UD.xC)']	};
 	if ~length(SPMcfg.xC), Labels(3)=[]; cb(3)=[]; end
 	spm_input('','!_-1','b!',Labels,cb,SPMcfg,1);
 
