@@ -34,14 +34,14 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 % without prompting
 %
 % Voxels are retained for further analysis if the F ratio for that
-% voxel is significant (p < 0.05 uncorrected) and all the voxels have a
+% voxel is significant (p < UFp uncorrected) and all the voxels have a
 % reasonably high activity [the threhsold is specified as a fraction
 % (usually 0.8) of the whole brain mean].
 %
 %   SPMF.mat contains a 1 x N vector of F values reflecting the omnibus
 % significance of effects [of interest] at each of the N 'significant'
 % voxels.  'Significance' is defined by the p-value of the F threshold
-% (p < 0.05).
+% (p < UFp).
 %
 %   XYZ.mat contains a 3 x N matrix of the x,y and z location of the
 % voxels in SPMF in mm (usually referring the the standard anatomical
@@ -108,7 +108,7 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 % written and the values are scaled by a factor of 16 (i.e. 32 = a Z value
 % of 2)
 %
-% Results matrices in .mat files (at voxels satisfying P{F > f} < 0.05)
+% Results matrices in .mat files (at voxels satisfying P{F > f} < UFp)
 %-----------------------------------------------------------------------
 % XA 	-	adjusted data  		{with grand mean}
 % BETA 	-	parameter estimates	{mean corrected}
@@ -121,7 +121,7 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 
 % ANALYSIS PROPER
 %=======================================================================
-global CWD
+global CWD UFp
 cd(CWD);
 
 %-Delete files from previous analyses, if they exist
@@ -152,7 +152,7 @@ for i = 1:size(CONTRAST,1)
 	spm_hwrite([str '.hdr'],V(1:3,1),V(4:6,1),1/16,2,0,ORIGIN,['spm{Z}']);
 end
 
-%-Critical value for F comparison at probability threshold \alpha=0.05
+%-Critical value for F comparison at probability threshold \alpha=UFp
 %-----------------------------------------------------------------------
 %-NB K, constant partition is only present if H is empty (see spm_spm_ui)
 % As we always want to remove mean, a Ko partition is generated for testing
@@ -166,7 +166,7 @@ if ~isempty([H C])
 else
 	Fdf = [r - rank(Ko),df];
 end
-UF      = spm_invFcdf(1 - 0.05,Fdf);
+UF      = spm_invFcdf(1 - UFp,Fdf);
 
 
 %-Initialise variables
@@ -333,7 +333,7 @@ load XYZ
 load SPMF
 axes('Position',[-0.05 0.5 0.8 0.4]);
 spm_mip(sqrt(SPMF),XYZ,V(1:6))
-title(sprintf('SPM{F} p < 0.05, df: %d,%d',Fdf),'FontSize',16,'Fontweight','Bold')
+title(sprintf('SPM{F} p < %f, df: %d,%d',UFp,Fdf),'FontSize',16,'Fontweight','Bold')
 text(240,220,sprintf('Search volume: %d voxels',S))
 text(240,240,sprintf('Image size: %d %d %d voxels',V(1:3)))
 text(240,260,sprintf('Voxel size  %0.1f %0.1f %0.1f mm',V(4:6)))
