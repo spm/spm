@@ -50,11 +50,9 @@ function [Z,XYZ] = spm_projections(Z,XYZ,u,k,V,W,S,G,C,df)
 
 global CWD
 
-%-If called with output arguments (i.e. from spm_projections_ui.m)
-% *and* global proj_MultiPage is true then allow multi-page tables.
+%-If global proj_MultiPage is true then allow multi-page tables.
 %-----------------------------------------------------------------------
 global proj_MultiPage, if isempty(proj_MultiPage), proj_MultiPage = 0; end
-if (nargout & proj_MultiPage), bMultiPage = 1; else, bMultiPage = 0;   end
 
 
 %-Display, characterize and print SPM{Z}
@@ -183,7 +181,7 @@ str   = sprintf('%-0.3f   (%i)',Pc,c);
 h     = text(0.00,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
 hPage = [hPage, h];
 
-while max(Zm) & ((y > 2) | bMultiPage)
+while max(Zm) & ((y > 2) | proj_MultiPage)
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
