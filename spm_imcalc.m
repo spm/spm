@@ -36,7 +36,7 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 %
 % See spm_imcalc_ui for example usage...
 %_______________________________________________________________________
-% @(#)spm_imcalc.m	2.6 John Ashburner, Andrew Holmes 98/08/18
+% %W% John Ashburner, Andrew Holmes %E%
 
 
 %-Parameters & arguments
