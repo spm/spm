@@ -126,7 +126,9 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	N     = sb(2);						% columns per slice
 	n     = M*N;						% voxels per slice
 
-	if V1(3,1) == 1; dQ = dQ([1 2 6],:); end			% 3 params for slices
+	U = [1 2 3 4 5 6];
+	if V1(3,1) == 1; U = [1 2 6]; end			% 3 params for slices
+
 	if sb(3) == 0; S = 1; end				% 1 section for slices
 
 	C1 = spm_get_space(spm_str_manip(P(1,:), 'd'));
@@ -135,13 +137,13 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	%----------------------------------------------------------------------------
 	X     = zeros(n*length(S),1);
 	Y     = zeros(n*length(S),1);
-	dXdQ  = zeros(n*length(S),size(dQ,1));
+	dXdQ  = zeros(n*length(S),size(U,2));
 	for i = 1:length(S)
 		B     = spm_matrix([-bb(1,1) -bb(1,2) -S(i) 0 0 0 1 1 1]);
 		x     = spm_slice_vol(V1,inv(B),[M N], Hold);
 	  	X([1:n] + (i - 1)*n) = x(:);
-	        for j = 1:size(dQ,1);
-			A      = spm_matrix(dQ(j,:));
+	        for j = 1:size(U,2)
+			A      = spm_matrix(dQ(U(j),:));
 			d      = spm_slice_vol(V1,inv(B*inv(C1)*A*C1),[M N],Hold);
 			dX     = d - x;
 			dXdQ(([1:n] + (i - 1)*n),j) = dX(:);
@@ -180,7 +182,8 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 			Y(([1:n] + (j - 1)*n)) = y(:);
 	  	end
 		q0 = [-dXdQ Y]\X;
-	 	q      = q - q0(1:size(dQ,1))'*dQ;
+		q0 = q0(1:size(U,2));
+	 	q      = q - q0'*dQ(U,:);
 	    end
 	    Q(k,:) = q;
 
