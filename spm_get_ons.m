@@ -214,7 +214,7 @@ if v
 			% create stick functions
 			%-----------------------------------------------
 			for j = 1:length(on)
-				i     = i + 1
+				i     = i + 1;
 	    			ons   = sparse(k*T,1);
 				ons(round(on{j}*T + 1)) = 1;
 				sf{i} = ons(1:(k*T));
