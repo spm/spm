@@ -20,7 +20,7 @@ function varargout=spm_figure(varargin)
 % should bring up the menu.)
 %
 % Print: Creates a footnote (detailing the SPM version, user & date)
-% and evaluates PRINTSTR (see spm_defaults.m). Graphics windows with
+% and evaluates defaults.printstr (see spm_defaults.m). Graphics windows with
 % multi-page axes are printed page by page.
 %
 % Clear: Clears the Graphics window. If in SPM usage (figure 'Tag'ed as
@@ -134,7 +134,7 @@ function varargout=spm_figure(varargin)
 % F	- [Optional] Figure to print. ('Tag' or figure number)
 %	  Defaults to figure 'Tag'ed as 'Graphics'.
 %	  If none found, uses CurrentFigure if avaliable.
-% PRINTSTR - global variable holding print command to be evaluated
+% defaults.printstr - global variable holding print command to be evaluated
 %	  Defaults to 'print -dps2 fig.ps'
 % If objects 'Tag'ed 'NextPage' and 'PrevPage' are found, then the
 % pages are shown and printed in order. In breif, pages are held as
@@ -346,9 +346,10 @@ iPaged    = ~isempty(hNextPage);
 
 %-Construct print command
 %-----------------------------------------------------------------------
-if any(strcmp(who('global'),'PRINTSTR'))
-	global PRINTSTR
-else
+global defaults
+if ~isempty(defaults),
+	PRINTSTR = defaults.printstr;
+else,
 	PRINTSTR = [spm_figure('DefPrintCmd'),'spm.ps'];
 end
 
