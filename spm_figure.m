@@ -40,12 +40,14 @@ function R1=spm_figure(Action,P2,P3,P4)
 % 	   using the MatLab BRIGHTEN command, with  beta's of +0.2 and -0.2
 % 	   respectively.
 %
-% Editing:
+% Editing: Right button ('alt' button) cancels operations
 % * Cut  : Deletes the graphics object next selected (if deletable)
 % * Move : To re-position a text, uicontrol or axis object using a
 %          'drag and drop' implementation (i.e. depress - move - release)
+%          Using the middle 'extend' mouse button on a text object moves
+%          the axes containing the text - i.e. blocks of text.
 % * Size : Re-sizes the text, uicontrol or axis object next selected
-%          {left button - decrease, right button  - increase} by a factor
+%          {left button - decrease, middle button  - increase} by a factor
 %          of 1.24 (or increase/decrease FontSize by 2 dpi)
 % * Text : Creates an editable text widget that produces a text object as
 %          its CallBack.
@@ -599,6 +601,12 @@ hBut  = gco;
 set(hBut,'ForegroundColor','r')
 waitforbuttonpress;
 
+if strcmp(get(gcf,'SelectionType'),'alt')
+	%-Quit option
+	set(hBut,'ForegroundColor','k')
+	return
+end
+
 h = gco(F);
 NoDel=[F; findobj(F,'Tag','NoDelete')];
 if ( ~any(h==NoDel) & (gcf==F) ), delete(h); end
@@ -611,12 +619,19 @@ return
 elseif strcmp(lower(Action),lower('GraphicsMoveStart'))
 %=======================================================================
 % Move the next object clicked, provided it's movable and in this figure
+% "alt" mouse button cancels operation
 % spm_figure('GraphicsMove')
 
 F = gcf;
 hMoveBut  = gco;
 set(hMoveBut,'ForegroundColor','r')
 waitforbuttonpress;
+
+if strcmp(get(gcf,'SelectionType'),'alt')
+	%-Quit option
+	set(hMoveBut,'ForegroundColor','k')
+	return
+end
 
 hPress = gco;
 NoDel=[F; findobj(F,'Tag','NoDelete')];
@@ -625,6 +640,8 @@ if (~any(hPress==NoDel) & gcf==F)
 	OPt  = get(F,'CurrentPoint');
 	tmp  = get(hPress,'Type');
 	if ( strcmp(tmp,'patch') | strcmp(tmp,'line') | strcmp(tmp,'image') )
+		hMove = get(hPress,'Parent');
+	elseif strcmp(get(gcf,'SelectionType'),'extend') & strcmp(tmp,'text')
 		hMove = get(hPress,'Parent');
 	else
 		hMove = hPress;
@@ -637,9 +654,6 @@ if (~any(hPress==NoDel) & gcf==F)
 	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')',...
 		'Interruptible','no')
 end
-
-set(hMoveBut,'ForegroundColor','k')
-
 return
 
 
@@ -662,7 +676,7 @@ elseif strcmp(lower(Action),lower('GraphicsMoveEnd'))
 %=======================================================================
 
 hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
-set(hMoveBut,'UserData',[])
+set(hMoveBut,'UserData',[],'ForegroundColor','k')
 set(gcf,'WindowButtonMotionFcn',' ')
 set(gcf,'WindowButtonUpFcn',' ')
 
@@ -673,6 +687,9 @@ return
 elseif strcmp(lower(Action),lower('GraphicsSize'))
 %=======================================================================
 % Change size of next object clicked, provided it's editable and in figure
+% "normal" mouse button decreases size
+% "extend" mouse button increases size
+% "alt" mouse button cancels operation
 % spm_figure('GraphicsSize')
 
 F = gcf;
@@ -680,10 +697,16 @@ hBut  = gco;
 set(hBut,'ForegroundColor','r')
 waitforbuttonpress;
 
+if strcmp(get(gcf,'SelectionType'),'alt')
+	%-Quit option
+	set(hBut,'ForegroundColor','k')
+	return
+end
+
 h = gco(F);
 NoDel=[F; findobj(F,'Tag','NoDelete')];
 if ( ~any(h==NoDel) & (gcf==F) )
-	u = strcmp(get(F,'SelectionType'),'alt');
+	u = strcmp(get(F,'SelectionType'),'extend');
 	c  = get(h,'Type');
 	if ( strcmp(c,'patch') | strcmp(c,'line') | strcmp(c,'image') )
 		h = get(h,'Parent'); c = get(h,'Type'); end
@@ -716,6 +739,12 @@ set(F,'Pointer','BotL')
 waitforbuttonpress;
 set(F,'Pointer','Arrow')
 set(F,'Name',tmp)
+
+if strcmp(get(gcf,'SelectionType'),'alt')
+	%-Quit option
+	set(hBut,'ForegroundColor','k')
+	return
+end
 
 set(F,'Units','Normalized')
 CPt = get(F,'CurrentPoint');
