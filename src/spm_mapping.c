@@ -310,7 +310,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 
 		/* http://msdn.microsoft.com/library/default.asp?
 		       url=/library/en-us/fileio/base/createfile.asp */
-		hFile = CreateFile(buf, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		hFile = CreateFile(buf, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
 		mxFree(buf);
 		if (hFile == NULL)
 			mexErrMsgTxt("Cant open file.  It may be locked by another program.");
@@ -324,15 +324,15 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 
 		/* http://msdn.microsoft.com/library/default.asp?
 		       url=/library/en-us/fileio/base/mapviewoffile.asp */
-		maps[i].addr    = MapViewOfFileEx(hMapping, FILE_MAP_READ, 0, 0, maps[i].len, 0);
+		maps[i].addr    = (caddr_t)MapViewOfFileEx(hMapping, FILE_MAP_READ, 0, 0, maps[i].len, 0);
 		(void)CloseHandle(hMapping);
 		if (maps[i].addr == NULL)
 			mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");
+
 #else
 		maps[i].addr = mmap((caddr_t)0, maps[i].len,
 			PROT_READ, MAP_SHARED, fd, (off_t)0);
 		(void)close(fd);
-#endif
 		if (maps[i].addr == (void *)-1)
 		{
 			(void)perror("Memory Map");
@@ -341,6 +341,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 			mexErrMsgTxt("Cant map image file.");
 		}
 		mxFree(buf);
+#endif
 	}
 
 
@@ -398,7 +399,6 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 			maps[i].data[j]   = maps[i].addr+j*maps[i].dim[0]*maps[i].dim[1]*dsize/8;
 		}
 	}
-
 
 	tmp=mxGetField(ptr,i,"mat");
 	if (tmp != (mxArray *)0)

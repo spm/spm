@@ -241,7 +241,11 @@ uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
 % Drives
 if strcmpi(computer,'PCWIN'),
-    drivestr  = spm_win32utils('drives');
+    dr  = spm_win32utils('drives');
+    drivestr = cell(1,numel(dr));
+    for i=1:numel(dr),
+        drivestr{i} = [dr(i) ':'];
+    end;
     %drivestr = {'A:','B:','C:','D:'};
     sz = get(db,'Position');
     sz(4) = sz(4)-fh-2*0.01;

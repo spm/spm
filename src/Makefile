@@ -94,7 +94,7 @@ windows:
 #
 	make all SUF=dll\
 	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
-	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"\
+	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="chmod 755"\
 	        ADDED_MEX=spm_win32utils.dll
 
 CYGWIN_NT-4.0: windows
