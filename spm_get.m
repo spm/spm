@@ -380,7 +380,7 @@ WS = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
 F  = figure('IntegerHandle','off',...
 	'Tag','SelFileWin',...
 	'Name',[spm('GetUser'),' - SPMget'],'NumberTitle','off',...
-	'Position',[S(3)/2-400/2,S(4)/2-395/2,400,395].*WS,...
+	'Position',[1152/2-400/2,900/2-395/2,400,395].*WS,...
 	'Resize','off',...
 	'Color',[1 1 1]*.8,...
 	'Units','Pixels',...
@@ -659,19 +659,15 @@ switch lower(Vis), case 'close'
 	close(F)
 	varargout = {[],cF};
 	return
-case 'reset'
+case {'off','reset'}
 	varargout = {F,cF};				%-Return figure handles
-	if isempty(F), return, end
-	set(F,'Visible','off')				%-Make window Invisible
-	set(findobj(F,'Tag','Done'),'UserData',-1)	%-Set Done UserData to -1
-	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
-	drawnow
-	return
-case 'off'
-	if isempty(F), varargout={[],cF}; return, end
+	if isempty(F), return, end			%-...if no SelFileWin
 	varargout = {F,cF};				%-Return figure handles
 	set(F,'Visible','off')				%-Make window Invisible
 	set(findobj(F,'Tag','Done'),'UserData',1)	%-Set Done UserData to 1
+	if strcmp(lower(Vis),'reset')
+		set(findobj(F,'Tag','Done'),'UserData',-1)
+	end
 	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
 	drawnow
 	return
@@ -706,7 +702,7 @@ case 'on'
 	set(0,'CurrentFigure',cF)			%-Return to prev. figure
 
 otherwise
-	error('Unrecognised ''Vis'' option in spm_get(''Initialise'',...')
+	error('Unrecognised ''Vis'' option')
 end
 
 
@@ -1483,7 +1479,18 @@ n = get(findobj(F,'Tag','Prompt'),'UserData');
 %-If #files was specified, and not enough have been selected, then return
 if isfinite(n) & isreal(n)
 	P = get(findobj(F,'Tag','P'),'UserData');
-	if (size(P,1)<abs(n)), fprintf('%c',7), return, end
+	if (size(P,1)<abs(n))
+		if n== 1,	str = 'Must select a file!';
+		elseif n==-1,	str = 'Must select a directory!';
+		elseif n>1,	str = sprintf('Must select %d files!',n);
+		elseif n<-1,	str = sprintf('Must select %d directories!',-n);
+		else
+				str = 'should never see this!';
+		end
+		fprintf('%c',7)
+		msgbox(str,['SPM: ',mfilename],'error','modal')
+		return
+	end
 end
 
 %-Done, set Done UserData tag for handling
