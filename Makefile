@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.13 2002-11-18 17:24:10 john Exp $
+# $Id: Makefile,v 2.14 2003-01-22 17:46:07 john Exp $
 #
 ###############################################################################
 #
@@ -42,9 +42,9 @@ Linux.5:
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable" MEX="mex COPTIMFLAGS=-O"
 IRIX:
-	make all SUF=mexsg   CC="cc  -O -mips2"             MEX="mex -O"
+	make all SUF=mexsg   CC="cc  -O -mips2"             MEX="mex"
 IRIX64:
-	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex -O"
+	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex"
 AIX:
 	make all SUF=mexrs6
 OSF1:
@@ -102,7 +102,7 @@ SPMMEX =\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_bias_mex.$(SUF) $(ADDED_MEX)
+	spm_bias_mex.$(SUF) spm_dilate.$(SUF) $(ADDED_MEX)
 
 ###############################################################################
 # The main ways to run make
@@ -213,6 +213,8 @@ spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
 
 spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
 
+spm_getdata.$(SUF).o: spm_getdata.c 
+
 spm_mapping.$(SUF).o:     spm_mapping.c spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) -c spm_mapping.c
 	mv spm_mapping.$(MOSUF) $@
@@ -261,6 +263,8 @@ spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 spm_hist2.$(SUF):      spm_hist2.c spm_sys_deps.h
 
 spm_krutil.$(SUF): spm_krutil.c spm_sys_deps.h
+
+spm_dilate.$(SUF): spm_dilate.c
 
 spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
 

@@ -56,6 +56,84 @@ function spm_realign_ui(opt)
 %
 %_______________________________________________________________________
 %
+% In addition to realigning (transforming the images according to a rigid
+% body model) the time series there is the option of modelling the residual 
+% movement related variance in an EPI (fMRI) time series that can be 
+% explained by a model for suceptibility-by-movement interactions. This
+% is given by the "Realign & Unwarp" option.
+%
+% Susceptibility artefacts in EPI time series is a consequence of the
+% "field disturbances" caused by the presence of an object in the field.
+% Susceptibility is a property of a material, and can be thought of as
+% the "resistance" put up by that material against being magnetised.
+% At the interface between materials with different susceptibility
+% rather severe field disturbancies will ensue. I.e. the field is
+% no longer nice and homogenous. Since varying field strenght (gradients)
+% is used to encode position in MRI, these disturbances cause spatial
+% misplacement of RF signal, i.e. geometric distortions. Because of
+% the low bandwidth in the phase encode direction these distortions
+% will be appreciable mainly in that direction (typically the Ant-Post
+% direction). The distortions are noticable mainly near air-tissue
+% interfaces inside the scull, i.e. near the sinuses and the auditory
+% canals. 
+%
+% In these areas in particular the observed image is a severly warped 
+% version of reality, much like a funny mirror at a fair ground. When 
+% one moves in front of such a mirror ones image will distort in 
+% different ways and ones head may change from very elongated to 
+% seriously flattened. If we were to take digital snapshots of the 
+% reflection at these different positions it is rather obvious that 
+% realignment alone will not suffice to bring them into a common space. 
+%
+% The situation is similar with EPI images, and an image collected 
+% for a given subject position will not be identical to that collected 
+% at another. We call this effect suscebtibility-by-movement interaction. 
+% The "Unwarp" toolbox is predicated on the assumption that the 
+% suscebtibility-by-movement interaction is responsible for a sizeable 
+% part of residual movement related variance.
+%
+% Assume that we know how the deformations change when the subject changes 
+% position (i.e. we know the derivatives of the deformations with respect 
+% to subject position). That means that for a given time series and a 
+% given set of subject movements we should be able to predict the "shape 
+% changes" in the object and the ensuing variance in the time series. 
+% It also means that, in principle, we should be able to formulate the 
+% inverse problem, i.e. given the observed variance (after realignment) 
+% and known (estimated) movements we should be able to estimate how 
+% deformations change with subject movement. 
+%
+% We have made an attempt at formulating such an inverse model, and at 
+% solving for the "derivative fields". A deformation field can be thought 
+% of as little vectors at each position in space showing how that particular 
+% location has been deflected. A "derivative field" is then the rate of 
+% change of those vectors with respect to subject movement. Given these 
+% "derivative fields" we should be able to remove the variance caused by 
+% the suscebtibility-by-movement interaction. Since the underlying model 
+% is so restricted we would also expect experimentally induced variance 
+% to be preserved. 
+%
+% Refs
+%
+% Background reading:
+%
+% Friston KJ, Williams SR, Howard R, Frackowiak RSJ and Turner R (1995)
+% Movement-related effect in fMRI time-series.  Mag. Res. Med. 35:346-355
+%
+% Jezzard P and Balaban RS (1995) Correction for geometric distortions
+% in echoplanar images from B0 field variations. Magn Reson Med 34:65-73
+%
+% Wu DH, Lewin JS and Duerk JL (1997) Inadequacy of motion correction
+% algorithms in functional MRI: Role of susceptibility-induced artefacts.
+% J Magn Reson Imag 7:365-370
+%
+% About this particular method:
+%
+% Andersson JLR, Hutton C, Ashburner J, Turner R, Friston K (2001)
+% Modelling geometric deformations in EPI time series. NeuroImage
+% 13:903-919. doi:10.1006/nimg.2001.0746
+%
+%_______________________________________________________________________
+%
 %                        The Prompts Explained
 %_______________________________________________________________________
 %
@@ -222,25 +300,51 @@ function spm_realign_ui(opt)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 %__________________________________________________________________________
+%
+% The *uw.mat file.
+%
+% The *uw.mat file contains information about input to the Unwarp module 
+% (i.e. how it was run) and about the result. It contains all the information
+% needed to unwarp the appurtenant time-series, and to assess exactly how the
+% estimation was done.
+%__________________________________________________________________________
 % %W% John Ashburner - with input from Oliver Josephs %E%
+% and Jesper Andersson
+
 global defaults
 
 if nargin==0 | strcmp(lower(opt),'ui'),
+   if get(gcbo,'Value') < 2
 	run_ui(defaults.realign, defaults.modality);
+   else
+        run_ui(defaults.realign, defaults.modality, defaults.unwarp);
+   end
 elseif nargin>0 & strcmp(lower(opt),'defaults'),
 	defaults.realign = get_defs(defaults.realign);
+elseif nargin>0 & strcmp(lower(opt),'unwarpdefaults'),
+        defaults.unwarp = get_unwarp_defs(defaults.realign);
 end;
 return;
 
-function run_ui(defs, modality)
+function run_ui(defs, modality, unwarp)
 % User interface.
 %_______________________________________________________________________
-SPMid                   = spm('FnBanner',mfilename,'%I%');
+SPMid                   = spm('FnBanner',mfilename,'2.10');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 spm_help('!ContextHelp',mfilename);
 
 n     = spm_input('Num subjects', '+1', 'e', 1);
 if n<1, spm_figure('Clear','Interactive'); return; end
+
+%
+% Possibility to include measured field-map temporarily removed.
+%
+pcpm = 0;
+%if strcmp(lower(modality),'fmri') & nargin > 2
+%	pcpm = spm_input('Include pre-calculated phase maps?','+1','m',...
+%		[' Yes| No'],[1 0],0);
+%end
+   
 
 P = cell(n,1);
 for i = 1:n,
@@ -249,13 +353,20 @@ for i = 1:n,
 		pp = cell(1,ns);
 		for s=1:ns,
 			p = '';
+                        pm = '';
 			while size(p,1)<1,
 				p = spm_get(Inf,'IMAGE',...
 					['Images, subj ' num2str(i) ', sess' num2str(s)]);
+				if pcpm == 1
+					pm = spm_get(1,'IMAGE',...
+					['Phasemap, subj ' num2str(i) ', sess' num2str(s)]);
+				end
 			end;
 			pp{s} = p;
+                        ppm{s} = pm;
 		end;
 		P{i} = pp;
+                pP{i} = ppm;
 	else,
 		p  = cell(1,1);
 		p{1} = '';
@@ -274,9 +385,13 @@ else,
 	FlagsC = struct('quality',defs.estimate.quality,'fwhm',5,'rtm',0);
 end;
 
-WhchPtn = spm_input('Which option?', '+1', 'm',...
-	'Coregister only|Reslice Only|Coregister & Reslice',...
-	[1 2 3],3);
+if nargin < 3
+	WhchPtn = spm_input('Which option?', '+1', 'm',...
+		'Coregister only|Reslice Only|Coregister & Reslice',...
+		[1 2 3],3);
+else
+	WhchPtn = 3;
+end
 
 PW = '';
 if (WhchPtn == 1 | WhchPtn == 3) & defs.estimate.weight,
@@ -290,6 +405,50 @@ if (WhchPtn == 1 | WhchPtn == 3) & defs.estimate.weight,
 	end;
 end;
 
+if nargin > 2
+	foe = spm_input('Model field changes w.r.t.','+1','m',...
+		['Pitch & Roll|All|Customise'],...
+		[1:2 0],1);
+	if foe == 1
+		foe = [4 5];
+	elseif foe == 2
+		foe = 1:6;
+	else
+		foe = spm_input('First order effects','+0','e',...
+			'4 5',Inf)';
+	end
+	if unwarp.estimate.soe == 2
+		tmp = spm_input('Second order effects','+1','m',...
+		['None|All first order effects|Customise'],...
+		[1:3],1);
+		if tmp == 1
+			soe = [];
+		else
+			cnt = 1;
+			for i=1:size(foe,2)
+				for j=i:size(foe,2)
+					soe(cnt,1) = foe(i);
+					soe(cnt,2) = foe(j);
+					cnt = cnt+1;
+				end
+			end
+			if tmp == 3
+				string = '[';
+				for i=1:cnt-1
+					string = [string sprintf('%d %d; ',soe(i,1),soe(i,2))];
+				end
+				string = [string(1:end-2) ']'];
+				soe = spm_input('Second order effects','+0','e',...
+                 			string,[Inf 2]);
+			end
+		end
+	else
+		soe = [];
+	end
+		
+end
+
+
 % Reslicing options
 %-----------------------------------------------------------------------
 if WhchPtn == 2 | WhchPtn == 3,
@@ -300,31 +459,96 @@ if WhchPtn == 2 | WhchPtn == 3,
 
 	if strcmp(lower(modality),'pet'), FlagsR.wrap = [0 0 0]; end;
 
-	p = spm_input('Create what?','+1','m',...
-		[' All Images (1..n)| Images 2..n|'...
-		 ' All Images + Mean Image| Mean Image Only'],...
-		[1 2 3 4],3);
-	if p==1, FlagsR.which = 2; FlagsR.mean = 0; end
-	if p==2, FlagsR.which = 1; FlagsR.mean = 0; end
-	if p==3, FlagsR.which = 2; FlagsR.mean = 1; end
-	if p==4, FlagsR.which = 0; FlagsR.mean = 1; end
+	if nargin < 3
+		p = spm_input('Create what?','+1','m',...
+			[' All Images (1..n)| Images 2..n|'...
+			 ' All Images + Mean Image| Mean Image Only'],...
+			[1 2 3 4],3);
+		if p==1, FlagsR.which = 2; FlagsR.mean = 0; end
+		if p==2, FlagsR.which = 1; FlagsR.mean = 0; end
+		if p==3, FlagsR.which = 2; FlagsR.mean = 1; end
+		if p==4, FlagsR.which = 0; FlagsR.mean = 1; end
+	else
+		p = spm_input('Create what?','+1','m',...
+			[' All Images (1..n)| All Images + Mean Image'],[1 3],3);
+		if p==1, FlagsR.which = 2; FlagsR.mean = 0; end
+		if p==3, FlagsR.which = 2; FlagsR.mean = 1; end
+	end
+
 end;
 
-spm('Pointer','Watch');
-for i = 1:n
-	if WhchPtn==1 | WhchPtn==3,
+%
+% If doing realignment only
+%
+if nargin < 3
+	spm('Pointer','Watch');
+	for i = 1:n
+		if WhchPtn==1 | WhchPtn==3,
+			spm('FigName',['Realigning subj ' num2str(i)],Finter,CmdLine);
+			flagsC = FlagsC;
+			if ~isempty(PW), flagsC.PW = deblank(PW(i,:)); end;
+			spm_realign(P{i},flagsC);
+		end
+		if WhchPtn==2 | WhchPtn==3,
+			spm('FigName',['Reslicing subj ' num2str(i)],Finter,CmdLine);
+			spm_reslice(P{i},FlagsR);
+		end;
+	end;
+	spm('FigName','Realign: done',Finter,CmdLine);
+	spm('Pointer');
+%
+% If doing realignment and unwarping
+%
+else
+	uwe_flags = struct('order',    unwarp.estimate.basfcn,...
+			'sfield',      [],...
+			'regorder',    unwarp.estimate.regorder,...
+			'lambda',      unwarp.estimate.regwgt,...
+			'jm',          unwarp.estimate.jm,...
+			'fot',         foe,...
+			'sot',         soe,...
+			'fwhm',        unwarp.estimate.fwhm,...
+			'rem',         unwarp.estimate.rem,...
+			'noi',         unwarp.estimate.noi,...
+			'exp_round',   unwarp.estimate.expround);
+
+
+	uwr_flags = struct('interp',   defs.write.interp,...
+			'wrap',        defs.write.wrap,...
+			'mask',        defs.write.mask,...
+			'which',       FlagsR.which,...
+			'mean',        FlagsR.mean);
+	if unwarp.estimate.jm == 1
+		uwr_flags.udc = 2;
+	else
+		uwr_flags.udc = 1;
+	end
+
+	for i = 1:n
+		spm('Pointer','Watch');
 		spm('FigName',['Realigning subj ' num2str(i)],Finter,CmdLine);
 		flagsC = FlagsC;
 		if ~isempty(PW), flagsC.PW = deblank(PW(i,:)); end;
 		spm_realign(P{i},flagsC);
+		spm('Pointer');
+                clear ads
+                tmpP = spm_vol(P{i}{1}(1,:));
+                uwe_flags.M = tmpP.mat;
+		for j=1:length(P{i})
+			if pcpm > 0
+				uwe_flags.sfield = pP{i}{j};
+			end
+			ds = spm_uw_estimate(P{i}{j},uwe_flags);
+                        ads(j) = ds;
+			[path,name,ext,ver] = fileparts(P{i}{j}(1,:));
+			pefile = fullfile(path,[name '_uw.mat']);
+			save(pefile,'ds');
+		end		
+		spm_uw_apply(ads,uwr_flags);
 	end
-	if WhchPtn==2 | WhchPtn==3,
-		spm('FigName',['Reslicing subj ' num2str(i)],Finter,CmdLine);
-		spm_reslice(P{i},FlagsR);
-	end;
-end;
-spm('FigName','Realign: done',Finter,CmdLine);
-spm('Pointer');
+end
+
+
 return;
 %_______________________________________________________________________
 
@@ -374,3 +598,36 @@ defs.write.mask  = spm_input(['Mask images?'], '+1', 'm',...
 
 return;
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function defs = get_unwarp_defs(defs)
+
+orders = [6 6; 8 8; 10 10; 12 12];
+lambdas = [1e4 1e5 1e6];
+
+defs.estimate.fwhm = spm_input('Filter width (mm)','+1','e',...
+                               '4',1);
+
+defs.estimate.basfcn = spm_input('No. of basis functions','+1','m',...
+                                 ['6x6x*|8x8x*|10x10x*|12x12x*'],...
+                                 [1:4],3);
+defs.estimate.basfcn = orders(defs.estimate.basfcn,:);
+
+defs.estimate.regwgt = spm_input('Amount of regularisation','+1','m',...
+                                 ['A little|Medium|A lot'],...
+                                 [1:3],2);
+defs.estimate.regwgt = lambdas(defs.estimate.regwgt);
+
+defs.estimate.rem = spm_input('Re-estimation of movement parameters?','+1','m',...
+                              ['Yes|No'],[1 0],1);
+
+keyboard
+defs.estimate.jm = spm_input('Include Jacobian intensity modulation?','+1','m',...
+                             ['Yes|No'],[1 0],2);
+
+defs.estimate.soe = spm_input('Second order effects','+1','m',...
+                              ['None|Customise'],...
+                              [1:2],1);
+
+return
+

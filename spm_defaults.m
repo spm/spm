@@ -47,6 +47,22 @@ defaults.realign.write.mask      = 1;
 defaults.realign.write.interp    = 4;
 defaults.realign.write.wrap      = [0 0 0];
 
+% Unwarp defaults
+%=======================================================================
+defaults.unwarp.estimate.fwhm    = 4;
+defaults.unwarp.estimate.basfcn  = [10 10];
+defaults.unwarp.estimate.regorder= 1;
+defaults.unwarp.estimate.regwgt  = 1e5;
+defaults.unwarp.estimate.soe     = 1;
+defaults.unwarp.estimate.rem     = 1;
+defaults.unwarp.estimate.jm      = 0;
+defaults.unwarp.estimate.noi     = 5;
+defaults.unwarp.estimate.expround= 'Average';
+%
+% Unwarp uses defaults.realign.write 
+% defaults for writing.
+%
+
 % Coregistration defaults
 %=======================================================================
 defaults.coreg.estimate.cost_fun = 'nmi';
