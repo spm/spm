@@ -311,7 +311,7 @@ elseif strcmp(arg1, 'Reset')
 	if exist('spm_defaults')==2
 		spm_defaults;
 	end
-   if isempty(batch_mat)	
+   if isempty(BCH)	
       	spm('chmod',MODALITY);
    else
       	spm('defaults',MODALITY);
