@@ -1,6 +1,7 @@
-function [Ep,Cp,Ce,H0,H1,H2,K0,K1,K2,A,B,C,D] = spm_nlsi(M,U,Y)
+function varargout = spm_nlsi(M,U,Y)
 % nonlinear system identification of a MIMO system
 % FORMAT [Ep,Cp,Ce,H0,H1,H2,K0,K1,K2,A,B,C,D] = spm_nlsi(M,U,Y)
+% FORMAT          [H0,H1,H2,K0,K1,K2,A,B,C,D] = spm_nlsi(M)
 %
 % Model specification
 %---------------------------------------------------------------------------
@@ -69,29 +70,46 @@ function [Ep,Cp,Ce,H0,H1,H2,K0,K1,K2,A,B,C,D] = spm_nlsi(M,U,Y)
 %   dx/dt = f(x,u) = A*x + B1*x*u1 + ... Bm*x*um + C1u1 + ... Cmum + D
 %    y(t) = l(x(t))
 %
+% If the inputs U and outputs Y are not specified the model is simply
+% characterised in terms of its Volterra kernels and Bilinear
+% approximation expanding around M.pE
+%
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
-
 % dimensions
 %---------------------------------------------------------------------------
-[u m]  = size(U.u);					% m inputs
-[v l]  = size(Y.y);					% l outputs
-n      = length(M.x);					% n state variables
+n          = M.n;				% m inputs
+m          = M.m;				% l outputs
+l          = M.l;				% n state variables
 
-% get constraints on Cov{e} - C1
+% Determine expansion point for Bilinear and kernel representations
 %---------------------------------------------------------------------------
-if ~isfield(Y,'Ce')
-	Ce    = spm_Ce(v*ones(1,l));
+if nargin == 3
+
+	% get dimensions of inputs and outputs
+	%-------------------------------------------------------------------
+	[u m]  = size(U.u);
+	[v l]  = size(Y.y);
+	n      = length(M.x);
+
+	% get constraints on Cov{e} - C1
+	%-------------------------------------------------------------------
+	if ~isfield(Y,'Ce')
+		Ce = spm_Ce(v*ones(1,l));
+	else
+		Ce = Y.Ce;
+	end
+
+	% Gauss-Newton/Bayesian/EM estimation
+	%===================================================================
+	[Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y,Ce);
+
 else
-	Ce    = Y.Ce;
+	% Use prior expectation to expand around
+	%-------------------------------------------------------------------
+	Ep         = M.pE;
 end
-
-
-% Gauss-Newton/Bayesian/EM estimation
-%===========================================================================
-[Ep,Cp,Ce]    = spm_nlsi_GN(M,U,Y,Ce);
-
 
 % Bilinear representation
 %===========================================================================
@@ -131,4 +149,12 @@ for j = 1:m
 		end
 	end
 end
+end
+
+% output arguments
+%---------------------------------------------------------------------------
+if nargin == 3
+	varargout = {Ep,Cp,Ce,H0,H1,H2,K0,K1,K2,A,B,C,D};
+else
+	varargout = {H0,H1,H2,K0,K1,K2,A,B,C,D};
 end
