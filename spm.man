@@ -1,86 +1,129 @@
 
-% CONTENTS
-% _____________________________________________________
+% Statistical Parametric Mapping - SPM'96
+%_______________________________________________________________________
 % 
-% 1) SPM - General comments
-% 2) New features in SPM95
-% 3) Bibliography
-% 
-% _____________________________________________________
+%  ___  ____  __  __
+% / __)(  _ \(  \/  )  Statistical Parametric Mapping
+% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+% (___/(__)  (_/\/\_)  University College London
 %
-% 1) SPM - General comments
+% John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
+%_______________________________________________________________________
+%
+% Contents:
+%      1) SPM - General comments
+%      2) New features in SPM'96
+%      3) Bibliography - see spm_pet.man & spm_fmri.man
+% 
+% ====================
+% 1) SPM - An overview
+% ====================
 % 
 % Statistical parametric mapping (SPM) refers to the construction of
 % spatially extended statistical process that are used to test
 % hypotheses using [neuro]imaging data.  This idea has been
 % instantiated in software that is (perhaps unfortunately) also called
 % SPM.  This software also deals with other issues in image analysis
-% such as spatial registration and normalisation problems.  SPM95 can
-% be considered shareware.  SPM94 was written primarily by Karl Friston
-% with lots of help from John Ashburner, Jon Heather and Andrew
-% Holmes.  SPM95 has benefited from substantial input (technical and
-% theoretical) from the John Ashburner, Andrew Holmes, Jean-Baptiste
-% Poline and Keith Worsley.  We envisage that this software will be
-% used in a diverse number of ways.  Although it has been most
-% exhaustively tested with PET data we expect that it will also be
-% applied to SPECT and fMRI data.
-% 
+% such as spatial registration and normalisation problems.
+%
 % SPM was written to organise and interpret our data (at the Wellcome
 % Department of Cognitive Neurology and the MRC Cyclotron Unit, London
-% UK) and the distributed version is the same as that we use
-% ourselves.  The current version was written on a SPARC 10 workstation
-% in OpenWindows using MATLAB (Version 4.2c. MathWorks Inc. Sherborn MA
-% USA) during the first half of 1995.  It has not been tested on any
-% other platform.   No formal support or maintenance is provided;
-% however the software is sufficiently simple and transparent that is
-% should be maintenance free.   SPM requires MATLAB to run (no special
-% toolboxes are required).  To ensure compatibility with ANALYZE the
-% same image and header format is retained.  This image format is a
-% very simple one (see Data Format).
+% UK) The distributed version is the same as that we use ourselves.
+% The current version was written on HyperSPARC 20-HS21 workstations
+% (64Mb RAM, 200Mb swap) under Solaris2.4 and OpenWindows3.4 using
+% MATLAB (Version 4.2c.  MathWorks Inc. Sherborn MA USA).  SPM requires
+% only core MATLAB to run (no special toolboxes are required).  The
+% image format used is the simple header and image file format of
+% ANALYZE (Mayo Clinic) (see "Data Format" in the online help).
+%
+% Support
+% -------
+% SPM has not been tested on any other platform, though various groups
+% have ported (parts) of the package to other UNIX platforms.  No
+% formal support or maintenance is provided; however the software is
+% sufficiently simple and transparent that is should be maintenance
+% free. In particular there is no manual.  The primary reference for
+% the software are the theoretical papers published in the peer
+% reviewed literature.  An informal email help line exists, which the
+% authors monitor. To join this list, email
+% spm-help-request+@andrew.cmu.edu, submissions should then be sent to
+% the list address at spm-help+@andrew.cmu.edu.
+%
+% Availability
+% ------------
+% The Wellcome Department of Cognitive Neurology maintain a Web site
+% (URL http://www.fil.ion.ucl.ac.uk/spm) and an anonymous ftp site
+% (ftp.fil.ion.bpmf.ac.uk) from which the SPM distribution,
+% manuscripts, sample data sets and other resources can be obtained.
+% SPM can be considered shareware.
 % 
+% SPM'94 was written primarily by Karl Friston in the first half of
+% 1994, with lots of help from John Ashburner, Jon Heather and Andrew
+% Holmes.  Subsequent development has benefited from substantial input
+% (technical and theoretical) from John Ashburner, Andrew Holmes,
+% Jean-Baptiste Poline and Keith Worsley.  We envisage that this
+% software will be used in a diverse number of ways.  Although SPM has
+% grown out of a PET background, it is becoming an established package
+% for routine analysis of fMRI data.
+% 
+% The SPM distribution
+% --------------------
 % SPM is a collection of files that are used by the commercial
 % matrix-oriented environment MATLAB.  These files include:
 % 
-% spm_*.m files:    ASCII files that form the main structure for SPM.
-% These files are interpreted by MATLAB at the point that they are
-% invoked.  This is slower than writing everything in C; however the
-% fundamental advantage of having a didactic pseudo code specification
-% of this sort is preferred over implementational efficacy.
+% spm_*.m files: ASCII files that form the main structure for SPM. 
+%       Most of SPM is written as MatLab functions. These are compiled
+%       at their first invocation, leading to a slight selay in the
+%       startup of some routines. MatLab script files are occasionally
+%       used. These are interpreted by MATLAB, but have the advantage
+%       of working in the base MatLab workspace, such that their
+%       results are available to the user after completion.
+%
+% Clearly MatLab is slower than writing everything in fully optimised
+% C; however the fundamental advantage of having a didactic pseudo code
+% specification of this sort is preferred over implementational
+% efficacy. Further, MatLab *is* optimised for matrix and vector
+% operations, which are utilised whenever possible.
 % 
-% spm_*.c:    ASCII files that are complied in a MATLAB-specific
-% fashion to produce programs that can be called directly from MATLAB.
-% Once compiled these routines are suffixed in a platform dependant
-% fashion (e.g. spm_*.mex4 or mexsol).  These routines implement memory
-% mapping and numerical operations that are called frequently.
+% spm_*.c:       ASCII files that are complied in a MATLAB-specific
+%       fashion to produce programs that can be called directly from
+%       MATLAB.  Once compiled these routines are suffixed in a
+%       platform dependant fashion (e.g. spm_*.mex4 or mexsol).  These
+%       routines implement memory mapping and some numerical and image
+%       operations that are called frequently.  Precompiled Mex files
+%       are provided for Solaris2 platforms, a Makefile is included for
+%       other platforms.
 % 
-% spm_*.man:   ASCII files containing manual pages.
+% spm_*.man:     ASCII files containing manual pages.
 % 
-% *.mat      -  Files with a MATLAB specific header structure that can
-% be loaded directly into MATLAB. These files contain images and other
-% data in matrix format, usually in double precision (see MATLAB user's
-% guide)
+% *.mat          MATLAB specific data files that can be loaded directly
+%       into MATLAB. These files contain images and other data in matrix
+%       format, usually in double precision (see MATLAB user's guide)
 % 
 % Where possible the user interface and computational or analytical
 % aspects of the software have been segregated such that spm_*_ui.m
 % sets up the user interface and assembles the appropriate input
 % arguments for spm_*.m.  spm_*.m contains the statistical and
 % mathematical implementation of a generic nature.  spm_*.m would be of
-% greater interest to those whose wish to incorporate SPM95 into an
+% greater interest to those whose wish to incorporate SPM into an
 % existing package with its own 'front end'.
 % 
-% _____________________________________________________
+%_______________________________________________________________________
+%
+% ========================
+% 2) New features in SPM96
+% ========================
+%
+% iiv)    Non parametric Statistical Methods
+%  iv)    Interface improvements
+%   v)    Help
+%  vi)    Source code control
+% ???)    Miscellaneous
 % 
-% 2) New features in SPM95
+% In addition, there are several minor extensions and additions that
+% are not detailed here.
 % 
-% i)    [S]PET vs. Functional MRI
-% ii)   Alignment (fMRI to fMRI and MRI to PET)
-% iii)  Spatial normalisation
-% iv)   Statistics
-% v)    Help
-% 
-% There are several minor extensions and additions that are not detailed here.
-% 
-% ----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % New features - i - [S]PET vs. Functional MRI
 % 
@@ -203,32 +246,64 @@
 % 
 % _____________________________________________________
 % 
-% New features - iv - Help
-% 
-% The Help facility has bee redesigned to recursively call more
-% elemental subroutines (each of which has its own help page[s]).  This
-% should facilitate a more complete and accessible understanding of the
-% overall design and functionality.  Many of the Help pages have
-% changed slightly so please take time to review them.
-% 
-% 
+% New features - iii - Non-Parametric Statistical Methods
+%
 % _____________________________________________________
+% 
+% New features - iv - Interface Improvements
+%
+% The file selector dialog (spm_get.m) now gives "summary views" for
+% directories with a large number of files (after filtering). The
+% summary view shows blocks of files with similar filenames (e.g.
+% s0095_*.img). These multi-file items can be selected, deleted, and
+% expanded to permit selection of individual files. This dramatically
+% speeds up file selection for large numbers of similarly named files,
+% such as in fMRI analysis.
+%
+% SPM can now be switched between PET & fMRI "modes" using a pull-down
+% menu on the SPM Menu window. This changes some of the Menu buttons,
+% sets the MODALITY global varaiable, and sets the default values for
+% the modality.
+% _____________________________________________________
+% 
+% New features - v - Help
+% 
+% The Help facility has been improved to to allow previous topics to be
+% recalled, enhancing the recursive help facility. Also, multi-page
+% help files now print properly.
+%
+% Many of the Help pages have changed slightly so please take time to
+% review them.
+% _____________________________________________________
+% 
+% New features - v - Source code control
+%
+% We now use SCCS source control for SPM development. The SCCS
+% subdirectory is shipped with SPM. At it's most basic, this enables
+% you to see the improvements/alterations between releases, and to
+% compare any customised versions you may have with the SCCS history.
+% SCCS was introduced after the release of SPM'95, so most of SPM'95's
+% routines can be regarded as v1.1, although some were edited between
+% release and introduction of source control.
+% _____________________________________________________
+% 
+% New features - v - Miscellaneous
+%
+% Filtered SPM{Z} can be written out to Analyze files (spm_projections_ui)
+%_______________________________________________________________________
 %
 % 3) Bibliography.
 % 
 % For those of you having difficulties getting hold of back issues of
-% Human Brain Mapping and NeuroImage our pre-prints of our
-% methodological papers (germane to SPM) are available via FTP.  This
-% material is kept as uncompressed PostScript files in SPM95_papers.
-% The subdirectory names correspond to the abstracts below.  We have
-% only listed those papers whose content is directly related to the
-% software.  Other papers concerning multivariate analysis,
-% multidimensional scaling, functional and effective connectivity are
-% not included.
+% Human Brain Mapping and NeuroImage manuscripts of our methodological
+% papers (germane to SPM) are available via the Web. The Wellcome
+% Department of Cognitive Neurology's Web page is
+% http://www.fil.ion.ucl.ac.uk/, where links lead to the manuscripts
+% page. This page is kept up to date with current references, which are
+% linked to PostScript and Acrobat versions of (most of) the papers.
+%
 % 
-% 
-% 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % SPM_1: Spatial registration and normalisation of images Friston KJ,
 % Ashburner J, Frith CD, Poline J-B,  Heather JD and Frackowiak RSJ
@@ -256,7 +331,7 @@
 % parameters and is a useful background read that deals with the many
 % instantiations of this theory in SPM95
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_1:  Movement-related effects in fMRI time-series Friston KJ,
 % Williams SR, Howard R, Frackowiak RSJ and Turner R.  Magnetic
@@ -287,7 +362,7 @@
 % movement-related effects in a theoretically driven and mathematical
 % way.
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_2:  The analysis of functional MRI time-series Friston KJ,
 % Jezzard P   and Turner R Human Brain Mapping  2:69-78
@@ -313,7 +388,7 @@
 % fMRI.  Its most important contribution was a formal introduction of
 % the hemodynamic response function.
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % SPM_2: Assessing the significance of focal activations using their
 % spatial extent.  Friston KJ, Worsley KJ, Frackowiak RSJ, Mazziotta JC
@@ -338,7 +413,7 @@
 % a brief review of the more general use of the theory of Gaussian
 % fields in statistical parametric mapping.
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % SPM_3: Statistical parametric maps in functional imaging: A general
 % linear approach Friston KJ, Holmes AP, Worsley KJ, Poline J-P Frith
@@ -373,7 +448,7 @@
 % spatially extended statistical process, that is then interpreted with
 % reference to the theory of Gaussian fields.
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % SPM_4: Estimating smoothness in statistical parametric maps:
 % Confidence intervals on p values Poline J.-B, Friston K.J., Worsley
@@ -397,7 +472,7 @@
 % A short paper dealing with the impact of estimating smoothness on
 % statistical inference using SPMs
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_3:  Analysis of fMRI time-series revisited Friston KJ, Holmes
 % AP, Poline J-B, Grasby PJ, Williams SCR, Frackowiak RSJ and Turner R
@@ -429,7 +504,7 @@
 % analysis of fMRI time-series.  In retrospect however the story did
 % not end here.
 %
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_4:  Analysis of fMRI time-series revisited - again Worsley KJ
 % and Friston KJ NeuroImage - submitted
@@ -457,7 +532,7 @@
 % impinges upon experimental design and the treatment of data (e.g.
 % spatial smoothing).
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_5:  Characterising dynamic brain responses with fMRI: A
 % multivariate approach Friston KJ, Frith CD, Frackowiak RSJ, & Turner
@@ -499,7 +574,7 @@
 % These observations were taken and built into the univariate approach
 % as described in the next paper.
 % 
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 % 
 % fMRI_6:  Characterising evoked hemodynamics with fMRI Friston KJ,
 % Frith CD, Turner R, & Frackowiak RSJ NeuroImage - in press
@@ -528,8 +603,5 @@
 % temporal basis functions to make inferences about differences in
 % hemodynamics responses to changing tasks or conditions.
 % 
-%--------------------------------------------------------------------------
-% 
-%
 %__________________________________________________________________________
-% %W% %E%
+% %W% The FIL methods group. %E%
