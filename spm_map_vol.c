@@ -17,7 +17,7 @@ int nlhs, nrhs;
 Matrix *plhs[], *prhs[];
 #endif
 {
-	char *str;
+	char *str, errstr[2048];
 	int k,stlen, datasize, fd;
 	MAPTYPE *map;
 	double *ptr;
@@ -84,29 +84,33 @@ Matrix *plhs[], *prhs[];
 
 	if ((fd = open(str, O_RDONLY)) == -1)
 	{
+		(void)sprintf(errstr,"Cant open image file (%s).", str);
 		mxFree(str);
-		mexErrMsgTxt("Cant open image file.");
+		mexErrMsgTxt(errstr);
 	}
 
 	if (fstat(fd, &stbuf) == -1)
 	{
 		(void)close(fd);
+		(void)sprintf(errstr,"Cant stat image file (%s).", str);
 		mxFree(str);
-		mexErrMsgTxt("Cant stat image file.");
+		mexErrMsgTxt(errstr);
 	}
 	if (stbuf.st_size < map->off+map->len)
 	{
 		(void)close(fd);
+		(void)sprintf(errstr,"Image file too small (%s).", str);
 		mxFree(str);
-		mexErrMsgTxt("Image file too small.");
+		mexErrMsgTxt(errstr);
 	}
 
 	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, (off_t)0);
 	if (map->map == (caddr_t)-1)
 	{
 		(void)close(fd);
+		(void)sprintf(errstr,"Cant map image file (%s).", str);
 		mxFree(str);
-		mexErrMsgTxt("Cant map image file.");
+		mexErrMsgTxt(errstr);
 	}
 	map->data = (unsigned char *)(map->map) + map->off;
 	mxFree(str);
