@@ -461,20 +461,21 @@ for i=valid_handles(1:24),
 	area = st.vols{i}.area(:);
 	area = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
 	if st.mode == 0,
-		sx   = area(3)/(Dims(1)+Dims(3))/1.05;
+		sx   = area(3)/(Dims(1)+Dims(3))/1.02;
 	else,
-		sx   = area(3)/(Dims(1)+Dims(2))/1.05;
+		sx   = area(3)/(Dims(1)+Dims(2))/1.02;
 	end;
-	sy   = area(4)/(Dims(2)+Dims(3))/1.05;
+	sy   = area(4)/(Dims(2)+Dims(3))/1.02;
 	s    = min([sx sy]);
-	offx = (area(3)-(Dims(1)+Dims(3))*s)/2 + area(1);
-	offy = (area(4)-(Dims(2)+Dims(3))*s)/2 + area(2);
 
-	sky = s*(Dims(2)+Dims(3))*0.05;
+	offy = (area(4)-(Dims(2)+Dims(3))*1.02*s)/2 + area(2);
+	sky = s*(Dims(2)+Dims(3))*0.02;
 	if st.mode == 0,
-		skx = s*(Dims(1)+Dims(3))*0.05;
+		offx = (area(3)-(Dims(1)+Dims(3))*1.02*s)/2 + area(1);
+		skx = s*(Dims(1)+Dims(3))*0.02;
 	else,
-		skx = s*(Dims(1)+Dims(2))*0.05;
+		offx = (area(3)-(Dims(1)+Dims(2))*1.02*s)/2 + area(1);
+		skx = s*(Dims(1)+Dims(2))*0.02;
 	end;
 
 	DeleteFcn = ['spm_orthviews(''Delete'',' num2str(i) ');'];
