@@ -96,9 +96,9 @@ for i=1:length(hdr),
 	% the upper left corner of the image. Perhaps it is unlucky that this is
 	% calculated in the syngo software from the vector pointing to the center of
 	% the slice (keep in mind: upper left slice) with the enlarged FoV.
-	dicom_to_patient = [diag(vox)*orient pos ; 0 0 0 1];
+	dicom_to_patient = [orient*diag(vox) pos ; 0 0 0 1];
 	truepos          = dicom_to_patient *[(size(mosaic)-dim(1:2))/2 1 1]';
-	dicom_to_patient = [diag(vox)*orient truepos(1:3) ; 0 0 0 1];
+	dicom_to_patient = [orient*diag(vox) truepos(1:3) ; 0 0 0 1];
 	patient_to_tal   = diag([-1 -1 1 1]);
 	mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
 
