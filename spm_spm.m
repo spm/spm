@@ -103,6 +103,7 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % XA 	-	adjusted data  		{with grand mean}
 % BETA 	-	parameter estimates	{mean corrected}
 % XYZ	-	location 		{mm [Talairach]}
+% RES 	-	residual SSQ
 % SPMF	-	SPM{F}
 % SPMt	-	SPM{Z}
 %
@@ -116,7 +117,7 @@ global UFp
 
 %-Delete files from previous analyses, if they exist
 %-----------------------------------------------------------------------
-spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat
+spm_unlink XA.mat RES.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat
 
 
 % temporal convolution of the design matrix - dispersion = SIGMA
