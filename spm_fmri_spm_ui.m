@@ -464,8 +464,13 @@ xX.xVi = xVi;
 
 %-Effects designated "of interest" - constuct F-contrast structure array
 %-----------------------------------------------------------------------
-F_iX0  = struct(	'iX0',		xX.iB,...
-			'name',		'effects of interest');
+if length(xX.iC)
+	F_iX0  = struct(	'iX0',		xX.iB,...
+				'name',		'effects of interest');
+else
+	F_iX0  = [];
+	DSstr  = 'Block [session] effects only';
+end
 
 %-trial-specifc effects specified by Sess
 %-----------------------------------------------------------------------
