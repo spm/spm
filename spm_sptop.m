@@ -23,8 +23,9 @@ if length(sigma) == 1
 	x  = [-E:E];
 	k  = exp(-x.^2/(2*sigma^2));
 else
+	E  = length(sigma);
+	x  = [1:E] - fix(E/2);
 	k  = sigma;
-	x  = [1:length(k)] - 1;
 end
 
 % and create convolution matrix
