@@ -1,22 +1,21 @@
 
-% rendering of regional effects [SPM{Z}] on transverse sections
+% Rendering of regional effects [SPM{Z/F}] on transverse sections
 % FORMAT spm_transverse
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
-% spm_transverse is called by spm_sections_ui and uses variable in working
+% spm_transverse is called by spm_results and uses variable in working
 % memory to create three transverse sections though a background image.
-% Regional foci from the selected SPM{Z} are rendered on this image.
+% Regional foci from the selected SPM{Z/F} are rendered on this image.
 %
 % Although the SPM{Z} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %
-%__________________________________________________________________________
-% %W% %E%
-
+%_______________________________________________________________________
+% %W% Karl Friston %E%
 
 
 % get the image on which to render
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 spms   = spm_get(1,'.img','select an image for rendering');
 set(2,'Pointer','Watch');
 
@@ -25,7 +24,7 @@ if V(3) == 1
 	origin = [0 0 0]; L(3) = V(6); end
 
 % memory map the background image and create transformation matrix {A}
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 L      = V(4:6)'.*round(L./V(4:6)');
 if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 Vs     = spm_map(spms);					% memory mapped
@@ -40,7 +39,7 @@ A      = spm_matrix([J Z 0])*A;				% re-center to corner
 
 
 % extract data from SPM{t} [at one plane separation]
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 Q      = find(abs(XYZ(3,:) - L(3)) < V(6));
 T      = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),M/V(4),N/V(5));
 Tc     = spm_resize(full(T),M,N);
@@ -56,7 +55,7 @@ if V(3) > 1
 end
 
 % get background slices and combine
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 D      = [1 0 0 0;0 1 0 0;0 0 1 -L(3);0 0 0 1]*A;
 D      = spm_slice_vol(Vs,inv(D),[M N],1);
 Dc     = D/max(D(:));
@@ -72,12 +71,12 @@ if V(3) > 1
 end
 
 % delete previous axis
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 figure(spm_figure('FindWin','Graphics'))
 subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 
 % configure {128 level} colormap
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 load Split
 colormap(split)
 
@@ -91,7 +90,7 @@ if V(3) > 1
 end
 
 % render activation foci on background images
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if V(3) > 1
 	subplot(2,4,6)
 	image(rot90(spm_grid(Tc)))
@@ -130,7 +129,7 @@ else
 end
 
 % colorbar
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 u     = get(gca,'Position');
 axes('position', [(u(1) + u(3) + 0.1) u(2) 0.01 u(3)])
 image([0 d/32],[0 d],[1:D]' + D)
@@ -138,8 +137,8 @@ axis xy; ylabel 'Z value'
 set(gca,'XTickLabels',[])
 
 
-% unmap and reset pointer (and x locations is necessary)
-%----------------------------------------------------------------------------
+% unmap and reset pointer (and x locations if necessary)
+%-----------------------------------------------------------------------
 if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 spm_unmap(Vs);
 set(2,'Pointer','Arrow')

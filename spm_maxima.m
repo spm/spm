@@ -3,72 +3,54 @@
 % FORMAT spm_maxima
 %_______________________________________________________________________
 %
-% spm_maxima is called by spm_sections_ui and takes variables in working
-% memory to produce a table of maxima within the selected region.  The region
-% and its associated maxima are characterized in terms of its cluster,
-% and voxel-level p values (corrected and uncorrected).
+% spm_maxima is called by spm_results and takes variables in
+% working memory to produce a table of maxima within the selected
+% region.  The region and its associated maxima are characterized in
+% terms of its cluster, and voxel-level p values (corrected and
+% uncorrected).
 %
 % The maxima displayed are all at least 8mm apart.  If the maximum
 % selected corresponds to one of these maxima, its location is
-% displayed in red.  Selecting the voxel coordinates of other 
+% displayed in red italics.  Selecting the voxel coordinates of a
 % maxima causes a green pointer to appear in the appropriate place on
 % maximum intensity projection.
 %
 %_______________________________________________________________________
-% %W% %E%
+% %W% Karl Friston, Andrew Holmes %E%
 
 
-% characterize point list in terms of maxima and regions
+% Characterize point list in terms of maxima and regions
 %-----------------------------------------------------------------------
 [N Z M A] = spm_max(t,XYZ,V([4 5 6]));
 
 
-% find nearest maximum [in a Euclidean sense] in the point list
+% Find nearest maximum [in a Euclidean sense] in the point list
 %-----------------------------------------------------------------------
 [d i] = min(sum(([(M(1,:) - L(1));(M(2,:) - L(2));(M(3,:) - L(3))]).^2));
 L     = M(:,i);
 
 
-% reset the pointer and position strings created by spm_sections_ui.m
+% Reset the pointer and position strings created by spm_results
 %-----------------------------------------------------------------------
-if V(3) == 1
-	set(h1,'String',sprintf('%0.0f',L(1)));
-	set(h2,'String',sprintf('%0.0f',L(2)));
-	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
-	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
-	set(X1,'Position',[L(1)  L(2) 1]);
-else
-	set(h1,'String',sprintf('%0.0f',L(1)));
-	set(h2,'String',sprintf('%0.0f',L(2)));
-	set(h3,'String',sprintf('%0.0f',L(3)));
-	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
-	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
-	set(hZstr,'String',sprintf('z = %0.0f',L(3)));
+spm_mip_ui('SetCoords',L);
 
-	set(X1,'Position',[(P1 + L(2))  (P2 + L(1)) 1]);
-	set(X2,'Position',[(P1 + L(2))  (P3 - L(3)) 1]);
-	set(X3,'Position',[(P4 + L(1))  (P3 - L(3)) 1]);
-end
-
-% select region and compute p values for all its maxima
+% Select region and compute p values for all its maxima
 %-----------------------------------------------------------------------
-d         = A == A(i);
-N         = N(d);
-Z         = Z(d);
-M         = M(:,d);
+d     = A == A(i);
+N     = N(d);
+Z     = Z(d);
+M     = M(:,d);
 
-
-% delete previous axis and their pagination controls (if any)
+% Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
 subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 subplot(2,1,2); axis off
 
 
-% display (sorted on Z)
+% Display (sorted on Z/F)
 %=======================================================================
 
-
-% table headings
+% Table headings
 %-----------------------------------------------------------------------
 axes('Position',[0.1 0.06 0.8 0.46]); axis off
 text(0,24,['Statistics:  ',spm('DirTrunc',CWD)],...
@@ -103,7 +85,7 @@ hPage = [];
 nPage = 1;
 Vis   = 'on';
 
-% cluster-level p values {k}
+% Cluster-level p values {k}
 %-----------------------------------------------------------------------
 [u i] = max(Z);				% largest Z value
 
@@ -125,7 +107,7 @@ Pz    = 1 - spm_Fcdf(u,df);		% uncorrected p value (F)
 
 end
 
-% print cluster and maximum voxel-level p values {Z}
+% Print cluster and maximum voxel-level p values {Z}
 %-----------------------------------------------------------------------
 str   = sprintf('%-0.3f   (%i, %0.2f)',Pkn,N(i),u);
 h     = text(0.18,y,str,'FontSize',8,'FontWeight','Bold');
@@ -140,30 +122,16 @@ str   = sprintf('%-0.3f',Pz);
 h     = text(0.74,y,str,'FontSize',8,'FontWeight','Bold');
 hPage = [hPage, h];
 h     = text(0.84,y,sprintf('%-6.0f',M(:,i)),...
-	'Fontsize',8,'FontWeight','Bold','UserData',M(:,i));
+	'Fontsize',8,'FontWeight','Bold',...
+	'ButtonDownFcn','spm_mip_ui(''ShowGreens'')',...
+	'Interruptible','no',...
+	'UserData',M(:,i));
 hPage = [hPage, h];
 if all(~(M(:,i) - L)), set(h,'Color','r','FontAngle','Italic'); end
 
-% Callback for voxel co-ordinates
-%-----------------------------------------------------------------------
-tmp = [	'l = get(gco,''UserData'');',...
-	'if V(3)==1,',...
-		'set(X1g,''Position'',[l(1) l(2) 1],''Visible'',''on''),',...
-	'else,',...
-		'set(X1g,''Position'',[(P1 + l(2))  (P2 + l(1)) 1]),',...
-		'set(X2g,''Position'',[(P1 + l(2))  (P3 - l(3)) 1]),',...
-		'set(X3g,''Position'',[(P4 + l(1))  (P3 - l(3)) 1]),',...
-		'set([X1g X2g X3g],''Visible'',''on''),',...
-	'end,',...
-	'set(gcf,''WindowButtonUpFcn'',[',...
-		'''set([X1g,X2g,X3g],''''Visible'''',''''off''''),',...
-		'set(gcf,''''WindowButtonUpFcn'''','''''''')''])'];
-
-set(h,'ButtonDownFcn',tmp,'Interruptible','no')
-
 y     = y - 1;
 
-% print region and all secondary maxima (8mm apart)
+% Print region and all secondary maxima (8mm apart)
 %-----------------------------------------------------------------------
 [l q] = sort(-Z);			% sort on Z value
 D     = i;
@@ -206,9 +174,12 @@ for i = 2:length(q)
 		h     = text(0.74,y,str,'FontSize',8,'Visible',Vis);
 		hPage = [hPage, h];
 		str   = sprintf('%-6.0f',M(:,q(i)));
-		h     = text(0.84,y,str,'FontSize',8,'Visible',Vis,...
-			'UserData',M(:,q(i)));
-		set(h,'ButtonDownFcn',tmp,'Interruptible','no')
+		h     = text(0.84,y,str,'FontSize',8,...
+				'Visible',Vis,...
+				'ButtonDownFcn',...
+					'spm_mip_ui(''ShowGreens'')',...
+				'Interruptible','no',...
+				'UserData',M(:,q(i)));
 		if all(~(M(:,q(i)) - L))
 			set(h,'Color','r','FontAngle','Italic'); end
 		hPage = [hPage, h];
@@ -217,7 +188,7 @@ for i = 2:length(q)
 	end
 end
 
-% number and paginate last page (if pagination was required)
+% Number and paginate last page (if pagination was required)
 %-----------------------------------------------------------------------
 if strcmp(Vis,'off')
 	h     = text(0.5,-2,['Page ',num2str(nPage)],...

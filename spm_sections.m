@@ -3,7 +3,7 @@
 % FORMAT spm_sections
 %____________________________________________________________________________
 %
-% spm_sections is called by spm_sections_ui and uses variables in working
+% spm_sections is called by spm_results and uses variables in working
 % memory to create three orthogonal sections though a background image.
 % Regional foci from the selected SPM{Z} are rendered on this image.
 %
@@ -11,7 +11,7 @@
 % the rendered images follow the same convention as the original data.
 %
 %__________________________________________________________________________
-% %W% %E%
+% %W% Karl Friston %E%
 
 
 
