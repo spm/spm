@@ -7,6 +7,9 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % flags       - 'm' for implicit zero masking
 % Vo (output) - handle structure of output image volume after modifications
 %                 for writing
+%
+% Note that spm_create_image needs to be called external to this function -
+% the header is not created!
 %_______________________________________________________________________
 %
 % Residuals are computed as R*Y, where Y is the data vector read from
@@ -94,9 +97,6 @@ if any(any(any(diff(cat(3,V.mat),1,3),3)))
 % - C O M P U T A T I O N
 %=======================================================================
 fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')	     %-#
-
-Vo.pinfo=[1,0,0]';					%-Set scale & offsets
-Vo = spm_create_image(Vo);				%-Write image header
 
 Y  = zeros([Vo.dim(1:2),ni]);				%-PlaneStack data
 
