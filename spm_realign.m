@@ -8,37 +8,45 @@ function spm_realign(P,Flags)
 %
 % Flags - options flags
 %         e - compute realignment parameters
-%             Realigns a time-series of scans whose filenames are in the input matrix (P).
-%             The realignment uses least squares solutions and partial derivatives of the
-%             image process with respect to the spatial transformations constituting a
-%             rigid-body transformation.  These movement parameter estimates are based
-%             These movement parameter estimates are based on a first order Taylor expansion
-%             in terms of the partial derivatives measured using smoothed scans.
+%             Realigns a time-series of scans whose filenames are
+%             in the input matrix (P).
+%             The realignment uses least squares solutions and partial
+%             derivatives of the image process with respect to the spatial 
+%             transformations constituting a rigid-body transformation.
+%             These movement parameter estimates are based on a first order
+%             Taylor expansion in terms of the partial derivatives measured 
+%             using smoothed scans.
 %             Subsequent scans are realigned with the first.
 %
 %         E - same as "e" but with more iterations.
 %             For correcting more than just patient movement.
 %
+%         a - only register image 2 with image 1, and apply the transformations
+%             to the subsequent images (which should be in the same space as
+%             image 1).
+%
 %         m - write transformation matrixes
-%             Matrixes are written which define the space of the images. From these matrixes
-%             it is possible to reslice any of the images, to the same space as any other image.
+%             Matrixes are written which define the space of the images.
+%             From these matrixes it is possible to reslice any of the images,
+%             to the same space as any other image.
 %
 %         r - reslice images
 %             The spatially realigned and adjusted images are written to
-%             the orginal subdirectory with the same filename but prefixed with a 'r'.
+%             the orginal subdirectory with the same filename but prefixed
+%             with a 'r'.
 %             They are all aligned with the first.
 %
 %         c - adjust the data (fMRI) to remove movement-related components
-%             The adjustment procedure is based on a autoregression-moving average
-%             -like model of the effect of position on signal and explicitly includes
-%             a spin excitation history effect.
+%             The adjustment procedure is based on a autoregression-moving 
+%             average-like model of the effect of position on signal and 
+%             explicitly includes a spin excitation history effect.
 %
 %         k - mask output images
-%             To avoid artifactual movement-related variance the realigned set of images
-%             are internally masked, within the set (i.e. if any image has a zero value at
-%             a voxel than all images have zero values at that voxel).  Zero values
-%             occur when regions 'outside' the image are moved 'inside' the image during
-%             realignment.
+%             To avoid artifactual movement-related variance the realigned set
+%             of images are internally masked, within the set (i.e. if any image
+%             has a zero value at a voxel than all images have zero values at that
+%             voxel).  Zero values occur when regions 'outside' the image are moved 
+%             'inside' the image during realignment.
 %
 %         i - write mean image
 %             The average of all the realigned scans is written to mean*.img.
@@ -77,6 +85,8 @@ global PRINTSTR
 
 Q     = zeros(size(P,1),6);			% initial estimate/default values
 
+nreg = size(P,1);
+if any(Flags == 'a') nreg = 2; end
 
 % Computation of Realignment Parameters - uses P & Q
 %----------------------------------------------------------------------------
@@ -149,7 +159,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	ax = axes('Position', [0.45 0.2 0.1 0.6],...
 		'XTick',[],...
 		'Xlim', [0 1],...
-		'Ylim', [0 size(P,1)]);
+		'Ylim', [0 nreg]);
 	xlabel('Coregistering');
 	ylabel('volumes completed');
 	drawnow;
@@ -157,7 +167,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	% Base starting estimates on solution for previous run
 
 	q = zeros(1,size(dQ,1));
-	for k = 2:(size(P,1))
+	for k = 2:nreg
 	    C2 = spm_get_space(spm_str_manip(P(k,:), 'd'));
 
 	    spm_smooth(spm_str_manip(P(k,:),'d'),'spm_mov.img',8);
@@ -183,6 +193,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 		'Color', [1 0 0]);
 	    drawnow;
 	end
+	Q((nreg+1):size(P,1),:) = Q(k,:)'*ones(1,size(P,1)-nreg);
 
 	spm_unmap(V1); delete spm_ref.img spm_ref.hdr
 
