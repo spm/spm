@@ -6,7 +6,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include "cmex.h"
+#include "mex.h"
 #include "volume.h"
 
 #ifdef __STDC__
@@ -107,6 +107,7 @@ Matrix *plhs[], *prhs[];
 	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, (off_t)0);
 	if (map->map == (caddr_t)-1)
 	{
+		(void)perror("Memory Map");
 		(void)close(fd);
 		(void)sprintf(errstr,"Cant map image file (%s).", str);
 		mxFree(str);
