@@ -3,7 +3,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % FORMAT [SPM] = spm_contrasts(SPM,Ic);
 % Ic  - indices of xCon to compute
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
+% @(#)spm_contrasts.m	2.3 Andrew Holmes, Karl Friston & Jean-Baptiste Poline 02/12/30
 
 
 %-Get and change to results directory
@@ -32,12 +32,19 @@ end
 
 % map parameter and hyperarameter files
 %-----------------------------------------------------------------------
-if xCon(Ic(1)).STAT == 'P'
+if xCon(Ic(1)).STAT == 'P' 
 
 	% Conditional estimators and error variance hyperparameters
 	%----------------------------------------------------------------
-	Vbeta = SPM.VCbeta;
-	VHp   = SPM.VHp;
+    if isfield(SPM.PPM,'VB')
+        Vbeta = SPM.VCbeta;
+        VHp   = SPM.VHp;
+        VPsd  = SPM.VPsd;
+        VAR   = SPM.VAR;
+    else
+        Vbeta = SPM.VCbeta;
+        VHp   = SPM.VHp;
+    end
 
 else
 	% OLS estimators and error variance estimate
@@ -91,7 +98,7 @@ for i = 1:length(Ic)
                 'pinfo',  [1,0,0]',...
                 'descrip',sprintf('SPM contrast - %d: %s',ic,xCon(ic).name));
 
-            %-Write image
+        %-Write image
 	    %-----------------------------------------------------------
             fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
             xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
@@ -141,6 +148,9 @@ for i = 1:length(Ic)
 
     end % (if ~isfield...)
 
+    
+    
+    
     %-Write inference SPM/PPM
     %===================================================================
     if isempty(xCon(ic).Vspm)
@@ -156,27 +166,67 @@ for i = 1:length(Ic)
 	l     = spm_get_data(VHp,XYZ);
 	VcB   = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c; 
 	Z     = cB./sqrt(l*VcB);
-        str   = sprintf('[%.1f]',SPM.xX.erdf);
-
+    str   = sprintf('[%.1f]',SPM.xX.erdf);
+    
 
 	case 'P'                                  %-Compute PPM{P} image
         %---------------------------------------------------------------
 	c     = xCon(ic).c;
 	cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-	VcB   = c'*SPM.PPM.Cby*c;
-	for j = 1:length(SPM.PPM.l)
-
-		% hyperparameter and Taylor approximation
-		%-------------------------------------------------------
-		l   = spm_get_data(VHp(j),XYZ);
-		VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
-	end
-
+    if isfield(SPM.PPM,'VB');
+        % Get approximate posterior covariance at ic
+        % using Taylor-series approximation
+        
+        % Get posterior SD beta's
+        Nk=size(SPM.xX.X,2);
+        for k=1:Nk,
+            sd_beta(k,:) = spm_get_data(VPsd(k),XYZ);
+        end
+        
+        % Get AR coefficients
+        for p=1:SPM.PPM.AR_P
+            a(p,:) = spm_get_data(VAR(p),XYZ);
+        end
+        
+        % Get noise SD
+        lambda = spm_get_data(VHp,XYZ);
+        
+        % Loop over voxels
+        Nvoxels=size(XYZ,2);
+        for v=1:Nvoxels,
+            % Which slice are we in ?
+            slice_index=XYZ(3,v);
+            
+            % Reconstuct approximation to voxel wise correlation matrix
+            R=SPM.PPM.slice(slice_index).mean.R;
+            dh=a(:,v)'-SPM.PPM.slice(slice_index).mean.a;
+            dh=[dh lambda(v)-SPM.PPM.slice(slice_index).mean.lambda];
+            for i=1:length(dh),
+                R=R+SPM.PPM.slice(slice_index).mean.dR(:,:,i)*dh(i);
+            end 
+            % Reconstuct approximation to voxel wise covariance matrix
+            Sigma_post = (sd_beta(:,v)*sd_beta(:,v)').*R;
+            
+            VcB (v) = c'*Sigma_post*c;
+        end
+            
+  
+    else
+        VcB   = c'*SPM.PPM.Cby*c;
+        for j = 1:length(SPM.PPM.l)
+            
+            % hyperparameter and Taylor approximation
+            %-------------------------------------------------------
+            l   = spm_get_data(VHp(j),XYZ);
+            VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
+        end
+    end
+    
 	% posterior probability cB > g
         %---------------------------------------------------------------
  	Gamma         = xCon(ic).eidf;
 	Z             = 1 - spm_Ncdf(Gamma,cB,VcB);
-        str           = sprintf('[%.2f]',Gamma);
+    str           = sprintf('[%.2f]',Gamma);
 	xCon(ic).name = [xCon(ic).name ' ' str];
 
 
