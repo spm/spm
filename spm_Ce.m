@@ -28,9 +28,9 @@ n    = sum(v);
 k    = 0;
 if l > 1
 	for i = 1:l
-		dCdh  = spm_Ce(v(i),h);
-		for j = 1:length(dCdh)
-			[x y q]    = find(dCdh{j});
+		dCda  = spm_Ce(v(i),a);
+		for j = 1:length(dCda)
+			[x y q]    = find(dCda{j});
 			x          = x    + k;
 			y          = y    + k;
 			k          = v(i) + k;
@@ -38,12 +38,12 @@ if l > 1
 		end
 	end
 else
-	% dCdh
+	% dCda
 	%==================================================================
 	C{1}  = spm_Q(a,v);
-	dCdh  = spm_diff('spm_Q',a,v,1);
+	dCda  = spm_diff('spm_Q',a,v,1);
 	for i = 1:length(a)
-		C{i + 1} = reshape(dCdh(:,i),v,v);
+		C{i + 1} = reshape(dCda(:,i),v,v);
 	end
 
 end
