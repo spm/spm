@@ -237,9 +237,9 @@ if spm_input('use corrected extent threshold','!+1','b','no|yes',[0 1],1)
 	k  = spm_input('corrected p value','!+0','e',0.05);
 	k  = spm_k(k,W,u,S);
 else
-	%-Get and apply extent threshold [default p < 0.5 uncorrected]
+	%-Get and apply extent threshold [default 0]
 	%---------------------------------------------------------------
-	k  = spm_input('extent threshold {k or p value}','!+0','e',0.5);
+	k  = spm_input('extent threshold {k or p value}','!+0','e',0);
 	if (k < 1) & (k > 0); k = spm_invkcdf(1 - k,u,W); end
 end
 
