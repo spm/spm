@@ -14,7 +14,7 @@ function spm_segment(PF,PG,opts)
 % affine transform is only determined from the first image specified
 % for segmentation. 
 %
-% 'Attempt to correct intensity inhomogenaeties?'
+% 'Attempt to correct intensity inhomogeneities?'
 % This uses a Bayesian framework (again) to model intensity
 % inhomogeneities in the image(s).  The variance associated with each
 % tissue class is assumed to be multiplicative (with the
@@ -23,8 +23,8 @@ function spm_segment(PF,PG,opts)
 % functions (again), using a fast algorithm (again) to generate the
 % curvature matrix.  The regularization is based upon `bending energy'
 % (like Bookstein's thin plate splines).  A small amount of
-% regularization is used when correcting for `Lots of inhomogenaety',
-% whereas more regularization is used for `A little inhomogenaety'.
+% regularization is used when correcting for `Lots of inhomogeneity',
+% whereas more regularization is used for `A little inhomogeneity'.
 %
 %_______________________________________________________________________
 %
@@ -34,10 +34,6 @@ function spm_segment(PF,PG,opts)
 %    template image. If the name of more than one image is passed, then
 %    the first image is used in this step. This step is not performed if
 %    no template images are specified.
-%    Note: the templates and probability images are Right-is-Right
-%    orientation. The affine normalisation assumes that the input images
-%    are the same - although the algorithm works well enough with input
-%    images in the Left-is-Right orientation.
 %
 % 2) Perform Cluster Analysis with a modified Mixture Model and a-priori
 %    information about the likelihoods of each voxel being one of a
@@ -146,11 +142,10 @@ if (nargin==0)
 		end
 	end
 
-	% This stuff isn't ready for general consumption yet
-	tmp = spm_input('Attempt to correct intensity inhomogenaeties?','+1','m',...
-		['No inhomogenaety correction|' ...
-		 'A little inhomogenaety correction|' ...
-		 'Lots of inhomogenaety correction'],...
+	tmp = spm_input('Attempt to correct intensity inhomogeneities?','+1','m',...
+		['No inhomogeneity correction|' ...
+		 'A little inhomogeneity correction|' ...
+		 'Lots of inhomogeneity correction'],...
 		[' ' 'c' 'C'],1);
 	opts = [tmp opts];
 
