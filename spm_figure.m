@@ -58,8 +58,8 @@ function varargout=spm_figure(varargin)
 %
 % For SPM power users, and programmers, spm_figure provides utility
 % routines for using the SPM graphics interface. Of particular use are
-% the FindWin and Clear functions See the embedded callback reference
-% in the main body of spm_figure, below the help text.
+% the GetWin, FindWin and Clear functions See the embedded callback
+% reference in the main body of spm_figure, below the help text.
 %
 % See also: spm_print, spm_clf
 %
@@ -95,6 +95,12 @@ function varargout=spm_figure(varargin)
 %	- Defaults to 'Graphics'
 % F	- (Output) Figure number (if found) or empty (if not).
 %
+% FORMAT F = spm_figure('GetWin',Tag)
+% Like spm_figure('FindWin',Tag), except that if 'Tag' is 'Graphics' or
+% 'Interactive' and no such 'Tag'ged figure is found, one is created.
+% Tag	- Figure 'Tag' to get, defaults to 'Graphics'
+% F	- Figure number (if found/created) or empty (if not).
+%
 % FORMAT F = spm_figure('ParentFig',h)
 % Finds window containing the object whose handle is specified
 % h	- Handle of object whose parent figure is required
@@ -107,7 +113,7 @@ function varargout=spm_figure(varargin)
 % If figure F is 'Tag'ged 'Interactive' (SPM usage), then the window
 % name and pointer are reset.
 % F	- 'Tag' string or figure number of figure to clear, defaults to gcf
-% Tags  - 'Tag's (vector cell array or single string) of objects to delete
+% Tags  - 'Tag's (string matrix or cell array of strings) of objects to delete
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
@@ -251,7 +257,7 @@ case 'findwin'
 %=======================================================================
 % F=spm_figure('FindWin',F)
 % F=spm_figure('FindWin',Tag)
-%-Find window: Find window with 'Tag' attribute / FigureNumber#
+%-Find window: Find window with FigureNumber# / 'Tag' attribute
 %-Returns empty if window cannot be found - deletes multiple tagged figs.
 
 if nargin<2, F='Graphics'; else, F=varargin{2}; end
@@ -262,10 +268,9 @@ elseif isstr(F)
 	% Finds Graphics window with 'Tag' string - delete multiples
 	Tag=F;
 	F = findobj(get(0,'Children'),'Flat','Tag',Tag);
-	if ( length(F) > 1 )
-		%-Multiple Graphics windows - close all but most recent
-		tmp   = F(2:length(F));
-		close(tmp)
+	if length(F) > 1
+		% Multiple Graphics windows - close all but most recent
+		close(F(2:end))
 		F = F(1);
 	end
 else
@@ -274,6 +279,21 @@ else
 end
 varargout = {F};
 
+case 'getwin'
+%=======================================================================
+% F=spm_figure('GetWin',Tag)
+
+if nargin<2, Tag='Graphics'; else, Tag=varargin{2}; end
+F = spm_figure('FindWin',Tag);
+
+if isempty(F) & isstr(Tag)
+	switch Tag, case 'Graphics'
+		F = spm_figure('Create','Graphics','Graphics');
+	case 'Interactive'
+		F = spm('CreateIntWin');
+	end
+end
+varargout = {F};
 
 case 'parentfig'
 %=======================================================================
@@ -312,12 +332,12 @@ else
 	%-Clear specified objects from figure
 	cSHH = get(0,'ShowHiddenHandles');
 	set(0,'ShowHiddenHandles','on')
-	if isstr(Tags); Tags={Tags}; end
-	if any(strcmp(Tags,'!all'))
+	if isstr(Tags); Tags=cellstr(Tags); end
+	if any(strcmp(Tags(:),'!all'))
 		delete(get(F,'Children'))
 	else
-	    for i=1:length(Tags)
-		delete(findobj(get(F,'Children'),'flat','Tag',Tags{i}));
+	    for tag = Tags(:)'
+		delete(findobj(get(F,'Children'),'flat','Tag',tag{:}));
 	    end
 	end	
 	set(0,'ShowHiddenHandles',cSHH)
@@ -360,11 +380,7 @@ end
 
 %-Create footnote with SPM version, username, date and time.
 %-----------------------------------------------------------------------
-User  = getenv('USER');
-tmp   = clock;
-if exist('spm.m')==2, SPMver=spm('ver'); else, SPMver='SPM'; end
-FNote = sprintf('%s (%s) - %02d/%02d/%4d (%02d:%02d)',...
-		SPMver,User,tmp(3),tmp(2),tmp(1),tmp(4),tmp(5) );
+FNote = sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),spm('time'));
 %-Delete old tag lines, and print new one
 delete(findobj(F,'Tag','SPMprintFootnote'));
 axes('Position',[0.005,0.005,0.1,0.1],...
@@ -606,14 +622,13 @@ uicontrol(F,'String','Print' ,'Position',[x y sx sy],...
 	'ForegroundColor','b'); x = x+sx;
 
 h = uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
-	'CallBack','spm_figure(''Clear'',gcf)',...
+	'CallBack','spm_figure(''Clear'',gcbf)',...
 	'FontSize',FS,...
 	'Interruptible','off','BusyAction','cancel',...
         'Tag','ToolBar','HandleVisibility','callback',...
 	'ForegroundColor','b'); x = x+sx+dx;
-if strcmp(get(F,'Tag'),'Graphics')
-	set(h,'CallBack',...
-	'spm_figure(''Clear'',gcf), spm_figure(''Clear'',''Interactive'')')
+if strcmp(get(F,'Tag'),'Graphics')	%-Do a full SPM interface clear
+	set(h,'CallBack','spm(''Clear'',''Interactive'',gcbf)')
 end
 
 uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
