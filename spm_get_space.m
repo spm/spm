@@ -48,14 +48,20 @@ if (nargin == 1)
 		end
 
 		off = -vox.*origin;
-		M = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+		M   = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
 	else
 		% Assume it is a MINC file
 		V=spm_vol_minc(imagename);
 		if ~isempty(V),
 			M=V.mat;
 		else,
-			error(['Can''t read matrix information from "' imagename '".']);
+			% Try Ecat format
+			V=spm_vol_ecat7(imagename);
+			if ~isempty(V),
+				M=V.mat;
+			else,
+				error(['Can''t read matrix information from "' imagename '".']);
+			end;
 		end;
 	end;
 elseif (nargin == 2)
@@ -65,7 +71,7 @@ elseif (nargin == 2)
 	if exist([spm_str_manip(imagename,'sd') '.hdr']) == 2,
 		vx   = sqrt(sum(M(1:3,1:3).^2));
 		orgn = round(-M(1:3,4)' ./ vx);
-		off = -vx.*orgn;
+		off  = -vx.*orgn;
 		mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
 
 		% only write the .mat file if necessary
@@ -73,7 +79,7 @@ elseif (nargin == 2)
 			eval(['save ' matname ' M -v4']);
 		end
 	else,
-		% Assume MINC and write file anyway
+		% Write file anyway
 		eval(['save ' matname ' M -v4']);
 	end;
 else
