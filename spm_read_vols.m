@@ -39,8 +39,8 @@ end, end
 %-----------------------------------------------------------------------
 if mask
 	%-Work out images without NaNrep
-	im = logical(zeros(ni,1));
-	for i=1:n, im(i)=~spm_type(Vi(i).dim(4),'NaNrep'); end
+	im = logical(zeros(n,1));
+	for i=1:n, im(i)=~spm_type(V(i).dim(4),'NaNrep'); end
 	%-Mask
 	Y(Y(:,:,:,im)==0)=NaN;
 end
