@@ -1,45 +1,88 @@
-function pdf = spm_Ppdf(y,theta)
+function f = spm_Ppdf(x,l)
 % Probability Distribution Function (PDF) of Poisson distribution
-% FORMAT pdf = spm_Ppdf(y,theta)
+% FORMAT f = spm_Ppdf(x,l)
 %
-% y	- ordinates - non-negative integers
-% theta	- Poisson parameter (mean) - greater than zero
-%
+% x - ordinates
+% l - Poisson mean parameter (lambda l>0) [Defaults to 1]
+% f - Poisson PDF
 %_______________________________________________________________________
 %
 % spm_Ppdf implements the Probaility Distribution Function of the
 % Poisson distribution.
 % 
-% For large theta (>64), the normal approximation Y~N(theta ,theta) is
-% used together with a continuity correction.
+% Definition:
+%-----------------------------------------------------------------------
+% The Poisson Po(l) distribution is the distribution of the number of
+% events in unit time for a stationary Poisson process with mean
+% parameter lambda=1, or equivalently rate 1/l. If random variable X is
+% the number of such events, then X~Po(l), and the PDF f(x) is
+% Pr({X=x}.
+%
+% f(x) is defined for strictly positive l, given by: (See Evans et al., Ch31)
+%
+%           { l^x * exp(-l) / x!          for r=0,1,...
+%    f(r) = |
+%           {  0                          otherwise
+%
+% Algorithm:
+%-----------------------------------------------------------------------
+% To avoid roundoff errors for large x (in x! & l^x) & l (in l^x),
+% computation is done in logs.
+%
+% Normal approximation:
+%-----------------------------------------------------------------------
+% For large lambda the normal approximation Y~:~N(l,l) may be used.
+% With continuity correction this gives
+% f(x) ~=~ Phi((x+.5-l)/sqrt(l)) -Phi((x-.5-l)/sqrt(l));
+% where Phi is the standard normal CDF, and ~=~ means "appox. =".
+%
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
+%
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
 %
 %_______________________________________________________________________
-% %W% Karl Friston, Andrew Holmes %E%
+% %W% Andrew Holmes %E%
 
-%-Check arguments
+%-Format arguments, note & check sizes
 %-----------------------------------------------------------------------
-if nargin~=2, error('Insufficient arguments'), end
-if any(theta<=0), error('theta must be strictly positive'), end
-if length(theta)~=1, error('theta must be a scalar'), end
-if any(y(:)<0), error('y must be non-negative'), end
-if any(floor(y(:))~=ceil(y(:))), error('y must be integer'), end
+if nargin<2, l=1; end
+if nargin<1, error('Insufficient arguments'), end
+
+ad = [ndims(x);ndims(l)];
+rd = max(ad);
+as = [	[size(x),ones(1,rd-ad(1))];...
+	[size(l),ones(1,rd-ad(2))];    ];
+rs = max(as);
+xa = prod(as,2)>1;
+if all(xa) & any(diff(as(xa,:)))
+	error('non-scalar args must match in size'), end
 
 
 %-Computation
 %-----------------------------------------------------------------------
-if theta <= 64
+%-Initialise result to zeros
+f = zeros(rs);
 
-	%-Direct computation
-	%---------------------------------------------------------------
-	pdf = (exp(-theta).*theta.^y)./gamma(y+1);
+%-Only defined for l>0. Return NaN if undefined.
+md = ( ones(size(x))  &  l>0 );
+if any(~md(:)), f(~md) = NaN;
+	warning('Returning NaN for out of range arguments'), end
 
-else
+%-Non-zero only where defined and x is whole
+Q  = find( md  &  x>=0  &  x==floor(x) );
+if isempty(Q), return, end
+if xa(1), Qx=Q; else Qx=1; end
+if xa(2), Ql=Q; else Ql=1; end
 
-	%-Use normal approximation Y~N(theta ,theta)
-	% with continuity correction.
-	%---------------------------------------------------------------
-	pdf = spm_Ncdf( (y + 0.5 - theta) / sqrt(theta) ) ...
-		- spm_Ncdf( (y - 0.5 - theta) / sqrt(theta) );
-
-
-end
+%-Compute
+f(Q) = exp(-l(Ql) + x(Qx).*log(l(Ql)) - gammaln(x(Qx)+1));
