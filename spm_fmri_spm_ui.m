@@ -290,7 +290,7 @@ if ER
 		% append to E, ERI and PST
 		%-----------------------------------------------------------
 		ERI   = [ERI ([1:h] + size(E,2))'];
-		PST   = [PST pst];
+		PST   = [PST pst(:)];
 		E     = [E D];
 
 	end
