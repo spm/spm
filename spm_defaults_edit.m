@@ -127,14 +127,18 @@ elseif strcmp(arg1, 'Hdr')
 	while n ~= 3
 		tmp      = spm_input('Image size {voxels}',2,'s',...
 			[num2str(DIM(1)) ' ' num2str(DIM(2)) ' ' num2str(DIM(3))]);
-		[DIM, n] = sscanf(tmp,'%d %d %d');
+		[dim, n] = sscanf(tmp,'%d %d %d');
 	end
+	DIM = dim;
+
 	n = 0;
 	while n ~= 3
 		tmp      = spm_input('Voxel Size {mm}',3,'s',...
 			[num2str(VOX(1)) ' ' num2str(VOX(2)) ' ' num2str(VOX(3))]);
-		[VOX, n] = sscanf(tmp,'%d %d %d');
+		[vox, n] = sscanf(tmp,'%g %g %g');
 	end
+	VOX = vox;
+
 	SCALE = spm_input('Scaling Coefficient',4,'e',[SCALE]);
 
 	type_val = [2 4 8 16 64];
@@ -147,8 +151,9 @@ elseif strcmp(arg1, 'Hdr')
 	while n ~= 3
 		tmp      = spm_input('Origin {voxels}',7,'s',...
 			[num2str(ORIGIN(1)) ' ' num2str(ORIGIN(2)) ' ' num2str(ORIGIN(3))]);
-		[ORIGIN, n] = sscanf(tmp,'%d %d %d');
+		[origin, n] = sscanf(tmp,'%d %d %d');
 	end
+	ORIGIN = origin;
 	DESCRIP = spm_input('Description',8,'s', DESCRIP);
 
 	if strcmp(MODALITY,'PET')
