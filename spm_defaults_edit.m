@@ -3,6 +3,11 @@ function spm_defaults_edit(arg1, arg2)
 % FORMAT spm_defaults_edit
 %_______________________________________________________________________
 %
+% spm_defaults_edit allows the current defaults to be edited.
+%
+% These changes do not persist across sessions. SPMs startup defaults
+% are specified in the first spm_defaults on the MATLABPATH.
+%
 % The defaults which can be modified are:
 % 
 % Printing Options
@@ -20,7 +25,7 @@ function spm_defaults_edit(arg1, arg2)
 %     * Specification of paging option for tabular output of cluster
 %       statistics, enabling more exhaustive classifications
 % 
-% Header Defaults
+% Header Defaults (for the currnet Modality - PET or fMRI)
 %     The values to be taken as default when there are no Analyze
 %     image headers. There are two different sets which depend on
 %     the modality in which SPM is running.
@@ -41,15 +46,16 @@ function spm_defaults_edit(arg1, arg2)
 % Spatial Normalisation Defaults
 %     An assortment of defaults.
 %
-% The 'reset' option re-loads the defaults from spm_defaults.m
+% The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage MODALITY
-global DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
-global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+global MODALITY
+global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
+global UFp DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
+global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
 if nargin == 0
 	spm_figure('Clear','Interactive');
@@ -64,15 +70,17 @@ if nargin == 0
 		'spm_defaults_edit(''Hdr'');',...
 		'spm_realign(''Defaults'');',...
 		'spm_sn3d(''Defaults'');',...
+		'spm_defaults_edit(''Statistics'');',...
 		'spm_defaults_edit(''Reset'');'...
 		);
 
 	a1 = spm_input('Defaults Area?',pos,'m',...
 		['Printing Options|'...
 		 'Miscellaneous Defaults|'...
-		 'Header Defaults|'...
+		 'Header Defaults - ',MODALITY,'|'...
 		 'Realignment & Coregistration|'...
 		 'Spatial Normalisation|'...
+		 'Statistics - ',MODALITY,'|'...
 		 'Reset All']...
 		);
 
@@ -207,13 +215,13 @@ elseif strcmp(arg1, 'Hdr')
 	DESCRIP = spm_input('Description',8,'s', DESCRIP);
 
 	if strcmp(MODALITY,'PET')
-		PET_DIM      = DIM;
-		PET_VOX      = VOX;
-		PET_TYPE     = TYPE;
-		PET_SCALE    = SCALE;
-		PET_OFFSET   = OFFSET;
-		PET_ORIGIN   = ORIGIN;
-		PET_DESCRIP  = DESCRIP;
+		PET_DIM       = DIM;
+		PET_VOX       = VOX;
+		PET_TYPE      = TYPE;
+		PET_SCALE     = SCALE;
+		PET_OFFSET    = OFFSET;
+		PET_ORIGIN    = ORIGIN;
+		PET_DESCRIP   = DESCRIP;
 	elseif strcmp(MODALITY,'FMRI')
 		fMRI_DIM      = DIM;
 		fMRI_VOX      = VOX;
@@ -223,6 +231,15 @@ elseif strcmp(arg1, 'Hdr')
 		fMRI_ORIGIN   = ORIGIN;
 		fMRI_DESCRIP  = DESCRIP;
 	end
+
+elseif strcmp(arg1, 'Statistics')
+	UFp = spm_input('Upper tail F prob. threshold',2,'e',UFp);
+	if strcmp(MODALITY,'PET')
+		PET_UFp       = UFp;
+	elseif strcmp(MODALITY,'FMRI')
+		fMRI_UFp      = UFp;
+	end
+
 
 elseif strcmp(arg1, 'Reset')
 	if exist('spm_defaults')==2
