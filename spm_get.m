@@ -893,6 +893,8 @@ set(hAxes,'Ylim',[0,y0])
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'Parent',hAxes,'FontWeight','bold','Color','r');
+	set(F,'Pointer','Arrow')
+	return
 else	%-Exclude "." directory from Dirs, exclude ".." if in /
 	%-Exclude ".." from DirItems (used when selecting directories)
 	Dirs(Dirs(:,1)=='.',:)=[];
