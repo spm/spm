@@ -343,7 +343,8 @@ else
 		set(gca,'Box','on','XTick',[],'YTick',[])
 		set(gca,'Tag','ConGrphAx')
 	    end
-	if I(ii)>0, ylabel(num2str(i)), end
+	   if I(ii)>0, ylabel(num2str(i)), end
+	   axis tight
 	end
 	title('Contrast(s)')
 
