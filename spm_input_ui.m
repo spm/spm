@@ -981,7 +981,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 		DefKey = Keys(DefItem);
 	else
 		DefItem = 0;
-		DefKey = ' ';
+		DefKey  = '';
 	end
 
 	if CmdLine
@@ -1009,12 +1009,12 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 			%-Only one choice - auto-pick & display
 			k = 1; fprintf('%s: %s\t(only option)',Prmpt,Labels)
 		else
-			str = input([Prmpt,' ? '],'s');
+			str = input([Prmpt,'? '],'s');
 			if isempty(str), str=DefKey; end
-			while ~any(lower(Keys)==lower(str(1)))
-				spm('beep')
-				str = input([Prmpt,'? '],'s');
-				if isempty(str), str=DefKey; end
+			while isempty(str) | ~any(lower(Keys)==lower(str(1)))
+			    if ~isempty(str),fprintf('%c\t!Out of range\n',7),end
+			    str = input([Prmpt,'? '],'s');
+			    if isempty(str), str=DefKey; end
 			end
 			k = find(lower(Keys)==lower(str(1)));
 		end
@@ -1169,7 +1169,7 @@ if CmdLine
 	nLabels     = size(Labels,1);
 	[Keys,Labs] = sf_labkeys(Labels);
 
-	if ~isempty(DefItem), DefKey = Keys(DefItem); else, DefKey = ' '; end
+	if ~isempty(DefItem), DefKey = Keys(DefItem); else, DefKey = ''; end
 
 	%-Print banner prompt
 	%---------------------------------------------------------------
@@ -1202,12 +1202,12 @@ if CmdLine
 			%-Only one choice - auto-pick & display
 			k = 1; fprintf('%s: %s\t(only option)',Prmpt,Labels)
 		else
-			str = input([Prmpt,' ? '],'s');
+			str = input([Prmpt,'? '],'s');
 			if isempty(str), str=DefKey; end
-			while ~any(lower(Keys)==lower(str(1)))
-				spm('beep')
-				str = input([Prmpt,'? '],'s');
-				if isempty(str), str=DefKey; end
+			while isempty(str) | ~any(lower(Keys)==lower(str(1)))
+			    if ~isempty(str),fprintf('%c\t!Invalid response\n',7),end
+			    str = input([Prmpt,'? '],'s');
+			    if isempty(str), str=DefKey; end
 			end
 			k = find(lower(Keys)==lower(str(1)));
 		end
@@ -1406,10 +1406,10 @@ case 'm'                                             %-Process menu type
 		else
 			k = input([Prmpt,' ? ']);
 			if DefItem & isempty(k), k=DefItem; end
-			while ~any([1:nLabels]==k)
-				fprintf('%c\t!Out of range',7)
-				k = input([Prmpt,' ? ']);
-				if DefItem & isempty(k), k=DefItem; end
+			while isempty(k) | ~any([1:nLabels]==k)
+			    if ~isempty(k),fprintf('%c\t!Out of range\n',7),end
+			    k = input([Prmpt,' ? ']);
+			    if DefItem & isempty(k), k=DefItem; end
 			end
 		end
 		fprintf('\n')
