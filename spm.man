@@ -60,12 +60,12 @@
 % Keith Worsley (Department of Statistics, McGill University, Montreal,
 % Canada).
 %
-% SPM2 was developed by: John Ashburner (spatial, image handling),
-% Karl Friston (project director, fMRI design), Andrew Holmes
-% (statistics, user interfaces), Jean-Baptiste Poline (statistics,
-% batch system), Philippe Ciuciu (batch system), Tom Nichols (statistics),
-% Matthew Brett (WinNT implementation and other stuff), Volkmar
-% Glauche (visualisation) & Darren Gitelman (various bits).
+% SPM2 was developed by: Jesper Andersson (unwarping), John Ashburner
+% (spatial, image handling), Karl Friston (project director,
+% fMRI design), Andrew Holmes (statistics, user interfaces),
+% Jean-Baptiste Poline (statistics), Philippe Ciuciu, Tom Nichols
+% (statistics), Matthew Brett (WinNT implementation and other stuff),
+% Volkmar Glauche (visualisation) & Darren Gitelman (various bits).
 % Theoretical input was provided by Christian Buchel, Daniel Glaser,
 % Rik Henson, Stefan Kiebel, Will Penny, Keith Worsley and loads of
 % other people. We would like to thank everyone who has provided
