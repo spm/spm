@@ -94,8 +94,8 @@ c    = mean(mean_con);
 t    = (sqrt(num_models)*(c-T))/sqrt(v);
 x    = c + [-32:32]*sqrt(v)*6/32;
 % p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
-p    = spm_tpdf((x-c)/sqrt(v),num_models-1);
-PP   = spm_tcdf(t,num_models-1);
+p    = spm_Tpdf((sqrt(num_models)*(x-c))/sqrt(v),num_models-1);
+PP   = spm_Tcdf(t,num_models-1);
 disp(' ');
 disp(sprintf('Bayesian Random Effect Mean = %1.4f', full(c)));
 disp(sprintf('Bayesian Random Effect Variance = %1.4f', full(v)));
@@ -117,7 +117,7 @@ hold off
 % Get Classical RFX p-value
 % Note: 1-p is equal to Bayesian RFX if T=0
 t=(sqrt(num_models)*c)/sqrt(v);
-p= 1 - spm_tcdf(t,num_models-1);
+p= 1 - spm_Tcdf(t,num_models-1);
 disp(sprintf('Classical Random Effects p-value = %1.4f', p));
 disp('Note: 1-p is equal to Bayesian RFX if threshold is zero');
 spm_input('Thank you',1,'d');
