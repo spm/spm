@@ -73,12 +73,12 @@ end
 spm('Pointer','Watch')
 
 
-%-Parameters
+global defaults
+ 
+%-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
-MAXMEM = spm('GetGlobal','MAXMEM');
-if isempty(MAXMEM)
-	MAXMEM = 2^20;
-end
+MAXMEM   = defaults.stats.maxmem;
+
 M      = SPM.xVol.M;
 DIM    = SPM.xVol.DIM;
 xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
@@ -107,8 +107,8 @@ for i = 1:nBeta
 	Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
 	Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
-	Vbeta(i)         = spm_create_image(Vbeta(i));
 end
+Vbeta = spm_create_vol(Vbeta,'noopen');
 
 %-Intialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
@@ -123,8 +123,8 @@ for i = 1:nHp
 	VHp(i).fname   = sprintf('Hp_%04d.img',i);
 	VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
 	spm_unlink(VHp(i).fname)
-	VHp(i)         = spm_create_image(VHp(i));
 end
+VHp = spm_create_vol(VHp,'noopen');
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 
@@ -375,8 +375,8 @@ end
 %-"close" written image files, updating scalefactor information
 %=======================================================================
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
-for i = 1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
-for i = 1:nHp  ,   VHp(i) = spm_create_image(VHp(i));   end
+Vbeta = spm_close_vol(Vbeta);
+VHp   = spm_close_vol(VHp);
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 

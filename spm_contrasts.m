@@ -94,9 +94,11 @@ for i = 1:length(Ic)
             %-Write image
 	    %-----------------------------------------------------------
             fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
-            xCon(ic).Vcon            = spm_create_image(xCon(ic).Vcon);
+            xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
-            xCon(ic).Vcon            = spm_create_image(xCon(ic).Vcon);
+	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
+            xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon,'noopen');
+	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
             
             fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
                 '...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
@@ -124,9 +126,11 @@ for i = 1:length(Ic)
             %-Write image
 	    %-----------------------------------------------------------
             fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
-            xCon(ic).Vcon = spm_create_image(xCon(ic).Vcon);
+            xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon = spm_resss(Vbeta,xCon(ic).Vcon,h);
-            xCon(ic).Vcon = spm_create_image(xCon(ic).Vcon);
+	    xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
+            xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon,'noopen');
+	    xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
 
 
 	otherwise

@@ -237,10 +237,8 @@ function varargout=spm(varargin)
 %         - If CmdLine is complex, then a CmdLine alert is always used,
 %           possibly in addition to a msgbox (the latter according
 %           to spm('CmdLine').)
-%         - If in batch mode (non-empty global BCH), then uses CmdLine alert
 % wait    - if true, waits until user dismisses GUI / confirms text alert
 %           [default 0] (if doing both GUI & text, waits on GUI alert)
-%         - If in batch mode (non-empty global BCH), doesn't wait
 % h       - handle of msgbox created, empty if CmdLine used
 %
 % FORMAT SPMid = spm('FnBanner', Fn,FnV)
@@ -303,6 +301,9 @@ if nargin == 0, Action='Welcome'; else, Action = varargin{1}; end
 %=======================================================================
 switch lower(Action), case 'welcome'             %-Welcome splash screen
 %=======================================================================
+
+spm_defaults;
+if isfield(defaults,'modality'), spm(defaults.modality); return; end;
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
@@ -463,18 +464,6 @@ set([Fmenu,Finter,Fgraph],'Visible','on')
 fprintf('SPM present working directory:\n\t%s\n',pwd)
 
 
-%-Nag user to upgrade if this is old software
-%-----------------------------------------------------------------------
-if now>datenum('31-Dec-2005')
-	spm('alert!',{	'This software is rather old!',' ',...
-			'SPM99 was released in January 2000,',...
-			'over three years ago!',' ',...
-			'Please upgrade to a more recent release of SPM!',...
-			' ','     http://www.fil.ion.ucl.ac.uk/spm'},...
-		'Old version warning...',[],1)
-end
-
-
 %=======================================================================
 case 'createmenuwin'                              %-Draw SPM menu window
 %=======================================================================
@@ -564,7 +553,6 @@ uicontrol(Fmenu,'Style','Text',...
 	'Tag','FMRI','Visible','off')
 
 
-
 % Utilities frames and text
 %-----------------------------------------------------------------------
 uicontrol(Fmenu,'Style','Frame','BackgroundColor',spm('Colour'),...
@@ -586,11 +574,11 @@ uicontrol(Fmenu,'String','Realign',	'Position',[040 380 080 030].*WS,...
 	'CallBack','spm_realign_ui;')
 
 uicontrol(Fmenu,'String','Normalize',	'Position',[150 370 100 030].*WS,...
-	'ToolTipString','spatial normalisation',...
-	'CallBack','spm_sn3d;', 'Tag','PET', 'Visible','off');
+	'ToolTipString','spatial normalization',...
+	'CallBack','spm_normalise_ui;', 'Tag','PET', 'Visible','off');
 uicontrol(Fmenu,'String','Normalize', 'Position',[150 345 100 030].*WS,...
 	'ToolTipString','spatial normalisation',...
-	'CallBack','spm_sn3d;', 'Tag', 'FMRI', 'Visible','off');
+	'CallBack','spm_normalise_ui;', 'Tag', 'FMRI', 'Visible','off');
 uicontrol(Fmenu,'String','Slice timing', 'Position',[150 380 100 030].*WS,...
 	'ToolTipString','correct slice acquisition times',...
 	'CallBack','spm_slice_timing;', 'Tag', 'FMRI', 'Visible','off');
@@ -605,7 +593,7 @@ uicontrol(Fmenu,'String','Coregister',	'Position',[040 345 080 030].*WS,...
 
 uicontrol(Fmenu,'String','Segment',	'Position',[280 345 080 030].*WS,...
 	'ToolTipString','segment',...
-	'CallBack','spm_segment;');
+	'CallBack','spm_segment_ui;');
 
 %-Statistical
 %-----------------------------------------------------------------------
@@ -671,7 +659,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 	'ToolTipString','rendering utilities...',...
 	'FontSize',FS(9),		'CallBack','spm(''PopUpCB'',gcbo)',...
 	'UserData',{	'spm_render;',...
-			'spm_xbrain;'	})
+			'spm_surf;'	})
 
 uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 	'ToolTipString','change modality PET<->fMRI',...
@@ -822,55 +810,25 @@ set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum)
 case 'defaults'                 %-Set SPM defaults (as global variables)
 %=======================================================================
 % spm('defaults',Modality)
+global defaults
+if isempty(defaults), spm_defaults, end;
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
 if nargin<2, Modality=''; else, Modality=varargin{2}; end
-Modality = spm('CheckModality',Modality);
-
-%-Set MODALITY
-%-----------------------------------------------------------------------
-% clear global
-global MODALITY
-MODALITY = Modality;
-
-%-Set global defaults (global variables)
-%-----------------------------------------------------------------------
-global SWD TWD DESCRIP
-
-SWD	 = spm('Dir');					% SPM directory
-TWD	 = spm_platform('tempdir');			% Temp directory
+Modality          = spm('CheckModality',Modality);
+defaults.modality = Modality;
+defaults.SWD      = spm('Dir');				% SPM directory
+defaults.TWD      = spm_platform('tempdir');		% Temp directory
 	
-%-Get global modality defaults
-%-----------------------------------------------------------------------
-global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
-
-%-Load startup defaults (if not already done so)
-%-----------------------------------------------------------------------
-if isempty(PET_DIM), spm_defaults, end
-
 %-Set Modality specific default (global variables)
 %-----------------------------------------------------------------------
-global UFp DIM VOX SCALE TYPE OFFSET ORIGIN
-if strcmp(Modality,'PET')
-	DIM	= PET_DIM;				% Dimensions [x y z]
-	VOX	= PET_VOX;				% Voxel size [x y z]
-	SCALE	= PET_SCALE;				% Scaling coeficient
-	TYPE	= PET_TYPE;				% Data type
-	OFFSET	= PET_OFFSET;		    		% Offset in bytes
-	ORIGIN	= PET_ORIGIN;				% Origin in voxels
-	UFp	= PET_UFp;				% Upper tail F-prob
-elseif strcmp(Modality,'FMRI')
-	DIM	= fMRI_DIM;				% Dimensions {x y z]
-	VOX	= fMRI_VOX;				% Voxel size {x y z]
-	SCALE	= fMRI_SCALE;				% Scaling coeficient
-	TYPE	= fMRI_TYPE;				% Data type
-	OFFSET	= fMRI_OFFSET;	   			% Offset in bytes
-	ORIGIN	= fMRI_ORIGIN;				% Origin in voxels
-	UFp	= fMRI_UFp;				% Upper tail F-prob
-
-elseif strcmp(Modality,'UNKNOWN')
+global UFp
+if strcmp(lower(defaults.modality),'pet')
+	UFp	= defaults.stats.pet.ufp;		% Upper tail F-prob
+elseif strcmp(lower(defaults.modality),'fmri')
+	UFp	= defaults.stats.fmri.ufp;		% Upper tail F-prob
+elseif strcmp(lower(defults.modality),'unknown')
 else
 	error('Illegal Modality')
 end
@@ -893,8 +851,8 @@ case 'checkmodality'              %-Check & canonicalise modality string
 %-----------------------------------------------------------------------
 if nargin<2, Modality=''; else, Modality=upper(varargin{2}); end
 if isempty(Modality)
-	global MODALITY
-	if ~isempty(MODALITY); Modality = MODALITY;
+	global defaults
+	if ~isfield(defaults,'modality'); Modality = defaults.modality;
 	else, Modality = 'UNKNOWN'; end
 end
 if isstr(Modality)
@@ -1157,14 +1115,6 @@ end
 varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 
 %=======================================================================
-case 'mlver'                       %-MatLab major & point version number
-%=======================================================================
-% v = spm('MLver')
-v = version; tmp = find(v=='.');
-if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
-
-
-%=======================================================================
 case 'setcmdwinlabel'      %-Set command window label (Sun OpenWin only)
 %=======================================================================
 % spm('SetCmdWinLabel',WinStripe,IconLabel)
@@ -1249,8 +1199,6 @@ if nargin<3, Title   = ''; else, Title   = varargin{3}; end
 if nargin<2, Message = ''; else, Message = varargin{2}; end
 Message = cellstr(Message);
 
-bBCH = ~isempty(spm('GetGlobal','BCH'));	%-Batch mode? (see spm_bch.man)
-
 if isreal(CmdLine)
 	CmdLine  = spm('CmdLine',CmdLine);
 	CmdLine2 = 0;
@@ -1268,7 +1216,7 @@ case 'alert*',	icon = 'error'; str = '* - ';
 case 'alert!',	icon = 'warn';	str = '! - ';
 end
 
-if CmdLine | CmdLine2 | bBCH
+if CmdLine | CmdLine2
 	Message(strcmp(Message,'')) = {' '};
 	tmp = sprintf('%s: %s',SPMv,Title);
 	fprintf('\n    %s%s  %s\n\n',str,tmp,repmat('-',1,62-length(tmp)))
@@ -1277,7 +1225,7 @@ if CmdLine | CmdLine2 | bBCH
 	h = [];
 end
 
-if ~CmdLine & ~bBCH
+if ~CmdLine
 	tmp = max(size(char(Message),2),42) - length(SPMv) - length(timestr);
 	str = sprintf('%s  %s  %s',SPMv,repmat(' ',1,tmp-4),timestr);
 	h   = msgbox([{''};Message(:);{''};{''};{str}],...
@@ -1287,7 +1235,7 @@ if ~CmdLine & ~bBCH
 	set(h,'windowstyle','modal');
 end
 
-if wait & ~bBCH
+if wait
 	if isempty(h)
 		input('        press ENTER to continue...');
 	else

@@ -324,20 +324,15 @@ DIM      = VY(1).dim(1:3)';
 xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dim(4),'nanrep');
 
-
+global defaults
 %-Maximum number of residual images for smoothness estimation
 %-----------------------------------------------------------------------
-MAXRES   = spm('GetGlobal','MAXRES');
-if isempty(MAXRES)
-	MAXRES = 64;
-end
+MAXRES   = defaults.stats.maxres;
 
 %-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
-MAXMEM   = spm('GetGlobal','MAXMEM');
-if isempty(MAXMEM)
-	MAXMEM = 2^20;
-end
+MAXMEM   = defaults.stats.maxmem;
+
 nSres    = min(nScan,MAXRES);
 blksz    = ceil(MAXMEM/8/nScan);				%-block size
 nbch     = ceil(xdim*ydim/blksz);				%-# blocks
@@ -368,7 +363,7 @@ VM    = struct(		'fname',	'mask.img',...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:resultant analysis mask');
-VM    = spm_create_image(VM);
+VM    = spm_create_vol(VM);
 
 
 %-Intialise beta image files
@@ -383,8 +378,8 @@ for i = 1:nBeta
 	Vbeta(i).fname   = sprintf('beta_%04d.img',i);
 	Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
-	Vbeta(i)         = spm_create_image(Vbeta(i));
 end
+Vbeta = spm_create_vol(Vbeta,'noopen');
 
 
 %-Intialise residual sum of squares image file
@@ -394,7 +389,7 @@ VResMS = struct(	'fname',	'ResMS.img',...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
-VResMS = spm_create_image(VResMS);
+VResMS = spm_create_vol(VResMS,'noopen');
 
 
 %-Intialise residual images
@@ -410,8 +405,8 @@ for i = 1:nSres
 	VResI(i).fname   = sprintf('ResI_%04d.img', i);
 	VResI(i).descrip = sprintf('spm_spm:ResI (%04d)', i);
 	spm_unlink(VResI(i).fname);
-	VResI(i)         = spm_create_image(VResI(i));
 end
+VResI = spm_create_vol(VResI);
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 
@@ -704,18 +699,19 @@ CY            = CY - EY*EY';
 xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 
+%-close written image files, updating scalefactor information
+%=======================================================================
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing image files')  %-#
+VM              = spm_close_vol(VM);
+Vbeta           = spm_close_vol(Vbeta);
+VResI           = spm_close_vol(VResI);
+
 %-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
 %-----------------------------------------------------------------------
 VResMS.pinfo(1) = 1/xX.trRV;
-
-
-%-"close" written image files, updating scalefactor information
-%=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing image files')  %-#
-VM                      = spm_create_image(VM);
-for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
-for i=1:nSres, VResI(i) = spm_create_image(VResI(i)); end
-VResMS                  = spm_create_image(VResMS);
+VResMS          = spm_close_vol(VResMS);
+VResMS          = spm_create_vol(VResMS,'noopen');
+VResMS          = spm_close_vol(VResMS);
 
 
 %-Smoothness estimates of component fields and RESEL counts for volume

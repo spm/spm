@@ -15,7 +15,7 @@ function V = spm_write_plane(V,A,p)
 
 if any(V.dim(1:2) ~= size(A)), error('Incompatible image dimensions');      end;
 if p>V.dim(3),                 error('Plane number too high');              end;
-if ~isfield(V,'fid'),          error('This file does not seem to be open'); end;
+
 % Write Analyze image by default
 V = write_analyze_plane(V,A,p);
 return;
@@ -45,29 +45,46 @@ if intt(dt),
 	A(A < mnv)  = mnv;
 end;
 
+if ~isfield(V,'fid'),
+	[pth,nam,ext] = fileparts(V.fname);
+	fname         = fullfile(pth,[nam, '.img']);
+	fid         = fopen(fname,'r+',mach);
+	if (fid == -1),
+		fid     = fopen(fname,'w',mach);
+		if (fid == -1),
+			error(['Error opening ' fname '. Check that you have write permission.']);
+		end;
+	end;
+else,
+	fid = V.fid;
+end;
+
 % Seek to the appropriate offset
 datasize = V.hdr.dime.bitpix/8;
 off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
-if fseek(V.fid,off,'bof')==-1,
+if fseek(fid,off,'bof')==-1,
 	% Need this because fseek in Matlab does not seek past the EOF
-	fseek(V.fid,0,'eof');
-	curr_off = ftell(V.fid);
+	fseek(fid,0,'eof');
+	curr_off = ftell(fid);
 	blanks   = zeros(off-curr_off,1);
-	if fwrite(V.fid,blanks,'uchar') ~= prod(size(blanks)),
+	if fwrite(fid,blanks,'uchar') ~= prod(size(blanks)),
 		write_error_message(V.fname);
 		error(['Error writing ' V.fname '.']);
 	end;
-	if fseek(V.fid,off,'bof') == -1,
+	if fseek(fid,off,'bof') == -1,
 		write_error_message(V.fname);
 		error(['Error writing ' V.fname '.']);
 		return;
 	end;
 end;
 
-if fwrite(V.fid,A,deblank(prec(dt,:))) ~= prod(size(A)),
+if fwrite(fid,A,deblank(prec(dt,:))) ~= prod(size(A)),
 	write_error_message(V.fname);
 	error(['Error writing ' V.fname '.']);
 end;
+
+~isfield(V,'fid'), fclose(fid); end;
+
 return;
 %_______________________________________________________________________
 

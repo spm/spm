@@ -60,6 +60,8 @@ defaults.cmdline  = 0;
 defaults.logfile  = '';
 defaults.printstr =  [spm_figure('DefPrintCmd'),'spm2.ps'];
 
+defaults.stats.maxmem   = 2^20;
+defaults.stats.maxres   = 64;
 defaults.stats.fmri.ufp = 0.001;
 defaults.stats.fmri.t   = 16;
 defaults.stats.fmri.t0  = 1;

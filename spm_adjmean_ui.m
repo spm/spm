@@ -604,10 +604,12 @@ for i = 1:nc
 	Vo.fname   = [Fnames{i},'.img'];
 	Vo.descrip = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
 	Vo.pinfo   = [1,0,0]';
-	spm_create_image(Vo);
+	Vo         = spm_create_vol(Vo);
 	%-Compute & rewrite header scalefactor
 	Vo.pinfo(1)  = spm_add(wV,Vo,'m');
-	spm_create_image(Vo);
+	Vo           = spm_close_vol(Vo);
+	Vo           = spm_create_vol(Vo,'noopen');
+	Vo           = spm_close_vol(Vo);
 	fprintf(' (done)\n')
 end
 

@@ -118,9 +118,11 @@ for i = 1:length(xCon)
 	    %-Write image
 	    %-----------------------------------------------------------
 	    fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
-	    xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
+	    xCon(i).Vcon            = spm_create_vol(xCon(i).Vcon);
 	    xCon(i).Vcon.pinfo(1,1) = spm_add(V,xCon(i).Vcon);
-	    xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
+	    xCon(i).Vcon            = spm_close_vol(xCon(i).Vcon);
+	    xCon(i).Vcon            = spm_create_vol(xCon(i).Vcon,'noopen');
+	    xCon(i).Vcon            = spm_close_vol(xCon(i).Vcon);
 
 	    fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
 			sprintf('...written %s',xCon(i).Vcon.fname)) %-#
@@ -146,9 +148,11 @@ for i = 1:length(xCon)
 	    %-Write image
 	    %-----------------------------------------------------------
 	    fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
-	    xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
+	    xCon(i).Vcon  = spm_create_vol(xCon(i).Vcon);
 	    xCon(i).Vcon  = spm_resss(Vbeta,xCon(i).Vcon,h);
-	    xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
+	    xCon(i).Vcon  = spm_close_vol(xCon(i).Vcon);
+	    xCon(i).Vcon  = spm_create_vol(xCon(i).Vcon,'noopen');
+	    xCon(i).Vcon  = spm_close_vol(xCon(i).Vcon);
 
 	otherwise
 	    error(['unknown STAT "',xCon(i).STAT,'"'])

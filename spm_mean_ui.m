@@ -50,14 +50,11 @@ Vo = struct(	'fname',	'mean.img',...
 for i=1:prod(size(Vi))
 	Vi(i).pinfo(1:2,:) = Vi(i).pinfo(1:2,:)/n; end;
 
-%-Write basic header
-spm_create_image(Vo);
-
-%-Use spm_add to do the donkey work
+Vo            = spm_create_vol(Vo);
 Vo.pinfo(1,1) = spm_add(Vi,Vo);
-
-%-Write header (complete with scaling information)
-spm_create_image(Vo);
+Vo            = spm_close_vol(Vo);
+Vo            = spm_create_vol(Vo);
+Vo            = spm_close_vol(Vo);
 
 
 %-End - report back

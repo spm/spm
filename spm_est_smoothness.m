@@ -67,7 +67,7 @@ VRpv  = struct('fname','RPV.img',...
 			'mat',		VM.mat,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm: resels per voxel');
-VRpv  = spm_create_image(VRpv);
+VRpv  = spm_create_vol(VRpv);
 
 
 % dimensionality of image
@@ -140,9 +140,9 @@ for  i = 1:VM.dim(3)
 	if ~isempty(I)
 		d(sub2ind(VM.dim(1:2), Ix(I), Iy(I))) = resel(I);
 	end
-	spm_write_plane(VRpv, d, i);
+	VRpv = spm_write_plane(VRpv, d, i);
 end
-VRpv   = spm_create_image(VRpv);
+VRpv   = spm_close_vol(VRpv);
 
 % global equivalent FWHM {prod(1/FWHM) = (unbiased) RESEL estimator}
 %-----------------------------------------------------------------------

@@ -53,8 +53,8 @@ for i=1:m2,
 	VO(i).descrip  = 'Masked';
 	VO(i).mat      = VO(1).mat;
 	VO(i).dim(1:3) = VO(1).dim(1:3);
-	spm_create_image(VO(i));
 end;
+VO  = spm_create_vol(VO);
 M   = VO(1).mat;
 dim = VO(1).dim(1:3);
 
@@ -85,13 +85,14 @@ for j=1:dim(3),
 
 	% Write the images.
 	for i=1:m2,
-		M1  = M\V2(i).mat\Mi;
-		img = spm_slice_vol(V2(i),M1,dim(1:2),[1 0]);
+		M1       = M\V2(i).mat\Mi;
+		img      = spm_slice_vol(V2(i),M1,dim(1:2),[1 0]);
 		img(msk) = NaN;
-		spm_write_plane(VO(i),img,j);
+		VO(i)    = spm_write_plane(VO(i),img,j);
 	end;
 
 	spm_progress_bar('Set',j);
 end;
+VO = spm_close_vol(VO);
 spm_progress_bar('Clear');
 return;

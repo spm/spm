@@ -1,13 +1,14 @@
-function V = spm_create_vol(V)
+function V = spm_create_vol(V,varargin)
 % Create an image file.
-% FORMAT Vo = spm_create_vol(Vi)
+% FORMAT Vo = spm_create_vol(Vi,['noopen'])
 % Vi   - data structure containing image information.
 %      - see spm_vol for a description.
+% 'noopen' - optional flag to say "don't open/create the image file".
 % Vo   - data structure after modification for writing.
 %_______________________________________________________________________
-% %W% John Ashburner %E%                                                                            
+% %W% John Ashburner %E%
 for i=1:prod(size(V)),
-	v = create_vol(V(i));
+	v = create_vol(V(i),varargin{:});
 	f = fieldnames(v);
 	for j=1:size(f,1),
 		%eval(['V(i).' f{j} ' = v.' f{j} ';']);
@@ -17,7 +18,7 @@ end;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function V = create_vol(V)
+function V = create_vol(V,varargin)
 if ~isfield(V,'n')       | isempty(V.n),       V.n       = 1;                 end;
 if ~isfield(V,'descrip') | isempty(V.descrip), V.descrip = 'SPM2 compatible'; end;
 if ~isfield(V,'hdr')     | isempty(V.hdr),     V.hdr     = create_defaults;   end;
@@ -167,12 +168,14 @@ if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
 	end;
 end;
 
-fname         = fullfile(pth,[nam, '.img']);
-V.fid         = fopen(fname,'r+',mach);
-if (V.fid == -1),
-	V.fid     = fopen(fname,'w',mach);
+if ~(nargin>1 & strcmp(varargin{1},'noopen')),
+	fname         = fullfile(pth,[nam, '.img']);
+	V.fid         = fopen(fname,'r+',mach);
 	if (V.fid == -1),
-		error(['Error opening ' fname '. Check that you have write permission.']);
+		V.fid     = fopen(fname,'w',mach);
+		if (V.fid == -1),
+			error(['Error opening ' fname '. Check that you have write permission.']);
+		end;
 	end;
 end;
 return;
