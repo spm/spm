@@ -350,7 +350,11 @@ end;
 
 prec = ['ubit' num2str(hdr.BitsAllocated) '=>' 'uint32'];
 
-fp = fopen(hdr.Filename,'r','ieee-le');
+if strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') & strcmp(hdr.VROfPixelData,'OW'),
+	fp = fopen(hdr.Filename,'r','ieee-be');
+else,
+	fp = fopen(hdr.Filename,'r','ieee-le');
+end;
 if fp==-1,
 	warning([hdr.Filename ': cant open file']);
 	return;
