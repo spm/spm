@@ -39,10 +39,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int ni, nj, nk, i, j, k;
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
 	int mask0flag = 0, floatflag = 0;
-	double NaN = 0.0/0.0; /* the only way to get a NaN that I know */
+	double NaN;
 	mxArray *wplane_args[3];
 	int maxval, minval;
 	int dtype;
+
+	NaN = mxGetNaN();
 
 	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
