@@ -422,7 +422,9 @@ end % (while)
 
 %-The interactive parts of spm_spm_ui are now finished
 %-----------------------------------------------------------------------
-set(2,'Name','Thank You','Pointer','Watch')
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set(Finter,'Name','thankyou','Pointer','Watch')
 
 
 
@@ -519,8 +521,7 @@ end
 
 %-Construct full design matrix and name matrices for display
 %-----------------------------------------------------------------------
-[nHCBG,HCBGnames]=...
-	spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
+[nHCBG,HCBGnames] = spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
 
 
 %-Ensure validity of contrast of condition effects, zero pad
@@ -548,7 +549,7 @@ Q     = P(:,[(d + 1):size(P,2)]);
 
 %-Display
 %-----------------------------------------------------------------------
-figure(3); spm_clf; axis off
+figure(Fgraph); spm_clf; axis off
 text(0.30,1.02,'Statistical analysis','Fontsize',16,'Fontweight','Bold');
 text(-0.10,0.85,'Scan Index','Rotation',90)
 if bMStud, text(-0.05,0.85,'Study',      'Rotation',90); end
@@ -585,7 +586,7 @@ for i = 1:q
 	y     = y - dy;
 	if y < 0;
 		spm_print
-		spm_clf; axis off
+		spm_clf(Fgraph); axis off
 		y = y0;
 		text(0.16,1.02,['Statistical analysis (continued)'],...
 		    'Fontsize',16,'Fontweight','Bold');
@@ -606,7 +607,7 @@ spm_print
 
 %-Depict and label design matrix, show numbers of parameters.
 %=======================================================================
-figure(3); spm_clf; axis off
+spm_clf(Fgraph); axis off
 text(0.30,1.02,'Design Matrix','Fontsize',16,'Fontweight','Bold');
 
 %-Label the effects
@@ -626,7 +627,7 @@ end % (for)
 
 %-Display parameter summary
 %-----------------------------------------------------------------------
-hPramAxes=axes('Position',[0.1 0.1 0.8 0.15],'Visible','off');
+hPramAxes = axes('Position',[0.1 0.1 0.8 0.15],'Visible','off');
 text(0,1,['Design: ',DesName]);
 text(0,.8,['Global normalisation: ',deblank(sGloNorm(iGloNorm,:))]);
 
@@ -648,3 +649,7 @@ spm_print
 %-This is PET data so sigma = 0 (i.e. independent observations)
 %-----------------------------------------------------------------------
 spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
+
+%-Clear figure
+%-----------------------------------------------------------------------
+spm_clf(Finter); set(Finter,'Name',' ','Pointer','Arrow');
