@@ -2,16 +2,17 @@ function R = spm_Pec_resels(L,W)
 % Returns the resel count for a point-list of voxels
 % FORMAT R = spm_Pec_resels(L,W)
 % L   - point list of voxels {in voxels}
-% W   - smoothness of the component fields
+% W   - smoothness of the component fields {FWHM in voxels}
 % R   - vector of RESEL counts
 %___________________________________________________________________________
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
-%_______________________________________________________________________
-% %E% Karl Friston %W%
+%___________________________________________________________________________
+% %W% Karl Friston %E%
 
 % Resel Counts
 %---------------------------------------------------------------------------
+L   = round(L);
 Ex  = 0;
 Ey  = 0;
 Ez  = 0;
@@ -69,8 +70,7 @@ end
 
 % Resel counts
 %---------------------------------------------------------------------------
-w     = W*sqrt(8*log(2));
-r     = 1./w(:);
+r     = 1./W(:);
 
 R(1)  = P - (Ex + Ey + Ez) + (Fyz + Fxz + Fxy) - C;
 R(2)  = (Ex - Fxy - Fxz + C)*r(1) + (Ey - Fxy - Fyz + C)*r(2) +...
