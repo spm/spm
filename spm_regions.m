@@ -11,12 +11,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %       xY.xyz          - centre of VOI {mm}
 %       xY.name         - name of VOI
 %       xY.Ic           - contrast used to adjust data (0 - no adjustment)
-%       xY.filter       - filtering (1 = yes | 0 = no)
 %       xY.Sess         - session indices
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
 %       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
-%	xY.V		- error correlations (prior to filtering)
 %       xY.y            - voxel-wise data
 %       xY.u            - first eigenvariate {scaled - c.f. mean response}
 %       xY.v            - first eigenimage
@@ -33,15 +31,15 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % response in all suprathreshold voxels within a specified VOI
 % centered on the current MIP cursor location.
 %
-% If temporal filtering has been specified, then the data can be
-% temporally filtered. Adjustment is with respect to the null space of
-% a selected contrast, or can be omitted.
+% If temporal filtering has been specified, then the data will be
+% filtered.  Similarly for whitening. Adjustment is with respect to
+% the null space of a selected contrast, or can be omitted.
 %
 % For a VOI of radius 0, the [adjusted] voxel time-series is
 % returned, and scaled to have a 2-norm or 1. The actual [adjusted]
 % voxel time series can be extracted from xY.y, and will be
-% the same as the [adjusted] data returned by the plotting
-% routine (spm_graph.m) for the same contrast.
+% the same as the [adjusted] data returned by the plotting routine
+% (spm_graph.m) for the same contrast.
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -104,10 +102,6 @@ end
 %-----------------------------------------------------------------------
 if isfield(SPM,'Sess')
 
-	if ~isfield(xY,'filter')
-		xY.filter = spm_input('filter','!+1','yes|no',[1 0]);
-	end
-
 	if ~isfield(xY,'Sess')
 		s         = length(SPM.Sess);
 		if s > 1
@@ -115,9 +109,6 @@ if isfield(SPM,'Sess')
 		end
 		xY.Sess   = s;
 	end
-
-else
-	xY.filter = 0;
 end
 
 
@@ -164,16 +155,17 @@ spm('Pointer','Watch')
 %-Extract required data from results files
 %=======================================================================
 
-%-Get raw data
+%-Get raw data, whiten and filter
 %-----------------------------------------------------------------------
 y        = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,Q));
+y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
 xY.XYZmm = xSPM.XYZmm(:,Q);
 
 
 %-Computation
 %=======================================================================
 
-% remove null space of contrast (prior to filtering)
+% remove null space of contrast
 %-----------------------------------------------------------------------
 if xY.Ic
 
@@ -181,29 +173,10 @@ if xY.Ic
 	%---------------------------------------------------------------
 	beta   = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
 
-	%-subtract XO*beta
+	%-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
 	%---------------------------------------------------------------
-	if length(SPM.xCon(xY.Ic).c)
-	    Fc = spm_FcUtil('set','Fc','F','c',  SPM.xCon(xY.Ic).c,  SPM.xX.X);
-	else
-	    Fc = spm_FcUtil('set','Fc','F','iX0',SPM.xCon(xY.Ic).iX0,SPM.xX.X);
-	end
-	y      = y - spm_FcUtil('Y0',Fc,SPM.xX.X,beta);
+	y      = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
 
-end
-
-% filter
-%-----------------------------------------------------------------------
-if xY.filter
-	y      = spm_filter(SPM.xX.K,y);
-end
-
-% non-sphericity {V}
-%-----------------------------------------------------------------------
-try
-	xY.V   = SPM.xVi.V;
-catch
-	xY.V   = speye(length(y),length(y));
 end
 
 
@@ -221,9 +194,7 @@ if isfield(xY,'Sess')
 	% extract sessions
 	%---------------------------------------------------------------
 	y       = y(j,:);
-	xY.V    = xY.V(j,j);
 end
-xY.V    = xY.V*length(xY.V)/trace(xY.V);
 
 % compute regional response in terms of first eigenvariate
 %-----------------------------------------------------------------------
