@@ -54,7 +54,7 @@ if n==1; Y=Y(:,:,:,1); end
 if nargout>1
 	[R,C,P]=ndgrid(1:V(1).dim(1),1:V(1).dim(2),1:V(1).dim(3));
 	RCP = [R(:)';C(:)';P(:)'];
+	clear R C P
 	RCP(4,:)=1;
-	XYZ = V(1).mat*RCP;
-	XYZ=XYZ(1:3,:);
+	XYZ = V(1).mat(1:3,:)*RCP;
 end
