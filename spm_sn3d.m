@@ -73,7 +73,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 %	For images aquired in different orientations, it is possible
 % 	to use starting estimates which reflect these orientations.
 % 	eg. a pitch of +/- pi/2 radians for coronal images.
-% 	    a roll  of +/- pi/2 radians for saggital images.
+% 	    a roll  of +/- pi/2 radians for sagittal images.
 % 	For volumes which are flipped, then the appropriate scaling
 % 	can be set to -1 in the starting estimates.
 %

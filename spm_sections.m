@@ -40,7 +40,7 @@ A      = spm_matrix([0 0 0 0 0 0 Vs(4:6)'])*A;		% anisotropy
 A      = spm_matrix([J R 0])*A;				% re-center to corner
 
 
-% extract data from SPM{t} [saggital {Ts} coronal {Tc} transverse {Tt}]
+% extract data from SPM{t} [sagittal {Ts} coronal {Tc} transverse {Tt}]
 %----------------------------------------------------------------------------
 Q      = find(abs(XYZ(1,:) - L(1)) < V(4)/2);
 Ts     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(2,Q) + R)/V(5),t(Q),O/V(6),N/V(5));
@@ -101,7 +101,7 @@ Z      = Y*O/N;
 %----------------------------------------------------------------------------
 axes('Position',[0.1 (0.46 - Z*WIN) Y Z*WIN])
 image(Ts)
-axis image; axis('xy'); axis off; 	title 'saggital'
+axis image; axis('xy'); axis off; 	title 'sagittal'
 line([0 N],([I I] + L(3)))
 line(([R R] + L(2)),[0 O])
 

@@ -5,7 +5,7 @@ function spm_display(P,A)
 % A    - transformation matrix
 %___________________________________________________________________________
 %
-% spm_display displays saggital, coronal and transverse sections of the
+% spm_display displays sagittal, coronal and transverse sections of the
 % specified image {P}, through the center of the image space.  Sections
 % are displayed in real space (accounting for anisotroptic voxel sizes)
 % If a transformation matrix {A} is specified this transformation will
@@ -70,7 +70,7 @@ Z      = Y*DIM(3)*VOX(3)/(DIM(2)*VOX(2));
 %----------------------------------------------------------------------------
 axes('Position',[0.1 (H - Z*WIN) Y Z*WIN])
 imagesc(Ds); axis('xy')
-title('saggital')'; ylabel('z {voxels}')
+title('sagittal')'; ylabel('z {voxels}')
 line([0 DIM(2)],[1 1]*ORIGIN(3))
 line([1 1]*ORIGIN(2),[0 DIM(3)])
 
