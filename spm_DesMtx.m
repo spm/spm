@@ -630,8 +630,8 @@ while(Carg <= nargin)
 
 
     while(~isempty(rX))
-	if size(rX,2)>1 & max(1,find(rPnames(1,:)=='(')) < ...
-					max(0,find(rPnames(1,:)==')'))
+	if size(rX,2)>1 & max([1,find(rPnames(1,:)=='(')]) < ...
+					max([0,find(rPnames(1,:)==')')])
 	%-Non-specific block: find the rest & column normalise round zero
 	%===============================================================
 		c1 = max(find(rPnames(1,:)=='('));
@@ -648,8 +648,8 @@ while(Carg <= nargin)
 		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-	elseif size(rX,2)>1 & max(1,find(rPnames(1,:)=='[')) < ...
-					max(0,find(rPnames(1,:)==']'))
+	elseif size(rX,2)>1 & max([1,find(rPnames(1,:)=='[')]) < ...
+					max([0,find(rPnames(1,:)==']')])
 	%-Block: find the rest & normalise together
 	%===============================================================
 		c1 = max(find(rPnames(1,:)=='['));
@@ -664,7 +664,7 @@ while(Carg <= nargin)
 		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-	elseif size(rX,2)>1 & max(1,findstr(rPnames(1,:),'_{')) < ...
+	elseif size(rX,2)>1 & max([1,findstr(rPnames(1,:),'_{')]) < ...
 					max([0,find(rPnames(1,:)=='}')])
 	%-Factor, interaction of factors, or FxC: find the rest...
 	%===============================================================
