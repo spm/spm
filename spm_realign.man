@@ -1,12 +1,8 @@
-
-% Realignment
+% Image Realignment
 %___________________________________________________________________________
 %
 % SEE ALSO
-% spm_realign_ui.m
 % spm_realign.m
-% spm_fmri_realign_ui.m
-% spm_fmri_realign.m
 %
 % This routine realigns a time-series of images acquired from the same subject 
 % using a least squares approach and a 6 parameter (rigid body) spatial 
@@ -20,12 +16,10 @@
 %
 %
 % Uses
-%
 % Primarily to remove movement artefact in fMRI and PET time-series (or more 
 % generally longitudinal studies)
 %
 % Inputs
-%
 % A series of *.img conforming to SPM data format (see 'Data Format').  The 
 % relative displacement of the images should be small with respect to their 
 % resolution.  This is usually easy to ensure for functional images (e.g. 
@@ -33,19 +27,17 @@
 % the 'Display' facility.
 %
 % Outputs
-%
 % Each of the realigned *.img is written to the same subdirectory prefixed
 % with a 'r' (i.e. r*.img).  The details of the transformation are displayed
 % in the results window as plots of translation and rotation.
 %
 % references and further information
-%
 % Friston KJ, Frith CD, Liddle PF, & Frackowiak RSJ  (1991) Plastic 
 % transformation of PET images J. Comput. Assist. Tomogr. 15:63-639
 %
-% Friston KJ, Ashburner J, Poline JB, Frith CD & Frackowiack RSJ (1995)
-% Spatial realignment and normalization of images.  Human Brain Mapping - 
-% in press
+% Friston KJ, Ashburner J, Poline JB, Frith CD & Frackowiack RSJ.
+% Spatial realignment and normalization of images.
+% Human Brain Mapping 2:165-189(1995)
 %
 %__________________________________________________________________________
-% @(#)spm_realign.man	1.1 95/08/07
+% %W% FIL %E%
