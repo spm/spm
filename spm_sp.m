@@ -172,7 +172,7 @@ function varargout = spm_sp(varargin)
 % x - space structure
 % b - true if the basic fields are non-empty
 %_______________________________________________________________________
-% @(#)spm_sp.m	2.8 Jean-Baptiste Poline 99/05/01
+% %W%	2.8 Jean-Baptiste Poline %E%
 
 if nargin==0
 	error('Do what? no arguments given...')
@@ -747,7 +747,7 @@ case 'isinsp'
 		warning('Vector dim don''t match col. dim : not in space !'); 
 		varargout = { 0 }; return;
 	end
-	varargout = {all(abs(sf_op(sX)*c - c) <= tol )};
+	varargout = {all(all( abs(sf_op(sX)*c - c) <= tol ))};
 
 case 'isinspp'
 	%- check dimensions
@@ -755,7 +755,7 @@ case 'isinspp'
 		warning('Vector dim don''t match row dim : not in space !'); 
 		varargout = { 0 }; return;
 	end
-	varargout = {all(abs(sf_opp(sX)*c - c) <= tol)};
+	varargout = {all(all( abs(sf_opp(sX)*c - c) <= tol ))};
 end
 
 
