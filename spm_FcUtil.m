@@ -34,12 +34,13 @@ function varargout = spm_FcUtil(varargin)
 %- There are three ways to set a contrast :
 %- set_action is 'c','c+'	: value can then be zeros.
 %-				  dimensions are in X', 
-%- 				  f c+ is used, value is projected onto sX'
+%- 				  f c+ is used, value is projected onto sX';
+%-                                iX0 is set to 'c' or 'c+';
 %- set_action is 'iX0'		: defines the indices of the columns 
 %- 				  that will not be tested. Can be empty.
 %- set_action is 'X0'		: defines the space that will remain 
 %-				  unchanged. The orthogonal complement is
-%- 				  tested; iX0 is set to 0;
+%- 				  tested; iX0 is set to 'X0';
 %- 									
 %=======================================================================
 % case 'isfcon'					%- Is it an F contrast ?
@@ -158,8 +159,8 @@ case {'set','v1set'}				%- Create an F contrast
 % resp. for a contrast, the null hyp. space or the indices of which.
 % STAT can be 'T' or 'F'.
 %
-% If set with 'c' or 'X0', the field .iX0 is set to 0.
-% A .nativ field tells you how the contrast was set.
+% If not set by iX0 (in which case field .iX0 containes the indices),
+% field .iX0 is set as a string containing the set_action: {'X0','c','c+','ukX0'}
 %
 % if STAT is T, then set_action should be 'c' or 'c+' 
 % (at the moment, just a warning...)
@@ -203,13 +204,12 @@ end
 
 switch set_action,
         case {'c','c+'}
-           Fc.nativ = set_action;
+	   Fc.iX0  = set_action;
            c = spm_sp(':', sX, varargin{5});
 	   if isempty(c)
               [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,[]);
    	      %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,[]);
        	      Fc.c    = c;
-	      Fc.iX0  = 0;
 	   elseif size(c,1) ~= sL, 
 	      error(['not contrast dim. in ' mfilename ' ' set_action]); 
 	   else	
@@ -223,7 +223,6 @@ switch set_action,
 	      Fc.c   = c;
               [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,c);
    	      %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
-	      Fc.iX0 = 0;
 	   end;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,42 +230,37 @@ switch set_action,
 
 	case {'X0'}
            warning(['option given for completeness - not for SPM use']);
+	   Fc.iX0  = set_action;
 	   X0 = spm_sp(':', sX, varargin{5});
-           Fc.nativ = set_action;
 	   if isempty(X0),
               Fc.c         = spm_sp('xpx',sX); 
               Fc.X1o.ukX1o = spm_sp('cukx',sX);
               Fc.X0.ukX0   = [];	
-              Fc.iX0       = 0;
 	   elseif size(X0,1) ~= sC, 
               error('dimension of X0 wrong in Set');
 	   else 
               Fc.c         = spm_SpUtil('X0->c',sX,X0);
 	      Fc.X0.ukX0   = spm_sp('ox',sX)'*X0;	
               Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
-              Fc.iX0	   = 0;
 	   end
 
         case 'ukX0' 
            warning(['option given for completeness - not for SPM use']);
-           Fc.nativ = set_action;
+	   Fc.iX0  = set_action;
 	   if isempty(ukX0), 
               Fc.c         = spm_sp('xpx',sX); 
               Fc.X1o.ukX1o = spm_sp('cukx',sX);
               Fc.X0.ukX0   = [];	
-              Fc.iX0       = 0;
 	   elseif size(ukX0,1) ~= spm_sp('rk',sX), 
               error('dimension of cukX0 wrong in Set');
 	   else 
               Fc.c         = spm_SpUtil('+X0->c',sX,ukX0);
 	      Fc.X0.ukX0   = ukX0;	
               Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
-              Fc.iX0	   = 0;
 	   end 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	case 'iX0'
-           Fc.nativ   = set_action;
 	   iX0 	      = varargin{5};
 	   iX0 	      = spm_SpUtil('iX0check',iX0,sL);
 	   Fc.iX0     = iX0;
@@ -712,7 +706,6 @@ Fc = struct(...
 	'X0',		struct('ukX0',[]),... %!15/10
 	'iX0',		[],...
 	'X1o',		struct('ukX1o',[]),...  %!15/10
-	'nativ',        '',...   %!15/10: 'c','c+' or 'X0' or 'iX0'
 	'eidf',		[],...
 	'Vcon',		[],...
 	'Vspm',		[]	);
