@@ -445,7 +445,7 @@ case 'Event-related responses'
 		case 'fitted response and adjusted data'
 		%------------------------------------------------------
 		plot(x,Y,'Color',Col(2,:),'LineWidth',4)
-		plot(pst,y,'.','MarkerSize',4,'Color',Col(1,:))
+		plot(pst,y,'.','Color',Col(3,:))
 
 	end
 
