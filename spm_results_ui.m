@@ -784,9 +784,9 @@ hGraphUI   = uicontrol(Finter,'Style','Frame','Tag','hGraphUI',...
 hGraphUIButtsF = uicontrol(Finter,'Style','Frame',...
 		'Position',[010 190 380 030].*WS);
 hText = uicontrol(Finter,'Style','Text','String','Plot controls',...
-	'Position',[020 212 070 016].*WS,...
+	'Position',[020 212 080 016].*WS,...
 	'FontName',spm_platform('font','times'),'FontWeight','Normal',...
-	'FontSize',FS(10),...
+	'FontAngle','Italic','FontSize',FS(10),...
 	'HorizontalAlignment','Left',...
 	'ForegroundColor','w');
 
@@ -873,21 +873,21 @@ hAx = get(hPM,'UserData');
 switch str
 case 'Title'
 	h = get(hAx,'Title');
-	set(h,'String',spm_input('Enter title:',-1,'s',get(h,'String')))
+	set(h,'String',spm_input('Enter title:',-1,'s+',get(h,'String')))
 case 'Xlabel'
 	h = get(hAx,'Xlabel');
-	set(h,'String',spm_input('Enter X axis label:',-1,'s',get(h,'String')))
+	set(h,'String',spm_input('Enter X axis label:',-1,'s+',get(h,'String')))
 case 'Ylabel'
 	h = get(hAx,'Ylabel');
-	set(h,'String',spm_input('Enter Y axis label:',-1,'s',get(h,'String')))
+	set(h,'String',spm_input('Enter Y axis label:',-1,'s+',get(h,'String')))
 case 'LineWidth'
-	lw = spm_input('Enter LineWidth',-1,'e',get(hAx,'LineWidth'));
+	lw = spm_input('Enter LineWidth',-1,'e',get(hAx,'LineWidth'),1);
 	set(hAx,'LineWidth',lw)
 case 'XLim'
-	XLim = spm_input('Enter XLim',-1,'e',get(hAx,'XLim'));
+	XLim = spm_input('Enter XLim',-1,'e',get(hAx,'XLim'),[1,2]);
 	set(hAx,'XLim',XLim)
 case 'YLim'
-	YLim = spm_input('Enter YLim',-1,'e',get(hAx,'YLim'));
+	YLim = spm_input('Enter YLim',-1,'e',get(hAx,'YLim'),[1,2]);
 	set(hAx,'YLim',YLim)
 case 'handle'
 	varargout={hAx};
