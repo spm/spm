@@ -837,9 +837,9 @@ case 'colour'
 % spm('Colour')
 %-----------------------------------------------------------------------
 %-Developmental livery
-% varargout = {[0.7,1.0,0.7],'flourescent green'};
+varargout = {[0.7,1.0,0.7],'flourescent green'};
 %-Alpha release livery
-varargout = {[0.9,0.9,0.5],'over-ripe banana'};
+% varargout = {[0.9,0.9,0.5],'over-ripe banana'};
 %-Beta release livery
 % varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
 %-Distribution livery
