@@ -22,20 +22,24 @@ case 1
             h = nifti(cellstr(varargin{1}));
             return;
         end;
-        fname = varargin{1};
+        fname = deblank(varargin{1});
         vol   = read_hdr(fname);
 
         % Over-ride sform if a .mat file exists
         extras = read_extras(fname);
         if isfield(extras,'mat') && size(extras.mat,3)>=1,
-            mat            = extras.mat(:,:,1)*[eye(4,3) [1 1 1 1]'];
-            vol.hdr.srow_x = mat(1,:);
-            vol.hdr.srow_y = mat(2,:);
-            vol.hdr.srow_z = mat(3,:);
+            mat            = extras.mat(:,:,1);
+            vol.hdr        = mayo2nifti1(vol.hdr,mat);
+            mat1           = mat*[eye(4,3) [1 1 1 1]'];
+            vol.hdr.srow_x = mat1(1,:);
+            vol.hdr.srow_y = mat1(2,:);
+            vol.hdr.srow_z = mat1(3,:);
             if vol.hdr.sform_code == 0, vol.hdr.sform_code = 2; end;
             if vol.hdr.sform_code == vol.hdr.qform_code,
-                vol.hdr = encode_qform0(extras.mat(:,:,1),vol.hdr);
+                vol.hdr = encode_qform0(mat,vol.hdr);
             end;
+        else
+            vol.hdr = mayo2nifti1(vol.hdr);
         end;
 
         if isfield(extras,'M'), extras = rmfield(extras,'M'); end;

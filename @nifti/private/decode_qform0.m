@@ -9,14 +9,24 @@ function M = decode_qform0(hdr)
 
 dim    = double(hdr.dim);
 pixdim = double(hdr.pixdim);
-if ~isfield(hdr,'magic') || hdr.qform_code <= 0
+if ~isfield(hdr,'magic') || hdr.qform_code <= 0,
+    flp = spm_flip_analyze_images;
+    disp('------------------------------------------------------');
+    disp('The images are in a form whereby it is not possible to');
+    disp('tell the left and right sides of the brain apart.');
+    if flp,
+        disp('They are assumed to be stored right-handed.');
+    else
+        disp('They are assumed to be stored left-handed.');
+    end;
+    disp('------------------------------------------------------');
 
     R      = eye(4);
     n      = min(dim(1),3);
     vox    = [pixdim(2:(n+1)) ones(1,3-n)];
 
     if ~isfield(hdr,'origin') || ~any(hdr.origin(1:3)),
-        origin = (dim(2:4)+1)/2;
+       origin = (dim(2:4)+1)/2;
     else,
         origin = double(hdr.origin(1:3));
     end;
@@ -24,7 +34,7 @@ if ~isfield(hdr,'magic') || hdr.qform_code <= 0
     M       = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
 
     % Stuff for default orientations
-    if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+    if flp, M = diag([-1 1 1 1])*M; end;
 else
 
     % Rotations from quaternions

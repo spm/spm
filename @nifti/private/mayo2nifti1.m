@@ -1,4 +1,4 @@
-function hdr = mayo2nifti1(ohdr)
+function hdr = mayo2nifti1(ohdr,mat)
 % Convert from an ANALYZE to a NIFTI-1 header
 % _______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
@@ -27,15 +27,22 @@ hdr.cal_max    = ohdr.cal_max;
 hdr.cal_min    = ohdr.cal_min;
 hdr.magic      = 'ni1';
 
-%mat            = decode_qform0(ohdr);
-%Make this more SPM format specific...
-if any(ohdr.origin(1:3)), origin = double(ohdr.origin(1:3));
-else,                     origin = (double(ohdr.dim(2:4))+1)/2; end;
-vox    = double(ohdr.pixdim(2:4));
-if all(vox == 0), vox = [1 1 1]; end;
-off    = -vox.*origin;
-mat    = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
-if spm_flip_analyze_images, mat = diag([-1 1 1 1])*mat; end;
+if nargin<2,
+    % No mat, so create the equivalent from the hdr...
+    if any(ohdr.origin(1:3)), origin = double(ohdr.origin(1:3));
+    else,                     origin = (double(ohdr.dim(2:4))+1)/2; end;
+    vox    = double(ohdr.pixdim(2:4));
+    if all(vox == 0), vox = [1 1 1]; end;
+    off    = -vox.*origin;
+    mat    = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+    flp    = spm_flip_analyze_images;
+    if flp,
+        disp(['Assuming that image is stored left-handed']);
+        mat = diag([-1 1 1 1])*mat;
+    else
+        disp(['Assuming that image is stored right-handed']);
+    end;
+end;
 
 hdr            = encode_qform0(mat,hdr);
 mat            = mat*[eye(4,3) [1 1 1 1]'];
@@ -43,3 +50,4 @@ hdr.srow_x     = mat(1,:);
 hdr.srow_y     = mat(2,:);
 hdr.srow_z     = mat(3,:);
 return;
+

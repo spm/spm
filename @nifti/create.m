@@ -8,7 +8,11 @@ function create(obj)
 %
 % $Id$
 
+for i=1:numel(obj)
+    create_each(obj(i));
+end;
 
+function create_each(obj)
 if ~isa(obj.dat,'file_array'),
     error('Data must be a file-array');
 end;

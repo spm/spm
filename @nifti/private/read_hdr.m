@@ -10,8 +10,8 @@ function vol = read_hdr(fname)
 % $Id$
 
 
-persistent dict
-if isempty(dict), dict = getdict; end;
+persistent d
+if isempty(d), d = getdict; end;
 
 [pth,nam,ext] = fileparts(fname);
 switch ext
@@ -31,8 +31,9 @@ otherwise
     hname = fullfile(pth,[nam ext]);
 end
 [hdr,be] = read_hdr_raw(hname);
-hdr      = mayo2nifti1(hdr);
-d  = getdict;
+if isempty(hdr)
+    error(['Error reading header file "' hname '"']);
+end;
 dt = [];
 for i=1:length(d.dtype)
     if hdr.datatype == d.dtype(i).code

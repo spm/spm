@@ -100,13 +100,12 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
             off = indo+(ptr[ndim][i]-1)*nb;
             if (((off-poff)!=nb) || (len == 1024))
             {
-                /* printf("%d\t%d\n", off, len); */
                 swap(len,dptr,wbuf);
-                if (fwrite(wbuf,len,1,fp) != len)
+                if (fwrite(wbuf,1,len,fp) != len)
                 {
                     /* Problem */
                     (void)fclose(fp);
-                    (void)mexErrMsgTxt("Problem writing data.");
+                    (void)mexErrMsgTxt("Problem writing data (1).");
                 }
                 fseek(fp, off, SEEK_SET);
                 dptr   = idat+indi+i*nb;
@@ -150,11 +149,11 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
 
     put_bytes(map.ndim-1, map.fp, ptr, idim, (unsigned char *)idat, map.off, 0,swap);
     swap(len,dptr,wbuf);
-    if (fwrite(wbuf,len,1,map.fp) != len)
+    if (fwrite(wbuf,1,len,map.fp) != len)
     {
         /* Problem */
        (void)fclose(map.fp);
-       (void)mexErrMsgTxt("Problem writing data.");
+       (void)mexErrMsgTxt("Problem writing data (2).");
     }
 }
 
