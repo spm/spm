@@ -53,33 +53,19 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version notes-%
-% 16/12/93 - 
-% 01/06/94 - Stripped down for SPM
-% 03/02/95 - Included extrapolation and argument checks
-% 20/07/95 - Altered t==0 checking to allow for overflow to 1 in computation 
-%            of betainc argument - this was generating "log of zero" 
-%            errors - annoying but not serious.
-% 23/08/96 - Changed to logarithmic extrapolation
-%            - fMRI was giving rediculous Z values!
-% 20/09/96 - Rewrote to threshold on extrapolation point rather than
-%            compute p-values and thresholding them.
-%            ( betainc was getting stuck)
-
-
 %-Initialisation
 %===========================================================================
 
 % p-value tolerance: t-values with tail probabilities less than Tol are
-%                    converted to z by linear extrapolation
+%                    `converted' to z by extrapolation
 %---------------------------------------------------------------------------
 if nargin<3, Tol = 10^(-10); end
 
 %-Argument range and size checks
 %---------------------------------------------------------------------------
-if nargin<2 error('insufficient arguments'), end
-if (length(df)~=1) error('df must be a scalar'), end
-if df<=0 error('df must be strictly positive'), end
+if nargin<2, error('insufficient arguments'), end
+if length(df)~=1, error('df must be a scalar'), end
+if df<=0, error('df must be strictly positive'), end
 
 %-Computation
 %===========================================================================
@@ -96,7 +82,7 @@ if ~length(Q); return; end
 
 %-Mask out at +/- t1 for interpolation
 %---------------------------------------------------------------------------
-t1    = -spm_fzero('spm_Tcdf',-10,[],0,df,Tol);
+t1    = -spm_invTcdf(Tol,df);
 mQb   = abs(t(Q)) > t1;
 
 %-t->z using Tcdf & invNcdf for abs(t)<=t1 
@@ -106,8 +92,9 @@ if any(~mQb)
 
 	%-Compute (smaller) tail probability
 	%-Chunk up to avoid convergence problems for long vectors in betacore
-	p = zeros(size(QQnb));
-	tmp = [1:500:length(QQnb),length(QQnb)];
+	p   = zeros(size(QQnb));
+	tmp = [1:500:length(QQnb)];
+	if tmp(end)<length(QQnb), tmp=[tmp,length(QQnb)]; end
 	for i = 1:length(tmp)-1
 	    p(tmp(i):tmp(i+1)) = ...
 	       betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)))).^2),df/2,.5)/2;
@@ -124,7 +111,6 @@ end
 % the (computable) t2z relationship.
 %===========================================================================
 if any(mQb)
-%	t1          =-spm_fzero('spm_Tcdf',-10,[],0,df,Tol);
 	z1          =-sqrt(2)*erfinv(2*Tol-1);
 	t2          =t1-[1:5]/10;
 	z2          =spm_t2z(t2,df);
