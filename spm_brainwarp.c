@@ -306,10 +306,10 @@ unsigned char *dat1[], dat2[];
 						dvdt[i1*4+2+3*nx] = tmp*s2[1];
 						dvdt[i1*4+3+3*nx] = tmp*s2[2];
 
-						dv -= dvdt[i1*4  +3*nx]*scale1a[i1];
-						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1+1];
-						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1+2];
-						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1+3];
+						dv -= dvdt[i1*4  +3*nx]*scale1a[i1*4];
+						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1*4+1];
+						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1*4+2];
+						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1*4+3];
 					}
 
 
