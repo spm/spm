@@ -94,7 +94,9 @@ function spm_fmri_spm_ui
 
 % get filenames and create design matrix
 %----------------------------------------------------------------------------
-set(2,'Name','Statistical analysis'); drawnow
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set(Finter,'Name','fMRI analysis');
 
 Q     = [];				% matrix of filename strings
 X     = [];				% data matrix {q x pixels}
@@ -156,7 +158,11 @@ Cov   = spm_input('Select type of response',3,'m',CovF,[1:size(CovF,1)]);
 %---------------------------------------------------------------------------
 for v = 1:nsubj
 
-    % condotions for this session
+    % reset name
+    %-----------------------------------------------------------------------
+    set(Finter,'Name',sprintf('Session or subject %0.0f',v));
+
+    % conditions for this session
     %-----------------------------------------------------------------------
     k = nscan(v);
 
@@ -212,11 +218,11 @@ for v = 1:nsubj
 		  W = W./(ones(size(W,1),1)*max(W));
 		  D(([1:size(W,1)] + (ons(i) - 1)),((a(i) - 1)*2 + [1 2])) = W;
 		end
-		D = D(1:k,:);
+		D     = D(1:k,:);
 		for i = 1:size(D,2)/2
-			str    = sprintf('Sess %0.0f Cond %0.0f E',v,a(i));
+			str    = sprintf('Sess %0.0f Cond %0.0f e',v,i);
 			Cnames = str2mat(Cnames,str);
-			str    = sprintf('Sess %0.0f Cond %0.0f L',v,a(i));
+			str    = sprintf('Sess %0.0f Cond %0.0f l',v,i);
 			Cnames = str2mat(Cnames,str);
 		end
 
@@ -232,7 +238,7 @@ for v = 1:nsubj
 		end
 		D = D(1:k,:);
 		for i = 1:size(D,2)
-			str    = sprintf('Sess %0.0f Cond %0.0f',v,a(i));
+			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
 			Cnames = str2mat(Cnames,str);
 		end
 
@@ -248,7 +254,7 @@ for v = 1:nsubj
 		D((delay + 1):k,:) = D(1:(k - delay),:); 
 		D(1:delay,:) = zeros(delay,max(a));
 		for i = 1:size(D,2)
-			str    = sprintf('Sess %0.0f Cond %0.0f',v,a(i));
+			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
 			Cnames = str2mat(Cnames,str);
 		end
 
@@ -363,8 +369,6 @@ end
 
 % the interactive parts of spm_spm_ui are now finished
 %---------------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
 set(Finter,'Name','thankyou','Pointer','Watch')
 
 
