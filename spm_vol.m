@@ -99,8 +99,7 @@ str = {...
 	' ',...
 	'Please check that it is in the correct format.'};
 
-msgbox(str,sprintf('%s%s: %s...',spm('ver'),spm('GetUser',' (%s)'),mfilename),...
-	'error')
+spm('alert*',str,mfilename,sqrt(-1));
 
 return;
 %_______________________________________________________________________

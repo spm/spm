@@ -22,7 +22,7 @@ VO = write_analyze_plane(V,A,p);
 if isempty(VO),
 	spm_progress_bar('Clear');
 	write_error_message(V.fname);
-	error(['Error writing ' V.fname '. Check your disk space.']);
+	error(['Error writing ' V.fname '.']);
 end;
 return;
 %_______________________________________________________________________
@@ -107,13 +107,12 @@ return;
 function write_error_message(q)
 
 str = {...
-	'Error opening:',...
+	'Error writing:',...
+	' ',...
 	['        ',spm_str_manip(q,'k40d')],...
 	' ',...
 	'Check file permissions / disk space / disk quota.'};
-
-msgbox(str,sprintf('%s%s: %s...',spm('ver'),spm('GetUser',' (%s)'),mfilename),...
-	'error')
+spm('alert*',str,mfilename,sqrt(-1));
 
 return;
 %_______________________________________________________________________
