@@ -14,7 +14,6 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 %                 [defaults (missing or empty) to 0]
 % type          - data type for output image (see spm_type)
 %                 [defaults (missing or empty) to 4 - 16 bit signed shorts]
-%                 * currently only supports type 4! *
 % hold          - interpolation hold (see spm_slice_vol)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
 % Xtra_vars...  - additional variables which can be used in expression
