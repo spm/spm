@@ -339,7 +339,7 @@ end
 %-NB: spm_get callbacks use Filter=0 for previous filtering
 %-----------------------------------------------------------------------
 if ischar(Filter)
-	if ~any(Filter=='*'), Filter = ['*',Filter]; end
+	if ~any(Filter=='*') & ~strcmp(Filter,'IMAGE'), Filter = ['*',Filter]; end
 else
 	Filter=0;
 end
@@ -1623,8 +1623,7 @@ if (nP<n.mn | nP>n.mx)
 	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
 		spm('GetUser',' (%s)'),mfilename),'error','non-modal')
 	drawnow
-	set(h,'windowstyle','modal')
-
+	set(F,'windowstyle','modal')
 	return
 end
 
