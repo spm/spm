@@ -237,4 +237,4 @@ end
 for V = [VF VG]
 	spm_unmap(V);
 end
-fprintf('\n');
+%fprintf('\n');
