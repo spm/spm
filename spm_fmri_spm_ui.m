@@ -258,16 +258,15 @@ str	= 'High-pass filter?';
 cLFmenu = {'specify',...
 	   'none'};
 cLF     = spm_input(str,'+1','b',cLFmenu);
-param   = [];
 
 % specify cut-off (default based on peristimulus time)
 % param = cut-off period (max = 512, min = 32)
 %---------------------------------------------------------------------------
+param   = 512*ones(1,nsess);
 switch cLF
 
 	case 'specify'
 	%-------------------------------------------------------------------
-	param   = 512*ones(1,nsess);
 	for   i = 1:nsess
 		for j = 1:length(Sess{i}.pst)
 			param(i) = min([param(i) 2*max(RT + Sess{i}.pst{j})]);
@@ -275,11 +274,17 @@ switch cLF
 	end
 	param   = ceil(param);
 	param(param < 32) = 32;
-	str     = 'Cut off period[s] for each session';
-	param   = spm_input(str,'+1','e',param);
-	if length(param) == 1
-		 param = param*ones(1,nsess);
-	end
+	str     = 'Cutoff period[s] for each session';
+	param   = spm_input(str,'+1','e',param,[1 nsess]);
+
+	% LF description
+	%-------------------------------------------------------------------
+	LFstr   = sprintf('[min] Cutoff period %d seconds',min(param));
+
+	case 'none'
+	%-------------------------------------------------------------------
+	LFstr   = cLF;
+
 end
 
 % create filterLF struct
@@ -287,6 +292,7 @@ end
 for i = 1:nsess
 	filterLF{i} = struct('Choice',cLF,'Param',param(i));
 end
+
 
 % Low-pass filtering
 %---------------------------------------------------------------------------
@@ -304,12 +310,15 @@ switch cHF
 
 	case 'Gaussian'
 	%-------------------------------------------------------------------
-	param = spm_input('Gaussian FWHM (secs)','+1','r',4);
-	param = param/sqrt(8*log(2));
+	param   = spm_input('Gaussian FWHM (secs)','+1','r',4);
+	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',param);
+	param   = param/sqrt(8*log(2));
 
-	otherwisw
+	case 'hrf'
 	%-------------------------------------------------------------------
-	param = [];
+	param   = [];
+	HFstr   = cHF;
+
 end
 
 % create filterHF struct
@@ -343,14 +352,14 @@ set(Finter,'Name','thankyou: please wait (computing globals)','Pointer','Watch')
 
 % Contruct convolution matrix and Vi struct
 %===========================================================================
-K     = [];
-for i = 1:nsess
+K      = [];
+for  i = 1:nsess
 	k      = nscan(i);
 	[x y]  = size(K);
 	q      = spm_make_filter(k,RT,filterHF{i},filterLF{i});
 	K(([1:k] + x),([1:k] + y)) = q;
 end
-K     = sparse(K);
+K      = sparse(K);
 
 % get file identifiers and Global values
 %===========================================================================
@@ -427,8 +436,8 @@ xsDes    = struct(	'Design',			X.DSstr,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
 			'Conditions_per_session',	sprintf('%-2d',ntr),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
-			'High_pass_Filter',		filterHF{1}.Choice,...
-			'Low_pass_Filter',		filterLF{1}.Choice,...
+			'High_pass_Filter',		LFstr,...
+			'Low_pass_Filter',		HFstr,...
 			'Intrinsic_correlations',	xVi.Form,...
 			'Global_calculation',		sGXcalc,...
 			'Grand_mean_scaling',		sGMsca,...
