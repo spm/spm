@@ -852,6 +852,9 @@
 %    autoregression-moving average model for the effects of previous
 %    displacements on the current signal.  We describe such a model and
 %    the adjustments for movement-related components that ensue.  Our
+%    empirical analyses suggest that (in extreme situations) over 90% of
+%    fMRI signal can be attributed to movement, and that this
+%    artifactual component can be successfully removed.
 % 
 % This paper provides the theory and operational equations that use the
 % estimates described in the previous paper to (i) realign and (ii)
@@ -1015,7 +1018,11 @@
 %      able to demonstrate that the anterior cingulate differentiates,
 %      in terms of its response, to two motor tasks that did, and did
 %      not, require sustained attention.  This differential response
-%      was observed even thou
+%      was observed even though there was no classical 'activation' (i.e.
+%      there was no difference in the mean activity associated with the
+%      two conditions). It is suggested that these demonstration results
+%      point to the possibility of making greater use of the temporal
+%      resolution afforded by fast fMRI techniques.
 % 
 % At the present time this represents the state of our theoretical and
 % software development:-  Using an extended general linear model and
