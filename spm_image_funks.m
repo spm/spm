@@ -49,7 +49,7 @@ M = spm_get_space(p);
 %----------------------------------------------------------------------------
 Matrixes = zeros(16,m);
 V        = zeros(12,m);
-for i = 1:m
+for i = 1:m,
 	p  = deblank(P(i,:));
 	C2 = spm_get_space(p);
 	M1  = inv(M)*C2;
@@ -58,7 +58,7 @@ for i = 1:m
 end
 
 
-Output = zeros(prod(DIM(1:2)),DIM(3)); end
+Output = zeros(prod(DIM(1:2)),DIM(3));
 
 X = kron(ones(DIM(2),1),[1:DIM(1)]');
 Y = kron([1:DIM(2)]',ones(DIM(1),1));
@@ -67,10 +67,10 @@ Y = kron([1:DIM(2)]',ones(DIM(1),1));
 %----------------------------------------------------------------------------
 spm_progress_bar('Init',DIM(3),func,'planes completed');
 
-for j = 1:DIM(3)
+for j = 1:DIM(3),
 	B     = spm_matrix([0 0 -j 0 0 0 1 1 1]);
 
-	for i = 1:m
+	for i = 1:m,
 		M0  = reshape(Matrixes(:,i),4,4);
 		M1 = inv(B*M0);
 
@@ -91,7 +91,7 @@ mx = max(max(Output));
 SCALE  = mx/32767;
 if SCALE==0, SCALE=1; end; %For images of all zeros
 fp = fopen(Q,'w');
-for j = 1:DIM(3)
+for j = 1:DIM(3),
 	d = round(Output(:,j)/SCALE);
 	tmp = find(d > 32767);
 	d(tmp) = zeros(size(tmp))+32767;
@@ -99,8 +99,9 @@ for j = 1:DIM(3)
 	d(tmp) = zeros(size(tmp))-32768;
 	fwrite(fp,d,spm_type(4));
 end
+fclose(fp);
 spm_hwrite(Q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - algebra');
 spm_get_space(Q,M);
 
-for i = 1:m; spm_unmap(V(:,i)); end
+for i = 1:m, spm_unmap(V(:,i)); end
 spm_progress_bar('Clear');
