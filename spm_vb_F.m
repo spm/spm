@@ -10,6 +10,7 @@ function [F,Lav, KL] = spm_vb_F (Y,slice)
 % KL            Kullback-Liebler Divergences with fields
 %               .w, .alpha, .beta, .Lambda, .a
 %
+% blah, blah, blah !!
 % This function implements equation 18 in paper VB4
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
