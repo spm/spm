@@ -297,7 +297,7 @@ if v
 	for i = spm_input(str,'+1','e',1)
 
 		spm_input(Cname{i},Ypos,'d',Fstr)
-		on    = find(sf{i});
+		on    = find(sf{i}(:,1));
 		ns    = length(on);
 
 		% get parameters
