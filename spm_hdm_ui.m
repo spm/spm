@@ -112,10 +112,10 @@ spm('FigName','Estimation in progress');
 % P(5 + 1:m) - input efficacies - d(ds/dt)/du)  ~0.3 per event
 %---------------------------------------------------------------------------
 
-% priors
+% priors (3 modes of hemodynamic variation)
 %---------------------------------------------------------------------------
 m       = size(U.u,2);
-[pE,pC] = spm_hdm_priors(m);
+[pE,pC] = spm_hdm_priors(m,3);
 
 % model
 %---------------------------------------------------------------------------
@@ -146,7 +146,7 @@ set(Fhdm,'name','Hemodynamic Modeling')
 subplot(2,2,1)
 P     = Ep(6:end);
 C     = diag(Cp(6:end,6:end));
-[i j] = max(P);
+[i j] = max(abs(P));
 spm_barh(P,C)
 axis square
 title({'stimulus efficacy'; 'with 90% confidence intervals'},'FontSize',10)
@@ -165,8 +165,9 @@ xlabel('relative efficacy per event/sec')
 %---------------------------------------------------------------------------
 subplot(2,2,3)
 P     = Ep(1:5);
+pE    = pE(1:5);
 C     = diag(Cp(1:5,1:5));
-spm_barh(P,C)
+spm_barh(P,C,pE)
 title({	'hemodynamic parameters'},'FontSize',10)
 set(gca,'Ytick',[1:15]/3 + 1/2)
 set(gca,'YTickLabel',{	'SIGNAL decay',...
