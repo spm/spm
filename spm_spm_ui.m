@@ -32,6 +32,12 @@ function varargout=spm_spm_ui(varargin)
 % once the user has chosen a design, a subset of the following prompts
 % will be presented.
 %
+% If the pre-specified design definitions don't quite
+% have the combination of options you want, you can pass a custom design
+% structure D to be used as parameter: spm_spm_ui('cfg',D). The format of
+% the design structure and option definitions are given in the programmers
+% help, at the top of the main body of the code.
+%
 %                           ----------------
 %
 % Design class & Design type
@@ -90,7 +96,8 @@ function varargout=spm_spm_ui(varargin)
 %       - SPM96:Compare-groups: 1 scan per subject
 %
 %
-% NB: Random effects, generalisability, population inference...
+% Random effects, generalisability, population inference...
+% =========================================================
 %
 % Note that SPM only considers a single component of variance, the
 % residual error variance. When there are repeated measures, all
@@ -123,7 +130,7 @@ function varargout=spm_spm_ui(varargin)
 % population based on this sample of subjects (strictly speaking the
 % design would have to be balanced, with equal numbers of scans per
 % condition per subject, and also only two conditions per subject). For
-% further details, see spm_RandFX.man.
+% additional details, see spm_RandFX.man.
 %
 %                           ----------------
 %
@@ -410,6 +417,17 @@ function varargout=spm_spm_ui(varargin)
 %                (Used in spm_spm.m for filtering data saved for plotting)
 % 
 % SPMid         - String identifying SPM and program versions
+%
+%                           ----------------
+%
+% NB: The SPMcfg.mat file is not very portable: It contains
+% memory-mapped handles for the images, which hardcodes the full file
+% pathname and datatype. Therefore, subsequent to creating the
+% SPMcfg.mat, you cannot move the image files, and cannot move the
+% entire analysis to a system with a different byte-order (even if the
+% full file pathnames are retained. Further, the image scalefactors
+% will have been pre-scaled to effect any grand mean or global
+% scaling.
 %_______________________________________________________________________
 % %E% Andrew Holmes %W%
 SCCSid  = '%I%';
@@ -474,6 +492,11 @@ SCCSid  = '%I%';
 % ( Note that the struct command expands cell arrays to give multiple    )
 % ( records, so if you want a cell array as a field value, you have to   )
 % ( embed it within another cell, hence the double "{{"'s.               )
+%
+%                           ----------------
+%
+% Design structure fields and option definitions
+% ==============================================
 %
 % D.Desname  - a string naming the design
 %
@@ -607,6 +630,21 @@ SCCSid  = '%I%';
 %
 % D.M.X      - Explicit masking? 0-no, 1-yes, Inf-ask.
 % 
+%                           ----------------
+%
+% To use a customised design structure D, type spm_spm_ui('cfg',D) in the
+% Matlab command window.
+%
+% The easiest way to generate a customised design definition structure
+% is to tweak one of the pre-defined definitions. The following code
+% will prompt you to select one of the pre-defined designs, and return
+% the design definition structure for you to work on:
+%
+% D = spm_spm_ui(char(spm_input('Select design class...','+1','m',...
+% 		{'Basic stats','Standard PET designs','SPM96 PET designs'},...
+% 		{'DesDefs_Stats','DesDefs_PET','DesDefs_PET96'},2)));
+% D = D(spm_input('Select design type...','+1','m',{D.DesName}')))
+%
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -725,14 +763,9 @@ sGXcalc  = {	'omit';...						%-1
 %-Get design type
 %-----------------------------------------------------------------------
 if isempty(D)
-	tmp = spm_input('Select design class...','+1','m',...
-		{'Basic stats','Standard PET designs','SPM96 PET designs'});
-	switch tmp
-	case 1,	D = spm_spm_ui('DesDefs_Stats');
-	case 2,	D = spm_spm_ui('DesDefs_PET');
-	case 3,	D = spm_spm_ui('DesDefs_PET96');
-	otherwise, error('Don''t know that one!')
-	end
+	D = spm_spm_ui(char(spm_input('Select design class...','+1','m',...
+		{'Basic stats','Standard PET designs','SPM96 PET designs'},...
+		{'DesDefs_Stats','DesDefs_PET','DesDefs_PET96'},2)));
 end
 
 D = D(spm_input('Select design type...','+1','m',{D.DesName}'));
