@@ -24,11 +24,9 @@ which is equivalent to, but a lot faster than:
 
 */
 
-void spm_kronutil(n1,n2,m1,m2,img1,img2,b1,b2,alpha,beta)
-int n1,n2, m1, m2;
-double alpha[], beta[];
-double b1[], b2[];
-double img1[],img2[];
+void spm_kronutil(int n1, int n2, int m1, int m2,
+	double img1[], double img2[], double b1[], double b2[],
+	double alpha[], double beta[])
 {
 	int j11,j12, j21,j22, i1, i2;
 	double alpha1[1024], beta1[32];
@@ -109,9 +107,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 
 #include "mex.h"
 
-void mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	unsigned int n1;
 	unsigned int m2;
@@ -128,34 +124,34 @@ Matrix *plhs[], *prhs[];
 	if (nrhs != 4) mexErrMsgTxt("spm_kronutil: 4 input arguments required");
 	if (nlhs > 2) mexErrMsgTxt("spm_kronutil: only 2 output arguments required");
 
-	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || !mxIsFull(prhs[0]) || !mxIsDouble(prhs[0]))
+	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
 		mexErrMsgTxt("spm_kronutil: img1 must be numeric, real, full and double");
 	img1 = mxGetPr(prhs[0]);
 	m1 = mxGetM(prhs[0]);
 	m2 = mxGetN(prhs[0]);
-	if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || !mxIsFull(prhs[1]) || !mxIsDouble(prhs[1]))
+	if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
 		mexErrMsgTxt("spm_kronutil: img2 must be numeric, real, full and double");
 	img2 = mxGetPr(prhs[1]);
 	if (mxGetM(prhs[1]) != m1)
 		mexErrMsgTxt("spm_kronutil: img2 has incompatible m dimension");
 	if (mxGetN(prhs[1]) != m2)
 		mexErrMsgTxt("spm_kronutil: img2 has incompatible no of columns");
-	if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || !mxIsFull(prhs[2]) || !mxIsDouble(prhs[2]))
+	if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
 		mexErrMsgTxt("spm_kronutil: b1 must be numeric, real, full and double");
 	b1 = mxGetPr(prhs[2]);
 	if (mxGetM(prhs[2]) != m1)
 		mexErrMsgTxt("spm_kronutil: b1 has incompatible m dimension");
 	n1 = mxGetN(prhs[2]);
-	if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || !mxIsFull(prhs[3]) || !mxIsDouble(prhs[3]))
+	if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
 		mexErrMsgTxt("spm_kronutil: b2 must be numeric, real, full and double");
 	b2 = mxGetPr(prhs[3]);
 	if (mxGetM(prhs[3]) != m2)
 		mexErrMsgTxt("spm_kronutil: b2 has incompatible m dimension");
 	n2 = mxGetN(prhs[3]);
 
-	plhs[0] = mxCreateFull(n1*n2,n1*n2, REAL);
+	plhs[0] = mxCreateDoubleMatrix(n1*n2,n1*n2, mxREAL);
 	alpha = mxGetPr(plhs[0]);
-	plhs[1] = mxCreateFull(n1*n2,1, REAL);
+	plhs[1] = mxCreateDoubleMatrix(n1*n2,1, mxREAL);
 	beta = mxGetPr(plhs[1]);
 
 	(void)spm_kronutil(n1,n2,m1,m2,img1,img2,b1,b2,alpha,beta);

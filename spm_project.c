@@ -6,11 +6,12 @@ static char sccsid[]="%W% %E%";
 
 spm_project.c
 % forms maximium intensity projections - a compiled routine
-% FORMAT spm_project(X,L,SPM,V)
+% FORMAT spm_project(X,L,dims)
 % X	-	a matrix of voxel values
 % L	- 	a matrix of locations in Talairach et Tournoux (1988) space
-% SPM	-	matrix for maximum intensity projection
-% V     -       {1 x 6} vector of image and voxel sizes [DIM VOX] in mm
+% dims  -       assorted dimensions.
+%               dims(1:3) - the sizes of the projected rectangles.
+%               dims(4:5) - the dimensions of the mip image.
 %____________________________________________________________________________
 %
 % spm_project 'fills in' a matrix (SPM) in the workspace to create
@@ -27,12 +28,6 @@ spm_project.c
 #include <stdio.h>
 #include "mex.h"
 
-/* Input Arguments */
-#define	V	prhs[0]
-#define	L	prhs[1]
-#define	SPM	prhs[2]
-#define	DIM	prhs[3]
-
 #define	max(A, B)	((A) > (B) ? (A) : (B))
 #define	min(A, B)	((A) < (B) ? (A) : (B))
 
@@ -43,90 +38,86 @@ spm_project.c
 #define CY 127
 #define CZ 73
 
-#ifdef __STDC__
-void mexFunction(
-	int		nlhs,
-	Matrix	*plhs[],
-	int		nrhs,
-	Matrix	*prhs[]
-	)
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    double		*spm,*l,*v,*dim;
-    int 	m,m1,n,i,j,k;
-    int			x,y,z,xdim,ydim,zdim;
-    double		q;
+	double		*spm,*l,*v,*dim;
+	int 		m,m1,n,i,j,k, o;
+	int		x,y,z,xdim,ydim,zdim;
+	double		q;
 
-    if (nrhs != 4 || nlhs > 0)
-         mexErrMsgTxt("Inappropriate usage.");
+	if (nrhs != 3 || nlhs > 1) mexErrMsgTxt("Inappropriate usage.");
 
-    n    = mxGetN(V);
-    m    = mxGetM(SPM);
-    m1   = mxGetN(SPM);
+	for(k=0; k<nrhs; k++)
+		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
+			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
+			mexErrMsgTxt("Arguments must be numeric, real, full and double.");
 
-    /* Assign pointers to the parameters */
-    spm  = mxGetPr(SPM);
-    l    = mxGetPr(L);
-    v    = mxGetPr(V);
-    dim  = mxGetPr(DIM);
+	/* The values */
+	n    = mxGetN(prhs[0])*mxGetM(prhs[0]);
+	v    = mxGetPr(prhs[0]);
 
-    xdim = (int) (dim[3] + 0.99);
-    ydim = (int) (dim[4] + 0.99);
-    zdim = (int) (dim[5] + 0.99);
+	/* The co-ordinates */
+	if ((mxGetN(prhs[1]) != n) || (mxGetM(prhs[1]) != 3))
+		mexErrMsgTxt("Incompatible size for locations matrix.");
+	l    = mxGetPr(prhs[1]);
 
-    if (m == DY+DX && m1 == DZ+DX) /* MNI Space */
-    {
-	/* go though point list */
-	for (i = 0; i < n; i++) {
-	    x = (int)l[i*3 + 0] + CX;
-	    y = (int)l[i*3 + 1] + CY;
-	    z = (int)l[i*3 + 2] + CZ;
+	/* Dimension information */
+	if (mxGetN(prhs[2])*mxGetM(prhs[2]) != 5)
+		mexErrMsgTxt("Incompatible size for dimensions vector.");
+	dim  = mxGetPr(prhs[2]);
+	xdim = (int) (dim[0] + 0.99);
+	ydim = (int) (dim[1] + 0.99);
+	zdim = (int) (dim[2] + 0.99);
+	m    = (int) (dim[3]);
+	m1   = (int) (dim[4]);
 
-	    if (x-xdim/2>=0 && x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
-	    {
-		    q = v[i];
-		    if (q > spm[y-2 + (DX-x-2)*m])
-		    {
-			    for (j = -ydim/2; j <= ydim/2; j++) {
-				    for (k = -xdim/2; k <= xdim/2; k++) {
-						spm[j + y - 2 + (k + DX - x - 2)*m] = q;
-				    }
-			    }
-		    }
-	    }
+	plhs[0] = mxCreateDoubleMatrix(m,m1,mxREAL);
+	spm     = mxGetPr(plhs[0]);
 
-	    if (z-zdim/2>=0 && z+zdim/2<DZ && y-ydim/2>=0 && y+ydim/2<DY) /* sagittal */
-	    {
-		    q = v[i];
-		    if (q > spm[y-2 + (DX+z-2)*m])
-		    {
-			    for (j = -ydim/2; j <= ydim/2; j++) {
-				    for (k = -zdim/2; k <= zdim/2; k++) {
-						spm[j + y - 2 + (DX + k + z - 2)*m] = q;
-				    }
-			    }
-		    }
-	    }
+	if (m == DY+DX && m1 == DZ+DX) /* MNI Space */
+	{
+		/* go though point list */
+		for (i = 0; i < n; i++)
+		{
+			x = (int)rint(l[i*3 + 0]) + CX;
+			y = (int)rint(l[i*3 + 1]) + CY;
+			z = (int)rint(l[i*3 + 2]) + CZ;
 
-	    if (x-xdim/2>=0 && x+xdim/2<DX && z-zdim/2>=0 && z+zdim/2<DZ) /* coronal */
-	    {
-		    q = v[i];
-		    if (q > spm[DY+x-2 + (DX+z-2)*m])
-		    {
-			    for (j = -xdim/2; j <= xdim/2; j++) {
-				    for (k = -zdim/2; k <= zdim/2; k++) {
-						spm[DY + j + x - 2 + (DX + k + z - 2)*m] = q;
-				    }
-			    }
-		    }
-	    }
-        }
-    }
-    else if (m == 360 && m1 == 352) /* Karls old code for his old space */
+			if (x-xdim/2>=0 && x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
+			{
+				q = v[i];
+				for (j = -ydim/2; j <= ydim/2; j++)
+					for (k = -xdim/2; k <= xdim/2; k++)
+					{
+						o = j + y - 2 + (k + DX - x - 2)*m;
+						if (spm[o]<q) spm[o] = q;
+					}
+			}
+
+			if (z-zdim/2>=0 && z+zdim/2<DZ && y-ydim/2>=0 && y+ydim/2<DY) /* sagittal */
+			{
+				q = v[i];
+				for (j = -ydim/2; j <= ydim/2; j++)
+					for (k = -zdim/2; k <= zdim/2; k++)
+					{
+						o = j + y - 2 + (DX + k + z - 2)*m;
+						if (spm[o]<q) spm[o] = q;
+					}
+			}
+
+			if (x-xdim/2>=0 && x+xdim/2<DX && z-zdim/2>=0 && z+zdim/2<DZ) /* coronal */
+			{
+				q = v[i];
+				for (j = -xdim/2; j <= xdim/2; j++)
+					for (k = -zdim/2; k <= zdim/2; k++)
+					{
+						o = DY + j + x - 2 + (DX + k + z - 2)*m;
+						if (spm[o]<q) spm[o] = q;
+					}
+			}
+		}
+	}
+    else if (m == 360 && m1 == 352) /* old code for the old MIP matrix */
     {
 	for (i = 0; i < n; i++) {
 	    x = (int) l[i*3 + 0];
@@ -159,5 +150,5 @@ Matrix *plhs[], *prhs[];
 	}
     }
     else 
-	    mexErrMsgTxt("Wrong MIP matrix");
+	    mexErrMsgTxt("Wrong sized MIP matrix");
 }
