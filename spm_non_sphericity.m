@@ -5,8 +5,6 @@ function [xVi] = spm_non_sphericity(xVi)
 % required fields:
 % xVi.I    - n x 4 matrix of factor level indicators
 %              I(n,i) is the level of factor i for observation n
-% xVi.sF   - 1 x 4 cellstr containing factor names 
-%              sF{i} is the name of factor i
 % xVi.var  - 1 x 4 vector of flags
 %              var(i) = 1; levels of factor i have unequal variances
 % xVi.dep  - 1 x 4 vector of flags
@@ -20,53 +18,60 @@ function [xVi] = spm_non_sphericity(xVi)
 % %W% Karl Friston %E%
 
 
-% check there is a replication factor
+% Identify replication factor (r)
 %---------------------------------------------------------------------------
-if ~any(xVi.var | xVi.dep)
-	warning('There are no replications to estimate covariances')
+I     = xVi.I;
+r     = find((max(I) > 1) & ~xVi.var & ~xVi.dep);
+try
+	r = r(1);
+catch
+	error('There are no replications to estimate covariances')
 end
 
 % create covariance components Q{:}
 %===========================================================================
-
-% create variance components
-%---------------------------------------------------------------------------
-[n f] = size(xVi.I);
+[n f] = size(I);			% # observations, % # Factors
+R     = sparse([1:n],I(:,r),1);		% main effect of replication factor
+RR    = R*R';
 Q     = {};
-for i = 1:f
-	if xVi.var(i)
-
-		% add variance component for this level
-		%-----------------------------------------------------------
-		nL    = max(xVi.I(:,i));
-		for j = 1:nL
-			u          = find(xVi.I(:,i) == j);
-			q          = sparse(u,u,1,n,n);
-			Q{end + 1} = q;
-		end
-	end
-end
 
 % unless all repeated measures are identically distributed
 %---------------------------------------------------------------------------
-if length(Q) == 0
-	Q{1}  = speye(n,n);
+if ~any(xVi.var)
+	Q{end + 1} = speye(n,n);
 end
 
-% independently distributed assumptions
-%---------------------------------------------------------------------------
 for i = 1:f
+
+	% unequal variances of repeated measure levels
+	%-------------------------------------------------------------------
+	nL    = max(I(:,i));
+	if xVi.var(i)
+
+		% add variance component for level j of factor i
+		% i.e. variance due to Fi(j) x R
+		%-----------------------------------------------------------
+		for j = 1:nL
+			u  = I(:,i) == j;
+			q  = spdiags(u,0,n,n);
+			Q{end + 1} = q*RR*q;
+		end
+	end
+
+	% dependencies among repeated measure levels
+	%-------------------------------------------------------------------
 	if xVi.dep(i)
 
-		% add covariance component for these levels
+		% add covariance component for levels j & k of factor i
+		% i.e. covariance between Fi(j) x R & Fi(k) x R
 		%-----------------------------------------------------------
-		nL    = max(xVi.I(:,i));
 		for j = 1:nL
 		for k = (j + 1):nL
-			u          = find(xVi.I(:,i) == j);
-			v          = find(xVi.I(:,i) == k);
-			q          = sparse(u,v,1,n,n);
-			Q{end + 1} = q + q';
+			u  = I(:,i) == j;
+			v  = I(:,i) == k;
+			p  = spdiags(u,0,n,n);
+			q  = spdiags(v,0,n,n);
+			Q{end + 1} = p*RR*q + q*RR*p;
 		end
 		end
 	end
