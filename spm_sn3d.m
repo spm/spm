@@ -458,7 +458,9 @@ if (nargin == 0)
 			ans = spm_input('Voxel Sizes?','+1','m',...
 				[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3);
 			if ans>0, Vox = voxdims(ans,:);
-			else, Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3); end;
+			else,
+				Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3)';
+			end;
 		end;
 	else,
 		bb     = sptl_BB;
@@ -621,7 +623,7 @@ elseif strcmp(P,'Defaults')
 		elseif ans == 0,
 			Vox = [];
 			if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
-			sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3);
+			sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3)';
 		else, sptl_Vx = 0; end;
 	end;
 	return;
