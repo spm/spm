@@ -323,7 +323,7 @@ else
 	waitfor(hDone,'UserData')
 	
 	%-Exit with error if SelFileWin deleted
-	if ~ishandle(hDone), error('SelFileWin deleted!'), end
+	if ~ishandle(hDone), error('SPM file selector window was quit!'), end
 
 	%-Get P & exit status
 	status = get(hDone,'UserData');
@@ -379,7 +379,8 @@ S  = get(0,'ScreenSize');
 WS = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
 F  = figure('IntegerHandle','off',...
 	'Tag','SelFileWin',...
-	'Name',[spm('GetUser'),' - SPMget'],'NumberTitle','off',...
+	'Name',sprintf('%s%s: SPMget',spm('ver'),spm('GetUser',' (%s)')),...
+	'NumberTitle','off',...
 	'Position',[1152/2-400/2,900/2-395/2,400,395].*WS,...
 	'Resize','off',...
 	'Color',[1 1 1]*.8,...
@@ -1487,8 +1488,9 @@ if isfinite(n) & isreal(n)
 		else
 				str = 'should never see this!';
 		end
-		fprintf('%c',7)
-		msgbox(str,['SPM: ',mfilename],'error','modal')
+		spm('Beep')
+		msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
+			spm('GetUser',' (%s)'),mfilename),'error','modal')
 		return
 	end
 end
