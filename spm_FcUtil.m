@@ -57,10 +57,17 @@ varargout = {struct(...
 
 case 'set'				%- Create an F contrast
 %=======================================================================
-% Fc = spm_FcUtil('Set',name, STAT, action, value, sX)
+% Fc = spm_FcUtil('Set',name, STAT, set_action, value, sX)
 %
 %
+% Sets the contrast structure with set_action either 'c', 'X0' or 'iX0'
+% resp. for a contrast, the null hyp. space or the indices of which.
+% STAT can be 'T' or 'F' 
 %
+% if STAT is T, then set_action should be 'c'  
+% (at the moment, just a warning...)
+% if STAT is T and set_action is 'c', then 
+% the rank of the space tested should be 1. 
 
 %--- check # arguments...
 if nargin<6, error('insufficient arguments'), end;
@@ -70,7 +77,8 @@ if nargout > 1, error('Too many output arguments Set'), end;
 if ~isstr(varargin{2}), error('~isstr(name)'), end;
 if ~(varargin{3}=='F'|varargin{3}=='T'), 
 	error('~(STAT==F|STAT==T)'), end;
-if ~isstr(varargin{4}), error('~isstr(varargin{4})'), end;
+if ~isstr(varargin{4}), error('~isstr(varargin{4})'); 
+else set_action = varargin{4}; end;
 
 sX = varargin{6};
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
@@ -81,18 +89,26 @@ Fc = sf_FconFields;
 %- properly created;
 Fc.name = varargin{2};
 if isempty(Fc.name), Fc.name = ' '; end;
+
 Fc.STAT = varargin{3};
-if Fc.STAT=='T'  &  ~(action == 'c' | action == 'c+') 
-	   warning('enter T stat with contrast');
+if Fc.STAT=='T' 
+   if  ~(any(strcmp(set_action,{'c+','c'}))) 
+	warning('enter T stat with contrast - no check rank = 1');
+   else 
+	%------------------ check the rank if T stat
+	c_ = varargin{5};
+	if ~spm_sp('isinspp',sX,c_), c_ = spm_sp('oPp',sX,c_); end;
+	if rank(c_) ~= 1, error('Set tries to define a t that is a F'); end;
+   end
 end;
 
 
 [sC sL] = spm_sp('size',sX);
 
-switch varargin{4},
+switch set_action,
 	case {'c','c+'}
 		c = varargin{5};
-		if (varargin{4} == 'c+')  
+		if strcmp(set_action,'c+')  
 		   if ~spm_sp('isinspp',sX,c), c = spm_sp('oPp',sX,c); end;
 		end;
 		if isempty(c)
@@ -106,13 +122,6 @@ switch varargin{4},
 			Fc.c 	= c;
    			[Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
 			Fc.iX0	= [];
-
-			%-- check the rank if T stat
-			if Fc.STAT=='T'
-			   if abs(rank(Fc.X1o) - 1) > eps,
-			      error('Set tries to define a t that is a F');
-			   end
-			end
 		end;
 
 	case 'X0'
@@ -427,7 +436,6 @@ while ~boul & i <= L,
 	   %else, X1o1=Fc1.X1o; end
 	   %if size(Fc2(i).X1o,1) ~= 1, X1o2 = orth(Fc2(i).X1o);
 	   %else, X1o2=Fc2(i).X1o; end
-	   %boul = ( X1o1'*X1o2 >= 0)  % same orientation
 	end
    end;
    i = i+1;
