@@ -7,7 +7,6 @@
 %
 % Data Analysis
 % 
-% 
 %    The data were analysed with statistical parametric mapping (using software
 % from the Wellcome Dept. of Cognitive Neurology, London, UK) implemented 
 % in Matlab (Mathworks Inc. Sherborn MA, USA).  Statistical parametric maps 
@@ -28,14 +27,14 @@
 % realignment all images were transformed into a standard space (Talairach 
 % and Tournoux 1988). This normalizing spatial transformation matches each 
 % scan (in a least squares sense) to a reference or template image that 
-% already conforms to the standard space.  The procedure involves a 12
-% parameter affine  (linear) and quadratic (nonlinear) 3-dimensional
-% transformations. [This is followed by a 2-dimensional piece-wise (transverse
-% slices) nonlinear matching, using a set of smooth basis functions that allow 
-% for normalization at a finer anatomical scale (Friston et al 1995a).]
-%    Again the parameters were estimated using standard least squares after
-% linearizing the problem.  As a final pre-processing step the images were 
-% smoothed using an (16mm FWHM) isotropic Gaussian kernel.
+% already conforms to the standard space.  This is a fully three-dimensional
+% procedure and involves a regularized 12 parameter affine registration
+% (Ashburner et al 1997), followed by nonlinear warping, whereby the
+% deformations are defined by a linear combination of low frequency discrete
+% cosine transform basis functions (Friston et al 1995a).  Again the
+% parameters were estimated using standard least squares after linearizing
+% the problem.  As a final pre-processing step the images were smoothed using
+% an (16mm FWHM) isotropic Gaussian kernel.
 % 
 % 
 % Statistical analysis
@@ -100,9 +99,13 @@
 % Assessing the significance of focal activations using their spatial 
 % extent. Human Brain Mapping 1:214-220
 % 
+% Ashburner J Neelin P Collins DL Evans AC & Friston KJ (1997)
+% Incorporating Prior Knowledge into Image Registration.
+% NeuroImage 6:344-352
+%
 % Friston KJ Ashburner J Poline JB Frith CD Heather JD and Frackowiak RSJ 
-% (1995a) Spatial realignment and normalization of images: Human Brain
-% Mapping - in press.
+% (1995a) Spatial realignment and normalization of images.
+% Human Brain Mapping 2:165-189.
 % 
 % Friston KJ Holmes AP Worsley KJ Poline JB Frith CD and Frackowiak RSJ  
 % (1995b) Statistical parametric maps in functional imaging: A general 
