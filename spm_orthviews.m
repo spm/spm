@@ -89,8 +89,7 @@ global st;
 
 if isempty(st), reset_st; end;
 
-ptr = get(st.fig,'Pointer');
-set(st.fig,'Pointer','watch');
+spm('Pointer','watch');
 
 if nargin == 0, action = ''; end;
 action = lower(action);
@@ -209,7 +208,7 @@ otherwise,
 	warning('Unknown action string')
 end;
 
-if exist('st')==1, set(st.fig,'Pointer',ptr); end;
+spm('Pointer');
 return;
 
 
@@ -226,7 +225,11 @@ for i=valid_handles(handle),
 		vol(off) = t.*(t > 0);
 		vol      = reshape(vol,dim);
 		st.vols{i}.blobs=cell(1,1);
-		axpos = get(st.vols{i}.ax{2}.ax,'Position');
+		if st.mode == 0,
+			axpos = get(st.vols{i}.ax{2}.ax,'Position');
+		else,
+			axpos = get(st.vols{i}.ax{1}.ax,'Position');
+		end;
 		ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
 			'Box','on');
 		mx = max([eps max(t)]);
@@ -448,7 +451,7 @@ Dims = diff(st.bb)';
 
 TD = Dims([1 2])';
 CD = Dims([1 3])';
-SD = Dims([3 2])';
+if st.mode == 0, SD = Dims([3 2])'; else, SD = Dims([2 3])'; end;
 
 un    = get(st.fig,'Units');set(st.fig,'Units','Pixels');sz=get(st.fig,'Position');set(st.fig,'Units',un);
 sz    = sz(3:4);
@@ -457,11 +460,22 @@ sz(2) = sz(2)-40;
 for i=valid_handles(1:24),
 	area = st.vols{i}.area(:);
 	area = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
-	sx   = area(3)/(Dims(1)+Dims(3));
-	sy   = area(4)/(Dims(2)+Dims(3));
+	if st.mode == 0,
+		sx   = area(3)/(Dims(1)+Dims(3))/1.05;
+	else,
+		sx   = area(3)/(Dims(1)+Dims(2))/1.05;
+	end;
+	sy   = area(4)/(Dims(2)+Dims(3))/1.05;
 	s    = min([sx sy]);
 	offx = (area(3)-(Dims(1)+Dims(3))*s)/2 + area(1);
 	offy = (area(4)-(Dims(2)+Dims(3))*s)/2 + area(2);
+
+	sky = s*(Dims(2)+Dims(3))*0.05;
+	if st.mode == 0,
+		skx = s*(Dims(1)+Dims(3))*0.05;
+	else,
+		skx = s*(Dims(1)+Dims(2))*0.05;
+	end;
 
 	DeleteFcn = ['spm_orthviews(''Delete'',' num2str(i) ');'];
 
@@ -469,19 +483,26 @@ for i=valid_handles(1:24),
 	set(st.vols{i}.ax{1}.ax,'Units','pixels', ...
 		'Position',[offx offy s*Dims(1) s*Dims(2)],...
 		'Units','normalized','Xlim',[1 TD(1)]+0.5,'Ylim',[1 TD(2)]+0.5,...
-		'Visible','off');
+		'Visible','on','XTick',[],'YTick',[]);
 
 	% Coronal
 	set(st.vols{i}.ax{2}.ax,'Units','Pixels',...
-		'Position',[offx offy+s*Dims(2) s*Dims(1) s*Dims(3)],...
+		'Position',[offx offy+s*Dims(2)+sky s*Dims(1) s*Dims(3)],...
 		'Units','normalized','Xlim',[1 CD(1)]+0.5,'Ylim',[1 CD(2)]+0.5,...
-		'Visible','off');
+		'Visible','on','XTick',[],'YTick',[]);
 
 	% Saggital
-	set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
-		'Position',[offx+s*Dims(1) offy s*Dims(3) s*Dims(2)],...
-		'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
-		'Visible','off');
+	if st.mode == 0,
+		set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
+			'Position',[offx+s*Dims(1)+skx offy s*Dims(3) s*Dims(2)],...
+			'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
+			'Visible','on','XTick',[],'YTick',[]);
+	else,
+		set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
+			'Position',[offx+s*Dims(1)+skx offy+s*Dims(2)+sky s*Dims(2) s*Dims(3)],...
+			'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
+			'Visible','on','XTick',[],'YTick',[]);
+	end;
 end;
 return;
 %_______________________________________________________________________
@@ -505,20 +526,34 @@ for i = valid_handles(arg1),
 		0 1 0 -bb(1,2)
 		0 0 1 -cent(3)
 		0 0 0 1];
+	TM = inv(TM0*(st.Space\M));
+	TD = Dims([1 2]);
 
 	CM0 = [	1 0 0 -bb(1,1)
 		0 0 1 -bb(1,3)
 		0 1 0 -cent(2)
 		0 0 0 1];
-	
-	SM0 = [	0 0 1 -bb(1,3)
-		0 1 0 -bb(1,2)
-		1 0 0 -cent(1)
-		0 0 0 1];
+	CM = inv(CM0*(st.Space\M));
+	CD = Dims([1 3]);
 
-	TM = inv(TM0*(st.Space\M)); TD = Dims([1 2]);
-	CM = inv(CM0*(st.Space\M)); CD = Dims([1 3]);
-	SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
+	if st.mode ==0,
+		SM0 = [	0 0 1 -bb(1,3)
+			0 1 0 -bb(1,2)
+			1 0 0 -cent(1)
+			0 0 0 1];
+		SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
+	else,
+		SM0 = [	0  1 0 -bb(1,2)
+			0  0 1 -bb(1,3)
+			1  0 0 -cent(1)
+			0  0 0 1];
+		SM0 = [	0 -1 0 +bb(2,2)
+			0  0 1 -bb(1,3)
+			1  0 0 -cent(1)
+			0  0 0 1];
+		SM = inv(SM0*(st.Space\M));
+		SD = Dims([2 3]);
+	end;
 
 	ok=1;
 	eval('imgt  = (spm_slice_vol(st.vols{i},TM,TD,st.hld))'';','ok=0;');
@@ -613,29 +648,32 @@ for i = valid_handles(arg1),
 			imgs = imgs*scal+dcoff;
 		end;
 
-		posn = [cent(1)+bb(1,1) cent(2)+bb(1,2) cent(3)+bb(1,3) 1]';
-		posn = [cent(1)-bb(1,1) cent(2)-bb(1,2) cent(3)-bb(1,3) 1]';
-		posn = posn(1:3);
-	
 		callback = 'spm_orthviews(''Reposition'');';
 
 		set(st.vols{i}.ax{1}.d,'ButtonDownFcn',callback, 'Cdata',imgt);
 		set(st.vols{i}.ax{1}.lx,'ButtonDownFcn',callback,...
-			'Xdata',[0 TD(1)],'Ydata',[1 1]*posn(2));
+			'Xdata',[0 TD(1)],'Ydata',[1 1]*(cent(2)-bb(1,2)));
 		set(st.vols{i}.ax{1}.ly,'ButtonDownFcn',callback,...
-			'Ydata',[0 TD(2)],'Xdata',[1 1]*posn(1));
+			'Ydata',[0 TD(2)],'Xdata',[1 1]*(cent(1)-bb(1,1)));
 
 		set(st.vols{i}.ax{2}.d,'ButtonDownFcn',callback, 'Cdata',imgc);
 		set(st.vols{i}.ax{2}.lx,'ButtonDownFcn',callback,...
-			'Xdata',[0 CD(1)],'Ydata',[1 1]*posn(3));
+			'Xdata',[0 CD(1)],'Ydata',[1 1]*(cent(3)-bb(1,3)));
 		set(st.vols{i}.ax{2}.ly,'ButtonDownFcn',callback,...
-			'Ydata',[0 CD(2)],'Xdata',[1 1]*posn(1));
+			'Ydata',[0 CD(2)],'Xdata',[1 1]*(cent(1)-bb(1,1)));
 
 		set(st.vols{i}.ax{3}.d,'ButtonDownFcn',callback,'Cdata',imgs);
-		set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
-			'Xdata',[0 SD(1)],'Ydata',[1 1]*posn(2));
-		set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
-			'Ydata',[0 SD(2)],'Xdata',[1 1]*posn(3));
+		if st.mode ==0,
+			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
+				'Xdata',[0 SD(1)],'Ydata',[1 1]*(cent(2)-bb(1,2)));
+			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
+				'Ydata',[0 SD(2)],'Xdata',[1 1]*(cent(3)-bb(1,3)));
+		else,
+			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
+				'Xdata',[0 SD(1)],'Ydata',[1 1]*(cent(3)-bb(1,3)));
+			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
+				'Ydata',[0 SD(2)],'Xdata',[1 1]*(bb(2,2)-cent(2)));
+		end;
 	end;
 end;
 drawnow;
@@ -669,7 +707,11 @@ for i=valid_handles(1:24),
 				case 2,
 				cent([1 3])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,3)];
 				case 3,
-				cent([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
+				if st.mode ==0,
+					cent([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
+				else,
+					cent([2 3])=[st.bb(2,2)-cp(1) cp(2)+st.bb(1,3)];
+				end;
 			end;
 			break;
 		end;
@@ -694,6 +736,6 @@ function reset_st
 global st
 fig     = spm_figure('FindWin','Graphics');
 bb      = [ [-78 78]' [-112 76]' [-50 85]' ];
-st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig);
+st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1);
 st.vols = cell(24,1);
 return;
