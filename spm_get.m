@@ -377,7 +377,7 @@ if iscellstr(Prompt), if isempty(P), P={}; else, P = cellstr(P); end, end
 %-Log the transaction
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
-	spm_log([mfilename,' : ',char(Prompt),' :'],char(P)); end
+	spm_log([mfilename,' : ',char(Prompt),' :'],P); end
 
 varargout = {P};
 return
