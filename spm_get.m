@@ -30,18 +30,19 @@ function varargout = spm_get(varargin)
 % current filter string, using the usual UNIX conventions (*,?,etc.).
 %
 % Arrows at the right of the listings pane allow the lists to be
-% scrolled up and down. The bar button anove the "up" arrow scrolls to
+% scrolled up and down. The bar button above the "up" arrow scrolls to
 % the top of the list.
 %
 % Selecting files
 % ---------------
 % Clicking on an item (black) adds it to the list of those selected,
-% the item is numbered and changes color (dark blue). The last numbered item
-% can be unselected by clicking it again. If a specific number of
-% items have been requested (n), then only this number can be
-% selected. The item window is scrolled up and down with the buttons
-% provided. The small button above the ^ button scrolls to the top of the
-% listing.
+% the item is numbered and changes color (dark blue). The item last
+% selected can be unselected by clicking it again. If a specific number
+% of items have been requested (n), then this number of files must be
+% selected. A status message at the foot of the window explains the
+% current status. The item window is scrolled up and down with the
+% buttons provided. The small button above the ^ button scrolls to the
+% top of the listing.
 %
 % The directory window is editable. Pull down menus of previous
 % directories and subdirectories of the current directory are
@@ -79,13 +80,10 @@ function varargout = spm_get(varargin)
 % window. Subsequent calls to spm_get callbacks with the same filter
 % string do not change the value of the filter string, allowing user
 % edits of the filer string to persist. Clicking the Filter button
-% resets the filter to the original filter string passed by the
-% program. Clicking the bar at the right-hand end of the filter window
-% sets the filter string to '*', resulting in all files/directories
-% being displayed, in summary view if there are sufficient files. (Bars
-% above and below the filter window (if available) implement a simple
-% "memory" for filter strings.  The top bar stores the current filter
-% string, the lower bar recalls it.)
+% resets the filter to '*', resulting in all files/directories being
+% displayed, in summary view if there are sufficient files. Clicking
+% the outline of the filter editable widget resets the filter string to
+% the original filter string passed by the calling program.
 %
 % Selecting Directories
 % ---------------------
@@ -100,7 +98,8 @@ function varargout = spm_get(varargin)
 % ---------------------
 % Keyboard accelerators are available for item selection, editing the
 % current directory and filter windows, and for some of the interface
-% buttons:
+% buttons: These work providing no GUI widget has the focus (click in
+% the window background to remove focus from any GUI widgets).
 %
 % - Item selection - Items are highlighted (in italic) using ^K & ^J to
 % move Up and Down the item list. The highlighted item is (de)selected
@@ -125,16 +124,15 @@ function varargout = spm_get(varargin)
 %
 % Programmers notes
 % -----------------
-% Pass positive n for filepaths, negative n for directories.  +Inf/-Inf
-% for selection of filepaths/directories until "Done" is pressed.
-%
 % The 'Select Files Window', created by the first call to spm_get, is
 % 'Tag'ged 'SelFileWin'. This window is hidden at the end of the spm_get
 % transaction, and is used by subsequent calls. This saves time, and
 % also permits the storage of previously visited directories from
 % transaction to transaction.
 %
-% CallBacks are handled as embedded functions within spm_get.
+% CallBacks are handled as embedded functions within spm_get, format
+% specifications for these embedded functions are given in the main
+% body of the code.
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
