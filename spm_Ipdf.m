@@ -43,7 +43,7 @@ function f = spm_Ipdf(x,n,p)
 % of nCx as e^(ln(n!)-ln(x!)-ln((n-x)!), using the special function
 % gammaln:
 %
-%	nCx = exp( gammaln(n+1) - gammaln(x+1) - gammaln(n-x+1) )
+%       nCx = exp( gammaln(n+1) - gammaln(x+1) - gammaln(n-x+1) )
 %
 % The result is rounded to cope with roundoff error for smaller values
 % of n & x. See Press et al., Sec6.1 for further details.
@@ -51,16 +51,16 @@ function f = spm_Ipdf(x,n,p)
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%

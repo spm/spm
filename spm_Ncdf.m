@@ -3,8 +3,8 @@ function F = spm_Ncdf(x,u,v)
 % FORMAT F = spm_Ncdf(x,u,v)
 %
 % x - ordinates
-% u - mean		[Defaults to 0]
-% v - variance	(v>0)	[Defaults to 1]
+% u - mean              [Defaults to 0]
+% v - variance  (v>0)   [Defaults to 1]
 % F - pdf of N(u,v) at x (Lower tail probability)
 %__________________________________________________________________________
 %
@@ -29,23 +29,23 @@ function F = spm_Ncdf(x,u,v)
 % The CDF for a standard N(0,1) Normal distribution, \Phi(z), is
 % related to the error function by: (Abramowitz & Stegun, 26.2.29)
 %
-%	\Phi(z) = 0.5 + erf(z/sqrt(2))/2
+%       \Phi(z) = 0.5 + erf(z/sqrt(2))/2
 %
 % MatLab's implementation of the error function is used for computation.
 %
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%

@@ -38,7 +38,7 @@ function x = spm_invTcdf(F,v)
 %       Pr(|X|<x) = betainc(v/(v+x^2),v/2,1/2)
 % so
 %              {     betainc(v/(v+x^2),v/2,1/2) / 2      for x<0
-%	F(x) = |   0.5                                   for x=0
+%       F(x) = |   0.5                                   for x=0
 %              { 1 - betainc(v/(v+x^2),v/2,1/2) / 2      for x>0
 %
 % See Abramowitz & Stegun, 26.5.27 & 26.7.1; Press et al., Sec6.4 for
@@ -49,16 +49,16 @@ function x = spm_invTcdf(F,v)
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%

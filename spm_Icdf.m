@@ -34,11 +34,11 @@ function F = spm_Icdf(x,n,p)
 %-----------------------------------------------------------------------
 % For (npq>5 & 0.1<=p<=0.9) | min(np,nq)>10 | npq>25 the Normal
 % approximation to the Binomial may be used:
-%	X~Bin(n,p),  X~:~N(np,npq)		( ~:~ -> approx. distributed as)
+%       X~Bin(n,p),  X~:~N(np,npq)              ( ~:~ -> approx. distributed as)
 % where q=1-p. With continuity correction this gives:
-%	F(x) \approx \Phi((x+0.5-n*p)/sqrt(n*p*q))
+%       F(x) \approx \Phi((x+0.5-n*p)/sqrt(n*p*q))
 % for Phi the standard normal CDF, related to the error function by
-% 	\Phi(x) = 0.5+0.5*erf(x/sqrt(2))
+%       \Phi(x) = 0.5+0.5*erf(x/sqrt(2))
 %
 % Algorithm:
 %-----------------------------------------------------------------------
@@ -53,16 +53,16 @@ function F = spm_Icdf(x,n,p)
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%

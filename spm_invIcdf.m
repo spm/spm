@@ -32,16 +32,16 @@ function r = spm_invIcdf(F,n,p)
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%

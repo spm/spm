@@ -34,7 +34,7 @@ function F = spm_Gcdf(x,h,l)
 % The CDF of the Gamma distribution with scale parameter l and shape h
 % is related to the incomplete Gamma function by
 %
-%	F(x) = gammainc(l*x,h)
+%       F(x) = gammainc(l*x,h)
 %
 % See Abramowitz & Stegun, 6.5.1; Press et al., Sec6.2 for definitions
 % of the incomplete Gamma function. The relationship is easily verified
@@ -45,16 +45,16 @@ function F = spm_Gcdf(x,h,l)
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 

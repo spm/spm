@@ -3,8 +3,8 @@ function x = spm_invNcdf(F,u,v)
 % FORMAT x = spm_invNcdf(F,u,v)
 %
 % F - CDF (lower tail p-value)
-% u - mean		[Defaults to 0]
-% v - variance	(v>0)	[Defaults to 1]
+% u - mean              [Defaults to 0]
+% v - variance  (v>0)   [Defaults to 1]
 % x - ordinates of N(u,v) at which CDF F(x)=F
 %_______________________________________________________________________
 %
@@ -32,31 +32,31 @@ function x = spm_invNcdf(F,u,v)
 % The CDF for a standard N(0,1) Normal distribution, \Phi(z), is
 % related to the error function by: (Abramowitz & Stegun, 26.2.29)
 %
-%	\Phi(z)      = 0.5 + erf(z/sqrt(2))/2
+%       \Phi(z)      = 0.5 + erf(z/sqrt(2))/2
 % so
 %
-%	\Phi^{-1}(p) = sqrt(2) * erfinv(2*p-1)
+%       \Phi^{-1}(p) = sqrt(2) * erfinv(2*p-1)
 %
 % where erfinv(.) is the inverse error function.
 %
 % MatLab's implementation of the inverse error function is used for
 % computation of z=\Phi^{-1}(F), the corresponding standard normal
 % variate, which converted to a variate x from a N(u,v) distribution by:
-% 	x = u+z*sqrt(v)
+%       x = u+z*sqrt(v)
 %
 % References:
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%       "Statistical Distributions"
+%        2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%       "Handbook of Mathematical Functions"
+%        US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%       "Numerical Recipes in C"
+%        Cambridge
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
