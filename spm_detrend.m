@@ -13,16 +13,16 @@ function [y] = spm_detrend(x,p);
 % %W% %E%
 
 %---------------------------------------------------------------------------
-G     = [];
 [m n] = size(x);
-
+if nargin == 1, p = 0; end
 if ~p
 	y = x - ones(m,1)*mean(x);
 	return
 end
-for i = 0:n
-	d = [1:m].^p;
+G     = [];
+for i = 0:p
+	d = [1:m].^i;
 	G = [G d(:)];
 end
 
-y     = x - G*(G\x);
+y     = x - G*(pinv(G)*x);
