@@ -155,7 +155,11 @@ if ~isfield(P{1},'Q')
 
 			% indices for ith level hyperparameters
 			%---------------------------------------------------
-			K{i}  = [1:m] + K{end}(end);
+			try
+				K{i}  = [1:m] + K{end}(end);
+			catch
+				K{i}  = [1:m];
+			end
 
 
 		% unless they are known - augment Cb  
