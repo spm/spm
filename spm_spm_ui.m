@@ -1203,33 +1203,50 @@ case 'cfg'
     % Non-sphericity correction (set xVi.var and .dep)
     %===================================================================
     xVi.I   = I;
-    xVi.var = sparse(1,4);
-    xVi.dep = sparse(1,4);
-    
-    if spm_input('non-sphericity correction?','+1','y/n',[1,0],0)
-        
-        % repeated measures design 
-        %===============================================================
-        nL      = max(I);		% number of levels
-        mL      = find(nL > 1);		% multilevel factors
-        
-        % ask whether repeated measures are identically distributed
-        %---------------------------------------------------------------
-        if spm_input('are errors different','+1','y/n',[1,0],0)
-            for i = mL
-		str        = sprintf('among (%i) %ss',nL(i),D.sF{i});
-                xVi.var(i) = spm_input(str,'+0','y/n',[1,0],0);
-            end
-        end
+    nL      = max(I);		                     % number of levels
+    mL      = find(nL > 1);		             % multilevel factors
+    xVi.var = sparse(1,4);                           % unequal variances
+    xVi.dep = sparse(1,4);                           % dependencies
 
-        % ask whether there are dependencies induced by random effects
+    if length(mL) > 1
+
+        % repeated measures design
         %---------------------------------------------------------------
-        if spm_input('are errors dependent','+1','y/n',[1,0],0)
+        if spm_input('non-sphericity correction?','+1','y/n',[1,0],0)
+
+            % make menu strings
+            %-----------------------------------------------------------
             for i = mL
-		str        = sprintf('within a (%i) %s',nL(i),D.sF{i});
-                xVi.dep(i) = spm_input(str,'+0','y/n',[1,0],0);
+                mstr{i} = sprintf('%s (%i levels)',D.sF{i},nL(i));
             end
-        end 
+
+            % are errors identical
+            %-----------------------------------------------------------
+            if spm_input('are errors identical','+1','y/n',[0,1],0)
+                str        = 'unequal variances are between';
+                [i j]      = min(nL(mL));
+                i          = spm_input(str,'+0','m',mstr,mL,j);
+
+                % set in xVi and eliminate from dependency option
+                %-------------------------------------------------------
+                xVi.var(i) = 1;
+                mL(i)      = [];
+                mstr(i)    = [];
+            end
+            
+            % are errors independent
+            %-----------------------------------------------------------
+            if spm_input('are errors independent','+1','y/n',[0,1],0)
+                str        = ' dependencies are within';
+                [i j]      = max(nL(mL));
+                i          = spm_input(str,'+0','m',mstr,mL,j);
+
+                % set in xVi
+                %-------------------------------------------------------
+                xVi.dep(i) = 1;
+            end
+
+        end
     end
     
     %-Place covariance components Q{:} in xVi.Vi
