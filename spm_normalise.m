@@ -169,8 +169,8 @@ fprintf('Fine Affine Registration..\n');
 aflags.WG  = VWG;
 aflags.WF  = VWF;
 aflags.sep = max(flags.smoref,flags.smosrc)/2;
-[M,scal]  = spm_affreg(VG1, VF1, aflags, M,scal);
-Affine    = inv(VG(1).mat\M*VF1(1).mat);
+[M,scal]   = spm_affreg(VG1, VF1, aflags, M,scal);
+Affine     = inv(VG(1).mat\M*VF1(1).mat);
 spm_chi2_plot('Clear');
 
 % Basis function Normalisation
@@ -191,12 +191,18 @@ clear VF1 VG1
 flags.version = '%W% %E%';
 flags.date    = date;
 
+if flags.graphics, spm_normalise_disp(params,VF); end;
+
+% Remove dat fields before saving
+%-----------------------------------------------------------------------
+if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
+if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
+
 if ~isempty(matname),
 	fprintf('Saving Parameters..\n');
 	save(matname,'Affine','Tr','VF','VG','flags');
 end;
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
-if flags.graphics, spm_normalise_disp(params,VF); end;
 return;
 %_______________________________________________________________________
 
@@ -286,8 +292,10 @@ for iter=1:nits,
 	fprintf(' FWHM = %6.4g Var = %g\n', fw,Var);
 end;
 
-% Values of the 3D-DCT
+% Values of the 3D-DCT - for some bizarre reason, this needs to be done
+% as two seperate statements in Matlab 6.5...
 %-----------------------------------------------------------------------
-Tr = reshape(T(1:s1),[k 3])*stabilise.^3;
+Tr = reshape(T(1:s1),[k 3]);
+Tr = Tr*stabilise.^3;
 return;
 
