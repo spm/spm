@@ -227,10 +227,16 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %     xCon.STAT - 'F', 'T' or 'X' - for F/T-contrast ('X' for multivariate)
 %     xCon.c    - (F) Contrast weights
 %     xCon.X0   - Reduced design matrix (spans design space under Ho)
+%                 It is in the form of a matric (spm99b) or the
+%                 coordinates of this matrix in the orthogonal basis
+%                 of xX.X defined in spm_sp. 
 %     xCon.iX0  - Indicies of design matrix columns to form the reduced
 %                 design matrix. (Input argument F_iX0 in this case.)
 %               - (Is 0 if X0 was specified, [] if c was specified.)
 %     xCon.X1o  - Remaining design space (orthogonal to X0).
+%                 It is in the form of a matric (spm99b) or the
+%                 coordinates of this matrix in the orthogonal basis
+%                 of xX.X defined in spm_sp. 
 %     xCon.eidf - Effective interest degrees of freedom (numerator df)
 %     xCon.Vcon - ...for handle of contrast/ESS image (empty at this stage)
 %     xCon.Vspm - ...for handle of SPM image (empty at this stage)
@@ -470,7 +476,7 @@ end
 
 %-Parameters for saving in Y.mad (based on first F-contrast)
 %-----------------------------------------------------------------------
-[trMV trMVMV] = spm_SpUtil('trMV',xCon(1).X1o,V);
+[trMV trMVMV] = spm_SpUtil('trMV',spm_FcUtil('X1o',xCon(1),xX.xKXs),V);
 eidf          = trMV^2/trMVMV;
 h             = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
 
@@ -480,10 +486,10 @@ if nVar > 1
 
 	% pseudoinverse of null partition X0 & orthogonlize KX w.r.t. it
 	%---------------------------------------------------------------
-	xX.X0     = xCon(1).X0;
+	xX.X0     = spm_FcUtil('X0',xCon(1),xX.xKXs);
 	xX.pX0    = pinv(xX.X0);
-	xX.xKXs   = spm_sp('Set',[xCon.X1o xCon.X0]);
-	xX.pKX    = spm_sp('x-',xX.xKXs);
+	% xX.xKXs   = spm_sp('Set',[xCon.X1o xCon.X0]);
+	% xX.pKX    = spm_sp('x-',xX.xKXs);
 
 	%-Modify Contrast structure for multivariate inference
 	%---------------------------------------------------------------
@@ -492,7 +498,7 @@ if nVar > 1
 
 	%-Degrees of freedom (Rao 1951)
 	%---------------------------------------------------------------
-	h         = rank(xCon.X1o);
+	h         = rank(spm_FcUtil('X1o',xCon(1),xX.xKXs));
 	p         = nVar;
 	r         = erdf;
 	a         = r - (p - h + 1)/2;

@@ -305,7 +305,8 @@ for ii = 1:length(I)
     %-Canonicalise contrast structure with required fields
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf)
-	[trMV,trMVMV] = spm_SpUtil('trMV',xCon(i).X1o,xX.V);
+	[trMV,trMVMV] = spm_SpUtil('trMV', ...
+	                    spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V);
         xCon(i).eidf  = trMV^2/trMVMV;
     else
         trMV = []; trMVMV = [];
@@ -426,7 +427,9 @@ for ii = 1:length(I)
 
 	case 'F'                                  %-Compute SPM{F} image
         %---------------------------------------------------------------
-	if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).X1o,xX.V); end
+	if isempty(trMV), trMV = spm_SpUtil('trMV', ...
+	                             spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V); 
+        end
 	Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
 	   (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
 
