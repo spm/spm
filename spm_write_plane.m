@@ -88,6 +88,7 @@ if fseek(fid,off,'bof')==-1,
 		write_error_message(V.fname);
 		error(['Error writing ' V.fname '.']);
 	end;
+	fseek(fid,0,'bof'); % A bug in Matlab 6.5 means that a rewind is needed
 	if fseek(fid,off,'bof') == -1,
 		write_error_message(V.fname);
 		error(['Error writing ' V.fname '.']);
