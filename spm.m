@@ -937,7 +937,7 @@ sf  = 1 + 0.85*(min(spm('WinScale'))-1);
 if strcmp(lower(Action),'fontscale')
 	varargout = {sf};
 else
-	varargout = {floor(FS*sf),sf};
+	varargout = {ceil(FS*sf),sf};
 end
 
 
