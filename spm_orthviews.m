@@ -958,15 +958,21 @@ for i = valid_handles(arg1),
 				
 			else,
 				% Add full colour blobs - several sets at once
-				scal = 1/(mx-mn);
+				scal  = 1/(mx-mn);
 				dcoff = -mn*scal;
-				imgt = repmat(imgt*scal+dcoff,[1,1,3]);
-				imgc = repmat(imgc*scal+dcoff,[1,1,3]);
-				imgs = repmat(imgs*scal+dcoff,[1,1,3]);
+
+				wt = zeros(size(imgt));
+				wc = zeros(size(imgc));
+				ws = zeros(size(imgs));
+
+				imgt  = repmat(imgt*scal+dcoff,[1,1,3]);
+				imgc  = repmat(imgc*scal+dcoff,[1,1,3]);
+				imgs  = repmat(imgs*scal+dcoff,[1,1,3]);
 
 				cimgt = zeros(size(imgt));
 				cimgc = zeros(size(imgc));
 				cimgs = zeros(size(imgs));
+
 				for j=1:length(st.vols{i}.blobs), % get colours of all images first
 					if isfield(st.vols{i}.blobs{j},'colour'),
 						colour(j,:) = reshape(st.vols{i}.blobs{j}.colour, [1 3]);
@@ -974,10 +980,10 @@ for i = valid_handles(arg1),
 						colour(j,:) = [1 0 0];
 					end;
 				end;
-				colour = colour/max(sum(colour));   % scale to preserve colour proportions (users may specify non-orthogonal colours)
+				%colour = colour/max(sum(colour));
 
 				for j=1:length(st.vols{i}.blobs),
-				if isfield(st.vols{i}.blobs{j},'max'),
+					if isfield(st.vols{i}.blobs{j},'max'),
 						mx = st.vols{i}.blobs{j}.max;
 					else,
 						mx = max([eps max(st.vols{i}.blobs{j}.vol(:))]);
@@ -991,35 +997,34 @@ for i = valid_handles(arg1),
 					end;
 
 					vol  = st.vols{i}.blobs{j}.vol;
-					M    = st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
-					tmpt = (spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])'+mn)/(mx-mn);
-					tmpc = (spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])'+mn)/(mx-mn);
-					tmps = (spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])'+mn)/(mx-mn);
-					tmpt(find(~finite(tmpt))) = 0;
-					tmpc(find(~finite(tmpc))) = 0;
-					tmps(find(~finite(tmps))) = 0;
+					M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
+					tmpt = (spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])'+mn)/(mx-mn);
+					tmpc = (spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])'+mn)/(mx-mn);
+					tmps = (spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])'+mn)/(mx-mn);
+					tmpt(~finite(tmpt)) = 0;
+					tmpc(~finite(tmpc)) = 0;
+					tmps(~finite(tmps)) = 0;
 
-					tmp  = cat(3,tmpt*colour(j,1),tmpt*colour(j,2),tmpt*colour(j,3));
-					cimgt = cimgt+tmp;
-					tmp = find(cimgt<0); cimgt(tmp)=0; tmp = find(cimgt>1); cimgt(tmp)=1;
-					imgt = repmat(1-tmpt,[1 1 3]).*imgt;
-					tmp = find(imgt<0); imgt(tmp)=0; tmp = find(imgt>1); imgt(tmp)=1;
+					cimgt = cimgt + cat(3,tmpt*colour(j,1),tmpt*colour(j,2),tmpt*colour(j,3));
+					cimgc = cimgc + cat(3,tmpc*colour(j,1),tmpc*colour(j,2),tmpc*colour(j,3));
+					cimgs = cimgs + cat(3,tmps*colour(j,1),tmps*colour(j,2),tmps*colour(j,3));
 
-					tmp  = cat(3,tmpc*colour(j,1),tmpc*colour(j,2),tmpc*colour(j,3));
-					cimgc = cimgc+tmp;
-					tmp = find(cimgc<0); cimgc(tmp)=0; tmp = find(cimgc>1); cimgc(tmp)=1;
-					imgc = repmat(1-tmpc,[1 1 3]).*imgc;
-					tmp = find(imgc<0); imgc(tmp)=0; tmp = find(imgc>1); imgc(tmp)=1;
-
-					tmp  = cat(3,tmps*colour(j,1),tmps*colour(j,2),tmps*colour(j,3));
-					cimgs = cimgs+tmp;
-					tmp = find(cimgs<0); cimgs(tmp)=0; tmp = find(cimgs>1); cimgs(tmp)=1;
-					imgs = repmat(1-tmps,[1 1 3]).*imgs;
-					tmp = find(imgs<0); imgs(tmp)=0; tmp = find(imgs>1); imgs(tmp)=1;
+					wt = wt + tmpt;
+					wc = wc + tmpc;
+					ws = ws + tmps;
 				end;
-				imgt = (1-cimgt).*imgt+cimgt;
-				imgc = (1-cimgc).*imgc+cimgc;
-				imgs = (1-cimgs).*imgs+cimgs;
+
+				%cimgt(cimgt<0)=0; cimgt(cimgt>1)=1;
+				%cimgc(cimgc<0)=0; cimgc(cimgc>1)=1;
+				%cimgs(cimgs<0)=0; cimgs(cimgs>1)=1;
+
+				imgt = repmat(1-wt,[1 1 3]).*imgt+cimgt;
+				imgc = repmat(1-wc,[1 1 3]).*imgc+cimgc;
+				imgs = repmat(1-ws,[1 1 3]).*imgs+cimgs;
+
+				imgt(imgt<0)=0; imgt(imgt>1)=1;
+				imgc(imgc<0)=0; imgc(imgc>1)=1;
+				imgs(imgs<0)=0; imgs(imgs>1)=1;
 			end;
 		else,
 			scal = 64/(mx-mn);
