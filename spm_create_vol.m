@@ -85,7 +85,7 @@ if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 			warning(['Assuming a scalefactor of 1 for "' V.fname '".']);
 		end;
 	end;
-	V.pinfo(1:2)    = [scal dcoff]';
+	V.pinfo(1:2,1)    = [scal dcoff]';
 	V.private.hdr   = hdr;
 else,
 
@@ -157,7 +157,7 @@ else,
 	V.private.hdr.hk.db_name(d)    = nam(d);
 end;
 
-V.pinfo(3) = prod(V.private.hdr.dime.dim(2:4))*V.private.hdr.dime.bitpix/8*(V.n-1);
+V.pinfo(3,1) = prod(V.private.hdr.dime.dim(2:4))*V.private.hdr.dime.bitpix/8*(V.n-1);
 
 fid           = fopen(fname,'w',mach);
 if (fid == -1),
