@@ -46,7 +46,7 @@ Matrix *plhs[], *prhs[];
      double		*pixel;
      double	        *kd;
      int 		i,j,g,h;
-     FILE		*fo,*fp[128];
+     FILE		*fo,*fp[512];
 
      if (nrhs != 4 || nlhs > 0)
          mexErrMsgTxt("Inappropriate usage.");
