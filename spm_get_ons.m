@@ -268,7 +268,7 @@ if v
                                         {'conditions',s},'variable_dur')
 				    dur{j} = spm_input('durations (scans)',...
 					     '+1','e',[],[1 length(on{j})],'batch',...
-                                        {'conditions',s},'durations',j);
+                                        {'conditions',s},'durations',i);
 				    dur{j} = round(dur{j}*T);
 				end
 			    end
