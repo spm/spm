@@ -67,11 +67,13 @@ global defaults
 defs = defaults.normalise.write;
 
 if nargin==0,
+	allowable = {'def','jacmat','jacdet','tensor'};
 	a1 = spm_input('Write what?',1,'m',...
 		['Deformations|Jacobian Matrices|Jacobian Determinants|' ...
 		 'Strain Tensors'],...
 		[1 2 3 4],1);
-	arg = allowable(a1);
+	arg = allowable{a1};
+
 	if strcmp(arg,'tensor')
 		tensorder = spm_input('Write what?',2,'m',...
 			['Strain Tensors, m=-2 (Almansi)|'...
@@ -104,7 +106,6 @@ end;
 for i=1:size(files,1),
 	sn(i).fname = deblank(files(i,:));
 end;
-
 
 switch arg,
 	case 'tensor'
