@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL %E%";
+static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU) %E%";
 #endif lint
 
 #include "mex.h"
@@ -43,15 +43,23 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	int nx, double BX[], double dBX[],
 	int ny, double BY[], double dBY[],
 	int nz, double BZ[], double dBZ[],
-	double M[16], int samp[], int edgeskip[], int *pnsamp, double ss_deriv[3], MAPTYPE *weight)
+	double M[16], int samp[], int edgeskip[],
+	int *pnsamp, double ss_deriv[3],
+	MAPTYPE *weight, MAPTYPE *weight2 )
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scale1a;
 	double *Jz[3][3], *Jy[3][3], J[3][3];
 	double *bz3[3], *by3[3], *bx3[3];
-	double wt = 1.0, nsamp = 0.0;
+	double wt = 1.0, wt3 = 1.0, nsamp = 0.0;
 	int *dim1;
+
+	/* flag for presence of weighting */
+	int wF = 1;
+	if ((weight == (MAPTYPE *)0) && (weight2 == (MAPTYPE *)0))
+		wF = 0;
+
 	dim1 = vols1[0].dim;
 
 	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2]  = BX;
@@ -197,9 +205,24 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 
 					resample_d(1,vol2,&v,dvds0,dvds0+1,dvds0+2,s2,s2+1,s2+2, 1, 0.0);
 
-					if (weight != (MAPTYPE *)0)
+					/* weighting */
+					if (wF) 
 					{
-						resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.001);
+						if (weight != (MAPTYPE *)0)
+							resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.001);
+						else
+							wt = 1.0;
+
+						if (weight2 != (MAPTYPE *)0) 
+							resample(1,weight2,&wt3,s2,s2+1,s2+2, 1, 0.001);
+						else
+							wt3 = 1.0;
+
+						if (wt && wt3)
+							wt = 1.0 /(1.0/wt + 1.0/wt3);
+						else
+							wt = 0.0;
+
 						v *= wt;
 						dvds0[0] *= wt;
 						dvds0[1] *= wt;
@@ -230,7 +253,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					{
 						double tmp, tmp2, grads[3];
 						resample_d(1,&vols1[i1],&tmp,grads,grads+1,grads+2,s0d,s0d+1,s0d+2, 1, 0.0);
-						if (weight != (MAPTYPE *)0)
+						if (wF)  /** use weight */
 						{
 							tmp *= wt;
 							grads[0] *= wt;
@@ -460,12 +483,14 @@ static void scale(int m, double dat[], double s)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	extern double rint(double);
-	MAPTYPE *map1, *map2, *mapw, *get_maps();
+	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2, *get_maps();
 	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3];
 
-        if (((nrhs != 11) && (nrhs != 12)) || (nlhs > 4))
+	/* also accept 13th argument - object volume weighting */
+	int iW;
+        if (((nrhs != 11) && (nrhs != 12) && (nrhs != 13)) || (nlhs > 4))
         {
                 mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
         }
@@ -594,23 +619,43 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[2] = mxCreateDoubleMatrix(1,1,mxREAL);
 	plhs[3] = mxCreateDoubleMatrix(1,1,mxREAL);
 
+	/* initialise weighting images */
+	mapw = mapw2 = (MAPTYPE *)0;
+
 	if (nrhs>=12)
 	{
-		mapw = get_maps(prhs[11], &i);
-		if (i!=1)
+		/* No call to map routine if null */
+		if (!mxIsEmpty(prhs[11]))
 		{
-			free_maps(map1, ni);
-			free_maps(map2,  1);
-			free_maps(mapw,  i);
-			mexErrMsgTxt("Inappropriate usage.");
+			mapw = get_maps(prhs[11], &i);
+			if (i!=1)
+			{
+				free_maps(map1, ni);
+				free_maps(map2,  1);
+				free_maps(mapw,  i);
+				mexErrMsgTxt("Inappropriate usage.");
+			}
+
+		}
+		/* Check for object weighting image */
+		if (nrhs>=13 && !mxIsEmpty(prhs[12]))
+		{
+			mapw2 = get_maps(prhs[12], &iW);
+			if (iW!=1)
+			{
+				free_maps(map1, ni);
+				free_maps(map2,  1);
+				free_maps(mapw2,  iW);
+				free_maps(mapw,  i);
+				mexErrMsgTxt("Inappropriate usage.");
+			}
 		}
 	}
-	else
-		mapw = (MAPTYPE *)0;
 
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
 		map2, ni,map1,
-		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip, &nsamp, ss_deriv, mapw);
+		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip,
+		&nsamp, ss_deriv, mapw, mapw2);
 
 	fwhm3 = ((pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
 	         (pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
@@ -637,7 +682,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	free_maps(map1, ni);
 	free_maps(map2,  1);
-	if (nrhs>=12)
+	if (mapw2 != (MAPTYPE *)0)
+		free_maps(mapw2,  iW);
+	if (mapw != (MAPTYPE *)0)
 		free_maps(mapw,  i);
 }
 
