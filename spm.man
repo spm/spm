@@ -778,6 +778,56 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
+% SPM_5: Detecting Activations in PET and fMRI: Levels of Inference and Power
+% Friston KJ, Holmes A, Poline J-B, Price CJ and Frith CD.
+% Neuroimage (Accepted)
+% 
+% Abstract
+%    This paper is about detecting activations in statistical parametric
+%    maps and considers the relative sensitivity of a nested hierarchy of
+%    tests that we have framed in terms of the level of inference
+%    (voxel-level, cluster-level and set-level). These tests are based on
+%    the probability of obtaining c, or more, clusters with k, or more,
+%    voxels, above a threshold u. This probability has a reasonably
+%    simple form and is derived using distributional approximations from
+%    the theory of Gaussian fields. The most important contribution of
+%    this work is the notion of set-level inference. Set-level inference
+%    refers to the statistical inference that the number of clusters
+%    comprising an observed activation profile is highly unlikely to have
+%    occurred by chance. This inference pertains to the set of
+%    activations reaching criteria and represents a new way of assigning
+%    p values to distributed effects. Cluster-level inferences are a
+%    special case of set-level inferences, that obtain when the number of
+%    clusters c = 1. Similarly voxel-level inferences are special cases
+%    of cluster-level inferences that result when the cluster can be very
+%    small (i.e. k = 0). Using a theoretical power analysis of
+%    distributed activations, we observed that set-level inferences are
+%    generally more powerful than cluster-level inferences and that
+%    cluster-level inferences are generally more powerful than
+%    voxel-level inferences. The price paid for this increased
+%    sensitivity is reduced localizing power: Voxel-level tests permit
+%    individual voxels to be identified as significant, whereas cluster
+%    and set-level inferences only allows clusters or sets of clusters to
+%    be so identified. For all levels of inference the spatial size of
+%    the underlying signal  (relative to resolution) determines the most
+%    powerful thresholds to adopt. For set-level inferences if  is large
+%    (e.g. fMRI) then the optimum extent threshold should be greater than
+%    the expected number of voxels for each cluster. If  is small (e.g.
+%    PET) the extent threshold should be small. We envisage that
+%    set-level inferences will find a role in making statistical
+%    inferences about distributed activations, particularly in fMRI.
+% 
+% This paper describes the notion of "set-level" inference, describing
+% the motivation and operational equations for inference on the set of
+% suprathreshold regions (of a strictly stationary continuous standard
+% Gaussian random field) exceeding a given size. This theory generalises
+% previous results for distributions of maximum value (Worsley,1992) and
+% maximum suprathreshold region size [SPM_2], giving a single equation,
+% implemented in SPM96. The trade offs between localisation and power are
+% explored.
+% 
+%-----------------------------------------------------------------------
+% 
 % fMRI_3:  Analysis of fMRI time-series revisited Friston KJ, Holmes
 % AP, Poline J-B, Grasby PJ, Williams SCR, Frackowiak RSJ and Turner R
 % NeuroImage - in press
