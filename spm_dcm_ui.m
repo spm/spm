@@ -250,13 +250,10 @@ case 'specify'
 	spm('Pointer','Watch')
 	spm('FigName','Estimation in progress');
 
-	% confounds (NB: the data have been whitened with W and filtered)
+	% confounds (NB: the data have been filtered and whitened)
 	%-------------------------------------------------------------------
 	v     = size(xY(1).u,1);
-	X0    = SPM.xX.W*ones(v,1);
-	try
-		X0    = [X0 (SPM.xX.K(xY(1).Sess).KH)];
-	end
+	X0    = xY(1).X0;
 
 	% response variables
 	%-------------------------------------------------------------------
