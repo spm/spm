@@ -1,15 +1,15 @@
-function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xSDM,hReg)
+function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % Graphical display of adjusted data
-% FORMAT [Y y beta SE] = spm_graph(SPM,VOL,xX,xSDM,hReg)
+% FORMAT [Y y beta SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 %
 % SPM    - structure containing SPM, distribution & filtering detals
 %        - required fields are:
 % .swd   - SPM working directory - directory containing current SPM.mat
-% .c     - contrast(s) - in cell array
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .n     - number of conjoint tests        
 % .STAT  - distribution {Z, T, X or F}     
 % .df    - degrees of freedom [df{interest}, df{residual}]
+% .Ic    - indicies of contrasts (in xCon)
 % .XYZmm - location of voxels {mm}
 % .QQ    - indices of volxes in Y.mad file
 %
@@ -23,11 +23,16 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xSDM,hReg)
 % xX     - Design Matrix structure
 %        - (see spm_spm.m for structure)
 %
+% xCon   - Contrast definitions structure
+%        - required fields are:
+% .c     - contrast vector/matrix
+%          ( see spm_SpUtil.m for details of contrast structure... )
+%
 % xSDM   - structure containing contents of SPM.mat file
 %        - required fields are:
 % .Vbeta
 % .VResMS
-%          ( see spm_spm.m for contents...
+%          ( see spm_spm.m for contents... )
 %
 % hReg   - handle of MIP register
 %
@@ -68,12 +73,6 @@ Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,2);
 
 
-%-Load ER.mat (event-related) file if it exists
-%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% str = fullfile(SPM.swd,'ER.mat');
-% if exist(str,'file'); load(str); end
-
-
 %-Find nearest voxel [Euclidean distance] in point list & update GUI
 %-----------------------------------------------------------------------
 if ~length(SPM.XYZmm)
@@ -88,26 +87,29 @@ end
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
 
-
+%-Extract required data from results files
+%=======================================================================
+cwd  = pwd;				%-Note current working directory
+cd(SPM.swd)				%-Temporarily move to results dir
 
 %-Get (approximate) raw data y from Y.mad file
 %-NB: Data in Y.mad file is compressed, and therefore not fully accurate
 %     Therefore, parameters & ResMS should be read from the image files,
 %     rather than recomputing them on the basis of the Y.mad data.
 %-----------------------------------------------------------------------
-Yfname = fullfile(SPM.swd,'Y.mad');
-if exist(Yfname)~=2
-	msgbox(['Graphing unavailable: ',...
-		'No timecourse data saved with this analysis'],...
-		['SPM: ',mfilename],'error','modal')
-	return
+if exist(fullfile('.','Y.mad'))~=2
+	gotY = [];
+	y    = [];
+%-****	sf_noYwarn([])
+%-****	return
 elseif SPM.QQ(i)==0
-	msgbox(['Graphing unavailable: ',...
-		'No timecourse data saved for this voxel'],...
-		['SPM: ',mfilename],'error','modal')
-	return
+	gotY = 0;
+	y    = [];
+%-****	sf_noYwarn(SPM.QQ(i))
+%-****	return
 else
-	y = spm_extract([SPM.swd,'/Y.mad'],SPM.QQ(i));
+	gotY = 1;
+	y = spm_extract('Y.mad',SPM.QQ(i));
 end
 
 
@@ -121,8 +123,12 @@ for i = 1:length(beta)
 	beta(i) = spm_sample_vol(xSDM.Vbeta(i),rcp(1),rcp(2),rcp(3),0);
 end
 
-Y     = xX.xKXs.X * beta;		%-Fitted data (KYhat)
-R     = xX.K*y - Y;			%-Residuals (Kres)
+if gotY
+	Y = xX.xKXs.X * beta;			%-Fitted data (KYhat)
+	R = xX.K*y - Y;				%-Residuals (Kres)
+else
+	Y = []; R = [];
+end
 
 %-Residual mean square: ResMS = sum(R.^2)/xX.trRV;
 ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
@@ -132,13 +138,20 @@ SE    = sqrt(ResMS*diag(xX.Bcov));	%-S.E. of parameter estimates
 COL   = ['r','b','g','c','y','m','r','b','g','c','y','m'];
 
 
-
 % inference (for xlabel)
 %-----------------------------------------------------------------------
 Z      = SPM.Z(i);
 Pz     = spm_P(1,0,Z,SPM.df,SPM.STAT,1,    SPM.n);
 Pu     = spm_P(1,0,Z,SPM.df,SPM.STAT,VOL.R,SPM.n);
 STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected.)',Z,Pz,Pu)];
+
+%-Return to previous directory
+%-----------------------------------------------------------------------
+cd(cwd)					%-Go back to original working dir.
+
+
+%-Plot
+%=======================================================================
 
 
 % find out what to plot
@@ -158,7 +171,7 @@ if     Cp == 1
 			'parameters specified by contrast',...
 			'contrast of parameters'};
 	%-Don't offer option 3 for conjunctions or F-contrasts!
-	if ( size(SPM.c,2)>1 | size(SPM.c{1},2)>1 ), Cplot(3)=[]; end
+	if ( length(SPM.Ic)>1 | size(xCon(SPM.Ic(1)),2)>1 ), Cplot(3)=[]; end
 	Cp    = spm_input('Estimates to plot',-1,'m',Cplot);
 	TITLE = Cplot{Cp};
 	XLAB  = 'effect';
@@ -170,15 +183,15 @@ if     Cp == 1
 
 	elseif Cp == 2
 
-		tmp  = find(any(cat(2,SPM.c{:}),2));
+		tmp  = find(any(cat(2,xCon(SPM.Ic).c),2));
 		beta = beta(tmp);
 		SE   = SE(tmp);
 
 	elseif Cp == 3
 
-		%-** Should really read c'b from file (when that's implemented)
-		beta = SPM.c{1}'*beta;
-		SE   = sqrt(ResMS*SPM.c{1}'*xX.Bcov*SPM.c{1});
+		%-(Could read c'b from file)
+		beta = xCon(SPM.Ic(1)).c'*beta;
+		SE   = sqrt(ResMS*xCon(SPM.Ic(1)).c'*xX.Bcov*xCon(SPM.Ic(1)).c);
 		XLAB = 'contrast';
 
 	end
@@ -201,6 +214,8 @@ if     Cp == 1
 %-----------------------------------------------------------------------
 elseif Cp == 2
 
+	if (isempty(gotY)|~gotY), sf_noYwarn(gotY), return, end
+
 	% fitted data
 	%---------------------------------------------------------------
 	Cplot = {	'all effects',...
@@ -217,18 +232,18 @@ elseif Cp == 2
 
 	elseif Cx == 2
 
-		i    = find(any(SPM.c{1},2));
+		i    = find(any(xCon(SPM.Ic(1)).c,2));
 		Y    = xX.xKXs.X(:,i)*beta(i);
 
 	elseif Cx == 3
 
-		X    = xX.xKXs.X*SPM.c{1};
+		X    = xX.xKXs.X*xCon(SPM.Ic(1)).c;
 		Y    = xX.xKXs.X*(xX.pKX*y);
 
 	elseif Cx == 4
 
 		str  = sprintf('Which columns or effects [1-%d]?',length(beta));
-		i    = spm_input(str,'!+1','n');
+		i    = spm_input(str,'!+1','n','',Inf,length(beta));
 		Y    = xX.xKXs.X(:,i)*beta(i);
 	end
 
@@ -246,20 +261,20 @@ elseif Cp == 2
 			'a user specified ordinate'};
 	%-Don't offer option 2 for conjunctions or F-contrasts!
 	i = 1:length(Cplot);
-	if (size(SPM.c,2)>1 | size(SPM.c{1},2)>1), i(2)=[]; end
+	if (length(SPM.Ic)>1 | size(xCon(SPM.Ic(1)),2)>1), i(2)=[]; end
 
 	Cx    = spm_input('plot against',-1,'m',Cplot(i),i);
 
 	if     Cx == 1
 
 		str  = sprintf('Which column or effect [1-%d]?',length(beta));
-		i    = spm_input(str,'!+1','n1','',1);
+		i    = spm_input(str,'!+1','n','',1,length(beta));
 		x    = xX.xKXs.X(:,i);
 		XLAB = sprintf('%s (explanatory variable %d)',xX.Xnames{i},i);
 
 	elseif Cx == 2
 
-		x    = xX.xKXs.X*SPM.c{1};
+		x    = xX.xKXs.X*xCon(SPM.Ic(1)).c;
 		XLAB = 'Contrast of explanatory variables';
 
 	elseif Cx == 3
@@ -302,9 +317,11 @@ elseif Cp == 2
 %----------------------------------------------------------------------
 elseif Cp == 3
 
+	if (isempty(gotY)|~gotY), sf_noYwarn(gotY), return, end
+
 	j     = 1;
 	if size(ERI,2) > 1
-		j    = spm_input('which events',-1,'n','1 2');
+		j    = spm_input('which events','-1','n','1 2');
 	end
 	Cplot = {	'fitted response',...
 			'fitted response and PSTH',...
@@ -403,3 +420,28 @@ ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
 
 spm_results_ui('PlotUi',gca)
+
+
+
+
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+
+function sf_noYwarn(Q)
+%=======================================================================
+if nargin<1, Q=0; end
+
+if isempty(Q)
+	str = {'Graphing unavailable: ',...
+		'No timecourse data saved with this analysis'};
+elseif Q(1)==0
+	str = {'Graphing unavailable: ',...
+		'No timecourse data saved for this voxel'};
+else
+	return
+end
+msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
+	spm('GetUser',' (%s)'),mfilename),'error','modal')
