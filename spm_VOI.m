@@ -19,6 +19,7 @@ function TabDat = spm_VOI(SPM,hReg)
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels} - column vector
+% .Vspm  - Mapped statistic image(s)
 % .Msk   - mask: a list of scalar indicies into image voxel space
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
@@ -62,7 +63,9 @@ spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
 %-Get current location
 %-----------------------------------------------------------------------
 xyzmm   = spm_results_ui('GetCoords');
-
+v2mm    = diag([VOL.M(1,1) VOL.M(2,2) VOL.M(3,3)]);
+mm2v    = inv(v2mm);
+xyz     = VOL.M \ [xyzmm; 1]; xyz = xyz(1:3);
 
 %-Specify search volume
 %-----------------------------------------------------------------------
@@ -72,12 +75,29 @@ SPACE   = spm_input('Search volume...',-1,'m',...
 		'Image'},['S','B','V','I']);
 Q       = ones(1,size(SPM.XYZmm,2));
 vsc     = [1 1 1];				%-Voxel size scaling for FWHM
+DIM     = VOL.DIM;
 
 switch SPACE, case 'S'                                          % Sphere
 	%---------------------------------------------------------------
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
 	j     = find(sum((SPM.XYZmm - xyzmm*Q).^2) <= D^2);
+
+	d     = ceil(mm2v*[D D D]')+1;
+	rxyz  = round(xyz);
+	[jx jy jz]  = ndgrid(rxyz(1)+(-d(1):d(1)),...
+			     rxyz(2)+(-d(2):d(2)),...
+			     rxyz(3)+(-d(3):d(3)));
+	XYZ   = [jx(:) jy(:) jz(:)]';
+	XYZ(:,any(XYZ<=0)) = []; 
+	XYZ(:,(XYZ(1,:)>DIM(1)|XYZ(2,:)>DIM(2)|XYZ(3,:)>DIM(3))) = []; 
+	Qs    = ones(1,size(XYZ,2));
+	js    = find(sum((v2mm*(XYZ - xyz*Qs)).^2) <= D^2);
+	XYZ   = XYZ(:,js);
+
+	% Convert to indicies; map T image, check image for zeros; delete
+        % those entries from XYZ
+
 	D     = D./SPM.VOX;
 	S     = (4/3)*pi*prod(D);
 
@@ -86,6 +106,22 @@ case 'B'                                                           % Box
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
 	j     = find(all(abs(SPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
+
+	d     = ceil(mm2v*D(:))+1;
+	rxyz  = round(xyz);
+	[jx jy jz]  = ndgrid(rxyz(1)+(-d(1):d(1)),...
+			     rxyz(2)+(-d(2):d(2)),...
+			     rxyz(3)+(-d(3):d(3)));
+	XYZ   = [jx(:) jy(:) jz(:)]';
+	XYZ(:,any(XYZ<=0)) = [];
+	XYZ(:,(XYZ(1,:)>DIM(1)|XYZ(2,:)>DIM(2)|XYZ(3,:)>DIM(3))) = []; 
+	Qs    = ones(1,size(XYZ,2));
+	js    = find(all(abs(v2mm*(XYZ - xyz*Qs)) <= D(:)*Qs/2));
+	XYZ   = XYZ(:,js);
+
+	% Convert to indicies; map T image, check image for zeros; delete
+        % those entries from XYZ
+
 	D     = D(:)./SPM.VOX(:);
 	S     = prod(D);
 
@@ -143,14 +179,24 @@ SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
 SPM.R     = spm_resels(SPM.FWHM./vsc,D,SPACE);
 SPM.S     = S;
-if (SPACE=='I')
-	SPM.Msk   = D;
-else  
-	SPM.Msk   = SPM.XYZ(1,:) + ...
-    	           (SPM.XYZ(2,:) - 1)*SPM.DIM(1) + ...
-      		   (SPM.XYZ(3,:) - 1)*SPM.DIM(1)*SPM.DIM(2);
+if (SPACE=='S') | (SPACE=='B')
+  SPM.Msk   = XYZ(1,:) + ...
+             (XYZ(2,:)-1)*DIM(1) + ...
+             (XYZ(3,:)-1)*DIM(1)*DIM(2);
+  % Eliminate voxels with no data; assume zero masking of stat images
+  Y         = spm_read_vols(SPM.Vspm);
+  SPM.Msk(Y(SPM.Msk)==0) = [];
+  % Note, we get a more accurate (smaller) S, but the RFT doesn't
+  % make use of it.
+  SPM.S = length(SPM.Msk);
+elseif (SPACE=='V')
+  SPM.Msk   = SPM.XYZ(1,:) + ...
+             (SPM.XYZ(2,:)-1)*DIM(1) + ...
+             (SPM.XYZ(3,:)-1)*DIM(1)*DIM(2);
+elseif (SPACE=='I')
+  SPM.Msk   = D;
 end
- 
+
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
