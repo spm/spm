@@ -1478,7 +1478,7 @@ case 'parseistr'                     %-Parse index string
 %-Sort out parameters
 %-----------------------------------------------------------------------
 str = varargin{2};
-max = varargin{3};
+mx  = varargin{3};
 
 
 %-Process input string
@@ -1492,7 +1492,7 @@ end
 
 %-Construct list of valid indicies
 %-----------------------------------------------------------------------
-ok  = ismember(I(:)',[1:max]);
+ok  = ismember(I(:)',[1:mx]);
 iX0 = I(ok);
 
 %-Construct diagnostic info messages
@@ -1502,10 +1502,10 @@ if any(ok)
 	str = strvcat(str,num2str(I(ok)));
 	msg = strvcat(msg,'  <-  (OK)');
 end
-tmp = ( I<1 | I>max );			%-Out of range
+tmp = ( I<1 | I>mx );			%-Out of range
 if any(tmp)
 	str = strvcat(str,num2str(I(tmp)));
-	msg = strvcat(msg,sprintf('  <-  (ignored - not in [1:%d]',max));
+	msg = strvcat(msg,sprintf('  <-  (ignored - not in [1:%d]',mx));
 end
 tmp = ( ~tmp & ~ok );			%-Non integer in range
 if any(tmp)
