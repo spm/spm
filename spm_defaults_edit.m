@@ -5,45 +5,46 @@ function spm_defaults_edit(arg1, arg2)
 %
 % The defaults which can be modified are:
 % Working Directory
-% 	Change the directory where results ('.mat' and '.ps' files)
-% 	are written.
+%     Change the directory where results ('.mat' and '.ps' files)
+%     are written.
 % 
 % Printing Options
-% 	Allows a number of different printing defaults to be specified.
+%     Allows a number of different printing defaults to be specified.
 % 
 % Miscellaneous Defaults
-% 	This includes:
-% 		* Specification of a file for logging dialogue between
-% 		  the user and SPM.
-% 		* Command line input option. Rather than clicking
-% 		  buttons on the interface, input can be typed to
-% 		  the Matlab window.
-% 		* The intensity of any grid which superimposed on any
-% 		  displayed images.
+%     This includes:
+%     * Specification of a file for logging dialogue between
+%       the user and SPM.
+%     * Command line input option. Rather than clicking
+%       buttons on the interface, input can be typed to
+%       the Matlab window.
+%     * The intensity of any grid which superimposed on any
+%       displayed images.
 % 
 % Header Defaults
-% 	The values to be taken as default when there are no Analyze
-%	image headers. There are two different sets which depend on
-%	the modality in which SPM is running.
-%		* image size in x,y and z {voxels}
-% 		* voxel size in x,y and z {mm}
-%		* scaling co-efficient applied to *.img data on entry
-%		  into SPM. 
-%		* data type.  (see spm_type.m for supported types
-%		  and specifiers)
-%		* offest of the image data in file {bytes}
-%		* the voxel corresponding the [0 0 0] in the location
-%		  vector XYZ
-%		* a string describing the nature of the image data.
+%     The values to be taken as default when there are no Analyze
+%     image headers. There are two different sets which depend on
+%     the modality in which SPM is running.
+%     * image size in x,y and z {voxels}
+%     * voxel size in x,y and z {mm}
+%     * scaling co-efficient applied to *.img data on entry
+%       into SPM. 
+%     * data type.  (see spm_type.m for supported types
+%       and specifiers)
+%     * offest of the image data in file {bytes}
+%     * the voxel corresponding the [0 0 0] in the location
+%       vector XYZ
+%     * a string describing the nature of the image data.
 % 
 % Realignment & Coregistration Defaults
-% 	An assortment of defaults.
+%     An assortment of defaults.
+%
 % Spatial Normalisation Defaults
-% 	An assortment of defaults.
+%     An assortment of defaults.
 %
 % The 'reset' option re-loads the defaults from spm_defaults.m
 %
-
+%_______________________________________________________________________
 % %W% John Ashburner %E%
 
 global CWD PRINTSTR LOGFILE CMDLINE GRID MODALITY
