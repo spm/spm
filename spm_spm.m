@@ -35,6 +35,8 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %               - Mask images can have any orientation, voxel size or data
 %                 type. They are interpolated using nearest neighbour
 %                 interpolation to the voxel locations of the data Y.
+%       - Note that voxels with constant data (i.e. the same value across
+%         scans) are also automatically masked out.
 %
 % F_iX0 - Indicies of design matrix columns to form the reduced design
 %         matrix. The ensuing F-test (implemented through F-contrasts)
@@ -595,6 +597,10 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			CrLm(CrLm) = abs(Y(j,CrLm))>eps;
 		end
 	end
+
+	%-Mask out voxels where data is constant
+	%---------------------------------------------------------------
+	CrLm(CrLm) = any(diff(Y(:,CrLm),1));
 
 	%-Apply mask
 	%---------------------------------------------------------------
