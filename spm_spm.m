@@ -96,12 +96,14 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % For temporally correlated (fMRI) data, the algorithm implements the
 % technique of Worsley & Friston (1995). In this approach the model is
 % assummed to fit such that the residuals have (slight) short-term
-% (intrinsic) autocorrelation given by Vi. The data and model are then
-% temporally filtered prior to model fitting by a linear filter given
-% by matrix K, giving model K*Y = K*X*beta + K*sqrt(Vi)*e. K=inv(sqrt(Vi))
-% corresponds to pre-whitening, K=I to no temporal smoothing
-% (appropriate for independent data when Vi=I), and K=S (a temporal
-% filter matrix - see spm_make_filter) for band-pass filtering.
+% (intrinsic) autocorrelation given by Vi. (I.e. Residuals e =
+% sqrt(Vi)*e', where e' is an (unobserved) white noise time series).
+% The data and model are then temporally filtered prior to model
+% fitting by a linear filter given by matrix K, giving model K*Y =
+% K*X*beta + K*e. K=inv(sqrt(Vi)) corresponds to pre-whitening (leaving
+% residuals e'), K=I to no temporal smoothing (appropriate for
+% independent data when Vi=I), and K=S (a temporal filter matrix - see
+% spm_make_filter) for band-pass filtering.
 % 
 % The autocorrelation in the filtered time series is then K*Vi*K'
 % Standard results for serially correlated regression can then be used
