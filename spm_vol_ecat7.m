@@ -77,8 +77,13 @@ for i=1:size(llist,1),
 			mat = M;
 		end;
 	end;
-	V(i)        = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,...
-			'descrip',sh.ANNOTATION,'mh',mh,'sh',sh);
+	V(i).fname   = fname;
+	V(i).dim     = dim;
+	V(i).mat     = mat;
+	V(i).pinfo   = pinfo;
+	V(i).descrip = sh.ANNOTATION;
+	V(i).mh      = mh;
+	V(i).sh      = sh;
 end;
 fclose(fp);
 return;

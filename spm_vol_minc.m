@@ -199,7 +199,8 @@ if dt == 10,
 	for j=1:nelem,
 		str   = readname(fp);
 		dim_length = fread(fp,1,'uint32');
-		cdf.dim_array(j) = struct('name',str, 'dim_length', dim_length);
+		cdf.dim_array(j).name       = str;
+		cdf.dim_array(j).dim_length = dim_length;
 	end;
 	dt   = fread(fp,1,'uint32');
 end
@@ -214,7 +215,9 @@ if dt == 12,
 		val    = fread(fp,nnelem,dtypestr(nc_type));
 		if nc_type == 2, val = deblank([val' ' ']); end
 		padding= fread(fp,ceil(nnelem*dsiz(nc_type)/4)*4-nnelem*dsiz(nc_type),'uchar');
-		cdf.gatt_array(j) = struct('name',str, 'nc_type',nc_type, 'val',val);
+		cdf.gatt_array(j).name    = str;
+		cdf.gatt_array(j).nc_type = nc_type;
+		cdf.gatt_array(j).val     = val;
 	end;
 	dt   = fread(fp,1,'uint32');
 end
@@ -226,8 +229,11 @@ if dt == 11,
 		str    = readname(fp);
 		nnelem = fread(fp,1,'uint32');
 		val    = fread(fp,nnelem,'uint32');
-		cdf.var_array(j) = struct('name',str, 'dimid',val+1,...
-			'vatt_array',[], 'nc_type',0, 'vsize', 0, 'begin', 0);
+		cdf.var_array(j).name    = str;
+		cdf.var_array(j).dimid   = val+1;
+		cdf.var_array(j).nc_type = 0;
+		cdf.var_array(j).vsize   = 0;
+		cdf.var_array(j).begin   = 0;
 		dt0    = fread(fp,1,'uint32');
 		if dt0 == 12,
 			nelem0 = fread(fp,1,'uint32');
@@ -239,8 +245,9 @@ if dt == 11,
 				if nc_type == 2, val = deblank([val' ' ']); end
 				padding= fread(fp,...
 					ceil(nnelem*dsiz(nc_type)/4)*4-nnelem*dsiz(nc_type),'uchar');
-				cdf.var_array(j).vatt_array(jj) = struct(...
-					'name',str, 'nc_type',nc_type, 'val',val);
+				cdf.var_array(j).vatt_array(jj).name    = str;
+				cdf.var_array(j).vatt_array(jj).nc_type = nc_type;
+				cdf.var_array(j).vatt_array(jj).val     = val;
 			end;
 			dt0    = fread(fp,1,'uint32');
 		end;
@@ -272,4 +279,3 @@ name   = deblank([fread(fp,stlen,'uchar')' ' ']);
 padding= fread(fp,ceil(stlen/4)*4-stlen,'uchar');
 return;
 %_______________________________________________________________________
-
