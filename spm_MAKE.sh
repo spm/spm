@@ -150,13 +150,13 @@ $cmex5 spm_render_vol.c	spm_vol_utils.a
 $cmex5 spm_global.c	spm_vol_utils.a 
 $cmex5 spm_resels_vol.c	spm_vol_utils.a 
 $cmex5 spm_getxyz.c	spm_vol_utils.a 
-$cmex5 spm_hist2.c	spm_vol_utils.a
 
 $cmex5 spm_atranspa.c
 $cmex5 spm_list_files.c
 $cmex5 spm_unlink.c
 $cmex5 spm_kronutil.c
 $cmex5 spm_project.c
+$cmex5 spm_hist2.c
 
 $cmex5 spm_max.c
 $cmex5 spm_clusters.c
