@@ -99,6 +99,12 @@ function varargout = spm_input(varargin)
 % will be indicated in the prompt, which will end with (#), where # is
 % the number of conditions required.
 %
+% CONTRAST type input is for getting contrast weight vectors. Enter
+% contrasts as row-vectors. Contrast weight vectors will be padded with
+% zeros to the correct length, and checked for validity. (Valid
+% contrasts are estimable, which are those whose weights vector is in
+% the row-space of the design matrix.)
+%
 % Errors in string evaluation for EVALUATED & CONDITION types are
 % handled gracefully, the user notified, and prompted to re-enter.
 %
@@ -218,9 +224,12 @@ function varargout = spm_input(varargin)
 %                     - 'r'eals
 %                  - 'c'ondition indicator vector
 %                  - 'x' - contrast entry
-%                     - if design matrix X is specified, then contrast matrices
-%                       are padded with zeros to have correct length, and are
+%                     - If n(2) or design matrix X is specified, then
+%                       contrast matrices are padded with zeros to have
+%                       correct length.
+%                     - if design matrix X is specified, then contrasts are
 %                       checked for validity (i.e. in the row-space of X)
+%                       (checking handled by spm_SpUtil)
 %                  - 'b'uttons
 %                  - button/edit combo's: 'be1','bn1','bw1','bi1','br1'
 %                     - second letter of b?1 specifies type for edit widget
@@ -237,13 +246,13 @@ function varargout = spm_input(varargin)
 %            evaluated types
 %          - Defaults to ''
 %
-% n        - Size of matrix requred by 'e' & 'c' types
+% n ('e' & 'c' types)
+%          - Size of matrix requred
 %          - NaN for 'e' type implies no checking - returns input as evaluated
-%          - length of n(:) specifies dimension - elements specify dimension
+%          - length of n(:) specifies dimension - elements specify size
 %          - Inf implies no restriction
 %          - Scalar n expanded to [n,1] (i.e. a column vector)
-%                   - except for 'x' contrast type, when it's [1,n]
-%                     (since in SPM we do contrasts as row vectors)
+%            (except 'x' contrast type when it's [n,np] for np
 %          - E.g: [n,1] & [1,n] (scalar n) prompt for an n-vector,
 %                         returned as column or row vector respectively
 %                 [1,Inf] & [Inf,1] prompt for a single vector,
@@ -258,11 +267,19 @@ function varargout = spm_input(varargin)
 %          - NaN for 'c' type treated as Inf
 %          - Defaults (missing or empty) to NaN
 %
+% n ('x'type)
+%            Number of contrasts required by 'x' type (n(1))
+%            ( n(2) can be used specify length of contrast vectors if )
+%            ( a design matrix isn't passed                           )
+%
 % m        - Number of unique conditions required by 'c' type
 %          - Inf implies no restriction
 %          - Defaults (missing or empty) to Inf - no restriction
 %
 % X        - Design matrix for contrast checking in 'x' type
+%          - Can be either a straight matrix or a space structure (see spm_sp)
+%          - Column dimension of design matrix specifies length of contrast
+%            vectors (overriding n(2) is specified).
 %
 % Labels   - Labels for button and menu types.
 %                  - string matrix, one label per row
@@ -607,21 +624,14 @@ switch lower(Type)
 case {'s','e','n','w','i','r','c','x'}      %-String and evaluated input
 %=======================================================================
 %-Condition arguments
-if nargin<6|isempty(varargin{6}), m=Inf; else, m=varargin{6}; end
-if nargin<5|isempty(varargin{5}), n=NaN; else, n=varargin{5}; end
+if nargin<6|isempty(varargin{6}), m=[]; else, m=varargin{6}; end
+if nargin<5|isempty(varargin{5}), n=[]; else, n=varargin{5}; end
 if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
 DefStr = DefStr(:)';
 
 
-switch lower(Type), case 'x'
-	n=n(:); n(isnan(n))=Inf; if length(n)==1, n=[1,n]; end
-	strM='';
-case 'c'
-	if isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
-otherwise
-	strM='';
-end
+if lower(Type)=='c' & isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
 strN = sf_SzStr(n);
 
 
@@ -633,7 +643,7 @@ if CmdLine
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
 
 	%-Do Eval Types in Base workspace, catch errors
-	if Type=='s'
+	if lower(Type)=='s'
 		p = str; msg = '';
 	else
 		[p,msg] = sf_eEval(str,Type,n,m);
@@ -2003,8 +2013,8 @@ end
 function [p,msg] = sf_eEval(str,Type,n,m)
 %=======================================================================
 %-Evaluation and error trapping of typed input
-if nargin<4, m=Inf; end
-if nargin<3, n=NaN; end
+if nargin<4, m=[]; end
+if nargin<3, n=[]; end
 if nargin<2, Type='e'; end
 if nargin<1, str=''; end
 if isempty(str), p='!'; msg='empty input'; return, end
@@ -2015,10 +2025,8 @@ case 'e'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
-	elseif ~any(isnan(n(:)))
-		[p,msg] = sf_SzChk(p,n);
 	else
-		msg='';
+		[p,msg] = sf_SzChk(p,n);
 	end
 case 'n'
 	p = evalin('base',['[',str,']'],'''!''');
@@ -2026,10 +2034,8 @@ case 'n'
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<1)|~isreal(p)
 		p='!'; msg='natural number(s) required';
-	elseif ~any(isnan(n(:)))
-		[p,msg] = sf_SzChk(p,n);
 	else
-		msg='';
+		[p,msg] = sf_SzChk(p,n);
 	end
 case 'w'
 	p = evalin('base',['[',str,']'],'''!''');
@@ -2037,10 +2043,8 @@ case 'w'
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<0)|~isreal(p)
 		p='!'; msg='whole number(s) required';
-	elseif ~any(isnan(n(:)))
-		[p,msg] = sf_SzChk(p,n);
 	else
-		msg='';
+		[p,msg] = sf_SzChk(p,n);
 	end
 case 'i'
 	p = evalin('base',['[',str,']'],'''!''');
@@ -2048,10 +2052,8 @@ case 'i'
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:))|~isreal(p)
 		p='!'; msg='integer(s) required';
-	elseif ~any(isnan(n(:)))
-		[p,msg] = sf_SzChk(p,n);
 	else
-		msg='';
+		[p,msg] = sf_SzChk(p,n);
 	end
 case 'r'
 	p = evalin('base',['[',str,']'],'''!''');
@@ -2059,35 +2061,41 @@ case 'r'
 		msg = 'evaluation error';
 	elseif ~isreal(p)
 		p='!'; msg='real number(s) required';
-	elseif ~any(isnan(n(:)))
-		[p,msg] = sf_SzChk(p,n);
 	else
-		msg='';
+		[p,msg] = sf_SzChk(p,n);
 	end
 case 'c'
+	if isempty(m), m=Inf; end
 	[p,msg] = spm_input('!iCond',str,n,m);
 case 'x'
-	msg = '';
+	xX = m;			%-Design matrix/structure
 
-	X = m;		%-Design matrix
-			%-m is 1 (for t's) or Inf (for F's)
+	%-Sort out contrast matrix dimensions (contrast vectors in rows)
+	if length(n)==1, n=[n,Inf]; else, n=reshape(n(1:2),1,2); end
+	if ~isempty(xX)		% - override n(2) w/ design column dimension
+		n(2) = spm_SpUtil('size',xX,2);
+	end
+
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
 	else
-		[p,msg] = sf_SzChk(p,n);
-	end
-
-	if ~isstr(p) & ~( isempty(X) | any(isinf(X(:))) )
-		if size(p,2)>size(X,2)
-			p='!'; msg=sprintf('too long - only %d prams',size(X,2));
-		elseif size(p,2)<size(X,2)
-			tmp = size(X,2)-size(p,2);
+		if isfinite(n(2)) & size(p,2)<n(2)
+			tmp = n(2) -size(p,2);
 			p   = [p, zeros(size(p,1),tmp)];
-			msg = sprintf('%s (right padded with %d zeros)',msg,tmp);
+			if size(p,1)>1, str=' columns'; else, str='s'; end
+			msg = sprintf('right padded with %d zero%s',tmp,str);
+		else
+			msg = '';
 		end
 
-		if ~isstr(p) & rank(X)~=rank([X;p])
+		if size(p,2)>n(2)
+			p='!'; msg=sprintf('too long - only %d prams',n(2));
+		elseif isfinite(n(1)) & size(p,1)~=n(1)
+			p='!';
+			if n(1)==1, msg='vector required';
+			    else, msg=sprintf('%d contrasts required',n(1)); end
+		elseif ~isempty(xX) & ~spm_SpUtil('allCon',xX,p')
 			p='!'; msg='invalid contrast';
 		end
 	end
@@ -2102,6 +2110,7 @@ function str = sf_SzStr(n,l)
 %-Size info string constuction
 if nargin<2, l=0; else, l=1; end
 if nargin<1, error('insufficient arguments'), end
+if isempty(n), n=NaN; end
 n=n(:); if length(n)==1, n=[n,1]; end, dn=length(n);
 if any(isnan(n)) | (prod(n)==1 & dn<=2) | (dn==2 & min(n)==1 & isinf(max(n)))
 	str = ''; lstr = '';
@@ -2123,7 +2132,7 @@ function [p,msg] = sf_SzChk(p,n,msg)
 %=======================================================================
 %-Size checking
 if nargin<3, msg=''; end
-if nargin<2, n=NaN; else, n=n(:)'; end
+if nargin<2, n=[]; end, if isempty(n), n=NaN; else, n=n(:)'; end
 if nargin<1, error('insufficient arguments'), end
 
 if isstr(p) | any(isnan(n(:))), return, end
