@@ -3,12 +3,16 @@ function spm_fmri_mancova
 % FORMAT spm_fmri_mancova
 %___________________________________________________________________________
 %
+%
 % spm_fmri_mancova effects a multivariate analysis of fMRI time-series that
 % characterizes spatio-temporal response patterns in terms of (i) a p-value
 % (ii) a series of canonical images and (iii) a corresponding set of
 % time-dependent variates reflecting the expression of the canonical
 % images (these are expressed as a function of time over the entire
 % series and a hemodynamic transient associated with each condition).
+%
+% It is assumed that the data represent [approximately] independent
+% observations.
 %
 % The data that are subject to MANCOVA are the adjusted data matrices
 % that obtain after removing any confounds using ANCOVA on a voxel by voxel
@@ -106,10 +110,10 @@ if spm_input('high pass filter',5,'yes|no',[1 0])
 	end
 end
 
-% column of ones
+% column of ones and mean correct H (to ensure orthogonality of G and H)
 %----------------------------------------------------------------------------
 G      = [G ones(q,1)]; end
-
+H      = H - ones(q,1)*mean(H);
 
 
 % get Repeat time
@@ -175,7 +179,7 @@ delete SPMF.mat
 
 % set thresholds
 %----------------------------------------------------------------------------
-UF    = spm_invFcdf(1-0.05,[g,r]);				% for SPM{F}
+UF    = spm_invFcdf(1 - 0.05,[g,r]);				% for SPM{F}
 GX    = m*ones(1,V(1,1)*V(2,1));				% global 
 
 % cycle over planes to avoid working memory problems
@@ -272,7 +276,7 @@ load XA
 load XYZ
 
 
-% Euclidean nomalize
+% Euclidean normalize
 %---------------------------------------------------------------------------
 d    = ones(q,1)*sqrt(sum(XA.^2));
 XA   = XA./d;
@@ -286,23 +290,14 @@ A     = zeros(q);
 for i = 1:q
 	A(:,i) = XA*(XA(i,:)'); end
 
-
-% temporal convolution kernel - delay/dispersion = 6 seconds
-%---------------------------------------------------------------------------
-sigma = sqrt(5)/RT;
-K     = toeplitz( exp(-[0:(q - 1)].^2/(2*sigma^2)) );
-K     = K./(sum(K)'*ones(1,q));
-
-% the effective degrees of freedom -
+% degrees of freedom
 %---------------------------------------------------------------------------
 h     = rank(H);					% effects   [ManCova]
 r     = rank(A) - h;					% residuals [ManCova]
-r     = round(r/sqrt(2*pi*sigma^2));			% residuals [Effective]
-
 
 % eigenvector reduction (with temporal smoothing)
 %---------------------------------------------------------------------------
-[e s] = eig(K*A*K');
+[e s] = eig(A);
 [i j] = sort(-diag(s));
 s     = s(j,j);
 e     = e(:,j);
@@ -356,11 +351,11 @@ end
 %----------------------------------------------------------------------------
 E     = real(E(:,find(pV < 0.05)));
 CV    = T*E;					% canonical variate
-CU    = XA'*(K'*e(:,Q)*s(Q,Q)^(-0.5)*E);	% canonical images
+CU    = XA'*(e(:,Q)*s(Q,Q)^(-0.5)*E);		% canonical images
 
 % save variables for subsequnet analysis
 %---------------------------------------------------------------------------
-save CVA CV CU H G A X T R v pV CHI V XYZ E BETA W RT K
+save CVA CV CU H G A X T R v pV CHI V XYZ E BETA W RT
 
 
 % maximum intensity projections and textual information
