@@ -5,10 +5,21 @@ function [pE,pC] = spm_hdm_priors(m)
 %
 % pE  - prior expectations
 % pC  - prior covariances
+%
+% (5) biophysical parameters
+%    P(1) - signal decay      - d(ds/dt)/ds)
+%    P(2) - autoregulation    - d(ds/dt)/df)
+%    P(3) - transit time                (t0)
+%    P(4) - exponent for Fout(v)     (alpha)
+%    P(5) - resting oxygen extraction   (E0)
+%
+% plus (m) efficacy priors
+%    P(6) - ....
+%
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
-% append input efficacy priors to (5) biophysical parameters
+% pre-ppend input efficacy priors to (5) biophysical parameters
 %---------------------------------------------------------------------------
 pE    = [0.65      0.41      0.98      0.32      0.34  ];
 pC    = [0.0150    0.0020    0.0568    0.0013    0.0024];
