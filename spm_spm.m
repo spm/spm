@@ -281,11 +281,27 @@ function [SPM] = spm_spm(SPM)
 % %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
 SCCSid   = '%I%';
 
-
 %-Say hello
 %-----------------------------------------------------------------------
 SPMid    = spm('FnBanner',mfilename,SCCSid);
 Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
+
+%-Get SPM.mat if necessary
+%-----------------------------------------------------------------------
+if nargin ==0
+	swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	load(fullfile(swd,'SPM.mat'));
+	SPM.swd = swd;
+end
+
+%-Change to SPM.swd if specified
+%-----------------------------------------------------------------------
+try
+	cd(SPM.swd);
+end
+
+%-Ensure data are assigned
+%-----------------------------------------------------------------------
 try
 	SPM.xY.VY;
 catch
