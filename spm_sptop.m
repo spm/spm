@@ -5,14 +5,15 @@ function [K] = spm_sptop(sigma,q)
 % K     - q x q sparse convolution matrix
 %_______________________________________________________________________
 %
-% returns a q x q sparse Toeplitz Gaussian convolution matrix of sd sigma
+% returns a q x q sparse convolution matrix
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-% if simgma = 0 return identity matrix
+% if simgma = 0 return identity matrix, if q = 1 return 1.
 %-----------------------------------------------------------------------
-if ~sigma; K = speye(q); return; end
+if ~any(sigma); K = speye(q); return; end
+if q == 1;      K = 1;        return; end
 
 % otherwise get kernel function
 %-----------------------------------------------------------------------
@@ -23,7 +24,7 @@ if length(sigma) == 1
 	k  = exp(-x.^2/(2*sigma^2));
 else
 	k  = sigma;
-	x  = [1:length(k)] - ceil(length(k)/2);
+	x  = [1:length(k)] - 1;
 end
 
 % and create convolution matrix
@@ -34,9 +35,10 @@ i  = x(:)*ones(1,q) + j;
 
 % setting the row-wise sum to unity
 %-----------------------------------------------------------------------
-K  = K./(ones(size(K,1),1)*sum(K.*( (i >= 1) & (i <= q) )));
 i  = i(:);
 j  = j(:);
 K  = K(:);
 Q  = find((i >= 1) & (i <= q));
-K  = sparse(j(Q),i(Q),K(Q));
+K  = sparse(i(Q),j(Q),K(Q));
+Q  = sum(K');
+K  = inv(diag(Q + (~Q)))*K;
