@@ -368,7 +368,7 @@ for iter=1:ds.noi
          def = def - repmat(mean(def),length(def),1);
       end
       spm_uw_show('EndInv');
-      spm_uw_show('FinIter',SS,def,ds.fot,ds.sot,dispP,ds.q);
+      spm_uw_show('FinIter',SS,def,ds.fot,ds.sot,P(1),ds.q);
    end
    clear AtA
 end
