@@ -597,7 +597,7 @@ end
 % end
 
 if length(NewDir)>=2
-	%-Sort out trailing '.'
+	%-Sort out trailing '.' & '/'
 	tmp = fliplr(NewDir);
 	if all(tmp(1:2)=='./')
 		tmp(1:2)='';
@@ -606,6 +606,8 @@ if length(NewDir)>=2
 		else
 			NewDir='/';
 		end
+	elseif tmp(1)=='/'
+		NewDir=NewDir(1:length(NewDir)-1);
 	end
 end
 
