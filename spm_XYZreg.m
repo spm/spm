@@ -375,7 +375,7 @@ xyz = varargin{2};
 [d,i] = min( sum([	(XYZ(1,:) - xyz(1));...
 			(XYZ(2,:) - xyz(2));...
 			(XYZ(3,:) - xyz(3))	].^2));
-varargout = {XYZ(:,i),i,d};
+varargout = {XYZ(:,i),i,sqrt(d)};
 
 
 
