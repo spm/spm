@@ -157,6 +157,8 @@ for j=1:length(dat),
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
 			hld = 1; if ~finite(brt), hld = 0; end;
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
+			msk = find(X<0);
+			X(msk) = 0;
 		else,
 			X = zeros(size(rend{i}.dep));
 		end;
