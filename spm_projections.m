@@ -330,7 +330,7 @@ y   = y - 0.5;
 str = sprintf('Height threshold {u} = %0.2f, p = %0.3f',u,Pu);
 text(0,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Extent threshold {k} = %i voxels, p = %0.3f',k,Pn);
+str = sprintf('Extent threshold {k} = %0.1f voxels, p = %0.3f',k,Pn);
 text(0,y,str,'FontSize',8);
 y   = y - 1;
 str = sprintf('Expected voxels per cluster, E{n} = %0.1f',En);
