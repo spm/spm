@@ -51,6 +51,7 @@ end;
 t=cell(size(Files,1),1);
 for i=1:size(Files,1),
 	[pth,nam,ext] = fileparts(deblank(Files(i,:)));
+	pth           = WDir;
 	if strcmp(ext,'.img'),
 		hname = fullfile(pth,[nam '.hdr']);
 		fp    = fopen(hname,'r');
