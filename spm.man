@@ -780,5 +780,13 @@
 % epoch-related designs.  This is equivalent to a peri-stimulus time
 % histogram of hemodynamic responses and is estimated by refitting an FIR
 % model at the selected voxel.
+% Users can now simultaneously display a table of results and the functional
+% activations. After displaying results, click on the Results-Fig button to
+% the right of the menu on the graphic figure. This will open a new window.
+% Clicking on the volume or cluster buttons will now display the results
+% table in this figure. Slices and sections will still display in the main
+% graphics figure. The Results-Fig is fully active and clicking on individual
+% lines in the table will move the cursor to the appropriate points on the
+% displayed sections.
 % ______________________________________________________________________
 % %W% The FIL methods group %E%
