@@ -2,7 +2,8 @@ function varargout = spm_bsplinc(varargin)
 % Return volume of B-spline coefficients
 % FORMAT c = spm_bsplinc(V,d)
 % 	V - a structure of image volume information (from spm_vol)
-% 	d - degree of B-spline (from 0 to 7)
+% 	d(1:3) - degree of B-spline (from 0 to 7) along different dimensions
+%       d(4:6) - 1/0 to indicate wrapping along the dimensions
 % 	c - returned volume of B-spline coefficients
 %
 % This function deconvolves B-splines from volume V, returning

@@ -325,61 +325,55 @@ Deconvolve the B-spline basis functions from the image volume
 	d - the spline degree
 	splinc0, splinc1, splinc2	- functions for 1D deconvolutions
 */
-static int vol_coeffs(MAPTYPE *vol, double c[], int d,
-	void (*splinc0)(), void (*splinc1)(), void (*splinc2)())
+static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
 {
 	double	p[4], *cp;
 	int	np;
 	int	i, j, k, n;
 	double f[10240];
 
-	if (vol->dim[0]>10240 || vol->dim[1]>10240 ||vol->dim[2]>10240)
+	/* Check that dimensions don't exceed size of f */
+	if (vol->dim[1]>10240 ||vol->dim[2]>10240)
 		return(1);
 
-	if (get_poles(d, &np, p))
-		return(1);
-
-	if (d<=1) /* Just do a straight copy */
+	/* Do a straight copy */
+	cp = c;
+	for(k=0; k<vol->dim[2]; k++)
 	{
-		cp = c;
-		for(k=0; k<vol->dim[2]; k++)
+		double dk = k+1;
+		for(j=0; j<vol->dim[1]; j++)
 		{
-			double dk = k+1;
-			for(j=0; j<vol->dim[1]; j++)
+			double dj = j+1;
+			for(i=0;i<vol->dim[0];i++, cp++)
 			{
-				double dj = j+1;
-				for(i=0;i<vol->dim[0];i++, cp++)
-				{
-					double di = i+1;
-					resample(1,vol,cp,&di,&dj,&dk,0, 0.0);
-				}
+				double di = i+1;
+				resample(1,vol,cp,&di,&dj,&dk,0, 0.0);
+
+				/* Not sure how best to handle NaNs */
+				if (!finite(*cp)) *cp = 0.0;
 			}
 		}
 	}
 
-	if (d>1 && vol->dim[0]>1) /* Deconvolve along the fastest dimension (X) */
+	/* Deconvolve along the fastest dimension (X) */
+	if (d[0]>1 && vol->dim[0]>1)
 	{
+		if (get_poles(d[0], &np, p)) return(1);
 		for(k=0; k<vol->dim[2]; k++)
 		{
 			double dk = k+1;
 			for(j=0; j<vol->dim[1]; j++)
 			{
-				double dj = j+1;
-				for(i=0;i<vol->dim[0];i++)
-				{
-					double di = i+1;
-					resample(1,vol,&f[i],&di,&dj,&dk,0, 0.0);
-				}
-				splinc0(f, vol->dim[0], p, np);
 				cp = &c[vol->dim[0]*(j+vol->dim[1]*k)];
-				for(i=0;i<vol->dim[0];i++, cp++)
-					*cp = f[i];
+				splinc[0](cp, vol->dim[0], p, np);
 			}
 		}
 	}
 
-	if (d>1 && vol->dim[1]>1) /* Deconvolve in middle dimension (Y) */
+	/* Deconvolve along the middle dimension (Y) */
+	if (d[1]>1 && vol->dim[1]>1)
 	{
+		if (get_poles(d[1], &np, p)) return(1);
 		n =vol->dim[0];
 		for(k=0; k<vol->dim[2]; k++)
 		{
@@ -388,7 +382,7 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d,
 				cp = &c[i+vol->dim[0]*vol->dim[1]*k];
 				for(j=0; j<vol->dim[1]; j++, cp+=n)
 					f[j] = *cp;
-				splinc1(f, vol->dim[1], p, np);
+				splinc[1](f, vol->dim[1], p, np);
 				cp = &c[i+vol->dim[0]*vol->dim[1]*k];
 				for(j=0; j<vol->dim[1]; j++, cp+=n)
 					*cp = f[j];
@@ -396,8 +390,10 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d,
 		}
 	}
 
-	if (d>1 && vol->dim[2]>1) /* Deconvolve in the slowest dimension (Z) */
+	/* Deconvolve along the slowest dimension (Z) */
+	if (d[2]>1 && vol->dim[2]>1)
 	{
+		if (get_poles(d[2], &np, p)) return(1);
 		n = vol->dim[0]*vol->dim[1];
 		for(j=0; j<vol->dim[1]; j++)
 		{
@@ -406,14 +402,13 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d,
 				cp = &c[i+vol->dim[0]*j];
 				for(k=0; k<vol->dim[2]; k++, cp+=n)
 					f[k] = *cp;
-				splinc2(f, vol->dim[2], p, np);
+				splinc[2](f, vol->dim[2], p, np);
 				cp = &c[i+vol->dim[0]*j];
 				for(k=0; k<vol->dim[2]; k++, cp+=n)
 					*cp = f[k];
 			}
 		}
 	}
-
 	return(0);
 }
 
@@ -421,18 +416,31 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d,
 */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int k, d, sts;
+	int k, d[3], sts;
 	MAPTYPE *vol, *get_maps();
 	double *c;
+	void (*splinc[3])();
 
 	if (nrhs < 2 || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
-	if (mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || mxGetM(prhs[1])*mxGetN(prhs[1]) != 1)
+	if (mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) ||
+		(mxGetM(prhs[1])*mxGetN(prhs[1]) != 3 && mxGetM(prhs[1])*mxGetN(prhs[1]) != 6))
 		mexErrMsgTxt("Inappropriate usage.");
 
-	d = floor(mxGetPr(prhs[1])[0]+0.5);
-	if (d<0 || d>7)
-		mexErrMsgTxt("Bad spline degree.");
+	for(k=0; k<3; k++)
+	{
+		d[k] = floor(mxGetPr(prhs[1])[k]+0.5);
+		if (d[k]<0 || d[k]>7)
+			mexErrMsgTxt("Bad spline degree.");
+	}
+
+	for(k=0; k<3; k++) splinc[k] = splinc_mirror;
+	if (mxGetM(prhs[1])*mxGetN(prhs[1]) == 6)
+	{
+		for(k=0; k<3; k++)
+			if (mxGetPr(prhs[1])[k+3])
+				splinc[k] = splinc_wrap;
+	}
 
 	vol=get_maps(prhs[0], &k);
 	if (k!=1)
@@ -444,13 +452,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[0] = mxCreateNumericArray(3,vol->dim, mxDOUBLE_CLASS, mxREAL);
 	c = mxGetPr(plhs[0]);
 
-#if defined(MRI3D)
-	sts = vol_coeffs(vol, c, d, splinc_wrap,splinc_wrap,splinc_wrap);
-#elif defined(MRI2D)
-	sts = vol_coeffs(vol, c, d, splinc_wrap,splinc_wrap,splinc_mirror);
-#else
-	sts = vol_coeffs(vol, c, d, splinc_mirror,splinc_mirror,splinc_mirror);
-#endif
+	sts = vol_coeffs(vol, c, d, splinc);
+
 	if (sts)
 	{
 		free_maps(vol, k);

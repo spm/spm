@@ -423,12 +423,12 @@ Resample a point
 	c	- Volume of B-spline coefficients
 	m0,m1,m2	- dimensions of c
 	x0,x1,x2	- co-ordinate to sample
-	d	- degree of spline used
+	d	- degrees of splines used
 	returns value of sampled point
 */
 static double sample(double c[], int m0, int m1, int m2,
-	double x0, double x1, double x2, int d,
-	int (*bnd0)(), int (*bnd1)(),int (*bnd2)())
+	double x0, double x1, double x2, int d[],
+	int (*bnd[])())
 {
 	double w0[32], w1[32], w2[32]; /* B-spline weights */
 	int    o0[32], o1[32], o2[32]; /* Offsets */
@@ -438,28 +438,25 @@ static double sample(double c[], int m0, int m1, int m2,
 	double *cp;
 
 	/* Generate seperable B-spline basis functions */
-	weights(d, x0, &i0, w0);
-	weights(d, x1, &i1, w1);
-	weights(d, x2, &i2, w2);
+	weights(d[0], x0, &i0, w0);
+	weights(d[1], x1, &i1, w1);
+	weights(d[2], x2, &i2, w2);
 
 	/* Create lookups of voxel locations - for coping with edges */
-	for(k=0; k<=d; k++)
-	{
-		o0[k] = bnd0(k+i0, m0);
-		o1[k] = bnd1(k+i1, m1)*m0;
-		o2[k] = bnd2(k+i2, m2)*(m0*m1);
-	}
+	for(k=0; k<=d[0]; k++) o0[k] = bnd[0](k+i0, m0);
+	for(k=0; k<=d[0]; k++) o1[k] = bnd[1](k+i1, m1)*m0;
+	for(k=0; k<=d[0]; k++) o2[k] = bnd[2](k+i2, m2)*(m0*m1);
 
 	/* Convolve coefficients with basis functions */
 	d2 = 0.0;
-	for(i2=0; i2<=d; i2++)
+	for(i2=0; i2<=d[2]; i2++)
 	{
 		d1 = 0.0;
-		for(i1=0; i1<=d; i1++)
+		for(i1=0; i1<=d[1]; i1++)
 		{
 			cp = c+o2[i2]+o1[i1];
 			d0 = 0.0;
-			for(i0=0; i0<=d; i0++)
+			for(i0=0; i0<=d[0]; i0++)
 				d0 += cp[o0[i0]] * w0[i0];
 			d1 += d0 * w1[i1];
 		}
@@ -474,14 +471,14 @@ Resample a point and its gradients
 	c	- Volume of B-spline coefficients
 	m0,m1,m2	- dimensions of c
 	x0,x1,x2	- co-ordinate to sample
-	d	- degree of spline used
+	d	- degrees of splines used
 	pg0,pg1,pg2	- gradients
 	returns value of sampled point
 */
 static double dsample(double c[], int m0, int m1, int m2,
 	double x0, double x1, double x2,
-	int d, double *pg0, double *pg1, double *pg2,
-	int (*bnd0)(), int (*bnd1)(),int (*bnd2)())
+	int d[], double *pg0, double *pg1, double *pg2,
+	int (*bnd[])())
 {
 	double  w0[32],  w1[32],  w2[32]; /* B-spline weights */
 	double dw0[32], dw1[32], dw2[32]; /* B-spline derivatives */
@@ -493,32 +490,29 @@ static double dsample(double c[], int m0, int m1, int m2,
 	double *cp;
 
 	/* Generate seperable B-spline basis functions */
-	weights(d, x0, &i0, w0);
-	weights(d, x1, &i1, w1);
-	weights(d, x2, &i2, w2);
+	weights(d[0], x0, &i0, w0);
+	weights(d[1], x1, &i1, w1);
+	weights(d[2], x2, &i2, w2);
 
-	dweights(d, x0, &i0, dw0);
-	dweights(d, x1, &i1, dw1);
-	dweights(d, x2, &i2, dw2);
+	dweights(d[0], x0, &i0, dw0);
+	dweights(d[1], x1, &i1, dw1);
+	dweights(d[2], x2, &i2, dw2);
 
 	/* Create lookups of voxel locations - for coping with edges */
-	for(k=0; k<=d; k++)
-	{
-		o0[k] = bnd0(k+i0, m0);
-		o1[k] = bnd1(k+i1, m1)*m0;
-		o2[k] = bnd2(k+i2, m2)*(m0*m1);
-	}
+	for(k=0; k<=d[0]; k++) o0[k] = bnd[0](k+i0, m0);
+	for(k=0; k<=d[1]; k++) o1[k] = bnd[1](k+i1, m1)*m0;
+	for(k=0; k<=d[2]; k++) o2[k] = bnd[2](k+i2, m2)*(m0*m1);
 
 	/* Convolve coefficients with basis functions */
 	g20 = g21 = g22 = d2 = 0.0;
-	for(i2=0; i2<=d; i2++)
+	for(i2=0; i2<=d[2]; i2++)
 	{
 		g10 = g11 = d1 = 0.0;
-		for(i1=0; i1<=d; i1++)
+		for(i1=0; i1<=d[1]; i1++)
 		{
 			cp = c+o2[i2]+o1[i1];
 			g00 = d0  = 0.0;
-			for(i0=0; i0<=d; i0++)
+			for(i0=0; i0<=d[0]; i0++)
 			{
 				d0  += cp[o0[i0]] *  w0[i0];
 				g00 += cp[o0[i0]] * dw0[i0];
@@ -548,15 +542,14 @@ Loop through data and resample the points
 	x0,x1,x2	- array of co-ordinate to sample
 	d	- degree of spline used
 	cond	- code determining boundaries to mask at
-	bnd0, bnd1, bnd2	- functions for dealing with edges
+	bnd	- functions for dealing with edges
 	f	- resampled data
 */
 #define TINY 5e-2
 
 static void fun(double c[], int m0, int m1, int m2,
-	int n, double x0[], double x1[], double x2[], int d,
-	int cond, int (*bnd0)(),int (*bnd1)(),int (*bnd2)(),
-	double f[])
+	int n, double x0[], double x1[], double x2[], int d[],
+	int cond, int (*bnd[])(), double f[])
 {
 	int j;
 	double NaN = mxGetNaN();
@@ -566,7 +559,7 @@ static void fun(double c[], int m0, int m1, int m2,
 		if (((cond&1) | (x0[j]>=1-TINY && x0[j]<=m0+TINY)) &&
 			((cond&2) | (x1[j]>=1-TINY && x1[j]<=m1+TINY)) &&
 			((cond&4) | (x2[j]>=1-TINY && x2[j]<=m2+TINY)))
-			f[j] = sample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, d, bnd0,bnd1,bnd2);
+			f[j] = sample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, d, bnd);
 		else
 			f[j] = NaN;
 	}
@@ -579,15 +572,15 @@ Loop through data and resample the points and their derivatives
 	m0,m1,m2	- dimensions of c
 	n	- number of points to resample
 	x0,x1,x2	- array of co-ordinate to sample
-	d	- degree of spline used
+	d	- degrees of splines used
 	cond	- code determining boundaries to mask at
-	bnd0, bnd1, bnd2	- functions for dealing with edges
+	bnd	- functions for dealing with edges
 	f	- resampled data
 	df0, df1, df2	- gradients
 */
 static void dfun(double c[], int m0, int m1, int m2,
-	int n, double x0[], double x1[], double x2[],int d,
-	int cond, int (*bnd0)(),int (*bnd1)(),int (*bnd2)(),
+	int n, double x0[], double x1[], double x2[],int d[],
+	int cond, int (*bnd[])(),
 	double f[], double df0[], double df1[], double df2[])
 {
 	int j;
@@ -599,7 +592,7 @@ static void dfun(double c[], int m0, int m1, int m2,
 			((cond&2) | (x1[j]>=1-TINY && x1[j]<=m1+TINY)) &&
 			((cond&4) | (x2[j]>=1-TINY && x2[j]<=m2+TINY)))
 			f[j] = dsample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, d,
-				&df0[j],&df1[j],&df2[j], bnd0,bnd1,bnd2);
+				&df0[j],&df1[j],&df2[j], bnd);
 		else
 			f[j] = NaN;
 	}
@@ -609,10 +602,12 @@ static void dfun(double c[], int m0, int m1, int m2,
 /***************************************************************************************/
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int k, d, n, nd;
+	int k, d[3], n, nd;
 	int m0=1, m1=1, m2=1;
 	double *x0, *x1, *x2, *c, *f, *df0, *df1, *df2;
 	const int *dims;
+	int (*bnd[3])();
+	int cond;
 
 	/* Usage:
 			f = function(c,x0,x1,x2,d)
@@ -638,16 +633,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			mexErrMsgTxt("Input must be numeric, real, full and double precision.");
 	}
 
-	if (mxGetM(prhs[4])*mxGetN(prhs[4]) != 1)
+	if ((mxGetM(prhs[4])*mxGetN(prhs[4]) != 3) && (mxGetM(prhs[4])*mxGetN(prhs[4]) != 6))
 		mexErrMsgTxt("Inappropriate usage.");
 
 	/* Degree of spline */
-	d = floor(mxGetPr(prhs[4])[0]+0.5);
-	if (d<0 || d>7)
-		mexErrMsgTxt("Bad spline degree.");
+	for(k=0; k<3; k++)
+	{
+		d[k] = floor(mxGetPr(prhs[4])[k]+0.5);
+		if (d[k]<0 || d[k]>7)
+			mexErrMsgTxt("Bad spline degree.");
+	}
 
-	if (d==0 && nlhs>1)
-		mexErrMsgTxt("Cant compute gradients when using B-spline(0) interp.");
+	cond = 0;
+	for(k=0; k<3; k++) bnd[k] = mirror;
+	if (mxGetM(prhs[4])*mxGetN(prhs[4]) == 6)
+	{
+		for(k=0; k<3; k++)
+			if (mxGetPr(prhs[4])[k+3])
+			{
+				bnd[k] = wrap;
+				cond += 1<<k;
+			}
+	}
+
+	/* if (d==0 && nlhs>1)
+		mexErrMsgTxt("Cant compute gradients when using B-spline(0) interp."); */
 
 	/* Dimensions of coefficient volume */
 	nd = mxGetNumberOfDimensions(prhs[0]);
@@ -681,13 +691,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	f  = mxGetPr(plhs[0]);
 
 	if (nlhs<=1)
-#if   defined(MRI3D)
-		fun(c, m0,m1,m2, n, x0,x1,x2, d, 7,wrap,wrap,wrap,       f);
-#elif defined(MRI2D)
-		fun(c, m0,m1,m2, n, x0,x1,x2, d, 3,wrap,wrap,mirror,     f);
-#else
-		fun(c, m0,m1,m2, n, x0,x1,x2, d, 0,mirror,mirror,mirror, f);
-#endif
+		fun(c, m0,m1,m2, n, x0,x1,x2, d, cond,bnd, f);
 	else
 	{
 		plhs[1] = mxCreateNumericArray(nd,dims, mxDOUBLE_CLASS, mxREAL);
@@ -696,12 +700,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		df0 = mxGetPr(plhs[1]);
 		df1 = mxGetPr(plhs[2]);
 		df2 = mxGetPr(plhs[3]);
-#if defined(MRI3D)
-		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 7,wrap,wrap,wrap,       f,df0,df1,df2);
-#elif defined(MRI2D)
-		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 3,wrap,wrap,mirror,     f,df0,df1,df2);
-#else
-		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 0,mirror,mirror,mirror, f,df0,df1,df2);
-#endif
+		dfun(c, m0,m1,m2, n, x0,x1,x2, d, cond,bnd, f,df0,df1,df2);
 	}
 }
