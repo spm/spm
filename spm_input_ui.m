@@ -1,9 +1,9 @@
-function varargout = spm_input(varargin)
+function varargout = spm_input_orig(varargin)
 % Comprehensive graphical and command line input function
 % FORMATs (given in Programmers Help)
 %_______________________________________________________________________
 %
-% spm_input handles most forms of user input for SPM. (File selection
+% spm_input_orig handles most forms of user input for SPM. (File selection
 % is handled by spm_get.m) This can be either via GUI with keyboard
 % shortcuts (in the SPM "Interactive" window), or on the command line
 % (in the MatLab command window) if requested.
@@ -159,12 +159,12 @@ function varargout = spm_input(varargin)
 % YPos=abs(YPos). Similarly relative YPos beginning with '!'
 % (E.g.YPos='!+1') ensures the GUI is used.
 %
-% spm_input uses the SPM 'Interactive' window, which is 'Tag'ged
+% spm_input_orig uses the SPM 'Interactive' window, which is 'Tag'ged
 % 'Interactive'. If there is no such window, then the current figure is
 % used, or an 'Interactive' window created if no windows are open.
 %
 %-----------------------------------------------------------------------
-% Programers help is contained in the main body of spm_input.m
+% Programers help is contained in the main body of spm_input_orig.m
 %-----------------------------------------------------------------------
 % See      : input.m   (MatLab Reference Guide)
 % See also : spm_get.m (SPM file selector dialog)
@@ -174,32 +174,32 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - FORMAT specifications for programers
 %=======================================================================
-% - generic       - [p,YPos] = spm_input(Prompt,YPos,Type,...)
-% - string        - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - string+       - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - evaluated     - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
-%   - natural     - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n,mx)
-%   - whole       - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n,mx)
-%   - integer     - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
-%   - real        - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n,mm)
-% - condition     - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
-% - contrast      - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
-% - permutation   - [p,YPos] = spm_input(Prompt,YPos,'p',DefStr,P,n)
-% - button        - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
+% - generic       - [p,YPos] = spm_input_orig(Prompt,YPos,Type,...)
+% - string        - [p,YPos] = spm_input_orig(Prompt,YPos,'s',DefStr)
+% - string+       - [p,YPos] = spm_input_orig(Prompt,YPos,'s',DefStr)
+% - evaluated     - [p,YPos] = spm_input_orig(Prompt,YPos,'e',DefStr,n)
+%   - natural     - [p,YPos] = spm_input_orig(Prompt,YPos,'n',DefStr,n,mx)
+%   - whole       - [p,YPos] = spm_input_orig(Prompt,YPos,'w',DefStr,n,mx)
+%   - integer     - [p,YPos] = spm_input_orig(Prompt,YPos,'i',DefStr,n)
+%   - real        - [p,YPos] = spm_input_orig(Prompt,YPos,'r',DefStr,n,mm)
+% - condition     - [p,YPos] = spm_input_orig(Prompt,YPos,'c',DefStr,n,m)
+% - contrast      - [p,YPos] = spm_input_orig(Prompt,YPos,'x',DefStr,n,X)
+% - permutation   - [p,YPos] = spm_input_orig(Prompt,YPos,'p',DefStr,P,n)
+% - button        - [p,YPos] = spm_input_orig(Prompt,YPos,'b',Labels,Values,DefItem)
 % - button/edit combo's (edit for string or typed scalar evaluated input)
-%               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr,mx)
+%               [p,YPos] = spm_input_orig(Prompt,YPos,'b?1',Labels,Values,DefStr,mx)
 %   ...where ? in b?1 specifies edit widget type as with string & eval'd input
-%                 - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr,mx)
-%                 - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr,mx)
-% - button dialog - [p,YPos] = spm_input(Prompt,YPos,'bd',...
+%                 - [p,YPos] = spm_input_orig(Prompt,YPos,'n1',DefStr,mx)
+%                 - [p,YPos] = spm_input_orig(Prompt,YPos,'w1',DefStr,mx)
+% - button dialog - [p,YPos] = spm_input_orig(Prompt,YPos,'bd',...
 %                                Labels,Values,DefItem,Title)
-% - menu          - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - display       -            spm_input(Message,YPos,'d',Label)
-% - display (GUI only) -       spm_input(Alert,YPos,'d!',Label)
+% - menu          - [p,YPos] = spm_input_orig(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display       -            spm_input_orig(Message,YPos,'d',Label)
+% - display (GUI only) -       spm_input_orig(Alert,YPos,'d!',Label)
 %
-% - yes/no        - [p,YPos] = spm_input(Prompt,YPos,'y/n',Values,DefItem)
+% - yes/no        - [p,YPos] = spm_input_orig(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
-%                 - [p,YPos] = spm_input(Prompt,YPos,Labels,Values,DefItem)
+%                 - [p,YPos] = spm_input_orig(Prompt,YPos,Labels,Values,DefItem)
 %
 % NB: Natural numbers are [1:Inf), Whole numbers are [0:Inf)
 % 
@@ -323,7 +323,7 @@ function varargout = spm_input(varargin)
 %-----------------------------------------------------------------------
 % WINDOWS:
 %
-% spm_input uses the SPM 'Interactive' 'Tag'ged window. If this isn't
+% spm_input_orig uses the SPM 'Interactive' 'Tag'ged window. If this isn't
 % available and no figures are open, an 'Interactive' SPM window is
 % created (`spm('CreateIntWin')`). If figures are available, then the
 % current figure is used *unless* it is 'Tag'ged.
@@ -335,9 +335,9 @@ function varargout = spm_input(varargin)
 % the Type is taken as 'b' with the specified labels, and the next parameter
 % (if specified) is taken for the Values.
 %
-% Yes/No question shortcut - p = spm_input(Prompt,YPos,'y/n') expands
-% to p = spm_input(Prompt,YPos,'b','yes|no',...), enabling easy use of
-% spm_input for yes/no dialogue. Values defaults to 'yn', so 'y' or 'n'
+% Yes/No question shortcut - p = spm_input_orig(Prompt,YPos,'y/n') expands
+% to p = spm_input_orig(Prompt,YPos,'b','yes|no',...), enabling easy use of
+% spm_input_orig for yes/no dialogue. Values defaults to 'yn', so 'y' or 'n'
 % is returned as appropriate.
 %
 %-----------------------------------------------------------------------
@@ -345,56 +345,56 @@ function varargout = spm_input(varargin)
 %            ( Specified YPos is overriden if global CMDLINE is )
 %            ( true, when the command line versions are used.   )
 %
-%       p = spm_input
+%       p = spm_input_orig
 %               Command line input of an evaluated string, default prompt.
-%       p = spm_input('Enter a value',1)
+%       p = spm_input_orig('Enter a value',1)
 %               Evaluated string input, prompted by 'Enter a value', in
 %               position 1 of the dialog figure.
-%       p = spm_input(str,'+1','e',0.001)
+%       p = spm_input_orig(str,'+1','e',0.001)
 %               Evaluated string input, prompted by contents of string str,
 %               in next position of the dialog figure.
 %               Default value of 0.001 offered.
-%       p = spm_input(str,2,'e',[],5)
+%       p = spm_input_orig(str,2,'e',[],5)
 %               Evaluated string input, prompted by contents of string str,
 %               in second position of the dialog figure.
 %               Vector of length 5 required - returned as column vector
-%       p = spm_input(str,2,'e',[],[Inf,5])
+%       p = spm_input_orig(str,2,'e',[],[Inf,5])
 %               ...as above, but can enter multiple 5-vectors in a matrix,
 %               returned with 5-vectors in rows
-%       p = spm_input(str,0,'c','ababab')
+%       p = spm_input_orig(str,0,'c','ababab')
 %               Condition string input, prompted by contents of string str
 %               Uses command line interface.
 %               Default string of 'ababab' offered.
-%       p = spm_input(str,0,'c','010101')
+%       p = spm_input_orig(str,0,'c','010101')
 %               As above, but default string of '010101' offered.
-%       [p,YPos] = spm_input(str,'0','s','Image')
+%       [p,YPos] = spm_input_orig(str,'0','s','Image')
 %               String input, same position as last used, prompted by str,
 %               default of 'Image' offered. YPos returns GUI position used.
-%       p = spm_input(str,'-1','y/n')
+%       p = spm_input_orig(str,'-1','y/n')
 %               Yes/No buttons for question with prompt str, in position one 
 %               before the last used Returns 'y' or 'n'.
-%       p = spm_input(str,'-1','y/n',[1,0],2)
+%       p = spm_input_orig(str,'-1','y/n',[1,0],2)
 %               As above, but returns 1 for yes response, 0 for no,
 %               with 'no' as the default response
-%       p = spm_input(str,4,'AnCova|Scaling')
+%       p = spm_input_orig(str,4,'AnCova|Scaling')
 %               Presents two buttons labelled 'AnCova' & 'Scaling', with 
 %               prompt str, in position 4 of the dialog figure. Returns the 
 %               string on the depresed button, where buttons can be pressed 
 %               with the mouse or by the respective keyboard accelerators
 %               'a' & 's' (or 'A' & 'S').
-%       p = spm_input(str,-4,'b','AnCova|Scaling',[],2)
+%       p = spm_input_orig(str,-4,'b','AnCova|Scaling',[],2)
 %               As above, but makes "Scaling" the default response, and
 %               overrides global CMDLINE
-%       p = spm_input(str,0,'b','AnCova|Scaling|None',[1,2,3])
+%       p = spm_input_orig(str,0,'b','AnCova|Scaling|None',[1,2,3])
 %               Prompts for [A]ncova / [S]caling / [N]one in MatLab command
 %               window, returns 1, 2, or 3 according to the first character
 %               of the entered string as one of 'a', 's', or 'n' (case 
 %               insensitive).
-%       p = spm_input(str,1,'b','AnCova',1)
+%       p = spm_input_orig(str,1,'b','AnCova',1)
 %		Since there's only one button, this just displays the response
 %		in GUI position 1 (or on the command line if global CMDLINE
 %		is true), and returns 1.
-%	p = spm_input(str,'+0','br1','None|Mask',[-Inf,NaN],0.8)
+%	p = spm_input_orig(str,'+0','br1','None|Mask',[-Inf,NaN],0.8)
 %               Presents two buttons labelled "None" & "Mask" (which return
 %               -Inf & NaN if clicked), together with an editable text widget
 %               for entry of a single real number. The default of 0.8 is
@@ -402,37 +402,37 @@ function varargout = spm_input(varargin)
 %               pressing return.
 %		Uses the previous GUI position, unless global CMDLINE is true,
 %               in which case a command-line equivalent is used.
-%	p = spm_input(str,'+0','w1')
+%	p = spm_input_orig(str,'+0','w1')
 %		Prompts for a single whole number using a combination of
 %		buttons and edit widget, using the previous GUI position,
 %		or the command line if global CMDLINE is true.
-%       p = spm_input(str,'!0','m','Single Subject|Multi Subject|Multi Study')
+%       p = spm_input_orig(str,'!0','m','Single Subject|Multi Subject|Multi Study')
 %               Prints the prompt str in a pull down menu containing items
 %               'Single Subject', 'Multi Subject' & 'Multi Study'. When OK is
 %               clicked p is returned as the index of the  choice, 1,2, or 3 
 %               respectively. Uses last used position in GUI, irrespective of 
 %               global CMDLINE
-%       p = spm_input(str,5,'m',...
+%       p = spm_input_orig(str,5,'m',...
 %               'Single Subject|Multi Subject|Multi Study',...
 %               ['SS';'MS';'SP'],2)
 %               As above, but returns strings 'SS', 'MS', or 'SP' according to
 %               the respective choice, with 'MS; as the default response.
-%       p = spm_input(str,0,'m',...
+%       p = spm_input_orig(str,0,'m',...
 %               'Single Subject|Multi Subject|Multi Study',...
 %               ['SS';'MS';'SP'],2)
 %               As above, but the menu is presented in the command window
 %               as a numbered list.
-%       spm_input('AnCova, GrandMean scaling',0,'d')
+%       spm_input_orig('AnCova, GrandMean scaling',0,'d')
 %               Displays message in a box in the MatLab command window
-%       [null,YPos]=spm_input('Session 1','+1','d!','fMRI')
+%       [null,YPos]=spm_input_orig('Session 1','+1','d!','fMRI')
 %		Displays 'fMRI: Session 1' in next GUI position of the
 %               'Interactive' window. If CMDLINE is 1, then nothing is done.
 %               Position used is returned in YPos.
 %
 %-----------------------------------------------------------------------
-% FORMAT h = spm_input(Prompt,YPos,'m!',Labels,cb,UD,XCB);
+% FORMAT h = spm_input_orig(Prompt,YPos,'m!',Labels,cb,UD,XCB);
 % GUI PullDown menu utility - creates a pulldown menu in the Interactive window
-% FORMAT H = spm_input(Prompt,YPos,'b!',Labels,cb,UD,XCB);
+% FORMAT H = spm_input_orig(Prompt,YPos,'b!',Labels,cb,UD,XCB);
 % GUI Buttons utility - creates GUI buttons in the Interactive window
 %
 % Prompt, YPos, Labels - as with 'm'enu/'b'utton types
@@ -446,7 +446,7 @@ function varargout = spm_input(varargin)
 % In "normal" mode (when XCB is false), this is essentially a utility
 % to create a PullDown menu widget or set of buttons in the SPM
 % 'Interactive' figure, using positioning and Label definition
-% conveniences of the spm_input 'm'enu & 'b'utton types. If Prompt is
+% conveniences of the spm_input_orig 'm'enu & 'b'utton types. If Prompt is
 % not empty, then the PullDown/Buttons appears on the right, with the
 % Prompt on the left, otherwise the PullDown/Buttons use the whole
 % width of the Interactive figure. The PopUp's CallBack string is
@@ -461,7 +461,7 @@ function varargout = spm_input(varargin)
 % true).  % In addition, in "extended callback", you can use UD to
 % refer to the UserData argument in the CallBack strings. (What happens
 % is this: The cb & UD are stored as fields in the PopUp's UserData
-% structure, and the PopUp's callback is set to spm_input('!m_cb'),
+% structure, and the PopUp's callback is set to spm_input_orig('!m_cb'),
 % which reads UD into the functions workspace and eval's the
 % appropriate CallBack string.  Note that this means that base
 % workspace variables are inaccessible (put what you need in UD), and
@@ -472,12 +472,12 @@ function varargout = spm_input(varargin)
 %-----------------------------------------------------------------------
 % UTILITY FUNCTIONS:
 %
-% FORMAT colour = spm_input('!Colour')
+% FORMAT colour = spm_input_orig('!Colour')
 % Returns colour for input widgets, as specified in COLOUR parameter at 
 % start of code.
 % colour  - [r,g,b] colour triple
 %
-% FORMAT [iCond,msg] = spm_input('!iCond',str,n,m)
+% FORMAT [iCond,msg] = spm_input_orig('!iCond',str,n,m)
 % Parser for special 'c'ondition type: Handles digit strings and
 % strings of indicator chars.
 % str     - input string
@@ -486,23 +486,23 @@ function varargout = spm_input(varargin)
 % iCond   - Integer condition indicator vector
 % msg     - status message
 %
-% FORMAT hM = spm_input('!InptConMen',Finter,H)
+% FORMAT hM = spm_input_orig('!InptConMen',Finter,H)
 % Sets a basic Input ContextMenu for the figure
 % Finter - figure to set menu in
 % H      - handles of objects to delete on "crash out" option
 % hM     - handle of UIContextMenu
 %
-% FORMAT [CmdLine,YPos] = spm_input('!CmdLine',YPos)
+% FORMAT [CmdLine,YPos] = spm_input_orig('!CmdLine',YPos)
 % Sorts out whether to use CmdLine or not & canonicalises YPos
 % CmdLine - Binary flag
 % YPos    - Position index
 %
-% FORMAT Finter = spm_input('!GetWin',F)
+% FORMAT Finter = spm_input_orig('!GetWin',F)
 % Locates (or creates) figure to work in
 % F       - Interactive Figure, defaults to 'Interactive'
 % Finter  - Handle of figure to use
 %
-% FORMAT [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
+% FORMAT [PLoc,cF] = spm_input_orig('!PointerJump',RRec,F,XDisp)
 % Raise window & jump pointer over question
 % RRec  - Response rectangle of current question
 % F     - Interactive Figure, Defaults to 'Interactive'
@@ -510,18 +510,18 @@ function varargout = spm_input(varargin)
 % PLoc  - Pointer location before jumping
 % cF    - Current figure before making F current.
 %
-% FORMAT [PLoc,cF] = spm_input('!PointerJumpBack',PLoc,cF)
+% FORMAT [PLoc,cF] = spm_input_orig('!PointerJumpBack',PLoc,cF)
 % Replace pointer and reset CurrentFigure back
 % PLoc  - Pointer location before jumping
 % cF    - Previous current figure
 %
-% FORMAT spm_input('!PrntPrmpt',Prompt,TipStr,Title)
+% FORMAT spm_input_orig('!PrntPrmpt',Prompt,TipStr,Title)
 % Print prompt for CmdLine questioning
 % Prompt - prompt string, callstr, or string matrix
 % TipStr - tip string
 % Title  - title string
 %
-% FORMAT [Frec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,rec,F)
+% FORMAT [Frec,QRec,PRec,RRec] = spm_input_orig('!InputRects',YPos,rec,F)
 % Returns rectangles (pixels) used in GUI
 % YPos  - Position index
 % rec   - Rectangle specifier: String, one of 'Frec','QRec','PRec','RRec'
@@ -532,59 +532,59 @@ function varargout = spm_input(varargin)
 % PRec  - Position of prompt
 % RRec  - Position of response
 %
-% FORMAT spm_input('!DeleteInputObj',F)
+% FORMAT spm_input_orig('!DeleteInputObj',F)
 % Deltes input objects (only) from figure F
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 %
-% FORMAT [CPos,hCPos] = spm_input('!CurrentPos',F)
+% FORMAT [CPos,hCPos] = spm_input_orig('!CurrentPos',F)
 % Returns currently used GUI question positions & their handles
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 % CPos  - Vector of position indices
 % hCPos - (n x CPos) matrix of object handles
 %
-% FORMAT h = spm_input('!FindInputObj',F)
+% FORMAT h = spm_input_orig('!FindInputObj',F)
 % Returns handles of input GUI objects in figure F
 % F - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 % h - vector of object handles
 %
-% FORMAT [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
+% FORMAT [NPos,CPos,hCPos] = spm_input_orig('!NextPos',YPos,F,CmdLine)
 % Returns next position index, specified by YPos
 % YPos    - Absolute (integer) or relative (string) position index
 %           Defaults to '+1'
 % F       - Interactive Figure, defaults to spm_figure('FindWin','Interactive')
-% CmdLine - Command line? Defaults to spm_input('!CmdLine',YPos)
+% CmdLine - Command line? Defaults to spm_input_orig('!CmdLine',YPos)
 % NPos    - Next position index
 % CPos & hCPos - as for !CurrentPos
 %
-% FORMAT NPos = spm_input('!SetNextPos',YPos,F,CmdLine)
+% FORMAT NPos = spm_input_orig('!SetNextPos',YPos,F,CmdLine)
 % Sets up for input at next position index, specified by YPos. This utility
 % function can be used stand-alone to implicitly set the next position
 % by clearing positions NPos and greater.
 % YPos    - Absolute (integer) or relative (string) position index
 %           Defaults to '+1'
 % F       - Interactive Figure, defaults to spm_figure('FindWin','Interactive')
-% CmdLine - Command line? Defaults to spm_input('!CmdLine',YPos)
+% CmdLine - Command line? Defaults to spm_input_orig('!CmdLine',YPos)
 % NPos    - Next position index
 %
-% FORMAT MPos = spm_input('!MaxPos',F,FRec3)
+% FORMAT MPos = spm_input_orig('!MaxPos',F,FRec3)
 % Returns maximum position index for figure F
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 %	  Not required if FRec3 is specified
 % FRec3 - Length of interactive figure in pixels
 % 
-% FORMAT spm_input('!EditableKeyPressFcn',h,ch)
+% FORMAT spm_input_orig('!EditableKeyPressFcn',h,ch)
 % KeyPress callback for GUI string / eval input
 %
-% FORMAT spm_input('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
+% FORMAT spm_input_orig('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
 % KeyPress callback for GUI buttons
 %
-% FORMAT spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
+% FORMAT spm_input_orig('!PullDownKeyPressFcn',h,ch,DefItem)
 % KeyPress callback for GUI pulldown menus
 %
-% FORMAT spm_input('!m_cb')
+% FORMAT spm_input_orig('!m_cb')
 % Extended CallBack handler for 'p' PullDown utility type
 %
-% FORMAT spm_input('!dScroll',h,str)
+% FORMAT spm_input_orig('!dScroll',h,str)
 % Scroll text string in object h
 % h      - handle of text object
 % Prompt - Text to scroll (Defaults to 'UserData' of h)
@@ -606,7 +606,7 @@ function varargout = spm_input(varargin)
 % Common code to check (& canonicalise) sizes of input vectors/matrices
 %
 %_______________________________________________________________________
-% Andrew Holmes
+% @(#)spm_input_orig.m	2.2 Andrew Holmes 99/09/15
 
 
 %-Parameters
@@ -629,17 +629,17 @@ else			%-Should be an input request: get Type & YPos
 	if any(Type=='|'), Type='b|'; end
 	if nargin<2|isempty(varargin{2}), YPos='+1'; else, YPos=varargin{2}; end
 
-	[CmdLine,YPos] = spm_input('!CmdLine',YPos);
+	[CmdLine,YPos] = spm_input_orig('!CmdLine',YPos);
 
 	if ~CmdLine	%-Setup for GUI use
 		%-Locate (or create) figure to work in
-		Finter = spm_input('!GetWin');
+		Finter = spm_input_orig('!GetWin');
 	
 		%-Find out which Y-position to use, setup for use
-		YPos = spm_input('!SetNextPos',YPos,Finter,CmdLine);
+		YPos = spm_input_orig('!SetNextPos',YPos,Finter,CmdLine);
 	
 		%-Determine position of objects
-		[FRec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,'',Finter);
+		[FRec,QRec,PRec,RRec] = spm_input_orig('!InputRects',YPos,'',Finter);
 	end
 end
 
@@ -693,7 +693,7 @@ strN = sf_SzStr(n);
 
 if CmdLine                                   %-Use CmdLine to get answer
 %-----------------------------------------------------------------------
-	spm_input('!PrntPrmpt',[Prompt,strN,strM],TTstr)
+	spm_input_orig('!PrntPrmpt',[Prompt,strN,strM],TTstr)
 
 	%-Do Eval Types in Base workspace, catch errors
 	switch lower(Type), case 's'
@@ -809,7 +809,7 @@ else                                             %-Use GUI to get answer
 	if TTips, set(h,'ToolTipString',TTstr), end
 
 	%-Figure ContextMenu for shortcuts
-	hM = spm_input('!InptConMen',Finter,[hPrmpt,hDef,h]);
+	hM = spm_input_orig('!InptConMen',Finter,[hPrmpt,hDef,h]);
 	cb = [	'set(get(gcbo,''UserData''),''String'',',...
 			'[''spm_load('''''',spm_get(1),'''''')'']), ',...
 		'set(get(get(gcbo,''UserData''),''UserData''),''UserData'',',...
@@ -818,11 +818,11 @@ else                                             %-Use GUI to get answer
 		'CallBack',cb,'UserData',h)
 
 	%-Bring window to fore & jump pointer to edit widget
-	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
+	[PLoc,cF] = spm_input_orig('!PointerJump',RRec,Finter);
 
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
 	set(Finter,'KeyPressFcn',[...
-	    'spm_input(''!EditableKeyPressFcn'',',...
+	    'spm_input_orig(''!EditableKeyPressFcn'',',...
 	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
 	    	'''Style'',''edit''),',...
 	    'get(gcbf,''CurrentCharacter''))'])
@@ -863,7 +863,7 @@ else                                             %-Use GUI to get answer
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'ToolTipString',msg,...
 		'BackgroundColor',[.7,.7,.7])
-	spm_input('!PointerJumpBack',PLoc,cF)
+	spm_input_orig('!PointerJumpBack',PLoc,cF)
 	drawnow
 
 end % (if CmdLine)
@@ -986,7 +986,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 
 	if CmdLine
 		%-Display question prompt
-		spm_input('!PrntPrmpt',Prompt,'',Title)
+		spm_input_orig('!PrntPrmpt',Prompt,'',Title)
 		%-Build prompt
 		%-------------------------------------------------------
 		if ~isempty(Labs) 
@@ -1102,16 +1102,16 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 			end
 		
 			%-Figure ContextMenu for shortcuts
-			hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
+			hM = spm_input_orig('!InptConMen',Finter,[hPrmpt,H]);
 
 			%-Bring window to fore & jump pointer to default button
-			[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,XDisp);
+			[PLoc,cF] = spm_input_orig('!PointerJump',RRec,Finter,XDisp);
 	
 			%-Callback for KeyPress, to store valid button # in
 			% UserData of Prompt, DefItem if (DefItem~=0)
 			% & return (ASCII-13) is pressed
 			set(Finter,'KeyPressFcn',...
-				['spm_input(''!ButtonKeyPressFcn'',',...
+				['spm_input_orig(''!ButtonKeyPressFcn'',',...
 				'findobj(gcf,''Tag'',''',Tag,''',',...
 					'''Style'',''text''),',...
 				'''',lower(Keys),''',',num2str(DefItem),',',...
@@ -1127,7 +1127,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 			k = get(hPrmpt,'UserData');
 			%-Clean up
 			delete([H,hM]),	set(Finter,'KeyPressFcn','')
-			spm_input('!PointerJumpBack',PLoc,cF)
+			spm_input_orig('!PointerJumpBack',PLoc,cF)
 		end
 		
 		%-Display answer
@@ -1173,7 +1173,7 @@ if CmdLine
 
 	%-Print banner prompt
 	%---------------------------------------------------------------
-	spm_input('!PrntPrmpt',Prompt)		%-Display question prompt
+	spm_input_orig('!PrntPrmpt',Prompt)		%-Display question prompt
 
 
 	if Type(1)=='-'		%-No special buttons - go straight to input
@@ -1324,14 +1324,14 @@ else
 	H = [H,h];
 
 	%-Figure ContextMenu for shortcuts
-	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
+	hM = spm_input_orig('!InptConMen',Finter,[hPrmpt,H]);
 
 	%-Bring window to fore & jump pointer to default button
-	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,RRec(3)*0.95);
+	[PLoc,cF] = spm_input_orig('!PointerJump',RRec,Finter,RRec(3)*0.95);
 
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
 	set(Finter,'KeyPressFcn',[...
-	    'spm_input(''!EditableKeyPressFcn'',',...
+	    'spm_input_orig(''!EditableKeyPressFcn'',',...
 	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
 	    	'''Style'',''edit''),',...
 	    'get(gcbf,''CurrentCharacter''))'])
@@ -1369,7 +1369,7 @@ else
 
 	%-Clean up
 	delete([H,hM]), set(Finter,'KeyPressFcn','')
-	spm_input('!PointerJumpBack',PLoc,cF)
+	spm_input_orig('!PointerJumpBack',PLoc,cF)
 
 	%-Display answer
 	uicontrol(Finter,'Style','Text',...
@@ -1389,7 +1389,7 @@ case 'm'                                             %-Process menu type
 	if ~isempty(DefItem) & ~any(DefItem==[1:nLabels]), DefItem=[]; end
 	%-Process pull down menu type
 	if CmdLine
-		spm_input('!PrntPrmpt',Prompt)
+		spm_input_orig('!PrntPrmpt',Prompt)
 		nLabels = size(Labels,1);
 		for i = 1:nLabels, fprintf('\t%2d : %s\n',i,Labels(i,:)), end
 		Prmpt = ['Menu choice (1-',int2str(nLabels),')'];
@@ -1449,13 +1449,13 @@ case 'm'                                             %-Process menu type
 				num2str(nLabels),') & press return']), end
 	
 			%-Figure ContextMenu for shortcuts
-			hM = spm_input('!InptConMen',Finter,[hPopUp,H]);
+			hM = spm_input_orig('!InptConMen',Finter,[hPopUp,H]);
 
 			%-Bring window to fore & jump pointer to menu widget
-			[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
+			[PLoc,cF] = spm_input_orig('!PointerJump',RRec,Finter);
 	
 			%-Callback for KeyPresses
-			cb=['spm_input(''!PullDownKeyPressFcn'',',...
+			cb=['spm_input_orig(''!PullDownKeyPressFcn'',',...
 				'findobj(gcf,''Tag'',''',Tag,'''),',...
 				'get(gcf,''CurrentCharacter''))'];
 			set(Finter,'KeyPressFcn',cb)
@@ -1473,7 +1473,7 @@ case 'm'                                             %-Process menu type
 				'Horizontalalignment','Center',...
 				'String',deblank(Labels(k,:)),...
 				'BackgroundColor',[.7,.7,.7])
-			spm_input('!PointerJumpBack',PLoc,cF)
+			spm_input_orig('!PointerJumpBack',PLoc,cF)
 		end
 	
 		%-Display answer
@@ -1503,7 +1503,7 @@ varargout = {p,YPos};
 
 case {'m!','b!'}                          %-GUI PullDown/Buttons utility
 %=======================================================================
-% H = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB)
+% H = spm_input_orig(Prompt,YPos,'p',Labels,cb,UD,XCB)
 %-Condition arguments
 if nargin<7, XCB    = 0;  else, XCB    = varargin{7}; end
 if nargin<6, UD     = []; else, UD     = varargin{6}; end
@@ -1547,7 +1547,7 @@ else
 end
 
 
-%-Sort out UserData for extended callbacks (handled by spm_input('!m_cb')
+%-Sort out UserData for extended callbacks (handled by spm_input_orig('!m_cb')
 %-----------------------------------------------------------------------
 if XCB, if iscell(UD), UD={UD}; end, UD = struct('UD',UD,'cb',{cb}); end
 
@@ -1555,7 +1555,7 @@ if XCB, if iscell(UD), UD={UD}; end, UD = struct('UD',UD,'cb',{cb}); end
 %-Draw PullDown or Buttons
 %-----------------------------------------------------------------------
 switch lower(Type), case 'm!'
-	if XCB, UD.cb=cb; cb = {'spm_input(''!m_cb'')'}; end
+	if XCB, UD.cb=cb; cb = {'spm_input_orig(''!m_cb'')'}; end
 	H = uicontrol(Finter,'Style','PopUp',...
 		'HorizontalAlignment','Left',...
 		'ForegroundColor','k',...
@@ -1573,7 +1573,7 @@ case 'b!'
 	H = [];
 	for i=1:nLabels
 		if length(cb)>1, tcb=cb(i); else, tcb=cb; end
-		if XCB, UD.cb=tcb; tcb = {'spm_input(''!m_cb'')'}; end
+		if XCB, UD.cb=tcb; tcb = {'spm_input_orig(''!m_cb'')'}; end
 		h = uicontrol(Finter,'Style','Pushbutton',...
 			'String',deblank(Labels(i,:)),...
 			'ToolTipString','',...
@@ -1591,7 +1591,7 @@ end
 
 
 %-Bring window to fore & jump pointer to menu widget
-[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
+[PLoc,cF] = spm_input_orig('!PointerJump',RRec,Finter);
 
 varargout = {H};
 
@@ -1628,14 +1628,14 @@ elseif ~CmdLine
 	if length(Prompt)>56
 		pause(1)
 		set(h,'ToolTipString',Prompt)
-		spm_input('!dScroll',h)
+		spm_input_orig('!dScroll',h)
 		uicontrol(Finter,'Style','PushButton','String','>',...
 			'ToolTipString','press to scroll message',...
 			'Tag',['GUIinput_',int2str(YPos)],...
 			'UserData',h,...
 			'CallBack',[...
 			 'set(gcbo,''Visible'',''off''),',...
-			 'spm_input(''!dScroll'',get(gcbo,''UserData'')),',...
+			 'spm_input_orig(''!dScroll'',get(gcbo,''UserData'')),',...
 			 'set(gcbo,''Visible'',''on'')'],...
 			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
 	end
@@ -1650,13 +1650,13 @@ if nargout>0, varargout={[],YPos}; end
 
 case '!colour'
 %=======================================================================
-% colour = spm_input('!Colour')
+% colour = spm_input_orig('!Colour')
 varargout = {COLOUR};
 
 
 case '!icond'
 %=======================================================================
-% [iCond,msg] = spm_input('!iCond',str,n,m)
+% [iCond,msg] = spm_input_orig('!iCond',str,n,m)
 % Parse condition indicator spec strings:
 %	'2 3 2 3', '0 1 0 1', '2323', '0101', 'abab', 'R A R A'
 if nargin<4, m=Inf; else, m=varargin{4}; end
@@ -1675,7 +1675,7 @@ if ischar(i)
 		%-Leading zeros in a digit list
 		msg = sprintf('%s expanded',i);
 		z = min(find([diff(i=='0'),1]));
-		i = [zeros(1,z), spm_input('!iCond',i(z+1:end))'];
+		i = [zeros(1,z), spm_input_orig('!iCond',i(z+1:end))'];
 	else
 		%-Try an eval, for functions & string #s
 		i = evalin('base',['[',i,']'],'i');
@@ -1714,12 +1714,12 @@ varargout = {i,msg};
 
 case '!inptconmen'
 %=======================================================================
-% hM = spm_input('!InptConMen',Finter,H)
+% hM = spm_input_orig('!InptConMen',Finter,H)
 if nargin<3, H=[]; else, H=varargin{3}; end
 if nargin<2, varargout={[]}; else, Finter=varargin{2}; end
 hM = uicontextmenu('Parent',Finter);
-uimenu(hM,'Label','help on spm_input',...
-	'CallBack','spm_help(''spm_input.m'')')
+uimenu(hM,'Label','help on spm_input_orig',...
+	'CallBack','spm_help(''spm_input_orig.m'')')
 if ConCrash
 	uimenu(hM,'Label','crash out','Separator','on',...
 		'CallBack','delete(get(gcbo,''UserData''))',...
@@ -1733,7 +1733,7 @@ varargout={hM};
 
 case '!cmdline'
 %=======================================================================
-% [CmdLine,YPos] = spm_input('!CmdLine',YPos)
+% [CmdLine,YPos] = spm_input_orig('!CmdLine',YPos)
 %-Sorts out whether to use CmdLine or not & canonicalises YPos
 if nargin<2, YPos=''; else, YPos=varargin{2}; end
 if isempty(YPos), YPos='+1'; end
@@ -1758,7 +1758,7 @@ varargout = {CmdLine,YPos};
 
 case '!getwin'
 %=======================================================================
-% Finter = spm_input('!GetWin',F)
+% Finter = spm_input_orig('!GetWin',F)
 %-Locate (or create) figure to work in (Don't use 'Tag'ged figs)
 if nargin<2, F='Interactive'; else, F=varargin{2}; end
 Finter = spm_figure('FindWin',F);
@@ -1773,7 +1773,7 @@ varargout = {Finter};
 
 case '!pointerjump'
 %=======================================================================
-% [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
+% [PLoc,cF] = spm_input_orig('!PointerJump',RRec,F,XDisp)
 %-Raise window & jump pointer over question
 if nargin<4, XDisp=[]; else, XDisp=varargin{4}; end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
@@ -1794,7 +1794,7 @@ varargout = {PLoc,cF};
 
 case '!pointerjumpback'
 %=======================================================================
-% spm_input('!PointerJumpBack',PLoc,cF)
+% spm_input_orig('!PointerJumpBack',PLoc,cF)
 %-Replace pointer and reset CurrentFigure back
 if nargin<4, cF=[]; else, F=varargin{3}; end
 if nargin<2, error('Insufficient arguments'), else, PLoc=varargin{2}; end
@@ -1805,7 +1805,7 @@ if ~isempty(cF), set(0,'CurrentFigure',cF); end
 
 case '!prntprmpt'
 %=======================================================================
-% spm_input('!PrntPrmpt',Prompt,TipStr,Title)
+% spm_input_orig('!PrntPrmpt',Prompt,TipStr,Title)
 %-Print prompt for CmdLine questioning
 if nargin<4, Title  = ''; else, Title  = varargin{4}; end
 if nargin<3, TipStr = ''; else, TipStr = varargin{3}; end
@@ -1835,7 +1835,7 @@ fprintf('%s\n%s\n',TipStr,repmat('~',1,72))
 
 case '!inputrects'
 %=======================================================================
-% [Frec,QRec,PRec,RRec,Sz,Se] = spm_input('!InputRects',YPos,rec,F)
+% [Frec,QRec,PRec,RRec,Sz,Se] = spm_input_orig('!InputRects',YPos,rec,F)
 if nargin<4, F='Interactive'; else, F=varargin{4}; end
 if nargin<3, rec=''; else, rec=varargin{3}; end
 if nargin<2, YPos=1; else, YPos=varargin{2}; end
@@ -1871,16 +1871,16 @@ end
 
 case '!deleteinputobj'
 %=======================================================================
-% spm_input('!DeleteInputObj',F)
+% spm_input_orig('!DeleteInputObj',F)
 if nargin<2, F='Interactive'; else, F=varargin{2}; end
-h = spm_input('!FindInputObj',F);
+h = spm_input_orig('!FindInputObj',F);
 delete(h(h>0))
 
 
 case {'!currentpos','!findinputobj'}
 %=======================================================================
-% [CPos,hCPos] = spm_input('!CurrentPos',F)
-% h            = spm_input('!FindInputObj',F)
+% [CPos,hCPos] = spm_input_orig('!CurrentPos',F)
+% h            = spm_input_orig('!FindInputObj',F)
 % hPos contains handles: Columns contain handles corresponding to Pos
 if nargin<2, F='Interactive'; else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
@@ -1921,27 +1921,27 @@ end
 
 case '!nextpos'
 %=======================================================================
-% [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
+% [NPos,CPos,hCPos] = spm_input_orig('!NextPos',YPos,F,CmdLine)
 %-Return next position to use
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, YPos='+1'; else, YPos=varargin{2}; end
-if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos);
+if nargin<4, [CmdLine,YPos]=spm_input_orig('!CmdLine',YPos);
 	else, CmdLine=varargin{4}; end
 
 F = spm_figure('FindWin',F);
 
 %-Get current positions
 if nargout<3
-	CPos = spm_input('!CurrentPos',F);
+	CPos = spm_input_orig('!CurrentPos',F);
 	hCPos = [];
 else
-	[CPos,hCPos] = spm_input('!CurrentPos',F);
+	[CPos,hCPos] = spm_input_orig('!CurrentPos',F);
 end
 
 if CmdLine
 	NPos = 0;
 else
-	MPos = spm_input('!MaxPos',F);
+	MPos = spm_input_orig('!MaxPos',F);
 	if ischar(YPos)
 		%-Relative YPos
 		%-Strip any '!' prefix from YPos
@@ -1962,15 +1962,15 @@ varargout = {NPos,CPos,hCPos};
 
 case '!setnextpos'
 %=======================================================================
-% NPos = spm_input('!SetNextPos',YPos,F,CmdLine)
+% NPos = spm_input_orig('!SetNextPos',YPos,F,CmdLine)
 %-Set next position to use
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, YPos='+1'; else, YPos=varargin{2}; end
-if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos);
+if nargin<4, [CmdLine,YPos]=spm_input_orig('!CmdLine',YPos);
 	else, CmdLine=varargin{4}; end
 
 %-Find out which Y-position to use
-[NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine);
+[NPos,CPos,hCPos] = spm_input_orig('!NextPos',YPos,F,CmdLine);
 
 %-Delete any previous inputs using positions NPos and after
 if any(CPos>=NPos), h=hCPos(:,CPos>=NPos); delete(h(h>0)), end
@@ -1979,7 +1979,7 @@ varargout = {NPos};
 
 case '!maxpos'
 %=======================================================================
-% MPos = spm_input('!MaxPos',F,FRec3)
+% MPos = spm_input_orig('!MaxPos',F,FRec3)
 %
 if nargin<3
 	if nargin<2, F='Interactive'; else, F=varargin{2}; end
@@ -2003,7 +2003,7 @@ varargout = {MPos};
 
 case '!editablekeypressfcn'
 %=======================================================================
-% spm_input('!EditableKeyPressFcn',h,ch,hPrmpt)
+% spm_input_orig('!EditableKeyPressFcn',h,ch,hPrmpt)
 if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcbf,'KeyPressFcn','','UserData',[]), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};end
@@ -2037,7 +2037,7 @@ set(h,'String',tmp)
 
 case '!buttonkeypressfcn'
 %=======================================================================
-% spm_input('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
+% spm_input_orig('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
 %-Callback for KeyPress, to store valid button # in UserData of Prompt,
 % DefItem if (DefItem~=0) & return (ASCII-13) is pressed
 
@@ -2061,7 +2061,7 @@ if ~isempty(But), set(h,'UserData',But), end
 
 case '!pulldownkeypressfcn'
 %=======================================================================
-% spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
+% spm_input_orig('!PullDownKeyPressFcn',h,ch,DefItem)
 if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcf,'KeyPressFcn',''), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};end
@@ -2097,7 +2097,7 @@ end
 
 case '!m_cb'     %-CallBack handler for extended CallBack 'p'ullDown type
 %=======================================================================
-% spm_input('!m_cb')
+% spm_input_orig('!m_cb')
 
 %-Get PopUp handle and value
 h   = gcbo;
@@ -2106,7 +2106,7 @@ n   = get(h,'Value');
 %-Get PopUp's UserData, check cb and UD fields exist, extract cb & UD
 tmp = get(h,'UserData');
 if ~(isfield(tmp,'cb') & isfield(tmp,'UD'))
-	error('Invalid UserData structure for spm_input extended callback')
+	error('Invalid UserData structure for spm_input_orig extended callback')
 end
 cb  = tmp.cb;
 UD  = tmp.UD;
@@ -2119,7 +2119,7 @@ if length(cb)==1, eval(char(cb)); else, eval(cb{n}); end
 
 case '!dscroll'
 %=======================================================================
-% spm_input('!dScroll',h,Prompt)
+% spm_input_orig('!dScroll',h,Prompt)
 %-Scroll text in object h
 if nargin<2, return, else, h=varargin{2}; end
 if nargin<3, Prompt = get(h,'UserData'); else, Prompt=varargin{3}; end
@@ -2242,7 +2242,7 @@ case 'r'
 	end
 case 'c'
 	if isempty(m), m=Inf; end
-	[p,msg] = spm_input('!iCond',str,n,m);
+	[p,msg] = spm_input_orig('!iCond',str,n,m);
 case 'x'
 	X = m;			%-Design matrix/space-structure
 	if isempty(n), n=1; end
