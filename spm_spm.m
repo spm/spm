@@ -838,10 +838,14 @@ switch xX.xVi.Form
 	p     = length(A) - 1;			% order AR(p)
 	A     = A/A(1);
 	for i = 1:length(xX.xVi.row)
-		q    = xX.xVi.row{i};
-		n    = length(q);
-		Ki   = inv(spdiags(ones(n,1)*A',-[0:p],n,n));
-		xX.xVi.Vi(q,q) = Ki*Ki';
+		q     = xX.xVi.row{i};
+		n     = length(q);
+		Ki    = inv(spdiags(ones(n,1)*A',-[0:p],n,n));
+		Ki    = Ki.*(Ki > 1e-6);
+		Vi    = Ki*Ki';
+		D     = spdiags(sqrt(1./diag(Vi)),0,n,n);
+		Vi    = D*Vi*D;
+		xX.xVi.Vi(q,q) = Vi;
 	end
 end
 xX.xVi.Param = A;
@@ -855,6 +859,7 @@ xX.pKXV       = xX.pKX*xX.V;			%-for contrast variance weight
 xX.Bcov       = xX.pKXV*xX.pKX';		%-Variance of est. param.
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);%-Variance expectations
 xX.erdf       = trRV^2/trRVRV;			%-Effective residual d.f.
+
 [trMV trMVMV] = spm_SpUtil('trMV',xCon.X1o,xX.V);
 xCon.eidf     = trMV^2/trMVMV;
 
