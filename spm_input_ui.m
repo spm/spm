@@ -514,7 +514,7 @@ if CmdLine
 	%-Eval Types 'e' & 'c' in Base workspace, catch errors
 	if any(Type(1)=='ec')
 		[p,msg] = sf_ecEval(str,Type,n);
-		while isempty(p)
+		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
 			if isempty(str), str=DefString; end
@@ -581,7 +581,7 @@ else
 	str = get(h,'String');
 	if any(Type(1)=='ec')
 		[p,msg] = sf_ecEval(str,Type,n);
-		while isempty(p)
+		while isstr(p)
 			spm('Beep')
 			set(h,'Style','Text',...
 				'String',msg,...
@@ -931,19 +931,19 @@ if ischar(i)
 	%-Evaluation error from above: see if it's an 'abab' or 'a b a b' type:
 	[c,null,i] = unique(lower(i(~isspace(i))));
 	if ~all(ismember(c,setstr(abs('a'):abs('z'))))
-		i = [];	msg = 'evaluation error';
+		i = '!'; msg = 'evaluation error';
 	else
 		msg = sprintf('[%s] mapped to [1:%d]',c,length(c));
 	end
 elseif ~all(floor(i(:))==i(:))
-	i = []; msg = 'must be integers';
+	i = '!'; msg = 'must be integers';
 elseif length(i)==1 & n>1
 	msg = sprintf('%d expanded',i);
 	i = floor(i./10.^[floor(log10(i)+eps):-1:0]);
 	i = i-[0,10*i(1:end-1)];
 end
-if ~isempty(i) & isfinite(n) & length(i)~=n
-	i = []; msg = sprintf('%d-vector required',n);
+if ~isstr(i) & isfinite(n) & length(i)~=n
+	i = '!'; msg = sprintf('%d-vector required',n);
 end
 
 varargout = {i,msg};
@@ -1321,14 +1321,14 @@ function [p,msg] = sf_ecEval(str,Type,n)
 if nargin<3, n=Inf; end
 if nargin<2, Type='e'; end
 if nargin<1, str=''; end
-if isempty(str), p=[]; msg='empty input'; return, end
+if isempty(str), p='!'; msg='empty input'; return, end
 switch Type(1)
 case 'e'
-	p = evalin('base',['[',str,']'],'[]');
-	if isempty(p), msg = 'evaluation error'; else, msg=''; end
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p), msg = 'evaluation error'; else, msg=''; end
 case 'c'
 	[p,msg] = spm_input('!iCond',str);
 end
-if ~isempty(p) & isfinite(n) & ~any(size(p)==n)
-	p = []; msg = sprintf('%d-vector required',n);
+if ~isstr(p) & isfinite(n) & ~any(size(p)==n)
+	p = '!'; msg = sprintf('%d-vector required',n);
 end
