@@ -68,7 +68,7 @@ case $arch in
 	cmex4="mex -V4";;
     sgi64)
 	# not optimised sgi 64 bit compile for CC
-	CC="cc -64"
+	CC="cc -mips4 -64"
 	cmex5="mex"
 	cmex4="mex -V4";;
     hpux)
