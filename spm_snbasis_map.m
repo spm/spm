@@ -21,6 +21,7 @@ function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param)
 
 % %W% John Ashburner FIL %E%
 
+global Alpha Beta T IC0 Var
 
 fwhm = param(5);
 sd1  = param(6);
@@ -33,7 +34,7 @@ k = min([ k ; VG(1) VG(2) VG(3)]);
 
 % Scaling is to improve stability.
 %-----------------------------------------------------------------------
-stabilise = 200;
+stabilise = 64;
 basX = spm_dctmtx(VG(1),k(1))*stabilise;
 basY = spm_dctmtx(VG(2),k(2))*stabilise;
 basZ = spm_dctmtx(VG(3),k(3))*stabilise;
@@ -42,26 +43,23 @@ dbasX = spm_dctmtx(VG(1),k(1),'diff')*stabilise;
 dbasY = spm_dctmtx(VG(2),k(2),'diff')*stabilise;
 dbasZ = spm_dctmtx(VG(3),k(3),'diff')*stabilise;
 
-% Guess the Inverse Covariance matrix for brain deformations.
-% These are based on gradients of deformation functions
-% in the direction of the warp.
-% eg diff(basX*(VX1.*randn(size(VX1)))) should have a mean RMS amplitude of sd1;
+% Estimate a suitable sparse diagonal inverse covariance matrix for
+% the parameters (IC0). These are based on gradients of deformation
+% functions, such that the average gradient of deformation fields
+% generated from random normal distributions of parameters with
+% covariance matrix inv(IC0) is approximately equal to sd1.
 %-----------------------------------------------------------------------
-VX1 = (0.001+(0:k(1)-1))'.^(-1) * sd1 * VG(1)^(3/2) / pi / sqrt(0.001+(k(1)-1))/stabilise;
-VY1 = (0.001+(0:k(2)-1))'.^(-1) * sd1 * VG(2)^(3/2) / pi / sqrt(0.001+(k(2)-1))/stabilise;
-VZ1 = (0.001+(0:k(3)-1))'.^(-1) * sd1 * VG(3)^(3/2) / pi / sqrt(0.001+(k(3)-1))/stabilise;
+kk=(2:k(1))'; dd1 = zeros(k(1),1); dd1(kk) = (pi*(kk-1)/VG(1)).^2;
+kk=(2:k(2))'; dd2 = zeros(k(2),1); dd2(kk) = (pi*(kk-1)/VG(2)).^2;
+kk=(2:k(3))'; dd3 = zeros(k(3),1); dd3(kk) = (pi*(kk-1)/VG(3)).^2;
 
-% eg basX*(VX2.*randn(size(VX2))) should have a mean RMS amplitude of 1;
-% some type of Hanning like wrapper may be used in the future
-%-----------------------------------------------------------------------
-VX2 = ones(k(1),1) * sqrt(VG(1)/k(1)) / stabilise;
-VY2 = ones(k(2),1) * sqrt(VG(2)/k(2)) / stabilise;
-VZ2 = ones(k(3),1) * sqrt(VG(3)/k(3)) / stabilise;
-
-% multiply together and store on diagonal of a sparse matrix.
-%-----------------------------------------------------------------------
-IC0 = [kron(VZ2,kron(VY2,VX1)); kron(VZ2,kron(VY1,VX2)); kron(VZ1,kron(VY2,VX2))].^(-2);
-IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0)+size(VG,2)*4,length(IC0)+size(VG,2)*4);
+IC0 = 	kron(kron(ones(k(3),1),ones(k(2),1)),dd1         ) + ...
+	kron(kron(ones(k(3),1),dd2         ),ones(k(1),1)) + ...
+	kron(kron(dd3         ,ones(k(2),1)),ones(k(1),1));
+IC0 = IC0/(3*(prod(VG(1:3))/(prod(k)-1)));
+IC0 = IC0*(sd1.^(-2))*stabilise^6;
+IC0 = [IC0 ; IC0 ; IC0 ; zeros(size(VG,2)*4,1)];
+IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 
 
 % Generate starting estimates.

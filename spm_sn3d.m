@@ -393,7 +393,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.01],Template,aff_parms,ones(nap,1));
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.02],Template,aff_parms,ones(nap,1));
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
