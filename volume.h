@@ -78,4 +78,54 @@ Matrix *matrix_ptr;
 	}
 	return(map);
 }
+
+MAPTYPE **get_maps(matrix_ptr, pn)
+Matrix *matrix_ptr;
+int *pn;
+{
+	MAPTYPE **maps;
+	int xdim, ydim, zdim, datasize, n, j;
+
+	if ((!mxIsNumeric(matrix_ptr) || mxIsComplex(matrix_ptr) ||
+		!mxIsFull(matrix_ptr) || !mxIsDouble(matrix_ptr) ||
+		mxGetM(matrix_ptr) != (sizeof(MAPTYPE)+sizeof(double)-1)/sizeof(double)))
+	{
+		mexErrMsgTxt("Bad image handle dimensions.");
+	}
+	n = mxGetN(matrix_ptr);
+	maps = (MAPTYPE **)mxCalloc(n, sizeof(MAPTYPE *));
+	for (j=0; j<n; j++)
+	{
+		maps[j] = (MAPTYPE *)(mxGetPr(matrix_ptr)
+			+ j*((sizeof(MAPTYPE)+sizeof(double)-1)/sizeof(double)));
+		if (maps[j]->magic != MAGIC)
+		{
+			mexErrMsgTxt("Bad magic number in image handle.");
+		}
+		if (maps[j]->pid != getpid())
+		{
+			mexErrMsgTxt("Invalid image handle (from old session).");
+		}
+		datasize = get_datasize(maps[j]->datatype);	
+		if (datasize == 0)
+			mexErrMsgTxt("Bad datatype in image handle.");
+
+		xdim = abs((int)maps[j]->xdim);
+		ydim = abs((int)maps[j]->ydim);
+		zdim = abs((int)maps[j]->zdim);
+		if ((xdim*ydim*zdim*datasize+7)/8 != maps[j]->len)
+		{
+			mexErrMsgTxt("Who screwed up the handle??");
+		}
+	}
+	*pn = n;
+	return(maps);
+}
+
+void free_maps(maps)
+MAPTYPE **maps;
+{
+	mxFree((char *)maps);
+}
+
 #endif
