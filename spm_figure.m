@@ -357,36 +357,6 @@ else,
 	PRINTSTR = [spm_figure('DefPrintCmd'),'spm2.ps'];
 end
 
-% Matlab 6.5 printing doesn't like the -append option if the file does
-% not already exist
-%-----------------------------------------------------------------------
-off = findstr('-append',PRINTSTR);
-if ~isempty(off),
-	bl = [0 find(isspace(PRINTSTR)) (length(PRINTSTR)+1)];
-	for i=1:(length(bl)-1),
-		ca{i} = PRINTSTR((bl(i)+1):(bl(i+1)-1));
-	end;
-	ca = strvcat(ca);
-	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
-	if length(off1)>1,
-		fname = deblank(ca(off1(end),:));
-
-		% If there is no path to the file, then make it the
-		% current directory
-		[pth,nam,ext] = fileparts(fname);
-		if isempty(pth), fname = ['.' filesep nam ext]; end;
-
-		fd = fopen(fname,'r');
-		if fd~=-1,
-			% File exists, so -append can be used
-			fclose(fd);
-		else,
-			% File does not exist, so remove -append option
-			PRINTSTR(off:(off+7))='';
-		end;
-	end;
-end;
-
 %-Create footnote with SPM version, username, date and time.
 %-----------------------------------------------------------------------
 FNote = sprintf('%s%s: %s',spm('ver'),spm('GetUser',' (%s)'),spm('time'));
@@ -409,7 +379,8 @@ set(H,'Units','normalized')
 %-----------------------------------------------------------------------
 err = 0;
 if ~iPaged
-	try, eval(PRINTSTR), catch, err=1; end
+	printstr = clean_PRINTSTR(PRINTSTR);
+	try, eval(printstr), catch, err=1; end
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -419,8 +390,9 @@ else
 	if Cpage~=1
 		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
-		set(hPg{p,1},'Visible','on')
-		try, eval(PRINTSTR), catch, err=1; end
+		set(hPg{p,1},'Visible','on');
+		printstr = clean_PRINTSTR(PRINTSTR);
+		try, eval(printstr), catch, err=1; end
 		set(hPg{p,1},'Visible','off')
 	end
 	set(hPg{Cpage,1},'Visible','on')
@@ -436,7 +408,7 @@ if err
 			str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
 		end
 	end
-	str = {str{:},	'','- print command is:',['    ',PRINTSTR],...
+	str = {str{:},	'','- print command is:',['    ',printstr],...
 			'','- current directory is:',['    ',pwd],...
 			'','            * nothing has been printed *'};
 	spm('alert!',str,'printing problem...',sqrt(-1));
@@ -866,3 +838,37 @@ for F1=handles',
 end;
 return;
 %=======================================================================
+
+
+%=======================================================================
+function PRINTSTR = clean_PRINTSTR(PRINTSTR)
+%=======================================================================
+% Matlab 6.5 printing doesn't like the -append option if the file does
+% not already exist
+%-----------------------------------------------------------------------
+off = findstr('-append',PRINTSTR);
+if ~isempty(off),
+	bl = [0 find(isspace(PRINTSTR)) (length(PRINTSTR)+1)];
+	for i=1:(length(bl)-1),
+		ca{i} = PRINTSTR((bl(i)+1):(bl(i+1)-1));
+	end;
+	ca = strvcat(ca);
+	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
+	if length(off1)>1,
+		fname = deblank(ca(off1(end),:));
+
+		% If there is no path to the file, then make it the
+		% current directory
+		[pth,nam,ext] = fileparts(fname);
+		if isempty(pth), fname = ['.' filesep nam ext]; end;
+
+		fd = fopen(fname,'r');
+		if fd~=-1,
+			% File exists, so -append can be used
+			fclose(fd);
+		else,
+			% File does not exist, so remove -append option
+			PRINTSTR(off:(off+7))='';
+		end;
+	end;
+end;
