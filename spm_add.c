@@ -3,8 +3,8 @@ static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline%E%";
 #endif
  
 /*
-% integrates a series of images - a compiled routine
-% FORMAT s = spm_mean(V,Q,flags)
+% add a series of images - a compiled routine
+% FORMAT s = spm_add(V,Q,flags)
 % V     - Vector of mapped volumes (from spm_map or spm_vol).
 % Q     - Filename for averaged image
 % flags - Flags can be:
@@ -14,12 +14,15 @@ static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline%E%";
 % s     - Scalefactor for output image.
 %_______________________________________________________________________
 %
-% spm_mean computes a sum of a set of image volumes to produce an 
+% spm_add computes a sum of a set of image volumes to produce an 
 % integral image that is written to a named file (Q).
+%
 % The image is written as signed short (16 bit) unless the `f' flag 
 % is specified. 
 %
-% See also: spm_average - for details on how to usefully use this function
+% A mean can be effected by scaling the output image via it's
+% scalefactor (see spm_mean for an example). A weighted sum can be
+% effected by weighting the image scalefactors appropriately.
 %
 %_______________________________________________________________________
 */
