@@ -22,7 +22,7 @@ global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN f
 
 % Default command for printing
 %-----------------------------------------------------------------------
-PRINTSTR = 'print -dpsc -append spm.ps';
+PRINTSTR = 'print -dpsc2 -append spm.ps';
 
 % Log user input to SPM. If LOGFILE is '', then don't log.
 %-----------------------------------------------------------------------
