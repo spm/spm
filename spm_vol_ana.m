@@ -27,9 +27,11 @@ function V = spm_vol_ana(fname, n)
 %               * if hdr.hist.origin is set to [0 0 0], then the origin is
 %                 assumed to be at the centre of the volume
 %                 - (hdr.dime.dim(2:4)+1)/2.
-% 	* Scalefactors are derived from hdr.dime.funused1 if it is set,
-% 	  otherwise they are derived from hdr.dime.cal_max, hdr.dime.cal_min,
-% 	  hdr.dime.glmax and hdr.dime.glmin.
+% 	* Scalefactors and dc-offset are derived from hdr.dime.funused1
+%         hdr.dime.funused2 respectively (if funused1~=0 & finite(funused1)).
+% 	  If hdr.dime.funused1 is zero or non-finite then they are derived
+%         from hdr.dime.cal_max, hdr.dime.cal_min, hdr.dime.glmax and
+%         hdr.dime.glmin.
 % 	* hdr.dime.vox_offset to get the offset into the volume.
 %
 %_______________________________________________________________________
@@ -102,9 +104,13 @@ end;
 
 % Scaling etc... and offset into file...
 %-----------------------------------------------------------------------
-if hdr.dime.funused1,
+if finite(hdr.dime.funused1) & hdr.dime.funused1,
 	scal  = hdr.dime.funused1;
-	dcoff = 0;
+	if finite(hdr.dime.funused2),
+		dcoff = hdr.dime.funused2;
+	else,
+		dcoff = 0;
+	end;
 else,
 	if hdr.dime.glmax-hdr.dime.glmin & hdr.dime.cal_max-hdr.dime.cal_min,
 		scal  = (hdr.dime.cal_max-hdr.dime.cal_min)/(hdr.dime.glmax-hdr.dime.glmin);
