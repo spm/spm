@@ -68,13 +68,20 @@ if any(i - j)
 	end
 
 else
+	S     = sparse(1:n,1:n,s,m,n);
+	u     = speye(m,n);
+	v     = speye(m,n);
 	[i j] = sort(-s);
-	i     = 1:n;
-	S     = sparse(i,i,s(j),M,N);
+	S     = S(j,j);
+	v     = v(:,j);
+	u     = u(:,j);
+
+	s     = diag(S).^2;
 	s     = s*length(s)/sum(s);
 	j     = find(s >= U);
-	u     = speye(m,length(j));
-	v     = speye(m,length(j));
+	v     = v(:,j);
+	u     = u(:,j);
+	S     = S(j,j);
 
 end
 
