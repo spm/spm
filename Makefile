@@ -1,12 +1,13 @@
 #!make -f
 #
-# %W% John Ashburner & Matthew Brett %E%
-# $Id: Makefile,v 2.6 2002-08-08 17:54:13 john Exp $
+# %W% John Ashburner %E%
+# $Id: Makefile,v 2.7 2002-08-13 13:21:09 john Exp $
 #
 ###############################################################################
 #
 # Suggestions for how to make this file a bit more elegant are welcome.  So far
-# it works under SunOS, Linux (at the FIL) and some Windows systems.
+# it works under SunOS and Linux (at the FIL) and some Windows systems
+#
 # $Log: not supported by cvs2svn $
 #
 ###############################################################################
@@ -29,6 +30,7 @@ CC  = cc
 MOSUF = o
 CHMODIT = chmod 644 
 ADDED_OBS=
+ADDED_MEX=
 
 SunOS:
 	make all SUF=mexsol  CC="cc -xO5"                   MEX="mex COPTIMFLAGS=-xO5"
@@ -45,7 +47,7 @@ AIX:
 OSF1:
 	make all SUF=mexaxp  MEX="mex -O"
 windows:
-	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o
+	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils
 
 ###############################################################################
 # Architecture specific cleaning
@@ -89,7 +91,7 @@ SPMMEX =\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_bias_mex.$(SUF)
+	spm_bias_mex.$(SUF) $(ADDED_MEX).$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -277,6 +279,10 @@ spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 
 spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
+	@ $(CHMODIT) $@
+
+spm_win32utils.$(SUF): spm_win32utils.c 
+	$(MEX) spm_win32utils.c
 	@ $(CHMODIT) $@
 
 ###############################################################################
