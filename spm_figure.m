@@ -645,7 +645,7 @@ varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 case 'fontsizes'
 %=======================================================================
 % FS = spm_figure('FontSizes')
-varargout = {round([08,10,12,14,16]*min(spm_figure('GetWinScale')))};
+varargout = {round([08,09,11,13,14]*min(spm_figure('GetWinScale')))};
 
 
 case 'createbar'
