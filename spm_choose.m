@@ -29,18 +29,31 @@ function spm_choose(varargin)
 %
 % Versions can be selected from the command line by specifying their
 % short names as parameter. MatLab's command-function duality means
-% that `spm_choose('98')` is equivalent to `spm_choose 98`.
+% that `spm_choose('99')` is equivalent to `spm_choose 99`.
 %
 % Systems administrators should code the appropriate definitions into
 % the Parameters section. Note that options without a readable spm.m
 % function are removed from the list of choices. If only one (valid)
 % version is defined then this is run.
 %
+%-----------------------------------------------------------------------
+%
+% NOTE to SPM administrators on using this program:
+%
+%      * To use this program you must customise the hard-coded path and
+%        version information in the SPMs structure in the main program
+%        body (below).
+%
+%      * This program needs to be self contained.
+%        It cannot rely on other SPM routines!
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-Parameters - up to 4 versions may be defined
+%-Parameters
 %=======================================================================
+
+%-SPM versions - up to 4 versions may be defined
+%-----------------------------------------------------------------------
 %         Description         | Short name(s) |   Path(s)
 %-------+---------------------+---------------+-------------------------
 SPMs ={	'SPMdevel',		'devel',	'/local/spm/spm_devel';...
@@ -50,6 +63,7 @@ SPMs ={	'SPMdevel',		'devel',	'/local/spm/spm_devel';...
 	'SPM99a (public)',	'99a',		'/local/spm/spm99a_pub';...
 	'invalid',		'inv',		'/local/nowhere';
 	'worse still'		'worse',	{'/tmp','/var/tmp'}};
+
 
 %-Check parameters
 %-----------------------------------------------------------------------
@@ -130,12 +144,25 @@ F = figure('IntegerHandle','off',...
 	'HandleVisibility','off',...
 	'Visible','off');
 
+%-Fontnames for this platform
+%-----------------------------------------------------------------------
+switch computer
+case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86'}
+	PF = struct('helvetica','Helvetica',...			%-UNIX
+		'times','Times','courier','Courier');
+case {'PCWIN'}
+	PF = struct('helvetica','Arial Narrow',...		%-PCWIN
+		'times','Times New Roman','courier','Courier New');
+otherwise
+	error([mfilename,' not setup for platform: ',computer])
+end
+
 %-Frames and text
 %-----------------------------------------------------------------------
 hA = axes('Parent',F,'Position',[0 0 100/300 280/280],'Visible','Off');
 text(0.5,0.5,'SPM',...
 	'Parent',hA,...
-	'FontName','Times','FontSize',96,...
+	'FontName',PF.times,'FontSize',96,...
 	'FontAngle','Italic','FontWeight','Bold',...
 	'Rotation',90,...
 	'VerticalAlignment','Middle','HorizontalAlignment','center',...
@@ -143,7 +170,7 @@ text(0.5,0.5,'SPM',...
 
 text(0.3,0.95,'Statistical Parametric Mapping',...
 	'Parent',hA,...
-	'FontName','Times','FontSize',16,...
+	'FontName',PF.times,'FontSize',16,...
 	'FontAngle','Italic','FontWeight','Bold',...
 	'Color',[1 1 1]*.6)
 
@@ -153,7 +180,7 @@ uicontrol(F,'Style','Frame','Position',[110 020 180 230])
 %-----------------------------------------------------------------------
 uicontrol(F,'Style','Text',...
 	'String','Select version...',...
-	'FontName','Times','FontSize',14,...
+	'FontName',PF.times,'FontSize',14,...
 	'HorizontalAlignment','Center',...
 	'Position',[120 210 160 030],...
 	'ForegroundColor','k')
