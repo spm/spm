@@ -40,7 +40,7 @@ end
 
 % condition effects or covariate ?
 %----------------------------------------------------------------------------
-d      = min(find(CONTRAST(con,:)));
+d      = min(find(CONTRAST(con(1),:)));
 
 % delete previous axis
 %----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ if d > (size(H,2) + size(K,2));	% covariate
 		y      = XA(:,i);
 	end
 	v     = y;
-	v(:)  = [K H C B G]*(CONTRAST(con,:)');
+	v(:)  = [K H C B G]*(CONTRAST(con(1),:)');
 	subplot(2,2,3)
 	plot(v,y,'.'); axis square
 	line(v,y,'LineStyle','.','MarkerSize',12)
