@@ -311,7 +311,7 @@ for s = 1:nsess
 	%---------------------------------------------------------------
 	Sess{s}.BFstr = BFstr;
 	Sess{s}.DSstr = DSstr;
-	Sess{s}.rep   = rep;
+	Sess{s}.rep   = tim;
 	Sess{s}.row   = size(Xx,1) + [1:k];
 	Sess{s}.col   = size(Xx,2) + [1:size(X,2)];
 	Sess{s}.name  = name;
