@@ -67,7 +67,7 @@ if nargin<4, lim=Inf; end;
 len = 0;
 ret = struct('Filename',fopen(fp));
 tag = read_tag(fp,flg,dict);
-while ~isempty(tag),
+while ~isempty(tag) & ~(tag.group==65534 & tag.element==57357 & tag.length==0),
 	if tag.length>0,
 		switch tag.name,
 		case {'GroupLength'},
@@ -159,7 +159,8 @@ while ~isempty(tag),
 			case {'FD'},
 				dat = fread(fp,tag.length/8,'double')';
 			case {'SQ'},
-				dat = read_sq(fp, flg,dict,tag.length);
+				[dat,len1] = read_sq(fp, flg,dict,tag.length);
+				tag.length = len1;
 			otherwise,
 				dat = '';
 				fseek(fp,tag.length,'cof');
@@ -176,7 +177,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function ret = read_sq(fp, flg, dict,lim);
+function [ret,len] = read_sq(fp, flg, dict,lim);
 ret = {};
 n   = 0;
 len = 0;
@@ -184,6 +185,7 @@ while len<lim,
 	tag.group   = fread(fp,1,'ushort');
 	tag.element = fread(fp,1,'ushort');
 	tag.length  = fread(fp,1,'uint');
+	if isempty(tag.length), return; end;
 	if tag.length==13, tag.length=10; end;
 	len         = len + 8 + tag.length;
 	if (tag.group == 65534) & (tag.element == 57344),
@@ -253,7 +255,7 @@ if isempty(tag.vr) | isempty(tag.length)
 	return;
 end;
 
-% should check for length of FFFFFFFFH
+if tag.length==4294967295, tag.length = Inf; return; end;
 
 if tag.length==13,
 	% disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
