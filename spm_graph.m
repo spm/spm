@@ -93,7 +93,7 @@ if isempty(y)
 
 	% make R = NaN so it will not be plotted
 	%---------------------------------------------------------------
-	R   = NaN*ones(size(xX.xKXs.X,1),1);
+	R   = NaN*ones(size(SPM.xX.xKXs.X,1),1);
 
 else
 	% residuals
