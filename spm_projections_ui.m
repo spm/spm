@@ -67,7 +67,7 @@ Fgraph = spm_figure('FindWin','Graphics');
 spm_clf(Finter)
 set(Finter,'Name','SPM{Z} projections')
 
-tmp = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
+tmp = spm_get(1,'SPMt.mat','select SPMt.mat for analysis');
 CWD = strrep(tmp,'/SPMt.mat','');
 
 %-Get data
