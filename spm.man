@@ -293,6 +293,14 @@
 % 
 % New features - vi - Interface Improvements
 %
+% The input routine which handles user questioning in the 'Interactive'
+% SPM window has been improved: Default responses are available for
+% button and menu type questions (if appropriate), and keyboard
+% accelerators have been added. The text response for string and
+% evaluated input may now be edited without having to click in the
+% response widget (dedicated to Dan Pavel). View the help on
+% spm_input.m for details.
+%
 % The file selector dialog (spm_get.m) now gives "summary views" for
 % directories with a large number of files (after filtering). The
 % summary view shows blocks of files with similar filenames (e.g.
