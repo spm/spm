@@ -186,6 +186,8 @@ linfun('Rendering: Coronal 2..');	rend{6} = make_struct(V,MC1,v([3 1]));
 linfun('Rendering: Save..');
 save(oname,'rend');
 linfun(' ');
+disp_renderings(rend);
+spm_print;
 return;
 %_______________________________________________________________________
 
@@ -229,5 +231,28 @@ ren(msk)  = ren(msk)-0.2;
 ren       = ren+0.2;
 mx        = max(ren(:));
 ren       = ren/mx;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function disp_renderings(rend)
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph);
+hght = 0.95;
+nrow = ceil(length(rend)/2);
+ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
+image(0,'Parent',ax);
+set(ax,'YTick',[],'XTick',[]);
+
+for i=1:length(rend),
+	ren = rend{i}.ren;
+	ax=axes('Parent',Fgraph,'units','normalized',...
+		'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+		'Visible','off');
+	image(ren*64,'Parent',ax);
+	set(ax,'DataAspectRatio',[1 1 1], ...
+		'PlotBoxAspectRatioMode','auto',...
+		'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
+end;
+drawnow;
 return;
 %_______________________________________________________________________
