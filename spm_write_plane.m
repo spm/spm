@@ -1,10 +1,14 @@
-function spm_write_plane(V,A,p)
+function VO = spm_write_plane(V,A,p)
 % Write a transverse plane of image data.
 % FORMAT spm_write_plane(V,A,p)
 % V   - data structure containing image information.
 %       - see spm_vol for a description.
 % A   - the two dimensional image to write.
 % p   - the plane number (beginning from 1).
+%
+% VO  - (possibly) modified data structure containing image information.
+%       It is possible that future versions of spm_write_plane may
+%       modify scalefactors (for example).
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
@@ -14,7 +18,8 @@ if any(V.dim(1:2) ~= size(A))
 end;
 
 % Write Analyze image by default
-if write_analyze_plane(V,A,p) == -1,
+VO = write_analyze_plane(V,A,p);
+if isempty(VO),
 	spm_progress_bar('Clear');
 	write_error_message(V.fname);
 	error(['Error writing ' V.fname '. Check your disk space.']);
@@ -23,8 +28,8 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function sts = write_analyze_plane(V,A,p)
-sts   = 0;
+function VO = write_analyze_plane(V,A,p)
+VO = V;
 % Check datatype is OK
 dt = V.dim(4);
 
@@ -34,7 +39,7 @@ if dt>256,
 end;
 s = find(dt == [2 4 8 16 64 128+2 128+4 128+8]);
 if isempty(s)
-	sts = -1;
+	VO = [];
 	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
 	return;
 end;
@@ -47,7 +52,7 @@ fp    = fopen(fname,'r+');
 if fp == -1,
 	fp = fopen(fname,'w');
 	if fp == -1,
-		sts = -1;
+		VO = [];
 		disp('Can''t open image file');
 		return;
 	end;
@@ -109,20 +114,19 @@ if fseek(fp,off,'bof')==-1,
 	blanks = zeros(off-curr_off,1);
 	if fwrite(fp,blanks,'uchar') ~= prod(size(blanks)),
 		fclose(fp);
-		sts = -1;
+		VO = [];
 		return;
 	end;
 	if fseek(fp,off,'bof') == -1,
 		fclose(fp);
-		sts = -1;
+		VO = [];
 		return;
 	end;
 end;
 
-sts=0;
 if fwrite(fp,A,spm_type(dt)) ~= prod(size(A)),
 	fclose(fp);
-	sts = -1;
+	VO = [];
 	return;
 end;
 fclose(fp);

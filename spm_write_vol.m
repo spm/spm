@@ -48,5 +48,5 @@ end;
 %-----------------------------------------------------------------------
 V = spm_create_image(V);
 for p=1:V.dim(3),
-	spm_write_plane(V,Y(:,:,p),p);
+	V = spm_write_plane(V,Y(:,:,p),p);
 end
