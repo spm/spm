@@ -35,9 +35,9 @@ iDD = length(D); %-Above design is the default design definition
 sF = {'sF1','sF2','sF3','sF4'}
 
 %-Covariate by factor interaction options
-sCFI = {'<none>',...							%-1
-	'with sF1','with sF2','with sF3','with sF4',...			%-2:5
-	'with sF2 (by sF4)','with sF3 (by sF4)'};			%-6,7
+sCFI = {'<none>';...							%-1
+	'with sF1';'with sF2';'with sF3';'with sF4';...			%-2:5
+	'with sF2 (by sF4)';'with sF3 (by sF4)'};			%-6,7
 
 %-DesMtx argument components for covariate by factor interaction options
 % (Used for CFI's Covariate Centering (CC), GMscale & Global normalisation)
@@ -49,53 +49,54 @@ CFIforms = {	'[]',		'C',	'{}';...			%-1
 		'[i4,i2]',	'FxC',	'{D.sF{4},D.sF{2}}';...		%-6
 		'[i4,i3]',	'FxC',	'{D.sF{4},D.sF{3}}'	};	%-7
 
-%-Centre (mean correction) options for covariates                      (CC)
-sCC = {		'around overall mean',...				%-1
-		'around sF1 means',...					%-2
-		'around sF2 means',...					%-3
-		'around sF3 means',...					%-4
-		'around sF4 means',...					%-5
-		'around sF2 (within sF4) means',...			%-6
-		'around sF3 (within sF4) means',...			%-7
-		'<no centering>'};					%-8
-%-DesMtx I forms for centering options
-CCforms = {'ones(size(i1))',CFIforms{2:end,1},''};
+%-Centre (mean correction) options for covariates & globals            (CC)
+% (options 9-12 are for centering of global when using AnCova GloNorm) (GC)
+sCC = {		'around overall mean';...				%-1
+		'around sF1 means';...					%-2
+		'around sF2 means';...					%-3
+		'around sF3 means';...					%-4
+		'around sF4 means';...					%-5
+		'around sF2 (within sF4) means';...			%-6
+		'around sF3 (within sF4) means';...			%-7
+		'<no centering>';...					%-8
+		'around user specified value';...			%-9
+		'(as implied by AnCova)';...				%-10
+		'GM';...						%-11
+		'(redundant: not doing AnCova)'}';			%-12
+%-DesMtx I forms for covariate centering options
+CCforms = {'ones(size(i1))',CFIforms{2:end,1},''}';
+%-Default centering options for globals when using AnCova GloNorm
+DiGC = [1:9,-10,-11];
+
 
 %-Global normalization options                                    (GloNorm)
-sGloNorm = {	'AnCova',...						%-1
-		'AnCova by sF1',...					%-2
-		'AnCova by sF2',...					%-3
-		'AnCova by sF3',...					%-4
-		'AnCova by sF4',...					%-5
-		'AnCova by sF2 (by sF4)',...				%-6
-		'AnCova by sF3 (by sF4)',...				%-7
-		'proportional scaling',...				%-8
+sGloNorm = {	'AnCova';...						%-1
+		'AnCova by sF1';...					%-2
+		'AnCova by sF2';...					%-3
+		'AnCova by sF3';...					%-4
+		'AnCova by sF4';...					%-5
+		'AnCova by sF2 (by sF4)';...				%-6
+		'AnCova by sF3 (by sF4)';...				%-7
+		'proportional scaling';...				%-8
 		'<no global normalisation>'};				%-9
 
 %-Grand mean scaling options                                        (GMsca)
-sGMsca = {	'scaling of overall grand mean',...			%-1
-		'scaling of sF1 grand means',...			%-2
-		'scaling of sF2 grand means',...			%-3
-		'scaling of sF3 grand means',...			%-4
-		'scaling of sF4 grand means',...			%-5
-		'scaling of sF2 (within sF4) grand means',...		%-6
-		'scaling of sF3 (within sF4) grand means',...		%-7
-		'(implicit in PropSca global normalisation)',...	%-8
+sGMsca = {	'scaling of overall grand mean';...			%-1
+		'scaling of sF1 grand means';...			%-2
+		'scaling of sF2 grand means';...			%-3
+		'scaling of sF3 grand means';...			%-4
+		'scaling of sF4 grand means';...			%-5
+		'scaling of sF2 (within sF4) grand means';...		%-6
+		'scaling of sF3 (within sF4) grand means';...		%-7
+		'(implicit in PropSca global normalisation)';...	%-8
 		'<no grand Mean scaling>'	};			%-9
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
 dGM = 50;			%-Default GM (if isempty(D.GM))
 
 
-%-Centering options for AnCova GloNorm                                 (GC)
-sGC  = {sCC{1:7},...							%-1:7
-	'around specified value','<no centering>',...			%-8,9
-	'(as implied by AnCova)','GM',...				%-10,11
-	'(redundant: not doing AnCova)'};				%-12
-DiGC = [1:9,-10,-11];
-
 %-Global calculation options                                       (GXcalc)
-sGXcalc  = {	'mean voxel value (within per image fullmean/8 mask)',...%-1
-		'user specified',...					%-2
+sGXcalc  = {	'mean voxel value (within per image fullmean/8 mask)';...%-1
+		'user specified';...					%-2
 		'omit'};						%-3
 DiGXcalc = [-1,2:3];
 
@@ -118,7 +119,6 @@ sCC       = sf_estrrep(sCC,[sF',D.sF']);
 sCFI      = sf_estrrep(sCFI,[sF',D.sF']);
 sGloNorm  = sf_estrrep(sGloNorm,[sF',D.sF']);
 sGMsca    = sf_estrrep(sGMsca,[sF',D.sF']);
-sGC       = sf_estrrep(sGC,[sF',D.sF']);
 
 %-Get filenames, accrue study, subject, condition & replication indicies
 %-----------------------------------------------------------------------
@@ -220,18 +220,18 @@ for j4  = 1:n4
     end                                         % (if D.b.aTime & D.n(2)>1)
 end                                             % (for j4)
 clear n1 n2 n3 n4 bL1 bL2 bL3 bL4
+nScan = length(P);			%-#observations
+I     = [i1,i2,i3,i4];			%-Factor indices
 
 %-Additional design parameters
 %-----------------------------------------------------------------------
-nScan = length(P);			%-#observations
-I   = [i1,i2,i3,i4];			%-Factor indices
 bL  = any(diff([i1,i2,i3,i4],1),1); 	%-Multiple factor levels?
 	% NB: bL(2) might be thrown by user specified f1 levels
 	%     (D.b.aTime & D.n(2)>1) - assumme user is consistent?
 bFI = [bL(1),bL(2:3)&~bL(4),bL(4),bL([2,3])&bL(4)];
 	%-Allowable interactions for covariates
 	%-Only offer interactions with multi-level factors, and
-	% don't offer by F2/F3 if bL(4)!
+	% don't offer by F2|F3 if bL(4)!
 
 %-Build Condition (H) and Block (B) partitions
 %=======================================================================
@@ -241,11 +241,11 @@ eval(['[B,Bnames] = spm_DesMtx(',D.Bform,');'])
 if rank(B)==nScan, error('unestimable block effects'), end
 
 
-%-Covariate partition(s): interest & nuisance (excluding global)
+%-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %=======================================================================
-nC = D.nC;			%-Default #covariates
-C  = {[],[]}; Cnames = {{},{}};	%-Covariate DesMtx partitions & names
-rC = [];			%-Struct array to hold raw covariates
+nC  = D.nC;			%-Default #covariates
+C   = {[],[]}; Cnames = {{},{}};%-Covariate DesMtx partitions & names
+rCG = [];			%-Struct array to hold raw covariates
 				% Fields:{'c','cname','iCC','iCFI','type','cols'}
 
 dcname = {'CovInt','NusCov'};	%-Root names for covariates
@@ -310,24 +310,26 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
 		[c,cname] = spm_DesMtx(tI,tConst,tFnames);
 	elseif size(c,2)>1			%-Design matrix block
 		[null,cname] = spm_DesMtx(c,'X',cname);
+	else
+		cname = {cname};
 	end
 
-	%-Store raw covariate details in rC struct for reference
+	%-Store raw covariate details in rCG struct for reference
 	%-Pack c into appropriate DesMtx partition
         %---------------------------------------------------------------
-	tmp       = struct(	'c',rc,		'cname',rcname,...
+	tmp       = struct(	'rc',rc,	'cname',rcname,...
 				'iCC',iCC,	'iCFI',iCFI,...
 				'type',i,...
 				'cols',[1:size(c,2)]+size(C{i},2)	);
-	if isempty(rC), rC=tmp; else, rC=[rC,tmp]; end
+	if isempty(rCG), rCG=tmp; else, rCG=[rCG,tmp]; end
 	C{i}      = [C{i},c];
 	Cnames{i} = [Cnames{i}; cname];
 
     end	% (while)
 
 end % (for)
-clear i %-****
 clear tI tConst tFnames
+clear i %-****
 
 %-Unpack into C & G design matrix sub-partitions
 G = C{2}; Gnames = Cnames{2};
@@ -383,7 +385,7 @@ else                                    %-Set value of GM
         else
             str=['GM: ',strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
         end
-        GM = spm_input(str,'+0','e',dGM);
+        GM = spm_input(str,'+0','r',dGM,1);
     end
     if GM==0, iGMsca=9; end             %-If GM is zero then don't GMsca!
 end
@@ -410,9 +412,9 @@ else
 	%-Annotate options 10 & 11 with specific details
 	%---------------------------------------------------------------
 	%-Tag '(as implied by AnCova)' with actual AnCova situation
-	sGC{10} = [sCC{iGloNorm},' (as implied by ',sGloNorm{iGloNorm},')'];
+	sCC{10} = [sCC{iGloNorm},' (<= ',sGloNorm,')'];
 	%-Tag 'GM' case with actual GM & GMsca case
-	sGC{11} = sprintf('around GM=%g (i.e. %s after grand mean scaling)',...
+	sCC{11} = sprintf('around GM=%g (i.e. %s after grand mean scaling)',...
 		GM,strrep(sCC{iGMsca},'around ',''));
 
 	%-Constuct vector of allowable iGC
@@ -429,14 +431,21 @@ else
 	dGC = max([0,intersect(iGC,-DiGC(DiGC<0))]);
 	str = 'GC: Centre global covariate';
 	if iGMsca<8, str = [str,' (after grand mean scaling)']; end
-	iGC = spm_input(str,'+1','m',sGC(iGC),iGC,find(iGC==dGC));
+	iGC = spm_input(str,'+1','m',sCC(iGC),iGC,find(iGC==dGC));
+
+	%-If "as implied by AnCova" then set iGC accordingly
+	%---------------------------------------------------------------
+	if iGC==10, iGC = iGloNorm; end
 
 	%-If 'user specified' then get value
 	%---------------------------------------------------------------
-	if iGC=8, GC = spm_input('Centre globals around','+0','r',dGM,[1,1]);
-		else, GC = 0; end
+	if iGC==9
+		gc     = spm_input('Centre globals around','+0','r',dGM,1)
+		sCC{9} = sprintf('%s of %g',sCC{iGC},gc);
+	else
+		gc  = 0;
+	end
 end
-sGC = sGC{iGC};
 
 
 %-Global calculation                                            (GXcalc)
@@ -453,7 +462,6 @@ elseif length(iGXcalc)>1
 else
 	iGXcalc = abs(DiGXcalc);
 end
-sGXcalc = sGXcalc{iGXcalc};
 
 if iGXcalc==2				%-Get user specified globals
 	GX = spm_input('globals','+0','r',[],[nScan,1]);
@@ -463,7 +471,7 @@ sGXcalc = sGXcalc{iGXcalc};
 
 %-Threshold defining voxels to analyse                          (THRESH)
 %-----------------------------------------------------------------------
-vMask = spm_input('Analysis (grey&white) threshold','+1','e',0.8);
+vMask = spm_input('Analysis (grey&white) threshold','+1','r',0.8,1);
 %-**** Allow -Inf, default, or mask image? Default -Inf for -ve data?
 
 
@@ -491,6 +499,7 @@ if any(any(any(diff(cat(3,V.mat),1,3),3)))
 
 %-Work out required Analyze header info from handles
 %-----------------------------------------------------------------------
+%*Do we need these? ****
 DIM    = V(1).dim(1:3);
 VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
 ORIGIN = (V(1).mat\[0 0 0 1]')';
@@ -501,36 +510,36 @@ ORIGIN = round(ORIGIN(1:3));
 %=======================================================================
 %-Compute global values
 %-----------------------------------------------------------------------
-fprintf('(globals)')
+fprintf('\t(globals)')
 switch iGXcalc, case 1
 	%-Compute as mean voxel value (within per image fullmean/8 mask)
-	GX = zeros(nScan,1);
-	for i = 1:nScan, GX(i) = spm_global(V(i)); end
+	g = zeros(nScan,1);
+	for i = 1:nScan, g(i) = spm_global(V(i)); end
 case 2
 	%-User specified globals
 case 3
 	%-Don't compute => no GMsca (iGMsca==9) or GloNorm (iGloNorm==9)
-	GX = [];
+	g = [];
 otherwise
 	error('illegal iGXcalc')
 end
 fprintf('\b - done)\n')
+rg = g;
 
 
 %-Scaling: compute global scaling factors gSF required to implement proportional
 % scaling global normalisation (PropSca) or grand mean scaling (GMsca),
 % as specified by iGMsca (& iGloNorm)
 %-----------------------------------------------------------------------
-rGX = GX;
-switch (iGMsca), case 8
+switch iGMsca, case 8
 	%-Proportional scaling global normalisation
 	if iGloNorm~=8, error('iGloNorm-iGMsca(8) mismatch for PropSca'), end
-	gSF    = GM./GX;
-	GX     = GM*ones(nScan,1);
+	gSF    = GM./g;
+	g      = GM*ones(nScan,1);
 case {1,2,3,4,5,6,7}
 	%-Grand mean scaling according to iGMsca
-	gSF    = GM./spm_meanby(GX,eval(CCforms{iGMsca}));
-	GX     = GX.*gSF;
+	gSF    = GM./spm_meanby(g,eval(CCforms{iGMsca}));
+	g      = g.*gSF;
 	sGMsca = sprintf('%s to %g',sGMsca,GM);
 case 9
 	%-No grand mean scaling
@@ -539,57 +548,91 @@ otherwise
 	error('illegal iGMsca')
 end
 
+%-Apply gSF to memory-mapped scalefactors
+for i=1:nScan, V(i).pinfo(1:2,:)=V(i).pinfo(1:2,:)*gSF(i); end
+
 
 %-AnCova: Construct global nuisance covariates partition (if AnCova)
 %-----------------------------------------------------------------------
-%-Save info in rC
+if any(iGloNorm==[1:7])
+
+	%-Centre global covariate as requested
+	%---------------------------------------------------------------
+	switch iGC, case {1,2,3,4,5,6,7}	%-Standard sCC options
+		gc = spm_meanby(g,eval(CCforms{iGC}));
+	case 8					%-No centering
+		gc = 0;
+	case 9					%-User specified centre
+		%-gc set above
+	case 10					%-As implied by AnCova option
+		gc = spm_meanby(g,eval(CCforms{iGloNorm}));
+	case 11					%-Around GM
+		gc = GM;
+	otherwise				%-unknown iGC
+		error('unexpected iGC value')
+	end
+
+
+	%-AnCova - add scaled centred global to DesMtx `G' partition
+	%---------------------------------------------------------------
+	tI        = [eval(CFIforms{iGloNorm,1}),g-gc];
+	tConst    = CFIforms{iGloNorm,2};
+	tFnames   = [eval(CFIforms{iGloNorm,3}),{'global'}];
+	[g,gname] = spm_DesMtx(tI,tConst,tFnames)
+	clear tI tConst tFnames
+
+	%-Save GX info in rGX struct for reference
+	tmp       = struct(	'rc',rg.*gSF,	'cname','global',...
+				'iCC',iGC,	'iCFI',iGloNorm,...
+				'type',3,...
+				'cols',[1:size(g,2)]+size(G,2)	);
+
+	G = [G,g]; Gnames = [Gnames; gname];
+	if isempty(rCG), rCG=tmp; else, rCG=[rCG,tmp]; end
+
+end
+
+%-Save info on global calculation
+%-----------------------------------------------------------------------
+GX = struct(...
+	'iGXcalc',iGXcalc,	'sGXcalc',sGXcalc,	'rg',rg,...
+	'iGMsca',iGMsca,	'sGMsca',sGMsca',	'GM',GM,'gSF',gSF,...
+	'iGC',	iGC,		'sGC',	sGC,		'gc',	gc,...
+	'iGloNorm',iGloNorm,	'sGloNorm',sGloNorm);
+
 
 %-===============================-*@*-=================================-
 
+%-Design matrix canonicalisation
+%=======================================================================
+%-raw design matrix
+rX = [H,C,B,G];
 
-%-Construct Global part of covariates of no interest partition.
-%-Centre global means if included in AnCova models, by mean correction.
+%-Orthogonalisation
 %-----------------------------------------------------------------------
-%-Save scaled globals for printing later on
-Gc      = [Gc,GX];
-Gcnames = strvcat(Gcnames,'Global');
+%-Orthogonalise G wirit B
+if ~isempty(G) & ~isempty(B),		G = G     - B*pinv(B)    *G;	end
+%-Orthogonalise [H C] wirit [B,G]
+if ~isempty(H) & ~isempty([B,G]),	H = H - [B,G]*pinv([B,G])*H;	end
+if ~isempty(C) & ~isempty([B,G]),	C = C - [B,G]*pinv([B,G])*C;	end
 
-if iGloNorm == 1				%-No global adjustment
+%-Construct full design matrix (X), parameter names (Xnames),
+% partition indices (iX), and scaled design matrix for display (nX)
 %-----------------------------------------------------------------------
+X      = [H C B G];
+Xnames = [Hnames; Cnames; Bnames; Gnames];
+tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
+iX     = struct(	'H',	[1:size(H,2)],...
+			'C',	[1:size(C,2)] + tmp(1),...
+			'B',	[1:size(B,2)] + tmp(2),...
+			'G',	[1:size(G,2)] + tmp(3)		);
+nX = spm_DesMtx('sca',X,Xnames);
 
-elseif iGloNorm == 2				%-Proportional scaling
-%-----------------------------------------------------------------------
-    if (GM ~= 0)
-	V(7,:) = GM*V(7,:)./GX'; GX = ones(size(GX))*GM;
-    else
-	V(7,:) = V(7,:)./GX'; GX = ones(size(GX));
-    end
 
-elseif iGloNorm == 3				%-AnCova
-%-----------------------------------------------------------------------
-    G      = [G,(GX - mean(GX))];
-    Gnames = strvcat(Gnames,'Global');
+%-Pre-specified contrast weights
+%=======================================================================
 
-elseif iGloNorm == 4				%-AnCova by subject
-%-----------------------------------------------------------------------
-    [GL,GLnames] = spm_DesMtx([iSUBJ',GX-mean(GX)],'FxC',['SUBJ  ';'Global']);
-    G      = [G,GL];
-    Gnames = strvcat(Gnames,GLnames);
-
-elseif iGloNorm == 5				%-AnCova by study
-%-----------------------------------------------------------------------
-    [GL,GLnames] = spm_DesMtx([i4',GX-mean(GX)],'FxC',['Stud  ';'Global']);
-    G      = [G,GL];
-    Gnames = strvcat(Gnames,GLnames);
-else
-
-    fprintf('%cError: invalid iGloNorm option\n',7)
-
-end % (if iGloNorm)
-
-%-Construct full design matrix and name matrices for display
-%-----------------------------------------------------------------------
-[nHCBG,HCBGnames] = spm_DesMtx('sca',H,Hnames,C,Cnames,B,Bnames,G,Gnames);
+%-===============================-*@*-=================================-
 
 
 %-Ensure validity of contrast of condition effects, zero pad
