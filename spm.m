@@ -1121,13 +1121,13 @@ case 'colour'                                     %-SPM interface colour
 %-Pre-developmental livery
 % varargout = {[1.0,0.2,0.3],'fightening red'};
 %-Developmental livery
-% varargout = {[0.7,1.0,0.7],'flourescent green'};
+  varargout = {[0.7,1.0,0.7],'flourescent green'};
 %-Alpha release livery
 % varargout = {[0.9,0.9,0.5],'over-ripe banana'};
 %-Beta release livery
 % varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
 %-Distribution livery
-varargout   = {[1.0,0.2,0.3],'fightening red'};
+% varargout = {[0.8 0.8 1.0],'vile violet'};;
 
 
 %=======================================================================
