@@ -677,33 +677,29 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-If UFp > 0, save raw data in 8bit squashed *.mad file format
 		%-------------------------------------------------------
 		if UFp > 0
-			fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-						'...saving data')    %-#
+		fprintf('%s%30s',sprintf('\b')*ones(1,30),saving data')    %-#
+
+			% F-threshold
+			%-----------------------------------------------
 			if UFp == 1			%-Save all data
-
-			    % append data and save indices to coords
-			    %-------------------------------------------
-			    spm_append(Y,'Y.mad',2);
-			    Yidx = [Yidx,S + [1:CrS]];
-
+			    tmp  = [1:CrS];
 			else
-
-			    % F-threshold
-			    %-------------------------------------------
 			    tmp  = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
-			    tmp   = find(tmp);
-			    spm_append(Y,'Y.mad',2);
-			    Yidx = [Yidx, (S + tmp)];
+			    tmp  = find(tmp);
+			end
 
-			    %-Assemble <Y*Y'> for ReML covariance estimation
-			    %-------------------------------------------
-			    if iscell(xX.xVi.Vi)
-				q    = size(tmp,2);
-				q    = spdiags(sqrt(trRV./ResSS(tmp)'),0,q,q);
-			    	Y    = Y(:,tmp)*q;
-				Cy   = Cy + Y*Y';
-			    end
+			% append data and save indices to coords
+			%-----------------------------------------------
+			spm_append(Y(:,tmp),'Y.mad',2);
+			Yidx = [Yidx, (S + tmp)];
 
+			%-Assemble <Y*Y'> for ReML covariance estimation
+			%-----------------------------------------------
+			if iscell(xX.xVi.Vi) & length(tmp)
+				q  = size(tmp,2);
+				q  = spdiags(sqrt(trRV./ResSS(tmp)'),0,q,q);
+			    	Y  = Y(:,tmp)*q;
+				Cy = Cy + Y*Y';
 			end
 
 		end
