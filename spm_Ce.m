@@ -1,17 +1,14 @@
-function [C] = spm_Ce(v,h)
+function [C] = spm_Ce(v,a)
 % return error covariance constraints for serially correlated data
-% FORMAT [C] = spm_Ce(v,h)
+% FORMAT [C] = spm_Ce(v,a)
 % v  - (1 x l) v(i) = number of obervations for ith block
-% h  - length of expansion = length(C) (default h = 1)
+% a  - AR coeficient expansion point  (default a = [])
+% 
+%  C{1} = h(1)*AR(a)
+%  C{2} = h(1)*AR(a) + h(2)*dAR(a)/da(1);
+%  C{3} = h(1)*AR(a) + h(2)*dAR(a)/da(1) + h(3)*dAR(a)/da(2);
 %
-% C  - {i x lh} structure of block diagonal (lv x lv) matrices
-%	C{1:l + 0*l} speye(v,v) - i.i.d. errors [coeficient = 1/(0*e)]
-%	C{1:l + 1*l} AR(1) with coefficient 1/(1*e)
-%	C{1:l + 2*l} AR(1) with coefficient 1/(2*e)
-%
-%		.....
-%
-%	C{1:l + (h - 1)}
+% See also; spm_Q.m
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -19,34 +16,34 @@ function [C] = spm_Ce(v,h)
 % defaults
 %---------------------------------------------------------------------------
 if nargin == 1
-	h = 1;
-end
-l      = length(v);
-
-% create constraints on Cov{e} - C1
-%===========================================================================
-Q      = [];
-q      = 6;
-for  i = 1:h
-	k      = exp(-[0:q]'/(i - 1 + eps));
-	k      = conv(k,flipud(k));
-	if length(Q)
-		k = k - Q*(pinv(Q)*k);
-	end
-	k      = k/max(k);
-	Q(:,i) = k;
+	a = [];
 end
 
 
-% C
+% create blocks
 %---------------------------------------------------------------------------
-C      = {};
-for  i = 1:h
-	for j = 1:l
-		k           = [1:v(j)] + sum(v(1:(j - 1)));
-		K           = spdiags(ones(v(j),1)*Q(:,i)',[-q:q],v(j),v(j));
-		C{end + 1}  = sparse(sum(v),sum(v));
-		C{end}(k,k) = sparse(K.*(abs(K) > 1e-2));
+C    = {};
+l    = length(v);
+n    = sum(v);
+k    = 0;
+if l > 1
+	for i = 1:l
+		dCdh  = spm_Ce(v(i),h);
+		for j = 1:length(dCdh)
+			[x y q]    = find(dCdh{j});
+			x          = x    + k;
+			y          = y    + k;
+			k          = v(i) + k;
+			C{end + 1} = sparse(x,y,q,n,n);
+		end
 	end
-end
+else
+	% dCdh
+	%==================================================================
+	C{1}  = spm_Q(a,v);
+	dCdh  = spm_diff('spm_Q',a,v,1);
+	for i = 1:length(a)
+		C{i + 1} = reshape(dCdh(:,i),v,v);
+	end
 
+end
