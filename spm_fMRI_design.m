@@ -6,7 +6,7 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % RT      - intercans interval {seconds}
 %
 % X.dt    - time bin {secs}
-% X.DesN  - {1} study type, {2} basis function description
+% X.DesN  - X.DesN{1} study type, X.DesN{2} basis function description
 % X.xX    - regressors
 % X.bX    - session effects
 % X.cX    - low frequency confounds
@@ -270,3 +270,5 @@ X.cX    = spm_detrend(cX);
 X.Xname = Xname;
 X.Bname = Bname;
 X.Cname = Cname;
+
+save fMRIDesMtx X Sess
