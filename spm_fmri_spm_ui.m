@@ -454,7 +454,7 @@ xM     = struct('T',	ones(q,1),...
 
 %-Complete design matrix (xX)
 %=======================================================================
-xX.K   = {K};
+xX.K   = K;
 xX.xVi = xVi;
 
 
