@@ -70,6 +70,7 @@ set(Finter,'Name','SPM results','Pointer','Watch')
 % (CWD, set by spm_projections*_ui)
 %-----------------------------------------------------------------------
 K        = [];
+FLIP     = 0;
 load([CWD,'/SPM'])
 S        = s;
 W        = w;
