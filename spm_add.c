@@ -21,6 +21,12 @@ spm_mean.c
 #include <math.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "mex.h"
 
 #ifdef __STDC__
@@ -46,7 +52,7 @@ Matrix *plhs[], *prhs[];
      double		*pixel;
      double	        *kd;
      int 		i,j,g,h;
-     FILE		*fo,*fp[512];
+     int		fo, fp[1024];
 
      if (nrhs != 4 || nlhs > 0)
          mexErrMsgTxt("Inappropriate usage.");
@@ -59,25 +65,25 @@ Matrix *plhs[], *prhs[];
      g   = (int) mxGetM(prhs[3]);
 
      for (i = 0; i < mxGetN(prhs[2]); i++) label[i] = (char) p[i];
-     label[i] = NULL;
-     fo  = fopen(label,"w");
-     if (fo == (FILE *)0)
+     label[i] = 0;
+     fo  = open(label, O_WRONLY);
+     if (fo == -1)
          mexErrMsgTxt("Cant open output file.");
 
      /* open input files */
      p   = mxGetPr(prhs[3]);
 
      for (i = 0; i < g; i++) {
-	for(j=0;j<128;j++) label[j]= NULL;
+	for(j=0;j<128;j++) label[j]= 0;
         for (j = 0; j < h; j++){
           label[j] = (char) p[i + j*g];
 	/*  mexPrintf("%c%d ",label[j],label[j]); */
-	  if (label[j] == (char) 32) label[j] = NULL;
+	  if (label[j] == (char) 32) label[j] = 0;
         }
 	/* mexPrintf(" \n mean :  %s %d ",label,strlen(label)); */
 
-        fp[i]    = fopen(label,"r");
-        if (fp[i] == (FILE *)0) {
+        fp[i]    = open(label,O_RDONLY);
+        if (fp[i] == -1) {
 	    sprintf(error_msg," \n Cant open %s fd[i] %d i %d ",label,fp[i],i);
 	    mexErrMsgTxt(error_msg);
 	}
@@ -90,66 +96,66 @@ Matrix *plhs[], *prhs[];
      if ((int) b[0] == 2) {
          ku     = (unsigned char *) mxCalloc((int) n[0], sizeof(unsigned char));
          for (j = 0; j < g; j++) {
-            fread(ku, sizeof(unsigned char), (int) n[0], fp[j]);
+            read(fp[i], ku, sizeof(unsigned char)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) ku[i];
-	    fclose(fp[j]);
+	    close(fp[j]);
          }
          for (i = 0; i < (int) n[0]; i++)
              ku[i] = (unsigned char) (pixel[i]/((double) g));
-         fwrite(ku, sizeof(unsigned char), (int) n[0], fo);
+         write(fo, ku, sizeof(unsigned char)*(int) n[0]);
       }
 
       else if ((int) b[0] == 4) {
          ks     = (short *) mxCalloc((int) n[0], sizeof(short));
          for (j = 0; j < g; j++) {
-            fread(ks, sizeof(short), (int) n[0], fp[j]);
+            read(fp[j], ks, sizeof(short)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) ks[i];
-	    fclose(fp[j]);
+	    close(fp[j]);
          }
          for (i = 0; i < (int) n[0]; i++)
              ks[i] = (short) (pixel[i]/((double) g));
-         fwrite(ks, sizeof(short), (int) n[0], fo);
+         write(fo, ks, sizeof(short)*(int) n[0]);
       }
 
       else if ((int) b[0] == 8) {
          ki     = (int *) mxCalloc((int) n[0], sizeof(int));
          for (j = 0; j < g; j++) {
-            fread(ki, sizeof(int), (int) n[0], fp[j]);
+            read(fp[j], ki, sizeof(int)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) ki[i];
-	    fclose(fp[j]);
+	    close(fp[j]);
          }
          for (i = 0; i < (int) n[0]; i++)
              ki[i] = (int) (pixel[i]/((double) g));
-         fwrite(ki, sizeof(int), (int) n[0], fo);
+         write(fo, ki, sizeof(int)*(int) n[0]);
       }
 
       else if ((int) b[0] == 16) {
          kf     = (float *) mxCalloc((int) n[0], sizeof(float));
          for (j = 0; j < g; j++) {
-            fread(kf, sizeof(float), (int) n[0], fp[j]);
+            read(fp[j], kf, sizeof(float)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) kf[i];
-	    fclose(fp[j]);
+	    close(fp[j]);
          }
          for (i = 0; i < (int) n[0]; i++)
              kf[i] = (float) (pixel[i]/((double) g));
-         fwrite(kf, sizeof(float), (int) n[0], fo);
+         write(fo, kf, sizeof(float)*(int) n[0]);
       }
 
       else if ((int) b[0] == 32) {
          kd     = (double *) mxCalloc((int) n[0], sizeof(double));
          for (j = 0; j < g; j++) {
-            fread(kd, sizeof(double), (int) n[0], fp[j]);
+            read(fp[j], kd, sizeof(double)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) kd[i];
-	    fclose(fp[j]);
+	    close(fp[j]);
          }
          for (i = 0; i < (int) n[0]; i++)
              kd[i] = (double) (pixel[i]/((double) g));
-         fwrite(kd, sizeof(double), (int) n[0], fo);
+         write(fo, kd, sizeof(double)*(int) n[0]);
       }
 
       else  {
@@ -157,5 +163,5 @@ Matrix *plhs[], *prhs[];
       }
 
      /* close files */
-     fclose(fo);
+     close(fo);
 }
