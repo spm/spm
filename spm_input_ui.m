@@ -201,15 +201,28 @@ function varargout = spm_input(varargin)
 %            evaluated types
 %          - Defaults to ''
 %
-% n        - Length of vectors required by 'e' & 'c' types
-%            Actually, for Type 'e', if *any* dimension is n then input
-%            is accepted. This enables input of matrices.
+% n        - Size of matrix requred by 'e' & 'c' types
+%          - NaN for 'e' type implies no checking - returns input as evaluated
+%          - length of n(:) specifies dimension - elements specify dimension
 %          - Inf implies no restriction
-%          - Default (missing or empty) to Inf - no restriction
+%          - Scalar n expanded to [n,1] (i.e. column vector)
+%          - E.g: [n,1] & [1,n] (scalar n) prompt for an n-vector,
+%                         returned as column or row vector respectively
+%                 [1,Inf] & [Inf,1] prompt for a single vector,
+%                         returned as column or row vector respectively
+%                 [n,Inf] & [Inf,n] prompts for any number of n-vectors,
+%                         returned with row/column dimension n respectively.
+%                 [a,b] prompts for an 2D matrix with row dimension a and
+%                         column dimension b
+%                 [a,Inf,b] prompt for a 3D matrix with row dimension a,
+%                         page dimension b, and any column dimension.
+%          - 'c' type can only deal with single vectors
+%          - NaN for 'c' type treated as Inf
+%          - Defaults (missing or empty) to NaN
 %
 % m        - Number of unique conditions required by 'c' types
 %          - Inf implies no restriction
-%          - Default (missing or empty) to Inf - no restriction
+%          - Defaults (missing or empty) to Inf - no restriction
 %
 % Labels   - Labels for button and menu types.
 %                          - string matrix, one label per row
@@ -438,8 +451,8 @@ function varargout = spm_input(varargin)
 %-----------------------------------------------------------------------
 % SUBFUNCTIONS:
 %
-% FORMAT [p,msg] = sf_ecEval(str,Type,n,m)
-% Common code for evaluating 'e' & 'c' types.
+% FORMAT [p,msg] = sf_eEval(str,Type,n,m)
+% Common code for evaluating 'e', 'c' & 'w1' types.
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -528,13 +541,13 @@ case {'e','s','c'}                   %-String and evaluated string input
 %=======================================================================
 %-Condition arguments
 if nargin<6|isempty(varargin{6}), m=Inf; else, m=varargin{6}; end
-if nargin<5|isempty(varargin{5}), n=Inf; else, n=varargin{5}; end
+if nargin<5|isempty(varargin{5}), n=NaN; else, n=varargin{5}; end
 if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
 
 if CmdLine
-	if isfinite(n), strN=sprintf('\t([%d]-vector)',n); else, strN=''; end
-	if isfinite(m), strM=sprintf('\t(%d conditions)',m); else, strM=''; end
+	strN = sf_SzStr(n,1);
+	if isfinite(m), strM=sprintf('(\t%d conditions)',m); else, strM=''; end
 	spm_input('!PrntPrmpt',[Prompt,strN,strM])
 
 	if ~isempty(DefStr)
@@ -543,12 +556,12 @@ if CmdLine
 
 	%-Eval Types 'e' & 'c' in Base workspace, catch errors
 	if any(Type=='ec')
-		[p,msg] = sf_ecEval(str,Type,n,m);
+		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
 			if isempty(str), str=DefStr; end
-			[p,msg] = sf_ecEval(str,Type,n,m);
+			[p,msg] = sf_eEval(str,Type,n,m);
 		end
 	else
 		p = str; msg='';
@@ -559,7 +572,7 @@ else
 
 	%-Create text and edit control objects
 	%---------------------------------------------------------------
-	if isfinite(n), strN=sprintf('[%d] ',n); else, strN=''; end
+	strN = sf_SzStr(n);
 	if isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
 	hPrmpt = uicontrol(Finter,'Style','Text',...
 		'String',[strN,Prompt,strM],...
@@ -614,22 +627,22 @@ else
 		'for response: Bailing out!']), end
 	str = get(h,'String');
 	if any(Type=='ec')
-		[p,msg] = sf_ecEval(str,Type,n,m);
+		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			set(h,'Style','Text',...
-				'String',msg,...
+				'String',msg,'HorizontalAlignment','Center',...
 				'ForegroundColor','r')
 			spm('Beep'), pause(2)
 			set(h,'Style','Edit',...
 				'String',str,...
-				'Horizontalalignment','Left',...
+				'HorizontalAlignment','Left',...
 				'ForegroundColor','k',...
 				'UserData',0)
 			waitfor(h,'UserData')
 			if ~ishandle(h), error(['Input window cleared ',...
 				'whilst waiting for response: Bailing out!']),end
 			str = get(h,'String');
-			[p,msg] = sf_ecEval(str,Type,n,m);
+			[p,msg] = sf_eEval(str,Type,n,m);
 		end
 	else
 		p = str; msg='';
@@ -996,12 +1009,12 @@ if CmdLine
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefString; end
 
 	%-Eval in Base workspace, catch errors
-	[p,msg] = sf_ecEval(str,Type);
+	[p,msg] = sf_eEval(str,Type);
 	while isstr(p)
 		spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 		str = input([Prompt,' : '],'s');
 		if isempty(str), str=DefString; end
-		[p,msg] = sf_ecEval(str,Type);
+		[p,msg] = sf_eEval(str,Type);
 	end
 
 else
@@ -1093,7 +1106,7 @@ else
 		'waiting for response: Bailing out!'])
 	end
 	p = get(hPrmpt,'UserData');
-	if isstr(p), [p,msg] = sf_ecEval(p,'w1'); else, p=p-1; end
+	if isstr(p), [p,msg] = sf_eEval(p,'w1'); else, p=p-1; end
 	while isstr(p)
 		set(H,'Visible','off')
 		h = uicontrol('Style','Text','String',msg,...
@@ -1108,7 +1121,7 @@ else
 		end
 		waitfor(hPrmpt,'UserData')
 		p = get(hPrmpt,'UserData');
-		if isstr(p), [p,msg] = sf_ecEval(p,'w1'); else, p=p-1; end
+		if isstr(p), [p,msg] = sf_eEval(p,'w1'); else, p=p-1; end
 	end
 
 	%-Clean up
@@ -1141,7 +1154,12 @@ case '!icond'
 % Parse condition spec strings:
 %	'2 3 2 3', '0 1 0 1', '2323', '0101', 'abab', 'R A R A'
 if nargin<4, m=Inf, else, m=varargin{4}; end
-if nargin<3, n=Inf; else, n=varargin{3}; end
+if nargin<3, n=NaN; else, n=varargin{3}; end
+if any(isnan(n(:)))
+	n=Inf;
+elseif (length(n(:))==2 & ~any(n==1)) | length(n(:))>2
+	error('condition input can only do vectors')
+end
 if nargin<2, i=''; else, i=varargin{2}; end
 if isempty(i), varargout={[],'empty input'}; return, end
 msg = ''; i=i(:)';
@@ -1168,19 +1186,16 @@ if ischar(i)
 	end
 elseif ~all(floor(i(:))==i(:))
 	i = '!'; msg = 'must be integers';
-elseif length(i)==1 & n>1
+elseif length(i)==1 & prod(n)>1
 	msg = sprintf('%d expanded',i);
 	i = floor(i./10.^[floor(log10(i)+eps):-1:0]);
 	i = i-[0,10*i(1:end-1)];
 end
-if isstr(i)
-	%-Already noted an error
-else
-	if isfinite(n) & length(i)~=n
-		i = '!'; msg = sprintf('%d-vector required',n);
-	elseif isfinite(m) & length(unique(i))~=m
-		i = '!'; msg = sprintf('%d conditions required',m);
-	end
+
+%-Check size of i & #conditions
+if ~isstr(i), [i,msg] = sf_SzChk(i,n,msg); end
+if ~isstr(i) & isfinite(m) & length(unique(i))~=m
+	i = '!'; msg = sprintf('%d conditions required',m);
 end
 
 varargout = {i,msg};
@@ -1570,17 +1585,23 @@ end % (case lower(Type))
 %- S U B - F U N C T I O N S
 %=======================================================================
 
-function [p,msg] = sf_ecEval(str,Type,n,m)
-%-----------------------------------------------------------------------
+function [p,msg] = sf_eEval(str,Type,n,m)
+%=======================================================================
 if nargin<4, m=Inf; end
-if nargin<3, n=Inf; end
+if nargin<3, n=NaN; end
 if nargin<2, Type='e'; end
 if nargin<1, str=''; end
 if isempty(str), p='!'; msg='empty input'; return, end
 switch Type
 case 'e'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p), msg = 'evaluation error'; else, msg=''; end
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif ~any(isnan(n(:)))
+		[p,msg] = sf_SzChk(p,n);
+	else
+		msg='';
+	end
 case 'c'
 	[p,msg] = spm_input('!iCond',str,n,m);
 case 'w1'
@@ -1596,6 +1617,76 @@ case 'w1'
 	end
 
 end
-if ~isstr(p) & isfinite(n) & ~any(size(p)==n)
-	p = '!'; msg = sprintf('%d-vector required',n);
+
+
+function str = sf_SzStr(n,l)
+%=======================================================================
+if nargin<2, l=0; else, l=1; end
+if nargin<1, error('insufficient arguments'), end
+n=n(:); if length(n)==1, n=[n,1]; end, dn=length(n);
+if any(isnan(n)) | (prod(n)==1 & dn<=2) | (dn==2 & min(n)==1 & isinf(max(n)))
+	str = ''; lstr = '';
+elseif dn==2 & min(n)==1
+	str = sprintf('[%d]',max(n));	lstr = [str,'-vector'];
+elseif dn==2 & sum(isinf(n))==1
+	str = sprintf('[%d]',min(n));	lstr = [str,'-vector(s)']
+else
+	str=''; for i = 1:dn
+		if isfinite(n(i)), str = sprintf('%s,%d',str,n(i));
+		else, str = sprintf('%s,*',str); end
+	end
+	str = ['[',str(2:end),']'];	lstr = [str,'-matrix'];
+end
+if l, str=sprintf('\t%s',lstr); else, str=[str,' ']; end
+
+
+function [p,msg] = sf_SzChk(p,n,msg)
+%=======================================================================
+if nargin<3, msg=''; end
+if nargin<2, n=NaN; else, n=n(:)'; end
+if nargin<1, error('insufficient arguments'), end
+
+if isstr(p) | any(isnan(n(:))), return, end
+if length(n)==1, n=[n,1]; end
+
+dn = length(n);
+sp = size(p);
+dp = ndims(p);
+
+if dn==2 & min(n)==1
+	%-[1,1], [1,n], [n,1], [1,Inf], [Inf,1] - vector - allow transpose
+	%---------------------------------------------------------------
+	i = min(find(n==max(n)));
+	if n(i)==1 & max(sp)>1
+		p='!'; msg='scalar required';
+	elseif ndims(p)~=2 | ~any(sp==1) | ( isfinite(n(i)) & max(sp)~=n )
+		%-error: Not2D | not vector | not right length
+		if isfinite(n(i)), str=sprintf('%d-',n(i)); else, str=''; end
+		p='!'; msg=[str,'vector required'];
+	elseif sp(i)==1 & n(i)~=1
+		p=p'; msg=[msg,' (input transposed)'];
+	end
+
+elseif dn==2 & sum(isinf(n))==1
+	%-[n,Inf], [Inf,n] - n vector(s) required - allow transposing
+	%---------------------------------------------------------------
+	i = find(isfinite(n));
+	if ndims(p)~=2 | ~any(sp==n(i))
+		p='!'; msg=sprintf('%d-vector(s) required',min(n));
+	elseif sp(i)~=n
+		p=p'; msg=[msg,' (input transposed)'];
+	end	
+
+else
+	%-multi-dimensional matrix required - check dimensions
+	%---------------------------------------------------------------
+	if ndims(p)~=dn | ~all( size(p)==n | isinf(n) )
+		p = '!'; msg='';
+		for i = 1:dn
+			if isfinite(n(i)), msg = sprintf('%s,%d',msg,n(i));
+			else, msg = sprintf('%s,*',msg); end
+		end
+		msg = ['[',msg(2:end),']-matrix required'];
+	end
+
 end
