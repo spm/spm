@@ -50,6 +50,13 @@ function [t,XYZ] = spm_projections(t,XYZ,u,k,V,W,S,G,C,df)
 
 global CWD
 
+%-If called with output arguments (i.e. from spm_projections_ui.m)
+% *and* global proj_MultiPage is true then allow multi-page tables.
+%---------------------------------------------------------------------------
+global proj_MultiPage, if isempty(proj_MultiPage), proj_MultiPage=0; end
+if (nargout & proj_MultiPage), bMultiPage=1; else, bMultiPage=0; end
+
+
 %-Display, characterize and print SPM{t}
 %===========================================================================
 Fgraph = spm_figure('FindWin','Graphics');
@@ -75,7 +82,7 @@ XYZ       = XYZ(:,Q);
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD);
+	text(0,0.8,spm('DirTrunc',CWD));
 	text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
 	return
 end
@@ -98,7 +105,7 @@ XYZ   = XYZ(:,Q);
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD);
+	text(0,0.8,spm('DirTrunc',CWD));
 	text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
 	return
 end
@@ -131,9 +138,10 @@ title 'contrast'; axis off; hold off
 
 %-Table headings
 %---------------------------------------------------------------------------
-y   = 24;
+y   = 25;
 axes('Position',[0.1 0.06 0.8 0.46],'Tag','Empty'); axis off
-text(0,y,['P values & statistics:   ' CWD],'FontSize',12,'FontWeight','Bold');
+text(0,y,['P values & statistics:   ' spm('DirTrunc',CWD,40)],...
+	'FontSize',12,'FontWeight','Bold');
 y   = y - 1;
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
 y   = y - 1;
@@ -150,18 +158,40 @@ y  = y - 1;
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
 y  = y - 1;
 
-% -Set-level p values {c}
+%-Set-level p values {c}
 %-----------------------------------------------------------------------
 c      = max(A);				% number of clusters
 Pc     = spm_P(c,W,u,k,S);			% set-level p value
 
+%-Pagination variables
+%-----------------------------------------------------------------------
+y0 = y;
+hPage = [];
+nPage = 1;
+Vis = 'on';
+
 %-Print set-level p-value
 %-----------------------------------------------------------------------
 str    = sprintf('%-0.3f   (%i)',Pc,c);
-text(0.00,y,str,'FontSize',8,'FontWeight','Bold')
+h = text(0.00,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+hPage = [hPage, h];
 
 
-while max(Z) & (y > 0)
+while max(Z) & ((y > 2) | bMultiPage)
+	% Paginate if necessary
+	%-------------------------------------------------------
+	if (y < 6) & proj_MultiPage
+		h = text(0.5,-2,['Page ',num2str(nPage)],...
+			'FontSize',8,'FontAngle','Italic',...
+			'Visible',Vis);
+		hPage = [hPage, h];
+		spm_figure('NewPage',hPage)
+		hPage = [];
+		nPage = nPage + 1;
+		Vis   = 'off';
+		y = y0;
+	end
+
     	%-Find largest remaining local maximum
     	%---------------------------------------------------------------
 	[U i] = max(Z);				% largest Z value
@@ -179,13 +209,17 @@ while max(Z) & (y > 0)
 	%-Print cluster and maximum voxel-level p values {Z}
     	%---------------------------------------------------------------
         str   = sprintf('%-0.3f   (%i, %0.2f)',Pkn,N(i),U);
-	text(0.18,y,str,'FontSize',8,'FontWeight','Bold')
+	h = text(0.18,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	hPage = [hPage, h];
         str   = sprintf('%-0.3f   (%-0.2f)',Pu,U);
-	text(0.44,y,str,'FontSize',8,'FontWeight','Bold')
+	h = text(0.44,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	hPage = [hPage, h];
         str   = sprintf('%-0.3f',Pz);
-	text(0.68,y,str,'FontSize',8,'FontWeight','Bold')
+	h = text(0.68,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	hPage = [hPage, h];
         str   = sprintf('%-6.0f',M(:,i));
-	text(0.84,y,str,'FontSize',8,'FontWeight','Bold')
+	h = text(0.84,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	hPage = [hPage, h];
  
 	y     = y - 1;
 
@@ -204,11 +238,14 @@ while max(Z) & (y > 0)
 			Pz  = 1 - spm_Ncdf(Z(d));	% uncorrected p value
 
         		str = sprintf('%-0.3f   (%-0.2f)',Pu,Z(d));
-			text(0.44,y,str,'FontSize',8)
+			h = text(0.44,y,str,'FontSize',8,'Visible',Vis);
+			hPage = [hPage, h];
         		str = sprintf('%-0.3f',Pz);
-			text(0.68,y,str,'FontSize',8)
+			h = text(0.68,y,str,'FontSize',8,'Visible',Vis);
+			hPage = [hPage, h];
         		str = sprintf('%-6.0f',M(:,d));
-			text(0.84,y,str,'FontSize',8)
+			h = text(0.84,y,str,'FontSize',8,'Visible',Vis);
+			hPage = [hPage, h];
 			D   = [D d];
 			y   = y - 1;
 		    end
@@ -217,14 +254,24 @@ while max(Z) & (y > 0)
 	Z(j) = Z(j)*0;			% Zero local maxima for this cluster
 end					% end region
 
+%-Number and paginate last page (if pagination was required)
+if strcmp(Vis,'off')
+	%-Label last page
+	h = text(0.5,-2,['Page ',num2str(nPage)],...
+		'FontSize',8,'FontAngle','Italic',...
+		'Visible',Vis);
+	hPage = [hPage, h];
+	spm_figure('NewPage',hPage);
+end
+
+y = min(3,y);
+
 if size(C,1) > 1
 	str = 'NB multiple contrasts - use voxel-level inferences';
 	text(0,y,str,'Color',[1 0 0])
 	y = y - 1;
 end
 
-line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
-y     = y - 0.5;
 
 %-Volume, resels and smoothness 
 %=======================================================================
@@ -236,6 +283,9 @@ RESEL           = S*prod(V([1:D] + 3))/prod(FWHM);		% RESELS
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
+y  = y + 0.5;
+line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
+y  = y - 0.5;
 str = sprintf('Height threshold {u} = %0.2f, p = %0.3f',u,1 - spm_Ncdf(u));
 text(0,y,str,'FontSize',8);
 y  = y - 1;
@@ -272,5 +322,5 @@ end
 text(0.6,y,str,'FontSize',8);
 
 
-set(gca,'Ylim',[y 24]);
+% set(gca,'Ylim',[y 24]);
 
