@@ -631,7 +631,7 @@ switch xCon(Ic(1)).STAT
 case 'T'
 	STATstr = sprintf('%c%s_{%.1f}','T',str,edf(2));
 case 'F'
-	STATstr = sprintf('%c%s_{[%.1f,%.1f]}','F',str,edf(1),edf(2));
+	STATstr = sprintf('%c%s_{%.1f,%.1f}','F',str,edf(1),edf(2));
 case 'P'
 	STATstr = sprintf('%s^{%0.2f}','PPM',edf(1));
 end
