@@ -136,10 +136,19 @@ function varargout=spm(varargin)
 % CmdLine = spm('isGCmdLine')
 % Returns true if global CMDLINE exists and is itself true.
 %
+% FORMAT v = spm('MLver')
+% Returns MatLab version, truncated to major & minor revision numbers
+%
 % FORMAT spm('SetCmdWinLabel',WinStripe,IconLabel)
 % Sets the names on the headers and icons of Sun command tools.
 % WinStripe defaults to a summary line identifying the user, host and
 % MatLab version; IconLabel to 'MatLab'.
+%
+% FORMAT spm('UtilPullDownCB',h)
+% Callback handler for "Utilities" PullDown menu in the SPM Menu window
+%
+% FORMAT User = spm('GetUser')
+% Returns current user, culled from the USER environment variable
 %
 %_______________________________________________________________________
 
@@ -255,10 +264,10 @@ set(F,'Pointer','Arrow','Visible','on')
 
 case 'asciiwelcome'
 %=======================================================================
-disp([' ___  ____  __  __   ',spm('Ver')])
+disp( ' ___  ____  __  __                                                  ')
 disp( '/ __)(  _ \(  \/  )  Statistical Parametric Mapping                 ')
 disp( '\__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology ')
-disp( '(___/(__)  (_/\/\_)  http://www.fil.ion.ucl.ac.uk/spm               ')
+disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm'])
 fprintf('\n')
 
 
@@ -421,11 +430,11 @@ uicontrol(Fmenu,'String','SPM{Z}',	'Position',[285 165 070 30].*WS,...
 
 %-Utility buttons (first line)
 %-----------------------------------------------------------------------
-uicontrol(Fmenu,'String','Analyze',	'Position',[020 088 082 024].*WS,...
-	'CallBack','!analyze')
-
-uicontrol(Fmenu,'String','Display',	'Position',[112 088 083 024].*WS,...
+uicontrol(Fmenu,'String','Display',	'Position',[020 088 082 024].*WS,...
 	'CallBack','spm_image')
+
+uicontrol(Fmenu,'String','',		'Position',[112 088 083 024].*WS,...
+	'CallBack','',			'Enable','off')
 
 uicontrol(Fmenu,'String','Render',	'Position',[205 088 083 024].*WS,...
 	'CallBack','spm_render')
@@ -440,21 +449,19 @@ uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 
 %-Utility buttons (second line)
 %-----------------------------------------------------------------------
-uicontrol(Fmenu,'String','GhostView',	'Position',[020 054 082 024].*WS,...
-	'CallBack',[...
-		'unix([''ghostview '',spm_get(1,''.ps'',''Select ',...
-		'PostScript file to view''),'' &'']);'])
-
-uicontrol(Fmenu,'String','CD',		'Position',[112 054 083 024].*WS,...
+uicontrol(Fmenu,'String','CD',		'Position',[020 054 082 024].*WS,...
 	'CallBack',[...
 		'cd(spm_get(-1,[],''Select new working directory'')),',...
 		'fprintf(''\nSPM working directory:\n\t%s\n\n>> '',pwd)'])
 
-uicontrol(Fmenu,'String','Mean',	'Position',[205 054 083 024].*WS,...
+uicontrol(Fmenu,'String','Mean',	'Position',[112 054 083 024].*WS,...
 	'CallBack','spm_average')
 
-uicontrol(Fmenu,'String','ImCalc',	'Position',[298 054 082 024].*WS,...
+uicontrol(Fmenu,'String','ImCalc',	'Position',[205 054 083 024].*WS,...
 	'CallBack','spm_image_funks')
+
+uicontrol(Fmenu,'String','HDR edit',	'Position',[298 054 082 024].*WS,...
+	'CallBack','spm_header_edit')
 
 %-Utility buttons (third line)
 %-----------------------------------------------------------------------
@@ -462,15 +469,17 @@ uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*WS,...
 	'CallBack','spm_help',...
 	'ForeGroundColor','g')
 
-uicontrol(Fmenu,'String','Defaults',	'Position',[112 020 083 024].*WS,...
-	'CallBack','spm_defaults_edit')
+uicontrol(Fmenu,'Style','PopUp',...
+	'String','Utilities|Analyze|GhostView|Run mFile',...
+	'Tag','UtilPullDown',		'Position',[112 020 083 024].*WS,...
+	'CallBack','spm(''UtilPullDownCB'',gcbo)',...
+	'UserData',{	'!analyze',...
+			['unix([''ghostview '',spm_get(1,''.ps'',''Select ',...
+				'PostScript file to view''),'' &'']);'],...
+			'run(spm_get(1,''*.m'',''Select mFile to run''))'} )
 
-User = spm('GetUser');
-uicontrol(Fmenu,'String',User,'Position',[205 020 083 024].*WS,...
-	'FontAngle','Italic',...
-	'CallBack',...
-		['if exist(''' User ''');',...
-		 User,';else;spm_help(''UserButton''); end'])
+uicontrol(Fmenu,'String','Defaults',	'Position',[205 020 083 024].*WS,...
+	'CallBack','spm_defaults_edit')
 
 uicontrol(Fmenu,'String','Quit',	'Position',[298 020 082 024].*WS,...
 	'ForeGroundColor','r',		'Interruptible','off',...
@@ -482,7 +491,7 @@ set(Fmenu,'CloseRequestFcn',[...
 		'delete(get(0,''Children'')),',...
 		'clear all,clc,fprintf(''Bye...\n\n>> '')'])
 
-% set(Fmenu,'Visible',Vis)
+set(Fmenu,'Visible',Vis)
 varargout = {Fmenu};
 
 
@@ -748,7 +757,7 @@ if isempty(CMDLINE), varargout = {0}; else, varargout = {CMDLINE}; end
 
 case 'mlver'
 %=======================================================================
-% spm('MLver')
+% v = spm('MLver')
 v = version; tmp = find(v=='.');
 if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
@@ -776,6 +785,17 @@ if nargin<2, WinStripe = [User,' - ',Host,' : MatLab ',v]; end
 %-Set window stripe
 %-----------------------------------------------------------------------
 disp([']l' WinStripe '\]L' IconLabel '\'])
+
+
+case 'utilpulldowncb'
+%=======================================================================
+% spm('UtilPullDownCB',h)
+if nargin<2, h=gcbo; else, h=varargin{2}; end
+v   = get(h,'Value');
+if v==1, return, end
+set(h,'Value',1)
+CBs = get(h,'UserData');
+evalin('base',CBs{v-1})
 
 
 case 'getuser'
