@@ -14,7 +14,7 @@ function R1=spm_figure(Action,P2,P3,P4)
 %
 % The Graphics window is provided with a menu bar at the top that
 % facilitates editing and printing of the current graphic display,
-% faciliating interactive editing of graphic output prior to printing
+% enabling interactive editing of graphic output prior to printing
 % (e.g. selection of color maps, deleting, moving and editing graphics
 % objects or adding text)
 %
@@ -26,7 +26,7 @@ function R1=spm_figure(Action,P2,P3,P4)
 % usage (figure 'Tag'ed as 'Graphics' then the 'Interactive' 'Tag'ed
 % window is also cleared, and it's name and pointer reset.
 %
-% Changing The Colormap:
+% Colormap options:
 % * Gray and Hot: Sets the colormap to its default values and loads
 %                 either a grayscale or 'hot metal' color map.
 % * Split: Loads a 'split' color map from 'Split.mat' {128 x 3
@@ -34,7 +34,11 @@ function R1=spm_figure(Action,P2,P3,P4)
 %          is 'hot metal'.  This color map is used for viewing 'rendered' 
 %          SPM{Z} on a PET, MRI or other background images
 %
-% Invert: Inverts (flips) the current color map.
+% Colormap effects:
+% * Invert: Inverts (flips) the current color map.
+% * Brighten and Darken: Brighten and Darken the current colourmap
+% 	   using the MatLab BRIGHTEN command, with  beta's of +0.2 and -0.2
+% 	   respectively.
 %
 % Editing:
 % * Cut  : Deletes the graphics object next selected (if deletable)
@@ -90,6 +94,12 @@ function R1=spm_figure(Action,P2,P3,P4)
 %	- Defaults to 'Graphics'
 % F	- (Output) Figure number (if found) or empty (if not).
 %
+% FORMAT F = spm_figure('FindParentWin',h)
+% Finds window containing the object whose handle is specified
+% h	- Handle of object whose parent figure is required
+%	- If a vector, then first object handle is used
+% F	- Number or parent figure
+%
 % FORMAT spm_figure('Clear',F)
 % F	- 'Tag' string or figure number of figure to clear, defaults to gcf
 % Clears figure, leaving ToolBar (& other objects 'Tag'ed as 'NoDelete')
@@ -123,6 +133,19 @@ function R1=spm_figure(Action,P2,P3,P4)
 % object, while the 'PrevPage' object holds the current page number.
 % See spm_help('Disp') for details on setting up paging axes.
 %
+% FORMAT spm_figure('NewPage',hPage,MoveOn)
+% SPM pagination function: Makes objects with handles hPage paginated
+% Creates pagination buttons if necessary.
+% hPage	 - Handles of objects to stick to this page
+% MoveOn - If specified, causes hPage objects to be made invisible
+%
+% FORMAT spm_figure('DeletePageControls',F)
+% SPM pagination function: Deletes page controls
+% F	- [Optional] Figure in which to attempt to turn the page
+%         Defaults to 'Graphics' 'Tag'ged window
+%
+% FORMAT spm_figure('TurnPage',move,F)
+% SPM pagination function: Turn to specified page
 %
 % FORMAT spm_figure('ColorMap')
 % Callback for "ColorMap" buttons
@@ -144,7 +167,7 @@ function R1=spm_figure(Action,P2,P3,P4)
 %
 % FORMAT spm_figure('GraphicsText')
 % Callback for "Text" button
-%____________________________________________________________________________
+%_______________________________________________________________________
 
 
 %-Condition arguments
@@ -152,7 +175,7 @@ function R1=spm_figure(Action,P2,P3,P4)
 if (nargin==0), Action = 'Create'; nargin=1; end
 if ~isstr(Action), P2=Action; Action='CreateBar'; end
 
-if strcmp(Action,'Create')
+if strcmp(lower(Action),lower('Create'))
 %=======================================================================
 % F = spm_figure('Create',Tag)
 %-Condition arguments
@@ -166,7 +189,7 @@ R1 = F;
 return
 
 
-elseif strcmp(Action,'CreateWin')
+elseif strcmp(lower(Action),lower('CreateWin'))
 %=======================================================================
 % F=spm_figure('CreateWin',Tag,Visible)
 if (nargin<3), Visible='on'; else, Visible=P3; end
@@ -188,7 +211,7 @@ R1 = F;
 return
 
 
-elseif strcmp(Action,'FindWin')
+elseif strcmp(lower(Action),lower('FindWin'))
 %=======================================================================
 % F=spm_figure('FindWin',F)
 % F=spm_figure('FindWin',Tag)
@@ -217,9 +240,17 @@ end
 R1 = F;
 return
 
+elseif strcmp(lower(Action),lower('FindParentWin'))
+%=======================================================================
+% F=spm_figure('FindParentWin',h)
+if nargin<2, error('No object specified'), else, h=P2; end
+F = get(h(1),'Parent');
+while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
+R1 = F;
+return
 
 
-elseif strcmp(Action,'Clear')
+elseif strcmp(lower(Action),lower('Clear'))
 %=======================================================================
 % spm_figure('Clear',F)
 %-Clear window, leaving 'NoDelete' 'Tag'ed objects, reset pointer & name
@@ -247,12 +278,12 @@ if strcmp(get(F,'Tag'),'Interactive'), set(F,'Pointer','Arrow','Name',''), end
 return
 
 
-elseif strcmp(Action,'Print')
+elseif strcmp(lower(Action),lower('Print'))
 %=======================================================================
 % spm_figure('Print',F,PFile)
 
 %-Arguments & defaults
-if nargin<3, PFile='fig.ps'; else, PFile=P3; end
+if nargin<3, PFile='spm.ps'; else, PFile=P3; end
 if nargin<2, F='Graphics'; else, F=P2; end
 
 %-Find window to print, default to gcf if specified figure not found
@@ -264,6 +295,7 @@ if isempty(F), return, end
 %-See if window has paging controls
 hNextPage = findobj(F,'Tag','NextPage');
 hPrevPage = findobj(F,'Tag','PrevPage');
+hPageNo   = findobj(F,'Tag','PageNo');
 iPaged    = ~isempty(hNextPage);
 figure(F)
 
@@ -302,22 +334,137 @@ if ~iPaged
 	eval(PrintCmd)
 else
 	hAxes     = get(hNextPage,'UserData');
-	Cpage     = get(hPrevPage,'UserData');
-	nPages    = length(hAxes);
+	Cpage     = get(hPageNo,  'UserData');
+	nPages    = size(hAxes,1);
 	
 	if Cpage~=1
-		set(get(hAxes(Cpage),'Children'),'Visible','off'), end
+		set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','off'), end
 	for p = 1:nPages
-		set(get(hAxes(p),'Children'),'Visible','on')
+		set(hAxes(p,hAxes(p,:)~=0),'Visible','on')
 		eval(PrintCmd)
-		set(get(hAxes(p),'Children'),'Visible','off')
+		set(hAxes(p,hAxes(p,:)~=0),'Visible','off')
 	end
-	set(get(hAxes(Cpage),'Children'),'Visible','on')
+	if Cpage~=1
+		set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','on'), end
 end
 return
 
+elseif strcmp(lower(Action),lower('NewPage'))
+%=======================================================================
+% h = spm_figure('NewPage',hPage,MoveOn)
+if nargin<3, MoveOn=0; else, MoveOn=1; end
+if nargin<2, hPage=[]; else, hPage=P2(:)'; end
+if isempty(hPage), error('No handles to paginate'), end
 
-elseif strcmp(Action,'CreateBar')
+%-Work out which figure we're in
+Fgraph = spm_figure('FindParentWin',hPage(1));
+
+hNextPage = findobj(Fgraph,'Tag','NextPage');
+hPrevPage = findobj(Fgraph,'Tag','PrevPage');
+hPageNo   = findobj(Fgraph,'Tag','PageNo');
+
+%-Create pagination widgets if required
+%-----------------------------------------------------------------------
+if isempty(hNextPage)
+	hNextPage = uicontrol(Fgraph,'Style','Pushbutton',...
+		'String','>',...
+		'Callback','spm_figure(''TurnPage'',''+1'',gcf)',...
+		'Position',[580 020 015 015].*spm('GetWinScale'),...
+		'ForegroundColor',[0 0 0],...
+		'Tag','NextPage','UserData',[]);
+	hPrevPage = uicontrol(Fgraph,'Style','Pushbutton',...
+		'String','<',...
+		'Callback','spm_figure(''TurnPage'',''-1'',gcf)',...
+		'Position',[565 020 015 015].*spm('GetWinScale'),...
+		'Visible','on',...
+		'ForegroundColor',[1 1 1]*0.5,...
+		'Tag','PrevPage');
+	hPageNo = uicontrol(Fgraph,'Style','Text',...
+		'String','',...
+		'HorizontalAlignment','center',...
+		'BackgroundColor','w',...
+		'Position',[560 005 040 015].*spm('GetWinScale'),...
+		'Visible','on',...
+		'Tag','PageNo','UserData',1);
+end
+
+%-Add handles for this page to UserData of hNextPage
+%-----------------------------------------------------------------------
+hAxes     = get(hNextPage,'UserData');
+tmp       = max(size(hAxes,2),length(hPage));
+hAxes     = [ [hAxes, zeros(size(hAxes,1),tmp-size(hAxes,2))];...
+		[hPage, zeros(1,tmp-length(hPage))] ];
+set(hNextPage,'UserData',hAxes)
+
+%-Make handles for this page invisible if requested
+%-----------------------------------------------------------------------
+if MoveOn
+	set(get(hPage,'Children'),'Visible','off')
+end
+
+%-Return handles to pagination controls if requested
+if nargout>0
+	R1 = [hNextPage, hPrevPage, hPageNo];
+end
+
+return
+
+
+elseif strcmp(lower(Action),lower('TurnPage'))
+%=======================================================================
+% spm_figure('TurnPage',move,F)
+if nargin<3, F='Graphics'; else, F=P3; end
+if nargin<2, move=1; else, move=P2; end
+Fgraph = spm_figure('FindWin',F);
+if isempty(Fgraph), error('No Graphics window'), end
+
+hNextPage = findobj(Fgraph,'Tag','NextPage');
+hPrevPage = findobj(Fgraph,'Tag','PrevPage');
+hPageNo   = findobj(Fgraph,'Tag','PageNo');
+if isempty(hNextPage), return, end
+hAxes     = get(hNextPage,'UserData');
+Cpage     = get(hPageNo,  'UserData');
+nPages    = size(hAxes,1);
+
+%-Sort out new page number
+if isstr(move)
+	Npage = Cpage+eval(move);
+else
+	Npage = move;
+end
+Npage = max(min(Npage,nPages),1);
+
+%-Make current page invisible, new page visible, set page number string
+set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','off')
+set(hAxes(Npage,hAxes(Npage,:)~=0),'Visible','on')
+set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
+
+%-Set dimness of page turning controls (just for neatness)
+if Npage==1, set(hPrevPage,'ForegroundColor',[1 1 1]*0.5)
+else, set(hPrevPage,'ForegroundColor',[0 0 0]), end
+
+if Npage==nPages, set(hNextPage,'ForegroundColor',[1 1 1]*0.5)
+else, set(hNextPage,'ForegroundColor',[0 0 0]), end
+
+return
+
+elseif strcmp(lower(Action),lower('DeletePageControls'))
+%=======================================================================
+% spm_figure('DeletePageControls',F)
+if nargin<2, F='Graphics'; else, F=P2; end
+Fgraph = spm_figure('FindWin',F);
+if isempty(Fgraph), error('No Graphics window'), end
+
+hNextPage = findobj(Fgraph,'Tag','NextPage');
+hPrevPage = findobj(Fgraph,'Tag','PrevPage');
+hPageNo   = findobj(Fgraph,'Tag','PageNo');
+
+delete([hNextPage hPrevPage hPageNo])
+
+return
+
+
+elseif strcmp(lower(Action),lower('CreateBar'))
 %=======================================================================
 % spm_figure('CreateBar',F)
 
@@ -374,15 +521,23 @@ if strcmp(get(F,'Tag'),'Graphics')
 	'spm_figure(''Clear'',gcf), spm_figure(''Clear'',''Interactive'')')
 end
 
-uicontrol(F,'Style','PopUp','String','gray|hot|split',...
+uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
 	'Position',[x,y,2*sx,sy],...
-	'CallBack','spm_figure(''ColorMap'',get(gco,''Value''))',...
+	'CallBack',['if (get(gco,''Value'') > 1),',...
+			'set(gco,''UserData'',get(gco,''Value'')),',...
+			'set(gco,''Value'',1),',...
+			'spm_figure(''ColorMap'',get(gco,''UserData'')),',...
+			'end'],...
 	'Tag','NoDelete',...
 	'UserData','Pop'); x = x + 2*sx;
 
-uicontrol(F,'Style','PopUp','String','invert|brighten|darken',...
+uicontrol(F,'Style','PopUp','String','Effects|invert|brighten|darken',...
 	'Position',[x,y,2*sx,sy],...
-	'CallBack','spm_figure(''ColorMap'',get(gco,''Value''))',...
+	'CallBack',['if (get(gco,''Value'') > 1),',...
+			'set(gco,''UserData'',get(gco,''Value'')),',...
+			'set(gco,''Value'',1),',...
+			'spm_figure(''ColorMap'',get(gco,''UserData'')),',...
+			'end'],...
 	'Tag','NoDelete',...
 	'UserData','Pop'); x = x + 2*sx + dx;
 
@@ -406,11 +561,13 @@ uicontrol(F,'String','text',  'Position',[x y sx sy],...
 return
 
 
-elseif strcmp(Action,'ColorMap')
+elseif strcmp(lower(Action),lower('ColorMap'))
 %=======================================================================
-% spm_figure('Colormap',ColAction)
+% spm_figure('Colormap',ColAction,h)
+if nargin<3, h=[]; else, h=P3; end
 if nargin<2, ColAction='gray'; else, ColAction=P2; end
 if ~isstr(ColAction)
+	if ColAction==1, return, end
 	Actions   = get(gco,'String');
 	ColAction = deblank(Actions(ColAction,:));
 end
@@ -422,9 +579,9 @@ elseif strcmp(ColAction,'split')
 	load Split; colormap(split)
 elseif strcmp(ColAction,'invert')
 	colormap(flipud(colormap))
-elseif strcmp(ColAction, 'brighten')
+elseif strcmp(ColAction,'brighten')
 	colormap(brighten(colormap, 0.2))
-elseif strcmp(ColAction, 'darken')
+elseif strcmp(ColAction,'darken')
 	colormap(brighten(colormap, -0.2))
 else
 	error('Illegal ColAction specification')
@@ -432,7 +589,7 @@ end
 
 return
 
-elseif strcmp(Action,'GraphicsCut')
+elseif strcmp(lower(Action),lower('GraphicsCut'))
 %=======================================================================
 % Delete next object clicked, provided it's deletable and in this figure
 % spm_figure('GraphicsCut')
@@ -451,17 +608,17 @@ set(hBut,'ForegroundColor','k')
 return
 
 
-elseif strcmp(Action,'GraphicsMoveStart')
+elseif strcmp(lower(Action),lower('GraphicsMoveStart'))
 %=======================================================================
 % Move the next object clicked, provided it's movable and in this figure
 % spm_figure('GraphicsMove')
 
 F = gcf;
-hBut  = gco;
-set(hBut,'ForegroundColor','r')
+hMoveBut  = gco;
+set(hMoveBut,'ForegroundColor','r')
 waitforbuttonpress;
 
-hPress = gco(F);
+hPress = gco;
 NoDel=[F; findobj(F,'Tag','NoDelete')];
 if (~any(hPress==NoDel) & gcf==F)
 	set(F,'Units','Pixels')
@@ -474,22 +631,24 @@ if (~any(hPress==NoDel) & gcf==F)
 	end
 	set(hMove,'Units','Pixels');
 	OPos = get(hMove,'Position');
-	set(hPress,'UserData',[hMove,OPt,OPos])
-	%set(F,'UserData',[h,OPt,OPos])
-	set(F,'WindowButtonUpFcn','spm_figure(''GraphicsMoveEnd'')')
-	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')')
+	set(hMoveBut,'UserData',[hMove,OPt,OPos])
+	set(F,'WindowButtonUpFcn','spm_figure(''GraphicsMoveEnd'')',...
+		'Interruptible','no')
+	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')',...
+		'Interruptible','no')
 end
 
-set(hBut,'ForegroundColor','k')
+set(hMoveBut,'ForegroundColor','k')
 
 return
 
 
-elseif strcmp(Action,'GraphicsMoveMotion')
+elseif strcmp(lower(Action),lower('GraphicsMoveMotion'))
 %=======================================================================
 F     = gcf;
 hPress = gco;
-tmp   = get(hPress,'UserData');
+hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
+tmp   = get(hMoveBut,'UserData');
 hMove = tmp(1); OPt = tmp(2:3); OPos = tmp(4:length(tmp));
 CPt   = get(F,'CurrentPoint');
 Disp  = CPt - OPt;
@@ -499,10 +658,11 @@ set(hMove,'Position',CPos)
 set(hMove,'Units','Normalized')
 
 
-elseif strcmp(Action,'GraphicsMoveEnd')
+elseif strcmp(lower(Action),lower('GraphicsMoveEnd'))
 %=======================================================================
 
-set(gcf,'UserData',[])
+hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
+set(hMoveBut,'UserData',[])
 set(gcf,'WindowButtonMotionFcn',' ')
 set(gcf,'WindowButtonUpFcn',' ')
 
@@ -510,7 +670,7 @@ return
 
 
 
-elseif strcmp(Action,'GraphicsSize')
+elseif strcmp(lower(Action),lower('GraphicsSize'))
 %=======================================================================
 % Change size of next object clicked, provided it's editable and in figure
 % spm_figure('GraphicsSize')
@@ -542,7 +702,7 @@ return
 
 
 
-elseif strcmp(Action,'GraphicsText')
+elseif strcmp(lower(Action),lower('GraphicsText'))
 %=======================================================================
 % Add text annotation to a figure
 % spm_figure('GraphicsText')
