@@ -60,7 +60,7 @@ BCOV  = [];
 %-----------------------------------------------------------------------
 if bXd, bXd = all([size(Xd.C)==size(C),size(Xd.G)==size(G)]); end
 if bXd, bXd = all(all(Xd.C==C)) & all(all(Xd.G==G)) & (Xd.sigma==sigma); end
-bXd
+
 
 %-Check design matrix.  If C = [] then assume statistics are required
 % for the effect of confounds
@@ -71,7 +71,7 @@ H     = [C G];
 if size(G,2) == 0; G = zeros(q,1); end
 
 
-%-Compute & stote / unpack df and psuedoinverses
+%-Compute & store / unpack df and psuedoinverses
 %-----------------------------------------------------------------------
 if ~bXd
 	%-Temporal convolution kernel - A sparse Toeplitz matrix
