@@ -66,10 +66,32 @@ double H[65536], float s[3])
 
 				if (zp>=1.0 && zp<df[2] && yp>=1.0 && yp<df[1] && xp>=1.0 && xp<df[0])
 				{
-					int vf, vg;
-					vg = (int)rint(samp(dg, g, rx,ry,rz));
-					vf = (int)rint(samp(df, f, xp,yp,zp));
-					H[vf+vg*256] ++;
+					float vf;
+					int   ivf, ivg;
+					vf  = samp(df, f, xp,yp,zp);
+					ivf = floor(vf);
+					ivg = floor(samp(dg, g, rx,ry,rz)+0.5);
+					H[ivf+ivg*256] += (1-(vf-ivf));
+					if (ivf<255)
+						H[ivf+1+ivg*256] += (vf-ivf);
+
+					/*
+					float vf, vg;
+					int ivf, ivg;
+					vg  = samp(dg, g, rx,ry,rz);
+					vf  = samp(df, f, xp,yp,zp);
+					ivg = floor(vg);
+					ivf = floor(vf);
+					H[ivf+ivg*256] += (1-(vf-ivf))*(1-(vg-ivg));
+					if (ivf<255)
+						H[ivf+1+ivg*256] += (vf-ivf)*(1-(vg-ivg));
+					if (ivg<255)
+					{
+						H[ivf+(ivg+1)*256] += (1-(vf-ivf))*(vg-ivg);
+						if (ivf<255)
+							H[ivf+1+(ivg+1)*256] += (vf-ivf)*(vg-ivg);
+					}
+					*/
 				}
 			}
 		}
