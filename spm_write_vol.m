@@ -20,6 +20,10 @@ end
 % Set scalefactors and offsets
 %-----------------------------------------------------------------------
 dt = V.dim(4); if dt>256, dt = dt/256; end;
+if any(dt == [128+2 128+4 128+8]),
+	% Convert to a form that Analyze will support
+	dt = dt - 128;
+end;
 s = find(dt == [2 4 8 128+2 128+4 128+8]);
 dmnmx = [0 -2^15 -2^31 -2^7 0 0 ; 2^8-1 2^15-1 2^31-1 2^7-1 2^16 2^32];
 dmnmx = dmnmx(:,s);

@@ -86,9 +86,10 @@ else,
 		% Convert to a form that Analyze will support
 		dt = dt - 128;
 		if spm_type(V.dim(4),'swapped')
-			V.dim(4) = dt*256;
+			dt = dt*256;
 		end;
 	end;
+	V.dim(4) = dt;
 
 	if spm_type(V.dim(4),'swapped')
 		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
