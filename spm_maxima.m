@@ -19,6 +19,7 @@ function spm_maxima(SPM,VOL,hReg)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 %
 % hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
@@ -43,7 +44,12 @@ function spm_maxima(SPM,VOL,hReg)
 %-Get voxel nearest current location
 %-----------------------------------------------------------------------
 [xyzmm,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
-
+if isempty(xyzmm)
+	msgbox('No voxels survive masking & threshold(s)!',...
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'help','modal')
+	return
+end
 
 %-Find selected cluster
 %-----------------------------------------------------------------------
