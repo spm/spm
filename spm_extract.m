@@ -3,6 +3,8 @@ function data = spm_extract(fname,index)
 % FORMAT data = spm_extract(fname,index)
 % fname - name of data file.
 % index - the indexes of the required columns.
+%         - if index is Inf or NaN, then the whole
+%           matrix is extracted.
 % data  - the extracted columns of the matrix.
 %
 % OR     dim = spm_extract(fname)
@@ -32,17 +34,28 @@ else,
 	% Return the data itself.
 	len = 8*ceil(dim(1)*2/8);
 
-	if any((index>dim(2)) | (index<1)),
-		my_fclose(fp);
-		error(['Trying to read columns from "' fname '" that don''t exist.']);
-	end;
+	if prod(size(index))==1 & ~finite(index(1)),
+		data = zeros(dim(1),dim(2));
+		for i=1:dim(2),
+			my_fseek(fp,hdrlen + (len + 2*8)*(i-1),'bof');
+			sca = my_fread(fp,2, 'float64');
+			tmp = my_fread(fp,dim(1), 'uint16');
+			data(:,i) = tmp*sca(1)+sca(2);
+		end;
+	else,
+		if any((index>dim(2)) | (index<1)),
+			my_fclose(fp);
+			error(['Trying to read columns from "' fname '" that don''t exist.']);
+		end;
 
-	data = zeros(dim(1),prod(size(index)));
-	for i=1:prod(size(index)),
-		my_fseek(fp,hdrlen + (len + 2*8)*(i-1),'bof');
-		sca = my_fread(fp,2, 'float64');
-		tmp = my_fread(fp,dim(1), 'uint16');
-		data(:,i) = tmp*sca(1)+sca(2);
+		data = zeros(dim(1),prod(size(index)));
+		for i=1:prod(size(index)),
+			ind=index(i);
+			my_fseek(fp,hdrlen + (len + 2*8)*(ind-1),'bof');
+			sca = my_fread(fp,2, 'float64');
+			tmp = my_fread(fp,dim(1), 'uint16');
+			data(:,i) = tmp*sca(1)+sca(2);
+		end;
 	end;
 end;
 my_fclose(fp);
