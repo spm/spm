@@ -59,12 +59,15 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 %   SPMt.mat contains a c x N matrix of the c SPM{Z} defined by the c  
 % contrasts supplied for all N voxels at locations XYZ.
 %
-%   SPM.mat  contains a collection of matrices that pertain to the 
+%   SPM.mat contains a collection of matrices that pertain to the 
 % analysis; including the partitions of the design matrix [H C B G], the
 % number of voxels analyzed (S), image and voxel dimensions [V],
 % smoothness estimates of the SPM{Z} [W], threshold for SPM{F}
 % [UF] and the contrasts used [CONTRAST].  See below for a complete
 % listing.
+%
+%   RES.mat contains 1 x N vector of residual sum of squares for the voxels
+% in XYZ.mat
 %
 % Output to the results window includes maximum intensity projections
 % of the SPM{F}, the design matrix and a series of pages for the SPM{Z}
@@ -103,9 +106,9 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % XA 	-	adjusted data  		{with grand mean}
 % BETA 	-	parameter estimates	{mean corrected}
 % XYZ	-	location 		{mm [Talairach]}
-% RES 	-	residual SSQ
 % SPMF	-	SPM{F}
 % SPMt	-	SPM{Z}
+% RES 	-	residual SSQ
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston %E%
@@ -117,7 +120,7 @@ global UFp
 
 %-Delete files from previous analyses, if they exist
 %-----------------------------------------------------------------------
-spm_unlink XA.mat RES.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat
+spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat RES.mat 
 
 
 % temporal convolution of the design matrix - dispersion = SIGMA
