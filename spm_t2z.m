@@ -38,17 +38,17 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % z. In this case imposing a one-one relationship for df>d say would
 % give a jump from df=d-1 to df=d.
 %
-% For t deviates with very small tail probabilities (< Tol), the
-% corresponding z is computed by extrapolation of the t2z relationship
-% z=f(t). This extrapolation takes the form of z = log(t-t1+l0) +
-% (z1-log(l0)). Here (t1,z1) is the t & z ordinates with tail
-% probability Tol. l0 is chosen such that at the point where
-% extrapolation takes over (t1,z1), continuity of the first derivative
-% is maintained. Thus, the gradient of the f(t) at t1 is estimated as m
-% using six points equally spaced to t1-0.5, and l0 is then 1/m.
-% Experience suggests that this underestimates z, especially for
-% ludicrously high t and/or high df, giving conservative (though still
-% significant) results.
+% For t deviates with very small tail probabilities (< Tol = 10^(-10),
+% corresponding to a z of about 6), the corresponding z is computed by
+% extrapolation of the t2z relationship z=f(t). This extrapolation
+% takes the form of z = log(t-t1+l0) + (z1-log(l0)). Here (t1,z1) is
+% the t & z ordinates with tail probability Tol. l0 is chosen such that
+% at the point where extrapolation takes over (t1,z1), continuity of
+% the first derivative is maintained. Thus, the gradient of the f(t) at
+% t1 is estimated as m using six points equally spaced to t1-0.5, and
+% l0 is then 1/m.  Experience suggests that this underestimates z,
+% especially for ludicrously high t and/or high df, giving conservative
+% (though still significant) results.
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
@@ -73,7 +73,7 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % p-value tolerance: t-values with tail probabilities less than this are
 % converted to z by linear extrapolation
 %---------------------------------------------------------------------------
-if nargin<3, Tol = 10^(-16); end
+if nargin<3, Tol = 10^(-10); end
 
 %-Argument range and size checks
 %---------------------------------------------------------------------------
