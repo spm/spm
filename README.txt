@@ -1,7 +1,7 @@
   ___  ____  __  __
- / __)(  _ \(  \/  )  Statistical Parametric Mapping
- \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
- (___/(__)  (_/\/\_)  SPMweb: http://www.fil.ion.ucl.ac.uk/spm
+ / __)(  _ \(  \/  )  
+ \__ \ )___/ )    (   Statistical Parametric Mapping
+ (___/(__)  (_/\/\_)  SPM -  http://www.fil.ion.ucl.ac.uk/spm
 
                               R E A D M E
 
@@ -121,6 +121,7 @@ supplied as is.  No formal support or maintenance is provided or
 implied.
 
 ________________________________________________________________________
- The FIL methods group : The Wellcome Department of Cognitive Neurology
+SPM is developed by members and collaborators of the
+                              Wellcome Department of Cognitive Neurology
 
 %Z%%M% %I% %E%
