@@ -80,7 +80,7 @@ if nargin>=4,
 end;
 
 def_flags = struct('sep',[4 2],'params',[0 0 0  0 0 0], 'cost_fun','nmi','fwhm',[7 7],...
-	'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001]);
+	'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
 if nargin < 3,
 	flags = def_flags;
 else,
@@ -132,7 +132,9 @@ for samp=flags.sep(:)',
 	[x,fval] = spm_powell(x(:), xi,sc,mfilename,VG,VF,samp,flags.cost_fun,flags.fwhm);
 	x        = x(:)';
 end;
-display_results(VG,VF,x,flags);
+if flags.graphics,
+	display_results(VG,VF,x,flags);
+end;
 return;
 %_______________________________________________________________________
 
