@@ -42,7 +42,34 @@ function varargout = spm_DesRep(varargin)
 %     estimability.
 %
 % * Design orthogonality - Displays orthogonality matrix for this design
-%     <not implemented yet>
+%
+%     The design matrix is displayed as in "Design Matrix" view above,
+%     labelled with the parameter names.
+%
+%     Under the design matrix the design orthogonality matrix is
+%     displayed. For each pair of columns of the design matrix, the
+%     orthogonality matrix depicts the magnitude of the cosine of the
+%     angle between them, with the range 0 to 1 mapped to white to
+%     black. Orthogonal vectors (shown in white), have cosine of zero.
+%     Colinear vectors (shown in black), have cosine of 1 or -1.
+%
+%     The cosine of the angle between two vectors a & b is obtained by
+%     dividing the dot product of the two vectors by the product of
+%     their lengths:
+%
+%                         a'*b
+%                 ------------------------
+%                 sqrt(sum(a.^2)*sum(b.^2)
+%
+%     If (and only if) both vectors have zero mean, i.e.
+%     sum(a)==sum(b)==0, then the cosine of the angle between the
+%     vectors is the same as the correlation between the two variates.
+%     
+%     The design orthogonality matrix is "surfable": Clicking (and
+%     holding or dragging) the cursor around the design orthogonality
+%     image reports the orthogonality of the correponding pair of
+%     columns.
+%
 %
 % * Explore design - Sub-menu's for detailed design exploration.
 %
@@ -294,10 +321,10 @@ if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
 %-Design matrix orthogonality
 %-----------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
-		'CallBack',[cb,''],...
+		'CallBack',[cb,...
+		'spm_DesRep(''DesOrth'',tmp.xX,{tmp.VY.fname}'')'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
-if 1, set(h,'Enable','off'), end
 
 %-Explore design
 %-----------------------------------------------------------------------
@@ -513,13 +540,16 @@ figure(Fgraph)
 
 
 %=======================================================================
-case 'desmtx'                                    %-Display design matrix
+case {'desmtx','desorth'} %-Display design matrix / design orthogonality
 %=======================================================================
 % spm_DesRep('DesMtx',xX,fnames,xs)
+% spm_DesRep('DesOrth',xX,fnames)
 if nargin<2, error('insufficient arguments'), end
 if ~isstruct(varargin{2}), error('design matrix structure required'), end
 if nargin<3, fnames={}; else, fnames=varargin{3}; end
 if nargin<4, xs=[]; else, xs=varargin{4}; end
+
+desmtx = strcmp(lower(varargin{1}),'desmtx');
 
 
 %-Locate DesMtx (X), scaled DesMtx (nX) & get parameter names (Xnames)
@@ -542,11 +572,32 @@ if isfield(varargin{2},'Xnames') & ~isempty(varargin{2}.Xnames)
 	Xnames = varargin{2}.Xnames; else, Xnames = {}; end
 
 
+%-Compute design orthogonality matrix if DesOrth
+%-----------------------------------------------------------------------
+if ~desmtx
+    if iX
+	tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
+	O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
+    	tmp  = sum(varargin{2}.xKXs.X);
+    else
+	tmp  = sqrt(sum(varargin{2}.X.^2));
+	O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
+    	tmp  = sum(varargin{2}.X);
+    end
+    tmp = abs(tmp)<eps*1e5;
+    bC  = kron(tmp',tmp);
+end
+
+
+%-Display
+%=======================================================================
+
 %-Get graphics window & FontSizes
 %-----------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
 FS = spm('FontSizes');
+
 
 %-Title
 %-----------------------------------------------------------------------
@@ -555,17 +606,17 @@ hTax = axes('Position',[0.03,0,0.94,1],...
 	'XLim',[0,1],'YLim',[0,1],...
 	'Visible','off');
 
-text(0.5,0.95,'Statistical analysis: Design',...
-	'Fontsize',FS(14),'Fontweight','Bold',...
+str='Statistical analysis: Design'; if ~desmtx, str=[str,' orthogonality']; end
+text(0.5,0.95,str,'Fontsize',FS(14),'Fontweight','Bold',...
 	'HorizontalAlignment','center')
 
-line('XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
-line('XData',[0.3 0.7],'YData',[0.28 0.28],'LineWidth',3,'Color','r')
+line('Parent',hTax,...
+	'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
 
 
-%-Display
+%-Display design matrix
 %-----------------------------------------------------------------------
-hDesMtx   = axes('Position',[.07 .4 .6 .4]);
+hDesMtx = axes('Position',[.07 .4 .6 .4]);
 if inX		%-Got a scaled DesMtx
 	hDesMtxIm = image((varargin{2}.nKX + 1)*32);
 elseif iX	%-No scaled DesMtx, DesMtx in .xKXs structure
@@ -573,30 +624,38 @@ elseif iX	%-No scaled DesMtx, DesMtx in .xKXs structure
 else		%-No scaled DesMtx, no .xKXs, DesMtx in .X
 	hDesMtxIm = image((spm_DesMtx('sca',varargin{2}.X,     Xnames) + 1)*32);
 end
-set(hDesMtx,'TickDir','out')
-ylabel('images')
-xlabel('parameters')
+
+STick = spm_DesRep('ScanTick',nScan,32);
+PTick = spm_DesRep('ScanTick',nPar,32);
+
+set(hDesMtx,'TickDir','out',...
+	'XTick',PTick,'XTickLabel','',...
+	'YTick',STick,'YTickLabel','')
+if desmtx
+	xlabel('parameters'), ylabel('images')
+else
+	set(get(hDesMtx,'Xlabel'),...
+		'Position',get(get(hDesMtx,'Ylabel'),'Position'),...
+		'Rotation',90')
+	xlabel('design matrix')
+end
 
 %-Parameter names
-s = spm_DesRep('ScanTick',nPar,32);
-set(hDesMtx,'XTick',s)
 if ~isempty(Xnames)
 	axes('Position',[.07 .8 .6 .1],'Visible','off',...
 		'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
 		'XLim',[0,nPar]+0.5)
-	for i=s, text(i,.05,Xnames{i},'Rotation',90), end
+	for i=PTick, text(i,.05,Xnames{i},'Rotation',90), end
 end
 
 %-Filenames
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
 % ( down to <32 items. Always show last item so #images is indicated.   )     
-s = spm_DesRep('ScanTick',nScan,32);
-set(hDesMtx,'YTick',s)
-if ~isempty(fnames)
+if desmtx & ~isempty(fnames)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(8),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i=s, text(0,i,spm_str_manip(fnames{i},'a35')), end
+	for i=STick, text(0,i,spm_str_manip(fnames{i},'a35')), end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
@@ -608,36 +667,87 @@ else, 	set(hDesMtxIm,'UserData',...
 end
 set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
-%-Parameter estimability/uniqueness
-%-----------------------------------------------------------------------
-hPEstAx   = axes('Position',[.07 .315 .6 .025],'DefaultTextInterpreter','TeX');
-if iX,	est = spm_SpUtil('IsCon',varargin{2}.xKXs);
-else,	est = spm_SpUtil('IsCon',varargin{2}.X); end
-hParEstIm = image((est+1)*32);
-set(hPEstAx,...
-	'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
-	'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
-	'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
-xlabel('parameter estimability')
-text((nPar+0.5 + nPar/30),1,...
-	'(gray \rightarrow \beta not uniquely specified)',...
-	'Interpreter','TeX','FontSize',FS(8))
-set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
-set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 
+if desmtx
+	%-Parameter estimability/uniqueness
+	%---------------------------------------------------------------
+	hPEstAx   = axes('Position',[.07 .315 .6 .025],...
+			'DefaultTextInterpreter','TeX');
+	if iX,	est = spm_SpUtil('IsCon',varargin{2}.xKXs);
+	else,	est = spm_SpUtil('IsCon',varargin{2}.X); end
+	hParEstIm = image((est+1)*32);
+	set(hPEstAx,...
+		'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
+		'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
+		'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
+	xlabel('parameter estimability')
+	text((nPar+0.5 + nPar/30),1,...
+		'(gray \rightarrow \beta not uniquely specified)',...
+		'Interpreter','TeX','FontSize',FS(8))
+	set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
+	set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
+else
+	%-Design orthogonality
+	%---------------------------------------------------------------
+	hDesO   = axes('Position',[.07 .18 .6 .2]);
+	tmp = 1-abs(O); tmp(logical(tril(ones(nPar),-1))) = 1;
+	hDesOIm = image(tmp*64);
+	
+	set(hDesO,'Box','off','TickDir','out',...
+		'XaxisLocation','top','XTick',PTick,'XTickLabel','',...
+		'YaxisLocation','right','YTick',PTick,'YTickLabel','',...
+		'YDir','reverse')
+	tmp = [1,1]'*[[0:nPar]+0.5];
+	line('Xdata',tmp(1:end-1)','Ydata',tmp(2:end)')
+
+	xlabel('design orthogonality')
+	set(get(hDesO,'Xlabel'),'Position',[0.5,nPar,0],...
+		'HorizontalAlignment','left',...
+		'VerticalAlignment','top')
+	set(hDesOIm,...
+		'UserData',struct('O',O,'bC',bC,'Xnames',{Xnames}),...
+		'ButtonDownFcn','spm_DesRep(''SurfDesO_CB'')')
+
+	if ~isempty(Xnames)
+		axes('Position',[.69 .18 0.01 .2],'Visible','off',...
+			'DefaultTextFontSize',FS(10),...
+			'DefaultTextInterpreter','TeX',...
+			'YDir','reverse','YLim',[0,nPar]+0.5)
+		for i=PTick
+			text(0,i,Xnames{i},'HorizontalAlignment','left')
+		end
+	end
+
+end
 
 %-Design descriptions
 %-----------------------------------------------------------------------
-if ~isempty(xs)
+if desmtx
+	str = 'Design description...';
+	line('Parent',hTax,...
+		'XData',[0.3 0.7],'YData',[0.28 0.28],'LineWidth',3,'Color','r')
 	hAx = axes('Position',[0.03,0.05,0.94,0.22],'Visible','off');
-	
+else
+	str = '';
+	line('Parent',hTax,...
+		'XData',[0.3 0.7],'YData',[0.14 0.14],'LineWidth',3,'Color','r')
+	hAx = axes('Position',[0.03,0.05,0.94,0.08],'Visible','off');
+	xs = struct('Measure',	['absolute value of cosine of angle between ',...
+				 'corresponding columns of design matrix'],...
+		    'Scale',	{{	'black - colinear (cos=+1/-1)';...
+					'white - orthogonal (cos=0)';...
+					'gray  - not orthogonal or colinear'}});
+end
+
+
+if ~isempty(xs)
 	set(hAx,'Units','points');
 	AxPos = get(hAx,'Position');
 	set(hAx,'YLim',[0,AxPos(4)])
 	
 	dy = FS(9); y0 = floor(AxPos(4)) -dy; y = y0;
 
-	text(0.3,y,'Design description...',...
+	text(0.3,y,str,...
 		'HorizontalAlignment','Center',...
 		'FontWeight','Bold','FontSize',FS(11))
 	y=y-2*dy;
@@ -658,7 +768,6 @@ end
 %-Pop up the Graphics window
 %-----------------------------------------------------------------------
 figure(Fgraph)
-
 
 
 %=======================================================================
@@ -950,6 +1059,66 @@ end
 
 set(h,'String',str,'Interpreter',istr)
 
+
+
+%=======================================================================
+case {'surfdeso_cb','surfdesomo_cb','surfdesoup_cb'}    %-Surf DesOrthIm
+%=======================================================================
+% spm_DesRep('SurfDesO_CB')
+% spm_DesRep('SurfDesOMo_CB')
+% spm_DesRep('SurfDesOUp_CB')
+
+h    = get(gca,'Xlabel');
+
+if strcmp(lower(varargin{1}),'surfdesoup_cb')
+	UD = get(h,'UserData');
+	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+		'UserData',UD.UserData)
+	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+	return
+end
+
+if strcmp(lower(varargin{1}),'surfdeso_cb')
+	UD = struct(	'String',	get(h,'String'),...
+			'Interpreter',	get(h,'Interpreter'),...
+			'UserData',	get(h,'UserData'));
+	set(h,'UserData',UD)
+	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesOMo_CB'')',...
+		 'WindowButtonUpFcn',    'spm_DesRep(''SurfDesOUp_CB'')')
+end
+
+mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
+ij  = get(gca,'CurrentPoint');
+ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
+if ij(1)>ij(2), return, end
+
+istr = 'none';
+switch get(gcbf,'SelectionType')
+case 'normal'
+	try
+		UD = get(gco,'UserData');
+		if abs(abs(UD.O(ij(1),ij(2)))-1) < eps*1e1
+		 	str = '{\bf colinear}';
+		elseif abs(UD.O(ij(1),ij(2))) < eps*1e1
+			str = '{\bf orthogonal}';
+		else
+			str = '{\bf not orthogonal}';
+		end
+		if ~diff(ij), str=[str,' {\it(same column)}']; end
+		if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else, tmp=''; end
+		str = {	sprintf('{\\bf %s} (col %d) & {\\bf %s} (col %d)',...
+				UD.Xnames{ij(1)},ij(1),...
+				UD.Xnames{ij(2)},ij(2)),...
+			sprintf('cos(\\theta)%s = %1.2f',...
+				tmp,UD.O(ij(1),ij(2))),...
+			['\rightarrow ',str]};
+		istr = 'tex';
+	catch, str='(no cached data to surf)'; end
+case {'extend','alt','open'}
+	return
+end
+
+set(h,'String',str,'Interpreter',istr)
 
 
 %=======================================================================
