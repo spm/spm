@@ -68,7 +68,7 @@ end
 
 
 %- A-Priori likelihood images
-PB    = str2mat([DIR 'spgray.img'],[DIR 'spwhite.img'],[DIR 'spcsf.img']);
+PB    = str2mat([DIR 'pgray.img'],[DIR 'pwhite.img'],[DIR 'pcsf.img']);
 
 niter = 24;
 nc    = [1 1 1 4]; % Number of clusters for each probability image
