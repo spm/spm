@@ -788,9 +788,9 @@ if ~isfield(xVi,'V')
 
 			% design space for ReML (with confounds in filter)	
 			%-----------------------------------------------
-			Xp       = xX.X(q,:);
-			if isfield(xX.K(i).KH)
-				Xp = [Xp xX.K(i).KH];
+			Xp         = xX.X(q,:);
+			try
+				Xp = [Xp xX.K(i).X0];
 			end
 
 			% ReML
