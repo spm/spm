@@ -194,8 +194,8 @@ function varargout=spm(varargin)
 % FORMAT CmdLine = spm('CmdLine',CmdLine)
 % Command line SPM usage?
 % CmdLine (input)  - CmdLine preference
-%                    [defaults (missing or empty) to global        ]
-%                    [CMDLINE, if it exists, or 0 (GUI) otherwise. ]
+%                    [defaults (missing or empty) to global defaults.cmdline,]
+%                    [if it exists, or 0 (GUI) otherwise.                    ]
 % CmdLine (output) - true if global CmdLine if true,
 %                    or if on a terminal with no support for graphics windows.
 %
@@ -1108,9 +1108,13 @@ case {'cmdline','isgcmdline'}                   %-SPM command line mode?
 % CmdLine = spm('CmdLine',CmdLine)
 % isGCmdLine usage is Grandfathered
 if nargin<2, CmdLine=[]; else, CmdLine = varargin{2}; end
-if isempty(CmdLine)
-	CMDLINE = spm('GetGlobal','CMDLINE');
-	if isempty(CMDLINE), CmdLine = 0; else, CmdLine = CMDLINE; end
+if isempty(CmdLine),
+	global defaults
+	if ~isempty(defaults) & isfield(defaults,'cmdline'),
+		CmdLine = defaults.cmdline;
+	else,
+		CmdLine = 0;
+	end;
 end
 varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 
