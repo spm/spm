@@ -47,8 +47,8 @@ function spm_defaults_edit(arg1,arg2)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% @(#)spm_defaults_edit.m	2.9 John Ashburner 99/07/30
-SCCSid = '2.9';
+% %W% John Ashburner  %E%
+SCCSid = '%I%';
 
 global batch_mat iA;
 
