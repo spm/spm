@@ -575,39 +575,39 @@ end;
 function redraw(arg1)
 global st
 bb   = st.bb;
-Dims = diff(bb)';
+Dims = diff(bb)'+1;
 is   = inv(st.Space);
 cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 
 for i = valid_handles(arg1),
 	M = st.vols{i}.premul*st.vols{i}.mat;
-	TM0 = [	1 0 0 -bb(1,1)
-		0 1 0 -bb(1,2)
+	TM0 = [	1 0 0 -bb(1,1)+1
+		0 1 0 -bb(1,2)+1
 		0 0 1 -cent(3)
 		0 0 0 1];
 	TM = inv(TM0*(st.Space\M));
 	TD = Dims([1 2]);
 
-	CM0 = [	1 0 0 -bb(1,1)
-		0 0 1 -bb(1,3)
+	CM0 = [	1 0 0 -bb(1,1)+1
+		0 0 1 -bb(1,3)+1
 		0 1 0 -cent(2)
 		0 0 0 1];
 	CM = inv(CM0*(st.Space\M));
 	CD = Dims([1 3]);
 
 	if st.mode ==0,
-		SM0 = [	0 0 1 -bb(1,3)
-			0 1 0 -bb(1,2)
+		SM0 = [	0 0 1 -bb(1,3)+1
+			0 1 0 -bb(1,2)+1
 			1 0 0 -cent(1)
 			0 0 0 1];
 		SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
 	else,
-		SM0 = [	0  1 0 -bb(1,2)
-			0  0 1 -bb(1,3)
+		SM0 = [	0  1 0 -bb(1,2)+1
+			0  0 1 -bb(1,3)+1
 			1  0 0 -cent(1)
 			0  0 0 1];
-		SM0 = [	0 -1 0 +bb(2,2)
-			0  0 1 -bb(1,3)
+		SM0 = [	0 -1 0 +bb(2,2)+1
+			0  0 1 -bb(1,3)+1
 			1  0 0 -cent(1)
 			0  0 0 1];
 		SM = inv(SM0*(st.Space\M));
@@ -727,27 +727,27 @@ for i = valid_handles(arg1),
 
 		set(st.vols{i}.ax{1}.d,'ButtonDownFcn',callback, 'Cdata',imgt);
 		set(st.vols{i}.ax{1}.lx,'ButtonDownFcn',callback,...
-			'Xdata',[0 TD(1)],'Ydata',[1 1]*(cent(2)-bb(1,2)));
+			'Xdata',[0 TD(1)]+0.5,'Ydata',[1 1]*(cent(2)-bb(1,2)+1));
 		set(st.vols{i}.ax{1}.ly,'ButtonDownFcn',callback,...
-			'Ydata',[0 TD(2)],'Xdata',[1 1]*(cent(1)-bb(1,1)));
+			'Ydata',[0 TD(2)]+0.5,'Xdata',[1 1]*(cent(1)-bb(1,1)+1));
 
 		set(st.vols{i}.ax{2}.d,'ButtonDownFcn',callback, 'Cdata',imgc);
 		set(st.vols{i}.ax{2}.lx,'ButtonDownFcn',callback,...
-			'Xdata',[0 CD(1)],'Ydata',[1 1]*(cent(3)-bb(1,3)));
+			'Xdata',[0 CD(1)]+0.5,'Ydata',[1 1]*(cent(3)-bb(1,3)+1));
 		set(st.vols{i}.ax{2}.ly,'ButtonDownFcn',callback,...
-			'Ydata',[0 CD(2)],'Xdata',[1 1]*(cent(1)-bb(1,1)));
+			'Ydata',[0 CD(2)]+0.5,'Xdata',[1 1]*(cent(1)-bb(1,1)+1));
 
 		set(st.vols{i}.ax{3}.d,'ButtonDownFcn',callback,'Cdata',imgs);
 		if st.mode ==0,
 			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
-				'Xdata',[0 SD(1)],'Ydata',[1 1]*(cent(2)-bb(1,2)));
+				'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(2)-bb(1,2)+1));
 			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
-				'Ydata',[0 SD(2)],'Xdata',[1 1]*(cent(3)-bb(1,3)));
+				'Ydata',[0 SD(2)]+0.5,'Xdata',[1 1]*(cent(3)-bb(1,3)+1));
 		else,
 			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
-				'Xdata',[0 SD(1)],'Ydata',[1 1]*(cent(3)-bb(1,3)));
+				'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(3)-bb(1,3)+1));
 			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
-				'Ydata',[0 SD(2)],'Xdata',[1 1]*(bb(2,2)-cent(2)));
+				'Ydata',[0 SD(2)]+0.5,'Xdata',[1 1]*(bb(2,2)+1-cent(2)));
 		end;
 	end;
 end;
@@ -778,14 +778,14 @@ for i=valid_handles(1:24),
 			cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 			switch j,
 				case 1,
-				cent([1 2])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,2)];
+				cent([1 2])=[cp(1)+st.bb(1,1)-1 cp(2)+st.bb(1,2)-1];
 				case 2,
-				cent([1 3])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,3)];
+				cent([1 3])=[cp(1)+st.bb(1,1)-1 cp(2)+st.bb(1,3)-1];
 				case 3,
 				if st.mode ==0,
-					cent([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
+					cent([3 2])=[cp(1)+st.bb(1,3)-1 cp(2)+st.bb(1,2)-1];
 				else,
-					cent([2 3])=[st.bb(2,2)-cp(1) cp(2)+st.bb(1,3)];
+					cent([2 3])=[st.bb(2,2)+1-cp(1) cp(2)+st.bb(1,3)-1];
 				end;
 			end;
 			break;
