@@ -1,20 +1,24 @@
-function Q = spm_imcalc_ui(P,Q,f,hold,mask,type)
+function Q = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Perform algebraic functions on images
-% FORMAT spm_imcalc_ui(P,Q,f,hold,mask,type)
-% P          - matrix of input image filenames
-%              [user prompted to select files if arg missing or empty]
-% Q          - name of output image
-%              [user prompted to enter filename if arg missing or empty]
-% f          - expression to be evaluated
-%              [user prompted to enter expression if arg missing or empty]
-% hold       - interpolation hold (see spm_slice_vol)
-%              [defaults (missing or empty) to 0 - nearest neighbour]
-% mask       - implicit zero mask?
-%              [defaults (missing or empty) to 0]
-% type       - data type for output image (see spm_type)
-%              [defaults (missing or empty) to 4 - 16 bit signed shorts]
-%              * currently only supports type 4! *
-% Q (output) - full pathname of image written
+% FORMAT Q = spm_imcalc_ui(P,Q,f,flags,Xtra_vars...)
+% P             - matrix of input image filenames
+%                 [user prompted to select files if arg missing or empty]
+% Q             - name of output image
+%                 [user prompted to enter filename if arg missing or empty]
+% f             - expression to be evaluated
+%                 [user prompted to enter expression if arg missing or empty]
+% flags         - cell vector of flags: {dmtx,mask,type,hold}
+% dmtx          - Read images into data matrix?
+%                 [defaults (missing or empty) to 0 - no]
+% mask          - implicit zero mask?
+%                 [defaults (missing or empty) to 0]
+% type          - data type for output image (see spm_type)
+%                 [defaults (missing or empty) to 4 - 16 bit signed shorts]
+%                 * currently only supports type 4! *
+% hold          - interpolation hold (see spm_slice_vol)
+%                 [defaults (missing or empty) to 0 - nearest neighbour]
+% Xtra_vars...  - additional variables which can be used in expression
+% Q (output)    - full pathname of image written
 %
 %_______________________________________________________________________
 %
@@ -24,6 +28,10 @@ function Q = spm_imcalc_ui(P,Q,f,hold,mask,type)
 % work on, a filename for the output image, and the expression to
 % evaluate. The expression should be a standard matlab expression,
 % within which the images should be referred to as i1, i2, i3,... etc.
+%
+% If the dmtx flag is set, then images are read into a data matrix X
+% (rather than into seperate variables i1, i2, i3,...). The data matrix
+% should be referred to as X, and contains images in rows.
 %
 % With images of different sizes and orientations, the size and
 % orientation of the first is used for the output image. A warning is
@@ -44,14 +52,29 @@ function Q = spm_imcalc_ui(P,Q,f,hold,mask,type)
 %           f = 'i2.*(i1>100)'
 %                 - here the first image is used to make the mask, which is
 %                   applied to the second image
+%       iv) Sum of n images
+%           f = 'i1 + i2 + i3 + i4 + i5 + ...'
+%        v) Sum of n images (when reading data into a data-matrix - use dmtx arg)
+%           f = 'sum(X)'
 % 
 % Parameters can be passed as arguments to override internal defaults
 % (for hold, mask & type), or to pre-specify images (P), output
 % filename (Q), or expression (f). Pass empty matrices for arguments
 % not to be set.
-% E.g.	Q = spm_imcalc_ui({},'test','',1)
+% E.g.	Q = spm_imcalc_ui({},'test','',{[],[],[],1})
 %       ... pre-specifies the output filename as 'test.img' in the current
 % working directory, and sets the interpolation hold to tri-linear.
+%
+% Further, additional variables for use in the computation can be
+% passed at the end of the argument list. These should be referred to
+% by the names of the arguments passed in the expression to be
+% avaluated. E.g. if c is a 1xn vector of weights, then for n images,
+% using the (dmtx) data-matrix version, the weighted sum can be
+% computed using:
+%       Q = spm_imcalc_ui({},'test','c*X',{1},c)
+% Here we've pre-specified the output filename, expression and passed
+% the vector c as an additional variable (you'll be prompted to select
+% the n images).
 %
 %_______________________________________________________________________
 % %W% John Ashburner, Andrew Holmes %E%
@@ -65,11 +88,7 @@ spm_help('!ContextHelp',[mfilename,'.m'])
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<6, type=[]; end, if isempty(type), type=4; end
-if ischar(type), type=spm_type(type); end
-if ~any(type==[4]), error('invalid type'), end
-if nargin<5, mask=[]; end, if isempty(mask), mask=0; end
-if nargin<4, hold=[]; end, if isempty(hold), hold=0; end
+if nargin<4, flags={}; end
 if nargin<3, f=''; end
 if nargin<2, Q=''; end
 if nargin<1, P={}; end
@@ -78,6 +97,16 @@ if isempty(P), P = spm_get(Inf,'.img',{'Select images to work on'}); end
 if isempty(P), error('no input images specified'), end
 if isempty(Q), Q = spm_input('Output filename',1,'s'); end
 if isempty(f), f = spm_input('Evaluated Function',2,'s'); end
+
+if length(flags)<4, hold=[]; else, hold=flags{4}; end
+if isempty(hold), hold=0; end
+if length(flags)<3, type=[]; else, type=flags{3}; end
+if isempty(type), type=4; end, if ischar(type), type=spm_type(type); end
+if ~any(type==[4]), error('invalid type'), end
+if length(flags)<2, mask=[]; else, mask=flags{2}; end
+if isempty(mask), mask=0; end
+if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
+if isempty(dmtx), dmtx=0; end
 
 spm('FigName','ImCalc: working',Finter,CmdLine);
 spm('Pointer','Watch')
@@ -117,9 +146,8 @@ Vo = struct(	'fname',	Q,...
 
 %-Call spm_imcalc to handle computations
 %------------------------------------------------------------------
-spm_create_image(Vo);
-Vo.pinfo(1)  = spm_imcalc(Vi,Vo,f,hold,mask);
-spm_create_image(Vo);
+args = {{dmtx,mask,hold},varargin{:}};
+Vo.pinfo(1)  = spm_imcalc(Vi,Vo,f,args{:});
 
 %-End
 %------------------------------------------------------------------
