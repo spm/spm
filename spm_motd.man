@@ -27,8 +27,8 @@
 % (FIL) The Wellcome Department of Imaging neuroscience, in the Institute
 % of Neurology at University College London (UCL), UK.
 %
-% SPM2 was primarily developed by: John Ashburner (FIL), Karl
-% Friston (FIL), Andrew Holmes (FIL), Jean-Baptiste Poline
+% SPM2 was primarily developed by: Jesper Andersson (KS), John Ashburner
+% (FIL), Karl Friston (FIL), Andrew Holmes (FIL), Jean-Baptiste Poline
 % (CEA/DRM/SHFJ, Orsay, France); with contributions from Matthew Brett
 % (MRC-CBU, Cambridge, England) Stephanie Rouquette (CEA/DRM/SHFJ,
 % Orsay, France); Tom Nichols (Dept. Biostatistics, University of Michigan,
