@@ -30,7 +30,7 @@ SPMid = spm('FnBanner',mfilename,'%I%');
 spm_help('!ContextHelp',mfilename);
 
 s     = spm_input('smoothing {FWHM in mm}',1);
-P     = spm_get(Inf,'.img','select scans');
+P     = spm_get(Inf,'IMAGE','select scans');
 n     = size(P,1);
 
 % implement the convolution

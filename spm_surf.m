@@ -42,7 +42,7 @@ if nargin==0,
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 	spm_help('!ContextHelp',mfilename);
 
-	P    = spm_get([1 Inf],'*.img','Select images');
+	P    = spm_get([1 Inf],'IMAGE','Select images');
 
 	mode = spm_input('Save','+1','m',...
 		['Save Rendering|Save Extracted Surface|'...

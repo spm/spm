@@ -64,7 +64,7 @@ Fgraph = spm_figure('GetWin','Graphics');
 
 %-Get the image on which to render
 %-----------------------------------------------------------------------
-spms   = spm_get(1,'.img','select image for rendering on');
+spms   = spm_get(1,'IMAGE','select image for rendering on');
 spm('Pointer','Watch');
 
 %-Delete previous axis and their pagination controls (if any)

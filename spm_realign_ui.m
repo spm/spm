@@ -250,7 +250,7 @@ for i = 1:n,
 		for s=1:ns,
 			p = '';
 			while size(p,1)<1,
-				p = spm_get(Inf,'.img',...
+				p = spm_get(Inf,'IMAGE',...
 					['Images, subj ' num2str(i) ', sess' num2str(s)]);
 			end;
 			pp{s} = p;
@@ -260,7 +260,7 @@ for i = 1:n,
 		p  = cell(1,1);
 		p{1} = '';
 		while size(p{1},1)<1,
-		      p{1} = spm_get(Inf,'.img',...
+		      p{1} = spm_get(Inf,'IMAGE',...
 			  ['Images, subj ' num2str(i)]);
 		end;
 		P{i} = p;
@@ -286,7 +286,7 @@ if (WhchPtn == 1 | WhchPtn == 3) & defs.estimate.weight,
 		['Dont weight registration|'...
 		 'Weight registration'], [0 1], 1);
 
-		PW = spm_get(n,'.img', 'Weight images for each subj');
+		PW = spm_get(n,'IMAGE', 'Weight images for each subj');
 	end;
 end;
 

@@ -93,13 +93,13 @@ end;
 %disp(flags)
 
 if nargin < 1,
-	VG = spm_vol(spm_get(1,'*.img','Select reference image'));
+	VG = spm_vol(spm_get(1,'IMAGE','Select reference image'));
 else,
 	VG = varargin{1};
 	if ischar(VG), VG = spm_vol(VG); end;
 end;
 if nargin < 2,
-	VF = spm_vol(spm_get(1,'*.img','Select moved image'));
+	VF = spm_vol(spm_get(1,'IMAGE','Select moved image'));
 else,
 	VF = varargin{2};
 	if ischar(VF), VF = spm_vol(VF); end;

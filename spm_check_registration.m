@@ -11,7 +11,7 @@ function spm_check_registration(images)
 % %W% John Ashburner %E%
 
 if nargin==0,
-	images = spm_get([1 15],'.img',['Select images']);
+	images = spm_get([1 15],'IMAGE',['Select images']);
 	spm_check_registration(images);
 elseif nargin==1,
 	fg = spm_figure('Findwin','Graphics');

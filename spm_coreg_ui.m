@@ -242,14 +242,14 @@ if p == 1 | p == 3,
 		mireg(i)    = struct('VG',[],'VF',[],'PO','');
 		
 		% select target(s)
-		PG          = spm_get(1,'.img', ['Target image, subj ' num2str(i)]);
+		PG          = spm_get(1,'IMAGE', ['Target image, subj ' num2str(i)]);
 		mireg(i).VG = spm_vol(PG);
 		
 		% select source(s)
-		PF          = spm_get(1,'.img', ['Source image, subj ' num2str(i)]);
+		PF          = spm_get(1,'IMAGE', ['Source image, subj ' num2str(i)]);
 		mireg(i).VF = spm_vol(PF);
 
-		PO = spm_get(Inf,'.img', ['Other images, subj ' num2str(i)]);
+		PO = spm_get(Inf,'IMAGE', ['Other images, subj ' num2str(i)]);
 		if isempty(PO),
 			mireg(i).PO = PF;
 		else,
@@ -263,10 +263,10 @@ if p==2,
 		mireg(i) = struct('VG',[],'VF',[],'VO',[]);
 
 		% select target space
-		PG          = spm_get(1,'.img', ['Space defining image, subj ' num2str(i)]);
+		PG          = spm_get(1,'IMAGE', ['Space defining image, subj ' num2str(i)]);
 		mireg(i).VG = spm_vol(PG);
 
-		PO          = spm_get(Inf,'.img', ['Images to reslice, subj ' num2str(i)]);
+		PO          = spm_get(Inf,'IMAGE', ['Images to reslice, subj ' num2str(i)]);
 		mireg(i).PO = PO;
 	end;
 end;
