@@ -1,6 +1,6 @@
-function R1=spm_figure(Action,P2,P3,P4,P5,P6)
+function varargout=spm_figure(varargin)
 % Setup and callback functions for Graphics window
-% FORMAT R1=spm_figure(Action,P2,P3,P4,P5,P6)
+% FORMAT varargout=spm_figure(varargin)
 %	- An embedded callback, multi-function function
 %       - For detailed programmers comments, see the format specifications
 %         below
@@ -189,19 +189,19 @@ function R1=spm_figure(Action,P2,P3,P4,P5,P6)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if (nargin==0), Action = 'Create'; end
+if (nargin==0), Action = 'Create'; else, Action = varargin{1}; end
 
 switch lower(Action), case 'create'
 %=======================================================================
 % F = spm_figure('Create',Tag,Name,Visible)
 %-Condition arguments
-if nargin<4, Visible='on'; else, Visible=P4; end
-if nargin<3, Name=''; else, Name=P3; end
-if nargin<2, Tag=''; else, Tag=P2; end
+if nargin<4, Visible='on'; else, Visible=varargin{4}; end
+if nargin<3, Name=''; else, Name=varargin{3}; end
+if nargin<2, Tag=''; else, Tag=varargin{2}; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F)
-R1 = F;
+varargout = {F};
 
 
 case 'createwin'
@@ -210,10 +210,10 @@ case 'createwin'
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<4, Visible=''; else, Visible=P4; end
+if nargin<4, Visible=''; else, Visible=varargin{4}; end
 if isempty(Visible), Visible='on'; end
-if nargin<3, Name=''; else, Name=P3; end
-if nargin<2, Tag=''; else, Tag=P2; end
+if nargin<3, Name=''; else, Name=varargin{3}; end
+if nargin<2, Tag=''; else, Tag=varargin{2}; end
 
 S0   = get(0,'ScreenSize');
 WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
@@ -244,7 +244,7 @@ F      = figure(...
 if ~isempty(Name)
 	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
 set(F,'Visible',Visible)
-R1 = F;
+varargout = {F};
 
 
 case 'findwin'
@@ -254,7 +254,7 @@ case 'findwin'
 %-Find window: Find window with 'Tag' attribute / FigureNumber#
 %-Returns empty if window cannot be found - deletes multiple tagged figs.
 
-if nargin<2, F='Graphics'; else, F=P2; end
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
 
 if isempty(F)
 	% Leave F empty
@@ -272,16 +272,16 @@ else
 	% F is supposed to be a figure number - check it
 	if ~any(F==get(0,'Children')), F=[]; end
 end
-R1 = F;
+varargout = {F};
 
 
 case 'findparentwin'
 %=======================================================================
 % F=spm_figure('FindParentWin',h)
-if nargin<2, error('No object specified'), else, h=P2; end
+if nargin<2, error('No object specified'), else, h=varargin{2}; end
 F = get(h(1),'Parent');
 while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
-R1 = F;
+varargout = {F};
 
 
 case 'clear'
@@ -290,8 +290,8 @@ case 'clear'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<3, Tags=[]; else, Tags=P3; end
-if nargin<2, F=get(0,'CurrentFigure'); else, F=P2; end
+if nargin<3, Tags=[]; else, Tags=varargin{3}; end
+if nargin<2, F=get(0,'CurrentFigure'); else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -330,8 +330,8 @@ case 'print'
 % spm_figure('Print',F,PFile)
 
 %-Arguments & defaults
-if nargin<3, PFile='spm.ps'; else, PFile=P3; end
-if nargin<2, F='Graphics'; else, F=P2; end
+if nargin<3, PFile='spm.ps'; else, PFile=varargin{3}; end
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
@@ -403,7 +403,7 @@ case 'newpage'
 %=======================================================================
 % h = spm_figure('NewPage',hPage,MoveOn)
 if nargin<3, MoveOn=0; else, MoveOn=1; end
-if nargin<2, hPage=[]; else, hPage=P2(:)'; end
+if nargin<2, hPage=[]; else, hPage=varargin{2}(:)'; end
 if isempty(hPage), error('No handles to paginate'), end
 
 %-Work out which figure we're in
@@ -458,15 +458,15 @@ end
 
 %-Return handles to pagination controls if requested
 if nargout>0
-	R1 = [hNextPage, hPrevPage, hPageNo];
+	varargout = {[hNextPage, hPrevPage, hPageNo]};
 end
 
 
 case 'turnpage'
 %=======================================================================
 % spm_figure('TurnPage',move,F)
-if nargin<3, F='Graphics'; else, F=P3; end
-if nargin<2, move=1; else, move=P2; end
+if nargin<3, F='Graphics'; else, F=varargin{3}; end
+if nargin<2, move=1; else, move=varargin{2}; end
 Fgraph = spm_figure('FindWin',F);
 if isempty(Fgraph), error('No Graphics window'), end
 
@@ -503,7 +503,7 @@ else, set(hNextPage,'ForegroundColor',[0 0 0]), end
 case 'deletepagecontrols'
 %=======================================================================
 % spm_figure('DeletePageControls',F)
-if nargin<2, F='Graphics'; else, F=P2; end
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
 Fgraph = spm_figure('FindWin',F);
 if isempty(Fgraph), error('No Graphics window'), end
 
@@ -518,13 +518,13 @@ case 'watermark'
 %=======================================================================
 % spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 if nargin<6, HVis='on'; else, HVis='off'; end
-if nargin<5, Angle=-45; else, Angle=P5; end
-if nargin<4, Tag=''; else, Tag=P4; end
+if nargin<5, Angle=-45; else, Angle=varargin{5}; end
+if nargin<4, Tag=''; else, Tag=varargin{4}; end
 if isempty(Tag), Tag='WaterMark'; end
-if nargin<3, str=''; else, str=P3; end
+if nargin<3, str=''; else, str=varargin{3}; end
 if isempty(str), str='SPM'; end
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
-	else, F=P2; end
+	else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -566,7 +566,7 @@ case 'createbar'
 %=======================================================================
 % spm_figure('CreateBar',F)
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
-	else, F=P2; end
+	else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -677,8 +677,8 @@ set(F,'Units',cUnits)
 case 'colormap'
 %=======================================================================
 % spm_figure('Colormap',ColAction,h)
-if nargin<3, h=[]; else, h=P3; end
-if nargin<2, ColAction='gray'; else, ColAction=P2; end
+if nargin<3, h=[]; else, h=varargin{3}; end
+if nargin<2, ColAction='gray'; else, ColAction=varargin{2}; end
 if ~isstr(ColAction)
 	if ColAction==1, return, end
 	Actions   = get(gco,'String');
@@ -888,7 +888,7 @@ if ~strcmp(get(gcf,'SelectionType'),'alt') & gcf==F
 	set(F,'Units','Pixels')
 	P = get(F,'Position');
 	uicontrol(F,'Style','Edit',...
-		'Position',[CPt(1:2).*P(3:4), (1-CPt(1))*P(3), 20],...
+		'Position',[CPt(1:2).*P(3:4), (1-CPt(1))*P(3), 22],...
 		'BackGroundColor',[0.8,0.8,1.0],...
 		'HorizontalAlignment','Left',...
 		'Callback','text(0,0,get(gcbo,''String'')); delete(gcbo)');
@@ -899,8 +899,8 @@ set(hBut,'ForegroundColor','k')
 
 case 'graphicstextedit'
 %=======================================================================
-% Add text annotation to a figure
-% spm_figure('GraphicsText')
+% Edit text annotation to a figure
+% spm_figure('GraphicsTextEdit')
 
 F        = gcbf;
 hBut     = gcbo;
@@ -935,7 +935,7 @@ set(h,'FontUnits','Points')
 tExtent = get(h,'Extent');
 tmp = [1,1,0,0].*get(gca,'Position') ...
 	+ [1,1,0,0].*tExtent...
-	+ [0,0,1.2*max([0,0,1,1].*tExtent),ceil(20*get(h,'FontSize')/12)];
+	+ [0,0,1.2*max([0,0,1,1].*tExtent),ceil(22*get(h,'FontSize')/12)];
 
 %-Create editable text widget to adjust text string
 uicontrol(F,'Style','Edit',...

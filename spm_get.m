@@ -1,4 +1,4 @@
-function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
+function varargout = spm_get(varargin)
 % User interface : filename selection
 % FORMAT [P] = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine);
 % n          - 0 - returns with empty P
@@ -143,7 +143,7 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 %=======================================================================
 %
 % Callback and setup function for spm_get.
-% FORMAT R1 = spm_get(Action,P2,P3,P4,P5,P6)
+% FORMAT varargout = spm_get(varargin)
 %           - A multi function function!
 %
 % FORMAT F = spm_get('CreateFig',LastDirs,Filter)
@@ -246,22 +246,21 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 %-Parameters
 %=======================================================================
 %-Default to unlimited file get when no arguments
-if nargin<1 Action=+Inf; end
+if nargin == 0, Action=+Inf'; else, Action = varargin{1}; end
 %-Allow pointer jumping?
 PJump = 0;
 
 if ~isstr(Action)
 %=======================================================================
 % P = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
-%fprintf('Doing: spm_get(...\n')
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<6 CmdLine=[]; else CmdLine=P6; end
-if nargin<5 NewWDir=''; else NewWDir=P5; end
-if nargin<4 Prefix=''; else Prefix=P4; end
-if nargin<3 Prompt='Select files...'; else Prompt=P3; end
-if nargin<2 Suffix=[]; else Suffix=P2; end
+if nargin<6 CmdLine=[]; else CmdLine=varargin{6}; end
+if nargin<5 NewWDir=''; else NewWDir=varargin{5}; end
+if nargin<4 Prefix=''; else Prefix=varargin{4}; end
+if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
+if nargin<2 Suffix=[]; else Suffix=varargin{2}; end
 if isempty(Suffix), Suffix=0; end
 n = Action;
 
@@ -322,18 +321,22 @@ end % (if CmdLine)
 if exist('spm_log')==2
 	spm_log(['spm_get : ',Prompt,' :'],P); end
 
-R1 = P;
+varargout = {P};
 return
+end
 
-elseif strcmp(Action,'CreateFig')
+%=======================================================================
+% - Callbacks & Utility embedded functions
+%=======================================================================
+
+switch lower(Action), case 'createfig'
 %=======================================================================
 % F = spm_get('CreateFig',LastDirs,Filter)
-%fprintf('Doing: spm_get(''CreateFig''...\n')
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<3 Filter=[]; else Filter=P3; end
-if nargin<2 LastDirs=[]; else LastDirs=P2; end
+if nargin<3 Filter=[]; else Filter=varargin{3}; end
+if nargin<2 LastDirs=[]; else LastDirs=varargin{2}; end
 if isempty(LastDirs), LastDirs=pwd; end
 LastDirs=str2mat(LastDirs,getenv('HOME'));
 if (exist('spm.m')==2), LastDirs=str2mat(LastDirs,spm('Dir')); end
@@ -356,7 +359,7 @@ F  = figure('IntegerHandle','off',...
 	'DefaultUicontrolFontSize',2*round(12*min(spm('GetWinScale'))/2),...
 	'DefaultUicontrolInterruptible','on',...
 	'Visible','off');
-R1=F;
+varargout = {F};
 
 %-User control objects with callbacks
 %-----------------------------------------------------------------------
@@ -511,13 +514,12 @@ uicontrol(F,'Style','Text','Tag','StatusLine',...
 
 set(F,'KeyPressFcn',...
 	'spm_get(''FigKeyPressFcn'',get(gcf,''CurrentCharacter''))')
-return
 
 
-elseif strcmp(Action,'FigKeyPressFcn')
+case 'figkeypressfcn'
 %=======================================================================
 % spm_help('FigKeyPressFcn',ch)
-if nargin<2, ch=get(gcbf,'CurrentCharacter'); else, ch=P2; end
+if nargin<2, ch=get(gcbf,'CurrentCharacter'); else, ch=varargin{2}; end
 
 %-Empty ch - shift/control/&c.
 if isempty(ch), return, end
@@ -591,20 +593,18 @@ else	%-Other character
 	return
 end
 set(h,'String',str)
-return
 
 
-elseif strcmp(Action,'Initialise')
+case 'initialise'
 %=======================================================================
 % [F,cF] = spm_get('Initialise',Vis,n,Prompt,Filter,WDir)
 % (Re)Initialise SelFileWin, create one if necessary.
-%fprintf('Doing: spm_get(''Initialise''...\n')
 
-if nargin<6 WDir=''; else WDir=P6; end
-if nargin<5 Filter=0; else Filter=P5; end
-if nargin<4 Prompt='Select files...'; else Prompt=P4; end
-if nargin<3 n=Inf; else n=P3; end
-if nargin<2 Vis='on'; else Vis=P2; end
+if nargin<6 WDir=''; else WDir=varargin{6}; end
+if nargin<5 Filter=0; else Filter=varargin{5}; end
+if nargin<4 Prompt='Select files...'; else Prompt=varargin{4}; end
+if nargin<3 n=Inf; else n=varargin{3}; end
+if nargin<2 Vis='on'; else Vis=varargin{2}; end
 
 %-Save current figure
 cF = get(0,'CurrentFigure');
@@ -613,7 +613,7 @@ cF = get(0,'CurrentFigure');
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 
 %-If closing SelFileWin then close and return
-if strcmp('Vis','Close'), if ~isempty(F), close(F), end, R1=[]; return, end
+if strcmp('Vis','Close'), close(F), varargout={[]}; return, end
 
 %-If no SelFileWin, then create one
 if isempty(F), F=spm_get('CreateFig'); end
@@ -659,18 +659,15 @@ if strcmp(Vis,'on')
 end
 
 %-Return figure handles
-R1 = F; R2 = cF;
-
-return
+varargout = {F,cF};
 
 
-elseif strcmp(Action,'StatusLine')
+case 'statusline'
 %=======================================================================
 % spm_get('StatusLine',nP,n)
-%fprintf('Doing: spm_get(''StatusLine''...\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-if nargin<3, n=get(findobj(F,'Tag','Prompt'),'UserData'); else, n=P3; end
-if nargin<2, nP=size(get(findobj(F,'Tag','P'),'UserData'),1); else, nP=P2; end
+if nargin<3, n=get(findobj(F,'Tag','Prompt'),'UserData');else,n=varargin{3}; end
+if nargin<2, nP=size(get(findobj(F,'Tag','P'),'UserData'),1);else,nP=varargin{2}; end
 
 str=['Selected ',int2str(nP)];
 if finite(n), str=[str,'/',int2str(abs(n))]; end
@@ -691,18 +688,16 @@ else
 end
 
 set(findobj(F,'Tag','StatusLine'),'String',str)
-return
 
 
-elseif strcmp(Action,'cd')
+case 'cd'
 %=======================================================================
 % spm_get('cd',NewDir,bDirList)
-%fprintf('Doing: spm_get(''cd''...\n')
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if (nargin<3), bDirList=1; else, bDirList = ~P3; end
-if (nargin<2), NewDir=''; else, NewDir=P2; end
+if (nargin<3), bDirList=1; else, bDirList = ~varargin{3}; end
+if (nargin<2), NewDir=''; else, NewDir=varargin{2}; end
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
@@ -717,7 +712,7 @@ if nargin<2
 		NewDir=NewDir(val,:);
 	end
 else
-	NewDir=P2;
+	NewDir=varargin{2};
 end % (if)
 if isempty(NewDir), NewDir=WDir; end
 NewDir=deblank(NewDir);
@@ -831,14 +826,11 @@ else
 	set(F,'Pointer','Arrow')
 	drawnow
 end
-return
 
 
-elseif strcmp(Action,'dir')
+case 'dir'
 %=======================================================================
 % spm_get('dir',WDir,Filter,NoComp)
-%fprintf('Doing: spm_get(''dir''...\n')
-%
 % Creates list of text objects with an associated
 % ButtonDownFcn functions that call spm_get callbacks for processing
 %
@@ -853,8 +845,8 @@ delete(gca), drawnow
 %-Condition parameters and setup variables
 %-----------------------------------------------------------------------
 if nargin<4, NoComp=0; else, NoComp=1; end
-if nargin<3, Filter=''; else, Filter=P3; end
-if nargin<2, WDir=''; else, WDir = P2; end
+if nargin<3, Filter=''; else, Filter=varargin{3}; end
+if nargin<2, WDir=''; else, WDir = varargin{2}; end
 if isempty(WDir), WDir = get(findobj(F,'Tag','WDir'),'UserData');
 	else, WDir = deblank(WDir); end
 
@@ -892,7 +884,6 @@ set(hAxes(1),'Ylim',[0,y0])
 
 %-List current directory
 %-----------------------------------------------------------------------
-%fprintf('Doing spm_get(''dir'':\tspm_list_files...\n')
 [Files,Dirs] = spm_list_files(WDir,Filter);
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
@@ -911,11 +902,10 @@ set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
 %-Create list of directories with appropriate 'ButtonDownFcn': -
 % NB: Gave MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
 %-----------------------------------------------------------------------
-%fprintf('Doing: spm_get(''dir'':\tdirectory list\n')
 y     = y0-dy;
 for i = 1:size(Dirs,1)
 	text(0,y,deblank(Dirs(i,:)),'Tag','DirName',...
-		'FontWeight','normal','Color','r',...
+		'FontWeight','bold','Color','r',...
 		'UserData',deblank(Dirs(i,:)),...
 		'ButtonDownFcn','spm_get(''cd'',get(gcbo,''UserData''))',...
 		'HandleVisibility','off');
@@ -928,7 +918,6 @@ Items = Files; if (n<0) Items = Dirs; end
 
 %-Compressed summary view, or full view?
 %-----------------------------------------------------------------------
-%fprintf('Doing: spm_get(''dir'':\tcompressed / summary view?\n')
 if ~NoComp & size(Items,1)>48
 	%-Use a compressed summary view
 	if Filter(end)=='*'
@@ -950,7 +939,6 @@ end
 
 %-Create list of Items with appropriate 'ButtonDownFcn': -
 %-----------------------------------------------------------------------
-%fprintf('Doing: spm_get(''dir'':\titem list\n')
 y     = y0-dy;
 for i = 1:size(IName,1)
 	cIName   = IName(i,IName(i,:)~=' ');
@@ -980,15 +968,13 @@ for i = 1:size(IName,1)
 	y = y - dy;
 end
 set(F,'Pointer','Arrow')
-return
 
 
-elseif strcmp(Action,'StrSort')
+case 'strsort'
 %=======================================================================
 % [sS,I]=spm_get('StrSort',S)
-%fprintf('Doing: spm_get(''StrSort''...\n')
 % Utility string sorting routine for string matrices
-if nargin<2, error('Sort what?'), else, S = P2; end
+if nargin<2, error('Sort what?'), else, S = varargin{2}; end
 
 if size(S,2)<=3
 	a        = min(abs(S(:)'));
@@ -1006,16 +992,13 @@ else
 	I             = tI(hI);
 	sS            = S(I,:);	
 end
-R1 = sS;
-R2 = I;
-return
+varargout = {sS,I};
 
 
-elseif strcmp(Action,'strfliplr')
+case 'strfliplr'
 %=======================================================================
 % fS = spm_get('strfliplr',S)
-%fprintf('Doing: spm_get(''strfliplr''...\n')
-if nargin<2, error('Flip what?'), else, S = P2; end
+if nargin<2, error('Flip what?'), else, S = varargin{2}; end
 
 %-FlipLR the Fnames matrix, but watch out for trailing blanks/spaces
 [nS,Sl] = size(S);
@@ -1024,28 +1007,24 @@ for i = 1:nS
 	c = max(find(S(i,:)~=' '));
 	fS(i,:) = S(i,[c:-1:1,Sl:-1:c+1]);
 end
-R1 = fS;
-return
+varargout = {fS};
 
 
-elseif strcmp(Action,'FileSummary')
+case 'filesummary'
 %=======================================================================
 % [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
-%fprintf('Doing: spm_get(''FileSummary''...\n')
-if nargin<5, len = 3; else len = P5; end
-if nargin<4, Filter = ''; else Filter = P4; end
+if nargin<5, len = 3; else len = varargin{5}; end
+if nargin<4, Filter = ''; else Filter = varargin{4}; end
 if isempty(Filter), Filter='*'; end
-if nargin<3, Cend='both'; else, Cend = P3; end
-if nargin<2, error('Specify Fnames to summarise'), else Fnames = P2; end
+if nargin<3, Cend='both'; else, Cend = varargin{3}; end
+if nargin<2, error('Specify Fnames to summarise'), else Fnames = varargin{2}; end
 %-Implicit assumption in this code is that no two files have the same name
 
 if isempty(Fnames), error('Null Fnames'), end
 
 if strcmp(Cend,'front')
-	if size(Fnames,1) == 1
-		%-Only one filename!
-		R1 = deblank(Fnames);
-		R2 = 1;
+	if size(Fnames,1) == 1	%-Only one filename!
+		varargout = {deblank(Fnames),1};
 		return
 	end
 	WildCard    = Filter(max(find(Filter=='*')):length(Filter));
@@ -1139,15 +1118,12 @@ elseif strcmp(Cend,'both')
 else
 	error('Invalid Cend specifier')
 end
-R1 = FSpecs;
-R2 = FnamePos;
-return
+varargout = {FSpecs,FnamePos};
 
 
-elseif strcmp(Action,'Add')
+case 'add'
 %=======================================================================
 % spm_get('Add',H)
-%fprintf('Doing: spm_get(''Add''...\n')
 % Add filename to current list
 %-H - [Optional] (vector of) handles to file/dir name objects
 %
@@ -1162,7 +1138,7 @@ WDir    = get(findobj(F,'Tag','WDir'),'UserData');
 
 if (nargin==2)
 	%-Multiple handles passed by 'All' CallBack
-	H=P2;
+	H=varargin{2};
 else
 	%-'Add' called by item callback - get handle & check selection
 	H=gcbo;
@@ -1219,15 +1195,12 @@ set(findobj(F,'Tag','P'),'UserData',P);
 %-----------------------------------------------------------------------
 spm_get('StatusLine',size(P,1),n)
 
-return
 
-
-elseif strcmp(Action,'Delete')
+case 'delete'
 %=======================================================================
 % spm_get('Delete',h)
-%fprintf('Doing: spm_get(''Delete'')\n')
 F      = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-if nargin<2, h=gcbo; else, h=P2; end
+if nargin<2, h=gcbo; else, h=varargin{2}; end
 WDir   = get(findobj(F,'Tag','WDir'),'UserData');
 P      = get(findobj(F,'Tag','P'),'UserData');
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
@@ -1252,42 +1225,36 @@ if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
 		'ButtonDownFcn','spm_get(''Add'')')
 	spm_get('StatusLine',size(P,1),n)
 end
-return
 
 
-elseif strcmp(Action,'Reset')
+case 'reset'
 %=======================================================================
 % spm_get('Reset')
-%fprintf('Doing: spm_get(''Reset'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(findobj(F,'Tag','P'),'UserData',[]);
 spm_get('dir')
 spm_get('StatusLine')
-return
 
 
-elseif strcmp(Action,'All')
+case 'all'
 %=======================================================================
 % spm_get('All')
-%fprintf('Doing: spm_get(''All'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
 H = flipud(findobj(get(gca,'Children'),'Flat','Tag','IName'));
 spm_get('Add',H);
 set(F,'Pointer','Arrow')
-return
 
 
-elseif strcmp(Action,'CmdLine')
+case 'cmdline'
 %=======================================================================
 % P = spm_get('CmdLine',n,Prompt,P,WDir,AllowEnd)
-%fprintf('Doing: spm_get(''CmdLine''...\n')
-if nargin<6, AllowEnd=0; else AllowEnd=P6; end
-if nargin<5, WDir=''; else WDir=P5; end
+if nargin<6, AllowEnd=0; else AllowEnd=varargin{6}; end
+if nargin<5, WDir=''; else WDir=varargin{5}; end
 if isempty(WDir), WDir=pwd; else, WDir=deblank(WDir); end
-if nargin<4, P=[]; else P=P4; end
-if nargin<3, Prompt='Select files...'; else Prompt=P3; end
-if nargin<2, n=Inf; else n=P2; end
+if nargin<4, P=[]; else P=varargin{4}; end
+if nargin<3, Prompt='Select files...'; else Prompt=varargin{3}; end
+if nargin<2, n=Inf; else n=varargin{2}; end
 
 if n==0, return, end
 
@@ -1331,14 +1298,12 @@ while ~Done
 	Done = (strcmp(str,Tstr) | (nP==abs(n)));
 end % (while)
 
-R1 = P;
-return
+varargout = {P};
 
 
-elseif strcmp(Action,'GUI2CmdLine')
+case 'gui2cmdline'
 %=======================================================================
 % P = spm_get('GUI2CmdLine')
-%fprintf('Doing: spm_get(''GUI2CmdLine'')\n')
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 Prompt = get(findobj(F,'Tag','Prompt'),'String');
@@ -1383,13 +1348,11 @@ if ~strcmp(P(:),PNew(:))
 end
 
 delete(Handles);
-return
 
 
-elseif strcmp(Action,'Edit')
+case 'edit'
 %=======================================================================
 % spm_get('Edit')
-%fprintf('Doing: spm(''Edit'')\n')
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 n = get(findobj(F,'Tag','Prompt'),'UserData');
@@ -1458,14 +1421,12 @@ h = uicontrol(F,'Style','Text',...
 EditHandles = [EditHandles, h];
 
 set(findobj(F,'Tag','EditHandles'),'UserData',EditHandles)
-return
 
 
-elseif strcmp(Action,'EditDone')
+case 'editdone'
 %=======================================================================
 % spm_get('EditDone',OK)
-%fprintf('Doing: spm_get(''EditDone''...\n')
-if nargin<2, OK=0; else, OK=strcmp(P2,'OK'); end
+if nargin<2, OK=0; else, OK=strcmp(varargin{2},'OK'); end
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 
 EditHandles = get(findobj(F,'Tag','EditHandles'),'UserData');
@@ -1488,13 +1449,10 @@ if OK & get(h_EditWindow,'UserData')
 end
 delete(EditHandles), drawnow
 
-return
 
-
-elseif strcmp(Action,'Done')
+case 'done'
 %=======================================================================
 % spm_get('Done')
-%fprintf('Doing: spm_get(''Done'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 n = get(findobj(F,'Tag','Prompt'),'UserData');
 
@@ -1506,10 +1464,9 @@ end
 
 %-Done, set Done UserData tag for handling
 set(findobj(F,'Tag','Done'),'UserData',1)
-return
 
 
-else
+otherwise
 %=======================================================================
 error('Illegal Action string')
 

@@ -1,4 +1,4 @@
-function R1=spm_mip_ui(Action,P2,P3,P4,P5)
+function varargout=spm_mip_ui(varargin)
 % UI for displaying MIPs with interactive controls
 % FORMAT spm_mip_ui(t,XYZ,V,Descrip)
 % t       - SPM point list for MIP
@@ -158,25 +158,25 @@ Po(2)  = DXYZ(3)+DXYZ(1) -CXYZ(1)   ;
 Po(3)  = DXYZ(3)         -CXYZ(3)   ;
 Po(4)  = DXYZ(2)         +CXYZ(1) -4;
 
+
 %-Condition arguments
 %=======================================================================
-nin = nargin;
-if nin == 0, Action='Welcome'; end
-if ~isstr(Action) & nin>=3
-	if nin==4, P5 = P4; end
-	P4 = P3; P3 = P2; P2 = Action; Action = 'Display'; nin = nin + 1;
+if nargin==0
+	error('Insufficient arguments')
+elseif ~isstr(varargin{1})
+	spm_mip_ui('Display',varargin{1:end}), return
 end
 
 
-switch lower(Action), case 'display'
+switch lower(varargin{1}), case 'display'
 %=======================================================================
 % spm_mip_ui('Display',t,XYZ,V,Descrip)
-if nin < 4, error('Insufficient arguments'), end
-t       = P2;
-XYZ     = P3;
-V       = P4;
-if nin < 5, Descrip='SPM Maximum Intensity Projections';
-	else, Descrip = P5; end
+if nargin < 4, error('Insufficient arguments'), end
+t       = varargin{2};
+XYZ     = varargin{3};
+V       = varargin{4};
+if nargin < 5, Descrip='SPM Maximum Intensity Projections';
+	else, Descrip = varargin{5}; end
 
 
 %-Display MIP
@@ -307,7 +307,6 @@ hZ   = uicontrol(Fgraph,'Style','Edit',...
 	'Tag','hZ',...
 	'Callback','spm_mip_ui(''SetCoords'');',...
 	'Position',[050 678 055 020].*WS);
-return
 
 
 case 'getcoords'
@@ -324,16 +323,15 @@ xyz = [	eval(get(hX,'String'));...
 	eval(get(hY,'String'));...
 	eval(get(hZ,'String'))	];
 
-R1 = xyz;
-return
+varargout = {xyz};
 
 
 case 'roundcoords'
 %=======================================================================
 % xyz = spm_mip_ui('RoundCoords',xyz,V)
-if nin < 3, V = []; else, V = P3; end
+if nargin < 3, V = []; else, V = varargin{3}; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = varargin{2}; end
 
 %-Round xyz to coordinates of actual voxel centre
 %-Do rounding in voxel coordinates & ensure within image size
@@ -344,16 +342,15 @@ rcp = round(inv(M)*xyz);
 rcp = max([min([rcp';[V(1:3)',1]]);[1,1,1,1]])';
 xyz = M*rcp;
 
-R1 = xyz(1:3);
-return
+varargout = {xyz(1:3)};
 
 
 case 'setcoords'
 %=======================================================================
 % xyz = spm_mip_ui('SetCoords',xyz,V)
-if nin < 3, V = []; else, V = P3; end
+if nargin < 3, V = []; else, V = varargin{3}; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = varargin{2}; end
 
 xyz = spm_mip_ui('RoundCoords',xyz,V);
 
@@ -361,14 +358,13 @@ spm_mip_ui('PrntCords',xyz)
 spm_mip_ui('SetCordCntls',xyz)
 spm_mip_ui('PosnMarkerPoints',xyz,V)
 
-R1 = xyz(1:3);
-return
+varargout = {xyz(1:3)};
 
 
 case 'prntcords'
 %=======================================================================
 % spm_mip_ui('PrntCords',xyz)
-if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = varargin{2}; end
 
 %-Get handles of Co-ordinate strings
 %-----------------------------------------------------------------------
@@ -382,13 +378,11 @@ set(hXstr,'String',sprintf('x = %0.2f',xyz(1)))
 set(hYstr,'String',sprintf('y = %0.2f',xyz(2)))
 set(hZstr,'String',sprintf('z = %0.2f',xyz(3)))
 
-return
-
 
 case 'setcordcntls'
 %=======================================================================
 % spm_mip_ui('SetCordCntls',xyz)
-if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = varargin{2}; end
 
 %-Get handles of Co-ordinate controls
 %-----------------------------------------------------------------------
@@ -403,15 +397,13 @@ set(hX,'String',sprintf('%0.2f',xyz(1)))
 set(hY,'String',sprintf('%0.2f',xyz(2)))
 set(hZ,'String',sprintf('%0.2f',xyz(3)))
 
-return
-
 
 case 'posnmarkerpoints'
 %=======================================================================
 % spm_mip_ui('PosnMarkerPoints',xyz,V)
-if nin < 3, V = []; else, V = P3; end
+if nargin < 3, V = []; else, V = varargin{3}; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = varargin{2}; end
 
 b2d = V(3) == 1;
 
@@ -434,15 +426,14 @@ else
 	set(X2,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
 	set(X3,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
 end
-return
 
 
 case 'showgreens'
 %=======================================================================
 % spm_mip_ui('ShowGreens',xyz,V)
-if nin < 3, V = []; else, V = P3; end
+if nargin < 3, V = []; else, V = varargin{3}; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nin < 2, xyz = get(gco,'UserData'); else, xyz = P2; end
+if nargin < 2, xyz = get(gco,'UserData'); else, xyz = varargin{2}; end
 
 b2d = V(3) == 1;
 
@@ -468,17 +459,15 @@ end
 
 %-If called as a callback (xyz from gco), then set WindowButtonUpFcn
 %-----------------------------------------------------------------------
-if nin<2
+if nargin < 2
 	set(gcbf,'WindowButtonUpFcn','spm_mip_ui(''HideGreens'',1)')
 end
-
-return
 
 
 case 'hidegreens'
 %=======================================================================
 % spm_mip_ui('HideGreens',cbf)
-if nin<2, cbf=0; else, cbf=1; end
+if nargin<2, cbf=0; else, cbf=1; end
 
 V = get(findobj('Tag','hV'),'UserData');
 b2d = V(3) == 1;
@@ -496,7 +485,6 @@ end
 %-Reset WindowButtonUpFcn if this was a callback function
 %-----------------------------------------------------------------------
 if cbf, set(gcbf,'WindowButtonUpFcn',' '), end
-return
 
 
 case 'movestart'
@@ -547,13 +535,12 @@ elseif strcmp(get(cF,'SelectionType'),'alt')
 		'Interruptible','off')
 	set(cF,'Pointer','CrossHair')
 end
-return
 
 
 case 'move'
 %=======================================================================
 % spm_mip_ui('Move',DragType)
-if nin<2, DragType = 2; else, DragType = P2; end
+if nargin<2, DragType = 2; else, DragType = varargin{2}; end
 cF = gcbf;
 cO = gco;
 
@@ -628,13 +615,11 @@ else
 	error('Illegal DragType')
 end
 
-return
-
 
 case 'moveend'
 %=======================================================================
 % spm_mip_ui('MoveEnd',EndType)
-if nin<2, EndType = 0; else, EndType = P2; end
+if nargin<2, EndType = 0; else, EndType = varargin{2}; end
 
 %-Reset WindowButton functions & pointer
 %-----------------------------------------------------------------------
@@ -645,7 +630,6 @@ set(gcf,'Pointer','arrow')
 %-Print coordinates after drag'n'drop
 %-----------------------------------------------------------------------
 if EndType, spm_mip_ui('PrntCords'), end
-return
 
 
 case 'showhiddencoords'
@@ -666,7 +650,6 @@ else
 			'spm_mip_ui(''ShowHiddenCoords'')')
 	end
 end
-return
 
 
 otherwise

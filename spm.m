@@ -1,4 +1,4 @@
-function [R1,R2]=spm(Action,P2,P3)
+function varargout=spm(varargin)
 % SPM: Statistical Parametric Mapping (startup function)
 %_______________________________________________________________________
 %  ___  ____  __  __
@@ -149,7 +149,7 @@ Modalities = str2mat('PET','FMRI');
 
 %-Format arguments
 %-----------------------------------------------------------------------
-if nargin == 0, Action='Welcome'; end
+if nargin == 0, Action='Welcome'; else, Action = varargin{1}; end
 
 
 switch lower(Action), case 'welcome'
@@ -310,7 +310,7 @@ fprintf('SPM present working directory:\n\t%s\n',pwd)
 case 'createmenuwin'
 %=======================================================================
 % Fmenu = spm('CreateMenuWin',Vis)
-if nargin<2, Vis='on'; else, Vis=P2; end
+if nargin<2, Vis='on'; else, Vis=varargin{2}; end
 
 %-Close any existing 'Menu' 'Tag'ged windows
 close(spm_figure('FindWin','Menu'))
@@ -483,14 +483,14 @@ set(Fmenu,'CloseRequestFcn',[...
 		'clear all,clc,fprintf(''Bye...\n\n>> '')'])
 
 % set(Fmenu,'Visible',Vis)
-R1 = Fmenu;
+varargout = {Fmenu};
 
 
 
 case 'createintwin'
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
-if nargin<2, Vis='on'; else, Vis=P2; end
+if nargin<2, Vis='on'; else, Vis=varargin{2}; end
 
 %-Close any existing 'Interactive' 'Tag'ged windows
 close(spm_figure('FindWin','Interactive'))
@@ -507,7 +507,7 @@ Finter = figure('IntegerHandle','off',...
 	'DefaultUicontrolFontSize',2*round(12*min(spm('GetWinScale'))/2),...
 	'DefaultUicontrolInterruptible','on',...
 	'Visible',Vis);
-R1 = Finter;
+varargout = {Finter};
 
 
 case 'chmod'
@@ -516,7 +516,7 @@ case 'chmod'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, Modality = ''; else, Modality = P2; end
+if nargin<2, Modality = ''; else, Modality = varargin{2}; end
 [Modality,ModNum] = spm('CheckModality',Modality);
 
 if strcmp(Modality,'PET'), OModality = 'FMRI'; else, OModality='PET'; end
@@ -554,7 +554,7 @@ case 'defaults'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, Modality=''; else, Modality=P2; end
+if nargin<2, Modality=''; else, Modality=varargin{2}; end
 Modality = spm('CheckModality',Modality);
 
 %-Set MODALITY
@@ -614,7 +614,7 @@ case 'checkmodality'
 %=======================================================================
 % [Modality,ModNum] = spm('CheckModality',Modality)
 %-----------------------------------------------------------------------
-if nargin<2, Modality=''; else, Modality=upper(P2); end
+if nargin<2, Modality=''; else, Modality=upper(varargin{2}); end
 if isempty(Modality)
 	global MODALITY
 	if ~isempty(MODALITY); Modality = MODALITY;
@@ -634,23 +634,21 @@ else
 end
 
 if isempty(ModNum), error('Unknown Modality'), end
-R1 = upper(Modality);
-R2 = ModNum;
+varargout = {upper(Modality),ModNum};
 
 
 case 'getwinscale'
 %=======================================================================
 % spm('GetWinScale')
 S   = get(0,'ScreenSize');
-R1  = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
-
+varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 
 
 case 'winsize'
 %=======================================================================
 % Rect = spm('WinSize',Win,raw)
 if nargin<3, raw=0; else, raw=1; end
-if nargin<2, Win=''; else, Win=P2; end
+if nargin<2, Win=''; else, Win=varargin{2}; end
 
 Rect = [	[108 429 400 445];...
 		[108 008 400 395];...
@@ -677,27 +675,27 @@ else
 end
 
 if ~raw, Rect = Rect.*WS; end
-R1 = Rect;
+varargout = {Rect};
 
 
 case 'dir'
 %=======================================================================
 % spm('Dir',Mfile)
 %-----------------------------------------------------------------------
-if nargin<2, Mfile='spm'; else, Mfile=P2; end
+if nargin<2, Mfile='spm'; else, Mfile=varargin{2}; end
 SPMdir = which(Mfile);
 if ~isstr(SPMdir)
 	error(['Can''t find ',Mfile,' on MATLABPATH']); end
 tmp    = max(find(SPMdir=='/'))-1;
 if tmp, SPMdir = SPMdir(1:tmp); end
-R1     = SPMdir;
+varargout = {SPMdir};
 
 
 case 'ver'
 %=======================================================================
 % spm('Ver',Mfile,ReDo)
 if nargin<3, ReDo=0; else, ReDo=1; end
-if nargin<2, Mfile=''; else, Mfile=P2; end
+if nargin<2, Mfile=''; else, Mfile=varargin{2}; end
 if isempty(Mfile), Mfile='spm'; end
 Fmenu = spm_figure('FindWin','Menu');
 
@@ -706,7 +704,7 @@ Fmenu = spm_figure('FindWin','Menu');
 if ~ReDo
 	if ~isempty(Fmenu)
 		SPMver = get(Fmenu,'UserData');
-		if ~isempty(SPMver), R1=SPMver; return, end
+		if ~isempty(SPMver), varargout={SPMver}; return, end
 	end
 end
 
@@ -728,7 +726,7 @@ end
 %-----------------------------------------------------------------------
 if ~isempty(Fmenu), set(Fmenu,'UserData',SPMver); end
 
-R1      = SPMver;
+varargout = {SPMver};
 
 
 case 'colour'
@@ -736,24 +734,23 @@ case 'colour'
 % spm('Colour')
 %-----------------------------------------------------------------------
 %-Developmental livery
-R1 = [0.7,1.0,0.7];
-R2 = 'Lime Green';
+varargout = {[0.7,1.0,0.7],'Lime Green'};
 %-Distribution livery
-% R1 = [0.8 0.8 1.0];
-% R2 = 'Diluted Blackcurrent Purple';
+% varargout = {[0.8 0.8 1.0],'Diluted Blackcurrent Purple'};
 
 
 case 'isgcmdline'
 %=======================================================================
 % CmdLine = spm('isGCmdLine')
 global CMDLINE
-if isempty(CMDLINE), R1 = 0; else, R1 = CMDLINE; end
+if isempty(CMDLINE), varargout = {0}; else, varargout = {CMDLINE}; end
 
 
 case 'mlver'
 %=======================================================================
 % spm('MLver')
-v = version; tmp = find(v=='.'); if length(tmp)>1, R1=v(1:tmp(2)-1); end
+v = version; tmp = find(v=='.');
+if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
 
 case 'setcmdwinlabel'
@@ -786,7 +783,7 @@ case 'getuser'
 % User = spm('GetUser')
 User = getenv('USER');
 if isempty(User), User='user'; end
-R1 = User;
+varargout = {User};
 
 case 'beep'
 %=======================================================================

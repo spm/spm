@@ -1,4 +1,4 @@
-function [R1,R2]=spm_help(Action,P2,P3,P4,P5)
+function varargout=spm_help(varargin)
 % SPM help and manual facilities
 % FORMAT spm_help
 %_______________________________________________________________________
@@ -199,27 +199,26 @@ function [R1,R2]=spm_help(Action,P2,P3,P4,P5)
 % h         - handle of button (if one is created)
 %_______________________________________________________________________
 
-%-Condition arguments for all uses
+%-Condition arguments
 %-----------------------------------------------------------------------
-nin = nargin;
-if nin==0
+if nargin==0
 	Fhelp = spm_figure('FindWin','Help');
 	if ~isempty(Fhelp)
-		set(Fhelp,'Visible','on')
-		return
+		set(Fhelp,'Visible','on'), return
 	else
-		Action='';
+		spm_help('!Topic','Menu'), return
 	end
 end
-if isempty(Action), Action='Menu'; nin=1; end
 
-%-All actions begin '!' - Other actions are topics
-%-----------------------------------------------------------------------
-if Action(1)~='!', nin=2; P2=Action; Action='!Topic'; end
+%-All actions begin '!' - Other (string) actions are topics
+if isempty(varargin{1})
+	spm_help('!Topic','Menu'),   return
+elseif varargin{1}(1)~='!'
+	spm_help('!Topic',varargin{:}), return
+end
 
 
-
-switch lower(Action), case '!quit'
+switch lower(varargin{1}), case '!quit'
 %=======================================================================
 Fhelp   = spm_figure('FindWin','Help');
 set(Fhelp,'Visible','off')
@@ -246,15 +245,15 @@ O     = [600/2-400/2 100 0 0].*WS;
 uicontrol(Fhelp,'Style','PushButton',...
 	'String',spm('Ver'),...
 	'CallBack','spm_help(''spm.m'')',...
-	'Position',[-2,447,404,30]+O,...
+	'Position',[-2,447,404,30].*WS+O,...
 	'Tag','HelpMenu')
 
 uicontrol(Fhelp,'Style','Frame',...
-	'Position',[-2,-2,404,449]+O,...
+	'Position',[-2,-2,404,449].*WS+O,...
 	'Tag','HelpMenu')
 
 uicontrol(Fhelp,'Style','Frame',...
-	'Position',[0,0,400,445]+O,...
+	'Position',[0,0,400,445].*WS+O,...
 	'Tag','HelpMenu',...
 	'BackgroundColor',spm('Colour'))
 
@@ -426,7 +425,7 @@ uicontrol(Fhelp,'String','Quit',...
 case '!shorttopics'
 %=======================================================================
 % [S,Err] = spm_help('!ShortTopics',Topic)
-if nin<2, Topic='!Topics'; else, Topic=P2; end
+if nargin<2, Topic='!Topics'; else, Topic=varargin{2}; end
 
 Usep = sprintf('%%%s',setstr('_'*ones(1,71)));
 Err = 0;
@@ -544,13 +543,13 @@ else
 		'%s\n%%\n%% Andrew Holmes\n'],Usep,Usep);
 	Err = 1;
 end
-R1 = S; R2 = Err;
+varargout = {S,Err};
 
 
 case '!topic'
 %=======================================================================
 % spm_help('!Topic',Topic)
-if nin<2, Topic='Menu'; else, Topic=P2; end
+if nargin<2, Topic='Menu'; else, Topic=varargin{2}; end
 
 %-Find (or create) help window.
 %-----------------------------------------------------------------------
@@ -672,10 +671,10 @@ set(Fhelp,'Pointer','Arrow')
 case '!disp'
 %=======================================================================
 % spm_help('!Disp',Fname,S,F,TTitle)
-if nin<5, TTitle=''; else, TTitle=P5; end
-if nin<4, F='Help'; else, F=P4; end
-if nin<3, S=''; else, S=P3; end
-if nin<2, Fname='spm.man'; else, Fname=P2; end
+if nargin<5, TTitle=''; else, TTitle=varargin{5}; end
+if nargin<4, F='Help'; else, F=varargin{4}; end
+if nargin<3, S=''; else, S=varargin{3}; end
+if nargin<2, Fname='spm.man'; else, Fname=varargin{2}; end
 if isempty(TTitle), TTitle=Fname; end
 
 
@@ -767,7 +766,7 @@ case '!create'
 F = spm_help('!CreateHelpWin');
 spm_help('!CreateBar',F)
 spm_figure('WaterMark',F,spm('Ver'),'WaterMark',-45,1)
-R1 = F;
+varargout = {F};
 
 
 case '!createhelpwin'
@@ -808,7 +807,7 @@ F      = figure('IntegerHandle','off',...
 	'PaperType','a4letter',...
 	'InvertHardcopy','off',...
 	'Visible','on');
-R1 = F;
+varargout = {F};
 
 
 case '!createbar'
@@ -819,7 +818,7 @@ case '!createbar'
 % About SPMver  | Referenced Topics |   Previous Topics  |
 %-----------------------------------------------------------------------
 
-if nin<2, F='Help'; else F=P2; end
+if nargin<2, F='Help'; else F=varargin{2}; end
 F = spm_figure('FindWin','Help');
 if isempty(F)
 	error('Help figure not found')
@@ -947,8 +946,8 @@ spm_help('!Topic',deblank(Topics(Topic,:)))
 case '!figkeypressfcn'
 %=======================================================================
 % spm_help('!FigKeyPressFcn',h,ch)
-if nin<2, error('Insufficient arguments'), else, h=P2; end
-if nin<3, ch=get(gcf,'CurrentCharacter'); else, ch=P3; end
+if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
+if nargin<3, ch=get(gcf,'CurrentCharacter'); else, ch=varargin{3}; end
 
 tmp = get(h,'String');
 
@@ -984,7 +983,7 @@ case '!clear'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nin<2, F='Help'; else, F = P2; end
+if nargin<2, F='Help'; else, F = varargin{2}; end
 F=spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -1006,7 +1005,7 @@ set(hRTopics,'Value',1,'String',deblank(RefdTopics(1,:)))
 case '!contexthelp'
 %=======================================================================
 % h = spm_help('!ContextHelp',Topic)
-if nin<2, Topic=''; else Topic=P2; end
+if nargin<2, Topic=''; else Topic=varargin{2}; end
 
 if spm('isGCmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
@@ -1020,7 +1019,7 @@ else
 		'Tag','ContextHelp',...
 		'ForegroundColor','g',...
 		'Position',[S2(3)-20 5 15 15]);
-	if nargout>0, R1 = h; end
+	if nargout>0, varargout = {h}; end
 end
 
 
