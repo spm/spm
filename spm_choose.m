@@ -1,6 +1,6 @@
-function spm_choose(SPMverCode)
+function spm_choose(varargin)
 % SPM: Version chooser function
-% FORMAT spm_choose(SPMverCode)
+% FORMAT spm_choose(SPMverCode,varargin)
 % SPMverCode - [optional] short string identifier for SPM version to run
 %_______________________________________________________________________
 %  ___  ____  __  __
@@ -15,149 +15,163 @@ function spm_choose(SPMverCode)
 % specified, an SPM chooser window is displayed with pushbuttons
 % leading to the defined versions.
 %
-% Versions are defined in terms of a triple of string matrices, holding
-% the version name (the button label), a short name (for command line
-% use), and the directory holding that version. These hardcoded into
-% the program, in the "Parameters" section.
+% Versions are defined in the body of the program via the parameter
+% cell array SPMs. This has a row for each SPM version (up to 4), and
+% has three columns defining the respective version descriptions, short
+% names, and paths. Multiple short names & paths are allowed for a
+% single version, provided they are embedded in cell arrays of strings
+% themselves. See the parameters section in the code for further details.
 %
 % Once a version is chosen, the appropriate directory is prepended to
-% the MatLab path, all functions cleared, and the `spm` called.
+% the MatLab path, all functions cleared, and `spm` called.
 %
 % Versions can be selected from the command line by specifying their
 % short names as parameter. MatLab's command-function duality means
-% that `spm_choose('96')` is equivalent to `spm_choose 96`.
+% that `spm_choose('98')` is equivalent to `spm_choose 98`.
 %
 % Systems administrators should code the appropriate definitions into
-% the Parameters section. Note that unaccessible directories are
-% removed from the list of choices. If only one (valid) version is
-% defined then this is run.
+% the Parameters section. Note that options without a readable spm.m
+% function are removed from the list of choices. If only one (valid)
+% version is defined then this is run.
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
 %-Parameters - up to 4 versions may be defined
 %=======================================================================
-
-%-Long names of the SPM versions
-SPMverNames = str2mat(...
-		'SPM''94  (MRC-CU)',...
-		'SPM''95  (FIL)',...
-		'SPM''96  (FIL)',...
-		'SPM''97d (devel)');
-
-%-Shortcut keys for each version.
-SPMverCodes = ...
-	  str2mat('94','95','96','97d');
-
-%-Paths for each version
-SPMverPaths = str2mat(...
-		'/local/spm/spm94_mrccu',...
-		'/local/spm/spm95_fil',...
-		'/local/spm/spm96_fil',...
-		'/local/spm/spm_devel');
-
-
+%         Description         | Short name(s) |   Path(s)
+%-------+---------------------+---------------+-------------------------
+SPMs ={	'devel +ML5',		{'devel','97'},	{'/local/spm/devel/ML5',...
+						'/local/spm/devel'};...
+	'SPM98d',		'98d',		'/local/spm/spm_devel';...
+	'invalid',		'inv',		'/local/nowhere';
+	'worse still'		'worse',	{'/tmp','/var/tmp'}};
 
 %-Check parameters
+%-----------------------------------------------------------------------
+if isempty(SPMs), return, end
+
+
+%-Version specified as parameter by SPMverCode - delete other options
 %=======================================================================
-if isempty(SPMverNames), return, end
-if size(SPMverNames,1)~=size(SPMverPaths,1) | ...
-		size(SPMverNames,1)~=size(SPMverCodes,1)
-	error('Versions - ShortCodes - Directories mismatch'), end
-
-%-Check path validity, prune directories without a readable spm.m
-%-----------------------------------------------------------------------
-tmp = zeros(size(SPMverPaths,1),1);
-for SPMver = 1:length(tmp)
-	tmp(SPMver) = exist([deblank(SPMverPaths(SPMver,:)),'/spm.m'])==2;
-end
-SPMverNames = SPMverNames(tmp,:);
-SPMverCodes = SPMverCodes(tmp,:);
-SPMverPaths = SPMverPaths(tmp,:);
-if isempty(SPMverNames)
-	fprintf(['%s\nNo valid paths to choose an SPM version from!\n',...
-		'- set version names and paths correctly in spm.m\n',...
-		'  or set your MATLABPATH appropriately\n\n'],7)
-	return
-end
-
-%-Version specified as parameter by SPMverCode
-%-----------------------------------------------------------------------
 if nargin>0
-	n    = size(SPMverCodes,1);
-	tmp  = str2mat(SPMverCodes,SPMverCode);
-	SPMver = ...
-		find(all(tmp(1:n,:)'==...
-		setstr(ones(size(SPMverCodes,1),1)*tmp(n+1,:))'));
-	if SPMver
-		SPMverNames = deblank(SPMverNames(SPMver,:));
-		SPMverPaths = deblank(SPMverPaths(SPMver,:));
+	iSPM  = [];
+	SPMvs = cell(0,0);
+	for i = 1:size(SPMs,1)
+		if iscell(SPMs{i,2})
+			iSPM  = [iSPM, i*ones(1,length(SPMs{i,2}(:)))];
+			SPMvs = {SPMvs{:}, SPMs{i,2}{:}};
+		else
+			iSPM  = [iSPM, i];
+			SPMvs = {SPMvs{:}, SPMs{i,2}};
+		end
+	end
+	i = min(find(strcmp(varargin{1},SPMvs)));
+	if ~isempty(i)
+		SPMs = SPMs(iSPM(i),:);
+	else
+		error('Unrecognised SPMverCode')
 	end
 end
 
-%-If only one version specified then launch it and return
-%-----------------------------------------------------------------------
-if size(SPMverNames,1)==1
-	if exist([SPMverPaths,'/spm.m'])~=2
-		error(['Invalid path for "',SPMverNames,'"']), end
-	path(SPMverPaths,path)
-	eval('spm')
+
+%-Check path validity: prune options without a readable spm.m,
+% Make all path subcells into cell arrays themselves.
+%=======================================================================
+ok = zeros(size(SPMs,1),1);
+for i = 1:size(SPMs,1)
+	if iscell(SPMs{i,3})
+		for j=1:length(SPMs{i,3})
+			ok(i) = ok(i) | exist([SPMs{i,3}{j},'/spm.m'],'file')==2;
+		end
+	else
+		ok(i) = exist([SPMs{i,3},'/spm.m'],'file')==2;
+		SPMs(i,3)={SPMs(i,3)};
+	end
+end
+SPMs(find(~ok),:)=[];
+
+if isempty(SPMs)
+	fprintf(['%s\nNo valid paths to choose an SPM version from!\n',...
+		'\t- set version names and paths correctly in spm.m\n',...
+		'\t  or set your MATLABPATH appropriately\n\n'],7)
 	return
 end
 
+
+%-If only one version (remaining) specified then launch it and return
+%=======================================================================
+if size(SPMs,1)==1
+	addpath(SPMs{1,3}{:});
+	eval('spm(varargin{2:end})')
+	return
+end
+
+
 %-Open chooser window
 %=======================================================================
-if size(SPMverNames,1) > 4, error('Not enough space for >4 buttons!'), end
+if size(SPMs,1) > 4, error('Not enough space for >4 buttons!'), end
 S = get(0,'ScreenSize');
-close(findobj(get(0,'Children'),'Tag','SPMchooser'))
-F = figure('Color',[1 1 1]*.8,...
+
+F = figure('IntegerHandle','off',...
 	'Name','',...
 	'NumberTitle','off',...
+	'Tag','SPMchooser',...
 	'Position',[S(3)/2-200,S(4)/2-140,300,280],...
 	'Resize','off',...
-	'Tag','SPMchooser',...
 	'Pointer','Watch',...
+	'Color',[1 1 1]*.8,...
+	'MenuBar','none',...
+	'DefaultUicontrolFontSize',12,...
+	'HandleVisibility','off',...
 	'Visible','off');
 
 %-Frames and text
 %-----------------------------------------------------------------------
-axes('Position',[0 0 80/300 280/280],'Visible','Off')
+hA = axes('Parent',F,'Position',[0 0 100/300 280/280],'Visible','Off');
 text(0.5,0.5,'SPM',...
+	'Parent',hA,...
 	'FontName','Times','FontSize',96,...
+	'FontAngle','Italic','FontWeight','Bold',...
 	'Rotation',90,...
-	'VerticalAlignment','middle','HorizontalAlignment','center',...
-	'Color',[1 1 1]*.6);
+	'VerticalAlignment','Middle','HorizontalAlignment','center',...
+	'Color',[1 1 1]*.6)
 
 text(0.3,0.95,'Statistical Parametric Mapping',...
-	'FontName','Times','FontSize',16,'FontAngle','Italic',...
-	'FontWeight','Bold',...
-	'Color',[1 1 1]*.6);
+	'Parent',hA,...
+	'FontName','Times','FontSize',16,...
+	'FontAngle','Italic','FontWeight','Bold',...
+	'Color',[1 1 1]*.6)
 
-uicontrol(F,'Style','Frame','Position',[110 020 180 230]);
+uicontrol(F,'Style','Frame','Position',[110 020 180 230])
 
 %-Buttons to launch SPM versions
 %-----------------------------------------------------------------------
 uicontrol(F,'Style','Text',...
 	'String','Select version...',...
+	'FontName','Times','FontSize',14,...
 	'HorizontalAlignment','Center',...
 	'Position',[120 210 160 030],...
-	'ForegroundColor','k');
-for i=1:size(SPMverNames,1)
-	uicontrol(F,'String',deblank(SPMverNames(i,:)),...
-		'Position',[120 175-(i-1)*35 160 025],...
+	'ForegroundColor','k')
+for i = 1:min(size(SPMs,1),4)
+	tmp = ['''',SPMs{i,3}{1},''''];
+	for j=2:length(SPMs{i,3})
+		tmp = [tmp,',''',SPMs{i,3}{j},''''];
+	end
+	uicontrol(F,'String',SPMs{i,1},...
+		'Position',[120 180-(i-1)*35 160 030],...
 		'CallBack',[...
-			'path(get(gco,''UserData''),path),',...
-			'close(gcf),',...
+			'addpath(',tmp,'),',...
+			'delete(gcbf),',...
 			'clear functions,',...
-			'eval(''spm'')'],...
-		'UserData',deblank(SPMverPaths(i,:)),...
-		'Interruptible','yes',...
-		'ForegroundColor',[0 1 1]);
+			'spm'],...
+		'Interruptible','on',...
+		'ForegroundColor',[0 1 1])
 end
 
 uicontrol(F,'String','Quit',...
 	'Position',[120 030 160 030],...
-	'CallBack','close(gcf)',...
+	'CallBack','close(gcbf)',...
 	'ForegroundColor','r');
 
 set(F,'Pointer','Arrow','Visible','on')
