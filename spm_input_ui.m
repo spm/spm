@@ -524,6 +524,8 @@ else
 	% catch evaluation errors.
 	%---------------------------------------------------------------
 	waitfor(h,'UserData')
+	if ~ishandle(h), error(['Input window cleared whilst waiting ',...
+		'for response: Bailing out!']), end
 	str = get(h,'String');
 	if Type(1)=='e'
 		p = evalin('base',['[',str,']'],'''<ERROR>''');
@@ -540,6 +542,8 @@ else
 				'ForegroundColor','k',...
 				'UserData',0)
 			waitfor(h,'UserData')
+			if ~ishandle(h), error(['Input window cleared ',...
+				'whilst waiting for response: Bailing out!']),end
 			str = get(h,'String');
 			p = evalin('base',['[',str,']'],'''<ERROR>''');
 		end
@@ -732,6 +736,8 @@ elseif Type(1)=='b'
 		%-Wait for button press, process results
 		%-------------------------------------------------------
 		waitfor(hPrmpt,'UserData')
+		if ~ishandle(hPrmpt), error(['Input window cleared whilst ',...
+			'waiting for response: Bailing out!']), end
 		k = get(hPrmpt,'UserData');
 		p = Values(k,:); if isstr(p), p=deblank(p); end
 		
@@ -810,6 +816,8 @@ elseif Type(1)=='m'
 		%-Wait for menu selection
 		%-------------------------------------------------------
 		waitfor(hPopUp,'UserData')
+		if ~ishandle(hPopUp), error(['Input window cleared whilst ',...
+			'waiting for response: Bailing out!']), end
 		k = get(hPopUp,'Value')-1;
 	
 		%-Display answer, cleanup window
