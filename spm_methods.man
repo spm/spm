@@ -103,6 +103,10 @@
 % Incorporating Prior Knowledge into Image Registration.
 % NeuroImage 6:344-352
 %
+% J. Ashburner and K. J. Friston (1999)
+% Nonlinear Spatial Normalization using Basis Functions.
+% Human Brain Mapping 7(4):in press
+%
 % Friston KJ Ashburner J Poline JB Frith CD Heather JD and Frackowiak RSJ 
 % (1995a) Spatial realignment and normalization of images.
 % Human Brain Mapping 2:165-189.
