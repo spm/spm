@@ -285,7 +285,7 @@ else
 			set(lab,'string',arg1);
 			line('Xdata',[], 'Ydata',[],...
 				'LineWidth',2,'Tag','LinMinPlot','Parent',linminplot.ax,...
-				'LineStyle','none','Marker','o');
+				'LineStyle','-','Marker','o');
 			drawnow;
 		end
 
@@ -295,8 +295,9 @@ else
 		F = spm_figure('FindWin','Interactive');
 		br = findobj(F,'Tag','LinMinPlot');
 		if (~isempty(br))
-			xd = [get(br,'Xdata') arg1];
+			[xd,indx] = sort([get(br,'Xdata') arg1]);
 			yd = [get(br,'Ydata') arg2];
+			yd = yd(indx);
 			set(br,'Ydata',yd,'Xdata',xd);
 			drawnow;
 		end
