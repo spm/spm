@@ -17,7 +17,7 @@
 
 % get image on which to render
 %----------------------------------------------------------------------------
-spms   = spm_get(1,'.img','select an image for rendering',[]);
+spms   = spm_get(1,'.img','select an image for rendering');
 set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
