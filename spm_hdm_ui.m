@@ -123,39 +123,31 @@ spm('FigName','Estimation in progress');
 
 % priors
 %---------------------------------------------------------------------------
-m     = size(U.u,2);
-j     = [1:m] + 5;
-pE    = [0.65 0.41 0.98 0.32 0.34]';
-pC    = [   0.0150    0.0052    0.0283    0.0002   -0.0027
-	    0.0052    0.0020    0.0104    0.0004   -0.0013
-	    0.0283    0.0104    0.0568    0.0010   -0.0069
-	    0.0002    0.0004    0.0010    0.0013   -0.0010
-	   -0.0027   -0.0013   -0.0069   -0.0010    0.0024];
-pE(j) = 0;
-pC    = blkdiag(pC,eye(m)*16);
+m       = size(U.u,2);
+[pE,pC] = spm_hdm_priors(m);
 
 % model
 %---------------------------------------------------------------------------
-M.fx  = 'spm_fx_HRF';
-M.lx  = 'spm_lambda_HRF';
-M.x   =      [0 1 1 1]';
-M.pE  = pE;    
-M.pC  = pC;
-M.m   = size(U.u,2);
-M.n   = size(M.x,1);
-M.l   = size(Y.y,2);
-M.N   = 64;
-M.dt  = 24/M.N;
+M.fx    = 'spm_fx_HRF';
+M.lx    = 'spm_lambda_HRF';
+M.x     = [0 1 1 1]';
+M.pE    = pE;    
+M.pC    = pC;
+M.pD    = (Y.dt/4)^2;
+M.m     = m;
+M.n     = 4;
+M.l     = 1;
+M.N     = 64;
+M.dt    = 24/M.N;
 
 % nonlinear system identification
 %---------------------------------------------------------------------------
-[Ep,Cp,Ce,H0,H1,H2,K0,K1,K2] = spm_nlsi(M,U,Y);
-
+[Ep,Cp,Ce,K0,K1,K2,M0,M1,L] = spm_nlsi(M,U,Y);
 
 %-display results
 %===========================================================================
-t     = [1:M.N]*M.dt;
-Fhdm  = spm_figure;
+t       = [1:M.N]*M.dt;
+Fhdm    = spm_figure;
 set(Fhdm,'name','Hemodynamic Modeling')
 
 
@@ -199,8 +191,18 @@ set(gca,'YTickLabel',{	'SIGNAL decay',...
 			 sprintf('%0.0f %s',P(5)*100,'%'),''},'FontSize',8)
 
 
-% display state kernels (i.e. state dynamics) 
+% get display state kernels (i.e. state dynamics) 
+%===========================================================================
+
+% Bilinear representation (2nd order)
 %---------------------------------------------------------------------------
+[M0,M1,L] = spm_bi_reduce(M,Ep);
+L         = sparse([1:M.n],[1:M.n] + 1,1,M.n,length(M0));
+
+% Volterra kernels of states
+%---------------------------------------------------------------------------
+[H0,H1] = spm_kernels(M0,M1,L,M.N,M.dt);
+
 subplot(3,2,2)
 plot(t,H1(:,:,j))
 axis square
