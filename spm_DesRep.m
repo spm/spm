@@ -297,10 +297,10 @@ case 'desrepui'                                    %-Design reporting UI
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
 if nargin<2
-	cfg = spm_get(1,'SPM*.mat','Select SPMstats design file...');
-	D   = load(cfg);
+	cfg       = spm_get(1,'SPM*.mat','Select SPMstats design file...');
+	D         = load(cfg);
 	[swd,cfg] = fileparts(cfg);
-	D.swd = swd;
+	D.swd     = swd;
 	if any(strcmp(cfg,{'SPM_fMRIDesMtx','SPMcfg','SPM'}))
 		D.cfg = cfg;
 	end
@@ -399,10 +399,10 @@ case 'fMRI'
     for j = 1:length(D.Sess)
         h = uimenu(hExplore,'Label',sprintf('Session %.0f ',j),...
             'HandleVisibility','off');
-        for k = 1:length(D.Sess{j}.name)
-            uimenu(h,'Label',D.Sess{j}.name{k},...
+        for k = 1:length(D.Sess{j}.Fcname)
+            uimenu(h,'Label',D.Sess{j}.Fcname{k},...
                  'CallBack',[cb,...
-                 sprintf('spm_fMRI_design_show(tmp.xX,tmp.Sess,%d,%d);',j,k)],...
+            sprintf('spm_fMRI_design_show(tmp.xX,tmp.Sess,%d,%d);',j,k)],...
                  'UserData',hC,...
                  'HandleVisibility','off')
         end

@@ -425,12 +425,12 @@ if iscell(xX.xVi.Vi)
 else
 	Vi    = xX.xVi.Vi;
 end
-KVi           = spm_filter('apply',xX.K, Vi);
-V             = spm_filter('apply',xX.K,KVi');
+KVi           = spm_filter(xX.K, Vi);
+V             = spm_filter(xX.K,KVi');
 
 %-Parameter projection matrix and traces
 %-----------------------------------------------------------------------
-xX.xKXs       = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
+xX.xKXs       = spm_sp('Set',spm_filter(xX.K, xX.X));
 xX.pKX        = spm_sp('x-',xX.xKXs);
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,V);
 erdf          = trRV^2/trRVRV;
@@ -575,7 +575,8 @@ nbch   = ceil(xdim*ydim/blksz);			    %-# blocks
 xords  = [1:xdim]'*ones(1,ydim); xords = xords(:)'; % plane X coordinates
 yords  = ones(xdim,1)*[1:ydim];  yords = yords(:)'; % plane Y coordinates
 S      = 0;                                         % Volume (voxels)
-Cy     = 0;					    % <Y*Y'> for ReML
+Cy     = 0;					    % <Y*Y'> spatially whitened
+CY     = 0;					    % <Y*Y'> for ReML
 i_res  = round(linspace(1,nScan,nSres))';	    % Indices for residual
 
 %-Initialise XYZ matrix of in-mask voxel co-ordinates (real space)
@@ -600,7 +601,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-# Print progress information in command window
 	%---------------------------------------------------------------
-	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, batch %3d/%-3d',...
+	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, bunch %3d/%-3d',...
 		z,zdim,bch,nbch),' ')                                %-#
 
 	%-construct list of voxels in this block
@@ -659,7 +660,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...temporal filtering')     %-#
 
-		KY         = spm_filter('apply',xX.K,Y);
+		KY         = spm_filter(xX.K,Y);
 
 		%-General linear model: least squares estimation
 		% (Using pinv to allow for non-unique designs
@@ -673,8 +674,12 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		ResSS      = sum(res.^2);		%-Residual SSQ
 		clear KY				%-Clear to save memory
 
+		%-sample covariance Y*Y' (all searched voxels)
+		%-------------------------------------------------------
+		CY = CY + Y*Y';
 
-		%-If UFp > 0, save raw data in 8bit squashed *.mad file format
+
+		%-If UFp > 0, save raw data in 8bit squashed *.mad format
 		%-------------------------------------------------------
 		if UFp > 0
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),'saving data') %-#
@@ -693,9 +698,9 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			spm_append(Y(:,tmp),'Y.mad',2);
 			Yidx = [Yidx, (S + tmp)];
 
-			%-Assemble <Y*Y'> for ReML covariance estimation
+			%-Assemble <Y*inv(sigma^2)*Y'> for ReML estimation
 			%-----------------------------------------------
-			if iscell(xX.xVi.Vi) & length(tmp)
+			if length(tmp)
 				q  = size(tmp,2);
 				q  = spdiags(sqrt(trRV./ResSS(tmp)'),0,q,q);
 			    	Y  = Y(:,tmp)*q;
@@ -835,13 +840,16 @@ end
 
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
-KVi      = spm_filter('apply',xX.K, Vi);
-xX.V     = spm_filter('apply',xX.K,KVi'); 		%-Non-sphericity V
+KVi      = spm_filter(xX.K, Vi);
+xX.V     = spm_filter(xX.K,KVi'); 		%-Non-sphericity V
 xX.pKXV  = xX.pKX*xX.V;					%-for contrast variance 
 xX.Bcov  = xX.pKXV*xX.pKX';				%-for Cov(Beta)
 [xX.trRV xX.trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);	%-Variance expectations
 xX.erdf  = xX.trRV^2/xX.trRVRV;				%-Effective d.f.
 
+%-average covariance of Y
+%-----------------------------------------------------------------------
+CY       = CY/S;
 
 %-Compute scaled design matrix for display purposes
 %-----------------------------------------------------------------------
@@ -902,7 +910,7 @@ SPMvars = {	'SPMid','VY','xX','xM',...		%-Design parameters
 		'VM','Vbeta','VResMS',...		%-Filenames
 		'XYZ',...				%-InMask XYZ coords
 		'F_iX0','UFp','UF',...			%-F-thresholding data
-		'Cy',...				%-ReML operand
+		'Cy','CY',...				%-voxel-wide covariances
 		'S','R','FWHM'};			%-Smoothness data
 
 if nargin > 4
