@@ -117,7 +117,7 @@ Matrix *plhs[], *prhs[];
 	uid = getuid();
 	ngids = getgroups(128,gids);
 
-	if ((lstat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
+	if ((stat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
 	{
 		buf = (char *)mxCalloc((int)stbuf.st_size, 1);
 		bufp = buf;
@@ -129,7 +129,7 @@ Matrix *plhs[], *prhs[];
 		{
 			*ptr = 0;
 			(void)strcpy(ptr, dp->d_name);
-			if (lstat(fullpathname, &stbuf) != -1)
+			if (stat(fullpathname, &stbuf) != -1)
 			{
 				int g;
 				int mask = 0007;
