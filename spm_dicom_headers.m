@@ -56,7 +56,7 @@ if ~strcmp(dcm,'DICM'),
 		fseek(fp,0,'bof');
 	end;
 end;
-ret = read_dicom(fp, 'el',dict);
+ret = read_dicom(fp, 'il',dict);
 ret.Filename = fopen(fp);
 fclose(fp);
 return;
@@ -286,6 +286,7 @@ if isempty(tag.vr) || isempty(tag.length),
 	tag = [];
 	return;
 end;
+
 
 if ~rem(tag.length,2),
 	if tag.length==4294967295, tag.length = Inf; return; end;
