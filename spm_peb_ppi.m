@@ -1,4 +1,4 @@
-function PPI = spm_peb_PPI(SPM,VOL,xX,xCon,xSDM,hReg)
+function PPI = spm_peb_ppi(SPM,VOL,xX,xCon,xSDM,hReg)
 % computes either physiophysiologic or psychophysiologic interactions
 % FORMAT PPI = spm_peb_ppi(SPM,VOL,xX,xCon,xSDM,hReg);
 %
