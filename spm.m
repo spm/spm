@@ -214,8 +214,10 @@ function varargout=spm(varargin)
 %         - If CmdLine is complex, then a CmdLine alert is always used,
 %           possibly in addition to a msgbox (the latter according
 %           to spm('CmdLine').)
+%         - If in batch mode (non-empty global BCH), then uses CmdLine alert
 % wait    - if true, waits until user dismisses GUI / confirms text alert
 %           [default 0] (if doing both GUI & text, waits on GUI alert)
+%         - If in batch mode (non-empty global BCH), doesn't wait
 % h       - handle of msgbox created, empty if CmdLine used
 %
 % FORMAT SPMid = spm('FnBanner', Fn,FnV)
@@ -1097,15 +1099,13 @@ case {'alert','alert"','alert*','alert!'}
 
 %- Globals 
 %-----------------------------------------------------------------------
-global BCH
-
-if ~isempty(BCH), return, end
-
 if nargin<5, wait    = 0;  else, wait    = varargin{5}; end
 if nargin<4, CmdLine = []; else, CmdLine = varargin{4}; end
 if nargin<3, Title   = ''; else, Title   = varargin{3}; end
 if nargin<2, Message = ''; else, Message = varargin{2}; end
 Message = cellstr(Message);
+
+bBCH = ~isempty(spm('GetGlobal','BCH'));	%-Batch mode? (see spm_bch.man)
 
 if isreal(CmdLine)
 	CmdLine  = spm('CmdLine',CmdLine);
@@ -1124,7 +1124,7 @@ case 'alert*',	icon = 'error'; str = '* - ';
 case 'alert!',	icon = 'warn';	str = '! - ';
 end
 
-if CmdLine | CmdLine2
+if CmdLine | CmdLine2 | bBCH
 	Message(strcmp(Message,'')) = {' '};
 	tmp = sprintf('%s: %s',SPMv,Title);
 	fprintf('\n    %s%s  %s\n\n',str,tmp,repmat('-',1,62-length(tmp)))
@@ -1133,7 +1133,7 @@ if CmdLine | CmdLine2
 	h = [];
 end
 
-if ~CmdLine
+if ~CmdLine & ~bBCH
 	tmp = max(size(char(Message),2),42) - length(SPMv) - length(timestr);
 	str = sprintf('%s  %s  %s',SPMv,repmat(' ',1,tmp-4),timestr);
 	h   = msgbox([{''};Message(:);{''};{''};{str}],...
@@ -1141,7 +1141,7 @@ if ~CmdLine
 		icon,'modal');
 end
 
-if wait
+if wait & ~bBCH
 	if isempty(h)
 		input('        press ENTER to continue...');
 	else
