@@ -34,30 +34,34 @@ function spm_render(dat,brt,rendfile)
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
-if nargin<1
+if nargin < 1
 	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
-	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
+	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 
-	for i=1:num,
+	for i = 1:num,
 		[SPM,VOL] = spm_getSPM;
-		dat(i)    = struct(	'XYZ',	SPM.XYZ,...
-					't',	SPM.Z',...
+		dat(i)    = struct(	'XYZ',	VOL.XYZ,...
+					't',	VOL.Z',...
 					'mat',	VOL.M,...
 					'dim',	VOL.DIM);
 	end;
 	showbar = 1;
 else,
-	num = length(dat);
+	num     = length(dat);
 	showbar = 0;
 end;
 
-if nargin<3,
+% get surface
+%-----------------------------------------------------------------------
+if nargin < 3,
 	rendfile = spm_get(1,'render*.mat','Render file',fullfile(spm('Dir'),'rend'));
 end;
 
-if nargin<2,
+% get brightness
+%-----------------------------------------------------------------------
+if nargin < 2,
 	brt = 1;
 	if num==1,
 		brt = spm_input('Style',1,'new|old',[1 NaN], 1);

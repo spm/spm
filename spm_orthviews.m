@@ -1372,9 +1372,9 @@ case 'add_blobs'
   cm_handles = valid_handles(1:24);
   if varargin{2} == 2, cm_handles = get_current_handle;end;
   spm_figure('Clear','Interactive');
-  [SPM,VOL,DES] = spm_getSPM;
+  [SPM,VOL] = spm_getSPM;
   for i = 1:length(cm_handles)
-    addblobs(cm_handles(i),SPM.XYZ,SPM.Z,VOL.M);
+    addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
     c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
     set(c_handle,'Visible','on');
     delete(get(c_handle,'Children'));
@@ -1401,12 +1401,12 @@ case 'add_c_blobs'
   cm_handles = valid_handles(1:24);
   if varargin{2} == 2, cm_handles = get_current_handle;end;
   spm_figure('Clear','Interactive');
-  [SPM,VOL,DES] = spm_getSPM;
+  [SPM,VOL] = spm_getSPM;
   c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
   colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
   c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
   for i = 1:length(cm_handles)
-    addcolouredblobs(cm_handles(i),SPM.XYZ,SPM.Z,VOL.M,colours(c,:));
+    addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
     c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
     ch_c_handle = get(c_handle,'Children');
     set(c_handle,'Visible','on');

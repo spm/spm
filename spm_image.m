@@ -54,9 +54,9 @@ function spm_image(op,varargin)
 
 global st
 
-if nargin==0,
+if nargin == 0,
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Display',0);
-	SPMid = spm('FnBanner',mfilename,'%I%');
+	SPMid  = spm('FnBanner',mfilename,'%I%');
 	spm_help('!ContextHelp',[mfilename,'.m']);
 
 	% get the image's filename {P}
@@ -66,14 +66,19 @@ if nargin==0,
 	return;
 end;
 
-if ~strcmp(op,'init') & ~strcmp(op,'reset') & isempty(st.vols{1}), my_reset; warning('Lost all the image information'); return; end;
+try
+	if ~strcmp(op,'init') & ~strcmp(op,'reset') & isempty(st.vols{1})
+		my_reset; warning('Lost all the image information');
+		return;
+	end;
+end
 
 if strcmp(op,'repos'),
 	% The widgets for translation rotation or zooms have been modified.
 	%-----------------------------------------------------------------------
-	fg = spm_figure('Findwin','Graphics');
+	fg      = spm_figure('Findwin','Graphics');
 	set(fg,'Pointer','watch');
-	i = varargin{1};
+	i       = varargin{1};
 	st.B(i) = eval(get(gco,'String'),num2str(st.B(i)));
 	set(gco,'String',st.B(i));
 	st.vols{1}.premul = spm_matrix(st.B);
@@ -88,7 +93,7 @@ if strcmp(op,'shopos'),
 	% The position of the crosshairs has been moved.
 	%-----------------------------------------------------------------------
 	if isfield(st,'mp'),
-		fg = spm_figure('Findwin','Graphics');
+		fg  = spm_figure('Findwin','Graphics');
 		if any(findobj(fg) == st.mp),
 		set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('pos')));
 		pos = spm_orthviews('pos',1);
@@ -144,10 +149,10 @@ if strcmp(op,'addblobs'),
 	spm_figure('Clear','Interactive');
 	nblobs = spm_input('Number of sets of blobs',1,'1|2|3|4|5|6',[1 2 3 4 5 6],1);
 	for i=1:nblobs,
-		[SPM,VOL,DES] = spm_getSPM;
+		[SPM,VOL] = spm_getSPM;
 		c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
 		colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-		spm_orthviews('addcolouredblobs',1,SPM.XYZ,SPM.Z,VOL.M,colours(c,:));
+		spm_orthviews('addcolouredblobs',1,VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
 		set(st.blobber,'String','Remove Blobs','Callback','spm_image(''rmblobs'');');
 	end;
 	spm_orthviews('Redraw');
