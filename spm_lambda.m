@@ -21,7 +21,6 @@ function [Lc2z,Lc2t,Lt2z] = spm_lambda(df)
 
 % pdfs and Probability integral transform (PIT)
 %-----------------------------------------------------------------------
-df    = round(df);
 dt    = 0.01;
 t     = -12:dt:12;
 pdf   = spm_Tpdf(t,df);
