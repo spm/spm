@@ -98,7 +98,7 @@ if Fc.STAT=='T'
 	%------------------ check the rank if T stat
 	c_ = varargin{5};
 	if ~spm_sp('isinspp',sX,c_), c_ = spm_sp('oPp',sX,c_); end;
-	if rank(c_) ~= 1, error('Set tries to define a t that is a F'); end;
+	if rank(c_) > 1, error('Set tries to define a t that is a F'); end;
    end
 end;
 
@@ -388,9 +388,6 @@ else
 end
 
 
-
-
-
 case 'in'     %-  Fc1 is in list of  contrasts Fc2
 %=======================================================================
 % iFc2 = spm_FcUtil('In',Fc1, Fc2, sX)
@@ -580,16 +577,28 @@ Y0 =  sX.X*( eye(spm_sp('size',sX,2)) - spm_sp('xpx-',sX)*sf_H(Fc) )*b;
 %=======================================================================
 % Fc = spm_FcUtil('|_',Fc1, Fc2, sX)
 %
-function Fc1o = sf_fcortho(Fc1, Fc2, sX)
+function Fc1o = sf_fcortho1(Fc1, Fc2, sX)
 
 %--- use the space facility to ensure the proper tolerance dealing...
 sC2   = spm_sp('set',Fc2.c);
-c1o   = spm_sp('xpx',sX)*spm_sp('res',sC2,Fc1.c);
-%--  to put in spm_sp ?
+
+c1o   = spm_sp('xpx',sX)*spm_sp('r:',sC2,Fc1.c);
+
 %--  NB : usually, the tol of sX will be much greater than the tol of sC2
 c1o( abs(c1o) < max(sX.tol,sC2.tol) ) = 0;
 Fc1o  = spm_FcUtil('Set',['(' Fc1.name ' |_ (' Fc2.name '))'], ...
 		    Fc1.STAT, 'c',c1o,sX);
+
+
+%=======================================================================
+function Fc1o = sf_fcortho(Fc1, Fc2, sX)
+
+c = sX.X'*spm_sp('r:',spm_sp('set',Fc2.X1o),Fc1.X1o);
+
+Fc1o  = spm_FcUtil('Set',['(' Fc1.name ' |_ (' Fc2.name '))'], ...
+		    Fc1.STAT, 'c',c,sX);
+
+
 
 
 %=======================================================================
