@@ -160,7 +160,8 @@ end;
 
 % Set up large matrix for holding image info
 % Organization is time by voxels
-stack = zeros(nimg,prod(Vout(1).dim(1:2)));
+slices = zeros([Vout(1).dim(1:2) nimgo]);
+stack  = zeros([nimg Vout(1).dim(1)]);
 
 spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete');
 
@@ -169,31 +170,21 @@ spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete'
 for k = 1:nslices,
 
 	% Set up time acquired within slice order
-	timeacquired = find(sliceorder==k) - find(sliceorder==refslice); 
-	shiftamount  = timeacquired * factor;
+	shiftamount  = (find(sliceorder==k) - find(sliceorder==refslice)) * factor;
 
 	% Read in slice data
 	B  = spm_matrix([0 0 k]);
 	for m=1:nimgo,
-		% Retrieve slice, convert to vector and update stack
-		x  = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
-		stack(m,:) = x(:)';
-	end;
-
-	% fill in continous function to avoid edge effects
-	%-------------------------------------------------
-	for g=1:size(stack,2),
-		stack(nimgo+1:size(stack,1),g) = linspace(stack(nimgo,g),stack(1,g),nimg-nimgo)';
+		slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
 	end;
 
 	% set up shifting variables
-	shifter = [];
-	OffSet  = 0;
 	len     = size(stack,1);
 	phi     = zeros(1,len);
 
 	% Check if signal is odd or even -- impacts how Phi is reflected
 	%  across the Nyquist frequency. Opposite to use in pvwave.
+	OffSet  = 0;
 	if rem(len,2) ~= 0, OffSet = 1; end;
 
 	% Phi represents a range of phases up to the Nyquist frequency
@@ -209,23 +200,29 @@ for k = 1:nslices,
 	
 	% Transform phi to the frequency domain and take the complex transpose
 	shifter = [cos(phi) + sin(phi)*sqrt(-1)].';
+	shifter = shifter(:,ones(size(stack,2),1)); % Tony's trick
 
-	% The memory hungry version without the looping..
-	% Make shifter the same size as signal using Tony's trick which
-	% references column 1 of shifter
-	shifter = shifter(:,ones(size(stack,2),1));
-	% perform the shift
-	stack = real(ifft(fft(stack,[],1).*shifter,[],1));
+	% Loop over columns
+	for i=1:Vout(1).dim(2),
 
-	% Atternative version with looping
-	% for pix=1:size(stack,2),
-	% 	stack(:,pix) = real(ifft(fft(stack(:,pix),[],1).*shifter,[],1));
-	% end;
+		% Extract columns from slices
+		stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
+
+		% fill in continous function to avoid edge effects
+		for g=1:size(stack,2),
+			stack(nimgo+1:end,g) = linspace(stack(nimgo,g),stack(1,g),nimg-nimgo)';
+		end;
+
+		% shift the columns
+		stack = real(ifft(fft(stack,[],1).*shifter,[],1));
+
+		% Re-insert shifted columns
+		slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
+	end;
 
 	% write out the slice for all volumes
 	for p = 1:nimgo,
-		d       = reshape(stack(p,:),Vout(p).dim(1:2));
-		Vout(p) = spm_write_plane(Vout(p),d,k);
+		Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
 	end;
 	spm_progress_bar('Set',k);
 end;
