@@ -376,7 +376,7 @@ if (nargin == 0)
 					elseif sptl_DjstFMRI ~= 0
 						if (spm_input(...
 							'Adjust sampling errors?',pos,'y/n','batch',...
-                                                        ,{},'adjust_sampling_errors') == 'y')
+                                                        {},'adjust_sampling_errors') == 'y')
 							FlagsR = [FlagsR 'c'];
 						end
 						pos = pos + 1;
