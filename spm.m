@@ -159,8 +159,9 @@ function varargout=spm(varargin)
 % FORMAT spm('PopUpCB',h)
 % Callback handler for PopUp UI menus with multiple callbacks as cellstr UserData
 %
-% FORMAT User = spm('GetUser')
+% FORMAT str = spm('GetUser',fmt)
 % Returns current user, culled from the USER environment variable
+% fmt   - format string: If USER is defined then sprintf(fmt,USER) is returned
 %
 % FORMAT spm('Beep')
 % plays the keyboard beep!
@@ -190,7 +191,7 @@ function varargout=spm(varargin)
 % CmdLine - CommandLine usage?
 %
 % FORMAT F = spm('FigName',Iname,F,CmdLine)
-% Set name of figure F to [spm('GetUser'),' - ',Iname] if ~CmdLine
+% Set name of figure F to "SPMver (User): Iname" if ~CmdLine
 % Robust to absence of figure.
 % Iname      - Name for figure
 % F (input)  - Handle (or 'Tag') of figure to name [default 'Interactive']
@@ -231,7 +232,8 @@ if all(S==1), error('Can''t open any graphics windows...'), end
 [SPMver,SPMc] = spm('Ver','',1);
 
 F = figure('IntegerHandle','off',...
-	'Name',[spm('GetUser'),' - SPM'],'NumberTitle','off',...
+	'Name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')),...
+	'NumberTitle','off',...
 	'Tag','Welcome',...
 	'Position',[S(3)/2-300,S(4)/2-140,500,280],...
 	'Resize','off',...
@@ -392,7 +394,8 @@ FS2  = round(9*min(WS));			%-Smaller font size
 [SPMver,SPMc] = spm('Ver','',1,1);
 
 Fmenu = figure('IntegerHandle','off',...
-	'Name',[spm('GetUser'),' - ',SPMver],'NumberTitle','off',...
+	'Name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')),...
+	'NumberTitle','off',...
 	'Tag','Menu',...
 	'Position',Rect,...
 	'Resize','off',...
@@ -927,8 +930,11 @@ evalin('base',CBs{v-1})
 
 case 'getuser'
 %=======================================================================
-% User = spm('GetUser')
-varargout = {spm_platform('user')};
+% str = spm('GetUser',fmt)
+str = spm_platform('user');
+if ~isempty(str) & nargin>1, str = sprintf(varargin{2},str); end
+varargout = {str};
+
 
 case 'beep'
 %=======================================================================
@@ -978,7 +984,11 @@ if CmdLine
 else
 	Finter = spm_figure('GetWin','Interactive');
 	spm_figure('Clear',Finter)
-	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
+	if ~isempty(Iname)
+		str = sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname);
+	else
+		str = sprintf('%s (%s)',    spm('ver'),spm('GetUser'));
+	end
 	set(Finter,'Name',str)
 end
 if ~isempty(Iname), fprintf('%s:\n',Iname), end
@@ -1002,7 +1012,7 @@ if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine, varargout={[]}; return, end
 F = spm_figure('FindWin',F);
 if ~isempty(F) & ~isempty(Iname)
-	set(F,'Name',[spm('GetUser'),' - ',Iname])
+	set(F,'Name',sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname))
 end
 varargout={F};
 
