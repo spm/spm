@@ -6,7 +6,7 @@ function z = spm_invNcdf(p,Mu,SigmaSq)
 % Mu      - Mean of the univariate Normal distribution [defaults to 0]
 % SigmaSq - Variance of the univariate Normal distribution [defaults to 1]
 % z       - N(Mu,SigmaSq) variates
-%__________________________________________________________________________
+%_______________________________________________________________________
 %
 % ah_invNcdf implements the inverse of the Cumulative Distribution
 % Function (CDF) for the Normal (Gaussian) family of distributions.
@@ -20,22 +20,19 @@ function z = spm_invNcdf(p,Mu,SigmaSq)
 % implementation of the inverse error function is used for computation.
 % See "Numerical Recipies in C"
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
 
-% Version Control
-% - Andrew Holmes - V1d - 11/92 - ah_invphi, for standard Normal variates
-%                   V2  - 02/95 - Rewritten for SPM, including Mu and SigmaSq
-
-
 %-Condition arguments
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if nargin<3, SigmaSq=1; end
 if nargin<2, Mu=0; end
 if nargin<1, p=[]; end
 
+if any( abs(p(:)-0.5) > 0.5), error('p must be in [0,1]!'), end
+
 %-Computation
-%---------------------------------------------------------------------------
+%=======================================================================
 if isempty(p), z=[]; return, end
 z = ( sqrt(2)*erfinv(2*p-1) .* SigmaSq ) + Mu;
