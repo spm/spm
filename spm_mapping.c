@@ -10,10 +10,7 @@ manipulation routines */
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifdef SPM_WIN32
-#include <process.h>
-#endif
-
+#include "spm_sys_deps.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
 

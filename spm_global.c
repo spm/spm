@@ -15,6 +15,7 @@
 static char sccsid[]="%W% anon %E%";
 #endif
 
+#include "spm_sys_deps.h"
 #include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -47,7 +48,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
-			if (mxIsFinite(dat[j]))
+			if (finite(dat[j]))
 			{
 				s1 += dat[j];
 				m ++;

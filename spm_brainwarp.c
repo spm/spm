@@ -3,9 +3,7 @@ static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU)
 #endif lint
 
 #include <math.h>
-#ifdef SPM_WIN32
-#include "rint.h"
-#endif
+#include "spm_sys_deps.h"
 #include "spm_mapping.h"
 
 /*

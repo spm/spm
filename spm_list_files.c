@@ -14,12 +14,30 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define MAXDIRS 10240
 #define MAXFILES 102400
 
-#ifdef SPM_WIN32
-#define MAXNAMLEN	1024
-#define SEPS "\\"
-#else
-#define SEPS "/"
+#include "spm_sys_deps.h"
+
+int getmask(struct stat *stbuf)
+{
+	int mask = 0007;
+#ifndef SPM_WIN32
+        static uid_t uid = -1;
+        static gid_t gids[128];
+        int ngids, g;
+
+	if (uid == -1)
+	{
+		uid   = getuid();
+		ngids = getgroups(128,gids);
+	}
+	if (stbuf->st_uid == uid)
+		mask = 0700; /* user */
+	else
+		for(g=0; g<ngids; g++)
+			if (gids[g] == stbuf->st_gid)
+				mask = 0070; /* group */
 #endif
+	return(mask);
+}
 
 /* constants for memory alloc to file name storage */
 #define MEMBLOCK 65536
@@ -133,12 +151,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	/* monitoring buffer length */
 	int i, buflen = 0, bufctr = -1;
 	char *bufs[MAXBUFS+1];
-	#ifndef SPM_WIN32
-	int uid; 
-	int g;
- 	int ngids;
- 	gid_t gids[128];
-	#endif
 
 	if ((nrhs != 2) || (nlhs != 2))
 		mexErrMsgTxt("Incorrect Usage.");
@@ -156,11 +168,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	len = mxGetN(prhs[1]);
 	filter = (char *)mxCalloc(len+1, sizeof(char));
 	mxGetString(prhs[1],filter,len+1);
-
-	#ifndef SPM_WIN32
-	uid = getuid();
-	ngids = getgroups(128,gids);
-	#endif
 
 	if ((stat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
 	{
@@ -183,52 +190,48 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		{
 			*ptr = 0;
 			(void)strcpy(ptr, dp->d_name);
-			if (stat(fullpathname, &stbuf) != -1)
+			if (stat(fullpathname, &stbuf) != -1
+				&& ((stbuf.st_mode & S_IFMT) == S_IFDIR
+				|| ((stbuf.st_mode & S_IFMT) == S_IFREG
+				&& wildcard(filter,dp->d_name))))
 			{
-				int mask = 0007;
-				if ((stbuf.st_mode & S_IFMT) == S_IFDIR
-					|| ((stbuf.st_mode & S_IFMT) == S_IFREG && wildcard(filter,dp->d_name)))
-				{
-					#ifndef SPM_WIN32
-					if (stbuf.st_uid == uid)
-						mask = 0700; /* user */
-					else
-						for(g=0; g<ngids; g++)
-							if (gids[g] == stbuf.st_gid)
-								mask = 0070; /* group */
-					#endif
-					/* check if buffer exhausted and realloc if so */
-					len = strlen(dp->d_name);
-					buflen = buflen + len + 1;
-					if (buflen > MEMBLOCK) {
-						if (++bufctr > MAXBUFS)
-							mexErrMsgTxt("Directory list too large.");
-						buf = (char *)mxCalloc(MEMBLOCK, 1);
-						bufs[bufctr] = bufp = buf;
-						buflen = len +1;
-					}
-					if ((stbuf.st_mode & S_IFMT) == S_IFDIR && (mask & 0555 & stbuf.st_mode))
-					{
-						if (ndirs == MAXDIRS)
-							mexErrMsgTxt("Too many subdirectories.");
-					
-						if (len > maxdlen) maxdlen = len;
-						directories[ndirs] = bufp;
-						bufp += (len+1);
-						(void)strcpy(directories[ndirs], dp->d_name);
-						ndirs++;
-					}
-					else if ((stbuf.st_mode & S_IFMT) == S_IFREG &&  (mask & 0444 & stbuf.st_mode))
-					{
-						if (nfiles == MAXFILES)
-							mexErrMsgTxt("Too many files match.");
-						if (len > maxflen) maxflen = len;
+				int mask;
+				mask = getmask(&stbuf);
 
-						filenames[nfiles] = bufp;
-						bufp += (len+1);
-						(void)strcpy(filenames[nfiles], dp->d_name);
-						nfiles++;
-					}
+				/* check if buffer exhausted and realloc if so */
+				len = strlen(dp->d_name);
+				buflen = buflen + len + 1;
+				if (buflen > MEMBLOCK)
+				{
+					if (++bufctr > MAXBUFS)
+						mexErrMsgTxt("Directory list too large.");
+					buf = (char *)mxCalloc(MEMBLOCK, 1);
+					bufs[bufctr] = bufp = buf;
+					buflen = len +1;
+				}
+				if ((stbuf.st_mode & S_IFMT) == S_IFDIR
+					&& (mask & 0555 & stbuf.st_mode))
+				{
+					if (ndirs == MAXDIRS)
+						mexErrMsgTxt("Too many subdirectories.");
+					
+					if (len > maxdlen) maxdlen = len;
+					directories[ndirs] = bufp;
+					bufp += (len+1);
+					(void)strcpy(directories[ndirs], dp->d_name);
+					ndirs++;
+				}
+				else if ((stbuf.st_mode & S_IFMT) == S_IFREG
+					&&  (mask & 0444 & stbuf.st_mode))
+				{
+					if (nfiles == MAXFILES)
+						mexErrMsgTxt("Too many files match.");
+					if (len > maxflen) maxflen = len;
+
+					filenames[nfiles] = bufp;
+					bufp += (len+1);
+					(void)strcpy(filenames[nfiles], dp->d_name);
+					nfiles++;
 				}
 			} /* entry statable */
 		} /* for entries in directory */

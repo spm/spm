@@ -7,11 +7,11 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 */
 
 #include <math.h>
-#ifdef SPM_WIN32
-#include "rint.h"
-#endif
+#include "spm_sys_deps.h"
 
-#define PI 3.14159265358979
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
 
 void make_lookup_poly(coord,q,dim, d1, table,ptpend)
 double coord;

@@ -4,9 +4,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #include "spm_mapping.h"
 #include <math.h>
-#ifdef SPM_WIN32
-#include "rint.h"
-#endif
+#include "spm_sys_deps.h"
 
 void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, vol, thresh)
 double  mat[16];

@@ -28,10 +28,7 @@ static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline %E%";
 */
 
 #include <math.h>
-#ifdef SPM_WIN32
-#include "rint.h"
-#endif
-
+#include "spm_sys_deps.h"
 #include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -174,8 +171,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			mn = 9e99;
 			for(k=0; k<nk; k++)
 			{
-				/* use mxIsFinite for greater portability */
-				if (!floatflag && !mxIsFinite(sptr[k])) sptr[k] = 0.0;
+				if (!floatflag && !finite(sptr[k])) sptr[k] = 0.0;
 				if (sptr[k]>mx) mx=sptr[k];
 				if (sptr[k]<mn) mn=sptr[k];
 			}

@@ -3,6 +3,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include <math.h>
+#include "spm_sys_deps.h"
 #include "spm_mapping.h"
 
 static void convxy(out, xdim, ydim, filtx, filty, fxdim, fydim, xoff, yoff, buff)
@@ -15,7 +16,7 @@ double out[], filtx[], filty[], buff[];
 		for(x=0; x<xdim; x++)
 		{
 			buff[x] = out[x+y*xdim];
-			if (!mxIsFinite(buff[x]))
+			if (!finite(buff[x]))
 				buff[x] = 0.0;
 		}
 		for(x=0; x<xdim; x++)

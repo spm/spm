@@ -238,11 +238,9 @@ static char sccsid[]="%W% John Ashburner %E%";
 
 #include <math.h>
 
+#include "spm_sys_deps.h"
 #include "spm_make_lookup.h"
 #include "spm_getdata.h"
-#ifdef SPM_WIN32
-#include "rint.h"
-#endif
 
 static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
 
