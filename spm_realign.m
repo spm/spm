@@ -252,7 +252,8 @@ spm_progress_bar('Init',length(P)-1,'Registering Images');
 % Loop over images
 %-----------------------------------------------------------------------
 for i=2:length(P),
-	V = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+	V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+	d  = size(V);
 	ss = Inf;
 	countdown = -1;
 	for iter=1:64,
@@ -313,7 +314,8 @@ clear ave grad1 grad2 grad3
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',length(P),'Registering Images to Mean');
 for i=1:length(P),
-	V = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+	V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+	d  = size(V);
 	ss = Inf;
 	countdown = -1;
 	for iter=1:64,
