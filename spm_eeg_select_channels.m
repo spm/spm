@@ -235,14 +235,24 @@ function load_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-load C:\test.mat
-set(handles.listbox1, 'Value', ind);
+[P1, P2] = uigetfile('*.mat', 'Select file to load from');
+load(fullfile(P2, P1), 'Iselectedchannels');
 
-for i = 1:handles.Nchannels
-    if isempty(find(ind == i))
-        set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
+if ~exist('Iselectedchannels', 'var')
+    errordlg('This file doesn''t contain channel indices', 'Wrong file?');
+else
+    if max(Iselectedchannels) > length(get(handles.listbox1, 'Value'))
+        errordlg('This file doesn''t channel indices for these data', 'Wrong file?');
     else
-        set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
+        set(handles.listbox1, 'Value', Iselectedchannels);
+        
+        for i = 1:handles.Nchannels
+            if isempty(find(Iselectedchannels == i))
+                set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
+            else
+                set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
+            end
+        end
     end
 end
 
@@ -251,8 +261,15 @@ function save_Callback(hObject, eventdata, handles)
 % hObject    handle to save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-ind = get(handles.listbox1, 'Value');
-save C:\test.mat ind
+Iselectedchannels = get(handles.listbox1, 'Value');
+
+[P1, P2] = uiputfile('*.mat', 'Choose file name to save to');
+
+if str2num(version('-release'))>=14
+    save(fullfile(P2, P1), '-V6', 'Iselectedchannels');
+else
+    save(fullfile(P2, P1), 'Iselectedchannels');
+end
 
 % --- Executes on button press in ok.
 function ok_Callback(hObject, eventdata, handles)

@@ -29,16 +29,21 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         D = spm_get(1, '.mat', 'Select EEG mat file');
         try
             D = spm_eeg_ldata(D);
-        catch    
+        catch
             error(sprintf('Trouble reading file %s', D));
         end
     end
-    
+
+    if ~isfield(D.channels, 'Bad')
+        D.channels.Bad = [];
+    end
+
+
     if D.Nevents == 1 & ~isfield(D.events, 'start')
         errordlg({'Continuous data cannot be displayed.', 'Epoch first.'});
         return;
     end
-    
+
     try
         % Use your own window
         F = S.Hfig;
@@ -46,26 +51,26 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         % use SPM graphics window
         F = findobj('Tag', 'Graphics');
     end
-    
+
     handles = guihandles(F);
-    
+
     handles.colour = {[0 0 1], [1 0 0], [0 1 0], [1 0 1]};
-    
+
     % variable needed to store current trial listbox selection
     handles.Tselection = 1;
-    
+
     % fontsize used troughout
     % (better compute that fontsize)
     FS1 = spm('FontSize', 14);
-    
+
     figure(F);clf
-    
-    
-    
+
+
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % setup of GUI elements 
+    % setup of GUI elements
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     % Slider for trial number
     %------------------------
     if D.Nevents > 1
@@ -80,33 +85,33 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         % frame for trialslider text
         uicontrol(F, 'Style','Frame','BackgroundColor',spm('Colour'), 'Units',...
             'normalized', 'Position',[0.05 0.02 0.25 0.04]);
-    % trials slider texts
-    uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
-        'String', '1',...
-        'Position',[0.06 0.025 0.07 0.03],...
-        'HorizontalAlignment', 'left', 'FontSize', FS1,...
-        'BackgroundColor', spm('Colour'));
-    
-    handles.trialtext = uicontrol(F, 'Style', 'text', 'Tag', 'trialtext',...
-        'Units', 'normalized',...
-        'String', int2str(get(handles.trialslider, 'Value')),...
-        'Position',[0.14 0.025 0.07 0.03],...
-        'HorizontalAlignment', 'center', 'FontSize', FS1,...
-        'BackgroundColor', spm('Colour'));
-    
-    uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
-        'String', mat2str(D.Nevents),...
-        'Position',[0.23 0.025 0.06 0.03],...
-        'HorizontalAlignment', 'right', 'FontSize', FS1,...
-        'BackgroundColor', spm('Colour'));
+        % trials slider texts
+        uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
+            'String', '1',...
+            'Position',[0.06 0.025 0.07 0.03],...
+            'HorizontalAlignment', 'left', 'FontSize', FS1,...
+            'BackgroundColor', spm('Colour'));
+
+        handles.trialtext = uicontrol(F, 'Style', 'text', 'Tag', 'trialtext',...
+            'Units', 'normalized',...
+            'String', int2str(get(handles.trialslider, 'Value')),...
+            'Position',[0.14 0.025 0.07 0.03],...
+            'HorizontalAlignment', 'center', 'FontSize', FS1,...
+            'BackgroundColor', spm('Colour'));
+
+        uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
+            'String', mat2str(D.Nevents),...
+            'Position',[0.23 0.025 0.06 0.03],...
+            'HorizontalAlignment', 'right', 'FontSize', FS1,...
+            'BackgroundColor', spm('Colour'));
     end
-    
+
     % Scaling slider
     %-----------------
     % estimate of maximum scaling value
     handles.scalemax = 2*ceil(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :, 1)))));
     scale = handles.scalemax/2;
-    
+
     % slider
     handles.scaleslider = uicontrol('Tag', 'scaleslider', 'Style', 'slider',...
         'Min', 1, 'Max', handles.scalemax, 'Value', scale, 'Units',...
@@ -115,32 +120,32 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'TooltipString', 'Choose scaling',...
         'Callback', @scaleslider_update,...
         'Parent', F);
-    
+
     % frame for text
     uicontrol(F, 'Style','Frame','BackgroundColor',spm('Colour'), 'Units',...
         'normalized', 'Position',[0.35 0.02 0.25 0.04]);
-    
+
     % text
     uicontrol(F, 'Style', 'text', 'Units', 'normalized', 'String', '1',...
         'Position',[0.36 0.025 0.07 0.03],...
         'HorizontalAlignment', 'left', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
-    
+
     handles.scaletext = uicontrol(F, 'Style', 'text', 'Tag', 'scaletext',...
         'Units', 'normalized',...
         'String', mat2str(handles.scalemax/2),...
         'Position',[0.44 0.025 0.07 0.03],...
         'HorizontalAlignment', 'center', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
-    
+
     uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
         'String', mat2str(handles.scalemax),...
         'Position',[0.52 0.025 0.07 0.03],...
         'HorizontalAlignment', 'right', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
-    
-      
-    % Save pushbutton 
+
+
+    % Save pushbutton
     uicontrol('Tag', 'savebutton', 'Style', 'pushbutton',...
         'Units', 'normalized', 'Position', [0.615 0.02 0.11 0.03],...
         'String', 'Save', 'FontSize', FS1,...
@@ -202,9 +207,9 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'Tag', 'scaletext2');
     text(D.Nsamples, -scale, sprintf('%d ms', round(D.Nsamples*1000/D.Radc)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
-    
-% setup vectors for selecting which channels to display
-% initial display is set to exclude bad channels
+
+    % setup vectors for selecting which channels to display
+    % initial display is set to excludebad channels
 ind = setdiff([1:length(D.channels.order)], D.channels.Bad);
 D.gfx.channels = D.channels.order(ind);
 
