@@ -83,12 +83,14 @@ function R1=spm_figure(Action,P2,P3,P4)
 % FORMAT F = spm_figure(F) - numeric F
 % [ShortCut] Defaults to spm_figure('CreateBar',F)
 %
-% FORMAT F = spm_figure('Create',Tag)
+% FORMAT F = spm_figure('Create',Tag,Name,Visible)
 % Create a full length WhiteBg figure 'Tag'ed Tag (if specified),
 % with a ToolBar.
 % Equivalent to spm_figure('CreateWin','Tag') and spm_figure('CreateBar')
-% Tag	- 'Tag' string for figure.
-% F	- Figure used
+% Tag	  - 'Tag' string for figure.
+% Name    - Name for window
+% Visible - 'on' or 'off'
+% F	  - Figure used
 %
 % FORMAT F = spm_figure('FindWin',F)
 % Finds window with 'Tag' or figure numnber F - returns empty F if not found
@@ -108,10 +110,11 @@ function R1=spm_figure(Action,P2,P3,P4)
 % intact. If figure F is 'Tag'ged 'Interactive' (SPM usage), then the window
 % name and pointer are reset.
 %
-% FORMAT F = spm_figure('CreateWin',Tag,Visible)
+% FORMAT F = spm_figure('CreateWin',Tag,Name,Visible)
 % Creates a full length WhiteBg figure 'Tag'ged Tag (if specified).
 % F	  - Figure created
 % Tag	  - Tag for window
+% Name    - Name for window
 % Visible - 'on' or 'off'
 %
 % FORMAT spm_figure('CreateBar',F)
@@ -179,13 +182,13 @@ if ~isstr(Action), P2=Action; Action='CreateBar'; end
 
 if strcmp(lower(Action),lower('Create'))
 %=======================================================================
-% F = spm_figure('Create',Tag)
+% F = spm_figure('Create',Tag,Name,Visible)
 %-Condition arguments
-Tag = [];
-if (nargin==2), if isstr(P2), Tag=P2; end, end
+if nargin<4, Visible='on'; else, Visible=P4; end
+if nargin<3, Name='Results'; else, Name=P3; end
+if nargin<2, Tag = []; else, Tag=P2; end
 
-F = spm_figure('CreateWin',Tag);
-
+F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F)
 R1 = F;
 return
@@ -193,22 +196,28 @@ return
 
 elseif strcmp(lower(Action),lower('CreateWin'))
 %=======================================================================
-% F=spm_figure('CreateWin',Tag,Visible)
-if (nargin<3), Visible='on'; else, Visible=P3; end
-if (nargin<2), Tag=[]; else, Tag=P2; end
-S0     = get(0,'ScreenSize');
-Fsca   = [S0(3)/1152 S0(4)/900]; Fsca = [Fsca,Fsca];
-S_Gra  = [515 008 600 865].*Fsca;
-F      = figure('Name','Results',...
-	'NumberTitle','off',...
-	'Position',S_Gra,...
+% F=spm_figure('CreateWin',Tag,Name,Visible)
+
+%-Condition arguments
+%-----------------------------------------------------------------------
+if nargin<4, Visible=''; else, Visible=P4; end
+if isempty(Visible), Visible='on'; end
+if nargin<3, Name='Results'; else, Name=P3; end
+if nargin<2, Tag=[]; else, Tag=P2; end
+
+S0   = get(0,'ScreenSize');
+WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
+
+F      = figure('Position',[515 008 600 865].*WS,...
 	'Resize','off',...
-	'Visible',Visible,...
+	'Visible','off',...
 	'PaperPosition',[.75 1.5 7 9.5]);
-if isstr(Tag), set(F,'Tag',Tag), end
+if ~isempty(Tag), set(F,'Tag',Tag), end
+if ~isempty(Name), set(F,'Name',Name,'NumberTitle','off'), end
+set(F,'Visible',Visible)
 whitebg(F,'w')
 colormap gray
-% set(F,'DefaultTextFontSize',2*round(12*min(Fsca)/2));
+% set(F,'DefaultTextFontSize',2*round(12*min(WS)/2));
 R1 = F;
 return
 
@@ -490,36 +499,40 @@ set(F,'Units','Pixels');
 P     = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
 S_Gra = P./[600, 865];				% x & y scaling coefs
 
-nBut  = 10;
-nGap  = 3;
-sx    = floor(P(1)./(nBut+(nGap+2)*0.4));	% uicontrol object width
-dx    = floor(2*sx/5);				% inter-uicontrol gap
+nBut  = 11;
+nGap  = 2;
+sx    = floor(P(1)./(nBut+(nGap+2)/6));		% uicontrol object width
+dx    = floor(2*sx/6);				% inter-uicontrol gap
 sy    = floor(20*S_Gra(1));			% uicontrol object height
-x     = dx;					% initial x position
+x0    = dx;					% initial x position
+x     = dx;					% uicontrol x position
 y     = P(2) - sy;				% uicontrol y position
+y2    = P(2) - 2.25*sy;				% uicontrol y position
 
-%-Delete any existing uicontrol objects
+%-Delete any existing 'NoDelete' ToolBar objects
 %-----------------------------------------------------------------------
 h = findobj(F,'Tag','NoDelete');
 delete(h);
 
-%-Create uicontrol objects
+%-Create Frame for controls
 %-----------------------------------------------------------------------
 uicontrol(F,'Style', 'Frame',...
 	'Position',[-4 (P(2) - 1.25*sy) P(1)+8 1.25*sy+4],...
 	'Tag','NoDelete');
 
+%-Create uicontrol objects
+%-----------------------------------------------------------------------
 uicontrol(F,'String','Print' ,'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Print'',gcf)',...
 	'Interruptible','No',...
-	'Tag','NoDelete','ForegroundColor','b'); x = x+sx+dx;
+	'Tag','NoDelete','ForegroundColor','b'); x = x+sx;
 
-h = uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
+hPrint = uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Clear'',gcf)',...
 	'Interruptible','No',...
         'Tag','NoDelete','ForegroundColor','b'); x = x+sx+dx;
 if strcmp(get(F,'Tag'),'Graphics')
-	set(h,'CallBack',...
+	set(hPrint,'CallBack',...
 	'spm_figure(''Clear'',gcf), spm_figure(''Clear'',''Interactive'')')
 end
 
@@ -559,7 +572,10 @@ uicontrol(F,'String','text',  'Position',[x y sx sy],...
 	'CallBack','spm_figure(''GraphicsText'')',...
 	'Interruptible','No',...
 	'Tag','NoDelete'); x = x+sx;
-
+uicontrol(F,'String','?',     'Position',[x y dx sy],...
+	'CallBack','spm_help(''Topic'',''spm_figure.m'')',...
+	'Interruptible','No',...
+	'Tag','NoDelete','ForegroundColor','g'); x = x+2*dx;
 return
 
 
@@ -599,7 +615,13 @@ elseif strcmp(lower(Action),lower('GraphicsCut'))
 F = gcf;
 hBut  = gco;
 set(hBut,'ForegroundColor','r')
+tmp = get(F,'Name');
+set(F,'Name',...
+	'Cut: Select item to delete, RightMouse=cancel...');
+set(F,'Pointer','Circle')
 waitforbuttonpress;
+set(F,'Pointer','Arrow')
+set(F,'Name',tmp)
 
 if strcmp(get(gcf,'SelectionType'),'alt')
 	%-Quit option
@@ -609,7 +631,14 @@ end
 
 h = gco(F);
 NoDel=[F; findobj(F,'Tag','NoDelete')];
-if ( ~any(h==NoDel) & (gcf==F) ), delete(h); end
+if ( ~any(h==NoDel) & (gcf==F) )
+	tmp  = get(h,'Type');
+	if ( strcmp(tmp,'patch') | strcmp(tmp,'line') | strcmp(tmp,'image') )
+		delete(get(h,'Parent'))
+	else
+		delete(h)
+	end
+end
 
 set(hBut,'ForegroundColor','k')
 
@@ -625,11 +654,17 @@ elseif strcmp(lower(Action),lower('GraphicsMoveStart'))
 F = gcf;
 hMoveBut  = gco;
 set(hMoveBut,'ForegroundColor','r')
+tmp = get(F,'Name');
+set(F,'Name',...
+	'Move: MiddleMouse moves blocks of text. RightMouse=cancel');
+set(F,'Pointer','CrossHair')
 waitforbuttonpress;
+set(F,'Name',tmp)
 
 if strcmp(get(gcf,'SelectionType'),'alt')
 	%-Quit option
 	set(hMoveBut,'ForegroundColor','k')
+	set(F,'Pointer','Arrow')
 	return
 end
 
@@ -653,6 +688,10 @@ if (~any(hPress==NoDel) & gcf==F)
 		'Interruptible','no')
 	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')',...
 		'Interruptible','no')
+	set(F,'Pointer','Fleur')
+else
+	set(F,'Pointer','Arrow')
+
 end
 return
 
@@ -679,6 +718,7 @@ hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
 set(hMoveBut,'UserData',[],'ForegroundColor','k')
 set(gcf,'WindowButtonMotionFcn',' ')
 set(gcf,'WindowButtonUpFcn',' ')
+set(gcf,'Pointer','Arrow')
 
 return
 
@@ -695,7 +735,13 @@ elseif strcmp(lower(Action),lower('GraphicsSize'))
 F = gcf;
 hBut  = gco;
 set(hBut,'ForegroundColor','r')
+tmp = get(F,'Name');
+set(F,'Name',...
+	'Resize: LeftMouse=shrink, MiddleMouse=grow, RightMouse=cancel...');
+set(F,'Pointer','Circle')
 waitforbuttonpress;
+set(F,'Pointer','Arrow')
+set(F,'Name',tmp)
 
 if strcmp(get(gcf,'SelectionType'),'alt')
 	%-Quit option
@@ -734,7 +780,8 @@ F = gcf;
 hBut  = gco;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
-set(F,'Name','Select starting position, then edit text widget...');
+set(F,'Name',...
+	'Select starting position, edit text widget. RightMouse=cancel..');
 set(F,'Pointer','BotL')
 waitforbuttonpress;
 set(F,'Pointer','Arrow')
