@@ -18,6 +18,26 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % distribution with lower tail probability equal to that of the
 % supplied t statistics with df degrees of freedom.
 %
+% The standard normal distribution approximates Student's
+% t-distribution for large degrees of freedom. In univariate
+% situations, conventional wisdom states that 30 degrees of freedom is
+% sufficient for such an approximation. In the imaging context, the
+% multiple comparisons problem places emphasis on the extreme tails of
+% the distribution. For PET neuroimaging simulation suggests that 120
+% degrees of freedom are required before the distribution of the
+% maximal voxel value in a t-statistic image is adequately approximated
+% by that of the maxima of a gaussian statistic image (these
+% distributions usually being approximated using the theory of
+% continuous random fields)  (KJW - private communication). For fMRI
+% with it's higher resolution, it is likely that even greater degrees
+% of freedom are required for such an approximation.
+%
+% *No* one-one approximation is made in this code for high df: This is
+% because the t2z accuracy reduces as t increases in absolute value
+% (particularly in the extrapolation region, underestimating the true
+% z. In this case imposing a one-one relationship for df>d say would
+% give a jump from df=d-1 to df=d.
+%
 % For t deviates with very small tail probabilities (< Tol), the
 % corresponding z is computed by extrapolation of the t2z relationship
 % z=f(t). This extrapolation takes the form of z = log(t-t1+l0) +
@@ -26,6 +46,9 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % extrapolation takes over (t1,z1), continuity of the first derivative
 % is maintained. Thus, the gradient of the f(t) at t1 is estimated as m
 % using six points equally spaced to t1-0.5, and l0 is then 1/m.
+% Experience suggests that this underestimates z, especially for
+% ludicrously high t and/or high df, giving conservative (though still
+% significant) results.
 %
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
@@ -39,7 +62,9 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 %            errors - annoying but not serious.
 % 23/08/96 - Changed to logarithmic extrapolation
 %            - fMRI was giving rediculous Z values!
-
+% 20/09/96 - Rewrote to threshold on extrapolation point rather than
+%            compute p-values and thresholding them.
+%            ( betainc was getting stuck)
 
 
 %-Initialisation
@@ -55,41 +80,43 @@ if nargin<3, Tol = 10^(-16); end
 if nargin<2 error('insufficient arguments'), end
 if (length(df)~=1) error('df must be a scalar'), end
 if df<=0 error('df must be strictly positive'), end
-if df > 32; df = round(df); end
-
-
 
 %-Computation
 %===========================================================================
-z            = zeros(size(t));
+z     = zeros(size(t));
 
-%-Mask out t == 0 (z==0) where betainc(1,*,*) involves log of zero
-% (betainc(0,*,*) involves log(0) too, but t == +/- Inf to get this!)
+%-Mask out t == 0 (z==0) and t == +/- Inf (z==+/- Inf), where
+% betainc(1,*,*) and betainc(0,*,*) involve taking logs of zero.
 %---------------------------------------------------------------------------
-tmp          = df./(df + t.^2);
-Q            = find(tmp~=1);
+Qi    = find(isinf(t));
+if length(Qi), z(Qi)=t(Qi); end
+tmp   = df./(df + t.^2);
+Q     = find(tmp~=1 & ~isinf(t));
 if ~length(Q); return; end
 
-%-Compute (smaller) tail probability
+%-Mask out at +/- t1 for interpolation
 %---------------------------------------------------------------------------
-p           = betainc(tmp(Q),df/2,.5)/2;
+t1    = -spm_fzero('spm_Tcdf',-10,[],0,df,Tol);
+mQb   = abs(t(Q)) > t1;
 
-
-%-Compute standard normal deviate lower tail prob equal to p
-%---------------------------------------------------------------------------
-p_ok = p > Tol;
-if any(p_ok)
-	z(Q(p_ok)) = sqrt(2)*erfinv(2*p(p_ok) - 1);
-end % if
+%-t->z using Tcdf & invNcdf for abs(t)<=t1 
+%===========================================================================
+if any(~mQb)
+	%-Compute (smaller) tail probability
+	p     = betainc(df./(df + t(Q(~mQb)).^2),df/2,.5)/2;
+	
+	%-Compute standard normal deviate lower tail prob equal to p
+	z(Q(~mQb)) = sqrt(2)*erfinv(2*p - 1);
+end
 
 
 %-Compute standard normal deviates for large t where p-value under/overflows
 %-Use logarithmic function for extrapolation, fitted such that first
 % derivative is continuous. Estimate gradient from the last 0.5 (t) of
 % the (computable) t2z relationship.
-%---------------------------------------------------------------------------
-if any(~p_ok)
-	t1          =-spm_fzero('spm_Tcdf',-10,[],0,df,Tol);
+%===========================================================================
+if any(mQb)
+%	t1          =-spm_fzero('spm_Tcdf',-10,[],0,df,Tol);
 	z1          =-sqrt(2)*erfinv(2*Tol-1);
 	t2          =t1-[1:5]/10;
 	z2          =spm_t2z(t2,df);
@@ -101,8 +128,8 @@ if any(~p_ok)
 	%-------------------------------------------------------------------
 	l0=1/mc(1);
 	%-Perform logarithmic extrapolation, negate z for positive t-values
-	Q    = Q(~p_ok); % positions of t-values left to process
-	z(Q) = - ( log( (2*(t(Q)>0)-1).*t(Q) -t1 + l0 ) + (z1-log(l0)) );
+	QQ    = Q(mQb); % positions of t-values left to process
+	z(QQ) = - ( log( (2*(t(QQ)>0)-1).*t(QQ) -t1 + l0 ) + (z1-log(l0)) );
 	%-------------------------------------------------------------------
 
 %	%-------------------------------------------------------------------
@@ -112,8 +139,8 @@ if any(~p_ok)
 %	mc(2)       = z1-mc(1)*t1;
 %
 %	%-Perform extrapolation, negate positive t-values
-%	Q           = Q(~p_ok); % positions of t-values left to process
-%	z(Q)        = - ( (2*(t(Q)>0)-1).*t(Q)*mc(1) + mc(2) );
+%	QQ    = Q(mQb); % positions of t-values left to process
+%	z(QQ) = - ( (2*(t(QQ)>0)-1).*t(QQ)*mc(1) + mc(2) );
 %	%-------------------------------------------------------------------
 
 end
