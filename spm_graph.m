@@ -107,7 +107,7 @@ if exist('ERI')
 		Y      = KDER*BETA(ERI(:,i));
 		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
 		y      = C(:,ERI(:,i))*BETA(ERI(:,i)) + R;
-		d      = min(find(Y > max(Y)/2));
+		d      = min(find(abs(Y) > max(abs(Y))/2));
 		T      = x(d);
 		dYdt   = gradient(Y')/dx;
 		seT    = se(d)/dYdt(d);
