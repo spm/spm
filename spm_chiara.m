@@ -13,42 +13,46 @@ CWD  = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat for analysis'),'H');
 load([CWD,'/SPM'])
 cd(CWD)
 
-
-% get orthogonlization order
-%---------------------------------------------------------------------------
-h      = spm_input('orthogonlization order e.g. 1 2 3');
-
 % get contrasts
 %---------------------------------------------------------------------------
 m      = size(xX.X,2);
 str    = sprintf('contrast[s] n x 1 - %i',m);
-C      = spm_input(str,2);
+C      = spm_input(str,1);
+[u v]  = size(C);
 
 
-% orthonalization matrix
+% get orthogonlization order
 %---------------------------------------------------------------------------
-X     = xX.X;
-[m n] = size(X);
-[u v] = size(C);
-d     = [1:n];
-c     = zeros(u,n);
-c(:,[1:v]) = C;
-C     = c;
-for i = 1:length(h)
-	d         = d(d ~= h(i));
-	d         = [h(i) d];
+if spm_input('orthogonlization scheme',1,'b','no|yes',[0 1])
+
+	h     = spm_input('orthogonlization order e.g. 1 2 3');
+
+	% orthonalization matrix
+	%-------------------------------------------------------------------
+	X     = xX.X;
+	[m n] = size(X);
+	d     = [1:n];
+	c     = zeros(u,n);
+	c(:,[1:v]) = C;
+	C     = c;
+	for i = 1:length(h)
+		d         = d(d ~= h(i));
+		d         = [h(i) d];
+	end
+	h     = d;
+	H     = eye(n);
+	for i = 1:length(h)
+		d         = [1:n];
+		d         = d(d ~= h(i));
+		D         = eye(n);
+		D(d,h(i)) = -pinv(X(:,d))*X(:,h(i));
+		X         = X*D;
+		H         = H*D;
+	end
+	W     = C*inv(H);
+else
+	W     = C;
 end
-h     = d;
-H     = eye(n);
-for i = 1:length(h)
-	d         = [1:n];
-	d         = d(d ~= h(i));
-	D         = eye(n);
-	D(d,h(i)) = -pinv(X(:,d))*X(:,h(i));
-	X         = X*D;
-	H         = H*D;
-end
-W     = C*inv(H);
 
 
 % compute compound
