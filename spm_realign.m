@@ -405,12 +405,13 @@ for x3 = 1:P(1).dim(3)
 		end;
 	end;
 
-	if any(Flags == 'k'),
-		X(find(~Mask),:) = 0;
-	end
 
 	if any(Flags == 'i')
 		Integral(:,x3) = sum(X,2)./Count;
+	end
+
+	if any(Flags == 'k'),
+		X(find(~Mask),:) = 0;
 	end
 
 	if ~any(Flags == 'N'),
