@@ -164,11 +164,7 @@ for i=1:prod(size(V)),
 		if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 	end;
 	if nargout==0,
-		if flags.preserve,
-			VO = spm_write_vol(VO,Dat);
-		else,
-			VO = spm_close_vol(VO);
-		end;
+		VO = spm_close_vol(VO);
 	else,
 		VO.pinfo  = [1 0]';
 		VO.dim(4) = spm_type('float');
