@@ -19,7 +19,7 @@ function [u] = spm_U(a,df,STAT,R,n)
 % level (a). If n > 1 a conjunction the probability over the n values of the 
 % statistic is returned.
 %___________________________________________________________________________
-% 98/11/01 Karl Friston @(#)spm_U.m	1.1
+% %W% Karl Friston %E%
 
 % find approximate value
 %---------------------------------------------------------------------------
