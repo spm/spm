@@ -777,7 +777,7 @@ if isempty(D)
 
 	%-Multivariate repsonse variable?
 	%---------------------------------------------------------------
-	if spm_input('Multivariate analysis?','+1','y/n',[1 0])
+	if spm_input('Multivariate analysis?','+1','y/n',[1,0],2)
 		nVar = spm_input('number of variates?','+1','n1');
 	end
 
@@ -799,28 +799,8 @@ sGMsca    = sf_estrrep(sGMsca,[sF',D.sF']);
 
 %-Get filenames & factor indicies
 %-----------------------------------------------------------------------
-[P,I] = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime);
-for i = 2:nVar
-	p      = {};
-	nLev   = max(I);
-	for i4 = 1:nLev(4);
-	for i3 = 1:nLev(3);
-		if nLev(3) > 1, str = [str sprintf('%s %i; ',D.sF{3},i3)]; end
-	for i2 = 1:nLev(2);
-		q      = find(I(:,4) == i4 & I(:,3) == i3 & I(:,2) == i2);
-		n      = length(q);
-		str    = sprintf('variate %i: ',i);
-		if nLev(4) > 1, str = [str sprintf('%s %i; ',D.sF{4},i4)]; end
-		if nLev(3) > 1, str = [str sprintf('%s %i; ',D.sF{3},i3)]; end
-		if nLev(2) > 1, str = [str sprintf('%s %i; ',D.sF{2},i2)]; end
-		str    = [str sprintf('%s 1-%i',D.sF{1},n)];
-		p(q,1) = spm_get(n,'.img',{str});
-	end
-	end
-	end
-	P      = [P p];
-end
-nScan = size(I,1);
+[P,I] = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime,nVar);
+nScan = size(I,1);						%-#obs
 
 %-Additional design parameters
 %-----------------------------------------------------------------------
@@ -858,18 +838,14 @@ dstr   = {'covariate','nuisance variable'};
 
 GUIpos = spm_input('!NextPos');
 nc     = [0,0];
-for i  = 1:2			% 1:covariates of interest, 2:nuisance variables
+for i=1:2			% 1:covariates of interest, 2:nuisance variables
     if isinf(nC(i)), nC(i)=spm_input(['# ',dstr{i},'s'],GUIpos,'w1'); end
 
     while nc(i) < nC(i)
 
 	%-Create prompt, get covariate, get covariate name
         %---------------------------------------------------------------
-	if nC(i)==1
-		str = dstr{i}; 
-	else
-		str = sprintf('%s %d',dstr{i},nc(i)+1);
-	end
+	if nC(i)==1, str=dstr{i}; else, str=sprintf('%s %d',dstr{i},nc(i)+1); end
         c = spm_input(str,GUIpos,'r',[],[nScan,Inf]);
         if any(isnan(c(:))), break, end		%-NaN is dummy value to exit
 	nc(i)  = nc(i)+1;			%-#Covariates (so far)
@@ -1006,9 +982,9 @@ else                                    %-Ask user value of GM
 	else
 		str = [strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
 	end
-	GM  = spm_input(str,'+1','r',D.GM,1);
+	GM = spm_input(str,'+1','r',D.GM,1);
 	%-If GM is zero then don't GMsca! or PropSca GloNorm
-	if GM == 0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
+	if GM==0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
 end
 
 %-Sort out description strings for GloNorm and GMsca
@@ -1203,7 +1179,7 @@ for  i = 1:nVar
 	VY(:,i) = spm_vol(char(P{:,i}));
 end
 
-% check images %NB: Bombs for single image
+%-Check compatability of images (Bombs for single image)
 %-----------------------------------------------------------------------
 if any(any(diff(cat(1,VY(:).dim),1,1),1)&[1,1,1,0]) 
 	error('images do not all have the same dimensions')
@@ -1230,8 +1206,12 @@ case 3
 	fprintf('%-40s: %30s','Calculating globals',' ')             %-#
 	for i = 1:nScan
 		for j = 1:nVar
-			fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-				sprintf('%3d/%-3d',i,nScan))         %-#
+			if nVar>1
+				str = sprintf('%3d(%02d)/%d(%d)',i,j,nScan,nVar);
+			else
+				str = sprintf('%3d/%-3d',i,nScan);
+			end
+			fprintf('%s%30s',sprintf('\b')*ones(1,30),str)%-#
 			g(i,j) = spm_global(VY(i,j));
 		end
 	end
@@ -1294,38 +1274,41 @@ if any(iGloNorm==[1:7])
 	otherwise				%-unknown iGC
 		error('unexpected iGC value')
 	end
-
+	
 	for i = 1:nVar
-
+	
 		%-AnCova - add scaled centred global to DesMtx `G' partition
-		%---------------------------------------------------------------
+		%-------------------------------------------------------
+		rcname='global'; if nVar>1, rcname=sprintf('global-%d',i); end
 		tI         = [eval(CFIforms{iGloNorm,1}),g(:,i)-gc(:,i)];
 		tConst     = CFIforms{iGloNorm,2};
-		tFnames    = [eval(CFIforms{iGloNorm,3}),{'global'}];
+		tFnames    = [eval(CFIforms{iGloNorm,3}),{rcname}];
 		[f,gname]  = spm_DesMtx(tI,tConst,tFnames);
 		clear tI tConst tFnames
-
+	
 		%-Save GX info in xC struct for reference
-		str = {sprintf('%s: global',dstr{2})};
+		str = {sprintf('%s: %s',dstr{2},rcname)};
 		if any(iGMsca==[1:7]), str=[str;{['(after ',sGMsca,')']}]; end
 		if iGC~=8, str=[str;{['used centered ',sCC{iGC}]}]; end
 		if iGloNorm > 1
 			str=[str;{['fitted as interaction ',sCFI{iGloNorm}]}]; 
 		end
-		tmp  = struct(	'rc',rg(:,i).*gSF(:,i),	'rcname','global',...
+		tmp  = struct(	'rc',rg(:,i).*gSF(:,i),	'rcname',rcname,...
 				'c',f,			'cname'	,{gname},...
 				'iCC',iGC,		'iCFI'	,iGloNorm,...
 				'type',			3,...
 				'cols',[1:size(f,2)]+size([H C B G],2),...
 				'descrip',		{str}		);
-
+	
 		G = [G,f]; Gnames = [Gnames; gname];
 		if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
-
+	
 	end
 
 elseif iGloNorm==8 | iGXcalc>1
 
+	%-Globals calculated, but not AnCova: Make a note of globals
+	%---------------------------------------------------------------
 	if iGloNorm==8
 		str = { 'global values: (used for proportional scaling)';...
 			'("raw" unscaled globals shown)'};
@@ -1336,7 +1319,8 @@ elseif iGloNorm==8 | iGXcalc>1
 	end
 
 	for i = 1:nVar
-		tmp  = struct(	'rc',rg(:,i),	'rcname','global',...
+		rcname='global'; if nVar>1, rcname=sprintf('global-%d',i); end
+		tmp  = struct(	'rc',rg(:,i),	'rcname',rcname,...
 				'c',{[]},	'cname'	,{{}},...
 				'iCC',0,	'iCFI'	,0,...
 				'type',		3,...
@@ -1429,7 +1413,7 @@ fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 %-Display Design reports
 %=======================================================================
 fprintf('%-40s: ','Design reporting')                                %-#
-spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
+spm_DesRep('DesMtx',xX,reshape({VY.fname},size(VY)),xsDes)
 fprintf('%30s\n','...done')                                          %-#
 
 
@@ -1463,12 +1447,12 @@ case 'files&indices'
 %=======================================================================
 % - Get files and factor indices
 %=======================================================================
-% [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime,Vstr)
+% [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime,nV)
 % DbaTime=D.b.aTime; Dn=D.n; DsF=D.sF;
-if nargin<5, Vstr    = ''; else, Vstr    = varargin{5}; end
-if nargin<4, DbaTime = 1;  else, DbaTime = varargin{4}; end
-if nargin<3, Dn      = [Inf,Inf,Inf,Inf]; else, Dn=varargin{3}; end
-if nargin<2, DsF     = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
+if nargin<5, nV = 1; else, nV = varargin{5}; end
+if nargin<4, DbaTime = 1; else, DbaTime = varargin{4}; end
+if nargin<3, Dn  = [Inf,Inf,Inf,Inf]; else, Dn=varargin{3}; end
+if nargin<2, DsF = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
 
 %-Initialise variables
 %-----------------------------------------------------------------------
@@ -1480,6 +1464,7 @@ P  = {};		% cell array of string filenames
 
 %-Accrue filenames and factor level indicator vectors
 %-----------------------------------------------------------------------
+bMV = nV>1;
 if isinf(Dn(4)), n4 = spm_input(['#',DsF{4},'''s'],'+1','n1');
 	else, n4 = Dn(4); end
 bL4 = n4>1;
@@ -1497,11 +1482,17 @@ for j4  = 1:n4
 	%disp('NB:selecting in time order - manually specify conditions')
 	%-NB: This means f2 levels might not be 1:n2
 	GUIpos2 = spm_input('!NextPos');
-	for j3  = 1:n3
+	for j3 = 1:n3
 	    sF3P=''; if bL3, sF3P=[DsF{3},' ',int2str(j3),': ']; end
-	    str = [sF4P,sF3P,Vstr];
-	    tP  = spm_get(Dn(2)*Dn(1),'.img',{[str,'select images...']});
-	    n21 = length(tP);
+	    str = [sF4P,sF3P];
+	    tP  = {};
+	    n21 = Dn(2)*Dn(1);
+	    for v=1:nV
+	    	vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
+	    	ttP = spm_get(n21,'.img',{[str,'select images',vstr]});
+	    	n21 = length(ttP);
+	    	tP  = [tP,ttP];
+	    end
 	    ti2 = spm_input([str,' ',DsF{2},'?'],GUIpos2,'c',ti2',n21,Dn(2));
 	    %-Work out i1 & check
 	    [tl2,null,j] = unique(ti2);
@@ -1530,8 +1521,14 @@ for j4  = 1:n4
 
 	if n2==1 & Dn(1)==1 %-single scan per f3 (subj)
 	    %disp('NB:single scan per f3')
-	    str = [sF4P,'select images, ',DsF{3},' 1-',int2str(n3),Vstr];
-	    P   = [P;spm_get(n3,'.img',{str})];
+	    str = [sF4P,'select images, ',DsF{3},' 1-',int2str(n3)];
+	    tP = {};
+	    for v=1:nV
+	    	vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
+	    	ttP = spm_get(n3,'.img',{[str,vstr]});
+	    	tP = [tP,ttP];
+	    end
+	    P   = [P;tP];
 	    i4  = [i4; j4*ones(n3,1)];
 	    i3  = [i3; [1:n3]'];
 	    i2  = [i2; ones(n3,1)];
@@ -1545,8 +1542,14 @@ for j4  = 1:n4
 			%-No f1 (repl) within f2 (cond)
 			%disp('NB:no f1 within f2')
 			str = [sF4P,sF3P,'select images: ',DsF{2},...
-				 ' 1-',int2str(n2),Vstr];
-			P   = [P;spm_get(n2,'.img',{str})];
+				 ' 1-',int2str(n2)];
+			tP = {};
+			for v=1:nV
+				vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
+				ttP = spm_get(n2,'.img',{[str,vstr]});
+				tP = [tP,ttP];
+			end
+			P   = [P;tP];
 			i4  = [i4; j4*ones(n2,1)];
 			i3  = [i3; j3*ones(n2,1)];
 			i2  = [i2; [1:n2]'];
@@ -1557,9 +1560,15 @@ for j4  = 1:n4
 		    for j2  = 1:n2
 			sF2P='';
 			if bL2, sF2P=[DsF{2},' ',int2str(j2),': ']; end
-			str = [sF4P,sF3P,sF2P,' select images...',Vstr];
-			tP  = spm_get(Dn(1),'.img',{str});
-			n1  = size(tP,1);
+			str = [sF4P,sF3P,sF2P,' select images...'];
+			tP  = {};
+			n1  = Dn(1);
+			for v=1:nV
+				vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
+				ttP = spm_get(n1,'.img',{[str,vstr]});
+				n1  = length(ttP);
+				tP  = [tP,ttP];
+			end
 			P   = [P;tP];
 			i4  = [i4; j4*ones(n1,1)];
 			i3  = [i3; j3*ones(n1,1)];
