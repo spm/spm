@@ -1,6 +1,6 @@
-function spm_render(dat,flg)
+function spm_render(dat,flg,rendfile)
 % Render blobs on surface of a 'standard' brain
-% FORMAT spm_render(dat,flg)
+% FORMAT spm_render(dat,flg,rendfile)
 %
 % dat - a vertical cell array of length 1 to 3
 %       - each element is a structure containing:
@@ -11,6 +11,7 @@ function spm_render(dat,flg)
 %         - dim - dimensions of volume from which XYZ is drawn.
 % flg - optional.  If 1, then displays using the old style with hot
 %       metal for the blobs, and grey for the brain.
+% rendfile - the file containing the images to render on to.
 %
 % Without arguments, spm_render acts as its own UI.
 %_______________________________________________________________________
@@ -24,13 +25,16 @@ function spm_render(dat,flg)
 % surface.
 %_______________________________________________________________________
 % %W% John Ashburner FIL %E%
-SCCSid = '%I%';
 
+global SWD;
 
 %=======================================================================
 if nargin==0
-	SPMid = spm('FnBanner',mfilename,SCCSid);
+	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
+
+	rendfile = spm_get(1,'render*.mat',['Render file'],...
+				[SWD '/rend']);
 
 	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 	flg = 0; if num==1, flg = spm_input('Style',1,'new|old',[0 1], 1); end;
@@ -48,8 +52,8 @@ if nargin==0
 					'dim',	VOL.DIM);
 	end
 
-	spm_render(dat,flg);
-	return
+	spm_render(dat,flg,rendfile);
+	return;
 end
 
 if nargin==1, flg = 0; end
@@ -59,50 +63,52 @@ if nargin==1, flg = 0; end
 %=======================================================================
 spm('Pointer','Watch')
 
+load(rendfile);
 
-% Put the pre-computed data in the right format.
-%-----------------------------------------------------------------------
-load render
-pre = cell(size(Matrixes,1),1);
-for i=1:size(Matrixes,1)
-	pre{i}=struct('MM',eval(Matrixes(i,:)),...
-		'ren',eval(Rens(i,:)),...
-		'dep',eval(Depths(i,:)),...
-		'data',[],...
-		'max',0);
-	pre{i}.data = cell(size(dat,1),1);
-end
+if (exist('rend') ~= 1), % Assume old format...
+	rend = cell(size(Matrixes,1),1);
+	for i=1:size(Matrixes,1),
+		rend{i}=struct('M',eval(Matrixes(i,:)),...
+			'ren',eval(Rens(i,:)),...
+			'dep',eval(Depths(i,:)));
+	end;
+end;
 
-spm_progress_bar('Init', size(dat,1)*size(pre,1),...
+for i=1:length(rend),
+	rend{i}.max=0;
+	rend{i}.data = cell(size(dat,1),1);
+end;
+
+spm_progress_bar('Init', size(dat,1)*length(rend),...
 			'Making pictures', 'Number completed');
 
-mx = zeros(size(pre,1),1)+eps;
+mx = zeros(length(rend),1)+eps;
 for j=1:size(dat,1),
 	XYZ = dat{j}.XYZ;
 	t   = dat{j}.t;
 	dim = dat{j}.dim;
 	mat = dat{j}.mat;
 
-	for i=1:size(pre,1)
+	for i=1:length(rend),
 
 		% transform from Taliarach space to space of the rendered image
 		%-------------------------------------------------------
-		M1  = pre{i}.MM*dat{j}.mat;
+		M1  = rend{i}.M*dat{j}.mat;
 		zm  = sum(M1(1:2,1:3).^2,2).^(-1/2);
 		M2  = diag([zm' 1 1]);
-		MM  = M2*M1;
+		M  = M2*M1;
 		cor = [1 1 1 ; dim(1) 1 1 ; 1 dim(2) 1; dim(1) dim(2) 1 ;
 		       1 1 dim(3) ; dim(1) 1 dim(3) ; 1 dim(2) dim(3); dim(1) dim(2) dim(3)]';
-		tcor= MM(1:3,1:3)*cor + MM(1:3,4)*ones(1,8);
+		tcor= M(1:3,1:3)*cor + M(1:3,4)*ones(1,8);
 		off = min(tcor(1:2,:)');
 		M2  = spm_matrix(-off+1)*M2;
-		MM  = M2*M1;
-		xyz = (MM(1:3,1:3)*XYZ + MM(1:3,4)*ones(1,size(XYZ,2)));
+		M  = M2*M1;
+		xyz = (M(1:3,1:3)*XYZ + M(1:3,4)*ones(1,size(XYZ,2)));
 		d2  = ceil(max(xyz(1:2,:)'));
 
 		% calculate 'depth' of values
 		%-------------------------------------------------------
-		dep = spm_slice_vol(pre{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
+		dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
 		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
 		if flg==1, msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
@@ -119,17 +125,17 @@ for j=1:size(dat,1),
 				t0  = t(msk).*exp(-dst/10)';
 			end;
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
-			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(pre{i}.dep),1);
+			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),1);
 		else,
-			X = zeros(size(pre{i}.dep));
+			X = zeros(size(rend{i}.dep));
 		end;
 
 		mx(j) = max([mx(j) max(max(X))]);
-		pre{i}.data{j} = X;
+		rend{i}.data{j} = X;
 
-		spm_progress_bar('Set', i+(j-1)*size(pre,1));
-	end
-end
+		spm_progress_bar('Set', i+(j-1)*length(rend));
+	end;
+end;
 
 mxmx = max(mx);
 
@@ -137,32 +143,34 @@ spm_progress_bar('Clear');
 Fgraph = spm_figure('GetWin','Graphics');
 spm_figure('Clear',Fgraph);
 
-if flg==1
+nrow = ceil(length(rend)/2);
+
+if flg==1,
 	% Old style split colourmap display.
 	%---------------------------------------------------------------
-	load Split
+	load Split;
 	colormap(split);
-	for i=1:size(Matrixes,1)
-		ren = pre{i}.ren;
-		X = pre{i}.data{1};
-		msk = find(X > mxmx/64);
-		ren(msk) = X(msk)*(64/mxmx)+64;
-		subplot(4,2,i);
-		image(ren);
+	for i=1:length(rend),
+		ren = rend{i}.ren;
+		X = rend{i}.data{1};
+		msk = find(X > mxmx);
+		ren(msk) = X(msk)*(1/mxmx)+1;
+		subplot(nrow,2,i);
+		image(ren*64);
 		axis image off xy
-	end
+	end;
 
-else
+else,
 	% Combine the brain surface renderings with the blobs, and display using
 	% 24 bit colour.
 	%---------------------------------------------------------------
-	for i=1:size(Matrixes,1)
-		ren = pre{i}.ren/64;
+	for i=1:length(rend),
+		ren = rend{i}.ren;
 		X = cell(3,1);
-		for j=1:size(pre{i}.data,1),
-			X{j} = pre{i}.data{j}/mxmx;
+		for j=1:size(rend{i}.data,1),
+			X{j} = rend{i}.data{j}/mxmx;
 		end
-		for j=(size(pre{i}.data,1)+1):3
+		for j=(size(rend{i}.data,1)+1):3
 			X{j}=zeros(size(X{1}));
 		end
 
@@ -172,11 +180,11 @@ else
 		rgb(:,:,2) = tmp + X{2};
 		rgb(:,:,3) = tmp + X{3};
 
-		subplot(4,2,i);
+		subplot(nrow,2,i);
 		image(rgb);
 		axis image off xy
-	end
-end
+	end;
+end;
 
 spm_figure('Clear','Interactive')
 
