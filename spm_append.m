@@ -30,7 +30,7 @@ X     = real(X);
 fid   = fopen([pwd '/' MAT '.mat'],'r');
 if fid < 0
         eval([MAT ' = X;']);
-        eval(['save ' MAT '.mat ' MAT]);
+	save([MAT '.mat'],'-v4',MAT);
         return
 end
 
