@@ -7,9 +7,9 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 % XYZ  - 3xn matrix of XYZ locations returned
 %_______________________________________________________________________
 %
-% For image data types without a representation of NaN (types<16 - see
-% spm_type), implicit zero masking can be used. If mask is set, then
-% zeros are treated as masked, and returned as NaN.
+% For image data types without a representation of NaN (see spm_type),
+% implicit zero masking can be used. If mask is set, then zeros are
+% treated as masked, and returned as NaN.
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
@@ -35,9 +35,12 @@ for i=1:n, for p=1:V(1).dim(3)
 	Y(:,:,p,i) = spm_slice_vol(V(i),spm_matrix([0 0 p]),V(i).dim(1:2),0);
 end, end
 
-%-Apply implicit zero mask for low bit-depth images
+%-Apply implicit zero mask for image datatypes without a NaNrep
 %-----------------------------------------------------------------------
-if mask, Y(Y(:,:,:,cat(1,V.dim)*[0;0;0;1]<16)==0)=NaN; end
+dt = cat(1,Vi.dim)*[0;0;0;1];				%-Data types
+im = (dt==2) | (dt==4) | (dt==8) | ...
+	(dt==512) | (dt==1024) | (dt==2048);		%-Images without NaNrep
+if mask, Y(Y(:,:,:,im)==0)=NaN; end			%-Mask
 
 %-Return as 3D matrix if single image
 %-----------------------------------------------------------------------
