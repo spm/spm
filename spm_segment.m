@@ -147,7 +147,7 @@ if ~isempty(PG) & isstr(PG)
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
-	prms = [sptl_Ornt ones(1,size(PG,1))];
+	prms = [sptl_Ornt ones(1,size(PG,1))]';
 	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 8);
 	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 4, prms);
 

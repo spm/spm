@@ -207,7 +207,7 @@ else 	% Different modalities
 
 	disp('Rough coregistration');
 	global sptl_Ornt;
-	params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1];
+	params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1]';
 	params = spm_affsub3('register1', PPG, PPF, 1, 12, params);
 	params = spm_affsub3('register1', PPG, PPF, 1, 8 , params);
 	params = spm_affsub3('register1', PPG, PPF, 1, 4 , params);
