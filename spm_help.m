@@ -192,12 +192,12 @@ function varargout=spm_help(varargin)
 % subsequent use.
 %
 % FORMAT h = spm_help('!ContextHelp',Topic)
-% Sets up a small green "?" help button in the bottom right corner of
+% Sets up a small green "?" help symbol in the bottom right corner of
 % the SPM Interactive window with callback to spm_help('Topic'). If SPM
 % is in CommandLine mode then an appropriate message is printed in the
 % MatLab command window.
-% Topic     - Help topic
-% h         - handle of button (if one is created)
+% Topic     - Help topic [defaults to name of calling function]
+% h         - handle of "?" text (or 0 if CmdLine)
 %_______________________________________________________________________
 
 %-Condition arguments
@@ -1056,22 +1056,39 @@ set(HD.hRefdTopics,'Value',1,'String',deblank(RefdTopics(1,:)))
 case '!contexthelp'
 %=======================================================================
 % h = spm_help('!ContextHelp',Topic)
-if nargin<2, Topic=''; else Topic=varargin{2}; end
 
+%-If no topic specified, use caller function
+%-----------------------------------------------------------------------
+if nargin<2
+	st = dbstack;
+	if length(st)>1, Topic=st(2).name; else, Topic='Menu'; end
+else
+	Topic=varargin{2};
+end
+
+
+%-----------------------------------------------------------------------
+Finter = spm_figure('FindWin','Interactive');
 if spm('isGCmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
-else
-	Finter = spm_figure('FindWin','Interactive');
-	if isempty(Finter), error('Can''t find interactive window'), end
+	varargout = {0};
+elseif ~isempty(Finter)
 	delete(findobj(Finter,'Tag','ContextHelp'))
 	S2 = get(Finter,'Position');
-	h = uicontrol(Finter,'String','?',...
-		'ToolTipString',['Press for help (',Topic,')'],...
-		'CallBack',['spm_help(''',Topic,''')'],...
-		'UserData',Topic,...
+	hAx = axes('Parent',Finter,...
+		'Units','Pixels',...
+		'Position',[S2(3)-23 05 20 25],...
 		'Tag','ContextHelp',...
-		'ForegroundColor','g',...
-		'Position',[S2(3)-23 05 20 25]);
+		'Visible','off');
+	h = text(0.5,0.5,'?',...
+		'Parent',hAx,...
+		'Color','g',...
+		'FontName','Helvetica',...
+		'FontSize',2*round(14*min(spm('GetWinScale'))/2),...
+		'FontWeight','bold','FontAngle','italic',...
+		'HorizontalAlignment','Center',...
+		'VerticalAlignment','middle',...
+		'ButtonDownFcn',['spm_help(''',Topic,''')']);
 	if nargout>0, varargout = {h}; end
 end
 
