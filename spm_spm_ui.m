@@ -436,10 +436,13 @@ SCCSid  = '%I%';
 %
 % FORMAT spm_spm_ui('DesRep',SPMcfg)
 % FORMAT spm_spm_ui('DesRepUI',SPMcfg)
-% FORMAT spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM
-% FORMAT spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM))
+% FORMAT spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM)
+% FORMAT spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM)
 % Design reporting (with UserInterface) - an interface to spm_DesRep.m
-% SPMcfg - name of SPMcfg.mat file
+% FORMAT spm_spm_ui('Run',SPMcfg)
+% FORMAT spm_spm_ui('Run',VY,xX,xC,xsDes,xM)
+% Utility to run spm_spm.m with supplied parameters.
+% SPMcfg - name of SPMcfg.mat file (If missing then user is prompted for SPMcfg)
 % VY     - struct array of mapped image files
 % xX     - design matrix description structure (defined above)
 % xC     - struct array of covariate definitions (defined above)
