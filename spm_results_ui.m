@@ -194,7 +194,7 @@ SCCSid = '%I%';
 % FORMAT spm_results_ui('PlotUiCB')
 % CallBack handler for Plot attribute GUI
 %
-% FORMAT Fgraph = spm_results_ui('ClearPane',F,RNP)
+% FORMAT Fgraph = spm_results_ui('Clear',F,RNP)
 % Clears results subpane of Graphics window, deletes PageControls, sets new axes
 % F      - handle of Graphics window [Default spm_figure('FindWin','Graphics')]
 % RNP    - If specified, respects 'NextPlot' axes attribute, and won't delete
@@ -219,60 +219,68 @@ if nargin==0, Action='SetUp'; else, Action=varargin{1}; end
 switch lower(Action), case 'setup'                      %-Set up results
 %=======================================================================
 %-Initialise 
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 SPMid = spm('FnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Results');
 
 
 %-Get thresholded SPM data and parameters of design
-%===========================================================================
+%=======================================================================
 [SPM,VOL,xX,xSDM] = spm_getSPM;
 
 
 %-Setup Results User Interface; Display MIP, design matrix & parameters
-%===========================================================================
+%=======================================================================
 spm('FigName',['SPM{',SPM.STAT,'}: Results'],Finter,CmdLine);
-spm('Pointer','Watch')
-
-
-%-CD to swd?
-%---------------------------------------------------------------------------
-cd(SPM.swd)
-fprintf('\nSPM working directory now:\n\t%s\n\n',pwd)
 
 
 %-Setup results GUI
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 hReg   = spm_results_ui('SetupGUI',VOL.M,VOL.DIM,Finter);
 
 
-%-Print summary information
-%---------------------------------------------------------------------------
-hTxtAx = axes('Parent',Fgraph,...
-		'Position',[0.05 0.92 0.90 0.03],...
-		'DefaultTextFontSize',10,...
-		'DefaultTextVerticalAlignment','baseline',...
+%-Print comparison title
+%-----------------------------------------------------------------------
+hTitAx = axes('Parent',Fgraph,...
+		'Position',[0.02 0.94 0.96 0.03],...
 		'Visible','off');
-h = text(0,1,'SPM results: ','Parent',hTxtAx,'FontWeight','Bold','FontSize',14);
-text(get(h,'Extent')*[0;0;1;0],1,spm_str_manip(SPM.swd,'a30'),'Parent',hTxtAx)
-text(0.1,0.5,sprintf('Height threshold {u} = %0.2f',SPM.u),'Parent',hTxtAx)
-text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),...
-	'Parent',hTxtAx);
+
+text(0.5,0,SPM.title,'Parent',hTitAx,...
+	'HorizontalAlignment','center',...
+	'VerticalAlignment','baseline',...
+	'FontWeight','Bold','FontSize',16)
 
 
 %-Setup Maximium intensity projection (MIP) & register
-%---------------------------------------------------------------------------
-hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.55 0.55 0.4],'Visible','off');
+%-----------------------------------------------------------------------
+hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
 hMIPax = spm_mip_ui(SPM.Z,SPM.XYZmm,VOL.M,VOL.DIM,hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
 text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold',...
 	'Parent',hMIPax)
 
 
+%-Print SPMresults: SWD & thresholding info
+%-----------------------------------------------------------------------
+hResAx = axes('Parent',Fgraph,...
+		'Position',[0.05 0.55 0.45 0.05],...
+		'DefaultTextVerticalAlignment','baseline',...
+		'DefaultTextFontSize',10,...
+		'DefaultTextColor',[1,1,1]*.7,...
+		'Units','points',...
+		'Visible','off');
+AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
+h = text(0,24,'SPMresults:','Parent',hResAx,...
+	'FontWeight','Bold','FontSize',16);
+text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(SPM.swd,'a30'),'Parent',hResAx)
+text(0,12,sprintf('Height threshold {u} = %0.2f',SPM.u),'Parent',hResAx)
+text(0,0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),'Parent',hResAx)
+
+
 %-Plot design matrix
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 nX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
-hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
+hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.60 0.25 0.25]);
 hDesMtxIm = image((nX+1)*32);
 set(hDesMtx,'YTick',spm_DesRep('ScanTick',size(nX,1),24),'TickDir','out')
 xlabel('Design matrix')
@@ -281,13 +289,13 @@ set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''cb_DesMtxIm'')')
 
 
 %-Plot contrasts
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 nPar = size(xX.X,2);
 xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
 
-dy    = 0.15/max(size(SPM.c,2),2);
+dy    = 0.11/max(size(SPM.c,2),2);
 for i = 1:size(SPM.c,2)
-	axes('Position',[0.65 (0.8 + dy*(i-0.9)) 0.25 dy*.9])
+	axes('Position',[0.65 (0.85 + dy*(i-0.9)) 0.25 dy*.9])
 	if SPM.STAT == 'T' & size(SPM.c{i},2)==1
 		%-Single vector contrast for SPM{t} - bar
 		yy = [zeros(1,nPar);repmat(SPM.c{i}',2,1);zeros(1,nPar)];
@@ -301,9 +309,17 @@ for i = 1:size(SPM.c,2)
 end
 title('Contrast(s)')
 
+%-Store handles of results section Graphics window objects
+%-----------------------------------------------------------------------
+H  = get(Fgraph,'Children');
+H  = findobj(H,'flat','HandleVisibility','on');
+H  = findobj(H);
+Hv = get(H,'Visible');
+set(hResAx,'Tag','PermRes','UserData',struct('H',H,'Hv',{Hv}))
+
 
 %-Finished results setup
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 varargout = {hReg,SPM,VOL,xX,xSDM};
 spm('Pointer','Arrow')
 
@@ -332,7 +348,7 @@ hClear = uicontrol(Finter,'Style','PushButton','String','clear',...
 	'ToolTipString','clears lower results subpane of Graphics window',...
 	'FontSize',Fs,'ForegroundColor','b',...
 	'Callback',[...
-		'spm_results_ui(''ClearPane''); ',...
+		'spm_results_ui(''Clear''); ',...
 		'spm_input(''!DeleteInputObj'')'],...
 	'Interruptible','on','Enable','on',...
 	'DeleteFcn','clc,spm_clf(''Graphics'')',...
@@ -346,7 +362,7 @@ hExit  = uicontrol(Finter,'Style','PushButton','String','exit',...
 hHelp  = uicontrol(Finter,'Style','PushButton','String','?',...
 	'ToolTipString','results section help',...
 	'FontSize',Fs,'ForegroundColor','g',...
-	'Callback','spm_help(''spm_results'')',...
+	'Callback','spm_help(''spm_results_ui'')',...
 	'Interruptible','on','Enable','on',...
 	'Position',[370 010 020 036].*WS);
 
@@ -722,7 +738,9 @@ hText = uicontrol(Finter,'Style','Text','String','Plot controls',...
 
 %-Controls
 %-----------------------------------------------------------------------
-h1 = uicontrol(Finter,'Style','CheckBox','String','Hold','FontSize',Fs,...
+h1 = uicontrol(Finter,'Style','CheckBox','String','Hold',...
+	'ToolTipString','toggle hold to overlay plots',...
+	'FontSize',Fs,...
 	'Value',strcmp(get(hAx,'NextPlot'),'add'),...
 	'Callback',[...
 		'if get(gcbo,''Value''), ',...
@@ -732,7 +750,9 @@ h1 = uicontrol(Finter,'Style','CheckBox','String','Hold','FontSize',Fs,...
 		'end'],...
 	'Interruptible','on','Enable','on',...
 	'Position',[015 195 070 020].*WS);
-h2 = uicontrol(Finter,'Style','CheckBox','String','Grid','FontSize',Fs,...
+h2 = uicontrol(Finter,'Style','CheckBox','String','Grid',...
+	'ToolTipString','toggle axes grid',...
+	'FontSize',Fs,...
 	'Value',strcmp(get(hAx,'XGrid'),'on'),...
 	'Callback',[...
 		'if get(gcbo,''Value''), ',...
@@ -744,7 +764,9 @@ h2 = uicontrol(Finter,'Style','CheckBox','String','Grid','FontSize',Fs,...
 		'end'],...
 	'Interruptible','on','Enable','on',...
 	'Position',[090 195 070 020].*WS);
-h3 = uicontrol(Finter,'Style','CheckBox','String','Box','FontSize',Fs,...
+h3 = uicontrol(Finter,'Style','CheckBox','String','Box',...
+	'ToolTipString','toggle axes box',...
+	'FontSize',Fs,...
 	'Value',strcmp(get(hAx,'Box'),'on'),...
 	'Callback',[...
 		'if get(gcbo,''Value''), ',...
@@ -754,12 +776,17 @@ h3 = uicontrol(Finter,'Style','CheckBox','String','Box','FontSize',Fs,...
 		'end'],...
 	'Interruptible','on','Enable','on',...
 	'Position',[165 195 070 020].*WS);
-h4 = uicontrol(Finter,'Style','PushButton','String','handle','FontSize',Fs,...
-	'Callback','h=get(gcbo,''UserData'')',...
+h4 = uicontrol(Finter,'Style','PopUp',...
+	'ToolTipString','edit axis text annotations',...
+	'FontSize',Fs,...
+	'String','text|Title|Xlabel|Ylabel',...
+	'Callback','spm_results_ui(''PlotUiCB'')',...
 	'Interruptible','on','Enable','on',...
 	'Position',[240 195 070 020].*WS);
-h5 = uicontrol(Finter,'Style','PopUp','FontSize',Fs,...
-	'String','Utils|Title|Xlabel|Ylabel|LineWidth|XLim|YLim',...
+h5 = uicontrol(Finter,'Style','PopUp',...
+	'ToolTipString','change various axes attributes',...
+	'FontSize',Fs,...
+	'String','attrib|LineWidth|XLim|YLim|handle|raddish',...
 	'Callback','spm_results_ui(''PlotUiCB'')',...
 	'Interruptible','off','Enable','on',...
 	'Position',[315 195 070 020].*WS);
@@ -784,66 +811,104 @@ case 'plotuicb'
 % spm_results_ui('PlotUiCB')
 hPM = gcbo;
 v   = get(hPM,'Value');
-set(hPM,'Value',1)
+if v==1, return, end
+str = cellstr(get(hPM,'String'));
+str = str{v};
 
 hAx = get(hPM,'UserData');
-switch v
-case 1	%-PullDown label
-	return
-case 2	%-Title
+switch str
+case 'Title'
 	h = get(hAx,'Title');
 	set(h,'String',spm_input('Enter title:',-1,'s',get(h,'String')))
-case 3	%-Xlabel
+case 'Xlabel'
 	h = get(hAx,'Xlabel');
 	set(h,'String',spm_input('Enter X axis label:',-1,'s',get(h,'String')))
-case 4	%-Ylabel
+case 'Ylabel'
 	h = get(hAx,'Ylabel');
 	set(h,'String',spm_input('Enter Y axis label:',-1,'s',get(h,'String')))
-case 5	%-LineWidth
+case 'LineWidth'
 	lw = spm_input('Enter LineWidth',-1,'e',get(hAx,'LineWidth'));
 	set(hAx,'LineWidth',lw)
-case 6	%-XLim
+case 'XLim'
 	XLim = spm_input('Enter XLim',-1,'e',get(hAx,'XLim'));
 	set(hAx,'XLim',XLim)
-case 7	%-YLim
+case 'YLim'
 	YLim = spm_input('Enter YLim',-1,'e',get(hAx,'YLim'));
 	set(hAx,'YLim',YLim)
+case 'handle'
+	varargout={hAx};
 otherwise
-	return
+	warning(['Unknown action: ',str])
 end
 
+set(hPM,'Value',1)
 
 
 %=======================================================================
-case 'clearpane'                              %-Clear results subpane(s)
+case {'clear','clearpane'}                       %-Clear results subpane
 %=======================================================================
-% Fgraph = spm_results_ui('ClearPane',F,RNP)
-if nargin<3, RNP=0; else, RNP=1; end
-if nargin<2, F=spm_figure('FindWin','Graphics'); else, F=varargin{2}; end
+% Fgraph = spm_results_ui('Clear',F,mode)
+% mode 1 [default] usual, mode 0 - clear & hide Res stuff, 2 - RNP
+if strcmp(lower(Action),'clearpane')
+	warning('''ClearPane'' action is grandfathered, use ''Clear'' instead')
+end
+
+if nargin<3, mode=1; else, mode=varargin{3}; end
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
+F = spm_figure('FindWin',F);
+
+%-Clear input objects from 'Interactive' window
+%-----------------------------------------------------------------------
 spm_input('!DeleteInputObj')
-spm_figure('DeletePageControls',F)
-set(0,'CurrentFigure',F)
 
-kids = get(F,'Children');
-for k=kids',
-	if ishandle(k) & strcmp(get(k,'Type'),'axes'),
-		un = get(k,'Units');
-		set(k,'Units','normalized');
-		pos = get(k,'Position');
-		if pos(2) < 0.5,
-			delete(k);
-		else,
-			set(k,'Units',un);
-		end;
-	end;
-end;
 
-% The original code:-
-%subplot(2,1,2);
-%if ~RNP | ~strcmp(get(gca,'NextPlot'),'add');
-%	delete(gca); subplot(2,1,2); axis off;
-%end
+%-Get handles of objects in Graphics window & note permanent results objects
+%-----------------------------------------------------------------------
+H = get(F,'Children');				%-Get contents of window
+H = findobj(H,'flat','HandleVisibility','on');	%-Lose GUI components
+h = findobj(H,'flat','Tag','PermRes');		%-Look for 'Res' obj
+if ~isempty(h)					% (which has perm. res. obj. h's)
+	tmp  = get(h,'UserData');
+	HR   = tmp.H;
+	HRv  = tmp.Hv;
+elseif mode==0
+	HR   = [];
+	HRv  = {};
+else
+	%-Can't find stored handles of permanent results objects
+	% (Work out as everything in top half of figure)
+	%-This won't work properly with "hiding" of permanent results objects
+	warning('Can''t find cache of permanent results objects - deriving')
+	un   = get(H,'Units');
+	set(H,'Units','normalized')
+	tmp  = get(H,'Position');
+	if ~isempty(tmp)
+		tmp  = cat(1,tmp{:});
+		HR   = H(tmp(:,2)>0.5);
+		HRv  = get(HR,'Visible');
+	else
+		HR   = [];
+		HRv  = {};
+	end
+	set(H,{'Units'},un)
+end
+H = setdiff(H,HR);				%-Drop permanent results obj
 
+
+
+%-Delete stuff as appropriate
+%-----------------------------------------------------------------------
+if mode==2	%-Don't delete axes with NextPlot 'add'
+	H = setdiff(H,findobj(H,'flat','Type','axes','NextPlot','add'));
+end
+
+delete(H)
+
+if mode==0	%-Hide the permanent results section stuff
+	set(HR,'Visible','off')
+else
+	set(HR,{'Visible'},HRv)
+end
 
 
 %=======================================================================
