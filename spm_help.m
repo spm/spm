@@ -919,19 +919,21 @@ return
 elseif strcmp(lower(Action),lower('!ContextHelp'))
 %=======================================================================
 % h = spm_help('!ContextHelp',Topic)
-if nargin<2, return, end
+if nargin<2, Topic=''; else Topic=P2; end
 
 if spm('isGCmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
 else
 	Finter = spm_figure('FindWin','Interactive');
 	if isempty(Finter), error('Can''t find interactive window'), end
+	delete(findobj(Finter,'Tag','ContextHelp'))
 	S2 = get(Finter,'Position');
 	h = uicontrol(Finter,'String','?',...
 		'CallBack',['spm_help(''',Topic,''')'],...
+		'Tag','ContextHelp',...
 		'ForegroundColor','g',...
 		'Position',[S2(3)-20 5 15 15]);
-	R1 = h;
+	if nargout>0, R1 = h; end
 end
 return
 
