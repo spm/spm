@@ -309,7 +309,7 @@ p(3)       = -mean(1:nz)*p(9);
 dispP.mat  = spm_matrix(p); clear p;
 
 msk        = get_mask(P,xyz,ds,[nx ny nz]);
-
+SS         = [];
 %
 % Here starts iterative search for deformation fields.
 %
