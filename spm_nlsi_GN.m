@@ -112,26 +112,30 @@ end
 p      = pE;
 dv     = 1e-6;
 lm     = speye(size(Vp,2))/1024;
+
+% integrate to initialise and error
+%-------------------------------------------------------------------
+fp     = spm_int(p,M,U,v);
+Eq     = y(:) - fp(:);
 for  j = 1:32
 
-	% y = f(p) - for new expansion point (p) in parameter space 
-	%-------------------------------------------------------------------
-	fp     = spm_int(p,M,U,v);
 
 	% compute partial derivatives [Jp] dy(t)/dp*Vp {p = parameters}
 	%-------------------------------------------------------------------
 	for  i = 1:size(Vp,2)
 
-		pi      = p(:) + Vp(:,i)*dv;
+		pi      = p + Vp(:,i)*dv;
 		dfp     = spm_int(pi,M,U,v) - fp;
 		Jp(:,i) = dfp(:)/dv;
 	end
 
+
 	% Bayesian [conditional] estimator of new expansion point E{p|y}
 	%-------------------------------------------------------------------
-	P{1}.X = [Jp Ju];
-	P{2}.X = [Vp'*(pE(:) - p(:)); uE];
-	[C P]  = spm_PEB(y(:) - fp(:),P);
+        uP     = Vp'*(pE - p);
+	P{1}.X = [Jp  Ju];
+	P{2}.X = [uP; uE];
+	[C P]  = spm_PEB(Eq,P);
     
 	% update - Levenburg-Marquardt regularization
 	%-------------------------------------------------------------------
@@ -160,11 +164,24 @@ for  j = 1:32
         end
 
 	p      = p + dp;
-    
+
+	% y = f(p) - for new expansion point (p) in parameter space 
+	%-------------------------------------------------------------------
+	fp     = spm_int(p,M,U,v);
+
+    	% objective function
+	%-------------------------------------------------------------------
+        Eq     = y(:) - fp(:);
+        Ep     = [Vp'*(p - pE); uE];
+        F      = - Eq'*inv(C{1}.M)*Eq/2 ...
+                 - Ep'*inv(C{2}.M)*Ep/2 ...
+                 - log(det(C{1}.M))/2 ...
+                 + log(det(C{2}.C))/2;
+
 	% convergence
 	%-------------------------------------------------------------------
-	w      = dp(:)'*dp(:);
-	fprintf('%-30s: %i %20s%e\n','GNS Iteration',j,'...',full(w));
+	w      = dp'*dp;
+        fprintf('%-20s    %i       F: %e  dp: %e\n','E-Step:',j,F,full(w));
 	if w < 1e-5, break, end
 
 	% graphics
@@ -173,7 +190,7 @@ for  j = 1:32
 		bar(p)
 		xlabel('parameter')
 		ylabel('conditional expectation')
-		title(sprintf('%s: %i','GNS Iteration',j))
+		title(sprintf('%s: %i','E-Step',j))
 		grid on
 		drawnow
 	end
