@@ -66,11 +66,6 @@ SCCSid = '%I%';
 
 
 if nargin==0, error('No action specified!'), end
-
-
-%-SPMcfg.mat to run
-%=======================================================================
-if nargin==0, error('Specify filenames of some SPMcfg.mat files!'), end
 SPMcfg = varargin(2:end);
 
 %-SPM setup preliminaries...
