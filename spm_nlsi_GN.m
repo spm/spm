@@ -4,13 +4,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %___________________________________________________________________________
-% M.f - f(x,u,P)
-% M.g - g(x,u,P)
-%	x - state  variables
-%	u - inputs or causes
-%	P - free parameters
-% M.pE  - prior expectation  - E{P}
-% M.pC  - prior covariance   - Cov{P}
+% M.f  - f(x,u,P)
+% M.g  - g(x,u,P)
+%	x  - state  variables
+%	u  - inputs or causes
+%	P  - free parameters
+% M.pE - prior expectation  - E{P}
+% M.pC - prior covariance   - Cov{P}
 % M.IS - integration scheme (function name or handle f(P,M,U,varargin))
 %
 %
@@ -55,6 +55,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
+
 % integration scheme
 %---------------------------------------------------------------------------
 try
@@ -70,9 +71,9 @@ y       = Y.y;
 
 % covariance components
 %---------------------------------------------------------------------------
-if isfield(Y,'Ce')
+try
     Q = Y.Ce;
-else
+catch
     Q = spm_Ce(ns*ones(1,nr));
 end
 nh    = length(Q);          % number of variance components
@@ -90,49 +91,49 @@ for i = 1:nh
 end
 iS    = inv(S);
 
-% prior and conditional [posterior] moments
+% prior moments
 %---------------------------------------------------------------------------
 pE    = M.pE;
 pC    = M.pC;
-Cp    = pC;
-Ep    = pE;
 
 % confounds (if specified)
 %---------------------------------------------------------------------------
-if isfield(Y,'X0')
+try
     Ju = kron(speye(nr,nr),Y.X0);
-else
+catch
     Ju = [];
 end
 
-% treat confounds as fixed effects
-%---------------------------------------------------------------------------
-nu    = size(Ju,2);		              % number of parameters (confounds)
-uE    = sparse(nu,1);
-uC    = speye(nu,nu)*1e6;
-
 % dimension reduction of parameter space
 %---------------------------------------------------------------------------
-V     = spm_svd(Cp,1e-16);
-np    = size(V,2);		              % number of parameters (effective)
+V     = spm_svd(pC,1e-8);
+nu    = size(Ju,2);		              % number of parameters (confounds)
+np    = size(V, 2);		              % number of parameters (effective)
 ip    = [1:np];
 iu    = [1:nu] + np;
 
-% moments (in reduced space)
+% second-order moments (in reduced space)
 %---------------------------------------------------------------------------
-p     = [sparse(np,1); inv(Ju'*Ju)*Ju'*y(:)];
-Cp    = V'*pC*V;
-ipC   = inv(blkdiag(V'*pC*V, uC));
+pC    = V'*pC*V;
+uC    = speye(nu)*1e+8;
+ipC   = inv(blkdiag(pC, uC));
+
+% intialise
+%---------------------------------------------------------------------------
+p     = sparse(np + nu,1);
+Ep    = pE;
+Cp    = pC;
+
+C.F   = -Inf;
+dv    = 1/128;
+lm    = 0;
+dFdh  = sparse(nh,1);
+dFdhh = sparse(nh,nh);
 
 
 % EM
 %===========================================================================
-C.F    = -Inf;
-dv     = 1/128;
-dFdh   = sparse(nh,1);
-dFdhh  = sparse(nh,nh);
-lm     = 0;
-for  k = 1:64
+for k = 1:64
     
     
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
@@ -150,11 +151,11 @@ for  k = 1:64
         dg      = feval(f,Ep + V(:,i)*dV,M,U,ns) - g;
         Jp(:,i) = dg(:)/dV;
     end
-    J     = -[Jp Ju];		
+    J     = -[Jp Ju];
 
     % iterate a Fisher scoring scheme to find h = max{F(p,h)}
     %-------------------------------------------------------------------
-    for m = 1:8
+    for m = 1:64
         
         % precision and conditional covariance
         %---------------------------------------------------------------
@@ -195,20 +196,20 @@ for  k = 1:64
         %---------------------------------------------------------------
         nmh   = norm(dh)/norm(h);
         if nmh < 1e-5, break, end
-        
+
     end
-    
+            
     % E-Step with Levenburg-Marquardt regularisation
     %===================================================================
     
     % objective function: F(p) (= log evidence - divergence)
     %-------------------------------------------------------------------
-    F     =   - e'*iS*e/2 ...
-              - p'*ipC*p/2 ...
-              - ne*log(8*atan(1))/2 ...
-              + spm_logdet(iS )/2 ...
-              + spm_logdet(ipC)/2 ...
-              + spm_logdet(Cp )/2;
+    F     = - e'*iS*e/2 ...
+            - p'*ipC*p/2 ...
+            - ne*log(8*atan(1))/2 ...
+            + spm_logdet(iS )/2 ...
+            + spm_logdet(ipC)/2 ...
+            + spm_logdet(Cp )/2;
     
     
     % if F has increased, update gradients and curvatures for E-Step
@@ -233,7 +234,7 @@ for  k = 1:64
         
         % graphics
         %---------------------------------------------------------------
-        if length(dbstack) < 3
+        if length(dbstack) < 4
             
             % subplot parameters
             %-----------------------------------------------------------
@@ -278,7 +279,7 @@ for  k = 1:64
     
     % convergence
     %-------------------------------------------------------------------
-    nmp    = dp(ip)'*dp(ip);
+    nmp    = dp'*ipC*dp;
     fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(nmp))
     if nmp < 1e-5, break, end
     
@@ -288,5 +289,6 @@ end
 %-----------------------------------------------------------------------
 Ep     = pE + V*p(ip);
 Cp     = V*Cp(ip,ip)*V';
+F      = C.F;
 
 return
