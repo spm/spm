@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.12 2002-08-29 14:16:57 john Exp $
+# $Id: Makefile,v 2.13 2002-11-18 17:24:10 john Exp $
 #
 ###############################################################################
 #
@@ -52,7 +52,9 @@ OSF1:
 MAC:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
 windows:
-	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+#windows:
+#	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 
 ###############################################################################
 # Architecture specific cleaning
@@ -134,10 +136,11 @@ archive: spm_vol_utils.$(SUF).a
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
 ###############################################################################
-CC  = cc                                                                                                              
+                                                                                                          
 spm_vol_utils.$(SUF).a: $(OBS)
 	rm -f $@
 	ar rcv $@ $(OBS)
+	$(RANLIB)
 	@ $(CHMODIT) $@
 
 UTILS=spm_vol_utils.c spm_sys_deps.h spm_make_lookup.h spm_getdata.h
@@ -204,7 +207,6 @@ utils_double_s.$(SUF).o: $(UTILS)
 
 %.$(SUF).o : %.c spm_sys_deps.h
 	$(CC) -c -o $@ $<
-	$(RANLIB)
 	@ $(CHMODIT) $@
 
 spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
@@ -223,7 +225,7 @@ win32mmap.$(SUF).o: win32mmap.c win32mmap.h
 ###############################################################################
 # Compile the mex files themselves
 ###############################################################################
-MEX = mex -O
+
 %.$(SUF) : %.c spm_sys_deps.h
 	$(MEX) $<
 	@ $(CHMODIT) $@
