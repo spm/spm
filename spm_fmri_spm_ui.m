@@ -193,7 +193,7 @@ switch MT
 
 
 	case 3
-	% get filenames and deisgn matrix
+	% get filenames and design matrix
 	%-------------------------------------------------------------------
 	nsess  = spm_input(['number of sessions'],1,'e',1);
 	nscan  = zeros(1,nsess);
@@ -263,7 +263,7 @@ end
 
 % Low-pass filtering
 %---------------------------------------------------------------------------
-if spm_input('Low-pass filter?','+1','specify/none',[1 0]);
+if spm_input('Low-pass filter?','+1','specify|none',[1 0]);
 	cHFmenu = {'hrf',...
 		   'Gaussian'};
 	cHF     = spm_input('kernel','+1','b',cHFmenu);
@@ -303,9 +303,9 @@ for   i = 1:nsess
 	xVi.row{i} = Sess{i}.row;
 end
 
-
-% the interactive parts of spm_spm_ui are now finished
+% the interactive parts of spm_spm_ui are now finished: Cleanup GUI
 %---------------------------------------------------------------------------
+spm_clf(Finter);
 set(Finter,'Name','thankyou','Pointer','Watch')
 
 
@@ -388,12 +388,13 @@ end
 
 %-Design description (an nx2 cellstr) - for saving and display
 %==========================================================================
+for i    = 1:length(Sess), ntr(i) = length(Sess{i}.name); end
 sGXcalc  = 'mean voxel value';
 sGMsca   = 'session specific';
-Design   = 'fMRI time-series';
-xsDes    = struct(	'Design',			Design,...
-			'Basis_functions',		X.DesN,...
+xsDes    = struct(	'Design',			X.DSstr,...
+			'Basis_functions',		X.BFstr,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
+			'Conditions_per_session',	sprintf('%-2d',ntr),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
 			'High_pass_Filter',		filterHF{1}.Choice,...
 			'Low_pass_Filter',		filterLF{1}.Choice,...
@@ -424,7 +425,7 @@ spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
 %===========================================================================
 spm_clf(Finter);
 if spm_input('estimate?',1,'b','yes|no',[1 0])
-	spm_spm(VY,xX,xM,Fc,Sess);
+	spm_spm(VY,xX,xM,F_iX0,Sess);
 end
 
 

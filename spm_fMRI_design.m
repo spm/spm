@@ -8,7 +8,8 @@ function [X,Sess] = spm_fMRI_design(nscan,RT,BM)
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
-% X.DesN  - basis function description string
+% X.BFstr - basis function description string
+% X.DSstr - Design description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
@@ -136,8 +137,8 @@ for s = 1:nsess
 
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons,W,name,para] = spm_get_ons(k,T,dt);
-
+	[ons,W,name,para,DSstr] = spm_get_ons(k,T,dt);
+	
 
 	% get basis functions for responses
 	%-------------------------------------------------------------------
@@ -250,7 +251,8 @@ end
 %---------------------------------------------------------------------------
 X.dt    = dt;
 X.RT    = RT;
-X.DesN  = BFstr;
+X.BFstr = BFstr;
+X.DSstr = DSstr;
 X.xX    = xX;
 X.bX    = bX;
 X.Xname = Xname;
