@@ -1,4 +1,4 @@
-function R1 = spm_get(Action,P2,P3,P4,P5,P6)
+function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % User interface : filename selection
 % FORMAT [P] = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine);
 % n          - 0 - returns with empty P
@@ -13,7 +13,7 @@ function R1 = spm_get(Action,P2,P3,P4,P5,P6)
 % NewWDir    - New working directory
 % CmdLine    - CmdLine override switch, 0 for GUI, 1 for Command line.
 %
-% P      - string matrix of full pathnames {one string per row}
+% P          - string matrix of full pathnames {one string per row}
 %____________________________________________________________________________
 %
 % spm_get allows interactive selection of filepaths/directory names
@@ -23,16 +23,30 @@ function R1 = spm_get(Action,P2,P3,P4,P5,P6)
 % if global CMDLINE exists and is true, the command line is used. The
 % CmdLine parameter overrides this choice.
 %
-% Otherwise, selection of files is via GUI. The select files window, enables
-% the interactive directory display and selection of filenames.
-% Clicking on a filename (black) adds it to the list of those selected,
-% the filename is numbered and changes color. The last numbered filename
+% Otherwise, selection of files is via GUI. The select files window,
+% enables the interactive directory display and selection of filenames.
+% Directories with over 48 entries (after filtering) are shown
+% summarised, with a single wildcarded entry for blocks of similar
+% filenames shown alongside a small white number indicating the number
+% of files in the block. Such blocks can be expanded by clicking
+% "Adjust" (button 2) on the item, or by clicking the number of files
+% text, whence the whole directory is shown with the appropriate
+% filter. The entire directory can be shown by clicking the "Summary
+% View" text at the top of the item window.
+%
+% Clicking on an item (black) adds it to the list of those selected,
+% the item is numbered and changes color. The last numbered item
 % can be unselected by clicking it again. If a specific number of
-% filenames have been requested (n), then only this number can be
-% selected. Click "Done" when you're finished. Clicking on a directory
-% name (red) changes to that directory. The file/directory window is
-% scrolled up and down with the buttons provided. The directory window is
-% editable, and a pull down menu of previous directories is maintained.
+% items have been requested (n), then only this number can be
+% selected. Click "Done" when finished. As a short cut, selecting items
+% using the right mouse button is equivalent to selecting the item and
+% pressing "Done".
+%
+% Clicking on a directory name (red) changes to that directory. The
+% item/directory window is scrolled up and down with the buttons
+% provided. The directory window is editable, and a pull down menu of
+% previous directories is maintained.
+%
 % All files in the current window can be selected *in the order in which
 % they appear* with the "All" button, and the "Reset" button clears the
 % current list. The "Edit" button enables interactive editing of the
@@ -43,7 +57,11 @@ function R1 = spm_get(Action,P2,P3,P4,P5,P6)
 % appears in a single editable window. Subsequent calls to spm_get
 % callbacks with the same Filter string do not change the value of the
 % Filter string, allowing the users edits of the Filer string to
-% persist.
+% persist. Clicking the Filter button resets the filter to the string
+% passed by the program. (The bars above and below the filter window
+% implement a simple "memory" for Filter strings. The top bar stores
+% the current filter string, the lower bar recalls it. The bar at the
+% right of the filter window sets the filter to '*')
 %
 % The 'Select Files Window', created by the first call to spm_get, is
 % 'Tag'ged 'SelFileWin'. This window is hidden at the end of the spm_get
@@ -62,7 +80,7 @@ function R1 = spm_get(Action,P2,P3,P4,P5,P6)
 %           - A multi function function!
 %
 % FORMAT F = spm_get('CreateFig',LastDirs,Filter)
-% Sets up the file selection window in next avaliable figure.
+% Sets up the file selection window as next avaliable figure.
 % F        - Figure used.
 % LastDirs - String matrix for directory history.
 % Filter   - Filename filter.
@@ -86,9 +104,36 @@ function R1 = spm_get(Action,P2,P3,P4,P5,P6)
 % NewDir   - New Working directory (if not held in current object)
 % bNoDir   - Supresses listing of new directory if true
 %
-% FORMAT spm_get('dir',WDir)
+% FORMAT spm_get('dir',WDir,Filter,NoComp)
 % Lists current working directory and attatches callbacks to contents
-% WDir     - Working directory (Defaults to UserData of WDir Tagged object.
+% WDir     - Working directory
+%            Defaults (unspecified or empty) to UserData of WDir Tagged object
+% Filter   - Filename Filter
+%            Overrides and sets the Filter object
+%            Defaults (unspecified or empty) to UserData of Filter object
+% NoComp   - If specified, forces full directory listing - no compression
+%
+% [sS,I] = FORMAT spm_get('StrSort',S)
+% Simple string sort routine for string matrices
+% S        - String matrix to be sorted
+% sS       - Sorted string matrix
+% I        - Sort index: sS = S(I)
+%
+% FORMAT fS = spm_get('strfliplr',S)
+% fliplr for string matrices, ignores trailing padding spaces
+% S        - String matrix to be flipped
+% fS       - left-right flipped version of S, with last non-space characters
+%            of S in first column
+%
+% FORMAT [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
+% File summary routine
+% Fnames   - String matrix of filenames (all unique)
+% Cend     - CommonEND - 'front', 'end' or 'both'
+%            Specifys which end to take as common for file summary
+%            Defaults to 'both', which gives 'front' precedence over 'back'
+% Filter   - Filename filter - Suffix filter is appended to 'front' items
+% len      - Length of section to define common files
+%            Defaults to 3
 %
 % FORMAT spm_get('Add',h)
 % Adds current object (of object h) to selection
@@ -201,7 +246,6 @@ if exist('spm_log')==2
 	spm_log(['spm_get : ',Prompt,' :'],P); end
 
 R1 = P;
-
 return
 
 elseif strcmp(Action,'CreateFig')
@@ -214,7 +258,7 @@ if nargin<3 Filter=[]; else Filter=P3; end
 if nargin<2 LastDirs=[]; else LastDirs=P2; end
 if isempty(LastDirs), LastDirs=pwd; end
 LastDirs=str2mat(LastDirs,getenv('HOME'));
-if (exist('spm_get_path')==2), LastDirs=str2mat(LastDirs,spm_get_path); end
+if (exist('spm.m')==2), LastDirs=str2mat(LastDirs,spm('Dir')); end
 	
 
 %-Create window, compute scaling for screen size
@@ -261,7 +305,13 @@ uicontrol(F,'Style','PopUp','Tag','LastDirsPopup',...
 	'ForegroundColor','r',...
 	'UserData',size(LastDirs,1),...
 	'Callback','spm_get(''cd'')',...
-	'Position',[010-1 310-1 380+1 020].*A);
+	'Position',[010-1 310-1 350+1 020].*A);
+
+uicontrol(F,'Style','PushButton','Tag','CDpwd',...
+	'String','pwd',...
+	'ForegroundColor','r',...
+	'CallBack','spm_get(''cd'',pwd)',...
+	'Position',[360 310-1 030 020].*A);
 
 %	'Callback','spm_get(''cd'',get(gco,''Value''))',...
 
@@ -272,8 +322,32 @@ uicontrol(F,'Style','PopUp','Tag','LastDirsPopup',...
 %	'Callback','spm_get(''cd'',get(gco,''Value''))',...
 %	'Position',[020-1 290 360+1 020].*A);
 
-uicontrol(F,'Style','text','String','Filter:',...
+uicontrol(F,'Style','Pushbutton','Tag','FilterStore',...
+	'String','',...
+	'CallBack',[...
+		'set(findobj(gcf,''Tag'',''FilterButton''),''UserData'',',...
+		    'get(findobj(gcf,''Tag'',''Filter''),''String'')),'],...
+	'Position',[010 300 140 005].*A);
+
+uicontrol(F,'Style','Pushbutton','Tag','FilterButton',...
+	'String','Filter:',...
+	'CallBack',[...
+		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
+			'''Filter''),''UserData''))'],...
+	'UserData','*',...
 	'Position',[010 280 040 020].*A);
+
+uicontrol(F,'Style','Pushbutton','Tag','FilterRecall',...
+	'String','',...
+	'CallBack',[...
+		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
+		'''FilterButton''),''UserData''))'],...
+	'Position',[010 275 140 005].*A);
+
+uicontrol(F,'Style','Pushbutton','Tag','Filter*',...
+	'String','',...
+	'CallBack','spm_get(''dir'',[],''*'')',...
+	'Position',[145 280 005 020].*A);
 
 uicontrol(F,'Style','Edit','Tag','Filter',...
 	'String','*',...
@@ -284,35 +358,39 @@ uicontrol(F,'Style','Edit','Tag','Filter',...
 
 uicontrol(F,'Style','Pushbutton','String','All',...
 	'Callback','spm_get(''All'')',...
-	'Position',[150 280 030 020].*A);
+	'Position',[155 280 030 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','Edit',...
 	'ForegroundColor','b',...
 	'Callback','spm_get(''Edit'')',...
-	'Position',[185 280 040 020].*A);
+	'Position',[190 280 040 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','Keybd',...
 	'ForegroundColor','k',...
 	'Callback','spm_get(''GUI2CmdLine'')',...
-	'Position',[230 280 050 020].*A);
+	'Position',[235 280 050 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','Reset',...
 	'ForegroundColor','r',...
 	'Callback','spm_get(''Reset'')',...
-	'Position',[285 280 050 020].*A);
+	'Position',[290 280 050 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','Done',...
 	'ForegroundColor','m',...
 	'Tag','Done','UserData',0,...
 	'Callback','spm_get(''Done'')',...
-	'Position',[340 280 050 020].*A);
+	'Position',[345 280 045 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','/\',...
-	'Callback','spm_position(gca,1,[0 -0.5]);',...
+	'Callback',[...
+		'set(gca,''Units'',''Normalized'');',...
+		'set(gca,''Position'',get(gca,''Position'')-[0 0.5 0 0])'],...
 	'Position',[370 245 020 020].*A);
 
 uicontrol(F,'Style','Pushbutton','String','\/',...
-	'Callback','spm_position(gca,1,[0 0.5]);',...
+	'Callback',[...
+		'set(gca,''Units'',''Normalized'');',...
+		'set(gca,''Position'',get(gca,''Position'')+[0 0.5 0 0])'],...
 	'Position',[370 040 020 020].*A);
 
 uicontrol(F,'Style','Frame','Tag','StatusArea',...
@@ -346,6 +424,7 @@ if strcmp('Vis','close'), if ~isempty(F), close(F), end, R1=[]; return, end
 %-If no SelFileWin, then create one
 if isempty(F), F=spm_get('CreateFig'); end
 figure(F)
+delete(gca)
 
 %-If Vis=='off', make invisible and delete 'dir' text axes
 if strcmp(Vis,'off'), set(F,'Visible','off'), delete(gca), end
@@ -367,7 +446,7 @@ set(findobj(F,'Tag','Done'),'UserData',0)
 % Filter Edit uicontrol.
 if isstr(Filter)
 	if ~strcmp(Filter,get(findobj(F,'Tag','Filter'),'UserData'))
-		set(findobj(F,'Tag','Filter'),'String',Filter,'UserData',Filter)
+	    set(findobj(F,'Tag','Filter'),'String',Filter,'UserData',Filter)
 	end
 end
 
@@ -513,7 +592,7 @@ return
 
 elseif strcmp(Action,'dir')
 %=======================================================================
-% spm_get('dir',WDir)
+% spm_get('dir',WDir,Filter,NoComp)
 %
 % Creates list of text objects with an associated
 % ButtonDownFcn functions that call spm_get callbacks for processing
@@ -522,40 +601,58 @@ elseif strcmp(Action,'dir')
 % SelFileWin figure
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-if nargin<2, WDir=get(findobj(F,'Tag','WDir'),'UserData');
-	else, WDir = P2; end
+figure(F)
+set(F,'Pointer','Watch')
+delete(gca)
+refresh
+
+%-Condition parameters and setup variables
+%-----------------------------------------------------------------------
+if nargin<4, NoComp=0; else, NoComp=1; end
+if nargin<3, Filter=''; else, Filter=P3; end
+if nargin<2, WDir=''; else, WDir = P2; end
+if isempty(WDir), WDir=get(findobj(F,'Tag','WDir'),'UserData'); end
 
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
-Filter = get(findobj(F,'Tag','Filter'),'String');
+
+%-Sort out Filter
+%-----------------------------------------------------------------------
 if isempty(Filter)
-	Filter='*'; set(findobj(F,'Tag','Filter'),'String',Filter), end
+	Filter = get(findobj(F,'Tag','Filter'),'String');
+	if isempty(Filter), Filter='*'; end
+end
+set(findobj(F,'Tag','Filter'),'String',Filter)
 
 %-Write current directory to WDir widget, if new directory specified
 %-----------------------------------------------------------------------
 if nargin>1
-	set(findobj(F,'Tag','WDir'),'String',WDir,'UserData',WDir), end
+	set(findobj(F,'Tag','WDir'),'String',WDir,'UserData',WDir)
+end
 
-%-Set up an axis and get the list of filenames
+%-Set up axis
 %-----------------------------------------------------------------------
-figure(F)
-delete(gca)
-axes('Position',[0 0 1 1],'Visible','off')
-[Files,Dirs] = spm_list_files(WDir,Filter);
-q      = .64;					% y position of pathnames
-dy     = 0.046;					% spacing of text objects
+hAxes = axes('Position',[0.02 0.086 0.90 0.58],...
+	'Units','Points',...
+	'Visible','off');
+y     = floor(get(hAxes,'Position'));
+y0    = y(3);
+dy    = 22;
+set(hAxes(1),'Ylim',[0,y0])
+
 
 %-List current directory
 %-----------------------------------------------------------------------
+[Files,Dirs] = spm_list_files(WDir,Filter);
 if isempty(Dirs)
-	text(0.01,q,'Permission denied, or non-existent directory',...
+	text(0,y0,'Permission denied, or non-existent directory',...
 		'FontWeight','bold','Color','r');
 end
 
 %-Create list of directories with appropriate 'ButtonDownFcn': -
 %-----------------------------------------------------------------------
-y     = q;
+y     = y0-dy;
 for i = 1:size(Dirs,1)
-	text(0.01,y,Dirs(i,:),'Tag','DirName',...
+	text(0,y,Dirs(i,:),'Tag','DirName',...
 		'FontWeight','bold','Color','r',...
 		'ButtonDownFcn','spm_get(''cd'')');
 	y = y - dy;
@@ -567,21 +664,215 @@ end
 %	str2mat('SubDirectories...',Dirs))
 
 
-Items=Files; if (n<0) Items=Dirs; end
-
-%-Create list of filenames with appropriate 'ButtonDownFcn': -
+%-Files or directories (n<0)
 %-----------------------------------------------------------------------
-y     = q;
-for i = 1:size(Items,1)
-	text(0.40,y,Items(i,:),'Tag','IName',...
-		'Color','k',...
-		'ButtonDownFcn','spm_get(''Add'')');
-	y = y - dy;
+Items = Files; if (n<0) Items = Dirs; end
+
+%-Compressed summary view, or full view?
+%-----------------------------------------------------------------------
+if ~NoComp & size(Items,1)>48
+	%-Use a compressed summary view
+	if Filter(length(Filter))=='*'
+		[IName,ItemPos] = spm_get('FileSummary',Items);
+	else
+		[IName,ItemPos] = spm_get('FileSummary',Items,'front',Filter);
+	end
+	text(0.5,y0,'Summary View - Click to expand',...
+		'Color','w',...
+		'FontSize',10,...
+		'HorizontalAlignment','Center',...
+		'FontAngle','Oblique',...
+		'ButtonDownFcn','spm_get(''dir'',[],[],1)');
+else
+	%-Use a standard view, each item with it's own representation
+	IName = Items; ItemPos = [1:size(Items,1)]';
 end
 
-
+%-Create list of Items with appropriate 'ButtonDownFcn': -
+%-----------------------------------------------------------------------
+y     = y0-dy;
+for i = 1:size(IName,1)
+	cIName   = IName(i,IName(i,:)~=' ');
+	cItemPos = ItemPos(i,ItemPos(i,:)>0);
+	nItems   = length(cItemPos);
+	cItems   = Items(cItemPos,:);
+	%-Next line strips off redundant space at end of string matrix
+	% (The str2mat bit ensures single strings are handled by column)
+	cItems(:,all(str2mat(cItems,' ')==' '))=[];
+	text(0.35,y,cIName,...
+		'Tag','IName',...
+		'UserData',Items(cItemPos,:),...
+		'Color','k',...
+		'ButtonDownFcn','spm_get(''Add'')');
+	if nItems>1;
+		text(0.34,y-3,int2str(sum(ItemPos(i,:)>0)),...
+			'Color','w',...
+			'FontSize',9,...
+			'FontAngle','Oblique',...
+			'HorizontalAlignment','right',...
+			'UserData',cIName,...
+			'ButtonDownFcn',...
+			'spm_get(''dir'',[],get(gco,''UserData''),1)');
+	end
+	y = y - dy;
+end
+set(F,'Pointer','Arrow')
 return
 
+elseif strcmp(Action,'StrSort')
+%=======================================================================
+% [sS,I]=spm_get('StrSort',S)
+% Utility string sorting routine for string matrices
+if nargin<2, error('Sort what?'), else, S = P2; end
+
+if size(S,2)<=3
+	a        = min(abs(S(:)'));
+	b        = max(abs(S(:)'))+1;
+	i        = (b-a).^[size(S,2)-1:-1:0];
+	[null,I] = sort(abs(S)*i');
+	sS       = S(I,:);
+else
+	lS            = size(S,2);
+	hS            = S(:,1:3);
+	tS            = S;
+	tS(:,1:3)     = [];
+	[null,tI]     = spm_get('StrSort',tS);
+	[null,hI]     = spm_get('StrSort',hS(tI,:));
+	I             = tI(hI);
+	sS            = S(I,:);	
+end
+R1 = sS;
+R2 = I;
+return
+
+elseif strcmp(Action,'strfliplr')
+%=======================================================================
+% fS = spm_get('strfliplr',S)
+if nargin<2, error('Flip what?'), else, S = P2; end
+
+%-FlipLR the Fnames matrix, but watch out for trailing blanks/spaces
+[nS,Sl] = size(S);
+fS = ones(nS,Sl);
+for i = 1:nS
+	c = max(find(S(i,:)~=' '));
+	fS(i,:) = S(i,[c:-1:1,Sl:-1:c+1]);
+end
+R1 = fS;
+return
+
+elseif strcmp(Action,'FileSummary')
+%=======================================================================
+% [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
+if nargin<5, len = 3; else len = P5; end
+if nargin<4, Filter = ''; else Filter = P4; end
+if isempty(Filter), Filter='*'; end
+if nargin<3, Cend='both'; else, Cend = P3; end
+if nargin<2, error('Specify Fnames to summarise'), else Fnames = P2; end
+%-Implicit assumption in this code is that no two files have the same name
+
+if isempty(Fnames), error('Null Fnames'), end
+
+if strcmp(Cend,'front')
+	if size(Fnames,1) == 1
+		%-Only one filename!
+		R1 = deblank(Fnames);
+		R2 = 1;
+		return
+	end
+	WildCard    = Filter(max(find(Filter=='*')):length(Filter));
+	nFnames     = size(Fnames,1);
+	[sFnames,I] = spm_get('StrSort',Fnames);
+	tmp         = diff(abs(sFnames));
+	i           = [0,find(any(tmp(:,1:len)')),nFnames];
+	nFgroups    = length(i)-1;
+	FSpecs      = '';
+	FnamePos    = [];
+	for Fgroup  = 1:nFgroups
+		cI       = [i(Fgroup)+1:i(Fgroup+1)];
+		Cfnames  = sFnames(cI,:);
+		nCfnames = size(Cfnames,1);
+		if nCfnames == 1
+			tmp    = max(find(Cfnames~=' '));
+			FSpecs = str2mat(FSpecs,Cfnames(1,1:tmp));
+		elseif nCfnames == 2
+			tmp    = min(find([diff(abs(Cfnames)),1]))-1;
+			FSpecs = str2mat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
+		else
+			tmp    = min(find([any(diff(abs(Cfnames))),1]))-1;
+			FSpecs = str2mat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
+		end
+		tI       = I(cI);
+		tmp	 = max([nCfnames,size(FnamePos,2)]);
+		FnamePos = [FnamePos,...
+				zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
+				tI', zeros(1,tmp-length(tI))];
+	end
+	FSpecs(1,:)   = [];
+elseif strcmp(Cend,'end')
+	fFnames           = spm_get('strfliplr',Fnames);
+	[FSpecs,FnamePos] = spm_get('FileSummary',fFnames,'front');
+	FSpecs            = spm_get('strfliplr',FSpecs);
+elseif strcmp(Cend,'both')
+	[hSpecs,hI] = spm_get('FileSummary',Fnames,'front');
+	FSpecs      = '';
+	FnamePos    = [];
+	for i = 1:size(hSpecs,1)
+	    chI          = hI(i,hI(i,:)>0);
+	    if length(chI) == 1
+		%-Single file
+		FSpecs   = str2mat(FSpecs,hSpecs(i,hSpecs(i,:)~=' '));
+		tmp      = max([1,size(FnamePos,2)]);
+		FnamePos = [FnamePos,...
+			zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
+			chI, zeros(1,tmp-1)];
+	    else
+		%-Multiple files - process by common endings
+		Cfnames     = Fnames(chI,:);
+		%-Chop off common beginning
+		Cfnames(:,1:find(hSpecs(i,:)=='*')-1) = [];
+		%-Watch out for blank lines (e.g for files abc & abcde)
+		% Append blank line to prevent any working on a vector
+		bI = find(all(str2mat(Cfnames',' ')==' '));
+		if ~isempty(bI)
+		    % There'll be one blank line at most
+		    FSpecs   = str2mat(FSpecs,...
+			hSpecs(i,1:find(hSpecs(i,:)=='*')-1) );
+		    tmp      = max([1,size(FnamePos,2)]);
+		    FnamePos = [FnamePos,...
+			zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
+			chI(bI), zeros(1,tmp-1)];
+		    Cfnames(bI,:) = [];
+		    chI(bI)       = [];
+		end
+		%-Even if we've deleted a blank line, there'll be some left
+		[tSpecs,tI] = spm_get('FileSummary',Cfnames,'end');
+		for j = 1:size(tSpecs,1)
+		    %-Sort in next line keeps ordering by headers
+		    cI       = chI(sort(tI(j,tI(j,:)>0)));
+		    if length(cI) == 1
+			%-Unique, don't bother with '*'s
+			cFSpec = [hSpecs(i,1:find(hSpecs(i,:)=='*')-1),...
+				tSpecs(j,1:max(find(tSpecs(j,:)~=' ')) ) ];
+		    else
+		        %-Don't double '*'s
+		        cFSpec = [hSpecs(i,hSpecs(i,:)~=' '),...
+				tSpecs(j,2:max(find(tSpecs(j,:)~=' ')) ) ];
+		    end
+		    FSpecs   = str2mat(FSpecs,cFSpec);
+		    tmp      = max([length(cI),size(FnamePos,2)]);
+		    FnamePos = [FnamePos,...
+			zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
+			cI, zeros(1,tmp-length(cI))];
+		end
+	    end
+	end
+	FSpecs(1,:)   = [];
+else
+	error('Invalid Cend specifier')
+end
+R1 = FSpecs;
+R2 = FnamePos;
+return
 
 elseif strcmp(Action,'Add')
 %=======================================================================
@@ -589,37 +880,64 @@ elseif strcmp(Action,'Add')
 % Add filename to current list
 %-H - [Optional] (vector of) handles to file/dir name objects
 %
-if (nargin==2), H=P2; else H=gco; end
 
 %-Recover variables from holding objects
 %-----------------------------------------------------------------------
-F    = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-n    = get(findobj(F,'Tag','Prompt'),'UserData');
-P    = get(findobj(F,'Tag','P'),'UserData');
-WDir = get(findobj(F,'Tag','WDir'),'UserData');
+F       = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
+SelType = get(F,'SelectionType');
+n       = get(findobj(F,'Tag','Prompt'),'UserData');
+P       = get(findobj(F,'Tag','P'),'UserData');
+WDir    = get(findobj(F,'Tag','WDir'),'UserData');
 
-%-If #items has been specified, and P is full, then return
-%-----------------------------------------------------------------------
-if finite(n), if (size(P,1)>=abs(n)), return, end, end
+if (nargin==2)
+	%-Multiple handles passed by 'All' CallBack
+	H=P2;
+else
+	%-'Add' called by item callback - get handle & check selection
+	H=gco;
+	if strcmp(SelType,'extend')
+		IName = get(H,'String');
+		if any(IName=='*')
+			spm_get('dir','',IName,1)
+			return
+		else
+			return
+		end
+	elseif strcmp(SelType,'alt')
+		spm_get('Add',gco)
+		spm_get('Done')
+		return
+	end
+end
 
-%-Add items to P (until P is full)
+%-Add items to P (until P would be overfull)
 %-----------------------------------------------------------------------
 for h = H'
-	FName = get(h,'String');
-	FPath = [WDir,'/',FName];
-	if isempty(P) P=FPath; else P=str2mat(P,FPath); end
-	set(h,'String',[int2str(size(P,1)),' :',FName],'Color','b',...
+	IName  = get(h,'String');
+	Items  = get(h,'UserData');
+	nItems = size(Items,1);
+	nP     = size(P,1);
+
+	%-Don't add any more if #items has been specified,
+	% and P would be overfull
+	if finite(n), if (nP+nItems>abs(n)), break, end, end
+
+	%-Add items to P
+	FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
+	if isempty(P), P=FPath; else, P=str2mat(P,FPath); end
+	if nItems==1
+		tmp = [int2str(nP+1),' :',IName];
+	else
+		tmp = [int2str(nP+1),'-',int2str(nP+nItems),' :',IName];
+	end
+	set(h,'String',tmp,'Color','b',...
 		'Tag','SelIName',...
 		'ButtonDownFcn','spm_get(''Delete'')')
-
-	%-Don't add any more if #items has been specified, and P is full
-	if finite(n), if (size(P,1)>=abs(n)), break, end, end
 end
 
 %-Return new P to holding object
 %-----------------------------------------------------------------------
 set(findobj(F,'Tag','P'),'UserData',P);
-
 
 %-Update StatusLine
 %-----------------------------------------------------------------------
@@ -632,17 +950,23 @@ return
 elseif strcmp(Action,'Delete')
 %=======================================================================
 % spm_get('Delete')
-F     = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-WDir  = get(findobj(F,'Tag','WDir'),'UserData');
-P     = get(findobj(F,'Tag','P'),'UserData');
-n     = get(findobj(F,'Tag','Prompt'),'UserData');
-FName = get(gco,'String'); FName(1:find(FName==':')) = [];
-FPath = [WDir,'/',FName];
-NoP   = size(P,1);
-if strcmp(P(NoP,:),FPath)
-	P(NoP,:)=[];
+F      = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
+WDir   = get(findobj(F,'Tag','WDir'),'UserData');
+P      = get(findobj(F,'Tag','P'),'UserData');
+n      = get(findobj(F,'Tag','Prompt'),'UserData');
+IName  = get(gco,'String');
+IName(1:find(IName==':')) = [];
+Items  = get(gco,'UserData');
+nItems = size(Items,1);
+FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
+nP     = size(P,1);
+
+%-Compare Items with end of P (Can only delete from the end)
+tmp    = str2mat(P(nP-(nItems-1):nP,:),FPath);
+if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
+	P(nP-(nItems-1):nP,:)=[];
 	set(findobj(F,'Tag','P'),'UserData',P);
-	set(gco,'String',FName,'Color','k',...
+	set(gco,'String',IName,'Color','k',...
 		'Tag','IName',...
 		'ButtonDownFcn','spm_get(''Add'')')
 	spm_get('StatusLine',size(P,1),n)
