@@ -14,7 +14,7 @@
 % integral image that is written to a named file (VI.fname).
 %
 % A mean can be effected by modifying the scalefactors (and offsets) of
-% VI (see spm_mean for an example). A weighted sum can be effected by
+% VI (see spm_mean_ui for an example). A weighted sum can be effected by
 % using different weightings for image scalefactors.
 %_______________________________________________________________________
 % %W% John Ashburner (from JB's original spm_mean.c) %E%
