@@ -162,7 +162,7 @@ str = {};
 names = {};
 
 for i=1:length(bch_names), 
-   if exist(bch_names{i} == 1)
+   if exist(bch_names{i}) == 1,
        str = {str{:},bch_names{i}};
        names{length(names)+1} = bch_names{i};
    end
