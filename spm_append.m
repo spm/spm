@@ -25,6 +25,8 @@ end;
 if isempty(data), return; end;
 if length(size(data))~=2, error('Data must have no more than two dimensions.'); end;
 
+data = real(data);
+
 typ = options(1);
 hdrlen = 256;
 MGC = 141098;
