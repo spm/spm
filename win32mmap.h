@@ -27,3 +27,4 @@ caddr_t map_file(char *filename, caddr_t addr, size_t length,
 int unmap_file(caddr_t start);
 
 #endif /* WIN32MMAP_DEF */
+
