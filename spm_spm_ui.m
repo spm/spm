@@ -354,17 +354,23 @@ function varargout = spm_spm_ui(varargin)
 % =========================
 %
 % In some instances the i.i.d. assumptions about the errors do not hold.
-% For example in 2nd-level analyses serial correlations can be expressed
+% For example, in 2nd-level analyses serial correlations can be expressed
 % as correlations among contrasts.  If you request a non-sphericity
-% correction you will be asked to specify whether the error distribution
-% is (i) identical over different levels of each factor and (ii) whether
-% the errors of repeated measures are independent over levels of each
-% factor.  The implied correlation structure will be estimated in spm_spm
+% correction you will be asked to specify whether the repeated measures
+% are correlated over replications.  It is important to ensure that the
+% number of repeated measures (e.g. conditions) is not large in relation
+% to the number of replications (e.g. subjects).  If you say 'no' to correlated
+% repeated measures, then SPM will assume unequal variances for each level
+% of each factor.
+% The non-sphericity option is offered even if there is only one factor.
+% This allows you to model unequal variances among its levels.
+% The ensuing covariance components will be estimated using ReML in spm_spm
 % (assuming the same for all voxels) and used to adjust the statistics and
-% degrees of freedom during inference.  Because an OLS estimator is used
-% (as opposed to a Gauss-Markov estimator) the parameter estimates will not
-% be affected.  The constraints will be found in xX.xVi and enter exactly
-% as the serial correlations in fMRI models.
+% degrees of freedom during inference.  By default spm_spm will use wieghted
+% least squares to produce Gauss-Markov or Maximum likelihood estimators
+% using the non-sphericity strcuture specified at this stage. The components
+% will be found in xX.xVi and enter the estimation procedure exactly as the 
+% serial correlations in fMRI models.
 % 
 % 
 %                           ----------------
@@ -675,7 +681,7 @@ SCCSid  = '%I%';
 % D = D(spm_input('Select design type...','+1','m',{D.DesName}'))
 %
 %_______________________________________________________________________
-% Andrew Holmes
+% %W% Andrew Holmes %E%
 
 
 %-Condition arguments
@@ -1174,95 +1180,63 @@ sGXcalc = sGXcalc{iGXcalc};
 
 % Non-sphericity correction
 %=======================================================================
-f     = max(I);
-f_pos = find(f > 1);
-nsc   = 0;
 
-% if there are repeated measures ask for correction
-%----------------------------------------------------------------------
-if length(f_pos) > 1
-	nsc   = spm_input('non-sphericity correction?','+1','y/n',[1,0],2);
+% if there are multilevel factors, ask for correction
+%-----------------------------------------------------------------------
+if any(max(I) > 1)
+	xVi.iid  = spm_input('non-sphericity correction?','+1','y/n',[0,1],1);
+else
+	xVi.iid  = 1;
 end
 
-if nsc
 
-	% default: factor with most levels is repeated measure
-	%---------------------------------------------------------------
-	[f_max,f_def] = max(f(f_pos));      
+if xVi.iid
 
-	for i = 1:length(f_pos),
-		c_lab{i} = sprintf('%ss(%i)',D.sF{f_pos(i)},f(f_pos(i)));
-	end
-	str   = 'repeated measures are over?';
-	f_rep = spm_input(str,'+1','m',c_lab,1:length(f_pos),f_def);
-	f_pos(f_rep)  = [];    % eliminate repeating measure
-
-	f     = f_pos;
-
-	% identically distributed assumptions
-	%---------------------------------------------------------------
-	spm_input('Are the errors distributed identically','+1','d')
-	d     = spm_input('!NextPos');
-	Q     = {};
-
-	% assume factor with most levels is repeated measure
-	%---------------------------------------------------------------
-	for i = f
-		p     = max(I(:,i));
-		if spm_input(['over ' D.sF{i} 's?'],d,'y/n',[0,1],2);
-			for j = 1:p
-				u          = find(I(:,i) == j);
-				q          = sparse(u,u,1,nScan,nScan);
-				Q{end + 1} = q;
-			end
-		end
-	end
-
-	% all identically distributed
-	%---------------------------------------------------------------
-	if length(Q) == 0
-		Q{1}  = speye(nScan,nScan);
-	end
-	
-	% independently distributed assumptions
-	%---------------------------------------------------------------
-	spm_input('Are the repeated measures independent',d - 1,'d')
-	for i = f
-		p     = max(I(:,i));
-		w     = 1:4;
-		w(i)  = [];
-		if spm_input(['over ' D.sF{i} 's?'],d,'y/n',[0,1],2);
-
-			for j = 1:p
-			for k = 1:(j - 1)
-
-				% identify repeated measures
-				%---------------------------------------
-				q     = sparse(nScan,nScan);
-				for u = 1:nScan
-				for v = 1:nScan
-					if I(u,i) == j & I(v,i) == k
-					if all( I(u,w) == I(v,w) )
-						q(u,v) = 1;
-					end
-					end
-				end
-				end
-				Q{end + 1} = q + q';
-			end
-			end
-		end
-	end
-
-	%-Place covariance components in xVi.Vi
-	%---------------------------------------------------------------
-	xVi.Vi   = Q;
-	xVi.form = 'non-sphericity correction';
-else
-	% otherwise the nonpshericity xVi.V is i.i.d.
+	% i.i.d. assumptions where xVi.V = 1
 	%---------------------------------------------------------------
 	xVi.V    = speye(nScan);
-	xVi.form = 'i.i.d.';
+
+else
+	%-otherwise specify the form of non-sphericity
+	%---------------------------------------------------------------
+	nL      = max(I);		% number of levels
+	mL      = find(nL > 1);		% multilevel factors
+	xVi.I   = I;
+	xVi.sF  = D.sF;
+	xVi.var = sparse(1,4);
+	xVi.dep = sparse(1,4);
+
+
+	% If one factor, assume unequal variances over its levels
+	%---------------------------------------------------------------
+	if length(mL) == 1
+		xVi.var(mL) = 1;
+
+	% otherwise, we have repeated measures design 
+	%===============================================================
+	else
+		% eliminate replication factor from mL
+		%-------------------------------------------------------
+		for i = 1:4
+			mstr{i} = sprintf('%s (%i)',D.sF{i},nL(i));
+		end
+		str   = 'replications are over?';
+		r     = spm_input(str,'+1','m',mstr(mL),1:length(mL));
+		mL(r) = [];
+
+		% and ask whether repeated measures are independent
+		%-------------------------------------------------------
+		str   = 'correlated repeated measures';
+		dep   = spm_input(str,'+1','b',{'yes','no'},[1 0],1);
+
+		xVi.var(mL) = 1;
+		xVi.dep(mL) = dep;
+	end
+
+	%-Place covariance components Q{:} in xVi.Vi
+	%---------------------------------------------------------------
+	xVi     = spm_non_sphericity(xVi);
+
 end
 
 
