@@ -59,17 +59,15 @@ Fgraph = spm_figure('GetWin','Graphics');
 spms   = spm_get(1,'.img','select an image for rendering');
 spm('Pointer','Watch');
 
-transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg);
-transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
-	             'iM',VOL.iM,...
-		     'vox', sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
-
-
-
 %-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
 spm_results_ui('Clear',Fgraph);
 
+
+transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg);
+transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
+	             'iM',VOL.iM,...
+		     'vox', sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
 
 %-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
@@ -318,14 +316,14 @@ return;
 %_______________________________________________________________________
 function clear_global
 global transv
-for h=transv.h,
-	if ishandle(h), set(h,'DeleteFcn',';'); end;
+if isstruct(transv),
+	for h=transv.h,
+		if ishandle(h), 
+			set(h,'DeleteFcn',';');
+			delete(h);
+		end;
+	end;
+	transv = [];
+	clear global transv;
 end;
-for h=transv.h,
-	if ishandle(h), delete(h); end;
-end;
-transv = [];
-clear global transv;
 return;
-
-
