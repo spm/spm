@@ -37,7 +37,7 @@
 % |      'index', 	[1 2 1], ...
 % | );
 % | %---------------------------------------------------------------
-% | type = {'model','contrastes','defaults_edit','headers',...
+% | type = {'model','contrasts','defaults_edit','headers',...
 % |	  'means','realign','normalize','smooth'};
 % | %---------------------------------------------------------------
 % | work_dir = { ...
@@ -60,7 +60,7 @@
 % the second analysis is 
 %    type(analyses.type(2)) (which is 'model')
 % the third analysis is 
-%    type(analyses.type(3)) (which is 'contrastes')
+%    type(analyses.type(3)) (which is 'contrasts')
 % (see [TYPE_OF_ANALYSIS] )
 %
 % The first analysis will be performed in the directory :
@@ -79,7 +79,7 @@
 %	they are relative with respect to the working directory  
 %	work_dir(analyses.work_dir(Nth))
 % 
-% So in this exemple, the 'model' and 'contrastes' analyses will have
+% So in this exemple, the 'model' and 'contrasts' analyses will have
 % find their input in '/home/jbp/test1/./exemples/model_bch_ex'
 % specified in the same m-file (since analyses.mfile(1, 2 and 3) is 1, 
 % therefore addressing all mfile(1).
@@ -128,27 +128,40 @@
 % |  'LF_fil',         'Gaussian', ...
 % |  'LF_cut',         4, ...
 % |  'int_corr',       'none', ... 
-% |  'now_later',      1, ...
+% | 'now_later',      1, ...
 % |  'stop_writing',   0, ...
 % |  'RT',             4.1, ...
 % |  'replicated',     0, ...
+% |  'nsess',          2, ...
+% |  'nscans',         [100 200], ...
 % |  'files',          {{F1 F1}}, ...
+% | 'conditions_nb',  [5 2], ...     
 % |  'conditions',     [1 2], ...
-% |  'stochastics',    [], ...
+% |  'regressors_nb',  [0 0], ...
 % |  'regressors',     [], ...
+% |  'parametrics_type', {{'none','none'}}, ...
 % |  'parametrics',    [] ...
+% |  'stochastics_flag', [0 0], ...
+% |  'stochastics',    [], ...
 % | );
 % | 
 % | model(2) =  model(1);
+% | model(2).HF_cut = [232];
+% | model(2).nscans = [100];
+% | model(2).files = {{F1}};
+% | model(2).conditions_nb = [5];     
 % | model(2).conditions = [1];
-% | model(2).files = {F1};
-% | model(2).HF_cut = 232;
+% | model(2).regressors_nb = [0];
+% | model(2).parametrics_type = {{'none'}};
+% | model(2).stochastics_flag = [0];
+% | model(2).stochastics = [];
 % | 
 % | %---------------------------------------------------------------
 % |  
 % | conditions(1) = struct( ...
 % |  'names',   {cond_names}, ...
 % |  'onsets',  {sot}, ...   
+% |  'types',    {{'events','events','events','events','events'}}, ... 
 % |  'bf_ev',   [1 2 1 1 1], ...
 % |  'bf_ep',   [0 0 0 0 0], ...
 % |  'volterra',  0 ...
@@ -158,6 +171,7 @@
 % | conditions(2) = conditions(1);
 % | conditions(2).names = {'n1','n2'};
 % | conditions(2).onsets = {o1, o2};
+% | conditions(2).types = {{'events','events'}};
 % | conditions(2).bf_ev = [1 0];
 % | conditions(2).bf_ep = [0 1];
 % | 
@@ -173,13 +187,15 @@
 % | bf_ep(1) = struct( ...
 % |   'ep_type', 4, ...
 % |   'length',3 ...
+% |   'conv',  1, ...  
+% |   'deriv', 0 ...
 % | );
 % | 
 % | %---------------------------------------------------------------
-% | % batch variables defined here for analysis 'contrastes'
+% | % batch variables defined here for analysis 'contrasts'
 % | %---------------------------------------------------------------
 % | 
-% | contrastes(1) = struct( ...
+% | contrasts(1) = struct( ...
 % |    'names',  {{'c1','c2'}}, ...
 % |    'types',   {{'T','F'}}, ...
 % |    'values',  {{c1,c2}} ...
@@ -198,7 +214,7 @@
 % The full description of each variable can be found below in the 
 % VARIABLE_DESCRIPTION section.
 %
-% 3- a description of the 'contrastes' analysis (see [CONTRASTES], and
+% 3- a description of the 'contrasts' analysis (see [CONTRASTES], and
 % see the note about the size of the contrasts that must include
 % block effects)
 %
@@ -280,7 +296,7 @@
 % This avoid duplication of information in the parameter file. 
 % This principle is recursive. Notice that in general, the 
 % variable name refers to a SERIES of ... For instance, 
-% 'contrastes' refers to a series of contrasts, and so on...
+% 'contrasts' refers to a series of contrasts, and so on...
 % This allows a quicker specification in most of the case.
 % Not all variables need to exist (eg, regressors, parametrics ...
 % need not exist in the m-file if not used for the model specification).
@@ -324,7 +340,20 @@
 % STRING_ARRAYS		: cell array of STRING_ARRAY
 % VALUE_ARRAY		: array of values, eg [1.2 6 12 432]
 % VALUE_ARRAYS		: cell array of VALUE_ARRAY
+% ARRAY           : a matrix
 %
+%-------------------------------------------------------------------------
+% [NOTE_ON]
+%       [ANALYSES]
+%          
+%       [MODEL] 
+%          
+%       [HEADERS]
+%          current parameters are kept if empty fields   
+%          (empty fields are necessary ...)
+%          
+%
+%-------------------------------------------------------------------------
 %=========================================================================
 % [ANALYSES] 
 %=========================================================================
@@ -362,8 +391,6 @@
 % 'global_effects',  'Scaling|None', 
 % 'burst_mode',      'y/n',[1 0], 
 % 'HF_fil',          'none|specify',  
-% 'HF_cut'           VALUE
-%                    'session cutoff period (secs)'
 % 'LF_fil',          'none|Gaussian|hrf', 
 % 'LF_cut',          VALUE, 
 %                    'Gaussian FWHM (secs)'
@@ -373,9 +400,17 @@
 % 'RT',              VALUE, 
 % 'replicated',     'yes|no',[1 0], 
 % 'same_time_param','yes|no',[1 0],
+% 'nsess',           VALUE
+%                    number of sessions
 %................[MULTIPLE]................
-% 'HF_cut',          VALUE,
+% 'HF_cut'           INTEGER_ARRAY
+%                    'session cutoff period (secs)'
 % 'files',           {STRING_ARRAYS}, 
+% 'nscans',          INTEGER_ARRAY,
+% 'conditions_nb',   INTEGER_ARRAY,
+% 'regressors_nb',   INTEGER_ARRAY,
+% 'parametrics_type', STRINGS, {'none','time','other'},
+% 'stochastics_flag', INTEGER_ARRAY, 'yes|no',[1 0],
 % 'conditions',      INDICES, 
 % 'stochastics',     INDICES, 
 % 'regressors',      INDICES, 
@@ -385,10 +420,9 @@
 % stochastics : STRUCT % [STOCHASTICS]
 %----------------------------------------
 %................[UNIQUE]...................
-% 'specify',     'y/n',[1 0]
 % 'null_event',  'y/n',[1 0]
 % 'soa',          VALUE
-%                SOA (scans)
+%                 SOA (scans)
 % 'relative_frequency', VALUE
 %                'relative frequency [trial 1,..'
 % 'stationary_or_modulated', 'stationary|modulated',[1 0]
@@ -396,17 +430,14 @@
 %----------------------------------------
 % regressors : STRUCT % [REGRESSORS]
 %----------------------------------------
-%................[UNIQUE]...................
-% 'number',      VALUE
 %................[MULTIPLE]................
 % 'names',       STRINGS
-% 'values',      VALUE_ARRAYS
+% 'values',      ARRAY (number of scans x number of regressors)
 %
 %----------------------------------------
 % parametrics : STRUCT % [PARAMETRICS]
 %----------------------------------------
 %................[UNIQUE]...................
-% 'type',       {'none','time','other'};
 % 'name',       STRING 
 % 'exp_type',   {'linear','exponen','polynom'} 
 % 'time_cst',   VALUE
@@ -426,6 +457,7 @@
 %................[UNIQUE]...................
 % 'volterra',    'y/n',[1 0]
 %................[MULTIPLE]................
+% 'types',       STRINGS, {'events','epochs'},
 % 'names',       STRINGS
 % 'onsets',      VALUE_ARRAYS   
 % 'bf_ev',       INDICES
@@ -472,7 +504,7 @@
 % Contrasts can be taken from old xCon.mat file in the xCon(i).c'
 %
 %----------------------------------------
-% contrastes : STRUCT % [CONTRASTES]
+% contrasts : STRUCT % [CONTRASTES]
 %----------------------------------------
 %................[MULTIPLE]................
 %  'names',    STRINGS, 
