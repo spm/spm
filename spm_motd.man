@@ -1,27 +1,9 @@
 
-% Welcome to SPM99b, the public beta release of SPM99
+% Welcome to SPM99
 %_______________________________________________________________________
 %
-% This is SPM96b, the public beta release of SPM'99 - released 17/05/1999
-%
-% SPM99 is a major update to the SPM software, containing substantial
-% theoretical, algorithmic, organisational and interface enhancements
-% over previous versions. The core of SPM99 is now feature-complete,
-% and has undergone alpha testing in-house. We are now seeking final
-% testing and feedback through a public beta release.
-%
-%            There will be bugs!  Please report bugs to:
-%     ^                  <spm-bugs@fil.ion.ucl.ac.uk>
-%    / \     Peculiarities, feedback, and general queries on the use and 
-%   / ! \    theory of the software should be raised on the SPM email list:
-%  /_____\               <spm@mailbase.ac.uk>
-%            Bugs and fixes will be posted on the list and SPM99 web page:
-%                         http://www.fil.ion.ucl.ac.uk/spm/spm99.html
-%
-% Please refer to this software in all communications and publications
-% as SPM99b, citing the Wellcome Department of Cognitive Neurology.
-%
-% We envisage making a full SPM99 release early in the autumn of 1999
+% This is SPM99, the final public release of SPM'99 - released 25/01/2000
+% Please refer to this version as "SPM99" in papers and communications.
 %
 %                           ----------------
 %
@@ -33,6 +15,27 @@
 % Please take time to review the the (mostly updated) help, in
 % particular the "About SPM" topic (spm.man), which lists new features
 % of SPM99.
+%
+% Further information may be found at the SPMweb site:
+%                  http://www.fil.ion.ucl.ac.uk/spm
+% ...where details of the SPM email discussion list can be found:
+%                  http://www.fil.ion.ucl.ac.uk/spm/help
+%
+%                           ----------------
+%
+% SPM is developed under the auspices of The Wellcome Department of
+% Cognitive Neurology, a department of the Institute of Neurology at
+% University College London.
+%
+% SPM99 was primarily developed by: John Ashburner (WDoCN), Karl
+% Friston (WDoCN), Andrew Holmes (WDoCN & Robertson Centre for
+% Biostatistics, University of Glasgow, Scotland), Jean-Baptiste Poline
+% (CEA/DRM/SHFJ, Orsay, France); with contributions from Matthew Brett
+% (MRC-CBU, Cambridge, England) and Stephanie Rouquette (CEA/DRM/SHFJ,
+% Orsay, France); and theoretical input from Keith Worsley (Department
+% of Statistics, McGill University, Montreal, Canada). (See spm.man for
+% further details.)
+%
 %                           ----------------
 %
 % SPM (being the collection of files given in the manifest in the
@@ -41,11 +44,5 @@
 % Software Foundation (either version 2, as given in file spm_LICENCE.man,
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
-%
-%                           ----------------
-%
-% Thank you for participating in the beta testing programme for SPM99!
-% Warm regards,
-%      John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 %_______________________________________________________________________
-% (c) 1991,1994-1999      The Wellcome Department of Cognitive Neurology
+% (c) 1991,1994-2000                                        spm_motd.man
