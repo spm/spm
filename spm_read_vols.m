@@ -37,10 +37,13 @@ end, end
 
 %-Apply implicit zero mask for image datatypes without a NaNrep
 %-----------------------------------------------------------------------
-dt = cat(1,V.dim)*[0;0;0;1];				%-Data types
-im = (dt==2) | (dt==4) | (dt==8) | ...
-	(dt==512) | (dt==1024) | (dt==2048);		%-Images without NaNrep
-if mask, Y(Y(:,:,:,im)==0)=NaN; end			%-Mask
+if mask
+	%-Work out images without NaNrep
+	im = logical(zeros(ni,1));
+	for i=1:n, im(i)=~spm_type(Vi(i).dim(4),'NaNrep'); end
+	%-Mask
+	Y(Y(:,:,:,im)==0)=NaN;
+end
 
 %-Return as 3D matrix if single image
 %-----------------------------------------------------------------------
