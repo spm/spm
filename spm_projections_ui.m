@@ -1,18 +1,19 @@
-function [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
+function [Z,XYZ,QQ,u,k,S,W,RES] = spm_projections_ui(Action)
 % used to review results of statistical analysis (SPM{Z})
-% FORMAT [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
+% FORMAT [Z,XYZ,QQ,u,k,S,W,RES] = spm_projections_ui(Action)
 %
 % Action - 'Display'  - Calls spm_projections
 %        - 'Results'  - Just returns output variables
-%        - 'Writing'  - writes filtered SPM{Z} to Fname
+%        - 'Writing'  - writes filtered SPM{t}
 %
 % Z      - Z values after filtering on height and size thresholds
 % XYZ    - location in mm
-% QQ     - Indexes of selected voxels
+% QQ     - Indices of selected voxels
 % u      - selected height threshold
 % k      - selected extent threshold {voxels}
 % S      - search volume {voxels}
 % W      - smoothness estimators (of Gaussianized t fields)
+% RES    - SSQ of residuals
 %_______________________________________________________________________
 %
 % 
@@ -33,13 +34,13 @@ function [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
 % more further contrasts.  No account is taken of this masking in the
 % statistical inference pertaining to the masked contrast.
 % 
-% The resulting SPM{Z} can be masked by another (correpsonding to another
+% The resulting SPM{Z} can be masked by another (corresponding to another
 % contrast).  This masking is not taken into account when presenting Z
 % scores or corrected staistical inference.
 % 
 % The SPM{Z} is subject to thresholding on the basis of height (Z) and
 % the number of voxels comprising its clusters {k}. The height threshold
-% is specified as before in terms of an uncorrected p value or Z score.
+% is specified as before in terms of an [un]corrected p value or Z score.
 % If you only want to see clusters that survive a corrected p value
 % (based on spatial extent) than the corrected p value you enter will
 % specify the extent threshold employed.  If however you choose to see
@@ -69,22 +70,20 @@ set(Finter,'Name','SPM{Z} projections')
 
 tmp = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
 CWD = strrep(tmp,'/SPMt.mat','');
-K   = [];
 
 %-Get data
 %-----------------------------------------------------------------------
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
+load([CWD,'/RES'])
 load([CWD,'/SPMt'])
 
+QQ = (1:size(XYZ,2))';
 
-if strcmp(lower(Action),lower('Results'))
-	QQ = (1:size(XYZ,2))';
-end
 
 %-Get contrast[s]
 %-----------------------------------------------------------------------
-DES  = [K H C B G]; 	% design matrix
+DES  = [H C B G]; 	% design matrix
 i    = 0;
 if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
@@ -98,7 +97,7 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
 	% correlation between the Z scores under the null hypothesis
 	%---------------------------------------------------------------
-	J     = CON*pinv(DES'*DES)*CON';
+	J     = CON*BCOV*CON';
 	J     = inv(diag(sqrt(diag(J))))'*J*inv(diag(sqrt(diag(J))));
 
 	% transform
@@ -110,27 +109,29 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 	r     = sum(Z'.^2);
 	Z     = Z*o/sqrt(o'*o);
 
-	% eliminate voxels with significant deviation from a cojunction
+	% eliminate voxels with significant deviation from a conjunction
 	%---------------------------------------------------------------
 	r     = r - Z'.^2;
 	U     = spm_invXcdf((1 - 0.05),length(i) - 1);
 	Q     = find(r' < U);
 	S     = S - (length(Z) - length(Q)) ;
 	Z     = Z(Q);
+	RES   = RES(Q);
 	XYZ   = XYZ(:,Q);
 	SPMt  = SPMt(:,Q);
-	if strcmp(lower(Action),lower('Results'))
-		QQ    = QQ(Q);
-	end
-
+	QQ    = QQ(Q);
 
 else
 	% straightforward contrast
 	%---------------------------------------------------------------
-	while any(i < 1 | i > size(CONTRAST,1))
-		str = sprintf('contrast ? 1 - %i',size(CONTRAST,1));
-		i   = spm_input(str,1);
-		CON = CONTRAST(i(1),:);
+	if size(CONTRAST,1) > 1
+			while any(i < 1 | i > size(CONTRAST,1))
+			str = sprintf('contrast ? 1 - %i',size(CONTRAST,1));
+			i   = spm_input(str,1);
+			CON = CONTRAST(i(1),:);
+		end
+	else
+		i = 1;
 	end
 	Z     = SPMt(i,:)';
 
@@ -141,16 +142,16 @@ end
 %-----------------------------------------------------------------------
 I     = i;
 i     = 0;
-if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1],1)
-
+if size(CONTRAST,1) > 1
+    if spm_input('mask with other contrast[s]','!+1','b','no|yes',[0 1],1)
 	while any(i < 1 | i > size(CONTRAST,1))
 		str = sprintf('contrasts ? 1 - %i',size(CONTRAST,1));
-		i   = spm_input(str,2);
+		i   = spm_input(str,'!+0');
 	end
 
 	% threshold for mask
 	%---------------------------------------------------------------
-	u     = spm_input('threshold for mask',2,'e',0.05);
+	u     = spm_input('threshold for mask','!+1','e',0.05);
 	if u < 1; u = spm_invNcdf(1 - u); end
 	if length(i) > 1
 		Q   = find(all(SPMt(i,:) > u));
@@ -161,26 +162,34 @@ if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1],1)
 	% eliminate voxels
 	%---------------------------------------------------------------
 	Z     = Z(Q);
+	RES   = RES(Q);
 	XYZ   = XYZ(:,Q);
-	if strcmp(lower(Action),lower('Results'))
-		QQ    = QQ(Q);
-	end
+	QQ    = QQ(Q);
+    end
 end
 
 
-%-Get and apply height threshold [default p < 0.001 uncorrected]
+%-Get and apply height threshold
 %-----------------------------------------------------------------------
-u     = spm_input('height threshold {Z or p value}',3,'e',0.001);
-if u < 1; u = spm_invNcdf(1 - u); end
+if spm_input('use corrected height threshold','!+1','b','no|yes',[0 1],1)
+	u  = spm_input('corrected p value','!+0','e',0.05);
+	u  = spm_z(u,W,S);
+else
+	%-Get and apply height threshold [default p < 0.001 uncorrected]
+	%---------------------------------------------------------------
+	u  = spm_input('height threshold {Z or p value}','!+0','e',0.001);
+	if u < 1; u = spm_invNcdf(1 - u); end
+end
+
 
 % eliminate voxels
 %-----------------------------------------------------------------------
 Q     = find(Z > u);
 Z     = Z(Q);
+RES   = RES(Q);
 XYZ   = XYZ(:,Q);
-if strcmp(lower(Action),lower('Results'))
-	QQ    = QQ(Q);
-end
+QQ    = QQ(Q);
+
 
 %-Return if there are no voxels
 %-----------------------------------------------------------------------
@@ -192,18 +201,20 @@ if ~length(Q)
 	return
 end
 
-%-Get and apply extent threshold
+%-Get extent threshold
 %-----------------------------------------------------------------------
-if spm_input('use corrected extent threshold',4,'b','no|yes',[0 1],1)
-	k  = spm_input('corrected p value}',4,'e',0.05);
+if spm_input('use corrected extent threshold','!+1','b','no|yes',[0 1],1)
+	k  = spm_input('corrected p value','!+0','e',0.05);
 	k  = spm_k(k,W,u,S);
 else
 	%-Get and apply extent threshold [default p < 0.5 uncorrected]
 	%---------------------------------------------------------------
-	k  = spm_input('extent threshold {k or p value}',4,'e',0.5);
+	k  = spm_input('extent threshold {k or p value}','!+0','e',0.5);
 	if (k < 1) & (k > 0); k = spm_invkcdf(1 - k,u,W); end
 end
 
+% and apply
+%-----------------------------------------------------------------------
 A     = spm_clusters(XYZ,V([4 5 6]));
 Q     = [];
 for i = 1:max(A)
@@ -216,10 +227,9 @@ end
 % eliminate voxels
 %-----------------------------------------------------------------------
 Z     = Z(Q);
+RES   = RES(Q);
 XYZ   = XYZ(:,Q);
-if strcmp(lower(Action),lower('Results'))
-	QQ    = QQ(Q);
-end
+QQ    = QQ(Q);
 
 
 %-Return if there are no clusters
@@ -231,6 +241,7 @@ if ~length(Q)
 	text(0,0.2,'No clusters above this threshold {k}','FontSize',16);
 	return
 end
+
 
 %-Switch depending on Action
 %=======================================================================
@@ -254,12 +265,8 @@ elseif  strcmp(lower(Action),lower('Results'))
 %-----------------------------------------------------------------------
 elseif  strcmp(lower(Action),lower('Writing'))
 
-	if nargin < 2
-		FName = spm_input('Filename ?',4,'s','SPM_filtered');
-	else
-		FName = P2;
-	end
-	str = sprintf('spm{Z}-filtered: u = %5.3f, k = %d',u,k);
+	FName   = spm_input('Filename ?',4,'s','SPM_filtered');
+	str     = sprintf('spm{Z}-filtered: u = %5.3f, k = %d',u,k);
 
 	%-Reconstruct filtered image from XYZ & t
 	%---------------------------------------------------------------
