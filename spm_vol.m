@@ -22,11 +22,12 @@ function V = spm_vol(P)
 %
 % The fields listed above are essential for the mex routines, but other
 % fields can also be incorporated into the structure.
-% Unlike with spm_map_vol, the images are not memory mapped at this step,
-% but are mapped when the mex routines using the volume information are
-% called.
-% This is a replacement for the spm_map_vol and spm_unmap_vol stuff
-% that I expect will become redundant.
+%
+% The images are not memory mapped at this step, but are mapped when
+% the mex routines using the volume information are called.
+%
+% This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
+% MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
