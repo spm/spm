@@ -273,7 +273,7 @@ for s=1:length(ds)
       % Build up mean image if so required.
       %
       if flags.mean
-         Integral = Integral + ima;
+         Integral = Integral + nan2zero(ima);
       end
       spm_progress_bar('Set',tv);
       tv = tv+1;
@@ -308,8 +308,10 @@ PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________
 
-
-
-
-
+%_______________________________________________________________________
+function vo = nan2zero(vi)
+vo = vi;
+vo(~finite(vo)) = 0;
+return;
+%_______________________________________________________________________
 
