@@ -1,4 +1,4 @@
-function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
+ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % Insert new inputs into a DCM model
 % FORMAT [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 %
@@ -11,7 +11,7 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % The model can then be re-estimated without having to go through
 % model specification again.
 %
-% %W% Will Penny %E%
+% @(#)spm_dcm_U.m	2.5 Will Penny 03/11/03
 
 load(DCM_filename);
 load(SPM_filename);
@@ -32,7 +32,7 @@ u      = length(Sess.U);
 m_sel=length(input_nos);
 
 % Number of inputs in DCM file
-m = size(DCM.c,2);
+m = size(DCM.C,2);
 
 if ~(m_sel==m)
     disp(sprintf('Error in spm_dcm_U: must include %d inputs',m));
@@ -55,18 +55,16 @@ DCM.U=U;
 % Use the TR from the SPM data structure
 DCM.Y.dt=SPM.xY.RT;
 
-% Check inputs and outputs match up
+% Check inputs and outputs match up (to the nearest DCM.U.dt)
 num_inputs=size(DCM.U.u,1);
 input_period=DCM.U.dt*num_inputs;
 output_period=DCM.v*DCM.Y.dt;
-if ~(input_period==output_period)
+if ~(round(DCM.v*DCM.Y.dt/DCM.U.dt) == num_inputs)
     disp('Error in spm_dcm_U: input period and output period do not match');
     disp(sprintf('Number of inputs=%d, input dt=%1.2f, input period=%1.2f',num_inputs,DCM.U.dt,input_period));
-    disp(sprintf('Number of outputs=%d, output dt=%1.2f, input period=%1.2f',DCM.v,DCM.Y.dt,output_period));
+    disp(sprintf('Number of outputs=%d, output dt=%1.2f, output period=%1.2f',DCM.v,DCM.Y.dt,output_period));
     return
 end
-
-    
 
 instr=['save ',DCM_filename,' DCM'];
 eval(instr);
