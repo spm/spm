@@ -70,8 +70,8 @@ Dt     = D/max(D(:));
 
 % delete previous axis
 %----------------------------------------------------------------------------
-figure(3)
-subplot(2,1,2); delete(gca)
+figure(spm_figure('FindWin','Graphics'))
+subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 
 
 % configure {128 level} colormap
