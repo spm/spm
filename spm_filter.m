@@ -1,26 +1,18 @@
-function [vargout] = spm_filter(Action,K,Y)
-% filter routine
-% FORMAT [K] = spm_filter('set'  ,K)
-% FORMAT [Y] = spm_filter('apply',K,Y)
-% FORMAT [Y] = spm_filter('high' ,K,Y)
-% FORMAT [Y] = spm_filter('low'  ,K,Y)
+function [vargout] = spm_filter(K,Y)
+% High and low-pass filtering
+% FORMAT [Y] = spm_filter(K,Y)
+% FORMAT [K] = spm_filter(K)
 %
-% Action    - 'set'   fills in filter structure K
-% Action    - 'apply' applies K to Y = K*Y
-% Action    - 'high'  only high-pass component
-% Action    - 'low '  only  low-pass component
-% K         - filter convolution matrix or:
-% K{s}      - cell of structs containing session-specific specifications
+% K         - filter matrix or:
+% K{s}      - cell of structs containing block-specific specifications
 %
-% K{s}.RT       - repeat time in seconds
-% K{s}.row      - row of Y constituting session s
-% K{s}.LChoice  - Low-pass  filtering {'hrf' 'Gaussian' 'none'}
+% K{s}.RT       - observation interval in seconds
+% K{s}.row      - row of Y constituting block s
 % K{s}.LParam   - Gaussian parameter in seconds
-% K{s}.HChoice  - High-pass filtering {'specify' 'none'}
 % K{s}.HParam   - cut-off period in seconds
 %
-% K{s}.HP       - low frequencies to be removed
-% K{s}.LP       - sparse toepltz low-pass convolution matrix
+% K{s}.HP       - low frequencies to be removed (DCT without constant)
+% K{s}.LP       - sparse toeplitz low-pass convolution matrix
 % 
 % Y         - data matrix
 %
@@ -31,83 +23,46 @@ function [vargout] = spm_filter(Action,K,Y)
 % spm_filter implements band pass filtering in an efficient way by
 % using explicitly the projector matrix form of the High pass
 % component.  spm_filter also configures the filter structure in
-% accord with the specification fields if required
+% accord with the specification fields if called with one argument
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
-
 % set or apply
 %---------------------------------------------------------------------------
-switch Action
+if nargin == 1 & iscell(K)
 
-	case 'set'
+	% set K.HP and/or K.LP
 	%-------------------------------------------------------------------
 	for s = 1:length(K)
 
-		% matrix order
+		% block size
 		%-----------------------------------------------------------
 		k     = length(K{s}.row);
 
-		% make low pass filter
+		% create and normalize low-pass filter
 		%-----------------------------------------------------------
-		switch K{s}.LChoice
+		if isfield(K{s},'LParam')
 
-			case 'none'
-			%---------------------------------------------------
-			h       = 1;
-			d       = 0;
-
-			case 'hrf'
-			%---------------------------------------------------
-			h       = spm_hrf(K{s}.RT);
-			h       = [h; zeros(size(h))];
-			g       = abs(fft(h));
-			h       = real(ifft(g));
-			h       = fftshift(h)';
-			n       = length(h);
-			d       = [1:n] - n/2 - 1;
-
-			case 'Gaussian'
-			%---------------------------------------------------
 			sigma   = K{s}.LParam/K{s}.RT;
 			h       = round(4*sigma);
 			h       = exp(-[-h:h].^2/(2*sigma^2));
 			n       = length(h);
 			d       = [1:n] - (n + 1)/2;
+
 			if      n == 1, h = 1; end
 
-			otherwise
-			%---------------------------------------------------
-			error('Low pass Filter option unknown');
-			return
+			K{s}.KL = spdiags(ones(k,1)*h,d,k,k);
+			K{s}.KL = spdiags(1./sum(K{s}.KL')',0,k,k)*K{s}.KL;
 
 		end
 
-		% create and normalize low pass filter
-		%-----------------------------------------------------------
-		K{s}.KL = spdiags(ones(k,1)*h,d,k,k);
-		K{s}.KL = spdiags(1./sum(K{s}.KL')',0,k,k)*K{s}.KL;
-
-
 		% make high pass filter
 		%-----------------------------------------------------------
-		switch K{s}.HChoice
+		if isfield(K{s},'HParam')
 
-			case 'none'
-			%---------------------------------------------------
-			K{s}.KH = [];
-
-			case 'specify'
-			%---------------------------------------------------
 			n       = fix(2*(k*K{s}.RT)/K{s}.HParam + 1);
 			X       = spm_dctmtx(k,n);
 			K{s}.KH = sparse(X(:,[2:n]));
-
-			otherwise
-			%---------------------------------------------------
-			error('High pass Filter option unknown');
-			return
-
 		end
 
 	end
@@ -116,16 +71,15 @@ switch Action
 	%-------------------------------------------------------------------
 	vargout = K;
 
-
-	case {'apply','high','low'}
+else
+	% apply
 	%-------------------------------------------------------------------
 	if iscell(K)
 
-
-		% ensure requisite feild are present
+		% ensure requisite feilds are present
 		%-----------------------------------------------------------
-		if ~isfield(K{1},'KL')
-			K = spm_filter('set',K);
+		if ~isfield(K{1},'KL') & ~isfield(K{1},'HL')
+			K = spm_filter(K);
 		end
 
 		for s = 1:length(K)
@@ -136,13 +90,13 @@ switch Action
 
 			% apply low pass filter
 			%---------------------------------------------------
-			if ~strcmp(Action,'high')
+			if isfield(K{s},'KL')
 				y = K{s}.KL*y;
 			end
 
 			% apply high pass filter
 			%---------------------------------------------------
-			if ~isempty(K{s}.KH) & ~strcmp(Action,'low')
+			if isfield(K{s},'KH')
 				y = y - K{s}.KH*(K{s}.KH'*y);
 			end
 
@@ -152,7 +106,7 @@ switch Action
 
 		end
 
-	% K is simply a convolution matrix
+	% K is simply a filter matrix
 	%-------------------------------------------------------------------
 	else
 		Y = K*Y;
@@ -161,14 +115,5 @@ switch Action
 	% return filtered data
 	%-------------------------------------------------------------------
 	vargout   = Y;
-
-	case 'none'
-	%-------------------------------------------------------------------
-	vargout   = Y;
-
-	otherwise
-	%-------------------------------------------------------------------
-	warning('Filter option unknown');
-
 
 end
