@@ -162,9 +162,7 @@ cd(cwd)					%-Go back to original working dir.
 Cplot = {	'parameter estimates',...
 	 	'responses',...
 		'event/epoch-related responses'};
-if ~length(xSDM.Sess)
-	Cplot = Cplot(1:2);
-end
+if ~isfield(xSDM,'Sess'), Cplot = Cplot(1:2); end
 Cp    = spm_input('Plot',-1,'m',Cplot);
 TITLE = Cplot{Cp};
 
@@ -185,6 +183,7 @@ if     Cp == 1
 	Cp    = spm_input('Estimates to plot',-1,'m',Cplot);
 	TITLE = Cplot{Cp};
 	XLAB  = 'effect';
+	YLAB  = 'parameter estimates';
 
 
 	if     Cp == 1
@@ -235,6 +234,7 @@ elseif Cp == 2
 			'specified effects'};
 	Cx    = spm_input('Fit',-1,'m',Cplot);
 	TITLE = [TITLE,': ',Cplot{Cx}];
+	YLAB  = 'responses';
 
 
 	if     Cx == 1
@@ -253,7 +253,7 @@ elseif Cp == 2
 
 	elseif Cx == 4
 
-		str  = sprintf('Which columns or effects [1-%d]?',length(beta));
+		str  = 'Which columns or effects?';
 		i    = spm_input(str,'!+1','n','',Inf,length(beta));
 		Y    = xX.xKXs.X(:,i)*beta(i);
 	end
@@ -278,7 +278,7 @@ elseif Cp == 2
 
 	if     Cx == 1
 
-		str  = sprintf('Which column or effect [1-%d]?',length(beta));
+		str  = 'Which column or effect?';
 		i    = spm_input(str,'!+1','n','',1,length(beta));
 		x    = xX.xKXs.X(:,i);
 		XLAB = sprintf('%s (explanatory variable %d)',xX.Xnames{i},i);
@@ -333,16 +333,16 @@ elseif Cp == 3
 	% get session and trials
 	%--------------------------------------------------------------
 	str   = sprintf('which sessions (1 - %d)',length(xSDM.Sess));
-	ss    = spm_input(str,1,'n','1');
+	ss    = spm_input(str,-1,'n','1');
 	str   = sprintf('which trials (1 - %d)',length(xSDM.Sess{ss(1)}.bf));
-	tr    = spm_input(str,2,'n','1');
+	tr    = spm_input(str,-2,'n','1');
 	Cplot = {	'fitted response',...
 			'fitted response and PSTH',...
 			'fitted response +/- standard error of response',...
 			'fitted response +/- standard error of onset',...
 			'fitted response and adjusted data',...
 			'parametric plot'};
-	Cp    = spm_input('plot in terms of',3,'m',Cplot);
+	Cp    = spm_input('plot in terms of',-3,'m',Cplot);
 	TITLE = Cplot{Cp};
 	YLAB  = 'effect size';
 	XLAB  = 'peri-stimulus time {secs}';
