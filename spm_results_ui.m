@@ -313,6 +313,7 @@ for ii = nCon:-1:1
 	set(gca,'Tag','ConGrphAx')
     end
     ylabel(num2str(SPM.Ic(ii)))
+    axis tight
 end
 title('Contrast(s)')
 
