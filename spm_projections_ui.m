@@ -13,7 +13,6 @@ function [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
 % k      - selected extent threshold {voxels}
 % S      - search volume {voxels}
 % W      - smoothness estimators (of Gaussianized t fields)
-
 %_______________________________________________________________________
 %
 % 
@@ -28,17 +27,30 @@ function [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
 % uncorrected).  A conjunction is therefore the conjoint expression of
 % two or more effects (each specified in terms of a contrast) to a
 % similar degree.
+%
+% Masking simply eliminates voxels from the current contrast if they
+% do not survive an uncorrected p value (based on height) in one or
+% more further contrasts.  No account is taken of this masking in the
+% statistical inference pertaining to the masked contrast.
 % 
 % The resulting SPM{Z} can be masked by another (correpsonding to another
 % contrast).  This masking is not taken into account when presenting Z
 % scores or corrected staistical inference.
 % 
-% The SPM{Z} is subject to thresholding on the basis of height (u) and
-% the number of voxels comprising its clusters {k}.  Thresholds can be
-% specified either in terms of Z scores [voxels] or in terms of
-% [uncorrected] p values.
-%
-% see spm_projections.m for further details
+% The SPM{Z} is subject to thresholding on the basis of height (Z) and
+% the number of voxels comprising its clusters {k}. The height threshold
+% is specified as before in terms of an uncorrected p value or Z score.
+% If you only want to see clusters that survive a corrected p value
+% (based on spatial extent) than the corrected p value you enter will
+% specify the extent threshold employed.  If however you choose to see
+% all clusters you can specify an extent threshold in terms of an
+% uncorrected p value (i.e. the probability of getting a cluster that
+% size or larger, assuming it exists) or voxels.  If you want to see all
+% voxels simply enter 0.  In this instance the 'set-level' inference can
+% be considered an 'omnibus test' based on the number of clusters that
+% obtain.
+% 
+% see spm_projections.m and spm_P for further details
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
