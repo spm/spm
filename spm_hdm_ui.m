@@ -57,11 +57,10 @@ end
 % system outputs
 %===========================================================================
 
-% enforce adjustment w.r.t. all effects high pass filtering
+% enforce adjustment w.r.t. all effects
 %---------------------------------------------------------------------------
 xY     = struct(	'Ic'		,1,...	
  	   		'name'		,'HDM',...
- 	   		'filter'	,1,...
  	   		'Sess'		,s);
 
 
@@ -72,20 +71,17 @@ xY     = struct(	'Ic'		,1,...
 
 %-confounds
 %---------------------------------------------------------------------------
-n      = size(xY.y,1);
-X0     = ones(n,1);
-if xY.filter & iscell(SPM.xX.K)
-	X0 = [X0 full(SPM.xxX.K(s).KH)];
+X0     = SPM.xX.X(:,[SPM.xX.iB SPM.xX.iG]);
+try
+	X0 = [X0 full(SPM.xX.K(s).KH)];
 end
 
 %-adjust and place in response variable structure
 %---------------------------------------------------------------------------
 y      = xY.u;
-y      = y - X0*(pinv(X0)*y);
 Y.y    = y;
 Y.dt   = SPM.xY.RT;
 Y.X0   = X0;
-Y.Ce   = {xY.V};
 
 % estimate
 %===========================================================================
