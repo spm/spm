@@ -349,13 +349,18 @@ sy_res = sy_res(1:min(size(V, 2),MaxSmooEst),:);
 sz_res = sz_res(1:min(size(V, 2),MaxSmooEst),:);
 
 if ~isempty(sx_res)
-	W = sqrt([	 sx_res(:,1)./sx_res(:,2)...
+	Wresid = sqrt([	 sx_res(:,1)./sx_res(:,2)...
 			 sy_res(:,1)./sy_res(:,2)...
 			 sz_res(:,1)./sz_res(:,2)]/2);
 end
-% save W_res W
-if V(3,1) == 1;   W = W(1:2);  end			% 2 dimnesional data
+
+W = (spm_lambda_n(df+1))^(-1/2)*Wresid;
+
 if size(W,1) > 1; W = mean(W); end			% average over contrasts
+if V(3,1) == 1;   					% 2 dimnesional data
+	W = W(1:2);  
+	Wresid = Wresid(:,1:2);
+end			
 
 FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
 
@@ -367,7 +372,7 @@ for i  = 1:q; spm_unmap(V(:,i)); end
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
 TH     = TH(1,:);
-save SPM K H C B G S UF V W FWHM CONTRAST df Fdf TH FLIP names
+save SPM K H C B G S UF V W Wresid FWHM CONTRAST df Fdf TH FLIP names
 
 
 %-Display and print SPM{F}, Design matrix and textual information
