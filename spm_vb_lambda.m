@@ -5,7 +5,7 @@ function [slice] = spm_vb_lambda (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% @(#)spm_vb_lambda.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
 
 if slice.verbose
     disp('Updating lambda');
@@ -21,7 +21,7 @@ for n=1:slice.N,
         Gn=trace(slice.w_cov{n}*slice.XTX)+en'*en;
     end
     % Equation 75 in paper VB1
-    slice.b_lambda(n,1)    = 1./(Gn./2 + 1./slice.b_lambda_prior);
+    slice.b_lambda(n,1)    = 1./(Gn./2 + 1./slice.b_lambda_prior(n));
     slice.mean_lambda(n,1) = slice.c_lambda(n)*slice.b_lambda(n);
 end
 

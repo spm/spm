@@ -25,7 +25,7 @@ for j = 1:k,
     block_k = j:k:N*k;
     H  = sum(spdiags(slice.D,0).*w_cov_k(:,j)) + slice.w_mean(block_k)'*slice.D*slice.w_mean(block_k);
     % Equation 15 in paper VB4
-    slice.b_alpha(j)    = 1./(H./2 + 1./slice.b_alpha_prior);
+    slice.b_alpha(j)    = 1./(H./2 + 1./slice.b_alpha_prior(j));
     slice.mean_alpha(j) = slice.c_alpha(j)*slice.b_alpha(j);
 end
          
