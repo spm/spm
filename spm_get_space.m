@@ -17,8 +17,8 @@ function M = spm_get_space(imagename, mat)
 %___________________________________________________________________________
 % %W% John Ashburner FIL %E%
 
+imagename = deblank(imagename);
 matname = [spm_str_manip(imagename,'sd') '.mat'];
-
 if (nargin == 1)
 	% If we can read M from a ".mat" file with the corresponding
 	% name, then use this information.
