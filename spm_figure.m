@@ -51,6 +51,8 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 % * Text : Creates an editable text widget that produces a text object as
 %          its CallBack.
 %          This text object can then be manipulated using the edit facilities.
+% * Edit : To edit text, select a text object with the circle cursor,
+%          and edit the text in the editable text widget that appears.
 %
 %
 % Objects with the attribute Tag = 'NoDelete' are exempt from deletion
@@ -178,6 +180,9 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 %
 % FORMAT spm_figure('GraphicsText')
 % Callback for "Text" button
+%
+% FORMAT spm_figure('GraphicsTextEdit')
+% Callback for "Edit" button
 %_______________________________________________________________________
 
 
@@ -541,13 +546,13 @@ set(F,'Units','Pixels');
 P     = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
 S_Gra = P./[600, 865];				% x & y scaling coefs
 
-nBut  = 11;
+nBut  = 12;
 nGap  = 2;
 sx    = floor(P(1)./(nBut+(nGap+2)/6));		% uicontrol object width
 dx    = floor(2*sx/6);				% inter-uicontrol gap
 sy    = floor(20*S_Gra(1));			% uicontrol object height
 x0    = dx;					% initial x position
-x     = dx;					% uicontrol x position
+x     = dx/2;					% uicontrol x position
 y     = P(2) - sy;				% uicontrol y position
 y2    = P(2) - 2.25*sy;				% uicontrol y position
 
@@ -613,7 +618,12 @@ uicontrol(F,'String','size',  'Position',[x y sx sy],...
 uicontrol(F,'String','text',  'Position',[x y sx sy],...
 	'CallBack','spm_figure(''GraphicsText'')',...
 	'Interruptible','No',...
+	'Tag','NoDelete'); x = x+sx;
+uicontrol(F,'String','edit',  'Position',[x y sx sy],...
+	'CallBack','spm_figure(''GraphicsTextEdit'')',...
+	'Interruptible','No',...
 	'Tag','NoDelete'); x = x+sx+dx;
+
 uicontrol(F,'String','?',     'Position',[x y dx sy],...
 	'CallBack','spm_help(''spm_figure.m'')',...
 	'Interruptible','No',...
@@ -851,6 +861,66 @@ uicontrol(F,'Style','Edit',...
 	'Callback','text(0,0,get(gco,''String'')); delete(gco)');
 
 set(hBut,'ForegroundColor','k')
+
+return
+
+
+elseif strcmp(lower(Action),lower('GraphicsTextEdit'))
+%=======================================================================
+% Add text annotation to a figure
+% spm_figure('GraphicsText')
+
+F = gcf;
+hBut  = gco;
+set(hBut,'ForegroundColor','r')
+tmp = get(F,'Name');
+set(F,'Name',...
+	'Select text to edit. RightMouse=cancel..');
+set(F,'Pointer','Circle')
+waitforbuttonpress;
+set(F,'Pointer','Arrow')
+set(F,'Name',tmp)
+
+if strcmp(get(gcf,'SelectionType'),'alt')
+	%-Quit option
+	set(hBut,'ForegroundColor','k')
+	return
+end
+
+NoDel=[F; findobj(F,'Tag','NoDelete')];
+if any(gco==NoDel) | gcf~=F | ~strcmp(get(gco,'Type'),'text')
+	set(hBut,'ForegroundColor','k')
+	return
+end
+
+%-Save units of various objects
+Funits = get(F,'Units');
+Aunits = get(gca,'Units');
+Tunits = get(gca,'Units');
+
+%-Get locations
+set(F,'Units','Pixels')
+set(gca,'Units','Pixels')
+set(gco,'Units','Pixels')
+tmp = [1,1,0,0].*get(gca,'Position') ...
+	+ [1,1,0,0].*get(gco,'Extent')...
+	+ [0,0,max([0,0,1,1].*get(gco,'Extent')),20];
+
+%-Create editable text widget to adjust text string
+h = uicontrol(F,'Style','Edit',...
+	'String',get(gco,'String'),...
+	'Position',tmp,...
+	'BackGroundColor',[.8,.8,1],...
+	'HorizontalAlignment','Left',...
+	'UserData',gco,...
+	'Callback',['set(get(gco,''UserData''),'...
+		'''String'',get(gco,''String'')), delete(gco)']);
+
+%-Reset stuff
+set(hBut,'ForegroundColor','k')
+set(F,'Units',Funits)
+set(gca,'Units',Aunits)
+set(gco,'Units',Tunits)
 
 return
 
