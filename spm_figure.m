@@ -214,7 +214,8 @@ if nargin<3, Name=''; else, Name=varargin{3}; end
 if nargin<2, Tag=''; else, Tag=varargin{2}; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
-spm_figure('CreateBar',F)
+spm_figure('CreateBar',F);
+spm_figure('FigContextMenu',F);
 varargout = {F};
 
 
@@ -659,7 +660,7 @@ if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
-t0 = findobj(F,'Label','&Help');
+t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
 set(findobj(t0,'Position',1),'Separator','on');
 t1 = uimenu('Parent',t0,'Position',1,...
 	'Label','SPM web',...
@@ -694,10 +695,8 @@ else
 	F = spm_figure('FindWin',varargin{2});
 	if isempty(F), error('no such figure'), end
 end
-
 h       = uicontextmenu('Parent',F,'HandleVisibility','CallBack');
 copy_menu(F,h);
-
 set(F,'UIContextMenu',h)
 varargout = {h};
 
@@ -781,8 +780,13 @@ function copy_menu(F,G)
 handles = findobj(get(F,'Children'),'Flat','Type','uimenu','Visible','on');
 if length(handles)==0, return; end;
 for F1=handles',
-	G1 = uimenu('Parent',G,'Label',get(F1,'Label'),'CallBack',get(F1,'CallBack'),'Position',get(F1,'Position'));
-	copy_menu(F1,G1);
+	if ~strcmp(get(F1,'Label'),'&Window'),
+		G1 = uimenu('Parent',G,'Label',get(F1,'Label'),...
+			'CallBack',get(F1,'CallBack'),...
+			'Position',get(F1,'Position'),...
+			'Separator',get(F1,'Separator'));
+		copy_menu(F1,G1);
+	end;
 end;
 return;
 %=======================================================================
