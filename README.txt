@@ -29,7 +29,7 @@ The SPM software is a suite of MatLab functions, scripts and data
 files, with some externally compiled C routines, implementing
 Statistical Parametric Mapping.
 
-SPM98 is written for Matlab 5.2 under UNIX. (SPM98 will not work with
+SPM99 is written for Matlab 5.2 under UNIX. (SPM will not work with
 versions of Matlab 5 prior to 5.2, including Matlab 4.) Binaries of the
 external C-routines are provided for Solaris only, users of other UNIX
 platforms need an ANSI C compiler to compile the supplied C source
