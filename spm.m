@@ -461,10 +461,10 @@ fprintf('SPM present working directory:\n\t%s\n',pwd)
 
 %-Nag user to upgrade if this is old software
 %-----------------------------------------------------------------------
-if now>datenum('31-Dec-2001')
+if now>datenum('31-Dec-2002')
 	spm('alert!',{	'This software is rather old!',' ',...
-			'SPM99 was released in November 1999,',...
-			'over two years ago!',' ',...
+			'SPM99 was released in January 2000,',...
+			'over three years ago!',' ',...
 			'Please upgrade to a more recent release of SPM!',...
 			' ','     http://www.fil.ion.ucl.ac.uk/spm'},...
 		'Old version warning...',[],1)
@@ -1099,9 +1099,9 @@ case 'colour'                                     %-SPM interface colour
 %-Alpha release livery
 % varargout = {[0.9,0.9,0.5],'over-ripe banana'};
 %-Beta release livery
-varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
+% varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
 %-Distribution livery
-% varargout = {[0.8 0.8 1.0],'vile violet'};
+varargout = {[0.8 0.8 1.0],'vile violet'};
 
 
 %=======================================================================
