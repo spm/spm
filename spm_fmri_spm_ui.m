@@ -49,10 +49,20 @@ function spm_fmri_spm_ui
 % These two response functions correspond to the early and late
 % components of a modeled response and differential adaptation of the
 % hemodynamics during condition-specific epochs can be tested with the
-% appropriate CONTRAST (see the final reference below) Covariates of no
-% interest (called confounds) can also be specfied.  You will be
-% prompted for some specific confounds such as low frequency artifacts
-% and whole brain activity.
+% appropriate CONTRAST (see the final reference below) 
+% 
+% If you use a box-car (i.e. square wave) function you can optionally
+% include its temporal derivative as an additional covariate of
+% interest.  The box-car function is delayed by 6 seconds, however this
+% may be two much or too little for some brain regions.  The timing
+% covariate (temporal derivative) models a small shift in time that best
+% fits the data.  Inferences about whether the observed delay is
+% significantly different than 6 seconds can be tested using contrasts in
+% the usual way (a positive parameter estimate means a shorter delay).
+% 
+% Covariates of no interest (called confounds) can also be specfied.  You
+% will be prompted for some specific confounds such as low frequency
+% artifacts (and whole brain activity).
 %
 % Epochs can vary in length (and order) within and between subjects or runs.
 % If multiple subjects or sessions are specified, then subject or run-specific
@@ -60,6 +70,13 @@ function spm_fmri_spm_ui
 % interactions between conditions and subjects (or runs) can be evaluated
 % with the appropriate contrast.  If you want to treat all your sessions (or
 % subjects) as one then specify just one session/subject.
+%
+% The way that epochs or successive conditions are specified is now more
+% intuitive and flexible.  If there are 3 conditions just type in the
+% conditions in the order they were presented i.e. 1 2 3 3 2 1 ....
+% Later you will be asked to specify the number of scans for each epoch,
+% again as a vector (list of numbers).  If the epochs were all the same
+% length, then just type in that length once.
 %
 % The CONTRAST is simply a list or vector of coefficients that are used
 % to test for a pattern of effects.  The number of coefficients (length
@@ -259,7 +276,8 @@ for v = 1:nsubj
 		end
 		delay = round(6/RT);
 		D((delay + 1):k,:) = D(1:(k - delay),:); 
-		D(1:delay,:) = zeros(delay,max(a));
+		D(1:delay,:) = ones(delay,1)*D((delay + 1),:);
+		D     = spm_detrend(D);
 		for i = 1:size(D,2)
 			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
 			Cnames = str2mat(Cnames,str);
@@ -270,7 +288,6 @@ for v = 1:nsubj
 				Cnames = str2mat(Cnames,str);
 			end
 			D      = [D [diff(D); zeros(1,size(D,2))]];
-
 		end
 	end
 
@@ -353,8 +370,27 @@ end
 GLOBAL = 'None';
 str    = 'global normalization';
 if spm_input(str,'!+1','yes|no',[1 0])
-	GLOBAL = spm_input(str,'!+0','Scaling|AnCova'); end
+	GLOBAL = spm_input(str,'!+0','Scaling|AnCova');        end
+if strcmp(GLOBAL,'AnCova'); Gnames = str2mat(Gnames,'Global'); end
 
+
+%-Construct full design matrix and name matrices for display
+%---------------------------------------------------------------------------
+Hnames(1,:) = [];
+Cnames(1,:) = [];
+Bnames(1,:) = [];
+Gnames(1,:) = [];
+
+% display design matrix partition C to help contrast specification
+%---------------------------------------------------------------------------
+figure(Fgraph); spm_clf; axis off
+axes('Position',[0.2 0.5 0.6 0.4])
+imagesc(spm_DesMtxSca(C)')
+set(gca,'FontSize',8)
+set(gca,'YTick',[1:size(Cnames)],'YTickLabels',Cnames)
+xlabel('scan')
+title(['Covariates of interest'],'Fontsize',16,'Fontweight','Bold')
+drawnow
 
 % get contrasts or linear compound for parameters of interest [H C]
 %---------------------------------------------------------------------------
@@ -373,12 +409,7 @@ end
 
 % temporal smoothing
 %---------------------------------------------------------------------------
-if spm_input('Temporal smoothing','!+1','yes|no',[1 0])
-	SIGMA  = sqrt(8)/RT;
-else
-	SIGMA  = 0;
-end
-
+SIGMA  = spm_input('Temporal smoothing','!+1','yes|no',[sqrt(8)/RT 0]);
 
 
 % the interactive parts of spm_spm_ui are now finished
@@ -409,27 +440,14 @@ for i  = 1:q
 V(7,:) = V(7,:)*GM/mean(GX);
 GX     = GX*GM/mean(GX);
 
-if strcmp(GLOBAL,'AnCova'); G = [G GX]; Gnames = str2mat(Gnames,'Global'); end
-if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX;	   end
+if strcmp(GLOBAL,'AnCova'); G = [G GX]; end
+if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX; end
 
 
-
-% mean correct the contrast for condition effects and zero pad
+% zero pad contrast 
 %---------------------------------------------------------------------------
-for i = 1:size(CONTRAST,1)
-	if length(find(CONTRAST(i,:))) > 1
-		CONTRAST(i,:) = CONTRAST(i,:) - mean(CONTRAST(i,:));
-	end
-end
 [i j]    = size(CONTRAST);
 CONTRAST = [CONTRAST zeros(i,(size([H C B G],2) - j))];
-
-%-Construct full design matrix and name matrices for display
-%---------------------------------------------------------------------------
-Hnames(1,:) = [];
-Cnames(1,:) = [];
-Bnames(1,:) = [];
-Gnames(1,:) = [];
 
 
 %-centre confounds (Not block, which can embody the constant term)
