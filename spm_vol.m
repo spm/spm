@@ -31,6 +31,9 @@ function V = spm_vol(P)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
+% If is already a vol structure then just return;
+if isstruct(P), V = P; return; end;
+
 V = subfunc2(P);
 return;
 
