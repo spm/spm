@@ -38,7 +38,7 @@ Rtype = {'events',...
 	 'mixed'};
 if n == 1
 	Rtype = Rtype(1:2); 
-	set(Finter,'name',name{1})
+	set(Finter,'name',[Fstr ': ' name{1}])
 end
 Rov   = spm_input('are these trials',1,'b',Rtype);
 
@@ -245,7 +245,7 @@ switch Rov
 	case 'mixed'
 	for i = 1:n
 
-		BF(i)  = spm_get_bf({[Fstr ': ' name{i}]},T,dt);
+		BF(i)  = spm_get_bf(name(i),T,dt);
 
 	end
 	BFstr = 'mixed';
