@@ -27,26 +27,26 @@ function f = spm_invFcdf(p,df)
 
 %-Parameters
 %---------------------------------------------------------------------------
-Tol=[];
+Tol = [];
 
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<2 error('insufficient arguments'), end
-
 if any(abs(p(:)-0.5)>0.5) error('p must be in [0,1]'), end
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-re-orient df to 2 x n size, if n x 2 with n~=2.
-if (size(df,1)~=2)&(size(df,2)==2) df=df'; end
-if size(df,1)~=2 error('df must have 2 rows or 2 columns'), end
+%---------------------------------------------------------------------------
+if (size(df,1) ~= 2) & (size(df,2) == 2) df = df'; end
+if size(df,1) ~= 2 error('df must have 2 rows or 2 columns'), end
 
 %-check sizes of arguments
+%---------------------------------------------------------------------------
 if prod(size(p))==size(df,2)
 elseif length(p)==1
-	p=p*ones(1,size(df,2));
+	p  = p*ones(1,size(df,2));
 elseif size(df,2)==1
-	df=meshgrid(df,1:prod(size(p)))';
+	df = meshgrid(df,1:prod(size(p)))';
 else
 	error('p and df not of compatible size'), end
 end % if (size)
@@ -55,11 +55,12 @@ end % if (size)
 %---------------------------------------------------------------------------
 f=zeros(size(p));
 %-Avoid case where p=1, where invcdf is infinite
-f(p==1)=+Inf*ones(sum(p==1),1);
+f(p == 1) =+Inf*ones(sum(p == 1),1);
 
-InitGuess=10;
-trace=0;
+InitGuess = 10;
+trace = 0;
 %-Avoid case where p=0, since Fcdf(f,df) is zero for all negative f
-for k=find(abs(p-0.5)<0.5)
-	f(k)=spm_fzero('spm_Fcdf',InitGuess,Tol,trace,df(:,k),p(k));
+%---------------------------------------------------------------------------
+for k = find(abs(p-0.5)<0.5)
+	f(k) = spm_fzero('spm_Fcdf',InitGuess,Tol,trace,df(:,k),p(k));
 end % for
