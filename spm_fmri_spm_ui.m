@@ -133,7 +133,6 @@ C      = [];				% covariates of interest
 B      = [];				% Factors of no interest
 G      = [];				% covariates of no interest
 F      = [];				% Low frequency confounds
-E      = [];				% event-specific effects
 Hnames = ' ';				% design matrix effect labels
 Bnames = ' ';				% design matrix effect labels
 Cnames = ' ';				% design matrix effect labels
@@ -143,8 +142,6 @@ TD     = 0;				% switch for temporal differences
 REP    = 0;				% switch for session replications
 ons    = [];				% epoch or event onset times
 PST    = [];				% peri-stimulus times
-ERI    = [];				% Indices of C pretaing to events
-
 
 CONTRAST = [];				% row matrix of contrasts
 
@@ -184,7 +181,7 @@ RT    = spm_input('Interscan interval {secs}','!+0');
 
 % default cutoff period (scans) for Hi-pass filtering
 %---------------------------------------------------------------------------
-CUT   = 320/RT;
+CUT   = max(nscan);
 
 % Study type - epoch or event-related fMRI
 %---------------------------------------------------------------------------
@@ -193,13 +190,7 @@ ER    = spm_input('epoch or event-related fMRI','!+1','epoch|event',[0 1]);
 % estimated hemodynamic response function
 %---------------------------------------------------------------------------
 HRF   = 1;					% convolve with hrf {default}
-dt    = RT/8;
-u     = 0:(32/dt);
-hrf   = spm_Gpdf(u,[6 dt]) - spm_Gpdf(u,[16 dt])/6;
-hrf   = spm_conv(hrf,8);
-hrf   = hrf([1:32/RT]*8);
-hrf   = hrf/sum(hrf);
-
+hrf   = spm_hrf(RT);
 
 % construct responses C [and G]
 %---------------------------------------------------------------------------
@@ -210,7 +201,10 @@ if ER
 	Ctype = str2mat(...
 		'basis functions (Fourier set)',...
 		'basis functions (Windowed Fourier set)',...
-		'basis functions (Gamma functions)');
+		'basis functions (Gamma functions with derivatives)',...
+		'basis functions (Gamma functions)',...
+		'hrf (with derivative)',...
+		'hrf (alone)');
 	str   = 'Select basis set';
 	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
 
@@ -218,7 +212,7 @@ if ER
 	% create small design matrix of basis functions
 	%-------------------------------------------------------------------
 	dt     = 0.1;					% time step {sec}
-	if Cov == (1 | 2)
+	if any(Cov == [1 2])
 
 		% Windowed (Hanning) Fourier set
 		%-----------------------------------------------------------
@@ -253,16 +247,56 @@ if ER
 		dx    = 0.01;
 		D     = spm_Volt_W(pst);
 		DER   = [D (spm_Volt_W(pst - dx) - D)/dx];
+
+	elseif Cov == 4
+
+		% Gamma functions alone
+		%-----------------------------------------------------------
+		pst   = 0:dt:32;
+		DER   = spm_Volt_W(pst);
+
+	elseif Cov == 5
+
+		% hrf and derivatives
+		%-----------------------------------------------------------
+		D     = spm_hrf(dt);
+		pst   = [0:(length(D) - 1)]*dt;
+		DER   = [D' gradient(D)'];
+
+	elseif Cov == 6
+
+		% hrf and derivatives
+		%-----------------------------------------------------------
+		D     = spm_hrf(dt);
+		pst   = [0:(length(D) - 1)]*dt;
+		DER   = D';
+
 	end
 
 	% scans (model the same event for all sessions)
 	%-------------------------------------------------------------------
 	h     = size(DER,2);
-	k     = sum(nscan);
 
-	% cycle over events
+	% for each session
 	%-------------------------------------------------------------------
-	for v = 1:spm_input('number of event types','!+0','e',1)
+	for s = 1:nsess
+
+
+	    % reset name and session partitions
+	    %---------------------------------------------------------------
+	    set(Finter,'Name',sprintf('Session or subject %0.0f',s));
+	    E     = [];
+	    CD    = [];
+	    GD    = [];
+	    PSTD  = [];
+
+	    % scans for this session
+	    %---------------------------------------------------------------
+	    k     = nscan(s);
+
+	    % cycle over events
+	    %---------------------------------------------------------------
+	    for v = 1:spm_input('number of event types',4,'e',1)
 	
 		str   = 'inter-stimulus intervals';
 		if spm_input(str,'!+1','fixed|variable',[1 0]);
@@ -300,51 +334,50 @@ if ER
 			D = [D d(j)];
 		end
 
-		% append to E, ERI and PST
+		% append to E and PSTD
 		%-----------------------------------------------------------
-		ERI   = [ERI ([1:h] + size(E,2))'];
-		PST   = [PST pst(:)];
+		PSTD  = [PSTD pst(:)];
 		E     = [E D];
 
-	end
+	    end
 
 
-	% modeling evoked responses
-	%-------------------------------------------------------------------
-	nevent = v;
-	if nevent > 1
+	    % modeling evoked responses
+	    %---------------------------------------------------------------
+	    nevent = v;
+	    if nevent > 1
 		Cinf  = str2mat(...
 			'all events',...
 			'some events (others = confounds)',...
 			'pairwise differences');
 		str   = 'Make inferences about';
 		Cf    = spm_input(str,'!+1','m',Cinf,[1:size(Cinf,1)]);
-	else
+	    else
 		Cf    = 1;
-	end
+	    end
 
 
-	% all events
-	%-------------------------------------------------------------------
-	if Cf == 1
+	    % all events
+	    %---------------------------------------------------------------
+	    if Cf == 1
 
-		% append to C
+		% append to CD
 		%-----------------------------------------------------------
-		C     = [C E];
+		CD    = [CD E];
 
 		% append labels
 		%-----------------------------------------------------------
 		for i = 1:nevent
 			for j = 1:h
-				str    = sprintf('Event %0.0f (%0.0f)',i,j);
+				str    = sprintf('Sess %0.0f Event %0.0f',s,i);
 				Cnames = str2mat(Cnames,str);
 			end
 		end
-	end
+	    end
 
-	% some events
-	%-------------------------------------------------------------------
-	if Cf == 2
+	    % some events
+	    %---------------------------------------------------------------
+	    if Cf == 2
 
 		d     = 1:nevent;
 		u     = spm_input('events of interest {e.g 1 2}','!+0');
@@ -352,41 +385,39 @@ if ER
 
 		% select relevent psts
 		%-----------------------------------------------------------
-		PST   = PST(:,u)
-		ERI   = ERI(:,u)
-
+		PSTD  = PSTD(:,u);
 		for i = 1:length(u)
 
-			% append to C
+			% append to CD
 			%---------------------------------------------------
-			C     = [C E(:,([1:h] + (u(i) - 1)*h))];
+			CD     = [CD E(:,([1:h] + (u(i) - 1)*h))];
 
 			% append labels
 			%---------------------------------------------------
 			for j = 1:h
-				str    = sprintf('Event %0.0f (%0.0f)',u(i),j);
-				Cnames = str2mat(Cnames,str);
+			    str    = sprintf('Sess %0.0f Event %0.0f',s,u(i));
+			    Cnames = str2mat(Cnames,str);
 			end
 		end
 		for i = 1:length(d)
 
-			% append to G
+			% append to GD
 			%---------------------------------------------------
-			G     = [G E(:,([1:h] + (d(i) - 1)*h))];
+			GD     = [GD E(:,([1:h] + (d(i) - 1)*h))];
 
 			% append labels
 			%---------------------------------------------------
 			for j = 1:h
-				str    = sprintf('Event %0.0f (%0.0f)',d(i),j);
-				Gnames = str2mat(Gnames,str);
+			    str    = sprintf('Sess %0.0f Event %0.0f',s,d(i));
+			    Gnames = str2mat(Gnames,str);
 			end
 		end
-	end
+	    end
 
 
-	% differences
-	%-------------------------------------------------------------------
-	if Cf == 3
+	    % differences
+	    %---------------------------------------------------------------
+	    if Cf == 3
 
 		d     = 1:nevent;
 		u     = spm_input('which pair of events {e.g 1 2}','!+1');
@@ -395,18 +426,17 @@ if ER
 		% no relevent psts
 		%-----------------------------------------------------------
 		PST   = [];
-		ERI   = [];
 		a     = E(:,([1:h] + (u(1) - 1)*h));
 		b     = E(:,([1:h] + (u(2) - 1)*h));
 
 
 		% append to C
 		%-----------------------------------------------------------
-		C     = [C (a - b)];
+		CD     = [CD (a - b)];
 
 		% append to G
 		%-----------------------------------------------------------
-		G     = [G (a + b)];
+		GD     = [GD (a + b)];
 
 		% append labels
 		%-----------------------------------------------------------
@@ -423,7 +453,7 @@ if ER
 
 			% append to G
 			%---------------------------------------------------
-			G     = [G E(:,([1:h] + (d(i) - 1)*h))];
+			GD     = [GD E(:,([1:h] + (d(i) - 1)*h))];
 
 			% append labels
 			%---------------------------------------------------
@@ -432,26 +462,53 @@ if ER
 				Gnames = str2mat(Gnames,str);
 			end
 		end
-	end
+	    end
+
+	    % append to C
+	    %---------------------------------------------------------------
+	    [x y]  = size(C);
+	    [i j]  = size(CD);
+	    d      = [1:i] + x;
+	    C(d,([1:j] + y)) = CD;
+
+	    % append to G
+	    %---------------------------------------------------------------
+	    [x y] = size(G);
+	    [i j] = size(GD);
+	    G(d,([1:j] + y)) = GD;
+
+	    % append to PST
+	    %---------------------------------------------------------------
+	    [x y] = size(PST);
+	    [i j] = size(PSTD);
+	    PST(d,([1:j] + y)) = PSTD + 1e-8;
+
+
+	end % (loop over sessions)
 
 	% save design matrix, indices and peri-stimulus times for plotting
 	%-------------------------------------------------------------------
 	DER   = [zeros(4/dt,size(DER,2)); DER];
+	ERI   = reshape([1:size(C,2)],h,size(C,2)/h);
 	if length(ERI)
 		save ER ERI DER PST
 	end
 
+
+end % (event-related)
+
 % Epoch-related fMRI
 %---------------------------------------------------------------------------
-else
+if ~ER
 
 	% covariates of interest - Type
 	%-------------------------------------------------------------------
 	Ctype = str2mat(...
-		'basis functions (Discrete Cosine Set)',...
-		'basis functions (Two Exponential sines)',...
-		'fixed response  (Half-sine)',...
-		'fixed response  (Box-car)',...
+		'basis functions  (Discrete Cosine Set)',...
+		'basis functions  (Two Exponential sines)',...
+		'fixed response   (Half-sine)',...
+		'fixed response   (Box-car)',...
+		'Fourier analysis (Harmonics of stimulus function)',...
 		'User specified');
 	str   = 'Select type of response';
 	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
@@ -462,6 +519,10 @@ else
 		str = 'number of basis functions';
 		h   = spm_input(str,'!+1','e',2);
 
+	elseif Cov == 5
+		str = 'number of harmonics';
+		h   = spm_input(str,'!+1','e',3);
+
 	elseif Cov == 2
 
 		h   = 2;
@@ -471,7 +532,7 @@ else
 
 	% if fixed response ask for temporal differences
 	%-------------------------------------------------------------------
-	if Cov > 2
+	if any(Cov == [3 4 6])
 		str = 'add temporal derivative';
 		TD  = spm_input(str,'!+1','b','no|yes',[0 1]);
 	end
@@ -500,6 +561,35 @@ else
 
 			% get covariates of interest
 			%---------------------------------------------------
+			c     = spm_input('Duty cycle (scans)','!+1');
+			D     = [];
+			for i = 1:h
+				d    = sin(i*2*pi*[1:k]/c);
+				D    = [D d'];
+				d    = cos(i*2*pi*[1:k]/c);
+				D    = [D d'];
+			end
+
+			% do not convolve with HRF
+			%---------------------------------------------------
+			HRF   = 0;
+		end
+
+		% add labels
+		%-----------------------------------------------------------
+	     	for i = 1:size(D,2)
+			str    = sprintf('Sess %0.0f harmonic',v);
+			Cnames = str2mat(Cnames,str);
+		end
+
+	elseif Cov == 6
+
+		% if replications assume previous parameters
+		%-----------------------------------------------------------
+		if (v == 1) | ~REP
+
+			% get covariates of interest
+			%---------------------------------------------------
 			c     = spm_input('number of covariates','!+1');
 			D     = [];
 			while size(D,2) < c
@@ -514,7 +604,10 @@ else
 				end	
 			end
 
-		HRF   = spm_input('convolve with hrf','!+0','b','no|yes',[0 1]);
+			% convolve with HRF?
+			%---------------------------------------------------
+			HRF   = spm_input('convolve with hrf',...
+					  '!+0','b','no|yes',[0 1]);
 		end
 
 		% add labels
@@ -523,6 +616,8 @@ else
 			str    = sprintf('Sess %0.0f Cond %0.0f',v,i);
 			Cnames = str2mat(Cnames,str);
 		end
+
+
 
 	else % build response partition
 	%-------------------------------------------------------------------
@@ -684,6 +779,11 @@ end
 %---------------------------------------------------------------------------
 for v = 1:nsess
 
+
+	% reset name
+	%-------------------------------------------------------------------
+	set(Finter,'Name',sprintf('Session or subject %0.0f',v));
+
 	% number of scans
 	%-------------------------------------------------------------------
 	k     = nscan(v);
@@ -785,7 +885,7 @@ drawnow
 
 % time x condition interactions - over all sessions
 %---------------------------------------------------------------------------
-TxC = spm_input('time x response interactions','!+1','no|yes',[0 1]);
+TxC = spm_input('time x response interactions','!+1','yes|no',[1 0]);
 
 if TxC
 
@@ -900,7 +1000,11 @@ end
 
 % get contrasts or linear compound for parameters of interest - C
 %---------------------------------------------------------------------------
-t     = spm_input('# of contrasts','!+1');
+if ~ER
+	t   = spm_input('# of contrasts','!+1');
+else
+	t   = 0;
+end
 
 while size(CONTRAST,1) ~= t
 	d   = [];
