@@ -52,15 +52,20 @@ function [P] = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
 %
 % CallBacks are handled by spm_get_cb, which requires spm_list_files.c
 % (SPM94 routines spm_ls and spm_all are now obsolete.)
-%-----------------------------------------------------------------------------
+%
+%__________________________________________________________________________
+% %W% Andrew Holmes, Karl Friston %E%
+
+
+% Version history
 % - Karl Friston  - V1 - ??/94
 % - Andrew Holmes - V2 - 02/95 - Used Tag objects, no globals.
 %                                Directory history, editing, command line &
 %                                and unselection of filenames. Doesn't cd!
 %                                Negative n for directory selection.
-% - %W% %E%
 
-%-Condition arguments
+%
+-Condition arguments
 %-----------------------------------------------------------------------------
 if nargin<6 CmdLine=[]; end
 if nargin<5 NewWDir=''; end
