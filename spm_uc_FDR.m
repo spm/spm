@@ -10,7 +10,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %		'X' - Chi squared field
 %		'F' - F - field
 %		'P' - P - value
-% n     - number of component SPMs in conjunction
+% n     - Conjunction number
 % Vs    - Mapped statistic image(s)
 %          -or-
 %         Vector of sorted p-values, p1<p2<... (saves i/o w/ repeated calls)
@@ -88,12 +88,8 @@ cV = 1;
 % Load, mask & sort statistic image (if needed)
 %-----------------------------------------------------------------------
 if isstruct(Vs)
-  if (n ~= length(Vs))
-    error(sprintf('n & number of mapped images doesn''t match (%d,%d)',...
-		  n,length(Vs)));
-  end
   Ts = spm_read_vols(Vs(1));
-  for i = 2:n
+  for i = 2:length(Vs)
     Ts = min(Ts,spm_read_vols(Vs(i)));
   end
   if ~isempty(Vm)
