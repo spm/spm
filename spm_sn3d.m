@@ -1,8 +1,7 @@
 function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
-% Perform 3D stereotactic Normalization
+% Perform 3D spatial normalization
 %
-% FORMAT spm_sn3d
-% With no arguments, spm_sn3d acts as its own user interface.
+% --- The Prompts Explained ---
 %
 % 'Which option?'
 % 	'Determine Parameters Only'
@@ -83,14 +82,13 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 %
 %
 % '# Nonlinear Iterations?'
-% Try 5 iterations.
+% Try about 12 iterations.
 %
 % '# Basis Functions (x y z)'
 % The deformation field is computed from a linear combination of (3D)
 % basis images. The basis images used are those which make up the
 % lowest frequency components of a 3D discrete cosine transform.
 % What is entered here is the dimensions of this transform.
-% Try 4 5 4.
 %
 % Options for Write Normalised:
 % 'select Normalisation Parameter Set'
@@ -104,11 +102,10 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 % 	'Bilinear Interpolation'
 % 		- OK for PET, or realigned fMRI.
 %
-%	With sinc interpolation, a sinc function with a Hanning filter
-% 	envelope is used to resample the data.
-% 	'Rough   Sinc Interpolation'            -  7x 7x 7 kernel.
-% 	'Medium  Sinc Interpolation (slow)'     - 11x11x11 kernel.
-% 	'Better Sinc Interpolation (very slow)' - 17x17x17 kernel.
+% 	'Sinc Interpolation'
+%		- With sinc interpolation, a sinc function with a
+%		  Hanning filter envelope is used to resample the data
+%		  (11x11x11 kernel).
 %
 % 'Bounding Box?'
 % The bounding box (in mm) of the volume which is to be written
@@ -117,6 +114,38 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 % 'Voxel Sizes '
 % The voxel sizes (x, y & z, in mm) of the written normalised images.
 %
+%_______________________________________________________________________
+%
+% The routine attempts to match the input image to an
+% optimum linear combination of template images. This
+% provides additional flexibility in the type of input images
+% which can be used. Typical template images consist of:
+%     gray matter
+%     white matter
+%     scalp
+%     striatum
+%     ventricles
+%     etc...
+%
+% First of all, an affine normalization stage is used to estimate
+% the overall size, orientation etc of the image.
+% Following this, an elastic deformation is computed which
+% will match the image to the template.
+% The deformation is in 3-dimensions, and is constrained
+% to consist of a linear combination of basis functions.
+% The basis functions chosen were the lowest frequency
+% components of a 3 dimensional discrete cosine transform.
+%
+% The parameters for the affine transformation, and 3D
+% basis function transformation are saved.
+%
+% for a complete description of this approach see Friston et al (1994)
+% ref: Friston et al (1994) The spatial registration and normalization
+% of images HBM 0:00-00
+%_______________________________________________________________________
+% %W% John Ashburner MRCCU/FIL %E%
+
+% Programmers notes
 %-----------------------------------------------------------------------
 %
 % FORMAT spm_sn3d('Defaults')
@@ -145,34 +174,6 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 %             starting estimates.
 %             - ones for parameters to be fitted.
 %             - zeros for fixed parameters.
-% The routine attempts to match the input image to an
-% optimum linear combination of template images. This
-% provides additional flexibility in the type of input images
-% which can be used. Typical template images consist of:
-%     gray matter
-%     white matter
-%     scalp
-%     striatum
-%     ventricles
-%     etc...
-%
-% First of all, an affine normalization stage is used to estimate
-% the overall size, orientation etc of the image.
-% Following this, an elastic deformation is computed which
-% will match the image to the template.
-% The deformation is in 3-dimensions, and is constrained
-% to consist of a linear combination of basis functions.
-% The basis functions chosen were the lowest frequency
-% components of a 3 dimensional discrete cosine transform.
-%
-% The parameters for the affine transformation, and 3D
-% basis function transformation are saved.
-%
-% for a complete description of this approach see Friston et al (1994)
-% ref: Friston et al (1994) The spatial registration and normalization
-% of images HBM 0:00-00
-
-% %W% John Ashburner MRCCU/FIL %E%
 
 
 global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_NAP sptl_Ornt sptl_CO sptl_NItr;
@@ -194,14 +195,22 @@ if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
 
 	spm_figure('Clear','Interactive');
+	set(spm_figure('FindWin','Interactive'),'Name','Spatial Normalisation')
+	spm_help('!ContextHelp','spm_sn3d.m');
+
 	pos = 1;
 
 	%-----------------------------------------------------------------------
 	a1 = spm_input('Which option?',pos,'m',...
 		'Determine Parameters Only|Write Normalised Only|Determine Parameters & Write Normalised',...
-		[1 2 3]);
+		[1 2 3],3);
 	pos = pos + 1;
-	nsubjects = spm_input('# Subjects',pos);
+	nsubjects = spm_input('# Subjects',pos,'e',1);
+	if (nsubjects < 1)
+		spm_figure('Clear','Interactive');
+		return;
+	end
+
 	pos = pos + 1;
 
 	% Select images..
@@ -245,7 +254,7 @@ if (nargin == 0)
 			% Customise the normalisation
 			%-----------------------------------------------------------------------
 			a2  = spm_input('Normalisation Type?', pos, 'm',...
-				'Default Normalisation|Custom Affine Only|Custom Affine & Nonlinear', [0 1 2]);
+				'Default Normalisation|Custom Affine Only|Custom Affine & Nonlinear', [0 1 2],1);
 			pos = pos + 1;
 			if (a2 == 0)
 				nap        = sptl_NAP;
@@ -257,32 +266,52 @@ if (nargin == 0)
 			% Number of affine parameters
 			%-----------------------------------------------------------------------
 			if (a2 == 1 | a2 == 2)
+				tmp2 = [2 3 5 6 8 9 11 12];
+				tmp = find(tmp2 == sptl_NAP);
+				if isempty(tmp) tmp = length(tmp2); end;
 				nap = spm_input('# Affine Params?',pos,'m',[
 					' 2 params (X & Y Translations)|'...
-				' 3 params (Translations)|'...
-				' 5 params (Translations + Pitch & Roll)|'...
-				' 6 params (Rigid Body)|'...
-				' 8 params (Rigid Body + X & Y Zoom)|'...
-				' 9 params (Rigid Body + Zooms)|'...
-				'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
-				'12 params (Rigid Body,  Zooms & Affine)'
-				],[2 3 5 6 8 9 11 12]);
+					' 3 params (Translations)|'...
+					' 5 params (Translations + Pitch & Roll)|'...
+					' 6 params (Rigid Body)|'...
+					' 8 params (Rigid Body + X & Y Zoom)|'...
+					' 9 params (Rigid Body + Zooms)|'...
+					'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
+					'12 params (Rigid Body,  Zooms & Affine)'
+					],tmp2,tmp);
 				pos = pos + 1;
 			end
 
 			if (a2 == 2)
+				tmp2 = [1 3 5 8 12 16];
+				tmp = find(iterations == tmp2);
+				if isempty(tmp) tmp = length(tmp2); end
+
 				% Nonlinear options - # iterations
 				%-----------------------------------------------------------------------
-				iterations = spm_input('# Nonlinear Iterations?',pos,'m','1  nonlinear iteration |3  nonlinear iterations|5  nonlinear iterations|8  nonlinear iterations|12 nonlinear iterations|16 nonlinear iterations',[1 3 5 8 12 16]);
+				tmp2 = [1 3 5 8 12 16];
+				tmp = find(tmp2 == sptl_NItr);
+				if isempty(tmp) tmp = length(tmp2); end;
+				iterations = spm_input('# Nonlinear Iterations?',pos,'m','1  nonlinear iteration |3  nonlinear iterations|5  nonlinear iterations|8  nonlinear iterations|12 nonlinear iterations|16 nonlinear iterations',tmp2, tmp);
 				pos = pos + 1;
 
 				% Nonlinear options - # basis functions
 				%-----------------------------------------------------------------------
 				nbasis = [];
-				nb = spm_input('# Nonlinear Basis Functions?',pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0]);
+				if (prod(size(sptl_NBss)) == 3)
+					tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
+					if isempty(tmp)
+						tmp = size(bases,1)+1;
+					end
+				else
+					tmp = size(bases,1)+2;
+				end
+
+				nb = spm_input('# Nonlinear Basis Functions?',pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
 				if (nb>0), nbasis = bases(nb,:); end
 				while prod(size(nbasis)) ~= 3 | any(nbasis < 1) | prod(nbasis) > 1000
-					nbasis = spm_input('# Basis Functions (x y z)',pos);
+					tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
+					nbasis = spm_input('# Basis Functions (x y z)',pos, 'e', tmp);
 					nbasis = nbasis(:)';
 				end
 				pos = pos+1;
@@ -332,15 +361,14 @@ if (nargin == 0)
 		% Get interpolation method (for writing images)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?',pos,'m',['Nearest Neighbour|Bilinear Interpolation|'...
-			'Rough   Sinc Interpolation|Medium  Sinc Interpolation (slow)|'...
-			'Better Sinc Interpolation (very slow)'],[0 1 3 5 8]);
+			'Sinc Interpolation'],[0 1 5], 3);
 		pos = pos + 1;
 
 
 		% Get bounding box.
 		%-----------------------------------------------------------------------
 		if prod(size(sptl_BB)) ~= 6
-			ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0]);
+			ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1);
 			if (ans>0)
 				pos = pos + 1;
 				bb=reshape(bboxes(ans,:),2,3);
@@ -350,7 +378,8 @@ if (nargin == 0)
 				for d=1:3
 					bbx = [];
 					while size(bbx,1) ~= 2
-						bbx = spm_input(['Bounding Box ' directions(d) ], pos);
+						str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
+						bbx = spm_input(['Bounding Box ' directions(d) ], pos, 'e', str);
 						bbx = bbx(:);
 					end
 					bb(:,d) = bbx;
@@ -365,13 +394,13 @@ if (nargin == 0)
 		% Get output voxel sizes.
 		%-----------------------------------------------------------------------
 		if prod(size(sptl_Vx)) ~= 3
-			ans = spm_input('Voxel Sizes?',pos,'m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0]);
+			ans = spm_input('Voxel Sizes?',pos,'m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3);
 			if (ans>0)
 				Vox = voxdims(ans,:);
 			else
 				Vox = [];
 				while size(Vox,2) ~= 3
-					Vox = spm_input('Voxel Sizes ',pos);
+					Vox = spm_input('Voxel Sizes ',pos, 'e', '2 2 2');
 					Vox = Vox(:)';
 				end
 			end
@@ -382,7 +411,7 @@ if (nargin == 0)
 
 	else
 		bb     = reshape(bboxes(1,:),2,3);
-		Vox    = [2 2 4];
+		Vox    = [4 4 4];
 	end
 
 
@@ -419,20 +448,20 @@ elseif strcmp(P,'Defaults')
 	% Starting estimates for image position
 	%-----------------------------------------------------------------------
 	if sptl_Ornt == 0
-		tmp1 = 'runtime';
+		tmp1 = 4;
 	elseif sum(sptl_Ornt==[0 0 0 0 0 0  1 1 1 0 0 0])==12
-		tmp1 = 'R is R';
+		tmp1 = 1;
 	elseif sum(sptl_Ornt==[0 0 0 0 0 0 -1 1 1 0 0 0])==12
-		tmp1 = 'L is R';
+		tmp1 = 2;
 	else
-		tmp1 = 'custom';
+		tmp1 = 3;
 	end
-	tmp = spm_input(['Affine Starting Estimates (' tmp1 ')?'],pos,'m',...
+	tmp = spm_input(['Affine Starting Estimates?'],pos,'m',...
 		['Neurological Convention (R is R)|'...
 		 'Radiological Convention (L is R)|'...
 		 'Custom Affine Starting Estimates|'...
 		 'Runtime option'],...
-		[0 1 2 -1]);
+		[0 1 2 -1], tmp1);
 	pos = pos + 1;
 
 	if (tmp == 0)
@@ -445,11 +474,10 @@ elseif strcmp(P,'Defaults')
 		if prod(size(sptl_Ornt)) > 12 | prod(size(sptl_Ornt)) < 8
 			str = '[0 0 0 0 0 0  1 1 1 0 0 0]';
 		else
-			str = ['[' num2str(sptl_Ornt(1))];
+			str = [num2str(sptl_Ornt(1))];
 			for i=2:prod(size(sptl_Ornt))
-				str = [str ' ' num2str(sptl_Ornt(i))]
+				str = [str ' ' num2str(sptl_Ornt(i))];
 			end
-			str = [str ']']
 		end
 		while prod(size(se)) > 12 | prod(size(se)) < 8
 			se = spm_input('Enter Affine Starting Estimates:',pos, 'e', str);
@@ -465,16 +493,19 @@ elseif strcmp(P,'Defaults')
 
 	% Give option to customise the normalisation
 	%-----------------------------------------------------------------------
-	tmp = 'allow';
-	if sptl_CO == 1, tmp = 'disallow'; end;
-	sptl_CO  = spm_input(['Allow customised normalisation (' tmp ')?'], pos, 'm',...
-		'   Allow customised|Disallow Customised',[-1 1]);
+	tmp = 1;
+	if sptl_CO == 1, tmp = 2; end;
+	sptl_CO  = spm_input(['Allow customised normalisation?'], pos, 'm',...
+		'   Allow customised|Disallow Customised',[-1 1], tmp);
 	pos = pos + 1;
 
 
 	% Get number of affine parameters
 	%-----------------------------------------------------------------------
-	sptl_NAP = spm_input(['# Affine Params (' num2str(sptl_NAP) ')?'],pos,'m',[
+	tmp2 = [2 3 5 6 8 9 11 12];
+	tmp = find(tmp2 == sptl_NAP);
+	if isempty(tmp) tmp = length(tmp2); end;
+	sptl_NAP = spm_input(['# Affine Params?'],pos,'m',[
 		' 2 params (X & Y Translations)|'...
 		' 3 params (Translations)|'...
 		' 5 params (Translations + Pitch & Roll)|'...
@@ -483,21 +514,33 @@ elseif strcmp(P,'Defaults')
 		' 9 params (Rigid Body + Zooms)|'...
 		'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
 		'12 params (Rigid Body,  Zooms & Affine)'
-		],[2 3 5 6 8 9 11 12]);
+		],tmp2, tmp);
 	pos = pos + 1;
 
 
 	% Get number of nonlinear basis functions
 	%-----------------------------------------------------------------------
-	nb = spm_input(['# Nonlinear Basis Functions (' num2str(sptl_NBss(1)) 'x'  num2str(sptl_NBss(2)) 'x'  num2str(sptl_NBss(3)) ')?'],pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0]);
+	if (prod(size(sptl_NBss)) == 3)
+		tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
+		if isempty(tmp)
+			tmp = size(bases,1)+1;
+		end
+	else
+		tmp = size(bases,1)+2;
+	end
+
+	nb = spm_input(['# Nonlinear Basis Functions?'],pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
 	if (nb>0)
 		sptl_NBss = bases(nb,:);
 	elseif nb == 0
-		sptl_NBss = [];
-		while prod(size(sptl_NBss)) ~= 3 | any(sptl_NBss < 0) | prod(sptl_NBss) > 1000
-			sptl_NBss = spm_input('# Basis Functions (x y z)',pos);
-			sptl_NBss = sptl_NBss(:)';
+		if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
+		NBss = [];
+		while prod(size(NBss)) ~= 3 | any(NBss < 0) | prod(NBss) > 1000
+			tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
+			NBss = spm_input('# Basis Functions (x y z)',pos, 'e', tmp);
+			NBss = NBss(:)';
 		end
+		sptl_NBss = NBss(:)';
 	else
 		sptl_NBss = 0;
 	end
@@ -506,11 +549,14 @@ elseif strcmp(P,'Defaults')
 
 	% Get number of nonlinear iterations
 	%-----------------------------------------------------------------------
-	if prod(sptl_NBss) > 0
-		sptl_NItr = spm_input(['# Nonlinear Iterations (' num2str(sptl_NItr) ')?'],pos,'m',...
+	if prod(sptl_NItr) > 0
+		tmp2 = [1 3 5 8 12 16];
+		tmp = find(tmp2 == sptl_NItr);
+		if isempty(tmp) tmp = length(tmp2); end;
+		sptl_NItr = spm_input(['# Nonlinear Iterations?'],pos,'m',...
 			['1  nonlinear iteration |3  nonlinear iterations'...
 			'|5  nonlinear iterations|8  nonlinear iterations'...
-			'|12 nonlinear iterations|16 nonlinear iterations'],[1 3 5 8 12 16]);
+			'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
 		pos = pos + 1;
 	else
 		sptl_NItr = 0;
@@ -519,17 +565,29 @@ elseif strcmp(P,'Defaults')
 
 	% Get default bounding box
 	%-----------------------------------------------------------------------
-	ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1]);
+	if prod(size(sptl_BB)) == 6
+		tmp = find(	sptl_BB(1) == bboxes(:,1) & sptl_BB(2) == bboxes(:,2) & ...
+				sptl_BB(3) == bboxes(:,3) & sptl_BB(4) == bboxes(:,4) & ...
+				sptl_BB(5) == bboxes(:,5) & sptl_BB(6) == bboxes(:,6));
+		if isempty(tmp) tmp = size(bboxes,1)+1; end;
+	else
+		tmp = size(bboxes,1)+2;
+		sptl_BB = reshape(bboxes(1,:),2,3);
+	end
+
+	ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
 	if (ans>0)
 		pos = pos + 1;
 		sptl_BB=reshape(bboxes(ans,:),2,3);
 	elseif (ans == 0)
+		if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
 		directions = 'XYZ';
 		bb = zeros(2,1);
 		for d=1:3
 			bbx = [];
 			while size(bbx,1) ~= 2
-				bbx = spm_input(['Bounding Box ' directions(d) ], pos);
+				str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
+				bbx = spm_input(['Bounding Box ' directions(d) ], pos, 'e', str);
 				bbx = bbx(:);
 			end
 			sptl_BB(:,d) = bbx;
@@ -543,22 +601,26 @@ elseif strcmp(P,'Defaults')
 
 	% Get default voxel sizes
 	%-----------------------------------------------------------------------
-	if prod(size(sptl_Vx))~=3
-		str = 'runtime';
+	if (prod(size(sptl_Vx)) == 3)
+		tmp = find(voxdims(:,1) == sptl_Vx(1) & voxdims(:,2) == sptl_Vx(2) & voxdims(:,3) == sptl_Vx(3));
+		if isempty(tmp)
+			tmp = size(voxdims,1)+1;
+		end
 	else
-		str = [num2str(sptl_Vx(1)) ' '  num2str(sptl_Vx(2)) ' '  num2str(sptl_Vx(3))];
+		tmp = size(voxdims,1)+2;
 	end
 	ans = spm_input(...
-		['Voxel Sizes (' str ')?'], pos,'m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1]);
+		['Voxel Sizes?'], pos,'m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
 
 	if (ans>0)
 		sptl_Vx = voxdims(ans,:);
 	elseif (ans == 0)
 		Vox = [];
+		if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
 		while size(Vox,2) ~= 3
-			Vox = spm_input('Voxel Sizes ',pos);
-			sptl_Vx = Vox(:)';
+			Vox = spm_input('Voxel Sizes ',pos, 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)));
 		end
+		sptl_Vx = Vox(:)';
 	else
 		sptl_Vx = 0;
 	end

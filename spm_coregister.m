@@ -1,37 +1,61 @@
 function spm_coregister(PGF, PFF, PGG, PFG, others)
 % Between and within mode image coregistration.
 %
-% FORMAT spm_coregister
-%
-% OR     spm_coregister(PGF, PFF, PGG, PFG, others)
-% 		PGF    - target image (the image to act as template).
-% 		PFF    - object image (the image to reposition).
-% 		PGG    - image to affine normalise target image to.
-% 		PFG    - image to affine normalise object image to.
-% 		others - other images to apply same transformation to.
 %____________________________________________________________________________
 %
-% Without any arguments, spm_coregister acts as its own user interface.
+% The TARGET image is the image to which the OBJECT image is realigned.
+% If there are any OTHER images, then the same transformations are applied to
+% these images as are applied to the OBJECT image.
+%
+% eg 1) to realign a structural MR image to a sequence of PET images:
+%  TARGET: meanPET1.img
+%  OBJECT: MRI.img
+%   OTHER: -
+%
+% eg 2) to realign a sequence of PET images to a structural MR image:
+%  TARGET: MRI.img
+%  OBJECT: meanPET1.img
+%   OTHER: PET1.img PET2.img PET3.img etc...
+%____________________________________________________________________________
 %
 % The program has two modes of operation:
 % 1) If the modalities of the target image(s) and the object image(s) are
 %    the same, then the program performs within mode coregistration by
-%    minimising the sum of squares difference between the PGF and PFF.
+%    minimising the sum of squares difference between the target and object.
 %
 % 2) If the modalities differ, then the following is performed:
-%    i)   Affine normalisation of PGF to PGG, and affine normalisation of
-%         PFF to PFG. Only the parameters which describe rigid body
-%         transformations are allowed to differ in these normalisations.
-%         This produces a rough coregistration.
+%    i)   Affine normalisation of object to a template of the same modality,
+%         and affine normalisation of the target to a template of the same
+%         modality.  Only the parameters which describe rigid body
+%         transformations are allowed to differ between these normalisations.
+%         This produces a rough coregistration of the images.
 %    ii)  The images are partitioned into gray matter, white matter, csf and
-%         (possibly) scalp using spm_segment.m
-%    iii) These partitions are then registered together simultaneously.
+%         (possibly) scalp using spm_segment.m.  The mappings from images to
+%         templates derived from the previous step are used to map from the
+%         images to a set of a-priori probability images of GM, WM and CSF.
+%    iii) These partitions are then registered together simultaneously, using
+%         the results of step i as a starting estimate.
 %
 % Realignment parameters are stored in the ".mat" files of the "object" and
 % the "other" images.
 %____________________________________________________________________________
 % %W% John Ashburner FIL %E%
 
+% programers notes
+%
+% FORMAT spm_coregister(PGF, PFF, PGG, PFG, others)
+% 		PGF    - target image (the image to act as template).
+% 		PFF    - object image (the image to reposition).
+% 		PGG    - image to affine normalise target image to.
+% 		PFG    - image to affine normalise object image to.
+% 		others - other images to apply same transformation to.
+%
+% FORMAT spm_coregister(PGF, PFF)
+% 		PGF    - target image.
+% 		PFF    - object image.
+%
+% This form simply does a graphic display of how well the coregistration has
+% worked.
 
 global SWD sptl_WhchPtn
 if (nargin == 0)
@@ -40,33 +64,39 @@ if (nargin == 0)
 
 	spm_figure('Clear','Interactive');
 	set(spm_figure('FindWin','Interactive'),'Name','Coregistration');
+	spm_help('!ContextHelp','spm_coregister.m');
 
 	% get number of subjects
-	nsubjects = spm_input('number of subjects',1);
+	nsubjects = spm_input('number of subjects',1, 'e', 1);
+	if (nsubjects < 1)
+		spm_figure('Clear','Interactive');
+		return;
+	end
 
 	if (sptl_WhchPtn ~= 1)
 		p = spm_input('Which option?',2,'m',...
 			'Coregister only|Reslice Only|Coregister & Reslice',...
-			[1 2 3]);
+			[1 2 3],3);
 	else
 		p = 3;
 	end
 
 	if (p == 1 | p == 3)
-		templates = str2mat([SWD '/templates/PET.img'], [SWD '/templates/T1.img'], [SWD '/templates/T2.img']);
+		templates = str2mat([SWD '/templates/PET.img'], ...
+			[SWD '/templates/T1.img'], [SWD '/templates/T2.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
 		respt = spm_input('Modality of first target image?',3,'m',...
 			'target - PET|target - T1 MRI|target - T2 MRI',...
-			[1 2 3]);
+			[1 2 3],1);
 		PGG = deblank(templates(respt,:));
 
 		% Get modality of object
 		%-----------------------------------------------------------------------
 		respo = spm_input('Modality of first object image?',4,'m',...
 			'object - PET|object - T1 MRI|object - T2 MRI',...
-			[1 2 3]);
+			[1 2 3],2);
 		PFG = deblank(templates(respo,:));
 
 		if (respt == respo)
@@ -144,6 +174,55 @@ if (nargin == 0)
 		spm_figure('Clear','Interactive'); drawnow;
 	end
 	return;
+elseif nargin == 2
+
+	% Do the graphics
+	%=======================================================================
+
+	fig = figure(spm_figure('FindWin','Graphics'));
+	spm_figure('Clear','Graphics');
+
+	axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
+	text(0.5,0.90, 'Coregistration','FontSize',16,...
+		'FontWeight','Bold','HorizontalAlignment','center');
+
+
+	VF = spm_map(deblank(PFF(1,:)));
+	MF = spm_get_space(deblank(PFF(1,:)));
+	VG = spm_map(deblank(PGF(1,:)));
+	MG = spm_get_space(deblank(PGF(1,:)));
+
+	Q = MG\MF;
+	text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
+	text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
+	text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
+	text(0.25,0.65, spm_str_manip(PFF,'k22'),...
+		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+	text(0.75,0.65, spm_str_manip(PGF,'k22'),...
+		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+
+	%-----------------------------------------------------------------------
+	for i=1:3
+		M = spm_matrix([0 0 i*VF(3)/4]);
+		axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
+		img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
+		hold on;
+		imagesc(img1');
+		contour(img1',3,'r');
+		axis('off','image');
+
+		axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
+		img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
+		hold on;
+		imagesc(img2');
+		contour(img1',3,'r');
+		axis('off','image');
+	end
+	spm_unmap_vol(VG);
+	spm_unmap_vol(VF);
+	drawnow;
+
+	return
 end
 
 
@@ -199,21 +278,26 @@ else 	% Different modalities
 	% Rough coregistration
 	%-----------------------------------------------------------------------
 	disp('Smoothing');
-	spm_smooth(PGF(1,:),'./spm_seg_tmpG.img',8);
-	spm_smooth(PFF(1,:),'./spm_seg_tmpF.img',8);
+	spm_smooth(PGF(1,:),'./spm_coreg_tmpG.img',8);
+	spm_smooth(PFF(1,:),'./spm_coreg_tmpF.img',8);
 
-	PPF = str2mat('./spm_seg_tmpG.img', './spm_seg_tmpF.img');
+	PPF = str2mat('./spm_coreg_tmpG.img', './spm_coreg_tmpF.img');
 	PPG = str2mat(PGG(1,:), PFG(1,:));
 
 	disp('Rough coregistration');
 	global sptl_Ornt;
+	if prod(size(sptl_Ornt)) == 12
+		params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1]';
+	else
+		params = [zeros(1,12) 1 1 1 0 0 0  1 1]';
+	end
 	params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1]';
 	params = spm_affsub3('register1', PPG, PPF, 1, 12, params);
 	params = spm_affsub3('register1', PPG, PPF, 1, 8 , params);
 	params = spm_affsub3('register1', PPG, PPF, 1, 4 , params);
 
-	spm_unlink ./spm_seg_tmpG.img ./spm_seg_tmpG.hdr ./spm_seg_tmpG.mat
-	spm_unlink ./spm_seg_tmpF.img ./spm_seg_tmpF.hdr ./spm_seg_tmpF.mat
+	spm_unlink ./spm_coreg_tmpG.img ./spm_coreg_tmpG.hdr ./spm_coreg_tmpG.mat
+	spm_unlink ./spm_coreg_tmpF.img ./spm_coreg_tmpF.hdr ./spm_coreg_tmpF.mat
 
 	MM = spm_matrix(params([1:6 13:18]))\spm_matrix(params([7:12 13:18]));
 
@@ -233,7 +317,7 @@ else 	% Different modalities
 		PPG = [];
 		for i=1:3
 			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg' num2str(i)];
+			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
 			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
 			PPG = str2mat(PPG, [iname2 '.img']);
@@ -253,7 +337,7 @@ else 	% Different modalities
 		PPF = [];
 		for i=1:3
 			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg' num2str(i)];
+			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
 			spm_get_space(deblank([iname2 '.img']), MM*spm_get_space([iname2 '.img']));
 			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
@@ -272,10 +356,10 @@ else 	% Different modalities
 		% Delete temporary files
 		%-----------------------------------------------------------------------
 		for i=1:3
-			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg' num2str(i)];
+			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp' num2str(i)];
 			spm_unlink([iname2 '.img'], [iname2 '.hdr'], [iname2 '.mat']);
 
-			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg' num2str(i)];
+			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp' num2str(i)];
 			spm_unlink([iname2 '.img'], [iname2 '.hdr'], [iname2 '.mat']);
 		end
 	end
@@ -298,53 +382,8 @@ for i=1:size(Images,1)
 	spm_get_space(deblank(Images(i,:)), MM*M);
 end
 
-% Do the graphics
-%=======================================================================
-
-fig = figure(spm_figure('FindWin','Graphics'));
-spm_figure('Clear','Graphics');
-
-axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
-text(0.5,0.90, 'Coregistration','FontSize',16,...
-	'FontWeight','Bold','HorizontalAlignment','center');
-
-
-VF = spm_map(deblank(PFF(1,:)));
-MF = spm_get_space(deblank(PFF(1,:)));
-VG = spm_map(deblank(PGF(1,:)));
-MG = spm_get_space(deblank(PGF(1,:)));
-
-Q = MG\MF;
-text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
-text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
-text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
-text(0.25,0.65, spm_str_manip(PFF,'k22'),...
-	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
-text(0.75,0.65, spm_str_manip(PGF,'k22'),...
-	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
-
-%-----------------------------------------------------------------------
-for i=1:3
-	M = spm_matrix([0 0 i*VF(3)/4]);
-	axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
-	img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
-	hold on;
-	imagesc(img1');
-	contour(img1',3,'r');
-	axis('off','image');
-
-	axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
-	img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
-	hold on;
-	imagesc(img2');
-	contour(img1',3,'r');
-	axis('off','image');
-end
-spm_unmap_vol(VG);
-spm_unmap_vol(VF);
-
+spm_coregister(PGF, PFF);
 spm_print;
-drawnow;
 
 disp('Done');
 spm_figure('Clear','Interactive');

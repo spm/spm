@@ -1,7 +1,7 @@
 function spm_segment(PF,PG,opts)
 % Segment an MR image into Gray, White, CSF & other.
 %
-% FORMAT spm_segment
+% --- The Prompts Explained ---
 %
 % 'select MRI(s) for subject '
 % If more than one volume is specified (eg T1 & T2), then they must be
@@ -10,20 +10,10 @@ function spm_segment(PF,PG,opts)
 % 'select Template(s) '
 % If the images have been spatially normalised, then there is no need to
 % select any images. Otherwise, select one or more template images which
-% will be used for affine normalisation of the images.
+% will be used for affine normalisation of the images. Note that the
+% affine transform is only determined from the first image specified
+% for segmentation. 
 %
-%_______________________________________________________________________
-%
-% FORMAT spm_segment(PF,PG,opts)
-% PF   - name(s) of image(s) to segment (must have same dimensions).
-% PG   - name(s) of template image(s) for realignment.
-%      - or a 4x4 transformation matrix which maps from the image to
-%        the set of templates.
-% opts - options string.
-%        - 'p' - produce a 'pseudo-pet' image.
-%        - 'n' - dont produce the _seg images.
-%        - 'r' - write reduced size image (2mm voxels).
-%        - 't' - write images called *_seg_tmp* rather than *_seg*
 %_______________________________________________________________________
 %
 %                      The algorithm is three step:
@@ -61,6 +51,19 @@ function spm_segment(PF,PG,opts)
 %_______________________________________________________________________
 % %W% (c) John Ashburner %E%
 
+% Programmers notes
+%
+% FORMAT spm_segment(PF,PG,opts)
+% PF   - name(s) of image(s) to segment (must have same dimensions).
+% PG   - name(s) of template image(s) for realignment.
+%      - or a 4x4 transformation matrix which maps from the image to
+%        the set of templates.
+% opts - options string.
+%        - 'p' - produce a 'pseudo-pet' image.
+%        - 'n' - dont produce the _seg images.
+%        - 'r' - write reduced size image (2mm voxels).
+%        - 't' - write images called *_seg_tmp* rather than *_seg*
+
 debug = 0;
 
 if nargin<3
@@ -75,8 +78,16 @@ DIR1   = [SWD '/templates/'];
 DIR2   = [SWD '/apriori/'];
 
 if (nargin==0)
-	n     = spm_input('number of subjects',1);
-	if (n < 1) return; end
+	spm_figure('Clear','Interactive');
+	set(spm_figure('FindWin','Interactive'),'Name','Segmentation')
+	spm_help('!ContextHelp','spm_segment.m');
+
+	n     = spm_input('number of subjects',1,'e',1);
+	if (n < 1)
+		spm_figure('Clear','Interactive');
+		return;
+	end
+
 
 	for i = 1:n
 		PF = spm_get(Inf,'.img',...
@@ -88,23 +99,34 @@ if (nargin==0)
 	tmp = spm_input('Are they spatially normalised?', 2, 'y/n');
 
 	if (tmp == 'n')
-		% Get template(s)
-		ok = 0;
-		while (~ok)
-			PG = spm_get(Inf,'.img',['Select Template(s) for normalisation'],...
-				'', DIR1);
-			if (size(PG,1)>0)
-				dims = zeros(size(PG,1),9);
-				for i=1:size(PG,1)
-					[dim vox dummy dummy dummy origin dummy]...
-						 = spm_hread(deblank(PG(i,:)));
-					dims(i,:) = [dim vox origin];
+		% Get template
+		%-----------------------------------------------------------------------
+		templates = str2mat([SWD '/templates/T1.img'], [SWD '/templates/T2.img']);
+
+		% Get modality of target
+		respt = spm_input('Modality of first image?',3,'m',...
+			'modality - T1 MRI|modality - T2 MRI|--other--',...
+			[1 2 0],1);
+		if (respt > 0)
+			PG = deblank(templates(respt,:));
+		else
+			ok = 0;
+			while (~ok)
+				PG = spm_get(Inf,'.img',['Select Template(s) for normalisation'],...
+					'', DIR1);
+				if (size(PG,1)>0)
+					dims = zeros(size(PG,1),9);
+					for i=1:size(PG,1)
+						[dim vox dummy dummy dummy origin dummy]...
+							 = spm_hread(deblank(PG(i,:)));
+						dims(i,:) = [dim vox origin];
+					end
+					if size(dims,1) == 1 | ~any(diff(dims))
+						ok = 1;
+					end
+				else
+					ok = 0;
 				end
-				if size(dims,1) == 1 | ~any(diff(dims))
-					ok = 1;
-				end
-			else
-				ok = 1; % assume already normalised.
 			end
 		end
 	end
@@ -146,7 +168,13 @@ if ~isempty(PG) & isstr(PG)
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
-	prms = [sptl_Ornt ones(1,size(PG,1))]';
+	disp('Determining Affine Mapping');
+	global sptl_Ornt
+	if prod(size(sptl_Ornt)) == 12
+		prms = [sptl_Ornt ones(1,size(PG,1))]';
+	else
+		prms = [0 0 0  0 0 0  1 1 1  0 0 0 ones(1,size(PG,1))]';
+	end
 	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 8);
 	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 4, prms);
 
@@ -208,6 +236,7 @@ mg = zeros(1,n);	% Number of voxels/cluster
 sumbp = zeros(1,n);
 
 spm_progress_bar('Init',niter,'Segmenting','iterations completed');
+disp('Segmenting'); 
 for iter = 1:niter
 	mom0 = zeros(1,n)+eps;
 	mom1 = zeros(m,n);
@@ -378,6 +407,7 @@ end
 % Write the segmented images.
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',dm(3),'Writing Segmented','planes completed');
+disp('Writing Segmented');
 clear pr bp dat
 
 for pp=1:size(planes,2)

@@ -1,18 +1,16 @@
 function spm_realign(P,Flags)
 % within mode image realignment routine
 %
-% FORMAT spm_realign
-% With no arguments, spm_realign acts as a user interface for setting
-% up the realignment parameters.
+% --- The Prompts Explained ---
 %
-%____________________________________________________________________________
-% The prompts are:
 % 'number of subjects'
 % Enter the number of subjects you wish to realign.
 %
 % 'select scans for subject ..'
 % Select the scans you wish to realign. All operations are relative
 % to the first image selected.
+%
+% ......... Note that not all of the following prompts may be used: .........
 %
 % 'Which option?'
 % 	'Coregister only'
@@ -43,23 +41,6 @@ function spm_realign(P,Flags)
 % 	Use a modified sinc interpolation to sample the images.
 % 	This is slower than bilinear interpolation, but produces better
 % 	results. It is especially recommended for fMRI time series.
-%
-% Options for coregistering:
-%
-% 'Coregister 2 with 1 only?'
-% This is for if you wish to register a group of scans, to a scan of the
-% same subject which was performed at a different time.
-% This option allows the user to determine the parameters which would
-% transform image 2 to the space of image 1, and apply same transformation
-% parameters to images 3..n.
-%
-% 'More iterations?'
-% By default, the coregistration uses 5 iterations. This is usually fine for
-% simple subject movement when in the scanner.
-% However, it is sometimes desirable to realign two data sets aquired at
-% different times, with large differences in subject positioning.
-% This option allows for 25 iterations of the algorithm to be performed,
-% which should be enough to correct large displacements.
 %
 %
 % Options for reslicing:
@@ -113,6 +94,21 @@ function spm_realign(P,Flags)
 % 'Mask the images?'       	'YES'
 % 'Adjust for motion in Z?'	'YES' (for fMRI)
 %____________________________________________________________________________
+%
+%
+% Refs:
+%
+% Friston KJ, Ashburner J, Frith CD, Poline J-B, Heather JD & Frackowiak
+% RSJ (1995) Spatial registration and normalization of images Hum. Brain
+% Map. 2:165-189
+%
+% Friston KJ, Williams SR, Howard R Frackowiak RSJ and Turner R (1995)
+% Movement-related effect in fMRI time-series.  Mag. Res. Med. 35:346-355
+%
+%__________________________________________________________________________
+% %W% Karl Friston - modified by John Ashburner %E%
+
+% programmers notes
 %
 % FORMAT spm_realign(P, Flags)
 % P     - matrix of filenames {one string per row}
@@ -177,20 +173,6 @@ function spm_realign(P,Flags)
 %
 %         N - don't reslice any of the images - except possibly create a
 %             mean image.
-%____________________________________________________________________________
-%
-%
-% Refs:
-%
-% Friston KJ, Ashburner J, Frith CD, Poline J-B, Heather JD & Frackowiak
-% RSJ (1995) Spatial registration and normalization of images Hum. Brain
-% Map. 2:165-189
-%
-% Friston KJ, Williams SR, Howard R Frackowiak RSJ and Turner R (1995)
-% Movement-related effect in fMRI time-series.  Mag. Res. Med. 35:346-355
-%
-%__________________________________________________________________________
-% %W% Karl Friston - modified by John Ashburner %E%
 
 
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn
@@ -200,10 +182,16 @@ if (nargin == 0)
 	%_______________________________________________________________________
 	spm_figure('Clear','Interactive');
 	set(spm_figure('FindWin','Interactive'),'Name','Realignment')
+	spm_help('!ContextHelp','spm_realign.m');
 
 	pos = 1;
 
-	n     = spm_input('number of subjects', pos);
+	n     = spm_input('number of subjects', pos, 'e', 1);
+	if (n < 1)
+		spm_figure('Clear','Interactive');
+		return;
+	end
+
 	pos = pos + 1;
 	for i = 1:n
 		P = spm_get(Inf,'.img',...
@@ -218,14 +206,14 @@ if (nargin == 0)
 	else
 		p = spm_input('Which option?', pos, 'm',...
 			'Coregister only|Reslice Only|Coregister & Reslice',...
-			[1 2 3]);
+			[1 2 3],3);
 		pos = pos + 1;
 	end
 
 	if (p == 1 | p == 3) Flags = [Flags 'e']; end
 	if (p == 2 | p == 3) Flags = [Flags 'r']; end
 	p = spm_input('Interpolation Method?',pos,'m',...
-		'Bilinear Interpolation|Sinc Interpolation',[1 2]);
+		'Bilinear Interpolation|Sinc Interpolation',[1 2],2);
 	pos = pos + 1;
 	if (p == 2) Flags = [Flags 'sS']; end
 
@@ -236,7 +224,7 @@ if (nargin == 0)
 			p = spm_input('Create what?',pos,'m',...
 				[' All Images (1..n)| Images 2..n|'...
 				 ' All Images + Mean Image| Mean Image Only'],...
-				[1 2 3 4]);
+				[1 2 3 4],3);
 			pos = pos + 1;
 		end
 		if (p == 2) Flags = [Flags 'n']; end
@@ -282,40 +270,40 @@ elseif nargin == 1 & strcmp(P,'Defaults')
 	% Defaults.
 	%_______________________________________________________________________
 
-	tmp = 'separate';
-	if sptl_WhchPtn == 1, tmp = 'combine'; end;
+	tmp = 1;
+	if sptl_WhchPtn == 1, tmp = 2; end;
 	sptl_WhchPtn = spm_input(...
-		['Coregistration and reslicing (' tmp ')?'],...
+		['Coregistration and reslicing?'],...
 		2, 'm',...
 		['Allow separate coregistration and reslicing|'...
-		 'Combine coregistration and reslicing'], [-1 1]);
+		 'Combine coregistration and reslicing'], [-1 1], tmp);
 
 
-	tmp = 'Full opts';
-	if sptl_MskOptn == 1,
-		tmp = 'all + mean';
+	tmp = 2;
+	if sptl_CrtWht == 1,
+		tmp = 1;
 	end
-	sptl_CrtWht   = spm_input(['Images to create (' tmp ')?'], 3, 'm',...
-		'All Images + Mean Image|Full options', [1 -1]);
+	sptl_CrtWht   = spm_input(['Images to create?'], 3, 'm',...
+		'All Images + Mean Image|Full options', [1 -1], tmp);
 
 
-	tmp = 'optional';
+	tmp = 3;
 	if sptl_DjstFMRI == 1,
-		tmp = 'always';
+		tmp = 1;
 	elseif sptl_DjstFMRI == 0
-		tmp = 'never';
+		tmp = 2;
 	end
-	sptl_DjstFMRI = spm_input(['fMRI adjustment for movement (' tmp ')?'],4,'m',...
+	sptl_DjstFMRI = spm_input(['fMRI adjustment for movement?'],4,'m',...
 			'   Always adjust |    Never adjust|Optional adjust',...
-			[1 0 -1]);
+			[1 0 -1], tmp);
 
 
-	tmp = 'optional';
+	tmp = 2;
 	if sptl_MskOptn == 1,
-		tmp = 'always';
+		tmp = 1;
 	end
-	sptl_MskOptn  = spm_input(['Option to mask images (' tmp ')?'], 5, 'm',...
-			'  Always mask|Optional mask', [1 -1]);
+	sptl_MskOptn  = spm_input(['Option to mask images?'], 5, 'm',...
+			'  Always mask|Optional mask', [1 -1], tmp);
 	return;
 end
 
