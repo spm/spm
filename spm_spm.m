@@ -284,12 +284,17 @@ SCCSid   = '%I%';
 SPMid    = spm('FnBanner',mfilename,SCCSid);
 Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 
-%-Get SPM.mat if necessary
+%-Get SPM.mat[s] if necessary
 %-----------------------------------------------------------------------
-if nargin ==0
-	swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
-	load(fullfile(swd,'SPM.mat'));
-	SPM.swd = swd;
+if nargin == 0
+        P       = spm_get(Inf,'SPM.mat',{'Select SPM.mat[s]'});
+        for i = 1:length(P)
+	        swd     = fileparts(P{i});
+	        load(fullfile(swd,'SPM.mat'));
+	        SPM.swd = swd;
+                spm_spm(SPM);
+        end
+        return
 end
 
 %-Change to SPM.swd if specified
@@ -299,6 +304,7 @@ try
 end
 
 % added to make it work for SPM/ERP 1st level, conventional designs
+%-----------------------------------------------------------------------
 if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
     SPM.Vbeta = SPM.xY.VY;
     SPM.xVol.M = SPM.xY.VY(1).mat;
