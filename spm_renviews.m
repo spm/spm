@@ -16,7 +16,6 @@ function spm_renviews(P0,thresh)
 
 
 V      = spm_map(P0);
-thresh = thresh/V(7);
 v      = V(1:3).*V(4:6);
 M      = spm_get_space(P0);
 shift0 = inv(spm_matrix(v(1:3)'/2));
@@ -38,12 +37,19 @@ MC0 = spm_matrix(v([3 1 2])'/2) * spm_matrix([0 0 0 0 0 pi/2]) ...
 
 MC1 = MC0 * shift * spm_matrix([0 0 0 0 0 pi]) * inv(shift);
 
+fprintf('Transverse 1..');
 [tra0, tz0] = spm_render_vol(V,MT0,v([1 2]),[thresh 2]);
+fprintf('2.. ');
 [tra1, tz1] = spm_render_vol(V,MT1,v([1 2]),[thresh 2]);
+fprintf('Saggital 1..');
 [sag0, sz0] = spm_render_vol(V,MS0,v([3 2]),[thresh 2]);
+fprintf('2.. ');
 [sag1, sz1] = spm_render_vol(V,MS1,v([3 2]),[thresh 2]);
+fprintf('Coronal 1..');
 [cor0, cz0] = spm_render_vol(V,MC0,v([3 1]),[thresh 2]);
+fprintf('2.. ');
 [cor1, cz1] = spm_render_vol(V,MC1,v([3 1]),[thresh 2]);
+fprintf('done\n');
 
 Matrixes = [ 'MT0'; 'MT1'; 'MS0'; 'MS1'; 'MC0'; 'MC1'];
 Rens     = ['tra0';'tra1';'sag0';'sag1';'cor0';'cor1'];
