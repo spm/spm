@@ -354,8 +354,27 @@ global defaults
 if ~isempty(defaults),
 	PRINTSTR = defaults.printstr;
 else,
-	PRINTSTR = [spm_figure('DefPrintCmd'),'spm.ps'];
+	PRINTSTR = [spm_figure('DefPrintCmd'),'spm2.ps'];
 end
+
+% Matlab 6.5 printing doesn't like the -append option if the file does
+% not already exist
+%-----------------------------------------------------------------------
+off = findstr('-append',PRINTSTR);
+if ~isempty(off),
+	bl = [0 find(isspace(PRINTSTR)) (length(PRINTSTR)+1)];
+	for i=1:(length(bl)-1),
+		ca{i} = PRINTSTR((bl(i)+1):(bl(i+1)-1));
+	end;
+	ca = strvcat(ca);
+	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
+	if length(off1)>1,
+		fname = deblank(ca(off1(end),:));
+		if exist(fname)~=2,
+			PRINTSTR(off:(off+7))='';
+		end;
+	end;
+end;
 
 %-Create footnote with SPM version, username, date and time.
 %-----------------------------------------------------------------------
