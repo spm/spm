@@ -1,7 +1,8 @@
-function [pE,pC] = spm_hdm_priors(m)
+function [pE,pC] = spm_hdm_priors(m,h)
 % returns priors for a hemodynamic dynmaic causal model
-% FORMAT [pE,pC] = spm_hdm_priors(m)
+% FORMAT [pE,pC] = spm_hdm_priors(m,[h])
 % m.. - number of inputs
+% h   - number of hemodynamic modes (default = 2)
 %
 % pE  - prior expectations
 % pC  - prior covariances
@@ -19,19 +20,32 @@ function [pE,pC] = spm_hdm_priors(m)
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
+
+% default 2 - hemodynamic [eigen]modes
+%---------------------------------------------------------------------------
+if nargin < 2
+	h = 2;
+end
+
 % biophysical parameters with prior expectation and
 %---------------------------------------------------------------------------
-pE    = [0.65      0.41      0.98      0.32      0.34  ];
+pE    = [   0.65      0.41      0.98      0.32      0.34  ];
 
-% covariance restricted to 2 modes (v) scaled by eigenvales (e) {see below)
+% covariance restricted to h modes (v) scaled by eigenvales (e) {see below)
 %---------------------------------------------------------------------------
-v     = [-0.3833    0.0979   -0.9178   -0.0261   -0.0228;
-          0.8604    0.3809   -0.3210    0.1041   -0.0268]';
+v     = [  -0.0535    0.0095   -0.1117   -0.0040   -0.0026
+	   -0.0604   -0.0319    0.0430   -0.0077    0.0026
+	    0.1116   -0.0347   -0.2539   -0.0169   -0.0115
+	    0.1985    0.1698    0.4984   -0.4493    0.4434
+	    0.0029    0.2081    1.9582   -0.5209   -1.1634]';
 
-e     =  [0.0332    0;
-          0    0.0076];
+e     = [   2.1225    1.2006    0.3519    0.0039    0.0012];
 
-pC    = v*e*v';
+% set variance of minor modes to zero
+%---------------------------------------------------------------------------
+i     = (h + 1):5;
+e(i)  = 0;
+pC    = v*diag(e)*v';
 
 % append m efficacy priors
 %---------------------------------------------------------------------------
@@ -63,7 +77,7 @@ qC    = diag(diag(qC));
 M.fx  = 'spm_fx_HRF';
 M.lx  = 'spm_lambda_HRF';
 M.x   = [0 1 1 1]';
-M.pE  = [pE 1];
+M.pE  = [pE(1:5) 1];
 M.m   = 1;
 M.n   = 4;
 M.l   = 1;
@@ -89,17 +103,16 @@ Cq    = Jq*qC*Jq';
 
 % reduce to h hemodynamic modes in measurement space
 %---------------------------------------------------------------------------
-h     = 1:2;					
-[v s] = spm_svd(Cq);
-v     = v(:,h);
-Cq    = v*v'*Cq*v*v';
-qC    = pinv(Jq)*Cq*pinv(Jq');
+[v e] = spm_svd(Cq);
+e     = diag(e);
+v     = pinv(Jq)*v;
+qC    = v*diag(e)*v';
 
 
 % NOTES: graphics - eigenvalues of qC
 %---------------------------------------------------------------------------
 subplot(2,2,1)
-bar(diag(s))
+bar(e)
 xlabel('eigen mode')
 title('eigenvalue')
 set(gca,'XLim',[0 6])
@@ -109,7 +122,7 @@ grid on
 % graphics - response differentials
 %---------------------------------------------------------------------------
 subplot(2,2,2)
-plot([1:M.N]*M.dt,v(:,1),[1:M.N]*M.dt,v(:,2),'-.')
+plot([1:M.N]*M.dt,Jq*v(:,1),[1:M.N]*M.dt,Jq*v(:,2),'-.')
 xlabel('PST {secs}')
 title('hemodynamic modes')
 axis square
