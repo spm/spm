@@ -313,7 +313,7 @@ if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 
     SPM.xCon = struct([]);
     
     save SPM SPM;
-    fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
     spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
     fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
     fprintf('...use the results section for assessment\n\n')             %-#
@@ -501,7 +501,7 @@ blksz    = ceil(MAXMEM/8/nScan);				%-block size
 nbch     = ceil(xdim*ydim/blksz);				%-# blocks
 
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')        %-#
 
 
 %-Initialise output images (unless this is a 1st pass for ReML)
@@ -562,7 +562,7 @@ end
 VResI = spm_create_vol(VResI,'noopen');
 end % (xX,'W')
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 
 
 %=======================================================================
@@ -615,7 +615,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-Get data & construct analysis mask
 	%===============================================================
-	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
+	fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...read & mask data')%-#
 	Cm    = logical(ones(1,nVox));			%-current mask
 
 
@@ -663,13 +663,13 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 		%-Whiten/Weight data and remove filter confounds
 		%-------------------------------------------------------
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),'filtering')	%-#
+		fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering')	%-#
 
 		KWY   = spm_filter(xX.K,W*Y);
 
 		%-General linear model: Weighted least squares estimation
 		%------------------------------------------------------
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),' estimation') %-#
+		fprintf('%s%30s',repmat(sprintf('\b'),1,30),' estimation') %-#
 
 		beta  = xX.pKX*KWY;			%-Parameter estimates
 		res   = spm_sp('r',xX.xKXs,KWY);	%-Residuals
@@ -729,7 +729,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     %===================================================================
     if isfield(xX,'W')
  
-    	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...saving plane')	%-#
+    	fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...saving plane')	%-#
 
 	%-Write Mask image
 	%-------------------------------------------------------------------
@@ -761,7 +761,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     %-Report progress
     %-------------------------------------------------------------------
-    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...done')             %-#
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...done')             %-#
     spm_progress_bar('Set',100*(bch + nbch*(z - 1))/(nbch*zdim));
 
 
@@ -778,7 +778,7 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 %=======================================================================
 if isfield(xX,'W')
 
-	fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')  %-#
+	fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')  %-#
 	VM              = spm_close_vol(VM);
 	Vbeta           = spm_close_vol(Vbeta);
 	VResI           = spm_close_vol(VResI);
@@ -906,7 +906,7 @@ end
 xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
 
 %-Save remaining results files and analysis parameters
 %=======================================================================
@@ -947,7 +947,7 @@ save SPM SPM
 %=======================================================================
 %- E N D: Cleanup GUI
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
 spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
 fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
 fprintf('...use the results section for assessment\n\n')             %-#
