@@ -176,6 +176,7 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - generic     - [p,YPos] = spm_input(Prompt,YPos,Type,...)
 % - string      - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - string+     - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
 % - evaluated   - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
 %   - natural   - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n,mx)
 %   - whole     - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n,mx)
@@ -218,6 +219,9 @@ function varargout = spm_input(varargin)
 %
 % Type     - type of interrogation
 %                  - 's'tring
+%                  - 's+' multi-line string
+%                     - p returned as cellstr (nx1 cell array of strings)
+%                     - DefStr can be a cellstr or string matrix
 %                  - 'e'valuated string
 %                     - 'n'atural numbers
 %                     - 'w'hole numbers
@@ -631,18 +635,27 @@ end
 
 
 switch lower(Type)
-case {'s','e','n','w','i','r','c','x','p'}  %-String and evaluated input
+case {'s','s+','e','n','w','i','r','c','x','p'}  %-String and evaluated input
 %=======================================================================
 %-Condition arguments
 if nargin<6|isempty(varargin{6}), m=[]; else, m=varargin{6}; end
 if nargin<5|isempty(varargin{5}), n=[]; else, n=varargin{5}; end
 if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
-if ~ischar(DefStr), DefStr=num2str(DefStr); end
-DefStr = DefStr(:)';
+if strcmp(lower(Type),'s+')
+	%-DefStr should be a cellstr for 's+' type.
+	if isempty(DefStr), DefStr = {};
+		else, DefStr = cellstr(DefStr); end
+	DefStr = DefStr(:);
+else
+	%-DefStr needs to be a string
+	if ~ischar(DefStr), DefStr=num2str(DefStr); end
+	DefStr = DefStr(:)';
+end
 
 strM='';
 switch lower(Type)			%-Type specific defaults/setup
 case 's', TTstr='enter string';
+case 's+',TTstr='enter string - multi-line';
 case 'e', TTstr='enter expression to evaluate';
 case 'n', TTstr='enter expression - natural number(s)';
 	if ~isempty(m), strM=sprintf(' (in [1,%d])',m); TTstr=[TTstr,strM]; end
@@ -672,15 +685,60 @@ if CmdLine                                   %-Use CmdLine to get answer
 %-----------------------------------------------------------------------
 	spm_input('!PrntPrmpt',[Prompt,strN,strM],TTstr)
 
-	if ~isempty(DefStr)
-		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
-	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
-
 	%-Do Eval Types in Base workspace, catch errors
-	if lower(Type)=='s'
+	switch lower(Type), case 's'
+		if ~isempty(DefStr)
+			Prompt=[Prompt,' (Default: ',DefStr,' )'];
+		end
+		str = input([Prompt,' : '],'s');
+		if isempty(str), str=DefStr; end
+
+		while isempty(str)
+			spm('Beep')
+			fprintf('! %s : enter something!\n',mfilename)
+			str = input([Prompt,' : '],'s');
+			if isempty(str), str=DefStr; end
+		end
 		p = str; msg = '';
-	else
+
+	case 's+'
+		fprintf(['Multi-line input: Type ''.'' on a line',...
+			' of its own to terminate input.\n'])
+		if ~isempty(DefStr)
+			fprintf('Default : (press return to accept)\n')
+			fprintf('        : %s\n',DefStr{:})
+		end
+		fprintf('\n')
+
+		str = input('l001 : ','s');
+		while (isempty(str) | strcmp(str,'.')) & isempty(DefStr)
+			spm('Beep')
+			fprintf('! %s : enter something!\n',mfilename)
+			str = input('l001 : ','s');
+		end
+
+		if isempty(str)
+			%-Accept default
+			p = DefStr;
+		else
+			%-Got some input, allow entry of additional lines
+			p = {str};
+			str = input(sprintf('l%03u : ',length(p)+1),'s');
+			while ~strcmp(str,'.')
+				p = [p;{str}];
+				str = input(sprintf('l%03u : ',length(p)+1),'s');
+			end
+		end
+		msg = '';
+
+	otherwise
+		if ~isempty(DefStr)
+			Prompt=[Prompt,' (Default: ',DefStr,' )'];
+		end
+		str = input([Prompt,' : '],'s');
+		if isempty(str), str=DefStr; end
 		[p,msg] = sf_eEval(str,Type,n,m);
+
 		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
@@ -712,10 +770,12 @@ else                                             %-Use GUI to get answer
 		'set(get(gcbo,''UserData'')*[0;1],''String'',',...
 			'get(gcbo,''String''))'];
 	if ~isempty(DefStr)
+		if iscellstr(DefStr), str=[DefStr{1},'...'];
+			else, str=DefStr; end
 		hDef = uicontrol(Finter,'Style','PushButton',...
 			'String',DefStr,...
-			'ToolTipString',['Click on border to accept ',...
-				'default: 'DefStr],...
+			'ToolTipString',...
+				['Click on border to accept default: 'str],...
 			'Tag',['GUIinput_',int2str(YPos)],...
 			'UserData',[],...
 			'CallBack',cb,...
@@ -728,6 +788,7 @@ else                                             %-Use GUI to get answer
 	cb = 'set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))';
 	h = uicontrol(Finter,'Style','Edit',...
 		'String',DefStr,...
+		'Max',strcmp(lower(Type),'s+')+1,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'UserData',hPrmpt,...
 		'CallBack',cb,...
@@ -763,9 +824,11 @@ else                                             %-Use GUI to get answer
 	if ~ishandle(hPrmpt), error(['Input window cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	str = get(hPrmpt,'UserData');
-	if Type=='s'
+	switch lower(Type), case 's'
 		p = str; msg = '';
-	else
+	case 's+'
+		p = cellstr(str); msg = '';
+	otherwise
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			set(h,'Style','Text',...
@@ -797,9 +860,11 @@ end % (if CmdLine)
 %-Log the transaction & return response
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
-	if Type=='s'
+	switch lower(Type), case 's'
 		spm_log([mfilename,' : ',Prompt,':',p]);
-	else
+	case 's+'
+		spm_log([mfilename,' : ',Prompt,':'],char(p));
+	otherwise
 		spm_log([mfilename,' : ',Prompt,': (',str,')'],p);
 	end
 end
@@ -864,7 +929,7 @@ end
 
 %-Set default Values for the Labels
 if isempty(Values)
-	if Type=='m'
+	if strcmp(lower(Type),'m')
 		Values=[1:size(Labels,1)]';
 	else
 		Values=Labels;
@@ -1632,8 +1697,7 @@ case '!cmdline'
 if nargin<2, YPos=''; else, YPos=varargin{2}; end
 if isempty(YPos), YPos='+1'; end
 
-%-Global CMDLINE
-CmdLine = spm('isGCmdLine');
+CmdLine = [];
 
 %-Special YPos specifications
 if ischar(YPos)
@@ -1644,7 +1708,8 @@ elseif YPos<0
 	CmdLine=0;
 	YPos=-YPos;
 end
-varargout = {CmdLine,YPos};
+
+varargout = {spm('CmdLine',CmdLine),YPos};
 
 
 case '!getwin'
@@ -1892,20 +1957,24 @@ if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};en
 if nargin<4, hPrmpt=get(h,'UserData'); else, hPrmpt=varargin{4}; end
 
 tmp = get(h,'String');
+if isempty(tmp), tmp=''; end
+if iscellstr(tmp) & length(tmp)==1; tmp=tmp{:}; end
 
-if isempty(ch)
-	%- shift / control / &c. pressed
+if isempty(ch)					%- shift / control / &c. pressed
 	return
-elseif any(abs(ch)==[32:126])
+elseif any(abs(ch)==[32:126])			%-Character
+	if iscellstr(tmp), return, end
 	tmp = [tmp, ch];
-elseif abs(ch)==21
-	%- ^U - kill
+elseif abs(ch)==21				%- ^U - kill
 	tmp = '';
-elseif any(abs(ch)==[8,127])
-	%-BackSpace or Delete
+elseif any(abs(ch)==[8,127])			%-BackSpace or Delete
+	if iscellstr(tmp), return, end
 	if length(tmp), tmp(length(tmp))=''; end
-elseif abs(ch)==13
-	if ~isempty(tmp), set(hPrmpt,'UserData',get(h,'String')), end
+elseif abs(ch)==13				%-Return pressed
+	if ~isempty(tmp)
+		set(hPrmpt,'UserData',get(h,'String'))
+	end
+	return
 else
 	%-Illegal character
 	return
@@ -2057,7 +2126,7 @@ if nargin<3, n=[]; end
 if nargin<2, Type='e'; end
 if nargin<1, str=''; end
 if isempty(str), p='!'; msg='empty input'; return, end
-switch Type
+switch lower(Type)
 case 's'
 	p = str; msg = '';
 case 'e'
