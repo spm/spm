@@ -258,6 +258,11 @@ spm_figure('clear',hSat);
 %-Get thresholded xSPM data and parameters of design
 %=======================================================================
 [SPM,xSPM] = spm_getSPM;
+if isempty(xSPM) 
+    varargout = {[],[],[]};
+    return;
+end
+
 M          = SPM.xVol.M;
 DIM        = SPM.xVol.DIM;
 

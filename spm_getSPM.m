@@ -160,14 +160,18 @@ SPM.swd = swd;
 %-Get volumetric data from SPM.mat
 %-----------------------------------------------------------------------
 try
-	xX   = SPM.xX;				%-Design definition structure
-	XYZ  = SPM.xVol.XYZ;			%-XYZ coordinates
-	S    = SPM.xVol.S;			%-search Volume {voxels}
-	R    = SPM.xVol.R;			%-search Volume {resels}
-	M    = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
-	VOX  = sqrt(diag(M'*M))';		%-voxel dimensions
+    if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
+        Vbeta = SPM.Vbeta;
+    else
+        xX   = SPM.xX;				%-Design definition structure
+        XYZ  = SPM.xVol.XYZ;			%-XYZ coordinates
+        S    = SPM.xVol.S;			%-search Volume {voxels}
+        R    = SPM.xVol.R;			%-search Volume {resels}
+        M    = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
+        VOX  = sqrt(diag(M'*M))';		%-voxel dimensions
+    end
 catch
-
+    
 	% check the model has been estimated
 	%---------------------------------------------------------------
 	str = {	'This model has not been estimated.';...
@@ -198,7 +202,7 @@ end
 
 %-Get contrasts
 %-----------------------------------------------------------------------
-[Ic,xCon] = spm_conman(xX,xCon,'T&F',Inf,...
+[Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
 		'	Select contrasts...',' for conjunction',1);
 
 
@@ -249,13 +253,15 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 	end
 
     end % while...
+    
+    SPM.xCon = xCon;
 end % if length(Ic)...
 
 
 %-Get contrasts for masking
 %-----------------------------------------------------------------------
 if spm_input('mask with other contrast(s)','+1','y/n',[1,0],2)
-	[Im,xCon] = spm_conman(xX,xCon,'T&F',-Inf,...
+	[Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
 		'Select contrasts for masking...',' for masking',1);
 
 	%-Threshold for mask (uncorrected p-value)
@@ -323,7 +329,14 @@ end
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
 SPM.xCon = xCon;
-SPM      = spm_contrasts(SPM,unique([Ic,Im]));
+if size(SPM.xX.X, 1) > rank(full(SPM.xX.X))
+    SPM = spm_contrasts(SPM, unique([Ic, Im]));
+else
+    SPM = spm_eeg_contrasts_conv(SPM, unique([Ic, Im]));
+    xSPM = [];
+    return;
+end
+
 xCon     = SPM.xCon;
 VspmSv   = cat(1,xCon(Ic).Vspm);
 STAT     = xCon(Ic(1)).STAT;
