@@ -50,6 +50,7 @@ for k = 1:32
 	% 1st derivatives g = 2dF/dhi
 	%------------------------------------------------------------------
 	R     = iCe - iCeX*Cby*iCeX';
+	Cy    = sparse(Cy.*spones(R));
 	RCyR  = R*Cy*R';
 	for i = 1:q
 		QC{i}  = Q{i}*iCe;
