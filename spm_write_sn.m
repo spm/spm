@@ -105,7 +105,7 @@ end;
 
 if nargout>0 & length(V)>1,
 	error('Too many images to save in memory');
-end;                                                                                                                     
+end;
 
 if ~exist('msk','var')
 	msk         = get_snmask(V,prm,x,y,z,flags.wrap);
@@ -274,7 +274,6 @@ for i=1:prod(size(V)),
 	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 	[bb, vox]   = bbvox_from_V(VO);
 	[x,y,z,mat] = get_xyzmat(prm,bb,vox);
-	[X,Y,Z]     = ndgrid(x,y,1);
 
 	if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
 
@@ -282,7 +281,7 @@ for i=1:prod(size(V)),
 
 	if isempty(Tr),
 		for j=1:length(z),   % Cycle over planes
-			dat        = spm_sample_vol(V(i),X,Y,Z*z(j),0) * detAff;
+			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
 			Dat(:,:,j) = single(dat);
 			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 		end;
@@ -306,7 +305,7 @@ for i=1:prod(size(V)),
 
 			% The determinant of the Jacobian reflects relative volume changes.
 			%------------------------------------------------------------------
-			dat        = spm_sample_vol(V(i),X,Y,Z*z(j),0);
+			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
 			dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
 			Dat(:,:,j) = single(dat);
 
@@ -349,8 +348,8 @@ return;
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
-%PO            = fullfile(pth,[pre nm xt vr]);
-PO             = [pre nm '.img'];
+PO            = fullfile(pth,[pre nm xt vr]);
+%PO             = [pre nm '.img'];
 return;
 %_______________________________________________________________________
 
@@ -482,7 +481,7 @@ mat = prm.VG(1).mat*inv(M1)*M2;
 if (spm_flip_analyze_images & det(mat(1:3,1:3))>0) | (~spm_flip_analyze_images & det(mat(1:3,1:3))<0),
 	Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 	mat = mat*Flp;
-	x   = flipud(x);
+	x   = flipud(x(:))';
 end;
 return;
 
