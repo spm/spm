@@ -23,9 +23,9 @@ function varargout=spm_figure(varargin)
 % and evaluates PRINTSTR (see spm_defaults.m). Graphics windows with
 % multi-page axes are printed page by page.
 %
-% Clear: Clears the Graphics window, leaving the menu bar. If in SPM
-% usage (figure 'Tag'ed as 'Graphics' then the 'Interactive' 'Tag'ed
-% window is also cleared, and it's name and pointer reset.
+% Clear: Clears the Graphics window. If in SPM usage (figure 'Tag'ed as
+% 'Graphics') then a full SPM interface clear is performed: (I.e. base
+% workspace is cleared, and SPM windows cleared and reset.)
 %
 % Colormap options:
 % * gray, hot, pink: Sets the colormap to its default values and loads
@@ -732,7 +732,7 @@ h = uicontrol(F,'String','Clear','ToolTipString','clear figure',...
         'Tag','ToolBar','HandleVisibility','callback',...
 	'ForegroundColor','b'); x = x+sx+dx;
 if strcmp(get(F,'Tag'),'Graphics')	%-Do a full SPM interface clear
-	set(h,'CallBack','spm(''Clear'',''Interactive'',gcbf)',...
+	set(h,'CallBack','clear, spm(''Clear'',''Interactive'',gcbf)',...
 		'ToolTipString','clear SPM workspace')
 end
 
