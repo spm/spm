@@ -267,7 +267,7 @@ for iter = 1:niter
 		for i=1:n
 			pr(:,i) = pr(:,i)./sp;
 			if (debug ~= 0)
-				figure(3);
+				figure(spm_figure('FindWin','Graphics'));
 				subplot(3,3,i);
 				image(rot90(reshape(pr(:,i),d(1),d(2))*64));
 				drawnow;
@@ -449,7 +449,6 @@ for pp=1:size(planes,2)
 end
 spm_progress_bar('Clear');
 
-spm_figure('Clear','Graphics');
 if ~any(opts == 'n')
 	for j=1:(nb+1)
 		fclose(fp(j));
@@ -465,4 +464,76 @@ end
 
 for v=[VF VB]
 	spm_unmap(v);
+end
+
+
+% Do the graphics
+%=======================================================================
+if ~any(opts == 'n')
+
+	spm_figure('Clear','Graphics');
+	figure(spm_figure('FindWin','Graphics'));
+
+	% Show some text
+	%-----------------------------------------------------------------------
+	axes('Position',[0.05 0.8 0.9 0.2],'Visible','off');
+	text(0.5,0.80, 'Segmentation','FontSize',16,'FontWeight','Bold',...
+		'HorizontalAlignment','center');
+
+	text(0,0.65, ['Image:  ' spm_str_manip(PF(1,:),'k60d')],...
+		'FontSize',14,'FontWeight','Bold');
+
+	text(0,0.40, 'Means:','FontSize',12,'FontWeight','Bold');
+	text(0,0.30, 'Std devs:' ,'FontSize',12,'FontWeight','Bold');
+	text(0,0.20, 'N pix:','FontSize',12,'FontWeight','Bold');
+	for j=1:nb
+		text((j+0.5)/(nb+2),0.40, num2str(mn(1,j)),...
+			'FontSize',12,'FontWeight','Bold',...
+			'HorizontalAlignment','center');
+		text((j+0.5)/(nb+2),0.30, num2str(sqrt(cv(1,j))),...
+			'FontSize',12,'FontWeight','Bold',...
+			'HorizontalAlignment','center');
+		text((j+0.5)/(nb+2),0.20, num2str(mg(1,j)*sumbp(j)),...
+			'FontSize',12,'FontWeight','Bold',...
+			'HorizontalAlignment','center');
+	end
+	if m > 1
+		text(0,0.10, ...
+		'Note: only means and variances for the first image are shown','FontSize',12);
+	end
+
+	% and display a few images.
+	%-----------------------------------------------------------------------
+	V = spm_map(deblank(PF(1,:)));
+	for j=1:(nb+1)
+		iname = [spm_str_manip(PF(1,:),'rd') app num2str(j) '.img'];
+		VS(:,j) = spm_map(iname);
+	end
+	M1 = spm_get_space(iname);
+	M2 = spm_get_space(PF(1,:));
+	for i=1:5
+		M = spm_matrix([0 0 i*V(3)/6]);
+		img = spm_slice_vol(V,M,V(1:2),0);
+		img(1,1) = eps;
+		axes('Position',[0.05 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],'Visible','off');
+		imagesc(rot90(img));
+		axis('off','image');
+
+		for j=1:(nb+1)
+			img = spm_slice_vol(VS(:,j),M2\M1*M,V(1:2),0);
+			axes('Position',...
+				[0.05+j*0.9/(nb+2) 0.75*(1-i/5)+0.05 0.9/(nb+2) 0.75/5],...
+				'Visible','off');
+			image(rot90(img*64));
+			axis('off','image');
+		end
+	end
+	spm_unmap(V);
+	for i=1:size(VS,2)
+		spm_unmap(VS(:,i));
+	end
+	clear VS;
+
+	spm_print;
+	drawnow;
 end
