@@ -20,44 +20,29 @@ global CWD;
 Q       = spm_input('Output filename',1,'s');
 Finter  = spm_figure('FindWin','Interactive');
 ptr     = get(Finter,'Pointer');
+set(Finter,'Pointer','watch');
+
+% Set up header information
+%-----------------------------------------------------------------------
 q       = max([find(Q == '/') 0]);
 Q       = [CWD '/' spm_str_manip(Q((q + 1):length(Q)),'sd')];
 str     = sprintf('spm{%c}-filtered: u = %5.3f, k = %d',SPM.STAT,SPM.u,SPM.k);
-set(Finter,'Pointer','watch');
+V       = struct(...
+	'fname',	Q,...
+	'dim',		[VOL.DIM' spm_type('uint8')],...
+	'mat',		VOL.M,...
+	'descrip', 	str);
 
 %-Reconstruct filtered image from XYZ & SPM.Z
 %-----------------------------------------------------------------------
-XYZ     = VOL.XYZ;
-DIM     = VOL.DIM;
-VOX     = VOL.VOX;
-ORG     = VOL.ORG;
+Y      = zeros(VOL.DIM(1:3)');
+IM     = inv(VOL.M);
+XYZ    = round(IM(1:3,:)*[VOL.XYZ ; ones(1,size(VOL.XYZ,2))]);
+OFF    = XYZ(1,:) + VOL.DIM(1)*(XYZ(2,:) + VOL.DIM(2)*XYZ(3,:));
+Y(OFF)  = SPM.Z.*(SPM.Z > 0);
 
-n       = size(XYZ,2);
-rcp     = round(XYZ./meshgrid([1;1;1].*VOX,1:n)' + meshgrid(ORG,1:n)');
-Dim     = cumprod([1,DIM(1:2)']);
-OffSets = meshgrid([0,1,1],1:n)';
-i       = Dim*(rcp - OffSets);
-Z       = SPM.Z.*(SPM.Z > 0);
-T       = zeros(1,prod(DIM));
-T(i)    = Z;
-MAX     = max(max(T));
-T       = round(T*(255/MAX));
-
-%-Write out to analyze file
+% Write the filtered volume
 %-----------------------------------------------------------------------
-fid     = fopen([Q,'.img'],'w');
-if (fid == -1)
-	set(Finter,'Pointer',ptr);
-	error(['Failed to open ' Q '.img']);
-end
-if fwrite(fid,T,spm_type(2)) ~= prod(size(T))
-	fclose(fid);
-	set(Finter,'Pointer',ptr);
-	error(['Failed to write ' Q '.img']);
-end
-fclose(fid);
-spm_hwrite([Q,'.hdr'],DIM,VOX,MAX/255,2,0,ORG,str);
+spm_write_vol(V,Y);
 
-%-Finished
-%-----------------------------------------------------------------------
 set(Finter,'Pointer',ptr);
