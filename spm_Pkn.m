@@ -52,7 +52,7 @@ for i=1:length(Pn)
 	hh = [h0(i):0.02:5 + 1.5*h0(i)];
 	b	= a*hh.^(D/2)*(nu)/s0(i);
 %	ps	= spm_Chi2cdf(nu,b);
-	ps	= 1 - spm_Xcdf(nu,b);
+	ps	= 1 - spm_Xcdf(b,nu);
 	theo_s0_h0	= mean(ps.*u.*exp(-u.*hh)).*(max(hh)-min(hh));
 	
 	theo_1_h0 = exp(-beta.*s0(i).^(2/D));
