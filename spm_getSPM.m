@@ -157,14 +157,28 @@ swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 load(fullfile(swd,'SPM.mat'));
 SPM.swd = swd;
 
-%-Get Stats data from SPM.mat
+%-Get volumetric data from SPM.mat
 %-----------------------------------------------------------------------
-xX     = SPM.xX;			%-Design definition structure
-XYZ    = SPM.xVol.XYZ;			%-XYZ coordinates
-S      = SPM.xVol.S;			%-search Volume {voxels}
-R      = SPM.xVol.R;			%-search Volume {resels}
-M      = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
-VOX    = sqrt(diag(M'*M))';		%-voxel dimensions
+try
+	xX   = SPM.xX;				%-Design definition structure
+	XYZ  = SPM.xVol.XYZ;			%-XYZ coordinates
+	S    = SPM.xVol.S;			%-search Volume {voxels}
+	R    = SPM.xVol.R;			%-search Volume {resels}
+	M    = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
+	VOX  = sqrt(diag(M'*M))';		%-voxel dimensions
+catch
+
+	% check the model has been estimated
+	%---------------------------------------------------------------
+	str = {	'This model has not been estimated.';...
+		'Would you like to estimate it now?'};
+		if spm_input(str,1,'bd','yes|no',[1,0],1)
+			[SPM] = spm_spm(SPM);
+		else
+			return
+		end
+	end
+end
 
 
 %-Contrast definitions
