@@ -136,15 +136,15 @@ return;
 
 %_______________________________________________________________________
 function write_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check your disk space/quota.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
+
+str = {...
+	'Error opening:',...
+	['        ',spm_str_manip(q,'k40d')],...
+	' ',...
+	'Check file permissions / disk space / disk quota.'};
+
+msgbox(str,sprintf('%s%s: %s...',spm('ver'),spm('GetUser',' (%s)'),mfilename),...
+	'error')
+
 return;
 %_______________________________________________________________________

@@ -92,15 +92,15 @@ return;
 
 %_______________________________________________________________________
 function hread_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error reading information on:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that it is in the correct format.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
+
+str = {...
+	'Error reading information on:',...
+	['        ',spm_str_manip(q,'k40d')],...
+	' ',...
+	'Please check that it is in the correct format.'};
+
+msgbox(str,sprintf('%s%s: %s...',spm('ver'),spm('GetUser',' (%s)'),mfilename),...
+	'error')
+
 return;
 %_______________________________________________________________________

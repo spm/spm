@@ -937,21 +937,23 @@ return;
 
 %_______________________________________________________________________
 function error_message(P)
-f=spm_figure('findwin','Graphics');
-if ~isempty(f),
-	figure(f);
-	spm_figure('Clear','Graphics');
-	spm_figure('Clear','Interactive');
-	ax=axes('Visible','off','Parent',f);
-	text(0,0.60,'There is not enough overlap in the', 'FontSize', 25, 'Interpreter', 'none');
-	text(0,0.55,'    images to obtain a solution.', 'FontSize', 25, 'Interpreter', 'none');
-	text(0,0.40,'  Please check that your header information is OK.','FontSize', 16, 'Interpreter', 'none');
-	text(0,0.25, ['Offending image: "' P.fname '".'],'FontSize', 12, 'Interpreter', 'none');
-end
 
-fprintf('%60s\n','There is not enough overlap of the images to obtain a solution');
-error(['The offending image is "' P.fname '".']);
-return;
+str = {...
+	'There is not enough overlap in the images',...
+	'to obtain a solution.',...
+	' ',...
+	'Offending image:',...
+	 P.fname,...
+	' ',...
+	'Please check that your header information is OK.'};
+
+msgbox(str,sprintf('%s%s: %s...',spm('ver'),spm('GetUser',' (%s)'),mfilename),...
+	'error')
+
+error(sprintf(['There is not enough overlap in the images ',...
+	'to obtain a solution.\nOffending image: %s'],P.fname))
+
+return
 %_______________________________________________________________________
 
 %_______________________________________________________________________
