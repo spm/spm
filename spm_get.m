@@ -28,6 +28,10 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % files in the right listing. File lists are filtered according to the
 % current filter string, using the usual UNIX conventions (*,?,etc.).
 %
+% Arrows at the right of the listings pane allow the lists to be
+% scrolled up and down. The bar button anove the "up" arrow scrolls to
+% the top of the list.
+%
 % Selecting files
 % ---------------
 % Clicking on an item (black) adds it to the list of those selected,
@@ -72,10 +76,11 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % persist. Clicking the Filter button resets the filter to the original
 % filter string passed by the program. Clicking the bar at the
 % right-hand end of the filter window sets the filter string to '*',
-% resulting in all files/directories being displayed. (Bars above and
-% below the filter window (if available) implement a simple "memory"
-% for filter strings.  The top bar stores the current filter string,
-% the lower bar recalls it.)
+% resulting in all files/directories being displayed, in summary view
+% if there are sufficient files. (Bars above and below the filter
+% window (if available) implement a simple "memory" for filter
+% strings.  The top bar stores the current filter string, the lower bar
+% recalls it.)
 %
 % Selecting Directories
 % ---------------------
@@ -217,7 +222,8 @@ if nargin<6 CmdLine=[]; else CmdLine=P6; end
 if nargin<5 NewWDir=''; else NewWDir=P5; end
 if nargin<4 Prefix=''; else Prefix=P4; end
 if nargin<3 Prompt='Select files...'; else Prompt=P3; end
-if nargin<2 Suffix=0; else Suffix=P2; end
+if nargin<2 Suffix=[]; else Suffix=P2; end
+if isempty(Suffix), Suffix=0; end
 n = Action;
 
 if (n==0), P=[]; return, end
@@ -242,7 +248,7 @@ if CmdLine
 
 	%-Command line version, if global CMDLINE is true, & not overridden
 	%---------------------------------------------------------------
-	P=spm_get('CmdLine',n,Prompt);
+	P=spm_get('CmdLine',n,Prompt,[],NewWDir);
 
 else
 
@@ -321,10 +327,12 @@ uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...
 	'HorizontalAlignment','Center',...
 	'Position',[015 360 345 020].*A);
 
-uicontrol(F,'Style','Pushbutton','String','?',...
-	'ForegroundColor','g',...
-	'Callback','spm_help(''Topic'',''spm_get.m'')',...
-	'Position',[370 355 020 030].*A);
+if exist('spm_help.m')==2
+	uicontrol(F,'Style','Pushbutton','String','?',...
+		'ForegroundColor','g',...
+		'Callback','spm_help(''spm_get.m'')',...
+		'Position',[370 355 020 030].*A);
+end
 
 WDir=deblank(LastDirs(1,:));
 uicontrol(F,'Style','Edit','String',WDir,...
@@ -408,6 +416,12 @@ uicontrol(F,'Style','Pushbutton','String','Done',...
 	'Tag','Done','UserData',0,...
 	'Callback','spm_get(''Done'')',...
 	'Position',[345 280 045 020].*A);
+
+uicontrol(F,'Style','Pushbutton','String','',...
+	'Callback',[...
+		'set(gca,''Units'',''Normalized'');',...
+		'set(gca,''Position'',get(gca,''UserData''))'],...
+	'Position',[370 265 020 005].*A);
 
 uicontrol(F,'Style','Pushbutton','String','/\',...
 	'Callback',[...
@@ -526,21 +540,21 @@ elseif strcmp(Action,'cd')
 %-Condition arguments
 %-----------------------------------------------------------------------
 if (nargin<3), bDirList=1; else, bDirList = ~P3; end
-if (nargin<2), NewDir=''; else, NewDir=deblank(P2); end
+if (nargin<2), NewDir=''; else, NewDir=P2; end
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
 
 if isempty(NewDir)
-	%-Current object contains new directory, either UIEdit, UIPopMenu or text
+	%-Current object contains NewDir, either UIEdit, UIPopMenu or text
 	NewDir=get(gco,'String');
 	if strcmp(get(gco,'Tag'),'LastDirsPopup')
 		val = get(gco,'Value');
 		if val==1 set(F,'Pointer','Arrow'), return, end
 		NewDir=NewDir(val,:);
 	end
-	NewDir=deblank(NewDir);
 end % (if)
+NewDir=deblank(NewDir);
 
 %-Condition relative pathnames
 %-----------------------------------------------------------------------
@@ -622,7 +636,7 @@ if size(LastDirs,1)>1
 	LastDirs(IDRows,:)=[];
 end % (if)
 
-%-Delate NewDir from top of LastDirs if present in fixed part of LastDirs
+%-Delete NewDir from top of LastDirs if present in fixed part of LastDirs
 if any( all(FLastDirs'==setstr(ones(size(FLastDirs,1),1)*LastDirs(1,:))') )
 	LastDirs(1,:)=[]; end
 
@@ -651,6 +665,7 @@ drawnow, set(F,'Pointer','Arrow')
 
 return
 
+
 elseif strcmp(Action,'dir')
 %=======================================================================
 % spm_get('dir',WDir,Filter,NoComp)
@@ -672,7 +687,8 @@ refresh
 if nargin<4, NoComp=0; else, NoComp=1; end
 if nargin<3, Filter=''; else, Filter=P3; end
 if nargin<2, WDir=''; else, WDir = P2; end
-if isempty(WDir), WDir=get(findobj(F,'Tag','WDir'),'UserData'); end
+if isempty(WDir), WDir = get(findobj(F,'Tag','WDir'),'UserData');
+	else, WDir = deblank(WDir); end
 
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
 
@@ -692,9 +708,12 @@ end
 
 %-Set up axis
 %-----------------------------------------------------------------------
-hAxes = axes('Position',[0.02 0.086 0.90 0.58],...
+Rec = [0.02 0.086 0.90 0.58];
+hAxes = axes('Position',Rec,...
 	'Units','Points',...
-	'Visible','off');
+	'Visible','off',...
+	'UserData',Rec,...
+	'Tag','hAxes');
 y     = floor(get(hAxes,'Position'));
 y0    = y(3);
 dy    = 22;
@@ -762,7 +781,7 @@ for i = 1:size(IName,1)
 	cItems(:,all(str2mat(cItems,' ')==' '))=[];
 	text(0.35,y,cIName,...
 		'Tag','IName',...
-		'UserData',Items(cItemPos,:),...
+		'UserData',cItems,...
 		'Color','k',...
 		'ButtonDownFcn','spm_get(''Add'')');
 	if nItems>1;
@@ -996,6 +1015,11 @@ for h = H'
 		'ButtonDownFcn','spm_get(''Delete'')')
 end
 
+%-Chop off any redundant trailing spaces
+%-----------------------------------------------------------------------
+% (The str2mat bit ensures single strings are handled by column)
+P(:,all(str2mat(P,' ')==' '))=[];
+
 %-Return new P to holding object
 %-----------------------------------------------------------------------
 set(findobj(F,'Tag','P'),'UserData',P);
@@ -1003,7 +1027,6 @@ set(findobj(F,'Tag','P'),'UserData',P);
 %-Update StatusLine
 %-----------------------------------------------------------------------
 spm_get('StatusLine',size(P,1),n)
-
 
 return
 
@@ -1026,12 +1049,17 @@ nP     = size(P,1);
 tmp    = str2mat(P(nP-(nItems-1):nP,:),FPath);
 if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
 	P(nP-(nItems-1):nP,:)=[];
+	if ~isempty(P)
+		%-Chop off any redundant trailing spaces
+		P(:,all(str2mat(P,' ')==' '))=[];
+	end
 	set(findobj(F,'Tag','P'),'UserData',P);
 	set(gco,'String',IName,'Color','k',...
 		'Tag','IName',...
 		'ButtonDownFcn','spm_get(''Add'')')
 	spm_get('StatusLine',size(P,1),n)
 end
+return
 
 
 elseif strcmp(Action,'Reset')
@@ -1041,8 +1069,8 @@ F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(findobj(F,'Tag','P'),'UserData',[]);
 spm_get('dir')
 spm_get('StatusLine')
-
 return
+
 
 elseif strcmp(Action,'All')
 %=======================================================================
@@ -1069,7 +1097,8 @@ elseif strcmp(Action,'CmdLine')
 %=======================================================================
 % P = spm_get('CmdLine',n,Prompt,P,WDir,AllowEnd)
 if nargin<6, AllowEnd=0; else AllowEnd=P6; end
-if nargin<5, WDir=pwd; else WDir=P5; end
+if nargin<5, WDir=''; else WDir=P5; end
+if isempty(WDir), WDir=pwd; else, WDir=deblank(WDir); end
 if nargin<4, P=[]; else P=P4; end
 if nargin<3, Prompt='Select files...'; else Prompt=P3; end
 if nargin<2, n=Inf; else n=P2; end
