@@ -37,7 +37,12 @@ origin = round(origin(1:3));
 
 [pth,nam,ext] = fileparts(V.fname);
 fname         = fullfile(pth,[nam, '.hdr']);
-[hdr,swapped] = spm_read_hdr(fname);
+try,
+	[hdr,swapped] = spm_read_hdr(fname);
+catch,
+	warning(['Could not read "' fname '"']);
+	hdr = [];
+end;
 
 if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 	% cannot simply overwrite the header
