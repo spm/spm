@@ -289,6 +289,53 @@ for i=1:size(Images,1)
 	spm_get_space(deblank(Images(i,:)), MM*M);
 end
 
+% Do the graphics
+%=======================================================================
+
+fig = figure(spm_figure('FindWin','Graphics'));
+spm_figure('Clear','Graphics');
+
+axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
+text(0,0.90, 'Coregistration','FontSize',16,'FontWeight','Bold');
+
+
+VF = spm_map(deblank(PFF(1,:)));
+MF = spm_get_space(deblank(PFF(1,:)));
+VG = spm_map(deblank(PGF(1,:)));
+MG = spm_get_space(deblank(PGF(1,:)));
+
+Q = MG\MF;
+text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
+text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
+text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
+text(0.25,0.65, spm_str_manip(PFF,'k30'),...
+	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+text(0.75,0.65, spm_str_manip(PGF,'k30'),...
+	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+
+%-----------------------------------------------------------------------
+for i=1:3
+	M = spm_matrix([0 0 i*VF(3)/4]);
+	axes('Position',[0.1 (0.75-0.25*i) 0.4 0.25],'Visible','off');
+	img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
+	hold on;
+	imagesc(rot90(img1));
+	contour(rot90(img1),3,'r');
+	axis('off','image');
+
+	axes('Position',[0.5 (0.75-0.25*i) 0.4 0.25],'Visible','off');
+	img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
+	hold on;
+	imagesc(rot90(img2));
+	contour(rot90(img1),3,'r');
+	axis('off','image');
+end
+spm_unmap_vol(VG);
+spm_unmap_vol(VF);
+
+spm_print;
+drawnow;
+
 disp('Done');
 spm_figure('Clear','Interactive');
 
