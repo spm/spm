@@ -2,7 +2,10 @@ function spm_slice_timing(P, Seq, refslice, timing)
 % function spm_slice_timing(P, Seq,refslice,timing)
 % INPUT:
 % 	P		nimages x ?	Matrix with filenames
+%                       can also be a cell array of the above (multiple subj).
 %	Seq		slice acquisition order (1,2,3 = asc, desc, interl)
+%                       Alternatively it can be a vector containing the
+%                       slice order.
 %	refslice	slice for time 0
 %	timing		additional information for sequence timing
 %			timing(1) = time between slices
@@ -73,7 +76,7 @@ function spm_slice_timing(P, Seq, refslice, timing)
 % v1.1  07/09/98	DRG	fixed code to reflect 1-based indices
 %				of matlab vs. 0-based of pvwave
 %
-% Modified by R Henson, C Buechel and J Ashburner, FIL, 1999, to
+% Modified by R Henson, C Buechel and J Ashburner, FIL, to
 % handle different sequence acquisitions, analyze format, different
 % reference slices and memory mapping.
 %
@@ -101,8 +104,13 @@ if nargin < 1,
 			['Select images to acquisition correct for subject ' num2str(i)]);
 		P{i} = PP;
 	end;
+end;
+
+if iscell(P),
+	nsubjects = length(P);
 else,
 	nsubjects = 1;
+	P = {P};
 end;
 
 Vin 	= spm_vol(P{1}(1,:));
@@ -128,8 +136,13 @@ elseif Seq==[3],
 	for k=1:nslices,
 		sliceorder(k) = round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1;
 	end;
-elseif Seq==[4],
-	sliceorder = [];
+else,
+	if nargin<2 & length(Seq)>1,
+		sliceorder = Seq;
+		Seq        = 4;
+	else,
+		sliceorder = [];
+	end;
 	while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
 		min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
 		sliceorder = spm_input('Order of slices (1=bottom)','!+0','e');
