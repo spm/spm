@@ -69,7 +69,7 @@ hDone = findobj(F,'Tag','Done');
 waitfor(hDone,'UserData')
 	
 %-Exit with error if ConManWin deleted
-if ~ishandle(hDone), error('Contrast Manager deleted!'), end
+if ~ishandle(hDone), error('Contrast Manager was quit!'), end
 
 %-Get xCon, I & exit status
 status   = get(hDone,'UserData');
@@ -281,20 +281,21 @@ set(hConList,'String',str,...
 	'FontAngle',FontAngle,'FontWeight',FontWeight,...
 	'Enable',Enable)
 
-spm_conman('GraphCons',xCon(q),get(hConList,'Parent'))
+spm_conman('GraphCons',xCon,q,get(hConList,'Parent'))
 spm_conman('StatusLine',get(hConList,'Parent'))
 
 
 %=======================================================================
 case 'graphcons'
 %=======================================================================
-% spm_conman('GraphCons',xCon,F)
+% spm_conman('GraphCons',xCon,I,F)
 
-if nargin<3, F=[]; else, F=varargin{3}; end
-if isempty(F), F=spm_figure('FindWin','ConMan'); end
-if isempty(F), error('can''t find ConMan win'), end
 if nargin<2, error('insufficient arguments'), end
 xCon = varargin{2};
+if nargin<3, I=[1:length(xCon)]; else, I=varargin{3}; end
+if nargin<4, F=[]; else, F=varargin{4}; end
+if isempty(F), F=spm_figure('FindWin','ConMan'); end
+if isempty(F), error('can''t find ConMan win'), end
 
 cF = get(0,'CurrentFigure');		%-Save current figure
 set(0,'CurrentFigure',F);		%-Make F current
@@ -304,7 +305,7 @@ delete(findobj(F,'Tag','ConGrphAx'));
 
 %-Display contrasts
 %-----------------------------------------------------------------------
-if isempty(xCon)
+if isempty(I)
 	FS = spm_figure('FontSizes');
 	axes('Position',[0.65 (0.7 + .1*(1-0.9)) 0.3 .1*.9],...
 		'Tag','ConGrphAx','Visible','off')
@@ -318,10 +319,12 @@ else
 
 	nPar = size(xCon(1).c,1);
 	xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
+	nCon = length(I);
 	
-	dy    = 0.2/max(length(xCon),2);
-	for i = 1:length(xCon)
-	    axes('Position',[0.65 (0.7 + dy*(i-0.9)) 0.3 dy*.9])
+	dy    = 0.2/max(nCon,2);
+	for ii = nCon:-1:1
+	    i  = abs(I(ii));
+	    axes('Position',[0.65 (0.7 + dy*(nCon-ii+.1)) 0.3 dy*.9])
 	    if xCon(i).STAT == 'T' & size(xCon(i).c,2)==1
 		%-Single vector contrast for SPM{t} - bar
 		yy = [zeros(1,nPar);repmat(xCon(i).c',2,1);zeros(1,nPar)];
@@ -335,6 +338,7 @@ else
 		set(gca,'Box','on','XTick',[],'YTick',[])
 		set(gca,'Tag','ConGrphAx')
 	    end
+	if I(ii)>0, ylabel(num2str(i)), end
 	end
 	title('Contrast(s)')
 
@@ -413,8 +417,9 @@ else
 end
 
 if ~isempty(str)             %-error: display error dialog box
-	fprintf('%c',7)
-	msgbox(str,['SPM: ',mfilename],'error','modal')
+	spm('Beep')
+	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'error','modal')
 else                         %-OK, set Done UserData tag for handling
 	set(findobj(F,'Tag','Done'),'UserData',1)
 end
@@ -432,8 +437,10 @@ Q        = get(hConList,'UserData');
 I        = Q(get(hConList,'Value'));
 xCon     = get(F,'UserData');
 
-spm_conman('GraphCons',xCon(I),F)
+spm_conman('GraphCons',xCon,I,F)
 spm_conman('StatusLine',get(hConList,'Parent'))
+
+if strcmp(get(F,'SelectionType'),'open'), spm_conman('Done_CB'), end
 
 
 %=======================================================================
@@ -533,7 +540,7 @@ else     %-Additional UI setup for  DNew contrast definition interface
     set(hD_ConMtx,'String',{},'UserData',[])            %-Clear ConMtx box
     set(hD_X1cols,'String','')                          %-Clear X1cols box
     set([hD_ConErrs,hD_ConInfo],'String',{},'Value',[]) %-Clear parsing boxes
-    spm_conman('GraphCons',[],F)                        %-Clear contrast plot
+    spm_conman('GraphCons',[],[],F)                     %-Clear contrast plot
     spm_conman('D_Status',F)                            %-Set StatusLine
     
     switch STAT
@@ -591,7 +598,8 @@ i        = get(hConList,'Value');
 %-----------------------------------------------------------------------
 if length(i)~=1
 	msgbox('Can only rename a single contrast!',...
-		['SPM: ',mfilename],'error','modal')
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'error','modal')
 	return
 end
 
@@ -888,10 +896,10 @@ set(findobj(F,'Tag','D_ConInfo'),'String',imsg,'Value',[])
 if all(I)
 	set(hD_ConMtx,'UserData',c);			%-Store contrast
 	spm_conman('GraphCons',...			%-Depict contrast
-		struct('STAT',STAT,'c',c),F)
+		struct('STAT',STAT,'c',c),-1,F)
 else
 	set(hD_ConMtx,'UserData',[]);			%-Clear contrast store
-	spm_conman('GraphCons',[],F)			%-Clear contrast plot
+	spm_conman('GraphCons',[],[],F)			%-Clear contrast plot
 end
 spm_conman('D_Status',F)				%-Set StatusLine
 
@@ -931,10 +939,12 @@ dNam = ~isempty(name);
 dCon = ~isempty(c);
 
 if ~(dNam & dCon)
-	fprintf('%c',7)
+	spm('Beep')
 	str = {	'contrast name not defined!','',...
 		'no valid contrast defined!',''};
-	msgbox(str([dNam+1,dCon+3]),['SPM: ',mfilename],'error','modal')
+	msgbox(str([dNam+1,dCon+3]),...
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'error','modal')
 	return
 end
 
