@@ -65,7 +65,7 @@ Fgraph = spm_figure('GetWin','Graphics');
 
 %-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
-spm_results_ui('ClearPane',Fgraph,'RNP');
+spm_results_ui('Clear',Fgraph,2);
 
 
 %-Load ER.mat (event-related) file if it exists
@@ -76,6 +76,14 @@ spm_results_ui('ClearPane',Fgraph,'RNP');
 
 %-Find nearest voxel [Euclidean distance] in point list & update GUI
 %-----------------------------------------------------------------------
+if ~length(SPM.XYZmm)
+	msgbox('No voxels survive masking & threshold(s)!',...
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'help','modal')
+	Y=[]; y=[]; beta=[]; SE=[];
+	return
+end
+
 [xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
