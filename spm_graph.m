@@ -144,14 +144,6 @@ end
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
 
-% inference (for xlabel)
-%-----------------------------------------------------------------------
-Z      = SPM.Z(i);
-Pz     = spm_P(1,0,Z,SPM.df,SPM.STAT,1,    SPM.n);
-Pu     = spm_P(1,0,Z,SPM.df,SPM.STAT,VOL.R,SPM.n);
-STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected)',Z,Pz,Pu)];
-
-
 
 %-Get parameter estimates, ResMS, (compute) fitted data & residuals
 %=======================================================================
@@ -197,17 +189,30 @@ cd(cwd)					%-Go back to original working dir.
 %=======================================================================
 
 % find out what to plot
-%----------------------------------------------------------------------
+%-----------------------------------------------------------------------
 Cplot = {	'Contrast of parameter estimates',...
 	 	'Fitted and adjusted responses',...
-		'event/epoch-related responses'};
-if ~length(y), Cplot{2} = 'Fitted responses'; end
-if ~isfield(xSDM,'Sess'), Cplot = Cplot(1:2); end
-Cp    = spm_input('Plot',-1,'m',Cplot);
+	 	'Event/epoch-related responses',...
+	 	'Plots of parametric responses',...
+		'Volterra Kernels'};
+
+
+% ensure options are appropriate
+%-----------------------------------------------------------------------
+if ~isfield(xSDM,'Sess')
+
+	Cplot = Cplot(1:2);
+else
+	Sess  = xSDM.Sess;
+end
+Cp     = spm_input('Plot',-1,'m',Cplot);
+Cplot  = Cplot{Cp};
+
+switch Cplot
 
 % select contrast to plot and compute fitted and adjusted data
 %----------------------------------------------------------------------
-if Cp < 3
+case {'Contrast of parameter estimates','Fitted and adjusted responses'}
 
 	% determine current contrasts
 	%---------------------------------------------------------------
@@ -215,7 +220,7 @@ if Cp < 3
 		Icstr{i} = xCon(i).name;
 	end
 	Ic    = spm_input('Which contrast?','!+1','m',Icstr);
-	TITLE = {Cplot{Cp} xCon(Ic).name};
+	TITLE = {Cplot xCon(Ic).name};
 
 
 	% fitted (corrected) data (Y = X1o*beta)
@@ -228,11 +233,11 @@ if Cp < 3
 
 end
 
-
+switch Cplot
 
 % plot parameter estimates
 %----------------------------------------------------------------------
-if     Cp == 1
+case 'Contrast of parameter estimates'
 
 	% comute contrast of parameter estimates and standard error
 	%--------------------------------------------------------------
@@ -251,21 +256,21 @@ if     Cp == 1
 			    'LineWidth',3,'Color','r')
 	end
 	set(gca,'XLim',[0.4 (length(cbeta) + 0.6)])
-	XLAB  = {'effect' STR};
-	YLAB  = 'effect size';
+	XLAB  = {'effect'};
+	YLAB  = 'size of effect';
 
 
 % all fitted effects or selected effects
 %-----------------------------------------------------------------------
-elseif Cp == 2
+case 'Fitted and adjusted responses'
 
 	% get ordinates
 	%---------------------------------------------------------------
-	Cplot = {	'an explanatory variable',...
+	Xplot = {	'an explanatory variable',...
 			'scan or time',...
 			'a user specified ordinate'};
 
-	Cx    = spm_input('plot against','!+1','m',Cplot);
+	Cx    = spm_input('plot against','!+1','m',Xplot);
 
 	if     Cx == 1
 
@@ -307,41 +312,63 @@ elseif Cp == 2
 
 	end
 	YLAB  = 'response';
-	XLAB  = {XLAB STR};
 
 
-
-% modeling evoked responses
+% modeling evoked responses based on Sess
 %----------------------------------------------------------------------
-elseif Cp == 3
+case 'Event/epoch-related responses'
 
 	
-	% get session and trials
+	% get sessions
 	%--------------------------------------------------------------
-	ss    = length(xSDM.Sess);
+	ss    = length(Sess);
 	tr    = [];
+	rep   = Sess{1}.rep;
 	if ss > 1
-		str   = sprintf('which sessions (1 to %d)',ss);
-		ss    = spm_input(str,'+1','n');
+		if rep
+			str   = 'average over sessions?';
+			rep   = spm_input(str,'+1','y/n',[1 0]);
+		end
+
+		% remove session by effect interactions
+		%------------------------------------------------------
+		if rep
+			b     = 0;
+			for i = 1:ss
+				b = b + beta(Sess{i}.col);
+			end
+			b     = b/ss;
+			for i = 1:length(Sess)
+				beta(Sess{i}.col) = b;
+			end
+			ss    = 1:ss;
+
+		else
+			str   = sprintf('which sessions (1 to %d)',ss);
+			ss    = spm_input(str,'+1','n');
+		end
 	end
+
+	% get trials
+	%--------------------------------------------------------------
 	for s = ss
-		tr    = [tr length(xSDM.Sess{s}.name)];
+		tr    = [tr length(Sess{s}.pst)];
 	end
 	tr    = min(tr);
 	if tr > 1
 		str   = sprintf('which trials or conditions (1 to %d)',tr);
 		tr    = spm_input(str,'+1','n');
 	end
-	Cplot = {	'fitted response',...
+	Rplot = {	'fitted response',...
 			'fitted response and PSTH',...
 			'fitted response +/- standard error of response',...
 			'fitted response +/- standard error of onset',...
-			'fitted response and adjusted data',...
-			'parametric plot'};
-	if isempty(y), Cplot = Cplot([1 3 4]); end
-	Cp      = spm_input('plot in terms of','+1','m',Cplot);
-	TITLE   = Cplot{Cp};
-	YLAB    = 'effect size';
+			'fitted response and adjusted data'};
+
+	if isempty(y), Rplot = Rplot([1 3 4]); end
+	Cr      = spm_input('plot in terms of','+1','m',Rplot);
+	TITLE   = Rplot{Cr};
+	YLAB    = 'response';
 	XLAB{1} = 'peri-stimulus time {secs}';
 
 
@@ -359,18 +386,14 @@ elseif Cp == 3
 	for s = ss
 	    for t = tr
 
-		% trial-specific parameters
-		%------------------------------------------------------
-		i      = xSDM.Sess{s}.row(:);
-		j      = xSDM.Sess{s}.col(xSDM.Sess{s}.ind{t});
-		Q      = xSDM.Sess{s}.para{t};
-
 		% basis functions, filter and parameters
 		%------------------------------------------------------
-		B      = beta(j);
-		X      = xSDM.Sess{s}.bf{t};
+		X      = Sess{s}.bf{t};
 		q      = 1:size(X,1);
+		i      = Sess{s}.row(:);
+		j      = Sess{s}.col(Sess{s}.ind{t}(1:size(X,2)));
 		x      = q*dx;
+		B      = beta(j);
 		K{1}   = struct('HChoice',	xX.K{s}.HChoice,...
 				'HParam',	xX.K{s}.HParam,...
 				'LChoice',	xX.K{s}.LChoice,...
@@ -383,9 +406,9 @@ elseif Cp == 3
 		KX     = spm_filter('apply',K,X);
 		Y      = KX*B;
 		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
-		pst    = xSDM.Sess{s}.pst{t};
+		pst    = Sess{s}.pst{t};
 		bin    = round(pst/dx);
-		q      = find( (bin >= 0) & (bin <= size(X,1)));
+		q      = find( (bin > 0) & (bin <= size(X,1)));
 		y      = zeros(size(i));
 		y(q)   = Y(bin(q));
 		y      = y + R(i);
@@ -442,31 +465,149 @@ elseif Cp == 3
 			%----------------------------------------------
 			plot(x,Y,COL(u),pst,y,['.' COL(u)],'MarkerSize',8)
 
-			case 'parametric plot'
-			%----------------------------------------------
-			hold off
-			surf(x',Q',Q*Y')
-			YLAB  = 'parameter';
 		end
 
 		% xlabel
 		%------------------------------------------------------
-		str  = [xSDM.Sess{s}.name{t} sprintf(' (Session %d) - ',s)];
+		str  = [Sess{s}.name{t} sprintf(' (Session %d) - ',s)];
 		XLAB{end + 1} = [str COL(u)];
 		u    = u + 1;
 		XLim = max([XLim max(x)]);
+
 	    end
 	end
+
 	hold off; axis on
 	set(gca,'XLim',[-4 XLim])
-	XLAB{end + 1}  = STR;
 
+% modeling evoked responses based on Sess
+%----------------------------------------------------------------------
+case 'Plots of parametric responses'
+
+	% Get session
+	%--------------------------------------------------------------
+	s     = length(Sess);
+	if  s > 1
+		s = spm_input('which session','+1','n1',[],s);
+	end
+
+	% Get [parametric] trial
+	%--------------------------------------------------------------
+	Vname = {};
+	j     = [];
+	for i = 1:length(Sess{s}.Pv)
+		if length(Sess{s}.Pv{i})
+			Vname{end + 1} = Sess{s}.name{i};
+			j              = [j i];
+		end
+	end
+	t     = j(spm_input('which effect','+1','m',Vname));
+
+	% parameter estimates and fitted response
+	%-------------------------------------------------------------
+	B     = beta(Sess{s}.col(Sess{s}.ind{t}));
+	Q     = Sess{s}.Pv{t};
+	SF    = Sess{s}.sf{t};
+	SF    = SF(find(SF(:,1)),:);
+	X     = Sess{s}.bf{t};
+	q     = 1:size(X,1);
+	x     = q*xX.dt;
+	K{1}  = struct(		'HChoice',	xX.K{s}.HChoice,...
+				'HParam',	xX.K{s}.HParam,...
+				'LChoice',	xX.K{s}.LChoice,...
+				'LParam',	xX.K{s}.LParam,...
+				'row',		q,...
+				'RT',		xX.dt);
+
+	KX    = spm_filter('apply',K,X);
+	p     = size(SF,2);
+	b     = [];
+	for i = 1:size(KX,2)
+		b = [b SF*B([1:p] + (i - 1)*p)];
+	end
+	Y     = KX*b';
+
+	% plot
+	%-------------------------------------------------------------
+	figure(Fgraph)
+	subplot(2,1,2)
+	surf(x',Q',Y')
+	TITLE = Sess{s}.name{t};
+	XLAB  = 'perstimulus time (secs)';
+	YLAB  = Sess{s}.Pname{t};
+	zlabel('respones');
+
+
+% modeling evoked responses based on Sess
+%----------------------------------------------------------------------
+case 'Volterra Kernels'
+
+
+	% Get session
+	%--------------------------------------------------------------
+	s     = length(Sess);
+	if  s > 1
+		s = spm_input('which session','+1','n1',[],s);
+	end
+
+	% Get [non-parametric] trial
+	%--------------------------------------------------------------
+	Vname = {};
+	j     = [];
+	for i = 1:length(Sess{s}.name)
+		Vname{end + 1} = Sess{s}.name{i};
+	end
+	t     = spm_input('which effect','+1','m',Vname);
+
+	% Parameter estimates
+	%--------------------------------------------------------------
+	B     = beta(Sess{s}.col(Sess{s}.ind{t}));
+
+	% plot
+	%--------------------------------------------------------------
+	figure(Fgraph)
+	subplot(2,1,2)
+
+	% second order kernel
+	%--------------------------------------------------------------
+	if iscell(Sess{s}.bf{t})
+
+		Y     = 0;
+		for i = 1:length(Sess{s}.bf{t})
+			Y = Y + B(i)*Sess{s}.bf{t}{i};
+		end
+		p     = ([1:size(Y,2)] - 1)*xX.dt;
+		q     = ([1:size(Y,1)] - 1)*xX.dt;
+		imagesc(p,q,Y)
+		axis xy
+
+		TITLE = {'Second order Volterra Kernel' Sess{s}.name{t}};
+		XLAB  = 'perstimulus time (secs)';
+		YLAB  = 'perstimulus time (secs)';
+
+	% first  order kernel
+	%--------------------------------------------------------------
+	else
+
+		Y     = Sess{s}.bf{t}*B(1:size(Sess{s}.bf{t},2));
+		p     = ([1:length(Y)] - 1)*xX.dt;
+		plot(p,Y)
+		grid on
+
+		TITLE = {'First order Volterra Kernel' Sess{s}.name{t}};
+		XLAB  = 'perstimulus time (secs)';
+		YLAB  = 'respones';
+
+	end
 end
 
 
 %-Label and call Plot UI
 %----------------------------------------------------------------------
 axis square
+if strcmp(get(get(gca,'Children'),'type'),'image')
+	axis image
+end
 xlabel(XLAB,'FontSize',10)
 ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
