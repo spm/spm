@@ -75,7 +75,6 @@ CWD = strrep(tmp,'/SPMt.mat','');
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMt'])
-load([CWD,'/RES']);
 
 QQ = (1:size(XYZ,2))';
 
@@ -115,7 +114,6 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 	Q     = find(r' < U);
 	S     = S - (length(Z) - length(Q)) ;
 	Z     = Z(Q);
-	RES   = RES(Q);
 	XYZ   = XYZ(:,Q);
 	SPMt  = SPMt(:,Q);
 	QQ    = QQ(Q);
