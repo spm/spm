@@ -1,5 +1,42 @@
 function spm_defaults_edit(arg1, arg2)
 
+% Modify defaults
+% FORMAT spm_defaults_edit
+%_______________________________________________________________________
+%
+% The defaults which can be modified are:
+% Working Directory
+% 	Change the directory where results ('.mat' and '.ps' files)
+% 	are written.
+% 
+% Printing Options
+% 	Allows a number of different printing defaults to be specified.
+% 
+% Miscellaneous Defaults
+% 	This includes:
+% 		* Specification of a file for logging dialogue between
+% 		  the user and SPM.
+% 		* Command line input option. Rather than clicking
+% 		  buttons on the interface, input can be typed to
+% 		  the Matlab window.
+% 		* The intensity of any grid which superimposed on any
+% 		  displayed images.
+% 
+% Header Defaults
+% 	The values to be taken as default when there are no Analyze
+%	image headers. There are two different sets which depend on
+%	the modality in which SPM is running: 	
+%  
+% Realignment & Coregistration Defaults
+% 	An assortment of defaults.
+% Spatial Normalisation Defaults
+% 	An assortment of defaults.
+%
+% The 'reset' option re-loads the defaults from spm_defaults.m
+%
+
+% %W% John Ashburner %E%
+
 global CWD PRINTSTR LOGFILE CMDLINE GRID MODALITY
 global DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
 global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
@@ -25,7 +62,7 @@ if nargin == 0
 		['Working Directory|'...
 		 'Printing Options|'...
 		 'Miscellaneous Defaults|'...
-		 'Header defaults|'...
+		 'Header Defaults|'...
 		 'Realignment & Coregistration|'...
 		 'Spatial Normalisation|'...
 		 'Reset All']...
