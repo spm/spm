@@ -22,7 +22,7 @@ function varargout = spm_list(varargin)
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 % .Vspm  - mapped statistic image(s)
-% .Msk   - mask
+% .Ps    - uncorrected P values in searched volume (for FDR)
 %
 % (see spm_getSPM for further details of xSPM structures)
 %
@@ -121,8 +121,8 @@ tol = eps*10;
 
 %-Parse arguments and set maxima number and separation
 %-----------------------------------------------------------------------
-if nargin < 2,	error('insufficient arguments'), end
-if nargin < 3,	hReg=[]; else, hReg = varargin{3}; end
+if nargin < 2,	error('insufficient arguments'),     end
+if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
 
 
 %-Get current location (to highlight selected voxel in table)
@@ -142,10 +142,8 @@ u     = varargin{2}.u;
 M     = varargin{2}.M;
 v2r   = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
 k     = varargin{2}.k*v2r;
-Vspm  = varargin{2}.Vspm;				% Needed for FDR
-Msk   = varargin{2}.Msk;				%      "
-nZ    = length(varargin{2}.Z);				%      "
-
+QPs   = varargin{2}.Ps;					% Needed for FDR
+QPs   = sort(QPs(:));
 
 %-get number and separation for maxima to be reported
 %-----------------------------------------------------------------------
@@ -289,7 +287,7 @@ if STAT ~= 'P'
 FWHMmm          = FWHM.*VOX; 				% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n,S);
 Pu              = spm_P(1,0,u,df,STAT,R,n,S);
-[Qu QPs]        = spm_P_FDR(u,df,STAT,n,Vspm,Msk);
+Qu              = spm_P_FDR(u,df,STAT,n,QPs);
 [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
 
 
@@ -309,7 +307,7 @@ TabDat.ftr{3} = ...
 TabDat.ftr{4} = ...
 	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
 TabDat.ftr{5} = ...
-	sprintf('Expected false discoveries, <= %0.2f',Qu*nZ);
+	sprintf('Expected false discovery rate, <= %0.2f',Qu);
 TabDat.ftr{6} = ...
 	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
 TabDat.ftr{7} = ...
@@ -330,7 +328,7 @@ text(0.0,-3*dy,TabDat.ftr{3},...
 text(0.0,-4*dy,TabDat.ftr{4},...
 	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.0,-5*dy,TabDat.ftr{5},...
-	'UserData',Qu*nZ,'ButtonDownFcn','get(gcbo,''UserData'')')
+	'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-1*dy,TabDat.ftr{6},...
 	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-2*dy,TabDat.ftr{7},...
