@@ -217,7 +217,7 @@ for i = 1:v
 		for   j = 1:xP(q).h
 			P   = spm_en(xP(q).P);
  			u   = [u P.^j];
-			str = sprintf('%sx%s^%d',Uname{1},xP.name,j);
+			str = sprintf('%sx%s^%d',Uname{1},xP(q).name,j);
 			Uname{end + 1} = str;
 		end
 	end
