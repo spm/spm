@@ -10,7 +10,7 @@
 
 function spm_write_sn(P,matname,bb,Vox,Hold)
 
-load(matname)
+load(deblank(matname))
 if (exist('mgc') ~= 1)
 	error(['Matrix file ' matname ' is the wrong type.']);
 end
@@ -48,7 +48,7 @@ y = (bb(1,2):Vox(2):bb(2,2))/Dims(3,2) + Dims(4,2);
 z = (bb(1,3):Vox(3):bb(2,3))/Dims(3,3) + Dims(4,3);
 
 Dim = [length(x) length(y) length(z)];
-origin = -bb(1,:)./Vox + 1;
+origin = round(-bb(1,:)./Vox + 1);
 
 X = x'*ones(1,Dim(2));
 Y = ones(Dim(1),1)*y;
@@ -67,16 +67,7 @@ end
 
 % Start progress plot
 %----------------------------------------------------------------------------
-figure(2);
-delete(get(2,'Children'));
-ax = axes('Position', [0.45 0.2 0.1 0.6],...
-	'XTick',[],...
-	'Xlim', [0 1],...
-	'Ylim', [0 length(z)]);
-xlabel('Resampling');
-ylabel('planes completed');
-drawnow;
-
+spm_progress_bar('Init',length(z),'Resampling','planes completed');
 
 open_mode = 'w';
 
@@ -175,9 +166,7 @@ for j=1:length(z)
 		fclose(fp);
 	end
 
-	line('Parent', ax, 'Xdata',[0.5 0.5], 'Ydata',[0 j],...
-		'LineWidth',16, 'Color', [1 0 0]);
-	drawnow;
+	spm_progress_bar('Set',j);
 
 	open_mode = 'a';
 end
@@ -191,4 +180,4 @@ for i=1:size(P,1)
 	spm_hwrite(q,Dim,Vox,Headers(7,i),Headers(8,i),0,origin,['spm - 3D normalized']);
 end
 
-delete(get(2,'Children'));
+spm_progress_bar('Clear');
