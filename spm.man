@@ -15,7 +15,7 @@
 % Contents:
 %      1) SPM - General comments
 %      2) New features in SPM96
-%      3) Bibliography - see spm_pet.man & spm_fmri.man
+%      3) Bibliography
 % 
 % ====================
 % 1) SPM - An overview
@@ -398,7 +398,7 @@
 % releases, and to compare any customised versions you may have with
 % the SCCS history.  SCCS was introduced after the release of SPM95,
 % so most of SPM95's routines can be regarded as v1.1, although some
-e and introduction of source control.
+% were edited between release and introduction of source control.
 %
 % The SCCS subdirectory is *not* shipped with SPM (it's quite large),
 % but will be made available to interested developers upon request.
@@ -612,9 +612,10 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% SPM_1: Spatial registration and normalisation of images Friston KJ,
-% Ashburner J, Frith CD, Poline J-B,  Heather JD and Frackowiak RSJ
-% Hum. Brain Mapping. in press
+% SPM_1:   Spatial registration and normalisation of images
+% Friston KJ, Ashburner J, Frith CD, Poline J-B, Heather JD
+% & Frackowiak RSJ (1995)
+% Human Brain Mapping 2:165-189
 % 
 % Abstract
 %    This paper concerns the spatial and intensity transformations that
@@ -640,66 +641,10 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% fMRI_1:  Movement-related effects in fMRI time-series Friston KJ,
-% Williams SR, Howard R, Frackowiak RSJ and Turner R.  Magnetic
-% Resonance in Medicine 35:346-355
-% 
-% Abstract
-%    This paper concerns the spatial and intensity transformations that
-%    are required to adjust for the confounding effects of subject
-%    movement during fMRI activation studies.  We present an approach
-%    that models, and removes, movement-related artifacts from fMRI
-%    time-series.  This approach is predicated on the observation that
-%    movement-related effects are extant even after perfect
-%    realignment.  These effects can be divided into those that are
-%    some function of position of the object in the frame of reference
-%    of the scanner, and a component that is due to movement in
-%    previous scans.  This second component depends on the history of
-%    excitation experienced by spins in a small volume and consequent
-%    differences in local saturation.  The spin excitation history will
-%    itself be a function of previous positions.  This suggests an
-%    autoregression-moving average model for the effects of previous
-%    displacements on the current signal.  We describe such a model and
-%    the adjustments for movement-related components that ensue.  Our
-% 
-% This paper provides the theory and operational equations that use the
-% estimates described in the previous paper to (i) realign and (ii)
-% adjust the time-series to remove movement-related effects.  Its most
-% important contribution was the notion of adjusting for
-% movement-related effects in a theoretically driven and mathematical
-% way.
-% 
-%-----------------------------------------------------------------------
-% 
-% fMRI_2:  The analysis of functional MRI time-series Friston KJ,
-% Jezzard P   and Turner R Human Brain Mapping  2:69-78
-% 
-% Abstract
-%    We present a method for detecting significant and regionally
-%    specific correlations between sensory input and the brain's
-%    physiological response, as measured with functional MRI.  The
-%    method involves testing for correlations, between sensory input
-%    and the hemodynamic response, after convolving the sensory input
-%    with an estimate of the hemodynamic response function.  This
-%    estimate is obtained without reference to any assumed input.  To
-%    lend the approach statistical validity, it is brought into the
-%    framework of statistical parametric mapping by using a measure of
-%    cross-correlations, between sensory input and hemodynamic
-%    response, that is valid in the presence of intrinsic
-%    autocorrelations.  These autocorrelations are necessarily present,
-%    due to the hemodynamic response function or temporal point spread
-%    function.
-% 
-% This is an early paper that sets up the notion of temporal
-% correlations and effective degrees of freedom in the context of
-% fMRI.  Its most important contribution was a formal introduction of
-% the hemodynamic response function.
-% 
-%-----------------------------------------------------------------------
-% 
-% SPM_2: Assessing the significance of focal activations using their
-% spatial extent.  Friston KJ, Worsley KJ, Frackowiak RSJ, Mazziotta JC
-% & Evans, AC Human Brain Mapping 1:214-220
+% SPM_2:   Assessing the significance of focal activations
+%          using their spatial extent.
+% Friston KJ, Worsley KJ, Frackowiak RSJ, Mazziotta JC & Evans AC (1994)
+% Human Brain Mapping 1:214-220
 % 
 % Abstract
 %    Current approaches to detecting significantly activated regions of
@@ -722,9 +667,11 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% SPM_3: Statistical parametric maps in functional imaging: A general
-% linear approach Friston KJ, Holmes AP, Worsley KJ, Poline J-P Frith
-% CD and Frackowiak RSJ Human Brain Mapping - in press
+% SPM_3:   Statistical parametric maps in functional imaging:
+%          A general linear approach
+% Friston KJ, Holmes AP, Worsley KJ, Poline J-B, Frith CD
+% & Frackowiak RSJ (1995)
+% Human Brain Mapping 2:189-210
 % 
 % Abstract
 %    Statistical parametric maps are spatially extended statistical
@@ -757,9 +704,10 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% SPM_4: Estimating smoothness in statistical parametric maps:
-% Confidence intervals on p values Poline J.-B, Friston K.J., Worsley
-% K.J. and Frackowiak R.S.J JCAT 19(5):788-796
+% SPM_4:   Estimating smoothness in statistical parametric maps:
+%          Confidence intervals on p values
+% Poline J-B, Friston KJ, Worsley KJ & Frackowiak RSJ (1995)
+% Journal of Computer Assisted Tomography 19(5):788-796
 % 
 % Abstract
 %    The smoothness parameter, that characterises the spatial
@@ -781,8 +729,9 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% SPM_5: Detecting Activations in PET and fMRI: Levels of Inference and Power
-% Friston KJ, Holmes A, Poline J-B, Price CJ and Frith CD.
+% SPM_5:   Detecting Activations in PET and fMRI:
+%          Levels of Inference and Power
+% Friston KJ, Holmes A, Poline J-B, Price CJ & Frith CD (1995)
 % NeuroImage (Accepted)
 % 
 % Abstract
@@ -831,9 +780,114 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% fMRI_3:  Analysis of fMRI time-series revisited Friston KJ, Holmes
-% AP, Poline J-B, Grasby PJ, Williams SCR, Frackowiak RSJ and Turner R
-% NeuroImage - in press
+% SPM_6:   Cognitive Conjunction:
+%          A New Approach to Brain Activation Experiments
+% Price CP & Friston KJ (1996)
+% NeuroImage - (submitted)
+% 
+% Abstract
+%    inferences about distributed activations, particularly in fMRI.
+%    This paper introduces the concepts and procedures behind
+%    "cognitive conjunctions", a new approach to designing cognitive
+%    activation experiments. Cognitive conjunction compliments
+%    categorical approaches such as cognitive subtraction and requires
+%    a specific form of statistical inference that involves the
+%    conjunction of several hypotheses. Whilst cognitive subtraction
+%    studies are designed such that a pair of tasks differ only by the
+%    processing component(s) of interest, cognitive conjunction studies
+%    are designed such that two or more distinct task pairs each share
+%    a common processing difference. The neural correlates of the
+%    process of interest are then associated with the common areas of
+%    activation for each task pair.
+%
+%    There are two main advantages of cognitive conjunction relative to
+%    cognitive subtraction. The first is that it provides a greater
+%    latitude for selecting baseline tasks because it is not necessary
+%    to control for all but the component of interest. The only
+%    constraint on selecting the baseline task is that the component of
+%    interest is the only process that differs in each task pair. The
+%    second advantage is that cognitive conjunction does not depend on
+%    "pure insertion" - the assumption that the addition of an extra
+%    processing component in the activation task has no effect on the
+%    implementation of processes that are also engaged by the baseline
+%    task.
+%
+%    The differences between the design and statistical analysis of
+%    experiments based on cognitive subtraction, cognitive conjunction
+%    and factorial designs are illustrated with a study of phonological
+%    retrieval. Cognitive conjunction analysis indicates that
+%    irrespective of whether subjects name words, objects, letters or
+%    colours, there is activation of the left posterior basal temporal
+%    lobe, the left frontal operculum, the left thalamus and midline
+%    cerebellum.
+%
+% This application paper describes the motivation and theory behind
+% "cognitive conjunctions".
+%
+%-----------------------------------------------------------------------
+% 
+% fMRI_1:  Movement-related effects in fMRI time-series
+% Friston KJ, Williams SR, Howard R, Frackowiak RSJ & Turner R (1996)
+% Magnetic Resonance in Medicine 35:346-355
+% 
+% Abstract
+%    This paper concerns the spatial and intensity transformations that
+%    are required to adjust for the confounding effects of subject
+%    movement during fMRI activation studies.  We present an approach
+%    that models, and removes, movement-related artifacts from fMRI
+%    time-series.  This approach is predicated on the observation that
+%    movement-related effects are extant even after perfect
+%    realignment.  These effects can be divided into those that are
+%    some function of position of the object in the frame of reference
+%    of the scanner, and a component that is due to movement in
+%    previous scans.  This second component depends on the history of
+%    excitation experienced by spins in a small volume and consequent
+%    differences in local saturation.  The spin excitation history will
+%    itself be a function of previous positions.  This suggests an
+%    autoregression-moving average model for the effects of previous
+%    displacements on the current signal.  We describe such a model and
+%    the adjustments for movement-related components that ensue.  Our
+% 
+% This paper provides the theory and operational equations that use the
+% estimates described in the previous paper to (i) realign and (ii)
+% adjust the time-series to remove movement-related effects.  Its most
+% important contribution was the notion of adjusting for
+% movement-related effects in a theoretically driven and mathematical
+% way.
+% 
+%-----------------------------------------------------------------------
+% 
+% fMRI_2:  The analysis of functional MRI time-series
+% Friston KJ, Jezzard P & Turner R (1994)
+% Human Brain Mapping  2:69-78
+% 
+% Abstract
+%    We present a method for detecting significant and regionally
+%    specific correlations between sensory input and the brain's
+%    physiological response, as measured with functional MRI.  The
+%    method involves testing for correlations, between sensory input
+%    and the hemodynamic response, after convolving the sensory input
+%    with an estimate of the hemodynamic response function.  This
+%    estimate is obtained without reference to any assumed input.  To
+%    lend the approach statistical validity, it is brought into the
+%    framework of statistical parametric mapping by using a measure of
+%    cross-correlations, between sensory input and hemodynamic
+%    response, that is valid in the presence of intrinsic
+%    autocorrelations.  These autocorrelations are necessarily present,
+%    due to the hemodynamic response function or temporal point spread
+%    function.
+% 
+% This is an early paper that sets up the notion of temporal
+% correlations and effective degrees of freedom in the context of
+% fMRI.  Its most important contribution was a formal introduction of
+% the hemodynamic response function.
+% 
+%-----------------------------------------------------------------------
+% 
+% fMRI_3:  Analysis of fMRI time-series revisited
+% Friston KJ, Holmes AP, Poline J-B, Grasby PJ, Williams SCR,
+% Frackowiak RSJ & Turner R (1995)
+% NeuroImage 2:45-53
 % 
 % Abstract
 %    This paper presents a general approach to the analysis of
@@ -863,8 +917,9 @@ e and introduction of source control.
 %
 %-----------------------------------------------------------------------
 % 
-% fMRI_4:  Analysis of fMRI time-series revisited - again Worsley KJ
-% and Friston KJ NeuroImage - submitted
+% fMRI_4:  Analysis of fMRI time-series revisited - again
+% Worsley KJ & Friston KJ (1995)
+% NeuroImage 2:173-181
 % 
 % Abstract
 %    Friston et al (1995) presented a method for detecting activations
@@ -891,9 +946,10 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% fMRI_5:  Characterising dynamic brain responses with fMRI: A
-% multivariate approach Friston KJ, Frith CD, Frackowiak RSJ, & Turner
-% R NeuroImage - in press
+% fMRI_5:  Characterising dynamic brain responses with fMRI:
+%          A multivariate approach
+% Friston KJ, Frith CD, Frackowiak RSJ & Turner R (1995)
+% NeuroImage 2:166-172
 % 
 % Abstract
 %    In this paper we present a multivariate analysis of evoked
@@ -933,8 +989,9 @@ e and introduction of source control.
 % 
 %-----------------------------------------------------------------------
 % 
-% fMRI_6:  Characterising evoked hemodynamics with fMRI Friston KJ,
-% Frith CD, Turner R, & Frackowiak RSJ NeuroImage - in press
+% fMRI_6:  Characterising evoked hemodynamics with fMRI
+% Friston KJ, Frith CD, Turner R & Frackowiak RSJ (1995)
+% NeuroImage 2:157-165
 % 
 % Abstract
 %      We describe an implementation of the general linear model that
