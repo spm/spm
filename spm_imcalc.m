@@ -90,6 +90,7 @@ for p = 1:Vo.dim(3),
 	for i = 1:n
 		M = inv(B*inv(Vo.mat)*Vi(i).mat);
 		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),[hold,NaN]);
+		if (mask<0), d(isnan(d))=0; end;
 		if (mask>0) & ~spm_type(Vi(i).dim(4),'nanrep'), d(d==0)=NaN; end
 		if dmtx, X(i,:) = d(:)'; else, eval(['i',num2str(i),'=d;']); end
 	end
