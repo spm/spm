@@ -1,14 +1,118 @@
 function varargout = spm_DesRep(varargin)
 % Design reporting utilities
 % FORMAT varargout = spm_DesRep(action,varargin)
+%       - An embedded callback, multi-function function
+%       - For detailed programmers comments, see format specifications
+%         in main body of code
 %_______________________________________________________________________
 %
-% spm_DesRep is a multi-function function providing a suite of utility
-% functions for various graphical reports on a given experimental
-% design, embodied in a design matrix and other associated data
-% structures.
+% spm_DesRep (design reporting) is a multi-function function providing
+% a suite of utility functions for various graphical reports on a given
+% experimental design, embodied in the design matrix structure and
+% other associated data structures.
 %
-%                           ----------------
+% By default, spm_DesRep prompts for selection of an SPMstats design
+% file. The SPMstats design files that are supported are:
+%     SPM_fMRIDesMtx.mat  - fMRI design matrix configuration
+%     SPMcfg.mat          - SPMstats configuration file (pre-estimation)
+%     SPM.mat             - SPMstats post-estimation stats file
+%
+% Given details of a design spm_DesRep sets up a "Design" menu in the
+% SPM 'Interactive' window.  The menu options launch various graphical
+% summaries of the current SPM design in the SPM 'Graphics' window, and
+% has an option to go ahead and estimate the design.
+%
+% * Design Matrix  - Displays graphical summary of the design matrix
+%
+%     The design matrix is labelled with the corresponding parameter and
+%     file names, and is displayed as an image scaled (using
+%     spm_DesMtx('sca',...) such that zero is mid-grey, -1 is black, and +1
+%     is white. Covariates exceeding this randge are scaled to fit.
+%
+%     The design matrix is "surfable": Clicking (and holding or dragging)
+%     around the design matrix image reports the corresponding value of the
+%     design matrix ('normal' click - "left" mouse button usually), the
+%     image filename ('extend' mouse click - "middle" mouse), or parameter
+%     name ('alt' click - "right" mouse).
+%
+%     Under the design matrix the parameter estimability is displayed as a
+%     1xp matrix of grey and white squares. Parameters that are not
+%     uniquely specified by the model are shown with a grey patch. Surfing
+%     the estimability image reports the parameter names and their
+%     estimability.
+%
+% * Design orthogonality - Displays orthogonality matrix for this design
+%     <not implemented yet>
+%
+% * Explore design - Sub-menu's for detailed design exploration.
+%
+%     If this is an fMRI design, then the session & trial/condition
+%     structure of the design is reflected in the sub-menu structure.
+%     Selecting a given session, and then trial/condition within the
+%     session, launches a comprehensive display of the parameters of
+%     that design. See spm_fMRI_design_show.m for further details of
+%     these displays.
+%
+%     If not an fMRI design, then the Explore sub-menu has two options:
+%     "Files and factors" & "Covariates".
+%
+% * Explore: Files and factors - Multi-page listing of filenames, 
+%                                factor indicies and covariates.
+%
+%     The covariates printed are the raw covariates as entered into
+%     SPM, with the exception of the global value, which is printed
+%     after any grand mean scaling.
+%
+% * Explore: Covariates - Plots of the covariates, showing how they are
+%                         included into the model. 
+%                  
+%     Covariates are plotted, one per page, overlaid on the design
+%     matrix. The description strings in the xC covariate structure
+%     array are displayed. The corresponding design matrix column(s)
+%     is(are) highlighted.
+%
+% * Estimate - if the design hasn't been estimated (and all necessary
+%              parameters are available), then this option starts
+%              parameter estimation using spm_spm.m.
+%
+% * Help     - displays this text!
+%
+%_______________________________________________________________________
+% %W% Andrew Holmes %E%
+
+
+%=======================================================================
+% - FORMAT specifications for embedded functions
+%=======================================================================
+%( This is a multi function function, the first argument is an action  )
+%( string, specifying the particular action function to take. Recall   )
+%( MatLab's command-function duality: `spm_figure Create` is           )
+%( equivalent to `spm('Create')`.                                      )
+%
+% FORMAT h = spm_DesRep('DesRepUI',D)
+% Setup "design" menu for design reporting.
+% D      - structure containing design details. Required fields are:
+%          (Basically contents of an SPM_fMRIDesMtx.mat, SPMcfg.mat or SPM.mat)
+%          [defaults to load(spm_get(SPM{_fMRIDesMtx,cfg,}.mat))
+% .xX    - design matrix structure
+%          (See spm_{fmri_}spm_ui.m & spm_spm.m for formats)
+% .VY    - array of file handles (from spm_{fmri_}spm_ui.m)
+% .xM    - Masking structure
+% .F_iX0 - default F-contrast specifications
+%          (see spm_{fmri_}spm_ui.m & spm_spm.m for formats)
+% .xC    - Covariate definition structure (not fMRI)
+%          (see spm_spm_ui.m for format)
+% .Sess  - fMRI session structure (not needed if not fMRI)
+%          (see spm_fmri_spm_ui.m for format)
+% .xsDes - Design description structure
+%          (see spm_{fmri_}spm_ui.m for details)
+% .swd   - SPM working directory - directory where configuration file resides
+%          [defaults to empty]
+% .SPMid - (recommended) ID string of creator program.
+% .cfg   - Config file type: One of {'SPM_fMRIDesMtx','SPMcfg','SPM'}
+%          [defaults according to other values]
+% h      - handle of menu created ('Tag'ged as 'DesRepUI') 
+%
 %
 % FORMAT spm_DesRep('Files&Factors',P,I,xC,sF,xs)
 % Produces multi-page listing of files, factor indices, and covariates.
@@ -21,12 +125,6 @@ function varargout = spm_DesRep(varargin)
 %       information which is printed out after the files & variables listing.
 %       The field names are used as sub-headings, the field values (which
 %       must be strings or CellStr) printed alongside.
-%
-% The covariates printed are the raw covariates as entered into SPM, with
-% the exception of the global value, which is printed after any grand mean
-% scaling.
-%
-%                           ----------------
 %
 % FORMAT spm_DesRep('DesMtx',xX,fnames,xs)
 % Produces a one-page graphical summary of the design matrix
@@ -44,38 +142,12 @@ function varargout = spm_DesRep(varargin)
 %          The field names are used as sub-headings, the field values
 %          (which must be strings or CellStr) printed alongside.
 %
-% The design matrix is labelled with the corresponding parameter and
-% file names, and is displayed as an image scaled (using
-% spm_DesMtx('sca',...) such that zero is mid-grey, -1 is black, and +1
-% is white. Covariates exceeding this randge are scaled to fit.
-%
-% The design matrix is "clickable": Clicking (and dragging) around the
-% design matrix image reports the corresponding value of the design
-% matrix ('normal' click - "left" mouse button usually), the image
-% filename ('extend' mouse click - "middle" mouse), or parameter name
-% ('alt' click - "right" mouse). (spm_DesRep('SurfDesMtx_CB') handles
-% the CallBacks)
-%
-% Under the design matrix the parameter estimability is displayed as a
-% 1xp matrix of grey and white squares. Parameters that are not
-% uniquely specified by the model are shown with a grey patch. CLicking
-% on (and dragging around) the estimability image reports the parameter
-% names and their estimability. (spm_DesRep('SurfEstIm_CB') handles
-% the CallBacks)
-% 
-%                           ----------------
-%
 % FORMAT spm_DesRep('Covs',xC,X,Xnames)
-% Plots the covariates and describes how thay are inserted into the model.
+% Plots the covariates and describes how they are included into the model.
 % xC     - Covariate structure array (see spm_spm_ui.m for details)
 %          ('rcname','rc','descrip','cname' & 'cols' fields used)
 % X      - nxp Design matrix
 % Xnames - px1 CellStr of parameter names
-%
-% Covariates are plotted, one per page, overlaid on the design matrix.
-% The description strings in the xC covariate structure array are
-% displayed. The corresponding design matrix column(s) is(are)
-% highlighted.
 %
 % ======================================================================
 % Utility functions and CallBack handlers:
@@ -88,22 +160,12 @@ function varargout = spm_DesRep(varargin)
 % lim    - limit to number of elements of s
 % s      - 1:nScan pared down accordingly
 %
-%                           ----------------
-%
 % FORMAT spm_DesRep('SurfDesMtx_CB')
 % 'ButtonDownFcn' CallBack for surfing clickable design matrix images
 % FORMAT spm_DesRep('SurfDesMtxMo_CB')
 % 'WindowButtonMotionFcn' CallBack for surfing clickable design matrix images
-%
-% Setting spm_DesRep('SurfDesMtx_CB') as the 'ButtonDownFcn' on a
-% design matrix image (and saving design info in it's UserData) allows
-% the user to "surf" the design matrix.
-%
-% "Surfing" (i.e. clicking on the image and dragging around it) with
-% the 'normal' mouse button (usually the "left" button) reports desgin
-% matrix values, the 'extend' ("middle" button) reports the
-% corresponding image file name, and the 'alt' ("right" button" reports
-% the parameter names.
+% FORMAT spm_DesRep('SurfDesMtxUp_CB')
+% 'ButtonUpFcn' CallBack for ending surfing of design matrix images
 %
 % The design matrix, parameter names and image file names should be
 % saved in the UserData of the image object as a structure with fields
@@ -111,35 +173,201 @@ function varargout = spm_DesRep(varargin)
 % these being empty or mis-specified - surfing simply reports "no
 % cached data".
 %
-%                           ----------------
-%
 % FORMAT spm_DesRep('SurfEstIm_CB')
 % 'ButtonDownFcn' CallBack for surfing clickable parameter estimability images
-% FORMAT spm_DesRep('surfEstImMo_CB')
+% FORMAT spm_DesRep('SurfEstImMo_CB')
 % 'WindowButtonMotionFcn' CallBack for surfing parameter estimability images
-%
-% Setting spm_DesRep('SurfEstIm_CB') as the 'ButtonDownFcn' on a
-% parameter estimability image (and saving design info in it's UserData) allows
-% the user to "surf" the parameter estimability image, with the
-% parameter at the current point and it's estimability being reported
-% continuously.
+% FORMAT spm_DesRep('SurfEstImUp_CB')
+% 'ButtonUpFcn' CallBack for ending surfing of parameter estimability images
 %
 % The binary parameter estimability matrix and parameter names should
 % be saved in the UserData of the image object as a structure with
 % fields 'est' & 'Xnames' respectively. The code is robust to any of
 % these being empty or mis-specified - surfing simply reports "no
 % cached data".
-%
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
 
 
 %-Format arguments
 %-----------------------------------------------------------------------
-if nargin==0, error('do what? no arguments given...'), end
+if nargin==0, spm_DesRep('DesRepUI'); return, end
 
 switch lower(varargin{1})
 
+
+%=======================================================================
+case 'desrepui'                                    %-Design reporting UI
+%=======================================================================
+% h = spm_DesRep('DesRepUI')
+% h = spm_DesRep('DesRepUI',D)
+
+%-Table of variable availability
+%-----------------------------------------------------------------------
+%		SPM_fMRIDesMtx.mat	SPMcfg.mat	SPM.mat
+%  .xX		v/			v/		v/
+%  .VY		x			v/		v/
+%  .xM		x			v/		v/
+%  .F_iX0	x			v/		v/
+%  .xC		x / []			v/(p)		v/(p)
+%  .Sess	v/			v/(f)		v/(f)
+%  .xsDes	x			v/		v/
+%
+%  .swd
+%  .SPMid
+%
+%  .cfg
+
+%-Load design data from file if not passed as argument
+%-----------------------------------------------------------------------
+if nargin<2
+	cfg = spm_get(1,'SPM*.mat','Select SPMstats design file...');
+	D   = load(cfg);
+	[swd,cfg] = fileparts(cfg);
+	D.swd = swd;
+	if any(strcmp(cfg,{'SPM_fMRIDesMtx','SPMcfg','SPM'}))
+		D.cfg = cfg;
+	end
+else
+	D = varargin{2};
+end
+
+%-Canonicalise data
+%=======================================================================
+%-Work out where design configuration has come from!
+if ~isfield(D,'cfg')
+	if isfield(D.xX,'V'),				cfg = 'SPM';
+	elseif isfield(D,'VY'), 			cfg = 'SPMcfg';
+	elseif isfield(D,'Sess') & ~isempty(D.Sess),	cfg = 'SPM_fMRIDesMtx';
+	else, error('Can''t fathom origin!')
+	end
+	D.cfg = cfg;
+end
+
+%-Work out what modality this is!
+%-----------------------------------------------------------------------
+if isfield(D,'Sess') & ~isempty(D.Sess),	modality = 'fMRI';
+elseif isfield(D,'xC'),				modality = 'PET';
+else, error('Can''t fathom modality')
+end
+D.modality = modality;
+
+%-Set swd - SPM working directory to use if estimating (empty => don't est)
+%-----------------------------------------------------------------------
+if ~isfield(D,'swd'), D.swd=''; end
+
+%-Add a scaled design matrix to the design data structure
+%-----------------------------------------------------------------------
+if ~isfield(D.xX,'nKX'), D.xX.nKX = spm_DesMtx('Sca',D.xX.X,D.xX.Xnames); end
+
+
+%-Draw menu
+%=======================================================================
+
+%-Get Interactive window and delete any previous DesRepUI menu
+%-----------------------------------------------------------------------
+Finter = spm_figure('GetWin','Interactive');
+delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
+
+%-Draw top level menu
+%-----------------------------------------------------------------------
+hC      = uimenu(Finter,'Label','Design',...
+		'Separator','on',...
+		'Tag','DesRepUI',...
+		'UserData',D,...
+		'HandleVisibility','on');
+
+%-Generic CallBack code
+%-----------------------------------------------------------------------
+cb = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
+
+%-DesMtx (SPM & SPMcfg)
+%-----------------------------------------------------------------------
+hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','d',...
+		'CallBack',[cb,...
+		'spm_DesRep(''DesMtx'',tmp.xX,{tmp.VY.fname}'',tmp.xsDes)'],...
+		'UserData',hC,...
+		'HandleVisibility','off');
+if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
+
+%-Design matrix orthogonality
+%-----------------------------------------------------------------------
+h = uimenu(hC,'Label','Design orthogonality','Accelerator','o',...
+		'CallBack',[cb,''],...
+		'UserData',hC,...
+		'HandleVisibility','off');
+if 1, set(h,'Enable','off'), end
+
+%-Explore design
+%-----------------------------------------------------------------------
+hExplore = uimenu(hC,'Label','Explore','HandleVisibility','off');
+
+switch modality
+case 'PET'
+	hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','f',...
+		'CallBack',[cb,...
+		'spm_DesRep(''Files&Factors'',{tmp.VY.fname}'',',...
+			'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
+		'UserData',hC,...
+		'HandleVisibility','off');
+	hCovs = uimenu(hExplore,'Label','Covariates','Accelerator','c',...
+		'CallBack',[cb,...
+		'spm_DesRep(''Covs'',tmp.xX,tmp.xC)'],...
+		'UserData',hC,...
+		'HandleVisibility','off');
+	if isempty(D.xC), set(hCovs,'Enable','off'), end
+case 'fMRI'
+    for j = 1:length(D.Sess)
+        h = uimenu(hExplore,'Label',sprintf('Session %.0f ',j),...
+            'HandleVisibility','off');
+        for k = 1:length(D.Sess{j}.name)
+            uimenu(h,'Label',D.Sess{j}.name{k},...
+                 'CallBack',[cb,...
+                 sprintf('spm_fMRI_design_show(tmp.xX,tmp.Sess,%d,%d);',j,k)],...
+                 'UserData',hC,...
+                 'HandleVisibility','off')
+        end
+    end
+end
+
+
+%-Estimate
+%-----------------------------------------------------------------------
+switch modality
+case 'PET'
+	str = 'spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,tmp.xC,tmp.xsDes)';
+case 'fMRI'
+	str = 'spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,tmp.Sess,tmp.xsDes)';
+end
+
+str = [...
+    'if exist(fullfile(''.'',''SPM.mat''),''file'')==2 & ',...
+    'spm_input({''Current directory contains existing SPMstats files:'',',...
+        '''        SPMstats results files (inc. SPM.mat)'',',...
+        '[''(pwd = '',pwd,'')''],'' '',',...
+        '''Continuing will overwrite existing files!''},1,''bd'',',...
+        '''stop|continue'',[1,0],1), tmp=0; else, tmp=1; end, ',...
+    'if tmp, ',cb,'delete(get(gcbo,''UserData'')), drawnow, ',str,', end'];
+
+hEst = uimenu(hC,'Label','Estimate','Accelerator','e','Separator','on',...
+	'CallBack',str,...
+	'UserData',hC,...
+	'HandleVisibility','off');
+if ~strcmp(D.cfg,'SPMcfg'), set(hEst,'Enable','off'), end
+
+
+%-Help
+%-----------------------------------------------------------------------
+uimenu(hC,'Label','Help','Separator','on',...
+	'CallBack','spm_help(''spm_DesRep'')',...
+	'HandleVisibility','off');
+
+
+%-Return handle of menu
+%-----------------------------------------------------------------------
+varargout = {hC};
+
+
+%=======================================================================
 case 'files&factors'                         %-Summarise files & factors
 %=======================================================================
 % spm_DesRep('Files&Factors',P,I,xC,sF,xs)
@@ -276,6 +504,7 @@ figure(Fgraph)
 
 
 
+%=======================================================================
 case 'desmtx'                                    %-Display design matrix
 %=======================================================================
 % spm_DesRep('DesMtx',xX,fnames,xs)
@@ -422,6 +651,7 @@ figure(Fgraph)
 
 
 
+%=======================================================================
 case 'covs'                %-Plot and describe covariates (one per page)
 %=======================================================================
 % spm_DesRep('Covs',xX,xC)
@@ -589,6 +819,7 @@ end
 figure(Fgraph)
 
 
+%=======================================================================
 case 'scantick'
 %=======================================================================
 % spm_DesRep('ScanTick',nScan,lim)
@@ -604,6 +835,7 @@ s = 1:p:nScan; s(end)=nScan;
 varargout = {s,lim};
 
 
+%=======================================================================
 case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'} %-Surf DesMtx
 %=======================================================================
 % spm_DesRep('SurfDesMtx_CB')
@@ -660,6 +892,7 @@ end
 set(h,'String',str,'Interpreter',istr)
 
 
+%=======================================================================
 case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}  %-Surf ParEstIm
 %=======================================================================
 % spm_DesRep('SurfEstIm_CB')
@@ -709,6 +942,7 @@ set(h,'String',str,'Interpreter',istr)
 
 
 
+%=======================================================================
 otherwise                                        %-Unknown action string
 %=======================================================================
 error(['Unknown action string: ',varargin{1}])
