@@ -2,8 +2,8 @@ function varargout=spm_figure(varargin)
 % Setup and callback functions for Graphics window
 % FORMAT varargout=spm_figure(varargin)
 %       - An embedded callback, multi-function function
-%       - For detailed programmers comments, see the format specifications
-%         below
+%       - For detailed programmers comments, see format specifications
+%         in main body of code
 %_______________________________________________________________________
 %
 % spm_figure creates and manages the 'Graphics' window. This window and
@@ -391,7 +391,7 @@ end
 
 %-Create footnote with SPM version, username, date and time.
 %-----------------------------------------------------------------------
-FNote = sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),spm('time'));
+FNote = sprintf('%s%s: %s',spm('ver'),spm('GetUser',' (%s)'),spm('time'));
 %-Delete old tag lines, and print new one
 delete(findobj(F,'Tag','SPMprintFootnote'));
 axes('Position',[0.005,0.005,0.1,0.1],...
@@ -401,8 +401,9 @@ text(0,0,FNote,'FontSize',6);
 
 %-Print
 %-----------------------------------------------------------------------
+err = 0;
 if ~iPaged
-	eval(PRINTSTR)
+	try, eval(PRINTSTR), catch, err=1; end
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -413,12 +414,22 @@ else
 		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
 		set(hPg{p,1},'Visible','on')
-		eval(PRINTSTR)
+		try, eval(PRINTSTR), catch, err=1; end
 		set(hPg{p,1},'Visible','off')
 	end
 	set(hPg{Cpage,1},'Visible','on')
 	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
+
+if err
+	msgbox({lasterr,...
+		'','- print command is:',['    ',PRINTSTR],...
+		'','- current directory is:',['    ',pwd],...
+		'','            * nothing has been printed *',...
+		'','',FNote}...
+		,[spm('ver'),': printing problem...'],'warn')
+end
+
 set(0,'CurrentFigure',cF)
 
 
@@ -630,7 +641,9 @@ F      = figure(...
 	'Renderer','zbuffer',...
 	'Visible','off');
 if ~isempty(Name)
-	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
+	set(F,'Name',sprintf('%s%s: %s',spm('ver'),...
+		spm('GetUser',' (%s)'),Name),'NumberTitle','off')
+end
 spm_figure('FigContextMenu',F);
 set(F,'Visible',Visible)
 varargout = {F};
