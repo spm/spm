@@ -1,6 +1,6 @@
-function spm_spm(VY,xX,xM,c,varargin)
+function spm_spm(VY,xX,xM,F_iX0,varargin)
 % Estimation of the General Linear Model
-% FORMAT spm_spm(VY,xX,xM,c,<extra parameters for SPM.mat>)
+% FORMAT spm_spm(VY,xX,xM,F_iX0,<extra parameters for SPM.mat>)
 %
 % VY    - Vector of structures of mapped image volumes
 %         Images must have the same orientation, voxel size and data type
@@ -35,13 +35,11 @@ function spm_spm(VY,xX,xM,c,varargin)
 %                 type. They are interpolated using nearest neighbour
 %                 interpolation to the voxel locations of the data Y.
 %
-% c     - F-contrast weights defining the design subspace whose parameters
-%         are to be conjointly tested. The ensuing F-statistic image is used
-%         for F-thresholding of the saved data pointlist (Y.mad).
+% F_iX0 - Indicies of design matrix columns to form the reduced design
+%         matrix. The ensuing F-test (implemented through F-contrasts)
+%         is labelled "effects of interest", and is to filter the saved
+%         data pointlist (Y.mad).
 %       - See Christensen for details of F-contrasts
-%       - Note that individual contrasts are *column* vectors, in agreement
-%         with the literature.
-%         (In SPM94/5/6, contrast weights were row vectors.)
 %
 % varargin - Additional arguments are passed through to the SPM.mat file
 %            with their original names, permitting the caller (UI) function
@@ -128,17 +126,18 @@ function spm_spm(VY,xX,xM,c,varargin)
 % is also written out, with zero indicating voxels outside tha analysed
 % volume.
 %
-% In addition, voxels with F-statistics exceeding the F-threshold (as
-% determined by UFp) have their raw data written out in compressed
-% pointlist format to Y.mad (see spm_append for information on the MAD
-% file format). Yidx.mat contains a single vector Yidx of length equal
-% to the column dimension of Y.mad, whose entries  indicate the XYZ
-% coordinates for the correponding columns of Y.mad by indexing the
-% columns of XYZ saved in SPM.mat. The Y.mad & Yidx.mat files are used
-% for plotting, and are written to allow the results to be self
-% sufficient (i.e. the input data can be archived). If a voxel is not
-% represented in the XYZ.mat & Y.mad files, then you can't plot it!
-% (Note that the parameter & variance images are written for all voxels
+% In addition, voxels with F-test for "effects of interest" significant
+% at UFp have their raw data written out in compressed pointlist format
+% to Y.mad (see spm_append for information on the MAD file format).
+% Yidx.mat contains a single vector Yidx of length equal to the column
+% dimension of Y.mad, whose entries  indicate the XYZ coordinates for
+% the correponding columns of Y.mad by indexing the columns of XYZ
+% saved in SPM.mat. The Y.mad & Yidx.mat files are used for plotting,
+% and are written to allow the results to be self sufficient (i.e. the
+% input data can be archived). If a voxel is not represented in the
+% XYZ.mat & Y.mad files, then you can't plot it!  (Unless you do
+% manually append data to the Y.mad and Yidx.mat files yourself.) (Note
+% that the parameter & variance images are written for all voxels
 % within the supplied mask, an advance on SPM94/5/6 which only wrote
 % results information for voxels surviving the F-threshold.  The
 % smoothness and volume analysed are computed for the entire analysis
@@ -178,7 +177,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     Vbeta     - array of handle structures for beta images
 %     VResMS    - handle structure of ResMS image
 %     XYZ       - 3xS (S below) vector of in-mask voxel coordinates
-%     Fc        - as input
+%     F_iX0     - as input
 %     UFp       - critical p-value for F-thresholding
 %     UF        - F-threshold value
 %     S         - Lebesgue measure or volume (in voxels)
@@ -191,6 +190,24 @@ function spm_spm(VY,xX,xM,c,varargin)
 %
 % ...plus any additional arguments passed to spm_spm for saving in the
 %    SPM.mat file
+%
+%                           ----------------
+%
+% xCon.mat                                        - contrast definitions
+% The xCon.mat file contains a single structure defining the default F-contrast
+% (The results section can be used to define additional contrasts.)
+%     xCon      - Contrast structure (created by spm_FcUtil.m)
+%     xCon.name - Name of contrast
+%     xCon.STAT - 'F' - for the F-contrast ('T' for normal contrasts)
+%     xCon.c    - (F) Contrast weights
+%     xCon.X0   - Reduced design matrix (spans design space under Ho)
+%     xCon.iX0  - Indicies of design matrix columns to form the reduced
+%                 design matrix. (Input argument F_iX0 in this case.)
+%               - (Is 0 if X0 was specified, [] if c was specified.)
+%     xCon.X1o  - Remaining design space (orthogonal to X0).
+%     xCon.eidf - Effective interest degrees of freedom (numerator df)
+%     xCon.Vcon - ...for handle of contrast/ESS image (empty at this stage)
+%     xCon.Vspm - ...for handle of SPM image (empty at this stage)
 %
 %                           ----------------
 %
@@ -271,6 +288,11 @@ function spm_spm(VY,xX,xM,c,varargin)
 % %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
 SCCSid = '%I%';
 
+%-Say hello
+%-----------------------------------------------------------------------
+SPMid  = spm('FnBanner',mfilename,SCCSid);
+Finter = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
+
 %-Parameters
 %-----------------------------------------------------------------------
 Def_UFp  = 0.001;	%-Default F-threshold for Y.mad pointlist filtering
@@ -288,10 +310,12 @@ if nargin<4, c   = []; end
 for tmp = {'X','Xnames'}, if ~isfield(xX,tmp)
     error(sprintf('xX Design structure doesn''t contain ''%s'' field',tmp{:}))
 end, end
-
-if ~isfield(xX,'K'),   xX.K   = speye(size(xX.X,1)); end
+if ~isfield(xX,'K')
+	xX.K = speye(size(xX.X,1));
+elseif any(size(xX.K)~=size(xX.X,1))
+	error('K not a temporal smoothing matrix')	
+end
 if ~isfield(xX,'xVi'), xX.xVi = struct('Vi',speye(size(xX.X,1))); end
-
 
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
@@ -301,13 +325,6 @@ if ~isstruct(xM), xM = struct(	'T',	[],...
 				'VM',	{[]},...
 				'xs',	struct('Masking','analysis threshold'));
 end
-
-
-%-Say hello
-%-----------------------------------------------------------------------
-SPMid  = spm('FnBanner',mfilename,SCCSid);
-Finter = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
-
 
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
@@ -331,12 +348,6 @@ for i=1:length(files)
 	end
 end
 
-
-%=======================================================================
-% - A N A L Y S I S   P R E L I M I N A R I E S
-%=======================================================================
-fprintf('%-40s: %30s','Initialising design space','...checking')     %-#
-
 %-Check Y images have same dimensions, orientation & voxel size
 %-----------------------------------------------------------------------
 if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0]) %NB: Bombs for single image
@@ -345,13 +356,17 @@ if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 	error('images do not all have same orientation & voxel size'), end
 
 
-%-Check temporal convolution matrix
-%-----------------------------------------------------------------------
-if any(size(xX.K)~=size(xX.X,1)), error('K not a temporal smoothing matrix'), end
 
+%=======================================================================
+% - A N A L Y S I S   P R E L I M I N A R I E S
+%=======================================================================
+
+%-Initialise design space
+%=======================================================================
+fprintf('%-40s: %30s','Initialising design space','...checking')     %-#
 
 %-Construct design parmameters, and store in design structure xX
-% Take care to apply temporal convolution
+% Take care to apply temporal convolution - KX stored as xX.xKX.X
 %-----------------------------------------------------------------------
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')            %-#
 [nScan,nbeta] = size(xX.X);			%- #scans & #parameters
@@ -376,61 +391,36 @@ elseif xX.erdf<4
     warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
 end
 
-%-F-contrast for Y.mad pointlist filtering (only)
-%-----------------------------------------------------------------------
-fprintf('%s%30s',sprintf('\b')*ones(1,30),'...F-contrast for Y.mad') %-#
+
+%-Default F-contrast (in contrast structure) & Y.mad pointlist filtering
+%=======================================================================
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...F-contrast')           %-#
 UFp = spm('GetGlobal','UFp'); if isempty(UFp), UFp = Def_UFp; end
 
-if isempty(c) & UFp>0 & UFp<1		%-Want to F-threshold but no contrast!
-	UFp = 1; warning('no F-con specified: no F-filtering')
-	%-**...or default F-contrast for all effects?
-end
+if isempty(F_iX0), str='all effects'; else, str='effects of interest'; end
+xCon          = spm_FcUtil('Set',str,'F','iX0',F_iX0,xX.xKXs);
+[trMV,trMVMV] = spm_SpUtil('trMV',xCon.X1o,xX.V);
+xCon.eidf     = trMV^2 / trMVMV;
+h             = spm_FcUtil('Hsqr',xCon,xX.xKXs);
 
-if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
-	if ~spm_SpUtil('allCon',xX.xKXs,c), error('Invalid F-contrast'), end
-
-	%-Compute Dc, the "distance in contrast space matrix"
-	%---------------------------------------------------------------
-	%-Dc is the "distance in contrast space matrix", given as
-	% 	Dc  = c*pinv(c'*pinv(X'*X)*c)*c';	(see Christensen, p61)
-	%-Dc returns the extra sum-of-squares corresponding to an F-contrast
-	% (where the F-contrast defines the subspace of the design space
-	% hypothesised to have null parameters) via:
-	% 	ESS = b'*Dc*b;		(for vector b or parameter estimates)
-	%-If b is a matrix (when columns contain the parameter estimates for
-	% different voxels), we only want the diagonal elements of b'*Dc*b,
-	% which can efficiently be computed via:
-	% 	ESS = sum(b.*(Dc*b))
-	% See also spm_SpUtil, which handles efficient computation of Dc
-	Dc    = spm_SpUtil('BetaRc',xX.xKXs,c);
-
-	%-Compute subspace corresponding to F-contrast, ESS variance
-	% expectation and corresponding F degrees of freedom.
-	%---------------------------------------------------------------
-	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);	%-Ho space
-	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);		%-Expectations
-					%-(trR0V & trR0V2 in spm_AnCova)
-	eFdf          = [trMV^2/trMVMV, xX.erdf];	%-Effective F-df
-
-	%-Work out UF, the F-threshold
-	%---------------------------------------------------------------
-	UF = spm_invFcdf(1-UFp,eFdf);
-
-	%-Initialise Yidx vector to index Y.mad columns to XYZ matrix
-	%---------------------------------------------------------------
+%-Compute UF, the F-threshold
+if UFp > 0 & UFp < 1				%-F-filter for Y.mad file
+	UF   = spm_invFcdf(1-UFp,[xCon.eidf,xX.erdf]);
 	Yidx = [];
-
-elseif UFp == 1
-	UF = 0;
-elseif UFp == 0
+elseif UFp == 1					%-No filtering - save all data
+	UF = -Inf;
+	Yidx = [];
+elseif UFp == 0					%-Write no Y.mad data
 	UF = Inf;
+else
+	error('UFp outside [0,1]')
 end
-
-%-Copy F-contrast c into variable Fc for saving in SPM.mat file
-%-----------------------------------------------------------------------
-Fc = c;
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+
+
+%-Initialise output images
+%=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising')             %-#
 
 %-Image dimensions
@@ -621,7 +611,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 				spm_append(Y,'Y.mad',2)	%-append data
 				Yidx = [Yidx,S+[1:CrS]];%-save indexes to coords
 			else				%-F-threshold
-				tmp = (sum(beta.*(Dc*beta))/trMV) > ResMS*UF;
+				tmp = (sum((h*beta).^2)/trMV) > ResMS*UF;
 				spm_append(Y(:,tmp),'Y.mad',2);
 				Yidx = [Yidx, S+find(tmp)];
 			end
@@ -821,7 +811,7 @@ FWHM   = sqrt(8*log(2))*W;
 %-----------------------------------------------------------------------
 fprintf('%-40s: %30s','Estimating RESELS','...(working hard)')       %-#
 R      = spm_resels(FWHM,S);		%-Assummes a sphere
-%R      = spm_resels(FWHM,XYZ,'V');	%-Takes ages!
+%R      = spm_resels(FWHM,XYZ,'V');	%-Takes ages **** !
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
@@ -844,7 +834,7 @@ if UFp > 0, save Yidx Yidx, end
 SPMvars = {	'SPMid','VY','xX','xM',...	%-General design parameters
 		'Vbeta','VResMS',...		%-Handles of beta & ResMS images
 		'XYZ',...			%-InMask XYZ voxel coords
-		'Fc','UFp','UF',...		%-F-thresholding data
+		'F_iX0','UFp','UF',...		%-F-thresholding data
 		'S','R','Lambda','W','FWHM'};	%-Smoothness data
 
 if nargin>4
@@ -856,6 +846,11 @@ if nargin>4
 	end
 end
 save('SPM',SPMvars{:})
+
+%-Save contrast structure
+%-----------------------------------------------------------------------
+save('xCon.mat','xCon')
+
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
