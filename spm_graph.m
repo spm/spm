@@ -79,7 +79,7 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % 
 %
 %_______________________________________________________________________
-% @(#)spm_graph.m	2.25 Karl Friston 00/02/10
+% %W% Karl Friston %E%
 
 
 %-Get Graphics figure handle
@@ -345,7 +345,7 @@ case 'Event/epoch-related responses'
 			ss    = 1:ss;
 		else
 			str   = sprintf('which session (1 to %d)',ss);
-			ss    = spm_input(str,'+1','n','1',[1 1]);
+			ss    = spm_input(str,'+1','n','1',1,ss);
 		end
 	end
 
@@ -371,6 +371,15 @@ case 'Event/epoch-related responses'
 	% cycle over selected events
 	%--------------------------------------------------------------
 	dx      = xX.dt;
+
+	% plot
+	%--------------------------------------------------------------
+	switch TITLE
+	case 'fitted response and PSTH'
+			str = 'bin size for PSTH {secs}';
+			BIN = spm_input(str,'+1','r','2',1);
+
+	otherwise,	BIN = 2;   end
 
 	% reconstruct response with filtering
 	%--------------------------------------------------------------
@@ -427,7 +436,6 @@ case 'Event/epoch-related responses'
 
 		% PSTH
 		%------------------------------------------------------
-		BIN    = 2;
 		INT    = -BIN:BIN:max(pst);
 		PSTH   = [];
 		SEM    = [];
