@@ -25,10 +25,6 @@ function t = spm_invTcdf(p,df)
 
 % - Mfiles: spm_fzero spm_Tcdf
 
-%-version control-%
-% V1a	- 14/12/93 - 
-% V1b	- 24/08/94 - streamlined code
-
 %-Parameters
 %---------------------------------------------------------------------------
 Tol=[];
@@ -39,7 +35,7 @@ if nargin<2 error('insufficient arguments'), end
 
 if any(abs(p(:)-0.5)>0.5) error('p must be in [0,1]'), end
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-Check sizes of arguments
 %-if 1scalar & 1matrix argument, extend scalar one to matrix size

@@ -19,11 +19,6 @@ function p = spm_Tcdf(t,df,OffSet)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V2a	- 06/08/93 - used numerical integration 
-% V2b	- 14/12/93 - use incomplete Beta function
-% V2c	- 24/08/94 - streamlined code
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<3 OffSet=0; end
@@ -31,7 +26,7 @@ if nargin<2 error('insufficient arguments'), end
 
 if any(abs(OffSet(:)-0.5)>0.5) error('OffSet must be in [0,1]'), end
 if any(df(:)<=0) error('df must be strictly positive'), end
-if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
+% if any(floor(df(:))~=ceil(df(:))) error('df must be integer'), end
 
 %-if 1scalar & 1matrix argument, extend scalar one to matrix size
 if all(size(t)==size(df))
