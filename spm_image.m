@@ -168,7 +168,10 @@ if strcmp(op,'reorient'),
 	%-----------------------------------------------------------------------
 	mat = spm_matrix(st.B);
 	if det(mat)<=0,
-		h=msgbox('This will flip the images','Warning!','warn');
+		h=msgbox('This will flip the images',...
+			sprintf('%s%s: %s...',spm('ver'),...
+				spm('GetUser',' (%s)'),mfilename),...
+			'warn','modal');
 		uiwait(h);
 	end;
 	P = spm_get(Inf, 'img','Images to reorient');
