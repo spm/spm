@@ -502,7 +502,7 @@ return
 
 elseif strcmp(lower(Action),lower('Dir'))
 %=======================================================================
-% spm('Ver',Mfile)
+% spm('Dir',Mfile)
 if nargin<2, Mfile='spm'; else, Mfile=P2; end
 tmp    = which(Mfile);
 if ~isstr(tmp)
@@ -532,8 +532,10 @@ return
 elseif strcmp(lower(Action),lower('Colour'))
 %=======================================================================
 % spm('Colour')
-R1 = [0.7,1.0,0.7];
-R2 = 'Lime Green';
+% R1 = [0.7,1.0,0.7];
+% R2 = 'Lime Green';
+R1 = [0.8 0.8 1.0];
+R2 = 'Diluted Blackcurrent Purple';
 return
 
 elseif strcmp(lower(Action),lower('SetCmdWinLabel'))
