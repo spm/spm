@@ -330,7 +330,7 @@ if isempty(Tags)
 	set(F,'KeyPressFcn','',...
 		'WindowButtonDownFcn','',...
 		'WindowButtonMotionFcn','',...
-		'WindowButtonUpFcn')
+		'WindowButtonUpFcn','')
 	%-If this is the 'Interactive' window, reset name & UserData
 	if strcmp(get(F,'Tag'),'Interactive')
 		set(F,'Name','','UserData',[]), end
@@ -398,6 +398,15 @@ axes('Position',[0.005,0.005,0.1,0.1],...
 	'Tag','SPMprintFootnote')
 text(0,0,FNote,'FontSize',6);
 
+
+%-Temporarily change all units to normalized prior to printing
+% (Fixes bizzarre problem with stuff jumping around!)
+%-----------------------------------------------------------------------
+H  = findobj(get(F,'Children'),'flat','Type','axes');
+un = cellstr(get(H,'Units'));
+set(H,'Units','normalized')
+
+
 %-Print
 %-----------------------------------------------------------------------
 err = 0;
@@ -435,6 +444,7 @@ if err
 	spm('alert!',str,'printing problem...',sqrt(-1));
 end
 
+set(H,{'Units'},un)
 set(0,'CurrentFigure',cF)
 
 
