@@ -505,10 +505,10 @@ case 'isinsp'
 		varargout = { 0 }; return;
 	end
 	if ~isempty(varargin{2}.oP)
-		varargout = {all((varargin{2}.oP*varargin{3} - ...
+		varargout = {all(abs(varargin{2}.oP*varargin{3} - ...
 							varargin{3})<=tol)};
 	else
-		varargout = {all((spm_sp('oP',varargin{2},varargin{3}) - ...
+		varargout = {all(abs(spm_sp('oP',varargin{2},varargin{3}) - ...
 							varargin{3})<=tol )};
 	end
 
@@ -519,15 +519,15 @@ case 'isinspp'
 		varargout = { 0 }; return;
 	end
 	if ~isempty(varargin{2}.oPp)
-		varargout = {all((varargin{2}.oPp*varargin{3} - ...
+		varargout = {all(abs(varargin{2}.oPp*varargin{3} - ...
 							varargin{3})<=tol)};
 	else
-		varargout = {all((spm_sp('oPp',varargin{2},varargin{3}) - ...
+		varargout = {all(abs(spm_sp('oPp',varargin{2},varargin{3}) - ...
 							varargin{3})<=tol)};
 	end
 end
 
-case '=='
+case '=='		% test wether two spaces are the same
 %=======================================================================
 % b = spm_sp('==',x1,X2)
 if nargin~=3, error('too few/many input arguments - need 2');
