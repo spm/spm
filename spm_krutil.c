@@ -1,6 +1,292 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="%W% John Ashburner & Jesper Andersson %E%";
 #endif
+
+#include "mex.h"
+#include <math.h>
+#include <limits.h>
+
+/****************************************************************
+ **
+ ** This is an attempt to speed up the Matlab kron function a bit.
+ ** It is used in the same way as kron (i.e. just replace e.g.
+ ** C = kron(A,B); in your code by C = spm_kron(A,B)). It is
+ ** roughly twice as fast as kron.
+ ** N.B. Can only be used with full matrices (not sparse).
+ **
+ ** I did mess about with different ways of accessing the
+ ** matrices quite a bit (yes, I tried pointers!) and this
+ ** version turned out to be as fast as any, and still very
+ ** easy to read/understand.
+ **
+ ** N,B.2 If you intend to call kron many times, each time
+ ** adding to the same big matrix like in
+ **
+ ** for sl =1:nz
+ **    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ **    AtA  = AtA + spm_kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
+ ** end
+ **
+ ** you are better off taking a look at spm_kron_add, as in
+ **
+ ** sl = 1;
+ ** tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ ** AtA  = spm_kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
+ ** for sl =2:nz
+ **    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ **    spm_kron_add(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2),AtA);
+ ** end
+ **
+ ** which
+ ** avoids the overhead of memory allocation for each call
+ ** (roughly half the execution time, and saves loads of
+ ** memory).
+ **
+ ***************************************************************/
+/* Jesper Andersson 3/12-03 */
+ 
+/* Silly little macro. */
+#define index(R,C,DIM) ((C-1)*DIM[0] + (R-1))
+ 
+/* Function prototypes. */
+void kron(double          *m1,
+          unsigned int    *sz1,
+          double          *m2,
+          unsigned int    *sz2,
+          double          *bm,
+          unsigned int    *bsz);
+ 
+/*
+   In this implementation I try to minimise the number
+   of arithmetic operations for each element of the
+   big matrix, and also be a little bit clever in terms
+   of the order in which elements in m2 and bm are
+   accessed.
+*/
+ 
+void kron(double          *m1,
+          unsigned int    *sz1,
+          double          *m2,
+          unsigned int    *sz2,
+          double          *bm,
+          unsigned int    *bsz)
+{
+   unsigned int   r1 = 0, c1 = 0;
+   unsigned int   r2 = 0, c2 = 0;
+   unsigned int   br = 0, bc = 0;
+   unsigned int   i2 = 0, im = 0;
+   double         v1 = 0.0;
+ 
+   for (c1=1; c1<=sz1[1]; c1++)
+   {
+      for (r1=1; r1<=sz1[0]; r1++)
+      {
+         v1 = m1[index(r1,c1,sz1)];
+         for (c2=1; c2<=sz2[1]; c2++)
+         {
+            br = (r1-1)*sz2[0]+1; /* r2 = 1 */
+            bc = (c1-1)*sz2[1]+c2;
+            im = index(br,bc,bsz);
+            i2 = index(1,c2,sz2); /* r2 = 1 */
+            for (r2=1; r2<=sz2[0]; r2++, im++, i2++)
+            {
+               bm[im] = v1 * m2[i2];
+            }
+         }
+      }
+   }
+ 
+   return;
+}
+ 
+ 
+/* Gateway function with error check. */
+void mexFunction_kron(int             nlhs,      /* No. of output arguments */
+                 mxArray         *plhs[],   /* Output arguments. */
+                 int             nrhs,      /* No. of input arguments. */
+                 const mxArray   *prhs[])   /* Input arguments. */
+{
+   unsigned int   sz1[2];
+   unsigned int   sz2[2];
+   unsigned int   bsz[2];
+   double         *m1 = NULL;
+   double         *m2 = NULL;
+   double         *bm = NULL;
+ 
+   if (nrhs == 0) mexErrMsgTxt("usage: BM=spm_kron(M1,M2)");
+   if (nrhs != 2) mexErrMsgTxt("spm_kron: 2 input arguments required");
+   if (nlhs != 1) mexErrMsgTxt("spm_kron: 1 output argument required");
+ 
+   /* Get first matrix. */
+   if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+   {
+      mexErrMsgTxt("spm_kron: M1 must be numeric, real, full and double");
+   }
+   sz1[0] = mxGetM(prhs[0]);
+   sz1[1] = mxGetN(prhs[0]);
+   m1 = mxGetPr(prhs[0]);
+ 
+   /* And second matrix. */
+   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+   {
+      mexErrMsgTxt("spm_kron: M2 must be numeric, real, full and double");
+   }
+   sz2[0] = mxGetM(prhs[1]);
+   sz2[1] = mxGetN(prhs[1]);
+   m2 = mxGetPr(prhs[1]);
+ 
+   /* Allocate memory for output. */
+   bsz[0] = sz1[0]*sz2[0];
+   bsz[1] = sz1[1]*sz2[1];
+   plhs[0] = mxCreateNumericMatrix(bsz[0],bsz[1],mxDOUBLE_CLASS,mxREAL);
+   bm = mxGetPr(plhs[0]);
+ 
+   /* Do the stuff. */
+   kron(m1,sz1,m2,sz2,bm,bsz);
+ 
+   return;
+}
+
+
+/****************************************************************
+ **
+ ** This is an attempt to speed up consecutive calls to kron
+ ** of the type
+ **
+ ** for sl =1:nz
+ **    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ **    AtA  = AtA + kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
+ ** end
+ **
+ ** and where AtA is a large matrix (i.e. several thousand squared).
+ ** In these instances the repeated alloction of memory is a
+ ** large proportion of the execution time, and things get
+ ** significantly speeded up by e.g.
+ **
+ ** sl = 1;
+ ** tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ ** AtA  = spm_kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
+ ** for sl =2:nz
+ **    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
+ **    spm_kron_add(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2),AtA);
+ ** end
+ **
+ ** N.B. the behaviour id spm_kron_add is very unusual from a
+ ** Matlab perspective in that one of the input arguments gets
+ ** changed. Please keep this in mind.
+ **
+ ***************************************************************/
+/* Jesper Andersson 3/12-03 */
+ 
+/* Function prototypes. */
+void kronadd(double          *m1,
+          unsigned int    *sz1,
+          double          *m2,
+          unsigned int    *sz2,
+          double          *bm,
+          unsigned int    *bsz);
+ 
+/*
+   In this implementation I try to minimise the number
+   of arithmetic operations for each element of the
+   big matrix, and also be a little bit clever in terms
+   of the order in which elements in m2 and bm are
+   accessed.
+*/
+
+void kronadd(double          *m1,
+          unsigned int    *sz1,
+          double          *m2,
+          unsigned int    *sz2,
+          double          *bm,
+          unsigned int    *bsz)
+{
+   unsigned int   r1 = 0, c1 = 0;
+   unsigned int   r2 = 0, c2 = 0;
+   unsigned int   br = 0, bc = 0;
+   unsigned int   i2 = 0, im = 0;
+   double         v1 = 0.0;
+ 
+   for (c1=1; c1<=sz1[1]; c1++)
+   {
+      for (r1=1; r1<=sz1[0]; r1++)
+      {
+         v1 = m1[index(r1,c1,sz1)];
+         for (c2=1; c2<=sz2[1]; c2++)
+         {
+            br = (r1-1)*sz2[0]+1; /* r2 = 1 */
+            bc = (c1-1)*sz2[1]+c2;
+            im = index(br,bc,bsz);
+            i2 = index(1,c2,sz2); /* r2 = 1 */
+            for (r2=1; r2<=sz2[0]; r2++, im++, i2++)
+            {
+               bm[im] += v1 * m2[i2];
+            }
+         }
+      }
+   }
+ 
+   return;
+}
+ 
+ 
+/* Gateway function with error check. */
+ 
+void mexFunction_kronadd(int             nlhs,      /* No. of output arguments */
+                 mxArray         *plhs[],   /* Output arguments. */
+                 int             nrhs,      /* No. of input arguments. */
+                 const mxArray   *prhs[])   /* Input arguments. */
+{
+   unsigned int   sz1[2];
+   unsigned int   sz2[2];
+   unsigned int   bsz[2];
+   double         *m1 = NULL;
+   double         *m2 = NULL;
+   double         *bm = NULL;
+ 
+   if (nrhs == 0) mexErrMsgTxt("usage: spm_kron_add(M1,M2,BM)");
+   if (nrhs != 3) mexErrMsgTxt("spm_kron_add: 3 input arguments required");
+   if (nlhs != 0) mexErrMsgTxt("spm_kron_add: no output argument required");
+ 
+   /* Get first matrix. */
+   if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+   {
+      mexErrMsgTxt("spm_kron_add: M1 must be numeric, real, full and double");
+   }
+   sz1[0] = mxGetM(prhs[0]);
+   sz1[1] = mxGetN(prhs[0]);
+   m1 = mxGetPr(prhs[0]);
+ 
+   /* Second matrix. */
+   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+   {
+      mexErrMsgTxt("spm_kron_add: M2 must be numeric, real, full and double");
+   }
+   sz2[0] = mxGetM(prhs[1]);
+   sz2[1] = mxGetN(prhs[1]);
+   m2 = mxGetPr(prhs[1]);
+ 
+   /* And third matrix. */
+   if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+   {
+      mexErrMsgTxt("spm_kron_add: BM must be numeric, real, full and double");
+   }
+   bsz[0] = mxGetM(prhs[2]);
+   bsz[1] = mxGetN(prhs[2]);
+   bm = mxGetPr(prhs[2]);
+ 
+   /* Make sure dimensions agree. */
+   if (sz1[0]*sz2[0] != bsz[0] || sz1[1]*sz2[1] != bsz[1])
+   {
+      mexErrMsgTxt("spm_kron_add: size of BM not compatible with sizes of M1 and M2");
+   }
+ 
+   /* Do the stuff. */
+   kronadd(m1,sz1,m2,sz2,bm,bsz);
+ 
+   return;
+}
+/********************************************************************************/
 
 /********************************************************************************/
 /* beta = kron(b2,b1)'*img(:)
@@ -167,7 +453,6 @@ void kronutil3(int n1x, int n1y, int n2x, int n2y, int m1, int m2,
 }
 
 /********************************************************************************/
-#include "mex.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -175,6 +460,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	double *alpha, *beta, *img, *b1x, *b1y, *b2x, *b2y;
 
+        if (nrhs==3 & nlhs==0)
+	{
+		mexFunction_kronadd(nlhs, plhs, nrhs, prhs);
+		return;
+	}
+	if (nrhs==2 & nlhs<=1)
+	{
+		mexFunction_kron(nlhs, plhs, nrhs, prhs);
+		return;
+	}
 	if (nrhs == 0) mexErrMsgTxt("Incorrect usage");
 
 	if (nrhs != 4 & nrhs != 5) mexErrMsgTxt("4 or 5 input arguments required");
