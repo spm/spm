@@ -21,32 +21,16 @@ function spm_smooth_ui
 % original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
-% %W%	%E%
-
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% and spm_bch_bchmat (if necessary) accordingly. 
-% Calls to spm_input in this routine use the BCH gobal variable.  
-%    BCH.bch_mat 
-%    BCH.index0  = {'smooth',index_of_Analysis};
-%_______________________________________________________________________
-
-global BCH;
+% %W% %E%
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,'2.4');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Smooth');
-spm_help('!ContextHelp','spm_smooth_ui.m');
+spm_help('!ContextHelp',mfilename);
 
-s     = spm_input('smoothing {FWHM in mm}',1,...
-                  'batch',{},'FWHMmm');
-if isempty(BCH)
-   P = spm_get(Inf,'.img','select scans');
-else
-   P = spm_input('batch',{},'files');
-end
+s     = spm_input('smoothing {FWHM in mm}',1);
+P     = spm_get(Inf,'.img','select scans');
 n     = size(P,1);
 
 % implement the convolution
