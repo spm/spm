@@ -1303,7 +1303,6 @@ if any(iGloNorm==[1:7])
 		tConst     = CFIforms{iGloNorm,2};
 		tFnames    = [eval(CFIforms{iGloNorm,3}),{'global'}];
 		[f,gname]  = spm_DesMtx(tI,tConst,tFnames);
-		g(:,i)     = f;
 		clear tI tConst tFnames
 
 		%-Save GX info in xC struct for reference
@@ -1314,13 +1313,13 @@ if any(iGloNorm==[1:7])
 			str=[str;{['fitted as interaction ',sCFI{iGloNorm}]}]; 
 		end
 		tmp  = struct(	'rc',rg(:,i).*gSF(:,i),	'rcname','global',...
-				'c',g(:,i),		'cname'	,{gname},...
+				'c',f,			'cname'	,{gname},...
 				'iCC',iGC,		'iCFI'	,iGloNorm,...
 				'type',			3,...
-				'cols',[1:size(g,2)]+size([H C B G],2),...
+				'cols',[1:size(f,2)]+size([H C B G],2),...
 				'descrip',		{str}		);
 
-		G = [G,g(:,i)]; Gnames = [Gnames; gname];
+		G = [G,f]; Gnames = [Gnames; gname];
 		if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
 
 	end
