@@ -10,10 +10,11 @@ function [K] = spm_sptop(sigma,q)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-
+% if simgma = 0 return identity matrix
 %-----------------------------------------------------------------------
 if ~sigma; K = speye(q); return; end
 
+% otherwise get kernel function
 %-----------------------------------------------------------------------
 if length(sigma) == 1
 
@@ -25,12 +26,17 @@ else
 	x  = [1:length(k)] - ceil(length(k)/2);
 end
 
+% and create convolution matrix
+%-----------------------------------------------------------------------
 K  = k(:)*ones(1,q);
 j  = ones(length(k),1)*[1:q];
 i  = x(:)*ones(1,q) + j;
+
+% setting the row-wise sum to unity
+%-----------------------------------------------------------------------
+K  = K./(ones(size(K,1),1)*sum(K.*( (i >= 1) & (i <= q) )));
 i  = i(:);
 j  = j(:);
 K  = K(:);
 Q  = find((i >= 1) & (i <= q));
-
-K = sparse(i(Q),j(Q),K(Q));
+K  = sparse(j(Q),i(Q),K(Q));
