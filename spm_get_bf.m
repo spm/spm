@@ -294,12 +294,12 @@ function bf = spm_orth(BF)
 % FORMAT bf = spm_orth(bf)
 %_______________________________________________________________________
 bf    = BF(:,1);
-bf    = bf/sqrt(sum(bf.^2));
+bf    = bf/sqrt(mean(bf.^2));
 for i = 2:size(BF,2)
 	D     = BF(:,i);
 	D     = D - bf*(pinv(bf)*D);
 	if any(D)
-		bf = [bf D/sqrt(sum(D.^2))];
+		bf = [bf D/sqrt(mean(D.^2))];
 	end
 end
 
