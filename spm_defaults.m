@@ -13,53 +13,18 @@
 %_______________________________________________________________________
 % %W% John Ashburner, Andrew Holmes %E%
 
-global PRINTSTR LOGFILE CMDLINE GRID PET_UFp fMRI_UFp fMRI_T fMRI_T0
-
-% Default command for printing
-%-----------------------------------------------------------------------
-PRINTSTR = [spm_figure('DefPrintCmd'),'spm2.ps'];
-
-% Log user input to SPM. If LOGFILE is '', then don't log.
-%-----------------------------------------------------------------------
-LOGFILE = '';
-
-% Command Line
-% Values can be:
-%       0 - GUI for input and file selection
-%       1 - command line for input and file selection
-%      -1 - command line for input, GUI for file selection
-%-----------------------------------------------------------------------
-CMDLINE = 0;
-
-% GRID should be in the range of 0 to 1.
-% It determines the intensity of any grids which are superimposed
-% on displayed images.
-%-----------------------------------------------------------------------
-GRID = 0.4;
-
-% Stats defaults
-%=======================================================================
-% UFp - Upper tail F probability threshold used to filter voxels after
-% stats
-%-----------------------------------------------------------------------
-PET_UFp  = 0.05;
-fMRI_UFp = 0.001;
-
-% fMRI defaults for time sampling
-%-----------------------------------------------------------------------
-fMRI_T = 16;
-fMRI_T0 = 1;
-
 global defaults
 
 % Misc
 %=======================================================================
-defaults.modality = 'FMRI';
+%defaults.modality = 'FMRI';
 defaults.grid     = 0.4;
 defaults.cmdline  = 0;
 defaults.logfile  = '';
 defaults.printstr =  [spm_figure('DefPrintCmd'),'spm2.ps'];
 
+% Stats defaults
+%=======================================================================
 defaults.stats.maxmem   = 2^20;
 defaults.stats.maxres   = 64;
 defaults.stats.fmri.ufp = 0.001;
