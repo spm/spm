@@ -25,15 +25,19 @@ ________________________________________________________________________
 ________________________________________________________________________
                                                             Installation
 
-The SPM software is a suite of MatLab functions, scripts and data
+The SPM software is a suite of MATLAB functions, scripts and data
 files, with some externally compiled C routines, implementing
-Statistical Parametric Mapping.
+Statistical Parametric Mapping. MATLAB, a commercial engineering
+mathematics package, is required to use SPM. MATLAB is produced by The
+MathWorks, Inc.  Natick, MA, USA. http://www.mathworks.com/
+eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
+special toolboxes are required).
 
 SPM99 is written for Matlab 5.2 under UNIX. (SPM will not work with
 versions of Matlab 5 prior to 5.2, including Matlab 4.) Binaries of the
-external C-routines are provided for Solaris only, users of other UNIX
-platforms need an ANSI C compiler to compile the supplied C source
-(Makefile provided: spm_MAKE). See
+external C-mex routines are provided for Solaris, Linux and Windows
+only, users of other UNIX platforms need an ANSI C compiler to compile
+the supplied C source (Makefile provided: spm_MAKE). See
 http://www.fil.ion.ucl.ac.uk/spm/distrib.html for details.
 
 ( Whilst the majority of the code is implemented as MatLab functions    )
@@ -107,16 +111,10 @@ eMail discussion list, <spm@mailbase.ac.uk>.
 ________________________________________________________________________
                                        Disclaimer, copyright & licencing
 
-SPM is made freely available to the [neuro]imaging community, to
-promote collaboration and a common analysis scheme across
-laboratories.  The software represents the implementation of the
-theoretical concepts of Statistical Parametric Mapping in a complete
-analysis package.
-
 SPM (being the collection of files given in the manifest in the
 Contents.m file) is free but copyright software, distributed under the
 terms of the GNU General Public Licence as published by the Free
-Software Foundation (either version 2, as given in file spm_gpl.man, or
+Software Foundation (either version 2, as given in file spm_LICENCE.man, or
 at your option, any later version). Further details on "copyleft" can
 be found at http://www.gnu.org/copyleft/. In particular, SPM is
 supplied as is.  No formal support or maintenance is provided or
