@@ -89,7 +89,7 @@ if ~isempty(t),
 end;
 p = fullfile(pth,[nam   ext]);
 
-if exist(fullfile(pth,[nam '.hdr'])) == 2,
+if strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2,
 	if isempty(n), V = spm_vol_ana(p);
 	else,          V = spm_vol_ana(p,n); end;
 	if ~isempty(V), return; end;
