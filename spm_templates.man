@@ -116,23 +116,43 @@
 %
 % templates/SPECT.mnc
 % -------------------
-% The SPECT template was created by Leighton Barnden et al from the
-% Department of Nuclear Medicine at the Queen Elizabeth Hospital in
-% Adelaide and  was  used  in  their  SPECT  to  MR  coregistration
-% validation. It is the mean of 22 normal female subjects. Each was
-% scanned after injection of Tc-99m HMPAO on a triple  head  camera
-% with ultra-high resolution fanbeam collimators using a 126-154keV
-% (20%) photopeak and a 111-125 keV  scatter  window.  After  lower
-% window   scatter   subtraction   (1.5xscatter   images  after  2D
-% Butterworth smooth with cutoff 0.25  cycles/cm,  order  3.0)  the
-% photopeak projections were rebinned, pre-filtered (2D Butterworth
-% smooth with cutoff 0.7  cycles/cm,order  6.0)  and  reconstructed
-% using  Filtered  BackProjection.   The  SPECT tomograms were then
-% coregistered to the subject's 3D T1  MR  using  AMIR.  Parameters
-% from  SPM99b MR to MR Spatial Normalisation (affine + non-linear)
-% were used  to  transform  the  SPECT  images  to  SPM's  standard
-% anatomical space. The mean yielded the SPECT template.
-%
+% The SPECT template  was created by Leighton Barnden et al, and is
+% the mean of 75 normal subjects  consisting of 39 Females (18-74Y)
+% and 36 Males(20-81Y).   Mean (SD)  ages were  Females 45.2 (15.4)
+% and Males 44.6 (16.9).   The numbers of subjects in  sequential 5
+% year age intervals starting at 16-20 were:
+% Female: 3,4,3,0,1,7,6,3,6,3,2,1,0,0
+% Male:   2,4,4,2,2,5,4,4,4,1,1,0,2,1
+% 
+% Scatter has not been subtracted from the images.
+% 
+% All 75 subjects were  acquired after injection of  500 MBq Tc-99m
+% HMPAO on a triple head  Philips Irix camera with high  resolution
+% parallel hole  collimators.   The photopeak window  was 20%  wide
+% centered  on  140 keV.  The  lower scatter  window  was  half the
+% photopeak  width  (111-125 keV).  The  scatter  projections  were
+% smoothed  with  a  Butterworth  filter  (cutoff  0.3 cycles/pixel,
+% order 3.0).  Pixel size was 3.47 mm.  The smoothed scatter images
+% were  multiplied by  1.3  before subtraction  from  the photopeak
+% projections.   The  resulting  projections  were smoothed  with a
+% Butterworth filter  (cutoff 0.5*cycles/pixel,  order 5.0)  before
+% filtered  backprojection  reconstruction.    Uniform  attenuation
+% correction  was  performed  with  an  attenuation  coefficient of
+% 0.12/cm  (0.10/cm without scatter subtraction)  within elliptical
+% edges manually fitted to sections 2 pixels thick.
+% 
+% The 'raw' transaxial  sections  were first  edited to  remove hot
+% facial  activity  and  yield e* files.   Two  passes  of  Spatial
+% Normalisation  were  performed.  The  first  was  affine  spatial
+% normalisation to  the  SPM99 SPECT  template  after  a 10 mm fwhm
+% Gaussian smooth to yield nse*. The resulting parameters were also
+% applied to  the edited 'raw' sections  to yield ne*.  The mean of
+% ne*,  the  normalised  edited  'raw' sections,  yielded the first
+% estimate of  the template.   The  spatial normalisation  was then
+% repeated to this first  estimate template with nse* for parameter
+% estimation using the non-linear method with 3x4x3 basis functions
+% and masking with -/spm99/apriori/brainmask.  The result was nnse*
+% and nne*. The mean of nne* produced the final template.
 %
 % _______________________________________________________________________
 % _______________________________________________________________________
