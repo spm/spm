@@ -3,19 +3,19 @@ function [vargout] = spm_filter(K,Y)
 % FORMAT [Y] = spm_filter(K,Y)
 % FORMAT [K] = spm_filter(K)
 %
-% K         - filter matrix or:
-% K(s)      - struct array containing partition-specific specifications
+% K           - filter matrix or:
+% K(s)        - struct array containing partition-specific specifications
 %
-% K(s).RT   - observation interval in seconds
-% K(s).row  - row of Y constituting block/partition s
-% K(s).HP   - cut-off period in seconds
+% K(s).RT     - observation interval in seconds
+% K(s).row    - row of Y constituting block/partition s
+% K(s).HParam - cut-off period in seconds
 %
-% K(s).X0   - low frequencies to be removed (DCT)
+% K(s).X0     - low frequencies to be removed (DCT)
 % 
-% Y         - data matrix
+% Y           - data matrix
 %
-% K         - filter structure
-% Y         - filtered data
+% K           - filter structure
+% Y           - filtered data
 %___________________________________________________________________________
 %
 % spm_filter implements high-pass filtering in an efficient way by
@@ -24,15 +24,6 @@ function [vargout] = spm_filter(K,Y)
 % specification fields if called with one argument
 %___________________________________________________________________________
 % %W% Karl Friston %E%
-
-
-%===========================================================================
-try
-	for s = 1:length(K)
-		K(s).HP = K(s).HParam; 	% compatibility check
-	end
-end
-%===========================================================================
 
 
 % set or apply
@@ -46,8 +37,9 @@ if nargin == 1 & isstruct(K)
 		% make high pass filter
 		%-----------------------------------------------------------
 		k       = length(K(s).row);
-		n       = fix(2*(k*K(s).RT)/K(s).HP + 1);
-		K(s).X0 = spm_dctmtx(k,n);
+		n       = fix(2*(k*K(s).RT)/K(s).HParam + 1);
+		X0      = spm_dctmtx(k,n);
+		K(s).X0 = X0(:,2:end);
 	end
 
 	% return structure
