@@ -14,6 +14,7 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %                     of design matrix
 %       - Optional fields are:
 %         xX.K      - Sparse temporal smoothing matrix (see spm_sptop)
+% 		    - Or cell of session-specific structures (see spm_filter)
 %                   - Design & data are smoothed using K
 %                     (model is K*Y = K*X*beta + K*e)
 %                   - Note that K should not smooth across block boundaries
@@ -318,8 +319,6 @@ for tmp = {'X','Xnames'}
 end
 if ~isfield(xX,'K')
 	xX.K  = speye(size(xX.X,1));
-elseif any(size(xX.K)~=size(xX.X,1))
-	error('K is not a convolution matrix')	
 end
 if ~isfield(xX,'xVi')
 	xX.xVi = struct(	'Vi',	speye(size(xX.X,1)),...
@@ -378,9 +377,13 @@ fprintf('%-40s: %30s','Initialising design space','...checking')     %-#
 % Take care to apply temporal convolution - KX stored as xX.xKX.X
 %-----------------------------------------------------------------------
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')            %-#
+
 [nScan nbeta] = size(xX.X);			%-#scans & #parameters
-xX.V          = xX.K*xX.xVi.Vi*xX.K';		%-V matrix
-xX.xKXs       = spm_sp('Set',xX.K*xX.X);	%-Design space structure
+
+KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
+xX.V          = spm_filter('apply',xX.K,KVi');  %-V matrix
+KX            = spm_filter('apply',xX.K, xX.X);
+xX.xKXs       = spm_sp('Set',KX);		%-Design space structure
 xX.pKX        = spm_sp('pinv',xX.xKXs);		%-Pseudoinverse of KX
 [xX.trRV xX.trRVRV] ...				%-Variance expectations
               = spm_SpUtil('trRV',xX.xKXs,xX.V);%-(trRV & trRV2 in spm_AnCova)
@@ -618,7 +621,8 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...temporal smoothing')     %-#
-		KY    = xX.K*Y;
+
+		KY    = spm_filter('apply',xX.K, Y);
 
 		%-General linear model: least squares estimation
 		% (Using pinv to allow for non-unique designs            )
@@ -843,7 +847,8 @@ xX.xVi.Param = A;
 
 %-[Re]-enter Vi in design structure xX and default contrast
 %-----------------------------------------------------------------------
-xX.V          = xX.K*xX.xVi.Vi*xX.K';		%-V matrix
+KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
+xX.V          = spm_filter('apply',xX.K,KVi');  %-V matrix
 xX.pKXV       = xX.pKX*xX.V;			%-for contrast variance weight
 xX.Bcov       = xX.pKXV*xX.pKX';		%-Variance of est. param.
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);%-Variance expectations

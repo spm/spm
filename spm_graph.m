@@ -173,7 +173,7 @@ if isempty(y)
 else
 	% residuals
 	%---------------------------------------------------------------
-	R   = xX.K*y - xX.xKXs.X*beta;
+	R   = spm_filter('apply',xX.K, y) - xX.xKXs.X*beta;
 
 end
 
@@ -362,13 +362,19 @@ elseif Cp == 3
 		%------------------------------------------------------
 		B      = beta(j);
 		X      = xSDM.Sess{s}.bf{t};
-		q      = size(X,1);
-		x      = [1:q]*dx;
-		K      = spm_make_filter(q,dx,xX.filterHF{s},xX.filterLF{s});
+		q      = 1:size(X,1);
+		x      = q*dx;
+		K{1}   = struct('HChoice',	xX.K{s}.HChoice,...
+				'HParam',	xX.K{s}.HParam,...
+				'LChoice',	xX.K{s}.LChoice,...
+				'LParam',	xX.K{s}.LParam,...
+				'row',		q,...
+				'RT',		dx);
 
 		% fitted responses, adjusted data and standard error
 		%------------------------------------------------------
-		KX     = K*X;
+
+		KX     = spm_filter('apply',K,X);
 		Y      = KX*B;
 		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
 		pst    = xSDM.Sess{s}.pst{t};

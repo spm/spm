@@ -276,8 +276,9 @@ end
 if BM
 	k       = nscan(1);
 	X.bX    = kron(ones(nsess,1),eye(k));
+	X.Bname = {};
 	for   i = 1:k
-		Bname{i} = sprintf('scan: %i ',i);
+		X.Bname{i} = sprintf('scan: %i ',i);
 	end
 	X.DSstr = [X.DSstr '[burst-mode] '];
 end
@@ -292,65 +293,70 @@ if BM
 	cLF = 'none';
 else
 	cLF = spm_input('High-pass filter?','+1','b','none|specify');
-end
 
-% specify cut-off (default based on peristimulus time)
-% param = cut-off period (max = 512, min = 32)
-%---------------------------------------------------------------------------
-param  = 512*ones(1,nsess);
+end
 switch cLF
 
 	case 'specify'
+
+	% default based on peristimulus time
+	% param = cut-off period (max = 512, min = 32)
 	%-------------------------------------------------------------------
-	for   i = 1:nsess
+	HParam = 512*ones(1,nsess);
+	for  i = 1:nsess
 		for j = 1:length(Sess{i}.pst)
-			param(i) = min([param(i) 2*max(RT + Sess{i}.pst{j})]);
+			HParam(i) = min([HParam(i) 2*max(RT + Sess{i}.pst{j})]);
 		end
 	end
-	param   = ceil(param);
-	param(param < 32) = 32;
-	str     = 'Cutoff period[s] for each session';
-	param   = spm_input(str,'+1','e',param,[1 nsess]);
+	HParam = ceil(HParam);
+	HParam(HParam < 32) = 32;
+	str    = 'session cutoff period (secs)';
+	HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
 
 	% LF description
 	%-------------------------------------------------------------------
-	LFstr   = sprintf('[min] Cutoff period %d seconds',min(param));
+	LFstr = sprintf('[min] Cutoff period %d seconds',min(HParam));
 
 	case 'none'
 	%-------------------------------------------------------------------
-	LFstr   = cLF;
+	HParam = [];
+	LFstr  = cLF;
 
-end
-
-% create filterLF struct
-%---------------------------------------------------------------------------
-for i = 1:nsess
-	filterLF{i} = struct('Choice',cLF,'Param',param(i));
 end
 
 
 % Low-pass filtering
 %---------------------------------------------------------------------------
-cHF =  spm_input('Low-pass filter?','+1','none|Gaussian|hrf');
+if BM
+	cHF = 'none';
+else
+	cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf');
+
+end
 switch cHF
 
 	case 'Gaussian'
 	%-------------------------------------------------------------------
-	param   = spm_input('Gaussian FWHM (secs)','+1','r',4);
-	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',param);
-	param   = param/sqrt(8*log(2));
+	LParam  = spm_input('Gaussian FWHM (secs)','+1','r',4);
+	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',LParam);
+	LParam  = LParam/sqrt(8*log(2));
 
 	case {'hrf', 'none'}
 	%-------------------------------------------------------------------
-	param   = [];
+	LParam  = [];
 	HFstr   = cHF;
 
 end
 
-% create filterHF struct
+% create filter struct and band-pass specification
 %---------------------------------------------------------------------------
 for i = 1:nsess
-	filterHF{i} = struct('Choice',cHF,'Param',param);
+	K{i} = struct(	'HChoice',	cLF,...
+			'HParam',	HParam(i),...
+			'LChoice',	cHF,...
+			'LParam',	LParam,...
+			'row',		row{i},...
+			'RT',		RT);
 end
 
 
@@ -361,6 +367,16 @@ cVimenu = {'none','AR(1)'};
 cVi     = spm_input(str,'+1','b',cVimenu);
 
 
+% the interactive parts of spm_spm_ui are now finished: Cleanup GUI
+%---------------------------------------------------------------------------
+spm_clf(Finter);
+set(Finter,'Name','thankyou: please wait (computing globals)','Pointer','Watch')
+
+
+% Contruct K and Vi structs
+%===========================================================================
+K       = spm_filter('set',K);
+
 % create Vi struct
 %---------------------------------------------------------------------------
 Vi      = speye(sum(nscan));
@@ -369,23 +385,6 @@ for   i = 1:nsess
 	xVi.row{i} = row{i};
 end
 
-% the interactive parts of spm_spm_ui are now finished: Cleanup GUI
-%---------------------------------------------------------------------------
-spm_clf(Finter);
-set(Finter,'Name','thankyou: please wait (computing globals)','Pointer','Watch')
-
-
-
-% Contruct convolution matrix and Vi struct
-%===========================================================================
-K      = [];
-for  i = 1:nsess
-	k      = nscan(i);
-	[x y]  = size(K);
-	q      = spm_make_filter(k,RT,filterHF{i},filterLF{i});
-	K(([1:k] + x),([1:k] + y)) = q;
-end
-K      = sparse(K);
 
 % get file identifiers and Global values
 %===========================================================================
@@ -433,12 +432,10 @@ xM = struct(	'T',	ones(q,1),...
 %===========================================================================
 Xnames = [X.Xname X.Bname];
 xX     = struct(	'X',		[X.xX X.bX],...
-			'K',		K,...
+			'K',		{K},...
 			'xVi',		xVi,...
 			'RT',		X.RT,...
 			'dt',		X.dt,...
-			'filterLF',	{filterLF},...
-			'filterHF',	{filterHF},...
 			'Xnames',	{Xnames'});
 
 
