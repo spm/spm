@@ -20,7 +20,8 @@ function varargout = spm_input(varargin)
 % reply. Pressing <RETURN> or <ENTER> will accept the default. Clicking
 % in the entry widget allows editing, pressing <RETURN> or <ENTER>
 % enters the result. You must enter something, empty answers are not
-% accepted.
+% accepted. Default values will be pre-specified in the entry widget,
+% which will be outlined. Clicking the border accepts the default value.
 %
 % Basic editing of the entry widget is supported *without* clicking in
 % the widget, provided no other graphics widget has the focus. (If a
@@ -649,6 +650,28 @@ else
 		'HorizontalAlignment','Right',...
 		'Position',PRec);
 
+
+
+	%-Default button surrounding edit widget (if a DefStr given)
+	%-Callback sets hPrmpt UserData, and EditWidget string, to DefStr
+	% (Buttons UserData holds handles [hPrmpt,hEditWidget], set later)
+	cb = ['set(get(gcbo,''UserData'')*[1;0],''UserData'',',...
+			'get(gcbo,''String'')),',...
+		'set(get(gcbo,''UserData'')*[0;1],''String'',',...
+			'get(gcbo,''String''))'];
+	if ~isempty(DefStr)
+		hDef = uicontrol(Finter,'Style','PushButton',...
+			'String',DefStr,...
+			'ToolTipString',['Click on border to accept ',...
+				'default: 'DefStr],...
+			'Tag',['GUIinput_',int2str(YPos)],...
+			'UserData',[],...
+			'CallBack',cb,...
+			'Position',RRec+[-2,-2,+4,+4]);
+	else
+		hDef = [];
+	end
+
 	%-Edit widget: Callback sets hPrmpt UserData to string value when edited
 	cb = 'set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))';
 	h = uicontrol(Finter,'Style','Edit',...
@@ -659,6 +682,7 @@ else
 		'Horizontalalignment','Left',...
 		'BackgroundColor',COLOR,...
 		'Position',RRec);
+	set(hDef,'UserData',[hPrmpt,h])
 	if TTips
 		switch Type
 		case 's', str='enter string';
@@ -722,7 +746,7 @@ else
 	end
 
 	%-Fix edit window, clean up, reposition pointer, set CurrentFig back
-	delete(hM), set(Finter,'KeyPressFcn','')
+	delete([hM,hDef]), set(Finter,'KeyPressFcn','')
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'ToolTipString',msg,...
 		'BackgroundColor',[.7,.7,.7]), drawnow
