@@ -53,6 +53,8 @@ cmex5 spm_unlink.c
 
 cmex5 spm_map_vol.c    spm_mapping.c
 cmex5 spm_unmap_vol.c  spm_mapping.c
+
+cmex4 spm_kronutil.c
 cmex4 spm_project.c
 cmex4 spm_max.c
 cmex4 spm_clusters.c
