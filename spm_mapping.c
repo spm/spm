@@ -106,7 +106,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 			free_maps(maps,i);
 			mexErrMsgTxt("Incompatible volume dimensions in dim.");
 		}
-		if (maps[i].dtype != (int)fabs(pr[3]))
+		if (dtype != (int)fabs(pr[3]))
 		{
 			free_maps(maps,i);
 			mexErrMsgTxt("Incompatible datatype in dim.");
