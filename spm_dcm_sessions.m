@@ -88,9 +88,10 @@ hold off
 % Random effects analysis 
 % - assuming an inverse gamma prior on the variance
 % the posterior is a t-distribution 
+
 v    = std(mean_con)^2;
 c    = mean(mean_con);
-t    = (c-T)/sqrt(v);
+t    = (sqrt(num_models)*(c-T))/sqrt(v);
 x    = c + [-32:32]*sqrt(v)*6/32;
 % p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
 p    = spm_tpdf((x-c)/sqrt(v),num_models-1);
@@ -115,10 +116,9 @@ hold off
 
 % Get Classical RFX p-value
 % Note: 1-p is equal to Bayesian RFX if T=0
-t=c/sqrt(v);
+t=(sqrt(num_models)*c)/sqrt(v);
 p= 1 - spm_tcdf(t,num_models-1);
 disp(sprintf('Classical Random Effects p-value = %1.4f', p));
 disp('Note: 1-p is equal to Bayesian RFX if threshold is zero');
 spm_input('Thank you',1,'d');
 
-        
