@@ -203,8 +203,9 @@ if ER
 		'basis functions (Windowed Fourier set)',...
 		'basis functions (Gamma functions with derivatives)',...
 		'basis functions (Gamma functions)',...
-		'hrf (with derivative)',...
-		'hrf (alone)');
+		'hrf (alone)',...
+		'hrf (with time derivative)',...
+		'hrf (with time and dispersion derivatives)');
 	str   = 'Select basis set';
 	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
 
@@ -255,22 +256,40 @@ if ER
 		pst   = 0:dt:32;
 		DER   = spm_Volt_W(pst);
 
-	elseif Cov == 5
+	elseif Cov > 4
 
 		% hrf and derivatives
 		%-----------------------------------------------------------
-		D     = spm_hrf(dt);
+		[D p] = spm_hrf(dt);
 		pst   = [0:(length(D) - 1)]*dt;
-		DER   = [D' gradient(D)'];
+		DER   = D(:);
 
-	elseif Cov == 6
+		if Cov > 5
 
-		% hrf and derivatives
-		%-----------------------------------------------------------
-		D     = spm_hrf(dt);
-		pst   = [0:(length(D) - 1)]*dt;
-		DER   = D';
+			% add time derivative
+			%---------------------------------------------------
+			dp    = 1;
+			p(6)  = p(6) + dp;
+			D     = (spm_hrf(dt) - spm_hrf(dt,p))/dp;
+			D     = D(:);
+			D     = D - DER*pinv(DER)*D;
+			DER   = [DER D(:)];
+			p(6)  = p(6) - dp;
 
+
+			if Cov > 6
+
+				% add dispersion derivative
+				%-------------------------------------------
+				dp    = 0.01;
+				p(3)  = p(3) + dp;
+				D     = (spm_hrf(dt) - spm_hrf(dt,p))/dp;
+				D     = D(:);
+				D     = D - DER*(pinv(DER)*D);
+				DER   = [DER D];
+
+			end
+		end
 	end
 
 	% scans (model the same event for all sessions)
