@@ -350,7 +350,7 @@ if size(Cc,2), Cnames(1,:) = []; Ccnames(1,:) = []; end
 G = []; Gnames = ''; Gc = []; Gcnames = '';
 if bAskCov
     g = spm_input('# of confounding covariates',J,'0|1|2|3|4|5|>',0:6,1);
-    if (c == 6), g = spm_input('# of confounding covariates',J); end
+    if (g == 6), g = spm_input('# of confounding covariates',J); end
     J=J+1;
     while size(Gc,2) < g
         nGcs = size(Gc,2);
