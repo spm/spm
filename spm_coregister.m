@@ -97,52 +97,52 @@ if (nargin == 0)
 		p = 3;
 	end
 
-	if (p == 1 | p == 3)
+	if p == 1 | p == 3,
 		flags = ' ';
 		templates = str2mat([DIR1 'PET.img'], ...
 			[DIR1 'T1.img'], [DIR1 'T2.img'],...
-			[DIR1 'PD.img'],[DIR1 'EPI.img'],[DIR1 'Transm.img']);
+			[DIR1 'PD.img'],[DIR1 'EPI.img'],[DIR1 'Transm.img'],[DIR1 'SPECT.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
 		respt = spm_input('Modality of first target image?',3,'m',...
-			'target - PET|target - T1 MRI|target - T2 MRI|target - PD MRI|target - EPI|target - Transm',...
-			[1 2 3 4 5 6],1);
+			'target - PET|target - T1 MRI|target - T2 MRI|target - PD MRI|target - EPI|target - Transm|target - SPECT',...
+			[1 2 3 4 5 6 7],1);
 		PGG = deblank(templates(respt,:));
 
 		% Get modality of object
 		%-----------------------------------------------------------------------
 		respo = spm_input('Modality of first object image?',4,'m',...
-			'object - PET|object - T1 MRI|object - T2 MRI|object - PD MRI|object - EPI|object - Transm',...
-			[1 2 3 4 5 6],2);
+			'object - PET|object - T1 MRI|object - T2 MRI|object - PD MRI|object - EPI|object - Transm|object - SPECT',...
+			[1 2 3 4 5 6 7],2);
 		PFG = deblank(templates(respo,:));
 
-		if (respo==6 | respt==6),
+		if respo==6 | respt==6,
 			% only perform the first step of the registration
 			% because transmission/CT images do not segment very
 			% well.
 			flags = [flags 'n'];
-		end
-		if (respt == respo)
+		end;
+		if respt == respo,
 			n_images = 1;
-		else
+		else,
 			n_images = Inf;
-		end
+		end;
 
-		for i = 1:nsubjects
+		for i = 1:nsubjects,
 			% select target(s)
 			PGF = [];
-			while size(PGF,1)<1
+			while size(PGF,1)<1,
 				PGF = spm_get(n_images,'.img',...
 					['select target image for subject ' num2str(i)]);
-			end
+			end;
 
 			% select object(s)
 			PFF = [];
-				while size(PFF,1)<1
+				while size(PFF,1)<1,
 				PFF = spm_get(n_images,'.img',...
 					['select object image for subject ' num2str(i)]);
-			end
+			end;
 
 			% select others
 			others = spm_get(Inf,'.img',...
@@ -151,8 +151,8 @@ if (nargin == 0)
 			eval(['PGF'    num2str(i) ' = PGF;']);
 			eval(['PFF'    num2str(i) ' = PFF;']);
 			eval(['others' num2str(i) ' = others;']);
-		end
-	end
+		end;
+	end;
 
 	if p==2,
 		for i = 1:nsubjects,
