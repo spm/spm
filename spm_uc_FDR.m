@@ -53,16 +53,15 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %
 % In comparison, a traditional multiple comparisons proceedure
 % (e.g. Bonferroni or random field methods) controls Familywise Error
-% rate (FWER) at or below alpha.  FWER is the chance of one or more
-% false positives *anywhere* (not just among suprathreshold voxels).  A
-% FWER adjusted p-value for a voxel is the smallest alpha such that the
-% voxel would be suprathreshold.
-%
+% rate (FWER) at or below alpha.  FWER is the *chance* of one or more
+% false positives anywhere (whereas FDR is a *proportion* of false
+% positives).  A FWER adjusted p-value for a voxel is the smallest alpha
+% such that the voxel would be suprathreshold.
 % 
 % If there is truely no signal in the image anywhere, then a FDR
 % proceedure controls FWER, just as Bonferroni and random field methods
 % do. (Precisely, controlling E(FDR) yeilds weak control of FWE).  If
-% there *is* some signal in the image, a FDR method will be more powerful
+% there *is* some signal in the image, a FDR method should be more powerful
 % than a traditional method.
 %
 %
