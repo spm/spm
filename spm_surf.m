@@ -135,60 +135,27 @@ function renviews(V,oname)
 
 linfun = inline('fprintf([''%-30s%s''],x,[sprintf(''\b'')*ones(1,30)])','x');
 linfun('Rendering: ');
-v      = V.dim(1:3).*sqrt(sum(V.mat(1:3,1:3).^2));
-M      = V.mat;
-shift0 = inv(spm_matrix(v/2));
-shift  = spm_matrix(V.dim(1:3)/2);
-zoom   = spm_matrix([0 0 0 0 0 0 sqrt(sum(V.mat(1:3,1:3).^2))]);
-if det(M)<0, zoom(2,2) = -zoom(2,2); end;
 
-MT0 = zoom;
-
-MT1 = MT0 * shift * spm_matrix([0 0 0 0 pi 0]) * inv(shift);
-
-MS0 = spm_matrix(v([3 2 1])/2) * spm_matrix([0 0 0 0 pi/2]) ...
-	* shift0 * zoom;
-
-MS1 = MS0 * shift * spm_matrix([0 0 0 0 0 pi]) * inv(shift);
-
-MC0 = spm_matrix(v([3 1 2])/2) * spm_matrix([0 0 0 0 0 pi/2]) ...
-	* spm_matrix([0 0 0 pi/2]) * shift0 * zoom;
-
-MC1 = MC0 * shift * spm_matrix([0 0 0 0 0 pi]) * inv(shift);
-
-if 1,  % 0.5mm resolution
-	zm  = diag([2 2 1 1]); % vox vox mm 1
-	v   = v*2;
-	MT0 = zm*MT0; MT1 = zm*MT1;
-	MS0 = zm*MS0; MS1 = zm*MS1;
-	MC0 = zm*MC0; MC1 = zm*MC1;
-end;
-
-if det(M)<0,
-	flp=spm_matrix([0 (v(2)+1) 0  0 0 0 1 -1 1]); MT0=flp*MT0; MT1=flp*MT1;
-	flp=spm_matrix([0 (v(2)+1) 0  0 0 0 1 -1 1]); MS0=flp*MS0; MS1=flp*MS1;
-	flp=spm_matrix([0 (v(1)+1) 0  0 0 0 1 -1 1]); MC0=flp*MC0; MC1=flp*MC1;
-end;
-
-linfun('Rendering: Transverse 1..');	rend{1} = make_struct(V,MT0,v([1 2]));
-linfun('Rendering: Transverse 2..');	rend{2} = make_struct(V,MT1,v([1 2]));
-linfun('Rendering: Saggital 1..');	rend{3} = make_struct(V,MS0,v([3 2]));
-linfun('Rendering: Saggital 2..');	rend{4} = make_struct(V,MS1,v([3 2]));
-linfun('Rendering: Coronal 1..');	rend{5} = make_struct(V,MC0,v([3 1]));
-linfun('Rendering: Coronal 2..');	rend{6} = make_struct(V,MC1,v([3 1]));
+linfun('Rendering: Transverse 1..');    rend{1} = make_struct(V,[pi 0 pi/2]);
+linfun('Rendering: Transverse 2..');    rend{2} = make_struct(V,[0 0 pi/2]);
+linfun('Rendering: Saggital 1..');      rend{3} = make_struct(V,[0 pi/2 pi]);
+linfun('Rendering: Saggital 2..');      rend{4} = make_struct(V,[0 pi/2 0]);
+linfun('Rendering: Coronal 1..');       rend{5} = make_struct(V,[pi/2 pi/2 0]);
+linfun('Rendering: Coronal 2..');       rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
 linfun('Rendering: Save..');
 save(oname,'rend');
-linfun(' ');
+linfun('                 ');
 disp_renderings(rend);
 spm_print;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function str = make_struct(V,M,D)
-	[ren,dep]=make_pic(V,M,D);
-	str=struct('M',M/V.mat,'ren',ren,'dep',dep);
+function str = make_struct(V,thetas)
+	[D,M]     = matdim(V.dim(1:3),V.mat,thetas);
+	[ren,dep] = make_pic(V,M*V.mat,D);
+	str       = struct('M',M,'ren',ren,'dep',dep);
 return;
 %_______________________________________________________________________
 
@@ -253,3 +220,21 @@ end;
 drawnow;
 return;
 %_______________________________________________________________________
+function [d,M] = matdim(dim,mat,thetas)
+R = spm_matrix([0 0 0 thetas]);
+bb = [[1 1 1];dim(1:3)];
+c  = [  bb(1,1) bb(1,2) bb(1,3) 1
+        bb(1,1) bb(1,2) bb(2,3) 1
+        bb(1,1) bb(2,2) bb(1,3) 1
+        bb(1,1) bb(2,2) bb(2,3) 1
+        bb(2,1) bb(1,2) bb(1,3) 1
+        bb(2,1) bb(1,2) bb(2,3) 1
+        bb(2,1) bb(2,2) bb(1,3) 1
+        bb(2,1) bb(2,2) bb(2,3) 1]';
+tc = diag([2 2 1 1])*R*mat*c;
+tc = tc(1:3,:)';
+mx = max(tc);
+mn = min(tc);
+M  = spm_matrix(-[mn(1) mn(2)])*diag([2 2 1 1])*R;
+d  = ceil(abs(mx(1:2)-mn(1:2)))+1;
+return;
