@@ -44,6 +44,22 @@ function [C,P] = spm_PEB(y,P)
 M     = 32;				% maximum number of iterations
 p     = length(P);
 
+% check covariance constraints - assume i.i.d. errors conforming to X{i}
+%---------------------------------------------------------------------------
+for i = 1:p
+	if ~isfield(P{i},'C')
+		[n m] = size(P{i}.X);
+		if i == 1
+			P{i}.C            = {speye(n,n)};
+		else
+			for j = 1:m
+				k         = find(P{i}.X(:,j));
+				P{i}.C{j} = sparse(k,k,1,n,n);
+			end
+		end
+	end
+
+end
 
 % If full Bayes - only estimate hyperparameters upto the penultimate level
 %---------------------------------------------------------------------------
@@ -52,10 +68,10 @@ if ~iscell(P{end}.C)
 end
 
 
-% Construct non-hierarchical form for matrices and constraints
+% Construct augmented non-hierarchical model
 %===========================================================================
 
-% initialize design matrix, indices and inputs fields
+% design matrix and indices
 %---------------------------------------------------------------------------
 I     = {0};
 J     = {0};
@@ -75,18 +91,6 @@ for i = 1:p
 	I{i}  = [1:n] + I{end}(end);
 	J{i}  = [1:m] + J{end}(end);
 
-	% covariance constraints - assume i.i.d. errors conforming to X{i}
-	%-------------------------------------------------------------------
-	if ~isfield(P{i},'C')
-		if i == 1
-			P{i}.C            = {speye(n,n)};
-		else
-			for j = 1:m
-				k         = find(P{i}.X(:,j));
-				P{i}.C{j} = sparse(k,k,1,n,n);
-			end
-		end
-	end
 end
 
 
@@ -128,7 +132,7 @@ XX       = [XX; speye(n,n)];
 y        = [y; sparse(n,1)];
 
 
-% assemble constraints Q and intialize Ce 
+% assemble augmented constraints Q 
 %===========================================================================
 if ~isfield(P{1},'Q')
 
@@ -170,8 +174,6 @@ if ~isfield(P{1},'Q')
 		end
 	end
 	P{1}.iT = inv(T'*T)*T';
-	P{1}.XQX = XQX;
-
 end
 Q     = P{1}.Q;
 h     = P{1}.h;
@@ -193,7 +195,7 @@ iCe   = inv(Ce);
 %---------------------------------------------------------------------------
 for  i = 1:m
 	XQX{i} = XX'*Q{i}*XX;
-enf
+end
 
 
 % Iterative EM estimation
@@ -263,3 +265,4 @@ end
 % warning
 %---------------------------------------------------------------------------
 if j == M, warning('maximum number of iterations exceeded'), end
+
