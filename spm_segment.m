@@ -1,3 +1,4 @@
+function spm_segment(PF,PG,opts)
 % Segment an MR image into Gray, White, CSF & other.
 %
 % FORMAT spm_segment
@@ -59,8 +60,6 @@
 % (ICBM, NIH P-20 project, Principal Investigator John Mazziotta).
 %_______________________________________________________________________
 % %W% (c) John Ashburner %E%
-
-function spm_segment(PF,PG,opts)
 
 debug = 0;
 

@@ -1,3 +1,4 @@
+function spm_orthviews(V,centre,origin,bb,vox,area,ttle)
 % Display Orthogonal Views of a Normalized Image
 % FORMAT spm_orthviews(V,centre,origin,bb,vox,area,ttle)
 % V       - the memory mapped volume.
@@ -11,8 +12,8 @@
 %           area(3) - size x
 %           area(4) - size y
 % ttle    - the title
-
-function spm_orthviews(V,centre,origin,bb,vox,area,ttle)
+%__________________________________________________________________________
+% %W% John Ashburner %E%
 
 if (nargin < 7)
 	ttle = '';

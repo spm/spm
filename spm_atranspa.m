@@ -1,3 +1,4 @@
+
 % Multiplies the transpose of a matrix by itself.
 % FORMAT C = spm_atranspa(A)
 % A - real matrix

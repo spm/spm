@@ -1,3 +1,4 @@
+function strout = spm_str_manip(strin, options)
 % miscellaneous string manipulation options
 % FORMAT string_out = spm_str_manip(string_in,options)
 % string_in  - input string (or string matrix)
@@ -22,13 +23,10 @@
 %			   all rows of string-matrix
 %	'd'		 - deblank
 %
-%----------------------------------------------------------------------------
+%____________________________________________________________________________
 % %W% John Ashburner %E%
 
-function strout = spm_str_manip(strin, options)
-
 strout = strin;
-
 
 while (~isempty(options))
 	m = size(strout,1);

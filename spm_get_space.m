@@ -1,3 +1,4 @@
+function M = spm_get_space(imagename, mat)
 % Get or set the best guess for the space of the image.
 % FORMAT M = spm_get_space(imagename) OR spm_get_space(imagename,mat)
 %
@@ -13,11 +14,8 @@
 % space found in the ORIGIN field of the header.
 % If this ORIGIN field is set to [0 0 0], then the origin is assumed to be
 % at the centre (center) of the volume.
-%
-
+%___________________________________________________________________________
 % %W% John Ashburner FIL %E%
-
-function M = spm_get_space(imagename, mat)
 
 matname = [spm_str_manip(imagename,'sd') '.mat'];
 

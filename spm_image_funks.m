@@ -1,3 +1,4 @@
+function spm_image_funks(P,Q,func)
 % Perform algebraic functions on images.
 % FORMAT spm_image_funks(P,Q,func) OR spm_wi
 % P    - matrix of input image filenames.
@@ -11,10 +12,8 @@
 % If images are different sizes and orientations, then the size and
 % orientation of the first is used for the output image.
 % The image Q is written to the same directory as the first input image.
-
+%_______________________________________________________________________
 % %W% John Ashburner FIL %E%
-
-function spm_image_funks(P,Q,func)
 
 if (nargin==0)
 	spm_figure('Clear','Interactive');

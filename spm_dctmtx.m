@@ -1,3 +1,4 @@
+function C = spm_dctmtx(N,K,n,f)
 % Creates basis functions for Discrete Cosine Transform.
 % FORMAT C = spm_dctmtx(N,K,n)
 %     OR C = spm_dctmtx(N,K)
@@ -14,11 +15,8 @@
 %
 % See:    Fundamentals of Digital Image Processing (p 150-154).
 %         Anil K. Jain 1989.
-%
-
+%____________________________________________________________________________
 % %W% John Ashburner MRCCU/FIL %E%
-
-function C = spm_dctmtx(N,K,n,f)
 
 d = 0;
 

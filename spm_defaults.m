@@ -1,3 +1,4 @@
+
 % Sets the defaults which are used by SPM
 %
 % FORMAT spm_defaults

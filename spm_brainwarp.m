@@ -1,3 +1,4 @@
+
 % Part of nonlinear spatial normalisation.
 % [Alpha,Beta,Var] = spm_brainwarp2(VG,VF,Affine,basX,basY,basZ,...
 %                                   dbasX,dbasY,dbasZ,T,fwhm)
