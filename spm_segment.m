@@ -153,7 +153,7 @@ end
 %PB    = str2mat([DIR2 'gray.img'],[DIR2 'white.img'],[DIR2 'csf.img']);
 PB    = str2mat([DIR2 'symmetric_gray.img'],[DIR2 'symmetric_white.img'],[DIR2 'symmetric_csf.img']);
 
-niter     = 24;
+niter     = 48;
 nc        = [1 1 1 3]; % Number of clusters for each probability image
 petscales = [1 0.3 0.1 0.1 0.1 0]';
 
