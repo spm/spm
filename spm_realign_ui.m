@@ -308,8 +308,7 @@ function spm_realign_ui(opt)
 % needed to unwarp the appurtenant time-series, and to assess exactly how the
 % estimation was done.
 %__________________________________________________________________________
-% %W% John Ashburner - with input from Oliver Josephs %E%
-% and Jesper Andersson
+% %W% John Ashburner, Jesper Andersson and Oliver Josephs %E%
 
 global defaults
 
@@ -329,7 +328,7 @@ return;
 function run_ui(defs, modality, unwarp)
 % User interface.
 %_______________________________________________________________________
-SPMid                   = spm('FnBanner',mfilename,'2.10');
+SPMid                   = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 spm_help('!ContextHelp',mfilename);
 
@@ -340,10 +339,10 @@ if n<1, spm_figure('Clear','Interactive'); return; end
 % Possibility to include measured field-map temporarily removed.
 %
 pcpm = 0;
-%if strcmp(lower(modality),'fmri') & nargin > 2
-%	pcpm = spm_input('Include pre-calculated phase maps?','+1','m',...
-%		[' Yes| No'],[1 0],0);
-%end
+if strcmp(lower(modality),'fmri') & nargin > 2
+	pcpm = spm_input('Include pre-calculated phase maps?','+1','m',...
+		[' Yes| No'],[1 0],0);
+end
    
 
 P = cell(n,1);
@@ -351,6 +350,7 @@ for i = 1:n,
 	if strcmp(lower(modality),'fmri'),
 		ns = spm_input(['Num sessions, subj ' num2str(i)], '+1', 'e', 1);
 		pp = cell(1,ns);
+		if pcpm; ppm = cell(1,ns); else ppm = []; end
 		for s=1:ns,
 			p = '';
                         pm = '';
@@ -358,12 +358,21 @@ for i = 1:n,
 				p = spm_get(Inf,'IMAGE',...
 					['Images, subj ' num2str(i) ', sess' num2str(s)]);
 				if pcpm == 1
-					pm = spm_get(1,'IMAGE',...
-					['Phasemap, subj ' num2str(i) ', sess' num2str(s)]);
+				   if s == 1
+				      pm = spm_get(1,'vdm_*.img',...
+						   ['FieldMap, subj ' num2str(i) ', sess' num2str(s)]);
+				   else
+				      pm = spm_get([0,1],'vdm_*.img',...
+						   ['FieldMap, subj ' num2str(i) ', sess' num2str(s)]);
+				   end
 				end
 			end;
 			pp{s} = p;
-                        ppm{s} = pm;
+			if pcpm & ~isempty(pm)
+                           ppm{s} = pm;
+			elseif pcpm & isempty(pm) & ~isempty(ppm{s-1})
+			   ppm{s} = ppm{s-1};
+			end
 		end;
 		P{i} = pp;
                 pP{i} = ppm;
@@ -501,7 +510,7 @@ if nargin < 3
 %
 else
 	uwe_flags = struct('order',    unwarp.estimate.basfcn,...
-			'sfield',      [],...
+			'sfP',      [],...
 			'regorder',    unwarp.estimate.regorder,...
 			'lambda',      unwarp.estimate.regwgt,...
 			'jm',          unwarp.estimate.jm,...
@@ -536,7 +545,7 @@ else
                 uwe_flags.M = tmpP.mat;
 		for j=1:length(P{i})
 			if pcpm > 0
-				uwe_flags.sfield = pP{i}{j};
+			   uwe_flags.sfP = pP{i}{j};
 			end
 			ds = spm_uw_estimate(P{i}{j},uwe_flags);
                         ads(j) = ds;
@@ -602,14 +611,14 @@ return;
 %_______________________________________________________________________
 function defs = get_unwarp_defs(defs)
 
-orders = [6 6; 8 8; 10 10; 12 12];
+orders = [8 8; 10 10; 12 12; 14 14];
 lambdas = [1e4 1e5 1e6];
 
 defs.estimate.fwhm = spm_input('Filter width (mm)','+1','e',...
                                '4',1);
 
 defs.estimate.basfcn = spm_input('No. of basis functions','+1','m',...
-                                 ['6x6x*|8x8x*|10x10x*|12x12x*'],...
+                                 ['8x8x*|10x10x*|12x12x*|14x14x*'],...
                                  [1:4],3);
 defs.estimate.basfcn = orders(defs.estimate.basfcn,:);
 
