@@ -3,23 +3,23 @@ function LOGFILE = spm_log(varargin)
 % FORMAT LOGFILE = spm_log(varargin)
 % varargin - Matrices to be written to the log file.
 % LOGFILE  - The name of the log file.
-%__________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_log implements logging for the SPM package. The log file is
 % specified in the global LOGFILE. If this is non-empty, then spm_log
 % writes the passed string matrices to the log file.
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
 
 %-Find out LogFile name, return if not logging.
-%============================================================================
-if any(strcmp(who('global'),'LOGFILE')), global LOGFILE; else, LOGFILE=''; end
+%=======================================================================
+LOGFILE = spm('GetGlobal','LOGFILE');
 if nargin==0 | isempty(LOGFILE), return, end
 
 %-Open LogFile
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 [fid,msg] = fopen(LOGFILE,'a');
 if fid==-1
     if strcmp(msg,'Sorry. No help in figuring out the problem . . .')
@@ -33,7 +33,7 @@ end
 
 
 %-Write log
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 for arg = 1:nargin
 	tmp = varargin{arg};
 	if isstr(tmp)
@@ -51,6 +51,6 @@ end
 fprintf(fid,'\n');
 
 %-Close log
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 status = fclose(fid);
 if fid==-1, warning('spm_log : error closing file'), end
