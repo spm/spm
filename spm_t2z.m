@@ -19,16 +19,17 @@ function [z,t1] = spm_t2z(t,df)
 % z is computed by linear extrapolation of the t2z relationship.
 %
 %__________________________________________________________________________
-% %W% Andrew Holmes, Karl Friston %E%
+% %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 16/12/93 - 
-% V1b	- 01/06/94 - Stripped down for SPM
-% V2a	- 03/02/95 - Included extrapolation and argument checks
-% V2b   - 20/07/95 - Altered t==0 checking to allow for overflow to 1
-%                    in computation of betainc argument - this was
-%                    generating "log of zero" errors - but not serious.
+%-version notes-%
+% 16/12/93 - 
+% 01/06/94 - Stripped down for SPM
+% 03/02/95 - Included extrapolation and argument checks
+% 20/07/95 - Altered t==0 checking to allow for overflow to 1 in computation 
+%            of betainc argument - this was generating "log of zero" 
+%            errors - annoying but not serious.
 
+%-Initialisation
 %===========================================================================
 
 % p-value tolerance: t-values with tail probabilities less than this are
