@@ -7,10 +7,12 @@ function [A,B,C,D,L,O] = spm_bl_reshape(P,m,n,l)
 % l     - number of outputs
 %
 % A...  - Lie operators (matices)
+% L     - 1st order output matrix
+% O     - 2nd order output matrix
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
-% get A and B {where P = [A(:); B(:); C(:); D(:)]}
+% get A,...,O {where P = [A(:); B(:); C(:); D(:); L(:); O(:)]}
 %---------------------------------------------------------------------------
 P     = full(P);
 A     = reshape(P([1:n*n]),n,n);

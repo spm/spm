@@ -11,7 +11,7 @@ function [A,B,C,H] = spm_dcm_reshape(P,m,n,r)
 % C     - direct connections
 % H     - hemodynamic parameters
 %___________________________________________________________________________
-% @(#)spm_dcm_reshape  Karl Friston
+% %W% Karl Friston %E%
 
 % scale intrinsic connections {A}
 %---------------------------------------------------------------------------
