@@ -232,30 +232,22 @@ for i = 1:v
 
 	% create stimulus functions (32 bin offset)
 	%===============================================================
-
-	% space out events that fall in the same time bin
-	%---------------------------------------------------------------
-	ton        = round(ons*TR/dt) + 32;			
-	while any(~diff(ton))
-		j           = find(~diff(ton));
-		ton(j + 1) = ton(j + 1) + 1;
+	ton       = round(ons*TR/dt) + 32;			% onsets
+	tof       = round(dur*TR/dt) + ton + 1;			% offset
+	sf        = sparse((k*T + 128),size(u,2));
+	for j = 1:length(ton)
+		sf(ton(j),:) = sf(ton(j),:) + u(j,:);
+		sf(tof(j),:) = sf(tof(j),:) - u(j,:);
 	end
-
-	tof        = round(dur*TR/dt) + ton + 1;
-	ons        = sparse((k*T + 128),size(u,2));		% onsets
-	off        = sparse((k*T + 128),size(u,2));		% offsets
-	ons(ton,:) = u;
-	off(tof,:) = u;
-	sf         = cumsum(ons - off);				% integrate
-	sf         = sf(1:(k*T + 32),:);			% stimulus
-
+	sf        = cumsum(sf);					% integrate
+	sf        = sf(1:(k*T + 32),:);				% stimulus
 
 	% place in ouputs structure
 	%---------------------------------------------------------------
-	U(i).name  = Uname;		% - input names
-	U(i).dt    = dt;		% - time bin {seconds}
-	U(i).u     = sf;		% - stimulus function matrix
-	U(i).pst   = pst;		% - pst (seconds)
-	U(i).P     = xP;		% - parameter struct
+	U(i).name = Uname;		% - input names
+	U(i).dt   = dt;			% - time bin {seconds}
+	U(i).u    = sf;			% - stimulus function matrix
+	U(i).pst  = pst;		% - pst (seconds)
+	U(i).P    = xP;			% - parameter struct
 
 end % (v)
