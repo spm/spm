@@ -78,7 +78,7 @@ if (nargin == 0)
 	% Act as user interface if there are no arguments
 	%_______________________________________________________________________
 
-	SPMid = spm('FnBanner',mfilename,'%W%');
+	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Coregister');
 	spm_help('!ContextHelp','spm_coregister.m');
 
