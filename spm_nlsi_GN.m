@@ -88,13 +88,11 @@ uC     = speye(u,u)*1e+8;
 % SVD of prior covariances
 %---------------------------------------------------------------------------
 if isfield(M,'Vp')
-    Vp=M.Vp;
+    Vp = M.Vp;
 else
-    Vp     = spm_svd(pC,1e-16);
+    Vp = spm_svd(pC,1e-16);
 end
-Nip    = size(Vp,2);
-ip     = [1:Nip];
-%betap  = [Nip+1:Nip+m*size(Y.X0,2)];
+ip     = [1:size(Vp,2)];
 
 % If EB: i.e. prior covariance hyperparameter estimation
 %---------------------------------------------------------------------------
@@ -109,7 +107,13 @@ else
 	P{2}.C = blkdiag(pC, uC);
 end
 
-
+% number of iterations
+%---------------------------------------------------------------------------
+try
+	maxits = M.maxits
+catch
+	maxits = 32;
+end
 
 % Gauss-Newton search 
 %===========================================================================
@@ -117,8 +121,7 @@ p      = pE;
 pi     = pE;
 dp     = pE;
 dv     = 1e-6;
-%for  j = 1:32
-for  j = 1:M.maxits
+for  j = 1:32
 
 	% y = f(p) - for new expansion point (p) in parameter space 
 	%-------------------------------------------------------------------
@@ -136,20 +139,15 @@ for  j = 1:M.maxits
 	% Bayesian [conditional] estimator of new expansion point E{p|y}
 	%-------------------------------------------------------------------
 	P{1}.X = [Jp Ju];
-	P{2}.X = [Vp'*( pE(:) - p(:));uE];
-    
-    
-	[C P]  = spm_PEB(y(:) - fp(:),P );
+	P{2}.X = [Vp'*(pE(:) - p(:)); uE];
+	[C P]  = spm_PEB(y(:) - fp(:),P);
     
     
 	% update - project conditional esitmates onto parameter space
 	%-------------------------------------------------------------------
 	dp(:)  = Vp*C{2}.E(ip);
-    
-    % Size of effects of no interest
-    %beta=C{2}.E(betap);
-    
-	% update - ensuring the system is dissipative
+        
+	% update - ensuring the system is dissipative (and break if not)
 	%-------------------------------------------------------------------
 	for  i = 1:8
 		A    = spm_bi_reduce(M,p + dp);
@@ -160,15 +158,9 @@ for  j = 1:M.maxits
 			break
 		end
 	end
+        if i == 8, break, end
 
-    A    = spm_bi_reduce(M,p + dp);
-    s    = max(real(eig(full(A))));
-    if s > 0,
-        % If its still unstable 
-        break
-    end
-    
-    p      = p + dp;
+	p      = p + dp;
     
 	% convergence
 	%-------------------------------------------------------------------
