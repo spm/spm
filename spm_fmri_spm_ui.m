@@ -159,9 +159,14 @@ q      = size(P,1);
 %---------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
 
+% Threshold for F statistic
+%---------------------------------------------------------------------------
+global UFp
+UFp   = spm_input('threshold for F, p = ','!+1','e',0.001);
+
 % get Repeat time
 %---------------------------------------------------------------------------
-RT    = spm_input('Interscan interval {secs}','!+1');
+RT    = spm_input('Interscan interval {secs}','!+0');
 
 
 % default cutoff period (scans) for Hi-pass filtering
@@ -174,11 +179,11 @@ ER    = spm_input('epoch or event-related fMRI','!+1','epoch|event',[0 1]);
 
 % estimated hemodynamic response function
 %---------------------------------------------------------------------------
-u     = 0:32/RT;
-d     = 6; Del = d/RT; Dis = sqrt(d)/RT;
-hrf   = spm_Gpdf(u,[ (Del/Dis)^2 Del/Dis^2 ]);
-d     = 16; Del = d/RT; Dis = sqrt(d)/RT;
-hrf   = hrf - spm_Gpdf(u,[ (Del/Dis)^2 Del/Dis^2 ])/4;
+dt    = RT/8;
+u     = 0:(32/dt);
+hrf   = spm_Gpdf(u,[6 dt]) - spm_Gpdf(u,[16 dt])/6;
+hrf   = spm_conv(hrf,8);
+hrf   = hrf([1:32/RT]*8);
 hrf   = hrf/sum(hrf);
 
 
@@ -241,9 +246,9 @@ if ER
 		%-----------------------------------------------------------
 		CUT   = min([CUT max(diff(ons))]);
 
-		% peri-stimulus time {PST}
+		% peri-stimulus time {PST} in seconds
 		%-----------------------------------------------------------
-		pst   = zeros(k,1) - 64;			
+		pst   = ([1:k] - ons(1))*RT;			
 		for i = 1:length(ons)
 			u  = ([1:k] - ons(i));
 			j  = find(u >= -1);
@@ -721,10 +726,9 @@ if spm_input('high pass filter','!+1','yes|no',[1 0])
 
 	end
 
-	% orthogonalize w.r.t. effects of interest
+	% mean correct
 	%-------------------------------------------------------------------
 	F      = spm_detrend(F);
-	F      = F - C*(pinv(C)*F);
 
 	%-combine confounds and append confound effect names
 	%-------------------------------------------------------------------
@@ -1009,6 +1013,7 @@ end
 text(0,y,sprintf('Grand Mean = %0.2f a.u.',GM)); y = y - dy;
 text(0,y,sprintf('Interscan Interval = %0.2f secs',RT)); y = y - dy;
 text(0,y,['Response Form: ' Ctype(Cov,:)  ]); y = y - dy;
+text(0,y,sprintf('SPM{F} threshold p = %0.3f',UFp)); y = y - dy;
 
 %---------------------------------------------------------------------------
 if GLOBAL
