@@ -12,11 +12,12 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % n     - number of component SPMs in conjunction
 % Vs    - Mapped statistic image(s)
 %          -or-
-%         Vector of sorted p-values (saves i/o w/ repeated calls)
+%         Vector of sorted p-values, p1<p2<... (saves i/o w/ repeated calls)
 % Vm    - Mask in 1 of 3 forms
 %           o Scalar, indicating implicit mask value in statistic image(s)
 %           o Vector of indicies of elements within mask
 %           o Mapped mask image
+%         (Ignored if Vs is a vector.)
 %
 % u     - critical height
 % Ps    - Sorted p-values
@@ -135,12 +136,12 @@ Fi  = (1:S)'/S*q/cV;
 
 % Find threshold
 %-----------------------------------------------------------------------
-I   = max(find(Ps<=Fi));
+I = max(find(Ps<=Fi));
 if isempty(I)
   u = Inf;
 else
   if isstruct(Vs)
-    u   = Ts(I);
+    u = Ts(I);
   else 
     % We don't have original statistic values; determine from p-value
     if      STAT == 'Z'
@@ -152,5 +153,6 @@ else
     elseif  STAT == 'F'
       u = spm_invFcdf(1-Ps(I),df));
     end
+  end
 end
 
