@@ -35,24 +35,16 @@ function spm_mip(X,L,V)
 %-----------------------------------------------------------------------
 global GRID, if isempty(GRID), GRID = 0.6; end
 
-
-% single slice case
+% single slice case (ORIGIN = [0 0])
 %=======================================================================
-% NB: Doesn't work for FLIPped data (ORIGIN not mirrored within image matrix)
 if V(3) == 1
-	X=X(:)'; X=X/max(X);
-	if length(V)==6, V=[V; 0;0;0]; end
-	M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3), 1]];
-	rcp = inv(M)*[L; ones(1,size(L,2))];
-%	%-Range checks
-%	d   = rcp(1,:) > 1 & rcp(1,:) < V(1) & rcp(2) > 1 & rcp(2,:) < V(2);
-%	mip = full(sparse(rcp(1,d),rcp(2,d),X(d),V(1),V(2)));
-	mip = full(sparse(rcp(1,:),rcp(2,:),X,V(1),V(2)));
-	%-NB: rot90(X) & axis ij is equivalent to X' & axis xy
-	image([V(4)*(1-V(7)):V(4):V(4)*(V(1)-V(7))],...
-		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],rot90(1-mip)*64)
+	i   = L(1,:)/V(4);
+	j   = L(2,:)/V(5);
+	d   = i > 1 & i < V(1) & j > 1 & j < V(2);
+	mip = full(sparse(i(d),j(d),X(d),V(1),V(2)));
+	imagesc([1 V(1)*V(4)],[1 V(2)*V(5)],(-mip')); axis xy
+	axis image; 
 	set(gca,'FontSize',8,'TickDir','in')
-	axis image
 	xlabel('x'), ylabel('y')
 	return
 end
