@@ -141,13 +141,21 @@ if isempty(Fgraph)
 		else, Fgraph=spm_figure('Create','Graphics'); end
 end
 
-%-Axis offsets for 3d MIPs: See spm_project.c for derivation
+%-Axis offsets for 3d MIPs: 
 %-----------------------------------------------------------------------
-Po1 = 127-4;
-Po2 = 182+182-91;
-Po3 = 182-73;
-Po4 = 218+91-4;
-
+%-MIP pane dimensions and Talairach origin offsets
+%-See spm_project.c for derivation
+DXYZ = [182 218 182];
+CXYZ = [091 127 073];
+%-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij')
+% Transverse: [Po(1), Po(2)]
+% Saggital  : [Po(1), Po(3)]
+% Coronal   : [Po(4), Po(3)]
+% 4 voxel offsets in Y since using character '<' as a pointer.
+Po(1)  =                  CXYZ(2) -4;
+Po(2)  = DXYZ(3)+DXYZ(1) -CXYZ(1)   ;
+Po(3)  = DXYZ(3)         -CXYZ(3)   ;
+Po(4)  = DXYZ(2)         +CXYZ(1) -4;
 
 %-Format arguments
 %=======================================================================
@@ -176,10 +184,21 @@ if nargin < 5, Descrip='SPM Maximum Intensity Projections';
 %-----------------------------------------------------------------------
 figure(Fgraph)
 spm_clf(Fgraph)
-set(Fgraph,'Units','normalized'); 
-hMIPaxes = axes('Position',[0.24 0.54 0.62 0.42],'Tag','hMIPaxes');
-spm_mip(t,XYZ,V); axis normal
+set(Fgraph,'Units','normalized')
+hMIPax = axes('Position',[0.24 0.54 0.62 0.42],'Tag','MIPaxes');
+spm_mip(t,XYZ,V);
 
+%-Sort out aspect ratio - always shrink!
+axis normal
+set(Fgraph,'Units','pixels')
+set(hMIPax,'Units','pixels')
+AR = diff(get(hMIPax,'Xlim'))/diff(get(hMIPax,'Ylim'));
+MIPaxPos = get(hMIPax,'Position');
+if MIPaxPos(3)/MIPaxPos(4) > AR
+	set(hMIPax,'Position',[MIPaxPos(1:2),MIPaxPos(4)*AR,MIPaxPos(4)]);
+else
+	set(hMIPax,'Position',[MIPaxPos(1:2),MIPaxPos(3),MIPaxPos(3)./AR]);
+end
 
 %-Create point markers
 %-----------------------------------------------------------------------
@@ -187,7 +206,7 @@ xyz = spm_mip_ui('RoundCoords',[0,0,0],V);
 if V(3) == 1
 	%-2 dimensional data
 	%---------------------------------------------------------------
-	set(hMIPaxes,'Position',[0.24 0.54 0.52 0.36])
+	% set(hMIPax,'Position',[0.24 0.54 0.52 0.36])
 	X1   = text(xyz(1),xyz(2),'<','Color','r','Fontsize',16,...
 			'Tag','X1',...
 			'ButtonDownFcn','spm_mip_ui(''MoveStart'')');
@@ -196,32 +215,35 @@ if V(3) == 1
 else
 	%-Create point markers
 	%--------------------------------------------------------------
-	X1   = text(Po1+xyz(2),Po2+xyz(1),'<','Color','r','Fontsize',16,...
+	X1   = text(Po(1)+xyz(2),Po(2)+xyz(1),'<',...
+			'Color','r','Fontsize',16,...
 			'Tag','X1',...
 			'ButtonDownFcn','spm_mip_ui(''MoveStart'')');
-	X2   = text(Po1+xyz(2),Po3-xyz(3),'<','Color','r','Fontsize',16,...
+	X2   = text(Po(1)+xyz(2),Po(3)-xyz(3),'<',...
+			'Color','r','Fontsize',16,...
 			'Tag','X2',...
 			'ButtonDownFcn','spm_mip_ui(''MoveStart'')');
-	X3   = text(Po4+xyz(1),Po3-xyz(3),'<','Color','r','Fontsize',16,...
+	X3   = text(Po(4)+xyz(1),Po(3)-xyz(3),'<',....
+			'Color','r','Fontsize',16,...
 			'Tag','X3',...
 			'ButtonDownFcn','spm_mip_ui(''MoveStart'')');
 
-	X1g  = text(Po1,Po2,'<','Color','g','Fontsize',12,...
+	X1g  = text(Po(1),Po(2),'<','Color','g','Fontsize',12,...
 			'Tag','X1g','Visible','off');
-	X2g  = text(Po1,Po3,'<','Color','g','Fontsize',12,...
+	X2g  = text(Po(1),Po(3),'<','Color','g','Fontsize',12,...
 			'Tag','X2g','Visible','off');
-	X3g  = text(Po4,Po3,'<','Color','g','Fontsize',12,...
+	X3g  = text(Po(4),Po(3),'<','Color','g','Fontsize',12,...
 			'Tag','X3g','Visible','off');
 
 end
 
-%-Reset axis attributes and get hMIPaxes position in pixels
+%-Reset axis attributes and get MIPaxes position in pixels
 %-----------------------------------------------------------------------
-set(hMIPaxes,'Units','Pixels')
+set(hMIPax,'Units','Pixels')
 set(Fgraph,'Units','Pixels')
-AXES = get(hMIPaxes,'Position');
+AXES = get(hMIPax,'Position');
 AXES = AXES(1:2);
-set(hMIPaxes,'UserData',AXES,...
+set(hMIPax,'UserData',AXES,...
 	'Units','normalized')
 
 %-Print coordinates
@@ -411,9 +433,9 @@ if b2d
 	set(X1,'Position',[xyz(1), xyz(2), 1])
 else
 	set([X1,X2,X3],'Units','Data')
-	set(X1,'Position',[ Po1 + xyz(2), Po2 + xyz(1), 0])
-	set(X2,'Position',[ Po1 + xyz(2), Po3 - xyz(3), 0])
-	set(X3,'Position',[ Po4 + xyz(1), Po3 - xyz(3), 0])
+	set(X1,'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
+	set(X2,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
+	set(X3,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
 end
 return
 
@@ -442,9 +464,9 @@ if b2d
 	set(X1g,'Position',[xyz(1), xyz(2), 1],'Visible','on')
 else
 	set([X1g,X2g,X3g],'Units','Data')
-	set(X1g,'Position',[ Po1 + xyz(2), Po2 + xyz(1), 0],'Visible','on')
-	set(X2g,'Position',[ Po1 + xyz(2), Po3 - xyz(3), 0],'Visible','on')
-	set(X3g,'Position',[ Po4 + xyz(1), Po3 - xyz(3), 0],'Visible','on')
+	set(X1g,'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0],'Visible','on')
+	set(X2g,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0],'Visible','on')
+	set(X3g,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0],'Visible','on')
 end
 
 %-If called as a callback (xyz from gco), then set WindowButtonUpFcn
@@ -487,7 +509,7 @@ elseif strcmp(lower(Action),lower('MoveStart'))
 %-Store useful quantities in UserData of gco, the object to be dragged
 %-----------------------------------------------------------------------
 xyz  = spm_mip_ui('GetCoords');
-AXIS = get(findobj(gcf,'Tag','hMIPaxes'),'UserData');
+AXIS = get(findobj(gcf,'Tag','MIPaxes'),'UserData');
 V    = get(findobj(gcf,'Tag','hV'),'UserData');
 X1 = findobj(gcf,'Tag','X1');
 b2d = V(3) == 1;
@@ -536,7 +558,6 @@ elseif strcmp(lower(Action),lower('Move'))
 %=======================================================================
 % spm_mip_ui('Move',DragType)
 if nargin<2, DragType = 2; else, DragType = P2; end
-set(gcf,'Units','pixels')
 
 %-Get useful data from UserData of gco, the object to be dragged
 %-----------------------------------------------------------------------
@@ -555,6 +576,7 @@ b2d = V(3) == 1;
 
 %-Work out where we are moving to
 %-----------------------------------------------------------------------
+set(gcf,'Units','pixels')
 d = get(gcf,'CurrentPoint') - AXIS;
 set(gco,'Units','pixels')
 set(gco,'Position',d)
@@ -569,12 +591,12 @@ if strcmp(sMarker,'X1')
 	if b2d
 		xyz = [d(1); d(2); tmp(3)];
 	else
-		xyz = [d(2) - Po2; d(1) - Po1; tmp(3)];
+		xyz = [d(2) - Po(2); d(1) - Po(1); tmp(3)];
 	end
 elseif strcmp(sMarker,'X2')
-	xyz = [tmp(1); d(1) - Po1; Po3 - d(2)];
+	xyz = [tmp(1); d(1) - Po(1); Po(3) - d(2)];
 elseif strcmp(sMarker,'X3')
-	xyz = [d(1) - Po4; tmp(2); Po3 - d(2)];
+	xyz = [d(1) - Po(4); tmp(2); Po(3) - d(2)];
 else
 	error('Can''t work out which marker point')
 end
@@ -594,9 +616,9 @@ if b2d
 	set(X1,'Position',[xyz(1), xyz(2), 1],'Visible','on')
 else
 	set([X1,X2,X3],'Units','Data')
-	set(X1,'Position',[ Po1 + xyz(2), Po2 + xyz(1), 0])
-	set(X2,'Position',[ Po1 + xyz(2), Po3 - xyz(3), 0])
-	set(X3,'Position',[ Po4 + xyz(1), Po3 - xyz(3), 0])
+	set(X1,'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
+	set(X2,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
+	set(X3,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
 end
 
 %-Set Co-ordinate strings (if appropriate DragType)
