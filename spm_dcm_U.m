@@ -32,7 +32,7 @@ u      = length(Sess.U);
 m_sel=length(input_nos);
 
 % Number of inputs in DCM file
-m = size(DCM.C,2);
+m = size(DCM.c,2);
 
 if ~(m_sel==m)
     disp(sprintf('Error in spm_dcm_U: must include %d inputs',m));
