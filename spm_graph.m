@@ -389,6 +389,8 @@ case 'Event/epoch-related responses'
 	u     = 1;
 	for t = tr
 
+		Y     = [];
+		se    = [];
 		for s = ss
 
 			% basis functions, filter and parameters
@@ -408,9 +410,9 @@ case 'Event/epoch-related responses'
 
 			% fitted responses with standard error
 			%----------------------------------------------
-			KX       = spm_filter('apply',K,X);
-			Y(q,s)   = KX*B;
-			se(:,s)  = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+			KX   = spm_filter('apply',K,X);
+			Y    = [Y KX*B];
+			se   = [se sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS)];
 		end
 
 		% average over sessions
