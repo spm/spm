@@ -60,8 +60,8 @@ for model=1:num_models,
         j = 1 + l*l + l*l*m;
     end
     C       = sparse(i + j,1,con(i),length(DCM.Ep),1);
-    mean_con(model) = C'*DCM.Ep;
-    var_con(model) = C'*DCM.Cp*C;   
+    mean_con(model) = full(C')*full(DCM.Ep);
+    var_con(model) = full(C')*full(DCM.Cp)*full(C);   
     disp(sprintf('Model %d, Contrast Mean=%1.4f, Contrast Variance=%1.4f',model,mean_con(model),var_con(model)));
     if var_con(model)==0
         disp(sprintf('Error in spm_dcm_sessions: this contrast not valid for model %d',model));
