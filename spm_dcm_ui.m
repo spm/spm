@@ -67,7 +67,7 @@ function [DCM] = spm_dcm_ui(Action)
 % majority of imaging neuroscience relies upon designed experiments we
 % consider DCM a potentially useful complement to existing techniques.  
 %___________________________________________________________________________
-% %W%	Karl Friston %E%
+% %W% Karl Friston %E%
 
 
 % get figure handles
@@ -738,16 +738,38 @@ case 'review'
 	%-end while
 	%-------------------------------------------------------------------
 	end
+    
+
+% compare different models
+%---------------------------------------------------------------------------
 case 'compare',
     
     num_models = spm_input('Number of DCM models to compare','+1','r',[],1);
 	P     = spm_get(num_models,'DCM*.mat',{'select DCM*.mat files'});
     
+    % load all models and compute their evidence
     for model_index=1:num_models,
 	    load(P{model_index});
-        evidence(model_index)=spm_dcm_evidence(DCM);
-        aic(model_index)=evidence(model_index).aic_overall;
-        bic(model_index)=evidence(model_index).bic_overall;
+        model_VOIs{model_index}   = [];
+        % concatenate names of all VOIs for each model
+        for k   = 1:size(DCM.xY,2),
+            model_VOIs{model_index}    = [model_VOIs{model_index} DCM.xY(k).name];
+        end
+        evidence(model_index)       = spm_dcm_evidence(DCM);
+        aic(model_index)            = evidence(model_index).aic_overall;
+        bic(model_index)            = evidence(model_index).bic_overall;
+    end
+    
+    % model comparison is only valid if y is identical:
+    % check that all models refer to the same set of VOIs
+    for model_index=1:num_models,
+        if ~strcmp(model_VOIs{1}, model_VOIs{model_index})
+        	str = {	'Selected models contain different sets of VOIs!',...
+            		'Model comparison only valid for models with identical VOIs.',...
+                    'Procedure aborted.'};
+	        spm_input(str,1,'bd','OK',[1],1);
+            return
+        end
     end
     
     % Get and plot posterior probabilities of models assuming
@@ -763,7 +785,7 @@ case 'compare',
     Vscale(4)=1;
     axis(Vscale);
     set(gca,'FontSize',18);
-    ylabel('p(m|y)');
+    ylabel('p(y|m)');
     xlabel('m');
     title('Posterior probabilities of models from AIC');
     
@@ -776,7 +798,7 @@ case 'compare',
     Vscale(4)=1;
     axis(Vscale);
     set(gca,'FontSize',18);
-    ylabel('p(m|y)');
+    ylabel('p(y|m)');
     xlabel('m');
     title('Posterior probabilities of models from BIC');
     
