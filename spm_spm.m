@@ -121,8 +121,7 @@ function spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,TH,FLIP,names);
 
 % ANALYSIS PROPER
 %=======================================================================
-global CWD UFp
-cd(CWD);
+global UFp
 
 %-Delete files from previous analyses, if they exist
 %-----------------------------------------------------------------------
