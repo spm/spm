@@ -1,4 +1,10 @@
-function status = spm_bch_headers(batch_mat,iA)
+function status = spm_bch_headers
+%
+% Use the BCH gobal variable for spm_input : 
+%    BCH.bch_mat 
+%    BCH.index0  = {'headers',index_of_Analysis};
+%
+% This function will modify the headers 
 %
 % if ORIGIN is [0 0 0] in the header => set to  (DIM(1:3)+1)/2;
 % if ORIGIN is [1 1 1] in the header => set to  (DIM(even)/2)+1;
@@ -7,32 +13,31 @@ function status = spm_bch_headers(batch_mat,iA)
 % do_mat    : create a .mat file 
 % origoff   : add origoff to ORIGIN
 %
-% Programers : WARNING :
-% cheching on the arguments read in batch_mat
-% should be done in spm_bch_bchmat.m
-% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
-
+% Programmers Guide :
+% cheching on the arguments read in batch_mat should be done
+% in spm_bch_bchmat.m
+% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
+%---------------------------------------------------------------
 
 
 %- initialise status
 status.str = '';
-status.ok = 1;
+status.err = 0;
 
-files = spm_input('batch',batch_mat,{'headers',iA},'files')
+files = spm_input('batch',{},'files')
 
 %------- no files ------- 
-if ~size(files,1), return, end; 
+if ~size(files,1), return, end;
 
-
-DIM 		= spm_input('batch',batch_mat,{'headers',iA},'DIM');
-VOX 		= spm_input('batch',batch_mat,{'headers',iA},'VOX');
-SCALE 		= spm_input('batch',batch_mat,{'headers',iA},'SCALE');
-TYPE 		= spm_input('batch',batch_mat,{'headers',iA},'TYPE');
-OFFSET 		= spm_input('batch',batch_mat,{'headers',iA},'OFFSET');
-ORIGIN 		= spm_input('batch',batch_mat,{'headers',iA},'ORIGIN');
-DESCRIP 	= spm_input('batch',batch_mat,{'headers',iA},'DESCRIP');
-origoff 	= spm_input('batch',batch_mat,{'headers',iA},'origoff');
-do_mat 		= spm_input('batch',batch_mat,{'headers',iA},'do_mat');
+DIM 		= spm_input('batch',{},'DIM');
+VOX 		= spm_input('batch',{},'VOX');
+SCALE 		= spm_input('batch',{},'SCALE');
+TYPE 		= spm_input('batch',{},'TYPE');
+OFFSET 		= spm_input('batch',{},'OFFSET');
+ORIGIN 		= spm_input('batch',{},'ORIGIN');
+DESCRIP 	= spm_input('batch',{},'DESCRIP');
+origoff 	= spm_input('batch',{},'origoff');
+do_mat 		= spm_input('batch',{},'do_mat');
 
 str = '[';
 if isempty(DIM), str = [str 'DIM ']; else str = [str 'dim ']; end
@@ -51,15 +56,19 @@ for k=1:size(files,1)
 	
 	%----------  read the empty parameters from header
 	% [str ' = spm_hread('''  deblank(P)  ''');']
-	eval([str ' = spm_hread('''  deblank(P)  ''');'])
-	
+	try 
+	   eval([str ' = spm_hread('''  deblank(P)  ''');'])
+	catch
+		status.str = [status.str 'pb spm_hread ' P];
+		status.err = 1; 
+	end
 	%----------  set default ORIGIN and VOX if necessary
 	if all(ORIGIN == 0) & mptyORIG , ORIGIN = (DIM(1:3)+1)/2; end;
 	if all(ORIGIN == 1) & mptyORIG, 
-			odd = rem(DIM,2);
-			even = ~odd;
-			ORIGIN(find(even)) = (DIM(find(even))/2)+1;
-			ORIGIN(find(odd)) = (DIM(find(odd))+1)/2;
+	   odd = rem(DIM,2);
+	   even = ~odd;
+	   ORIGIN(find(even)) = (DIM(find(even))/2)+1;
+	   ORIGIN(find(odd)) = (DIM(find(odd))+1)/2;
 	end;
 	if all(VOX == 0), VOX = [1 1 1]; end;
 	
@@ -71,27 +80,26 @@ for k=1:size(files,1)
 		spm_hwrite(P,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP);
 	catch
 		status.str = [status.str 'pb in spm_hwrite ' P];
-		status.ok = 0;
+		status.err = 2;
 	end
-	
-	
+
 	%----------  if asked to write .mat file 
 	if do_mat
-		matname = [spm_str_manip(P,'sd') '.mat'];
+	   matname = [spm_str_manip(P,'sd') '.mat'];
 	
-		% if (exist(matname) == 2), 
-		% the file is overwritten if permissions ok
+	   % if (exist(matname) == 2), 
+	   % the file is overwritten if permissions ok
 	
-		offs = -VOX.*ORIGIN;
-		M   = [	VOX(1) 0 0 offs(1) ; ...
-			0 VOX(2) 0 offs(2) ; ...
-			0 0 VOX(3) offs(3) ; 0 0 0 1];
-		try
-			eval(['save ' matname ' M -v4']);
-		catch
-			status.str = [status.str 'pb in save ' matname];
-			status.ok = 0;
-		end
+	   offs = -VOX.*ORIGIN;
+	   M   = [VOX(1) 0 0 offs(1) ; ...
+		  0 VOX(2) 0 offs(2) ; ...
+		  0 0 VOX(3) offs(3) ; 0 0 0 1];
+	   try
+		eval(['save ' matname ' M -v4']);
+	   catch
+		status.str = [status.str 'pb in saving ' matname];
+		status.err = 3;
+	   end
 
 	end % if do_mat
 

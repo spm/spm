@@ -206,11 +206,25 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 %__________________________________________________________________________
-% %W% Karl Friston & John Ashburner - with input from Oliver Josephs %E%
+% %W%	2.23 Karl Friston & John Ashburner - with input from Oliver Josephs
+% %E%
+
+% Programmers Guide
+% Batch system implemented on this routine. See spm_bch.man
+% If inputs are modified in this routine, try to modify spm_bch.man
+% and spm_bch_bchmat (if necessary) accordingly. 
+% Calls to spm_input in this routine use the BCH gobal variable.  
+%    BCH.bch_mat 
+%    BCH.index0  = {'realign',index_of_Analysis};
+% or 
+%    BCH.index0  = {'RealignCoreg',index_of_Analysis}; (when
+%                   spm_realign is launched for edit_defaults 
+%
+%_______________________________________________________________________
 
 
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
-global batch_mat iA;
+global BCH;
 
 if (nargin == 0)
 	% User interface.
@@ -222,7 +236,7 @@ if (nargin == 0)
 	pos = 1;
 
 	n     = spm_input('number of subjects', pos, 'e', 1,...
-      'batch',batch_mat,{'realign',iA},'subject_nb');
+                          'batch',{},'subject_nb');
 	if (n < 1)
 		spm_figure('Clear','Interactive');
 		return;
@@ -235,35 +249,34 @@ if (nargin == 0)
 	for i = 1:n
 		if strcmp(MODALITY,'FMRI'),
 			ns = spm_input(['num sessions for subject 'num2str(i)], pos,...
-             'e', 1,'batch',batch_mat,{'realign',iA},'num_sessions');
+                                       'e', 1,'batch',{},'num_sessions');
 			sess = zeros(1,ns);
 			pp = [];
 			for s=1:ns
-				p = '';
-				while size(p,1)<1,
-              if isempty(batch_mat)
-					 p = spm_get(Inf,'.img',...
-						['scans for subj ' num2str(i) ', sess' num2str(s)]);
-              else
-                p = spm_input('batch',batch_mat,...
-                 {'realign',iA,'sessions',i},'images',s);
-              end
-				end;
-				if s==1,
-					pp = p;
-				else
-					pp=str2mat(pp,p);
-				end
-				sess(s) =  size(p,1);
+			   p = '';
+			   while size(p,1)<1,
+                               if isempty(BCH)
+		                  p = spm_get(Inf,'.img',...
+                                  ['scans for subj ' num2str(i) ', sess' num2str(s)]);
+                               else
+                                  p = spm_input('batch',{'sessions',i},'images',s);
+                               end
+			   end;
+			   if s==1,
+				pp = p;
+			   else
+				pp=str2mat(pp,p);
+			   end
+			   sess(s) =  size(p,1);
 			end
 			sessions{i} = cumsum(sess);
 			P{i} = pp;
-		else
+		else %- no batch mode for 'PET'
 			ns = 1;
 			p  = '';
 			while size(p,1)<1,
-				p = spm_get(Inf,'.img',...
-					['select scans for subject ' num2str(i)]);
+			      p = spm_get(Inf,'.img',...
+				  ['select scans for subject ' num2str(i)]);
 			end;
 			P{i} = p;
 			sessions{i} = size(P{i},1);
@@ -278,7 +291,7 @@ if (nargin == 0)
 	else
 		WhchPtn = spm_input('Which option?', pos, 'm',...
 			'Coregister only|Reslice Only|Coregister & Reslice',...
-			[1 2 3],3,'batch',batch_mat,{'realign',iA},'option');
+			[1 2 3],3,'batch',{},'option');
 		pos = pos + 1;
 	end
 
@@ -314,7 +327,7 @@ if (nargin == 0)
 						fullfile(DIR1,'Transm.img'));
 			tmp = spm_input('Modality of images?',3,'m',...
 				'EPI MR images|PET images|T1 MR images|T2 MR images|Transm images',...
-				[1 2 3 4 5],def,'batch',batch_mat,{'realign',iA},'modality');
+				[1 2 3 4 5],def,'batch',{},'modality');
 			Q = str2mat(deblank(templates(tmp,:)),...
 				fullfile(SWD,'apriori','brainmask.img'));
 		end
@@ -326,7 +339,7 @@ if (nargin == 0)
 	if (WhchPtn == 2 | WhchPtn == 3),
 		p = spm_input('Reslice interpolation method?',pos,'m',...
 			'Trilinear Interpolation|Sinc Interpolation|Fourier space Interpolation',...
-			[1 2 3],2,'batch',batch_mat,{'realign',iA},'reslice_method');
+			[1 2 3],2,'batch',{},'reslice_method');
 
 		pos = pos + 1;
 		if (p == 2) FlagsR = [FlagsR 'S']; end
@@ -338,7 +351,7 @@ if (nargin == 0)
 			p = spm_input('Create what?',pos,'m',...
 				[' All Images (1..n)| Images 2..n|'...
 				 ' All Images + Mean Image| Mean Image Only'],...
-				[1 2 3 4],3,'batch',batch_mat,{'realign',iA},'create');
+				[1 2 3 4],3,'batch',{},'create');
 			pos = pos + 1;
 		end
 		if (p == 2) FlagsR = [FlagsR 'n']; end
@@ -349,7 +362,7 @@ if (nargin == 0)
 				FlagsR = [FlagsR 'k'];
 			else
 				if (spm_input('Mask the resliced images?',pos,'y/n',...
-               'batch',batch_mat,{'realign',iA},'mask') == 'y')
+                                              'batch',{},'mask') == 'y')
 					FlagsR = [FlagsR 'k'];
 				end
 				pos = pos + 1;
@@ -363,7 +376,7 @@ if (nargin == 0)
 					elseif sptl_DjstFMRI ~= 0
 						if (spm_input(...
 							'Adjust sampling errors?',pos,'y/n','batch',...
-                     batch_mat,{'realign',iA},'adjust_sampling_errors') == 'y')
+                                                        ,{},'adjust_sampling_errors') == 'y')
 							FlagsR = [FlagsR 'c'];
 						end
 						pos = pos + 1;
@@ -1047,7 +1060,8 @@ return;
 function edit_defaults
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
 global sptl_RlgnQlty
-global batch_mat iA;
+
+%- in batch mode, the top level variable here is 'RealignCoreg',iA
 
 tmp = 1;
 if sptl_WhchPtn == 1, tmp = 2; end;
@@ -1056,15 +1070,15 @@ sptl_WhchPtn = spm_input(...
 	2, 'm',...
 	['Allow separate coregistration and reslicing|'...
 	 'Combine coregistration and reslicing'], [-1 1], tmp,...
-    'batch',batch_mat,{'RealignCoreg',iA},'separate_combine');
+         'batch',{},'separate_combine');
 
 tmp = 2;
 if sptl_CrtWht == 1,
 	tmp = 1;
 end
 sptl_CrtWht   = spm_input(['Images to create?'], 3, 'm',...
-	'All Images + Mean Image|Full options', [1 -1], tmp,...
-    'batch',batch_mat,{'RealignCoreg',iA},'create');
+	       'All Images + Mean Image|Full options', [1 -1], tmp,...
+               'batch',{},'create');
 
 tmp = 3;
 if sptl_DjstFMRI == 1,
@@ -1073,8 +1087,8 @@ elseif sptl_DjstFMRI == 0
 	tmp = 2;
 end
 sptl_DjstFMRI = spm_input(['fMRI adjustment for interpolation?'],4,'m',...
-	'   Always adjust |    Never adjust|Optional adjust',...
-	[1 0 -1], tmp,'batch',batch_mat,{'RealignCoreg',iA},'adjust');
+	          '   Always adjust |    Never adjust|Optional adjust',...
+	          [1 0 -1], tmp,'batch',{},'adjust');
 
 tmp = 2;
 if sptl_MskOptn == 1,
@@ -1082,7 +1096,7 @@ if sptl_MskOptn == 1,
 end
 sptl_MskOptn  = spm_input(['Option to mask images?'], 5, 'm',...
 		'  Always mask|Optional mask', [1 -1], tmp,...
-	'batch',batch_mat,{'RealignCoreg',iA},'mask');
+	        'batch',{},'mask');
 
 tmp2 = [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001];
 tmp = find(sptl_RlgnQlty == tmp2);
@@ -1092,7 +1106,7 @@ sptl_RlgnQlty = spm_input('Registration Quality?','+1','m',...
 	 'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
 	 'Quality 0.05|Quality 0.01|' ...
 	 'Quality 0.005|Quality 0.001 (fastest/poorest)'],tmp2, tmp,...
-    'batch',batch_mat,{'RealignCoreg',iA},'reg_quality');
+                'batch',{},'reg_quality');
 
 return;
 %_______________________________________________________________________

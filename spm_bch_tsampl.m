@@ -1,6 +1,6 @@
 function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
 % Used only in bch mode for the case of non regular temporal sampling
-% %W% Stephanie Rouquette %E%
+% @(#)spm_bch_tsampl.m	2.3 Stephanie Rouquette 99/09/15
 
 global batch_mat;
 global iA;

@@ -1,11 +1,13 @@
 function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 % creates basis functions for each trial type {i} in struct BF{i}
-% FORMAT [BF BFstr] = spm_get_bf(name,T,dt,Fstr)
+% FORMAT [BF BFstr] = spm_get_bf(name,T,dt,Fstr,n_s [,n_c])
 %
 % name  - name{1 x n} name of trials or conditions
 % T     - time bins per scan
 % dt    - time bin length {seconds}
 % Fstr  - Prompt string (usually indicates session)
+% n_s   - Session number
+% n_c   - Condition number (optional)
 %
 % BF{i} - Array of basis functions for trial type {i}
 % BFstr - description of basis functions specified
@@ -17,11 +19,16 @@ function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% %W%	2.13 Karl Friston %E%
 
-global batch_mat;
-global iA;
-
+% Programmers Guide
+% Batch system implemented on this routine. See spm_bch.man
+% If inputs are modified in this routine, try to modify spm_bch.man
+% and spm_bch_bchmat (if necessary) accordingly. 
+% Calls to spm_input in this routine use the BCH gobal variable.  
+%    BCH.bch_mat 
+%    BCH.index0  = {'model',index_of_Analysis};
+%_______________________________________________________________________
 
 
 %-GUI setup
@@ -49,17 +56,17 @@ Rtype = {'events',...
 	 'mixed'};
 if n == 1
 	Rtype = Rtype(1:2);
-	spm_input(name{1},1,'d',Fstr,'batch',batch_mat)
+	spm_input(name{1},1,'d',Fstr,'batch')
 else
-	spm_input(Fstr,1,'d','batch',batch_mat)
+	spm_input(Fstr,1,'d','batch')
 end
 
 if n > 1
-	Rov   = 'mixed';
+        Rov   = 'mixed';
 else 
-	Rov   = spm_input('are these trials',2,'b',Rtype,...
-	'batch',batch_mat,{'model',iA,'conditions',n_s},'types',n_c);
-   Fstr='';
+        Rov   = spm_input('are these trials',2,'b',Rtype,...
+                          'batch',{'conditions',n_s},'types',n_c);
+        Fstr='';
 end
 
 switch Rov
@@ -79,8 +86,8 @@ switch Rov
 		'basis functions (Gamma functions)',...
 		'basis functions (Gamma functions with derivatives)'};
 	str   = 'Select basis set';
-	Cov   = spm_input(str,2,'m',Ctype,'batch',batch_mat,...
-   {'model',iA,'conditions',n_s,'bf_ev',n_c},'ev_type');
+	Cov   = spm_input(str,2,'m',Ctype,'batch',...
+                             {'conditions',n_s,'bf_ev',n_c},'ev_type');
 	BFstr = Ctype{Cov};
 
 
@@ -91,12 +98,12 @@ switch Rov
 		% Windowed (Hanning) Fourier set
 		%-------------------------------------------------------
 		str   = 'window length {secs}';
-		pst   = spm_input(str,3,'e',32,'batch',batch_mat,...
-      			{'model',iA,'conditions',n_s,'bf_ev',n_c},'win_len');
+		pst   = spm_input(str,3,'e',32,'batch',...
+                               {'conditions',n_s,'bf_ev',n_c},'win_len');
 		pst   = [0:dt:pst]';
 		pst   = pst/max(pst);
-		h     = spm_input('order',4,'e',4,'batch',batch_mat,...
-      			{'model',iA,'conditions',n_s,'bf_ev',n_c},'order');
+		h     = spm_input('order',4,'e',4,'batch',...
+                                 {'conditions',n_s,'bf_ev',n_c},'order');
 
 
 		% hanning window
@@ -181,30 +188,29 @@ switch Rov
 		 'fixed response   (Half-sine)',...
 		 'fixed response   (Box-car)'};
 	str   = 'Select type of response';
-	Cov   = spm_input(str,2,'m',Ctype,'batch',batch_mat,...
-   {'model',iA,'conditions',n_s,'bf_ep',n_c},'ep_type');
+	Cov   = spm_input(str,2,'m',Ctype,'batch',...
+                         {'conditions',n_s,'bf_ep',n_c},'ep_type');
 
-   BFstr = Ctype{Cov};
-
+	BFstr = Ctype{Cov};
 
 	% convolve with HRF?
 	%---------------------------------------------------------------
 	if Cov == 1
 		str = 'number of basis functions';
-		h   = spm_input(str,3,'e',2,'batch',batch_mat,...
-  		{'model',iA,'conditions',n_s,'bf_ep',n_c},'fct_nb');
+		h   = spm_input(str,3,'e',2,'batch',...
+                               {'conditions',n_s,'bf_ep',n_c},'fct_nb');
 	end
 
 	% convolve with HRF?
 	%---------------------------------------------------------------
 	HRF   = spm_input('convolve with hrf',3,'b','yes|no',[1 0],...
-   'batch',batch_mat,{'model',iA,'conditions',n_s,'bf_ep',n_c},'conv');
+                          'batch',{'conditions',n_s,'bf_ep',n_c},'conv');
 
 	% ask for temporal differences
 	%---------------------------------------------------------------
 	str   = 'add temporal derivatives';
-	TD    = spm_input(str,4,'b','yes|no',[1 0],'batch',batch_mat,...
-  	{'model',iA,'conditions',n_s,'bf_ep',n_c},'deriv');
+	TD    = spm_input(str,4,'b','yes|no',[1 0],'batch',...
+                         {'conditions',n_s,'bf_ep',n_c},'deriv');
  
 
 	% Assemble basis functions for each trial type
@@ -212,8 +218,8 @@ switch Rov
 	for i = 1:n
 
 		str   = ['epoch length {scans} for ' name{i}];
-		W     = spm_input(str,'+1','r','batch',batch_mat,...
- 	   {'model',iA,'conditions',n_s,'bf_ep',n_c},'length');
+		W     = spm_input(str,'+1','r','batch',...
+ 	                        {'conditions',n_s,'bf_ep',n_c},'length');
 		pst   = [1:W*T]' - 1;
 		pst   = pst/max(pst);
 
@@ -274,12 +280,9 @@ switch Rov
 	%===============================================================
 	case 'mixed'
 	for i = 1:n
-		
 		BF(i)  = spm_get_bf(name(i),T,dt,'',n_s,i);
-
 	end
 	BFstr = 'mixed';
-
 end
 
 

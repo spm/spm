@@ -1,10 +1,14 @@
-function status = spm_bch_DoCont(batch_mat);
-% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
+function status = spm_bch_DoCont;
+%
+% This function implements the computations of 
+% the contrasts specified in the m-file. 
+%
+% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
 
 %- initialise status
 %--------------------------------------------------
 status.str = '';
-status.ok = 1;
+status.err = 0;
 swd = pwd;
 
 %- Get xCon if exist, if doesnt warns and returns 
@@ -23,10 +27,10 @@ if exist(fullfile('.','xCon.mat'),'file'),
 
 else, 
 	str = ['cannot open ' fullfile('.','xCon.mat') ...
-			' file in spm_bch_DoCont ' swd];
+               ' file in spm_bch_DoCont ' swd];
 	warning(str);
 	status.str = str;
-	status.ok = 0;
+	status.err = 1;
 	return;
 end
 
@@ -42,7 +46,7 @@ if exist(fullfile('.','SPM.mat'),'file'),
 				' file in spm_bch_GetCont ' swd];
 		warning(str);
 		status.str = str;
-		status.ok = 0;
+		status.err = 2;
 		return;
 	end
 else 
@@ -50,7 +54,7 @@ else
 				' file in spm_bch_GetCont ' swd];
 	warning(str);
 	status.str = str;
-	status.ok = 0;
+	status.err = 3;
 	return;
 end
 
@@ -148,38 +152,38 @@ for i = 1:length(xCon)
    %-Write statistic image(s)
    %-------------------------------------------------------------------
    if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
-       ~exist(fullfile('.',xCon(i).Vspm),'file')
+      ~exist(fullfile('.',xCon(i).Vspm),'file')
 
-        fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(i).STAT,i),...
+      fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(i).STAT,i),...
                                                     '...computing')  %-#
 
-	switch(xCon(i).STAT)
+      switch(xCon(i).STAT)
 	case 'T'                                  %-Compute SPM{t} image
 	%---------------------------------------------------------------
-		Z   = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0)./...
+	   Z   = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0)./...
 		(sqrt(spm_sample_vol(VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0)*...
 						(xCon(i).c'*xX.Bcov*xCon(i).c) ));
-		str = sprintf('[%.2g]',xX.erdf);
+	   str = sprintf('[%.2g]',xX.erdf);
 	
 	case 'F'                                  %-Compute SPM{F} image
 	%---------------------------------------------------------------
-		if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).X1o,xX.V); end
-		Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
-		   (spm_sample_vol(VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
+	   if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).X1o,xX.V); end
+	   Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
+              (spm_sample_vol(VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
 	
-		str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
+	   str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
 	
 	otherwise
 	%---------------------------------------------------------------
-		    error(['unknown STAT "',xCon(i).STAT,'"'])
+           error(['unknown STAT "',xCon(i).STAT,'"'])
 
-	end %- switch(xCon(i).STAT)
+      end %- switch(xCon(i).STAT)
 
-   %-Write full statistic image
-   %---------------------------------------------------------------
-   fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
+      %-Write full statistic image
+      %---------------------------------------------------------------
+      fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
 
-   xCon(i).Vspm = struct(...
+      xCon(i).Vspm = struct(...
 	'fname',  sprintf('spm%c_%04d.img',xCon(i).STAT,i),...
 	'dim',    [dim,16],...
 	'mat',    M,...
@@ -187,19 +191,17 @@ for i = 1:length(xCon)
 	'descrip',sprintf('SPM{%c_%s} - contrast %d: %s',...
 	                       xCon(i).STAT,str,i,xCon(i).name));
 
-   tmp = zeros(dim);
-	tmp(cumprod([1,dim(1:2)])*XYZ - sum(cumprod(dim(1:2)))) = Z;
+      tmp = zeros(dim);
+      tmp(cumprod([1,dim(1:2)])*XYZ - sum(cumprod(dim(1:2)))) = Z;
 
-	xCon(i).Vspm  = spm_write_vol(xCon(i).Vspm,tmp);
+      xCon(i).Vspm  = spm_write_vol(xCon(i).Vspm,tmp);
 
-   fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
+      fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
           sprintf('...written %s',xCon(i).Vspm.fname)) %-#
 
-	end %- ~isfield(xCon(i),'Vspm')
+   end %- if ~isfield(xCon(i),'Vspm')
 
 end %- for i = 1:length(xCon)
-
-
 
 %- save xCon 
 %---------------------------------------------------------------
@@ -209,5 +211,5 @@ catch
 	str = ['Can''t write xCon.mat to the results directory: ' swd];
 	warning(str);
 	status.str = str;
-	status.ok = 0;
+	status.err = 4;
 end

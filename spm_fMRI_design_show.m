@@ -27,17 +27,19 @@ function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % Sess{s}.Pv{i}    - vector of paramters for ith trial type
 % Sess{s}.Pname{i} - name   of paramters for ith trial type
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% %W%	2.16 Karl Friston %E%
 
-global batch_mat
+
+global BCH; %- batch mode here is for pure completeness, can be 
+            %- removed. In that case, modify spm_bch.man ([MODEL]).
 
 % xX and Sess
 %-----------------------------------------------------------------------
 if nargin == 0
-	if strcmp(batch_mat,'')
-		load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'));
+	if isempty(BCH)
+	   load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'));
 	else
-		load('SPM_fMRIDesMtx.mat');
+	   load('SPM_fMRIDesMtx.mat');
 	end
 elseif nargin<2
 	error('insufficient arguments')

@@ -1,23 +1,25 @@
-function status = spm_bch_GetCont(batch_mat,n_con);
+function status = spm_bch_GetCont;
 %
-% create an xCon.mat file from batch contrast, append to 
-% previous xCon if it exists
+% The BCH gobal variable is used for spm_input in batch mode : 
+%    BCH.bch_mat 
+%    BCH.index0  = {'contrasts',index_of_Analysis};
 %
-% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
-
-%--------------------------------------------------
-%- get xCon if exist; We are in Wdir.
-%- WDir = char(spm_input('batch',batch_mat,{},'WDir'));
-%--------------------------------------------------
-
+% Create an xCon.mat file from contrasts described in the mfile, 
+% append to previous xCon if xCon already exists.
+% Working directory where the xCon structure will be saved
+% is specified in the top level m-file. 
+%
+% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
+%---------------------------------------------------------------
 
 %- initialise status
 status.str = '';
-status.ok = 1;
+status.err = 0;
 
 swd = pwd;
 
 
+%---------------------------------------------------------------
 if exist(fullfile('.','xCon.mat'),'file'), 
 	load('xCon.mat'), 
 	lxCon = length(xCon);
@@ -26,41 +28,39 @@ else,
 	lxCon = 0;
 end
 
-
-
+%---------------------------------------------------------------
 if exist(fullfile('.','SPM.mat'),'file'), 
 	try 
-		load(fullfile('.','SPM.mat'),'xX');	
+	   load(fullfile('.','SPM.mat'),'xX');	
 	catch 
-		str = ['cannot open ' fullfile('.','SPM.mat') ...
-				' file in spm_bch_GetCont ' swd];
-		warning(str);
-		status.str = str;
-		status.ok = 0;
-		return;
+	   str = ['cannot open ' fullfile('.','SPM.mat') ...
+                  ' file in spm_bch_GetCont ' swd];
+	   warning(str);
+	   status.str = str;
+	   status.err = 1;
+	   return;
 	end
 else 
 	str = ['cannot find ' fullfile('.','SPM.mat') ...
-				' file in spm_bch_GetCont ' swd];
+               ' file in spm_bch_GetCont ' swd];
 	warning(str);
 	status.str = str;
-	status.ok = 0;
+	status.err = 2;
 	return;
 end
 
-%- get contrast to create
-%--------------------------------------------------
+%- get contrast to create from mat file (in global BCH) 
+%---------------------------------------------------------------
 
-names = spm_input('batch',batch_mat,{'contrastes',n_con},'names');
-types = spm_input('batch',batch_mat,{'contrastes',n_con},'types');
-values = spm_input('batch',batch_mat,{'contrastes',n_con},'values');
+names  = spm_input('batch',{},'names');
+types  = spm_input('batch',{},'types');
+values = spm_input('batch',{},'values');
 
-%- check that the lengths are identical ? NO, should be done in spm_bch_bchmat
+%- check that the lengths are identical ? 
+%- NO, this should be done in spm_bch_bchmat
 
 len = [length(names) length(types) length(values)];
 sX = xX.xKXs;
-
-
 
 for n=1:min(len)
    contrast = spm_FcUtil('Set',names{n}, types{n}, 'c', values{n}', sX);
@@ -79,5 +79,5 @@ catch
 	str = ['Can''t write xCon.mat to the results directory: ' swd];
 	warning(str);
 	status.str = str;
-	status.ok = 0;
+	status.err = 3;
 end

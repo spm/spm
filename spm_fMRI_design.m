@@ -125,12 +125,18 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % are computed for only the first column of SF.
 %
 %_______________________________________________________________________
-% % %W%  Karl Friston %E%
+% %W%   Karl Friston %E%
+
+% Programmers Guide
+% Batch system implemented on this routine. See spm_bch.man
+% If inputs are modified in this routine, try to modify spm_bch.man
+% and spm_bch_bchmat (if necessary) accordingly. 
+% This routine uses the BCH gobal variable for spm_input : 
+%    BCH.bch_mat 
+%    BCH.index0  = {'model',index_of_Analysis};
+%_______________________________________________________________________
+
 SCCSid  = '%I%';
-
-global batch_mat;
-global iA;
-
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -156,13 +162,13 @@ if isempty(fMRI_T0), fMRI_T0 = 1;  end;
 % get nscan and RT if no arguments
 %-----------------------------------------------------------------------
 if nargin < 2
-	spm_input('Basic parameters...',1,'d',mfilename,'batch',batch_mat)
+	spm_input('Basic parameters...',1,'d',mfilename,'batch')
 	RT = spm_input('Interscan interval {secs}','+1','r',[],1,...
-                         'batch',batch_mat,{'model',iA},'RT');
+                       'batch',{},'RT');
 end
 if nargin < 1
         nscan = spm_input(['scans per session e.g. 64 64 64'],'+1',...
-                       'batch',batch_mat,{'model',iA},'nscans');
+                          'batch',{},'nscans');
 	STOC   = 1;
 end
 nsess  = length(nscan);
@@ -176,11 +182,11 @@ tim = 0;
 if nsess > 1
 	str = 'are conditions replicated';
 	rep = spm_input(str,'+1','yes|no',[1 0],...
-     'batch',batch_mat,{'model',iA},'replicated');
+                       'batch',{},'replicated');
 	if rep & ~any(nscan - nscan(1))
 		str = ['are timing/parameters the same'];
 		tim = spm_input(str,'+1','yes|no',[1 0],...
-      'batch',batch_mat,{'model',iA},'same_time_param');
+                               'batch',{},'same_time_param');
 	end
 end
 Xx    = [];
@@ -237,7 +243,7 @@ for s = 1:nsess
 		%-------------------------------------------------------
 		spm_help('!ContextHelp',mfilename)
 		spm_input('Design matrix options...',1,'d',mfilename,...
-      'batch',batch_mat)
+                          'batch')
 
 		if ~ntrial
 
@@ -271,12 +277,11 @@ for s = 1:nsess
 			%-----------------------------------------------
 			str   = 'interactions among trials (Volterra)';
 			if spm_input(str,'+1','y/n',[1 0],... 
-     		'batch',batch_mat,{'model',iA,'conditions',s},'volterra')
-
+                                    'batch',{'conditions',s},'volterra')
+  
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,2);
 
 			else
-
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,1);
 			end
 
@@ -289,14 +294,14 @@ for s = 1:nsess
 
 		% get user specified regressors
 		%=======================================================
-		spm_input('Other regressors',1,'d',Fstr,'batch',batch_mat)
+		spm_input('Other regressors',1,'d',Fstr,'batch')
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0,...
-    	  'batch',batch_mat,{'model',iA,'regressors',s},'number');
-	while size(D,2) < c
+    	                          'batch',{'regressors',s},'number');
+                while size(D,2) < c
 			str   = sprintf('regressor %i',size(D,2) + 1);
 		   D = [D spm_input(str,2,'e',[],[k Inf],...
-      	'batch',batch_mat,{'model',iA,'regressors',s},'values')];
+                                    'batch',{'regressors',s},'values')];
 		end
 		if      c & length(DSstr)
 			DSstr = [DSstr '& user specified covariates '];
@@ -310,7 +315,7 @@ for s = 1:nsess
 			X           = [X D(:,i)];
 			str         = sprintf('regressor: %i',i);
 			Xn{end + 1} = spm_input(['name of ' str],'+0','s',str,...
-		     'batch',batch_mat,{'model',iA,'regressors',s},'names',i);
+                                          'batch',{'regressors',s},'names',i);
 		end
 
 

@@ -46,11 +46,18 @@ function spm_defaults_edit(arg1,arg2)
 %
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
-%_______________________________________________________________________
 % %W% John Ashburner  %E%
+%_______________________________________________________________________
+
+% Programmers Guide
+% Batch system implemented on this routine. See spm_bch.man
+% If inputs are modified in this routine, try to modify spm_bch.man
+% accordingly. 
+%_______________________________________________________________________
+
 SCCSid = '%I%';
 
-global batch_mat iA;
+global BCH
 
 global MODALITY
 global PRINTSTR LOGFILE CMDLINE GRID
@@ -107,10 +114,10 @@ elseif strcmp(arg1, 'Misc')
 
 	if ~isempty(LOGFILE), tmp='yes'; def=1; else, tmp='no'; def=2; end
 	if spm_input(['Log to file? (' tmp ')'],2*c,'y/n',[1,0],def,...
-      			'batch',batch_mat,{arg1,iA},'log_to_file')
+      			'batch', {},'log_to_file')
 		LOGFILE = ...
 			deblank(spm_input('Logfile Name:',2,'s', LOGFILE,...
-         'batch',batch_mat,{arg1,iA},'log_file_name'));
+         'batch', {},'log_file_name'));
 	else
 		LOGFILE = '';
 	end
@@ -121,10 +128,10 @@ elseif strcmp(arg1, 'Misc')
 		{	'always use GUI',...
 			'always use CmdLine',...
 			'GUI for files, CmdLine for input'},...
-		[0,1,-1],def,'batch',batch_mat,{arg1,iA},'cmdline');
+		[0,1,-1],def,'batch', {},'cmdline');
 
 	GRID = spm_input('Grid value (0-1):', 4*c, 'e', GRID,...
-      			   'batch',batch_mat,{arg1,iA},'grid');
+      			   'batch', {},'grid');
 
 elseif strcmp(arg1, 'Printing')
 
@@ -135,12 +142,12 @@ elseif strcmp(arg1, 'Printing')
 			'Postscript to Printer|'...
 			'Other Format to File|'...
 			'Custom'], ...
-         'batch',batch_mat,{arg1,iA},'printing_mode');
+         'batch', {},'printing_mode');
 
 	if (a0 == 1)
 		fname = date; fname(find(fname=='-')) = []; fname = ['spmfig_' fname];
 		fname = spm_str_manip(spm_input('Postscript filename:',3,'s',fname,...
-         'batch',batch_mat,{arg1,iA},'postscript_filename'),'rtd');
+         'batch', {},'postscript_filename'),'rtd');
 
 		a1    = spm_input('Postscript Type?', 4, 'm', [...
 			'PostScript for black and white printers|'...
@@ -155,7 +162,7 @@ elseif strcmp(arg1, 'Printing')
 			'Encapsulated Colour         with TIFF preview|'...
 			'Encapsulated Level 2        with TIFF preview|'...
 			'Encapsulated Level 2 Colour with TIFF preview|'],...
-         'batch',batch_mat,{arg1,iA},'postscript_type');
+                        'batch', {},'postscript_type');
 
 		prstr1 = str2mat(...
 			['print(''-noui'',''-painters'',''-dps'' ,''-append'',''' fname '.ps'');'],...
@@ -183,18 +190,18 @@ elseif strcmp(arg1, 'Printing')
 	elseif (a0 == 2)
 		printer = '';
 		if (spm_input('Default Printer?', 3, 'y/n', ...
-     			'batch',batch_mat,{arg1,iA},'default_printer') == 'n')
+     			'batch', {},'default_printer') == 'n')
 			printer = spm_input('Printer Name:',3,'s',...
-         'batch',batch_mat,{arg1,iA},'printer_name')
+                                  'batch', {},'printer_name')
 			printer = [' -P' printer];
 		end
 		a1 = spm_input('Postscript Type:',4,'b','B & W|Colour', ...
-          str2mat('-dps', '-dpsc'),...
-			'batch',batch_mat,{arg1,iA},'post_type');
+                         str2mat('-dps', '-dpsc'),...
+			'batch', {},'post_type');
 		PRINTSTR = ['print -noui -painters ' a1 printer];
 	elseif (a0 == 3)
 		fname = date; fname(find(fname=='-')) = []; fname = ['spmfig_' fname];
-		fname = spm_str_manip(spm_input('Graphics filename:',3,'s', fname,'batch',batch_mat,{arg1,iA},'graphics_filename'),'rtd');
+		fname = spm_str_manip(spm_input('Graphics filename:',3,'s', fname,'batch', {},'graphics_filename'),'rtd');
 		a1    = spm_input('Graphics Type?', 4, 'm', [...
 			'HPGL compatible with Hewlett-Packard 7475A plotter|'...
 			'Adobe Illustrator 88 compatible illustration file|'...
@@ -202,7 +209,7 @@ elseif strcmp(arg1, 'Printing')
 			'Baseline JPEG image|'...
 			'TIFF with packbits compression|'...
 			'Color image format|'],...
-         'batch',batch_mat,{arg1,iA},'graph_type');
+         'batch', {},'graph_type');
 		prstr1 = str2mat(...
 			['global PAGENUM;if isempty(PAGENUM),PAGENUM = 1;end;'...
 			 'print(''-noui'',''-painters'',''-dhpgl'',[''' fname '_'' num2str(PAGENUM) ''.hpgl'']); PAGENUM = PAGENUM + 1;'],...
@@ -219,7 +226,7 @@ elseif strcmp(arg1, 'Printing')
 		PRINTSTR = deblank(prstr1(a1,:));
 	else
 		PRINTSTR = spm_input('Print String',3,'s',...
-      'batch',batch_mat,{arg1,iA},'print_string');
+      'batch', {},'print_string');
 	end
 
 elseif strcmp(arg1, 'Hdr')
@@ -231,7 +238,7 @@ elseif strcmp(arg1, 'Hdr')
 	while n ~= 3
 		tmp      = spm_input('Image size {voxels}',2,'s',...
 			[num2str(DIM(1)) ' ' num2str(DIM(2)) ' ' num2str(DIM(3))],...
-         'batch',batch_mat,{arg1,iA},'image_size_voxels');
+         'batch', {},'image_size_voxels');
 		[dim, n] = sscanf(tmp,'%d %d %d');
 	end
 	DIM = reshape(dim,1,3);
@@ -240,31 +247,31 @@ elseif strcmp(arg1, 'Hdr')
 	while n ~= 3
 		tmp      = spm_input('Voxel Size {mm}',3,'s',...
 			[num2str(VOX(1)) ' ' num2str(VOX(2)) ' ' num2str(VOX(3))],...
-         'batch',batch_mat,{arg1,iA},'voxel_size_mm');
+         'batch', {},'voxel_size_mm');
 		[vox, n] = sscanf(tmp,'%g %g %g');
 	end
 	VOX = reshape(vox,1,3);
 
 	SCALE = spm_input('Scaling Coefficient',4,'e',[SCALE],...
-     'batch',batch_mat,{arg1,iA},'scale');
+     'batch', {},'scale');
 
 	type_val = [2 4 8 16 64];
 	type_str = str2mat('Unsigned Char','Signed Short','Signed Integer',...
       'Floating Point','Double Precision');
 	TYPE = spm_input(['Data Type (' deblank(type_str(find(type_val==TYPE),:)) ')'],5,'m',...
 		'Unsigned Char	(8  bit)|Signed Short	(16 bit)|Signed Integer	(32 bit)|Floating Point|Double Precision',...
-[2 4 8 16 64],'batch',batch_mat,{arg1,iA},'data_type');
+[2 4 8 16 64],'batch', {},'data_type');
 	OFFSET = spm_input('Offset  {bytes}',6,'e',[OFFSET],...
-   'batch',batch_mat,{arg1,iA},'offset');
+   'batch', {},'offset');
 	n = 0;
 	while n ~= 3
 		tmp      = spm_input('Origin {voxels}',7,'s',...
-			[num2str(ORIGIN(1)) ' ' num2str(ORIGIN(2)) ' ' num2str(ORIGIN(3))],'batch',batch_mat,{arg1,iA},'origin_voxels');
+			[num2str(ORIGIN(1)) ' ' num2str(ORIGIN(2)) ' ' num2str(ORIGIN(3))],'batch', {},'origin_voxels');
 		[origin, n] = sscanf(tmp,'%d %d %d');
 	end
 	ORIGIN = reshape(origin,1,3);
 	DESCRIP = spm_input('Description',8,'s', DESCRIP,...
-   'batch',batch_mat,{arg1,iA},'description');
+   'batch', {},'description');
 
 	if strcmp(MODALITY,'PET')
 		PET_DIM       = DIM;
@@ -286,7 +293,7 @@ elseif strcmp(arg1, 'Hdr')
 
 elseif strcmp(arg1, 'Statistics')
 	UFp = spm_input('Upper tail F prob. threshold',2,'e',UFp,1, ...
-  			  'batch',batch_mat,{arg1,iA},'F_threshold');
+  			  'batch', {},'F_threshold');
 	if strcmp(MODALITY,'PET')
 		PET_UFp       = UFp;
 	elseif strcmp(MODALITY,'FMRI')
@@ -294,9 +301,9 @@ elseif strcmp(arg1, 'Statistics')
 	end
 	if strcmp(MODALITY,'FMRI'),
 		fMRI_T  = spm_input('Number of Bins/TR' ,3,'n',fMRI_T,1,...
-  			  'batch',batch_mat,{arg1,iA},'fMRI_T');
+  			  'batch', {},'fMRI_T');
 		fMRI_T0 = spm_input('Sampled bin',4,'n',fMRI_T0,1, fMRI_T0,...
-  			  'batch',batch_mat,{arg1,iA},'fMRI_T0');
+  			  'batch', {},'fMRI_T0');
 	end;
 
 

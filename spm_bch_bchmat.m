@@ -8,12 +8,14 @@ function bch_mat = spm_bch_bchmat(bch_mfile,typeA)
 % %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %---------------------------------------------------------------
-% Programmers  :  when a type of analysis is added, 
-% this file should be edited to define new 
-% variables AND add them in the bch_names variable
-% unless you wish to check the consistency of the 
-% variables, which should be done here and NOT in
-% function called in spm_batch
+% Programmers guide  :  when a new type of analysis is added, 
+% this file should be edited to define the  
+% variables that will be used by spm_input in BCH mode  AND 
+% add them in the 'bch_names' variable.
+% If  you wish to check the consistency of the 
+% variables (errors in the m-file specifications), this 
+% should be done here and NOT in the function called in spm_bch
+% to do the actual job. 
 
 
 %---------------------------------------------------------------
@@ -26,7 +28,7 @@ catch
 	error([spm_str_manip(bch_mfile,'H') 'doesn''t exist']);
 end
 
-%-------------------- check the m-file exists ------------------
+%-------------------- check that the m-file exists -------------
 if ~(exist(spm_str_manip(bch_mfile,'rt')) == 2) 
    error(sprintf('%s not a m file in path', ...
 	 spm_str_manip(bch_mfile,'rt')));
@@ -47,28 +49,26 @@ clear cwd
 %===============================================================
 switch typeA
 
-
 %===============================================================
 case 'analyses'
 
-bch_names = {'analyses','type','work_dir','mfile'};
-
+  bch_names = {typeA,'type','work_dir','mfile'};
 
 %===============================================================
 case 'defaults_edit'
 
-bch_names = {'defaults_edit', 'type_area' ...
+  bch_names = {typeA, 'type_area' ...
 	     'Misc','Printing','Hdr','Statistics', ...
 	     'Normalisation','RealignCoreg','Reset'};
 
 %===============================================================
 case {'headers','means','normalize','smooth'}
 
-bch_names = {typeA};
+  bch_names = {typeA};
 
 %===============================================================
 case 'realign' 
-bch_names = {'realign','sessions'};
+  bch_names = {typeA,'sessions'};
 
 
 %===============================================================
@@ -130,7 +130,7 @@ if exist('model') == 1,
 end % if exist('model') == 1, 
 
 
-% create regressors parametrics stochastics if necessary
+% create regressors, parametrics and stochastics if necessary
 %------------------------------------------------------------
 if exist('model') == 1, for k = 1:length(model)
 
@@ -213,36 +213,36 @@ end % if exist('model') == 1
 clear i_ev i_ep k l str
 
 
-bch_names = {'model','conditions','stochastics',...
+bch_names = {typeA,'conditions','stochastics',...
   'regressors','parametrics','bf_ev','bf_ep'};
 
 
 %===============================================================
-case 'contrastes'
+case 'contrasts'
 
 
-% missing fields added here for contrastes
+% missing fields added here for contrasts
 %---------------------------------------------------------------
 % Added fields are 
-%   contrastes(k).set_action
+%   contrasts(k).set_action
 %---------------------------------------------------------------
 
-if exist('contrastes') == 1
-   for k = 1:length(contrastes)
-      if ~isfield(contrastes(k),'set_action')
-       	ncont = length(contrastes(k).names);
+if exist('contrasts') == 1
+   for k = 1:length(contrasts)
+      if ~isfield(contrasts(k),'set_action')
+       	ncont = length(contrasts(k).names);
        	if ncont
               tmp = cell(1,ncont);
               [tmp{:}] = deal('c');
-              contrastes(k).set_action = tmp;
+              contrasts(k).set_action = tmp;
               clear tmp;
        	end
       end
    end
-end %- if exist('contrastes') == 1
+end %- if exist('contrasts') == 1
 
 
-bch_names = {'contrastes'};
+bch_names = {typeA};
 
 %===============================================================
 case 'realignment'
