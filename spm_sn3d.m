@@ -208,16 +208,16 @@ if (nargin == 0)
 	%-----------------------------------------------------------------------
 	for i=1:nsubjects
 		if (a1 == 1 | a1 == 3)
-			P = spm_get(1,'.img',['Image to Normalise - subject ' num2str(i)]);
+			P = spm_get(1,'.img',['subj ' num2str(i) ' - Image to determine parameters from']);
 			eval(['P' num2str(i) '=P;']);
 			matname = [spm_str_manip(P,'sd') '_sn3d.mat'];
 		else
-			matname = spm_get(1,'_sn3d.mat',['select Normalisation Parameter Set']);
+			matname = spm_get(1,'_sn3d.mat',['subj ' num2str(i) ' - Normalisation parameter set:']);
 		end
 		eval(['matname' num2str(i) '=matname;']);
 	
 		if (a1 == 2 | a1 == 3)
-			P = spm_get(Inf,'.img',['select Images to Write ']);
+			P = spm_get(Inf,'.img',['subj ' num2str(i) ' - Images to write normalised']);
 			eval(['PP' num2str(i) '=P;']);
 		end
 	end
@@ -228,7 +228,7 @@ if (nargin == 0)
 		% Get template(s)
 		ok = 0;
 		while (~ok)
-			Template = spm_get(Inf,'.img',['select Template(s) '],'', [SWD '/templates']);
+			Template = spm_get(Inf,'.img',['Template image(s)'],'', [SWD '/templates']);
 			if (size(Template,1)>0)
 				dims = zeros(size(Template,1),9);
 				for i=1:size(Template,1)
