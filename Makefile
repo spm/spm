@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.8 2002-08-14 18:22:19 john Exp $
+# $Id: Makefile,v 2.9 2002-08-14 18:30:31 john Exp $
 #
 ###############################################################################
 #
@@ -50,7 +50,7 @@ OSF1:
 MAC:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
 windows:
-	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils
+	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 
 ###############################################################################
 # Architecture specific cleaning
@@ -96,7 +96,7 @@ SPMMEX =\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_bias_mex.$(SUF) $(ADDED_MEX).$(SUF)
+	spm_bias_mex.$(SUF) $(ADDED_MEX)
 
 ###############################################################################
 # The main ways to run make
@@ -284,7 +284,7 @@ spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 	@ $(CHMODIT) $@
 
 spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
+	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a
 	@ $(CHMODIT) $@
 
 spm_win32utils.$(SUF): spm_win32utils.c 
