@@ -69,7 +69,7 @@ T(s1+(1:4:size(VG,2)*4)) = ones(size(VG,2),1);
 
 for iter=1:param(4)
 	fprintf('iteration # %d: ', iter);
-	[Alpha,Beta,Var] = spm_brainwarp2(VG,VF,Affine,basX,basY,basZ,T,fwhm);
+	[Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,T,fwhm);
 	if (iter > 0)
 		% Parameter estimates biased towards affine.
 		%
