@@ -146,26 +146,34 @@ else
         end
         
         % Get AR coefficients
-        for p=1:SPM.PPM.AR_P
-            a(p,:) = spm_get_data(SPM.VAR(p),XYZ);
+        nsess=length(SPM.Sess);
+        for s=1:nsess,
+            for p=1:SPM.PPM.AR_P
+                Sess(s).a(p,:) = spm_get_data(SPM.PPM.Sess(s).VAR(p),XYZ);
+            end
+            % Get noise SD
+            Sess(s).lambda = spm_get_data(SPM.PPM.Sess(s).VHp,XYZ);
         end
-        
-        % Get noise SD
-        lambda = spm_get_data(SPM.VHp,XYZ);
         
         % Which slice are we in ?
         slice_index=XYZ(3,1);
-        
-        % Reconstuct approximation to voxel wise correlation matrix
-        post_R=SPM.PPM.slice(slice_index).mean.R;
-        dh=a(:,1)'-SPM.PPM.slice(slice_index).mean.a;
-        dh=[dh lambda(1)-SPM.PPM.slice(slice_index).mean.lambda];
-        for i=1:length(dh),
-            post_R=post_R+SPM.PPM.slice(slice_index).mean.dR(:,:,i)*dh(i);
-        end 
-        % Reconstuct approximation to voxel wise covariance matrix
-        Bcov = (sd_beta(:,1)*sd_beta(:,1)').*post_R;
-        
+        Bcov=zeros(Nk,Nk);
+        for s=1:nsess,
+            % Reconstuct approximation to voxel wise correlation matrix
+            post_R=SPM.PPM.Sess(s).slice(slice_index).mean.R;
+            dh=Sess(s).a(:,1)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
+            dh=[dh Sess(s).lambda(1)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
+            for i=1:length(dh),
+                post_R=post_R+SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i)*dh(i);
+            end 
+            % Get indexes of regressors specific to this session
+            scol=SPM.Sess(s).col; 
+            mean_col_index=SPM.Sess(nsess).col(end)+s;
+            scol=[scol mean_col_index];
+            
+            % Reconstuct approximation to voxel wise covariance matrix
+            Bcov(scol,scol) = Bcov(scol,scol) + (sd_beta(scol,1)*sd_beta(scol,1)').*post_R;
+        end
         
     else
         Bcov  = SPM.PPM.Cby;
