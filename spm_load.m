@@ -9,11 +9,21 @@ function [x] = spm_load(f)
 
 %-Get a filename if none was passed
 %-----------------------------------------------------------------------
-if nargin==0
-	f = spm_get(1,'*','Select ASCII data file');
+if nargin == 0
+	[f,p] = uigetfile({'*.mat';'*.txt';'*.dat'});
+    f     = fullfile(p,f);
 end
-
 
 %-Load the data file into double precision matrix x
 %-----------------------------------------------------------------------
-x = load(f,'-ascii');
+try
+    x = load(f,'-ascii');
+    return
+end
+try
+    x = load(f,'-mat');
+    while ~isnumeric(x)
+        s = fieldnames(x);
+        x = getfield(x,s{1});
+    end
+end
