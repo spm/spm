@@ -494,7 +494,7 @@ return;
 %_______________________________________________________________________
 function bbox
 global st
-Dims = diff(st.bb)';
+Dims = diff(st.bb)'+1;
 
 TD = Dims([1 2])';
 CD = Dims([1 3])';
@@ -530,25 +530,25 @@ for i=valid_handles(1:24),
 	% Transverse
 	set(st.vols{i}.ax{1}.ax,'Units','pixels', ...
 		'Position',[offx offy s*Dims(1) s*Dims(2)],...
-		'Units','normalized','Xlim',[1 TD(1)]+0.5,'Ylim',[1 TD(2)]+0.5,...
+		'Units','normalized','Xlim',[0 TD(1)]+0.5,'Ylim',[0 TD(2)]+0.5,...
 		'Visible','on','XTick',[],'YTick',[]);
 
 	% Coronal
 	set(st.vols{i}.ax{2}.ax,'Units','Pixels',...
 		'Position',[offx offy+s*Dims(2)+sky s*Dims(1) s*Dims(3)],...
-		'Units','normalized','Xlim',[1 CD(1)]+0.5,'Ylim',[1 CD(2)]+0.5,...
+		'Units','normalized','Xlim',[0 CD(1)]+0.5,'Ylim',[0 CD(2)]+0.5,...
 		'Visible','on','XTick',[],'YTick',[]);
 
 	% Saggital
 	if st.mode == 0,
 		set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
 			'Position',[offx+s*Dims(1)+skx offy s*Dims(3) s*Dims(2)],...
-			'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
+			'Units','normalized','Xlim',[0 SD(1)]+0.5,'Ylim',[0 SD(2)]+0.5,...
 			'Visible','on','XTick',[],'YTick',[]);
 	else,
 		set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
 			'Position',[offx+s*Dims(1)+skx offy+s*Dims(2)+sky s*Dims(2) s*Dims(3)],...
-			'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
+			'Units','normalized','Xlim',[0 SD(1)]+0.5,'Ylim',[0 SD(2)]+0.5,...
 			'Visible','on','XTick',[],'YTick',[]);
 	end;
 end;
@@ -621,8 +621,19 @@ for i = valid_handles(arg1),
 	if (ok==0), fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
 	else,
 		if strcmp(st.vols{i}.window,'auto'),
-			mx = max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
-			mn = min([min(min(imgt)) min(min(imgc)) min(min(imgs))]);
+			mx = -Inf; mn = Inf;
+			if ~isempty(imgt),
+				mx = max([mx max(max(imgt))]);
+				mn = min([mn min(min(imgt))]);
+			end;
+			if ~isempty(imgc),
+				mx = max([mx max(max(imgc))]);
+				mn = min([mn min(min(imgc))]);
+			end;
+			if ~isempty(imgs),
+				mx = max([mx max(max(imgs))]);
+				mn = min([mn min(min(imgs))]);
+			end;
 			if mx==mn, mx=mn+eps; end;
 		else,
 			mx = st.vols{i}.window(2);
