@@ -19,103 +19,33 @@ function spm_render(XYZ,t,V)
 
 
 if (nargin==0)
-	% User interface
-	%_______________________________________________________________________
+
 	spm_figure('Clear','Interactive');
-	tmp  = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
-	d    = strrep(tmp,'/SPMt.mat','');
-	K    = [];
+	spm_figure('Clear','Graphics');
+	Finter = spm_figure('FindWin','Interactive');
+	set(Finter,'Name','SPM render')
+	global CWD
 
-	set(spm_figure('FindWin','Interactive'),'Name','loading','Pointer','watch');
-	load([d,'/SPM' ])
-	load([d,'/XYZ' ])
-	load([d,'/SPMt'])
-	spm_figure('Clear','Interactive');
+	% Which SPM
+	%-----------------------------------------------------------------------
+	SPMZ     = spm_input('which SPM',1,'b','SPM{Z}|SPM{F}',[1 0]);
+	SPMF     = ~SPMZ;
 
-	con  = 0;
-	while any(con < 1 | con > size(CONTRAST,1))
-		con = spm_input(sprintf('contrast[s] ? 1 - %i',size(CONTRAST,1)),1);
+	% Get thresholded data, thresholds and parameters
+	%-----------------------------------------------------------------------
+	if SPMZ
+		[t,XYZ,QQ,U,k,s,w] = spm_projections_ui('Results');
+	elseif SPMF
+		[t,XYZ,QQ,U,k,s,w] = spm_projectionsF_ui('Results');
+
 	end
 
-	% get height threshold [default = 3.2]
-	%---------------------------------------------------------------------------
-	U    = spm_input('height threshold {Z value}',2,'e',3.2);
-
-	% get extent threshold [default = E{n} - expected voxels per cluster]
-	% Omit spatial extent threshold for multiple contrasts.
-	%---------------------------------------------------------------------------
-	if length(con) == 1
-		[P,EN,Em,En,Pk] = spm_P(1,W,U,0,S);
-		k    = spm_input('extent threshold {voxels}',3,'e',round(En));
-	else
-		k    = 0;
-	end
-
-
-	% accommodate masking if required
-	%---------------------------------------------------------------------------
-	if length(con) > 1
-		Q = all(SPMt(con,:) > U);
-
-		c = CONTRAST(con,:);
-		g = [K H C B G];
-		g = c*pinv(g'*g)*c';
-		r = inv(diag(sqrt(diag(g))))'*g*inv(diag(sqrt(diag(g))));
-		t = sum(SPMt(con,Q))/sqrt(sum(r(:)));
-	else
-		Q = SPMt(con,:) > U;
-		t = SPMt(con,Q);
-	end
-
-	% return if there are no voxels
-	%---------------------------------------------------------------------------
-	if sum(Q) == 0
-		figure(spm_figure('FindWin','Graphics'));
-		spm_figure('Clear','Graphics');
-		axis off
-		text(0,0.8,d);
-		text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
-		return
-	end
-
-	XYZ  = XYZ(:,Q);
-
-
-	% apply threshold {k}
-	%---------------------------------------------------------------------------
-	A         = spm_clusters(XYZ,V([4 5 6]));
-	Q         = [];
-	for i     = 1:max(A)
-		j = find(A == i);
-		if length(j) >= k
-			Q = [Q j];
-		end
-	end
-
-	% return if there are no voxels
-	%---------------------------------------------------------------------------
-	if sum(Q) == 0
-		figure(spm_figure('FindWin','Graphics'));
-		spm_figure('Clear','Graphics');
-		axis off
-		text(0,0.8,d);
-		text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
-		return
-	end
-
-	t    = t(Q);
-	XYZ  = XYZ(:,Q);
-
-	% flip if necessary
-	%---------------------------------------------------------------------------
-	if exist('FLIP') == 1
-		if FLIP == 1
-			XYZ(1,:) = -XYZ(1,:);
-		end
-	end
-
+	% get voxel sizes (in 'V') from mat file
+	%-----------------------------------------------------------------------
+	load([CWD '/SPM.mat']);
 
 	spm_render(XYZ,t,V);
+
 	return;
 end
 
@@ -198,7 +128,7 @@ for i=1:size(Matrixes,1)
 		% behind the surface.
 		%---------------------------------------------------------------------------
 		z1  = dep(xyz(1,:)+(xyz(2,:)-1)*size(dep,1));
-		msk = find(xyz(3,:) < (z1+30) & xyz(3,:) > (z1-5));
+		msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
 		xyz = xyz(:,msk);
 		t0  = t0(msk);
 

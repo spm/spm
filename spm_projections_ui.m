@@ -1,6 +1,6 @@
-function [Z,XYZ,XA,u,k,S,W] = spm_projections_ui(Action,Fname)
+function [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
 % used to review results of statistical analysis (SPM{Z})
-% FORMAT [Z,XYZ,XA,u,k,S,W] = spm_projections_ui(Action,Fname)
+% FORMAT [Z,XYZ,QQ,u,k,S,W] = spm_projections_ui(Action,Fname)
 %
 % Action - 'Display'  - Calls spm_projections
 %        - 'Results'  - Just returns output variables
@@ -8,7 +8,7 @@ function [Z,XYZ,XA,u,k,S,W] = spm_projections_ui(Action,Fname)
 %
 % Z      - Z values after filtering on height and size thresholds
 % XYZ    - location in mm
-% XA     - Adjusted activities ('Results' option only)
+% QQ     - Indexes of selected voxels
 % u      - selected height threshold
 % k      - selected extent threshold {voxels}
 % S      - search volume {voxels}
@@ -58,21 +58,23 @@ set(Finter,'Name','SPM{Z} projections')
 tmp = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
 CWD = strrep(tmp,'/SPMt.mat','');
 K   = [];
-XA  = [];
 
 %-Get data
 %-----------------------------------------------------------------------
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMt'])
+
+
 if strcmp(lower(Action),lower('Results'))
-	load([CWD,'/XA']); end
+	QQ = (1:size(XYZ,2))';
+end
 
 %-Get contrast[s]
 %-----------------------------------------------------------------------
 DES  = [K H C B G]; 	% design matrix
 i    = 0;
-if spm_input('Conjunction analysis',1,'b','no|yes',[0 1])
+if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
 	% conjunction analysis
 	%---------------------------------------------------------------
@@ -106,7 +108,9 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1])
 	XYZ   = XYZ(:,Q);
 	SPMt  = SPMt(:,Q);
 	if strcmp(lower(Action),lower('Results'))
-		XA = XA(:,Q); end
+		QQ    = QQ(Q);
+	end
+
 
 else
 	% straightforward contrast
@@ -125,7 +129,7 @@ end
 %-----------------------------------------------------------------------
 I     = i;
 i     = 0;
-if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1])
+if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1],1)
 
 	while any(i < 1 | i > size(CONTRAST,1))
 		str = sprintf('contrasts ? 1 - %i',size(CONTRAST,1));
@@ -147,7 +151,7 @@ if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1])
 	Z     = Z(Q);
 	XYZ   = XYZ(:,Q);
 	if strcmp(lower(Action),lower('Results'))
-		XA = XA(:,Q);
+		QQ    = QQ(Q);
 	end
 end
 
@@ -163,7 +167,8 @@ Q     = find(Z > u);
 Z     = Z(Q);
 XYZ   = XYZ(:,Q);
 if strcmp(lower(Action),lower('Results'))
-	XA = XA(:,Q); end
+	QQ    = QQ(Q);
+end
 
 %-Return if there are no voxels
 %-----------------------------------------------------------------------
@@ -193,7 +198,7 @@ end
 Z     = Z(Q);
 XYZ   = XYZ(:,Q);
 if strcmp(lower(Action),lower('Results'))
-	XA = XA(:,Q);
+	QQ    = QQ(Q);
 end
 
 
