@@ -312,8 +312,7 @@ function [mosaic,standard] = select_mosaic_images(hdr)
 mosaic   = {};
 standard = {};
 for i=1:length(hdr),
-	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') |...
-		~strcmp(deblank(hdr{i}.ImageType),'ORIGINAL\PRIMARY\M\MOSAIC'),
+	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo'),
 		standard = {standard{:},hdr{i}};
 	else,
 		mosaic = {mosaic{:},hdr{i}};

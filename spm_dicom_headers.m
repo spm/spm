@@ -47,8 +47,9 @@ end;
 ret = read_dicom(fp, 'e',dict);
 fclose(fp);
 return;
+%_______________________________________________________________________
 
-
+%_______________________________________________________________________
 function ret = read_dicom(fp, flg, dict,lim)
 if nargin<4, lim=Inf; end;
 len = 0;
@@ -69,8 +70,11 @@ while ~isempty(tag),
 			ret.StartOfCSAData = ftell(fp);
 			ret.SizeOfCSAData = tag.length;
 			fseek(fp,tag.length,'cof');
-		case {'CSAImageHeaderInfo','CSASeriesHeaderInfo'},
-			dat  = read_numaris4_stuff(fp,tag.length);
+		case {'CSAImageHeaderInfo'},
+			dat  = spm_decode_csa(fp,tag.length,ret.CSAImageHeaderVersion);
+			ret  = setfield(ret,tag.name,dat);
+		case {'CSASeriesHeaderInfo'},
+			dat  = spm_decode_csa(fp,tag.length,ret.CSASeriesHeaderVersion);
 			ret  = setfield(ret,tag.name,dat);
 		case {'TransferSyntaxUID'},
 			dat = char(fread(fp,tag.length,'char'))';
@@ -157,8 +161,9 @@ while ~isempty(tag),
 	tag = read_tag(fp,flg,dict);
 end;
 return;
+%_______________________________________________________________________
 
-
+%_______________________________________________________________________
 function ret = read_sq(fp, flg, dict,lim);
 ret = {};
 n   = 0;
@@ -181,7 +186,9 @@ while len<lim,
 	end;
 end;
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function tag = read_tag(fp,flg,dict)
 tag.group   = fread(fp,1,'ushort');
 tag.element = fread(fp,1,'ushort');
@@ -239,11 +246,15 @@ if rem(tag.length,2),
 	tag = [];
 end;
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function dict = readdict
 dict = load('spm_dicom_dict.mat');
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function dict = readdict_txt
 file = textread('spm_dicom_dict.txt','%s','delimiter','\n','whitespace','');
 clear values
@@ -271,29 +282,44 @@ end;
 tags = sparse(group+1,element+1,1:length(group));
 dict = struct('values',values,'tags',tags);
 return;
+%_______________________________________________________________________
 
-function t = read_numaris4_stuff(fp,lim)
+%_______________________________________________________________________
+function t = spm_decode_csa(fp,lim,vers)
 % Decode shadow information (0029,1010) and (0029,1020)
-
-flg = 'l';
 [fname,perm,fmt] = fopen(fp);
+pos = ftell(fp);
 if strcmp(fmt,'ieee-be'),
-	pos = ftell(fp);
-	fclose(fp);
-	fp  = fopen(fname,perm,'ieee-le');
-	fseek(fp,pos,'bof');
-	flg = 'b';
+        fclose(fp);
+        fp  = fopen(fname,perm,'ieee-le');
+        fseek(fp,pos,'bof');
+        flg = 'b';
 end;
-n   = fread(fp,1,'uint32')';
+
+vers = deblank(vers);
+if ~strcmp(vers,'20021108'),
+	t = decode_20021108(fp,lim);
+elseif ~strcmp(vers,'20020712'),
+	t = decode_20020712(fp,lim);
+else,
+	warning(['Dont know how to decode CSAImageHeaderVersion [' vers '].']);
+	t = struct('junk','Don''t know how to read this damned file format');
+end;
+
+if strcmp(fmt,'ieee-le'),
+	fclose(fp);
+	fp  = fopen(fname,perm,fmt);
+end;
+fseek(fp,pos+lim,'bof');
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function t = decode_20021108(fp,lim)
+n   = fread(fp,1,'uint32')'
 if n>128 | n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
-	if flg=='b',
-		pos = ftell(fp);
-		fclose(fp);
-		fp  = fopen(fname,perm,'ieee-be');
-		fseek(fp,pos,'bof');
-	end;
 	return;
 end;
 xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
@@ -323,15 +349,44 @@ for i=1:n,
 			break;
 		end;
 		t(i).item(j).val = char(fread(fp,len,'char'))';
-		fread(fp,4-rem(len,4),'char')';
+		fread(fp,rem(4-rem(len,4),4),'char')';
 		tot              = tot + 4*4+len+(4-rem(len,4));
 	end;
 end;
-if flg=='b',
-	pos = ftell(fp);
-	fclose(fp);
-	fp  = fopen(fname,perm,'ieee-be');
-	fseek(fp,pos,'bof');
-end;
-fseek(fp,lim-tot,'cof');
 return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function t = decode_20020712(fp,lim)
+c   = char(fread(fp,4,'char'))'
+n   = fread(fp,4,'char')'
+n   = fread(fp,1,'uint32')'
+if n>128 | n < 0,
+	fseek(fp,lim-4,'cof');
+	t = struct('junk','Don''t know how to read this damned file format');
+	return;
+end;
+xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
+for i=1:n,
+	t(i).name    = fread(fp,64,'char')';
+	msk          = find(~t(i).name)-1;
+	if ~isempty(msk),
+		t(i).name    = char(t(i).name(1:msk(1)));
+	else,
+		t(i).name    = char(t(i).name);
+	end;
+	t(i).vm      = fread(fp,1,'int32')';
+	t(i).vr      = fread(fp,4,'char')';
+	t(i).vr      = char(t(i).vr(1:3));
+	t(i).syngodt = fread(fp,1,'int32')';
+	t(i).nitems  = fread(fp,1,'int32')';
+	t(i).xx      = fread(fp,1,'int32')'; % 77 or 205
+	for j=1:t(i).nitems
+		t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
+		len              = t(i).item(j).xx(2);
+		t(i).item(j).val = char(fread(fp,len,'char'))';
+		fread(fp,rem(4-rem(len,4),4),'char');
+	end;
+end;
+return;
+%_______________________________________________________________________
