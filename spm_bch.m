@@ -37,6 +37,10 @@ function spm_bch(varargin)
 %       should contain a top level variable 'NEW_Analysis' 
 
 
+% Reset lasterr to null so it doesn't confuse any of the try..catch
+% subroutines. (Suggested by Darren Gitelman)
+%-----------------------------------------------------------------------
+lasterr('');
 
 %- Global batch variables
 %-----------------------------------------------------------------------
@@ -134,7 +138,7 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 
 		%- first, get the indexes of the default areas
 		%-------------------------------------------------------
-		index = spm_input('batch',{},'index')
+		index = spm_input('batch',{},'index');
                 %- get the list of defaults areas to work on 
 		%-------------------------------------------------------
 		areas = {};
@@ -200,3 +204,8 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 end %- for cA = 1:length(iA)
 
 cd(cwd);
+
+% If there is a BCH variable then things like dialog boxes don't
+% always show up. (Suggested by Darren Gitelman)
+%-----------------------------------------------------------------------
+clear global BCH;
