@@ -22,8 +22,8 @@
 % the anterior commissure in the space defined by the atlas of Talairach
 % and Tournoux (1988)].
 %
-% The specification of the contrasts to use and uncorrected and corrected
-% thresholds is the same as that described in spm_projections[_ui].  See
+% The specification of the contrasts to use and the height and size
+% thresholds are the same as that described in spm_projections[_ui].  See
 % SPM{Z} in the help facilitiy
 %
 %__________________________________________________________________________
@@ -38,7 +38,6 @@
 tmp  = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
 CWD  = strrep(tmp,'/SPMt.mat','');
 K    = [];
-FLIP = 1;
 load([CWD,'/SPM' ])
 load([CWD,'/XYZ' ])
 load([CWD,'/SPMt'])
@@ -46,48 +45,62 @@ load([CWD,'/XA'  ])
 
 
 con  = 0;
-while (con < 1 | con > size(CONTRAST,1))
-   con = spm_input(['which contrast[s] ? 1 - ' num2str(size(CONTRAST,1))],1);
+while any(con < 1 | con > size(CONTRAST,1))
+	con = spm_input(sprintf('contrast[s] ? 1 - %i',size(CONTRAST,1)),1);
 end
-U    = spm_input('threshold e.g. 2.8 or 0.001',2);
-pV   = spm_input('corrected p value e.g. 0.05',3);
 
+% get height threshold [default = 3.2]
+%---------------------------------------------------------------------------
+U    = spm_input('height threshold {Z value}',2,'e',3.2);
+
+% get extent threshold [default = E{n} - expected voxels per cluster]
+% Omit spatial extent threshold for multiple contrasts.
+%---------------------------------------------------------------------------
+if length(con) == 1
+	[P,EN,Em,En,Pk] = spm_P(1,W,U,0,S);
+	k    = spm_input('extent threshold {voxels}',3,'e',round(En));
+else
+	k    = 0;
+end
 
 %---------------------------------------------------------------------------
 set(2,'Pointer','watch'); figure(3); spm_clf
-
-if U < 1
-   U = spm_invNcdf(1 - U); end
 
 % accommodate masking if required
 %---------------------------------------------------------------------------
 if length(con) > 1
 	Q = all(SPMt(con,:) > U);
+
+	c = CONTRAST(con,:);
+	g = [K H C B G];
+	g = c*pinv(g'*g)*c';
+	r = inv(diag(sqrt(diag(g))))'*g*inv(diag(sqrt(diag(g))));
+	t = sum(SPMt(con,Q))/sqrt(sum(r(:)));
 else
 	Q = SPMt(con,:) > U;
+	t = SPMt(con,Q);
 end
 
 % return if there are no voxels
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD,'Fontsize',16,'FontWeight','Bold');
-	text(0,0.7,'No voxels above this threshold');
-	set(2,'Pointer','arrow'); return
+	text(0,0.8,CWD);
+	text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
+	return
 end
 
-t    = SPMt(con(1),Q);
 XYZ  = XYZ(:,Q);
 XA   = XA(:,Q);
 
 
-% filter on P(nmax > k) and P(Zmax > u)
+% apply threshold {k}
 %---------------------------------------------------------------------------
 A         = spm_clusters(XYZ,V([4 5 6]));
 Q         = [];
 for i     = 1:max(A)
 	j = find(A == i);
-	if ( spm_Pn(length(j),W,U,S) <= pV  ) | ( spm_Pz(W,max(t(j)),S) <= pV )
+	if length(j) >= k
 		Q = [Q j];
 	end
 end
@@ -96,9 +109,9 @@ end
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD,'Fontsize',16,'FontWeight','Bold');
-	text(0,0.7,'No voxels significant at this level');
-	set(2,'Pointer','arrow'); return
+	text(0,0.8,CWD);
+	text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
+	return
 end
 
 t    = t(Q);
