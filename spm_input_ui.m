@@ -147,12 +147,14 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % - evaluated  - FORMAT p = spm_input(Prompt,YPos,'e',DefStr)
 % - button     - FORMAT p = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - menu       - FORMAT p = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display    - FORMAT     spm_input(Message,YPos,'d',Label)
+% - alert      - FORMAT     spm_input(Alert,YPos,'d!',Label)
 %
 % - yes/no     - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
 %              - FORMAT p = spm_input(Prompt,YPos,Labels,Values,DefItem)
 %
-% - Parameters -
+% -- Parameters (input) --
 %
 % Prompt   - prompt string
 %          - Defaults (missing or empty) to 'Enter an expression'
@@ -165,6 +167,7 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %                          - relative to last position used
 %                          - overriden by global CMDLINE
 %                          - YPos(1)=='!' forces GUI E.g. '!+1'
+%                          - '_' is a shortcut for the lowest GUI position
 %          - Defaults (missing or empty) to '+1'
 %
 % Type     - type of interrogation
@@ -194,7 +197,9 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %
 % DefItem  - Default item number, for button and menu types.
 %
+% -- Parameters (output) --
 % p        - results
+% YPos     - Optional second output argument returns GUI position just used
 %
 %-----------------------------------------------------------------------
 % WINDOWS:
@@ -217,7 +222,7 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % is returned as appropriate.
 %
 %-----------------------------------------------------------------------
-% EXAMPLES :
+% EXAMPLES:
 %            ( Specified YPos is overriden if global CMDLINE is )
 %            ( true, when the command line versions are used.   )
 %
@@ -230,9 +235,9 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %               Evaluated string input, prompted by contents of string str,
 %               in next position of the dialog figure.
 %               Default value of 0.001 offered.
-%       p = spm_input(str,'0','s')
+%       [p,YPos] = spm_input(str,'0','s','Image')
 %               String input, same position as last used, prompted by str,
-%               default of 'Image' offered
+%               default of 'Image' offered. YPos returns GUI position used.
 %       p = spm_input(str,'-1','y/n')
 %               Yes/No buttons for question with prompt str, in position one 
 %               before the last used Returns 'y' or 'n'.
@@ -269,6 +274,80 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %               ['SS';'MS';'SP'],2)
 %               As above, but the menu is presented in the command window
 %               as a numbered list.
+%       spm_input('AnCova, GrandMean scaling',0,'d')
+%               Displays message in a box in the MatLab command window
+%       [null,YPos]=spm_input('Contrast must sum to zero','+1','d!','Warning')
+%		Displays message in next GUI position in red and sounds
+%               the keyboard bell. Message is labelled as a 'Warning'
+%               Position used is returned in YPos.
+%-----------------------------------------------------------------------
+% UTILITY FUNCTIONS:
+%
+% [CmdLine,YPos] = spm_input('!CmdLine',YPos)
+% Sorts out whether to use CmdLine or not & canonicalises YPos
+% CmdLine - Binary flag
+% YPos    - Position index
+%
+% FORMAT Finter = spm_input('!GetWin',F)
+% Locates (or creates) figure to work in
+% F       - Interactive Figure, Defaults to 'Interactive'
+% Finter  - Handle of figure to use
+%
+% FORMAT PLoc = spm_input('!PointerJump',RRec,F,XDisp)
+% Raise window & jump pointer over question
+% RRec  - Response rectangle of current question
+% F     - Interactive Figure, Defaults to 'Interactive'
+% XDisp - X-displacement of cursor relative to RRec
+% PLoc  - Pointer location before jumping
+%
+% FORMAT spm_input('!PrntPrmpt',Prompt)
+% Print prompt for CmdLine questioning
+% Prompt - Prompt string
+%
+% FORMAT [Frec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,rec,F)
+% Returns rectangles (pixels) used in GUI
+% YPos  - Position index
+% rec   - Rectangle specifier: String, one of 'Frec','QRec','PRec','RRec'
+%         Defaults to '', which returns them all.
+% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+% FRec  - Position of interactive window
+% QRec  - Position of question
+% PRec  - Position of prompt
+% RRec  - Position of response
+%
+% FORMAT [CPos,hCPos] = spm_input('!CurrentPos',F)
+% Returns currently used GUI question positions & their handles
+% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+% CPos  - Vector of position indices
+% hCPos - (n x CPos) matrix of object handles
+%
+% FORMAT [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F)
+% Returns next position index, specified by YPos
+% YPos  - Absolute (integer) or relative (string) position index
+%         Defaults to '+1'
+% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+% NPos  - Next position index
+% CPos & hCPos - as for !CurrentPos
+%
+% FORMAT MPos = spm_input('!MaxPos',F,FRec3)
+% Returns maximum position index for figure F
+% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+%	  Not required if FRec3 is specified
+% FRec3 - Length of interactive figure in pixels
+% 
+% FORMAT spm_input('!EditableKeyPressFcn',h,ch)
+% KeyPress callback for GUI string / eval input
+%
+% FORMAT spm_input('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
+% KeyPress callback for GUI buttons
+%
+% FORMAT spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
+% KeyPress callback for GUI pulldown menus
+%
+% FORMAT spm_input('!dScroll',h,str)
+% Scroll text string in object h
+% h      - handle of text object
+% Prompt - Text to scroll (Defaults to 'UserData' of h)
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -309,74 +388,82 @@ else
 end
 
 
-if any(Type(1)=='esbm')
+if any(Type(1)=='desbm')
 %=======================================================================
-% Preliminaries for all question types
+%-Setup for GUI use
+[CmdLine,YPos] = spm_input('!CmdLine',YPos);
+if ~CmdLine
+	%-Locate (or create) figure to work in
+	Finter = spm_input('!GetWin');
 
-%-Command line? -> If global CMDLINE is true & YPos > 0, or if YPos is empty
-%-----------------------------------------------------------------------
-CmdLine = spm('isGCmdLine');
-if isstr(YPos), if YPos(1)=='!', CmdLine=0; YPos(1)=[]; end
-elseif YPos==0, CmdLine = 1;
-elseif YPos <0, CmdLine = 0; YPos=abs(YPos);
-end
-
-%-Setup
-%-----------------------------------------------------------------------
-if CmdLine
-	%-Print out prompt to command window
-	%---------------------------------------------------------------
-	fprintf('\n'), fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
-	fprintf('\t%s\n',Prompt)
-	fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
-else
-	%-Locate (or open) figure to work in (Don't 'Tag'ged figs)
-	%---------------------------------------------------------------
-	Finter = spm_figure('FindWin','Interactive');
-	if isempty(Finter)
-		if any(get(0,'Children'))
-			if isempty(get(gcf,'Tag')), Finter = gcf;
-			else, Finter = spm('CreateIntWin'); end
-		else, Finter = spm('CreateIntWin'); end
-	end
-
-	%-Find out which Y-position to use - CmdLine over-rides
-	%---------------------------------------------------------------
-	[CPos,hCPos] = spm_input('!CurrentPos',Finter);
-	if isstr(YPos)
-		YPos = max(1,(max([0,max(CPos)])+eval(YPos)));
-	end
+	%-Find out which Y-position to use
+	[YPos,CPos,hCPos] = spm_input('!NextPos',YPos,Finter,CmdLine);
 
 	%-Delete any previous inputs using positions YPos and after
-	%---------------------------------------------------------------
-	% delete(findobj(Finter,'Tag',['GUIinput_',int2str(YPos)]))
-	if any(CPos>=YPos)
-		h = hCPos(:,CPos>=YPos);
-		delete(h(h>0))
-	end
+	if any(CPos>=YPos), h=hCPos(:,CPos>=YPos); delete(h(h>0)), end
 
 	%-Determine position of objects
-	%---------------------------------------------------------------
 	[FRec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,'',Finter);
-	
-	%-Bring window to fore & place pointer over control object
-	%---------------------------------------------------------------
+end
+R2 = YPos;
+end % (any(Type(1)=='desbm'))
+
+if Type(1)=='d'
+%-Display message
+%=======================================================================
+if strcmp(Type,'d!'), fprintf('%c',7), dCol='r'; else, dCol='k'; end
+if CmdLine
+	fprintf('\n%s+-',setstr(ones(1,5)*' '))
+		fprintf('%s',Labels),
+		fprintf('%c',setstr(ones(1,max(1,57-length(Labels)))*'-'),'+')
+		fprintf('\n')
+	Prompt = [Prompt,' '];
+	while length(Prompt)>0
+		tmp = length(Prompt);
+		if tmp>56, tmp=min([max(find(Prompt(1:56)==' ')),56]); end
+		fprintf('%s%s%s%s\n','     | ',...
+			Prompt(1:tmp),...
+			setstr(ones(1,56-tmp)*' '),' |')
+		Prompt(1:tmp)=[];
+	end
+	fprintf('%s+',setstr(ones(1,5)*' '))
+		fprintf('%c',setstr(ones(1,58)*'-'),'+')
+		fprintf('\n')
+else
+	Prompt = [Labels,': ',Prompt];
 	figure(Finter)
-	CPos = get(0,'PointerLocation');
-	set(0,'PointerLocation',...
-		[(FRec(1) +RRec(1) +RRec(3)/5),...
-			(FRec(2) +RRec(2) +RRec(4)/2)]);
-end % (if CmdLine)
-end % (any(Type(1)=='esbm'))
+	%-Create text axes and edit control objects
+	%---------------------------------------------------------------
+	h = uicontrol(Finter,'Style','Text',...
+		'String',Prompt(1:min(length(Prompt),56)),...
+		'Tag',['GUIinput_',int2str(YPos)],...
+		'HorizontalAlignment','Center',...
+		'ForegroundColor',dCol,...
+		'UserData',Prompt,...
+		'Position',QRec);
+	pause(1)
+	if length(Prompt)>56
+		spm_input('!dScroll',h)
+		uicontrol(Finter,'Style','PushButton',...
+			'String','>',...
+			'Tag',['GUIinput_',int2str(YPos)],...
+			'UserData',h,...
+			'CallBack',[...
+			  'set(gco,''Visible'',''off''),',...
+			  'spm_input(''!dScroll'',get(gco,''UserData'')),',...
+			  'set(gco,''Visible'',''on'')'],...
+			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
+	end
+end
+return
 
-
-
-if (Type(1)=='e')|(Type(1)=='s')
+elseif any(Type(1)=='es')
 %-String and evaluated string input.
 %=======================================================================
 DefString = Labels; if ~isstr(DefString), DefString=num2str(DefString); end
 
 if CmdLine
+	spm_input('!PrntPrmpt',Prompt)
 	if ~isempty(DefString)
 		Prompt=[Prompt,' (Default: ',DefString,' )']; end
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefString; end
@@ -450,6 +537,10 @@ else
 				'get(gcf,''CurrentCharacter'')),',...
 		'end'])
 
+	%-Bring window to fore & jump pointer to edit widget
+	PLoc=spm_input('!PointerJump',RRec,Finter);
+
+
 	%-Wait for edit, evaluate string if input not a string variable
 	%---------------------------------------------------------------
 	while isempty(get(h,'UserData'))
@@ -479,7 +570,7 @@ else
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'BackgroundColor',[.7,.7,.7]), drawnow
 	set(Finter,'UserData',[],'KeyPressFcn','')
-	set(0,'PointerLocation',CPos)
+	set(0,'PointerLocation',PLoc)
 
 end % (if CmdLine)
 
@@ -562,6 +653,8 @@ elseif Type(1)=='b'
 	end
 
 	if CmdLine
+		%-Display question prompt
+		spm_input('!PrntPrmpt',Prompt)
 		%-Build prompt
 		%-------------------------------------------------------
 		if ~isempty(Labs) 
@@ -618,6 +711,7 @@ elseif Type(1)=='b'
 		cb = ['set(get(gco,''UserData''),''UserData'',',...
 			'eval(get(gco,''Tag'')))'];
 		H = [];
+		XDisp = [];
 		for lab=1:NoLabels
 			if lab==DefItem
 				%-Default button, outline it
@@ -626,6 +720,7 @@ elseif Type(1)=='b'
 					'ForeGroundColor','k',...
 					'Position',...
 				[RRec(1)+(lab-1)*dX RRec(2)-1 dX 022]);
+				XDisp = (lab-1/3)*dX;
 				H = [H,h];
 			end
 			h = uicontrol(Finter,'Style','Pushbutton',...
@@ -640,31 +735,17 @@ elseif Type(1)=='b'
 		end
 	
 		%-Callback for KeyPress, to store valid button # in
-		% UserData of Prompt, 0 if dmDel & return (ASCII-13) 
-		% is pressed
-		if DefItem
-			cb=['if abs(get(gcf,''CurrentCharacter''))==13,',...
-				'set(findobj(gcf,''Tag'',''',...
-				Tag,'''),''UserData'',0),',...
-			'elseif any(lower(get(gcf,''CurrentCharacter''))',...
-			        '==''',lower(Keys),'''),',...
-			        'set(findobj(gcf,''Tag'',''',...
-			        Tag,'''),''UserData'',',...
-			        'find(lower(get(gcf,',...
-			        '''CurrentCharacter''))==''',...
-			        lower(Keys),''')),',...
-		    	'end'];
-		else
-			cb=['if any(lower(get(gcf,''CurrentCharacter''))',...
-			    '==''',lower(Keys),'''),',...
-			    'set(findobj(gcf,''Tag'',''',...
-			    Tag,'''),''UserData'',',...
-			    'find(lower(get(gcf,',...
-			    '''CurrentCharacter''))==''',...
-			    lower(Keys),''')),end'];
-		end
-		set(Finter,'KeyPressFcn',cb)
+		% UserData of Prompt, DefItem if (DefItem~=0)
+		% & return (ASCII-13) is pressed
+		set(Finter,'KeyPressFcn',...
+			['spm_input(''!ButtonKeyPressFcn'',',...
+			'findobj(gcf,''Tag'',''',Tag,'''),',...
+			'''',lower(Keys),''',',num2str(DefItem),',',...
+			'get(gcf,''CurrentCharacter''))'])
 	
+		%-Bring window to fore & jump pointer to default button
+		PLoc=spm_input('!PointerJump',RRec,Finter,XDisp);
+
 		%-Wait for button press, process results
 		%-------------------------------------------------------
 		while isempty(get(hPrmpt,'UserData'))
@@ -684,9 +765,6 @@ elseif Type(1)=='b'
 			end
 		end
 		k = get(hPrmpt,'UserData');
-		%-Sort out default (if specified)
-		if k==0; k=DefItem; end
-	
 		p = Values(k,:); if isstr(p), p=deblank(p); end
 		
 		%-Display answer and clean up window
@@ -698,7 +776,7 @@ elseif Type(1)=='b'
 			'Horizontalalignment','Center',...
 			'BackgroundColor',[.7,.7,.7],...
 			'Position',RRec);
-		set(0,'PointerLocation',CPos)
+		set(0,'PointerLocation',PLoc)
 
 	end % (if CmdLine)
 
@@ -708,6 +786,7 @@ elseif Type(1)=='m'
 	NoLabels = size(Labels,1);
 	%-Process pull down menu type
 	if CmdLine
+		spm_input('!PrntPrmpt',Prompt)
 		NoLabels = size(Labels,1);
 		for lab = 1:NoLabels
 			fprintf('\t%2d : %s\n',lab,Labels(lab,:)), end
@@ -734,9 +813,14 @@ elseif Type(1)=='m'
 			Labs(DefItem,1)='*';
 			cb = ['if (get(gco,''Value'')>1),',...
 				'set(gco,''UserData'',''Selected''), end'];
+			H = uicontrol(Finter,'Style','Frame',...
+				'BackGroundColor','k',...
+				'ForeGroundColor','k',...
+				'Position',QRec+[-1,-1,+2,+2]);
 		else
 			cb = ['if (get(gco,''Value'')>1),',...
 				'set(gco,''UserData'',''Selected''), end'];
+			H = [];
 		end
 		hPopUp = uicontrol(Finter,'Style','PopUp',...
 			'HorizontalAlignment','Left',...
@@ -753,6 +837,9 @@ elseif Type(1)=='m'
 			'findobj(gcf,''Tag'',''',Tag,'''),',...
 			'get(gcf,''CurrentCharacter''))'];
 		set(Finter,'KeyPressFcn',cb)
+
+		%-Bring window to fore & jump pointer to menu widget
+		PLoc=spm_input('!PointerJump',RRec,Finter,XDisp);
 
 		%-Wait for menu selection
 		%-------------------------------------------------------
@@ -775,12 +862,13 @@ elseif Type(1)=='m'
 		k = get(hPopUp,'Value')-1;
 	
 		%-Display answer, cleanup window
+		delete(H)
 		set(Finter,'KeyPressFcn','')
 		set(hPopUp,'Style','Text',...
 			'Horizontalalignment','Center',...
 			'String',deblank(Labels(k,:)),...
 			'BackgroundColor',[.7,.7,.7])
-		set(0,'PointerLocation',CPos)
+		set(0,'PointerLocation',PLoc)
 	end % (if CmdLine)
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
@@ -800,9 +888,80 @@ if exist('spm_log')==2
 return
 
 
+
 %=======================================================================
 % U T I L I T Y   F U N C T I O N S 
 %=======================================================================
+
+elseif strcmp(lower(Type),lower('!CmdLine'))
+%=======================================================================
+% [CmdLine,YPos] = spm_input('!CmdLine',YPos)
+%-Sorts out whether to use CmdLine or not & canonicalises YPos
+if nargin<2, YPos=''; else, YPos=P2; end
+if isempty(YPos), YPos='+1'; end
+
+%-Global CMDLINE
+CmdLine = spm('isGCmdLine');
+
+%-Special YPos specifications
+if isstr(YPos)
+	if(YPos(1)=='!'), CmdLine=0; YPos(1)=[]; end
+elseif YPos==0
+	CmdLine=1;
+elseif YPos<0
+	CmdLine=0;
+	YPos=-YPos;
+end
+R1 = CmdLine; R2 = YPos;
+return
+
+elseif strcmp(lower(Type),lower('!GetWin'))
+%=======================================================================
+% Finter = spm_input('!GetWin',F)
+%-Locate (or create) figure to work in (Don't use 'Tag'ged figs)
+if nargin<2, F='Interactive'; else, F=P2; end
+Finter = spm_figure('FindWin',F);
+if isempty(Finter)
+	if any(get(0,'Children'))
+		if isempty(get(gcf,'Tag')), Finter = gcf;
+		else, Finter = spm('CreateIntWin'); end
+	else, Finter = spm('CreateIntWin'); end
+end
+R1 = Finter;
+return
+
+
+elseif strcmp(lower(Type),lower('!PointerJump'))
+%=======================================================================
+% PLoc = spm_input('!PointerJump',RRec,F,XDisp)
+%-Raise window & jump pointer over question
+if nargin<4, XDisp=[]; else, XDisp=P4; end
+if nargin<3, F='Interactive'; else, F=P3; end
+if nargin<2, error('Insufficient arguments'), else, RRec=P2; end
+Finter = spm_figure('FindWin',F);
+if isempty(Finter), error('Interactive figure not found'), end
+figure(F)
+FRec = get(F,'Position');
+PLoc = get(0,'PointerLocation');
+if isempty(XDisp), XDisp=RRec(3)*4/5; end
+set(0,'PointerLocation',...
+	[(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)]);
+R1 = PLoc;
+return
+
+
+elseif strcmp(lower(Type),lower('!PrntPrmpt'))
+%=======================================================================
+% spm_input('!PrntPrmpt',Prompt)
+%-Print prompt for CmdLine questioning
+if nargin<2, Prompt=''; else, Prompt=P2; end
+if isempty(Prompt), Prompt='Enter an expression'; end
+
+fprintf('\n'), fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
+fprintf('\t%s\n',Prompt)
+fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
+return
+
 
 elseif strcmp(lower(Type),lower('!InputRects'))
 %=======================================================================
@@ -840,14 +999,13 @@ end
 return
 
 
-
 elseif strcmp(lower(Type),lower('!CurrentPos'))
 %=======================================================================
 % [CPos,hCPos] = spm_input('!CurrentPos',F)
 % hPos contains handles: Columns contain handles corresponding to Pos
 if nargin<2, F='Interactive'; else, F=P2; end
 F = spm_figure('FindWin',F);
-if isempty(F), return, end
+if isempty(F), R1=0; R2=[]; return, end
 
 %-Find tags and YPos positions of 'GUIinput_' 'Tag'ged objects
 H    = [];
@@ -883,10 +1041,75 @@ R1 = CPos;
 R2 = hCPos;
 return
 
+elseif strcmp(lower(Type),lower('!NextPos'))
+%=======================================================================
+% [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
+%-Return next position to use
+if nargin<3, F='Interactive'; else, F=P3; end
+if nargin<2, YPos='+1'; else, YPos=P2; end
+if nargin<4, [CmdLine,YPos]=spm_input('!CmdLine',YPos); else, CmdLine=P4; end
+
+F = spm_figure('FindWin',F);
+
+%-Get current positions
+if nargout<3
+	CPos = spm_input('!CurrentPos',F);
+	hCPos = [];
+else
+	[CPos,hCPos] = spm_input('!CurrentPos',F);
+end
+
+if CmdLine
+	NPos = 0;
+else
+	MPos = spm_input('!MaxPos',F);
+	if isstr(YPos)
+		%-Relative YPos
+		%-Strip any '!' prefix from YPos
+		if(YPos(1)=='!'), YPos(1)=[]; end
+		if strcmp(YPos,'_')
+			%-YPos='_' means bottom
+			NPos=MPos;
+		else
+			YPos = max([0,CPos])+eval(YPos);
+		end
+	else
+		%-Absolute YPos
+		YPos=abs(YPos);
+	end
+	NPos = min(max(1,YPos),MPos);
+end
+R1=NPos; R2=CPos; R3=hCPos;
+return
+
+
+elseif strcmp(lower(Type),lower('!MaxPos'))
+%=======================================================================
+% MPos = spm_input('!MaxPos',F,FRec3)
+%
+if nargin<3
+	if nargin<2, F='Interactive'; else, F=P2; end
+	F = spm_figure('FindWin',F);
+	if isempty(F)
+		FRec3=spm('WinSize','Interactive')*[0;0;0;1];
+	else
+		%-Get figure size
+		Units = get(F,'Units');
+		set(F,'Units','pixels')
+		FRec3 = get(F,'Position')*[0;0;1;0];
+		set(F,'Units',Units);
+	end
+end
+MPos = floor((FRec3-5)/25);
+
+R1 = MPos;
+return
+
 elseif strcmp(lower(Type),lower('!EditableKeyPressFcn'))
 %=======================================================================
 % spm_input('!EditableKeyPressFcn',h,ch)
 if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if isempty(h), set(gcf,'KeyPressFcn','',UserData,[]), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
 
 tmp = get(h,'String');
@@ -909,10 +1132,33 @@ set(h,'String',tmp)
 return
 
 
+elseif strcmp(lower(Type),lower('!ButtonKeyPressFcn'))
+%=======================================================================
+% spm_input('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
+%-Callback for KeyPress, to store valid button # in UserData of Prompt,
+% DefItem if (DefItem~=0) & return (ASCII-13) is pressed
+
+%-Condition arguments
+if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if isempty(h), set(gcf,'KeyPressFcn','','UserData',[]), return, end
+if nargin<3, error('Insufficient arguments'); else, Keys=P3; end
+if nargin<4, DefItem=0; else, DefItem=P4; end
+if nargin<5, ch=get(gcf,'CurrentCharacter'); else, ch=P5; end
+
+if (DefItem & ch==13)
+	But = DefItem;
+else
+	But = find(ch==Keys);
+end
+if ~isempty(But), set(h,'UserData',But), end
+return
+
+
 elseif strcmp(lower(Type),lower('!PullDownKeyPressFcn'))
 %=======================================================================
 % spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
 if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if isempty(h), set(gcf,'KeyPressFcn',''), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
 if nargin<4, DefItem=get(h,'UserData'); else, ch=P4; end
 
@@ -938,6 +1184,25 @@ elseif any(ch=='123456789')
 	set(h,'Value',max(2,min(eval(ch)+1,Pmax)))
 else
 	%-Illegal character
+end
+return
+
+
+elseif strcmp(lower(Type),lower('!dScroll'))
+%=======================================================================
+% spm_input('!dScroll',h,Prompt)
+%-Scroll text in object h
+if nargin<2, return, else, h=P2; end
+if nargin<3, Prompt = get(h,'UserData'); else, Prompt=P3; end
+tmp = Prompt;
+if length(Prompt)>56
+	while length(tmp)>56
+		tic, while(toc<0.1), pause(0.05), end
+		tmp(1)=[];
+		set(h,'String',tmp(1:min(length(tmp),56)))
+	end
+	pause(1)
+	set(h,'String',Prompt(1:min(length(Prompt),56)))
 end
 return
 
