@@ -507,7 +507,10 @@
 % be in neurological convention (with the right side of the brain being
 % at the right side of the image).  The default orientation of the un-
 % normalised images is specified by the global variable "sptl_Ornt" in
-% spm_defaults.m.
+% spm_defaults.m. In the release of SPM96, this variable has been set
+% such that the images get left-right flipped during spatial normaliz-
+% ation.  ie. un-normalized data is assumed to be in radiological
+% orientation.
 % 
 % _____________________________________________________
 %
