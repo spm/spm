@@ -53,7 +53,7 @@ function varargout=spm_spm_ui(varargin)
 %       - basic AnCova (ANalysis of COVAriance)
 %         (essentially a two-sample t-test witha nuisance covariate)
 %
-%  ii) SPM98 PET models: models suitable for analysis of PET/SPECT experiments
+%  ii) PET models: models suitable for analysis of PET/SPECT experiments
 %       - Single-subject: conditions & covariates
 %       - Single-subject: covariates only
 %
@@ -72,7 +72,7 @@ function varargout=spm_spm_ui(varargin)
 % iii) SPM96 PET models: models used in SPM96 for PET/SPECT
 %      These models are provided for backward compatibility, but as they
 %      don't include some of the advanced modelling features, we recommend
-%      you switch to the SPM98 models at the earliest opportunity.
+%      you switch to the new (SPM99) models at the earliest opportunity.
 %       - SPM96:Single-subject: replicated conditions
 %       - SPM96:Single-subject: replicated conditions & covariates
 %       - SPM96:Single-subject: covariates only
@@ -155,7 +155,7 @@ function varargout=spm_spm_ui(varargin)
 % variables. Unlike SPM94/5/6, where the design was partitioned into
 % effects of interest and nuisance effects for the computation of
 % adjusted data and the F-statistic (which was used to thresh out
-% voxels where there appeared to be no effects of interest), SPM98 does
+% voxels where there appeared to be no effects of interest), SPM99 does
 % not partition the design in this way. The only remaining distinction
 % between effects of interest (including covariates) and nuisance
 % effects is their location in the design matrix, which we have
@@ -453,11 +453,11 @@ SCCSid  = '%I%';
 % Design definitions for simple statistics
 % D      - struct array of design definitions (see definition below)
 %
-% FORMAT D = spm_spm_ui('DesDefs_SPM98PET')
-% Design definitions for SPM98 PET/SPECT models
+% FORMAT D = spm_spm_ui('DesDefs_PET')
+% Design definitions for PET/SPECT models
 % D      - struct array of design definitions (see definition below)
 %
-% FORMAT D = spm_spm_ui('DesDefs_SPM96PET')
+% FORMAT D = spm_spm_ui('DesDefs_PET96')
 % Design definitions for SPM96 PET/SPECT models
 % D      - struct array of design definitions (see definition below)
 
@@ -469,7 +469,7 @@ SCCSid  = '%I%';
 % particular design. Usually one uses one of the pre-specified
 % definitions chosen from the menu, which are specified in the function
 % actions at the end of the program (spm_spm_ui('DesDefs_Stats'),
-% spm_spm_ui('DesDefs_SPM98PET'), spm_spm_ui('DesDefs_SPM96PET')). For
+% spm_spm_ui('DesDefs_PET'), spm_spm_ui('DesDefs_PET96')). For
 % customised use of spm_spm_ui.m, the design definition structure is
 % shown by the following example:
 %
@@ -545,7 +545,7 @@ SCCSid  = '%I%';
 % G). In SPM94/5/6 the design matrix was partitioned into effects of
 % interest [H,C] and effects of no interest [B,G], with an F-test for
 % no effects of interest and adjusted data (for effects of no interest)
-% following from these partitions. SPM98 is more freestyle, with
+% following from these partitions. SPM99 is more freestyle, with
 % adjustments and F-tests specified by contrasts. However, the concept
 % of effects of interest and of no interest has been maintained for
 % continuity, and spm_spm_ui.m computes an F-contrast to test for "no
@@ -645,7 +645,7 @@ spm_help('!ContextHelp',mfilename)
 
 %-Print warning that results section isn't complete yet!
 %-----------------------------------------------------------------------
-spm_input('Note that SPM98d results aren''t available yet!',1,'d!','Warning');
+spm_input('Note that SPM99d results aren''t available yet!',1,'d!','Warning');
 
 
 %-Delete files from previous analyses...
@@ -735,11 +735,11 @@ sGXcalc  = {	'omit';...						%-1
 %-----------------------------------------------------------------------
 if isempty(D)
 	tmp = spm_input('Select design class...','+1','m',...
-		{'Basic stats','SPM98 PET designs','SPM96 PET designs'});
+		{'Basic stats','Standard PET designs','SPM96 PET designs'});
 	switch tmp
 	case 1,	D = spm_spm_ui('DesDefs_Stats');
-	case 2,	D = spm_spm_ui('DesDefs_SPM98PET');
-	case 3,	D = spm_spm_ui('DesDefs_SPM96PET');
+	case 2,	D = spm_spm_ui('DesDefs_PET');
+	case 3,	D = spm_spm_ui('DesDefs_PET96');
 	otherwise, error('Don''t know that one!')
 	end
 end
@@ -1544,7 +1544,7 @@ case 'desdefs_stats'
 % - Basic Stats Design definitions...
 %=======================================================================
 % D = spm_spm_ui('DesDefs_Stats');
-% These are the SPM98 basic Stats design definitions...
+% These are the basic Stats design definitions...
 
 %-Note: struct expands cell array values to give multiple records:
 %       => must embed cell arrays within another cell array!
@@ -1630,12 +1630,12 @@ D = [D, struct(...
 varargout = {D};
 
 
-case 'desdefs_spm98pet'
+case 'desdefs_pet'
 %=======================================================================
-% - Standard SPM98 PET/SPECT Design definitions...
+% - Standard (SPM99) PET/SPECT Design definitions...
 %=======================================================================
-% D = spm_spm_ui('DesDefs_SPM98PET');
-% These are the PET SPM98 design definitions...
+% D = spm_spm_ui('DesDefs_PET');
+% These are the standard PET design definitions...
 
 %-Single subject
 %-----------------------------------------------------------------------
@@ -1773,11 +1773,11 @@ D = [D, struct(...
 
 varargout = {D};
 
-case 'desdefs_spm96pet'
+case 'desdefs_pet96'
 %=======================================================================
 % - SPM96 PET/SPECT Design definitions...
 %=======================================================================
-% D = spm_spm_ui('DesDefs_SPM96PET');
+% D = spm_spm_ui('DesDefs_PET96');
 
 %-Single subject
 %-----------------------------------------------------------------------
