@@ -1206,7 +1206,7 @@ end
 Finter = spm_figure('FindWin','Interactive');
 if spm('CmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
-	varargout = {0};
+	if nargout>0, varargout = {0}; end
 elseif ~isempty(Finter)
 	delete(findobj(Finter,'Tag','ContextHelp'))
 	S2 = get(Finter,'Position');
