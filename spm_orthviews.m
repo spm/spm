@@ -23,8 +23,8 @@ function H = spm_orthviews(action,arg1,arg2,arg3)
 % FORMAT spm_orthviews('MaxBB')
 % sets the bounding box big enough display the whole of all images
 %
-% FORMAT spm_orthviews('Resolution',fac)
-% fac      - increase the voxel sizes by factor fac
+% FORMAT spm_orthviews('Resolution',res)
+% res      - resolution (mm)
 %
 % FORMAT spm_orthviews('Delete', handle)
 % handle   - image number to delete
@@ -45,6 +45,9 @@ function H = spm_orthviews(action,arg1,arg2,arg3)
 %
 % FORMAT spm_orthviews('Xhairs','on')
 % enables the cross-hairs.
+%
+% FORMAT spm_orthviews('Interp',hld)
+% sets the hold value to hld (see spm_slice_vol).
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -58,23 +61,25 @@ end;
 
 global st;
 fig = spm_figure('FindWin','Graphics');
+ptr = get(fig,'Pointer');
+set(fig,'Pointer','watch');
 
 if isempty(st),
 	bb     = [ [-78 78]' [-112 76]' [-50 85]' ];
-	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1);
+	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1);
 	st.vols = cell(24,1);
 end;
 
 action = lower(action);
 
 if strcmp(action,'image'),
-	if (nargin<2), return; end;
+	if (nargin<2), set(fig,'Pointer',ptr); return; end;
 
 	ok = 1;
 	eval('V = spm_vol(arg1);','ok=0;');
 	if ok == 0,
 		fprintf('Can not use image "%s"\n', arg1);
-		return;
+		set(fig,'Pointer',ptr); return;
 	end;
 
 	if nargin>2,
@@ -204,7 +209,7 @@ if strcmp(action,'reposition'),
 				if ~isempty(cent), break; end;
 			end;
 		end;
-		if isempty(cent), return; end;
+		if isempty(cent), set(fig,'Pointer',ptr); return; end;
 		centre = st.Space(1:3,1:3)*cent(:) + st.Space(1:3,4);
 	else,
 		centre = arg1;
@@ -242,33 +247,36 @@ if strcmp(action,'reposition'),
 			SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
 
 			ok=1;
-			eval('imgt  = (spm_slice_vol(st.vols{i},TM,TD,1))'';','ok=0;');
-			eval('imgc  = (spm_slice_vol(st.vols{i},CM,CD,1))'';','ok=0;');
-			eval('imgs  = (spm_slice_vol(st.vols{i},SM,SD,1))'';','ok=0;');
+			eval('imgt  = (spm_slice_vol(st.vols{i},TM,TD,st.hld))'';','ok=0;');
+			eval('imgc  = (spm_slice_vol(st.vols{i},CM,CD,st.hld))'';','ok=0;');
+			eval('imgs  = (spm_slice_vol(st.vols{i},SM,SD,st.hld))'';','ok=0;');
 			if (ok==0),
 				fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
 			else,
-				scal = 64/max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
-	
+				mx = max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
+				mn = min([min(min(imgt)) min(min(imgc)) min(min(imgs))]);
+				scal = 64/(mx-mn);
+				dcoff = -mn*scal;
+
 				posn = [cent(1)+bb(1,1) cent(2)+bb(1,2) cent(3)+bb(1,3) 1]';
 				posn = [cent(1)-bb(1,1) cent(2)-bb(1,2) cent(3)-bb(1,3) 1]';
 				posn = posn(1:3);
 	
 				callback = 'spm_orthviews(''Reposition'');';
 
-				set(st.vols{i}.ax{1}.d,'ButtonDownFcn',callback, 'Cdata',imgt*scal);
+				set(st.vols{i}.ax{1}.d,'ButtonDownFcn',callback, 'Cdata',imgt*scal+dcoff);
 				set(st.vols{i}.ax{1}.lx,'ButtonDownFcn',callback,...
 					'Xdata',[0 TD(1)],'Ydata',[1 1]*posn(2));
 				set(st.vols{i}.ax{1}.ly,'ButtonDownFcn',callback,...
 					'Ydata',[0 TD(2)],'Xdata',[1 1]*posn(1));
 
-				set(st.vols{i}.ax{2}.d,'ButtonDownFcn',callback, 'Cdata',imgc*scal);
+				set(st.vols{i}.ax{2}.d,'ButtonDownFcn',callback, 'Cdata',imgc*scal+dcoff);
 				set(st.vols{i}.ax{2}.lx,'ButtonDownFcn',callback,...
 					'Xdata',[0 CD(1)],'Ydata',[1 1]*posn(3));
 				set(st.vols{i}.ax{2}.ly,'ButtonDownFcn',callback,...
 					'Ydata',[0 CD(2)],'Xdata',[1 1]*posn(1));
 
-				set(st.vols{i}.ax{3}.d,'ButtonDownFcn',callback,'Cdata',imgs*scal);
+				set(st.vols{i}.ax{3}.d,'ButtonDownFcn',callback,'Cdata',imgs*scal+dcoff);
 				set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
 					'Xdata',[0 SD(1)],'Ydata',[1 1]*posn(2));
 				set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
@@ -329,17 +337,17 @@ end;
 
 
 if (strcmp(action,'resolution')),
-	if nargin ~= 2, return; end
+	if nargin ~= 2, set(fig,'Pointer',ptr); return; end
 	res = arg1/mean(svd(st.Space(1:3,1:3)));
 	Mat = diag([res res res 1]);
 	st.Space = st.Space*Mat;
 	st.bb = st.bb/res;
-	st.centre = st.centre/res;
+	%st.centre = st.centre/res;
 	spm_orthviews('BB',st.bb);
 end;
 
 if (strcmp(action,'delete')),
-	if nargin ~= 2, return; end;
+	if nargin ~= 2, set(fig,'Pointer',ptr); return; end;
 	arg1 = arg1(find(arg1>=1 & arg1<=24));
 	for i=arg1,
 		if ~isempty(st.vols{i}),
@@ -356,7 +364,7 @@ if (strcmp(action,'delete')),
 end;
 
 if (strcmp(action,'replace')),
-	if nargin ~= 3, return; end;
+	if nargin ~= 3, set(fig,'Pointer',ptr); return; end;
 	image = arg1;
 	del   = arg2;
 	area = st.vols{del}.area;
@@ -365,7 +373,7 @@ if (strcmp(action,'replace')),
 end;
 
 if strcmp(action,'reset'),
-	if nargin ~= 1, return; end
+	if nargin ~= 1, set(fig,'Pointer',ptr); return; end
 	spm_orthviews('Delete',1:24);
 	st = [];
 end;
@@ -404,3 +412,10 @@ if strcmp(action,'xhairs'),
 	end;
 end;
 
+if strcmp(action,'interp'),
+	st.hld = arg1;
+	spm_orthviews('Reposition',st.centre);
+end;
+
+set(fig,'Pointer',ptr);
+return;

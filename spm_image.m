@@ -34,6 +34,12 @@ function spm_image(op,varargin)
 %   DIr Cos    - Direction cosines.  This is a widely used
 %                representation of the orientation of an image.
 %
+% There are also a few options for different resampling modes, zooms
+% etc.  You can also flip between voxel space (as would be displayed
+% by Analyze) or world space (the orientation that SPM considers the
+% image to be in).  If you are re-orienting the images, make sure that
+% world space is specified.
+%
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -56,7 +62,8 @@ if strcmp(op,'repos'),
 	st.B(i) = eval(get(gco,'String'),num2str(st.B(i)));
 	set(gco,'String',st.B(i));
 	st.vols{1}.mat = spm_matrix(st.B)*st.vols{1}.omat;
-	spm_orthviews('MaxBB');
+	% spm_orthviews('MaxBB');
+	spm_image('zoom_in');
 	spm_image('update_info');
 	set(fg,'Pointer','arrow');
 	return;
@@ -71,7 +78,7 @@ if strcmp(op,'shopos'),
 		set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('pos')));
 		pos = spm_orthviews('pos',1);
 		set(st.vp,'String',sprintf('%.1f %.1f %.1f',pos));
-		set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),1)));
+		set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),st.hld)));
 		else,
 			st.Callback = ';';
 			rmfield(st,{'mp','vp','in'});
@@ -133,7 +140,6 @@ if strcmp(op,'update_info'),
 	% Modify the positional information in the right hand panel.
 	%-----------------------------------------------------------------------
 	mat = st.vols{1}.mat;
-	% Z = sqrt(sum(mat(1:3,1:3).^2));
 	Z = spm_imatrix(mat);
 	Z = Z(7:9);
 
@@ -142,7 +148,7 @@ if strcmp(op,'update_info'),
 	O = mat\[0 0 0 1]'; O=O(1:3)';
 	set(st.posinf.o, 'String', sprintf('%.3g %.3g %.3g', O));
 
-	R = spm_imatrix(mat/diag([Z 1]));
+	R = spm_imatrix(mat);
 	R = spm_matrix([0 0 0 R(4:6)]);
 	R = R(1:3,1:3);
 
@@ -154,6 +160,7 @@ if strcmp(op,'update_info'),
 	set(st.posinf.m3, 'String', tmp2);
 
 	tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
+
 	if sum(tmp(:).^2)>1e-8,
 		set(st.posinf.w, 'String', 'Warning: shears involved');
 	else,
@@ -163,7 +170,25 @@ if strcmp(op,'update_info'),
 	return;
 end;
 
-
+if strcmp(op,'zoom_in'),
+	op = get(st.zoomer,'Value');
+	if op==1,
+		spm_orthviews('resolution',1);spm_orthviews('MaxBB');
+	else,
+		vx = sqrt(sum(st.Space(1:3,1:3).^2));
+		vx = vx.^(-1);
+		pos = spm_orthviews('pos');
+		pos = st.Space\[pos ; 1];
+		pos = pos(1:3)';
+		if     op == 2, st.bb = [pos-80*vx ; pos+80*vx] ; spm_orthviews('resolution',1);
+		elseif op == 3, st.bb = [pos-40*vx ; pos+40*vx] ; spm_orthviews('resolution',.5);
+		elseif op == 4, st.bb = [pos-20*vx ; pos+20*vx] ; spm_orthviews('resolution',.25);
+		elseif op == 5, st.bb = [pos-10*vx ; pos+10*vx] ; spm_orthviews('resolution',.125);
+		else          , st.bb = [pos- 5*vx ; pos+ 5*vx] ; spm_orthviews('resolution',.125);
+		end;
+	end;
+	return;
+end;
 
 fg = spm_figure('Findwin','Graphics');
 if isempty(fg)
@@ -270,7 +295,6 @@ end;
 % Positional information
 %-----------------------------------------------------------------------
 mat = st.vols{1}.mat;
-% Z = sqrt(sum(mat(1:3,1:3).^2));
 Z = spm_imatrix(mat);
 Z = Z(7:9);
 uicontrol(fg,'Style','Text','Position' ,[310 190 100 016].*WS,...
@@ -284,7 +308,7 @@ uicontrol(fg,'Style','Text','Position' ,[310 170 100 016].*WS,...
 st.posinf.o = uicontrol(fg,'Style','Text','Position' ,[410 170 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', sprintf('%.3g %.3g %.3g', O),'FontWeight','bold');
 
-R = spm_imatrix(mat/diag([Z 1]));
+R = spm_imatrix(mat);
 R = spm_matrix([0 0 0 R(4:6)]);
 R = R(1:3,1:3);
 
@@ -307,4 +331,21 @@ if sum(tmp(:).^2)>1e-8,
 	set(st.posinf.w, 'String', 'Warning: shears involved');
 end;
 
+% Assorted other buttons.
+%-----------------------------------------------------------------------
+uicontrol(fg,'Style','Frame','Position',[310 30 270 50].*WS);
+st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20],...
+	'String',str2mat('Full Volume','160x160x160mm','80x80x80mm','40x40x40mm','20x20x20mm','10x10x10mm'),...
+	'Callback','spm_image(''zoom_in'')');
+c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom_in'')';
+uicontrol(fg,'Style','popupmenu' ,'Position',[315 35 125 20],...
+	'String',str2mat('World Space','Voxel Space'),...
+	'Callback',c);
+c = 'if get(gco,''Value'')==1, spm_orthviews(''Xhairs'',''off''), else, spm_orthviews(''Xhairs'',''on''); end;';
+uicontrol(fg,'Style','togglebutton','Position',[450 55 125 20],...
+	'String','Hide Crosshairs','Callback',c);
+uicontrol(fg,'Style','popupmenu' ,'Position',[450 35 125 20],...
+	'String',str2mat('NN interp','bilin interp','sinc interp'),...
+	'Callback','tmp_ = [0 1 5];spm_orthviews(''Interp'',tmp_(get(gco,''Value'')))',...
+	'Value',2);
 return;
