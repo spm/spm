@@ -6,18 +6,20 @@ function [] = spm_dcm_average (num_models,P,name)
 % P                 Cell array of DCM filenames eg. P{1}='DCM1', P{2}='DCM2'
 % name              Name of DCM output file. This is prefixed by 'DCM_avg_'.
 %
-% This routine creates a new DCM model which is the average over a number of fitted DCM models.
-% These can be over sessions or over subjects.
-% This average model can then be interrogated using the standard DCM 'review' options 
-% eg. to look at individual parameters or contrasts of parameters.
-% The resulting inferences correspond to a Bayesian Fixed Effects analysis.
+% This routine creates a new DCM model which is the average over a 
+% number of fitted DCM models. These can be over sessions or over subjects.
+% This average model can then be interrogated using the standard 
+% DCM 'review' options eg. to look at individual parameters or 
+% contrasts of parameters. The resulting inferences correspond to 
+% a Bayesian Fixed Effects analysis.
 %
 % Note that the Bayesian averaging is only applied to the A, B and C matrices.
-% All other quantities in the average model are simply copied from the first DCM in the list.
-% Only models with exactly the same A,B,C structure can be averaged.
+% All other quantities in the average model are simply copied from 
+% the first DCM in the list. Only models with exactly the same 
+% A,B,C structure can be averaged.
 %
-% A Bayesian random effects analysis can be implemented for a particular contrast
-% using the spm_dcm_sessions.m function
+% A Bayesian random effects analysis can be implemented for a 
+% particular contrast using the spm_dcm_sessions.m function
 %
 % -------------------------------------------------------
 % %W% Will Penny %E%
