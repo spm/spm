@@ -1,0 +1,107 @@
+  ___  ____  __  __
+ / __)(  _ \(  \/  )  Statistical Parametric Mapping
+ \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+ (___/(__)  (_/\/\_)  SPMweb: http://www.fil.ion.ucl.ac.uk/spm
+
+                              R E A D M E
+
+________________________________________________________________________
+
+This README gives a brief introduction to the installation and use of
+the SPM package. Full details can be found on the SPMweb site:
+                 http://www.fil.ion.ucl.ac.uk/spm
+
+A manifest for this release is contained in the file Contents.m
+The release is described in the file spm.man
+ 
+________________________________________________________________________
+                                                                     SPM
+
+   Statistical Parametric Mapping refers to the construction and
+   assessment of spatially extended statistical process used to test
+   hypotheses about [neuro]imaging data from SPECT/PET & fMRI. These
+   ideas have been instantiated in software that is called SPM.
+
+________________________________________________________________________
+                                                            Installation
+
+The SPM software is a suite of MatLab functions, scripts and data
+files, with some externally compiled C routines, implementing
+Statistical Parametric Mapping.
+
+SPM96 is written for Matlab 4.2c under UNIX. (SPM96 will not work with
+Matlab5.) Binaries of the external C-routines are provided for Solaris
+only, users of other UNIX platforms need an ANSI C compiler to compile
+the supplied C source (Makefile provided: spm_MAKE). See http://www.fil.ion.ucl.ac.uk/spm/distrib.html for details.
+
+( Whilst the majority of the code is implemented as MatLab functions    )
+( & scripts containing standard MatLab commands, a number of features   )
+( specific to the UNIX version have been used. SPM also uses external   )
+( C programs, linked to MatLab as C-mex files, to perform some of the   )
+( more computationally intensive operations.  Some of these latter C    )
+( programs use UNIX system calls to implement SPMs "memory mapping",    )
+( mapping disk resident image volumes into memory. (Specifically, the   )
+( calls are mmap (mman.h) in spm_map_vol.c; munmap (mman.h) in          )
+( spm_unmap_vol.c; & readdir (dirent.h) in spm_list_files.c. Not all    )
+( UNIX flavours support mman.h.                                         )
+
+With the compiled c-mex files in place, simply add the SPM directory to
+your MatLab path to complete the installation.
+
+Note that SPM reads *only* Analyze format images.
+
+________________________________________________________________________
+                                                         Getting started
+                                                         
+SPM is invoked with the command `spm` at the MatLab prompt. We
+recommend you start by reviewing the help system, by selecting "About
+SPM" from the splash screen. This initially displays the "spm.man"
+topic, detailing this release. Press the "Menu" button to display a
+representation of the SPM menu window, with buttons linked to
+appropriate help pages.
+
+Before attempting to analyze data using SPM, we recommend you spend
+some time reading. It is essential to understand the concepts of
+Statistical Parametric Mapping in order to effectively use the software
+as a research tool. You should begin with the SPMweb pages,
+particularly the "Documentation" page. Of the resources listed there
+perhaps the most useful starting point are the SPM course notes, which
+explain the concepts and theories implemented in SPM at a lower level
+than the articles in the peer reviewed literature. There is no manual.
+
+________________________________________________________________________
+                                                               Resources
+
+The SPMweb site is the central repository for SPM resources:
+                 http://www.fil.ion.ucl.ac.uk/spm
+Introductory material, installation details, documentation, course
+details and patches are published on the site.
+
+There is an SPM eMail discussion list, hosted at <spm@mailbase.ac.uk>.
+The list is monitored by the authors, and discusses theoretical,
+methodological and practical issues of Statistical Parametric Mapping
+and SPM. Subscribe by sending the one line message: "join spm firstname
+lastname" to <mailbase@mailbase.ac.uk>. (Users at NIH or UC-Davis
+should join their local SPM feeds.) The SPMweb site has further
+details:
+                 http://www.fil.ion.ucl.ac.uk/spm/help
+
+Please report bugs to the authors at <spm-authors@fil.ion.ucl.ac.uk>.
+Peculiarities may actually be features, and should be raised on the SPM
+eMail discussion list, <spm@mailbase.ac.uk>.
+
+________________________________________________________________________
+                                                              Disclaimer
+
+SPM being made freely available to the [neuro]imaging community, to
+promote collaboration and a common analysis scheme across
+laboratories.  The software represents the implementation of the
+theoretical concepts of Statistical Parametric Mapping in a complete
+analysis package. SPM may be considered academic shareware. It is
+supplied as is. No formal support or maintenance is provided or
+implied.
+
+________________________________________________________________________
+ The FIL methods group : The Wellcome Department of Cognitive Neurology
+
+%Z%%M% %I% %E%
