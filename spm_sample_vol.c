@@ -16,7 +16,7 @@ Matrix *plhs[], *prhs[];
 #endif
 {
 	MAPTYPE *map;
-	int m,n, k, hold, xdim,ydim,zdim, datasize;
+	int m,n, k, hold, xdim,ydim,zdim;
 	double *img;
 
 	if (nrhs != 5 || nlhs > 1)
@@ -26,37 +26,26 @@ Matrix *plhs[], *prhs[];
 
 	map=get_map(prhs[0]);
 
-	if (map->datatype != UNSIGNED_CHAR)
-	{
-		mexErrMsgTxt("Can only handle 8 bit volume.");
-	}
-	datasize = 8;
 	xdim = abs(nint(map->xdim));
 	ydim = abs(nint(map->ydim));
 	zdim = abs(nint(map->zdim));
 
 	for(k=1; k<=3; k++)
-	{
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
 			!mxIsFull(prhs[k]) || !mxIsDouble(prhs[k]))
-		{
 			mexErrMsgTxt("Coordinates must be numeric, real, full and double.");
-		}
-	}
 
 	m = mxGetM(prhs[1]);
 	n = mxGetN(prhs[1]);
 	if (mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n ||
 		mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n)
-	{
 		mexErrMsgTxt("Coordinates must have compatible dimensions.");
-	}
+
 	if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) ||
 		!mxIsFull(prhs[4]) || !mxIsDouble(prhs[4]) ||
 		mxGetM(prhs[4])*mxGetN(prhs[4]) != 1)
-	{
 		mexErrMsgTxt("Bad hold argument.");
-	}
+
 	hold = nint(*(mxGetPr(prhs[4])));
 
 	plhs[0] = mxCreateFull(m,n,REAL);
