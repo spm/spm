@@ -127,10 +127,23 @@ title({sprintf('Session %d',s) Sess{s}.DSstr})
 
 % Collinearity
 %-----------------------------------------------------------------------
-axes('Position',[0.750,0.700,0.155,0.225])
-imagesc(corrcoef(sX))
-title('correlations')
-axis off, axis square
+tmp     = sqrt(sum(sX.^2));
+O       = sX'*sX./kron(tmp',tmp);
+tmp     = abs(sum(sX))<eps*1e5;
+bC      = kron(tmp',tmp);
+tmp     = 1-abs(O); tmp(logical(tril(ones(size(sX,2)),-1))) = 1;
+hDesO   = axes('Position',[0.750,0.700,0.155,0.225]);
+hDesOIm = image(tmp*64);
+tmp     = [1,1]'*[[0:size(sX,2)]+0.5];
+line('Xdata',tmp(1:end-1)','Ydata',tmp(2:end)')
+set(hDesO,'Box','off','TickDir','out',...
+	'XaxisLocation','top','XTick',[],...
+	'YaxisLocation','right','YTick',[],'YDir','reverse')
+axis square
+xlabel('design orthogonality')
+set(hDesOIm,...
+	'UserData',struct('O',O,'bC',bC,'Xnames',{xX.Xnames}),...
+	'ButtonDownFcn','spm_DesRep(''SurfDesO_CB'')')
 
 % Trial-specific regressors - time domain
 %-----------------------------------------------------------------------
