@@ -295,7 +295,7 @@ if a1 == 1 | a1 == 3,
         % Get template(s)
         ok = 0;
         while ~ok,
-                Template = spm_get(Inf,'.mnc',['Template image(s)'],...
+                Template = spm_get(Inf,'IMAGE',['Template image(s)'],...
                         fullfile(spm('Dir'),'templates'));
                 vv = spm_vol(Template);
                 if prod(size(vv))==1,
@@ -316,13 +316,13 @@ end;
 for i=1:1000,
 	if a1 == 1 | a1 == 3,
 
-		P = spm_get([0,1],'.img',['Source image, subj ' num2str(i)]);
+		P = spm_get([0,1],'IMAGE',['Source image, subj ' num2str(i)]);
 		if isempty(P), break; end;
 
 		subj(i).P = P;
 		% source weight
 		if defs.estimate.wtsrc,
-			subj(i).objmask = spm_get([0,1],'.img',...
+			subj(i).objmask = spm_get([0,1],'IMAGE',...
 			['Source weighting image (or Done for none)']);
 		else,
 			subj(i).objmask = '';
@@ -334,7 +334,7 @@ for i=1:1000,
 		subj(i).matname = matname;
 	end;
 	if a1 == 2 | a1 == 3,
-		subj(i).PP = spm_get(Inf,'.img',['Images to write, subj ' num2str(i)]);
+		subj(i).PP = spm_get(Inf,'IMAGE',['Images to write, subj ' num2str(i)]);
 	end;
 end;
 if ~exist('subj'),
@@ -432,7 +432,7 @@ tmp = spm_input('Weight template when registering?', '+1', 'm',...
 		tmp+1);
 if ~tmp,   weight = ''; end;
 if tmp==1, weight = def_brainmask; end;
-if tmp==2, weight = spm_get(1,'*.img','Specify Weighting Image'); end;
+if tmp==2, weight = spm_get(1,'IMAGE','Specify Weighting Image'); end;
 return;
 %_______________________________________________________________________
 

@@ -149,7 +149,7 @@ don = 0;
 for i = 1:1000,
 	ok = 0;
 	while ~ok,
-		PF = spm_get(Inf,'.img',...
+		PF = spm_get(Inf,'IMAGE',...
 			['Image(s), subj ' num2str(i)]);
 		if isempty(PF), don = 1; break; end;
 		VF{i} = spm_vol(PF);
@@ -177,7 +177,7 @@ if spm_input('Already spatially normalised?', 1, 'y/n') == 'n',
 	else,
 		ok = 0;
 		while ~ok,
-			PG = spm_get(Inf,'.img',['Template(s) for affine matching'],...
+			PG = spm_get(Inf,'IMAGE',['Template(s) for affine matching'],...
 				fullfile(spm('Dir'),'templates'));
 			VG = spm_vol(PG);
 			ok = dims_ok(VG);

@@ -328,7 +328,7 @@ case 'addtruecolourimage',
 		varargin(1) = {1};
 	end
 	if nargin < 3
-		varargin(2) = {spm_get(1, 'img', 'Image with activation signal')};
+		varargin(2) = {spm_get(1, 'IMAGE', 'Image with activation signal')};
 	end
 	if nargin < 4
 		actc = [];
@@ -1359,7 +1359,7 @@ case 'window_gl'
 
 case 'swap_img'
   current_handle = get_current_handle;
-  new_info = spm_vol(spm_get(1,'*.img','select new image'));
+  new_info = spm_vol(spm_get(1,'IMAGE','select new image'));
   st.vols{current_handle}.fname   = new_info.fname;
   st.vols{current_handle}.dim     = new_info.dim;
   st.vols{current_handle}.mat     = new_info.mat;
@@ -1446,7 +1446,7 @@ case 'add_c_image'
   cm_handles = valid_handles(1:24);
   if varargin{2} == 2, cm_handles = get_current_handle;end;
   spm_figure('Clear','Interactive');
-  fname = spm_get(1,'*.img','select image');
+  fname = spm_get(1,'IMAGE','select image');
   c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
   colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
   c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
