@@ -463,11 +463,16 @@ GX     = zeros(q,1);
 for i  = 1:q
 	GX(i) = spm_global(V(:,i)); end
 
-%-Scale scaling coefficients so that Grand mean, mean(GX), is = GM (if GM~=0)
+%-Scale scaling coefficients so that Grand mean (mean of global means)
+% for each study is GM (if GM~=0)
 %-----------------------------------------------------------------------
 if GM ~= 0
-	V(7,:) = V(7,:)*GM/mean(GX);
-	GX     = GX*GM/mean(GX);
+   for i = 1:max(iStud)
+	SStu_d       = find(iStud==i);
+	SStu_m	     = mean(GX(SStu_d));
+	V(7,SStu_d)  = V(7,SStu_d) *GM/SStu_m;
+	GX(SStu_d)   = GX(SStu_d)  *GM/SStu_m;
+   end
 end
 
 %-Construct Global part of covariates of no interest partition.
@@ -482,7 +487,11 @@ if iGloNorm == 1				%-No global adjustment
 
 elseif iGloNorm == 2				%-Proportional scaling
 %-----------------------------------------------------------------------
-    V(7,:) = GM*V(7,:)./GX'; GX = ones(size(GX))*GM;
+    if (GM ~= 0)
+	V(7,:) = GM*V(7,:)./GX'; GX = ones(size(GX))*GM;
+    else
+	V(7,:) = V(7,:)./GX'; GX = ones(size(GX));
+    end
 
 elseif iGloNorm == 3				%-AnCova
 %-----------------------------------------------------------------------
