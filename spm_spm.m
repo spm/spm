@@ -604,7 +604,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-Load mask image within current mask & update mask
 		%-------------------------------------------------------
 		CrLm(CrLm) = spm_sample_vol(xM.VM(i),...
-				tmp(1,CrLm),tmp(1,CrLm),tmp(3,CrLm),0) > 0;
+				tmp(1,CrLm),tmp(2,CrLm),tmp(3,CrLm),0) > 0;
 	end
 	
 	%-Get the data in mask, compute threshold & implicit masks
