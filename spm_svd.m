@@ -67,7 +67,7 @@ title(sprintf('%0.1f percent of variance',s(e)/length(s)*100))
 subplot(2,2,4)
 [x y] = bar(v(:,e));
 fill(x,y,[1 1 1]*0.9);
-axis square; set(gca,'Xlim',[0 (size(u,2) + 1)])
+axis square; set(gca,'Xlim',[0 (size(v,1) + 1)])
 xlabel 'observation'
 ylabel 'component score'
 
