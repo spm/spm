@@ -14,7 +14,7 @@ function varargout = spm_input(varargin)
 %               and all var1..N should exist in mat-file.
 %             - indexing_part is specifying a variable in mat-file,
 %               called last_var in this code through the indexing 
-%               system. (see batch documentation: spm_bch.man).
+%               system.
 %             - addressing_part should look like a series of 
 %               'field_name' or index used to address last_var
 %               (see indexing_part) to return last_var.field_name(index)
@@ -40,16 +40,13 @@ function varargout = spm_input(varargin)
 %      spm_input_ui is called.
 %
 %
-% See also: spm_bch.m, spm_bch.man
-%  
 %_______________________________________________________________________
 % %W% Jean-Baptiste Poline, Stephanie Rouquette %E%
 
 
 %-Get global BCH definition, if any
-% (BCH contains bch_mat, index0, and flag. See spm_bch.m for details)
 %-----------------------------------------------------------------------
-global BCH %- contains bch_mat, index0, and flag. see spm_bch.m
+global BCH %- contains bch_mat, index0, and flag.
 
 
 %---- ib = indice where batch starts
