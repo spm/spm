@@ -194,7 +194,12 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 	    case 'smooth'
 		BCH.index0  = {'smooth',iA(cA)};
 		spm_smooth_ui;    
-    
+
+	    %-----------------------------------------------------------
+	    case 'slicetime'
+	    BCH.index0  = {'slicetime',iA(cA)};
+	    spm_slice_timing;
+
 	    %-----------------------------------------------------------
 	    otherwise
 		warning(sprintf('unknown type of analyse %s',typeA{cA}))

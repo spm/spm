@@ -772,7 +772,7 @@
 %                                       normalisation parameter set,
 %  'images'     {STRING_ARRAYS} (1*nbsubjects)
 %                                       images to write normalised, 
-
+%
 %=========================================================================
 % [REALIGN]  -> [SESSIONS] 
 %=========================================================================
@@ -813,6 +813,35 @@
 %----------------------------------------
 %   'images', {STRING_ARRAYS},
 %
+%-------------------------------------------------------------------------
 %
+%=========================================================================
+% [SLICETIME]
+%=========================================================================
+%
+%-------------------------------
+% slicetime : STRUCT % [SLICETIME]
+%-------------------------------
+%...............[UNIQUE]...................
+% 'numsubjects',  INTEGER
+% 'files',        {STRING ARRAYS}
+% 'acqplane'
+%    1 <-> 'saggital'
+%    2 <-> 'coronal'
+%    3 <-> 'axial'
+% 'sequence'
+%          (saggital L&R assumes non-radiological convention orientation)
+%    1 <-> 'ascending
+%          (first slice: axial=bottom coronal=posterior saggital=left)'
+%    2 <-> 'descending
+%          (first slice: axial=top coronal=anterior saggital=right)'
+%    3 <-> 'interleaved
+%          (first slice: axial=top coronal=anterior saggital=right)'
+%    4 <-> 'user specified'
+% 'order',        INTEGER ARRAY
+% 'refslice',     INTEGER
+% 'trtime',       VALUE
+% 'tatime',       VALUE
 %
 %_______________________________________________________________________
+

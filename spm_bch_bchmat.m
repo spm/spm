@@ -67,7 +67,7 @@ case 'defaults_edit'
 	     'Normalisation','RealignCoreg','Reset'};
 
 
-case {'headers','means','normalize','smooth'}
+case {'headers','means','normalize','smooth','coreg','slicetime'}
 %=======================================================================
   bch_names = {typeA};
 
