@@ -596,7 +596,7 @@ if wc,
 		[pth,nm,xt,vr] = fileparts(deblank(VF(j).fname));
 		%VC(j).fname   = fullfile(pth,['m' nm xt vr]);
 		VC(j).fname    = ['m' nm '.img'];
-		VC(j).descrip  = 'Bias orrected image';
+		VC(j).descrip  = 'Bias corrected image';
 	end;
 	VC = spm_create_vol(VC);
 end;
