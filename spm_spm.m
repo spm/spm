@@ -1172,7 +1172,7 @@ if UFp > 0, save Yidx Yidx, end
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...	%-General design parameters
 		'M','DIM',...			%-Image space parameters
-		'VM','Vbeta','VResMS',...	%-Handles of beta & ResMS images
+		'VM','Vbeta','VResMS',...	%-Relative beta & ResMS filenames
 		'XYZ',...			%-InMask XYZ voxel coords
 		'F_iX0','UFp','UF',...		%-F-thresholding data
 		'S','R','FWHM'};		%-Smoothness data
