@@ -86,7 +86,7 @@ function spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %___________________________________________________________________________
-% %W% Karl Friston, Jean-Baptiste Poline, Christian Buechel %E%
+% @(#)spm_fmri_spm_ui.m	2.4 Karl Friston, Jean-Baptiste Poline, Christian Buechel 99/01/11
 
 
 
@@ -97,7 +97,7 @@ Finter = spm_figure('FindWin','Interactive');
 
 % get filenames and other user specified parameters
 %===========================================================================
-set(Finter,'Name','fMRI analysis');
+set(Finter,'Name','fMRI analysis'); 
 nsess  = spm_input(['number of sessions'],1,'e',1);
 nscan  = zeros(1,nsess);
 Q      = [];
@@ -109,6 +109,7 @@ for  i = 1:nsess
 end
 Q(1,:) = [];
 P      = Q;
+clear Q;
 
 % Threshold for F statistic
 %---------------------------------------------------------------------------
@@ -126,12 +127,6 @@ Global = spm_input(str,3,'scale|none',{'Scaling' 'None'});
 %---------------------------------------------------------------------------
 RT     = spm_input('Interscan interval {secs}',4);	% interscan interval
 
-% temporal smoothing
-%---------------------------------------------------------------------------
-SIGMA  = spm_input('temporal smoothing fwhm-secs',5,'e',4);
-sigma  = SIGMA/sqrt(8*log(2))/RT;
-
-
 
 % get design matrix
 %===========================================================================
@@ -143,6 +138,106 @@ else
 end
 
 
+
+% temporal filtering input: after spm_fMRI_design to get the inter stimuli 
+% periods taken from Sess if it exists.
+%---------------------------------------------------------------------------
+
+%---------------------------------
+str	= 'Cut low frequencies (LF) ?';
+cLFmenu   = {'Cut LF with defaults',...
+	     'None',...
+	     'Specify'};
+cLF      = spm_input(str,4,'m',cLFmenu);
+cLFstr   = deblank(cLFmenu{cLF});
+dft_no_sess = 120;
+dft_min_period = 32; 					%-- 2*hrf duration for minimum period 
+cLF_period	= [];
+
+
+if cLF == 1 							%-- Cut LF with defaults
+
+	if size(Sess)
+	   for  i = 1:nsess
+	     	cLF_period = [cLF_period ...
+			  	max(dft_min_period, 2*max(cat(2,Sess{i}.pst{:})))];
+	   end
+	else 
+	   	cLF_period = dft_no_sess*[1:nsess]; 	%- no session, default
+	end
+	
+elseif cLF == 2 						%-- Cut none
+
+	cLF_period = 2*max(nscan)*RT*[1:nsess];
+
+else 										%-- Specify
+
+	cLF_period = [];
+	while (prod(size(cLF_period)) ~= nsess) & (prod(size(cLF_period)) ~= 1)
+	   cLF_period = spm_input('Cut off period(s)',4,'e',dft_no_sess);
+	end
+	if prod(size(cLF_period)) == 1, cLF_period = cLF_period*ones(1,nsess); end;
+
+end
+
+filterLF(1:nsess) = struct('Menu',{cLFmenu},'Choice',cLF,'Param',cLF_period);
+
+
+%---------------------------------
+str    = 'Cut high frequencies (HF) ? ';
+cHFmenu   = {'Cut HF with default hrf',...
+	     'Cut HF with hrf derivative',...
+	     'None',...
+	     'Specify with gaussian filter',...
+	     'Specify with cutting frequency'};
+cHF      = spm_input(str,4,'m',cHFmenu);
+cHFstr   = deblank(cHFmenu{cHF});
+sigma = 0;
+param	= [];
+
+
+switch cHF
+
+	case 4
+		sigma = spm_input('Gaussian filter FWHM',4,'e',4,1);
+		sigma = sigma/sqrt(8*log(2))/RT; % sigma in scan 
+		param = ones(1,nsess)*sigma;
+	case 5
+		cutF = -1;
+		while cutF <= 0
+			cutF = spm_input('Cut frequency in Hz',4,'e',1/RT/4,1);
+		end
+		param = ones(1,nsess)*cutF;
+end
+
+filterHF(1:nsess) = struct('Menu',{cHFmenu},'Choice',cHF,'Param',param);
+
+
+%---------------------------------
+% Vi : intrinsic autocorrelation
+% Vi_par : parameters of form if assumed
+% Vi_Flag : 1 if formed assumed 0 otherwise
+
+str    = 'Assume an intrinsic autocorrelation ? ';
+if spm_input(str,4,'yes|no',[1 0])
+	Vi_par = [0.0178];
+
+	Vi     = [];
+	for i = 1:nsess
+	    k      = nscan(i);
+	    [x y]  = size(Vi);
+	    Vi(([1:k] + x),([1:k] + y)) = spm_Vintrinsic(k,RT,'1/f',Vi_par);
+	end
+	Vi     = sparse(Vi);
+	Vi_Flag = 1;	
+else 
+	Vi_par = [];
+	Vi = speye(sum(nscan));
+	Vi_Flag = 0;
+end
+xVi = struct('Vi',Vi,'flag',Vi_Flag,'Param',Vi_par);
+
+
 % the interactive parts of spm_spm_ui are now finished
 %---------------------------------------------------------------------------
 set(Finter,'Name','thankyou','Pointer','Watch')
@@ -151,14 +246,16 @@ set(Finter,'Name','thankyou','Pointer','Watch')
 
 % Contruct convolution matrix
 %===========================================================================
+
+
 K     = [];
-for i = 1:length(nscan)
+for i = 1:nsess
 	k      = nscan(i);
 	[x y]  = size(K);
-	K(([1:k] + x),([1:k] + y)) = spm_sptop(sigma,k);
+	%- K(([1:k] + x),([1:k] + y)) = spm_sptop(sigma,k);
+	K(([1:k] + x),([1:k] + y)) = spm_make_filter(k,RT,filterHF(i),filterLF(i),'norm');
 end
 K     = sparse(K);
-
 
 % get file identifiers and Global values
 %===========================================================================
@@ -181,7 +278,7 @@ for i  = 1:q, g(i) = spm_global(VY(i)); end
 %---------------------------------------------------------------------------
 gSF    = GM./g;
 if strcmp(Global,'None')
-	for i = 1:length(nscan)
+	for i = 1:nsess
 		j      = find(X.bX(:,i));
 		gSF(j) = GM./mean(g(j));
 	end
@@ -207,6 +304,7 @@ xM = struct(	'T',	ones(q,1),...
 Xnames = [X.Xname X.Bname X.Cname];
 xX     = struct(	'X',		[X.xX X.bX X.cX],...
 			'K',		K,...
+			'xVi',		xVi,...
 			'RT',		RT,...
 			'dt',		X.dt,...
 			'sigma',	sigma,...
@@ -231,7 +329,7 @@ end
 str =  {X.DesN{2};
 	sprintf('number of sessions: %d',nsess);
 	sprintf('interscan interval: %0.2f secs',RT);
-	sprintf('temporal smoothing: %0.2f secs',SIGMA);
+	sprintf('temporal smoothing: %0.2f secs',sigma*sqrt(8*log(2))/RT);
 	};
 
 sGXcalc  = {'mean voxel value'};

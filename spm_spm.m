@@ -247,8 +247,8 @@ function spm_spm(VY,xX,xM,c,varargin)
 % be tweaked for your system by editing the code.
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
-SCCSid = '%I%';
+% @(#)spm_spm.m	2.11 Andrew Holmes, Jean-Baptiste Poline, Karl Friston 99/02/18
+SCCSid = '2.11';
 
 %-Parameters
 %-----------------------------------------------------------------------
@@ -264,7 +264,7 @@ if nargin<4, c   = []; end
 
 %-Check required fields of xX structure exist
 %-----------------------------------------------------------------------
-for tmp = {'X','K','Xnames'}, if ~isfield(xX,tmp)
+for tmp = {'X','K','xVi','Xnames'}, if ~isfield(xX,tmp)
     error(sprintf('xX Design structure doesn''t contain ''%s'' field',tmp{:}))
 end, end
 
@@ -317,16 +317,16 @@ if any(size(xX.K)~=size(xX.X,1)), error('K not a temporal smoothing matrix'), en
 %-Construct design parmameters, and store in design structure xX
 % Take care to apply temporal convolution
 %-----------------------------------------------------------------------
-[nScan,nbeta] = size(xX.X);		%- #scans & #parameters
-xX.V          = xX.K*xX.K';		%-V matrix
-xX.xKXs       = spm_sp('Set',xX.K*xX.X);%-Compute design space structure
+[nScan,nbeta] = size(xX.X);					%- #scans & #parameters
+xX.V          = xX.K*xX.xVi.Vi*xX.K';			%-V matrix
+xX.xKXs       = spm_sp('Set',xX.K*xX.X);		%-Compute design space structure
 xX.pKX        = spm_sp('pinv',xX.xKXs);	%-Pseudoinverse of X, for parameter est.
-xX.pKXV       = xX.pKX*xX.V;		%-Needed for contrast variance weighting
-xX.Bcov       = xX.pKXV * xX.pKX';	%-Var-cov matrix of parameter estimates
-                                        % (multiply by ResMS)
-[xX.trRV,xX.trRVRV] ...			%-Expectations of variance (trRV)
+xX.pKXV       = xX.pKX*xX.V;				%-Needed for contrast variance weighting
+xX.Bcov       = xX.pKXV * xX.pKX';			%-Var-cov matrix of parameter estimates
+                                        		% (multiply by ResMS)
+[xX.trRV,xX.trRVRV] ...					%-Expectations of variance (trRV)
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
-xX.erdf       = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
+xX.erdf       = xX.trRV^2/xX.trRVRV;			%-Effective residual d.f.
 
 %-Check estimability
 %-----------------------------------------------------------------------
@@ -368,8 +368,8 @@ if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
 	%-Compute subspace corresponding to F-contrast, ESS variance
 	% expectation and corresponding F degrees of freedom.
 	%---------------------------------------------------------------
-	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);%-Contrast Ho space
-	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);	%-Expectations
+	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);	%-Contrast Ho space
+	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);			%-Expectations
 					%-(trR0V & trR0V2 in spm_AnCova)
 	eFdf          = [trMV^2/trMVMV, xX.erdf];	%-Effective F-df
 
