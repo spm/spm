@@ -17,7 +17,6 @@ global defaults
 
 % Misc
 %=======================================================================
-%defaults.modality = 'FMRI';
 defaults.grid     = 0.4;
 defaults.cmdline  = 0;
 defaults.logfile  = '';
@@ -36,6 +35,10 @@ defaults.stats.fmri.ufp = 0.001;
 defaults.stats.fmri.t   = 16;
 defaults.stats.fmri.t0  = 1;
 defaults.stats.pet.ufp  = 0.05;
+
+% Mask defaults
+%=======================================================================
+defaults.mask.thresh    = 0.8;
 
 % Realignment defaults
 %=======================================================================
