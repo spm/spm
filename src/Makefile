@@ -74,14 +74,32 @@ OSF1:
 MAC:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"\
 	       MEX="mex -O -DBIGENDIAN"
-#windows:
-#	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+
 windows:
 # Consider adding either of the following, depending on your platform:
 #       -march=pentium3
 #       -march=pentium4
-	make all SUF=dll CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -march=pentium4 -mfpmath=sse -DSPM_WIN32"\
-	         MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+#
+# See Matthew's web page on mex files for Windows:
+#    http://gnumex.sourceforge.net/
+#
+# A minimalist version of GNU can be obtained by picking up MinGW-xxx-rc.exe from
+#     http://www.mingw.org/download.shtml
+# Simply download from a suitable mirror site and execute the program.  This will
+# install it on your system.
+#
+# Alternatively, you could try Cygwin.  This gives a much wider selection of Unix
+# functions.
+#
+# GNUmex may also be needed.  This can be installed from
+#     https://sourceforge.net/projects/gnumex
+#
+# After this, I have no idea what to do... because it's Windows
+#
+	make all SUF=dll\
+	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -mfpmath=sse -DSPM_WIN32"\
+	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"\
+	        ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 
 ###############################################################################
 # Architecture specific cleaning

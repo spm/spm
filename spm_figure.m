@@ -720,11 +720,13 @@ t1 = uimenu(t0,'Position',1,...
 
 t0=uimenu( F,'Label','Colours','HandleVisibility','off');
 t1=uimenu(t0,'Label','ColorMap');
-t2=uimenu(t1,'Label','Gray','CallBack','spm_figure(''ColorMap'',''gray'')');
-t2=uimenu(t1,'Label','Hot','CallBack','spm_figure(''ColorMap'',''hot'')');
-t2=uimenu(t1,'Label','Pink','CallBack','spm_figure(''ColorMap'',''pink'')');
-t2=uimenu(t1,'Label','Gray-Hot','CallBack','spm_figure(''ColorMap'',''gray-hot'')');
+t2=uimenu(t1,'Label','Gray',     'CallBack','spm_figure(''ColorMap'',''gray'')');
+t2=uimenu(t1,'Label','Hot',      'CallBack','spm_figure(''ColorMap'',''hot'')');
+t2=uimenu(t1,'Label','Pink',     'CallBack','spm_figure(''ColorMap'',''pink'')');
+t2=uimenu(t1,'Label','Gray-Hot', 'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
+t2=uimenu(t1,'Label','Gray-Cool','CallBack','spm_figure(''ColorMap'',''gray-cool'')');
 t2=uimenu(t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
+t2=uimenu(t1,'Label','Gray-Jet', 'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
 t1=uimenu(t0,'Label','Effects');
 t2=uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
 t2=uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
@@ -794,18 +796,25 @@ case 'pink'
 	colormap(pink(64))
 case 'gray-hot'
 	tmp = hot(64 + 16);  tmp = tmp([1:64] + 16,:);
-	colormap([gray(64); tmp])
+	colormap([gray(64); tmp]);
+case 'gray-cool'
+	cool = [zeros(10,1) zeros(10,1) linspace(0.5,1,10)';
+	        zeros(31,1) linspace(0,1,31)' ones(31,1);
+	        linspace(0,1,23)' ones(23,1) ones(23,1) ];
+	colormap([gray(64); cool]);
 case 'gray-pink'
 	tmp = pink(64 + 16); tmp = tmp([1:64] + 16,:);
-	colormap([gray(64); tmp])
+	colormap([gray(64); tmp]);
+case 'gray-jet'
+	colormap([gray(64); jet(64)]);
 case 'invert'
-	colormap(flipud(colormap))
+	colormap(flipud(colormap));
 case 'brighten'
-	colormap(brighten(colormap, 0.2))
+	colormap(brighten(colormap, 0.2));
 case 'darken'
-	colormap(brighten(colormap, -0.2))
+	colormap(brighten(colormap, -0.2));
 otherwise
-	error('Illegal ColAction specification')
+	error('Illegal ColAction specification');
 end
 
 case 'graphicshandle'

@@ -522,7 +522,15 @@ for i=valid_handles(handle),
 	else,
 		bset = length(st.vols{i}.blobs)+1;
 	end;
-	% axpos = get(st.vols{i}.ax{2}.ax,'Position');
+
+	axpos = get(st.vols{i}.ax{2}.ax,'Position');
+	ax = axes('Parent',st.fig,'Position',...
+	    [(axpos(1)+axpos(3)+0.18) (axpos(2)-axpos(4)-0.03) 0.05 (axpos(4)-0.01)],...
+	    'Box','on');
+	image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
+	set(ax,'YDir','normal','XTickLabel',[]);
+	title(spm_str_manip(fname,'t'),'FontSize',8)
+
 	c = struct('cmap', colourmap,'prop',prop);
 	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',c);
 end;
