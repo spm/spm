@@ -147,11 +147,11 @@ else
     if      STAT == 'Z'
       u = spm_invNcdf(1-Ps(I));
     elseif  STAT == 'T'
-      u = spm_invTcdf(1-Ps(I),df(2)));
+      u = spm_invTcdf(1-Ps(I),df(2));
     elseif  STAT == 'X'
-      u = spm_invXcdf(1-Ps(I),df(2)));
+      u = spm_invXcdf(1-Ps(I),df(2));
     elseif  STAT == 'F'
-      u = spm_invFcdf(1-Ps(I),df));
+      u = spm_invFcdf(1-Ps(I),df);
     end
   end
 end
