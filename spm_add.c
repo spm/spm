@@ -48,40 +48,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int ni, nj, nk, i, j, k, fo;
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
 	char label[1024];
-	int mask0flag = 0, floatflag = 0;
+	int floatflag = 0;
 	double NaN = 0.0/0.0; /* the only way to get a NaN that I know */
 	mxArray *wplane_args[3];
 	int maxval, minval, dtype;
 
-	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
+	if ((nrhs != 2) || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
 
-	if (nrhs == 3)
-	{
-		if (!mxIsChar(prhs[2]))
-			mexErrMsgTxt("Inappropriate usage.");
-		else
-		{
-			char *buf;
-			int buflen;
-			buflen = mxGetN(prhs[2])*mxGetM(prhs[2])+1;
-			buf = mxCalloc(buflen,sizeof(char));
-			if (mxGetString(prhs[2],buf,buflen))
-			{
-				mxFree(buf);
-				mexErrMsgTxt("Cant get flags.");
-			}
-			for (i=0; i<buflen; i++)
-			{
-				if (buf[i] == 'm') mask0flag = 1;
-				/* if (buf[i] == 'f') floatflag = 1; */
-			}
-			mxFree(buf);
-		}
-	}
-
 	maps = get_maps(prhs[0], &ni);
-
 
 	for(i=1; i<ni; i++)
 	{
@@ -150,7 +125,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		for(i=0; i<ni; i++)
 		{
 			slice(mat, image, maps[i].dim[0],maps[i].dim[1], maps[i], 0, 0.0);
-			if (mask0flag)
+			if (maps[i].dtype == 2   || maps[i].dtype == 4   || maps[i].dtype == 8 ||
+			    maps[i].dtype == 256 || maps[i].dtype == 512 || maps[i].dtype == 1024)
 			{
 				for(k=0; k<nk; k++)
 				{
