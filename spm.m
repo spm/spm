@@ -160,7 +160,28 @@ function varargout=spm(varargin)
 % copyright information are recomputed (regardless of any stored global
 % data).
 %
-% FORMAT [c,cName]=spm('Colour')
+% FORMAT xTB = spm('TBs')
+% Identifies installed SPM toolboxes: SPM toolboxes are defined as the
+% contents of sub-directories of fullfile(spm('Dir'),'toolbox') - the
+% SPM toolbox installation directory. For SPM to pick a toolbox up,
+% there must be a single mfile in the directory whose name ends with
+% the toolbox directory name. (I.e. A toolbox called "test" would be in
+% the "test" subdirectory of spm('Dir'), with a single file named
+% *test.m.) This M-file is regarded as the launch file for the
+% toolbox.
+% xTB      - structure array containing toolbox definitions
+% xTB.name - name of toolbox (taken as toolbox directory name)
+% xTB.prog - launch program for toolbox
+% xTB.dir  - toolbox directory
+%
+% FORMAT spm('TBlaunch',xTB,i)
+% Launch a toolbox, prepending TBdir to path if necessary
+% xTB      - toolbox definition structure (i.e. from spm('TBs')
+% xTB.name - name of toolbox
+% xTB.prog - name of program to launch toolbox
+% xTB.dir  - toolbox directory (prepended to path if not on path)
+%
+% FORMAT [c,cName] = spm('Colour')
 % Returns the RGB triple and a description for the current en-vogue SPM
 % colour, the background colour for the Menu and Help windows.
 %
@@ -279,7 +300,8 @@ Modalities = str2mat('PET','FMRI');
 if nargin == 0, Action='Welcome'; else, Action = varargin{1}; end
 
 
-switch lower(Action), case 'welcome'
+%=======================================================================
+switch lower(Action), case 'welcome'             %-Welcome splash screen
 %=======================================================================
 
 %-Open startup window, set window defaults
@@ -383,7 +405,8 @@ uicontrol(F,'String','Quit',...
 set(F,'Pointer','Arrow','Visible','on')
 
 
-case 'asciiwelcome'
+%=======================================================================
+case 'asciiwelcome'                           %-ASCII SPM banner welcome
 %=======================================================================
 disp( ' ___  ____  __  __                                                  ')
 disp( '/ __)(  _ \(  \/  )  Statistical Parametric Mapping                 ')
@@ -392,7 +415,8 @@ disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm'])
 fprintf('\n')
 
 
-case {'pet','fmri'}
+%=======================================================================
+case {'pet','fmri'}             %-Initialise SPM in PET or fMRI modality
 %=======================================================================
 % spm(Modality)
 
@@ -447,7 +471,8 @@ if now>datenum('31-Dec-2001')
 end
 
 
-case 'createmenuwin'
+%=======================================================================
+case 'createmenuwin'                              %-Draw SPM menu window
 %=======================================================================
 % Fmenu = spm('CreateMenuWin',Vis)
 if nargin<2, Vis='on'; else, Vis=varargin{2}; end
@@ -614,10 +639,6 @@ uicontrol(Fmenu,'String','Check Reg',	'Position',[112 088 083 024].*WS,...
 	'ToolTipString','check image registration',...
 	'FontSize',FS(9),	'CallBack','spm_check_registration;')
 
-% uicontrol(Fmenu,'String','Render',	'Position',[205 088 083 024].*WS,...
-% 	'ToolTipString','render',...
-% 	'FontSize',FS(9),		'CallBack','spm_render;')
-
 uicontrol(Fmenu,'Style','PopUp',...
 	'String','Render...|Display|Xtract Brain',...
 	'Position',[205 088 083 024].*WS,...
@@ -638,49 +659,21 @@ uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 
 %-Utility buttons (second line)
 %-----------------------------------------------------------------------
-% uicontrol(Fmenu,'String','Xtract Brain', 'Position',[020 054 082 024].*WS,...
-%	'ToolTipString','Extract brain for rendering',...
-%	'FontSize',FS(9),		'CallBack','spm_xbrain;')
-
 %-Toolbox pulldown
-%-----------------------------------------------------------------------
-tdir       = fullfile(spm('Dir'),'toolbox');
-tboxes = '';
-if exist(fullfile(spm('Dir'),'toolbox'),'dir')
-	[f,tboxes] = spm_list_files(tdir,'-');
-	msk        = find(tboxes(:,1)=='.');
-	tboxes(msk,:) = '';
-end;
-
-utils = 'Toolbox...';
-udata = {};
-j     = 0;
-if ~isempty(tboxes),
-	for i=1:size(tboxes,1),
-		tdir1 = fullfile(tdir,deblank(tboxes(i,:)));
-		[fn,d]=spm_list_files(tdir1,['*' deblank(tboxes(i,:)) '.m']);
-		if size(fn,1)==1,
-			j        = j + 1;
-			fn       = spm_str_manip(fn,'r');
-			addpath(tdir1,'-end');
-			tmp      = deblank(tboxes(i,:));
-			tmp(find(tmp=='_')) = ' ';
-			utils    = [utils '|' tmp];
-			udata{j} = fn;
-		end;
-	end;
-end;
-if isempty(udata),
-	utils = [utils '|<none>'];
-	udata = {[';']};
-end;
-
-uicontrol(Fmenu,'Style','PopUp',...
-        'String',utils,...
-        'ToolTipString','Additional Toolboxes',...
-        'Position',[020 054 082 024].*WS,...
-        'FontSize',FS(9), 'CallBack','spm(''PopUpCB'',gcbo)',...
-        'UserData', udata,'Tag','spmtoolboxes')
+xTB = spm('TBs');
+if isempty(xTB)
+    uicontrol(Fmenu,'String','Toolboxes...','Position',[020 054 082 024].*WS,...
+	'ToolTipString','Additional Toolboxes',...
+	'FontSize',FS(9),	'CallBack','','Enable','off')
+else
+    uicontrol(Fmenu,'Style','PopUp','String',{'Toolboxes...',xTB.name},...
+       'ToolTipString','Additional Toolboxes',...
+       'Position',[020 054 082 024].*WS,...
+       'FontSize',FS(9),'CallBack',...
+        ['spm(''TBlaunch'',get(gcbo,''UserData''),get(gcbo,''Value'')-1), ',...
+        	'set(gcbo,''Value'',1)'],...
+       'UserData', xTB)
+end
 
 uicontrol(Fmenu,'Style','PopUp',...
 	'String','Means...|Mean|adjMean|adjMean/fMRI',...
@@ -741,7 +734,8 @@ varargout = {Fmenu};
 
 
 
-case 'createintwin'
+%=======================================================================
+case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
 if nargin<2, Vis='on'; else, Vis=varargin{2}; end
@@ -773,7 +767,8 @@ Finter = figure('IntegerHandle','off',...
 varargout = {Finter};
 
 
-case 'chmod'
+%=======================================================================
+case 'chmod'                            %-Change SPM modality PET<->fMRI
 %=======================================================================
 % spm('ChMod',Modality)
 
@@ -799,7 +794,8 @@ set(findobj(Fmenu,'Tag', Modality),'Visible','on')
 set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum)
 
 
-case 'defaults'
+%=======================================================================
+case 'defaults'                 %-Set SPM defaults (as global variables)
 %=======================================================================
 % spm('defaults',Modality)
 
@@ -856,7 +852,8 @@ else
 end
 
 
-case 'quit'
+%=======================================================================
+case 'quit'                                      %-Quit SPM and clean up
 %=======================================================================
 % spm('Quit')
 %-----------------------------------------------------------------------
@@ -865,7 +862,8 @@ clc
 fprintf('Bye...\n\n')
 
 
-case 'checkmodality'
+%=======================================================================
+case 'checkmodality'              %-Check & canonicalise modality string
 %=======================================================================
 % [Modality,ModNum] = spm('CheckModality',Modality)
 %-----------------------------------------------------------------------
@@ -892,7 +890,8 @@ if isempty(ModNum), error('Unknown Modality'), end
 varargout = {upper(Modality),ModNum};
 
 
-case {'winscale','getwinscale'}
+%=======================================================================
+case {'winscale','getwinscale'}  %-Window scale factors (to fit display)
 %=======================================================================
 % WS = spm('WinScale')
 if strcmp(lower(Action),'getwinscale')
@@ -903,7 +902,8 @@ if all(S0==1), error('Can''t open any graphics windows...'), end
 varargout = {[S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900]};
 
 
-case {'fontsize','fontsizes','fontscale'}
+%=======================================================================
+case {'fontsize','fontsizes','fontscale'}                 %-Font scaling
 %=======================================================================
 % [FS,sf] = spm('FontSize',FS)
 % [FS,sf] = spm('FontSizes',FS)
@@ -920,7 +920,8 @@ else
 end
 
 
-case 'winsize'
+%=======================================================================
+case 'winsize'                 %-Standard SPM window locations and sizes
 %=======================================================================
 % Rect = spm('WinSize',Win,raw)
 if nargin<3, raw=0; else, raw=1; end
@@ -954,7 +955,8 @@ if ~raw, Rect = Rect.*WS; end
 varargout = {Rect};
 
 
-case 'dir'
+%=======================================================================
+case 'dir'                           %-Identify specific (SPM) directory
 %=======================================================================
 % spm('Dir',Mfile)
 %-----------------------------------------------------------------------
@@ -970,7 +972,8 @@ end
 varargout = {spm_str_manip(SPMdir,'H')};
 
 
-case 'ver'
+%=======================================================================
+case 'ver'                                                 %-SPM version
 %=======================================================================
 % SPMver = spm('Ver',Mfile,ReDo,Cache,Con)
 if nargin<5, Con=[]; else, Con=varargin{5}; end
@@ -1032,7 +1035,62 @@ end
 varargout = {v,c};
 
 
-case 'colour'
+%=======================================================================
+case 'tbs'                                %-Identify installed toolboxes
+%=======================================================================
+% xTB = spm('TBs')
+
+Tdir   = fullfile(spm('Dir'),'toolbox');
+
+if exist(Tdir,'dir')
+	[null,tmp] = spm_list_files(Tdir,'-');
+	tmp = cellstr(tmp(tmp(:,1)~='.',:))';
+else
+	tmp = {};
+end
+
+tboxs = {};
+tprog = {};
+tdirs = {};
+for tbox = tmp
+	tbox = char(tbox);
+	tdir = fullfile(Tdir,tbox);
+	[fn,null]=spm_list_files(tdir,['*',tbox,'.m']);
+	if size(fn,1)==1,
+		tboxs = [tboxs, {strrep(tbox,'_','')}];
+		tprog = [tprog, {spm_str_manip(fn,'r')}];
+		tdirs = [tdirs, {tdir}];
+	end
+end
+
+varargout = {struct('name',tboxs,'prog',tprog,'dir',tdirs)};
+
+
+%=======================================================================
+case 'tblaunch'                                  %-Launch an SPM toolbox
+%=======================================================================
+% xTB = spm('TBlaunch',xTB,i)
+
+if nargin<3, i=1; else, i=varargin{3}; end
+if nargin<2, error('insufficient arguments'), end
+
+%-Addpath (& report)
+%-----------------------------------------------------------------------
+if isempty(findstr(varargin{2}(i).dir,path))
+	addpath(varargin{2}(i).dir,'-begin')
+	spm('alert"',{'Toolbox directory prepended to MatLab path:',...
+		varargin{2}(i).dir},...
+		[varargin{2}(i).name,' toolbox'],1);
+end
+
+%-Launch
+%-----------------------------------------------------------------------
+evalin('base',varargin{2}(i).prog)
+
+
+
+%=======================================================================
+case 'colour'                                     %-SPM interface colour
 %=======================================================================
 % spm('Colour')
 %-----------------------------------------------------------------------
@@ -1046,7 +1104,8 @@ varargout = {[0.9 0.8 0.9],'blackcurrant purple'};
 % varargout = {[0.8 0.8 1.0],'vile violet'};
 
 
-case 'getglobal'
+%=======================================================================
+case 'getglobal'                           %-Get global variable cleanly
 %=======================================================================
 % varargout = spm('GetGlobal',varargin)
 wg = who('global');
@@ -1059,7 +1118,8 @@ for i=1:nargin-1
 	end
 end
 
-case {'cmdline','isgcmdline'}
+%=======================================================================
+case {'cmdline','isgcmdline'}                   %-SPM command line mode?
 %=======================================================================
 % CmdLine = spm('CmdLine',CmdLine)
 % isGCmdLine usage is Grandfathered
@@ -1070,14 +1130,16 @@ if isempty(CmdLine)
 end
 varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 
-case 'mlver'
+%=======================================================================
+case 'mlver'                       %-MatLab major & point version number
 %=======================================================================
 % v = spm('MLver')
 v = version; tmp = find(v=='.');
 if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
 
-case 'setcmdwinlabel'
+%=======================================================================
+case 'setcmdwinlabel'      %-Set command window label (Sun OpenWin only)
 %=======================================================================
 % spm('SetCmdWinLabel',WinStripe,IconLabel)
 %-----------------------------------------------------------------------
@@ -1102,7 +1164,8 @@ if nargin<2, WinStripe = [User,' - ',Host,' : MatLab ',v]; end
 disp([']l' WinStripe '\]L' IconLabel '\'])
 
 
-case 'popupcb'
+%=======================================================================
+case 'popupcb'               %-Callback handling utility for PopUp menus
 %=======================================================================
 % spm('PopUpCB',h)
 if nargin<2, h=gcbo; else, h=varargin{2}; end
@@ -1113,7 +1176,8 @@ CBs = get(h,'UserData');
 evalin('base',CBs{v-1})
 
 
-case 'getuser'
+%=======================================================================
+case 'getuser'                                           %-Get user name
 %=======================================================================
 % str = spm('GetUser',fmt)
 str = spm_platform('user');
@@ -1121,13 +1185,15 @@ if ~isempty(str) & nargin>1, str = sprintf(varargin{2},str); end
 varargout = {str};
 
 
-case 'beep'
+%=======================================================================
+case 'beep'                                %-Emit a keyboard "bell" beep
 %=======================================================================
 % spm('Beep')
 fprintf('%c',7)
 
 
-case 'time'
+%=======================================================================
+case 'time'                          %-Return formatted date/time string
 %=======================================================================
 % [timestr, date_vec] = spm('Time')
 tmp = clock;
@@ -1136,14 +1202,16 @@ varargout = {sprintf('%02d:%02d:%02d - %02d/%02d/%4d',...
 		tmp};
 
 
-case 'pointer'
+%=======================================================================
+case 'pointer'                 %-Set mouse pointer in all MatLab windows
 %=======================================================================
 % spm('Pointer',Pointer)
 if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
 
 
-case {'alert','alert"','alert*','alert!'}
+%=======================================================================
+case {'alert','alert"','alert*','alert!'}                %-Alert dialogs
 %=======================================================================
 % h = spm('alert',Message,Title,CmdLine,wait)
 
@@ -1203,7 +1271,8 @@ end
 if nargout, varargout = {h}; end
 
 
-case {'fnbanner','sfnbanner','ssfnbanner'}
+%=======================================================================
+case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 %=======================================================================
 % SPMid = spm('FnBanner', Fn,FnV)
 % SPMid = spm('SFnBanner',Fn,FnV)
@@ -1235,7 +1304,8 @@ fprintf('%c',lch*ones(1,wid)),fprintf('\n')
 varargout = {str};
 
 
-case 'fnuisetup'
+%=======================================================================
+case 'fnuisetup'                %-Robust UI setup for main SPM functions
 %=======================================================================
 % [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
 if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
@@ -1265,7 +1335,8 @@ end
 varargout = {Finter,Fgraph,CmdLine};	
 
 
-case 'figname'
+%=======================================================================
+case 'figname'                                %-Robust SPM figure naming
 %=======================================================================
 % F = spm('FigName',Iname,F,CmdLine)
 if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
@@ -1281,7 +1352,8 @@ end
 varargout={F};
 
 
-case 'gui_filedelete'
+%=======================================================================
+case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
 P = spm_get(Inf,'*',{'Select file(s) to delete'},pwd,0);
@@ -1302,7 +1374,8 @@ if spm_input(str,-1,'bd','delete|cancel',[1,0],[],'confirm file delete')
 end
 
 
-case 'show'
+%=======================================================================
+case 'show'                   %-Bring visible MatLab windows to the fore
 %=======================================================================
 % Fs = spm('Show')
 cF = get(0,'CurrentFigure');
@@ -1314,7 +1387,8 @@ spm('FnBanner','GUI show');
 varargout={Fs};
 
 
-case 'clear'
+%=======================================================================
+case 'clear'                                             %-Clear SPM GUI
 %=======================================================================
 % spm('Clear',Finter, Fgraph)
 if nargin<3, Fgraph='Graphics'; else, Fgraph=varargin{3}; end
@@ -1329,13 +1403,15 @@ fprintf('\n');
 %evalin('Base','clear')
 
 
-case 'help'
+%=======================================================================
+case 'help'                                  %-Pass through for spm_help
 %=======================================================================
 % spm('Help',varargin)
 if nargin>1, spm_help(varargin{2:end}), else, spm_help, end
 
 
-otherwise
+%=======================================================================
+otherwise                                        %-Unknown action string
 %=======================================================================
 error('Unknown action string')
 
