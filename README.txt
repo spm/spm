@@ -105,14 +105,21 @@ Peculiarities may actually be features, and should be raised on the SPM
 eMail discussion list, <spm@mailbase.ac.uk>.
 
 ________________________________________________________________________
-                                                              Disclaimer
+                                       Disclaimer, copyright & licencing
 
-SPM being made freely available to the [neuro]imaging community, to
+SPM is made freely available to the [neuro]imaging community, to
 promote collaboration and a common analysis scheme across
 laboratories.  The software represents the implementation of the
 theoretical concepts of Statistical Parametric Mapping in a complete
-analysis package. SPM may be considered academic shareware. It is
-supplied as is. No formal support or maintenance is provided or
+analysis package.
+
+SPM (being the collection of files given in the manifest in the
+Contents.m file) is free but copyright software, distributed under the
+terms of the GNU General Public Licence as published by the Free
+Software Foundation (either version 2, as given in file spm_gpl.man, or
+at your option, any later version). Further details on "copyleft" can
+be found at http://www.gnu.org/copyleft/. In particular, SPM is
+supplied as is.  No formal support or maintenance is provided or
 implied.
 
 ________________________________________________________________________
