@@ -130,6 +130,13 @@ for i=1:length(hdr),
 		volume = flipdim(volume,1);
 	end;
 
+	if isfield(hdr{i},'RescaleSlope') & hdr{i}.RescaleSlope ~= 1,
+		volume = volume*hdr{i}.RescaleSlope;
+	end;
+	if isfield(hdr{i},'RescaleIntercept') & hdr{i}.RescaleIntercept ~= 0,
+		volume = volume + hdr{i}.RescaleIntercept;
+	end;
+
 	V = struct('fname',fname,'dim',dim,'mat',mat,'descrip',descrip);
 	V = spm_write_vol(V,volume);
 	spm_progress_bar('Set',i);
@@ -166,8 +173,8 @@ for i=2:length(hdr),
 		          hdr{i}.Columns                 == vol{j}{1}.Columns &...
 		      all(hdr{i}.ImageOrientationPatient == vol{j}{1}.ImageOrientationPatient) &...
 		      all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing & dist2<0.00001) &...
-	        (~isfield(hdr{i},'EchoNumber')   | ~isfield(vol{j}{1},'EchoNumber') | ...
-		          hdr{i}.EchoNumber              == vol{j}{1}.EchoNumber),
+	        (~isfield(hdr{i},'EchoNumbers')  | ~isfield(vol{j}{1},'EchoNumbers') | ...
+		          hdr{i}.EchoNumbers             == vol{j}{1}.EchoNumbers),
 			vol{j}{end+1} = hdr{i};
 			match = 1;
 			break;
@@ -276,13 +283,28 @@ if ~spm_flip_analyze_images,
 	mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 end; 
 
+pinfo = [1 0 0]';
+if isfield(hdr{1},'RescaleSlope') | isfield(hdr{1},'RescaleIntercept'),
+	pinfo   = repmat(pinfo,1,length(hdr));
+	bytepix = spm_type('int16','bits')/8;
+	for i=1:length(hdr),
+		if isfield(hdr{i},'RescaleSlope'),      pinfo(1,i) = hdr{i}.RescaleSlope;     end;
+		if isfield(hdr{i},'RescaleIntercept'),  pinfo(2,i) = hdr{i}.RescaleIntercept; end;
+		pinfo(3,i) = dim(1)*dim(2)*(i-1)*bytepix;
+	end;
+end;
+
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-V = struct('fname',fname, 'dim',dim, 'pinfo',[1 0 0]', 'mat',mat, 'descrip',descrip);
+V = struct('fname',fname, 'dim',dim, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
 V = spm_create_vol(V);
 for i=1:length(hdr),
 	plane = read_image_data(hdr{i});
+
+	if isfield(hdr{i},'RescaleSlope'),      plane = plane*hdr{i}.RescaleSlope;     end;
+	if isfield(hdr{i},'RescaleIntercept'),  plane = plane+hdr{i}.RescaleIntercept; end;
+
 	plane = fliplr(plane);
 	if ~spm_flip_analyze_images, plane = flipud(plane); end;
 	V     = spm_write_plane(V,plane,i);
