@@ -72,7 +72,7 @@ if d > (size(H,2) + size(K,2));	% covariate
 
 	subplot(2,2,4)
 	v     = y;
-	x     = 1:length(y);
+	x     = 1:size(y,1);
 	D     = [K H C B G];
 	v(:)  = D*(pinv(D)*XA(:,i));
 	plot(x,v,'b',x,y,':'); axis square
