@@ -4,7 +4,6 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #include <stdio.h>
 #include <math.h>
-#include <ieeefp.h>
 #include "mex.h"
 #include "spm_vol_utils.h"
 
@@ -162,7 +161,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (!mxIsNumeric(prhs[1]))
 	{
 		/* The compiler doesn't like this line - but I think it's OK */
-		wplane_args[0] = prhs[1];
+		wplane_args[0] = (struct mxArray_tag *)prhs[1];
 		wplane_args[1] = mxCreateDoubleMatrix(map->dim[0],map->dim[1],mxREAL);
 		wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
 		oVol = (double *)0;

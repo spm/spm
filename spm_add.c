@@ -39,15 +39,37 @@ static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline%E%";
 #include "mex.h"
 #include "spm_vol_utils.h"
 
+static int get_dtype(const mxArray *ptr)
+{
+	mxArray *tmp;
+	double *pr;
+
+	if (!mxIsStruct(ptr))
+	{
+		mexErrMsgTxt("Not a structure.");
+		return(NULL);
+	}
+	tmp=mxGetField(ptr,0,"dim");
+	if (tmp == (mxArray *)0)
+	{
+		mexErrMsgTxt("Cant find dim.");
+	}
+	if (mxGetM(tmp)*mxGetN(tmp) != 4)
+	{
+		mexErrMsgTxt("Wrong sized dim.");
+	}
+	pr = mxGetPr(tmp);
+
+	return((int)fabs(pr[3]));
+}
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	MAPTYPE *maps, *get_maps();
 	double *sptr, *scales, *image, scale;
 	short **dptr;
-	int ni, nj, nk, i, j, k, fo;
+	int ni, nj, nk, i, j, k;
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
-	char label[1024];
 	int mask0flag = 0, floatflag = 0;
 	double NaN = 0.0/0.0; /* the only way to get a NaN that I know */
 	mxArray *wplane_args[3];
@@ -122,8 +144,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	nj = maps[0].dim[2];
 	nk = maps[0].dim[0]*maps[0].dim[1];
 
-	/* The compiler doesn't like this line - but I think it's OK */
-	wplane_args[0] = prhs[1];
+	wplane_args[0] = (struct mxArray_tag *)prhs[1];
 	wplane_args[1] = mxCreateDoubleMatrix(maps[0].dim[0],maps[0].dim[1],mxREAL);
 	wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
 
@@ -206,7 +227,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			if (scales[j] > scale)
 				scale = scales[j];
 		}
-		scale = scale*32767/maxval;
+		scale = scale*32767/maxval; /* should really also use minval */
 
 		for(j=0; j<nj; j++)
 		{
@@ -236,29 +257,4 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		plhs[0] = mxCreateDoubleMatrix(1,1, mxREAL);
 		mxGetPr(plhs[0])[0] = scale;
 	}
-}
-
-
-int get_dtype(const mxArray *ptr)
-{
-	mxArray *tmp;
-	double *pr;
-
-	if (!mxIsStruct(ptr))
-	{
-		mexErrMsgTxt("Not a structure.");
-		return(NULL);
-	}
-	tmp=mxGetField(ptr,0,"dim");
-	if (tmp == (mxArray *)0)
-	{
-		mexErrMsgTxt("Cant find dim.");
-	}
-	if (mxGetM(tmp)*mxGetN(tmp) != 4)
-	{
-		mexErrMsgTxt("Wrong sized dim.");
-	}
-	pr = mxGetPr(tmp);
-
-	return((int)fabs(pr[3]));
 }

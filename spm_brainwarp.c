@@ -1,6 +1,6 @@
 #ifndef lint
 static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU) %E%";
-#endif lint
+#endif
 
 #include "mex.h"
 #include "spm_vol_utils.h"
@@ -478,7 +478,7 @@ static void scale(int m, double dat[], double s)
 		dat[i]*=s;
 }
 
-#define MAX(a,b) (((a)>(b)) ? (b) : (a))
+#define MYMAX(a,b) (((a)>(b)) ? (b) : (a))
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -670,9 +670,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* W = fwhm/sqrt(8*log(2))
 	   W*sqrt(2*pi) = fwhm*1.0645 */
-	df = (MAX((pixdim[0]*samp[0])/(fwhm2*1.0645),1.0) *
-	      MAX((pixdim[1]*samp[1])/(fwhm2*1.0645),1.0) *
-	      MAX((pixdim[2]*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
+	df = (MYMAX((pixdim[0]*samp[0])/(fwhm2*1.0645),1.0) *
+	      MYMAX((pixdim[1]*samp[1])/(fwhm2*1.0645),1.0) *
+	      MYMAX((pixdim[2]*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
 
 	chi2 /= df;
 	mxGetPr(plhs[2])[0] = chi2;

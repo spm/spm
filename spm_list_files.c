@@ -115,7 +115,8 @@ static void list2mat(int m, int n, char *list[], mxArray **ptr)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	int ndirs = 0, nfiles = 0, len, uid, maxdlen = 0, maxflen = 0;
-	long int ngids, gids[128];
+	int ngids;
+	gid_t gids[128];
 	DIR *dirp;
 	struct dirent *dp;
 	char *filenames[MAXFILES], *directories[MAXDIRS], *ptr, *buf = (char *)0, *bufp, *fullpathname, *filter;
