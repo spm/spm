@@ -576,7 +576,8 @@ global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCR
 
 spm_defaults;
 
-UFp	 = 0.05;					% Upper tail F-prob
+UFp	= 0.05;						% Upper tail F-prob
+
 
 %-Set Modality specific default (global variables)
 %-----------------------------------------------------------------------
@@ -595,6 +596,8 @@ elseif strcmp(Modality,'FMRI')
 	TYPE	= fMRI_TYPE;				% Data type
 	OFFSET	= fMRI_OFFSET;	   			% Offset in bytes
 	ORIGIN	= fMRI_ORIGIN;				% Origin in voxels
+	UFp	= 0.001;				% Upper tail F-prob
+
 elseif strcmp(Modality,'UNKNOWN')
 else
 	error('Illegal Modality')
