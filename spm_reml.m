@@ -22,6 +22,7 @@ if nargin < 4, TOL = 1e-6; end
 %---------------------------------------------------------------------------
 X     = full(X);
 X     = orth(X);
+X     = sparse(X);
 
 % find estimable components (encoded in the precision matrix W)
 %---------------------------------------------------------------------------
