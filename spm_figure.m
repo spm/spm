@@ -28,12 +28,12 @@ function varargout=spm_figure(varargin)
 % window is also cleared, and it's name and pointer reset.
 %
 % Colormap options:
-% * Gray and Hot: Sets the colormap to its default values and loads
-%                 either a grayscale or 'hot metal' color map.
-% * Split: Loads a 'split' color map from 'Split.mat' {128 x 3
-%          matrix}.  The lower half is a gray scale and the upper half
-%          is 'hot metal'.  This color map is used for viewing 'rendered' 
-%          SPM{Z} on a PET, MRI or other background images
+% * gray, hot, pink: Sets the colormap to its default values and loads
+%                 either a grayscale, 'hot metal' or color map.
+% * gray-hot, etc: Creates a 'split' colormap {128 x 3 matrix}.
+%          The lower half is a gray scale and the upper half
+%          is 'hot metal' or 'pink'.  This color map is used for
+% 	   viewing 'rendered' SPMs on a PET, MRI or other background images
 %
 % Colormap effects:
 % * Invert: Inverts (flips) the current color map.
@@ -709,7 +709,8 @@ if strcmp(get(F,'Tag'),'Graphics')	%-Do a full SPM interface clear
 		'ToolTipString','clear SPM workspace')
 end
 
-uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
+uicontrol(F,'Style','PopUp','String',...
+	'ColorMap|gray|hot|pink|gray-hot|gray-pink',...
 	'ToolTipString','change colormap',...
 	'Position',[x,y,2*sx,sy],...
 	'CallBack',['if (get(gco,''Value'') > 1),',...
@@ -793,8 +794,12 @@ uimenu(hC,'Label','gray','HandleVisibility','CallBack',...
 	'CallBack','spm_figure(''ColorMap'',''gray'')')
 uimenu(hC,'Label','hot','HandleVisibility','CallBack',...
 	'CallBack','spm_figure(''ColorMap'',''hot'')')
-uimenu(hC,'Label','split','HandleVisibility','CallBack',...
-	'CallBack','spm_figure(''ColorMap'',''split'')')
+uimenu(hC,'Label','pink','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''pink'')')
+uimenu(hC,'Label','gray-hot','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''gray-hot'')')
+uimenu(hC,'Label','gray-pink','HandleVisibility','CallBack',...
+	'CallBack','spm_figure(''ColorMap'',''gray-pink'')')
 
 hE = uimenu(h,'Label','Effects','HandleVisibility','CallBack');
 uimenu(hE,'Label','invert','HandleVisibility','CallBack',...
@@ -916,8 +921,12 @@ switch lower(ColAction), case 'gray'
 	colormap(gray(64))
 case 'hot'
 	colormap(hot(64))
-case 'split'
-	load Split; colormap(split)
+case 'pink'
+	colormap(pink(64))
+case 'gray-hot'
+	colormap([gray(64); hot(64)])
+case 'gray-pink'
+	colormap([gray(64); pink(64)])
 case 'invert'
 	colormap(flipud(colormap))
 case 'brighten'
