@@ -277,20 +277,17 @@ if nargin < 2
 	D         = tmp.SPM;
 	[swd,cfg] = fileparts(cfg);
 	D.swd     = swd;
-	if any(strcmp(cfg,{'SPM_fMRIDesMtx','SPMcfg','SPM'}))
-		D.cfg = cfg;
-	end
 else
-	D = varargin{2};
+	D         = varargin{2};
 end
 
 %-Canonicalise data
 %=======================================================================
 %-Work out where design configuration has come from!
 if ~isfield(D,'cfg')
-	if isfield(D.xX,'V'),				cfg = 'SPM';
-	elseif isfield(D,'xY'), 			cfg = 'SPMcfg';
-	elseif isfield(D,'Sess') & ~isempty(D.Sess),	cfg = 'SPM_fMRIDesMtx';
+	if     isfield(D.xX,'V'),		cfg = 'SPM';
+	elseif isfield(D.xY,'VY'), 		cfg = 'SPMcfg';
+	elseif isfield(D,'Sess'),		cfg = 'SPM_fMRIDesMtx';
 	else, error('Can''t fathom origin!')
 	end
 	D.cfg = cfg;
