@@ -3,7 +3,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % FORMAT [] = spm_dcm_estimate (DCM_filename)   
 %
 % DCM_filename  - the DCM model
-% 
+%
 % %W% Will Penny %E%
  
 if nargin < 1
