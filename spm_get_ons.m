@@ -78,6 +78,7 @@ catch
 	str = sprintf('Session %d: trial specification in %s',s,UNITS);
 	spm_input(str,1,'d')
 
+	U   = {};
 	v   = spm_input('number of conditions/trials',2,'w1');
 end
 
@@ -247,4 +248,5 @@ for i = 1:v
 	U(i).u     = sf;		% - stimulus function matrix
 	U(i).pst   = pst;		% - pst (seconds)
 	U(i).P     = xP;		% - parameter struct
-end
+
+end % (v)
