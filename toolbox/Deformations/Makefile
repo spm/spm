@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 1.2 2002-11-21 16:19:25 john Exp $
+# $Id: Makefile,v 1.3 2003-05-12 11:11:37 john Exp $
 #
 ###############################################################################
 #
@@ -49,10 +49,10 @@ OSF1:
 	make all SUF=mexaxp
 MAC:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
-windows:
-	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 #windows:
-#	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null"
+#	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+windows:
+	make all SUF=dll     CC="gcc -mno-cygwin -O3 -funroll-loops -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"
 
 ###############################################################################
 # Architecture specific cleaning
