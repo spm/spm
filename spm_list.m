@@ -30,7 +30,7 @@ function varargout = spm_list(varargin)
 % Dis    - Minimum distance between maxima
 %          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
 % Num    - Maxiumum number of local maxima tabulated per cluster
-%          {defaults (missing or empty) to 3   for 'List', 16  for 'ListCluster'}
+%          {defaults (missing or empty) to 3   for 'List', Inf for 'ListCluster'}
 % Title  - Title text for table {defaults on missing or empty}
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
@@ -98,9 +98,9 @@ function varargout = spm_list(varargin)
 %
 % Clicking on values in the table returns the value to the Matlab
 % workspace. In addition, clicking on the co-ordinates jumps the
-% results section cursor to that locatioin. The table has a context menu
+% results section cursor to that location. The table has a context menu
 % (obtained by right-clicking in the background of the table),
-% providing options to print the current table as a text table, and to
+% providing options to print the current table as a text table, or to
 % extract the table data to the Matlab workspace.
 %
 %_______________________________________________________________________
@@ -242,8 +242,12 @@ y0    = y;
 
 %-Table filtering note
 %-----------------------------------------------------------------------
-TabDat.str = sprintf(['table shows at most %d maxima ',...
-	'> %.1fmm apart per cluster'],Num,Dis);
+if isinf(Num)
+	TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
+else
+	TabDat.str = sprintf(['table shows at most %s local maxima ',...
+		'> %.1fmm apart per cluster'],Num,Dis);
+end
 text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
 
@@ -374,7 +378,7 @@ while max(Z)
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
-	if y < min(Num+1,4)*dy
+	if y < min(Num+1,3)*dy
 		h     = text(0.5,-5*dy,...
 			sprintf('Page %d',spm_figure('#page')),...
 			'FontName',PF.helvetica,'FontAngle','Italic',...
@@ -453,8 +457,22 @@ while max(Z)
 	for i = 1:length(q)
 	    d = j(q(i));
 	    if min(sqrt(sum((XYZmm(:,D)-XYZmm(:,d)*ones(1,size(D,2))).^2)))>Dis;
+
 		if length(D) < Num
 			
+			% Paginate if necessary
+			%-----------------------------------------------
+			if y < dy
+				h = text(0.5,-5*dy,sprintf('Page %d',...
+					spm_figure('#page')),...
+					'FontName',PF.helvetica,...
+					'FontAngle','Italic',...
+					'FontSize',FS(8));
+				spm_figure('NewPage',[hPage,h])
+				hPage = [];
+				y     = y0;
+			end
+
 			% voxel-level p values {Z}
 			%-----------------------------------------------
 			Pz    = spm_P(1,0,Z(d),df,STAT,1,n);
@@ -565,7 +583,7 @@ if isempty(Title), Title = ['single cluster summary',...
 			' (p-values corrected for entire volume)']; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
-if isempty(Num), Num = 16; end
+if isempty(Num), Num = Inf; end
 if nargin<4,     Dis = [];
 	else,    Dis = varargin{4}; end
 if isempty(Dis), Dis = 04; end
