@@ -1,18 +1,21 @@
-function [M,Mi,iVals]=spm_meanby(X,i)
-% Mean of data in columns by group
-% FORMAT [M,Mi,iVals]=spm_meanby(X,i)
+function [M,Mi,V,Vi,iVals]=spm_meanby(X,i)
+% Mean (& variances) of data in columns by group
+% FORMAT [M,Mi,V,Vi,iVals]=spm_meanby(X,i)
 % X	- Data matrix, with data in columns (row vector X is transposed)
 % i	- Column of indicatir vectors, indicating group membership of
 %	  observations in rows of X
 % Mi	- Mean for observations in each group, for each column
+% Vi    - (Sample) variance for observations in each group
 % iVals	- Group indicator values corresponding to rows of Mi
 % M	- Matrix of same size as X, with observations replaced by the
 %	  appropriate group mean
+% V     - Matrix of same size as X, with observations replaced by the
+%	  appropriate group sample variance
 %_______________________________________________________________________
 % spm_meanby computes means for grouped data presented as columns of
 % data with a vector of group indicators
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% %E% Andrew Holmes %W%
 
 if nargin<2, i=ones(size(X,1),1); end
 if size(X,1)==1, X=X'; end
@@ -32,9 +35,22 @@ for p_i = 1:length(iVals)
 	I(:,p_i)=i==iVals(p_i);
 end
 
+%-Work out number of elements by index
+Ni = sum(I)'*ones(1,size(X,2));
+
+%-Work out sums by index
+Si = I'*X;
+
+%-Work out sum of squares by index
+SSi = I'*X.^2;
+
 %-Work out means by index
-Mi = (I'*X) ./ (sum(I)'*ones(1,size(X,2)) );
+Mi = Si ./ Ni;
+
+%-Work out variances by index
+Vi = ( SSi - Si.^2./Ni ) ./ (Ni -1);
 
 %-Combine into matrix same size as X:
 % Effectively replacing each observation by its group mean
 M = Mi(i,:);
+V = Vi(i,:);
