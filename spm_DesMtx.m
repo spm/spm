@@ -174,7 +174,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %  - Column 3 of prespecified DesMtx block (if unnamed)
 %                                        : <X> (1)
 % The special characters `_*{}()' are recognised by the scaling
-% function (spm_DesMtxSca('Xsca',...), and should therefore be avoided
+% function (spm_DesMtx('sca',...), and should therefore be avoided
 % when naming effects and covariates.
 %
 %
