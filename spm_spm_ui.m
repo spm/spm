@@ -129,7 +129,7 @@ function varargout=spm_spm_ui(varargin)
 % Selecting image files & indicating conditions
 % =============================================
 %
-% You may now be prompted to specify how many studys, subjects and
+% You may now be prompted to specify how many studies, subjects and
 % conditions you have, and then will be promted to select the scans.
 %
 % The data should all have the same orientation and image and voxel size.
@@ -350,7 +350,6 @@ function varargout=spm_spm_ui(varargin)
 % xX.sF         - 1x4 cellstr containing the names of the four factors
 %                 D.sF{i} is the name of factor i
 % xX.X          - desgin matrix
-% xX.K          - temporal convolution matrix (sparse toeplitz usually)
 % xX.iH         - vector of H partition (condition effects) indices,
 %                 identifying columns of X correspoding to H
 % xX.iC         - vector of C partition (covariates of interest) indices
@@ -1282,7 +1281,6 @@ xX     = struct(	'I',		I,...
 			'sF',		{D.sF},...
 			'X',		X,...
 			'RT',		{[]},...
-			'K',		speye(size(X,1)),...
 			'sigma',	0,...
 			'iH',		[1:size(H,2)],...
 			'iC',		[1:size(C,2)] + tmp(1),...
@@ -1339,9 +1337,6 @@ save SPMcfg SPMid D xsDes VY xX xC xGX xM Fc
 %=======================================================================
 spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,Fc)
 
-%-Analysis Proper
-%=======================================================================
-%spm_spm(VY,xX.X,xX.Xnames,xM,xX.K,Fc,xX,xC,xsDes)
 
 %-End: Cleanup GUI
 %=======================================================================
