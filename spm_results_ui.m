@@ -341,11 +341,14 @@ set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')',...
 nPar   = size(xX.X,2);
 xx     = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
 nCon   = length(SPM.Ic);
-dy     = 0.15/max(nCon,2);
-hConAx = axes('Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
+if nCon
+	dy     = 0.15/max(nCon,2);
+	hConAx = axes('Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
 		'Tag','ConGrphAx','Visible','off');
-title('contrast(s)')
-htxt = get(hConAx,'title'); set(htxt,'Visible','on','HandleVisibility','on')
+	title('contrast(s)')
+	htxt = get(hConAx,'title'); 
+	set(htxt,'Visible','on','HandleVisibility','on')
+end
 
 for ii = nCon:-1:1
     axes('Position',[0.65 (0.80 + dy*(nCon-ii+.1)) 0.25 dy*.9])
