@@ -1,5 +1,5 @@
 % Perform algebraic functions on images.
-% FORMAT spm_wi(P,Q,func) OR spm_wi
+% FORMAT spm_image_funks(P,Q,func) OR spm_wi
 % P    - matrix of input image filenames.
 % Q    - name of output image.
 % func - the expression to be evaluated.
@@ -14,7 +14,7 @@
 
 % %W% John Ashburner FIL %E%
 
-function spm_wi(P,Q,func)
+function spm_image_funks(P,Q,func)
 
 if (nargin==0)
 	P = spm_get(Inf,'.img','Images to work on');
@@ -96,7 +96,7 @@ for j = 1:DIM(3)
 
 end
 
-% Write integral image (16 bit signed)
+% Write output image (16 bit signed)
 %------------------------------------------------------------------
 mx = max(max(Output));
 SCALE  = mx/32767;
