@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% JB Poline %E%";
+static char sccsid_connex[]="%W% JB Poline %E%";
 #endif
  
 
