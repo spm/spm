@@ -1,17 +1,15 @@
-function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname)
+function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 % returns onset times for events
-% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname)
+% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %
 % k     - number of scans
 % T     - time bins per scan
 % dt    - time bin length (secs)
 % STOC  - flag to enable stochastic designs [0 or 1]
 % Fstr  - Prompt string (usually indicates session)
-%
-% Optional:
-% v     - number of conditions or trials
-% Cname - {1 x v}   cell of names for each condition
-%
+% v     - number of conditions or trials 		: can be empty
+% Cname - {1 x v}   cell of names for each condition 	: can be empty
+% s	- session number (used for batch system)
 %
 % sf    - {1 x n}   cell of stick function matrices
 % Cname - {1 x n}   cell of names for each condition
@@ -96,7 +94,10 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname)
 %
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_get_ons.m	2.19 Karl Friston 99/08/13
+
+global batch_mat;
+global iA;
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -105,7 +106,7 @@ spm_help('!ContextHelp',mfilename)
 %-Condition arguments
 %-----------------------------------------------------------------------
 if nargin < 5, Fstr = ''; end
-spm_input(Fstr,1,'d')
+spm_input(Fstr,1,'d','batch',batch_mat)
 
 % initialize variables
 %-----------------------------------------------------------------------
@@ -119,16 +120,18 @@ DSstr  = '';
 
 % get trials
 %-----------------------------------------------------------------------
-if ~exist('v')
-	v     = spm_input('number of conditions or trials',2,'w1');
+if isempty(v)
+	v     = spm_input('number of conditions or trials',2,'w1',...
+                    'batch',batch_mat,{'model',iA,'conditions',s},'number');
 end
-if ~exist('Cname')
+if isempty(Cname)
 	Cname = {};
 	for i = 1:v
 		% get names
 		%---------------------------------------------------------------
 		str         = sprintf('name for condition/trial %d ?',i);
-		Cname{i}    = spm_input(str,3,'s',sprintf('trial %d',i));
+		Cname{i}    = spm_input(str,3,'s',sprintf('trial %d',i),...
+                      'batch',batch_mat,{'model',iA,'conditions',s},'names',i);
 	end
 end
 
@@ -139,16 +142,19 @@ if v
 
 	% stochastic designs
 	%---------------------------------------------------------------
-	spm_input('Trial specification...',1,'d',Fstr)
+	spm_input('Trial specification...',1,'d',Fstr,'batch',batch_mat)
 	if STOC
-		STOC = spm_input('stochastic design','+1','y/n',[1 0]);
+		 STOC = spm_input('stochastic design','+1','y/n',[1 0],...
+                       'batch',batch_mat,{'model',iA,'stochastics',s},'specify');
 	end
 	if STOC
 
 		% minimum SOA
 		%-------------------------------------------------------
-		ne      = spm_input('include a null event','+1','y/n',[1 0]);
-		soa     = spm_input('SOA (scans)','+1','r',2)*T;
+		ne      = spm_input('include a null event','+1','y/n',[1 0],....
+                         'batch',batch_mat,{'model',iA,'stochastics',s},'null_event');
+		soa     = spm_input('SOA (scans)','+1','r',2,...
+                         'batch',batch_mat,{'model',iA,'stochastics',s},'soa')*T;
 		on      = fix(1:soa:(k*T));
 		ns      = length(on);
 		DSstr   = [DSstr sprintf('Stochastic: %.2fsec SOA ',soa*dt)];
@@ -161,9 +167,13 @@ if v
 		    str = sprintf('relative frequency [trial 1,..%d]',v);
 		end
 		P       = ones(1,(v + ne));
-		P       = spm_input(str,'+1','r',P,[1 (v + ne)]);
+		P       = spm_input(str,'+1','r',P,[1 (v + ne)],...
+                          'batch',batch_mat,...
+			  {'model',iA,'stochastics',s},'relative_frequency');
 		str     = 'occurence probability';
-		if spm_input(str,'+1','stationary|modulated',[1 0])
+		if spm_input(str,'+1','stationary|modulated',[1 0], ...
+			'batch', batch_mat, ...
+			{'model',iA,'stochastics',s},'stationary_or_modulated')		
 			DSstr = [DSstr '(stationary) '];
 			P     = P(:)*ones(1,ns);
  
@@ -207,7 +217,8 @@ if v
 
 	    % get onsets
 	    %-----------------------------------------------------------
-	    Sstr  = spm_input('SOA',2,'Fixed|Variable');
+	    Sstr  = spm_input('SOA',2,'Fixed|Variable',...
+                 'batch',batch_mat,{'model',iA,'conditions',s},'fix_var_SOA');
 	    DSstr = [DSstr  Sstr ' SOA '];
 	    i     = 0;
 	    while i < v
@@ -215,7 +226,7 @@ if v
 		% get onsets
 		%-------------------------------------------------------
 		switch Sstr
-
+			%- In batch mode, Sstr is always 'Variable'
 			case 'Fixed'
 			%-----------------------------------------------
 			str   = ['SOA (scans) for ' Cname{i + 1}];
@@ -226,7 +237,8 @@ if v
 			case 'Variable'
 			%-----------------------------------------------
 			str   = ['vector of onsets (scans) for ' Cname{i + 1}];
-			on    = spm_input(str,3);
+			on    = spm_input(str,3,'batch',batch_mat,...
+                     {'model',iA,'conditions',s},'onsets',i+1);
 		end
 
 		if iscell(on)
@@ -253,7 +265,7 @@ if v
 
 	% get parameters, contruct interactions and append
 	%================================================================
-	spm_input('Parametric specification...','+1','d',Fstr)
+	spm_input('Parametric specification...','+1','d',Fstr,'batch',batch_mat)
 
 	% paramteric representation of causes - defaults for main effects
 	%----------------------------------------------------------------
@@ -267,7 +279,8 @@ if v
 	Ptype = {'none',...
 		 'time',...
 		 'other'};
-	Ptype = spm_input('parametric modulation','+1','b',Ptype);
+	Ptype = spm_input('parametric modulation','+1','b',Ptype,...
+                'batch',batch_mat,{'model',iA,'parametrics',s},'type');
 	switch Ptype
 
 		case 'none'
@@ -276,7 +289,8 @@ if v
 
 		case 'other'
 		%--------------------------------------------------------
-		Pstr   = spm_input('name of parameter','+1','s');
+		Pstr   = spm_input('name of parameter','+1','s',...
+                        'batch',batch_mat,{'model',iA,'parametrics',s},'name');
 
 		case 'time'
 		%--------------------------------------------------------
@@ -288,7 +302,8 @@ if v
 	Etype = {'linear',...
 		 'exponen',...
 		 'polynom'};
-	Etype = spm_input('expansion','+1','b',Etype);
+	Etype = spm_input('expansion','+1','b',Etype,'batch',batch_mat,...
+	                    {'model',iA,'parametrics',s},'exp_type');
 	DSstr = [DSstr  '[ x ' Pstr ' (' Etype ')] '];
 	switch Etype
 
@@ -296,16 +311,20 @@ if v
 		%--------------------------------------------------------
 		if strcmp(Ptype,'time')
 			h = round(k*T*dt/4);
-			h = spm_input('time constant {secs}','+1','r',h);
+	           	h = spm_input('time constant {secs}','+1','r',h,...
+                      		'batch',batch_mat,...
+				{'model',iA,'parametrics',s},'time_cst');
 
 		else
-			h = spm_input('decay constant','+1','r');
+		   h = spm_input('decay constant','+1','r',...
+                      'batch',batch_mat,{'model',iA,'parametrics',s},'decay_cst');
 		end
 
 		case 'polynom'
 		%--------------------------------------------------------
 		str       = 'order of polynomial expansion';
-		h         = spm_input(str,'+1','r',2);
+		h         = spm_input(str,'+1','r',2,'batch',batch_mat,...
+                                       {'model',iA,'parametrics',s},'order');
 
 	end
 
@@ -313,10 +332,11 @@ if v
 	% cycle over selected trial types
 	%----------------------------------------------------------------
 	str   = sprintf('which trial[s] 1 to %d',v);
-	Ypos  = spm_input('!NextPos');
-	for i = spm_input(str,'+1','e',1)
+	Ypos  = spm_input('!NextPos','batch',batch_mat);
 
-		spm_input(Cname{i},Ypos,'d',Fstr)
+	for i = spm_input(str,'+1','e',1,'batch',batch_mat,...
+                            {'model',iA,'parametrics',s},'trials')
+	   	spm_input(Cname{i},Ypos,'d',Fstr,'batch',batch_mat);
 		on    = find(sf{i}(:,1));
 		ns    = length(on);
 
@@ -327,7 +347,9 @@ if v
 			case 'other'
 			%-----------------------------------------------
 			str   = ['parameters for ' Cname{i}];
-			p     = spm_input(str,'+1','r',[],[ns,1]);
+			p     = spm_input(str,'+1','r',[],[ns,1],...
+				    'batch',batch_mat,...
+                                    {'model',iA,'parametrics',s},'parameters',i);
 
 			case 'time'
 			%-----------------------------------------------

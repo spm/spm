@@ -159,9 +159,11 @@ function [xX,Sess] = spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %_______________________________________________________________________
-% %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
-SCCSid  = '%I%';
+% @(#)spm_fmri_spm_ui.m	2.26 Karl Friston, Jean-Baptiste Poline, Christian Buchel 99/05/19
+SCCSid  = '2.26';
 
+global batch_mat;
+global iA;
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -176,7 +178,8 @@ MType   = {'specify a model',...
 	   'review a specified model',...
 	   'estimate a specified model',...
 	   'specify and estimate a model'};
-MT      = spm_input('What would you like to do?',1,'m',MType);
+MT      = spm_input('What would you like to do?',1,'m',MType,...
+                      'batch',batch_mat,{'model',iA},'types');
 
 
 %-Initialise output arguments in case return early
@@ -205,7 +208,11 @@ switch MT
 	% load pre-specified design matrix
 	%---------------------------------------------------------------
 	if sf_abort([2,3]), spm_clf(Finter), return, end
-	load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'))
+	if isempty(batch_mat)
+		load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'));
+	else
+		load('SPM_fMRIDesMtx.mat');
+	end
 
 
 	% get filenames
@@ -218,13 +225,24 @@ switch MT
 	P      = [];
 	if nsess < 16
 		for i = 1:nsess
-			str = sprintf('select scans for session %0.0f',i);
-			q   = spm_get(nscan(i),'.img',str);
- 			P   = strvcat(P,q);
+		   str = sprintf('select scans for session %0.0f',i);
+		   if isempty(batch_mat)
+			q = spm_get(Inf,'.img',str);
+		   else
+			q = sf_bch_get_q(i,batch_mat,iA);
+		   end %- 
+ 		   P   = strvcat(P,q);
 		end
 	else
 		str   = sprintf('select scans for this study');
-		P     = spm_get(sum(nscan),'.img',str);
+		if isempty(batch_mat)
+			P     = spm_get(sum(nscan),'.img',str);
+		else
+		   for i = 1:nsess
+			q = sf_bch_get_q(i,batch_mat,iA);
+			P = strvcat(P,q);
+		   end
+		end
 	end
 
 	% Repeat time
@@ -236,20 +254,26 @@ switch MT
 	% get filenames and design matrix
 	%---------------------------------------------------------------
 	if sf_abort, spm_clf(Finter), return, end
-	spm_input('Scans & sessions...',1,'d',mfilename)
-	nsess  = spm_input(['number of sessions'],'+1','e',1);
+	spm_input('Scans & sessions...',1,'d',mfilename,'batch',batch_mat)
+	nsess  = spm_input(['number of sessions'],'+1','e',1,...
+                'batch',batch_mat,{'model',iA},'nsess');
 	nscan  = zeros(1,nsess);
 	P      = [];
 	for  i = 1:nsess
-		str      = sprintf('select scans for session %0.0f',i);
-		q        = spm_get(Inf,'.img',str);
+		str  = sprintf('select scans for session %0.0f',i);
+		if isempty(batch_mat)
+		   q = spm_get(Inf,'.img',str);
+		else
+		   q = sf_bch_get_q(i,batch_mat,iA);
+		end
  		P        = strvcat(P,q);
 		nscan(i) = size(q,1);
 	end
 
 	% get Repeat time
 	%---------------------------------------------------------------
-	RT        = spm_input('Interscan interval {secs}','+1');
+	RT        = spm_input('Interscan interval {secs}','+1',...
+                                'batch',batch_mat,{'model',iA},'RT');
 
 	% get design matrix
 	%---------------------------------------------------------------
@@ -260,7 +284,8 @@ end
 % Assemble other deisgn parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
-spm_input('Global intensity normalisation...',1,'d',mfilename)
+spm_input('Global intensity normalisation...',1,'d',mfilename,...
+	    'batch',batch_mat)
 
 % get rows
 %-----------------------------------------------------------------------
@@ -274,14 +299,19 @@ DSstr  = Sess{1}.DSstr;
 % Global normalization
 %-----------------------------------------------------------------------
 str    = 'remove Global effects';
-Global = spm_input(str,'+1','scale|none',{'Scaling' 'None'});
+Global = spm_input(str,'+1','scale|none',{'Scaling' 'None'},...
+		    'batch',batch_mat,{'model',iA},'global_effects');
+if ischar(Global),
+	Global = {Global};
+end
 
 
 % Burst mode
 %-----------------------------------------------------------------------
 if length(nscan) > 16 & ~any(diff(nscan))
-	spm_input('Burst mode?','+1','d',mfilename)
-	BM    = spm_input('Burst mode','+1','y/n',[1 0]);
+	spm_input('Burst mode?','+1','d',mfilename,'batch',batch_mat)
+	BM    = spm_input('Burst mode','+1','y/n',[1 0],...
+			    'batch',batch_mat,{'model',iA},'burst_mode');
 else
 	BM    = 0;
 end
@@ -304,15 +334,16 @@ end
 
 % Temporal filtering
 %=======================================================================
-spm_input('Temporal autocorrelation options...','+1','d',mfilename)
+spm_input('Temporal autocorrelation options...','+1','d',mfilename,...
+	    'batch',batch_mat)
 
 % High-pass filtering
 %-----------------------------------------------------------------------
 if BM
 	cLF = 'none';
 else
-	cLF = spm_input('High-pass filter?','+1','b','none|specify');
-
+	cLF = spm_input('High-pass filter?','+1','b','none|specify',...
+			  'batch',batch_mat,{'model',iA},'HF_fil');
 end
 switch cLF
 
@@ -330,7 +361,8 @@ switch cLF
 	HParam = ceil(HParam);
 	HParam(HParam < 32) = 32;
 	str    = 'session cutoff period (secs)';
-	HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
+	HParam = spm_input(str,'+1','e',HParam,[1 nsess],...
+			    'batch',batch_mat,{'model',iA},'HF_cut');
 
 	% LF description
 	%---------------------------------------------------------------
@@ -349,14 +381,17 @@ end
 if BM
 	cHF = 'none';
 else
-	cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf');
+	cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf',...
+			  'batch',batch_mat,{'model',iA},'LF_fil');
+
 
 end
 switch cHF
 
 	case 'Gaussian'
 	%---------------------------------------------------------------
-	LParam  = spm_input('Gaussian FWHM (secs)','+1','r',4);
+	LParam  = spm_input('Gaussian FWHM (secs)','+1','r',4,...
+			      'batch',batch_mat,{'model',iA},'LF_cut');
 	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',LParam);
 	LParam  = LParam/sqrt(8*log(2));
 
@@ -383,7 +418,8 @@ end
 %-----------------------------------------------------------------------
 str     = 'Model intrinsic correlations?';
 cVimenu = {'none','AR(1)'};
-cVi     = spm_input(str,'+1','b',cVimenu);
+cVi     = spm_input(str,'+1','b',cVimenu,...
+		     'batch',batch_mat,{'model',iA},'int_corr');
 
 
 % the interactive parts of spm_spm_ui are now finished: Cleanup GUI
@@ -397,6 +433,11 @@ spm('Pointer','Watch');
 %=======================================================================
 K       = spm_filter('set',K);
 
+
+% Adjust for missing scans
+%-----------------------------------------------------------------------
+[xX,Sess,K,P,nscan,row] = spm_bch_tsampl(xX,Sess,K,P,nscan); %-SR
+
 % create Vi struct
 %-----------------------------------------------------------------------
 Vi      = speye(sum(nscan));
@@ -404,7 +445,6 @@ xVi     = struct('Vi',Vi,'Form',cVi);
 for   i = 1:nsess
 	xVi.row{i} = row{i};
 end
-
 
 % get file identifiers and Global values
 %=======================================================================
@@ -533,7 +573,7 @@ fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
 save SPMcfg SPMid xsDes VY xX xM xGX F_iX0 Sess
 fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 
-
+ 
 %-Display Design report
 %=======================================================================
 fprintf('%-40s: ','Design reporting')                                %-#
@@ -545,7 +585,8 @@ fprintf('%30s\n','...done')                                          %-#
 %=======================================================================
 spm_clf(Finter);
 spm('FigName','fMRI stats models',Finter,CmdLine);
-if spm_input('estimate?',1,'b','now|later',[1,0],1)
+if spm_input('estimate?',1,'b','now|later',[1,0],1,...
+	       'batch',batch_mat,{'model',iA},'now_later')
 	spm('Pointer','Watch')
 	spm('FigName','Stats: estimating...',Finter,CmdLine);
 	spm_spm(VY,xX,xM,F_iX0,Sess,xsDes);
@@ -578,6 +619,9 @@ fprintf('\n\n')
 
 function abort = sf_abort(i)
 %=======================================================================
+global batch_mat;
+global iA;
+
 if nargin<1, i=[1:3]; end
 tmp    = zeros(1,3);
 tmp(i) = 1;
@@ -591,9 +635,22 @@ if any(tmp)
 	str = {	'Current directory contains existing SPMstats files:',...
 		str{tmp},['(pwd = ',pwd,')'],' ',...
 		'Continuing will overwrite existing files!'};
-	abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+
+	abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename,...
+                           'batch',batch_mat,{'model',iA},'stop_writing');
 	if abort, fprintf('%-40s: %30s\n\n',...
 		'Abort...   (existing SPMstats files)',spm('time')), end
 else
 	abort = 0;
 end
+
+function q = sf_bch_get_q(i,batch_mat,iA)
+%=======================================================================
+q 	= spm_input('batch',batch_mat,{'model',iA},'files',i);
+files 	= q;
+t_sampl = spm_input('batch',batch_mat,{'model',iA},'time_sampl',i);
+remain 	= spm_input('batch',batch_mat,{'model',iA},'remain',i);
+q(remain,:) = files;
+%- fills the gap with the first images .... 
+%- there should be enough first images !
+q(t_sampl,:) = files(1:length(t_sampl),:);

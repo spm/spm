@@ -27,13 +27,18 @@ function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % Sess{s}.Pv{i}    - vector of paramters for ith trial type
 % Sess{s}.Pname{i} - name   of paramters for ith trial type
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_fMRI_design_show.m	2.14 Karl Friston 99/06/09
 
+global batch_mat
 
 % xX and Sess
 %-----------------------------------------------------------------------
 if nargin == 0
-	load(spm_get(1,'fMRIDesMtx.mat','select SPM_fMRIDesMtx'))
+	if strcmp(batch_mat,'')
+		load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'));
+	else
+		load('SPM_fMRIDesMtx.mat');
+	end
 elseif nargin<2
 	error('insufficient arguments')
 end

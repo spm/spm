@@ -1,4 +1,4 @@
-function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr)
+function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 % creates basis functions for each trial type {i} in struct BF{i}
 % FORMAT [BF BFstr] = spm_get_bf(name,T,dt,Fstr)
 %
@@ -17,7 +17,13 @@ function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_get_bf.m	2.10 Karl Friston 99/05/13
+
+
+global batch_mat;
+global iA;
+
+
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -25,7 +31,7 @@ spm_help('!ContextHelp',mfilename)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<4, Fstr = ''; end
+if nargin < 6, n_c = []; end
 
 
 % if no trials
@@ -44,11 +50,18 @@ Rtype = {'events',...
 	 'mixed'};
 if n == 1
 	Rtype = Rtype(1:2);
-	spm_input(name{1},1,'d',Fstr)
+	spm_input(name{1},1,'d',Fstr,'batch',batch_mat)
 else
-	spm_input(Fstr,1,'d')
+	spm_input(Fstr,1,'d','batch',batch_mat)
 end
-Rov   = spm_input('are these trials',2,'b',Rtype);
+
+if n > 1
+	Rov   = 'mixed';
+else 
+	Rov   = spm_input('are these trials',2,'b',Rtype,...
+	'batch',batch_mat,{'model',iA,'conditions',n_s},'types',n_c);
+   Fstr='';
+end
 
 switch Rov
 
@@ -67,7 +80,8 @@ switch Rov
 		'basis functions (Gamma functions)',...
 		'basis functions (Gamma functions with derivatives)'};
 	str   = 'Select basis set';
-	Cov   = spm_input(str,2,'m',Ctype);
+	Cov   = spm_input(str,2,'m',Ctype,'batch',batch_mat,...
+   {'model',iA,'conditions',n_s,'bf_ev',n_c},'ev_type');
 	BFstr = Ctype{Cov};
 
 
@@ -78,10 +92,13 @@ switch Rov
 		% Windowed (Hanning) Fourier set
 		%-------------------------------------------------------
 		str   = 'window length {secs}';
-		pst   = spm_input(str,3,'e',32);
+		pst   = spm_input(str,3,'e',32,'batch',batch_mat,...
+      			{'model',iA,'conditions',n_s,'bf_ev',n_c},'win_len');
 		pst   = [0:dt:pst]';
 		pst   = pst/max(pst);
-		h     = spm_input('order',4,'e',4);
+		h     = spm_input('order',4,'e',4,'batch',batch_mat,...
+      			{'model',iA,'conditions',n_s,'bf_ev',n_c},'order');
+
 
 		% hanning window
 		%-------------------------------------------------------
@@ -165,25 +182,30 @@ switch Rov
 		 'fixed response   (Half-sine)',...
 		 'fixed response   (Box-car)'};
 	str   = 'Select type of response';
-	Cov   = spm_input(str,2,'m',Ctype);
-	BFstr = Ctype{Cov};
+	Cov   = spm_input(str,2,'m',Ctype,'batch',batch_mat,...
+   {'model',iA,'conditions',n_s,'bf_ep',n_c},'ep_type');
+
+   BFstr = Ctype{Cov};
 
 
 	% convolve with HRF?
 	%---------------------------------------------------------------
 	if Cov == 1
 		str = 'number of basis functions';
-		h   = spm_input(str,3,'e',2);
+		h   = spm_input(str,3,'e',2,'batch',batch_mat,...
+  		{'model',iA,'conditions',n_s,'bf_ep',n_c},'fct_nb');
 	end
 
 	% convolve with HRF?
 	%---------------------------------------------------------------
-	HRF   = spm_input('convolve with hrf',3,'b','yes|no',[1 0]);
+	HRF   = spm_input('convolve with hrf',3,'b','yes|no',[1 0],...
+   'batch',batch_mat,{'model',iA,'conditions',n_s,'bf_ep',n_c},'conv');
 
 	% ask for temporal differences
 	%---------------------------------------------------------------
 	str   = 'add temporal derivatives';
-	TD    = spm_input(str,4,'b','yes|no',[1 0]);
+	TD    = spm_input(str,4,'b','yes|no',[1 0],'batch',batch_mat,...
+  	{'model',iA,'conditions',n_s,'bf_ep',n_c},'deriv');
  
 
 	% Assemble basis functions for each trial type
@@ -191,7 +213,8 @@ switch Rov
 	for i = 1:n
 
 		str   = ['epoch length {scans} for ' name{i}];
-		W     = spm_input(str,'+1','r');
+		W     = spm_input(str,'+1','r','batch',batch_mat,...
+ 	   {'model',iA,'conditions',n_s,'bf_ep',n_c},'length');
 		pst   = [1:W*T]' - 1;
 		pst   = pst/max(pst);
 
@@ -252,8 +275,8 @@ switch Rov
 	%===============================================================
 	case 'mixed'
 	for i = 1:n
-
-		BF(i)  = spm_get_bf(name(i),T,dt);
+		
+		BF(i)  = spm_get_bf(name(i),T,dt,'',n_s,i);
 
 	end
 	BFstr = 'mixed';

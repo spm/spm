@@ -21,16 +21,24 @@ function spm_smooth_ui
 % original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
-% %W% %E%
+% @(#)spm_smooth_ui.m	2.4 99/04/01
+
+global batch_mat;
+global iA;
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.4');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Smooth');
 spm_help('!ContextHelp','spm_smooth_ui.m');
 
-s     = spm_input('smoothing {FWHM in mm}',1);
-P     = spm_get(Inf,'.img','select scans');
+s     = spm_input('smoothing {FWHM in mm}',1,...
+   'batch',batch_mat,{'smooth',iA},'FWHMmm');
+if isempty(batch_mat)
+   P = spm_get(Inf,'.img','select scans');
+else
+   P = spm_input('batch',batch_mat,{'smooth',iA},'files');
+end
 n     = size(P,1);
 
 % implement the convolution
