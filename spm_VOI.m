@@ -1,81 +1,78 @@
+function spm_VOI(SPM,VOL,hReg)
 % Tabular display of adjusted data
 % FORMAT spm_VOI
+%
+% SPM  - SPM structure      {'Z' 'n' 'STAT' 'df' 'u' 'k'}
+% VOL  - Spatial structure  {'R' 'FWHM' 'S' 'DIM' 'VOX' 'ORG' 'M' 'XYZ' 'QQ'}
+% hReg - handle of MIP register
+%
 %_______________________________________________________________________
 %
-% spm_VOI is called by spm_results and takes variables in working memory to
-% compute a p value corrected for a specified volume of interest for,   and
-% centred on, the current voxel.
+% spm_VOI is  called by spm_results and takes variables in SPM and VOL to
+% compute a p values corrected for a specified volume of interest that is
+% centred on the current voxel.
+%
+% This volume may be defined by the cluster in which it is embedded. Clearly
+% this cluster must have been defined independently of the SPM using a
+% mask based on an orthogonal contrast and u = -Inf (i.e. p = 1)
+%
 %_______________________________________________________________________
-% %E% Karl Friston %W%
+% %W% Karl Friston %E%
 
-
-% Find nearest voxel [in a Euclidean sense] in point list & update GUI
+% Title
 %-----------------------------------------------------------------------
-[L,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),XYZ);
+Finter  = spm_figure('FindWin','Interactive');
+set(Finter,'Name','Small Volume Correction');
+
+% Identify cluster & update GUI
+%-----------------------------------------------------------------------
+L       = spm_XYZreg('GetCoords',hReg);
+[L,i]   = spm_XYZreg('NearestXYZ',L,VOL.XYZ);
+
 spm_XYZreg('SetCoords',L,hReg);
-A     = spm_clusters(XYZ,V([4 5 6]));
-ML    = XYZ(:,find(A == A(i)));
-Z     = t(i);
-N     = length(ML);
 
 
 % Specify search volume
-%--------------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-set(Finter,'Name','small volume correction');
-SPACE  = spm_input('search volume',1,'b','Sphere|Box|Cluster',['S' 'B' 'V']);
+%-----------------------------------------------------------------------
+SPACE   = spm_input('search volume',1,'b','Sphere|Box|Cluster',['S' 'B' 'V']);
+Q       = ones(1,size(VOL.XYZ,2));
+L       = L*Q;
 if     SPACE == 'S'
-	r    = spm_input('radius of spherical VOI {mm}',2);
-	str  = sprintf('%0.1f mm sphere',r);
-	r    = r/exp(mean(log(V(4:6))));
+
+	D     = spm_input('radius of spherical VOI {mm}',2);
+	str   = sprintf('%0.1f mm sphere',D);
+	j     = find(sum((VOL.XYZ - L).^2) <= D^2);
+	D     = D./VOL.VOX;
+	S     = (4/3)*pi*prod(D);
 
 elseif SPACE == 'B'
-	r    = spm_input('box dimensions [k l m] {mm}',2);
-	str  = sprintf('%0.1f x %0.1f x %0.1f mm box',r(1),r(2),r(3));
-	r    = r(:)./V(4:6);
+
+	D     = spm_input('box dimensions [k l m] {mm}',2);
+	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
+	j     = find(all(abs(VOL.XYZ - L) <= D(:)*Q/2));
+	D     = D(:)./VOL.VOX;
+	S     = prod(D);
 
 elseif SPACE == 'V'
-	r    = ML;
-	str  = sprintf('%0.0f voxel cluster',N);
 
+	A     = spm_clusters(VOL.XYZ,VOL.VOX);
+	j     = find(A == A(i));
+	str   = sprintf('%0.0f voxel cluster',length(j));
+	D     = VOL.XYZ(:,j); D  = D./(VOL.VOX*ones(1,size(D,2)));
+	S     = length(j);
 end
 
-% p values
+
+% Select voxels within subspace
 %-----------------------------------------------------------------------
-[Pu EC] = spm_Pec(SPMdist,SPACE,Z,r,W);		% [un]corrected p value (u)
-Pn      = 1 - spm_kcdf(N,U,W);			%   uncorrected p value (k)
+SPM.Z   = SPM.Z(j);
+VOL.XYZ = VOL.XYZ(:,j);
+VOL.R   = spm_resels(VOL.FWHM,D,SPACE);
+VOL.S   = S;
 
 
-
-% Display results
-%=======================================================================
-
-%-Delete previous axis and their pagination controls (if any)
+% Tabulate p values
 %-----------------------------------------------------------------------
-spm_results_ui('ClearPane',Fgraph)
+spm_list(SPM,VOL,4,16)
 
-% Table headings
-%-----------------------------------------------------------------------
-axes('Position',[0.1 0.06 0.8 0.46]); axis off
-lab     = ['Small volume correction:  ',spm_str_manip(CWD,'a50')];
-text(0,23,['Search volume:  ' str],'FontSize',12,'FontWeight','Bold');
-text(0,24,lab			  ,'FontSize',12,'FontWeight','Bold');
-
-line([0 1],[22 22],'LineWidth',3,'Color',[0 0 0])
-
-text(0.18,21,'corrected p value'  		,'FontSize',10);
-text(0.42,21,'cluster-level {k}'		,'FontSize',10);
-text(0.62,21,['voxel-level {' SPMdist '}'] 	,'FontSize',10);
-text(0.86,21,'x,y,z {mm}'         		,'FontSize',10);
-
-line([0 1],[20 20],'LineWidth',3,'Color',[0 0 0])
-
-
-% Print cluster and maximum voxel-level p values {Z}
-%-----------------------------------------------------------------------
-text(0.18,19,sprintf('%-0.3f',Pu)		,'FontSize',10);
-text(0.42,19,sprintf('%-0.3f (%i)',Pn,N)	,'FontSize',10);
-text(0.62,19,sprintf('%-0.3f (%0.2f)',EC(1),Z)	,'FontSize',10);
-text(0.84,19,sprintf('%-6.0f',L)		,'Fontsize',10);
-
-line([0 1],[1 1],'LineWidth',3,'Color',[0 0 0])
+title(['Search volume: ' str])
