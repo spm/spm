@@ -374,6 +374,7 @@ if ~isempty(off),
 		fd = fopen(fname,'r');
 		if fd~=-1,
 			fclose(fd);
+		else,
 			PRINTSTR(off:(off+7))='';
 		end;
 	end;
