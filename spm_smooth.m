@@ -22,15 +22,15 @@ function spm_smooth(P,Q,s,Vi)
 % image.  It must already be defined with the same number of elements 
 % as the image. 
 %
-%__________________________________________________________________________
-% %W% Anon, Tom Nichols %E%
+%_______________________________________________________________________
+% %W% John Ashburner, Tom Nichols %E%
 
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
 
 
 % read and write header if we're working with files
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if isstr(P)
     [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P);
 else
@@ -51,7 +51,7 @@ if isstr(Q)
 
     
 % compute parameters for spm_conv_vol
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 s  = s./VOX;					% voxel anisotropy
 s  = max(s,ones(size(s)));			% lower bound on FWHM
 s  = s/sqrt(8*log(2));				% FWHM -> Gaussian parameter
@@ -74,6 +74,7 @@ if isstr(P)
     V  = spm_map(P);
     spm_conv_vol(V,Q,x,y,z,(-[i,j,k]));
     spm_unmap(V);
+    spm_get_space(Q,spm_get_space(P));
 else
     spm_conv_vol(Vi,Q,x,y,z,(-[i,j,k]),P);
 end
