@@ -415,7 +415,7 @@ case 'Event/epoch-related responses'
 
 		% average over sessions
 		%------------------------------------------------------
-		Y     = Y*ones(length(ss))/length(ss);
+		Y     = sum(Y,2)/length(ss);
 
 		% peristimulus times and adjusted data (Y + R)
 		%------------------------------------------------------
