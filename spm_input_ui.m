@@ -174,30 +174,32 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - FORMAT specifications for programers
 %=======================================================================
-% - generic     - [p,YPos] = spm_input(Prompt,YPos,Type,...)
-% - string      - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - string+     - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - evaluated   - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
-%   - natural   - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n,mx)
-%   - whole     - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n,mx)
-%   - integer   - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
-%   - real      - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n,mm)
-% - condition   - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
-% - contrast    - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
-% - permutation - [p,YPos] = spm_input(Prompt,YPos,'p',DefStr,P,n)
-% - button      - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
+% - generic       - [p,YPos] = spm_input(Prompt,YPos,Type,...)
+% - string        - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - string+       - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - evaluated     - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
+%   - natural     - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n,mx)
+%   - whole       - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n,mx)
+%   - integer     - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
+%   - real        - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n,mm)
+% - condition     - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
+% - contrast      - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
+% - permutation   - [p,YPos] = spm_input(Prompt,YPos,'p',DefStr,P,n)
+% - button        - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - button/edit combo's (edit for string or typed scalar evaluated input)
 %               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr,mx)
 %   ...where ? in b?1 specifies edit widget type as with string & eval'd input
-%               - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr,mx)
-%               - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr,mx)
-% - menu        - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - display     -            spm_input(Message,YPos,'d',Label)
-% - alert       -            spm_input(Alert,YPos,'d!',Label)
+%                 - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr,mx)
+%                 - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr,mx)
+% - button dialog - [p,YPos] = spm_input(Prompt,YPos,'bd',...
+%                                Labels,Values,DefItem,Title)
+% - menu          - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display       -            spm_input(Message,YPos,'d',Label)
+% - alert         -            spm_input(Alert,YPos,'d!',Label)
 %
-% - yes/no    - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
+% - yes/no        - [p,YPos] = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
-%             - FORMAT p = spm_input(Prompt,YPos,Labels,Values,DefItem)
+%                 - [p,YPos] = spm_input(Prompt,YPos,Labels,Values,DefItem)
 %
 % NB: Natural numbers are [1:Inf), Whole numbers are [0:Inf)
 % 
@@ -236,6 +238,10 @@ function varargout = spm_input(varargin)
 %                       checked for validity (i.e. in the row-space of X)
 %                       (checking handled by spm_SpUtil)
 %                  - 'b'uttons
+%                  - 'bd' - button dialog: Uses MatLab's questdlg
+%                     - For up to three buttons
+%                     - Prompt can be a cellstr with a long multiline message
+%                     - CmdLine support as with 'b' type
 %                  - button/edit combo's: 'be1','bn1','bw1','bi1','br1'
 %                     - second letter of b?1 specifies type for edit widget
 %                  - 'n1' - single natural number (buttons 1,2,... & edit)
@@ -294,6 +300,8 @@ function varargout = spm_input(varargin)
 %          - Can be either a straight matrix or a space structure (see spm_sp)
 %          - Column dimension of design matrix specifies length of contrast
 %            vectors (overriding n(2) is specified).
+%
+% Title    - Title for questdlg in 'bd' type
 %
 % Labels   - Labels for button and menu types.
 %                  - string matrix, one label per row
@@ -507,9 +515,11 @@ function varargout = spm_input(varargin)
 % PLoc  - Pointer location before jumping
 % cF    - Previous current figure
 %
-% FORMAT spm_input('!PrntPrmpt',Prompt)
+% FORMAT spm_input('!PrntPrmpt',Prompt,TipStr,Title)
 % Print prompt for CmdLine questioning
-% Prompt - Prompt string
+% Prompt - prompt string, callstr, or string matrix
+% TipStr - tip string
+% Title  - title string
 %
 % FORMAT [Frec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,rec,F)
 % Returns rectangles (pixels) used in GUI
@@ -611,8 +621,8 @@ ConCrash = 1;		%-Add "crash out" option to 'Interactive'fig.ContextMenu
 %=======================================================================
 if nargin<1|isempty(varargin{1}), Prompt=''; else, Prompt=varargin{1}; end
 
-if ~isempty(Prompt) & Prompt(1)=='!'
-	%-Utility functions have Prompt starting with '!'
+if ~isempty(Prompt) & ischar(Prompt) & Prompt(1)=='!'
+	%-Utility functions have Prompt string starting with '!'
 	Type = Prompt;
 else			%-Should be an input request: get Type & YPos
 	if nargin<3|isempty(varargin{3}), Type='e';  else, Type=varargin{3}; end
@@ -871,21 +881,28 @@ end
 varargout = {p,YPos};
 
 
-case {'b','b|','y/n','be1','bn1','bw1','bi1','br1',...
+case {'b','bd','b|','y/n','be1','bn1','bw1','bi1','br1',...
 	'-n1','n1','-w1','w1','m'}             %-'b'utton & 'm'enu Types
 %=======================================================================
 %-Condition arguments
 switch lower(Type), case {'b','be1','bi1','br1','m'}
-	m = [];
+	m = []; Title = '';
+	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
+	if nargin<5, Values=[];   else, Values =varargin{5}; end
+	if nargin<4, Labels='';   else, Labels =varargin{4}; end
+case 'bd'
+	if nargin<7, Title='';    else, Title  =varargin{7}; end
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels='';   else, Labels =varargin{4}; end
 case 'y/n'
+	Title = '';
 	if nargin<5, DefItem=[];  else, DefItem=varargin{5}; end
 	if nargin<4, Values=[];   else, Values =varargin{4}; end
 	if isempty(Values), Values='yn'; end
 	Labels = {'yes','no'};
 case 'b|'
+	Title = '';
 	if nargin<5, DefItem=[];  else, DefItem=varargin{5}; end
 	if nargin<4, Values=[];   else, Values =varargin{4}; end
 	Labels = varargin{3};
@@ -951,7 +968,7 @@ if isnumeric(Labels)
 end
 
 
-switch lower(Type), case {'b','b|','y/n'}         %-Process button types
+switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 %=======================================================================
 	
 	%-Make unique character keys for the Labels, sort DefItem
@@ -968,7 +985,7 @@ switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 
 	if CmdLine
 		%-Display question prompt
-		spm_input('!PrntPrmpt',Prompt)
+		spm_input('!PrntPrmpt',Prompt,'',Title)
 		%-Build prompt
 		%-------------------------------------------------------
 		if ~isempty(Labs) 
@@ -1001,6 +1018,26 @@ switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 			k = find(lower(Keys)==lower(str(1)));
 		end
 		fprintf('\n')
+
+		p = Values(k,:); if ischar(p), p=deblank(p); end
+
+	elseif strcmp(lower(Type),'bd')
+
+		if nLabels>3, error('at most 3 labels for GUI ''db'' type'), end
+
+		tmp = cellstr(Labels);
+		if DefItem
+			tmp    = [tmp; tmp(DefItem)];
+			Prompt = cellstr(Prompt); Prompt=Prompt(:);
+			Prompt = [Prompt;{' '};...
+					{['[default: ',tmp{DefItem},']']}];
+		else
+			tmp    = [tmp; tmp(1)];
+		end
+
+		k = min(find(strcmp(tmp,...
+			questdlg(Prompt,sprintf('%s%s: %s...',spm('ver'),...
+				spm('GetUser',' (%s)'),Title),tmp{:}))));
 
 		p = Values(k,:); if ischar(p), p=deblank(p); end
 
@@ -1455,6 +1492,7 @@ end % (switch lower(Type) within case {'b','b|','y/n'})
 %-Log the transaction & return response
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
+	if iscellstr(Prompt), Prompt=Prompt{1}; end
 	spm_log([mfilename,' : ',Prompt,': (',deblank(Labels(k,:)),')'],p); end
 varargout = {p,YPos};
 
@@ -1709,7 +1747,10 @@ elseif YPos<0
 	YPos=-YPos;
 end
 
-varargout = {spm('CmdLine',CmdLine),YPos};
+CmdLine = spm('CmdLine',CmdLine);
+if CmdLine, YPos=0; end
+
+varargout = {CmdLine,YPos};
 
 
 case '!getwin'
@@ -1761,15 +1802,17 @@ if ~isempty(cF), set(0,'CurrentFigure',cF); end
 
 case '!prntprmpt'
 %=======================================================================
-% spm_input('!PrntPrmpt',Prompt,TipStr)
+% spm_input('!PrntPrmpt',Prompt,TipStr,Title)
 %-Print prompt for CmdLine questioning
-if nargin<2, Prompt=''; else, Prompt=varargin{2}; end
+if nargin<4, Title  = ''; else, Title  = varargin{4}; end
+if nargin<3, TipStr = ''; else, TipStr = varargin{3}; end
+if nargin<2, Prompt = ''; else, Prompt = varargin{2}; end
 if isempty(Prompt), Prompt='Enter an expression'; end
-if nargin<3
-  TipStr = '';
-else
-  TipStr = varargin{3};
-  tmp    = 8 + length(Prompt) + length(TipStr);
+
+Prompt = cellstr(Prompt);
+
+if ~isempty(TipStr)
+  tmp    = 8 + length(Prompt{end}) + length(TipStr);
   if tmp < 60
     TipStr = sprintf('%s(%s)',repmat(' ',1,68-tmp),TipStr);
   else
@@ -1777,7 +1820,14 @@ else
   end
 end
 
-fprintf('\n%s\n\t%s%s\n%s\n',repmat('=',1,70),Prompt,TipStr,repmat('=',1,70))
+if isempty(Title)
+	fprintf('\n%s\n',repmat('=',1,70))
+else
+	fprintf('\n= %s %s\n',Title,repmat('=',1,70-length(Title)-3))
+end
+fprintf('\t%s',Prompt{1})
+for i=2:prod(size(Prompt)), fprintf('\n\t%s',Prompt{i}), end
+fprintf('%s\n%s\n',TipStr,repmat('=',1,70))
 
 
 case '!inputrects'
