@@ -64,10 +64,6 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %     before orienting, motion correction, padding, smoothing, etc.).
 %     Additionally, it should only be performed once!
 %
-%  NOTE ALSO: The routine below assumes the data are interleaved. Since
-%     the images out of the vision have already been arranged in proper
-%     slice order, this routine will not work on non-interleaved slices.
-%
 % Written by Darren Gitelman at Northwestern U., 1998
 %
 % Based (in large part) on ACQCORRECT.PRO from Mark D'Exposito,
