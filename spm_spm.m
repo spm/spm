@@ -19,7 +19,8 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 %
 % spm_spm is the heart of the SPM package and implements the general
 % linear model in terms of a design matrix (composed of H C B
-% and G) and the data (V).  Significant compounds of the estimated
+% and G) and the data (V).  The significance of the effects in H and
+% C can be tested with the SPM{F}. Significant compounds of the estimated
 % parameters are assessed with a quotient that has the t distribution
 % under the null hyypothesis.  The resulting SPM{t} is transformed to
 % the Unit Gaussian distribution [SPM{Z}] and characterized by further
@@ -92,6 +93,7 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % TH    -       vector of thresholds used to eliminate extracranial voxels
 % SIGMA -       Gaussian parameter of K for correlated observations
 % RT    -       Repeat time for EPI fMRI (generally interscan interval)
+% BCOV  -       cov{BETA} = RES.BCOV = covariances of parameter estimates
 % Dnames   -    Sting matrix of parameters in the design matrix
 % Fnames   -    string matrix of Filenames corresponding to observations
 % CONTRAST -    row vectors of contrasts
@@ -231,12 +233,7 @@ while(1)
 	XYZ   = Xq*[x(U); y(U); z(U); ones(size(U))];
 
 
-	%-Remove the grand mean and replace it later
-	%---------------------------------------------------------------
-	EX    = mean(Y);
-	Y     = Y - ones(q,1)*EX;
-
-	%-Convolve over scans
+	%-Convolve over scans (i.e. temporal convolution)
 	%---------------------------------------------------------------
 	X     = K*Y; clear Y
 
@@ -255,7 +252,7 @@ while(1)
 		%-Adjustment: remove confounds and replace grand mean
 		%-------------------------------------------------------
 		d     = [1:size([B G],2)] + size([H C],2);
-		XA    = X(:,P) - [B G]*BETA(d,P) + ones(q,1)*EX(:,P);
+		XA    = X(:,P) - [B G]*BETA(d,P);
 
 
 		%-Cumulate remaining voxels
@@ -326,8 +323,8 @@ for i  = 1:q; spm_unmap(V(:,i)); end
 %-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
-
-save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT
+[Fdf,F,BETA,T,RES,BCOV] = spm_AnCova([H C],[B G],SIGMA);
+save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT BCOV
 
 
 %-Display and print SPM{F}, Design matrix and textual information
