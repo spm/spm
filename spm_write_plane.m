@@ -140,7 +140,7 @@ if ~isempty(f),
 	ax=axes('Visible','off','Parent',f); 
 	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
 	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
+	text(0,0.40,'  Please check your disk space/quota.', 'FontSize', 16, 'Interpreter', 'none'); 
 end
 return;
 %_______________________________________________________________________
