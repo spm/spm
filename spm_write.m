@@ -23,7 +23,7 @@ Q     = Q(Q ~= ' ');
 % correction
 %---------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P);
-V     = spm_map_vol(P,[DIM VOX 1 TYPE OFFSET]);			% memory map
+V     = spm_map(P,[DIM VOX 1 TYPE OFFSET]);			% memory map
 C     = spm_matrix(-DIM/2);					% image center
 I     = spm_matrix([0 0 0 0 0 0 VOX]);				% isotropy
 A     = inv(C)*inv(I)*A*I*C;					% transformation
@@ -41,5 +41,5 @@ end
 %---------------------------------------------------------------------------
 fclose(fid);
 spm_hwrite(Q,DIM,VOX,SCALE,TYPE,0,ORIGIN,DESCRIP);
-spm_unmap_vol(V);
+spm_unmap(V);
 
