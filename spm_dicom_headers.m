@@ -70,11 +70,8 @@ while ~isempty(tag),
 			ret.StartOfCSAData = ftell(fp);
 			ret.SizeOfCSAData = tag.length;
 			fseek(fp,tag.length,'cof');
-		case {'CSAImageHeaderInfo'},
-			dat  = spm_decode_csa(fp,tag.length,ret.CSAImageHeaderVersion);
-			ret  = setfield(ret,tag.name,dat);
-		case {'CSASeriesHeaderInfo'},
-			dat  = spm_decode_csa(fp,tag.length,ret.CSASeriesHeaderVersion);
+		case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo'},
+			dat  = decode_csa(fp,tag.length);
 			ret  = setfield(ret,tag.name,dat);
 		case {'TransferSyntaxUID'},
 			dat = char(fread(fp,tag.length,'char'))';
@@ -285,7 +282,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function t = spm_decode_csa(fp,lim,vers)
+function t = decode_csa(fp,lim)
 % Decode shadow information (0029,1010) and (0029,1020)
 [fname,perm,fmt] = fopen(fp);
 pos = ftell(fp);
@@ -296,14 +293,13 @@ if strcmp(fmt,'ieee-be'),
         flg = 'b';
 end;
 
-vers = deblank(vers);
-if ~strcmp(vers,'20021108'),
-	t = decode_20021108(fp,lim);
-elseif ~strcmp(vers,'20020712'),
-	t = decode_20020712(fp,lim);
+c   = fread(fp,4,'char');
+fseek(fp,pos,'bof');
+
+if all(c'==[83 86 49 48]), % "SV10"
+	t = decode_csa2(fp,lim);
 else,
-	warning(['Dont know how to decode CSAImageHeaderVersion [' vers '].']);
-	t = struct('junk','Don''t know how to read this damned file format');
+	t = decode_csa1(fp,lim);
 end;
 
 if strcmp(fmt,'ieee-le'),
@@ -315,8 +311,8 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function t = decode_20021108(fp,lim)
-n   = fread(fp,1,'uint32')'
+function t = decode_csa1(fp,lim)
+n   = fread(fp,1,'uint32');
 if n>128 | n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
@@ -326,7 +322,7 @@ xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
 tot = 2*4;
 for i=1:n,
 	t(i).name    = fread(fp,64,'char')';
-	msk          = find(~t(i).name);
+	msk          = find(~t(i).name)-1;
 	if ~isempty(msk),
 		t(i).name    = char(t(i).name(1:msk(1)));
 	else,
@@ -350,17 +346,17 @@ for i=1:n,
 		end;
 		t(i).item(j).val = char(fread(fp,len,'char'))';
 		fread(fp,rem(4-rem(len,4),4),'char')';
-		tot              = tot + 4*4+len+(4-rem(len,4));
+		tot              = tot + 4*4+len+rem(4-rem(len,4),4);
 	end;
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function t = decode_20020712(fp,lim)
-c   = char(fread(fp,4,'char'))'
-n   = fread(fp,4,'char')'
-n   = fread(fp,1,'uint32')'
+function t = decode_csa2(fp,lim)
+c   = fread(fp,4,'char');
+n   = fread(fp,4,'char');
+n   = fread(fp,1,'uint32');
 if n>128 | n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');

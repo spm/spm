@@ -312,7 +312,8 @@ function [mosaic,standard] = select_mosaic_images(hdr)
 mosaic   = {};
 standard = {};
 for i=1:length(hdr),
-	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo'),
+	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') |...
+		isempty(read_AcquisitionMatrixText(hdr{i})),
 		standard = {standard{:},hdr{i}};
 	else,
 		mosaic = {mosaic{:},hdr{i}};
