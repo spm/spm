@@ -1,22 +1,23 @@
-function spm_create_image(V)
+function Vo=spm_create_image(Vi)
 % Create an image file.
-% FORMAT spm_create_image(V)
-% V   - data structure containing image information.
-%       - see spm_vol for a description.
-%
+% FORMAT Vo = spm_create_image(Vi)
+% Vi   - data structure containing image information.
+%      - see spm_vol for a description.
+% Vo   - data structure after modification for writing.
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-if create_analyze_image(V) == -1,
+[sts,Vo] =  create_analyze_image(Vi);
+if sts == -1,
 	spm_progress_bar('Clear');
-	open_error_message(V.fname);
-	error(['Error opening ' V.fname '. Check that you have write permission.']);
+	open_error_message(Vi.fname);
+	error(['Error opening ' Vi.fname '. Check that you have write permission.']);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function sts = create_analyze_image(V)
+function [sts,V] = create_analyze_image(V)
 sts  = 0;
 
 % Extract voxel sizes and origin from the 4x4 matrix
@@ -25,10 +26,8 @@ orgn = V.mat\[0 0 0 1]';
 orgn = orgn(1:3)';
 
 % Add a description when available
-if isfield(V,'descrip'),
-	descrip = V.descrip;
-else
-	descrip = 'SPM compatible';
+if ~isfield(V,'descrip'),
+	V.descrip = 'SPM compatible';
 end;
 % Check datatype is OK
 dt = V.dim(4);
@@ -70,10 +69,12 @@ else
 	scale = 1.0;
 end;
 
+V.pinfo = [scale 0 0]';
+V.dim(4)= dt;
 
 % Write the header
 s    = spm_hwrite(deblank(V.fname), [V.dim(1:3) 1],...
-	vx, scale, dt, 0, orgn, descrip);
+	vx, scale, dt, 0, orgn, V.descrip);
 if s~= 348,
 	sts = -1;
 end;
