@@ -43,7 +43,7 @@ end
 if any(gorder > size(VG,2))
 	error(['Problem with gorder']);
 end
-if ~all(size(free) == size(P)) | ~all(size(pdesc) == size(P)) | size(P,2) ~= 1
+if ~all(size(free) == size(P)) | ~(size(pdesc,1) == size(P,1)) | size(P,2) ~= 1
 	error('Problem with vector sizes');
 end
 
