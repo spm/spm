@@ -171,10 +171,10 @@ for iter = 1:niter
 	% Compute new n, mean & var for each cluster - step 2
 	for i=1:n
 		mg(:,i) = mom0(:,i)/sumbp(i);
-		mn(:,i) = mom1(:,i)/(mom0(:,i)+eps);
+		mn(:,i) = mom1(:,i)/mom0(:,i);
 		tmp = (mom0(:,i).*mn(:,i))*mn(:,i)';
 		tmp = tmp - eye(size(tmp))*eps*10; %stabilise the covariance matrix
-		cv(:,i) = (0.000001+mom2(:,i) - tmp(:))/(mom0(:,i)+eps);
+		cv(:,i) = (0.000001+mom2(:,i) - tmp(:))/mom0(:,i);
 	end
 
 	if iter==1
@@ -233,7 +233,7 @@ for p=1:VF(3)
 		pr(:,i) = amp*exp(-0.5*dst) .* bp(:,lkp(i));
 	end
 
-	sp = sum(pr')'/255;
+	sp = (sum(pr')'+eps)/255;
 
 	nn = 1;
 	for j=1:(length(nc))
