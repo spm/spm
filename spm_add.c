@@ -104,7 +104,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	else if (dtype == 8)
 	{
 		maxval = 2147483647;
-		minval = -2147483648;
+		minval = -2147483647;
 		floatflag = 0;
 	}
 	else
