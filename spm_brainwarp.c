@@ -241,12 +241,11 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 						/* Convert to reciprocal of standard deviation */
 						wt = sqrt(wt);
 
-						v *= wt;
+						v        *= wt;
 						dvds0[0] *= wt;
 						dvds0[1] *= wt;
 						dvds0[2] *= wt;
 					}
-					nsamp += wt;
 
 					/* affine transform the gradients of object image*/
 					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
@@ -273,7 +272,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 						resample_d(1,&vols1[i1],&tmp,grads,grads+1,grads+2,s0d,s0d+1,s0d+2, 1, 0.0);
 						if (wF)  /** use weight */
 						{
-							tmp *= wt;
+							tmp      *= wt;
 							grads[0] *= wt;
 							grads[1] *= wt;
 							grads[2] *= wt;
@@ -285,7 +284,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 						dvdt[i1*4+2+3*nx] = tmp*s2[1];
 						dvdt[i1*4+3+3*nx] = tmp*s2[2];
 
-						dv -= dvdt[i1*4  +3*nx]*scale1a[i1*4];
+						dv -= dvdt[i1*4  +3*nx]*scale1a[i1*4  ];
 						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1*4+1];
 						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1*4+2];
 						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1*4+3];
@@ -308,7 +307,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					}
 
 					/* sum of squares */
-					ss += dv*dv;
+					nsamp       += wt*wt;
+					ss          += dv*dv;
 					ss_deriv[0] += dvds0[0]*dvds0[0];
 					ss_deriv[1] += dvds0[1]*dvds0[1];
 					ss_deriv[2] += dvds0[2]*dvds0[2];
@@ -463,7 +463,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 		for (x2=0; x2<x1; x2++)
 			alpha[m1*x2+x1] = alpha[m1*x1+x2];
 
-	*pss = ss;
+	*pss    = ss;
 	*pnsamp = nsamp;
 
 	mxFree((char *)dvdt);
