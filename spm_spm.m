@@ -303,27 +303,31 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
 SCCSid   = '%I%';
 
+
 %-Say hello
 %-----------------------------------------------------------------------
 SPMid    = spm('FnBanner',mfilename,SCCSid);
 Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 
-%-Parameters
+
+%-maxMem is the maximum amount of data that will be processed at a time
 %-----------------------------------------------------------------------
 global MAXMEM 
 if length(MAXMEM)	
 	maxMem = MAXMEM;	
 else
-	maxMem = 2^20;	%-Max data chunking size, in bytes
+	maxMem = 2^20;	%-Max data block size, in bytes
 end
 Def_UFp  = 0.001;	%-Default F-threshold for Y.mad pointlist filtering
-maxRes   = 64;		%-Maximum #res images for smoothness estimation
+maxRes   = 64;		%-Maximum # res images for smoothness estimation
+
 
 %-Condition arguments
 %-----------------------------------------------------------------------
 if nargin < 2, error('Insufficient arguments'), end
 if nargin < 3, xM = zeros(size(X,1),1); end
 if nargin < 4, c  = []; end
+
 
 %-Check required fields of xX structure exist - default optional fields
 %-----------------------------------------------------------------------
@@ -339,6 +343,7 @@ if ~isfield(xX,'xVi')
 	xX.xVi = struct(	'Vi',	speye(size(xX.X,1)),...
 				'form',	'none'); 
 end
+
 
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
@@ -400,12 +405,12 @@ N      = 3 - sum(DIM == 1);
 fprintf('%-40s: %30s','Initialising design space','...computing')    %-#
 
 %-Construct design parmameters, and store in design structure xX
-% Take care to apply temporal convolution - KX stored as xX.xKX.X
+% Take care to apply temporal confounds - KX stored as xX.xKX.X
 %-Note that Vi may not be known exactly at this point, if it is to be
 % estimated. Parameters dependent on Vi are committed to xX at the end.
 %-Note that the default F-contrast (used to identify "interesting" voxels
 % to save raw data for) computation requires Vi. Thus, if Vi is to be
-% estimated, any F-threshold will only be have upper tail probability UFp. 
+% estimated, any F-threshold will only have upper tail probability UFp. 
 %-----------------------------------------------------------------------
 % V            - Autocorrelation matrix K*Vi*K'
 % xX.xKXs      - Design space structure of KX
@@ -442,7 +447,7 @@ if  erdf < 0
     error(sprintf('This design is completely unestimable! (df=%-.2g)',erdf))
 elseif erdf == 0
     error('This design has no residuals! (df=0)')
-elseif erdf < 4
+elseif erdf <  4
     warning(sprintf('Very low degrees of freedom (df=%-.2g)',erdf))
 end
 
@@ -560,12 +565,9 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 % - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
 %=======================================================================
 
-%-Find a suitable block size for the main loop, which proceeds a bunch
-% of lines at a time (minimum = one line; maximum = one plane)
-% (maxMem is the maximum amount of data that will be processed at a time)
+%-Find a suitable block size for the main loop
 %-----------------------------------------------------------------------
 if ydim < 2, error('ydim < 2'), end		    %-need at least 2 lines
-
 blksz  = ceil(maxMem/8/nScan/nVar);		    %-block size
 nbch   = ceil(xdim*ydim/blksz);			    %-# blocks
 
@@ -577,13 +579,14 @@ yords  = ones(xdim,1)*[1:ydim];  yords = yords(:)'; % plane Y coordinates
 S      = 0;                                         % Volume (voxels)
 Cy     = 0;					    % <Y*Y'> spatially whitened
 CY     = 0;					    % <Y*Y'> for ReML
+EY     = 0;					    % <Y>    for ReML
 i_res  = round(linspace(1,nScan,nSres))';	    % Indices for residual
 
 %-Initialise XYZ matrix of in-mask voxel co-ordinates (real space)
 %-----------------------------------------------------------------------
 XYZ    = zeros(3,xdim*ydim*zdim);
 
-%-Cycle over bunches of lines within planes (planks) to avoid memory problems
+%-Cycle over bunches blocks within planes to avoid memory problems
 %=======================================================================
 spm_progress_bar('Init',100,'model estimation','');
 
@@ -597,11 +600,11 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     CrResI  = [];			%-normalized residuals
     CrResSS = [];			%-residual sum of squares
 
-    for bch = 1:nbch			%-loop over bunches of lines (planks)
+    for bch = 1:nbch			%-loop over blocks
 
 	%-# Print progress information in command window
 	%---------------------------------------------------------------
-	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, bunch %3d/%-3d',...
+	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, block %3d/%-3d',...
 		z,zdim,bch,nbch),' ')                                %-#
 
 	%-construct list of voxels in this block
@@ -611,7 +614,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	xyz   = [xords(I); yords(I); zords(I)];		%-voxel coords in bch
 	nVox  = size(xyz,2);				%-number of voxels
 
-	%-Get data & construct analysis mask for this bunch of lines
+	%-Get data & construct analysis mask
 	%===============================================================
 	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
 	CrLm  = logical(ones(1,nVox));			%-current block mask
@@ -655,7 +658,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%===============================================================
 	if CrS
 
-		%-Temporal filtering
+		%-Remove filter confounds
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...temporal filtering')     %-#
@@ -674,9 +677,10 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		ResSS      = sum(res.^2);		%-Residual SSQ
 		clear KY				%-Clear to save memory
 
-		%-sample covariance Y*Y' (all searched voxels)
+		%-sample covariance and mean of Y (all searched voxels)
 		%-------------------------------------------------------
 		CY = CY + Y*Y';
+		EY = EY + sum(Y,2);
 
 
 		%-If UFp > 0, save raw data in 8bit squashed *.mad format
@@ -698,7 +702,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			spm_append(Y(:,tmp),'Y.mad',2);
 			Yidx = [Yidx, (S + tmp)];
 
-			%-Assemble <Y*inv(sigma^2)*Y'> for ReML estimation
+			%-Assemble spatially whitened <Y*Y'> for ReML
 			%-----------------------------------------------
 			if length(tmp)
 				q  = size(tmp,2);
@@ -708,7 +712,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			end
 
 		end
-		clear Y					%-Clear to save memory
+		clear Y				%-Clear to save memory
 
 		%-Save betas etc. for current plane in memory as we go along
 		%-------------------------------------------------------
@@ -720,7 +724,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-Append new inmask voxel locations and volumes
 	%---------------------------------------------------------------
-	XYZ(:,S + [1:CrS]) = xyz(:,CrLm);	%-InMask XYZ voxel coordinates
+	XYZ(:,S + [1:CrS]) = xyz(:,CrLm);	%-InMask XYZ voxel coords
 	Q                  = [Q I(CrLm)];	%-InMask XYZ voxel indices
 	S                  = S + CrS;		%-Volume analysed (voxels)
 
@@ -841,19 +845,24 @@ end
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
 KVi      = spm_filter(xX.K, Vi);
-xX.V     = spm_filter(xX.K,KVi'); 		%-Non-sphericity V
+xX.V     = spm_filter(xX.K,KVi'); 			%-Non-sphericity V
 xX.pKXV  = xX.pKX*xX.V;					%-for contrast variance 
 xX.Bcov  = xX.pKXV*xX.pKX';				%-for Cov(Beta)
 [xX.trRV xX.trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);	%-Variance expectations
 xX.erdf  = xX.trRV^2/xX.trRVRV;				%-Effective d.f.
 
-%-average covariance of Y
+
+%-average sample covariance and mean of Y (over voxels)
 %-----------------------------------------------------------------------
 CY       = CY/S;
+EY       = EY/S;
+CY       = CY - EY*EY';
+
 
 %-Compute scaled design matrix for display purposes
 %-----------------------------------------------------------------------
 xX.nKX   = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
+
 
 %-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
 %-----------------------------------------------------------------------
