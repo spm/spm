@@ -1,10 +1,11 @@
-function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
+function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt,STOC)
 % returns onset times for events
-% FORMAT [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
+% FORMAT [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt,STOC)
 %
 % k    - number of scans
 % T    - time bins per scan
 % dt   - time bin length (secs)
+% STOC - flag to enable stochastic components [0 or 1]
 %
 % ons     - [m x n]   stick functions {for n trial-types over m = k*T time-bins}
 % W       - [1 x n]   vector of window/epoch lengths {time-bins}
@@ -26,6 +27,7 @@ function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 % time bins per scan
 %-----------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
+Fstr   = get(Finter,'name');
 name   = {};
 para   = {};
 W      = [];
@@ -36,8 +38,8 @@ DSstr  = '';
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('event types (without null event)','+1','w1',0);
-u     = spm_input('epoch types (without baseline)  ','+1','w1',0);
+v     = spm_input('number of event types',1,'w1',0);
+u     = spm_input('number of epoch types','+1','w1',0);
 ons   = sparse(k*T,v + u);
 for i = 1:v
 
@@ -61,8 +63,11 @@ if v
 	% stochastic designs
 	%---------------------------------------------------------------
 	set(Finter,'Name','event specification')
-	DSstr       = 'event-related ';
-	if spm_input('stochastic design',1,'y/n',[1 0])
+	DSstr        = 'event-related ';
+	if STOC
+		STOC = spm_input('stochastic design',1,'y/n',[1 0]);
+	end
+	if STOC
 
 		% minimum SOA
 		%-------------------------------------------------------
@@ -114,10 +119,9 @@ if v
 	%---------------------------------------------------------------
 	else
 
-
 	    % get onsets
 	    %-------------------------------------------------------
-	    Sstr  = spm_input('SOA','+1','fixed|variable');
+	    Sstr  = spm_input('SOA',1,'fixed|variable');
 	    DSstr = [DSstr '(' Sstr ' SOA) '];
 	    i     = 0;
 	    while i < v
@@ -135,7 +139,7 @@ if v
 
 			case 'variable'
 			%-----------------------------------------------
-			str   = 'vector [or array] of onsets (scans)'
+			str   = 'vector [or array] of onsets (scans)';
 			on    = spm_input(str,'+1');
 		end
 
@@ -155,7 +159,6 @@ if v
 		end
 
 	    end
-	    v = i;
 	end
 
 	% basis function lengths (W == 0 implies event-related)
@@ -169,84 +172,107 @@ end
 if u
 
 	% set name
-	%-------------------------------------------------------
+	%---------------------------------------------------------------
 	set(Finter,'Name','epoch specification')
 	if length(DSstr)
 		DSstr  = [DSstr '& epoch-related '];
 	else
-		DSstr  = 'epoch-related ';
+		DSstr  = 'Epoch-related ';
 	end
 
-	% vector of conditions
-	%---------------------------------------------------------------
-	a     = spm_input('epoch order eg 01020102...',1,'c');
-	while (max(a) ~= u) | (min(a) ~= 0)
-		str = sprintf('re-enter using 0 to %d',u)
-		a   = spm_input(str,2,'c');
-	end
-	a     = a - min(a) + 1;
+	% get onsets
+	%-------------------------------------------------------
+	Sstr  = spm_input('Epoch onset asynchrony (EOA)',1,'fixed|variable');
+	DSstr = [DSstr '(' Sstr ' EOA) '];
+	i     = 0;
+	w     = zeros(1,u);
+	while i < u
 
-	% epoch lengths
-	%---------------------------------------------------------------
-	w     = zeros(1,u + 1);
-	while sum(w(a)) ~= k
-		str = sprintf('scans per epoch 0 to %d',u);
-		w   = spm_input(str,2,'n');
-		while length(w) < (u + 1), w = [w w]; end
-		w   = w(1:u + 1);
-	end
-	w     = w*T;
+		% set name
+		%-------------------------------------------------------
+		set(Finter,'Name',name{i + v + 1})
+		switch Sstr
 
-	% epoch onsets (discounting baseline)
-	%---------------------------------------------------------------
-	on    = spm_input('start of first epoch {scans}','+1','r',1);
-	c     = cumsum(w(a)) - w(a) + on*T;
-	for i = 1:u
-		ons(round(c(find(a == (i + 1))) + 1),i + v) = 1;
+			case 'fixed'
+			%-----------------------------------------------
+			soa   = spm_input('EOA (scans)',2,'r');
+			on    = spm_input('first epoch (scans)','+1','r',1);
+			on    = on:soa:k;
+
+			case 'variable'
+			%-----------------------------------------------
+			str   = 'vector [or array] of onsets (scans)';
+			on    = spm_input(str,2);
+		end
+
+		if iscell(on)
+
+			% create stick functions
+			%-------------------------------------------------
+			for j = 1:length(on)
+				i = i + 1
+				ons(round(on{j}*T + 1),i + v) = 1;
+
+				% epoch lengths
+				%----------------------------------------
+				str   = ['scans per epoch (' name{i + v} ')'];
+				w(i)  = spm_input(str,'+1','r');
+
+			end
+		else
+			% create stick functions
+			%------------------------------------------------
+			i     = i + 1;
+			ons(round(on*T + 1),i + v) = 1;
+
+			% epoch lengths
+			%------------------------------------------------
+			str   = ['scans per epoch (' name{i + v} ')'];
+			w(i)  = spm_input(str,'+1','r');
+
+		end
+
 	end
 
 	% basis function lengths
 	%---------------------------------------------------------------
-	W     = [W w([1:u] + 1)];
+	W     = [W w*T];
 
 end
 
 
 % get parameters, contruct interactions and append
 %=======================================================================
-set(Finter,'Name','')
-v     = length(W);
-if v
+set(Finter,'Name',Fstr)
+if (v + u)
     if spm_input('model parametric or time effects',1,'y/n',[1 0])
 
+	% basis functions - Type
+	%-------------------------------------------------------
+	Ptype = {'User specified ',...
+		'Time (exponential)',...
+		'Time (linear)'};
+	str   = 'Form of parametric modulation';
+	Pov   = spm_input(str,'+1','m',Ptype);
+	Pnam  = Ptype{Pov};
 
 	% cycle over selected trial types
 	%---------------------------------------------------------------
-	str   = sprintf('which effect[s] 1 to %d',v);
+	str   = sprintf('which effect[s] 1 to %d',v + u);
 	for i = spm_input(str,'+1','e',1)
 
-		% basis functions - Type
-		%-------------------------------------------------------
 		set(Finter,'Name',name{i})
-		Ptype = str2mat(...
-			'User specified ',...
-			'Time (exponential)',...
-			'Time (linear)');
-		str   = 'Form of parametric modulation';
-		Pov   = spm_input(str,3,'m',Ptype,[1:size(Ptype,1)]);
-		Pstr  = {'param' 'time' 'time'};
-		Pstr  = [name{i} ' x ' Pstr{Pov}];
+		Pstr  = [name{i} ' x ' Pnam];
 		on    = find(ons(:,i));
 		ns    = length(on);
-		p     = [];
 
 		% get parameters
 		%-------------------------------------------------------
 		if     Pov == 1
 
 			while length(p) ~= ns
-				str = 'vector of parameters';
-				p   = spm_input(str,'+1','r',[],[1,ns]);
+				str = 'parameters';
+				p   = spm_input(str,'+1','r',[],[ns,1]);
 			end
 
 		% exponential adaptation
@@ -262,6 +288,7 @@ if v
 		elseif Pov == 3
 
 			p   = on*dt;
+
 		end
 		p     = spm_detrend(p(:));
 
@@ -271,19 +298,22 @@ if v
 		p     = sparse(on,1,p,size(ons,1),1);
 		ons   = [ons p];
 		name  = [name {Pstr}];
+
 		W     = [W W(i)];
 
 	end
     end
 end
 
-% paramteric representation of causes
+
+% paramteric representation of causes - default values for main effects
 %-----------------------------------------------------------------------
 for i = 1:size(ons,2)
 	para{i} = ons(find(ons(:,i)),i);
 end
 
+
 % finished
 %-----------------------------------------------------------------------
-set(Finter,'Name','')
+set(Finter,'Name',Fstr)
 spm_clf(Finter)
