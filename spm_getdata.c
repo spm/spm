@@ -1,5 +1,5 @@
 /* spm_getdata.c */
-ifndef lint
+#ifndef lint
 static char sccsid[] = "%W% John Ashburner & Matthew Brett %E%";
 #endif
 /* routines for accessing datatypes for images */
