@@ -110,6 +110,12 @@ function [R1,R2]=spm_help(Action,P2,P3,P4,P5)
 %  ---  The coding is concise but clear, and annotated with comments
 %       where necessary.
 %
+% In addition, the MatLab help system provides keyword searching
+% through the H1 lines (the first comment line) of the help entries of
+% *all* M-files found on MATLABPATH. This can be used to identify
+% routines from keywords. Type `help lookfor` in the MatLab command
+% window for further details.
+%
 %__________________________________________________________________________
 % %W% Andrew Holmes, Karl Friston %E%
 
