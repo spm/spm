@@ -529,6 +529,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 			   & (Y1>=1-t) & (Y1<=VF(1).dim(2)+t) ...
 			   & (X1>=1-t) & (X1<=VF(1).dim(1)+t) & wt>0.005);
 		wt = wt(mask1);
+		wt = sqrt(wt);
 	else,
 		% Only resample from within the volume VF.
 		%-----------------------------------------------------------------------
