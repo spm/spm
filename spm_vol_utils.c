@@ -255,9 +255,9 @@ IMAGE_DTYPE *vol[];
 	for (i=0; i<m; i++)
 	{
 		int xcoord, ycoord, zcoord;
-		xcoord = x[i]-0.5;
-		ycoord = y[i]-0.5;
-		zcoord = z[i]-0.5;
+		xcoord = floor(x[i]-0.5);
+		ycoord = floor(y[i]-0.5);
+		zcoord = floor(z[i]-0.5);
 		if (xcoord>=0 && xcoord<xdim && ycoord>=0 &&
 			ycoord<ydim && zcoord>=0 && zcoord<zdim)
 			out[i] = scale[zcoord]*GET(vol[zcoord][xcoord  + xdim*ycoord])+offset[zcoord];
@@ -533,9 +533,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			int ix4, iy4, iz4;
 			s3 += ds3;
 			if (s3 == 0.0) return(-1);
-			ix4 = ((x3 += dx3)/s3)-0.5;
-			iy4 = ((y3 += dy3)/s3)-0.5;
-			iz4 = ((z3 += dz3)/s3)-0.5;
+			ix4 = floor(((x3 += dx3)/s3)-0.5);
+			iy4 = floor(((y3 += dy3)/s3)-0.5);
+			iz4 = floor(((z3 += dz3)/s3)-0.5);
 			if (iz4>=0 && iz4<zdim2 && iy4>=0 && iy4<ydim2 && ix4>=0 && ix4<xdim2)
 			{
 				image[t] = scale[iz4]*(double)GET(vol[iz4][ix4 + xdim2*iy4]) + offset[iz4];
