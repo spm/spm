@@ -331,7 +331,7 @@ switch cLF
 	HParam = 512*ones(1,nsess);
 	for  i = 1:nsess
 		for j = 1:length(Sess{i}.pst)
-		   HParam(i) = min([HParam(i) 2*max(RT + Sess{i}.pst{j})]);
+		   HParam(i) = min([HParam(i) 2*max(Sess{i}.pst{j})]);
 		end
 	end
 	HParam = ceil(HParam);
