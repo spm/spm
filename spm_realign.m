@@ -643,10 +643,12 @@ if nargin<2, Q = ''; end
 if ~isempty(Q),
 	tmp = clock;
 	ref = [pwd '/spm_realign_tmp_' sprintf('%.2d%.2d%.2d%.2d%.4d',tmp(3),tmp(4),tmp(5),round(tmp(6)),round(rem(tmp(6),1)*10000)) '.img'];
+	VG = spm_vol(ref);
+	VF = spm_vol(Q(1:(end-1),:));
 	spm_smooth(P(1).fname,ref,8);
 	linfun('Initial registration to templates..');
-	params  =spm_affsub3('affine2',Q(1:(end-1),:),ref,1,8);
-	params = spm_affsub3('affine2',Q(1:(end-1),:),ref,1,6,params);
+	params  =spm_affsub3('affine2',VF,VG,1,8);
+	params = spm_affsub3('affine2',VF,VG,1,6,params);
 	tmp = spm_str_manip(ref,'rd');
 	spm_unlink(ref,[tmp '.hdr'],[tmp '.mat']);
 	MW = inv(spm_matrix(params(1:12)));

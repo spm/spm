@@ -202,8 +202,20 @@ if ~isempty(PG) & isstr(PG)
 	% be segmented.
 	%-----------------------------------------------------------------------
 	linfun('Smoothing..');
-	MG = spm_get_space(PG(1,:));
+	VG = spm_vol(PG);
+	for i=1:prod(size(VG)),
+		VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/spm_global(VG(i));
+	end;
+
 	spm_smooth(PF(1,:),'spm_seg_tmp.img',8);
+	VF = spm_vol('spm_seg_tmp.img');
+	VF.pinfo(1:2,:) = VF.pinfo(1:2,:)/spm_global(VF);
+
+	global sptl_MskBrn
+	VW = [];
+	if sptl_MskBrn==1,
+		VW = spm_vol(fullfile(SWD,'apriori','brainmask.img'));
+	end;
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
@@ -215,8 +227,8 @@ if ~isempty(PG) & isstr(PG)
 		prms = [0 0 0  0 0 0  1 1 1  0 0 0 ones(1,size(PG,1))]';
 	end;
 	spm_chi2_plot('Init','Affine Registration','Convergence');
-	prms = spm_affsub3('affine3', PG, 'spm_seg_tmp.img', 1, 8, prms);
-	prms = spm_affsub3('affine3', PG, 'spm_seg_tmp.img', 1, 6, prms);
+	prms = spm_affsub3('affine3', VG, VF, 1, 8, prms);
+	prms = spm_affsub3('affine3', VG, VF, 1, 6, prms, VW);
 	spm_chi2_plot('Clear');
 	spm_unlink(	'spm_seg_tmp.img',...
 			'spm_seg_tmp.hdr',...

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#     %W% JA, mods by Matthew Brett %E%
+#     @(#)spm_MAKE.sh	2.17 JA, mods by Matthew Brett 99/05/26
 #
 # spm_MAKE.sh will compile spm*.c scripts in a platform specific fashion
 # see mex

@@ -283,14 +283,22 @@ if strcmp(PGG,PFG), 	% Same modality
 	end;
 	inameG = inameG(2:size(inameG,1),:);
 	inameF = inameF(2:size(inameF,1),:);
+	VG = spm_vol(inameG);
+	VF = spm_vol(inameF);
+	for i=1:prod(size(VG)),
+		VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/spm_global(VG(i));
+	end;
+	for i=1:prod(size(VF)),
+		VF(i).pinfo(1:2,:) = VF(i).pinfo(1:2,:)/spm_global(VF(i));
+	end;
 
 	% Coregister the images together.
 	%-----------------------------------------------------------------------
 	spm_chi2_plot('Init','Coregistering','Convergence','Iteration');
 	linfun('Coarse Coregistration..');
-	params = spm_affsub3('rigid2', inameG, inameF, 1, 8);
+	params = spm_affsub3('rigid2', VG, VF, 1, 8);
 	linfun('Fine Coregistration..');
-	params = spm_affsub3('rigid2', inameG, inameF, 1, 6, params);
+	params = spm_affsub3('rigid2', VG, VF, 1, 6, params);
 	MM     = spm_matrix(params);
 	spm_chi2_plot('Clear');
 
@@ -327,6 +335,8 @@ else 	% Different modalities
 	PPF = str2mat(	fullfile('.','spm_coreg_tmpG.img'),...
 			fullfile('.','spm_coreg_tmpF.img')    );
 	PPG = str2mat(PGG(1,:), PFG(1,:));
+	VF = spm_vol(PPF);
+	VG = spm_vol(PPG);
 
 	spm_chi2_plot('Init','Rough Coregistration','Convergence','Iteration');
 	% Be careful here with the order of the matrix multiplications.
@@ -337,9 +347,9 @@ else 	% Different modalities
 		params = [zeros(1,12) 1 1 1 0 0 0  1 1]';
 	end
 	linfun('First Pass Coregistration - coarse..');
-	params = spm_affsub3('register1', PPG, PPF, 1, 8 , params);
+	params = spm_affsub3('register1', VG, VF, 1, 8 , params);
 	linfun('First Pass Coregistration - fine..');
-	params = spm_affsub3('register1', PPG, PPF, 1, 6 , params);
+	params = spm_affsub3('register1', VG, VF, 1, 6 , params);
 	spm_chi2_plot('Clear');
 
 	delete_image('spm_coreg_tmpG');
@@ -374,6 +384,7 @@ fprintf('time=%g seconds\n',toc);
 
 		PPG = [ [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp1.img']
 			[spm_str_manip(PGF(1,:),'rd') '_sseg_tmp2.img']];
+		VG = spm_vol(PPG);
 
 		% Partition the object image(s) into smoothed segments
 		%-----------------------------------------------------------------------
@@ -382,6 +393,7 @@ fprintf('time=%g seconds\n',toc);
 
 		PPF = [ [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp1.img']
 			[spm_str_manip(PFF(1,:),'rd') '_sseg_tmp2.img']];
+		VF = spm_vol(PPF);
 
 		% Coregister the segments together
 		%-----------------------------------------------------------------------
@@ -389,7 +401,7 @@ fprintf('time=%g seconds\n',toc);
 		disp('Coregistering segments')
 		spm_chi2_plot('Init','Coregistering segments','Convergence','Iteration');
 		params = [spm_imatrix(MM) 1 1]';
-		params = spm_affsub3('rigid2', PPG(1:2,:), PPF(1:2,:), 1, 6, params);
+		params = spm_affsub3('rigid2', VG(1:2), VF(1:2), 1, 6, params);
 		MM = spm_matrix(params(1:12));
 		spm_chi2_plot('Clear');
 

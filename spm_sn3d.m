@@ -635,11 +635,28 @@ end;
 
 linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
-VG = spm_vol(spms);
-
 linfun('Smoothing..');
 spm_smooth(P(1,:),fullfile('.','spm_sn3d_tmp.img'),params(5));
 VF = spm_vol(fullfile('.','spm_sn3d_tmp.img'));
+VG = spm_vol(spms);
+
+% check for masks and initialise as nec
+VW  = [];
+VW2 = [];
+if nargin >= 7,
+	if ~isempty(brainmask), VW=spm_vol(brainmask); end;
+	if nargin >= 8,
+		if ~isempty(objmask), VW2=spm_vol(objmask); end;
+	end;
+end;
+
+% Rescale images so that globals are better conditioned
+gl = spm_global(VF);
+VF.pinfo(1:2,:) = VF.pinfo(1:2,:)/gl;
+for i=1:prod(size(VG)),
+	gl = spm_global(VG(i));
+	VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/gl;
+end;
 
 
 % Affine Normalisation
@@ -647,10 +664,10 @@ VF = spm_vol(fullfile('.','spm_sn3d_tmp.img'));
 spm_chi2_plot('Init','Affine Registration','Convergence');
 % use object mask, if present, for rough coregistration
 linfun('Coarse Affine Registration..');
-p1 = spm_affsub3('affine3',spms,fullfile('.','spm_sn3d_tmp.img'),1,8,[],'', objmask);
+p1 = spm_affsub3('affine3',VG,VF,1,8,[],[], VW2);
 % call to affsub3 allows empty brainmask, objmask
 linfun('Fine Affine Registration..');
-p1 = spm_affsub3('affine3',spms,fullfile('.','spm_sn3d_tmp.img'),1,6,p1,brainmask,objmask);
+p1 = spm_affsub3('affine3',VG,VF,1,6,p1,VW,VW2);
 
 spm_chi2_plot('Clear');
 prms   = p1(1:12);
@@ -664,16 +681,7 @@ if any(fov<60),
 end;
 
 if ~any(params(1:4)==0) & params(6)~=Inf,
-	len = fprintf('  %s', '3D Cosine Transform Normalization: ');
-	% check for masks and initialise as nec
-	VW  = [];
-	VW2 = [];
-	if nargin >= 7,
-		if ~isempty(brainmask), VW=spm_vol(brainmask); end;
-		if nargin >= 8,
-			if ~isempty(objmask), VW2=spm_vol(objmask); end;
-		end;
-	end;
+	len = fprintf('  %s', '3D CT Norm: ');
    
 	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW,VW2);
 	fprintf('%s', sprintf('\b')*ones(1,len));

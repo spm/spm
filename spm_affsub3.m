@@ -1,17 +1,17 @@
-function params = spm_affsub3(mode, PG, PF, Hold, samp, params,PW,PW2)
+function params = spm_affsub3(mode, VG, VF, Hold, samp, params,VW,VW2)
 % Highest level subroutine involved in affine transformations.
-% FORMAT params = spm_affsub3(mode, PG, PF, Hold, samp, params,PW,PW2)
+% FORMAT params = spm_affsub3(mode, VG, VF, Hold, samp, params,VW,VW2)
 %
 % mode      - Mode of action.
-% PG        - Matrix of template image name.
-% PF        - Matrix of object image names.
+% VG        - Handles of template images (see spm_vol).
+% VF        - Handles of object images.
 % Hold      - Interpolation method.
 % samp      - Frequency (in mm) of sampling.
 % params    - Parameter estimates.
 %
 % optional:
-% PW        - Name of weight image.
-% PW2       - Name of weight image for object image(s)
+% VW        - Handle of weight image.
+% VW2       - Handle of weight image for object image(s)
 %__________________________________________________________________________
 %
 % Currently mode must be one of the following:
@@ -96,8 +96,8 @@ elseif strcmp(mode,'rigid1')
 	% Rigid body registration.
 	% Each F is mapped to one G, without scaling.
 	%-----------------------------------------------------------------------
-	np     = size(PG,1);
-	if np ~= size(PF,1)
+	np     = prod(size(VG));
+	if np ~= prod(size(VF))
 		error('There should be the same number of object and template images');
 	end
 
@@ -113,8 +113,8 @@ elseif strcmp(mode,'rigid2')
 	% Rigid body registration.
 	% Each F is mapped to one G, with scaling.
 	%-----------------------------------------------------------------------
-	np     = size(PG,1);
-	if np ~= size(PF,1)
+	np     = prod(size(VG));
+	if np ~= prod(size(VF))
 		error('There should be the same number of object and template images');
 	end
 
@@ -129,8 +129,8 @@ elseif strcmp(mode,'rigid3')
 	% Rigid body registration.
 	% Each F is mapped to a linear combination of Gs.
 	%-----------------------------------------------------------------------
-	np    = size(PG,1);
-	if size(PF,1) ~= 1
+	np    = prod(size(VG));
+	if prod(size(VF)) ~= 1
 		error('There should be one object image');
 	end
 
@@ -146,8 +146,8 @@ elseif strcmp(mode,'2d1')
 	% Rigid body registration.
 	% Each F is mapped to a linear combination of Gs.
 	%-----------------------------------------------------------------------
-	np    = size(PG,1);
-	if size(PF,1) ~= 1
+	np    = prod(size(VG));
+	if prod(size(VF)) ~= 1
 		error('There should be one object image');
 	end
 	pdesc   = ones(12+np,1);
@@ -162,8 +162,8 @@ elseif strcmp(mode,'affine1')
 	% Affine normalisation.
 	% Each F is mapped to one G, without scaling.
 	%-----------------------------------------------------------------------
-	np     = size(PG,1);
-	if np ~= size(PF,1)
+	np     = prod(size(VG));
+	if np ~= prod(size(VF))
 		error('There should be the same number of object and template images');
 	end
 
@@ -179,8 +179,8 @@ elseif strcmp(mode,'affine2')
 	% Affine normalisation.
 	% Each F is mapped to one G, with scaling.
 	%-----------------------------------------------------------------------
-	np     = size(PG,1);
-	if np ~= size(PF,1)
+	np     = prod(size(VG));
+	if np ~= prod(size(VF))
 		error('There should be the same number of object and template images');
 	end
 
@@ -196,8 +196,8 @@ elseif strcmp(mode,'affine3')
 	% Affine normalisation.
 	% Each F is mapped to a linear combination of Gs.
 	%-----------------------------------------------------------------------
-	np    = size(PG,1);
-	if size(PF,1) ~= 1
+	np    = prod(size(VG));
+	if prod(size(VF)) ~= 1
 		error('There should be one object image');
 	end
 
@@ -212,12 +212,6 @@ else
 	error('I don''t understand');
 end
 
-
-% Map the images & get their positions in space.
-%-----------------------------------------------------------------------
-VG = spm_vol(PG);
-VF = spm_vol(PF);
-
 if nargin < 6,
 	params = mean0;
 else,
@@ -227,25 +221,8 @@ else,
 	end;
 end;
 
-if nargin<7,
-	VW = [];
-else,
-	if ~isempty(PW),
-		VW = spm_vol(PW);
-	else,
-		VW = [];
-	end;
-end;
-
-if nargin<8,
-	VW2 = [];
-else,
-	if ~isempty(PW2),
-		VW2 = spm_vol(PW2);
-	else,
-		VW2 = [];
-	end;
-end;
+if nargin<7, VW  = []; end;
+if nargin<8, VW2 = []; end;
 
 % Do the optimisation
 %-----------------------------------------------------------------------
