@@ -19,16 +19,16 @@ if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;
 dict = readdict;
 j    = 0;
 hdr  = {};
-spm_progress_bar('Init',size(P,1),'Reading DICOM headers','Files complete');
+if size(P,1)>1, spm_progress_bar('Init',size(P,1),'Reading DICOM headers','Files complete'); end;
 for i=1:size(P,1),
 	tmp = readdicomfile(P(i,:),dict);
 	if ~isempty(tmp),
 		j      = j + 1;
 		hdr{j} = tmp;
 	end;
-	spm_progress_bar('Set',i);
+	if size(P,1)>1, spm_progress_bar('Set',i); end;
 end;
-spm_progress_bar('Clear');
+if size(P,1)>1, spm_progress_bar('Clear'); end;
 return;
 %_______________________________________________________________________
 
