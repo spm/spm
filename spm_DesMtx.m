@@ -22,6 +22,14 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %                           ----------------
 % - Utilities:
 %
+% FORMAT i = spm_DesMtx('pds',v,m,n)
+% Patterned data setting function - inspired by MINITAB's "SET" command
+% v - base pattern vector
+% m - (scalar natural number) #replications of elements of v [default 1]
+% n - (scalar natural number) #repeats of pattern [default 1]
+% i - resultant pattern vector, with v's elements replicated m times,
+%     the resulting vector repeated n times.
+%
 % FORMAT [nX,nPnames] = spm_DesMtx('sca',X1,Pnames1,X2,Pnames2,...)
 % Produces a scaled design matrix nX with max(abs(nX(:))<=1, suitable
 % for imaging with: image((nX+1)*32)
@@ -186,6 +194,22 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %  - If the "ignore zeros" constraint '~' is used, then kdx indexes the
 %    non-zero (combinations) of factor levels, such that
 %                     I(kdx,:) = Index(:,jdx)' and  Index == I(kdx(idx),:)'
+%
+%                           ----------------
+%
+% The "patterned data setting" (spm_DesMtx('pds'...) is a simple
+% utility for setting patterned indicator vectors, inspired by
+% MINITAB's "SET" command.
+%
+% The vector v has it's elements replicated m times, and the resulting
+% vector is itself repeated n times, giving a resultant vector i of
+% length n*m*length(v)
+%
+% Examples:
+%     spm_DesMtx('pds',1:3)       % = [1,2,3]
+%     spm_DesMtx('pds',1:3,2)     % = [1,1,2,2,3,3]
+%     spm_DesMtx('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
+% NB: MINITAB's "SET" command has syntax n(v)m:
 %
 %                           ----------------
 %
@@ -565,6 +589,23 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
 		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 end
+
+
+case {'PDS','pds'}                          %-Patterned data set utility
+%=======================================================================
+% i = spm_DesMtx('pds',v,m,n)
+if nargin<4, n=1; else, n=varargin{4}; end
+if nargin<3, m=1; else, m=varargin{3}; end
+if nargin<2, varargout={[]}, return, else, v=varargin{2}; end
+if any([size(n),size(m)])>1, error('n & m must be scalars'), end
+if any(([m,n]~=floor([m,n]))|([m,n]<1))
+	error('n & m must be natural numbers'), end
+if sum(size(v)>1)>1, error('v must be a vector'), end
+
+%-Computation
+%-----------------------------------------------------------------------
+si = ones(1,ndims(v)); si(find(size(v)>1))=n*m*length(v);
+X = reshape(repmat(v(:)',m,n),si);
 
 
 
