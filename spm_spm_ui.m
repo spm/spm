@@ -390,7 +390,7 @@ function varargout=spm_spm_ui(varargin)
 % 
 % xM            - structure describing masking options
 % xM.T          - Threshold masking value (-Inf=>None,
-%                 complex=>proportional, real=>absolute (i.e. times global))
+%                 complex=>proportional (i.e. times global), real=>absolute )
 % xM.TH         - nScan x 1 vector of analysis thresholds, one per image
 % xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
 % xM.VM         - struct array of explicit mask images
@@ -409,7 +409,7 @@ function varargout=spm_spm_ui(varargin)
 % 
 % xCon          - structure array of contrasts
 % xCon(i).name  - name of contrast i
-% xCon(i).con   - contrast vector / matrix (for F-contrasts)
+% xCon(i).c     - contrast vector / matrix (for F-contrasts)
 % xCon(i).V     - memory mapping structure of numerator image - contrast
 %                 of parameter estimates (for vector contrasts), or
 %                 extra sum-of-squares (for F-contrasts)
@@ -1316,13 +1316,16 @@ xX     = struct(	'I',		I,...
 			'sF',		{D.sF},...
 			'rX',		rX,...
 			'X',		X,...
+			'RT',		{[]},...
 			'K',		speye(size(X,1)),...
+			'sigma',	0,...
 			'iH',		[1:size(H,2)],...
 			'iC',		[1:size(C,2)] + tmp(1),...
 			'iB',		[1:size(B,2)] + tmp(2),...
 			'iG',		[1:size(G,2)] + tmp(3),...
 			'Xnames',	{Xnames},...
-			'sXorth',	{sXorth}			);
+			'sXorth',	{sXorth});
+
 
 
 %-Pre-specified contrast for F-test on effects of interest
@@ -1340,7 +1343,7 @@ if ~isempty([H,C])
 	end
 	
 	xCon = struct(	'name',	'no effects of interest',...
-			'con',	c,...
+			'c',	c,...
 			'V',	[]);
 
 %elseif ~isempty(G)
@@ -1378,12 +1381,12 @@ spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM)
 %-This is PET data so sigma = 0 (i.e. independent observations) 
 % RT is undefined
 %-----------------------------------------------------------------------
-%spm_spm(VY,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
+%spm_spm(VY,xM,xX,xCon,[])
 
 
 %-End: Cleanup GUI
 %=======================================================================
-spm('FigName','Stats: done',Finter,CmdLine); spm('Pointer','Arrow')
+spm('FigName','Stats: copnfigured',Finter,CmdLine); spm('Pointer','Arrow')
 fprintf('\n\n')
 
 
