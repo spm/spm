@@ -1,5 +1,5 @@
 function [SPM] = spm_spm(SPM)
-% Estimation of the General Linear Model
+% [Re]ML Estimation of a General Linear Model
 % FORMAT [SPM] = spm_spm(SPM)
 %
 % required fields of SPM:
@@ -17,24 +17,37 @@ function [SPM] = spm_spm(SPM)
 %       - Optional fields are:
 %         xX.K      - Sparse temporal smoothing matrix (see spm_sptop)
 % 		    - Or cell of session-specific structures (see spm_filter)
-%                   - Design & data are smoothed using K
-%                     (model is K*Y = K*X*beta + K*e)
+%                   - Design & data are pre-multiplied by K
+%                     (K*Y = K*X*beta + K*e)
 %                   - Note that K should not smooth across block boundaries
 %                   - defaults to speye(size(xX.X,1))
+%         xX.W      - Optional [full] whitening/weighting matrix used to give
+%                     weighted least squares estimates (WLS). If not specified
+%                     spm_spm will set this to whiten the data and render
+%                     the OLS estimtes maximum likelihood
+%                     (i.e. W*W' = inv(xVi.V).
 %
-% xVi   - structure describing intrinsic temporal auto-correlation
-%       - required fields are
-%         SPM.xVi.Vi - intrinsic temporal auto-correlation matrix
-%                    - defaults to speye(size(xX.X,1))
-%                    - specifying a cell array of contraints
-%                      invokes spm_reml to estimate hyperparameters
-%                      assuming Vi is constant over voxels.
+% xVi   - structure describing intrinsic temporal non-sphericity
+%       - required fields are:
+%         xVi.Vi    - array of non-sphericity components
+%                   - defaults to {speye(size(xX.X,1))} - i.i.d.
+%                   - specifying a cell array of contraints (Qi)
+%                     These contraints invoke spm_reml to estimate
+%                     hyperparameters assuming V is constant over voxels. 
+%                     that provide a high precise estimate of xX.V
+%       - Optional fields are:
+%         xX.V      - Optional non-sphericity matrix.  Cov(e) = sigma^2*V
+%                     If not specified spm_spm will compute this using
+%                     a 1st pass to identify signifcant voxels over which
+%                     to estimate V.  A 2nd pass is then used to re-estimate
+%                     the parameters with WLS and save the ML estimates 
+%                     (unless xX.W is already specified)
 %
 % xM    - Structure containing masking information, or a simple column vector
 %         of thresholds corresponding to the images in VY.
 %       - If a structure, the required fields are:
 %         xM.TH - nVar x nScan matrix of analysis thresholds, one per image
-%         xM.I  - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
+%         xM.I  - Implicit masking (0=>none, 1 => implicit zero/NaN mask)
 %         xM.VM - struct array of mapped explicit mask image volumes
 % 		- (empty if no explicit masks)
 %               - Explicit mask images are >0 for valid voxels to assess.
@@ -48,45 +61,75 @@ function [SPM] = spm_spm(SPM)
 %
 %
 % In addition, the global default UFp is used to set a critical
-% F-threshold for selecting voxels over which the non-spherical
-% correlations structure is estimated (if required)
+% F-threshold for selecting voxels over which the non-sphericity
+% is estimated (if required)
 %
 %_______________________________________________________________________
 %
 % spm_spm is the heart of the SPM package. Given image files and a
-% General Linear Model, it estimates the model parameters, residual
-% variance, and smoothness of the standardised residual fields, writing
+% General Linear Model, it estimates the model parameters, variance
+% hyerparameters, and smoothness of standardised residual fields, writing
 % these out to disk in the current working directory for later
 % interrogation in the results section. (NB: Existing analyses in the
-% current working directory are overwritten.).  This directory
+% current working directory are overwritten).  This directory
 % now becomes the working directory for this analysis and all saved
 % images are relative to this directory.
 %
 % The model is expressed via the design matrix (xX.X). The basic model
-% at each voxel is of the form is Y = X*beta * e, for data Y, design
+% at each voxel is of the form is Y = X*B + e, for data Y, design
 % matrix X, (unknown) parameters B, and residual errors e. The errors
-% are assummed to have a normal distribution ~ N(0,sigma^2*Vi) where Vi can
-% be specified in xVi.  If the intrinsic correlations Vi are not
-% specified Vi defaults to the identity matrix (i.e. i.i.d assumptions).
-% The parameters are estimated by ordinary least squares, using matrix
-% methods, and the residual variance estimated.  
+% are assummed to have a normal distribution.
 %
-% Note that only a single variance component is considered. This is
-% *always* a fixed effects model. Random effects models can be effected
-% using summary statistics, summarising the data such that the fixed
-% effects in the model on the summary data are those effects of
-% interest (i.e. the population effects). In this case the residual
-% variance for the model on the summary data contains the appropriate
-% variance components in the appropriate ratio. See spm_RandFX.man for
-% further details and below.
+% Sometimes confounds (e.g. drift terms in fMRI) are necessary.  These
+% can be specified directly in the design matrix or implicitly, in terms
+% of a residual forming matrix K to give a generalised linear model
+% K*Y = K*X*B + K*e.  In fact K can be any matrix (e.g. a convolution
+% matrix).
+%
+% In some instances i.i.d. assumptions about errors do not hold.  For
+% example, with serially correlated (fMRI) data or correlations among the
+% levels of a factor in repeated measures designs.  This non-sphericity
+% can be specified in terms of components (SPM.xVi.Vi{i}). If specified  
+% these covariance components will then be estimated with ReML (restricted
+% maximum likelihood) hyperparameters.  This estimation assumes the same
+% non-sphericity for voxels that exceed the global F-threshold. The ReML
+% estimates can then used to whiten the data giving maximum likelihood (ML)
+% or Gauss-Markov estimators.  This entails a second pass of the data
+% with an augmented model K*W*Y = K*W*X*B + K*W*e where W*W' = inv(xVi.V).
+% xVi.V is the non-sphericity based on the hyperparameter esimates. 
+% W is stored in xX.W and cov(K*W*e) in xX.V.  The covariance of the 
+% parameter estimates is then xX.Bcov = pinv(K*W*X)*xX.V*pinv(K*W*X)';
+%
+% If you do not want ML estimates but want to use ordinary least squares
+% (OLS) then simply set SPM.xX.W to the identity matrix. Any non-sphericity
+% V will still be estimated but will be used to adjust the degrees of freedom
+% of the ensuing statistics using the Satterthwaite approximation (c.f.
+% the Greenhouse-Giesser corrections)
+%
+% If [non-spherical] variance components Vi are not specified xVi.Vi and 
+% xVi.V default to the identity matrix (i.e. i.i.d). The parameters are 
+% then estimated by OLS.  In this instance the OLS and ML estimates are
+% the same.
+%
+% Note that only a single voxel-specific hyperaprameter (i.e. variance
+% component) is estimated, even if V is not i.i.d.  This means spm_spm
+% always implements a fixed-effects model.
+% Random effects models can be emulated using a multi-stage procedure:
+% This entails summarising the data with contrasts such that the fixed
+% effects in a second model on the summary data are those effects of
+% interest (i.e. the population effects). This means contrasts are 
+% re-entered into spm_spm to make an inference (SPM) at the next
+% level. At this higher hierarchial level the residual variance for the 
+% model contains the appropriate variance components from lower levels.
+% See spm_RandFX.man for further details and below.
 %
 % Under the additional assumption that the standardised residual images
 % are non-stationary standard Gaussian random fields, results from
 % Random field theory can be applied to estimate the significance
-% statistic images (SPM's) accounting for the multiplicity of testing
-% at all voxels in the volume of interest simultaneously. The required
-% parameters are the volume, and Lambda, the variance covariance matrix
-% of partial derivatives of the standardised error fields.
+% statistic images (SPM's) adjusting p values for the multiple tests
+% at all voxels in the search volume. The parameters required for
+% this random field correction are the volume, and Lambda, the covariance
+% matrix of partial derivatives of the standardised error fields.
 %
 % spm_est_smoothness estimates the variances of the partial derivatives 
 % in the axis directions (the diagonal of Lambda). The covariances (off
@@ -94,18 +137,6 @@ function [SPM] = spm_spm(SPM)
 % 
 %                           ----------------
 %
-% In some instances the i.i.d. assumptions about errors do not hold.  For
-% example, with serially correlated (fMRI) data or correlations among the
-% levels of a factor in repeated measures designs.  This non-sphericity
-% can be specified in terms of constraints (SPM.xVi.Vi) Covariance
-% components and correlations will be estimated with an ReML (restricted
-% maximum likelihood) algorithm using these contraints.  This estimation
-% assumes the same correlation structure for each voxel.  The ReML
-% estimates are then used to correct for non-sphericity during inference
-% by adjusting the statistics and degrees of freedom appropriately.
-% Because spm_spm uses an OLS estimator (as opposed to a Gauss-Markov
-% estimator) the parameter estimates will not be affected. Note that the
-% non-sphereicity correction can give non-integer degrees of freedom.
 %
 % The volume analsed is the intersection of the threshold masks,
 % explicit masks and implicit masks. See spm_spm_ui for further details
@@ -124,21 +155,26 @@ function [SPM] = spm_spm(SPM)
 %
 % The following SPM.fields are computed by spm_spm
 %
+%     xVi.V      - estimated non-sphericity trace(V) = rank(V)
+%     xVi.h      - hyperparameters  xVi.V = xVi.h(1)*xVi.Vi{1} + ...
+%     xVi.Cy     - spatially whitened <Y*Y'> (used by ReML to estimate h)
+%     xVi.CY     - <(Y - <Y>)*(Y - <Y>)'>    (used by spm_spm_Bayes)
+%
+%                           ----------------
+%
 %     Vbeta     - struct array of beta image handles (relative)
 %     VResMS    - file struct of ResMS image handle  (relative)
 %     VM        - file struct of Mask  image handle  (relative)
 %
 %                           ----------------
-%
-%     xX.V      - V matrix (xX.K*Vi*xX.K') = correlations after K is applied
-%     xX.xKXs   - space structure for K*X (xX.K*xX.X), the 'filtered'
+%     xX.W      - if not specified W*W' = inv(x.Vi.V)
+%     xX.V      - V matrix (K*W*Vi*W'*K') = correlations after K*W is applied
+%     xX.xKXs   - space structure for K*W*X, the 'filtered and whitened'
 %                 design matrix
-%               - given as spm_sp('Set',xX.K*xX.X) - see spm_sp for details
-%                 (so xX.xKXs.X is K*X)
-%     xX.pKX    - pseudoinverse of K*X (xX.K*xX.X), computed by spm_sp
-%                 (this was called PH in spm_AnCova)
-%     xX.Bcov   - pinv(K*X)*V*pinv(K*X)' - variance-covariance matrix
-%                 of parameter estimates
+%               - given as spm_sp('Set',xX.K*xX.W*xX.X) - see spm_sp
+%     xX.pKX    - pseudoinverse of K*W*X, computed by spm_sp
+%     xX.Bcov   - xX.pKX*xX.V*xX.pKX - variance-covariance matrix of
+%                 parameter estimates
 %		  (when multiplied by the voxel-specific hyperparameter ResMS)
 %                 (of the parameter estimates. (ResSS/xX.trRV = ResMS)    )
 %     xX.trRV   - trace of R*V, computed efficiently by spm_SpUtil
@@ -159,35 +195,29 @@ function [SPM] = spm_spm(SPM)
 %
 %                           ----------------
 %
-%     xCon       - Contrast structure (created by spm_FcUtil.m)
-%     xCon.name  - Name of contrast
-%     xCon.STAT  - 'F', 'T' or 'X' - for F/T-contrast ('X' for multivariate)
-%     xCon.c     - (F) Contrast weights
-%     xCon.X0    - Reduced design matrix (spans design space under Ho)
-%                  It is in the form of a matrix (spm99b) or the
-%                  coordinates of this matrix in the orthogonal basis
-%                  of xX.X defined in spm_sp. 
-%     xCon.iX0   - Indicates how contrast was specified:
-%                  If by columns for reduced design matrix then iX0 contains the
-%                  column indices. Otherwise, it's a string containing the
-%                  spm_FcUtil 'Set' action: Usuall one of {'c','c+','X0'}
-%                  (Usually this is the input argument F_iX0.)
-%     xCon.X1o   - Remaining design space (orthogonal to X0).
-%                  It is in the form of a matrix (spm99b) or the
-%                  coordinates of this matrix in the orthogonal basis
-%                  of xX.X defined in spm_sp.
-%     xCon.eidf  - Effective interest degrees of freedom (numerator df)
-%     xCon.Vcon  - ...for handle of contrast/ESS image (empty at this stage)
-%     xCon.Vspm  - ...for handle of SPM image (empty at this stage)
+%     xCon      - Contrast structure (created by spm_FcUtil.m)
+%     xCon.name - Name of contrast
+%     xCon.STAT - 'F', 'T' or 'P' - for F/T-contrast ('P' for PPMs)
+%     xCon.c    - (F) Contrast weights
+%     xCon.X0   - Reduced design matrix (spans design space under Ho)
+%                 It is in the form of a matrix (spm99b) or the
+%                 coordinates of this matrix in the orthogonal basis
+%                 of xX.X defined in spm_sp. 
+%     xCon.iX0  - Indicates how contrast was specified:
+%                 If by columns for reduced design matrix then iX0 contains the
+%                 column indices. Otherwise, it's a string containing the
+%                 spm_FcUtil 'Set' action: Usuall one of {'c','c+','X0'}
+%                 (Usually this is the input argument F_iX0.)
+%     xCon.X1o  - Remaining design space (orthogonal to X0).
+%                 It is in the form of a matrix (spm99b) or the
+%                 coordinates of this matrix in the orthogonal basis
+%                 of xX.X defined in spm_sp.
+%     xCon.eidf - Effective interest degrees of freedom (numerator df)
+%     xCon.Vcon - ...for handle of contrast/ESS image (empty at this stage)
+%     xCon.Vspm - ...for handle of SPM image (empty at this stage)
 %
 %                           ----------------
 %
-%     xVi.V      - esimated non-spherical correlation matrix
-%     xVi.h      - hyperparameters  xVi.V = xVi.h(1)*xVi.Vi{1} + ...
-%     xVi.Cy     - spatially whitened <Y*Y'> (used by ReML to estimate h)
-%     xVi.CY     - <(Y - <Y>)*(Y - <Y>)'>    (used by spm_spm_Bayes)
-%
-%                           ----------------
 %
 % The following images are written to file
 %
@@ -252,16 +282,20 @@ SCCSid   = '%I%';
 %-----------------------------------------------------------------------
 SPMid    = spm('FnBanner',mfilename,SCCSid);
 Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
-
+try
+	SPM.xY.VY;
+catch
+	helpdlg('Please assign data to this design');
+	return
+end
 
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if exist(fullfile('.','mask.img'),'file') == 2
-	spm('alert!',{...
-		'Current directory contains some SPM results files!',...
-    		['        (pwd = ',pwd,')'],...
-		'Existing results are being overwritten!'},...
-		mfilename,1);
+	msgbox({'Current directory contains some SPM results files!',...
+    		'pwd = ',pwd,...
+		'Existing results are being overwritten!',...
+		mfilename},'warning','warn');
 	warning(sprintf('Overwriting existing results\n\t (pwd = %s) ',pwd))
 	drawnow
 end
@@ -272,9 +306,9 @@ files = {	'mask.???','ResMS.???','RVP.???',...
 
 for i=1:length(files)
 	if any(files{i} == '*'|files{i} == '?' )
-		[tmp,null] = spm_list_files(pwd,files{i});
-		for i=1:size(tmp,1)
-			spm_unlink(deblank(tmp(i,:)))
+		[j,null] = spm_list_files(pwd,files{i});
+		for i=1:size(j,1)
+			spm_unlink(deblank(j(i,:)))
 		end
 	else
 		spm_unlink(files{i})
@@ -293,18 +327,6 @@ xX            = SPM.xX;
 [nScan nBeta] = size(xX.X);
 
 
-%-Check confounds (K) and non-sphericity (xVi) fields of xX structure
-%-----------------------------------------------------------------------
-if ~isfield(xX,'K')
-	xX.K = speye(size(xX.X,1));
-end
-if ~isfield(SPM,'xVi')
-	xVi  = struct(	'Vi',	speye(size(xX.X,1)),...
-				'form',	'none'); 
-else
-	xVi  = SPM.xVi;
-end
-
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
 xM       = SPM.xM;
@@ -315,6 +337,104 @@ if ~isstruct(xM), xM = struct(	'T',	[],...
 				'xs',	struct('Masking','analysis threshold'));
 end
 
+%-Check confounds (xX.K) and non-sphericity (xVi)
+%-----------------------------------------------------------------------
+if ~isfield(xX,'K')
+	xX.K  = 1;
+end
+try
+	%-If covariance components are specified
+	%---------------------------------------------------------------
+	xVi   = SPM.xVi;
+catch
+
+	%-otherwise assume i.i.d.
+	%---------------------------------------------------------------
+	xVi   = struct(	'form',  'i.i.d.',...
+			'Vi',	{speye(nScan,nScan)},...
+			'V',	 speye(nScan,nScan),...
+			'h',     1);
+end
+
+
+
+%-Get non-sphericity V
+%=======================================================================
+try
+	%-If xVi.V is specified proceed directly to parameter estimation
+	%---------------------------------------------------------------
+	V     = xVi.V;
+	str   = 'parameter estimation';
+
+
+catch
+	% otherwise invoke ReML selecting voxels under i.i.d assumptions
+	%---------------------------------------------------------------
+	V     = speye(nScan,nScan);
+	str   = '[hyper]parameter estimation';
+end
+
+%-Get whitening/Weighting matrix: If xX.W exists we will save WLS estimates
+%-----------------------------------------------------------------------
+try
+	%-If W is specified, use it
+	%-------------------------------------------------------
+	W     = xX.W;
+catch
+	try
+		% otherwise make W a whitening filter W*W' = inv(V)
+		%-------------------------------------------------------
+		[u s] = spm_svd(xVi.V);
+		s     = spdiags(1./sqrt(diag(s)),0,nScan,nScan);
+		W     = u*s*u';
+		xX.W  = W;
+	catch
+		% unless xVi.V has not been estimated - requiring 2 passes
+		%-------------------------------------------------------
+		W     = speye(nScan,nScan);
+		str   = 'hyperparameter estimation (1st pass)';
+	end
+end
+
+
+%-Design space, projectors and traces (based on first F-contrast)
+%=======================================================================
+xX.xKXs       = spm_sp('Set',spm_filter(xX.K,W*xX.X));		% KWX
+xX.pKX        = spm_sp('x-',xX.xKXs);				% projector
+xX.V          = spm_filter(xX.K,spm_filter(xX.K,W*V*W')');	% KWVW'K'
+[trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);		% trRV (for X)
+xX.trRV       = trRV;						% <R'*y'*y*R>
+xX.trRVRV     = trRVRV;						%-Satterthwaite
+xX.erdf       = trRV^2/trRVRV;					% approximation
+xX.Bcov       = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
+
+
+%-Check estimability
+%-----------------------------------------------------------------------
+if     xX.erdf  < 0
+    error(sprintf('This design is unestimable!   (df=%-.2g)',xX.erdf))
+elseif xX.erdf == 0
+    error('This design has no residuals! (df = 0)')
+elseif xX.erdf <  4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
+end
+
+%-Compute Hsqr and UF, the F-threshold
+%-----------------------------------------------------------------------
+Fcname        = 'effects of interest';
+iX0           = [SPM.xX.iB SPM.xX.iG];
+xCon          = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+X1o           = spm_FcUtil('X1o', xCon(1),xX.xKXs);
+Hsqr          = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
+trMV          = spm_SpUtil('trMV',X1o,xX.V);
+UFp           = spm('GetGlobal','UFp');
+UF            = spm_invFcdf(1 - UFp,[trMV,xX.erdf]);
+
+
+%-Compute scaled design matrix for display purposes
+%-----------------------------------------------------------------------
+xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
+
 
 %-Image dimensions and data
 %=======================================================================
@@ -324,37 +444,26 @@ DIM      = VY(1).dim(1:3)';
 xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dim(4),'nanrep');
 
-global defaults
 %-Maximum number of residual images for smoothness estimation
 %-----------------------------------------------------------------------
+global     defaults
 MAXRES   = defaults.stats.maxres;
 
 %-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
 MAXMEM   = defaults.stats.maxmem;
-
 nSres    = min(nScan,MAXRES);
 blksz    = ceil(MAXMEM/8/nScan);				%-block size
 nbch     = ceil(xdim*ydim/blksz);				%-# blocks
 
 
-%-Parameters for estimating non-sphericity (based on first F-contrast)
-%-----------------------------------------------------------------------
-trMV     = spm_SpUtil('trMV',spm_FcUtil('X1o',SPM.xCon(1),xX.xKXs));
-trRV     = spm_SpUtil('trRV',xX.xKXs);
-h        = spm_FcUtil('Hsqr',SPM.xCon(1),xX.xKXs);
-
-%-Compute UF, the F-threshold
-%-----------------------------------------------------------------------
-UFp      = spm('GetGlobal','UFp');
-UF       = spm_invFcdf(1 - UFp,[trMV,trRV]);
-
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
-%-Initialise output images
+%-Initialise output images (unless this is a 1st pass for ReML)
 %=======================================================================
-fprintf('%-40s: %30s','Output images','...initialising')             %-#
+if isfield(xX,'W')
+fprintf('%-40s: %30s','Output images','...initialising')     %-#
 
 %-Intialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
@@ -387,7 +496,7 @@ Vbeta = spm_create_vol(Vbeta,'noopen');
 VResMS = struct(	'fname',	'ResMS.img',...
 			'dim',		[DIM',spm_type('double')],...
 			'mat',		M,...
-			'pinfo',	[1 0 0]',...
+			'pinfo',	[ 1/trRV 0 0]',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
 VResMS = spm_create_vol(VResMS,'noopen');
 
@@ -407,6 +516,7 @@ for i = 1:nSres
 	spm_unlink(VResI(i).fname);
 end
 VResI = spm_create_vol(VResI);
+end % (xX,'W')
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 
@@ -433,7 +543,7 @@ XYZ   = zeros(3,xdim*ydim*zdim);
 
 %-Cycle over bunches blocks within planes to avoid memory problems
 %=======================================================================
-spm_progress_bar('Init',100,'model estimation','');
+spm_progress_bar('Init',100,str,'');
 
 for z = 1:zdim				%-loop over planes (2D or 3D data)
 
@@ -449,14 +559,14 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-# Print progress information in command window
 	%---------------------------------------------------------------
-	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, block %3d/%-3d',...
-		z,zdim,bch,nbch),' ')                                %-#
+	str   = sprintf('Plane %3d/%-3d, block %3d/%-3d',z,zdim,bch,nbch);
+	fprintf('\r%-40s: %30s',str,' ')                                %-#
 
 	%-construct list of voxels in this block
 	%---------------------------------------------------------------
 	I     = [1:blksz] + (bch - 1)*blksz;		%-voxel indices
-	I     = I(I <= xdim*ydim);
-	xyz   = [xords(I); yords(I); zords(I)];		%-voxel coords in bch
+	I     = I(I <= xdim*ydim);			%-truncate
+	xyz   = [xords(I); yords(I); zords(I)];		%-voxel coordinates
 	nVox  = size(xyz,2);				%-number of voxels
 
 	%-Get data & construct analysis mask
@@ -472,11 +582,11 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 		%-Coordinates in mask image
 		%-------------------------------------------------------
-		tmp    = inv(xM.VM(i).mat)*M*[xyz;ones(1,nVox)];
+		j      = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
 
 		%-Load mask image within current mask & update mask
 		%-------------------------------------------------------
-		Cm(Cm) = spm_get_data(xM.VM(i),tmp(:,Cm)) > 0;
+		Cm(Cm) = spm_get_data(xM.VM(i),j(:,Cm)) > 0;
 	end
 	
 	%-Get the data in mask, compute threshold & implicit masks
@@ -487,9 +597,9 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-Load data in mask
 		%-------------------------------------------------------
 		if ~any(Cm), break, end			%-Break if empty mask
-		Y(i,Cm) = spm_get_data(VY(i),xyz(:,Cm));
+		Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
 
-		Cm(Cm)  = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
+		Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
 		if xM.I & ~YNaNrep & xM.TH(i) < 0	%-Use implicit mask
 			Cm(Cm) = abs(Y(i,Cm)) > eps;
 		end
@@ -507,50 +617,58 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%===============================================================
 	if CrS
 
-		%-Remove filter confounds
+		%-Whiten/Weight data and remove filter confounds
 		%-------------------------------------------------------
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-					'...temporal filtering')     %-#
+		fprintf('%s%30s',sprintf('\b')*ones(1,30),'filtering')	%-#
 
-		KY    = spm_filter(xX.K,Y);
+		KWY   = spm_filter(xX.K,W*Y);
 
-		%-General linear model: least squares estimation
-		% Using pinv to allow for non-unique designs
-		% Including temporal convolution of design matrix with K
+		%-General linear model: Weighted least squares estimation
 		%------------------------------------------------------
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-					'...parameter estimation')   %-#
+		fprintf('%s%30s',sprintf('\b')*ones(1,30),' estimation') %-#
 
-		beta  = xX.pKX*KY;			%-Parameter estimates
-		res   = spm_sp('r',xX.xKXs,KY);		%-Residuals
+		beta  = xX.pKX*KWY;			%-Parameter estimates
+		res   = spm_sp('r',xX.xKXs,KWY);	%-Residuals
 		ResSS = sum(res.^2);			%-Residual SSQ
-		clear KY				%-Clear to save memory
+		clear KWY				%-Clear to save memory
 
 
-		%-sample covariance and mean of Y (all searched voxels)
+		%-If ReML hyperparameters are needed for xVi.V
 		%-------------------------------------------------------
-		CY    = CY + Y*Y';
-		EY    = EY + sum(Y,2);
+		if ~isfield(xVi,'V')
+
+			%-F-threshold & accumulate spatially whitened Y*Y'
+			%-----------------------------------------------
+			j   = sum((Hsqr*beta).^2,1)/trMV > UF*ResSS/trRV;
+			j   = find(j);
+			if length(j)
+				q  = size(j,2);
+				s  = s + q;
+				q  = spdiags(sqrt(trRV./ResSS(j)'),0,q,q);
+				Y  = Y(:,j)*q;
+				Cy = Cy + Y*Y';
+			end
+
+		end % (xVi,'V')
 
 
-		%-F-threshold & accumulate spatially whitened Y*Y' for ReML
+		%-if we are saving the WLS parameters
 		%-------------------------------------------------------
-		tmp   = sum((h*beta).^2,1)/trMV > UF*ResSS/trRV;
-		tmp   = find(tmp);
-		if length(tmp)
-			q  = size(tmp,2);
-			s  = s  + q;
-			q  = spdiags(sqrt(trRV./ResSS(tmp)'),0,q,q);
-			Y  = Y(:,tmp)*q;
-			Cy = Cy + Y*Y';
-		end
+		if isfield(xX,'W')
+
+			%-sample covariance and mean of Y (all voxels)
+			%-----------------------------------------------
+			CY         = CY + Y*Y';
+			EY         = EY + sum(Y,2);
+
+			%-Save betas etc. for current plane as we go along
+			%-----------------------------------------------
+			CrBl 	   = [CrBl,    beta];
+			CrResI     = [CrResI,  res(i_res,:)];
+			CrResSS    = [CrResSS, ResSS];
+
+		end % (xX,'W')
 		clear Y				%-Clear to save memory
-
-		%-Save betas etc. for current plane in memory as we go along
-		%-------------------------------------------------------
-		CrBl 	   = [CrBl,    beta];
-		CrResI     = [CrResI,  res(i_res,:)];
-		CrResSS    = [CrResSS, ResSS];
 
 	end % (CrS)
 
@@ -563,45 +681,39 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     end   % (bch)
 
 
-    %-Plane complete, write out plane data to image files
+    %-Plane complete, write plane to image files (unless 1st pass)
     %===================================================================
-    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...saving plane')     %-#
+    if isfield(xX,'W')
+ 
+    	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...saving plane')	%-#
 
-    %-Write Mask image
-    %-------------------------------------------------------------------
-    tmp   = sparse(xdim,ydim);
-    if length(Q)
-	tmp(Q) = 1;
-    end
-    VM    = spm_write_plane(VM, tmp, z);
+	%-Write Mask image
+	%-------------------------------------------------------------------
+	j   = sparse(xdim,ydim);
+	if length(Q), j(Q) = 1; end
+	VM    = spm_write_plane(VM, j, z);
 
-    %-Write beta images
-    %-------------------------------------------------------------------
-    tmp   = NaN*ones(xdim,ydim);
-    for i = 1:nBeta
-        if length(Q)
-		tmp(Q) = CrBl(i,:);
+	%-Write beta images
+	%-------------------------------------------------------------------
+	j   = NaN*ones(xdim,ydim);
+	for i = 1:nBeta
+		if length(Q), j(Q) = CrBl(i,:); end
+		Vbeta(i) = spm_write_plane(Vbeta(i), j, z);
 	end
-	Vbeta(i) = spm_write_plane(Vbeta(i), tmp, z);
-    end
 
-    %-Write residual images
-    %-------------------------------------------------------------------
-    for i = 1:nSres
-	if length(Q)
-		tmp(Q) = CrResI(i,:);
-	end
-	VResI(i) = spm_write_plane(VResI(i), tmp, z);
-    end
+	%-Write residual images
+	%-------------------------------------------------------------------
+	for i = 1:nSres
+		if length(Q), j(Q) = CrResI(i,:); end
+		VResI(i) = spm_write_plane(VResI(i), j, z);
+   	end
 
-    %-Write ResSS into ResMS (variance) image
-    % (Scaling of ResSS to ResMS by tr(RV) is accomplished by adjusting the
-    % (scalefactor, after the error correlations (Vi) have been estimated.
-    %-------------------------------------------------------------------
-    if length(Q)
-	tmp(Q) = CrResSS;
-    end
-    VResMS     = spm_write_plane(VResMS,tmp,z);		
+	%-Write ResSS into ResMS (variance) image scaled by tr(RV) above
+	%-------------------------------------------------------------------
+	if length(Q), j(Q) = CrResSS;    end
+	VResMS  = spm_write_plane(VResMS,j,z);
+		
+    end % (xX,'W')
 
     %-Report progress
     %-------------------------------------------------------------------
@@ -618,14 +730,25 @@ spm_progress_bar('Clear')
 %=======================================================================
 if S == 0, warning('No inmask voxels - empty analysis!'), end
 
-
-%-Non-sphericity: Vi
+%-close written image files (unless 1st pass)
 %=======================================================================
-if iscell(xVi.Vi)
+if isfield(xX,'W')
+
+	fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')  %-#
+	VM              = spm_close_vol(VM);
+	Vbeta           = spm_close_vol(Vbeta);
+	VResI           = spm_close_vol(VResI);
+	VResMS          = spm_close_vol(VResMS);
+
+end % (xVi,'V')
+
+%-Non-sphericity: Vi - ReML Hyperparameter estimates
+%=======================================================================
+if ~isfield(xVi,'V')
 
 	%-REML estimate of residual correlations through hyperparameters (h)
 	%---------------------------------------------------------------
-	str    = 'Temporal non-sphericity (over space)'
+	str    = 'Temporal non-sphericity (over voxels)';
 	fprintf('%-40s: %30s\n',str,'...REML estimation') %-#
 	Cy            = Cy/s;
 
@@ -669,56 +792,33 @@ if iscell(xVi.Vi)
 
 	% normalize non-sphericity and save hyperparameters
 	%---------------------------------------------------------------
-	Vi    = Vi*nScan/trace(Vi);
-	xVi.h = h;
-	xVi.V = Vi;
+	Vi          = Vi*nScan/trace(Vi);
+	xVi.h       = h;
+	xVi.V       = Vi;			% SAVE NON_SPHERICITY xVi.V
+	xVi.Cy      = Cy;			%-spatially whitened <Y*Y'>
+	SPM.xVi     = xVi;			% non-sphericity structure
 
-else
-	Vi    = xVi.Vi;
-	xVi.V = Vi;
+	% If xX.W is not specified use WLS to give ML estimators
+	%---------------------------------------------------------------
+	if ~isfield(xX,'W')
+		save SPM SPM
+		clear
+		load SPM
+		SPM = spm_spm(SPM);
+		return
+	end
 end
-
-
-%-[Re]-enter K*Vi*K (xX.V) & derived values into design structure xX
-%-----------------------------------------------------------------------
-xX.V          = spm_filter(xX.K,spm_filter(xX.K,Vi)'); 	%-Non-sphericity V
-xX.Bcov       = xX.pKX*xX.V*xX.pKX';			%-Cov(Beta)
-[trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);	%-Expectations
-xX.trRV       = trRV;					% <R'*y'*y*R>
-xX.trRVRV     = trRVRV;					% for
-xX.erdf       = trRV^2/trRVRV;				%-Satterthwiate approx..
-
 
 %-average sample covariance and mean of Y (over voxels)
 %-----------------------------------------------------------------------
-CY            = CY/S;
-EY            = EY/S;
-CY            = CY - EY*EY';
-
-%-Compute scaled design matrix for display purposes
-%-----------------------------------------------------------------------
-xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
-
-
-%-close written image files, updating scalefactor information
-%=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing image files')  %-#
-VM              = spm_close_vol(VM);
-Vbeta           = spm_close_vol(Vbeta);
-VResI           = spm_close_vol(VResI);
-
-%-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
-%-----------------------------------------------------------------------
-VResMS.pinfo(1) = 1/xX.trRV;
-VResMS          = spm_close_vol(VResMS);
-VResMS          = spm_create_vol(VResMS,'noopen');
-VResMS          = spm_close_vol(VResMS);
-
+CY          = CY/S;
+EY          = EY/S;
+CY          = CY - EY*EY';
 
 %-Smoothness estimates of component fields and RESEL counts for volume
 %=======================================================================
-[FWHM,VRpv]  = spm_est_smoothness(VResI,VM);
-R            = spm_resels_vol(VM,FWHM)';
+[FWHM,VRpv] = spm_est_smoothness(VResI,VM);
+R           = spm_resels_vol(VM,FWHM)';
 
 %-Delete the residuals images
 %=======================================================================
@@ -726,11 +826,24 @@ for  i = 1:nSres,
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.img']);
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.hdr']);
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.mat']);
-end;
-clear VResI
+end
+
+%-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
+%=======================================================================
+if isfield(SPM,'Sess')
+    for s = 1:length(SPM.Sess)
+	for i = 1:length(SPM.Sess(s).Fc)
+	    iX0           = 1:nBeta;
+	    iX            = SPM.Sess(s).col(SPM.Sess(s).Fc(i).i);
+	    iX0(iX)       = [];
+	    Fcname        = sprintf('Sess(%d):%s',s,SPM.Sess(s).Fc(i).name);
+	    xCon(end + 1) = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+	end
+    end
+end
+
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
-
 
 %-Save remaining results files and analysis parameters
 %=======================================================================
@@ -752,14 +865,16 @@ SPM.VM         = VM;				%-Filehandle - Mask
 SPM.VRpv       = VRpv;				%-Filehandle - Resels per voxel
 
 SPM.xVi        = xVi;				% non-sphericity structure
-SPM.xVi.Cy     = Cy;				%-spatially whitened <Y*Y'>
 SPM.xVi.CY     = CY;				%-<(Y - <Y>)*(Y - <Y>)'> 
 
 SPM.xX         = xX;				%-design structure
 SPM.xM         = xM;				%-mask structure
 
+SPM.xCon       = xCon;				%-contrast structure
+
 SPM.SPMid      = SPMid;
 SPM.swd        = pwd;
+
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
