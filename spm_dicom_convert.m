@@ -313,7 +313,8 @@ mosaic   = {};
 standard = {};
 for i=1:length(hdr),
 	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') |...
-		isempty(read_AcquisitionMatrixText(hdr{i})),
+		isempty(read_AcquisitionMatrixText(hdr{i})) |...
+		isempty(read_NumberOfImagesInMosaic(hdr{i}))
 		standard = {standard{:},hdr{i}};
 	else,
 		mosaic = {mosaic{:},hdr{i}};
@@ -401,6 +402,7 @@ function n = read_NumberOfImagesInMosaic(hdr)
 str = hdr.CSAImageHeaderInfo;
 val = get_numaris4_val(hdr.CSAImageHeaderInfo,'NumberOfImagesInMosaic');
 n   = sscanf(val,'%d');
+if isempty(n), n=[]; end;
 return;
 %_______________________________________________________________________
 
@@ -409,6 +411,7 @@ function dim = read_AcquisitionMatrixText(hdr)
 str = hdr.CSAImageHeaderInfo;
 val = get_numaris4_val(hdr.CSAImageHeaderInfo,'AcquisitionMatrixText');
 dim = sscanf(val,'%d*%d')';
+if isempty(dim), dim=[]; end;
 return;
 %_______________________________________________________________________
 
@@ -429,16 +432,3 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-
-
-
-
-
-
-
-
-
-
-
-
-
