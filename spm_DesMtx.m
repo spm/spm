@@ -171,14 +171,14 @@ elseif strcmp(Constraint,'FxC')
 	%-Set up design matrix X
 	%---------------------------------------------------------------
 	[X,Enames,Index] = spm_DesMtx(I,'-',deblank(FCnames(1,:)));
-	X = X.*meshgrid(C,1:size(X,2))';
+	X = X.*(C*ones(1,size(X,2)));
 	Enames = [Enames,...
 		setstr(ones(length(Index),1)*['-',deblank(FCnames(2,:))])];
 
 
 %-Covariate effect, or ready-made design matrix
 %=======================================================================
-elseif strcmp(Constraint,'C')|strcmp(Constraint,'X')
+elseif any(strcmp(Constraint,{'C','X'}))
 	%-I contains a covariate (C), or is to be inserted "as is" (X)
 	X=I;
 	if isempty(FCnames)
@@ -266,8 +266,8 @@ elseif size(I,2)==2
 	%---------------------------------------------------------------
 	%-Implicit sum to zero
 	if any(strcmp(Constraint,{'+i0m','+j0m'}))
-		SumIToZero=strcmp(Constraint,'+i0m');
-		SumJToZero=strcmp(Constraint,'+j0m');
+		SumIToZero = strcmp(Constraint,'+i0m');
+		SumJToZero = strcmp(Constraint,'+j0m');
 
 		if SumIToZero	%-impose implicit SumIToZero constraints
 			Js = sort(Index(2,:)); Js = Js([1,1+find(diff(Js))]);
@@ -295,8 +295,8 @@ elseif size(I,2)==2
 
 	%-Explicit sum to zero
 	elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
-		SumIToZero=strcmp(Constraint,'+i0')|strcmp(Constraint,'+ij0');
-		SumJToZero=strcmp(Constraint,'+j0')|strcmp(Constraint,'+ij0');
+		SumIToZero = any(strcmp(Constraint,{'+i0','+ij0'}));
+		SumJToZero = any(strcmp(Constraint,{'+j0','+ij0'}));
 
 		if SumIToZero	%-impose explicit SumIToZero constraints
 			i = max(Index(1,:));
@@ -313,7 +313,7 @@ elseif size(I,2)==2
 				% weights for all other ij factors for this j
 				% to impose the constraint.
 				X(t_rows,t_cols) = X(t_rows,t_cols)...
-				    -1*meshgrid(X(t_rows,c),1:length(t_cols))';
+				    -X(t_rows,c)*ones(1,length(t_cols));
 	%-( Next line would do it, but only first time round, when all          )
 	% ( weights are 1, and only one weight per row for this j.              )
 	% X(t_rows,t_cols)=-1*ones(length(t_rows),length(t_cols));
@@ -332,7 +332,7 @@ elseif size(I,2)==2
 				t_cols=find(Index(1,:)==i);
 				t_rows=find(X(:,c));
 				X(t_rows,t_cols) = X(t_rows,t_cols)...
-				    -1*meshgrid(X(t_rows,c),1:length(t_cols))';
+				    -X(t_rows,c)*ones(1,length(t_cols));
 			end
 			%-delete columns
 			X(:,cols)=[]; Index(:,cols)=[];
@@ -340,8 +340,8 @@ elseif size(I,2)==2
 
 	%-Corner point constraints
 	elseif any(strcmp(Constraint,{'.i','.j','.ij'}))
-		CornerPointI=strcmp(Constraint,'.i')|strcmp(Constraint,'.ij');
-		CornerPointJ=strcmp(Constraint,'.j')|strcmp(Constraint,'.ij');
+		CornerPointI = any(strcmp(Constraint,{'.i','.ij'}));
+		CornerPointJ = any(strcmp(Constraint,{'.j','.ij'}));
 
 		if CornerPointI	%-impose CornerPointI constraints
 			i=max(Index(1,:));
