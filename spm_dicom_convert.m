@@ -34,24 +34,18 @@ if nargin<2, opts = 'all'; end;
 [images,guff]     = select_tomographic_images(hdr);
 [mosaic,standard] = select_mosaic_images(images);
 
-if (strcmp(opts,'all') | strcmp(opts,'mosaic')) & ~isempty(mosaic),
+if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic),
 	convert_mosaic(mosaic);
 end;
-if (strcmp(opts,'all') | strcmp(opts,'standard')) & ~isempty(standard),
+if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard),
 	convert_standard(standard);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_raw(hdr)
-disp('*** Ignoring Raw Data DICOM Files ***');
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function convert_mosaic(hdr)
-spm_progress_bar('Init',length(hdr),['Writing Mosaic'], 'Files written');
+spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
 for i=1:length(hdr),
 
@@ -65,14 +59,26 @@ for i=1:length(hdr),
 	%-------------------------------------------------------------------
 	nc = hdr{i}.Columns;
 	nr = hdr{i}.Rows;
-	np = read_AcquisitionMatrixText(hdr{i});
 
-	if rem(nc, np(1)) | rem(nr, np(2)),
-		warning(sprintf('%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
-			np(1), np(2), nc,nr));
-		return;
+	dim      = [0 0 0];
+	dim(3)   = read_NumberOfImagesInMosaic(hdr{i});
+	np       = [nc nr]/ceil(sqrt(dim(3)));
+	dim(1:2) = np;
+	if ~all(np==floor(np)),
+		warning('%s: dimension problem [Num Images=%d, Num Cols=%d, Num Rows=%d].',...
+			hdr{i}.Filename,dim(3), nc,nr);
+		continue;
 	end;
-	dim    = [np read_NumberOfImagesInMosaic(hdr{i})];
+
+	% Apparently, this is not the right way of doing it.
+	%np = read_AcquisitionMatrixText(hdr{i});
+	%if rem(nc, np(1)) || rem(nr, np(2)),
+	%	warning('%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
+	%		np(1), np(2), nc,nr);
+	%	return;
+	%end;
+	%dim    = [np read_NumberOfImagesInMosaic(hdr{i})];
+
 	mosaic = read_image_data(hdr{i});
 	volume = zeros(dim);
 	for j=1:dim(3),
@@ -147,15 +153,15 @@ for i=1:length(hdr),
 		volume = flipdim(volume,1);
 	end;
 
-	if isfield(hdr{i},'RescaleSlope') & hdr{i}.RescaleSlope ~= 1,
+	if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
 		volume = volume*hdr{i}.RescaleSlope;
 	end;
-	if isfield(hdr{i},'RescaleIntercept') & hdr{i}.RescaleIntercept ~= 0,
+	if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0,
 		volume = volume + hdr{i}.RescaleIntercept;
 	end;
 
 	V = struct('fname',fname,'dim',dim,'mat',mat,'descrip',descrip);
-	V = spm_write_vol(V,volume);
+	spm_write_vol(V,volume);
 	spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
@@ -188,19 +194,19 @@ for i=2:length(hdr),
 		orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
 		xy2    = vol{j}{1}.ImagePositionPatient*orient;
 		dist2  = sum((xy1-xy2).^2);
-		if        hdr{i}.SeriesNumber            == vol{j}{1}.SeriesNumber &...
-		          hdr{i}.AcquisitionNumber       == vol{j}{1}.AcquisitionNumber &...
-	       ((~isfield(hdr{i},'SequenceName') & ~isfield(vol{j}{1},'SequenceName')) |...
-		   strcmp(hdr{i}.SequenceName,              vol{j}{1}.SequenceName)) &...
-	       ((~isfield(hdr{i},'SeriesInstanceUID') & ~isfield(vol{j}{1},'SeriesInstanceUID')) |...
-		   strcmp(hdr{i}.SeriesInstanceUID,         vol{j}{1}.SeriesInstanceUID)) &...
-	       ((~isfield(hdr{i},'TemporalPositionIdentifier') & ~isfield(vol{j}{1},'TemporalPositionIdentifier')) |... % For Philips
-			  hdr{i}.TemporalPositionIdentifier == vol{j}{1}.TemporalPositionIdentifier) &...
-		          hdr{i}.Rows                    == vol{j}{1}.Rows &...
-		          hdr{i}.Columns                 == vol{j}{1}.Columns &...
-		      all(hdr{i}.ImageOrientationPatient == vol{j}{1}.ImageOrientationPatient) &...
-		      all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing & dist2<0.00001) &...
-	        (~isfield(hdr{i},'EchoNumbers')  | ~isfield(vol{j}{1},'EchoNumbers') | ...
+		if        hdr{i}.SeriesNumber            == vol{j}{1}.SeriesNumber &&...
+		          hdr{i}.AcquisitionNumber       == vol{j}{1}.AcquisitionNumber &&...
+	       ((~isfield(hdr{i},'SequenceName') && ~isfield(vol{j}{1},'SequenceName')) ||...
+		   strcmp(hdr{i}.SequenceName,              vol{j}{1}.SequenceName)) &&...
+	       ((~isfield(hdr{i},'SeriesInstanceUID') && ~isfield(vol{j}{1},'SeriesInstanceUID')) ||...
+		   strcmp(hdr{i}.SeriesInstanceUID,         vol{j}{1}.SeriesInstanceUID)) &&...
+	       ((~isfield(hdr{i},'TemporalPositionIdentifier') && ~isfield(vol{j}{1},'TemporalPositionIdentifier')) ||... % For Philips
+			  hdr{i}.TemporalPositionIdentifier == vol{j}{1}.TemporalPositionIdentifier) &&...
+		          hdr{i}.Rows                    == vol{j}{1}.Rows &&...
+		          hdr{i}.Columns                 == vol{j}{1}.Columns &&...
+		      all(hdr{i}.ImageOrientationPatient == vol{j}{1}.ImageOrientationPatient) &&...
+		      all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing & dist2<0.00001) &&...
+	        (~isfield(hdr{i},'EchoNumbers')  || ~isfield(vol{j}{1},'EchoNumbers') || ...
 		          hdr{i}.EchoNumbers             == vol{j}{1}.EchoNumbers),
 			vol{j}{end+1} = hdr{i};
 			match = 1;
@@ -235,8 +241,8 @@ for j=1:length(vol),
 		% So, if this is a GE scanner we might have
 		% the "DTI-series" problem. Lets assume so.
 
-			if isfield(hdr{1},'Manufacturer') &... 
-				strcmp(lower(hdr{1}.Manufacturer),'ge medical systems')
+			if isfield(hdr{1},'Manufacturer') &&... 
+				strcmpi(hdr{1}.Manufacturer,'ge medical systems')
 				vol = sort_ge_into_volumes(vol);
 				break;
 			else
@@ -260,8 +266,8 @@ function vol = sort_ge_into_volumes(pvol)
 % file headers.
 %
 
-if ~isfield(pvol{1}{1},'Private_0021_104f') |...
-   ~isfield(pvol{1}{1},'Private_0019_1019') |...
+if ~isfield(pvol{1}{1},'Private_0021_104f') ||...
+   ~isfield(pvol{1}{1},'Private_0019_1019') ||...
    ~isfield(pvol{1}{1},'Private_0019_101b')
 	warning('Looks like there is something wrong with the conversion software.');
 	vol = pvol;
@@ -443,10 +449,10 @@ if length(hdr)>1,
 		z(i)     = hdr{i}.ImagePositionPatient*orient(:,3);
 	end;
 	z            = mean(diff(z));
-else,
-	if checkfields(hdr(1),'SliceThickness'),
+else
+	if checkfields(hdr{1},'SliceThickness'),
 		z = hdr{1}.SliceThickness;
-	else,
+	else
 		z = 1;
 	end;
 end;
@@ -467,7 +473,7 @@ if checkfields(hdr{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionTy
 		deblank(hdr{1}.ScanningSequence),...
 		hdr{1}.RepetitionTime,hdr{1}.EchoTime,hdr{1}.FlipAngle,...
 		datestr(hdr{1}.AcquisitionDate),tim(4),tim(5),tim(6));
-else,
+else
 	descrip = hdr{1}.Modality;
 end;
 
@@ -476,7 +482,7 @@ if ~spm_flip_analyze_images,
 end; 
 
 pinfo = [1 0 0]';
-if isfield(hdr{1},'RescaleSlope') | isfield(hdr{1},'RescaleIntercept'),
+if isfield(hdr{1},'RescaleSlope') || isfield(hdr{1},'RescaleIntercept'),
 	pinfo   = repmat(pinfo,1,length(hdr));
 	bytepix = spm_type('int16','bits')/8;
 	for i=1:length(hdr),
@@ -502,7 +508,7 @@ for i=1:length(hdr),
 	V     = spm_write_plane(V,plane,i);
 	spm_progress_bar('Set',i);
 end;
-V = spm_close_vol(V);
+spm_close_vol(V);
 spm_progress_bar('Clear');
 return;
 %_______________________________________________________________________
@@ -512,8 +518,8 @@ function [images,guff] = select_tomographic_images(hdr)
 images = {};
 guff   = {};
 for i=1:length(hdr),
-	if ~checkfields(hdr{i},'Modality') | ~(strcmp(hdr{i}.Modality,'MR') |...
-		strcmp(hdr{i}.Modality,'PT') | strcmp(hdr{i}.Modality,'CT'))
+	if ~checkfields(hdr{i},'Modality') || ~(strcmp(hdr{i}.Modality,'MR') ||...
+		strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'CT'))
 		%disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
@@ -526,7 +532,7 @@ for i=1:length(hdr),
 	elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
 		%disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
-	else,
+	else
 		images = {images{:},hdr{i}};
 	end;
 end;
@@ -538,11 +544,12 @@ function [mosaic,standard] = select_mosaic_images(hdr)
 mosaic   = {};
 standard = {};
 for i=1:length(hdr),
-	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') |...
-		isempty(read_AcquisitionMatrixText(hdr{i})) |...
+	if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') ||...
+		isfield(hdr{i}.CSAImageHeaderInfo,'junk') ||...
+		isempty(read_AcquisitionMatrixText(hdr{i})) ||...
 		isempty(read_NumberOfImagesInMosaic(hdr{i}))
 		standard = {standard{:},hdr{i}};
-	else,
+	else
 		mosaic = {mosaic{:},hdr{i}};
 	end;
 end;
@@ -579,9 +586,9 @@ end;
 
 prec = ['ubit' num2str(hdr.BitsAllocated) '=>' 'uint32'];
 
-if isfield(hdr,'TransferSyntaxUID') & strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') & strcmp(hdr.VROfPixelData,'OW'),
+if isfield(hdr,'TransferSyntaxUID') && strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') && strcmp(hdr.VROfPixelData,'OW'),
 	fp = fopen(hdr.Filename,'r','ieee-be');
-else,
+else
 	fp = fopen(hdr.Filename,'r','ieee-le');
 end;
 if fp==-1,
@@ -606,7 +613,7 @@ if hdr.PixelRepresentation,
 	msk      = (2^hdr.HighBit - 1);
 	img      = double(bitand(img,msk));
 	img(neg) = img(neg)-2^(hdr.HighBit);
-else,
+else
 	% Unsigned data
 	msk      = (2^(hdr.HighBit+1) - 1);
 	img      = double(bitand(img,msk));
@@ -663,7 +670,5 @@ for i=1:length(str),
 end;
 val = strvcat(val{:});
 return;
-%_______________________________________________________________________
-
 %_______________________________________________________________________
 
