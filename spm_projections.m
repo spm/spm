@@ -144,7 +144,7 @@ if SPMF
 	text(0.00,y,'set-level {c}'      ,'FontSize',10,'Tag','Empty');
 	text(0.18,y,'cluster-level {k,F}','FontSize',10,'Tag','Empty');
 	text(0.42,y,'voxel-level {F}'    ,'FontSize',10,'Tag','Empty');
-	text(0.62,y,'uncorrected k & F'  ,'FontSize',10,'Tag','Empty');
+	text(0.62,y,'      uncorrected'  ,'FontSize',10,'Tag','Empty');
 	text(0.86,y,'x,y,z {mm}'         ,'FontSize',10,'Tag','Empty');
 
 elseif SPMZ
@@ -219,7 +219,7 @@ while max(Zm) & ((y > 2) | proj_MultiPage)
 	Pk    = NaN;				% cluster-level p value
 	Pkn   = NaN;				% cluster-level (Bivariate)
 	Pu    = spm_pF(S,W,df,U);		% voxel-level p value
-	Pn    = NaN;				% uncorrected p value (k)
+	Pn    = [];				% uncorrected p value (k)
 	Pz    = 1 - spm_Fcdf(U,df);		% uncorrected p value (F)
 
 	end
@@ -301,9 +301,10 @@ y = min(3,y);
 
 %-Volume, resels and smoothness 
 %=======================================================================
-D               = length(W);					% dimension
-FWHM            = sqrt(8*log(2))*W.*V(([1:D] + 3),1)'; 		% FWHM {mm}
-RESEL           = S*prod(V([1:D] + 3))/prod(FWHM);		% RESELS
+D      = length(W);					% dimension
+VFWHM  = sqrt(8*log(2))*W;				% FWHM {voxels}
+FWHM   = VFWHM.*V(([1:D] + 3),1)'; 			% FWHM {mm}
+RESEL  = S/prod(VFWHM);					% RESELS
 
 if SPMZ
 
@@ -348,6 +349,8 @@ y   = y - 1;
 str = sprintf('Smoothness FWHM {mm} = %0.1f %0.1f %0.1f',FWHM);
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',sqrt(8*log(2))*W);
-text(0.6,y,str,'FontSize',8);
+str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',VFWHM);
+h   = text(0.6,y,str,'FontSize',8);
+if  any(VFWHM < 3)
+	set(h,'Color','r'); end
 
