@@ -390,7 +390,8 @@ return;
 
 %_______________________________________________________________________
 function nrm = read_SliceNormalVector(hdr)
-val = get_numaris4_val(hdr.CSAImageHeaderInfo,'SliceNormalVector');
+str = hdr.CSAImageHeaderInfo;
+val = get_numaris4_val(str,'SliceNormalVector');
 for i=1:3,
 	nrm(i,1) = sscanf(val(i,:),'%g');
 end;
@@ -400,8 +401,8 @@ return;
 %_______________________________________________________________________
 function n = read_NumberOfImagesInMosaic(hdr)
 str = hdr.CSAImageHeaderInfo;
-val = get_numaris4_val(hdr.CSAImageHeaderInfo,'NumberOfImagesInMosaic');
-n   = sscanf(val,'%d');
+val = get_numaris4_val(str,'NumberOfImagesInMosaic');
+n   = sscanf(val','%d');
 if isempty(n), n=[]; end;
 return;
 %_______________________________________________________________________
@@ -409,8 +410,8 @@ return;
 %_______________________________________________________________________
 function dim = read_AcquisitionMatrixText(hdr)
 str = hdr.CSAImageHeaderInfo;
-val = get_numaris4_val(hdr.CSAImageHeaderInfo,'AcquisitionMatrixText');
-dim = sscanf(val,'%d*%d')';
+val = get_numaris4_val(str,'AcquisitionMatrixText');
+dim = sscanf(val','%d*%d')';
 if isempty(dim), dim=[]; end;
 return;
 %_______________________________________________________________________
@@ -422,12 +423,14 @@ val  = {};
 for i=1:length(str),
 	if strcmp(deblank(str(i).name),name),
 		for j=1:str(i).nitems,
-			val{j} = str(i).item(j).val;
+			if  str(i).item(j).xx(1),
+				val = {val{:} str(i).item(j).val};
+			end;
 		end;
 		break;
 	end;
 end;
-val = str2mat(val{:});
+val = strvcat(val{:});
 return;
 %_______________________________________________________________________
 
