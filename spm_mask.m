@@ -67,11 +67,12 @@ for j=1:dim(3),
 	% Load slice j from all images
 	for i=1:m1
 		M1  = M\V1(i).mat\Mi;
-		img = spm_slice_vol(V1(i),M1,dim(1:2),[1 0]);
+		%if sum((M1(:)-Mi(:)).^2<eps) M1 = Mi; end;
+
+		img = spm_slice_vol(V1(i),M1,dim(1:2),[0 NaN]);
 		if nargin<3
-			dt = V1(i).dim(4);
-			if (dt==2) | (dt==4) | (dt==8) | (dt==512) | (dt==1024) | (dt==2048), 
-				msk = msk + img~=0;
+			if ~spm_type(V1(i).dim(4),'nanrep'),
+				msk = msk + (img~=0 & finite(img));
 			else,
 				msk = msk + finite(img);
 			end;
