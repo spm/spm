@@ -144,12 +144,12 @@ if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; en
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-tol = 1e-10;					%-Tolerance ****
+tol = 1e-10;				%-Tolerance ****
 
-Xc  = xX.xKXs.X*cat(2,xCon(Ic).c);		%-NB: This amalgamates columns of
-						% F-contrasts, perhaps causing
-						% orthogonalisation when only an
-						% F-contrast has non-ortho. cols
+Xc  = xX.xKXs.X*cat(2,xCon(Ic).c);	%-NB: This amalgamates columns of
+					% F-contrasts, perhaps causing
+					% orthogonalisation when only an
+					% F-contrast has non-ortho. cols
 % if colinear
 %-----------------------------------------------------------------------
 if length(Ic) > 1 & any(any(triu(abs(Xc'*Xc),1) > tol))
@@ -184,22 +184,30 @@ if length(Ic) > 1 & any(any(triu(abs(Xc'*Xc),1) > tol))
 	if any(max(abs(c)) < tol)
 	    %-A contrast column was colinear with a previous one
 	    % (NB: Might be a single constraint of an F-contrast)
+	    %-----------------------------------------------------------
 	    c(:,max(abs(c)) < tol) = [];
+
 	end
 	if isempty(c)
 	    %-Contrast was completely colinear with a previous one - drop it
+	    %-----------------------------------------------------------
 	    Ic(i)    = [];
 	    i        = i - 1;
+
 	elseif any(d < tol)
 	    %-Contrast unchanged or already defined - note index
+	    %-----------------------------------------------------------
 	    Ic(i)    = min(find(d < tol));
+
 	else
 	    %-Define orthogonalised contrast as new contrast
+	    %-----------------------------------------------------------
 	    j        = length(xCon) + 1;
 	    str      = [xCon(Ic(i)).name,'  (orthogonalized w.r.t {',...
     	    	sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))];
     	    xCon(j)  = spm_FcUtil('Set',str,xCon(Ic(i)).STAT,'c',c,xX.xKXs);
 	    Ic(i)    = j;
+
 	end
     end % while...
 end % if length(Ic)...
@@ -241,6 +249,7 @@ else
 end
 if length(Im)==1
 	str = sprintf('%s (masked by %s at p=%g)',str,xCon(Im).name,pm);
+
 elseif ~isempty(Im)
 	str = [	sprintf('%s (masked by {%d',str,Im(1)),...
 		sprintf(',%d',Im(2:end)),...
@@ -287,14 +296,16 @@ for ii = 1:length(I)
 	    end
 	    
 	    %-Prepare handle for contrast image
+	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
 	        'fname',  sprintf('con_%04d.img',i),...
                 'dim',    [dim,16],...
                 'mat',    M,...
                 'pinfo',  [1,0,0]',...
-                'descrip',sprintf('SPM contrast image - %d: %s',i,xCon(i).name));
+                'descrip',sprintf('SPM contrast - %d: %s',i,xCon(i).name));
 
             %-Write image
+	    %-----------------------------------------------------------
             fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
             xCon(i).Vcon.pinfo(1,1) = spm_add(V,xCon(i).Vcon);
@@ -309,9 +320,11 @@ for ii = 1:length(I)
                                                      '...computing') %-#
 
             %-Residual (in parameter space) forming mtx
+	    %-----------------------------------------------------------
             h       = spm_FcUtil('Hsqr',xCon(i),xX.xKXs);
 
 	    %-Prepare handle for ESS image
+	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
 	        'fname',  sprintf('ess_%04d.img',i),...
                 'dim',    [dim,16],...
@@ -320,14 +333,15 @@ for ii = 1:length(I)
                 'descrip',sprintf('SPM ESS - contrast %d: %s',i,xCon(i).name));
 
             %-Write image
+	    %-----------------------------------------------------------
             fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
             xCon(i).Vcon = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
 
 	otherwise
-        %---------------------------------------------------------------
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
+
 	end
 
     end % (if ~isfield...)
@@ -345,16 +359,17 @@ for ii = 1:length(I)
 	switch(xCon(i).STAT)
 	case 'T'                                  %-Compute SPM{t} image
         %---------------------------------------------------------------
-	Z =     spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0) ./...
-	  (sqrt(spm_sample_vol(xSDM.VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0) * ...
-	                                (xCon(i).c'*xX.Bcov*xCon(i).c)    ) );
+	Z   = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0)./...
+	(sqrt(spm_sample_vol(xSDM.VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0)*...
+	                                (xCon(i).c'*xX.Bcov*xCon(i).c) ));
         str = sprintf('[%.2g]',xX.erdf);
 
 	case 'F'                                  %-Compute SPM{F} image
         %---------------------------------------------------------------
 	if isempty(trMV), trMV = spm_SpUtil('trMV',xCon(i).X1o,xX.V); end
-	Z = (spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
-	    (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
+	Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
+	   (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
+
         str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
 
 	otherwise
@@ -371,12 +386,12 @@ for ii = 1:length(I)
 	    'mat',    M,...
 	    'pinfo',  [1,0,0]',...
 	    'descrip',sprintf('SPM{%c_%s} - contrast %d: %s',...
-	                              xCon(i).STAT,str,i,xCon(i).name));
+	                       xCon(i).STAT,str,i,xCon(i).name));
 
         tmp = zeros(dim);
 	tmp(cumprod([1,dim(1:2)])*XYZ -sum(cumprod(dim(1:2)))) = Z;
 
-	xCon(i).Vspm       = spm_write_vol(xCon(i).Vspm,tmp);
+	xCon(i).Vspm  = spm_write_vol(xCon(i).Vspm,tmp);
 
 	clear tmp Z
         fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
@@ -438,8 +453,7 @@ if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
 switch xCon(Ic(1)).STAT
 
 	case 'T'
-	STATstr = sprintf('%c%s_{%.2g}',...
-			xCon(Ic(1)).STAT,str,xX.erdf);
+	STATstr = sprintf('%c%s_{%.2g}',xCon(Ic(1)).STAT,str,xX.erdf);
 	case 'F'
 	STATstr = sprintf('%c%s_{[%.2g,%.2g]}',...
 			xCon(Ic(1)).STAT,str,xCon(Ic(1)).eidf,xX.erdf);
@@ -457,11 +471,6 @@ edf  = [xCon(Ic(1)).eidf, xX.erdf];
 u    = -Inf;
 k    = 0;
 
-%-Unfiltered data
-% uSPM   = struct('Z',		Z,...
-% 		'XYZ',		XYZ,...
-% 		'QQ',		QQ);
-
 %-Return to previous directory & clean up interface
 %-----------------------------------------------------------------------
 cd(cwd)					%-Go back to original working dir.
@@ -472,8 +481,9 @@ spm('Pointer','Arrow')
 % - H E I G H T   &   E X T E N T   T H R E S H O L D S
 %=======================================================================
 
-if ~isempty(XYZ)                                      %-Height threshold
+%-Height threshold
 %-----------------------------------------------------------------------
+if ~isempty(XYZ)
 
     %-Get height threshold
     %-------------------------------------------------------------------
@@ -502,8 +512,9 @@ if ~isempty(XYZ)                                      %-Height threshold
 end % (if ~isempty(XYZ))
 
 
-if ~isempty(XYZ)                                      %-Extent threshold
+%-Extent threshold (only for allowed cases)
 %-----------------------------------------------------------------------
+if ~isempty(XYZ) & length(Ic) == 1 & STAT == 'T'
 
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
@@ -526,6 +537,10 @@ if ~isempty(XYZ)                                      %-Extent threshold
 
     if isempty(Q)
 	warning(sprintf('No voxels survive extent threshold k=%0.2g',k)), end
+
+else
+
+    k = 0;
 
 end % (if ~isempty(XYZ))
 
