@@ -271,6 +271,7 @@ function varargout = spm_input(varargin)
 %            Number of contrasts required by 'x' type (n(1))
 %            ( n(2) can be used specify length of contrast vectors if )
 %            ( a design matrix isn't passed                           )
+%          - Defaults (missing or empty) to 1 - vector contrast
 %
 % m        - Number of unique conditions required by 'c' type
 %          - Inf implies no restriction
@@ -2068,12 +2069,13 @@ case 'c'
 	if isempty(m), m=Inf; end
 	[p,msg] = spm_input('!iCond',str,n,m);
 case 'x'
-	xX = m;			%-Design matrix/structure
+	X = m;			%-Design matrix/space-structure
+	if isempty(n), n=1; end
 
 	%-Sort out contrast matrix dimensions (contrast vectors in rows)
 	if length(n)==1, n=[n,Inf]; else, n=reshape(n(1:2),1,2); end
-	if ~isempty(xX)		% - override n(2) w/ design column dimension
-		n(2) = spm_SpUtil('size',xX,2);
+	if ~isempty(X)		% - override n(2) w/ design column dimension
+		n(2) = spm_SpUtil('size',X,2);
 	end
 
 	p = evalin('base',['[',str,']'],'''!''');
@@ -2095,7 +2097,7 @@ case 'x'
 			p='!';
 			if n(1)==1, msg='vector required';
 			    else, msg=sprintf('%d contrasts required',n(1)); end
-		elseif ~isempty(xX) & ~spm_SpUtil('allCon',xX,p')
+		elseif ~isempty(X) & ~spm_SpUtil('allCon',X,p')
 			p='!'; msg='invalid contrast';
 		end
 	end
