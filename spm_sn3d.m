@@ -406,7 +406,7 @@ if (nargin == 0)
 
 					% Get the amount of regularization
 					%-----------------------------------------------------------------------
-					tmp2 = [10 1 0.1 0.01 0.001];
+					tmp2 = [1 0.1 0.01 0.001 0.0001];
 					tmp = find(tmp2 == rglrztn);
 					if isempty(tmp) tmp = length(tmp2); end;
 					rglrztn = spm_input('Nonlinear Regularization','+1','m',...
@@ -471,7 +471,7 @@ if (nargin == 0)
 	if a1 == 1 | a1 == 3,
 		for i=1:length(subj),
 			spm('FigName',['Normalize: working on subj ' num2str(i)],Finter,CmdLine);
-			fprintf('\rSubject %d: ', i);
+			fprintf('\rSubject %d:  ', i);
 			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,...
 				[nbasis(:)' iterations 8 rglrztn],Template,...
 				brainmask, subj(i).objmask);
@@ -567,7 +567,7 @@ elseif strcmp(P,'Defaults')
 
 		% Get the amount of regularization
 		%-----------------------------------------------------------------------
-		tmp2 = [10 1 0.1 0.01 0.001];
+		tmp2 = [1 0.1 0.01 0.001 0.0001];
 		tmp = find(tmp2 == sptl_Rglrztn);
 		if isempty(tmp) tmp = length(tmp2); end;
 		sptl_Rglrztn = spm_input('Nonlinear Regularization','+1','m',...
@@ -631,7 +631,7 @@ end;
 % Perform the spatial normalisation
 %_______________________________________________________________________
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 VG = spm_vol(spms);
 
@@ -666,9 +666,9 @@ if ~any(params(1:4)==0) & params(6)~=Inf,
 	% check for masks and initialise as nec
 	VW  = [];
 	VW2 = [];
-	if nargin >= 8,
+	if nargin >= 7,
 		if ~isempty(brainmask), VW=spm_vol(brainmask); end;
-		if nargin >= 9,
+		if nargin >= 8,
 			if ~isempty(objmask), VW2=spm_vol(objmask); end;
 		end;
 	end;
