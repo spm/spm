@@ -173,7 +173,12 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 	    %---------------------------------------------------------------
 	    case 'realign'
 		BCH.index0  = {'realign',iA(cA)};
-		spm_realign;
+		spm_realign_ui;
+    
+	    %---------------------------------------------------------------
+	    case 'coreg'
+		BCH.index0  = {'coreg',iA(cA)};
+		spm_coreg_ui;
     
 	    %---------------------------------------------------------------
 	    case 'normalize'
