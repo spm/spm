@@ -8,7 +8,7 @@ function varargout = spm_DesRep(varargin)
 % design, embodied in a design matrix and other associated data
 % structures.
 %
-% ======================================================================
+%                           ----------------
 %
 % FORMAT spm_DesRep('Files&Factors',P,I,xC,sF,xs)
 % Produces multi-page listing of files, factor indices, and covariates.
@@ -26,7 +26,7 @@ function varargout = spm_DesRep(varargin)
 % the exception of the global value, which is printed after any grand mean
 % scaling.
 %
-% ======================================================================
+%                           ----------------
 %
 % FORMAT spm_DesRep('DesMtx',X,Xnames,P,xs)
 % Produces a one-page graphical summary of the design matrix
@@ -51,7 +51,7 @@ function varargout = spm_DesRep(varargin)
 % 1xp matrix of grey and white squares. Parameters that are not
 % uniquely specified by the model are shown with a grey patch.
 % 
-% ======================================================================
+%                           ----------------
 %
 % FORMAT spm_DesRep('Covs',xC,X,Xnames)
 % Plots the covariates and describes how thay are inserted into the model.
@@ -64,6 +64,22 @@ function varargout = spm_DesRep(varargin)
 % The description strings in the xC covariate structure array are
 % displayed. The corresponding design matrix column(s) is(are)
 % highlighted.
+%
+% ======================================================================
+% Utility functions and CallBack handlers:
+%
+% FORMAT s = spm_DesRep('ScanTick',nScan,lim)
+% Pares down 1:nScan to at most lim items, showing every 2nd/3rd/... as
+% necessary to pair  down to <lim items. Always ends with nScan so
+% #images is indicated.
+% nScan  - number of scans
+% lim    - limit to number of elements of s
+% s      - 1:nScan pared down accordingly
+%
+%                           ----------------
+%
+% FORMAT spm_DesRep('cb_DesMtxIm')
+% CallBack for revealing DesMtx values from clickable DesMtx image
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
@@ -258,8 +274,7 @@ for i = 1:size(nX,2), text(i,.05,Xnames{i},'Rotation',90), end
 % ( down to <32 items. Always show last item so #images is indicated.    )     
 if ~isempty(P)
 	nScan = size(X,1);
-	p = max(1,ceil(nScan/32));
-	s = 1:p:nScan; s(end)=nScan;
+	s = spm_DesRep('ScanTick',nScan,32);
 	set(hDesMtx,'YTick',s)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(1),...
@@ -471,6 +486,21 @@ for i = 1:length(xC)
 	end
 
 end
+
+
+case 'scantick'
+%=======================================================================
+% spm_DesRep('ScanTick',nScan,lim)
+% ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
+% ( down to <32 items. Always show last item so #images is indicated.    )     
+if nargin<3, lim=32; else, lim=varargin{3}; end
+if nargin<2, error('insufficient arguments'), end
+nScan = varargin{2};
+
+p = max(1,ceil(nScan/lim));
+s = 1:p:nScan; s(end)=nScan;
+
+varargout = {s,lim};
 
 
 case 'cb_desmtxim'
