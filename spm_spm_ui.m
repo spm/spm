@@ -344,12 +344,22 @@ function varargout=spm_spm_ui(varargin)
 %         the voxel centers of the input images do not coincide with that
 %         of the mask image.
 %
+%
+%                           ----------------
+%
+% Multivariate analyses
+% =====================
+%
+% Mulitvariate analyses with n-variate response variables are supported
+% and automatically invoke a ManCova and CVA in spm_spm.  Multivariate
+% designs are, at the moment limited to Basic and PET designs.
+%
 % ----------------------------------------------------------------------
 %
 % Variables saved in the SPMcfg.mat file
 % D             - design definition structure
 %                 (See definition in main body of spm_spm_ui.m)
-% VY            - nScan x 1 struct array of memory mapped input images
+% VY            - nScan x nVar struct array of memory mapped images
 %                 (see spm_vol for definition of the map structure)
 % 
 % xX            - structure describing design matrix
@@ -659,7 +669,7 @@ switch lower(Action), case 'cfg'
 % - C O N F I G U R E   D E S I G N
 %=======================================================================
 % spm_spm_ui('CFG',D)
-if nargin<2, D=[]; else, D=varargin{2}; end
+if nargin<2, D = []; else, D = varargin{2}; end
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -762,13 +772,23 @@ sGXcalc  = {	'omit';...						%-1
 %=======================================================================
 %-Get design type
 %-----------------------------------------------------------------------
+nVar = 1;
 if isempty(D)
-	D = spm_spm_ui(char(spm_input('Select design class...','+1','m',...
+
+	%-Multivariate repsonse variable?
+	%---------------------------------------------------------------
+	if spm_input('Multivariate analysis?','+1','y/n',[1 0])
+		nVar = spm_input('number of variates?','+1','n1');
+	end
+
+	D    = spm_spm_ui( ...
+		char(spm_input('Select design class...','+1','m',...
 		{'Basic stats','Standard PET designs','SPM96 PET designs'},...
 		{'DesDefs_Stats','DesDefs_PET','DesDefs_PET96'},2)));
 end
 
 D = D(spm_input('Select design type...','+1','m',{D.DesName}'));
+
 
 %-Set factor names for this design
 %-----------------------------------------------------------------------
@@ -779,8 +799,28 @@ sGMsca    = sf_estrrep(sGMsca,[sF',D.sF']);
 
 %-Get filenames & factor indicies
 %-----------------------------------------------------------------------
-[P,I] = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime);	%-Files & indices
-nScan = length(P);					%-#observations
+[P,I] = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime);
+for i = 2:nVar
+	p      = {};
+	nLev   = max(I);
+	for i4 = 1:nLev(4);
+	for i3 = 1:nLev(3);
+		if nLev(3) > 1, str = [str sprintf('%s %i; ',D.sF{3},i3)]; end
+	for i2 = 1:nLev(2);
+		q      = find(I(:,4) == i4 & I(:,3) == i3 & I(:,2) == i2);
+		n      = length(q);
+		str    = sprintf('variate %i: ',i);
+		if nLev(4) > 1, str = [str sprintf('%s %i; ',D.sF{4},i4)]; end
+		if nLev(3) > 1, str = [str sprintf('%s %i; ',D.sF{3},i3)]; end
+		if nLev(2) > 1, str = [str sprintf('%s %i; ',D.sF{2},i2)]; end
+		str    = [str sprintf('%s 1-%i',D.sF{1},n)];
+		p(q,1) = spm_get(n,'.img',{str});
+	end
+	end
+	end
+	P      = [P p];
+end
+nScan = size(I,1);
 
 %-Additional design parameters
 %-----------------------------------------------------------------------
@@ -818,14 +858,18 @@ dstr   = {'covariate','nuisance variable'};
 
 GUIpos = spm_input('!NextPos');
 nc     = [0,0];
-for i=1:2			% 1:covariates of interest, 2:nuisance variables
+for i  = 1:2			% 1:covariates of interest, 2:nuisance variables
     if isinf(nC(i)), nC(i)=spm_input(['# ',dstr{i},'s'],GUIpos,'w1'); end
 
     while nc(i) < nC(i)
 
 	%-Create prompt, get covariate, get covariate name
         %---------------------------------------------------------------
-	if nC(i)==1, str=dstr{i}; else, str=sprintf('%s %d',dstr{i},nc(i)+1); end
+	if nC(i)==1
+		str = dstr{i}; 
+	else
+		str = sprintf('%s %d',dstr{i},nc(i)+1);
+	end
         c = spm_input(str,GUIpos,'r',[],[nScan,Inf]);
         if any(isnan(c(:))), break, end		%-NaN is dummy value to exit
 	nc(i)  = nc(i)+1;			%-#Covariates (so far)
@@ -954,26 +998,27 @@ end
 
 %-Value for PropSca / GMsca                                         (GM)
 %-----------------------------------------------------------------------
-if iGMsca==9                            %-Not scaling (GMsca or PropSca)
-    GM=0;                               %-Set GM to zero when not scaling
+if iGMsca == 9                          %-Not scaling (GMsca or PropSca)
+	GM = 0;                         %-Set GM to zero when not scaling
 else                                    %-Ask user value of GM
 	if iGloNorm==8
-		str='PropSca global mean to';
+		str = 'PropSca global mean to';
 	else
-		str=[strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
+		str = [strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
 	end
-	GM = spm_input(str,'+1','r',D.GM,1);
+	GM  = spm_input(str,'+1','r',D.GM,1);
 	%-If GM is zero then don't GMsca! or PropSca GloNorm
-	if GM==0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
+	if GM == 0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
 end
 
 %-Sort out description strings for GloNorm and GMsca
+%-----------------------------------------------------------------------
 sGloNorm = sGloNorm{iGloNorm};
 sGMsca   = sGMsca{iGMsca};
 if iGloNorm==8
 	sGloNorm = sprintf('%s to %-4g',sGloNorm,GM);
 elseif iGMsca<8
-	sGMsca = sprintf('%s to %-4g',sGMsca,GM);
+	sGMsca   = sprintf('%s to %-4g',sGMsca,GM);
 end
 
 
@@ -1048,15 +1093,17 @@ M_T = {	'none',		M_T(min(find(isinf(M_T))));...
 	'prop''nal',	M_T(min(find(isfinite(M_T)&(M_T~=real(M_T)))))	};
 
 %-Work out available options
+%-If there's a choice between proportional and absolute then ask
+%-----------------------------------------------------------------------
 q = ~[isempty(M_T{1,2}), isempty(M_T{2,2}), isempty(M_T{3,2})];
 
-%-If there's a choice between proportional and absolute then ask
 if all(q(2:3))
 	tmp = spm_input('Threshold masking',GUIpos,'b',M_T(q,1),find(q));
 	q(setdiff([1:3],tmp))=0;
 end
 
 %-Get mask value - note that at most one of q(2:3) is true
+%-----------------------------------------------------------------------
 if ~any(q)				%-Oops - nothing specified!
 	M_T = -Inf;
 elseif all(q==[1,0,0])			%-no threshold masking
@@ -1076,6 +1123,7 @@ else					%-get mask value
 end
 
 %-Make a description string
+%-----------------------------------------------------------------------
 if isinf(M_T)
 	xsM.Analysis_threshold = 'None (-Inf)';
 elseif isreal(M_T)
@@ -1089,7 +1137,7 @@ end
 %-Implicit masking: Ignore zero voxels in low data-types?
 %-----------------------------------------------------------------------
 % (Implicit mask is NaN in higher data-types.)
-type = getfield(spm_vol(P{1}),'dim')*[0,0,0,1]';
+type = getfield(spm_vol(P{1,1}),'dim')*[0,0,0,1]';
 if ~spm_type(type,'nanrep')
 	switch D.M_.I
 	case Inf,    M_I = spm_input('Implicit mask (ignore zero''s)?',...
@@ -1109,7 +1157,7 @@ end
 %-Explicit mask images (map them later...)
 %-----------------------------------------------------------------------
 switch(D.M_.X)
-case Inf,    M_X = spm_input('explicit mask images?','+1','y/n',[1,0],2);
+case Inf,   M_X = spm_input('explicitly mask images?','+1','y/n',[1,0],2);
 case {0,1}, M_X = D.M_.X;
 otherwise,  error('unrecognised D.M_.X type')
 end
@@ -1135,7 +1183,7 @@ else
 end
 
 if iGXcalc==2				%-Get user specified globals
-	g = spm_input('globals','+0','r',[],[nScan,1]);
+	g = spm_input('globals','+0','r',[],[nScan,nVar]);
 end
 sGXcalc = sGXcalc{iGXcalc};
 
@@ -1151,13 +1199,20 @@ spm('Pointer','Watch');
 % dimensions and orientation / voxel size
 %=======================================================================
 fprintf('%-40s: ','Mapping files')                                   %-#
-VY = spm_vol(char(P));
-fprintf('%30s\n','...done')                                          %-#
+for  i = 1:nVar
+	VY(:,i) = spm_vol(char(P{:,i}));
+end
 
-if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0]) %NB: Bombs for single image
-	error('images do not all have the same dimensions'), end
-if any(any(any(diff(cat(3,VY.mat),1,3),3)))
-	error('images do not all have same orientation & voxel size'), end
+% check images %NB: Bombs for single image
+%-----------------------------------------------------------------------
+if any(any(diff(cat(1,VY(:).dim),1,1),1)&[1,1,1,0]) 
+	error('images do not all have the same dimensions')
+end
+if any(any(any(diff(cat(3,VY(:).mat),1,3),3)))
+	error('images do not all have same orientation & voxel size')
+end
+
+fprintf('%30s\n','...done')                                          %-#
 
 
 %-Global values, scaling and global normalisation
@@ -1171,12 +1226,14 @@ case 2
 	%-User specified globals
 case 3
 	%-Compute as mean voxel value (within per image fullmean/8 mask)
-	g = zeros(nScan,1);
+	g = zeros(nScan,nVar);
 	fprintf('%-40s: %30s','Calculating globals',' ')             %-#
 	for i = 1:nScan
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-			sprintf('%3d/%-3d',i,nScan))                 %-#
-		g(i) = spm_global(VY(i));
+		for j = 1:nVar
+			fprintf('%s%30s',sprintf('\b')*ones(1,30),...
+				sprintf('%3d/%-3d',i,nScan))         %-#
+			g(i,j) = spm_global(VY(i,j));
+		end
 	end
 	fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')       %-#
 otherwise
@@ -1196,14 +1253,14 @@ switch iGMsca, case 8
 	%-Proportional scaling global normalisation
 	if iGloNorm~=8, error('iGloNorm-iGMsca(8) mismatch for PropSca'), end
 	gSF    = GM./g;
-	g      = GM*ones(nScan,1);
+	g      = GM*ones(nScan,nVar);
 case {1,2,3,4,5,6,7}
 	%-Grand mean scaling according to iGMsca
 	gSF    = GM./spm_meanby(g,eval(CCforms{iGMsca}));
 	g      = g.*gSF;
 case 9
 	%-No grand mean scaling
-	gSF    = ones(nScan,1);
+	gSF    = ones(nScan,nVar);
 otherwise
 	error('illegal iGMsca')
 end
@@ -1211,7 +1268,11 @@ end
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %-----------------------------------------------------------------------
-for i=1:nScan, VY(i).pinfo(1:2,:)=VY(i).pinfo(1:2,:)*gSF(i); end
+for i=1:nScan
+	for j = 1:nVar
+		VY(i,j).pinfo(1:2,:) = VY(i,j).pinfo(1:2,:)*gSF(i,j);
+	end
+end
 
 
 %-AnCova: Construct global nuisance covariates partition (if AnCova)
@@ -1234,29 +1295,35 @@ if any(iGloNorm==[1:7])
 		error('unexpected iGC value')
 	end
 
+	for i = 1:nVar
 
-	%-AnCova - add scaled centred global to DesMtx `G' partition
-	%---------------------------------------------------------------
-	tI        = [eval(CFIforms{iGloNorm,1}),g-gc];
-	tConst    = CFIforms{iGloNorm,2};
-	tFnames   = [eval(CFIforms{iGloNorm,3}),{'global'}];
-	[g,gname] = spm_DesMtx(tI,tConst,tFnames);
-	clear tI tConst tFnames
+		%-AnCova - add scaled centred global to DesMtx `G' partition
+		%---------------------------------------------------------------
+		tI         = [eval(CFIforms{iGloNorm,1}),g(:,i)-gc(:,i)];
+		tConst     = CFIforms{iGloNorm,2};
+		tFnames    = [eval(CFIforms{iGloNorm,3}),{'global'}];
+		[f,gname]  = spm_DesMtx(tI,tConst,tFnames);
+		g(:,i)     = f;
+		clear tI tConst tFnames
 
-	%-Save GX info in xC struct for reference
-	str = {sprintf('%s: global',dstr{2})};
-	if any(iGMsca==[1:7]), str=[str;{['(after ',sGMsca,')']}]; end
-	if iGC~=8, str=[str;{['used centered ',sCC{iGC}]}]; end
-	if iGloNorm>1, str=[str;{['fitted as interaction ',sCFI{iGloNorm}]}]; end
-	tmp       = struct(	'rc',rg.*gSF,	'rcname','global',...
-				'c',g,		'cname',{gname},...
-				'iCC',iGC,	'iCFI',iGloNorm,...
-				'type',3,...
+		%-Save GX info in xC struct for reference
+		str = {sprintf('%s: global',dstr{2})};
+		if any(iGMsca==[1:7]), str=[str;{['(after ',sGMsca,')']}]; end
+		if iGC~=8, str=[str;{['used centered ',sCC{iGC}]}]; end
+		if iGloNorm > 1
+			str=[str;{['fitted as interaction ',sCFI{iGloNorm}]}]; 
+		end
+		tmp  = struct(	'rc',rg(:,i).*gSF(:,i),	'rcname','global',...
+				'c',g(:,i),		'cname'	,{gname},...
+				'iCC',iGC,		'iCFI'	,iGloNorm,...
+				'type',			3,...
 				'cols',[1:size(g,2)]+size([H C B G],2),...
-				'descrip',{str}				);
+				'descrip',		{str}		);
 
-	G = [G,g]; Gnames = [Gnames; gname];
-	if isempty(xC), xC=tmp; else, xC=[xC,tmp]; end
+		G = [G,g(:,i)]; Gnames = [Gnames; gname];
+		if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
+
+	end
 
 elseif iGloNorm==8 | iGXcalc>1
 
@@ -1269,14 +1336,15 @@ elseif iGloNorm==8 | iGXcalc>1
 		str = { 'global values: (computed but not used)'};
 	end
 
-	tmp       = struct(	'rc',rg,	'rcname','global',...
-				'c',{[]},	'cname',{{}},...
-				'iCC',0,	'iCFI',0,...
-				'type',3,...
-				'cols',{[]},...
-				'descrip',{str}				);
-	if isempty(xC), xC=tmp; else, xC=[xC,tmp]; end
-
+	for i = 1:nVar
+		tmp  = struct(	'rc',rg(:,i),	'rcname','global',...
+				'c',{[]},	'cname'	,{{}},...
+				'iCC',0,	'iCFI'	,0,...
+				'type',		3,...
+				'cols',		{[]},...
+				'descrip',	{str}			);
+		if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
+	end
 end
 
 
@@ -1293,7 +1361,7 @@ xGX = struct(...
 %-Construct masking information structure and compute actual analysis
 % threshold using scaled globals (rg.*gSF)
 %-----------------------------------------------------------------------
-if isreal(M_T),	M_TH =      M_T  * ones(nScan,1);	%-NB: -Inf is real
+if isreal(M_T),	M_TH =      M_T  * ones(nScan,nVar);	%-NB: -Inf is real
 else,		M_TH = imag(M_T) * (rg.*gSF); end
 
 if ~isempty(M_P)
@@ -1392,16 +1460,16 @@ fprintf('\n\n')
 
 
 
-
 case 'files&indices'
 %=======================================================================
 % - Get files and factor indices
 %=======================================================================
-% [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime)
+% [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime,Vstr)
 % DbaTime=D.b.aTime; Dn=D.n; DsF=D.sF;
-if nargin<4, DbaTime = 1; else, DbaTime = varargin{4}; end
-if nargin<3, Dn  = [Inf,Inf,Inf,Inf]; else, Dn=varargin{3}; end
-if nargin<2, DsF = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
+if nargin<5, Vstr    = ''; else, Vstr    = varargin{5}; end
+if nargin<4, DbaTime = 1;  else, DbaTime = varargin{4}; end
+if nargin<3, Dn      = [Inf,Inf,Inf,Inf]; else, Dn=varargin{3}; end
+if nargin<2, DsF     = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
 
 %-Initialise variables
 %-----------------------------------------------------------------------
@@ -1430,10 +1498,10 @@ for j4  = 1:n4
 	%disp('NB:selecting in time order - manually specify conditions')
 	%-NB: This means f2 levels might not be 1:n2
 	GUIpos2 = spm_input('!NextPos');
-	for j3 = 1:n3
+	for j3  = 1:n3
 	    sF3P=''; if bL3, sF3P=[DsF{3},' ',int2str(j3),': ']; end
-	    str = [sF4P,sF3P];
-	    tP = spm_get(Dn(2)*Dn(1),'.img',{[str,'select images...']});
+	    str = [sF4P,sF3P,Vstr];
+	    tP  = spm_get(Dn(2)*Dn(1),'.img',{[str,'select images...']});
 	    n21 = length(tP);
 	    ti2 = spm_input([str,' ',DsF{2},'?'],GUIpos2,'c',ti2',n21,Dn(2));
 	    %-Work out i1 & check
@@ -1445,7 +1513,7 @@ for j4  = 1:n4
 		%-#i1 levels mismatches specification in Dn(1)
 		error(sprintf('#%s not %d as pre-specified',DsF{1},Dn(1)))
 	    end
-	    P   = [P;tP];
+	    P  = [P;tP];
 	    i4 = [i4; j4*ones(n21,1)];
 	    i3 = [i3; j3*ones(n21,1)];
 	    i2 = [i2; ti2];
@@ -1463,12 +1531,12 @@ for j4  = 1:n4
 
 	if n2==1 & Dn(1)==1 %-single scan per f3 (subj)
 	    %disp('NB:single scan per f3')
-	    str = [sF4P,'select images, ',DsF{3},' 1-',int2str(n3)];
-	    P     = [P;spm_get(n3,'.img',{str})];
-	    i4 = [i4; j4*ones(n3,1)];
-	    i3 = [i3; [1:n3]'];
-	    i2 = [i2; ones(n3,1)];
-	    i1 = [i1; ones(n3,1)];
+	    str = [sF4P,'select images, ',DsF{3},' 1-',int2str(n3),Vstr];
+	    P   = [P;spm_get(n3,'.img',{str})];
+	    i4  = [i4; j4*ones(n3,1)];
+	    i3  = [i3; [1:n3]'];
+	    i2  = [i2; ones(n3,1)];
+	    i1  = [i1; ones(n3,1)];
 	else
 	    %-multi scan per f3 (subj) case
 	    %disp('NB:multi scan per f3')
@@ -1478,26 +1546,26 @@ for j4  = 1:n4
 			%-No f1 (repl) within f2 (cond)
 			%disp('NB:no f1 within f2')
 			str = [sF4P,sF3P,'select images: ',DsF{2},...
-				 ' 1-',int2str(n2)];
-			P = [P;spm_get(n2,'.img',{str})];
-			i4 = [i4; j4*ones(n2,1)];
-			i3 = [i3; j3*ones(n2,1)];
-			i2 = [i2; [1:n2]'];
-			i1 = [i1; ones(n2,1)];
+				 ' 1-',int2str(n2),Vstr];
+			P   = [P;spm_get(n2,'.img',{str})];
+			i4  = [i4; j4*ones(n2,1)];
+			i3  = [i3; j3*ones(n2,1)];
+			i2  = [i2; [1:n2]'];
+			i1  = [i1; ones(n2,1)];
 		else
 		    %-multi f1 (repl) within f2 (cond)
 		    %disp('NB:f1 within f2')
-		    for j2 = 1:n2
+		    for j2  = 1:n2
 			sF2P='';
 			if bL2, sF2P=[DsF{2},' ',int2str(j2),': ']; end
-			str = [sF4P,sF3P,sF2P,' select images...'];
+			str = [sF4P,sF3P,sF2P,' select images...',Vstr];
 			tP  = spm_get(Dn(1),'.img',{str});
-			n1 = size(tP,1);
+			n1  = size(tP,1);
 			P   = [P;tP];
-			i4 = [i4; j4*ones(n1,1)];
-			i3 = [i3; j3*ones(n1,1)];
-			i2 = [i2; j2*ones(n1,1)];
-			i1 = [i1; [1:n1]'];
+			i4  = [i4; j4*ones(n1,1)];
+			i3  = [i3; j3*ones(n1,1)];
+			i2  = [i2; j2*ones(n1,1)];
+			i1  = [i1; [1:n1]'];
 		    end                         % (for j2)
 		end                             % (if Dn(1)==1)
 	    end                                 % (for j3)
