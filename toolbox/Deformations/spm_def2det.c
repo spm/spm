@@ -198,8 +198,8 @@ static float subfunk(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2, in
 	int ntets, i, o;
 	float dt, wt;
 
-	if ((x0+x1+x2+1)%2){ tets =  oddtets; ntets = 32;}
-	else               { tets = eventets; ntets = 8;}
+	if ((x0%2)==(x1%2)==(x2%2)){ tets =  oddtets; ntets = 32;}
+	else                       { tets = eventets; ntets = 8;}
 
 	o   = x0 + dim[0]*(x1 + x2*dim[1]);
 

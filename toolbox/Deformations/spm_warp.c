@@ -413,8 +413,8 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 	int ntets;
 
 	flg = 0;
-	if ((x0+x1+x2)%2){ tets =  oddtets; ntets = 32;}
-	else             { tets = eventets; ntets = 8;}
+	if ((x0%2)==(x1%2)==(x2%2)){ tets =  oddtets; ntets = 32;}
+	else                       { tets = eventets; ntets = 8;}
 
 	o   = x0-1 + dim_g[0]*(x1-1 + dim_g[1]*(x2-1));
 	y0  = Y0+o; y1 = Y1+o; y2 = Y2+o;
