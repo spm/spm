@@ -62,7 +62,11 @@ function spm_bias_ui(P)
 % [defaults.bias.cutoff]
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global defaults
 

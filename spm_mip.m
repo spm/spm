@@ -26,7 +26,11 @@ function spm_mip(Z,XYZ,M,DIM)
 % are scaled to 1*64.
 %
 %_______________________________________________________________________
-% Karl Friston et al. $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston et al.
+% $Id$
+
 
 
 %-Get GRID value

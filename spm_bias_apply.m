@@ -10,7 +10,11 @@ function VO = spm_bias_apply(V,T)
 % disk, prefixed by 'm'.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if ischar(V),
 	V = spm_vol(V);

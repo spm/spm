@@ -24,7 +24,11 @@ function [w,ind,b0] = spm_rvc(K,t,bs,alpha,th)
 % Sparse Bayesian Learning and the Relevance Vector Machine
 % Journal of Machine Learning Research 1 (2001) 211-244
 %__________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin<3, bs = 0; end;
 if nargin<5,

@@ -4,7 +4,11 @@ function [W] = spm_Volt_W(u)
 % u  - times {seconds}
 % W  - basis functions (mixture of Gammas)
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 u     = u(:);
 W     = [];

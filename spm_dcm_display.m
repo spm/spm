@@ -8,7 +8,11 @@ function spm_dcm_display(varargin)
 % M     - margin (mm) 				[default = 24 ]
 % U     - theshold for plotting connections 	[default = 0.9]
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % null input arguments

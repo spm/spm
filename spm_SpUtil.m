@@ -253,7 +253,11 @@ function varargout = spm_SpUtil(varargin)
 % sz  - size
 %
 %_______________________________________________________________________
-% Andrew Holmes Jean-Baptiste Poline $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes Jean-Baptiste Poline
+% $Id$
+
 % (frobenius norm trick by S. Rouquette)
 
 %-Format arguments

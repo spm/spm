@@ -17,7 +17,11 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Method is based on Powell's optimisation method described in
 % Numerical Recipes (Press, Flannery, Teukolsky & Vetterling).
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 p     = p(:);
 f     = feval(func,p,varargin{:});

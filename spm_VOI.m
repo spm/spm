@@ -49,7 +49,11 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 %
 % See also: spm_list
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 %-Parse arguments
 %-----------------------------------------------------------------------

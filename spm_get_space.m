@@ -5,7 +5,11 @@ function M = spm_get_space(P,M)
 % M - voxel-to-world mapping
 % P - image filename
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 [pth,nam,ext] = fileparts(P);
 t = find(ext==',');

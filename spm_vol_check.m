@@ -8,7 +8,11 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % msg              - cell array containing helpful message if not
 % chgf             - logical Nx2 array of difference flags
 %_______________________________________________________________________
-% Matthew Brett $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Matthew Brett
+% $Id$
+
 
 [fnames samef msg] = deal({},1,{});
 

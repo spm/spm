@@ -87,7 +87,11 @@ function spm_reslice(P,flags)
 % http://varda.biophysics.mcw.edu/~cox/index.html.
 %
 %__________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 
 def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]');

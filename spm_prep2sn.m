@@ -7,7 +7,11 @@ function [po,pin] = spm_prep2sn(p)
 % pin - the inverse transform in a form that can be
 %       used by spm_write_sn.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if ischar(p), p = load(p); end;
 

@@ -5,7 +5,11 @@ function [Q] = spm_Q(A,n)
 % A  - vector pf p AR coeficients
 % n  - size of Q
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % compute Q
 %---------------------------------------------------------------------------

@@ -20,7 +20,11 @@ function D = spm_eeg_rereference(S);
 % (iv) If the new reference is only one channel, that channel is deleted from the
 %       data. Multiple channels are kept in the data.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 

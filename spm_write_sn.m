@@ -58,7 +58,11 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %  as an optional step in performing voxel based morphometry.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if isempty(V), return; end;
 

@@ -8,7 +8,11 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % num   - comma separated list of values
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 num = '';
 [pth,nam,ext] = fileparts(fname);

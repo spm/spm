@@ -9,7 +9,11 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % write their own libraries for accessing the data.  This suggestion
 % was ignored.
 % _______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==1,
     opts = struct('dtype',4,'ext','.img');

@@ -15,7 +15,11 @@ function results = spm_preproc(varargin)
 %  opts.msk      - unused
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 [dir,nam,ext]  = fileparts(which(mfilename));
 opts0.tpm   = str2mat(...

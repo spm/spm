@@ -49,7 +49,11 @@ function [p,msg] = spm_eeval(str,Type,n,m)
 % msg   - Explanation of why it didn't work
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 if nargin<4, m=[]; end
 if nargin<3, n=[]; end

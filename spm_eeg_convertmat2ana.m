@@ -17,7 +17,11 @@ function spm_eeg_convertmat2ana(S)
 % images, i.e. the data of each single trial or ERP is contained in one
 % image file.
 %_______________________________________________________________________
-% Stefan Kiebel & Christophe Phillips $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel & Christophe Phillips
+% $Id$
+
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 

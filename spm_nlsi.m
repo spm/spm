@@ -87,7 +87,11 @@ function varargout = spm_nlsi(M,U,Y)
 % SEE NOTES AT THE END OF THIS SCRIPT FOT EXAMPLES
 %
 %---------------------------------------------------------------------------
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % Expansion point (in parameter space) for Bilinear and kernel representations
 %---------------------------------------------------------------------------

@@ -93,7 +93,11 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 %
 % Modified by R Henson for more general slice order and SPM2
 %_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 SPMid = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');

@@ -212,7 +212,11 @@ function spm_coreg_ui(opt)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 % _______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global defaults
  

@@ -11,7 +11,11 @@ function hdr = spm_dicom_headers(P)
 % extremely complicated "standard".
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 ver = sscanf(version,'%d');
 if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;

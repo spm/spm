@@ -19,7 +19,11 @@ function [y,dy] = spm_int(P,M,U,v)
 % spm_int will also handle static observation models by evaluating
 % g(x,u,P)
 %---------------------------------------------------------------------------
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % convert U to U.u if necessary
 %---------------------------------------------------------------------------

@@ -43,7 +43,11 @@ function F = spm_Bcdf(x,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %-Format arguments, note & check sizes

@@ -11,7 +11,11 @@
 % The model can then be re-estimated without having to go through
 % model specification again.
 %_______________________________________________________________________
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 load(DCM_filename);
 load(SPM_filename);

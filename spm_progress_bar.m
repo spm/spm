@@ -11,7 +11,11 @@ function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Clears the 'Interactive' window.
 %
 %-----------------------------------------------------------------------
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global pb_pointer pb_name ax
 %-----------------------------------------------------------------------

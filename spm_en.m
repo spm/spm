@@ -7,7 +7,11 @@ function [X] = spm_en(X)
 % spm_en performs a Euclidean normalization setting column-wise sum of
 % squares to unity
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 for i = 1:size(X,2)
 	X(:,i) = X(:,i)/sqrt(sum(X(:,i).^2));

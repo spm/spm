@@ -10,7 +10,11 @@ function I = spm_grid(I)
 % specified global variable
 %
 %__________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 %---------------------------------------------------------------------------
 global defaults

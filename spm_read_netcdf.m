@@ -6,7 +6,11 @@ function cdf = spm_read_netcdf(fname)
 %
 % See: http://www.unidata.ucar.edu/packages/netcdf/
 % _______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 dsiz     = [1 1 2 4 4 8];
 fp=fopen(fname,'r','ieee-be');

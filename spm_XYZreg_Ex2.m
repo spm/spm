@@ -31,7 +31,11 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % as one of it's entries! (I think?)
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %=======================================================================
 switch lower(varargin{1}), case 'create'

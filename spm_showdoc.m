@@ -8,7 +8,11 @@ function spm_showdoc(c)
 %   diary('spmdoc.txt'); spm_showdoc; diary off
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==0,
 	c = spm_config;

@@ -155,7 +155,11 @@ function [SPM,xSPM] = spm_getSPM
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %_______________________________________________________________________
-% Andrew Holmes, Karl Friston & Jean-Baptiste Poline $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes, Karl Friston & Jean-Baptiste Poline
+% $Id$
+
 
 
 SCCSid = '$Rev$';

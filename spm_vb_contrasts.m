@@ -9,7 +9,11 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 %
 % xCon  Updated contrast info
 %
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 
 % Get approximate posterior covariance for ic

@@ -71,7 +71,11 @@ function PPI = spm_peb_ppi(SPM)
 % uniform variance over frequencies.
 %
 %---------------------------------------------------------------------
-% Darren Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren Gitelman
+% $Id$
+
 
 % set up the graphical interface
 %----------------------------------------------------------------------

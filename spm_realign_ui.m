@@ -308,7 +308,11 @@ function spm_realign_ui(opt)
 % needed to unwarp the appurtenant time-series, and to assess exactly how the
 % estimation was done.
 %__________________________________________________________________________
-% John Ashburner, Jesper Andersson and Oliver Josephs $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner, Jesper Andersson and Oliver Josephs
+% $Id$
+
 
 global defaults
 

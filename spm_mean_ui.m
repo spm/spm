@@ -12,7 +12,11 @@ function spm_mean_ui
 %
 % This is not a "softmean" - zero voxels are treated as zero.
 %_______________________________________________________________________
-% John Ashburner, Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner, Andrew Holmes
+% $Id$
+
 SCCSid = '$Rev$';
 
 

@@ -12,7 +12,11 @@ function [F,Lav, KL] = spm_vb_F (Y,slice)
 %
 % This function implements equation 18 in paper VB4
 %
-% Will Penny and Nelson Trujillo-Barreto $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny and Nelson Trujillo-Barreto
+% $Id$
+
 
 
 if slice.verbose

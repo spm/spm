@@ -27,7 +27,11 @@ function varargout = spm_render_vol(varargin)
 % Illumination is assumed to be from the viewplane
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_render_vol.c not compiled - see Makefile')

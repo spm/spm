@@ -38,7 +38,11 @@ function spm_surf(P,mode)
 % The surface can also be save as OBJ format, as used by Alias|Wavefront.
 % See e.g. http://www.nada.kth.se/~asa/Ray/matlabobj.html
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 

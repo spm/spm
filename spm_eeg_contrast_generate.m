@@ -20,7 +20,11 @@ function [c, comp] = spm_eeg_contrast_generate(SPM, comp)
 % either a classic 'window average' contrast vector, or a time-frequency
 % matrix based on Morlet wavelets.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 try
     SPM;

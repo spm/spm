@@ -33,7 +33,11 @@ function D = spm_eeg_artefact(S)
 % Alternatively, one can also provide these information as an out_list and
 % in_list, see above.
 %_______________________________________________________________________
-% Stefan Kiebel & Rik Henson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel & Rik Henson
+% $Id$
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG artefact setup',0);
 

@@ -1,7 +1,11 @@
 function opts = spm_config_slice_timing
 % configuration file for slice timing
 %____________________________________________________________________
-% Darren Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren Gitelman
+% $Id$
+
 
 w = spm_jobman('HelpWidth');
 

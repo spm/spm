@@ -39,7 +39,11 @@ function [U] = spm_get_ons(SPM,s)
 %
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 %-GUI setup
 %-----------------------------------------------------------------------

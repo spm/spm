@@ -1,7 +1,11 @@
 function S = spm_config_eeg_filter
 % configuration file for EEG Filtering
 %_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 w = spm_jobman('HelpWidth');
 

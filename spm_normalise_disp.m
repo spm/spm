@@ -3,7 +3,11 @@ function spm_normalise_disp(matname,VF)
 % FORMAT spm_normalise_disp(matname)
 % matname - name of sn3d.mat file
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 fg = spm_figure('FindWin','Graphics');
 if isempty(fg), return; end;

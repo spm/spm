@@ -60,7 +60,11 @@ function varargout=spm(varargin)
 
 %-SVN ID and authorship of this program...
 %-----------------------------------------------------------------------
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

@@ -5,7 +5,11 @@ function varargout = spm_jobman(varargin)
 % Guillaume Flandin of Orsay, France.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==0
     setup_ui;

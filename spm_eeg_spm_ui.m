@@ -8,7 +8,11 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Most of the code is taken from spm_fmri_spm_ui and the functionality is
 % the same.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 %-GUI setup
 %-----------------------------------------------------------------------

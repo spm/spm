@@ -13,7 +13,11 @@ function [X] = spm_conv(X,sx,sy)
 % restricted to non near-zero values
 %
 %__________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % assume isomorphic smoothing
 %---------------------------------------------------------------------------

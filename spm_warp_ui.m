@@ -5,7 +5,11 @@ function spm_warp_ui
 % involves optimising a very nonlinear objective function.
 % Also, don't ask what the best value for the regularisation is.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 VG = spm_vol(spm_get(1, '*.img', 'Reference image'));
 VF = spm_vol(spm_get(1, '*.img', 'Image to warp'));

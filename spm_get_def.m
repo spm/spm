@@ -18,7 +18,11 @@ function def = spm_get_def(Bx,By,Bz,beta)
 % kron(Bz',kron(By',Bx'))*(diag(dfdy)*y) = get_def(Bx',By',Bz',dfdy.*y)
 %
 %_______________________________________________________________________
-% Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson
+% $Id$
+
 
 if nargin == 4
    [nx,mx] = size(Bx);

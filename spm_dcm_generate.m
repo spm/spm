@@ -12,7 +12,11 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.secs  overall number of seconds
 %           Y.Ce    Error covariance
 %
-% Will Penny & Klaas Enno Stephan $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Klaas Enno Stephan
+% $Id$
+
 
 randn('state',sum(100*clock));
 

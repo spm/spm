@@ -5,7 +5,11 @@ function spm_barh(E,C,P)
 % C   - (n x 1) variances
 % P   - (n x 1) priors
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % densities

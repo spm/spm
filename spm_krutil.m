@@ -44,7 +44,11 @@ function varargout = spm_krutil(varargin)
 % when using it like this.
 %
 %_______________________________________________________________________
-% John Ashburner & Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Jesper Andersson
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_krutil.c not compiled - see Makefile')

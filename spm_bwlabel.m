@@ -30,7 +30,11 @@ function varargout = spm_bwlabel(varargin)
 % and Image Processing 54(4):357-364.
 %
 %__________________________________________________________
-% Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson
+% $Id$
+
 
 error('spm_bwlabel.c has not been compiled');
 

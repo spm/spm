@@ -9,7 +9,11 @@ function [Y] = spm_get_data(V,XYZ)
 %
 % see spm_sample_vol
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % ensure V is an array of handle structures
 %---------------------------------------------------------------------------

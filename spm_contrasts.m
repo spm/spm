@@ -3,7 +3,11 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % FORMAT [SPM] = spm_contrasts(SPM,Ic);
 % Ic  - indices of xCon to compute
 %_______________________________________________________________________
-% Andrew Holmes, Karl Friston & Jean-Baptiste Poline $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes, Karl Friston & Jean-Baptiste Poline
+% $Id$
+
 
 
 %-Get and change to results directory

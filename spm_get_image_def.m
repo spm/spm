@@ -39,7 +39,11 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 %              coordinates.
 %
 %_______________________________________________________________________
-% Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson
+% $Id$
+
 
 
 if nargin > 2 & ~isempty(defa)

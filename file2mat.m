@@ -7,6 +7,10 @@ function file2mat
 %
 % This function is normally called by file_array/subsref
 % _______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 error('This function needs to be compiled.');

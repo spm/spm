@@ -18,6 +18,10 @@ function varargout = spm_get_lm(varargin)
 %                returns those coordinates that are truly
 %                local maxima.
 %_______________________________________________________________
-% Jesper Andersson $Id$ 
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson 
+% $Id$
+
 
 error('spm_get_lm.c has not been compiled');

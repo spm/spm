@@ -5,7 +5,11 @@ function spm_fMRI_design_show(SPM,s,i)
 % Sess(s).U(i)  -  see spm_fMRI_design for session s, trial i.
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % SPM
 %-----------------------------------------------------------------------

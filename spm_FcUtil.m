@@ -124,7 +124,11 @@ function varargout = spm_FcUtil(varargin)
 %=======================================================================
 %
 %_______________________________________________________________________
-% Jean-Baptiste Poline $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jean-Baptiste Poline
+% $Id$
+
 
 %-Format arguments
 %-----------------------------------------------------------------------

@@ -13,7 +13,11 @@ function D = spm_eeg_display(S)
 %
 % spm_eeg_display is an internally used function that plots EEG/MEG traces.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 
 try

@@ -1,7 +1,11 @@
 function opts = spm_config_mkdir
 % Configuration file for making directory function
 %_______________________________________________________________________
-% Darren Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren Gitelman
+% $Id$
+
 
 %_______________________________________________________________________
 

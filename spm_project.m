@@ -16,7 +16,11 @@ function varargout = spm_project(varargin)
 % see also spm_mip.m
 %
 %_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_project.c not compiled - see spm_MAKE.sh')

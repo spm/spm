@@ -1,7 +1,11 @@
 function opts = spm_config_ui
 % Configuration file for User Interface
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %_______________________________________________________________________
 

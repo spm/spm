@@ -170,7 +170,11 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 0:00-00
 %
 %_______________________________________________________________________
-% Karl Friston, Jean-Baptiste Poline & Christian Buchel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston, Jean-Baptiste Poline & Christian Buchel
+% $Id$
+
 SCCSid  = '$Rev$';
 
 %-GUI setup

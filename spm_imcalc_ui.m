@@ -86,7 +86,11 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % the n images).
 %
 %_______________________________________________________________________
-% John Ashburner & Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Andrew Holmes
+% $Id$
+
 
 %-GUI setup
 %-----------------------------------------------------------------------

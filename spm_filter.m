@@ -23,7 +23,11 @@ function [vargout] = spm_filter(K,Y)
 %.spm_filter also configures the filter structure in accord with the 
 % specification fields if called with one argument
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % set or apply

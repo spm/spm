@@ -20,7 +20,11 @@ function M = spm_eeg_morlet(Rtf, ST, f)
 % Induced \gamma-Band Activity during the Delay of a Visual Short-term
 % memory Task in Humans. The Journal of Neuroscience (18): 4244-4254.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 M = {};
 scaling = [];

@@ -12,7 +12,11 @@ function [SPM] = spm_eeg_contrasts_conv(SPM, Ic)
 % rank designs, because there are zero degrees of freedom.
 % spm_eeg_contrasts_conv just computes contrast images.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 
 % Get and change to results directory

@@ -1,7 +1,11 @@
 function con = spm_config_contrasts
 % Configuration file for contrast jobs
 %_______________________________________________________________________
-% Darren Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren Gitelman
+% $Id$
+
 
 %_______________________________________________________________________
 

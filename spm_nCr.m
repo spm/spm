@@ -57,7 +57,11 @@ function c = spm_nCr(n,r)
 %	 Cambridge
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %-Format arguments, note & check sizes

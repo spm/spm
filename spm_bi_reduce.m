@@ -37,7 +37,11 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 %
 % (Note second order effects are already in L1 for the 2nd order expansion)
 %---------------------------------------------------------------------------
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % set up
 %===========================================================================

@@ -317,7 +317,11 @@ function varargout=spm_XYZreg(varargin)
 % % (Note that the registry pushes the current co-ordinates to the button
 % %-Use the button & spm_XYZreg('SetCoords'... at will!
 %_______________________________________________________________________
-% Andrew Holmes, Chloe Hutton $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes, Chloe Hutton
+% $Id$
+
 
 
 %=======================================================================

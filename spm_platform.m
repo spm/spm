@@ -55,7 +55,11 @@ function varargout=spm_platform(varargin)
 % the beginning of the init_platform subfunction at the end of this
 % file.
 %_______________________________________________________________________
-% Matthew Brett $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Matthew Brett
+% $Id$
+
 
 
 %-Initialise
@@ -219,7 +223,7 @@ case {'SOL2'}	%-Some Sol2 platforms give segmentation violations with Helvetica
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';
 	SPM_PLATFORM.font.symbol    = 'Symbol';
-case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','MAC'}
+case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC'}
 	SPM_PLATFORM.font.helvetica = 'Helvetica';
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';

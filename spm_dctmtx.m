@@ -16,7 +16,11 @@ function C = spm_dctmtx(N,K,n,f)
 % See:    Fundamentals of Digital Image Processing (p 150-154).
 %         Anil K. Jain 1989.
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 d = 0;
 

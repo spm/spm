@@ -13,7 +13,11 @@ function [y] = spm_fx_dcm(x,u,P)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % hemodynamic parameters

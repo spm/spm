@@ -11,7 +11,11 @@ function [J] = spm_diff(varargin)
 %
 % - a cunning recursive routine
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % create inline object

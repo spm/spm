@@ -51,7 +51,11 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % based on conditonal estimates.
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 %-Get Graphics figure handle

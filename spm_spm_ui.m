@@ -479,7 +479,11 @@ function varargout = spm_spm_ui(varargin)
 % will have been pre-scaled to effect any grand mean or global
 % scaling.
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 SCCSid  = '$Rev$';
 
 %=======================================================================

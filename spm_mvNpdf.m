@@ -21,7 +21,11 @@ function pdf = spm_Npdf(z,Mu,V)
 % z must have column dimension d. Multiple columns can be entered. 
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %-Condition arguments
 %-----------------------------------------------------------------------

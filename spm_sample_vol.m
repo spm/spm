@@ -26,7 +26,11 @@ function varargout = spm_sample_vol(varargin)
 % see also spm_slice_vol.m
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_sample_vol.c not compiled - see Makefile')

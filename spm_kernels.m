@@ -26,7 +26,11 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % where q = [1 x(t)] are the states augmented with a constant term 
 %
 %---------------------------------------------------------------------------
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % assign inputs
 %---------------------------------------------------------------------------

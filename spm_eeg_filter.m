@@ -15,7 +15,11 @@ function D = spm_eeg_filter(S)
 % 
 % spm_eeg_filter low-pass filters EEG/MEG epoched data.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG lowpass filter setup',0);
 

@@ -8,7 +8,11 @@ function VO = spm_smoothto8bit(V,fwhm)
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin>1 & fwhm>0,
 	VO = smoothto8bit(V,fwhm);

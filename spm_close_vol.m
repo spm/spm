@@ -2,7 +2,11 @@ function V = spm_close_vol(V)
 % Close image volume
 % See: spm_create_vol and spm_write_plane.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 for i=1:prod(size(V)),
 	if isfield(V,'private') & isfield(V(i).private,'fid') & ~isempty(V(i).private.fid),

@@ -29,7 +29,11 @@
 %
 % SPM5 - Manifest
 %-----------------------------------------------------------------------
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 help Contents
 

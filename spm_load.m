@@ -4,7 +4,11 @@ function [x] = spm_load(f)
 % f  - file {ascii file containing a regular array of numbers
 % x  - corresponding data matrix
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 %-Get a filename if none was passed

@@ -61,7 +61,11 @@ function spm_sn2def(varargin)
 %
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global defaults
 defs = defaults.normalise.write;

@@ -11,7 +11,11 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % The model can then be re-estimated without having to go through
 % model specification again.
 %
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 load(DCM_filename);
 

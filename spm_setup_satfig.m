@@ -3,7 +3,11 @@
 % spm_setup_satfig sets up a satellite figure to allow simultaneous display
 % of table values and overlays.
 %----------------------------------------------------------------------------
-% Darren R Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren R Gitelman
+% $Id$
+
 
 global SatWindow
 

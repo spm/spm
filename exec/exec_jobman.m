@@ -3,5 +3,6 @@ function exec_jobman(arg1)
 %_______________________________________________________________________
 % John Ashburner $Id$ 
 spm_defaults
+path(path,spm('Dir'));
 if nargin==0, arg1 = 'job.xml'; end;
 spm_jobman('run',arg1);

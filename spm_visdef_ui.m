@@ -1,7 +1,11 @@
 function spm_visdef_ui
 % Visualise deformations
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 P = spm_get(1,{'*y_*.img','noexpand'},'Select deformation field');
 P = [repmat([deblank(P) ','],3,1) num2str([1 2 3]')];

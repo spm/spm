@@ -276,7 +276,11 @@ function [SPM] = spm_spm(SPM)
 % MAXMEM (in bytes) [default = 2^20]
 %
 %_______________________________________________________________________
-% Andrew Holmes, Jean-Baptiste Poline & Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes, Jean-Baptiste Poline & Karl Friston
+% $Id$
+
 SCCSid   = '$Rev$';
 
 %-Say hello

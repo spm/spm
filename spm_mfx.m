@@ -69,7 +69,11 @@ function [SPM] = spm_mfx(SPM)
 %
 %
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 SCCSid = '$Rev$';
 
 %-Say hello

@@ -5,7 +5,11 @@ function V = spm_write_vol(V,Y)
 % Y          - a one, two or three dimensional matrix containing the image voxels
 % V (output) - data structure after modification for writing.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if ndims(Y)>3, error('Can only handle a maximum of 3 dimensions.'), end
 

@@ -18,7 +18,11 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % existing model.
 %
 %
-% Will Penny & Klaas Enno Stephan $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Klaas Enno Stephan
+% $Id$
+
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');

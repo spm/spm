@@ -15,7 +15,11 @@ function spm_clf(F)
 %
 % This is just a gateway to spm_figure('Clear',F).
 %__________________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %-Call spm_figure
 %---------------------------------------------------------------------------

@@ -18,7 +18,11 @@ function T = spm_bias_estimate(V,flags)
 % computations of image non-uniformity.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 def_flags = struct('nbins',256,'reg',0.01,'cutoff',30);
 if nargin < 2,

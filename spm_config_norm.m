@@ -1,7 +1,11 @@
 function opts = spm_config_norm
 % Configuration file for normalise jobs
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %_______________________________________________________________________
  

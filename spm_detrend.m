@@ -10,7 +10,11 @@ function [y] = spm_detrend(x,p);
 % y   - detrended data matrix
 %
 %__________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % defaults
 %---------------------------------------------------------------------------

@@ -3,7 +3,11 @@ function N = spm_ecat2nifti(fname,opts)
 % FORMAT N = spm_ecat2nifti(fname)
 %  fname     - name of ECAT file
 % _______________________________________________________________________
-% John Ashburner & Roger Gunn $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Roger Gunn
+% $Id$
+
 
 if nargin==1,
     opts = struct('ext','.nii');

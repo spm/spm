@@ -255,7 +255,11 @@ function spm_normalise_ui(opt)
 % registration is regularised (see spm_affreg.m).
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 % Programmers notes
 %-----------------------------------------------------------------------

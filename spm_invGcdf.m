@@ -51,7 +51,11 @@ function x = spm_invGcdf(F,h,l,tol)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %-Parameters

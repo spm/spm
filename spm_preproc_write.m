@@ -8,7 +8,11 @@ function spm_preproc_apply(p,opts)
 %        WM      - similar to GM
 %        CSF     - similar to GM
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==1,
     opts = struct('biascor',0,'GM',[0 0 1],'WM',[0 0 1],'CSF',[0 0 0]);

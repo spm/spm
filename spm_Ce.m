@@ -10,7 +10,11 @@ function [C] = spm_Ce(v,a)
 %
 % See also; spm_Q.m
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % defaults

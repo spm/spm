@@ -16,7 +16,11 @@ function D = spm_eeg_rdata_bdf(S)
 % There are calls to openbdf and readbdf, which are distributed under the
 % GNU-license.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 try
     Fdata = S.Fdata;

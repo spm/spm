@@ -1,7 +1,11 @@
 function opts = spm_config_cd
 % Configuration file for changing directory function
 %_______________________________________________________________________
-% Darren Gitelmann $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Darren Gitelmann
+% $Id$
+
 
 %_______________________________________________________________________
 

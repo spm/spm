@@ -9,7 +9,11 @@ function [U,S,V] = spm_svd(X,U,T)
 % V    - {m x p} singular variates
 % S    - {p x p} singular values
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % default thresholds

@@ -65,7 +65,11 @@ function varargout = spm_brainwarp(varargin)
 % 
 % The vector b contains [diag(w)*(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_brainwarp.c not compiled - see spm_MAKE.sh')

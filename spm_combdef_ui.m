@@ -1,7 +1,11 @@
 function spm_combdef_ui
 % Combines deformation fields
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 P = spm_get(Inf,{'*y_*.img','noexpand'},['Select deformation fields']);
 for i=1:size(P,1),

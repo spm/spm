@@ -45,7 +45,11 @@ function F = spm_Xcdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %-Check enough arguments
 %-----------------------------------------------------------------------

@@ -12,7 +12,11 @@ function GX = spm_global(V)
 % using a criteria of greater than > (global mean)/8
 %
 %_______________________________________________________________________
-% Anon $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Anon
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_global.c not compiled - see spm_MAKE.sh')

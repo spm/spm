@@ -26,7 +26,11 @@ function SPM = spm_eeg_get_vc(SPM);
 % any number of factors and is more general, because it can cope with
 % different number of observations under different levels of a factor.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 
 % Cycle through design components

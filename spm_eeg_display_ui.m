@@ -12,7 +12,11 @@ function Heeg = spm_eeg_display_ui(varargin)
 % output:
 %     Heeg		- Handle of resulting figure
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 if nargin == 0
 	error('Insufficient arguments');

@@ -140,7 +140,11 @@ function varargout = spm_get(varargin)
 % body of the code.
 %
 %_______________________________________________________________________
-% Andrew Holmes (X-platform stuff with Matthew Brett) $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes (X-platform stuff with Matthew Brett)
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

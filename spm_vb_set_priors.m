@@ -20,7 +20,11 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 % Because slice.D, the spatial precision matrix, is the same for W and A,
 % the options for the priors are currently limited to the above
 %
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 N=size(vxyz,1);
 k=size(slice.X,2);

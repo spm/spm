@@ -18,7 +18,11 @@ function D = spm_eeg_average(S);
 % between trial types.
 %
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);

@@ -2,7 +2,11 @@ function varargout = spm_api_fmri(varargin)
 % API for SPM.mat {fMRI}
 % FORMAT spm_api_fmri(action,....)
 %____________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % set action
 %----------------------------------------------------------------------------

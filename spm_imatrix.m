@@ -4,7 +4,11 @@ function P = spm_imatrix(M)
 % M      - Affine transformation matrix
 % P      - Parameters (see spm_matrix for definitions)
 %___________________________________________________________________________
-% John Ashburner & Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Stefan Kiebel
+% $Id$
+
 
 % Translations and zooms
 %-----------------------------------------------------------------------

@@ -33,7 +33,11 @@ function V = spm_vol(P)
 % This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
 % MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 % If is already a vol structure then just return;
 if isstruct(P), V = P; return; end;

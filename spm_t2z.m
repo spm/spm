@@ -51,7 +51,11 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % (though still significant) results.
 %
 %__________________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %-Initialisation
 %===========================================================================

@@ -5,7 +5,11 @@
 % X design matrix
 % p AR model order
 %
-% Will Penny & Nelson Trujillo-Barreto $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Nelson Trujillo-Barreto
+% $Id$
+
 
 disp('Initialising volume');
 disp(' ');

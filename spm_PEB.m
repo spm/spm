@@ -55,7 +55,11 @@ function [C,P,F] = spm_PEB(y,P,TOL)
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % set tolerance if not specified
 %---------------------------------------------------------------------------

@@ -10,7 +10,11 @@ function [mnv,mxv] = spm_minmax(g)
 % where there is a 50% probability of being above background.  The
 % upper value is one that encompases 99.5% of the values.
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 d   = [size(g) 1];
 mxv = max(g(:));

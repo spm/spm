@@ -20,7 +20,11 @@ function savexml(filename, varargin)
 
 %  Copyright 2003 Guillaume Flandin. 
 %  INRIA Sophia Antipolis / CEA-SHFJ
-%  Guillaume Flandin $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%  Guillaume Flandin
+% $Id$
+
 
 if nargin == 0
 	filename = 'matlab.xml';

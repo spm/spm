@@ -1,7 +1,11 @@
 function conf = spm_config_fmri_stats
 % Configuration file for fmri statistics jobs
 %_______________________________________________________________________
-% Daren Gitelman $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Daren Gitelman
+% $Id$
+
 
 % Define inline types.
 %-----------------------------------------------------------------------

@@ -19,7 +19,11 @@ function spm_mask(P1,P2, thresh)
 % to the routine.  Providing the `.mat' files are correct, then these
 % should be handled appropriately.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==0,
 	P1=spm_get(Inf,'IMAGE','Images to compute mask from');

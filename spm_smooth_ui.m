@@ -21,7 +21,11 @@ function spm_smooth_ui
 % original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------

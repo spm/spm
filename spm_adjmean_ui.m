@@ -175,7 +175,11 @@ function spm_adjmean_ui
 % GX            Global means after scaling
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %=======================================================================

@@ -25,7 +25,11 @@ function D = spm_eeg_converteeg2mat(S)
 % straightforward fashion, (ii) providing a new channel template file and
 % (iii) adding the actual conversion routine to the SPM-code.
 %_______________________________________________________________________
-% Stefan Kiebel $Id$ 
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel 
+% $Id$
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
 

@@ -24,7 +24,11 @@ function [] = spm_dcm_sessions ()
 % data (eg. subjects) are drawn.
 %
 % -------------------------------------------------------
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');

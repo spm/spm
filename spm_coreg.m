@@ -72,7 +72,11 @@ function x = spm_coreg(varargin)
 % orientations, and the final orientations.  The registered images are
 % displayed at the bottom.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin>=4,
 	x = optfun(varargin{:});

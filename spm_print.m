@@ -1,7 +1,11 @@
 function spm_print
 % Print the graphics window
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global defaults
 try,

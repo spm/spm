@@ -7,7 +7,11 @@ function spm_procrustes_ui
 % Landmarks: Morphometrics of Group Differences in Outline Shape"
 % Medical Image Analysis 1(3):225-243
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 P   = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
 PW  = spm_get(1,'*.img','Weighting image');

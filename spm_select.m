@@ -22,7 +22,11 @@ function [t,sts] = spm_select(varargin)
 %     spm_select('clearvfiles')
 %
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
     vfiles('add',varargin{2:end});

@@ -30,7 +30,11 @@ function [DAT,H1]=openbdf(FILENAME)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 % Name changed Sept 6,2002  T.S. Lorig
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 SLASH='/';		% defines Seperator for Subdirectories
 BSLASH=setstr(92);

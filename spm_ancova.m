@@ -22,7 +22,11 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % where V = K*K' represents the correlation structure. If c has only one
 % column T statistics is returned, otherwise F rations are computed
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % create design matrix structure if necessary

@@ -14,7 +14,11 @@ function [evidence] = spm_dcm_evidence (DCM)
 %
 %            All of the above are in units of NATS (not bits)
 %
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 v=DCM.v;
 

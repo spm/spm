@@ -30,7 +30,11 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================

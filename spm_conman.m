@@ -585,7 +585,11 @@ function varargout=spm_conman(varargin)
 % "delete" function is provided (as yet).
 % 
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications

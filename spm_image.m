@@ -50,7 +50,11 @@ function spm_image(op,varargin)
 % changed.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global st
 

@@ -3,7 +3,11 @@ function V = spm_create_vol(V,varargin)
 % FORMAT V = spm_create_vol(V)
 % V - image volume information (see spm_vol.m)
 %____________________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 for i=1:prod(size(V)),
     if nargin>1,

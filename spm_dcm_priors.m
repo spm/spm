@@ -8,7 +8,11 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C)
 % qE     - prior expectations (hemodynamic)
 % qC     - prior covariances  (hemodynamic)
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % number of regions
 %---------------------------------------------------------------------------

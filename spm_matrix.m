@@ -31,7 +31,11 @@ function [A] = spm_matrix(P)
 % matrices of n coordinates.
 %
 %__________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % pad P with 'null' parameters
 %---------------------------------------------------------------------------

@@ -8,7 +8,11 @@ function spm_check_registration(images)
 % the bottom right.  The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin==0,
 	images = spm_get([1 15],'IMAGE',['Select images']);

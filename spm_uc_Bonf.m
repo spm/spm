@@ -19,6 +19,10 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % level (a). If n > 1 a conjunction the probability over the n values of the 
 % statistic is returned.
 %___________________________________________________________________________
-% Thomas Nichols $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Thomas Nichols
+% $Id$
+
 
 u   = spm_u((a/S).^(1/n),df,STAT);

@@ -40,7 +40,11 @@ function [strout,R2] = spm_str_manip(strin,options)
 %       'd'              - deblank - this is always done!
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end

@@ -7,6 +7,10 @@ function mat2file
 %
 % This function is normally called by file_array/subsasgn
 % _______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 error('This function needs to be compiled.');

@@ -37,7 +37,11 @@ function varargout = spm_bsplins(varargin)
 %	"Interpolation Revisited"
 %	IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_bsplins.c not compiled.');

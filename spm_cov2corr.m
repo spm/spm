@@ -2,7 +2,11 @@ function [R] = spm_cov2corr(C)
 % returns the correlation matrix given the covariance matrix
 % FORMAT [R] = spm_cov2corr(C);
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 %---------------------------------------------------------------------------
 n    = length(C);

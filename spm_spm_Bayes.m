@@ -65,7 +65,11 @@ function [SPM] = spm_spm_Bayes(SPM)
 % mask are given value NaN.
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 %-Say hello
 %-----------------------------------------------------------------------

@@ -42,7 +42,11 @@ function VO = spm_segment(VF,PG,flags)
 % versions of those kindly supplied by Alan Evans, MNI, Canada
 % (ICBM, NIH P-20 project, Principal Investigator John Mazziotta).
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 % Create some suitable default values
 %-----------------------------------------------------------------------

@@ -11,7 +11,11 @@ function V = spm_write_plane(V,dat,n)
 %       modify scalefactors (for example).
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if isfield(V,'n'), n = num2cell([n V.n]); else, n = {n}; end;
 S     = struct('type','()','subs',{{':',':',n{:}}});

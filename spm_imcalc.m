@@ -36,7 +36,11 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 %
 % See spm_imcalc_ui for example usage...
 %_______________________________________________________________________
-% John Ashburner & Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Andrew Holmes
+% $Id$
+
 
 
 %-Parameters & arguments

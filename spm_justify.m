@@ -17,7 +17,11 @@ function out = spm_justify(n,varargin)
 %    strvcat(out{:})
 %
 %------------------------------------------------------------------------
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 
 % Collect varargs into a single string

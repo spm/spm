@@ -1,7 +1,11 @@
 function opts = spm_config_minc
 % Configuration file for minc import jobs
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %_______________________________________________________________________
 

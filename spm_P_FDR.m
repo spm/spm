@@ -65,7 +65,11 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % controlling multiple test procedures for correlated test
 % statistics".  J of Statistical Planning and Inference, 82:171-196.
 %___________________________________________________________________________
-% Thomas Nichols $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Thomas Nichols
+% $Id$
+
 
 
 % Set Benjamini & Yeuketeli cV for independence/PosRegDep case

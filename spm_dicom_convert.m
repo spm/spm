@@ -10,7 +10,11 @@ function spm_dicom_convert(hdr,opts)
 %
 % Converted files are written to the current directory
 %_______________________________________________________________________
-% John Ashburner & Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Jesper Andersson
+% $Id$
+
 
 if nargin<2, opts = 'all'; end;
 

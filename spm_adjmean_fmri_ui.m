@@ -189,7 +189,11 @@ function spm_adjmean_fmri_ui
 %
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %=======================================================================

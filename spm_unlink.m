@@ -4,7 +4,11 @@ function varargout = spm_unlink(varargin)
 %     OR spm_unlink('file1','file2','file3','file4',...)
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %-This is merely the help file for the compiled routine
 error('spm_unlink.c not compiled - see Makefile')

@@ -1,7 +1,11 @@
 function spm_applydef_ui(P,PT)
 % Applies a deformation field to an image
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin<2
 	n = spm_input('Number of subjects','+0', 'n', '1', 1)';

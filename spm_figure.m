@@ -72,7 +72,11 @@ function varargout=spm_figure(varargin)
 % See also: spm_print, spm_clf
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

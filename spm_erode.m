@@ -31,7 +31,11 @@ function ima = spm_erode(varargin)
 % The actual job is done by spm_dilate_erode.c that serves both
 % spm_dilate.m and op_erode.m
 %__________________________________________________________________
-% Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson
+% $Id$
+
 
 if exist('spm_dilate_erode')~=3 
    error('mex-file spm_dilate_erode.c has not been compiled');

@@ -127,7 +127,11 @@ function spm_segment_ui(P)
 % applied during affine registration.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 global defaults
 if nargin==1 & strcmp(lower(P),'defaults');

@@ -125,7 +125,11 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %=======================================================================

@@ -34,7 +34,11 @@ function [M,h] = spm_maff(varargin)
 % regtype - regularisation type (see above)
 % ff      - a fudge factor (derived from the one above)
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin>2,
     M = affreg(varargin{:});

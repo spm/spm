@@ -13,7 +13,11 @@ function spm_sections(SPM,hReg,spms)
 % Regional foci from the selected SPM are rendered on this image.
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 if nargin < 3 | isempty(spms)
 	spms   = spm_get(1,'IMAGE','select image for rendering on');

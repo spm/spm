@@ -32,7 +32,11 @@ function spm_defaults_edit(varargin)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 SCCSid = '$Rev$';
 
 %-Format arguments

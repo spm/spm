@@ -170,7 +170,11 @@ function varargout = spm_input(varargin)
 % See also : spm_get.m   (SPM file selector dialog)
 %          : spm_input.m (Input wrapper function - handles batch mode)
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications for programers

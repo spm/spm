@@ -5,7 +5,11 @@ function [slice] = spm_vb_w (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure 
 %
-% Nelson Trujillo-Barreto & Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Nelson Trujillo-Barreto & Will Penny
+% $Id$
+
 
 if slice.verbose
     disp('Updating w');

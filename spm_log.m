@@ -15,7 +15,11 @@ function LOGFILE = spm_log(varargin)
 % Doesn't handle multi-dimensional (>2) matrices very gracefully!
 %
 %_______________________________________________________________________
-% Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id$
+
 
 
 %-Find out LogFile name, return if not logging.

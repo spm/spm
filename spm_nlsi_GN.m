@@ -53,7 +53,11 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % of [Re]ML point estimators.
 %
 %---------------------------------------------------------------------------
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % integration scheme

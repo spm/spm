@@ -1,6 +1,10 @@
 function spm_Deformations
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 SPMid = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Deformations');

@@ -12,7 +12,11 @@ function V = spm_vol_ecat7(fname,required)
 % header information.
 %
 % _______________________________________________________________________
-% John Ashburner & Roger Gunn $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Roger Gunn
+% $Id$
+
 
 V        = [];
 if nargin==1,

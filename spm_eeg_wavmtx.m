@@ -26,7 +26,11 @@ function [W, Nres] = spm_eeg_wavmtx(n, wname, order)
 % Algorithms for Finite-Duration Discrete-Time Signals. ACM Transactions
 % on Mathematical Software, (20): 398 - 412. 
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 switch wname
 	case 'db4'

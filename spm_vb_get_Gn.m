@@ -6,7 +6,11 @@ function [G,G1,G2,G3] = spm_vb_get_Gn (Y,slice,n)
 % slice         data structure 
 % n             voxel number
 %
-% Will Penny & Nelson Trujillo-Barreto $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Nelson Trujillo-Barreto
+% $Id$
+
 
 p=slice.p;
 k=slice.k;

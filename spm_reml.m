@@ -18,7 +18,11 @@ function [Ce,h,W,u,F] = spm_reml(Cy,X,Q);
 % components with its principal axes to ensure all components are estimated
 % with finite precision.
 %_______________________________________________________________________
-% John Ashburner & Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Karl Friston
+% $Id$
+
 
 % Tolerances 
 %-----------------------------------------------------------------------

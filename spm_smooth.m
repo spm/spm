@@ -19,7 +19,11 @@ function spm_smooth(P,Q,s)
 % as the image. 
 %
 %_______________________________________________________________________
-% John Ashburner & Tom Nichols $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner & Tom Nichols
+% $Id$
+
 
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end

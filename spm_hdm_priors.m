@@ -18,7 +18,11 @@ function [pE,pC] = spm_hdm_priors(m,h)
 %    P(6) - ....
 %
 %___________________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 
 % default 2 - hemodynamic [eigen]modes

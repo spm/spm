@@ -22,7 +22,11 @@ function [] = spm_dcm_average (num_models,P,name)
 % particular contrast using the spm_dcm_sessions.m function
 %
 % -------------------------------------------------------
-% Will Penny $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id$
+
 
 if nargin < 1
     % Function called via UI

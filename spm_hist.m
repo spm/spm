@@ -9,7 +9,11 @@ function h = spm_hist(ind,val)
 %     h = full(sparse(double(ind)+1,ones(size(ind)),wt,256,1));
 % For Matlab 7, the accumarray function could be used 
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 persistent flg
 

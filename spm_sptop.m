@@ -17,7 +17,11 @@ function [K] = spm_sptop(sigma,q,c)
 % Boundary handling: The row-wise sum of K is set to unity (kernel truncation)
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 % if sigma = 0, return identity matrix; if q = 1, return 1.
 %-----------------------------------------------------------------------

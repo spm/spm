@@ -5,7 +5,11 @@ function [slice] = spm_vb_a (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure 
 %
-% Will Penny & Nelson Trujillo-Barreto $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Nelson Trujillo-Barreto
+% $Id$
+
 %
 % Test change - to show off SVN
 

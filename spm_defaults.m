@@ -11,7 +11,11 @@ function spm_defaults
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% John Ashburner, Andrew Holmes $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner, Andrew Holmes
+% $Id$
+
 
 global defaults
 

@@ -162,7 +162,11 @@ function [SPM] = spm_fMRI_design(SPM)
 % are computed for only the first column of U(u).u.
 %
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 SCCSid  = '$Rev$';
 

@@ -167,7 +167,11 @@ function ds = spm_uw_estimate(P,par)
 %
 % 
 %_______________________________________________________________________
-% Jesper Andersson $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jesper Andersson
+% $Id$
+
 
 global defaults
 

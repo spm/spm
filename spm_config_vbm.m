@@ -1,7 +1,11 @@
 function job = spm_config_vbm
 % Configuration file for VBM preproc jobs
 %_______________________________________________________________________
-% John Ashburner $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 
 %_______________________________________________________________________
 

@@ -118,7 +118,11 @@ function varargout=spm_help(varargin)
 % window for further details.
 %
 %__________________________________________________________________________
-% Andrew Holmes, Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes, Karl Friston
+% $Id$
+
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

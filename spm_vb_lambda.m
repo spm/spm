@@ -5,7 +5,11 @@ function [slice] = spm_vb_lambda (Y,slice)
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
 %
-% Will Penny & Nelson Trujillo-Barreto $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny & Nelson Trujillo-Barreto
+% $Id$
+
 
 if slice.verbose
     disp('Updating lambda');

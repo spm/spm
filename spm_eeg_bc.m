@@ -4,7 +4,11 @@ function d = spm_eeg_bc(D, d)
 % FORMAT d = sjk_eeg_bc(D, d)
 %
 %_______________________________________________________________________
-% Stefan Kiebel $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id$
+
 
 for i = 1 : length(D.tf.channels)
 	for j = 1 : D.Nfrequencies

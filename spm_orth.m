@@ -4,7 +4,11 @@ function x = spm_orth(X)
 %
 % serial orthogionalization starting with the first column
 %_______________________________________________________________________
-% Karl Friston $Id$
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
+
 
 x     = X(:,1);
 for i = 2:size(X,2)
