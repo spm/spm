@@ -111,7 +111,7 @@ function spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %___________________________________________________________________________
-% %W% Karl Friston, Jean-Baptiste Poline %E%
+% %W% Karl Friston, Jean-Baptiste Poline, Christian Buechel %E%
 
 
 %-Delete files from previous analyses, if they exist
@@ -737,32 +737,34 @@ if ~ER
 		    end
 		end
 
-		% convolve with hemodynamic response function - hrf
-		%-----------------------------------------------------------
-		if HRF
-			d = length(hrf);
-			D = [ones(d,1)*D(1,:); D];
-			D = spm_sptop(hrf,k + d,1)*D;
-			D = D([1:k] + d,:);
-		end
-
-		% add temporal differences if specified
-		%-----------------------------------------------------------
-		if TD
-			% append labels
-			%---------------------------------------------------
-			for i = 1:size(D,2)
-				str    = sprintf('timing (%0.0f)',i);
-				Cnames = str2mat(Cnames,str);
-			end
-
-			% append to D
-			%---------------------------------------------------
-			D     = [D [diff(D); zeros(1,size(D,2))]];
-		end
-
-
 	end % (else)
+
+
+
+	% convolve with hemodynamic response function - hrf
+	%-----------------------------------------------------------
+	if HRF
+		d = length(hrf);
+		D = [ones(d,1)*D(1,:); D];
+		D = spm_sptop(hrf,k + d,1)*D;
+		D = D([1:k] + d,:);
+	end
+
+	% add temporal differences if specified
+	%-----------------------------------------------------------
+	if TD
+		% append labels
+		%---------------------------------------------------
+		for i = 1:size(D,2)
+			str    = sprintf('timing (%0.0f)',i);
+			Cnames = str2mat(Cnames,str);
+		end
+
+		% append to D
+		%---------------------------------------------------
+		D     = [D [diff(D); zeros(1,size(D,2))]];
+	end
+
 
 	% append to C
 	%-------------------------------------------------------------------
@@ -817,6 +819,21 @@ for v = 1:nsess
 			if size(d,1) == k
 				D = [D d];
 			end
+		end
+	end
+
+	% convolve confounds with HRF?
+	%---------------------------------------------------
+	if g
+		HRF   = spm_input('convolve confounds with hrf',...
+				  '!+0','b','no|yes',[0 1]);
+		% convolve with hemodynamic response function - hrf
+		%---------------------------------------------------
+		if HRF
+		 d = length(hrf);
+		 D = [ones(d,1)*D(1,:); D];
+		 D = spm_sptop(hrf,k + d,1)*D;
+		 D = D([1:k] + d,:);
 		end
 	end
 
