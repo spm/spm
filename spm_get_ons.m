@@ -94,7 +94,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %
 %
 %_______________________________________________________________________
-% %W%  Karl Friston %E%
+% %W% Karl Friston %E%
 
 % Programmers Guide
 % Batch system implemented on this routine. See spm_bch.man
@@ -105,7 +105,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %    BCH.index0  = {'model',index_of_Analysis};
 %_______________________________________________________________________
 
-
+global BCH
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -130,7 +130,7 @@ DSstr  = '';
 %-----------------------------------------------------------------------
 if isempty(v)
 	v     = spm_input('number of conditions or trials',2,'w1',...
-                          'batch',{'conditions',s},'number');
+                          'batch',{},'conditions_nb');
 end
 if isempty(Cname)
 	Cname = {};
@@ -153,7 +153,7 @@ if v
 	spm_input('Trial specification...',1,'d',Fstr,'batch')
 	if STOC
 		 STOC = spm_input('stochastic design','+1','y/n',[1 0],...
-                                  'batch',{'stochastics',s},'specify');
+                                  'batch',{},'stochastics_flag');
 	end
 	if STOC
 
@@ -179,7 +179,7 @@ if v
                               'batch',{'stochastics',s},'relative_frequency');
 		str     = 'occurence probability';
 		if spm_input(str,'+1','stationary|modulated',[1 0], ...
-			'batch',{'stochastics',s},'stationary_or_modulated')		
+			'batch',{'stochastics',s},'stationary_or_modulated')
 			DSstr = [DSstr '(stationary) '];
 			P     = P(:)*ones(1,ns);
  
@@ -223,8 +223,11 @@ if v
 
 	    % get onsets
 	    %-----------------------------------------------------------
-	    Sstr  = spm_input('SOA',2,'Fixed|Variable',...
-                              'batch',{'conditions',s},'fix_var_SOA');
+	    if isempty(BCH)
+               Sstr  = spm_input('SOA',2,'Fixed|Variable');
+            else 
+		Sstr  = 'Variable';	 
+            end
 	    DSstr = [DSstr  Sstr ' SOA '];
 	    i     = 0;
 	    while i < v
@@ -286,7 +289,7 @@ if v
 		 'time',...
 		 'other'};
 	Ptype = spm_input('parametric modulation','+1','b',Ptype,...
-                          'batch',{'parametrics',s},'type');
+                          'batch',{},'parametrics_type');
 	switch Ptype
 
 		case 'none'
