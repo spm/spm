@@ -1,8 +1,24 @@
 function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
-% Used only in bch mode for the case of non regular temporal sampling
-% %W%	2.3 Stephanie Rouquette %E%
+% SPM batch system: bch mode (only) non regular temporal sampling
+% FORMAT [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
+%
+% xX     - 
+% Sess   - 
+% K      - 
+% P      - 
+% nscan  - 
+% row    - 
+% xXa    - 
+% Sessa  - 
+% Ka     - 
+% nscana - 
+% rowa   - 
+%_______________________________________________________________________
+% %W% Stephanie Rouquette %E%
 
+%=======================================================================
 % Programmers Guide
+%=======================================================================
 % Batch system implemented on this routine. See spm_bch.man
 % If inputs are modified in this routine, try to modify spm_bch.man
 % and spm_bch_bchmat (if necessary) accordingly. 
@@ -12,8 +28,7 @@ function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
 % or 
 %    BCH.index0  = {'normalisation',index_of_Analysis}; (when
 %                   spm_spn3d is launched for edit_defaults 
-%
-%_______________________________________________________________________
+
 
 global BCH;
 

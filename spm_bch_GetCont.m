@@ -1,4 +1,7 @@
-function status = spm_bch_GetCont;
+function status = spm_bch_GetCont
+% SPM batch system: Contrast structure creation.
+% FORMAT status = spm_bch_GetCont
+%_______________________________________________________________________
 %
 % The BCH gobal variable is used for spm_input in batch mode : 
 %    BCH.bch_mat 
@@ -8,9 +11,8 @@ function status = spm_bch_GetCont;
 % append to previous xCon if xCon already exists.
 % Working directory where the xCon structure will be saved
 % is specified in the top level m-file. 
-%
-% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
-%---------------------------------------------------------------
+%_______________________________________________________________________
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %- initialise status
 status.str = '';
@@ -19,7 +21,7 @@ status.err = 0;
 swd = pwd;
 
 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 if exist(fullfile('.','xCon.mat'),'file'), 
 	load('xCon.mat'), 
 	lxCon = length(xCon);
@@ -28,7 +30,7 @@ else,
 	lxCon = 0;
 end
 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 if exist(fullfile('.','SPM.mat'),'file'), 
 	try 
 	   load(fullfile('.','SPM.mat'),'xX');	
@@ -50,7 +52,7 @@ else
 end
 
 %- get contrast to create from mat file (in global BCH) 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 
 names  = spm_input('batch',{},'names');
 types  = spm_input('batch',{},'types');

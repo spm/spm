@@ -1,25 +1,31 @@
-function status = spm_bch_DoCont;
+function status = spm_bch_DoCont
+% SPM batch system: Contrast computation
+% FORMAT status = spm_bch_DoCont
+%_______________________________________________________________________
 %
-% This function implements the computations of 
-% the contrasts specified in the m-file. 
+% This function implements the computations of the contrasts specified
+% in the m-file.
 %
-% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
+% See also: spm_getSPM.m
+%
+%_______________________________________________________________________
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %- initialise status
-%--------------------------------------------------
+%-----------------------------------------------------------------------
 status.str = '';
 status.err = 0;
 swd = pwd;
 
 %- Get xCon if exist, if doesnt warns and returns 
-%--------------------------------------------------
+%-----------------------------------------------------------------------
 
 if exist(fullfile('.','xCon.mat'),'file'), 
 	load('xCon.mat'); 
 	lxCon = length(xCon);
 
 	%-Canonicalise SPM99b format xCon (which saved mmapped handles) **
-	%-----------------------------------------------------------------
+	%---------------------------------------------------------------
 	for i=1:length(xCon)
 	   if isstruct(xCon(i).Vcon), xCon(i).Vcon=xCon(i).Vcon.fname; end
 	   if isstruct(xCon(i).Vspm), xCon(i).Vspm=xCon(i).Vspm.fname; end
@@ -69,8 +75,8 @@ end
 M     	= Vbeta(1).mat;
 dim	= Vbeta(1).dim(1:3);
 
-%- loop over contrasts ...
-%--------------------------------------------------
+%- loop over contrasts...
+%-----------------------------------------------------------------------
 for i = 1:length(xCon)
 
     if ~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf)
@@ -204,7 +210,7 @@ for i = 1:length(xCon)
 end %- for i = 1:length(xCon)
 
 %- save xCon 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 try
 	save('xCon.mat','xCon')
 catch

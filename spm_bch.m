@@ -1,31 +1,32 @@
-function  spm_bch(varargin);
+function spm_bch(varargin)
+% SPM batch system: Batch running program.
 % FORMAT spm_bch(bch_mfile);
-%---------------------------------------------------------------
-% bch_mfile : 	m-file containing the description of the batch
-%               analyses
+%
+% bch_mfile - m-file containing the description of the batch analyses
+%
+%__________________________________________________________________________
 %
 % bch_mfile has to contain a variable 'analyses' that describes
-% the kind of analyses to perform in batch,
+% the kind of analyses to perform in batch, and variables:
+%             'type', 'work_dir', 'file'
+% See spm_bch.man for indication on how to fill these and what they are. 
 %
-% and variables : 'type', 'work_dir', 'file'
-% See spm_bch.man for indication on how to fill these and what
-% they are. 
-%
-% spm_bch will basically loop over different analyses (eg: 'smooth', ..).
-% Each analysis inputs will be taken from an m-file, (file variable)
-% and performed in the working directory describe in work_dir.
-% m-file names can be relative to the working directory.
-% If several analyses of the same kind are to be computed, this
-% is resolved with the analyses.index
+% spm_bch will basically loop over different analyses (eg: 'smooth',
+% ..).  Each analyses inputs will be taken from an m-file, (file
+% variable) and performed in the working directory describe in
+% work_dir.  m-file names can be relative to the working directory.  If
+% several analyses of the same kind are to be computed, this is
+% resolved with the analyses.index
 % 
-% The top m-file may also contain the structures for the input of
-% one or several analyses 
+% The top m-file may also contain the structures for the input of one
+% or several analyses
 %
-% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
-%---------------------------------------------------------------
+%_______________________________________________________________________
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
-%---------------------------------------------------------------
-% Programmer's guide :
+%=======================================================================
+% Programmer's notes
+%=======================================================================
 % To add a new kind of analysis, eg NEW_Analysis
 %    1- include it in the switch, 
 %       (with BCH.index0  = {'NEW_Analysis',iA(cA)}) 
@@ -38,7 +39,7 @@ function  spm_bch(varargin);
 
 
 %- Global batch variables
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 
 global BCH
 
@@ -49,7 +50,7 @@ BCH = struct(...
 );
 
 %- Inputs and Defaults
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 global MODALITY; 
 
 if nargin == 0, 
@@ -70,11 +71,11 @@ if nargin == 2,
 end
 
 %- launch spm defaults for that modality
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 spm('defaults',MODALITY);
 
 %- m->mat file for the upper level analysis  
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 try 
    %--------- put it in mat file 
    ana_mat = spm_bch_bchmat(bch_mfile,'analyses');
@@ -89,12 +90,12 @@ BCH.bch_mat = ana_mat;
 BCH.index0  = {'analyses',1};
 
 %- save current directory 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 cwd = pwd;
 
 %- get indexes for all analyses and the m-files, 
 %- working dir, type of analysis 
-%---------------------------------------------------------------
+%-----------------------------------------------------------------------
 iA = spm_input('batch',{},'index');
 try
    wk_dir = spm_input('batch',{'work_dir',':'});
@@ -127,21 +128,21 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 
 	switch typeA{cA}
 
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'defaults_edit'  
 		BCH.index0  = {'defaults_edit',iA(cA)};
 
 		%- first, get the indexes of the default areas
-		%-------------------------------------------
+		%-------------------------------------------------------
 		index = spm_input('batch',{},'index')
                 %- get the list of defaults areas to work on 
-		%-------------------------------------------
+		%-------------------------------------------------------
 		areas = {};
 		areas = spm_input('batch',{'type_area',':'});
                 % for i_area = 1:length(index)
                 %    areas{i_area} = spm_input('batch',{'type_area',i_area},1);
                 % end
-		%-------------------------------------------
+		%-------------------------------------------------------
 		for i_area = 1:length(areas)
                     %--- little trick : the top variable changes here ... 
                     %--- reading info from {areas{i_area},index(i_area)}
@@ -149,48 +150,48 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
                     spm_defaults_edit(areas{i_area});
                 end
 
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'model'
 		BCH.index0  = {'model',iA(cA)};
 		spm_fmri_spm_ui;
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'contrasts'
 		BCH.index0  = {'contrasts',iA(cA)};
 		s = spm_bch_GetCont; 	
 		s = spm_bch_DoCont;		
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'headers'
 		BCH.index0  = {'headers',iA(cA)};
 		s = spm_bch_headers;
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'means'
 		BCH.index0  = {'means',iA(cA)};
 		s = spm_means;
 	    
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'realign'
 		BCH.index0  = {'realign',iA(cA)};
 		spm_realign_ui;
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'coreg'
 		BCH.index0  = {'coreg',iA(cA)};
 		spm_coreg_ui;
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'normalize'
 		BCH.index0  = {'normalize',iA(cA)};
 		spm_sn3d;
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    case 'smooth'
 		BCH.index0  = {'smooth',iA(cA)};
 		spm_smooth_ui;    
     
-	    %---------------------------------------------------------------
+	    %-----------------------------------------------------------
 	    otherwise
 		warning(sprintf('unknown type of analyse %s',typeA{cA}))
     
@@ -199,4 +200,3 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 end %- for cA = 1:length(iA)
 
 cd(cwd);
-

@@ -1,4 +1,8 @@
 function status = spm_bch_headers
+% SPM batch system: Headers.
+% FORMAT status = spm_bch_headers
+%
+%_______________________________________________________________________
 %
 % Use the BCH gobal variable for spm_input : 
 %    BCH.bch_mat 
@@ -13,11 +17,13 @@ function status = spm_bch_headers
 % do_mat    : create a .mat file 
 % origoff   : add origoff to ORIGIN
 %
-% Programmers Guide :
-% cheching on the arguments read in batch_mat should be done
-% in spm_bch_bchmat.m
+%                           ----------------
+%
+% Programmers Guide:
+% checking on the arguments read in batch_mat should be done in spm_bch_bchmat.m
+%_______________________________________________________________________
 % %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
-%---------------------------------------------------------------
+
 
 
 %- initialise status
@@ -27,7 +33,7 @@ status.err = 0;
 files = spm_input('batch',{},'files');
 
 %------- no files ------- 
-if ~size(files,1), return, end;
+if ~size(files,1), return, end
 
 DIM 		= spm_input('batch',{},'DIM');
 VOX 		= spm_input('batch',{},'VOX');

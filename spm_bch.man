@@ -1,19 +1,25 @@
-% %W% JB Poline & Stephanie Rouquette %E%
-%=========================================================================
-% BATCH_DOCUMENTATION
-%=========================================================================
+
+% SPM batch system
+%_______________________________________________________________________
+%                                                    BATCH_DOCUMENTATION
 % 
-% How to read this documentation ? 
-% 1- read the  [GETTING_STARTED] section 
-% 2- when you encounter a [KEY_WORD] 
-% then look for this key work to get exemples or details 
-% on the KEY_WORD subject.
+% How to read this documentation? 
+%     1 - read the [GETTING_STARTED] section 
+%     2 - when you encounter a [KEY_WORD] 
+%         then look for this key work to get exemples or details 
+%         on the KEY_WORD subject.
 %
-%-------------------------------------------------------------------------
-% [BCH_EX_DIR] = ~spm/spm_devel_bch/exemples
-%-------------------------------------------------------------------------
-% [GETTING_STARTED]
-%-------------------------------------------------------------------------
+%
+% [BCH_EX_DIR] = ~spm/spm_devel/batch/examples
+%_______________________________________________________________________
+% %W% JB Poline & Stephanie Rouquette %E%
+%
+%
+%
+%
+%
+%_______________________________________________________________________
+%                                                      [GETTING_STARTED]
 %
 % The batch system relies on a description of all parameters
 % that need to be entered in the graphic user interface.
@@ -25,31 +31,30 @@
 %
 % The simplest is to copy an existing analyses_bch_ex.m file and
 % modify it depending on your specific needs.
-% "analyses_bch_ex.m" should contain something like : (exemples of m-files
-% are in double comment '% |')
-% [MFILE_EX]
-% |_________________________________________________________________________ 
+% "analyses_bch_ex.m" should contain something like:
+%  (exemples of m-files are shown in double include marks: '% |')
+%
+% [MFILE_EX]____________________________________________________________
 % | %---------------------------------------------------------------
 % | analyses = struct( ... 
-% |      'type', 	[1 1 2], ...
-% |      'work_dir', 	[1 2 1], ...
-% |      'mfile', 	[1 1 1] ...
-% |      'index', 	[1 2 1], ...
+% |      'type',        [1 1 2], ...
+% |      'work_dir',    [1 2 1], ...
+% |      'mfile',       [1 1 1] ...
+% |      'index',       [1 2 1], ...
 % | );
 % | %---------------------------------------------------------------
 % | type = {'model','contrasts','defaults_edit','headers',...
-% |	  'means','realign','normalize','smooth'};
+% |       'means','realign','normalize','smooth'};
 % | %---------------------------------------------------------------
 % | work_dir = { ...
-% |	  '/home/jbp/test1',...
-% |	  '/home/jbp/test2',...
+% |       '/home/jbp/test1',...
+% |       '/home/jbp/test2',...
 % |           };
 % | %---------------------------------------------------------------
 % | mfile = { ...
-% |	   './exemples/model_bch_ex',...
+% |        './exemples/model_bch_ex',...
 % |        };
 % | %---------------------------------------------------------------
-% |_________________________________________________________________________ 
 %
 %
 % The type of analysis will be specified by analyses.type
@@ -74,10 +79,10 @@
 % m-file specified in the variable mfile : 
 %
 %    mfile(analyses.mfile(Nth)) (which is always 
-%	'./exemples/model_bch_ex' in this exemple) 
-% 	NB : file's path can be complete path. When relative, 
-%	they are relative with respect to the working directory  
-%	work_dir(analyses.work_dir(Nth))
+%       './exemples/model_bch_ex' in this exemple) 
+%       NB : file's path can be complete path. When relative, 
+%       they are relative with respect to the working directory  
+%       work_dir(analyses.work_dir(Nth))
 % 
 % So in this exemple, the 'model' and 'contrasts' analyses will have
 % find their input in '/home/jbp/test1/./exemples/model_bch_ex'
@@ -91,8 +96,8 @@
 % of the same kind with a minimum of specification (see [INDEXING_SYSTEM]).
 %
 % This is what model_bch_ex.m may look like : 
-% [MFILE_EX]
-% |__________________________________________________________________________
+%
+% [MFILE_EX]____________________________________________________________
 % | %---------------------------------------------------------------
 % | % user variables defined here 
 % | %---------------------------------------------------------------
@@ -201,8 +206,6 @@
 % |    'types',   {{'T','F'}}, ...
 % |    'values',  {{c1,c2}} ...
 % | );
-% | 
-% |__________________________________________________________________________
 % 
 %
 % There are 3 distinct parts in this file :
@@ -215,7 +218,7 @@
 % The full description of each variable can be found below in the 
 % VARIABLE_DESCRIPTION section.
 %
-% 3- a description of the 'contrasts' analysis (see [CONTRASTES], and
+% 3- a description of the 'contrasts' analysis (see [CONTRASTS], and
 % see the note about the size of the contrasts that must include
 % block effects)
 %
@@ -228,24 +231,24 @@
 % HF_cut : there must be as many as session (it's an array)
 %
 % files : F1 and F2 are variable defined in the user section. 
-% 	(name them as you like !). There must be as many as 
-%	sessions as well. Be careful to enclose a series of
-%	variables with TWO curly braket, like in {{F1,F2}} 
-%	if model is defined with a 'model = struct( ... );'	
-%	However, if defined with a 'model(1).file = {F1,F2}'
-%	only one pair of {} is needed. 
-%	THIS IS A GENERAL POINT THAT APPLIES TO ALL VARIABLES
-%	(not only 'model').
-%	Note that spm_get('files',dir,fil) is useful here to get the files.
+%       (name them as you like !). There must be as many as 
+%       sessions as well. Be careful to enclose a series of
+%       variables with TWO curly braket, like in {{F1,F2}} 
+%       if model is defined with a 'model = struct( ... );'     
+%       However, if defined with a 'model(1).file = {F1,F2}'
+%       only one pair of {} is needed. 
+%       THIS IS A GENERAL POINT THAT APPLIES TO ALL VARIABLES
+%       (not only 'model').
+%       Note that spm_get('files',dir,fil) is useful here to get the files.
 % 
 % conditions : there should be as many as files or HF_cut.
-% 	This array represents an index to the variable 'conditions'.
-%	This 'conditions' variable will describe a series of conditions.
-%	(and is therefore homologous to a "session" in fMRI)
-%	In this exemple, the description of the first session 
-%	is found in conditions(model(1).conditions(1)) and that of the 
-%	second session in conditions(model(1).conditions(1)) 
-%	This is refered to as the [INDEXING_SYSTEM]
+%       This array represents an index to the variable 'conditions'.
+%       This 'conditions' variable will describe a series of conditions.
+%       (and is therefore homologous to a "session" in fMRI)
+%       In this exemple, the description of the first session 
+%       is found in conditions(model(1).conditions(1)) and that of the 
+%       second session in conditions(model(1).conditions(1)) 
+%       This is refered to as the [INDEXING_SYSTEM]
 %
 % The variable 'conditions' ([CONDITIONS]) follows the same principle.
 % 'names' 'onsets' 'bf_ev' and  'bf_ep' should be of the same
@@ -268,82 +271,82 @@
 % TRY TO EXECUTE YOUR M-FILES BEFORE AND CHECK THAT EVERY THING
 % IS OK AT THAT STAGE
 %
-%-------------------------------------------------------------------------
-% [TYPE_OF_ANALYSIS]
-%-------------------------------------------------------------------------
+%_______________________________________________________________________
+%                                                     [TYPE_OF_ANALYSIS]
+%
 % Possible analyses for the moment are :
-% [MODEL]                  : specify, estimate a model 
-% [CONTRASTES]             : compute some contrasts
-% [HEADERS]                : change some headers
-% [MEANS]                  : compute some means
-% [DEFAULTS_EDIT]          : change the defaults 
-% [SMOOTH]                 : smooth some images
-% [REALIGN]                : realign some images   
-% [NORMALISATION]          : normalize some images  
+% [MODEL]          : specify, estimate a model 
+% [CONTRASTS]      : compute some contrasts
+% [HEADERS]        : change some headers
+% [MEANS]          : compute some means
+% [DEFAULTS_EDIT]  : change the defaults 
+% [SMOOTH]         : smooth some images
+% [REALIGN]        : realign some images   
+% [NORMALISATION]  : normalize some images  
 %
-%-------------------------------------------------------------------------
-% [INDEXING_SYSTEM]
-%-------------------------------------------------------------------------
-% When variable described in parameter mfiles are structures
-% and when a field of the structure has the name of an other
-% variable in the parameter mfile, the values of the array
-% found at the field will index the variable with the same 
-% name. 
-% For instance, the "model(1)" structure has a conditions
-% field, say [1 2 1]. This means that the first series of conditions
-% will be found in conditions(1), the second in condition(2)
-% and the third in conditions(1). 
-% This avoid duplication of information in the parameter file. 
-% This principle is recursive. Notice that in general, the 
-% variable name refers to a SERIES of ... For instance, 
-% 'contrasts' refers to a series of contrasts, and so on...
-% This allows a quicker specification in most of the case.
-% Not all variables need to exist (eg, regressors, parametrics ...
-% need not exist in the m-file if not used for the model specification).
+%_______________________________________________________________________
+%                                                      [INDEXING_SYSTEM]
 %
+% When variable described in parameter mfiles are structures and when a
+% field of the structure has the name of an other variable in the
+% parameter mfile, the values of the array found at the field will
+% index the variable with the same name.
+% 
+% For instance, the "model(1)" structure has a conditions field, say [1
+% 2 1]. This means that the first series of conditions will be found in
+% conditions(1), the second in condition(2) and the third in
+% conditions(1).  This avoid duplication of information in the
+% parameter file.  This principle is recursive. Notice that in general,
+% the variable name refers to a SERIES of ... For instance, 'contrasts'
+% refers to a series of contrasts, and so on...  This allows a quicker
+% specification in most of the case.  Not all variables need to exist
+% (eg, regressors, parametrics ...  need not exist in the m-file if not
+% used for the model specification).
+% 
 % More generally, assume we have a parent variable called 'parent_var'
-% with field 'child_variable', then 
-% 	Indices = parent_var(k).child_variable
+% with field 'child_variable', then
+%       Indices = parent_var(k).child_variable
 % and for all 'Ind' in 'Indices', child_variable(Ind) must exist.
-% Exeption to this rule : Indices can sometime contain 0 (in this 
-% case the indices are also used as boulean variable. But in
-% general, they should be valid indices. 
+% Exeption to this rule : Indices can sometime contain 0 (in this case
+% the indices are also used as boulean variable. But in general, they
+% should be valid indices.
 %
 %
-%-------------------------------------------------------------------------
-% [VARIABLE_DESCRIPTION]
-%-------------------------------------------------------------------------
+%_______________________________________________________________________
+%                                                 [VARIABLE_DESCRIPTION]
+%
 % variables or variables fields possible values  
 % are described as either one of the following
 % type, or as a list of string (eg {'linear','exponen','polynom'}
 % When there is a 'y/n',[1 0] or of the kind, this means that
 % you have to enter 1 (for yes) or 0 (for no).  
 %
-% [UNIQUE] 	: refers to the fields that take a unique value, such that
-% 	     	length(variable(Nth).field) == 1
-% [MULTIPLE] 	: refers to the field that have length >= 1  
-%		  NB : the fields under the [MULTIPLE] section should 
-%		  have the SAME length
-%-------------------------------------------------------------------------
-% [VARIABLE_TYPE_DESCRIPTION]
-%-------------------------------------------------------------------------
+% [UNIQUE]         : refers to the fields that take a unique value,
+%                    such that length(variable(Nth).field) == 1
+% [MULTIPLE]       : refers to the field that have length >= 1
+%               NB : the fields under the [MULTIPLE] section should have
+%                    the SAME length
 %
-% INDICES		: These are used for the [INDEXING_SYSTEM]
-%			  in general should be valid indices to a child var.
-% VALUE			: a single value, eg 1.7
-% INTEGER		: an integer value 
-% INTEGER_ARRAY		: an array of integers (eg [ 1 1 1 ])
-% STRING		: a string
-% STRINGS		: cell array of strings, like {'aa', 'bb', ...}
-% STRING_ARRAY		: array of string : ['file001.img';'file001.img';...]
-%			  like the output of spm_get
-% STRING_ARRAYS		: cell array of STRING_ARRAY
-% VALUE_ARRAY		: array of values, eg [1.2 6 12 432]
-% VALUE_ARRAYS		: cell array of VALUE_ARRAY
-% ARRAY           : a matrix
+%_______________________________________________________________________
+%                                            [VARIABLE_TYPE_DESCRIPTION]
 %
-%-------------------------------------------------------------------------
-% [NOTE_ON]
+%
+% INDICES          : These are used for the [INDEXING_SYSTEM]
+%                    in general should be valid indices to a child var.
+% VALUE            : a single value, eg 1.7
+% INTEGER          : an integer value 
+% INTEGER_ARRAY    : an array of integers (eg [ 1 1 1 ])
+% STRING           : a string
+% STRINGS          : cell array of strings, like {'aa','bb',...}
+% STRING_ARRAY     : array of strings : ['file001.img';'file001.img';...]
+%                    (like the output of spm_get)
+% STRING_ARRAYS    : cell array of STRING_ARRAY
+% VALUE_ARRAY      : array of values, eg [1.2 6 12 432]
+% VALUE_ARRAYS     : cell array of VALUE_ARRAY
+% ARRAY            : a matrix
+%
+%_______________________________________________________________________
+%                                                              [NOTE_ON]
 %       [ANALYSES]
 %          
 %       [MODEL] 
@@ -353,7 +356,11 @@
 %          (empty fields are necessary ...)
 %          
 %
-%-------------------------------------------------------------------------
+%_______________________________________________________________________
+%
+%
+%
+%
 %=========================================================================
 % [ANALYSES] 
 %=========================================================================
@@ -361,8 +368,8 @@
 % analyses : STRUCT % [ANALYSES]
 %----------------------------------------
 %................[MULTIPLE]................
-%  'type',  	 INDICES
-%  'index', 	 INDICES
+%  'type',       INDICES
+%  'index',      INDICES
 %  'mfile',      INDICES
 %  'work_dir',   INDICES               
 %----------------------------------------
@@ -449,9 +456,9 @@
 % 'trials',     INTEGER_ARRAY
 % 'parameters', VALUE_ARRAYS 
 %
-%========================================
+%=======================================================================
 % [CONDITIONS] -> [BF_EV] [BF_EP]
-%========================================
+%=======================================================================
 %----------------------------------------
 % conditions : STRUCT % [CONDITIONS]
 %----------------------------------------
@@ -498,14 +505,14 @@
 %            'epoch length {scans} for condition' 
 %
 %=========================================================================
-% [CONTRASTES]
+% [CONTRASTS]
 %=========================================================================
 % ATTENTION : the contrasts size must be of the number of parameter
 % of the design matrix, INCLUDING block (session) effects.
 % Contrasts can be taken from old xCon.mat file in the xCon(i).c'
 %
 %----------------------------------------
-% contrasts : STRUCT % [CONTRASTES]
+% contrasts : STRUCT % [CONTRASTS]
 %----------------------------------------
 %................[MULTIPLE]................
 %  'names',    STRINGS, 
@@ -545,22 +552,22 @@
 %
 %=========================================================================
 % [DEFAULTS_EDIT] -> [MISC] [PRINTIMG] [HDR] [REALIGNCOREG] 
-%			[NORMALISATION] [STATISTICS] 
+%                       [NORMALISATION] [STATISTICS] 
 %=========================================================================
 %
 %----------------------------------------
 % defaults_edit : STRUCT % [DEFAULTS_EDIT]
 %----------------------------------------
 %................[MULTIPLE]................
-% 'type_area',	INDICES
-%		 1 <-> 'Printing Options'
-%		 2 <-> 'Miscellaneous Defaults'
-%		 3 <-> 'Header Defaults - ',MODALITY
-%	    	 4 <-> 'Realignment & Coregistration'
-%		 5 <-> 'Spatial Normalisation'
-%		 6 <-> 'Statistics - ',MODALITY
-%		 7 <-> 'Reset All'
-% 'index',	INTEGER_ARRAY
+% 'type_area',  INDICES
+%                1 <-> 'Printing Options'
+%                2 <-> 'Miscellaneous Defaults'
+%                3 <-> 'Header Defaults - ',MODALITY
+%                4 <-> 'Realignment & Coregistration'
+%                5 <-> 'Spatial Normalisation'
+%                6 <-> 'Statistics - ',MODALITY
+%                7 <-> 'Reset All'
+% 'index',      INTEGER_ARRAY
 %
 %----------------------------------------
 % Printing  : STRUCT % [PRINTING]
@@ -592,12 +599,12 @@
 %      -dpsc <-> colour
 %  'graphics_filename', STRING
 %  'graph_type'
-%		1 <-> 'HPGL compatible with Hewlett-Packard 7475A plotter'
-%		2 <-> 'Adobe Illustrator 88 compatible illustration file'
-%		3 <-> 'M-file (and Mat-file, if necessary)'
-%		4 <-> 'Baseline JPEG image'
-%		5 <-> 'TIFF with packbits compression'
-%		6 <-> 'Color image format']
+%               1 <-> 'HPGL compatible with Hewlett-Packard 7475A plotter'
+%               2 <-> 'Adobe Illustrator 88 compatible illustration file'
+%               3 <-> 'M-file (and Mat-file, if necessary)'
+%               4 <-> 'Baseline JPEG image'
+%               5 <-> 'TIFF with packbits compression'
+%               6 <-> 'Color image format']
 %  'print_string', STRING
 %
 %----------------------------------------
@@ -617,8 +624,8 @@
 %  'voxel_size_mm', STRING
 %  'scale', VALUE
 %  'data_type'
-%     2  <-> 'Unsigned Char	(8  bit)'
-%     4  <-> 'Signed Short	(16 bit)'
+%     2  <-> 'Unsigned Char     (8  bit)'
+%     4  <-> 'Signed Short      (16 bit)'
 %     8  <-> 'Signed Integer (32 bit)' 
 %     16 <-> 'Floating Point'
 %     32 <-> 'Double Precision'
@@ -639,8 +646,8 @@
 %----------------------------------------
 %................[UNIQUE]...................
 %  'separate_combine'
-%		-1 <-> 'Allow separate coregistration and reslicing'
-%		1  <-> 'Combine coregistration and reslicing'
+%               -1 <-> 'Allow separate coregistration and reslicing'
+%               1  <-> 'Combine coregistration and reslicing'
 %  'create'
 %     1  <-> 'All Images + Mean Image'
 %     -1 <-> 'Full options'
@@ -654,9 +661,9 @@
 %  'reg_quality'
 %     [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001]
 %     <-> ['Quality 1.00  (slowest/most accurate) |Quality 0.90|' ...
-%	   'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
-%	   'Quality 0.05|Quality 0.01|' ...
-%	   'Quality 0.005|Quality 0.001 (fastest/poorest)']
+%          'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
+%          'Quality 0.05|Quality 0.01|' ...
+%          'Quality 0.005|Quality 0.001 (fastest/poorest)']
 %
 %----------------------------------------
 % Normalisation  : STRUCT % [NORMALISATION]
@@ -716,9 +723,9 @@
 %----------------------------------------
 %................[UNIQUE]...................
 %  'option'
-%		 1 <-> 'Determine Parameters Only'
-%		 2 <-> 'Write Normalised Only'
-%		 3 <-> 'Determine Parameters & Write Normalised'
+%                1 <-> 'Determine Parameters Only'
+%                2 <-> 'Write Normalised Only'
+%                3 <-> 'Determine Parameters & Write Normalised'
 %  'nbsubjects', INTEGER
 %  'object_masking', 'yes|no', [1 0]
 %  'template', STRING
@@ -755,13 +762,13 @@
 %
 %................[MULTIPLE]................
 %  'image'      STRING_ARRAY (1*nbsubjects)
-% 					to determine parameters from,
-%  'objmask' 	STRING_ARRAY (1*nbsubjects)
-% 					object masking image, '' for none,
-%  'matname' 	STRING_ARRAY (1*nbsubjects)
-% 					normalisation parameter set,
-%  'images'  	{STRING_ARRAYS} (1*nbsubjects)
-% 					images to write normalised, 
+%                                       to determine parameters from,
+%  'objmask'    STRING_ARRAY (1*nbsubjects)
+%                                       object masking image, '' for none,
+%  'matname'    STRING_ARRAY (1*nbsubjects)
+%                                       normalisation parameter set,
+%  'images'     {STRING_ARRAYS} (1*nbsubjects)
+%                                       images to write normalised, 
 
 %=========================================================================
 % [REALIGN]  -> [SESSIONS] 
@@ -803,6 +810,6 @@
 %----------------------------------------
 %   'images', {STRING_ARRAYS},
 %
-%-------------------------------------------------------------------------
-
-
+%
+%
+%_______________________________________________________________________
