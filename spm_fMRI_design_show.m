@@ -124,9 +124,9 @@ subplot(3,2,5)
 cla
 q     = 0.1;
 text(0,1 - 1*q,'Design','FontWeight','bold')
-text(0,1 - 2*q,X.DesN{1},'FontSize',10)
+text(0,1 - 2*q,'fMRI time-series analysis'  ,'FontSize',10)
 text(0,1 - 3*q,'Basis functions','FontWeight','bold')
-text(0,1 - 4*q,X.DesN{2},'FontSize',10)
+text(0,1 - 4*q,X.DesN,'FontSize',10)
 text(0,1 - 6*q,sprintf('%0.0f ms time bins',1000*X.dt),'FontSize',10)
 text(0,1 - 7*q,sprintf('%0.0f of %0.0f session[s],',s,length(Sess)),'FontSize',10)
 text(0,1 - 8*q,sprintf('%0.0f of %0.0f trial[s],',i,length(Sess{s}.name)),'FontSize',10)
