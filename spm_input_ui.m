@@ -385,8 +385,8 @@ function varargout = spm_input(varargin)
 %       spm_input('AnCova, GrandMean scaling',0,'d')
 %               Displays message in a box in the MatLab command window
 %       [null,YPos]=spm_input('Contrast must sum to zero','+1','d!','Warning')
-%		Displays message in next GUI position in red and sounds
-%               the keyboard bell. Message is labelled as a 'Warning'
+%		Displays message in next GUI position in red.
+%               Message is labelled as a 'Warning'.
 %               Position used is returned in YPos.
 %
 %-----------------------------------------------------------------------
@@ -1457,7 +1457,7 @@ case {'d','d!'}                                        %-Display message
 %-Condition arguments
 if nargin<4, Label=''; else, Label=varargin{4}; end
 
-if strcmp(lower(Type),'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
+if strcmp(lower(Type),'d!'), dCol='r'; else, dCol='k'; end
 if CmdLine
 	fprintf('\n     +-%s%s+',Label,repmat('-',1,57-length(Label)))
 	Prompt = [Prompt,' '];
