@@ -99,7 +99,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_get_ons.m	2.26 Karl Friston 99/11/09
 
 % Programmers Guide
 % Batch system implemented on this routine. See spm_bch.man
@@ -262,11 +262,13 @@ if v
 			dur   = {};
 			for j = 1:length(on)
 			    dur{j}  = zeros(size(on{j}));
-			    if isempty(BCH) & length(on) == 1
+			    if length(on) == 1
 				str = 'variable durations';
-				if spm_input(str,'+1','y/n',[1 0],2)
+				if spm_input(str,'+1','y/n',[1 0],2,'batch',...
+                                        {'conditions',s},'variable_dur')
 				    dur{j} = spm_input('durations (scans)',...
-					     '+1','e',[],[1 length(on{j})]);
+					     '+1','e',[],[1 length(on{j})],'batch',...
+                                        {'conditions',s},'durations',j);
 				    dur{j} = round(dur{j}*T);
 				end
 			    end
