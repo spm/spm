@@ -1,10 +1,11 @@
-function [w, ind] = spm_rvc(K,t,alpha,th)
+function [w,ind,b0] = spm_rvc(K,t,bs,alpha,th)
 % Optimisation for Relevance Vector Classification
-% USAGE [w, ind] = svc_reml(K,t)
+% USAGE [w,ind,b0] = spm_rvc(K,t,bs)
 % w    - non-zero weights 
 % ind  - index for non-zero elements
 % K    - MxN matrix derived from kernel function of vector pairs
 % t    - M vector showing group memberships (1 or 0)
+% bs   - include bias term
 %
 % The REML solution tends towards infinite weights for some the
 % regularisation terms (i.e. 1/alpha(i) approaches 0).
@@ -25,19 +26,30 @@ function [w, ind] = spm_rvc(K,t,alpha,th)
 %__________________________________________________________________________
 % %W% %E%
 
-if nargin<4,
+if nargin<3, bs = 0; end;
+if nargin<5,
 	s = max(svd(K))^2;
-	if nargin<3, alpha = s*max(size(K))*1e-6; end;
-	if nargin<4, th    = s*1e8;               end;
+	if nargin<4, alpha = s*max(size(K))*1e-10; end;
+	if nargin<5, th    = s*1e8;               end;
 end;
 
+if bs,
+	K = [K ones(size(K,1),1)];
+end;
 [N,M]	= size(K);
 t       = logical(t);
 w	= zeros(M,1);
 alpha   = ones(M,1)*alpha;
 for i=1:1000
+	nz        = alpha<th;
+	if sum(nz)==0,
+		warning('Converged to an empty solution: using previous weights.');
+		nz  = alpha_old<th;
+		ind = find(nz);
+		w   = w(ind);
+		break;
+	end;
 	alpha_old = alpha;
-	nz        = (alpha<th);
 
 	% E-step
 	[w(nz),C] = map_soln(K(:,nz),t,alpha(nz),w(nz));
@@ -55,14 +67,20 @@ for i=1:1000
 		break;
 	end;
 end;
+b0  = 0.0;
 ind = find(nz);
 w   = w(ind);
+if bs & ind(end)>N,
+	b0  = w(end);
+	w   = w(1:(end-1));
+	ind = ind(1:(end-1));
+end;
 return;
 %__________________________________________________________________________
  
 %__________________________________________________________________________
 function [w,C] = map_soln(K,t,alpha,w)
-% Levenberg-Marquardt optimisation of map solution of w
+% Levenberg-Marquardt optimisation of MAP solution of w
 % Also returns the formal covariance matrix of the fit on the assumption
 % of normally distributed errors (inverse of Hessian), for Laplace
 % approximation. The main reason for the regularisation is that
@@ -97,17 +115,17 @@ return;
 %__________________________________________________________________________
 function [err,y] = errors(K,t,alpha,w)
 % Return errors and sigmoid
-[M,N]        = size(K);
-y            = 1./(1+exp(-(K*w)));
-err          = -(sum(log(y(t)+eps))+sum(log(1-y(~t)+eps)))/M + (alpha'*(w.^2))/(2*M);
+[M,N] = size(K);
+y     = 1./(1+exp(-(K*w)));
+err   = -(sum(log(y(t)+eps))+sum(log(1-y(~t)+eps)))/M + (alpha'*(w.^2))/(2*M);
 return;
 %__________________________________________________________________________
  
 %__________________________________________________________________________
 function [g,H] = grad_hess(K,t,y,alpha,w)
 % Gradient and Hessian of above function
-[M N]   = size(K);
-g       = K'*(t-y) - alpha.*w;
-H       = (K.*repmat(y.*(1-y),1,N))'*K + diag(alpha);
+[M,N] = size(K);
+g     = K'*(t-y) - alpha.*w;
+H     = (K.*repmat(y.*(1-y),1,N))'*K + diag(alpha);
 return;
 %__________________________________________________________________________
