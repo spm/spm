@@ -51,12 +51,11 @@ xyzmm   = spm_XYZreg('GetCoords',hReg);
 %-----------------------------------------------------------------------
 SPACE   = spm_input('search volume',-1,'b','Sphere|Box|Cluster',['S','B','V']);
 Q       = ones(1,size(SPM.XYZmm,2));
-xyzmm   = xyzmm*Q;
 if     SPACE == 'S'
 
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
-	j     = find(sum((SPM.XYZmm - xyzmm).^2) <= D^2);
+	j     = find(sum((SPM.XYZmm - xyzmm*Q).^2) <= D^2);
 	D     = D./VOL.VOX;
 	S     = (4/3)*pi*prod(D);
 
@@ -64,11 +63,19 @@ elseif SPACE == 'B'
 
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	j     = find(all(abs(SPM.XYZmm - xyzmm) <= D(:)*Q/2));
+	j     = find(all(abs(SPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
 	D     = D(:)./VOL.VOX;
 	S     = prod(D);
 
 elseif SPACE == 'V'
+	if ~length(SPM.XYZ)
+		msgbox('No suprathreshold clusters!',...
+			sprintf('%s%s: %s...',spm('ver'),...
+			spm('GetUser',' (%s)'),mfilename),'help','modal')
+		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
+		return
+	end
+
 	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyzmm,SPM.XYZmm);
 	spm_XYZreg('SetCoords',xyzmm,hReg);
 	A     = spm_clusters(SPM.XYZ);
