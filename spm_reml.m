@@ -18,6 +18,10 @@ flops(0)
 m     = length(Cy);
 q     = length(Q);
 
+% ensure X is not rank deficient
+%---------------------------------------------------------------------------
+X     = spm_svd(X);
+
 % REML	objective function = r'*iCe*r + log(det(Ce)) + log(det(XiCeX));
 %---------------------------------------------------------------------------
 iCe   = speye(m,m);
