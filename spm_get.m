@@ -252,6 +252,13 @@ function varargout = spm_get(varargin)
 % path     - string matrix (or cell array of strings) containing path names
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
+%
+%-----------------------------------------------------------------------
+% SUBFUNCTIONS:
+%
+% FORMAT so = sf_deblank(si)
+% Double tailed deblank - strips blanks from both ends of string matrix
+%
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -1291,7 +1298,7 @@ Done=0;
 while ~Done
 	%-Get input
 	str = []; while isempty(str)
-		str=deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+		str=sf_deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 	%-Prepend WDir to incomplete pathnames
 	if (str(1)~='/')&(~strcmp(str,Tstr)), str = [WDir,'/',str]; end
 	if (n>0),OK=exist(str)==2;else,OK=~unix(['test -d ',str]);end
@@ -1300,7 +1307,7 @@ while ~Done
 			fprintf('%c\tSelect %d files!',7,abs(n))
 			else, fprintf('%c\t%s doesn''t exist!',7,str), end
 		str=[]; while isempty(str)
-			str=deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+			str=sf_deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 		if (str(1)~='/')&(~strcmp(str,Tstr)), str=[WDir,'/',str]; end
 		if (n>0),OK=exist(str)==2;else,OK=~unix(['test -d ',str]);end
 	end
@@ -1561,3 +1568,17 @@ error('Illegal Action string')
 %=======================================================================
 end
 
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+function so = sf_deblank(si)
+%=======================================================================
+if nargin==0, error('insufficient arguments'), end
+if isempty(si), so=''; return, end
+if ~ischar(si), error('input must be a string'), end
+
+b = any((si~=' ' & si~=0),1);
+if all(~b), so=''; return, end
+so = si(:,max(1,min(find(b))):min(max(find(b)),length(b)))
