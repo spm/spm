@@ -199,7 +199,7 @@ for i = 1:v
 			% sub-indices and inputs
 			%------------------------------------------------
 			xP(q).name  = Pname;
-			xP(q).P     = P;
+			xP(q).P     = P(:);
 			xP(q).h     = h;
 
 		end
