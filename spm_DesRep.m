@@ -267,53 +267,50 @@ switch lower(varargin{1})
 case 'desrepui'                                    %-Design reporting UI
 %=======================================================================
 % h = spm_DesRep('DesRepUI')
-% h = spm_DesRep('DesRepUI',D)
+% h = spm_DesRep('DesRepUI',SPM)
 
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
 if nargin < 2
-	cfg       = spm_get(1,'SPM.mat','Select SPM design file...');
-	tmp       = load(cfg);
-	D         = tmp.SPM;
-	[swd,cfg] = fileparts(cfg);
-	D.swd     = swd;
+	swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	load(fullfile(swd,'SPM.mat'));
+	SPM.swd = swd;
 else
-	D         = varargin{2};
+	SPM     = varargin{2};
 end
 
 %-Canonicalise data
 %=======================================================================
 %-Work out where design configuration has come from!
-if ~isfield(D,'cfg')
-	if     isfield(D.xX,'V'),		cfg = 'SPM';
-	elseif isfield(D.xY,'VY'), 		cfg = 'SPMcfg';
-	elseif isfield(D,'Sess'),		cfg = 'SPM_fMRIDesMtx';
+if ~isfield(SPM,'cfg')
+	if     isfield(SPM.xX,'V'),		cfg = 'SPMest';
+	elseif isfield(SPM.xY,'VY'), 		cfg = 'SPMdata';
+	elseif isfield(SPM,'Sess'),		cfg = 'SPMcfg';
 	else, error('Can''t fathom origin!')
 	end
-	D.cfg = cfg;
+	SPM.cfg = cfg;
 end
 
 %-Work out what modality this is!
 %-----------------------------------------------------------------------
 try
-	D.Sess(1);
-	D.modality = 'fMRI';
+	SPM.Sess(1);
+	SPM.modality = 'fMRI';
 catch
 	try
-		D.xC;
+		SPM.xC;
 	catch
-		D.xC = {};
+		SPM.xC = {};
 	end
-	D.modality = 'PET';
+	SPM.modality = 'PET';
 end
 
-%-Set swd - SPM working directory to use if estimating (empty => don't est)
-%-----------------------------------------------------------------------
-if ~isfield(D,'swd'), D.swd=''; end
 
 %-Add a scaled design matrix to the design data structure
 %-----------------------------------------------------------------------
-if ~isfield(D.xX,'nKX'), D.xX.nKX = spm_DesMtx('Sca',D.xX.X,D.xX.name); end
+if ~isfield(SPM.xX,'nKX')
+	SPM.xX.nKX = spm_DesMtx('Sca',SPM.xX.X,SPM.xX.name);
+end
 
 
 %-Draw menu
@@ -329,14 +326,14 @@ delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
 hC      = uimenu(Finter,'Label','Design',...
 		'Separator','on',...
 		'Tag','DesRepUI',...
-		'UserData',D,...
+		'UserData',SPM,...
 		'HandleVisibility','on');
 
 %-Generic CallBack code
 %-----------------------------------------------------------------------
 cb      = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
 
-%-DesMtx (SPM & SPMcfg)
+%-DesMtx
 %-----------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
 		'CallBack',[cb,...
@@ -344,7 +341,8 @@ hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
 			'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),tmp.xsDes)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
-if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
+
+if strcmp(SPM.cfg,'SPMcfg'), set(hDesMtx,'Enable','off'), end
 
 %-Design matrix orthogonality
 %-----------------------------------------------------------------------
@@ -358,7 +356,7 @@ h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
 %-----------------------------------------------------------------------
 hExplore = uimenu(hC,'Label','Explore','HandleVisibility','off');
 
-switch D.modality
+switch SPM.modality
 case 'PET'
 	hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
 		'CallBack',[cb,...
@@ -372,13 +370,13 @@ case 'PET'
 		'spm_DesRep(''Covs'',tmp.xX,tmp.xC)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
-	if isempty(D.xC), set(hCovs,'Enable','off'), end
+	if isempty(SPM.xC), set(hCovs,'Enable','off'), end
 case 'fMRI'
-    for j = 1:length(D.Sess)
+    for j = 1:length(SPM.Sess)
         h = uimenu(hExplore,'Label',sprintf('Session %.0f ',j),...
             'HandleVisibility','off');
-        for k = 1:length(D.Sess(j).Fc)
-            uimenu(h,'Label',D.Sess(j).Fc(k).name,...
+        for k = 1:length(SPM.Sess(j).Fc)
+            uimenu(h,'Label',SPM.Sess(j).Fc(k).name,...
                  'CallBack',[cb,...
             sprintf('spm_fMRI_design_show(tmp,%d,%d);',j,k)],...
                  'UserData',hC,...
@@ -415,8 +413,7 @@ fnames  = varargin{2};
 I       = varargin{3};
 xC      = varargin{4};
 sF      = varargin{5};
-if nargin<6, xs=[]; else, xs = varargin{6}; end
-			%-Structure of description strings
+if nargin<6, xs=[]; else, xs = varargin{6}; end	%-Structure of strings
 
 [fnames,CPath] = spm_str_manip(fnames,'c');	%-extract common path component
 nScan          = size(I,1);			%-#images
@@ -659,7 +656,14 @@ if desmtx & ~isempty(fnames)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(8),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i=STick, text(0,i,spm_str_manip(fnames(i,:),'Ca35')), end
+	for i = STick
+		try
+			str  = fnames(i,:);
+		catch
+			str  = fnames{i};
+		end
+		text(0,i,spm_str_manip(str,'Ca35'));
+	end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
