@@ -20,7 +20,7 @@ VO         = V(1);
 VO.fname   = 'mean.img';
 VO.descrip = 'Mean image';
 VO.pinfo   = [1.0 0 0]';
-VO.dim(4)  = 16;
+VO.dim(4)  = 4;
 spm_create_image(VO);
 for i=1:prod(size(V)), V(i).pinfo(1:2,:) = V(i).pinfo(1:2,:)/prod(size(V)); end;
 VO.pinfo(1,1) = spm_add(V,VO);
