@@ -3,7 +3,7 @@ function conf = spm_config_fmri_stats
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Daren Gitelman
+% Darren Gitelman
 % $Id$
 
 

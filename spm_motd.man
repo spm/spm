@@ -1,19 +1,19 @@
 
-% Welcome to SPM2
+% Welcome to SP5M
 %_______________________________________________________________________
 %
-% Please refer to this version as "SPM2" in papers and communications.
+% Please refer to this version as "SPM5" in papers and communications.
 %
 %                           ----------------
 %
-% Although SPM2 will read image files from previous versions of SPM,
+% Although SPM5 will read image files from previous versions of SPM,
 % there are differences in the algorithms, templates and models used.
 % Therefore, we recommend you use a single SPM version for any given
 % project.
 %
 % Please take time to review the (mostly updated) help, in
 % particular the "About SPM" topic (spm.man), which lists new features
-% of SPM2.
+% of SPM5.
 %
 % Further information may be found at the SPMweb site:
 %                  http://www.fil.ion.ucl.ac.uk/spm
@@ -25,15 +25,6 @@
 % SPM is developed under the auspices of Functional Imaging Laboratory
 % (FIL) The Wellcome Department of Imaging Neuroscience, in the Institute
 % of Neurology at University College London (UCL), UK.
-%
-% SPM2 was primarily developed by: Jesper Andersson (KS, Stockholm),
-% John Ashburner (FIL), Karl Friston (FIL), Andrew Holmes (FIL),
-% Jean-Baptiste Poline (CEA/DRM/SHFJ, Orsay, France); with contributions
-% from Matthew Brett (MRC-CBU, Cambridge, England) Stephanie Rouquette
-% (CEA/DRM/SHFJ, Orsay, France); Tom Nichols (Dept. Biostatistics,
-% University of Michigan, MI, USA); Darren Gitelman (Northwestern
-% University, IL,USA); and theoretical input from Keith Worsley
-% (Department of Statistics, McGill University, Montreal, Canada).
 %
 %                           ----------------
 %
