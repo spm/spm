@@ -248,7 +248,7 @@ for s=1:length(ds)
       end
       txyz(:,2) = txyz(:,2) + def;
       if flags.udc > 1
-         jP.dat = jac;
+         jP.dat = reshape(jac,ds(s).P(i).dim(1:3));
          jtxyz = xyz * T';
          c = spm_bsplinc(jP.dat,hold);
          jac = spm_bsplins(c,jtxyz(:,1),jtxyz(:,2),jtxyz(:,3),hold);
