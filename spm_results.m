@@ -1,9 +1,9 @@
 
 % Display and analysis of regional effects
-% FORMAT spm_results_ui
+% FORMAT spm_results
 %_______________________________________________________________________
 %
-% spm_results_ui prompts for details of a SPM{Z} or SPM{F} that is then
+% spm_results prompts for details of a SPM{Z} or SPM{F} that is then
 % displayed in the results window.  By moving (dragging) the pointer on
 % the maximum intensity projection one can select a particular
 % voxel (or planes passing though that voxel) for further display and
@@ -29,7 +29,7 @@
 
 %-Programers notes
 %-----------------------------------------------------------------------
-% spm_results_ui is not a function so that data and results can be
+% spm_results is not a function so that data and results can be
 % held in the base workspace. Thus the spm_*.m routines invoked are
 % also M-files. This scenario enables the user easy access to the data
 % structures.
