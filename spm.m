@@ -240,6 +240,9 @@ function varargout=spm(varargin)
 % CmdLine    - CommandLine usage? [default spm('CmdLine')]
 % F (output) - Handle of figure named
 %
+% FORMAT spm('GUI_FileDelete')
+% CallBack for GUI for file deletion, using spm_get and confirmation dialogs
+%
 % FORMAT Fs = spm('Show')
 % Opens all SPM figure windows (with HandleVisibility) using `figure`.
 %   Maintains current figure.
@@ -610,7 +613,7 @@ uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*WS,...
 	'ForeGroundColor','g')
 
 uicontrol(Fmenu,'Style','PopUp',...
-	'String','Utils...|CD|PWD|Show SPM|Run mFile|SPMweb',...
+	'String','Utils...|CD|PWD|delete files|Show SPM|Run mFile|SPMweb',...
 	'ToolTipString','misc SPM utilities',...
 	'Position',[112 020 083 024].*WS,...
 	'FontSize',FS(9),		'CallBack','spm(''PopUpCB'',gcbo)',...
@@ -623,6 +626,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 	    ['spm(''alert"'',',...
 	    	'{''Present working directory:'',[''    '',pwd]},',...
 	    	'''PWD'',0);'],...
+	    'spm(''GUI_FileDelete'')',...
 	    'spm(''Show'');',...
 	    'run(spm_get(1,''*.m'',''Select mFile to run''))',...
 	    'web(''http://www.fil.ion.ucl.ac.uk/spm'')' } )
@@ -1127,7 +1131,7 @@ else
 	if ~isempty(Iname)
 		str = sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname);
 	else
-		str = sprintf('%s (%s)',    spm('ver'),spm('GetUser'));
+		str = '';
 	end
 	set(Finter,'Name',str)
 end
@@ -1155,6 +1159,25 @@ if ~isempty(F) & ~isempty(Iname)
 	set(F,'Name',sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname))
 end
 varargout={F};
+
+
+case 'gui_filedelete'
+%=======================================================================
+% spm('GUI_FileDelete')
+P = spm_get(Inf,'*',{'Select file(s) to delete'},pwd,0);
+n = length(P);
+if n==0
+	spm('alert"','Nothing selected to delete!','file delete',0);
+	return
+elseif n<4
+	str=[{' '};P];
+else
+	str=[{' '};P(1:min(n,10));{'...';' ';sprintf('(%d files)',n)}];
+end
+if spm_input(str,-1,'bd','delete|cancel',[1,0],[],'confirm file delete')
+	spm_unlink(P{:})
+	spm('alert"',P,'file delete',1);
+end
 
 
 case 'show'
