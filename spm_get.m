@@ -135,8 +135,7 @@ function varargout = spm_get(varargin)
 % body of the code.
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
-% modifications for platform independence by Matthew Brett 99/1/27
+% %W% Andrew Holmes (X-platform stuff by Matthew Brett) %E%
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -260,7 +259,7 @@ function varargout = spm_get(varargin)
 %-----------------------------------------------------------------------
 % SUBFUNCTIONS:
 %
-% FORMAT so = sf_deblank(si)
+% FORMAT so = ddeblank(si)
 % Double tailed deblank - strips blanks from both ends of string matrix
 %
 %_______________________________________________________________________
@@ -515,27 +514,14 @@ uicontrol(F,'Style','Pushbutton','String','Done',...
 	'Interruptible','off','BusyAction','Cancel',...
 	'Position',[345 278 045 022].*WS);
 
-uicontrol(F,'Style','Pushbutton','String','',...
-	'ToolTipString','scroll to top',...
+uicontrol(F,'Style','Slider','Tag','ScrollBar',...
+	'ToolTipString','scroll',...
 	'Callback',[...
-		'set(gca,''Units'',''Normalized'');',...
-		'set(gca,''Position'',get(gca,''UserData''))'],...
-	'Position',[370 265 020 005].*WS);
-
-uicontrol(F,'Style','Pushbutton','String','/\',...
-	'ToolTipString','scroll up',...
-	'Callback',[...
-		'set(gca,''Units'',''Normalized'');',...
-		'set(gca,''Position'',get(gca,''Position'')-[0 0.5 0 0])'],...
-	'Position',[370 245 020 020].*WS);
-
-uicontrol(F,'Style','Pushbutton','String','\/',...
-	'ToolTipString','scroll down',...
-	'Callback',[...
-		'set(gca,''Units'',''Normalized'');',...
-		'set(gca,''Position'',get(gca,''Position'')+[0 0.5 0 0])'],...
-	'Position',[370 040 020 020].*WS);
-
+		'set(gca,''Units'',''Points''),',...
+		'set(gca,''Position'',',...
+		'get(gcbo,''UserData'')-[0,get(gcbo,''Value''),0,0])'],...
+	'Position',[380 030 020 240].*WS)
+	
 uicontrol(F,'Style','Frame','Tag','StatusArea',...
 	'Position',[001 000 400 030].*WS);
 
@@ -620,8 +606,7 @@ elseif abs(ch)==5	%- ^E - switch between Edit widgets, reset strings
 	set(hCDpwd,'UserData',~EditWDir)
 	str = get(h,'UserData');
 elseif abs(ch)==23	%- ^W - word delete
-	%%
-	tmp = max(find(str==spm_platform('sepchar')));
+	tmp = max(find(str==filesep));
 	if ~isempty(tmp), str(tmp:end)=[]; end
 elseif abs(ch)==13	%- Return - Goto topic / apply filter
 	if EditWDir, spm_get('cd',str)
@@ -829,11 +814,6 @@ end
 case 'dir'
 %=======================================================================
 % spm_get('dir',WDir,Filter,NoComp)
-% Creates list of text objects with an associated
-% ButtonDownFcn functions that call spm_get callbacks for processing
-%
-%-WDir - Directory, defaults to UserData of 'WDir' tagged object in
-% SelFileWin figure
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
@@ -867,17 +847,14 @@ end
 
 %-Set up axis
 %-----------------------------------------------------------------------
-Rec = [0.02 0.086 0.90 0.58];
-hAxes = axes('Parent',F,...
+Rec = [0.02 0.086 0.92 0.58];
+hAxes = axes('Parent',F,'Tag','hAxes',...
 	'Position',Rec,...
 	'DefaultTextInterpreter','none',...
-	'DefaultTextHandleVisibility','off',...
 	'Units','Points',...
-	'Visible','off',...
-	'UserData',Rec,...
-	'Tag','hAxes');
-y     = floor(get(hAxes,'Position'));
-y0    = y(3);
+	'Visible','off');
+y     = get(hAxes,'Position');
+y0    = floor(y(3));
 dy    = 22;
 set(hAxes,'Ylim',[0,y0])
 
@@ -888,13 +865,13 @@ set(hAxes,'Ylim',[0,y0])
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'Parent',hAxes,'FontWeight','bold','Color','r');
+	set(findobj(F,'Tag','ScrollBar'),'Visible','off')
 	set(F,'Pointer','Arrow')
 	return
 else	%-Exclude "." directory from Dirs, exclude ".." if in root
 	%-Exclude ".." from DirItems (used when selecting directories)
 	Dirs(Dirs(:,1)=='.',:)=[];
 	DirItems = strvcat('.',Dirs);
-	%%
 	if ~isroot(WDir), Dirs=strvcat('..',Dirs); end
 end
 
@@ -904,11 +881,10 @@ set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
 	'String',strvcat('SubDirectories...',Dirs))
 
 %-Create list of directories with appropriate 'ButtonDownFcn': -
-% NB: Gave MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
 %-----------------------------------------------------------------------
 y     = y0-dy;
 for i = 1:size(Dirs,1)
-	text(0,y,deblank(Dirs(i,:)),...
+	h = text(0,y,deblank(Dirs(i,:)),...
 		'Parent',hAxes,...
 		'Tag','DirName',...
 		'FontWeight','bold','Color','r',...
@@ -917,6 +893,9 @@ for i = 1:size(Dirs,1)
 		'HandleVisibility','off');
 	y = y - dy;
 end
+%-Note lowest position used (in points)
+set(h,'Units','Points')
+my = get(h,'Position')*[0;1;0];
 
 %-Files or directories (n<0)
 %-----------------------------------------------------------------------
@@ -936,7 +915,7 @@ if ~NoComp & size(Items,1)>32
 	else
 		[IName,ItemPos] = spm_get('FileSummary',Items,'front',Filter);
 	end
-	text(0.5,y0,'Summary View - Click to expand',...
+	text(0.45,y0,'Summary View - Click to expand',...
 		'Parent',hAxes,...
 		'Color','w',...
 		'FontSize',10,...
@@ -956,19 +935,16 @@ for i = 1:size(IName,1)
 	cIName   = IName(i,IName(i,:)~=' ');
 	cItemPos = ItemPos(i,ItemPos(i,:)>0);
 	nItems   = length(cItemPos);
-	cItems   = Items(cItemPos,:);
-	%-Next line strips off redundant space at end of string matrix
-	% (Don't have to worry about spaces within strings 'cos filenames)
-	cItems(:,all(cItems==' ',1))=[];
-	text(0.35,y,cIName,...
+	cItems   = deblank(Items(cItemPos,:));
+	h = text(0.4,y,cIName,...
 		'Parent',hAxes,...
 		'Tag','IName',...
 		'UserData',cItems,...
 		'Color','k',...
 		'ButtonDownFcn','spm_get(''Add'')',...
-		'HandleVisibility','on')
+		'HandleVisibility','on');
 	if nItems>1;
-		text(0.34,y-3,int2str(sum(ItemPos(i,:)>0)),...
+		h = text(0.39,y-3,int2str(sum(ItemPos(i,:)>0)),...
 			'Parent',hAxes,...
 			'Color','w',...
 			'FontSize',9,...
@@ -977,10 +953,29 @@ for i = 1:size(IName,1)
 			'UserData',cIName,...
 			'ButtonDownFcn',...
 			'spm_get(''dir'',[],get(gcbo,''UserData''),1)',...
-			'HandleVisibility','off')
+			'HandleVisibility','off');
 	end
 	y = y - dy;
 end
+%-Note lowest position used (in points)
+set(h,'Units','Points')
+my = min(my,get(h,'Position')*[0;1;0]);
+
+%-Setup scrollbar
+%-----------------------------------------------------------------------
+h = findobj(F,'Tag','ScrollBar');
+if my>0
+	set(h,'Visible','off')
+else
+	set(h,	'UserData',	get(hAxes,'Position'),...
+		'Max',		0,...
+		'Min',		my-dy,...
+		'SliderStep',	min([0.5,1],[3*dy,(y0-dy)]/(-my+dy)),...
+		'Visible',	'on')
+end
+
+%-Done
+%-----------------------------------------------------------------------
 set(F,'Pointer','Arrow')
 
 
@@ -1190,7 +1185,7 @@ for h = H'
 	if isfinite(n), if (nP+nItems>abs(n)), break, end, end
 
 	%-Add items to P
-	FPath  = [repmat([WDir,spm_platform('sepchar')],nItems,1),Items];
+	FPath  = [repmat([WDir,filesep],nItems,1),Items];
 	P      = strvcat(P,FPath);
 	if nItems==1
 		tmp = [int2str(nP+1),' :',IName];
@@ -1202,14 +1197,9 @@ for h = H'
 		'ButtonDownFcn','spm_get(''Delete'')')
 end
 
-%-Chop off any redundant trailing spaces
-%-----------------------------------------------------------------------
-% (Don't have to worry about spaces within strings 'cos filenames)
-if ~isempty(P), P(:,all(P==' ',1))=[]; else, P=''; end
-
 %-Return new P to holding object
 %-----------------------------------------------------------------------
-set(findobj(F,'Tag','P'),'UserData',P);
+set(findobj(F,'Tag','P'),'UserData',deblank(P));
 
 %-Update StatusLine
 %-----------------------------------------------------------------------
@@ -1228,7 +1218,7 @@ IName  = get(h,'String');
 IName(1:find(IName==':')) = [];
 Items  = get(h,'UserData');
 nItems = size(Items,1);
-FPath  = [repmat([WDir,spm_platform('sepchar')],nItems,1),Items];
+FPath  = [repmat([WDir,filesep],nItems,1),Items];
 nP     = size(P,1);
 
 %-Compare Items with end of P (Can only delete from the end)
@@ -1298,20 +1288,18 @@ Done=0;
 while ~Done
 	%-Get input
 	str = []; while isempty(str)
-		str=sf_deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+		str=ddeblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 	%-Prepend WDir to incomplete pathnames
-	%%
-	sepchar = spm_platform('sepchar');
-	if (~isabspath(str))&(~strcmp(str,Tstr)), str = [WDir,sepchar,str]; end
+	if (~isabspath(str))&(~strcmp(str,Tstr)), str=fullfile(WDir,str); end
 	if (n>0),OK=exist(str)==2;else,OK=exist(str)==7;end
 	while ~( OK | (strcmp(str,Tstr) & AllowEnd) )
 		if strcmp(str,Tstr)
 			fprintf('%c\tSelect %d files!',7,abs(n))
 			else, fprintf('%c\t%s doesn''t exist!',7,str), end
 		str=[]; while isempty(str)
-			str=sf_deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
-		%%
-		if (~isabspath(str))&(~strcmp(str,Tstr)), str = [WDir,sepchar,str]; end
+			str=ddeblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+		if (~isabspath(str))&(~strcmp(str,Tstr))
+			str = fullfile(WDir,str); end
 		if (n>0),OK=exist(str)==2;else,OK=exist(str)==7;end
 	end
 	if ~strcmp(str,Tstr), P=strvcat(P,str); end
@@ -1506,35 +1494,30 @@ if nargin<3, cwd=pwd; else, cwd=spm_get('CPath',varargin{3}); end
 if nargin<2, error('insufficient arguments'), end
 cpath = cellstr(varargin{2});
 
-%%
-sepchar = spm_platform('sepchar');
+sepchar = filesep;
 
 for i=1:prod(size(cpath))
 
 	%-Prepend cwd to relative pathnames
 	%---------------------------------------------------------------
-	%% 
 	if isempty(cpath{i}) | ~isabspath(cpath{i})
-		if (cwd(end) == sepchar), cpath{i}=[cwd,cpath{i}];
-			else cpath{i}=[cwd,sepchar,cpath{i}]; end
+		if (cwd(end)==sepchar), cpath{i}=[cwd,cpath{i}];
+		else			cpath{i}=[cwd,sepchar,cpath{i}]; end
 	end
 	
 	%-Sort out stationary relative pathnames './' & '/.'
 	%---------------------------------------------------------------
 	%-Remove midpath '/./'
-	%%
-	dubsep = [sepchar sepchar];
-	cpath{i}=strrep(cpath{i},[sepchar '.' sepchar], sepchar);
+	dubsep = [sepchar,sepchar];
+	cpath{i}=strrep(cpath{i},[sepchar,'.',sepchar], sepchar);
 	while length(cpath{i})>=2 & length(findstr(cpath{i},dubsep))
 		cpath{i}=strrep(cpath{i},dubsep,sepchar); end
 	
 	%-Remove '.' from trailing '/.'
-	%%
-	if length(cpath{i})>=2 & strcmp(cpath{i}(end-1:end),[sepchar '.'])
+	if length(cpath{i})>=2 & strcmp(cpath{i}(end-1:end),[sepchar,'.'])
 		cpath{i}(end)=''; end
 	
-	%-Remove trailing '/'
-	%%	
+	%-Remove trailing '/'        %%-Might give problems with Windows
 	if length(cpath{i})>=2 & cpath{i}(end)==sepchar
 		cpath{i}(end)=''; end
 	
@@ -1544,10 +1527,9 @@ for i=1:prod(size(cpath))
 	if length(cpath{i})>=3 & strcmp(cpath{i}(1:3),'/..')
 		cpath{i}(2:3)=''; end
 	
-	%-Process midpath '/../'
+	%-Process midpath '/../' 	           %%-Test with Windows!
 	t0 = 0;
-	%%
-	downstr = [sepchar '..' sepchar];
+	downstr = [sepchar,'..',sepchar];
 	while length(cpath{i})>=4 & max([0,findstr(cpath{i},downstr)])>t0
 		t2 = t0+min(findstr(cpath{i}(t0+1:end),downstr));
 		t1 = t0+max([0,find(cpath{i}(t0+1:t2-1)==sepchar)]);
@@ -1558,8 +1540,7 @@ for i=1:prod(size(cpath))
 		end
 	end
 	
-	%-Process trailing '/..' (Don't remove first '/')
-	%%
+	%-Process trailing '/..' (Don't remove first '/') %%-Test w/ Win
 	if length(cpath{i})>3 & strcmp(cpath{i}(end-2:end),[sepchar '..'])
 		t2 = length(cpath{i})-2;
 		t1 = t0+max([0,find(cpath{i}(t0+1:t2-1)==sepchar)]);
@@ -1571,14 +1552,14 @@ for i=1:prod(size(cpath))
 	%-Final canonicalisations
 	%---------------------------------------------------------------
 	% %-Remove leading './'
-	% if length(cpath{i})>2 & strcmp(cpath{i}(1:2),'./')
+	% if length(cpath{i})>2 & strcmp(cpath{i}(1:2),['.',sepchar])
 	% 	cpath{i}(1:2)=''; end
 	
 	%-Canonicalise leading './../' to '../'
-	if length(cpath{i})>5 & strcmp(cpath{i}(1:5),['.' downstr])
+	if length(cpath{i})>5 & strcmp(cpath{i}(1:5),['.',downstr])
 		cpath{i}(1:2)=''; end
 	%-Canonicalise './..' to '..'
-	if strcmp(cpath{i},['.' sepchar '..']), cpath{i}='..'; end
+	if strcmp(cpath{i},['.',sepchar,'..']), cpath{i}='..'; end
 
 end
 
@@ -1598,7 +1579,7 @@ end
 %- S U B - F U N C T I O N S
 %=======================================================================
 
-function so = sf_deblank(si)
+function so = ddeblank(si)
 %=======================================================================
 if nargin==0, error('insufficient arguments'), end
 if isempty(si), so=''; return, end
@@ -1608,30 +1589,28 @@ b = any((si~=' ' & si~=0),1);
 if all(~b), so=''; return, end
 so = si(:,max(1,min(find(b))):min(max(find(b)),length(b)));
 
-%  ======================================================
-% platform specific subfunctions
-%  ======================================================
-function rootf = isroot(path)
+
+function rootf = isroot(path)             %%-Platform specifics (MBrett)
+%=======================================================================
 % returns true if path is root directory, else false
-filesys = spm_platform('filesys');
-switch (filesys)
+switch (spm_platform('filesys'))
 case 'unx'
-	rootf = strcmp(path, '/');
+	rootf = strcmp(path,'/');
 case 'win'
-	rootf = strcmp(path(2:end),':\');
+	rootf = length(path)>1 & strcmp(path(2:end),':\');
 otherwise
 	error('isroot not coded for this filesystem');
 end
-return
 
-function absf = isabspath(path)
+
+function absf = isabspath(path)           %%-Platform specifics (MBrett)
+%=======================================================================
 % returns true if path is absolute, false if relative
-filesys = spm_platform('filesys');
-switch (filesys)
+switch (spm_platform('filesys'))
 case 'unx'
-	absf = path(1) == '/';
+	absf = ~isempty(path) & path(1)=='/';
 case 'win'
-	absf = path(2) == ':';
+	absf = length(path)>1 & path(2)==':';
 otherwise
 	error('isabspath not coded for this filesystem');
 end
