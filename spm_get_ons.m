@@ -242,8 +242,8 @@ for i = 1:v
 	end
 
 	tof        = round(dur*TR/dt) + ton + 1;
-	ons        = sparse(tof(end),size(u,2));		% onsets
-	off        = sparse(tof(end),size(u,2));		% offsets
+	ons        = sparse((k*T + 128),size(u,2));		% onsets
+	off        = sparse((k*T + 128),size(u,2));		% offsets
 	ons(ton,:) = u;
 	off(tof,:) = u;
 	sf         = cumsum(ons - off);				% integrate
