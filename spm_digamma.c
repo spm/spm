@@ -1,3 +1,7 @@
+#ifndef lint
+static char sccsid[]="%W% %E%";
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
