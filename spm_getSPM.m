@@ -1,5 +1,5 @@
 function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
-% computs a specified and thresholded following parameter estimation
+% computes a specified and thresholded SPM/PPM following parameter estimation
 % FORMAT [SPM,VOL,xX,xCon,xSDM] = spm_getSPM;
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -7,7 +7,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .title - title for comparison (string)
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .n     - number of conjoint tests        
-% .STAT  - distribution {Z, T, X or F}     
+% .STAT  - distribution {Z, T, X, F or P}     
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .Ic    - indices of contrasts (in xCon)
 % .Im    - indices of masking contrasts (in xCon)
@@ -40,7 +40,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % xCon   - Contrast definitions structure array
 %        - (see also spm_FcUtil.m for structure, rules & handling)
 % .name  - Contrast name
-% .STAT  - Statistic indicator character ('T' or 'F')
+% .STAT  - Statistic indicator character ('T', 'F' or 'P')
 % .c     - Contrast weights (column vector contrasts)
 % .X0    - Reduced design matrix data (spans design space under Ho)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
@@ -53,6 +53,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
 %          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
 % .eidf  - Effective interest degrees of freedom (numerator df)
+%        - Or effect-size threshold for Posterior probability
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
 % .Vspm  - Name of SPM image
 %
@@ -129,6 +130,17 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % spatial extent. If you want to see all voxels simply enter 0.  In this
 % instance the 'set-level' inference can be considered an 'omnibus test'
 % based on the number of clusters that obtain.
+%
+% BAYESIAN INFERENCE AND PPMS - POSTERIOR PROBABILITY MAPS
+%
+% If conditional estimates are available (and your contrast is a T
+% contrast) then you are asked whether the inference should be 'Bayesian'
+% or 'classical' (using GRF).  If you choose Bayesian the contrasts are of
+% conditional (i.e. MAP) estimators and the inference image is a
+% posterior probability map (PPM).  PPMs encode the probability that the
+% contrast exceeds some specified threshold.  This threshold is stored in
+% the xCon.eidf.  Subsequent plotting and tables will use the conditional
+% estimates and associated posterior or conditional probabilities.
 % 
 % see spm_results_ui.m for further details of the SPM results section.
 %_______________________________________________________________________
@@ -152,13 +164,6 @@ swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 %-----------------------------------------------------------------------
 xSDM   = load(fullfile(swd,'SPM.mat'));	%-Contents of SPM.mat (in a struct)
 
-
-%-Map beta and ResMS images, canonicalising relative pathnames
-% (SPM result images stored with relative pathnames, for robustness.)
-%-----------------------------------------------------------------------
-xSDM.Vbeta  = ...
-	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
-xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
 
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
@@ -214,9 +219,9 @@ end
 % - C O N T R A S T S ,  S P M   C O M P U T A T I O N ,   M A S K I N G
 %=======================================================================
 
-%-Get contrasts (if multivariate there is only one structure)
+%-Get contrasts
 %-----------------------------------------------------------------------
-[Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
+[Ic,xCon] = spm_conman(xX,xCon,'T&F',Inf,...
 	'	Select contrasts...',' for conjunction',wOK);
 
 
@@ -231,11 +236,11 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
     Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
     
     %-Successively orthogonalise
+    %-NB: This loop is peculiarly controlled to account for the
+    %     possibility that Ic may shrink if some contrasts diasppear
+    %     on orthogonalisation (i.e. if there are colinearities)
     %-------------------------------------------------------------------
     i = 1; while(i < length(Ic)), i = i + 1;
-	%-NB: This loop is peculiarly controlled to account for the
-	%     possibility that Ic may shrink if some contrasts diasppear
-	%     on orthogonalisation (i.e. if there are colinearities)
     
 	%-Orthogonalise (subspace spanned by) contrast i wirit previous
 	%---------------------------------------------------------------
@@ -248,10 +253,12 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 	d = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
 
 	if spm_FcUtil('0|[]',oxCon,xX.xKXs)
+
 	    %-Contrast was colinear with a previous one - drop it
 	    %-----------------------------------------------------------
 	    Ic(i)    = [];
 	    i        = i - 1;
+
 	elseif any(d)
 
 	    %-Contrast unchanged or already defined - note index
@@ -320,6 +327,38 @@ end
 titlestr = spm_input('title for comparison','+1','s',str);
 
 
+
+%-Bayesian or classical Inference?
+%-----------------------------------------------------------------------
+if exist(fullfile(swd,'PPM.mat')) & xCon(Ic).STAT == 'T'
+    if length(Ic) == 1 & isempty(xCon(Ic(1)).Vcon)
+	if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
+		xCon(Ic).STAT = 'P';
+	end
+    end
+end
+
+% map parameter and hyperarameter estimates
+%-----------------------------------------------------------------------
+if xCon(Ic(1)).STAT == 'P'
+
+	% Conditional estimators and error variance hyperparameters
+	%----------------------------------------------------------------
+	load(fullfile(swd,'PPM.mat'));
+	xSDM.Vbeta  = ...
+	spm_vol([repmat([swd,filesep],length(Vbeta),1),char(Vbeta)]);
+	xSDM.VHp    = ...
+	spm_vol([repmat([swd,filesep],length(VHp),1),char(VHp)]);
+	xSDM.PPM    = PPM;
+
+else
+	% OLS estimators and error variance estimate
+	%----------------------------------------------------------------
+	xSDM.Vbeta  = ...
+	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
+	xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
+end
+
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
 spm('Pointer','Watch')
@@ -332,9 +371,9 @@ for ii = 1:length(I)
 
     %-Canonicalise contrast structure with required fields
     %-------------------------------------------------------------------
-    if ~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf)
-	[trMV,trMVMV] = spm_SpUtil('trMV',...
-				spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V);
+    if (~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf))
+	X1o           = spm_FcUtil('X1o',xCon(i),xX.xKXs);
+	[trMV,trMVMV] = spm_SpUtil('trMV',X1o,xX.V);
         xCon(i).eidf  = trMV^2/trMVMV;
     else
         trMV = []; trMVMV = [];
@@ -353,10 +392,10 @@ for ii = 1:length(I)
 		spm('Pointer','Arrow')
 		error('can''t write contrast image')
         end
-	
-	switch(xCon(i).STAT)
 
-	case 'T'       %-Implement contrast as sum of scaled beta images
+
+	switch(xCon(i).STAT)
+	case {'T','P'} %-Implement contrast as sum of scaled beta images
         %---------------------------------------------------------------
             fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
                                       '(spm_add)','...initialising') %-#
@@ -411,6 +450,7 @@ for ii = 1:length(I)
             xCon(i).Vcon  = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
             xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
 
+
 	otherwise
         %---------------------------------------------------------------
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
@@ -425,10 +465,11 @@ for ii = 1:length(I)
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*(2*ii-1)/(2*length(I)+2))             %-#
+    spm_progress_bar('Set',100*ii/(length(I)))             	    %-#
 
-    %-Write statistic image(s)
-    %-------------------------------------------------------------------
+
+    %-Write inference SPM/PPM image(s)
+    %===================================================================
     if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
         ~exist(fullfile(swd,xCon(i).Vspm),'file')
 	
@@ -440,26 +481,52 @@ for ii = 1:length(I)
 		spm('Pointer','Arrow')
 		error('can''t write SPM image')
         end
-
-
         fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(i).STAT,i),...
                                                     '...computing')  %-#
 
 	switch(xCon(i).STAT)
 	case 'T'                                  %-Compute SPM{t} image
         %---------------------------------------------------------------
-	Z   = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0)./...
-	(sqrt(spm_sample_vol(xSDM.VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0)*...
-	                                (xCon(i).c'*xX.Bcov*xCon(i).c) ));
+	cB  = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	l   = spm_sample_vol(xSDM.VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	VcB = xCon(i).c'*xX.Bcov*xCon(i).c; 
+	Z   = cB./sqrt(l*VcB);
+
         str = sprintf('[%.2g]',xX.erdf);
+
+
+	case 'P'                                  %-Compute PPM{P} image
+        %---------------------------------------------------------------
+	c     = xCon(i).c;
+	cB    = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	VcB   = c'*PPM.Cby*c;
+	for j = 1:length(PPM.l)
+
+		% hyperparameter and Taylor approximation
+		%-------------------------------------------------------
+		l   = spm_sample_vol(xSDM.VHp(j),XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+		VcB = VcB + (c'*PPM.dC{j}*c)*(l - PPM.l(j));
+	end
+
+	% get Bayesian threshold
+        %---------------------------------------------------------------
+	spm('Pointer','Arrow')
+	str   = 'contrast threshold (default: prior s.d)'
+ 	g     = spm_input(str,'+1','e',sprintf('%0.2f',sqrt(c'*PPM.Cb*c)));
+
+	% posterior probability cB > g
+        %---------------------------------------------------------------
+	Z     = 1 - spm_Ncdf(g,cB,VcB);
+        str   = sprintf('[%.2f]',g);
+	xCon(i).name  = [xCon(i).name ' ' str];
+	xCon(i).eidf  = g;
+
 
 	case 'F'                                  %-Compute SPM{F} image
         %---------------------------------------------------------------
-	if isempty(trMV)
-	    trMV = spm_SpUtil('trMV',spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V);
-        end
-	Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
-	   (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
+	MVM  = spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV;
+	RVR  = spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	Z    = MVM./RVR;
 
         str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
 
@@ -483,7 +550,7 @@ for ii = 1:length(I)
         tmp = zeros(DIM');
 	tmp(cumprod([1,DIM(1:2)'])*XYZ -sum(cumprod(DIM(1:2)'))) = Z;
 
-	xCon(i).Vspm       = spm_write_vol(xCon(i).Vspm,tmp);
+	xCon(i).Vspm = spm_write_vol(xCon(i).Vspm,tmp);
 
 	clear tmp Z
         fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
@@ -497,9 +564,8 @@ for ii = 1:length(I)
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*(2*ii-0)/(2*length(I)+2))             %-#
-
 end % (for ii = 1:length(I))
+spm_progress_bar('Clear')                                            %-#
 
 
 
@@ -516,27 +582,27 @@ end
 
 %-Compute mask first
 %-----------------------------------------------------------------------
-if ~isempty(Im), fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking'), end %-#
-for i = Im
+if ~isempty(Im)
+	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking'), end %-#
 
-	Mask  = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-	um    = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
+for i = Im
+	Mask = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
 	if Ex
-		Q     =  Mask <= um;
+		Q = Mask <= um;
 	else
-		Q     =  Mask >  um;
+		Q = Mask >  um;
 	end
-	XYZ   = XYZ(:,Q);
-	QQ    = QQ(Q);
+	XYZ  = XYZ(:,Q);
+	QQ   = QQ(Q);
 	if isempty(Q), break, end
 end
 if ~isempty(Im) & ~isempty(Q)
-	Msk = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
+	Msk  = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
 else
-	Msk = 0;  %-Statistic images are zero-masked
+	Msk  = 0;  %-Statistic images are zero-masked
 end
 
-spm_progress_bar('Set',100*((2*length(I)+1)/(2*length(I)+2)))        %-#
 
 %-Compute conjunction SPM (as minimum SPM) within mask...
 %-----------------------------------------------------------------------
@@ -566,11 +632,12 @@ case 'T'
 	STATstr = sprintf('%c%s_{%.1f}','T',str,edf(2));
 case 'F'
 	STATstr = sprintf('%c%s_{[%.1f,%.1f]}','F',str,edf(1),edf(2));
+case 'P'
+	STATstr = sprintf('%s^{%0.2f}','PPM',edf(1));
 end
 
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
-spm_progress_bar('Set',100)                                          %-#
 
 %-Save mappped statistic image(s) to put in VOL
 %-----------------------------------------------------------------------
@@ -600,7 +667,6 @@ k    = 0;
 
 %-Return to previous directory & clean up interface
 %-----------------------------------------------------------------------
-spm_progress_bar('Clear')                                            %-#
 spm('Pointer','Arrow')
 
 
@@ -608,9 +674,10 @@ spm('Pointer','Arrow')
 % - H E I G H T   &   E X T E N T   T H R E S H O L D S
 %=======================================================================
 
-%-Height threshold
+%-Height threshold - classical inference
 %-----------------------------------------------------------------------
-if ~isempty(XYZ)
+if STAT ~= 'P'
+
 
     %-Get height threshold
     %-------------------------------------------------------------------
@@ -637,20 +704,26 @@ if ~isempty(XYZ)
 
     end
 
-    %-Calculate height threshold filtering
-    %-------------------------------------------------------------------
-    Q      = find(Z > u);
+%-Height threshold - Bayesian inference
+%-----------------------------------------------------------------------
+elseif STAT == 'P'
 
-    %-Apply height threshold
-    %-------------------------------------------------------------------
-    Z      = Z(:,Q);
-    XYZ    = XYZ(:,Q);
-    QQ     = QQ(Q);
+	u  = spm_input(['p value threshold for PPM'],'+0','r',.95,1);
 
-    if isempty(Q)
-        warning(sprintf('No voxels survive height threshold u=%0.2g',u)), end
+end % (if STAT)
 
-end % (if ~isempty(XYZ))
+%-Calculate height threshold filtering
+%-------------------------------------------------------------------
+Q      = find(Z > u);
+
+%-Apply height threshold
+%-------------------------------------------------------------------
+Z      = Z(:,Q);
+XYZ    = XYZ(:,Q);
+QQ     = QQ(Q);
+if isempty(Q)
+	warning(sprintf('No voxels survive height threshold u=%0.2g',u)),
+end
 
 
 %-Extent threshold (disallowed for conjunctions)
