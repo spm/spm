@@ -137,11 +137,9 @@ switch lower(action),
 case 'fconfields'				%- fields of F contrast
 %=======================================================================
 % Fc = spm_FcUtil('FconFields')
-%
-%
 
-if nargout > 1, error('Too many output arguments FconFields'), end;
-if nargin  > 1, error('Too many input arguments FconFields'),  end;
+if nargout > 1, error('Too many output arguments: FconFields'), end;
+if nargin  > 1, error('Too many input arguments:  FconFields'), end;
 
 varargout = {sf_FconFields;}
 
@@ -163,13 +161,13 @@ case {'set','v1set'}				%- Create an F contrast
 %
 % 'v1set' is NOT provided for backward compatibility so far ...
 
-
-
-%--- check # arguments...
+%-check # arguments...
+%--------------------------------------------------------------------------
 if nargin<6, error('insufficient arguments'), end;
 if nargout > 1, error('Too many output arguments Set'), end;
 
-%--- check arguments...
+%-check arguments...
+%--------------------------------------------------------------------------
 if ~isstr(varargin{2}), error('~isstr(name)'), end;
 if ~(varargin{3}=='F'|varargin{3}=='T'), 
 	error('~(STAT==F|STAT==T)'), end;
@@ -184,7 +182,6 @@ Fc = sf_FconFields;
 %- use the name as a flag to insure that F-contrast has been 
 %- properly created;
 Fc.name = varargin{2};
-
 
 Fc.STAT = varargin{3};
 if Fc.STAT=='T' &  ~(any(strcmp(set_action,{'c+','c'}))) 
@@ -323,14 +320,12 @@ if nargin == 4, V = varargin{4}; else V = []; end;
 if ~sf_IsFcon(Fc), error('Fc must be Fcon'), end
 if ~spm_sp('isspc',sX)
 	sX = spm_sp('set',sX);	end;
-% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-% 	error('sX and Fc must be compatible'), end
-
 
 if ~sf_isempty_X1o(Fc)
    [trMV, trMVMV] = spm_SpUtil('trMV',sf_X1o(Fc,sX),V);
 else
-   trMV = 0; trMVMV = 0;
+   trMV   = 0;
+   trMVMV = 0;
 end	
 if ~trMVMV, edf_tsp = 0; warning('edf_tsp = 0'), 
 else,  edf_tsp = trMV^2/trMVMV; end;	
@@ -350,7 +345,7 @@ end;
 
 %=======================================================================
 %=======================================================================
-%		part that use F contrast
+%		parts that use F contrast
 %=======================================================================
 %=======================================================================
 %
@@ -379,8 +374,6 @@ sX = varargin{3};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; %-
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-%	error('sX and Fc must be compatible'), end;
 
 if sf_isempty_X1o(Fc)
 	if ~sf_isempty_X0(Fc)
@@ -398,7 +391,7 @@ end
 case 'h'     %-Extra sum of squares matrix for beta's from contrast
 %=======================================================================
 % H = spm_FcUtil('H',Fc, sX)
-%
+
 % Empty and zeros dealing : 
 % This routine never returns an empty matrix. 
 % If sf_isempty_X1o(Fc) | isempty(Fc.c) it explicitly 
@@ -412,8 +405,6 @@ sX = varargin{3};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; %-
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-%	error('sX and Fc must be compatible'), end;
 
 if sf_isempty_X1o(Fc)
 	if ~sf_isempty_X0(Fc)
@@ -472,8 +463,6 @@ Fc = varargin{2}; sX = varargin{3}; b = varargin{4};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; 
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-%	error('sX and Fc must be compatible'), end;
 if spm_sp('size',sX,2) ~= size(b,1), 
 	error('sX and b must be compatible'), end;
 
@@ -492,14 +481,15 @@ end
 case {'|_'}     %-  Fc orthogonalisation 
 %=======================================================================
 % Fc = spm_FcUtil('|_',Fc1, sX, Fc2)
-%
+
 % returns Fc1 orthogonolised wrt Fc2 
 
 if nargin < 4, error('Insufficient arguments'), end
 if nargout > 1, error('Too many output argument.'), end
 Fc1 = varargin{2}; sX = varargin{3}; Fc2 = varargin{4}; 
 
-%------------------ check arguments
+%-check arguments
+%-----------------------------------------------------------------------
 L1 = length(Fc1);
 if ~L1, warning('no contrast given to |_'); varargout = {[]}; return; end
 for i=1:L1
@@ -511,9 +501,9 @@ for i=1:L2
     if ~sf_IsFcon(Fc2(i)), error('Fc2(i) must be a contrast'), end
 end
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-%------------------ 
 
-%- create an F-contrast for all the Fc2
+%-create an F-contrast for all the Fc2
+%--------------------------------------------------------------------------
 str  = Fc2(1).name; for i=2:L2 str = [str ' ' Fc2(i).name]; end;
 Fc2  = spm_FcUtil('Set',str,'F','c+',cat(2,Fc2(:).c),sX);
 
@@ -534,7 +524,6 @@ end
 case {'|_?'}    	%-  Are contrasts orthogonals 
 %=======================================================================
 % b = spm_FcUtil('|_?',Fc1, sX [, Fc2])
-%
 
 if nargin < 3, error('Insufficient arguments'), end
 Fc1 = varargin{2}; sX = varargin{3};
@@ -554,7 +543,7 @@ varargout = { sf_Rortho(Fc1,sX,Fc2) };
 case 'in'     %-  Fc1 is in list of  contrasts Fc2
 %=======================================================================
 % [iFc2 iFc1] = spm_FcUtil('In', Fc1, sX, Fc2)
-%
+
 % returns indice of Fc2 if "in", 0 otherwise 
 % NB : If T- stat, the routine checks whether Fc.c is of
 % size one. This is ensure if contrast is set 
@@ -562,17 +551,16 @@ case 'in'     %-  Fc1 is in list of  contrasts Fc2
 % note that the algorithmn works \emph{only because} Fc2(?).c 
 % and Fc1.c are in space(X')
 
-%----------------------------
 if nargin < 4, error('Insufficient arguments'), end
 if nargout > 2, error('Too many output argument.'), end
 
 Fc1 = varargin{2}; Fc2 = varargin{4}; sX = varargin{3};
 
-L1 = length(Fc1);
-if ~L1, warning('no contrast given to in'); 
-	if nargout == 2, varargout = {[] []}; 
-	else, varargout = {[]}; end;
-	return; 
+L1  = length(Fc1);
+if  ~L1, warning('no contrast given to in'); 
+	 if nargout == 2, varargout = {[] []}; 
+	 else, varargout = {[]}; end;
+	 return; 
 end
 for i=1:L1
     if ~sf_IsFcon(Fc1(i)), error('Fc1(i) must be a contrast'), end
@@ -583,7 +571,7 @@ for i=1:L2
     if ~sf_IsFcon(Fc2(i)), error('Fc2(i) must be F-contrast'), end
 end
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-%----------------------------
+
 
 [idxFc2 idxFc1] =  sf_in(Fc1, sX, Fc2);
 if isempty(idxFc2), idxFc2 = 0; end
@@ -601,7 +589,7 @@ end
 case '~unique'     %-  Fc list unique 
 %=======================================================================
 % idx = spm_FcUtil('~unique', Fc, sX)
-%
+
 %- returns indices of redundant contrasts in Fc
 %- such that Fc(idx) = [] makes Fc unique. 
 %- if already unique returns [] 
@@ -625,7 +613,7 @@ varargout = { unique(sf_notunique(Fc, sX))};
 case {'0|[]','[]|0'}     %-  Fc is null or empty 
 %=======================================================================
 % b = spm_FcUtil('0|[]', Fc, sX)
-%
+
 % returns 1 if F-contrast is empty or null; assumes the contrast is set.
 
 if nargin ~= 3, error('Insufficient/too many arguments'), end
@@ -667,7 +655,7 @@ end; %---- switch lower(action),
 
 %=======================================================================
 % Fcon = spm_FcUtil('FconFields')
-%
+
 function Fc = sf_FconFields
 
 Fc = struct(...
@@ -683,7 +671,7 @@ Fc = struct(...
  
 %=======================================================================
 % used internally. Minimum contrast structure
-%
+
 function minFc = sf_MinFcFields
 
 minFc = struct(...
@@ -696,14 +684,14 @@ minFc = struct(...
 
 %=======================================================================
 % yes_no = spm_FcUtil('IsFcon',Fc)
-%
+
 function b = sf_IsFcon(Fc)
 
 %- check that minimum fields of a contrast are in Fc 
-b 	= 1;
+b 	 = 1;
 minnames = fieldnames(sf_MinFcFields);
-FCnames = fieldnames(Fc);
-for str = minnames'
+FCnames  = fieldnames(Fc);
+for  str = minnames'
    b = b & any(strcmp(str,FCnames));
    if ~b, break, end
 end
@@ -712,7 +700,7 @@ end
 % used internally; To be set, a contrast structure should have
 % either X1o or X0 non empty. X1o can be non empty because c
 % is non empty.
-%
+
 function b = sf_IsSet(Fc)
 
 b = ~sf_isempty_X0(Fc) | ~sf_isempty_X1o(Fc);
@@ -726,7 +714,7 @@ if isstruct(Fc.X0), v = 2; else v = 1; end
 
 %=======================================================================
 % used internally
-%
+
 function b = sf_isempty_X1o(Fc)
 
 if sf_ver(Fc) > 1, 
@@ -744,7 +732,7 @@ else,
 end
 %=======================================================================
 % used internally
-%
+
 function b = sf_X1o(Fc,sX)
 
 if sf_ver(Fc) > 1, 
@@ -755,7 +743,7 @@ end
 
 %=======================================================================
 % used internally
-%
+
 function b = sf_X0(Fc,sX)
 
 if sf_ver(Fc) > 1, 
@@ -766,7 +754,7 @@ end
 
 %=======================================================================
 % used internally
-%
+
 function b = sf_isempty_X0(Fc)
 
 if sf_ver(Fc) > 1, 
@@ -777,7 +765,7 @@ end
 
 %=======================================================================
 % Hsqr = spm_Fcutil('Hsqr',Fc,sX)
-%
+
 function hsqr = sf_Hsqr(Fc,sX)
 %
 % Notations : H equiv to X1o, H = uk*a1, X = uk*ax, r = rk(sX), 
@@ -802,7 +790,7 @@ else,
 end
 %=======================================================================
 % H = spm_FcUtil('H',Fc)
-%
+
 function H = sf_H(Fc,sX)
 % 
 % Notations : H equiv to X1o, H = uk*a1, X = uk*ax
@@ -825,21 +813,20 @@ end
 
 %=======================================================================
 % Yc = spm_FcUtil('Yc',Fc,sX,b)
-%
+
 function Yc = sf_Yc(Fc,sX,b)
 
 Yc =  sX.X*spm_sp('xpx-',sX)*sf_H(Fc,sX)*b;
 
 %=======================================================================
 % Y0 = spm_FcUtil('Y0',Fc,sX,b)
-%
 function Y0 = sf_Y0(Fc,sX,b)
 
 Y0 = sX.X*(eye(spm_sp('size',sX,2)) - spm_sp('xpx-',sX)*sf_H(Fc,sX))*b;
 
 %=======================================================================
 % Fc = spm_FcUtil('|_',Fc1, sX, Fc2)
-%
+
 function Fc1o = sf_fcortho(Fc1, sX, Fc2)
 
 %--- use the space facility to ensure the proper tolerance dealing...
@@ -855,7 +842,7 @@ Fc1o  = spm_FcUtil('Set',['(' Fc1.name ' |_ (' Fc2.name '))'], ...
 
 %=======================================================================
 function b = sf_Rortho(Fc1,sX,Fc2);
-%
+
 if isempty(Fc2)
    if length(Fc1) <= 1, b = 0; 
    else
@@ -869,7 +856,7 @@ end
 
 %=======================================================================
 % b = spm_FcUtil('0|[]', Fc, sX)
-%
+
 %- returns 1 if F-contrast is empty or null; assumes the contrast is set.
 %- Assumes that if Fc.c contains only zeros, so does Fc.X1o. 
 %- this is ensured if spm_FcUtil is used
@@ -944,16 +931,3 @@ if l == 1, idx = [];
 else
    idx = [ (1+sf_in(Fc(1),sX,Fc(2:l))) (1+sf_notunique(Fc(2:l), sX))];
 end
-
-%=======================================================================
-% edf  = spm_FcUtil('FconEdf', Fc, sX, V)
-%
-% function Fc = sf_FconEdf(Fc,sX,V)
-% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ To investigate
-% Hb = spm_SpUtil('H',sX,Fc);
-% if ~V_flag
-%   Vb = (spm_sp('x-',sX)*V)*spm_sp('x-',sX)';
-%   [trMV, trMVMV] = spm_SpUtil('trMV',Hb,Vb);
-% else 
-%   [trMV, trMVMV] = spm_SpUtil('trMV',Hb,spm_sp('xpx-',sX));
-% end;
