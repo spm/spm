@@ -18,8 +18,9 @@ typedef struct maptype
 	double xpixdim, ypixdim, zpixdim;
 	double scalefactor;
 	int datatype;
-	off_t off;
+	int off;
 	caddr_t map;
+	unsigned char *data;
 	size_t len;
 	int magic;
 	int prot;
