@@ -1,204 +1,202 @@
-
-SPM templates and other images...
-_______________________________________________________________________
-
-_______________________________________________________________________
-_______________________________________________________________________
-/TEMPLATES/ DIRECTORY
-This directory contains images for use as templates for spatially
-normalizing  images to the same stereotactic space.  The space is
-based upon the Talairach system, but does  not  make  assumptions
-about  brain  symmetry,  and  also  includes the cerebellum.  The
-stereotactic  space   is  based  on  152   brains  from  Montréal
-Neurological  Institute,  and  will eventually be replaced in due
-course by a 450-brain version for the entire ICBM consortium.
-
-In SPM96, we released  a  single  subject  brain  for  use  as  a
-template.   Although  the  MNI  gave  us  this  data,  they never
-recommended that this brain  should  be  used  as  a  stereotaxic
-standard.   This   is  something  that we at the FIL chose to do.
-The official standard  for  the   ICBM   stereotactic  space   is
-the   MNI305  brain  -  which  this was not.  This brain has many
-merits for simulation but it  suffers   from   all   the   single
-brain  criticisms  that apply to Talairach.  In this release, the
-single subject T1 has been replaced by a 152 subject average.  We
-(in  the  SPM  group)  chose  to  use the 152 subject T1-weighted
-average rather than the 305 brain average because there are  also
-T2-,  and  PD-weighted  images of the same subjects.  This should
-allow  much  more  flexibility  in  the  range  of  different  MR
-contrasts   that   can   be  spatially  normalized  to  the  same
-stereotaxic space (by registering  to  a  linear  combination  of
-template images).
-_______________________________________________________________________
-
-templates/T1.img
-----------------
-Image  derived  from   icbm_avg_152_t1_tal_lin.mnc,   which   was
-originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-project, Principal Investigator John Mazziotta).  The  image  was
-reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-Gaussian filter.
-
-templates/T2.img
-----------------
-Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
-originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-project, Principal Investigator John Mazziotta).  The  image  was
-reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-Gaussian filter.
-
-templates/PD.img
-----------------
-Image  derived  from   icbm_avg_152_pd_tal_lin.mnc,   which   was
-originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-project, Principal Investigator John Mazziotta).  The  image  was
-reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-Gaussian filter.
-
-
-templates/EPI.img
--------------
-The image was created from the average of 13 subjects  mean  fMRI
-images.   The  grey matter was segmented from the original images
-using the segmentation in SPM.  This was spatially normalized  by
-matching  to  the  apriori/gray.img  file  using  a  12-parameter
-affine  registration,  followed   by   a nonlinear   registration
-(using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
-heavy   regularization).     These    estimated  parameters  were
-then  applied  to the functional images, which were then averaged
-and smoothed with an 8mm FWHM Gaussian kernel.  The  EPI   images
-were  acquired  on  a  Siemens Vision scanner working at 2T.  The
-original resolution of the images was an  isotropic   3mm  (1.8mm
-slice   thickness   +  1.2mm  gap).  A gradient echo sequence was
-used with TE@ms and a TR of about 3s.  Inter echo spacing  is 800
-micro   seconds   with   a   sinusoidal   gradient  waveform  and
-nonlinear ADC sampling.  Nyquist ghost  suppression  is  achieved
-using  a  2  echo  reference  scan  (only 0th and 1st order phase
-correction implemented). Maximum  gradient  strength  is  approx.
-20mT/m.
-Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479
-                 1514 1589 1644 1646.
-
-
-templates/filT1.img
--------------------
-Average of images from 12  subjects  spatially  normalized  to  a
-linear  combination  of  T1.img,  T2.img  and  PD.img using a 12-
-parameter  affine  transformation,   followed  by   a   nonlinear
-registration  (using the 7x8x7 lowest frequency DCT coefficients,
-and medium regularization).  Images acquired on a 2 Tesla Siemens
-Magnetom  Vision scanner at the FIL,  using a T1 weighted  MPRAGE
-sequence  (TRel=9.7, TEch=4, TInv=600, Fang=12, SThi=1.5).   Same
-subjects    were   also    used    for    templates/PET.img   and
-templates/Transm.img.   This image is included  as   it  has  the
-same  contrast as the T1 weighted images from the FIL  (so we can
-use it for spatial normalization).
-Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
-
-templates/PET.img
------------------
-Average of images from 12 subjects spatially normalized to  ICBM.
-Images  were  first  registered to the T1-weighted MR images, and
-spatially transformed using the same transformation.  Images were
-acquired  on  a  Siemens  ECAT  HR+  at  the FIL, using Oxygen-15
-labeled water. Averaged images smoothed using 8mm FWHM  Gaussian.
-Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
-
-templates/Transm.img
---------------------
-Average transmission image of 11 subjects.  Template generated in
-similar way to PET.img.
-Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
-
-_______________________________________________________________________
-_______________________________________________________________________
-/APRIORI/ DIRECTORY
-Images in this directory represent the a priori probabilities of the
-voxels in a spatially normalized (9-parameter affine) brain image
-belonging to a particular tissue type.
-_______________________________________________________________________
-
-apriori/gray.img, apriori/white.img & apriori/csf.img
-----------------  -----------------   ---------------
-Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
-project,  Principal  Investigator  John Mazziotta).  Original 1mm
-resolution images were  icbm_avg_151_gm.mnc,  icbm_avg_151_wm.mnc
-and    icbm_avg_151_csf.mnc.     Images    were    masked   using
-average_305_mask_1mm.mnc, reduced to 2mm resolution and  smoothed
-using   an   8mm  FWHM  Gaussian.   These  images  represent  the
-probabilities of finding gray matter, white  matter  or  cerebro-
-spinal  fluid  at  any  point. These volumes are used largely for
-image segmentation, although they can be used  as  templates  for
-spatial  normalization.  151  subjects  were  used to create each
-volume.
-
-apriori/brainmask
------------------
-Image derived from average_305_mask_1mm.mnc, which was originally
-supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
-Principal  Investigator  John  Mazziotta).   The  original  image
-contained ones and zeros, where ones represented voxels that were
-part of the brain.  It was subsequently  smoothed  using  an  8mm
-FWHM  Gaussian.   This  volume  can be used to weight the spatial
-normalization so that the final solution  is  not  influenced  by
-voxels outside the brain.
-
-_______________________________________________________________________
-_______________________________________________________________________
-/CANONICAL/ DIRECTORY
-Images in this  directory are intended for superimposing results
-on to.
-_______________________________________________________________________
-
-canonical/avg305T1.img
-----------------------
-Image derived from norm_avg_305_mri_1mm.mnc, which was originally
-supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
-Principal Investigator John Mazziotta).  The image which  defines
-the  305  space,  and  is intended for superimposing blobs on to.
-See:  AC Evans, DL Collins, SR Mills, ED Brown,  RL  Kelly  &  TM
-Peters (1993) "3D statistical neuroanatomical models from 305 MRI
-volumes" Proc. IEEE-Nuclear Science Symposium and Medical Imaging
-Conference pages 1813-1817
-
-canonical/avg152T1.img, avg152T2.img & avg152PD.img
-----------------------  ------------   ------------
-These  images  were  derived  from   icbm_avg_152_t1_tal_lin.mnc,
-icbm_avg_152_t2_tal_lin.mnc  and icbm_avg_152_pd_tal_lin.mnc res-
-pectively, which were originally supplied by  Alan  Evans,   MNI,
-Canada   (ICBM,   NIH  P-20  project, Principal Investigator John
-Mazziotta).   See  templates/T1.img, T2.img and PD.img.
-
-canonical/single_subj_T1.img
-----------------------------
-A T1 weighted MRI of  a  representative  male  individual.   This
-image  was  used  for  the  T1  template supplied with SPM96.  It
-should be noted that the MNI never recommended this  brain  as  a
-stereotactic  standard.   This  is  something  that we at the FIL
-chose to do.  The official standard  for  the  ICBM  stereotactic
-space  is  the  MNI305 brain - which this is not.  This brain has
-many merits for simulation but it suffers  from  all  the  single
-brain criticisms that apply to Talairach.
-The same dataset was used for the  brain  simulation  project  at
-Montreal,     details     of    which    can    be    found    at
-http://www.bic.mni.mcgill.ca/brainweb The simulator is  described
-in:   RK-S  Kwan,  AC  Evans,  GB  Pike (1996) "An Extensible MRI
-Simulator  for  Post-Processing  Evaluation"   Visualization   in
-Biomedical   Computing   (VBC'96).   Lecture  Notes  in  Computer
-Science, vol. 1131. Springer-Verlag. 135-140.  and:  DL  Collins,
-AP  Zijdenbos,  V  Kollokian,  JG  Sled, NJ Kabani, CJ Holmes, AC
-Evans (June 1998) "Design and Construction of a Realistic Digital
-Brain  Phantom"  IEEE  Transactions  on  Medical Imaging, vol.17,
-No.3, p.463-468.
-
-=======================================================================
-Note that the images are in neurological orientation, whereby the
-left  side  of  the  image  refers to the left side of the brain.
-This is contrary to the orientation that Analyze  expects  images
-to be in.
-
-To generate your own templates which fill the same volume, use  a
-bounding  box of -90:91 -126:91 -72:109, and voxel sizes of 2x2x2
-mm.
-_______________________________________________________________________
-%W% John Ashburner %E%
+% 
+% SPM templates and other images...
+% _______________________________________________________________________
+% 
+% _______________________________________________________________________
+% _______________________________________________________________________
+% /TEMPLATES/ DIRECTORY
+% This directory contains images for use as templates for spatially
+% normalizing  images to the same stereotactic space.  The space is
+% based upon the Talairach system, but does  not  make  assumptions
+% about  brain  symmetry,  and  also  includes the cerebellum.  The
+% stereotactic  space   is  based  on  152   brains  from  Montréal
+% Neurological  Institute,  and  will eventually be replaced in due
+% course by a 450-brain version for the entire ICBM consortium.
+% 
+% In SPM96, we released  a  single  subject  brain  for  use  as  a
+% template.   Although  the  MNI  gave  us  this  data,  they never
+% recommended that this brain  should  be  used  as  a  stereotaxic
+% standard.   This   is  something  that we at the FIL chose to do.
+% The official standard  for  the   ICBM   stereotactic  space   is
+% the   MNI305  brain  -  which  this was not.  This brain has many
+% merits for simulation but it  suffers   from   all   the   single
+% brain  criticisms  that apply to Talairach.  In this release, the
+% single subject T1 has been replaced by a 152 subject average.  We
+% (in  the  SPM  group)  chose  to  use the 152 subject T1-weighted
+% average rather than the 305 brain average because there are  also
+% T2-,  and  PD-weighted  images of the same subjects.  This should
+% allow  much  more  flexibility  in  the  range  of  different  MR
+% contrasts   that   can   be  spatially  normalized  to  the  same
+% stereotaxic space (by registering  to  a  linear  combination  of
+% template images).
+% _______________________________________________________________________
+% 
+% templates/T1.img
+% ----------------
+% Image  derived  from   icbm_avg_152_t1_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% 
+% templates/T2.img
+% ----------------
+% Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% 
+% templates/PD.img
+% ----------------
+% Image  derived  from   icbm_avg_152_pd_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% 
+% templates/EPI.img
+% -------------
+% The image was created from the average of 13 subjects  mean  fMRI
+% images.   The  grey matter was segmented from the original images
+% using the segmentation in SPM.  This was spatially normalized  by
+% matching  to  the  apriori/gray.img  file  using  a  12-parameter
+% affine  registration,  followed   by   a nonlinear   registration
+% (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
+% heavy   regularization).     These    estimated  parameters  were
+% then  applied  to the functional images, which were then averaged
+% and smoothed with an 8mm FWHM Gaussian kernel.  The  EPI   images
+% were  acquired  on  a  Siemens Vision scanner working at 2T.  The
+% original resolution of the images was an  isotropic   3mm  (1.8mm
+% slice   thickness   +  1.2mm  gap).  A gradient echo sequence was
+% used with TE@ms and a TR of about 3s.  Inter echo spacing  is 800
+% micro   seconds   with   a   sinusoidal   gradient  waveform  and
+% nonlinear ADC sampling.  Nyquist ghost  suppression  is  achieved
+% using  a  2  echo  reference  scan  (only 0th and 1st order phase
+% correction implemented). Maximum  gradient  strength  is  approx.
+% 20mT/m.
+% Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479
+%                  1514 1589 1644 1646.
+% 
+% templates/filT1.img
+% -------------------
+% Average of images from 12  subjects  spatially  normalized  to  a
+% linear  combination  of  T1.img,  T2.img  and  PD.img using a 12-
+% parameter  affine  transformation,   followed  by   a   nonlinear
+% registration  (using the 7x8x7 lowest frequency DCT coefficients,
+% and medium regularization).  Images acquired on a 2 Tesla Siemens
+% Magnetom  Vision scanner at the FIL,  using a T1 weighted  MPRAGE
+% sequence  (TRel=9.7, TEch=4, TInv=600, Fang=12, SThi=1.5).   Same
+% subjects    were   also    used    for    templates/PET.img   and
+% templates/Transm.img.   This image is included  as   it  has  the
+% same  contrast as the T1 weighted images from the FIL  (so we can
+% use it for spatial normalization).
+% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
+% 
+% templates/PET.img
+% -----------------
+% Average of images from 12 subjects spatially normalized to  ICBM.
+% Images  were  first  registered to the T1-weighted MR images, and
+% spatially transformed using the same transformation.  Images were
+% acquired  on  a  Siemens  ECAT  HR+  at  the FIL, using Oxygen-15
+% labeled water. Averaged images smoothed using 8mm FWHM  Gaussian.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
+% 
+% templates/Transm.img
+% --------------------
+% Average transmission image of 11 subjects.  Template generated in
+% similar way to PET.img.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
+% 
+% _______________________________________________________________________
+% _______________________________________________________________________
+% /APRIORI/ DIRECTORY
+% Images in this directory represent the a priori probabilities of the
+% voxels in a spatially normalized (9-parameter affine) brain image
+% belonging to a particular tissue type.
+% _______________________________________________________________________
+% 
+% apriori/gray.img, apriori/white.img & apriori/csf.img
+% ----------------  -----------------   ---------------
+% Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
+% project,  Principal  Investigator  John Mazziotta).  Original 1mm
+% resolution images were  icbm_avg_151_gm.mnc,  icbm_avg_151_wm.mnc
+% and    icbm_avg_151_csf.mnc.     Images    were    masked   using
+% average_305_mask_1mm.mnc, reduced to 2mm resolution and  smoothed
+% using   an   8mm  FWHM  Gaussian.   These  images  represent  the
+% probabilities of finding gray matter, white  matter  or  cerebro-
+% spinal  fluid  at  any  point. These volumes are used largely for
+% image segmentation, although they can be used  as  templates  for
+% spatial  normalization.  151  subjects  were  used to create each
+% volume.
+% 
+% apriori/brainmask
+% -----------------
+% Image derived from average_305_mask_1mm.mnc, which was originally
+% supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
+% Principal  Investigator  John  Mazziotta).   The  original  image
+% contained ones and zeros, where ones represented voxels that were
+% part of the brain.  It was subsequently  smoothed  using  an  8mm
+% FWHM  Gaussian.   This  volume  can be used to weight the spatial
+% normalization so that the final solution  is  not  influenced  by
+% voxels outside the brain.
+% 
+% _______________________________________________________________________
+% _______________________________________________________________________
+% /CANONICAL/ DIRECTORY
+% Images in this  directory are intended for superimposing results
+% on to.
+% _______________________________________________________________________
+% 
+% canonical/avg305T1.img
+% ----------------------
+% Image derived from norm_avg_305_mri_1mm.mnc, which was originally
+% supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
+% Principal Investigator John Mazziotta).  The image which  defines
+% the  305  space,  and  is intended for superimposing blobs on to.
+% See:  AC Evans, DL Collins, SR Mills, ED Brown,  RL  Kelly  &  TM
+% Peters (1993) "3D statistical neuroanatomical models from 305 MRI
+% volumes" Proc. IEEE-Nuclear Science Symposium and Medical Imaging
+% Conference pages 1813-1817
+% 
+% canonical/avg152T1.img, avg152T2.img & avg152PD.img
+% ----------------------  ------------   ------------
+% These  images  were  derived  from   icbm_avg_152_t1_tal_lin.mnc,
+% icbm_avg_152_t2_tal_lin.mnc  and icbm_avg_152_pd_tal_lin.mnc res-
+% pectively, which were originally supplied by  Alan  Evans,   MNI,
+% Canada   (ICBM,   NIH  P-20  project, Principal Investigator John
+% Mazziotta).   See  templates/T1.img, T2.img and PD.img.
+% 
+% canonical/single_subj_T1.img
+% ----------------------------
+% A T1 weighted MRI of  a  representative  male  individual.   This
+% image  was  used  for  the  T1  template supplied with SPM96.  It
+% should be noted that the MNI never recommended this  brain  as  a
+% stereotactic  standard.   This  is  something  that we at the FIL
+% chose to do.  The official standard  for  the  ICBM  stereotactic
+% space  is  the  MNI305 brain - which this is not.  This brain has
+% many merits for simulation but it suffers  from  all  the  single
+% brain criticisms that apply to Talairach.
+% The same dataset was used for the  brain  simulation  project  at
+% Montreal,     details     of    which    can    be    found    at
+% http://www.bic.mni.mcgill.ca/brainweb The simulator is  described
+% in:   RK-S  Kwan,  AC  Evans,  GB  Pike (1996) "An Extensible MRI
+% Simulator  for  Post-Processing  Evaluation"   Visualization   in
+% Biomedical   Computing   (VBC'96).   Lecture  Notes  in  Computer
+% Science, vol. 1131. Springer-Verlag. 135-140.  and:  DL  Collins,
+% AP  Zijdenbos,  V  Kollokian,  JG  Sled, NJ Kabani, CJ Holmes, AC
+% Evans (June 1998) "Design and Construction of a Realistic Digital
+% Brain  Phantom"  IEEE  Transactions  on  Medical Imaging, vol.17,
+% No.3, p.463-468.
+% 
+% =======================================================================
+% Note that the images are in neurological orientation, whereby the
+% left  side  of  the  image  refers to the left side of the brain.
+% This is contrary to the orientation that Analyze  expects  images
+% to be in.
+% 
+% To generate your own templates which fill the same volume, use  a
+% bounding  box of -90:91 -126:91 -72:109, and voxel sizes of 2x2x2
+% mm.
+% _______________________________________________________________________
+% %W% John Ashburner %E%
