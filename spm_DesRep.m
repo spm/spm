@@ -371,8 +371,6 @@ set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 %-Parameter estimability/uniqueness
 %-----------------------------------------------------------------------
-tmp = get(Fgraph,'DefaultTextInterpreter');
-set(Fgraph,'DefaultTextInterpreter','TeX');
 hPEstAx   = axes('Position',[.07 .325 .6 .025],'DefaultTextInterpreter','TeX');
 if iX,	est = spm_SpUtil('IsCon',varargin{2}.xKXs);
 else,	est = spm_SpUtil('IsCon',varargin{2}.X); end
@@ -387,7 +385,6 @@ text((nPar+0.5 + nPar/30),1,...
 	'Interpreter','TeX','FontSize',FS(8))
 set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
 set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
-set(Fgraph,'DefaultTextInterpreter',tmp);
 
 
 %-Design descriptions
@@ -607,25 +604,37 @@ s = 1:p:nScan; s(end)=nScan;
 varargout = {s,lim};
 
 
-case {'surfdesmtx_cb','surfdesmtxmo_cb'}  %-Callbacks for surfing DesMtx
+case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'} %-Surf DesMtx
 %=======================================================================
 % spm_DesRep('SurfDesMtx_CB')
 % spm_DesRep('SurfDesMtxMo_CB')
+% spm_DesRep('SurfDesMtxUp_CB')
+
+h    = get(gca,'Xlabel');
+
+if strcmp(lower(varargin{1}),'surfdesmtxup_cb')
+	UD = get(h,'UserData');
+	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+		'UserData',UD.UserData)
+	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+	return
+end
+
 
 if strcmp(lower(varargin{1}),'surfdesmtx_cb')
-	set(0,'UserData',get(get(gca,'XLabel'),'String'))
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesMtxMo_CB'')')
-	set(gcbf,'WindowButtonUpFcn',[...
-		'set(get(gca,''XLabel''),''String'',get(0,''UserData'')),',...
-		'set(0,''UserData'',[]),',...
-		'set(gcbf,''WindowButtonMotionFcn'',''''),',...
-		'set(gcbf,''WindowButtonUpFcn'','''')'])
+	UD = struct(	'String',	get(h,'String'),...
+			'Interpreter',	get(h,'Interpreter'),...
+			'UserData',	get(h,'UserData'));
+	set(h,'UserData',UD)
+	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesMtxMo_CB'')',...
+		 'WindowButtonUpFcn',    'spm_DesRep(''SurfDesMtxUp_CB'')')
 end
 
 mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
 ij  = get(gca,'CurrentPoint');
 ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
 
+istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
 	try, str = sprintf('X(%d,%d) = %g',ij(1),ij(2),...
@@ -642,33 +651,45 @@ case 'alt'
 	try, str = sprintf('Parameter %d: %s',ij(2),...
 		subsref(get(gco,'UserData'),...
 		struct('type',{'.','{}'},'subs',{'Xnames',{ij(2)}})));
+		istr = 'tex';
 	catch, str='(no cached parameter names to surf)'; end
 case 'open'
 	return
 end
 
-set(get(gca,'XLabel'),'String',str)
+set(h,'String',str,'Interpreter',istr)
 
 
-case {'surfestim_cb','surfestimmo_cb'}  %-Callbacks for surfing ParEstIm
+case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}  %-Surf ParEstIm
 %=======================================================================
 % spm_DesRep('SurfEstIm_CB')
-% spm_DesRep('surfEstImMo_CB')
+% spm_DesRep('SurfEstImMo_CB')
+% spm_DesRep('SurfEstImUp_CB')
+
+h    = get(gca,'Xlabel');
+
+if strcmp(lower(varargin{1}),'surfestimup_cb')
+	UD = get(h,'UserData');
+	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+		'UserData',UD.UserData)
+	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+	return
+end
 
 if strcmp(lower(varargin{1}),'surfestim_cb')
-	set(0,'UserData',get(get(gca,'XLabel'),'String'))
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''surfEstImMo_CB'')')
-	set(gcbf,'WindowButtonUpFcn',[...
-		'set(get(gca,''XLabel''),''String'',get(0,''UserData'')),',...
-		'set(0,''UserData'',[]),',...
-		'set(gcbf,''WindowButtonMotionFcn'',''''),',...
-		'set(gcbf,''WindowButtonUpFcn'','''')'])
+	UD = struct(	'String',	get(h,'String'),...
+			'Interpreter',	get(h,'Interpreter'),...
+			'UserData',	get(h,'UserData'));
+	set(h,'UserData',UD)
+	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfEstImMo_CB'')',...
+		 'WindowButtonUpFcn',    'spm_DesRep(''SurfEstImUp_CB'')')
 end
 
 mm  = [get(gca,'XLim')]+[.5,-.5];
 i   = get(gca,'CurrentPoint');
 i   = round(min(max(i(1,1),mm(1)),mm(2)));
 
+istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
 	try, tmp = {' (not unique)',' (unique)'};
@@ -678,18 +699,19 @@ case 'normal'
 			struct('type',{'.','{}'},'subs',{'Xnames',{i}})),...
 		tmp{subsref(get(gco,'UserData'),...
 			struct('type',{'.','()'},'subs',{'est',{i}}))+1});
+		istr = 'tex';
 	catch, str='(no cached data to surf)'; end
 case {'extend','alt','open'}
 	return
 end
 
-set(get(gca,'XLabel'),'String',str)
+set(h,'String',str,'Interpreter',istr)
 
 
 
 otherwise                                        %-Unknown action string
 %=======================================================================
-error('Unknown action string')
+error(['Unknown action string: ',varargin{1}])
 
 
 
