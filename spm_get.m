@@ -731,7 +731,7 @@ case 'on'
 	end
 
 	%-Popup figure, retaining CurrentFigure
-	figure(F)					%-PopUp figure
+	figure(F),drawnow				%-PopUp figure
 	set(0,'CurrentFigure',cF)			%-Return to prev. figure
 
 otherwise
@@ -1586,7 +1586,10 @@ if (nP<n.mn | nP>n.mx)
 	end
 	spm('Beep')
 	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
-		spm('GetUser',' (%s)'),mfilename),'error','modal')
+		spm('GetUser',' (%s)'),mfilename),'error','non-modal')
+	drawnow
+	set(h,'windowstyle','modal')
+
 	return
 end
 
