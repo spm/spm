@@ -125,6 +125,11 @@ for i=1:length(hdr),
 
 	% descrip = [deblank(descrip) '   ' hdr{i}.PatientsName];
 
+	if ~spm_flip_analyze_images,
+		mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+		volume = flipdim(volume,1);
+	end;
+
 	V = struct('fname',fname,'dim',dim,'mat',mat,'descrip',descrip);
 	V = spm_write_vol(V,volume);
 	spm_progress_bar('Set',i);
@@ -267,6 +272,10 @@ else,
 	descrip = hdr{1}.Modality;
 end;
 
+if ~spm_flip_analyze_images,
+	mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+end; 
+
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
@@ -275,6 +284,7 @@ V = spm_create_vol(V);
 for i=1:length(hdr),
 	plane = read_image_data(hdr{i});
 	plane = fliplr(plane);
+	if ~spm_flip_analyze_images, plane = flipud(plane); end;
 	V     = spm_write_plane(V,plane,i);
 	spm_progress_bar('Set',i);
 end;
