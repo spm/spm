@@ -82,16 +82,13 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %_______________________________________________________________________
 % %W% %E%
 
-global BCH
-
-SPMid = spm('FnBanner',mfilename,'2.6');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
 if nargin < 1,
         % get number of subjects
-        nsubjects = spm_input('number of subjects/sessions',1, 'e', 1, ...
-		'batch',{},'numsubjects');
+        nsubjects = spm_input('number of subjects/sessions',1, 'e', 1);
         if (nsubjects < 1)
                 spm_figure('Clear','Interactive');
                 return;
@@ -103,18 +100,14 @@ end;
 for i = 1:nsubjects
 	if nargin < 1,
 		% Choose the images
-		P = [];
-		if isempty(BCH),
-			P = spm_get(+Inf,'*.img',...
-				['Select images to acquisition correct for subject ' num2str(i)]);
-		else,
-			P = spm_input('batch',{},'files');
-		end;
+		PP = [];
+		PP = spm_get(+Inf,'*.img',...
+			['Select images to acquisition correct for subject ' num2str(i)]);
 	end;
-	eval(['P' num2str(i) ' = P;']);
+	P{i} = PP;
 end;
 
-Vin 	= spm_vol(P1(1,:));
+Vin 	= spm_vol(P{1}(1,:));
 nslices	= Vin(1).dim(3);
 
 if nargin < 2,
@@ -125,7 +118,7 @@ if nargin < 2,
 		'interleaved (first slice=top)',...
 		'user specified');
 	str   = 'Select sequence type';
-	Seq   = spm_input(str,'!+1','m',Stype,[1:size(Stype,1)],'batch',{},'sequence');
+	Seq   = spm_input(str,'!+1','m',Stype,[1:size(Stype,1)]);
 end;
 
 if Seq==[1],
@@ -141,20 +134,19 @@ elseif Seq==[4],
 	sliceorder = [];
 	while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
 		min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
-		sliceorder = spm_input('Order of slices (1=bottom)','!+0','e', 'batch',{},'order');
+		sliceorder = spm_input('Order of slices (1=bottom)','!+0','e');
 	end;
 end;
 
 if nargin < 3,
 	% Choose reference slice (in Analyze format, slice 1 = bottom)
 	% Note: no checking that 1 < refslice < no.slices (default = middle slice)
-	refslice = spm_input('Reference Slice (1=bottom)','!+0','e',floor(Vin(1).dim(3)/2), ...
-		'batch',{},'refslice');
+	refslice = spm_input('Reference Slice (1=bottom)','!+0','e',floor(Vin(1).dim(3)/2));
 end;
 
 if nargin < 4,
-	TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3, 'batch',{},'trtime');
-	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices,'batch', {}, 'tatime');
+	TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
+	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices);
 	while TA > TR | TA <= 0,
 		TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
 	end;
@@ -173,9 +165,9 @@ spm('Pointer','Watch')
 for subj = 1:nsubjects
 	task = ['Slice timing: working on session ' num2str(subj)];
 	spm('FigName',task,Finter,CmdLine);
-        if nsubjects > 1, eval(['P    =    P' num2str(subj) ';']); end;
-	Vin 	= spm_vol(P);
-	nimgo	= size(P,1);
+        if nsubjects > 1, PP = P{subj}; end;
+	Vin 	= spm_vol(PP);
+	nimgo	= size(PP,1);
 	nimg	= 2^(floor(log2(nimgo))+1);
 	nslices_t= Vin(1).dim(3);
 	if ( nslices_t ~= nslices )
