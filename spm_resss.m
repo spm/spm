@@ -125,4 +125,4 @@ end
 %-End
 %-----------------------------------------------------------------------
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
-	sprintf('...written %s',spm_str_manip(Vo.fname,'a20')))      %-#
+	sprintf('...written %s',spm_str_manip(Vo.fname,'t')))        %-#
