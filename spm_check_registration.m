@@ -35,7 +35,8 @@ elseif nargin==1,
 		j  = w*rem(ij-1,n);
 		handle(ij) = spm_orthviews('Image', images(ij,:),...
 			[j+ds/2 i+ds/2 w-ds h-ds]);
-		if ij==1, spm_orthviews('Space',1); end;
+		if ij==1, spm_orthviews('Space'); end;
+		spm_orthviews('AddContext',handle(ij));
 	end;
 else,
 	error('Incorrect Usage');
