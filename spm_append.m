@@ -5,20 +5,20 @@ function spm_append(MAT,X)
 % X    - matrix
 %____________________________________________________________________________
 %
-% spm_append is used to append variables to a matrix in a MAT-
-% file without loading the matrix into working memory.  This saves
-% memory and time.  spm_append is used by spm_spm as the latter
-% cycles over planes saving data for subsequent analysis
+% spm_append is used to append variables to a matrix in a MAT- file
+% without loading the matrix into working memory.  This saves memory
+% and time.  spm_append is used by spm_spm as the latter cycles over
+% planes saving data for subsequent analysis
 %
 % The name of the matrix is set to MAT ensuring only one matrix per
 % MAT-file.  MAT.mat is created if necessary.
 %
-% NOTE: this routine will require updating for Level 2 MAT-file format and
-% forwards compatibility with new versions of MATLAB
-% spm_append will only append to MAT-files in pwd
+% NOTE: this routine will require updating for Level 2 MAT-file format
+% and forwards compatibility with new versions of MATLAB spm_append
+% will only append to MAT-files in pwd
 %
 %__________________________________________________________________________
-% %W% %E%
+% %W% Karl Friston %E%
 
 
 %----------------------------------------------------------------------------
@@ -29,9 +29,8 @@ X     = real(X);
 %----------------------------------------------------------------------------
 fid   = fopen([pwd '/' MAT '.mat'],'r');
 if fid < 0
-        eval([MAT ' = X(:,1);']);
+        eval([MAT ' = X;']);
         eval(['save ' MAT '.mat ' MAT]);
-        spm_append(MAT,X(:,[2:size(X,2)]));
         return
 end
 
