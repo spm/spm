@@ -134,7 +134,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			dx, dy, dz, dxdy, *num, *ind, index, nb_lm;
     int			*x,*y,*z;
 
-    if ((nrhs != 3 ) || (nlhs > 4))
+    if ((nrhs != 2 ) || (nlhs > 4))
 		mexErrMsgTxt("Inappropriate usage.");
 
     /* Assign pointers to the parameters */
