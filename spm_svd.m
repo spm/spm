@@ -32,15 +32,15 @@ figure(Fgraph), spm_clf(Fgraph)
 %---------------------------------------------------------------------------
 if V(3) == 1						% 2-dimensional data
 	subplot(2,1,1)
-	spm_mip(u(:,e),XYZ,V(1:6));
+	spm_mip(u(:,e),XYZ,V);
 	title(sprintf('eigenimage %0.0f',e));
 else
 	axes('Position',[0.05 0.5 0.45 0.4])
-	spm_mip(u(:,e),XYZ,V(1:6));
+	spm_mip(u(:,e),XYZ,V);
 	title(sprintf('eigenimage %0.0f {+ve}',e));
 
 	axes('Position',[0.50 0.5 0.45 0.4])
-	spm_mip(-u(:,e),XYZ,V(1:6));
+	spm_mip(-u(:,e),XYZ,V);
 	title(sprintf('eigenimage %0.0f {-ve}',e));
 end
 

@@ -97,7 +97,7 @@ XYZ   = XYZ(:,Q);
 %-Maximium intensity projection of SPM{Z}
 %-----------------------------------------------------------------------
 axes('Position',[0.05 0.5 0.5 0.5],'Tag','Empty');
-spm_mip(Z,XYZ,V(1:6)); axis image
+spm_mip(Z,XYZ,V); axis image
 if SPMZ
 	title('SPM{Z}','FontSize',16,'Fontweight','Bold')
 elseif SPMF

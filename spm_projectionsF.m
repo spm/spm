@@ -65,7 +65,7 @@ end
 %-Maximium intenisty projection of SPM{F}
 %===========================================================================
 axes('Position',[0.05 0.5 0.5 0.5],'Tag','Empty');
-spm_mip(SPMF,XYZ,V(1:6)); axis image
+spm_mip(SPMF,XYZ,V); axis image
 title('SPM{F}','FontSize',16,'Fontweight','Bold')
 
 %-Show design matrix & parameters of interest

@@ -324,7 +324,7 @@ if exist('SPMF.mat')
 	load XYZ
 	load SPMF
 	axes('Position',[-0.05 0.5 0.8 0.4]);
-	spm_mip(sqrt(SPMF),XYZ,V(1:6))
+	spm_mip(sqrt(SPMF),XYZ,V)
 	str = sprintf('SPM{F} p < %0.2f, df: %0.1f,%0.1f',UFp,Fdf);
 	title(str,'FontSize',16)
 end

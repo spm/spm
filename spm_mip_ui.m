@@ -178,7 +178,7 @@ figure(Fgraph)
 spm_clf(Fgraph)
 set(Fgraph,'Units','normalized'); 
 hMIPaxes = axes('Position',[0.24 0.54 0.62 0.42],'Tag','hMIPaxes');
-spm_mip(t,XYZ,V(1:6)); axis normal
+spm_mip(t,XYZ,V); axis normal
 
 %-Create point markers
 %-----------------------------------------------------------------------
@@ -224,15 +224,18 @@ set(hMIPaxes,'UserData',AXES,...
 
 %-Print coordinates
 %-----------------------------------------------------------------------
-% tmp = [0.08 0.9 0.1 0.03];
-tmp = [0.08 0.8 0.1 0.03];
+% tmp = [0.08 0.90 0.10 0.03];
+tmp = [0.08 0.80 0.10 0.03];
 hCoordAxes = axes('Position',tmp,...
 	'Visible','off',...
 	'Units','Normalized',...
 	'Tag','hV',...
 	'UserData',V);
 
-text(-0.2,-0.5,'SPM - MIP','FontSize',6,'Rotation',90,'FontWeight','Bold')
+text(-0.1,-0.5,'SPM - MIP',...
+	'FontSize',8,...
+	'FontName','Times','FontWeight','Bold','FontAngle','Oblique',...
+	'Rotation',90)
 
 hXstr = text(0,1.0,sprintf('x = 0.00'),'FontSize',10,...
 		'Tag','hXstr');
@@ -243,7 +246,7 @@ hZstr = text(0,0.0,sprintf('z = 0.00'),'FontSize',10,...
 
 %-Print parameter text
 %-----------------------------------------------------------------------
-hTextAxes = axes('Position',[0.625 0.54 0.3 0.15],'Visible','off',...
+hTextAxes = axes('Position',[0.625 0.48 0.3 0.15],'Visible','off',...
 	'Units','Normalized','Tag','hTextAxes');
 h = text(0.0,1.0,deblank(Descrip(1,:)),'FontSize',8,'FontWeight','Bold');
 y = 0.8; dy = 0.1;

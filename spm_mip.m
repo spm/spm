@@ -3,8 +3,10 @@ function spm_mip(X,L,V)
 % FORMAT spm_mip(X,L,V);
 % V  -  SPM
 % L  -  Talairach coordinates
-% V  -  {1 x 6} vector of image and voxel sizes [DIM VOX]
-%___________________________________________________________________________
+% V  -  {6 x 1} vector of image & voxel sizes [DIM VOX]
+%    or {9 x 1} vector of image & voxel sizes, and origin [DIM VOX ORIGIN]
+%       (ORIGIN is required for 2D MIPs)
+%_______________________________________________________________________
 %
 % If the data are 2 dimensional [V(3) = 1] the projection is simply an
 % image, otherwise:
@@ -22,31 +24,40 @@ function spm_mip(X,L,V)
 % If global XVIEWER is set to a PGM viewer program, images are also
 % displayed with that program.
 %
-%__________________________________________________________________________
-% %W% %E%
+%_______________________________________________________________________
+% %W% Karl Friston %E%
 
 global GRID XVIEWER TWD
 
 % default GRID value
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if isempty(GRID)
 	GRID = 0.6; end
 
 
-% single slice case [ORIGIN = (0.0)]
-%---------------------------------------------------------------------------
+% single slice case
+%=======================================================================
+% NB: Doesn't work for FLIPped data, since ORIGIN is not mirrored
+% within image matrix
 if V(3) == 1
-	i   = L(1,:)/V(4);
-	j   = L(2,:)/V(5);
-	d   = i > 1 & i < V(1) & j > 1 & j < V(2);
-	mip = full(sparse(i(d),j(d),X(d),V(1),V(2)));
-	imagesc([1 V(1)*V(4)],[1 V(2)*V(5)],(mip')); axis xy
-	axis off; axis image; 
+	if length(V)==6, V=[V; 0;0;0]; end
+	M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3), 1]];
+	rcp = inv(M)*[L; ones(1,size(L,2))];
+%	d   = rcp(1,:) > 1 & rcp(1,:) < V(1) & rcp(2) > 1 & rcp(2,:) < V(2);
+%	mip = full(sparse(rcp(1,d),rcp(2,d),X(d),V(1),V(2)));
+	mip = full(sparse(rcp(1,:),rcp(2,:),X,V(1),V(2)));
+	imagesc([V(4)*(1-V(7)):V(4):V(4)*(V(1)-V(7))],...
+		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],rot90(1 - mip))
+	axis xy image off
+	xlabel('x'), ylabel('y')
 	return
 end
 
+% 3d case
+%=======================================================================
+
 % remove negtive values from point list and scale to a maximium of unity
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 X    = X(:)';
 d    = X > 0;
 L    = round(L(:,d));
@@ -54,11 +65,11 @@ X    = X(d);
 X    = X/max(X);
 
 % load mip and create maximum intensity projection
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 load MIP
 mip  = mip96*GRID;
 d    = zeros(size(mip));
-spm_project(X,L,d,V);
+spm_project(X,L,d,V(1:6));
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
 
