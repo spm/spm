@@ -25,7 +25,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	for(k=1; k<=3; k++)
 	{
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
-			mxIsComplex(prhs[k]) || !mxIsDouble(prhs[k]))
+			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
 			free_maps(map, 1);
 			mexErrMsgTxt("Arguments must be numeric, real, full and double.");
