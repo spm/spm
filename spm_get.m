@@ -204,6 +204,13 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % FORMAT spm_get('Done')
 % Callback for "Done" button.
 %
+% ( - Technical note - : This form of interactive GUI forces the code to )
+% ( wait for a response in a computer intensive loop. To avoid           )
+% ( hammering the CPU when queries are left unattended, spm_get has a    )
+% ( "sleep" mode, entered 20s after any button press. Clicking in any    )
+% ( MatLab window wakes spm_get. This mainly affects PullDown menu's,    )
+% ( which appear not to activate on the first click when in "sleep"      )
+% ( mode.                                                                )
 %_______________________________________________________________________
 
 
@@ -263,18 +270,19 @@ else
 	%-Wait until filenames have been selected
 	hDone = findobj(F,'Tag','Done');
 	while ~get(hDone,'UserData')
-		waitforbuttonpress;
-		%-Give 1s grace for "Done" processing
+		%-Give 20s grace for "Done" processing | PullDown selection
 		%-After this time spm_input "sleeps", and the user
-		% will have to click in a ML window to have choice registered
+		% will have to click in a ML window to "wake" PullDown
 		% ( This loop hammers the CPU, but there's no other )
 		% ( way to do an interruptible pause without        ) 
 		% ( requiring a second buttonpress event! NB: pause )
 		% ( (ML4.2c) only works for integer seconds!        )
-		tic, while(toc<1)
+		tic, while(toc<20)
 			if get(hDone,'UserData'), break, end
 			pause(0.25)
 		end
+		if ~get(hDone,'UserData')
+			waitforbuttonpress; end
 	end
 	
 	%-Recover P
