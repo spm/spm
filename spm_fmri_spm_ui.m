@@ -305,7 +305,11 @@ switch cHF
 	case 'Gaussian'
 	%-------------------------------------------------------------------
 	param = spm_input('Gaussian FWHM (secs)','+1','r',4);
-	param = param/sqrt(8*log(2)); 
+	param = param/sqrt(8*log(2));
+
+	otherwisw
+	%-------------------------------------------------------------------
+	param = [];
 end
 
 % create filterHF struct
@@ -333,7 +337,7 @@ end
 % the interactive parts of spm_spm_ui are now finished: Cleanup GUI
 %---------------------------------------------------------------------------
 spm_clf(Finter);
-set(Finter,'Name','thankyou','Pointer','Watch')
+set(Finter,'Name','thankyou: please wait (computing globals)','Pointer','Watch')
 
 
 
@@ -398,8 +402,8 @@ xX     = struct(	'X',		[X.xX X.bX],...
 			'xVi',		xVi,...
 			'RT',		X.RT,...
 			'dt',		X.dt,...
-			'filterLF',	filterLF,...
-			'filterHF',	filterHF,...
+			'filterLF',	{filterLF},...
+			'filterHF',	{filterHF},...
 			'Xnames',	{Xnames'});
 
 
