@@ -100,7 +100,7 @@
 % | 
 % | p = '/home/shallice/Rik/SPM99course/CatStats/params.mat'
 % | load(p);
-% | F1 = spm_get_files('/home/shallice/Rik/SPM99course/Smooth_snraf','sn*.img');
+% | F1=spm_get('files','/home/shallice/Rik/SPM99course/Smooth_snraf','sn*.img');
 % | 
 % | z=zeros(1,8);
 % | c1 = [1 0 1 0 1 0 1 0 0 0   0];
@@ -236,8 +236,7 @@
 %	only one pair of {} is needed. 
 %	THIS IS A GENERAL POINT THAT APPLIES TO ALL VARIABLES
 %	(not only 'model').
-%	Note that spm_get_files is useful here to get the
-%	files.
+%	Note that spm_get('files',dir,fil) is useful here to get the files.
 % 
 % conditions : there should be as many as files or HF_cut.
 % 	This array represents an index to the variable 'conditions'.
