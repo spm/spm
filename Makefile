@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.7 2002-08-13 13:21:09 john Exp $
+# $Id: Makefile,v 2.8 2002-08-14 18:22:19 john Exp $
 #
 ###############################################################################
 #
@@ -28,7 +28,8 @@ MEX = mex -O
 CC  = cc
 # mex output object suffix
 MOSUF = o
-CHMODIT = chmod 644 
+CHMODIT = chmod 644
+RANLIB  = 
 ADDED_OBS=
 ADDED_MEX=
 
@@ -43,9 +44,11 @@ IRIX:
 IRIX64:
 	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex -O"
 AIX:
-	make all SUF=mexrs6  MEX="mex -O"
+	make all SUF=mexrs6
 OSF1:
-	make all SUF=mexaxp  MEX="mex -O"
+	make all SUF=mexaxp
+MAC:
+	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
 windows:
 	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils
 
@@ -66,6 +69,8 @@ clean.AIX:
 	make clean SUF=mexrs6
 clean.OSF1:
 	make clean SUF=mexaxp
+clean.MAC:
+	make clean SUF=mexmac
 clean.windows:
 	make clean SUF=dll
 
@@ -195,6 +200,7 @@ utils_double_s.$(SUF).o: $(UTILS)
 
 %.$(SUF).o : %.c spm_sys_deps.h
 	$(CC) -c -o $@ $<
+	$(RANLIB)
 	@ $(CHMODIT) $@
 
 spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
@@ -363,3 +369,9 @@ verb.mexaxp:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
+verb.mexmac:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "Unix compile for MacOS X"
+	@ echo "_____________________________________________________________"
+	@ echo ""
