@@ -1581,4 +1581,4 @@ if ~ischar(si), error('input must be a string'), end
 
 b = any((si~=' ' & si~=0),1);
 if all(~b), so=''; return, end
-so = si(:,max(1,min(find(b))):min(max(find(b)),length(b)))
+so = si(:,max(1,min(find(b))):min(max(find(b)),length(b)));
