@@ -1,48 +1,55 @@
-function spm_write_filtered(SPM,VOL)
+function Vo = spm_write_filtered(Z,XYZ,M,DIM,descrip)
 % Writes the filtered SPM as an image
-% FORMAT spm_write_filtered(SPM,VOL)
+% FORMAT spm_write_filtered(Z,XYZ,M,DIM,descrip)
 %
-% SPM  - SPM structure      {'Z' 'n' 'STAT' 'df' 'u' 'k'}
-% VOL  - Spatial structure  {'R' 'FWHM' 'S' 'DIM' 'VOX' 'ORG' 'M' 'XYZ' 'QQ'}
-%
-% see spm_getSPM for details
+% Z       - {1 x ?} vector point list of SPM values for MIP
+% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
+% M       - voxels - > mm matrix
+% DIM     - image dimensions {voxels}
+% descrip - description string [default 'SPM-filtered']
 %
 %-----------------------------------------------------------------------
-% This function is intended to be called from the environment set up by
-% spm_results_ui.
 %
+% spm_write_filtered takes a pointlist image (parallel matrixes of
+% co-ordinates and voxel intensities), and writes it out into an image
+% file.
+%
+% It is intended for writing out filtered SPM's from the results
+% section of SPM, but can be used freestanding.
 %_______________________________________________________________________
-% @(#)spm_write_filtered.m	1.1 FIL 96/09/10
+% %W% FIL %E%
 
-global CWD;
-
+%-Parse arguments
 %-----------------------------------------------------------------------
-Q       = spm_input('Output filename',1,'s');
-Finter  = spm_figure('FindWin','Interactive');
-ptr     = get(Finter,'Pointer');
-set(Finter,'Pointer','watch');
+if nargin<5, descrip='SPM-filtered'; end
+if nargin<4, error('Insufficient arguments'), end
 
-% Set up header information
+%-Get filename
 %-----------------------------------------------------------------------
-q       = max([find(Q == spm_platform('sepchar')) 0]);
-Q       = [CWD spm_platform('sepchar') spm_str_manip(Q((q + 1):length(Q)),'sd')];
-str     = sprintf('spm{%c}-filtered: u = %5.3f, k = %d',SPM.STAT,SPM.u,SPM.k);
-V       = struct(...
-	'fname',	Q,...
-	'dim',		[VOL.DIM' spm_type('uint8')],...
-	'mat',		VOL.M,...
-	'descrip', 	str);
+Q       = spm_str_manip(spm_input('Output filename',1,'s'),'sdv');
+spm('Pointer','Watch')
 
-%-Reconstruct filtered image from XYZ & SPM.Z
+%-Set up header information
 %-----------------------------------------------------------------------
-Y      = zeros(VOL.DIM(1:3)');
-IM     = inv(VOL.M);
-XYZ    = round(IM(1:3,:)*[VOL.XYZ ; ones(1,size(VOL.XYZ,2))]);
-OFF    = XYZ(1,:) + VOL.DIM(1)*(XYZ(2,:) + VOL.DIM(2)*XYZ(3,:));
-Y(OFF)  = SPM.Z.*(SPM.Z > 0);
+Vo      = struct(...
+		'fname',	Q,...
+		'dim',		[DIM', spm_type('uint8')],...
+		'mat',		M,...
+		'descrip', 	descrip);
 
-% Write the filtered volume
+%-Reconstruct filtered image from XYZ & Z
 %-----------------------------------------------------------------------
-spm_write_vol(V,Y);
+Y      = zeros(DIM(1:3)');
+iM     = inv(M);
+rcp    = round(iM(1:3,:)*[XYZ; ones(1,size(XYZ,2))]);
+OFF    = rcp(1,:) + DIM(1)*(rcp(2,:) + DIM(2)*rcp(3,:));
+Y(OFF) = Z.*(Z > 0);
 
-set(Finter,'Pointer',ptr);
+%-Write the filtered volume
+%-----------------------------------------------------------------------
+Vo = spm_write_vol(Vo,Y);
+fprintf('\n%s: %s\n\n',mfilename,spm_get('CPath',Q,pwd))
+
+%-End
+%-----------------------------------------------------------------------
+spm('Pointer','Arrow');
