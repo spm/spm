@@ -42,7 +42,7 @@ Vo      = struct(...
 %-Reconstruct (filtered) image from XYZ & Z pointlist
 %-----------------------------------------------------------------------
 Y      = zeros(DIM(1:3)');
-OFF    = XYZ(1,:) + DIM(1)*(XYZ(2,:) + DIM(2)*XYZ(3,:));
+OFF    = XYZ(1,:) + DIM(1)*(XYZ(2,:)-1 + DIM(2)*(XYZ(3,:)-1));
 Y(OFF) = Z.*(Z > 0);
 
 %-Write the reconstructed volume
