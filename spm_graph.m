@@ -1,39 +1,10 @@
-function [Y,y,beta,Bcov] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Graphical display of adjusted data
-% FORMAT [Y y beta Bcov] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
+% FORMAT [Y y beta Bcov] = spm_graph(xSPM,SPM,hReg)
 %
-% SPM    - structure containing SPM, distribution & filtering detals
-%        - required fields are:
-% .swd   - SPM working directory - directory containing current SPM.mat
-% .Z     - minimum of n Statistics {filtered on u and k}
-% .n     - number of conjoint tests        
-% .STAT  - distribution {Z, T, X or F}     
-% .df    - degrees of freedom [df{interest}, df{residual}]
-% .Ic    - indicies of contrasts (in xCon)
-% .XYZmm - location of voxels {mm}
-% .QQ    - indices of voxels in Y.mad file
-%
-%
-% VOL    - structure containing details of volume analysed
-%        - required fields are:
-% .R     - search Volume {resels}
-% .iM    - mm -> voxels matrix
-% 
-%
-% xX     - Design Matrix structure
-%        - (see spm_spm.m for structure)
-%
-% xCon   - Contrast definitions structure
-%        - required fields are:
-% .c     - contrast vector/matrix
-%          (see spm_FcUtil.m for details of contrast structure... )
-%
-% xSDM   - structure containing contents of SPM.mat file
-%        - required fields are:
-% .Vbeta
-% .VResMS
-%          ( see spm_spm.m for contents... )
-%
+% SPM    - structure containing SPM, distributional & filtering details
+%	   about the excusion set
+% SPM    - structure containing generic details about the analysis
 % hReg   - handle of MIP register
 %
 % Y      - fitted   data for the selected voxel
@@ -75,7 +46,9 @@ function [Y,y,beta,Bcov] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % the value of one.  Only contrasts previously defined can be plotted.
 % This ensures that the parameters plotted are meaningful even when there
 % is collinearity among the design matrix subpartitions.
-% 
+%
+% Selecting contrasts used for PPMs will automatically give plots
+% based on conditonal estimates.
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
@@ -93,65 +66,26 @@ spm_results_ui('Clear',Fgraph,2);
 
 %-Find nearest voxel [Euclidean distance] in point list & update GUI
 %-----------------------------------------------------------------------
-if ~length(SPM.XYZmm)
+if ~length(xSPM.XYZmm)
 	spm('alert!','No suprathreshold voxels!',mfilename,0);
 	Y = []; y = []; beta = []; Bcov = [];
 	return
 end
 
-[xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
+[xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
 spm_XYZreg('SetCoords',xyz,hReg);
+XYZ     = xSPM.XYZ(:,i);		% coordinates
 
 
 %-Extract required data from results files
 %=======================================================================
-%-Get (approximate) raw data y from Y.mad file
-%-NB: Data in Y.mad file is compressed, and therefore not fully accurate
-%     Therefore, parameters & ResMS should be read from the image files,
-%     rather than recomputing them on the basis of the Y.mad data.
-%-----------------------------------------------------------------------
-if exist(fullfile(SPM.swd,'Y.mad')) ~= 2
-	spm('alert"',{'No raw data saved with this analysis:',...
-			'Data portions of plots will be unavailable...'},...
-		mfilename,0,1);
-	y    = [];
-
-elseif SPM.QQ(i) == 0
-	switch spm_input({'No raw data saved at this location:',...
-		'Data portions of plots unavailable at this location.',...
-		' ','Jump to the nearest voxel with saved raw data?'},...
-		1,'bd',{'jump','stay','cancel'},[],2,mfilename)
-	case 'jump'
-		Q       = find(SPM.QQ);
-		[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm(:,Q));
-		i       = Q(i);
-		y       = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(i));
-	case 'stay'
-		y       = [];
-	case 'cancel'
-		Y = []; y = []; beta = []; Bcov = [];
-		return
-	end
-else
-	y    = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(i));
+try
+	y = spm_get_data(SPM.xY.VY,XYZ);
+catch
+	y = [];
 end
-
-%-Reset pointer, compute voxel indices, compute location string
-%-----------------------------------------------------------------------
-spm_XYZreg('SetCoords',xyz,hReg);
-rcp    = VOL.iM(1:3,:)*[xyz;1];
 XYZstr = sprintf(' at [%g, %g, %g]',xyz);
 
-
-%-Get parameter estimates, ResMS, (compute) fitted data & residuals
-%=======================================================================
-
-%-Parameter estimates: beta = xX.pKX*xX.K*y;
-%-----------------------------------------------------------------------
-beta   = ones(length(xSDM.Vbeta),1);
-for  i = 1:length(beta)
-	beta(i) = spm_sample_vol(xSDM.Vbeta(i),rcp(1),rcp(2),rcp(3),0);
-end
 
 %-Compute residuals
 %-----------------------------------------------------------------------
@@ -164,24 +98,31 @@ if isempty(y)
 else
 	% residuals
 	%---------------------------------------------------------------
-	R   = spm_sp('r',xX.xKXs,spm_filter(xX.K,y));
+	R   = spm_sp('r',SPM.xX.xKXs,spm_filter(SPM.xX.K,y));
 
 end
 
-%-Residual mean square: ResMS = sum(R.^2)/xX.trRV; or Cov(b|y)
-%-----------------------------------------------------------------------
-if SPM.STAT ~= 'P'
-	ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
-	Bcov  = ResMS*xX.Bcov;
+%-Get parameter and hyperparameter estimates
+%=======================================================================
+if xSPM.STAT ~= 'P'
+
+	%-Parameter estimates:   beta = xX.pKX*xX.K*y;
+	%-Residual mean square: ResMS = sum(R.^2)/xX.trRV
+	%---------------------------------------------------------------
+	beta  = spm_get_data(SPM.Vbeta, XYZ);
+	ResMS = spm_get_data(SPM.VResMS,XYZ);
+	Bcov  = ResMS*SPM.xX.Bcov;
 
 else
-	% hyperparameter and Taylor approximation
-	%--------------------------------------------------------------
-	Bcov  = xSDM.PPM.Cby;
-	for j = 1:length(xSDM.PPM.l)
+	% or condotional estimates with
+	% Cov(b|y) through Taylor approximation
+	%---------------------------------------------------------------
+	beta  = spm_get_data(SPM.VCbeta, XYZ);
+	Bcov  = SPM.PPM.Cby;
+	for j = 1:length(SPM.PPM.l)
 
-		l    = spm_sample_vol(xSDM.VHp(j),rcp(1),rcp(2),rcp(3),0);
-		Bcov = Bcov + xSDM.PPM.dC{j}*(l - xSDM.PPM.l(j));
+		l    = spm_get_data(SPM.VHp(j),XYZ);
+		Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
 	end
 end
 CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
@@ -205,14 +146,13 @@ Cplot = {	'Contrast estimates and 90% C.I.',...
 
 % ensure options are appropriate
 %-----------------------------------------------------------------------
-if ~isfield(xSDM,'Sess')
+if ~isfield(SPM,'Sess')
 
 	Cplot = Cplot(1:2);
 else
-	Sess  = xSDM.Sess;
+	Sess  = SPM.Sess;
 end
-Cp     = spm_input('Plot',-1,'m',Cplot);
-Cplot  = Cplot{Cp};
+Cplot  = Cplot{spm_input('Plot',-1,'m',Cplot)};
 
 switch Cplot
 
@@ -222,10 +162,10 @@ case {'Contrast estimates and 90% C.I.','Fitted responses'}
 
 	% determine which contrast
 	%---------------------------------------------------------------
-	Ic    = spm_input('Which contrast?','!+1','m',{xCon.name});
-	TITLE = {Cplot xCon(Ic).name};
-	if SPM.STAT == 'P'
-		TITLE = {Cplot xCon(Ic).name '(conditional estimates)'};
+	Ic    = spm_input('Which contrast?','!+1','m',{SPM.xCon.name});
+	TITLE = {Cplot SPM.xCon(Ic).name};
+	if xSPM.STAT == 'P'
+		TITLE = {Cplot SPM.xCon(Ic).name '(conditional estimates)'};
 	end
 
 
@@ -244,13 +184,13 @@ case {'Event-related responses','Parametric responses','Volterra Kernels'}
 	%--------------------------------------------------------------
 	switch Cplot
 	case 'Volterra Kernels'
-		u = length(Sess{s}.Fcname);
+		u = length(Sess(s).Fc);
 	otherwise
-		u = length(Sess{s}.U);
+		u = length(Sess(s).U);
 	end
 	Uname = {};
 	for i = 1:u
-		Uname{i} = Sess{s}.Fcname{i};
+		Uname{i} = Sess(s).Fc(i).name;
 	end
 
 	% get effect
@@ -260,7 +200,7 @@ case {'Event-related responses','Parametric responses','Volterra Kernels'}
 
 	% bin size
 	%--------------------------------------------------------------
-	dt    = Sess{s}.U{1}.dt;
+	dt    = SPM.xBF.dt;
 
 end
 
@@ -272,8 +212,8 @@ case 'Contrast estimates and 90% C.I.'
 
 	% compute contrast of parameter estimates and 90% C.I.
 	%--------------------------------------------------------------
-	cbeta = xCon(Ic).c'*beta;
-	CI    = CI*sqrt(diag(xCon(Ic).c'*Bcov*xCon(Ic).c));
+	cbeta = SPM.xCon(Ic).c'*beta;
+	CI    = CI*sqrt(diag(SPM.xCon(Ic).c'*Bcov*SPM.xCon(Ic).c));
 
 	% bar chart
 	%--------------------------------------------------------------
@@ -312,12 +252,12 @@ case 'Fitted responses'
 
 		% fitted (predicted) data (Y = X1*beta)
 		%--------------------------------------------------------
-		Y = xX.X*xCon(Ic).c*pinv(xCon(Ic).c)*beta;
+		Y = SPM.xX.X*SPM.xCon(Ic).c*pinv(SPM.xCon(Ic).c)*beta;
 	else
 
 		% fitted (adjusted) data (Y = X1o*beta)
 		%-------------------------------------------------------
-		Y = spm_FcUtil('Yc',xCon(Ic),xX.xKXs,beta);
+		Y = spm_FcUtil('Yc',SPM.xCon(Ic),SPM.xX.xKXs,beta);
 
 	end
 
@@ -337,16 +277,16 @@ case 'Fitted responses'
 	if     Cx == 1
 
 		str  = 'Which explanatory variable?';
-		i    = spm_input(str,'!+1','m',xX.Xnames);
-		x    = xX.xKXs.X(:,i);
-		XLAB = xX.Xnames{i};
+		i    = spm_input(str,'!+1','m',SPM.xX.name);
+		x    = SPM.xX.xKXs.X(:,i);
+		XLAB = SPM.xX.name{i};
 
 	% scan or time
 	%---------------------------------------------------------------
 	elseif Cx == 2
 
-		if isfield(xX,'RT') & ~isempty(xX.RT)
-			x    = xX.RT*[1:size(Y,1)]';
+		if isfield(SPM.xY,'RT')
+			x    = SPM.xY.RT*[1:size(Y,1)]';
 			XLAB = 'time {seconds}';
 		else
 			x    = [1:size(Y,1)]';
@@ -407,16 +347,43 @@ case 'Event-related responses'
 	%--------------------------------------------------------------
 	switch TITLE
 	case 'fitted response and PSTH'
-			str = 'bin size for PSTH {secs}';
-			BIN = spm_input(str,'+1','r','2',1);
 
-	otherwise,	BIN = 2;   end
+
+		% refit a simple FIR model; bin size = TR
+		%------------------------------------------------------
+		BIN         = SPM.xY.RT;
+		xBF         = SPM.xBF;
+		U           = Sess(s).U(u);
+		U.u         = U.u(:,1);
+		xBF.name    = 'Finite Impulse Response';
+		xBF.order   = round(32/BIN);
+		xBF.length  = xBF.order*BIN;
+		xBF         = spm_get_bf(xBF);
+		BIN         = xBF.length/xBF.order;
+		X           = spm_Volterra(U,xBF.bf,1);
+		k           = SPM.nscan(s);
+		j           = xBF.order;
+		X           = X([0:(k - 1)]*SPM.xBF.T + SPM.xBF.T0 + 32,:);
+
+		
+		% PSTH and CI
+		%------------------------------------------------------
+		K           = SPM.xX.K(s);
+		y           = spm_detrend(y(K.row));
+		X           = spm_detrend(X);
+		[F,df,B,xX] = spm_ancova(X,speye(k,k),y,speye(j,j));
+		rss         = spm_sp('r',xX,y);
+		bcov        = xX.pX*xX.pX'*sum(rss.^2)/df(2);
+		PST         = [1:j]*BIN - BIN/2;
+		PSTH        = B/dt;
+		PCI         = CI*sqrt(diag(bcov))/dt;
+	end
 
 	% basis functions and parameters
 	%--------------------------------------------------------------
-	X     = Sess{s}.bf/dt;
+	X     = SPM.xBF.bf/dt;
 	x     = ([1:size(X,1)] - 1)*dt;
-	j     = Sess{s}.col(Sess{s}.Fci{u}(1:size(X,2)));
+	j     = Sess(s).col(Sess(s).Fc(u).i(1:size(X,2)));
 	B     = beta(j);
 	
 	% fitted responses with standard error
@@ -426,29 +393,11 @@ case 'Event-related responses'
 
 	% peristimulus times and adjusted data (y = Y + R)
 	%--------------------------------------------------------------
-	p     = Sess{s}.U{u}.pst;
-	bin   = round(p/dt);
+	pst   = Sess(s).U(u).pst;
+	bin   = round(pst/dt);
 	q     = find((bin >= 0) & (bin < size(X,1)));
-	pst   = p;
-	p     = R(Sess{s}.row(:));
-	p(q)  = p(q) + Y(bin(q) + 1);
-	y     = p;
-
-	% PSTH
-	%--------------------------------------------------------------
-	INT   = -BIN:BIN:max(pst);
-	PSTH  = [];
-	SE    = [];
-	PST   = [];
-	for k = 1:(length(INT) - 1)
-		q = find(pst > INT(k) & pst <= INT(k + 1));
-		n = length(q);
-		if n
-			PSTH = [PSTH mean(y(q))];
-			SE   = [SE  std(y(q))/sqrt(n)];
-			PST  = [PST mean(pst(q))];
-		end
-	end
+	y     = R(Sess(s).row(:));
+	y(q)  = y(q) + Y(bin(q) + 1);
 
 	% plot
 	%--------------------------------------------------------------
@@ -459,7 +408,7 @@ case 'Event-related responses'
 
 		case 'fitted response and PSTH'
 		%------------------------------------------------------
-		errorbar(PST,PSTH,SE)
+		errorbar(PST,PSTH,PCI)
 		plot(PST,PSTH,'LineWidth',4,'Color',Col(2,:))
 		plot(x,Y,'-.','Color',Col(3,:))
 
@@ -478,7 +427,7 @@ case 'Event-related responses'
 	% label
 	%-------------------------------------------------------------
 	[i j] = max(Y);
-	text(ceil(1.1*x(j)),i,Sess{s}.Fcname{u},'FontSize',8);
+	text(ceil(1.1*x(j)),i,Sess(s).Fc(u).name,'FontSize',8);
 	title(TITLE,'FontSize',12)
 	xlabel('peristimulus time {secs}')
 	ylabel(['response',XYZstr])
@@ -488,29 +437,38 @@ case 'Event-related responses'
 %----------------------------------------------------------------------
 case 'Parametric responses'
 
+
+	% return gracefully in no parameters
+	%--------------------------------------------------------------
+	if ~Sess(s).U(u).P(1).h, break, end
+
 	% basis functions
 	%--------------------------------------------------------------
-	bf    = Sess{s}.bf;
+	bf    = SPM.xBF.bf;
 	pst   = ([1:size(bf,1)] - 1)*dt;
 
-	% parameteric variable
+	% orthoganized expansion of parameteric variable
 	%--------------------------------------------------------------
 	str   = 'which parameter';
-	p     = spm_input(str,'+1','m',Sess{s}.U{u}.Pname);
-	ons   = find(Sess{s}.U{u}.u(:,1));
-	P     = Sess{s}.U{u}.P(1:length(ons),p);
+	p     = spm_input(str,'+1','m',cat(2,Sess(s).U(u).P.name));
+	P     = Sess(s).U(u).P(p).P;
+	q     = [];
+	for i = 0:Sess(s).U(u).P(p).h;
+		q = [q spm_en(P).^i];
+	end
+	q     = spm_orth(q);
 
-	% parameter estimates and fitted response
+
+	% parameter estimates for this effect
 	%--------------------------------------------------------------
-	B     = beta(Sess{s}.Fci{u});
+	B     = beta(Sess(s).Fc(u).i);
 
 	% reconstruct trial-specific responses
 	%--------------------------------------------------------------
-	Y     = zeros(size(bf,1),length(ons));
-	uj    = Sess{s}.U{u}.Pi{p};
-	for i = 1:length(ons)
-		U      = sparse(1,size(Sess{s}.U{u}.u,2));
-		U(uj)  = Sess{s}.U{u}.u(ons(i),uj);
+	Y     = zeros(size(bf,1),size(q,1));
+	uj    = Sess(s).U(u).P(p).i;
+	for i = 1:size(P,1)
+		U      = sparse(1,uj,q(i,:),1,size(Sess(s).U(u).u,2));
 		X      = kron(U,bf);
 		Y(:,i) = X*B;
 	end
@@ -523,9 +481,9 @@ case 'Parametric responses'
 	subplot(2,2,3)
 	surf(pst,P,Y')
 	shading flat
-	title(Sess{s}.U{u}.Uname{1},'FontSize',12)
+	title(Sess(s).U(u).name{1},'FontSize',12)
 	xlabel('PST {secs}')
-	ylabel(Sess{s}.U{u}.Pname{p})
+	ylabel(Sess(s).U(u).P(p).name)
 	zlabel(['responses',XYZstr])
 	axis square
 
@@ -536,7 +494,7 @@ case 'Parametric responses'
 	plot(P,Y(i,:),'LineWidth',4,'Color',Col(2,:))
 	str   = sprintf('response at %0.1fs',i*dt);
 	title(str,'FontSize',12)
-	xlabel(Sess{s}.U{u}.Pname{p})
+	xlabel(Sess(s).U(u).P(p).name)
 	axis square
 	grid on
 
@@ -547,16 +505,16 @@ case 'Volterra Kernels'
 
 	% Parameter estimates and basis functions
 	%------------------------------------------------------
-	bf    = Sess{s}.bf/dt;
+	bf    = SPM.xBF.bf/dt;
 	pst   = ([1:size(bf,1)] - 1)*dt;
 
 	% second order kernel
 	%--------------------------------------------------------------
-	if u > length(Sess{s}.U)
+	if u > length(Sess(s).U)
 
 		% Parameter estimates and kernel
 		%------------------------------------------------------
-		B     = beta(Sess{s}.Fci{u});
+		B     = beta(Sess(s).Fc(u).i);
 		i     = 1;
 		Y     = 0;
 		for p = 1:size(bf,2)
@@ -583,14 +541,14 @@ case 'Volterra Kernels'
 		axis square
 		grid on
 
-		title(Sess{s}.Fcname{u},'FontSize',12);
+		title(Sess(s).Fc(u).name,'FontSize',12);
 		xlabel('perstimulus time {secs}')
 
 
 	% first  order kernel
 	%--------------------------------------------------------------
 	else
-		B     = beta(Sess{s}.Fci{u}(1:size(bf,2)));
+		B     = beta(Sess(s).Fc(u).i(1:size(bf,2)));
 		Y     = bf*B;
 
 		% plot
@@ -601,7 +559,7 @@ case 'Volterra Kernels'
 		grid on
 		axis square
 
-		title({'1st order Volterra Kernel' Sess{s}.Fcname{u}},...
+		title({'1st order Volterra Kernel' Sess(s).Fc(u).name},...
 			'FontSize',12);
 		xlabel('perstimulus time {secs}')
 		ylabel(['impluse response',XYZstr])

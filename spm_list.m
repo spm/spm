@@ -1,8 +1,8 @@
 function varargout = spm_list(varargin)
 % Display and analysis of SPM{.}
-% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,Title,hReg)
+% FORMAT TabDat = spm_list('List',SPM,hReg)
 % Summary list of local maxima for entire volume of interest
-% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,Title,hReg)
+% FORMAT TabDat = spm_list('ListCluster',SPM,hReg)
 % List of local maxima for a single suprathreshold cluster
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -16,9 +16,6 @@ function varargout = spm_list(varargin)
 % .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
 % .XYZmm - location of voxels {mm}
-%
-% VOL    - structure containing details of volume analysed
-%        - required fields are:
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
@@ -27,13 +24,8 @@ function varargout = spm_list(varargin)
 % .Vspm  - mapped statistic image(s)
 % .Msk   - mask
 %
-% (see spm_getSPM for further details of SPM & VOL structures)
+% (see spm_getSPM for further details of xSPM structures)
 %
-% Dis    - Minimum distance between maxima
-%          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
-% Num    - Maxiumum number of local maxima tabulated per cluster
-%          {defaults (missing or empty) to 3   for 'List', Inf for 'ListCluster'}
-% Title  - Title text for table {defaults on missing or empty}
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
 % TabDat - Structure containing table data
@@ -114,61 +106,43 @@ function varargout = spm_list(varargin)
 %-----------------------------------------------------------------------
 global SatWindow
 
-%-Parse arguments, default to 'list' if varargin{1} not an Action string
-%-----------------------------------------------------------------------
-if nargin==0, error('Insufficient arguments'), end
-if ~ischar(varargin{1})
-	warning('Direct usage Grandfathered: Use an action string!')
-	spm_list('list',varargin{:});
-	return
-end
-
 %=======================================================================
 switch lower(varargin{1}), case 'list'                            %-List
 %=======================================================================
-% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,Title,hReg)
-
+% FORMAT TabDat = spm_list('list',SPM,hReg)
 
 %-Tolerance for p-value underflow, when computing equivalent Z's
 %-----------------------------------------------------------------------
 tol = eps*10;
 
 %-Parse arguments
-% VOL is varargin{3} - Use by reference for speed
-% SPM is varargin{2} - Don't copy into local variables
 %-----------------------------------------------------------------------
-if nargin < 3,	error('insufficient arguments'), end
-if nargin < 7,	hReg=[]; else, hReg = varargin{7}; end
-if nargin < 6
-	Title       = '';
-	else,Title  = varargin{6};  end
-if isempty(Title)
-	Title       = ['volume summary',...
-			' (p-values adjusted for entire volume)']; end
-if nargin < 5,	Num = [];
-	else,	Num = varargin{5}; end
-if isempty(Num),Num = 03; end
-if nargin < 4,	Dis = [];
-	else,	Dis = varargin{4}; end
-if isempty(Dis),Dis = 08; end
+if nargin < 2,	error('insufficient arguments'), end
+if nargin < 3,	hReg=[]; else, hReg = varargin{3}; end
+
+Title  = ['volume summary',' (p-values adjusted for volume)'];
+Num    = 03;		% number of maxima per cluster
+Dis    = 08;		% distance among clusters (mm)
 
 %-Get current location (to highlight selected voxel in table)
 %-----------------------------------------------------------------------
 xyzmm     = spm_results_ui('GetCoords');
 
-%-Extract data from structures
+%-Extract data from xSPM
 %-----------------------------------------------------------------------
-S     = varargin{3}.S;
-R     = varargin{3}.R;
-FWHM  = varargin{3}.FWHM;
-v2r   = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
+S     = varargin{2}.S;
+R     = varargin{2}.R;
+FWHM  = varargin{2}.FWHM;
+VOX   = varargin{2}.VOX;
 n     = varargin{2}.n;
 STAT  = varargin{2}.STAT;
 df    = varargin{2}.df;
 u     = varargin{2}.u;
+M     = varargin{2}.M;
+v2r   = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
 k     = varargin{2}.k*v2r;
-Vspm  = varargin{3}.Vspm;				% Needed for FDR
-Msk   = varargin{3}.Msk;				%      "
+Vspm  = varargin{2}.Vspm;				% Needed for FDR
+Msk   = varargin{2}.Msk;				%      "
 nZ    = length(varargin{2}.Z);				%      "
 
 
@@ -293,7 +267,7 @@ text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 if STAT ~= 'P'
 %-----------------------------------------------------------------------
-FWHMmm          = FWHM.*varargin{3}.VOX'; 			% FWHM {mm}
+FWHMmm          = FWHM.*VOX; 				% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n,S);
 Pu              = spm_P(1,0,u,df,STAT,R,n,S);
 [Qu QPs]        = spm_P_FDR(u,df,STAT,n,Vspm,Msk);
@@ -323,10 +297,10 @@ TabDat.ftr{7} = ...
 	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
 		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,FWHM);
 TabDat.ftr{8} = ...
-	sprintf('Search volume: S = %0.0f mm^3 = %0.0f voxels = %0.1f resels',S*prod(varargin{3}.VOX),S,R(end));
+	sprintf('Search volume: S = %0.0f mm^3 = %0.0f voxels = %0.1f resels',S*prod(VOX),S,R(end));
 TabDat.ftr{9} = ...
 	sprintf(['Voxel size: [%0.1f, %0.1f, %0.1f] mm ',...
-		' (1 resel = %0.2f voxels)'],varargin{3}.VOX,prod(FWHM));
+		' (1 resel = %0.2f voxels)'],VOX,prod(FWHM));
 
 text(0.0,-1*dy,TabDat.ftr{1},...
 	'UserData',[u,Pz,Pu,Qu],'ButtonDownFcn','get(gcbo,''UserData'')')
@@ -343,10 +317,10 @@ text(0.5,-1*dy,TabDat.ftr{6},...
 text(0.5,-2*dy,TabDat.ftr{7},...
 	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-3*dy,TabDat.ftr{8},...
-	'UserData',[S*prod(varargin{3}.VOX),S,R(end)],...
+	'UserData',[S*prod(VOX),S,R(end)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-4*dy,TabDat.ftr{9},...
-	'UserData',[varargin{3}.VOX',prod(FWHM)],...
+	'UserData',[VOX,prod(FWHM)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
 
 end % Classical
@@ -376,8 +350,8 @@ Z           = Z - minz - 1;
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
-if isfield(varargin{3},'VRVP')
-	V2R = spm_sample_vol(varargin{3}.VRVP,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+if isfield(varargin{2},'VRvp')
+	V2R = spm_get_data(varargin{2}.VRvp,XYZ);
 else
 	V2R = v2r;
 end
@@ -385,7 +359,7 @@ N           = N.*V2R;
 
 %-Convert maxima locations from voxels to mm
 %-----------------------------------------------------------------------
-XYZmm = varargin{3}.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
 
@@ -668,26 +642,19 @@ spm('Pointer','Arrow')
 %=======================================================================
 case 'listcluster'                       %-List for current cluster only
 %=======================================================================
-% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,Title,hReg)
+% FORMAT TabDat = spm_list('listcluster',SPM,hReg)
 
 spm('Pointer','Watch')
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin < 3,	error('insufficient arguments'), end
-if nargin < 7,	hReg=[]; else, hReg = varargin{7}; end
-if nargin < 6,	Title = '';
-	else,	Title = varargin{6}; end
-if isempty(Title), Title = ['single cluster summary',...
-			' (p-values corrected for entire volume)']; end
-if nargin < 5,	Num = [];
-	else,	Num = varargin{5};   end
-if isempty(Num)	Num = Inf; end
-if nargin < 4,	Dis = [];
-	else,	Dis = varargin{4};   end
-if isempty(Dis),Dis = 04; end
-VOL  = varargin{3};
-SPM  = varargin{2};
+if nargin < 2,	error('insufficient arguments'), end
+if nargin < 3,	hReg=[]; else, hReg = varargin{3}; end
+
+Title  = ['volume summary',' (p-values adjusted for volume)'];
+Num    = 03;		% number of maxima per cluster
+Dis    = 08;		% distance among clusters (mm)
+SPM    = varargin{2};
 
 
 %-if there are suprathreshold voxels, filter out all but current cluster
@@ -707,12 +674,12 @@ if length(SPM.Z)
 	SPM.Z     = SPM.Z(j);
 	SPM.XYZ   = SPM.XYZ(:,j);
 	SPM.XYZmm = SPM.XYZmm(:,j);
-	if isfield(VOL,'Rd'), VOL.Rd = VOL.Rd(:,j); end
+	if isfield(SPM,'Rd'), SPM.Rd = SPM.Rd(:,j); end
 end
 
 %-Call 'list' functionality to produce table
 %-----------------------------------------------------------------------
-varargout = {spm_list('list',SPM,VOL,Dis,Num,Title,hReg)};
+varargout = {spm_list('list',SPM,hReg)};
 
 
 

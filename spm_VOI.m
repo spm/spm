@@ -1,6 +1,6 @@
-function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
+function TabDat = spm_VOI(SPM,hReg)
 % List of local maxima and adjusted p-values for a small Volume of Interest
-% FORMAT TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
+% FORMAT TabDat = spm_VOI(SPM,hReg)
 %
 % SPM    - structure containing SPM, distribution & filtering details
 %        - required fields are:
@@ -13,9 +13,6 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 % .k     - extent threshold {resels}
 % .XYZ   - location of voxels {voxel coords}
 % .XYZmm - location of voxels {mm}
-%
-% VOL    - structure containing details of volume analysed
-%        - required fields are:
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}
@@ -24,10 +21,6 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 % .DIM   - image dimensions {voxels} - column vector
 % .Msk   - mask: a list of scalar indicies into image voxel space
 %
-% Dis    - Minimum distance between maxima
-%          (Passed to spm_list.m: Defaults on missing or empty)
-% Num    - Maxiumum number of local maxima tabulated per cluster
-%          (Passed to spm_list.m: Defaults on missing or empty)
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
 % TabDat - Structure containing table data
@@ -36,8 +29,7 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 %_______________________________________________________________________
 %
 % spm_VOI is  called by the SPM results section and takes variables in
-% SPM and VOL to compute p-values corrected for a specified volume of
-% interest.
+% SPM to compute p-values corrected for a specified volume of interest.
 %
 % The volume of interest may be defined as a box or sphere centred on
 % the current voxel, by the cluster in which it is embedded, or by an
@@ -57,12 +49,11 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin<2,     error('insufficient arguments'), end
-if nargin<5,	 hReg = []; end
-if nargin<4,     Num  = []; end
-if isempty(Num), Num  = 16; end
-if nargin<3,     Dis  = []; end
-if isempty(Dis), Dis  = 04; end
+if nargin < 1,   error('insufficient arguments'), end
+if nargin < 2,	 hReg = []; end
+
+Num     = 16;			% maxima per cluster
+Dis     = 04;			% distance among maxima (mm)
 
 %-Title
 %-----------------------------------------------------------------------
@@ -87,7 +78,7 @@ switch SPACE, case 'S'                                          % Sphere
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
 	j     = find(sum((SPM.XYZmm - xyzmm*Q).^2) <= D^2);
-	D     = D./VOL.VOX;
+	D     = D./SPM.VOX;
 	S     = (4/3)*pi*prod(D);
 
 case 'B'                                                           % Box
@@ -95,7 +86,7 @@ case 'B'                                                           % Box
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
 	j     = find(all(abs(SPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
-	D     = D(:)./VOL.VOX;
+	D     = D(:)./SPM.VOX(:);
 	S     = prod(D);
 
 case 'V'                                                        %-Voxels
@@ -124,7 +115,7 @@ case 'I'                                                         % Image
 	% no rotations / shears relative to the SPM, for accuracy.
 	im    = spm_get(1,'img','Image defining volume subset');
 	D     = spm_vol(im);
-	tM    = D.mat \ VOL.M;
+	tM    = D.mat \ SPM.M;
 	if any(tM([2:5,7:10,12]))
 		spm('alert!',{	'Mask image rotated/sheared!',...
 				'(relative to SPM image)',...
@@ -138,7 +129,7 @@ case 'I'                                                         % Image
 	%-Compute in-mask volume S:
 	% Correct for differences in mask and SPM voxel sizes
 	Y     = spm_read_vols(D);
-	vsc   = sqrt(sum(D.mat(1:3,1:3).^2)) ./ VOL.VOX';
+	vsc   = sqrt(sum(D.mat(1:3,1:3).^2)) ./ SPM.VOX;
 	S     = sum(Y(:)>0) * prod(vsc);
 
 end
@@ -150,24 +141,24 @@ spm('Pointer','Watch')
 SPM.Z     = SPM.Z(j);
 SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
-VOL.R     = spm_resels(VOL.FWHM./vsc,D,SPACE);
-VOL.S     = S;
+SPM.R     = spm_resels(SPM.FWHM./vsc,D,SPACE);
+SPM.S     = S;
 if (SPACE=='I')
-  VOL.Msk   = D;
+	SPM.Msk   = D;
 else  
-  VOL.Msk   = SPM.XYZ(1,:) + ...
-             (SPM.XYZ(2,:)-1)*VOL.DIM(1) + ...
-             (SPM.XYZ(3,:)-1)*VOL.DIM(1)*VOL.DIM(2);
+	SPM.Msk   = SPM.XYZ(1,:) + ...
+    	           (SPM.XYZ(2,:) - 1)*SPM.DIM(1) + ...
+      		   (SPM.XYZ(3,:) - 1)*SPM.DIM(1)*SPM.DIM(2);
 end
  
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
-str = sprintf('search volume: %s',str);
+str    = sprintf('search volume: %s',str);
 if any(strcmp(SPACE,{'S','B','V'}))
 	str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
 end
-TabDat = spm_list('List',SPM,VOL,Dis,Num,str,hReg);
+TabDat = spm_list('List',SPM,hReg);
 
 %-Reset title
 %-----------------------------------------------------------------------

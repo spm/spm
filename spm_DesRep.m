@@ -13,11 +13,7 @@ function varargout = spm_DesRep(varargin)
 %
 %                           ----------------
 %
-% By default, spm_DesRep prompts for selection of an SPMstats design
-% file. The SPMstats design files that are supported are:
-%     SPM_fMRIDesMtx.mat  - fMRI design matrix configuration
-%     SPMcfg.mat          - SPMstats configuration file (pre-estimation)
-%     SPM.mat             - SPMstats post-estimation stats file
+% By default, spm_DesRep prompts for selection of a SPM.mat file
 %
 % Given details of a design spm_DesRep sets up a "Design" menu in the
 % SPM 'Interactive' window.  The menu options launch various graphical
@@ -138,17 +134,14 @@ function varargout = spm_DesRep(varargin)
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take.          )
 %
-% FORMAT h = spm_DesRep('DesRepUI',D)
+% FORMAT h = spm_DesRep('DesRepUI',SPM)
 % Setup "design" menu for design reporting.
-% D      - structure containing design details. Required fields are:
-%          (Basically contents of an SPM_fMRIDesMtx.mat, SPMcfg.mat or SPM.mat)
-%          [defaults to load(spm_get(SPM{_fMRIDesMtx,cfg,}.mat))
+% SPM    - structure containing design details. Required fields are:
+%
 % .xX    - design matrix structure
 %          (See spm_{fmri_}spm_ui.m & spm_spm.m for formats)
-% .VY    - array of mmap file handles (from spm_{fmri_}spm_ui.m)
+% .xY.VY - array of mmap file handles (from spm_{fmri_}spm_ui.m)
 % .xM    - Masking structure
-% .F_iX0 - default F-contrast specifications
-%          (see spm_{fmri_}spm_ui.m & spm_spm.m for formats)
 % .xC    - Covariate definition structure (not fMRI)
 %          (see spm_spm_ui.m for format)
 % .Sess  - fMRI session structure (not needed if not fMRI)
@@ -158,8 +151,6 @@ function varargout = spm_DesRep(varargin)
 % .swd   - SPM working directory - directory where configuration file resides
 %          [defaults to empty]
 % .SPMid - (recommended) ID string of creator program.
-% .cfg   - Config file type: One of {'SPM_fMRIDesMtx','SPMcfg','SPM'}
-%          [defaults according to other values]
 % h      - handle of menu created ('Tag'ged as 'DesRepUI') 
 %
 %
@@ -185,7 +176,7 @@ function varargout = spm_DesRep(varargin)
 % .xKXs.X - temporally filtered design matrix (within space structure)
 % .X      - "raw" design matrix (as setup by spm{,_fmri}_ui routines)
 %
-% .Xnames - [optional] px1 CellStr of parameter names
+% .name - [optional] px1 CellStr of parameter names
 %
 % fnames  - [optional] nxv CellStr of filenames (i.e. reshape({V.fname},size(V)))
 % xs      - [optional] structure of extra strings containing descriptive
@@ -278,27 +269,12 @@ case 'desrepui'                                    %-Design reporting UI
 % h = spm_DesRep('DesRepUI')
 % h = spm_DesRep('DesRepUI',D)
 
-%-Table of variable availability
-%-----------------------------------------------------------------------
-%		SPM_fMRIDesMtx.mat	SPMcfg.mat	SPM.mat
-%  .xX		v/			v/		v/
-%  .VY		x			v/		v/
-%  .xM		x			v/		v/
-%  .F_iX0	x			v/		v/
-%  .xC		x / []			v/(p)		v/(p)
-%  .Sess	v/			v/(f)		v/(f)
-%  .xsDes	x			v/		v/
-%
-%  .swd
-%  .SPMid
-%
-%  .cfg
-
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
-if nargin<2
-	cfg       = spm_get(1,'SPM*.mat','Select SPMstats design file...');
-	D         = load(cfg);
+if nargin < 2
+	cfg       = spm_get(1,'SPM.mat','Select SPM design file...');
+	load(cfg);
+	D         = SPM;
 	[swd,cfg] = fileparts(cfg);
 	D.swd     = swd;
 	if any(strcmp(cfg,{'SPM_fMRIDesMtx','SPMcfg','SPM'}))
@@ -313,7 +289,7 @@ end
 %-Work out where design configuration has come from!
 if ~isfield(D,'cfg')
 	if isfield(D.xX,'V'),				cfg = 'SPM';
-	elseif isfield(D,'VY'), 			cfg = 'SPMcfg';
+	elseif isfield(D,'xY'), 			cfg = 'SPMcfg';
 	elseif isfield(D,'Sess') & ~isempty(D.Sess),	cfg = 'SPM_fMRIDesMtx';
 	else, error('Can''t fathom origin!')
 	end
@@ -334,7 +310,7 @@ if ~isfield(D,'swd'), D.swd=''; end
 
 %-Add a scaled design matrix to the design data structure
 %-----------------------------------------------------------------------
-if ~isfield(D.xX,'nKX'), D.xX.nKX = spm_DesMtx('Sca',D.xX.X,D.xX.Xnames); end
+if ~isfield(D.xX,'nKX'), D.xX.nKX = spm_DesMtx('Sca',D.xX.X,D.xX.name); end
 
 
 %-Draw menu
@@ -355,14 +331,14 @@ hC      = uimenu(Finter,'Label','Design',...
 
 %-Generic CallBack code
 %-----------------------------------------------------------------------
-cb = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
+cb      = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
 
 %-DesMtx (SPM & SPMcfg)
 %-----------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
 		'CallBack',[cb,...
 		'spm_DesRep(''DesMtx'',tmp.xX,',...
-			'reshape({tmp.VY.fname},size(tmp.VY)),tmp.xsDes)'],...
+			'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),tmp.xsDes)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
 if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
@@ -384,7 +360,7 @@ case 'PET'
 	hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
 		'CallBack',[cb,...
 		'spm_DesRep(''Files&Factors'',',...
-			'reshape({tmp.VY.fname},size(tmp.VY)),',...
+			'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),',...
 			'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
@@ -398,40 +374,15 @@ case 'fMRI'
     for j = 1:length(D.Sess)
         h = uimenu(hExplore,'Label',sprintf('Session %.0f ',j),...
             'HandleVisibility','off');
-        for k = 1:length(D.Sess{j}.Fcname)
-            uimenu(h,'Label',D.Sess{j}.Fcname{k},...
+        for k = 1:length(D.Sess(j).Fc)
+            uimenu(h,'Label',D.Sess(j).Fc(k).name,...
                  'CallBack',[cb,...
-            sprintf('spm_fMRI_design_show(tmp.xX,tmp.Sess,%d,%d);',j,k)],...
+            sprintf('spm_fMRI_design_show(tmp,%d,%d);',j,k)],...
                  'UserData',hC,...
                  'HandleVisibility','off')
         end
     end
 end
-
-
-%-Estimate
-%-----------------------------------------------------------------------
-switch modality
-case 'PET'
-	str = 'xC=tmp.xC; xsDes=tmp.xsDes; spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,xC,xsDes)';
-case 'fMRI'
-	str = 'Sess=tmp.Sess; xsDes=tmp.xsDes; spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,Sess,xsDes)';
-end
-
-str = [...
-    'if exist(fullfile(''.'',''SPM.mat''),''file'')==2 & ',...
-    'spm_input({''Current directory contains existing SPMstats files:'',',...
-        '''        SPMstats results files (inc. SPM.mat)'',',...
-        '[''(pwd = '',pwd,'')''],'' '',',...
-        '''Continuing will overwrite existing results!''},1,''bd'',',...
-        '''stop|continue'',[1,0],1), tmp=0; else, tmp=1; end, ',...
-    'if tmp, ',cb,'delete(get(gcbo,''UserData'')), drawnow, ',str,', end'];
-
-hEst = uimenu(hC,'Label','Estimate','Accelerator','E','Separator','on',...
-	'CallBack',str,...
-	'UserData',hC,...
-	'HandleVisibility','off');
-if ~strcmp(D.cfg,'SPMcfg'), set(hEst,'Enable','off'), end
 
 
 %-Clear, Quit, Help
@@ -466,7 +417,6 @@ if nargin<6, xs=[]; else, xs = varargin{6}; end
 
 [fnames,CPath] = spm_str_manip(fnames,'c');	%-extract common path component
 nScan          = size(I,1);			%-#images
-nVar           = size(fnames,2);		%-Variates
 bL             = any(diff(I,1),1); 		%-Multiple factor levels?
 
 %-Get graphics window & window scaling
@@ -540,10 +490,8 @@ for i = 1:nScan
 
 	%-Filename tail(s) - could be multivariate
 	x=x+dx2;
-	for j = 1:nVar
-		text(x,y,fnames{i,j})
-		y=y-dy;
-	end
+	text(x,y,fnames{i})
+	y=y-dy;
 
 	%-Paginate if necessary
 	if y<dy
@@ -621,8 +569,8 @@ end
 if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
 	inX = 1; else, inX = 0; end
 
-if isfield(varargin{2},'Xnames') & ~isempty(varargin{2}.Xnames)
-	Xnames = varargin{2}.Xnames; else, Xnames = {}; end
+if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
+	Xnames = varargin{2}.name; else, Xnames = {}; end
 
 
 %-Compute design orthogonality matrix if DesOrth
@@ -859,8 +807,8 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 %-Design matrix (as underlay for plots) and parameter names
 %-----------------------------------------------------------------------
 [nScan,nPar]   = size(varargin{2}.X);
-if isfield(varargin{2},'Xnames') & ~isempty(varargin{2}.Xnames)
-	Xnames = varargin{2}.Xnames; else, Xnames = {}; end
+if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
+	Xnames = varargin{2}.name; else, Xnames = {}; end
 
 %-Design matrix
 hDesMtx = axes('Position',[.1 .5 .7 .3]);
@@ -1175,8 +1123,8 @@ case 'normal'
 		if ~diff(ij), str=[str,' {\it(same column)}']; end
 		if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else, tmp=''; end
 		str = {	sprintf('{\\bf %s} (col %d) & {\\bf %s} (col %d)',...
-				UD.Xnames{ij(1)},ij(1),...
-				UD.Xnames{ij(2)},ij(2)),...
+				UD.name{ij(1)},ij(1),...
+				UD.name{ij(2)},ij(2)),...
 			sprintf('cos(\\theta)%s = %1.2f',...
 				tmp,UD.O(ij(1),ij(2))),...
 			['\rightarrow ',str]};

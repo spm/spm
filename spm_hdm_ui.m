@@ -1,12 +1,9 @@
-function [Ep,Cp,K1,K2] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % user interface for hemodynamic model estimation
-% FORMAT [Ep,Cp,K1,K2] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg);
+% FORMAT [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg);
 %
-% SPM    - structure containing SPM, distribution & filtering detals
-% VOL    - structure containing details of volume analysed
-% xX     - Design Matrix structure
-% xSDM   - structure containing contents of SPM.mat file
-% xCon   - Contrast definitions structure (see spm_FcUtil.m for details)
+% xSPM   - structure containing specific SPM details
+% SPM    - structure containing generic  SPM details
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
 % Ep     - conditional expectations of the hemodynamic model parameters
@@ -28,29 +25,29 @@ set(Finter,'Name','Hemodynamic modelling')
 
 % which session?
 %---------------------------------------------------------------------------
-s    = length(xSDM.Sess);
+s    = length(SPM.Sess);
 if s > 1
 	s = spm_input('which session',1,'n1',1,1,s);
 end
-Sess = xSDM.Sess{s};
+Sess = SPM.Sess(s);
 
 % 'causes' or imputs U
 %---------------------------------------------------------------------------
 spm_input('Input specification:...  ',1,'d');
-U.dt = Sess.U{1}.dt;
+U.dt = Sess.U(1).dt;
 u    = length(Sess.U);
-if u == 1 & length(Sess.U{1}.Uname) == 1
-	U.name = Sess.U{1}.Uname{1};
-	U.u    = Sess.U{1}.u(33:end,1);
+if u == 1 & length(Sess.U(1).name) == 1
+	U.name = Sess.U(1).name{1};
+	U.u    = Sess.U(1).u(33:end,1);
 else
 	U.name = {};
 	U.u    = [];
 	for  i = 1:u
-	for  j = 1:length(Sess.U{i}.Uname)
-		str   = ['include ' Sess.U{i}.Uname{j} '?'];
+	for  j = 1:length(Sess.U(i).name)
+		str   = ['include ' Sess.U(i).name{j} '?'];
 		if spm_input(str,2,'y/n',[1 0])
-			U.u             = [U.u Sess.U{i}.u(33:end,j)];
-			U.name{end + 1} = Sess.U{i}.Uname{j};
+			U.u             = [U.u Sess.U(i).u(33:end,j)];
+			U.name{end + 1} = Sess.U(i).name{j};
 		end
 	end
 	end
@@ -70,15 +67,15 @@ xY     = struct(	'Ic'		,1,...
 
 % get region stucture
 %---------------------------------------------------------------------------
-[y xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY);
+[y xY] = spm_regions(xSPM,SPM,hReg,xY);
 
 
 %-confounds
 %---------------------------------------------------------------------------
 n      = size(xY.y,1);
 X0     = ones(n,1);
-if xY.filter & iscell(xX.K)
-	X0 = [X0 full(xX.K{s}.KH)];
+if xY.filter & iscell(SPM.xX.K)
+	X0 = [X0 full(SPM.xxX.K(s).KH)];
 end
 
 %-adjust and place in response variable structure
@@ -86,9 +83,9 @@ end
 y      = xY.u;
 y      = y - X0*(pinv(X0)*y);
 Y.y    = y;
-Y.dt   = xX.RT;
+Y.dt   = SPM.xY.RT;
 Y.X0   = X0;
-Y.Ce   = spm_Ce(n);
+Y.Ce   = {xY.V};
 Y.pC   = (Y.dt/2).^2;          % prior covariance on timing error
 
 

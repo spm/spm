@@ -1,12 +1,12 @@
-function fwhm = spm_est_smoothness(varargin)
+function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Estimation of smoothness based on [residual] images
-% FORMAT fwhm = spm_est_smoothness(VResI,[VM]);
+% FORMAT [fwhm,VRpv] = spm_est_smoothness(VResI,[VM]);
 %
 % P     - filenames of [residual] images
 % PM    - filename of mask image
 %
 % fwhm  - estimated FWHM in all image directions
-%
+% VRpv  - handle of Resels per Voxel image
 %_______________________________________________________________________
 %  
 % spm_est_smoothness returns a spatial smoothness estimator based on the
@@ -62,12 +62,12 @@ end
 
 %-Intialise RESELS per voxel image
 %-----------------------------------------------------------------------
-VRPV  = struct('fname','RPV.img',...
+VRpv  = struct('fname','RPV.img',...
 			'dim',		[VM.dim(1:3), spm_type('double')],...
 			'mat',		VM.mat,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm: resels per voxel');
-VRPV  = spm_create_image(VRPV);
+VRpv  = spm_create_image(VRpv);
 
 
 % dimensionality of image
@@ -140,9 +140,9 @@ for  i = 1:VM.dim(3)
 	if ~isempty(I)
 		d(sub2ind(VM.dim(1:2), Ix(I), Iy(I))) = resel(I);
 	end
-	spm_write_plane(VRPV, d, i);
+	spm_write_plane(VRpv, d, i);
 end
-VRPV   = spm_create_image(VRPV);
+VRpv   = spm_create_image(VRpv);
 
 % global equivalent FWHM {prod(1/FWHM) = (unbiased) RESEL estimator}
 %-----------------------------------------------------------------------

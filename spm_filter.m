@@ -4,15 +4,15 @@ function [vargout] = spm_filter(K,Y)
 % FORMAT [K] = spm_filter(K)
 %
 % K         - filter matrix or:
-% K{s}      - cell of structs containing block-specific specifications
+% K(s)      - struct array containing partition-specific specifications
 %
-% K{s}.RT       - observation interval in seconds
-% K{s}.row      - row of Y constituting block s
-% K{s}.LParam   - Gaussian parameter in seconds
-% K{s}.HParam   - cut-off period in seconds
+% K(s).RT       - observation interval in seconds
+% K(s).row      - row of Y constituting block/partition s
+% K(s).LParam   - Gaussian parameter in seconds
+% K(s).HParam   - cut-off period in seconds
 %
-% K{s}.HP       - low frequencies to be removed (DCT without constant)
-% K{s}.LP       - sparse toeplitz low-pass convolution matrix
+% K(s).HP       - low frequencies to be removed (DCT without constant)
+% K(s).LP       - sparse toeplitz low-pass convolution matrix
 % 
 % Y         - data matrix
 %
@@ -29,7 +29,7 @@ function [vargout] = spm_filter(K,Y)
 
 % set or apply
 %---------------------------------------------------------------------------
-if nargin == 1 & iscell(K)
+if nargin == 1 & isstruct(K)
 
 	% set K.HP and/or K.LP
 	%-------------------------------------------------------------------
@@ -37,13 +37,13 @@ if nargin == 1 & iscell(K)
 
 		% block size
 		%-----------------------------------------------------------
-		k     = length(K{s}.row);
+		k     = length(K(s).row);
 
 		% create and normalize low-pass filter
 		%-----------------------------------------------------------
-		if isfield(K{s},'LParam')
+		if isfield(K(s),'LParam')
 
-			sigma   = K{s}.LParam/K{s}.RT;
+			sigma   = K(s).LParam/K(s).RT;
 			h       = round(4*sigma);
 			h       = exp(-[-h:h].^2/(2*sigma^2));
 			n       = length(h);
@@ -51,18 +51,18 @@ if nargin == 1 & iscell(K)
 
 			if      n == 1, h = 1; end
 
-			K{s}.KL = spdiags(ones(k,1)*h,d,k,k);
-			K{s}.KL = spdiags(1./sum(K{s}.KL')',0,k,k)*K{s}.KL;
+			K(s).KL = spdiags(ones(k,1)*h,d,k,k);
+			K(s).KL = spdiags(1./sum(K(s).KL')',0,k,k)*K(s).KL;
 
 		end
 
 		% make high pass filter
 		%-----------------------------------------------------------
-		if isfield(K{s},'HParam')
+		if isfield(K(s),'HParam')
 
-			n       = fix(2*(k*K{s}.RT)/K{s}.HParam + 1);
+			n       = fix(2*(k*K(s).RT)/K(s).HParam + 1);
 			X       = spm_dctmtx(k,n);
-			K{s}.KH = sparse(X(:,[2:n]));
+			K(s).KH = sparse(X(:,[2:n]));
 		end
 
 	end
@@ -74,11 +74,11 @@ if nargin == 1 & iscell(K)
 else
 	% apply
 	%-------------------------------------------------------------------
-	if iscell(K)
+	if isstruct(K)
 
 		% ensure requisite feilds are present
 		%-----------------------------------------------------------
-		if ~isfield(K{1},'KL') & ~isfield(K{1},'HL')
+		if ~isfield(K(1),'KL') & ~isfield(K(1),'HL')
 			K = spm_filter(K);
 		end
 
@@ -86,23 +86,23 @@ else
 
 			% select data
 			%---------------------------------------------------
-			y = Y(K{s}.row,:);
+			y = Y(K(s).row,:);
 
 			% apply low pass filter
 			%---------------------------------------------------
-			if isfield(K{s},'KL')
-				y = K{s}.KL*y;
+			if isfield(K(s),'KL')
+				y = K(s).KL*y;
 			end
 
 			% apply high pass filter
 			%---------------------------------------------------
-			if isfield(K{s},'KH')
-				y = y - K{s}.KH*(K{s}.KH'*y);
+			if isfield(K(s),'KH')
+				y = y - K(s).KH*(K(s).KH'*y);
 			end
 
 			% reset filtered data in Y
 			%---------------------------------------------------
-			Y(K{s}.row,:) = y;
+			Y(K(s).row,:) = y;
 
 		end
 

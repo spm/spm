@@ -1,32 +1,27 @@
 function spm_dcm_display(varargin)
 % region and anatomical graph display
-% FORMAT spm_dcm_display(xY,a,c,G,u,M,U,W)
+% FORMAT spm_dcm_display(xY,a,c,u,M,U)
 % xY    - cell of region structures (see spm_regions)
 % a     - connections of directed graph a(i,j,1) = p value
 % c     - node-specific inputs
-% G     - node-specific graphs (cell)
-% G.x     - x data
-% G.y     - y data
 % u     - (3 x 2) projection matrix		[default = [] ]
 % M     - margin (mm) 				[default = 24 ]
 % U     - theshold for plotting connections 	[default = 0.9]
-% W     - relative graph size 			[default = 1/8]
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
 
 % null input arguments
 %---------------------------------------------------------------------------
+Fgraph  = spm_figure('GetWin','Graphics');
 n       = length(varargin);
 
 if n < 1; xY = [];	else,	xY = varargin{1};	 end
 if n < 2; a  = [];	else,	a  = varargin{2};	 end
 if n < 3; c  = [];	else,	c  = varargin{3};	 end
-if n < 4; G  = {};	else,	G  = varargin{4};	 end
-if n < 5; u  = [];	else,	u  = varargin{5};	 end
-if n < 6; M  = 16;	else,	M  = varargin{6};	 end
-if n < 7; U  = .9;	else,	U  = varargin{7};	 end
-if n < 8; W  = 1/8;	else,	W  = varargin{8};	 end
+if n < 4; u  = [];	else,	u  = varargin{4};	 end
+if n < 5; M  = 16;	else,	M  = varargin{5};	 end
+if n < 6; U  = .9;	else,	U  = varargin{6};	 end
 
 col     = [1 1 1];
 rad     = 6;
@@ -75,11 +70,16 @@ L       = M3*L;
 
 % get T1 background
 %---------------------------------------------------------------------------
-global SWD
-V       = spm_vol(fullfile(SWD,'canonical','single_subj_T1'));
-ijk     = inv(V.mat)*xyz;
-t1      = spm_sample_vol(V,ijk(1,:),ijk(2,:),ijk(3,:),2);
-t1      = (64 - 16) + 16*t1/max(t1(:));
+try
+	global SWD
+	V = spm_vol(fullfile(SWD,'canonical','single_subj_T1'));
+catch
+	V = spm_vol('mask.img');
+	figure(Fgraph)
+end
+ijk       = inv(V.mat)*xyz;
+t1        = spm_sample_vol(V,ijk(1,:),ijk(2,:),ijk(3,:),2);
+t1        = (64 - 16) + 16*t1/max(t1(:));
 
 
 % Watermark and regions
@@ -233,62 +233,24 @@ end
 
 % projected coordinates of voxels within region[s]
 %---------------------------------------------------------------------------
-if ~length(G)
-	hold on
-	for i = 1:m
-		l      = xY(i).XYZmm;
-		n      = size(l,2);
-		l      = [l; ones(1,n)];
-		l      = M3*M2*M1*l;
-		plot(l(1,:),l(2,:),'.r','MarkerSize',4)
-	end
-
-	line(L(1,:),L(2,:),...
-			'Color',[0 0 0],...
-			'Marker','.',...
-			'LineStyle','none',...
-			'MarkerSize',96);
-
-	text(L(1,:),L(2,:),name,'FontSize',9,...
-				'FontWeight','Bold',...
-				'Color','w',...
-				'HorizontalAlignment','center',...
-				'FontAngle','italic')
-	hold off
+hold on
+for i = 1:m
+	l      = xY(i).XYZmm;
+	n      = size(l,2);
+	l      = [l; ones(1,n)];
+	l      = M3*M2*M1*l;
+	plot(l(1,:),l(2,:),'.r','MarkerSize',4)
 end
 
+line(L(1,:),L(2,:),...
+		'Color',[0 0 0],...
+		'Marker','.',...
+		'LineStyle','none',...
+		'MarkerSize',96);
 
-% graphs
-%---------------------------------------------------------------------------
-X     = get(gca,'Position');
-C     = [2*X(1:2) + X(3:4)]/2;
-XLim  = get(gca,'XLim');
-YLim  = get(gca,'YLim');
-R     = get(gcf,'Position');
-R     = R(3)/R(4);
-S     = [1 R]*W;
-C     = [X(1) + X(3)/2 + X(4)*(L(1,:) - mean(XLim))/diff(YLim)/R - S(1)/2;
-	 X(2) + X(4) - X(4)*L(2,:)/diff(YLim) - S(2)/2];
-YLim  = [0 0];
-for i = 1:length(G)
-
-	h(i) = axes('Position',[C(:,i)' S]);
-	plot(G(i).x,G(i).y(:,1))
-	if size(G(i).y,2) > 1
-		hold on
-		plot(G(i).x,G(i).y(:,2),':')
-		hold off
-	end
-	axis tight
-	title(name{i},	'FontSize',9,...
+text(L(1,:),L(2,:),name,'FontSize',9,...
 			'FontWeight','Bold',...
+			'Color','w',...
+			'HorizontalAlignment','center',...
 			'FontAngle','italic')
-	A    = axis;
-	YLim = [min([A(3) YLim(1)]) max([A(4) YLim(2)])];
-end
-
-% make Y axes the same
-%---------------------------------------------------------------------------
-for i = 1:length(G)
-	set(h(i),'YLim',YLim,'FontSize',8);
-end
+hold off

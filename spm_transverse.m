@@ -1,16 +1,16 @@
-function spm_transverse(SPM,VOL,hReg,junk1)
+function spm_transverse(varargin)
 % Rendering of regional effects [SPM{T/F}] on transverse sections
-% FORMAT spm_transverse(SPM,VOL,hReg)
+% FORMAT spm_transverse('set',SPM,hReg)
+% FORMAT spm_transverse('setcoords',xyzmm)
+% FORMAT spm_transverse('clear')
 %
 % SPM    - structure containing SPM, distribution & filtering details
+%          about the excursion set (xSPM)
 %        - required fields are:
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .STAT  - distribution {Z, T, X or F}     
 % .u     - height threshold
 % .XYZ   - location of voxels {voxel coords}
-%
-% VOL    - structure containing details of volume analysed
-%        - required fields are:
 % .iM    - mm  -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels}
@@ -25,28 +25,37 @@ function spm_transverse(SPM,VOL,hReg,junk1)
 %_______________________________________________________________________
 %
 % spm_transverse is called by the SPM results section and uses
-% variables in SPM and VOL to create three transverse sections though a
+% variables in SPM and SPM to create three transverse sections though a
 % background image.  Regional foci from the selected SPM{T/F} are
 % rendered on this image.
 %
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %_______________________________________________________________________
-% %W% Karl Friston - modified by John Ashburner %E%
+% %W% Karl Friston, John Ashburner %E%
 
-if nargin == 3 & isstruct(SPM),
-	init(SPM,VOL,hReg);
-end;
-if ~isstruct(SPM) & strcmp(lower(SPM),'setcoords'),
-	reposition(VOL);
-end;
-if ~isstruct(SPM) & strcmp(lower(SPM),'clear'),
+switch lower(varargin{1})
+
+	case 'set'
+	% draw slices
+	%---------------------------------------------------------------
+	init(varargin{2},varargin{3});
+
+	case 'setcoords'
+	% reposition
+	%---------------------------------------------------------------
+	reposition(varargin{2});
+
+	case 'clear'
+	% clear
+	%---------------------------------------------------------------
 	clear_global;
 end;
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function init(SPM,VOL,hReg)
+
+
+
+function init(SPM,hReg)
 
 %-Get figure handles
 %-----------------------------------------------------------------------
@@ -55,7 +64,7 @@ Fgraph = spm_figure('GetWin','Graphics');
 
 %-Get the image on which to render
 %-----------------------------------------------------------------------
-spms   = spm_get(1,'.img','select an image for rendering');
+spms   = spm_get(1,'.img','select image for rendering on');
 spm('Pointer','Watch');
 
 %-Delete previous axis and their pagination controls (if any)
@@ -64,9 +73,9 @@ spm_results_ui('Clear',Fgraph);
 
 global transv
 transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg,'fig',Fgraph);
-transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
-	             'iM',VOL.iM,...
-		     'vox', sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
+transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',SPM.DIM(1:3),...
+	             'iM',SPM.iM,...
+		     'vox', sqrt(sum(SPM.M(1:3,1:3).^2)), 'u', SPM.u);
 
 %-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
@@ -158,7 +167,7 @@ if transv.blob.dim(3) > 1
 	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
 	transv.h(2) = image(rot90(spm_grid(T1)));
 	axis image; axis off;
-	tmp = VOL.iM\[xyz(1:2)' (xyz(3)-1) 1]';
+	tmp = SPM.iM\[xyz(1:2)' (xyz(3)-1) 1]';
 	title(sprintf('z = %0.0fmm',tmp(3)));
 	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w');
 	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
@@ -173,7 +182,7 @@ if transv.blob.dim(3) > 1
 	transv.h(9) = axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
 	transv.h(10) = image(rot90(spm_grid(T3)));
 	axis image; axis off;
-	tmp = VOL.iM\[xyz(1:2)' (xyz(3)+1) 1]';
+	tmp = SPM.iM\[xyz(1:2)' (xyz(3)+1) 1]';
 	title(sprintf('z = %0.0fmm',tmp(3)));
 	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w');
 	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
@@ -351,10 +360,10 @@ return;
 function clear_global
 global transv
 if isstruct(transv),
-	for h=transv.h,
+	for h = transv.h,
 		if ishandle(h), set(h,'DeleteFcn',';'); end;
 	end;
-	for h=transv.h,
+	for h = transv.h,
 		if ishandle(h), delete(h); end;
 	end;
 	transv = [];

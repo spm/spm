@@ -55,6 +55,7 @@ case 'specify'
 	%===================================================================
 	swd   = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 	load(fullfile(swd,'SPM.mat'))
+	cd(swd)
 
 	% name
 	%===================================================================
@@ -65,7 +66,6 @@ case 'specify'
 
 	% get cell array of region structures
 	%-------------------------------------------------------------------
-	clear xY
 	P     = spm_get([2 8],'VOI*.mat',{'select VOIs'});
 	m     = length(P);
 	for i = 1:m
@@ -79,17 +79,17 @@ case 'specify'
 	% get 'causes' or inputs U
 	%-------------------------------------------------------------------
 	spm_input('Input specification:...  ',1,'d');
-	Sess   = Sess{(xY(1).Sess)}
-	U.dt   = Sess.U{1}.dt;
+	Sess   = SPM.Sess(xY(1).Sess);
+	U.dt   = Sess.U(1).dt;
 	u      = length(Sess.U);
 	U.name = {};
 	U.u    = [];
 	for  i = 1:u
-	for  j = 1:length(Sess.U{i}.Uname)
-		str   = ['include ' Sess.U{i}.Uname{j} '?'];
+	for  j = 1:length(Sess.U(i).name)
+		str   = ['include ' Sess.U(i).name{j} '?'];
 		if spm_input(str,2,'y/n',[1 0])
-			U.u             = [U.u Sess.U{i}.u(33:end,j)];
-			U.name{end + 1} = Sess.U{i}.Uname{j};
+			U.u             = [U.u Sess.U(i).u(33:end,j)];
+			U.name{end + 1} = Sess.U(i).name{j};
 		end
 	end
 	end
@@ -225,20 +225,35 @@ case 'specify'
 	% confounds
 	%-------------------------------------------------------------------
 	v     = size(xY(1).u,1);
-	X0    = [ones(v,1) (xX.K{xY(1).Sess}.KH)];
+	try
+		X0    = [ones(v,1) (SPM.xX.K(xY(1).Sess).KH)];
+	catch
+		X0    = ones(v,1);
+	end
 
 
 	% response variables
 	%-------------------------------------------------------------------
 	n     = length(xY);
-	for i = 1:n
-		Y.y(:,i)    = xY(i).u;
-		Y.name{i}   = xY(i).name;
-	end
-	Y.dt  = xX.RT;
+	Y.dt  = SPM.xY.RT;
 	Y.X0  = X0;
-	Y.Ce  = spm_Ce(v*ones(1,n));
 	Y.pC  = eye(n)*(Y.dt/2).^2;          		% priors on timing
+	for i = 1:n
+
+		% response
+		%-----------------------------------------------------------
+		Y.y(:,i)  = xY(i).u;
+		Y.name{i} = xY(i).name;
+
+		% error correlations
+		%-----------------------------------------------------------
+		Ce        = sparse(n*v,n*v);
+		j         = [1:v] + (i - 1)*v;
+		Ce(j,j)   = xY(i).V;
+		Y.Ce{i}   = Ce;
+
+	end
+
 
 	% priors - expectations
 	%-------------------------------------------------------------------
@@ -514,21 +529,21 @@ case 'review'
 		subplot(2,2,3)
 		title('transverse')
 		u = [[0 1 0];[-1 0 0]]';
-		spm_dcm_display(DCM.xY,[],[],[],u,32);
+		spm_dcm_display(DCM.xY,[],[],u,32);
 
 		% sagittal
 		%-----------------------------------------------------------
 		subplot(2,2,1)
 		title('sagittal')
 		u = [[0 1 0];[0 0 1]]';
-		spm_dcm_display(DCM.xY,[],[],[],u,32);
+		spm_dcm_display(DCM.xY,[],[],u,32);
 
 		% coronal
 		%-----------------------------------------------------------
 		subplot(2,2,2)
 		title('coronal')
 		u = [[1 0 0];[0 0 1]]';
-		spm_dcm_display(DCM.xY,[],[],[],u,32);
+		spm_dcm_display(DCM.xY,[],[],u,32);
 
 		% table
 		%-----------------------------------------------------------

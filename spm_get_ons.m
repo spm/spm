@@ -1,22 +1,22 @@
-function [U] = spm_get_ons(k,T,dt,s)
+function [U] = spm_get_ons(SPM,s)
 % returns input [designed effects] structures
-% FORMAT [U] = spm_get_ons(k,T,dt,s)
+% FORMAT [U] = spm_get_ons(SPM,s)
 %
-% k  - number of scans
-% T  - time bins per scan
-% dt - time bin length (secs)
 % s  - session number (used by batch system)
 %
-% U  - {1 x n}   cell of (n) trial-specific structures
-% 	U{i}.Uname - cell of names for each input or cause
-% 	U{i}.u     - inputs or stimulus function matrix
-% 	U{i}.dt    - time bin (seconds)
-% 	U{i}.ons   - onsets (time bins + 32)
-% 	U{i}.off   - offset (time bins + 32)
-% 	U{i}.pst   - peristimulus times (seconds)
-% 	U{i}.Pname - cell of parameter name
-% 	U{i}.P     - parameter matrix
-% 	U{i}.Pi    - cell of sub-indices of u pertaining to columns of P
+% U     - (1 x n)   struct array of (n) trial-specific structures
+%
+% 	U(i).name   - cell of names for each input or cause
+% 	U(i).u      - inputs or stimulus function matrix
+% 	U(i).dt     - time bin (seconds)
+% 	U(i).ons    - onsets    (in SPM.xBF.UNITS)
+% 	U(i).dur    - durations (in SPM.xBF.UNITS)
+%	U(i).P      - parameter struct.
+%
+% 	    U(i).P(p).name - parameter name
+% 	    U(i).P(p).P    - parameter vector
+% 	    U(i).P(p).h    - order of polynomial expansion
+% 	    U(i).P(p).i    - sub-indices of u pertaining to P
 %_______________________________________________________________________
 %
 %
@@ -38,25 +38,18 @@ function [U] = spm_get_ons(k,T,dt,s)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% and spm_bch_bchmat (if necessary) accordingly. 
-% Calls to spm_input in this routine use the BCH gobal variable.  
-%    BCH.bch_mat 
-%    BCH.index0  = {'model',index_of_Analysis};
-%_______________________________________________________________________
-
-global BCH UNITS
-
 %-GUI setup
 %-----------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
 
-
 % time units
 %-----------------------------------------------------------------------
-if ~length(UNITS) 
+k     = SPM.nscan(s);
+T     = SPM.xBF.T;
+dt    = SPM.xBF.dt;
+try
+	UNITS = SPM.xBF.UNITS;
+catch
 	UNITS = 'scans';
 end
 switch UNITS
@@ -70,147 +63,157 @@ switch UNITS
 	TR = 1;
 end
 
-%-prompt string
-%-----------------------------------------------------------------------
-if nargin < 4
-	Fstr = ''; 
-else
-	Fstr = sprintf('Session %d: trial specification in %s',s,UNITS);
-end
-spm_input(Fstr,1,'d','batch')
-
-
-% initialize ouput structure
-%-----------------------------------------------------------------------
-U     = {};
-
-% get stick functions {ons} and names
+% get inputs and names (try SPM.Sess(s).U first)
 %=======================================================================
+try
+	U   = SPM.Sess(s).U;
+	v   = length(U);
+catch
+
+	%-prompt string
+	%---------------------------------------------------------------
+	str = sprintf('Session %d: trial specification in %s',s,UNITS);
+	spm_input(str,1,'d')
+
+	v   = spm_input('number of conditions/trials',2,'w1');
+end
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('number of conditions or trials',2,'w1',...
-                   'batch',{},'conditions_nb',s);
 for i = 1:v
-
-	% initialize
-	%---------------------------------------------------------------
-	Uname    = {};
-	Pname    = {};
-	u        = [];
-	P        = [];
-	Pi       = {};
 
 	% get names
 	%---------------------------------------------------------------
-	str      = sprintf('name for condition/trial %d ?',i);
-	Uname{1} = spm_input(str,3,'s',sprintf('trial %d',i),...
-                                       'batch',{'conditions',s},'names',i);
+	try
+		Uname     = U(i).name(1);
+	catch
+		str       = sprintf('name for condition/trial %d ?',i);
+		Uname     = {spm_input(str,3,'s',sprintf('trial %d',i))};
+		U(i).name = Uname;
+	end
 
 	% get main [trial] effects
 	%================================================================
 
 	% onsets
 	%---------------------------------------------------------------
-	str      = ['vector of onsets - ' Uname{1}];
-	ons      = spm_input(str,4,'batch',{'conditions',s},'onsets',i);
-	ons      = ons(:);
+	try
+		ons = U(i).ons(:);
+	catch
+		ons = [];
+	end
+	if ~length(ons)
+		str      = ['vector of onsets - ' Uname{1}];
+		ons      = spm_input(str,4,'r',' ',[Inf 1]);
+		U(i).ons = ons(:);
+
+	end
 
 	% durations
 	%---------------------------------------------------------------
-	str      = 'duration[s] (events = 0)';
-	while 1
-		dur = spm_input(str,5,'e','batch',...
-                                        {'conditions',s},'durations',i);
-		if length(dur) == 1
-			dur  = dur*ones(size(ons));
-		end
-		if length(dur) == length(ons), break, end
-		str = sprintf('enter a scalar or [%d] vector',length(ons));
-
+	try
+		dur = U(i).dur(:);
+	catch
+		dur = [];
 	end
-	dur      = dur(:);
+	if ~length(dur)
+		str = 'duration[s] (events = 0)';
+		while 1
+			dur = spm_input(str,5,'r',' ',[Inf 1]);
+			if length(dur) == 1
+				dur    = dur*ones(size(ons));
+			end
+			if length(dur) == length(ons), break, end
+			str = sprintf('enter a scalar or [%d] vector',...
+					length(ons));
+		end
+		U(i).dur = dur;
+	end
 
 	% peri-stimulus times {seconds}
 	%---------------------------------------------------------------
-	pst    = [1:k]*T*dt - ons(1)*TR;			
-	for  j = 1:length(ons)
+	pst   = [1:k]*T*dt - ons(1)*TR;			
+	for j = 1:length(ons)
 		w      = [1:k]*T*dt - ons(j)*TR;
 		v      = find(w >= -1);
 		pst(v) = w(v);
 	end
 
 
-
 	% add parameters x trial interactions
 	%================================================================
 
-	% paramteric representation of causes (u) - 1st = main effects
+	% get parameter stucture xP
 	%----------------------------------------------------------------
-	Ptype    = {'none',...
-		    'time',...
-		    'other'};
-	Ptype    = spm_input('parametric modulation',6,'b',Ptype,...
-                          'batch',{},'parametrics_type',s);
+	try 
+		xP          = U(i).P;
+		Pname       = xP(1).name;
 
-	switch Ptype
+		switch Pname
+
+			case 'none'
+			%------------------------------------------------
+			xP.name  = 'time';
+			xP.h     = 0;
+
+		end
+
+	catch
+
+		Pname       = {'none','time','other'};
+		Pname       = spm_input('parametric modulation',6,'b',Pname);
+
+		switch Pname
 
 		case 'none'
 		%--------------------------------------------------------
-		u        = 1;
+		xP(1).name  = 'none';
+		xP(1).P     = ons*TR;
+		xP(1).h     = 0;
 
 		case 'time'
 		%--------------------------------------------------------
-		Pname{1} = 'time';
-		Pi{1}    = [1 2];
-		str      = 'time constant for adaptation {secs}';
-		p        = ons*TR;
-		P        = p;
-
-		% create interaction term
-		%--------------------------------------------------------
-		h        = round(k*T*dt/4);
-		h        = spm_input(str,7,'r',h,...
-                      		'batch',{'parametrics',s},'time_cst');
-		u        = [p.^0 exp(-p/h)];
-		Uname{2} = 'adapation';
+		xP(1).name  = 'time';
+		xP(1).P     = ons*TR;
+		xP(1).h     = spm_input('polynomial order',8,'n1',1);
 
 		case 'other'
 		%--------------------------------------------------------
 		str   = ['# parameters (' Uname{1} ')'];
-		n     = spm_input(str,7,'n1',1,'batch',{'pnum',s},'pnum');
-		u     = ones(length(ons),1);;
-		for v = 1:n
+		for q = 1:spm_input(str,7,'n1',1);
 
-			% get names and variates
+			% get names and parametric variates
 			%------------------------------------------------
-			str      = sprintf('parameter %d name',v);
-			Pname{v} = spm_input(str,7,'s',...
-				          'batch',{'parametrics',s},'name');
+			str   = sprintf('parameter %d name',q);
+			Pname = spm_input(str,7,'s');
+			P     = spm_input(Pname,7,'r',[],[length(ons),1]);
 
-			p     = spm_input(Pname{v},7,'r',[],[length(ons),1],...
-				'batch',{'parametrics',s},'parameters');
-			p     = p(:);
-			P     = [P p];
-
-
-			% polynomial expansion of u = f(p)
+			% order of polynomial expansion h
 			%------------------------------------------------
-			str   = 'order of polynomial expansion';
-			h     = spm_input(str,8,'n1',1,...
-                                     'batch',{'parametrics',s},'order');
+			h     = spm_input('polynomial order',8,'n1',1);
 
 			% sub-indices and inputs
 			%------------------------------------------------
-			Pi{v} = [1, ([1:h] + size(u,2))];
-			for j = 1:h
- 				u   = [u p.^j];
-				str = sprintf('%sx%s^%d',Uname{1},Pname{v},j);
-				Uname{end + 1} = str;
-			end
+			xP(q).name  = Pname;
+			xP(q).P     = P;
+			xP(q).h     = h;
 
 		end
+		end % switch
 
+	end % try
+
+	% interaction with causes (u) - 1st = main effects
+	%----------------------------------------------------------------
+	u     = ons.^0;
+	for q = 1:length(xP)
+		xP(q).i = [1, ([1:xP(q).h] + size(u,2))];
+		for   j = 1:xP(q).h
+			P   = spm_en(xP(q).P);
+ 			u   = [u P.^j];
+			str = sprintf('%sx%s^%d',Uname{1},xP.name,j);
+			Uname{end + 1} = str;
+		end
 	end
 
 	% orthogonalize inputs
@@ -236,14 +239,9 @@ for i = 1:v
 
 	% place in ouputs structure
 	%---------------------------------------------------------------
-	U{i}.Uname = Uname;			% - input names
-	U{i}.u     = sf;			% - stimulus function matrix
- 	U{i}.dt    = dt;			% - time bin (seconds)
-	U{i}.ons   = ons;			% - onsets (time bins)
-	U{i}.off   = off;			% - offset (time bins)
-	U{i}.pst   = pst;			% - pst (seconds)
-	U{i}.Pname = Pname;			% - parameter name
-	U{i}.P     = P;				% - parameter variates
-	U{i}.Pi    = Pi;			% - parameter sub-indices
-
+	U(i).name  = Uname;		% - input names
+	U(i).dt    = dt;		% - time bin {seconds}
+	U(i).u     = sf;		% - stimulus function matrix
+	U(i).pst   = pst;		% - pst (seconds)
+	U(i).P     = xP;		% - parameter struct
 end

@@ -1,38 +1,39 @@
-function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
+function [SPM,xSPM] = spm_getSPM
 % computes a specified and thresholded SPM/PPM following parameter estimation
-% FORMAT [SPM,VOL,xX,xCon,xSDM] = spm_getSPM;
+% FORMAT [SPM,xSPM] = spm_getSPM;
 %
-% SPM    - structure containing SPM, distribution & filtering details
-% .swd   - SPM working directory - directory containing current SPM.mat
-% .title - title for comparison (string)
-% .Z     - minimum of n Statistics {filtered on u and k}
-% .n     - number of conjoint tests        
-% .STAT  - distribution {Z, T, X, F or P}     
-% .df    - degrees of freedom [df{interest}, df{residual}]
-% .Ic    - indices of contrasts (in xCon)
-% .Im    - indices of masking contrasts (in xCon)
-% .pm    - p-value for masking (uncorrected)
-% .Ex    - flag for exclusive or inclusive masking
-% .u     - height threshold
-% .k     - extent threshold {voxels}
-% .XYZ   - location of voxels {voxel coords}
-% .XYZmm - location of voxels {mm}
-% .QQ    - indices of volxes in Y.mad file
-%
-%
-% VOL    - structure containing details of volume analysed
-% .S     - search Volume {voxels}
-% .R     - search Volume {resels}
-% .FWHM  - smoothness {voxels}     
-% .M     - voxels - > mm matrix
-% .iM    - mm -> voxels matrix
-% .VOX   - voxel dimensions {mm} - column vector
-% .DIM   - image dimensions {voxels} - column vector
-% .Vspm  - Mapped statistic image(s)
-% .Msk   - Mask in 1 of 3 forms
+% xSPM      - structure containing SPM, distribution & filtering details
+% .swd      - SPM working directory - directory containing current SPM.mat
+% .title    - title for comparison (string)
+% .Z        - minimum of n Statistics {filtered on u and k}
+% .n        - number of conjoint tests        
+% .STAT     - distribution {Z, T, X, F or P}     
+% .df       - degrees of freedom [df{interest}, df{residual}]
+% .STATstr  - description string     
+% .Ic       - indices of contrasts (in SPM.xCon)
+% .Im       - indices of masking contrasts (in xCon)
+% .pm       - p-value for masking (uncorrected)
+% .Ex       - flag for exclusive or inclusive masking
+% .u        - height threshold
+% .k        - extent threshold {voxels}
+% .XYZ      - location of voxels {voxel coords}
+% .XYZmm    - location of voxels {mm}
+% .S        - search Volume {voxels}
+% .R        - search Volume {resels}
+% .FWHM     - smoothness {voxels}     
+% .M        - voxels -> mm matrix
+% .iM       - mm -> voxels matrix
+% .VOX      - voxel dimensions {mm} - column vector
+% .DIM      - image dimensions {voxels} - column vector
+% .Vspm     - Mapped statistic image(s)
+% .Msk      - Mask in 1 of 3 forms
 %            o Scalar, indicating implicit mask value in statistic image(s)
 %            o Vector of indicies of elements within mask
-%            o Mapped mask image
+%            o Mapped maskimage
+%
+% Required feilds of SPM
+%
+% xVol   - structure containing details of volume analysed
 %
 % xX     - Design Matrix structure
 %        - (see spm_spm.m for structure)
@@ -56,11 +57,6 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %        - Or effect-size threshold for Posterior probability
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
 % .Vspm  - Name of SPM image
-%
-% xSDM   - structure containing contents of SPM.mat file
-%          ( see spm_spm.m for contents...
-%          ( ...except that xX & XYZ are removed, being returned separately
-%          ( ...and xSDM.Vbeta & xSDM.VResMS are re-mmapped
 %
 % In addition, the xCon.mat file is updated. For newly evaluated
 % contrasts, SPM images (spmT_????.{img,hdr}) are written, along with
@@ -143,10 +139,11 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % estimates and associated posterior or conditional probabilities.
 % 
 % see spm_results_ui.m for further details of the SPM results section.
+% see also spm_contrasts.m
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
 
-SCCSid   = '%I%';
+SCCSid = '%I%';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -155,63 +152,33 @@ spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 
 %-Preliminaries...
 %=======================================================================
 
 %-Load SPM.mat
 %-----------------------------------------------------------------------
-xSDM   = load(fullfile(swd,'SPM.mat'));	%-Contents of SPM.mat (in a struct)
-
+load(fullfile(swd,'SPM.mat'));
+SPM.swd = swd;
 
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
-xX     = xSDM.xX;			%-Design definition structure
-XYZ    = xSDM.XYZ;			%-XYZ coordinates
-S      = xSDM.S;			%-search Volume {voxels}
-R      = xSDM.R;			%-search Volume {resels}
-xSDM   = rmfield(xSDM,{'xX','XYZ'});	%-Remove (large) duplicate fields
+xX     = SPM.xX;			%-Design definition structure
+XYZ    = SPM.xVol.XYZ;			%-XYZ coordinates
+S      = SPM.xVol.S;			%-search Volume {voxels}
+R      = SPM.xVol.R;			%-search Volume {resels}
 
-%-Get/Compute mm<->voxel matrices & image dimensions from SPM.mat
-%-----------------------------------------------------------------------
- M     = xSDM.M;
-iM     = inv(M);
-DIM    = xSDM.DIM;
-
-%-Build index from XYZ into corresponding Y.mad locations
-%-----------------------------------------------------------------------
-if exist(fullfile(swd,'Yidx.mat'),'file') & exist(fullfile(swd,'Y.mad'),'file')
-	load(fullfile(swd,'Yidx.mat'))
-	QQ = sparse(1,Yidx,1:length(Yidx),1,S);
-else
-	QQ = sparse(1,S);
-end
 
 %-Contrast definitions
 %=======================================================================
 
 %-Load contrast definitions (if available)
 %-----------------------------------------------------------------------
-if exist(fullfile(swd,'xCon.mat'),'file')
-	load(fullfile(swd,'xCon.mat'))
-else
+try
+	xCon = SPM.xCon;
+catch
 	xCon = [];
-end
-
-%-See if can write to current directory (by trying to open for appending)
-%-----------------------------------------------------------------------
-wOK = 1;
-fid = fopen(fullfile(swd,'xCon.mat'),'a');
-if fid < 0
-   wOK = 0;
-   str = {	'Can''t write to the results directory:',...
-         '(problem saving xCon.mat)',...
-         ['        ',swd],...
-         ' ','-> results restricted to contrasts already computed'};
-   spm('alert!',str,mfilename,1);
-else
-   fclose(fid);
 end
 
 
@@ -222,7 +189,7 @@ end
 %-Get contrasts
 %-----------------------------------------------------------------------
 [Ic,xCon] = spm_conman(xX,xCon,'T&F',Inf,...
-	'	Select contrasts...',' for conjunction',wOK);
+		'	Select contrasts...',' for conjunction',1);
 
 
 %-Enforce orthogonality of multiple contrasts for conjunction
@@ -250,7 +217,7 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 	% or is colinear with a previous one. Define a new contrast if
 	% neither is the case.
 	%---------------------------------------------------------------
-	d = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
+	d     = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
 
 	if spm_FcUtil('0|[]',oxCon,xX.xKXs)
 
@@ -283,7 +250,7 @@ end % if length(Ic)...
 %-----------------------------------------------------------------------
 if spm_input('mask with other contrast(s)','+1','y/n',[1,0],2)
 	[Im,xCon] = spm_conman(xX,xCon,'T&F',-Inf,...
-		'Select contrasts for masking...',' for masking',wOK);
+		'Select contrasts for masking...',' for masking',1);
 
 	%-Threshold for mask (uncorrected p-value)
 	%---------------------------------------------------------------
@@ -299,14 +266,9 @@ else
 end
 
 
-%-Save contrast structure (if wOK) - ensures new contrasts are saved
-%-----------------------------------------------------------------------
-if wOK, save(fullfile(swd,'xCon.mat'),'xCon'), end
-
-
 %-Create/Get title string for comparison
 %-----------------------------------------------------------------------
-if length(Ic)==1
+if length(Ic) == 1
 	str  = xCon(Ic).name;
 else
 	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
@@ -316,7 +278,7 @@ if Ex
 else
 	mstr = 'masked [inclusive] by';
 end
-if length(Im)==1
+if length(Im) == 1
 	str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
 elseif ~isempty(Im)
@@ -324,254 +286,41 @@ elseif ~isempty(Im)
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
 end
-titlestr = spm_input('title for comparison','+1','s',str);
+titlestr     = spm_input('title for comparison','+1','s',str);
 
 
 
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
-if exist(fullfile(swd,'PPM.mat')) & xCon(Ic).STAT == 'T'
-    if length(Ic) == 1 & isempty(xCon(Ic(1)).Vcon)
+if isfield(SPM,'PPM') & xCon(Ic).STAT == 'T'
+    if length(Ic) == 1 & isempty(xCon(Ic).Vcon)
 	if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
-		xCon(Ic).STAT = 'P';
+
+	% set STAT to 'P'
+        %---------------------------------------------------------------
+	xCon(Ic).STAT = 'P';
+
+	% get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
+        %---------------------------------------------------------------
+	str           = 'contrast threshold (default: prior s.d)';
+	Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+	xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+
 	end
     end
 end
 
-% map parameter and hyperarameter estimates
-%-----------------------------------------------------------------------
-if xCon(Ic(1)).STAT == 'P'
-
-	% Conditional estimators and error variance hyperparameters
-	%----------------------------------------------------------------
-	load(fullfile(swd,'PPM.mat'));
-	xSDM.Vbeta  = ...
-	spm_vol([repmat([swd,filesep],length(Vbeta),1),char(Vbeta)]);
-	xSDM.VHp    = ...
-	spm_vol([repmat([swd,filesep],length(VHp),1),char(VHp)]);
-	xSDM.PPM    = PPM;
-
-else
-	% OLS estimators and error variance estimate
-	%----------------------------------------------------------------
-	xSDM.Vbeta  = ...
-	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
-	xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
-end
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
-spm('Pointer','Watch')
-spm_progress_bar('Init',100,'computing...')                          %-#
-nPar   = size(xX.X,2);
-I      = unique([Ic,Im]);
-for ii = 1:length(I)
-
-    i  = I(ii);
-
-    %-Canonicalise contrast structure with required fields
-    %-------------------------------------------------------------------
-    if (~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf))
-	X1o           = spm_FcUtil('X1o',xCon(i),xX.xKXs);
-	[trMV,trMVMV] = spm_SpUtil('trMV',X1o,xX.V);
-        xCon(i).eidf  = trMV^2/trMVMV;
-    else
-        trMV = []; trMVMV = [];
-    end
-
-    %-Write contrast/ESS images?
-    %-------------------------------------------------------------------
-    if ~isfield(xCon(i),'Vcon') | isempty(xCon(i).Vcon) | ...
-        ~exist(fullfile(swd,xCon(i).Vcon),'file')
-        
-        %-Bomb out (nicely) if can't write to results directory
-        %---------------------------------------------------------------
-        if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
-		['        ',swd],' ','=> can''t compute new contrasts'},...
-		mfilename,sqrt(-1));
-		spm('Pointer','Arrow')
-		error('can''t write contrast image')
-        end
-
-
-	switch(xCon(i).STAT)
-	case {'T','P'} %-Implement contrast as sum of scaled beta images
-        %---------------------------------------------------------------
-            fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
-                                      '(spm_add)','...initialising') %-#
-
-	    Q     = find(abs(xCon(i).c) > 0);
-	    V     = xSDM.Vbeta(Q);
-	    for j = 1:length(Q)
-	        V(j).pinfo(1,:) = V(j).pinfo(1,:)*xCon(i).c(Q(j));
-	    end
-	    
-	    %-Prepare handle for contrast image
-	    %-----------------------------------------------------------
-	    xCon(i).Vcon = struct(...
-	        'fname',  fullfile(swd,sprintf('con_%04d.img',i)),...
-                'dim',    [DIM',16],...
-                'mat',    M,...
-                'pinfo',  [1,0,0]',...
-                'descrip',sprintf('SPM contrast - %d: %s',i,xCon(i).name));
-
-            %-Write image
-	    %-----------------------------------------------------------
-            fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
-            xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
-            xCon(i).Vcon.pinfo(1,1) = spm_add(V,xCon(i).Vcon);
-            xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
-            
-            fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
-                '...written %s',spm_str_manip(xCon(i).Vcon.fname,'t')))%-#
-
-	case 'F'  %-Implement ESS as sum of squared weighted beta images
-        %---------------------------------------------------------------
-            fprintf('\t%-32s: %30s',sprintf('ESS image %2d',i),...
-                                                     '...computing') %-#
-
-            %-Residual (in parameter space) forming mtx
-	    %-----------------------------------------------------------
-            h       = spm_FcUtil('Hsqr',xCon(i),xX.xKXs);
-
-	    %-Prepare handle for ESS image
-	    %-----------------------------------------------------------
-	    xCon(i).Vcon = struct(...
-	        'fname',  fullfile(swd,sprintf('ess_%04d.img',i)),...
-                'dim',    [DIM',16],...
-                'mat',    M,...
-                'pinfo',  [1,0,0]',...
-                'descrip',sprintf('SPM ESS - contrast %d: %s',i,xCon(i).name));
-
-            %-Write image
-	    %-----------------------------------------------------------
-            fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
-            xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
-            xCon(i).Vcon  = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
-            xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
-
-
-	otherwise
-        %---------------------------------------------------------------
-	    error(['unknown STAT "',xCon(i).STAT,'"'])
-
-	end % (switch(xCon...)
-
-    else
-
-	%-Already got contrast/ESS image - remap it w/ full pathname
-        %---------------------------------------------------------------
-	xCon(i).Vcon = spm_vol(fullfile(swd,xCon(i).Vcon));
-
-    end % (if ~isfield...)
-
-    spm_progress_bar('Set',100*ii/(length(I)))             	    %-#
-
-
-    %-Write inference SPM/PPM image(s)
-    %===================================================================
-    if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
-        ~exist(fullfile(swd,xCon(i).Vspm),'file')
-	
-        %-Bomb out (nicely) if can't write to results directory
-        %---------------------------------------------------------------
-        if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
-		['        ',swd],' ','=> can''t compute new contrasts'},...
-		mfilename,sqrt(-1));
-		spm('Pointer','Arrow')
-		error('can''t write SPM image')
-        end
-        fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(i).STAT,i),...
-                                                    '...computing')  %-#
-
-	switch(xCon(i).STAT)
-	case 'T'                                  %-Compute SPM{t} image
-        %---------------------------------------------------------------
-	cB  = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-	l   = spm_sample_vol(xSDM.VResMS,  XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-	VcB = xCon(i).c'*xX.Bcov*xCon(i).c; 
-	Z   = cB./sqrt(l*VcB);
-
-        str = sprintf('[%.2g]',xX.erdf);
-
-
-	case 'P'                                  %-Compute PPM{P} image
-        %---------------------------------------------------------------
-	c     = xCon(i).c;
-	cB    = spm_sample_vol(xCon(i).Vcon, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-	VcB   = c'*PPM.Cby*c;
-	for j = 1:length(PPM.l)
-
-		% hyperparameter and Taylor approximation
-		%-------------------------------------------------------
-		l   = spm_sample_vol(xSDM.VHp(j),XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-		VcB = VcB + (c'*PPM.dC{j}*c)*(l - PPM.l(j));
-	end
-
-	% get Bayesian threshold
-        %---------------------------------------------------------------
-	spm('Pointer','Arrow')
-	str   = 'contrast threshold (default: prior s.d)'
- 	g     = spm_input(str,'+1','e',sprintf('%0.2f',sqrt(c'*PPM.Cb*c)));
-
-	% posterior probability cB > g
-        %---------------------------------------------------------------
-	Z     = 1 - spm_Ncdf(g,cB,VcB);
-        str   = sprintf('[%.2f]',g);
-	xCon(i).name  = [xCon(i).name ' ' str];
-	xCon(i).eidf  = g;
-
-
-	case 'F'                                  %-Compute SPM{F} image
-        %---------------------------------------------------------------
-	MVM  = spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV;
-	RVR  = spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-	Z    = MVM./RVR;
-
-        str = sprintf('[%.2g,%.2g]',xCon(i).eidf,xX.erdf);
-
-	otherwise
-        %---------------------------------------------------------------
-	    error(['unknown STAT "',xCon(i).STAT,'"'])
-	end
-
-
-        %-Write full statistic image
-        %---------------------------------------------------------------
-        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
-        xCon(i).Vspm = struct(...
-	    'fname',  fullfile(swd,sprintf('spm%c_%04d.img',xCon(i).STAT,i)),...
-	    'dim',    [DIM',16],...
-	    'mat',    M,...
-	    'pinfo',  [1,0,0]',...
-	    'descrip',sprintf('SPM{%c_%s} - contrast %d: %s',...
-	                       xCon(i).STAT,str,i,xCon(i).name));
-
-        tmp = zeros(DIM');
-	tmp(cumprod([1,DIM(1:2)'])*XYZ -sum(cumprod(DIM(1:2)'))) = Z;
-
-	xCon(i).Vspm = spm_write_vol(xCon(i).Vspm,tmp);
-
-	clear tmp Z
-        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
-            '...written %s',spm_str_manip(xCon(i).Vspm.fname,'t')))  %-#
-
-    else
-
-	%-Already got statistic image - remap it w/ full pathname
-        %---------------------------------------------------------------
-	xCon(i).Vspm = spm_vol(fullfile(swd,xCon(i).Vspm));
-
-    end % (if ~isfield...)
-
-end % (for ii = 1:length(I))
-spm_progress_bar('Clear')                                            %-#
-
-
+SPM.xCon = xCon;
+SPM      = spm_contrasts(SPM,unique([Ic,Im]));
+xCon     = SPM.xCon;
 
 %-Compute (unfiltered) SPM pointlist for requested masked conjunction
 %=======================================================================
-fprintf('\t%-32s: %30s','SPM computation','...initialising')         %-#
+fprintf('\t%-32s: %30s\n','SPM computation','...initialising')         %-#
+
 
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
@@ -580,13 +329,12 @@ if (length(Ic) > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
 end
 
-%-Compute mask first
+%-Compute mask
 %-----------------------------------------------------------------------
-if ~isempty(Im)
-	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking'), end %-#
-
 for i = Im
-	Mask = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking')
+
+	Mask = spm_get_data(xCon(i).Vspm,XYZ);
 	um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
 	if Ex
 		Q = Mask <= um;
@@ -594,11 +342,13 @@ for i = Im
 		Q = Mask >  um;
 	end
 	XYZ  = XYZ(:,Q);
-	QQ   = QQ(Q);
 	if isempty(Q), break, end
 end
+
 if ~isempty(Im) & ~isempty(Q)
-	Msk  = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
+	Msk  =   XYZ(1,:) + ...
+		(XYZ(2,:) - 1)*SPM.xVol.DIM(1) + ...
+		(XYZ(3,:)-1)*SPM.xVol.DIM(1)*SPM.xVol.DIM(2);
 else
 	Msk  = 0;  %-Statistic images are zero-masked
 end
@@ -611,14 +361,13 @@ if isempty(XYZ)
     warning(sprintf('No voxels survive masking at p=%4.3g',pm))
     Z     = [];
 else
-    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')        %-#
     Z     = Inf;
     for i = Ic
-        Z = min(Z,spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
+        Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
     end
 end
 
-%-Degrees of Fredom and STAT string describing marginal distribution
+%-Degrees of Freedom and STAT string describing marginal distribution
 %-----------------------------------------------------------------------
 edf   = [xCon(Ic(1)).eidf xX.erdf];
 if length(Ic) > 1
@@ -637,36 +386,20 @@ case 'P'
 end
 
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
-
-%-Save mappped statistic image(s) to put in VOL
+%-Save mappped statistic image(s) to put in xSPM
 %-----------------------------------------------------------------------
 VspmSv = cat(1,xCon(Ic).Vspm);
 
-%-Save contrast structure (if wOK), with relative pathnames to image files
-%=======================================================================
-if wOK
-    for i = I;
-	if ~isempty(xCon(i).Vcon)
-        	xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
-	end
-	if ~isempty(xCon(i).Vspm)
-        	xCon(i).Vspm = spm_str_manip(xCon(i).Vspm.fname,'t');
-	end
-    end
-    save(fullfile(swd,'xCon.mat'),'xCon')
-    fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
-end
-
-%-Various parameters...
+%-other parameters...
 %-----------------------------------------------------------------------
-STAT = xCon(Ic(1)).STAT;
-n    = length(Ic);
-u    = -Inf;
-k    = 0;
+STAT   = xCon(Ic(1)).STAT;
+n      = length(Ic);
+u      = -Inf;
+k      = 0;
 
-%-Return to previous directory & clean up interface
+%-clean up interface
 %-----------------------------------------------------------------------
+fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
 spm('Pointer','Arrow')
 
 
@@ -681,15 +414,14 @@ if STAT ~= 'P'
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    str   = 'FWE|FDR|none';
-    d = spm_input('p value adjustment to control','+1','b',str,[],3);
+    str = 'FWE|FDR|none';
+    switch spm_input('p value adjustment to control','+1','b',str,[],3)
 
-    switch d
 
 	case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
 	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
-	u  = spm_uc(u,edf,STAT,xSDM.R,n,xSDM.S);
+	u  = spm_uc(u,edf,STAT,R,n,S);
 
 	case 'FDR' % False discovery rate
 	%---------------------------------------------------------------	
@@ -720,9 +452,8 @@ Q      = find(Z > u);
 %-------------------------------------------------------------------
 Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
-QQ     = QQ(Q);
 if isempty(Q)
-	warning(sprintf('No voxels survive height threshold u=%0.2g',u)),
+	warning(sprintf('No voxels survive height threshold u=%0.2g',u))
 end
 
 
@@ -747,10 +478,9 @@ if ~isempty(XYZ) & length(Ic) == 1
     %-------------------------------------------------------------------
     Z     = Z(:,Q);
     XYZ   = XYZ(:,Q);
-    QQ    = QQ(Q);
-
     if isempty(Q)
-	warning(sprintf('No voxels survive extent threshold k=%0.2g',k)), end
+	warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
+    end
 
 else
 
@@ -762,10 +492,11 @@ end % (if ~isempty(XYZ))
 %=======================================================================
 % - E N D
 %=======================================================================
+fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
 
 %-Assemble output structures of unfiltered data
 %=======================================================================
-SPM    = struct('swd',		swd,...
+xSPM   = struct('swd',		swd,...
 		'title',	titlestr,...
 		'Z',		Z,...
 		'n',		n,...
@@ -779,20 +510,17 @@ SPM    = struct('swd',		swd,...
 		'u',		u,...
 		'k',		k,...
 		'XYZ',		XYZ,...
-		'XYZmm',	M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
-		'QQ',		QQ);
-
-VOL    = struct('S',		S,...
-		'R',		R,...
-		'FWHM',		xSDM.FWHM,...
-		'M',		M,...
-		'iM',		iM,...
-		'VOX',		sqrt(sum(M(1:3,1:3).^2))',...
-		'DIM',		DIM,...
+		'XYZmm',	SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
+		'S',		SPM.xVol.S,...
+		'R',		SPM.xVol.R,...
+		'FWHM',		SPM.xVol.FWHM,...
+		'M',		SPM.xVol.M,...
+		'iM',		SPM.xVol.iM,...
+		'DIM',		SPM.xVol.DIM,...
+		'VOX',		SPM.xVol.M([1 6 11]),...
 		'Vspm',		VspmSv,...
 		'Msk',		Msk);
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------
-if isfield(xSDM,'VRVP'), VOL.VRVP = spm_vol(xSDM.VRVP); end
-
+if isfield(SPM,'VRpv'), xSPM.VRpv = SPM.VRpv; end

@@ -1,19 +1,48 @@
-function [xX,Sess] = spm_fmri_spm_ui
+function [SPM] = spm_fmri_spm_ui(SPM)
 % Setting up the general linear model for fMRI time-series
-% FORMAT [xX,Sess] = spm_fmri_spm_ui
+% FORMAT [SPM] = spm_fmri_spm_ui(SPM)
 %
-% xX            - structure describing design matrix
-% xX.X          - design matrix
-% xX.dt         - time bin {secs}
-% xX.RT         - Repetition time {secs}
-% xX.iH         - vector of H partition (condition effects)      indices,
-% xX.iC         - vector of C partition (covariates of interest) indices
-% xX.iB         - vector of B partition (block effects)          indices
-% xX.iG         - vector of G partition (nuisance variables)     indices
-% xX.Xnames     - cellstr of effect names corresponding to columns
-%                 of the design matrix
+% creates SPM with the following fields
 %
-% Sess{s}      -  see spm_fMRI_design
+%       xY: [1x1 struct] - data stucture
+%    nscan: [double]     - vector of scans per session
+%      xBF: [1x1 struct] - Basis function stucture   (see spm_fMRI_design)
+%     Sess: [1x1 struct] - Session stucture          (see spm_fMRI_design)
+%       xX: [1x1 struct] - Design matric stucture    (see spm_fMRI_design)
+%      xGX: [1x1 struct] - Global variate stucture
+%      xVi: [1x1 struct] - Non-sphericity stucture
+%       xM: [1x1 struct] - Masking stucture
+%     xCon: [1x? struct] - Constrast stucture
+%    xsDes: [1x1 struct] - Design description stucture
+%
+%
+%     SPM.xY  
+%             P: [n x ? char]   - filenames
+%            VY: [n x 1 struct] - filehandles
+%            RT: Repeat time
+%
+%    SPM.xGX
+%
+%       iGXcalc: {'none'|'Scaling'} - Global normalization option    
+%       sGXcalc: 'mean voxel value' - Calculation method
+%        sGMsca: 'session specific' - Grand mean scaling
+%            rg: [n x 1 double]     - Global estimate
+%            GM: 100                - Grand mean
+%           gSF: [n x 1 double]     - Global scaling factor
+%
+%    SPM.xVi
+%            Vi: {[n x n sparse]..}   - covariance components
+%          form: {'none'|'AR(1) + w'} - form of non-sphericity
+%
+%     SPM.xM 
+%             T: [n x 1 double]  - Masking index
+%            TH: [n x 1 double]  - Threshold
+%             I: 0
+%            VM:                 - Mask filehandles
+%            xs: [1x1 struct]    - cellstr description
+%
+% (see also spm_spm_ui)
+%
 %____________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
@@ -143,178 +172,172 @@ function [xX,Sess] = spm_fmri_spm_ui
 %_______________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
 
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% and spm_bch_bchmat (if necessary) accordingly. 
-% Calls to spm_input in this routine use the BCH gobal variable.  
-%    BCH.bch_mat 
-%    BCH.index0  = {'model',index_of_Analysis};
-%_______________________________________________________________________
 
 SCCSid  = '%I%';
 
-global BCH; %- used as a flag to know if we are in batch mode or not.
-
 %-GUI setup
 %-----------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
 
 % get design matrix and/or data
 %=======================================================================
-MType = {  'specify a design',...
-	   'assign data to a design',...
-	   'specify both data and design'};
-MT    = spm_input('What would you like to do?',1,'m',MType,...
-                  'batch',{},'types');
+if ~nargin
 
-%-Initialise output arguments
-%-----------------------------------------------------------------------
-xX   = [];
-Sess = {};
+	str = {	'specify a design',...
+		'assign data to a specified design'};
 
-switch MT
-%-----------------------------------------------------------------------
+	if spm_input('What would you like to do?',1,'m',str,[1 0]);
 
-	case 1
-	% specify a design
-	%---------------------------------------------------------------
-	if sf_abort, spm_clf(Finter), return, end
-	[xX,Sess] = spm_fMRI_design;
-	spm_fMRI_design_show(xX,Sess);
-	return
+		% specify a design
+		%-------------------------------------------------------
+		if sf_abort, spm_clf(Finter), return, end
+		SPM     = spm_fMRI_design;
+		spm_fMRI_design_show(SPM);
+		return
 
-	case 2
-	% load pre-specified design matrix
-	%---------------------------------------------------------------
-	if sf_abort([2,3]), spm_clf(Finter), return, end
-	if isempty(BCH)
-	   load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'));
 	else
-	   load('SPM_fMRIDesMtx.mat');
+
+		% get design
+		%-------------------------------------------------------
+		load(spm_get(1,'SPM.mat','Select SPM.mat'));
+
 	end
 
-	% get filenames
-	%---------------------------------------------------------------
-	nsess  = length(xX.iB);
-	nscan  = zeros(1,nsess);
-	for  i = 1:nsess
-		nscan(i)  = length(find(xX.X(:,xX.iB(i))));
-	end
-	P      = [];
-	for i = 1:nsess
-		str       = sprintf('select scans for session %0.0f',i);
-		if isempty(BCH)
-			q = spm_get(nscan(i),'.img',str);
-		else
-			q = sf_bch_get_q(i);
-		end
-		P         = strvcat(P,q);
-	end
-
-
-	% Repeat time
-	%---------------------------------------------------------------
-	RT     = xX.RT;
-
-	case 3
-	% get filenames and design matrix
-	%---------------------------------------------------------------
-	if sf_abort, spm_clf(Finter), return, end
-	spm_input('Scans & sessions...',1,'d',mfilename,'batch')
-	nsess  = spm_input(['number of sessions'],'+1','e',1,...
-                'batch',{},'nsess');
-	nscan  = zeros(1,nsess);
-	P      = [];
-	for  i = 1:nsess
-		str      = sprintf('select scans for session %0.0f',i);
-		if isempty(BCH)
-		   q     = spm_get(Inf,'.img',str);
-		else
-		   q     = sf_bch_get_q(i);
-		end
- 		P        = strvcat(P,q);
-		nscan(i) = size(q,1);
-	end
-
-	% get Repeat time
-	%---------------------------------------------------------------
-	RT  = spm_input('Interscan interval {secs}','+1','batch',{},'RT');
+else
 
 	% get design matrix
 	%---------------------------------------------------------------
-	[xX,Sess] = spm_fMRI_design(nscan,RT);
+	SPM       = spm_fMRI_design(SPM);
 
 end
+
+% get Repeat time
+%-----------------------------------------------------------------------
+try
+	RT        = SPM.xY.RT;
+catch
+
+	RT        = spm_input('Interscan interval {secs}','+1');
+	SPM.xY.RT = RT;
+end
+
+
+% session and scan number
+%-----------------------------------------------------------------------
+nscan = SPM.nscan;
+nsess = length(nscan);
+
+% check data are specified
+%-----------------------------------------------------------------------
+try 
+	SPM.xY.P;
+catch
+
+	% get filenames
+	%---------------------------------------------------------------
+	P     = [];
+	for i = 1:nsess
+		str = sprintf('select scans for session %0.0f',i);
+		q   = spm_get(nscan(i),'.img',str);
+		P   = strvcat(P,q);
+	end
+
+	% place in data field
+	%---------------------------------------------------------------
+	SPM.xY.P = P;
+
+end
+
 
 
 % Assemble remaining design parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
-spm_input('Global intensity normalisation...',1,'d',mfilename,'batch')
+SPM.SPMid = spm('FnBanner',mfilename,SCCSid);
 
 
 % Global normalization
 %-----------------------------------------------------------------------
-str    = 'remove Global effects';
-Global = spm_input(str,'+1','scale|none',{'Scaling' 'None'},...
-		    'batch',{},'global_effects');
-
-% Temporal filtering
-%=======================================================================
-spm_input('Temporal autocorrelation options','+1','d',mfilename,'batch')
-
-% High-pass filtering
-%-----------------------------------------------------------------------
-cF    = spm_input('High-pass filter?','+1','b','none|specify',...
-			'batch',{},'HF_fil');
-switch cF
-
-	case 'specify'
-
-	% default 128 seconds
-	%---------------------------------------------------------------
-	HParam = 128*ones(1,nsess);
-	str    = 'session cutoff period (secs)';
-	HParam = spm_input(str,'+1','e',HParam,[1 nsess],...
-	                  'batch',{},'HF_cut');
-
-	% Filter description
-	%---------------------------------------------------------------
-	Fstr   = sprintf('[min] Cutoff period %d seconds',min(HParam));
-
-	case 'none'
-	%---------------------------------------------------------------
-	HParam = Inf*ones(1,nsess);;
-	Fstr   = cF;
+nsess = length(SPM.nscan);
+try 
+	SPM.xGX.iGXcalc;
+catch
+	spm_input('Global intensity normalisation...',1,'d',mfilename)
+	str             = 'remove Global effects';
+	SPM.xGX.iGXcalc = spm_input(str,'+1','scale|none',{'Scaling' 'None'});
 end
+SPM.xGX.sGXcalc = 'mean voxel value';
+SPM.xGX.sGMsca  = 'session specific';
 
+
+% High-pass filtering and serial correlations
+%=======================================================================
+
+% low frequency confounds
+%-----------------------------------------------------------------------
+try
+	HParam = SPM.xX.K(1).HParam;
+	HParam = HParam*ones(1,nsess);
+catch
+	% specify low frequnecy confounds
+	%---------------------------------------------------------------
+	spm_input('Temporal autocorrelation options','+1','d',mfilename)
+	switch spm_input('High-pass filter?','+1','b','none|specify');
+
+		case 'specify'  % default 128 seconds
+		%-------------------------------------------------------
+		HParam = 128*ones(1,nsess);
+		str    = 'session cutoff period (secs)';
+		HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
+
+		case 'none'  % Inf seconds
+		%-------------------------------------------------------
+		HParam = Inf*ones(1,nsess);
+	end
+end
 
 % create and set filter struct
-%-----------------------------------------------------------------------
-for i = 1:nsess
-	K{i} = struct(	'HParam',	HParam(i),...
-			'row',		Sess{i}.row,...
-			'RT',		xX.RT);
+%---------------------------------------------------------------
+for  i = 1:nsess
+	K(i) = struct(	'HParam',	HParam(i),...
+			'row',		SPM.Sess(i).row,...
+			'RT',		SPM.xY.RT);
 end
-K       = spm_filter(K);
+SPM.xX.K = spm_filter(K);
 
 
 
 % intrinsic autocorrelations (Vi)
 %-----------------------------------------------------------------------
-str     = 'Correct for serial correlations?';
-cVi     = {'none','AR(1) + w'};
-cVi     = spm_input(str,'+1','b',cVi,'batch',{},'int_corr');
+try 
+	cVi   = SPM.xVi.form;
+catch
+	% Contruct Vi structure for non-sphericity ReML estimation
+	%===============================================================
+	str   = 'Correct for serial correlations?';
+	cVi   = {'none','AR(1) + w'};
+	cVi   = spm_input(str,'+1','b',cVi);
+end
+
+% create Vi struct
+%---------------------------------------------------------------
+switch cVi
+
+	case 'AR(1) + w'
+	%-------------------------------------------------------
+	Q    = spm_Ce(nscan,2);
+
+	case 'none'
+	%-------------------------------------------------------
+	Q    = speye(sum(nscan));
+
+end
+SPM.xVi.Vi   = Q;
+SPM.xVi.form = cVi;
 
 
-%-Estimate now or later?
-%-----------------------------------------------------------------------
-bEstNow = spm_input('estimate?','_','b','now|later',[1,0],1,...
-		'batch',{},'now_later');
 
 %=======================================================================
 % - C O N F I G U R E   D E S I G N
@@ -324,213 +347,169 @@ spm('FigName','Configuring, please wait...',Finter,CmdLine);
 spm('Pointer','Watch');
 
 
-% Contruct Vi structure for non-sphericity ReML estimation
+% get file identifiers
 %=======================================================================
 
-% create Vi struct
+%-Map files
 %-----------------------------------------------------------------------
-switch cVi
+fprintf('%-40s: ','Mapping files')                          	     %-#
+VY    = spm_vol(SPM.xY.P);
+fprintf('%30s\n','...done')                                 	     %-#
 
-	case 'AR(1) + w'
-	%---------------------------------------------------------------
-	Q  = spm_Ce(nscan,2);
-
-	case 'none'
-	%---------------------------------------------------------------
-	Q  = speye(sum(nscan));
-
-end
-xVi.Vi   = Q;
-xVi.form = cVi;
-
-
-% get file identifiers and Global values
-%=======================================================================
-fprintf('%-40s: ','Mapping files')                                   %-#
-VY     = spm_vol(P);
-fprintf('%30s\n','...done')                                          %-#
-
-if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0])
-	error('images do not all have the same dimensions'),           end
+%-check internal consistency of images
+%-----------------------------------------------------------------------
+if any(any(diff(cat(1,VY.dim),1,1),1) & [1,1,1,0])
+error('images do not all have the same dimensions'),           end
 if any(any(any(diff(cat(3,VY.mat),1,3),3)))
-	error('images do not all have same orientation & voxel size'), end
+error('images do not all have same orientation & voxel size'), end
+
+%-place in xY
+%-----------------------------------------------------------------------
+SPM.xY.VY = VY;
 
 
 %-Compute Global variate
-%-----------------------------------------------------------------------
-GM     = 100;
-q      = sum(nscan);
-g      = zeros(q,1);
+%=======================================================================
+GM    = 100;
+q     = length(VY);
+g     = zeros(q,1);
 fprintf('%-40s: %30s','Calculating globals',' ')                     %-#
-for i  = 1:q
+for i = 1:q
 	fprintf('%s%30s',sprintf('\b')*ones(1,30),sprintf('%4d/%-4d',i,q)) %-#
 	g(i) = spm_global(VY(i));
 end
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
-
 % scale if specified (otherwise session specific grand mean scaling)
 %-----------------------------------------------------------------------
-gSF     = GM./g;
-if strcmp(Global,'None')
+gSF   = GM./g;
+if strcmp(SPM.xGX.iGXcalc,'None')
 	for i = 1:nsess
-		j      = Sess{i}.row;
-		gSF(j) = GM./mean(g(j));
+		gSF(Sess(i).row) = GM./mean(g(Sess(i).row));
 	end
 end
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %-----------------------------------------------------------------------
-for  i = 1:q, VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i); end
-
-
-%-Masking structure
-%-----------------------------------------------------------------------
-xM     = struct('T',	ones(q,1),...
-		'TH',	g.*gSF,...
-		'I',	0,...
-		'VM',	{[]},...
-		'xs',	struct('Masking','analysis threshold'));
-
-
-%-Complete design matrix (xX)
-%=======================================================================
-xX.K   = K;
-xX.xVi = xVi;
-
-
-%-Effects designated "of interest" - constuct F-contrast structure array
-%-----------------------------------------------------------------------
-if length(xX.iC)
-	F_iX0 = struct(	'iX0',		xX.iB,...
-			'name',		'effects of interest');
-else
-	F_iX0 = [];
+for i = 1:q
+	SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:)*gSF(i);
 end
 
-%-Trial-specifc effects specified by Sess
+%-place global variates in global structure
+%-----------------------------------------------------------------------
+SPM.xGX.rg    = g;
+SPM.xGX.GM    = GM;
+SPM.xGX.gSF   = gSF;
+
+
+%-Masking structure automatically set to 80% of mean
+%=======================================================================
+SPM.xM        = struct(	'T',	ones(q,1),...
+			'TH',	g.*gSF*0.8,...
+			'I',	0,...
+			'VM',	{[]},...
+			'xs',	struct('Masking','analysis threshold'));
+
+
+
+
+%-Degrees of freedom assuming i.i.d. errors
+%=======================================================================
+
+%-Parameter projection matrix and traces
+%-----------------------------------------------------------------------
+SPM.xX.xKXs  = spm_sp('Set',spm_filter(SPM.xX.K, SPM.xX.X));
+SPM.xX.pKX   = spm_sp('x-',SPM.xX.xKXs);
+SPM.xX.trRV  = spm_SpUtil('trRV',SPM.xX.xKXs);
+SPM.xX.erdf  = SPM.xX.trRV;
+
+
+%-Check estimability
+%-----------------------------------------------------------------------
+if     SPM.xX.erdf < 0
+    error(sprintf('This design is unestimable!   (df=%-.2g)',SPM.xX.erdf))
+elseif SPM.xX.erdf == 0
+    error('This design has no residuals! (df = 0)')
+elseif SPM.xX.erdf <  4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',SPM.xX.erdf))
+end
+
+
+%-Create Contrast structure array - xCon
+%=======================================================================
+iX0    = SPM.xX.iB;
+Fcname = 'effects of interest';
+xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,SPM.xX.xKXs);
+
+%-Trial-specifc effects specified by SPM.Sess(1).Fc
 %-----------------------------------------------------------------------
 for s = 1:nsess
 	str   = sprintf('Session %d: ',s);
-	for i = 1:length(Sess{s}.Fci)
-		q                  = 1:size(xX.X,2);
-		FciX               = Sess{s}.col(Sess{s}.Fci{i});
-		q(FciX)            = [];
-		F_iX0(end + 1).iX0 = q;
-		F_iX0(end).name    = [str Sess{s}.Fcname{i}];
+	for i = 1:length(SPM.Sess(1).Fc)
+		iX0           = 1:size(SPM.xX.X,2);
+		iX            = SPM.Sess(s).col(SPM.Sess(s).Fc(i).i);
+		iX0(iX)       = [];
+		Fcname        = [str SPM.Sess(s).Fc(i).name];
+		xCon(end + 1) = ...
+		spm_FcUtil('Set',Fcname,'F','iX0',iX0,SPM.xX.xKXs);
 	end
 end
+SPM.xCon  = xCon;
+
 
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
-for i   = 1:length(Sess), ntr(i) = length(Sess{i}.U); end
-sGXcalc = 'mean voxel value';
-sGMsca  = 'session specific';
-xsDes   = struct(	'Basis_functions',	Sess{1}.Bfname,...
-			'Number_of_sessions',	sprintf('%d',nsess),...
-			'Trials_per_session',	sprintf('%-3d',ntr),...
-			'Interscan_interval',	sprintf('%0.2f',xX.RT),...
-			'High_pass_Filter',	Fstr,...
-			'Serial_correlations',	xVi.form,...
-			'Global_calculation',	sGXcalc,...
-			'Grand_mean_scaling',	sGMsca,...
-			'Global_normalisation',	Global);
-%-global structure
-%-----------------------------------------------------------------------
-xGX.iGXcalc = Global{:};
-xGX.sGXcalc = sGXcalc;
-xGX.rg      = g;
-xGX.sGMsca  = sGMsca;
-xGX.GM      = GM;
-xGX.gSF     = gSF;
+for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
+Fstr      = sprintf('[min] Cutoff period %d seconds',min(HParam));
+SPM.xsDes = struct(...
+	'Basis_functions',	SPM.xBF.name,...
+	'Number_of_sessions',	sprintf('%d',nsess),...
+	'Trials_per_session',	sprintf('%-3d',ntr),...
+	'Interscan_interval',	sprintf('%0.2f {s}',SPM.xY.RT),...
+	'High_pass_Filter',	sprintf('Cutoff: %d {s}',SPM.xX.K(1).HParam),...
+	'Serial_correlations',	SPM.xVi.form,...
+	'Global_calculation',	SPM.xGX.sGXcalc,...
+	'Grand_mean_scaling',	SPM.xGX.sGMsca,...
+	'Global_normalisation',	SPM.xGX.iGXcalc);
 
 
-%-Save SPMcfg.mat file
+%-Save SPM.mat
 %-----------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
-save('SPMcfg','SPMid','xsDes','VY','xX','xM','xGX','F_iX0','Sess');
-fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
+fprintf('%-40s: ','Saving SPM configuration')                        %-#
+save SPM SPM;
+fprintf('%30s\n','...SPM.mat saved')                                 %-#
 
  
 %-Display Design report
 %=======================================================================
-fprintf('%-40s: ','Design reporting')                                %-#
-spm_DesRep('DesMtx',xX,reshape({VY.fname},size(VY)),xsDes)
+fprintf('%-40s: ','Design reporting')                        %-#
+fname     = cat(1,{SPM.xY.VY.fname}');
+spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
 fprintf('%30s\n','...done')                                          %-#
 
 
-%-Analysis Proper
-%=======================================================================
-spm_clf(Finter);
-spm('FigName','fMRI stats models',Finter,CmdLine);
-if bEstNow
-	spm('Pointer','Watch')
-	spm('FigName','Stats: estimating...',Finter,CmdLine);
-	spm_spm(VY,xX,xM,F_iX0,Sess,xsDes);
-	spm('Pointer','Arrow')
-else
-	spm_clf(Finter)
-	spm('FigName','Stats: configured',Finter,CmdLine);
-	spm('Pointer','Arrow')
-	spm_DesRep('DesRepUI',struct(	'xX',		xX,...
-					'VY',		VY,...
-					'xM',		xM,...
-					'F_iX0',	F_iX0,...
-					'Sess',		{Sess},...
-					'xsDes',	xsDes,...
-					'swd',		pwd,...
-					'SPMid',	SPMid,...
-					'cfg',		'SPMcfg'));
-end
-
-
 %-End: Cleanup GUI
-%-----------------------------------------------------------------------
+%=======================================================================
+spm_clf(Finter)
+spm('FigName','Stats: configured',Finter,CmdLine);
+spm('Pointer','Arrow')
 fprintf('\n\n')
-
 
 
 %=======================================================================
 %- S U B - F U N C T I O N S
 %=======================================================================
 
-function abort = sf_abort(i)
+function abort = sf_abort
 %=======================================================================
-if nargin < 1, i = [1:3]; end
-tmp    = zeros(1,3);
-tmp(i) = 1;
-tmp = tmp & [	exist(fullfile('.','SPM_fMRIDesMtx.mat'),'file')==2 ,...
-		exist(fullfile('.','SPMcfg.mat'),        'file')==2 ,...
-		exist(fullfile('.','SPM.mat'),           'file')==2 ];
-if any(tmp)
-	str = {	'    SPM fMRI design matrix definition (SPM_fMRIDesMtx.mat)',...
-		'    SPMstats configuration            (SPMcfg.mat)',...
-		'    SPMstats results files            (inc. SPM.mat)'};
-	str = {	'Current directory contains existing SPMstats files:',...
-		str{tmp},['(pwd = ',pwd,')'],' ',...
-		'Continuing will overwrite existing files!'};
+if exist(fullfile('.','SPM.mat'))
+	str = {	'Current directory contains existing SPM file:',...
+		'Continuing will overwrite existing file!'};
 
-	abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename,...
-                         'batch',{},'stop_writing');
+	abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
 	if abort, fprintf('%-40s: %30s\n\n',...
-		'Abort...   (existing SPMstats files)',spm('time')), end
+		'Abort...   (existing SPM files)',spm('time')), end
 else
 	abort = 0;
 end
-
-function q = sf_bch_get_q(i)
-%=======================================================================
-% This is to deal with a specific case where the sampling   
-% isn't regular. Only implemented in bch mode.
-% 
-q 	     = spm_input('batch',{},'files',i);
-files 	     = q;
-t_sampl      = spm_input('batch',{},'time_sampl',i);
-remain       = spm_input('batch',{},'remain',i);
-q(remain,:)  = files;
-
-%- fills the gap with the first images ...
-%-----------------------------------------------------------------------
-%- there should be enough first images!
-q(t_sampl,:) = files(1:length(t_sampl),:);

@@ -1,14 +1,14 @@
-function [X,Xname,ind,Uname] = spm_Volterra(U,bf,V)
+function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % generalized convolution of inputs (U) with basis set (bf)
-% FORMAT [X,Xname,ind,Uname] = spm_Volterra(U,bf,V);
-% U{i}     -  input structure
-% bf       -  Basis functions
-% V        -  [1 or 2] order of Volterra expansion [default = 1]
+% FORMAT [X,Xname,Fc] = spm_Volterra(U,bf,V);
+% U          -  input structure array
+% bf         -  Basis functions
+% V          -  [1 or 2] order of Volterra expansion [default = 1]
 %
-% X        -  Design Matrix
-% Xname    -  names of regressors [columns] in X
-% ind{i}   -  indices pertaining to input i (and interactions)
-% Canme{i} -  names pertaining to input i (and interactions)
+% X          -  Design Matrix
+% Xname      -  names of regressors [columns] in X
+% Fc(j).i    -  indices pertaining to input i (and interactions)
+% Fc(j).name -  names pertaining to input i   (and interactions)
 %___________________________________________________________________________
 %
 % For first order expansions spm_Volterra simply convolves the causes
@@ -35,11 +35,12 @@ X     = [];
 Xname = {};
 ind   = {};
 Uname = {};
+Fc    = {};
 for i = 1:length(U)
-    ind     = {ind{:} {}};
-    for k = 1:size(U{i}.u,2)
+    ind   = [];
+    for k = 1:size(U(i).u,2)
 	for p = 1:size(bf,2)
-		x      = U{i}.u(:,k);
+		x      = U(i).u(:,k);
 		d      = 1:length(x);
 		x      = conv(full(x),bf(:,p));
 		x      = x(d);
@@ -47,12 +48,13 @@ for i = 1:length(U)
 
 		% indices and regressor names
 		%-----------------------------------------------------------
-		str            = sprintf('%s*bf(%i)',U{i}.Uname{k},p);
+		str            = sprintf('%s*bf(%i)',U(i).name{k},p);
 		Xname{end + 1} = str;
-		ind{end}       = [ind{end} size(X,2)];
+		ind(end + 1)   = size(X,2);
 	end
     end
-    Uname{end + 1} = U{i}.Uname{1};
+    Fc(end + 1).i = ind;
+    Fc(end).name  = U(i).name{1};
 end
 
 % return if first order
@@ -63,11 +65,11 @@ if V == 1, return, end
 %---------------------------------------------------------------------------
 for i = 1:length(U) 
 for j = i:length(U)
-    	ind   = {ind{:} {}};
+	ind   = [];
 	for p = 1:size(bf,2)
 	for q = 1:size(bf,2)
-		x      = U{i}.u(:,1);
-		y      = U{j}.u(:,1);
+		x      = U(i).u(:,1);
+		y      = U(j).u(:,1);
 		x      = conv(full(x),bf(:,p));
 		y      = conv(full(y),bf(:,q));
 		x      = x(d);
@@ -77,12 +79,13 @@ for j = i:length(U)
 		% indices and regressor names
 		%-----------------------------------------------------------	
 		str            = sprintf('%s*bf(%i)x%s*bf(%i)',...
-					      U{i}.Uname{1},p,...
-					      U{j}.Uname{1},q);
+					      U(i).name{1},p,...
+					      U(j).name{1},q);
 		Xname{end + 1} = str;
-		ind{end}       = [ind{end} size(X,2)];
+		ind(end + 1)   = size(X,2);
 	end
 	end
-	Uname{end + 1} = [U{i}.Uname{1} 'x' U{j}.Uname{1}];
+	Fc(end + 1).i = ind;
+	Fc(end).name  = [U(i).name{1} 'x' U(j).name{1}];
 end
 end

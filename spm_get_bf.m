@@ -1,11 +1,22 @@
-function [bf,Bname] = spm_get_bf(dt)
-% return hemodynamic basis functions
-% FORMAT [bf Bname] = spm_get_bf(dt);
+function [xBF] = spm_get_bf(xBF)
+% fills in basis function structure
+% FORMAT [xBF] = spm_get_bf(xBF);
 %
-% dt    - time bin length {seconds}
+% xBF.dt      - time bin length {seconds}
+% xBF.name    - description of basis functions specified
+% xBF.length  - window length (secs)
+% xBF.order   - order
+% xBF.bf      - Matrix of basis functions
 %
-% bf    - Matrix [hemodyanic] basis functions
-% Bname - description of basis functions specified
+% xBF.name	'hrf'
+%		'hrf (with time derivative)'
+%		'hrf (with time and dispersion derivatives)'
+%		'Fourier set'
+%		'Fourier set (Hanning)'
+%		'Gamma functions'
+%		'Finite Impulse Response'};
+%
+% (any other specifiaction will default to hrf)
 %_______________________________________________________________________
 %
 % spm_get_bf prompts for basis functions to model event or epoch-related
@@ -15,22 +26,18 @@ function [bf,Bname] = spm_get_bf(dt)
 % responses enters.
 %_______________________________________________________________________
 % %W%  Karl Friston %E%
-%
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% and spm_bch_bchmat (if necessary) accordingly. 
-% Calls to spm_input in this routine use the BCH gobal variable.  
-%    BCH.bch_mat 
-%    BCH.index0  = {'model',index_of_Analysis};
-%_______________________________________________________________________
-
-global BCH
 
 %-GUI setup
 %-----------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
-spm_input('Hemodynamic Basis functions...',1,'d')
+
+% length of time bin
+%-----------------------------------------------------------------------
+if ~nargin
+	str    = 'time bin for basis functions {secs}';
+	xBF.dt = spm_input(str,'+1','r',1/16,1);
+end
+dt   = xBF.dt;
 
 
 % assemble basis functions
@@ -38,42 +45,58 @@ spm_input('Hemodynamic Basis functions...',1,'d')
 
 % model event-related responses
 %-----------------------------------------------------------------------
-Ctype = {
-		'hrf (alone)',...
+if ~isfield(xBF,'name')
+	spm_input('Hemodynamic Basis functions...',1,'d')
+	Ctype = {
+		'hrf',...
 		'hrf (with time derivative)',...
 		'hrf (with time and dispersion derivatives)',...
-		'basis functions (Fourier set)',...
-		'basis functions (Fourier set with Hanning)',...
-		'basis functions (Gamma functions)',...
-		'basis functions (Gamma functions with derivatives)',...
-		'basis functions (Finite Impulse Response)'};
-str   = 'Select basis set';
-Sel   = spm_input(str,2,'m',Ctype);
-Bname = Ctype{Sel};
+		'Fourier set',...
+		'Fourier set (Hanning)',...
+		'Gamma functions',...
+		'Finite Impulse Response'};
+	str   = 'Select basis set';
+	Sel   = spm_input(str,2,'m',Ctype);
+	xBF.name = Ctype{Sel};
+end
+
+% get order and length parameters
+%-----------------------------------------------------------------------
+switch xBF.name
+
+	case {	'Fourier set','Fourier set (Hanning)',...
+		'Gamma functions','Finite Impulse Response'}
+	%---------------------------------------------------------------
+	try,	l          = xBF.length;
+	catch,	l          = spm_input('window length {secs}',3,'e',32);
+		xBF.length = l;
+	end
+	try,	h          = xBF.order;
+	catch,	h          = spm_input('order',4,'e',4);
+		xBF.order  = h;
+	end
+end
+
 
 
 % create basis functions
 %-----------------------------------------------------------------------
-if     Sel == 4 | Sel == 5
+switch xBF.name
 
-	% Windowed (Hanning) Fourier set
+	case {'Fourier set','Fourier set (Hanning)'}
 	%---------------------------------------------------------------
-	str   = 'window length {secs}';
-	pst   = spm_input(str,3,'e',32);
-	pst   = [0:dt:pst]';
+	pst   = [0:dt:l]';
 	pst   = pst/max(pst);
-	h     = spm_input('order',4,'e',4);
-
 
 	% hanning window
 	%---------------------------------------------------------------
-	if Sel == 4
-		g = ones(size(pst));
+	if strcmp(xBF.name,'Fourier set (Hanning)')
+		g  = (1 - cos(2*pi*pst))/2;
 	else
-		g = (1 - cos(2*pi*pst))/2;
+		g  = ones(size(pst));
 	end
 
-	% zeroth and higher terms
+	% zeroth and higher Fourier terms
 	%---------------------------------------------------------------
 	bf    = g;
 	for i = 1:h
@@ -81,52 +104,36 @@ if     Sel == 4 | Sel == 5
 		bf = [bf g.*cos(i*2*pi*pst)];	
 	end
 
-elseif Sel == 6 | Sel == 7
-
-
-	% Gamma functions alone
+	case {'Gamma functions'}
 	%---------------------------------------------------------------
-	pst   = [0:dt:32]';
-	dx    = 0.01;
-	bf    = spm_gamma_bf(pst);
+	pst   = [0:dt:l]';
+	bf    = spm_gamma_bf(pst,h);
 
-	% Gamma functions and derivatives
+	case {'Finite Impulse Response'}
 	%---------------------------------------------------------------
-	if Sel == 7
-		bf  = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
-	end
+	bin   = l/h;
+	bf    = kron(eye(h),ones(round(bin/dt),1));
 
 
-elseif Sel == 8
+otherwise
 
-
-	% Finite Impulse Response
+	% canonical hemodynaic response function
 	%---------------------------------------------------------------
-	bin   = spm_input('bin size (seconds)',3,'e',2);	
-	nb    = spm_input('number of bins',4,'e',8);
-	bf    = kron(eye(nb),ones(round(bin/dt),1));
-
-
-elseif Sel == 1 | Sel == 2 | Sel == 3
-
-
-	% hrf and derivatives
-	%---------------------------------------------------------------
-	[bf p] = spm_hrf(dt);
+	[bf p]         = spm_hrf(dt);
 
 	% add time derivative
 	%---------------------------------------------------------------
-	if Sel == 2 | Sel == 3
+	if findstr(xBF.name,'time')
 
-		dp    = 1;
-		p(6)  = p(6) + dp;
-		D     = (bf(:,1) - spm_hrf(dt,p))/dp;
-		bf    = [bf D(:)];
-		p(6)  = p(6) - dp;
+		dp     = 1;
+		p(6)   = p(6) + dp;
+		D      = (bf(:,1) - spm_hrf(dt,p))/dp;
+		bf     = [bf D(:)];
+		p(6)   = p(6) - dp;
 
 		% add dispersion derivative
 		%--------------------------------------------------------
-		if Sel == 3
+		if findstr(xBF.name,'dispersion')
 
 			dp    = 0.01;
 			p(3)  = p(3) + dp;
@@ -134,12 +141,18 @@ elseif Sel == 1 | Sel == 2 | Sel == 3
 			bf    = [bf D(:)];
 		end
 	end
+
+	% length and order
+	%---------------------------------------------------------------
+	xBF.length = size(bf,1)*dt;
+	xBF.order  = size(bf,2);
+
 end
 
 
 % Orthogonalize and fill in basis function structure
 %------------------------------------------------------------------------
-bf    =  spm_orth(bf);
+xBF.bf  =  spm_orth(bf);
 
 
 %=======================================================================
@@ -148,15 +161,16 @@ bf    =  spm_orth(bf);
 
 % compute Gamma functions functions
 %-----------------------------------------------------------------------
-function bf = spm_gamma_bf(u)
+function bf = spm_gamma_bf(u,h)
 % returns basis functions used for Volterra expansion
-% FORMAT bf = spm_gamma_bf(u);
+% FORMAT bf = spm_gamma_bf(u,h);
 % u   - times {seconds}
+% h   - order
 % bf  - basis functions (mixture of Gammas)
 %_______________________________________________________________________
 u     = u(:);
 bf    = [];
-for i = 2:4
+for i = 2:(1 + h)
         m   = 2^i;
         s   = sqrt(m);
         bf  = [bf spm_Gpdf(u,(m/s)^2,m/s^2)];

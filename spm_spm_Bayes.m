@@ -1,6 +1,6 @@
-function spm_spm_Bayes
+function [SPM] = spm_spm_Bayes(SPM)
 % Conditional parameter estimation of a General Linear Model
-% FORMAT spm_spm_Bayes
+% FORMAT [SPM] = spm_spm_Bayes(SPM)
 %_______________________________________________________________________
 % spm_spm_Bayes returns to voxels identified by spm_spm (OLS parameter
 % estimation) to get conditional parameter estimates and ReML hyper-
@@ -20,20 +20,26 @@ function spm_spm_Bayes
 % things much more computationally efficient and avoids inefficient
 % voxel-specific multiple hyperparameter estimates.
 %
-% spm_spm_Bayes saves:
+% spm_spm_Bayes adds the following feilds to SPM:
 %
 %                           ----------------
 %
 %
-%	PPM.l           = session-specific hyper-parameter means
-%	PPM.C(v,v)      = conditional covariances of parameters;
-%	PPM.dC{i}(v,v)  = dC/dl;
-%	PPM.ddC{i}(v,v) = ddC/dldl
+%	SPM.PPM.l      = session-specific hyperparameter means
+%	SPM.PPM.Cb     = empirical prior parameter covariances
+%	SPM.PPM.C      = conditional covariances of parameters
+%	SPM.PPM.dC{i}  = dC/dl;
+%	SPM.PPM.ddC{i} = ddC/dldl
 %
 % The derivatives are used to compute the conditional variance of various
 % contrasts in spm_getSPM, using a second order Taylor expansion about the
 % hyperparameter means.
 %
+%
+%                           ----------------
+%
+%	SPM.VCbeta     - Handles of conditional parameter estimates
+%	SPM.VHp        - Handles of hyperparameter estimates
 %
 %                           ----------------
 %
@@ -59,23 +65,24 @@ Finter = spm('FigName','Stats: Bayesian estimation...');
 
 %-Select SPM.mat & change directory
 %-----------------------------------------------------------------------
-swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
-load(fullfile(swd,'SPM.mat'))
+if ~nargin
+	swd = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	load(fullfile(swd,'SPM.mat'))
+	cd(swd)
+end
 spm('Pointer','Watch')
-cd(swd)
 
 
 %-Parameters
 %-----------------------------------------------------------------------
-global MAXMEM 
-if length(MAXMEM)	
-	maxMem = MAXMEM;	
-else
-	maxMem = 2^20;	%-Max data chunking size, in bytes
+MAXMEM = spm('GetGlobal','MAXMEM');
+if isempty(MAXMEM)
+	MAXMEM = 2^20;
 end
-M      = VY(1,1).mat;
-DIM    = VY(1,1).dim(1:3)';
-N      = 3 - sum(DIM == 1);
+M      = SPM.xVol.M;
+DIM    = SPM.xVol.DIM;
+xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
+XYZ    = SPM.xVol.XYZ;
 
 
 %=======================================================================
@@ -86,13 +93,9 @@ N      = 3 - sum(DIM == 1);
 %=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising')             %-#
 
-%-Image dimensions
-%-----------------------------------------------------------------------
-xdim  = DIM(1); ydim = DIM(2); zdim = DIM(3);
-
 %-Intialise oonditional estimate image files
 %-----------------------------------------------------------------------
-clear Vbeta
+xX             = SPM.xX;
 [nScan nBeta]  = size(xX.X);
 Vbeta(1:nBeta) = deal(struct(...
 			'fname',	[],...
@@ -102,19 +105,15 @@ Vbeta(1:nBeta) = deal(struct(...
 			'descrip',	''));
 for i = 1:nBeta
 	Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
-	Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.Xnames{i});
+	Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
 	Vbeta(i)         = spm_create_image(Vbeta(i));
 end
 
 %-Intialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
-if exist('Sess')
-	nHp = length(Sess);
-else
-	nHp = 1;
-end
-VHp(1:nHp)  = deal(struct(...
+nHp     = length(SPM.nscan);
+VHp(1:nHp)     = deal(struct(...
 			'fname',	[],...
 			'dim',		[DIM',spm_type('double')],...
 			'mat',		M,...
@@ -137,22 +136,20 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...estimatng priors')   %-#
 
 % get row u{i} and column {vi}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
-if exist('Sess')
-	s     = length(Sess);
+s      = nHp;
+if isfield(SPM,'Sess')
 	for i = 1:s
-		 u{i} = Sess{i}.row;
-		 v{i} = Sess{i}.col;
+		 u{i} = SPM.Sess(i).row;
+		 v{i} = SPM.Sess(i).col;
 		v0{i} = xX.iB(i);
-
 	end
 else
-            s = 1;
 	 u{1} = [1:nScan];
 	 v{1} = [xX.iH xX.iC];
 	v0{1} = [xX.iB xX.iG]
 end
 
-% cycle over sperarable paritions
+% cycle over separarable partitions
 %-----------------------------------------------------------------------
 for i = 1:s
 
@@ -165,26 +162,26 @@ for i = 1:s
 
 	% add confound in 'filter'
 	%---------------------------------------------------------------
-	if iscell(xX.K)
-		X0 = full([X0 xX.K{i}.KH]);
+	if isstruct(xX.K)
+		X0 = full([X0 xX.K(i).KH]);
 	end
 
 	% orthogonalize X w.r.t. X0
 	%---------------------------------------------------------------
 	X      = X - X0*(pinv(X0)*X);
 
-	% covariance components induced by parameter variation over voxels
+	% covariance components induced by parameter variations {Q}
 	%---------------------------------------------------------------
 	for  j = 1:n
 		Q{j} = X*sparse(j,j,1,n,n)*X';
 	end
 
-	% covariance components induced by error non-sphericity {Q}
+	% covariance components induced by error non-sphericity {V}
 	%---------------------------------------------------------------
 	V      = {};
-	if iscell(xX.xVi.Vi)
-		for j = 1:length(xX.xVi.Vi)
-			q    = xX.xVi.Vi{j}(u{i},u{i});
+	if iscell(SPM.xVi.Vi)
+		for j = 1:length(SPM.xVi.Vi)
+			q  = SPM.xVi.Vi{j}(u{i},u{i});
 			if any(find(q));
 				V{end + 1} = q;
 			end
@@ -193,11 +190,24 @@ for i = 1:s
 		V     = {speye(m,m)};
 	end
 
-
-	% ReML ovariance component estimation
+	% ReML covariance component estimation
 	%---------------------------------------------------------------
-	[C h W] = spm_reml(CY,X0,{Q{:} V{:}});
+	[C h W] = spm_reml(SPM.xVi.CY,X0,{Q{:} V{:}});
 
+	% check for negative variance component estimates
+	%---------------------------------------------------------------
+	if any(h < 0)
+		W     = diag(W);
+		Xname = SPM.xX.name{find(W == min(W))};
+		str = {	'Bayesian estimation is compromised';...
+			'by negative variance component estimates';...
+			[Xname 'was estimated imprecisely'];...
+			'Recommendation: Remove and this related';...
+			'regressors from the model'};
+		if spm_input(str,1,'bd','stop|continue',[1,0],1)
+			return
+		end
+	end
 
 	% lump error covariance components togther to form V
 	%---------------------------------------------------------------
@@ -209,7 +219,7 @@ for i = 1:s
 		V     = {q*m/trace(q)};
 	end
 
-	%-design structure for this partition using prior variances sP(i)
+	% 2-level model for this partition using prior variances sP(i)
 	% treat confounds as fixed (i.e. infinite prior variance)
 	%---------------------------------------------------------------
 	n0      = size(X0,2);
@@ -238,7 +248,7 @@ spm_progress_bar('Init',100,'Bayesian estimation','');
 
 %-Find a suitable block size for loop over planes (2D or 3D data)
 %-----------------------------------------------------------------------
-blksz = ceil(maxMem/8/nScan);
+blksz = ceil(MAXMEM/8/nScan);
 SHp   = 0;
 for z = 1:zdim
 
@@ -261,7 +271,8 @@ for z = 1:zdim
 	%---------------------------------------------------------------
 	Y     = zeros(nScan,nVox);
 	for i = 1:nScan
-		Y(i,:) = spm_sample_vol(VY(i,1),xyz(1,:),xyz(2,:),xyz(3,:),0);
+		Y(i,:) = ...
+		spm_sample_vol(SPM.xY.VY(i),xyz(1,:),xyz(2,:),xyz(3,:),0);
 	end
 
 	%-Conditional estimates (per partition, per voxel)
@@ -363,15 +374,9 @@ end
 
 %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing image files')  %-#
-for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
-for i=1:nHp  ,   VHp(i) = spm_create_image(VHp(i));   end
-
-%-Retain relative filenames
-%-----------------------------------------------------------------------
-fprintf('%s%30s',sprintf('\b')*ones(1,30),'...tidying file handles') %-#
-Vbeta  = {Vbeta.fname}';
-VHp    = {  VHp.fname}';
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
+for i = 1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
+for i = 1:nHp  ,   VHp(i) = spm_create_image(VHp(i));   end
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
@@ -382,11 +387,11 @@ fprintf('%-40s: %30s','Saving results','...writing')                 %-#
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-PPMvars = {	'Vbeta','VHp',...		%-Filenames
-		'PPM'};				%-Conditional covariances
-		
+SPM.VCbeta = Vbeta;			% Filenames - parameters
+SPM.VHp    = VHp;			% Filenames - hyperparameters
+SPM.PPM    = PPM;			% PPM structure
 
-save('PPM',PPMvars{:})
+save SPM SPM
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 

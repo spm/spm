@@ -600,7 +600,7 @@ function varargout=spm_conman(varargin)
 %            - (see spm_spm.m for structure)
 %            - fields used directly are:
 % .xKXs      - space structure of smoothed design matrix
-% .Xnames    - cellstr of parameter names
+% .name    - cellstr of parameter names
 %
 % xCon (in)  - Contrast definitions structure array
 %              (see spm_FcUtil.m for structure, rules & handling)
@@ -652,7 +652,7 @@ function varargout=spm_conman(varargin)
 % n          - number of contrasts to select, Inf for unlimited
 % Prompt     - Prompt string
 % Mcstr      - string to describe multiple contrast selection
-% OK2chg     - logical, specifying whether the contrast structure can be
+% OK2chg     - logical, specifying whether contrast structure can be changed
 % F          - figure used for contrast manager window
 % cF         - Figure which was current before function call
 %
@@ -662,13 +662,13 @@ function varargout=spm_conman(varargin)
 %            - the first of {xX.nX, xX.xKXs.X} is used for display
 % .nX        - Desgin matrix already scaled for display
 % .xKXs.X    - temporally filtered design matrix (within space structure)
-% .Xnames    - px1 CellStr of parameter names
+% .name    - px1 CellStr of parameter names
 %
 % FORMAT spm_conman('ImParEst',xX,h)
 % Utility function to display parameter estimability & setup "surfing"
 % xX         - Design Matrix structure
 % xX.xKXs    - space structure for K*X
-% .Xnames    - px1 CellStr of parameter names
+% xX.name    - px1 CellStr of parameter names
 % h          - handle of axes to use
 %
 % FORMAT spm_conman('ListCon',hConList,xCon,STAT,I)
@@ -940,13 +940,13 @@ if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
 	hDesMtxIm = image((varargin{2}.nKX+1)*32);
 else
 	hDesMtxIm = image(...
-		(spm_DesMtx('sca',varargin{2}.xKXs.X,varargin{2}.Xnames)+1)*32);
+		(spm_DesMtx('sca',varargin{2}.xKXs.X,varargin{2}.name)+1)*32);
 end
 set(h,'YTick',[],'XTick',[])			%-No Tick marks
 set(h,'Tag','DesMtxAx','UserData',varargin{2})	%-Reset axis UserData after image
 xlabel('Design matrix')
 set(hDesMtxIm,'UserData',...
-	struct('X',varargin{2}.xKXs.X,'Xnames',{varargin{2}.Xnames}))
+	struct('X',varargin{2}.xKXs.X,'Xnames',{varargin{2}.name}))
 set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 
@@ -970,7 +970,7 @@ set(h,	'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
 	'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
 xlabel('parameter estimability')
 set(h,'Tag','ParEstAx')			%-Reset 'Tag' after image cleared it
-set(hParEstIm,'UserData',struct('est',est,'Xnames',{xX.Xnames}))
+set(hParEstIm,'UserData',struct('est',est,'Xnames',{xX.name}))
 set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 
 
