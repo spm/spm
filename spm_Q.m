@@ -1,5 +1,5 @@
 function [Q] = spm_Q(A,n)
-% return autocorrrelation mtrix of an n x n AR(p) process
+% returns an (n x n) autocorrelation matrix for an AR(p) process
 % FORMAT [Q] = spm_Q(A,n)
 %
 % A  - vector pf p AR coeficients
