@@ -177,7 +177,7 @@ function varargout = spm_DesRep(varargin)
 %
 % FORMAT spm_DesRep('DesMtx',xX,fnames,xs)
 % Produces a one-page graphical summary of the design matrix
-% FORMAT spm_DesRep('DesOrth',xX,fnames)
+% FORMAT spm_DesRep('DesOrth',xX)
 % Produces a one-page graphical summary of the design orthogonality
 % xX      - Structure containing design matrix information
 %         - the first of {xX.nX, xX.xKXs.X, xX.X} is used for display
@@ -371,8 +371,7 @@ if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
 %-----------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
 		'CallBack',[cb,...
-		'spm_DesRep(''DesOrth'',tmp.xX,',...
-			'reshape({tmp.VY.fname},size(tmp.VY)))'],...
+		'spm_DesRep(''DesOrth'',tmp.xX)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
 
@@ -597,7 +596,7 @@ figure(Fgraph)
 case {'desmtx','desorth'} %-Display design matrix / design orthogonality
 %=======================================================================
 % spm_DesRep('DesMtx',xX,fnames,xs)
-% spm_DesRep('DesOrth',xX,fnames)
+% spm_DesRep('DesOrth',xX)
 if nargin<2, error('insufficient arguments'), end
 if ~isstruct(varargin{2}), error('design matrix structure required'), end
 if nargin<3, fnames={}; else, fnames=varargin{3}; end
