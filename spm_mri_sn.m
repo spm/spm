@@ -26,8 +26,8 @@ function spm_mri_sn(P,M,bb,Vox,H,I)
 % ii)  Normalize other [PET or fMRI functional] images using the a high
 % resolution MRI image.
 %
-% iii) Generate normalized [fuzzy] gray-segmented MRI data for voxel-based
-% morphometrics.
+% iii) Generate normalized [fuzzy] segmented MRI data for voxel-based
+% morphometrics. gray*.img and white*.img.
 %
 % Spatial normalization is implemented by spm_mri_sn in 3 steps
 %
@@ -49,8 +49,8 @@ function spm_mri_sn(P,M,bb,Vox,H,I)
 % specified in the headers, even if they denote the same voxel (i.e. they
 % are exactly congruent).
 %
-% The segmented image is prefixed by 'seg'.  The segmentation function is 
-% estimated simultaneously along with the spatial transformations
+% The segmented images are prefixed by 'gray and white'.  The segmentation
+% function is estimated simultaneously along with the spatial transformations
 %
 % The spatial normalization that is effected matches the object T1 or T2{*} 
 % weighted MRI image and two reference, model or template images. 
@@ -118,8 +118,11 @@ end
 q      = P(1,:);
 q      = q(q ~= ' ');
 d      = max([find(q == '/') 0]);
-q      = [q(1:d) 'seg' q((d + 1):length(q))];
-Useg   = fopen(q,'w');
+d      = [q(1:d) 'gray' q((d + 1):length(q))];
+Ug     = fopen(d,'w');
+spm_hwrite(q,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
+d      = [q(1:d) 'white' q((d + 1):length(q))];
+Uw     = fopen(d,'w');
 spm_hwrite(q,Dim,Vox,1/255,2,0,Origin,['spm - segmented']);
 
 
@@ -186,9 +189,10 @@ if (DIM(3)*VOX(3) < 32); dQ(find(dQ(:,9)),:) = []; end
 
 % positional vectors (sMRI) covering the object's bounding box every 4mm
 %---------------------------------------------------------------------------
-x     = bp(1,1):4/VOX(1):bp(2,1); 
-y     = bp(1,2):4/VOX(2):bp(2,2);
-z     = bp(1,3):4/VOX(3):bp(2,3);
+dx    = 4;
+x     = bp(1,1):dx/VOX(1):bp(2,1); 
+y     = bp(1,2):dx/VOX(2):bp(2,2);
+z     = bp(1,3):dx/VOX(3):bp(2,3);
 
 xp    = x'*ones(size(y));
 yp    = ones(size(x'))*y;
@@ -226,14 +230,13 @@ g1      = r*g1/sum(g1);
 g2      = exp(-(BS - FG(3)).^2/(2*FG(4)^2));
 g2      = (1 - r)*g2/sum(g2);
 
+
+subplot(2,1,1)
 plot(BS,FS,BS,g1*sum(FS),'-.',BS,g2*sum(FS),'--');
 title(['Fitted Gaussians - ' P(1,(P(1,:) ~= ' '))],'FontSize',16);
 xlabel('Voxel intensity - segmentation functions');
 ylabel('frequency')
 grid on; axis square
-
-
-spm_print
 
 
 % compute Y - segement and smooth
@@ -246,7 +249,7 @@ Y       = zeros(2*size(Xp,2),4);
 sMRI    = exp(-(MRI/MAX1 - 1).^2/(2*SIG1^2));
 fid     = fopen(temp1,'w');
 fwrite(fid,sMRI,'float'); fclose(fid);
-spm_hwrite(temp1,sp,[4 4 4],1,16,0);
+spm_hwrite(temp1,sp,[dx dx dx],1,16,0);
 spm_smooth(temp1,temp2,FWHM);
 fid     = fopen(temp2,'r');
 d       = fread(fid,size(sMRI),'float'); fclose(fid);
@@ -257,7 +260,7 @@ Y(v,3)  = d;
 sMRI    = exp(-(MRI/MAX2 - 1).^2/(2*SIG2^2));
 fid     = fopen(temp1,'w');
 fwrite(fid,sMRI,'float'); fclose(fid);
-spm_hwrite(temp1,sp,[4 4 4],1,16,0);
+spm_hwrite(temp1,sp,[dx dx dx],1,16,0);
 spm_smooth(temp1,temp2,FWHM);
 fid     = fopen(temp2,'r');
 d       = fread(fid,size(sMRI),'float'); fclose(fid);
@@ -275,6 +278,7 @@ Q       = inv(spm_matrix([0 0 -d I*pi/180]));
 %----------------------------------------------------------------------------
 rCBF  = zeros(2*size(Xp,2),1);
 dXdQ  = zeros(2*size(Xp,2),size(dQ,1));
+GC    = zeros(12,1);
 for k = 1:12
 	Xq	   = inv(Ts)*Q*Tp*Xp;
 	rCBF(u)    = spm_sample_vol(Vw,Xq(1,:)',Xq(2,:)',Xq(3,:)',1);
@@ -296,10 +300,26 @@ for k = 1:12
 	%-------------------------------------------------------------------
 	for j      = 1:size(dQ,1);
 		Q  = real(expm(logm(spm_matrix(dQ(j,:)))*q(j)))*Q; end
-	disp(Q)
+	GC(k,1)    = det(Q);
+	GC(k,2)    = sqrt(sum((Q(1:3,4)*dx).^2));
 end
+
+% graph convergence
+%----------------------------------------------------------------------------
+subplot(2,1,2)
+plot(GC)
+title('convergence','FontSize',16)
+xlabel('Iterations')
+ylabel('translation {mm} and |Q|')
+grid on
+
+
+spm_print
+
+%----------------------------------------------------------------------------
 Q     = inv(Q);
-C     = q([1 2] + size(dXdQ,2) + 2);	% select gray matter coefficients
+Cg    = q([1 2] + size(dXdQ,2) + 2);	% select gray  matter coefficients
+Cw    = q([1 2] + size(dXdQ,2) + 0);	% select white matter coefficients
 
 
 % Display results of affine and quadratic transformation
@@ -409,7 +429,8 @@ z     = ones(size(x));					% locations {z}
 d     = [0:0.01:2];
 SEG1  = exp(-(d - 1).^2/(2*SIG1^2));
 SEG2  = exp(-(d - 1).^2/(2*SIG2^2));
-MAXS  = max((C(1)*SEG1 + C(2)*SEG2));
+MAXG  = max((Cg(1)*SEG1 + Cg(2)*SEG2));
+MAXW  = max((Cw(1)*SEG1 + Cw(2)*SEG2));
 
 for i = bb(1,3):Vox(3):bb(2,3)				% z range of bb
 
@@ -427,12 +448,15 @@ for i = bb(1,3):Vox(3):bb(2,3)				% z range of bb
 	MASK   = (rCBF > max(rCBF(:))*0.4);
 	SEG1   = exp(-(MRI/MAX1 - 1).^2/(2*SIG1^2));
 	SEG2   = exp(-(MRI/MAX2 - 1).^2/(2*SIG2^2));
-	SEG    = (C(1)*SEG1 + C(2)*SEG2);
-	SEG    = SEG.*(SEG > 0).*MASK;
+	SEGG   = (Cg(1)*SEG1 + Cg(2)*SEG2);
+	SEGG   = SEGG.*(SEGG > 0).*MASK;
+	SEGW   = (Cw(1)*SEG1 + Cw(2)*SEG2);
+	SEGW   = SEGW.*(SEGW > 0);
 
-	% write segmented image
+	% write segmented images
 	%--------------------------------------------------------------------
-	fwrite(Useg,255*SEG/MAXS,'uint8');
+	fwrite(Ug,255*SEGG/MAXG,'uint8');
+	fwrite(Uw,255*SEGW/MAXW,'uint8');
 
 	% display images for a couple of planes
 	%--------------------------------------------------------------------
@@ -445,7 +469,7 @@ for i = bb(1,3):Vox(3):bb(2,3)				% z range of bb
 		subplot(3,3,(fig + 0));imagesc(rot90(spm_grid(MRI)));
 		axis image; axis off;
 		title(['MRI @ ' num2str(i) ' mm'],'Color',[1 0 0])
-		subplot(3,3,(fig + 1));imagesc(rot90(spm_grid(SEG)));
+		subplot(3,3,(fig + 1));imagesc(rot90(spm_grid(SEGG)));
 		axis image; axis off;
 		title('Fuzzy segmentation')
 		subplot(3,3,(fig + 2));imagesc(rot90(spm_grid(rCBF)));
@@ -460,9 +484,9 @@ for i = bb(1,3):Vox(3):bb(2,3)				% z range of bb
 		d      = max([find(q == '/') 0]);
 		q      = [q(1:d) 'n' q((d + 1):length(q))];
 		if (j == 1)
-			MRI   = spm_sample_vol(V(:,j),Xp(1,:)',Xp(2,:)',Xp(3,:)',1);
+		   MRI = spm_sample_vol(V(:,j),Xp(1,:)',Xp(2,:)',Xp(3,:)',1);
 		else
-			MRI   = spm_sample_vol(V(:,j),Xq(1,:)',Xq(2,:)',Xq(3,:)',1);
+		   MRI = spm_sample_vol(V(:,j),Xq(1,:)',Xq(2,:)',Xq(3,:)',1);
 		end
 		U      = fopen(q,open_mode);
 		fwrite(U,MRI/V(7,j),spm_type(BIT(j)));
