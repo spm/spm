@@ -20,8 +20,8 @@ function [SPM,VOL,DES] = spm_getSPM
 % 		  'QQ'		indices of volxes in ????.mat files	
 % 
 % DES    = struct('X'		Design Matrix
-% 		  'C'		Contrast weights	
-% 		  'B'		pinv(X)*V*pinv(X)'/trace(R*V)
+% 		  'c'		Contrast weights	
+% 		  'Bcov'	pinv(K*X)*V*pinv(K*X)'
 %_______________________________________________________________________
 %
 % 
@@ -58,77 +58,75 @@ function [SPM,VOL,DES] = spm_getSPM
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-global CWD
 
 %-GUI setup
 %--------------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
 
-%-What sort of SPM, select SPM.mat
+%-Select SPM.mat
 %---------------------------------------------------------------------------
-STAT = spm_input('which SPM','+1','b','SPM{T}|SPM{F}',['T','F'],1);
-spm('FigName',['SPM{' STAT '} projections']);
-CWD  = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat for analysis'),'H');
+swd  = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat for analysis'),'H');
 
-%-Get data
+%-What sort of SPM
+%---------------------------------------------------------------------------
+STAT = spm_input('...which SPM?','+1','b','SPM{T}|SPM{F}',['T','F'],1);
+spm('FigName',['SPM{',STAT,'} projections']);
+
+global CWD	%-**** want to get rid of this global CWD
+CWD = swd;	%-**** want to get rid of this global CWD
+
+
+%-Get Stats data from SPM.mat
 %--------------------------------------------------------------------------
-load([CWD,'/SPM'])
-load([CWD,'/XYZ'])
-QQ         = 1:size(XYZ,2);
+xSPM = load([swd,'/SPM.mat']);
+if exist([swd,'/Yidx.mat']), load([swd,'/Yidx.mat']), else, Yidx = []; end
 
-% backwards compatibility
-%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-DES        = [H C B G];
+%-Build index from XYZ into corresponding Y.mad locations
+%--------------------------------------------------------------------------
+QQ         = zeros(1,size(xSPM.XYZ,2));
+QQ(Yidx)   = 1:length(Yidx);
 
-% re-compute smoothness of component fields
-%---------------------------------------------------------------------------
-W          = W*sqrt(spm_lambda(Fdf(2)));
-FWHM       = W*sqrt(8*log(2));
-R          = spm_resels(FWHM,S);
-%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%-Temporarily canonicalise relative pathnames by prepending swd
+%--------------------------------------------------------------------------
+Vbeta = xSPM.Vbeta;
+nbeta = length(Vbeta);
+for i=1:nbeta, Vbeta(i).fname = spm_get('CPath',Vbeta(i).fname,swd); end
+VResMS = xSPM.VResMS; VResMS.fname = spm_get('CPath',VResMS.fname,swd);
 
-
-% Get contrasts for SPM{Z} and SPM{t} and apply masks
+%-Get contrasts, compute statistics, apply masks
 %===========================================================================
 if STAT == 'T'
 
-
-	%-Get contrast[s]
+	%-Get contrast[s] as column vectors
 	%-------------------------------------------------------------------
-	m      = size(DES,2);
-	str    = sprintf('contrast[s] n x 1 - %i',m);
-	c      = spm_input(str);
-	n      = size(c,1);
+	c = spm_input('contrast(s)','+1','x','',Inf,xSPM.xX.xKXs)';
+	n = size(c,2);
 
-	%-Zero pad
+	%-Enforce orthogonality of multiple contrasts for conjunction
+	% (Orthogonality within subspace spanned by contrasts)
 	%-------------------------------------------------------------------
-	c      = [c zeros(n,m - size(c,2))];
-
-	%-Enforce orthogonality {within subspace spanned by contrasts}
-	%-------------------------------------------------------------------
-	p      = c;
-	c      = c(1,:);
-	for  i = 2:n
-		j      = find(p(i,:));
-		d      = p(i,j);
-		q      = BCOV(j,j)*c(:,j)';
-		d      = d' - q*(pinv(q)*d');
-		c(i,j) = d';
+	for i = 2:n
+		j      = find(c(:,i));
+		tmp    = xSPM.xX.Bcov(j,j)*c(j,1:i-1);
+		c(j,i) = c(j,i) - tmp*(pinv(tmp)*c(j,i));
 	end
 
-	% get parameter estimates and contruct new partitions
+	%-Compute SPM{t}(s) from parameter images and ResMS image
 	%-------------------------------------------------------------------
-	load([CWD,'/BETA'])
-	load([CWD,'/RES'])
+	Z = zeros(n,xSPM.S);
 
-
-	% compute SPM
-	%-------------------------------------------------------------------
-	Z      = zeros(n,length(RES));
-	for  i = 1:n
-		Z(i,:) = c(i,:)*BETA./sqrt(RES*(c(i,:)*BCOV*c(i,:)'));
+	%-Accumulate weighted sums of parameter estimates
+	for i = 1:nbeta
+		Z = Z + c(:,i) * spm_sample_vol(Vbeta(i),...
+				xSPM.XYZ(1,:),xSPM.XYZ(2,:),xSPM.XYZ(3,:),0);
 	end
-	CON    = c;
+
+	%-Normalise contrast(s) by estimated s.d(s) to gain SPM{t}(s)
+	ResMS = spm_sample_vol(VResMS,...
+				xSPM.XYZ(1,:),xSPM.XYZ(2,:),xSPM.XYZ(3,:),0);
+	for i = 1:n
+		Z(i,:) = Z(i,:)./(ResMS*(c(i,:)*xSPM.Bcov*c(i,:)'));
+	end
 
 
 	%-Get and apply any masks
@@ -169,7 +167,7 @@ else
 
 	load([CWD,'/SPMF'])
 	Z     = SPMF;
-	CON   = [];
+	c     = [];
 end
 
 %-Get and apply height threshold
@@ -260,6 +258,6 @@ VOL    = struct('R',	R,...
 		'QQ',	QQ);
 
 DES    = struct('X',	DES,...
-		'C',	CON,...
+		'c',	c,...
 		'B',	BCOV);
 
