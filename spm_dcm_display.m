@@ -23,10 +23,11 @@ if n < 4; u  = [];	else,	u  = varargin{4};	 end
 if n < 5; M  = 16;	else,	M  = varargin{5};	 end
 if n < 6; U  = .9;	else,	U  = varargin{6};	 end
 
-col     = [1 1 1];
+col     = [0 0 0];
 rad     = 6;
+w       = 2;
 
-% enforce oreinetation for 1 or 2 regions
+% enforce orientation for 1 or 2 regions
 %---------------------------------------------------------------------------
 if length(xY) < 3
 	u = [[1 0 0];[0 1 0]]';
@@ -88,13 +89,13 @@ image(rot90(reshape(t1,length(i),length(j))))
 axis image off
 title(str)
 
+
 % Connections
 %---------------------------------------------------------------------------
 Q     = [-pi:pi/32:pi];
 Q     = rad*[sin(Q); cos(Q)];
 x     = mean(L(1,:));
 y     = mean(L(2,:));
-w     = 4;
 q     = 1/3;
 for i = 1:length(a)
 for j = 1:length(a)
@@ -124,11 +125,7 @@ for j = 1:length(a)
 				for k = 1:size(a,3)
 					str{k}   = sprintf('%0.2f ',a(i,j,k));
 				end
-				line(u,v,...
-					'Color',col,...
-					'Marker','.',...
-					'MarkerSize',96);
-				h     = text(u,v,1,str(:),'FontSize',8,...
+				h     = text(u,v,1,str(:),'FontSize',10,...
 						'HorizontalAlignment','Center');
 				if a(i,j,2) < 0
 					set(h,	'Color','r')
@@ -164,13 +161,8 @@ for j = 1:length(a)
 				str   = {};
 				for k = 1:size(a,3)
 					str{k}   = sprintf('%0.2f ',a(i,j,k));
-				end
-				line(u,v,...
-					'Color',col,...
-					'Marker','.',...
-					'MarkerSize',96);
-		
-				h     = text(u,v,1,str(:),'FontSize',8,...
+				end		
+				h     = text(u,v,1,str(:),'FontSize',10,...
 					'HorizontalAlignment','Center');
 				if a(i,j,2) < 0
 					set(h,	'Color','r')
@@ -208,11 +200,6 @@ for i = 1:size(c,1)
 			%--------------------------------------------------
 			u     = u(2);
 			v     = v(2);
-			h     = line(u,v,...
-				'Marker','square',...
-				'Color','w',...
-				'MarkerFaceColor','w',...
-				'MarkerSize',32);
 
 			% text
 			%--------------------------------------------------
@@ -220,7 +207,7 @@ for i = 1:size(c,1)
 			for k = 1:size(c,2)
 				str{k}   = sprintf('%0.2f ',c(i,k));
 			end
-			h     = text(u,v,str(:),'FontSize',8,...
+			h     = text(u,v,str(:),'FontSize',10,...
 				'HorizontalAlignment','Center');
 			if c(i,2) < 0
 				set(h,	'Color','r')
@@ -229,6 +216,7 @@ for i = 1:size(c,1)
 		end
 	end
 end
+
 
 % projected coordinates of voxels within region[s]
 %---------------------------------------------------------------------------
@@ -245,9 +233,9 @@ line(L(1,:),L(2,:),...
 		'Color',[0 0 0],...
 		'Marker','.',...
 		'LineStyle','none',...
-		'MarkerSize',96);
+		'MarkerSize',64);
 
-text(L(1,:),L(2,:),name,'FontSize',9,...
+text(L(1,:),L(2,:),name,'FontSize',8,...
 			'FontWeight','Bold',...
 			'Color','w',...
 			'HorizontalAlignment','center',...
