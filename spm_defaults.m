@@ -1,202 +1,147 @@
-function spm_defaults
-% Display and changes tp generic SPM parameter defaults 
+% Sets the defaults which are used by SPM
+%
 % FORMAT spm_defaults
-%___________________________________________________________________________
+%-----------------------------------------------------------------------
+% This file is intended to be customised for the site.
+% Individual users can make copies which can be stored in their own
+% matlab subdirectories. If ~/matlab is ahead of the SPM directory
+% in the MATLABPATH, then the users own personal defaults are used.
 %
-% spm_defaults allows interactive setting of SPM parameters and header
-% defaults.
-%
-% Header defaults are used only when *.hdr does not exist
-%
-%---------------------------------------------------------------------------
-% CWD       -  working directory for this SPM analysis session
-% PRINTSTR  -  a string that is evaluated by spm_print.m 
-% LOGFILE   -  File for logging (Not fully supported yet - AH)
-% CMDLINE   -  If true, then spm_get & spm_input use the command window.
-% GRID      -  this value determines the intensity of any Talairach grids 
-%              superimposed on images.  To disable the grid set GRID to 0.
-%
-% Image header defaults:
-%
-% DIM      -  image size in x,y and z {voxels}
-% VOX      -  voxel size in x,y and z {mm}
-% SCALE    -  scaling co-efficient applied to *.img data on entry into SPM. 
-% TYPE     -  data type.  (see spm_type.m for supported types and specifiers)
-% OFFSET   -  offest of the image data in file {bytes}
-% ORIGN    -  the voxel corresponding the [0 0 0] in the location vector XYZ
-% DESCRIP  -  a string describing the nature of the image data.
-%
-% see spm_image.m for editing header files
-% see spm_type.m for datatypes that are supported
-%
-%__________________________________________________________________________
+% Care must be taken when modifying this file
+
 % %W% %E%
 
+global CWD PRINTSTR LOGFILE CMDLINE GRID
+global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
-figure(2); clf, set(2,'Name','SPM Defaults Edit...')
-global CWD PRINTSTR LOGFILE CMDLINE GRID DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
+% Default command for printing
+%-----------------------------------------------------------------------
+PRINTSTR = 'print -dpsc -append spm.ps';
 
-% scale positions according to size of figure 2
-%---------------------------------------------------------------------------
-set(2,'Units','Pixels');
-A    = get(2,'Position');
-A    = diag([A(3)/400 A(4)/395 A(3)/400 A(4)/395 ]);
+% Log user input to SPM. If LOGFILE is '', then don't log.
+%-----------------------------------------------------------------------
+LOGFILE = '';
 
-% text frames and labels
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Frame','Position',[10 110 380 190]*A);
+% Command Line
+% Values can be:
+%	0 - button clicking only
+%	1 - input filenames etc. from the command line
+%-----------------------------------------------------------------------
+CMDLINE = 0;
 
-uicontrol(2,'Style','Text','String','Directory',...
-	'HorizontalAlign','Left',...
-	'Position',[010 370 060 20]*A);
+% GRID should be in the range of 0 to 1.
+% It determines the intensity of any grids which are superimposed
+% on displayed images.
+%-----------------------------------------------------------------------
+GRID = 0.6;
 
-uicontrol(2,'Style','Text','String','Print string',...
-	'HorizontalAlign','Left',...
-	'Position',[010 340 060 20]*A);
+% PET header defaults
+%-----------------------------------------------------------------------
+PET_DIM      = [128 128 43];		% Dimensions [x y z]
+PET_VOX      = [2.1 2.1 2.45];		% Voxel size [x y z]
+PET_TYPE     = 2;			% Data type
+PET_SCALE    = 1.0;			% Scaling coeficient
+PET_OFFSET   = 0;			% Offset in bytes
+PET_ORIGIN   = [0 0 0];			% Origin in voxels
+PET_DESCRIP  = 'SPM-compatible';
 
-uicontrol(2,'Style','Text','String','Log file',...
-	'HorizontalAlign','Left',...
-	'Position',[010 310 060 20]*A);
-
-uicontrol(2,'Style','Text','String','Grid Value',...
-	'HorizontalAlign','Left',...
-	'Position',[010 080 080 20]*A);
-
-uicontrol(2,'Style','Text','String','Header defaults {x y z}',...
-	'HorizontalAlign','Left',...
-	'ForegroundColor',[1 0 0],...
-	'Position',[100 274 200 20]*A);
-
-uicontrol(2,'Style','Text','String','Image size {voxels}',...
-	'HorizontalAlign','Left',...
-	'Position',[020 250 130 20]*A);
-
-uicontrol(2,'Style','Text','String','Voxel size {mm}',...
-	'HorizontalAlign','Left',...
-	'Position',[020 230 120 20]*A);
-
-uicontrol(2,'Style','Text','String','Scaling coefficient',...
-	'HorizontalAlign','Left',...
-	'Position',[020 210 120 20]*A);
-
-uicontrol(2,'Style','Text','String','Data type',...
-	'HorizontalAlign','Left',...
-	'Position',[020 190 120 20]*A);
-
-uicontrol(2,'Style','Text','String','Offset {bytes}',...
-	'HorizontalAlign','Left',...
-	'Position',[020 170 120 20]*A);
-
-uicontrol(2,'Style','Text','String','Origin {voxels}',...
-	'HorizontalAlign','Left',...
-	'Position',[020 150 120 20]*A);
-
-uicontrol(2,'Style','Text','String','Description',...
-	'HorizontalAlign','Left',...
-	'Position',[020 130 120 20]*A);
+% fMRI header defaults
+%-----------------------------------------------------------------------
+fMRI_DIM     = [64 64 64];		% Dimensions [x y z]
+fMRI_VOX     = [3 3 3];			% Voxel size [x y z]
+fMRI_TYPE    = 4;			% Data type
+fMRI_SCALE   = 1;			% Scaling coeficient
+fMRI_OFFSET  = 0;			% Offset in bytes
+fMRI_ORIGIN  = [0 0 0];			% Origin in voxels
+fMRI_DESCRIP = 'SPM-compatible';
 
 
-%-User interface controls with Callbacks
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',CWD,...
-	'HorizontalAlignment','Left',...
-	'Callback',['global CWD, CWD = get(gco,''String'');'],...
-	'Position',[080 370 300 20]*A);
+% Realignment defaults
+%=======================================================================
+global sptl_WhchPtn sptl_CrtWht sptl_DjstFMRI sptl_MskOptn
 
-uicontrol(2,'Style','Edit','String',PRINTSTR,...
-	'HorizontalAlignment','Left',...
-	'Callback',['global PRINTSTR, PRINTSTR = get(gco,''String'');'],...
-	'Position',[080 340 300 20]*A);
-
-uicontrol(2,'Style','Edit','String',LOGFILE,...
-	'HorizontalAlignment','Left',...
-	'Callback',['global LOGFILE, LOGFILE = get(gco,''String'');'],...
-	'Position',[080 310 300 20]*A);
-
-uicontrol(2,'Style','Slider','Value',GRID,...
-	'Callback',['global GRID, GRID = get(gco,''value'');'],...
-	'Position',[090 80 140 20]*A);
-
-uicontrol(2,'Style','CheckBox','String','Command line for input',...
-	'Value',CMDLINE,...
-	'Callback',['global CMDLINE, CMDLINE = get(gco,''value'');'],...
-	'HorizontalAlign','Left',...
-	'Position',[010 030 180 20]*A);
-
-% Quit
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Pushbutton','String','Done',...
-	'ForegroundColor','m',...
-	'Callback','clf, set(gcf,''Name'','''')',...
-	'Position',[330 10 60 20]*A);
+% Which Option?
+% This gives the flexibility for coregistering and reslicing images
+% seperately, or alternatively reduces flexibility and keeps things
+% simple for the user.
+%-----------------------------------------------------------------------
+%sptl_WhchPtn = 1;	% Combine coregistration and reslicing 
+sptl_WhchPtn = -1;	% Allow separate coregistration and reslicing
 
 
-% Header defaults
-%============================================================================
+% Create What? Give flexibility about which images are written resliced,
+% or remove an extra question.
+%-----------------------------------------------------------------------
+%sptl_CrtWht = 1;	% All Images + Mean Image
+sptl_CrtWht = -1;	% Full options
 
-%-Image dimensions
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',DIM(1)),...
-	'Callback',['global DIM, DIM(1) = eval(get(gco,''String''));'],...
-	'Position',[160 250 40 16]*A);
+% Adjust FMRI?
+% Adjust the data (fMRI) to remove movement-related components
+% The adjustment procedure is based on a autoregression-moving 
+% average-like model of the effect of position on signal and 
+% explicitly includes a spin excitation history effect.
+%-----------------------------------------------------------------------
+%sptl_DjstFMRI =  0;	% Never adjust
+%sptl_DjstFMRI =  1;	% Always adjust
+sptl_DjstFMRI = -1;	% Optional adjust
 
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',DIM(2)),...
-	'Callback',['global DIM, DIM(2) = eval(get(gco,''String''));'],...
-	'Position',[220 250 40 16]*A);
-
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',DIM(3)),...
-	'Callback',['global DIM, DIM(3) = eval(get(gco,''String''));'],...
-	'Position',[280 250 40 16]*A);
-
-%-Voxel dimensions
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%0.2f',VOX(1)),...
-	'Callback',['global VOX, VOX(1) = eval(get(gco,''String''));'],...
-	'Position',[160 230 40 16]*A);
-
-uicontrol(2,'Style','Edit','String',sprintf('%0.2f',VOX(2)),...
-	'Callback',['global VOX, VOX(2) = eval(get(gco,''String''));'],...
-	'Position',[220 230 40 16]*A);
-
-uicontrol(2,'Style','Edit','String',sprintf('%0.2f',VOX(3)),...
-	'Callback',['global VOX, VOX(3) = eval(get(gco,''String''));'],...
-	'Position',[280 230 40 16]*A);
-
-%-Scale
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%0.3f',SCALE),...
-	'Callback',['global SCALE, SCALE = eval(get(gco,''String''));'],...
-	'Position',[160 210 80 16]*A);
-
-%-Type
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%d',TYPE),...
-	'Callback',['global TYPE, TYPE = eval(get(gco,''String''));'],...
-	'Position',[160 190 40 16]*A);
-
-%-Offset
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%d',OFFSET),...
-	'Callback',['global OFFSET, OFFSET = eval(get(gco,''String''));'],...
-	'Position',[160 170 40 16]*A);
+% Mask Option.
+% To avoid artifactual movement-related variance the realigned
+% set of images can be internally masked, within the set (i.e.
+% if any image has a zero value at a voxel than all images have
+% zero values at that voxel).  Zero values occur when regions
+% 'outside' the image are moved 'inside' the image during
+% realignment.
+%-----------------------------------------------------------------------
+sptl_MskOptn = -1;	% Optional mask
+sptl_MskOptn =  1;	% Always mask
 
 
-%-Origin
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',ORIGIN(1)),...
-	'Callback',['global ORIGIN, ORIGIN(1) = eval(get(gco,''String''));'],...
-	'Position',[160 150 40 16]*A);
+% Spatial Normalisation defaults
+%=======================================================================
+global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx
 
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',ORIGIN(2)),...
-	'Callback',['global ORIGIN, ORIGIN(2) = eval(get(gco,''String''));'],...
-	'Position',[220 150 40 16]*A);
+% Orientation/position of images. Used as a starting estimate for
+% affine normalisation.
+%-----------------------------------------------------------------------
+%sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0]; % Neurological Convention (R is R)
+sptl_Ornt  = [0 0 0 0 0 0 -1 1 1 0 0 0]; % Radiological Convention (L is R)
 
-uicontrol(2,'Style','Edit','String',sprintf('%3.0i',ORIGIN(3)),...
-	'Callback',['global ORIGIN, ORIGIN(3) = eval(get(gco,''String''));'],...
-	'Position',[280 150 40 16]*A);
+% Customisation Option. Include option to customise the normalisation
+% options.
+% ie. # affine params, # nonlinear basis images & # nonlinear iterations.
+%-----------------------------------------------------------------------
+%sptl_CO = -1;		% Allow customised
+sptl_CO  =  1;		% Disallow Customised
 
-%-DESCRIP
-%----------------------------------------------------------------------------
-uicontrol(2,'Style','Edit','String',DESCRIP,...
-	'Callback',['global DESCRIP, DESCRIP = get(gco,''String'');'],...
-	'Position',[160 126 160 20]*A);
+% Number of parameters for affine normalisation.
+%-----------------------------------------------------------------------
+% sptl_NAP =  2;	%  2 params (X & Y Translations)
+% sptl_NAP =  3;	%  3 params (Translations)
+% sptl_NAP =  5;	%  5 params (Translations + Pitch & Roll)
+% sptl_NAP =  6;	%  6 params (Rigid Body)
+% sptl_NAP =  8;	%  8 params (Rigid Body + X & Y Zoom)
+% sptl_NAP =  9;	%  9 params (Rigid Body + Zooms)
+% sptl_NAP = 11;	% 11 params (Rigid Body,  Zooms + X & Y Affine)
+sptl_NAP   = 12;	% 12 params (Rigid Body,  Zooms & Affine)
+
+% Number of nonlinear basis functions
+%-----------------------------------------------------------------------
+sptl_NBss = [0 0 0];	% None (ie. perform affine normalisation only).
+sptl_NBss = [4 5 4];
+
+% Number of iterations of nonlinear spatial normalisation.
+%-----------------------------------------------------------------------
+sptl_NItr = 8;
+
+% Bounding Box. The definition of the volume of the normalised image
+% which is written (mm relative to AC).
+% [[lowX lowY lowZ];[highX highY highZ]]
+%-----------------------------------------------------------------------
+sptl_BB = [[-78 -112 -50];[78 76 85]];
+
+% Voxel sizes in mm of the normalised images
+%-----------------------------------------------------------------------
+sptl_Vx = [2 2 2];	% 2mm x 2mm x 2mm
+

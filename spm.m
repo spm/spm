@@ -88,6 +88,9 @@ function [R1,R2]=spm(Action,P2)
 %
 %_______________________________________________________________________
 
+global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+
 %-Parameters
 Modalities=str2mat('PET','FMRI');
 
@@ -220,15 +223,15 @@ uicontrol(Fmenu,'Style','Frame','BackgroundColor',spm('Colour'),...
 	'Position',[010 145 380 295].*A,'Tag','Empty');
 
 uicontrol(Fmenu,'Style','Frame',...
-	'Position',[020 355 360 075].*A,'Tag','Empty');	
+	'Position',[020 320 360 110].*A,'Tag','Empty');	
 uicontrol(Fmenu,'Style','Text','String','Spatial',...
-	'Position',[100 405 200 20].*A,'Tag','Empty',...
+	'Position',[100 400 200 20].*A,'Tag','Empty',...
 	'ForegroundColor','w')
 
 uicontrol(Fmenu,'Style','Frame',...
-	'Position',[020 235 360 110].*A,'Tag','Empty');
+	'Position',[020 235 360 075].*A,'Tag','Empty');
 	uicontrol(Fmenu,'Style','Text','String','Analysis',...
-	'Position',[100 320 200 20].*A,'Tag','Empty',...
+	'Position',[100 285 200 20].*A,'Tag','Empty',...
 	'ForegroundColor','w')
 
 uicontrol(Fmenu,'Style','Frame',...
@@ -260,21 +263,27 @@ uicontrol(Fmenu,'Style','Frame','BackgroundColor',spm('Colour'),...
 uicontrol(Fmenu,'String','Realign',	'Position',[040 370 080 30].*A,...
 	'CallBack','spm_realign',	'Interruptible','yes');
 
-uicontrol(Fmenu,'String','Normalize',	'Position',[150 370 100 30].*A,...
+uicontrol(Fmenu,'String','Normalize',	'Position',[150 350 100 30].*A,...
 	'CallBack','spm_sn3d',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Smooth',	'Position',[280 370 080 30].*A,...
 	'CallBack','spm_smooth_ui',	'Interruptible','yes');
 
-uicontrol(Fmenu,'String','Statistics',	'Position',[130 285 140 30].*A,...
+uicontrol(Fmenu,'String','Coregister',	'Position',[040 330 080 30].*A,...
+	'CallBack','spm_coregister',	'Interruptible','yes');
+
+uicontrol(Fmenu,'String','Segment',	'Position',[280 330 080 30].*A,...
+	'CallBack','spm_segment',	'Interruptible','yes');
+
+uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*A,...
 	'CallBack','spm_spm_ui',	'Interruptible','yes',...
 	'Visible','off',		'Tag','PET');
 
-uicontrol(Fmenu,'String','Statistics',	'Position',[130 285 140 30].*A,...
+uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*A,...
 	'CallBack','spm_fmri_spm_ui',   'Interruptible','yes',...
 	'Visible','off',		'Tag','FMRI');
 
-uicontrol(Fmenu,'String','Eigenimages',	'Position',[130 245 140 30].*A,...
+uicontrol(Fmenu,'String','Eigenimages',	'Position',[220 245 140 30].*A,...
 	'CallBack','spm_svd_ui',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','SPM{F}',	'Position',[045 165 070 30].*A,...
@@ -313,17 +322,17 @@ uicontrol(Fmenu,'String','Mean',	'Position',[020 054 082 024].*A,...
 uicontrol(Fmenu,'String','ImCalc',	'Position',[112 054 083 024].*A,...
 	'CallBack','spm_image_funks',	'Interruptible','yes');
 
-uicontrol(Fmenu,'String','MRI to PET',	'Position',[205 054 083 024].*A,...
-	'CallBack','spm_mri2pet',	'Interruptible','yes');
+%uicontrol(Fmenu,'String','MRI to PET',	'Position',[205 054 083 024].*A,...
+%	'CallBack','spm_mri2pet',	'Interruptible','yes');
 
-uicontrol(Fmenu,'String','MRsegment',	'Position',[298 054 082 024].*A,...
-	'CallBack','spm_segment',	'Interruptible','yes');
+%uicontrol(Fmenu,'String','MRsegment',	'Position',[298 054 082 024].*A,...
+%	'CallBack','spm_segment',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*A,...
 	'CallBack','spm_help',		'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Defaults',	'Position',[112 020 083 024].*A,...
-	'CallBack','spm_defaults',	'Interruptible','yes');
+	'CallBack','spm_defaults_edit',	'Interruptible','yes');
 
 User = getenv('USER');
 uicontrol(1,'String',['<',User,'>'],	'Position',[205 020 083 024].*A,...
@@ -370,6 +379,7 @@ if nargin<2, Modality=''; else, Modality=P2; end
 [Modality,ModNum]=spm('CheckModality',Modality);
 
 if strcmp(Modality,'PET'), OModality='FMRI'; else, OModality='PET'; end
+
 
 %-Sort out global defaults
 %-----------------------------------------------------------------------
@@ -432,30 +442,28 @@ TWD	 = getenv('SPMTMP');				% Temporary directory
 if isempty(TWD)
 	TWD = '/tmp';
 end
-PRINTSTR = 'print -dpsc -append spm.ps';		% Print string
-LOGFILE	 = '';						% SPM log file
-if isempty(CMDLINE), CMDLINE  = 0; end			% Command line flag
-GRID	 = 0.6;						% Grid value
-DESCRIP  = 'spm compatible';				% Description string
+% Load system defaults
+spm_defaults;
+
 UFp	 = 0.05;					% Upper tail F-prob
 
 %-Set Modality specific default (global variables)
 %-----------------------------------------------------------------------
 global DIM VOX SCALE TYPE OFFSET ORIGIN
 if strcmp(Modality,'PET')
-	DIM	= [128 128 43];				% Dimensions [x y z]
-	VOX	= [2.1 2.1 2.45];			% Voxel size [x y z]
-	SCALE	= 1;					% Scaling coeficient
-	TYPE	= 2;					% Data type
-	OFFSET	= 0;		    			% Offset in bytes
-	ORIGIN	= [0 0 0];				% Origin in voxels
+	DIM	= PET_DIM;				% Dimensions [x y z]
+	VOX	= PET_VOX;				% Voxel size [x y z]
+	SCALE	= PET_SCALE;				% Scaling coeficient
+	TYPE	= PET_TYPE;				% Data type
+	OFFSET	= PET_OFFSET;		    		% Offset in bytes
+	ORIGIN	= PET_ORIGIN;				% Origin in voxels
 elseif strcmp(Modality,'FMRI')
-	DIM	= [128 128 43];				% Dimensions {x y z]
-	VOX	= [2.1 2.1 2.45];			% Voxel size {x y z]
-	SCALE	= 1;					% Scaling coeficient
-	TYPE	= 2;					% Data type
-	OFFSET	= 0;		   			% Offset in bytes
-	ORIGIN	= [0 0 0];				% Origin in voxels
+	DIM	= fMRI_DIM;				% Dimensions {x y z]
+	VOX	= fMRI_VOX;				% Voxel size {x y z]
+	SCALE	= fMRI_SCALE;				% Scaling coeficient
+	TYPE	= fMRI_TYPE;				% Data type
+	OFFSET	= fMRI_OFFSET;	   			% Offset in bytes
+	ORIGIN	= fMRI_ORIGIN;				% Origin in voxels
 elseif strcmp(Modality,'UNKNOWN')
 else
 	error('Illegal Modality')

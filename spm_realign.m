@@ -190,13 +190,18 @@ function spm_realign(P,Flags)
 % %W% Karl Friston - modified by John Ashburner %E%
 
 
-global MODALITY
+global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn
 
 if (nargin == 0)
+	% User interface.
+	%_______________________________________________________________________
 	spm_figure('Clear','Interactive');
 	set(spm_figure('FindWin','Interactive'),'Name','Realignment')
 
-	n     = spm_input('number of subjects',1);
+	pos = 1;
+
+	n     = spm_input('number of subjects', pos);
+	pos = pos + 1;
 	for i = 1:n
 		P = spm_get(Inf,'.img',...
 			['select scans for subject ' num2str(i)]);
@@ -204,38 +209,55 @@ if (nargin == 0)
 	end
 
 	Flags = 'm';
-	p = spm_input('Which option?',1,'m',...
-		'Coregister only|Reslice Only|Coregister & Reslice',...
-		[1 2 3]);
-	if (p == 1 | p == 3) Flags = [Flags 'e']; end
-	if (p == 2 | p == 3) Flags = [Flags 'r']; end
-	p = spm_input('Interpolation Method?',2,'m',...
-		'Bilinear Interpolation|Sinc Interpolation',[1 2]);
-	if (p == 2) Flags = [Flags 'sS']; end
 
-	if (any(Flags == 'e'))
-		if (spm_input('Coregister 2 with 1 only?',3,'y/n') == 'y')
-			Flags = [Flags 'a']; end
-		if (spm_input('More iterations?'         ,4,'y/n') == 'y')
-			Flags = [Flags 'E']; end
+	if sptl_WhchPtn == 1
+		p = 3;
+	else
+		p = spm_input('Which option?', pos, 'm',...
+			'Coregister only|Reslice Only|Coregister & Reslice',...
+			[1 2 3]);
+		pos = pos + 1;
 	end
 
+	if (p == 1 | p == 3) Flags = [Flags 'e']; end
+	if (p == 2 | p == 3) Flags = [Flags 'r']; end
+	p = spm_input('Interpolation Method?',pos,'m',...
+		'Bilinear Interpolation|Sinc Interpolation',[1 2]);
+	pos = pos + 1;
+	if (p == 2) Flags = [Flags 'sS']; end
+
 	if (any(Flags == 'r'))
-		p = spm_input('Create what?',5,'m',...
-			[' All Images (1..n)| Images 2..n|'...
-			 ' All Images + Mean Image| Mean Image Only'],...
-			[1 2 3 4]);
+		if sptl_CrtWht == 1
+			p = 3;
+		else
+			p = spm_input('Create what?',pos,'m',...
+				[' All Images (1..n)| Images 2..n|'...
+				 ' All Images + Mean Image| Mean Image Only'],...
+				[1 2 3 4]);
+			pos = pos + 1;
+		end
 		if (p == 2) Flags = [Flags 'n']; end
 		if (p == 3) Flags = [Flags 'i']; end
 		if (p == 4) Flags = [Flags 'Ni']; end
 		if (~any(Flags == 'N'))
-			if (spm_input('Mask the images?'       ,6,'y/n')...
-				== 'y') Flags = [Flags 'k']; end
-			if (strcmp(MODALITY,'FMRI'))
-				if (spm_input(...
-					'Adjust for motion in Z?'...
-					,7,'y/n') == 'y')
+			if sptl_MskOptn == 1
+				Flags = [Flags 'k'];
+			else
+				if (spm_input('Mask the images?'       ,pos,'y/n') == 'y')
+					Flags = [Flags 'k'];
+				end
+				pos = pos + 1;
+			end
+			if (strcmp(MODALITY, 'FMRI'))
+				if (sptl_DjstFMRI == 1)
 					Flags = [Flags 'c'];
+				elseif sptl_DjstFMRI ~= 0
+					if (spm_input(...
+						'Adjust for motion in Z?'...
+						,pos,'y/n') == 'y')
+						Flags = [Flags 'c'];
+					end
+					pos = pos + 1;
 				end
 			end
 		end
@@ -252,11 +274,50 @@ if (nargin == 0)
 		'Pointer','Arrow');
 	drawnow
 	return;
+
+elseif nargin == 1 & strcmp(P,'Defaults')
+	% Defaults.
+	%_______________________________________________________________________
+
+	tmp = 'separate';
+	if sptl_WhchPtn == 1, tmp = 'combine'; end;
+	sptl_WhchPtn = spm_input(...
+		['Coregistration and reslicing (' tmp ')?'],...
+		2, 'm',...
+		['Allow separate coregistration and reslicing|'...
+		 'Combine coregistration and reslicing'], [-1 1]);
+
+
+	tmp = 'Full opts';
+	if sptl_MskOptn == 1,
+		tmp = 'all + mean';
+	end
+	sptl_CrtWht   = spm_input(['Images to create (' tmp ')?'], 3, 'm',...
+		'All Images + Mean Image|Full options', [1 -1]);
+
+
+	tmp = 'optional';
+	if sptl_DjstFMRI == 1,
+		tmp = 'always';
+	elseif sptl_DjstFMRI == 0
+		tmp = 'never';
+	end
+	sptl_DjstFMRI = spm_input(['fMRI adjustment for movement (' tmp ')?'],4,'m',...
+			'   Always adjust |    Never adjust|Optional adjust',...
+			[1 0 -1]);
+
+
+	tmp = 'optional';
+	if sptl_MskOptn == 1,
+		tmp = 'always';
+	end
+	sptl_MskOptn  = spm_input(['Option to mask images (' tmp ')?'], 5, 'm',...
+			'  Always mask|Optional mask', [1 -1]);
+	return;
 end
 
-
-%---------------------------------------------------------------------------
-global PRINTSTR
+% Do the work..
+%_______________________________________________________________________
 
 % set up file identifiers and check image and voxel sizes are consistent
 %---------------------------------------------------------------------------

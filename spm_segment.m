@@ -11,23 +11,6 @@
 % select any images. Otherwise, select one or more template images which
 % will be used for affine normalisation of the images.
 %
-% 'Generate:'
-%	'Image Segments'
-%	Produces segments of gray matter, white matter, csf, and 'other'
-%	which have the same image dimensions as the original volume(s).
-%
-%	'Pseudo Pet'
-%	Produces a 'PETlike' image for registration purposes.
-%
-%	'Reduced Image Segments'
-%	Produces reduced size image segments (2mm voxels) which can
-%	(possibly) be used for registration purposes. These images can
-%	be mapped to the original via their '.mat' files.
-%
-%	'Reduced Pseudo Pet'
-%	Rapidly produces a reduced size 'PETlike' image for quick
-%	registration purposes. These images can be mapped to the
-%	original via their '.mat' files.
 %_______________________________________________________________________
 %
 % FORMAT spm_segment(PF,PG,opts)
@@ -92,34 +75,38 @@ if (nargin==0)
 
 	for i = 1:n
 		PF = spm_get(Inf,'.img',...
-			['select MRI(s) for subject ' num2str(i)]);
+			['Select MRI(s) for subject ' num2str(i)]);
 		eval(['PF' num2str(i) ' = PF;']);
 	end
 
-	% Get template(s)
-	ok = 0;
 	PG = '';
-	while (~ok)
-		PG = spm_get(Inf,'.img',['select Template(s) '],...
-			'', DIR);
-		if (size(PG,1)>0)
-			dims = zeros(size(PG,1),9);
-			for i=1:size(PG,1)
-				[dim vox dummy dummy dummy origin dummy]...
-					 = spm_hread(deblank(PG(i,:)));
-				dims(i,:) = [dim vox origin];
+	tmp = spm_input('Are they spatially normalised?', 2, 'y/n');
+
+	if (tmp == 'n')
+		% Get template(s)
+		ok = 0;
+		while (~ok)
+			PG = spm_get(Inf,'.img',['Select Template(s) for normalisation'],...
+				'', DIR);
+			if (size(PG,1)>0)
+				dims = zeros(size(PG,1),9);
+				for i=1:size(PG,1)
+					[dim vox dummy dummy dummy origin dummy]...
+						 = spm_hread(deblank(PG(i,:)));
+					dims(i,:) = [dim vox origin];
+				end
+				if size(dims,1) == 1 | ~any(diff(dims))
+					ok = 1;
+				end
+			else
+				ok = 1; % assume already normalised.
 			end
-			if size(dims,1) == 1 | ~any(diff(dims))
-				ok = 1;
-			end
-		else
-			ok = 1; % assume already normalised.
 		end
 	end
-	options = ['   '; 'np '; 'r  '; 'npr'];
-	opts = options(spm_input('Generate:',2,'m',...
-		'Image Segments|Pseudo Pet',...
-		[1 2]),:);
+%	options = ['   '; 'np '; 'r  '; 'npr'];
+%	opts = options(spm_input('Generate:',2,'m',...
+%		'Image Segments|Pseudo Pet',...
+%		[1 2]),:);
 
 	for i = 1:n
 		eval(['PF = PF' num2str(i) ';']);

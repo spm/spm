@@ -28,7 +28,7 @@ function params = spm_coregister(PGF, PFF, PGG, PFG, others)
 % %W% John Ashburner %E%
 
 
-global SWD
+global SWD sptl_WhchPtn
 if (nargin == 0)
 	% Act as user interface if there are no arguments
 	%_______________________________________________________________________
@@ -39,7 +39,7 @@ if (nargin == 0)
 	% get number of subjects
 	nsubjects = spm_input('number of subjects',1);
 
-	if (1==1)
+	if (sptl_WhchPtn ~= 1)
 		p = spm_input('Which option?',2,'m',...
 			'Coregister only|Reslice Only|Coregister & Reslice',...
 			[1 2 3]);
@@ -273,4 +273,6 @@ for imge = others'
 	M = spm_get_space(deblank(imge'));
 	spm_get_space(deblank(imge'), spm_matrix(params)*M);
 end
+
+spm_figure('Clear','Interactive');
 
