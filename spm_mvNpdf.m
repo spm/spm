@@ -1,64 +1,68 @@
-function p = spm_mvNcdf(x,Mu,SigmaSq)
-% Cumulative Distribution Function (CDF) for univariate normal distributions
-% FORMAT p = spm_mvNcdf(x,Mu,Var)
+function pdf = spm_Npdf(z,Mu,V)
+% Probability Density Function (PDF) of multivariate Normal distribution
+% FORMAT pdf = spm_Npdf(z,Mu,V)
 %
-% x       - N(Mu,SigmaSq) variates
-% Mu      - Mean of the univariate Normal distribution
-% SigmaSq - Variance of the univariate Normal distribution
-% p       - lower tail probability
-%__________________________________________________________________________
+% z  - ordinates
+% Mu - mean (a d-vector)
+% V  - d x d variance-covariance matrix
+%_______________________________________________________________________
 %
-% spm_mvNcdf implements the Cumulative Distribution Function (CDF) for
-% the Normal (Gaussian) family of distributions.
+% spm_Npdf returns the Probability Density Function (PDF) for the
+% multivariate Normal (Gaussian) family of distributions.
 %
-% Returns the probability p, that a variate from a Normal distribution with
-% mean Mu and variance SigmaSq is less than z.
-% p = Pr(Z <= z) for Z ~ N(Mu,SigmaSq).
+% The dimension of the Normal distribution is taken as the length of Mu.
+% V must be a d x d variance-covariance matrix.
 %
-% The CDF for a standard N(0,1) Normal distribution (known as \Phi), is
-% related to the error function, and MatLab's implementation of the error
-% function is used for computation. See "Numerical Recipies in C"
+% For the univariate Normal distribution (d=1), z can be a matrix of
+% arbitrary dimensions - each entry is treated seperately and the PDF
+% returned as the corresponding element in a matrix of the same size.
 %
-% For extreme variates with abs(z)>6 where z=(x-Mu)/sqrt(SigmaSq), the
-% approximation \phi(z) \approx exp(-z^2/2)/(z*sqrt(2*pi)) is used
+% For multivarate PDFs, the ordinates must be in the columns of z, so
+% z must have column dimension d. Multiple columns can be entered. 
 %
-%---------------------------------------------------------------------------
+%_______________________________________________________________________
+
 % %W% Andrew Holmes %E%
 
-%-Parameters - (Absolute) threshold above which the high value
-%		to \phi approximation is used
-%-----------------------------------------------------------------------
-z1 = 6;
-
 %-Condition arguments
-%---------------------------------------------------------------------------
-if nargin < 3, SigmaSq = 1;  end
-if nargin < 2, Mu      = 0;  end
-if nargin < 1, z       = []; end
+%-----------------------------------------------------------------------
+if nargin<1,   pdf=[]; return, end
+if isempty(z), pdf=[]; return, end
+if nargin<2,   Mu=0;           end
 
-if SigmaSq <=0 , error('SigmaSq must be strictly positive'), end
+%-Check Mu, make a column vector, get dimension
+%-----------------------------------------------------------------------
+if min(size(Mu)) > 1, error('Mu must be a vector'); end
+Mu = Mu(:)';
+d  = length(Mu);
+n  = size(z,2);
+
+if nargin<3, V=eye(d); end
+
+%-Size & range checks
+%-----------------------------------------------------------------------
+if any(any(V~=V')),     error('V must be symmetric'); end
+if any(size(V)~=[d,d]), error('V wrong dimension'),   end
 
 %-Computation
+%-----------------------------------------------------------------------
+if d==1
+	%-Simpler computation for univariate normal
+	%---------------------------------------------------------------
+	pdf = exp(-(z - Mu).^2/(2*V))./sqrt(2*pi*V);
+else
+	if size(z,1) ~= d, error('z wrong dimension'), end
+	z   = z - Mu(:)*ones(1,size(z,2));
+	pdf = exp(-0.5*sum((sqrtm(inv(V))*z).^2))/((2*pi)^(d/2)*sqrt(det(V)));
+end
+
+return
+
+%-Notes
 %=======================================================================
-p  = zeros(size(x));
-
-%-Center and scale to standard Gaussian variates
-%-----------------------------------------------------------------------
-z  = (x - Mu)/sqrt(SigmaSq);
-
-%-Find really extreme variates
-%-----------------------------------------------------------------------
-h  = find(abs(z) >  z1);
-l  = find(abs(z) <= z1);
-
-%-Standard Ncdf
-%-----------------------------------------------------------------------
-if length(l)
-	p(l) = 0.5 + 0.5*erf(z(l)/sqrt(2));
-end
-
-%-High value approximation to Ncdf
-%-----------------------------------------------------------------------
-if length(h)
-	p(h) = (z(h)>0) - exp(-(z(h).^2)/2)./(z(h)*sqrt(2*pi));
-end
+%-The following line computes the PDF in one go for all the ordinates,
+% The diag()'s allow for the multiplicity.
+% This way is inefficient for large numbers of ordinates.
+%
+% pdf = ...
+%  exp(-0.5*diag((x-Mu)'*inv(V)*(x-Mu))' ) / ( (2*pi)^(d/2) * sqrt(det(V)) );
