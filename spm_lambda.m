@@ -19,25 +19,43 @@ function [Lc2z,Lc2t,Lt2z] = spm_lambda(df)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
+%-Lc2t Lookup table for low df
+%-----------------------------------------------------------------------
+LC2T  = [Inf Inf Inf Inf 3.3332 2.2500 1.8667 1.6667];
 
-% for high df
+%-For high df, round df to nearest integer
 %-----------------------------------------------------------------------
 if df > 32; df = round(df); end
 
-% pdfs and Probability integral transform (PIT)
+%-pdfs and Probability integral transform (PIT)
+% (ordinates for numerical computation of integrals)
 %-----------------------------------------------------------------------
 dt    = 0.01;
 t     = -12:dt:12;
 pdf   = spm_Tpdf(t,df);
 T     = spm_t2z(t,df);
 
-% var(dt/dx) following transformation = var(dT(t)/dx)/var(dt/dx)
+
+%-var(dt/dx) following transformation = var(dT(t)/dx)/var(dt/dx)
+% (using "rectangle rule" numerical integration)
+%=======================================================================
+
+%-Lc2z
 %-----------------------------------------------------------------------
 Lc2z  = sum((t.^2 + df).^2/(df*(df - 1)).*pdf.^3./(spm_Npdf(T).^2)*dt);
-Lc2t  = sum((t.^2 + df).^2/(df*(df - 1)).*pdf*dt);
-Lt2z  = Lc2z/Lc2t;
 
-% for low df
+%-Lc2t: for low df, use lookup; otherwise compute approximate integral
 %-----------------------------------------------------------------------
-LC2T  = [Inf Inf Inf Inf 3.3332 2.2500 1.8667 1.6667];
-if df <= length(LC2T); Lc2t = LC2T(df); end
+if df<=length(LC2T)
+	Lc2t = interp1(LC2T,df);
+	if abs(df-round(df))>0.2
+		warning('linearly interpolating within low-df table')
+	end
+else
+	Lc2t  = sum((t.^2 + df).^2/(df*(df - 1)).*pdf*dt);
+end
+
+
+%-Evaluate Lt2z from Lc2z & Lc2t
+%-----------------------------------------------------------------------
+Lt2z  = Lc2z/Lc2t;
