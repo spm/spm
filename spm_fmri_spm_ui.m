@@ -184,7 +184,7 @@ spm_help('!ContextHelp',mfilename)
 %=======================================================================
 if ~nargin
 
-	str = 'specify a design or assign data';
+	str = 'specify design or data';
 	if spm_input(str,1,'b',{'design','data'},[1 0]);
 
 		% specify a design
@@ -215,7 +215,6 @@ end
 try
 	RT        = SPM.xY.RT;
 catch
-
 	RT        = spm_input('Interscan interval {secs}','+1');
 	SPM.xY.RT = RT;
 end
