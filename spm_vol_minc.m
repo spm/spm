@@ -84,9 +84,16 @@ if ~is_flt,
 		imax = findvar(cdf.var_array,imax.val(5:end));
 		fseek(fp,imax.begin,'bof');
 		ddim = dim(3);
-		imax = fread(fp,prod(ddim),dtypestr(imax.nc_type))';
-		imax = reshape(imax,[ddim 1 1]);
-		imax = imax(:,1,1)';
+		nel  = imax.vsize/(spm_type(dtypestr(imax.nc_type),'bits')/8);
+		imax = fread(fp,nel,dtypestr(imax.nc_type))';
+		if nel==1,
+			imax = imax*ones(1,dim(3));
+		elseif nel==ddim,
+			imax = reshape(imax,[ddim 1 1]);
+			imax = imax(:,1,1)';
+		else,
+			error('Problem with IMAX');
+		end;
 	else,
 		imax = ones(1,dim(3));
 		disp(['Can''t get imax for "' fname '" - guessing it is one']);
@@ -96,9 +103,16 @@ if ~is_flt,
 		imin = findvar(cdf.var_array,imin.val(5:end));
 		fseek(fp,imin.begin,'bof');
 		ddim = dim(3);
-		imin = fread(fp,prod(ddim),dtypestr(imin.nc_type))';
-		imin = reshape(imin,[ddim 1 1]);
-		imin = imin(:,1,1)';
+		nel  = imin.vsize/(spm_type(dtypestr(imin.nc_type),'bits')/8);
+		imin = fread(fp,nel,dtypestr(imin.nc_type))';
+		if nel==1,
+			imin = imin*ones(1,dim(3));
+		elseif nel==ddim,
+			imin = reshape(imin,[ddim 1 1]);
+			imin = imin(:,1,1)';
+		else,
+			error('Problem with IMIN');
+		end;
 	else,
 		imin = zeros(1,dim(3));
 		disp(['Can''t get imax for "' fname '" - guessing it is zero']);
@@ -205,6 +219,8 @@ if dt == 10,
 	dt   = fread(fp,1,'uint32');
 end
 
+while ~dt, dt   = fread(fp,1,'uint32'); end;
+
 if dt == 12,
 	% Attributes
 	nelem = fread(fp,1,'uint32');
@@ -221,6 +237,8 @@ if dt == 12,
 	end;
 	dt   = fread(fp,1,'uint32');
 end
+
+while ~dt, dt   = fread(fp,1,'uint32'); end;
 
 if dt == 11,
 	% Variables
