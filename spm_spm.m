@@ -281,7 +281,7 @@ while(1)
 
 	%-Compute spatial derivatives
 	%---------------------------------------------------------------
-	for j = 1:min([length(Q) 64])
+	for j = 1:length(Q)
 		d      = find(Q == Qs(1,Q(j)));
 		if length(d)
 			sx_res = sx_res + sum(((Res(:,j) - Res(:,d))).^2);
