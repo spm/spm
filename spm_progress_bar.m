@@ -10,28 +10,28 @@ function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Clears the 'Interactive' window.
 %
 %-----------------------------------------------------------------------
-% @(#)spm_progress_bar.m	1.4 John Ashburner 96/08/14
+% %W% John Ashburner %E%
 
 global pb_pointer pb_name ax
 %-----------------------------------------------------------------------
-if (nargin == 0)
+if nargin == 0,
 	spm_progress_bar('Init');
-else
+else,
 	action = lower(action);
 	% initialize
 	%---------------------------------------------------------------
-	if (strcmp(action,'init'))
-		if (nargin<4)
+	if strcmp(action,'init'),
+		if nargin<4,
 			arg3 = '';
-			if (nargin<3)
+			if nargin<3,
 				arg2 = 'Computing';
-				if (nargin<2)
+				if nargin<2,
 					arg1 = 1;
-				end
-			end
-		end
+				end;
+			end;
+		end;
 		fg = spm_figure('FindWin','Interactive');
-		if ~isempty(fg)
+		if ~isempty(fg),
 			pb_pointer = get(fg,'Pointer');
 			pb_name    = get(fg,'Name');
 			spm_progress_bar('Clear');
@@ -58,14 +58,13 @@ else
 				'LineWidth',8, 'Color', [1 0 0],'Tag','ProgressBar',...
 				'Parent',ax);
 			drawnow;
-		end
-
+		end;
 	% reset
 	%---------------------------------------------------------------
-	elseif (strcmp(action,'set'))
-		if (nargin<2)
+	elseif strcmp(action,'set'),
+		if nargin<2,
 			arg1 = 0;
-		end
+		end;
 		F = spm_figure('FindWin','Interactive');
 		if ~isempty(F),
 			br = findobj(F,'Tag','ProgressBar');
@@ -75,11 +74,11 @@ else
 				lab = get(ax,'Title'); 
 				set(lab,'string',sprintf('%.0f%% Complete',100*arg1/lim)); 
 				drawnow;
-			end
-		end
+			end;
+		end;
 	% clear
 	%---------------------------------------------------------------
-	elseif (strcmp(action,'clear'))
+	elseif strcmp(action,'clear'),
 		fg = spm_figure('FindWin','Interactive');
 		if ~isempty(fg),
 			spm_figure('Clear',fg);
@@ -88,6 +87,6 @@ else
 				set(fg,'Name',pb_name);
 			end;
 			drawnow;
-		end
-	end
-end
+		end;
+	end;
+end;
