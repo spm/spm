@@ -73,7 +73,7 @@ case $arch in
 	cmex4="mex -V4";;
     hpux)
 	# unix compile for hpux cc, and maybe aix cc
-	CC="cc -O +Z"
+	CC="cc -O +z -Ae +DAportable"
 	cmex5="mex     COPTIMFLAGS=-O"
 	cmex4="mex -V4 COPTIMFLAGS=-O";;
    *)
