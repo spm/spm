@@ -242,9 +242,9 @@ hrf = spm_hrf(RT);
 
 %-Construct design matrix C partition
 % (box-cars convolved with approximate HRF if requested)
-% null condition with iCond==0 is ignored by spm_DesMtx
+% null condition with iCond==0 is ignored by spm_DesMtx with '~' constraint
 %-----------------------------------------------------------------------
-[C,Cnames,Ci] = spm_DesMtx(iCond,'-','\alpha');
+[C,Cnames,Ci] = spm_DesMtx(iCond,'~','\alpha');
 % C = spm_detrend(C);
 
 %-Convolve with hemodynamic response function, if requested
