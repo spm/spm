@@ -41,6 +41,20 @@ function varargout = spm_SpUtil(varargin)
 % ('i0->edf',x,i0,V) :
 %
 %---------------------
+%
+% Improvement compared to the spm99 beta version :
+%
+% Improvements in df computation using spm_SpUtil('trRV',x[,V]) and
+% spm_SpUtil('trMV',sX [,V]). The degrees of freedom computation requires
+% in general that the trace of RV and of RVRV be computed, where R is a
+% projector onto either a sub space of the design space or the residual
+% space, namely the space that is orthogonal to the design space. V is
+% the (estimated or assumed) variance covariance matrix and is a number
+% of scans by number of scans matrix which can be huge in some cases. We
+% have (thanks to S Rouquette and JB) speed up this computation 
+% by using matlab built in functions of the frobenius norm and some theorems
+% on trace computations. 
+%
 % ======================================================================
 %
 % FORMAT i = spm_SpUtil('isCon',x,c)
@@ -484,7 +498,7 @@ error(' Obsolete : Use F-contrast utilities  ''H'' or ''Hsqr''... ');
 %		trace part
 %=======================================================================
 %=======================================================================
-
+%
 
 case 'trrv'                      %-Traces for (effective) df calculation
 %=======================================================================
