@@ -377,6 +377,14 @@ case 'rmcontext',
 case 'context_menu',
 	c_menu(varargin{:});
 
+case 'valid_handles',
+	if nargin == 1
+		handles = 1:24;
+	else,
+		handles = varargin{1};
+	end;
+	varargout{1} = valid_handles(handles);
+
 otherwise,
   addonaction = strcmp(st.plugins,action);
   if any(addonaction)
