@@ -1,0 +1,50 @@
+
+% This is the SPM'96 public beta edition...
+%_______________________________________________________________________
+%
+% This is SPM96b, the public beta edition of SPM'96 - released 28/09/96.
+%
+% Unfortunately, we haven't been able to have a full two month period
+% of internal beta testing and feature stabilisation. However, we feel
+% that the software is stable enough to release, and that a public beta
+% will iron out any remaining difficulties much more efficiently than
+% internal testing, and provide an introduction to SPM96 without
+% further delay.
+% 
+% There may be bugs, especially in the more esoteric parts of SPM that
+% are infrequently visited. Please report bugs to
+% spm-bugs@fil.ion.ucl.ac.uk. Peculiarities and general queries should
+% be raised on the SPM discussion list. We will report patches to the
+% list and make updates available if necessary. We envisage making a
+% full SPM96 release in a couple of months.
+%
+%                           ----------------
+%
+% SPM96 is backward compatible, in that each module will read files
+% from previous versions. (E.g. SPM96 statistics will read normalised
+% images from SPM95) However, it is recommended that you don't mix
+% versions of the same module in a single analysis. (E.g. Don't mix
+% SPM96 and SPM95 spatial normalisations in the same study group - the
+% templates are different!) You should identify which versions of SPM
+% were used for which stages of analysis in any publications.
+%
+% A version choosing routine, spm_choose, is provided in the
+% distribution. This presents a graphical menu of versions, which set
+% the MatLab path and start the appropriate spm. Type `spm_choose` to
+% use this facility. (System administrators need to edit the version
+% and path definitions in spm_choose.m for this to work.)
+%
+%                           ----------------
+%
+% Please take time to review the the (new) help system, in particular
+% the "About SPM" topic (spm.man). Further information may be found at
+% the SPMweb site, http://www.fil.ion.ucl.ac.uk/spm
+%
+%                           ----------------
+%
+% Warmest regards,
+%            the authors.                                   spm_motd.man
+%_______________________________________________________________________
+% The FIL methods group : The Wellcome Department of Cognitive Neurology
+
+% %W% %E%
