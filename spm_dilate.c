@@ -150,7 +150,6 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
       if (nrhs == 1) { dim[0] = indim[0]; dim[1] = indim[1]; }
       else {dim[0] = ((int) dindim[0]); dim[1] = ((int) dindim[1]); }
       dim[2] = 1;
-      ndim == 3;
    }
    else if (ndim == 3)   
    {
