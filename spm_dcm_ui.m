@@ -250,13 +250,12 @@ case 'specify'
 	spm('Pointer','Watch')
 	spm('FigName','Estimation in progress');
 
-	% confounds
+	% confounds (NB: the data have been whitened with W and filtered)
 	%-------------------------------------------------------------------
 	v     = size(xY(1).u,1);
+	X0    = SPM.xX.W*ones(v,1);
 	try
-		X0    = [ones(v,1) (SPM.xX.K(xY(1).Sess).KH)];
-	catch
-		X0    = ones(v,1);
+		X0    = [X0 (SPM.xX.K(xY(1).Sess).KH)];
 	end
 
 	% response variables
@@ -272,7 +271,7 @@ case 'specify'
 		Y.name{i} = xY(i).name;
 	end
 
-	% error components (one for each region)
+	% error components (one for each region) - i.i.d. (because of W)
 	%-------------------------------------------------------------------
 	Y.Ce  = spm_Ce(ones(1,n)*v);
 
@@ -283,8 +282,8 @@ case 'specify'
 
 	% model specification and nonlinear system identification
 	%-------------------------------------------------------------------
-	M.fx  = 'spm_fx_dcm';
-	M.lx  = 'spm_lx_dcm';
+	M.f   = 'spm_fx_dcm';
+	M.g   = 'spm_lx_dcm';
 	M.x   = sparse(n*5,1);
 	M.pE  = pE;
 	M.pC  = pC;
