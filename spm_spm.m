@@ -1061,13 +1061,11 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 
 %-Non-sphericity: Vi
 %=======================================================================
-fprintf('%-40s: %30s','Non-sphericity','...REML estimation')         %-#
-
-
-%-REML estimation of correlation structure though hyperparameters (h)
-%-----------------------------------------------------------------------
-hp     = [];
 if iscell(xX.xVi.Vi)
+	%-REML estimate of residual correlations through hyperparameters (h)
+	%---------------------------------------------------------------
+	fprintf('%-40s: %30s','Non-sphericity','...REML estimation') %-#
+
 	[Vi,h]       = spm_reml(Cy/S,xX.X,xX.xVi.Vi);
 	Vi           = Vi*nScan/trace(Vi);
 	xX.xVi.Param = h;
