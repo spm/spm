@@ -202,9 +202,9 @@ if flags.mask | flags.mean,
          spm_progress_bar('Set',tv);
          tv = tv+1;
       end
-      if flags.mean Count = repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - msk; end
+      if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - msk; end
    end
-   if flags.mask msk = find(msk ~= 0); end
+   if flags.mask, msk = find(msk ~= 0); end
 end
 
 linfun('Reslicing images..');
