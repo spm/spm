@@ -40,7 +40,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % adjustment.
 % 
 % Plotting data:
-% All data and graphics use filtered data and residuals.    In PET
+% All data and graphics use filtered/whitened data and residuals. In PET
 % studies the parameter estimates and the fitted data are often the same
 % because the explanatory variables are simply indicator variables taking
 % the value of one.  Only contrasts previously defined can be plotted.
@@ -68,6 +68,7 @@ spm_results_ui('Clear',Fgraph,2);
 %-----------------------------------------------------------------------
 if ~length(xSPM.XYZmm)
 	spm('alert!','No suprathreshold voxels!',mfilename,0);
+
 	Y = []; y = []; beta = []; Bcov = [];
 	return
 end
@@ -77,12 +78,27 @@ spm_XYZreg('SetCoords',xyz,hReg);
 XYZ     = xSPM.XYZ(:,i);		% coordinates
 
 
-%-Extract required data from results files
+%-Extract filtered and whitened data from files
 %=======================================================================
 try
 	y = spm_get_data(SPM.xY.VY,XYZ);
+	y = spm_filter(SPM.xX.K,SPM.xX.W*y);
 catch
-	y = [];
+	try
+		% remap files in SPM.xY.P if SPM.xY.VY is no longer valid
+		%-------------------------------------------------------
+		SPM.xY.VY = spm_vol(SPM.xY.P);
+		y = spm_get_data(SPM.xY.VY,XYZ);
+		y = spm_filter(SPM.xX.K,SPM.xX.W*y);
+
+	catch
+		% data has been moved or renamed
+		%-------------------------------------------------------
+		y = [];
+		spm('alert!',{'Original data have been moved or renamed',...
+			      'Recomendation: please update SPM.xY.P'},...
+			       mfilename,0);
+	end
 end
 XYZstr = sprintf(' at [%g, %g, %g]',xyz);
 
@@ -93,12 +109,12 @@ if isempty(y)
 
 	% make R = NaN so it will not be plotted
 	%---------------------------------------------------------------
-	R   = NaN*ones(size(SPM.xX.xKXs.X,1),1);
+	R   = NaN*ones(size(SPM.xX.X,1),1);
 
 else
-	% residuals
+	% residuals (non-whitened)
 	%---------------------------------------------------------------
-	R   = spm_sp('r',SPM.xX.xKXs,spm_filter(SPM.xX.K,y));
+	R   = spm_sp('r',SPM.xX.xKXs,y);
 
 end
 
@@ -114,7 +130,7 @@ if xSPM.STAT ~= 'P'
 	Bcov  = ResMS*SPM.xX.Bcov;
 
 else
-	% or condotional estimates with
+	% or conditional estimates with
 	% Cov(b|y) through Taylor approximation
 	%---------------------------------------------------------------
 	beta  = spm_get_data(SPM.VCbeta, XYZ);
@@ -146,11 +162,10 @@ Cplot = {	'Contrast estimates and 90% C.I.',...
 
 % ensure options are appropriate
 %-----------------------------------------------------------------------
-if ~isfield(SPM,'Sess')
-
-	Cplot = Cplot(1:2);
-else
+try
 	Sess  = SPM.Sess;
+catch
+	Cplot = Cplot(1:2);	
 end
 Cplot  = Cplot{spm_input('Plot',-1,'m',Cplot)};
 
@@ -255,7 +270,7 @@ case 'Fitted responses'
 		Y = SPM.xX.X*SPM.xCon(Ic).c*pinv(SPM.xCon(Ic).c)*beta;
 	else
 
-		% fitted (adjusted) data (Y = X1o*beta)
+		% fitted (corrected)  data (Y = X1o*beta)
 		%-------------------------------------------------------
 		Y = spm_FcUtil('Yc',SPM.xCon(Ic),SPM.xX.xKXs,beta);
 
@@ -263,7 +278,7 @@ case 'Fitted responses'
 
 	% adjusted data
 	%---------------------------------------------------------------
-	y     = Y  + R;
+	y     = Y + R;
 
 	% get ordinates
 	%---------------------------------------------------------------
@@ -315,8 +330,8 @@ case 'Fitted responses'
 		plot(x(q),y(q),'.','MarkerSize',8, 'Color',Col(3,:)); 
 
 	else
-		plot(x(q),y(q),'.','MarkerSize',8, 'Color',Col(2,:));
 		plot(x(q),Y(q),'.','MarkerSize',16,'Color',Col(1,:));
+		plot(x(q),y(q),'.','MarkerSize',8, 'Color',Col(2,:));
 		xlim = get(gca,'XLim');
 		xlim = [-1 1]*diff(xlim)/4 + xlim;
 		set(gca,'XLim',xlim)
@@ -325,6 +340,7 @@ case 'Fitted responses'
 	title(TITLE,'FontSize',12)
 	xlabel(XLAB)
 	ylabel(['response',XYZstr])
+	legend('fitted','plus error')
 	hold off
 
 % modeling evoked responses based on Sess
@@ -349,7 +365,7 @@ case 'Event-related responses'
 	case 'fitted response and PSTH'
 
 
-		% refit a simple FIR model; bin size = TR
+		% build a simple FIR model subpartition (X); bin size = TR
 		%------------------------------------------------------
 		BIN         = SPM.xY.RT;
 		xBF         = SPM.xBF;
@@ -362,21 +378,29 @@ case 'Event-related responses'
 		BIN         = xBF.length/xBF.order;
 		X           = spm_Volterra(U,xBF.bf,1);
 		k           = SPM.nscan(s);
-		j           = xBF.order;
 		X           = X([0:(k - 1)]*SPM.xBF.T + SPM.xBF.T0 + 32,:);
 
-		
-		% PSTH and CI
+		% place X in SPM.xX.X
 		%------------------------------------------------------
-		K           = SPM.xX.K(s);
-		y           = spm_detrend(y(K.row));
-		X           = spm_detrend(X);
-		[F,df,B,xX] = spm_ancova(X,speye(k,k),y,speye(j,j));
-		rss         = spm_sp('r',xX,y);
-		bcov        = xX.pX*xX.pX'*sum(rss.^2)/df(2);
+		jX          = Sess(s).row;
+		iX          = Sess(s).col(Sess(s).Fc(u).i);
+		iX0         = [1:size(SPM.xX.X,2)];
+		iX0(iX)     = [];
+		X           = [X SPM.xX.X(jX,iX0)];
+		X           = spm_filter(SPM.xX.K(s),X);
+
+		% Re-estimate to get PSTH and CI
+		%------------------------------------------------------
+		j           = xBF.order;
+		xX          = spm_sp('Set',X);
+		pX          = spm_sp('x-',xX);
+		PSTH        = pX*y(jX);
+		res         = spm_sp('r',xX,y(jX));
+		df          = size(X,1) - size(X,2);
+		bcov        = pX*pX'*sum(res.^2)/df;
+		PSTH        = PSTH(1:j)/dt;
 		PST         = [1:j]*BIN - BIN/2;
-		PSTH        = B/dt;
-		PCI         = CI*sqrt(diag(bcov))/dt;
+		PCI         = CI*sqrt(diag(bcov(1:j,(1:j))))/dt;
 	end
 
 	% basis functions and parameters
@@ -397,7 +421,8 @@ case 'Event-related responses'
 	bin   = round(pst/dt);
 	q     = find((bin >= 0) & (bin < size(X,1)));
 	y     = R(Sess(s).row(:));
-	y(q)  = y(q) + Y(bin(q) + 1);
+	pst   = pst(q);
+	y     = y(q) + Y(bin(q) + 1);
 
 	% plot
 	%--------------------------------------------------------------
@@ -433,12 +458,13 @@ case 'Event-related responses'
 	ylabel(['response',XYZstr])
 	hold off
 
+
 % modeling evoked responses based on Sess
 %----------------------------------------------------------------------
 case 'Parametric responses'
 
 
-	% return gracefully in no parameters
+	% return gracefully if no parameters
 	%--------------------------------------------------------------
 	if ~Sess(s).U(u).P(1).h, break, end
 
@@ -447,7 +473,7 @@ case 'Parametric responses'
 	bf    = SPM.xBF.bf;
 	pst   = ([1:size(bf,1)] - 1)*dt;
 
-	% orthoganized expansion of parameteric variable
+	% orthogonalised expansion of parameteric variable
 	%--------------------------------------------------------------
 	str   = 'which parameter';
 	p     = spm_input(str,'+1','m',cat(2,Sess(s).U(u).P.name));
