@@ -930,14 +930,16 @@ end
 set(F,'UserData',xCon);
 
 
-%-Redisplay the new list of contrasts, with the new one highlit
+%-Redisplay the new list of contrasts, with the new one selected
 %-----------------------------------------------------------------------
 hConList = findobj(F,'Tag','ConList');
-Q        = get(hConList,'UserData');
-I        = Q(get(hConList,'Value'));
-n        = get(findobj(F,'Tag','Prompt'),'UserData');
+I = length(xCon);
 
-if abs(n)>1, I=[I,length(xCon)]; else, I=length(xCon); end
+%-Use this code to add the new contrast to a multiple selection, if allowed
+% Q        = get(hConList,'UserData');
+% I        = Q(get(hConList,'Value'));
+% n        = get(findobj(F,'Tag','Prompt'),'UserData');
+% if abs(n)>1, I=[I,length(xCon)]; else, I=length(xCon); end
 
 spm_conman('TFA',F,xCon(end).STAT);			%-Set STAT
 spm_conman('ListCon',hConList,xCon,xCon(end).STAT,I)	%-ListCon
