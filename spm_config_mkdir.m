@@ -9,12 +9,12 @@ function opts = spm_config_mkdir
 %_______________________________________________________________________
 
 
-data.type = 'dirs';
+data.type = 'files';
 data.name = 'Select a base directory';
 data.tag  = 'basedir';
-data.filter = '.';
+data.filter = 'dir';
 data.num  = 1;
-data.help = {'Select a directory to change to.'};
+data.help = {'Select a base directory.'};
 
 name.type  = 'entry';
 name.name = 'Enter a directory name';
@@ -27,7 +27,7 @@ opts.type = 'branch';
 opts.name = 'Make Directory';
 opts.tag  = 'md';
 opts.val  = {data,name};
-opts.prog = @my_cd;
+opts.prog = @my_mkdir;
 opts.vdirs = @vdirs_mydirs;
 opts.help = {[...
 'This facilty allows programming a directory change. Directories are ',...
@@ -36,7 +36,7 @@ opts.help = {[...
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function my_cd(varargin)
+function my_mkdir(varargin)
 job = varargin{1};
 if ~isempty(job.basedir) && ~isempty(job.name)
     mkdir(job.basedir{:},job.name);

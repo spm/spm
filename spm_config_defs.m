@@ -108,59 +108,62 @@ himg = {[...
 'Specify the image file on which to base the dimensions, orientation etc ',...
 'of the inverse.']};
 
-def      = files('Deformation Field','def','.*y_.*\.img$',1);
-def.help = himgr;
+def          = files('Deformation Field','def','.*y_.*\.img$',1);
+def.help     = himgr;
 
-matname  = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
+matname      = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
 matname.help = hmatname;
 
-vox      = entry('Voxel sizes','vox','e',[1 3]);
-vox.val  = {[NaN NaN NaN]};
-vox.help = hvox;
+vox          = entry('Voxel sizes','vox','e',[1 3]);
+vox.val      = {[NaN NaN NaN]};
+vox.help     = hvox;
 
-bb       = entry('Bounding box','bb','e',[2 3]);
-bb.val   = {NaN*ones(2,3)};
-bb.help  = hbb;
+bb           = entry('Bounding box','bb','e',[2 3]);
+bb.val       = {NaN*ones(2,3)};
+bb.help      = hbb;
 
-sn2def      = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
-sn2def.help = hsn;
+sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
+sn2def.help  = hsn;
 
-img        = files('Image to base inverse on','space','image',1);
-img.help   = himg;
+img          = files('Image to base inverse on','space','image',1);
+img.help     = himg;
 
-comp0      = repeat('Composition','comp',{sn2def,def});
-comp0.help = hcomp;
+comp0        = repeat('Composition','comp',{sn2def,def});
+comp0.help   = hcomp;
 
-iv0      = branch('Inverse','inv',{comp0,img});
-iv0.help = hinv;
+iv0          = branch('Inverse','inv',{comp0,img});
+iv0.help     = hinv;
 
-comp1      = repeat('Composition','comp',{sn2def,def,iv0,comp0});
-comp1.help = hcomp;
+comp1        = repeat('Composition','comp',{sn2def,def,iv0,comp0});
+comp1.help   = hcomp;
+comp1.check  = @check;
 
-iv1      = branch('Inverse','inv',{comp1,img});
-iv1.help = hinv;
+iv1          = branch('Inverse','inv',{comp1,img});
+iv1.help     = hinv;
 
-comp2      = repeat('Composition','comp',{sn2def,def,iv1,comp1});
-comp2.help = hcomp;
+comp2        = repeat('Composition','comp',{sn2def,def,iv1,comp1});
+comp2.help   = hcomp;
+comp2.check  = @check;
 
-iv2      = branch('Inverse','inv',{comp2,img});
-iv2.help = hinv;
+iv2          = branch('Inverse','inv',{comp2,img});
+iv2.help     = hinv;
 
-comp    = repeat('Composition','comp',{sn2def,def,iv2,comp2});
-comp.help = hcomp;
+comp         = repeat('Composition','comp',{sn2def,def,iv2,comp2});
+comp.help    = hcomp;
+comp.check   = @check;
 
-saveas      = entry('Save as','ofname','s',[1 Inf]);
-saveas.val  = {''};
-saveas.help = himgw;
+saveas       = entry('Save as','ofname','s',[1 Inf]);
+saveas.val   = {''};
+saveas.help  = himgw;
 
 applyto      = files('Apply to','fnames','image',[0 Inf]);
 applyto.val  = {''};
 applyto.help = happly;
 
-conf        = branch('Deformations','defs',{comp,saveas,applyto});
-conf.prog   = @spm_defs;
-conf.vfiles = @vfiles;
-conf.help   = hsummary;
+conf         = branch('Deformations','defs',{comp,saveas,applyto});
+conf.prog    = @spm_defs;
+conf.vfiles  = @vfiles;
+conf.help    = hsummary;
 return;
 %_______________________________________________________________________
 

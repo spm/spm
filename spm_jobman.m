@@ -1126,6 +1126,9 @@ if ischar(val) && strcmp(val,'<UNDEFINED>')
 else
     val = {val};
 end;
+%fprintf('%s\n',strin);
+%disp(val)
+%disp('----');
 return;
 %------------------------------------------------------------------------
 
@@ -1573,7 +1576,7 @@ f0 = uimenu(fg,'Label','TASKS','HandleVisibility','off','tag','jobs');
 pulldown1(f0,c,c.tag);
 uimenu(f0,'Label','Batch','CallBack',@interactive,'Separator','on');
 uimenu(f0,'Label','Defaults','CallBack',@defaults_edit,'Separator','off');
-f1 = uimenu(f0,'Label','Serial');
+f1 = uimenu(f0,'Label','Sequential');
 pulldown2(f1,c,c.tag);
 
 if 0, % Currently unused
@@ -1961,6 +1964,7 @@ if nargin<2, defused = {}; end;
 switch c.type,
 case {'const'}
     c = [];
+
 case {'menu','entry','files'}
     if ~isfield(c,'def') || any(strcmp(c.def,defused)),
         c = [];
@@ -1976,11 +1980,13 @@ case {'branch'}
     end;
     c.val = c.val(msk);
     if isempty(c.val), c = []; end;
+
 case {'choice','repeat'}
     c.type = 'branch';
     c.val  = c.values;
     c      = rmfield(c,'values');
     [c,defused] = defsub(c,defused);
+
 end;
 if isfield(c,'vfiles'), c = rmfield(c,'vfiles'); end;
 if isfield(c,'check'),  c = rmfield(c,'check');  end;
@@ -2002,8 +2008,9 @@ case {'menu','entry','files'}
             c.val = {cellstr(c.val{1})};
         end;
     end;
-case {'repeat'},
-    if isfield(c,'values') && strcmp(c.type,'repeat')
+
+case {'repeat','choice'},
+    if isfield(c,'values')
         for i=1:numel(c.values)
             c.values{i} = insert_defs(c.values{i});
         end;

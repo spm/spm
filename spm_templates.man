@@ -125,42 +125,17 @@
 %
 % templates/SPECT.nii
 % -------------------
-% The SPECT template  was created by Leighton Barnden et al, and is
-% the mean of 75 normal subjects  consisting of 39 Females (18-74Y)
-% and 36 Males(20-81Y).   Mean (SD)  ages were  Females 45.2 (15.4)
-% and Males 44.6 (16.9).   The numbers of subjects in  sequential 5
-% year age intervals starting at 16-20 were:
-% Female: 3,4,3,0,1,7,6,3,6,3,2,1,0,0
-% Male:   2,4,4,2,2,5,4,4,4,1,1,0,2,1
-% 
-% All 75 subjects were  acquired after injection of  500 MBq Tc-99m
-% HMPAO on a triple head  Philips Irix camera with high  resolution
-% parallel hole  collimators.   The photopeak window  was 20%  wide
-% centered  on  140 keV.  The  lower scatter  window  was  half the
-% photopeak  width  (111-125 keV).  The  scatter  projections  were
-% smoothed  with  a  Butterworth  filter  (cutoff  0.3 cycles/pixel,
-% order 3.0).  Pixel size was 3.47 mm.  The smoothed scatter images
-% were  multiplied by  1.3  before subtraction  from  the photopeak
-% projections.   The  resulting  projections  were smoothed  with a
-% Butterworth filter  (cutoff 0.5*cycles/pixel,  order 5.0)  before
-% filtered  backprojection  reconstruction.    Uniform  attenuation
-% correction  was  performed  with  an  attenuation  coefficient of
-% 0.12/cm  (0.10/cm without scatter subtraction)  within elliptical
-% edges  manually  fitted to sections 2 pixels thick.  Scatter  has
-% been subtracted from the images.
-% 
-% The 'raw' transaxial  sections  were first  edited to  remove hot
-% facial  activity  and  yield e* files.   Two  passes  of  Spatial
-% Normalisation  were  performed.  The  first  was  affine  spatial
-% normalisation to  the  SPM99 SPECT  template  after  a 10 mm fwhm
-% Gaussian smooth to yield nse*. The resulting parameters were also
-% applied to  the edited 'raw' sections  to yield ne*.  The mean of
-% ne*,  the  normalised  edited  'raw' sections,  yielded the first
-% estimate of  the template.   The  spatial normalisation  was then
-% repeated to this first  estimate template with nse* for parameter
-% estimation using the non-linear method with 3x4x3 basis functions
-% and masking with -/spm99/apriori/brainmask.  The result was nnse*
-% and nne*. The mean of nne* produced the final template.
+% The SPECT template was provided by Leighton Barnden. It is the
+% average of 90 normal Tc-99m HMPAO scans. Scatter was subtracted
+% using a lower 111-125 keV window. For spatial normalisation, scalp
+% was first masked (after an initial affine transformation to the
+% SPM2 SPECT template) by weighting with ../spm99/apriori/brainmask.
+% These scans were then spatially normalised to the (masked) SPM2
+% SPECT template. The same deformations were applied to the scans
+% with extra-cerebral activity and these were averaged. The result
+% was affine normalised to .../apriori/gray to correct for an
+% apparent midline offset in this and earlier SPECT and PET
+% templates.
 %
 % _______________________________________________________________________
 % _______________________________________________________________________

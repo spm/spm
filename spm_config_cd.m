@@ -6,10 +6,10 @@ function opts = spm_config_cd
 % Darren Gitelmann
 % $Id$
 
-data.type = 'dirs';
+data.type = 'files';
 data.name = 'Select a directory';
 data.tag  = 'directory';
-data.filter = '.';
+data.filter = 'dir';
 data.num  = 1;
 data.help = {'Select a directory to change to.'};
 

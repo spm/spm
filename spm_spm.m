@@ -685,10 +685,11 @@ if isfield(xX,'W') && any(~finite(KWY(:))),
 	drawnow
 	t1 = spm_filter(xX.K,W*Y);
 	if any(finite(t1(:)) ~= finite(KWY(:))),
+		fprintf('\n');
 		disp('Please inform the SPM developers about');
 		disp('the configuration of your machine, and the');
 		disp('MATLAB version that you are running.');
-		error('Found non-finite values in KWY.');
+		warning('Found non-finite values in KWY.');
 	end;
 	warning('Found non-finite values in KWY (could be the data).');
 end;

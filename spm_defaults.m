@@ -148,5 +148,6 @@ defaults.ui.print   = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.
 defaults.ui.colour1 = [0.8 0.8 1.0];
 defaults.ui.colour2 = [1.0 1.0 0.8];
 defaults.ui.colour3 = [0.0 0.0 0.0];
+defaults.ui.fs      = 14;
 
 
