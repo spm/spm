@@ -81,11 +81,11 @@ double out[], filtx[], filty[], buff[];
 }
 
 
-convxyz(vol, xdim, ydim, zdim, filtx, filty, filtz, fxdim, fydim, fzdim, xoff, yoff, zoff, fp, datatype)
+convxyz(vol, xdim, ydim, zdim, filtx, filty, filtz, fxdim, fydim, fzdim, xoff, yoff, zoff, fp, datatype, ovol)
 unsigned char vol[];
 int xdim, ydim, zdim;
 int fxdim, fydim, fzdim, xoff, yoff, zoff, datatype;
-double filtx[], filty[], filtz[];
+double filtx[], filty[], filtz[], *ovol;
 FILE *fp;
 {
 	double *tmp, *buff, **sortedv, *obuf;
@@ -138,50 +138,55 @@ FILE *fp;
 				for(xy=0; xy<xdim*ydim; xy++)
 					obuf[xy] = 0.0;
 
-			switch (datatype)
-			{
-				case UNSIGNED_CHAR:
-					for(xy=0; xy<xdim*ydim; xy++)
-					{
-						if (obuf[xy] > 255.0) obuf[xy]=255.0;
-						if (obuf[xy] < 0.0) obuf[xy]=0.0;
-						((unsigned char *)obuf)[xy] = obuf[xy] + 0.5;
-					}
-					break;
-				case SIGNED_SHORT:
-					for(xy=0; xy<xdim*ydim; xy++)
-					{
-						if (obuf[xy] > 32767.0) obuf[xy]=32767.0;
-						if (obuf[xy] < -32768.0) obuf[xy]=-32768.0;
-						((short *)obuf)[xy] = floor(obuf[xy]+0.5);
-					}
-					break;
-				case SIGNED_INT:
-					for(xy=0; xy<xdim*ydim; xy++)
-						((int *)obuf)[xy] = floor(obuf[xy]+0.5);
-					break;
-				case FLOAT:
-					for(xy=0; xy<xdim*ydim; xy++)
-						((float *)obuf)[xy] = obuf[xy];
-					break;
-				case DOUBLE:
-					/* nothing needed */
-					break;
-				default:
-					mexErrMsgTxt("This should not happen.");
-					break;
-			}
+			if (fp != (FILE *)0) {
+			  switch (datatype)
+			    {
+			    case UNSIGNED_CHAR:
+			      for(xy=0; xy<xdim*ydim; xy++)
+				{
+				  if (obuf[xy] > 255.0) obuf[xy]=255.0;
+				  if (obuf[xy] < 0.0) obuf[xy]=0.0;
+				  ((unsigned char *)obuf)[xy] = obuf[xy] + 0.5;
+				}
+			      break;
+			    case SIGNED_SHORT:
+			      for(xy=0; xy<xdim*ydim; xy++)
+				{
+				  if (obuf[xy] > 32767.0) obuf[xy]=32767.0;
+				  if (obuf[xy] < -32768.0) obuf[xy]=-32768.0;
+				  ((short *)obuf)[xy] = floor(obuf[xy]+0.5);
+				}
+			      break;
+			    case SIGNED_INT:
+			      for(xy=0; xy<xdim*ydim; xy++)
+				((int *)obuf)[xy] = floor(obuf[xy]+0.5);
+			      break;
+			    case FLOAT:
+			      for(xy=0; xy<xdim*ydim; xy++)
+				((float *)obuf)[xy] = obuf[xy];
+			      break;
+			    case DOUBLE:
+			      /* nothing needed */
+			      break;
+			    default:
+			      mexErrMsgTxt("This should not happen.");
+			      break;
+			    }
 
-			if (fwrite((char *)obuf,
-				get_datasize(datatype)/8, xdim*ydim, fp) != xdim*ydim)
-			{
-				mxFree((char *)tmp);
-				mxFree((char *)buff);
-				mxFree((char *)obuf);
-				mxFree((char *)sortedv);
-				return(-1);
-			}
+			  if (fwrite((char *)obuf,
+				     get_datasize(datatype)/8, xdim*ydim, fp) != xdim*ydim)
+			    {
+			      mxFree((char *)tmp);
+			      mxFree((char *)buff);
+			      mxFree((char *)obuf);
+			      mxFree((char *)sortedv);
+			      return(-1);
+			    }
 
+			} else {
+			  for(xy=0; xy<xdim*ydim; xy++)
+			    *(ovol++) = obuf[xy];
+			}
 		}
 	}
 	mxFree((char *)tmp);
@@ -207,30 +212,63 @@ Matrix *plhs[], *prhs[];
 	FILE *fp;
 	double *offsets;
 	char *str;
+	int xdim,ydim,zdim,datatype,FileOffset=0;
+	double *VolInfo, *oVol;
+	unsigned char *Vol;
 
-        if (nrhs != 6 || nlhs > 0)
+        if (nrhs < 6 || nrhs > 7 || nlhs > 0)
         {
                 mexErrMsgTxt("Inappropriate usage.");
         }
-
-        map=get_map(prhs[0]);
-
-	/* get filename */
-	if (!mxIsString(prhs[1]))
-		mexErrMsgTxt("Filename should be a string.");
-	stlen = mxGetN(prhs[1]);
-	str = (char *)mxCalloc(stlen+1, sizeof(char));
-	mxGetString(prhs[1],str,stlen+1);
-
-	if ((fp = fopen(str,"r+")) == (FILE *)0)
-	{
-		if ((fp = fopen(str,"w")) == (FILE *)0)
-		{
-			mxFree(str);
-			mexErrMsgTxt("Cant open output file.");
-		}
+	
+	/* Extra parameter flags use of image in memory */
+	if (nrhs == 7) {
+	  if (!mxIsNumeric(prhs[6]) || mxIsComplex(prhs[6]) ||
+	      !mxIsFull(prhs[6]) || !mxIsDouble(prhs[6])) 
+	    mexErrMsgTxt("Bad volume info");
+	  VolInfo = mxGetPr(prhs[0]);
+	  xdim = (int)VolInfo[0];
+	  ydim = (int)VolInfo[1];
+	  zdim = (int)VolInfo[2];
+	  if (xdim*ydim*zdim != mxGetM(prhs[6])*mxGetN(prhs[6]))
+	    mexErrMsgTxt("Map dimension info doesn't match array");
+	  Vol = (unsigned char *)mxGetPr(prhs[6]);
+	  datatype = DOUBLE;
 	}
-	(void)fseek(fp, (long)map->off, 0);
+	else {
+	  map=get_map(prhs[0]);
+	  xdim = (int)map->xdim;
+	  ydim = (int)map->ydim;
+	  zdim = (int)map->zdim;
+	  Vol = map->data;
+	  datatype = map->datatype;
+	  FileOffset = map->off;
+	}
+
+	/* Non string-ness of destination img flags use of memory for output */
+	if (mxIsString(prhs[1])) {
+	  stlen = mxGetN(prhs[1]);
+	  str = (char *)mxCalloc(stlen+1, sizeof(char));
+	  mxGetString(prhs[1],str,stlen+1);
+	  
+	  if ((fp = fopen(str,"r+")) == (FILE *)0)
+	    {
+	      if ((fp = fopen(str,"w")) == (FILE *)0)
+		{
+		  mxFree(str);
+		  mexErrMsgTxt("Cant open output file.");
+		}
+	    }
+	  (void)fseek(fp, (long)FileOffset, 0);
+	} else {
+	  if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
+	      !mxIsFull(prhs[1]) || !mxIsDouble(prhs[1]) ||
+	      mxGetM(prhs[1])*mxGetN(prhs[1]) != xdim*ydim*zdim)
+	    mexErrMsgTxt("Bad output array");
+	  fp = (FILE *)0;
+	  oVol = (double *)mxGetPr(prhs[1]);
+	}
+	  
 
         for(k=2; k<=5; k++)
                 if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
@@ -241,13 +279,13 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Offsets must have three values.");
 	offsets = mxGetPr(prhs[5]);
 
-	if (convxyz(map->data, abs((int)map->xdim), abs((int)map->ydim), abs((int)map->zdim),
+	if (convxyz(Vol, abs(xdim), abs(ydim), abs(zdim),
 		mxGetPr(prhs[2]), mxGetPr(prhs[3]), mxGetPr(prhs[4]),
 		mxGetM(prhs[2])*mxGetN(prhs[2]),
 		mxGetM(prhs[3])*mxGetN(prhs[3]),
 		mxGetM(prhs[4])*mxGetN(prhs[4]),
 		(int)floor(offsets[0]), (int)floor(offsets[1]), (int)floor(offsets[2]),
-		fp, map->datatype) != 0)
+		fp, datatype, oVol) != 0)
 	{
 		(void)fclose(fp);
 		mexErrMsgTxt("Error writing data.");
