@@ -32,18 +32,10 @@ img   = findvar(cdf.var_array,'image');
 for i=1:prod(size(img.dimid)),
 	dim0(i) = cdf.dim_array(img.dimid(i));
 end;
-if ~strcmp(dim0(end).name,'xspace'),
-	error('Fastest dimension does not appear to be X');
-end;
-if ~strcmp(dim0(end-1).name,'yspace'),
-	error('Second fastest dimension does not appear to be Y');
-end;
-dim = [dim0(end).dim_length dim0(end-1).dim_length];
-if ~strcmp(dim0(end-2).name,'zspace'),
-	dim(3) = 1;
-else
-	dim(3) = dim0(end-2).dim_length;
-end;
+
+dim = fliplr(cat(2,dim0.dim_length));
+dim = dim(1:min(size(dim,2),3));
+dim = [dim ones(1,3-size(dim,2))];
 
 datatype = d_types(img.nc_type);
 signed   = findvar(img.vatt_array,'signtype');
@@ -79,10 +71,6 @@ if ~bigend & datatype~=2, datatype = datatype*256; end;
 dim   = [dim(1:3) datatype];
 
 if ~is_flt,
-	% This is something else I don't understand.  I thought that the
-	% stuff that is now commented out should work.  It does for most
-	% cases - except for some t-statistic images I tried.
-	%-----------------------------------------------------------------------
 	tmp = findvar(img.vatt_array,'valid_range');
 	if isempty(tmp),
 		disp(['Can''t get valid_range for "' fname '" - having to guess']);
@@ -95,12 +83,6 @@ if ~is_flt,
 	if imax.nc_type == 2,
 		imax = findvar(cdf.var_array,imax.val(5:end));
 		fseek(fp,imax.begin,'bof');
-		% For some reason this does not work....
-		%if ~strcmp(dim0(imax.dimid(end)).name,'zspace')
-		%	fclose(fp);
-		%	error('Problem with dimensions');
-		%end;
-		%ddim = fliplr(cat(1,dim0(imax.dimid).dim_length));
 		ddim = dim(3);
 		imax = fread(fp,prod(ddim),dtypestr(imax.nc_type))';
 		imax = reshape(imax,[ddim 1 1]);
@@ -110,12 +92,6 @@ if ~is_flt,
 	if imin.nc_type == 2,
 		imin = findvar(cdf.var_array,imin.val(5:end));
 		fseek(fp,imin.begin,'bof');
-		%if ~strcmp(dim0(imin.dimid(end)).name,'zspace')
-		%	fclose(fp);
-		%	V = [];
-		%	return;
-		%end;
-		%ddim = fliplr(cat(1,dim0(imin.dimid).dim_length));
 		ddim = dim(3);
 		imin = fread(fp,prod(ddim),dtypestr(imin.nc_type))';
 		imin = reshape(imin,[ddim 1 1]);
@@ -140,29 +116,17 @@ pinfo = [scale ; dcoff ; off];
 step  = [0 0 0];
 start = [0 0 0]';
 dircos = eye(3);
-space  = findvar(cdf.var_array,'zspace');
-tmp    = findvar(space.vatt_array,'step');
-if ~isempty(tmp), step(3) = tmp.val; else, step(3) = 1; end;
-tmp    = findvar(space.vatt_array,'start');
-if ~isempty(tmp), start(3) = tmp.val; else, start(3) = -dim(3)/2*step(3); end;
-tmp    = findvar(space.vatt_array,'direction_cosines');
-if ~isempty(tmp), dircos(:,3) = tmp.val; end;
 
-space  = findvar(cdf.var_array,'yspace');
-tmp    = findvar(space.vatt_array,'step');
-if ~isempty(tmp), step(2) = tmp.val; else, step(2) = 1; end;
-tmp    = findvar(space.vatt_array,'start');
-if ~isempty(tmp), start(2) = tmp.val; else, start(2) = -dim(2)/2*step(2); end;
-tmp    = findvar(space.vatt_array,'direction_cosines');
-if ~isempty(tmp), dircos(:,2) = tmp.val; end;
-
-space  = findvar(cdf.var_array,'xspace');
-tmp    = findvar(space.vatt_array,'step');
-if ~isempty(tmp), step(1) = tmp.val; else, step(1) = 1; end;
-tmp    = findvar(space.vatt_array,'start');
-if ~isempty(tmp), start(1) = tmp.val; else, start(1) = -dim(1)/2*step(1); end;
-tmp    = findvar(space.vatt_array,'direction_cosines');
-if ~isempty(tmp), dircos(:,1) = tmp.val; end;
+for j=1:3,
+	nam    = cdf.dim_array(4-j).name;
+	space  = findvar(cdf.var_array,nam);
+	tmp    = findvar(space.vatt_array,'step');
+	if ~isempty(tmp), step(j) = tmp.val; else, step(3) = 1; end;
+	tmp    = findvar(space.vatt_array,'start');
+	if ~isempty(tmp), start(j) = tmp.val; else, start(j) = -dim(j)/2*step(j); end;
+	tmp    = findvar(space.vatt_array,'direction_cosines');
+	if ~isempty(tmp), dircos(:,j) = tmp.val; end;
+end;
 
 mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
 
@@ -308,7 +272,7 @@ function bend = bigend
 % of the architectures - so it may be worth checking the code.
 computers = str2mat('PCWIN','MAC2','SUN4','SOL2','HP700','SGI','SGI64','IBM_RS',...
 			'ALPHA','AXP_VMSG','AXP_VMSIEEE','LNX86','VAX_VMSG','VAX_VMSD');
-endians = [NaN NaN 1 1 NaN 0 0 NaN 0 Inf 0 NaN Inf Inf];
+endians = [NaN NaN 1 1 NaN NaN 1 NaN 0 Inf 0 NaN Inf Inf];
 c=computer;
 bend = NaN;
 for i=1:size(computers,1),
@@ -326,3 +290,4 @@ if ~finite(bend),
 end;
 return;
 %_______________________________________________________________________
+
