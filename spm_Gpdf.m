@@ -17,10 +17,6 @@ function pdf = spm_Gpdf(g,df)
 %---------------------------------------------------------------------------
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 13/12/93 - 
-% V1b	- 24/08/94 - streamlined code
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<2 error('insufficient arguments'), end

@@ -24,10 +24,6 @@ function p = spm_Gcdf(g,df,OffSet)
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1a	- 14/12/93 - 
-% V1b	- 24/08/94 - streamlined code
-
 %-Argument range and size checks
 %---------------------------------------------------------------------------
 if nargin<3 OffSet=0; end
