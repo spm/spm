@@ -348,7 +348,7 @@ end
 
 % unmap volumes and save design matrix S UF CONTRAST W V and FWHM
 %---------------------------------------------------------------------------
-for i  = 1:q; spm_unmap_vol(V(:,i)); end
+for i  = 1:q; spm_unmap(V(:,i)); end
 
 % save design matrix and other key variables
 %---------------------------------------------------------------------------
