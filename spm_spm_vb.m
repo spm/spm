@@ -482,6 +482,18 @@ else
     slice_template(1) = spm_vb_init_volume (SPM.xX.X,SPM.PPM.AR_P);
 end
 
+% Get matrices that will remove low-frequency drifts 
+% if high pass filters have been specified
+for s=1:nsess,
+    sess_nScan=length(SPM.xX.K(s).row);
+    if size(SPM.xX.K(s).X0,2) > 0
+        X0=SPM.xX.K(s).X0;
+        hpf(s).R0=eye(sess_nScan)-X0*pinv(X0);
+    else
+        hpf(s).R0=eye(sess_nScan);
+    end    
+end
+
 % Set maximum number of VB iterations per slice
 try
     SPM.PPM.maxits;
@@ -601,7 +613,12 @@ for  z = 1:zdim,
                 
                 slice = slice_template(s);
                 slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
-                slice = spm_vb_glmar(Y(SPM.Sess(s).row,:),slice);
+                
+                % Filter data to remove low frequencies
+                R0Y=hpf(s).R0*Y(SPM.Sess(s).row,:);
+                
+                % Fit model
+                slice = spm_vb_glmar(R0Y,slice);
                 
                 % Report AR values 
                 if SPM.PPM.AR_P > 0
@@ -650,7 +667,7 @@ for  z = 1:zdim,
                 end
                 
                 % Get slice-wise Taylor approximation to posterior correlation
-                slice = spm_vb_taylor_R (Y,slice);
+                slice = spm_vb_taylor_R (R0Y,slice);
                 SPM.PPM.Sess(s).slice(z).mean=slice.mean;
                 SPM.PPM.Sess(s).slice(z).elapsed_seconds=slice.elapsed_seconds;
                 
