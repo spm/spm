@@ -49,7 +49,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
 	char label[1024];
 	int mask0flag = 0, floatflag = 0;
-	double NaN = 0.0/0.0;
+	double NaN = 0.0/0.0; /* the only way to get a NaN that I know */
+	mxArray *wplane_args[3];
+	int maxval, minval, dtype;
 
 	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
@@ -72,7 +74,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			for (i=0; i<buflen; i++)
 			{
 				if (buf[i] == 'm') mask0flag = 1;
-				if (buf[i] == 'f') floatflag = 1;
+				/* if (buf[i] == 'f') floatflag = 1; */
 			}
 			mxFree(buf);
 		}
@@ -92,16 +94,44 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			}
 	}
 
-	mxGetString(prhs[1],label,mxGetN(prhs[1])+1);
-	fo  = open(label, O_RDWR|O_CREAT, 0644);
-	if (fo == -1)
-		mexErrMsgTxt("Cant open output file.");
+	dtype = get_dtype(prhs[1]);
+	if (dtype > 256)
+		dtype>>=8;
+
+	if (dtype == 2)
+	{
+		maxval = 255;
+		minval = 0;
+		floatflag = 0;
+	}
+	else if (dtype == 4)
+	{
+		maxval = 32767;
+		minval = -32768;
+		floatflag = 0;
+	}
+	else if (dtype == 8)
+	{
+		maxval = 2147483647;
+		minval = -2147483648;
+		floatflag = 0;
+	}
+	else
+	{
+		floatflag = 1;
+	}
 
 	nj = maps[0].dim[2];
 	nk = maps[0].dim[0]*maps[0].dim[1];
 
-	sptr   = (double *)mxCalloc(nk, sizeof(double));
+	/* The compiler doesn't like this line - but I think it's OK */
+	wplane_args[0] = prhs[1];
+	wplane_args[1] = mxCreateDoubleMatrix(maps[0].dim[0],maps[0].dim[1],mxREAL);
+	wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
+
+	sptr   = mxGetPr(wplane_args[1]);
 	image  = (double *)mxCalloc(nk, sizeof(double));
+
 
 	if (!floatflag)
 	{
@@ -139,7 +169,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 		if (floatflag)
 		{
-			write(fo, sptr, sizeof(double)*nk);
+			mxGetPr(wplane_args[2])[0] = j+1.0;
+			mexCallMATLAB(0, NULL, 3, wplane_args, "spm_write_plane");
 		}
 		else
 		{
@@ -172,15 +203,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		scale = 0.0;
 		for(j=0; j<nj; j++)
 		{
-			if (scales[j]>scale)
+			if (scales[j] > scale)
 				scale = scales[j];
 		}
+		scale = scale*32767/maxval;
 
 		for(j=0; j<nj; j++)
 		{
 			for(k=0; k<nk; k++)
-				dptr[j][k] = (short)rint(dptr[j][k]*(scales[j]/scale));
-			write(fo, dptr[j], sizeof(short)*nk);
+				sptr[k] = dptr[j][k]*(scales[j]/scale);
+
+			mxGetPr(wplane_args[2])[0] = j+1.0;
+			mexCallMATLAB(0, NULL, 3, wplane_args, "spm_write_plane");
+
 			mxFree((char *)(dptr[j]));
 		}
 
@@ -192,9 +227,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		scale = 1.0;
 	}
 
-	mxFree((char *)sptr);
 	mxFree((char *)image);
-	close(fo);
 
 	free_maps(maps, ni);
 
@@ -203,4 +236,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		plhs[0] = mxCreateDoubleMatrix(1,1, mxREAL);
 		mxGetPr(plhs[0])[0] = scale;
 	}
+}
+
+
+int get_dtype(const mxArray *ptr)
+{
+	mxArray *tmp;
+	double *pr;
+
+	if (!mxIsStruct(ptr))
+	{
+		mexErrMsgTxt("Not a structure.");
+		return(NULL);
+	}
+	tmp=mxGetField(ptr,0,"dim");
+	if (tmp == (mxArray *)0)
+	{
+		mexErrMsgTxt("Cant find dim.");
+	}
+	if (mxGetM(tmp)*mxGetN(tmp) != 4)
+	{
+		mexErrMsgTxt("Wrong sized dim.");
+	}
+	pr = mxGetPr(tmp);
+
+	return((int)fabs(pr[3]));
 }
