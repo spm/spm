@@ -101,7 +101,7 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % current directory and filter windows, and for some of the interface
 % buttons:
 %
-% - Item selection - Items are highlighted (in italic) using ^U & ^D to
+% - Item selection - Items are highlighted (in italic) using ^K & ^J to
 % move Up and Down the item list. The highlighted item is (de)selected
 % using ^S.
 %
@@ -116,11 +116,11 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % - General Accelerators -
 %        Space / ^D   - Done
 %        ^P           - pwd
-%        ^K           - Keybd
-%        ^R           - Reset
+%        ^B           - Keybd
+%        Esc          - Reset
 %
 % - Tab - In addition, the usual tabbing between GUI objects is
-% provided my the window interface.
+% provided by the window interface.
 %
 % Programmers notes
 % -----------------
@@ -243,9 +243,12 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % Andrew Holmes
 
 
+%-Parameters
+%=======================================================================
 %-Default to unlimited file get when no arguments
-%-----------------------------------------------------------------------
 if nargin<1 Action=+Inf; end
+%-Allow pointer jumping?
+PJump = 0;
 
 if ~isstr(Action)
 %=======================================================================
@@ -294,7 +297,8 @@ else
 	[F,cF] = spm_get('Initialise','on',n,Prompt,Filter,NewWDir);
 	PLoc = get(0,'PointerLocation');
 	FRec = get(F,'Position');
-	set(0,'PointerLocation',[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2]);
+	if PJump, set(0,'PointerLocation',...
+		[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2]), end
 	
 	%-Wait until filenames have been selected
 	hDone = findobj(F,'Tag','Done');
@@ -307,7 +311,9 @@ else
 	spm_get('Initialise','off');
 
 	%-Return focus to previous figure (if any), & put cursor back
-	set(0,'CurrentFigure',cF,'PointerLocation',PLoc)
+	set(0,'CurrentFigure',cF)
+	%-Jump cursor back to previous location
+	if PJump, set(0,'PointerLocation',PLoc), end
 
 end % (if CmdLine)
 
@@ -498,7 +504,7 @@ end
 
 uicontrol(F,'Style','Text','Tag','StatusLine',...
 	'String','<Not set yet>',...
-	'FontAngle','Oblique',...
+	'FontAngle','Italic',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
 	'Position',[010 005 355 020].*WS);
@@ -518,36 +524,38 @@ if isempty(ch), return, end
 
 %-Keyboard accelerators for item selection
 %-----------------------------------------------------------------------
-if any(abs(ch)==[21,4,19])
+if any(abs(ch)==[10,11,19]) % ^J,^K,^S
 	H = flipud(findobj(get(gca,'Children'),...
 		'Flat','HandleVisibility','on'));
-	h = max([0,findobj(H,'FontAngle','oblique')]);
+	if isempty(H), return, end
+	h = max([0,findobj(H,'FontWeight','bold')]);
 	hPos = max([0;find(H==h)]);
 	if abs(ch)==19 & hPos
 		%- ^S - Select
 		switch get(h,'Tag')
 			case 'IName', spm_get('Add',h)
 			case 'SelIName', spm_get('Delete',h)
+			case 'DirName', spm_get('cd',get(h,'UserData'))
 		end
 		return
 	end
-	nhPos = max(1,min(hPos+2*(abs(ch)==4)-1,length(H)));
-	if hPos, set(h,'FontAngle','normal'), end
-	set(H(nhPos),'FontAngle','Oblique')
+	nhPos = max(1,min(hPos-2*(abs(ch)-10.5),length(H)));
+	if hPos, set(h,'FontWeight','normal'), end
+	set(H(nhPos),'FontWeight','bold')
 	return
 end
 
 %-General Accelerators
 %-----------------------------------------------------------------------
-if any(abs(ch)==[32,4,16,11,18])
+if any(abs(ch)==[32,4,16,2,27]) % Space,^D,^P,^B,Esc
 	switch abs(ch)
 	case {32,4}	%- Space/^D - Done
 		spm_get('Done')
 	case 16		%- ^P - Change to MatLab pwd
 		spm_get('cd',pwd)
-	case 11		%- ^K - Keyboard
+	case 2		%- ^B - Keyboard
 		spm_get('GUI2CmdLine')
-	case 18		%- ^R - Reset
+	case 27		%- Esc - Reset
 		spm_get('Reset')
 	end
 end
@@ -890,6 +898,10 @@ if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'FontWeight','bold','Color','r');
 end
+%-Lose dot files & directories, only show .. as a dir if not in /
+if ~isempty(Files), Files(Files(:,1)=='.',:)=[]; end
+Dirs(Dirs(:,1)=='.',:)=[];
+if ~strcmp(WDir,'/'), Dirs=strvcat('..',Dirs); end
 
 %-Create list of directories in pulldown menu
 %-----------------------------------------------------------------------
@@ -897,18 +909,18 @@ set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
 	'String',str2mat('SubDirectories...',Dirs))
 
 %-Create list of directories with appropriate 'ButtonDownFcn': -
-% NB: Gives MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
+% NB: Gave MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
 %-----------------------------------------------------------------------
 %fprintf('Doing: spm_get(''dir'':\tdirectory list\n')
-%y     = y0-dy;
-%for i = 1:size(Dirs,1)
-%	text(0,y,deblank(Dirs(i,:)),'Tag','DirName',...
-%		'FontWeight','bold','Color','r',...
-%		'UserData',deblank(Dirs(i,:)),...
-%		'ButtonDownFcn','spm_get(''cd'',get(gcbo,''UserData''))',...
-%		'HandleVisibility','off');
-%	y = y - dy;
-%end
+y     = y0-dy;
+for i = 1:size(Dirs,1)
+	text(0,y,deblank(Dirs(i,:)),'Tag','DirName',...
+		'FontWeight','normal','Color','r',...
+		'UserData',deblank(Dirs(i,:)),...
+		'ButtonDownFcn','spm_get(''cd'',get(gcbo,''UserData''))',...
+		'HandleVisibility','off');
+	y = y - dy;
+end
 
 %-Files or directories (n<0)
 %-----------------------------------------------------------------------
@@ -916,7 +928,7 @@ Items = Files; if (n<0) Items = Dirs; end
 
 %-Compressed summary view, or full view?
 %-----------------------------------------------------------------------
-%fprintf('Doing:: spm_get(''dir'':\tcompressed / summary view?\n')
+%fprintf('Doing: spm_get(''dir'':\tcompressed / summary view?\n')
 if ~NoComp & size(Items,1)>48
 	%-Use a compressed summary view
 	if Filter(end)=='*'
@@ -928,7 +940,7 @@ if ~NoComp & size(Items,1)>48
 		'Color','w',...
 		'FontSize',10,...
 		'HorizontalAlignment','Center',...
-		'FontAngle','Oblique',...
+		'FontAngle','Italic',...
 		'ButtonDownFcn','spm_get(''dir'',[],[],1)',...
 		'HandleVisibility','off');
 else
@@ -948,17 +960,17 @@ for i = 1:size(IName,1)
 	%-Next line strips off redundant space at end of string matrix
 	% (The str2mat bit ensures single strings are handled by column)
 	cItems(:,all(str2mat(cItems,' ')==' '))=[];
-	text(0.15,y,cIName,...
+	text(0.35,y,cIName,...
 		'Tag','IName',...
 		'UserData',cItems,...
 		'Color','k',...
 		'ButtonDownFcn','spm_get(''Add'')',...
 		'HandleVisibility','on');
 	if nItems>1;
-		text(0.14,y-3,int2str(sum(ItemPos(i,:)>0)),...
+		text(0.34,y-3,int2str(sum(ItemPos(i,:)>0)),...
 			'Color','w',...
 			'FontSize',9,...
-			'FontAngle','Oblique',...
+			'FontAngle','Italic',...
 			'HorizontalAlignment','right',...
 			'UserData',cIName,...
 			'ButtonDownFcn',...
@@ -1356,7 +1368,7 @@ Handles = [Handles, h];
 
 h = uicontrol(F,'Style','Text',...
 	'String','Use command window...',...
-	'FontAngle','Oblique',...
+	'FontAngle','Italic',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
 	'Position',[020 005 360 020].*WS);
@@ -1439,7 +1451,7 @@ EditHandles = [EditHandles, h];
 str=[]; if finite(n), str=['Use only top ',int2str(abs(n)),' lines.  ']; end
 h = uicontrol(F,'Style','Text',...
 	'String',[str,'(Blank lines will be removed)'],...
-	'FontAngle','Oblique',...
+	'FontAngle','Italic',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
 	'Position',[020 005 360 020].*WS);
