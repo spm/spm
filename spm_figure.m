@@ -297,8 +297,7 @@ if isempty(F)
 		end
 	end
 else
-	%set(0,'CurrentFigure',F);
-	figure(F)
+	set(0,'CurrentFigure',F);
 end
 varargout = {F};
 
