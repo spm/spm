@@ -683,26 +683,26 @@ set(0,'ShowHiddenHandles','on')
 
 t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
 set(findobj(t0,'Position',1),'Separator','on');
-t1 = uimenu('Parent',t0,'Position',1,...
+t1 = uimenu(t0,'Position',1,...
 	'Label','SPM web',...
 	'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm'');');
-t1 = uimenu('Parent',t0,'Position',1,...
+t1 = uimenu(t0,'Position',1,...
 	'Label','SPM help','ForegroundColor',[0 1 0],...
 	'CallBack','spm_help');
 
-t0=uimenu('Parent', F,'Label','Colours','HandleVisibility','off');
-t1=uimenu('Parent',t0,'Label','ColorMap');
-t2=uimenu('Parent',t1,'Label','Gray','CallBack','spm_figure(''ColorMap'',''gray'')');
-t2=uimenu('Parent',t1,'Label','Hot','CallBack','spm_figure(''ColorMap'',''hot'')');
-t2=uimenu('Parent',t1,'Label','Pink','CallBack','spm_figure(''ColorMap'',''pink'')');
-t2=uimenu('Parent',t1,'Label','Gray-Hot','CallBack','spm_figure(''ColorMap'',''gray-hot'')');
-t2=uimenu('Parent',t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
-t1=uimenu('Parent',t0,'Label','Effects');
-t2=uimenu('Parent',t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
-t2=uimenu('Parent',t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
-t2=uimenu('Parent',t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
-t0=uimenu('Parent', F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
-t0=uimenu('Parent', F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t0=uimenu( F,'Label','Colours','HandleVisibility','off');
+t1=uimenu(t0,'Label','ColorMap');
+t2=uimenu(t1,'Label','Gray','CallBack','spm_figure(''ColorMap'',''gray'')');
+t2=uimenu(t1,'Label','Hot','CallBack','spm_figure(''ColorMap'',''hot'')');
+t2=uimenu(t1,'Label','Pink','CallBack','spm_figure(''ColorMap'',''pink'')');
+t2=uimenu(t1,'Label','Gray-Hot','CallBack','spm_figure(''ColorMap'',''gray-hot'')');
+t2=uimenu(t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
+t1=uimenu(t0,'Label','Effects');
+t2=uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
+t2=uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
+t2=uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
+t0=uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
+t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
 
 % ### CODE FOR SATELLITE FIGURE ###
 % Code checks if there is a satellite window and if results are currently displayed
@@ -722,7 +722,7 @@ cb = ['global SatWindow,',...
         'spm_setup_satfig,',...
         'end,',...
         'end'];
-t0=uimenu('Parent', F,'Label','Results-Fig','HandleVisibility','off','Callback',cb);
+t0=uimenu( F,'Label','Results-Fig','HandleVisibility','off','Callback',cb);
 % ### END NEW CODE ###
 
 
@@ -829,7 +829,7 @@ handles = findobj(get(F,'Children'),'Flat','Type','uimenu','Visible','on');
 if length(handles)==0, return; end;
 for F1=handles',
 	if ~strcmp(get(F1,'Label'),'&Window'),
-		G1 = uimenu('Parent',G,'Label',get(F1,'Label'),...
+		G1 = uimenu(G,'Label',get(F1,'Label'),...
 			'CallBack',get(F1,'CallBack'),...
 			'Position',get(F1,'Position'),...
 			'Separator',get(F1,'Separator'));
