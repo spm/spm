@@ -32,7 +32,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %                 interpolation to the voxel locations of the data Y.
 %
 % c     - F-contrast weights defining the design subspace whose parameters
-%         are to be conjointly F-tested null. The F-statistic image is used
+%         are to be conjointly tested. The ensuing F-statistic image is used
 %         for F-thresholding of the saved data pointlist (Y.mad).
 %       - See Christensen for details of F-contrasts
 %       - Note that individual contrasts are *column* vectors, in agreement
@@ -154,11 +154,12 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     UFp       - critical p-value for F-thresholding
 %     UF        - F-threshold value
 %     S         - Lebegue measure or volume (in voxels)
+%     R         - vector of resel counts    (in resels)
 %     Lambda    - Variance-covariance matrix of partial derivatives of
 %                 standardised residuals.
 %                 (Covariances (off-diagonal) assummed zero)
-%     W         - Smoothness (of Gaussianised t-fields)
-%                 (Guassian parameter, in voxel units)
+%     FWHM      - Smoothness (of component fields - FWHM, in voxels)
+%                 
 %
 % ...plus any additional arguments passed to spm_spm for saving in the
 %    SPM.mat file
@@ -258,11 +259,13 @@ if nargin<3, xM  = zeros(size(X,1),1); end
 if nargin<4, c   = []; end
 
 %-Check required fields of xX structure exist
+%-----------------------------------------------------------------------
 for tmp = {'X','K','Xnames','iB'}, if ~isfield(xX,tmp)
     error(sprintf('xX Design structure doesn''t contain ''%s'' field',tmp{:}))
 end, end
 
 %-If xM is not a structure then assumme it's a vector of thresholds
+%-----------------------------------------------------------------------
 if ~isstruct(xM), xM = struct(	'T',	[],...
 				'TH',	xM,...
 				'I',	0,...
@@ -277,7 +280,7 @@ SPMid  = spm('FnBanner',mfilename,SCCSid);
 Finter = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 
 
-%-Delete files from previous analyses...
+%-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if exist('./SPM.mat','file')==2
 	warning(sprintf(['Existing results in this directory will be ',...
@@ -320,27 +323,18 @@ xX.pKXV       = xX.pKX*xX.V;		%-Needed for contrast variance weighting
 xX.edf        = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
 
 
-%-See if temporal convolution matrix smooths across block boundaries
-% ( This affects contrast estimability for intuitive contrasts, and    )
-% ( blurs the block partition which is occasionally used in plotting   )
-% ( routines and the like.                                             )
-%-----------------------------------------------------------------------
-if max(max(abs(xX.X(:,xX.iB)-xX.xKXs.X(:,xX.iB)))) > 1e-10
-	warning('K smooths across block boundaries!')
-end
-
-
 %-F-contrast for Y.mad pointlist filtering (only)
 %-----------------------------------------------------------------------
 UFp = spm('GetGlobal','UFp'); if isempty(UFp), UFp = Def_UFp; end
-%-**if no F-contrast specified, do raw F for all effects (i.e. vs. raw data SS)
 
+%-if no F-contrast specified, them for all effects (i.e. vs. raw data SS)
+%-----------------------------------------------------------------------
 if isempty(c) & UFp>0 & UFp<1		%-Want to F-threshold but no contrast!
-	UFp=1; warning('no F-con specified: no F-filtering')
+	UFp = 1; warning('no F-con specified: no F-filtering')
 	%-**...or default F-contrast for all effects?
 end
 
-if UFp>0 & UFp<1			%-We're going to F-filter for Y.mad file
+if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
 	if ~spm_SpUtil('allCon',xX.xKXs,c), error('Invalid F-contrast'), end
 
 	%-Compute Dc, the "distance in contrast space matrix"
@@ -381,32 +375,8 @@ elseif UFp == 0
 end
 
 %-Copy F-contrast c into variable Fc for saving in SPM.mat file
+%-----------------------------------------------------------------------
 Fc = c;
-
-%%-Setup according to SPM96, using spm_AnCova		%-**! diagnostic
-%%-----------------------------------------------------------------------
-%KX_ = xX.xKXs.X;							%-**!
-%K_  = xX.K;								%-**!
-%if any(UFp==[0,1])							%-**!
-%	KX1_=[]; KX0_=KX_;						%-**!
-%elseif c(1)==1 & all(c(2:end)==0)					%-**!
-%	KX1_ = KX_(:,1); KX0_ = KX_(:,2:end);				%-**!
-%	KX1o_ = KX1_ - KX0_*pinv(KX0_)*KX1_;				%-**!
-%else									%-**!
-%	[KX1_,KX0_] = spm_SpUtil('cTestSp',xX.xKXs,c);			%-**!
-%	KX0_ = orth(KX0_);						%-**!
-%end									%-**!
-%rank([KX1,KX1_]) == rank(KX1)						%-**!
-%rank([KX1,KX1o_]) == rank(KX1)						%-**!
-%[Fdf_,xXd_] = spm_AnCova(KX1_,KX0_,K_);					%-**!
-%max(abs(xXd_.df - eFdf)) 		< 1e-10				%-**!
-%max(abs(xXd_.PH(:)-xX.pKX(:))) 	< 1e-10				%-**!
-%max(abs(xXd_.PHV(:)-xX.pKXV(:)))	< 1e-10				%-**!
-%abs(xX.trRV - xXd_.trRV)		< 1e-10				%-**!
-%%abs(xX.trRVRV - xXd_.trRV2)		< 1e-10				%-**!
-%abs(trMV - xXd_.trR0V)			< 1e-10				%-**!
-%%abs(trMVMV - xXd_.trR0V2)		< 1e-10				%-**!
-
 
 %-Image dimensions
 %-----------------------------------------------------------------------
@@ -433,10 +403,10 @@ Vbeta(1:nbeta) = deal(struct(...
 			'pinfo',	[1 0 0]',...
 			'descrip',	''));
 for i=1:nbeta
-	Vbeta(i).fname = sprintf('beta_%04d.img',i);
+	Vbeta(i).fname   = sprintf('beta_%04d.img',i);
 	Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.Xnames{i});
 	spm_unlink(Vbeta(i).fname)
-	Vbeta(i) = spm_create_image(Vbeta(i));
+	Vbeta(i)         = spm_create_image(Vbeta(i));
 end
 
 
@@ -470,27 +440,28 @@ nbch    = length(clines);			%- #bunches
 
 %-Intialise other variables used in the loop 
 %=======================================================================
-BePm	= zeros(1,xdim*ydim);				%-below plane (mask)
-vox_ind = [];						%-voxels indices in plane
+BePm	= zeros(1,xdim*ydim);			%-below plane (mask)
+vox_ind = [];					%-voxels indices in plane
+tmp_msk	= [];					%-temporary mask 
 
-tmp_msk	= [];						%-temporary mask 
+BeVox(nbch) = struct('res',[],'ofs',[],'ind',[]);   %-voxels below
+CrVox       = struct('res',[],'ofs',[],'ind',[]);   %-current voxlels
+						    % res : residuals
+   						    % ofs : mask offset
+						    % ind : indices
 
-BeVox(nbch) = struct('res',[],'ofs',[],'ind',[]);	%-voxels below
-CrVox       = struct('res',[],'ofs',[],'ind',[]);	%-current voxlels
-							% res : residuals
-   							% ofs : mask offset
-							% ind : indices
-
-xords	= [1:xdim]'*ones(1,ydim); xords = xords(:)';	%-plane X coordinates
-yords	= ones(xdim,1)*[1:ydim];  yords = yords(:)';	%-plane Y coordinates
+xords  = [1:xdim]'*ones(1,ydim); xords = xords(:)'; %-plane X coordinates
+yords  = ones(xdim,1)*[1:ydim];  yords = yords(:)'; %-plane Y coordinates
 
 
 %-Smoothness estimation variables
 %-----------------------------------------------------------------------
 S      = 0;                                     %-Volume analyzed (in voxels)
 sx_res = 0; sy_res = 0; sz_res = 0;		%-sum((dr./d{x,y,z}).^2)
-nx     = 0; ny     = 0; nz     = 0;		%- # {x,y,z} partial derivs
+nx     = 0; ny     = 0; nz     = 0;		%-# {x,y,z} partial derivs
+
 %-Indexes of residual images to sample for smoothness estimation
+%-----------------------------------------------------------------------
 i_res  = round(linspace(1,nScan,min(nScan,maxRes4S)))';
 
 
@@ -498,7 +469,7 @@ i_res  = round(linspace(1,nScan,min(nScan,maxRes4S)))';
 %=======================================================================
 spm_progress_bar('Init',100,'model estimation','');
 
-for z = 1:zdim			%-loop over planes (2D or 3D data)
+for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     zords   = z*ones(xdim*ydim,1)';	%-plane Z coordinates
     CrBl    = [];			%-current plane betas
@@ -507,14 +478,16 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
     for bch = 1:nbch			%-loop over bunches of lines
 
 	%-# Print progress information in command window
+	%---------------------------------------------------------------
 	fprintf('\rPlane %3d/%-3d : plank %3d/%-3d%30s',z,zdim,bch,nbch,' ')
 
 	cl   = clines(bch); 	 	%-line index of first line of bunch
 	bl   = blines(bch);  		%-number of lines for this bunch
 
 	%-construct list of voxels in this bunch of lines
+	%---------------------------------------------------------------
 	I    = ((cl-1)*xdim+1):((cl+bl-1)*xdim);	%-lines cl:cl+bl-1
-	xyz  = [xords(I); yords(I); zords(I)];		%-coords of voxels in bch
+	xyz  = [xords(I); yords(I); zords(I)];		%-voxel coords in bch
 
 
 	%-Get data & construct analysis mask for this bunch of lines
@@ -528,19 +501,21 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 	for i = 1:length(xM.VM)
 		tM   = inv(xM.VM(i).mat)*VY(1).mat;	%-Reorientation matrix
 		tmp  = tM * [xyz;ones(1,size(xyz,2))];	%-Coords in mask image
+
 		%-Load mask image within current mask & update mask
+		%-------------------------------------------------------
 		CrLm(CrLm) = spm_sample_vol(xM.VM(i),...
 				tmp(1,CrLm),tmp(1,CrLm),tmp(3,CrLm),0) > 0;
 	end
 	
 	%-Get the data in mask, compute threshold & implicit masks
 	%---------------------------------------------------------------
-	Y = zeros(nScan,xdim*bl);
+	Y     = zeros(nScan,xdim*bl);
 	for j = 1:nScan
 		if ~any(CrLm), break, end		%-Break if empty mask
 		Y(j,CrLm) = spm_sample_vol(VY(j),...	%-Load data in mask
 				xyz(1,CrLm),xyz(2,CrLm),xyz(3,CrLm),0);
-		CrLm(CrLm) = Y(j,CrLm)>xM.TH(j);	%-Threshold (& NaN) mask
+		CrLm(CrLm) = Y(j,CrLm) > xM.TH(j);	%-Threshold (& NaN) mask
 		if xM.I & ~YNaNrep & xM.TH(j)<0		%-Use implicit 0 mask
 			CrLm(CrLm) = abs(Y(j,CrLm))>eps;
 		end
@@ -548,8 +523,8 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 
 	%-Apply mask
 	%---------------------------------------------------------------
-	Y = Y(:,CrLm);				%-Data matrix within mask
-	S = S + sum(CrLm);			%-Volume analysed
+	Y         = Y(:,CrLm);			%-Data matrix within mask
+	S         = S + sum(CrLm);		%-Volume analysed
 	CrVox.ofs = I(1) - 1;			%-Lines offset
 	CrVox.ind = find(CrLm);			%-Voxel indexes (within bunch)
 
@@ -564,27 +539,22 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 						'...temporal smoothing')%-#
-		KY = xX.K*Y;
+		KY    = xX.K*Y;
 
 		%-General linear model: least squares estimation
-		% (Using pinv to allow for non-unique designs             )
-		% (Including temporal convolution of design matrix with K )
+		% (Using pinv to allow for non-unique designs            )
+		% (Including temporal convolution of design matrix with K)
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 						'...parameter estimation')%-#
 		beta  = xX.pKX * KY;			%-Parameter estimates
 		res   = spm_sp('res',xX.xKXs,KY);	%-Residuals
 		ResMS = sum(res.^2)/xX.trRV;		%-Residual mean square
-%		[Fdf_,F_,b_,t_,ResSS_]=spm_AnCova(KX1_,KX0_,K_,KY,c',xXd_);%-**!
-%		max(abs(beta(:)-b_(:)))			<1e-10		%-**!
-%		max(abs(ResMS(:)-ResSS_(:)/xXd_.trRV))	<1e-10		%-**!
 		clear KY				%-Clear to save memory
 
 
 		%-If UFp>0, save raw data in 8bit squashed *.mad file format
-		% (see spm_append)
 		%-------------------------------------------------------
-		% (This is done so that the data is available for plotting later)
 		if UFp>0
 			fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 							'...saving data')%-#
@@ -593,10 +563,7 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 				XYZ = [XYZ, xyz];	%-save coords
 
 			else				%-F-threshold
-%				F = (sum(beta.*(Dc*beta))/trMV)./ResMS;	%-**!
-%				max(abs(F - F_))	<1e-10		%-**!
-				tmp = (sum(beta.*(Dc*beta))/trMV) > ...
-					ResMS * UF;
+				tmp = (sum(beta.*(Dc*beta))/trMV) > ResMS*UF;
 				spm_append(Y(:,tmp),'Y.mad',2);
 				XYZ = [XYZ, xyz(:,tmp)];
 				
@@ -606,17 +573,19 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 
 
 		%-Save betas for current plane in memory as we go along
-		% (if there is not enough memory, could save directly as float )
-		% (analyze images, or *.mad and retreived when plane complete  )
+		% (if there is not enough memory, could save directly as float)
+		% (analyze images, or *.mad and retreived when plane complete )
+		%-------------------------------------------------------
 		CrBl 	= [CrBl,beta];
 		CrResMS = [CrResMS,ResMS];
 
-
-		%-Subsample (i_res) normalised residuals for moothness estimation
+		% Smoothness estimation - Normalize residuals
 		%-------------------------------------------------------
-		CrVox.res=res(i_res,:)./(ones(size(i_res))*sqrt(ResMS));
-		clear res				%-clear res
-
+		res     = res(i_res,:);	
+		ResSS   = sqrt(sum(res.^2));
+		for   j = 1:size(res,1)
+			res(j,:) = res(j,:)./ResSS; end
+		CrVox.res = res;
 
 	   	%-Smoothness estimation: compute spatial derivatives...
 		%=======================================================
@@ -629,6 +598,7 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 		% in the original list of indices. If necessary, it 
 		% constructs the voxel list corresponding to the displaced 
 		% mask (eg in y-dim when not at the begining of the plane).
+
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 						'...smoothness estimation')%-#
 
@@ -641,7 +611,7 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 
 		%- z dim
 		%-------------------------------------------------------
-		if z>1					%-There's a plane below
+		if z>1			%-There's a plane below
 		    %-Indices of inmask voxels with inmask z-1 neighbours
 		    jk = find(CrLm & BePm(I));
 		    if ~isempty(jk)
@@ -736,14 +706,17 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
     spm_write_plane(VM, reshape(BePm,xdim,ydim), z);
 
     %-Construct voxel indices for BePm
-    Q   = find(BePm);
-    tmp = zeros(xdim,ydim);
+    %-------------------------------------------------------------------
+    Q     = find(BePm);
+    tmp   = zeros(xdim,ydim);
 
 
     %-Write beta images
     %-------------------------------------------------------------------
     for i = 1:nbeta
-	tmp(Q) = CrBl(i,:);
+        if length(Q)
+		tmp(Q)   = CrBl(i,:);
+	end
 	spm_write_plane(Vbeta(i),tmp,z);
     end % (for i = 1:nbeta)
 	    
@@ -754,6 +727,7 @@ for z = 1:zdim			%-loop over planes (2D or 3D data)
 
 	   
     %-Report progress
+    %-------------------------------------------------------------------
     fprintf('%s%30s',sprintf('\b')*ones(1,30),' ')%-#
     spm_progress_bar('Set',100*(bch + nbch*(z-1))/(nbch*zdim));
 
@@ -765,21 +739,21 @@ fprintf('\n')
 % - P O S T   E S T I M A T I O N   C L E A N U P
 %=======================================================================
 
-%-Smoothness estimates
-% (From component fields, & converted for Gaussianised SPM{t} : SPM{G-t})
+%-Smoothness estimates of component fields
 %-----------------------------------------------------------------------
-Lc2z   = spm_lambda(xX.edf);
 if zdim == 1,
-	if any(~[nx,ny]),error(sprintf('W: nx=%d, ny=%d',nx,ny)),end;
-	Lambda = diag([sx_res/nx, sy_res/ny, Inf]*...
-				(xX.edf-2)/(xX.edf-1)/xX.trRV);
+	Lambda = diag([sx_res/nx sy_res/ny Inf]*(xX.edf-2)/(xX.edf-1));
+
 else
-	if any(~[nx,ny,nz]),error(sprintf('W: nx=%d, ny=%d, nz=%d',nx,ny,nz)),end
-	Lambda = diag([sx_res/nx, sy_res/ny, sz_res/nz]*...
-				(xX.edf-2)/(xX.edf-1)/xX.trRV);
+	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz]*(xX.edf-2)/(xX.edf-1));
 end
-W      = (2*Lc2z*diag(Lambda)').^(-1/2);
-%-**FWHM   = sqrt(8*log(2))*W.*sqrt(sum(VY(1).mat(1:3,1:3).^2));
+W      = (2*diag(Lambda)').^(-1/2);
+FWHM   = sqrt(8*log(2))*W;
+
+
+% estimate RESEL counts for volume (assume a sphere)
+%-----------------------------------------------------------------------
+R      = spm_resels(FWHM,S);
 
 
 %-Save remaining results files and analysis parameters
@@ -787,16 +761,17 @@ W      = (2*Lc2z*diag(Lambda)').^(-1/2);
 
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
-if UFp>0, save XYZ XYZ, clear XYZ, end
+if UFp > 0, save XYZ XYZ, clear XYZ, end
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...
 		'Fc','UFp','UF',...
-		'S','Lambda','W'};
+		'S','R','Lambda','W','FWHM'};
 
 if nargin>4
 	%-Extra arguments were passed for saving in the SPM.mat file
+	%---------------------------------------------------------------
 	for i=5:nargin
 		SPMvars = [SPMvars,{inputname(i)}];
 		eval([inputname(i),' = varargin{i-4};'])
