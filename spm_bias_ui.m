@@ -88,7 +88,8 @@ for i=1:size(PP,1),
 	P              = deblank(PP(i,:));
 	T              = spm_bias_estimate(P,flags);
 	[pth,nm,xt,vr] = fileparts(P);
-	S              = fullfile(pth,['bias_' nm '.mat']);
+	%S             = fullfile(pth,['bias_' nm '.mat']);
+	S              = ['bias_' nm '.mat'];
 	spm_bias_apply(P,S);
 end;
 if 0,
