@@ -94,7 +94,8 @@ function spm_realign(P,Flags)
 % Adjust the data (fMRI) to remove movement-related components.
 % The adjustment procedure is based on a autoregression-moving average-like
 % model of the effect of position on signal and explicitly includes a spin
-% excitation history effect.
+% excitation history effect. Do not use this option if you are reslicing
+% any less than about 20 images.
 %
 %____________________________________________________________________________
 % TO OBTAIN SIMILAR RESULTS TO SPM95, select:
@@ -183,7 +184,7 @@ function spm_realign(P,Flags)
 % Map. 2:165-189
 %
 % Friston KJ, Williams SR, Howard R Frackowiak RSJ and Turner R (1995)
-% Movement-related effect in fMRI time-series.  Mag. Res. Med. 0:00-00
+% Movement-related effect in fMRI time-series.  Mag. Res. Med. 35:346-355
 %
 %__________________________________________________________________________
 % %W% Karl Friston - modified by John Ashburner %E%
@@ -336,7 +337,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	% The estimate is repeated iteratively h times and the estimates of
 	% Q are cumulated arithmetically (an aproximation but good enough)
 	%-------------------------------------------------------------------
-	spm_progress_bar('Init',nreg,'Coregistering','volumes completed');
+	spm_progress_bar('Init',nreg-1,'Coregistering','volumes completed');
 
 	% Base starting estimates on solution for previous run
 
@@ -358,12 +359,11 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 		q0 = [-dXdQ Y]\X;
 		q0 = q0(1:size(U,2));
 	 	q      = q - q0'*dQ(U,:);
+	  	spm_progress_bar('Set',k-2+i/h);
 	    end
 	    Q(k,:) = q;
 
 	    spm_unmap(V2); spm_unlink spm_mov.img spm_mov.hdr spm_mov.mat
-
-	    spm_progress_bar('Set',k);
 	end
 	Q((nreg+1):size(P,1),:) = ones(size(P,1)-nreg,1)*Q(nreg,:);
 	spm_unmap(V1); spm_unlink spm_ref.img spm_ref.hdr spm_ref.mat
@@ -514,27 +514,28 @@ if any(Flags == 'r')
 						d = d(:).*Mask;
 					end
 
-			% Deal with different data types
-			if (Headers(i,5) == 2)
-				d = round(d);
-				tmp = find(d > 255);
-				d(tmp) = zeros(size(tmp))+255;
-				tmp = find(d < 0);
-				d(tmp) = zeros(size(tmp));
-			elseif (Headers(i,5) == 4)
-				d = round(d);
-				tmp = find(d > 32767);
-				d(tmp) = zeros(size(tmp))+32767;
-				tmp = find(d < -32768);
-				d(tmp) = zeros(size(tmp))-32768;
-			elseif (Headers(i,5) == 8)
-				d = round(d);
-				tmp = find(d > 2^31-1);
-				d(tmp) = zeros(size(tmp))+(2^31-1);
-				tmp = find(d < -2^31);
-				d(tmp) = zeros(size(tmp))-2^31;
-			end
-		end
+	% Deal with different data types
+	if (Headers(i,5) == 2)
+		d = round(d);
+		tmp = find(d > 255);
+		d(tmp) = zeros(size(tmp))+255;
+		tmp = find(d < 0);
+		d(tmp) = zeros(size(tmp));
+	elseif (Headers(i,5) == 4)
+		d = round(d);
+		tmp = find(d > 32767);
+		d(tmp) = zeros(size(tmp))+32767;
+		tmp = find(d < -32768);
+		d(tmp) = zeros(size(tmp))-32768;
+	elseif (Headers(i,5) == 8)
+		d = round(d);
+		tmp = find(d > 2^31-1);
+		d(tmp) = zeros(size(tmp))+(2^31-1);
+		tmp = find(d < -2^31);
+		d(tmp) = zeros(size(tmp))-2^31;
+	end
+
+				end
 
 				if (~any(Flags == 'N'))
 					p  = spm_str_manip(P(i,:), 'd');
@@ -561,34 +562,33 @@ if any(Flags == 'r')
 
 			X = X'; % Transpose to reduce paging
 			lzm1 = size(P,1)-1;
+			dZmotion = Matrixes(3,:)' - Matrixes(3,1);
 			for y=1:DIM(2)
-				Zmotion  = Matrixes(7,:)*y +...
+				Zmotiony  = Matrixes(7,:)*y +...
 					Matrixes(11,:)*j + Matrixes(15,:);
-				Zmotion  = Zmotion' - Zmotion(1);
-				dZmotion = Matrixes(3,:)' - Matrixes(3,1);
+				Zmotiony  = Zmotiony' - Zmotiony(1);
 				for x = 1:DIM(1)
 					xy = x+(y-1)*DIM(1);
 					if (Mask(xy))
 
 	Tac = X(:,xy) - Integral(xy,j);
-	Zmotion = Zmotion + dZmotion*x;
+	Zmotion = Zmotiony + dZmotion*x;
 	A = [Zmotion Zmotion.^2 [0 ; Zmotion(1:lzm1)] ...
 		[0 ; Zmotion(1:lzm1)].^2];
-	X(:,xy) = Tac + Integral(xy,j) - A*((A'*A)\(A'*Tac));
+	X(:,xy) = X(:,xy) - A*((A'*A)\(A'*Tac));
 
 					end
 				end
 			end
 			X = X';
-
 			start_vol = 1;
 			if (any(Flags == 'n')) start_vol = 2; end
 
 			for i = start_vol:size(P,1)
-				p = spm_str_manip(P(i,:), 'd');
+				p = deblank(P(i,:));
 
 				d = X(:,i)/Headers(i,4);
-				if any(Flags == 'k') d = X(:,i).*Mask; end
+				if any(Flags == 'k') d = d.*Mask; end
 
 				% Deal with different data types
 				if (Headers(i,5) == 2)
