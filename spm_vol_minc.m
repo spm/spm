@@ -128,6 +128,18 @@ if ~isempty(tmp), dircos(:,1) = tmp.val; end;
 
 mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
 
+% Because there are not yet any routines to write the matrix information
+% to MINC files, any changes to the matrix values will be made to `.mat'
+% files.  The values in the `.mat' files should override the values from the
+% headers.
+matname = [spm_str_manip(fname,'sd') '.mat'];
+if (exist(matname) == 2)
+	load(matname);
+	if (exist('M') == 1)
+		mat = M;
+	end
+end
+
 V      = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'cdf',cdf);
 return;
 %_______________________________________________________________________

@@ -29,38 +29,53 @@ if (nargin == 1)
 		end
 	end
 
-	% Assume transverse slices.
+	if exist([spm_str_manip(imagename,'sd') '.hdr']) == 2,
+		% Read as much information from the ANALYZE header.
+		% Assume transverse slices.
+		[dim vox scale typ offset origin descrip] = spm_hread([spm_str_manip(imagename,'sd') '.img']);
+		if isempty(dim),
+			error(sprintf('Can''t read header for "%s"\n', [spm_str_manip(imagename,'sd') '.img']));
+		end
 
-	[dim vox scale typ offset origin descrip] = spm_hread([spm_str_manip(imagename,'sd') '.img']);
-	if isempty(dim),
-		error(sprintf('Can''t read header for "%s"\n', [spm_str_manip(imagename,'sd') '.img']));
-	end
+		% If origin hasn't been set, then assume
+		% it is the centre of the image.
+		if (all(origin == 0))
+			origin = dim(1:3)/2;
+		end
 
-	% If origin hasn't been set, then assume
-	% it is the centre of the image.
-	if (all(origin == 0))
-		origin = dim(1:3)/2;
-	end
+		if (all(vox == 0))
+			vox = [1 1 1];
+		end
 
-	if (all(vox == 0))
-		vox = [1 1 1];
-	end
-
-	off = -vox.*origin;
-	M = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+		off = -vox.*origin;
+		M = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+	else
+		% Assume it is a MINC file
+		V=spm_vol_minc(imagename);
+		if ~isempty(V),
+			M=V.mat;
+		else,
+			error(['Can''t read matrix information from "' imagename '".']);
+		end;
+	end;
 elseif (nargin == 2)
 	% Delete the matrix if it exists
 	spm_unlink(matname);
 	M    = mat;
-	vx   = sqrt(sum(M(1:3,1:3).^2));
-	orgn = round(-M(1:3,4)' ./ vx);
-	off = -vx.*orgn;
-	mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
+	if exist([spm_str_manip(imagename,'sd') '.hdr']) == 2,
+		vx   = sqrt(sum(M(1:3,1:3).^2));
+		orgn = round(-M(1:3,4)' ./ vx);
+		off = -vx.*orgn;
+		mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
 
-	% only write the .mat file if necessary
-	if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > eps*eps*12)
+		% only write the .mat file if necessary
+		if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > eps*eps*12)
+			eval(['save ' matname ' M -v4']);
+		end
+	else,
+		% Assume MINC and write file anyway
 		eval(['save ' matname ' M -v4']);
-	end
+	end;
 else
 	error('Incorrect Usage.');
 end

@@ -59,11 +59,11 @@ function V = subfunc(p)
 p = deblank(p);
 
 % Try MINC format first
-V=spm_vol_minc(p);
+V=spm_vol_minc([spm_str_manip(p,'sd') '.mnc']);
 if ~isempty(V), return; end;
 
 % Try Analyze format
 [dim vox scale dtype offset origin descrip] = spm_hread(p);
-mat = spm_get_space(p);
-V = struct('fname',p,'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]','descrip',descrip);
+mat = spm_get_space([spm_str_manip(p,'sd') '.img']);
+V = struct('fname',[spm_str_manip(p,'sd') '.img'],'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]','descrip',descrip);
 return;
