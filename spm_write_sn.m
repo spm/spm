@@ -153,6 +153,10 @@ for i=1:prod(size(V)),
 	VO          = V(i);
 	VO.fname    = prepend(V(i).fname,'n');
 	VO.mat      = prm.VG.mat*inv(M1)*M2;
+	if spm_flip_analyze_images,
+		Flp    = [-1 0 0 (Dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+		VO.mat = VO.mat*Flp;
+	end;
 	VO.dim(1:3) = Dim;
 	VO.descrip  = ['spm - 3D normalized'];
 
@@ -174,6 +178,7 @@ for i=1:prod(size(V)),
 			dat         = spm_bsplins(C,X2,Y2,Z2,d);
 			if flags.preserve, dat = dat*detAff; end;
 			dat(msk{j}) = NaN;
+			if spm_flip_analyze_images, dat = flipud(dat); end;
 			spm_write_plane(VO,dat,j);
 			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 		end;
@@ -192,6 +197,7 @@ for i=1:prod(size(V)),
 			dat         = spm_bsplins(C,X2,Y2,Z2,d);
 			dat(msk{j}) = NaN;
 			if ~flags.preserve,
+				if spm_flip_analyze_images, dat = flipud(dat); end;
 				spm_write_plane(VO,dat,j);
 			else,
 				tdx = reshape(reshape(Tr(:,:,:,1),size(Tr,1)*size(Tr,2),size(Tr,3)) *DZ(j,:)', size(Tr,1), size(Tr,2) );
@@ -205,7 +211,9 @@ for i=1:prod(size(V)),
 				% The determinant of the Jacobian reflects relative volume changes.
 				%------------------------------------------------------------------
 				detJ       = detAff * (j11.*(j22.*j33 - j23.*j32) - j21.*(j12.*j33 - j13.*j32) + j31.*(j12.*j23 - j13.*j22));
-				Dat(:,:,j) = dat.*detJ;
+				dat        = dat.*detJ;
+				if spm_flip_analyze_images, dat = flipud(dat); end;
+				Dat(:,:,j) = dat;
 			end;
 			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 		end;
