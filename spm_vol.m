@@ -66,16 +66,21 @@ return;
 function V = subfunc(p)
 p = deblank(p);
 
-% Try MINC format first
-V=spm_vol_minc([spm_str_manip(p,'sd') '.mnc']);
-if ~isempty(V), return; end;
+if exist([spm_str_manip(p,'sd') '.hdr']) == 2,
+	[dim vox scale dtype offset origin descrip] = spm_hread(p);
+	mat = spm_get_space([spm_str_manip(p,'sd') '.img']);
+	V   = struct('fname',[spm_str_manip(p,'sd') '.img'],...
+	           'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]',...
+	           'descrip',descrip);
 
-% Try Ecat 7
-V=spm_vol_ecat7(p);
-if ~isempty(V), return; end;
+else, % Try other formats
 
-% Try Analyze format
-[dim vox scale dtype offset origin descrip] = spm_hread(p);
-mat = spm_get_space([spm_str_manip(p,'sd') '.img']);
-V = struct('fname',[spm_str_manip(p,'sd') '.img'],'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]','descrip',descrip);
+	% Try MINC format
+	V=spm_vol_minc(p);
+	if ~isempty(V), return; end;
+
+	% Try Ecat 7
+	V=spm_vol_ecat7(p);
+	if ~isempty(V), return; end;
+end;
 return;
