@@ -30,11 +30,34 @@ function V = spm_vol(P)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-for i=1:size(P,1)
-	p        = deblank(P(i,:));
+V = subfunc2(P);
+return;
 
-	[dim vox scale dtype offset] = spm_hread(p);
-	mat = spm_get_space(p);
+function V = subfunc2(P)
+if iscell(P),
+	V = cell(size(P));
+	for j=1:prod(size(P)),
+		if iscell(P{j}),
+			V{j} = subfunc2(P{j});
+		else,
+			V{j} = subfunc1(P{j});
+		end;
+	end;
+else
+	V = subfunc1(P);
+end;
+return;
 
-	V(i) = struct('fname',p,'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]');
-end
+function V = subfunc1(P)
+if size(P,1)==0, V = []; end;
+for i=1:size(P,1),
+	V(i) = subfunc(P(i,:));
+end;
+return;
+
+function V = subfunc(p)
+p = deblank(p);
+[dim vox scale dtype offset] = spm_hread(p);
+mat = spm_get_space(p);
+V = struct('fname',p,'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]');
+return;
