@@ -47,7 +47,7 @@ end;
 M   = VO(1).mat;
 dim = VO(1).dim(1:3);
 
-spm_progress_bar('Init',V(1).dim(3),'Masking','planes completed')
+spm_progress_bar('Init',VO(1).dim(3),'Masking','planes completed')
 for j=1:dim(3),
 
 	msk = zeros(dim(1:2));
