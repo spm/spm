@@ -1,8 +1,9 @@
-function [U,S,V] = spm_svd(X,U)
+function [U,S,V] = spm_svd(X,U,T)
 % computationally efficient SVD (that can handle sparse arguments)
-% FORMAT [U,S,V] = spm_svd(X,u);
+% FORMAT [U,S,V] = spm_svd(X,u,t);
 % X    - {m x n} matrix
 % u    - threshold for normalized eigenvalues (default = 1e-6)
+% t    - threshold for raw eigenvalues        (default = 0)
 %
 % U    - {m x p} singular vectors
 % V    - {m x p} singular variates
@@ -11,10 +12,14 @@ function [U,S,V] = spm_svd(X,U)
 % %W% Karl Friston %E%
 
 
-% default threshold
+% default thresholds
 %---------------------------------------------------------------------------
 if nargin < 2
 	U = 1e-6;
+end
+
+if nargin < 3
+	T = 0;
 end
 
 % deal with sparse matrices
@@ -38,8 +43,7 @@ if any(i - j)
 		[v S v] = svd(spm_atranspa(X),0);
 		S       = sparse(S);
 		s       = diag(S);
-		s       = s*length(s)/sum(s);
-		j       = find(s >= U);
+		j       = find(s*length(s)/sum(s) >= U & s >= T);
 		v       = v(:,j);
 		u       = spm_en(X*v);
 		S       = sqrt(S(j,j));
@@ -49,8 +53,7 @@ if any(i - j)
 		[u S u] = svd(spm_atranspa(X'),0);
 		S       = sparse(S);
 		s       = diag(S);
-		s       = s*length(s)/sum(s);
-		j       = find(s >= U);
+		j       = find(s*length(s)/sum(s) >= U & s >= T);
 		u       = u(:,j);
 		v       = spm_en(X'*u);
 		S       = sqrt(S(j,j));
@@ -60,8 +63,7 @@ if any(i - j)
 		[u S v] = svd(X,0);
 		S       = sparse(S);
 		s       = diag(S).^2;
-		s       = s*length(s)/sum(s);
-		j       = find(s >= U);
+  		j       = find(s*length(s)/sum(s) >= U & s >= T);
 		v       = v(:,j);
 		u       = u(:,j);
 		S       = S(j,j);
@@ -75,10 +77,8 @@ else
 	S     = S(j,j);
 	v     = v(:,j);
 	u     = u(:,j);
-
 	s     = diag(S).^2;
-	s     = s*length(s)/sum(s);
-	j     = find(s >= U);
+ 	j     = find(s*length(s)/sum(s) >= U & s >= T);
 	v     = v(:,j);
 	u     = u(:,j);
 	S     = S(j,j);
@@ -90,5 +90,7 @@ end
 j      = length(j);
 U      = sparse(M,j);
 V      = sparse(N,j);
-U(p,:) = u;
-V(q,:) = v;
+if j
+    U(p,:) = u;
+    V(q,:) = v;
+end
