@@ -239,7 +239,7 @@ switch MT
 		for i = 1:nsess
 		   str = sprintf('select scans for session %0.0f',i);
 		   if isempty(BCH)
-			q = spm_get(Inf,'.img',str);
+			q = spm_get(nscan(i),'.img',str);
 		   else
 			q = sf_bch_get_q(i);
 		   end %- 
