@@ -232,9 +232,9 @@ try
 	save('xCon.mat','xCon')
 catch
 	str = {	'Problem saving xCon.mat:','',...
-		'SPM needs write access to results directory!'};
-	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
-		spm('GetUser',' (%s)'),mfilename),'warn','modal')
+		'SPM needs write access to results directory:',...
+		['    ',swd]};
+	spm('alert*',str,mfilename);
 	error(['can''t write to results directory: ',swd])
 end
 

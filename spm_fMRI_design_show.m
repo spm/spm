@@ -42,10 +42,10 @@ end
 % Do not proceed unless there are trials specified
 %---------------------------------------------------------------------------
 for j = 1:length(Sess)
-	if ~length(Sess{j}.name)
-		 msgbox('User-specifed regressors only','Warning','warn')
-		return
-	end
+    if ~length(Sess{j}.name)
+        spm('alert*','User-specifed regressors only!',mfilename,sqrt(-1));
+        return
+    end
 end
 
 

@@ -70,9 +70,7 @@ elseif SPACE == 'B'
 
 elseif SPACE == 'V'
 	if ~length(SPM.XYZ)
-		msgbox('No suprathreshold clusters!',...
-			sprintf('%s%s: %s...',spm('ver'),...
-			spm('GetUser',' (%s)'),mfilename),'help','modal')
+		spm('alert!','No suprathreshold clusters!',mfilename,0);
 		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
 		return
 	end
