@@ -1,6 +1,6 @@
-function [u] = spm_uc(a,df,STAT,R,n)
+function [u] = spm_uc_RF(a,df,STAT,R,n)
 % corrected critical height threshold at a specified significance level
-% FORMAT [u] = spm_uc(a,df,STAT,R,n)
+% FORMAT [u] = spm_uc_RF(a,df,STAT,R,n)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{residuals}]
 % STAT  - Statisical feild
@@ -30,8 +30,8 @@ du    = 1e-6;
 %---------------------------------------------------------------------------
 d     = 1;
 while abs(d) > 1e-6
-	[P P p] = spm_P(1,0,u,df,STAT,R,n);
-	[P P q] = spm_P(1,0,u + du,df,STAT,R,n);
+	[P P p] = spm_P_RF(1,0,u,df,STAT,R,n);
+	[P P q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
         d       = (a - p)/((q - p)/du);
         u       = u + d;
 end
@@ -40,8 +40,8 @@ end
 %---------------------------------------------------------------------------
 d     = 1;
 while abs(d) > 1e-6
-        p       = spm_P(1,0,u,df,STAT,R,n);
-	q       = spm_P(1,0,u + du,df,STAT,R,n);
+        p       = spm_P_RF(1,0,u,df,STAT,R,n);
+	q       = spm_P_RF(1,0,u + du,df,STAT,R,n);
         d       = (a - p)/((q - p)/du);
         u       = u + d;
 end
