@@ -25,7 +25,7 @@ for j = 1:p,
     block_p = j:p:N*p;
     H  = sum(spdiags(slice.D,0).*a_cov_p(:,j)) + slice.a_mean(block_p)'*slice.D*slice.a_mean(block_p);
     % Equation 16 in paper VB4
-    slice.b_beta(j)    = 1./(H./2 + 1./slice.b_beta_prior);
+    slice.b_beta(j)    = 1./(H./2 + 1./slice.b_beta_prior(j));
     slice.mean_beta(j) = slice.c_beta(j)*slice.b_beta(j);
 end
          
