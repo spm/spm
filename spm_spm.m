@@ -413,7 +413,8 @@ catch
 		[u s] = spm_svd(xVi.V);
 		s     = spdiags(1./sqrt(diag(s)),0,nScan,nScan);
 		W     = u*s*u';
-		xX.W  = W;
+		W     = W.*(abs(W) > 1e-6);
+		xX.W  = sparse(W);
 	catch
 		% unless xVi.V has not been estimated - requiring 2 passes
 		%-------------------------------------------------------
