@@ -2,7 +2,7 @@ function spm_Deformations
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-SPMid = spm('FnBanner',mfilename,'%A%');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Deformations');
 spm_help('!ContextHelp',mfilename);
 
