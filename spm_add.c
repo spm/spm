@@ -106,10 +106,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			if (sptr[k]<mn) mn=sptr[k];
 		}
 
-		if (fabs(mx) > fabs(mn))
+		if (mx > -mn)
 			scales[j] = mx/32767.0;
 		else
-			scales[j] = mn/32768.0;
+			scales[j] = -mn/32768.0;
 
 		dptr[j] = (short *)mxCalloc(nk, sizeof(short));
 		for(k=0; k<nk; k++)
