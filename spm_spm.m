@@ -1,4 +1,4 @@
-function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
+function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT, VMask)
 % Statistical analysis with the General linear model
 % FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT);
 %
@@ -15,6 +15,7 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % Fnames   - string matrix of Filenames corresponding to observations
 % SIGMA    - Gaussian parameter of K for correlated observations
 % RT       - Repeat time for EPI fMRI (generally interscan interval)
+% VMask	   - File where voxels within the brain are > 0;
 %_______________________________________________________________________
 %
 % spm_spm is the heart of the SPM package and implements the general
@@ -111,72 +112,105 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % RES 	-	residual SSQ
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston %E%
+% %W% Jean-Baptiste Poline, Andrew Holmes, Karl Friston %E%
 
 % ANALYSIS PROPER
 %=======================================================================
-% disp('This version of spm_spm is hacked for zero to be a missing value')
-mV = 0;
-global UFp
-
 
 %-Delete files from previous analyses, if they exist
 %-----------------------------------------------------------------------
-spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat RES.mat 
+% spm_unlink XA.mat BETA.mat XYZ.mat SPMF.mat SPMt.mat RES.mat 
 
 
 % temporal convolution of the design matrix - dispersion = SIGMA
 % the block partition is deliberately omitted here (B is used to associate
 % scans and subjects in subsequent routines)
 %-----------------------------------------------------------------------
-q     = size([H C B G],1);
+q	= size([H C B G],1);
+bdim	= size([H C B G],2);
 K     = spm_sptop(SIGMA,q);
-H     = K*H;
-C     = K*C;
-G     = K*G;
-
-% cubic VOI and indices
-%---------------------------------------------------------------------------
-r     = 8;
-if V(3) == 1; r = 32; end
-x     = [1:r] - 1;
-y     = [1:r] - 1;
-z     = [1:r] - 1;
-Q     = 0*x;
-if V(3) == 1; z = 0; end
-Xs    = [];
-for i = 1:length(z)
-	for j = 1:length(y)
-		d  = [x; Q + y(j); Q + z(i)];
-		Xs = [Xs d];
-	end
-end
-Qs    = zeros(size(Xs));
-for i = 1:size(Xs,2)
-	d = find(all(Xs == [Xs(1,i) + 1; Xs(2,i); Xs(3,i)]*ones(1,size(Xs,2))));
-	if length(d); Qs(1,i) = d; end
-	d = find(all(Xs == [Xs(1,i); Xs(2,i) + 1; Xs(3,i)]*ones(1,size(Xs,2))));
-	if length(d); Qs(2,i) = d; end
-	d = find(all(Xs == [Xs(1,i); Xs(2,i); Xs(3,i) + 1]*ones(1,size(Xs,2))));
-	if length(d); Qs(3,i) = d; end
-end
-
-
-% transformatino matrix {voxels to mm}
-%---------------------------------------------------------------------------
-Xq     = spm_matrix([0 0 0 0 0 0 V(4:6,1)'])*spm_matrix(-ORIGIN);
-Xq     = Xq([1:3],:);
+if ~isempty(H),	H     = K*H;	end;
+if ~isempty(C),	C     = K*C;	end;
+if ~isempty(G),	G     = K*G;	end;
 
 %-Critical value for F comparison at probability threshold (UFp)
 %---------------------------------------------------------------------------
 DESMTX = [H C B G];
-Fdf    = spm_AnCova([H C],[B G],SIGMA);
-UF     = spm_invFcdf(1 - UFp,Fdf);
-df     = Fdf(2);
+Fdf    	= spm_AnCova([H C],[B G],SIGMA);
+UFp	= 1;
+% UF	= spm_invFcdf(1 - UFp,Fdf);
+df     	= Fdf(2);
+TH	= TH(:)';
+
+%---------------
+dx = V(1).dim(1);
+dy = V(1).dim(2);
+dz = V(1).dim(3);
+
+% find a proper block size for the main loop
+% minimum size = one line;
+% maximum size = one plane;
+% MaxMem is the maximum amount of data that will be processed at a time 
+%-----------------------------------------------------------------------
+MaxMem	= 2^20;	% In bytes
+blksz	= MaxMem/8/q;
+if dy < 2, error('dy < 2'); end;		% At least 2 lines
+nl 	= max(min(round(blksz/dx), dy), 1); 	% nl : max # of lines
+clear 	blksz;
+clines	= 1:nl:dy; blines = diff([clines dy+1]);
+bchsz	= length(clines);			% bchsz : number of blocks
 
 
-%-Initialise variables
+%-- Intialise the name of the new mask : current mask & conditions on voxels
 %---------------------------------------------------------------------------
+VNewMsk = V(1); i=max(find(VMask.fname=='/')); if isempty(i) i=0; end;
+VNewMsk.fname = [CWD '/' 'spm_msk_' VMask.fname(i+1:length(VMask.fname))];
+eval(['spm_unlink ' VNewMsk.fname]);
+VNewMsk.pinfo = [1 0 0]';
+VNewMsk.dim(4) = spm_type('uint8');
+VNewMsk.descrip = 'some info on this analysis ?';
+VNewMsk = spm_create_image(VNewMsk);
+
+
+%-- Intialise names of the betas 
+%---------------------------------------------------------------------------
+Vbeta(1:bdim) = deal(struct(...
+		'fname',[],...
+		'dim',[V(1).dim(1:3) spm_type('float')],...
+		'mat',V(1).mat,'pinfo',[1 0 0],...
+		'descrip','spm betas'));
+for i=1:bdim
+   Vbeta(i).fname = [CWD '/' strrep(sprintf('beta%3.0d', i),' ','0') '.img']; 
+   eval(['spm_unlink ' Vbeta(i).fname]);
+   Vbeta(i) = spm_create_image(Vbeta(i));
+end;
+
+
+%-- Intialise names of the residual sum of squares 
+%---------------------------------------------------------------------------
+VResSS	= struct(	'fname','ResSS','dim',[V(1).dim(1:3) 64],...
+			'mat',V(1).mat,'pinfo',[1 0 0],...
+			'descrip','spm Residuals Sum of Squares');
+VResSS	= spm_create_image(VResSS);
+
+
+%-- Intialise other variables used in the loop 
+%---------------------------------------------------------------------------
+AbPm	= zeros(1,dx*dy);		% above plane (mask)
+vox_ind = [];				% voxels indices in plane
+
+tmp_msk	= [];				% temporary mask 
+VMaskFl	= isempty(VMask);
+
+AbVox	= struct('res',[],'msz',[],'ofs',[],'ind',[]);   % msz : mask size
+CrVox	= struct('res',[],'msz',[],'ofs',[],'ind',[]);   % ofs : mask offset
+							 % ind : indices
+
+z0	= zeros(dx*dy,1);
+xA	= [1:dx]'*ones(1,V(1).dim(2));
+yA	= ones(dx,1)*[1:V(1).dim(2)];
+yA	= yA(:); xA	= xA(:);
+
 S      = 0;                                     	% Volume analyzed
 sx_res = 0;              
 sy_res = 0;             
@@ -184,158 +218,258 @@ sz_res = 0;
 nx     = 0;
 ny     = 0;
 nz     = 0;
-i_res  = round(linspace(1,q,min([q 64])));		% RSSQ for smoothness
-N      = prod(ceil(V(1:3)/r));				% number of cubes
-I      = 0;						% voxel counter
-xyz    = [1;1;1];					% starting voxel
-p      = size(Xs,2);					% voxels per cycle
+i_res  = round(linspace(1,q,min([q 64])))';		% RSSQ for smoothness
 
-
-%-Cycle over cubes to avoid memory problems
+%-Cycle over groups of lines to avoid memory problems
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',100,'AnCova',' ');
 
-while(1)
+for pl_i = 1:dz	% loop over planes (2 or 3 dimensional data)
 
-	%-next location
-	%---------------------------------------------------------------
-	I     = I + 1;
-	if xyz(1) > V(1); xyz(1) = 1; xyz(2) = xyz(2) + r; end
-	if xyz(2) > V(2); xyz(2) = 1; xyz(3) = xyz(3) + r; end
-	if xyz(3) > V(3); break; end
-	x     = xyz(1) + Xs(1,:);
-	y     = xyz(2) + Xs(2,:);
-	z     = xyz(3) + Xs(3,:);
+  	zA 	= pl_i + z0;
+	CrBl	= [];	% current betas in plane
+	CrResSS	= [];	% current betas in plane
+
+	for bch = 1:bchsz	% loop over groups of lines 
+				% bch : index of lines;
+
+	   cl	= clines(bch); 	 	% cl = indice of line in plane
+	   bl	= blines(bch);  	% bl = number of lines
+	   CrLm	= ones(1,dx*bl);	% current lines (mask)
+
+	   %----------  construct lists of voxels -----------------------
+
+	   I = ((cl-1)*dx+1):((cl+bl-1)*dx);	% lines cl:cl+bl-1 
+	   x = xA(I); y = yA(I); z = zA(I);	% x y z of blk of lines
+
+	   %---------- get mask from disk for these lines ---------------
+	   if ~isempty(VMask)
+	   	CrLm		= spm_sample_vol(VMask, x,y,z,0);	
+	   	CrLm		= (CrLm > 0)';
+	   end
+	   u = find(CrLm); mu = ones(size(u)); clear X;
+
+	   %---------- get the data in mask -----------------------------
+	   if ~isempty(u)
+	      for j = 1:q
+		d      	= spm_sample_vol(V(j),x(u),y(u),z(u),0)';
+		mu      = mu & finite(d) & d>TH(j);	% condition FTH
+		X(j,:) 	= d;
+	      end
+	   end
+	   %---------- construct the current mask plane  ----------------
+	   %-- removes voxels that didn't fulfill condition FTH
+
+	   CrLm(u(find(~mu))) = zeros(1,sum(~mu));
+	   CrVox(1).ofs = I(1) - 1;	
+	   CrVox(1).ind = u(find(mu));
+	   %disp(['sum(mu) ' num2str(sum(mu)) 'length(u)' num2str(length(u))]);
+
+	   %---------- proceed with General Linear Model ----------------
+	   if sum(mu) 
+	   
+		%-- get voxels above threshold
+		X = X(:,find(mu));
+
+		%-- volume analysed S
+		S     = S + sum(mu);
+
+		%-- Convolve over scans
+		X     = K*X;
+
+		%-AnCova; employing pinv to allow for non-unique designs	
+		%---------------------------------------------------------------
+		[Fdf F BETA T ResSS] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
+
+		%-- save current betas in mem as we go along
+		%-- if there is not enought memory, could be saved as .mad and 
+		%-- get back at the end of the plane
+		CrBl 	= [CrBl BETA];
+		CrResSS = [CrResSS ResSS];
+
+		% Smoothness estimation - Normalize residuals for i_res
+		%---------------------------------------------------------------
+		CrVox(1).res 	= X(i_res,:) - DESMTX(i_res,:)*BETA;
+		CrVox(1).res	= ...
+			CrVox(1).res ./ (ones(size(i_res))*sqrt(ResSS/df));
+
+		clear X;		
+		
+	   	%---------- Compute spatial derivatives ...
+		%-----------------------------------------------------------
+		% The code avoids looping over the voxels (uses arrays)
+		% and optimize memory by working on the masks.
+		% It works on all the voxels contained in the mask and i_res.
+		% It constructs a list of indices that correspond
+		% to the voxels in the original mask AND the 
+		% displaced mask. It then finds the location of these
+		% in the original list of indices. If necessary, it 
+		% constructs the voxel list corresponding to the displaced 
+		% mask (eg in y-dim when not at the begining of the plane).
+		%-----------------------------------------------------------
+		%-- z dim
+		%
+
+		j_jk 	= cumsum(CrLm);			% valid for x y z
+		
+		if  pl_i ~= 1 %-- A plane above
+
+		   jk	= find(AbPm(I) & CrLm);
+		   if jk 	% there are some voxels above and below....
+			
+			k_jk	= cumsum(AbPm(I)); 
+			sz_res 	= sz_res + sum(sum( ...
+				  (CrVox(1).res(:,j_jk(jk)) ...
+				  - AbVox(bch).res(:,k_jk(jk))).^2 ));
+			nz 	= nz + length(jk);
+
+		   end % if jk 	% there are some voxels above and below
+
+		end % if  pl_i ~= 1
 
 
-	%-identify intracranial voxels in first scan - implicit mask
-	%---------------------------------------------------------------
-	X     = spm_sample_vol(V(:,1),x,y,z,0);
-	Q     = find(finite(X) & X>TH(1) & X~=mV);
+		%--------------------------------------------------------- 
+		%-- y dim
+		%
+		if bch == 1		% first bunch : no previous line
 
-	if length(Q) % proceed
+		   if bl > 1
+		   	jk = find( [CrLm(dx+1:dx*bl) zeros(1,dx)] & CrLm );
+		   	if jk % some voxels...
 
-	%-get data and check all voxels survive threshold
-	%---------------------------------------------------------------
-	U     = Q;
-	X     = zeros(q,length(Q));
-	x     = x(Q);
-	y     = y(Q);
-	z     = z(Q);
-	for j = 1:q
-		d      = spm_sample_vol(V(:,j),x,y,z,0);
-		U      = U & (finite(d) & d>TH(j) & d~=mV);
-		X(j,:) = d;
+			   k_jk = cumsum( CrLm(dx+1:dx*bl) );
+			   sy_res= sy_res + sum(sum( ...
+				(CrVox(1).res(:,k_jk(jk) + j_jk(dx)) - ...
+			 	 CrVox(1).res(:,j_jk(jk)) ).^2  ));
+				 % sum(CrLm(1:dx)) = j_jk(dx) 
+		      	   ny 	= ny + length(jk);
+		   	end % if jk % some voxels...
+		  
+		   end % bl > 1
+
+		else % if bch == 1 -> a previous line exists
+
+		   %-- Append previous line and CrLm 
+		   %-- minus its last line in tmp_msk
+
+		   tmp_msk = [AbPm( ((cl-2)*dx+1):(cl-1)*dx ) ...
+				CrLm(1:dx*(bl-1)) ];
+
+		   %-- get tmp_msk corresponding voxels tmp_vox
+		   tmp_vox = ...
+			[AbVox(bch-1).res(:,find(AbVox(bch-1).ind>dx*(nl-1))) ...
+			 CrVox(1).res(:, find(CrVox(1).ind <= dx*(bl-1) )) ];
+	
+		   jk	= find( CrLm & tmp_msk);
+		   if jk % some voxels...
+		      k_jk	= cumsum(tmp_msk);
+		      sy_res 	= sy_res + sum(sum( ...
+		   		  (CrVox(1).res(:,j_jk(jk)) - ...
+				  tmp_vox(:,k_jk(jk))).^2  ));
+		      ny 	= ny + length(jk);
+		   end % if jk % some voxels...
+
+		end % if bch == 1
+
+		%--------------------------------------------------------- 
+		%-- x dim
+		%
+		%-- 1. shift the mask to the left (arbitrary)
+		%-- 2. add 0 at the end of the lines
+
+		tmp_msk = [CrLm(2:length(CrLm)) 0];
+		tmp_msk(dx:dx:bl*dx) = zeros(1,bl);
+		
+		jk	= find(tmp_msk & CrLm);
+		if jk 	% there are some voxels on the left ....
+
+		   sx_res = sx_res + sum(sum( ...
+		   	(CrVox(1).res(:,j_jk(jk)+1) - ...
+			 CrVox(1).res(:,j_jk(jk))).^2  ));
+		   	% j_jk(jk)+1 = position of voxels on the right
+			% of tmp_msk & CrLm
+		   nx 	 = nx + length(jk);
+
+		end % if jk 	% there are some voxels on the left ....|
+
+	   %--------------------------------------------------------- 
+	   %---------- compute partial derivatives ...              |
+	   %--------------------------------------------------------- 
+
+	   end % if sum(mu) 
+
+	   %---------- roll ...
+	   %-- AbVox(bch) is overwritten 
+
+	   AbVox(bch).ind = CrVox(1).ind;
+	   AbVox(bch).ofs = CrVox(1).ofs;
+	   AbVox(bch).res = CrVox(1).res;
+
+	   AbPm(I) = CrLm;
+	   %---------- roll ...|
+
+	end %  bch = 1:bchsz
+
+	%------------------------ last bunch of lines =>  all plane in AbVox
+	%-- write  mask betas ResSS in file
+
+	spm_write_plane(VNewMsk, reshape(AbPm,dx,dy), pl_i);
+
+	%-- first find the indices in AbVox
+	vox_ind = [];
+	for i_tmp = 1:bchsz
+	   vox_ind = [vox_ind AbVox(i_tmp).ind+AbVox(i_tmp).ofs];
 	end
-	U     = find(U);
+	
+	for i_beta =1:bdim
+	   bet_tmp	= zeros(1,dx*dy);	
+	   if ~isempty(vox_ind)
+	  	bet_tmp(vox_ind) = CrBl(i_beta,:); 
+	   end;
+	   spm_write_plane(Vbeta(i_beta), reshape(bet_tmp,dx,dy),pl_i);
+	end % for i_beta =1:bdim
+		
+	%-- idem for ResSS
+	bet_tmp	= zeros(1,dx*dy);	
+	bet_tmp(vox_ind) = CrResSS;
+	spm_write_plane(VResSS,reshape(bet_tmp,dx,dy),pl_i);		   
 
-	if length(U); % proceed
+	   
+	spm_progress_bar('Set',100*(bch + bchsz*(pl_i-1))/(bchsz*dz));
 
-	%-volume and locations
-	%---------------------------------------------------------------
-	Q     = Q(U);
-	Y     = X(:,U); clear X
-	S     = S + length(Q); 
-	XYZ   = Xq*[x(U); y(U); z(U); ones(size(U))];
+disp(['plane --------------------------------- ' num2str(pl_i)]);
 
+end % for pl_i = 1:dz : loop over planes
+%-----------------------------------------------------------------------
 
-	%-Convolve over scans (i.e. temporal convolution)
-	%---------------------------------------------------------------
-	X     = K*Y; clear Y
-
-
-	%-AnCova; employing pseudoinverse to allow for non-unique designs	
-	%---------------------------------------------------------------
-	[Fdf F BETA T RES] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
-
-
-	%-Remove voxels with (uncorrected) non-significant F-statistic
-	%---------------------------------------------------------------
-	P     = find(F > UF);
-
-	if length(P) % proceed
-
-		%-Adjustment: remove confounds
-		%-------------------------------------------------------
-		d     = [1:size([B G],2)] + size([H C],2);
-		XA    = X(:,P) - [B G]*BETA(d,P);
-
-
-		%-Cumulate remaining voxels
-		%-------------------------------------------------------
-		spm_append('XA',XA);
-		spm_append('RES',RES(P));
-		spm_append('SPMF',F(P) );
-		spm_append('BETA',BETA(:,P));
-		spm_append('XYZ',XYZ(:,P));
-		if ~isempty(T)
-			spm_append('SPMt',spm_t2z(T(:,P),df)); end
-
-
-	end % proceed P
-
-
-	% Smoothness estimation - Normalize residuals
-	%---------------------------------------------------------------
-	Res    = X(i_res,:) - DESMTX(i_res,:)*BETA;	
-	ResSS  = sqrt(sum(Res.^2));
-	for  j = 1:size(Res,1)
-		Res(j,:) = Res(j,:)./ResSS; end
-
-	%-Compute spatial derivatives
-	%---------------------------------------------------------------
-	for j = 1:length(Q)
-		d      = find(Q == Qs(1,Q(j)));
-		if length(d)
-			sx_res = sx_res + sum(((Res(:,j) - Res(:,d))).^2);
-			nx     = nx + 1;
-		end
-		d      = find(Q == Qs(2,Q(j)));
-		if length(d)
-			sy_res = sy_res + sum(((Res(:,j) - Res(:,d))).^2);
-			ny     = ny + 1;
-		end
-		d      = find(Q == Qs(3,Q(j)));
-		if length(d)
-			sz_res = sz_res + sum(((Res(:,j) - Res(:,d))).^2);
-			nz     = nz + 1;
-		end
-	end
-
-
-	end % proceed U
-	end % proceed Q
-
-	% progress
-	%---------------------------------------------------------------
-	xyz   = xyz + [r;0;0];
-	spm_progress_bar('Set',100*I/N);
-
-end  % (loop over planes)
 spm_progress_bar('Clear');
 
 
 %-Smoothness estimates %-----------------------------------------------------------------------
 Lc2z   = spm_lambda(df);
-L_res  = [sx_res/nx sy_res/ny sz_res/nz]*(df - 2)/(df - 1);
-W      = (2*Lc2z*L_res).^(-1/2);
-if V(3) == 1
-	W = W(:,[1:2]); end		% 2 dimnesional data
+if dz == 1,
+	if any(~[nx ny], error(['W: nx ny ' num2str([nx ny])]); end;
+	L_res  = [sx_res/nx sy_res/ny]*(df - 2)/(df - 1)/df;
+else
+	if any(~[nx ny nz], error(['W: nx ny nz' num2str([nx ny nz])]); end;
+	L_res  = [sx_res/nx sy_res/ny sz_res/nz]*(df - 2)/(df - 1)/df;
+end
+W      = (2*Lc2z*L_res).^(-1/2)
+W = W(:,[1:2]); end; %--- 2 dimensional data
+FWHM   = sqrt(8*log(2))*W.*sqrt(sum(V(1).mat(1:3,1:3).^2));
 
-%-Unmap volumes
-%-----------------------------------------------------------------------
-for i  = 1:q; spm_unmap(V(:,i)); end
 
 %-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
-V      = [V(1:6,1); ORIGIN(:)];
-[Fdf,F,BETA,T,RES,BCOV] = spm_AnCova([H C],[B G],SIGMA);
-save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT BCOV
+% V      = [V(1:6,1); ORIGIN(:)];
+% [Fdf,F,BETA,T,RES,BCOV] = spm_AnCova([H C],[B G],SIGMA);
+%save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT BCOV
+%save SPM H C B G S V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT BCOV
 
 
 %-Display and print SPM{F}, Design matrix and textual information
 %=======================================================================
-FWHM   = sqrt(8*log(2))*W.*V(([1:length(W)] + 3))';
+FWHM   = sqrt(8*log(2))*W.*sqrt(sum(V(1).mat(1:3,1:3).^2));
 Fgraph = spm_figure('FindWin','Graphics');
 figure(Fgraph); spm_clf(Fgraph)
 if exist('SPMF.mat')
@@ -380,7 +514,6 @@ end
 
 spm_print
 
-
 %-Display, characterize and print SPM{Z}
 %-----------------------------------------------------------------------
 if exist('SPMt.mat')
@@ -394,4 +527,7 @@ if exist('SPMt.mat')
 	    spm_print
 	end
 end
+
+
+
 
