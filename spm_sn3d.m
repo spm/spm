@@ -289,7 +289,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 global SWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn;
 global sptl_MskBrn sptl_MskObj;
 
-global BCH batch_mat iA; 
+global BCH; 
 
 bboxes  = [   -78 78 -112 76  -50 85         
 	      -64 64 -104 68  -28 72         
