@@ -1243,6 +1243,7 @@ spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
 spm_get('Initialise','reset');
+spm_conman('Initialise','reset');
 clc, spm('FnBanner','GUI cleared');
 fprintf('\n');
 %evalin('Base','clear')
