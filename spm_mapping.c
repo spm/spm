@@ -14,9 +14,11 @@ static char sccsid[]="%W% John Ashburner %E%";
 
 int get_datasize(int type)
 {
-	if (type == UNSIGNED_CHAR) return(8);
+	if (type == UNSIGNED_CHAR || type == SIGNED_CHAR) return(8);
 	if (type == SIGNED_SHORT || type == SIGNED_SHORT_S) return(16);
+	if (type == UNSIGNED_SHORT || type == UNSIGNED_SHORT_S) return(16);
 	if (type == SIGNED_INT || type == SIGNED_INT_S) return(32);
+	if (type == UNSIGNED_INT || type == UNSIGNED_INT_S) return(32);
 	if (type == FLOAT || type == FLOAT_S) return(32);
 	if (type == DOUBLE || type == DOUBLE_S) return(64);
 	return(0);

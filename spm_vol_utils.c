@@ -22,6 +22,23 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE unsigned char
 #endif
 
+#ifdef SIGNED_CHAR
+#define RESAMPLE resample_schar
+#define RESAMPLE_D resample_d_schar
+#define SLICE slice_schar
+#define RESAMPLE_0 resample_schar_0
+#define RESAMPLE_1 resample_schar_1
+#define RESAMPLE_D_1 resample_d_schar_1
+#define RESAMPLE_POLY resample_schar_poly
+#define RESAMPLE_D_POLY resample_d_schar_poly
+#define SLICE_0 slice_schar_0
+#define SLICE_1 slice_schar_1
+#define SLICE_POLY slice_schar_poly
+#define PLANE plane_schar
+#define GET(x) (x)
+#define IMAGE_DTYPE signed char
+#endif
+
 #ifdef SIGNED_SHORT
 #ifdef BYTESWAP
 #define GET(x) getshort(x)
@@ -55,6 +72,39 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE short int
 #endif
 
+#ifdef UNSIGNED_SHORT
+#ifdef BYTESWAP
+#define GET(x) getushort(x)
+#define RESAMPLE resample_ushort_s
+#define RESAMPLE_D resample_d_ushort_s
+#define SLICE slice_ushort_s
+#define RESAMPLE_0 resample_ushort_s_0
+#define RESAMPLE_1 resample_ushort_s_1
+#define RESAMPLE_D_1 resample_d_ushort_s_1
+#define RESAMPLE_POLY resample_ushort_s_poly
+#define RESAMPLE_D_POLY resample_d_ushort_s_poly
+#define SLICE_0 slice_ushort_s_0
+#define SLICE_1 slice_ushort_s_1
+#define SLICE_POLY slice_ushort_s_poly
+#define PLANE plane_ushort_s
+#else
+#define GET(x) (x)
+#define RESAMPLE resample_ushort
+#define RESAMPLE_D resample_d_ushort
+#define SLICE slice_ushort
+#define RESAMPLE_0 resample_ushort_0
+#define RESAMPLE_1 resample_ushort_1
+#define RESAMPLE_D_1 resample_d_ushort_1
+#define RESAMPLE_POLY resample_ushort_poly
+#define RESAMPLE_D_POLY resample_d_ushort_poly
+#define SLICE_0 slice_ushort_0
+#define SLICE_1 slice_ushort_1
+#define SLICE_POLY slice_ushort_poly
+#define PLANE plane_ushort
+#endif
+#define IMAGE_DTYPE unsigned short int
+#endif
+
 #ifdef SIGNED_INT
 #ifdef BYTESWAP
 #define GET(x) getint(x)
@@ -86,6 +136,39 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define PLANE plane_int
 #endif
 #define IMAGE_DTYPE int
+#endif
+
+#ifdef UNSIGNED_INT
+#ifdef BYTESWAP
+#define GET(x) getuint(x)
+#define RESAMPLE resample_uint_s
+#define RESAMPLE_D resample_d_uint_s
+#define SLICE slice_uint_s
+#define RESAMPLE_0 resample_uint_s_0
+#define RESAMPLE_1 resample_uint_s_1
+#define RESAMPLE_D_1 resample_d_uint_s_1
+#define RESAMPLE_POLY resample_uint_s_poly
+#define RESAMPLE_D_POLY resample_d_uint_s_poly
+#define SLICE_0 slice_uint_s_0
+#define SLICE_1 slice_uint_s_1
+#define SLICE_POLY slice_uint_s_poly
+#define PLANE plane_uint_s
+#else
+#define GET(x) (x)
+#define RESAMPLE resample_uint
+#define RESAMPLE_D resample_d_uint
+#define SLICE slice_uint
+#define RESAMPLE_0 resample_uint_0
+#define RESAMPLE_1 resample_uint_1
+#define RESAMPLE_D_1 resample_d_uint_1
+#define RESAMPLE_POLY resample_uint_poly
+#define RESAMPLE_D_POLY resample_d_uint_poly
+#define SLICE_0 slice_uint_0
+#define SLICE_1 slice_uint_1
+#define SLICE_POLY slice_uint_poly
+#define PLANE plane_uint
+#endif
+#define IMAGE_DTYPE unsigned int
 #endif
 
 #ifdef FLOAT
@@ -159,7 +242,9 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 extern void	make_lookup_sinc(), make_lookup_poly(),
 		make_lookup_sinc_grad(), make_lookup_poly_grad();
 extern short getshort();
+extern unsigned short getushort();
 extern int getint();
+extern unsigned int getuint();
 extern float getfloat();
 extern double getdouble();
 

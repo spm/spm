@@ -411,10 +411,29 @@ short x;
 	return(y);
 }
 
+short getushort(x)
+unsigned short x;
+{
+	char *p1, *p2; unsigned short y;
+	p1 = (char *)(&x); p2 = (char *)(&y);
+	p2[1] = p1[0]; p2[0] = p1[1];
+	return(y);
+}
+
 int getint(x)
 int x;
 {
 	char *p1, *p2; int y;
+	p1 = (char *)(&x); p2 = (char *)(&y);
+	p2[3] = p1[0]; p2[2] = p1[1];
+	p2[1] = p1[2]; p2[0] = p1[3];
+	return(y);
+}
+
+int getuint(x)
+unsigned int x;
+{
+	char *p1, *p2; unsigned int y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
 	p2[3] = p1[0]; p2[2] = p1[1];
 	p2[1] = p1[2]; p2[0] = p1[3];

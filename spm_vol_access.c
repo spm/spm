@@ -16,11 +16,20 @@ MAPTYPE *vol;
 	if (vol->dtype == UNSIGNED_CHAR)
 		 resample_uchar(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == SIGNED_CHAR)
+		 resample_schar(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_SHORT)
 		 resample_short(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT)
+		 resample_ushort(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT)
 		   resample_int(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT)
+		   resample_uint(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT)
 		 resample_float(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
@@ -31,8 +40,14 @@ MAPTYPE *vol;
 	else if (vol->dtype == SIGNED_SHORT_S)
 		resample_short_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT_S)
+		resample_ushort_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT_S)
 		resample_int_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT_S)
+		resample_uint_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT_S)
 		resample_float_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
@@ -60,11 +75,20 @@ MAPTYPE *vol;
 	if (vol->dtype == UNSIGNED_CHAR)
 		 resample_d_uchar(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == SIGNED_CHAR)
+		 resample_d_schar(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_SHORT)
 		 resample_d_short(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT)
+		 resample_d_ushort(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT)
 		   resample_d_int(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT)
+		   resample_d_uint(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT)
 		 resample_d_float(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
@@ -75,8 +99,14 @@ MAPTYPE *vol;
 	else if (vol->dtype == SIGNED_SHORT_S)
 		resample_d_short_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT_S)
+		resample_d_ushort_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT_S)
 		resample_d_int_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+			hold, background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT_S)
+		resample_d_uint_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT_S)
 		resample_d_float_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
@@ -101,11 +131,20 @@ MAPTYPE *vol;
 	if (vol->dtype == UNSIGNED_CHAR)
 		 sts = slice_uchar(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
 			hold,background, vol->scale,vol->offset);
+	else if (vol->dtype == SIGNED_CHAR)
+		 sts = slice_schar(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+			hold,background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_SHORT)
 		 sts = slice_short(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
 			hold,background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT)
+		 sts = slice_ushort(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+			hold,background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT)
 		 sts = slice_int(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+			hold,background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT)
+		 sts = slice_uint(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
 			hold,background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT)
 		sts = slice_float(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
@@ -116,8 +155,14 @@ MAPTYPE *vol;
 	else if (vol->dtype == SIGNED_SHORT_S)
 		sts = slice_short_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
 			hold,background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_SHORT_S)
+		sts = slice_ushort_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
+			hold,background, vol->scale,vol->offset);
 	else if (vol->dtype == SIGNED_INT_S)
 		sts = slice_int_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
+			hold,background, vol->scale,vol->offset);
+	else if (vol->dtype == UNSIGNED_INT_S)
+		sts = slice_uint_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
 			hold,background, vol->scale,vol->offset);
 	else if (vol->dtype == FLOAT_S)
 		sts = slice_float_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
