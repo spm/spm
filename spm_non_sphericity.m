@@ -12,6 +12,8 @@ function [xVi] = spm_non_sphericity(xVi)
 %
 % Output:
 % xVi.Vi   -  cell of covariance components
+% or
+% xVi.V    -  speye(n,n)
 %
 % See also; spm_Ce.m & spm_spm_ui.m
 %___________________________________________________________________________
@@ -58,6 +60,14 @@ function [xVi] = spm_non_sphericity(xVi)
 l     = max(xVi.I);                     % levels
 Q     = {};
 
+% if i.i.d
+%---------------------------------------------------------------------------
+if ~any(xVi.var) & ~any(xVi.dep)
+    xVi.V  = speye(n,n);
+    return
+end
+
+
 % error components
 %---------------------------------------------------------------------------
 for i = 1:f
@@ -75,8 +85,8 @@ end
 
 % unless all repeated measures are identically distributed
 %---------------------------------------------------------------------------
-if ~any(xVi.var)
-    Q = speye(n,n);
+if ~length(Q)
+    Q{end + 1} = speye(n,n);
 end
 
 % effects (discounting factors with dependencies)
