@@ -5,7 +5,7 @@ function [slice] = spm_vb_init_slice (Y,slice)
 % Y             [T x N] time series with T time points, N voxels
 % slice         GLM-AR data structure
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% @(#)spm_vb_init_slice.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
 
 k=slice.k;
 p=slice.p;
@@ -29,75 +29,34 @@ if slice.verbose
     disp(' ');
 end
 
-%% Default priors
-if ~isfield(slice,'b_alpha_prior')
-    slice.b_alpha_prior=10;
-end   
-if ~isfield(slice,'c_alpha_prior')
-    slice.c_alpha_prior=0.1;
-end
-if ~isfield(slice,'b_beta_prior')
-    slice.b_beta_prior=10;
-end   
-if ~isfield(slice,'c_beta_prior')
-    slice.c_beta_prior=0.1;
-end
-
-if ~isfield(slice,'b_lambda_prior')
-    slice.b_lambda_prior=10;
-end
-if ~isfield(slice,'c_lambda_prior')
-    slice.c_lambda_prior=0.1;
-end
-
 
 % Initialise approximate alpha posterior
-if isfield(slice,'mean_alpha')
-    k1=size(slice.mean_alpha);
-    if ~(k1==k)
-        disp('Error in spm_vbglmar_slice: mean_alpha incorrect dimension');
-        return
-    end
-    slice.b_alpha=slice.mean_alpha/slice.c_alpha_prior;
-    slice.c_alpha=slice.c_alpha_prior*ones(k,1);
+slice.b_alpha=slice.b_alpha_prior;
+if slice.update_alpha
+    slice.c_alpha=N/2 + slice.c_alpha_prior;
 else
-    slice.b_alpha=slice.b_alpha_prior*ones(k,1);
-    slice.c_alpha=slice.c_alpha_prior*ones(k,1);
-    slice.mean_alpha=slice.b_alpha.*slice.c_alpha;
+    slice.c_alpha  = slice.c_alpha_prior;
 end
-slice.c_alpha  = (N./2 + slice.c_alpha_prior)*ones(k,1);
+slice.mean_alpha=slice.b_alpha.*slice.c_alpha;
 
 % Initialise approximate beta posterior
-if isfield(slice,'mean_beta')
-    p1=size(slice.mean_beta);
-    if ~(p1==p)
-        disp('Error in spm_vbglmar_slice: mean_beta incorrect dimension');
-        return
-    end
-    slice.b_beta=slice.mean_beta/slice.c_beta_prior;
-    slice.c_beta=slice.c_beta_prior*ones(p,1);
+slice.b_beta=slice.b_beta_prior;
+if slice.update_beta
+    slice.c_beta  = p/2 + slice.c_beta_prior;
 else
-    slice.b_beta=slice.b_beta_prior*ones(p,1);
-    slice.c_beta=slice.c_beta_prior*ones(p,1);
-    slice.mean_beta=slice.b_beta.*slice.c_beta;
+    slice.c_beta  = slice.c_beta_prior;
 end
-slice.c_beta  = (p/2 + slice.c_beta_prior)*ones(p,1);
+slice.mean_beta=slice.b_beta.*slice.c_beta;
+
 
 % Initialise approximate lambda posterior
-if isfield(slice,'mean_lambda')
-    n1=size(slice.mean_lambda,1);
-    if ~(n1==N)
-        disp('Error in spm_vbglmar_slice: mean_lambda incorrect dimension');
-        return
-    end
-    slice.b_lambda=slice.mean_lambda/slice.c_lambda_prior;
-    slice.c_lambda=slice.c_lambda_prior*ones(N,1);
+slice.b_lambda=slice.b_lambda_prior;
+if slice.update_lambda
+    slice.c_lambda = (T-slice.p)/2 + slice.c_lambda_prior;
 else
-    slice.b_lambda=slice.b_lambda_prior*ones(N,1);
-    slice.c_lambda=slice.c_lambda_prior*ones(N,1);
-    slice.mean_lambda=slice.b_lambda.*slice.c_lambda;
+    slice.c_lambda = slice.c_lambda_prior;
 end
-slice.c_lambda = ((T-slice.p)./2 + slice.c_lambda_prior)*ones(N,1);
+slice.mean_lambda=slice.b_lambda.*slice.c_lambda;
 
 disp('Initialising regression coefficient posterior');
 % Initialise approximate w posterior
@@ -138,7 +97,11 @@ if p>0
     e = Y(p+1:T,:) - Y_pred(p+1:T,:);
     for n=1:N,
         for pp=1:p,
-            dyhat(pp,:)=w_mean(:,n)'*squeeze(slice.dX(pp,:,:));
+            if slice.k>1
+                dyhat(pp,:)=w_mean(:,n)'*squeeze(slice.dX(pp,:,:));
+            else
+                dyhat(pp,:)=w_mean(:,n)*squeeze(slice.dX(pp,:,:))';
+            end
         end
         E_tilde=dy(:,:,n)-dyhat;
         iterm       = inv(E_tilde * E_tilde');
@@ -150,6 +113,13 @@ if p>0
     end
     slice.ap_ols=slice.ap_mean;
     slice.a_mean=slice.ap_mean(:);
+    
+    if strcmp(slice.priors.overA,'Slice')
+        if p==1
+            a_mean=mean(slice.ap_mean);
+            slice.ap_mean=a_mean*ones(1,N);
+        end
+    end
 end
 
 if p>0
@@ -207,7 +177,12 @@ if slice.update_F
     disp('Computing log determinant of spatial precision matrix for evidence');
     % Get log determinant of D
     [vvv,ddd]=eig(full(slice.D));
-    slice.log_det_D=sum(log(diag(ddd)));
+    dd=diag(ddd);
+    if strcmp(slice.priors.WA,'Spatial - LORETA')
+        % Ignore 1st eigenvalue which is zero
+        dd=dd(2:end);
+    end
+    slice.log_det_D=sum(log(dd));
 end
 
 disp('Computing data projections');
@@ -227,5 +202,6 @@ end
 
 % Precompute quantities for the Negative Free Energy
 slice.C2  = N*T*log(2*pi);
+
 
 
