@@ -225,8 +225,13 @@ else 	% Different modalities
 		disp('Segmenting and smoothing:')
 		disp(PGF);
 		spm_segment(PGF,spm_matrix(params([1:6 13:18])),'t');
+
+		for i=4:4
+			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
+			spm_unlink([iname1 '.img'],[iname1 '.hdr'],[iname1 '.mat']);
+		end
 		PPG = [];
-		for i=1:4
+		for i=1:3
 			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
 			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
@@ -241,8 +246,12 @@ else 	% Different modalities
 		disp(PFF);
 		spm_segment(PFF,spm_matrix(params([7:12 13:18])),'t');
 
+		for i=4:4
+			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
+			spm_unlink([iname1 '.img'],[iname1 '.hdr'],[iname1 '.mat']);
+		end
 		PPF = [];
-		for i=1:4
+		for i=1:3
 			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
 			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
@@ -262,7 +271,7 @@ else 	% Different modalities
 
 		% Delete temporary files
 		%-----------------------------------------------------------------------
-		for i=1:4
+		for i=1:3
 			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg' num2str(i)];
 			spm_unlink([iname2 '.img'], [iname2 '.hdr'], [iname2 '.mat']);
 
@@ -296,7 +305,8 @@ fig = figure(spm_figure('FindWin','Graphics'));
 spm_figure('Clear','Graphics');
 
 axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
-text(0,0.90, 'Coregistration','FontSize',16,'FontWeight','Bold');
+text(0.5,0.90, 'Coregistration','FontSize',16,...
+	'FontWeight','Bold','HorizontalAlignment','center');
 
 
 VF = spm_map(deblank(PFF(1,:)));
@@ -308,26 +318,26 @@ Q = MG\MF;
 text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
 text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
 text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
-text(0.25,0.65, spm_str_manip(PFF,'k30'),...
+text(0.25,0.65, spm_str_manip(PFF,'k22'),...
 	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
-text(0.75,0.65, spm_str_manip(PGF,'k30'),...
+text(0.75,0.65, spm_str_manip(PGF,'k22'),...
 	'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
 
 %-----------------------------------------------------------------------
 for i=1:3
 	M = spm_matrix([0 0 i*VF(3)/4]);
-	axes('Position',[0.1 (0.75-0.25*i) 0.4 0.25],'Visible','off');
+	axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
 	img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
 	hold on;
-	imagesc(rot90(img1));
-	contour(rot90(img1),3,'r');
+	imagesc(img1');
+	contour(img1',3,'r');
 	axis('off','image');
 
-	axes('Position',[0.5 (0.75-0.25*i) 0.4 0.25],'Visible','off');
+	axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
 	img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
 	hold on;
-	imagesc(rot90(img2));
-	contour(rot90(img1),3,'r');
+	imagesc(img2');
+	contour(img1',3,'r');
 	axis('off','image');
 end
 spm_unmap_vol(VG);
