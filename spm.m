@@ -105,10 +105,11 @@ function varargout=spm(varargin)
 % upper(Modality) and the Modality number, it's position in the list of
 % supported Modalities.
 %
-% FORMAT A=spm('GetWinScale')
+% FORMAT WS=spm('GetWinScale')
 % Returns ratios of current display dimensions to that of a 1152 x 900
-% Sun display. A=[Xratio,Yratio,Xratio,Yratio]. Used for scaling other
+% Sun display. WS=[Xratio,Yratio,Xratio,Yratio]. Used for scaling other
 % GUI elements.
+% (Function duplicated in spm_figure.m, repeated to reduce inter-dependencies.)
 %
 % Rect = spm('WinSize',Win,raw)
 % Returns sizes and positions for SPM windows.
@@ -735,7 +736,7 @@ varargout = {upper(Modality),ModNum};
 
 case 'getwinscale'
 %=======================================================================
-% spm('GetWinScale')
+% WS = spm('GetWinScale')
 S   = get(0,'ScreenSize');
 varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 
@@ -904,7 +905,7 @@ case 'time'
 % timestr = spm('Time')
 tmp = clock;
 varargout = {...
-	sprintf('%02d:%02d - %02d/%02d/%4d',tmp(4),tmp(5),tmp(3),tmp(2),tmp(1))};
+	sprintf('%02d:%02d:%02d - %02d/%02d/%4d',tmp(4),tmp(5),floor(tmp(6)),tmp(3),tmp(2),tmp(1))};
 
 
 case 'pointer'
@@ -943,6 +944,7 @@ else
 	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
 	set(Finter,'Name',str)
 end
+if ~isempty(Iname), fprintf('%s:\n',Iname), end
 if bGX
 	Fgraph = spm_figure('GetWin','Graphics');
 	spm_figure('Clear',Fgraph)
@@ -956,9 +958,11 @@ case 'figname'
 %=======================================================================
 % F = spm('FigName',Iname,F,CmdLine)
 if nargin<4, CmdLine=spm('isGCmdLine'); else, CmdLine=varargin{4}; end
-if CmdLine, varargout={[]}; return, end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
+
+if ~isempty(Iname), fprintf('\t%s\n',Iname), end
+if CmdLine, varargout={[]}; return, end
 F = spm_figure('FindWin',F);
 if ~isempty(F) & ~isempty(Iname)
 	set(F,'Name',[spm('GetUser'),' - ',Iname])
