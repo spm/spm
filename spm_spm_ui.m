@@ -1,13 +1,13 @@
-%****function spm_spm_ui
+function spm_spm_ui
 %_______________________________________________________________________
-% %E% Andrew Holmes, Karl Friston %W%
+% %W% Andrew Holmes, Karl Friston %E%
+SCCSid  = '%I%';
 
 %=======================================================================
 % - S E T U P
 %=======================================================================
-SCCSid = '%I%';
-spm('FnBanner',mfilename,SCCSid);
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Statistical analysis',1);
+SPMid = spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Setup statistical analysis',0);
 spm_help('!ContextHelp',[mfilename,'.m'])
 
 %-Design parameters
@@ -18,11 +18,11 @@ spm_help('!ContextHelp',[mfilename,'.m'])
 D = struct(...
 	'DesName',	'Single-subject: replication of conditions',...
 	'n',	[Inf 2 1 1],	'sF',{{'repl','condition','subject','study'}},...
-	'Hform',		'i2,''+0m'',''cond''',...
-	'Bform',		'i3,''-'',''const''',...
+	'Hform',		'i2,''+0m'',''condition''',...
+	'Bform',		'i3,''-'',''constant''',...
 	'nC',[Inf,Inf],'iCC',{{[1:8],1}},'iCFI',{{[1,-2,3:7],1}},...
-	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0),...
-	'iGXcalc',[-1,2:3],'iGMsca',[1:7,8,-9],'GM',[],...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1:7,8,-9],'GM',[],...
 	'iGloNorm',[1:9],'iGC',[1:9,-10,-11],...
 	'b',struct('aTime',1));
 iDD = length(D); %-Above design is the default design definition
@@ -31,7 +31,7 @@ iDD = length(D); %-Above design is the default design definition
 %-Option definitions
 %-----------------------------------------------------------------------
 %-Generic factor names
-sF = {'sF1','sF2','sF3','sF4'}
+sF = {'sF1','sF2','sF3','sF4'};
 
 %-Covariate by factor interaction options
 sCFI = {'<none>';...							%-1
@@ -66,7 +66,7 @@ sCC = {		'around overall mean';...				%-1
 CCforms = {'ones(size(i1))',CFIforms{2:end,1},''}';
 
 
-%-Global normalization options                                    (GloNorm)
+%-Global normalization options (options 1-7 match CFIforms)       (GloNorm)
 sGloNorm = {	'AnCova';...						%-1
 		'AnCova by sF1';...					%-2
 		'AnCova by sF2';...					%-3
@@ -92,9 +92,9 @@ dGM = 50;			%-Default GM (if isempty(D.GM))
 
 
 %-Global calculation options                                       (GXcalc)
-sGXcalc  = {	'mean voxel value (within per image fullmean/8 mask)';...%-1
+sGXcalc  = {	'omit';...						%-1
 		'user specified';...					%-2
-		'omit'};						%-3
+		'mean voxel value (within per image fullmean/8 mask)'};	%-3
 
 
 %-Variable "decoder"
@@ -221,7 +221,7 @@ I     = [i1,i2,i3,i4];			%-Factor indices
 
 %-Additional design parameters
 %-----------------------------------------------------------------------
-bL  = any(diff([i1,i2,i3,i4],1),1); 	%-Multiple factor levels?
+bL  = any(diff(I,1),1); 	%-Multiple factor levels?
 	% NB: bL(2) might be thrown by user specified f1 levels
 	%     (D.b.aTime & D.n(2)>1) - assumme user is consistent?
 bFI = [bL(1),bL(2:3)&~bL(4),bL(4),bL([2,3])&bL(4)];
@@ -239,12 +239,12 @@ if rank(B)==nScan, error('unestimable block effects'), end
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %=======================================================================
-nC  = D.nC;			%-Default #covariates
-C   = {[],[]}; Cnames = {{},{}};%-Covariate DesMtx partitions & names
-rCG = [];			%-Struct array to hold raw covariates
+nC = D.nC;			%-Default #covariates
+C  = {[],[]}; Cnames = {{},{}};	%-Covariate DesMtx partitions & names
+xC = [];			%-Struct array to hold raw covariates
 				% Fields:{'c','cname','iCC','iCFI','type','cols'}
 
-dcname = {'CovInt','NusCov'};	%-Root names for covariates
+dcname = {'CovInt','NusCov'};	%-Default root names for covariates
 dstr   = {'covariate','nuisance variable'};
 
 GUIpos = spm_input('!NextPos');
@@ -254,11 +254,14 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
 
     while nc(i) < nC(i)
 
+	%-Create prompt, get covariate, get covariate name
+        %---------------------------------------------------------------
 	if nC(i)==1, str=dstr{i}; else, str=sprintf('%s %d',dstr{i},nc(i)+1); end
         c = spm_input(str,GUIpos,'r',[],[nScan,Inf]);
         if any(isnan(c(:))), break, end		%-NaN is dummy value to exit
 	nc(i)  = nc(i)+1;			%-#Covariates (so far)
-       	cname  = [dcname{i},'^{',num2str(nc(i)),'}'];
+       	cname  = spm_input([str,' name?'],'+1','s',...
+       		[dcname{i},'^{',num2str(nc(i)),'}']);
        	rc     = c;				%-Save covariate value
 	rcname = cname;				%-Save covariate name
 
@@ -270,11 +273,10 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
        		%-Only offer interactions for appropriate factor combinations
 		iCFI = intersect(abs(D.iCFI{i}),find([1,bFI]));
 		dCFI = max([1,intersect(iCFI,-D.iCFI{i}(D.iCFI{i}<0))]);
-        	iCFI = spm_input(['Covariate',int2str(nc(i)),...
-			': interaction'],GUIpos+1,'m',...
+        	iCFI = spm_input([str,': interaction?'],'+1','m',...
 			sCFI(iCFI),iCFI,find(iCFI==dCFI));
 	    else
-		iCFI = abs(D.iCFI{i});
+		iCFI = abs(D.iCFI{i});		%-AutoSelect default option
 	    end
 	else
 	    iCFI = 1;
@@ -289,15 +291,15 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
         	%-Default is max -ve option in D, overridden by iCFI if CFI
 		if iCFI==1, dCC=-D.iCC{i}(D.iCC{i}<0); else, dCC=iCFI; end
 		dCC = max([1,intersect(iCC,dCC)]);
-		iCC = spm_input('Centre covariate',GUIpos+1,'m',...
+		iCC = spm_input([str,': centre?'],'+1','m',...
 			sCC(iCC),iCC,find(iCC==dCC));
         else
-        	iCC = abs(D.iCC{i});
+        	iCC = abs(D.iCC{i});		%-AutoSelect default option
         end
 	%-Centre within factor levels as appropriate
         if any(iCC==[1:7]), c = c - spm_meanby(c,eval(CCforms{iCC})); end
 
-        %-Do Interaction (if single covariate vector entered)?
+        %-Do any interaction (only for single covariate vectors)
         %---------------------------------------------------------------
         if iCFI>1				%-(NB:iCFI=1 if size(c,2)>1)
        		tI        = [eval(CFIforms{iCFI,1}),c];
@@ -310,14 +312,25 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
 		cname = {cname};
 	end
 
-	%-Store raw covariate details in rCG struct for reference
+	%-Store raw covariate details in xC struct for reference
 	%-Pack c into appropriate DesMtx partition
         %---------------------------------------------------------------
-	tmp       = struct(	'rc',rc,	'cname',rcname,...
+	%-Construct description string for covariate
+	str = {sprintf('%s: %s',str,rcname)};
+	if size(rc,2)>1, str = {sprintf('%s (block of %d covariates)',...
+		str{:},size(rc,2))}; end
+	if iCC<8, str=[str;{['used centered ',sCC{iCC}]}]; end
+	if iCFI>1, str=[str;{['fitted as interaction ',sCFI{iCFI}]}]; end
+
+	tmp       = struct(	'rc',rc,	'rcname',rcname,...
+				'c',c,		'cname',{cname},...
 				'iCC',iCC,	'iCFI',iCFI,...
 				'type',i,...
-				'cols',[1:size(c,2)]+size(C{i},2)	);
-	if isempty(rCG), rCG=tmp; else, rCG=[rCG,tmp]; end
+				'cols',[1:size(c,2)] + ...
+						size([H,C{1}],2) +  ...
+						size([B,C{2}],2)*(i-1),...
+				'descrip',{str}				);
+	if isempty(xC), xC=tmp; else, xC=[xC,tmp]; end
 	C{i}      = [C{i},c];
 	Cnames{i} = [Cnames{i}; cname];
 
@@ -325,7 +338,7 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
 
 end % (for)
 clear tI tConst tFnames
-clear i %-****
+spm_input('!SetNextPos',GUIpos);
 
 %-Unpack into C & G design matrix sub-partitions
 G = C{2}; Gnames = Cnames{2};
@@ -346,7 +359,6 @@ if length(D.iGloNorm)>1
 else
 	iGloNorm = abs(D.iGloNorm);
 end
-sGloNorm = sGloNorm{iGloNorm};
 
 
 %-Grand mean scaling options                                     (GMsca)
@@ -377,15 +389,24 @@ else                                    %-Set value of GM
     else                                %-Ask user for GM
         %-Default response is dGM
         if iGloNorm==8
-            str='GM: PropSca global mean to';
+            str='PropSca global mean to';
         else
-            str=['GM: ',strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
+            str=[strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
         end
-        GM = spm_input(str,'+0','r',dGM,1);
+        GM = spm_input(str,'+1','r',dGM,1);
     end
-    if GM==0, iGMsca=9; end             %-If GM is zero then don't GMsca!
+    %-If GM is zero then don't GMsca! or PropSca GloNorm
+    if GM==0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
 end
-sGMsca = sGMsca{iGMsca};
+
+%-Sort out description strings for GloNorm and GMsca
+sGloNorm = sGloNorm{iGloNorm};
+sGMsca   = sGMsca{iGMsca};
+if iGloNorm==8
+	sGloNorm = sprintf('%s to %-4g',sGloNorm,GM);
+elseif iGMsca<8
+	sGMsca = sprintf('%s to %-4g',sGMsca,GM);
+end
 
 
 %-Global centering (for AnCova GloNorm)                             (GC)
@@ -404,6 +425,7 @@ sGMsca = sGMsca{iGMsca};
 %-If not doing AnCova then GC is irrelevant
 if ~any(iGloNorm==[1:7])
 	iGC = 12;
+	gc  = 0;
 else
 	%-Annotate options 10 & 11 with specific details
 	%---------------------------------------------------------------
@@ -425,7 +447,7 @@ else
 	%-Set defaults (if any), & get answer
 	%---------------------------------------------------------------
 	dGC = max([0,intersect(iGC,-D.iGC(D.iGC<0))]);
-	str = 'GC: Centre global covariate';
+	str = 'Centre global covariate';
 	if iGMsca<8, str = [str,' (after grand mean scaling)']; end
 	iGC = spm_input(str,'+1','m',sCC(iGC),iGC,find(iGC==dGC));
 
@@ -442,13 +464,15 @@ else
 		gc  = 0;
 	end
 end
-sGC = sCC{iGC};
 
 
 %-Global calculation                                            (GXcalc)
 %-----------------------------------------------------------------------
+iGXcalc = abs(D.iGXcalc);
 %-Only offer "omit" option if not doing any GloNorm or GMsca
-iGXcalc = intersect(abs(D.iGXcalc),find([1,1,iGloNorm==9 & iGMsca==9]));
+if ~(iGloNorm==9 & iGMsca==9)
+	iGXcalc = intersect(iGXcalc,[2:size(sGXcalc,1)]);
+end
 if isempty(iGXcalc)
 	error('no GXcalc options')
 elseif length(iGXcalc)>1
@@ -461,7 +485,7 @@ else
 end
 
 if iGXcalc==2				%-Get user specified globals
-	GX = spm_input('globals','+0','r',[],[nScan,1]);
+	g = spm_input('globals','+0','r',[],[nScan,1]);
 end
 sGXcalc = sGXcalc{iGXcalc};
 
@@ -469,46 +493,50 @@ sGXcalc = sGXcalc{iGXcalc};
 %-Thresholds & masks defining voxels to analyse                  (THRESH)
 %-----------------------------------------------------------------------
 %-Threshold mask as proportion of global
-if iGXcalc
-	mTHp = spm_input('Analysis (grey&white) threshold',...
-		'+1','br1','None',-Inf,0.8);
+if iGXcalc>1, str = ' (times global)'; else, str = ''; end
+M_THp = spm_input(['Analysis threshold',str],'+1','br1','None',-Inf,0.8);
+if isfinite(M_THp)
+	xsM.Analysis_threshold = sprintf('images thresholded at %6f%s',...
+		M_THp,str);
 else
-	mTHp = -Inf;
+	xsM.Analysis_threshold = 'None (-Inf)';
 end
 
 %-Implicit masking: Ignore zero voxels in low data-types?
 % (Implicit mask is NaN in higher data-types.)
 type = getfield(spm_vol(P{1}),'dim')*[0,0,0,1]';
 if ~spm_type(type,'nanrep')
-	mI = spm_input('Implicit mask (Ie. ignore zero''s)?','+0','y/n',[1,0],1);
+	M_I = spm_input('Implicit mask (ignore zero''s)?','+1','y/n',[1,0],1);
+	if M_I
+		xsM.Implicit_masking = 'Yes: zero''s treated as missing';
+	else
+		xsm.Implicit_masking = 'No';
+	end
 else
-	mI = 1;
+	M_I = 1;
+	xsM.Implicit_masking = 'Yes: NaN''s treated as missing';
 end
 
 %-Explicit mask images (map them later...)
-mX = spm_input('explicit mask images?','+0','y/n',[1,0],2);
-if mX, mXP = spm_get(Inf,'*.img','select mask images'); else, mXP = {}; end
+M_X = spm_input('explicit mask images?','+1','y/n',[1,0],2);
+if M_X, M_P = spm_get(Inf,'*.img',{'select mask images'}); else, M_P = {}; end
 
 
 %=======================================================================
 % - C O N F I G U R E   D E S I G N
 %=======================================================================
-spm('FigName','Stats: configuring',Finter,CmdLine); fprintf('\tconfiguring: ')
+spm('FigName','Stats: configuring',Finter,CmdLine);
 spm('Pointer','Watch');
 
 
-%-Images & image info
+%-Images & image info: Map Y image files and check consistency of
+% dimensions and orientation / voxel size
 %=======================================================================
+VY = spm_vol(char(P));
 
-%-File handles for Y images
-%-----------------------------------------------------------------------
-V = spm_vol(char(P));
-
-%-Check for consistency of Y image dimensions and orientation / voxel size
-%-----------------------------------------------------------------------
-if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
+if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0]) %NB: Bombs for single image
 	error('images do not all have the same dimensions'), end
-if any(any(any(diff(cat(3,V.mat),1,3),3)))
+if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 	error('images do not all have same orientation & voxel size'), end
 
 
@@ -516,20 +544,18 @@ if any(any(any(diff(cat(3,V.mat),1,3),3)))
 %=======================================================================
 %-Compute global values
 %-----------------------------------------------------------------------
-fprintf('\t(globals)')
 switch iGXcalc, case 1
-	%-Compute as mean voxel value (within per image fullmean/8 mask)
-	g = zeros(nScan,1);
-	for i = 1:nScan, g(i) = spm_global(V(i)); end
+	%-Don't compute => no GMsca (iGMsca==9) or GloNorm (iGloNorm==9)
+	g = [];
 case 2
 	%-User specified globals
 case 3
-	%-Don't compute => no GMsca (iGMsca==9) or GloNorm (iGloNorm==9)
-	g = [];
+	%-Compute as mean voxel value (within per image fullmean/8 mask)
+	g = zeros(nScan,1);
+	for i = 1:nScan, g(i) = spm_global(VY(i)); end
 otherwise
 	error('illegal iGXcalc')
 end
-fprintf('\b - done)\n')
 rg = g;
 
 
@@ -546,7 +572,6 @@ case {1,2,3,4,5,6,7}
 	%-Grand mean scaling according to iGMsca
 	gSF    = GM./spm_meanby(g,eval(CCforms{iGMsca}));
 	g      = g.*gSF;
-	sGMsca = sprintf('%s to %g',sGMsca,GM);
 case 9
 	%-No grand mean scaling
 	gSF    = ones(nScan,1);
@@ -557,7 +582,7 @@ end
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %-----------------------------------------------------------------------
-for i=1:nScan, V(i).pinfo(1:2,:)=V(i).pinfo(1:2,:)*gSF(i); end
+for i=1:nScan, VY(i).pinfo(1:2,:)=VY(i).pinfo(1:2,:)*gSF(i); end
 
 
 %-AnCova: Construct global nuisance covariates partition (if AnCova)
@@ -589,219 +614,219 @@ if any(iGloNorm==[1:7])
 	[g,gname] = spm_DesMtx(tI,tConst,tFnames);
 	clear tI tConst tFnames
 
-	%-Save GX info in rGX struct for reference
-	tmp       = struct(	'rc',rg.*gSF,	'cname','global',...
+	%-Save GX info in xC struct for reference
+	str = {sprintf('%s: global',dstr{2})};
+	if any(iGMsca==[1:7]), str=[str;{['(after ',sGMsca,')']}]; end
+	if iGC~=8, str=[str;{['used centered ',sCC{iGC}]}]; end
+	if iGloNorm>1, str=[str;{['fitted as interaction ',sCFI{iGloNorm}]}]; end
+	tmp       = struct(	'rc',rg.*gSF,	'rcname','global',...
+				'c',g,		'cname',{gname},...
 				'iCC',iGC,	'iCFI',iGloNorm,...
 				'type',3,...
-				'cols',[1:size(g,2)]+size(G,2)	);
+				'cols',[1:size(g,2)]+size([H C B G],2),...
+				'descrip',{str}				);
 
 	G = [G,g]; Gnames = [Gnames; gname];
-	if isempty(rCG), rCG=tmp; else, rCG=[rCG,tmp]; end
+	if isempty(xC), xC=tmp; else, xC=[xC,tmp]; end
+
+elseif iGloNorm==8 | iGXcalc>1
+
+	if iGloNorm==8
+		str = { 'global values: (used for proportional scaling)';...
+			'("raw" unscaled globals shown)'};
+	elseif isfinite(M_THp)
+		str = { 'global values: (used to compute analysis threshold)'};
+	else
+		str = { 'global values: (computed but not used)'};
+	end
+
+	tmp       = struct(	'rc',rg,	'rcname','global',...
+				'c',{[]},	'cname',{{}},...
+				'iCC',0,	'iCFI',0,...
+				'type',3,...
+				'cols',{[]},...
+				'descrip',{str}				);
+	if isempty(xC), xC=tmp; else, xC=[xC,tmp]; end
 
 end
 
-%-Save info on global calculation
+
+%-Save info on global calculation in xGX structure
 %-----------------------------------------------------------------------
-GX = struct(...
+xGX = struct(...
 	'iGXcalc',iGXcalc,	'sGXcalc',sGXcalc,	'rg',rg,...
 	'iGMsca',iGMsca,	'sGMsca',sGMsca,	'GM',GM,'gSF',gSF,...
-	'iGC',	iGC,		'sGC',	sGC,		'gc',	gc,...
+	'iGC',	iGC,		'sGC',	sCC{iGC},	'gc',	gc,...
 	'iGloNorm',iGloNorm,	'sGloNorm',sGloNorm);
+
 
 
 %-Construct masking information structure and compute actual analysis
 % threshold using scaled globals (rg.*gSF)
 %-----------------------------------------------------------------------
-if iGXcalc, mTH = (rg.*gSF)*mTHp; else, mTH = mTHp; end
-if ~isempty(mXP), mXV = spm_vol(char(mXV)); else, mXV={}; end
-vM = struct(	'mTHp',mTHp,	'mTH',mTH,	'mI',mI,	'mXV',{mXV});
+if iGXcalc>1, M_TH = (rg.*gSF)*M_THp; else, M_TH = M_THp; end
+if ~isempty(M_P)
+	VM = spm_vol(char(M_P));
+	xsM.Explicit_masking = [{'Yes: mask images :'};{VM.fname}'];
+else
+	VM={};
+	xsM.Explicit_masking = 'No';
+end
+xM = struct('THp',M_THp, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
 
 
-
-%-===============================-*@*-=================================-
 
 %-Design matrix canonicalisation
 %=======================================================================
 %-raw design matrix
 rX = [H,C,B,G];
 
-%-Orthogonalisation
+%-Design matrix orthogonalisation
 %-----------------------------------------------------------------------
-%-Orthogonalise G wirit B
-if ~isempty(G) & ~isempty(B),		G = G     - B*pinv(B)    *G;	end
-%-Orthogonalise [H C] wirit [B,G]
-if ~isempty(H) & ~isempty([B,G]),	H = H - [B,G]*pinv([B,G])*H;	end
-if ~isempty(C) & ~isempty([B,G]),	C = C - [B,G]*pinv([B,G])*C;	end
+sXorth = {};
+%-Orthogonalise G wirit B if D.Xorth.GwB
+if D.Xorth.GwB & ~isempty(G) & ~isempty(B)
+	G = G     - B*pinv(B)    *G;
+	sXorth = [sXorth, {'nuisance effects wirit constant'}];
+end
+%-Orthogonalise H wirit [B,G] if D.Xorth.HwBG
+if D.Xorth.HwBG & ~isempty(H) & ~isempty([B,G])
+	H = H - [B,G]*pinv([B,G])*H;
+	sXorth = [sXorth, {'condition effects wirit nuisance effects & const'}];
+end
+%-Orthogonalise C wirit [B,G] if D.Xorth.CwBG
+if D.Xorth.CwBG & ~isempty(C) & ~isempty([B,G])
+	C = C - [B,G]*pinv([B,G])*C;
+	sXorth = [sXorth, {'covariates of interest wirit nuisance effects & const'}];
+end
+%-Orthogonalise C wirit H if D.Xorth.CwH
+if D.Xorth.CwH & ~isempty(C) & ~isempty(H)
+	C = C     - H*pinv(H)    *C;
+	sXorth = [sXorth, {'covariates of interest wirit condition effects'}];
+end
+%-Fine tune sXorth description cellstr
+if isempty(sXorth), sXorth={'none'};
+else, sXorth=[{'Yes: in order...'};sXorth]; end
+
 
 %-Construct full design matrix (X), parameter names (Xnames),
-% partition indices (iX), and scaled design matrix for display (nX)
+% and design information structure (xX)
 %-----------------------------------------------------------------------
 X      = [H C B G];
 Xnames = [Hnames; Cnames; Bnames; Gnames];
 tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
-iX     = struct(	'H',	[1:size(H,2)],...
-			'C',	[1:size(C,2)] + tmp(1),...
-			'B',	[1:size(B,2)] + tmp(2),...
-			'G',	[1:size(G,2)] + tmp(3)		);
-nX = spm_DesMtx('sca',X,Xnames);
+xX     = struct(	'I',		I,...
+			'rX',		rX,...
+			'X',		X,...
+			'K',		speye(size(X,1)),...
+			'iH',		[1:size(H,2)],...
+			'iC',		[1:size(C,2)] + tmp(1),...
+			'iB',		[1:size(B,2)] + tmp(2),...
+			'iG',		[1:size(G,2)] + tmp(3),...
+			'Xnames',	{Xnames},...
+			'sXorth',	{sXorth}			);
 
 
-%-Pre-specified contrasts?
+%-Pre-specified contrast for F-test on effects of interest
 %=======================================================================
-%-****?
+if ~isempty([H,C])
+	%-Have a first guess at a simple F-contrast!
+	c = [diff(eye(size(H,2))), zeros(size(H,2)-1,size([C,B,G],2));...
+		zeros(size(C,2),size(H,2)), eye(size(C,2)),...
+			zeros(size(C,2),size([B,G],2))];
 
-
-%-===============================-*@*-=================================-
-
-
-%-Ensure validity of contrast of condition effects, zero pad
-%-----------------------------------------------------------------------
-if ~isempty(CONTRAST)
-	if ~isempty(H)
-		%-Ensure contrasts of cond effects sum to zero within study
-		if ~bMStud | bBetGrp
-			tmp = ones(size(H,2),1);
-		else
-			tmp = zeros(size(H,2),1);
-			tmp(cumsum([1,n2(1:nStud-1)])) = ones(nStud,1);
-			tmp = cumsum(tmp);
-		end
-		d        = 1:size(H,2);
-		CONTRAST(:,d) = CONTRAST(:,d)-spm_meanby(CONTRAST(:,d)',tmp)';
+	%-If that's not of the same rank as the hypothesised redundant design
+	% subspace, or the rows aren't all contrasts, make a fancy F-contrast
+	if ~spm_DesUtil('AllCon',X,c) | size(c,1)~=(rank([H,C,B,G])-rank([B,G]))
+		c = spm_DesUtil('FCon',X,size([H,C],2)+[1:size([B,G],2)]);
 	end
-	%-Remove zero contrasts
-	CONTRAST(find(all(CONTRAST'==0)),:)=[];
 	
-	%-zero pad for B & G partitions
-	CONTRAST = [CONTRAST, zeros(size(CONTRAST,1),size([B G],2))];
+	xCon = struct(	'name',	'no effects of interest',...
+			'con',	c,...
+			'V',	[]);
+
+%elseif ~isempty(G)
+else
+
+	xCon = [];
+
 end
 
-%-Display analysis parameters
+
+%-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
+tmp = {	sprintf('%d condition, +%d covariate, +%d block, +%d nuisance',...
+		size(H,2),size(C,2),size(B,2),size(G,2));...
+	sprintf('%d total, having %d degrees of freedom',...
+		size(X,2),rank(X));...
+	sprintf('leaving %d degrees of freedom from %d images',...
+		size(X,1)-rank(X),size(X,1))				};
+xsDes = struct(	'Design',			{D.DesName},...
+		'Global_calculation',		{sGXcalc},...
+		'Grand_mean_scaling',		{sGMsca},...
+		'Global_normalisation',		{sGloNorm},...
+		'Design_Orthogonalisation',	{sXorth},...
+		'Parameters',			{tmp}			);
 
-%-Compute common path components - all paths will begin with '/'
+%-Save SPMcfg.mat file
+save SPMcfg SPMid D xsDes VY xM xC xX xGX xCon
+save
+
+
+%=======================================================================
+% - D I S P L A Y   A N A L Y S I S   P A R A M E T E R S
+%=======================================================================
+Fgraph = spm_figure('GetWin','Graphics');
+spm_figure('Clear',Fgraph), figure(Fgraph)
+FS = spm_figure('FontSizes');
+
+
+%-Files, indices & covariates... & masking options
 %-----------------------------------------------------------------------
-d     = max(find(P(1,1:min(find(~all(P == ones(q,1)*P(1,:))))-1)=='/')) - 1;
-CPath = P(1,1:d);
-Q     = P(:,[(d + 1):size(P,2)]);
-
-
-%-Display
-%-----------------------------------------------------------------------
-figure(Fgraph); spm_clf; axis off
-text(0.30,1.02,'Statistical analysis','Fontsize',16,'Fontweight','Bold');
-text(-0.10,0.85,'Scan Index','Rotation',90)
-if bMStud, text(-0.05,0.85,sStud,        'Rotation',90); end
-if bMSubj, text(+0.00,0.85,'Subject',    'Rotation',90); end
-if bMCond, text(+0.05,0.85,'Condition',  'Rotation',90); end
-if bMRepl, text(+0.10,0.85,'Replication','Rotation',90); end
-x0    = 0.15; y0 = 0.83;
-dx    = 0.10; dy = 0.02;
-x     = x0;
-for i = 1:size(Cc,2)
-	text(x + 0.02,0.85,Ccnames(i,:),'Rotation',90);
-	x = x + dx; end
-for i = 1:size(Gc,2)
-	text(x + 0.02,0.85,Gcnames(i,:),'Rotation',90);
-	x = x + dx; end
-text(x,0.92,'Base directory:','FontSize',10,'Fontweight','Bold');
-text(x,0.90,CPath,'FontSize',10);
-text(x,0.87,'Filename Tails');
-y     = y0;
-for i = 1:q
-	text(-0.12,y,sprintf('%02d :',i));
-	if bMStud, text(-0.06,y,sprintf('%2d',i4(i))); end
-	if bMSubj, text(-0.01,y,sprintf('%2d',i3(i))); end
-	if bMCond, text(+0.04,y,sprintf('%2d',i2(i))); end
-	if bMRepl, text(+0.09,y,sprintf('%2d',i1(i))); end
-	x     = x0;
-	for j = 1:size(Cc,2)
-		text(x,y,sprintf('%-8.6g',Cc(i,j)),'FontSize',10)
-		x = x + dx; end
-	for j = 1:size(Gc,2)
-		text(x,y,sprintf('%-8.6g',Gc(i,j)),'FontSize',10)
-		x = x + dx; end
-	text(x,y,Q(i,:),'FontSize',10);
-	y     = y - dy;
-	if y < 0;
-		spm_print
-		spm_clf(Fgraph); axis off
-		y = y0;
-		text(0.16,1.02,['Statistical analysis (continued)'],...
-		    'Fontsize',16,'Fontweight','Bold');
-	end
-end
-
-y      = y - dy;
-dy     = dy*1.2;
-if iGMsca==2
-	text(0,y,sprintf(['Images scaled to an overall grand mean of %g'],GM))
-	y = y - dy;
-elseif iGMsca==3
-	text(0,y,sprintf(...
-		['Images scaled to ',lower(sStud),' grand means of %g'],GM))
-	y = y - dy;
-end
-text(0,y,sprintf(...
-    'Gray matter threshold is %6.0f%% of the whole brain mean',THRESH*100))
-y = y - dy;
-tmp = [strvcat(' ',Cnames,Gnames)];
-if any(tmp(:,1)=='r'), str=' (except those tagged ''r'')'; else str=''; end
-text(0,y,['Covariates',str,' are centered before inclusion in design matrix'])
-
+spm_DesRep('Files&Vars',{VY.fname}',xX.I,xC,D.sF,xM.xs)
 spm_print
 
 
-%-Depict and label design matrix, show numbers of parameters.
-%=======================================================================
-spm_clf(Fgraph); axis off
-text(0.30,1.02,'Design Matrix','Fontsize',16,'Fontweight','Bold');
-
-%-Label the effects
+%-Design matrix & design descriptions
 %-----------------------------------------------------------------------
-hDesMtx = axes('Position',[0.2 0.3 0.6 0.5]);
-image((nHCBG + 1)*32);
-ylabel('Observations')
-xlabel('effects')
-hEfLabs = axes('Position',[0.2 0.82 0.6 0.1],'Visible','off');
-y     = 0.1;
-dx    = 1/size(nHCBG,2);
-for i = 1:size(nHCBG,2)
-	text((i - 0.5)*dx,y,deblank(HCBGnames(i,:)),...
-		'Fontsize',8,'Rotation',90)
-end
-
-
-%-Display parameter summary
-%-----------------------------------------------------------------------
-hPramAxes = axes('Position',[0.1 0.1 0.8 0.15],'Visible','off');
-text(0,1,['Design: ',DesName]);
-text(0,.8,['Global normalisation: ',deblank(sGloNorm(iGloNorm,:))]);
-
-text(0,.6,'Parameters:','Fontsize',12,'Fontweight','Bold');
-text(0,.4,sprintf(['%d Condition + %d Covariate ',...
-	'+ %d Block + %d Confound'],...
-	size(H,2),size(C,2),size(B,2),size(G,2)),...
-	'Fontsize',10);
-text(0,.25,sprintf(['= %d parameters, having %d degrees of freedom, ',...
-	'giving %d residual df (%d scans).'],...
-	size([H C B G],2),rank([H C B G]),q - rank([H C B G]),q),...
-	'Fontsize',10);
-
+spm_DesRep('DesMtx',xX.X,xX.Xnames,{VY.fname}',xsDes)
 spm_print
 
-%-Implement analysis proper
-%=======================================================================
 
+%-Covariates
+%-----------------------------------------------------------------------
+spm_DesRep('Covs',xC,xX.X,xX.Xnames)
+spm_print
+
+
+%=======================================================================
+% - A N A L Y S I S   P R O P E R
+%=======================================================================
 %-This is PET data so sigma = 0 (i.e. independent observations) 
 % RT is undefined
 %-----------------------------------------------------------------------
-spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
+%spm_spm(VY,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
+
 
 
 %=======================================================================
 % - E N D
 %=======================================================================
-spm('FigName','AdjMean - done',Finter,CmdLine);
-spm('Pointer','Arrow')
+spm('FigName','Stats: done',Finter,CmdLine); spm('Pointer','Arrow')
 fprintf('\n\n')
+
+
+
+
+
+
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+function str = sf_estrrep(str,srstr)
+%=======================================================================
+for i = 1:size(srstr,1)
+	str = strrep(str,srstr{i,1},srstr{i,2});
+end
