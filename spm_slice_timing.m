@@ -82,7 +82,7 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %_______________________________________________________________________
 % %W% %E%
 
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.6');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
@@ -152,7 +152,8 @@ if nargin < 4,
 % changed by M Erb
 %	factor = 1/nslices;
 	TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
-	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR);
+%	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR);
+	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices);
 	while TA > TR | TA <= 0,
 		TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
 	end;
@@ -175,7 +176,8 @@ spm('Pointer','Watch')
 for subj = 1:nsubjects
 	task=['Slice timing: working on session ' num2str(subj)];
 	spm('FigName',task,Finter,CmdLine);
-        eval(['P    =    P' num2str(subj) ';']);
+        %eval(['P    =    P' num2str(subj) ';']);
+        if nsubjects > 1, eval(['P    =    P' num2str(subj) ';']); end;
 	Vin 	= spm_vol(P);
 	nimgo	= size(P,1);
 	nimg	= 2^(floor(log2(nimgo))+1);
