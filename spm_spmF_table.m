@@ -32,9 +32,9 @@ end
 
 % Z score and P(Zmax > u)
 %----------------------------------------------------------------------------
-Y      = BETA(:,i);				% parameter estimates
-PF     = 1 - spm_Fcdf(SPMF(i),df);		% uncorrected p value
-
+Y      	= BETA(:,i);				% parameter estimates
+PF     	= 1 - spm_Fcdf(SPMF(i),df);		% uncorrected p value
+CPF 	= spm_pF(S, Wresid, Fdf, SPMF(i));	% Corrected p value
 
 % delete previous axis
 %----------------------------------------------------------------------------
@@ -53,18 +53,21 @@ text(0,1.0,sprintf('Location {x,y,z}  =  %0.0f %0.0f %0.0f mm',L'),...
 'FontSize',12,'FontWeight','bold');
 str    = sprintf('F = %0.3f df: %0.0f, %0.0f',SPMF(i),df(1),df(2));
 text(0,0.9,str,'FontSize',12,'FontWeight','bold');
-str    = sprintf('p = %0.3f (uncorrected)',PF);
-text(0,0.8,str,'FontSize',12,'FontWeight','bold');
-text(0,0.7,sprintf('Estimated parameters {%0.0f - %0.0f}',...
+str    = sprintf('p = %0.3f (uncorrected) ',PF);
+text(0,0.8,str,'FontSize',12);
+str    = sprintf('p = %0.3f  (corrected) ',CPF);
+text(0,0.7,str,'FontSize',12,'FontWeight','bold');
+
+text(0,0.6,sprintf('Estimated parameters {%0.0f - %0.0f}',...
 [1 length(Y)]),'FontSize',12,'FontWeight','bold');
 
 
 % display data
 %----------------------------------------------------------------------------
-y     = 0.6;
+y     = 0.55;
 x     = 0;
 for i = 1:length(Y)
 	text(x,y,sprintf('%0.0f  -  %-12.2f',i,Y(i)),'FontSize',10)
 	y = y - 0.06;
-	if y < 0; y = 0.6; x = x + 0.4; end
+	if y < 0; y = 0.55; x = x + 0.4; end
 end
