@@ -38,13 +38,17 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % the item is numbered and changes color (dark blue). The last numbered item
 % can be unselected by clicking it again. If a specific number of
 % items have been requested (n), then only this number can be
-% selected.
+% selected. The item window is scrolled up and down with the buttons
+% provided. The small button above the ^ button scrolls to the top of the
+% listing.
 %
-% Clicking on a directory name (red) changes to that directory. The
-% item/directory window is scrolled up and down with the buttons
-% provided. The directory window is editable, and a pull down menu of
-% previous directories is maintained. The red "pwd" changes directory
-% to the current MatLab working directory.
+% The directory window is editable. Pull down menus of previous
+% directories and subdirectories of the current directory are
+% maintained. The red "pwd" button changes directory to the current
+% MatLab working directory, the "home" button to the users home
+% directory. (The bold red list of subdirectories that used to appear
+% alongside the files in the item window have had to be withdrawn due
+% to a problem with MatLab5.)
 %
 % All files in the current window can be selected *in the order in which
 % they appear* with the "All" button, and the "Reset" button clears the
@@ -85,10 +89,38 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % Selecting Directories
 % ---------------------
 % The same interface is occasionally used for selecting directories, in
-% which case the right list of selectable items contains a repeat of
-% the directory list. Use the left (red) list to change directory (as
-% usual), the right (black) list to select directories. The Filter
-% doesn't apply to the directory list.
+% which case the list of selectable items contains a list of
+% subdirectories of the current directory. Use the current directory
+% window and PullDown menu's to navigate to the required directories
+% parent, and select the chosen subdirectory from the list presented.
+% The Filter doesn't apply to the directory list.
+%
+% Keyboard Accelerators
+% ---------------------
+% Keyboard accelerators are available for item selection, editing the
+% current directory and filter windows, and for some of the interface
+% buttons:
+%
+% - Item selection - Items are highlighted (in italic) using ^U & ^D to
+% move Up and Down the item list. The highlighted item is (de)selected
+% using ^S.
+%
+% - CurrentDir & Filter editing - Initially, all typed characters, act
+% on the CurrentDirectory widget, characters are appended, delete &
+% backspace delete the rightmost character. ^E (Edit) toggles between
+% the CurrentDir and Filter editable widgets. Return changes to the
+% specifiec directory (CurrentDir widget) or applys the current filter
+% (Fitler widget). ^U deletes the whole entry, ^W deletes the last
+% pathname component, ^I resets the string to it's previous value.
+%
+% - General Accelerators -
+%        Space / ^D   - Done
+%        ^P           - pwd
+%        ^K           - Keybd
+%        ^R           - Reset
+%
+% - Tab - In addition, the usual tabbing between GUI objects is
+% provided my the window interface.
 %
 % Programmers notes
 % -----------------
@@ -119,6 +151,9 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % F        - Figure used.
 % LastDirs - String matrix for directory history.
 % Filter   - Filename filter.
+%
+% FORMAT spm_help('FigKeyPressFcn',ch)
+% Callback for handling keyboard accelerators
 %
 % FORMAT F = spm_get('Initialise',Vis,n,Prompt,Filter,WDir)
 % (Re)Initialise SelFileWin, create one if necessary.
@@ -174,8 +209,9 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % Adds current object (of object h) to selection
 % h        - Object handle of an item
 %
-% FORMAT spm_get('Delete')
+% FORMAT spm_get('Delete',h)
 % Deletes current object from the selection, if it was the last chosen
+% h        - Handle of a deletable item (Defaults to gcbo)
 %
 % FORMAT spm_get('Reset')
 % Resets the selection and redisplays the directory
@@ -203,16 +239,8 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 %
 % FORMAT spm_get('Done')
 % Callback for "Done" button.
-%
-% ( - Technical note - : This form of interactive GUI forces the code to )
-% ( wait for a response in a computer intensive loop. To avoid           )
-% ( hammering the CPU when queries are left unattended, spm_get has a    )
-% ( "sleep" mode, entered 20s after any button press. Clicking in any    )
-% ( MatLab window wakes spm_get. This mainly affects PullDown menu's,    )
-% ( which appear not to activate on the first click when in "sleep"      )
-% ( mode.                                                                )
 %_______________________________________________________________________
-
+% Andrew Holmes
 
 
 %-Default to unlimited file get when no arguments
@@ -222,6 +250,7 @@ if nargin<1 Action=+Inf; end
 if ~isstr(Action)
 %=======================================================================
 % P = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
+%fprintf('Doing: spm_get(...\n')
 
 %-Condition arguments
 %-----------------------------------------------------------------------
@@ -261,29 +290,15 @@ else
 
 	%-GUI version
 	%---------------------------------------------------------------
-	%-Save current figure number
-	fig = get(0,'Children'); if ~isempty(fig), fig=gcf; end
-
-	%-Set up FileSelWin
-	F = spm_get('Initialise','on',n,Prompt,Filter,NewWDir);
+	%-Set up FileSelWin & JumpCursor
+	[F,cF] = spm_get('Initialise','on',n,Prompt,Filter,NewWDir);
+	PLoc = get(0,'PointerLocation');
+	FRec = get(F,'Position');
+	set(0,'PointerLocation',[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2]);
 	
 	%-Wait until filenames have been selected
 	hDone = findobj(F,'Tag','Done');
-	while ~get(hDone,'UserData')
-		%-Give 20s grace for "Done" processing | PullDown selection
-		%-After this time spm_input "sleeps", and the user
-		% will have to click in a ML window to "wake" PullDown
-		% ( This loop hammers the CPU, but there's no other )
-		% ( way to do an interruptible pause without        ) 
-		% ( requiring a second buttonpress event! NB: pause )
-		% ( (ML4.2c) only works for integer seconds!        )
-		tic, while(toc<20)
-			if get(hDone,'UserData'), break, end
-			pause(0.25)
-		end
-		if ~get(hDone,'UserData')
-			waitforbuttonpress; end
-	end
+	waitfor(hDone,'UserData')
 	
 	%-Recover P
 	P=get(findobj(F,'Tag','P'),'UserData');
@@ -291,8 +306,8 @@ else
 	%-Reset and hide SelFileWin
 	spm_get('Initialise','off');
 
-	%-Return focus to previous figure (if any)
-	% if ~isempty(fig), figure(fig); end
+	%-Return focus to previous figure (if any), & put cursor back
+	set(0,'CurrentFigure',cF,'PointerLocation',PLoc)
 
 end % (if CmdLine)
 
@@ -307,6 +322,7 @@ return
 elseif strcmp(Action,'CreateFig')
 %=======================================================================
 % F = spm_get('CreateFig',LastDirs,Filter)
+%fprintf('Doing: spm_get(''CreateFig''...\n')
 
 %-Condition arguments
 %-----------------------------------------------------------------------
@@ -319,49 +335,42 @@ if (exist('spm.m')==2), LastDirs=str2mat(LastDirs,spm('Dir')); end
 
 %-Create window, compute scaling for screen size
 %-----------------------------------------------------------------------
-S = get(0,'ScreenSize');
-A = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
-F = figure('Name','SPMget','Tag','SelFileWin',...
-	'NumberTitle','off',...
-	'Color',[1 1 1]*.8,...
+S  = get(0,'ScreenSize');
+WS = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
+F  = figure('IntegerHandle','off',...
+	'Tag','SelFileWin',...
+	'Name',[spm('GetUser'),' - SPMget'],'NumberTitle','off',...
+	'Position',[S(3)/2-400/2,S(4)/2-395/2,400,395].*WS,...
 	'Resize','off',...
-	'Visible','off',...
+	'Color',[1 1 1]*.8,...
 	'Units','Pixels',...
-	'Position',[S(3)/2-400/2,S(4)/2-395/2,400,395].*A);
-%	'Position',[108 008 400 395].*A);
+	'MenuBar','none',...
+	'DefaultTextInterpreter','none',...
+	'DefaultTextFontSize',2*round(12*min(WS)/2),...
+	'DefaultUicontrolFontSize',2*round(12*min(spm('GetWinScale'))/2),...
+	'DefaultUicontrolInterruptible','on',...
+	'Visible','off');
 R1=F;
 
 %-User control objects with callbacks
 %-----------------------------------------------------------------------
 
 uicontrol(F,'Style','Frame','Tag','P','UserData',[],...
-	'Position',[001 271 400 125].*A);
+	'Position',[001 271 400 124].*WS);
 
-uicontrol(F,'Style','Frame',...
-	'BackgroundColor',[1 1 1]*.8,...
-	'Position',[010 355 355 030].*A);
+% uicontrol(F,'Style','Frame',...
+% 	'BackgroundColor',[1 1 1]*.8,...
+% 	'Position',[010 355 355 030].*WS);
 
 uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...
 	'String','<Prompt not set yet>',...
+	'FontName','Times',...
+	'FontWeight','Bold',...
+	'FontAngle','Italic',...
+	'FontSize',2*round(16*min(WS)/2),...
 	'ForegroundColor','k',...
-	'BackgroundColor',[1 1 1]*.8,...
 	'HorizontalAlignment','Center',...
-	'Position',[015 360 345 020].*A);
-
-if exist('spm_help.m')==2
-	uicontrol(F,'Style','Pushbutton','String','?',...
-		'ForegroundColor','g',...
-		'Callback','spm_help(''spm_get.m'')',...
-		'Position',[370 355 020 030].*A);
-end
-
-WDir=deblank(LastDirs(1,:));
-uicontrol(F,'Style','Edit','String',WDir,...
-	'Tag','WDir','UserData',WDir,...
-	'ForegroundColor','r','BackgroundColor',[.8,.8,1],...
-	'HorizontalAlignment','Left',...
-	'CallBack','spm_get(''cd'')',...
-	'Position',[010 330 380 020].*A);
+	'Position',[010 370 380 022].*WS);
 
 uicontrol(F,'Style','PopUp','Tag','LastDirsPopup',...
 	'String',str2mat('Previous Directories...',LastDirs),...
@@ -369,109 +378,219 @@ uicontrol(F,'Style','PopUp','Tag','LastDirsPopup',...
 	'ForegroundColor','r',...
 	'UserData',size(LastDirs,1),...
 	'Callback','spm_get(''cd'')',...
-	'Position',[010-1 310-1 350+1 020].*A);
+	'Position',[010 347 335 022].*WS);
 
 uicontrol(F,'Style','PushButton','Tag','CDpwd',...
 	'String','pwd',...
 	'ForegroundColor','r',...
+	'UserData',0,...
 	'CallBack','spm_get(''cd'',pwd)',...
-	'Position',[360 310-1 030 020].*A);
+	'Position',[345 347 045 022].*WS);
 
-%	'Callback','spm_get(''cd'',get(gco,''Value''))',...
+WDir=deblank(LastDirs(1,:));
+uicontrol(F,'Style','Edit','String',WDir,...
+	'Tag','WDir','UserData',WDir,...
+	'ForegroundColor','r','BackgroundColor',[.8,.8,1],...
+	'HorizontalAlignment','Left',...
+	'CallBack','spm_get(''cd'')',...
+	'Position',[010 325 380 022].*WS);
+
+uicontrol(F,'Style','PopUp','Tag','SubDirsPopup',...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','r',...
+	'String','SubDirectories...',...
+	'Callback','spm_get(''cd'')',...
+	'Position',[010 303 335 022].*WS);
+
+uicontrol(F,'Style','PushButton','Tag','CDhome',...
+	'String','home',...
+	'ForegroundColor','r',...
+	'CallBack',['spm_get(''cd'',''',deblank(LastDirs(2,:)),''')'],...
+	'Position',[345 303 045 022].*WS);
 
 % uicontrol(F,'Style','Pushbutton','Tag','FilterStore',...
 % 	'String','',...
 % 	'CallBack',[...
-% 		'set(findobj(gcf,''Tag'',''FilterButton''),''UserData'',',...
-% 		    'get(findobj(gcf,''Tag'',''Filter''),''String'')),'],...
-% 	'Position',[010 300 140 005].*A);
+% 		'set(findobj(gcbf,''Tag'',''FilterButton''),''UserData'',',...
+% 		    'get(findobj(gcbf,''Tag'',''Filter''),''String'')),'],...
+% 	'Position',[010 300 140 005].*WS);
 
 uicontrol(F,'Style','Pushbutton','Tag','FilterButton',...
 	'String','Filter:',...
 	'CallBack',[...
-		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
+		'spm_get(''dir'',[],get(findobj(gcbf,''Tag'',',...
 			'''Filter''),''UserData''))'],...
 	'UserData','*',...
-	'Position',[010 280 040 020].*A);
+	'Position',[010 278 040 022].*WS);
 
 % uicontrol(F,'Style','Pushbutton','Tag','FilterRecall',...
 % 	'String','',...
 % 	'CallBack',[...
-% 		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
+% 		'spm_get(''dir'',[],get(findobj(gcbf,''Tag'',',...
 % 		'''FilterButton''),''UserData''))'],...
-% 	'Position',[010 275 140 005].*A);
+% 	'Position',[010 273 140 005].*WS);
 
 uicontrol(F,'Style','Pushbutton','Tag','Filter*',...
 	'String','',...
 	'CallBack','spm_get(''dir'',[],''*'')',...
-	'Position',[145 280 005 020].*A);
+	'Position',[145 278 005 022].*WS);
 
 uicontrol(F,'Style','Edit','Tag','Filter',...
 	'String','*',...
 	'UserData','*',...
 	'BackgroundColor',[.8,.8,1],...
 	'Callback','spm_get(''dir'')',...
-	'Position',[050 280 095 020].*A);
+	'Position',[050 278 095 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','All',...
 	'Callback','spm_get(''All'')',...
-	'Position',[155 280 030 020].*A);
+	'Position',[155 278 030 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','Edit',...
 	'ForegroundColor','b',...
 	'Callback','spm_get(''Edit'')',...
-	'Position',[190 280 040 020].*A);
+	'Position',[190 278 040 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','Keybd',...
 	'ForegroundColor','k',...
 	'Callback','spm_get(''GUI2CmdLine'')',...
-	'Position',[235 280 050 020].*A);
+	'Position',[235 278 050 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','Reset',...
 	'ForegroundColor','r',...
 	'Callback','spm_get(''Reset'')',...
-	'Position',[290 280 050 020].*A);
+	'Position',[290 278 050 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','Done',...
 	'ForegroundColor','m',...
 	'Tag','Done','UserData',0,...
 	'Callback','spm_get(''Done'')',...
-	'Interruptible','no',...
-	'Position',[345 280 045 020].*A);
+	'Interruptible','off','BusyAction','Cancel',...
+	'Position',[345 278 045 022].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','',...
 	'Callback',[...
 		'set(gca,''Units'',''Normalized'');',...
 		'set(gca,''Position'',get(gca,''UserData''))'],...
-	'Position',[370 265 020 005].*A);
+	'Position',[370 265 020 005].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','/\',...
 	'Callback',[...
 		'set(gca,''Units'',''Normalized'');',...
 		'set(gca,''Position'',get(gca,''Position'')-[0 0.5 0 0])'],...
-	'Position',[370 245 020 020].*A);
+	'Position',[370 245 020 020].*WS);
 
 uicontrol(F,'Style','Pushbutton','String','\/',...
 	'Callback',[...
 		'set(gca,''Units'',''Normalized'');',...
 		'set(gca,''Position'',get(gca,''Position'')+[0 0.5 0 0])'],...
-	'Position',[370 040 020 020].*A);
+	'Position',[370 040 020 020].*WS);
 
 uicontrol(F,'Style','Frame','Tag','StatusArea',...
-	'Position',[001 001 400 030].*A);
+	'Position',[001 000 400 030].*WS);
+
+if exist('spm_help.m')==2
+	uicontrol(F,'Style','Pushbutton','String','?',...
+		'ForegroundColor','g',...
+		'Callback','spm_help(''spm_get.m'')',...
+		'Position',[370 005 020 020].*WS);
+end
 
 uicontrol(F,'Style','Text','Tag','StatusLine',...
 	'String','<Not set yet>',...
+	'FontAngle','Oblique',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
-	'Position',[020 005 360 020].*A);
+	'Position',[010 005 355 020].*WS);
 
+set(F,'KeyPressFcn',...
+	'spm_get(''FigKeyPressFcn'',get(gcf,''CurrentCharacter''))')
 return
+
+
+elseif strcmp(Action,'FigKeyPressFcn')
+%=======================================================================
+% spm_help('FigKeyPressFcn',ch)
+if nargin<2, ch=get(gcbf,'CurrentCharacter'); else, ch=P2; end
+
+%-Empty ch - shift/control/&c.
+if isempty(ch), return, end
+
+%-Keyboard accelerators for item selection
+%-----------------------------------------------------------------------
+if any(abs(ch)==[21,4,19])
+	H = flipud(findobj(get(gca,'Children'),...
+		'Flat','HandleVisibility','on'));
+	h = max([0,findobj(H,'FontAngle','oblique')]);
+	hPos = max([0;find(H==h)]);
+	if abs(ch)==19 & hPos
+		%- ^S - Select
+		switch get(h,'Tag')
+			case 'IName', spm_get('Add',h)
+			case 'SelIName', spm_get('Delete',h)
+		end
+		return
+	end
+	nhPos = max(1,min(hPos+2*(abs(ch)==4)-1,length(H)));
+	if hPos, set(h,'FontAngle','normal'), end
+	set(H(nhPos),'FontAngle','Oblique')
+	return
+end
+
+%-General Accelerators
+%-----------------------------------------------------------------------
+if any(abs(ch)==[32,4,16,11,18])
+	switch abs(ch)
+	case {32,4}	%- Space/^D - Done
+		spm_get('Done')
+	case 16		%- ^P - Change to MatLab pwd
+		spm_get('cd',pwd)
+	case 11		%- ^K - Keyboard
+		spm_get('GUI2CmdLine')
+	case 18		%- ^R - Reset
+		spm_get('Reset')
+	end
+end
+
+%-Accelerators for WDir & Filter Edit widgets
+%-----------------------------------------------------------------------
+%-Edit which widget? WDir or Filter?
+hCDpwd    = findobj(gcbf,'Tag','CDpwd');
+EditWDir  = get(hCDpwd,'UserData');
+if EditWDir, h = findobj(gcbf,'Tag','WDir');
+	else, h = findobj(gcbf,'Tag','Filter'); end
+str = get(h,'String');
+
+if abs(ch)==9		%- ^I - reset string
+	str = get(h,'UserData');
+elseif abs(ch)==5	%- ^E - switch between Edit widgets, reset strings
+	set(hCDpwd,'UserData',~EditWDir)
+	str = get(h,'UserData');
+elseif abs(ch)==23	%- ^W - word delete
+	tmp = max(find(str=='/'));
+	if ~isempty(tmp), str(tmp:end)=[]; end
+elseif abs(ch)==13	%- Return - Goto topic / apply filter
+	if EditWDir, spm_get('cd',str)
+		else, spm_get('dir'), end
+	return
+elseif any(abs(ch)==[32:126])
+	str = [str, ch];
+elseif abs(ch)==21	%- ^U - kill
+	str = '';
+elseif any(abs(ch)==[8,127])	%-BackSpace or Delete
+	if length(str), str(length(str))=''; end
+else	%-Other character
+	return
+end
+set(h,'String',str)
+return
+
 
 elseif strcmp(Action,'Initialise')
 %=======================================================================
-% F = spm_get('Initialise',Vis,n,Prompt,Filter,WDir)
+% [F,cF] = spm_get('Initialise',Vis,n,Prompt,Filter,WDir)
 % (Re)Initialise SelFileWin, create one if necessary.
+%fprintf('Doing: spm_get(''Initialise''...\n')
 
 if nargin<6 WDir=''; else WDir=P6; end
 if nargin<5 Filter=0; else Filter=P5; end
@@ -479,22 +598,26 @@ if nargin<4 Prompt='Select files...'; else Prompt=P4; end
 if nargin<3 n=Inf; else n=P3; end
 if nargin<2 Vis='on'; else Vis=P2; end
 
+%-Save current figure
+cF = get(0,'CurrentFigure');
+
 %-Recover SelFileWin figure number
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 
 %-If closing SelFileWin then close and return
-if strcmp('Vis','close'), if ~isempty(F), close(F), end, R1=[]; return, end
+if strcmp('Vis','Close'), if ~isempty(F), close(F), end, R1=[]; return, end
 
 %-If no SelFileWin, then create one
 if isempty(F), F=spm_get('CreateFig'); end
-figure(F)
+
+%-delete 'dir' text axes
 delete(gca)
 
-%-If Vis=='off', make invisible and delete 'dir' text axes
-if strcmp(Vis,'off'), set(F,'Visible','off'), delete(gca), end
+%-If Vis=='off', make invisible
+if strcmp(Vis,'off'), set(F,'Visible','off'), end
 
 %-clear P
-set(findobj(F,'Tag','P'),'UserData',[])
+set(findobj(F,'Tag','P'),'UserData','')
 
 %-Reset prompt, & n, stored in UserData
 set(findobj(F,'Tag','Prompt'),'String',Prompt,'UserData',n)
@@ -504,6 +627,9 @@ spm_get('StatusLine',0,n)
 
 %-Done UserData to zero
 set(findobj(F,'Tag','Done'),'UserData',0)
+
+%-KeyPressFcn to edit WDir widget initially
+set(findobj(F,'Tag','CDpwd'),'UserData',1)
 
 %-Filter string
 %-Only set if different to previously passed one, held as UserData of
@@ -517,17 +643,23 @@ end
 %-Change to new working directory if one was specified
 if ~isempty(WDir), spm_get('cd',WDir,1), end
 
-%-Make visible and do 'dir', if Vis='on'
-if strcmp(Vis,'on'), spm_get('dir'), set(F,'Visible','on'), end
+%-Make current & visible and do 'dir', if Vis='on'
+if strcmp(Vis,'on')
+	spm_get('dir')
+	figure(F)
+	set(F,'Visible','on')
+end
 
-%-Return figure handle
-R1 = F;
+%-Return figure handles
+R1 = F; R2 = cF;
 
 return
+
 
 elseif strcmp(Action,'StatusLine')
 %=======================================================================
 % spm_get('StatusLine',nP,n)
+%fprintf('Doing: spm_get(''StatusLine''...\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 if nargin<3, n=get(findobj(F,'Tag','Prompt'),'UserData'); else, n=P3; end
 if nargin<2, nP=size(get(findobj(F,'Tag','P'),'UserData'),1); else, nP=P2; end
@@ -541,6 +673,7 @@ else
 	str = [str,' director'];
 	if nP==1, str=[str,'y']; else, str=[str,'ies']; end
 end % (if)
+
 if isinf(n)
 	str = [str,', press "Done" when finished.'];
 elseif nP==abs(n)
@@ -550,15 +683,14 @@ else
 end
 
 set(findobj(F,'Tag','StatusLine'),'String',str)
-
-
 return
 
 
 elseif strcmp(Action,'cd')
 %=======================================================================
-%-P2 = Specific directory
-%-P3 = Boolean, supresses directory listing if true.
+% spm_get('cd',NewDir,bDirList)
+%fprintf('Doing: spm_get(''cd''...\n')
+
 %-Condition arguments
 %-----------------------------------------------------------------------
 if (nargin<3), bDirList=1; else, bDirList = ~P3; end
@@ -566,22 +698,25 @@ if (nargin<2), NewDir=''; else, NewDir=P2; end
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
+WDir=get(findobj(F,'Tag','WDir'),'UserData');
 
-if isempty(NewDir)
+if nargin<2
 	%-Current object contains NewDir, either UIEdit, UIPopMenu or text
-	NewDir=get(gco,'String');
-	if strcmp(get(gco,'Tag'),'LastDirsPopup')
-		val = get(gco,'Value');
+	NewDir=get(gcbo,'String');
+	if strcmp(get(gcbo,'Style'),'popupmenu')
+		val = get(gcbo,'Value');
 		if val==1 set(F,'Pointer','Arrow'), return, end
 		NewDir=NewDir(val,:);
 	end
+else
+	NewDir=P2;
 end % (if)
+if isempty(NewDir), NewDir=WDir; end
 NewDir=deblank(NewDir);
 
 %-Condition relative pathnames
 %-----------------------------------------------------------------------
 if NewDir(1)~='/'
-	WDir=get(findobj(F,'Tag','WDir'),'UserData');
 	if NewDir(1)~='.'
 		%-Prepend current working directory
 		if strcmp(WDir,'/') NewDir=['/',NewDir];
@@ -589,8 +724,7 @@ if NewDir(1)~='/'
 	else
 		%-Sort out "dot" options...
 		NewDir(1)=[];
-		if isempty(NewDir), set(F,'Pointer','Arrow'), return, end
-		if NewDir(1)=='.'
+		if ~isempty(NewDir) & NewDir(1)=='.'
 			%-NewDir started "..", go down a directory from WDir
 			WDir=WDir(1:max(find(WDir=='/'))-1);
 			if isempty(WDir), WDir='/'; end
@@ -637,7 +771,7 @@ end
 %-Changing directory, delete current directory listing (Done again in
 % Action=='dir', but neater to do here in advance on this occasion)
 %-----------------------------------------------------------------------
-figure(F), delete(gca)
+set(0,'CurrentFigure',F), delete(gca)
 
 
 %-Set up LastDirs
@@ -657,7 +791,7 @@ LastDirs(size(LastDirs,1)-[Fs-1:-1:0],:)=[];
 if size(LastDirs,1)>1
 	IDRows=[0, all( LastDirs(2:size(LastDirs,1),:)'==...
 		setstr(ones(size(LastDirs,1)-1,1)*LastDirs(1,:))' ) ];
-	LastDirs(IDRows,:)=[];
+	LastDirs(find(IDRows),:)=[];
 end % (if)
 
 %-Delete NewDir from top of LastDirs if present in fixed part of LastDirs
@@ -674,25 +808,28 @@ LastDirs = [LastDirs; FLastDirs];
 
 %-Write LastDirs to LastDirsPopup, write new directory to WDir Edit widget
 %-----------------------------------------------------------------------
-set(findobj(F,'Tag','LastDirsPopup'),...
-	'String',str2mat('Previous Directories...',LastDirs),...
-	'Value',1)
-
+set(findobj(F,'Tag','LastDirsPopup'),'Value',1,...
+	'String',str2mat('Previous Directories...',LastDirs))
 set(findobj(F,'Tag','WDir'),'String',NewDir,'UserData',NewDir)
 
 
 %-Display new directory, unless supressed
 %-----------------------------------------------------------------------
-if bDirList, spm_get('dir'), end
-	
-drawnow, set(F,'Pointer','Arrow')
-
+if bDirList
+	spm_get('dir')
+else
+	set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
+		'String','SubDirectories...')
+	set(F,'Pointer','Arrow')
+	drawnow
+end
 return
 
 
 elseif strcmp(Action,'dir')
 %=======================================================================
 % spm_get('dir',WDir,Filter,NoComp)
+%fprintf('Doing: spm_get(''dir''...\n')
 %
 % Creates list of text objects with an associated
 % ButtonDownFcn functions that call spm_get callbacks for processing
@@ -701,10 +838,9 @@ elseif strcmp(Action,'dir')
 % SelFileWin figure
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
-figure(F)
+set(0,'CurrentFigure',F)
 set(F,'Pointer','Watch')
-delete(gca)
-refresh
+delete(gca), drawnow
 
 %-Condition parameters and setup variables
 %-----------------------------------------------------------------------
@@ -734,6 +870,8 @@ end
 %-----------------------------------------------------------------------
 Rec = [0.02 0.086 0.90 0.58];
 hAxes = axes('Position',Rec,...
+	'DefaultTextInterpreter','none',...
+	'DefaultTextHandleVisibility','off',...
 	'Units','Points',...
 	'Visible','off',...
 	'UserData',Rec,...
@@ -746,27 +884,31 @@ set(hAxes(1),'Ylim',[0,y0])
 
 %-List current directory
 %-----------------------------------------------------------------------
+%fprintf('Doing spm_get(''dir'':\tspm_list_files...\n')
 [Files,Dirs] = spm_list_files(WDir,Filter);
 if isempty(Dirs)
 	text(0,y0,'Permission denied, or non-existent directory',...
 		'FontWeight','bold','Color','r');
 end
 
-%-Create list of directories with appropriate 'ButtonDownFcn': -
-%-----------------------------------------------------------------------
-y     = y0-dy;
-for i = 1:size(Dirs,1)
-	text(0,y,Dirs(i,:),'Tag','DirName',...
-		'FontWeight','bold','Color','r',...
-		'ButtonDownFcn','spm_get(''cd'')');
-	y = y - dy;
-end
-
 %-Create list of directories in pulldown menu
 %-----------------------------------------------------------------------
-%set(findobj(F,'Tag','SubDirsPopup'),'String',...
-%	str2mat('SubDirectories...',Dirs))
+set(findobj(F,'Tag','SubDirsPopup'),'Value',1,...
+	'String',str2mat('SubDirectories...',Dirs))
 
+%-Create list of directories with appropriate 'ButtonDownFcn': -
+% NB: Gives MatLab Bus errors (ML5.0.0.4064, Solaris2.5.1)
+%-----------------------------------------------------------------------
+%fprintf('Doing: spm_get(''dir'':\tdirectory list\n')
+%y     = y0-dy;
+%for i = 1:size(Dirs,1)
+%	text(0,y,deblank(Dirs(i,:)),'Tag','DirName',...
+%		'FontWeight','bold','Color','r',...
+%		'UserData',deblank(Dirs(i,:)),...
+%		'ButtonDownFcn','spm_get(''cd'',get(gcbo,''UserData''))',...
+%		'HandleVisibility','off');
+%	y = y - dy;
+%end
 
 %-Files or directories (n<0)
 %-----------------------------------------------------------------------
@@ -774,9 +916,10 @@ Items = Files; if (n<0) Items = Dirs; end
 
 %-Compressed summary view, or full view?
 %-----------------------------------------------------------------------
+%fprintf('Doing:: spm_get(''dir'':\tcompressed / summary view?\n')
 if ~NoComp & size(Items,1)>48
 	%-Use a compressed summary view
-	if Filter(length(Filter))=='*'
+	if Filter(end)=='*'
 		[IName,ItemPos] = spm_get('FileSummary',Items);
 	else
 		[IName,ItemPos] = spm_get('FileSummary',Items,'front',Filter);
@@ -786,7 +929,8 @@ if ~NoComp & size(Items,1)>48
 		'FontSize',10,...
 		'HorizontalAlignment','Center',...
 		'FontAngle','Oblique',...
-		'ButtonDownFcn','spm_get(''dir'',[],[],1)');
+		'ButtonDownFcn','spm_get(''dir'',[],[],1)',...
+		'HandleVisibility','off');
 else
 	%-Use a standard view, each item with it's own representation
 	IName = Items; ItemPos = [1:size(Items,1)]';
@@ -794,6 +938,7 @@ end
 
 %-Create list of Items with appropriate 'ButtonDownFcn': -
 %-----------------------------------------------------------------------
+%fprintf('Doing: spm_get(''dir'':\titem list\n')
 y     = y0-dy;
 for i = 1:size(IName,1)
 	cIName   = IName(i,IName(i,:)~=' ');
@@ -803,29 +948,33 @@ for i = 1:size(IName,1)
 	%-Next line strips off redundant space at end of string matrix
 	% (The str2mat bit ensures single strings are handled by column)
 	cItems(:,all(str2mat(cItems,' ')==' '))=[];
-	text(0.35,y,cIName,...
+	text(0.15,y,cIName,...
 		'Tag','IName',...
 		'UserData',cItems,...
 		'Color','k',...
-		'ButtonDownFcn','spm_get(''Add'')');
+		'ButtonDownFcn','spm_get(''Add'')',...
+		'HandleVisibility','on');
 	if nItems>1;
-		text(0.34,y-3,int2str(sum(ItemPos(i,:)>0)),...
+		text(0.14,y-3,int2str(sum(ItemPos(i,:)>0)),...
 			'Color','w',...
 			'FontSize',9,...
 			'FontAngle','Oblique',...
 			'HorizontalAlignment','right',...
 			'UserData',cIName,...
 			'ButtonDownFcn',...
-			'spm_get(''dir'',[],get(gco,''UserData''),1)');
+			'spm_get(''dir'',[],get(gco,''UserData''),1)',...
+			'HandleVisibility','off');
 	end
 	y = y - dy;
 end
 set(F,'Pointer','Arrow')
 return
 
+
 elseif strcmp(Action,'StrSort')
 %=======================================================================
 % [sS,I]=spm_get('StrSort',S)
+%fprintf('Doing: spm_get(''StrSort''...\n')
 % Utility string sorting routine for string matrices
 if nargin<2, error('Sort what?'), else, S = P2; end
 
@@ -849,9 +998,11 @@ R1 = sS;
 R2 = I;
 return
 
+
 elseif strcmp(Action,'strfliplr')
 %=======================================================================
 % fS = spm_get('strfliplr',S)
+%fprintf('Doing: spm_get(''strfliplr''...\n')
 if nargin<2, error('Flip what?'), else, S = P2; end
 
 %-FlipLR the Fnames matrix, but watch out for trailing blanks/spaces
@@ -864,9 +1015,11 @@ end
 R1 = fS;
 return
 
+
 elseif strcmp(Action,'FileSummary')
 %=======================================================================
 % [FSpecs,FnamePos]=spm_get('FileSummary',Fnames,Cend,Filter,len)
+%fprintf('Doing: spm_get(''FileSummary''...\n')
 if nargin<5, len = 3; else len = P5; end
 if nargin<4, Filter = ''; else Filter = P4; end
 if isempty(Filter), Filter='*'; end
@@ -978,9 +1131,11 @@ R1 = FSpecs;
 R2 = FnamePos;
 return
 
+
 elseif strcmp(Action,'Add')
 %=======================================================================
 % spm_get('Add',H)
+%fprintf('Doing: spm_get(''Add''...\n')
 % Add filename to current list
 %-H - [Optional] (vector of) handles to file/dir name objects
 %
@@ -998,7 +1153,7 @@ if (nargin==2)
 	H=P2;
 else
 	%-'Add' called by item callback - get handle & check selection
-	H=gco;
+	H=gcbo;
 	if strcmp(SelType,'extend')
 		IName = get(H,'String');
 		if any(IName=='*')
@@ -1008,7 +1163,7 @@ else
 			return
 		end
 	elseif strcmp(SelType,'alt')
-		spm_get('Add',gco)
+		spm_get('Add',H)
 		spm_get('Done')
 		return
 	end
@@ -1057,14 +1212,16 @@ return
 
 elseif strcmp(Action,'Delete')
 %=======================================================================
-% spm_get('Delete')
+% spm_get('Delete',h)
+%fprintf('Doing: spm_get(''Delete'')\n')
 F      = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
+if nargin<2, h=gcbo; else, h=P2; end
 WDir   = get(findobj(F,'Tag','WDir'),'UserData');
 P      = get(findobj(F,'Tag','P'),'UserData');
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
-IName  = get(gco,'String');
+IName  = get(h,'String');
 IName(1:find(IName==':')) = [];
-Items  = get(gco,'UserData');
+Items  = get(h,'UserData');
 nItems = size(Items,1);
 FPath  = [setstr(ones(nItems,1)*[WDir,'/']),Items];
 nP     = size(P,1);
@@ -1078,7 +1235,7 @@ if all(all(tmp(1:nItems,:)==tmp(nItems+1:2*nItems,:)))
 		P(:,all(str2mat(P,' ')==' '))=[];
 	end
 	set(findobj(F,'Tag','P'),'UserData',P);
-	set(gco,'String',IName,'Color','k',...
+	set(h,'String',IName,'Color','k',...
 		'Tag','IName',...
 		'ButtonDownFcn','spm_get(''Add'')')
 	spm_get('StatusLine',size(P,1),n)
@@ -1089,6 +1246,7 @@ return
 elseif strcmp(Action,'Reset')
 %=======================================================================
 % spm_get('Reset')
+%fprintf('Doing: spm_get(''Reset'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(findobj(F,'Tag','P'),'UserData',[]);
 spm_get('dir')
@@ -1099,27 +1257,19 @@ return
 elseif strcmp(Action,'All')
 %=======================================================================
 % spm_get('All')
-%
-%-MatLab's built in findobj gives a bus error for more than 99 matching
-% target objects. :-(
+%fprintf('Doing: spm_get(''All'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 set(F,'Pointer','Watch')
-h = get(gca,'Children');
-H = [];
-while length(h)>99
-	H = [H; findobj(h(1:99),'Flat','Tag','IName')];
-	h(1:99)=[];
-end
-H = flipud([H; findobj(h,'Flat','Tag','IName')]);
-
+H = flipud(findobj(get(gca,'Children'),'Flat','Tag','IName'));
 spm_get('Add',H);
-
 set(F,'Pointer','Arrow')
 return
+
 
 elseif strcmp(Action,'CmdLine')
 %=======================================================================
 % P = spm_get('CmdLine',n,Prompt,P,WDir,AllowEnd)
+%fprintf('Doing: spm_get(''CmdLine''...\n')
 if nargin<6, AllowEnd=0; else AllowEnd=P6; end
 if nargin<5, WDir=''; else WDir=P5; end
 if isempty(WDir), WDir=pwd; else, WDir=deblank(WDir); end
@@ -1142,7 +1292,7 @@ if nP>0
 end
 fprintf('\nEnter paths :')
 AllowEnd = AllowEnd | isinf(n);
-Tstr = 'END'; %-Append a space for later...
+Tstr = 'END';
 if AllowEnd, fprintf(' (Type "END" to terminate input.)')
 	else fprintf(' to %d items:',abs(n)-nP), end
 
@@ -1170,12 +1320,13 @@ while ~Done
 end % (while)
 
 R1 = P;
-
 return
+
 
 elseif strcmp(Action,'GUI2CmdLine')
 %=======================================================================
 % P = spm_get('GUI2CmdLine')
+%fprintf('Doing: spm_get(''GUI2CmdLine'')\n')
 
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 Prompt = get(findobj(F,'Tag','Prompt'),'String');
@@ -1183,33 +1334,32 @@ n      = get(findobj(F,'Tag','Prompt'),'UserData');
 WDir   = get(findobj(F,'Tag','WDir'),'UserData');
 P      = get(findobj(F,'Tag','P'),'UserData');
 
-A = get(F,'Position'); A = [A(3)/400,A(4)/395,A(3)/400,A(4)/395];
+WS = get(F,'Position'); WS = [WS(3)/400,WS(4)/395,WS(3)/400,WS(4)/395];
 Handles = [];
 h = uicontrol(F,'Style','Frame',...
-		'Position',[000 000 400 395].*A);
-Handles = [Handles, h];
-
-h = uicontrol(F,'Style','Frame',...
-	'BackgroundColor',[1 1 1]*.8,...
-	'Position',[010 355 380 030].*A);
+		'Position',[000 000 400 395].*WS);
 Handles = [Handles, h];
 
 h = uicontrol(F,'Style','Text','String',Prompt,...
+	'FontName','Times',...
+	'FontWeight','Bold',...
+	'FontAngle','Italic',...
+	'FontSize',2*round(16*min(WS)/2),...
 	'ForegroundColor','k',...
-	'BackgroundColor',[1 1 1]*.8,...
 	'HorizontalAlignment','Center',...
-	'Position',[020 360 360 020].*A);
+	'Position',[010 370 380 022].*WS);
 Handles = [Handles, h];
 
 h = uicontrol(F,'Style','Frame',...
-	'Position',[001 001 400 030].*A);
+	'Position',[001 001 400 030].*WS);
 Handles = [Handles, h];
 
 h = uicontrol(F,'Style','Text',...
 	'String','Use command window...',...
+	'FontAngle','Oblique',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
-	'Position',[020 005 360 020].*A);
+	'Position',[020 005 360 020].*WS);
 Handles = [Handles, h];
 
 PNew = spm_get('CmdLine',n,Prompt,P,WDir,1);
@@ -1221,54 +1371,55 @@ if ~strcmp(P(:),PNew(:))
 end
 
 delete(Handles);
-
 return
+
 
 elseif strcmp(Action,'Edit')
 %=======================================================================
+% spm_get('Edit')
+%fprintf('Doing: spm(''Edit'')\n')
+
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 n = get(findobj(F,'Tag','Prompt'),'UserData');
 
 set(F,'Units','Pixels');
-A = get(F,'Position'); A = [A(3)/400,A(4)/395,A(3)/400,A(4)/395];
+WS = get(F,'Position'); WS = [WS(3)/400,WS(4)/395,WS(3)/400,WS(4)/395];
 
 EditHandles = [];
 
 h = uicontrol(F,'Style','Frame',...
 	'Tag','EditHandles',...
-	'Position',[001 001 400 395].*A);
-EditHandles = [EditHandles, h];
-
-h = uicontrol(F,'Style','Frame',...
-	'BackgroundColor',[1 1 1]*.8,...
-	'Position',[010 355 380 030].*A);
+	'Position',[001 001 400 395].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Text',...
 	'String',get(findobj(F,'Tag','Prompt'),'String'),...
+	'FontName','Times',...
+	'FontWeight','Bold',...
+	'FontAngle','Italic',...
+	'FontSize',2*round(16*min(WS)/2),...
 	'ForegroundColor','k',...
-	'BackgroundColor',[1 1 1]*.8,...
 	'HorizontalAlignment','Center',...
-	'Position',[020 360 360 020].*A);
+	'Position',[010 370 380 022].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Text',...
 	'String','Edit the filename window...',...
 	'ForegroundColor','w',...
 	'HorizontalAlignment','Left',...
-	'Position',[010 325 210 020].*A);
+	'Position',[010 347 210 022].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Pushbutton','String','Cancel',...
 	'ForegroundColor','r',...
 	'Callback','spm_get(''EditDone'',''Cancel'')',...
-	'Position',[220 325 070 020].*A);
+	'Position',[220 347 070 022].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Pushbutton','String','OK',...
 	'ForegroundColor','m',...
 	'Callback','spm_get(''EditDone'',''OK'')',...
-	'Position',[310 325 070 020].*A);
+	'Position',[310 347 070 022].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Edit',...
@@ -1278,28 +1429,30 @@ h = uicontrol(F,'Style','Edit',...
 	'ForegroundColor','b','BackgroundColor',[.8,.8,1],...
 	'Max',2,...
 	'Callback','set(gco,''UserData'',1)',...
-	'Position',[010 040 380 275].*A);
+	'Position',[010 040 380 300].*WS);
 EditHandles = [EditHandles, h];
 
 h = uicontrol(F,'Style','Frame',...
-	'Position',[001 001 400 030].*A);
+	'Position',[001 001 400 030].*WS);
 EditHandles = [EditHandles, h];
 
 str=[]; if finite(n), str=['Use only top ',int2str(abs(n)),' lines.  ']; end
 h = uicontrol(F,'Style','Text',...
 	'String',[str,'(Blank lines will be removed)'],...
+	'FontAngle','Oblique',...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor','w',...
-	'Position',[020 005 360 020].*A);
+	'Position',[020 005 360 020].*WS);
 EditHandles = [EditHandles, h];
 
 set(findobj(F,'Tag','EditHandles'),'UserData',EditHandles)
-
 return
+
 
 elseif strcmp(Action,'EditDone')
 %=======================================================================
 % spm_get('EditDone',OK)
+%fprintf('Doing: spm_get(''EditDone''...\n')
 if nargin<2, OK=0; else, OK=strcmp(P2,'OK'); end
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 
@@ -1323,12 +1476,13 @@ if OK & get(h_EditWindow,'UserData')
 end
 delete(EditHandles), drawnow
 
-
 return
 
 
 elseif strcmp(Action,'Done')
 %=======================================================================
+% spm_get('Done')
+%fprintf('Doing: spm_get(''Done'')\n')
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 n = get(findobj(F,'Tag','Prompt'),'UserData');
 
@@ -1340,8 +1494,6 @@ end
 
 %-Done, set Done UserData tag for handling
 set(findobj(F,'Tag','Done'),'UserData',1)
-
-
 return
 
 
