@@ -62,12 +62,13 @@ if spm_type(dt,'intt'),
 		 % Convert to a form that Analyze will support
 		dt = dt - 128; 
 	end;
-	mxv = spm_type(dt,'maxval');
-	mnv = spm_type(dt,'minval');
+	mxv    = spm_type(dt,'maxval');
+	mnv    = spm_type(dt,'minval');
 	scale  = maxval/mxv;
-	A      = round(A/scale);
-	A(find(A > mxv)) = mxv;
-	A(find(A < mnv)) = mnv;
+	A(find(isnan(A))) = 0;
+	A                 = round(A/scale);
+	A(find(A > mxv))  = mxv;
+	A(find(A < mnv))  = mnv;
 else,
 	scale = max(V.pinfo(1,:));
 	A     = A/scale;
