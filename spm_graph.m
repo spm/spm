@@ -319,14 +319,18 @@ elseif Cp == 3
 	% get session and trials
 	%--------------------------------------------------------------
 	ss    = length(xSDM.Sess);
+	tr    = [];
 	if ss > 1
 		str   = sprintf('which sessions (1 to %d)',ss);
-		ss    = spm_input(str,-1,'n','1');
+		ss    = spm_input(str,'+1','n');
 	end
-	tr    = length(xSDM.Sess{ss(1)}.name);
+	for s = ss
+		tr    = [tr length(xSDM.Sess{s}.name)];
+	end
+	tr    = min(tr);
 	if tr > 1
 		str   = sprintf('which trials or conditions (1 to %d)',tr);
-		tr    = spm_input(str,-1,'n','1');
+		tr    = spm_input(str,'+1','n');
 	end
 	Cplot = {	'fitted response',...
 			'fitted response and PSTH',...
@@ -335,7 +339,7 @@ elseif Cp == 3
 			'fitted response and adjusted data',...
 			'parametric plot'};
 	if isempty(y), Cplot = Cplot([1 3 4]); end
-	Cp      = spm_input('plot in terms of',-2,'m',Cplot);
+	Cp      = spm_input('plot in terms of','+1','m',Cplot);
 	TITLE   = Cplot{Cp};
 	YLAB    = 'effect size';
 	XLAB{1} = 'peri-stimulus time {secs}';
@@ -376,7 +380,6 @@ elseif Cp == 3
 
 		% fitted responses, adjusted data and standard error
 		%------------------------------------------------------
-
 		KX     = spm_filter('apply',K,X);
 		Y      = KX*B;
 		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
@@ -396,7 +399,7 @@ elseif Cp == 3
 
 		% PSTH
 		%------------------------------------------------------
-		INT      = min(pst):2:max(pst);
+		INT    = min(pst):2:max(pst);
 		PSTH   = [];
 		SEM    = [];
 		PST    = [];
@@ -410,14 +413,6 @@ elseif Cp == 3
 			end
 		end
 		
-
-	Cplot = {	'fitted response',...
-			'fitted response and PSTH',...
-			'fitted response +/- standard error of response',...
-			'fitted response +/- standard error of onset',...
-			'fitted response and adjusted data',...
-			'parametric plot'};
-
 		% plot
 		%------------------------------------------------------
 		switch TITLE
@@ -429,10 +424,9 @@ elseif Cp == 3
 			case 'fitted response and PSTH'
 			%----------------------------------------------
 			errorbar(PST,PSTH,SEM,[':' COL(u)])
-			plot(PST,PSTH,['.' COL(u)],'MarkerSize',16), hold on
+			plot(PST,PSTH,['.' COL(u)],'MarkerSize',16)
 			plot(PST,PSTH,COL(u),'LineWidth',2)
 			plot(x,Y,['-.' COL(u)])
-			TITLE = 'Peristimulus histogram (2s bins with sem)';
 
 			case 'fitted response +/- standard error of response'
 			%----------------------------------------------
