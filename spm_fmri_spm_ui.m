@@ -158,7 +158,7 @@ function [xX,Sess] = spm_fmri_spm_ui
 % Josephs O, Turner R and Friston KJ (1997) Event-related fMRI, Hum. Brain
 % Map. 0:00-00
 %
-%___________________________________________________________________________
+%_______________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
 SCCSid  = '%I%';
 
@@ -166,7 +166,7 @@ SCCSid  = '%I%';
 %-GUI setup
 %-----------------------------------------------------------------------
 SPMid = spm('FnBanner',mfilename,SCCSid);
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: fMRI analysis',0);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
 
@@ -176,12 +176,11 @@ MType   = {'specify a model',...
 	   'review a specified model',...
 	   'estimate a specified model',...
 	   'specify and estimate a model'};
-str     = 'Would you like to';
-MT      = spm_input(str,1,'m',MType);
+MT      = spm_input('What would you like to do?',1,'m',MType);
 
 
 %-Initialise output arguments in case return early
-X    = [];
+xX   = [];
 Sess = [];
 
 switch MT
@@ -237,7 +236,8 @@ switch MT
 	% get filenames and design matrix
 	%---------------------------------------------------------------
 	if sf_abort, spm_clf(Finter), return, end
-	nsess  = spm_input(['number of sessions'],1,'e',1);
+	spm_input('Scans & sessions...',1,'d',mfilename)
+	nsess  = spm_input(['number of sessions'],'+1','e',1);
 	nscan  = zeros(1,nsess);
 	P      = [];
 	for  i = 1:nsess
@@ -249,7 +249,7 @@ switch MT
 
 	% get Repeat time
 	%---------------------------------------------------------------
-	RT        = spm_input('Interscan interval {secs}',2);
+	RT        = spm_input('Interscan interval {secs}','+1');
 
 	% get design matrix
 	%---------------------------------------------------------------
@@ -260,6 +260,7 @@ end
 % Assemble other deisgn parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
+spm_input('Global intensity normalisation...',1,'d',mfilename)
 
 % get rows
 %-----------------------------------------------------------------------
@@ -273,12 +274,13 @@ DSstr  = Sess{1}.DSstr;
 % Global normalization
 %-----------------------------------------------------------------------
 str    = 'remove Global effects';
-Global = spm_input(str,1,'scale|none',{'Scaling' 'None'});
+Global = spm_input(str,'+1','scale|none',{'Scaling' 'None'});
 
 
 % Burst mode
 %-----------------------------------------------------------------------
 if length(nscan) > 16 & ~any(diff(nscan))
+	spm_input('Burst mode?','+1','d',mfilename)
 	BM    = spm_input('Burst mode','+1','y/n',[1 0]);
 else
 	BM    = 0;
@@ -302,6 +304,7 @@ end
 
 % Temporal filtering
 %=======================================================================
+spm_input('Temporal autocorrelation options...','+1','d',mfilename)
 
 % High-pass filtering
 %-----------------------------------------------------------------------
@@ -317,7 +320,7 @@ switch cLF
 
 	% default based on peristimulus time
 	% param = cut-off period (max = 512, min = 32)
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	HParam = 512*ones(1,nsess);
 	for  i = 1:nsess
 		for j = 1:length(Sess{i}.pst)
@@ -330,11 +333,11 @@ switch cLF
 	HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
 
 	% LF description
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	LFstr = sprintf('[min] Cutoff period %d seconds',min(HParam));
 
 	case 'none'
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	HParam = cell(1,nsess);
 	LFstr  = cLF;
 
@@ -352,13 +355,13 @@ end
 switch cHF
 
 	case 'Gaussian'
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	LParam  = spm_input('Gaussian FWHM (secs)','+1','r',4);
 	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',LParam);
 	LParam  = LParam/sqrt(8*log(2));
 
 	case {'hrf', 'none'}
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	LParam  = [];
 	HFstr   = cHF;
 
@@ -536,12 +539,14 @@ fprintf('%30s\n','...done')                                          %-#
 %-Analysis Proper
 %=======================================================================
 spm_clf(Finter);
+spm('FigName','fMRI stats models',Finter,CmdLine);
 if spm_input('estimate?',1,'b','now|later',[1,0],1)
 	spm('Pointer','Watch')
 	spm('FigName','Stats: estimating...',Finter,CmdLine);
 	spm_spm(VY,xX,xM,F_iX0,Sess,xsDes);
 	spm('Pointer','Arrow')
 else
+	spm_clf(Finter)
 	spm('FigName','Stats: configured',Finter,CmdLine);
 	spm('Pointer','Arrow')
 	spm_DesRep('DesRepUI',struct(	'xX',		xX,...

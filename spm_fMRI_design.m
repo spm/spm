@@ -30,8 +30,8 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % Sess{s}.Pv{i}    - vector of paramters for ith trial type
 % Sess{s}.Pname{i} - name   of paramters for ith trial type
 %
-% saves SPM_fMRIDesMtx.mat (X Sess)
-%___________________________________________________________________________
+% saves SPM_fMRIDesMtx.mat (xX Sess)
+%_______________________________________________________________________
 %
 % spm_fMRI_design allows you to build design matrices with separable
 % session-specific partitions.  Each partition may be the same (in which
@@ -93,7 +93,8 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 %
 % Notes on spm_get_ons, spm_get_bf and spm_Volterra are included below
 % for convenience.
-%_______________________________________________________________________
+%
+%                           ----------------
 %
 % spm_get_ons contructs a cell of sparse delta functions specifying the
 % onset of events or epochs (or both). These are convolved with a basis set
@@ -103,16 +104,16 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % function multiplied by the [expansion of the] trial-specific parameter.
 % If parametric modulation is modeled, P contains the original variate and
 % Pname is its name.  Otherwise P{i} = [] and Pname{i} = '';
-%-----------------------------------------------------------------------
 %
-%___________________________________________________________________________
+%                           ----------------
+%
 % spm_get_bf prompts for basis functions to model event or epoch-related
 % responses.  The basis functions returned are unitary and orthonormal
 % when defined as a function of peri-stimulus time in time-bins.
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
-%---------------------------------------------------------------------------
-%___________________________________________________________________________
+%
+%                           ----------------
 %
 % For first order expansions spm_Volterra simply convolves the causes
 % (e.g. stick functions) in SF by the basis functions in BF to create
@@ -122,22 +123,23 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % The basis functions for these are two dimensional and are used to
 % assemble the second order kernel in spm_graph.m.  Second order effects
 % are computed for only the first column of SF.
-%---------------------------------------------------------------------------
+%
+%_______________________________________________________________________
 % %W% Karl Friston %E%
 SCCSid  = '%I%';
 
 %-GUI setup
 %-----------------------------------------------------------------------
 SPMid = spm('SFnBanner',mfilename,SCCSid);
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','',0);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
 
 % construct Design matrix {X} - cycle over sessions
-%===========================================================================
+%=======================================================================
 
 % Initialize variables
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 STOC   = 0;
 
 % global parameters
@@ -148,8 +150,9 @@ if isempty(fMRI_T),  fMRI_T  = 16; end;
 if isempty(fMRI_T0), fMRI_T0 = 16; end;
 
 % get nscan and RT if no arguments
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if nargin < 2
+	spm_input('Basic parameters...',1,'d',mfilename)
 	RT     = spm_input('Interscan interval {secs}','+1','r',[],1);
 end
 if nargin < 1
@@ -161,10 +164,10 @@ dt     = RT/fMRI_T;					% time bin {secs}
 
 
 % separate specifications for non-relicated sessions
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 rep = 0;
 if nsess > 1 & ~any(nscan - nscan(1))
-	rep = spm_input(['are sessions replicated exactly'],2,'yes|no',[1 0]);
+	rep = spm_input(['are sessions replicated exactly'],'+1','yes|no',[1 0]);
 end
 Xx    = [];
 Xb    = [];
@@ -173,9 +176,15 @@ Bname = {};
 Sess  = {};
 for s = 1:nsess
 
+	if rep
+		Fstr='All sessions';
+	else
+		Fstr = sprintf('Session %d/%d',s,nsess);
+	end
+
+
 	% specify design for this session?
-	%-------------------------------------------------------------------
-	spm('FigName',sprintf('Session %0.0f',s),Finter,CmdLine);
+	%---------------------------------------------------------------
         if   (s == 1) | ~rep
 	X       = [];
 	B       = [];
@@ -185,22 +194,27 @@ for s = 1:nsess
 	IND     = {};
 
 	% Event/epoch related responses			
-	%===================================================================
+	%===============================================================
 	k       = nscan(s);
 
 	% event/epoch onsets {ons} and window lengths {W}
-	%-------------------------------------------------------------------
-	[SF,name,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC);
+	%---------------------------------------------------------------
+	[SF,name,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC,Fstr);
 	ntrial     = size(SF,2);
 
 
 	% get basis functions for responses
-	%-------------------------------------------------------------------
-	[BF BFstr] = spm_get_bf(name,fMRI_T,dt);
+	%---------------------------------------------------------------
+	[BF BFstr] = spm_get_bf(name,fMRI_T,dt,Fstr);
+
+
+	%-Reset ContextHelp
+	%---------------------------------------------------------------
+	spm_help('!ContextHelp',mfilename)
 
 
 	% peri-stimulus {PST} and onset {ONS} times in seconds
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	for   i = 1:ntrial
 		on     = find(SF{i}(:,1))*dt;
 		pst    = [1:k]*RT - on(1);			
@@ -213,12 +227,12 @@ for s = 1:nsess
 		PST{i} = pst;
 	end
 
+	spm_input('Additional design matrix options...',1,'d',mfilename)
 
 	% convolve with basis functions
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	str     = 'interactions among trials (Volterra)';
 	if spm_input(str,'+1','y/n',[1 0])
-
 		[X Xn IND BF name] = spm_Volterra(SF,BF,name,2);
 	else
 		[X Xn IND]         = spm_Volterra(SF,BF,name,1);
@@ -226,13 +240,13 @@ for s = 1:nsess
 
 
 	% Resample design matrix {X} at acquisition times
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
 
 
 	% get user specified regressors
-	%===================================================================
-	c     = spm_input('user specified regressors',1,'w1',0);
+	%===============================================================
+	c     = spm_input('user specified regressors','+1','w1',0);
 	while size(D,2) < c
 		str   = sprintf('regressor %i',size(D,2) + 1);
 		D     = [D spm_input(str,2,'e',[],[k Inf])];
@@ -244,25 +258,25 @@ for s = 1:nsess
 	end
 
 	% append regressors and names
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	for i = 1:size(D,2)
 		X           = [X D(:,i)];
 		str         = sprintf('regressor: %i',i);
-		Xn{end + 1} = spm_input(['name of ' str],2,'s',str);
+		Xn{end + 1} = spm_input(['name of ' str],'+0','s',str);
 	end
 
 
 	% Confounds: Session effects 
-	%===================================================================
+	%===============================================================
 	B      = ones(k,1);
 	Bn{1}  = sprintf('constant');
 
 	% end specification
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	end
 
 	% Session structure
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	Sess{s}.BFstr = BFstr;
 	Sess{s}.DSstr = DSstr;
 	Sess{s}.rep   = rep;
@@ -278,7 +292,7 @@ for s = 1:nsess
 	Sess{s}.Pname = Pname;
 
 	% Append names
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	q     = length(Xname);
 	for i = 1:length(Xn) 
 		Xname{q + i}  = [sprintf('Sn(%i) ',s) Xn{i}];
@@ -289,7 +303,7 @@ for s = 1:nsess
 	end
 
 	% append into Xx and Xb
-	%===================================================================
+	%===============================================================
 	[x y]   = size(Xx);
 	[i j]   = size(X);
 	Xx(([1:i] + x),([1:j] + y)) = spm_detrend(X);
@@ -299,7 +313,7 @@ for s = 1:nsess
 end
 
 % finished
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 xX     = struct(	'X',		[Xx Xb],...
 			'dt',		dt,...
 			'RT',		RT,...
@@ -310,10 +324,9 @@ xX     = struct(	'X',		[Xx Xb],...
 			'Xnames',	{[Xname Bname]});
 
 
-%-End: Save SPM_fMRIDesMtx.mat & Cleanup GUI
-%---------------------------------------------------------------------------
-fprintf('\t%-32s: ','Saving fMRI design')                                %-#
+%-End: Save SPM_fMRIDesMtx.mat
+%-----------------------------------------------------------------------
+fprintf('\t%-32s: ','Saving fMRI design')                            %-#
 save SPM_fMRIDesMtx SPMid xX Sess
-fprintf('%30s\n\n','...SPM_fMRIDesMtx.mat saved')                        %-#
-
-spm_clf(Finter);
+fprintf('%30s\n\n','...SPM_fMRIDesMtx.mat saved')                    %-#
+spm_input('!DeleteInputObj')

@@ -1,29 +1,35 @@
-function [BF,BFstr] = spm_get_bf(name,T,dt)
+function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr)
 % creates basis functions for each trial type {i} in struct BF{i}
-% FORMAT [BF BFstr] = spm_get_bf(name,T,dt)
+% FORMAT [BF BFstr] = spm_get_bf(name,T,dt,Fstr)
 %
 % name  - name{1 x n} name of trials or conditions
 % T     - time bins per scan
 % dt    - time bin length {seconds}
+% Fstr  - Prompt string (usually indicates session)
 %
 % BF{i} - Array of basis functions for trial type {i}
 % BFstr - description of basis functions specified
-%___________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_get_bf prompts for basis functions to model event or epoch-related
 % responses.  The basis functions returned are unitary and orthonormal
 % when defined as a function of peri-stimulus time in time-bins.
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
-%---------------------------------------------------------------------------
+%_______________________________________________________________________
 % %W% Karl Friston %E%
 
-%---------------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-Fstr   = get(Finter,'name');
+%-GUI setup
+%-----------------------------------------------------------------------
+spm_help('!ContextHelp',mfilename)
+
+%-Condition arguments
+%-----------------------------------------------------------------------
+if nargin<4, Fstr = ''; end
+
 
 % if no trials
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 n      = length(name);
 if ~n
 	BF    = {};
@@ -32,24 +38,26 @@ if ~n
 end
 
 % determine sort of basis functions
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 Rtype = {'events',...
 	 'epochs',...
 	 'mixed'};
 if n == 1
-	Rtype = Rtype(1:2); 
-	set(Finter,'name',[Fstr ': ' name{1}])
+	Rtype = Rtype(1:2);
+	spm_input(name{1},1,'d',Fstr)
+else
+	spm_input(Fstr,1,'d')
 end
-Rov   = spm_input('are these trials',1,'b',Rtype);
+Rov   = spm_input('are these trials',2,'b',Rtype);
 
 switch Rov
 
 	% assemble basis functions {bf}
-	%===================================================================
+	%===============================================================
 	case 'events'
 
 	% model event-related responses
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	Ctype = {
 		'hrf (alone)',...
 		'hrf (with time derivative)',...
@@ -59,24 +67,24 @@ switch Rov
 		'basis functions (Gamma functions)',...
 		'basis functions (Gamma functions with derivatives)'};
 	str   = 'Select basis set';
-	Cov   = spm_input(str,1,'m',Ctype);
+	Cov   = spm_input(str,2,'m',Ctype);
 	BFstr = Ctype{Cov};
 
 
 	% create basis functions
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	if     Cov == 4 | Cov == 5
 
 		% Windowed (Hanning) Fourier set
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		str   = 'window length {secs}';
-		pst   = spm_input(str,2,'e',32);
+		pst   = spm_input(str,3,'e',32);
 		pst   = [0:dt:pst]';
 		pst   = pst/max(pst);
-		h     = spm_input('order',3,'e',4);
+		h     = spm_input('order',4,'e',4);
 
 		% hanning window
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		if Cov == 4
 			g = ones(size(pst));
 		else
@@ -84,7 +92,7 @@ switch Rov
 		end
 
 		% zeroth and higher terms
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		bf    = g;
 		for i = 1:h
 			bf = [bf g.*sin(i*2*pi*pst)];
@@ -95,13 +103,13 @@ switch Rov
 
 
 		% Gamma functions alone
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		pst   = [0:dt:32]';
 		dx    = 0.01;
 		bf    = spm_gamma_bf(pst);
 
 		% Gamma functions and derivatives
-		%---------------------------------------------------
+		%-------------------------------------------------------
 		if Cov == 7
 			bf  = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
 		end
@@ -111,11 +119,11 @@ switch Rov
 
 
 		% hrf and derivatives
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		[bf p] = spm_hrf(dt);
 
 		% add time derivative
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		if Cov == 2 | Cov == 3
 
 			dp    = 1;
@@ -125,7 +133,7 @@ switch Rov
 			p(6)  = p(6) - dp;
 
 			% add dispersion derivative
-			%---------------------------------------------------
+			%-----------------------------------------------
 			if Cov == 3
 
 				dp    = 0.01;
@@ -138,7 +146,7 @@ switch Rov
 
 
 	% Orthogonalize and fill in basis function structure
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	bf    =  spm_orth(bf);
 	for i = 1:n
 		BF{i}  =  bf;
@@ -146,40 +154,40 @@ switch Rov
 
 
 	% assemble basis functions {bf}
-	%===================================================================
+	%===============================================================
 	case 'epochs'
 
 
 	% covariates of interest - Type
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	Ctype = {'basis functions  (Discrete Cosine Set)',...
 		 'basis functions  (Mean & exponential decay)',...
 		 'fixed response   (Half-sine)',...
 		 'fixed response   (Box-car)'};
 	str   = 'Select type of response';
-	Cov   = spm_input(str,1,'m',Ctype);
+	Cov   = spm_input(str,2,'m',Ctype);
 	BFstr = Ctype{Cov};
 
 
 	% convolve with HRF?
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	if Cov == 1
 		str = 'number of basis functions';
-		h   = spm_input(str,2,'e',2);
+		h   = spm_input(str,3,'e',2);
 	end
 
 	% convolve with HRF?
-	%-------------------------------------------------------------------
-	HRF   = spm_input('convolve with hrf',2,'b','yes|no',[1 0]);
+	%---------------------------------------------------------------
+	HRF   = spm_input('convolve with hrf',3,'b','yes|no',[1 0]);
 
 	% ask for temporal differences
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	str   = 'add temporal derivatives';
-	TD    = spm_input(str,3,'b','yes|no',[1 0]);
+	TD    = spm_input(str,4,'b','yes|no',[1 0]);
  
 
 	% Assemble basis functions for each trial type
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	for i = 1:n
 
 		str   = ['epoch length {scans} for ' name{i}];
@@ -188,7 +196,7 @@ switch Rov
 		pst   = pst/max(pst);
 
 		% Discrete cosine set
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		if     Cov == 1
 
 			bf    = [];
@@ -197,19 +205,19 @@ switch Rov
 			end
 
 		% Mean and exponential
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		elseif Cov == 2
 		
 			bf    = [ones(size(pst)) exp(-pst/4)];
 
 		% Half sine wave
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		elseif Cov == 3
 
 			bf    = sin(pi*pst);
 
 		% Box car
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		elseif Cov == 4
 
 			bf    = ones(size(pst));
@@ -217,7 +225,7 @@ switch Rov
 		end
 
 		% convolve with hemodynamic response function - hrf
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		if HRF
 			hrf   = spm_hrf(dt);
 			[p q] = size(bf);
@@ -229,19 +237,19 @@ switch Rov
 		end
 
 		% add temporal differences if specified
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		if TD
 			bf    = [bf [diff(bf); zeros(1,size(bf,2))]/dt];
 		end
 
 		% Orthogonalize and fill in Sess structure
-		%-----------------------------------------------------------
+		%-------------------------------------------------------
 		BF{i}         =  spm_orth(bf);
 	end
 
 
 	% mixed event and epoch model
-	%===================================================================
+	%===============================================================
 	case 'mixed'
 	for i = 1:n
 
@@ -252,17 +260,17 @@ switch Rov
 
 end
 
-% finished
-%---------------------------------------------------------------------------
-set(Finter,'Name',Fstr)
 
 
-% orthogonalize basis functions
-%---------------------------------------------------------------------------
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+
 function bf = spm_orth(BF)
-% recursive orthogonalization
+% recursive orthogonalization of basis functions
 % FORMAT bf = spm_orth(bf)
-%___________________________________________________________________________
+%_______________________________________________________________________
 bf    = BF(:,1);
 bf    = bf/sqrt(sum(bf.^2));
 for i = 2:size(BF,2)
@@ -275,13 +283,13 @@ end
 
 
 % compute Gamma functions functions
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 function bf = spm_gamma_bf(u)
 % returns basis functions used for Volterra expansion
 % FORMAT bf = spm_gamma_bf(u);
 % u   - times {seconds}
 % bf  - basis functions (mixture of Gammas)
-%___________________________________________________________________________
+%_______________________________________________________________________
 u     = u(:);
 bf    = [];
 for i = 2:4
