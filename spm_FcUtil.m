@@ -14,6 +14,19 @@ function varargout = spm_FcUtil(varargin)
 % See spm_sp for details of (design) space structures and their
 % manipulation.
 %
+% Since the 99 beta version :
+% Improvements in F-contrast handling :  The first F-contrast structure
+% used to store matrices such that each contrast may take as much memory
+% as the design matrix. Because sometimes the number of contrasts tested
+% is important, the matlab file storing those contrast became huge and
+% could not be handled in matlab anymore. The contrast handling has been
+% improved in 2 ways : first, memory requirements are now cut down to
+% matrices that have sizes [number_of_parameters rank_of_contrast]. To do
+% this, we store an orthonormal basis of the design space and the
+% coordinates of the subspaces of the design space in this basis.
+% Secondly, this allows a cut-down in computing time (see help in
+% spm_FcUtil routines code) when computing an F-contrast.
+%
 %
 % ======================================================================
 % case 'fconfields'				%- fields of F contrast
@@ -279,8 +292,6 @@ switch set_action,
 end;
 varargout = {Fc};
 
-
-%!!!15/10
 case 'x0' % spm_FcUtil('X0',Fc,sX)
 %=======================================================================
 if nargin ~= 3, 
@@ -308,7 +319,6 @@ if ~spm_sp('isspc',sX), sX = spm_sp('set',sX); end;
 varargout = {sf_X1o(Fc,sX)};
 
 
-
 case 'isfcon'				%- Is it an F contrast ?
 %=======================================================================
 % yes_no = spm_FcUtil('IsFcon',Fc)
@@ -317,7 +327,6 @@ if nargin~=2, error('too few/many input arguments - need 2'), end
 if ~isstruct(varargin{2}), varargout={0}; 
 else, varargout = {sf_IsFcon(varargin{2})};
 end
-
 
 
 case 'fconedf'				%- F contrast edf
@@ -333,8 +342,8 @@ if nargin == 4, V = varargin{4}; else V = []; end;
 if ~sf_IsFcon(Fc), error('Fc must be Fcon'), end
 if ~spm_sp('isspc',sX)
 	sX = spm_sp('set',sX);	end;
-if ~spm_FcUtil('Rcompatible',Fc,sX), ...
- 	error('sX and Fc must be compatible'), end
+% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+% 	error('sX and Fc must be compatible'), end
 
 
 if ~sf_isempty_X1o(Fc)
@@ -408,8 +417,8 @@ sX = varargin{3};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; %-
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-	error('sX and Fc must be compatible'), end;
+% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+%	error('sX and Fc must be compatible'), end;
 
 if sf_isempty_X1o(Fc)
 	if ~sf_isempty_X0(Fc)
@@ -441,8 +450,8 @@ sX = varargin{3};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; %-
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-	error('sX and Fc must be compatible'), end;
+% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+%	error('sX and Fc must be compatible'), end;
 
 if sf_isempty_X1o(Fc)
 	if ~sf_isempty_X0(Fc)
@@ -471,8 +480,8 @@ Fc = varargin{2}; sX = varargin{3}; b = varargin{4};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; 
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-	error('sX and Fc must be compatible'), end;
+% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+%	error('sX and Fc must be compatible'), end;
 if spm_sp('size',sX,2) ~= size(b,1), 
 	error('sX and b must be compatible'), end;
 
@@ -501,8 +510,8 @@ Fc = varargin{2}; sX = varargin{3}; b = varargin{4};
 if ~sf_IsFcon(Fc), error('Fc must be F-contrast'), end
 if ~sf_IsSet(Fc), error('Fcon must be set'); end; 
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
-if ~spm_FcUtil('Rcompatible',Fc,sX), ...
-	error('sX and Fc must be compatible'), end;
+% if ~spm_FcUtil('Rcompatible',Fc,sX), ...
+%	error('sX and Fc must be compatible'), end;
 if spm_sp('size',sX,2) ~= size(b,1), 
 	error('sX and b must be compatible'), end;
 
