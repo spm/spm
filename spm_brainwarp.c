@@ -5,6 +5,9 @@ static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU)
 #include <math.h>
 #include "spm_sys_deps.h"
 #include "spm_mapping.h"
+extern int AbackslashB(double *, double *, double *);
+extern void MtimesX(double *, double *, double *);
+
 
 /*
 INPUTS
@@ -52,15 +55,20 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	double *bz3[3], *by3[3], *bx3[3];
 	double wt = 1.0, wt3 = 1.0, nsamp = 0.0;
 	int *dim1;
+	double MW[16];
 
 	/* flag for presence of weighting */
 	int wF = 1;
 	if ((weight == (MAPTYPE *)0) && (weight2 == (MAPTYPE *)0))
 		wF = 0;
 
+	if (weight != (MAPTYPE *)0)
+		if (AbackslashB(weight->mat, vol2->mat, MW))
+			mexErrMsgTxt("Can't invert matrix");
+
 	dim1 = vols1[0].dim;
 
-	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2]  = BX;
+	bx3[0] = dBX;	bx3[1] =  BX;	bx3[2] =  BX;
 	by3[0] =  BY;	by3[1] = dBY;	by3[2] =  BY;
 	bz3[0] =  BZ;	bz3[1] =  BZ;	bz3[2] = dBZ;
 
@@ -186,10 +194,11 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					}
 				}
 
-				/* Affine component */
+				/* Affine component
 				s2[0] = M[0+4*0]*trans[0] + M[0+4*1]*trans[1] + M[0+4*2]*trans[2] + M[0+4*3];
 				s2[1] = M[1+4*0]*trans[0] + M[1+4*1]*trans[1] + M[1+4*2]*trans[2] + M[1+4*3];
-				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3];
+				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3]; */
+				MtimesX(M, trans, s2);
 
 
 				/* is the transformed position in range? */
@@ -207,12 +216,16 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					if (wF) 
 					{
 						if (weight != (MAPTYPE *)0)
-							resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.001);
+							resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.0);
 						else
 							wt = 1.0;
 
-						if (weight2 != (MAPTYPE *)0) 
-							resample(1,weight2,&wt3,s2,s2+1,s2+2, 1, 0.001);
+						if (weight2 != (MAPTYPE *)0)
+						{
+							static double s3[3];
+							MtimesX(MW, s2, s3);
+							resample(1,weight2,&wt3,s3,s3+1,s3+2, 1, 0.0);
+						}
 						else
 							wt3 = 1.0;
 
@@ -475,7 +488,7 @@ static void scale(int m, double dat[], double s)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2, *get_maps();
+	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2;
 	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3];

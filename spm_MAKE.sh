@@ -120,7 +120,7 @@ ar rcv spm_vol_utils.a $vol_utils
 echo "Compiling mex files..."
 $cmex5 spm_sample_vol.c	spm_vol_utils.a 
 $cmex5 spm_slice_vol.c	spm_vol_utils.a 
-$cmex5 spm_brainwarp.c	spm_vol_utils.a 
+$cmex5 spm_brainwarp.c	spm_vol_utils.a spm_matfuns.c
 $cmex5 spm_map_vol.c	spm_vol_utils.a 
 $cmex5 spm_unmap_vol.c	spm_vol_utils.a 
 $cmex5 spm_add.c	spm_vol_utils.a 
