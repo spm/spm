@@ -161,30 +161,33 @@ return;
 
 %=======================================================================
 function [C,G]=enter_design_matrix(D)
-C=[];
-tmp=zeros(size(D,1)+1,1);
-while (size(tmp,2) ~= size(D,2)) & ~isempty(tmp),
+ok = 0;
+while ~ok, % (size(tmp,2) ~= size(D,2)) & ~isempty(tmp),
 	tmp=spm_input(['Interesting Group weights (' num2str(size(D,2)) ')'],'+1','e');
+	if size(tmp,2) == size(D,2), C  = D*tmp'; ok = 1; end;
+	if isempty(tmp), C = []; ok = 1; end;
 end;
-if ~isempty(tmp), C = D*tmp'; else, C = []; end;
 
-tmp=zeros(size(D,1)+1,1);
-while size(tmp,2) ~= size(D,1) & ~isempty(tmp),
+ok = 0;
+while ~ok,
 	tmp=spm_input(['Interesting Covariates (' num2str(size(D,1)) ')'],'+1','e');
+	if (size(tmp,2) == size(D,1)) | isempty(tmp), ok = 1; end;
 end;
 C = [C tmp'];
 if ~isempty(C), C = C - repmat(mean(C),size(C,1),1); end;
 
-G=[];
-tmp = zeros(1,size(D,2)+1);
-while size(tmp,2) ~= size(D,2) & ~isempty(tmp),
+ok = 0;
+while ~ok,
 	tmp=spm_input(['Uninteresting Group weights (' num2str(size(D,2)) ')'],'+1','e');
+	if size(tmp,2) == size(D,2), G  = D*tmp'; ok = 1; end;
+	if isempty(tmp), G = []; ok = 1; end;
+	
 end;
-if ~isempty(tmp), G = D*tmp'; else, G = []; end;
 
-tmp=zeros(size(D,1)+1,1);
-while (size(tmp,2) ~= size(D,1)) & ~isempty(tmp),
+ok = 0;
+while ~ok,
 	tmp=spm_input(['Uninteresting Covariates (' num2str(size(D,1)) ')'],'+1','e');
+	if (size(tmp,2) == size(D,1)) | isempty(tmp), ok = 1; end;
 end;
 G = [G tmp'];
 if ~isempty(G), G = G - repmat(mean(G),size(G,1),1); end;
@@ -285,9 +288,9 @@ basX = spm_dctmtx(Dims(1,1),Dims(2,1),x-1);
 basY = spm_dctmtx(Dims(1,2),Dims(2,2),y-1);
 basZ = spm_dctmtx(Dims(1,3),Dims(2,3),z-1);
 
-TX = zeros(Dims(1,:));
-TY = zeros(Dims(1,:));
-TZ = zeros(Dims(1,:));
+TX = zeros(Dim);
+TY = zeros(Dim);
+TZ = zeros(Dim);
 
 X = x'*ones(1,Dim(2));
 Y = ones(Dim(1),1)*y;
