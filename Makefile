@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.18 2004-11-09 11:01:04 john Exp $
+# $Id: Makefile,v 2.19 2004-11-26 13:54:43 john Exp $
 #
 ###############################################################################
 #
@@ -36,7 +36,7 @@ ADDED_OBS=
 ADDED_MEX=
 
 SunOS:
-	make all SUF=mexsol  CC="cc -xO5"                   MEX="mex COPTIMFLAGS=-xO5"
+	make all SUF=mexsol  CC="cc -xO5 -DBIGENDIAN"                   MEX="mex COPTIMFLAGS=-xO5 -DBIGENDIAN"
 Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
 Linux.5:
@@ -44,17 +44,17 @@ Linux.5:
 Linux.A64:
 	make all SUF=mexa64  CC="gcc -O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse"    MEX="mex COPTIMFLAGS='-O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse'"
 HP-UX:
-	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable" MEX="mex COPTIMFLAGS=-O"
+	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN" MEX="mex COPTIMFLAGS=-O -DBIGENDIAN"
 IRIX:
-	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON"  MEX="mex COPTIMFLAGS='-O'"
+	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON -DBIGENDIAN"  MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
 IRIX64:
-	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex COPTIMFLAGS='-O'"
+	make all SUF=mexsg64 CC="cc  -O -mips4 -64 -DBIGENDIAN"         MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
 AIX:
-	make all SUF=mexrs6
+	make all SUF=mexrs6 CC="cc -DBIGENDIAN"	MEX = "mex -O -DBIGENDIAN"
 OSF1:
-	make all SUF=mexaxp
+	make all SUF=mexaxp CC="cc -DBIGENDIAN"      MEX = "mex -O -DBIGENDIAN"
 MAC:
-	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
+	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"      MEX = "mex -O -DBIGENDIAN"
 #windows:
 #	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 windows:
@@ -109,10 +109,11 @@ SPMMEX =\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
-	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
-	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
+	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
+	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
 	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
 	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
+	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	$(ADDED_MEX)
 
 ###############################################################################
@@ -282,16 +283,20 @@ spm_atranspa.$(SUF): spm_atranspa.c spm_sys_deps.h
 	$(MEX) spm_atranspa.c
 	@ $(CHMODIT) $@
 
+file2mat.$(SUF): file2mat.c
+	$(MEX) file2mat.c
+	@ $(CHMODIT) $@
+
+mat2file.$(SUF): mat2file.c
+	$(MEX) mat2file.c
+	@ $(CHMODIT) $@
+
+spm_digamma.$(SUF): spm_digamma.c
+	$(MEX) spm_digamma.c
+	@ $(CHMODIT) $@
+
 spm_unlink.$(SUF): spm_unlink.c spm_sys_deps.h
 	$(MEX) spm_unlink.c
-	@ $(CHMODIT) $@
-
-spm_max.$(SUF): spm_max.c spm_sys_deps.h
-	$(MEX) spm_max.c
-	@ $(CHMODIT) $@
-
-spm_clusters.$(SUF): spm_clusters.c spm_sys_deps.h
-	$(MEX) spm_clusters.c
 	@ $(CHMODIT) $@
 
 spm_hist2.$(SUF): spm_hist2.c spm_sys_deps.h
@@ -354,7 +359,7 @@ spm_win32utils.$(SUF): spm_win32utils.c
 
 verb.unknown:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "PROBLEM: Dont know how to do this."
 	@ echo "_____________________________________________________________"
@@ -362,7 +367,7 @@ verb.unknown:
 
 verb.mexhp7:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "unix compile for hpux cc, and maybe aix cc"
 	@ echo ""
@@ -377,7 +382,7 @@ verb.mexhp7:
 
 verb.mexsg:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
 	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
@@ -393,7 +398,7 @@ verb.mexsg:
 
 verb.mexsg64:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "not optimised sgi 64 bit compile for CC"
 	@ echo ""
@@ -403,7 +408,7 @@ verb.mexsg64:
 
 verb.dll:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Windows compile with gcc/mingw"
 	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
@@ -414,7 +419,7 @@ verb.dll:
 
 verb.mexsol:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Unix compile for Sun cc"
 	@ echo "_____________________________________________________________"
@@ -422,7 +427,7 @@ verb.mexsol:
 
 verb.mexlx:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 5.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -430,7 +435,7 @@ verb.mexlx:
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 6.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -438,7 +443,7 @@ verb.mexglx:
 
 verb.mexa64:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 7.x, 64bits athlon) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -446,7 +451,7 @@ verb.mexa64:
 
 verb.mexaxp:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "keep your fingers crossed"
 	@ echo "_____________________________________________________________"
@@ -454,7 +459,7 @@ verb.mexaxp:
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
-	@ echo "%W% %E%"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Unix compile for MacOS X"
 	@ echo "_____________________________________________________________"
