@@ -142,7 +142,7 @@ hTxtAx = axes('Position',[0.05 0.92 0.90 0.03],...
 		'DefaultTextFontSize',10,...
 		'DefaultTextVerticalAlignment','baseline',...
 		'Visible','off');
-h = text(0,1,'SPM results: ','FontWeight','Bold','FontSize',14)
+h = text(0,1,'SPM results: ','FontWeight','Bold','FontSize',14);
 text(get(h,'Extent')*[0;0;1;0],1,spm_str_manip(CWD,'a30'))
 text(0.1,0.5,sprintf('Height threshold {u} = %0.2f',SPM.u))
 text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k));
@@ -151,7 +151,7 @@ text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k));
 %-Setup Maximium intensity projection (MIP) & register
 %---------------------------------------------------------------------------
 hMIPax = axes('Position',[0.05 0.55 0.55 0.4],'Visible','off');
-hMIPax = spm_mip_ui(SPM.Z,VOL.XYZ,[VOL.DIM;VOL.VOX;VOL.ORG],hMIPax);
+hMIPax = spm_mip_ui(SPM.Z,VOL,hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
 text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold')
 

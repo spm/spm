@@ -1,9 +1,12 @@
 function varargout=spm_mip_ui(varargin)
 % GUI for displaying MIPs with interactive pointers
-% FORMAT hMIPax = spm_mip_ui(t,XYZ,V,F)
+% FORMAT hMIPax = spm_mip_ui(t,VOL,F)
 % t      - SPM point list for MIP
-% XYZ    - {3 x ?} matrix of coordinates of points (Talairach coordinates)
-% V      - {9 x 1} vector of image and voxel sizes, and origin [DIM,VOX,ORIGIN]'
+% VOL    - the structure returned by spm_getSPM.  The required fields
+%          are:
+%            VOL.XYZ  - location of voxels {mm}
+%            VOL.DIM  - image dimensions {voxels}
+%            VOL.M    - voxels - > mm matrix
 % F      - Figure to work in [Defaults to gcf]
 % hMIPax - handle of MIP axes
 %
@@ -64,11 +67,14 @@ function varargout=spm_mip_ui(varargin)
 % FORMAT hMIPax = spm_mip_ui(t,XYZ,V,F)
 % [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',t,XYZ,V,F)
 %
-% FORMAT hMIPax = spm_mip_ui('Display',t,XYZ,V,F)
+% FORMAT hMIPax = spm_mip_ui('Display',t,VOL,F)
 % Displays the MIP and sets up cursors
 % t      - SPM point list for MIP
-% XYZ    - {3 x ?} matrix of coordinates of points (Talairach coordinates)
-% V      - {9 x 1} vector of image and voxel sizes, and origin [DIM,VOX,ORIGIN]'
+% VOL    - the structure returned by spm_getSPM.  The required fields
+%          are:
+%            VOL.XYZ  - location of voxels {mm}
+%            VOL.DIM  - image dimensions {voxels}
+%            VOL.M    - voxels - > mm matrix
 % F      - Figure to work in [Defaults to gcf]
 % hMIPax - handle of MIP axes
 %
@@ -152,12 +158,12 @@ Po(4)  = DXYZ(2)         +CXYZ(1) -2;
 %=======================================================================
 switch lower(varargin{1}), case 'display'
 %=======================================================================
-% hMIPax = spm_mip_ui('Display',t,XYZ,V,F)
-if nargin<5
+% hMIPax = spm_mip_ui('Display',t,VOL,F)
+if nargin<4
 	F      = gcf;
 	hMIPax = [];
 else
-	F = varargin{5};
+	F = varargin{4};
 	if isstr(F), F=spm_figure('FindWin',F); end
 	if ~ishandle(F), error('Invalid handle'), end
 	switch get(F,'Type'), case 'figure'
@@ -169,15 +175,12 @@ else
 		error('F not a figure or axis handle')
 	end
 end
-if nargin<4, error('Insufficient arguments'), end
-V       = varargin{4};
-XYZ     = varargin{3};
+if nargin<3, error('Insufficient arguments'), end
+M       = varargin{3}.M;
+D       = varargin{3}.DIM;
+XYZ     = varargin{3}.XYZ;
 t       = varargin{2};
 
-%-Derived parameters
-%-----------------------------------------------------------------------
-M   = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]];
-D   = V(1:3);
 xyz = spm_XYZreg('RoundCoords',[0;0;0],M,D);
 
 
@@ -194,7 +197,7 @@ end
 %**** Sort out this CurrentFigure stuff! - spm_mip's image uses a newplot &
 %     screws stuff, and without the figure & the DrawNow whole thing disappears!
 figure(F)
-spm_mip(t,XYZ,V);
+spm_mip(t,varargin{3});
 
 %-Canonicalise axis positioning & save
 %-----------------------------------------------------------------------

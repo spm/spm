@@ -1,4 +1,4 @@
-function spm_mip(X,L,V)
+function spm_mip(X,VOL)
 % SPM maximum intensity projection
 % FORMAT spm_mip(X,L,V);
 % V  -  SPM
@@ -28,48 +28,48 @@ function spm_mip(X,L,V)
 % displayed with that program.
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston and others %E%
 
 
 %-Get GRID value
 %-----------------------------------------------------------------------
 global GRID, if isempty(GRID), GRID = 0.6; end
 
-% single slice case (ORIGIN = [0 0])
-%=======================================================================
-if V(3) == 1
-	i   = L(1,:)/V(4);
-	j   = L(2,:)/V(5);
-	d   = i > 1 & i < V(1) & j > 1 & j < V(2);
-	mip = full(sparse(i(d),j(d),X(d),V(1),V(2)));
-	imagesc([1 V(1)*V(4)],[1 V(2)*V(5)],(-mip')); axis xy
-	axis image; 
-	set(gca,'FontSize',8,'TickDir','in')
-	xlabel('x'), ylabel('y')
-	return
-end
-
-%-3d case
-%=======================================================================
-
-%-Remove negtive values from point list and scale to a maximium of unity
+%-Remove negative values from point list and scale to a maximium of unity
 %-----------------------------------------------------------------------
 X    = X(:)';
-d    = X > 0;
-L    = round(L(:,d));
+d    = find(X > 0);
+L    = VOL.XYZ(:,d);
 X    = X(d);
 X    = X/max(X);
 
+% single slice case (ORIGIN = [0 0])
+%=======================================================================
+if VOL.DIM(3) == 1,
+	vox = sqrt(sum(VOL.M(1:3,1:3).^2));
+	L   = round(VOL.M\[L ; ones(1,size(L,2))]);
+	mip = full(sparse(L(1,:),L(2,:),X,VOL.DIM(1),VOL.DIM(2)));
+	imagesc([1 VOL.DIM(1)*vox(1)],[1 VOL.DIM(2)*vox(2)],-mip');
+	axis xy image; 
+	set(gca,'FontSize',8,'TickDir','in')
+	xlabel('x'); ylabel('y');
+disp('WARNING... ...This stuff hasn''t been fully worked out yet...');
+	return;
+end;
+
+%-3d case
+%=======================================================================
 %-Load mip and create maximum intensity projection
 %-----------------------------------------------------------------------
 load MIP
 mip  = mip96*GRID;
-d    = zeros(size(mip));
-spm_project(X,L,d,V(1:6));
+c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
+	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1]-0.5;
+c    = (VOL.M(1:3,1:3)*c')';
+dim  = [(max(c)-min(c)) size(mip)]
+d    = spm_project(X,round(L),dim);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
-
-
 
 %-PGM file to viewer app
 %=======================================================================
