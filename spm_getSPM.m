@@ -413,8 +413,9 @@ if STAT ~= 'P'
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    str = 'FWE|FDR|none';
-    switch spm_input('p value adjustment to control','+1','b',str,[],3)
+    str = 'FWE|FDR|none';  % let people get used to FDR in tables first
+    str = 'FWE|none';
+    switch spm_input('p value adjustment to control','+1','b',str,[],1)
 
 
 	case 'FWE' % family-wise false positive rate
