@@ -8,6 +8,9 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % ic    contrast number
 %
 % xCon  Updated contrast info
+%
+% %W% Will Penny %E%
+
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
