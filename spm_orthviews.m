@@ -623,6 +623,7 @@ for i = valid_handles(arg1),
 		if strcmp(st.vols{i}.window,'auto'),
 			mx = max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
 			mn = min([min(min(imgt)) min(min(imgc)) min(min(imgs))]);
+			if mx==mn, mx=mn+eps; end;
 		else,
 			mx = st.vols{i}.window(2);
 			mn = st.vols{i}.window(1);
