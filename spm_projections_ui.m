@@ -156,9 +156,9 @@ if spm_input('mask with other contrast[s]',2,'b','no|yes',[0 1],1)
 end
 
 
-%-Get and apply height threshold [default p < 0.001]
+%-Get and apply height threshold [default p < 0.001 uncorrected]
 %-----------------------------------------------------------------------
-u     = spm_input('height threshold for SPM{Z}',3,'e',0.001);
+u     = spm_input('height threshold {Z or p value}',3,'e',0.001);
 if u < 1; u = spm_invNcdf(1 - u); end
 
 % eliminate voxels
@@ -173,17 +173,25 @@ end
 %-Return if there are no voxels
 %-----------------------------------------------------------------------
 if ~length(Q)
+	figure(Fgraph)
 	axis off
 	text(0,0.3,spm_str_manip(CWD,'a50'));
 	text(0,0.2,'No voxels above this threshold {u}','FontSize',16);
 	return
 end
 
-%-Get and apply extent threshold [default = E{n}]
+%-Get and apply extent threshold
 %-----------------------------------------------------------------------
-[P EN Em En] = spm_P(1,W,u,0,S);
-k     = spm_input('& extent threshold {voxels}',4,'e',round(En));
-if (k < 1) & (k > 0); k = spm_invkcdf(1 - k); end
+if spm_input('use corrected extent threshold',4,'b','no|yes',[0 1],1)
+	k  = spm_input('corrected p value}',4,'e',0.05);
+	k  = spm_k(k,W,u,S);
+else
+	%-Get and apply extent threshold [default p < 0.5 uncorrected]
+	%---------------------------------------------------------------
+	k  = spm_input('extent threshold {k or p value}',4,'e',0.5);
+	if (k < 1) & (k > 0); k = spm_invkcdf(1 - k,u,W); end
+end
+
 A     = spm_clusters(XYZ,V([4 5 6]));
 Q     = [];
 for i = 1:max(A)
@@ -205,6 +213,7 @@ end
 %-Return if there are no clusters
 %-----------------------------------------------------------------------
 if ~length(Q)
+	figure(Fgraph)
 	axis off
 	text(0,0.3,spm_str_manip(CWD,'a50'));
 	text(0,0.2,'No clusters above this threshold {k}','FontSize',16);
