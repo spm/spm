@@ -1,4 +1,4 @@
-% function spm_fmri_spm_ui
+function spm_fmri_spm_ui
 % Setting up the general linear model for fMRI time-series
 % FORMAT spm_fmri_spm_ui
 %____________________________________________________________________________
@@ -76,7 +76,7 @@
 % hemodynamics with fMRI Friston KJ, NeuroImage - in press
 %
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston, Jean-Baptiste Poline %E%
 
 
 %----------------------------------------------------------------------------
@@ -128,15 +128,7 @@ Q(1,:) = []; P = Q;
 % check that the data have been normalized and get ORIGIN
 %----------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
-if DIM(3) == 1
-	ORIGIN = [0 0 0];
-elseif isempty(findstr(DESCRIP,'normalized'))
-        c = ['these data have not been normalized';
-	     '- use ''display'' to fix the origin  ';
-	     'i.e. the anterior commisure        '];
-        dialog('Style','warning','TextString',c,...
-	       'Name','WARNING','Position',[409 414 288 98]);
-end
+if DIM(3) == 1; ORIGIN = [0 0 0]; end
 
 % design matrix subpartitions - Block or subject
 %---------------------------------------------------------------------------
@@ -163,70 +155,97 @@ CovF  = str2mat(...
 
 Cov   = spm_input('Select type of response',3,'m',CovF,[1:size(CovF,1)]);
 
-% covariates of interest - Create
-%----------------------------------------------------------------------------
-c     = spm_input('# of covariates or conditions',4);
 
-for j = 1:c
+% for each subject
+%---------------------------------------------------------------------------
+for v = 1:n
+	
+	keyboard;
 
-	% user specified
+    % user specified
+    %-----------------------------------------------------------------------
+    if Cov == 1
+
+    	% number of covariates of interest
 	%-------------------------------------------------------------------
-	if Cov == 1		
-		str = sprintf('[%0.0f]- covariate %0.0f',k,size(G,2) + 1);
+	c     = spm_input('# of covariates or conditions',4);
+	D     = [];
+	while size(D,2) < c
+		u   = size(D,2) + 1;
+		str = sprintf('[%d]-covariate %d, subject %d',k,u,v);
 		d   = spm_input(str,5);
 		if size(d,2) == k
 			d = d'; 	end
 		if size(d,1) == k
-    			C = [C d];	end
-	else
-
-	    e = spm_input(sprintf('Condtn. %d: # scans per epoch',j),5);
-
-	    % 2 modulated sine waves
-	    %---------------------------------------------------------------
-	    if Cov == 2			
-
-		W = sin(pi*[0:(e + 1)]'/(e + 1)).*exp((-[0:(e + 1)]')/e*4);
-		W = [W sin(pi*[0:(e + 1)]'/(e + 1)).*exp(([0:(e + 1)]')/e)];
-
-	    % single sine wave
-	    %---------------------------------------------------------------
-	    elseif Cov == 3
-
-		W = sin(pi*[0:(e + 1)]'/(e + 1));
-
-	    % 6 scond delayed box-car
-	    %---------------------------------------------------------------
-	    elseif Cov == 4
-
-		W = [zeros(round(6/RT),1); ones(e,1)];
-
-	    end
-
-	    % convolve with onsets
-	    %---------------------------------------------------------------
-	    W   = W./(ones(size(W,1),1)*sqrt(sum(W.^2)));
-	    d   = spm_input('onset of epochs {scans}',5);
-	    l   = zeros(k,1);
-	    l(d(:)) = ones(size(d(:)));
-	    for i = 1:size(W,2)
-		d   = conv(l,W(:,i));
-		d   = d(1:k);
-    		C   = [C d(:)];
-	    end
+			D   = [D d(:)];	end		
 	end
-end
 
-% replicate this partition for each subject
-%---------------------------------------------------------------------------
-d     = C;   C = [];
-for i = 1:n; C = [C; d]; end
+    else
+
+	% vector of conditions
+	%-------------------------------------------------------------------
+	a = spm_input('conditions {1 to n} eg 1 2 1 2....',5);
+	a = a(:); a = a';
+	
+	% vector of epoch lengths
+	%-------------------------------------------------------------------
+	e	= [];
+	while length(e) ~= length(a) & all(e>0)
+		e = spm_input(sprintf('Subj. %d: scans/epoch eg 10 ',v),5);
+		if length(e) == 1; e = e*ones(1,length(a)); end
+	end
+
+	% onsets for all conditions  
+	%-------------------------------------------------------------------
+	ons  	= [1 cumsum(e)+1]; ons = ons(1:(length(ons)-1));
+	
+
+	% 2 modulated sine waves
+	%-------------------------------------------------------------------
+	if Cov == 2			
+		D = zeros(k,max(a)*2);
+		for i = 1:length(e)
+		  W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1)).*exp((-[0:(e(i) + 1)]')/e(i)*4);
+		  W = [W sin(pi*[0:(e(i) + 1)]'/(e(i) + 1)).*exp(([0:(e(i) + 1)]')/e(i))];
+		  W = W./(ones(size(W,1),1)*max(W));
+		  D(([1:size(W,1)] + (ons(i) - 1)),((a(i) - 1)*2 + [1 2])) = W;
+		end
+		D = D(1:k,:);
+	
+	% single sine wave
+	%-------------------------------------------------------------------
+	elseif Cov == 3
+		D = zeros(k,max(a));
+		for i = 1:length(e)
+		  W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1));
+		  W = W./ ( ones(size(W,1),1)*max(W) );
+		  D(([1:size(W,1)] + (ons(i) - 1)),a(i)) = W;
+		end
+		D = D(1:k,:);
+
+	% 6 second delayed box-car
+	%---------------------------------------------------------------
+	elseif Cov == 4
+		D = zeros(k,max(a)); 
+		for i = 1:length(e)
+			D(ons(i):ons(i)+e(i)-1,a(i)) = ones(e(i),1);
+		end
+		delay = round(6/RT);
+		D(delay+1:k,:) = D(1:k-delay,:); 
+		D(1:delay,:) = zeros(delay,max(a));
+	end
+
+	
+
+    end %-- else --%
+    C = [C; D];
+end
 
 
 % covariates not of interest
 %----------------------------------------------------------------------------
 g     = spm_input('# of covariates of no interest',5);
-while size(G,2) ~= g
+while size(G,2) < g
 	d = spm_input(sprintf('[%0.0f]- covariate %0.0f',q,size(G,2) + 1),6);
 	if size(d,2) == q
 		d = d'; 	end
@@ -249,6 +268,7 @@ if spm_input('high pass filter',6,'yes|no',[1 0])
               F = [F d(:)];
       end
 end
+
 
 
 %-replicate this partition for each subject and combine confounds
