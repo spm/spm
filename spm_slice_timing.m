@@ -76,6 +76,9 @@ function spm_slice_timing(P, Seq, refslice, timing)
 % Modified by R Henson, C Buechel and J Ashburner, FIL, 1999, to
 % handle different sequence acquisitions, analyze format, different
 % reference slices and memory mapping.
+%
+% Modified by M Erb, at U. Tuebingen, 1999, to ask for non-continuous
+% slice timing and number of sessions.
 %_______________________________________________________________________
 % %W% %E%
 
@@ -83,9 +86,25 @@ SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
+nsubjects = 1;
 if nargin < 1,
 	% Choose the images
-	P = spm_get(+Inf,'*.img','Select images to acquisition correct');
+	%P = spm_get(+Inf,'*.img','Select images to acquisition correct');
+% Modified by M Erb
+        % get number of subjects
+        nsubjects = spm_input('number of subjects/sessions',1, 'e', 1);
+        if (nsubjects < 1)
+                spm_figure('Clear','Interactive');
+                return;
+        end
+        for i = 1:nsubjects
+		% Choose the images
+		P = [];
+		P = spm_get(+Inf,'*.img',...
+			['Select images to acquisition correct for subject ' num2str(i)]);
+                eval(['P'    num2str(i) ' = P;']);
+        end
+% end of Modified by M Erb
 end;
 
 % map image files into memory
@@ -129,7 +148,19 @@ if nargin < 3,
 end;
 
 if nargin < 4,
-	factor = 1/nslices;
+%
+% changed by M Erb
+%	factor = 1/nslices;
+	TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
+	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR);
+	while TA > TR | TA <= 0,
+		TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
+	end;
+	timing(2) = TR - TA;
+	timing(1) = TA / (nslices -1);
+	factor = timing(1)/TR;
+% end of changed by ME
+%
 else,
 	TR 	= (nslices-1)*timing(1)+timing(2);
 	fprintf('Your TR is %1.1f\n',TR);
@@ -138,8 +169,21 @@ end;
 
 
 spm('Pointer','Watch')
-spm('FigName','Slice timing: working',Finter,CmdLine);
+%spm('FigName','Slice timing: working',Finter,CmdLine);
 
+% Modified by M Erb
+for subj = 1:nsubjects
+	task=['Slice timing: working on session ' num2str(subj)];
+	spm('FigName',task,Finter,CmdLine);
+        eval(['P    =    P' num2str(subj) ';']);
+	Vin 	= spm_vol(P);
+	nimgo	= size(P,1);
+	nimg	= 2^(floor(log2(nimgo))+1);
+	nslices_t= Vin(1).dim(3);
+	if ( nslices_t ~= nslices )
+		fprintf('Number of slices differ! %d %\n', nimg);
+	else
+% end of Modified by M Erb
 % create new header files
 Vout 	= Vin;
 for k=1:nimgo,
@@ -224,6 +268,13 @@ for k = 1:nslices,
 end;
 
 spm_progress_bar('Clear');
+
+% Modified by M Erb
+	% endelse of "if ( nslices_t ~= nslices )"
+	end
+% endfor of "for subj = 1:nsubjects"
+end
+% end of Modified by M Erb
 
 spm('FigName','Slice timing: done',Finter,CmdLine);
 spm('Pointer');
