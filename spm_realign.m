@@ -772,7 +772,7 @@ if prod(size(P)) > 2,
 	% least to the determinant of the inverse covariance matrix.
 
 	spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
-		      'Iteration','Fractional loss of quality');
+		      'Fractional loss of quality','Iteration');
 	Alpha = spm_atranspa([A0 b]);
 	det0  = det(Alpha);
 	det1  = det0;
