@@ -11,14 +11,17 @@ function spm_projections_ui
 % reflects the significance of two or more effects:-
 %
 % specifying a vector for the contrasts causes the second (and ensuing)
-% contrasts to mask the first.  The univariate significance level of
-% resulting voxels is the p value associated with the specified threshold
-% raised to the power of the number of contrasts used in total IFF the 
-% contrasts are orthogonal.  This use of spm_projections_ui.m is useful
-% for the analysis of interaction effects in (and only in) areas subject to 
-% a main effect.  The resulting p values are generally so small that one
-% can forgo a correction for multiple comparisons/  Indeed the use of
-% P(Nmax > k) and P(Zmax > u) may not be appropriate in this instance.
+% contrasts to mask the first.  Non-orthogonal compounds are allowed.
+% The ensuing voxels reach criteria (at the uncorrected threshold
+% specified) for all the contrasts.  The statistic constituting the
+% SPM{Z} is the mean of the n component Z values divided by sqrt(n).
+% Given the orthogonality constraint above, this statistic is itself
+% Gaussian.  This use of spm_projections_ui.m is useful for testing
+% multiple hypothese simultaneously.  For example the conjunction
+% of activations in several task-pairs or (in multifactorial designs)
+% the analysis of interaction effects in (and only in) areas subject to a
+% main effect.  The resulting p values are generally so small that one
+% can forgo a correction for multiple comparisons.
 %
 % see spm_projections.m for further details
 %
@@ -33,44 +36,41 @@ set(2,'Name','SPM{Z} projections')
 
 tmp   = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
 CWD   = strrep(tmp,'/SPMt.mat','');
-names = [];
 K     = [];
 
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMt'])
 
-% get contrast number[s]
+% get contrast[s]
 %---------------------------------------------------------------------------
-i   = 0;
-while (i < 1 | i > size(CONTRAST,1))
-	i = spm_input(['which contrast[s] ? 1 - ' num2str(size(CONTRAST,1))],1);
+i    = 0;
+while any(i < 1 | i > size(CONTRAST,1))
+	i = spm_input(sprintf('contrast[s] ? 1 - %i',size(CONTRAST,1)),1);
+	c = CONTRAST(i,:);
 end
 
 
-% get uncorrected threshold
+% get height threshold [default = 3.2]
 %---------------------------------------------------------------------------
-U    = spm_input('threshold e.g. 2.8 or 0.001',2);
-if U < 1;
-	U = spm_invNcdf(1 - U); end
+u    = spm_input('height threshold {Z value}',2,'e',3.2);
 
-
-% get corrected threshold (unless multiple contrasts have been specified)
+% get extent threshold [default = E{n} - expected voxels per cluster]
+% Omit spatial extent threshold for multiple contrasts.
 %---------------------------------------------------------------------------
-if length(i) == 1
-	pV  = spm_input('corrected p value e.g. 0.05',3);
+if size(c,1) == 1
+	[P,EN,Em,En,Pk] = spm_P(1,W,u,0,S);
+	k    = spm_input('extent threshold {voxels}',3,'e',round(En));
 else
-	pV  = 1;
+	k    = 0;
 end
 
 
 % pass arguments to spm_projections
 %---------------------------------------------------------------------------
 set(2,'Name','Thankyou','Pointer','watch')
-if ~exist('df'); df = (size([K H C B G],1) - rank([K H C B G])); end
 
-[t,XYZ] = ...
-spm_projections(SPMt(i,:),XYZ,U,V,W,S,[K H C B G],CONTRAST(i,:),df,pV,names);
+[t XYZ] = spm_projections(SPMt(i,:),XYZ,u,k,V,W,S,[K H C B G],c,df);
 
 
 %-Write out filtered SPM{Z} ? (APH addition - 23/06/95)
@@ -104,7 +104,6 @@ if size(XYZ,2) %-Only proceed if there's something to work on
 	fclose(fid);
     end % (if)
 end % (if)
-
 
 %-Finished
 %---------------------------------------------------------------------------
