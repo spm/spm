@@ -653,7 +653,7 @@ SCCSid  = '%I%';
 % D = spm_spm_ui(char(spm_input('Select design class...','+1','m',...
 % 		{'Basic stats','Standard PET designs','SPM96 PET designs'},...
 % 		{'DesDefs_Stats','DesDefs_PET','DesDefs_PET96'},2)));
-% D = D(spm_input('Select design type...','+1','m',{D.DesName}')))
+% D = D(spm_input('Select design type...','+1','m',{D.DesName}'))
 %
 %_______________________________________________________________________
 % Andrew Holmes
