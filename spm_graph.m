@@ -44,20 +44,40 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % see spm_getSPM for details
 %_______________________________________________________________________
 %
-% spm_graph is a CallBack script that uses the strcutures above to
-% produce plots of adjusted activity at the significant (p < 0.05
-% uncorrected according the the F statistic following the AnCova) that is
-% nearest to the point selected.  These mean activities are the average
-% estimates over subjects.  If these estimates derive from an activation
-% study (the effects are factors described by the H partition) the data
-% are plotted as a bar chart,  If they derive from covariates (C) then
-% they are plotted as against [a compound of] the covariates or scan
-% number as specified by you.  The adjusted data for the selected voxel
-% are displayed in the command window for potential use outside SPM.  The
-% vatiables x and y contain the ordinates and activities respectively in
-% the order in which the scans were entered (i.e. the same as the design
-% matrix, The variable Y represents the fitted responses [e.g. means]
-% accross subjects).
+% spm_graph is a Callback script that uses the structures above to:  (i)
+% send adjusted (y) and fitted data (Y), for the selected voxel, to the
+% workspace and (ii) provide graphics for:
+% 
+% a) Contrasts of parameter estimates (e.g.  activations) and their
+% standard error.
+% 
+% b) Fitted and adjusted responses that can be plotted against time,
+% scan, or an indicator variable in the design matrix.
+% 
+% c) (fMRI only).  Evoked responses using the basis functions to give
+% impulse responses to an event or epoch that would have been seen in the
+% absence of other effects.
+% 
+% Getting adjusted data:
+% Ensuring the data are adjusted properly can be important (e.g.  in
+% constructing explanatory variables such as in a psychophysiological
+% interaction)  If you are not asked to specify a contrast then the data
+% are adjusted by removing session or subject effects.  To remove further
+% specific effects from the data, specify an appropriate F contrast and
+% simply plot the fitted (and adjusted) responses after selecting that F
+% contrast.  The vectors Y and y in the workspace will now be adjusted
+% for the effects in the reduced design matrix (X0) specified in the
+% contrast manager with the column indices (iX0) of the confounds in this
+% adjustment.
+% 
+% Plotting data:
+% All data and graphics use filtered data and residuals.    In PET
+% studies the parameter estimates and the fitted data are often the same
+% because the explanatory variables are simply indicator variables taking
+% the value of one.  Only contrast previously defined can be plotted.
+% This ensures that the parameters plotted are meaningful even when there
+% is collinearity among the design matrix subpartitions.
+% 
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
@@ -79,13 +99,11 @@ if ~length(SPM.XYZmm)
 	msgbox('No voxels survive masking & threshold(s)!',...
 		sprintf('%s%s: %s...',spm('ver'),...
 		spm('GetUser',' (%s)'),mfilename),'help','modal')
-	Y=[]; y=[]; beta=[]; SE=[];
+	Y = []; y = []; beta = []; SE = [];
 	return
 end
 
 [xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
-spm_XYZreg('SetCoords',xyz,hReg);
-rcp     = VOL.iM(1:3,:)*[xyz;1];
 
 
 %-Extract required data from results files
@@ -98,34 +116,46 @@ cd(SPM.swd)				%-Temporarily move to results dir
 %     Therefore, parameters & ResMS should be read from the image files,
 %     rather than recomputing them on the basis of the Y.mad data.
 %-----------------------------------------------------------------------
-if exist(fullfile('.','Y.mad'))~=2
-	gotY = [];
+if exist(fullfile('.','Y.mad')) ~= 2
+	sf_noYwarn([])
 	y    = [];
-%-****	sf_noYwarn([])
-%-****	return
+
 elseif SPM.QQ(i) == 0
-	gotY = 0;
-	y    = [];
-%-****	sf_noYwarn(SPM.QQ(i))
-%-****	return
+	sf_noYwarn
+	if spm_input('move to nearest voxel','-1','y/n',[1 0])
+		Q       = find(SPM.QQ);
+		[xyz,i] = spm_XYZreg('NearestXYZ',...
+			  spm_XYZreg('GetCoords',hReg),SPM.XYZmm(:,Q));
+
+		y       = spm_extract('Y.mad',SPM.QQ(i));
+
+	else
+		y       = [];
+	end
+
 else
-	gotY = 1;
 	y    = spm_extract('Y.mad',SPM.QQ(i));
 end
 
+% reset pointer and compute voxel indices
+%-----------------------------------------------------------------------
+spm_XYZreg('SetCoords',xyz,hReg);
+rcp     = VOL.iM(1:3,:)*[xyz;1];
 
 % inference (for xlabel)
 %-----------------------------------------------------------------------
 Z      = SPM.Z(i);
 Pz     = spm_P(1,0,Z,SPM.df,SPM.STAT,1,    SPM.n);
 Pu     = spm_P(1,0,Z,SPM.df,SPM.STAT,VOL.R,SPM.n);
-STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected.)',Z,Pz,Pu)];
+STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected)',Z,Pz,Pu)];
 
 
 
 %-Get parameter estimates, ResMS, (compute) fitted data & residuals
+%=======================================================================
 %-NB: Data in Y.mad is raw, must (re)apply temporal smoothing in K
 %     Fitted data & residuals are for temporally smoothed model
+
 %-Parameter estimates: beta = xX.pKX * xX.K*y;
 %-----------------------------------------------------------------------
 beta  = ones(length(xSDM.Vbeta),1);
@@ -133,17 +163,34 @@ for i = 1:length(beta)
 	beta(i) = spm_sample_vol(xSDM.Vbeta(i),rcp(1),rcp(2),rcp(3),0);
 end
 
-if gotY
-	Y = xX.xKXs.X * beta;			%-Fitted data (KYhat)
-	R = xX.K*y - Y;				%-Residuals (Kres)
+%-Compute residuals
+%-----------------------------------------------------------------------
+if isempty(y)
+
+	% make R = NaN so it will not be plotted
+	%---------------------------------------------------------------
+	Y = []; R = NaN;
+
 else
-	Y = []; R = [];
+
+	% residuals
+	%---------------------------------------------------------------
+	R = xX.K*y - xX.xKXs.X*beta;
+
+	% fitted and adjusted data
+	%---------------------------------------------------------------
+	X     = xX.xKXs.X;
+	X0    = X(:,xSDM.F_iX0);
+	X1o   = X - X0*(pinv(X0)*X);
+	Y     = X1o*beta;
+	y     = Y + R;
+
 end
 
 %-Residual mean square: ResMS = sum(R.^2)/xX.trRV;
 %-----------------------------------------------------------------------
 ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
-SE    = sqrt(ResMS*diag(xX.Bcov));	%-S.E. of parameter estimates
+SE    = sqrt(ResMS*diag(xX.Bcov));
 COL   = ['r','b','g','c','y','m','r','b','g','c','y','m'];
 
 
@@ -156,108 +203,64 @@ cd(cwd)					%-Go back to original working dir.
 %-Plot
 %=======================================================================
 
-
 % find out what to plot
 %----------------------------------------------------------------------
-Cplot = {	'parameter estimates',...
-	 	'responses',...
+Cplot = {	'Contrast of parameter estimates',...
+	 	'Fitted (and adjusted) responses',...
 		'event/epoch-related responses'};
+if ~length(y), Cplot{2} = 'Fitted responses'; end
 if ~isfield(xSDM,'Sess'), Cplot = Cplot(1:2); end
 Cp    = spm_input('Plot',-1,'m',Cplot);
-TITLE = Cplot{Cp};
+
+% select contrast to plot
+%----------------------------------------------------------------------
+if Cp < 3
+	for i = 1:length(xCon)
+		Icstr{i} = xCon(i).name;
+	end
+	Ic    = spm_input('Which contrast?','!+1','m',Icstr);
+end
+
 
 
 % plot parameter estimates
 %----------------------------------------------------------------------
 if     Cp == 1
 
-	% specify [contrasts] of parameter estimate to bar
+	% comute contrast of parameter estimates and standard error
 	%--------------------------------------------------------------
-	Cplot = {	'all parameters',...
-			'parameters spanned by contrast',...
-			'contrast of parameters'};
-	%-Don't offer option 3 for conjunctions or F-contrasts!
-	if ( length(SPM.Ic) > 1 | size(xCon(SPM.Ic(1)),2) > 1 )
-		Cplot(3) = [];
-	end
-	Cp    = spm_input('Estimates to plot',-1,'m',Cplot);
-	TITLE = Cplot{Cp};
-	XLAB  = 'effect';
-	YLAB  = 'parameter estimates';
-
-
-	if     Cp == 1
-		
-		%-beta & SE already OK
-
-	elseif Cp == 2
-
-		tmp  = find(any(cat(2,xCon(SPM.Ic).c),2));
-		beta = beta(tmp);
-		SE   = SE(tmp);
-
-	elseif Cp == 3
-
-		%-(Could read c'b from file)
-		beta = xCon(SPM.Ic(1)).c'*beta;
-		SE   = sqrt(ResMS*xCon(SPM.Ic(1)).c'*xX.Bcov*xCon(SPM.Ic(1)).c);
-		XLAB = 'contrast';
-
-	end
-
+	c     = xCon(Ic).c;
+	cbeta = c'*beta;
+	SE    = sqrt(ResMS*diag(c'*xX.Bcov*c));
 
 	% bar chart
 	%--------------------------------------------------------------
 	figure(Fgraph)
 	subplot(2,1,2)
-	h     = bar(beta);
+	h     = bar(cbeta);
 	set(h,'FaceColor',[1 1 1]*.8)
-	for j = 1:length(beta)
-		line([j j],([SE(j) 0 - SE(j)] + beta(j)),...
+	for j = 1:length(cbeta)
+		line([j j],([SE(j) 0 - SE(j)] + cbeta(j)),...
 			    'LineWidth',3,'Color','r')
 	end
-	set(gca,'XLim',[0.4 (length(beta) + 0.6)])
+	set(gca,'XLim',[0.4 (length(cbeta) + 0.6)])
 
+	TITLE = {Cplot{Cp} xCon(Ic).name};
+	XLAB  = {'effect' STR};
+	YLAB  = 'effect size';
 
 
 % all fitted effects or selected effects
 %-----------------------------------------------------------------------
 elseif Cp == 2
 
-	if (isempty(gotY)|~gotY), sf_noYwarn(gotY), return, end
 
-	% fitted data
+	% fitted data (using xCon(Ic).X1o **** but doesn't work *****)
 	%---------------------------------------------------------------
-	Cplot = {	'all effects',...
-			'subspace spanned by contrast',...
-			'subspace of the contrast',...
-			'specified effects'};
-	Cx    = spm_input('Fit',-1,'m',Cplot);
-	TITLE = [TITLE,': ',Cplot{Cx}];
-	YLAB  = 'responses';
-
-
-	if     Cx == 1
-		
-		Y    = xX.xKXs.X * beta;
-
-	elseif Cx == 2
-
-		i    = find(any(xCon(SPM.Ic(1)).c,2));
-		Y    = xX.xKXs.X(:,i)*beta(i);
-
-	elseif Cx == 3
-
-		X    = xX.xKXs.X*xCon(SPM.Ic(1)).c;
-		Y    = xX.xKXs.X*(xX.pKX*y);
-
-	elseif Cx == 4
-
-		str  = 'Which columns or effects?';
-		i    = spm_input(str,'!+1','n','',Inf,length(beta));
-		Y    = xX.xKXs.X(:,i)*beta(i);
-	end
-
+	X     = xX.xKXs.X;
+	X0    = xCon(Ic).X0;
+	X1o   = X - X0*(pinv(X0)*X);
+	Y     = X1o*beta;
 
 	% adjusted data
 	%---------------------------------------------------------------
@@ -266,29 +269,19 @@ elseif Cp == 2
 
 	% get ordinates
 	%---------------------------------------------------------------
-	Cplot = {	'a column of design matrix',...
-			'contrast of design matrix',...
+	Cplot = {	'an explanatory variable',...
 			'scan or time',...
 			'a user specified ordinate'};
-	%-Don't offer option 2 for conjunctions or F-contrasts!
-	i = 1:length(Cplot);
-	if (length(SPM.Ic)>1 | size(xCon(SPM.Ic(1)),2)>1), i(2)=[]; end
 
-	Cx    = spm_input('plot against',-1,'m',Cplot(i),i);
+	Cx    = spm_input('plot against','!+1','m',Cplot);
 
 	if     Cx == 1
 
 		str  = 'Which column or effect?';
-		i    = spm_input(str,'!+1','n','',1,length(beta));
-		x    = xX.xKXs.X(:,i);
-		XLAB = sprintf('%s (explanatory variable %d)',xX.Xnames{i},i);
+		x    = xX.xKXs.X(:,spm_input(str,'!+1','m',xX.Xnames));
+		XLAB = xX.Xnames{i};
 
 	elseif Cx == 2
-
-		x    = xX.xKXs.X*xCon(SPM.Ic(1)).c;
-		XLAB = 'Contrast of explanatory variables';
-
-	elseif Cx == 3
 
 		if isfield(xX,'RT') & ~isempty(xX.RT)
 			x    = xX.RT*[1:size(Y,1)]';
@@ -298,7 +291,7 @@ elseif Cp == 2
 			XLAB = 'scan number';
 		end
 
-	elseif Cx == 4
+	elseif Cx == 3
 
 		x    = spm_input('enter ordinate','!+1','e','',size(Y,1));
 		XLAB = 'ordinate';
@@ -316,11 +309,15 @@ elseif Cp == 2
 		plot(x(q),Y(q),'r' ); hold off
 
 	else
-		plot(x(q),y(q),'.b', 'MarkerSize',8); hold on
+		plot(x(q),y(q),'.b','MarkerSize',8); hold on
 		plot(x(q),Y(q),'.r','MarkerSize',16); hold off
+		set(gca,'XLim',[-1 1] + get(gca,'XLim'))
 
 	end
-	set(gca,'XLim',[-1 1] + get(gca,'XLim'))
+
+	TITLE = {Cplot{Cp} xCon(Ic).name};
+	YLAB  = 'response';
+	XLAB  = {XLAB STR};
 
 
 
@@ -328,24 +325,29 @@ elseif Cp == 2
 %----------------------------------------------------------------------
 elseif Cp == 3
 
-	if (isempty(gotY)|~gotY), sf_noYwarn(gotY), return, end
 	
 	% get session and trials
 	%--------------------------------------------------------------
-	str   = sprintf('which sessions (1 - %d)',length(xSDM.Sess));
-	ss    = spm_input(str,-1,'n','1');
-	str   = sprintf('which trials (1 - %d)',length(xSDM.Sess{ss(1)}.bf));
-	tr    = spm_input(str,-2,'n','1');
+	ss    = length(xSDM.Sess);
+	if ss > 1
+		str   = sprintf('which sessions (1 to %d)',ss);
+		ss    = spm_input(str,-1,'n','1');
+	end
+	tr    = length(xSDM.Sess{ss(1)}.name);
+	if tr > 1
+		str   = sprintf('which trials or conditions (1 to %d)',tr);
+		tr    = spm_input(str,-1,'n','1');
+	end
 	Cplot = {	'fitted response',...
 			'fitted response and PSTH',...
 			'fitted response +/- standard error of response',...
 			'fitted response +/- standard error of onset',...
 			'fitted response and adjusted data',...
 			'parametric plot'};
-	Cp    = spm_input('plot in terms of',-3,'m',Cplot);
+	Cp    = spm_input('plot in terms of',-2,'m',Cplot);
 	TITLE = Cplot{Cp};
 	YLAB  = 'effect size';
-	XLAB  = 'peri-stimulus time {secs}';
+	XLAB{1} = 'peri-stimulus time {secs}';
 
 
 	% cycle over selected events
@@ -360,12 +362,13 @@ elseif Cp == 3
 	XLim  = 0;
 	u     = 1;
 	for s = ss
-	for t = tr
+	    for t = tr
 
 		% trial-specific parameters
 		%------------------------------------------------------
-		i      = xSDM.Sess{s}.row;
+		i      = xSDM.Sess{s}.row(:);
 		j      = xSDM.Sess{s}.col(xSDM.Sess{s}.ind{t});
+		Q      = xSDM.Sess{s}.para{t};
 
 		% basis functions, filter and parameters
 		%------------------------------------------------------
@@ -373,26 +376,26 @@ elseif Cp == 3
 		X      = xSDM.Sess{s}.bf{t};
 		q      = size(X,1);
 		x      = [1:q]*dx;
-		K      = spm_make_filter(q,dx,xX.filterHF,xX.filterLF);
-		Q      = xSDM.Sess{s}.para{t};
+		K      = spm_make_filter(q,dx,xX.filterHF(s),xX.filterLF(s));
 
 		% fitted responses, adjusted data and standard error
 		%------------------------------------------------------
-		Y      = K*X*B;
-		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+		KX     = K*X;
+		Y      = KX*B;
+		SE     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
 		pst    = xSDM.Sess{s}.pst{t};
 		bin    = round(pst/dx);
 		q      = find( (bin >= 0) & (bin <= size(X,1)));
-		y      = zeros(size(R));
+		y      = zeros(size(i));
 		y(q)   = Y(bin(q));
-		y      = y + R;
+		y      = y + R(i);
 
 		% onset
 		%------------------------------------------------------
 		v      = min(find(abs(Y) > max(abs(Y))/2));
 		T      = x(v);
 		dYdt   = gradient(Y')'/dx;
-		seT    = se(v)./dYdt(v);
+		seT    = SE(v)./dYdt(v);
 
 		% PSTH
 		%------------------------------------------------------
@@ -425,7 +428,7 @@ elseif Cp == 3
 
 		elseif Cp == 3
 			plot(x,Y,COL(u))
-			plot(x,Y + se,['-.' COL(u)],x,Y - se,['-.' COL(u)])
+			plot(x,Y + SE,['-.' COL(u)],x,Y - SE,['-.' COL(u)])
 
 		elseif Cp == 4
 			plot(x,Y,COL(u))
@@ -438,19 +441,19 @@ elseif Cp == 3
 			hold off
 			surf(x',Q',Q*Y')
 			YLAB  = 'parameter';
-
 		end
 
 		% xlabel
 		%------------------------------------------------------
 		str  = [xSDM.Sess{s}.name{t} sprintf(' (Session %d) - ',s)];
-		XLAB = str2mat(XLAB,[str COL(u)]);
+		XLAB{end + 1} = [str COL(u)];
 		u    = u + 1;
 		XLim = max([XLim max(x)]);
-	end
+	    end
 	end
 	hold off; axis on
 	set(gca,'XLim',[-4 XLim])
+	XLAB{end + 1}  = STR;
 
 end
 
@@ -458,7 +461,6 @@ end
 %-Label and call Plot UI
 %----------------------------------------------------------------------
 axis square
-XLAB   = str2mat(XLAB,STR);
 xlabel(XLAB,'FontSize',10)
 ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
