@@ -110,7 +110,6 @@ for i  = 1:size(P,1)
 	BIT(i) = TYPE;
 	d      = max([find(q == '/') 0]);
 	q      = [q(1:d) 'n' q((d + 1):length(q))];
-	U(i)   = fopen(q,'w');
 	spm_hwrite(q,Dim,Vox,SCALE,TYPE,0,Origin,['spm - normalized']);
 end
 
@@ -453,16 +452,21 @@ for i = bb(1,3):Vox(3):bb(2,3)				% z range of bb
 		axis image; axis off; title('template {gray}'); drawnow
 	end
  
-	% write the normalized MRI image
-	%--------------------------------------------------------------------
-	MRI   = spm_sample_vol(V(:,1),Xp(1,:)',Xp(2,:)',Xp(3,:)',1);
-	fwrite(U(1),MRI/V(7,1),spm_type(BIT(1)));
-
-	% and the others
-	%--------------------------------------------------------------------
-	for j = 2:length(U)
-		MRI   = spm_sample_vol(V(:,j),Xq(1,:)',Xq(2,:)',Xq(3,:)',1);
-		fwrite(U(j),MRI/V(7,j),spm_type(BIT(j)));
+	% write the normalized MRI images
+	if (i == bb(1,3)) open_mode = 'w'; else open_mode = 'a'; end
+	for j = 1:size(P,1)
+		q      = P(j,:);
+		q      = q(q ~= ' ');
+		d      = max([find(q == '/') 0]);
+		q      = [q(1:d) 'n' q((d + 1):length(q))];
+		if (j == 1)
+			MRI   = spm_sample_vol(V(:,j),Xp(1,:)',Xp(2,:)',Xp(3,:)',1);
+		else
+			MRI   = spm_sample_vol(V(:,j),Xq(1,:)',Xq(2,:)',Xq(3,:)',1);
+		end
+		U      = fopen(q,open_mode);
+		fwrite(U,MRI/V(7,j),spm_type(BIT(j)));
+		fclose(U);
 	end
 end
 
