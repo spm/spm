@@ -10,7 +10,7 @@ function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
 % FORMAT spm_graphwip('FinIter',SS,beta,fot,sot,ref,q)
 %
 %_______________________________________________________________________
-% Jesper Andersson 22/3-01
+% %W% Jesper Andersson %E%
 
 persistent iter;
 

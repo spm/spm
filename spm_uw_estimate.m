@@ -162,7 +162,7 @@ function ds = spm_uw_estimate(P,par)
 %
 % 
 %_______________________________________________________________________
-% Jesper Andersson 22/3-01, Rewrite 4/5-02.
+% %W% Jesper Andersson %E%
 
 
 if nargin < 1 | isempty(P), P = spm_get(Inf,'*.img'); end

@@ -108,7 +108,7 @@ function spm_uw_apply(ds,flags)
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
 %_______________________________________________________________________
-% Jesper Andersson 22/3-01.
+% %W% Jesper Andersson %E%
 
 def_flags = struct('mask',       1,...
                    'mean',       1,...
