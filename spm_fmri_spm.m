@@ -40,12 +40,12 @@ function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA)
 % without prompting
 %
 % Voxels are retained for further analysis if the F ratio for that voxel is
-% significant (p < 0.05 uncorrected) and all the voxels have a reasonably 
+% significant (p < UFp uncorrected) and all the voxels have a reasonably 
 % high level of activity (0.8 of the global activity).
 %
 %  SPMF.mat contains a 1 x N vector of F values reflecting the omnibus 
 % significance of effects [of interest] at each of the N 'significant' voxels. 
-% 'Significance' is defined by the p-value of the F threshold (p < 0.05).
+% 'Significance' is defined by the p-value of the F threshold (p < UFp).
 %  XYZ.mat contains a 3 x N matrix of the x,y and z location of the voxels in 
 %  SPMF in mm (usually referring the the standard anatomical space (Talairach
 % and Tournoux 1988)} (0,0,0) corresponds to the centre of the voxel specified 
@@ -127,7 +127,7 @@ function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA)
 
 % results matrices in .mat files
 %---------------------------------------------------------------------------
-% XA 	-	adjusted data  		{with at voxels F: p < 0.05}
+% XA 	-	adjusted data  		{with at voxels F: p < UFp}
 % BETA 	-	parameter estimates	{mean corrected}
 % XYZ	-	location 		{mm [Talairach]}
 % SPMF	-	omnibus F statistic
@@ -137,7 +137,7 @@ function spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA)
 
 % ANALYSIS PROPER
 %===========================================================================
-global CWD
+global CWD UFp
 
 % radiological convention (image left = subject right) assumed for T2* data
 %---------------------------------------------------------------------------
@@ -203,7 +203,7 @@ Xq(4,:) = [];
 %---------------------------------------------------------------------------
 if FLIP; Xq(1,:) = -Xq(1,:); end 			
 
-% variables saved (at voxels satisfying P{F > x} < 0.05)
+% variables saved (at voxels satisfying P{F > x} < UFp)
 %---------------------------------------------------------------------------
 eval(['cd ' CWD]);
 delete XA.mat
@@ -223,9 +223,9 @@ end
 % set thresholds
 %----------------------------------------------------------------------------
 if c
-   UF = spm_invFcdf(1 - 0.05,[c,df]);		% threhold for SPM{F}
+   UF = spm_invFcdf(1 - UFp,[c,df]);		% threhold for SPM{F}
 else
-   UF = spm_invFcdf(1 - 0.05,[g,df]);
+   UF = spm_invFcdf(1 - UFp,[g,df]);
 end
 Ut    = spm_invNcdf(1 - 0.01);			% threhold for SPM{t}/SPM{Z}
 S     = 0;					% Volume analyzed
@@ -321,7 +321,7 @@ for i   = 0:dI:length(Xp)
     	spm_append('XYZ' ,XYZ(:,Q));
     	if ~isempty(T ); spm_append('SPMt',T(:,Q)); end
 
-     end				% end conditional on P(F > x) < 0.05
+     end				% end conditional on P(F > x) < UFp
   else
     	for j = 1:size(CONTRAST,1)
         	fwrite(U(j),zeros(length(I),1),spm_type(16));
@@ -367,7 +367,7 @@ load XYZ
 load SPMF
 axes('Position',[0.1 0.5 0.8 0.4]);
 spm_mip(sqrt(SPMF),XYZ,V(1:6))
-title('SPM{F} (p < 0.05)','FontSize',16,'Fontweight','Bold')
+title(['SPM{F} (p < ',num2str(UFp),')'],'FontSize',16,'Fontweight','Bold')
 
 axes('Position',[0.1 0.1 0.36 0.36]);
 imagesc(spm_DesMtxSca([H B C G]))
