@@ -174,24 +174,25 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - FORMAT specifications for programers
 %=======================================================================
-% - generic   - [p,YPos] = spm_input(Prompt,YPos,Type,...)
-% - string    - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - evaluated - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
-%   - natural - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n)
-%   - whole   - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n)
-%   - integer - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
-%   - real    - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
-% - condition - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
-% - contrast  - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
-% - button    - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
+% - generic     - [p,YPos] = spm_input(Prompt,YPos,Type,...)
+% - string      - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - evaluated   - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
+%   - natural   - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n,mx)
+%   - whole     - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n,mx)
+%   - integer   - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
+%   - real      - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n,mm)
+% - condition   - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
+% - contrast    - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
+% - permutation - [p,YPos] = spm_input(Prompt,YPos,'p',DefStr,P,n)
+% - button      - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - button/edit combo's (edit for string or typed scalar evaluated input)
-%               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr)
-%   ...where ? in b?1 specifies edit widget type as with string & evaluated input
-%             - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr)
-%             - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr)
-% - menu      - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - display   -            spm_input(Message,YPos,'d',Label)
-% - alert     -            spm_input(Alert,YPos,'d!',Label)
+%               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr,mx)
+%   ...where ? in b?1 specifies edit widget type as with string & eval'd input
+%               - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr,mx)
+%               - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr,mx)
+% - menu        - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display     -            spm_input(Message,YPos,'d',Label)
+% - alert       -            spm_input(Alert,YPos,'d!',Label)
 %
 % - yes/no    - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
@@ -246,7 +247,7 @@ function varargout = spm_input(varargin)
 %            evaluated types
 %          - Defaults to ''
 %
-% n ('e' & 'c' types)
+% n ('e', 'c' & 'p' types)
 %          - Size of matrix requred
 %          - NaN for 'e' type implies no checking - returns input as evaluated
 %          - length of n(:) specifies dimension - elements specify size
@@ -268,14 +269,22 @@ function varargout = spm_input(varargin)
 %          - Defaults (missing or empty) to NaN
 %
 % n ('x'type)
-%            Number of contrasts required by 'x' type (n(1))
+%          - Number of contrasts required by 'x' type (n(1))
 %            ( n(2) can be used specify length of contrast vectors if )
 %            ( a design matrix isn't passed                           )
 %          - Defaults (missing or empty) to 1 - vector contrast
 %
+% mx ('n', 'w', 'n1', 'w1', 'bn1' & 'bw1' types)
+%          - Maximum value (inclusive)
+%
+% mm ('r' type)
+%          - Maximum and minimum values (inclusive)
+%
 % m        - Number of unique conditions required by 'c' type
 %          - Inf implies no restriction
 %          - Defaults (missing or empty) to Inf - no restriction
+%
+% P        - set (vector) of numbers of which a permutation is required
 %
 % X        - Design matrix for contrast checking in 'x' type
 %          - Can be either a straight matrix or a space structure (see spm_sp)
@@ -409,7 +418,7 @@ function varargout = spm_input(varargin)
 %               Position used is returned in YPos.
 %
 %-----------------------------------------------------------------------
-% FORMAT h = spm_input(Prompt,YPos,'p!',Labels,cb,UD,XCB);
+% FORMAT h = spm_input(Prompt,YPos,'m!',Labels,cb,UD,XCB);
 % GUI PullDown menu utility - creates a pulldown menu in the Interactive window
 % FORMAT H = spm_input(Prompt,YPos,'b!',Labels,cb,UD,XCB);
 % GUI Buttons utility - creates GUI buttons in the Interactive window
@@ -440,7 +449,7 @@ function varargout = spm_input(varargin)
 % true).  % In addition, in "extended callback", you can use UD to
 % refer to the UserData argument in the CallBack strings. (What happens
 % is this: The cb & UD are stored as fields in the PopUp's UserData
-% structure, and the PopUp's callback is set to spm_input('!p_cb'),
+% structure, and the PopUp's callback is set to spm_input('!m_cb'),
 % which reads UD into the functions workspace and eval's the
 % appropriate CallBack string.  Note that this means that base
 % workspace variables are inaccessible (put what you need in UD), and
@@ -558,7 +567,7 @@ function varargout = spm_input(varargin)
 % FORMAT spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
 % KeyPress callback for GUI pulldown menus
 %
-% FORMAT spm_input('!p_cb')
+% FORMAT spm_input('!m_cb')
 % Extended CallBack handler for 'p' PullDown utility type
 %
 % FORMAT spm_input('!dScroll',h,str)
@@ -622,7 +631,7 @@ end
 
 
 switch lower(Type)
-case {'s','e','n','w','i','r','c','x'}      %-String and evaluated input
+case {'s','e','n','w','i','r','c','x','p'}  %-String and evaluated input
 %=======================================================================
 %-Condition arguments
 if nargin<6|isempty(varargin{6}), m=[]; else, m=varargin{6}; end
@@ -631,13 +640,37 @@ if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
 DefStr = DefStr(:)';
 
+strM='';
+switch lower(Type)			%-Type specific defaults/setup
+case 's', TTstr='enter string';
+case 'e', TTstr='enter expression to evaluate';
+case 'n', TTstr='enter expression - natural number(s)';
+	if ~isempty(m), strM=sprintf(' (<=%d)',m); end
+case 'w', TTstr='enter expression - whole number(s)';
+	if ~isempty(m), strM=sprintf(' (<=%d)',m); end
+case 'i', TTstr='enter expression - integer(s)';
+case 'r', TTstr='enter expression - real number(s)';
+	if ~isempty(m), TTstr=[TTstr,sprintf(' in [%g,%g]',min(m),max(m))]; end
+case 'c', TTstr='enter indicator vector e.g. 0101...  or abab...';
+	if ~isempty(m) & isfinite(m), strM=sprintf(' (%d)',m); end
+case 'x', TTstr='enter contrast matrix';
+case 'p',
+	if isempty(n), error('permutation of what?'), else, P=n(:)'; end
+	if isempty(m), n = [1,length(P)]; end
+	m = P;
+	if ~length(setxor(m,[1:max(m)]))
+		TTstr=['enter permutation of [1:',num2str(max(m)),']'];
+	else
+		TTstr=['enter permutation of [',num2str(m),']'];
+	end
+otherwise, TTstr='enter expression'; end
 
-if lower(Type)=='c' & isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
 strN = sf_SzStr(n);
 
 
-if CmdLine
-	spm_input('!PrntPrmpt',[Prompt,strN,strM])
+if CmdLine                                   %-Use CmdLine to get answer
+%-----------------------------------------------------------------------
+	spm_input('!PrntPrmpt',[Prompt,strN,strM],TTstr)
 
 	if ~isempty(DefStr)
 		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
@@ -657,7 +690,8 @@ if CmdLine
 	end
 	if ~isempty(msg), fprintf('\t%s\n',msg), end
 
-else
+else                                             %-Use GUI to get answer
+%-----------------------------------------------------------------------
 
 	%-Create text and edit control objects
 	%---------------------------------------------------------------
@@ -701,19 +735,7 @@ else
 		'BackgroundColor',COLOUR,...
 		'Position',RRec);
 	set(hDef,'UserData',[hPrmpt,h])
-	if TTips
-		switch lower(Type)
-		case 's', str='enter string';
-		case 'e', str='enter expression to evaluate';
-		case 'n', str='enter expression - natural number(s)';
-		case 'w', str='enter expression - whole number(s)';
-		case 'i', str='enter expression - integer(s)';
-		case 'r', str='enter expression - real number(s)';
-		case 'c', str='enter indicator vector e.g. 0101...  or abab...';
-		case 'x', str='enter contrast matrix';
-		otherwise, str='enter expression'; end
-		set(h,'ToolTipString',str)
-	end
+	if TTips, set(h,'ToolTipString',TTstr), end
 
 	%-Figure ContextMenu for shortcuts
 	hM = spm_input('!InptConMen',Finter,[hPrmpt,hDef,h]);
@@ -789,6 +811,7 @@ case {'b','b|','y/n','be1','bn1','bw1','bi1','br1',...
 %=======================================================================
 %-Condition arguments
 switch lower(Type), case {'b','be1','bi1','br1','m'}
+	m = [];
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels='';   else, Labels =varargin{4}; end
@@ -802,21 +825,24 @@ case 'b|'
 	if nargin<4, Values=[];   else, Values =varargin{4}; end
 	Labels = varargin{3};
 case 'bn1'
+	if nargin<7, m=[];        else, m=varargin{7};       end
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels=[1:5]'; Values=[1:5]; Type='-n1';
 		else, Labels=varargin{4}; end
 case 'bw1'
+	if nargin<7, m=[];        else, m=varargin{7};       end
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels=[0:4]'; Values=[0:4]; Type='-w1';
 		else, Labels=varargin{4}; end
 case {'-n1','n1','-w1','w1'}
-	switch lower(Type)
-	case {'n1','-n1'}, Labels=[1:5]'; Values=[1:5]; Type='-n1';
-	case {'w1','-n1'}, Labels=[0:4]'; Values=[0:4]; Type='-w1';
-	end
+	if nargin<5, m=[];        else, m=varargin{5};       end
 	if nargin<4, DefItem=[];  else, DefItem=varargin{4}; end
+	switch lower(Type)
+	case {'n1','-n1'}, Labels=[1:min(5,m)]'; Values=Labels'; Type='-n1';
+	case {'w1','-w1'}, Labels=[0:min(4,m)]'; Values=Labels'; Type='-w1';
+	end
 end
 
 
@@ -1017,7 +1043,8 @@ switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 case {'be1','bn1','bw1','bi1','br1','-n1','-w1'}
                                       %-Process button/entry combo types
 %=======================================================================
-if ischar(DefItem), DefStr=DefItem; else, DefStr = num2str(DefItem); end
+if ischar(DefItem), DefStr=DefItem; else, DefStr=num2str(DefItem); end
+if isempty(m), strM=''; else, strM=sprintf(' (<=%d)',m); end
 
 if CmdLine
 
@@ -1099,19 +1126,19 @@ if CmdLine
                 case 'i', tstr='n integer';      case 'r', tstr=' real number';
                 otherwise, tstr=''; end
 		
-		Prompt = sprintf('%s (a%s)',Prompt,tstr);
+		Prompt = sprintf('%s (a%s%s)',Prompt,tstr,strM);
 		if ~isempty(DefStr)
 			Prompt=sprintf('%s\b, default %s)',Prompt,DefStr); end
 		str = input([Prompt,' : '],'s');
 		if isempty(str), str=DefStr; end
 	
 		%-Eval in Base workspace, catch errors
-		[p,msg] = sf_eEval(str,Type(2),1);
+		[p,msg] = sf_eEval(str,Type(2),1,m);
 		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
 			if isempty(str), str=DefStr; end
-			[p,msg] = sf_eEval(str,Type(2),1);
+			[p,msg] = sf_eEval(str,Type(2),1,m);
 		end
 	end
 
@@ -1126,7 +1153,7 @@ else
 	%-'UserData' of prompt contains answer
 	%---------------------------------------------------------------
 	hPrmpt = uicontrol(Finter,'Style','Text',...
-		'String',Prompt,...
+		'String',[Prompt,strM],...
 		'Tag',Tag,...
 		'UserData',[],...
 		'HorizontalAlignment','Right',...
@@ -1219,7 +1246,7 @@ else
 	else
 		Labels  = strvcat(Labels,'specify...');
 		k       = size(Labels,1);
-		[p,msg] = sf_eEval(p,Type(2),1);
+		[p,msg] = sf_eEval(p,Type(2),1,m);
 		while isstr(p)
 			set(H,'Visible','off')
 			h = uicontrol('Style','Text','String',msg,...
@@ -1233,7 +1260,7 @@ else
 			if ~ishandle(hPrmpt), error(['Input objects cleared ',...
 				'whilst waiting for response: Bailing out!']),end
 			p = get(hPrmpt,'UserData');
-			if isstr(p), [p,msg] = sf_eEval(p,Type(2),1); end
+			if isstr(p), [p,msg] = sf_eEval(p,Type(2),1,m); end
 		end
 	end
 
@@ -1367,9 +1394,8 @@ if exist('spm_log')==2
 varargout = {p,YPos};
 
 
-%-===============================-*@*-=================================-
 
-case {'p!','b!'}                          %-GUI PullDown/Buttons utility
+case {'m!','b!'}                          %-GUI PullDown/Buttons utility
 %=======================================================================
 % H = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB)
 %-Condition arguments
@@ -1381,7 +1407,7 @@ if nargin<4, Labels = []; else, Labels = varargin{4}; end
 if CmdLine, error('Can''t do CmdLine GUI utilities!'), end
 if isempty(cb), cb = 'disp(''(CallBack not set)'')'; end
 if ischar(cb), cb = cellstr(cb); end
-if length(cb)>1 & strcmp(lower(Type),'p!'), XCB=1; end
+if length(cb)>1 & strcmp(lower(Type),'m!'), XCB=1; end
 
 if iscellstr(Labels), Labels=char(Labels); end
 %-Convert Labels "option" string to string matrix if required
@@ -1415,15 +1441,15 @@ else
 end
 
 
-%-Sort out UserData for extended callbacks (handled by spm_input('!p_cb')
+%-Sort out UserData for extended callbacks (handled by spm_input('!m_cb')
 %-----------------------------------------------------------------------
 if XCB, if iscell(UD), UD={UD}; end, UD = struct('UD',UD,'cb',{cb}); end
 
 
 %-Draw PullDown or Buttons
 %-----------------------------------------------------------------------
-switch lower(Type), case 'p!'
-	if XCB, UD.cb=cb; cb = {'spm_input(''!p_cb'')'}; end
+switch lower(Type), case 'm!'
+	if XCB, UD.cb=cb; cb = {'spm_input(''!m_cb'')'}; end
 	H = uicontrol(Finter,'Style','PopUp',...
 		'HorizontalAlignment','Left',...
 		'ForegroundColor','k',...
@@ -1441,7 +1467,7 @@ case 'b!'
 	H = [];
 	for i=1:nLabels
 		if length(cb)>1, tcb=cb(i); else, tcb=cb; end
-		if XCB, UD.cb=tcb; tcb = {'spm_input(''!p_cb'')'}; end
+		if XCB, UD.cb=tcb; tcb = {'spm_input(''!m_cb'')'}; end
 		h = uicontrol(Finter,'Style','Pushbutton',...
 			'String',deblank(Labels(i,:)),...
 			'ToolTipString','',...
@@ -1670,11 +1696,23 @@ if ~isempty(cF), set(0,'CurrentFigure',cF); end
 
 case '!prntprmpt'
 %=======================================================================
-% spm_input('!PrntPrmpt',Prompt)
+% spm_input('!PrntPrmpt',Prompt,TipStr)
 %-Print prompt for CmdLine questioning
 if nargin<2, Prompt=''; else, Prompt=varargin{2}; end
 if isempty(Prompt), Prompt='Enter an expression'; end
-fprintf('\n%s\n\t%s\n%s\n',repmat('=',1,70),Prompt,repmat('=',1,70))
+if nargin<3
+  TipStr = '';
+else
+  TipStr = varargin{3};
+  tmp    = 8 + length(Prompt) + length(TipStr);
+  if tmp < 60
+    TipStr = sprintf('%s(%s)',repmat(' ',1,68-tmp),TipStr);
+  else
+    TipStr = sprintf('\n%s(%s)',repmat(' ',1,max(0,68-length(TipStr))),TipStr);
+  end
+end
+
+fprintf('\n%s\n\t%s%s\n%s\n',repmat('=',1,70),Prompt,TipStr,repmat('=',1,70))
 
 
 case '!inputrects'
@@ -1935,9 +1973,9 @@ else
 end
 
 
-case '!p_cb'     %-CallBack handler for extended CallBack 'p'ullDown type
+case '!m_cb'     %-CallBack handler for extended CallBack 'p'ullDown type
 %=======================================================================
-% spm_input('!p_cb')
+% spm_input('!m_cb')
 
 %-Get PopUp handle and value
 h   = gcbo;
@@ -2035,6 +2073,8 @@ case 'n'
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<1)|~isreal(p)
 		p='!'; msg='natural number(s) required';
+	elseif ~isempty(m) & any(p(:)>m)
+		p='!'; msg=['max value is ',num2str(m)];
 	else
 		[p,msg] = sf_SzChk(p,n);
 	end
@@ -2044,6 +2084,8 @@ case 'w'
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<0)|~isreal(p)
 		p='!'; msg='whole number(s) required';
+	elseif ~isempty(m) & any(p(:)>m)
+		p='!'; msg=['max value is ',num2str(m)];
 	else
 		[p,msg] = sf_SzChk(p,n);
 	end
@@ -2056,12 +2098,23 @@ case 'i'
 	else
 		[p,msg] = sf_SzChk(p,n);
 	end
+case 'p'
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	elseif length(setxor(p(:)',m))
+		p='!'; msg='invalid permutation';
+	else
+		[p,msg] = sf_SzChk(p,n);
+	end
 case 'r'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
 	elseif ~isreal(p)
 		p='!'; msg='real number(s) required';
+	elseif ~isempty(m) & ( max(p)>max(m) | min(p)<min(m) )
+		p='!'; msg=sprintf('real(s) in [%g,%g] required',min(m),max(m));
 	else
 		[p,msg] = sf_SzChk(p,n);
 	end
