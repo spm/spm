@@ -102,7 +102,7 @@ else,
 	end;
 end;
 
-if iscell(P), P = cat(1,P{:}); end;
+if iscell(P), P = strvcat(P{:}); end;
 if ischar(P), P = spm_vol(P); end;
 reslice_images(P,flags);
 return;
