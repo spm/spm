@@ -146,7 +146,6 @@ if (nargin==0)
 		end
 	end
 
-	if (1),
 	% This stuff isn't ready for general consumption yet
 	tmp = spm_input('Attempt to correct intensity inhomogenaeties?','+1','m',...
 		['No inhomogenaety correction|' ...
@@ -154,7 +153,6 @@ if (nargin==0)
 		 'Lots of inhomogenaety correction'],...
 		[' ' 'c' 'C'],1);
 	opts = [tmp opts];
-	end
 
 	for i = 1:n
 		eval(['PF = PF' num2str(i) ';']);
@@ -264,25 +262,41 @@ samp = round(max(abs(tmp*[4 4 4]'), [1 1 1]'));
 
 reg = 0;
 if any(opts == 'c') | any(opts == 'C')
-	reg = 1e6;
-	if any(opts == 'C'), reg = 1e5; end
+	% I don't know what the best values for reg are yet, or even if
+	% membrane energy is a better regularizer than bending energy.
+	% I guess a bit more experimentation is needed.
+	reg = 1; co = 32;
+	if any(opts == 'C'), reg = 0.1; co = 25; end
 
 	% Stuff for intensity modulation
 	%-----------------------------------------------------------------------
 	% Set up basis functions
-	nbas = max(round((VF(1:3,1).*VF(4:6,1))/32)',[1 1 1]);
+	nbas = max(round((VF(1:3,1).*VF(4:6,1))/co)',[1 1 1]);
 	B1=spm_dctmtx(VF(1,1),nbas(1),bb(1,1):samp(1):bb(2,1));
 	B2=spm_dctmtx(VF(2,1),nbas(2),bb(1,2):samp(2):bb(2,2));
 	B3=spm_dctmtx(VF(3,1),nbas(3),bb(1,3):samp(3):bb(2,3));
 
 	d = [size(B1,1) size(B2,1) size(B3,1)];
 
-	% Set up a priori covariance matrix (based upon bending energy)
+	% Set up a priori covariance matrix
 	kx=(pi*((1:nbas(1))'-1)/VF(1,1)).^2; ox=ones(nbas(1),1);
 	ky=(pi*((1:nbas(2))'-1)/VF(2,1)).^2; oy=ones(nbas(2),1);
 	kz=(pi*((1:nbas(3))'-1)/VF(3,1)).^2; oz=ones(nbas(3),1);
-	IC0 = (kron(kz.*kz,kron(oy,ox)) + kron(oz,kron(ky.*ky,ox)) + kron(oz,kron(oy,kx.*kx)) ...
-	+ 2*kron(kz,kron(ky,ox)) + 2*kron(kz,kron(oy,kx)) + 2*kron(oz,kron(ky,kx)) )*reg;
+	if (0),
+		% based upon bending energy
+		IC0 = (	kron(kz.*kz,kron(oy,ox)) + ...
+			kron(oz,kron(ky.*ky,ox)) + ...
+			kron(oz,kron(oy,kx.*kx)) +...
+			2*kron(kz,kron(ky,ox)) + ...
+			2*kron(kz,kron(oy,kx)) + ...
+			2*kron(oz,kron(ky,kx)) )*reg;
+	else,
+		% based upon membrane energy
+		IC0 =(	kron(kron(oz,oy),kx) + ...
+			kron(kron(oz,ky),ox) + ...
+			kron(kron(kz,oy),ox) )*reg;
+	end;
+
 	% Assume a tiny variance for the DC coefficient.
 	IC0(1) = max(IC0)*1000;
 	IC0 = diag(IC0);
@@ -426,7 +440,7 @@ for iter = 1:niter
 				%-----------------------------------------------------------------------
 				pr  = reshape(pr ,d(1),d(2),n);
 				for j=1:m,
-					for i=1:n
+					for i=1:2
 						wt = pr(:,:,i)*(cv(j,j,i).^(-0.5));
 						if i==1,
 							[alpha,beta]=spm_kronutil(wt.*rawdat(:,:,j),wt*mn(j,i),B1,B2);
@@ -653,8 +667,9 @@ for j=1:nb
 		'HorizontalAlignment','center','Parent',ax);
 end
 if m > 1
-	text(0,0.10,'Parent',ax, ...
-	'Note: only means and variances for the first image are shown','FontSize',12);
+	text(0,0.10,...
+	'Note: only means and variances for the first image are shown',...
+	'Parent',ax,'FontSize',12);
 end
 
 % and display a few images.
