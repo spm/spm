@@ -247,9 +247,9 @@ IMAGE_DTYPE *vol[];
 		xi=x[i]-1.0;
 		yi=y[i]-1.0;
 		zi=z[i]-1.0;
-		if (zi>=-TINY && zi<=zdim+TINY-1 &&
-		    yi>=-TINY && yi<=ydim+TINY-1 &&
-		    xi>=-TINY && xi<=xdim+TINY-1)
+		if (zi>=-TINY && zi<zdim+TINY-1 &&
+		    yi>=-TINY && yi<ydim+TINY-1 &&
+		    xi>=-TINY && xi<xdim+TINY-1)
 		{
 			double k111,k112,k121,k122,k211,k212,k221,k222;
 			double dx1, dx2, dy1, dy2, dz1, dz2;
@@ -259,9 +259,9 @@ IMAGE_DTYPE *vol[];
 			ycoord = (int)floor(yi); dy1=yi-ycoord; dy2=1.0-dy1;
 			zcoord = (int)floor(zi); dz1=zi-zcoord; dz2=1.0-dz1;
 
-			xcoord = (xcoord < 0) ? ((offx=0),0) : ((xcoord>=xdim-1) ? ((offx=0),xdim-2) : ((offx=1   ),xcoord));
-			ycoord = (ycoord < 0) ? ((offy=0),0) : ((ycoord>=ydim-1) ? ((offy=0),ydim-2) : ((offy=xdim),ycoord));
-			zcoord = (zcoord < 0) ? ((offz=0),0) : ((zcoord>=zdim-1) ? ((offz=0),zdim-2) : ((offz=1   ),zcoord));
+			xcoord = (xcoord < 0) ? ((offx=0),0) : ((xcoord>=xdim-1) ? ((offx=0),xdim-1) : ((offx=1   ),xcoord));
+			ycoord = (ycoord < 0) ? ((offy=0),0) : ((ycoord>=ydim-1) ? ((offy=0),ydim-1) : ((offy=xdim),ycoord));
+			zcoord = (zcoord < 0) ? ((offz=0),0) : ((zcoord>=zdim-1) ? ((offz=0),zdim-1) : ((offz=1   ),zcoord));
 
 			off1 = xcoord  + xdim*ycoord;
 			off2 = off1+offy;

@@ -253,7 +253,7 @@ int q, dim, *d1;
 	{
 		/* Close enough to use nearest neighbour */
 		*d1=rint(coord);
-		if (*d1<1 || *d1>dim) /* Pixel location outside image */
+		if (*d1<0 || *d1>=dim) /* Pixel location outside image */
 			*ptpend = table-1;
 		else
 		{
