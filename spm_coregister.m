@@ -39,6 +39,14 @@ function spm_coregister(PGF, PFF, PGG, PFG, others,flags)
 % Realignment parameters are stored in the ".mat" files of the "object" and
 % the "other" images.
 %____________________________________________________________________________
+% Refs:
+%
+% Ashburner J & Friston KJ (1997) Multimodal Image Coregistration and
+% Partitioning - a Unified Framework. NeuroImage 6:209-217
+%
+% Ashburner J, Neelin P, Collins DL, Evans AC & Friston KJ (1997)
+% Incorporating Prior Knowledge into Image Registration. NeuroImage 6:344-352
+%____________________________________________________________________________
 % %W% John Ashburner FIL %E%
 
 % programers notes

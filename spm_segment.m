@@ -46,8 +46,11 @@ function spm_segment(PF,PG,opts)
 %    first image passed.
 %
 %_______________________________________________________________________
+% Refs:
 %
-% Ref:
+% Ashburner J & Friston KJ (1997) Multimodal Image Coregistration and
+% Partitioning - a Unified Framework. NeuroImage 6:209-217
+%
 % Hartigan, J. A. 1975. Clustering Algorithms, pp. 113-129.
 % John Wiley & Sons, Inc., New York.
 %
