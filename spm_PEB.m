@@ -113,7 +113,7 @@ else
 	% Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
 	%-------------------------------------------------------------------
 	Cp                = sparse(1:n,1:n,1e8);
-	C{p + 1}.E        = sparse(1:n,1:n,0);
+	C{p + 1}.E        = sparse(1:n,1,0);
 	C{p + 1}.M        = Cp;
 end
 
@@ -246,7 +246,6 @@ end
 % warning
 %---------------------------------------------------------------------------
 if j == M, warning('maximum number of iterations exceeded'), end
-
 
 % re-organize conditional moments hierarchically
 %---------------------------------------------------------------------------
