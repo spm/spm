@@ -12,21 +12,22 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C)
 
 % number of regions
 %---------------------------------------------------------------------------
-n       = size(A,2);
+n     = length(A);
 
 % CONNECTIITY PRIORS
 %===========================================================================
-% covariances            pC = n*b^2/(n - 1)/s^2  - if A == 1
-%                        pC = 0                    if A == 0
+% covariances            pC = 1/((n - 1)*q)  - if A == 1
+%                        pC = 0                if A == 0
 %
-% where, for aij = aji = -b/(n - 1)  => max(eig(J(0))) = 0
-% and         pC = n/(n - 1)*b^2/s^2 => p(aij > -b/(n - 1)) = 1 - spm_Ncdf(s)
+% where, for aij = aji = 1/(n - 1)  => max(eig(J(0))) = 0
+% and q is the Chi-squared threshold with n*(n - 1) df
 
 % log(2)/b = half-life {b = self inhibition}
 %---------------------------------------------------------------------------
 b     = 1;
-s     = spm_invNcdf(1 - 1e-6);
-q     = n/(n - 1)/s^2;
+s     = spm_invNcdf(1 - 1e-3);
+q     = spm_invXcdf(1 - 1e-3,n*(n - 1));
+q     = 1/((n - 1)*q);
 
 % intrinsic connections A {additional priors from eigenvalues}
 %---------------------------------------------------------------------------
@@ -51,7 +52,8 @@ pE    = [b; A(:); B(:); C(:)];
 
 [qE,qC] = spm_hdm_priors(0);
 
-% Augment hemodynamic priors with orthogonlization constraint
+
+% Reduce rank of prior covariances for computational expediancy
 %---------------------------------------------------------------------------
 
 % model specification (single node)
@@ -70,7 +72,7 @@ M.dt  = 16/M.N;
 P     = [1; -1; 0; 1; qE];
 p     = length(P);
 
-% compute partial derivatives [J] dy(t)/dp
+% compute partial derivatives w.r.t. hemodynamic parameters [J] dy(t)/dp
 %---------------------------------------------------------------------------
 dp    = 1e-6;
 M.pE  = P;
@@ -81,23 +83,18 @@ for i = 1:5
 	Jq(:,i) = (q - J)/dp;
 end
 
-
 % implied covariance of impulse response
 %---------------------------------------------------------------------------
 Cq    = Jq*qC*Jq';
 
-% [ orthonalize w.r.t amplitude modulations of HRF (J) ]
-%---------------------------------------------------------------------------
-R     = speye(M.N,M.N) - J*pinv(J);
-% Cq  = R*Cq*R;
-
-% and reduce to h hemodynamic modes
+% reduce to h hemodynamic modes in measurement space
 %---------------------------------------------------------------------------
 h     = 1:2;					
 [v s] = spm_svd(Cq);
 v     = v(:,h);
 Cq    = v*v'*Cq*v*v';
 qC    = pinv(Jq)*Cq*pinv(Jq');
+
 
 % combine connectivity and hemodynamic priors
 %===========================================================================
@@ -108,6 +105,7 @@ pC    = blkdiag(pC,qC);
 
 
 return
+
 
 % NOTES: graphics - eigenvalues of qC
 %---------------------------------------------------------------------------
@@ -121,10 +119,9 @@ grid on
 
 % graphics - response differentials
 %---------------------------------------------------------------------------
-[v s] = spm_svd(qC);
 subplot(2,2,2)
-plot([1:M.N]*M.dt,Jq*v(:,h)*sqrt(s(h,h)))
+plot([1:M.N]*M.dt,v(:,h)*sqrt(s(h,h)))
 xlabel('PST {secs}')
-title('response differential')
+title('hemodynamic modes')
 axis square
 grid on
