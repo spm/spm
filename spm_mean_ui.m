@@ -12,18 +12,16 @@ function spm_mean
 
 %-Select images
 %-----------------------------------------------------------------------
-P = spm_get(Inf,'.img','Select images to be averaged');
-Q = 'mean.img';
-
-drawnow;
-
-V=spm_vol(P);
+V=spm_vol(spm_get(Inf,'.img','Select images to be averaged'));
 
 %-Compute mean and write headers etc.
 %-----------------------------------------------------------------------
-scale  = spm_add(V,Q)/size(P,1);
-VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
-ORIGIN = (V(1).mat\[0 0 0 1]')';
-ORIGIN = round(ORIGIN(1:3));
-spm_hwrite(Q,V(1).dim(1:3),VOX,scale,4,0,ORIGIN,'Mean image');
-spm_get_space(Q,V(1).mat);
+VO         = V(1);
+VO.fname   = 'mean.img';
+VO.descrip = 'Mean image';
+VO.pinfo   = [1.0 0 0]';
+VO.dim(4)  = 16;
+spm_create_image(VO);
+for i=1:prod(size(V)), V(i).pinfo(1:2,:) = V(i).pinfo(1:2,:)/prod(size(V)); end;
+VO.pinfo(1,1) = spm_add(V,VO);
+spm_create_image(VO);
