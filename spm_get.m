@@ -259,6 +259,17 @@ function varargout = spm_get(varargin)
 % FORMAT str = spm_get('DrivesPullDownStr')
 % returns string for Drives pull down menu on Windows platforms
 %
+% FORMAT [P,dir] = spm_get('Files',dir,fil)
+% Extended gateway to spm_list_files: Returns full pathnames & canonicalises dir
+% dir      - directory within which list files (a string)
+%            parameter is canonicalised by spm_get('CPath',dir)
+%            [defaults to '.', the current directory]
+% fil      - file filter string E.g. 'sn*.img' [default '*']
+% P        - string matrix of files in directory
+%            if nargout<2 (i.e. if dir is not returned), then these are
+%            full pathnames
+% dir      - full pathname of directory listed (after canonicalisation)
+%
 %-----------------------------------------------------------------------
 % SUBFUNCTIONS:
 %
@@ -1687,6 +1698,24 @@ drivestr  = spm_win32utils('drives');
 n         = length(drivestr);
 varargout = ...
 	{['Drives...',reshape(['|'*ones(1,n);drivestr;':'*ones(1,n)],1,3*n)]};
+
+
+case 'files'
+%=======================================================================
+% FORMAT [P,dir] = spm_get('Files',dir,fil)
+if nargin<3, fil='*'; else, fil = varargin{3}; end
+if nargin<2, dir='.'; else, dir = varargin{2}; end
+dir = spm_get('CPath',dir);
+[P,null] = spm_list_files(dir,fil);
+
+%-Make into full pathnames if nargout<2
+if ~isempty(P) & nargout<2
+	nP = size(P,1);
+	P = [repmat(dir,nP,1), repmat(filesep,nP,1), P];
+end
+
+varargout = {P,dir};
+
 
 otherwise
 %=======================================================================
