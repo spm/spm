@@ -1,5 +1,7 @@
 function extras = write_extras(fname,extras)
 % Write extra bits of information
+% _______________________________________________________________________
+% %W% John Ashburner %E%
 
 [pth,nam,ext] = fileparts(fname);
 switch ext

@@ -1,5 +1,7 @@
 function extras = read_extras(fname)
 % Read extra bits of information
+% _______________________________________________________________________
+% %W% John Ashburner %E%
 
 extras = [];
 [pth,nam,ext] = fileparts(fname);
