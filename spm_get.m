@@ -704,12 +704,13 @@ if nP>0
 end
 fprintf('\nEnter paths :')
 AllowEnd = AllowEnd | isinf(n);
-Tstr = 'END';
+Tstr = 'END '; %-Append a space for later...
 if AllowEnd, fprintf(' (Type "END" to terminate input.)')
 	else fprintf(' to %d items:',abs(n)-nP), end
 
 Done=0;
 while ~Done
+	%-Get input, append a space to avoid empty str.
 	str = [input(sprintf('  %3d  : ',nP+1),'s'),' '];
 	%-Prepend WDir to incomplete pathnames, prevents exist searching the path.
 	if (str(1)~='/')&(~strcmp(str,Tstr)), str = [WDir,'/',str]; end
