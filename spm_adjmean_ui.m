@@ -286,12 +286,13 @@ iAdjTo   = DesDef.iAdjTo;
 %-Get filenames, build subject & condition indicies
 %-----------------------------------------------------------------------
 if bMSubj
-	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1');
+	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1','w1');
 	bMSubj = nSubj > 1;
 else
 	nSubj  = 1;
 end
 guiPos = spm_input('!NextPos');
+tmp = [];
 for subj  = 1:nSubj
 	if bMSubj, strS = [sSubj,' ',int2str(subj),': ']; else, strS = ''; end
 	tP = spm_get(Inf,'.img',{[strS,'select scans...']});
@@ -300,8 +301,8 @@ for subj  = 1:nSubj
 	iSubj = [iSubj; subj*ones(nt,1)];
 	if bMCond
 		str = sprintf('%s[%d] iCond index',strS,nt);
-		tmp = spm_input(str,guiPos,'c','',nt);
-		iCond = [iCond; reshape(tmp,nt,1)];
+		tmp = spm_input(str,guiPos,'c',tmp',nt);
+		iCond = [iCond; tmp];
 	else
 		iCond = [iCond; ones(nt,1)];
 	end
@@ -584,18 +585,33 @@ spm('Pointer','Watch');
 %-Using implicit zero masking feature of spm_add: The resultant image
 % will be zero at voxels where *any* of the input images are zero.
 
+%-Create handle template for output images as 16bit Int16's
+Vo = struct(	'fname',	'',...
+		'dim',		[V(1).dim(1:3),4],...
+		'mat',		V(1).mat,...
+		'pinfo'	,	[1,0,0]',...
+		'descrip',	'');
+
+%-Loop over contrasts
 for i = 1:nc
+	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
+	%-Implement weighted sum by weighting scalefactors in image handles
 	w  = W(i,:).*gSF';
 	Q  = find(abs(w)>0);
 	w  = w(Q); wV = V(Q);
 	for j=1:length(Q), wV(j).pinfo(1,:)=wV(j).pinfo(1,:)*w(j); end
-	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
-	sf  = spm_add(wV,[Fnames{i},'.img'],'m');
-	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
-	spm_hwrite([Fnames{i},'.hdr'],DIM,VOX,sf,spm_type('int16'),0,ORIGIN,str);
-	spm_get_space(Fnames{i},V(1).mat);
+	%-Write header
+	Vo.fname   = [Fnames{i},'.img'];
+	Vo.descrip = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
+	Vo.pinfo   = [1,0,0]';
+	spm_create_image(Vo);
+	%-Compute & rewrite header scalefactor
+	Vo.pinfo(1)  = spm_add(wV,Vo,'m');
+	spm_create_image(Vo);
 	fprintf(' (done)\n')
 end
+
+%-Prepend PWD to Fnames
 Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
 
 
@@ -632,5 +648,6 @@ save SPMadj SPMid ...
 %=======================================================================
 % - E N D
 %=======================================================================
-set(Finter,'Name','AdjMean - done'), spm('Pointer','Arrow')
+spm('FigName','AdjMean - done',Finter,CmdLine);
+spm('Pointer','Arrow')
 fprintf('\n\n')
