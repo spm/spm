@@ -8,7 +8,7 @@ function varargout = spm_input(varargin)
 % gui_arg	: traditional gui arguments
 % 'batch'	: batch marker to delimit where the non GUI arg
 %		  start.
-% mat-file	: the name of a mat file containing variables that
+% bch_mat	: the name of a mat file containing variables that
 %		  will be used in spm_input
 % 		  NB The mat-file can be a structure obtained with 
 %		  a mat-file = load(mat-file).
@@ -18,7 +18,7 @@ function varargout = spm_input(varargin)
 %		  and all var1..N should exist in mat-file.
 %		  indexing_part is specifying a variable in mat-file,
 %		  called last_var in this code through the indexing 
-%		  system. (see batch documentation).
+%		  system. (see batch documentation: spm_bch.man).
 %		  addressing_part should look like a series of 
 %		  'field_name' or index used to address last_var
 %		  (see indexing_part) to return last_var.field_name(index)
@@ -34,17 +34,17 @@ function varargout = spm_input(varargin)
 % Some part of the spm code will never be executed in batch mode.
 % In these parts, the spm_input should have no batch marker.
 %
-% In case where there are no argument for the batch mode, and 
-% batch marker is followed by a mat-file arg that is not empty,
-% spm_input returns with no GUI execution. If the mat-file
-% exists but is empty, then  spm_input_orig is called.
+% In case where there are no argument for the batch mode,
+%    if global variable BCH is not empty, spm_input returns with 
+%       no GUI call 
+%    if global variable is empty (not in bch mode)
+%       then spm_input_orig is called.
 %  
 %---------------------------------------------------------------
 % %W% Jean-Baptiste Poline, Stephanie Rouquette %E%
 
 
-
-
+global BCH %- contains bch_mat, index0, and flag. see spm_bch.m
 
 %-------------------------------------------------------------------
 %---- ib = indice where batch starts
@@ -61,44 +61,38 @@ if isempty(ib),
    end
 end
 
-%---- if no argument after batch marker just return, don't call GUI
-%------------------------------------
-if ib == nargin, warning('batch marker should be followed'); return; end  
+%---- if batch marker, not BCH mode 
+%--------------------------------------
 
-%---- no batch mat file ?
-%------------------------------------
-if isempty(varargin{ib+1})
-	if ib == 1, % No arg before batch marker
-	   return
-	else
-   	   if nargout
-	      varargout = {spm_input_orig(varargin{1:ib-1})}; return; 
-   	   else
-	      spm_input_orig(varargin{1:ib-1}); return;
-	   end
-	end
-end;
+if isempty(BCH)
+  if nargout
+     varargout = {spm_input_orig(varargin{1:ib-1})}; return; 
+  else
+     spm_input_orig(varargin{1:ib-1}); return;
+  end
+end
+
+
+%---- batch marker, BCH mode 
+%--------------------------------------
+if ib == nargin, %- no argument for BCH
+  return  
+end
 
 %----  at least one batch argument after the mat name : 
 %------------------------------------
-bchvarin = varargin(ib+2:end);		%- contains the varargin for batch 
-                                        %- after the mat-file 
-bchmat 	= varargin{ib+1};		%- mat-file
-nbchin 	= length(bchvarin);		%- # of arg passed 
-if nbchin == 0, return, end
+bchvarin = varargin(ib+1:end);   %- contains the varargin for batch 
+                                 %- after the 'batch' marker 
+bchmat 	= BCH.bch_mat;	         %- mat-file (or structure in memory)
+nbchin 	= length(bchvarin);      %- # of arg passed 
 
 %-------------------------------------------------------------------
 %---------------  first construct the indices...
 %-------------------------------------------------------------------
-curarg = 1;
-
-%- get the bch_var_lev and bch_names : must be in bchmat
-% bch_var_lev = sf_get_var(bchmat,'bch_var_lev');
 
 bch_names = sf_get_var(bchmat,'bch_names');
 indices   = {};
-cind      = bchvarin{curarg};
-
+cind      = {BCH.index0{:} bchvarin{1}{:}};
 
 if ~isempty(cind)
 
@@ -113,13 +107,10 @@ if ~isempty(cind)
 
    %- initialise lastvar 
    %--------------------------------------------
-
-   % no_ind = 1;
    lastvar = sf_get_var(bchmat,cind{1});
    indices = cind(2);
    
    for k = 3:2:length(cind)
-%      no_ind = no_ind+1;
       try
           indices{1} = getfield(lastvar,indices,cind{k},cind(k+1));
           lastvar = sf_get_var(bchmat,cind{k});
@@ -130,8 +121,8 @@ if ~isempty(cind)
       end  
    end %- for k = 3:2:length(cind)
 
- else 
-	error('parsing indices ~iscell(cind)');
+ else
+   error('parsing indices ~iscell(cind)');
  end
 
 else
@@ -154,37 +145,36 @@ end
 % lastvar in memory
 
 if nbchin >= 2
+  
+  for i = 2:nbchin
 
-	for i = (curarg+1):nbchin
+	%------------ argument is string ---------
+	if isstr(bchvarin{i}), s_typ = '.'; subs = bchvarin{i};
+	%------------ argument is numeric or cell ---------
+	else
+	   if iscell(lastvar), s_typ = '{}'; else, s_typ = '()'; end
+	   %------------ argument is numeric ---------
+	   if isnumeric(bchvarin{i})
+	      if prod(size(bchvarin{i})) > 1, 
+                 error(' parsing : use cell to pass indices'); 
+              end
+	      subs = {bchvarin{i}};	
+	   %------------ argument is cell ---------
+	   elseif iscell(bchvarin{i}) %- assumes these are indices ....
+                  subs = bchvarin{i};
+	   else 
+                  error('parsing : what kind of argument ? ')
+	   end
+	end
 
-		% bchvarin{i}
-		% lastvar
-		%------------ argument is string ---------
-		if isstr(bchvarin{i}), s_typ = '.'; subs =bchvarin{i};
-		%------------ argument is numeric or cell ---------
-		else
-			if iscell(lastvar), s_typ = '{}'; else, s_typ = '()'; end
-			%------------ argument is numeric ---------
-			if isnumeric(bchvarin{i})
-				if prod(size(bchvarin{i})) > 1, 
-					error(' parsing : use cell to pass indices'); 
-				end
-				subs = {bchvarin{i}};	
-			%------------ argument is cell ---------
-			elseif iscell(bchvarin{i}) %- assumes these are indices ....
-				subs = bchvarin{i};
-			else 
-				error('parsing : what kind of argument ? ')
-			end
-		end
+	try,    lastvar = subsref(lastvar, substruct(s_typ,subs));
+	catch, 
+	   warning('couldn''t access the sub ref ...  ');
+	   lastvar, s_typ, subs,
+	   varargout = {spm_input_orig(varargin{1:ib-1})}; return; 
+	end
 
-		try, lastvar = subsref(lastvar, substruct(s_typ,subs));
-		catch, 
-			lastvar, s_typ, subs,
-			varargout = {spm_input_orig(varargin{1:ib-1})}; return; 
-		end
-
-	end %- for i = 2:nbchin
+   end %- for i = 2:nbchin
 	
 end
 
@@ -243,10 +233,10 @@ elseif ~rem(length(cind),2)
 	end
 	if ~a, 
 	    c = cind(1:2:end);
-	    warning([sprintf('''%s'' ',c{:}) ' are not all members of  ', ...
+	    warning([sprintf('''%s'' ',c{:}) ' not all members of ', ...
 			sprintf('''%s'' ',names{:}) ]);
 	end
-	b = all(sf_arenumeric(cind(2:2:end)));
+	b = all(sf_are_idx(cind(2:2:end)));
 	if ~b, 
 	    c = cind(2:2:end)
 	    warning(' arguments in indexing part are not all numerics');
@@ -257,11 +247,13 @@ else
 	warning('length of indexing part should be even');
 end
 %-------------------------------------------------------------------
-function in = sf_arenumeric(n)
-% checks whether these are numerics ...
+function in = sf_are_idx(n)
+% checks whether these are numerics or ':' ...
 in = [];
 if iscell(n),
-	for i=1:length(n), in = [in isnumeric(n{i})]; end
+	for i=1:length(n), 
+	    in = [in isnumeric(n{i}) | strcmp(n{i},':')]; 
+	end
 else
 	in = isnumeric(n);
 end
