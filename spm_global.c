@@ -39,7 +39,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 	n = map->dim[0]*map->dim[1];
-	dat = (double *)mxCalloc(m, sizeof(double));
+	dat = (double *)mxCalloc(n, sizeof(double));
 
 	s1 = 0.0;
 	for (i=0; i<map->dim[2]; i++)
