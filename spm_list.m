@@ -56,7 +56,8 @@ function spm_list(SPM,VOL,Dis,Num,title)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-%-Default arguments
+
+%-Parse arguments
 %-----------------------------------------------------------------------
 if nargin<2, error('insufficient arguments'), end
 if nargin<5, title=spm_str_manip(SPM.swd,'a50'); end
@@ -71,7 +72,7 @@ if isempty(Dis), Dis=8; end
 spm('Pointer','Watch')
 Fgraph    = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph)
-FS        = spm_figure('FontSizes');
+FS        = spm('FontSizes');
 
 
 %-Characterize excursion set in terms of maxima
@@ -114,31 +115,44 @@ y     = floor(AxPos(4)) - dy;
 
 text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',title],...
 	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
-line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 5*dy/4;
+line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 
 %-Construct table header
 %-----------------------------------------------------------------------
 set(gca,'DefaultTextFontName','Helvetica','DefaultTextFontSize',FS(8))
 
-text(0.01,y,	'set-level','FontSize',FS(9))
+text(0.01,y,		'set-level','FontSize',FS(9))
 line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.02,y-dy,	'\itp')			% '\itp\rm(\itC\rm > \itc\rm)'
-text(0.09,y-dy,	'\itc')			% '\{\itc\rm\}'
+text(0.02,y-9*dy/8,	'\itp ')
+text(0.09,y-9*dy/8,	'\itc ')
 
-text(0.22,y,	'cluster-level','FontSize',FS(9))
+text(0.22,y,		'cluster-level','FontSize',FS(9))
 line([0.16,0.42],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.16,y-dy,	'\itp \rm_{corrected}')	% '\itp\rm(\itK_{max}>k\rm)'
-text(0.28,y-dy,	'\itk')			% '\{\itk\rm\}'
-text(0.33,y-dy,	'\itp \rm_{uncorrected}')% '\itp\rm(\itK>k\rm|\itK>0\rm)'
+text(0.16,y-9*dy/8,	'\itp \rm_{corrected}')
+text(0.28,y-9*dy/8,	'\itk')
+text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}')
 
-text(0.60,y,	'voxel-level','FontSize',FS(9))
+text(0.60,y,		'voxel-level','FontSize',FS(9))
 line([0.48,0.83],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.48,y-dy,	'\itp \rm_{corrected}')
-text(0.60,y-dy,	sprintf('\\it%c',STAT))
-text(0.68,y-dy,	'(\itZ\rm_\equiv)')
-text(0.75,y-dy,	'\itp \rm_{uncorrected}')
+text(0.48,y-9*dy/8,	'\itp \rm_{corrected}')
+text(0.60,y-9*dy/8,	sprintf('\\it%c',STAT))
+text(0.68,y-9*dy/8,	'(\itZ\rm_\equiv)')
+text(0.75,y-9*dy/8,	'\itp \rm_{uncorrected}')
 
 text(0.90,y-dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
+
+%-Headers for text table...
+TabDat.tit = title;
+TabDat.hdr = {	'set',		'c';...
+		'set',		'p';...
+		'cluster',	'p (cor)';...
+		'cluster',	'k';...
+		'cluster',	'p (unc)';...
+		'voxel',	'p (cor)';...
+		'voxel',	STAT;...
+		'voxel',	'equivZ';...
+		'voxel',	'p (unc)';...
+		'',		'x,y,z {mm}'}';
 
 y     = y - 7*dy/4;
 line([0 1],[y y],'LineWidth',1,'Color','r')
@@ -151,6 +165,9 @@ hPage = [];
 
 set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(7))
 
+%-Table proper (& note all data in cell array)
+%=======================================================================
+
 %-Set-level p values {c}
 %-----------------------------------------------------------------------
 c     = max(A);					%-Number of clusters
@@ -162,6 +179,8 @@ h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
 	'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
 hPage = [hPage, h];
 
+TabDat = {Pc,c};				%-Table data
+TabLin = 1;					%-Table data line
 
 %-Local maxima p-values & statistics
 %=======================================================================
@@ -227,6 +246,9 @@ while max(Z)
 	hPage = [hPage, h];
  
 	y     = y - dy;
+	
+	[TabDat{TabLin,3:10}] = deal(Pk,N(i),Pn,Pu,U,Ze,Pz,XYZmm(:,i));
+	TabLin = TabLin+1;
 
 	%-Print Num secondary maxima (> Dis mm apart)
     	%---------------------------------------------------------------
@@ -269,6 +291,8 @@ while max(Z)
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - dy;
+			[TabDat{TabLin,6:10}] = deal(Pu,U,Ze,Pz,XYZmm(:,d));
+			TabLin = TabLin+1;
 		end
 	    end
 	end
@@ -284,9 +308,8 @@ if spm_figure('#page')>1
 	spm_figure('NewPage',[hPage,h])
 end
 
-
 %-Table filtering note
-%-----------------------------------------------------------------------
+%===========================================================================
 str = sprintf(['table shows at most %d subsidiary maxima ',...
 	'>%.1fmm apart per cluster'],Num,Dis);
 text(0.5,4,str,'HorizontalAlignment','Center',...
@@ -304,25 +327,64 @@ Pz              = spm_P(1,0,u,df,STAT,1,n);
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 set(gca,'DefaultTextFontName','Helvetica',...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-str = sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',STAT,u,Pz,P);
-text(0.0,-1*dy,str);
-str = sprintf('Extent threshold: k = %0.2f resels, p = %0.3f',k,Pn);
-text(0.0,-2*dy,str);
-str = sprintf('Expected resels per cluster, E[n] = %0.3f',En);
-text(0.0,-3*dy,str);
-str = sprintf('Expected number of clusters, E[m] = %0.2f',Em*Pn);
-text(0.0,-4*dy,str);
+TabFut = cell(4,2);
+TabFut{1} = ...
+	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',STAT,u,Pz,P);
+text(0.0,-1*dy,TabFut{1},...
+	'UserData',[u,Pz,P],'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{2} = sprintf('Extent threshold: k = %0.2f resels, p = %0.3f',k,Pn);
+text(0.0,-2*dy,TabFut{2},...
+	'UserData',[k,Pn],'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{3} = sprintf('Expected resels per cluster, E[n] = %0.3f',En);
+text(0.0,-3*dy,TabFut{3},...
+	'UserData',En,'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{4} = sprintf('Expected number of clusters, E[m] = %0.2f',Em*Pn);
+text(0.0,-4*dy,TabFut{4},...
+	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
 
-str = sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
-text(0.5,-1*dy,str);
-str = sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
+
+TabFut{5} = sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
+text(0.5,-1*dy,TabFut{5},...
+	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{6} = sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
 		' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
-text(0.5,-2*dy,str);
-str = sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
-		'(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
-text(0.5,-3*dy,str);
-str = sprintf('');
-text(0.5,-4*dy,str);
+text(0.5,-2*dy,TabFut{6},...
+	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{7} = sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
+	'(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
+text(0.5,-3*dy,TabFut{7},...
+	'UserData',[VOL.S,R(end),prod(VOL.FWHM)],...
+	'ButtonDownFcn','get(gcbo,''UserData'')')
+TabFut{8} = sprintf('');
+text(0.5,-4*dy,TabFut{8},...
+	'UserData',[],'ButtonDownFcn','get(gcbo,''UserData'')')
+
+
+%-Store TabDat in UserData of axes
+%=======================================================================
+% TabDat, TabHdr, TabFut
+h = uicontextmenu('Tag','TabDat');
+set(gca,'UIContextMenu',h,...
+	'Visible','on',...
+	'XColor','w','YColor','w')
+uimenu(h,'Label','Extract table data in cell array',...
+	'Tag','TD_Xdat',...
+	'CallBack','',...
+	'Interruptible','off','BusyAction','Cancel');
+uimenu(h,'Separator','on','Label','Print table as text',...
+	'Tag','TD_TxtTab',...
+	'CallBack','',...
+	'Interruptible','off','BusyAction','Cancel');
+uimenu(h,'Separator','on','Label','Print table (to cluster level) as text',...
+	'Tag','TD_TxtTab',...
+	'CallBack','',...
+	'Interruptible','off','BusyAction','Cancel');
+uimenu(h,'Separator','on','Label','Print table (to voxel level) as text',...
+	'Tag','TD_TxtTab',...
+	'CallBack','',...
+	'Interruptible','off','BusyAction','Cancel');
+
+
 
 %-End
 %=======================================================================
