@@ -95,15 +95,13 @@ spm_help('!ContextHelp',mfilename)
 %-Select SPM.mat & go to that directory
 %-----------------------------------------------------------------------
 swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
-cwd    = pwd;				%-Note current working directory
-cd(swd)					%-Temporarily move to results dir
 
 %-Preliminaries...
 %=======================================================================
 
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
-xSDM   = load(fullfile('.','SPM.mat'));	%-Contents of SPM.mat (in a struct)
+xSDM   = load(fullfile(swd,'SPM.mat'));	%-Contents of SPM.mat (in a struct)
 if ~isfield(xSDM,'SPMid') 		%-Check version of SPM.mat...
  	error('Incompatible SPM.mat - old results format!?')
 end
@@ -112,6 +110,14 @@ XYZ    = xSDM.XYZ;			%-XYZ coordinates
 S      = xSDM.S;			%-search Volume {voxels}
 R      = xSDM.R;			%-search Volume {resels}
 xSDM   = rmfield(xSDM,{'xX','XYZ'});	%-Remove (large) duplicate fields
+
+%-Canonicalise relative pathnames in xSDM by prepending swd
+% (SPM result image handles kept with relative pathnames, for robustness.)
+%-----------------------------------------------------------------------
+for i=1:length(xSDM.Vbeta)
+	xSDM.Vbeta(i).fname = fullfile(swd,xSDM.Vbeta(i).fname);
+end
+xSDM.VResMS.fname = fullfile(swd,xSDM.VResMS.fname);
 
 %-Compute mm<->voxel matrices
 %-----------------------------------------------------------------------
@@ -122,22 +128,26 @@ dim    = xSDM.Vbeta(1).dim(1:3);
 %-Build index from XYZ into corresponding Y.mad locations
 %-----------------------------------------------------------------------
 QQ     = zeros(1,S);
-if exist(fullfile('.','Yidx.mat'),'file') & exist(fullfile('.','Y.mad'),'file')
-	load('Yidx.mat')
+if exist(fullfile(swd,'Yidx.mat'),'file') & exist(fullfile(swd,'Y.mad'),'file')
+	load(fullfile(swd,'Yidx.mat'))
 	QQ(Yidx) = 1:length(Yidx);
 end
 
 
 %-Load contrast definitions (if available)
 %-----------------------------------------------------------------------
-if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; end
+if exist(fullfile(swd,'xCon.mat'),'file')
+	load(fullfile(swd,'xCon.mat'))
+else
+	xCon = [];
+end
 
 
 %-See if can write to current directory (by trying to resave xCon.mat)
 %-----------------------------------------------------------------------
 wOK = 1;
 try
-	save('xCon.mat','xCon')
+	save(fullfile(swd,'xCon.mat'),'xCon')
 catch
 	wOK = 0;
 	str = {	'Can''t write to the results directory:',...
@@ -146,7 +156,6 @@ catch
 		' ','-> results restricted to contrasts already computed'};
 	spm('alert!',str,mfilename,1);
 end
-
 
 
 %=======================================================================
@@ -229,10 +238,10 @@ end
 
 %-Save contrast structure (if wOK) - ensures new contrasts are saved
 %-----------------------------------------------------------------------
-if wOK, save('xCon.mat','xCon'), end
+if wOK, save(fullfile(swd,'xCon.mat'),'xCon'), end
 
 
-%-Get title string for comparison
+%-Create/Get title string for comparison
 %-----------------------------------------------------------------------
 if length(Ic)==1
 	str = xCon(Ic).name;
@@ -278,14 +287,14 @@ for ii = 1:length(I)
     %-Write contrast/ESS images?
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'Vcon') | isempty(xCon(i).Vcon) | ...
-        ~exist(fullfile('.',xCon(i).Vcon.fname),'file')
+        ~exist(fullfile(swd,xCon(i).Vcon.fname),'file')
         
         %-Bomb out (nicely) if can't write to results directory
         %---------------------------------------------------------------
         if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
 		['        ',swd],' ','=> can''t compute new contrasts'},...
 		mfilename,sqrt(-1));
-		cd(cwd), spm('Pointer','Arrow')
+		spm('Pointer','Arrow')
 		error('can''t write contrast image')
         end
 	
@@ -305,7 +314,7 @@ for ii = 1:length(I)
 	    %-Prepare handle for contrast image
 	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
-	        'fname',  sprintf('con_%04d.img',i),...
+	        'fname',  fullfile(swd,sprintf('con_%04d.img',i)),...
                 'dim',    [dim,16],...
                 'mat',    M,...
                 'pinfo',  [1,0,0]',...
@@ -317,9 +326,9 @@ for ii = 1:length(I)
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
             xCon(i).Vcon.pinfo(1,1) = spm_add(V,xCon(i).Vcon);
             xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
-
-            fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
-                        sprintf('...written %s',xCon(i).Vcon.fname)) %-#
+            
+            fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+                '...written %s',spm_str_manip(xCon(i).Vcon.fname,'t')))%-#
 
 	case 'F'  %-Implement ESS as sum of squared weighted beta images
         %---------------------------------------------------------------
@@ -333,7 +342,7 @@ for ii = 1:length(I)
 	    %-Prepare handle for ESS image
 	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
-	        'fname',  sprintf('ess_%04d.img',i),...
+	        'fname',  fullfile(swd,sprintf('ess_%04d.img',i)),...
                 'dim',    [dim,16],...
                 'mat',    M,...
                 'pinfo',  [1,0,0]',...
@@ -346,26 +355,34 @@ for ii = 1:length(I)
             xCon(i).Vcon  = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
             xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
 
+
 	otherwise
+        %---------------------------------------------------------------
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
 
 	end
 
+    else
+
+	%-Already got contrast/ESS image - fullpath fname
+        %---------------------------------------------------------------
+	xCon(i).Vcon.fname = fullfile(swd,xCon(i).Vcon.fname);
+
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*ii/(2*length([Ic,Im])+2))             %-#
+    spm_progress_bar('Set',100*(2*ii-1)/(2*length([Ic,Im])+2))       %-#
 
     %-Write statistic image(s)
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
-        ~exist(fullfile('.',xCon(i).Vspm.fname),'file')
+        ~exist(fullfile(swd,xCon(i).Vspm.fname),'file')
 	
         %-Bomb out (nicely) if can't write to results directory
         %---------------------------------------------------------------
         if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
 		['        ',swd],' ','=> can''t compute new contrasts'},...
 		mfilename,sqrt(-1));
-		cd(cwd), spm('Pointer','Arrow')
+		spm('Pointer','Arrow')
 		error('can''t write SPM image')
         end
 
@@ -394,11 +411,12 @@ for ii = 1:length(I)
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
 	end
 
+
         %-Write full statistic image
         %---------------------------------------------------------------
         fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
         xCon(i).Vspm = struct(...
-	    'fname',  sprintf('spm%c_%04d.img',xCon(i).STAT,i),...
+	    'fname',  fullfile(swd,sprintf('spm%c_%04d.img',xCon(i).STAT,i)),...
 	    'dim',    [dim,16],...
 	    'mat',    M,...
 	    'pinfo',  [1,0,0]',...
@@ -408,25 +426,38 @@ for ii = 1:length(I)
         tmp = zeros(dim);
 	tmp(cumprod([1,dim(1:2)])*XYZ -sum(cumprod(dim(1:2)))) = Z;
 
-	xCon(i).Vspm  = spm_write_vol(xCon(i).Vspm,tmp);
+	xCon(i).Vspm       = spm_write_vol(xCon(i).Vspm,tmp);
 
 	clear tmp Z
-        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
-                        sprintf('...written %s',xCon(i).Vspm.fname)) %-#
+        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+            '...written %s',spm_str_manip(xCon(i).Vspm.fname,'t')))  %-#
+
+    else
+
+	%-Already got statistic image - fullpath fname
+        %---------------------------------------------------------------
+	xCon(i).Vspm.fname = fullfile(swd,xCon(i).Vspm.fname);
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*ii/(length([Ic,Im])+1))               %-#
+    spm_progress_bar('Set',100*(2*ii-0)/(2*length([Ic,Im])+2))       %-#
 
-end % (for i=[Ic,Im])
+end % (for ii = 1:length(I))
 
 
-%-Save contrast structure (if wOK)
+%-Save contrast structure (if wOK), with relative pathnames to image files
 %=======================================================================
 if wOK
-    save('xCon.mat','xCon')
+    tmp = xCon;
+    for i = [Ic,Im];
+        xCon(i).Vcon.fname = spm_str_manip(xCon(i).Vcon.fname,'t');
+        xCon(i).Vspm.fname = spm_str_manip(xCon(i).Vspm.fname,'t');
+    end
+    save(fullfile(swd,'xCon.mat'),'xCon')
+    xCon = tmp;
     fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
 end
+
 
 %-Compute (unfiltered) SPM pointlist for requested masked conjunction
 %=======================================================================
@@ -472,7 +503,7 @@ else
     end
 end
 
-%-Compute STAT string
+%-Generate STAT string describing marginal distribution
 %-----------------------------------------------------------------------
 if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
 switch xCon(Ic(1)).STAT
@@ -497,9 +528,9 @@ k    = 0;
 
 %-Return to previous directory & clean up interface
 %-----------------------------------------------------------------------
-cd(cwd)					%-Go back to original working dir.
 spm_progress_bar('Clear')                                            %-#
 spm('Pointer','Arrow')
+
 
 %=======================================================================
 % - H E I G H T   &   E X T E N T   T H R E S H O L D S
