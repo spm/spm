@@ -158,7 +158,8 @@ if transv.blob.dim(3) > 1
 	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
 	transv.h(2) = image(rot90(spm_grid(T1)));
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',(xyzmm(3) - transv.blob.vox(3))));
+	tmp = VOL.iM\[xyz(1:2)' (xyz(3)-1) 1]';
+	title(sprintf('z = %0.0fmm',tmp(3)));
 	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w');
 	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
 
@@ -172,7 +173,8 @@ if transv.blob.dim(3) > 1
 	transv.h(9) = axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
 	transv.h(10) = image(rot90(spm_grid(T3)));
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',(xyzmm(3) + transv.blob.vox(3))));
+	tmp = VOL.iM\[xyz(1:2)' (xyz(3)+1) 1]';
+	title(sprintf('z = %0.0fmm',tmp(3)));
 	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w');
 	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
 
@@ -307,17 +309,19 @@ P = xyz.*transv.blob.vox';
 if transv.blob.dim(3) > 1
 
 	set(transv.h(2),'Cdata',rot90(spm_grid(T1)));
-	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3) - transv.blob.vox(3))));
+	tmp = transv.blob.iM\[xyz(1:2)' (xyz(3)-1) 1]';
+	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',tmp(3)));
 	set(transv.h(3),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(4),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
 	set(transv.h(6),'Cdata',rot90(spm_grid(T2)));
-	set(get(transv.h(5),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3))));
+	set(get(transv.h(5),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
 	set(transv.h(7),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(8),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
 	set(transv.h(10),'Cdata',rot90(spm_grid(T3)));
-	set(get(transv.h(9),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3) + transv.blob.vox(3))));
+	tmp = transv.blob.iM\[xyz(1:2)' (xyz(3)+1) 1]';
+	set(get(transv.h(9),'Title'),'String',sprintf('z = %0.0fmm',tmp(3)));
 	set(transv.h(11),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(12),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
