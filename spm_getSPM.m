@@ -372,9 +372,11 @@ end
 %=======================================================================
 switch STAT
 case 'T'
-	Ps = (1-spm_Tcdf(Z,df(2))).^n;
+	Ps = (1 - spm_Tcdf(Z,df(2))).^n;
+case 'P'
+	Ps = (1 - Z).^n;
 case 'F'
-	Ps = (1-spm_Fcdf(Z,df)).^n;
+	Ps = (1 - spm_Fcdf(Z,df)).^n;
 end
 
 
