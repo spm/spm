@@ -11,7 +11,7 @@ function [R1,R2]=spm(Action,P2,P3)
 % SPM (Statistical Parametric Mapping) is a package for the analysis
 % functional brain mapping experiments. It is the in-house package of
 % the Wellcome Department of Cognitive Neurology, and is freely
-% availabe to the scientific community.
+% available to the scientific community.
 % 
 % Theoretical, computational and other details of the package are
 % available in SPM's "Help" facility. This can be launched from the
@@ -25,10 +25,10 @@ function [R1,R2]=spm(Action,P2,P3)
 % This spm function initialises the default parameters, and displays a
 % splash screen with buttons leading to the PET(SPECT) & fMRI
 % modalities Alternatively, `spm('pet')` and `spm('fmri')`
-% (equivalently `spm pet` and `spm mri` lead directly to the respective
+% (equivalently `spm pet` and `spm mri`) lead directly to the respective
 % modality interfaces.
 %
-% Once the modlity is chosen, (and it can be toggled mid-session) the
+% Once the modality is chosen, (and it can be toggled mid-session) the
 % SPM user interface is displayed. This provides a constant visual
 % environment in which data analysis is implemented. The layout has
 % been designed to be simple and at the same time show all the
@@ -41,13 +41,18 @@ function [R1,R2]=spm(Action,P2,P3)
 % 'Graphics' respectively, and should be referred to by their tags
 % rather than their figure numbers.)
 %
+% Further interaction with the user is (mainly) via questioning in the
+% 'Interactive' window (managed by spm_input), and file selection
+% (managed by spm_get). See the help on spm_input.m and spm_get.m for
+% details on using these functions.
+%
 % If a "message of the day" file named spm_motd.man exists in the SPM
 % directory (alongside spm.m) then it is displayed in the Graphics
 % window on startup.
 %
-% Arguments to this routine lead to various setup facilities, mainly of
-% use to SPM power users and programmers. See programmers FORMAT &
-% help in the main body of spm.m
+% Arguments to this routine (spm.m) lead to various setup facilities,
+% mainly of use to SPM power users and programmers. See programmers
+% FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
@@ -187,22 +192,33 @@ axes('Position',[0 0 80/500 280/280],'Visible','Off')
 text(0.5,0.5,'SPM',...
 	'FontName','Times','FontSize',96,...
 	'Rotation',90,...
-	'VerticalAlignment','middle','HorizontalAlignment','center',...
+	'VerticalAlignment','Middle',...
+	'HorizontalAlignment','Center',...
 	'Color',[1 1 1]*.6);
 
-uicontrol(F,'Style','Frame','Position',[110 120 380 140]);
+axes('Position',[080/500 250/280 420/500 020/280],'Visible','off')
+text(0.5,0.5,'Statistical Parametric Mapping',...
+	'FontName','Times','FontSize',18,'FontAngle','Italic',...
+	'VerticalAlignment','Middle',...
+	'HorizontalAlignment','Center',...
+	'FontWeight','Bold',...
+	'Color',[1 1 1]*.6);
+
+
+uicontrol(F,'Style','Frame','Position',[110 120 380 120]);
 uicontrol(F,'Style','Frame','Position',[110 020 380 090]);
 
-c = ['STATISTICAL PARAMETRIC MAPPING  - {',spm('Ver'),'}'];
-uicontrol(F,'Style','Text', 'Position',[112 220 376 30],...
-'String',c,'ForegroundColor',[1 0 0])
+uicontrol(F,'Style','Text',...
+	'String',spm('Ver'),...
+	'Position',[112 200 376 030],...
+	'ForegroundColor','k')
 
-c = 'The Wellcome Department of Cognitive Neurology,';
-uicontrol(F,'Style','Text', 'Position',[112 200 376 016],'String',c)
-c = 'The Institute of Neurology';
-uicontrol(F,'Style','Text', 'Position',[112 180 376 016],'String',c)
-c = 'University College London';
-uicontrol(F,'Style','Text', 'Position',[112 160 376 016],'String',c)
+uicontrol(F,'Style','Text','Position',[112 180 376 020],'String',...
+	'The Wellcome Department of Cognitive Neurology')
+uicontrol(F,'Style','Text', 'Position',[112 160 376 020],'String',...
+	'The Institute of Neurology')
+uicontrol(F,'Style','Text', 'Position',[112 140 376 020],'String',...
+	'University College London')
 
 %-Objects with Callbacks - PET, fMRI or About SPM
 %-----------------------------------------------------------------------
