@@ -1,0 +1,126 @@
+% Event related fMRI analyses for SPM'96
+%_______________________________________________________________________
+% 
+%                        Event-related fMRI (efMRI)
+% 
+% SPM offers the possibility to analyse efMRI studies. The basic concept
+% is identical to blocked fMRI analyses, using the GLM. The difference is
+% only the design matrix and the plotting routines. In the current
+% implementation SPM creates a sparse matrix n x t for n events over time
+% t. This matrix is created with a temporal resolution of 100 msec.  The
+% events are modelled as delta functions ('ones' in this matrix). This
+% matrix containing ones modelling an event and zeros elsewhere is then
+% convolved with the basis function(s) you specify. This is still done at
+% 100 msec resolution. Since there is only a single observation per scan
+% and this is likely to cover more than 100 msec, the matrix is
+% downsampled to match the TR that has been entered. The user's choice is
+% mainly the set of basis functions to be used:
+% 
+% * Fourier set           : Sines and cosines
+% * Windowed Fourier set  : Sines and cosines windowed with a Hanning window
+% * Gamma functions       : Set of three gamma functions
+%                           (early, middle and late)
+% * Gamma functions       
+%   with derivates        : As above plus the derivatives
+% * HRF                   : Synthetic hemodynamic response function 
+% * HRF + derivative      : As above plus the partial derivative with respect
+%                         : to time. This can model shifts of the HRF in time.
+% * HRF + temp. deriv & 
+%   dispersion derivative : As above, plus the partial derivative with respect
+%                           to the dispersion parameter of the gamma function.
+%                           This can model 'sharper' or 'flatter' responses
+% 
+% SPM will create an additional *.mat file (ER.mat) for this analysis.
+% Load this file and plot the variable DER to see the basis function(s)
+% you have used.
+% 
+%                           ----------------
+% 
+% The plotting routines have been extended to cope with efMRI analyses.
+% You can plot the estimated HRF time locked to the events. This menu
+% offers several options:
+% 
+% 1. Plot the modelled response only
+% 2. As above but with the SEM
+% 3. As above but with the SEM for the onset of the response 
+% 4. Plot the modelled response and the data points 
+% 
+% 
+%                           ----------------
+% 
+% Some general guidelines
+% -----------------------
+% 
+% Events can be equally or unequally distributed over time. In the former
+% case you only have to specify the time between two events. In the
+% latter case SPM expects a vector of time points when events occured.
+% SPM expects time in scans [i.e. an event at 10 seconds with a TR of 4s
+% has to be entered as 2.5 (TRs)]. Differences between events can be
+% estimated in two ways: Using t-statistic when comparing two events
+% modelled by a single basis function (eg. HRF alone). Howver,this gets
+% problematic if you model your events as a linear combination of more
+% than one basis function (eg. Fourier set). In this case you can use the
+% F-statistic and the option 'model differences'.  If you model your
+% events as 'HRF alone' you choose the option 'all events' and test for
+% differences with contrasts.
+% 
+%                           ----------------
+% 
+% References
+% ----------
+% 
+% Theory and implementation:
+%         Josephs O., Turner R., Friston K. (1997)
+%         Event-related fMRI.
+%         Human Brain Mapping  5:243-248
+% 
+%         Friston K. J., Fletcher P., Josephs O., Holmes A.,
+%         Rugg M. D., Turner R. (1998)
+%         Event-Related fMRI: Characterizing differential responses.
+%         Neuroimage  7:30-40
+% 
+% Non-linear extension:
+%         Friston K. J., Josephs O., Rees G., Turner R. (1998)
+%         Nonlinear event-related responses in fMRI.
+%         Magnetic Resonance in Medicine  39:41-52
+% 
+% Application:
+%         Buechel C., Morris J., Dolan R. J., Friston K. J. (1998)
+%         Brain systems mediating aversive conditioning:
+%                 an event-related fMRI study.
+%         Neuron  20:947-57
+% 
+%=======================================================================
+% 
+%                  The event-related fMRI kit for SPM'96
+% 
+% The SPM96 event-related fMRI kit for SPM96 consists of:
+% 
+% spm_efmri.man                           - this file
+% 
+% spm_AnCova.m            (v1.6)          - replacing v1.4 of SPM96
+% spm_Volt_W.m            (v1.1)          - new
+% spm_fmri_spm_ui.m       (v1.35)         - replacing v1.17 of SPM96
+% spm_graph.m             (v1.17.1.1)     - replacing v1.3 of SPM96
+% spm_graph_ui.m          (v1.1)          - new
+% spm_hrf.m               (v1.2)          - new (included in RFX kit too)
+% spm_results_ui.m        (v1.10.1.1)     - replacing v1.7 of SPM96
+% spm_spm.m               (v1.32)         - replacing v1.23 of SPM96
+% 
+%                           ----------------
+%  
+% spm_AnCova.m            : updated core routines for the general linear model
+% spm_spm.m               :
+% 
+% spm_Volt_W.m            : creates gamma-functions
+% spm_hrf.m               : creates the synthetic hemodynamic response
+% 
+% spm_fmri_spm_ui.m       : The main routine for fMRI. This routine creates
+%                           the design matrix and sets up the analysis
+% 
+% spm_graph.m             : 
+% spm_graph_ui.m          : extended plotting routines for ER-fMRI
+% spm_results_ui.m        : 
+% 
+%_______________________________________________________________________
+% %W% Christian Buechel %E%
