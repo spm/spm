@@ -1,7 +1,7 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 switch nargin
 case 0,

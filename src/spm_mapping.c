@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char svnid[]="$Id$";
 #endif
 
 /* matlab dependent high level data access and map manipulation routines */
@@ -134,10 +134,15 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 	tmp = mxGetField(ptr,i,"pinfo");
 	if (tmp != (mxArray *)0)
 	{
-		if (mxGetM(tmp) != 2 || (mxGetN(tmp) != 1 && mxGetN(tmp) != maps[i].dim[2]))
+		if ((mxGetM(tmp) != 2 && mxGetM(tmp) != 3) || (mxGetN(tmp) != 1 && mxGetN(tmp) != maps[i].dim[2]))
 		{
 			free_maps(maps,i+1);
 			mexErrMsgTxt("Wrong sized pinfo.");
+		}
+		if (mxGetM(tmp) == 3 && mxGetPr(tmp)[2] != 0)
+		{
+			free_maps(maps,i+1);
+			mexErrMsgTxt("pinfo(3) must equal 0 to read dat field.");
 		}
 		pr = mxGetPr(tmp);
 		if (mxGetN(tmp) == 1)

@@ -1,7 +1,7 @@
 function dt = datatypes
 % Datatype
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 persistent dtype
 if isempty(dtype),

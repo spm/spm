@@ -1,4 +1,4 @@
-/* @(#)spm_vol_utils.h	2.2 03/05/12
+/* $Id$
 */
 #define UNSIGNED_CHAR     2
 #define SIGNED_SHORT      4

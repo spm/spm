@@ -6,7 +6,7 @@ function varargout = fname(varargin)
 % For setting the value
 % obj = fname(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 
 if nargin==2,

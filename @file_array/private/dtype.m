@@ -6,7 +6,7 @@ function varargout = dtype(varargin)
 % For setting the value
 % obj = dtype(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 
 if nargin==2,

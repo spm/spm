@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_def2det.c	1.2 John Ashburner 04/02/27";
+static char svnid[]="$Id$";
 #endif
 
 #include "mex.h"

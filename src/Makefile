@@ -1,6 +1,5 @@
 #!make -f
 #
-# %W% John Ashburner %E%
 # $Id$
 #
 ###############################################################################
@@ -137,6 +136,7 @@ SPMMEX =\
 	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
 	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
+	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
 	$(ADDED_MEX)
 
 ###############################################################################
@@ -302,6 +302,10 @@ spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 	$(MEX) spm_global.c spm_vol_utils.$(SUF).a
 	@ $(CHMODIT) $@
 
+spm_warp.$(SUF): spm_warp.c spm_vol_utils.$(SUF).a
+	$(MEX) spm_warp.c spm_vol_utils.$(SUF).a
+	@ $(CHMODIT) $@
+
 spm_atranspa.$(SUF): spm_atranspa.c spm_sys_deps.h
 	$(MEX) spm_atranspa.c
 	@ $(CHMODIT) $@
@@ -374,6 +378,18 @@ spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
 
 spm_win32utils.$(SUF): spm_win32utils.c 
 	$(MEX) spm_win32utils.c
+	@ $(CHMODIT) $@
+
+spm_invdef.$(SUF): spm_invdef.c
+	$(MEX) spm_invdef.c
+	@ $(CHMODIT) $@
+
+spm_affdef.$(SUF): spm_affdef.c
+	$(MEX) spm_affdef.c
+	@ $(CHMODIT) $@
+
+spm_def2det.$(SUF): spm_def2det.c
+	$(MEX) spm_def2det.c
 	@ $(CHMODIT) $@
 
 ###############################################################################

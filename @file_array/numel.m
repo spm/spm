@@ -1,7 +1,7 @@
 function t = numel(obj)
 % Number of simple file arrays involved.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 % Should be this, but it causes problems when accessing
 % obj as a structure.

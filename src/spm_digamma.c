@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_digamma.c	2.1 04/11/25";
+static char svnid[]="$Id$";
 #endif
 
 #include <stdio.h>

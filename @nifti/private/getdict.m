@@ -1,7 +1,7 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 persistent dict;
 if ~isempty(dict),

@@ -12,7 +12,7 @@
 */
 
 #ifndef lint
-static char sccsid[]="@(#)spm_global.c	2.4 anon 99/01/29";
+static char sccsid[]="$Id$";
 #endif
 
 #include "spm_sys_deps.h"

@@ -167,7 +167,7 @@ for i=1:prod(size(V)),
 		VO = spm_close_vol(VO);
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float') spm_platform('bigend')];
+		VO.dt     = [spm_type('float32') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);
@@ -246,7 +246,7 @@ for i=1:prod(size(V)),
 		end;
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float') spm_platform('bigend')];
+		VO.dt     = [spm_type('float32') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);
@@ -311,7 +311,7 @@ for i=1:prod(size(V)),
 		VO = spm_write_vol(VO,Dat);
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float') spm_platform('bigend')];
+		VO.dt     = [spm_type('float32') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);
@@ -321,12 +321,13 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function VO = make_hdr_struct(V,x,y,z,mat)
-VO          = V;
-VO.fname    = prepend(V.fname,'w');
-VO.mat      = mat;
-VO.dim(1:3) = [length(x) length(y) length(z)];
-VO.descrip  = ['spm - 3D normalized'];
+function VO   = make_hdr_struct(V,x,y,z,mat)
+VO            = V;
+VO.fname      = prepend(V.fname,'w');
+VO.mat        = mat;
+VO.dim(1:3)   = [length(x) length(y) length(z)];
+VO.pinfo(3,1) = 0;
+VO.descrip    = ['spm - 3D normalized'];
 return;
 %_______________________________________________________________________
 
@@ -471,7 +472,7 @@ M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
 mat = prm.VG(1).mat*inv(M1)*M2;
 
-LEFTHANDED = true
+LEFTHANDED = true;
 if (LEFTHANDED & det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
 	Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 	mat = mat*Flp;

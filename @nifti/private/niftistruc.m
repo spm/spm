@@ -1,7 +1,7 @@
 function o = niftistruc
 % Create a data structure describing NIFTI headers
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 persistent org;
 if ~isempty(org),

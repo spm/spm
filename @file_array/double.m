@@ -3,6 +3,6 @@ function out = double(fa)
 % FORMAT double(fa)
 % fa - a file_array
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 out = double(numeric(fa));
 

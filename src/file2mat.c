@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)file2mat.c	1.1 John Ashburner 04/11/26";
+static char svnid[] = "$Id$";
 #endif
 /*
 Memory mapping is used by this module. For more information on this, see:

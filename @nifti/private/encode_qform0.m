@@ -1,7 +1,7 @@
 function hdr = encode_qform(M,hdr)
 % Encode an affine transform into qform
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 % Convert from first voxel at [1,1,1] to first voxel at [0,0,0]
 M = M * [eye(4,3) [1 1 1 1]'];

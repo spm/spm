@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_bias_mex.c	2.5 John Ashburner 03/05/12";
+static char svnid[]="$Id$";
 #endif
 
 #include "spm_mapping.h"

@@ -1,4 +1,4 @@
-/* %W% %E%
+/* $Id$
    constants etc defining analyze / spm image data types */
 
 #define SPM_UNSIGNED_CHAR     2

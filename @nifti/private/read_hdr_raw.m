@@ -5,7 +5,7 @@ function [hdr,be] = read_hdr_raw(fname)
 % hdr   - a structure containing hdr info
 % be    - whether big-endian or not
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 hdr = [];
 be  = [];

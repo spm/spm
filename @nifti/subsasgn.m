@@ -2,7 +2,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Subscript assignment
 % See subsref for meaning of fields.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 switch subs(1).type,
 case {'.'},

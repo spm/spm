@@ -2,7 +2,7 @@ function o = cat(dr,varargin)
 % Concatenate file_array objects.  The result is a non-simple object
 % that can no longer be reshaped.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if dr>32 || dr<0, error('Unknown command option.'); end;
 dr   = max(round(dr),1);

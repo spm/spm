@@ -1,6 +1,7 @@
 function o = vertcat(varargin)
 % Vertical concatenation of file_array objects.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
+
 o = cat(1,varargin{:});
 return;

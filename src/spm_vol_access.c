@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)spm_vol_access.c	2.2 John Ashburner 99/01/15";
+static char svnid[] = "$Id$";
 #endif
 
 /* matlab independent image access routines;

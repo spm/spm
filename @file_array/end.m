@@ -1,7 +1,7 @@
 function en = end(a,k,n)
 % Overloaded end function for file_array objects.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 dim = size(a);
 if k>length(dim)
     en = 1;

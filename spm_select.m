@@ -57,7 +57,7 @@ case {'xml'},   isim = 0; ext = {'.*\.xml$','.*\.XML$'};
 case {'mat'},   isim = 0; ext = {'.*\.mat$','.*\.MAT$'};
 case {'batch'}, isim = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
 case {'dir'},   isim =-1; ext = {'.*'};
-otherwise,      isim = 0; ext = {['\.' typ '$']};
+otherwise,      isim = 0; ext = {[typ]};
 end;
 
 fg = figure('IntegerHandle','off',...

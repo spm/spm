@@ -1,7 +1,7 @@
 function t = fieldnames(obj)
 % Fieldnames of a file-array object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 t = {...
     'fname'
     'dim'

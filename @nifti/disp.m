@@ -1,7 +1,7 @@
 function disp(obj)
 % Disp a NIFTI-1 object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 sz = size(obj);
 fprintf('NIFTI object: ');

@@ -1,7 +1,7 @@
 function o = mayostruc
 % Create a data structure describing Analyze headers
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 persistent org;
 if ~isempty(org),

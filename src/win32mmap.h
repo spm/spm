@@ -1,4 +1,4 @@
-/* %W% %E%
+/* $Id$
 mmap replacement for 32 bit windows
 does not implement mmap, but map_file 
 See win32mmap.c for comments

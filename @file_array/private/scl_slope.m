@@ -6,7 +6,7 @@ function varargout = scl_slope(varargin)
 % For setting the value
 % obj = scl_slope(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 
 if nargin==2,

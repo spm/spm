@@ -1,7 +1,7 @@
 function t = fieldnames(obj)
 % Fieldnames of a NIFTI-1 object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if isfield(obj.hdr,'magic')
     t = {...

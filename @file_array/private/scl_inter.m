@@ -6,7 +6,7 @@ function varargout = scl_inter(varargin)
 % For setting the value
 % obj = scl_inter(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 
 if nargin==2,

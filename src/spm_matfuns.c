@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_matfuns.c	2.1 John Ashburner 99/04/30";
+static char svnid[]="$Id$";
 #endif
 
 #include <math.h>

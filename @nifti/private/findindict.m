@@ -1,7 +1,7 @@
 function entry = findindict(c,dcode)
 % Look up an entry in the dictionary
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 entry = [];
 d = getdict;

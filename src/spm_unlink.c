@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_unlink.c	1.2 John Ashburner FIL 97/10/15";
+static char svnid[]="$Id$";
 #endif
 
 /* Do a silent deletion of files on disk */

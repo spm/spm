@@ -1,7 +1,7 @@
 function hdr = mayo2nifti1(ohdr)
 % Convert from an ANALYZE to a NIFTI-1 header
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if isfield(ohdr,'magic'),
     hdr = ohdr;

@@ -1,7 +1,7 @@
 function M = decode_qform0(hdr)
 % Decode qform info from NIFTI-1 headers.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 dim    = double(hdr.dim);
 pixdim = double(hdr.pixdim);

@@ -30,7 +30,8 @@ if strcmp(dt{1},'unknown'),
 end;
 if V.dt(2), dt{2} = 'BE'; else, dt{2} = 'LE'; end;
 
-if ~isfield(V,'pinfo'), V.pinfo = [1 0 0]';    end;
+if ~isfield(V,'pinfo'), V.pinfo      = [1 0 0]'; end;
+if size(V.pinfo,1)==2,  V.pinfo(3,1) = 0;        end;
 V.fname       = deblank(V.fname);
 [pth,nam,ext] = fileparts(V.fname);
 switch ext,

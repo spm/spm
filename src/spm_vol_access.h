@@ -1,4 +1,4 @@
-/* @(#)spm_vol_access.h	2.2 03/05/12
+/* $Id$
    matlab independent image access routines */
 
 #include <sys/types.h>

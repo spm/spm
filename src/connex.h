@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid_connex[]="@(#)connex.h	1.2 JB Poline 96/03/04";
+static char svnid_connex[]="$Id$";
 #endif
  
 

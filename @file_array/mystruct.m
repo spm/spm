@@ -1,6 +1,7 @@
 function t = mystruct(obj)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
+
 if numel(obj)~=1,
     error('Too many elements to convert');
 end;

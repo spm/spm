@@ -5,7 +5,7 @@
  ** the coordinate list for those maxima.
  **
  ***************************************************************/
-/* @(#)spm_get_lm.c	2.2 Jesper Andersson 16/12-03 04/06/04 */
+/* $Id$ */
 
 #include "mex.h"
 #include <math.h>

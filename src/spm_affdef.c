@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_affdef.c	1.1 John Ashburner 02/08/12";
+static char svnid[]="$Id$";
 #endif
 /* Note that according to the Matlab documentation, one should "avoid
    modifying input arguments in MEX-files".

@@ -1,7 +1,7 @@
 function display(obj)
 % Display a file_array object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 disp(' ');
 disp([inputname(1),' = '])

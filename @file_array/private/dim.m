@@ -6,7 +6,7 @@ function varargout = dim(varargin)
 % For setting the value
 % obj = dim(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if nargin==2,
     varargout{1} = asgn(varargin{:});

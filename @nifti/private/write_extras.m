@@ -1,5 +1,7 @@
 function extras = write_extras(fname,extras)
 % Write extra bits of information
+%_______________________________________________________________________
+% $Id$
 
 [pth,nam,ext] = fileparts(fname);
 switch ext

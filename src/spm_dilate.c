@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_dilate.c	1.3 (c) Jesper Andersson 03/11/06";
+static char svnid[]="$Id$";
 #endif
 
 #include "mex.h"

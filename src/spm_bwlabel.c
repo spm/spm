@@ -17,7 +17,7 @@
  **
  ***************************************************************/
 #ifndef lint
-static char sccsid[] = "@(#)spm_bwlabel.c	2.1 Jesper Andersson 03/12/16";
+static char svnid[] = "$Id$";
 #endif
 
 #include "mex.h"

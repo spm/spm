@@ -6,7 +6,7 @@ function ok = write_hdr_raw(fname,hdr,be)
 % be    - whether big-endian or not
 % ok    - status (1=good, 0=bad)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 [pth,nam,ext] = fileparts(fname);
 

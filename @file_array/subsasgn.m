@@ -1,7 +1,7 @@
 function obj = subsasgn(obj,subs,dat)
 % Overloaded subsasgn function for file_array objects.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if isempty(subs)
     t = obj;
@@ -56,9 +56,9 @@ end;
 if length(sobj)==1
     sobj.dim = dm;
     if numel(dat)~=1,
-        subfun(sobj,dat,args{:});
+        subfun(sobj,double(dat),args{:});
     else
-        dat1 = dat + zeros(do);
+        dat1 = double(dat) + zeros(do);
         subfun(sobj,dat1,args{:});
     end;
 else
@@ -74,9 +74,9 @@ else
             siz(i)   = numel(args2{i});
         end;
         if numel(dat)~=1,
-            dat1 = subsref(dat,struct('type','()','subs',{args2}));
+            dat1 = double(subsref(dat,struct('type','()','subs',{args2})));
         else
-            dat1 = dat + zeros(siz);
+            dat1 = double(dat) + zeros(siz);
         end;
         subfun(sobj(j),dat1,args3{:});
     end

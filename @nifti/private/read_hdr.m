@@ -4,7 +4,7 @@ function vol = read_hdr(fname)
 % fname - filename of image
 % vol   - various bits of information
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 persistent dict
 if isempty(dict), dict = getdict; end;

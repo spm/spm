@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)spm_brainwarp.c	2.12 (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU/CBU) 01/03/14";
+static char svnsid[] = "$Id$";
 #endif /* lint */
 
 #include <math.h>

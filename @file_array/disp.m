@@ -1,7 +1,7 @@
 function display(obj)
 % Display a file_array object
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if numel(struct(obj))>1,
     fprintf('       %s object: ', class(obj));

@@ -2,7 +2,7 @@ function Q = M2Q(M)
 % Convert from rotation matrix to quaternion form
 % See: http://skal.planet-d.net/demo/matrixfaq.htm
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 d = diag(M(1:3,1:3));
 t = sum(d) + 1;

@@ -9,7 +9,7 @@ function a = file_array(varargin)
 % scale  - scalefactor (default = 1)
 % inter  - DC offset, such that dat = raw*scale + inter (default = 0)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 if nargin==1
     if isstruct(varargin{1}),

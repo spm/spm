@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_add.c	2.10 John Ashburner & Jean-Baptiste Poline 01/07/16";
+static char svnid[]="$Id$";
 #endif
  
 /*

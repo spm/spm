@@ -6,7 +6,7 @@ function varargout = offset(varargin)
 % For setting the value
 % obj = offset(obj,dat)
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% $Id$
 
 
 if nargin==2,
