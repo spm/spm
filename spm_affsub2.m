@@ -89,7 +89,7 @@ while iter <= 64 & countdown < 3
 		alpha(ppp) = alpha(ppp) + alpha_t(:)/chi2_t;
 		pchi2      = pchi2 * chi2_t;
 	end
-
+	fprintf('iteration: %d\tchi2: %g\n', iter, pchi2);
 	% If \chi^2 is better than the previous best, then save the parameters
 	% from the previous iteration.
 	%-----------------------------------------------------------------------
@@ -105,7 +105,7 @@ while iter <= 64 & countdown < 3
 	% Check stopping criteria. If satisfied then just do another few more
 	% iterations before stopping.
 	%-----------------------------------------------------------------------
-	if (2*(ochi2-pchi2)/(ochi2 + pchi2)) < 0.01
+	if (2*(ochi2-pchi2)/(ochi2 + pchi2)) < 0.002
 		countdown = countdown + 1;
 	end
 
