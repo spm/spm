@@ -1,6 +1,14 @@
 /* $Id$
    matlab dependent high level data access and map manipulation routines */
 
+#include <sys/types.h>
+#ifdef SPM_WIN32
+#include <windows.h>
+#include <memory.h>
+#else
+#include <sys/mman.h>
+#endif
+
 #include "spm_vol_access.h"
 #include "mex.h"
 

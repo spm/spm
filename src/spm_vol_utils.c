@@ -241,7 +241,13 @@ static char svnid[]="$Id$";
 
 #include "spm_sys_deps.h"
 #include "spm_make_lookup.h"
-#include "spm_getdata.h"
+
+short getshort(short x);
+unsigned short getushort(unsigned short x);
+int getint(int x);
+unsigned int getuint(unsigned int x);
+float getfloat(float x);
+double getdouble(double x);
 
 static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
 

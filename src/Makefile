@@ -95,7 +95,7 @@ windows:
 	make all SUF=dll\
 	        CC="gcc -O3 -mno-cygwin -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
 	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"\
-	        ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+	        ADDED_MEX=spm_win32utils.dll
 
 CYGWIN_NT-4.0: windows
 
@@ -198,7 +198,7 @@ spm_vol_utils.$(SUF).a: $(OBS)
 	$(RANLIB)
 	@ $(CHMODIT) $@
 
-UTILS=spm_vol_utils.c spm_sys_deps.h spm_make_lookup.h spm_getdata.h
+UTILS=spm_vol_utils.c spm_sys_deps.h spm_make_lookup.h
 
 utils_uchar.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_CHAR
@@ -268,7 +268,7 @@ spm_getdata.$(SUF).o: spm_getdata.c spm_sys_deps.h
 	$(CC) -c -o $@ spm_getdata.c
 	@ $(CHMODIT) $@
 
-spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
+spm_vol_access.$(SUF).o:  spm_vol_access.c spm_datatypes.h
 	$(CC) -c -o $@ spm_vol_access.c
 	@ $(CHMODIT) $@
 
@@ -279,10 +279,6 @@ spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
 spm_mapping.$(SUF).o:     spm_mapping.c spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) -c spm_mapping.c
 	mv spm_mapping.$(MOSUF) $@
-	@ $(CHMODIT) $@
-
-win32mmap.$(SUF).o: win32mmap.c win32mmap.h
-	$(CC) -c -o $@ win32mmap.c
 	@ $(CHMODIT) $@
 
 ###############################################################################

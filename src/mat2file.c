@@ -21,7 +21,7 @@ typedef struct dtype {
 
 void swap8(int n, unsigned char id[], unsigned char od[])
 {
-    unsigned char tmp, *de;
+    unsigned char *de;
     for(de=id+n; id<de; id++, od++)
     {
         *od = *id;
@@ -105,6 +105,8 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
                 if (fwrite(wbuf,len,1,fp) != len)
                 {
                     /* Problem */
+                    (void)fclose(fp);
+                    (void)mexErrMsgTxt("Problem writing data.");
                 }
                 fseek(fp, off, SEEK_SET);
                 dptr   = idat+indi+i*nb;
@@ -151,6 +153,8 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     if (fwrite(wbuf,len,1,map.fp) != len)
     {
         /* Problem */
+       (void)fclose(map.fp);
+       (void)mexErrMsgTxt("Problem writing data.");
     }
 }
 
@@ -245,7 +249,6 @@ void open_file(const mxArray *ptr, FTYPE *map)
     {
         int buflen;
         char *buf;
-        struct stat stbuf;
         buflen = mxGetNumberOfElements(arr)+1;
         buf    = mxCalloc(buflen,sizeof(char));
         if (mxGetString(arr,buf,buflen))

@@ -3,32 +3,9 @@
 
 #include <sys/types.h>
 #ifdef SPM_WIN32
-#include "win32mmap.h"
 #else
 #include <sys/mman.h>
 #endif
-
-/* map mark 1 */
-
-#define MAGIC 110494
-
-typedef struct map
-{
-	double dim[3];
-	double pixdim[3];
-	double scale;
-	int dtype;
-	int off;
-	caddr_t map;
-	unsigned char *data;
-	size_t len;
-	int magic;
-	int prot;
-	int flags;
-	pid_t pid;
-}	MAP;
-
-/* map mark 2 */
 
 typedef struct maptype
 {
