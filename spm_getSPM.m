@@ -507,7 +507,7 @@ if ~isempty(XYZ)
     %-------------------------------------------------------------------
     if spm_input('corrected height threshold','+1','y/n',[1,0],2)
 	u  = spm_input('corrected p value','+0','r',0.05,1,[0,1]);
-	u  = spm_U(u,edf,STAT,xSDM.R,n);
+	u  = spm_uc(u,edf,STAT,xSDM.R,n);
     else
 	%-NB: Uncorrected p for conjunctions is p of each component comparison
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
