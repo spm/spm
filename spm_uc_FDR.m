@@ -95,7 +95,6 @@ if isstruct(Vs)
   for i = 2:n
     Ts = min(Ts,spm_read_vols(Vs(i)));
   end
-  Ts(isnan(Ts)) = [];
   if ~isempty(Vm)
     if isstruct(Vm)
       Ts(spm_read_vols(Vm)==0) = [];
@@ -105,6 +104,7 @@ if isstruct(Vs)
       Ts = Ts(Vm);
     end
   end
+  Ts(isnan(Ts)) = [];
   Ts = flipud(sort(Ts(:)));
 end
 
