@@ -467,7 +467,7 @@ uicontrol(Fmenu,'String','Defaults',	'Position',[112 020 083 024].*WS,...
 
 User = spm('GetUser');
 uicontrol(Fmenu,'String',User,'Position',[205 020 083 024].*WS,...
-	'FontAngle','Oblique',...
+	'FontAngle','Italic',...
 	'CallBack',...
 		['if exist(''' User ''');',...
 		 User,';else;spm_help(''UserButton''); end'])
@@ -750,6 +750,12 @@ global CMDLINE
 if isempty(CMDLINE), R1 = 0; else, R1 = CMDLINE; end
 
 
+case 'mlver'
+%=======================================================================
+% spm('MLver')
+v = version; tmp = find(v=='.'); if length(tmp)>1, R1=v(1:tmp(2)-1); end
+
+
 case 'setcmdwinlabel'
 %=======================================================================
 % spm('SetCmdWinLabel',WinStripe,IconLabel)
@@ -765,10 +771,10 @@ if ~strcmp(Term,'sun-cmd'), return, end
 User        = spm('GetUser');
 [null,Host] = unix('echo `hostname` | sed -e ''s/\..*$//''');
 Host        = Host(1:length(Host)-1);
-v           = version;
+v           = spm('MLver');
 
 if nargin<3, IconLabel = ['MatLab',v(1)]; end
-if nargin<2, WinStripe = [User,' - ',Host,' : MatLab ',v(1)]; end
+if nargin<2, WinStripe = [User,' - ',Host,' : MatLab ',v]; end
 
 %-Set window stripe
 %-----------------------------------------------------------------------
