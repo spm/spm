@@ -107,10 +107,12 @@ function [R1,R2]=spm(Action,P2,P3)
 %_______________________________________________________________________
 
 %-Parameters
-Modalities=str2mat('PET','FMRI');
+%-----------------------------------------------------------------------
+Modalities = str2mat('PET','FMRI');
 
 %-Format arguments
-if nargin==0, Action='Welcome'; end
+%-----------------------------------------------------------------------
+if nargin == 0, Action='Welcome'; end
 
 
 if strcmp(lower(Action),lower('Welcome'))
@@ -178,7 +180,7 @@ uicontrol(F,'String','PET and SPECT',...
 	'ForegroundColor',[0 1 1]);
 uicontrol(F,'String','fMRI time-series',...
 	'Position',[310 066 150 030],...
-'CallBack','close(gcf), clear all, spm(''FMRI'')',...
+	'CallBack','close(gcf), clear all, spm(''FMRI'')',...
 	'Interruptible','yes',...
 	'ForegroundColor',[0 1 1]);
 uicontrol(F,'String','About SPM',...
@@ -207,8 +209,10 @@ Modality = upper(Action);
 close all
 
 %-Draw SPM windows
-%-----------------------------------------------------------------------
+%=======================================================================
+
 %-Work out figure positions and sizes
+%-----------------------------------------------------------------------
 A  = spm('GetWinScale');
 S1 = [108 429 400 445].*A;
 S2 = [108 008 400 395].*A;
@@ -316,11 +320,11 @@ uicontrol(Fmenu,'String','Eigenimages',	'Position',[220 245 140 30].*A,...
 uicontrol(Fmenu,'String','SPM{F}',	'Position',[045 165 070 30].*A,...
 	'CallBack','spm_projectionsF_ui','Interruptible','yes');
 
-uicontrol(Fmenu,'String','SPM{Z}',	'Position',[165 165 070 30].*A,...
-	'CallBack','spm_projections_ui','Interruptible','yes');
-
-uicontrol(Fmenu,'String','Results',	'Position',[285 165 070 30].*A,...
+uicontrol(Fmenu,'String','Results',	'Position',[165 165 070 30].*A,...
 	'CallBack','spm_sections_ui',	'Interruptible','yes');
+
+uicontrol(Fmenu,'String','SPM{Z}',	'Position',[285 165 070 30].*A,...
+	'CallBack','spm_projections_ui','Interruptible','yes');
 
 uicontrol(Fmenu,'String','Analyze',	'Position',[020 088 082 024].*A,...
 	'CallBack','!analyze',		'Interruptible','yes');
@@ -345,10 +349,10 @@ uicontrol(Fmenu,'String','Mean',	'Position',[020 054 082 024].*A,...
 uicontrol(Fmenu,'String','ImCalc',	'Position',[112 054 083 024].*A,...
 	'CallBack','spm_image_funks',	'Interruptible','yes');
 
-%uicontrol(Fmenu,'String','MRI to PET',	'Position',[205 054 083 024].*A,...
+% uicontrol(Fmenu,'String','MRI to PET','Position',[205 054 083 024].*A,...
 %	'CallBack','spm_mri2pet',	'Interruptible','yes');
 
-%uicontrol(Fmenu,'String','MRsegment',	'Position',[298 054 082 024].*A,...
+% uicontrol(Fmenu,'String','MRsegment',	'Position',[298 054 082 024].*A,...
 %	'CallBack','spm_segment',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*A,...
@@ -372,10 +376,13 @@ uicontrol(Fmenu,'String','Quit',	'Position',[298 020 082 024].*A,...
 	'CallBack','close all,clear all,clc,fprintf(''Bye...\n\n>> '')');
 
 %=======================================================================
+
 %-Setup for current modality
+%-----------------------------------------------------------------------
 spm('ChMod',Modality)
 
 %-Reveal windows
+%-----------------------------------------------------------------------
 set([Fmenu,Finter,Fgraph],'Visible','on')
 
 return
@@ -401,10 +408,10 @@ elseif strcmp(lower(Action),lower('ChMod'))
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, Modality=''; else, Modality=P2; end
-[Modality,ModNum]=spm('CheckModality',Modality);
+if nargin<2, Modality = ''; else, Modality = P2; end
+[Modality,ModNum] = spm('CheckModality',Modality);
 
-if strcmp(Modality,'PET'), OModality='FMRI'; else, OModality='PET'; end
+if strcmp(Modality,'PET'), OModality = 'FMRI'; else, OModality='PET'; end
 
 
 %-Sort out global defaults
@@ -451,7 +458,7 @@ elseif strcmp(lower(Action),lower('defaults'))
 %-Sort out arguments
 %-----------------------------------------------------------------------
 if nargin<2, Modality=''; else, Modality=P2; end
-Modality=spm('CheckModality',Modality);
+Modality = spm('CheckModality',Modality);
 
 %-Set MODALITY
 %-----------------------------------------------------------------------
@@ -505,12 +512,13 @@ return
 
 elseif strcmp(lower(Action),lower('CheckModality'))
 %=======================================================================
-% [Modality,ModNum]=spm('CheckModality',Modality)
+% [Modality,ModNum] = spm('CheckModality',Modality)
+%-----------------------------------------------------------------------
 if nargin<2, Modality=''; else, Modality=upper(P2); end
 if isempty(Modality)
 	global MODALITY
-	if ~isempty(MODALITY); Modality=MODALITY;
-	else, Modality='UNKNOWN'; end
+	if ~isempty(MODALITY); Modality = MODALITY;
+	else, Modality = 'UNKNOWN'; end
 end
 if isstr(Modality)
 	ModNum = find(all(Modalities(:,1:length(Modality))'==...
@@ -543,6 +551,7 @@ return
 elseif strcmp(lower(Action),lower('Dir'))
 %=======================================================================
 % spm('Dir',Mfile)
+%-----------------------------------------------------------------------
 if nargin<2, Mfile='spm'; else, Mfile=P2; end
 tmp    = which(Mfile);
 if ~isstr(tmp)
@@ -554,6 +563,7 @@ return
 elseif strcmp(lower(Action),lower('Ver'))
 %=======================================================================
 % spm('Ver',Mfile)
+%-----------------------------------------------------------------------
 if nargin<2, Mfile='spm'; else, Mfile=P2; end
 SPMdir = spm('Dir',Mfile);
 CFile  = [SPMdir,'/Contents.m'];
@@ -572,6 +582,7 @@ return
 elseif strcmp(lower(Action),lower('Colour'))
 %=======================================================================
 % spm('Colour')
+%-----------------------------------------------------------------------
 %-Developmental livery
 % R1 = [0.7,1.0,0.7];
 % R2 = 'Lime Green';
@@ -583,39 +594,43 @@ return
 elseif strcmp(lower(Action),lower('SetCmdWinLabel'))
 %=======================================================================
 % spm('SetCmdWinLabel',WinStripe,IconLabel)
+%-----------------------------------------------------------------------
 
 %-Only label Sun command tools
+%-----------------------------------------------------------------------
 Term        = getenv('TERM');
 if ~strcmp(Term,'sun-cmd'), return, end
 
 %-Work out label text
+%-----------------------------------------------------------------------
 User        = getenv('USER');
 [null,Host] = unix('echo `hostname` | sed -e ''s/\..*$//''');
 Host        = Host(1:length(Host)-1);
 
-if nargin<3, IconLabel='MatLab'; end
-if nargin<2, WinStripe=[User,' - ',Host,' : MatLab ',version]; end
+if nargin<3, IconLabel = 'MatLab'; end
+if nargin<2, WinStripe = [User,' - ',Host,' : MatLab ',version]; end
 
 %-Set window stripe
+%-----------------------------------------------------------------------
 disp([']l' WinStripe '\]L' IconLabel '\'])
 return
 
 elseif strcmp(lower(Action),lower('DirTrunc'))
 %=======================================================================
 % TDname = spm('DirTrunc',Dname,len)
-if nargin<3, len=50; else, len=P3; end
-if nargin<2, Dname=spm('Dir'); else, Dname=P2; end
-
-if length(Dname)>len
+%-----------------------------------------------------------------------
+if nargin < 3, len = 50; else, len = P3; end
+if nargin < 2, Dname = spm('Dir'); else, Dname = P2; end
+if length(Dname) > len
 	lDname = length(Dname);
-	tmp = min(find(Dname(lDname-len:lDname)=='/')) + lDname-len -1;
+	tmp    = min(find(Dname(lDname-len:lDname)=='/')) + lDname-len -1;
 	if isempty(tmp), tmp=max(find(Dname=='/')); end
 	TDname = ['...',Dname(tmp:lDname)];
 else
 	TDname=Dname;
 end
 
-R1 = TDname;
+R1    = TDname;
 return
 
 
