@@ -426,8 +426,23 @@ cVimenu = {'none','AR(1)'};
 cVi     = spm_input(str,'+1','b',cVimenu,'batch',{},'int_corr');
 
 
-% the interactive parts of spm_spm_ui are now finished: Cleanup GUI
+%-Estimation options
+%=======================================================================
+spm_input('Estimation options',1,'d',mfilename,'batch')
+
+%-Generate default trial-specific F-contrasts specified by session?
 %-----------------------------------------------------------------------
+bFcon = spm_input('Setup trial-specific F-contrasts?','+1','y/n',[1,0],1,...
+		'batch',{},'trial_fcon');
+
+%-Estimate now or later?
+%-----------------------------------------------------------------------
+bEstNow = spm_input('estimate?','_','b','now|later',[1,0],1,...
+		'batch',{},'now_later');
+
+%=======================================================================
+% - C O N F I G U R E   D E S I G N
+%=======================================================================
 spm_clf(Finter);
 spm('FigName','Configuring, please wait...',Finter,CmdLine);
 spm('Pointer','Watch');
@@ -516,36 +531,37 @@ else
 	DSstr  = 'Block [session] effects only';
 end
 
-%-trial-specifc effects specified by Sess
+%-Trial-specifc effects specified by Sess
 %-----------------------------------------------------------------------
-% REMOVED THIS SECTION TO AVOID ENORMOUS xCON.mat FILES
+%-NB: With many sessions, these default F-contrasts can make xCon huge!
+if bFcon
+	i      = length(F_iX0) + 1;
+	if (Sess{1}.rep)
+		for t = 1:length(Sess{1}.name)
+			u     = [];
+			for s = 1:length(Sess)
+				u = [u Sess{s}.col(Sess{s}.ind{t})];
+			end
+			q             = 1:size(xX.X,2);
+			q(u)          = [];
+			F_iX0(i).iX0  = q;
+			F_iX0(i).name = Sess{s}.name{t};
+			i             = i + 1;
+		end
+	else
+		for s = 1:length(Sess)
+			str   = sprintf('Session %d: ',s);
+			for t = 1:length(Sess{s}.name)
+				q             = 1:size(xX.X,2);
+				q(Sess{s}.col(Sess{s}.ind{t})) = [];
+				F_iX0(i).iX0  = q;
+				F_iX0(i).name = [str Sess{s}.name{t}];
+				i             = i + 1;
+			end
+		end
+	end
+end
 
- i      = length(F_iX0) + 1;
- if (Sess{1}.rep)
- 	for t = 1:length(Sess{1}.name)
- 		u     = [];
- 		for s = 1:length(Sess)
- 			u = [u Sess{s}.col(Sess{s}.ind{t})];
- 		end
- 		q             = 1:size(xX.X,2);
- 		q(u)          = [];
- 		F_iX0(i).iX0  = q;
- 		F_iX0(i).name = Sess{s}.name{t};
- 		i             = i + 1;
- 	end
- else
- 	for s = 1:length(Sess)
- 		str   = sprintf('Session %d: ',s);
- 		for t = 1:length(Sess{s}.name)
- 			q             = 1:size(xX.X,2);
- 			q(Sess{s}.col(Sess{s}.ind{t})) = [];
- 			F_iX0(i).iX0  = q;
- 			F_iX0(i).name = [str Sess{s}.name{t}];
- 			i             = i + 1;
- 		end
- 	end
- end
- 		
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
@@ -583,7 +599,7 @@ fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 %-Display Design report
 %=======================================================================
 fprintf('%-40s: ','Design reporting')                                %-#
-spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
+spm_DesRep('DesMtx',xX,reshape({VY.fname},size(VY)),xsDes)
 fprintf('%30s\n','...done')                                          %-#
 
 
@@ -591,8 +607,7 @@ fprintf('%30s\n','...done')                                          %-#
 %=======================================================================
 spm_clf(Finter);
 spm('FigName','fMRI stats models',Finter,CmdLine);
-if spm_input('estimate?',1,'b','now|later',[1,0],1,...
-	     'batch',{},'now_later')
+if bEstNow
 	spm('Pointer','Watch')
 	spm('FigName','Stats: estimating...',Finter,CmdLine);
 	spm_spm(VY,xX,xM,F_iX0,Sess,xsDes);
