@@ -131,7 +131,7 @@ for k=1:numel(VF),
 		x(k,:)    = xk(:)';
 	end;
 	if flags.graphics,
-		display_results(VG,VF,xk(:)',flags);
+		display_results(VG,VFk,xk(:)',flags);
 	end;
 end;
 return;
