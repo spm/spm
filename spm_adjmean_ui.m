@@ -34,14 +34,13 @@ function spm_adjmean_ui
 % The model, filenames, global values and options are saved to a MatLab
 % *.mat file named SPMadj.mat in the current working directory.
 %
-% No masking is carried out: The adjusted mean is calculated at all
-% voxels. Voxels which are zero in *all* the input images pertaining to
-% an adjusted mean (usually those from the appropriate subject), will
-% remain zero, since the computation is only a weighted mean. Modelling
-% (& computation) proceeds assumming that at each voxel the data is
-% either all zero, or that there is usable data from all images. (This
-% is *not* a softmean.) Data realigned in a single session with SPM'96
-% (or later) are automatically consistently masked in this way.
+% Implicit masking is carried out: Zero voxels are implicitly assummed
+% to be masked out. Thus, the adjusted mean is calculated at voxels
+% which are non-zero in *all* the input images pertaining to the
+% adjusted mean (usually those from the appropriate subject). (This is
+% *not* a softmean.) Data realigned in a single session with SPM'96 (or
+% later) are automatically implicitly zero masked with a consistent
+% mask in this way.
 %
 % GM, the value for grand mean scaling, is user specified.
 % The default value is 50.
@@ -136,277 +135,261 @@ function spm_adjmean_ui
 %
 % Once the weights have been worked out for each adjusted mean image,
 % computation proceeds by passing appropriate weights and image
-% filenames to spm_mean, which writes out the appropriate parameter
+% filenames to spm_add, which writes out the appropriate parameter
 % image as an Analyze format image of the same type (see spm_type) as
 % the input images.
 %
 % Variables saved in SPMadj.mat data file
 % ----------------------------------------------------------------------
-% iDesType	Design type index
-% DesName	Design name
-% iHForm	Form of DesMtx H partition
-% iGMsca	Grand mean scaling option
-% sGMsca	Grand mean scaling description
-% iGloNorm	Global normalisation option
-% sGloNorm	Global normalisation description
-% iAdjTo	Adjustment (for AnCova) option
-% sAdjTo	Adjustment (for AnCova) description
-% iSubj		Subject indicator vector
-% nSubj		number of subjects
-% iCond		Condition indicator vector
-% iRepl		Replication indicator vector
-% P		String matrix of filenames
-% H		H (condition effects) partition of design matrix
-% Hnames	Names of parameters corresponding to columns of H
-% G		G (confounding covariates) partition of design matrix
-% Gnames	Names of parameters corresponding to columns of G
-% c		Matrix of contrasts, contrasts in rows
-% cNames	Names associated with contrasts
-% W		Weights for images corresponding to contrasts
-% CWD		Current Working Directory (when run)
-% Fnames	Filenames of adjusted mean images written
-% rGX		raw global means (before any scaling)
-% gSF		Image scale factors for global scaling (inc. grand mean scaling)
-% GX		Global means after scaling
-% GM		Grans Mean used for scaling
+% DesDef        Structure containing defaults for chosen design
+% Des           Structure containing design parameters & specification
+%   .DesName    Design name
+%   .HForm      Form of DesMtx H partition
+%   .iSubj      Subject indicator vector
+%   .iCond      Condition indicator vector
+%   .iRepl      Replication indicator vector
+%   .iGloNorm   Global normalisation option
+%   .sGloNorm   Global normalisation description
+%   .iGMsca     Grand mean scaling option
+%   .sGMsca     Grand mean scaling description
+%   .GM         Grand Mean used for scaling
+%   .iAdjTo     Adjustment (for AnCova) option
+%   .sAdjTo     Adjustment (for AnCova) description
+%   .aGM        AnCova adjustment value (subtracted from GX before AnCova)
+%   .gSF        Image scale factors for global scaling
+%   .X          Design matrix
+%   .nX         Normalised (for imaging) design matrix
+%   .Xnames     Effects corresponding to cols of X (cellstr)
+%   .aPMap      Additional parameter to effect name mappings (see spm_desMtx)
+%   .EXnames    English effect names corresponding to TeX parameters of Xnames 
+%   .iX         Structure defining design matrix subpartitions
+%       .H      Columns of X corresponding to H partition
+%       .C      Columns of X corresponding to C partition
+%       .B      Columns of X corresponding to B partition
+%       .G      Columns of X corresponding to G partition
+% c             Matrix of contrasts, contrasts in rows
+% cNames        Names associated with contrasts
+% W             Weights for images corresponding to contrasts
+% Fnames        Filenames of adjusted mean images written (cellstr)
+% rGX           raw global means (before any scaling)
+% GX            Global means after scaling
 %
-%
-% Platform
-% ----------------------------------------------------------------------
-% This version was written for MatLab4.2c with SPM'97d (spm_mean.m v1.11)
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
-
-%SPM96:This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 
 %=======================================================================
 % - S E T U P
 %=======================================================================
-fprintf('\nSPM: spm_adjmean_ui\n'),fprintf('%c','='*ones(1,72)),fprintf('\n')
-spm_clf('Interactive')
-Finter = spm_figure('FindWin','Interactive');
-if isempty(Finter), Finter=spm('CreateIntWin'); end
-set(Finter,'Name','AdjMean')
-spm_help('!ContextHelp','spm_adjmean_ui.m')
-
-
+SCCSid = '%I%';
+SPMid = spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','AdjMean',1);
+spm_help('!ContextHelp',[mfilename,'.m'])
 
 %=======================================================================
 % - D E S I G N   P A R A M E T E R S
 %=======================================================================
-DesNames = str2mat(...
-	'Straight mean',...					%-1
-	'PropSca & Average',...					%-2
-	'Linear (AnCova) adjusted mean (scaled mean)',...	%-3
-	'Multi linear adjusted means (scaled means)',...	%-4
-	'SingleSubj: Condition means (PropSca)',...		%-5
-	'SingleSubj: Condition means (AnCova)',...		%-6
-	'MultiSubj: Condition means (PropSca)',...		%-7
-	'MultiSubj: Condition means (AnCova by subject)');	%-8
-iDesType = 2;	%-Default design type
 
-DesPrams = str2mat(...
-'bMSubj',...
-	'bBlock',...
-		'bMCond',...
-			'iHForm',...
-				'iGloNorm',...
-					'iGMsca',...
-						'iAdjTo');
+%-Design default definitions
+%-----------------------------------------------------------------------
+DesDefF = {...
+'DesName';						%-Design name
+	'HForm';...					%-Form of H partition
+					'aPMap';...	%-Parameter mappings 
+	'bMSubj';...					%-Multi-subject/block ?
+		'bMCond';...				%-Multi-condition?
+			'iGloNorm';...			%-GloNorm codes
+				'iGMsca';...		%-GMsca codes
+					'GM';...	%-Grand Mean value
+						'iAdjTo'};	%-AdjTo codes
+DesDef = {...
+'Straight mean',...
+	'iSubj,''-'',''\mu''',		{'\mu','mean';'\gamma','blok'},...
+	1,	0,	1,	1,	[],	4;...
+'PropSca & average',...
+	'iSubj,''-'',''\mu''',		{'\mu','adjmean';'\gamma','blok'},...
+	1,	0,	2,	4,	[],	4;...
+'Linear (AnCova) adjusted mean (scaled mean)',...
+	'iSubj,''-'',''\mu''',		{'\mu','scamean'},...
+	0,	0,	3,	2,	[],	2;...
+'Multi linear adjusted means (scaled means)',...
+	'iSubj,''-'',''\mu''',		{'\mu','adjmean';'\gamma','blok'},...
+	1,	0,	4,	3,	[],	3;...
+'SingleSubj: Condition means (PropSca)',...
+	'iCond,''-'',''\alpha''',	'',...
+	0,	1,	2,	4,	[],	4;...
+'SingleSubj: Condition means (AnCova)',	...
+	'iCond,''-'',''\alpha''',	'',...
+	0,	1,	3,	2,	[],	2;...
+'MultiSubj: Condition means (PropSca)',...
+	'[iSubj,iCond],''-'',{''\gamma'',''\alpha''}',	'',...
+	1,	1,	2,	4,	[],	4;...
+'MultiSubj: Condition means (AnCova by subject)',...
+	'[iSubj,iCond],''-'',{''\gamma'',''\alpha''}',	'',...
+	1,	1,	4,	3,	[],	3	};
 
-DesDefaults = [ ...
-1,	1,	0,	2,	1,	1,	4;...		%-1
-1,	1,	0,	1,	2,	4,	4;...		%-2
-0,	1,	0,	1,	3,	2,	2;...		%-3
-1,	1,	0,	1,	4,	3,	3;...		%-4
-0,	0,	1,	3,	2,	4,	4;...		%-5
-0,	0,	1,	3,	3,	2,	2;...		%-6
-1,	0,	1,	4,	2,	4,	4;...		%-7
-1,	0,	1,	4,	4,	3,	3;	];	%-8
+iDefDesDef = 2;		%-Default Design definition
 
-HForms = str2mat(...
-	'iSubj,''-'',''AdjMean''',...
-	'iSubj,''-'',''mean''',...
-	'iCond,''-'',''Cond''',...
-	'[iSubj,iCond],''-'',str2mat(''Subj'',''Cond'')');
-
+%-Options
+%-----------------------------------------------------------------------
 %-Global normalization options
-sGloNorm = str2mat(...
-	'No Global Normalisation',...
-	'Proportional scaling',...
-	'AnCova',...
-	'AnCova {subject-specific}');
+sGloNorm = {	'No Global Normalisation',...				%-1
+		'Proportional scaling',...				%-2
+		'AnCova',...						%-3
+		'AnCova {subject-specific}'};				%-4
 
 %-Grand mean scaling options
-sGMsca = str2mat(...
-	'No Grand Mean Scaling',...
-	'Scaling of overall Grand Mean',...
-	'Scaling of subject Grand Means',...
-	'(Implicit in PropSca global normalisation)');
+sGMsca = {	'No Grand Mean Scaling',...				%-1
+		'Scaling of overall Grand Mean',...			%-2
+		'Scaling of subject Grand Means',...			%-3
+		'(Implicit in PropSca global normalisation)'};		%-4
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
+dGM = 50;		%-Default Grand Mean value
 
 %-Adjustment options for AnCova designs (for centering of globals)
 %-If Grand mean scaling, then would usually AnCova adjust in a similar
 % fashion, i.e. to GM.
-sAdjTo = str2mat(...
-	'Specify...',...
-	'Grand mean (mean of all globals)',...
-	'Subject grand mean (mean of subjects globals)',...
-	'(redundant: not doing AnCova)');
+sAdjTo = {	'Specify...',...					%-1
+		'Grand mean (mean of all globals)',...			%-2
+		'Subject grand mean (mean of subjects globals)',...	%-3
+		'(redundant: not doing AnCova)'};			%-4
 
-if ( size(DesNames,1) ~= size(DesDefaults,1)) | ...
-	(size(DesPrams,1) ~= size(DesDefaults,2))
-	error('Size mismatch in design parameter specification')
-end
+
+%=======================================================================
+% - G E T   I M A G E S   &   P A R A M E T E R S
+%=======================================================================
 
 %-Initialise indicies
 %-----------------------------------------------------------------------
 iSubj   = [];		% Subject (block) index
 iCond   = [];		% condition (or scan) (per subject) index
 iRepl   = [];		% replication (per condition) index
-P       = [];		% string matrix of filenames
+P       = {};		% cell array of string filenames
 
 
-%-Get parameters
-%=======================================================================
-
-%-Select design
+%-Select design & unpack design specification defaults
 %-----------------------------------------------------------------------
-iDesType = spm_input('Select mean type...',1,'m',DesNames,[],iDesType);
-DesName = deblank(DesNames(iDesType,:));
-for p   = 1:size(DesPrams,1)
-    eval([deblank(DesPrams(p,:)),' = DesDefaults(iDesType,p);']), end
-HForm   = HForms(iHForm,:);
-if bBlock, sSubBlk='block'; else, sSubBlk='subject'; end
-
+DesDef = cell2struct(DesDef(...
+	spm_input('Select mean type...',1,'m',DesDef(:,1),[],iDefDesDef)...
+		,:)',DesDefF);
+DesName  = DesDef.DesName;
+HForm    = DesDef.HForm;
+aPMap    = DesDef.aPMap;
+bMSubj   = DesDef.bMSubj;
+sSubj    = spm_DesMtx('ETeXNames','\gamma',aPMap);
+bMCond   = DesDef.bMCond;
+iGloNorm = DesDef.iGloNorm;
+iGMsca   = DesDef.iGMsca;
+GM       = DesDef.GM;
+iAdjTo   = DesDef.iAdjTo;
 
 %-Get filenames, accrue subject, condition & replication indicies
 %-----------------------------------------------------------------------
-guiPos = '+1'; %*** guiPos = spm_input('!NextPos');
-nSubj     = 1;
 if bMSubj
-	nSubj = spm_input(['number of ',sSubBlk,'s ?'],guiPos);
+	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1');
 	bMSubj = nSubj > 1;
+else
+	nSubj  = 1;
 end
 for subj  = 1:nSubj
-	sSubj = ''; if bMSubj, sSubj = [sSubBlk,' ',int2str(subj),': ']; end
-	if bMCond, nCond = spm_input([sSubj,'# of conditions ? '],'0');
+	if bMSubj, strS = [sSubj,' ',int2str(subj),': ']; else, strS = ''; end
+	if bMCond, nCond = spm_input([strS,'# of conditions ? '],'+0');
 		else, nCond = 1; end
 	for cond  = 1:nCond
-	    if nCond > 1, t_str = sprintf('cond %d: ',cond);
-	    	else t_str=''; end
-	    tP    = spm_get(Inf,'.img',[sSubj,t_str,'Select scans...']);
+	    if nCond > 1, strC = sprintf('cond %d: ',cond); else strC=''; end
+	    tP    = spm_get(Inf,'.img',{[strS,strC,'Select scans...']});
 	    nRepl = size(tP,1);
-	    P     = str2mat(P,tP);
+	    P     = [P;tP];
 	    iSubj = [iSubj; subj*ones(nRepl,1)];
 	    iCond = [iCond; cond*ones(nRepl,1)];
 	    iRepl = [iRepl; [1:nRepl]'];
 	end
 end
-P(1,:)  = [];
 
 %-Total #observations
 %-----------------------------------------------------------------------
-q       = length(iSubj);
+nScan = length(iSubj);
+if nScan==1, error('Only one image - gimme more!'), end
 
-%-H partition
+%-Construct H partition
 %-----------------------------------------------------------------------
 eval(['[H,Hnames] = spm_DesMtx(',HForm,');'])
 
 %-Global normalization options
 %-----------------------------------------------------------------------
-if iGloNorm>9
-	%-User has a choice from the options in iGloNorm.
-	%-iGloNorm contains an integer, each digit specifies an option
-	%---------------------------------------------------------------
-	str = int2str(iGloNorm);
-	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
+if length(iGloNorm)>1		%-User has a choice from the options in iGloNorm
 	%-Don't offer subject specific AnCova if not bMSubj
-	if ~bMSubj, tmp(find(tmp==4))=[]; end
-	iGloNorm=spm_input('Select global normalisation','+1','m',...
-	    	sGloNorm(tmp,:),tmp);
+	if ~bMSubj, iGloNorm(find(iGloNorm==4))=[]; end
+	iGloNorm = spm_input('Select global normalisation','+1','m',...
+	    	sGloNorm(iGloNorm),iGloNorm);
 end
-sGloNorm = deblank(sGloNorm(iGloNorm,:));
+sGloNorm = sGloNorm{iGloNorm};
 
 %-Grand mean scaling options
 %-----------------------------------------------------------------------
 %-Grand mean scaling is implicit in PropSca global normalisation
 if iGloNorm==2, iGMsca=4; end
-if iGMsca>9
-	%-User has a choice from the options in iGMsca.
-	%-iGMsca contains an integer, each digit specifies an option
-	%---------------------------------------------------------------
-	str = int2str(iGMsca);
-	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
-	%-Scaling by subject redundent if proportional scaling,
+if length(iGMsca)>1		%-User has a choice from the options in iGMsca
 	%-Don't offer subject specifics if not bMSubj
-	if ~bMSubj, tmp(find(tmp==3))=[]; end
-	iGMsca=spm_input...
-	    ('Grand mean scaling','+1','m',sGMsca(tmp,:),tmp);
+	if ~bMSubj, iGMsca(find(iGMsca==3))=[]; end
+	iGMsca = spm_input('Grand mean scaling','+1','m',sGMsca(iGMsca),iGMsca);
 end
-if iGMsca>1
-	%-Get value for grand mean scaling
-	if iGloNorm==2, str='GM: PropSca global mean to ?';
-		else, str='GM: Scale grand mean to ?'; end
-	GM = spm_input(str,'+1','e',50);
+if iGMsca>1 & isempty(GM)	%-Get value for grand mean scaling
+	if iGloNorm==2,	str='GM: PropSca global mean to ?';
+		else,	str='GM: Scale grand mean to ?'; end
+	GM = spm_input(str,'+1','e',dGM);
 	if GM==0, iGMsca=0; end
-else
+elseif iGMsca==1		%-Set GM to zero if not GMscaling
 	GM=0;
+elseif GM==0;			%-Watch out for GM==0! (=>DesDef is set wrong)
+	iGMsca=1;
 end
-sGMsca = deblank(sGMsca(iGMsca,:));
-
+sGMsca = sGMsca{iGMsca};
 
 %-Adjustment options for AnCova designs (for centering of globals)
 %-----------------------------------------------------------------------
 if any(iGloNorm==[1,2]), iAdjTo=4; end
-if iAdjTo>9
-	%-User has a choice from the options in iAdjTo.
-	%-iAdjTo contains an integer, each digit specifies an option
-	%---------------------------------------------------------------
-	str = int2str(iAdjTo);
-	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
+if length(iAdjTo)>1		%-User has a choice from the options in iAdjTo.
 	%-Don't offer subject specifics if not bMSubj
-	if ~bMSubj, tmp(find(tmp==2))=[]; end
+	if ~bMSubj, iAdjTo(find(iAdjTo==2))=[]; end
 	iAdjTo=spm_input...
 		('AnCova adjust (centre globals), after any scaling to',...
-		 '+1','m',sAdjTo(tmp,:),tmp);
+		 '+1','m',sAdjTo(iAdjTo,:),iAdjTo);
 end
 if iAdjTo==1, aGM = spm_input('AnCova adjust to ?','+1','e',GM); end
-sAdjTo = deblank(sAdjTo(iAdjTo,:));
+sAdjTo = sAdjTo{iAdjTo};
 
 
 
 %=======================================================================
-% - C O M P U T A T I O N
+% - C O N F I G U R E   D E S I G N
 %=======================================================================
-set(Finter,'Name','AdjMean - computing','Pointer','watch')
-fprintf('\tcomputing: ')
+spm('FigName','AdjMean: configuring',Finter,CmdLine); fprintf('\tconfiguring: ')
+spm('Pointer','Watch');
 
-%-Get file identifiers
+%-Memory map files
 %-----------------------------------------------------------------------
-V     = zeros(12,q);
-for i = 1:q; V(:,i) = spm_map(P(i,:));  end
+V = spm_vol(char(P));
 
-%-Check for consistency of image size and voxel size
+%-Check for consistency of image dimensions and orientation / voxel size
 %-----------------------------------------------------------------------
-if ~all(all(~diff(V([1:6],:)')))
-	error('data do not have the same image and voxel size'); end
+if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
+	error('images do not all have the same dimensions'), end
+if any(any(any(diff(cat(3,V.mat),1,3),3)))
+	error('images do not all have same orientation & voxel size'), end
 
-%-Get ORIGIN from first image
+%-Work out required Analyze header info from handles
 %-----------------------------------------------------------------------
-[DIM VOX SCALE TYPE OFFSET ORIGIN] = spm_hread(P(1,:));
+DIM    = V(1).dim(1:3);
+VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
+ORIGIN = (V(1).mat\[0 0 0 1]')';
+ORIGIN = round(ORIGIN(1:3));
 
 %-Compute global values
 %-----------------------------------------------------------------------
 fprintf('(globals)')
-GX     = zeros(q,1);
-for i  = 1:q, GX(i) = spm_global(V(:,i)); end
+GX     = zeros(nScan,1);
+for i  = 1:nScan, GX(i) = spm_global(V(i)); end
 fprintf('\b - done)\n')
-
-%-Save scalefactors
-%-----------------------------------------------------------------------
-iSF = V(7,:)';
-
 
 %-Scaling: compute global scaling factors required to implement proportional
 % scaling global normalisation or Grand mean scaling, as requested
@@ -415,7 +398,7 @@ rGX = GX;
 if iGloNorm==2
 	%-Proportional scaling global normalisation
 	gSF = GM./GX;
-	GX  = GM*ones(q,1);
+	GX  = GM*ones(nScan,1);
 	%** scale rGX for printout? ...or just graph them?
 elseif iGMsca==2
 	%-Grand mean scaling (overall)
@@ -428,7 +411,7 @@ elseif iGMsca==3
 	GX  = GX.*gSF;
 	sGMsca = sprintf('%s to %g',sGMsca,GM);
 else	%-No scaling
-	gSF = ones(q,1);
+	gSF = ones(nScan,1);
 end
 
 %-AnCova options: Construct Global covariates of no interest partition
@@ -444,21 +427,23 @@ if any(iGloNorm==[3,4])
 	end
 
 	if iGloNorm == 3	%-AnCova
-	    G  = GX - aGM; Gnames = 'Global';
-	elseif iGloNorm == 4	%-AnCova by subject
+	    G  = GX - aGM; Gnames = '\zeta';
+	elseif iGloNorm == 4	%-AnCova by block/subject
 	    [G,Gnames] = ...
-		spm_DesMtx([iSubj,GX-aGM],'FxC',str2mat(sSubBlk,'global'));
+		spm_DesMtx([iSubj,GX-aGM],'FxC',{'\gamma','\zeta'});
 	end
 else
-	G = []; Gnames = '';
+	G = []; Gnames = ''; aGM=[];
 end
 
-
-%-Design matrix, parameter estimation matrix, "hat" matrix, "residual" matrix
+%-Design matrix, parameter estimation matrix
 %-----------------------------------------------------------------------
-X        = [H G];
-[nX,Xnames] = spm_DesMtxSca(H,Hnames,G,Gnames);
-XTXinvX  = inv(X'*X)*X';
+X           = [H G];
+[nX,Xnames] = spm_DesMtx('sca',H,Hnames,G,Gnames);
+EXnames = spm_DesMtx('ETeXNames',Xnames,aPMap);
+iX = struct(	'H',	[1:size(H,2)],	'C',	[],...
+		'B',	[],		'G',	size(H,2) + [1:size(G,2)]);
+XTXinvX     = inv(X'*X)*X';
 
 %-Contrasts (c)
 %-----------------------------------------------------------------------
@@ -466,166 +451,191 @@ c  = [eye(size(H,2)), zeros(size(H,2),size(G,2))];
 nc = size(c,1);
 W  = c * XTXinvX;
 
-cNames = Hnames;
+cNames = spm_DesMtx('Fnames',EXnames(iX.H));
+Fnames = cNames;
 
-%-Parameter images (of interest) - Adjusted mean images
+%-Pack design parameters up in a structure
 %-----------------------------------------------------------------------
-set(Finter,'Name','AdjMean - writing','Pointer','arrow')
-fprintf('\twriting parameter images... enter filenames...\n')
-
-%-Computation - calculations handled by spm_mean.c
-% Relying on all images used to make each contrast image being masked
-% identically, with out of mask values set to zero. This is the case
-% for sets of images realigned with SPM'96 realignment.
-
-Fnames = []; CWD = pwd;
-guiPos = '+1'; %*** guiPos = spm_input('!NextPos');
-for i = 1:nc
-	Fn = deblank(cNames(i,:)); Fn=Fn(Fn~=' ');
-	Fn = spm_input(sprintf('Contrast %d: filename?',i),guiPos,'s',Fn);
-	%*** make sure Fn is valid? Allow overwriting?
-	Fnames = str2mat(Fnames,Fn);
-	w  = W(i,:).*gSF'.*iSF';
-	Q  = find(abs(w)>0);
-	wV = V(:,Q);	wV(7,:) = w(Q);		%SPM97:
-	fprintf('\t...writing image %d: %-20s',i,Fn)
-	sf = spm_mean(wV,[Fn,'.img']);		%SPM97:
-	%SPM96:sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
-	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
-	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);	%SPM97:
-	%SPM96:spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str)
-	spm_get_space(Fn,spm_get_space(P(1,:)));
-	fprintf(' (done)\n')
-	guiPos = '0';
-end
-Fnames(1,:)=[];
-
-%-Unmap files and canonicalise V
-%-----------------------------------------------------------------------
-for v = V; spm_unmap(v); end
-V = [V(1:6,1); ORIGIN(:)];
-
-%-Save parameters to SPMadj.mat in current directory
-%-----------------------------------------------------------------------
-save SPMadj ...
-	iDesType DesName ...
-	iHForm iGloNorm iAdjTo iGMsca ...
-	sGMsca sGloNorm sAdjTo ...
-	iSubj nSubj iCond iRepl P ...
-	H Hnames G Gnames c cNames W ...
-	CWD Fnames ...
-	rGX gSF GX GM
+Des = struct(...
+		'DesName',	DesName,...
+		'HForm',	HForm,...
+		'iSubj',	iSubj,...
+		'iCond',	iCond,...
+		'iRepl',	iRepl,...
+		'iGloNorm',	iGloNorm,...
+		'sGloNorm',	sGloNorm,...
+		'iGMsca',	iGMsca,...
+		'sGMsca',	sGMsca,...
+		'GM',		GM,...
+		'gSF',		gSF,...
+		'iAdjTo',	iAdjTo,...
+		'sAdjTo',	sAdjTo,...
+		'aGM',		aGM,...
+		'X',		X,...
+		'nX',		nX,...
+		'Xnames',	Xnames,...
+		'aPMap',	aPMap,...
+		'EXnames',	EXnames,...
+		'iX',		iX		);
 
 
 
 %=======================================================================
 % - D I A G N O S T I C   O U T P U T
 %=======================================================================
-set(Finter,'Name','AdjMean - done')
-fprintf('\tdisplaying diagnostic output...\n')
-
-Fgraph = spm_figure('FindWin','Graphics');
-if isempty(Fgraph), Fgraph = spm_figure('CreateWin','Graphics','Graphics'); end
-
-% plot(iSubj,GX,'x'), xlabel('Subject'), ylabel('Global')
-
+figure(Fgraph);
 
 %-Display files and variables
 %=======================================================================
-
-%-Compute common path components - all paths will begin with '/'
-%-----------------------------------------------------------------------
-d     = max(find(P(1,1:min(find(~all(P == ones(q,1)*P(1,:))))-1)=='/')) - 1;
-CPath = P(1,1:d);
-Q     = P(:,[(d + 2):size(P,2)]);
+[P,CPath] = spm_str_manip(P,'c');
 
 %-Display
 %-----------------------------------------------------------------------
-figure(Fgraph); spm_clf; axis off
-text(0.30,1.02,'Adjusted means','Fontsize',16,'Fontweight','Bold')
-text(-0.10,0.85,'Scan Index','Rotation',90)
-if bMSubj, text(+0.00,0.85, sSubBlk,     'Rotation',90), end
-if bMCond, text(+0.05,0.85,'condition',  'Rotation',90), end
-text(+0.10,0.85,'Replication','rotation',90)
-x0    = 0.15; y0 = 0.83;
-dx    = 0.10; dy = 0.02;
+axes('Position',[0 0 1 .95],'Visible','off')
+text(.40,1,'Adjusted means','Fontsize',16,'Fontweight','Bold')
+text(.05,.85,'Scan Index','Rotation',90)
+if bMSubj, text(.10,.85, sSubj,     'Rotation',90), end
+if bMCond, text(.15,.85,'condition',  'Rotation',90), end
+text(.20,.85,'Replication','rotation',90)
+x0    = .25; y0 = .83;
+dx    = .08; dy = .018;
 x     = x0;
-text(x + 0.02,0.85,'global','Rotation',90), x = x + dx;
+text(x + .02,.85,'global','Rotation',90), x = x + 1.5*dx;
 
-text(x,0.92,'Base directory:','FontSize',10,'Fontweight','Bold')
-text(x,0.90,CPath,'FontSize',10)
-text(x,0.87,'Filename Tails')
+text(x,.92,'Base directory:','FontSize',10,'Fontweight','Bold')
+text(x,.90,CPath,'FontSize',10)
+text(x,.87,'Filename Tails')
 y     = y0;
-for i = 1:q
-	text(-0.12,y,sprintf('%02d :',i));
-	if bMSubj, text(-0.01,y,sprintf('%2d',iSubj(i))), end
-	if bMCond, text(+0.04,y,sprintf('%2d',iCond(i))), end
-	text(+0.09,y,sprintf('%2d',iRepl(i)))
+for i = 1:nScan
+	text(.03,y,sprintf('%02d :',i));
+	if bMSubj, text(.08,y,sprintf('%2d',iSubj(i))), end
+	if bMCond, text(.13,y,sprintf('%2d',iCond(i))), end
+	text(.18,y,sprintf('%2d',iRepl(i)))
 	x     = x0;
-	text(x,y,sprintf('%-8.6g',GX(i)),'FontSize',10), x = x + 2*dx;
-	text(x,y,Q(i,:),'FontSize',10)
+	text(x,y,sprintf('%-8.6g',GX(i)),'FontSize',10), x = x + 1.5*dx;
+	text(x,y,P{i},'FontSize',10)
 	y     = y - dy;
 	if y < 0;
 		spm_print
 		spm_clf(Fgraph); axis off
 		y = y0;
-		text(0.16,1.02,['Adjusted means (continued)'],...
+		text(.16,1.02,['Adjusted means (continued)'],...
 		    'Fontsize',16,'Fontweight','Bold')
 	end
 end
 
 y      = y - dy;
 dy     = dy*1.2;
-text(0,y,['Grand mean scaling: ',sGMsca]), y = y - dy;
-text(0,y,['Global normalisation: ',sGloNorm]), y = y - dy;
-text(0,y,['AnCova adjustment to: ',sAdjTo]), y = y - dy;
-text(0,y,sprintf('Parameters saved to: %s/SPMadj.mat',pwd),'FontSize',10)
+text(.08,y,['Grand mean scaling: ',sGMsca]), y = y - dy;
+text(.08,y,['Global normalisation: ',sGloNorm]), y = y - dy;
+text(.08,y,['AnCova adjustment to: ',sAdjTo]), y = y - dy;
+text(.08,y,sprintf('Parameters saved to: %s/SPMadj.mat',pwd),'FontSize',8)
 
 spm_print
 
 
 %-Depict and label design matrix, depict & label contrasts
 %=======================================================================
-spm_clf(Fgraph); axis off
-text(0.1,1.02,'Design Matrix, contrasts & contrast files',...
+spm_clf(Fgraph); axes('Position',[0 0 1 .95],'Visible','off')
+text(.2,1,'Design Matrix, contrasts & contrast files',...
 	'Fontsize',16,'Fontweight','Bold');
 
-%-Image scaled design matrix & label the effects
+%-Image scaled design matrix, label the effects, add filenames (if <=24)
 %-----------------------------------------------------------------------
-hDesMtx = axes('Position',[0.1 0.5 0.6 0.3]);
+hDesMtx = axes('Position',[.07 .5 .6 .3]);
 image((nX + 1)*32);
+set(hDesMtx,'TickDir','out')
 ylabel('scans')
 xlabel('parameters')
-hEfLabs = axes('Position',[0.1 0.8 0.6 0.1],'Visible','off');
-y     = 0.1;
+axes('Position',[.07 .8 .6 .1],'Visible','off')
 dx    = 1/size(nX,2);
+tXnames = spm_DesMtx('TeXnames',Xnames);
 for i = 1:size(nX,2)
-	text((i - 0.5)*dx,y,deblank(Xnames(i,:)),'Fontsize',8,'Rotation',90)
+	text((i - .5)*dx    ,.1,tXnames{i},'Fontsize',10,'Interpreter','TeX')
+	text((i - .5)*dx+.01,.3,EXnames{i},'Fontsize',9,'Rotation',90)
+end
+if nScan<=24
+	set(hDesMtx,'YTick',1:nScan)
+	axes('Position',[.68 .5 .3 .3],'Visible','off')
+	dy = 1/nScan;
+	tP = spm_str_manip(P,'k40');
+	for i=1:nScan
+		text(0,(nScan-i+0.5)*dy,tP{i},'FontSize',8)
+	end
 end
 
-%-Depict contrasts and associated filenames
+%-Depict contrasts and associated (preliminary) filenames
 %-----------------------------------------------------------------------
-dy = 0.4/nc;
-axes('Position',[0.025 0.05 0.05 0.4],'Visible','off')
-text(0,0.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
+dy = .4/nc;
+axes('Position',[.025 .05 .05 .4],'Visible','off')
+text(0,.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
 	'FontSize',14,'FontWeight','Bold')
-axes('Position',[0.6 0.44 0.40 0.02],'Visible','off')
+axes('Position',[.6 .44 .40 .02],'Visible','off')
 text(0,1,'Contrast files...','FontSize',10,'FontWeight','Bold')
-text(0,0,sprintf('...in %s',CWD),'FontSize',8)
+text(0,0,sprintf('...in %s',pwd),'FontSize',8)
+hFnames = zeros(1,nc);
 for i = 1:nc
-	axes('Position',[0.1 (0.45 -dy*i) 0.6 0.9*dy])
-	[tx ty] = bar(c(i,:));
-	fill(tx,ty,[1 1 1]*.8);
-	% h = bar(c(i,:),1);
-	% set(h,'FaceColor',[1 1 1]*.8)
-	set(gca,'XLim',[0.5,size(c,2)+0.5],'Visible','off')
+	axes('Position',[.1 (.45 -dy*i) .6 .9*dy])
+	%[tx ty] = bar(c(i,:));
+	%fill(tx,ty,[1 1 1]*.8);
+	h = bar(c(i,:),1);
+	set(h,'FaceColor',[1 1 1]*.8)
+	set(gca,'XLim',[.5,size(c,2)+.5],'Visible','off')
 	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
-	text(size(c,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10)
+	hFnames(i) = text(size(c,2)+.55,.1,Fnames{i},'FontSize',10,...
+		'Color',[1 1 1]*.5,'FontAngle','Italic');
 end
 
+
+
+%=======================================================================
+% - W R I T E   C O N T R A S T   I M A G E S
+%=======================================================================
+fprintf('\tspecify filenames for contrast images...\n')
+spm('Pointer');
+guiPos = spm_input('!NextPos');
+for i = 1:nc
+	Fnames{i} = spm_input(sprintf('Contrast %d: filename?',i),...
+			guiPos,'s',Fnames{i});
+	set(hFnames(i),'string',Fnames{i},'Color','k','FontAngle','Normal')
+end
 spm_print
 
+%-Parameter images (of interest) - Adjusted mean images
+%-----------------------------------------------------------------------
+spm('FigName','AdjMean - writing',Finter,CmdLine);
+spm('Pointer','Watch');
 
-%-END
+%-Computation - calculations handled by spm_add.c
+%-Using implicit zero masking feature of spm_add: The resultant image
+% will be zero at voxels where *any* of the input images are zero.
+
+for i = 1:nc
+	w  = W(i,:).*gSF';
+	Q  = find(abs(w)>0);
+	w  = w(Q); wV = V(Q);
+	for j=1:length(Q), wV(j).pinfo(1,:)=wV(j).pinfo(1,:)*w(j); end
+	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
+	sf  = spm_add(wV,[Fnames{i},'.img'],'m');
+	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
+	spm_hwrite([Fnames{i},'.hdr'],DIM,VOX,sf,spm_type('int16'),0,ORIGIN,str);
+	spm_get_space(Fnames{i},V(1).mat);
+	fprintf(' (done)\n')
+end
+
+
+%-Save parameters to SPMadj.mat in current directory
+%-----------------------------------------------------------------------
+Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
+save SPMadj SPMid ...
+	DesDef Des V ...
+	c cNames W ...
+	Fnames ...
+	rGX GX
+
+
 %=======================================================================
+% - E N D
+%=======================================================================
+set(Finter,'Name','AdjMean - done'), spm('Pointer','Arrow')
 fprintf('\n\n')
