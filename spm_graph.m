@@ -167,8 +167,7 @@ if isempty(y)
 else
 	% residuals
 	%---------------------------------------------------------------
-	R   = spm_filter('apply',xX.K, y) - xX.xKXs.X*beta;
-%-**	R   = spm_sp('r',xX.xKXs,spm_filter('apply',xX.K,y));
+	R   = spm_sp('r',xX.xKXs,spm_filter('apply',xX.K,y));
 
 end
 
@@ -212,7 +211,6 @@ case {'Contrast of parameter estimates','Fitted and adjusted responses'}
 	%---------------------------------------------------------------
 	Ic    = spm_input('Which contrast?','!+1','m',{xCon.name});
 	TITLE = {Cplot xCon(Ic).name};
-
 
 	% fitted (corrected) data (Y = X1o*beta)
 	%---------------------------------------------------------------
@@ -349,13 +347,8 @@ case 'Event/epoch-related responses'
 		end
 	end
 
-	% get trials
+	% get plot type
 	%--------------------------------------------------------------
-	tr    = length(Sess{ss(1)}.pst);
-	if tr > 1
-		str   = sprintf('which trials or conditions (1 to %d)',tr);
-		tr    = spm_input(str,'+1','n');
-	end
 	Rplot = {	'fitted response',...
 			'fitted response and PSTH',...
 			'fitted response +/- standard error',...
@@ -368,9 +361,14 @@ case 'Event/epoch-related responses'
 	XLAB{1} = 'peri-stimulus time {secs}';
 
 
-	% cycle over selected events
+	% get selected trials
 	%--------------------------------------------------------------
-	dx      = xX.dt;
+	tr    = length(Sess{ss(1)}.pst);
+	if tr > 1
+		str   = sprintf('which trials or conditions (1 to %d)',tr);
+		tr    = spm_input(str,'+1','n');
+	end
+
 
 	% plot
 	%--------------------------------------------------------------
@@ -386,6 +384,7 @@ case 'Event/epoch-related responses'
 	figure(Fgraph)
 	subplot(2,1,2)
 	hold on
+	dx    = xX.dt;
 	XLim  = 0;
 	u     = 1;
 	for t = tr
@@ -394,7 +393,6 @@ case 'Event/epoch-related responses'
 
 			% basis functions, filter and parameters
 			%----------------------------------------------
-			i    = Sess{s}.row(:);
 			j    = 1:size(Sess{s}.sf{t},2):length(Sess{s}.ind{t});
 			j    = Sess{s}.col(Sess{s}.ind{t}(j));
 			B    = beta(j);
@@ -408,7 +406,7 @@ case 'Event/epoch-related responses'
 					'row',		q,...
 					'RT',		dx);
 
-			% fitted and adjusted responses with standard error
+			% fitted responses with standard error
 			%----------------------------------------------
 			KX       = spm_filter('apply',K,X);
 			Y(q,s)   = KX*B;
@@ -419,7 +417,7 @@ case 'Event/epoch-related responses'
 		%------------------------------------------------------
 		Y     = Y*ones(length(ss))/length(ss);
 
-		% peristimulus times
+		% peristimulus times and adjusted data (Y + R)
 		%------------------------------------------------------
 		pst   = [];
 		y     = [];
@@ -428,7 +426,7 @@ case 'Event/epoch-related responses'
 			bin     = round(p/dx);
 			q       = find((bin >= 0) & (bin < size(X,1)));
 			pst     = [pst; p];
-			p       = R(i);
+			p       = R(Sess{s}.row(:));
 			p(q)    = p(q) + Y(bin(q) + 1);
 			y       = [y; p];
 		end
