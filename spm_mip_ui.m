@@ -22,7 +22,11 @@ function varargout=spm_mip_ui(varargin)
 %
 % spm_mip_ui displays a maximum intensity projection (using spm_mip)
 % with draggable cursors.
-% 
+%
+% See spm_mip.m for details of MIP construction, display, and the brain
+% outlines used.
+%                           ----------------
+%
 % The cursor can be dragged to new locations in three ways:
 %
 % (1) Point & drop: Using the primary "select" mouse button, click on a
@@ -43,7 +47,9 @@ function varargout=spm_mip_ui(varargin)
 % In addition a ContextMenu is provided, giving the option to jump the
 % cursors to the nearest suprathreshold voxel, the nearest local
 % maxima, or to the global maxima. (Right click on the MIP to bring up
-% the ContextMenu.)
+% the ContextMenu.) A message in the MatLab command window describes the jump.
+%
+%                           ----------------
 %
 % The current cursor position (constrained to lie on a voxel) can be
 % obtained by xyz=spm_mip_ui('GetCoords',hMIPax), and set with
@@ -289,6 +295,9 @@ uimenu(h,'Separator','off','Label','goto nearest local maxima',...
 uimenu(h,'Separator','off','Label','goto global maxima',...
 	'CallBack',['spm_mip_ui(''Jump'',',...
 		'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
+	'Interruptible','off','BusyAction','Cancel','Enable',str);
+uimenu(h,'Separator','on','Label','help',...
+	'CallBack','spm_help(''spm_mip_ui'')',...
 	'Interruptible','off','BusyAction','Cancel','Enable',str);
 set(hMIPim,'UIContextMenu',h)
 
