@@ -55,9 +55,12 @@ aux_file        = ['none                   ' 0];
 origin          = [0 0 0 0 0];
 
 %---------------------------------------------------------------------------
-if TYPE == 1;  bitpix = 1;  glmax = 1;       glmin = 0;		end
-if TYPE == 2;  bitpix = 8;  glmax = 255;     glmin = 0;		end
-if TYPE == 4;  bitpix = 16; glmax = 32767;   glmin = -32768;  	end
+if TYPE == 1;   bitpix = 1;  glmax = 1;        glmin = 0;	end
+if TYPE == 2;   bitpix = 8;  glmax = 255;      glmin = 0;	end
+if TYPE == 4;   bitpix = 16; glmax = 32767;    glmin = 0;  	end
+if TYPE == 8;   bitpix = 32; glmax = (2^31-1); glmin = 0;	end
+if TYPE == 16;  bitpix = 32; glmax = 1;        glmin = 0;	end
+if TYPE == 64;  bitpix = 64; glmax = 1;        glmin = 0;	end
 
 %---------------------------------------------------------------------------
 if nargin >= 7; origin = [ORIGIN(:)' 0 0];  end
