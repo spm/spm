@@ -19,8 +19,8 @@ function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %_______________________________________________________________________
-% %W%	 Karl Friston %E%
-
+% %W%  Karl Friston %E%
+%
 % Programmers Guide
 % Batch system implemented on this routine. See spm_bch.man
 % If inputs are modified in this routine, try to modify spm_bch.man
@@ -30,6 +30,7 @@ function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 %    BCH.index0  = {'model',index_of_Analysis};
 %_______________________________________________________________________
 
+global BCH
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -61,7 +62,10 @@ else
 	spm_input(Fstr,1,'d','batch')
 end
 
-if n > 1
+if ~isempty(BCH) & isempty(n_c)
+     % if batch_mode and first call to spm_get_bf
+     % Rov must be mixed in order to force n new calls to spm_get_bf
+     % (n: number of conditions for a session)  
         Rov   = 'mixed';
 else 
         Rov   = spm_input('are these trials',2,'b',Rtype,...
