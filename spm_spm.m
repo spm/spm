@@ -889,7 +889,7 @@ xX.xVi.Param = A;
 
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
-fprintf('%s%30s',sprintf('\b')*ones(1,30),'...autocorrelation & expectations')%-#
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...V, & traces')          %-#
 KVi      = spm_filter('apply',xX.K, xX.xVi.Vi);
 xX.V     = spm_filter('apply',xX.K,KVi'); 	%-V matrix
 xX.pKXV  = xX.pKX*xX.V;				%-for contrast variance weight
