@@ -28,8 +28,9 @@ LOGFILE = '';
 
 % Command Line
 % Values can be:
-%	0 - button clicking only
-%	1 - input filenames etc. from the command line
+%       0 - GUI for input and file selection
+%       1 - command line for input and file selection
+%      -1 - command line for input, GUI for file selection
 %-----------------------------------------------------------------------
 CMDLINE = 0;
 
