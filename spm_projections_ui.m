@@ -31,7 +31,6 @@ function [R1,R2,R3,R4,R5,R6]=spm_projections_ui(Action,P2)
 %-Format arguments
 if nargin==0, Action='Display'; end
 
-
 if strcmp(lower(Action),lower('Display'))
 %=======================================================================
 
@@ -39,10 +38,11 @@ if strcmp(lower(Action),lower('Display'))
 %-----------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 Fgraph = spm_figure('FindWin','Graphics');
+spm_clf(Finter)
 set(Finter,'Name','SPM{Z} projections')
 
-global CWD
 tmp = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
+global CWD
 CWD = strrep(tmp,'/SPMt.mat','');
 K   = [];
 
@@ -79,10 +79,16 @@ set(Finter,'Name','Thankyou','Pointer','watch')
 
 [t,XYZ] = spm_projections(SPMt(i,:),XYZ,u,k,V,W,S,[K H C B G],c,df);
 
+%-If no suprathreshold voxels then return
+%-----------------------------------------------------------------------
+if isempty(t), spm_clf(Finter), return, end
 
 %-Store essential variables in UserData of various text objects,
 % Create button to write filtered SPM{Z}
 %=======================================================================
+
+set(Finter,'Name','SPM{Z} projections','Pointer','Arrow')
+
 h = findobj(Fgraph,'Tag','Empty');
 set(h(1),'Tag','XYZ','UserData',XYZ)
 set(h(2),'Tag','t','UserData',t)
@@ -92,26 +98,43 @@ set(h(5),'Tag','k','UserData',k)
 if exist('FLIP')~=1, FLIP=0; end
 set(h(6),'Tag','FLIP','UserData',FLIP)
 
-set(Fgraph,'Units','Normalized')
-uicontrol(Fgraph,'Style','PushButton',...
+%-Determine positioning for Buttons (as in spm_input)
+%-------------------------------------------------------------------
+set(Finter,'Units','pixels')
+FigPos = get(Finter,'Position');
+Xdim = FigPos(3); Ydim = FigPos(4);
+a = 5.5/10;
+YPos = 5;
+y = Ydim - 30*YPos;
+PPos = [10,     y, (a*Xdim -20),     20];
+MPos = [PPos(1), PPos(2), Xdim-50, 20];
+RPos = MPos + [0,0,30,0];
+
+%-Delete any previous inputs using position YPos
+%-------------------------------------------------------------------
+delete(findobj(Finter,'Tag',['GUIinput_',int2str(YPos)]))
+
+
+uicontrol(Finter,'Style','PushButton',...
 	'String','Write filtered SPM{Z} to Analyze file',...
 	'Tag','WriteButton',...
-	'Callback','spm_projections_ui(''WriteFiltered'')',...
+	'Callback',['set(gco,''Visible'',''off''),',...
+		'spm_projections_ui(''WriteFiltered'')'],...
 	'Interruptible','yes',...
-	'Position',[060 500 300 20].*spm('GetWinScale'))
-uicontrol(Fgraph,'Style','PushButton',...
-	'String','Get details of filtered image',...
-	'Tag','GetFilteredPramsButton',...
-	'Callback',[...
-		'[XYZ,t,V,u,k,FLIP]=',...
-			'spm_projections_ui(''GetFilteredPrams'');',...
-		'disp(''XYZ,t,V,u,k,FLIP now exist in base workspace'')'],...
-	'Interruptible','yes',...
-	'Position',[060 480 300 20].*spm('GetWinScale'))
+	'Tag',['GUIinput_',int2str(YPos)],...
+	'Position',RPos)
+%uicontrol(Finter,'Style','PushButton',...
+%	'String','Get details of filtered image',...
+%	'Callback',[...
+%		'[XYZ,t,V,u,k,FLIP]=',...
+%			'spm_projections_ui(''GetFilteredPrams'');',...
+%		'disp(''XYZ,t,V,u,k,FLIP now exist in base workspace'')'],...
+%	'Interruptible','yes',...
+%	'Tag',['GUIinput_',int2str(YPos+1)],...
+%	'Position',RPos-[0 30 0 0])
 
 %-Finished
 %-----------------------------------------------------------------------
-spm_clf(Finter)
 return
 
 
@@ -124,7 +147,7 @@ if isempty(XYZ), disp('No Voxels'), return, end
 %-Get filename
 %-----------------------------------------------------------------------
 if nargin<2
-	FName=spm_input('Filename ?',6,'s','SPM_filtered');
+	FName=spm_input('Filename ?',5,'s','SPM_filtered');
 else
 	FName = P2;
 end
