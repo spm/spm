@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include "cmex.h"
@@ -34,7 +34,8 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 	Note that elements 12-15 are unused, and that the projection is a parallel one.
 	
 	*/
-	double z, xs, ys;
+	int z;
+	double xs, ys;
 	unsigned char *p;
 
 	/* size of rectangle which is projected */
@@ -44,14 +45,15 @@ int xdim1, ydim1, xdim2, ydim2, zdim2, thresh;
 	p = bytedat;
 	for(z=1; z<=zdim2; z++)
 	{
-		double y, x2, y2, z2;
+		int y;
+		double x2, y2, z2;
 		x2 = mat[12] + z*mat[8] -1.0;
 		y2 = mat[13] + z*mat[9] -1.0;
 		z2 = mat[14] + z*mat[10];
 
 		for(y=1; y<=ydim2; y++)
 		{
-			double x;
+			int x;
 			double x3 = x2 + y*mat[4];
 			double y3 = y2 + y*mat[5];
 			double z3 = z2 + y*mat[6];
