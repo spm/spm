@@ -1,6 +1,6 @@
-function R1=spm_figure(Action,P2,P3,P4)
+function R1=spm_figure(Action,P2,P3,P4,P5)
 % Setup and callback functions for Graphics window
-% FORMAT R1=spm_figure(Action,P2,P3,P4)
+% FORMAT R1=spm_figure(Action,P2,P3,P4,P5)
 %	- An embedded callback, multi-function function
 %       - For detailed programmers comments, see the format specifications
 %         below
@@ -147,6 +147,13 @@ function R1=spm_figure(Action,P2,P3,P4)
 % SPM pagination function: Deletes page controls
 % F	- [Optional] Figure in which to attempt to turn the page
 %         Defaults to 'Graphics' 'Tag'ged window
+%
+% FORMAT spm_figure('WaterMark',F,str,Tag,Angle)
+% Adds watermark to figure windows.
+% F	- Figure for watermark. Defaults to gcf
+% str   - Watermark string. Defaults (missing or empty) to SPM
+% Tag   - Tag for watermark axes. Defaults to ''
+% Angle - Angle for watermark. Defaults to -45
 %
 % FORMAT spm_figure('TurnPage',move,F)
 % SPM pagination function: Turn to specified page
@@ -475,7 +482,8 @@ return
 
 elseif strcmp(lower(Action),lower('WaterMark'))
 %=======================================================================
-% spm_figure('WaterMark',F,str,Tag)
+% spm_figure('WaterMark',F,str,Tag,Angle)
+if nargin<5, Angle=-45; else, Angle=P5; end
 if nargin<4, Tag=''; else, Tag=P4; end
 if nargin<3, str=''; else, str=P3; end
 if isempty(str), str='SPM'; end
@@ -484,10 +492,19 @@ if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('Figure not found'), end
 
+%-Specify watermark color from background colour
+%-----------------------------------------------------------------------
+Colour = get(F,'Color');
+%-Only mess with grayscale backgrounds
+if ~all(Colour), return, end
+%-Work out colour - lighter unless grey value > 0.9
+Colour = Colour+(2*(Colour(1)<0.9)-1)*0.02;
+
 delete(findobj(F,'UserData','WaterMark'))
 Units=get(F,'Units');
 set(F,'Units','normalized');
-axes('Position',[0.45 0.35 0.1 0.1],...
+figure(F)
+axes('Position',[0.45,0.5,0.1,0.1],...
 	'Units','normalized',...
 	'Visible','off',...
 	'Tag',Tag,...
@@ -497,14 +514,14 @@ text(0.5,0.5,str,...
 	'FontSize',96,...
 	'FontWeight','Bold',...
 	'FontName','Times',...
-	'Rotation',-60,...
+	'Rotation',Angle,...
 	'HorizontalAlignment','Center',...
 	'VerticalAlignment','middle',...
-	'EraseMode','Background',...
-	'Color',[1 1 1]*0.98,...
+	'EraseMode','normal',...
+	'Color',Colour,...
 	'ButtonDownFcn',[...
 		'if strcmp(get(gcf,''SelectionType''),''alt''),',...
-			'delete(gco),',...
+			'delete(get(gco,''Parent'')),',...
 		'end'])
 return
 
