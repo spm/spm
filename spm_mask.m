@@ -8,15 +8,16 @@ function spm_mask(P1,P2, thresh)
 % thresh - optional threshold(s) for defining the mask.
 % The masked images are prepended with the prefix `m'.
 %
-% If any voxel in the series of images is zero or does
-% not have a finite value, then that voxel is set to NaN
-% or zero in all the images.  If a threshold, or vector of
-% thresholds is passed, then the masking is mased on voxels
-% whos values are above all the thresholds.
+% If any voxel in the series of images is zero (for data types without
+% a floating point representation) or does not have a finite value (for
+% floating point and double precision images), then that voxel is set to
+% NaN or zero in all the images.  If a threshold, or vector of
+% thresholds is passed, then the masking is mased on voxels whos
+% values are above all the thresholds.
 %
-% Images sampled in different orientations and positions can
-% be passed to the routine.  Providing the `.mat' files are
-% correct, then these should be handled appropriately.
+% Images sampled in different orientations and positions can be passed
+% to the routine.  Providing the `.mat' files are correct, then these
+% should be handled appropriately.
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
