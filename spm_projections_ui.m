@@ -81,7 +81,7 @@ QQ = (1:size(XYZ,2))';
 
 %-Get contrast[s]
 %-----------------------------------------------------------------------
-XD   = [H C B G]; 	% design matrix
+DM   = [H C B G]; 	% design matrix
 i    = 0;
 if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
@@ -95,53 +95,57 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 	set(Finter,'Name','please wait a moment','Pointer','watch')
 
 
+		
 	% create sequential models (i.e. design matrix partitions)
 	%---------------------------------------------------------------
-	X0    = [H C];
-	X1    = X0*CONTRAST(i,[1:size(X0,2)])';
+	% 0 - null space
+	% 1 - interactions among contrasts
+	% 2 - main effect of contrasts
+	%
+	% get parameter estimates and contruct new partitions
+	%---------------------------------------------------------------
+	load([CWD,'/BETA'])
+	load([CWD,'/RES'])
+
+	X0    = [spm_detrend([H C]) B G];
+	X1    = X0*CONTRAST(i,:)';
 	X2    = sum(X1')';
 	X0    = X0 - X1*(pinv(X1)*X0);
 	X1    = X1 - X2*(pinv(X2)*X1);
+	X0    = orth(X0);
+	X1    = orth(X1);
+	X2    = orth(X2);
 
-	% get sequential F statistics
+	% get sequential statistics by roation of previous estimates
 	%---------------------------------------------------------------
-	con   = [1 zeros(1,size([X1 X0 B G],2))];
-	n     = size(XYZ,2);
-	m     = 1024;
-	F     = zeros(1,n);
-	T     = zeros(1,n);
-	for j = 1:ceil(n/m)
+	D     = pinv([X2 X1 X0]);
+	D     = D(1,:)*DM;
+	PE    = D*BETA;
+	SSQ2  = PE.^2;
+	T     = PE./sqrt(RES*(D*BCOV*D'));
+	Z     = spm_t2z(T,Fdf(2));
 
-		% get data and refit
-		%-------------------------------------------------------
-		Q             = [1:m] + (j - 1)*m;
-		Q             = Q(Q <= n);
-		XA            = spm_readXA(Q,[CWD,'/XA.mat']);
-		[Fdf0,f]      = spm_AnCova(X1,[X0 B G],SIGMA,XA);
-		[Fdf,F1,BE,t] = spm_AnCova(X2,[X1 X0 B G],SIGMA,XA,con);
-
-		F(Q)  = f;
-		T(Q)  = t;
-	end
-
+	D     = pinv([X1 X0]);
+	D     = D(1:size(X1,2),:)*DM;
+	PE    = D*BETA;
+	SSQ1  = PE.^2;
+	if size(SSQ1,1) > 1; SSQ1 = sum(SSQ1); end
+	Fdf0  = spm_AnCova(X1,X0,SIGMA);
+	global trRV trR0V
+	F     = (trRV/trR0V)*SSQ1./(RES + SSQ2);
 
 	% find voxels with significant interactions
 	%---------------------------------------------------------------
-	df    = Fdf(2);
 	U     = spm_invFcdf((1 - 0.05),Fdf0);
 	Q     = find(F < U);
-
-	% eliminate voxels with significant interactions
-	%---------------------------------------------------------------
-	S     = S - (length(T) - length(Q));
-	T     = T(Q);
+	S     = S - (length(Z) - length(Q));
+	Z     = Z(Q);
 	SPMt  = SPMt(:,Q);
 	XYZ   = XYZ(:,Q);
 	QQ    = QQ(Q);
 
-	% transform
+	% finished
 	%---------------------------------------------------------------
-	Z     = spm_t2z(T,df);
 	set(Finter,'Name','Conjunction analysis','Pointer','arrow')
 
 else
@@ -271,7 +275,7 @@ end
 if      strcmp(lower(Action),lower('Display'))
 
 	set(Finter,'Name','Thankyou','Pointer','watch')
-	spm_projections(Z,XYZ,u,k,V,W,S,XD,CON,df);
+	spm_projections(Z,XYZ,u,k,V,W,S,DM,CON,df);
 
 % Results
 %-----------------------------------------------------------------------
