@@ -46,7 +46,8 @@ if ~strcmp(dcm,'DICM'),
 	fseek(fp,0,'bof');
 	tag.group   = fread(fp,1,'ushort');
 	tag.element = fread(fp,1,'ushort');
-	t           = dict.tags(tag.group+1,tag.element+1);
+	%t          = dict.tags(tag.group+1,tag.element+1);
+	t           = find(dict.group==tag.group & dict.element==tag.element);
 	if t == 0  % entry not found in DICOM dict
 		fclose(fp);
 		warning(['"' P '" is not a DICOM file.']);
@@ -205,7 +206,8 @@ tag.group   = fread(fp,1,'ushort');
 tag.element = fread(fp,1,'ushort');
 if isempty(tag.element), tag=[]; return; end;
 if tag.group == 2, flg = 'el'; end;
-t           = dict.tags(tag.group+1,tag.element+1);
+%t          = dict.tags(tag.group+1,tag.element+1);
+t           = find(dict.group==tag.group & dict.element==tag.element);
 if t>0,
 	tag.name = dict.values(t).name;
 	tag.vr   = dict.values(t).vr{1};
@@ -276,12 +278,14 @@ return;
 function dict = readdict_txt
 file = textread('spm_dicom_dict.txt','%s','delimiter','\n','whitespace','');
 clear values
-for i=1:length(file),
-	words = strread(file{i},'%s','delimiter','\t');
-	if length(words)>=5,
+i = 0;
+for i0=1:length(file),
+	words = strread(file{i0},'%s','delimiter','\t');
+	if length(words)>=5 & ~strcmp(words{1}(3:4),'xx'),
 		grp = sscanf(words{1},'%x');
 		ele = sscanf(words{2},'%x');
 		if ~isempty(grp) & ~isempty(ele),
+			i          = i + 1;
 			group(i)   = grp;
 			element(i) = ele;
 			vr         = {};
@@ -299,6 +303,19 @@ end;
 
 tags = sparse(group+1,element+1,1:length(group));
 dict = struct('values',values,'tags',tags);
+dict = desparsify(dict);
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function dict = desparsify(dict)
+[group,element] = find(dict.tags);
+offs            = zeros(size(group));
+for k=1:length(group),
+        offs(k) = dict.tags(group(k),element(k));
+end;
+dict.group(offs)   = group-1;
+dict.element(offs) = element-1;
 return;
 %_______________________________________________________________________
 
