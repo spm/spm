@@ -58,11 +58,11 @@ EC      = EC([1:D]);
 % corrected p value
 %---------------------------------------------------------------------------
 P       = triu(toeplitz(EC'.*G))^n;
-P       = P(1,:)';
-Em      = (R./G)*P;
-EN      = P(1)*R(D);
-En      = G(D)*P(1)/(eps+P(D));				% i.e. En = EN/Em;
-
+P       = P(1,:);
+EM      = (R./G).*P;			% <maxima> over D dimensions
+Em      = sum(EM);			% <maxima>
+EN      = P(1)*R(D);			% <voxels>
+En      = EN/EM(D);			% En = EN/EM(D);
 
 % get P{n > k}
 %===========================================================================
