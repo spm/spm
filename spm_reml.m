@@ -23,7 +23,7 @@ if nargin < 4, TOL = 1e-6; end
 X     = full(X);
 X     = orth(X);
 
-% find estimable components (encoded in W)
+% find estimable components (encoded in the precision matrix W)
 %---------------------------------------------------------------------------
 m     = length(Q);
 n     = length(Cy);
@@ -39,9 +39,10 @@ for j = i:m
 end
 end
 
-% rotate Q {and eliminate redundant components}
+% eliminate inestimable components
+% NB: The threshold for normalized eigenvalues is 1e-6 in spm_svd
 %---------------------------------------------------------------------------
-u     = orth(W);
+u     = spm_svd(W);
 for i = 1:size(u,2)
 	C{i}  = sparse(n,n);
 	for j = 1:m
