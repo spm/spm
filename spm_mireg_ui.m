@@ -76,7 +76,7 @@ if p == 1 | p == 3,
 		if isempty(BCH),
 			PG = spm_get(1,'.img', ['select target image for subject ' num2str(i)]);
 		else,
-			PG = spm_input('batch',{},'target_image');
+			PG = spm_input('batch',{},'target_image',i);
 		end;
 		mireg(i).VG = spm_vol(PG);
 		
@@ -84,7 +84,7 @@ if p == 1 | p == 3,
 		if isempty(BCH),
 			PF = spm_get(1,'.img', ['select object image for subject ' num2str(i)]);
 		else,
-			PF = spm_input('batch',{},'object_image');
+			PF = spm_input('batch',{},'object_image',i);
 		end;
 		mireg(i).VF = spm_vol(PF);
 
@@ -92,7 +92,7 @@ if p == 1 | p == 3,
 		if isempty(BCH),
 			PO = spm_get(Inf,'.img', ['select other images for subject ' num2str(i)]);
 		else,
-			PO = spm_input('batch',{},'other_image');
+			PO = spm_input('batch',{},'other_image',i);
 		end;
 		if isempty(PO),
 			mireg(i).PO = PF;
@@ -109,14 +109,14 @@ if p==2,
 		if isempty(BCH),
 			PG = spm_get(1,'.img', ['select image defining space for subject ' num2str(i)]);
 		else,
-			PG = spm_input('batch',{},'target_image');
+			PG = spm_input('batch',{},'target_image',i);
 		end;
 		mireg(i).VG = spm_vol(PG);
 
 		if isempty(BCH),
 			PO = spm_get(Inf,'.img', ['select images to reslice ' num2str(i)]);
 		else,
-			PO = spm_input('batch',{},'reslice_image');
+			PO = spm_input('batch',{},'reslice_image',i);
 		end;
 		mireg(i).VO = PO;
 	end;
