@@ -305,7 +305,6 @@ end
 SPM.xX.K = spm_filter(K);
 
 
-
 % intrinsic autocorrelations (Vi)
 %-----------------------------------------------------------------------
 try 
@@ -322,13 +321,22 @@ end
 %-----------------------------------------------------------------------
 switch cVi
 
-	case 'AR(1)' 	% place covariance components in xVi.Vi
+	case ~ischar(cVi)	% AR coeficient[s] specified
 	%---------------------------------------------------------------
-	SPM.xVi.Vi = spm_Ce(nscan,.2);
+	SPM.xVi.Vi = spm_Ce(nscan,cVi(1:3));
+	cVi        = sprintf('AR(%0.1f)',cVi(1));
 
-	case 'none'     % otherwise xVi.V is i.i.d
+
+	case 'none'		%  xVi.V is i.i.d
 	%---------------------------------------------------------------
 	SPM.xVi.V  = speye(sum(nscan));
+	cVi        = 'i.i.d';
+
+
+	otherwise		% otherwise assume AR(0.2) in xVi.Vi
+	%---------------------------------------------------------------
+	SPM.xVi.Vi = spm_Ce(nscan,0.2);
+	cVi        = 'i.i.d';
 
 end
 SPM.xVi.form = cVi;
