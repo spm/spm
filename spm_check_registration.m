@@ -23,8 +23,9 @@ elseif nargin==1,
 	else,
 		spm_figure('Clear','Graphics');
 	end;
+	if ischar(images), images=spm_vol(images); end;
 
-	mn = size(images,1);
+	mn = length(images);
 	n  = round(mn^0.4);
 	m  = ceil(mn/n);
 	w  = 1/n;
@@ -33,7 +34,7 @@ elseif nargin==1,
 	for ij=1:mn,
 		i  = 1-h*(floor((ij-1)/n)+1);
 		j  = w*rem(ij-1,n);
-		handle(ij) = spm_orthviews('Image', images(ij,:),...
+		handle(ij) = spm_orthviews('Image', images(ij),...
 			[j+ds/2 i+ds/2 w-ds h-ds]);
 		if ij==1, spm_orthviews('Space'); end;
 		spm_orthviews('AddContext',handle(ij));
