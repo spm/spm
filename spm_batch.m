@@ -14,6 +14,13 @@ function varargout = spm_batch(varargin)
 % SPM.mat file next to the SPMcfg.mat file), then the design is skipped
 % so that existing results are not overwritten.
 %
+% Note that the SPMcfg.mat files are not particularly portable across
+% platforms. They contain hardcoded image file pathnames, and
+% (implicitly in the datatype) hardcoded platform endian information.
+% You should therefore setup stats designs (i.e. prepare SPMcfg.mat
+% files) on the platform you will estimate the model on, and ensure
+% that the image files are not moved.
+%
 %                           ----------------
 %
 % The SPM stats estimation does not need any graphics windows, and
