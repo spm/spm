@@ -130,7 +130,14 @@ if ~isempty(cind)
         end
       else     
         try
-          indices{1} = getfield(lastvar,indices,cind{k},cind(k+1));
+          % Petr Janata's fix...
+          % indices{1} = getfield(lastvar,indices,cind{k},cind(k+1));
+          if isa(cind{k+1},'double')
+            evalstr = sprintf('indices{1} = getfield(lastvar,indices,cind{k},{%d});', cind{k+1});
+            eval(evalstr);
+          else
+            indices{1} = getfield(lastvar,indices,cind{k},cind(k+1));
+          end
           lastvar = sf_get_var(bchmat,cind{k});
         catch
           indices, lastvar, cind,
@@ -150,7 +157,14 @@ end
 
 % disp('after parsing indices'), indices
 try 
-   	lastvar = lastvar(indices{:});
+  % Petr Janata's fix...
+  % lastvar = lastvar(indices{:});
+  if isstruct(lastvar)
+    evalstr = sprintf('lastvar = lastvar(%d);', indices{:});
+    eval(evalstr)
+  else
+    lastvar = lastvar(indices{:});
+  end
 catch
 	lastvar
 	indices{:}
