@@ -56,12 +56,12 @@ if sizeof_hdr==1543569408, % Appears to be other-endian
 	otherendian = 1;
 end;
 
-data_type  	= setstr(fread(fid,10,'char'))';
-db_name    	= setstr(fread(fid,18,'char'))';
+data_type  	= mysetstr(fread(fid,10,'char'))';
+db_name    	= mysetstr(fread(fid,18,'char'))';
 extents    	= fread(fid,1,'int32');
 session_error   = fread(fid,1,'int16');
-regular    	= setstr(fread(fid,1,'char'))';
-hkey_un0    	= setstr(fread(fid,1,'char'))';
+regular    	= mysetstr(fread(fid,1,'char'))';
+hkey_un0    	= mysetstr(fread(fid,1,'char'))';
 
 
 
@@ -70,8 +70,8 @@ hkey_un0    	= setstr(fread(fid,1,'char'))';
 fseek(fid,40,'bof');
 
 dim    		= fread(fid,8,'int16');
-vox_units    	= setstr(fread(fid,4,'char'))';
-cal_units    	= setstr(fread(fid,8,'char'))';
+vox_units    	= mysetstr(fread(fid,4,'char'))';
+cal_units    	= mysetstr(fread(fid,8,'char'))';
 unused1		= fread(fid,1,'int16');
 datatype	= fread(fid,1,'int16');
 bitpix		= fread(fid,1,'int16');
@@ -92,16 +92,16 @@ glmin		= fread(fid,1,'int32');
 %---------------------------------------------------------------------------
 fseek(fid,148,'bof');
 
-descrip		= setstr(fread(fid,80,'char'))';
-aux_file	= setstr(fread(fid,24,'char'))';
+descrip		= mysetstr(fread(fid,80,'char'))';
+aux_file	= mysetstr(fread(fid,24,'char'))';
 orient		= fread(fid,1,'char');
 origin		= fread(fid,5,'int16');
-generated	= setstr(fread(fid,10,'char'))';
-scannum		= setstr(fread(fid,10,'char'))';
-patient_id	= setstr(fread(fid,10,'char'))';
-exp_date	= setstr(fread(fid,10,'char'))';
-exp_time	= setstr(fread(fid,10,'char'))';
-hist_un0	= setstr(fread(fid,3,'char'))';
+generated	= mysetstr(fread(fid,10,'char'))';
+scannum		= mysetstr(fread(fid,10,'char'))';
+patient_id	= mysetstr(fread(fid,10,'char'))';
+exp_date	= mysetstr(fread(fid,10,'char'))';
+exp_time	= mysetstr(fread(fid,10,'char'))';
+hist_un0	= mysetstr(fread(fid,3,'char'))';
 views		= fread(fid,1,'int32');
 vols_added	= fread(fid,1,'int32');
 start_field	= fread(fid,1,'int32');
@@ -137,3 +137,9 @@ else
 end
 return;
 %_______________________________________________________________________
+
+function out = mysetstr(in)
+tmp = find(in == 0);
+tmp = min([min(tmp) length(in)]);
+out = setstr(in(1:tmp));
+return;
