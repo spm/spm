@@ -93,18 +93,21 @@ if any(any(any(diff(cat(3,V.mat),1,3),3)))
 %=======================================================================
 % - C O M P U T A T I O N
 %=======================================================================
+fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')	     %-#
+
 Vo.pinfo=[1,0,0]';					%-Set scale & offsets
 Vo = spm_create_image(Vo);				%-Write image header
 
 Y  = zeros([Vo.dim(1:2),ni]);				%-PlaneStack data
-
-spm_progress_bar('Init',Vo.dim(3),mfilename,['planes / 'num2str(Vo.dim(3))]);
 
 im = logical(zeros(ni,1));
 for j=1:ni, im(j)=~spm_type(Vi(j).dim(4),'NaNrep'); end	%-Images without NaNrep
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
+	fprintf('%s%16s',sprintf('\b')*ones(1,16),...
+		sprintf('...plane %3d/%-3d',p,Vo.dim(3)))       %-#
+
 	M = spm_matrix([0 0 p]);			%-Sampling matrix
 
 	%-Read plane data
@@ -116,10 +119,10 @@ for p=1:Vo.dim(3)
 	e  = R*reshape(Y,prod(Vi(1).dim(1:2)),ni)';	%-residuals as DataMtx
 	ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));	%-ResSS plane
 	Vo = spm_write_plane(Vo,ss,p);			%-Write plane
-	spm_progress_bar('Set',p);
 end
 
 
 %-End
 %-----------------------------------------------------------------------
-spm_progress_bar('Clear')
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
+	sprintf('...written %s',spm_str_manip(Vo.fname,'a20')))      %-#
