@@ -154,6 +154,7 @@ set(get(1,'Children'),'Tag','Empty')
 % reveal windows and configure graphics bar
 %----------------------------------------------------------------------------
 spm_figure('Create','Graphics');
+colormap(gray)
 set(1,'Visible','on')
 set(2,'Visible','on')
 set(3,'Visible','on')
