@@ -361,8 +361,7 @@ case 'Event/epoch-related responses'
 	end
 	Rplot = {	'fitted response',...
 			'fitted response and PSTH',...
-			'fitted response +/- standard error of response',...
-			'fitted response +/- standard error of onset',...
+			'fitted response +/- standard error',...
 			'fitted response and adjusted data'};
 
 	if isempty(y), Rplot = Rplot([1 3 4]); end
@@ -388,12 +387,13 @@ case 'Event/epoch-related responses'
 
 		% basis functions, filter and parameters
 		%------------------------------------------------------
+		i      = Sess{s}.row(:);
+		j      = 1:size(Sess{s}.sf{t},2):length(Sess{s}.ind{t});
+		j      = Sess{s}.col(Sess{s}.ind{t}(j));
+		B      = beta(j);
 		X      = Sess{s}.bf{t};
 		q      = 1:size(X,1);
-		i      = Sess{s}.row(:);
-		j      = Sess{s}.col(Sess{s}.ind{t}(1:size(X,2)));
 		x      = q*dx;
-		B      = beta(j);
 		K{1}   = struct('HChoice',	xX.K{s}.HChoice,...
 				'HParam',	xX.K{s}.HParam,...
 				'LChoice',	xX.K{s}.LChoice,...
@@ -408,17 +408,10 @@ case 'Event/epoch-related responses'
 		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
 		pst    = Sess{s}.pst{t};
 		bin    = round(pst/dx);
-		q      = find( (bin > 0) & (bin <= size(X,1)));
+		q      = find((bin > 0) & (bin <= size(X,1)));
 		y      = zeros(size(i));
 		y(q)   = Y(bin(q));
 		y      = y + R(i);
-
-		% onset
-		%------------------------------------------------------
-		v      = min(find(abs(Y) > max(abs(Y))/2));
-		T      = x(v);
-		dYdt   = gradient(Y')'/dx;
-		seT    = se(v)./dYdt(v);
 
 		% PSTH
 		%------------------------------------------------------
@@ -451,15 +444,10 @@ case 'Event/epoch-related responses'
 			plot(PST,PSTH,COL(u),'LineWidth',2)
 			plot(x,Y,['-.' COL(u)])
 
-			case 'fitted response +/- standard error of response'
+			case 'fitted response +/- standard error'
 			%----------------------------------------------
 			plot(x,Y,COL(u))
 			plot(x,Y + se,['-.' COL(u)],x,Y - se,['-.' COL(u)])
-
-			case 'fitted response +/- standard error of onset'
-			%----------------------------------------------
-			plot(x,Y,COL(u))
-			line(([-seT seT] + T),[Y(v) Y(v)],'LineWidth',6)
 
 			case 'fitted response and adjusted data'
 			%----------------------------------------------
@@ -588,8 +576,8 @@ case 'Volterra Kernels'
 	% first  order kernel
 	%--------------------------------------------------------------
 	else
-
-		Y     = Sess{s}.bf{t}*B(1:size(Sess{s}.bf{t},2));
+		j     = 1:size(Sess{s}.sf{t},2):length(Sess{s}.ind{t});
+		Y     = Sess{s}.bf{t}*B(j);
 		p     = ([1:length(Y)] - 1)*xX.dt;
 		plot(p,Y)
 		grid on
