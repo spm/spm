@@ -566,7 +566,7 @@ e and introduction of source control.
 % 
 % fMRI_1:  Movement-related effects in fMRI time-series Friston KJ,
 % Williams SR, Howard R, Frackowiak RSJ and Turner R.  Magnetic
-% Resonance in Medicine - submitted
+% Resonance in Medicine 35:346-355
 % 
 % Abstract
 %    This paper concerns the spatial and intensity transformations that
@@ -683,7 +683,7 @@ e and introduction of source control.
 % 
 % SPM_4: Estimating smoothness in statistical parametric maps:
 % Confidence intervals on p values Poline J.-B, Friston K.J., Worsley
-% K.J. and Frackowiak R.S.J JCAT - submitted
+% K.J. and Frackowiak R.S.J JCAT 19(5):788-796
 % 
 % Abstract
 %    The smoothness parameter, that characterises the spatial
