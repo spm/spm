@@ -123,6 +123,7 @@ elseif strcmp(mode,'rigid2')
 	free    = [ones(1,6) zeros(1,6) ones(1, np)]';
 	mean0   = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 	icovar0 = zeros(length(mean0));
+	nobayes = 1;
 	ifun = 'spm_matrix(P(1:12))';
 
 elseif strcmp(mode,'rigid3')
