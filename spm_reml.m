@@ -11,7 +11,7 @@ function [Ce,h,W,u] = spm_reml(Cy,X,Q,W,h);
 % W   - (q x q) W*n = precision of hyperparameter estimates
 % u   - {1 x p} estimable components C{i} = u(1,i)*Q{1} + u(2,i)*Q{2} +...
 %___________________________________________________________________________
-% %W% John Ashburner, Karl Friston %E%
+% @(#)spm_reml.m	2.25 John Ashburner, Karl Friston 03/10/04
 
 % Tolerances 
 %---------------------------------------------------------------------------
