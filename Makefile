@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.3 2001-11-01 16:26:28 john Exp $
+# $Id: Makefile,v 2.4 2001-11-01 17:35:52 john Exp $
 #
 ###############################################################################
 #
@@ -278,7 +278,7 @@ spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 	@ chmod 644 $@
 
 spm_flatten_mex.$(SUF): spm_flatten_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_flatten_mex.c spm_vol_utils.$(SUF).a
+	$(MEX) spm_flatten_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
 	@ chmod 644 $@
 
 ###############################################################################
