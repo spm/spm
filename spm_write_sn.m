@@ -20,11 +20,11 @@ end
 
 % For evaluation using affine component only
 %----------------------------------------------------------------------------
-if 0
+if 0,
 	disp('Only using affine component');
 	Dims(2,:)=[0 0 0];
 	Transform=[];
-end
+end;
 
 
 V = spm_vol(P);
@@ -46,12 +46,11 @@ y = (bb(1,2):Vox(2):bb(2,2))/Dims(3,2) + Dims(4,2);
 z = (bb(1,3):Vox(3):bb(2,3))/Dims(3,3) + Dims(4,3);
 
 Dim = [length(x) length(y) length(z)];
-origin = round(-bb(1,:)./Vox + 1);
 
 X = x'*ones(1,Dim(2));
 Y = ones(Dim(1),1)*y;
 
-if (prod(Dims(2,:)) == 0)
+if (prod(Dims(2,:)) == 0),
 	affine_only = 1;
 	basX = 0; tx = 0;
 	basY = 0; ty = 0;
@@ -63,17 +62,29 @@ else
 	basZ = spm_dctmtx(Dims(1,3),Dims(2,3),z-1);
 end
 
+VO=V;
+for i=1:prod(size(V)),
+	% prefix filenames with `n'.
+	p  = spm_str_manip(V(i).fname, 'd');
+	q  = max([find(p == '/') 0]);
+	q  = [p(1:q) 'n' p((q + 1):length(p))];
+
+	VO(i).fname    = q;
+	origin         = round(-bb(1,:)./Vox + 1);
+	off            = -Vox.*origin;
+	VO(i).mat      = [Vox(1) 0 0 off(1) ; 0 Vox(2) 0 off(2) ; 0 0 Vox(3) off(3) ; 0 0 0 1];
+	VO(i).dim(1:3) = Dim;
+	VO(i).descrip  = ['spm - 3D normalized'];
+	spm_create_image(VO);
+end;
+
 % Start progress plot
 %----------------------------------------------------------------------------
 spm_progress_bar('Init',length(z),'Resampling','planes completed');
 
-open_mode = 'w';
-
-
 % Cycle over planes
 %----------------------------------------------------------------------------
-for j=1:length(z)
-
+for j=1:length(z),
 	% Nonlinear deformations
 	%----------------------------------------------------------------------------
 	if (~affine_only)
@@ -116,7 +127,6 @@ for j=1:length(z)
 	Mask = (Count == size(P,1));
 
 	for i=1:size(P,1)
-
 		% Sample each volume
 		%----------------------------------------------------------------------------
 		Mult = V(i).mat\MF*Affine;
@@ -129,92 +139,10 @@ for j=1:length(z)
 			Y2= Mult(2,1)*X + Mult(2,2)*Y + (Mult(2,3)*z(j) + Mult(2,4));
 			Z2= Mult(3,1)*X + Mult(3,2)*Y + (Mult(3,3)*z(j) + Mult(3,4));
 		end
-		d = spm_sample_vol(V(i),X2,Y2,Z2,Hold)/V(i).pinfo(1);
-
-		d = d.*Mask; % Apply mask
-
-		% Deal with different data types
-		%----------------------------------------------------------------------------
-		if (V(i).dim(4) == 2)
-			d = round(d);
-			tmp = find(d > 255);
-			d(tmp) = zeros(size(tmp))+255;
-			tmp = find(d < 0);
-			d(tmp) = zeros(size(tmp));
-		elseif (V(i).dim(4) == 4)
-			d = round(d);
-			tmp = find(d > 32767);
-			d(tmp) = zeros(size(tmp))+32767;
-			tmp = find(d < -32768);
-			d(tmp) = zeros(size(tmp))-32768;
-		elseif (V(i).dim(4) == 8)
-			d = round(d);
-			tmp = find(d > 2^31-1);
-			d(tmp) = zeros(size(tmp))+(2^31-1);
-			tmp = find(d < -2^31);
-			d(tmp) = zeros(size(tmp))-2^31;
-		end
-
-		% Write plane of data
-		%----------------------------------------------------------------------------
-		p  = spm_str_manip(P(i,:), 'd');
-		q  = max([find(p == '/') 0]);
-		q  = [p(1:q) 'n' p((q + 1):length(p))];
-		fp = fopen(q, open_mode);
-		if (fp == -1)
-			spm_progress_bar('Clear');
-			open_error_message(q);
-			error(['Error opening ' q '. Check that you have write permission.']);
-		end
-		if fwrite(fp,d,spm_type(V(i).dim(4))) ~= prod(size(d))
-			spm_progress_bar('Clear');
-			write_error_message(q);
-			error(['Error writing ' q '. Check your disk space.']);
-		end
-		fclose(fp);
+		d = spm_sample_vol(V(i),X2,Y2,Z2,Hold).*Mask; % Apply mask
+		spm_write_plane(VO(i),d,j);
 	end
-
 	spm_progress_bar('Set',j);
-
-	open_mode = 'a';
 end
-
-% Write headers
-%----------------------------------------------------------------------------
-for i=1:size(P,1)
-	p  = spm_str_manip(P(i,:), 'd');
-	q  = max([find(p == '/') 0]);
-	q  = [p(1:q) 'n' p((q + 1):length(p))];
-	spm_hwrite(q,Dim,Vox,V(i).pinfo(1),V(i).dim(4),0,origin,['spm - 3D normalized']);
-end
-
 spm_progress_bar('Clear');
-return;
-
-
-
-function open_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
-return
-
-function write_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
 return;
