@@ -108,22 +108,7 @@ case 'tempdir'                              %-Return temporary directory
 %=======================================================================
 twd = getenv('SPMTMP');
 if isempty(twd)
-    switch SPM_PLATFORM.filesys
-    case 'unx'
-        twd = '/tmp';
-    case 'win'
-        twd = getenv('TEMP');
-        if isempty(twd)
-            for tmp = {'c:\temp',[getenv('WINDIR'),'\Temp']}
-                if mkdir('',tmp), twd=tmp; break, end
-            end
-            if isempty(twd)
-                error('Could not find or create temporary directory')
-            end
-        end
-    otherwise
-        error('Do not know how to set temp directory');
-    end
+	twd = tempdir;
 end 
 varargout = {twd};
 
