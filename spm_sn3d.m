@@ -474,53 +474,49 @@ if (nargin == 0)
 	end;
 
 	if a1 == 2 | a1 == 3,
-
 		% Get interpolation method (for writing images)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?','+1','m',...
 			['Nearest Neighbour|Bilinear Interpolation|'...
 			'Sinc Interpolation (9x9x9)'],[0 1 -9], 2,...
 			'batch',{},'interp');
+	end;
 
-		% Get bounding box.
-		%-----------------------------------------------------------------------
-		if prod(size(sptl_BB)) == 6, bb = sptl_BB;
-		else,
-			ans = spm_input('Bounding Box?','+1','m',...
-				[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1,...
-				'batch',{},'bounding_box');
-			if ans>0, bb=reshape(bboxes(ans,:),2,3);
-			else,
-				directions = 'XYZ';
-				bb = zeros(2,1);
-				for d=1:3,
-					str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
-					bb(:,d) = spm_input(['Bounding Box ' directions(d) ],...
-						'+1', 'e', str,2,'batch',{},...
-						sprintf('direction%d',d));
-				end;
-			end;
-		end;
-
-
-		% Get output voxel sizes.
-		%-----------------------------------------------------------------------
-		if prod(size(sptl_Vx)) == 3, Vox = sptl_Vx;
-		else,
-			ans = spm_input('Voxel Sizes?','+1','m',...
-				[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3,...
-				'batch',{},'voxel_sizes');
-
-			if ans>0, Vox = voxdims(ans,:);
-			else,
-				Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3,...
-					'batch',{},'voxel_sizes_custom');
-				Vox = reshape(Vox,1,3);
-			end;
-		end;
+	% Get bounding box.
+	%-----------------------------------------------------------------------
+	if prod(size(sptl_BB)) == 6, bb = sptl_BB;
 	else,
-		bb     = sptl_BB;
-		Vox    = sptl_Vx;
+		ans = spm_input('Bounding Box?','+1','m',...
+			[ bbprompt '|Customise'], [1:size(bboxes,1) 0], 1,...
+			'batch',{},'bounding_box');
+		if ans>0, bb=reshape(bboxes(ans,:),2,3);
+		else,
+			directions = 'XYZ';
+			bb = zeros(2,1);
+			for d=1:3,
+				str = sprintf('%d %d', bboxes(1,d*2-1), bboxes(1,d*2));
+				bb(:,d) = spm_input(['Bounding Box ' directions(d) ],...
+					'+1', 'e', str,2,'batch',{},...
+					sprintf('direction%d',d));
+			end;
+		end;
+	end;
+
+
+	% Get output voxel sizes.
+	%-----------------------------------------------------------------------
+	if prod(size(sptl_Vx)) == 3, Vox = sptl_Vx;
+	else,
+		ans = spm_input('Voxel Sizes?','+1','m',...
+			[ voxprompts '|Customise'], [1:size(voxdims,1) 0],3,...
+			'batch',{},'voxel_sizes');
+
+		if ans>0, Vox = voxdims(ans,:);
+		else,
+			Vox = spm_input('Voxel Sizes ','+0', 'e', '2 2 2',3,...
+				'batch',{},'voxel_sizes_custom');
+			Vox = reshape(Vox,1,3);
+		end;
 	end;
 
 	% Go and do the work
@@ -673,8 +669,8 @@ elseif strcmp(P,'Defaults')
 		end;
 
 		ans = spm_input('Bounding Box?','+1','m',...
-         [ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1],...
-         tmp,'batch',{},'bounding_box');
+			[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1],...
+			tmp,'batch',{},'bounding_box');
 		if ans>0, sptl_BB=reshape(bboxes(ans,:),2,3);
 		elseif ans == 0,
 			if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
