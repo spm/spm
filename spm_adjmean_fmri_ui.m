@@ -556,7 +556,7 @@ for i = 1:nc
 	w  = W(i,:).*gSF';
 	Q  = find(abs(w)>0);
 	w  = w(Q); wV = V(Q);
-	for j=1:length(Q), wV(j).pinfo(1,:)=wV(j).pinfo(1,:)*w(j); end
+	for j=1:length(Q), wV(j).pinfo(1:2,:)=wV(j).pinfo(1:2,:)*w(j); end
 	%-Write header
 	Vo.fname   = [Fnames{i},'.img'];
 	Vo.descrip = sprintf('Adjusted mean (spm_adjmean_fmri) - %s',Fnames{i});
