@@ -150,6 +150,37 @@ function varargout=spm(varargin)
 % FORMAT User = spm('GetUser')
 % Returns current user, culled from the USER environment variable
 %
+% FORMAT spm('FnBanner',Fn,FnV)
+% Prints a function start banner, for version FnV of function Fn
+%
+% FORMAT spm('Pointer',Pointer)
+% Changes pointer on all SPM (HandleVisible) windows to type Pointer
+% Pointer defaults to 'Arrow'. Robust to absence of windows
+%
+% FORMAT [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
+% Robust UIsetup procedure for functions:
+%   Returns handles of 'Interactive' and 'Graphics' figures.
+%   Creates 'Interactive' figure if ~CmdLine, creates 'Graphics' figure if bGX.
+% Iname   - Name for 'Interactive' window
+% bGX     - Need a Graphics window? [default 1]
+% CmdLine - CommandLine usage? [default spm('isGCmdLine')]
+% Finter  - handle of 'Interactive' figure
+% Fgraph  - handle of 'Graphics' figure
+% CmdLine - CommandLine usage?
+%
+% FORMAT F = spm('FigName',Iname,F,CmdLine)
+% Set name of figure F to [spm('GetUser'),' - ',Iname] if ~CmdLine
+% Robust to absence of figure.
+% Iname      - Name for figure
+% F (input)  - Handle (or 'Tag') of figure to name [default 'Interactive']
+% CmdLine    - CommandLine usage? [default spm('isGCmdLine')]
+% F (output) - Handle of figure named
+%
+% FORMAT Fs = spm('ShowSPMfigs')
+% Opens all SPM figure windows (with HandleVisibility) using `figure`.
+%   Maintains current figure.
+% Fs - vector containing all HandleVisible figures (i.e. get(0,'Children'))
+% 
 %_______________________________________________________________________
 
 %-Parameters
@@ -408,14 +439,14 @@ uicontrol(Fmenu,'String','Segment',	'Position',[280 330 080 30].*WS,...
 %-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*WS,...
 	'CallBack','spm_spm_ui',...
-	'Visible','off',		'Tag','PET')
+	'Visible','off',		'Tag','PET'	,'Enable','off')
 
 uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*WS,...
 	'CallBack','spm_fmri_spm_ui',...
-	'Visible','off',		'Tag','FMRI')
+	'Visible','off',		'Tag','FMRI'	,'Enable','off')
 
 uicontrol(Fmenu,'String','Eigenimages',	'Position',[220 245 140 30].*WS,...
-	'CallBack','spm_svd_ui')
+	'CallBack','spm_svd_ui'				,'Enable','off')
 
 %-Results
 %-----------------------------------------------------------------------
@@ -456,8 +487,8 @@ uicontrol(Fmenu,'String','CD',		'Position',[020 054 082 024].*WS,...
 		'cd(CWD), clear CWD,',...
 		'fprintf(''\nSPM working directory:\n\t%s\n\n>> '',pwd)'])
 
-uicontrol(Fmenu,'String','Mean',	'Position',[112 054 083 024].*WS,...
-	'CallBack','spm_average')
+uicontrol(Fmenu,'String','',		'Position',[112 054 083 024].*WS,...
+	'CallBack','',			'Enable','off')
 
 uicontrol(Fmenu,'String','ImCalc',	'Position',[205 054 083 024].*WS,...
 	'CallBack','spm_image_funks')
@@ -472,13 +503,14 @@ uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*WS,...
 	'ForeGroundColor','g')
 
 uicontrol(Fmenu,'Style','PopUp',...
-	'String','Utilities|Analyze|GhostView|Run mFile',...
+	'String','Utilities|Analyze|GhostView|Run mFile|Show figs',...
 	'Tag','UtilPullDown',		'Position',[112 020 083 024].*WS,...
 	'CallBack','spm(''UtilPullDownCB'',gcbo)',...
 	'UserData',{	'!analyze',...
 			['unix([''ghostview '',spm_get(1,''.ps'',''Select ',...
 				'PostScript file to view''),'' &'']);'],...
-			'run(spm_get(1,''*.m'',''Select mFile to run''))'} )
+			'run(spm_get(1,''*.m'',''Select mFile to run''))',...
+			'spm(''ShowSPMfigs'');'} )
 
 uicontrol(Fmenu,'String','Defaults',	'Position',[205 020 083 024].*WS,...
 	'CallBack','spm_defaults_edit')
@@ -807,10 +839,76 @@ User = getenv('USER');
 if isempty(User), User='user'; end
 varargout = {User};
 
+
 case 'beep'
 %=======================================================================
 % spm('Beep')
 fprintf('%c',7)
+
+
+case 'fnbanner'
+%=======================================================================
+% spm('FnBanner',Fn,FnV)
+fprintf('\n%s',spm('ver'))
+if nargin>=2, fprintf(': %s',varargin{2}), end
+if nargin>=3, fprintf(' (v%s)',varargin{3}), end
+fprintf('\n'), fprintf('%c','='*ones(1,72)),fprintf('\n')
+
+
+case 'pointer'
+%=======================================================================
+% spm('Pointer',Pointer)
+if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
+set(get(0,'Children'),'Pointer',Pointer)
+
+
+case 'fnuisetup'
+%=======================================================================
+% [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
+if nargin<4, CmdLine=spm('isGCmdLine'); else, CmdLine=varargin{4}; end
+if nargin<3, bGX=1; else, bGX=varargin{3}; end
+if nargin<2, Iname=''; else, Iname=varargin{2}; end
+if CmdLine
+	Finter = spm_figure('FindWin','Interactive');
+	if ~isempty(Finter), spm_clf(Finter), end
+else
+	Finter = spm_figure('GetWin','Interactive');
+	spm_clf(Finter)
+	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
+	set(Finter,'Name',str)
+end
+if bGX
+	Fgraph = spm_figure('GetWin','Graphics');
+	spm_clf(Fgraph)
+else
+	Fgraph = spm_figure('FindWin','Graphics');
+end
+varargout = {Finter,Fgraph,CmdLine};	
+
+
+case 'figname'
+%=======================================================================
+% F = spm('FigName',Iname,F,CmdLine)
+if nargin<4, CmdLine=spm('isGCmdLine'); else, CmdLine=varargin{4}; end
+if CmdLine, varargout={[]}; return, end
+if nargin<3, F='Interactive'; else, F=varargin{3}; end
+if nargin<2, Iname=''; else, Iname=varargin{2}; end
+F = spm_figure('FindWin',F);
+if ~isempty(F)
+	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
+	set(F,'Name',str)
+end
+varargout={F};
+
+
+case 'showspmfigs'
+%=======================================================================
+% Fs = spm('ShowSPMfigs')
+cF = get(0,'CurrentFigure');
+Fs = get(0,'Children');
+for F=Fs', figure(F), end
+set(0,'CurrentFigure',cF)
+varargout={Fs};
 
 
 otherwise
