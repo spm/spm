@@ -35,7 +35,7 @@ function spm_realign_ui(opt)
 % details of the transformation are displayed in the results window as
 % plots of translation and rotation.
 % A set of realignment parameters are saved for each session, named:
-% realignment_params_*.txt.
+% rp_*.txt.
 %
 %__________________________________________________________________________
 % Refs:
