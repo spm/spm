@@ -219,14 +219,14 @@ case 'statistics'                                       %-Stats defaults
 
 	if strcmp(defaults.modality,'PET'),
 		defaults.modality.pet.ufp = spm_input('Upper tail F prob. threshold (PET)',...
-			2,'e',defaults.modality.pet.ufp,1);
+			2,'e',defaults.stats.pet.ufp,1);
 	elseif strcmp(defaults.modality,'FMRI')
-		defaults.modality.fmri.ufp  = spm_input('Upper tail F prob. threshold (FMRI)',...
-			2,'e',defaults.modality.fmri.ufp,1);
-		defaults.modality.fmri.t  = spm_input('Number of Bins/TR',...
-			3,'n',defaults.modality.fmri.t,1);
+		defaults.stats.fmri.ufp  = spm_input('Upper tail F prob. threshold (FMRI)',...
+			2,'e',defaults.stats.fmri.ufp,1);
+		defaults.stats.fmri.t  = spm_input('Number of Bins/TR',...
+			3,'n',defaults.stats.fmri.t,1);
 		defaults.stats.fmri.t0    = spm_input('Sampled bin',...
-			4,'n',defaults.stats.fmri.t0,1, defaults.modality.fmri.t);
+			4,'n',defaults.stats.fmri.t0,1, defaults.stats.fmri.t);
 	end;
 
 
