@@ -47,7 +47,9 @@ else
 end
 
 if isstr(Q)
-    spm_hwrite(Q,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,[DESCRIP ' -conv']); end
+    Desc = sprintf('%s -conv (%g,%g,%g)',DESCRIP,s);    
+    spm_hwrite(Q,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,Desc);
+end
 
     
 % compute parameters for spm_conv_vol
