@@ -41,7 +41,8 @@ try,
 	[hdr,swapped] = spm_read_hdr(fname);
 catch,
 	warning(['Could not read "' fname '"']);
-	hdr = [];
+	swapped = 0;
+	hdr     = [];
 end;
 
 if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
@@ -57,9 +58,14 @@ if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 	end;
 
 	V.dim(4) = spm_type(spm_type(hdr.dime.datatype));
-	mach = 'native';
+	mach     = 'native';
 	if swapped,
-		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
+		V.dim(4) = V.dim(4)*256;
+		if spm_platform('bigend'),
+			mach = 'ieee-le';
+		else,
+			mach = 'ieee-be';
+		end;
 	end;
 
 	if finite(hdr.dime.funused1) & hdr.dime.funused1,
@@ -85,21 +91,22 @@ else,
 
 	V.private.hdr = create_defaults;
 
-	mach = 'native';
-	dt   = spm_type(spm_type(V.dim(4)));
+	swapped = spm_type(V.dim(4),'swapped');
+	dt      = spm_type(spm_type(V.dim(4)));
 	if any(dt == [128+2 128+4 128+8]),
 		% Convert to a form that Analyze will support
-		dt = dt - 128;
-		if spm_type(V.dim(4),'swapped')
-			dt = dt*256;
-		end;
+		dt  = dt - 128;
 	end;
 	V.dim(4) = dt;
-
-	if spm_type(V.dim(4),'swapped')
-		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
+	mach     = 'native';
+	if swapped,
+		V.dim(4) = V.dim(4)*256;
+		if spm_platform('bigend'),
+			mach = 'ieee-le';
+		else,
+			mach = 'ieee-be';
+		end;
 	end;
-
 	V.private.hdr.dime.datatype    = dt;
 	V.private.hdr.dime.bitpix      = spm_type(dt,'bits');
 
