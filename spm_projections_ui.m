@@ -135,9 +135,8 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 	PE    = D*BETA;
 	SSQ   = PE.^2;
 	if size(SSQ,1) > 1; SSQ = sum(SSQ); end
-	Fdf0  = spm_AnCova(X1,X0,SIGMA);
-	global trRV trR0V
-	F     = (trRV/trR0V)*SSQ./RES;
+	[Fdf0,Xd]  = spm_AnCova(X1,X0,SIGMA);
+	F     = (Xd.trRV/Xd.trR0V)*SSQ./RES;
 
 	% find voxels with significant interactions
 	%---------------------------------------------------------------
