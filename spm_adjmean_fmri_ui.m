@@ -274,7 +274,7 @@ G = []; Gnames = '';
 bHPF = spm_input('Use high pass filter?','+1','y/n',[1 0],1);
 if bHPF
 	HPFc=nScan;
-	for i=Conds, HPFc = min([HPFc,max(diff(eOns(eCond==i)))]); end
+	for i=Conds', HPFc = min([HPFc,max(diff(eOns(eCond==i)))]); end
 	HPFc=spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
 	%-Find max order for discrete cosine set, HPFk
 	% (from period>HPFc, period=nScan*RT/(k/2) for order k; k<nScan/2)
