@@ -1,6 +1,6 @@
-function [Ep,Cp,Ce] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Ep,Cp,K1,K2] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
 % user interface for hemodynamic model estimation
-% FORMAT [Ep Cp Ce] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg);
+% FORMAT [Ep,Cp,K1,K2] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg);
 %
 % SPM    - structure containing SPM, distribution & filtering detals
 % VOL    - structure containing details of volume analysed
@@ -11,8 +11,9 @@ function [Ep,Cp,Ce] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
 %
 % Ep     - conditional expectations of the hemodynamic model parameters
 % Cp     - conditional  covariance  of the hemodynamic model parameters
+% K1     - 1st order kernels
+% K2     - 2nd order kernels
 %          (see main body of routine for details of model specification)
-% Ce     - ML estimate of error covariance
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -22,39 +23,37 @@ Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
 set(Finter,'Name','Hemodynamic modelling')
 
-
 % inputs
 %===========================================================================
 
 % which session?
 %---------------------------------------------------------------------------
-s      = length(xSDM.Sess);
+s    = length(xSDM.Sess);
 if s > 1
-	s = spm_input('which session','+1','n',1,[1 1],s);
+	s = spm_input('which session',1,'n1',1,1,s);
 end
-Sess   = xSDM.Sess{s};
+Sess = xSDM.Sess{s};
 
 % 'causes' or imputs U
 %---------------------------------------------------------------------------
-U.u    = [];
-U.dt   = xX.dt;
-n      = length(Sess.sf{1});
-e      = spm_input('trial types?','+1','b','event|epoch',[1 0]);
-d      = 0;
-for  i = 1:length(Sess.sf)
-	trial       = Sess.name{i};
-	if e
-		u   = Sess.sf{i}/U.dt;
-	else
-		str = sprintf('duration (scans): %s',trial);
-		d   = spm_input(str,'+0','w',d,[1 1]);
-		q   = max([1 d*xX.RT/xX.dt]);
-		u   = full(Sess.sf{i});
-		u   = conv(u,ones(q,1));
-		u   = sparse(u(1:n));
+spm_input('Input specification:...  ',1,'d');
+U.dt = Sess.U{1}.dt;
+u    = length(Sess.U);
+if u == 1 & length(Sess.U{1}.Uname) == 1
+	U.name = Sess.U{1}.Uname{1};
+	U.u    = Sess.U{1}.u(33:end,1);
+else
+	U.name = {};
+	U.u    = [];
+	for  i = 1:u
+	for  j = 1:length(Sess.U{i}.Uname)
+		str   = ['include ' Sess.U{i}.Uname{j} '?'];
+		if spm_input(str,2,'y/n',[1 0])
+			U.u             = [U.u Sess.U{i}.u(33:end,j)];
+			U.name{end + 1} = Sess.U{i}.Uname{j};
+		end
 	end
-	U.u         = [U.u u];
-	U.name{i}   = trial;
+	end
 end
 
 
@@ -65,7 +64,7 @@ end
 %---------------------------------------------------------------------------
 xY     = struct(	'Ic'		,1,...	
  	   		'name'		,'HDM',...
- 	   		'filter'	,'high',...
+ 	   		'filter'	,1,...
  	   		'Sess'		,s);
 
 
@@ -74,16 +73,12 @@ xY     = struct(	'Ic'		,1,...
 [y xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY);
 
 
-% serial correlations?
-%---------------------------------------------------------------------------
-h      = spm_input('model serial correlations','+1','b','yes|no',[2 1]);
-
-%-append low frequency confounds
+%-confounds
 %---------------------------------------------------------------------------
 n      = size(xY.y,1);
 X0     = ones(n,1);
-if ~strcmp(xY.filter,'none')
-	X0   = [X0 full(xX.K{s}.KH)];
+if xY.filter & iscell(xX.K)
+	X0 = [X0 full(xX.K{s}.KH)];
 end
 
 %-adjust and place in response variable structure
@@ -93,7 +88,7 @@ y      = y - X0*(pinv(X0)*y);
 Y.y    = y;
 Y.dt   = xX.RT;
 Y.X0   = X0;
-Y.Ce   = spm_Ce(n,h);
+Y.Ce   = spm_Ce(n);
 Y.pC   = (Y.dt/2).^2;          % prior covariance on timing error
 
 
@@ -134,7 +129,6 @@ M.lx    = 'spm_lambda_HRF';
 M.x     = [0 1 1 1]';
 M.pE    = pE;    
 M.pC    = pC;
-M.pD    = (Y.dt/4)^2;
 M.m     = m;
 M.n     = 4;
 M.l     = 1;
