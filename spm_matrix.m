@@ -19,12 +19,13 @@ function [A] = spm_matrix(P)
 %
 % spm_matrix returns a matrix defining an orthogonal linear (translation,
 % rotation, scaling or affine) transformation given a vector of
-% parameters (P).  The transformations are applied in the following order:
+% parameters (P).  The transformations are applied in the following order
+% (i.e., the opposite to which they are specified):
 %
-% 1) translations
-% 2) rotations
-% 3) scaling
-% 4) affine
+% 1) shear
+% 2) scale
+% 3) rotation - yaw, roll & pitch
+% 4) translation
 %
 % SPM uses a PRE-multiplication format i.e. Y = A*X where X and Y are 4 x n
 % matrices of n coordinates.
@@ -36,36 +37,35 @@ function [A] = spm_matrix(P)
 %---------------------------------------------------------------------------
 q  = [0 0 0 0 0 0 1 1 1 0 0 0];
 P  = [P q((length(P) + 1):12)];
-A  = eye(4);
 
-A  = A*[1 	0 	0 	P(1);
+T  =   [1 	0 	0 	P(1);
         0 	1 	0 	P(2);
         0 	0 	1 	P(3);
         0 	0 	0 	1];
 
-A  = A*[1    0   	0   	   0;
+R1  =  [1    0   	0   	   0;
         0    cos(P(4))  sin(P(4))  0;
         0   -sin(P(4))  cos(P(4))  0;
         0    0    	0   	   1];
 
-A  = A*[cos(P(5))  0   	sin(P(5))  0;
+R2  =  [cos(P(5))  0   	sin(P(5))  0;
         0    	   1    0  	   0;
        -sin(P(5))  0  	cos(P(5))  0;
         0          0    0   	   1];
 
-A  = A*[cos(P(6))   sin(P(6))   0  0;
+R3  =  [cos(P(6))   sin(P(6))   0  0;
        -sin(P(6))   cos(P(6))   0  0;
         0           0           1  0;
         0     	    0    	0  1];
 
-A  = A*[P(7) 	0   	0    	0;
+Z   =  [P(7) 	0   	0    	0;
         0    	P(8) 	0    	0;
         0    	0    	P(9) 	0;
         0    	0    	0    	1];
 
-A  = A*[1   	P(10)   P(11)   0;
+S   =  [1   	P(10)   P(11)   0;
         0   	1 	P(12)   0;
         0   	0   	1	0;
         0    	0    	0    	1];
 
-
+A = T*R1*R2*R3*Z*S;
