@@ -55,7 +55,6 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% SPM (c) 1991,1994-1998: The Wellcome Department of Cognitive Neurology
 % %W% Karl Friston, Andrew Holmes %E%
 
 %=======================================================================
