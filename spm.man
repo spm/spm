@@ -1,5 +1,5 @@
 
-% Statistical Parametric Mapping - SPM98a
+% Statistical Parametric Mapping - SPM99a
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -10,13 +10,13 @@
 % John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 % ______________________________________________________________________
 %
-%  SPM98a is the developers alpha release of SPM'98  -  released 03/11/1998
+%  SPM99a is the developers alpha release of SPM'99  -  released ??/??/1999
 %
 %                *   U N D E R   C O N S T R U C T I O N   *
 %
 % Contents:
 %      1) SPM - General comments
-%      2) New features in SPM98
+%      2) New features in SPM99
 %      3) Selected Bibliography
 % 
 % ======================================================================
@@ -116,7 +116,7 @@
 % 2)           N e w   f e a t u r e s   i n   S P M 9 8
 % ======================================================================
 %
-% General comments on SPM98...                                      ****
+% General comments on SPM99...                                      ****
 % 
 % ______________________________________________________________________
 %                                                                GENERAL
@@ -228,7 +228,7 @@
 % Occasionally it may be necessary to attempt to sample voxels that lie
 % outside the field of view of the original image.  The parameter
 % estimates in the SPM96 implementation assumed that the values of such
-% voxels should be zero.  In SPM98, these voxels are excluded from the
+% voxels should be zero.  In SPM99, these voxels are excluded from the
 % computation of motion estimates.
 % 
 % The sinc interpolation has changed.  In the previous version, the width
