@@ -20,7 +20,8 @@ function varargout=spm_help(varargin)
 % interested user is referred to these sources. An intermediate
 % theoretical exposition is given in the SPM course notes. This and
 % other resources are available via the SPM Web site. Visit
-% http://www.fil.ion.ucl.ac.uk/spm
+% http://www.fil.ion.ucl.ac.uk/spm, or press the "SPMweb" button on the
+% spm_help toolbar.
 %
 %-----------------------------------------------------------------------
 %
@@ -814,8 +815,8 @@ case '!createbar'
 %=======================================================================
 % spm_help('!CreateBar',F)
 %-----------------------------------------------------------------------
-% Print | Clear | Current Topic     | Menu | Help | Back | Exit
-% About SPMver  | Referenced Topics |   Previous Topics  |
+% Print | Clear | Current Topic     | Menu | Help | Back | SPMweb
+% About SPMver  | Referenced Topics |   Previous Topics  | Exit
 %-----------------------------------------------------------------------
 
 if nargin<2, F='Help'; else F=varargin{2}; end
@@ -839,8 +840,8 @@ nGap  = 4;
 sx    = floor(P(1)./(nBut+(nGap+2)/6));		% uicontrol object width
 dx    = floor(2*sx/6);				% inter-uicontrol gap
 sy    = floor(20*S_Gra(1));			% uicontrol object height
-x0    = dx;					% initial x position
-x     = dx;					% uicontrol x position
+x0    = dx/2;					% initial x position
+x     = dx/2;					% uicontrol x position
 y     = P(2) - sy;				% uicontrol y position
 y2    = P(2) - 2.25*sy;				% uicontrol y position
 
@@ -920,7 +921,15 @@ uicontrol(F,'String','Back',   'Position',[x y sx sy],...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','HelpBar'), x = x+sx+dx;
 
-uicontrol(F,'String','Exit',   'Position',[x y sx sy],...
+uicontrol(F,'String','SPMweb', 'Position',[x y sx+dx/2 sy],...
+	'FontWeight','Bold','FontName','Courier',...
+	'CallBack',['set(gcbf,''Pointer'',''Watch''),',...
+			'web(''http://www.fil.ion.ucl.ac.uk/spm'');',...
+			'set(gcbf,''Pointer'',''Arrow'')'],...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','HelpBar','ForegroundColor','k')
+
+uicontrol(F,'String','Exit',   'Position',[x y2 sx+dx/2 sy],...
 	'CallBack','spm_help(''!Quit'')',...
 	'Interruptible','off','BusyAction','cancel',...
 	'Tag','HelpBar','ForegroundColor','r')
