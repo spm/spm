@@ -7,6 +7,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "mex.h"
 
@@ -18,7 +19,7 @@ Checks for numeric values in the strings, so that strings like
 'image1.img' 'image10.img' 'image11.img' 'image12.img' 'image2.img' etc
 are ordered more sensibly.
 */
-num_strcmp(char *str1, char *str2)
+static int num_strcmp(char *str1, char *str2)
 {
 	char *p1, *p2;
 	int i1, i2;
@@ -46,7 +47,7 @@ num_strcmp(char *str1, char *str2)
 }
 
 
-slowsort(int argc,char **argv)
+static void slowsort(int argc,char **argv)
 {
 	int i, j;
 	for(i=argc; i>1; i--)
@@ -62,7 +63,7 @@ slowsort(int argc,char **argv)
 		}
 }
 
-wildcard(char *attempt, char *actual)
+static int wildcard(char *attempt, char *actual)
 {
 	char *p1, *p2;
 
@@ -84,7 +85,7 @@ wildcard(char *attempt, char *actual)
 	return 0;
 }
 
-void list2mat(int m, int n, char *list[], mxArray **ptr)
+static void list2mat(int m, int n, char *list[], mxArray **ptr)
 {
 	char *buf2;
 	int i;
@@ -113,7 +114,8 @@ void list2mat(int m, int n, char *list[], mxArray **ptr)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int ndirs = 0, nfiles = 0, len, uid, gids[128], ngids, maxdlen = 0, maxflen = 0;
+	int ndirs = 0, nfiles = 0, len, uid, maxdlen = 0, maxflen = 0;
+	long int ngids, gids[128];
 	DIR *dirp;
 	struct dirent *dp;
 	char *filenames[MAXFILES], *directories[MAXDIRS], *ptr, *buf = (char *)0, *bufp, *fullpathname, *filter;
@@ -141,7 +143,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if ((stat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
 	{
-		buf = (char *)mxCalloc((int)stbuf.st_size, 1);
+		/* Apart from automounted directories, the sum of all the lengths
+		   of filenames within a directory should not exceed the the size
+		   of a directory (as ascertained with stat).  However, for
+		   automount directories such as /home, then the size of the
+		   directory is equal to the number of files in the directory.
+		   This was the reason for a bug that took ages to find.  As a
+		   hack, I will add 65536 to the size of buf.  This should protect
+		   against most automount directories.  The alternatives would either
+		   be a two pass approach to listing the contents of a directory, or
+		   to calloc space for files as needed.
+		*/
+		buf = (char *)mxCalloc((int)stbuf.st_size+65536, 1);
 		bufp = buf;
 		ptr = fullpathname + strlen(fullpathname);
 		(void)strcat(fullpathname, "/");
