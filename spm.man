@@ -5,7 +5,7 @@
 % 
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  Statistical Parametric Mapping
-% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+% \__ \ )___/ )    (   Wellcome Department of Cognitive Neurology & Collaborators
 % (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %
 %    John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
@@ -43,14 +43,34 @@
 % promote collaboration and a common analysis scheme across
 % laboratories.
 % 
+% ______________________________________________________________________
+%                                                                Authors
+%
 % SPM94 was written primarily by Karl Friston in the first half of
-% 1994, with lots of help from John Ashburner, Jon Heather and Andrew
-% Holmes.  Subsequent development has benefited from substantial input
-% (technical and theoretical) from John Ashburner, Andrew Holmes,
-% Jean-Baptiste Poline, Christian Buechel, Chloe Hutton and Keith
-% Worsley.  We envisage that this software will be used in a diverse
-% number of ways.  Although SPM has grown out of a PET background, it
-% is now an established package for the analysis of fMRI data.
+% 1994, with assistance from John Ashburner (MRC-CU), Jon Heather
+% (WDoCN), and Andrew Holmes (Department of Statistics, University of
+% Glasgow). Subsequent development, under the direction of Prof. Karl
+% Friston at the Wellcome Department of Cognitive Neurology, has
+% benefited from substantial input (technical and theoretical) from:
+% John Ashburner (WDoCN), Andrew Holmes (WDoCN & Robertson Centre for
+% Biostatistics, University of Glasgow, Scotland), Jean-Baptiste Poline
+% (WDoCN & CEA/DRM/SHEFJ, Orsay, France), Christian Buechel (WDoCN),
+% Matthew Brett (MRC-CBU, Cambridge, England), Chloe Hutton (WDoCN) and
+% Keith Worsley (Department of Statistics, McGill University, Montreal,
+% Canada).
+%
+% SPM99 was developed by: John Ashburner (spatial, image handling),
+% Karl Friston (project director), Andrew Holmes (project management,
+% statistics, user interfaces), Jean-Baptiste Poline (statistics, batch
+% system (with Stephanie Rouquette)), with assistance from Matthew
+% Brett (WinNT implementation, misc. stats).
+%
+% We would like to thank everyone who has provided feedback on SPM.
+%
+% We envisage that this software will be used in a diverse number of
+% ways.  Although SPM has grown out of a PET background, it is now an
+% established package for the analysis of fMRI data, and is also used
+% for structural data.
 %
 % ______________________________________________________________________
 %                                                              Resources
@@ -98,9 +118,9 @@
 % eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 % special toolboxes are required).
 % 
-% SPM99 is written for Matlab 5.2 under UNIX, LINUX and
+% SPM99 is written for Matlab 5.2.1 under UNIX, LINUX and
 % Windows(95/98/NT). (SPM will not work with versions of Matlab 5 prior
-% to 5.2, including Matlab 4.)
+% to 5.2.1, including Matlab 4.)
 % 
 % The current version was developed and tested on 200MHz UltraSPARC 2
 % workstations (128Mb RAM, 200Mb swap) under Solaris2.5.1
@@ -309,7 +329,7 @@
 %  - enhanced graphics editing in SPM graphics window
 %  - neater window handling
 %
-% Re-written for Matlab version 5 (5.2 or greater required)
+% Re-written for Matlab version 5 (5.2.1 or greater required)
 %  - no additional toolboxes required
 %  - simplified structure
 %  - better documented interfacces and file formats
@@ -682,5 +702,6 @@
 %    * SPMmv  : Multivariate statistics toolbox            (JB Poline)
 %    * SPMsc  : Effective connectivity toolbox             (CBuechel)
 %    * SPM??  : Morphometry toolbox                        (JAshburner)
-% _________________________________________________________________________
+%
+% ______________________________________________________________________
 % %W% The FIL methods group %E%
