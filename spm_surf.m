@@ -106,6 +106,7 @@ if any(mode==[2 3 4]),
 	if any(mode==[2 3]),
 		matname = fullfile(pth,['surf_' nam '.mat']);
 		save(matname,'faces','vertices');
+	end;
 	if any(mode==[4]),
 		fname = fullfile(pth,['surf_' nam '.obj']);
 		fid   = fopen(fname,'w');
@@ -121,7 +122,7 @@ if any(mode==[2 3 4]),
 		fprintf(fid,'g\n');
 		fclose(fid);
 	end;
-
+end;
 spm('Pointer')
 
 return;
