@@ -1,14 +1,14 @@
-function [C,P] = spm_PEB(y,P,TOL)
-% PEB estimation for hierarchical linear  models - FULL EFFICIENT version
-% FORMAT [C,P] = spm_PEB(y,P,TOL)
+function [C,P,F] = spm_PEB(y,P,TOL)
+% parametric empirical Bayes (PEB) for hierarchical linear models
+% FORMAT [C,P,F] = spm_PEB(y,P,TOL)
+%
 % y       - (n x 1)     response variable
 %
-% PRIOR SPECIFICATION OF MODEL
-% P{i}.X  - (n x m)     ith level design matrix i.e:
-%                       contraints on the form of E{b{i - 1}}
-% P{i}.C  - {q}(n x n)  ith level contraints on the form of Cov{e{i}} i.e:
-%                       contraints on the form of Cov{b{i - 1}}
-% TOL - Tolerance {default = 1e-5}
+% MODEL SPECIFICATION 
+%
+% P{i}.X  - (n x m)     ith level design matrix i.e: constraints on <Eb{i - 1}>
+% P{i}.C  - {q}(n x n)  ith level contraints on Cov{e{i}} = Cov{b{i - 1}}
+% TOL     - Tolerance {default = 1e-5}
 %
 % POSTERIOR OR CONDITIONAL ESTIMATES
 %
@@ -23,6 +23,10 @@ function [C,P] = spm_PEB(y,P,TOL)
 % P{1}.h  - ReML Hyperparameter estimates
 % P{1}.W  - ReML precisions = ddln(p(y|h)/dhdh
 %
+% LOG EVIDENCE
+%
+% F       - [-ve] free energy F = log evidence = p(y|X,C)
+%
 % If P{i}.C is not a cell the covariance at that level is assumed to be kown
 % and Cov{e{i}} = P{i}.C (i.e. the hyperparameter is fixed at 1)
 %
@@ -32,7 +36,7 @@ function [C,P] = spm_PEB(y,P,TOL)
 % by setting b{n} = 1 through appropriate constraints at level {n + 1}.
 %
 % To implement non-hierarchical Bayes with priors on the parameters use
-% a two level model setting the second level design matrix to zero.
+% a two level model setting the second level design matrix to zeros.
 %___________________________________________________________________________
 %
 % Returns the moments of the posterior p.d.f. of the parameters of a 
@@ -271,7 +275,18 @@ for k = 1:M
 	%===================================================================
 	w     = dh'*dh;
 	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
-	if w < TOL, break, end
+	if w < TOL
+
+            % log evidence = ln p(y|X,C) = F = [-ve] free energy
+            %---------------------------------------------------------------
+            if nargout > 2
+                F = -trace(Py'*Ce*Py)/2 ...
+                    -length(I{1})*log(2*pi)/2 ...
+                    -spm_logdet(Ce)/2 ...
+                    +spm_logdet(Cby)/2;
+            end
+            break
+        end
 end
 
 % place hyperparameters in P{1} and output structure for {n + 1}
