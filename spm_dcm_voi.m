@@ -40,6 +40,6 @@ for i = 1:n
 end
 
 
-instr=['save ',DCM_filename,'DCM'];
+instr=['save ',DCM_filename,' DCM'];
 eval(instr);
 
