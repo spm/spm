@@ -55,10 +55,6 @@ function R1=spm_help(Action,P2,P3)
 % Displays the help for the given file in the Graphics window (creating
 % one if required). Paginates and provides paging buttons if necessary.
 %
-% FORMAT spm_help('Page')
-% Callback handling function for the paging buttons in multi-page help
-% displays.
-% 
 %_______________________________________________________________________
 
 
@@ -73,18 +69,29 @@ if strcmp(lower(Action),lower('Menu'))
 %-Find Help window, create one if none exists, show it
 %-----------------------------------------------------------------------
 Fhelp = spm_figure('FindWin','Help');
+Finter = spm_figure('FindWin','Interactive');
 if isempty(Fhelp), Fhelp=spm_help('CreateWin'); end
+if ~isempty(Finter), spm_clf(Finter), end
 set(Fhelp,'Visible','on')
 return
 
 
 elseif strcmp(lower(Action),lower('Quit'))
 %=======================================================================
-spm_clf('Graphics')
-spm_clf('Interactive')
+Fwelcom = spm_figure('FindWin','Welcome');
+Fmenu = spm_figure('FindWin','Menu');
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
 Fhelp = spm_figure('FindWin','Help');
-if isempty(Fhelp), return, end
-set(Fhelp,'Visible','off')
+if isempty(Fmenu)
+	close([Finter,Fgraph,Fhelp])
+else
+	spm_clf(Fgraph)
+	spm_clf(Finter)
+	set(Fmenu,'Visible','on')
+	if isempty(Fhelp), return, else, set(Fhelp,'Visible','off'), end
+end
+if ~isempty(Fwelcom), set(Fwelcom,'Visible','on'), end
 return
 
 
@@ -116,7 +123,7 @@ R1    = Fhelp;
 uicontrol(Fhelp,'String','About SPM',...
 	'Position',[010 410 087 30].*A,...
 	'CallBack','spm_help(''Topic'',''spm.man'');',...
-	'ForegroundColor','b');
+	'ForegroundColor',[0 1 1]);
 uicontrol(Fhelp,'String','Data format',...
 	'Position',[107 410 088 30].*A,...
 	'CallBack','spm_help(''Topic'',''spm_format.man'');',...
@@ -201,15 +208,13 @@ uicontrol(Fhelp,'String','Display',...
 	'Position',[112 088 083 024].*A,...
 	'CallBack','spm_help(''Topic'',''spm_image.man'');',...
 	'Interruptible','yes');
-uicontrol(Fhelp,'String','<empty>',...
+uicontrol(Fhelp,'String','Render',...
 	'Position',[205 088 083 024].*A,...
-	'CallBack','spm_help(''Topic'',''spm_help.m'');',...
-	'Visible','off',...
+	'CallBack','spm_help(''Topic'',''spm_render.m'');',...
 	'Interruptible','yes');
-uicontrol(Fhelp,'String','<empty>',...
+uicontrol(Fhelp,'String','PET/fMRI',...
 	'Position',[298 088 082 024].*A,...
-	'CallBack','spm_help(''Topic'',''spm_help.m'');',...
-	'Visible','off',...
+	'CallBack','spm_help(''Topic'',''spm_modality.man'');',...
 	'Interruptible','yes');
 uicontrol(Fhelp,'String','Mean',...
 	'Position',[020 054 082 024].*A,...
@@ -233,7 +238,7 @@ uicontrol(Fhelp,'String','Help',...
 	'Interruptible','yes');
 uicontrol(Fhelp,'String','Defaults',...
 	'Position',[112 020 083 024].*A,...
-	'CallBack','spm_help(''Topic'',''spm_defaults.man'');',...
+	'CallBack','spm_help(''Topic'',''spm_defaults_edit.m'');',...
 	'Interruptible','yes');
 uicontrol(Fhelp,'String',['<',getenv('USER'),'>'],...
 	'Position',[205 020 083 024].*A,...
@@ -286,7 +291,7 @@ if isempty(findobj(Finter,'Tag','SPMhelp'))
 	%---------------------------------------------------------------
 	spm_figure('Clear',Finter);
 	A = spm('GetWinScale');
-	set(Finter,'Name','SPM Help')
+	set(Finter,'Name','SPM routines')
 	uicontrol(Finter,'Style','Frame','Tag','hAxes',...
 		'Position',[001 345 400 050].*A);
 	uicontrol(Finter,'Style','Text','Tag','SPMhelp',...
@@ -387,7 +392,8 @@ if nargin<2, P2='spm'; else, Fname=P2; end
 %-Find (or create) window to print in
 Fgraph = spm_figure('FindWin','Graphics');
 if isempty(Fgraph), Fgraph = spm_figure('Create','Graphics'); end
-spm_clf('Graphics')
+spm_clf(Fgraph)
+set(Fgraph,'Pointer','Watch')
 
 %-Parse text file/string
 %-----------------------------------------------------------------------
@@ -404,13 +410,12 @@ q     = min([length(S),findstr(S,setstr([10 10]))]);	% find empty lines
 q     = find(S(1:q(1)) == 10);				% find line breaks
 
 figure(Fgraph)
-spm_clf(Fgraph)
-hAxes = axes('Position',[0.1,0.05,0.8,0.9],...
+hAxes = axes('Position',[0.05,0.05,0.8,0.9],...
 		'Units','Points','Visible','off');
 y     = floor(get(hAxes(1),'Position'));
 y0    = y(3);
 set(hAxes(1),'Ylim',[0,y0])
-text(-0.1,y0,[Fname,' - help'],'FontSize',16,'FontWeight','bold');
+text(-0.05,y0,[Fname,' - help'],'FontSize',16,'FontWeight','bold');
 y     = y0 - 24;
 
 
@@ -437,7 +442,8 @@ for i = 1:(length(q) - 1)
 		text(0.5,-10,['Page ',num2str(length(hAxes))],...
 			'FontSize',8,'FontAngle','Italic',...
 			'Visible',Vis)
-		hAxes = [hAxes,axes('Position',[0.1,0.05,0.8,0.9],...
+		spm_figure('NewPage',get(gca,'Children'))
+		hAxes = [hAxes,axes('Position',[0.05,0.05,0.8,0.9],...
 			'Units','Points','Visible','off')];
 		set(hAxes(length(hAxes)),'Ylim',[0,y0])
 		y     = y0;
@@ -449,55 +455,28 @@ if strcmp(Vis,'off')
 	text(0.5,-10,['Page ',num2str(length(hAxes))],...
 		'FontSize',8,'FontAngle','Italic',...
 		'Visible',Vis)
+	spm_figure('NewPage',get(gca,'Children'))
 end
 
-
-%-Create control object if paging is required
-%----------------------------------------------------------------------------
-if length(hAxes)>1
-	uicontrol(gcf,'Style','Pushbutton','String','next',...
-		'Callback','spm_help(''Page'',''+1'')',...
-		'Position',[520 020 60 020].*spm('GetWinScale'),...
-		'Tag','NextPage','UserData',hAxes);
-	uicontrol(gcf,'Style','Pushbutton','String','previous',...
-		'Callback','spm_help(''Page'',''-1'')',...
-		'Position',[020 020 60 020].*spm('GetWinScale'),...
-		'Visible','off',...
-		'Tag','PrevPage','UserData',1);
+%-If no 'Help' window then make buttons to bring one up
+%-----------------------------------------------------------------------
+Fhelp = spm_figure('FindWin','Help');
+if isempty(Fhelp)
+	h = uicontrol(Fgraph,'String','Quit',...
+		'ForegroundColor','r',...
+		'Position',[540 810 050 020].*spm('GetWinScale'),...
+		'CallBack','spm_help(''Quit'')',...
+		'Interruptible','yes');
+	uicontrol(Fgraph,'String','Help',...
+		'Position',[540 790 050 020].*spm('GetWinScale'),...
+		'CallBack',[...
+			'delete([gco,get(gco,''UserData'')]),',...
+			'spm_help(''Menu''),',...
+			'spm_help(''Topic'',''spm_help.man'')'],...
+		'UserData',h,...
+		'Interruptible','yes');
 end
-return
-
-elseif strcmp(lower(Action),lower('Page'))
-%=======================================================================
-% spm_help('Page',move)
-if nargin<2, move=1; else, move=P2; end
-Fgraph = spm_figure('FindWin','Graphics');
-if isempty(Fgraph), error('No Graphics window'), end
-
-hNextPage = findobj(Fgraph,'Tag','NextPage');
-hPrevPage = findobj(Fgraph,'Tag','PrevPage');
-hAxes     = get(hNextPage,'UserData');
-Cpage     = get(hPrevPage,'UserData');
-nPages    = length(hAxes);
-
-if isstr(move)
-	Npage = Cpage + eval(move);
-else
-	Npage = move;
-end
-
-if (Npage<1)|(Npage>nPages), return, end
-
-set(get(hAxes(Cpage),'Children'),'Visible','off')
-set(get(hAxes(Npage),'Children'),'Visible','on')
-set(hPrevPage,'UserData',Npage)
-
-if Npage==1, set(hPrevPage,'Visible','off')
-else, set(hPrevPage,'Visible','on'), end
-
-if Npage==nPages, set(hNextPage,'Visible','off')
-else, set(hNextPage,'Visible','on'), end
-
+set(Fgraph,'Pointer','Arrow')
 
 return
 
