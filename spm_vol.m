@@ -57,7 +57,13 @@ return;
 
 function V = subfunc(p)
 p = deblank(p);
-[dim vox scale dtype offset] = spm_hread(p);
+
+% Try MINC format first
+V=spm_vol_minc(p);
+if ~isempty(V), return; end;
+
+% Try Analyze format
+[dim vox scale dtype offset origin descrip] = spm_hread(p);
 mat = spm_get_space(p);
-V = struct('fname',p,'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]');
+V = struct('fname',p,'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]','descrip',descrip);
 return;
