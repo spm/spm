@@ -1,3 +1,4 @@
+% %W% John Ashburner
 
 function spm_sn3d_ui
 set(2,'Name','','Pointer','Arrow'); drawnow;
@@ -27,10 +28,9 @@ pos = 1;
 if (a1 == 1 | a1 == 3)
 
 	% Get template(s)
-	spm_get_cb('cd',SWD,1);
 	ok = 0;
 	while (~ok)
-		Template = spm_get(Inf,'.img',['select Template(s) ']);
+		Template = spm_get(Inf,'.img',['select Template(s) '],'', SWD);
 		if (size(Template,1)>0)
 			dims = zeros(size(Template,1),9);
 			for i=1:size(Template,1)
