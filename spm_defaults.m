@@ -104,8 +104,20 @@ sptl_DjstFMRI = -1;	% Optional adjust
 % 'outside' the image are moved 'inside' the image during
 % realignment.
 %-----------------------------------------------------------------------
-sptl_MskOptn = -1;	% Optional mask
+%sptl_MskOptn = -1;	% Optional mask
 sptl_MskOptn =  1;	% Always mask
+
+
+% Coregistration defaults
+%=======================================================================
+global QUICK_COREG
+
+% Hidden option to just do a quick between mode coregistration
+% This option misses out the segmenting, and coregistering segments
+% steps.
+%-----------------------------------------------------------------------
+%QUICK_COREG = 1;	% Quick and simple
+QUICK_COREG = 0;	% Full
 
 
 % Spatial Normalisation defaults
