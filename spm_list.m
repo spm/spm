@@ -18,6 +18,7 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 %
 % Dis    - Minimum distance between maxima                 {default = 8mm}
@@ -65,7 +66,7 @@ if isempty(Dis), Dis=8; end
 %-----------------------------------------------------------------------
 spm('Pointer','Watch')
 Fgraph    = spm_figure('GetWin','Graphics');
-spm_results_ui('ClearPane',Fgraph)
+spm_results_ui('Clear',Fgraph)
 FS        = spm_figure('FontSizes');
 
 
@@ -81,14 +82,18 @@ R         = VOL.R;
 
 if ~length(SPM.Z)
 	spm('Pointer','Arrow')
-	msgbox('No voxels...',['SPM: ',mfilename],'help','modal')
+	msgbox('No voxels survive masking & threshold(s)!',...
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),'help','modal')
 	return
 end
 
-[N Z M A] = spm_max(SPM.Z,SPM.XYZ);
+[N Z XYZ A] = spm_max(SPM.Z,SPM.XYZ);
 
 %-Convert cluster sizes from voxels to resels
 N         = N/prod(VOL.FWHM);
+%-Convert maxima locations from voxels to mm
+XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
 %-Table axes & headings
@@ -179,11 +184,11 @@ while max(Z)
 	hPage = [hPage, h];
 	h     = text(0.76,y,sprintf('%0.3f',Pz),'FontWeight','Bold');
 	hPage = [hPage, h];
-	h     = text(0.88,y,sprintf('%3.0f %3.0f %3.0f',M(:,i)),...
+	h     = text(0.88,y,sprintf('%3.0f %3.0f %3.0f',XYZmm(:,i)),...
 		'FontWeight','Bold',...
 		'ButtonDownFcn','spm_mip_ui(''ShowGreens'')',...
 		'Interruptible','off',...
-		'UserData',M(:,i));
+		'UserData',XYZmm(:,i));
 	hPage = [hPage, h];
  
 	y     = y - dy;
@@ -193,8 +198,8 @@ while max(Z)
 	[l q] = sort(-Z(j));				% sort on Z value
 	D     = i;
 	for i = 1:length(q)
-		d    = j(q(i));
-		if min(sqrt(sum((M(:,D) - M(:,d)*ones(1,size(D,2))).^2))) > Dis;
+	    d    = j(q(i));
+	    if min(sqrt(sum((XYZmm(:,D)-XYZmm(:,d)*ones(1,size(D,2))).^2)))>Dis;
 		if length(D) < Num
 			
 			% voxel-level p values {Z}
@@ -210,16 +215,16 @@ while max(Z)
 			h     = text(0.76,y,sprintf('%0.3f',Pz));
 			hPage = [hPage, h];
 			h     = text(0.88,y,...
-				sprintf('%3.0f %3.0f %3.0f',M(:,d)),...
+				sprintf('%3.0f %3.0f %3.0f',XYZmm(:,d)),...
 				'ButtonDownFcn',...
 				'spm_mip_ui(''ShowGreens'')',...
 				'Interruptible','off',...
-				'UserData',M(:,d));
+				'UserData',XYZmm(:,d));
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - dy;
 		end
-		end
+	    end
 	end
 	Z(j) = Z(j)*0;		% Zero local maxima for this cluster
 end				% end region
