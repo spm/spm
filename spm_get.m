@@ -14,38 +14,33 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % CmdLine    - CmdLine override switch, 0 for GUI, 1 for Command line.
 %
 % P          - string matrix of full pathnames {one string per row}
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
 % spm_get allows interactive selection of filepaths/directory names
-% from disk. Pass positive n for filepaths, negative n for directories.
-% +Inf/-Inf for selection of filepaths/directories until "Done" is pressed.
+% from disk.
 %
 % if global CMDLINE exists and is true, the command line is used. The
 % CmdLine parameter overrides this choice.
 %
 % Otherwise, selection of files is via GUI. The select files window,
-% enables the interactive directory display and selection of filenames.
-% Directories with over 48 entries (after filtering) are shown
-% summarised, with a single wildcarded entry for blocks of similar
-% filenames shown alongside a small white number indicating the number
-% of files in the block. Such blocks can be expanded by clicking
-% "Adjust" (button 2) on the item, or by clicking the number of files
-% text, whence the whole directory is shown with the appropriate
-% filter. The entire directory can be shown by clicking the "Summary
-% View" text at the top of the item window.
+% enables the interactive directory display and selection of
+% filenames.  Directories are displated in red in the left listing,
+% files in the right listing. File lists are filtered according to the
+% current filter string, using the usual UNIX conventions (*,?,etc.).
 %
+% Selecting files
+% ---------------
 % Clicking on an item (black) adds it to the list of those selected,
-% the item is numbered and changes color. The last numbered item
+% the item is numbered and changes color (dark blue). The last numbered item
 % can be unselected by clicking it again. If a specific number of
 % items have been requested (n), then only this number can be
-% selected. Click "Done" when finished. As a short cut, selecting items
-% using the right mouse button is equivalent to selecting the item and
-% pressing "Done".
+% selected.
 %
 % Clicking on a directory name (red) changes to that directory. The
 % item/directory window is scrolled up and down with the buttons
 % provided. The directory window is editable, and a pull down menu of
-% previous directories is maintained.
+% previous directories is maintained. The red "pwd" changes directory
+% to the current MatLab working directory.
 %
 % All files in the current window can be selected *in the order in which
 % they appear* with the "All" button, and the "Reset" button clears the
@@ -53,15 +48,47 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % filename list, and the "Keybd" button invokes a command line
 % interface.
 %
-% The Filter string for filenames is built as Prefix*Suffix, and
+% Click "Done" when finished. As a short cut, selecting items
+% using the right mouse button is equivalent to selecting the item and
+% pressing "Done".
+%
+% Summary views of directories
+% ----------------------------
+% Directories with over 48 entries (after filtering) are shown
+% summarised, with a single wildcarded entry for blocks of similar
+% filenames shown alongside a small white number indicating the number
+% of files in the block. Such blocks can be expanded by clicking
+% "Extend" (middle mouse button) on the item, or by clicking the number
+% of files text, whence the whole directory is shown with the
+% appropriate filter. The entire directory can be shown by clicking the
+% white "Summary View" text at the top of the item window.
+%
+% Filter string
+% ---------------------
+% The filter string for filenames is built as Prefix*Suffix, and
 % appears in a single editable window. Subsequent calls to spm_get
-% callbacks with the same Filter string do not change the value of the
-% Filter string, allowing the users edits of the Filer string to
-% persist. Clicking the Filter button resets the filter to the string
-% passed by the program. (The bars above and below the filter window
-% implement a simple "memory" for Filter strings. The top bar stores
-% the current filter string, the lower bar recalls it. The bar at the
-% right of the filter window sets the filter to '*')
+% callbacks with the same filter string do not change the value of the
+% filter string, allowing the users edits of the filer string to
+% persist. Clicking the Filter button resets the filter to the original
+% filter string passed by the program. Clicking the bar at the
+% right-hand end of the filter window sets the filter string to '*',
+% resulting in all files/directories being displayed. (Bars above and
+% below the filter window (if available) implement a simple "memory"
+% for filter strings.  The top bar stores the current filter string,
+% the lower bar recalls it.)
+%
+% Selecting Directories
+% ---------------------
+% The same interface is occasionally used for selecting directories, in
+% which case the right list of selectable items contains a repeat of
+% the directory list. Use the left (red) list to change directory (as
+% usual), the right (black) list to select directories. The Filter
+% doesn't apply to the directory list.
+%
+% Programmers notes
+% -----------------
+% Pass positive n for filepaths, negative n for directories.  +Inf/-Inf
+% for selection of filepaths/directories until "Done" is pressed.
 %
 % The 'Select Files Window', created by the first call to spm_get, is
 % 'Tag'ged 'SelFileWin'. This window is hidden at the end of the spm_get
@@ -71,6 +98,9 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 %
 % CallBacks are handled as embedded functions within spm_get.
 %
+%_______________________________________________________________________
+% %W% Andrew Holmes %E%
+
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
@@ -169,8 +199,7 @@ function [R1,R2] = spm_get(Action,P2,P3,P4,P5,P6)
 % FORMAT spm_get('Done')
 % Callback for "Done" button.
 %
-%__________________________________________________________________________
-% %W% Andrew Holmes %E%
+%_______________________________________________________________________
 
 
 
@@ -265,13 +294,14 @@ if (exist('spm.m')==2), LastDirs=str2mat(LastDirs,spm('Dir')); end
 %-----------------------------------------------------------------------
 S = get(0,'ScreenSize');
 A = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
-F = figure('Name','','Tag','SelFileWin',...
+F = figure('Name','SPMget','Tag','SelFileWin',...
 	'NumberTitle','off',...
 	'Color',[1 1 1]*.8,...
 	'Resize','off',...
 	'Visible','off',...
 	'Units','Pixels',...
-	'Position',[108 008 400 395].*A);
+	'Position',[S(3)/2-400/2,S(4)/2-395/2,400,395].*A);
+%	'Position',[108 008 400 395].*A);
 R1=F;
 
 %-User control objects with callbacks
@@ -282,14 +312,19 @@ uicontrol(F,'Style','Frame','Tag','P','UserData',[],...
 
 uicontrol(F,'Style','Frame',...
 	'BackgroundColor',[1 1 1]*.8,...
-	'Position',[010 355 380 030].*A);
+	'Position',[010 355 355 030].*A);
 
 uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...
 	'String','<Prompt not set yet>',...
 	'ForegroundColor','k',...
 	'BackgroundColor',[1 1 1]*.8,...
 	'HorizontalAlignment','Center',...
-	'Position',[020 360 360 020].*A);
+	'Position',[015 360 345 020].*A);
+
+uicontrol(F,'Style','Pushbutton','String','?',...
+	'ForegroundColor','g',...
+	'Callback','spm_help(''Topic'',''spm_get.m'')',...
+	'Position',[370 355 020 030].*A);
 
 WDir=deblank(LastDirs(1,:));
 uicontrol(F,'Style','Edit','String',WDir,...
@@ -315,19 +350,12 @@ uicontrol(F,'Style','PushButton','Tag','CDpwd',...
 
 %	'Callback','spm_get(''cd'',get(gco,''Value''))',...
 
-%uicontrol(F,'Style','PopUp','Tag','SubDirsPopup',...
-%	'HorizontalAlignment','Center',...
-%	'ForegroundColor','r',...
-%	'String','subdirectories...',...
-%	'Callback','spm_get(''cd'',get(gco,''Value''))',...
-%	'Position',[020-1 290 360+1 020].*A);
-
-uicontrol(F,'Style','Pushbutton','Tag','FilterStore',...
-	'String','',...
-	'CallBack',[...
-		'set(findobj(gcf,''Tag'',''FilterButton''),''UserData'',',...
-		    'get(findobj(gcf,''Tag'',''Filter''),''String'')),'],...
-	'Position',[010 300 140 005].*A);
+% uicontrol(F,'Style','Pushbutton','Tag','FilterStore',...
+% 	'String','',...
+% 	'CallBack',[...
+% 		'set(findobj(gcf,''Tag'',''FilterButton''),''UserData'',',...
+% 		    'get(findobj(gcf,''Tag'',''Filter''),''String'')),'],...
+% 	'Position',[010 300 140 005].*A);
 
 uicontrol(F,'Style','Pushbutton','Tag','FilterButton',...
 	'String','Filter:',...
@@ -337,12 +365,12 @@ uicontrol(F,'Style','Pushbutton','Tag','FilterButton',...
 	'UserData','*',...
 	'Position',[010 280 040 020].*A);
 
-uicontrol(F,'Style','Pushbutton','Tag','FilterRecall',...
-	'String','',...
-	'CallBack',[...
-		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
-		'''FilterButton''),''UserData''))'],...
-	'Position',[010 275 140 005].*A);
+% uicontrol(F,'Style','Pushbutton','Tag','FilterRecall',...
+% 	'String','',...
+% 	'CallBack',[...
+% 		'spm_get(''dir'',[],get(findobj(gcf,''Tag'',',...
+% 		'''FilterButton''),''UserData''))'],...
+% 	'Position',[010 275 140 005].*A);
 
 uicontrol(F,'Style','Pushbutton','Tag','Filter*',...
 	'String','',...
@@ -536,8 +564,41 @@ if NewDir(1)~='/'
 	end % (if NewDir(1)~='.')
 end % (if NewDir...)
 
+if length(NewDir)>=3
+	%-Sort out trailing '/..'
+	tmp = fliplr(NewDir);
+	if all(tmp(1:3)=='../')
+		tmp(1:3)='';
+		if ~isempty(tmp), tmp(1:min(find(tmp=='/')))=''; end
+		if ~isempty(tmp)
+			NewDir=fliplr(tmp);
+		else
+			NewDir='/';
+		end
+	end
+end
+
+% if any(findstr('..',NewDir)
+% 	%-Sort out any '..'s in the directory path
+% end
+
+if length(NewDir)>=2
+	%-Sort out trailing '.'
+	tmp = fliplr(NewDir);
+	if all(tmp(1:2)=='./')
+		tmp(1:2)='';
+		if ~isempty(tmp)
+			NewDir=fliplr(tmp);
+		else
+			NewDir='/';
+		end
+	end
+end
+
+
 %-Changing directory, delete current directory listing (Done again in
 % Action=='dir', but neater to do here in advance on this occasion)
+%-----------------------------------------------------------------------
 figure(F), delete(gca)
 
 
