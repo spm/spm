@@ -1,4 +1,4 @@
-function [ p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
+function [p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 % Bayesian Parameter estimation using the Gauss-Newton method/EM algorithm
 % FORMAT [Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 %
@@ -47,8 +47,6 @@ function [ p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 % This corresponds to a Gauss-Newton ascent on the conditional probabilty
 % p{P|y}
 %
-% SEE NOTES AT THE END OF THIS SCRIPT FOT EXAMPLES
-%
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
@@ -89,9 +87,14 @@ uC     = speye(u,u)*1e+8;
 
 % SVD of prior covariances
 %---------------------------------------------------------------------------
-Vp     = spm_svd(pC,1e-16);
-ip     = [1:size(Vp,2)];
-
+if isfield(M,'Vp')
+    Vp=M.Vp;
+else
+    Vp     = spm_svd(pC,1e-16);
+end
+Nip    = size(Vp,2);
+ip     = [1:Nip];
+%betap  = [Nip+1:Nip+m*size(Y.X0,2)];
 
 % If EB: i.e. prior covariance hyperparameter estimation
 %---------------------------------------------------------------------------
@@ -106,13 +109,16 @@ else
 	P{2}.C = blkdiag(pC, uC);
 end
 
+
+
 % Gauss-Newton search 
 %===========================================================================
 p      = pE;
 pi     = pE;
 dp     = pE;
 dv     = 1e-6;
-for  j = 1:32
+%for  j = 1:32
+for  j = 1:M.maxits
 
 	% y = f(p) - for new expansion point (p) in parameter space 
 	%-------------------------------------------------------------------
@@ -131,13 +137,18 @@ for  j = 1:32
 	%-------------------------------------------------------------------
 	P{1}.X = [Jp Ju];
 	P{2}.X = [Vp'*( pE(:) - p(:));uE];
+    
+    
 	[C P]  = spm_PEB(y(:) - fp(:),P );
-
-
+    
+    
 	% update - project conditional esitmates onto parameter space
 	%-------------------------------------------------------------------
 	dp(:)  = Vp*C{2}.E(ip);
-
+    
+    % Size of effects of no interest
+    %beta=C{2}.E(betap);
+    
 	% update - ensuring the system is dissipative
 	%-------------------------------------------------------------------
 	for  i = 1:8
@@ -149,9 +160,16 @@ for  j = 1:32
 			break
 		end
 	end
-	p      = p + dp;
 
-
+    A    = spm_bi_reduce(M,p + dp);
+    s    = max(real(eig(full(A))));
+    if s > 0,
+        % If its still unstable 
+        break
+    end
+    
+    p      = p + dp;
+    
 	% convergence
 	%-------------------------------------------------------------------
 	w      = dp(:)'*dp(:);
@@ -186,70 +204,3 @@ Ce     = C{1}.M;
 
 
 
-return
-
-% NOTES ON USE - DYNAMIC SYSTEMS
-%===========================================================================
-% Consider the dynamic system (c.f. spm_nlsi)
-%
-%              dx/dt  = 1./(1 + exp(-P*x)) + u
-%                y    = x + e
-%
-% Specify a model structure:
-%---------------------------------------------------------------------------
-M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P');
-M.g  = inline('x','x','u','P');
-M.pE = [-1 .3;.5 -1];			% Prior expectation of parameters
-M.pC = speye(4,4);			% Prior covariance for parameters
-M.x  = zeros(2,1)			% intial state x(0)
-M.m  = 1;				% number of inputs
-M.n  = 2;				% number of states
-M.l  = 2;				% number of outputs
-
-% create inputs
-%---------------------------------------------------------------------------
-U.name = 'input'
-U.u    = randn(128,M.m);
-U.dt   = 1;
-
-% and outputs
-%---------------------------------------------------------------------------
-Y.name = 'response';
-y      = spm_int(M.pE,M,U,64);
-Y.y    = y + randn(size(y))/32;
-Y.dt   = U.dt*length(U.u)/length(Y.y);
-
-% estimate
-%---------------------------------------------------------------------------
-[Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y);
-
-
-% STATIC SYSTEMS
-%===========================================================================
-% Consider the nonlinear static system where we want to estimate P
-%
-%                y    = 1./(1 + exp(-P*u)) + e
-%
-% Note that the inputs are explanatory variables (c.f. regressors
-% in a design matrix)
-clear % dynamic model and specify a model structure
-%---------------------------------------------------------------------------
-
-M.g  = inline('1./(1 + exp(-P*u(:)))','x','u','P');
-M.pE = [-1 .3;.5 -1];			% Prior expectation of parameters
-M.pC = speye(4,4);			% Prior covariance for parameters
-M.m  = 2;				% number of inputs
-M.l  = 2;				% number of outputs
-
-% create inputs
-%---------------------------------------------------------------------------
-u    = randn(128,M.m);
-
-% and outputs with observation error
-%---------------------------------------------------------------------------
-y    = spm_int(M.pE,M,u);
-Y.y  = y + randn(size(y))/32;
-
-% estimate
-%---------------------------------------------------------------------------
-[Ep,Cp,Ce] = spm_nlsi_GN(M,u,Y);
