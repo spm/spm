@@ -4,7 +4,9 @@ function spm_smooth(P,Q,s,Vi)
 % P  - image to be smoothed
 % Q  - filename for smoothed image
 % S  - [sx sy sz] Guassian filter width {FWHM} in mm
-% Vi - Volume info (only used if P is an array)
+% Vi - image descriptor vector. Everything is ignored except Vi(4:6) which
+%      contains the voxel sizes (for compatability with the code in snpm).
+%
 %____________________________________________________________________________
 %
 % spm_smooth is used to smooth or convolve images in a file (maybe).
@@ -37,18 +39,12 @@ else
     if nargin < 4
 	error(['spm_smooth: Must specify image descriptor vector ', ...
 	    'if smoothing image from RAM']); end
-    DIM = Vi(1:3)';
     VOX = Vi(4:6)';
-    SCALE = Vi(7);
-    TYPE = Vi(8);
-    OFFSET = Vi(9);
-    ORIGIN = Vi(10:12);
-    DESCRIP = '';
 end
 
 if isstr(Q)
     Desc = sprintf('%s -conv (%g,%g,%g)',DESCRIP,s);    
-    spm_hwrite(Q,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,Desc);
+    spm_hwrite(Q,DIM,VOX,SCALE,TYPE,0,ORIGIN,Desc);
 end
 
     
@@ -73,14 +69,8 @@ j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 
 if isstr(P)
-    V  = spm_map(P);
-    spm_conv_vol(V,Q,x,y,z,(-[i,j,k]));
-    spm_unmap(V);
+    spm_conv_vol(spm_vol(P),Q,x,y,z,-[i,j,k]);
     spm_get_space(Q,spm_get_space(P));
 else
-    spm_conv_vol(Vi,Q,x,y,z,(-[i,j,k]),P);
+    spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
 end
-
-
-
-
