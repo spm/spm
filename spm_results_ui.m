@@ -275,8 +275,8 @@ AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
 h = text(0,24,'SPMresults:','Parent',hResAx,...
 	'FontWeight','Bold','FontSize',16);
 text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(SPM.swd,'a30'),'Parent',hResAx)
-text(0,12,sprintf('Height threshold {u} = %0.2f',SPM.u),'Parent',hResAx)
-text(0,0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),'Parent',hResAx)
+text(0,12,sprintf('Height threshold %c = %0.2f',SPM.STAT,SPM.u),'Parent',hResAx)
+text(0,0,sprintf('Extent threshold k = %0.0f resels',SPM.k),'Parent',hResAx)
 
 
 %-Plot design matrix
