@@ -50,12 +50,16 @@ return;
 
 function V = subfunc1(P)
 if size(P,1)==0,
-	V = [];
+	V=[];
 else,
 	V(size(P,1),1) = struct('fname','', 'dim', [0 0 0 0], 'mat',eye(4), 'pinfo', [1 0 0]');
 end;
 for i=1:size(P,1),
 	v = subfunc(P(i,:));
+	if isempty(v),
+		hread_error_message(P(i,:));
+		error(['Can''t get volume information for ''' P(i,:) '''']);
+	end;
 	f = fieldnames(v);
 	for j=1:size(f,1),
 		eval(['V(i).' f{j} ' = v.' f{j} ';']);
@@ -84,3 +88,19 @@ else, % Try other formats
 	if ~isempty(V), return; end;
 end;
 return;
+
+
+%_______________________________________________________________________
+function hread_error_message(q)
+f=spm_figure('findwin','Graphics'); 
+if ~isempty(f), 
+	figure(f); 
+	spm_figure('Clear','Graphics'); 
+	spm_figure('Clear','Interactive'); 
+	ax=axes('Visible','off','Parent',f); 
+	text(0,0.60,'Error reading information on:', 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.40,'  Please check that it is in the correct format.', 'FontSize', 16, 'Interpreter', 'none'); 
+end
+return;
+%_______________________________________________________________________
