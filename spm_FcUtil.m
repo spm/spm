@@ -370,6 +370,48 @@ else
 end
 
 
+
+
+
+case 'in'     %-  Fc1 is in list of  contrasts Fc2
+%=======================================================================
+% iFc2 = spm_FcUtil('In',Fc1, Fc2, sX)
+%
+% returns indice of Fc2 if in, 0 otherwise 
+
+
+
+%----------------------------
+if nargin < 4, error('Insufficient arguments'), end
+if nargout > 1, error('Too many output argument.'), end
+
+Fc1 = varargin{2}; Fc2 = varargin{3}; sX = varargin{4};
+
+if ~sf_IsFcon(Fc1), error('Fc1 must be F-contrast'), end
+L = length(Fc2);
+for i=1:L
+    if ~sf_IsFcon(Fc2(i)), error('Fc2(i) must be F-contrast'), end
+end
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
+%----------------------------
+
+
+if ~spm_sp('isinspp',sX,Fc1.c), c1 = spm_sp('oPp',sX,Fc1.c);
+else, c1 = Fc1.c;
+end
+sc1 = spm_sp('Set',c1);
+
+boul = 0; i = 1;
+while ~boul & i <= L,
+	boul = spm_sp('==',sc1,spm_sp('oPp',sX,Fc2(i).c));
+	i = i+1;
+end
+if boul, varargout = { i-1 }; else varargout = { 0 }; end;
+
+
+
+
+
 case {'0|[]','[]|0','isemptyornull'}     %-  Fc orthogonalisation 
 %=======================================================================
 % Fc = spm_FcUtil('0|[]',Fc)
