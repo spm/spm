@@ -285,8 +285,8 @@ if nargout == 1
 else
    if ~isempty(c) & any(any(c))
       varargout = {	
-		spm_sp('xp-',sX)*c, ...					%- X1o
-		sX.X*spm_sp('res',spm_sp('set',c),spm_sp('oxp',sX)) };	%- X0
+	 spm_sp('xp-',sX)*c, ...				%- X1o
+	 sX.X*spm_sp('res',spm_sp('set',c),spm_sp('oxp',sX)) };	%- X0
    else
       if isempty(c), varargout = { [], sX.X }; 
 	 	else, varargout = { sX.X*c, sX.X }; end;
@@ -333,15 +333,15 @@ i0 	= sf_check_i0(i0,spm_sp('size',sX,2));
 %--------- end argument check --------- 
 
 opp 	= spm_sp('oPp',sX);
-c0		= eye(sL); c0 = c0(:,i0);
-c1		= eye(sL); c1 = c1(:,setdiff(1:sL,i0));
+c0	= eye(sL); c0 = c0(:,i0);
+c1	= eye(sL); c1 = c1(:,setdiff(1:sL,i0));
 if ~isempty(c1)
    if ~isempty(c0) 
       varargout = { spm_sp('res',spm_sp('set',opp*c0),opp*c1) };
    else varargout = { xpx }; end;
 else
    varargout = { [] };	%- not zeros(sL,1) : this is return when  
-								%- appropriate
+			%- appropriate
 end
 
 case {'x0->c','cfromx0'}				%- 
@@ -595,7 +595,7 @@ case 'ix0check'                                      %-
 % i0c = spm_SpUtil('iX0check',i0,sL)
 
 if nargin<3, error('insufficient arguments'),
-else i0 = varargin{2}; sL = varargin{3}; end;
+else, i0 = varargin{2}; sL = varargin{3}; end;
 
 varargout = {sf_check_i0(i0,sL)};
 
@@ -615,14 +615,7 @@ function i0c = sf_check_i0(i0,sL)
 % NB : [] = sf_check_i0([],SL);
 %
 
-if all(ismember(i0,[0,1])) & length(i0(:))==sL, i0c=find(i0); end
-if ~isempty(i0) & any(floor(i0)~=i0) | any(i0<1) | any(i0>sL)
+if all(ismember(i0,[0,1])) & length(i0(:))==sL, i0c=find(i0); 
+elseif ~isempty(i0) & any(floor(i0)~=i0) | any(i0<1) | any(i0>sL)
 	error('logical mask or vector of column indices required')
 else, i0c = i0; end
-
-	   
-
-%	   if all(ismember(i0,[0,1])) & length(i0(:))==sL, i0=find(i0); end
-%	   if ~isempty(i0) & any(floor(i0)~=i0) | any(i0<1) | any(i0>sL)
-%		error('logical mask or vector of column indices required')
-%	   end
