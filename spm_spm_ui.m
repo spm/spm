@@ -64,19 +64,19 @@ set(Finter,'Name','Statistical analysis');
 Designs = str2mat(...
 	'SPM94 style questioning',...					%-0
 	'Single-subject: replication of conditions',...			%-1a
-	'Single-subject: conditions & covariates',...			%-1b
+	'Single-subject: replicate conditions & covariates',...		%-1b
 	'Single-Subject: covariates only');				%-1c
 Designs = str2mat(Designs,...
 	'Multi-subject: different conditions',...			%-2a
-	'Multi-subject: with replications',...				%-2b
+	'Multi-subject: replication of conditions',...			%-2b
 	'Multi-subject: condition & covariates',...			%-2c
-	'Multi-subject: with replications & covariates',...		%-2d
+	'Multi-subject: replicate conditions & covariates',...		%-2d
 	'Multi-subject: covariates only');				%-2e
 Designs = str2mat(Designs,...
 	'Multi-study: different conditions',...				%-3a
-	'Multi-study: with replications',...				%-3b
+	'Multi-study: replication of conditions',...			%-3b
 	'Multi-study: condition & covariates',...			%-3c
-	'Multi-study: with replications & covariates',...		%-3d
+	'Multi-study: replicate conditions & covariates',...		%-3d
 	'Multi-study: covariates only');				%-3e
 Designs = str2mat(Designs,...
 	'Compare-groups: 1 scan per subject');				%-4
@@ -88,7 +88,7 @@ DesPrams = str2mat(...
 DesDefaults = [ ...
 1,	1,	1,	0,	4,	1,	1,	12345;...	%-0
 0,	0,	1,	1,	2,	0,	0,	123;...		%-1a
-0,	0,	1,	1,	1,	1,	0,	123;...		%-1b
+0,	0,	1,	1,	1,	1,	1,	123;...		%-1b
 0,	0,	0,	1,	3,	1,	0,	123;...		%-1c
 0,	1,	1,	0,	1,	0,	0,	1234;...	%-2a
 0,	1,	1,	1,	2,	0,	0,	1234;...	%-2b
