@@ -3,6 +3,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
 #include "spm_mapping.h"
+#include "spm_sys_deps.h"
 #include <math.h>
 
 #define EPS 2.2204460492503130808e-16
