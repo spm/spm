@@ -56,7 +56,7 @@ X    = X/max(X);
 % load mip and create maximum intensity projection
 %---------------------------------------------------------------------------
 load MIP
-mip  = mip96*GRID;
+mip  = mip95*GRID;
 d    = zeros(size(mip));
 spm_project(X,L,d,V);
 mip  = max(d,mip);
