@@ -4,8 +4,7 @@ function varargout=spm(varargin)
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  Statistical Parametric Mapping
 % \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
-% (___/(__)  (_/\/\_)  Institute of Neurology, University College London
-%
+% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %_______________________________________________________________________
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
@@ -56,8 +55,11 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% SPM is written by members and collaborators of the
+% SPM is developed by members and collaborators of the
 %                             Wellcome Department of Cognitive Neurology
+
+%-SCCS ID and authorship of this program...
+%-----------------------------------------------------------------------
 % %W% Andrew Holmes %E%
 
 %=======================================================================
