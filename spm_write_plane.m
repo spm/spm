@@ -78,6 +78,7 @@ end;
 % Seek to the appropriate offset
 datasize = bits(dt)/8;
 off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
+fseek(fid,0,'bof'); % A bug in Matlab 6.5 means that a rewind is needed
 if fseek(fid,off,'bof')==-1,
 	% Need this because fseek in Matlab does not seek past the EOF
 	fseek(fid,0,'bof'); % A bug in Matlab 6.5 means that a rewind is needed
