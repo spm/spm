@@ -150,7 +150,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     xX.edf    - effective degrees of freedom (trRV^2/trRVRV)
 % 
 %     xM        - as input (but always in the structure format)
-%     c         - as input
+%     Fc        - as input
 %     UFp       - critical p-value for F-thresholding
 %     UF        - F-threshold value
 %     S         - Lebegue measure or volume (in voxels)
@@ -214,7 +214,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %
 % References:
 %
-% Christensen R (****) Plane Answers to Complex Questions
+% Christensen R (1996) Plane Answers to Complex Questions
 %       Springer Verlag
 %
 % Friston KJ, Holmes AP, Worsley KJ, Poline JP, Frith CD, Frackowiak RSJ (1995)
@@ -336,9 +336,8 @@ UFp = spm('GetGlobal','UFp'); if isempty(UFp), UFp = Def_UFp; end
 %-**if no F-contrast specified, do raw F for all effects (i.e. vs. raw data SS)
 
 if isempty(c) & UFp>0 & UFp<1		%-Want to F-threshold but no contrast!
-	UFp=1;
-	warning('no F-con specified: no F-filtering')
-	%-** Use default F-contrast for all effects
+	UFp=1; warning('no F-con specified: no F-filtering')
+	%-**...or default F-contrast for all effects?
 end
 
 if UFp>0 & UFp<1			%-We're going to F-filter for Y.mad file
@@ -381,6 +380,8 @@ elseif UFp == 0
 	UF = Inf;
 end
 
+%-Copy F-contrast c into variable Fc for saving in SPM.mat file
+Fc = c;
 
 %%-Setup according to SPM96, using spm_AnCova		%-**! diagnostic
 %%-----------------------------------------------------------------------
@@ -777,7 +778,7 @@ else
 	Lambda = diag([sx_res/nx, sy_res/ny, sz_res/nz]*...
 				(xX.edf-2)/(xX.edf-1)/xX.trRV);
 end
-W      = (2*Lc2z*Lambda).^(-1/2);
+W      = (2*Lc2z*diag(Lambda)').^(-1/2);
 %-**FWHM   = sqrt(8*log(2))*W.*sqrt(sum(VY(1).mat(1:3,1:3).^2));
 
 
@@ -791,7 +792,7 @@ if UFp>0, save XYZ XYZ, clear XYZ, end
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...
-		'c','UFp','UF',...
+		'Fc','UFp','UF',...
 		'S','Lambda','W'};
 
 if nargin>4
