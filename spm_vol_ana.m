@@ -57,6 +57,11 @@ if isempty(hdr),
 	return;
 end;
 
+% A little fix that sometimes helps
+%-----------------------------------------------------------------------
+if (hdr.dime.dim(1) < 3) & (hdr.dime.dim(4) == 0), hdr.dime.dim(4) = 1; end;
+if (hdr.dime.dim(1) < 4) & (hdr.dime.dim(5) == 0), hdr.dime.dim(5) = 1; end;
+
 if hdr.dime.dim(5)<n,
 	error(['Not enough volumes in "' hfname '" (' num2str(n) '>' num2str(hdr.dime.dim(5)) ').']);
 end;
