@@ -138,9 +138,10 @@ Matrix *plhs[], *prhs[];
 				{
 					if (stbuf.st_uid == uid)
 						mask = 0700; /* user */
-					for(g=0; g<ngids; g++)
-						if (gids[g] == stbuf.st_gid)
-							mask = 0070; /* group */
+					else
+						for(g=0; g<ngids; g++)
+							if (gids[g] == stbuf.st_gid)
+								mask = 0070; /* group */
 
 					if ((stbuf.st_mode & S_IFMT) == S_IFDIR && (mask & 0555 & stbuf.st_mode))
 					{
