@@ -295,11 +295,17 @@ end
 
 %-Work out what modality this is!
 %-----------------------------------------------------------------------
-if isfield(D,'Sess') & ~isempty(D.Sess),	modality = 'fMRI';
-elseif isfield(D,'xC'),				modality = 'PET';
-else, error('Can''t fathom modality')
+try
+	D.Sess(1);
+	D.modality = 'fMRI';
+catch
+	try
+		D.xC;
+	catch
+		D.xC = {};
+	end
+	D.modality = 'PET';
 end
-D.modality = modality;
 
 %-Set swd - SPM working directory to use if estimating (empty => don't est)
 %-----------------------------------------------------------------------
