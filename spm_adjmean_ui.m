@@ -142,15 +142,42 @@ function spm_adjmean_ui
 %
 % Variables saved in SPMadj.mat data file
 % ----------------------------------------------------------------------
-% **** under construction ****
+% iDesType	Design type index
+% DesName	Design name
+% iHForm	Form of DesMtx H partition
+% iGMsca	Grand mean scaling option
+% sGMsca	Grand mean scaling description
+% iGloNorm	Global normalisation option
+% sGloNorm	Global normalisation description
+% iAdjTo	Adjustment (for AnCova) option
+% sAdjTo	Adjustment (for AnCova) description
+% iSubj		Subject indicator vector
+% nSubj		number of subjects
+% iCond		Condition indicator vector
+% iRepl		Replication indicator vector
+% P		String matrix of filenames
+% H		H (condition effects) partition of design matrix
+% Hnames	Names of parameters corresponding to columns of H
+% G		G (confounding covariates) partition of design matrix
+% Gnames	Names of parameters corresponding to columns of G
+% c		Matrix of contrasts, contrasts in rows
+% cNames	Names associated with contrasts
+% W		Weights for images corresponding to contrasts
+% CWD		Current Working Directory (when run)
+% Fnames	Filenames of adjusted mean images written
+% rGX		raw global means (before any scaling)
+% gSF		Image scale factors for global scaling (inc. grand mean scaling)
+% GX		Global means after scaling
+% GM		Grans Mean used for scaling
 %
 %
 % Platform
 % ----------------------------------------------------------------------
 % This version was written for MatLab4.2c with SPM'97d (spm_mean.m v1.11)
-%
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
+
+%SPM96:This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 
 %=======================================================================
 % - S E T U P
@@ -433,10 +460,11 @@ X        = [H G];
 [nX,Xnames] = spm_DesMtxSca(H,Hnames,G,Gnames);
 XTXinvX  = inv(X'*X)*X';
 
-%-Contrasts
+%-Contrasts (c)
 %-----------------------------------------------------------------------
-c = [eye(size(H,2)), zeros(size(H,2),size(G,2))];
-W = c * XTXinvX;
+c  = [eye(size(H,2)), zeros(size(H,2),size(G,2))];
+nc = size(c,1);
+W  = c * XTXinvX;
 
 cNames = Hnames;
 
@@ -452,18 +480,20 @@ fprintf('\twriting parameter images... enter filenames...\n')
 
 Fnames = []; CWD = pwd;
 guiPos = '+1'; %*** guiPos = spm_input('!NextPos');
-for i = 1:size(c,1)
+for i = 1:nc
 	Fn = deblank(cNames(i,:)); Fn=Fn(Fn~=' ');
 	Fn = spm_input(sprintf('Contrast %d: filename?',i),guiPos,'s',Fn);
 	%*** make sure Fn is valid? Allow overwriting?
 	Fnames = str2mat(Fnames,Fn);
-	w  = c(i,:)*XTXinvX.*gSF'.*iSF';
+	w  = W(i,:).*gSF'.*iSF';
 	Q  = find(abs(w)>0);
-	wV = V(:,Q);	wV(7,:) = w(Q);
+	wV = V(:,Q);	wV(7,:) = w(Q);		%SPM97:
 	fprintf('\t...writing image %d: %-20s',i,Fn)
-	sf = spm_mean(wV,[Fn,'.img']);
+	sf = spm_mean(wV,[Fn,'.img']);		%SPM97:
+	%SPM96:sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
 	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
-	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);
+	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);	%SPM97:
+	%SPM96:spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str)
 	spm_get_space(Fn,spm_get_space(P(1,:)));
 	fprintf(' (done)\n')
 	guiPos = '0';
@@ -574,22 +604,23 @@ for i = 1:size(nX,2)
 end
 
 %-Depict contrasts and associated filenames
-dy = 0.4/size(c,1);
+%-----------------------------------------------------------------------
+dy = 0.4/nc;
 axes('Position',[0.025 0.05 0.05 0.4],'Visible','off')
 text(0,0.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
-	'FontSize',14,'FontWeight','Bold');
-axes('Position',[0.6 0.43 0.4 0.02],'Visible','off')
+	'FontSize',14,'FontWeight','Bold')
+axes('Position',[0.6 0.44 0.40 0.02],'Visible','off')
 text(0,1,'Contrast files...','FontSize',10,'FontWeight','Bold')
 text(0,0,sprintf('...in %s',CWD),'FontSize',8)
-for i = 1:size(c,1)
+for i = 1:nc
 	axes('Position',[0.1 (0.45 -dy*i) 0.6 0.9*dy])
 	[tx ty] = bar(c(i,:));
 	fill(tx,ty,[1 1 1]*.8);
 	% h = bar(c(i,:),1);
 	% set(h,'FaceColor',[1 1 1]*.8)
 	set(gca,'XLim',[0.5,size(c,2)+0.5],'Visible','off')
-	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10);
-	text(size(c,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10);
+	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
+	text(size(c,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10)
 end
 
 spm_print
