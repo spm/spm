@@ -1,20 +1,17 @@
 % SPM99b (c) 1991,1994-1999 : The Wellcome Department of Cognitive Neurology
 % Statistical Parametric Mapping       -       SPM99 public beta release
 %_______________________________________________________________________
-% 
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  Statistical Parametric Mapping
 % \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
-% (___/(__)  (_/\/\_)  Institute of Neurology, University College London
-%
-% John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
+% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %_______________________________________________________________________
 %
 % This Contents.m file holds the version ID for this release of Matlab,
 % and contains a manifest of the included functions and their version numbers.
 %
-% SPM99 is written for Matlab v5.2 under UNIX
-% ( Compiled binaries of external MEX functions are provided for       )
+% SPM99 is written for Matlab v5.2.1 under UNIX and Windows
+% ( Compiled binaries of external MEX functions are provided for:       )
 % (                   Solaris2, Linux, and Windows                     )
 %
 % See spm.man for details of this release.
