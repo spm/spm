@@ -18,6 +18,7 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
 % Dis    - Minimum distance between maxima                 {default = 8mm}
@@ -85,7 +86,8 @@ if ~length(SPM.Z)
 	return
 end
 
-[N Z M A] = spm_max(SPM.Z,SPM.XYZ,VOL.VOX);
+rcp = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
+[N Z M A] = spm_max(SPM.Z,rcp,[1,1,1]);
 
 %-Convert cluster sizes from voxels to resels
 N         = N/prod(VOL.FWHM);

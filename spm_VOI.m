@@ -18,6 +18,7 @@ function spm_VOI(SPM,VOL,hReg)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
 % hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
@@ -69,7 +70,8 @@ elseif SPACE == 'B'
 	S     = prod(D);
 
 elseif SPACE == 'V'
-	A     = spm_clusters(SPM.XYZ,VOL.VOX);
+	rcp   = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
+	A     = spm_clusters(rcp,[1,1,1]);
 	j     = find(A == A(i));
 	str   = sprintf('%0.0f voxel cluster',length(j));
 	D     = SPM.XYZ(:,j); D  = D./(VOL.VOX*ones(1,size(D,2)));

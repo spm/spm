@@ -18,6 +18,7 @@ function spm_maxima(SPM,VOL,hReg)
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
+% .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
 % hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
@@ -46,7 +47,8 @@ xyz     = spm_XYZreg('GetCoords',hReg);
 
 %-Find selected cluster
 %-----------------------------------------------------------------------
-A       = spm_clusters(SPM.XYZ,VOL.VOX);
+rcp     = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
+A       = spm_clusters(rcp,[1,1,1]);
 j       = find(A == A(i));
 SPM.Z   = SPM.Z(j);
 SPM.XYZ = SPM.XYZ(:,j);
