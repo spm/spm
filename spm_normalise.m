@@ -124,7 +124,7 @@ if ischar(VF), VF = spm_vol(VF); end;
 if ischar(VG), VG = spm_vol(VG); end;
 if nargin<3,
 	if nargout==0,
-		[pth,nm,xt,vr] = fileparts(deblank(PI));
+		[pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
 		matname        = fullfile(pth,[nm '_sn.mat']);
 	else,
 		matname = '';
