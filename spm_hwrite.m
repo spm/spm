@@ -27,7 +27,7 @@ function [s] = spm_hwrite(P,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP)
 
 % ensure correct suffix {.hdr} and open header file
 %---------------------------------------------------------------------------
-P               = P(P ~= ' ');
+P               = deblank(P);
 q    		= length(P);
 if q>=4 & P(q - 3) == '.', P = P(1:(q - 4)); end;
 P     		= [P '.hdr'];
