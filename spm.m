@@ -12,10 +12,24 @@ function [R1,R2]=spm(Action,P2,P3)
 % (Or type help spm.man in MatLab)
 % 
 % This spm function initialises the default parameters, and displays a
-% splash screen with buttons leading to the PET(SPECT) & fMRI
-% modalities.
+% splash screen with buttons leading to the PET(SPECT) & fMRI modalities
+% Alternatively, spm('pet') and spm('fmri') lead directly to the
+% respective modality interfaces.
 %
-% Other arguments lead to various setup facilities, mainly of use to
+% Once the modlity is chosen, (and it can be toggled mid-session) the
+% SPM user interface is displayed. This provides a constant visual
+% environment in which data analysis is implemented. The layout has
+% been designed to be simple and at the same time show all the
+% facilities that are available. The interface consists of three
+% windows: A menu window with pushbuttons for the SPM routines (each
+% button has a 'CallBack' string which launches the appropriate
+% function/script); A blank panel used for interaction with the user;
+% And a graphics figure with various editing and print facilities (see
+% spm_figure.m). (These windows are 'Tag'ged 'Menu', 'Interactive', and
+% 'Graphics' respectively, and should be referred to by their tags
+% rather than their figure numbers.)
+%
+% Arguments to this routine lead to various setup facilities, mainly of use to
 % SPM power users and programmers. See the programmers FORMAT & help
 % below.
 %
