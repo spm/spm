@@ -44,9 +44,9 @@ function params = spm_affsub3(mode, PG, PF, Hold, samp, params,PW,PW2)
 %__________________________________________________________________________
 % %W% John Ashburner FIL %E%
 
-if nargin<5 | nargin>9
+if nargin<5 | nargin>8,
 	error('Incorrect usage.');
-end
+end;
 
 global sptl_Ornt
 
@@ -217,29 +217,8 @@ end
 %-----------------------------------------------------------------------
 VG = spm_vol(PG);
 VF = spm_vol(PF);
-if nargin<8,
-	VW = [];
-else,
-	if ~isempty(PW),
-		VW = spm_vol(PW);
-	else,
-		VW = [];
-	end;
-end
 
-if nargin<9,
-	VW2 = [];
-else,
-	if ~isempty(PW2),
-		VW2 = spm_vol(PW2);
-	else,
-		VW2 = [];
-	end;
-end
-
-% Do the optimisation
-%-----------------------------------------------------------------------
-if nargin == 5
+if nargin < 6,
 	params = mean0;
 else,
 	% Allow pass of empty params
@@ -248,6 +227,28 @@ else,
 	end;
 end;
 
+if nargin<7,
+	VW = [];
+else,
+	if ~isempty(PW),
+		VW = spm_vol(PW);
+	else,
+		VW = [];
+	end;
+end;
+
+if nargin<8,
+	VW2 = [];
+else,
+	if ~isempty(PW2),
+		VW2 = spm_vol(PW2);
+	else,
+		VW2 = [];
+	end;
+end;
+
+% Do the optimisation
+%-----------------------------------------------------------------------
 if nobayes == 1
 	[params] = spm_affsub2(ifun,VG,VF,VW,VW2, Hold,samp,params,free,pdesc,gorder);
 else
