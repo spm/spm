@@ -57,7 +57,11 @@ function [SPM] = spm_spm(SPM)
 %       - Note that voxels with constant data (i.e. the same value across
 %         scans) are also automatically masked out.
 %
-% xCon  - See Christensen for details of F-contrasts
+% xCon  - See Christensen for details of F-contrasts.  These are specified
+%         at the end of spm_spm after the non-sphericity V has been defined
+%         or estimated. The fist contrast tests for all effects of interest
+%         assuming xX.iB and xX.iG index confounding or nuisance effects.
+%         
 %
 %
 % In addition, the global default UFp is used to set a critical
@@ -343,7 +347,7 @@ if ~isfield(xX,'K')
 	xX.K  = 1;
 end
 try
-	%-If covariance components are specified
+	%-If covariance components are specified use them
 	%---------------------------------------------------------------
 	xVi   = SPM.xVi;
 catch
@@ -351,11 +355,8 @@ catch
 	%-otherwise assume i.i.d.
 	%---------------------------------------------------------------
 	xVi   = struct(	'form',  'i.i.d.',...
-			'Vi',	{speye(nScan,nScan)},...
-			'V',	 speye(nScan,nScan),...
-			'h',     1);
+			'V',	 speye(nScan,nScan));
 end
-
 
 
 %-Get non-sphericity V
@@ -397,43 +398,24 @@ catch
 end
 
 
-%-Design space, projectors and traces (based on first F-contrast)
+%-Design space and projector matrix [pseudoinverse] for WLS
 %=======================================================================
-xX.xKXs       = spm_sp('Set',spm_filter(xX.K,W*xX.X));		% KWX
-xX.pKX        = spm_sp('x-',xX.xKXs);				% projector
-xX.V          = spm_filter(xX.K,spm_filter(xX.K,W*V*W')');	% KWVW'K'
-[trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);		% trRV (for X)
-xX.trRV       = trRV;						% <R'*y'*y*R>
-xX.trRVRV     = trRVRV;						%-Satterthwaite
-xX.erdf       = trRV^2/trRVRV;					% approximation
-xX.Bcov       = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
+xX.xKXs = spm_sp('Set',spm_filter(xX.K,W*xX.X));		% KWX
+xX.pKX  = spm_sp('x-',xX.xKXs);				% projector
 
-
-%-Check estimability
+%-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
 %-----------------------------------------------------------------------
-if     xX.erdf  < 0
-    error(sprintf('This design is unestimable!   (df=%-.2g)',xX.erdf))
-elseif xX.erdf == 0
-    error('This design has no residuals! (df = 0)')
-elseif xX.erdf <  4
-    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
+if ~isfield(xVi,'V')
+	Fcname = 'effects of interest';
+	iX0    = [SPM.xX.iB SPM.xX.iG];
+	xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+	X1o    = spm_FcUtil('X1o', xCon(1),xX.xKXs);
+	Hsqr   = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
+	trRV   = spm_SpUtil('trRV',xX.xKXs);
+	trMV   = spm_SpUtil('trMV',X1o);
+	UFp    = spm('GetGlobal','UFp');
+	UF     = spm_invFcdf(1 - UFp,[trMV,trRV]);
 end
-
-%-Compute Hsqr and UF, the F-threshold
-%-----------------------------------------------------------------------
-Fcname        = 'effects of interest';
-iX0           = [SPM.xX.iB SPM.xX.iG];
-xCon          = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
-X1o           = spm_FcUtil('X1o', xCon(1),xX.xKXs);
-Hsqr          = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
-trMV          = spm_SpUtil('trMV',X1o,xX.V);
-UFp           = spm('GetGlobal','UFp');
-UF            = spm_invFcdf(1 - UFp,[trMV,xX.erdf]);
-
-
-%-Compute scaled design matrix for display purposes
-%-----------------------------------------------------------------------
-xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 
 %-Image dimensions and data
@@ -496,7 +478,7 @@ Vbeta = spm_create_vol(Vbeta,'noopen');
 VResMS = struct(	'fname',	'ResMS.img',...
 			'dim',		[DIM',spm_type('double')],...
 			'mat',		M,...
-			'pinfo',	[ 1/trRV 0 0]',...
+			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
 VResMS = spm_create_vol(VResMS,'noopen');
 
@@ -742,7 +724,13 @@ if isfield(xX,'W')
 
 end % (xVi,'V')
 
-%-Non-sphericity: Vi - ReML Hyperparameter estimates
+%-average sample covariance and mean of Y (over voxels)
+%-----------------------------------------------------------------------
+CY          = CY/S;
+EY          = EY/S;
+CY          = CY - EY*EY';
+
+%-If not defined, compute non-sphericity V using ReML Hyperparameters
 %=======================================================================
 if ~isfield(xVi,'V')
 
@@ -757,7 +745,7 @@ if ~isfield(xVi,'V')
 	if isstruct(xX.K)
 		m     = length(xVi.Vi);
 		h     = zeros(m,1);
-		Vi    = sparse(nScan,nScan); 
+		V     = sparse(nScan,nScan); 
 		for i = 1:length(xX.K)
 
 			% extract blocks from bases
@@ -782,23 +770,23 @@ if ~isfield(xVi,'V')
 			% ReML
 			%-----------------------------------------------
 			fprintf('%-30s- %i\n','  ReML Block',i);
-			[Vip,hp] = spm_reml(Cy(q,q),Xp,Qp);
-			Vi(q,q)  = Vi(q,q) + Vip;
+			[Vp,hp]  = spm_reml(Cy(q,q),Xp,Qp);
+			V(q,q)   = V(q,q) + Vp;
 			h(p)     = hp;
 		end
 	else
-		[Vi,h] = spm_reml(Cy,xX.X,xVi.Vi);
+		[V,h] = spm_reml(Cy,xX.X,xVi.Vi);
 	end
 
 	% normalize non-sphericity and save hyperparameters
 	%---------------------------------------------------------------
-	Vi          = Vi*nScan/trace(Vi);
+	V           = V*nScan/trace(V);
 	xVi.h       = h;
-	xVi.V       = Vi;			% SAVE NON_SPHERICITY xVi.V
+	xVi.V       = V;			% SAVE NON_SPHERICITY xVi.V
 	xVi.Cy      = Cy;			%-spatially whitened <Y*Y'>
 	SPM.xVi     = xVi;			% non-sphericity structure
 
-	% If xX.W is not specified use WLS to give ML estimators
+	% If xX.W is not specified use W*W' = inv(V) to give ML estimators
 	%---------------------------------------------------------------
 	if ~isfield(xX,'W')
 		save SPM SPM
@@ -809,11 +797,52 @@ if ~isfield(xVi,'V')
 	end
 end
 
-%-average sample covariance and mean of Y (over voxels)
+
+%-Use non-sphericity xVi.V to compute [effective] degrees of freedom
+%=======================================================================
+xX.V            = spm_filter(xX.K,spm_filter(xX.K,W*V*W')');	% KWVW'K'
+[trRV trRVRV]   = spm_SpUtil('trRV',xX.xKXs,xX.V);		% trRV (for X)
+xX.trRV         = trRV;						% <R'*y'*y*R>
+xX.trRVRV       = trRVRV;					%-Satterthwaite
+xX.erdf         = trRV^2/trRVRV;				% approximation
+xX.Bcov         = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
+
+
+%-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
 %-----------------------------------------------------------------------
-CY          = CY/S;
-EY          = EY/S;
-CY          = CY - EY*EY';
+VResMS.pinfo(1) = 1/xX.trRV;
+VResMS          = spm_create_vol(VResMS,'noopen');
+
+
+%-Check estimability
+%-----------------------------------------------------------------------
+if     xX.erdf  < 0
+    error(sprintf('This design is unestimable!   (df=%-.2g)',xX.erdf))
+elseif xX.erdf == 0
+    error('This design has no residuals! (df = 0)')
+elseif xX.erdf <  4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
+end
+
+%-Create 1st contrast for 'effects of interest'
+%=======================================================================
+Fcname    = 'effects of interest';
+iX0       = [xX.iB xX.iG];
+xCon      = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+
+%-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
+%-----------------------------------------------------------------------
+if isfield(SPM,'Sess')
+    for s = 1:length(SPM.Sess)
+	for i = 1:length(SPM.Sess(s).Fc)
+	    iX0           = 1:nBeta;
+	    iX            = SPM.Sess(s).col(SPM.Sess(s).Fc(i).i);
+	    iX0(iX)       = [];
+	    Fcname        = sprintf('Sess(%d):%s',s,SPM.Sess(s).Fc(i).name);
+	    xCon(end + 1) = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+	end
+    end
+end
 
 %-Smoothness estimates of component fields and RESEL counts for volume
 %=======================================================================
@@ -828,19 +857,10 @@ for  i = 1:nSres,
 	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.mat']);
 end
 
-%-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
-%=======================================================================
-if isfield(SPM,'Sess')
-    for s = 1:length(SPM.Sess)
-	for i = 1:length(SPM.Sess(s).Fc)
-	    iX0           = 1:nBeta;
-	    iX            = SPM.Sess(s).col(SPM.Sess(s).Fc(i).i);
-	    iX0(iX)       = [];
-	    Fcname        = sprintf('Sess(%d):%s',s,SPM.Sess(s).Fc(i).name);
-	    xCon(end + 1) = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
-	end
-    end
-end
+
+%-Compute scaled design matrix for display purposes
+%-----------------------------------------------------------------------
+xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
