@@ -835,7 +835,7 @@ hAxes = axes('Position',[0.05,0.05,0.85,0.85],...
 		'Units','Points','Visible','off');
 AxPos = get(hAxes,'Position'); set(hAxes,'YLim',[0,AxPos(4)])
 
-dy = FS(8)*1.2; y0 = floor(AxPos(4)) -dy; y  = y0;
+dy = FS(10)*1.2; y0 = floor(AxPos(4)) -dy; y  = y0;
 
 text(-0.03,y0,TTitle,'FontSize',FS(14),'FontWeight','bold');
 y     = y0 - FS(14);
@@ -852,10 +852,10 @@ for i = 1:(length(q) - 1)
 		%-For some reason, '|' characters cause a CR.
 		d = strrep(d,'|','I');
 		h = text(0,y,d(2:length(d)),...
-			'FontName',PF.courier,'FontSize',FS(8));
+			'FontName',PF.courier,'FontSize',FS(10));
 		if FmtLine
 			set(h,'FontWeight','bold',...
-				'FontName',PF.times,'FontSize',FS(11));
+				'FontName',PF.times,'FontSize',FS(12));
 			y = y - FS(8);
 			FmtLine=0;
 		end
