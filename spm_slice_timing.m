@@ -89,22 +89,20 @@ spm_help('!ContextHelp',mfilename);
 if nargin < 1,
         % get number of subjects
         nsubjects = spm_input('number of subjects/sessions',1, 'e', 1);
-        if (nsubjects < 1)
+        if nsubjects < 1,
                 spm_figure('Clear','Interactive');
                 return;
         end
-else,
-	nsubjects = 1;
-end;
 
-for i = 1:nsubjects
-	if nargin < 1,
+	for i = 1:nsubjects,
 		% Choose the images
 		PP = [];
 		PP = spm_get(+Inf,'*.img',...
 			['Select images to acquisition correct for subject ' num2str(i)]);
+		P{i} = PP;
 	end;
-	P{i} = PP;
+else,
+	nsubjects = 1;
 end;
 
 Vin 	= spm_vol(P{1}(1,:));
