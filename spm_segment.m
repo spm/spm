@@ -62,7 +62,7 @@ def_flags.write.cleanup   = 1;
 def_flags.write.wrt_cor   = 1;
 def_flags.graphics        = 1;
 
-if nargin<2, flags = def_flags; end;
+if nargin<3, flags = def_flags; end;
 if ~isfield(flags,'estimate'),        flags.estimate        = def_flags.estimate;        end;
 if ~isfield(flags.estimate,'priors'), flags.estimate.priors = def_flags.estimate.priors; end;
 if ~isfield(flags.estimate,'reg'),    flags.estimate.reg    = def_flags.estimate.reg;    end;
