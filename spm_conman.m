@@ -194,18 +194,23 @@ case 'imdesmtx'
 %=======================================================================
 % spm_conman('ImDesMtx',xX,h)
 
-xX = varargin{2};
 h  = varargin{3};
 
 %-Picture design matrix
 %-----------------------------------------------------------------------
 axes(h)
-hDesMtxIm = image((spm_DesMtx('sca',xX.xKXs.X,xX.Xnames)+1)*32);
-set(h,'YTick',[],'XTick',[])		%-No Tick marks
-set(h,'Tag','DesMtxAx','UserData',xX)	%-Reset axis properties after image
+if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
+	hDesMtxIm = image((varargin{2}.nKX+1)*32);
+else
+	hDesMtxIm = image(...
+		(spm_DesMtx('sca',varargin{2}.xKXs.X,varargin{2}.Xnames)+1)*32);
+end
+set(h,'YTick',[],'XTick',[])			%-No Tick marks
+set(h,'Tag','DesMtxAx','UserData',varargin{2})	%-Reset axis UserData after image
 xlabel('Design matrix')
-set(hDesMtxIm,'UserData',xX.xKXs.X)
-set(hDesMtxIm,'ButtonDownFcn','spm_conman(''DesMtxIm_CB'')')
+set(hDesMtxIm,'UserData',...
+	struct('X',varargin{2}.xKXs.X,'Xnames',{varargin{2}.Xnames}))
+set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 
 %=======================================================================
@@ -229,7 +234,7 @@ set(h,	'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
 xlabel('paremeter estimability')
 set(h,'Tag','ParEstAx')			%-Reset 'Tag' after image cleared it
 set(hParEstIm,'UserData',struct('est',est,'Xnames',{xX.Xnames}))
-set(hParEstIm,'ButtonDownFcn','spm_conman(''ParEstIm_CB'')')
+set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 
 
 %=======================================================================
@@ -779,47 +784,6 @@ xCon     = get(gcf,'UserData');
 STAT     = get(findobj(gcbf,'Tag','TFA','Value',1),'UserData');
 
 spm_conman('ListCon',hConList,xCon,STAT,[])
-
-
-%=======================================================================
-case 'desmtxim_cb'
-%=======================================================================
-% spm_conman(''DesMtxIm_CB'')
-
-ij = get(gca,'CurrentPoint'); ij = round(ij(1,2:-1:1));
-X  = get(gcbo,'UserData');
-if isempty(X)
-	warning('Design matrix not saved under image - using imaged values!')
-	X = get(gcbo,'CData');
-end
-sXlab = get(get(gca,'XLabel'),'String');
-
-str = sprintf('X(%d,%d) = %g',ij(1),ij(2),X(ij(1),ij(2)));
-set(get(gca,'XLabel'),'String',str)
-
-set(gcbf,'WindowButtonUpFcn',[...
-	'set(get(gca,''XLabel''),''String'',''',sXlab,'''),',...
-	'set(gcbf,''WindowButtonUpFcn'','''')'])
-
-
-%=======================================================================
-case 'parestim_cb'
-%=======================================================================
-% spm_conman(''ParEstIm_CB'')
-
-xUD       = get(gcbo,'UserData');
-Xnames    = xUD.Xnames;
-est       = xUD.est;
-i         = get(gca,'CurrentPoint'); i = round(i(1,1));
-sXlab     = get(get(gca,'XLabel'),'String');
-
-tmp = {' (not unique)',' (unique)'};
-str = sprintf('Parameter %d : %s%s',i,Xnames{i},tmp{est(i)+1});
-set(get(gca,'XLabel'),'String',str)
-
-set(gcbf,'WindowButtonUpFcn',[...
-	'set(get(gca,''XLabel''),''String'',''',sXlab,'''),',...
-	'set(gcbf,''WindowButtonUpFcn'','''')'])
 
 
 %=======================================================================
