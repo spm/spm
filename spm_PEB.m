@@ -8,7 +8,7 @@ function [C,P] = spm_PEB(y,P,TOL)
 %                       contraints on the form of E{b{i - 1}}
 % P{i}.C  - {q}(n x n)  ith level contraints on the form of Cov{e{i}} i.e:
 %                       contraints on the form of Cov{b{i - 1}}
-% TOL - Tolerance {default = 1e-6}
+% TOL - Tolerance {default = 1e-5}
 %
 % POSTERIOR OR CONDITIONAL ESTIMATES
 %
@@ -55,7 +55,7 @@ function [C,P] = spm_PEB(y,P,TOL)
 
 % set tolerance if not specified
 %---------------------------------------------------------------------------
-if nargin < 3, TOL = 1e-6; end
+if nargin < 3, TOL = 1e-5; end
 
 
 % number of levels (p)
@@ -234,7 +234,7 @@ for k = 1:M
 	%===================================================================
 	if m == 0, break, end
 
-	% Gradient dFd/h (first derivatives)
+	% Gradient dF/dh (first derivatives)
 	%-------------------------------------------------------------------
 	Py    = iCe*(y - XX*B);
 	iCeXC = iCeX*Cby;
@@ -267,11 +267,11 @@ for k = 1:M
 	dh    = pinv(W)*dFdh;
 	h     = h + dh;
 
-	% Convergence (or break if there is only one hyperparameter)
+	% Convergence
 	%===================================================================
-	w     = dFdh'*dFdh;
-	if w < TOL, break, end
+	w     = dh'*dh;
 	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+	if w < TOL, break, end
 end
 
 % place hyperparameters in P{1} and output structure for {n + 1}
