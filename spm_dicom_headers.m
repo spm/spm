@@ -345,8 +345,8 @@ for i=1:n,
 			break;
 		end;
 		t(i).item(j).val = char(fread(fp,len,'char'))';
-		fread(fp,rem(4-rem(len,4),4),'char')';
-		tot              = tot + 4*4+len+rem(4-rem(len,4),4);
+		fread(fp,4-rem(len,4),'char')';
+		tot              = tot + 4*4+len+(4-rem(len,4));
 	end;
 end;
 return;
