@@ -635,7 +635,7 @@ FS   = spm('FontSizes');			%-Scaled font sizes
 PF   = spm_platform('fonts');			%-Font names (for this platform)
 Rect = spm('WinSize','Graphics','raw').*WS;	%-Graphics window rectangle
 
-F      = figure(...
+F    = figure(...
 	'Tag',Tag,...
 	'Position',Rect,...
 	'Resize','off',...
@@ -695,6 +695,12 @@ if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 	else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
+
+%-use Matlab's toolbar (Functionality is preserved in FigContextMenu)
+%-----------------------------------------------------------------------
+Rect  = get(F,'Position') - [0 0 0 52];
+set(F,	'MenuBar','figure','Position',Rect);
+return
 
 %-Get position and size parameters
 %-----------------------------------------------------------------------
