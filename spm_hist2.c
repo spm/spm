@@ -2,6 +2,7 @@
 static char sccsid[] = "%W% John Ashburner %E%";
 #endif
 #include "math.h"
+#define local_rint(a) floor((a)+0.5)
 
 void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], const int df[3], double H[65536], int s[3])
 {
@@ -39,7 +40,7 @@ void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], 
 					k221 = f[off0      ]; k121 = f[off0      +1];
 					k211 = f[off0+df[0]]; k111 = f[off0+df[0]+1];
 
-					vf = (int)rint((((k222*dx2+k122*dx1)*dy2       +
+					vf = (int)local_rint((((k222*dx2+k122*dx1)*dy2       +
 					                 (k212*dx2+k112*dx1)*dy1))*dz2 +
 					               (((k221*dx2+k121*dx1)*dy2       +
 					                 (k211*dx2+k111*dx1)*dy1))*dz1);
