@@ -38,9 +38,14 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .name  - Contrast name
 % .STAT  - Statistic indicator character ('T' or 'F')
 % .c     - Contrast weights (column vector contrasts)
-% .X0    - Reduced design matrix (spans design space under Ho)
+% .X0    - Reduced design matrix data (spans design space under Ho)
+%          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
+%          (Matrix in SPM99b)  Extract using X0 = spm_FcUtil('X0',...
 % .iX0   - Indicies of design matrix columns to form the reduced design matrix.
-% .X1o   - Remaining design space (orthogonal to X0).
+% .X1o   - Remaining design space data (X1o is orthogonal to X0)
+%          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
+%          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
+% .nativ - Indicates how the contrast was defined: One of {'c','c+','X0','iX0'}
 % .eidf  - Effective interest degrees of freedom (numerator df)
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
 % .Vspm  - Name of SPM image
