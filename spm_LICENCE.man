@@ -9,6 +9,9 @@
 % option, any later version).
 %
 % For more details on "copyleft", see http://www.gnu.org/copyleft/
+%
+% SPM is supplied as is:
+% No formal support or maintenance is provided or implied.
 %_______________________________________________________________________
 %
 %                   GNU GENERAL PUBLIC LICENSE
