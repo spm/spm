@@ -79,17 +79,18 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % This allows the SPM be displayed and characterized in terms of regionally 
 % significant effects by subsequent routines.
 % 
+% For general linear model Y = XB + E with data Y, desgin matrix X,
+% parameter vector B, and (independent) errors E, a contrast c'B of the
+% parameters (with contrast weights c) is estimated by c'b, where b are
+% the parameter estimates given by b=pinv(X)*Y.
+% 
 % Either single contrasts can be examined or conjunctions of different
 % contrasts. Contrasts are estimable linear combinations of the
 % parameters, and are specified using the SPM contrast manager
 % interface [spm_conman.m]. SPMs are generated for the null hypotheses
 % that the contrast is zero (or zero vector in the case of
-% F-contrasts).
-% 
-% For general linear model Y = XB + E with data Y, desgin matrix X,
-% parameter vector B, and (independent) errors E, a contrast c'B of the
-% parameter estimates (with contrast weights c) is estimated by c'b,
-% where b are the parameter estimates given by b=pinv(X)*Y.
+% F-contrasts). See the help for the contrast manager [spm_conman.m]
+% for a further details on contrasts and contrast specification.
 % 
 % A conjunction assesses the conjoint expression of two or more
 % effects. The conjunction SPM is the minimum of the component SPMs
