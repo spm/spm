@@ -323,7 +323,7 @@ return;
 function fg = clearwin(varargin)
 
 fg = spm_figure('findwin','Graphics');
-if isempty(fg), fg = spm_figure('Create','graphics'); end;
+if isempty(fg), fg = spm_figure('Create','Graphics'); end;
 delete(findobj(fg,'Parent',fg));
 delete(batch_box);
 delete(opts_box);
