@@ -348,8 +348,8 @@ return;
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
-%PO            = fullfile(pth,[pre nm xt vr]);
-PO             = [pre nm '.img'];
+PO             = fullfile(pth,[pre nm xt vr]);
+%PO            = [pre nm '.img'];
 return;
 %_______________________________________________________________________
 
@@ -464,6 +464,7 @@ bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
 
 M   = prm.VG(1).mat;
 vxg = sqrt(sum(M(1:3,1:3).^2));
+if det(M(1:3,1:3))<0, vxg(1) = -vxg(1); end;
 ogn = M\[0 0 0 1]';
 ogn = ogn(1:3)';
 
