@@ -46,7 +46,8 @@ int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[];
 unsigned char *dat1[], dat2[];
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0;
-	double dvds[3], *dvdt, s2[3], s1[3], *ptr1, *ptr2, *Tz, *Ty, tmp, *betaxy, *betax, *alphaxy, *alphax, ss=0.0;
+	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
+		*betaxy, *betax, *alphaxy, *alphax, ss=0.0;
 	extern double floor();
 
 	dvdt    = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
@@ -57,6 +58,7 @@ unsigned char *dat1[], dat2[];
 	alphax  = (double *)mxCalloc((3*nx    + ni)*(3*nx    + ni), sizeof(double));
 	alphaxy = (double *)mxCalloc((3*nx*ny + ni)*(3*nx*ny + ni), sizeof(double));
 
+	/* only zero half the matrix */
 	m1 = 3*nx*ny*nz+ni;
 	for (x1=0;x1<m1;x1++)
 	{
@@ -65,8 +67,9 @@ unsigned char *dat1[], dat2[];
 		beta[x1]= 0.0;
 	}
 
-	for(s0[2]=0; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the referance images */
+	for(s0[2]=0; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
 	{
+		/* build up the deformation field from it's seperable form */
 		for(i1=0, ptr1=T, ptr2=Tz; i1<3; i1++, ptr1 += nz*ny*nx, ptr2+=ny*nx)
 			for(x1=0; x1<nx*ny; x1++)
 			{
@@ -76,6 +79,7 @@ unsigned char *dat1[], dat2[];
 				ptr2[x1] = tmp;
 			}
 
+		/* only zero half the matrix */
 		m1 = 3*nx*ny+ni;
 		for (x1=0;x1<m1;x1++)
 		{
@@ -84,8 +88,9 @@ unsigned char *dat1[], dat2[];
 			betaxy[x1]= 0.0;
 		}
 
-		for(s0[1]=0; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the referance images plane */
+		for(s0[1]=0; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
 		{
+			/* build up the deformation field from it's seperable form */
 			for(i1=0, ptr1=Tz, ptr2=Ty; i1<3; i1++, ptr1+=ny*nx, ptr2+=nx)
 			{
 				for(x1=0; x1<nx; x1++)
@@ -95,9 +100,9 @@ unsigned char *dat1[], dat2[];
 						tmp += ptr1[x1+y1*nx] * BY[dim1[1]*y1+s0[1]];
 					ptr2[x1] = tmp;
 				}
-				s1[i1] = M[4+i1]*(s0[1]+1) + M[8+i1]*(s0[2]+1) + M[12+i1];
 			}
 
+			/* only zero half the matrix */
 			m1 = 3*nx+ni;
 			for(x1=0;x1<m1;x1++)
 			{
@@ -108,13 +113,19 @@ unsigned char *dat1[], dat2[];
 
 			for(s0[0]=0; s0[0]<dim1[0]; s0[0]+=samp[0]) /* For each pixel in the row */
 			{
+				double trans[3];
+
+				/* nonlinear deformation of the atlas space, followed by the affine transform */
 				for(i1=0, ptr1 = Ty; i1<3; i1++, ptr1 += nx)
 				{
 					tmp = 0.0;
 					for(x1=0; x1<nx; x1++)
 						tmp += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
-					s2[i1] = s1[i1]+M[i1]*(s0[0]+1)+tmp;
+					trans[i1] = tmp + s0[i1];
 				}
+				s2[0] = M[0+4*0]*trans[0] + M[0+4*1]*trans[1] + M[0+4*2]*trans[2] + M[0+4*3];
+				s2[1] = M[1+4*0]*trans[0] + M[1+4*1]*trans[1] + M[1+4*2]*trans[2] + M[1+4*3];
+				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3];
 
 				/* is the transformed position in range? */
 				if (s2[0]>=1.0 && s2[0]<dim2[0] && s2[1]>=1.0 &&
@@ -196,19 +207,26 @@ unsigned char *dat1[], dat2[];
 						+ (val100*dx2 + val000*dx1)*dy1)*dz1)*scale2;
 
 					/* local gradients accross resampled pixel */
-					dvds[0] = ((dy2*(val011-val111) + dy1*(val001-val101))*dz2
+					dvds0[0] = ((dy2*(val011-val111) + dy1*(val001-val101))*dz2
 						 + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2;
 
-					dvds[1] = ((dx2*(val101-val111) + dx1*(val001-val011))*dz2
+					dvds0[1] = ((dx2*(val101-val111) + dx1*(val001-val011))*dz2
 						 + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2;
 
-					dvds[2] = ((dx2*(val110-val111) + dx1*(val010-val011))*dy2
+					dvds0[2] = ((dx2*(val110-val111) + dx1*(val010-val011))*dy2
 						 + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2;
 
+					/* transform the gradients to the same space as the atlas */
+					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
+					dvds1[1] = M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2];
+					dvds1[2] = M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2];
+
+					/* there is no change in the contribution from BY and BZ, so only
+					   work from BX */
 					for(i1=0; i1<3; i1++)
 					{
 						for(x1=0; x1<nx; x1++)
-							dvdt[i1*nx+x1] = -dvds[i1] * BX[dim1[0]*x1+s0[0]];
+							dvdt[i1*nx+x1] = -dvds1[i1] * BX[dim1[0]*x1+s0[0]];
 					}
 
 					off2 = s0[0] + dim1[0]*(s0[1] + dim1[1]*s0[2]);
@@ -250,6 +268,8 @@ unsigned char *dat1[], dat2[];
 
 				}
 			}
+
+			/* Kronecker tensor products with BY'*BY */
 			m1 = 3*nx*ny+ni;
 			m2 = 3*nx+ni;
 			for(i1=0; i1<3; i1++)
@@ -291,6 +311,8 @@ unsigned char *dat1[], dat2[];
 				betaxy[nx*ny*3 + x1] += betax[nx*3 + x1];
 			}
 		}
+
+		/* Kronecker tensor products with BZ'*BZ */
 		m1 = 3*nx*ny*nz+ni;
 		m2 = 3*nx*ny+ni;
 		for(z1=0; z1<nz; z1++)
