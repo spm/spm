@@ -244,7 +244,7 @@ spm('FigName',['SPM{',SPM.STAT,'}: Results'],Finter,CmdLine);
 %-Setup results GUI
 %-----------------------------------------------------------------------
 hReg   = spm_results_ui('SetupGUI',VOL.M,VOL.DIM,SPM,Finter);
-
+figure(Finter)
 
 %-Setup Maximium intensity projection (MIP) & register
 %-----------------------------------------------------------------------
