@@ -6,11 +6,10 @@ function R1=spm_figure(Action,P2,P3,P4)
 %         below
 %_______________________________________________________________________
 %
-% spm_figure creates and manages the 'Results' window, referred to as
-% the Graphics window. This window and these facilities may be used
-% independently of SPM, and any number of Graphics windows my be used
-% within the same MatLab session. (Though only one SPM 'Graphics' 'Tag'ed
-% window is permitted.
+% spm_figure creates and manages the 'Graphics' window. This window and
+% these facilities may be used independently of SPM, and any number of
+% Graphics windows my be used within the same MatLab session. (Though
+% only one SPM 'Graphics' 'Tag'ed window is permitted.
 %
 % The Graphics window is provided with a menu bar at the top that
 % facilitates editing and printing of the current graphic display,
@@ -62,13 +61,13 @@ function R1=spm_figure(Action,P2,P3,P4)
 % For SPM power users, and programmers, spm_figure provides utility
 % routines for using the SPM graphics interface. Of particular use are
 % the FindWin and Clear functions See the embedded callback reference
-% below.
+% in the main body of spm_figure, below the help text.
 %
 % See also: spm_print, spm_clf
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
-%
+
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
@@ -185,7 +184,7 @@ if strcmp(lower(Action),lower('Create'))
 % F = spm_figure('Create',Tag,Name,Visible)
 %-Condition arguments
 if nargin<4, Visible='on'; else, Visible=P4; end
-if nargin<3, Name='Results'; else, Name=P3; end
+if nargin<3, Name='Graphics'; else, Name=P3; end
 if nargin<2, Tag = []; else, Tag=P2; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
@@ -202,7 +201,7 @@ elseif strcmp(lower(Action),lower('CreateWin'))
 %-----------------------------------------------------------------------
 if nargin<4, Visible=''; else, Visible=P4; end
 if isempty(Visible), Visible='on'; end
-if nargin<3, Name='Results'; else, Name=P3; end
+if nargin<3, Name='Graphics'; else, Name=P3; end
 if nargin<2, Tag=[]; else, Tag=P2; end
 
 S0   = get(0,'ScreenSize');
@@ -217,7 +216,8 @@ if ~isempty(Name), set(F,'Name',Name,'NumberTitle','off'), end
 set(F,'Visible',Visible)
 whitebg(F,'w')
 colormap gray
-% set(F,'DefaultTextFontSize',2*round(12*min(WS)/2));
+set(F,'PaperType','a4letter')
+set(F,'DefaultTextFontSize',2*round(12*min(WS)/2));
 R1 = F;
 return
 
