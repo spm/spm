@@ -1,4 +1,4 @@
-function [C] = spm_Ce(v,a)
+function [C] = spm_Ce2(v,a)
 % return error covariance constraints for serially correlated data
 % FORMAT [C] = spm_Ce(v,a)
 % v  - (1 x l) v(i) = number of obervations for ith block
