@@ -196,7 +196,7 @@ if ~isempty(matname),
 	save(matname,'Affine','Tr','VF','VG','flags');
 end;
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
-if flags.graphics, spm_normalise_disp(params); end;
+if flags.graphics, spm_normalise_disp(params,VF); end;
 return;
 %_______________________________________________________________________
 

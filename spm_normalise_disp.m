@@ -1,4 +1,4 @@
-function spm_normalise_disp(matname)
+function spm_normalise_disp(matname,VF)
 % Display results of spatial normalisation
 % FORMAT spm_normalise_disp(matname)
 % matname - name of sn3d.mat file
@@ -16,13 +16,15 @@ else, %assume it is a structure
 	t = matname;
 end;
 
-Q = t.VG(1).mat*inv(t.Affine)/t.VF(1).mat;
+if nargin<2, VF = t.VF(1); end;
+
+Q = t.VG(1).mat*inv(t.Affine)/VF.mat;
 
 spm_figure('Clear','Graphics');
 ax=axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fg);
 text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
 	'Interpreter','none','Parent',ax);
-text(0,0.75, [ 'Image     : ' t.VF(1).fname],'FontSize',12,'FontWeight','Bold',...
+text(0,0.75, [ 'Image     : ' VF.fname],'FontSize',12,'FontWeight','Bold',...
 	'Interpreter','none','Parent',ax);
 %text(0,0.7, [ 'Parameters : ' spm_str_manip(matname,'sd')],'FontSize',12,...
 %	'Interpreter','none','Parent',ax);
@@ -53,7 +55,7 @@ end;
 
 spm_orthviews('Reset');
 h1 = spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
-VN = spm_write_sn(t.VF.fname,matname);
+VN = spm_write_sn(VF.fname,matname);
 h2 = spm_orthviews('Image',VN,[.51 0.1 .48 .6]);
 spm_orthviews('Space',h2);
 spm_print;
