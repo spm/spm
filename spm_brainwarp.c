@@ -1,6 +1,6 @@
 #ifndef lint
 static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU) %E%";
-#endif lint
+#endif /* lint */
 
 #include <math.h>
 #include "spm_sys_deps.h"
