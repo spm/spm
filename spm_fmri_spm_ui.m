@@ -379,8 +379,12 @@ xX     = struct(	'X',		[X.xX X.bX],...
 
 %-Effects designated "of interest" - constuct an F-contrast
 %--------------------------------------------------------------------------
-Fc = 1:size(X.xX,2);
-
+if isempty(X.bX)  %- no confounds
+	F_iX0 = [];
+else 
+	% if isempty(X.xX) we have size(X.xX,2) == 0;
+	F_iX0 = size(X.xX,2) + [1:size(X.bX,2)];
+end
 
 %-Design description (an nx2 cellstr) - for saving and display
 %==========================================================================
@@ -409,7 +413,7 @@ xGX.gSF      = gSF;
 
 %-Save SPMcfg.mat file
 %---------------------------------------------------------------------------
-save SPMcfg xsDes VY xX xM xGX Fc Sess
+save SPMcfg xsDes VY xX xM xGX F_iX0 Sess
 
 %-Display Design report
 %===========================================================================
