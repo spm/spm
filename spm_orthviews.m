@@ -625,7 +625,7 @@ if ~isempty(st.vols{arg1})
 	num = arg1;
 	Mat = st.vols{num}.premul(1:3,1:3)*st.vols{num}.mat(1:3,1:3);
 	vox = sqrt(sum(Mat.^2));
-	if det(mat(1:3,1:3))<0, vox(1) = -vox(1); end;
+	if det(Mat(1:3,1:3))<0, vox(1) = -vox(1); end;
 	Mat = diag([vox 1]);
 	Space = (st.vols{num}.mat)/Mat;
 	bb = [1 1 1;st.vols{num}.dim(1:3)];
