@@ -283,6 +283,10 @@ Fmotd = [spm('Dir'),'/spm_motd.man'];
 if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
 								fprintf('.')
 
+%-Load startup global defaults
+%-----------------------------------------------------------------------
+spm_defaults,							fprintf('.')
+
 %-Setup for current modality
 %-----------------------------------------------------------------------
 spm('ChMod',Modality),						fprintf('.')
@@ -532,15 +536,14 @@ return
 
 
 
-
 elseif strcmp(lower(Action),lower('SetWinDefaults'))
 %=======================================================================
 % spm('SetWinDefaults')
 whitebg(0,'w')
 set(0,'DefaultFigureColormap',gray);
 set(0,'DefaultFigurePaperType','a4letter')
-
 return
+
 
 elseif strcmp(lower(Action),lower('defaults'))
 %=======================================================================
@@ -553,13 +556,13 @@ Modality = spm('CheckModality',Modality);
 
 %-Set MODALITY
 %-----------------------------------------------------------------------
-clear global
+% clear global
 global MODALITY
 MODALITY = Modality;
 
 %-Set global defaults (global variables)
 %-----------------------------------------------------------------------
-global SWD TWD DESCRIP UFp
+global SWD TWD DESCRIP
 global CWD
 
 SWD	 = spm('Dir');					% SPM directory
@@ -569,19 +572,18 @@ if isempty(TWD)
 	TWD = '/tmp';
 end
 
-% Load system defaults
+%-Get global modality defaults
 %-----------------------------------------------------------------------
-global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
-spm_defaults;
-
-UFp	= 0.05;						% Upper tail F-prob
-
+%-Load startup defaults (if not already done so)
+%-----------------------------------------------------------------------
+if isempty(PET_DIM), spm_defaults, end
 
 %-Set Modality specific default (global variables)
 %-----------------------------------------------------------------------
-global DIM VOX SCALE TYPE OFFSET ORIGIN
+global UFp DIM VOX SCALE TYPE OFFSET ORIGIN
 if strcmp(Modality,'PET')
 	DIM	= PET_DIM;				% Dimensions [x y z]
 	VOX	= PET_VOX;				% Voxel size [x y z]
@@ -589,6 +591,7 @@ if strcmp(Modality,'PET')
 	TYPE	= PET_TYPE;				% Data type
 	OFFSET	= PET_OFFSET;		    		% Offset in bytes
 	ORIGIN	= PET_ORIGIN;				% Origin in voxels
+	UFp	= PET_UFp;				% Upper tail F-prob
 elseif strcmp(Modality,'FMRI')
 	DIM	= fMRI_DIM;				% Dimensions {x y z]
 	VOX	= fMRI_VOX;				% Voxel size {x y z]
@@ -596,7 +599,7 @@ elseif strcmp(Modality,'FMRI')
 	TYPE	= fMRI_TYPE;				% Data type
 	OFFSET	= fMRI_OFFSET;	   			% Offset in bytes
 	ORIGIN	= fMRI_ORIGIN;				% Origin in voxels
-	UFp	= 0.001;				% Upper tail F-prob
+	UFp	= fMRI_UFp;				% Upper tail F-prob
 
 elseif strcmp(Modality,'UNKNOWN')
 else
