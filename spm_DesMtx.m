@@ -1,18 +1,23 @@
-function [X,Pnames,Index]=spm_DesMtx(varargin);
+function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % Design matrix construction from factor level and covariate vectors
 % FORMAT [X,Pnames] = spm_DesMtx(<FCLevels-Constraint-FCnames> list)
-% FORMAT [X,Pnames,Index] = spm_DesMtx(FCLevels,Constraint,FCnames)
+% FORMAT [X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(FCLevels,Constraint,FCnames)
 %
 % <FCLevels-Constraints-FCnames>
-%        - Set of arguments specifying a portion of design matrix (see below)
+%        - set of arguments specifying a portion of design matrix (see below)
 %        - FCnames parameter, or Constraint and FCnames parameters, are optional
-%        - A list of multiple <FCLevels-Constraint-FCnames> triples can be
+%        - a list of multiple <FCLevels-Constraint-FCnames> triples can be
 % 	   specified, where FCnames or Constraint-FCnames may be omitted
 % 	   within any triple. The program then works recursively.
 %
-% X      - Design matrix
-% Pnames - Paramater names as (constructed from FCnames) - a cellstr
-% Index  - Integer index of factor levels
+% X      - design matrix
+% Pnames - paramater names as (constructed from FCnames) - a cellstr
+% Index  - integer index of factor levels
+%        - only returned when computing a single design matrix partition
+%
+% idx,jdx,kdx - reference vectors mapping I & Index (described below)
+%             - only returned when computing a single design matrix partition
+%               for unconstrained factor effects ('-' or '~')
 %
 %                           ----------------
 % - Utilities:
@@ -122,12 +127,15 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % matrix blocks of full rank). In this case therefore the B_i are
 % identically the B'_i - the mean correction imposes the constraint.
 %      
+%
 % COVARIATES: The FCLevels matrix here is an nxc matrix whose columns
 % contain the covariate values. An effect is included for each covariate.
 % Covariates are identified by ConstraintString 'C'.
 %
+%
 % PRE-SPECIFIED DESIGN BLOCKS: ConstraintString 'X' identifies a
 % ready-made bit of design matrix - the effect is the same as 'C'.
+%
 %
 % FACTOR BY COVARIATE INTERACTIONS: are identified by ConstraintString
 % 'FxC'. The last column is understood to contain the covariate. Other
@@ -135,6 +143,7 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % (unconstrained) interaction of the factors is interacted with the
 % covariate. Zero factor levels are ignored if ConstraintString '~FxC'
 % is used.
+%
 %
 % NAMES: Each Factor/Covariate can be 'named', by passing a name
 % string.  Pass a string matrix, or cell array (vector) of strings,
@@ -160,12 +169,23 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % function (spm_DesMtxSca('Xsca',...), and should therefore be avoided
 % when naming effects and covariates.
 %
+%
 % INDEX: An Integer Index matrix is returned if only a single block of
 % design matrix is being computed (single set of parameters). It
 % indexes the actual order of the effect levels in the design matrix block.
 % (Factor levels are introduced in order, regardless of order of
 % appearence in the factor index matrices, so that the parameters
 % vector has a sensible order.) This is used to aid recursion.
+%
+% Similarly idx,jdx & kdx are indexes returned for a single block of
+% design matrix consisting of unconstrained factor effects ('-' or '~').
+% These indexes map I and Index (in a similar fashion to the `unique`
+% function) as follows:
+%  - idx & jdx are such that I = Index(:,jdx)' and  Index = I(idx,:)'
+%    where vector I is given as a column vector
+%  - If the "ignore zeros" constraint '~' is used, then kdx indexes the
+%    non-zero (combinations) of factor levels, such that
+%                     I(kdx,:) = Index(:,jdx)' and  Index == I(kdx(idx),:)'
 %
 %                           ----------------
 %
@@ -279,27 +299,28 @@ if any(I~=floor(I)), error('Non-integer indicator vector'), end
 if isempty(FCnames), FCnames = {'<Fac>'};
 elseif length(FCnames)>1, error('Too many FCnames'), end
 
+nXrows = size(I,1);
+
 % Sort out unique factor levels - ignore zero level in '~(1)' usage
 %-----------------------------------------------------------------------
 if Constraint(1)~='~'
-	tmp = sort(I');
+	[Index,idx,jdx] = unique(I');
+	kdx = [1:nXrows];
 else
-	tmp = sort(I(I~=0)');
-	if isempty(tmp)
+	[Index,idx,jdx] = unique(I(I~=0)');
+	kdx             = find(I~=0)';
+	if isempty(Index)
 		X=[]; Pnames={}; Index=[];
 		warning(['factor has only zero level - ',...
 			'returning empty DesMtx partition'])
 		return
 	end
 end
-Index = tmp([1,1+find(diff(tmp))]);
-
-%-Determine sizes of design matrix X
-nXrows = size(I,1);
-nXcols = length(Index);
 
 %-Set up unconstrained X matrix & construct parameter name index
 %-----------------------------------------------------------------------
+nXcols = length(Index);
+
 %-Columns in ascending order of corresponding factor level
 X      = zeros(nXrows,nXcols);
 Pnames = cell(nXcols,1);
@@ -317,7 +338,7 @@ case {'-','~'}     %-Main effect / interaction ('~' ignores zero levels)
 %=======================================================================
 if size(I,2)==1
 	%-Main effect - process directly
-	[X,Pnames,Index] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
+	[X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
 	return
 end
 
@@ -343,15 +364,10 @@ if Constraint(1)=='~'
 end
 
 %-Build design matrix based on unique factor combinations
-[X,null,sIndex]=spm_DesMtx(rIndex,[Constraint,'(1)']);
-
+[X,null,sIndex,idx,jdx,kdx]=spm_DesMtx(rIndex,[Constraint,'(1)']);
 
 %-Sort out Index matrix
-%-----------------------------------------------------------------------
-Index = zeros(size(I,2),length(sIndex));
-for c = 1:length(sIndex)
-	Index(:,c) = I(min(find(rIndex==sIndex(c))),:)';
-end
+Index = I(kdx(idx),:)';
 
 %-Construct parameter name index
 %-----------------------------------------------------------------------
@@ -399,7 +415,7 @@ end
 if Constraint(1)~='~',	[X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
 	else,		[X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
 X = X.*(C*ones(1,size(X,2)));
-Pnames = cellstr([repmat([Cnames,'@'],length(Index),1),char(Pnames)]);
+Pnames = cellstr([repmat([Cnames,'@'],size(Index,2),1),char(Pnames)]);
 
 
 
