@@ -100,29 +100,6 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function w = helpwidth
-% Number of characters that fit across the help window.
-% A bit inelegant, but it seems to work. Can't figure out how
-% to find the width of the scroll-bar though.
-
-h   = findobj('tag','help_box');
-if isempty(h)
-    w = 50;
-    return;
-end;
-h = h(1);
-txt = get(h,'String');
-set(h,'String','                    ');
-workaround(h);
-ext = get(h,'Extent');
-pos = get(h,'position');
-set(h,'String',txt);
-w   = floor(pos(3)/ext(3)*21-4);
-return;
-%------------------------------------------------------------------------
-
-
-%------------------------------------------------------------------------
 function defaults_edit(varargin)
 setup_ui('defaults');
 return;
@@ -357,7 +334,7 @@ return;
 %------------------------------------------------------------------------
 function expandall(varargin)
 c         = expcon(get(gco,'UserData'),1);
-[str,sts] = get_strings(c);
+str       = get_strings(c);
 val       = min(get(gco,'Value'),length(str));
 set(gco,'String',str,'Value',val,'UserData',c);
 return;
@@ -366,7 +343,7 @@ return;
 %------------------------------------------------------------------------
 function contractall(varargin)
 c         = expcon(get(gco,'UserData'),0);
-[str,sts] = get_strings(c);
+str       = get_strings(c);
 val       = min(get(gco,'Value'),length(str));
 set(gco,'String',str,'Value',val,'UserData',c);
 return;
@@ -400,8 +377,7 @@ return;
 function run_job(job)
 % Run a job. This function is not called via the UI.
 c = initialise_struct(job);
-[str,sts] = get_strings(c);
-if sts
+if all_set(c),
     run_struct1(c);
 else
     error('This job is not ready yet');
@@ -416,7 +392,7 @@ function click_batch_box(varargin)
 remove_string_box;
 if strcmp(get(get(varargin{1},'Parent'),'SelectionType'),'open')
     run_in_current_node(@expand_contract,false);
-    [str,sts] = get_strings(get(batch_box,'UserData'));
+    str       = get_strings(get(batch_box,'UserData'));
     val       = min(get(batch_box,'Value'),length(str));
     set(batch_box,'String',str,'Value',val);
 else
@@ -461,7 +437,6 @@ end;
 
 sts = 1;
 mrk = '  ';
-str = {};
 nam = '';
 if isfield(c,'datacheck') && ~isempty(c.datacheck),
     mrk = ' <-@';
@@ -660,7 +635,6 @@ if isfield(c,'expanded') && ~isempty(c.val)
             end;
         end;
         if modify && isfield(c,'check'),
-            ok = true;
             if all_set(c),
                 [unused,val] = harvest(c);
                 c.datacheck  = feval(c.check,val);
@@ -1088,7 +1062,6 @@ case {'s+'}
     remove_string_box;
 
 otherwise
-    msk = [];
     n = Inf;
     if isfield(c,'num')
         n      = c.num;
@@ -1282,7 +1255,7 @@ if ischar(filename)
         savexml(fullfile(pathname,filename),'jobs');
         spm('Pointer');
     elseif strcmp(ext,'.mat')
-        if str2num(version('-release'))>=14,
+        if str2double(version('-release'))>=14,
             save(fullfile(pathname,filename),'-V6','jobs');
         else
             save(fullfile(pathname,filename),'jobs');
@@ -1512,7 +1485,7 @@ function addvfiles(id,c)
 if nargin<2,
     c  = get(batch_box,'UserData');
 end;
-[vf,sts]=addvfiles1(c,id,{});
+vf =addvfiles1(c,id,{});
 spm_select('clearvfiles');
 spm_select('addvfiles',vf);
 return;
@@ -1777,7 +1750,6 @@ return;
 %------------------------------------------------------------------------
 function c = run_ui(c,varargin)
 
-pos = 2;
 nnod=1;
 while(1),
     nod = nnod;
@@ -1860,7 +1832,6 @@ while(1),
             end;
 
         case {'entry'}
-            msk = [];
             n1  = Inf;
             if isfield(ci,'num'), n1 = ci.num; end;
             if getit,
@@ -1975,7 +1946,7 @@ end;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function c = initialise_struct(job,modality)
+function c = initialise_struct(job)
 % load the config file, possibly adding a job
 % to it, and generally tidy it up.  The batch box
 % is updated to contain the current structure.
@@ -2453,7 +2424,6 @@ doc = showdoc1(node,c,wid);
 
 %------------------------------------------------------------------------
 function doc = showdoc1(node,c,wid)
-found = false;
 doc   = {};
 if isempty(node),
     doc = showdoc2(c,'',wid);
@@ -2488,7 +2458,7 @@ end;
 
 if isfield(c,'name'),
     str   = sprintf('%s %s', lev, c.name);
-    under = repmat('-',1,length(str));
+    %under = repmat('-',1,length(str));
     doc = {doc{:},str};
     % if isfield(c,'modality'),
     %     txt = 'Only for ';
@@ -2502,7 +2472,6 @@ if isfield(c,'name'),
         doc = {doc{:},hlp{:}};
     end;
 
-if 1,
     switch (c.type),
     case {'repeat'},
         if length(c.values)==1,
@@ -2550,10 +2519,11 @@ if 1,
 
     case {'files'},
         if length(c.num)==1 && isfinite(c.num(1)) && c.num(1)>=0,
-            doc = {doc{:}, '', sprintf('A "%s" file is selected by the user.',c.filter),''};
+            tmp = spm_justify(wid,sprintf('A "%s" file is selected by the user.',c.filter));
         else
-            doc = {doc{:}, '', sprintf('"%s" files are selected by the user.\n',c.filter),''};
+            tmp = spm_justify(wid,sprintf('"%s" files are selected by the user.\n',c.filter));
         end;
+        doc = {doc{:}, '', tmp{:}, ''};
 
     case {'entry'},
         switch c.strtype,
@@ -2568,9 +2538,9 @@ if 1,
         otherwise,
             d = 'Values';
         end;
-        doc = {doc{:}, '',sprintf('%s are entered.',d),''};
+        tmp = spm_justify(wid,sprintf('%s are entered.',d));
+        doc = {doc{:}, '', tmp{:}, ''};
     end;
-end;
 
     i = 0;
     doc = {doc{:},''};
@@ -2594,7 +2564,7 @@ end;
             end;
         end;
     end;
-    doc = {doc{:},''};
+    doc = {doc{:}, ''};
 end;
 
 

@@ -301,7 +301,7 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
     try
         SPM.PPM.priors.SY;
     catch
-        SPM.PPM.priors.SY = spm_get(Inf,'*.img',{'Select structural images eg. brain or grey/white/CSF'}); 
+        SPM.PPM.priors.SY = spm_select(Inf,'image','Select strucutral images eg. brain or grey/white/CSF'); 
     end
     SPM.PPM.priors.Sin=length(SPM.PPM.priors.SY);
     for j=1:SPM.PPM.priors.Sin

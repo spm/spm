@@ -32,6 +32,12 @@ function [t,sts] = spm_select(varargin)
 % The list can be cleared by
 %     spm_select('clearvfiles')
 %
+% FORMAT cpath = spm_select('CPath',path,cwd)
+% function to canonicalise paths: Prepends cwd to relative paths, processes
+% '..' & '.' directories embedded in path.
+% path     - string matrix (or cell array of strings) containing path names
+% cwd      - current working directory [defaut '.']
+% cpath    - conditioned paths, in same format as input path argument
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -47,6 +53,8 @@ elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'clearvfiles'),
 elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'vfiles'),
     t = vfiles('all');
     return;
+elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'cpath'),
+    t = cpath(varargin{2:end});
 else
     [t,sts] = selector(varargin{:});
 end;
@@ -74,7 +82,7 @@ case {'xml'},   code = 0; ext = {'.*\.xml$','.*\.XML$'};
 case {'mat'},   code = 0; ext = {'.*\.mat$','.*\.MAT$'};
 case {'batch'}, code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
 case {'dir'},   code =-1; ext = {'.*'};
-otherwise,      code = 0; ext = {[typ]};
+otherwise,      code = 0; ext = {typ};
 end;
 
 fg = figure('IntegerHandle','off',...
@@ -100,7 +108,7 @@ end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
 SPMdir = fileparts(which(mfilename));
-if str2num(version('-release'))==14 && isdeployed,
+if str2double(version('-release'))==14 && isdeployed,
     ind = findstr(SPMdir,'_mcr')-1;
     [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
 end;
@@ -121,7 +129,7 @@ sel = uicontrol(fg,...
     'Min',0,...
     'String',already,...
     'Value',1);
-c0 = uicontextmenu('Parent',fg);;
+c0 = uicontextmenu('Parent',fg);
 set(sel,'uicontextmenu',c0);
 uimenu('Label','Unselect All', 'Parent',c0,'Callback',@unselect_all);
 
@@ -502,7 +510,7 @@ str3 = get(ob,'String');
 str  = get(lb,'String');
 vlo  = get(lb,'Value');
 lim1  = min(max(lim(2)-size(str3,1),0),length(vlo));
-if length(vlo)==0,
+if isempty(vlo),
     msg(lb,'Nothing selected');
     return;
 end;
@@ -766,7 +774,7 @@ elseif filt.code==-1,
         f{i} = [f{i} fs];
     end;
     f        = strvcat(f{:});
-else,
+else
     f        = strvcat(f{:});
 end;
 
@@ -921,34 +929,32 @@ case 'unx',
     fs  = '/';
     fs1 = '/';
 case 'win',
-    mch = '^.:\';
+    mch = '^.:\\';
     fs  = '\';
     fs1 = '\\';
 otherwise;
     error('What is this filesystem?');
 end
 
-if isempty(regexp(t,mch)),
+if isempty(regexp(t,mch,'once')),
     if nargin<2, d = pwd; end;
     t = [d fs t];
 end;
 
 % Replace (most) occurences of '/./' by '/' (problems with e.g. /././././././')
-t  = regexprep(t,[fs1 '\.' fs1], fs);
-t  = regexprep(t,[fs1 '\.' fs1], fs);
-t  = regexprep(t,[fs1 '\.' fs1], fs);
+for i=1:5, % Should really repeat until no more substitutions are made
+    t  = regexprep(t,[fs1 '\.' fs1], fs);
+end;
 t  = regexprep(t,[fs1 '\.' '$'], fs);
 
 % Replace (most) occurences of '/abc/../' by '/'
-% will have problems with '/abc/def/ghi/jkl/mno/pqr/../../../../../stu'
-% but these should be very rare - I hope.
-t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '..' fs1],fs);
-t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '..' fs1],fs);
-t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '..' fs1],fs);
-t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '..' '$'],fs);
+for i=1:5, % Should really repeat until no more substitutions are made
+    t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '\.\.' fs1],fs,'once');
+end;
+t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '\.\.' '$'],fs,'once');
 
 % Replace '//'
-t  = regexprep(t,[fs1 '*'], fs);
+t  = regexprep(t,[fs1 '+'], fs);
 
 
 

@@ -28,7 +28,7 @@ opts.name = 'Make Directory';
 opts.tag  = 'md';
 opts.val  = {data,name};
 opts.prog = @my_mkdir;
-opts.vdirs = @vdirs_mydirs;
+opts.files = @vdirs_mydirs;
 opts.help = {[...
 'This facilty allows programming a directory change. Directories are ',...
 'selected in the right listbox.']};

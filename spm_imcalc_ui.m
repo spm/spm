@@ -147,7 +147,7 @@ if ~exist(Qdir,'dir')
 	warning('Invalid directory: writing to current directory')
 	Qdir = '.';
 end
-Q = spm_get('CPath',Qfil,Qdir);
+Q = spm_select('CPath',Qfil,Qdir);
 
 Vo = struct(	'fname',	Q,...
 		'dim',		[Vi(1).dim(1:3)],...

@@ -103,7 +103,7 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
             {
                 printf("%d %d %d\n", len, dptr,wbuf);
                 swap(len,dptr,wbuf);
-                if (fwrite(wbuf,1,len,fp) != len)
+                if (len && (fwrite(wbuf,1,len,fp) != len))
                 {
                     /* Problem */
                     (void)fclose(fp);
@@ -135,7 +135,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     dptr   = idat;
     nbytes = map.dtype->bits/8;
     len    = 0;
-    poff   = -nbytes-1;
+    poff   = -2147483647;
     ocumprod[0] = nbytes*map.dtype->channels;
     icumprod[0] = nbytes*1;
     for(i=0; i<map.ndim; i++)
@@ -150,6 +150,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
         swap = copy;
 
     put_bytes(map.ndim-1, map.fp, ptr, idim, (unsigned char *)idat, map.off, 0,swap);
+
     swap(len,dptr,wbuf);
     if (fwrite(wbuf,1,len,map.fp) != len)
     {
@@ -161,7 +162,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
 
 const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
 {
-    char s[128];
+    char s[256];
     mxArray *arr;
 
     arr = mxGetField(ptr,0,nam);
@@ -208,11 +209,11 @@ void open_file(const mxArray *ptr, FTYPE *map)
     int i, dtype;
     const double *pr;
     mxArray *arr;
-    int siz;
 
     if (!mxIsStruct(ptr)) mexErrMsgTxt("Not a structure.");
 
     dtype = (int)(getpr(ptr, "dtype", 1, &n)[0]);
+    map->dtype = NULL;
     for(i=0; i<sizeof(table)/sizeof(Dtype); i++)
     {
         if (table[i].code == dtype)
@@ -226,13 +227,10 @@ void open_file(const mxArray *ptr, FTYPE *map)
     if (map->dtype->channels != 1) mexErrMsgTxt("Can not yet write complex data.");
     pr        = getpr(ptr, "dim", -MXDIMS, &n);
     map->ndim = n;
-    siz       = map->dtype->bits;
     for(i=0; i<map->ndim; i++)
     {
         map->dim[i] = (int)fabs(pr[i]);
-        siz  = siz*map->dim[i];
     }
-    siz      = (siz+7)/8;
     pr       = getpr(ptr, "be",1, &n);
 #ifdef BIGENDIAN
     map->swap = (int)pr[0]==0;
@@ -251,7 +249,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
         int buflen;
         char *buf;
         buflen = mxGetNumberOfElements(arr)+1;
-        buf    = mxCalloc(buflen,sizeof(char));
+        buf    = mxCalloc(buflen+1,sizeof(char));
         if (mxGetString(arr,buf,buflen))
         {
             mxFree(buf);

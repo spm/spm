@@ -52,7 +52,7 @@ Y(OFF) = Z.*(Z > 0);
 %-Write the reconstructed volume
 %-----------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-spm('alert"',{'Written:',['    ',spm_get('CPath',Q)]},mfilename,sqrt(-1));
+spm('alert"',{'Written:',['    ',spm_select('CPath',Q)]},mfilename,sqrt(-1));
 
 %-End
 %-----------------------------------------------------------------------

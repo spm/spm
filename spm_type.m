@@ -42,7 +42,7 @@ end;
 if ischar(x),
 	sel = [];
 	for i=1:numel(types),
-		if strcmp(deblank(prec(i,:)),deblank(x)), 
+		if strcmpi(deblank(prec(i,:)),deblank(x)), 
 			sel = i;
 			break;
 		end;

@@ -293,6 +293,8 @@ function varargout = spm_get(varargin)
 %_______________________________________________________________________
 % Andrew Holmes (X-platform stuff with Matthew Brett)
 
+warning('spm_get is a bit old now.  Please try to use spm_select.');
+
 % Options to pass to spm_list_files_expand
 %=======================================================================
 persistent ListOpts
