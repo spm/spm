@@ -12,7 +12,7 @@
 % 	beta  = zeros(n1*n2,1);
 % 	for i=1:m2
 % 		tmp   = kron(img1(:,i),ones(1,n1)).*b1;
-% 		alpha = alpha + kron(b2(i,:)'*b1(i,:),  tmp'*tmp);
+% 		alpha = alpha + kron(b2(i,:)'*b2(i,:),  tmp'*tmp);
 % 		beta  = beta  + kron(b2(i,:)', tmp'*img2(:,i));
 % 	end
 % 
