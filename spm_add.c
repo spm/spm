@@ -64,16 +64,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			maps[i].dim[1] != maps[0].dim[1] ||
 			maps[i].dim[2] != maps[0].dim[2])
 			{
-				free_maps(maps);
+				free_maps(maps, ni);
 				mexErrMsgTxt("Incompatible image dimensions.");
-			}
-
-		if (	maps[i].pixdim[0] != maps[0].pixdim[0] ||
-			maps[i].pixdim[1] != maps[0].pixdim[1] ||
-			maps[i].pixdim[2] != maps[0].pixdim[2])
-			{
-				free_maps(maps);
-				mexErrMsgTxt("Incompatible voxel sizes.");
 			}
 	}
 
@@ -147,7 +139,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	mxFree((char *)image);
 	mxFree((char *)dptr);
 
-	free_maps(maps);
+	free_maps(maps, ni);
 
 	if (nlhs == 1)
 	{

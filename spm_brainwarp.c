@@ -445,6 +445,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	MAPTYPE *map1, *map2, *get_maps();
 	int i, nx,ny,nz,ni=1, samp[3], nsamp;
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
+	double pixdim[3];
 
         if (nrhs != 11 || nlhs > 4)
         {
@@ -455,8 +456,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         map2 = get_maps(prhs[1], &i);
 	if (i!=1)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  i);
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 
@@ -464,15 +465,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) ||
 			mxIsSparse(prhs[i]) || !mxIsDouble(prhs[i]))
 		{
-			free_maps(map1);
-			free_maps(map2);
+			free_maps(map1, ni);
+			free_maps(map2,  1);
 			mexErrMsgTxt("Inputs must be numeric, real, full and double.");
 		}
 
 	if (mxGetM(prhs[2]) != 4 || mxGetN(prhs[2]) != 4)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Transformation matrix must be 4x4.");
 	}
 	M = mxGetPr(prhs[2]);
@@ -480,8 +481,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if ( mxGetM(prhs[3]) != map1[0].dim[0])
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized X basis functions.");
 	}
 
@@ -489,8 +490,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	BX = mxGetPr(prhs[3]);
 	if ( mxGetM(prhs[6]) != map1[0].dim[0] || mxGetN(prhs[6]) != nx)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized X basis function derivatives.");
 	}
 
@@ -498,8 +499,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if ( mxGetM(prhs[4]) != map1[0].dim[1])
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized Y basis functions.");
 	}
 
@@ -507,8 +508,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	BY = mxGetPr(prhs[4]);
 	if ( mxGetM(prhs[7]) != map1[0].dim[1] || mxGetN(prhs[7]) != ny)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized Y basis function derivatives.");
 	}
 
@@ -516,16 +517,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if ( mxGetM(prhs[5]) != map1[0].dim[2])
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized Z basis functions.");
 	}
 	nz = mxGetN(prhs[5]);
 	BZ = mxGetPr(prhs[5]);
 	if ( mxGetM(prhs[8]) != map1[0].dim[2] || mxGetN(prhs[8]) != nz)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Wrong sized Z basis function derivatives.");
 	}
 	dBZ = mxGetPr(prhs[8]);
@@ -533,8 +534,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	T = mxGetPr(prhs[9]);
 	if (mxGetM(prhs[9])*mxGetN(prhs[9]) != 3*nx*ny*nz+ni*4)
 	{
-		free_maps(map1);
-		free_maps(map2);
+		free_maps(map1, ni);
+		free_maps(map2,  1);
 		mexErrMsgTxt("Transform is wrong size.");
 	}
 
@@ -551,10 +552,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	else
 		mexErrMsgTxt("FWHM should contain one or two values.");
 
+	voxdim(&map1[0],pixdim);
+
 	/* sample about every fwhm/2 */
-	samp[0]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
-	samp[1]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
-	samp[2]   = rint(fwhm/2.0/map1[0].pixdim[0]); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
+	samp[0]   = rint(fwhm/2.0/pixdim[0]); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
+	samp[1]   = rint(fwhm/2.0/pixdim[1]); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
+	samp[2]   = rint(fwhm/2.0/pixdim[2]); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
 
 	for(i=0; i<ni; i++)
 	{
@@ -571,9 +574,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		map2, ni,map1,
 		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp, ss_deriv);
 
-	fwhm3 = ((map1[0].pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
-	         (map1[0].pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
-	         (map1[0].pixdim[2]/sqrt(2.0*ss_deriv[2]/chi2))*sqrt(8.0*log(2.0)))/3.0;
+	fwhm3 = ((pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
+	         (pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
+	         (pixdim[2]/sqrt(2.0*ss_deriv[2]/chi2))*sqrt(8.0*log(2.0)))/3.0;
 
 	*mxGetPr(plhs[3]) = fwhm3;
 
@@ -584,9 +587,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* W = fwhm/sqrt(8*log(2))
 	   W*sqrt(2*pi) = fwhm*1.0645 */
-	df = (MAX((map1[0].pixdim[0]*samp[0])/(fwhm2*1.0645),1.0) *
-	      MAX((map1[0].pixdim[1]*samp[1])/(fwhm2*1.0645),1.0) *
-	      MAX((map1[0].pixdim[2]*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
+	df = (MAX((pixdim[0]*samp[0])/(fwhm2*1.0645),1.0) *
+	      MAX((pixdim[1]*samp[1])/(fwhm2*1.0645),1.0) *
+	      MAX((pixdim[2]*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
 
 	chi2 /= df;
 	mxGetPr(plhs[2])[0] = chi2;
@@ -594,7 +597,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	scale((3*nx*ny*nz+ni*4)*(3*nx*ny*nz+ni*4), mxGetPr(plhs[0]), 1.0/chi2);
 	scale((3*nx*ny*nz+ni*4)                  , mxGetPr(plhs[1]), 1.0/chi2);
 
-	free_maps(map1);
-	free_maps(map2);
+	free_maps(map1, ni);
+	free_maps(map2,  1);
 }
 

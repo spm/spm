@@ -1,5 +1,7 @@
 #!/bin/csh -vf
 #
+#     %W% John Ashburner %E%
+#
 # spm_MAKE will compile spm*.c scripts in a platform specific fashion
 # see cmex
 set CC = cc
@@ -30,19 +32,22 @@ ar rcv 	spm_vol_utils.a utils_uchar.o utils_short.o utils_int.o utils_float.o ut
 	spm_vol_utils2.o spm_make_lookup.o
 
 
-$cmex5 spm_sample_vol.c spm_mapping.c spm_vol_utils.a
-$cmex5 spm_slice_vol.c spm_mapping.c spm_vol_utils.a
-$cmex5 spm_brainwarp.c spm_mapping.c spm_vol_utils.a
-$cmex5 spm_map_vol.c spm_mapping.c
-$cmex5 spm_unmap_vol.c spm_mapping.c
-$cmex5 spm_mean.c spm_mapping.c spm_vol_utils.a
-$cmex5 spm_conv_vol.c spm_mapping.c spm_vol_utils.a
+$cmex5 spm_sample_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_slice_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_brainwarp.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_map_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_unmap_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_mean.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_conv_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_render_vol.c	spm_vol_utils.a spm_mapping.c
+$cmex5 spm_global.c	spm_vol_utils.a spm_mapping.c
 
-$cmex5 spm_render_vol.c spm_mapping.c spm_vol_utils.a
+$cmex5 spm_map_vol.c    spm_mapping.c
+$cmex5 spm_unmap_vol.c  spm_mapping.c
+
 $cmex5 spm_atranspa.c
 $cmex4 spm_project.c
 $cmex4 spm_max.c
 $cmex4 spm_clusters.c
 $cmex5 spm_list_files.c
 $cmex5 spm_unlink.c
-$cmex5 spm_global.c spm_mapping.c spm_vol_utils.a

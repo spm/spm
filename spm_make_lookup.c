@@ -20,6 +20,8 @@ int q, dim, *d1;
 	static int oq = 0, k0, k1;
 	static double denom[256];
 
+	coord --;
+
 	if (q != oq)
 	{
 		double v;
@@ -55,7 +57,7 @@ int q, dim, *d1;
 	{
 		/* Close enough to use nearest neighbour */
 		*d1=rint(coord);
-		if (*d1<1 || *d1>dim) /* Pixel location outside image */
+		if (*d1<0 || *d1>=dim) /* Pixel location outside image */
 			*ptpend = table-1;
 		else
 		{
@@ -67,20 +69,20 @@ int q, dim, *d1;
 	{
 		fcoord = floor(q%2 ? coord+0.5 : coord);
 		*d1 = fcoord+k0;
-		if (*d1>=1)
+		if (*d1>=0)
 		{
 			p = denom;
 			k = k0;
 		}
 		else
 		{
-			p = denom+1-(*d1);
-			k = k0+1-(*d1);
-			*d1=1;
+			p = denom-(*d1);
+			k = k0-(*d1);
+			*d1=0;
 		}
 
 		d2 = fcoord+k1;
-		if (d2>dim) d2 = dim;
+		if (d2>=dim) d2 = dim-1;
 
 		*ptpend = tpend = table+(d2 - *d1);
 		tp = table;
@@ -122,6 +124,8 @@ int q, dim, *d1;
 	static int oq = 0, k0, k1;
 	static double denom[256];
 
+	coord --;
+
 	if (q != oq)
 	{
 		double v;
@@ -155,20 +159,20 @@ int q, dim, *d1;
 
 	fcoord = floor(q%2 ? coord+0.5 : coord);
 	*d1 = fcoord+k0;
-	if (*d1>=1)
+	if (*d1>=0)
 	{
 		p = denom;
 		k = k0;
 	}
 	else
 	{
-		p = denom+1-(*d1);
-		k = k0+1-(*d1);
-		*d1=1;
+		p = denom-(*d1);
+		k = k0-(*d1);
+		*d1=0;
 	}
 
 	d2 = fcoord+k1;
-	if (d2>dim) d2 = dim;
+	if (d2>=dim) d2 = dim-1;
 
 	*ptpend = tpend = table+(d2 - *d1);
 	tp  =  table;
@@ -243,6 +247,8 @@ int q, dim, *d1;
 	register double *tp, *tpend, dtmp, sm;
 	static int oq = 0, k0, k1;
 
+	coord --;
+
 	if (fabs(coord-rint(coord))<0.00001)
 	{
 		/* Close enough to use nearest neighbour */
@@ -276,9 +282,9 @@ int q, dim, *d1;
 		}
 		fcoord = floor(q%2 ? coord+0.5 : coord);
 		*d1 = fcoord+k0;
-		if (*d1<1) *d1=1;
+		if (*d1<0) *d1=0;
 		d2 = fcoord+k1;
-		if (d2>dim) d2 = dim;
+		if (d2>=dim) d2 = dim-1;
 
 		*ptpend = tpend = table+(d2 - *d1);
 		d = *d1, tp = table;
@@ -306,6 +312,8 @@ int q, dim, *d1;
 	register double *tp, *dtp, *tpend, dtmp0, dtmp1, sdtmp,cdtmp, sm, sm1;
 	static int oq = 0, k0, k1;
 
+	coord --;
+
 	if (q != oq)
 	{
 		oq = q;
@@ -324,9 +332,9 @@ int q, dim, *d1;
 	}
 	fcoord = floor(q%2 ? coord+0.5 : coord);
 	*d1 = fcoord+k0;
-	if (*d1<1) *d1=1;
+	if (*d1<0) *d1=0;
 	d2 = fcoord+k1;
-	if (d2>dim) d2 = dim;
+	if (d2>=dim) d2 = dim-1;
 
 	*ptpend = tpend = table+(d2 - *d1);
 	d = *d1, tp = table, dtp = dtable;

@@ -24,7 +24,7 @@ const mxArray *prhs[];
 	map=get_maps(prhs[0], &n);
 	if (n!=1)
 	{
-		free_maps(map);
+		free_maps(map, n);
 		mexErrMsgTxt("Bad image handle dimensions.");
 	}
 
@@ -32,7 +32,7 @@ const mxArray *prhs[];
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
 			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
-			free_maps(map);
+			free_maps(map, 1);
 			mexErrMsgTxt("Coordinates must be numeric, real, full and double.");
 		}
 
@@ -46,7 +46,7 @@ const mxArray *prhs[];
 		mxIsSparse(prhs[4]) || !mxIsDouble(prhs[4]) ||
 		(mxGetM(prhs[4])*mxGetN(prhs[4]) != 1 && mxGetM(prhs[4])*mxGetN(prhs[4]) != 2))
 	{
-		free_maps(map);
+		free_maps(map, 1);
 		mexErrMsgTxt("Bad hold & background argument.");
 	}
 
@@ -54,7 +54,7 @@ const mxArray *prhs[];
 
 	if (abs(hold) > 127)
 	{
-		free_maps(map);
+		free_maps(map, 1);
 		mexErrMsgTxt("Bad hold value.");
 	}
 
@@ -73,7 +73,7 @@ const mxArray *prhs[];
 	{
 		if (hold==0)
 		{
-			free_maps(map);
+			free_maps(map, 1);
 			mexErrMsgTxt("This wont work for nearest neighbour resampling.");
 		}
 		plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
@@ -85,5 +85,5 @@ const mxArray *prhs[];
 			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
 			hold, background);
 	}
-	free_maps(map);
+	free_maps(map, 1);
 }

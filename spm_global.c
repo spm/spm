@@ -35,7 +35,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	map = get_maps(prhs[0], &j);
 	if (j != 1)
 	{
-		free_maps(map);
+		free_maps(map, j);
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 	n = map->dim[0]*map->dim[1];
@@ -68,5 +68,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
 	mxGetPr(plhs[0])[0]=s2;
-	free_maps(map);
+	free_maps(map, 1);
 }

@@ -5,7 +5,6 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #include <math.h>
 #include "mex.h"
 #include "spm_vol_utils.h"
-#include "spm_map.h"
 
 #include<stdio.h>
 
@@ -87,6 +86,8 @@ FILE *fp;
 		}
 		if (z-fzdim-zoff+1>=0 && z-fzdim-zoff+1<zdim)
 		{
+			int t = z-fzdim-zoff+1;
+
 			fstart = ((z >= zdim) ? z-zdim+1 : 0);
 			fend = ((z-fzdim < 0) ? z+1 : fzdim);
 
@@ -120,7 +121,7 @@ FILE *fp;
 			    case UNSIGNED_CHAR:
 			      for(xy=0; xy<xdim*ydim; xy++)
 				{
-				  obuf[xy] = (obuf[xy]-vol->offset)/vol->scale;
+				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
 				  if (obuf[xy] > 255.0) obuf[xy]=255.0;
 				  if (obuf[xy] < 0.0) obuf[xy]=0.0;
 				  ((unsigned char *)obuf)[xy] = obuf[xy] + 0.5;
@@ -129,7 +130,7 @@ FILE *fp;
 			    case SIGNED_SHORT:
 			      for(xy=0; xy<xdim*ydim; xy++)
 				{
-				  obuf[xy] = (obuf[xy]-vol->offset)/vol->scale;
+				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
 				  if (obuf[xy] > 32767.0) obuf[xy]=32767.0;
 				  if (obuf[xy] < -32768.0) obuf[xy]=-32768.0;
 				  ((short *)obuf)[xy] = floor(obuf[xy]+0.5);
@@ -138,21 +139,21 @@ FILE *fp;
 			    case SIGNED_INT:
 			      for(xy=0; xy<xdim*ydim; xy++)
 			      {
-				  obuf[xy] = (obuf[xy]-vol->offset)/vol->scale;
+				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
 				  ((int *)obuf)[xy] = floor(obuf[xy]+0.5);
 			      }
 			      break;
 			    case FLOAT:
 			      for(xy=0; xy<xdim*ydim; xy++)
 			      {
-				  obuf[xy] = (obuf[xy]-vol->offset)/vol->scale;
+				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
 				((float *)obuf)[xy] = obuf[xy];
 			      }
 			      break;
 			    case DOUBLE:
 			      for(xy=0; xy<xdim*ydim; xy++)
 			      {
-				  obuf[xy] = (obuf[xy]-vol->offset)/vol->scale;
+				  obuf[xy] = (obuf[xy]-vol->offset[t])/vol->scale[t];
 			          /* nothing needed */
 			      }
 			      break;
@@ -197,50 +198,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int FileOffset=0;
 	double *VolInfo, *oVol;
 
-	if (nrhs < 6 || nrhs > 7 || nlhs > 0)
+	if (nrhs < 6 || nlhs > 0)
 	{
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 	
-	/* Extra parameter flags use of image in memory */
-	if (nrhs == 7)
+	map=get_maps(prhs[0], &k);
+	if (k!=1)
 	{
-		if (!mxIsNumeric(prhs[6]) || mxIsComplex(prhs[6]) ||
-			mxIsSparse(prhs[6]) || !mxIsDouble(prhs[6])) 
-			mexErrMsgTxt("Bad volume info");
-		VolInfo = mxGetPr(prhs[0]);
-		vol.dim[0] = (int)VolInfo[0];
-		vol.dim[1] = (int)VolInfo[1];
-		vol.dim[2] = (int)VolInfo[2];
-		vol.scale  = 1.0;
-		vol.offset = 0.0;
-		vol.dtype  = DOUBLE;
-		if (vol.dim[0]*vol.dim[1]*vol.dim[2] != mxGetM(prhs[6])*mxGetN(prhs[6]))
-			mexErrMsgTxt("Map dimension info doesn't match array");
-		vol.data = (unsigned char *)mxGetPr(prhs[6]);
-		map = &vol;
+		free_maps(map, k);
+		mexErrMsgTxt("Too many images to smooth at once.");
 	}
-	else
-	{
-		MAP *lmap;
-		map=get_maps(prhs[0], &k);
-		if (k!=1)
-		{
-			free_maps(map);
-			mexErrMsgTxt("Too many images to smooth at once.");
-		}
-		lmap=(MAP *)mxGetPr(prhs[0]);
-		FileOffset = lmap->off;
-	}
+	/* Sorry Tom - maybe I'll put this stuff back in later:
+	lmap=(MAP *)mxGetPr(prhs[0]);
+	FileOffset = lmap->off; */
+	FileOffset = 0;
 
 	/* Non string-ness of destination img flags use of memory for output */
-	if (!mxIsNumeric(prhs[1]))
+	if (mxIsChar(prhs[1]))
 	{
 		stlen = mxGetN(prhs[1]);
 		str = (char *)mxCalloc(stlen+1, sizeof(char));
 		if (mxGetString(prhs[1],str,stlen+1))
 		{
 			mxFree(str);
+			free_maps(map, 1);
 			mexErrMsgTxt("Could not convert string data.");
 		}
 		if ((fp = fopen(str,"r+")) == (FILE *)0)
@@ -248,6 +230,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			if ((fp = fopen(str,"w")) == (FILE *)0)
 			{
 				mxFree(str);
+				free_maps(map, 1);
 				mexErrMsgTxt("Cant open output file.");
 			}
 		}
@@ -258,7 +241,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
 			mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]) ||
 			mxGetM(prhs[1])*mxGetN(prhs[1]) != map->dim[0]*map->dim[1]*map->dim[2])
+		{
+			free_maps(map, 1);
 			mexErrMsgTxt("Bad output array");
+		}
 		fp = (FILE *)0;
 		oVol = (double *)mxGetPr(prhs[1]);
 	}
@@ -268,11 +254,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
                         mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
+			free_maps(map, 1);
                         mexErrMsgTxt("Functions must be numeric, real, full and double.");
 		}
 
 	if (mxGetM(prhs[5])*mxGetN(prhs[5]) != 3)
 	{
+		free_maps(map, 1);
 		mexErrMsgTxt("Offsets must have three values.");
 	}
 	offsets = mxGetPr(prhs[5]);
@@ -286,7 +274,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		fp, oVol) != 0)
 	{
 		(void)fclose(fp);
+		free_maps(map, 1);
 		mexErrMsgTxt("Error writing data.");
 	}
 	(void)fclose(fp);
+	free_maps(map, 1);
 }

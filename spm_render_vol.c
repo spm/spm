@@ -215,7 +215,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	map = get_maps(prhs[0], &n);
 	if (n!=1)
 	{
-		free_maps(map);
+		free_maps(map, n);
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 
@@ -224,7 +224,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
 			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
 		{
-			free_maps(map);
+			free_maps(map, 1);
 			mexErrMsgTxt("Arguments must be numeric, real, full and double.");
 		}
 	}
@@ -232,14 +232,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	/* get transformation matrix */
 	if (mxGetM(prhs[1]) != 4 && mxGetN(prhs[1]) != 4)
 	{
-		free_maps(map);
+		free_maps(map, 1);
 		mexErrMsgTxt("Transformation matrix must be 4 x 4.");
 	}
 	mat = mxGetPr(prhs[1]);
 
 	if (mxGetM(prhs[2])*mxGetN(prhs[2]) != 2)
 	{
-		free_maps(map);
+		free_maps(map, 1);
 		mexErrMsgTxt("Output dimensions must have two elements.");
 	}
 	odims = mxGetPr(prhs[2]);
@@ -248,7 +248,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if (mxGetM(prhs[3])*mxGetN(prhs[3]) != 2)
 	{
-		free_maps(map);
+		free_maps(map, 1);
 		mexErrMsgTxt("Parameters must have 2 elements.");
 	}
 	params = mxGetPr(prhs[3]);
@@ -272,5 +272,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	light[2] = mat[10];
 
 	render(x, y, z, m, n, out, map, light, params[0], (int)params[1]);
-	free_maps(map);
+	free_maps(map, 1);
 }
