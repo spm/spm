@@ -26,12 +26,12 @@ if (fid > 0)
 	hdr.hist = hist;
 
 	% SPM specific bit - unused
-	if hdr.hk.sizeof_hdr > 348,
-		spmf = read_spmf(fid,dime.dim(5));
-		if ~isempty(spmf),
-			hdr.spmf = spmf;
-		end;
-	end;
+	%if hdr.hk.sizeof_hdr > 348,
+	%	spmf = read_spmf(fid,dime.dim(5));
+	%	if ~isempty(spmf),
+	%		hdr.spmf = spmf;
+	%	end;
+	%end;
 
 	fclose(fid);
 else,
