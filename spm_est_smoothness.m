@@ -93,7 +93,7 @@ end
 
 % compute variance of normalized derivatives in all directions
 %-----------------------------------------------------------------------
-fprintf('%-40s: %30s','Smoothness','...estimating derivatives')      %-#
+fprintf('%-40s: %30s\n','Smoothness','...estimating derivatives')      %-#
 spm_progress_bar('Init',100,'smoothness estimation','');
 
 v     = zeros(size(Ix,1),N);
