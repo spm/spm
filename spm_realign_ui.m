@@ -322,7 +322,7 @@ if nargin==0 | strcmp(lower(opt),'ui'),
 elseif nargin>0 & strcmp(lower(opt),'defaults'),
 	defaults.realign = get_defs(defaults.realign);
 elseif nargin>0 & strcmp(lower(opt),'unwarpdefaults'),
-        defaults.unwarp = get_unwarp_defs(defaults.realign);
+        defaults.unwarp = get_unwarp_defs(defaults.unwarp);
 end;
 return;
 
