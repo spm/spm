@@ -526,7 +526,7 @@ elseif strcmp(Topic,'MenuWin')
 		'%s\n%%\n',...
 		'%% SPM functions are called from the main SPM Menu',...
 			' window.\n',...
-		'%% Click on the buttons in the representation below for',...
+		'%% Click the buttons in the representation below',...
 			' for help on that topic...\n',...
 		'%%\n',...
 		'%% Click on "Help" for information on SPM documentation,',...
@@ -667,7 +667,7 @@ if isempty(Fname) | ...			%-No such file
 	exist(Fname,'file')==3		%-Watch out for MEX files!
 	Fname = which([Topic,'.m']);	%-if MEX, try *.m file
 end
-fid = fopen(Fname,'r');			%-Try to open file
+fid = fopen(Fname,'rt');			%-Try to open file
 
 if fid<0				%-No file - try 'ShortTopics'
 	[S,Err] = spm_help('!ShortTopics',Topic);
@@ -772,7 +772,7 @@ spm_help('!Clear',Fhelp)
 %-----------------------------------------------------------------------
 if isempty(S)
 	%-Load text file or get text from 'ShortTopics'
-	fid = fopen(Fname,'r');
+	fid = fopen(Fname,'rt');
 	if fid<0
 		[S,Err] = spm_help('!ShortTopics',Fname);
 	else
