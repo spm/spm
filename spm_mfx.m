@@ -166,7 +166,7 @@ for j = 1:nP
 end
 end
 
-sF    = {'parameters','session','',''};
+sF    = {'parameter','session','',''};
 I     = [];
 for i = 1:n
 for j = 1:nP
@@ -234,7 +234,7 @@ for i = 1:length(Q);
 end
 
 S.xVi.V  = sparse(V2);
-S.xVi.Vi = Vi{i};
+S.xVi.Vi = Vi;
 S.xVi.h  = h;
 
 
