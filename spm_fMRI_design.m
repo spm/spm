@@ -297,7 +297,7 @@ for s = 1:nsess
 		spm_input('Other regressors',1,'d',Fstr,'batch')
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0,...
-    	                          'batch',{},'regressors_nb');
+    	                          'batch',{},'regressors_nb',s);
                 while size(D,2) < c
 		      str   = sprintf('regressor %i',size(D,2) + 1);
 		      D = [D spm_input(str,2,'e',[],[k Inf],...

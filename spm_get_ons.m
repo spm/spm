@@ -130,7 +130,7 @@ DSstr  = '';
 %-----------------------------------------------------------------------
 if isempty(v)
 	v     = spm_input('number of conditions or trials',2,'w1',...
-                          'batch',{},'conditions_nb');
+                          'batch',{},'conditions_nb',s);
 end
 if isempty(Cname)
 	Cname = {};
@@ -153,7 +153,7 @@ if v
 	spm_input('Trial specification...',1,'d',Fstr,'batch')
 	if STOC
 		 STOC = spm_input('stochastic design','+1','y/n',[1 0],...
-                                  'batch',{},'stochastics_flag');
+                                  'batch',{},'stochastics_flag',s);
 	end
 	if STOC
 
@@ -289,7 +289,7 @@ if v
 		 'time',...
 		 'other'};
 	Ptype = spm_input('parametric modulation','+1','b',Ptype,...
-                          'batch',{},'parametrics_type');
+                          'batch',{},'parametrics_type',s);
 	switch Ptype
 
 		case 'none'
