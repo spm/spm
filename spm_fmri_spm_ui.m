@@ -254,10 +254,7 @@ Global = spm_input(str,1,'scale|none',{'Scaling' 'None'});
 
 % High-pass filtering
 %---------------------------------------------------------------------------
-str	= 'High-pass filter?';
-cLFmenu = {'specify',...
-	   'none'};
-cLF     = spm_input(str,'+1','b',cLFmenu);
+cLF     = spm_input('High-pass filter?','+1','b','none|specify');
 
 % specify cut-off (default based on peristimulus time)
 % param = cut-off period (max = 512, min = 32)
@@ -296,16 +293,7 @@ end
 
 % Low-pass filtering
 %---------------------------------------------------------------------------
-if spm_input('Low-pass filter?','+1','specify|none',[1 0]);
-	cHFmenu = {'hrf',...
-		   'Gaussian'};
-	cHF     = spm_input('kernel','+1','b',cHFmenu);
-else
-	cHF     = 'none';
-end
-
-% get Gaussian parameter
-%---------------------------------------------------------------------------
+cHF =  spm_input('Low-pass filter?','+1','none|Gaussian|hrf');
 switch cHF
 
 	case 'Gaussian'
@@ -314,7 +302,7 @@ switch cHF
 	HFstr   = sprintf('Gaussian FWHM %0.1f seconds',param);
 	param   = param/sqrt(8*log(2));
 
-	case 'hrf'
+	case {'hrf', 'none'}
 	%-------------------------------------------------------------------
 	param   = [];
 	HFstr   = cHF;
@@ -434,7 +422,7 @@ sGMsca   = 'session specific';
 xsDes    = struct(	'Design',			X.DSstr,...
 			'Basis_functions',		X.BFstr,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
-			'Conditions_per_session',	sprintf('%-2d',ntr),...
+			'Conditions_per_session',	sprintf('%-3d',ntr),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
 			'High_pass_Filter',		LFstr,...
 			'Low_pass_Filter',		HFstr,...
