@@ -5,7 +5,7 @@ function spm_fmri_spm_ui
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
 % thresholds that specify the ensuing statistical analysis. These
-% arguments are passed to spm_fmri_spm that then performs the actual analysis.
+% arguments are passed to spm_spm that then performs the actual analysis.
 %
 % This routine has two uses:
 %
@@ -32,11 +32,11 @@ function spm_fmri_spm_ui
 %
 %     From the user's perspective it is important to specify the design
 % matrix and contrasts correctly.  The design matrix is built when you
-% specifiy the number of subjects and conditions.  The covariates (that
+% specify the number of subjects and conditions.  The covariates (that
 % constitute the columns of the design matrix) can be thought of as
 % reference vectors and can be specified as such.  Alternatively one
 % can specify reference vectors in terms of response functions or
-% waveforms: Waveforms are specified for each epoch of scans that
+% waveforms: Waveforms are specified for each EPOCH of scans that
 % constitute a particular condition.  Note that if there are two
 % conditions, then two covariates are specified each expressing the
 % same waveform[s] every time the condition occurs.  A waveform is
@@ -54,6 +54,13 @@ function spm_fmri_spm_ui
 % prompted for some specific confounds such as low frequency artifacts
 % and whole brain activity.
 %
+% Epochs can vary in length (and order) within and between subjects or runs.
+% If multiple subjects or runs are specified, then subject or run-specific
+% waveforms are used.  This means that main effects of condotions and
+% interactions between conditions and subjects (or runs) can be evaluated
+% with the appropriate contrast.  If you want to treat all your runs (or
+% subjects) as one then specify just one subject.
+%
 % The CONTRAST is simply a list or vector of coefficients that are used
 % to test for a pattern of effects.  The number of coefficients (length
 % of the CONTRAST) should be the same as the number of covariates of interest
@@ -63,17 +70,17 @@ function spm_fmri_spm_ui
 %
 % Friston KJ, Holmes A, Poline J-B, Grasby PJ, Williams SCR, Frackowiak
 % RSJ & Turner R (1995) Analysis of fMRI time-series revisited. NeuroImage
-% - in press
+% 2:45-53
 %
 % Worsley KJ and Friston KJ (1995) Analysis of fMRI time-series revisited -
-% again. NeuroImage submitted
+% again. NeuroImage 2:178-181
 %
 % Friston KJ, Frith CD, Frackowiak RSJ, & Turner R (1995) Characterising
 % dynamic brain responses with fMRI: A multivariate approach NeuroImage -
-% in press
+% 2:166-172
 %
 % Frith CD, Turner R & Frackowiak RSJ (1995) Characterising evoked 
-% hemodynamics with fMRI Friston KJ, NeuroImage - in press
+% hemodynamics with fMRI Friston KJ, NeuroImage 2:157-165
 %
 %__________________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline %E%
@@ -95,10 +102,9 @@ H     = [];				% Factors of interest
 C     = [];				% covariates of interest
 B     = [];				% Factors of no interest
 G     = [];				% covariates of no interest
-T     = [];				% row matrix of contrasts
-K     = [];				% string matrix for graphical output
+F     = [];				% Low frequency confounds
+CONTRAST = [];				% row matrix of contrasts
 
-CONTRAST = [];
 
 % get Repeat time
 %----------------------------------------------------------------------------
@@ -109,36 +115,32 @@ RT     = spm_input('Interscan interval {secs}',1);
 GM     = 100;
 
 
-% cycle over studies, subjects and conditions
+% get filenames
 %----------------------------------------------------------------------------
-n      = spm_input(['# of subjects'],1);
-k      = spm_input(['# of scans/subject'],2);
-q      = n*k;
-for j  = 1:n
-	d = ['select scans 1 - ' num2str(k) ' {subject ' num2str(j) '}'];
- 	Q = str2mat(Q,spm_get(k,'.img',d));
+nsubj  = spm_input(['# of subjects or sessions'],2,'e',1);
+nscan  = zeros(1,nsubj);
+for i  = 1:nsubj
+	str      = sprintf('select scans for session %0.0f',i);
+	P        = spm_get(Inf,'.img',str);
+ 	Q        = str2mat(Q,P);
+	nscan(i) = size(P,1);
 end
-
 Q(1,:) = []; P = Q;
+q      = size(P,1);
 
-% check that the data have been normalized and get ORIGIN
+
+% design matrix effect names
+%---------------------------------------------------------------------------
+Hnames = ' ';
+Bnames = ' ';
+Cnames = ' ';
+Gnames = ' ';
+
+
+% get ORIGIN
 %----------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
 if DIM(3) == 1; ORIGIN = [0 0 0]; end
-
-% design matrix subpartitions - Block or subject
-%---------------------------------------------------------------------------
-B     = []; for i = 1:k; B = [B; eye(n)]; end
-B     = reshape(B,n,q)';
-B     = (B' - ones(n,1)*mean(B'))';
-
-% remove any redundant Block partition
-%---------------------------------------------------------------------------
-if (size(B,2) == q) | (size(B,2) == 1); B = []; end
-
-% constant term
-%---------------------------------------------------------------------------
-K     = ones(q,1);
 
 
 % covariates of interest - Type
@@ -148,51 +150,57 @@ CovF  = str2mat(...
 	'2 temporal basis functions',...
 	'half sine-wave',...
 	'delayed box-car');
-
 Cov   = spm_input('Select type of response',3,'m',CovF,[1:size(CovF,1)]);
 
 
 % for each subject
 %---------------------------------------------------------------------------
-for v = 1:n
-	
+for v = 1:nsubj
+
+    % condotions for this session
+    %-----------------------------------------------------------------------
+    k = nscan(v);
+
     % user specified
     %-----------------------------------------------------------------------
     if Cov == 1
 
     	% number of covariates of interest
 	%-------------------------------------------------------------------
-	c     = spm_input('# of covariates or conditions',4);
+	c     = spm_input('# of waveforms or conditions',4);
 	D     = [];
 	while size(D,2) < c
 		u   = size(D,2) + 1;
-		str = sprintf('[%d]-covariate %d, subject %d',k,u,v);
+		str = sprintf('[%d]-covariate %d, session %d',k,u,v);
 		d   = spm_input(str,5);
 		if size(d,2) == k
-			d = d'; 	end
+			d    = d'; 	 end
 		if size(d,1) == k
-			D   = [D d(:)];	end		
+			D    = [D d]; end	
+	end
+	for i = 1:size(D,2)
+		Cnames = str2mat(Cnames,sprintf('Sess %0.0f Cond %0.0f',v,i));
 	end
 
     else
 
 	% vector of conditions
 	%-------------------------------------------------------------------
-	a = spm_input('conditions {1 to n} eg 1 2 1 2....',5);
-	a = a(:); a = a';
+	a     = spm_input('order of epochs eg 1 2 1 2....',4);
+	a     = a(:); a = a';
 	
 	% vector of epoch lengths
 	%-------------------------------------------------------------------
-	e	= [];
-	while length(e) ~= length(a) & all(e>0)
-		e = spm_input(sprintf('Subj. %d: scans/epoch eg 10 ',v),5);
+	e     = [];
+	while length(e) ~= length(a) & all(e > 0)
+		e = spm_input('scans/epoch eg 10 or 8 6 8.... ',5);
 		if length(e) == 1; e = e*ones(1,length(a)); end
 	end
-	e = e(:); e = e';
+	e     = e(:); e = e';
 
 	% onsets for all conditions  
 	%-------------------------------------------------------------------
-	ons  	= [1 cumsum(e)+1]; ons = ons(1:(length(ons)-1));
+	ons   = [1 (cumsum(e) + 1)]; ons = ons(1:(length(ons) - 1));
 	
 
 	% 2 modulated sine waves
@@ -206,6 +214,13 @@ for v = 1:n
 		  D(([1:size(W,1)] + (ons(i) - 1)),((a(i) - 1)*2 + [1 2])) = W;
 		end
 		D = D(1:k,:);
+		for i = 1:size(D,2)/2
+			str    = sprintf('Sess %0.0f Cond %0.0f E',v,a(i));
+			Cnames = str2mat(Cnames,str);
+			str    = sprintf('Sess %0.0f Cond %0.0f L',v,a(i));
+			Cnames = str2mat(Cnames,str);
+		end
+
 	
 	% single sine wave
 	%-------------------------------------------------------------------
@@ -217,62 +232,102 @@ for v = 1:n
 		  D(([1:size(W,1)] + (ons(i) - 1)),a(i)) = W;
 		end
 		D = D(1:k,:);
+		for i = 1:size(D,2)
+			str    = sprintf('Sess %0.0f Cond %0.0f',v,a(i));
+			Cnames = str2mat(Cnames,str);
+		end
+
 
 	% 6 second delayed box-car
-	%---------------------------------------------------------------
+	%-------------------------------------------------------------------
 	elseif Cov == 4
-		D = zeros(k,max(a)); 
+		D     = zeros(k,max(a)); 
 		for i = 1:length(e)
 			D(ons(i):ons(i)+e(i)-1,a(i)) = ones(e(i),1);
 		end
 		delay = round(6/RT);
-		D(delay+1:k,:) = D(1:k-delay,:); 
+		D((delay + 1):k,:) = D(1:(k - delay),:); 
 		D(1:delay,:) = zeros(delay,max(a));
+		for i = 1:size(D,2)
+			str    = sprintf('Sess %0.0f Cond %0.0f',v,a(i));
+			Cnames = str2mat(Cnames,str);
+		end
+
 	end
 
 	
 
-    end %-- else --%
-    C = [C; D];
-end
+    end % (else)
 
+    % append to C
+    %-----------------------------------------------------------------------
+    [x y]  = size(C);
+    [i j]  = size(D);
+    C(([1:k] + sum(nscan(1:(v - 1)))),([1:j] + y)) = D;
 
-% covariates not of interest
-%----------------------------------------------------------------------------
-g     = spm_input('# of covariates of no interest',5);
-while size(G,2) < g
-	d = spm_input(sprintf('[%0.0f]- covariate %0.0f',q,size(G,2) + 1),6);
-	if size(d,2) == q
+    % append to B
+    %-----------------------------------------------------------------------
+    [x y]  = size(B);
+    B(([1:k] + x),(1 + y))   = ones(k,1);
+    Bnames = str2mat(Bnames,sprintf('Session %0.0f',v));
+
+    % covariates not of interest
+    %---------------------------------------------------------------------------
+    g      = spm_input('# of covariates of no interest',5,'e',0);
+    D      = [];
+    while size(D,2) < g
+	u   = size(D,2) + 1;
+	str = sprintf('[%d]-confound %d, session %d',k,u,v);
+	d   = spm_input(str,6,'e',0);
+	if size(d,2) == k
 		d = d'; 	end
-	if size(d,1) == q
-    		G = [G d];	end
-end
+	if size(d,1) == k
+		D = [D d];	end
+
+    end
+
+    % append to G
+    %-----------------------------------------------------------------------
+    [x y]  = size(G);
+    [i j]  = size(D);
+    G(([1:k] + sum(nscan(1:(v - 1)))),([1:j] + y)) = D;
+    for i = 1:size(D,2)
+    	Gnames = str2mat(Gnames,sprintf('Confound %0.0f',i));
+    end
+
+end % loop over sessions
 
 
-% high pass filter
-%----------------------------------------------------------------------------
-F     = [];
-if spm_input('high pass filter',6,'yes|no',[1 0])
-      d     = spm_input('cut-off period {secs}',6);
-      u     = [1:k/2];
-      u     = find(u < 2*(k*RT)/d);
-      for v = 1:length(u)
-              d = sin(pi*[1:k]*u(v)/k);
-              F = [F d(:)];
-              d = cos(pi*[1:k]*u(v)/k);
-              F = [F d(:)];
-      end
-end
-
-
-
-%-replicate this partition for each subject and combine confounds
-% Specified confounds, low frequency components and constant
+% high pass filter using discrete cosine set
 %---------------------------------------------------------------------------
-d      = F;   F = [];
-for i  = 1:n; F = [F; d]; end
-G      = [G F K];
+if spm_input('high pass filter',6,'yes|no',[1 0])
+	CUT   = spm_input('cut-off period {secs}',6,'e',120);
+	for v = 1:nsubj
+		D     = [];
+		k     = nscan(v);
+		u     = [1:k/2];
+		u     = find(u <= 2*(k*RT)/CUT);
+		for i = 1:length(u)
+			d = cos(pi*[0:(k - 1)]*u(i)/(k - 1));
+			D = [D d(:)];
+		end
 
+    		% append to G
+   		%-----------------------------------------------------------
+    		[x y] = size(F);
+    		[i j] = size(D);
+   		F(([1:i] + x),([1:j] + y))   = D;
+
+	end
+end
+
+
+%-combine confounds and append confound effect names
+%---------------------------------------------------------------------------
+G      = spm_en([G F]);
+for i  = 1:size(F,2);
+	Gnames = str2mat(Gnames,sprintf('Low Hz %0.0f',i));
+end
 
 % global normalization with ANCOVA as the default
 %----------------------------------------------------------------------------
@@ -283,27 +338,24 @@ if spm_input(str,7,'yes|no',[1 0])
 
 
 % get contrasts or linear compound for parameters of interest [H C]
-%----------------------------------------------------------------------------
-t       = 0;
+%---------------------------------------------------------------------------
+t         = 0;
 if size([H C],2)
 	t = spm_input('# of contrasts',8); end
 
 while size(CONTRAST,1) ~= t
-        d = sprintf('[%0.0f] contrast %0.0f',size(C,2),size(CONTRAST,1) + 1);
-	d = spm_input(d,9);
-	d = d(1:size([H C],2));
-	d = d(:)';
+	d   = [];
+        str = sprintf('[%0.0f] contrast %0.0f',size(C,2),size(CONTRAST,1) + 1);
+	while size(d,2) ~= size([H C],2)
+		d = spm_input(str,9);
+	end
      	CONTRAST = [CONTRAST; d]; end
 end
-%-Get orientation of images
-%-----------------------------------------------------------------------
-FLIP   = spm_input('Image left = subject''s ',9,'right|left',[1,0]);
 
 % temporal smoothing
-%----------------------------------------------------------------------------
-%SIGMA  = 1;
-if spm_input('Temporal smoothing',10,'yes|no',[1 0])
-	SIGMA  = 1;
+%---------------------------------------------------------------------------
+if spm_input('Temporal smoothing',9,'yes|no',[1 0])
+	SIGMA  = sqrt(8)/RT;
 else
 	SIGMA  = 0;
 end
@@ -311,25 +363,27 @@ end
 
 
 % the interactive parts of spm_spm_ui are now finished
-%----------------------------------------------------------------------------
-set(2,'Name','thankyou','Pointer','Watch')
+%---------------------------------------------------------------------------
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set(Finter,'Name','thankyou','Pointer','Watch')
 
 
 
 % get file identifiers and global values
-%============================================================================
+%===========================================================================
 V     = zeros(12,q);
 for i = 1:q; V(:,i) = spm_map(P(i,:));  end
 
 
 % check for consistency of image size and voxel size
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 if ~(all(all(~diff(V([1:3],:)'))))
 	error('images are not compatible'); end
 
 
 % adjust scaling coefficients so that Grand mean - <GM> = GM
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 GX     = zeros(q,1);
 for i  = 1:q
 	GX(i) = spm_global(V(:,i)); end
@@ -338,8 +392,8 @@ for i  = 1:q
 V(7,:) = V(7,:)*GM/mean(GX);
 GX     = GX*GM/mean(GX);
 
-if strcmp(GLOBAL,'AnCova');  G      = [G GX];        			end
-if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX;	end
+if strcmp(GLOBAL,'AnCova'); G = [G GX]; Gnames = str2mat(Gnames,'Global'); end
+if strcmp(GLOBAL,'Scaling'); V(7,:) = GM*V(7,:)./GX'; GX = GM*GX./GX;	   end
 
 
 
@@ -350,26 +404,37 @@ for i = 1:size(CONTRAST,1)
 		CONTRAST(i,:) = CONTRAST(i,:) - mean(CONTRAST(i,:));
 	end
 end
-d     = size(CONTRAST,1);
-CONTRAST = [CONTRAST zeros(d,size([B G],2))];
+[i j]    = size(CONTRAST);
+CONTRAST = [CONTRAST zeros(i,(size([H C B G],2) - j))];
 
+%-Construct full design matrix and name matrices for display
+%---------------------------------------------------------------------------
+Hnames(1,:) = [];
+Cnames(1,:) = [];
+Bnames(1,:) = [];
+Gnames(1,:) = [];
+
+
+%-centre confounds (Not block, which can embody the constant term)
+%---------------------------------------------------------------------------
+G     = spm_detrend(G,0);
+
+[nHCBG,HCBGnames] = spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
 
 % display analysis parameters
-%============================================================================
-global CWD
-figure(3); spm_clf; axis off
-axes('Position',[0.3 0.6 0.4 0.3])
-imagesc(spm_DesMtxSca([H C B G]))
-xlabel('parameters or effects')
-ylabel('scan')
+%===========================================================================
+figure(Fgraph); spm_clf; axis off
+axes('Position',[0.2 0.5 0.6 0.4])
+imagesc(spm_DesMtxSca(nHCBG)')
+set(gca,'FontSize',8)
+set(gca,'YTick',[1:size(nHCBG)],'YTickLabels',HCBGnames)
+xlabel('scan')
 title(['Design Matrix'],'Fontsize',16,'Fontweight','Bold')
 
 axes('Visible','off')
-text(0.20,0.36,'Filename');
-text(0.00,0.50,['AnCova for ' CWD],'Fontsize',16);
-text(0.00,0.36,'Subject',   'Rotation',90);
-text(0.06,0.36,'Scan',      'Rotation',90);
-y     = 0.32;
+text(0.00,0.40,['AnCova for ' spm('DirTrunc',pwd,24)],'Fontsize',16);
+text(0.00,0.32,'Session, scan and Filename');
+y     = 0.28;
 dy    = 0.03;
 if size(B,2)
 	for i = 1:size(B,2)
@@ -377,7 +442,7 @@ if size(B,2)
 		v = max(find(B(:,i) > 0));
 		d = sprintf('%d  %d to %d ',i,u,v);
 		text(0,y,d,'FontSize',10)
-		text(0.2,y, [P(u,:) '...'],'FontSize',10)
+		text(0.2,y, [P(u,:) '...'],'FontSize',8)
 		y = y - dy;
 	end
 else
@@ -391,7 +456,8 @@ if SIGMA
 	text(0,y,['Temporal Smoothing {2.8sec Gaussian Kernel}']); y = y - dy;
 end
 if size(F,2)
-	text(0,y,['High Pass Filtering {0.5 cycles per minute}']); y = y - dy;
+	str = sprintf('Hi-Pass cutoff %0.1f cycles/min',60/CUT);
+	text(0,y,str); y = y - dy;
 end
 text(0,y,sprintf('Grand Mean = %0.2f a.u.',GM)); y = y - dy;
 text(0,y,sprintf('Interscan Interval = %0.2f secs',RT)); y = y - dy;
@@ -399,12 +465,13 @@ text(0,y,['Response Form: ' CovF(Cov,:)  ]); y = y - dy;
 text(0,y,['Global Normalization: ' GLOBAL]); y = y - dy;
 
 
-
-
 spm_print
 
 
 % implement analysis proper
-%---------------------------------------------------------------------------
-spm_fmri_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,RT,SIGMA,FLIP);
+%--------------------------------------------------------------------------
+spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT);
 
+%-Clear figure
+%-----------------------------------------------------------------------
+spm_clf(Finter); set(Finter,'Name',' ','Pointer','Arrow');
