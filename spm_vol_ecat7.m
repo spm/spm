@@ -48,7 +48,7 @@ sh       = ECAT7_sheader(fp,list(2));
 fclose(fp);
 
 dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
-if ~spm_bigend & dim(4)~=2, dim(4) = dim(4)*256; end;
+if ~spm_platform('bigend') & dim(4)~=2, dim(4) = dim(4)*256; end;
 
 pinfo    = [sh.SCALE_FACTOR ; 0 ; 512*list(2)];
 

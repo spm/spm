@@ -39,6 +39,8 @@ function [strout,R2] = spm_str_manip(strin,options)
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end
 
+sep = spm_platform('sepchar');
+
 strout = cellstr(strin);
 R2     = '';
 
@@ -70,12 +72,12 @@ while (~isempty(options))
 		switch options(1)		
 		case 'r'	% Remove a trailing suffix of the form `.xxx',
 				% leaving the basename.
-			d1 = max([find(str == '/') 0]);
+			d1 = max([find(str == sep) 0]);
 			d2 = max([find(str == '.') 0]);
 			if (d2>d1), str = str(1:(d2-1)); end
 
 		case 'e'	% Remove all but the suffix.
-			d1 = max([find(str == '/') 0]);
+			d1 = max([find(str == sep) 0]);
 			d2 = max([find(str == '.') 0]);
 			if (d2>d1)
 				str = str((d2+1):length(str));
@@ -85,14 +87,14 @@ while (~isempty(options))
 
 		case 'h'	% Remove a trailing pathname component,
 				% leaving the head.
-			d1 = max([find(str == '/') 0]);
+			d1 = max([find(str == sep) 0]);
 			if (d1>0)
 				str = str(1:(d1-1));
 			end
 
 		case 'H'	% Remove a trailing pathname component,
 				% leaving the head.
-			d1 = max([find(str == '/') 0]);
+			d1 = max([find(str == sep) 0]);
 			if (d1>0)
 				str = str(1:(d1-1));
 			else
@@ -101,7 +103,7 @@ while (~isempty(options))
 
 		case 't'	% Remove all leading  pathname  components,
 				% leaving the tail.
-			d1 = max([find(str == '/') 0]);
+			d1 = max([find(str == sep) 0]);
 			if (d1>0)
 				str = str((d1+1):length(str));
 			end
@@ -120,7 +122,7 @@ while (~isempty(options))
 			end
 
 		case 'a'	% Last few characters
-			m1   = find(str == '/');
+			m1   = find(str == sep);
 			l    = length(str);
 			if (c < l)
 				m2   = find(l-m1+1+2 <= c);
@@ -148,7 +150,8 @@ while (~isempty(options))
 				( str>='A' & str<='Z' ) | ...
 				( str>='0' & str<='9' ) | ...
 				  str=='-' | str=='_' | ...
-				  str=='.' | str=='/' );
+				  str=='.' | str=='/' | ...
+				  str==sep);
 			str = str(tmp);
 
 		case 'p'
@@ -170,7 +173,7 @@ while (~isempty(options))
 			strout = char(strout(:));
 			msk    = diff(strout+0)~=0;
 			d1     = min(find(sum(msk)));
-			d1     = max([find(strout(1,1:d1) == '/') 0]);
+			d1     = max([find(strout(1,1:d1) == sep) 0]);
 			R2     = strout(1,1:d1);
 			strout = reshape(cellstr(strout(:,d1+1:end)),tmp);
 		end

@@ -24,8 +24,8 @@ set(Finter,'Pointer','watch');
 
 % Set up header information
 %-----------------------------------------------------------------------
-q       = max([find(Q == '/') 0]);
-Q       = [CWD '/' spm_str_manip(Q((q + 1):length(Q)),'sd')];
+q       = max([find(Q == spm_platform('sepchar')) 0]);
+Q       = [CWD spm_platform('sepchar') spm_str_manip(Q((q + 1):length(Q)),'sd')];
 str     = sprintf('spm{%c}-filtered: u = %5.3f, k = %d',SPM.STAT,SPM.u,SPM.k);
 V       = struct(...
 	'fname',	Q,...

@@ -720,7 +720,7 @@ if ~isempty(fg),
 	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
 	p  = spm_str_manip(P(1,:), 'd');
-	q  = max([find(p == '/') 0]);
+	q  = max([find(p == spm_platform('sepchar')) 0]);
 	q  = [p(1:q) 'n' p((q + 1):length(p))];
 	h2=spm_orthviews('Image',q,[.5 0.1 .5 .5]);
 	spm_orthviews('Space',h2);

@@ -38,7 +38,7 @@ spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
 	Q = P(i,:);
 	Q = Q(Q ~= ' ');
-	d = max([find(Q == '/') 0]);
+	d = max([find(Q == spm_platform('sepchar')) 0]);
 	U = [Q(1:d) 's' Q((d + 1):length(Q))];
 	if ~strcmp(U([1:4] + length(U) - 4),'.img'); U = [U '.img']; end
 	spm_smooth(Q,U,s);

@@ -10,7 +10,9 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % chose a 'representative scan' in this role.
 %
 % For fMRI data an additional adjustment is made to the data that removes
-% movement-related confounds according to a ARMA-like model of these effects
+% a tiny amount of the movement-related confounds of these effects.
+% However, it may be preferable to include the functions of the estimated
+% movement parameters as confounds in the statistics part.
 %
 %
 % Uses
@@ -32,6 +34,8 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % files to the same subdirectory prefixed with an 'r' (i.e. r*.img).  The
 % details of the transformation are displayed in the results window as
 % plots of translation and rotation.
+% A set of realignment parameters are saved for each session, named:
+% realignment_params_*.txt.
 %
 %__________________________________________________________________________
 % Refs:
@@ -149,8 +153,9 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % the design matrix for the statistics may be problematic when there are
 % stimulous correlated movements, since adjusting seperately requires the
 % assumption that the movements are independant from the paradigm.  It
-% may be be better to include the estimated motion parameters as confounds
-% when the statistics are run.
+% MAY BE BE BETTER TO INCLUDE THE ESTIMATED MOTION PARAMETERS AS CONFOUNDS
+% WHEN THE STATISTICS ARE RUN.  The motion parameters are saved for each
+% session, so this should be easily possible.
 %
 % 'Reslice Interpolation Method?'
 % 	'Trilinear Interpolation'
@@ -162,7 +167,7 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 %	of realigned images.
 % 	This is slower than bilinear interpolation, but produces better
 % 	results. It is especially recommended for fMRI time series.
-%	An 11x11x11 kernel is used to resample the images.
+%	An 11x11x11 kernel is used to resample the images. 
 %
 %	'Fourier space Interpolation' (fMRI only)
 %	Rigid body rotations are executed as a series of shears, which
@@ -241,8 +246,12 @@ if (nargin == 0)
 			P{i} = pp;
 		else
 			ns = 1;
-			P{i} = spm_get(Inf,'.img',...
-				['select scans for subject ' num2str(i)]);
+			p  = '';
+			while size(p,1)<1,
+				p = spm_get(Inf,'.img',...
+					['select scans for subject ' num2str(i)]);
+			end;
+			P{i} = p;
 			sessions{i} = size(P{i},1);
 		end
 	end
@@ -431,8 +440,9 @@ function reslice_images(P,Flags,sessions)
 %             with a 'r'.
 %             They are all aligned with the first.
 
-if any(Flags == 'F'),
-	reslice_images_kspace(P,Flags,sessions);
+if any(Flags == 'F') | ~any(Flags == 'c'),
+	if any(Flags == 'c'), warning('No adjustment will be done'); end;
+	reslice_images_volbyvol(P,Flags,sessions);
 	return;
 end;
 
@@ -452,9 +462,7 @@ if (any(Flags == 'n') & ~any(Flags == 'i')) start_vol = 2; end
 if ~any(Flags == 'N'),
 	PO = P;
 	for i = start_vol:prod(size(P)),
-		p             = deblank(P(i).fname);
-		q             = max([find(p == '/') 0]);
-		PO(i).fname   = [p(1:q) 'r' p((q + 1):length(p))];
+		PO(i).fname   = prepend(P(i).fname,'r');
 		PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
 		PO(i).mat     = P(1).mat;
 		PO(i).descrip = 'spm - realigned';
@@ -580,17 +588,11 @@ if any(Flags == 'i'),
 	%-----------------------------------------------------------
 
 	PO         = P(1);
-	p          = P(1).fname;
-	q          = max([find(p == '/') 0]);
-	PO.fname   = [p(1:q) 'mean' p((q + 1):length(p))];
+	PO.fname   = prepend(P(1).fname, 'mean');
 	PO.pinfo   = [max(max(Integral))/32767 0 0]';
 	PO.descrip = 'spm - mean image';
 	PO.dim(4)  = 4;
-
-	spm_create_image(PO);
-	for j=1:PO.dim(3),
-		spm_write_plane(PO,reshape(Integral(:,j),PO.dim(1:2)),j);
-	end;
+	spm_write_vol(PO,reshape(Integral,PO.dim(1:3)));
 end;
 
 spm_figure('Clear','Interactive');
@@ -1030,9 +1032,9 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function reslice_images_kspace(P,Flags,sessions)
-% Reslices images using Fourier Transforms
-% FORMAT reslice_images_kspace(P,Flags,sessions)
+function reslice_images_volbyvol(P,Flags,sessions)
+% Reslices images volume by volume
+% FORMAT reslice_images_volbyvol(P,Flags,sessions)
 %
 % P     - matrix of filenames {one string per row}
 %         All operations are performed relative to the first image.
@@ -1044,8 +1046,6 @@ function reslice_images_kspace(P,Flags,sessions)
 %            P((sessions(2-1)+1):sessions(2),:).
 %
 % Flags - options flags
-%
-%         c - adjust the data (fMRI) to remove movement-related components.
 %
 %         k - mask output images
 %             To avoid artifactual movement-related variance the realigned
@@ -1068,93 +1068,106 @@ function reslice_images_kspace(P,Flags,sessions)
 %         N - don't reslice any of the images - except possibly create a
 %             mean image.
 %
-%             The spatially realigned and adjusted images are written to
-%             the orginal subdirectory with the same filename but prefixed
-%             with a 'r'.
+%             The spatially realigned images are written to the orginal
+%             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
+%
+% The only reason for reslicing a series plane by plane is to do the adjustment.
+
 
 P=spm_vol(P);
 
-% Check the matrixes
-for i=1:prod(size(P)),
-	pp = spm_imatrix(P(1).mat/P(i).mat);
-	if any(abs(pp(7:12)-[1 1 1 0 0 0]) > 1e-6),
-		error('Can''t do non isotropic voxels!');
+if any(Flags == 'F'),
+	% Check the matrixes
+	for i=1:prod(size(P)),
+		pp = spm_imatrix(P(1).mat\P(i).mat);
+		if any(abs(pp(7:12)-[1 1 1 0 0 0]) > 1e-7),
+			error('Can''t do non isotropic voxels!');
+		end;
 	end;
 end;
 
 if any(Flags == 'k') | any(Flags == 'i'),
-	spm_progress_bar('Init',P(1).dim(3),'Masking','planes completed');
-	% Determine mask
-	x1=repmat((1:P(1).dim(1))',1,P(1).dim(2));
-	x2=repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
-	Count = zeros(P(1).dim(1:3));
-	for x3 = 1:P(1).dim(3)
-		for i = 1:prod(size(P))
-			Count(:,:,x3) = Count(:,:,x3) + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
-		end
+	spm_progress_bar('Init',P(1).dim(3),'Computing available voxels','planes completed');
+	x1    = repmat((1:P(1).dim(1))',1,P(1).dim(2));
+	x2    = repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
+	if any(Flags == 'i'), Count = zeros(P(1).dim(1:3)); end;
+	if any(Flags == 'k'), msk   = cell(P(1).dim(3),1);  end;
+	for x3 = 1:P(1).dim(3),
+		tmp = zeros(P(1).dim(1:2));
+		for i = 1:prod(size(P)),
+			tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+		end;
+		if any(Flags == 'k'), msk{x3} = find(tmp ~= prod(size(P))); end;
+		if any(Flags == 'i'), Count(:,:,x3) = tmp; end;
 		spm_progress_bar('Set',x3);
-	end
+	end;
 end;
 
 fprintf('Reslicing images..\n');
+Hold = 1;
+if (any(Flags == 'S')) Hold = -11; end
 spm_progress_bar('Init',prod(size(P)),'Reslicing','volumes completed');
 
 
 start_vol = 1;
-if (any(Flags == 'n') & ~any(Flags == 'i')) start_vol = 2; end
-
-if any(Flags == 'i')
-	Integral = zeros(P(1).dim(1:3));
-end
+if any(Flags == 'n') & ~any(Flags == 'i'), start_vol = 2; end;
+if any(Flags == 'i'), Integral = zeros(P(1).dim(1:3)); end;
 
 tiny = 5e-2; % From spm_vol_utils.c
 
 PO = P;
-for i = start_vol:prod(size(P))
-	v = abs(kspace3d(loadvol(P(i)),inv(P(1).mat\P(i).mat)));
-	for x3 = 1:P(1).dim(3),
-		if any(Flags == 'i'),
-			Integral(:,:,x3) = Integral(:,:,x3) + ...
-				v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+for i = start_vol:prod(size(P)),
+
+	PO(i).fname   = prepend(P(i).fname,'r');
+	PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
+	PO(i).mat     = P(1).mat;
+	PO(i).descrip = 'spm - realigned';
+
+	if any(Flags == 'F'),
+		v = abs(kspace3d(loadvol(P(i)),inv(P(1).mat\P(i).mat)));
+		for x3 = 1:P(1).dim(3),
+			if any(Flags == 'i'),
+				Integral(:,:,x3) = Integral(:,:,x3) + ...
+					v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+			end;
+			if any(Flags == 'k'),
+				tmp          = v(:,:,x3);
+				tmp(msk{x3}) = NaN;
+				v(:,:,x3)    = tmp;
+			end;
 		end;
-		if any(Flags == 'k'),
-			v(:,:,x3) = v(:,:,x3).*(Count(:,:,x3) == prod(size(P)));
+		if ((i>1) | ~any(Flags == 'n')) & ~any(Flags == 'N'), spm_write_vol(PO(i),v); end;
+	else,
+		if ((i>1) | ~any(Flags == 'n')) & ~any(Flags == 'N'), spm_create_image(PO(i)); end;
+		for x3 = 1:P(1).dim(3),
+			if (i>1) | ~any(Flags == 'n') | any(Flags == 'i'),
+				M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
+				v = spm_slice_vol(P(i),M,P(1).dim(1:2),Hold);
+			end;
+			if any(Flags == 'i'),
+				Integral(:,:,x3) = Integral(:,:,x3) + v;
+			end;
+
+			if ((i>1) | ~any(Flags == 'n')) & ~any(Flags == 'N'),
+				if any(Flags == 'k'), v(msk{x3}) = NaN; end;
+				spm_write_plane(PO(i),v,x3);
+			end;
 		end;
 	end;
-
-	if (i>1) | ~any(Flags == 'n')
-		p             = deblank(P(i).fname);
-		q             = max([find(p == '/') 0]);
-		PO(i).fname   = [p(1:q) 'r' p((q + 1):length(p))];
-		PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
-		PO(i).mat     = P(1).mat;
-		PO(i).descrip = 'spm - realigned';
-		spm_create_image(PO(i));
-		for j=1:PO(i).dim(3),
-			spm_write_plane(PO(i),v(:,:,j),j);
-		end;
-	end
 	spm_progress_bar('Set',i);
 end;
 
 if any(Flags == 'i')
 	% Write integral image (16 bit signed)
 	%-----------------------------------------------------------
-	Integral = Integral./Count;
-
+	Integral   = Integral./Count;
 	PO         = P(1);
-	p          = P(1).fname;
-	q          = max([find(p == '/') 0]);
-	PO.fname   = [p(1:q) 'mean' p((q + 1):length(p))];
+	PO.fname   = prepend(P(1).fname, 'mean');
 	PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
 	PO.descrip = 'spm - mean image';
 	PO.dim(4)  = 4;
-
-	spm_create_image(PO);
-	for j=1:PO.dim(3),
-		spm_write_plane(PO,Integral(:,:,j),j);
-	end;
+	spm_write_vol(PO,Integral);
 end
 
 spm_figure('Clear','Interactive');
@@ -1176,7 +1189,8 @@ function v = kspace3d(v,M)
 % Magnetic Resonance in Medicine 36(6):923-931
 %_______________________________________________________________________
 p  = spm_imatrix(M);
-if any(abs(p(7:12)-[1 1 1 0 0 0]) > 1e-6), error('Can''t do zooms or shears!'); end;
+if any(abs(p(7:12)-[1 1 1 0 0 0]) > 1e-7), error('Can''t do zooms or shears!'); end;
+if all(abs(p(1:6)))<1e-7, return; end;
 d  = [size(v) 1 1 1];
 
 % Pad if necessary (may be an idea to pad more - but the operation would then
@@ -1246,6 +1260,8 @@ for j=1:g(2),
 	end;
 end;
 if r==1, v=real(v); end
+if any(g~=d), tmp = v; v = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
+
 return;
 %_______________________________________________________________________
 
@@ -1353,6 +1369,6 @@ tail = spm_str_manip(PI,'t');
 if strcmp(head,tail),
 	PO = [pre tail];
 else,
-	PO   = [head '/' pre tail];
+	PO   = [head spm_platform('sepchar') pre tail];
 end;
 return;

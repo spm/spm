@@ -49,7 +49,7 @@ m2=prod(size(V2));
 VO=V2;
 for i=1:m2,
 	p  = spm_str_manip(VO(i).fname, 'd');
-	q  = max([find(p == '/') 0]);
+	q  = max([find(p == spm_platform('sepchar')) 0]);
 	q  = [p(1:q) 'm' p((q + 1):length(p))];
 	VO(i).fname    = q;
 

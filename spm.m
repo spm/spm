@@ -349,7 +349,7 @@ Finter = spm('CreateIntWin','off');				fprintf('.')
 spm_figure('WaterMark',Finter,spm('Ver'),'',45),		fprintf('.')
 Fgraph = spm_figure('Create','Graphics','Graphics','off');	fprintf('.')
 
-Fmotd = [spm('Dir'),'/spm_motd.man'];
+Fmotd = [spm('Dir'),spm_platform('sepchar'),'spm_motd.man'];
 if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
 								fprintf('.')
 
@@ -400,6 +400,7 @@ Fmenu = figure('IntegerHandle','off',...
 	'MenuBar','none',...
 	'DefaultUicontrolFontSize',FS3,...
 	'DefaultUicontrolInterruptible','on',...
+	'Renderer', 'zbuffer',...
 	'Visible','off');
 
 
@@ -612,6 +613,7 @@ Finter = figure('IntegerHandle','off',...
 	'MenuBar','none',...
 	'DefaultUicontrolFontSize',2*round(10*min(spm('GetWinScale'))/2),...
 	'DefaultUicontrolInterruptible','on',...
+	'Renderer', 'zbuffer',...
 	'Visible',Vis);
 varargout = {Finter};
 
@@ -664,11 +666,9 @@ global CWD
 
 SWD	 = spm('Dir');					% SPM directory
 CWD	 = pwd;						% Working directory
-TWD	 = getenv('SPMTMP');				% Temporary directory
-if isempty(TWD)
-	TWD = '/tmp';
-end
-
+%%
+TWD	 = spm_platform('tempdir');			% Temp directory
+	
 %-Get global modality defaults
 %-----------------------------------------------------------------------
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
@@ -781,7 +781,7 @@ if nargin<2, Mfile='spm'; else, Mfile=varargin{2}; end
 SPMdir = which(Mfile);
 if ~isstr(SPMdir)
 	error(['Can''t find ',Mfile,' on MATLABPATH']); end
-tmp    = max(find(SPMdir=='/'))-1;
+tmp    = max(find(SPMdir==spm_platform('sepchar')))-1;
 if tmp, SPMdir = SPMdir(1:tmp); end
 varargout = {SPMdir};
 
@@ -810,7 +810,7 @@ end
 %-Work version out from file
 %-----------------------------------------------------------------------
 SPMdir = spm('Dir',Mfile);
-CFile  = [SPMdir,'/Contents.m'];
+CFile  = [SPMdir,spm_platform('sepchar'),'Contents.m'];
 if exist(CFile)
 	fid  = fopen(CFile,'r');
 	str = setstr([fread(fid,80,'char')',setstr(10)]);
@@ -898,7 +898,7 @@ if ~strcmp(Term,'sun-cmd'), return, end
 %-----------------------------------------------------------------------
 User        = spm('GetUser');
 [null,Host] = unix('echo `hostname` | sed -e ''s/\..*$//''');
-Host        = Host(1:length(Host)-1);
+Host        = Host(1:length(Host)-1); 
 v           = spm('MLver');
 
 if nargin<3, IconLabel = ['MatLab',v(1)]; end
@@ -923,10 +923,7 @@ evalin('base',CBs{v-1})
 case 'getuser'
 %=======================================================================
 % User = spm('GetUser')
-User = getenv('USER');
-if isempty(User), User='user'; end
-varargout = {User};
-
+varargout = {spm_platform('user')};
 
 case 'beep'
 %=======================================================================

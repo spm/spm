@@ -230,7 +230,7 @@ st.vols{1}.omat = st.vols{1}.mat;
 st.B = [0 0 0  0 0 0  1 1 1  0 0 0];
 
 P      = P(P ~= ' ');
-d      = max([find(P == '/') 0]);
+d      = max([find(P == spm_platform('sepchar')) 0]);
 Q      = [P(1:d) 't' P((d + 1):length(P))];
 B      = [0 0 0 0 0 0 1 1 1];			% tranformation matrix
 

@@ -46,7 +46,7 @@ sizeof_hdr 	= fread(fid,1,'int32');
 if sizeof_hdr==1543569408, % Appears to be other-endian
 	% Re-open other-endian
 	fclose(fid);
-	if spm_bigend,
+	if spm_platform('bigend'),
 		fid = fopen(P,'r','ieee-le');
 	else,
 		fid = fopen(P,'r','ieee-be');

@@ -119,7 +119,7 @@ for j=1:size(dat,1),
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(pre{i}.dep),1);
 		else,
-			X = zeros(size(dep));
+			X = zeros(size(pre{i}.dep));
 		end;
 
 		mx(j) = max([mx(j) max(max(X))]);
