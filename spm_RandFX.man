@@ -10,9 +10,9 @@
 % See also: spm_getSPM.m   (contrast evaluation)
 %           spm_conman.m   (contrast definition)
 %
-%-----------------------------------------------------------------------
+%=======================================================================
 % Overview: Fixed and random effects, the SPM multi-level approach
-%-----------------------------------------------------------------------
+%=======================================================================
 % 
 % SPM uses a fixed effects model. That is, the parameters of the model
 % are assumed fixed, and of interest in their own right. The only
@@ -90,9 +90,9 @@
 % effects) analysis of these data.
 % 
 %
-%-----------------------------------------------------------------------
+%=======================================================================
 % The SPM99 approach
-%-----------------------------------------------------------------------
+%=======================================================================
 %
 % The basic procedure for a random effects analysis in SPM99 is as follows: 
 % * First, fit the model for each subject 
@@ -224,9 +224,9 @@
 % toolbox...
 %
 %
-%-----------------------------------------------------------------------
+%=======================================================================
 % References
-%-----------------------------------------------------------------------
+%=======================================================================
 %
 % A paper is currently in preparation. However, the basic gist is
 % reported in the abstract:
@@ -279,9 +279,9 @@
 % 	Journal of Cerebral Blood Flow and Metabolism, 12:900-918
 %
 %
-%-----------------------------------------------------------------------
+%=======================================================================
 % The SPM96 approach reprised (for historical interest)
-%-----------------------------------------------------------------------
+%=======================================================================
 %
 % With SPM96, basic random effects analyses for simple categorical
 % compariosns were retrospectively implemented in a limited way using
