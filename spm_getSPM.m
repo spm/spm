@@ -12,6 +12,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .Ic    - indices of contrasts (in xCon)
 % .Im    - indices of masking contrasts (in xCon)
 % .pm    - p-value for masking (uncorrected)
+% .Ex    - flag for exclusive masking (i.e. exclude voxel if signficant in mask)
 % .u     - height threshold
 % .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
@@ -220,10 +221,16 @@ if spm_input('mask with other contrast(s)','+1','y/n',[1,0],2)
 		'Select contrasts for masking...',' for masking',1);
 
 	%-Threshold for mask (uncorrected p-value)
+	%---------------------------------------------------------------
 	pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
+
+	%-Inclusive or exclusive masking
+	%---------------------------------------------------------------
+	Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
 else
 	Im = [];
 	pm = [];
+	Ex = [];
 end
 
 
@@ -247,11 +254,16 @@ else
 	str = [	sprintf('contrasts {%d',Ic(1)),...
 		sprintf(',%d',Ic(2:end)),'}'];
 end
+if Ex
+	mstr = 'masked [exclusive] by';
+else
+	mstr = 'masked [inclusive] by';
+end
 if length(Im)==1
-	str = sprintf('%s (masked by %s at p=%g)',str,xCon(Im).name,pm);
+	str = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
 elseif ~isempty(Im)
-	str = [	sprintf('%s (masked by {%d',str,Im(1)),...
+	str = [	sprintf('%s (%s {%d',str,mstr,Im(1)),...
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
 end
@@ -335,9 +347,9 @@ for ii = 1:length(I)
             %-Write image
 	    %-----------------------------------------------------------
             fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
-            xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
-            xCon(i).Vcon = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
-            xCon(i).Vcon            = spm_create_image(xCon(i).Vcon);
+            xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
+            xCon(i).Vcon  = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
+            xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
 
 	otherwise
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
@@ -424,8 +436,14 @@ end
 %-----------------------------------------------------------------------
 if ~isempty(Im), fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking'), end %-#
 for i = Im
-	Q     = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > ...
-		spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
+
+	Mask  = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+	um    = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
+	if Ex
+		Q     =  Mask <= um;
+	else
+		Q     =  Mask >  um;
+	end
 	XYZ   = XYZ(:,Q);
 	QQ    = QQ(Q);
 	if isempty(Q), break, end
@@ -561,6 +579,7 @@ SPM    = struct('swd',		swd,...
 		'Ic',		Ic,...
 		'Im',		Im,...
 		'pm',		pm,...
+		'Ex',		Ex,...
 		'u',		u,...
 		'k',		k,...
 		'XYZ',		XYZ,...
