@@ -1,5 +1,5 @@
-% SPM96b
-% Statistical Parametric Mapping - SPM96b
+% SPM96
+% Statistical Parametric Mapping - SPM96
 %_______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -10,21 +10,20 @@
 % John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 %_______________________________________________________________________
 %
-% SPM96b - Manifest
+% SPM96 - Manifest
 %
+% SPM96 is written for Matlab 4.2c under UNIX
 %-----------------------------------------------------------------------
-% Contents.m              %I%
+% README                   1.1      (New for SPM96)
+% Contents.m               %I%
 % Grid.mat
-% MIP.mat
-% SCCS
+% MIP.mat                  1.2
 % Split.mat
-% apriori
-% canonical
-% connex.h
-% dbh.h
+% connex.h                 1.2
+% dbh.h                    (Mayo clinic database sub-definitions)
 % render.mat
-% spm.m                    1.25
-% spm.man                  1.17
+% spm.m                    1.26     (1.25)
+% spm.man                  1.19     (1.17)
 % spm_AnCova.m             1.4
 % spm_DesMtx.m             1.1
 % spm_DesMtxSca.m          1.1
@@ -71,26 +70,26 @@
 % spm_clusters.m           1.1
 % spm_clusters.mexsg
 % spm_clusters.mexsol
-% spm_conv.m               1.2
+% spm_conv.m               1.3      (1.2 )
 % spm_conv_vol.c           1.3
 % spm_conv_vol.m           1.2
 % spm_conv_vol.mexsg
 % spm_conv_vol.mexsol
-% spm_coregister.m         1.11
+% spm_coregister.m         1.12     (1.11)
 % spm_dctmtx.m             1.3
-% spm_defaults.m           1.7
+% spm_defaults.m           1.8      (1.7 )
 % spm_defaults_edit.m      1.9
 % spm_detrend.m            1.2
 % spm_display.m            1.5
 % spm_en.m                 1.1
-% spm_figure.m             1.13
+% spm_figure.m             1.14     (1.13)
 % spm_fix_header.m         1.1
 % spm_fmri.man             1.2
 % spm_fmri_spm_ui.m        1.17
 % spm_format.man           1.2
 % spm_fzero.m              1.1
-% spm_get.m                1.12
-% spm_get_space.m          1.6
+% spm_get.m                1.13     (1.12)
+% spm_get_space.m          1.7      (1.6 )
 % spm_global.c             1.1
 % spm_global.m             1.2
 % spm_global.mexsg
@@ -104,6 +103,7 @@
 % spm_image.m              1.4
 % spm_image.man            1.1
 % spm_image_funks.m        1.4
+% spm_imatrix.m            1.2       (New for SPM96)
 % spm_input.m              1.9
 % spm_invFcdf.m            1.2
 % spm_invGcdf.m            1.2
@@ -145,7 +145,7 @@
 % spm_mip.m                1.8
 % spm_mip_ui.m             1.3
 % spm_modality.man         1.1
-% spm_motd.man
+% spm_motd.man             1.2      (1.1 )
 % spm_orthviews.m          1.2
 % spm_pF.m                 1.2
 % spm_pet.man              1.2
@@ -156,14 +156,14 @@
 % spm_project.m            1.1
 % spm_project.mexsg
 % spm_project.mexsol
-% spm_projections.m        1.11
+% spm_projections.m        1.12     (1.11)
 % spm_projections.man      1.1
 % spm_projectionsF.m       1.3
 % spm_projectionsF_ui.m    1.6
-% spm_projections_ui.m     1.11
+% spm_projections_ui.m     1.11.1.1 (1.11)
 % spm_rctx.mat
 % spm_readXA.m             1.1
-% spm_realign.m            1.15
+% spm_realign.m            1.16     (1.15)
 % spm_realign.man          1.3
 % spm_render.m             1.4
 % spm_render_vol.c         1.3
@@ -179,7 +179,7 @@
 % spm_sample_vol.mexsg
 % spm_sample_vol.mexsol
 % spm_sections.m           1.7
-% spm_segment.m            1.25
+% spm_segment.m            1.27     (1.25)
 % spm_slice_vol.c          1.5
 % spm_slice_vol.m          1.1
 % spm_slice_vol.mexsg
@@ -187,20 +187,20 @@
 % spm_smooth.m             1.4
 % spm_smooth.man           1.1
 % spm_smooth_ui.m          1.3
-% spm_sn3d.m               1.15
+% spm_sn3d.m               1.16     (1.15) 
 % spm_sn3d.man             1.2
 % spm_snbasis_map.m        1.5
 % spm_spm.m                1.23
 % spm_spm.man              1.1
-% spm_spm_ui.m             1.15
-% spm_sptop.m              1.1
+% spm_spm_ui.m             1.15.1.2 (1.15)
+% spm_sptop.m              1.2      (1.1 )
 % spm_str_manip.m          1.3
 % spm_svd.m                1.3
 % spm_svd.man              1.1
 % spm_svd_ui.m             1.2
 % spm_t2z.m                1.8
 % spm_transverse.m         1.7
-% spm_type.m               1.1
+% spm_type.m               1.2      (1.1 )
 % spm_unlink.c             1.1
 % spm_unlink.m             1.2
 % spm_unlink.mexsg
@@ -213,22 +213,20 @@
 % spm_vol_utils.c          1.5
 % spm_write.m              1.2
 % spm_write_filtered.m     1.1
-% spm_write_sn.m           1.4
+% spm_write_sn.m           1.5      (1.4 )
 % templates.man            1.1
-% volume.h
+% volume.h                 1.6
 % 
 % apriori
+% apriori/csf.hdr
 % apriori/csf.img
 % apriori/gray.hdr
 % apriori/gray.img
 % apriori/white.hdr
 % apriori/white.img
-% apriori/symmetric.hdr
-% apriori/symmetric.img
 % apriori/symmetric_csf.hdr
 % apriori/symmetric_csf.img
 % apriori/symmetric_gray.hdr
-% apriori/csf.hdr
 % apriori/symmetric_gray.img
 % apriori/symmetric_white.hdr
 % apriori/symmetric_white.img
@@ -240,12 +238,43 @@
 % canonical/T1.hdr
 % 
 % templates
-% templates/T1.hdr
 % templates/PET.hdr
-% templates/T1.img
 % templates/PET.img
+% templates/T1.hdr
+% templates/T1.img
 % templates/T2.hdr
 % templates/T2.img
+%
+%-----------------------------------------------------------------------
+% The following SPM96 files have been updated since the beta release:
+%
+% README                1.1             - Basic README file (New for SPM96)
+% Contents.m            %I%             - This file, Manifest updated
+% spm_motd.man          1.2      (1.1 ) - Message of the day file updated
+% spm.man               1.19     (1.17) - Truncated paragraph, FLIP explained
+% spm_type.m            1.2      (1.1 ) + Spelling corrections!
+% spm.m                 1.26     (1.25) ~ Watermark removal
+% spm_figure.m          1.14     (1.13) ~ Bug fix: redundent findobj
+% spm_get.m             1.13     (1.12) ~ Bug in CmdLine code fixed
+% spm_spm_ui.m          1.15.1.2 (1.15) ~ Explicit constant, cCovNoInt int's
+% spm_projections_ui.m  1.11.1.1 (1.11) ~ svd problems(ML4.2c/Sol2.4)
+% spm_projections.m     1.12     (1.11) ~ Bug fix: Printed FWHMvoxels
+% spm_sptop.m           1.2      (1.1 ) ~ Kernel normalisation
+% spm_conv.m            1.3      (1.2 ) + Uses new spm_sptop.m
+% spm_realign.m         1.16     (1.15) ~ Old (x,y&z) adjustment reinstated
+% spm_imatrix.m         1.2             ~ New file for spm_realign.m v1.16
+% spm_coregister.m      1.12     (1.11) ~ Deletion of temporary files
+% spm_defaults.m        1.8      (1.7 ) + sptl_Rglrztn addded
+% spm_sn3d.m            1.16     (1.15) + Global sptl_Rglrztn
+% spm_get_space.m       1.7      (1.6 ) ~ VX : voxel sizes occasionally
+% spm_segment.m         1.27     (1.25) + niter=48, default starting estimate
+% spm_write_sn.m        1.5      (1.4 ) ~ Unmap files
+%
+% Version numbers in brackets refer to the version distributed with
+% SPM96b. Files labelled "~" are publicised updates to SPM96b,
+% discussed on the help list <spm@mailbase.ac.uk> and on the SPMweb
+% site http://www.fil.ion.ucl.ac.uk/spm. Files labelled "+" are
+% cosmetic improvements over SPM96b.
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
