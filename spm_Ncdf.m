@@ -27,13 +27,21 @@ function p = spm_Ncdf(z,Mu,SigmaSq)
 
 %-Condition arguments
 %---------------------------------------------------------------------------
-if nargin<3, SigmaSq=1; end
-if nargin<2, Mu=0; end
-if nargin<1, z=[]; end
+if nargin < 3, SigmaSq = 1;  end
+if nargin < 2, Mu      = 0;  end
+if nargin < 1, z       = []; end
 
-if SigmaSq<=0, error('SigmaSq must be strictly positive'), end
+if SigmaSq <=0 , error('SigmaSq must be strictly positive'), end
 
 %-Computation
 %---------------------------------------------------------------------------
-if isempty(z), p=[]; return, end
-p = 0.5 + 0.5*erf((z - Mu)./sqrt(2*SigmaSq));
+p  = zeros(size(z));
+h  = find(z > 6);
+l  = find(z <= 6);
+u  = (z - Mu)/sqrt(SigmaSq);
+if length(h)
+	p(h) = 1 - exp(-(u(h).^2)/2)./(u(h)*sqrt(2*pi));
+end
+if length(l)
+	p(l) = 0.5 + 0.5*erf(u(l)/sqrt(2));
+end
