@@ -392,7 +392,7 @@ if (nargin == 0)
 		for i=1:length(subj),
 			set(spm_figure('FindWin','Interactive'),'Name',['Normalising, subj ' num2str(i)],'Pointer','Watch');
 			drawnow;
-			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,...
+			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,[nbasis(:)' iterations 8 rglrztn],Template,aff_parms,...
 				brainmask, subj(i).objmask);
 		end;
 	end;
