@@ -77,140 +77,33 @@ case 'model'
 
 % missing fields added here for model       	  
 %---------------------------------------------------------------
-% Added fields are 
-%   model(k).nsess
-%   model(k).nscans
+% Added and modified fields are 
+%   nodel(k).nscans
 %   model(k).remain
-%   model(k).interp
+%   model(k).interp (if not defined before)
+%   model(k).time_sampl (if not defined before)
 %---------------------------------------------------------------
 %
 if exist('model') == 1, 
 
-   for k = 1:length(model)
-      model(k).nsess = length(model(k).conditions);
-   end
+  %- 
+  if ~isfield(model,'time_sampl')
+      for k =1:length(model)
+          model(k).time_sampl = cell(1,model(k).nsess);
+      end
+      [model.interp] = deal('');
+  end 
 
-   if ~isfield(model(k),'time_sampl')
-      for k = 1:length(model)
-         for l = 1:model(k).nsess
+  for k = 1:length(model)
+     for l = 1:model(k).nsess
+        model(k).nscans(l) = model(k).nscans(l)+length(model(k).time_sampl{l});
+        model(k).remain{l} = setdiff(1:model(k).nscans(l),...
+                             model(k).time_sampl{l});     
+     end %- for k = 1:length(model)
+  end %- if ~isfield(model(k),'time_sampl')
 
-   	    try %- if it can be evaluated...
-   	         files = eval(model(k).files{l});
-   	         e_nscans = size(files,1);
-   	    catch
-         	 e_nscans = size(model(k).files{l},1);
-   	    end
-
-            model(k).nscans(l) = e_nscans;
-            model(k).remain{l} = 1:model(k).nscans(l);
-            model(k).time_sampl{l} = [];
-            model(k).interp = '';
-         
-          end %- for l = 1:model(k).nsess
-
-      end %- for k = 1:length(model)
-   end %- if ~isfield(model(k),'time_sampl')
-
-   for k = 1:length(model)
-      for l = 1:model(k).nsess
-	   
-	   try %- if it can be evaluated...
-	      files = eval(model(k).files{l});
-	      e_nscans = size(files,1);
-	   catch
-	      e_nscans = size(model(k).files{l},1);
-	   end
-      	   model(k).nscans(l) = e_nscans+length(model(k).time_sampl{l});
-           model(k).remain{l} = setdiff(1:model(k).nscans(l),...
-                                     model(k).time_sampl{l});
-      
-      end % for l = 1:model(k).nsess
-   end % for k = 1:length(model)
 
 end % if exist('model') == 1, 
-
-
-% create regressors, parametrics and stochastics if necessary
-%------------------------------------------------------------
-if exist('model') == 1, for k = 1:length(model)
-
-  if isempty(model(k).regressors) | ~any(model(k).regressors) ...
-     | ~(exist('regressors')==1) %- not a variable in WS
-
-	if (exist('regressors')==1) & length(regressors),
-	   len = length(regressors);
-	   regressors(len+1) = regressors(len);
-	   regressors(len+1).number = 0;
-	   model(k).regressors = (len+1)*ones(1,model(k).nsess);
-	else
-     	   regressors(1)  	= struct('number', 0);
-	   model(k).regressors 	= ones(1,model(k).nsess);
-	end
-  end
-
-  if isempty(model(k).parametrics) | ~any(model(k).parametrics) ...
-     | ~(exist('parametrics')==1) %- not a variable in WS
-
-	if (exist('parametrics')==1) & length(parametrics),
-	   len = length(parametrics);
-	   parametrics(len+1) = parametrics(len);
-	   parametrics(len+1).type = 'none';
-	   model(k).parametrics = (len+1)*ones(1,model(k).nsess);
-	else
-     	   parametrics(1)  	= struct('type', 'none');
-	   model(k).parametrics = ones(1,model(k).nsess);
-	end
-  end
-
-  if isempty(model(k).stochastics) | ~any(model(k).stochastics) ...
-     | ~(exist('stochastics')==1) %- not a variable in WS
-
-	if (exist('stochastics')==1) & length(stochastics),
-	   len = length(stochastics);
-	   stochastics(len+1) = stochastics(len);
-	   stochastics(len+1).specify = 0;
-	   model(k).stochastics = (len+1)*ones(1,model(k).nsess);
-	else
-     	   stochastics(1)  	= struct('specify', 0);
-	   model(k).stochastics = ones(1,model(k).nsess);
-	end
-  end
-
-end, end % if exist('model') == 1, for k = 1:length(model)
-
-
-% missing fields added here for conditions       	  
-%------------------------------------------------------------
-% Added fields are 
-%   conditions(k,l).number
-%   conditions(k,l).fix_var_SOA
-%   conditions(k,l).types
-%------------------------------------------------------------
-
-if exist('model') == 1, 
-
-   if exist('conditions') == 1, for l = 1:length(conditions)
-
-       conditions(l).number = length(conditions(l).names);	
-       conditions(l).fix_var_SOA = 'Variable';
-       conditions(l).types = cell(1,conditions(l).number);
-
-       i_ev = find(conditions(l).bf_ev);
-       i_ep = find(conditions(l).bf_ep); 
-	    
-       if ~isempty(i_ev)
-          [conditions(l).types{i_ev}] = deal('events'); 
-       end
-       if ~isempty(i_ep)
-          [conditions(l).types{i_ep}] = deal('epochs'); 
-       end       
-
-  end, end %- if exist('conditions') == 1, for l = 1:length(conditions) 
-
-end % if exist('model') == 1
-
-%- clear variables ....
-clear i_ev i_ep k l str
 
 
 bch_names = {typeA,'conditions','stochastics',...
@@ -244,14 +137,11 @@ end %- if exist('contrasts') == 1
 
 bch_names = {typeA};
 
-%===============================================================
-case 'realignment'
-
-   warning(sprintf('not implemented %s',typeA))
 
 
 %===============================================================
 otherwise
+
    warning(sprintf('unknown type of analyse %s',typeA))
 
 
@@ -283,23 +173,3 @@ bch_mat = spm_str_manip(bch_mfile,'rp'); %- here contains the path
 
 
 
-%===============================================================
-%===============================================================
-% sub function to check the consistency of the variables
-%===============================================================
-
-function ok = sf_chk_model(model)
-ok=1; return;
-
-function ok = sf_chk_conditions(conditions)
-
-for l = 1:length(conditions)
-  i_ev = find(conditions(l).bf_ev);
-  i_ep = find(conditions(l).bf_ep); 
-  if (any(intersect(i_ev,i_ep)) | ...
-     any(setdiff(1:conditions(l).number,union(i_ev,i_ep))))
-     str = sprintf('conditions(%d): bad event/epoch specif',l);
-     error([str ' : check your parameter file']);
-  end
-end
-ok = 1; return;
