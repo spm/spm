@@ -116,8 +116,7 @@ offs  = cumsum(repmat(prod(VF(1).dim(1:2)),1,VF(1).dim(3)))-prod(VF(1).dim(1:2))
 pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
 [pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
 for j=1:3,
-	%tmp  = [spm_str_manip(VF(1).fname,'rd') '_seg' num2str(j) '.img'];
-	tmp   = [nm '_seg' num2str(j) '.img'];
+	tmp   = fullfile(pth,[nm '_seg' num2str(j) xt]);
 	VO(j) = struct(...
 		'fname',tmp,...
 		'dim',    [VF(1).dim(1:3) 2],...
@@ -594,8 +593,7 @@ if wc,
 	VC = VF;
 	for j=1:length(VF),
 		[pth,nm,xt,vr] = fileparts(deblank(VF(j).fname));
-		%VC(j).fname   = fullfile(pth,['m' nm xt vr]);
-		VC(j).fname    = ['m' nm '.img'];
+		VC(j).fname    = fullfile(pth,['m' nm xt vr]);
 		VC(j).descrip  = 'Bias corrected image';
 	end;
 	VC = spm_create_vol(VC);
