@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.14 2003-01-22 17:46:07 john Exp $
+# $Id: Makefile,v 2.15 2003-04-17 12:59:29 john Exp $
 #
 ###############################################################################
 #
@@ -209,6 +209,8 @@ utils_double_s.$(SUF).o: $(UTILS)
 	$(CC) -c -o $@ $<
 	@ $(CHMODIT) $@
 
+spm_getdata.$(SUF).o: spm_getdata.c spm_sys_deps.h
+
 spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
 
 spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
@@ -249,6 +251,7 @@ spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
 
 spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
 	$(MEX) spm_bsplins.c
+	@ $(CHMODIT) $@
 
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
@@ -259,6 +262,14 @@ spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
 	$(MEX) spm_global.c spm_vol_utils.$(SUF).a
 	@ $(CHMODIT) $@
+
+spm_atranspa.$(SUF): spm_atranspa.c spm_sys_deps.h
+
+spm_unlink.$(SUF): spm_unlink.c spm_sys_deps.h
+
+spm_max.$(SUF): spm_max.c spm_sys_deps.h
+
+spm_clusters.$(SUF): spm_clusters.c spm_sys_deps.h
 
 spm_hist2.$(SUF):      spm_hist2.c spm_sys_deps.h
 
