@@ -103,7 +103,7 @@ for i = 1:length(xCon)
 	    Q     = find(abs(xCon(i).c) > 0);
 	    V     = Vbeta(Q);
 	    for j = 1:length(Q)
-		V(j).pinfo(1,:) = V(j).pinfo(1,:)*xCon(i).c(Q(j));
+		V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(i).c(Q(j));
 	    end
 	    
 	    %-Prepare handle for contrast image
