@@ -193,10 +193,10 @@ if MustDoWork
 	% flag channels as bad if 20% of events above threshold
 	s = sum(Mbad, 2)/D.Nevents;
 	ind = find(s > 0.2);
-	
-	% remove EOGs from bad channels
-	ind = setdiff(ind, [D.channels.heog D.channels.veog]);
-	
+	if isfield(D.channels.heog) & isfield(D.channels.veog)
+		% remove EOGs from bad channels
+		ind = setdiff(ind, [D.channels.heog D.channels.veog]);
+	end
 	Mbad = zeros(D.Nchannels, D.Nevents);
 	Mbad(ind, :) = 1;
 	
