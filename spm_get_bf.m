@@ -17,8 +17,7 @@ function [BF,BFstr] = spm_get_bf(name,T,dt,Fstr,n_s,n_c)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %_______________________________________________________________________
-% @(#)spm_get_bf.m	2.10 Karl Friston 99/05/13
-
+% %W% Karl Friston %E%
 
 global batch_mat;
 global iA;

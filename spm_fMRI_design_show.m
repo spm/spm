@@ -27,7 +27,7 @@ function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % Sess{s}.Pv{i}    - vector of paramters for ith trial type
 % Sess{s}.Pname{i} - name   of paramters for ith trial type
 %_______________________________________________________________________
-% @(#)spm_fMRI_design_show.m	2.14 Karl Friston 99/06/09
+% %W% Karl Friston %E%
 
 global batch_mat
 

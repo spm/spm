@@ -159,8 +159,8 @@ function [xX,Sess] = spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %_______________________________________________________________________
-% @(#)spm_fmri_spm_ui.m	2.26 Karl Friston, Jean-Baptiste Poline, Christian Buchel 99/05/19
-SCCSid  = '2.26';
+% %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
+SCCSid  = '%I%';
 
 global batch_mat;
 global iA;
@@ -436,7 +436,7 @@ K       = spm_filter('set',K);
 
 % Adjust for missing scans
 %-----------------------------------------------------------------------
-[xX,Sess,K,P,nscan,row] = spm_bch_tsampl(xX,Sess,K,P,nscan); %-SR
+[xX,Sess,K,P,nscan,row] = spm_bch_tsampl(xX,Sess,K,P,nscan,row); %-SR
 
 % create Vi struct
 %-----------------------------------------------------------------------
@@ -514,32 +514,34 @@ end
 
 %-trial-specifc effects specified by Sess
 %-----------------------------------------------------------------------
-i      = length(F_iX0) + 1;
-if (Sess{1}.rep)
-	for t = 1:length(Sess{1}.name)
-		u     = [];
-		for s = 1:length(Sess)
-			u = [u Sess{s}.col(Sess{s}.ind{t})];
-		end
-		q             = 1:size(xX.X,2);
-		q(u)          = [];
-		F_iX0(i).iX0  = q;
-		F_iX0(i).name = Sess{s}.name{t};
-		i             = i + 1;
-	end
-else
-	for s = 1:length(Sess)
-		str   = sprintf('Session %d: ',s);
-		for t = 1:length(Sess{s}.name)
-			q             = 1:size(xX.X,2);
-			q(Sess{s}.col(Sess{s}.ind{t})) = [];
-			F_iX0(i).iX0  = q;
-			F_iX0(i).name = [str Sess{s}.name{t}];
-			i             = i + 1;
-		end
-	end
-end
-		
+% REMOVED THIS SECTION TO AVOID ENORMOUS xCON.mat FILES
+
+ i      = length(F_iX0) + 1;
+ if (Sess{1}.rep)
+ 	for t = 1:length(Sess{1}.name)
+ 		u     = [];
+ 		for s = 1:length(Sess)
+ 			u = [u Sess{s}.col(Sess{s}.ind{t})];
+ 		end
+ 		q             = 1:size(xX.X,2);
+ 		q(u)          = [];
+ 		F_iX0(i).iX0  = q;
+ 		F_iX0(i).name = Sess{s}.name{t};
+ 		i             = i + 1;
+ 	end
+ else
+ 	for s = 1:length(Sess)
+ 		str   = sprintf('Session %d: ',s);
+ 		for t = 1:length(Sess{s}.name)
+ 			q             = 1:size(xX.X,2);
+ 			q(Sess{s}.col(Sess{s}.ind{t})) = [];
+ 			F_iX0(i).iX0  = q;
+ 			F_iX0(i).name = [str Sess{s}.name{t}];
+ 			i             = i + 1;
+ 		end
+ 	end
+ end
+ 		
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
@@ -646,11 +648,15 @@ end
 
 function q = sf_bch_get_q(i,batch_mat,iA)
 %=======================================================================
+% This is to deal with a specific case where the sampling   
+% isn't regular. Only implemented in bch mode.
+% 
 q 	= spm_input('batch',batch_mat,{'model',iA},'files',i);
 files 	= q;
-t_sampl = spm_input('batch',batch_mat,{'model',iA},'time_sampl',i);
+t_sampl  = spm_input('batch',batch_mat,{'model',iA},'time_sampl',i);
 remain 	= spm_input('batch',batch_mat,{'model',iA},'remain',i);
 q(remain,:) = files;
+
 %- fills the gap with the first images .... 
 %- there should be enough first images !
 q(t_sampl,:) = files(1:length(t_sampl),:);

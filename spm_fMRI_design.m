@@ -125,8 +125,8 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % are computed for only the first column of SF.
 %
 %_______________________________________________________________________
-% @(#)spm_fMRI_design.m	2.20 Karl Friston 99/08/20
-SCCSid  = '2.20';
+% % %W%  Karl Friston %E%
+SCCSid  = '%I%';
 
 global batch_mat;
 global iA;
@@ -289,7 +289,7 @@ for s = 1:nsess
 
 		% get user specified regressors
 		%=======================================================
-		spm_input('Other regressors',1,'d',Fstr,'batch,'batch_mat)
+		spm_input('Other regressors',1,'d',Fstr,'batch',batch_mat)
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0,...
     	  'batch',batch_mat,{'model',iA,'regressors',s},'number');
