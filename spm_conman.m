@@ -717,7 +717,7 @@ varargout = {c',I,emsg,imsg,msg};
 %=======================================================================
 case 'parseistr'                     %-Parse index string
 %=======================================================================
-% [i,msg] = spm_conman('ParseIStr',str,max)
+% [iX0,I,emsg,imsg] = spm_conman('ParseIStr',str,max)
 % X is raw DesMtx or space structure
 % str should be a string (row)vector
 
@@ -733,41 +733,36 @@ max = varargin{3};
 I = evalin('base',['[',str,']'],'''!''');
 
 if isstr(I)
-	varargout = {[],0,[str,'  <- !evaluation error'],''};
+	varargout = {'!',0,[str,'  <- !evaluation error'],''};
 	return
 end
 
 %-Construct list of valid indicies
 %-----------------------------------------------------------------------
-ok = ismember(I(:)',[1:max]);
-i  = I(ok);
+ok  = ismember(I(:)',[1:max]);
+iX0 = I(ok);
 
-%-Construct diagnostic info messages (if required)
+%-Construct diagnostic info messages
 %-----------------------------------------------------------------------
-if nargout>1
-	str = ''; msg='';
-	if any(ok)
-		str = strvcat(str,num2str(I(ok)));
-		msg = strvcat(msg,'  <-  (OK)');
-	end
-	tmp = ( I<1 | I>max );			%-Out of range
-	if any(tmp)
-		str = strvcat(str,num2str(I(tmp)));
-		msg = strvcat(msg,sprintf('  <-  (ignored - not in [1:%d]',max));
-	end
-	tmp = ( ~tmp & ~ok );			%-Non integer in range
-	if any(tmp)
-		str = strvcat(str,num2str(I(tmp)));
-		msg = strvcat(msg,'  <-  (ignored - non-integer)');
-	end
-	msg = cellstr([str,msg]);
-else
-	msg={};
+str = ''; msg='';
+if any(ok)
+	str = strvcat(str,num2str(I(ok)));
+	msg = strvcat(msg,'  <-  (OK)');
+end
+tmp = ( I<1 | I>max );			%-Out of range
+if any(tmp)
+	str = strvcat(str,num2str(I(tmp)));
+	msg = strvcat(msg,sprintf('  <-  (ignored - not in [1:%d]',max));
+end
+tmp = ( ~tmp & ~ok );			%-Non integer in range
+if any(tmp)
+	str = strvcat(str,num2str(I(tmp)));
+	msg = strvcat(msg,'  <-  (ignored - non-integer)');
 end
 
 %-Return arguments
 %-----------------------------------------------------------------------
-varargout = {i,msg};
+varargout = {iX0,1,'',cellstr([str,msg])};
 
 
 %=======================================================================
@@ -836,19 +831,19 @@ elseif fcn==2               %-Process column indicies from X1cols widget
 %-----------------------------------------------------------------------
 	set(hD_ConMtx,'String','')
 
-	nPar     = spm_SpUtil('size',xX.xKXs,2);
-	[i,imsg] = spm_conman('ParseIStr',str,nPar);
+	nPar              = spm_SpUtil('size',xX.xKXs,2);
+	[iX0,I,emsg,imsg] = spm_conman('ParseIStr',str,nPar);
 
-	try	%-try-catch block for any errors in spm_FcUtil!
-		DxCon = spm_FcUtil('Set','',STAT,'iX0',i,xX.xKXs);
-		if STAT=='T' & size(DxCon.c,2)>1
-			I = 0; emsg = {'! t-contrasts must be vectors'};
-		else
-			I = 1; emsg = '';
-		end			
-	catch
-		I    = 0;
-		emsg = lasterr;
+	if I
+		try	%-try-catch block for any errors in spm_FcUtil!
+			DxCon = spm_FcUtil('Set','',STAT,'iX0',iX0,xX.xKXs);
+			if STAT=='T' & size(DxCon.c,2)>1
+				I = 0; emsg = {'! t-contrasts must be vectors'};
+			end
+		catch
+			I    = 0;
+			emsg = lasterr;
+		end
 	end
 end
 
