@@ -243,10 +243,9 @@ if flags.mask | flags.mean,
       if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
          T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
          txyz = xyz * T';
-         msk = msk + real(txyz(:,1) < 1 | txyz(:,1) > ds(s).P(1).dim(1) |...
-                          txyz(:,2) < 1 | txyz(:,2) > ds(s).P(1).dim(2) |...
-                          txyz(:,3) < 1 | txyz(:,3) > ds(s).P(1).dim(3)); 
-      
+         msk = msk + real(txyz(:,1) < 1 | txyz(:,1) > ds(s).sfP.dim(1) |...
+                          txyz(:,2) < 1 | txyz(:,2) > ds(s).sfP.dim(2) |...
+                          txyz(:,3) < 1 | txyz(:,3) > ds(s).sfP.dim(3)); 
       end
       if isfield(ds(s),'sfield') & ~isempty(ds(s).sfield)
          ds(s).sfield = [];
