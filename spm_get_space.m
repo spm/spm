@@ -32,6 +32,9 @@ if (nargin == 1)
 	% Assume transverse slices.
 
 	[dim vox scale typ offset origin descrip] = spm_hread([spm_str_manip(imagename,'sd') '.img']);
+	if isempty(dim),
+		error(sprintf('Can''t read header for "%s"\n', [spm_str_manip(imagename,'sd') '.img']));
+	end
 
 	% If origin hasn't been set, then assume
 	% it is the centre of the image.
