@@ -195,6 +195,23 @@ function varargout=spm(varargin)
 % Changes pointer on all SPM (HandleVisible) windows to type Pointer
 % Pointer defaults to 'Arrow'. Robust to absence of windows
 %
+% FORMAT h = spm('alert',Message,Title,CmdLine,wait)
+% FORMAT h = spm('alert"',Message,Title,CmdLine,wait)
+% FORMAT h = spm('alert*',Message,Title,CmdLine,wait)
+% FORMAT h = spm('alert!',Message,Title,CmdLine,wait)
+% Displays an alert, either in a GUI msgbox, or as text in the command window.
+%  ( 'alert"' uses the 'help' msgbox icon, 'alert*' the )
+%  ( 'error' icon, 'alert!' the 'warn' icon             )
+% Message - string (or cellstr) containing message to print
+% Title   - title string for alert
+% CmdLine - CmdLine preference [default spm('CmdLine')]
+%         - If CmdLine is complex, then a CmdLine alert is always used,
+%           possibly in addition to a msgbox (the latter according
+%           to spm('CmdLine').)
+% wait    - if true, waits until user dismisses GUI / confirms text alert
+%           [default 0] (if doing both GUI & text, waits on GUI alert)
+% h       - handle of msgbox created, empty if CmdLine used
+%
 % FORMAT SPMid = spm('FnBanner', Fn,FnV)
 % Prints a function start banner, for version FnV of function Fn, & datestamps
 % Fn    - Function name (string)
@@ -542,7 +559,7 @@ uicontrol(Fmenu,'String','Results',	'Position',[035 175 330 030].*WS,...
 %-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Display',	'Position',[020 088 082 024].*WS,...
 	'ToolTipString','orthogonal sections',...
-	'FontSize',FS(9),		'CallBack','spm_image;')
+	'FontSize',FS(9),		'CallBack','spm_image')
 
 uicontrol(Fmenu,'String','Check Reg',	'Position',[112 088 083 024].*WS,...
 	'ToolTipString','check image registration',...
@@ -1005,6 +1022,61 @@ case 'pointer'
 % spm('Pointer',Pointer)
 if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
+
+
+case {'alert','alert"','alert*','alert!'}
+%=======================================================================
+% h = spm('alert',Message,Title,CmdLine,wait)
+if nargin<5, wait    = 0;  else, wait    = varargin{5}; end
+if nargin<4, CmdLine = []; else, CmdLine = varargin{4}; end
+if nargin<3, Title   = ''; else, Title   = varargin{3}; end
+if nargin<2, Message = ''; else, Message = varargin{2}; end
+Message = cellstr(Message);
+
+if isreal(CmdLine)
+	CmdLine  = spm('CmdLine',CmdLine);
+	CmdLine2 = 0;
+else
+	CmdLine  = spm('CmdLine');
+	CmdLine2 = 1;
+end
+timestr = spm('Time');
+SPMv    = spm('ver');
+
+switch(lower(Action))
+case 'alert',	icon = 'none';	str = '--- ';
+case 'alert"',	icon = 'help';	str = '~ - ';
+case 'alert*',	icon = 'error'; str = '* - ';
+case 'alert!',	icon = 'warn';	str = '! - ';
+end
+
+if CmdLine | CmdLine2
+	Message(strcmp(Message,'')) = {' '};
+	tmp = sprintf('%s: %s',SPMv,Title);
+	fprintf('\n    %s%s  %s\n\n',str,tmp,repmat('-',1,62-length(tmp)))
+	fprintf('        %s\n',Message{:})
+	fprintf('\n        %s  %s\n\n',repmat('-',1,62-length(timestr)),timestr)
+	h = [];
+end
+
+if ~CmdLine
+	tmp = max(size(char(Message),2),42) - length(SPMv) - length(timestr);
+	str = sprintf('%s  %s  %s',SPMv,repmat(' ',1,tmp-4),timestr);
+	h   = msgbox([{''};Message(:);{''};{''};{str}],...
+		sprintf('%s%s: %s',SPMv,spm('GetUser',' (%s)'),Title),...
+		icon,'modal');
+end
+
+if wait
+	if isempty(h)
+		input('        press ENTER to continue...');
+	else
+		uiwait(h)
+		h = [];
+	end
+end
+
+varargout = {h};
 
 
 case {'fnbanner','sfnbanner'}
