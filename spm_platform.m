@@ -179,8 +179,9 @@ if isempty(ci), error([comp,' not supported architecture for SPM']), end
 %-Set bigend
 %-----------------------------------------------------------------------
 SPM_PLATFORM.bigend = PDefs(ci).endian;
-%-Last check for absence of IEEE floating point maths
-if ~isieee, SPM_PLATFORM.bigend = Inf; end	%-Last check for IEEE math
+% Commented out as ISIEEE is obsolete and will be removed in future
+% versions of MATLAB:
+%if ~isieee, SPM_PLATFORM.bigend = Inf; end	%-Last check for IEEE math
 
 
 %-Set filesys
