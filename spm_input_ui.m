@@ -18,7 +18,7 @@ function varargout = spm_input(varargin)
 % displayed adjacent to an editable text entry widget (with a lilac
 % background!). Clicking in the entry widget allows editing, pressing
 % <RETURN> or <ENTER> enters the result. You must enter something,
-% empty answers are not accepted. A default values may be pre-specified
+% empty answers are not accepted. A default response may be pre-specified
 % in the entry widget, which will then be outlined. Clicking the border
 % accepts the default value.
 %
@@ -1345,7 +1345,7 @@ else
 	p = get(hPrmpt,'UserData');
 	if ~isstr(p)
 		k = p;
-		p = Values(k,:);
+		p = Values(k,:); if ischar(p), p=deblank(p); end
 	else
 		Labels  = strvcat(Labels,'specify...');
 		k       = size(Labels,1);
