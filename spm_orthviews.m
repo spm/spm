@@ -1127,13 +1127,13 @@ return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function reset_st
-global st SWD
+global st
 fig     = spm_figure('FindWin','Graphics');
 bb      = [ [-78 78]' [-112 76]' [-50 85]' ];
 st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1,'plugins',[]);
 st.vols = cell(24,1);
 
-pluginpath = fullfile(SWD,'spm_orthviews');
+pluginpath = fullfile(spm('Dir'),'spm_orthviews');
 if isdir(pluginpath)
 	pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
 	if ~isempty(pluginfiles)

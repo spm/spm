@@ -32,8 +32,6 @@ function spm_render(dat,brt,rendfile)
 %_______________________________________________________________________
 % %W% John Ashburner FIL %E%
 
-global SWD;
-
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin<1
@@ -56,7 +54,7 @@ else,
 end;
 
 if nargin<3,
-	rendfile = spm_get(1,'render*.mat','Render file',fullfile(SWD,'rend'));
+	rendfile = spm_get(1,'render*.mat','Render file',fullfile(spm('Dir'),'rend'));
 end;
 
 if nargin<2,
