@@ -6,6 +6,7 @@ $Id$
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "mex.h"
 
 #define MXDIMS 256
@@ -86,7 +87,8 @@ typedef struct ftype {
 
 long icumprod[MXDIMS], ocumprod[MXDIMS];
 long poff, len;
-unsigned char wbuf[1024], *dptr;
+#define BLEN 1024
+unsigned char wbuf[BLEN], *dptr;
 
 void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], int indo, int indi, void (*swap)())
 {
@@ -99,9 +101,8 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
         for(i=0; i<idim[ndim]; i++)
         {
             off = indo+(ptr[ndim][i]-1)*nb;
-            if (((off-poff)!=nb) || (len == 1024))
+            if (((off-poff)!=nb) || (len == BLEN))
             {
-                printf("%d %d %d\n", len, dptr,wbuf);
                 swap(len,dptr,wbuf);
                 if (len && (fwrite(wbuf,1,len,fp) != len))
                 {
@@ -135,7 +136,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     dptr   = idat;
     nbytes = map.dtype->bits/8;
     len    = 0;
-    poff   = -2147483647;
+    poff   = -999999;
     ocumprod[0] = nbytes*map.dtype->channels;
     icumprod[0] = nbytes*1;
     for(i=0; i<map.ndim; i++)
@@ -255,10 +256,10 @@ void open_file(const mxArray *ptr, FTYPE *map)
             mxFree(buf);
             mexErrMsgTxt("Cant get 'fname'.");
         }
-        map->fp = fopen(buf,"r+");
+        map->fp = fopen(buf,"rb+");
         if (map->fp == (FILE *)0)
         {
-            map->fp = fopen(buf,"w");
+            map->fp = fopen(buf,"wb");
             if (map->fp == (FILE *)0)
             {
                 mxFree(buf);
