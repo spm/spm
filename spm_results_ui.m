@@ -52,43 +52,59 @@ function varargout = spm_results_ui(varargin)
 % exploration of the results.
 %
 % p-value buttons:
-%   (i) volume   - tabulates p-values and statistics for entire volume.
+%   (i) volume   - Tabulates p-values and statistics for entire volume.
 %                                            - see spm_list.m
-%  (ii) cluster  - tabulates p-values and statistics for nearest cluster
-%                 ( Note that the cursor is repositioned to the  )
-%                 ( nearest suprathreshold voxel by this option. )
+%  (ii) cluster  - Tabulates p-values and statistics for nearest cluster
+%                - Note that the cursor will jump to the nearest
+%                  suprathreshold voxel, if it is not already at a
+%                  location with suprathreshold statistic.
 %                                            - see spm_list.m
 % (iii) voxel    - (not implemented yet)
 %                                            - see spm_****.m
-%  (iv) S.V.C    - Small Volume Correction: Tabulates p-values corrected
-%                  for a small specified volume of interest centred
-%                  on the current voxel. (Tabulation by spm_list.m)
+%
+% p-values for VOI button:
+%       S.V.C    - Small Volume Correction:
+%                  Tabulates p-values corrected for a small specified
+%                  volume of interest. (Tabulation by spm_list.m)
 %                                            - see spm_VOI.m
 %
-% Threshold buttons:
-%                - (not implemented yet)
+% Data extraction buttons:
+%       V.O.I.   - Extracts Eigentimeseries for small volumes of interest.
+%                - Data can be adjusted or not.
+%                - If temporal filtering was specified (fMRI), then it is the
+%                  filtered data that is returned.
+%                - Choose a VOI of radius 0 to extract the (filtered &)
+%                  adjusted data for a single voxel. Note that this vector
+%                  will be scaled to have a 2-norm of 1. (See spm_regions.m
+%                  for further details.)
+%                - The plot button also returns fitted and adjusted
+%                  (after any filtering) data for the voxel being plotted.)
+%                - Note that the cursor will jump to the nearest voxel for
+%                  which raw data was saved.
+%                                            - see spm_regions.m
 %
 % Visualisation buttons:
 %   (i) plot     - Graphs of adjusted and fitted activity against
 %                  various ordinates.
-%                 (Note that the cursor is repositioned to the nearest
-%                  voxel with data by this option.)
-%                - Additionally, writes out adjusted data to the
-%                  MatLab command window.
+%                - Note that the cursor will jump to the nearest
+%                  suprathreshold voxel, if it is not already at a
+%                  location with suprathreshold statistic.
+%                - Additionally, returns fitted and adjusted data to the
+%                  MatLab base workspace.
 %                                               - see spm_graph.m
-%  (ii) overlays - popup menu: overlays of filtered SPM on a structural image
-%     -   slices - slices of the thresholded statistic image overlaid
+%  (ii) overlays - Popup menu: Overlays of filtered SPM on a structural image
+%     -   slices - Slices of the thresholded statistic image overlaid
 %                  on a secondary image chosen by the user. Three
 %                  transverse slices are shown, being those at the
 %                  level of the cursor in the z-axis and the two
 %                  adjacent to it.           - see spm_transverse.m
-%     - sections - orthogonal sections of the thresholded statistic
+%     - sections - Orthogonal sections of the thresholded statistic
 %                  image overlaid on a secondary image chosen by the user.
 %                  The sections are through the cursor position.
 %                                            - see spm_sections.m
-%     -   render - render blobs on previously extracted cortical surface
+%     -   render - Render blobs on previously extracted cortical surface
 %                                            - see spm_render.m
-% (iii) write filtered - write out thresholded SPM as image
+% (iii) write filtered - Write out thresholded SPM as image
 %                                            - see spm_write_filtered.m
 %
 %
@@ -456,9 +472,9 @@ PF = spm_platform('fonts');
 
 %-p-values
 %-----------------------------------------------------------------------
-uicontrol(Finter,'Style','Frame','Position',[010 065 110 110].*WS)
+uicontrol(Finter,'Style','Frame','Position',[010 090 110 085].*WS)
 uicontrol(Finter,'Style','Text','String','p-values',...
-	'Position',[020 168 060 015].*WS,...
+	'Position',[020 168 050 015].*WS,...
 	'FontName',PF.times,'FontWeight','Normal','FontAngle','Italic',...
 	'FontSize',FS(10),...
 	'HorizontalAlignment','Left',...
@@ -481,18 +497,28 @@ uicontrol(Finter,'Style','PushButton','String','voxel','FontSize',FS(10),...
 	'Callback','',...
 	'Interruptible','on','Enable','off',...
 	'Position',[015 095 100 020].*WS)
+
+%-p-values corrected for small Volume of Interest
+%-----------------------------------------------------------------------
+uicontrol(Finter,'Style','Frame','Position',[010 050 110 030].*WS)
+uicontrol(Finter,'Style','Text','String','p-values for VOI',...
+	'Position',[020 073 090 015].*WS,...
+	'FontName',PF.times,'FontWeight','Normal','FontAngle','Italic',...
+	'FontSize',FS(10),...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','w')
 uicontrol(Finter,'Style','PushButton','String','S.V.C.','FontSize',FS(10),...
 	'ToolTipString',['Small Volume Correction - corrected p-values ',...
-		'for a small search region centered on this voxel'],...
+		'for a small search region'],...
 	'Callback','spm_VOI(SPM,VOL,[],[],hReg);',...
 	'Interruptible','on','Enable','on',...
-	'Position',[015 070 100 020].*WS)
+	'Position',[015 055 100 020].*WS)
 
 %-SPM area
 %-----------------------------------------------------------------------
-uicontrol(Finter,'Style','Frame','Position',[125 050 150 125].*WS)
-uicontrol(Finter,'Style','Text','String','thresholds',...
-	'Position',[135 168 070 015].*WS,...
+uicontrol(Finter,'Style','Frame','Position',[125 090 150 085].*WS)
+uicontrol(Finter,'Style','Text','String','',...
+	'Position',[135 168 001 015].*WS,...
 	'FontName',PF.times,'FontWeight','Normal','FontAngle','Italic',...
 	'FontSize',FS(10),...
 	'HorizontalAlignment','Left',...
@@ -503,6 +529,27 @@ uicontrol(Finter,'Style','Text','String','SPM',...
 	'FontSize',FS(32),...
 	'HorizontalAlignment','Center',...
 	'ForegroundColor',[1,1,1]*.5)
+
+%-Data extraction
+%-----------------------------------------------------------------------
+uicontrol(Finter,'Style','Frame','Position',[125 050 150 030].*WS)
+uicontrol(Finter,'Style','Text','String','Data extraction',...
+	'Position',[135 073 090 015].*WS,...
+	'FontName',PF.times,'FontWeight','Normal','FontAngle','Italic',...
+	'FontSize',FS(10),...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','w')
+uicontrol(Finter,'Style','PushButton','String','V.O.I.','FontSize',FS(10),...
+	'ToolTipString',...
+	'Extract representative timecourse for a region [spm_regions]',...
+	'Callback','[Y,xY]=spm_regions(SPM,VOL,xX,xCon,xSDM,hReg)',...
+	'Interruptible','on','Enable','on',...
+	'Position',[130 055 065 020].*WS)
+uicontrol(Finter,'Style','PushButton','String','','FontSize',FS(10),...
+	'ToolTipString','',...
+	'Callback','',...
+	'Interruptible','on','Enable','off',...
+	'Position',[205 055 065 020].*WS)
 
 %-Visualisation
 %-----------------------------------------------------------------------
