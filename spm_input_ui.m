@@ -33,7 +33,8 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % the widget. This enables you to type responses to a sequence of
 % questions without having to repeatedly click the mouse. Supported are
 % BackSpace and Delete, line kill (^U). Other standard ASCII characters
-% are appended to the text in the entry widget.
+% are appended to the text in the entry widget. Press <RETURN> or <ENTER>
+% to submit your response.
 %
 % For evaluated input, the string submitted is evaluated in the base
 % MatLab workspace (see MatLab's `eval` command) to give a numerical
@@ -120,6 +121,15 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % spm_input uses the SPM 'Interactive' window, which is 'Tag'ged
 % 'Interactive'. If there is no such window, then the current figure is
 % used, or an 'Interactive' window created if no windows are open.
+%
+% ( - Technical note - : This form of interactive GUI forces the code to )
+% ( wait for a response in a computer intensive loop. To avoid           )
+% ( hammering the CPU when queries are left unattended, spm_input has    )
+% ( "sleep" modes. Wake spm_input by clicking in any MatLab window. For  )
+% ( GUI menu selections using spm_input, you have 120s to make a         )
+% ( selection before sleep mode sets in. For GUI button selections, you  )
+% ( have 10s to release the chosen button, after which a further GUI     )
+% ( event will accept the selection.                                     )
 %
 %-----------------------------------------------------------------------
 % Programers help is contained in the main body of spm_input.m
@@ -338,7 +348,7 @@ else
 	%---------------------------------------------------------------
 	[FRec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,'',Finter);
 	
-	%-Bring windor to fore & place pointer over control object
+	%-Bring window to fore & place pointer over control object
 	%---------------------------------------------------------------
 	figure(Finter)
 	CPos = get(0,'PointerLocation');
@@ -431,15 +441,25 @@ else
 
 	%-Wait for edit, evaluate string if input not a string variable
 	%---------------------------------------------------------------
-	while isempty(get(h,'UserData')), pause(0.5); end
+	while isempty(get(h,'UserData'))
+		waitforbuttonpress; pause(0.1), pause(0.1), end
 
 	p = get(h,'UserData');
 	if Type(1)=='e'
 		while strcmp(p,'<ERROR>')	%-Catch eval errors
-			set(h,'String','<ERROR> re-enter...'), drawnow
-			fprintf('%c',7), pause(2)
-			set(h,'String','','UserData',[])
-			while isempty(get(h,'UserData')); pause(0.5); end
+			fprintf('%c',7)
+			set(h,'UserData',[])
+			tmp = uicontrol(Finter,'Style','Text',...
+				'String','<ERROR>',...
+				'Tag',['GUIinput_',int2str(YPos)],...
+				'Horizontalalignment','Center',...
+				'BackgroundColor',COLOR,...
+				'ForegroundColor','r',...
+				'Position',RRec);
+			drawnow, pause(2)
+			delete(tmp)
+			while isempty(get(h,'UserData'));
+			    waitforbuttonpress; pause(0.1), pause(0.1), end
 			p = get(h,'UserData');
 		end % (while)
 	end
@@ -562,7 +582,7 @@ elseif Type(1)=='b'
 		fprintf('\n')
 	
 		k = find(lower(Keys)==lower(str(1)));
-		p = Values(k,:);
+		p = Values(k,:); if isstr(p), p=deblank(p); end
 	
 	else
 
@@ -636,7 +656,22 @@ elseif Type(1)=='b'
 	
 		%-Wait for button press, process results
 		%-------------------------------------------------------
-		while isempty(get(hPrmpt,'UserData')), pause(0.01), end
+		while isempty(get(hPrmpt,'UserData'))
+			waitforbuttonpress;
+			%-Give 10s grace for release of button
+			%-After this time spm_input "sleeps", and the user
+			% will have to press another button to have choice
+			% registered
+			% ( This loop hammers the CPU, but there's no other )
+			% ( way to do an interruptible pause without        ) 
+			% ( requiring a second buttonpress event! NB: pause )
+			% ( (ML4.2c) only works for integer seconds!        )
+			tic, while(toc<10)
+				if ~isempty(get(hPrmpt,'UserData'))
+					break, end
+				pause(0.25)
+			end
+		end
 		k = get(hPrmpt,'UserData');
 		%-Sort out default (if specified)
 		if k==0; k=DefItem; end
@@ -710,7 +745,22 @@ elseif Type(1)=='m'
 
 		%-Wait for menu selection
 		%-------------------------------------------------------
-		while ~isstr(get(hPopUp,'UserData')), pause(0.01), end
+		while ~isstr(get(hPopUp,'UserData'))
+			%-Give approx 120s grace for menu selection
+			%-After this time spm_input "sleeps", waiting for
+			% a buttonpress to reactivate.
+			% ( This loop hammers the CPU, but there's no other )
+			% ( way to do an interruptible pause for PullDowns. )
+			% ( NB: pause (ML4.2c) only works for integer       )
+			% ( seconds!                                        )
+			tic, while(toc<120)
+				if isstr(get(hPopUp,'UserData')), break, end
+				pause(0.25)
+			end
+			if ~isstr(get(hPopUp,'UserData'))
+				waitforbuttonpress; end
+		end
+		
 		k = get(hPopUp,'Value')-1;
 	
 		%-Display answer, cleanup window
