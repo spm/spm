@@ -6,7 +6,7 @@ function [p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 %___________________________________________________________________________
 % M.f  - f(x,u,P)
 % M.g  - g(x,u,P)
-%	x - states variables
+%	x - state  variables
 %	u - inputs or causes
 %	P - free parameters
 % M.pE - prior expectation  - E{P}
@@ -14,7 +14,7 @@ function [p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 %
 %
 % U.u  - inputs
-% U.dt - sampline interval
+% U.dt - sampling interval
 %
 % Y.y  - outputs
 % Y.X0 - Confounds or null space
@@ -83,7 +83,7 @@ end
 %---------------------------------------------------------------------------
 u      = size(Ju,2);
 uE     = sparse(u,1);
-uC     = speye(u,u)*1e+8;
+uC     = speye(u,u)*1e8;
 
 % SVD of prior covariances
 %---------------------------------------------------------------------------
@@ -107,20 +107,11 @@ else
 	P{2}.C = blkdiag(pC, uC);
 end
 
-% number of iterations
-%---------------------------------------------------------------------------
-try
-	maxits = M.maxits
-catch
-	maxits = 32;
-end
-
 % Gauss-Newton search 
 %===========================================================================
 p      = pE;
-pi     = pE;
-dp     = pE;
 dv     = 1e-6;
+lm     = speye(size(Vp,2))/1024;
 for  j = 1:32
 
 	% y = f(p) - for new expansion point (p) in parameter space 
@@ -131,7 +122,7 @@ for  j = 1:32
 	%-------------------------------------------------------------------
 	for  i = 1:size(Vp,2)
 
-		pi(:)   = p(:) + Vp(:,i)*dv;
+		pi      = p(:) + Vp(:,i)*dv;
 		dfp     = spm_int(pi,M,U,v) - fp;
 		Jp(:,i) = dfp(:)/dv;
 	end
@@ -142,10 +133,15 @@ for  j = 1:32
 	P{2}.X = [Vp'*(pE(:) - p(:)); uE];
 	[C P]  = spm_PEB(y(:) - fp(:),P);
     
-    
-	% update - project conditional esitmates onto parameter space
+	% update - Levenburg-Marquardt regularization
 	%-------------------------------------------------------------------
-	dp(:)  = Vp*C{2}.E(ip);
+	dp     = C{2}.E(ip);
+	Pp     = full(inv(C{2}.C(ip,ip)));
+	dp     = inv(Pp + lm*norm(Pp))*Pp*dp;
+
+	% update - project conditional estimates onto parameter space
+	%-------------------------------------------------------------------
+	dp     = Vp*dp;
         
 	% update - ensuring the system is dissipative (and break if not)
 	%-------------------------------------------------------------------
@@ -158,7 +154,10 @@ for  j = 1:32
 			break
 		end
 	end
-        if i == 8, break, end
+        if i == 8
+                warndlg('system is unstable')
+                break
+        end
 
 	p      = p + dp;
     
@@ -166,7 +165,7 @@ for  j = 1:32
 	%-------------------------------------------------------------------
 	w      = dp(:)'*dp(:);
 	fprintf('%-30s: %i %20s%e\n','GNS Iteration',j,'...',full(w));
-	if w < 1e-6, break, end
+	if w < 1e-5, break, end
 
 	% graphics
 	%-------------------------------------------------------------------
