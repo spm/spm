@@ -1,8 +1,12 @@
 function [] = spm_dcm_sessions ()
 % Apply contrast vector to multiple DCM models
-%
 % FORMAT [] = spm_dcm_sessions ()
 %
+% Contrasts are specified interactively and applied to a
+% number of DCM models. This routine can be used, for example,
+% to do Bayesian fixed or random effects analysis on 
+% contrasts of DCM parameters.
+% -------------------------------------------------------
 % %W% Will Penny %E%
 
 Finter = spm_figure('GetWin','Interactive');
