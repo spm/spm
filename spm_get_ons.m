@@ -360,7 +360,7 @@ if v
 	% cycle over selected trial types
 	%----------------------------------------------------------------
 	str   = sprintf('which trial[s] 1 to %d',v);
-	Ypos  = spm_input('!NextPos','batch');
+	Ypos  = spm_input('!NextPos');
 
 	for i = spm_input(str,'+1','e',1,...
                          'batch',{'parametrics',s},'trials')
