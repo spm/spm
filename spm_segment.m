@@ -46,7 +46,9 @@ DIR   = [SWD '/mni/'];
 PB    = str2mat([DIR 'spgray.img'],[DIR 'spwhite.img'],[DIR 'spcsf.img']);
 
 %- Template image
-PG    = str2mat([DIR 'scolin.img'],PB);
+%PG    = str2mat([DIR 'scolin.img'],PB);
+PG    = [DIR 'scolin.img'];
+
 niter = 24;
 nc    = [1 1 1 3]; % Number of clusters for each probability image
 
