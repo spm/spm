@@ -44,7 +44,7 @@ global CWD
 %-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
 spm_results_ui('ClearPane',Fgraph,'RNP');
-
+subplot(2,1,2)
 
 %-Load ER.mat (event-related) file if it exists
 %-----------------------------------------------------------------------
@@ -68,7 +68,6 @@ R      = y - Y;					% residuals
 RES    = sum(R.^2);				% SSQ of residuals
 SE     = sqrt(RES*diag(DES.B));			% standard error of estimates
 COL    = ['r' 'b' 'g' 'c' 'y' 'm' 'r' 'b' 'g' 'c' 'y' 'm'];
-
 
 % Inference (for xlabel)
 %-----------------------------------------------------------------------
@@ -248,10 +247,11 @@ elseif Cp == 3
 
 	j     = 1;
 	if size(ERI,2) > 1
-		j    = spm_input('which events','!+1','e','1 2');
+		j    = spm_input('which events',1,'e','1 2');
 	end
 	Cplot = str2mat(...
 			'Fitted response',...
+			'Fitted response and PSTH.',...
 			'Fitted response +/- standard error of response.',...
 			'Fitted response +/- standard error of onset.',...
 			'Fitted response and adjusted data');
@@ -263,51 +263,76 @@ elseif Cp == 3
 	% cycle over selected events
 	%--------------------------------------------------------------
 	dx    = 0.1;
-	x     = [0:(size(DER,1) - 1)]*dx - 4;
-	K     = spm_sptop(SIGMA*RT/dx,length(x));
-	KDER  = K*DER;
+	x     = [0:(size(DER,1) - 1)]'*dx - 4;
 
 	% reconstruct response without smoothing
 	%--------------------------------------------------------------
 	figure(Fgraph)
+	XLAB  = 'peri-stimulus time {secs}';
 	hold on
-
+	u     = 1;
 	for i = j
-		Y      = KDER*BETA(ERI(:,i));
-		se     = sqrt(diag(KDER*DES.B(ERI(:,i),ERI(:,i))*KDER')*RES);
+		Y      = DER*BETA(ERI(:,i));
+		se     = sqrt(diag(DER*DES.B(ERI(:,i),ERI(:,i))*DER')*RES);
 		pst    = PST(:,i);
-		d      = round(pst + 4)/dx;
-		q      = find( (d >= 1) & (d <= size(KDER,1)) & pst);
+		bin    = round((pst + 4)/dx);
+		q      = find( (bin >= 1) & (bin <= size(DER,1)) & pst);
+		bin    = bin(q);
 		pst    = pst(q);
-		y      = C(q,ERI(:,i))*BETA(ERI(:,i)) + R(q);
-		d      = min(find(abs(Y) > max(abs(Y))/3));
-		T      = x(d);
+		y      = DER(bin,:)*BETA(ERI(:,i)) + R(q);
+		v      = min(find(abs(Y) > max(abs(Y))/2));
+		T      = x(v);
 		dYdt   = gradient(Y')'/dx;
-		seT    = se(d)./dYdt(d);
+		seT    = se(v)./dYdt(v);
+
+		% PSTH
+		%------------------------------------------------------
+		dBIN   = 2/dx;
+		BIN    = 1/dx:dBIN:32/dx;
+		PSTH   = zeros(length(BIN) - 1,1);
+		SEM    = zeros(length(BIN) - 1,1);
+		for k  = 1:(length(BIN) - 1)
+			q = find(bin > BIN(k) & bin <= BIN(k + 1));
+			n = length(q);
+			if n
+				PSTH(k) = mean(y(q));
+				SEM(k)  = std(y(q))/sqrt(n);
+			end
+		end
+		BIN    = (BIN(1:k) + dBIN/2)*dx - 4;
+		
 
 		% plot
 		%------------------------------------------------------
 		if Cp == 1
-			plot(x,Y,COL(i))
+			plot(x,Y,COL(u))
 
 		elseif Cp == 2
-			plot(x,Y,x,Y + se,'-.',x,Y - se,'-.','Color',COL(i))
+			errorbar(BIN,PSTH,SEM,[':' COL(u)])
+			plot(BIN,PSTH,['.' COL(u)],'MarkerSize',16), hold on
+			plot(BIN,PSTH,COL(u),'LineWidth',2)
+			plot(x,Y,['-.' COL(u)])
+			TITLE = 'Peristimulus histogram (2s bins with sem)';
 
 		elseif Cp == 3
-			plot(x,Y,'Color',COL(i))
-			line(([0-seT seT] + T),[Y(d) Y(d)],...
-				'LineWidth',6,'Color',COL(i))
+			plot(x,Y,COL(u),x,Y + se,...
+				['-.' COL(u)],x,Y - se,['-.' COL(u)])
 
 		elseif Cp == 4
-			plot(x,Y,pst,y,'.',...
-				'MarkerSize',8,'Color',COL(i))
+			plot(x,Y,COL(u))
+			line(([-seT seT] + T),[Y(v) Y(v)],'LineWidth',6)
+
+		elseif Cp == 5
+			plot(x,Y,COL(u),pst,y,['.' COL(u)],...
+				'MarkerSize',8,'LineWidth',2)
 
 		end
+		XLAB = str2mat(XLAB,[sprintf('Trial type %d - ',i) COL(u)]);
+		u    = u + 1;
 	end
 
 	hold off; axis on
 	set(gca,'XLim',[min(x) max(x)])
-	XLAB   = 'peri-stimulus time {secs}'
 
 end
 
@@ -315,11 +340,9 @@ end
 % Label and call Plot UI
 %----------------------------------------------------------------------
 axis square
-STR       = str2mat([],STR);
-i         = [1:length(XLAB)] + (length(STR) - length(XLAB))/2;
-STR(1,i)  = XLAB;
+XLAB      = str2mat(XLAB,STR);
 YLAB      = 'effect size';
-xlabel(STR, 'FontSize',10)
+xlabel(XLAB, 'FontSize',10)
 ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
 
