@@ -54,6 +54,7 @@ Dt     = spm_slice_vol(V,inv(D), DIM([1 2]),1);
 
 [DS I] = hist(Dt(:),32);
 
+spm_unmap_vol(V);
 
 % compute axes to correct for anisotropy of voxels and (normalized) window
 %----------------------------------------------------------------------------

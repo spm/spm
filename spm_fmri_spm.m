@@ -330,11 +330,14 @@ for i   = 0:dI:length(Xp)
   spm_progress_bar('Set',i/prod(V(1:2,1)));
 end					% end cycle over sets of voxels
 spm_progress_bar('Clear');
-% smoothness estimates %---------------------------------------------------------------------------
+% smoothness estimates
+%---------------------------------------------------------------------------
 W     = [];
 FWHM  = [];
 for i = 1:size(CONTRAST,1)
-	[d fwhm] = spm_W(spm_map(sprintf('SPM%0.0f.img',i)));
+	VW       = spm_map(sprintf('SPM%0.0f.img',i));
+	[d fwhm] = spm_W(VW);
+	spm_unmap_vol(VW);
 	W        = [W; d];
 	FWHM     = [FWHM; fwhm];
 end
