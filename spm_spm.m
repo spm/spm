@@ -55,13 +55,7 @@ function [SPM] = spm_spm(SPM)
 %                 interpolation to the voxel locations of the data Y.
 %       - Note that voxels with constant data (i.e. the same value across
 %         scans) are also automatically masked out.
-%
-% xCon  - See Christensen for details of F-contrasts.  These are specified
-%         at the end of spm_spm after the non-sphericity V has been defined
-%         or estimated. The fist contrast tests for all effects of interest
-%         assuming xX.iB and xX.iG index confounding or nuisance effects.
 %         
-%
 %
 % In addition, the global default UFp is used to set a critical
 % F-threshold for selecting voxels over which the non-sphericity
@@ -156,7 +150,7 @@ function [SPM] = spm_spm(SPM)
 %
 %                           ----------------
 %
-% The following SPM.fields are computed by spm_spm
+% The following SPM.fields are set by spm_spm (unless specified)
 %
 %     xVi.V      - estimated non-sphericity trace(V) = rank(V)
 %     xVi.h      - hyperparameters  xVi.V = xVi.h(1)*xVi.Vi{1} + ...
@@ -197,6 +191,11 @@ function [SPM] = spm_spm(SPM)
 %     xVol.FWHM - Smoothness of components - FWHM, (in voxels)
 %
 %                           ----------------
+%
+% xCon  - See Christensen for details of F-contrasts.  These are specified
+%         at the end of spm_spm after the non-sphericity V has been defined
+%         or estimated. The fist contrast tests for all effects of interest
+%         assuming xX.iB and xX.iG index confounding or nuisance effects.
 %
 %     xCon      - Contrast structure (created by spm_FcUtil.m)
 %     xCon.name - Name of contrast
@@ -358,12 +357,17 @@ xX            = SPM.xX;
 
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
-xM       = SPM.xM;
-if ~isstruct(xM), xM = struct(	'T',	[],...
-				'TH',	xM,...
-				'I',	0,...
-				'VM',	{[]},...
-				'xs',	struct('Masking','analysis threshold'));
+try
+	xM = SPM.xM;
+catch
+	xM = -ones(nScan,1)/0;
+end
+if ~isstruct(xM)
+	xM = struct(	'T',	[],...
+			'TH',	xM,...
+			'I',	0,...
+			'VM',	{[]},...
+			'xs',	struct('Masking','analysis threshold'));
 end
 
 %-Check confounds (xX.K) and non-sphericity (xVi)
@@ -407,7 +411,8 @@ try
 	%-------------------------------------------------------
 	W     = xX.W;
 catch
-	try
+	if isfield(xVi,'V')
+
 		% otherwise make W a whitening filter W*W' = inv(V)
 		%-------------------------------------------------------
 		[u s] = spm_svd(xVi.V);
@@ -415,7 +420,7 @@ catch
 		W     = u*s*u';
 		W     = W.*(abs(W) > 1e-6);
 		xX.W  = sparse(W);
-	catch
+	else
 		% unless xVi.V has not been estimated - requiring 2 passes
 		%-------------------------------------------------------
 		W     = speye(nScan,nScan);
@@ -780,7 +785,7 @@ if ~isfield(xVi,'V')
 			p     = [];
 			Qp    = {};
 			for j = 1:m
-				if any(xVi.Vi{j}(q,q))
+				if nnz(xVi.Vi{j}(q,q))
 					Qp{end + 1} = xVi.Vi{j}(q,q);
 					p           = [p j];
 				end
@@ -862,8 +867,14 @@ end
 
 %-Smoothness estimates of component fields and RESEL counts for volume
 %=======================================================================
-[FWHM,VRpv] = spm_est_smoothness(VResI,VM);
-R           = spm_resels_vol(VM,FWHM)';
+try
+	FWHM = SPM.xVol.FWHM;
+	VRpv = SPM.xVol.VRpv;
+	R    = SPM.xVol.R;
+catch
+	[FWHM,VRpv] = spm_est_smoothness(VResI,VM);
+	R           = spm_resels_vol(VM,FWHM)';
+end
 
 %-Delete the residuals images
 %=======================================================================
@@ -894,11 +905,12 @@ SPM.xVol.DIM   = DIM;				%-image dimensions
 SPM.xVol.FWHM  = FWHM;				%-Smoothness data
 SPM.xVol.R     = R;				%-Resel counts
 SPM.xVol.S     = S;				%-Volume (voxels)
+SPM.xVol.VRpv  = VRpv;				%-Filehandle - Resels per voxel
+
 
 SPM.Vbeta      = Vbeta;				%-Filehandle - Beta
 SPM.VResMS     = VResMS;			%-Filehandle - Hyperparameter
 SPM.VM         = VM;				%-Filehandle - Mask
-SPM.VRpv       = VRpv;				%-Filehandle - Resels per voxel
 
 SPM.xVi        = xVi;				% non-sphericity structure
 SPM.xVi.CY     = CY;				%-<(Y - <Y>)*(Y - <Y>)'> 
