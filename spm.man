@@ -73,7 +73,7 @@
 % 
 % spm_*.m files: ASCII files that form the main structure for SPM. 
 %       Most of SPM is written as MatLab functions. These are compiled
-%       at their first invocation, leading to a slight selay in the
+%       at their first invocation, leading to a slight delay in the
 %       startup of some routines. MatLab script files are occasionally
 %       used. These are interpreted by MATLAB, but have the advantage
 %       of working in the base MatLab workspace, such that their
@@ -88,7 +88,7 @@
 % spm_*.c:       ASCII files that are complied in a MATLAB-specific
 %       fashion to produce programs that can be called directly from
 %       MATLAB.  Once compiled these routines are suffixed in a
-%       platform dependant fashion (e.g. spm_*.mex4 or mexsol).  These
+%       platform dependent fashion (e.g. spm_*.mex4 or mexsol).  These
 %       routines implement memory mapping and some numerical and image
 %       operations that are called frequently.  Precompiled Mex files
 %       are provided for Solaris2 platforms, a Makefile is included for
@@ -113,12 +113,19 @@
 % ========================
 % 2) New features in SPM96
 % ========================
-%
-% iiv)    Non parametric Statistical Methods
-%  iv)    Interface improvements
-%   v)    Help
-%  vi)    Source code control
-% ???)    Miscellaneous
+%    i)    [S]PET vs. Functional MRI
+%   ii)    Alignment
+%  iii)    Spatial Normalisation
+%   iv)    Statistics
+%    v)    Non parametric Statistical Methods
+%   vi)    Interface improvements
+%  vii)    Help
+% viii)    Source code control
+%   ix)    Defaults
+%    x)    Tissue Classification
+%   xi)    Rendering
+%  xii)    Image Calculator
+%  ???)    Miscellaneous
 % 
 % In addition, there are several minor extensions and additions that
 % are not detailed here.
@@ -134,7 +141,7 @@
 % interfaces are very similar and largely call upon the same routines.
 % The differences between these two components of SPM95 are:
 % 
-% a)  The fMRI realignment routines perform an additional mathematical
+% a)  The fMRI realignment routines perform an optional mathematical
 % adjustment to remove movement-related variance components that remain
 % after simple realignment (see fMRI_1 in the bibliography below)
 % 
@@ -149,10 +156,13 @@
 % images should be specified using the ORIGIN field in the header.
 % Clearly if the structural and functional data are exactly congruent
 % (same position and voxel size) than the ORIGIN can be any voxel, as
-% long as it is the same in both scans.  If the T2*-weighted fMRI data
-% are of sufficiently good quality; in some instances it is possible to
-% normalise these directly (however this will require careful
-% evaluation in your own laboratory)
+% long as it is the same in both scans.  Alternatively, the new
+% coregistration module can be used to register the T1 image with the
+% functional images. The necessary transformations are stored in the
+% ".mat" files which the spatial normalisation module reads.  If the
+% T2*-weighted fMRI data are of sufficiently good quality; in some
+% instances it is possible to normalise these directly (however this
+% will require careful evaluation in your own laboratory)
 % 
 % It is not necessary to spatially normalise the data (this is only a
 % pre-requisite for intersubject averaging or reporting in the
@@ -177,41 +187,70 @@
 % 
 % New features - ii - Alignment
 % 
-% a) The fMRI-specific adjustments for movement-related artefacts (see
-% above and fMRI_1  below)
+% a) ".mat" files.
+% A new concept has been introduced into the alignment and coregistration
+% parts of SPM. This is the storage of the alignment parameters in '.mat'
+% files for use at a later time.  It is no longer necessary to write out
+% the realigned images before continuing on to the spatial normalisation
+% stage.  Since the realignment parameters are saved, they get
+% incorporated straight into the affine part of the spatial
+% normalisation*.
 % 
-% b) An MRI to PET facility is provided.  This uses a rigid boy
-% transformation matching a T1-weighted MRI volume to the corresponding
-% PET image.   We are currently cross validating this approach
-% (described in SPM_1 below) in terms of AIR.  The SPM approach is
-% meant to be easier to use, in that the MRI data do not require any
-% pre-processing.  In particular scalp editing is not necessary.  This
-% routine takes about 4 minutes on a SPARC 20.
+% b) fMRI-specific adjustments.
+% This is now optional*.  The adjustment has also been modified so that
+% it is more constrained.
 % 
-% _____________________________________________________
-%
-% New features - iii - spatial normalisation
+% * Note that to perform the adjustment, the resliced images must be
+% written in the realignment stage.
 % 
-% These routines will now accept PET. SPECT T1 and T2-weighted MRI
-% volume data.  The MRI data do not require scalp editing (however, in
-% some cases, better results may be obtained if they are scalp
-% edited).  The [S]PE[C]T routine is the same as before.  The MRI
-% routine uses two templates (a white matter segmented template and a
-% gray matter segmented template: Both are supplied).  By solving
-% simultaneously for segmentation functions and spatial
-% transformations, the MRI image is transformed into the template's
-% space.  In addition a [spatially normalised] segmented MRI image is
-% provided (based on the segmentation function).  The latter may then
-% be used for voxel-based morphometrics.  In principle this routine
-% could be used in conjunction with the MRI to PET alignment to
-% normalise PET data using an MRI scan (at present we usually do it the
-% other way around) and specifying the PET data as 'other images'.
-% Because of the computational load we have restricted the normalising
-% MRI transformations to 12 parameter affine
+% c) Between modality coregistration.
+% The old "mri to pet" button has been replaced by a more general
+% "coregister" button.  To replicate what "mri to pet" did, specify:
+% Modality of first target image?    | target - PET
+% Modality of first object image?    | object - T1 MRI
+% select target image for subject .  | your mean PET image
+% select object image for subject .  | your structural T1 MR image
+% select other images for subject .  | nothing
+% 
+% Note that the MR images should NOT be 'scalp-edited' for
+% coregistration.
 % 
 % _____________________________________________________
 %
-% New features - iii - statistics
+% New features - iii - Spatial Normalisation
+% 
+% a) New templates images.
+% The template images which are now provided in SPM are now based upon
+% data provided by the MNI (ICBM, NIH P-20 project).  These templates are
+% slightly larger than those from previous versions of SPM, and so the
+% default bounding box has been increased accordingly.  No
+% 'scalp-editing' is needed on any images which are to be spatially
+% normalised - since the templates have scalp on them.
+% 
+% b) Three dimensional nonlinear normalisation.
+% The two-dimensional nonlinear spatial normalisation has been extended
+% into three dimensions.  The (fourier-like) basis functions which are
+% used are in fact 3D discrete cosine transform basis functions.  The
+% extension into the third dimension should eliminate the 'swirly'
+% effects which many people reported at the tops of normalised brains.
+% 
+% c) Image orientation.
+% Rather than being prompted during the 'statistics' module of SPM for
+% the orientation of the images, the spatially normalised images should
+% be in neurological convention (with the right side of the brain being
+% at the right side of the image).  The default orientation of the un-
+% normalised images is specified by the global variable "sptl_Ornt" in
+% spm_defaults.m.
+% 
+% d) Normalisation parameters are saved.
+% The parameters which specify the spatial normalisation are saved to
+% a '_sn3d.mat' file.  They can be subsequently applied at any time
+% to any images which have been coregistered to the image from which
+% the parameters were determined.
+% 
+% _____________________________________________________
+%
+% New features - iv - Statistics
 % 
 % Clearly statistics do not change, however we have, or more exactly
 % Andrew Holmes has, increased the flexibility and ease of specifying
@@ -246,11 +285,11 @@
 % 
 % _____________________________________________________
 % 
-% New features - iii - Non-Parametric Statistical Methods
+% New features - v - Non-Parametric Statistical Methods
 %
 % _____________________________________________________
 % 
-% New features - iv - Interface Improvements
+% New features - vi - Interface Improvements
 %
 % The file selector dialog (spm_get.m) now gives "summary views" for
 % directories with a large number of files (after filtering). The
@@ -262,11 +301,11 @@
 %
 % SPM can now be switched between PET & fMRI "modes" using a pull-down
 % menu on the SPM Menu window. This changes some of the Menu buttons,
-% sets the MODALITY global varaiable, and sets the default values for
+% sets the MODALITY global variable, and sets the default values for
 % the modality.
 % _____________________________________________________
 % 
-% New features - v - Help
+% New features - vii - Help
 % 
 % The Help facility has been improved to to allow previous topics to be
 % recalled, enhancing the recursive help facility. Also, multi-page
@@ -276,7 +315,7 @@
 % review them.
 % _____________________________________________________
 % 
-% New features - v - Source code control
+% New features - viii - Source code control
 %
 % We now use SCCS source control for SPM development. The SCCS
 % subdirectory is shipped with SPM. At it's most basic, this enables
@@ -287,7 +326,45 @@
 % release and introduction of source control.
 % _____________________________________________________
 % 
-% New features - v - Miscellaneous
+% New features - ix - Defaults
+%
+% The old defaults module has been changed drastically.  Changes to any
+% of these defaults should remain until the end of the SPM session.
+% Resetting the defaults sets them back to those specified in the file
+% spm_defaults.m.
+% The spm_defaults.m file is intended to be customised by whoever maintains
+% SPM. It should be reasonably clear what the different options mean.
+% Probably the most important default to check is "sptl_Ornt" which
+% contains the orientation of the images before spatial normalisation.
+%
+% _____________________________________________________
+%
+% New features - x - Tissue Classification
+% 
+% A "segment" button has been added to SPM for partitioning MR images
+% into gray matter, white matter and CSF.  These partitions may be
+% used for voxel-based morphometrics, assisting scalp editing etc.
+% The tissue classification module is also used by the between mode
+% coregistration module.
+% 
+% _____________________________________________________
+%
+% New features - xi - Rendering
+% 
+% The old "render" option has been replaced by a new one.  This one
+% simply renders blobs on to a 'standard' Talairach brain.
+% 
+% _____________________________________________________
+%
+% New features - xii - Image Calculator
+% 
+% A simple image calculator has been included. For example, to add two
+% images and divide by a third, this can be done with a simple expression
+% like "(i1+i2)./i3".
+% 
+% _____________________________________________________
+%
+% New features - ??? - Miscellaneous
 %
 % Filtered SPM{Z} can be written out to Analyze files (spm_projections_ui)
 %_______________________________________________________________________
@@ -341,7 +418,7 @@
 %    This paper concerns the spatial and intensity transformations that
 %    are required to adjust for the confounding effects of subject
 %    movement during fMRI activation studies.  We present an approach
-%    that models, and removes, movement-related artefacts from fMRI
+%    that models, and removes, movement-related artifacts from fMRI
 %    time-series.  This approach is predicated on the observation that
 %    movement-related effects are extant even after perfect
 %    realignment.  These effects can be divided into those that are
