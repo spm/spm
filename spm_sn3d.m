@@ -1,4 +1,4 @@
-function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
+function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 % Perform 3D spatial normalization
 %
 % --- The Prompts Explained ---
@@ -93,6 +93,16 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 % The regularization influences the smoothness of the deformation
 % fields.
 %
+% 'Mask brain when registering?'
+% Applies a weighting mask tothe template(s) during the parameter
+% estimation.  Weights in and around the brain have values of one
+% whereas those clearly outside the brain have values of zero.
+% This is an attempt to base the normalization purely upon the
+% shape of the brain, rather than the shape of the head (since
+% low frequency basis functions can not really cope with variations
+% in skull thickness).
+%
+%
 % Options for Write Normalised:
 % 'select Normalisation Parameter Set'
 % Select the '_sn3d.mat' file.
@@ -156,7 +166,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 %
 %-----------------------------------------------------------------------
 %
-% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
+% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 % P         - image(s) to normalize
 % matname   - name of file to store deformation definitions
 % bb        - bounding box for normalized image
@@ -174,7 +184,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 % spms      - template image(s).
 % aff_parms - starting parameters for affine normalisation.
 
-global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn;
+global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn sptl_MskBrn;
 
 
 bboxes  = [   -78 78 -112 76  -50 85         
@@ -232,6 +242,18 @@ if (nargin == 0)
 	aff_parms = [0 0 0 0 0 0 1 1 1 0 0 0];
 
 	if (a1 == 1 | a1 == 3)
+
+		if sptl_MskBrn==1,
+			brainmask = [SWD '/apriori/brainmask.img'];
+		else,
+			brainmask = '';
+		end;
+		nbasis     = sptl_NBss;
+		iterations = sptl_NItr;
+		rglrztn = sptl_Rglrztn;
+		aff_parms = sptl_Ornt;
+
+
 		% Get template(s)
 		ok = 0;
 		while (~ok)
@@ -254,10 +276,6 @@ if (nargin == 0)
 			a2  = spm_input('Normalisation Type?', pos, 'm',...
 				'Default Normalisation|Affine Only|Custom Affine & Nonlinear', [0 1 2],1);
 			pos = pos + 1;
-			if (a2 == 0)
-				iterations = sptl_NItr;
-				nbasis     = sptl_NBss;
-			end
 
 			if (a2 == 2)
 				tmp2 = [1 3 5 8 12 16];
@@ -309,10 +327,18 @@ if (nargin == 0)
 				iterations = 0;
 				rglrztn    = 0;
 			end
-		else
-			nbasis     = sptl_NBss;
-			iterations = sptl_NItr;
-			rglrztn = sptl_Rglrztn;
+
+			if a2==1 | a2==2,
+				tmp = [1 0];
+				tmp = spm_input('Mask brain when registering?', pos, 'm',...
+					'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
+				pos = pos + 1;
+				if tmp == 1,
+					brainmask = [SWD '/apriori/brainmask.img'];
+				else,
+					brainmask = '';
+				end;
+			end;
 		end
 
 
@@ -339,10 +365,7 @@ if (nargin == 0)
 				end
 				aff_parms(1:prod(size(se))) = se(:);
 			end
-		else
-			aff_parms = sptl_Ornt;
 		end
-
 	end
 
 	if (a1 == 2 | a1 == 3)
@@ -399,8 +422,8 @@ if (nargin == 0)
 		end
 
 	else
-		bb     = reshape(bboxes(1,:),2,3);
-		Vox    = [4 4 4];
+		bb     = sptl_BB;
+		Vox    = sptl_Vx;
 	end
 
 
@@ -411,7 +434,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms);
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,brainmask);
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
@@ -477,7 +500,6 @@ elseif strcmp(P,'Defaults')
 	elseif (tmp == -1)
 		sptl_Ornt = 0;
 	end
-	pos = pos + 1;
 
 
 	% Give option to customise the normalisation
@@ -542,6 +564,11 @@ elseif strcmp(P,'Defaults')
 		 'Medium regularization|Light regularization|'...
 		 'Very Light regularization'], tmp2, tmp);
 	pos = pos+1;
+
+	tmp = [1 0];
+	sptl_MskBrn = spm_input('Mask brain when registering?', pos, 'm',...
+		'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
+	pos = pos + 1;
 
 	% Get default bounding box
 	%-----------------------------------------------------------------------
@@ -616,44 +643,34 @@ end
 
 % Map the template(s).
 %-----------------------------------------------------------------------
-VG = [];
-for i=1:size(spms,1)
-	fname = spms(i,:);
-	fname = fname(fname ~= ' ');
-	VG = [VG spm_map(fname)];
-	if (i==1)
-		[dim,vox,scale,type,offset,origin,descrip] = spm_hread(fname);
-	end
-end
-
-% Check for consistancy
-%-----------------------------------------------------------------------
-if (size(VG,2)> 1 & any(diff(VG(1:6,:)')))
-	error('Templates must have identical dimensions');
-end
+VG = spm_vol(spms);
 
 % Map the image to normalize.
 %-----------------------------------------------------------------------
 fprintf('smoothing..');
 spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
-VF = spm_map('./spm_sn3d_tmp.img');
+VF = spm_vol('./spm_sn3d_tmp.img');
 fprintf(' ..done\n');
 
 MF = spm_get_space(P(1,:));
 MG = spm_get_space(spms(1,:));
 
-
 % Affine Normalisation
 %-----------------------------------------------------------------------
 spm_chi2_plot('Init','Affine Registration','Convergence');
-[p1] = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8);
-[p1] = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1);
+p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8);
+if ~isempty(brainmask),
+	p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1,brainmask,eye(4));
+else,
+	p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1);
+end;
+
 spm_chi2_plot('Clear');
 prms   = p1(1:12);
 scales = p1(13:length(p1));
-Affine = inv(inv(MG)*spm_matrix(prms')*MF);
+Affine = inv(inv(VG(1).mat)*spm_matrix(prms')*VF(1).mat);
 
-fov = VF(1:3).*VF(4:6);
+fov = VF(1).dim(1:3).*sqrt(sum(VF(1).mat(1:3,1:3).^2));
 if any(fov<60),
 	fprintf('The field of view is too small to attempt nonlinear registration\n');
 	params(1:4)=0;
@@ -661,19 +678,29 @@ end
 
 if (~any(params(1:4)==0) & params(6)~=Inf)
 	fprintf('3D Cosine Transform Normalization\n');
-	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
+	if ~isempty(brainmask),
+		VW=spm_map(brainmask);
+		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW);
+		spm_unmap(VW);
+	else,
+		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
+	end;
 else
 	Transform = [];
-	Dims = [VG(1:3,1)' ; 0 0 0];
+	Dims = [VG(1).dim(1:3) ; 0 0 0];
 end
 
 % Save parameters for future use.
 %-----------------------------------------------------------------------
-Dims = [Dims ; vox ; origin ; VF(1:3,1)' ; VF(4:6,1)'];
+MF     = VF(1).mat;
+MG     = VG(1).mat;
+vox    = sqrt(sum(MG(1:3,1:3).^2));
+origin = MG\[0 0 0 1]';
+origin = origin(1:3)';
+Dims = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
 mgc = 960209;
 eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
 
-for v=VG, spm_unmap_vol(v); end
 spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
 
 % Do the display stuff

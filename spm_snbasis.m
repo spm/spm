@@ -1,9 +1,9 @@
-function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param)
+function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param,VW)
 
 % 3D Basis Function Normalization
 % FORMAT [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param);
-% VG        - Vector of memory mapped templates.
-% VF        - Memory mapped image to normalize.
+% VG        - Template volumes (see spm_vol).
+% VF        - Volume to normalize.
 % Affine    - A 4x4 transformation (in voxel space).
 % param(1:3)- Number of basis functions in each dimension.
 % param(4)  - Number of iterations.
@@ -14,6 +14,7 @@ function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param)
 % Dims      - The dimensions of the transforms.
 % remainder - The scaling for each of the templates required
 %             to get the best match to the normalized image.
+% VW        - optional weighting Volume.
 %
 % spm_snbasis performs a spatial normalization based upon a 3D
 % discrete cosine transform.
@@ -29,27 +30,27 @@ lambda  = param(6);
 %-----------------------------------------------------------------------
 k=param(1:3);
 k = max([ k ; 1 1 1]);
-k = min([ k ; VG(1) VG(2) VG(3)]);
+k = min([ k ; VG(1).dim(1:3)]);
 
 % Scaling is to improve stability.
 %-----------------------------------------------------------------------
 stabilise = 8;
-basX = spm_dctmtx(VG(1),k(1))*stabilise;
-basY = spm_dctmtx(VG(2),k(2))*stabilise;
-basZ = spm_dctmtx(VG(3),k(3))*stabilise;
+basX = spm_dctmtx(VG(1).dim(1),k(1))*stabilise;
+basY = spm_dctmtx(VG(1).dim(2),k(2))*stabilise;
+basZ = spm_dctmtx(VG(1).dim(3),k(3))*stabilise;
 
-dbasX = spm_dctmtx(VG(1),k(1),'diff')*stabilise;
-dbasY = spm_dctmtx(VG(2),k(2),'diff')*stabilise;
-dbasZ = spm_dctmtx(VG(3),k(3),'diff')*stabilise;
+dbasX = spm_dctmtx(VG(1).dim(1),k(1),'diff')*stabilise;
+dbasY = spm_dctmtx(VG(1).dim(2),k(2),'diff')*stabilise;
+dbasZ = spm_dctmtx(VG(1).dim(3),k(3),'diff')*stabilise;
 
 if (0)
 	% BENDING ENERGY REGULARIZATION
 	% Estimate a suitable sparse diagonal inverse covariance matrix for
 	% the parameters (IC0).
 	%-----------------------------------------------------------------------
-	kx=(pi*((1:k(1))'-1)/VG(1)).^2;	ox=ones(k(1),1);
-	ky=(pi*((1:k(2))'-1)/VG(2)).^2; oy=ones(k(2),1);
-	kz=(pi*((1:k(3))'-1)/VG(3)).^2; oz=ones(k(3),1);
+	kx=(pi*((1:k(1))'-1)/VG(1).dim(1)).^2;ox=ones(k(1),1);
+	ky=(pi*((1:k(2))'-1)/VG(1).dim(2)).^2; oy=ones(k(2),1);
+	kz=(pi*((1:k(3))'-1)/VG(1).dim(3)).^2; oz=ones(k(3),1);
 
 	IC0 = 	kron(kron(oz    ,oy    ),kx.*kx)   + ...
 		kron(kron(oz    ,ky.*ky),ox    )   + ...
@@ -59,33 +60,37 @@ if (0)
 		kron(kron(kz    ,ky    ),ox    )*2;
 
 	IC0 = lambda*IC0*stabilise^6;
-	IC0 = [IC0 ; IC0 ; IC0 ; zeros(size(VG,2)*4,1)];
+	IC0 = [IC0 ; IC0 ; IC0 ; zeros(prod(size(VG))*4,1)];
 	IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 end
 if (1)
 	% MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
 	%-----------------------------------------------------------------------
-	kx=(pi*((1:k(1))'-1)/VG(1)).^2; ox=ones(k(1),1);
-	ky=(pi*((1:k(2))'-1)/VG(2)).^2; oy=ones(k(2),1);
-	kz=(pi*((1:k(3))'-1)/VG(3)).^2; oz=ones(k(3),1);
+	kx=(pi*((1:k(1))'-1)/VG(1).dim(1)).^2; ox=ones(k(1),1);
+	ky=(pi*((1:k(2))'-1)/VG(1).dim(2)).^2; oy=ones(k(2),1);
+	kz=(pi*((1:k(3))'-1)/VG(1).dim(3)).^2; oz=ones(k(3),1);
 
 	IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
 
 	IC0 = lambda*IC0*stabilise^6;
-	IC0 = [IC0 ; IC0 ; IC0 ; zeros(size(VG,2)*4,1)];
+	IC0 = [IC0 ; IC0 ; IC0 ; zeros(prod(size(VG))*4,1)];
 	IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 end
 
 % Generate starting estimates.
 %-----------------------------------------------------------------------
 s1 = 3*prod(k);
-s2 = s1 + size(VG,2)*4;
+s2 = s1 + prod(size(VG))*4;
 T = zeros(s2,1);
-T(s1+(1:4:size(VG,2)*4)) = ones(size(VG,2),1);
+T(s1+(1:4:prod(size(VG))*4)) = 1;
 
 for iter=1:param(4)
 	fprintf('iteration # %d: ', iter);
-	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm);
+	if nargin>=5,
+		[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VW);
+	else,
+		[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm);
+	end;
 	fwhm(2) = min([fw fwhm(2)]);
 
 	fprintf('FWHM = %g\tVar = %g\n', fw,Var);
@@ -121,13 +126,14 @@ for iter=1:param(4)
 	% Which simplifies to: (Alpha + IC0*Var)\(Alpha*T + Beta)
 	%-----------------------------------------------------------------------
 	T = (Alpha + IC0)\(Alpha*T + Beta);
+	drawnow;
 end
 
 % Dimensions and values of the 3D-DCT
 %-----------------------------------------------------------------------
 Transform = reshape(T(1:s1),prod(k),3)*stabilise.^3;
-Dims = [VG(1:3,1)'; k];
+Dims = [VG(1).dim(1:3); k];
 
 % Scaling for each template image.
 %-----------------------------------------------------------------------
-remainder = T((1:4:size(VG,2)*4) + s1);
+remainder = T((1:4:prod(size(VG))*4) + s1);

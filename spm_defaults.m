@@ -167,6 +167,12 @@ sptl_Rglrztn = 0.01;
 %-----------------------------------------------------------------------
 sptl_NItr = 12;
 
+% Estimate the spatial normalization parameters from the brain only
+% or use the whole head.
+%-----------------------------------------------------------------------
+%sptl_MskBrn = 0; % Estimate from the whole head
+sptl_MskBrn = 1; % Estimate from the brain only
+
 % Bounding Box. The definition of the volume of the normalised image
 % which is written (mm relative to AC).
 % [[lowX lowY lowZ];[highX highY highZ]]

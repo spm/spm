@@ -18,10 +18,6 @@ if (mgc ~= 960209)
 	error(['Matrix file ' matname ' is the wrong type.']);
 end
 
-V       = zeros(12 ,size(P,1));
-MP      = zeros(4*4,size(P,1));
-Headers = zeros(8  ,size(P,1));
-
 % For evaluation using affine component only
 %----------------------------------------------------------------------------
 if 0
@@ -30,14 +26,8 @@ if 0
 	Transform=[];
 end
 
-for i=1:size(P,1)
-	p = spm_str_manip(P(i,:),'d');
-	V(:,i) = spm_map(p);
-	[DIM VOX SCALE TYPE] = spm_hread(p);
-	Headers(:,i) = [DIM VOX SCALE TYPE]';
-	mp = spm_get_space(p);
-	MP(:,i) = mp(:);
-end
+
+V = spm_vol(P);
 
 % MP         maps this_image -> original_mm
 % MG         maps template   -> normalised_mm
@@ -102,7 +92,7 @@ for j=1:length(z)
 	%----------------------------------------------------------------------------
 	Count = zeros(Dim(1),Dim(2));
 	for i=1:size(P,1)
-		Mult = reshape(MP(:,i),4,4)\MF*Affine;
+		Mult = V(i).mat\MF*Affine;
 		if (~affine_only)
 			X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + Mult(1,3)*Z1 + Mult(1,4);
 			Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + Mult(2,3)*Z1 + Mult(2,4);
@@ -115,9 +105,10 @@ for j=1:length(z)
 
 		tiny = 5e-2;
 		% Find range of slice
-		Mask =        (X2 >= (1-tiny) & X2 <= (Headers(1,i)+tiny));
-		Mask = Mask & (Y2 >= (1-tiny) & Y2 <= (Headers(2,i)+tiny));
-		Mask = Mask & (Z2 >= (1-tiny) & Z2 <= (Headers(3,i)+tiny));
+
+		Mask =        (X2 >= (1-tiny) & X2 <= (V(i).dim(1)+tiny));
+		Mask = Mask & (Y2 >= (1-tiny) & Y2 <= (V(i).dim(2)+tiny));
+		Mask = Mask & (Z2 >= (1-tiny) & Z2 <= (V(i).dim(3)+tiny));
 
 		Count = Count + Mask;
 
@@ -128,7 +119,7 @@ for j=1:length(z)
 
 		% Sample each volume
 		%----------------------------------------------------------------------------
-		Mult = reshape(MP(:,i),4,4)\MF*Affine;
+		Mult = V(i).mat\MF*Affine;
 		if (~affine_only)
 			X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + Mult(1,3)*Z1 + Mult(1,4);
 			Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + Mult(2,3)*Z1 + Mult(2,4);
@@ -138,25 +129,25 @@ for j=1:length(z)
 			Y2= Mult(2,1)*X + Mult(2,2)*Y + (Mult(2,3)*z(j) + Mult(2,4));
 			Z2= Mult(3,1)*X + Mult(3,2)*Y + (Mult(3,3)*z(j) + Mult(3,4));
 		end
-		d = spm_sample_vol(V(:,i),X2,Y2,Z2,Hold)/Headers(7,i);
+		d = spm_sample_vol(V(i),X2,Y2,Z2,Hold)/V(i).pinfo(1);
 
 		d = d.*Mask; % Apply mask
 
 		% Deal with different data types
 		%----------------------------------------------------------------------------
-		if (Headers(8,i) == 2)
+		if (V(i).dim(4) == 2)
 			d = round(d);
 			tmp = find(d > 255);
 			d(tmp) = zeros(size(tmp))+255;
 			tmp = find(d < 0);
 			d(tmp) = zeros(size(tmp));
-		elseif (Headers(8,i) == 4)
+		elseif (V(i).dim(4) == 4)
 			d = round(d);
 			tmp = find(d > 32767);
 			d(tmp) = zeros(size(tmp))+32767;
 			tmp = find(d < -32768);
 			d(tmp) = zeros(size(tmp))-32768;
-		elseif (Headers(8,i) == 8)
+		elseif (V(i).dim(4) == 8)
 			d = round(d);
 			tmp = find(d > 2^31-1);
 			d(tmp) = zeros(size(tmp))+(2^31-1);
@@ -175,7 +166,7 @@ for j=1:length(z)
 			open_error_message(q);
 			error(['Error opening ' q '. Check that you have write permission.']);
 		end
-		if fwrite(fp,d,spm_type(Headers(8,i))) ~= prod(size(d))
+		if fwrite(fp,d,spm_type(V(i).dim(4))) ~= prod(size(d))
 			spm_progress_bar('Clear');
 			write_error_message(q);
 			error(['Error writing ' q '. Check your disk space.']);
@@ -194,11 +185,10 @@ for i=1:size(P,1)
 	p  = spm_str_manip(P(i,:), 'd');
 	q  = max([find(p == '/') 0]);
 	q  = [p(1:q) 'n' p((q + 1):length(p))];
-	spm_hwrite(q,Dim,Vox,Headers(7,i),Headers(8,i),0,origin,['spm - 3D normalized']);
+	spm_hwrite(q,Dim,Vox,V(i).pinfo(1),V(i).dim(4),0,origin,['spm - 3D normalized']);
 end
 
 spm_progress_bar('Clear');
-for i=1:size(V,2), spm_unmap(V(:,i)); end;
 return;
 
 
