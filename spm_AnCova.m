@@ -70,8 +70,8 @@ if ~GLOB
 
 	% temporal convolution kernel
 	%-------------------------------------------------------------------
-	K     = spm_sptop(sigma,q);
-	V     = K*K;
+	K      = spm_sptop(sigma,q);
+	V      = K*K;
 
 
 	% cunning piece of code to compute expectations of variances and 
@@ -119,21 +119,13 @@ if nargin > 3
 	%-------------------------------------------------------------------
 	BETA  = (PH*X);					% parameter estimates
 
-	% chunk if data are enourmous
+	% SSQ
 	%-------------------------------------------------------------------
-	n     = size(X,2);
-	RES   = zeros(1,n);
-	NUL   = zeros(1,n);
-	U     = round(64^3/q);
-	for i = 1:ceil(n/U)
-		j      = [1:U] + (i - 1)*U;
-		j      = j(j <= n);
-		R      = X(:,j) - H*BETA(:,j);		% residuals under Ha
-		N      = X(:,j) - G*(PG*X(:,j));	% residuals under Ho
-		RES(j) = sum(R.^2);			% SSQ under Ha
-		NUL(j) = sum(N.^2);			% SSQ under Ho
-	end
-
+	R     = X - H*BETA;				% residuals under Ha
+	N     = X - G*(PG*X);				% residuals under Ho
+	RES   = sum(R.^2);				% SSQ under Ha
+	NUL   = sum(N.^2);				% SSQ under Ho
+	
 	% test for effects with he F ratio of variances
 	%-----------------------------------------------------------------
 	F     = trRV/trR0V*(NUL - RES)./RES;		% F statistic
