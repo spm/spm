@@ -1,5 +1,5 @@
 function spm_slice_timing(P, sliceorder, refslice, timing)
-% function spm_slice_timing(P, Seq,refslice,timing)
+% function spm_slice_timing(P, sliceorder, refslice, timing)
 % INPUT:
 % 	P		nimages x ?	Matrix with filenames
 %                       can also be a cell array of the above (multiple subj).
