@@ -147,7 +147,7 @@ STOC   = 0;
 global fMRI_T; 
 global fMRI_T0; 
 if isempty(fMRI_T),  fMRI_T  = 16; end;
-if isempty(fMRI_T0), fMRI_T0 = 16; end;
+if isempty(fMRI_T0), fMRI_T0 = 1;  end;
 
 % get nscan and RT if no arguments
 %-----------------------------------------------------------------------
@@ -166,8 +166,14 @@ dt     = RT/fMRI_T;					% time bin {secs}
 % separate specifications for non-relicated sessions
 %-----------------------------------------------------------------------
 rep = 0;
-if nsess > 1 & ~any(nscan - nscan(1))
-	rep = spm_input(['are sessions replicated exactly'],'+1','yes|no',[1 0]);
+tim = 0;
+if nsess > 1
+	str = 'are conditions replicated';
+	rep = spm_input(str,'+1','yes|no',[1 0]);
+	if rep & ~any(nscan - nscan(1))
+		str = ['are timing/paramters the same'];
+		tim = spm_input(str,'+1','yes|no',[1 0]);
+	end
 end
 Xx    = [];
 Xb    = [];
@@ -176,110 +182,126 @@ Bname = {};
 Sess  = {};
 for s = 1:nsess
 
-	if rep
-		Fstr='All sessions';
+	if tim
+		Fstr = 'All sessions';
 	else
 		Fstr = sprintf('Session %d/%d',s,nsess);
 	end
 
-
-	% specify design for this session?
+	% initialize variables for first session
 	%---------------------------------------------------------------
-        if   (s == 1) | ~rep
-	X       = [];				% design matrix
-	B       = [];				% block partition
-	D       = [];				% covariates
-	PST     = {};				% Peri-stimulus times
-	ONS     = {};				% onset times
-	IND     = {};				% design matrix indices
-	name    = {};				% condition names
-	Xn      = {};				% regressor names
+        if   (s == 1)
+		X       = [];			% design matrix
+		B       = [];			% block partition
+		D       = [];			% covariates
+		PST     = {};			% Peri-stimulus times
+		ONS     = {};			% onset times
+		IND     = {};			% design matrix indices
+		name    = {};			% condition names
+		Xn      = {};			% regressor names
+	end
 
 	% Event/epoch related responses			
 	%===============================================================
-	k       = nscan(s);
+	k     = nscan(s);
 
-	% event/epoch onsets {ons} and window lengths {W}
+	% specify event/epoch onsets {SF} for this session
 	%---------------------------------------------------------------
-	[SF,name,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC,Fstr);
-	ntrial     = size(SF,2);
+	if (s == 1) | ~rep
 
+		[SF,Cname,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC,Fstr);
+		ntrial     = size(SF,2);
 
-	% get basis functions for responses
-	%---------------------------------------------------------------
-	[BF BFstr] = spm_get_bf(name,fMRI_T,dt,Fstr);
+	elseif ~tim
 
-
-	%-Reset ContextHelp
-	%---------------------------------------------------------------
-	spm_help('!ContextHelp',mfilename)
-
-
-	% peri-stimulus {PST} and onset {ONS} times in seconds
-	%---------------------------------------------------------------
-	for   i = 1:ntrial
-		on     = find(SF{i}(:,1))*dt;
-		pst    = [1:k]*RT - on(1);			
-		for  j = 1:length(on)
-			u      = [1:k]*RT - on(j);
-			v      = find(u >= -1);
-			pst(v) = u(v);
-		end
-		ONS{i} = on;
-		PST{i} = pst;
+		[SF,Cname,Pv,Pname,DSstr] = ...
+				spm_get_ons(k,fMRI_T,dt,STOC,Fstr,ntrial,Cname);
 	end
 
-	spm_input('Additional design matrix options...',1,'d',mfilename)
-
-	% convolve with basis functions
+	% get basis functions for this session
 	%---------------------------------------------------------------
-	if ntrial
+        if (s == 1) | ~rep
 
-		str    = 'interactions among trials (Volterra)';
-		if spm_input(str,'+1','y/n',[1 0]);
-
-			[X Xn IND BF name] = spm_Volterra(SF,BF,name,2);
-		else
-			[X Xn IND]         = spm_Volterra(SF,BF,name,1);
-		end
-
-		% Resample design matrix {X} at acquisition times
+		% get basis functions for responses
 		%-------------------------------------------------------
-		X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
+		[BF BFstr] = spm_get_bf(Cname,fMRI_T,dt,Fstr);
 	end
 
-
-
-
-	% get user specified regressors
-	%===============================================================
-	c     = spm_input('user specified regressors','+1','w1',0);
-	while size(D,2) < c
-		str   = sprintf('regressor %i',size(D,2) + 1);
-		D     = [D spm_input(str,2,'e',[],[k Inf])];
-	end
-	if      c & length(DSstr)
-		DSstr = [DSstr '& user specified covariates '];
-	elseif  c
-		DSstr = 'User specified covariates ';
-	end
-
-	% append regressors and names
+	% complete design matrix partition for this session
 	%---------------------------------------------------------------
-	for i = 1:size(D,2)
-		X           = [X D(:,i)];
-		str         = sprintf('regressor: %i',i);
-		Xn{end + 1} = spm_input(['name of ' str],'+0','s',str);
-	end
+        if (s == 1) | ~tim
 
 
-	% Confounds: Session effects 
-	%===============================================================
-	B      = ones(k,1);
-	Bn{1}  = sprintf('constant');
+		%-Reset ContextHelp
+		%-------------------------------------------------------
+		spm_help('!ContextHelp',mfilename)
 
-	% end specification
-	%---------------------------------------------------------------
+
+		% peri-stimulus {PST} and onset {ONS} times in seconds
+		%-------------------------------------------------------
+		for   i = 1:ntrial
+			on     = find(SF{i}(:,1))*dt;
+			pst    = [1:k]*RT - on(1);			
+			for  j = 1:length(on)
+				u      = [1:k]*RT - on(j);
+				v      = find(u >= -1);
+				pst(v) = u(v);
+			end
+			ONS{i} = on;
+			PST{i} = pst;
+		end
+
+		spm_input('Additional design matrix options...',1,'d',mfilename)
+
+		% convolve with basis functions
+		%-------------------------------------------------------
+		if ntrial
+
+			str   = 'interactions among trials (Volterra)';
+			if spm_input(str,'+1','y/n',[1 0]);
+
+			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,2);
+			else
+
+			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,1);
+			end
+
+			% Resample design matrix {X} at acquisition times
+			%-----------------------------------------------
+			X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
+		end
+
+
+
+		% get user specified regressors
+		%=======================================================
+		D     = [];
+		c     = spm_input('user specified regressors','+1','w1',0);
+		while size(D,2) < c
+			str   = sprintf('regressor %i',size(D,2) + 1);
+			D     = [D spm_input(str,2,'e',[],[k Inf])];
+		end
+		if      c & length(DSstr)
+			DSstr = [DSstr '& user specified covariates '];
+		elseif  c
+			DSstr = 'User specified covariates ';
+		end
+
+		% append regressors and names
+		%-------------------------------------------------------
+		for i = 1:size(D,2)
+			X           = [X D(:,i)];
+			str         = sprintf('regressor: %i',i);
+			Xn{end + 1} = spm_input(['name of ' str],'+0','s',str);
+		end
+
+
+
+		% Confounds: Session effects 
+		%=======================================================
+		B      = ones(k,1);
+		Bn{1}  = sprintf('constant');
+
 	end
 
 	% Session structure
