@@ -1110,7 +1110,7 @@ else
 		'BackgroundColor',COLOR,...
 		'Position',[RRec(1)+n*dX+1 RRec(2) 2*dX-2 RRec(4)]);
 	H = [H,h];
-	XDisp = (n+1)*dX;
+	XDisp = (n+1.5)*dX;
 
 
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
