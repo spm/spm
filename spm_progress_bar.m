@@ -83,8 +83,10 @@ else
 		fg = spm_figure('FindWin','Interactive');
 		if ~isempty(fg),
 			spm_figure('Clear',fg);
-			set(fg,'Pointer',pb_pointer);
-			set(fg,'Name',pb_name);
+			if ~isempty(pb_pointer),
+				set(fg,'Pointer',pb_pointer);
+				set(fg,'Name',pb_name);
+			end;
 			drawnow;
 		end
 	end
