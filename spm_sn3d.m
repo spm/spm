@@ -255,9 +255,9 @@ if (nargin == 0)
 				'Default Normalisation|Custom Affine Only|Custom Affine & Nonlinear', [0 1 2]);
 			pos = pos + 1;
 			if (a2 == 0)
-				nap        = 12;
-				iterations = 5;
-				nbasis     = [4 5 4];
+				nap        = sptl_NAP;
+				iterations = sptl_NItr;
+				nbasis     = sptl_NBss;
 			end
 
 
@@ -400,7 +400,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.001],Template,aff_parms,ones(nap,1));
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.01],Template,aff_parms,ones(nap,1));
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
@@ -501,7 +501,7 @@ elseif strcmp(P,'Defaults')
 		sptl_NBss = bases(nb,:);
 	elseif nb == 0
 		sptl_NBss = [];
-		while prod(size(sptl_NBss)) ~= 3 | any(sptl_NBss < 1) | prod(sptl_NBss) > 1000
+		while prod(size(sptl_NBss)) ~= 3 | any(sptl_NBss < 0) | prod(sptl_NBss) > 1000
 			sptl_NBss = spm_input('# Basis Functions (x y z)',pos);
 			sptl_NBss = sptl_NBss(:)';
 		end
