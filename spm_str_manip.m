@@ -39,7 +39,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end
 
-sep = spm_platform('sepchar');
+sep = filesep;
 
 strout = cellstr(strin);
 R2     = '';
