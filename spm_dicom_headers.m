@@ -241,6 +241,10 @@ end;
 return;
 
 function dict = readdict
+dict = load('spm_dicom_dict.mat');
+return;
+
+function dict = readdict_txt
 file = textread('spm_dicom_dict.txt','%s','delimiter','\n','whitespace','');
 clear values
 for i=1:length(file),
