@@ -20,8 +20,14 @@ global defaults
 if nargin<2, Filter = '*'; end;
 if nargin<1, Wdir   = '.'; end;
 
-if strcmp(Filter,'IMAGE'),
-	Filter = '*';
+Filter = deblank(Filter);
+
+if strcmp(Filter,'IMAGE') | (length(Filter>5) & strcmp(Filter((end-4):end),'IMAGE')),
+	if length(Filter)>5,
+		Filter = [Filter(1:(end-5)) '*'];
+	else,
+		Filter = '*';
+	end
 	[Files,Dirs] = spm_list_files(WDir,Filter);
 	t=cell(size(Files,1),1);
 	for i=1:size(Files,1),

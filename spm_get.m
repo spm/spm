@@ -339,7 +339,7 @@ end
 %-NB: spm_get callbacks use Filter=0 for previous filtering
 %-----------------------------------------------------------------------
 if ischar(Filter)
-	if ~any(Filter=='*') & ~strcmp(Filter,'IMAGE'), Filter = ['*',Filter]; end
+	if ~any(Filter=='*'), Filter = ['*',Filter]; end
 else
 	Filter=0;
 end
