@@ -25,7 +25,6 @@ for i = 1:V(3,1)
 	% sums of squares of SPM{t} and spatial derivatives
         %-------------------------------------------------------------------
 	d       = spm_slice_vol(V,spm_matrix([0 0 i]),[V(1,1) V(2,1)],0);
-	d       = d - mean(d(:));
 	dz      = D - d(:);
 	[dy dx] = gradient(d);
 	Y       = ~d;
