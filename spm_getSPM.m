@@ -257,9 +257,11 @@ spm_progress_bar('Init',100,'computing...')                          %-#
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
-nPar = size(xX.X,2);
+nPar   = size(xX.X,2);
+I      = [Ic,Im];
+for ii = 1:length(I)
 
-for i=[Ic,Im]
+    i = I(ii);
 
     %-Canonicalise contrast structure with required fields
     %-------------------------------------------------------------------
@@ -332,7 +334,7 @@ for i=[Ic,Im]
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*i/(2*length([Ic,Im])+2))              %-#
+    spm_progress_bar('Set',100*ii/(2*length([Ic,Im])+2))             %-#
 
     %-Write statistic image(s)
     %-------------------------------------------------------------------
@@ -384,7 +386,7 @@ for i=[Ic,Im]
 
     end % (if ~isfield...)
 
-    spm_progress_bar('Set',100*i/(length([Ic,Im])+1))                %-#
+    spm_progress_bar('Set',100*ii/(length([Ic,Im])+1))               %-#
 
 end % (for i=[Ic,Im])
 
