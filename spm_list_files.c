@@ -22,7 +22,8 @@ static int getmask(struct stat *stbuf)
 #ifndef SPM_WIN32
         static uid_t uid = -1;
         static gid_t gids[128];
-        int ngids, g;
+        static int ngids;
+	int g;
 
 	if (uid == -1)
 	{
@@ -202,20 +203,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		(void)closedir(dirp);
 	} /* directory statable */
 		
-	/* to avoid unnecessary calls - wrap */
-	if (nfiles)
-	{
-		if (nfiles>1) slowsort(nfiles, filenames);
-		list2mat(nfiles,maxflen,filenames,&plhs[0]);
-	} else
-		plhs[0]=mxCreateString(0);
+	slowsort(nfiles, filenames);
+	list2mat(nfiles,maxflen,filenames,&plhs[0]);
 	
-	if (ndirs)
-	{
-		if (ndirs>1) slowsort(ndirs, directories);
-		list2mat(ndirs, maxdlen,directories,&plhs[1]);
-	} else
-		plhs[1]=mxCreateString(0);
+	slowsort(ndirs, directories);
+	list2mat(ndirs, maxdlen,directories,&plhs[1]);
 
 	for (i=0;i<nfiles;i++) (void)mxFree((char *)filenames[i]); 
 	for (i=0;i<ndirs ;i++) (void)mxFree((char *)directories[i]); 
