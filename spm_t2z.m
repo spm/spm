@@ -70,8 +70,8 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 %-Initialisation
 %===========================================================================
 
-% p-value tolerance: t-values with tail probabilities less than this are
-% converted to z by linear extrapolation
+% p-value tolerance: t-values with tail probabilities less than Tol are
+%                    converted to z by linear extrapolation
 %---------------------------------------------------------------------------
 if nargin<3, Tol = 10^(-10); end
 
@@ -86,7 +86,7 @@ if df<=0 error('df must be strictly positive'), end
 z     = zeros(size(t));
 
 %-Mask out t == 0 (z==0) and t == +/- Inf (z==+/- Inf), where
-% betainc(1,*,*) and betainc(0,*,*) involve taking logs of zero.
+% betainc(1,*,*) and betainc(0,*,*) warn "Log of zero"
 %---------------------------------------------------------------------------
 Qi    = find(isinf(t));
 if length(Qi), z(Qi)=t(Qi); end
@@ -102,11 +102,19 @@ mQb   = abs(t(Q)) > t1;
 %-t->z using Tcdf & invNcdf for abs(t)<=t1 
 %===========================================================================
 if any(~mQb)
+	QQnb = find(~mQb);
+
 	%-Compute (smaller) tail probability
-	p     = betainc(df./(df + t(Q(~mQb)).^2),df/2,.5)/2;
+	%-Chunk up to avoid convergence problems for long vectors in betacore
+	p = zeros(size(QQnb));
+	tmp = [1:500:length(QQnb),length(QQnb)];
+	for i = 1:length(tmp)-1
+	    p(tmp(i):tmp(i+1)) = ...
+	       betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)))).^2),df/2,.5)/2;
+	end
 	
 	%-Compute standard normal deviate lower tail prob equal to p
-	z(Q(~mQb)) = sqrt(2)*erfinv(2*p - 1);
+	z(Q(QQnb)) = sqrt(2)*erfinv(2*p - 1);
 end
 
 
