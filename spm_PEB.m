@@ -134,7 +134,7 @@ y        = [y; sparse(n,1)];
 
 % assemble augmented constraints Q 
 %===========================================================================
-if ~isfield(P{1},'Q')
+if ~isfield(P{1},'iQ')
 
 	% covariance contraints Q on Cov{e{i}} = Cov{b{i - 1}}
 	%-------------------------------------------------------------------
@@ -157,73 +157,37 @@ if ~isfield(P{1},'Q')
 		%-----------------------------------------------------------
 		K{i}  = [1:m] + K{end}(end);
 	end
-	P{1}.Q = Q;
-	P{1}.h = h;
-	P{1}.K = K;
 
-	% estimation matrix for hyperparameters
+
+	% overlapping bases
 	%-------------------------------------------------------------------
-	m      = length(Q);
-	T      = sparse(m,m);
-	for  i = 1:m
-		for  j = 1:m
-
-			% trace(Q{j}*Q{i}) = 
-			%--------------------------------------------------
-			T(i,j) = sum(sum(Q{j}.*Q{i}));
-		end
+	m     = length(Q);
+	for i = 1:m
+	for j = i:m
+		d(i,j)  = nnz(Q{i}*Q{j});
 	end
-	P{1}.iT = inv(T'*T)*T';
+	end
+
+	P{1}.Q  = Q;
+	P{1}.h  = h;
+	P{1}.K  = K;
+	P{1}.d  = d;
+
 end
 Q     = P{1}.Q;
 h     = P{1}.h;
 K     = P{1}.K;
-iT    = P{1}.iT;
-m     = length(Q);
-T     = sparse(m,1);
-H     = h;
-
-% initial estimate of Ce
-%---------------------------------------------------------------------------
-Ce    = Cb;
-for i = 1:m
-	Ce = Ce + h(i)*Q{i};
-end
-iCe   = inv(Ce);
-
-% pre-comutation of XQX
-%---------------------------------------------------------------------------
-for  i = 1:m
-	XQX{i} = XX'*Q{i}*XX;
-end
+d     = P{1}.d;
 
 
 % Iterative EM estimation
 %---------------------------------------------------------------------------
-for j = 1:M
+m     = length(Q);
+dFdh  = zeros(m,1);
+W     = zeros(m,m);
+for k = 1:M
 
-	% E-step: conditional mean E{B|y} and covariance cov(B|y)
-	%===================================================================
-        iCeX  = iCe*XX;
-        Cby   = inv(XX'*iCeX);
-	B     = Cby*(iCeX'*y);
-
-	% M-step: ML estimate of hyperparameters
-	%===================================================================
-
-	% Ce:  <r*r'> + <X*Cov{b|y}*X'> = Cov{e} = <h(1)*Ce{1} + ...>
-	%-------------------------------------------------------------------
-	r     = y - XX*B;
-	for i = 1:m
-
-		% trace((r*r' + XX*Cny*XX')*Q{i}) = 
-		%-----------------------------------------------------------
-		T(i) = r'*Q{i}*r + sum(sum(Cby.*XQX{i}));
-
-	end
-	h     = iT*T;
-
-	% assemble new estimate
+	% assemble estimate of inv(Cov(e)) - iCe
 	%-------------------------------------------------------------------
 	Ce    = Cb;
 	for i = 1:m
@@ -231,14 +195,54 @@ for j = 1:M
 	end
 	iCe   = inv(Ce);
 
+
+	% E-step: conditional mean E{B|y} and covariance cov(B|y)
+	%===================================================================
+        iCeX  = iCe*XX;
+        Cby   = inv(XX'*iCeX);
+	B     = Cby*(iCeX'*y);
+
+
+	% M-step: ML estimate of hyperparameters
+	%===================================================================
+
+	% Ce:  using dF/diCe = r*r' + X*Cby*X' and diCe/dh(i) = iCe*Q{i}*iCe
+	%-------------------------------------------------------------------
+	r     = y - XX*B;
+	Cr    = iCe*r;
+	for i = 1:m
+
+		% dF/dh = trace(dF/diCe*iCe*Q{i}*iCe) = 
+		%----------------------------------------------------------
+		QC{i}   = Q{i}*iCe;
+		dFdh(i) = trace(QC{i}) - Cr'*Q{i}*Cr - ...
+			  sum(sum(Cby.*(iCeX'*Q{i}*iCeX)));
+	end
+	for i = 1:m
+		for j = i:m
+		if d(i,j)
+
+			% -ddF/dhh = trace{Q{i}*iCe*Q{j}*iCe}
+			%--------------------------------------------------
+			ddFdhh = sum(sum(QC{i}.*QC{j}));
+			W(i,j) = ddFdhh;
+			W(j,i) = ddFdhh;
+
+		end
+		end
+	end
+
+	% Upadate dh = -ddF/dhh*dF/dh
+	%-------------------------------------------------------------------
+	dh    = W\dFdh;
+	h     = h - dh;
+
 	% Convergence
 	%===================================================================
-	w     = sum((H - h).^2);
-	if iscell(P{end}.C)
-		fprintf('%-30s: %i %30s%e\n','PEB Iteration',j,'...',full(w));
-	end
-	if w < 1e-16, break, end
-	H     = h;
+	w     = dh'*dh;
+	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+	if w < 1e-6, break, end
+
 end
 
 % place hyperparameters in P{1}
@@ -264,5 +268,5 @@ end
 
 % warning
 %---------------------------------------------------------------------------
-if j == M, warning('maximum number of iterations exceeded'), end
+if k == M, warning('maximum number of iterations exceeded'), end
 
