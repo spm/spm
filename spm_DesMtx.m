@@ -172,8 +172,8 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %  - Two way factor interaction by covariate interaction :
 %                                        : <Cov>@<Fac1>*<Fac2>_{1,1}
 %  - Column 3 of prespecified DesMtx block (if unnamed)
-%                                        : <X> (1)
-% The special characters `_*{}()' are recognised by the scaling
+%                                        : <X> [1]
+% The special characters `_*()[]{}' are recognised by the scaling
 % function (spm_DesMtx('sca',...), and should therefore be avoided
 % when naming effects and covariates.
 %
@@ -226,16 +226,18 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % names are scaled on a column by column basis, the parameters labelled as
 % <UnSpec> in the returned nPnames matrix.
 % 
-% Effects are identified using the special characters `_*{}()' used in
+% Effects are identified using the special characters `_*()[]{}' used in
 % parameter naming as follows: (here ? is a wildcard)
+%       - ?(?)          - general  block (column normalised)
+%       - ?[?]          - specific block (block normalised)
 %       - ?_{?}         - main effect or interaction of main effects
 %       - ?@?_{?}       - factor by covariate interaction
-%       - ?(?)          - part of a pre-specified block
 % Blocks are identified by looking for runs of parameters of the same type
 % with the same names: E.g. a block of main effects for factor 'Fac1'
 % would have names like Fac1_{?}.
 % 
 % Scaling is as follows:
+%       * fMRI blocks are scaled around zero to lie in [-1,1]
 %       * No scaling is carried out if max(abs(tX(:))) is in [.4,1]
 %         This protects dummy variables from normalisation, even if
 %         using implicit sum-to-zero constraints.
@@ -304,7 +306,7 @@ end
 if length(FCnames)==1 & size(X,2)>1
 	Pnames = cell(size(X,2),1);
 	for i=1:size(X,2)
-		Pnames{i} = sprintf('%s (%d)',FCnames{1},i);
+		Pnames{i} = sprintf('%s [%d]',FCnames{1},i);
 	end
 elseif length(FCnames)~=size(X,2)
 	error('FCnames doesn''t match covariate/X matrix')
@@ -630,11 +632,29 @@ while(Carg <= nargin)
     while(~isempty(rX))
 	if size(rX,2)>1 & max(1,find(rPnames(1,:)=='(')) < ...
 					max(0,find(rPnames(1,:)==')'))
-	%-Block: find the rest & normalise together
+	%-Non-specific block: find the rest & column normalise round zero
 	%===============================================================
 		c1 = max(find(rPnames(1,:)=='('));
 		d  = any(diff(abs(rPnames(:,1:c1))),2)...
 			| ~any(rPnames(2:end,c1+1:end)==')',2);
+		t  = min(find([d;1]));
+
+		%-Normalise columns of block around zero
+		%-------------------------------------------------------
+		tmp = size(nX,2);
+		nX  = [nX, zeros(size(rX,1),t)];
+		for i=1:t, nX(:,tmp+i) = rX(:,i)/max(abs(rX(:,i))); end
+		nPnames   = [nPnames; cellstr(rPnames(1:t,:))];
+		rX(:,1:t) = []; rPnames(1:t,:)=[];
+
+
+	elseif size(rX,2)>1 & max(1,find(rPnames(1,:)=='[')) < ...
+					max(0,find(rPnames(1,:)==']'))
+	%-Block: find the rest & normalise together
+	%===============================================================
+		c1 = max(find(rPnames(1,:)=='['));
+		d  = any(diff(abs(rPnames(:,1:c1))),2)...
+			| ~any(rPnames(2:end,c1+1:end)==']',2);
 		t  = min(find([d;1]));
 
 		%-Normalise block
