@@ -817,15 +817,15 @@ else                                             %-Use GUI to get answer
 	uimenu(hM,'Label','load from text file','Separator','on',...
 		'CallBack',cb,'UserData',h)
 
+	%-Bring window to fore & jump pointer to edit widget
+	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
+
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
 	set(Finter,'KeyPressFcn',[...
 	    'spm_input(''!EditableKeyPressFcn'',',...
 	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
 	    	'''Style'',''edit''),',...
 	    'get(gcbf,''CurrentCharacter''))'])
-
-	%-Bring window to fore & jump pointer to edit widget
-	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
 
 	%-Wait for edit, do eval Types in Base workspace, catch errors
@@ -1101,6 +1101,12 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 				H = [H,h];
 			end
 		
+			%-Figure ContextMenu for shortcuts
+			hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
+
+			%-Bring window to fore & jump pointer to default button
+			[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,XDisp);
+	
 			%-Callback for KeyPress, to store valid button # in
 			% UserData of Prompt, DefItem if (DefItem~=0)
 			% & return (ASCII-13) is pressed
@@ -1111,12 +1117,6 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 				'''',lower(Keys),''',',num2str(DefItem),',',...
 				'get(gcbf,''CurrentCharacter''))'])
 
-			%-Figure ContextMenu for shortcuts
-			hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
-
-			%-Bring window to fore & jump pointer to default button
-			[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,XDisp);
-	
 			%-Wait for button press, process results
 			%-----------------------------------------------
 			waitfor(hPrmpt,'UserData')
@@ -1323,6 +1323,11 @@ else
 	set(hDef,'UserData',[hPrmpt,h])
 	H = [H,h];
 
+	%-Figure ContextMenu for shortcuts
+	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
+
+	%-Bring window to fore & jump pointer to default button
+	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,RRec(3)*0.95);
 
 	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
 	set(Finter,'KeyPressFcn',[...
@@ -1331,12 +1336,6 @@ else
 	    	'''Style'',''edit''),',...
 	    'get(gcbf,''CurrentCharacter''))'])
 
-
-	%-Figure ContextMenu for shortcuts
-	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
-
-	%-Bring window to fore & jump pointer to default button
-	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,RRec(3)*0.95);
 
 	%-Wait for button press, process results
 	%---------------------------------------------------------------
@@ -1449,18 +1448,18 @@ case 'm'                                             %-Process menu type
 				'mouse or type option number (1-',...
 				num2str(nLabels),') & press return']), end
 	
-			%-Callback for KeyPresses
-			cb=['spm_input(''!PullDownKeyPressFcn'',',...
-				'findobj(gcf,''Tag'',''',Tag,'''),',...
-				'get(gcf,''CurrentCharacter''))'];
-			set(Finter,'KeyPressFcn',cb)
-
 			%-Figure ContextMenu for shortcuts
 			hM = spm_input('!InptConMen',Finter,[hPopUp,H]);
 
 			%-Bring window to fore & jump pointer to menu widget
 			[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 	
+			%-Callback for KeyPresses
+			cb=['spm_input(''!PullDownKeyPressFcn'',',...
+				'findobj(gcf,''Tag'',''',Tag,'''),',...
+				'get(gcf,''CurrentCharacter''))'];
+			set(Finter,'KeyPressFcn',cb)
+
 			%-Wait for menu selection
 			%-----------------------------------------------
 			waitfor(hPopUp,'UserData')
