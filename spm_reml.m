@@ -58,7 +58,7 @@ for i = 1:size(u,2)
 end
 Q     = C;
 
-% initialize hyperparameters (assuming Cov{e} = 1}
+% initialize hyperparameters
 %-----------------------------------------------------------------------
 m     = length(Q);
 dFdh  = zeros(m,1);
@@ -67,7 +67,9 @@ C     = [];
 for i = 1:m
     C = [C Q{i}(:)];
 end
-h     = inv(C'*C)*(C'*Cy(:));
+R     = speye(n,n) - X*X';
+R     = R*Cy*R';
+h     = inv(C'*C)*(C'*R(:));
 dh    = sparse(m,1);
 
 % and Ce		
