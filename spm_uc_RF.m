@@ -1,6 +1,6 @@
-function [u] = spm_U(a,df,STAT,R,n)
+function [u] = spm_uc(a,df,STAT,R,n)
 % corrected critical height threshold at a specified significance level
-% FORMAT [u] = spm_U(a,df,STAT,R,n)
+% FORMAT [u] = spm_uc(a,df,STAT,R,n)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{residuals}]
 % STAT  - Statisical feild
@@ -15,7 +15,7 @@ function [u] = spm_U(a,df,STAT,R,n)
 %
 %___________________________________________________________________________
 %
-% spm_U returns the corrected critical threshold at a specified significance
+% spm_uc returns the corrected critical threshold at a specified significance
 % level (a). If n > 1 a conjunction the probability over the n values of the 
 % statistic is returned.
 %___________________________________________________________________________
