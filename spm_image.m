@@ -89,7 +89,7 @@ if strcmp(op,'shopos'),
 	return;
 end;
 
-if strcmp(op,'setpos'),
+if strcmp(op,'setposmm'),
 	% Move the crosshairs to the specified position
 	%-----------------------------------------------------------------------
 	if isfield(st,'mp'),
@@ -104,6 +104,24 @@ if strcmp(op,'setpos'),
 	end;
 	return;
 end;
+
+if strcmp(op,'setposvx'),
+	% Move the crosshairs to the specified position
+	%-----------------------------------------------------------------------
+	if isfield(st,'mp'),
+		fg = spm_figure('Findwin','Graphics');
+		if any(findobj(fg) == st.vp),
+			pos = sscanf(get(st.vp,'String'), '%g %g %g');
+			if length(pos)~=3,
+				pos = spm_orthviews('pos',1);
+			end;
+			pos = st.vols{1}.mat(1:3,:)*[pos ; 1];
+			spm_orthviews('Reposition',pos);
+		end;
+	end;
+	return;
+end;
+
 
 if strcmp(op,'reorient'),
 	% Time to modify the ``.mat'' files for the images.
@@ -250,12 +268,12 @@ uicontrol(fg,'Style','Pushbutton','String','Reorient images...','Callback','spm_
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[70 250 180 90].*WS);
 uicontrol(fg,'Style','Text', 'Position',[75 320 170 016].*WS,'String','Crosshair Position');
-uicontrol(fg,'Style','Text', 'Position',[75 300 45 016].*WS,'String','mm:');
-uicontrol(fg,'Style','Text', 'Position',[75 280 45 016].*WS,'String','vx:');
+uicontrol(fg,'Style','Text', 'Position',[75 300 35 016].*WS,'String','mm:');
+uicontrol(fg,'Style','Text', 'Position',[75 280 35 016].*WS,'String','vx:');
 uicontrol(fg,'Style','Text', 'Position',[75 260 65 016].*WS,'String','Intensity:');
 
-st.mp = uicontrol(fg,'Style','edit', 'Position',[120 300 125 020].*WS,'String','','Callback','spm_image(''setpos'')');
-st.vp = uicontrol(fg,'Style','Text', 'Position',[120 280 125 016].*WS,'String','','Callback','spm_image(''setpos'')');
+st.mp = uicontrol(fg,'Style','edit', 'Position',[110 300 135 020].*WS,'String','','Callback','spm_image(''setposmm'')');
+st.vp = uicontrol(fg,'Style','edit', 'Position',[110 280 135 020].*WS,'String','','Callback','spm_image(''setposvx'')');
 st.in = uicontrol(fg,'Style','Text', 'Position',[140 260  85 016].*WS,'String','');
 
 % General information
@@ -286,7 +304,7 @@ end;
 uicontrol(fg,'Style','Text','Position' ,[410 250 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', str,'FontWeight','bold');
 
-if ~isempty(st.vols{1}.descrip),
+if isfield(st.vols{1}, 'descrip'),
 	uicontrol(fg,'Style','Text','Position' ,[310 230 260 016].*WS,...
 	'HorizontalAlignment','center', 'String', st.vols{1}.descrip,'FontWeight','bold');
 end;
