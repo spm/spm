@@ -11,33 +11,6 @@ function varargout = spm_SpUtil(varargin)
 %
 % ======================================================================
 %
-% FORMAT i = spm_SpUtil('pds',v,m,n)
-%
-% Patterned data setting function - inspired by MINITAB's "SET" command
-% v - base pattern vector
-% m - (scalar natural number) #replications of elements of v [default 1]
-% n - (scalar natural number) #repeats of pattern [default 1]
-% i - resultant pattern vector, with v's elements replicated m times,
-%     the resulting vector repeated n times.
-%
-%                           ----------------
-%
-% spm_SpUtil('pds'... is a simple utility for patterned data setting,
-% inspired by MINITAB's "SET" command. It is particularly useful for
-% creating structured indicator vectors.
-%
-% The vector v has it's elements replicated m times, and the resulting
-% vector is itself repeated n times, giving a resultant vector i of
-% length n*m*length(v)
-%
-% Examples:
-%     spm_SpUtil('pds',1:3)       % = [1,2,3]
-%     spm_SpUtil('pds',1:3,2)     % = [1,1,2,2,3,3]
-%     spm_SpUtil('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
-% NB: MINITAB's "SET" command has syntax n(v)m:
-%
-% ======================================================================
-%
 % FORMAT i = spm_SpUtil('isCon',X,c,tol)
 % Tests whether weight vectors specify contrasts
 % X   - Space design matrix
@@ -162,27 +135,7 @@ if nargin==0, error('do what? no arguments given...')
 
 
 
-switch lower(action), case 'pds'
-%=======================================================================
-%-Condition arguments
-%-----------------------------------------------------------------------
-% i = spm_SpUtil('pds',v,m,n)
-if nargin<4, n=1; else, n=varargin{4}; end
-if nargin<3, m=1; else, m=varargin{3}; end
-if nargin<2, varargout={[]}, return, else, v=varargin{2}; end
-if any([size(n),size(m)])>1, error('n & m must be scalars'), end
-if any(([m,n]~=floor([m,n]))|([m,n]<1))
-	error('n & m must be natural numbers'), end
-if sum(size(v)>1)>1, error('v must be a vector'), end
-
-%-Computation
-%-----------------------------------------------------------------------
-si = ones(1,ndims(v)); si(find(size(v)>1))=n*m*length(v);
-varargout = {reshape(repmat(v(:)',m,n),si)};
-
-
-
-case {'iscon','allcon','conr','cono'}
+switch lower(action), case {'iscon','allcon','conr','cono'}
 %=======================================================================
 % i = spm_SpUtil('isCon',x,c,tol)
 if nargin==1, varargout={[]}; end;
