@@ -8,10 +8,7 @@ function spm_xbrain
 % continues on to do conditional dilations for several iterations,
 % where the condition is based upon gray or white matter being present.
 % The function has not yet been extensively validated and tested
-% so it may not work every time.  Note that the output images are
-% slightly smooth.  This is intentional - so that the images can be
-% used for rendering.  A simple modification of the code could would
-% easily produce crisper results.
+% so it may not work every time.
 %
 % Inputs:
 % xxx_seg1.img & xxx_seg2.img - grey and white matter segments extracted
@@ -21,6 +18,9 @@ function spm_xbrain
 % The extracted brain is written to "brain_xxx.img" in the same
 % directory as xxx_seg1.img.  A "render_xxx.mat" file is also produced
 % that can be used for rendering activations on to.
+% Note: that the images should be in a right handed co-ordinate system
+% (same as the Talairach system) - otherwise the resulting renderings are
+% reflections (mirror images) of the true images.
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
@@ -30,7 +30,10 @@ linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
 SPMid = spm('FnBanner',mfilename,'%W%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','XBrain');
 spm_help('!ContextHelp','spm_xbrain.m');
-P=spm_get(2,'*_seg?.img','Select gray and white matter images');
+P    = spm_get(2,'*_seg?.img','Select gray and white matter images');
+mode = spm_input('Save','+1','m',...
+	['Save Extracted Brain|Save Rendering|'...
+	 'Save Extracted Brain and Rendering'],[1 2 3],3);
 spm('Pointer','Watch')
 spm('FigName','Xbrain: working',Finter,CmdLine);
 
@@ -56,10 +59,10 @@ kx=kx/sm; ky=ky/sm; kz=kz/sm;
 
 % Erosions and conditional dilations
 %-----------------------------------------------------------------------
-th = 0.6;	% Threshold for the erosions
-spm_progress_bar('Init',32,'Extracting Brain','Iterations completed');
-for j=1:32,
-	if j>2, th=0.15; end;	% Dilate after two iterations of erosion. 
+niter = 32;
+spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
+for j=1:niter,
+	if j>2, th=0.15; else, th=0.6; end; % Dilate after two its of erosion. 
 	linfun(['Iteration ' num2str(j) ' - thresholding and multiplying']);
 	for i=1:VW.dim(3),
 		w=spm_slice_vol(VW,spm_matrix([0 0 i]),VW.dim(1:2),1);
@@ -79,23 +82,37 @@ ind = findstr(nam,'_seg1');
 if ~isempty(ind), nam((0:4)+ind(1))=[]; end;
 fname = fullfile(pth,['brain_' nam ext ver]);
 
-% Write the extracted brain
-%-----------------------------------------------------------------------
-linfun('Writing volume');
-VO=struct('fname',fname,...
-	  'dim',[VW.dim(1:3) spm_type('uint8')],...
-	  'mat',VW.mat,...
-	  'pinfo',[1/255 0 0]',...
-	  'descrip','extracted brain');
-spm_write_vol(VO,br);
+if mode==2 | mode==3,
+	% Produce rendering
+	%-----------------------------------------------------------------------
+	matname = fullfile(pth,['render_' nam '.mat']);
+	tmp = struct('dat',br,'dim',size(br),'mat',VG.mat);
+	renviews(tmp,matname);
+end;
+
+if mode==1 | mode==3,
+	% Final cleanup
+	%-----------------------------------------------------------------------
+	linfun(['Final cleanup - thresholding and multiplying']);
+	for i=1:VW.dim(3),
+		w  = spm_slice_vol(VW,spm_matrix([0 0 i]),VW.dim(1:2),1);
+		g  = spm_slice_vol(VG,spm_matrix([0 0 i]),VW.dim(1:2),1);
+		th = 0.15;
+		br(:,:,i) = ((br(:,:,i)>th).*(w+g))>th;
+	end;
+
+	% Write the extracted brain
+	%-----------------------------------------------------------------------
+	linfun('Writing volume');
+	VO=struct('fname',fname,...
+		  'dim',[VW.dim(1:3) spm_type('uint8')],...
+		  'mat',VW.mat,...
+		  'pinfo',[1/255 0 0]',...
+		  'descrip','extracted brain');
+	spm_write_vol(VO,br);
+end;
+
 linfun(' ');
-
-% Produce rendering
-%-----------------------------------------------------------------------
-matname = fullfile(pth,['render_' nam '.mat']);
-spm('FigName','Xbrain: render',Finter,CmdLine);
-renviews(fname,matname);
-
 spm('FigName','Xbrain: done',Finter,CmdLine);
 spm('Pointer')
 
@@ -103,11 +120,15 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function renviews(P0,oname)
+function renviews(V,oname)
 % Produce images for rendering activations to
 %
-% FORMAT renviews(P0,oname)
-% P0     - filename of image to render.
+% FORMAT renviews(V,oname)
+% V     - mapped image to render, or alternatively
+%         a structure of:
+%         V.dat - 3D array
+%         V.dim - size of 3D array
+%         V.mat - affine mapping from voxels to millimeters
 % oname - the name of the render.mat file.
 %_______________________________________________________________________
 %
@@ -121,8 +142,6 @@ function renviews(P0,oname)
 
 linfun = inline('fprintf([''%-30s%s''],x,[sprintf(''\b'')*ones(1,30)])','x');
 linfun('Rendering: ');
-
-V      = spm_vol(P0);
 v      = V.dim(1:3).*sqrt(sum(V.mat(1:3,1:3).^2));
 M      = V.mat;
 shift0 = inv(spm_matrix(v/2));
@@ -151,6 +170,12 @@ if 1,  % 0.5mm resolution
 	MC0 = zm*MC0; MC1 = zm*MC1;
 end;
 
+if det(M)<0,
+	flp=spm_matrix([0 (v(2)+1) 0  0 0 0 1 -1 1]); MT0=flp*MT0; MT1=flp*MT1;
+	flp=spm_matrix([0 (v(2)+1) 0  0 0 0 1 -1 1]); MS0=flp*MS0; MS1=flp*MS1;
+	flp=spm_matrix([0 (v(1)+1) 0  0 0 0 1 -1 1]); MC0=flp*MC0; MC1=flp*MC1;
+end;
+
 linfun('Rendering: Transverse 1..');	rend{1} = make_struct(V,MT0,v([1 2]));
 linfun('Rendering: Transverse 2..');	rend{2} = make_struct(V,MT1,v([1 2]));
 linfun('Rendering: Saggital 1..');	rend{3} = make_struct(V,MS0,v([3 2]));
@@ -175,7 +200,8 @@ return;
 function [ren,zbuf]=make_pic(V,M,D)
 % A bit of a hack to try and make spm_render_vol produce some slightly
 % prettier output.  It kind of works...
-[REN, zbuf, X, Y, Z] = spm_render_vol(V, M, D, [0.5 1]);
+if isfield(V,'dat'), vv = V.dat; else, vv = V; end;
+[REN, zbuf, X, Y, Z] = spm_render_vol(vv, M, D, [0.5 1]);
 fw        = max(sqrt(sum(M(1:3,1:3).^2)));
 msk       = find(zbuf==1024);
 brn       = ones(size(X));
@@ -195,7 +221,7 @@ zbuf(msk) = 1024;
 
 vec       = [-1 1 3]; % The direction of the lighting.
 vec       = vec/norm(vec);
-[t,dx,dy,dz] = spm_sample_vol(V,sX,sY,sZ,3);
+[t,dx,dy,dz] = spm_sample_vol(vv,sX,sY,sZ,3);
 ren       = reshape([dx(:) dy(:) dz(:).*brn(:)]*(vec*M(1:3,1:3))',[size(dx) 1]);
 tmp       = find(ren<0);
 ren(tmp)  = 0;
