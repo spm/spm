@@ -1,4 +1,4 @@
-function [hReg,SPM,VOL,xX,xSDM] = spm_results
+function [hReg,SPM,VOL,xX,xCon,xSDM] = spm_results
 % Display and analysis of regional effects (Grandfathered)
 % FORMAT spm_results
 %_______________________________________________________________________
@@ -26,13 +26,14 @@ warning('spm_results is grandfathered, use spm_results_ui instead')
 
 %-Pass on to spm_results_ui & return necessary arguments
 %-----------------------------------------------------------------------
-varargout = cell(1,5);
-[varargout{1:5}] = spm_results_ui;
+varargout = cell(1,6);
+[varargout{1:6}] = spm_results_ui;
 
 
 %-If not 5 output arguments, then use assignin('Base',...
 %-----------------------------------------------------------------------
-if nargout<5, assignin('base','xSDM',	varargout{5}), end
+if nargout<6, assignin('base','xSDM',	varargout{6}), end
+if nargout<5, assignin('base','xCon',	varargout{5}), end
 if nargout<4, assignin('base','xX',	varargout{4}), end
 if nargout<3, assignin('base','VOL',	varargout{3}), end
 if nargout<2, assignin('base','SPM',	varargout{2}), end
