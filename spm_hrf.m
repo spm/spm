@@ -27,8 +27,8 @@ end
 % modelled hemodynamic response function - {mixture of Gammas}
 %-----------------------------------------------------------------------
 dt    = RT/8;
-u     = [0:(32/dt)] - p(6)/dt;
+u     = [0:(32 + p(6))/dt] - p(6)/dt;
 hrf   = spm_Gpdf(u,p(1)/p(3),dt/p(3)) - spm_Gpdf(u,p(2)/p(4),dt/p(4))/p(5);
 hrf   = spm_conv(hrf,8);
-hrf   = hrf([1:32/RT]*8);
+hrf   = hrf([1:(32 + p(6))/RT]*8);
 hrf   = hrf'/sum(hrf);
