@@ -1,6 +1,6 @@
-function F = spm_Bcdf(x,n,p)
+function F = spm_Icdf(x,n,p)
 % Cumulative Distribution Function (CDF) of Binomial Bin(n,p) distribution
-% FORMAT F = spm_Bcdf(x,n,p)
+% FORMAT F = spm_Icdf(x,n,p)
 %
 % x - ordinate
 % n - Binomial n
@@ -8,7 +8,7 @@ function F = spm_Bcdf(x,n,p)
 % F - CDF
 %_______________________________________________________________________
 %
-% spm_Bcdf returns the Cumulative Distribution Function for the
+% spm_Icdf returns the Cumulative Distribution Function for the
 % Binomial family of distributions.
 %
 % Definition:
