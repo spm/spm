@@ -57,7 +57,7 @@ kx=kx/sm; ky=ky/sm; kz=kz/sm;
 % Erosions and conditional dilations
 %-----------------------------------------------------------------------
 th = 0.6;	% Threshold for the erosions
-spm_progress_bar('Init',25,'Extracting Brain','Iterations completed');
+spm_progress_bar('Init',32,'Extracting Brain','Iterations completed');
 for j=1:32,
 	if j>2, th=0.15; end;	% Dilate after two iterations of erosion. 
 	linfun(['Iteration ' num2str(j) ' - thresholding and multiplying']);
