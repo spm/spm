@@ -255,9 +255,9 @@ text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
 %-Volume, resels and smoothness 
 %-----------------------------------------------------------------------
 FWHMmm          = FWHM.*varargin{3}.VOX'; 			% FWHM {mm}
-Pz              = spm_P(1,0,u,df,STAT,1,n);
-Pu              = spm_P(1,0,u,df,STAT,R,n);
-[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n);
+Pz              = spm_P(1,0,u,df,STAT,1,n,S);
+Pu              = spm_P(1,0,u,df,STAT,R,n,S);
+[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
 
 
 %-Footnote with SPM parameters
@@ -361,7 +361,7 @@ set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
 %-Set-level p values {c} - do not display if reporting a single cluster
 %-----------------------------------------------------------------------
 c     = max(A);					%-Number of clusters
-Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
+Pc    = spm_P(c,k,u,df,STAT,R,n,S);		%-Set-level p-value
 
 if c > 1;
 	h     = text(0.00,y,sprintf(TabDat.fmt{1},Pc),'FontWeight','Bold',...
@@ -403,9 +403,9 @@ while prod(size(find(finite(Z))))
 
     	%-Compute cluster {k} and voxel-level {u} p values for this cluster
     	%---------------------------------------------------------------
-	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
-	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
-	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
+	Pz      = spm_P(1,0,   U,df,STAT,1,n,S);% uncorrected p value
+	Pu      = spm_P(1,0,   U,df,STAT,R,n,S);% corrected     {based on Z)
+	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n,S);% [un]corrected {based on k)
 
 	Nv      = N(i)/v2r;			% extent        {voxels}
 	if Pz<tol				% Equivalent Z-variate
@@ -483,8 +483,8 @@ while prod(size(find(finite(Z))))
 
 			% voxel-level p values {Z}
 			%-----------------------------------------------
-			Pz    = spm_P(1,0,Z(d),df,STAT,1,n);
-			Pu    = spm_P(1,0,Z(d),df,STAT,R,n);
+			Pz    = spm_P(1,0,Z(d),df,STAT,1,n,S);
+			Pu    = spm_P(1,0,Z(d),df,STAT,R,n,S);
 			if Pz<tol, Ze=Inf; else, Ze = spm_invNcdf(1 - Pz); end
 
 			h     = text(0.49,y,sprintf(TabDat.fmt{6},Pu),...
