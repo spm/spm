@@ -128,38 +128,52 @@ colormap(split);
 
 mx = 0;
 
+% field should be sampled every mm.
+%---------------------------------------------------------------------------
+t1       = [];
+XYZ1     = [];
+xx       = XYZ(1,:);
+for x1=(-V(4)/2):(V(4)/2-eps*20)
+	XYZ(1,:) = xx+x1;
+	XYZ1 = [XYZ1 XYZ];
+	t1   = [t1 t];
+end
+
+t0        = [];
+yy        = XYZ1(2,:);
+XYZ       = [];
+for y1=(-V(5)/2):(V(5)/2-eps*20)
+	XYZ1(2,:) = yy+y1;
+	XYZ       = [XYZ XYZ1];
+	t0        = [t0 t1];
+end
+
+t        = [];
+XYZ1     = [];
+zz       = XYZ(3,:);
+for z1=(-V(6)/2):(V(6)/2-eps*20)
+	XYZ(3,:)  = zz+z1;
+	XYZ1      = [XYZ1 XYZ];
+	t         = [t t0];
+end
+
+
 spm_progress_bar('Init', 8, 'Making pictures', 'Number completed');
 
 for i=1:size(Matrixes,1)
 	eval(['MM = ' Matrixes(i,:) ...
 		'; ren = ' Rens(i,:) '; dep = ' Depths(i,:) ';']);
 
+
+
 	% transform from Taliarach space to space of the rendered image
 	%---------------------------------------------------------------------------
-	xyz      = (MM(1:3,1:3)*XYZ);
+	xyz      = (MM(1:3,1:3)*XYZ1);
 	xyz(1,:) = xyz(1,:) + MM(1,4);
 	xyz(2,:) = xyz(2,:) + MM(2,4);
 	xyz(3,:) = xyz(3,:) + MM(3,4);
 	xyz      = round(xyz);
 
-	% field should be sampled every mm.
-	%---------------------------------------------------------------------------
-	t1       = [];
-	xyz1     = [];
-	xx       = xyz(1,:);
-	for x1=(-V(4)/2):(V(4)/2-eps*20)
-		xyz(1,:) = xx+x1;
-		xyz1 = [xyz1 xyz];
-		t1   = [t1 t];
-	end
-	t0        = [];
-	yy        = xyz1(2,:);
-	xyz       = [];
-	for y1=(-V(5)/2):(V(5)/2-eps*20)
-		xyz1(2,:) = yy+y1;
-		xyz = [xyz xyz1];
-		t0  = [t0 t1];
-	end
 
 
 	% only use values which will fit on the image
@@ -167,7 +181,7 @@ for i=1:size(Matrixes,1)
 	msk = find((xyz(1,:) >= 1) & (xyz(1,:) <= size(dep,1)) ...
 		&  (xyz(2,:) >= 1) & (xyz(2,:) <= size(dep,2)));
 	xyz      = xyz(:,msk);
-	t0       = t0(msk);
+	t0       = t(msk);
 
 	X = zeros(size(dep));
 
