@@ -4,8 +4,7 @@ static char sccsid[] = "%W% John Ashburner & Matthew Brett %E%";
 #endif
 /* routines for accessing datatypes for images */
 
-short getshort(x)
-short x;
+short getshort(short x)
 {
 	char *p1, *p2; short y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
@@ -13,8 +12,7 @@ short x;
 	return(y);
 }
 
-short getushort(x)
-unsigned short x;
+unsigned short getushort(unsigned short x)
 {
 	char *p1, *p2; unsigned short y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
@@ -22,8 +20,7 @@ unsigned short x;
 	return(y);
 }
 
-int getint(x)
-int x;
+int getint(int x)
 {
 	char *p1, *p2; int y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
@@ -32,8 +29,7 @@ int x;
 	return(y);
 }
 
-int getuint(x)
-unsigned int x;
+unsigned int getuint(unsigned int x)
 {
 	char *p1, *p2; unsigned int y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
@@ -42,8 +38,7 @@ unsigned int x;
 	return(y);
 }
 
-float getfloat(x)
-float x;
+float getfloat(float x)
 {
 	char *p1, *p2; float y;
 	p1 = (char *)(&x); p2 = (char *)(&y);
@@ -52,8 +47,7 @@ float x;
 	return(y);
 }
 
-double getdouble(x)
-double x;
+double getdouble(double x)
 {
 	char *p1, *p2; double y;
 	p1 = (char *)(&x); p2 = (char *)(&y);

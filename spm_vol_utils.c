@@ -237,6 +237,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "spm_sys_deps.h"
 #include "spm_make_lookup.h"
@@ -536,7 +537,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			iy4 = ((y3 += dy3)/s3)-0.5;
 			iz4 = ((z3 += dz3)/s3)-0.5;
 			if (iz4>=0 && iz4<zdim2 && iy4>=0 && iy4<ydim2 && ix4>=0 && ix4<xdim2)
+			{
 				image[t] = scale[iz4]*(double)GET(vol[iz4][ix4 + xdim2*iy4]) + offset[iz4];
+			}
 			else image[t] = background;
 			t++;
 		}
