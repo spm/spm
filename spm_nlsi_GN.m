@@ -1,5 +1,5 @@
 function [Ep,Cp,S] = spm_nlsi_GN(M,U,Y)
-% Bayesian Parameter estimation using a Fisher-Scoring/EM algorithm
+% Bayesian Parameter estimation using a Levenburg-Marquardt/EM algorithm
 % FORMAT [Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
@@ -30,43 +30,42 @@ function [Ep,Cp,S] = spm_nlsi_GN(M,U,Y)
 %
 %___________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a 
-% dynamical MIMO input-state-ouput model under Gaussian assumptions
+% dynamic MIMO input-state-ouput model under Gaussian assumptions
 %
 %  		 	dx/dt = f(x,u,P)
 %   		 	y     = g(x,u,P) + e
 %
 % A static nonlinear observation model with fixed input or causes u
-% obtains x = []. i.e.
+% obtains when x = []. i.e.
 %
 %   		 	y     = g(u,P) + e
 %
 % Priors on the free parameters P are specified in terms of expectation pE
-% and covariance pC. The estimation uses a Gauss-Newton method with MAP
-% point estimators at each iteration.  The covariance of e is a maximum
-% likelihood estimator based on the residuals (ReML estimators).
-% This corresponds to a Gauss-Newton ascent on the conditional probabilty
-% p{P|y}
+% and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
+% approximation to estimate the conditional expecation and covariance of P
+% If the free-energy starts to increase, a Levenburg-Marquart scheme is
+% invoked.  The M-Step estimates the covariance components of e, in terms
+% of [Re]ML point estimators.
 %
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
-% data
+% data y
 %---------------------------------------------------------------------------
-y     = Y.y;
-[v m] = size(y);
-ns    = v;
+y      = Y.y;
+[ns m] = size(y);			% number of samples and responses
 
 % covariance components
 %---------------------------------------------------------------------------
 if isfield(Y,'Ce')
 	Q = Y.Ce;
 else
-	Q = spm_Ce(v*ones(1,m));
+	Q = spm_Ce(ns*ones(1,m));
 end
-nh    = length(Q);
-ne    = length(Q{1});
+nh    = length(Q);                      % number of variance components
+ne    = length(Q{1});                   % number of error terms
 
-% initialise hyperparameters and precision
+% initialise hyperparameters and precision iS = inv(S)
 %---------------------------------------------------------------------------
 h     = sparse(nh,1);
 for i = 1:nh
@@ -94,8 +93,8 @@ end
 % SVD of prior covariance
 %---------------------------------------------------------------------------
 Vp     = spm_svd(pC,1e-16);
-np     = size(Vp,2);
-nu     = size(Ju,2);
+np     = size(Vp,2);		% number of parameters (effective)
+nu     = size(Ju,2);		% number of parameters (confounds)
 ip     = [1:np];
 iu     = [1:nu] + np;
 
@@ -105,15 +104,14 @@ uE     = inv(Ju'*Ju)*Ju'*y(:);
 uC     = speye(nu,nu)*1e8;
 
 
-% augment priors with confounds
+% compbine priors on free parameters and confounds
 %---------------------------------------------------------------------------
-pE     = [Vp'*pE; uE];
+p      = [sparse(np,1); uE];
 pC     = blkdiag(Vp'*pC*Vp, uC);
 ipC    = inv(pC);
 
 % EM 
 %===========================================================================
-p      = pE;
 dv     = 1e-6;
 lm     = 0;
 F      = -Inf;
@@ -123,21 +121,20 @@ for  k = 1:32
 
         % integrate
         %-------------------------------------------------------------------
-        fp     = spm_int(Vp*p(ip),M,U,v);
+        p0     = pE + Vp*p(ip);
+        fp     = spm_int(p0,M,U,ns);
 
 	% compute partial derivatives [Jp] df(p)/dp*Vp {p = parameters}
 	%-------------------------------------------------------------------
-        vp     = Vp*p(ip);
 	for  i = ip
-		pi      = vp + Vp(:,i)*dv;
-		dfp     = spm_int(pi,M,U,v) - fp;
+		pi      = p0 + Vp(:,i)*dv;
+		dfp     = spm_int(pi,M,U,ns) - fp;
 		Jp(:,i) = dfp(:)/dv;
 	end
 
-        % E and dEdp = J
+        % e and dedp = J
 	%-------------------------------------------------------------------
-        Eq     = y(:) - fp(:) - Ju*p(iu);
-        Ep     = p - pE;
+        e      = y(:) - fp(:) - Ju*p(iu);
         J      = - [Jp Ju];				
 
 	% M-Step: ReML estimator of variance components:  h = max{F(p)}
@@ -164,7 +161,7 @@ for  k = 1:32
             % derivatives: dLdh = dL/dh,...
             %---------------------------------------------------------------
             for i = 1:nh
-                dFdh(i,1)      =  trace(PS{i})/2 - Eq'*P{i}*Eq/2 ...
+                dFdh(i,1)      =  trace(PS{i})/2 - e'*P{i}*e/2 ...
                                  -sum(sum(Cp.*(J'*PJ{i})))/2;
                 for j = i:nh
                     dFdhhij    = -sum(sum(PS{i}.*PS{j}))/2 ...
@@ -188,8 +185,8 @@ for  k = 1:32
 
     	% objective function
 	%===================================================================
-        Fp    = - Eq'*iS*Eq/2 ...
-                - Ep'*ipC*Ep/2 ...
+        Fp    = - e'*iS*e/2 ...
+                - p'*ipC*p/2 ...
                 - log(det(S))/2 ...
                 + log(det(Cp))/2;
 
@@ -210,14 +207,14 @@ for  k = 1:32
 
 	% E-Step: Conditional estimator of new expansion point E{p|y}
 	%===================================================================
-        dFdp  = -J'*iS*Eq - ipC*Ep;
-        dFdpp = -J'*iS*J  - ipC;
+        dFdp  = -J'*iS*e - ipC*p;
+        dFdpp = -J'*iS*J - ipC;
         dp    = inv(-dFdpp + lm*norm(full(dFdpp)))*dFdp;
         
 	% update - ensuring the system is dissipative (and break if not)
 	%-------------------------------------------------------------------
 	for i = 1:8
-		A    = spm_bi_reduce(M,Vp*(p(ip) + dp(ip)));
+		A    = spm_bi_reduce(M,p0 + Vp*dp(ip));
 		s    = max(real(eig(full(A))));
 		if s > 0
 			dp = dp/2;
@@ -240,19 +237,18 @@ for  k = 1:32
 	% graphics
 	%-------------------------------------------------------------------
 	if length(dbstack) < 3
-		bar(Vp*p(ip))
+		bar(pE + Vp*p(ip))
 		xlabel('parameter')
 		ylabel('conditional expectation')
 		title(sprintf('%s: %i','E-Step',j))
 		grid on
 		drawnow
 	end
-
 end
 
 % outputs
 %---------------------------------------------------------------------------
-Ep     = Vp*p(ip);
+Ep     = pE + Vp*p(ip);
 Cp     = Vp*Cp(ip,ip)*Vp';
 
 
