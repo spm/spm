@@ -296,6 +296,7 @@ num_frames               = fread(fid,1,'uint16',0);
 num_gates                = fread(fid,1,'uint16',0);
 num_bed_pos              = fread(fid,1,'uint16',0);
 init_bed_position        = fread(fid,1,'float32',0);
+bed_position = zeros(15,1);
 for bed=1:15,
 	bed_position(bed)  = fread(fid,1,'float32',0);
 end;
