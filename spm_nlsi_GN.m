@@ -131,30 +131,29 @@ end
 p      = pE;
 q      = qE;
 dv     = 1e-6;
-a      = 0.8;
 for  j = 1:32
 
 	% y(t) = f(p) - for new expansion point (p) in parameter space 
 	%-------------------------------------------------------------------
-	if isfield(M,'fx')
+	if isfield(M,'fp')
+		fp      = feval(M.fp,p,U);
+	else
 		[fp,fq] = spm_int(p,M,U,v);
 		fp      = fp + fq*diag(q);
-	else
-		fp      = feval(M.fp,p,U);
 	end
 
 	% compute partial derivatives [Jp] dy(t)/dp*Vp {p = parameters}
 	%-------------------------------------------------------------------
 	for  i = 1:size(Vp,2)
+
 		pi      = p + Vp(:,i)*dv;
 
-		if isfield(M,'fx')
+		if isfield(M,'fp')
+			dfp       = feval(M.fp,pi,U) - fp;
+		else
 			[fpi fqi] = spm_int(pi,M,U,v);
 			fpi       = fpi + fqi*diag(q);
 			dfp       = fpi - fp;
-
-		else
-			dfp = feval(M.fp,pi,U)    - fp;
 		end
 
 		Jp(:,i) = dfp(:)/dv;
@@ -176,10 +175,9 @@ for  j = 1:32
 	P{2}.X = [Vp'*(pE - p); Vq'*(qE - q); uE];
 	[C P]  = spm_PEB(y(:) - fp(:),P);
 
-
 	% update
 	%-------------------------------------------------------------------
-	dp     = Vp*C{2}.E(ip)*a;
+	dp     = Vp*C{2}.E(ip);
 	dq     = Vq*C{2}.E(iq);
 	p      = p + dp;
 	if size(Vq,2), q = q + dq; end

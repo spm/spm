@@ -81,7 +81,7 @@ function PPI = spm_peb_ppi(SPM)
 %	 y  = y(k);
 %
 %---------------------------------------------------------------------
-% %W% Darren Gittleman %E%
+% %W% Darren Gitelman %E%
 
 % set up the graphical interface
 %----------------------------------------------------------------------
@@ -212,8 +212,6 @@ C      = {	sparse([1:N],[1:N],1,M + N + K,M + N + K),...
 		sparse([1:M] + N,[1:M] + N,1,M + N + K,M + N + K),...
 		sparse([1:K] + N + M,[1:K] + N + M,1,M + N + K,M + N + K)};
 
-R      = Y - [Hxu KH]*(pinv(full([Hxu KH]))*Y);
-h      = var(Y);
 
 % create structure for spm_PEB
 %-------------------------------------------------------------------------

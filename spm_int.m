@@ -1,7 +1,7 @@
 function [y,dy] = spm_int(P,M,U,v,w)
 % integrates a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
 % FORMAT [y,dy] = spm_int(P,M,U,v,w)
-% P   - model paramters
+% P   - model parameters
 % M   - model structure
 % U   - input structure
 % v   - number of sample points [default = 256]
@@ -28,18 +28,20 @@ end
 if nargin < 5,
 	w = 0;
 end
-n      = M.n;					% n states
-m      = M.m;					% m inputs
-l      = M.l;					% l outputs
-u      = size(U.u,1);				% input times
 
 % output nonlinearity
 %---------------------------------------------------------------------------
-lx     = fcnchk(M.lx,'x','P');			
+if isfield(M,'lx')
+	lx = fcnchk(M.lx,'x','P');
+end	
 
 % Bilinear approximation (1st order)
 %---------------------------------------------------------------------------
-[M0,M1,L] = spm_bi_reduce(M,P,1);
+[M0,M1,L]  = spm_bi_reduce(M,P,1);
+n          = size(L,2) - 1;			% n states
+m          = size(U.u,2);			% m inputs
+l          = size(L,1);				% l outputs
+u          = size(U.u,1);			% input times
 
 % evaluation time points (when response is sampled or input changes)
 %---------------------------------------------------------------------------
@@ -54,9 +56,13 @@ U      = U.u(t + 1,:);
 q      = length(dt);
 y      = zeros(l,v);
 dy     = zeros(l,v);
-x      = sparse(1,1,1,length(M0),1);
-y(:,1) = feval(lx,M.x,P);
+x      = sparse(1,1,1,n + 1,1);
 J      = M0;
+if isfield(M,'lx')
+	y(:,1) = feval(lx,M.x,P);
+else
+	y(:,1) = L*x;
+end
 for  i = 1:q
 
 	% input - update J
@@ -72,8 +78,15 @@ for  i = 1:q
 	% output - implement l(x)
 	%-------------------------------------------------------------------
 	else
-		 y(:,s(i)) = feval(lx,M.x + x([1:n] + 1),P);
-		dy(:,s(i)) = L*J*x;
+		if isfield(M,'lx')
+		 	y(:,s(i)) = feval(lx,M.x + x([1:n] + 1),P);
+		else
+			y(:,s(i)) = L*x;
+		end
+
+		if nargout > 1
+			dy(:,s(i)) = L*J*x;
+		end
 	end
 
 	% compute updated states x = expm(J*dt)*x;
@@ -81,5 +94,5 @@ for  i = 1:q
         x  = spm_expm(J*dt(i),x);
 
 end
-y      = y';
-dy     = dy';
+y      = real(y');
+dy     = real(dy');
