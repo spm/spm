@@ -1,6 +1,6 @@
-function [ons,W,name,para] = spm_get_ons(k,T,dt)
+function [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 % returns onset times for events
-% FORMAT [ons,W,name,para] = spm_get_ons(k,T,dt)
+% FORMAT [ons,W,name,para,DSstr] = spm_get_ons(k,T,dt)
 %
 % k    - scans per session
 % T    - time bins per scan
@@ -9,7 +9,8 @@ function [ons,W,name,para] = spm_get_ons(k,T,dt)
 % ons     - [m x n]   stick functions {for n trial-types over m = k*T time-bins}
 % W       - [1 x n]   vector of window/epoch lengths {time-bins}
 % name    - {1 x n}   cell of names for each trial-type
-% para    - {1 x n}   cell of parameter vectors {when specified}
+% para    - {1 x n}   cell of parameter vectors
+% DSstr   - Design string
 %_______________________________________________________________________
 % spm_get_ons contructs a matrix of delta functions specifying the onset
 % of events or epochs (or both).
@@ -24,14 +25,15 @@ Finter = spm_figure('FindWin','Interactive');
 name   = {};
 para   = {};
 W      = [];
+DSstr  = '';
 
 % get onsets (ons) (and names {names})
 %=======================================================================
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('event types (without null event)','+1','w1',1);
-u     = spm_input('epoch types (without baseline)  ','+1','w1',1);
+v     = spm_input('event types (without null event)','+1','w1',0);
+u     = spm_input('epoch types (without baseline  )','+1','w1',0);
 ons   = sparse(k*T,v + u);
 for i = 1:v
 
@@ -55,6 +57,7 @@ if v
 	% stochastic designs
 	%---------------------------------------------------------------
 	set(Finter,'Name','event specification')
+	DSstr       = 'event-related ';
 	if spm_input('stochastic design',1,'y/n',[1 0])
 
 		% minimum SOA
@@ -69,11 +72,13 @@ if v
 		str     = 'occurence probability';
 		if spm_input(str,'+1','stationary|modulated',[1 0])
 
+			DSstr = [DSstr '(stochastic: stationary) '];
 			P     = ones((v + ne),ns);
  
 		% occurence probabilities - modulated (32 sec period)
 		%-------------------------------------------------------
 		else
+			DSstr = [DSstr '(stochastic: modulated) '];
 			P     = ones((v + ne),ns);
 			dc    = 32/dt;
 			for i = 1:(v + ne);
@@ -114,12 +119,14 @@ if v
 		% get onsets
 		%-------------------------------------------------------
 		if spm_input('SOA','+1','fixed|variable',[1 0])
-			soa = spm_input('SOA (scans)','+1','r');
-			on  = spm_input('first trial (scans)','+1','r',1);
-			on  = on:soa:k;
+			DSstr = [DSstr '(fixed SOA) '];
+			soa   = spm_input('SOA (scans)','+1','r');
+			on    = spm_input('first trial (scans)','+1','r',1);
+			on    = on:soa:k;
 
 		else
-			on  = spm_input('trial onset times (scans)','+1');
+			DSstr = [DSstr '(variable SOA) '];
+			on    = spm_input('trial onset times (scans)','+1');
 		end
 
 		% create stick functions
@@ -143,13 +150,18 @@ if u
 	% set name
 	%-------------------------------------------------------
 	set(Finter,'Name','epoch specification')
+	if length(DSstr)
+		DSstr  = [DSstr '& epoch-related'];
+	else
+		DSstr  = 'epoch-related';
+	end
 
 	% vector of conditions
 	%---------------------------------------------------------------
 	a     = spm_input('epoch order eg 01020102...',1,'c');
 	while (max(a) ~= u) | (min(a) ~= 0)
 		str = sprintf('re-enter using 0 to %d',u)
-		a   = spm_input(str,'+0','c');
+		a   = spm_input(str,2,'c');
 	end
 	a     = a - min(a) + 1;
 
@@ -158,7 +170,7 @@ if u
 	w     = zeros(1,u + 1);
 	while sum(w(a)) ~= k
 		str = sprintf('scans per epoch 0 to %d',u);
-		w   = spm_input(str,'+0');
+		w   = spm_input(str,2,'n');
 		while length(w) < (u + 1), w = [w w]; end
 		w   = w(1:u + 1);
 	end
