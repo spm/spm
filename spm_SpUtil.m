@@ -93,6 +93,22 @@ function varargout = spm_DesUtil(varargin)
 % 
 % ======================================================================
 %
+% FORMAT r = spm_DesUtil('ConO',X,c,tol)
+% Assess orthogonality of contrasts (wirit the data)
+% X   - design matrix
+% c   - contrast matrix (I.e. matrix of contrast weights, contrasts in rows)
+%       Must have row dimension matching that of X
+%       [defaults to eye(size(X,2)) to test uniqueness of parameter estimates]
+% tol - Tolerance for computation [default max(size(X))*norm(X)*eps, as in rank]
+% r   - Contrast orthogonality matrix, of dimension the number of contrasts.
+%
+% This is the same as ~spm_DesUtil('ConR',X,c), but uses a quicker
+% algorithm by looking at the orthogonality of the subspaces of the
+% design space which are implied by the contrasts:
+%       r = abs(c*X'*X*c')<tol
+% 
+% ======================================================================
+%
 % FORMAT c = spm_DesUtil('FCon',X,i0)
 % Return F-contrast for specified design matrix partition
 % X   - design matrix
@@ -164,7 +180,7 @@ varargout = {reshape(repmat(v(:)',m,n),si)};
 
 
 
-case {'iscon','allcon','conr'}
+case {'iscon','allcon','conr','cono'}
 %=======================================================================
 % i = spm_DesUtil('isCon',X,c,tol)
 if nargin<2, X=[]; else, X=varargin{2}; end
@@ -184,8 +200,8 @@ case 'conr'
 	r(abs(r)<tol)=0;		%-set near-zeros to zero
 	varargout = {r};		%-return r
 case 'cono'
-	%-J-B reckons that the following is the same as ~spm_DesUtil('conr',X,c)
-	% but we haven't worked out why yet!
+	%-This is the same as ~spm_DesUtil('ConR',X,c), and so returns
+	% the contrast orthogonality (though not their corelations).
 	varargout = {abs(c*X'*X*c')<tol};
 end
 
