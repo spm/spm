@@ -642,11 +642,6 @@ SPMid = spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
 
-%-Print warning that results section isn't complete yet!
-%-----------------------------------------------------------------------
-spm_input('Note that SPM99d results aren''t available yet!',1,'d!','Warning');
-
-
 %-Delete files from previous analyses...
 %-----------------------------------------------------------------------
 if exist('./SPMcfg.mat','file')==2
@@ -1496,8 +1491,7 @@ if strcmp(lower(Action),'desrep')
 	spm_print
 	
 	%-Design matrix & design descriptions
-	spm_DesRep('DesMtx',SPMcfg.xX.X,SPMcfg.xX.Xnames,...
-		{SPMcfg.VY.fname}',SPMcfg.xsDes)
+	spm_DesRep('DesMtx',SPMcfg.xX,{SPMcfg.VY.fname}',SPMcfg.xsDes)
 	spm_print
 	
 	%-Covariates
@@ -1514,8 +1508,7 @@ if any(strcmp(lower(Action),{'desrep','desrepui'}))
 	Labels = {'Files & factors';'Design matrix';'Covariates'};
 	cb = {	['spm_DesRep(''Files&Factors'',',...
 			'{UD.VY.fname}'',UD.xX.I,UD.xC,UD.xX.sF,UD.xM.xs)'],...
-		['spm_DesRep(''DesMtx'',',...
-			'UD.xX.X,UD.xX.Xnames,{UD.VY.fname}'',UD.xsDes)'],...
+		['spm_DesRep(''DesMtx'',UD.xX,{UD.VY.fname}'',UD.xsDes)'],...
 		['spm_DesRep(''Covs'',',...
 			'UD.xC,UD.xX.X,UD.xX.Xnames)']	};
 	if ~length(SPMcfg.xC), Labels(3)=[]; cb(3)=[]; end
