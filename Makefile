@@ -1,7 +1,7 @@
 #!make -f
 #
-# %W% John Ashburner %E%
-# $Id: Makefile,v 2.19 2004-11-26 13:54:43 john Exp $
+# @(#)Makefile	2.19 John Ashburner 04/11/26
+# $Id$
 #
 ###############################################################################
 #
@@ -10,7 +10,7 @@
 #
 # Thanks to Matthew, Darren, Alle Meije and others for various suggestions.
 #
-# $Log: not supported by cvs2svn $
+# $Log$
 #
 ###############################################################################
 
@@ -359,7 +359,7 @@ spm_win32utils.$(SUF): spm_win32utils.c
 
 verb.unknown:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "PROBLEM: Dont know how to do this."
 	@ echo "_____________________________________________________________"
@@ -367,7 +367,7 @@ verb.unknown:
 
 verb.mexhp7:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "unix compile for hpux cc, and maybe aix cc"
 	@ echo ""
@@ -382,7 +382,7 @@ verb.mexhp7:
 
 verb.mexsg:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
 	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
@@ -398,7 +398,7 @@ verb.mexsg:
 
 verb.mexsg64:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "not optimised sgi 64 bit compile for CC"
 	@ echo ""
@@ -408,7 +408,7 @@ verb.mexsg64:
 
 verb.dll:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Windows compile with gcc/mingw"
 	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
@@ -419,7 +419,7 @@ verb.dll:
 
 verb.mexsol:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Unix compile for Sun cc"
 	@ echo "_____________________________________________________________"
@@ -427,7 +427,7 @@ verb.mexsol:
 
 verb.mexlx:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 5.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -435,7 +435,7 @@ verb.mexlx:
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 6.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -443,7 +443,7 @@ verb.mexglx:
 
 verb.mexa64:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 7.x, 64bits athlon) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -451,7 +451,7 @@ verb.mexa64:
 
 verb.mexaxp:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "keep your fingers crossed"
 	@ echo "_____________________________________________________________"
@@ -459,7 +459,7 @@ verb.mexaxp:
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
+	@ echo "Makefile 2.19 04/11/26"
 	@ echo ""
 	@ echo "Unix compile for MacOS X"
 	@ echo "_____________________________________________________________"

@@ -155,10 +155,10 @@ function [SPM,xSPM] = spm_getSPM
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
+% @(#)spm_getSPM.m	2.59 Andrew Holmes, Karl Friston & Jean-Baptiste Poline 04/12/09
 
 
-SCCSid = '%I%';
+SCCSid = '2.59';
 
 %-GUI setup
 %-----------------------------------------------------------------------

@@ -255,7 +255,7 @@ function spm_normalise_ui(opt)
 % registration is regularised (see spm_affreg.m).
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_normalise_ui.m	2.10 John Ashburner 03/05/22
 
 % Programmers notes
 %-----------------------------------------------------------------------
@@ -281,7 +281,7 @@ function run_ui(defs)
 % Run spatial normalisation ui
 % FORMAT run_ui(defs)
 
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.10');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Normalise');
 spm_help('!ContextHelp',mfilename);
 

@@ -10,7 +10,7 @@ function [x] = spm_expm(J,x)
 % matrices when dealing with the special case of expm(J)*x, where x
 % is a vector, in an efficient fashion
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_expm.m	2.4 Karl Friston 03/08/12
 
 % expm(J) use Pade approximation
 %---------------------------------------------------------------------------

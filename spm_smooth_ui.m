@@ -21,11 +21,11 @@ function spm_smooth_ui
 % original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
-% %W% %E%
+% @(#)spm_smooth_ui.m	2.11 03/03/04
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.11');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Smooth');
 spm_help('!ContextHelp',mfilename);
 

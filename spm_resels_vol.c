@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_resels_vol.c	2.4 John Ashburner 99/01/29";
 #endif
 /*
 See Worsley et al. (1996), Human Brain Mapping 4:58-73 for a description

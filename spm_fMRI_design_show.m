@@ -5,7 +5,7 @@ function spm_fMRI_design_show(SPM,s,i)
 % Sess(s).U(i)  -  see spm_fMRI_design for session s, trial i.
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_fMRI_design_show.m	2.22 Karl Friston 03/02/21
 
 % SPM
 %-----------------------------------------------------------------------

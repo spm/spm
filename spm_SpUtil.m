@@ -253,7 +253,7 @@ function varargout = spm_SpUtil(varargin)
 % sz  - size
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes Jean-Baptiste Poline %E%
+% @(#)spm_SpUtil.m	2.18 Andrew Holmes Jean-Baptiste Poline 00/01/25
 % (frobenius norm trick by S. Rouquette)
 
 %-Format arguments

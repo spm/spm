@@ -28,7 +28,7 @@ function varargout = spm_eeg_conman(varargin)
 % Edit the above text to modify the response to help spm_eeg_conman
 % Last Modified by GUIDE v2.5 18-Dec-2003 14:21:19
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_conman.m	1.1 Stefan Kiebel 04/06/28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;

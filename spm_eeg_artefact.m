@@ -33,7 +33,7 @@ function D = spm_eeg_artefact(S)
 % Alternatively, one can also provide these information as an out_list and
 % in_list, see above.
 %_______________________________________________________________________
-% %W% Stefan Kiebel, Rik Henson %E%
+% @(#)spm_eeg_artefact.m	1.1 Stefan Kiebel, Rik Henson 04/06/28
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG artefact setup',0);
 

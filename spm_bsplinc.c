@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_bsplinc.c	2.4 John Ashburner 03/05/07";
 #endif
 /*
  * This code is a modified version of that of Philippe Thevenaz, which I took from:

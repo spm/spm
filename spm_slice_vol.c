@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_slice_vol.c	2.2 John Ashburner 04/07/09";
 #endif
 
 #include "spm_mapping.h"

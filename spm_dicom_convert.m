@@ -10,7 +10,7 @@ function spm_dicom_convert(hdr,opts)
 %
 % Converted files are written to the current directory
 %_______________________________________________________________________
-% %W% John Ashburner & Jesper Andersson %E%
+% @(#)spm_dicom_convert.m	2.22 John Ashburner & Jesper Andersson 05/02/09
 
 if nargin<2, opts = 'all'; end;
 

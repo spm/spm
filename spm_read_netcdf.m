@@ -6,7 +6,7 @@ function cdf = spm_read_netcdf(fname)
 %
 % See: http://www.unidata.ucar.edu/packages/netcdf/
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_read_netcdf.m	2.1 John Ashburner 02/07/30
 
 dsiz     = [1 1 2 4 4 8];
 fp=fopen(fname,'r','ieee-be');

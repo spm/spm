@@ -93,9 +93,9 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 %
 % Modified by R Henson for more general slice order and SPM2
 %_______________________________________________________________________
-% %W% %E%
+% @(#)spm_slice_timing.m	2.20 03/12/11
 
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.20');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 

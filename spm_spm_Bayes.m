@@ -65,7 +65,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % mask are given value NaN.
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_spm_Bayes.m	2.10 Karl Friston 04/12/09
 
 %-Say hello
 %-----------------------------------------------------------------------

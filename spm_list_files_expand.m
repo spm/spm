@@ -13,7 +13,7 @@ function [Files,Dirs] = spm_list_files_expand(WDir,Filter,opts)
 % spm_list_files_expand will list volumes within each Analyze image.
 % This can be disabled by setting opts to {'noexpand'}.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_list_files_expand.m	1.6 John Ashburner 03/12/10
 
 global defaults
 

@@ -14,7 +14,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 %               DCM.contrast().con_mat
 %               DCM.contrast().con_type ('A', 'B' or 'C')
 %
-% %W% Will Penny %E%
+% @(#)spm_dcm_contrasts.m	2.3 Will Penny 03/10/20
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');

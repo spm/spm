@@ -1,4 +1,4 @@
-/* %W% %E%
+/* @(#)spm_make_lookup.h	2.2 03/05/12
 */
 
 void make_lookup_poly(double coord, int q, int dim, int *d1,

@@ -22,7 +22,10 @@ function [N,Z,M,A] = spm_max(X,L)
 % The programming interface is identical to the old to avoid having
 % to recode any routines calling spm_max or spm_clusters.
 %_______________________________________________________________________
-% %W% Jesper Andersson %E%
+% @(#)spm_max.m	2.4 Jesper Andersson 05/02/21
+
+% Ensure that L contains exactly integers
+L = round(L);
 
 %
 % Turn location list to binary 3D volume.

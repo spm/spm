@@ -11,7 +11,7 @@ function V = spm_write_plane(V,A,p)
 %       modify scalefactors (for example).
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_write_plane.m	2.20 John Ashburner 04/08/09
 
 if any(V.dim(1:2) ~= size(A)), error('Incompatible image dimensions');      end;
 if p>V.dim(3),                 error('Plane number too high');              end;

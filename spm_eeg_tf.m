@@ -14,7 +14,7 @@ function D = spm_eeg_tf(S)
 % spm_eeg_tf estimates instantaneous power and phase of data using the
 % continuous Morlet wavelet transform.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_tf.m	1.1 Stefan Kiebel 04/06/28
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
 

@@ -118,7 +118,7 @@ function varargout=spm_help(varargin)
 % window for further details.
 %
 %__________________________________________________________________________
-% %W% Andrew Holmes, Karl Friston %E%
+% @(#)spm_help.m	2.48 Andrew Holmes, Karl Friston 04/12/20
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

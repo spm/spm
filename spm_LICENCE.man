@@ -359,4 +359,4 @@
 % library.  If this is what you want to do, use the GNU Library General
 % Public License instead of this License.
 %_______________________________________________________________________
-% %W% FIL %E%
+% @(#)spm_LICENCE.man	2.4 FIL 99/05/16

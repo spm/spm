@@ -1,7 +1,7 @@
 function entry = findindict(c,dcode)
 % Look up an entry in the dictionary
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)findindict.m	1.1 John Ashburner 04/11/26
 
 entry = [];
 d = getdict;

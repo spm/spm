@@ -19,7 +19,7 @@ function spm_smooth(P,Q,s)
 % as the image. 
 %
 %_______________________________________________________________________
-% %W% John Ashburner, Tom Nichols %E%
+% @(#)spm_smooth.m	2.3 John Ashburner, Tom Nichols 02/08/13
 
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end

@@ -62,7 +62,7 @@ function spm_bias_ui(P)
 % [defaults.bias.cutoff]
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_bias_ui.m	2.4 John Ashburner 03/03/04
 
 global defaults
 
@@ -77,7 +77,7 @@ return;
 %=======================================================================
 function bias_ui(flags)
 % User interface for nonuniformity correction
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.4');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Flatten');
 spm_help('!ContextHelp',mfilename);
 PP = spm_get(Inf, 'IMAGE', 'Scans to correct');

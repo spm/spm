@@ -12,7 +12,7 @@ function V = spm_vol_ecat7(fname,required)
 % header information.
 %
 % _______________________________________________________________________
-% %W% John Ashburner and Roger Gunn %E%
+% @(#)spm_vol_ecat7.m	2.12 John Ashburner and Roger Gunn 03/05/23
 
 V        = [];
 if nargin==1,

@@ -8,7 +8,7 @@ function spm_eeg_update_gfx(varargin)
 % spm_eeg_update_gfx is an internally used function that plots EEG/MEG
 % traces.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_update_gfx.m	1.1 Stefan Kiebel 04/06/28
 
 % get Userdata
 F = findobj('Tag', 'Graphics');

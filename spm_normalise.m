@@ -117,7 +117,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Nonlinear Spatial Normalization using Basis Functions.
 % Human Brain Mapping 7(4):in press (1999)
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_normalise.m	2.12 John Ashburner 04/11/26
 
 if nargin<2, error('Incorrect usage.'); end;
 if ischar(VF), VF = spm_vol(VF); end;
@@ -189,7 +189,7 @@ else,
 end;
 clear VF1 VG1
 
-flags.version = '%M% %I% %E%';
+flags.version = 'spm_normalise.m 2.12 04/11/26';
 flags.date    = date;
 
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);

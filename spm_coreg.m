@@ -72,7 +72,7 @@ function x = spm_coreg(varargin)
 % orientations, and the final orientations.  The registered images are
 % displayed at the bottom.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_coreg.m	2.8 John Ashburner 05/02/07
 
 if nargin>=4,
 	x = optfun(varargin{:});

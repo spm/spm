@@ -36,7 +36,7 @@ function [varargout] = subsref(opt,subs)
 % cal         - a two-element vector containing cal_min and cal_max
 % aux_file    - name of an auxiliary file
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)subsref.m	1.1 John Ashburner 04/11/26
 
 c         = rec(opt,subs);
 varargout = c(:);

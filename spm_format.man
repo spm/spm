@@ -87,4 +87,4 @@
 % by the spatial normalisation module.
 %
 %__________________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_format.man	2.2 John Ashburner 03/05/09

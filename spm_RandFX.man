@@ -331,4 +331,4 @@
 % define an appropriate model and extract an appropriate contrast image
 % as summary image.
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_RandFX.man	2.2 Andrew Holmes 00/01/25

@@ -35,7 +35,7 @@ function V = spm_vol_ana(fname, n)
 % 	* hdr.dime.vox_offset to get the offset into the volume.
 %
 %_______________________________________________________________________
-% %W% John Ashburner (from Karl's old code) %E%
+% @(#)spm_vol_ana.m	2.7 John Ashburner (from Karl's old code) 03/05/27
 
 if nargin<2, n = 1; end;
 if ischar(n), n = str2num(n); end;

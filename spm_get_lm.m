@@ -18,6 +18,6 @@ function varargout = spm_get_lm(varargin)
 %                returns those coordinates that are truly
 %                local maxima.
 %_______________________________________________________________
-% %W% Jesper Andersson %E% 
+% @(#)spm_get_lm.m	2.2 Jesper Andersson 04/06/04 
 
 error('spm_get_lm.c has not been compiled');

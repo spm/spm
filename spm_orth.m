@@ -4,7 +4,7 @@ function x = spm_orth(X)
 %
 % serial orthogionalization starting with the first column
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_orth.m	2.1 Karl Friston 02/02/07
 
 x     = X(:,1);
 for i = 2:size(X,2)

@@ -3,7 +3,7 @@ function create(obj)
 % This writes out the header information, and an empty image
 % volume if necesary.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)create.m	1.1 John Ashburner 04/11/26
 
 if ~isa(obj.dat,'file_array'),
     error('Data must be a file-array');

@@ -175,13 +175,13 @@ function spm_adjmean_ui
 % GX            Global means after scaling
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_adjmean_ui.m	2.8 Andrew Holmes 02/07/31
 
 
 %=======================================================================
 % - S E T U P
 %=======================================================================
-SCCSid = '%I%';
+SCCSid = '2.8';
 SPMid = spm('FnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','AdjMean',1);
 spm_help('!ContextHelp',[mfilename,'.m'])

@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner FIL %E%";
+static char sccsid[]="@(#)spm_unlink.c	1.2 John Ashburner FIL 97/10/15";
 #endif
 
 /* Do a silent deletion of files on disk */

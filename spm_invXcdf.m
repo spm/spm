@@ -42,7 +42,7 @@ function x = spm_invXcdf(F,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_invXcdf.m	2.3 Andrew Holmes 99/04/26
 
 %-Check enough arguments
 %-----------------------------------------------------------------------

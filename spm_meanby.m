@@ -15,7 +15,7 @@ function [M,Mi,i] = spm_meanby(Y,I)
 % spm_meanby computes means for grouped data presented as columns of
 % data with a vector of group indicators
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_meanby.m	2.1 Andrew Holmes 98/08/20
 
 
 %-Check arguments

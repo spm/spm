@@ -65,7 +65,7 @@ function F = spm_Icdf(x,n,p)
 %        Cambridge
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_Icdf.m	2.2 Andrew Holmes 99/04/26
 
 
 %-Format arguments, note & check sizes

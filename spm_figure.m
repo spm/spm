@@ -72,7 +72,7 @@ function varargout=spm_figure(varargin)
 % See also: spm_print, spm_clf
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_figure.m	2.42 Andrew Holmes 05/02/09
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

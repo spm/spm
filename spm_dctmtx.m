@@ -16,7 +16,7 @@ function C = spm_dctmtx(N,K,n,f)
 % See:    Fundamentals of Digital Image Processing (p 150-154).
 %         Anil K. Jain 1989.
 %____________________________________________________________________________
-% %W% John Ashburner MRCCU/FIL %E%
+% @(#)spm_dctmtx.m	2.1 John Ashburner MRCCU/FIL 01/08/28
 
 d = 0;
 

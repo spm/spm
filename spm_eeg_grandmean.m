@@ -14,7 +14,7 @@ function Dout = spm_eeg_grandmean(S)
 % 
 % spm_eeg_grandmean low-pass filters EEG/MEG epoched data.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_grandmean.m	1.1 Stefan Kiebel 04/06/28
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

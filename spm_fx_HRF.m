@@ -22,7 +22,7 @@ function [f] = spm_fx_HRF(x,u,P)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_fx_HRF.m	2.2 Karl Friston 02/02/22
 
 % Fout = f(v) - outflow
 %---------------------------------------------------------------------------

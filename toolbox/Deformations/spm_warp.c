@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_warp.c	1.2 John Ashburner 04/02/27";
 #endif
 
 /* Note that according to the Matlab documentation, one should "avoid

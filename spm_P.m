@@ -33,7 +33,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 %     spm_P_Bonf
 %
 %___________________________________________________________________________
-% %W% Thomas Nichols %E%
+% @(#)spm_P.m	2.3 Thomas Nichols 02/03/08
 
 % set global var NOBONF to 1 to turn off Bonferroni
 %---------------------------------------------------------------------------

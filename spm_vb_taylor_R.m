@@ -5,7 +5,7 @@ function [slice] = spm_vb_taylor_R (Y,slice)
 % Y     data
 % slice VB-GLMAR data structure
 %
-% %W% Will Penny %E%
+% @(#)spm_vb_taylor_R.m	1.1 Will Penny 04/08/04
 
 % Get mean hyperparameter values
 h0=[];

@@ -115,7 +115,7 @@ function varargout = spm_uw_apply(ds,flags)
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
 %_______________________________________________________________________
-% %W% Jesper Andersson %E%
+% @(#)spm_uw_apply.m	1.11 Jesper Andersson 05/02/15
 
 global defaults
 

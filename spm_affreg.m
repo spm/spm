@@ -35,7 +35,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % NeuroImage 6:344-352 (1997).
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_affreg.m	2.3 John Ashburner 03/02/18
 
 if nargin<5, scal = ones(length(VG),1); end;
 if nargin<4, M    = eye(4);             end;

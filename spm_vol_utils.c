@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_vol_utils.c	2.5 John Ashburner 01/12/14";
 #endif
 
 #define TINY 5e-2

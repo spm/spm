@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% (c) John Ashburner %E%";
+static char sccsid[]="@(#)spm_make_lookup.c	2.3 (c) John Ashburner 99/01/29";
 #endif
 
 /* Generate a lookup table for Lagrange interpolation

@@ -9,7 +9,7 @@ function D = spm_eeg_ldata(P)
 % spm_eeg_ldata loads an EEG file that is in SPM format. Importantly, the
 % data is memory mapped and made accessible under D.data.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_ldata.m	1.1 Stefan Kiebel 04/06/28
 
 try
     P;

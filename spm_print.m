@@ -11,7 +11,7 @@ function spm_print(F)
 %
 % This is just a gateway to spm_figure('Print',F)
 %_______________________________________________________________________
-% %W% %E%
+% @(#)spm_print.m	1.3 96/04/25
 
 if nargin==0
 	spm_figure('Print')

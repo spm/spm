@@ -8,7 +8,7 @@ function VO = spm_smoothto8bit(V,fwhm)
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_smoothto8bit.m	2.2 John Ashburner 03/03/04
 
 if nargin>1 & fwhm>0,
 	VO = smoothto8bit(V,fwhm);

@@ -1,7 +1,7 @@
 function d = size(a,varargin)
 % overloaded size function for spm_file_array objects.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)size.m	1.1 John Ashburner 04/06/28
 
 if nargin==1,
 	d = a.dim;

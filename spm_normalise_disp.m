@@ -3,7 +3,7 @@ function spm_normalise_disp(matname,VF)
 % FORMAT spm_normalise_disp(matname)
 % matname - name of sn3d.mat file
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_normalise_disp.m	2.5 John Ashburner 02/10/16
 
 fg = spm_figure('FindWin','Graphics');
 if isempty(fg), return; end;

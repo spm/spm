@@ -11,7 +11,7 @@ function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Clears the 'Interactive' window.
 %
 %-----------------------------------------------------------------------
-% %W% John Ashburner %E%
+% @(#)spm_progress_bar.m	2.3 John Ashburner 04/01/16
 
 global pb_pointer pb_name ax
 %-----------------------------------------------------------------------

@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% (c) Jesper Andersson %E%";
+static char sccsid[]="@(#)spm_dilate.c	1.3 (c) Jesper Andersson 03/11/06";
 #endif
 
 #include "mex.h"

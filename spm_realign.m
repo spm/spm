@@ -77,7 +77,7 @@ function P = spm_realign(P,flags)
 % RSJ (1995) Spatial registration and normalization of images Hum. Brain
 % Map. 2:165-189
 %__________________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_realign.m	2.42 John Ashburner 04/05/10
 
 if nargin==0, return; end;
 

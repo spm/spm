@@ -2,7 +2,7 @@ function V = spm_close_vol(V)
 % Close image volume
 % See: spm_create_vol and spm_write_plane.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_close_vol.m	2.4 John Ashburner 02/08/16
 for i=1:prod(size(V)),
 	if isfield(V,'private') & isfield(V(i).private,'fid') & ~isempty(V(i).private.fid),
 		if ~isempty(fopen(V(i).private.fid)),

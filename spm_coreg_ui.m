@@ -212,7 +212,7 @@ function spm_coreg_ui(opt)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_coreg_ui.m	2.10 John Ashburner 03/07/11
 
 global defaults
  
@@ -224,7 +224,7 @@ end;
 return;
 
 function run_ui(flags)
-SPMid = spm('FnBanner',mfilename,'%I%');
+SPMid = spm('FnBanner',mfilename,'2.10');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Coregister');
 spm_help('!ContextHelp',mfilename);
 

@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% %E%";
+static char sccsid[]="@(#)spm_project.c	2.4 01/07/11";
 #endif
  
 /*

@@ -13,7 +13,7 @@ function spm_sections(SPM,hReg,spms)
 % Regional foci from the selected SPM are rendered on this image.
 %
 %_______________________________________________________________________
-% %W%	John Ashburner %E%
+% @(#)spm_sections.m	2.15	John Ashburner 04/01/16
 
 if nargin < 3 | isempty(spms)
 	spms   = spm_get(1,'IMAGE','select image for rendering on');

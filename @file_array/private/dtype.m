@@ -31,6 +31,9 @@ if isnumeric(dat)
     if numel(dat)>=1,
         mch = find(cat(1,d.code)==dat(1));
         if isempty(mch) || mch==0,
+            disp('First part of datatype should be of one of the following');
+            disp(sortrows([num2str(cat(1,d.code)) ...
+                repmat(' ',numel(d),2) strvcat(d.label)]));
             error(['Invalid datatype (' num2str(dat(1)) ').']);
         end;
         obj.dtype = double(dat(1));
@@ -53,8 +56,11 @@ elseif ischar(dat),
         c2 = '';
     end;
     mch = find(strcmpi(c1,lower({d.label})));
-    if isempty(mch)
-        error('Invalid datatype.');
+    if isempty(mch),
+        disp('First part of datatype should be of one of the following');
+        disp(sortrows([num2str(cat(1,d.code)) ...
+            repmat(' ',numel(d),2) strvcat(d.label)]));
+        error(['Invalid datatype (' c1 ').']);
     else
         obj.dtype = double(d(mch(1)).code);
     end;

@@ -53,7 +53,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % of [Re]ML point estimators.
 %
 %---------------------------------------------------------------------------
-% %W% Karl Friston %E%
+% @(#)spm_nlsi_GN.m	2.23 Karl Friston 04/12/21
 
 
 % integration scheme

@@ -248,4 +248,4 @@
 % The images were converted from the .img format of SPM99 to resolve
 % confusion about left- versus right-handedness of co-ordinate systems.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_templates.man	2.11 John Ashburner 03/05/09

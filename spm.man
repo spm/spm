@@ -849,4 +849,4 @@
 % lines in the table will move the cursor to the appropriate points on the
 % displayed sections.
 % ______________________________________________________________________
-% %W% The FIL methods group %E%
+% @(#)spm.man	2.16 The FIL methods group 03/05/12

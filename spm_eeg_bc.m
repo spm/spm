@@ -4,7 +4,7 @@ function d = spm_eeg_bc(D, d)
 % FORMAT d = sjk_eeg_bc(D, d)
 %
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_bc.m	1.1 Stefan Kiebel 04/06/28
 
 for i = 1 : length(D.tf.channels)
 	for j = 1 : D.Nfrequencies

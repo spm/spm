@@ -11,7 +11,7 @@ function [J] = spm_diff(varargin)
 %
 % - a cunning recursive routine
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_diff.m	2.6 Karl Friston 04/08/26
 
 
 % create inline object

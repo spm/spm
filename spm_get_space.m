@@ -15,7 +15,7 @@ function M = spm_get_space(imagename, mat)
 % If this ORIGIN field is set to [0 0 0], then the origin is assumed to be
 % at the centre (center) of the volume.
 %___________________________________________________________________________
-% %W% John Ashburner FIL %E%
+% @(#)spm_get_space.m	2.15 John Ashburner FIL 04/10/08
 
 imagename = deblank(imagename);
 [pth,nam,ext] = fileparts(imagename);

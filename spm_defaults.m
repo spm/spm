@@ -11,7 +11,7 @@
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% %W% John Ashburner, Andrew Holmes %E%
+% @(#)spm_defaults.m	2.24 John Ashburner, Andrew Holmes 04/02/19
 
 global defaults
 

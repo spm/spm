@@ -12,7 +12,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.secs  overall number of seconds
 %           Y.Ce    Error covariance
 %
-% %W% Will Penny & Klaas Enno Stephan %E%
+% @(#)spm_dcm_generate.m	2.5 Will Penny & Klaas Enno Stephan 04/04/22
 
 randn('state',sum(100*clock));
 

@@ -11,14 +11,15 @@ function a = file_array(varargin)
 % _______________________________________________________________________
 % %W% John Ashburner %E%
 
-if nargin==1 && isstruct(varargin{1}),
-   a = class(varargin{1},'file_array');
-   return;
-elseif isa(varargin{1},'file_array'),
-    a = varargin{1};
-    return;
+if nargin==1
+    if isstruct(varargin{1}),
+        a = class(varargin{1},'file_array');
+        return;
+    elseif isa(varargin{1},'file_array'),
+        a = varargin{1};
+        return;
+    end;
 end;
-
 a = struct('fname','','dim',[0 0],'dtype',2,...
            'be',0,'offset',0,'pos',[],'scl_slope',[],'scl_inter',[]);
 %a = class(a,'file_array');

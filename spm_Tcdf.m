@@ -58,7 +58,7 @@ function F = spm_Tcdf(x,v)
 %        Cambridge
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_Tcdf.m	2.2 Andrew Holmes 99/04/26
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

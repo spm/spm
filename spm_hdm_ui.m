@@ -12,7 +12,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % K2     - 2nd order kernels
 %          (see main body of routine for details of model specification)
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_hdm_ui.m	2.15 Karl Friston 03/02/18
 
 % get figure handles
 %---------------------------------------------------------------------------

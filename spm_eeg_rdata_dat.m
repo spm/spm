@@ -9,7 +9,7 @@ function D = spm_eeg_rdata_dat(S)
 %    start    - number of samples before stimulus onset
 %    stop     - number of samples after stimulus onset
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_rdata_dat.m	1.1 Stefan Kiebel 04/06/28
 
 try
     Fdata = S.Fdata;

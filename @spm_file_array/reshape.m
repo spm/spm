@@ -1,7 +1,7 @@
 function a = reshape(b,varargin)
 % Overloaded reshape function for spm_file_array objects
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)reshape.m	1.1 John Ashburner 04/06/28
 
 args = [];
 for i=1:length(varargin),

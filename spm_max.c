@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% JB Poline %E%";
+static char sccsid[]="@(#)spm_max.c	2.4 JB Poline 99/05/18";
 #endif
 
 /*  spm_max.c JB Poline 10/11/94 

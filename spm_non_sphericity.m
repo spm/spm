@@ -52,7 +52,7 @@ function [xVi] = spm_non_sphericity(xVi)
 % procedure exactly as the serial correlations in fMRI models.
 % 
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_non_sphericity.m	2.6 Karl Friston 04/07/21
 
 % create covariance components Q{:}
 %===========================================================================

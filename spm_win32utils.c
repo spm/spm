@@ -1,6 +1,6 @@
 /* spm_win32utils */
 #ifndef lint
-static char sccsid[]="%W% Matthew Brett %E%";
+static char sccsid[]="@(#)spm_win32utils.c	2.3 Matthew Brett 99/05/17";
 #endif
 
 #include <windows.h>

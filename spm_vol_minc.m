@@ -15,7 +15,7 @@ function V=spm_vol_minc(fname,n)
 % was necessary in this case, in order to attempt to get MINC images into
 % a format that the spm image reading utilities could use.
 % _______________________________________________________________________
-%  %W% John Ashburner %E%
+%  @(#)spm_vol_minc.m	2.16 John Ashburner 03/04/11
 
 if nargin<2, n = 1; end;
 if ischar(n), n = str2num(n); end;

@@ -22,7 +22,7 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %
 %___________________________________________________________________________
-% %W% Karl Friston, Matthew Brett %E%
+% @(#)spm_resels.m	2.3 Karl Friston, Matthew Brett 04/07/02
 
 % Dimensionality
 %---------------------------------------------------------------------------

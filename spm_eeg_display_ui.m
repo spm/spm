@@ -12,7 +12,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % output:
 %     Heeg		- Handle of resulting figure
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E%
+% @(#)spm_eeg_display_ui.m	1.1 Stefan Kiebel 04/06/28
 
 if nargin == 0
 	error('Insufficient arguments');

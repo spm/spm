@@ -326,6 +326,6 @@
 % to our faces!).
 %
 % _____________________________________________________________________
-% %W% Good Luck! Jesper Andersson & Chloe Hutton %E%
+% @(#)spm_uw_estimate.man	1.1 Good Luck! Jesper Andersson & Chloe Hutton 04/02/19
 
 

@@ -1,4 +1,4 @@
-/* %W% John Ashburner - from Matthew Brett's work %E% */
+/* @(#)spm_sys_deps.h	2.6 John Ashburner - from Matthew Brett's work 02/11/18 */
 
 #ifndef SYS_DEP
 #define SYS_DEP

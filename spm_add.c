@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline %E%";
+static char sccsid[]="@(#)spm_add.c	2.10 John Ashburner & Jean-Baptiste Poline 01/07/16";
 #endif
  
 /*

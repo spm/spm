@@ -1,14 +1,14 @@
 #!make -f
 #
-# %W% John Ashburner %E%
-# $Id: Makefile,v 1.3 2003-05-12 11:11:37 john Exp $
+# @(#)Makefile	1.3 John Ashburner 03/05/12
+# $Id$
 #
 ###############################################################################
 #
 # Suggestions for how to make this file a bit more elegant are welcome.  So far
 # it works under SunOS and Linux (at the FIL) and some Windows systems
 #
-# $Log: not supported by cvs2svn $
+# $Log$
 #
 ###############################################################################
 

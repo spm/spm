@@ -4,7 +4,7 @@ function vol = read_hdr(fname)
 % fname - filename of image
 % vol   - various bits of information
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)read_hdr.m	1.1 John Ashburner 04/11/26
 
 persistent dict
 if isempty(dict), dict = getdict; end;

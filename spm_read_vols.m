@@ -11,7 +11,7 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 % implicit zero masking can be used. If mask is set, then zeros are
 % treated as masked, and returned as NaN.
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_read_vols.m	2.6 Andrew Holmes 03/10/06
 
 
 %-Argument checks

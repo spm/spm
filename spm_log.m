@@ -15,7 +15,7 @@ function LOGFILE = spm_log(varargin)
 % Doesn't handle multi-dimensional (>2) matrices very gracefully!
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_log.m	2.4 Andrew Holmes 02/07/31
 
 
 %-Find out LogFile name, return if not logging.

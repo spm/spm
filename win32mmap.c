@@ -19,7 +19,7 @@ want the (second) length parameter, which is not easily
 implemented using Win32 
 */
 #ifndef lint
-static char sccsid[] = "%W% Matthew Brett %E%";
+static char sccsid[] = "@(#)win32mmap.c	2.1 Matthew Brett 99/01/15";
 #endif
 
 #include <windows.h>

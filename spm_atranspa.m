@@ -10,7 +10,7 @@ function varargout = spm_atranspa(varargin)
 % CPU saving is by only generating half of C, and filling the
 % rest in later.
 %_______________________________________________________________________
-% %W% John Ashburner MRCCU/FIL %E%
+% @(#)spm_atranspa.m	2.1 John Ashburner MRCCU/FIL 99/04/19
 
 %-This is merely the help file for the compiled routine
 error('spm_atranspa.c not compiled - see spm_MAKE.sh')

@@ -87,7 +87,7 @@ function spm_reslice(P,flags)
 % http://varda.biophysics.mcw.edu/~cox/index.html.
 %
 %__________________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_reslice.m	2.12 John Ashburner 03/03/11
 
 
 def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]');

@@ -43,7 +43,7 @@ function f = spm_Tpdf(x,v)
 %        Cambridge
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_Tpdf.m	2.2 Andrew Holmes 99/04/26
 
 %-Format arguments, note & check sizes
 %-----------------------------------------------------------------------

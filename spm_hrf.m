@@ -17,7 +17,7 @@ function [hrf,p] = spm_hrf(RT,P);
 % hrf  - hemodynamic response function
 % p    - parameters of the response function
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_hrf.m	2.8 Karl Friston 02/07/31
 
 % global parameter
 %-----------------------------------------------------------------------

@@ -317,7 +317,7 @@ function varargout=spm_XYZreg(varargin)
 % % (Note that the registry pushes the current co-ordinates to the button
 % %-Use the button & spm_XYZreg('SetCoords'... at will!
 %_______________________________________________________________________
-% %W% Andrew Holmes, Chloe Hutton %E%
+% @(#)spm_XYZreg.m	2.7 Andrew Holmes, Chloe Hutton 04/05/17
 
 
 %=======================================================================

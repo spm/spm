@@ -44,4 +44,4 @@
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
-% %W% %E%
+% @(#)spm_motd.man	2.8 03/05/09

@@ -28,7 +28,7 @@ function varargout = spm_matx(matfile,varargin)
 % functionality is intended for small mat-files, this m-file function
 % implementation is more practicable.
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_matx.m	2.5 Andrew Holmes 99/11/23
 
 
 %-Check arguments

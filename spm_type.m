@@ -26,7 +26,7 @@ function T = spm_type(x, arg)
 % identifiers as the non-byte-swapped versions, multiplied by a factor of
 % 256.
 %_______________________________________________________________________
-% %W% John Ashburner, Andrew Holmes %E%
+% @(#)spm_type.m	2.3 John Ashburner, Andrew Holmes 99/04/27
 
 
 prec = str2mat('uint8','int16','int32','float','double','int8','uint16','uint32','uint8','int16','int32','float','double','int8','uint16','uint32');

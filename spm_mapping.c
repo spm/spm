@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner %E%";
+static char sccsid[]="@(#)spm_mapping.c	2.7 John Ashburner 01/02/09";
 #endif
 
 /* matlab dependent high level data access and map manipulation routines */

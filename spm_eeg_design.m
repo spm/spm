@@ -16,7 +16,7 @@ function [SPM] = spm_eeg_design(SPM)
 % specified by providing a design component and a variance component. At
 % the inference stage, contrast weights are formed in a similar fashion.
 %_______________________________________________________________________
-% %W% Stefan Kiebel, Karl Friston %E%
+% @(#)spm_eeg_design.m	1.1 Stefan Kiebel, Karl Friston 04/06/28
 
 %-GUI setup
 %-----------------------------------------------------------------------

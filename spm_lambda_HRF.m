@@ -10,7 +10,7 @@ function [y] = spm_lambda_HRF(x,u,P)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_lambda_HRF.m	2.3 Karl Friston 03/02/18
 
 % resting venous volume
 %---------------------------------------------------------------------------

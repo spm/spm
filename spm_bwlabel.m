@@ -30,7 +30,7 @@ function varargout = spm_bwlabel(varargin)
 % and Image Processing 54(4):357-364.
 %
 %__________________________________________________________
-% %W% Jesper Andersson %E%
+% @(#)spm_bwlabel.m	2.1 Jesper Andersson 03/12/16
 
 error('spm_bwlabel.c has not been compiled');
 

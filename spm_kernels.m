@@ -26,7 +26,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % where q = [1 x(t)] are the states augmented with a constant term 
 %
 %---------------------------------------------------------------------------
-% %W% Karl Friston %E%
+% @(#)spm_kernels.m	2.2 Karl Friston 02/10/16
 
 % assign inputs
 %---------------------------------------------------------------------------

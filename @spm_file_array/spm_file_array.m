@@ -9,7 +9,7 @@ function a = spm_file_array(fname,dim,dtype,scale)
 %          in which scaling takes place. scale.values contains a vector of
 %          scaling values.
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_file_array.m	1.1 John Ashburner 04/06/28
 
 if nargin < 3,
 	error('Incorrect usage');

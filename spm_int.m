@@ -19,7 +19,7 @@ function [y,dy] = spm_int(P,M,U,v)
 % spm_int will also handle static observation models by evaluating
 % g(x,u,P)
 %---------------------------------------------------------------------------
-% %W% Karl Friston %E%
+% @(#)spm_int.m	2.4 Karl Friston 03/02/18
 
 % convert U to U.u if necessary
 %---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ function spm_clf(F)
 %
 % This is just a gateway to spm_figure('Clear',F).
 %__________________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_clf.m	2.1 Andrew Holmes 98/03/23
 
 %-Call spm_figure
 %---------------------------------------------------------------------------

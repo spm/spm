@@ -32,7 +32,7 @@ function spm_transverse(varargin)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %_______________________________________________________________________
-% %W% Karl Friston, John Ashburner %E%
+% @(#)spm_transverse.m	2.21 Karl Friston, John Ashburner 03/01/23
 
 switch lower(varargin{1})
 

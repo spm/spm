@@ -6,6 +6,6 @@
 %
 % This function is normally called by file_array/subsref
 % _______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)file2mat.m	1.1 John Ashburner 04/11/26
 
 error('This function needs to be compiled.');

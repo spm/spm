@@ -11,7 +11,7 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % The model can then be re-estimated without having to go through
 % model specification again.
 %
-% %W%	Will Penny %E%
+% @(#)spm_dcm_voi.m	2.4	Will Penny 03/10/27
 
 load(DCM_filename);
 

@@ -247,7 +247,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %       * Otherwise, block is scaled to cover [-1,1].
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_DesMtx.m	2.11 Andrew Holmes 03/06/02
 
 
 %-Parse arguments for recursive construction of design matrices

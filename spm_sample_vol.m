@@ -26,7 +26,7 @@ function varargout = spm_sample_vol(varargin)
 % see also spm_slice_vol.m
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_sample_vol.m	2.1 John Ashburner 99/04/19
 
 %-This is merely the help file for the compiled routine
 error('spm_sample_vol.c not compiled - see spm_MAKE.sh')

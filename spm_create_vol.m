@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % 'noopen' - optional flag to say "don't open/create the image file".
 % Vo   - data structure after modification for writing.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_create_vol.m	2.15 John Ashburner 04/08/12
 for i=1:prod(size(V)),
 	if nargin>1,
 		v = create_vol(V(i),varargin{:});

@@ -60,7 +60,7 @@ function varargout=spm(varargin)
 
 %-SCCS ID and authorship of this program...
 %-----------------------------------------------------------------------
-% %W% Andrew Holmes %E%
+% @(#)spm.m	2.92 Andrew Holmes 05/02/09
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

@@ -34,7 +34,7 @@ function [DAT,S]=readbdf(DAT,Records,Mode)
 % was changed from readedf to readbdf
 % T.S. Lorig Sept 6, 2002
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %W% Stefan Kiebel %E%
+% @(#)readbdf.m	1.1 Stefan Kiebel 04/06/28
 
 if nargin<3 Mode=0; end;
  

@@ -585,7 +585,7 @@ function varargout=spm_conman(varargin)
 % "delete" function is provided (as yet).
 % 
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_conman.m	2.19 Andrew Holmes 04/06/28
 
 %=======================================================================
 % - FORMAT specifications

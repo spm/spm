@@ -18,7 +18,7 @@ function def = spm_get_def(Bx,By,Bz,beta)
 % kron(Bz',kron(By',Bx'))*(diag(dfdy)*y) = get_def(Bx',By',Bz',dfdy.*y)
 %
 %_______________________________________________________________________
-% %W% Jesper Andersson %E%
+% @(#)spm_get_def.m	1.1 Jesper Andersson 03/01/22
 
 if nargin == 4
    [nx,mx] = size(Bx);

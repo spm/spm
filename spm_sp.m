@@ -176,7 +176,7 @@ function varargout = spm_sp(varargin)
 % x - space structure
 % b - true if the basic fields are non-empty
 %_______________________________________________________________________
-% %W% Jean-Baptiste Poline %E%
+% @(#)spm_sp.m	2.14 Jean-Baptiste Poline 99/12/05
 
 if nargin==0
 	error('Do what? no arguments given...')

@@ -479,8 +479,8 @@ function varargout = spm_spm_ui(varargin)
 % will have been pre-scaled to effect any grand mean or global
 % scaling.
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
-SCCSid  = '%I%';
+% @(#)spm_spm_ui.m	2.54 Andrew Holmes 04/12/09
+SCCSid  = '2.54';
 
 %=======================================================================
 % - FORMAT specifications for programers
@@ -696,7 +696,7 @@ SCCSid  = '%I%';
 % D = D(spm_input('Select design type...','+1','m',{D.DesName}'))
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_spm_ui.m	2.54 Andrew Holmes 04/12/09
 
 
 %-Condition arguments

@@ -130,8 +130,8 @@ function varargout = spm_results_ui(varargin)
 % specifications for embedded CallBack functions are given in the main
 % body of the code.
 %_______________________________________________________________________
-% %W% Karl Friston, Andrew Holmes %E%
-SCCSid = '%I%';
+% @(#)spm_results_ui.m	2.44 Karl Friston, Andrew Holmes 04/06/28
+SCCSid = '2.44';
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

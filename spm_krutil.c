@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner & Jesper Andersson %E%";
+static char sccsid[]="@(#)spm_krutil.c	2.3 John Ashburner & Jesper Andersson 04/02/19";
 #endif
 
 #include "mex.h"

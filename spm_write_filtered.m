@@ -18,7 +18,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 % It is intended for writing out filtered SPM's from the results
 % section of SPM, but can be used freestanding.
 %_______________________________________________________________________
-% %W% FIL %E%
+% @(#)spm_write_filtered.m	2.7 FIL 99/10/29
 
 %-Parse arguments
 %-----------------------------------------------------------------------

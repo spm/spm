@@ -7,7 +7,7 @@ function spm_procrustes_ui
 % Landmarks: Morphometrics of Group Differences in Outline Shape"
 % Medical Image Analysis 1(3):225-243
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_procrustes_ui.m	1.2 John Ashburner 02/08/16
 
 P   = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
 PW  = spm_get(1,'*.img','Weighting image');
@@ -84,7 +84,7 @@ function T = procrustes(Y1,Y2,Y3,M1,V,flg)
 % Landmarks: Morphometrics of Group Differences in Outline Shape"
 % Medical Image Analysis 1(3):225-243
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_procrustes_ui.m	1.2 John Ashburner 02/08/16
 
 [z1,z2] = ndgrid(1:size(Y1,1),1:size(Y1,2));
 z1      = z1(:);

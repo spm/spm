@@ -1,4 +1,4 @@
-/* %W% %E%
+/* @(#)spm_getdata.h	2.3 03/05/12
    routines for accessing datatypes for images */
 
 short getshort(short x);

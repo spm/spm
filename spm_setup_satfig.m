@@ -3,9 +3,9 @@
 % spm_setup_satfig sets up a satellite figure to allow simultaneous display
 % of table values and overlays.
 %----------------------------------------------------------------------------
-% %W% Darren R Gitelman %E%
+% @(#)spm_setup_satfig.m	2.1 Darren R Gitelman 02/02/15
 
-% $Id: spm_setup_satfig.m,v 2.1 2002-02-15 11:49:07 john Exp $
+% $Id: spm_setup_satfig.m 1.1 2002-02-14 16:14:37+00 drg Exp drg $
 %----------------------------------------------------------------------------
 global SatWindow
 

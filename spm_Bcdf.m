@@ -43,7 +43,7 @@ function F = spm_Bcdf(x,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_Bcdf.m	2.2 Andrew Holmes 99/04/26
 
 
 %-Format arguments, note & check sizes

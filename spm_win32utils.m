@@ -12,7 +12,7 @@ function varargout = spm_win32utils(varargin)
 % drivestr - string containing valid drive letters
 %
 %_______________________________________________________________________
-% %W% Matthew Brett %E%
+% @(#)spm_win32utils.m	2.1 Matthew Brett 99/04/19
 
 %-This is merely the help file for the compiled routine
 error('spm_win32utils.c not compiled - see spm_MAKE.sh')

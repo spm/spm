@@ -1,4 +1,4 @@
-/* %W% %E%
+/* @(#)spm_mapping.h	2.2 03/05/12
    matlab dependent high level data access and map manipulation routines */
 
 #include "spm_vol_access.h"

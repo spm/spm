@@ -8,7 +8,7 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % num   - comma separated list of values
 %
 %_______________________________________________________________________
-% %W% %E%
+% @(#)spm_fileparts.m	1.1 04/12/08
 
 num = '';
 [pth,nam,ext] = fileparts(fname);

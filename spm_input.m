@@ -170,7 +170,7 @@ function varargout = spm_input(varargin)
 % See also : spm_get.m   (SPM file selector dialog)
 %          : spm_input.m (Input wrapper function - handles batch mode)
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_input.m	2.8 Andrew Holmes 03/03/04
 
 %=======================================================================
 % - FORMAT specifications for programers
@@ -608,7 +608,7 @@ function varargout = spm_input(varargin)
 % Common code to check (& canonicalise) sizes of input vectors/matrices
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_input.m	2.8 Andrew Holmes 03/03/04
 
 
 %-Parameters

@@ -8,7 +8,7 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C)
 % qE     - prior expectations (hemodynamic)
 % qC     - prior covariances  (hemodynamic)
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_dcm_priors.m	2.6 Karl Friston 02/10/16
 
 % number of regions
 %---------------------------------------------------------------------------

@@ -170,8 +170,8 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 0:00-00
 %
 %_______________________________________________________________________
-% %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
-SCCSid  = '%I%';
+% @(#)spm_fmri_spm_ui.m	2.54 Karl Friston, Jean-Baptiste Poline, Christian Buchel 04/12/09
+SCCSid  = '2.54';
 
 %-GUI setup
 %-----------------------------------------------------------------------

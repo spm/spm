@@ -18,7 +18,7 @@ function [pE,pC] = spm_hdm_priors(m,h)
 %    P(6) - ....
 %
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_hdm_priors.m	2.6 Karl Friston 03/02/18
 
 
 % default 2 - hemodynamic [eigen]modes

@@ -42,7 +42,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % the same as the [adjusted] data returned by the plotting routine
 % (spm_graph.m) for the same contrast.
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_regions.m	2.18 Karl Friston 03/11/03
 
 
 % get figure handles
