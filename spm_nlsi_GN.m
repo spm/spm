@@ -1,6 +1,6 @@
-function [Ep,Cp,S] = spm_nlsi_GN(M,U,Y)
+function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Bayesian Parameter estimation using a Levenburg-Marquardt/EM algorithm
-% FORMAT [Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y)
+% FORMAT [Ep,Cp,Ce,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %___________________________________________________________________________
@@ -27,6 +27,10 @@ function [Ep,Cp,S] = spm_nlsi_GN(M,U,Y)
 % Ep  - (p x 1)        	conditional expectation  E{P|y}
 % Cp  - (p x p)        	conditional covariance   Cov{P|y}
 % Ce  - (v x v)        	[Re]ML estimate of       Cov{e}
+%
+% log evidence
+%---------------------------------------------------------------------------
+% F       - [-ve] free energy F = log evidence = p(y|f,g,pE,pC) = p(y|m)
 %
 %___________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a 
@@ -192,6 +196,8 @@ for  k = 1:32
     Fp    = - e'*iS*e/2 ...
             - p'*ipC*p/2 ...
             - spm_logdet(S)/2 ...
+            - ne*log(2*imag(log(-1)))/2 ...
+            - spm_logdet(pC)/2 ...
             + spm_logdet(Cp)/2;
     
     % Levenburg-Marquardt regularisation
