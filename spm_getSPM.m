@@ -58,25 +58,17 @@ function [SPM,VOL,DES] = spm_getSPM
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-%-Defalt Action
-%--------------------------------------------------------------------------
 global CWD
 
-%-Get figure handles and filenames
+%-GUI setup
 %--------------------------------------------------------------------------
-Finter  = spm_figure('FindWin','Interactive');
-spm_clf(Finter)
+spm_help('!ContextHelp',mfilename)
 
-% What sort of SPM
+%-What sort of SPM, select SPM.mat
 %---------------------------------------------------------------------------
-STAT    = spm_input('which SPM',1,...
-		    'b','SPM{T}|SPM{F}',['T' 'F']);
-
-set(Finter,'Name',['SPM{' STAT '} projections'])
-
-str     = ['SPM.mat'];
-tmp     = spm_get(1,str,['select ' str]);
-CWD     = strrep(tmp,['/' str],'');
+STAT = spm_input('which SPM','+1','b','SPM{T}|SPM{F}',['T','F'],1);
+spm('FigName',['SPM{' STAT '} projections']);
+CWD  = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat for analysis'),'H');
 
 %-Get data
 %--------------------------------------------------------------------------
@@ -105,7 +97,7 @@ if STAT == 'T'
 	%-------------------------------------------------------------------
 	m      = size(DES,2);
 	str    = sprintf('contrast[s] n x 1 - %i',m);
-	c      = spm_input(str,1);
+	c      = spm_input(str);
 	n      = size(c,1);
 
 	%-Zero pad
@@ -141,12 +133,12 @@ if STAT == 'T'
 
 	%-Get and apply any masks
 	%===================================================================
-	if spm_input('mask with other contrast[s]','!+1','b','no|yes',[0 1],1)
+	if spm_input('mask with other contrast[s]','+1','b','no|yes',[0,1],1)
 
 		%-Get contrast[s] for mask
 		%-----------------------------------------------------------
 		str   = sprintf('contrast[s] n x 1 - %i',m);
-		c     = spm_input(str,1);
+		c     = spm_input(str);
 		n     = size(c,1);
 
 		%-Zero pad
@@ -156,7 +148,7 @@ if STAT == 'T'
 
 		% threshold for mask
 		%-----------------------------------------------------------
-		u     = spm_input('threshold for mask','!+1','e',0.05);
+		u     = spm_input('threshold for mask','+1','e',0.05);
 		if u <= 1; u = spm_u(u,Fdf,'T'); end
 
 		% compute mask
@@ -191,20 +183,20 @@ Z     = min(Z,[],1);
 
 %-Get and apply height threshold
 %---------------------------------------------------------------------------
-if spm_input('corrected height threshold','!+1','b','no|yes',[0 1],1)
-	u  = spm_input('corrected p value','!+0','e',0.05);
+if spm_input('corrected height threshold','+1','b','no|yes',[0 1],1)
+	u  = spm_input('corrected p value','+0','e',0.05);
 	u  = spm_U(u,Fdf,STAT,R,n);
 else
 	%-Get and apply height threshold [default p < 0.001 uncorrected]
 	%-------------------------------------------------------------------
-	u  = spm_input('threshold {F or p value}','!+0','e',0.001);
+	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','e',0.001);
 	if u <= 1; u = spm_u(u,Fdf,STAT); end
 end
 
 
 %-Get extent threshold [default = 0]
 %---------------------------------------------------------------------------
-k     = spm_input('& extent threshold {resels}','!+1','e',0);
+k     = spm_input('& extent threshold {resels}','+1','e',0);
 
 
 % eliminate voxels based on height
@@ -245,8 +237,7 @@ end
 
 %-Finished
 %---------------------------------------------------------------------------
-spm_clf(Finter)
-set(Finter,'Name',' ','Pointer','Arrow')
+spm('Pointer','Arrow')
 
 
 % assemble output structures
