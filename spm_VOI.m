@@ -54,8 +54,10 @@ elseif SPACE == 'B'
 	S     = prod(D);
 
 elseif SPACE == 'V'
-
-	A     = spm_clusters(VOL.XYZ,VOL.VOX);
+	invM  = inv(VOL.M);
+	tmp   = round(invM(1:3,1:3)*VOL.XYZ ...
+		+ repmat(invM(1:3,4),1,size(VOL.XYZ,2)));
+	A     = spm_clusters(tmp,[1 1 1]);
 	j     = find(A == A(i));
 	str   = sprintf('%0.0f voxel cluster',length(j));
 	D     = VOL.XYZ(:,j); D  = D./(VOL.VOX*ones(1,size(D,2)));

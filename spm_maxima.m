@@ -30,7 +30,10 @@ L       = spm_XYZreg('GetCoords',hReg);
 
 % Find selected cluster
 %-----------------------------------------------------------------------
-A       = spm_clusters(VOL.XYZ,VOL.VOX);
+invM    = inv(VOL.M);
+tmp     = round(invM(1:3,1:3)*VOL.XYZ ...
+	+ repmat(invM(1:3,4),1,size(VOL.XYZ,2)));
+A       = spm_clusters(tmp,[1 1 1]);
 j       = find(A == A(i));
 SPM.Z   = SPM.Z(j);
 VOL.XYZ = VOL.XYZ(:,j);

@@ -60,7 +60,14 @@ u         = SPM.u;
 k         = SPM.k;
 R         = VOL.R;
 FWHM      = VOL.FWHM;
-[N T M A] = spm_max(Z,VOL.XYZ,VOL.VOX);
+
+invM      = inv(VOL.M);
+tmp       = round(invM(1:3,1:3)*VOL.XYZ ...
+	  + repmat(invM(1:3,4),1,size(VOL.XYZ,2)));
+[N T M A] = spm_max(Z,tmp,[1 1 1]);
+M         = VOL.M(1:3,1:3)*M ...
+	  + repmat(VOL.M(1:3,4),1,size(M,2));
+
 N         = N/prod(FWHM); % voxels -> resels
 
 
