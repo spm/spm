@@ -1,13 +1,17 @@
-function [X,Sess] = spm_fmri_spm_ui
+function [xX,Sess] = spm_fmri_spm_ui
 % Setting up the general linear model for fMRI time-series
-% FORMAT [X,Sess] = spm_fmri_spm_ui
+% FORMAT [xX,Sess] = spm_fmri_spm_ui
 %
-% X.dt    - time bin {secs}
-% X.RT    - Repetition time {secs}
-% X.xX    - regressors
-% X.bX    - session effects
-% X.Xname - names of subpartiton columns {1xn}
-% X.Bname - names of subpartiton columns {1xn}
+% xX            - structure describing design matrix
+% xX.X          - design matrix
+% xX.dt         - time bin {secs}
+% xX.RT         - Repetition time {secs}
+% xX.iH         - vector of H partition (condition effects)      indices,
+% xX.iC         - vector of C partition (covariates of interest) indices
+% xX.iB         - vector of B partition (block effects)          indices
+% xX.iG         - vector of G partition (nuisance variables)     indices
+% xX.Xnames     - cellstr of effect names corresponding to columns
+%                 of the design matrix
 %
 % Sess{s}.BFstr   - basis function description string
 % Sess{s}.DSstr   - Design description string
@@ -187,15 +191,15 @@ switch MT
 	% specify a design matrix
 	%---------------------------------------------------------------
 	if sf_abort(1), spm_clf(Finter), return, end
-	[X,Sess] = spm_fMRI_design;
-	spm_fMRI_design_show(X,Sess);
+	[xX,Sess] = spm_fMRI_design;
+	spm_fMRI_design_show(xX,Sess);
 	return
 
 	case 2
 	% 'review a specified model'
 	%---------------------------------------------------------------
 	spm_clf(Finter)
-	[X,Sess] = spm_fMRI_design_show;
+	[xX,Sess] = spm_fMRI_design_show;
 	return
 
 	case 3
@@ -207,10 +211,10 @@ switch MT
 
 	% get filenames
 	%---------------------------------------------------------------
-	nsess  = size(X.bX,2);
+	nsess  = length(xX.iB);
 	nscan  = zeros(1,nsess);
 	for  i = 1:nsess
-		nscan(i) = length(find(X.bX(:,i)));
+		nscan(i) = length(find(xX.X(:,xX.iB(i))));
 	end
 	P      = [];
 	if nsess < 16
@@ -226,7 +230,7 @@ switch MT
 
 	% Repeat time
 	%---------------------------------------------------------------
-	RT     = X.RT;
+	RT     = xX.RT;
 
 
 	case 4
@@ -245,11 +249,11 @@ switch MT
 
 	% get Repeat time
 	%---------------------------------------------------------------
-	RT       = spm_input('Interscan interval {secs}',2);
+	RT        = spm_input('Interscan interval {secs}',2);
 
 	% get design matrix
 	%---------------------------------------------------------------
-	[X,Sess] = spm_fMRI_design(nscan,RT);
+	[xX,Sess] = spm_fMRI_design(nscan,RT);
 
 end
 
@@ -260,7 +264,7 @@ spm_help('!ContextHelp',mfilename)
 % get rows
 %-----------------------------------------------------------------------
 for i = 1:nsess
-	row{i} = find(X.bX(:,i));
+	row{i} = find(xX.X(:,xX.iB(i)));
 end
 BFstr  = Sess{1}.BFstr;
 DSstr  = Sess{1}.DSstr;
@@ -283,11 +287,14 @@ end
 % Model scan effects as oppsed to session effects if burst mode
 %-----------------------------------------------------------------------
 if BM
-	k       = nscan(1);
-	X.bX    = kron(ones(nsess,1),eye(k));
-	X.Bname = {};
+	k         = nscan(1);
+	l         = length(xX.iC);
+	xX.X      = xX.X(:,xX.iC);
+	xX.Xnames = xX.Xnames(xX.iC);
+	xX.X      = [xX.X kron(ones(nsess,1),eye(k))];
+	xX.iB     = [1:k] + l;
 	for   i = 1:k
-		X.Bname{i} = sprintf('scan: %i ',i);
+		X.Xnames{l + i} = sprintf('scan: %i ',i);
 	end
 	DSstr = '[burst-mode]';
 end
@@ -423,7 +430,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 % scale if specified (otherwise session specific grand mean scaling)
 %-----------------------------------------------------------------------
-gSF    = GM./g;
+gSF     = GM./g;
 if strcmp(Global,'None')
 	for i = 1:nsess
 		j      = row{i};
@@ -433,39 +440,29 @@ end
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %-----------------------------------------------------------------------
-for i = 1:q, VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i); end
+for  i = 1:q, VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i); end
 
 
 %-Masking structure
 %-----------------------------------------------------------------------
-xM = struct(	'T',	ones(q,1),...
+xM     = struct('T',	ones(q,1),...
 		'TH',	g.*gSF,...
 		'I',	0,...
 		'VM',	{[]},...
 		'xs',	struct('Masking','analysis threshold'));
 
 
-%-Construct full design matrix (X), parameter names (Xnames),
-% and design information structure (xX)
+%-Complete design matrix (xX)
 %=======================================================================
-Xnames = [X.Xname X.Bname];
-xX     = struct(	'X',		[X.xX X.bX],...
-			'K',		{K},...
-			'xVi',		xVi,...
-			'RT',		X.RT,...
-			'dt',		X.dt,...
-			'Xnames',	{Xnames'});
+xX.K   = {K};
+xX.xVi = xVi;
 
 
 
 %-Effects designated "of interest" - constuct an F-contrast
 %-----------------------------------------------------------------------
-if isempty(X.bX)  %- no confounds
-	F_iX0 = [];
-else 
-	% if isempty(X.xX) we have size(X.xX,2) == 0;
-	F_iX0 = size(X.xX,2) + [1:size(X.bX,2)];
-end
+F_iX0 = xX.iB;
+
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================

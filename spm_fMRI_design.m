@@ -1,16 +1,20 @@
-function [X,Sess] = spm_fMRI_design(nscan,RT)
+function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % Assembles a design matrix for fMRI studies
-% FORMAT [X,Sess] = spm_fMRI_design(nscan,RT)
+% FORMAT [xX,Sess] = spm_fMRI_design(nscan,RT)
 %
 % nscan   - n vector {nscan(n) = number of scans in session n}
 % RT      - intercans interval {seconds}
 %
-% X.dt    - time bin {secs}
-% X.RT    - Repetition time {secs}
-% X.xX    - regressors
-% X.bX    - session effects
-% X.Xname - names of subpartiton columns {1xn}
-% X.Bname - names of subpartiton columns {1xn}
+% xX            - structure describing design matrix
+% xX.X          - design matrix
+% xX.dt         - time bin {secs}
+% xX.RT         - Repetition time {secs}
+% xX.iH         - vector of H partition (condition effects)      indices,
+% xX.iC         - vector of C partition (covariates of interest) indices
+% xX.iB         - vector of B partition (block effects)          indices
+% xX.iG         - vector of G partition (nuisance variables)     indices
+% xX.Xnames     - cellstr of effect names corresponding to columns
+%                 of the design matrix
 %
 % Sess{s}.BFstr    - basis function description string
 % Sess{s}.DSstr    - Design description string
@@ -162,8 +166,8 @@ rep = 0;
 if nsess > 1 & ~any(nscan - nscan(1))
 	rep = spm_input(['are sessions replicated exactly'],2,'yes|no',[1 0]);
 end
-xX    = [];
-bX    = [];
+Xx    = [];
+Xb    = [];
 Xname = {};
 Bname = {};
 Sess  = {};
@@ -262,8 +266,8 @@ for s = 1:nsess
 	Sess{s}.BFstr = BFstr;
 	Sess{s}.DSstr = DSstr;
 	Sess{s}.rep   = rep;
-	Sess{s}.row   = size(xX,1) + [1:k];
-	Sess{s}.col   = size(xX,2) + [1:size(X,2)];
+	Sess{s}.row   = size(Xx,1) + [1:k];
+	Sess{s}.col   = size(Xx,2) + [1:size(X,2)];
 	Sess{s}.name  = name;
 	Sess{s}.ind   = IND;
 	Sess{s}.bf    = BF;
@@ -284,29 +288,32 @@ for s = 1:nsess
 		Bname{q + i}  = [sprintf('Sn(%i) ',s) Bn{i}];
 	end
 
-	% append into xX and bX
+	% append into Xx and Xb
 	%===================================================================
-	[x y]   = size(xX);
+	[x y]   = size(Xx);
 	[i j]   = size(X);
-	xX(([1:i] + x),([1:j] + y)) = spm_detrend(X);
-	[x y]   = size(bX);
+	Xx(([1:i] + x),([1:j] + y)) = spm_detrend(X);
+	[x y]   = size(Xb);
 	[i j]   = size(B);
-	bX(([1:i] + x),([1:j] + y)) = B;
+	Xb(([1:i] + x),([1:j] + y)) = B;
 end
 
 % finished
 %---------------------------------------------------------------------------
-X.dt    = dt;
-X.RT    = RT;
-X.xX    = xX;
-X.bX    = bX;
-X.Xname = Xname;
-X.Bname = Bname;
+xX     = struct(	'X',		[Xx Xb],...
+			'dt',		dt,...
+			'RT',		RT,...
+			'iH',		[],...
+			'iC',		[1:size(Xx,2)],...
+			'iB',		[1:size(Xb,2)] + size(Xx,2),...
+			'iG',		[],...
+			'Xnames',	{[Xname Bname]});
+
 
 %-End: Save fMRIDesMtx.mat & Cleanup GUI
 %---------------------------------------------------------------------------
 fprintf('\t%-32s: ','Saving fMRI design')                                %-#
-save fMRIDesMtx X Sess
+save fMRIDesMtx xX Sess
 fprintf('%30s\n','...fMRIDesMtx.mat saved')                              %-#
 
 spm_clf(Finter);

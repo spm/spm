@@ -1,13 +1,17 @@
-function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
+function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % Interactive review of fMRI design matrix
-% FORMAT [X,Sess] = spm_fMRI_design_show(X,Sess)
+% FORMAT [xX,Sess] = spm_fMRI_design_show(xX,Sess)
 %
-% X.dt    - time bin {secs}
-% X.RT    - Repetition time {secs}
-% X.xX    - regressors
-% X.bX    - session effects
-% X.Xname - names of subpartiton columns {1xn}
-% X.Bname - names of subpartiton columns {1xn}
+% xX            - structure describing design matrix
+% xX.X          - design matrix
+% xX.dt         - time bin {secs}
+% xX.RT         - Repetition time {secs}
+% xX.iH         - vector of H partition (condition effects)      indices,
+% xX.iC         - vector of C partition (covariates of interest) indices
+% xX.iB         - vector of B partition (block effects)          indices
+% xX.iG         - vector of G partition (nuisance variables)     indices
+% xX.Xnames     - cellstr of effect names corresponding to columns
+%                 of the design matrix
 %
 % Sess{s}.BFstr    - basis function description string
 % Sess{s}.DSstr    - Design description string
@@ -26,7 +30,7 @@ function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
 % %W% Karl Friston %E%
 
 
-% X and Sess
+% xX and Sess
 %-----------------------------------------------------------------------
 if nargin == 0
 	load(spm_get(1,'.mat','select fMRIDesMtx'))
@@ -58,14 +62,14 @@ if nargin < 3
 
 	%-Add a scaled design matrix to the design data structure
 	%---------------------------------------------------------------
-	if ~isfield(X,'nxbX'), X.nxbX = spm_DesMtx('Sca',[X.xX X.bX]); end
+	if ~isfield(xX,'nxbX'), xX.nxbX = spm_DesMtx('Sca',xX.X); end
 
 	%-Draw menu
 	%---------------------------------------------------------------
 	hC     = uimenu(Finter,'Label','explore fMRI design',...
 		'Separator','on',...
 		'Tag','fMRIDesShow',...
-		'UserData',struct('X',X,'Sess',{Sess}),...
+		'UserData',struct('xX',xX,'Sess',{Sess}),...
 		'HandleVisibility','on');
 	for j = 1:length(Sess)
 		h     = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
@@ -74,7 +78,7 @@ if nargin < 3
 			cb = ['tmp = get(get(gcbo,''UserData''),',...
 					         '''UserData''); ',...
 				sprintf(['spm_fMRI_design_show(',...
-					'tmp.X,tmp.Sess,%d,%d);'],j,k)];
+					'tmp.xX,tmp.Sess,%d,%d);'],j,k)];
 			uimenu(h,'Label',Sess{j}.name{k},...
 	     	   	         'CallBack',cb,...
 	     	   	         'UserData',hC,...
@@ -96,10 +100,10 @@ spm_results_ui('Clear',Fgraph,0)
 % Display X
 %-----------------------------------------------------------------------
 subplot(3,4,1)
-if isfield(X,'nxbX')
-	image(X.nxbX*32+32)
+if isfield(xX,'nxbX')
+	image(xX.nxbX*32+32)
 else
-	imagesc(spm_en([X.xX X.bX]))
+	imagesc(spm_en(xX.X))
 end
 xlabel('effect')
 ylabel('scan')
@@ -109,10 +113,10 @@ title('Design Matrix','FontSize',16)
 % Session subpartition
 %-----------------------------------------------------------------------
 subplot(3,4,3)
-sX   = X.xX(Sess{s}.row,Sess{s}.col);
+sX   = xX.X(Sess{s}.row,Sess{s}.col);
 imagesc(spm_en(sX)')
 set(gca,'YTick',[1:size(sX,1)])
-set(gca,'YTickLabel',X.Xname(Sess{s}.col)')
+set(gca,'YTickLabel',xX.Xnames(Sess{s}.col)')
 title({sprintf('Session %d',s) Sess{s}.DSstr})
 
 % Collinearity
@@ -138,7 +142,7 @@ subplot(3,2,4)
 gX    = abs(fft(rX)).^2;
 gX    = gX*diag(1./sum(gX));
 q     = size(gX,1);
-Hz    = [0:(q - 1)]/(q*X.RT);
+Hz    = [0:(q - 1)]/(q*xX.RT);
 q     = 2:fix(q/2);
 plot(Hz(q),gX(q,:))
 xlabel('Frequency (Hz)')
@@ -155,11 +159,11 @@ if length(Sess{s}.ons) >= i
 	% Basis set and peristimulus sampling
 	%---------------------------------------------------------------
 	subplot(3,2,5)
-	t    = [1:size(Sess{s}.bf{i},1)]*X.dt;
+	t    = [1:size(Sess{s}.bf{i},1)]*xX.dt;
 	pst  = Sess{s}.pst{i};
 	plot(t,Sess{s}.bf{i},pst,0*pst,'.','MarkerSize',16)
-	str  = sprintf('TR = %0.0fsecs',X.RT);
-	xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*X.dt)})
+	str  = sprintf('TR = %0.0fsecs',xX.RT);
+	xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*xX.dt)})
 	title({'Basis set and peristimulus sampling' Sess{s}.BFstr})
 	axis tight
 	grid on
