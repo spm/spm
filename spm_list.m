@@ -109,6 +109,13 @@ function varargout = spm_list(varargin)
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
 
+%### CODE FOR SATELLITE FIGURE ###
+%
+% satellite figure global variable
+%------------------------
+global SatWindow
+% ### END NEW CODE ###
+
 %-Parse arguments, default to 'list' if varargin{1} not an Action string
 %-----------------------------------------------------------------------
 if nargin==0, error('Insufficient arguments'), end
@@ -170,7 +177,17 @@ nZ        = length(varargin{2}.Z);       %
 %-Setup graphics pane
 %-----------------------------------------------------------------------
 spm('Pointer','Watch')
-Fgraph    = spm_figure('GetWin','Graphics');
+
+% ### CODE FOR SATELLITE WINDOW ###
+%----------------------------------------------------------------------
+if SatWindow
+	Fgraph = SatWindow;
+	figure(Fgraph)
+else
+	Fgraph    = spm_figure('GetWin','Graphics');
+end
+% ### END NEW CODE ###
+
 spm_results_ui('Clear',Fgraph)
 FS        = spm('FontSizes');			%-Scaled font sizes
 PF        = spm_platform('fonts');		%-Font names (for this platform)
@@ -183,12 +200,18 @@ PF        = spm_platform('fonts');		%-Font names (for this platform)
 
 %-Table axes & Title
 %-----------------------------------------------------------------------
-hAx   = axes('Position',[0.05 0.1 0.9 0.4],...
+% ### CODE FOR SATELLITE WINDOW ###
+%----------------------------------------------------------------------
+if SatWindow, ht = 0.9; else, ht = 0.4; end;
+	
+hAx   = axes('Position',[0.05 0.1 0.9 ht],...
 	'DefaultTextFontSize',FS(8),...
 	'DefaultTextInterpreter','Tex',...
 	'DefaultTextVerticalAlignment','Baseline',...
 	'Units','points',...
 	'Visible','off');
+% ### END NEW CODE ###
+
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
 dy    = FS(9);
 y     = floor(AxPos(4)) - dy;
@@ -408,10 +431,15 @@ while prod(size(find(finite(Z))))
 	% Paginate if necessary
 	%---------------------------------------------------------------
 	if y < min(Num+1,3)*dy
+
+		% ### CODE FOR SATELLITE WINDOW ###
+		% added Fgraph term to paginate correctly on the Satellite window
 		h     = text(0.5,-5*dy,...
-			sprintf('Page %d',spm_figure('#page')),...
+			sprintf('Page %d',spm_figure('#page',Fgraph)),...
 			'FontName',PF.helvetica,'FontAngle','Italic',...
 			'FontSize',FS(8));
+		% ### END MODIFIED CODE ###
+
 		spm_figure('NewPage',[hPage,h])
 		hPage = [];
 		y     = y0;
@@ -443,6 +471,7 @@ while prod(size(find(finite(Z))))
 	h     = text(tCol(3),y,sprintf(TabDat.fmt{3},Pk),'FontWeight','Bold',...
 		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
+
 	h     = text(tCol(4),y,sprintf(TabDat.fmt{4},Nv),'FontWeight','Bold',...
 		'UserData',Nv,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
@@ -466,13 +495,20 @@ while prod(size(find(finite(Z))))
 		'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 
+	% ### CODE FOR SATELLITE FIGURE ###
+	% Specifically changed    'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));',...
+	% to the line below so it properly finds hMIPax
+	%---------------------------------------------------------------------
 	h     = text(tCol(11),y,sprintf(TabDat.fmt{11},XYZmm(:,i)),...
 		'FontWeight','Bold',...
 		'Tag','ListXYZ',...
-		'ButtonDownFcn',...
-		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));',...
+		'ButtonDownFcn',[...
+		'hMIPax = findobj(''tag'',''hMIPax'');',...
+		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),hMIPax);'],...
 		'Interruptible','off','BusyAction','Cancel',...
 		'UserData',XYZmm(:,i));
+	% ### END MODIFIED CODE ###
+
 	HlistXYZ = [HlistXYZ, h];
 	if spm_XYZreg('Edist',xyzmm,XYZmm(:,i))<tol & ~isempty(hReg)
 		set(h,'Color','r')
@@ -496,12 +532,16 @@ while prod(size(find(finite(Z))))
 			
 			% Paginate if necessary
 			%-----------------------------------------------
-			if y < dy
+			if y < dy	
+				% ### CODE FOR SATELLITE FIGURE ###
+				% added Fgraph term to paginate correctly for satellite figure
 				h = text(0.5,-5*dy,sprintf('Page %d',...
-					spm_figure('#page')),...
+					spm_figure('#page',Fgraph)),...
 					'FontName',PF.helvetica,...
 					'FontAngle','Italic',...
 					'FontSize',FS(8));
+				% ### END MODIFIED CODE ###
+
 				spm_figure('NewPage',[hPage,h])
 				hPage = [];
 				y     = y0;
@@ -518,6 +558,7 @@ while prod(size(find(finite(Z))))
 				'UserData',Pu,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
+
 			h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Qu),...
 				'UserData',Qu,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
@@ -534,14 +575,22 @@ while prod(size(find(finite(Z))))
 				'UserData',Pz,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
+
+			% ### CODE FOR SATELLITE FIGURE ###
+			% specifically modified line 'get(gcbo,''UserData''));'],...
+			% to use hMIPax
+			%------------------------------------------------------------
 			h     = text(tCol(11),y,...
 				sprintf(TabDat.fmt{11},XYZmm(:,d)),...
 				'Tag','ListXYZ',...
 				'ButtonDownFcn',[...
+					'hMIPax = findobj(''tag'',''hMIPax'');',...
 					'spm_mip_ui(''SetCoords'',',...
-					'get(gcbo,''UserData''));'],...
+					'get(gcbo,''UserData''),hMIPax);'],...
 				'Interruptible','off','BusyAction','Cancel',...
 				'UserData',XYZmm(:,d));
+			% ### END MODIFIED CODE ###
+
 			HlistXYZ = [HlistXYZ, h];
 			if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ~isempty(hReg)
 				set(h,'Color','r')
@@ -561,12 +610,13 @@ end				% end region
 
 %-Number and register last page (if paginated)
 %-----------------------------------------------------------------------
-if spm_figure('#page')>1
+% ### CODE FOR SATELLITE FIGURE
+if spm_figure('#page',Fgraph)>1
 	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
 		'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
 	spm_figure('NewPage',[hPage,h])
 end
-
+% ### END MODIFIED CODE ###
 
 
 %-End: Store TabDat in UserData of axes & reset pointer
