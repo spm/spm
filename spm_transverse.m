@@ -133,7 +133,11 @@ end
 u     = get(gca,'Position');
 axes('position', [(u(1) + u(3) + 0.1) u(2) 0.01 u(3)])
 image([0 d/32],[0 d],[1:D]' + D)
-axis xy; ylabel 'Z value'
+if SPMZ str ='Z value'; end;
+if SPMF str = 'F-value'; end;
+
+axis xy; ylabel(str);
+
 set(gca,'XTickLabels',[])
 
 

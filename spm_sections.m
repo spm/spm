@@ -126,7 +126,11 @@ line(([R R] + L(2)),[0 M])
 q     = [(0.2 + Y) (0.46 - Z*WIN - 0.1*WIN - X*WIN) 0.02 X*WIN];
 axes('Position',q,'Visible','off')
 image([0 d/32],[0 d],[1:D]' + D)
-axis xy; ylabel 'Z value'
+
+if SPMZ str ='Z value'; end;
+if SPMF str = 'F-value'; end;
+
+axis xy; ylabel(str);
 set(gca,'XTickLabels',[])
 
 
