@@ -24,7 +24,7 @@ static int getmask(struct stat *stbuf)
         static int ngids;
 	int g;
 
-	if (uid == -1)
+	if (uid == (uid_t)-1)
 	{
 		uid   = getuid();
 		ngids = getgroups(128,gids);
