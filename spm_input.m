@@ -39,9 +39,8 @@ function varargout = spm_input(varargin)
 % spm_input returns with no GUI execution. If the mat-file
 % exists but is empty, then  spm_input_orig is called.
 %  
-% Jean-Baptiste Poline & Stephanie Rouquette
 %---------------------------------------------------------------
-% @(#)spm_input.m	 
+% %W% Jean-Baptiste Poline, Stephanie Rouquette %E%
 
 
 
