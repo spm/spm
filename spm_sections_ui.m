@@ -1,21 +1,20 @@
 
 % Display and analysis of regional effects
 % FORMAT spm_sections_ui
-%___________________________________________________________________________
+%_______________________________________________________________________
 %
-% spm_sections_ui prompts for details of a SPM{Z} that is then
+% spm_sections_ui prompts for details of a SPM{Z} of SPM{F} that is then
 % displayed in the results window.  By moving (dragging) the pointer on
 % the maximum intensity projection one can select a particular
 % voxel (or planes passing though that voxel) for further display and
 % analysis:
 %
-% 1) display activities at the point selected
-% 2) plot the activities at the point selected
-% 3) render the SPM(Z} on transverse slices at the level selected
-% 4) render the SPM(Z} through 3 orthogonal sections selected
-% 5) list and characterize all the maxima in a selected region
+% 1) plot the activities at the point selected
+% 2) render the SPM(Z/F} on transverse slices at the level selected
+% 3) render the SPM(Z/F} through 3 orthogonal sections selected
+% 4) list and characterize all the maxima in a selected region
 %
-% The SPM{Z} is thresholded at a specified threshold and displayed
+% The SPM{Z/F} is thresholded at a specified threshold and displayed
 % on top of a background image.  This background image can be arbitrary
 % but should have ORIGIN correctly specified in its header.  ORIGIN
 % is the [i j k] voxel corresponding to [0 0 0] mm in XYZ [typically
@@ -23,117 +22,54 @@
 % and Tournoux (1988)].
 %
 % The specification of the contrasts to use and the height and size
-% thresholds are the same as that described in spm_projections[_ui].  See
-% SPM{Z} in the help facilitiy
-%
-%__________________________________________________________________________
+% thresholds are the same as that described in spm_projections_ui.%
+%_______________________________________________________________________
 % %W% %E%
 
 % spm_sections_ui is not a function because many of the arguments and
 % object handles required by CallBack strings and the spm_*.m routines
 % that are invoked have to be in working memory
 
-WS = spm('GetWinScale');
+WS     = spm('GetWinScale');
 Fgraph = spm_figure('FindWin','Graphics');
 Finter = spm_figure('FindWin','Interactive');
 spm_clf(Fgraph)
 spm_clf(Finter)
+global CWD
 
-% Get directory, data, contrast and thresholds
-%---------------------------------------------------------------------------
-tmp  = spm_get(1,'.mat','select SPMt.mat for analysis','SPMt');
-CWD  = strrep(tmp,'/SPMt.mat','');
-K    = [];
-load([CWD,'/SPM' ])
-load([CWD,'/XYZ' ])
-load([CWD,'/SPMt'])
-load([CWD,'/XA'  ])
+% which SPM
+%-----------------------------------------------------------------------
+SPMZ     = spm_input('which SPM',1,'b','SPM{Z}|SPM{F}',[1 0]);
+SPMF     = ~SPMZ;
 
-con  = 0;
-while any(con < 1 | con > size(CONTRAST,1))
-	con = spm_input(sprintf('contrast[s] ? 1 - %i',size(CONTRAST,1)),1);
+% get thresholded data, thresholds and parameters
+%-----------------------------------------------------------------------
+if SPMZ
+
+	[t,XYZ,XA,U,k,s,w] = spm_projections_ui('Results');
+
+elseif SPMF
+
+	[t,XYZ,XA,U,k,s,w] = spm_projectionsF_ui('Results');
+
 end
+load([CWD,'/SPM'])
+S        = s;
+W        = w;
 
-% get height threshold [default = 3.2]
-%---------------------------------------------------------------------------
-U    = spm_input('height threshold {Z value}',2,'e',3.2);
+if SPMF
+      df = Fdf; end
 
-% get extent threshold [default = E{n} - expected voxels per cluster]
-% Omit spatial extent threshold for multiple contrasts.
-%---------------------------------------------------------------------------
-if length(con) == 1
-	[P,EN,Em,En,Pk] = spm_P(1,W,U,0,S);
-	k    = spm_input('extent threshold {voxels}',3,'e',round(En));
-else
-	k    = 0;
-end
-
-%---------------------------------------------------------------------------
-set(Finter,'Pointer','Watch');
-figure(Fgraph)
-
-% accommodate masking if required
-%---------------------------------------------------------------------------
-if length(con) > 1
-	Q = all(SPMt(con,:) > U);
-
-	c = CONTRAST(con,:);
-	g = [K H C B G];
-	g = c*pinv(g'*g)*c';
-	r = inv(diag(sqrt(diag(g))))'*g*inv(diag(sqrt(diag(g))));
-	t = sum(SPMt(con,Q))/sqrt(sum(r(:)));
-else
-	Q = SPMt(con,:) > U;
-	t = SPMt(con,Q);
-end
-
-% return if there are no voxels
-%---------------------------------------------------------------------------
-if sum(Q) == 0
-	axis off
-	text(0,0.8,CWD);
-	text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
-	return
-end
-
-XYZ  = XYZ(:,Q);
-XA   = XA(:,Q);
-
-
-% apply threshold {k}
-%---------------------------------------------------------------------------
-A         = spm_clusters(XYZ,V([4 5 6]));
-Q         = [];
-for i     = 1:max(A)
-	j = find(A == i);
-	if length(j) >= k
-		Q = [Q j];
-	end
-end
-
-% return if there are no voxels
-%---------------------------------------------------------------------------
-if sum(Q) == 0
-	axis off
-	text(0,0.8,CWD);
-	text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
-	return
-end
-
-t    = t(Q);
-XYZ  = XYZ(:,Q);
-XA   = XA(:,Q);
-
-
-% display SPM{Z}
+% display SPM{Z/F}
 %=======================================================================
+figure(Fgraph)
 set(Fgraph,'Units','normalized'); 
 axes('Position',[0.24 0.54 0.62 0.42])
 spm_mip(t,XYZ,V(1:6)); axis normal
 
 
 % if 2-dimensional data
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if V(3) == 1
 	set(gca,'Position',[0.24 0.54 0.52 0.36])
 	X1   = text(1,1,'<','Color','r','Fontsize',16);
@@ -142,7 +78,7 @@ if V(3) == 1
 	X3   = X1;
 
 	% create 'clever' pointers that reset things when moved
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 C1   = ['set(X1,''Units'',''Pixels'');',...
 	'set(X1,''Position'',get(' num2str(Fgraph) ',''CurrentPoint'') - AXES);',...
 	'set(X1,''Units'',''Data'');',...
@@ -160,23 +96,15 @@ c    = ['d1   = eval(get(h1,''String''));',...
 	C2    = C1;
 	C3    = C1;
 else
-	if (1==0)
-		% The values for the old MIP outlines.
-		% I've kept them just in case..
-		P1 = 124;
-		P2 = 248;
-		P3 = 112;
-		P4 = 276;
-	else
-		% see spm_project.c for where these numbers come from
-		P1 = 127-4;
-		P2 = 182+182-91;
-		P3 = 182-73;
-		P4 = 218+91-4;
-	end
+	% see spm_project.c for where these numbers come from
+	%--------------------------------------------------------------
+	P1 = 127-4;
+	P2 = 182+182-91;
+	P3 = 182-73;
+	P4 = 218+91-4;
 
 	% create line object = dot or selected voxel
-	%------------------------------------------------------------------
+	%--------------------------------------------------------------
 	X1   = text(P1,P2,'<','Color','r','Fontsize',16);
 	X2   = text(P1,P3,'<','Color','r','Fontsize',16);
 	X3   = text(P4,P3,'<','Color','r','Fontsize',16);
@@ -187,9 +115,10 @@ else
 
 
 	% create 'clever' pointers that reset things when moved
-	%------------------------------------------------------------------
+	%--------------------------------------------------------------
 
-% Transverse
+	% Transverse
+	%--------------------------------------------------------------
 C1   = ['d1  = get(X1,''Position'');',...
 	'd2  = get(X2,''Position'');',...
 	'd3  = get(X3,''Position'');',...
@@ -206,7 +135,8 @@ C1   = ['d1  = get(X1,''Position'');',...
 	'set(' num2str(Fgraph) ',''WindowButtonUpFcn'','' '');',...
 ];
 
-% Saggital/sagittal
+	% sagittal
+	%--------------------------------------------------------------
 C2   = ['d1  = get(X1,''Position'');',...
 	'd2  = get(X2,''Position'');',...
 	'd3  = get(X3,''Position'');',...
@@ -222,6 +152,9 @@ C2   = ['d1  = get(X1,''Position'');',...
 	'set(hZstr,''String'',sprintf(''z = %0.0f'',(' num2str(P3) ' - d(2))));'...
 	'set(' num2str(Fgraph) ',''WindowButtonUpFcn'','' '');',...
 ];
+
+	% coronal
+	%--------------------------------------------------------------
 C3   = ['d1  = get(X1,''Position'');',...
 	'd2  = get(X2,''Position'');',...
 	'd3  = get(X3,''Position'');',...
@@ -258,12 +191,8 @@ set(gca,'Units','normalized')
 %---------------------------------------------------------------------------
 hTextAxes = axes('Position',[0.625 0.54 0.3 0.15],'Visible','off',...
 	'Units','Normalized');
-text(-0.1,1.0,spm('DirTrunc',CWD,35),'FontSize',8,'FontWeight','Bold')
-text(0,0.9,sprintf('Contrast %d %d %d %d %d',con),...
-	'FontSize',8)
-text(0,0.8,...
-	sprintf('Height threshold {u} = %0.3f, p = %0.5f',U,1-spm_Ncdf(U)),...
-	'FontSize',8)
+text(0.0,1.0,spm('DirTrunc',CWD,24),'FontSize',8,'FontWeight','Bold')
+text(0,0.8,sprintf('Height threshold {u} = %0.2f, p = %0.3f',U,1 - spm_Ncdf(U)),'FontSize',8)
 text(0,0.7,...
 	sprintf('Extent threshold {k} = %i voxels',k),...
 	'FontSize',8)
@@ -301,18 +230,19 @@ h3   = uicontrol(Fgraph,'Style','edit','String','1','Callback',c,...
 c    = ['L = [eval(get(h1,''String'')) eval(get(h2,''String'')) ',... 
 	 'eval(get(h3,''String''))];'];
 
-uicontrol(Fgraph,'Style','Pushbutton','String','table',   'Callback',...
-	[c 'spm_table'   ],  'Position',[40 640 60 20].*WS,'Interruptible','yes');
-uicontrol(Fgraph,'Style','Pushbutton','String','plot',    'Callback',...
-	[c 'spm_plot'],      'Position',[40 610 60 20].*WS,'Interruptible','yes');
+
+uicontrol(Fgraph,'Style','Pushbutton','String','plot', 'Callback',...
+	[c 'spm_graph'],  'Position',[40 610 60 20].*WS,'Interruptible','yes');
 uicontrol(Fgraph,'Style','Pushbutton','String','slices','Callback',...
-	[c 'spm_transverse'],'Position',[40 580 60 20].*WS,'Interruptible','yes');
+	[c 'spm_transverse'],'Position',[40 580 60 20].*WS,...
+	'Interruptible', 'yes');
 uicontrol(Fgraph,'Style','Pushbutton','String','maxima','Callback',...
-	[c 'spm_maxima'],    'Position',[40 520 60 20].*WS,'Interruptible','yes');
+	[c 'spm_maxima'],'Position',[40 520 60 20].*WS,'Interruptible','yes');
 
 if V(3) > 1
-	uicontrol(Fgraph,'Style','Pushbutton','String','sections',  'Callback',...
-	[c 'spm_sections'],  'Position',[40 550 60 20].*WS,'Interruptible','yes');
+	uicontrol(Fgraph,'Style','Pushbutton','String','sections',... 
+	'Callback',[c 'spm_sections'],'Position',...
+	[40 550 60 20].*WS,'Interruptible','yes');
 end
 
 
