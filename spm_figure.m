@@ -636,7 +636,8 @@ varargout = {F};
 case 'getwinscale'
 %=======================================================================
 % WS = spm_figure('GetWinScale')
-S   = get(0,'ScreenSize');
+S         = get(0,'ScreenSize');
+if all(S==1), error('Can''t open any graphics windows...'), end
 varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 
 

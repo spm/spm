@@ -214,6 +214,8 @@ switch lower(Action), case 'welcome'
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
 S = get(0,'ScreenSize');
+if all(S==1), error('Can''t open any graphics windows...'), end
+
 F = figure('IntegerHandle','off',...
 	'Name',[spm('GetUser'),' - SPM'],'NumberTitle','off',...
 	'Tag','Welcome',...
@@ -738,6 +740,7 @@ case 'getwinscale'
 %=======================================================================
 % WS = spm('GetWinScale')
 S   = get(0,'ScreenSize');
+if all(S==1), error('Can''t open any graphics windows...'), end
 varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 
 
