@@ -107,6 +107,10 @@ function varargout = spm_sp(varargin)
 % b   - ('isinsp'  usage) true if c is in the column space of X
 %     - ('isinspp' usage) true if c is in the column space of X
 % 
+% FORMAT b = spm_sp('eachinsp',x,c[,tol])
+% FORMAT b = spm_sp('eachinspp',x,c[,tol])
+% Same as 'isinsp' and 'isinspp' but returns a logical row vector of
+% length size(c,2).
 %
 % FORMAT N = spm_sp('n',x)
 % Simply returns the null space of matrix X (same as matlab NULL)
@@ -938,6 +942,45 @@ case 'isinspp'
 	end
 	varargout = {all(all( abs(sf_opp(sX)*c - c) <= tol ))};
 end
+
+
+
+
+case {'eachinsp', 'eachinspp'}  %- each column of c in space or in dual space
+%=======================================================================
+% b = spm_sp('eachinsp',x,c[,tol])
+% b = spm_sp('eachinspp',x,c[,tol])
+%-Check whether vectors are in row/column space of X
+
+%-Check arguments
+%-----------------------------------------------------------------------
+if nargin<3, error('insufficient arguments - action,x,c required'), end
+c = varargin{3}; %- if isempty(c), dim wont match exept for empty sp.
+if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
+
+%-Compute according to case
+%-----------------------------------------------------------------------
+switch lower(action)
+
+case 'eachinsp'
+	%-Check dimensions
+	if size(sX.X,1) ~= size(c,1) 
+		warning('Vector dim don''t match col. dim : not in space !'); 
+		varargout = { 0 }; return;
+	end
+	varargout = {all( abs(sf_op(sX)*c - c) <= tol )};
+
+case 'eachinspp'
+	%- check dimensions
+	if size(sX.X,2) ~= size(c,1) 
+		warning('Vector dim don''t match row dim : not in space !'); 
+		varargout = { 0 }; return;
+	end
+	varargout = {all( abs(sf_opp(sX)*c - c) <= tol )};
+end
+
+
+
 
 
 case '=='		% test wether two spaces are the same
