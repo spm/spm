@@ -1020,7 +1020,7 @@ end
 %-Chop off any redundant trailing spaces
 %-----------------------------------------------------------------------
 % (The str2mat bit ensures single strings are handled by column)
-P(:,all(str2mat(P,' ')==' '))=[];
+if size(P,1), P(:,all(str2mat(P,' ')==' '))=[]; end
 
 %-Return new P to holding object
 %-----------------------------------------------------------------------
