@@ -101,8 +101,8 @@ if isempty(f), f = spm_input('Evaluated Function',2,'s'); end
 if length(flags)<4, hold=[]; else, hold=flags{4}; end
 if isempty(hold), hold=0; end
 if length(flags)<3, type=[]; else, type=flags{3}; end
-if isempty(type), type=4; end, if ischar(type), type=spm_type(type); end
-if ~any(type==[4]), error('invalid type'), end
+if isempty(type), type=16; end, if ischar(type), type=spm_type(type); end
+if ~any(type==[16]), error('invalid type'), end
 if length(flags)<2, mask=[]; else, mask=flags{2}; end
 if isempty(mask), mask=0; end
 if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
@@ -140,14 +140,13 @@ Q = spm_get('CPath',Qfil,Qdir);
 Vo = struct(	'fname',	Q,...
 		'dim',		[Vi(1).dim(1:3),type],...
 		'mat',		Vi(1).mat,...
-		'pinfo'	,	[1,0,0]',...
 		'descrip',	'spm - algebra');
 
 
 %-Call spm_imcalc to handle computations
 %------------------------------------------------------------------
-args = {{dmtx,mask,hold},varargin{:}};
-Vo.pinfo(1)  = spm_imcalc(Vi,Vo,f,args{:});
+args     = {{dmtx,mask,hold},varargin{:}};
+Vo.pinfo = spm_imcalc(Vi,Vo,f,args{:});
 
 %-End
 %------------------------------------------------------------------
