@@ -79,7 +79,7 @@ function P = spm_realign(P,flags)
 %__________________________________________________________________________
 % %W% John Ashburner %E%
 
-if nargin==0, spm_realign_ui; return; end;
+if nargin==0, return; end;
 
 def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','','graphics',1);
 if nargin < 2,
@@ -91,10 +91,19 @@ else,
 	end;
 end;
 
-if isempty(P), warning('Nothing to do'); return; end;
 if ~iscell(P), tmp = cell(1); tmp{1} = P; P = tmp; end;
 for i=1:length(P), if ischar(P{i}), P{i} = spm_vol(P{i}); end; end;
 if ~isempty(flags.PW) & ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
+
+% Remove empty cells
+PN = {};
+j  = 1;
+for i=1:length(P),
+	if ~isempty(P{i}), PN{j} = P{i}; j = j+1; end;
+end;
+P = PN;
+
+if isempty(P), warning('Nothing to do'); return; end;
 
 if length(P)==1,
 	P{1} = realign_series(P{1},flags);
