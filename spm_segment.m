@@ -135,8 +135,9 @@ end
 %_______________________________________________________________________
 %_______________________________________________________________________
 
-%- A-Priori likelihood images
-PB    = str2mat([DIR 'pgray.img'],[DIR 'pwhite.img'],[DIR 'pcsf.img']);
+%- A-Priori likelihood images. Use symmetric versions of the probability images.
+%PB    = str2mat([DIR 'pgray.img'],[DIR 'pwhite.img'],[DIR 'pcsf.img']);
+PB    = str2mat([DIR 'symmetric_gray.img'],[DIR 'symmetric_white.img'],[DIR 'symmetric_csf.img']);
 
 niter     = 24;
 nc        = [1 1 1 3]; % Number of clusters for each probability image
