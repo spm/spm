@@ -49,6 +49,11 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 %
 % W. F. Eddy, M. Fitzgerald and D. C. Noll (1996) Improved Image
 % Registration by Using Fourier Interpolation. Mag. Res. Med. 36(6):923-931
+%
+% R. W. Cox and A. Jesmanowicz (1999)  Real-Time 3D Image Registration
+% for Functional MRI.  Submitted to MRM (April 1999) and avaliable from:
+% http://varda.biophysics.mcw.edu/~cox/index.html.
+%
 %__________________________________________________________________________
 %
 % --- The Prompts Explained ---
@@ -1180,29 +1185,31 @@ spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________
 
-function v1 = kspace3d(v,M)
-% 3D rigid body transformation performed in Fourier space.
+%_______________________________________________________________________
+function v = kspace3d(v,M)
+% 3D rigid body transformation performed as shears in 1D Fourier space.
 % FORMAT v1 = kspace3d(v,M)
+% Inputs:
 % v - the image stored as a 3D array.
-% M - the affine transformation matrix.
-% v1 - the transformed image.
+% M - the rigid body transformation matrix.
+% Output:
+% v - the transformed image.
 %
-% The routine is based on (and extended to 3D) the description in:
+% The routine is based on the excellent papers:
+% R. W. Cox and A. Jesmanowicz (1999)
+% Real-Time 3D Image Registration for Functional MRI
+% Submitted to MRM (April 1999) and avaliable from:
+% http://varda.biophysics.mcw.edu/~cox/index.html.
+% and:
 % W. F. Eddy, M. Fitzgerald and D. C. Noll (1996)
 % Improved Image Registration by Using Fourier Interpolation
 % Magnetic Resonance in Medicine 36(6):923-931
-%
-% Code optimized slightly, and improved with help from Oliver Josephs.
 %_______________________________________________________________________
-p  = spm_imatrix(M);
-if any(abs(p(7:12)-[1 1 1 0 0 0]) > 1e-7), error('Can''t do zooms or shears using the current K-space reslicing algorithm!'); end;
-if all(abs(p(1:6))<1e-7), v1 = v; return; end;
+
+[S0,S1,S2,S3] = shear_decomp(M);
+
 d  = [size(v) 1 1 1];
-
-% Pad if necessary (may be an idea to pad more - but the operation would then
-% be extremely slow.
 g = 2.^ceil(log2(d));
-
 if any(g~=d),
 	tmp = v;
 	v   = zeros(g);
@@ -1210,66 +1217,63 @@ if any(g~=d),
 	clear tmp;
 end;
 
-t  = repmat(trf([g(1) 1 1],-p(1)),[1,g(2:3)]);
-v  = real(ifft(fft(v,[],1).*t,[],1));
-t  = repmat(trf([1 1 g(3)],-p(3)),[g(1:2) 1]);
-v  = real(ifft(fft(v,[],3).*t,[],3));
-
-% combine a translation and a shear
-for k=1:g(3),
-	t        = repmat(trf([1 g(2) 1],-tan(p(4)/2)*k-p(2)),[d(1) 1 1]);
-	v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
-end;
+% XY-shear
+tmp1 = -sqrt(-1)*2*pi*([0:((g(3)-1)/2) 0 (-g(3)/2+1):-1])/g(3);
 for j=1:g(2),
-	t        = repmat(trf([1 1 g(3)], sin(p(4))*j),[g(1) 1 1]);
+	t        = reshape( exp((j*S3(3,2) + S3(3,1)*(1:g(1)) + S3(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
 	v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
 end;
+
+% XZ-shear
+tmp1 = -sqrt(-1)*2*pi*([0:((g(2)-1)/2) 0 (-g(2)/2+1):-1])/g(2);
 for k=1:g(3),
-	t        = repmat(trf([1 g(2) 1],-tan(p(4)/2)*k),[g(1) 1 1]);
+	t        = exp( (k*S2(2,3) + S2(2,1)*(1:g(1)) + S2(2,4)).'*tmp1);
 	v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
 end;
-for k=1:g(3),
-	t        = repmat(trf([g(1) 1 1],-tan(p(5)/2)*k),[1 g(2) 1]);
-	v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
-end;
-for i=1:g(1),
-	t        = repmat(trf([1 1 g(3)], sin(p(5))*i),[1 g(2) 1]);
-	v(i,:,:) = real(ifft(fft(v(i,:,:),[],3).*t,[],3));
-end;
 
-% combine two shears into one.
-tmp1 = sqrt(-1)*2*pi*([0:((g(1)-1)/2) 0 (-g(1)/2+1):-1]')/g(1);
+% YZ-shear
+tmp1 = -sqrt(-1)*2*pi*([0:((g(1)-1)/2) 0 (-g(1)/2+1):-1])/g(1);
 for k=1:g(3),
-	t        = conj(exp(tmp1*[-tan(p(6)/2)*(1:g(2))-tan(p(5)/2)*k]));
+	t        = exp( tmp1.'*(k*S1(1,3) + S1(1,2)*(1:g(2)) + S1(1,4)));
 	v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
 end;
 
-for i=1:g(1),
-	t        = repmat(trf([1 g(2) 1], sin(p(6))*i),[1 1 g(3)]);
-	v(i,:,:) = real(ifft(fft(v(i,:,:),[],2).*t,[],2));
-end;
+% XY-shear
+tmp1 = -sqrt(-1)*2*pi*([0:((g(3)-1)/2) 0 (-g(3)/2+1):-1])/g(3);
 for j=1:g(2),
-	t        = repmat(trf([g(1) 1 1],-tan(p(6)/2)*j),[1 1 g(3)]);
-	v(:,j,:) = real(ifft(fft(v(:,j,:),[],1).*t,[],1));
+	t        = reshape( exp( (j*S0(3,2) + S0(3,1)*(1:g(1)) + S0(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
+	v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
 end;
-v1=v;
-if any(g~=d), tmp = v1; v1 = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
 
+if any(g~=d), v = v(1:d(1),1:d(2),1:d(3)); end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function t = trf(sz,tr)
-% Fourier transform of translated delta function
-% FORMAT t = trf(sz,tr)
-% sz - dimension of output
-% tr - number of pixels to translate
-% t  - solution
-%
-% This is a satellite routine for kspace3d
-%_______________________________________________________________________
-m = prod(sz);
-t = reshape(exp(sqrt(-1)*2*pi*tr*([0:((m-1)/2) 0 (-m/2+1):-1])/m)',sz);
+function [S0,S1,S2,S3] = shear_decomp(A)
+% Decompose rotation and translation matrix A into shears S0, S1, S2 and
+% S3, such that A = S0*S1*S2*S3.  The original procedure is documented
+% in:
+% R. W. Cox and A. Jesmanowicz (1999)
+% Real-Time 3D Image Registration for Functional MRI
+
+A0 = A(1:3,1:3);
+if any(abs(svd(A0)-1)>eps*1000), error('Can''t decompose matrix'); end;
+
+t  = A0(2,3); if t==0, t=eps; end;
+a0 = pinv(A0([1 2],[2 3])')*[(A0(3,2)-(A0(2,2)-1)/t) (A0(3,3)-1)]';
+S0 = [1 0 0; 0 1 0; a0(1) a0(2) 1];
+A1 = S0\A0;  a1 = pinv(A1([2 3],[2 3])')*A1(1,[2 3])';  S1 = [1 a1(1) a1(2); 0 1 0; 0 0 1];
+A2 = S1\A1;  a2 = pinv(A2([1 3],[1 3])')*A2(2,[1 3])';  S2 = [1 0 0; a2(1) 1 a2(2); 0 0 1];
+A3 = S2\A2;  a3 = pinv(A3([1 2],[1 2])')*A3(3,[1 2])';  S3 = [1 0 0; 0 1 0; a3(1) a3(2) 1];
+
+s3 = A(3,4)-a0(1)*A(1,4)-a0(2)*A(2,4);
+s1 = A(1,4)-a1(1)*A(2,4);
+s2 = A(2,4);
+S0 = [[S0 [0  0 s3]'];[0 0 0 1]];
+S1 = [[S1 [s1 0  0]'];[0 0 0 1]];
+S2 = [[S2 [0 s2  0]'];[0 0 0 1]];
+S3 = [[S3 [0  0  0]'];[0 0 0 1]];
 return;
 %_______________________________________________________________________
 
