@@ -140,7 +140,7 @@ elseif Seq==[3],
 elseif Seq==[4],
 	sliceorder = [1:2:nslices 2:2:nslices];
 else,
-	if nargin<2 & length(Seq)>1,
+	if length(Seq)>1,
 		sliceorder = Seq;
 		Seq        = 5;
 	else,
