@@ -34,7 +34,7 @@ u            = size(U.u,1);				% input times
 
 % stable point x(0)
 %---------------------------------------------------------------------------
-x0           = spm_bilinear(A,B,C,D,M.x,1,1e4);		% x(1e4)
+x0           = spm_bilinear(A,B,C,D,M.x,1,v*U.dt);
 y0           = feval(M.lx,x0,P);
 
 % make Lie matrices sparse
