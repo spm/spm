@@ -146,6 +146,11 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     xX.pKX    - pseudoinverse of K*X (xX.K*xX.X), computed by spm_sp
 %                 (this was called PH in spm_AnCova)
 %     xX.pKXV   - pinv(K*X)*V  (this was called PHV in spm_AnCova)
+%     xX.Bcov   - pinv(K*X)*V*pinv(K*X)' - variance-covariance matrix
+%                 of parameter estimates (when multiplied by ResMS)
+%                 (NB: BCOV in SPM96 was xX.Bcov/xX.trRV, so that BCOV    )
+%                 (multiplied by ResSS was the variance-covariance matrix )
+%                 (of the parameter estimates. (ResSS/xX.trRV = ResMS)    )
 %     xX.trRV   - trace of R*V, computed efficiently by spm_SpUtil
 %     xX.trRVRV - trace of RVRV (this was called trRV2 in spm_AnCova)
 %     xX.edf    - effective degrees of freedom (trRV^2/trRVRV)
@@ -318,6 +323,8 @@ xX.V          = xX.K*xX.K';		%-V matrix
 xX.xKXs       = spm_sp('Set',xX.K*xX.X);%-Compute design space structure
 xX.pKX        = spm_sp('pinv',xX.xKXs);	%-Pseudoinverse of X, for parameter est.
 xX.pKXV       = xX.pKX*xX.V;		%-Needed for contrast variance weighting
+xX.Bcov       = xX.pKXV * xX.pKX';	%-Var-cov matrix of parameter estimates
+                                        % (multiply by ResMS)
 [xX.trRV,xX.trRVRV] ...			%-Expectations of variance (trRV)
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
 xX.edf        = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
