@@ -274,11 +274,11 @@ elseif nargin == 1 & strcmp(arg1,'Defaults'),
 elseif nargin >= 1 & strcmp(arg1,'Reslice'),
 	P = arg2;
 	Flags = 'n';
-	sessions = size(P,1);
+	Sessions = size(P,1);
 	if nargin>=3,
 		Flags = arg3;
 		if nargin>=4,
-			sessions = arg4;
+			Sessions = arg4;
 		end;
 	end;
 	reslice_images(P,Flags,Sessions);
