@@ -37,7 +37,7 @@ if strcmp(Filter,'IMAGE') | (length(Filter)>5 & strcmp(Filter((end-4):end),'IMAG
 	for i=1:size(Files,1),
 		[pth,nam,ext] = fileparts(deblank(Files(i,:)));
 		switch ext,
-		case {'.img','.mnc','.v'},
+		case {'.img','.mnc','.v','.nii'},
 			t{i} = Files(i,:);
 		end;
 	end;

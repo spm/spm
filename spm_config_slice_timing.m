@@ -118,7 +118,7 @@ n = 1;
 for i=1:numel(job.scans),
     for j = 1:numel(job.scans{i})
     [pth,nam,ext,num] = spm_fileparts(job.scans{i}{j});
-    vf{n} = fullfile(pth,['a' nam '.img' num]);
+    vf{n} = fullfile(pth,['a', nam, ext, num]);
     n = n+1;
     end
 end;

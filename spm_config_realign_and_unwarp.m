@@ -831,10 +831,10 @@ switch job.uwroptions.uwwhich(1),
         vf = cell(numel(P),1);
         for i=1:length(vf),
             [pth,nam,ext,num] = spm_fileparts(P{i});
-            vf{i} = fullfile(pth,['u' nam '.img' num]);
+            vf{i} = fullfile(pth,['u', nam, ext, num]);
         end;
 end;
 if job.uwroptions.uwwhich(2),
     [pth,nam,ext,num] = spm_fileparts(P{1});
-    vf = {vf{:}, fullfile(pth,['meanu' nam '.img' num])};
+    vf = {vf{:}, fullfile(pth,['meanu', nam, ext, num])};
 end;

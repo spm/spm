@@ -455,10 +455,12 @@ try
     r = eval(['[',str,']']);
 catch
     msg(lb,['Failed to evaluate "' str '".'],'r');
+    beep;
     return;
 end;
 if ~isnumeric(r),
     msg(lb,['Expression non-numeric "' str '".'],'r');
+    beep;
 else
     set(lb,'UserData',r);
     msg(lb,'');
@@ -487,6 +489,7 @@ vlo  = get(lb,'Value');
 lim1  = min(max(lim(2)-size(str3,1),0),length(vlo));
 if lim1==0,
     msg(lb,['Selected ' num2str(size(str3,1)) '/' num2str(lim(2)) ' already.']);
+    beep;
     set(sib(lb,'D'),'Enable','on');
     return;
 end;
@@ -506,6 +509,7 @@ set(ob,'String',str3,'Value',r);
 if length(vlo)>lim1,
     msg(lb,['Retained ' num2str(lim1) '/' num2str(length(vlo))...
         ' of selection.']);
+    beep;
 elseif finite(lim(2))
     if lim(1)==lim(2),
         msg(lb,['Selected ' num2str(size(str3,1)) '/' num2str(lim(2)) ' files.']);

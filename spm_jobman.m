@@ -1043,6 +1043,7 @@ case {'s'}
 
 case {'s+'}
     msg = 'FAILURE: Cant do s+ yet';
+    beep;
     remove_string_box;
 
 otherwise
@@ -1058,7 +1059,7 @@ otherwise
     end;
 
     if ischar(val)
-        spm('beep');
+        beep;
         msg = ['FAILURE: ' msg];
     else
         c.val{1} = val;
@@ -1555,6 +1556,11 @@ drawnow;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
+%function beep
+%fprintf('%c',7);
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
 function pulldown
 % Create a pulldown for individual jobs
 c  = initialise_struct;
@@ -1743,7 +1749,14 @@ while(1),
         pw   = floor(pos(3)/ext(3)*21-4);
         set(help_box,'String',spm_justify(pw,hlp));
         workaround(help_box);
+
+        if isfield(c,'prog'),
+            [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
+            spm('FigName',[c.name ': setup'],Finter,CmdLine);
+        end;
     end;
+
+    pos = 1;
 
     switch ci.type,
     case {'const','files','menu','entry'}

@@ -27,8 +27,8 @@ function VO = spm_segment(VF,PG,flags)
 %    to clean up the grey and white matter segments. 
 %
 % 4) If no output argument is specified, then the segmented images are
-%    written to disk. The names of these images have "_seg1", "_seg2"
-%    & "_seg3" appended to the name of the first image passed.
+%    written to disk. The names of these images have "c1", "c2"
+%    & "c3" appended to the name of the first image passed.
 %
 %_______________________________________________________________________
 % Refs:
@@ -120,7 +120,7 @@ if flags.write.cleanup, [g,w,c] = clean_gwc(g,w,c); end;
 %pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
 [pth,nm,xt] = fileparts(deblank(VF(1).fname));
 for j=1:3,
-	tmp   = fullfile(pth,[nm '_seg' num2str(j) xt]);
+	tmp   = fullfile(pth,['c', num2str(j), nm, xt]);
 	VO(j) = struct(...
 		'fname',tmp,...
 		'dim',    VF(1).dim(1:3),...

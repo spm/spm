@@ -28,7 +28,7 @@ SPMid = spm('FnBanner',mfilename,SCCSid);
 %-Select images & check dimensions, orientations and voxel sizes
 %-----------------------------------------------------------------------
 fprintf('\t...select files')
-P = spm_get(Inf,'.img','Select images to be averaged');
+P = spm_select(Inf,'image','Select images to be averaged');
 fprintf(' ...mapping & checking files')
 Vi = spm_vol(P);
 

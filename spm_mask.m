@@ -52,9 +52,8 @@ m2=prod(size(V2));
 % Create headers
 VO=V2;
 for i=1:m2,
-	[pth,nm,xt,vr] = fileparts(deblank(VO(i).fname));
-	%VO(i).fname   = fullfile(pth,['m' nm xt vr]);
-	VO(i).fname    = ['m' nm '.img'];
+	[pth,nm,ext,num] = spm_fileparts(deblank(VO(i).fname));
+	VO(i).fname    = ['m', nm, ext, num];
 	VO(i).descrip  = 'Masked';
 	VO(i).mat      = VO(1).mat;
 	VO(i).dim(1:3) = VO(1).dim(1:3);

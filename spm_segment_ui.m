@@ -19,7 +19,7 @@ function spm_segment_ui(P)
 %    followed by <ImCalc> with "i1.*i4./(i1+i2+i3+eps)" did with SPM99.
 %
 % 4) Write the segmented image. The names of these images have
-%    "_seg1", "_seg2" & "_seg3" appended to the name of the
+%    "c1", "c2" & "c3" prepended to the name of the
 %    first image passed.
 %
 %_______________________________________________________________________

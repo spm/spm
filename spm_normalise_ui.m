@@ -87,7 +87,7 @@ function spm_normalise_ui(opt)
 % 
 % Outputs
 % All normalized *.img scans are written to the same subdirectory as
-% the original *.img, prefixed with a 'n' (i.e. n*.img).  The details
+% the original *.img, prefixed with a 'w' (i.e. w*.img).  The details
 % of the transformations are displayed in the results window, and the
 % parameters are saved in the "*_sn.mat" file.
 % 

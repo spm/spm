@@ -107,7 +107,7 @@ switch SPACE
 
 	case 'I' %-Mask Image
 	%---------------------------------------------------------------
-	Msk   = spm_get(1,'.img','Image defining search volume');
+	Msk   = spm_select(1,'image','Image defining search volume');
 	D     = spm_vol(Msk);
 	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
 	VOX   = sqrt(sum(D.mat(1:3,1:3).^2));

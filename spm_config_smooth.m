@@ -77,6 +77,6 @@ P  = varargin{1}.data;
 vf = cell(size(P));
 for i=1:numel(P),
     [pth,nam,ext,num] = spm_fileparts(P{i});
-    vf{i} = fullfile(pth,['s' nam '.img' num]);
+    vf{i} = fullfile(pth,['s', nam, ext, num]);
 end;
 

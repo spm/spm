@@ -7,7 +7,7 @@ function spm_surf(P,mode)
 % 0.5.
 %
 % Inputs:
-% xxx_seg1.img & xxx_seg2.img - grey and white matter segments created
+% c1xxx.img & c2xxx.img - grey and white matter segments created
 % using the segmentation routine.  These can be manually cleaned up
 % first using e.g., MRIcro.
 %

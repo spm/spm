@@ -68,7 +68,7 @@ priors.help = {...
 'which were aligned with an atlas space, corrected for scan ',...
 'inhomogeneities, and classified ',...
 'into grey matter, white matter and cerebrospinal fluid. ',...
-'These data were then affine registered to the MNI space and',...
+'These data were then affine registered to the MNI space and ',...
 'downsampled to 2mm resolution.'],...
 '',...
 [...
@@ -362,16 +362,16 @@ p1         = {[...
 'and unwarped structures.  The modulation step simply involves multiplying by ',...
 'the relative volumes.']};
 
-grey.help  = {'Options to produce *_seg1.img, w*_seg1.img and mw*_seg1.img',p1{:}};
+grey.help  = {'Options to produce c1*.img, wc1*.img and mwc1*.img',p1{:}};
 white      = grey;
 white.name = 'White Matter';
 white.tag  = 'WM';
-white.help = {'Options to produce *_seg2.img, w*_seg2.img and mw*_seg2.img',p1{:}};
+white.help = {'Options to produce c2*.img, wc2*.img and mwc2*.img',p1{:}};
 csf        = grey;
 csf.name   = 'Cerebro-Spinal Fluid';
 csf.tag    = 'CSF';
 csf.val    = {[0 0 0]};
-csf.help   = {'Options to produce *_seg3.img, w*_seg3.img and mw*_seg3.img',p1{:}};
+csf.help   = {'Options to produce c3*.img, wc3*.img and mwc3*.img',p1{:}};
 
 output     = branch('Output Files','output',{biascor,grey,white,csf});
 output.help = {[...
@@ -476,16 +476,16 @@ for i=1:numel(job.data),
     end;
     for k1=1:3,
         if sopts(k1,3),
-            vf{i,j} = fullfile(pth,[nam '_seg' num2str(k1) ext ',1']);
+            vf{i,j} = fullfile(pth,[  'c', num2str(k1), nam, ext, ',1']);
             j       = j + 1;
         end;
         if sopts(k1,2),
-            vf{i,j} = fullfile(pth,['w' nam '_seg' num2str(k1) ext ',1']);
+            vf{i,j} = fullfile(pth,[ 'wc', num2str(k1), nam, ext, ',1']);
             j       = j + 1;
         end;
         if sopts(k1,1),
-           vf{i,j} = fullfile(pth,['mw' nam '_seg' num2str(k1) ext ',1']);
-           j       = j + 1;
+            vf{i,j} = fullfile(pth,['mwc', num2str(k1), nam, ext, ',1']);
+            j       = j + 1;
         end;
     end;
 end;

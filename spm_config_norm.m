@@ -534,7 +534,7 @@ for i=1:length(job.subj),
     vf1 = cell(1,length(res));
     for j=1:length(res),
         [pth,nam,ext,num] = spm_fileparts(res{j});
-        vf1{j} = fullfile(pth,['w' nam '.img' num]);
+        vf1{j} = fullfile(pth,['w', nam, ext, num]);
     end;
     vf = {vf{:} vf1{:}};
 end;
@@ -549,7 +549,7 @@ for i=1:length(job.subj),
     vf1 = cell(1,length(res));
     for j=1:length(res),
         [pth,nam,ext,num] = spm_fileparts(res{j});
-        vf1{j} = fullfile(pth,['w' nam '.img' num]);
+        vf1{j} = fullfile(pth,['w', nam, ext, num]);
     end;
     vf = {vf{:} vf1{:}};
 end;

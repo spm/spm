@@ -472,16 +472,16 @@ case 1,
     vf = cell(numel(P)-1,1);
     for i=1:length(vf),
         [pth,nam,ext,num] = spm_fileparts(P{i+1});
-        vf{i} = fullfile(pth,['r' nam '.img' num]);
+        vf{i} = fullfile(pth,['r', nam, ext, num]);
     end;
 otherwise,
     vf = cell(numel(P),1);
     for i=1:length(vf),
         [pth,nam,ext,num] = spm_fileparts(P{i});
-        vf{i} = fullfile(pth,['r' nam '.img' num]);
+        vf{i} = fullfile(pth,['r', nam, ext, num]);
     end;
 end;
 if job.roptions.which(2),
     [pth,nam,ext,num] = spm_fileparts(P{1});
-    vf = {vf{:}, fullfile(pth,['mean' nam '.img' num])};
+    vf = {vf{:}, fullfile(pth,['mean', nam, ext, num])};
 end;

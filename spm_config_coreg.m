@@ -394,7 +394,7 @@ job = varargin{1};
 vf  = cell(size(job.source));
 for i=1:numel(job.source),
     [pth,nam,ext,num] = spm_fileparts(job.source{i});
-    vf{i} = fullfile(pth,['r' nam '.img' num]);
+    vf{i} = fullfile(pth,['r', nam, ext, num]);
 end;
 %------------------------------------------------------------------------
 
@@ -405,7 +405,7 @@ P   = {job.source{:},job.other{:}};
 vf  = cell(size(P));
 for i=1:numel(P),
     [pth,nam,ext,num] = spm_fileparts(P{i});
-    vf{i} = fullfile(pth,['r' nam '.img' num]);
+    vf{i} = fullfile(pth,['r', nam, ext, num]);
 end;
 
 
