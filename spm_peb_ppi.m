@@ -209,9 +209,10 @@ end
 
 
 % specify covariance components; assume neuronal response is white
+% treating confounds as fixed effects
 %-------------------------------------------------------------------------
 Q      = speye(N,N)*N/trace(Hxb'*Hxb);
-Q      = blkdiag(Q, diag(8./sum(X0.^2)) );
+Q      = blkdiag(Q, speye(M,M)*1e6  );
 
 % get whitening matrix (NB: confounds have already been whitened)
 %-------------------------------------------------------------------------
@@ -220,7 +221,7 @@ W      = SPM.xX.W(Sess.row,Sess.row);
 % create structure for spm_PEB
 %-------------------------------------------------------------------------
 P{1}.X = [W*Hxb X0];		% Design matrix for lowest level
-P{1}.C = speye(N,N)/8;		% i.i.d assumptions
+P{1}.C = speye(N,N)/4;		% i.i.d assumptions
 P{2}.X = sparse(N + M,1);	% Design matrix for parameters (0's)
 P{2}.C = Q;
 
