@@ -1,10 +1,10 @@
 function [C] = spm_Ce(v,h)
-% return error covariance contraints for serially correlated data
+% return error covariance constraints for serially correlated data
 % FORMAT [C] = spm_Ce(v,h)
 % v  - (1 x l) v(i) = number of obervations for ith block
 % h  - length of expansion = length(C) (default h = 1)
 %
-% C  - {i x lh} structure of block diagonal (lv x lv)matrices
+% C  - {i x lh} structure of block diagonal (lv x lv) matrices
 %	C{1:l + 0*l} speye(v,v) - i.i.d. errors [coeficient = 1/(0*e)]
 %	C{1:l + 1*l} AR(1) with coefficient 1/(1*e)
 %	C{1:l + 2*l} AR(1) with coefficient 1/(2*e)
