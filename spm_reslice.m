@@ -21,7 +21,7 @@ function spm_reslice(P,flags)
 %                The average of all the realigned scans is written to
 %                mean*.img.
 %
-%         hold - the interpolation method (see spm_slice_vol or spm_sample_vol).
+%         hold - the B-spline interpolation method. 
 %                Non-finite values result in Fourier interpolation.  Note that
 %                Fourier interpolation only works for purely rigid body
 %                transformations.  Voxel sizes must all be identical and
@@ -91,7 +91,7 @@ function spm_reslice(P,flags)
 
 P = spm_vol(P);
 
-def_flags = struct('hold',-9,'mask',1,'mean',1,'which',2);
+def_flags = struct('hold',1,'mask',1,'mean',1,'which',2);
 if nargin < 2,
 	flags = def_flags;
 else,
@@ -102,6 +102,7 @@ else,
 		end;
 	end;
 end;
+if iscell(P), P = cat(1,P{:}); end;
 reslice_images(P,flags);
 return;
 %_______________________________________________________________________
@@ -153,8 +154,8 @@ if ~finite(flags.hold), % Use Fourier method
 			fprintf('\n  (probably due to non-isotropic voxels).');
 			fprintf('\n  These  can not yet be  done  using  the');
 			fprintf('\n  Fourier reslicing method.  Switching to');
-			fprintf('\n  sinc interpolation instead.\n\n');
-			flags.hold = -9;
+			fprintf('\n  7th degree B-spline interpolation instead.\n\n');
+			flags.hold = 7;
 			break;
 		end;
 	end;
@@ -193,6 +194,8 @@ spm_progress_bar('Init',nread,'Reslicing','volumes completed');
 
 tiny = 5e-2; % From spm_vol_utils.c
 
+[x1,x2] = ndgrid(1:P(1).dim(1),1:P(1).dim(2));
+
 PO = P;
 nread = 0;
 for i = 1:prod(size(P)),
@@ -219,9 +222,21 @@ for i = 1:prod(size(P)),
 			if write_vol, spm_write_vol(PO(i),v); end;
 		else,
 			if write_vol, spm_create_image(PO(i)); end;
+
+			if any(flags.hold==[2 3 4 5 6 7]),
+				C = spm_bsplinc(P(i),flags.hold);
+			end;
+
 			for x3 = 1:P(1).dim(3),
-				M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
-				v = spm_slice_vol(P(i),M,P(1).dim(1:2),flags.hold);
+				if any(flags.hold==[2 3 4 5 6 7]),
+					[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+					v  = spm_bsplins(C, y1,y2,y3, flags.hold);
+					v(~tmp)=0;
+				else,
+					M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
+					v = spm_slice_vol(P(i),M,P(1).dim(1:2),flags.hold);
+				end;
+
 				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + v; end;
 
 				if write_vol,
@@ -346,7 +361,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function Mask = getmask(M,x1,x2,x3,dim)
+function [Mask,y1,y2,y3] = getmask(M,x1,x2,x3,dim)
 tiny = 5e-2; % From spm_vol_utils.c
 y1=M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
 y2=M(2,1)*x1+M(2,2)*x2+(M(2,3)*x3+M(2,4));
@@ -359,10 +374,13 @@ return;
 
 %_______________________________________________________________________
 function v = loadvol(V)
-v = zeros(V.dim(1:3));
-for i=1:V.dim(3),
-	v(:,:,i) = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
-end;
+v = spm_bsplinc(P(i),0);
+
+%v = zeros(V.dim(1:3));
+%for i=1:V.dim(3),
+%	v(:,:,i) = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
+%end;
+
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________

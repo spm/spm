@@ -136,50 +136,18 @@ function spm_realign_ui(arg1)
 % of images (unless the image format can represent NaN, in which case
 % NaNs are used where possible).
 %
-% 'Adjust sampling errors?' (fMRI only)
-% Adjust the data (fMRI) to remove interpolation errors arising from the
-% reslicing of the data.  The adjustment for each fMRI session is performed
-% independantly of any other session.  Bayesian statistics are used to
-% attempt to regularize the adjustment in order to prevent an excessive
-% amount of signal from being removed.  A priori variances for coefficients
-% are assumed to be stationary and are estimated by translating the first
-% image by a number of different distances using both Fourier and sinc
-% interpolation.  This gives a ball park figure on how much error is
-% likely to arise because of the approximations in the sinc interpolation.
-% The certainty of the solution is obtained from the residuals after
-% fitting the optimum linear combination of the basis functions through
-% the data.  Estimates of certainty based on the residuals are
-% unfortunately just an approximation.   
-% We still don't fully understand the nature of the movement artifacts
-% that arise using fMRI.  The current model is simply attempting to remove
-% interpolation errors.  There are many other sources of error that the
-% model does not attempt to remove.
-% It is possible that adjusting the data without taking into account
-% the design matrix for the statistics may be problematic when there are
-% stimulous correlated movements, since adjusting seperately requires the
-% assumption that the movements are independant from the paradigm.  It
-% MAY BE BE BETTER TO INCLUDE THE ESTIMATED MOTION PARAMETERS AS CONFOUNDS
-% WHEN THE STATISTICS ARE RUN.  The motion parameters are saved for each
-% session, so this should be easily possible.
-%
 % 'Reslice Interpolation Method?'
-% 	'Trilinear Interpolation'
-% 	Use trilinear interpolation (first-order hold) to sample the images
-%       during the writing of realigned images.
+% A number of different interpolation options are available.  Nearest
+% neighbour interpolation produces very low quality "blocky" resliced images,
+% whereas the higher order B-spline methods do a better job.
+% For data containing NaNs, you must use either nearest neighbour or trlinear
+% interpolation.
 %
-% 	'Sinc Interpolation'
-% 	Use a sinc interpolation to sample the images during the writing
-%	of realigned images.
-% 	This is slower than bilinear interpolation, but produces better
-% 	results. It is especially recommended for fMRI time series.
-%	An 9x9x9 kernel is used to resample the images. 
-%
-%	'Fourier space Interpolation' (fMRI only)
-%	Rigid body rotations are executed as a series of shears, which
-%	are performed in Fourier space (Eddy et. al. 1996).  This routine
-%	only supports cubic voxels (since zooms can not be done by
-%	convolution in Fourier space).
-%	No adjustment is available for this.
+% You may also like to try 'Fourier space Interpolation', whereby rigid body
+% rotations are executed as a series of shears, which are performed in
+% Fourier space (Eddy et. al. 1996).  Unfortunately, this method can only
+% be applied to images with cubic voxels (since zooms can not be done by
+% convolution in Fourier space).
 %
 %__________________________________________________________________________
 %
@@ -223,7 +191,7 @@ function spm_realign_ui(arg1)
 %_______________________________________________________________________
 
 
-global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
+global MODALITY sptl_WhchPtn sptl_CrtWht sptl_MskOptn
 global BCH sptl_RlgnQlty sptl_WghtRg;
 
 if (nargin == 0)
@@ -233,9 +201,7 @@ if (nargin == 0)
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 	spm_help('!ContextHelp','spm_realign_ui.m');
 
-	pos = 1;
-
-	n     = spm_input('number of subjects', pos, 'e', 1,...
+	n     = spm_input('number of subjects', 1, 'e', 1,...
                           'batch',{},'subject_nb');
 	if (n < 1)
 		spm_figure('Clear','Interactive');
@@ -243,10 +209,9 @@ if (nargin == 0)
 	end
 
 	P = cell(n,1);
-	pos = pos + 1;
 	for i = 1:n,
 		if strcmp(MODALITY,'FMRI'),
-			ns = spm_input(['num sessions for subject ' num2str(i)], pos,...
+			ns = spm_input(['num sessions for subject ' num2str(i)], '+1',...
                                        'e', 1,'batch',{},'num_sessions');
 			pp = cell(1,ns);
 			for s=1:ns,
@@ -275,18 +240,17 @@ if (nargin == 0)
 
 
 	if strcmp(MODALITY,'PET'),
-		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',8,'rtm',[]);
+		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',7,'rtm',[]);
 	else,
-		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',6);
+		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',5);
 	end;
 
 	if sptl_WhchPtn == 1,
 		WhchPtn = 3;
 	else,
-		WhchPtn = spm_input('Which option?', pos, 'm',...
+		WhchPtn = spm_input('Which option?', '+1', 'm',...
 			'Coregister only|Reslice Only|Coregister & Reslice',...
 			[1 2 3],3,'batch',{},'option');
-		pos = pos + 1;
 	end;
 
 	PW = '';
@@ -311,19 +275,19 @@ if (nargin == 0)
 	%-----------------------------------------------------------------------
 	if WhchPtn == 2 | WhchPtn == 3,
 		FlagsR = struct('hold',1,'mask',0,'which',2,'mean',1);
-		FlagsR.hold = spm_input('Reslice interpolation method?',pos,'m',...
-			     'Trilinear Interpolation|Sinc Interpolation|Fourier space Interpolation',...
-			     [1 -9 Inf],2,'batch',{},'reslice_method');
-		pos = pos + 1;
+		FlagsR.hold = spm_input('Reslice interpolation method?','+1','m',...
+			     ['Nearest Neighbour|Trilinear|2nd Degree B-Spline|'...
+			      '3rd Degree B-Spline|4th Degree B-Spline|5th Degree B-Spline|'...
+			      '6th Degree B-Spline|7th Degree B-Spline|Fourier Interpolation'],...
+			     [0 1 2 3 4 5 6 7 Inf],3,'batch',{},'reslice_method');
 
 		if sptl_CrtWht == 1,
 			p = 3;
 		else
-			p = spm_input('Create what?',pos,'m',...
+			p = spm_input('Create what?','+1','m',...
 				[' All Images (1..n)| Images 2..n|'...
 				 ' All Images + Mean Image| Mean Image Only'],...
 				[1 2 3 4],3,'batch',{},'create');
-			pos = pos + 1;
 		end
 		if (p == 1) FlagsR.which = 2; FlagsR.mean = 0; end
 		if (p == 2) FlagsR.which = 1; FlagsR.mean = 0; end
@@ -333,28 +297,13 @@ if (nargin == 0)
 			if sptl_MskOptn == 1,
 				FlagsR.mask = 1;
 			else,
-				if spm_input('Mask the resliced images?',pos,'y/n',...
+				if spm_input('Mask the resliced images?','+1','y/n',...
                                               'batch',{},'mask') == 'y',
 					FlagsR.mask = 1;
 				end;
-				pos = pos + 1;
 			end;
-			if strcmp(MODALITY, 'FMRI'),
-				if finite(FlagsR.hold),
-					if sptl_DjstFMRI == 1,
-						FlagsR.fudge = 1;
-					elseif sptl_DjstFMRI ~= 0,
-						if spm_input(...
-							'Adjust sampling errors?',pos,'y/n','batch',...
-                                                        {},'adjust_sampling_errors') == 'y',
-						FlagsR.fudge = 1;
-						end;
-						pos = pos + 1;
-					end;
-				end
-			end
-		end
-	end
+		end;
+	end;
 
 	spm('Pointer','Watch');
 	for i = 1:n
@@ -383,7 +332,7 @@ return;
 
 %_______________________________________________________________________
 function edit_defaults
-global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
+global MODALITY sptl_WhchPtn sptl_CrtWht sptl_MskOptn
 global sptl_RlgnQlty sptl_WghtRg
 
 %- in batch mode, the top level variable here is 'RealignCoreg',iA
@@ -405,16 +354,6 @@ sptl_CrtWht   = spm_input(['Images to create?'], 3, 'm',...
 	       'All Images + Mean Image|Full options', [1 -1], tmp,...
                'batch',{},'create');
 
-tmp = 3;
-if sptl_DjstFMRI == 1,
-	tmp = 1;
-elseif sptl_DjstFMRI == 0
-	tmp = 2;
-end
-sptl_DjstFMRI = spm_input(['fMRI adjustment for interpolation?'],4,'m',...
-	          '   Always adjust |    Never adjust|Optional adjust',...
-	          [1 0 -1], tmp,'batch',{},'adjust');
-
 tmp = 2;
 if sptl_MskOptn == 1,
 	tmp = 1;
@@ -425,7 +364,7 @@ sptl_MskOptn  = spm_input(['Option to mask images?'], 5, 'm',...
 
 tmp2 = [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001];
 tmp = find(sptl_RlgnQlty == tmp2);
-if isempty(tmp) tmp = length(0.5); end
+if isempty(tmp) tmp = 1; end
 sptl_RlgnQlty = spm_input('Registration Quality?','+1','m',...
 	['Quality 1.00  (slowest/most accurate) |Quality 0.90|' ...
 	 'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
