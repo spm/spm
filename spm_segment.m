@@ -22,6 +22,7 @@
 %        - 'p' - produce a 'pseudo-pet' image.
 %        - 'n' - dont produce the _seg images.
 %        - 'r' - write reduced size image (2mm voxels).
+%        - 't' - write images called *_seg_tmp* rather than *_seg*
 %_______________________________________________________________________
 %
 %                      The algorithm is three step:
@@ -344,9 +345,15 @@ end
 
 k = prod(dm(1:2));
 
+if any(opts == 't')
+	app = '_seg_tmp';
+else
+	app = '_seg';
+end
+
 if ~any(opts == 'n')
 	for j=1:(size(VB,2)+1)
-		iname = [spm_str_manip(PF(1,:),'rd') '_seg' num2str(j)];
+		iname = [spm_str_manip(PF(1,:),'rd') app num2str(j)];
 		fp(j) = fopen([iname '.img'],'w');
 		spm_hwrite([iname '.img'],dm,vx,1/255,2,0,orgn,...
 			'Segmented image');

@@ -82,7 +82,6 @@ if (nargin == 0)
 				PGF = spm_get(n_images,'.img',...
 					['select target image for subject ' num2str(i)]);
 			end
-			eval(['PGF' num2str(i) ' = PGF;']);
 
 			% select object(s)
 			PFF = [];
@@ -90,11 +89,13 @@ if (nargin == 0)
 				PFF = spm_get(n_images,'.img',...
 					['select object image for subject ' num2str(i)]);
 			end
-			eval(['PFF' num2str(i) ' = PFF;']);
 
 			% select others
 			others = spm_get(Inf,'.img',...
 				['select other images for subject ' num2str(i)]);
+
+			eval(['PGF'    num2str(i) ' = PGF;']);
+			eval(['PFF'    num2str(i) ' = PFF;']);
 			eval(['others' num2str(i) ' = others;']);
 		end
 	end
@@ -104,13 +105,15 @@ if (nargin == 0)
 			% select target space
 			PGF = spm_get(1,'.img',...
 					['select image defining space for subject ' num2str(i)]);
-			eval(['PGF' num2str(i) ' = PGF;']);
 
 			% select images to reslice
 			PFF = [];
 			PFF = spm_get(Inf,'.img',...
 				['select images to reslice ' num2str(i)]);
-			eval(['PFF' num2str(i) ' = PFF;']);
+
+			eval(['PGF'    num2str(i) ' = PGF;']);
+			eval(['PFF'    num2str(i) ' = PFF;']);
+			eval(['others' num2str(i) ' = [];']);
 		end
 	end
 
@@ -125,14 +128,15 @@ if (nargin == 0)
 		eval(['PGF    =    PGF' num2str(i) ';']);
 		eval(['PFF    =    PFF' num2str(i) ';']);
 		eval(['others = others' num2str(i) ';']);
+
 		if (p == 1 | p == 3)
 			spm_coregister(PGF, PFF, PGG, PFG, others);
 		end
 		if (p == 2 | p == 3)
 			% Write the coregistered images
 			%-----------------------------------------------------------------------
-			P = str2mat(PGF(1,:),PFF(1,:));
-			if prod(size(others))>1
+			P = str2mat(PGF(1,:),PFF);
+			if prod(size(others))>0
 				P = str2mat(P,others);
 			end
 			spm_realign(P,'rn');
@@ -211,15 +215,17 @@ else 	% Different modalities
 
 	MM = spm_matrix(params([1:6 13:18]))\spm_matrix(params([7:12 13:18]));
 
-	if (1==1)
+	global QUICK_COREG
+	if ~any(QUICK_COREG == 1)
+
 		% Partition the target image(s) into smoothed segments
 		%-----------------------------------------------------------------------
 		disp('Segmenting and smoothing:')
 		disp(PGF);
-		spm_segment(PGF,spm_matrix(params([1:6 13:18])));
+		spm_segment(PGF,spm_matrix(params([1:6 13:18])),'t');
 		PPG = [];
 		for i=1:4
-			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg'  num2str(i)];
+			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
 			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
 			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
@@ -231,11 +237,11 @@ else 	% Different modalities
 		%-----------------------------------------------------------------------
 		disp('Segmenting and smoothing:')
 		disp(PFF);
-		spm_segment(PFF,spm_matrix(params([7:12 13:18])));
+		spm_segment(PFF,spm_matrix(params([7:12 13:18])),'t');
 
 		PPF = [];
 		for i=1:4
-			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg'  num2str(i)];
+			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
 			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg' num2str(i)];
 			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
 			spm_get_space(deblank([iname2 '.img']), MM*spm_get_space([iname2 '.img']));
@@ -247,8 +253,6 @@ else 	% Different modalities
 		% Coregister the segments together
 		%-----------------------------------------------------------------------
 		disp('Coregistering segments')
-disp(PPG(1:3,:));
-disp(PPF(1:3,:));
 		params = spm_affsub3('rigid1', PPG(1:3,:), PPF(1:3,:), 1, 8);
 		params = spm_affsub3('rigid1', PPG(1:3,:), PPF(1:3,:), 1, 4 , params);
 
@@ -266,16 +270,23 @@ disp(PPF(1:3,:));
 	end
 end
 
-% Save parameters
+% Save parameters. The matrixes are all loaded into memory, before
+% the transformations are applied - just in case any images have
+% been included more than once in the list.
 %-----------------------------------------------------------------------
-for imge = PFF'
-	M = spm_get_space(deblank(imge'));
-	spm_get_space(deblank(imge'), MM*M);
+Images   = str2mat(PFF,others);
+Matrixes = zeros(16,size(Images,1));
+
+for i=1:size(Images,1)
+	M = spm_get_space(deblank(Images(i,:)));
+	Matrixes(:,i) = M(:);
 end
-for imge = others'
-	M = spm_get_space(deblank(imge'));
-	spm_get_space(deblank(imge'), MM*M);
+
+for i=1:size(Images,1)
+	M = reshape(Matrixes(:,i),4,4);
+	spm_get_space(deblank(Images(i,:)), MM*M);
 end
+
 disp('Done');
 spm_figure('Clear','Interactive');
 
