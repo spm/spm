@@ -1,19 +1,19 @@
 function varargout = spm_get(varargin)
 % User interface : filename selection
-% FORMAT [P] = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine);
+% FORMAT P = spm_get(n,Filter,Prompt,NewWDir,CmdLine);
 % n          - 0 - returns with empty P
 %            - Positive integer - prompts for n filepaths
 %            - +Inf - prompts for filepaths until "Done" pressed
 %            - Negative integer - prompts for n directories
 %            - -Inf - prompts for directories until "Done" pressed
-% Suffix     - Filename filter {i.e. *Suffix} 
+% Filter     - Filename filter {'*' is prepended} 
 %            - numeric 0 for previous filtering
 % Prompt     - Prompt string
-% Prefix     - Prefix Filename filter {i.e. Prefix*}
 % NewWDir    - New working directory
 % CmdLine    - CmdLine override switch, 0 for GUI, 1 for Command line.
 %
 % P          - string matrix of full pathnames {one string per row}
+%              returned as a cellstr if iscellstr(Prompt)
 %_______________________________________________________________________
 %
 % spm_get allows interactive selection of filepaths/directory names
@@ -73,18 +73,18 @@ function varargout = spm_get(varargin)
 %
 % Filter string
 % ---------------------
-% The filter string for filenames is built as Prefix*Suffix, and
-% appears in a single editable window. Subsequent calls to spm_get
-% callbacks with the same filter string do not change the value of the
-% filter string, allowing the users edits of the filer string to
-% persist. Clicking the Filter button resets the filter to the original
-% filter string passed by the program. Clicking the bar at the
-% right-hand end of the filter window sets the filter string to '*',
-% resulting in all files/directories being displayed, in summary view
-% if there are sufficient files. (Bars above and below the filter
-% window (if available) implement a simple "memory" for filter
-% strings.  The top bar stores the current filter string, the lower bar
-% recalls it.)
+% The filter string for filenames is built as ['*',Filter] if Filter
+% doesn't contain a wildcard '*', and appears in a single editable
+% window. Subsequent calls to spm_get callbacks with the same filter
+% string do not change the value of the filter string, allowing user
+% edits of the filer string to persist. Clicking the Filter button
+% resets the filter to the original filter string passed by the
+% program. Clicking the bar at the right-hand end of the filter window
+% sets the filter string to '*', resulting in all files/directories
+% being displayed, in summary view if there are sufficient files. (Bars
+% above and below the filter window (if available) implement a simple
+% "memory" for filter strings.  The top bar stores the current filter
+% string, the lower bar recalls it.)
 %
 % Selecting Directories
 % ---------------------
@@ -158,7 +158,7 @@ function varargout = spm_get(varargin)
 % FORMAT F = spm_get('Initialise',Vis,n,Prompt,Filter,WDir)
 % (Re)Initialise SelFileWin, create one if necessary.
 % F        - Figure used.
-% Vis      - Figure visibility (string, 'on' or 'off')
+% Vis      - Figure visibility (string, 'on'|'off'|'close')
 % n        - Number of filepaths/directories to obtain
 % Prompt   - Prompt string.
 % Filter   - Filename filter.
@@ -201,7 +201,7 @@ function varargout = spm_get(varargin)
 % Cend     - CommonEND - 'front', 'end' or 'both'
 %            Specifys which end to take as common for file summary
 %            Defaults to 'both', which gives 'front' precedence over 'back'
-% Filter   - Filename filter - Suffix filter is appended to 'front' items
+% Filter   - Filename filter - suffix filter is appended to 'front' items
 % len      - Length of section to define common files
 %            Defaults to 3
 %
@@ -252,28 +252,26 @@ PJump = 0;
 
 if ~ischar(Action)
 %=======================================================================
-% P = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
+% P = spm_get(n,Filter,Prompt,NewWDir,CmdLine)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<6 CmdLine=[]; else CmdLine=varargin{6}; end
-if nargin<5 NewWDir=''; else NewWDir=varargin{5}; end
-if nargin<4 Prefix=''; else Prefix=varargin{4}; end
+if nargin<5 CmdLine=[]; else CmdLine=varargin{5}; end
+if nargin<4 NewWDir=''; else NewWDir=varargin{4}; end
 if nargin<3 Prompt='Select files...'; else Prompt=varargin{3}; end
-if nargin<2 | isempty(varargin{2}), Suffix=0; else Suffix=varargin{2}; end
+if nargin<2 | isempty(varargin{2}), Filter=0; else Filter=varargin{2}; end
 n = Action;
 
-if (n==0), P=[]; return, end
+if (n==0), varargout={[]}; return, end
 
 if isempty(CmdLine)
 	global CMDLINE
 	if ~isempty(CMDLINE), CmdLine = CMDLINE; else, CmdLine=0; end
 end
 
-%-NB: spm_get callbacks use single filter string, or 0 for previous filtering
-if ischar(Suffix)
-	if Suffix(1)~='*', Suffix = ['*',Suffix]; end
-	Filter = [Prefix,Suffix];
+%-NB: spm_get callbacks use Filter=0 for previous filtering
+if ischar(Filter)
+	if ~any(Filter=='*'), Filter = ['*',Filter]; end
 else
 	Filter=0;
 end
@@ -285,40 +283,54 @@ if CmdLine
 
 	%-Command line version, if global CMDLINE is true, & not overridden
 	%---------------------------------------------------------------
-	P=spm_get('CmdLine',n,Prompt,[],NewWDir);
+	P = spm_get('CmdLine',n,char(Prompt),[],NewWDir);
 
 else
 
 	%-GUI version
 	%---------------------------------------------------------------
-	%-Set up FileSelWin & JumpCursor
-	[F,cF] = spm_get('Initialise','on',n,Prompt,Filter,NewWDir);
-	PLoc = get(0,'PointerLocation');
-	FRec = get(F,'Position');
-	if PJump, set(0,'PointerLocation',...
-		[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2]), end
+	%-Set up FileSelWin
+	[F,cF] = spm_get('Initialise','on',n,char(Prompt),Filter,NewWDir);
+
+	%-Jump cursor to SelFileWin
+	if PJump
+		PLoc = get(0,'PointerLocation');
+		FRec = get(F,'Position');
+		set(0,'PointerLocation',[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2])
+	end
 	
 	%-Wait until filenames have been selected
 	hDone = findobj(F,'Tag','Done');
 	waitfor(hDone,'UserData')
 	
-	%-Recover P
-	P=get(findobj(F,'Tag','P'),'UserData');
-	
+	%-Exit with error if SelFileWin deleted
+	if ~ishandle(hDone), error('SelFileWin deleted!'), end
+
+	%-Get P & exit status
+	status = get(hDone,'UserData');
+	P = get(findobj(F,'Tag','P'),'UserData');
+
 	%-Reset and hide SelFileWin
 	spm_get('Initialise','off');
 
-	%-Return focus to previous figure (if any), & put cursor back
+	%-Return focus to previous figure (if any)
 	set(0,'CurrentFigure',cF)
+
 	%-Jump cursor back to previous location
 	if PJump, set(0,'PointerLocation',PLoc), end
 
+	%-Exit with error if reset (status=-1)
+	if status == -1, error('SPM-GUI reset: spm_get bailing out!'), end
 end
+
+%-Convert P to cellstr if Prompt is one
+%-----------------------------------------------------------------------
+if iscellstr(Prompt), P = cellstr(P); end
 
 %-Log the transaction
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
-	spm_log(['spm_get : ',Prompt,' :'],P); end
+	spm_log(['spm_get : ',char(Prompt),' :'],char(P)); end
 
 varargout = {P};
 return
@@ -470,7 +482,7 @@ uicontrol(F,'Style','Pushbutton','String','Reset',...
 
 uicontrol(F,'Style','Pushbutton','String','Done',...
 	'ForegroundColor','m',...
-	'Tag','Done','UserData',0,...
+	'Tag','Done','UserData',1,...
 	'Callback','spm_get(''Done'')',...
 	'Interruptible','off','BusyAction','Cancel',...
 	'Position',[345 278 045 022].*WS);
@@ -610,54 +622,58 @@ cF = get(0,'CurrentFigure');
 %-Recover SelFileWin figure number
 F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 
-%-If closing SelFileWin then close and return
-if strcmp('Vis','Close'), close(F), varargout={[]}; return, end
-
-%-If no SelFileWin, then create one
-if isempty(F), F=spm_get('CreateFig'); end
-
-%-delete 'dir' text axes
-delete(gca)
-
-%-If Vis=='off', make invisible
-if strcmp(Vis,'off'), set(F,'Visible','off'), end
-
-%-clear P
-set(findobj(F,'Tag','P'),'UserData','')
-
-%-Reset prompt, & n, stored in UserData
-set(findobj(F,'Tag','Prompt'),'String',Prompt,'UserData',n)
-
-%-Reset StatusLine
-spm_get('StatusLine',0,n)
-
-%-Done UserData to zero
-set(findobj(F,'Tag','Done'),'UserData',0)
-
-%-KeyPressFcn to edit WDir widget initially
-set(findobj(F,'Tag','CDpwd'),'UserData',1)
-
-%-Filter string
-%-Only set if different to previously passed one, held as UserData of
-% Filter Edit uicontrol.
-if ischar(Filter)
-	if ~strcmp(Filter,get(findobj(F,'Tag','Filter'),'UserData'))
+switch lower(Vis), case 'close'
+	close(F)
+	varargout = {[],cF};
+	return
+case 'reset'
+	varargout = {F,cF};				%-Return figure handles
+	if isempty(F), return, end
+	set(F,'Visible','off')				%-Make window Invisible
+	set(findobj(F,'Tag','Done'),'UserData',-1)	%-Set Done UserData to -1
+	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
+	return
+case 'off'
+	if isempty(F), varargout={[],cF}; return, end
+	varargout = {F,cF};				%-Return figure handles
+	set(F,'Visible','off')				%-Make window Invisible
+	set(findobj(F,'Tag','Done'),'UserData',1)	%-Set Done UserData to 1
+	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
+	return
+case 'on'
+	if isempty(F)
+		F = spm_get('CreateFig');		%-Create SelFileWin
+	else
+		set(0,'CurrentFigure',F);		%-Make SelFileWin current
+	end	
+	varargout = {F,cF};				%-Return figure handles
+	set(findobj(F,'Tag','Done'),'UserData',0)	%-Init. Done UserData
+	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
+	set(findobj(F,'Tag','P'),'UserData','')		%-clear P
+	set(findobj(F,'Tag','Prompt'),'String',Prompt,'UserData',n)
+							%-Reset prompt, & n
+	spm_get('StatusLine',0,n)			%-Reset StatusLine
+	set(findobj(F,'Tag','CDpwd'),'UserData',1)	%-KeyPressFcn to edit
+							% WDir widget initially
+	%-Filter string: Only set if different to previously passed one
+	% (held as UserData of Filter Edit uicontrol)
+	if ischar(Filter)
+	  if ~strcmp(Filter,get(findobj(F,'Tag','Filter'),'UserData'))
 	    set(findobj(F,'Tag','Filter'),'String',Filter,'UserData',Filter)
+	  end
 	end
+
+	%-Change to new working directory, if specified, else display current
+	if ~isempty(WDir)
+		spm_get('cd',WDir)			%-Change directory
+	else
+		spm_get('dir')				%-Show current dir.
+	end
+	figure(F)					%-PopUp figure
+otherwise
+	error('Unrecognised ''Vis'' option in spm_get(''Initialise'',...')
 end
 
-%-Change to new working directory if one was specified
-if ~isempty(WDir), spm_get('cd',WDir,1), end
-
-%-Make current & visible and do 'dir', if Vis='on'
-if strcmp(Vis,'on')
-	spm_get('dir')
-	figure(F)
-	set(F,'Visible','on')
-end
-
-%-Return figure handles
-varargout = {F,cF};
 
 
 case 'statusline'
@@ -690,7 +706,7 @@ set(findobj(F,'Tag','StatusLine'),'String',str)
 
 case 'cd'
 %=======================================================================
-% spm_get('cd',NewDir,bDirList)
+% spm_get('cd',NewDir,bNoDirList)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
@@ -1025,7 +1041,7 @@ if strcmp(Cend,'front')
 		varargout = {deblank(Fnames),1};
 		return
 	end
-	WildCard    = Filter(max(find(Filter=='*')):length(Filter));
+	WildCard    = Filter(max(find(Filter=='*')):end);
 	nFnames     = size(Fnames,1);
 	[sFnames,I] = spm_get('StrSort',Fnames);
 	tmp         = diff(abs(sFnames));
