@@ -109,12 +109,10 @@ function varargout = spm_list(varargin)
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
 
-%### CODE FOR SATELLITE FIGURE ###
-%
+
 % satellite figure global variable
-%------------------------
+%-----------------------------------------------------------------------
 global SatWindow
-% ### END NEW CODE ###
 
 %-Parse arguments, default to 'list' if varargin{1} not an Action string
 %-----------------------------------------------------------------------
@@ -124,8 +122,6 @@ if ~ischar(varargin{1})
 	spm_list('list',varargin{:});
 	return
 end
-
-
 
 %=======================================================================
 switch lower(varargin{1}), case 'list'                            %-List
@@ -138,71 +134,68 @@ switch lower(varargin{1}), case 'list'                            %-List
 tol = eps*10;
 
 %-Parse arguments
-%-----------------------------------------------------------------------
-if nargin<3,     error('insufficient arguments'), end
-if nargin<7,	 hReg=[]; else, hReg = varargin{7}; end
-if nargin<6,     Title = '';
-	else,    Title = varargin{6}; end
-if isempty(Title), Title = ['volume summary',...
-			' (p-values corrected for entire volume)']; end
-if nargin<5,     Num = [];
-	else,    Num = varargin{5}; end
-if isempty(Num), Num = 03; end
-if nargin<4,     Dis = [];
-	else,    Dis = varargin{4}; end
-if isempty(Dis), Dis = 08; end
 % VOL is varargin{3} - Use by reference for speed
 % SPM is varargin{2} - Don't copy into local variables
+%-----------------------------------------------------------------------
+if nargin < 3,	error('insufficient arguments'), end
+if nargin < 7,	hReg=[]; else, hReg = varargin{7}; end
+if nargin < 6
+	Title       = '';
+	else,Title  = varargin{6};  end
+if isempty(Title)
+	Title       = ['volume summary',...
+			' (p-values adjusted for entire volume)']; end
+if nargin < 5,	Num = [];
+	else,	Num = varargin{5}; end
+if isempty(Num),Num = 03; end
+if nargin < 4,	Dis = [];
+	else,	Dis = varargin{4}; end
+if isempty(Dis),Dis = 08; end
 
 %-Get current location (to highlight selected voxel in table)
 %-----------------------------------------------------------------------
-xyzmm = spm_results_ui('GetCoords');
+xyzmm     = spm_results_ui('GetCoords');
 
 %-Extract data from structures
 %-----------------------------------------------------------------------
-S         = varargin{3}.S;
-R         = varargin{3}.R;
-FWHM      = varargin{3}.FWHM;
-v2r       = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
-n         = varargin{2}.n;
-STAT      = varargin{2}.STAT;
-df        = varargin{2}.df;
-u         = varargin{2}.u;
-k         = varargin{2}.k*v2r;
-Vspm      = varargin{3}.Vspm;            % Needed for FDR
-Msk       = varargin{3}.Msk;             %
-nZ        = length(varargin{2}.Z);       %
+S     = varargin{3}.S;
+R     = varargin{3}.R;
+FWHM  = varargin{3}.FWHM;
+v2r   = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
+n     = varargin{2}.n;
+STAT  = varargin{2}.STAT;
+df    = varargin{2}.df;
+u     = varargin{2}.u;
+k     = varargin{2}.k*v2r;
+Vspm  = varargin{3}.Vspm;				% Needed for FDR
+Msk   = varargin{3}.Msk;				%      "
+nZ    = length(varargin{2}.Z);				%      "
 
 
-%-Setup graphics pane
+%-Setup graphics panel
 %-----------------------------------------------------------------------
 spm('Pointer','Watch')
-
-% ### CODE FOR SATELLITE WINDOW ###
-%----------------------------------------------------------------------
 if SatWindow
 	Fgraph = SatWindow;
-	figure(Fgraph)
+	figure(Fgraph);
 else
-	Fgraph    = spm_figure('GetWin','Graphics');
+	Fgraph = spm_figure('GetWin','Graphics');
 end
-% ### END NEW CODE ###
-
 spm_results_ui('Clear',Fgraph)
-FS        = spm('FontSizes');			%-Scaled font sizes
-PF        = spm_platform('fonts');		%-Font names (for this platform)
-
-
+FS    = spm('FontSizes');			%-Scaled font sizes
+PF    = spm_platform('fonts');			%-Font names (for this platform)
 
 
 %-Table header & footer
 %=======================================================================
 
 %-Table axes & Title
-%-----------------------------------------------------------------------
-% ### CODE FOR SATELLITE WINDOW ###
 %----------------------------------------------------------------------
 if SatWindow, ht = 0.9; else, ht = 0.4; end;
+
+if STAT == 'P'
+	Title = 'Posterior Probabilities';
+end
 	
 hAx   = axes('Position',[0.05 0.1 0.9 ht],...
 	'DefaultTextFontSize',FS(8),...
@@ -210,7 +203,6 @@ hAx   = axes('Position',[0.05 0.1 0.9 ht],...
 	'DefaultTextVerticalAlignment','Baseline',...
 	'Units','points',...
 	'Visible','off');
-% ### END NEW CODE ###
 
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
 dy    = FS(9);
@@ -226,29 +218,31 @@ line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
 Hc = [];
-h = text(0.01,y,	'set-level','FontSize',FS(9));		Hc = [Hc,h];
-h=line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r');Hc = [Hc,h];
-h = text(0.02,y-9*dy/8,	'\itp ');				Hc = [Hc,h];
-h = text(0.08,y-9*dy/8,	'\itc ');				Hc = [Hc,h];
+Hp = [];
+h  = text(0.01,y,	'set-level','FontSize',FS(9));		Hc = [Hc,h];
+h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');	Hc = [Hc,h];
+h  = text(0.08,y-9*dy/8,	'\itc ');			Hc = [Hc,h];
+h  = text(0.02,y-9*dy/8,	'\itp ');			Hc = [Hc,h];
+								Hp = [Hp,h];
+text(0.22,y,		'cluster-level','FontSize',FS(9));
+line([0.15,0.41],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+h  = text(0.16,y-9*dy/8,	'\itp \rm_{corrected}');	Hp = [Hp,h];
+h  = text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
+h  = text(0.26,y-9*dy/8,	'\itk \rm_E');
 
-text(0.22,y,		'cluster-level','FontSize',FS(9))
-line([0.15,0.41],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.16,y-9*dy/8,	'\itp \rm_{corrected}')
-text(0.26,y-9*dy/8,	'\itk \rm_E')
-text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}')
-
-text(0.60,y,		'voxel-level','FontSize',FS(9))
-line([0.46,0.86],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}')
-text(0.55,y-9*dy/8,     '\itp \rm_{FDR-corr}');
-text(0.64,y-9*dy/8,	sprintf('\\it%c',STAT))
-text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)')
-text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}')
+text(0.60,y,		'voxel-level','FontSize',FS(9));
+line([0.46,0.86],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+h  = text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}');		Hp = [Hp,h];
+h  = text(0.55,y-9*dy/8,     '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
+h  = text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
+h  = text(0.64,y-9*dy/8,	 sprintf('\\it%c',STAT));
+h  = text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)');
 
 text(0.93,y - dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
 
 
 %-Headers for text table...
+%-----------------------------------------------------------------------
 TabDat.tit = Title;
 TabDat.hdr = {	'set',		'c';...
 		'set',		'p';...
@@ -268,11 +262,14 @@ TabDat.fmt = {	'%-0.3f', '%g',...				%-Set
 		'%3.0f %3.0f %3.0f'};				%-XYZ
 
 %-Column Locations
+%-----------------------------------------------------------------------
 tCol       = [  0.00      0.07 ...				%-Set
 	        0.16      0.26      0.34 ...			%-Cluster
-	        0.46      0.55      0.62      0.71       0.80 ...%-Voxel
+	        0.46      0.55      0.62      0.71      0.80 ...%-Voxel
                 0.92];						%-XYZ
 
+% move to next vertial postion marker
+%-----------------------------------------------------------------------
 y     = y - 7*dy/4;
 line([0 1],[y y],'LineWidth',1,'Color','r')
 y     = y - 5*dy/4;
@@ -291,7 +288,10 @@ text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
 
 
-%-Volume, resels and smoothness 
+%-Volume, resels and smoothness (if classical inference)
+%-----------------------------------------------------------------------
+line([0 1],[0 0],'LineWidth',1,'Color','r')
+if STAT ~= 'P'
 %-----------------------------------------------------------------------
 FWHMmm          = FWHM.*varargin{3}.VOX'; 			% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n,S);
@@ -302,10 +302,9 @@ Pu              = spm_P(1,0,u,df,STAT,R,n,S);
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
-line([0 1],[0 0],'LineWidth',1,'Color','r')
 set(gca,'DefaultTextFontName',PF.helvetica,...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-TabDat.ftr = cell(5,2);
+TabDat.ftr    = cell(5,2);
 TabDat.ftr{1} = ...
 	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f FWE-corr, %0.3f FDR-corr)',...
 		 STAT,u,Pz,Pu,Qu);
@@ -317,20 +316,17 @@ TabDat.ftr{3} = ...
 TabDat.ftr{4} = ...
 	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
 TabDat.ftr{5} = ...
-	sprintf('Expected number of false discoveries, <#FD|R> <= %0.2f',...
-		Qu*nZ);
+	sprintf('Expected false discoveries, <#FD|R> <= %0.2f',Qu*nZ);
 TabDat.ftr{6} = ...
 	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
 TabDat.ftr{7} = ...
 	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
 		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,FWHM);
 TabDat.ftr{8} = ...
-	sprintf('Search volume: S = %0.0f mm^3 = %0.0f voxels = %0.1f resels',...
-		S*prod(varargin{3}.VOX),S,R(end));
+	sprintf('Search volume: S = %0.0f mm^3 = %0.0f voxels = %0.1f resels',S*prod(varargin{3}.VOX),S,R(end));
 TabDat.ftr{9} = ...
 	sprintf(['Voxel size: [%0.1f, %0.1f, %0.1f] mm ',...
-		' (1 resel = %0.2f voxels)'],...
-		varargin{3}.VOX,prod(FWHM));
+		' (1 resel = %0.2f voxels)'],varargin{3}.VOX,prod(FWHM));
 
 text(0.0,-1*dy,TabDat.ftr{1},...
 	'UserData',[u,Pz,Pu,Qu],'ButtonDownFcn','get(gcbo,''UserData'')')
@@ -353,7 +349,7 @@ text(0.5,-4*dy,TabDat.ftr{9},...
 	'UserData',[varargin{3}.VOX',prod(FWHM)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
 
-
+end % Classical
 
 
 %-Characterize excursion set in terms of maxima
@@ -370,14 +366,13 @@ if ~length(varargin{2}.Z)
 	return
 end
 
-% Includes Darren Gitelman's code for working around bug in
+% Includes Darren Gitelman's code for working around
 % spm_max for conjunctions with negative thresholds
 %-----------------------------------------------------------------------
-minz = abs(min(min(varargin{2}.Z)));
-zscores = 1+minz+varargin{2}.Z;
+minz        = abs(min(min(varargin{2}.Z)));
+zscores     = 1 + minz + varargin{2}.Z;
 [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
-Z = Z-minz-1;
-%-----------------------------------------------------------------------
+Z           = Z - minz - 1;
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
@@ -386,11 +381,11 @@ if isfield(varargin{3},'VRVP')
 else
 	V2R = v2r;
 end
-N         = N.*V2R;
+N           = N.*V2R;
 
 %-Convert maxima locations from voxels to mm
 %-----------------------------------------------------------------------
-XYZmm     = varargin{3}.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+XYZmm = varargin{3}.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
 
@@ -406,7 +401,12 @@ set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
 %-Set-level p values {c} - do not display if reporting a single cluster
 %-----------------------------------------------------------------------
 c     = max(A);					%-Number of clusters
-Pc    = spm_P(c,k,u,df,STAT,R,n,S);		%-Set-level p-value
+if STAT ~= 'P'
+	Pc    = spm_P(c,k,u,df,STAT,R,n,S);	%-Set-level p-value
+else
+	Pc    = [];
+	set(Hp,'Visible','off')
+end
 
 if c > 1;
 	h     = text(tCol(1),y,sprintf(TabDat.fmt{1},Pc),'FontWeight','Bold',...
@@ -430,15 +430,14 @@ while prod(size(find(finite(Z))))
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
-	if y < min(Num+1,3)*dy
+	if y < min(Num + 1,3)*dy
 
-		% ### CODE FOR SATELLITE WINDOW ###
-		% added Fgraph term to paginate correctly on the Satellite window
+		% added Fgraph term to paginate on Satellite window
+		%-------------------------------------------------------
 		h     = text(0.5,-5*dy,...
 			sprintf('Page %d',spm_figure('#page',Fgraph)),...
 			'FontName',PF.helvetica,'FontAngle','Italic',...
 			'FontSize',FS(8));
-		% ### END MODIFIED CODE ###
 
 		spm_figure('NewPage',[hPage,h])
 		hPage = [];
@@ -453,16 +452,26 @@ while prod(size(find(finite(Z))))
 
     	%-Compute cluster {k} and voxel-level {u} p values for this cluster
     	%---------------------------------------------------------------
+	Nv      = N(i)/v2r;			% extent        {voxels}
+
+	if STAT ~= 'P'
 	Pz      = spm_P(1,0,   U,df,STAT,1,n,S);% uncorrected p value
 	Pu      = spm_P(1,0,   U,df,STAT,R,n,S);% FWE-corrected {based on Z)
 	Qu      = spm_P_FDR(   U,df,STAT,n,QPs);% FDR-corrected {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n,S);% [un]corrected {based on k)
 
-	Nv      = N(i)/v2r;			% extent        {voxels}
-	if Pz<tol				% Equivalent Z-variate
+	if Pz < tol				% Equivalent Z-variate
 	    Ze  = Inf;	 			% (underflow => can't compute)
 	else
-	    Ze  = spm_invNcdf(1 -Pz);
+	    Ze  = spm_invNcdf(1 - Pz);
+	end
+	else
+		Pz	= [];
+		Pu      = [];
+		Qu      = [];
+		Pk	= [];
+		Pn	= [];
+		Ze      = spm_invNcdf(U);
 	end
 
 
@@ -491,13 +500,12 @@ while prod(size(find(finite(Z))))
 	h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Ze),'FontWeight','Bold',...
 		'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),'FontWeight','Bold',...
+	h     = ...
+	text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),'FontWeight','Bold',...
 		'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 
-	% ### CODE FOR SATELLITE FIGURE ###
-	% Specifically changed    'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));',...
-	% to the line below so it properly finds hMIPax
+	% Specifically changed so it properly finds hMIPax
 	%---------------------------------------------------------------------
 	h     = text(tCol(11),y,sprintf(TabDat.fmt{11},XYZmm(:,i)),...
 		'FontWeight','Bold',...
@@ -507,15 +515,14 @@ while prod(size(find(finite(Z))))
 		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),hMIPax);'],...
 		'Interruptible','off','BusyAction','Cancel',...
 		'UserData',XYZmm(:,i));
-	% ### END MODIFIED CODE ###
 
 	HlistXYZ = [HlistXYZ, h];
 	if spm_XYZreg('Edist',xyzmm,XYZmm(:,i))<tol & ~isempty(hReg)
 		set(h,'Color','r')
 	end
-	hPage = [hPage, h];
+	hPage  = [hPage, h];
  
-	y     = y - dy;
+	y      = y - dy;
 	
 	[TabDat.dat{TabLin,3:11}] = deal(Pk,Nv,Pn,Pu,Qu,U,Ze,Pz,XYZmm(:,i));
 	TabLin = TabLin + 1;
@@ -533,14 +540,11 @@ while prod(size(find(finite(Z))))
 			% Paginate if necessary
 			%-----------------------------------------------
 			if y < dy	
-				% ### CODE FOR SATELLITE FIGURE ###
-				% added Fgraph term to paginate correctly for satellite figure
 				h = text(0.5,-5*dy,sprintf('Page %d',...
 					spm_figure('#page',Fgraph)),...
 					'FontName',PF.helvetica,...
 					'FontAngle','Italic',...
 					'FontSize',FS(8));
-				% ### END MODIFIED CODE ###
 
 				spm_figure('NewPage',[hPage,h])
 				hPage = [];
@@ -549,10 +553,19 @@ while prod(size(find(finite(Z))))
 
 			% voxel-level p values {Z}
 			%-----------------------------------------------
-			Pz    = spm_P(1,0,Z(d),df,STAT,1,n,S);
-			Pu    = spm_P(1,0,Z(d),df,STAT,R,n,S);
-			Qu    = spm_P_FDR(Z(d),df,STAT,n,QPs);
-			if Pz<tol, Ze=Inf; else, Ze = spm_invNcdf(1 - Pz); end
+			if STAT ~= 'P'
+				Pz    = spm_P(1,0,Z(d),df,STAT,1,n,S);
+				Pu    = spm_P(1,0,Z(d),df,STAT,R,n,S);
+				Qu    = spm_P_FDR(Z(d),df,STAT,n,QPs);
+				if Pz < tol
+					Ze = Inf;
+				else,   Ze = spm_invNcdf(1 - Pz); end
+			else
+				Pz    = [];
+				Pu    = [];
+				Qu    = [];
+				Ze    = spm_invNcdf(Z(d));
+			end
 
 			h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pu),...
 				'UserData',Pu,...
@@ -576,23 +589,21 @@ while prod(size(find(finite(Z))))
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
 
-			% ### CODE FOR SATELLITE FIGURE ###
-			% specifically modified line 'get(gcbo,''UserData''));'],...
-			% to use hMIPax
-			%------------------------------------------------------------
+			% specifically modified line to use hMIPax
+			%-----------------------------------------------
 			h     = text(tCol(11),y,...
 				sprintf(TabDat.fmt{11},XYZmm(:,d)),...
 				'Tag','ListXYZ',...
 				'ButtonDownFcn',[...
-					'hMIPax = findobj(''tag'',''hMIPax'');',...
-					'spm_mip_ui(''SetCoords'',',...
-					'get(gcbo,''UserData''),hMIPax);'],...
+				    'hMIPax = findobj(''tag'',''hMIPax'');',...
+				    'spm_mip_ui(''SetCoords'',',...
+				    'get(gcbo,''UserData''),hMIPax);'],...
 				'Interruptible','off','BusyAction','Cancel',...
 				'UserData',XYZmm(:,d));
-			% ### END MODIFIED CODE ###
 
 			HlistXYZ = [HlistXYZ, h];
-			if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ~isempty(hReg)
+			if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ...
+				~isempty(hReg)
 				set(h,'Color','r')
 			end
 			hPage = [hPage, h];
@@ -610,14 +621,11 @@ end				% end region
 
 %-Number and register last page (if paginated)
 %-----------------------------------------------------------------------
-% ### CODE FOR SATELLITE FIGURE
 if spm_figure('#page',Fgraph)>1
 	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
 		'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
 	spm_figure('NewPage',[hPage,h])
 end
-% ### END MODIFIED CODE ###
-
 
 %-End: Store TabDat in UserData of axes & reset pointer
 %=======================================================================
@@ -664,18 +672,18 @@ spm('Pointer','Watch')
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin<3,     error('insufficient arguments'), end
-if nargin<7,	 hReg=[]; else, hReg = varargin{7}; end
-if nargin<6,     Title = '';
-	else,    Title = varargin{6}; end
+if nargin < 3,	error('insufficient arguments'), end
+if nargin < 7,	hReg=[]; else, hReg = varargin{7}; end
+if nargin < 6,	Title = '';
+	else,	Title = varargin{6}; end
 if isempty(Title), Title = ['single cluster summary',...
 			' (p-values corrected for entire volume)']; end
-if nargin<5,     Num = [];
-	else,    Num = varargin{5}; end
-if isempty(Num), Num = Inf; end
-if nargin<4,     Dis = [];
-	else,    Dis = varargin{4}; end
-if isempty(Dis), Dis = 04; end
+if nargin < 5,	Num = [];
+	else,	Num = varargin{5};   end
+if isempty(Num)	Num = Inf; end
+if nargin < 4,	Dis = [];
+	else,	Dis = varargin{4};   end
+if isempty(Dis),Dis = 04; end
 VOL  = varargin{3};
 SPM  = varargin{2};
 
@@ -685,11 +693,13 @@ SPM  = varargin{2};
 if length(SPM.Z)
 
 	%-Jump to voxel nearest current location
+	%--------------------------------------------------------------
 	[xyzmm,i] = spm_XYZreg('NearestXYZ',...
 			spm_results_ui('GetCoords'),SPM.XYZmm);
 	spm_results_ui('SetCoords',SPM.XYZmm(:,i));
 	
 	%-Find selected cluster
+	%--------------------------------------------------------------
 	A         = spm_clusters(SPM.XYZ);
 	j         = find(A == A(i));
 	SPM.Z     = SPM.Z(j);
@@ -751,9 +761,9 @@ case 'setcoords'                                    %-Co-ordinate change
 %=======================================================================
 % FORMAT spm_list('SetCoords',xyz,hAx,hReg)
 if nargin<3, error('Insufficient arguments'), end
-hAx = varargin{3};
-xyz = varargin{2};
-UD  = get(hAx,'UserData');
+hAx      = varargin{3};
+xyz      = varargin{2};
+UD       = get(hAx,'UserData');
 HlistXYZ = UD.HlistXYZ(ishandle(UD.HlistXYZ));
 
 %-Set all co-ord strings to black
@@ -762,7 +772,7 @@ set(HlistXYZ,'Color','k')
 
 %-If co-ord matches a string, highlight it in red
 %-----------------------------------------------------------------------
-XYZ = get(HlistXYZ,'UserData');
+XYZ      = get(HlistXYZ,'UserData');
 if iscell(XYZ), XYZ = cat(2,XYZ{:}); end
 [null,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ);
 if d<eps
