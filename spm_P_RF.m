@@ -1,6 +1,6 @@
-function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n)
+function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Returns the [un]corrected P value using unifed EC theory
-% FORMAT [P p Em En EN] = spm_P(c,k,Z,df,STAT,R,n)
+% FORMAT [P p Em En EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 %
 % c     - cluster number 
 % k     - extent {RESELS}
@@ -22,15 +22,15 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n)
 %
 %___________________________________________________________________________
 %
-% spm_P returns the probability of c or more clusters with more than
+% spm_P_RF returns the probability of c or more clusters with more than
 % k voxels in volume process of R RESELS thresholded at u.  All p values
 % can be considered special cases:
 %
-% spm_P(1,0,Z,df,STAT,1,n) = uncorrected p value
-% spm_P(1,0,Z,df,STAT,R,n) = corrected p value {based on height Z)
-% spm_P(1,k,u,df,STAT,R,n) = corrected p value {based on extent k at u)
-% spm_P(c,k,u,df,STAT,R,n) = corrected p value {based on number c at k and u)
-% spm_P(c,0,u,df,STAT,R,n) = omnibus   p value {based on number c at u)
+% spm_P_RF(1,0,Z,df,STAT,1,n) = uncorrected p value
+% spm_P_RF(1,0,Z,df,STAT,R,n) = corrected p value {based on height Z)
+% spm_P_RF(1,k,u,df,STAT,R,n) = corrected p value {based on extent k at u)
+% spm_P_RF(c,k,u,df,STAT,R,n) = corrected p value {based on number c at k and u)
+% spm_P_RF(c,0,u,df,STAT,R,n) = omnibus   p value {based on number c at u)
 %
 % If n > 1 a conjunction probility over the n values of the statistic
 % is returned
