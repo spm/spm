@@ -1,4 +1,4 @@
-function [R1,R2]=spm_help(Action,P2,P3,P4)
+function [R1,R2]=spm_help(Action,P2,P3,P4,P5)
 % SPM help and manual facilities
 % FORMAT spm_help
 %_______________________________________________________________________
@@ -205,7 +205,7 @@ if nargin==0
 		Action='';
 	end
 end
-if isempty(Action), Action='Menu'; end
+if isempty(Action), Action='Menu'; nargin=1; end
 
 %-All actions begin '!' - Other actions are topics
 %-----------------------------------------------------------------------
@@ -243,13 +243,16 @@ S     = get(Fhelp,'Position');
 A     = [S(3)/600 S(4)/865 S(3)/600 S(4)/865];
 O     = [600/2-400/2 100 0 0].*A;
 
-uicontrol(Fhelp,'Style','Frame',...
+uicontrol(Fhelp,'Style','PushButton',...
+	'String',spm('Ver'),...
+	'CallBack','spm_help(''spm.m'')',...
 	'Position',[-2,447,404,30]+O,...
 	'Tag','NoDelete','UserData','HelpMenu')
 
-uicontrol(Fhelp,'Style','Text','String',spm('Ver'),...
-	'Position',[0,452,400,20]+O,...
-	'Tag','NoDelete','UserData','HelpMenu')
+%uicontrol(Fhelp,'Style','Text',...
+%	'String',spm('Ver'),...
+%	'Position',[0,452,400,20]+O,...
+%	'Tag','NoDelete','UserData','HelpMenu')
 
 uicontrol(Fhelp,'Style','Frame',...
 	'Position',[-2,-2,404,449]+O,...
@@ -434,6 +437,17 @@ Err = 0;
 
 if strcmp(Topic,'!Topics')
 	S = 'Menu';
+elseif strcmp(Topic,'spm_motd.man')
+	S = sprintf([...
+		'\n%% %s : Message of the Day\n',...
+		'%s\n%%\n',...
+		'%% No message of the day has been set.\n',...
+		'%%\n',...
+		'%% File spm_motd.man contains the message, which is',...
+			' displayed at startup\n',...
+		'%% if it exists.\n',...
+		'%s\n%%\n%% Andrew Holmes\n'],...
+		spm('Ver'),Usep,Usep);
 elseif strcmp(Topic,'Menu')
 	S = sprintf([...
 		'\n%% %s : Statistical Parametric Mapping\n',...
@@ -553,19 +567,15 @@ if ~isstr(Topic)
 	Topic = deblank(Topic(n,:));
 end
 
-%-Find (or create) help window. Create Help control bar if required
+%-Find (or create) help window.
 %-----------------------------------------------------------------------
 Fhelp = spm_figure('FindWin','Help');
 if isempty(Fhelp)
-	Fhelp = spm_help('!CreateHelpWin');
+	Fhelp = spm_help('!Create');
 else
 	set(Fhelp,'Visible','on')
 end
 set(Fhelp,'Pointer','Watch')
-if isempty(findobj(Fhelp,'UserData','HelpBar'))
-	spm_help('!CreateBar',Fhelp)
-end
-
 
 %-Load text file or get text from 'ShortTopics'
 %-----------------------------------------------------------------------
@@ -643,15 +653,18 @@ return
 
 elseif strcmp(lower(Action),lower('!Disp'))
 %=======================================================================
-% spm_help('!Disp',Fname,S,F)
+% spm_help('!Disp',Fname,S,F,TTitle)
+if nargin<5, TTitle=''; else, TTitle=P5; end
 if nargin<4, F='Help'; else, F=P4; end
 if nargin<3, S=''; else, S=P3; end
 if nargin<2, Fname='spm.man'; else, Fname=P2; end
+if isempty(TTitle), TTitle=Fname; end
+
 
 %-Find (or create) window to print in
 Fhelp = spm_figure('FindWin',F);
 if isempty(Fhelp)
-	Fhelp = spm_help('!CreateHelpWin')
+	Fhelp = spm_help('!CreateHelpWin');
 else
 	set(Fhelp,'Visible','on')
 end
@@ -661,13 +674,15 @@ spm_help('!Clear',Fhelp)
 %-Parse text file/string
 %-----------------------------------------------------------------------
 if isempty(S)
+	%-Load text file or get text from 'ShortTopics'
 	fid = fopen(Fname,'r');
 	if fid<0
-		errordlg(['File ',Fname,' not found'],'SPMerror','on');
-		return
+		[S,Err] = spm_help('!ShortTopics',Fname);
+	else
+		S = setstr(fread(fid))';
+		Err = 0;
+		fclose(fid);
 	end
-	S   = setstr(fread(fid))';
-	fclose(fid);
 end
 q     = min([length(S),findstr(S,setstr([10 10]))]);	% find empty lines
 q     = find(S(1:q(1)) == 10);				% find line breaks
@@ -678,7 +693,7 @@ hAxes = axes('Position',[0.05,0.05,0.8,0.85],...
 y     = floor(get(hAxes(1),'Position'));
 y0    = y(3);
 set(hAxes(1),'Ylim',[0,y0])
-text(-0.05,y0,[Fname,' - help'],'FontSize',16,'FontWeight','bold');
+text(-0.05,y0,TTitle,'FontSize',16,'FontWeight','bold');
 y     = y0 - 24;
 
 
@@ -731,6 +746,7 @@ elseif strcmp(lower(Action),lower('!Create'))
 
 F = spm_help('!CreateHelpWin');
 spm_help('!CreateBar',F)
+spm_figure('WaterMark',F,spm('Ver'),'NoDelete')
 R1 = F;
 return
 
@@ -742,7 +758,7 @@ elseif strcmp(lower(Action),lower('!CreateHelpWin'))
 F = spm_figure('FindWin','Help');
 if any(F), return, end
 
-%-Condition arguments
+%-Draw window
 %-----------------------------------------------------------------------
 S0     = get(0,'ScreenSize');
 WS     = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
