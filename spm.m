@@ -737,11 +737,11 @@ elseif strcmp(lower(Action),lower('Colour'))
 % spm('Colour')
 %-----------------------------------------------------------------------
 %-Developmental livery
-% R1 = [0.7,1.0,0.7];
-% R2 = 'Lime Green';
+R1 = [0.7,1.0,0.7];
+R2 = 'Lime Green';
 %-Distribution livery
-R1 = [0.8 0.8 1.0];
-R2 = 'Diluted Blackcurrent Purple';
+% R1 = [0.8 0.8 1.0];
+% R2 = 'Diluted Blackcurrent Purple';
 return
 
 
