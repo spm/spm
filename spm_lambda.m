@@ -15,7 +15,9 @@ function [Lc2z,Lc2t,Lt2z] = spm_lambda(df)
 % spatial partial derivatives of Z.
 %
 % ref:  Worsley KJ et al (1992) JCBFM 12 p917
-%       Holmes AP (1994) PhD Thesis p255 G. Smoothness of t fields
+%       Holmes AP (1994) PhD Thesis p224 App.G: Smoothness of t-fields
+%_______________________________________________________________________
+% %W% Karl Friston %E%
 
 % pdfs and Probability integral transform (PIT)
 %-----------------------------------------------------------------------
