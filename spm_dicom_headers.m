@@ -288,16 +288,17 @@ if isempty(tag.vr) || isempty(tag.length),
 end;
 
 
-if ~rem(tag.length,2),
-	if tag.length==4294967295, tag.length = Inf; return; end;
-else
-	if tag.length==13,
+if rem(tag.length,2),
+	if tag.length==4294967295,
+		tag.length = Inf;
+		return;
+	elseif tag.length==13,
 		% disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
 		% For some bizarre reason, known only to themselves, they confuse lengths of
 		% 13 with lengths of 10.
 		tag.length = 10;
 	else
-		warning(['Unknown odd numbered Value Length (' num2str(tag.length) ') in "' fopen(fp) '".']);
+		warning(['Unknown odd numbered Value Length (' sprintf('%x',tag.length) ') in "' fopen(fp) '".']);
 		tag = [];
 	end;
 end;
