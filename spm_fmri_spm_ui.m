@@ -208,35 +208,56 @@ if ER
 	% model event-related responses
 	%-------------------------------------------------------------------
 	Ctype = str2mat(...
+		'basis functions (Fourier set)',...
 		'basis functions (Windowed Fourier set)',...
 		'basis functions (Gamma functions)');
 	str   = 'Select basis set';
 	Cov   = spm_input(str,'!+1','m',Ctype,[1:size(Ctype,1)]);
 
-	% order of basis functions - h
+
+	% create small design matrix of basis functions
 	%-------------------------------------------------------------------
-	if Cov == 1
-		str = 'order of Fourier series';
-		hf  = spm_input(str,'!+0','e',4);
-		h   = 1 + 2*hf;
+	dt     = 0.1;					% time step {sec}
+	if Cov == (1 | 2)
 
-	elseif Cov == 2
-
-		h   = 6;
-
-		% create small design matrix of basis functions for plotting
+		% Windowed (Hanning) Fourier set
 		%-----------------------------------------------------------
-		dx  = 0.01;
-		pst = -4:0.1:32;
-		D   = spm_Volt_W(pst);
-		DER = [D (spm_Volt_W(pst - dx) - D)/dx];
+		str   = 'window length {secs}';
+		pst   = spm_input(str,'!+0','e',32);
+		pst   = [0:dt:pst]';
+		str   = sprintf('order {max = %i}',fix(32/RT/2));
+		h     = spm_input(str,'!+0','e',4);
 
-	else
-		h   = 1;
+		% hanning window
+		%-----------------------------------------------------------
+		L     = max(pst);
+		if Cov == 1
+			g = ones(size(pst));
+		else
+			g = (1 - cos(2*pi*(pst)/L))/2;
+		end
+
+		% zeroth and higher terms
+		%-----------------------------------------------------------
+		DER   = g;
+		for i = 1:h
+			DER = [DER g.*sin(i*2*pi*pst/L)];
+			DER = [DER g.*cos(i*2*pi*pst/L)];	
+		end
+
+	elseif Cov == 3
+
+		% Gamma functions and derivatives
+		%-----------------------------------------------------------
+		pst   = 0:dt:32;
+		dx    = 0.01;
+		D     = spm_Volt_W(pst);
+		DER   = [D (spm_Volt_W(pst - dx) - D)/dx];
 	end
 
 	% scans (model the same event for all sessions)
 	%-------------------------------------------------------------------
+	h     = size(DER,2);
 	k     = sum(nscan);
 
 	% cycle over events
@@ -269,37 +290,15 @@ if ER
 			pst(j) = u(j)*RT;
 		end
 
-		% Windowed (Hanning) Fourier set
+		% create stimulus functions
 		%-----------------------------------------------------------
-		if Cov == 1
-
-			% hanning window
-			%--------------------------------------------------
-			L     = (16 + RT);
-			g     = (1 - cos(2*pi*(pst + RT)/L))/2;
-			g(pst > L) = 0*g(pst > L);
-
-			% zeroth and higher terms
-			%--------------------------------------------------
-			D     = g;
-			for i = 1:hf
-			    W = g.*sin(i*2*pi*pst/L);
-			    D = [D W(:)];
-			    W = g.*cos(i*2*pi*pst/L);
-			    D = [D W(:)];	
-			end
+		D     = [];
+		SF    = full(sparse(ons*RT/dt,1,1,k*RT/dt,1));
+		j     = round([1:k]*RT/dt);
+		for i = 1:h
+			d = conv(SF,DER(:,i));
+			D = [D d(j)];
 		end
-
-		% Gamma functions and derivatives
-		%-----------------------------------------------------------
-		if Cov == 2
-			dx     = 0.01;
-			D      = spm_Volt_W(pst);
-			D      = [D (spm_Volt_W(pst - dx) - D)/dx];
-		end
-
-		D     = D(1:k,:);
-
 
 		% append to E, ERI and PST
 		%-----------------------------------------------------------
@@ -437,6 +436,7 @@ if ER
 
 	% save design matrix, indices and peri-stimulus times for plotting
 	%-------------------------------------------------------------------
+	DER   = [zeros(4/dt,size(DER,2)); DER];
 	if length(ERI)
 		save ER ERI DER PST
 	end
