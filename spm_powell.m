@@ -21,7 +21,7 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 
 p     = p(:);
 f     = feval(func,p,varargin{:});
-for iter=1:128,
+for iter=1:512,
 	fprintf('iteration %d...\n', iter);
 	pp   = p;
 	fp   = f;
@@ -110,8 +110,10 @@ while t(2).f > t(3).f,
 	if pol(3)>0,
 		% minimum is when gradient of polynomial is zero
 		d    = -pol(2)/(2*pol(3)+eps);
-		if d > 10*(t(3).p-t(2).p),
-			d = 10*(t(3).p-t(2).p);
+
+		% A very conservative constraint on the displacement
+		if d > (1+gold)*(t(3).p-t(2).p),
+			d = (1+gold)*(t(3).p-t(2).p);
 		end;
 		u.p  = t(2).p+d;
 	else,
@@ -124,6 +126,7 @@ while t(2).f > t(3).f,
 	u.f  = funeval(u.p);
 
 	if (t(2).p < u.p) == (u.p < t(3).p),
+
 		% u is between t(2) and t(3)
 		if u.f < t(3).f,
 			% minimum between t(2) and t(3) - done
