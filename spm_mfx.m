@@ -145,10 +145,16 @@ X2       = xCon(I).c;
 X2       = kron(X2,speye(nP,nP));
 nC       = size(X2,2);
 
-% compute
-%-----------------------------------------------------------------------
+
+
+% Construct 2nd-level SPM specification (S)
+%=======================================================================
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...ReML esimation')      %-#
 spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
+
+xsDes.Design = '2nd-level MFX analysis';
+xsDes.Name   = SPM.xCon.name;
+S.xsDes	     = xsDes;		% description
 
 
 % names for nC contrasts in X2 and nP parameters
@@ -160,6 +166,14 @@ for j = 1:nP
 end
 end
 
+sF    = {'parameters','session','',''};
+I     = [];
+for i = 1:n
+for j = 1:nP
+	I(end + 1,:)  = [j i 1 1];
+end
+end
+
 % set fields
 %-----------------------------------------------------------------------
 S.xX.X    = X2;
@@ -168,6 +182,8 @@ S.xX.iH   = [];
 S.xX.iC   = [1:size(X2,2)];
 S.xX.iB   = [];
 S.xX.iG   = [];
+S.xX.I    = I;
+S.xX.sF   = sF;
 
 
 % mixed covariance components
@@ -212,13 +228,14 @@ M1       = pX1(iX1,:)*spm_filter(K,W);
 % project 1st-level covariance components to 2nd-level and save in xVi
 %-----------------------------------------------------------------------
 V2    = M1*V1*M1';
+V2    = V2*length(V2)/trace(V2);
 for i = 1:length(Q);
 	Vi{i} = M1*Q{i}*M1';
 end
 
 S.xVi.V  = sparse(V2);
-S.xVi.Vi = sparse(V2);
-S.xVi.h  = sparse(V2);
+S.xVi.Vi = Vi{i};
+S.xVi.h  = h;
 
 
 % smoothness and volume infomation
