@@ -283,27 +283,24 @@ elseif Cp >= 3
 	%---------------------------------------------------------------
 	figure(Fgraph)
 	[p q] = sort(x);
-	x     = x(q);
-	Y     = Y(q);
-	y     = y(q);
 
 	if Cp == 3
 
-		plot(x,Y)
+		plot(x(q),Y(q))
 
 	elseif Cp == 4
 
-		plot(x,y)
+		plot(x(q),y(q))
 
 	elseif Cp == 5
 
-		if all(diff(x))
-			plot(x,Y,'b',x,y,':')
+		if all(diff(x(q)))
+			plot(x(q),Y(q),'b',x(q),y(q),':')
 		else
-			plot(x,Y,'b')
+			plot(x(q),Y(q),'b')
 		end
 		axis square
-		line(x,y,'LineStyle','.','MarkerSize',MSize)
+		line(x(q),y(q),'LineStyle','.','MarkerSize',MSize)
 
 	end
 	xlabel(Xlab)
