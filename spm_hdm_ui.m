@@ -201,6 +201,7 @@ axis square
 title({	['1st order kernels for ' U.name{j}];...
 	'state variables: s, f, q and v'},'FontSize',9)
 ylabel('normalized values')
+legend('s','f','q','v',0);
 grid on
 
 
