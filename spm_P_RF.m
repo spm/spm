@@ -148,7 +148,7 @@ elseif  STAT == 'T'
 	v       = df(2);
 	a       = 4*log(2);
 	b       = exp(gammaln((v+1)/2) - gammaln(v/2));
-	c       = (1+t^2/v)^((1-v)/2);
+	c       = (1+t.^2/v).^((1-v)/2);
 
 	EC(1,:) = 1 - spm_Tcdf(t,v);
 	EC(2,:) = a^(1/2)/(2*pi)*c;
