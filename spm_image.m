@@ -55,7 +55,7 @@ if nargin==0,
 	return;
 end;
 
-if ~strcmp(op,'init') & isempty(st.vols{1}), warning('Lost all the image information'); return; end;
+if ~strcmp(op,'init') & ~strcmp(op,'reset') & isempty(st.vols{1}), my_reset; warning('Lost all the image information'); return; end;
 
 if strcmp(op,'repos'),
 	% The widgets for translation rotation or zooms have been modified.
@@ -225,8 +225,7 @@ if strcmp(op,'update_info'),
 end;
 
 if strcmp(op,'reset'),
-	spm_orthviews('reset');
-	spm_figure('Clear');
+	my_reset;
 end;
 
 if strcmp(op,'zoom_in'),
@@ -413,4 +412,10 @@ uicontrol(fg,'Style','pushbutton','Position',[315 35 125 20].*WS,...
 st.blobber = uicontrol(fg,'Style','pushbutton','Position',[450 35 125 20].*WS,...
 	'String','Add Blobs','Callback','spm_image(''addblobs'');','ToolTipString','superimpose activations');
 end;
+return;
+
+
+function my_reset
+spm_orthviews('reset');
+spm_figure('Clear','Graphics');
 return;
