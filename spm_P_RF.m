@@ -60,6 +60,7 @@ P       = triu(toeplitz(EC'.*G))^n;
 P       = P(1,:)';
 Em      = (R./G)*P;
 EN      = P(1)*R(D);
+Em      = Em + eps;
 En      = EN/Em;
 
 
@@ -98,7 +99,7 @@ end
 
 % Poisson clumping heuristic {for multiple clusters}
 %===========================================================================
-P       = 1 - spm_Pcdf([0:(c - 1)],Em*p + eps);
+P       = 1 - spm_Pcdf(c - 1,Em*p);
 
 
 % set P and p = [] for non-implemented cases
