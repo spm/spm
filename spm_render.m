@@ -104,11 +104,11 @@ for i=1:length(rend),
 end;
 if showbar, spm_progress_bar('Clear'); end;
 
-if showbar, spm_progress_bar('Init', size(dat,1)*length(rend),...
+if showbar, spm_progress_bar('Init', length(dat)*length(rend),...
 			'Making pictures', 'Number completed'); end;
 
 mx = zeros(length(rend),1)+eps;
-for j=1:size(dat,1),
+for j=1:length(dat),
 	XYZ = dat(j).XYZ;
 	t   = dat(j).t;
 	dim = dat(j).dim;
@@ -174,6 +174,7 @@ if showbar, hght = 0.95; else, hght = 0.5; end;
 % subplot('Position',[0, 0, 1, hght]);
 ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
 image(0,'Parent',ax);
+set(ax,'YTick',[],'XTick',[]);
 
 if flg==1,
 	% Old style split colourmap display.
@@ -190,8 +191,8 @@ if flg==1,
 			'Visible','off');
 		image(ren*64,'Parent',ax);
 		set(ax,'DataAspectRatio',[1 1 1], ...
-			'PlotBoxAspectRatioMode','auto')
-		set(ax,'XDir','normal'); set(ax,'YDir','normal');
+			'PlotBoxAspectRatioMode','auto',...
+			'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
 	end;
 else,
 	% Combine the brain surface renderings with the blobs, and display using
@@ -200,10 +201,10 @@ else,
 	for i=1:length(rend),
 		ren = rend{i}.ren;
 		X = cell(3,1);
-		for j=1:size(rend{i}.data,1),
+		for j=1:length(rend{i}.data),
 			X{j} = rend{i}.data{j}/mxmx;
 		end
-		for j=(size(rend{i}.data,1)+1):3
+		for j=(length(rend{i}.data)+1):3
 			X{j}=zeros(size(X{1}));
 		end
 
@@ -218,8 +219,9 @@ else,
 			'Visible','off');
 		image(rgb,'Parent',ax);
 		set(ax,'DataAspectRatio',[1 1 1], ...
-			'PlotBoxAspectRatioMode','auto')
-		set(ax,'XDir','normal'); set(ax,'YDir','normal');
+			'PlotBoxAspectRatioMode','auto',...
+			'YTick',[],'XTick',[],...
+			'XDir','normal','YDir','normal');
 	end;
 end;
 
