@@ -112,9 +112,9 @@ if flags.write.cleanup, [g,w,c] = clean_gwc(g,w,c); end;
 
 % Create the segmented images.
 %-----------------------------------------------------------------------
-offs  = cumsum(repmat(prod(VF(1).dim(1:2)),1,VF(1).dim(3)))-prod(VF(1).dim(1:2));
-pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
-[pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
+%offs  = cumsum(repmat(prod(VF(1).dim(1:2)),1,VF(1).dim(3)))-prod(VF(1).dim(1:2));
+%pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
+[pth,nm,xt] = fileparts(deblank(VF(1).fname));
 for j=1:3,
 	tmp   = fullfile(pth,[nm '_seg' num2str(j) xt]);
 	VO(j) = struct(...
@@ -223,9 +223,9 @@ return;
 %=======================================================================
 function M = get_affine_mapping(VF,VG,aflags)
 
-if ~isempty(VG) & ischar(VG), VG = spm_vol(VG); end;
+if ~isempty(VG) && ischar(VG), VG = spm_vol(VG); end;
 
-if ~isempty(VG) & isstruct(VG),
+if ~isempty(VG) && isstruct(VG),
 	% Affine registration so that a priori images match the image to
 	% be segmented.
 	%-----------------------------------------------------------------------
@@ -345,7 +345,7 @@ for iter = 1:64,
 	%-----------------------------------------------------------------------
 	if iter == 2,
 		ll2 = ll;
-	elseif iter > 2 & abs((ll-oll)/(ll-ll2)) < 0.0001
+	elseif iter > 2 && abs((ll-oll)/(ll-ll2)) < 0.0001
 		break;
 	end;
 	oll = ll;
@@ -364,7 +364,7 @@ BP.B2    = spm_dctmtx(VF(1).dim(2),BP.nbas(2));
 BP.B3    = spm_dctmtx(VF(1).dim(3),BP.nbas(3));
 
 nbas     = BP.nbas;
-if BP.nbas>1,
+if prod(BP.nbas)>1,
 	% Set up a priori covariance matrix
 	vx = sqrt(sum(VF(1).mat(1:3,1:3).^2));
 	kx=(pi*((1:nbas(1))'-1)*pi/vx(1)/VF(1).dim(1)*10).^2;
@@ -394,7 +394,7 @@ if BP.nbas>1,
 	% Initial estimate for intensity modulation field
 	BP.T   = zeros(nbas(1),nbas(2),nbas(3),length(VF));
 	%-----------------------------------------------------------------------
-else,
+else
 	BP.T   = zeros([1 1 1 length(VF)]);
 	BP.IC0 = [];
 end;
@@ -497,7 +497,7 @@ return;
 %=======================================================================
  
 %=======================================================================
-function CP = shake_cp(CP);
+function CP = shake_cp(CP)
 CP.mom0(:,5,:)   = CP.mom0(:,1,:);
 CP.mom0(:,6,:)   = CP.mom0(:,2,:);
 CP.mom0(:,7,:)   = CP.mom0(:,3,:);
@@ -530,7 +530,7 @@ for i=1:size(CP.mom0,2),
 	CP.mn(:,i)   = sum(CP.mom1(:,i,:),3)/CP.mg(1,i);
 
 	tmp          = (CP.mg(1,i).*CP.mn(:,i))*CP.mn(:,i)';
-	tmp          = tmp-eye(size(tmp))*eps*1000;
+	tmp          = tmp-eye(size(tmp))*eps*10000;
 	CP.cv(:,:,i) = (sum(CP.mom2(:,:,i,:),4) - tmp)/CP.mg(1,i) + CP.cv0;
 end;
 CP.mg   = CP.mg/sum(CP.mg);
@@ -554,7 +554,7 @@ for i=1:n,
 	p(msk,i)  = (amp*CP.mg(1,i)/sums(i))*exp(-0.5*dst).*tmp(msk) +eps;
 end;
 sp = sum(p,2);
-ll = sum(log(sp(msk).*bf(msk)));
+ll = sum(log(sp(msk).*bf(msk)+eps));
 sp(~msk) = Inf;
 for i=1:n, p(:,i) = p(:,i)./sp; end;
 p  = reshape(p,d(1),d(2),n);
@@ -562,7 +562,7 @@ return;
 %=======================================================================
  
 %=======================================================================
-function SP = init_sp(flags,VF,PG,x1,x2,x3);
+function SP = init_sp(flags,VF,PG)
 SP.VB       = spm_vol(flags.priors);
 MM          = get_affine_mapping(VF,PG,flags.affreg);
 %VF          = spm_vol(PF);
@@ -626,7 +626,7 @@ for pp=1:length(x3),
 end;
 spm_progress_bar('Clear');
 
-if wc, VC = spm_close_vol(VC); end;
+if wc, spm_close_vol(VC); end;
 return;
 %=======================================================================
  
@@ -648,7 +648,7 @@ kx=kx/sm; ky=ky/sm; kz=kz/sm;
 niter = 32;
 spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
 for j=1:niter,
-	if j>2, th=0.15; else, th=0.6; end; % Dilate after two its of erosion.
+	if j>2, th=0.15; else th=0.6; end; % Dilate after two its of erosion.
 	for i=1:size(b,3),
 		gp = double(g(:,:,i));
 		wp = double(w(:,:,i));
