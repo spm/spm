@@ -10,24 +10,7 @@ function spm_dicom_convert(hdr,opts)
 %
 % Converted files are written to the current directory
 %_______________________________________________________________________
-% %W% John Ashburner %E%
-%
-% This version has been hacked to allow for conversion of
-% diffusion weighted EPI data acquired with the GE scanners
-% at MRC, Karolinska, Stockholm.
-% The problem with these data is that there is NOTHING in
-% the DICOM headers to distinguish the different volumes
-% acquired with different diffusion gradients. The result
-% is that all slices from the entire dwi/DTI protocol get
-% squeezed into a single volume. This volume will then have
-% multiple slices with the same z-position, and will (in the
-% original version of spm_dicom_convert) cause a warning.
-% I have "solved" this by adding an additional branch to
-% be executed if we have multiple slices at the same location
-% AND data have been acquired on a GE scanner.
-% Its not pretty, but most of us aren't.
-%_______________________________________________________________________
-% Jesper Andersson
+% %W% John Ashburner & Jesper Andersson %E%
 
 if nargin<2, opts = 'all'; end;
 
@@ -211,8 +194,8 @@ for i=2:length(hdr),
 			  hdr{i}.TemporalPositionIdentifier == vol{j}{1}.TemporalPositionIdentifier) &&...
 		          hdr{i}.Rows                    == vol{j}{1}.Rows &&...
 		          hdr{i}.Columns                 == vol{j}{1}.Columns &&...
-		      all(hdr{i}.ImageOrientationPatient == vol{j}{1}.ImageOrientationPatient) &&...
-		      all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing & dist2<0.00001) &&...
+		  all(abs(hdr{i}.ImageOrientationPatient -  vol{j}{1}.ImageOrientationPatient)<=1e-5) &&...
+		      all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing & dist2<1e-4) &&...
 	        (~isfield(hdr{i},'EchoNumbers')  || ~isfield(vol{j}{1},'EchoNumbers') || ...
 		          hdr{i}.EchoNumbers             == vol{j}{1}.EchoNumbers),
 			vol{j}{end+1} = hdr{i};
@@ -230,6 +213,7 @@ end;
 % slices depending on .ImageOrientationPatient field.
 %
 
+vol2 = {};
 for j=1:length(vol),
 	orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
 	proj   = null(orient');
@@ -244,22 +228,155 @@ for j=1:length(vol),
 	if length(vol{j})>1,
 		dist      = diff(z);
 		if any(diff(z)==0)
-		%
-		% So, if this is a GE scanner we might have
-		% the "DTI-series" problem. Lets assume so.
+			% So, if this is a GE scanner we might have
+			% the "DTI-series" problem. Lets assume so.
 
-			if isfield(hdr{1},'Manufacturer') &&... 
-				strcmpi(hdr{1}.Manufacturer,'ge medical systems')
-				vol = sort_ge_into_volumes(vol);
-				break;
-			else
-				warning('Looks like there is something wrong with the conversion software.');
-			end
-		end;
-		if sum((dist-mean(dist)).^2)/length(dist)>0.001,
-			warning('Variable slice spacing');
+			% if isfield(vol{j}{1},'Manufacturer') &&... 
+			%	strcmpi(vol{j}{1}.Manufacturer,'ge medical systems') &&...
+			%	isfield(vol{j}{1},'Private_0021_104f') &&...
+			%	isfield(vol{j}{1},'Private_0019_1019') &&...
+			%	isfield(vol{j}{1},'Private_0019_101b')
+			%	vol = sort_ge_into_volumes(vol);
+			%	break;
+			% else
+				tmp = sort_into_vols_again(vol{j});
+				vol{j} = tmp{1};
+				vol2 = {vol2{:} tmp{2:end}};
+			% end
 		end;
 	end;
+end;
+vol = {vol{:} vol2{:}};
+for j=1:length(vol),
+	if length(vol{j})>1,
+		orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
+		proj   = null(orient');
+		if det([orient proj])<0, proj = -proj; end;
+		z      = zeros(length(vol{j}),1);
+		for i=1:length(vol{j}),
+			z(i)  = vol{j}{i}.ImagePositionPatient*proj;
+		end;
+		[z,index] = sort(z);
+		dist      = diff(z);
+		if sum((dist-mean(dist)).^2)/length(dist)>0.00001,
+			fprintf('***************************************************\n');
+			fprintf('* VARIABLE SLICE SPACING                          *\n');
+			fprintf('* This may be due to missing DICOM files.         *\n');
+			if checkfields(vol{j}{1},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+				fprintf('*    %s / %d / %d / %d \n',...
+					deblank(vol{j}{1}.PatientID), vol{j}{1}.SeriesNumber, ...
+					vol{j}{1}.AcquisitionNumber, vol{j}{1}.InstanceNumber);
+				fprintf('*                                                 *\n');
+			end;
+			fprintf('*  %20.3g                           *\n', dist);
+			fprintf('***************************************************\n');
+		end;
+	end;
+end;
+dcm = vol;
+save('dicom_headers.mat','dcm');
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vol2 = sort_into_vols_again(volj)
+if ~isfield(volj{1},'InstanceNumber'),
+    fprintf('***************************************************\n');
+    fprintf('* The slices may be all mixed up and the data     *\n');
+    fprintf('* not really usable.  Talk to your physicists     *\n');
+    fprintf('* about this.                                     *\n');
+    fprintf('***************************************************\n');
+    vol2 = {volj};
+    return;
+end;
+
+fprintf('***************************************************\n');
+fprintf('* The AcquisitionNumber counter does not appear   *\n');
+fprintf('* to be changing from one volume to another.      *\n');
+fprintf('* Another possible explanation is that the same   *\n');
+fprintf('* DICOM slices are used multiple times.           *\n');
+%fprintf('* Talk to your MR sequence developers or scanner  *\n');
+%fprintf('* supplier to have this fixed.                    *\n');
+fprintf('* The conversion is having to guess how slices    *\n');
+fprintf('* should be arranged into volumes.                *\n');
+if checkfields(volj{1},'PatientID','SeriesNumber','AcquisitionNumber'),
+    fprintf('*    %s / %d / %d\n',...
+        deblank(volj{1}.PatientID), volj{1}.SeriesNumber, ...
+        volj{1}.AcquisitionNumber);
+end;
+fprintf('***************************************************\n');
+
+z      = zeros(length(volj),1);
+t      = zeros(length(volj),1);
+d      = zeros(length(volj),1);
+orient = reshape(volj{1}.ImageOrientationPatient,[3 2]);
+proj   = null(orient');
+if det([orient proj])<0, proj = -proj; end;
+
+for i=1:length(volj),
+    z(i)  = volj{i}.ImagePositionPatient*proj;
+    t(i)  = volj{i}.InstanceNumber;
+end;
+msg = 0;
+[t,index] = sort(t);
+volj      = volj(index);
+z         = z(index);
+msk       = find(diff(t)==0);
+if any(msk),
+    % fprintf('***************************************************\n');
+    % fprintf('* These files have the same InstanceNumber:       *\n');
+    % for i=1:length(msk),
+    %    [tmp,nam1,ext1] = fileparts(volj{msk(i)}.Filename);
+    %    [tmp,nam2,ext2] = fileparts(volj{msk(i)+1}.Filename);
+    %    fprintf('* %s%s = %s%s (%d)\n', nam1,ext1,nam2,ext2, volj{msk(i)}.InstanceNumber);
+    % end;
+    % fprintf('***************************************************\n');
+    index = [logical(1) ; diff(t)~=0];
+    t     = t(index);
+    z     = z(index);
+    d     = d(index);
+    volj  = volj(index);
+end;
+
+if any(diff(sort(t))~=1), msg = 1; end;
+[z,index] = sort(z);
+volj      = volj(index);
+t         = t(index);
+vol2      = {};
+while ~all(d),
+    i  = find(~d);
+    i  = i(1);
+    i  = find(z==z(i));
+    [t(i),si] = sort(t(i));
+    volj(i)   = volj(i(si));
+    for i1=1:length(i),
+        if length(vol2)<i1, vol2{i1} = {}; end;
+        vol2{i1} = {vol2{i1}{:} volj{i(i1)}};
+    end;
+    d(i) = 1;
+end;
+
+msg = 0;
+if any(diff(sort(t))~=1), msg = 1; end;
+if ~msg,
+    len = length(vol2{1});
+    for i=2:length(vol2),
+        if length(vol2{i}) ~= len,
+            msg = 1;
+            break;
+        end;
+    end;
+end;
+if msg,
+    fprintf('***************************************************\n');
+    fprintf('* There are missing DICOM files, so the the       *\n');
+    fprintf('* resulting volumes may be messed up.             *\n');
+    if checkfields(volj{1},'PatientID','SeriesNumber','AcquisitionNumber'),
+        fprintf('*    %s / %d / %d\n',...
+            deblank(volj{1}.PatientID), volj{1}.SeriesNumber, ...
+            volj{1}.AcquisitionNumber);
+    end;
+    fprintf('***************************************************\n');
 end;
 return;
 %_______________________________________________________________________
@@ -273,14 +390,6 @@ function vol = sort_ge_into_volumes(pvol)
 % file headers.
 %
 
-if ~isfield(pvol{1}{1},'Private_0021_104f') ||...
-   ~isfield(pvol{1}{1},'Private_0019_1019') ||...
-   ~isfield(pvol{1}{1},'Private_0019_101b')
-	warning('Looks like there is something wrong with the conversion software.');
-	vol = pvol;
-	return
-end
-   
 %
 % First of all check how many slices there "should" be
 % in each volume. And that there is agreement.
@@ -532,18 +641,18 @@ guff   = {};
 for i=1:length(hdr),
 	if ~checkfields(hdr{i},'Modality') || ~(strcmp(hdr{i}.Modality,'MR') ||...
 		strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'CT'))
-		%disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
+		disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
 		'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
-		%disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
+		disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient'),
-		%disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
+		disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'PatientID','InstanceNumber'),
 	%elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
-		%disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
+		disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	else
 		images = {images{:},hdr{i}};
