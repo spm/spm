@@ -114,6 +114,9 @@ switch xBF.name
 	bin   = l/h;
 	bf    = kron(eye(h),ones(round(bin/dt),1));
 
+	case {'NONE'}
+	%---------------------------------------------------------------
+	bf = 1;
 
 otherwise
 
