@@ -44,6 +44,9 @@ function TabDat = spm_VOI(SPM,hReg)
 % (i.e. as the input used in stats estimation). The VOI is defined by
 % voxels with values greater than 0.
 %
+% FDR computations are not resticted by the small search volume unless
+% a mask image is used.
+%
 % See also: spm_list
 %_______________________________________________________________________
 % %W% Karl Friston %E%
@@ -63,10 +66,7 @@ spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
 %-Get current location
 %-----------------------------------------------------------------------
 xyzmm   = spm_results_ui('GetCoords');
-M       = SPM.M(1:3,1:3);
-iM      = SPM.iM(1:3,1:3);
-DIM     = SPM.DIM;
-VSF     = [1 1 1];   		% voxel scaling factor for extrinsic VOIs
+VSF     = [1 1 1];   		% voxel scaling factor for Mask image VOIs
 
 %-Specify search volume
 %-----------------------------------------------------------------------
@@ -78,7 +78,7 @@ Q       = ones(1,size(SPM.XYZmm,2));
 
 switch SPACE
 
-	case 'S' % Sphere
+	case 'S' %-Sphere
 	%---------------------------------------------------------------
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
@@ -86,7 +86,7 @@ switch SPACE
 	D     = D./SPM.VOX;
 	S     = (4/3)*pi*prod(D);
 
-	case 'B' % Box
+	case 'B' %-Box
 	%---------------------------------------------------------------
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
@@ -94,7 +94,7 @@ switch SPACE
 	D     = D(:)./SPM.VOX(:);
 	S     = prod(D);
 
-	case 'V' %-Voxels
+	case 'V' %-Voxel cluster
 	%---------------------------------------------------------------
 	if ~length(SPM.XYZ)
 		spm('alert!','No suprathreshold clusters!',mfilename,0);
@@ -110,18 +110,20 @@ switch SPACE
 	D     = SPM.XYZ(:,j);
 	S     = length(j);
 
-	case 'I' % Image
+	case 'I' %-Mask Image
 	%---------------------------------------------------------------
 	Msk   = spm_get(1,'.img','Image defining search volume');
 	D     = spm_vol(Msk);
-	MM    = D.mat(1:3,1:3);
-	VSF   = SPM.VOX./sqrt(diag(MM'*MM))';
-
+	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
+	M     = D.mat(1:3,1:3);
+	VSF   = SPM.VOX./sqrt(diag(M'*M))';
 	XYZ   = D.mat \ [SPM.XYZmm; ones(1, size(SPM.XYZmm, 2))];
 	j     = find(spm_sample_vol(D, XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > 0);
-	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-
 	S     = length(find(spm_read_vols(D)));
+
+	% reset mask volume for FDR
+	%---------------------------------------------------------------
+	SPM.Msk = D;
 
 end
 spm('Pointer','Watch')
@@ -134,19 +136,14 @@ SPM.XYZmm = SPM.XYZmm(:,j);
 SPM.R     = spm_resels(SPM.FWHM.*VSF,D,SPACE);
 SPM.S     = S/prod(VSF);
 
-SPM.Msk   =  SPM.XYZ(1,:) + ...
-            (SPM.XYZ(2,:) - 1)*DIM(1) + ...
-            (SPM.XYZ(3,:) - 1)*DIM(1)*DIM(2);
-
-
 %-Tabulate p values
 %-----------------------------------------------------------------------
-str    = sprintf('search volume: %s',str);
+str       = sprintf('search volume: %s',str);
 if any(strcmp(SPACE,{'S','B','V'}))
 	str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
 end
 
-TabDat = spm_list('List',SPM,hReg,Num,Dis,str);
+TabDat    = spm_list('List',SPM,hReg,Num,Dis,str);
 
 %-Reset title
 %-----------------------------------------------------------------------
