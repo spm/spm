@@ -1466,6 +1466,7 @@ case 'swap_img',
 	st.vols{current_handle}.mat     = new_info.mat;
 	st.vols{current_handle}.pinfo   = new_info.pinfo;
 	st.vols{current_handle}.descrip = new_info.descrip;
+	spm_orthviews('context_menu','image_info',get(gcbo, 'parent'));
 	redraw_all;
 
 case 'add_blobs',
