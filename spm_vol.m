@@ -65,10 +65,10 @@ end;
 counter = 0;
 for i=1:size(P,1),
 	v = subfunc(P(i,:));
-    [V(1, counter+1:counter+size(v, 2)).fname] = deal('');
-    [V(1, counter+1:counter+size(v, 2)).mat] = deal([0 0 0 0]);
-    [V(1, counter+1:counter+size(v, 2)).mat] = deal(eye(4));
-    [V(1, counter+1:counter+size(v, 2)).mat] = deal([1 0 0]');
+	[V(counter+1:counter+size(v, 2),1).fname] = deal('');
+	[V(counter+1:counter+size(v, 2),1).mat] = deal([0 0 0 0]);
+	[V(counter+1:counter+size(v, 2),1).mat] = deal(eye(4));
+	[V(counter+1:counter+size(v, 2),1).mat] = deal([1 0 0]');
 	if isempty(v),
 		hread_error_message(P(i,:));
 		error(['Can''t get volume information for ''' P(i,:) '''']);
@@ -76,10 +76,10 @@ for i=1:size(P,1),
     
 	f = fieldnames(v);
 	for j=1:size(f,1),
-		eval(['[V(counter+1:counter+size(v,2)).' f{j} '] = deal(v.' f{j} ');']);
+		eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
 		%V(i) = setfield(V(i),f{j},getfield(v,f{j}));
 	end;
-    counter = counter + size(v,2);
+	counter = counter + size(v,2);
 end;
 return;
 
