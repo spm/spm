@@ -351,7 +351,7 @@ switch cF
 	case 'none'
 	%---------------------------------------------------------------
 	HParam = cell(1,nsess);
-	Fstr   = cLF;
+	Fstr   = cF;
 
 end
 
