@@ -11,8 +11,6 @@ function [Ce,h,W] = spm_REML(Cy,X,Q);
 %___________________________________________________________________________
 % %W% John Ashburner, Karl Friston %E%
 
-flops(0)
-
 % order
 %---------------------------------------------------------------------------
 m     = length(Cy);
@@ -64,7 +62,4 @@ for k = 1:128
 		Ce = Ce + h(i)*Q{i};
 	end
 	iCe   = inv(Ce);
-
 end
-f = flops;
-disp([f k])
