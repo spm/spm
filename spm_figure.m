@@ -972,9 +972,11 @@ case 'hot'
 case 'pink'
 	colormap(pink(64))
 case 'gray-hot'
-	colormap([gray(64); hot(64)])
+	tmp = hot(64 + 16);  tmp = tmp([1:64] + 16,:);
+	colormap([gray(64); tmp])
 case 'gray-pink'
-	colormap([gray(64); pink(64)])
+	tmp = pink(64 + 16); tmp = tmp([1:64] + 16,:);
+	colormap([gray(64); tmp])
 case 'invert'
 	colormap(flipud(colormap))
 case 'brighten'
