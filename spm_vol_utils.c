@@ -58,7 +58,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define RESAMPLE_SINC resample_double_sinc
 #define SLICE_0 slice_double_0
 #define SLICE_1 slice_double_1
-#define SLICE_SINC slice_sinc_sinc
+#define SLICE_SINC slice_double_sinc
 
 #else
 #define RESAMPLE resample_uchar
