@@ -1,30 +1,27 @@
-function spm_dcm_ui(SPM,VOL,xX,xCon,xSDM,hReg,Action)
+function [DCM] = spm_dcm_ui(Action)
 % user interface for Dynamic Causal Modeling (DCM)
-% FORMAT spm_dcm_ui(SPM,VOL,xX,xCon,xSDM,hReg,Action);
+% FORMAT [DCM] = spm_dcm_ui('specify');
+% FORMAT [DCM] = spm_dcm_ui('review');
 %
-% SPM    - structure containing SPM, distribution & filtering detals
-% VOL    - structure containing details of volume analysed
-% xX     - Design Matrix structure
-% xSDM   - structure containing contents of SPM.mat file
-% xCon   - Contrast definitions structure (see spm_FcUtil.m for details)
-% hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
+% Specify a new model or review a previously estimated model
 %
-% saves DCM.mat
+% saves DCM_???.mat
 %
 %	DCM.M      - model  specification structure (see spm_nlsi)
 %	DCM.Y      - output specification structure (see spm_nlsi)
 %	DCM.U      - input  specification structure (see spm_nlsi)
+%	DCM.Ep     - posterior expectations (see spm_nlsi)
+%	DCM.Cp     - posterior covariances (see spm_nlsi)
 %	DCM.A      - intrinsic connection matrix
 %	DCM.B      - input-dependent connection matrix
-%	DCM.C      - nput connection matrix
+%	DCM.C      - input connection matrix
 %	DCM.pA     - pA - posterior probabilities
 %	DCM.pB     - pB - posterior probabilities
 %	DCM.pC     - pC - posterior probabilities
-%	DCM.H1     - 1st order Volterra Kernels - neuronal
-%	DCM.K1     - 1st order Volterra Kernels - hemodynamic
-%	DCM.xh     - time points - kernels
-%	DCM.xy     - time points - ouputs
-%	DCM.xu     - time points - inputs
+%	DCM.H1     - 1st order Volterra Kernels - hemodynamic
+%	DCM.H2     - 1st order Volterra Kernels - hemodynamic
+%	DCM.K1     - 1st order Volterra Kernels - neuronal
+%	DCM.K1     - 1st order Volterra Kernels - neuronal
 %	DCM.R      - residuals
 %	DCM.y      - predicte responses
 %	DCM.xY     - original response variable structures
@@ -40,66 +37,28 @@ Fgraph = spm_figure('GetWin','Graphics');
 header = get(Finter,'Name');
 set(Finter,'Name','Dynamic Causal Modelling')
 WS     = spm('WinScale');
-global SWD
-
 
 % options
 %---------------------------------------------------------------------------
-if nargin < 7
-	str    = 'specify or review an analysis';
-	if spm_input(str,1,'b',{'new','results'},[0 1]);
-		Action = 'results';
-	else
-		Action = spm_input('specify',1,'b',{'VOIs','graph'});
-	end
+if ~nargin
+	str    = 'specify or review a model';
+	Action = spm_input(str,1,'b',{'specify','review'});
 end
-
 
 switch Action
 
-% specify VOIs
-%---------------------------------------------------------------------------
-case 'VOIs'
-
-	% display volume maxima
-	%-------------------------------------------------------------------
-	spm_list('List',SPM,VOL,[],[],'',hReg);
-
-	% which session?
-	%-------------------------------------------------------------------
-	s         = length(xSDM.Sess);
-	if s > 1
-		s = spm_input('which session','+1','r',1,1,s);
-	end
-
-	% get VOIs
-	%-------------------------------------------------------------------
-	str   = ['xY = struct(	''Ic'',		 1,',...
- 	   			'''filter'',	''high'',',...
- 	   			'''Sess'',' 	 sprintf('%i',s) ',',...
- 	      			'''def'',	''sphere'',',...
-  	    			'''spec'',	 4);',...
-		'spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY);'];
-
-	h(1)  = uicontrol(Finter,'String','save region',...
-		'Position',[040 200 240 020].*WS,...
-		'CallBack',str);
-	str   = ['delete(get(gco,''Userdata'')),',...
-		 'spm_input(''Thank you'',1,''d''),return'];
-	h(2)  = uicontrol(Finter,'String','done',...
-		'Position',[300 200 060 020].*WS,...
-		'CallBack',str);
-	set(h(2),'UserData',h);
-
-
 % specify graph and estimate
 %---------------------------------------------------------------------------
-case 'graph'
+case 'specify'
+
+	% get design and directory
+	%===================================================================
+	swd   = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	load(fullfile(swd,'SPM.mat'))
 
 	% name
 	%===================================================================
 	name  = spm_input('name for DCM_???.mat','+1','s');
-
 
 	% outputs
 	%===================================================================
@@ -117,28 +76,22 @@ case 'graph'
 	% inputs
 	%===================================================================
 
-	% get 'causes' or imputs U
+	% get 'causes' or inputs U
 	%-------------------------------------------------------------------
-	Sess  = xSDM.Sess{xY.Sess};
+	spm_input('Input specification:...  ',1,'d');
+	Sess   = Sess{(xY(1).Sess)}
+	U.dt   = Sess.U{1}.dt;
+	u      = length(Sess.U);
+	U.name = {};
 	U.u    = [];
-	U.dt   = xX.dt;
-	n      = length(Sess.sf{1});
-	e      = spm_input('trial types?','+1','b','event|epoch',[1 0]);
-	d      = 0;
-	for  i = 1:length(Sess.sf)
-		trial       = Sess.name{i};
-		if e
-			u   = Sess.sf{i}/U.dt;
-		else
-			str = sprintf('duration (scans): %s',trial);
-			d   = spm_input(str,'+0','w',d,[1 1]);
-			q   = max([1 d*xX.RT/xX.dt]);
-			u   = full(Sess.sf{i});
-			u   = conv(u,ones(q,1));
-			u   = sparse(u(1:n));
+	for  i = 1:u
+	for  j = 1:length(Sess.U{i}.Uname)
+		str   = ['include ' Sess.U{i}.Uname{j} '?'];
+		if spm_input(str,2,'y/n',[1 0])
+			U.u             = [U.u Sess.U{i}.u(33:end,j)];
+			U.name{end + 1} = Sess.U{i}.Uname{j};
 		end
-		U.u         = [U.u u];
-		U.name{i}   = trial;
+	end
 	end
 
 
@@ -186,7 +139,7 @@ case 'graph'
 	% wait for 'done'
 	%-----------------------------------------------------------
 	while(1)
-		waitforbuttonpress;
+		pause(0.01)
 		if strcmp(get(gco,'Type'),'uicontrol')
 			if strcmp(get(gco,'String'),'done')
 				for i = 1:m
@@ -232,8 +185,9 @@ case 'graph'
 
 		% wait for 'done'
 		%-----------------------------------------------------------
+		set(gcf,'CurrentObject',h2(1))
 		while(1)
-			waitforbuttonpress;
+			pause(0.01)
 			if strcmp(get(gco,'Type'),'uicontrol')
 			if strcmp(get(gco,'String'),'done')
 
@@ -271,7 +225,7 @@ case 'graph'
 	% confounds
 	%-------------------------------------------------------------------
 	v     = size(xY(1).u,1);
-	X0    = [ones(v,1) full(xX.K{xY(1).Sess}.KH)];
+	X0    = [ones(v,1) (xX.K{xY(1).Sess}.KH)];
 
 
 	% response variables
@@ -284,74 +238,66 @@ case 'graph'
 	Y.dt  = xX.RT;
 	Y.X0  = X0;
 	Y.Ce  = spm_Ce(v*ones(1,n));
+	Y.pC  = eye(n)*(Y.dt/2).^2;          		% priors on timing
 
-
-	% input variables
+	% priors - expectations
 	%-------------------------------------------------------------------
-	[u m] = size(U.u);
-
-
-	% prior contraints - expectations
-	%-------------------------------------------------------------------
-	A     = -eye(n)*log(2)/0.5;		% 500ms neuronal half life
-	B     = zeros(n,n,m);
-	C     = zeros(n,m);
-	D     = zeros(n,1);
-
-	% prior contraints - variances
-	%-------------------------------------------------------------------
-	T     = 1/4;				% threshold T1/2 = log(2)/T
-	q     = (T/2)^2;
-	a     = a - diag(diag(a));
-	a     = a*q;
-	b     = b*q;
-	c     = c*q;
-	d     = zeros(n,1);
+	[pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
 
 	% model specification and nonlinear system identification
 	%-------------------------------------------------------------------
 	M.fx  = 'spm_fx_dcm';
 	M.lx  = 'spm_lx_dcm';
 	M.x   = sparse(n*5,1);
-	M.pE  =      [A(:); B(:); C(:); D(:)];
-	M.pC  = diag([a(:); b(:); c(:); d(:)]);
+	M.pE  = pE;
+	M.pC  = pC;
 	M.m   = size(U.u,2);
 	M.n   = size(M.x,1);
-	M.l   = size(Y.y,2);
-	M.N   = 128;
+	M.l   = n;
+	M.N   = 32;
 	M.dt  = 16/M.N;
-	[Ep,Cp,Ce,H0,H1,H2,K0,K1,K2] = spm_nlsi(M,U,Y);
+
+	% NLSI (IDENTIFICATON)
+	%===================================================================
+	[Ep,Cp,Ce,H0,H1,H2,M0,M1,L] = spm_nlsi(M,U,Y);
 
 
-	% predicted responses
+	% predicted responses and residuals
 	%-------------------------------------------------------------------
-	y     = spm_nlsi_int(Ep,M,U,v);
+	y     = spm_int(Ep,M,U,v);
 	R     = Y.y - y;
-	R     = R - X0*(pinv(X0)*(R));
+	R     = R - X0*inv(X0'*X0)*(X0'*R);
+
+	% neuronal kernels
+	%-------------------------------------------------------------------
+	L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
+	[K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
+
+	% Bayesian inference and reshape {threshold T1/2 = log(2)/T}
+	%-------------------------------------------------------------------
+	T          = log(2)/4;			
+	pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
+	[ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
+	[pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
 
 
 	% assemble model estimation structure
 	%-------------------------------------------------------------------
-	pp         = 1 - spm_Ncdf(M.pE + T, Ep,diag(Cp));
-	qp         = 1 - spm_Ncdf(M.pE + T,-Ep,diag(Cp));
-	pp         = max([pp qp],[],2);
-	[ A  B  C] = spm_bl_reshape(Ep,m,n,0);
-	[pA pB pC] = spm_bl_reshape(pp,m,n,0);
-
 	DCM.M      = M;
 	DCM.Y      = Y;
 	DCM.U      = U;
+	DCM.Ep     = Ep;
+	DCM.Cp     = Cp;
 	DCM.A      = A;
 	DCM.B      = B;
 	DCM.C      = C;
 	DCM.pA     = pA;
 	DCM.pB     = pB;
 	DCM.pC     = pC;
-	DCM.H1     = H1(:,[1:n],:);
-	DCM.K1     = K1(:,[1:n],:);
-	DCM.xh     = [1:M.N]*M.dt;
-	DCM.xy     = [1:v]*Y.dt;
-	DCM.xu     = [1:u]*U.dt;
+	DCM.H1     = H1;
+	DCM.H2     = H2;
+	DCM.K1     = K1;
+	DCM.K2     = K2;
 	DCM.R      = R;
 	DCM.y      = y;
 	DCM.xY     = xY;
@@ -360,7 +306,7 @@ case 'graph'
 
 	%-Save and reset title
 	%-------------------------------------------------------------------
-	save(fullfile(SPM.swd,['DCM_' name]),'DCM');
+	save(fullfile(swd,['DCM_' name]),'DCM');
 	spm('FigName',header);
 	spm('Pointer','Arrow')
 	return
@@ -368,12 +314,11 @@ case 'graph'
 
 % review results
 %---------------------------------------------------------------------------
-case 'results'
+case 'review'
 
 	%-display model details
 	%-------------------------------------------------------------------
-	Fdcm  = spm_figure;
-	set(Fdcm,'name','Dynamic Causal Modeling')
+	set(Finter,'name','Dynamic Causal Modeling')
 
 	%-get results
 	%-------------------------------------------------------------------
@@ -385,23 +330,183 @@ case 'results'
 	while(1)
 	% get options
 	%-------------------------------------------------------------------
-	str   = {	'Selected regions',...
-			'Inputs and outputs',...
-			'Predicted outputs',...
-			'Connectivity matrices',...
-			'Kernels',...
-			'Intrinsic connections'};
+	str   = {};
 	for i = 1:m
-		str{end + 1} = ['Effects of ' DCM.U.name{i}];
+		str{i} = ['    Effects of ' DCM.U.name{i} '    '];
 	end
-	str{end + 1} = 'quit';
-	OPT   = spm_input('display',1,'m',str);
-	figure(Fdcm)
-	spm_figure('Clear',Fdcm)
 
- 	% Selected regions
+	str   = {str{:}		'    Intrinsic connections',...
+				'Contrast of connections',...
+				'location of regions',...
+				'Inputs',...
+				'Outputs',...
+				'1st order Kernels',...
+				'quit'};
+
+	OPT   = spm_input('display',1,'m',str);
+	figure(Fgraph)
+	spm_figure('Clear',Fgraph)
+
+
+	% Effectos inputs
 	%-------------------------------------------------------------------
-	if OPT == 1
+	if OPT <= m 
+
+		% input effects
+		%-----------------------------------------------------------
+		subplot(2,1,1)
+		i        = OPT;
+		b        = DCM.pB(:,:,i);
+		b(:,:,2) = DCM.B(:,:,i);
+		c        = DCM.pC(:,i);
+		c(:,2)   = DCM.C(:,i);
+		spm_dcm_display(DCM.xY,b,c)
+		title({	str{OPT};...
+			sprintf('P(|connection| > %0.2f)',DCM.T);...
+			'connection strength'},'FontSize',12)
+
+
+		% direct effects - connections
+		%-----------------------------------------------------------
+		subplot(4,2,5)
+		bar(DCM.C(:,i))
+		title('C - direct effects {Hz}','FontSize',12)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		axis square
+		grid on
+
+		% direct effects - probabilities
+		%-----------------------------------------------------------
+		subplot(4,2,6)
+		bar(DCM.pC(:,i))
+		title('C {probabilities}','FontSize',12)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		ylabel(sprintf('P(A > %0.2f)',DCM.T))
+		axis square
+		grid on
+
+		% modulatory effects - connections
+		%-----------------------------------------------------------
+		subplot(4,2,7)
+		bar3(DCM.B(:,:,i),0.4)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		title('B - modulatory effects {Hz}','FontSize',12)
+		xlabel('from')
+		ylabel('to')
+		axis square
+
+		% modulatory effects - probabilities
+		%-----------------------------------------------------------
+		subplot(4,2,8)
+		bar3(DCM.pB(:,:,i),0.4)
+		title('B {probabilities}','FontSize',12)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		xlabel('from')
+		ylabel('to')
+		zlabel(sprintf('P(A > %0.2f)',DCM.T))
+		axis square
+		grid on
+
+
+	% Intrinsic connections
+	%-------------------------------------------------------------------
+	elseif OPT == 1 + m
+
+		% Intrinsic effects
+		%-----------------------------------------------------------
+		subplot(2,1,1)
+		a        = DCM.pA;
+		a(:,:,2) = DCM.A;
+		spm_dcm_display(DCM.xY,a)
+		title({	str{OPT};...
+			sprintf('P(|connection| > %0.2f)',DCM.T);...
+			'connection strength'},'FontSize',10)
+
+		% intrinsic interactions
+		%-----------------------------------------------------------
+		subplot(2,2,3)
+		bar3(DCM.A,0.4)
+		title('A - Intrinsic connections','FontSize',12)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		xlabel('from')
+		ylabel('to')
+		grid on
+		axis square
+
+		% intrinsic interactions - probabilities
+		%-----------------------------------------------------------
+		subplot(2,2,4)
+		bar3(DCM.pA,0.4)
+		title('A {probabilities}','FontSize',12)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		xlabel('from')
+		ylabel('to')
+		zlabel(sprintf('P(A > %0.2f)',DCM.T))
+		grid on
+		axis square
+
+
+	% contrast
+	%-------------------------------------------------------------------
+	elseif OPT == 2 + m
+
+		%-get contrast
+		%-----------------------------------------------------------
+		str     = 'contrast for [A(:);B1(:),..Bm(:),C(:)]'
+		C       = spm_input(str,2,'e',[],[Inf 1]);
+		i       = find(C);
+		C       = sparse(i + 1,1,C(i),length(DCM.Ep),1);
+
+		%-posterior density and inference
+		%-----------------------------------------------------------
+		c    = C'*DCM.Ep;
+		v    = C'*DCM.Cp*C;
+		x    = c + [-32:32]*sqrt(v)*6/32;
+		p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
+
+		figure(Fgraph)
+		subplot(2,1,1)
+		plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
+		title('Posterior density of contrast','FontSize',12)
+		xlabel('contrast')
+		ylabel('probability density')
+		axis square, grid on
+
+		%-contrast
+		%-----------------------------------------------------------
+		[A B C] = spm_dcm_reshape(C,m,l,1);
+		subplot(4,2,5)
+		imagesc(A)
+		title('contrast {A}','FontSize',12)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+		axis image
+
+		subplot(4,2,6)
+		imagesc(C)
+		title('contrast {C}','FontSize',12)
+		set(gca,'XTick',[1:m],'XTickLabel',DCM.U.name)
+		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+		axis image
+
+		for i = 1:m
+			subplot(4,m,i + 3*m)
+			imagesc(B(:,:,i))
+			title(['contrast {B}-' DCM.U.name{i}],'FontSize',12)
+			set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+			set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+			axis image
+		end
+
+
+
+ 	% location of regions
+	%-------------------------------------------------------------------
+	elseif OPT == 3 + m
 
 
 		% transverse
@@ -452,167 +557,81 @@ case 'results'
 		axis off square
 
 
- 	% inputs and outputs
+ 	% inputs
 	%-------------------------------------------------------------------
-	elseif OPT == 2
+	elseif OPT == 4 + m
 
-		% assemble graphics data
+		% graph
 		%-----------------------------------------------------------
-		for i = 1:length(DCM.xY)
-			G(i).y  = DCM.y(:,i) + DCM.R(:,i);
-			G(i).x  = DCM.xy;
-		end
-
-		% inputs
-		%-----------------------------------------------------------
+		x     = [1:length(DCM.U.u)]*DCM.U.dt;
 		for i = 1:m
-			subplot(2*m,1,i)
-			plot(DCM.xu,DCM.U.u(:,i))
-			title(['Inputs - ' DCM.U.name{i}])
+			subplot(m,1,i)
+			plot(x,DCM.U.u(:,i))
+			title(['Input - ' DCM.U.name{i}],'FontSize',12)
 			axis tight
-			set(gca,'FontSize',10)
 			ylabel('event density {Hz}')
+			xlabel('time {seconds}')
+			axis square tight
+			grid on
 		end
-		xlabel('time {seconds}')
-
-		% outputs
-		%-----------------------------------------------------------
-		subplot(2,1,2)
-		title('Outputs')
-		spm_dcm_display(DCM.xY,[],[],G);
 
 
-	% Predicted outputs
+	% outputs
 	%-------------------------------------------------------------------
-	elseif OPT == 3
+	elseif OPT == 5 + m
 
-		% assemble graphics data
+		% graph
 		%-----------------------------------------------------------
-		for i = 1:length(DCM.xY)
-			G(i).y  = [DCM.y(:,i) DCM.y(:,i) + DCM.R(:,i)];
-			G(i).x  = DCM.xy;
+		x  = [1:length(DCM.y)]*DCM.Y.dt;;
+		for i = 1:l
+			subplot(l,2,2*(i - 1) + 1)
+			plot(x,DCM.Y.y(:,i))
+			title(['Response - ' DCM.Y.name{i}],'FontSize',12)
+			axis tight
+			xlabel('time {seconds}')
+			axis square tight
+			grid on
+
+			subplot(l,2,2*(i - 1) + 2)
+			plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),'.')
+			title('Predicted','FontSize',12)
+			axis tight
+			xlabel('time {seconds}')
+			axis square tight
+			grid on
 		end
-
-		% outputs
-		%-----------------------------------------------------------
-		subplot(1,1,1)
-		title(str{OPT})
-		spm_dcm_display(DCM.xY,[],[],G,[],24,[],1/4);
-
-
-	% Connectivity matrices
-	%-------------------------------------------------------------------
-	elseif OPT == 4
-
-		% intrinsic interactions
-		%-----------------------------------------------------------
-		subplot(4,2,1)
-		imagesc(DCM.A)
-		axis image
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		title('Intrinsic connections','FontSize',10)
-		set(gca,'FontSize',10)
-		ylabel('to')
-
-		% intrinsic interactions - probabilities
-		%-----------------------------------------------------------
-		subplot(4,2,2)
-		bar(DCM.pA)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		title(sprintf('P(A > %0.2f)',DCM.T),'FontSize',10)
-		set(gca,'FontSize',10)
-		axis square
-
-		% extrinsic effects
-		%-----------------------------------------------------------
-		subplot(4,2,3)
-		imagesc(DCM.C)
-		axis image
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		set(gca,'XTick',[1:m],'XTickLabel',DCM.U.name)
-		title('Extrinsic connections','FontSize',10)
-		set(gca,'FontSize',10)
-		xlabel('from')
-		ylabel('to')
-
-		% intrinsic interactions - probabilities
-		%-----------------------------------------------------------
-		subplot(4,2,4)
-		bar(DCM.pC)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		title(sprintf('P(C > %0.2f)',DCM.T),'FontSize',10)
-		set(gca,'FontSize',10)
-		xlabel('recipient region')
-		axis square
-
-		% input effects
-		%-----------------------------------------------------------
-		for i = 1:m
-
-			subplot(2*m,2,2*(i - 1) + 2*m + 1)
-			imagesc(DCM.B(:,:,i))
-			set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-			ylabel(['Effect of ' DCM.U.name{i}])
-			axis image
-
-			subplot(2*m,2,2*(i - 1) + 2*m + 2)
-			bar(DCM.pB(:,:,i))
-			set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-			ylabel(sprintf('P(B > %0.2f)',DCM.T))
-			set(gca,'FontSize',10)
-			axis square
-		end
-		xlabel('recipient region')
-
 
 	% Kernels
 	%-------------------------------------------------------------------
-	elseif OPT == 5
+	elseif OPT == 6 + m
 
 		% input effects
 		%-----------------------------------------------------------
+		x     = [1:DCM.M.N]*DCM.M.dt;
+		d     = 2/DCM.M.dt;
 		for i = 1:m
 
 			% input effects - neuronal
 			%---------------------------------------------------
-			x     = DCM.xh;
-			y     = DCM.H1(:,:,i);
-			subplot(m,3,3*(i - 1) + 1)
+			y     = DCM.K1(:,:,i);
+			subplot(m,2,2*(i - 1) + 1)
 			plot(x,y)
-			set(gca,'XLim',[0 8])
+			set(gca,'XLim',[0 16])
 			axis square
 			title(['neuronal responses to ' DCM.U.name{i}])
 			grid on
 			xlabel('time {seconds}')
 			for j = 1:l
-				text(x(j*8),y(j*8,j),DCM.Y.name{j},...
-					'FontSize',8,...
-					'HorizontalAlignment','Center')
-			end
-
-			% input effects - simulated EEG
-			%---------------------------------------------------
-			y     = gradient(y);
-			subplot(m,3,3*(i - 1) + 2)
-			plot(x,y)
-			set(gca,'XLim',[0 5])
-			axis square ij
-			title('simulated ERP')
-			grid on
-			xlabel('time {ms}')
-			for j = 1:l
-				text(x(j*8),y(j*8,j),DCM.Y.name{j},...
+				text(x(j*d),y(j*d,j),DCM.Y.name{j},...
 					'FontSize',8,...
 					'HorizontalAlignment','Center')
 			end
 
 			% input effects - hemodynamic
 			%---------------------------------------------------
-			x     = DCM.xh;
-			y     = DCM.H1(:,:,i);
-			k     = DCM.K1(:,:,i);
-			subplot(m,3,3*(i - 1) + 3)
+			y     = DCM.K1(:,:,i);
+			k     = DCM.H1(:,:,i);
+			subplot(m,2,2*(i - 1) + 2)
 			plot(x,k,x,y,':')
 			set(gca,'XLim',[0 16])
 			axis square
@@ -620,42 +639,11 @@ case 'results'
 			grid on
 			xlabel('time {seconds}')
 			for j = 1:l
-				text(x(j*16),k(j*16,j),DCM.Y.name{j},...
+				text(x(j*d),k(j*d,j),DCM.Y.name{j},...
 					'FontSize',8,...
 					'HorizontalAlignment','Center')
 			end
 		end
-
-
-
-	% Intrinsic connections
-	%-------------------------------------------------------------------
-	elseif OPT == 6
-
-		% Intrinsic effects
-		%-----------------------------------------------------------
-		a        = DCM.pA;
-		a(:,:,2) = DCM.A;
-		spm_dcm_display(DCM.xY,a)
-		title({	str{OPT};...
-			sprintf('P(|connection| > %0.2f)',DCM.T);...
-			'connection strength'},'FontSize',10)
-
-	% Intrinsic connections
-	%-------------------------------------------------------------------
-	elseif OPT >= 7 & OPT < 7 + m
-
-		% input effects
-		%-----------------------------------------------------------
-		i        = OPT - 6;
-		b        = DCM.pB(:,:,i);
-		b(:,:,2) = DCM.B(:,:,i);
-		c        = DCM.pC(:,i);
-		c(:,2)   = DCM.C(:,i);
-		spm_dcm_display(DCM.xY,b,c)
-		title({	str{OPT};...
-			sprintf('P(|connection| > %0.2f)',DCM.T);...
-			'connection strength'},'FontSize',10)
 
 	% quit
 	%-------------------------------------------------------------------
@@ -663,7 +651,7 @@ case 'results'
 
 		%-Reset title and delete figure
 		%-----------------------------------------------------------
-		delete(Fdcm)
+		spm_clf
 		spm('FigName',header);
 		spm('Pointer','Arrow')
 		spm_input('Thank you',1,'d')
