@@ -325,11 +325,16 @@ if isfield(SPM,'PPM') & xCon(Ic(1)).STAT == 'T'
         %---------------------------------------------------------------
 	xCon(Ic).STAT = 'P';
 
-	%-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
-	% The default is one conditional s.d. of the contrast
         %---------------------------------------------------------------
 	str           = 'threshold {default: prior s.d.}';
-	Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+	if SPM.PPM.VB==1
+		% For VB Gamma is stored explicitly
+		Gamma=SPM.PPM.Gamma;
+	else
+		%-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
+		% The default is one conditional s.d. of the contrast
+		Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+	end
 	xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
 
 	end
