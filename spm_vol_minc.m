@@ -66,7 +66,7 @@ switch datatype,
 	otherwise,
 		is_flt = 1;
 end;
-if ~bigend & datatype~=2, datatype = datatype*256; end;
+if ~spm_bigend & datatype~=2, datatype = datatype*256; end;
 
 dim   = [dim(1:3) datatype];
 
@@ -263,31 +263,6 @@ function name = readname(fp)
 stlen  = fread(fp,1,'uint32');
 name   = deblank([fread(fp,stlen,'uchar')' ' ']);
 padding= fread(fp,ceil(stlen/4)*4-stlen,'uchar');
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function bend = bigend
-% Checks to see if the computer is big-endian.  I don't know about some
-% of the architectures - so it may be worth checking the code.
-computers = str2mat('PCWIN','MAC2','SUN4','SOL2','HP700','SGI','SGI64','IBM_RS',...
-			'ALPHA','AXP_VMSG','AXP_VMSIEEE','LNX86','VAX_VMSG','VAX_VMSD');
-endians = [NaN NaN 1 1 NaN NaN 1 NaN 0 Inf 0 NaN Inf Inf];
-c=computer;
-bend = NaN;
-for i=1:size(computers,1),
-	if strcmp(c,deblank(computers(i,:))),
-		bend = endians(i);
-		break;
-	end;
-end;
-if ~finite(bend),
-	if isnan(bend),
-		error(['I don''t know if "' c '" is big-endian.']);
-	else,
-		error(['I don''t think that "' c '" uses IEEE floating point ops.']);
-	end;
-end;
 return;
 %_______________________________________________________________________
 

@@ -46,7 +46,7 @@ sizeof_hdr 	= fread(fid,1,'int32');
 if sizeof_hdr==1543569408, % Appears to be other-endian
 	% Re-open other-endian
 	fclose(fid);
-	if bigend,
+	if spm_bigend,
 		fid = fopen(P,'r','ieee-le');
 	else,
 		fid = fopen(P,'r','ieee-be');
@@ -135,29 +135,5 @@ else
 	global DIM VOX SCALE TYPE OFFSET ORIGIN
 	DESCRIP = ['defaults'];
 end
-return;
-
-%_______________________________________________________________________
-function bend = bigend
-% Checks to see if the computer is big-endian.  I don't know about some
-% of the architectures - so it may be worth checking the code.
-computers = str2mat('PCWIN','MAC2','SUN4','SOL2','HP700','SGI','SGI64','IBM_RS',...
-                        'ALPHA','AXP_VMSG','AXP_VMSIEEE','LNX86','VAX_VMSG','VAX_VMSD');
-endians = [NaN NaN 1 1 NaN NaN 1 NaN 0 Inf 0 NaN Inf Inf];
-c=computer;
-bend = NaN;
-for i=1:size(computers,1),
-	if strcmp(c,deblank(computers(i,:))),
-		bend = endians(i);
-		break;
-	end;
-end;
-if ~finite(bend),
-	if isnan(bend),  
-		error(['I don''t know if "' c '" is big-endian.']);
-	else,
-		error(['I don''t think that "' c '" uses IEEE floating point ops.']);   
-	end;
-end;
 return;
 %_______________________________________________________________________

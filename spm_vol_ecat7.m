@@ -48,7 +48,7 @@ sh       = ECAT7_sheader(fp,list(2));
 fclose(fp);
 
 dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
-if ~bigend & dim(4)~=2, dim(4) = dim(4)*256; end;
+if ~spm_bigend & dim(4)~=2, dim(4) = dim(4)*256; end;
 
 pinfo    = [sh.SCALE_FACTOR ; 0 ; 512*list(2)];
 
@@ -392,30 +392,5 @@ MHEADER = struct('MAGIC_NUMBER', magic_number, ...
 	'DATA_UNITS', data_units, ...
 	'SEPTA_STATE', septa_state, ...
 	'FILL', fill);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function bend = bigend
-% Checks to see if the computer is big-endian.  I don't know about some
-% of the architectures - so it may be worth checking the code.
-computers = str2mat('PCWIN','MAC2','SUN4','SOL2','HP700','SGI','SGI64','IBM_RS',...
-			'ALPHA','AXP_VMSG','AXP_VMSIEEE','LNX86','VAX_VMSG','VAX_VMSD');
-endians = [NaN NaN 1 1 NaN NaN 1 NaN 0 Inf 0 NaN Inf Inf];
-c=computer;
-bend = NaN;
-for i=1:size(computers,1),
-	if strcmp(c,deblank(computers(i,:))),
-		bend = endians(i);
-		break;
-	end;
-end;
-if ~finite(bend),
-	if isnan(bend),
-		error(['I don''t know if "' c '" is big-endian.']);
-	else,
-		error(['I don''t think that "' c '" uses IEEE floating point ops.']);
-	end;
-end;
 return;
 %_______________________________________________________________________
