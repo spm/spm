@@ -135,15 +135,30 @@ S     = varargin{2}.S;
 R     = varargin{2}.R;
 FWHM  = varargin{2}.FWHM;
 VOX   = varargin{2}.VOX;
+DIM   = varargin{2}.DIM;
 n     = varargin{2}.n;
 STAT  = varargin{2}.STAT;
 df    = varargin{2}.df;
 u     = varargin{2}.u;
 M     = varargin{2}.M;
-v2r   = 1/prod(FWHM(~isinf(FWHM)));			%-voxels to resels
-k     = varargin{2}.k*v2r;
-QPs   = varargin{2}.Ps;					% Needed for FDR
-QPs   = sort(QPs(:));
+k     = varargin{2}.k;
+QPs   = varargin{2}.Ps;
+
+try
+      units = varargin{2}.units;
+catch
+      units = 'mm';
+end 
+
+DIM   = DIM > 1;				% dimensions
+VOX   = VOX(DIM);				% scaling
+FWHM  = FWHM(DIM);				% Full width at max/2
+FWmm  = FWHM.*VOX; 				% FWHM {units}
+v2r   = 1/prod(FWHM);				% voxels to resels
+QPs   = sort(QPs(:));				% Needed for FDR
+k     = k*v2r;					% extent threshold in resels
+
+R(find(~DIM) + 1) = [];				% eliminate null resel counts
 
 %-get number and separation for maxima to be reported
 %-----------------------------------------------------------------------
@@ -284,12 +299,10 @@ text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 if STAT ~= 'P'
 %-----------------------------------------------------------------------
-FWHMmm          = FWHM.*VOX; 				% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n,S);
 Pu              = spm_P(1,0,u,df,STAT,R,n,S);
 Qu              = spm_P_FDR(u,df,STAT,n,QPs);
 [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
-
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
@@ -311,13 +324,14 @@ TabDat.ftr{5} = ...
 TabDat.ftr{6} = ...
 	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
 TabDat.ftr{7} = ...
-	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
-		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,FWHM);
+	['FWHM = ' sprintf('%0.1f ', FWmm) units '; ' ...
+                   sprintf('%0.1f ', FWHM) '{voxels}; '];
 TabDat.ftr{8} = ...
-	sprintf('Search vol: %0.0f cmm; %0.0f voxels; %0.1f resels',S*prod(VOX),S,R(end));
+	sprintf('Volume: %0.0f; %0.0f voxels; %0.1f resels', ...
+                 S*prod(VOX),S,R(end));
 TabDat.ftr{9} = ...
-	sprintf(['Voxel size: [%0.1f, %0.1f, %0.1f] mm ',...
-		' (1 resel = %0.2f voxels)'],VOX,prod(FWHM));
+	['Voxel size: ' sprintf('%0.1f ',VOX) units '; ' ...
+	  sprintf('(resel = %0.2f voxels)',prod(FWHM))];
 
 text(0.0,-1*dy,TabDat.ftr{1},...
 	'UserData',[u,Pz,Pu,Qu],'ButtonDownFcn','get(gcbo,''UserData'')')
@@ -332,7 +346,7 @@ text(0.0,-5*dy,TabDat.ftr{5},...
 text(0.5,-1*dy,TabDat.ftr{6},...
 	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-2*dy,TabDat.ftr{7},...
-	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
+	'UserData',FWmm,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.5,-3*dy,TabDat.ftr{8},...
 	'UserData',[S*prod(VOX),S,R(end)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
