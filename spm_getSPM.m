@@ -119,6 +119,24 @@ elseif ~isfield(xSDM,'M')
 end
 
 
+%-Map beta and ResMS images, canonicalising relative pathnames
+% (SPM result images stored with relative pathnames, for robustness.)
+%-----------------------------------------------------------------------
+xSDM.Vbeta  = ...
+	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
+xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
+
+
+%-If appropriate promtp for 2nd-level multivariate inference
+%-----------------------------------------------------------------------
+if length(xSDM.Sess) >= 6 & xSDM.Sess{1}.rep
+	if spm_input('2nd-level [multivariate] inference','+1','y/n',[1 0]);
+		[SPM,VOL,xX,xCon,xSDM] = spm_get_mvSPM(swd,xSDM);
+		return
+	end
+end
+
+
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
 xX     = xSDM.xX;			%-Design definition structure
@@ -140,14 +158,6 @@ if exist(fullfile(swd,'Yidx.mat'),'file') & exist(fullfile(swd,'Y.mad'),'file')
 	load(fullfile(swd,'Yidx.mat'))
 	QQ(Yidx) = 1:length(Yidx);
 end
-
-%-Map beta and ResMS images, canonicalising relative pathnames
-% (SPM result images stored with relative pathnames, for robustness.)
-%-----------------------------------------------------------------------
-xSDM.Vbeta  = ...
-	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
-xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
-
 
 %-Contrast definitions
 %=======================================================================
