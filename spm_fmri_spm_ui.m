@@ -31,7 +31,7 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %
 %    SPM.xVi
 %            Vi: {[n x n sparse]..}   - covariance components
-%          form: {'none'|'AR(1) + w'} - form of non-sphericity
+%          form: {'none'|'AR(1)'} - form of non-sphericity
 %
 %     SPM.xM 
 %             T: [n x 1 double]  - Masking index
@@ -313,7 +313,7 @@ catch
 	% Contruct Vi structure for non-sphericity ReML estimation
 	%===============================================================
 	str   = 'Correct for serial correlations?';
-	cVi   = {'none','AR(1) + w'};
+	cVi   = {'none','AR(1)'};
 	cVi   = spm_input(str,'+1','b',cVi);
 end
 
@@ -321,11 +321,11 @@ end
 %-----------------------------------------------------------------------
 switch cVi
 
-	case 'AR(1) + w' 	% place covariance components in xVi.Vi
+	case 'AR(1)' 	% place covariance components in xVi.Vi
 	%---------------------------------------------------------------
-	SPM.xVi.Vi = spm_Ce(nscan,2);
+	SPM.xVi.Vi = spm_Ce(nscan,.2);
 
-	case 'none'     	% otherwise xVi.V is i.i.d
+	case 'none'     % otherwise xVi.V is i.i.d
 	%---------------------------------------------------------------
 	SPM.xVi.V  = speye(sum(nscan));
 
