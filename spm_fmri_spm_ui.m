@@ -192,6 +192,7 @@ for v = 1:n
 		e = spm_input(sprintf('Subj. %d: scans/epoch eg 10 ',v),5);
 		if length(e) == 1; e = e*ones(1,length(a)); end
 	end
+	e = e(:); e = e';
 
 	% onsets for all conditions  
 	%-------------------------------------------------------------------
