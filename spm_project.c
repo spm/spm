@@ -26,6 +26,7 @@ spm_project.c
 
 #include <math.h>
 #include <stdio.h>
+#include "spm_sys_deps.h"
 #include "mex.h"
 
 #define	max(A, B)	((A) > (B) ? (A) : (B))

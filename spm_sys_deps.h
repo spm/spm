@@ -10,6 +10,7 @@
 		#include <process.h>
 	#else /* SPM_WIN32 */
 		#define SEPS      "/"           /* directory separator */
+		extern double rint(double);
 	#endif /* SPM_WIN32 */
 #endif /* SYS_DEP */
 
