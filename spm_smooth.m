@@ -24,23 +24,20 @@ function spm_smooth(P,Q,s)
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
 
-if isstr(P), P = spm_vol(P); end;
+if ischar(P), P = spm_vol(P); end;
 if isstruct(P),
 	VOX = sqrt(sum(P.mat(1:3,1:3).^2));
 else,
 	VOX = [1 1 1];
 end;
 
-if isstr(Q) & isstruct(P),
+if ischar(Q) & isstruct(P),
 	q         = Q;
 	Q         = P;
 	Q.fname   = q;
-	Q.descrip = sprintf('SPM compatible - conv (%g,%g,%g)',s);
-	if isfield(P,'descrip'),
-		Q.descrip = sprintf('%s - conv (%g,%g,%g)',P.descrip, s);
-	end;
-	Q = spm_create_vol(Q);
-end
+	if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end;
+	Q.descrip = sprintf('%s - conv(%g,%g,%g)',Q.descrip, s);
+end;
 
 % compute parameters for spm_conv_vol
 %-----------------------------------------------------------------------
@@ -62,6 +59,7 @@ i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 
-spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
-spm_close_vol(Q);
 
+if isstruct(Q), Q = spm_create_vol(Q); end; 
+spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
+if isstruct(Q), Q = spm_close_vol(Q);  end;
