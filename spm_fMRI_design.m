@@ -256,4 +256,7 @@ X.bX    = bX;
 X.Xname = Xname;
 X.Bname = Bname;
 
+%-End: Cleanup GUI
+%---------------------------------------------------------------------------
 save fMRIDesMtx X Sess
+spm_clf(Finter);
