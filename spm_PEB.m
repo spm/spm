@@ -199,7 +199,7 @@ for k = 1:M
 	% assemble new estimate
 	%-------------------------------------------------------------------
 	Ce    = Cb;
-	for i = 1:m
+	for i = 1:q
 		Ce = Ce + h(i)*Q{i};
 	end
 	iCe   = inv(Ce);
