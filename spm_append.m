@@ -140,6 +140,7 @@ end;
 return;
 
 function my_fseek(fp,offset,origin)
+fseek(fp.ptr,0,-1);
 sts=fseek(fp.ptr,offset,origin);
 if sts == -1,
 	er=ferror(fp.ptr);
