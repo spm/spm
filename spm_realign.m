@@ -253,7 +253,8 @@ spm_progress_bar('Init',length(P)-1,'Registering Images');
 %-----------------------------------------------------------------------
 for i=2:length(P),
 	V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
-	d  = size(V);
+	d  = [size(V) 1 1];
+	d  = d(1:3);
 	ss = Inf;
 	countdown = -1;
 	for iter=1:64,
