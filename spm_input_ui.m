@@ -81,6 +81,12 @@ function varargout = spm_input(varargin)
 % # is the length of vector(s) required. (If a matrix is entered then
 % at least one dimension should equal #.)
 %
+% Occasionally a specific type of number will be required. This should
+% be obvious from the context. If you enter a number of the wrong type,
+% you'll be alerted and asked to re-specify. The types are i) Real
+% numbers; ii) Integers; iii) Whole numbers [0,1,2,3,...] & iv) Natural
+% numbers [1,2,3,...]
+%
 % CONDITIONS type input is for getting indicator vectors. The features
 % of evaluated input described above are complimented as follows:
 %   v)  - a compressed list of digits 0-9   e.g. "12121212"
@@ -127,13 +133,16 @@ function varargout = spm_input(varargin)
 % Any default response is indicated, and accepted if an empty line is
 % input.
 %
-% - Whole number {0,1,2,...} input -
-% When a single whole number (0,1,...) is required, a combination of
-% buttons and edit widget is presented. The buttons allow quick
-% responses for small numbers, and can be "pressed" by tapping the
-% corresponsing keys on the keyboard (provided no graphics widget has
-% the focus). For larger numbers, click the edit widget to activate it
-% and type in the required response.
+%
+% - Combination BUTTON/EDIT input -
+% In this usage, you will be presented with a set of buttons and an
+% editable text widget. Click one of the buttons to choose that option,
+% or type your response in the edit widget. Any default response will
+% be shown in the edit widget. The edit widget behaves in the same way
+% as with the STRING/EVALUATED input, and expects a single number.
+% Keypresses edit the text widget (rather than "press" the buttons)
+% (provided no graphics widget has the focus).
+%
 %
 % - Comand line -
 % If YPos is 0 or global CMDLINE is true, then the command line is used.
@@ -156,20 +165,23 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - FORMAT specifications for programers
 %=======================================================================
-% - generic   - FORMAT [p,YPos] = spm_input(Prompt,YPos,Type,...)
-% - string    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
-% - evaluated - FORMAT [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
-%   - natural - FORMAT [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n)
-%   - whole   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n)
-%   - integer - FORMAT [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
-%   - real    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
-% - condition - FORMAT [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
-% - button    - FORMAT [p,YPos]= spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
-% - natural 1 - FORMAT [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr)
-% - whole 1   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr)
-% - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - display   - FORMAT     spm_input(Message,YPos,'d',Label)
-% - alert     - FORMAT     spm_input(Alert,YPos,'d!',Label)
+% - generic   - [p,YPos] = spm_input(Prompt,YPos,Type,...)
+% - string    - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - evaluated - [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
+%   - natural - [p,YPos] = spm_input(Prompt,YPos,'n',DefStr,n)
+%   - whole   - [p,YPos] = spm_input(Prompt,YPos,'w',DefStr,n)
+%   - integer - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
+%   - real    - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
+% - condition - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
+% - button    - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
+% - button/edit combo's (edit for string or typed scalar evaluated input)
+%               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr)
+%   ...where ? in b?1 specifies edit widget type as with string & evaluated input
+%             - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr)
+%             - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr)
+% - menu      - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display   -            spm_input(Message,YPos,'d',Label)
+% - alert     -            spm_input(Alert,YPos,'d!',Label)
 %
 % - yes/no    - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
@@ -183,31 +195,33 @@ function varargout = spm_input(varargin)
 %          - Defaults (missing or empty) to 'Enter an expression'
 %
 % YPos     - (numeric) vertical position {1 - 12}
-%                          - overriden by global CMDLINE
-%                          - 0 for command line
-%                          - negative to force GUI
+%                  - overriden by global CMDLINE
+%                  - 0 for command line
+%                  - negative to force GUI
 %          - (string) relative vertical position E.g. '+1'
-%                          - relative to last position used
-%                          - overriden by global CMDLINE
-%                          - YPos(1)=='!' forces GUI E.g. '!+1'
-%                          - '_' is a shortcut for the lowest GUI position
+%                  - relative to last position used
+%                  - overriden by global CMDLINE
+%                  - YPos(1)=='!' forces GUI E.g. '!+1'
+%                  - '_' is a shortcut for the lowest GUI position
 %          - Defaults (missing or empty) to '+1'
 %
 % Type     - type of interrogation
-%                          - 's'tring
-%                          - 'e'valuated string
-%                             - 'n'atural numbers
-%                             - 'w'hole numbers
-%                             - 'i'ntegers
-%                             - 'r'eals
-%                          - 'c'ondition indicator vector
-%                          - 'b'uttons
-%                          - 'n1' - single natural number (buttons & edit)
-%                          - 'w1' - single whole number   (buttons & edit)
-%                          - 'm'enu pulldown
-%                          - 'y/n' : Yes or No buttons
+%                  - 's'tring
+%                  - 'e'valuated string
+%                     - 'n'atural numbers
+%                     - 'w'hole numbers
+%                     - 'i'ntegers
+%                     - 'r'eals
+%                  - 'c'ondition indicator vector
+%                  - 'b'uttons
+%                  - button/edit combo's: 'bs1','be1','bn1','bw1','bi1','br1'
+%                     - second letter of b?1 specifies type for edit widget
+%                  - 'n1' - single natural number (buttons 1,2,... & edit)
+%                  - 'w1' - single whole number   (buttons 0,1,... & edit)
+%                  - 'm'enu pulldown
+%                  - 'y/n' : Yes or No buttons
 %                                    (See shortcuts below)
-%                          - bar delimited string : buttons with these labels
+%                  - bar delimited string : buttons with these labels
 %                                    (See shortcuts below)
 %          - Defaults (missing or empty) to 'e'
 %
@@ -239,8 +253,8 @@ function varargout = spm_input(varargin)
 %          - Defaults (missing or empty) to Inf - no restriction
 %
 % Labels   - Labels for button and menu types.
-%                          - string matrix, one label per row
-%                          - bar delimited string
+%                  - string matrix, one label per row
+%                  - bar delimited string
 %                            E.g. 'AnCova|Scaling|None'
 %
 % Values   - Return values corresponding to Labels for button and menu types
@@ -329,6 +343,14 @@ function varargout = spm_input(varargin)
 %		Since there's only one button, this just displays the response
 %		in GUI position 1 (or on the command line if global CMDLINE
 %		is true), and returns 1.
+%	p = spm_input(str,'+0','b1r','None|Mask',[-Inf,NaN],0.8)
+%               Presents two buttons labelled "None" & "Mask" (which return
+%               -Inf & NaN if clicked), together with an editable text widget
+%               for entry of a single real number. The default of 0.8 is
+%               initially presented in the edit window, and can be selected by
+%               pressing return.
+%		Uses the previous GUI position, unless global CMDLINE is true,
+%               in which case a command-line equivalent is used.
 %	p = spm_input(str,'+0','w1')
 %		Prompts for a single whole number using a combination of
 %		buttons and edit widget, using the previous GUI position,
@@ -467,6 +489,10 @@ function varargout = spm_input(varargin)
 %
 %-----------------------------------------------------------------------
 % SUBFUNCTIONS:
+%
+% FORMAT [Keys,Labs] = sf_labkeys(Labels)
+% Make unique character keys for the Labels, ignoring case.
+% Used with 'b'utton types.
 %
 % FORMAT [p,msg] = sf_eEval(str,Type,n,m)
 % Common code for evaluating various input types.
@@ -686,7 +712,7 @@ else
 
 end % (if CmdLine)
 
-%-Log the transaction
+%-Log the transaction & return response
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
 	if Type=='s'
@@ -698,10 +724,11 @@ end
 varargout = {p,YPos};
 
 
-case {'b','b|','y/n','m'}                      %-'b'utton & 'm'enu Types
+case {'b','b|','y/n','bs1','be1','bn1','bw1','bi1','br1',...
+	'-n1','n1','-w1','w1','m'}             %-'b'utton & 'm'enu Types
 %=======================================================================
 %-Condition arguments
-switch lower(Type), case {'b','m'}
+switch lower(Type), case {'b','bs1','be1','bi1','br1','m'}
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels='';   else, Labels =varargin{4}; end
@@ -714,11 +741,32 @@ case 'b|'
 	if nargin<5, DefItem=[];  else, DefItem=varargin{5}; end
 	if nargin<4, Values=[];   else, Values =varargin{4}; end
 	Labels = varargin{3};
+case 'bn1'
+	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
+	if nargin<5, Values=[];   else, Values =varargin{5}; end
+	if nargin<4, Labels=[1:5]'; Values=[1:5]; Type='-n1';
+		else, Labels=varargin{4}; end
+case 'bw1'
+	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
+	if nargin<5, Values=[];   else, Values =varargin{5}; end
+	if nargin<4, Labels=[0:4]'; Values=[0:4]; Type='-w1';
+		else, Labels=varargin{4}; end
+case {'-n1','n1','-w1','w1'}
+	switch lower(Type)
+	case {'n1','-n1'}, Labels=[1:5]'; Values=[1:5]; Type='-n1';
+	case {'w1','-n1'}, Labels=[0:4]'; Values=[0:4]; Type='-w1';
+	end
+	if nargin<4, DefItem=[];  else, DefItem=varargin{4}; end
 end
-if iscell(Labels), Labels=char(Labels); end
 
-%-Convert Option string to string matrix if required
-if any(Labels=='|')
+
+%-Check some labels were specified
+if isempty(Labels), error('No Labels specified'), end
+
+if iscellstr(Labels), Labels=char(Labels); end
+
+%-Convert Labels "option" string to string matrix if required
+if ischar(Labels) & any(Labels=='|')
 	OptStr=Labels;
 	BarPos=find([OptStr=='|',1]);
 	Labels=OptStr(1:BarPos(1)-1);
@@ -727,10 +775,8 @@ if any(Labels=='|')
 	end
 end
 
-%-Check some labels were specified
-if isempty(Labels), error('No Labels specified'), end
 
-%-Set default Values for the Labels, numeric for 'm'enu Type input
+%-Set default Values for the Labels
 if isempty(Values)
 	if Type=='m'
 		Values=[1:size(Labels,1)]';
@@ -745,30 +791,28 @@ else
 		error('Labels & Values incompatible sizes'), end
 end
 
+
+%-Numeric Labels to strings
+if isnumeric(Labels)
+	tmp = Labels; Labels = cell(size(tmp,1),1);
+	for i=1:prod(size(tmp)), Labels{i}=num2str(tmp(i,:)); end
+	Labels=char(Labels);
+end
+
+
 switch Type, case {'b','b|','y/n'}                %-Process button types
 %=======================================================================
-	nLabels = size(Labels,1);
 	
-	%-Make unique character keys for the Labels, ignoring case
+	%-Make unique character keys for the Labels, sort DefItem
 	%---------------------------------------------------------------
-	Keys=Labels(:,1)';
-	if any(~diff(abs(sort(lower(Keys)))))
-		if nLabels<10
-			Keys = sprintf('%d',[1:nLabels]);
-		elseif NoLables<=26
-			Keys = sprintf('%c',abs('a')+[0:nLabels-1]);
-		else
-			error('Too many buttons!')
-		end
-		Labs = Labels;
-	else
-		Labs = Labels(:,2:end);
-	end
+	nLabels     = size(Labels,1);
+	[Keys,Labs] = sf_labkeys(Labels);
+
 	if ~isempty(DefItem)
-		DefString = Keys(DefItem);
+		DefKey = Keys(DefItem);
 	else
 		DefItem = 0;
-		DefString = ' ';
+		DefKey = ' ';
 	end
 
 	if CmdLine
@@ -777,41 +821,38 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 		%-Build prompt
 		%-------------------------------------------------------
 		if ~isempty(Labs) 
-			Prmpt = ['[',Keys(1),']',deblank(Labs(1,:)),' '];
-			for lab = 2:nLabels
-			    Prmpt=[Prmpt,...
-			    	'/ [',Keys(lab),']',deblank(Labs(lab,:)),' '];
-			end
+		    Prmpt = ['[',Keys(1),']',deblank(Labs(1,:)),' '];
+		    for i = 2:nLabels
+		        Prmpt=[Prmpt,'/ [',Keys(i),']',deblank(Labs(i,:)),' '];
+		    end
 		else
-			Prmpt = ['[',Keys(1),'] '];
-			for lab = 2:nLabels
-			    Prmpt=[Prmpt,'/ [',Keys(lab),'] ']; end
+		    Prmpt = ['[',Keys(1),'] '];
+		    for i = 2:nLabels, Prmpt=[Prmpt,'/ [',Keys(i),'] ']; end
 		end
 		if DefItem
 		    Prmpt = [Prmpt,...
-		    	' (Default: ',deblank(Labels(DefItem,:)),' )'];
+		    	' (Default: ',deblank(Labels(DefItem,:)),')'];
 		end
 
 		%-Ask for user response
 		%-------------------------------------------------------
 		if nLabels==1
 			%-Only one choice - auto-pick & display
-			k = 1;
-			fprintf('%s: %s\t(only option)',Prmpt,Labels)
+			k = 1; fprintf('%s: %s\t(only option)',Prmpt,Labels)
 		else
 			str = input([Prmpt,' ? '],'s');
-			if isempty(str), str=DefString; end
+			if isempty(str), str=DefKey; end
 			while ~any(lower(Keys)==lower(str(1)))
 				spm('beep')
 				str = input([Prmpt,'? '],'s');
-				if isempty(str), str=DefString; end
+				if isempty(str), str=DefKey; end
 			end
 			k = find(lower(Keys)==lower(str(1)));
 		end
 		fprintf('\n')
-	
+
 		p = Values(k,:); if ischar(p), p=deblank(p); end
-	
+
 	else
 
 		Tag = ['GUIinput_',int2str(YPos)];	%-Tag for widgets
@@ -837,36 +878,36 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 				sprintf('%c/',Keys(1:end-1)),Keys(end)];
 			else, str=''; end
 		
-			%-Store button # in 'Max' property
-			%-Store handle of prompt string in buttons UserData
+			%-Store button # in buttons 'UserData' property
+			%-Store handle of prompt string in buttons 'Max' property
 			%-Button callback sets UserData of prompt string to
 			% number of pressed button
-			cb = ['set(get(gcbo,''UserData''),''UserData'',',...
-				'get(gcbo,''Max''))'];
+			cb = ['set(get(gcbo,''Max''),''UserData'',',...
+				'get(gcbo,''UserData''))'];
 			H = [];
 			XDisp = [];
-			for lab=1:nLabels
-				if lab==DefItem
+			for i=1:nLabels
+				if i==DefItem
 					%-Default button, outline it
 					h = uicontrol(Finter,'Style','Frame',...
 						'BackGroundColor','k',...
 						'ForeGroundColor','k',...
 						'Tag',Tag,...
 						'Position',...
-						[RRec(1)+(lab-1)*dX ...
+						[RRec(1)+(i-1)*dX ...
 							RRec(2)-1 dX RRec(4)+2]);
-					XDisp = (lab-1/3)*dX;
+					XDisp = (i-1/3)*dX;
 					H = [H,h];
 				end
 				h = uicontrol(Finter,'Style','Pushbutton',...
-					'String',deblank(Labels(lab,:)),...
+					'String',deblank(Labels(i,:)),...
 					'ToolTipString',str,...
 					'Tag',Tag,...
-					'Max',lab,...
-					'UserData',hPrmpt,...
+					'Max',hPrmpt,...
+					'UserData',i,...
 					'BackgroundColor',COLOR,...
 					'Callback',cb,...
-					'Position',[RRec(1)+(lab-1)*dX+1 ...
+					'Position',[RRec(1)+(i-1)*dX+1 ...
 							RRec(2) dX-2 RRec(4)]);
 				H = [H,h];
 			end
@@ -913,15 +954,237 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 	end
 
 
-case 'm'
+case {'bs1','be1','bn1','bw1','bi1','br1','-n1','-w1'}
+                                      %-Process button/entry combo types
+%=======================================================================
+if ischar(DefItem), DefStr=DefItem; else, DefStr = num2str(DefItem); end
+
+if CmdLine
+
+	%-Process default item
+	%---------------------------------------------------------------
+	if ~isempty(DefItem)
+		[DefVal,msg] = sf_eEval(DefStr,Type(2),1);
+		if isstr(DefVal), error(['Invalid DefItem: ',msg]), end
+		Labels  = strvcat(Labels,DefStr);
+		Values  = [Values;DefVal];
+		DefItem = size(Labels,1);
+	end
+
+	%-Add option to specify...
+	Labels = strvcat(Labels,'specify...');
+
+	%-Process options
+	nLabels     = size(Labels,1);
+	[Keys,Labs] = sf_labkeys(Labels);
+
+	if ~isempty(DefItem), DefKey = Keys(DefItem); else, DefKey = ' '; end
+
+	%-Print banner prompt
+	%---------------------------------------------------------------
+	spm_input('!PrntPrmpt',Prompt)		%-Display question prompt
+
+
+	if Type(1)=='-'		%-No special buttons - go straight to input
+
+		k = size(Labels,1);
+
+	else			%-Offer buttons, default or "specify..."
+	
+		%-Build prompt
+		%-------------------------------------------------------
+		if ~isempty(Labs) 
+		    Prmpt = ['[',Keys(1),']',deblank(Labs(1,:)),' '];
+		    for i = 2:nLabels
+		        Prmpt=[Prmpt,'/ [',Keys(i),']',deblank(Labs(i,:)),' '];
+		    end
+		else
+		    Prmpt = ['[',Keys(1),'] '];
+		    for i = 2:nLabels, Prmpt=[Prmpt,'/ [',Keys(i),'] ']; end
+		end
+		if DefItem, Prmpt = [Prmpt,...
+			' (Default: ',deblank(Labels(DefItem,:)),')']; end
+	
+		%-Ask for user response
+		%-------------------------------------------------------
+		if nLabels==1
+			%-Only one choice - auto-pick & display
+			k = 1; fprintf('%s: %s\t(only option)',Prmpt,Labels)
+		else
+			str = input([Prmpt,' ? '],'s');
+			if isempty(str), str=DefKey; end
+			while ~any(lower(Keys)==lower(str(1)))
+				spm('beep')
+				str = input([Prmpt,'? '],'s');
+				if isempty(str), str=DefKey; end
+			end
+			k = find(lower(Keys)==lower(str(1)));
+		end
+		fprintf('\n')
+
+	end
+
+
+	%-Process response: prompt for value if "specify..." option chosen
+	%===============================================================
+	if k<size(Labels,1)
+		p = Values(k,:); if ischar(p), p=deblank(p); end
+	else
+
+		%-"specify option chosen: ask user to specify
+		%-------------------------------------------------------
+		switch Type(2)
+                case 's', tstr=' string';        case 'e', tstr='n expression';
+                case 'n', tstr=' natural number';case 'w', tstr=' whole number';
+                case 'i', tstr='n integer';      case 'r', tstr=' real number';
+                otherwise, tstr=''; end
+		
+		Prompt = sprintf('%s (a%s)',Prompt,tstr);
+		if ~isempty(DefStr)
+			Prompt=sprintf('%s\b, default %s)',Prompt,DefStr); end
+		str = input([Prompt,' : '],'s');
+		if isempty(str), str=DefStr; end
+	
+		%-Eval in Base workspace, catch errors
+		[p,msg] = sf_eEval(str,Type(2),1);
+		while isstr(p)
+			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
+			str = input([Prompt,' : '],'s');
+			if isempty(str), str=DefStr; end
+			[p,msg] = sf_eEval(str,Type(2),1);
+		end
+	end
+
+
+else
+
+
+	Tag = ['GUIinput_',int2str(YPos)];		%-Tag for widgets
+	nLabels     = size(Labels,1);			%-#buttons
+
+	%-Create text and edit control objects
+	%-'UserData' of prompt contains answer
+	%---------------------------------------------------------------
+	hPrmpt = uicontrol(Finter,'Style','Text',...
+		'String',Prompt,...
+		'Tag',Tag,...
+		'UserData',[],...
+		'HorizontalAlignment','Right',...
+		'Position',PRec);
+
+	%-Draw buttons & entry widget, & process response
+	dX = RRec(3)*(2/3)/nLabels;
+
+	%-Store button # in buttons 'UserData'
+	%-Store handle of prompt string in buttons 'Max' property
+	%-Callback sets UserData of prompt string to button number.
+	cb = ['set(get(gcbo,''Max''),''UserData'',get(gcbo,''UserData''))'];
+	if TTips, str=sprintf('select by mouse or enter value in text widget');
+		else, str=''; end
+	H = [];
+	for i=1:nLabels
+		h = uicontrol(Finter,'Style','Pushbutton',...
+			'String',deblank(Labels(i,:)),...
+			'Max',hPrmpt,...
+			'ToolTipString',str,...
+			'Tag',Tag,...
+			'UserData',i,...
+			'BackgroundColor',COLOR,...
+			'Callback',cb,...
+			'Position',[RRec(1)+(i-1)*dX+1 RRec(2) dX-2 RRec(4)]);
+		H = [H,h];
+	end
+
+	%-Edit widget is default response (on pressing return) - outline it
+	h = uicontrol(Finter,'Style','Frame',...
+		'Tag',Tag,...
+		'BackGroundColor','k',...
+		'ForeGroundColor','k',...
+		'Position',...
+		[RRec(1)+RRec(3)*(2/3)+1 RRec(2)-1 RRec(3)/3 RRec(4)+2]);
+	H = [H,h];
+	%-Edit widget: Callback puts string into hPrompts UserData
+	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))'];
+	h = uicontrol(Finter,'Style','Edit',...
+		'String',DefStr,...
+		'ToolTipString',str,...
+		'Tag',Tag,...
+		'UserData',hPrmpt,...
+		'CallBack',cb,...
+		'Horizontalalignment','Center',...
+		'BackgroundColor',COLOR,...
+		'Position',...
+			[RRec(1)+RRec(3)*(2/3)+2 RRec(2) RRec(3)/3-2 RRec(4)]);
+	H = [H,h];
+
+
+	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
+	set(Finter,'KeyPressFcn',[...
+	    'spm_input(''!EditableKeyPressFcn'',',...
+	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
+	    	'''Style'',''edit''),',...
+	    'get(gcbf,''CurrentCharacter''))'])
+
+
+	%-Figure ContextMenu for shortcuts
+	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
+
+	%-Bring window to fore & jump pointer to default button
+	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,RRec(3)*0.95);
+
+	%-Wait for button press, process results
+	%---------------------------------------------------------------
+	waitfor(hPrmpt,'UserData')
+	if ~ishandle(hPrmpt), error(['Input objects cleared whilst waiting ',...
+		'for response: Bailing out!']), end
+	p = get(hPrmpt,'UserData');
+	if ~isstr(p)
+		k = p;
+		p = Values(k,:);
+	else
+		Labels  = strvcat(Labels,'specify...');
+		k       = size(Labels,1);
+		[p,msg] = sf_eEval(p,Type(2),1);
+		while isstr(p)
+			set(H,'Visible','off')
+			h = uicontrol('Style','Text','String',msg,...
+				'Horizontalalignment','Center',...
+				'ForegroundColor','r',...
+				'Tag',Tag,'Position',RRec);
+			spm('Beep')
+			pause(2), delete(h), set(H,'Visible','on')
+			set(hPrmpt,'UserData','')
+			waitfor(hPrmpt,'UserData')
+			if ~ishandle(hPrmpt), error(['Input objects cleared ',...
+				'whilst waiting for response: Bailing out!']),end
+			p = get(hPrmpt,'UserData');
+			if isstr(p), [p,msg] = sf_eEval(p,Type(2),1); end
+		end
+	end
+
+	%-Clean up
+	delete([H,hM]), set(Finter,'KeyPressFcn','')
+	spm_input('!PointerJumpBack',PLoc,cF)
+
+	%-Display answer
+	uicontrol(Finter,'Style','Text',...
+		'String',num2str(p),...
+		'Tag',Tag,...
+		'Horizontalalignment','Center',...
+		'BackgroundColor',[.7,.7,.7],...
+		'Position',RRec);
+
+end % (if CmdLine)
+
+
+case 'm'                                             %-Process menu type
 %=======================================================================
 	nLabels = size(Labels,1);
 	%-Process pull down menu type
 	if CmdLine
 		spm_input('!PrntPrmpt',Prompt)
 		nLabels = size(Labels,1);
-		for lab = 1:nLabels
-			fprintf('\t%2d : %s\n',lab,Labels(lab,:)), end
+		for i = 1:nLabels, fprintf('\t%2d : %s\n',i,Labels(i,:)), end
 		Prmpt = ['Menu choice (1-',int2str(nLabels),')'];
 		if DefItem
 		    Prmpt=[Prmpt,' (Default: ',num2str(DefItem),')'];
@@ -1017,166 +1280,16 @@ case 'm'
 
 	p = Values(k,:); if ischar(p), p=deblank(p); end
 
+otherwise, error('unrecognised type')
 end % (switch Type within case {'b','m'})
 
-%-Set return value
-varargout = {p,YPos};
 
-%-Log the transaction
+%-Log the transaction & return response
 %-----------------------------------------------------------------------
 if exist('spm_log')==2
 	spm_log(['spm_input : ',Prompt,': (',deblank(Labels(k,:)),')'],p); end
-
-
-
-case {'w1','n1'}   %-Single whole/natural number - button/entry combination
-%=======================================================================
-if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
-if ~ischar(DefStr), DefStr=num2str(DefStr); end
-DefStr = DefStr(:)';
-
-if CmdLine
-	switch lower(Type)
-	case 'w1', tstr='whole';
-	case 'n1', tstr='natural';
-	otherwise, str=''; end
-	
-	spm_input('!PrntPrmpt',sprintf('%s\t(enter a %s number)',Prompt,tstr))
-	if ~isempty(DefStr)
-		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
-	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
-
-	%-Eval in Base workspace, catch errors
-	[p,msg] = sf_eEval(str,Type);
-	while isstr(p)
-		spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
-		str = input([Prompt,' : '],'s');
-		if isempty(str), str=DefStr; end
-		[p,msg] = sf_eEval(str,Type);
-	end
-
-else
-
-	Tag = ['GUIinput_',int2str(YPos)];		%-Tag for widgets
-	n   = 6;					%-#buttons
-	switch lower(Type)
-	case 'w1', iButs=0:n-1;
-	case 'n1', iButs=1:n;
-	otherwise, str=''; end
-
-	%-Create text and edit control objects
-	%-'UserData' of prompt contains answer
-	%---------------------------------------------------------------
-	hPrmpt = uicontrol(Finter,'Style','Text',...
-		'String',Prompt,...
-		'Tag',Tag,...
-		'UserData',[],...
-		'HorizontalAlignment','Right',...
-		'Position',PRec);
-
-	%-Draw buttons & entry widget, & process response
-	dX = RRec(3)/(n+2);
-
-	%-Store handle of prompt string in buttons UserData
-	%-Store button # in 'Max' property
-	%-Callback sets UserData of prompt string to button value.
-	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''Max''))'];
-	if TTips, str=sprintf('select %d-%d by mouse or enter in text widget',...
-		iButs(1),iButs(end)); else, str=''; end
-	H = [];
-	for i=1:n
-		h = uicontrol(Finter,'Style','Pushbutton',...
-			'String',int2str(iButs(i)),...
-			'Max',iButs(i),...
-			'ToolTipString',str,...
-			'Tag',Tag,...
-			'UserData',hPrmpt,...
-			'BackgroundColor',COLOR,...
-			'Callback',cb,...
-			'Position',[RRec(1)+(i-1)*dX+1 RRec(2) dX-2 RRec(4)]);
-		H = [H,h];
-	end
-
-	%-Edit widget is default response (on pressing return) - outline it
-	h = uicontrol(Finter,'Style','Frame',...
-		'Tag',Tag,...
-		'BackGroundColor','k',...
-		'ForeGroundColor','k',...
-		'Position',...
-		[RRec(1)+n*dX RRec(2)-1 2*dX RRec(4)+2]);
-	H = [H,h];
-	%-Edit widget: Callback puts string into hPrompts UserData
-	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))'];
-	h = uicontrol(Finter,'Style','Edit',...
-		'String',DefStr,...
-		'ToolTipString',str,...
-		'Tag',Tag,...
-		'UserData',hPrmpt,...
-		'CallBack',cb,...
-		'Horizontalalignment','Center',...
-		'BackgroundColor',COLOR,...
-		'Position',[RRec(1)+n*dX+1 RRec(2) 2*dX-2 RRec(4)]);
-	H = [H,h];
-	XDisp = (n+1.5)*dX;
-
-
-	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
-	% UserData of Prompt, DefItem of 1 if return (ASCII-13) is pressed
-	set(Finter,'KeyPressFcn',[...
-	    'spm_input(''!EditableKeyPressFcn'',',...
-	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
-	    	'''Style'',''edit''),',...
-	    'get(gcbf,''CurrentCharacter''))'])
-
-
-	%-Figure ContextMenu for shortcuts
-	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
-
-	%-Bring window to fore & jump pointer to default button
-	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter,XDisp);
-
-
-	%-Wait for button press, process results
-	%---------------------------------------------------------------
-	waitfor(hPrmpt,'UserData')
-	if ~ishandle(hPrmpt), error(['Input objects cleared whilst waiting ',...
-		'for response: Bailing out!']), end
-	p = get(hPrmpt,'UserData');
-	if isstr(p), [p,msg] = sf_eEval(p,Type); end
-	while isstr(p)
-		set(H,'Visible','off')
-		h = uicontrol('Style','Text','String',msg,...
-			'Horizontalalignment','Center',...
-			'ForegroundColor','r',...
-			'Tag',Tag,'Position',RRec);
-		spm('Beep')
-		pause(2), delete(h), set(H,'Visible','on')
-		set(hPrmpt,'UserData','')
-		waitfor(hPrmpt,'UserData')
-		if ~ishandle(hPrmpt), error(['Input objects cleared ',...
-			'whilst waiting for response: Bailing out!']),end
-		p = get(hPrmpt,'UserData');
-		if isstr(p), [p,msg] = sf_eEval(p,Type); end
-	end
-
-	%-Clean up
-	delete([H,hM]), set(Finter,'KeyPressFcn','')
-	spm_input('!PointerJumpBack',PLoc,cF)
-
-	%-Display answer
-	uicontrol(Finter,'Style','Text',...
-		'String',num2str(p),...
-		'Tag',Tag,...
-		'Horizontalalignment','Center',...
-		'BackgroundColor',[.7,.7,.7],...
-		'Position',RRec);
-
-end % (if CmdLine)
-
-%-Log the trasaction...
-%-----------------------------------------------------------------------
-if exist('spm_log')==2, spm_log(['spm_input : ',Prompt,':',p]); end
 varargout = {p,YPos};
+
 
 
 %=======================================================================
@@ -1625,14 +1738,40 @@ end % (case lower(Type))
 %- S U B - F U N C T I O N S
 %=======================================================================
 
+function [Keys,Labs] = sf_labkeys(Labels)
+%=======================================================================
+%-Make unique character keys for the Labels, ignoring case
+if nargin<1, error('insufficient arguments'), end
+if iscellstr(Labels), Labels = char(Labels); end
+if isempty(Labels), Keys=''; Labs=''; return, end
+
+Keys=Labels(:,1)';
+nLabels = size(Labels,1);
+if any(~diff(abs(sort(lower(Keys)))))
+	if nLabels<10
+		Keys = sprintf('%d',[1:nLabels]);
+	elseif NoLables<=26
+		Keys = sprintf('%c',abs('a')+[0:nLabels-1]);
+	else
+		error('Too many buttons!')
+	end
+	Labs = Labels;
+else
+	Labs = Labels(:,2:end);
+end
+
+
 function [p,msg] = sf_eEval(str,Type,n,m)
 %=======================================================================
+%-Evaluation and error trapping of typed input
 if nargin<4, m=Inf; end
 if nargin<3, n=NaN; end
 if nargin<2, Type='e'; end
 if nargin<1, str=''; end
 if isempty(str), p='!'; msg='empty input'; return, end
 switch Type
+case 's'
+	p = str; msg = '';
 case 'e'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
@@ -1664,28 +1803,6 @@ case 'w'
 	else
 		msg='';
 	end
-case 'n1'
-	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
-		msg = 'evaluation error';
-	elseif length(p)>1
-		p='!'; msg='scalar required';
-	elseif p~=floor(p) | p<1 | ~isreal(p)
-		p='!'; msg='natural number required';
-	else
-		msg='';
-	end
-case 'w1'
-	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
-		msg = 'evaluation error';
-	elseif length(p)>1
-		p='!'; msg='scalar required';
-	elseif p~=floor(p) | p<0 | ~isreal(p)
-		p='!'; msg='whole number required';
-	else
-		msg='';
-	end
 case 'i'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
@@ -1710,11 +1827,14 @@ case 'r'
 	end
 case 'c'
 	[p,msg] = spm_input('!iCond',str,n,m);
+otherwise
+	error('unrecognised type');
 end
 
 
 function str = sf_SzStr(n,l)
 %=======================================================================
+%-Size info string constuction
 if nargin<2, l=0; else, l=1; end
 if nargin<1, error('insufficient arguments'), end
 n=n(:); if length(n)==1, n=[n,1]; end, dn=length(n);
@@ -1736,6 +1856,7 @@ if l, str=sprintf('\t%s',lstr); else, str=[str,' ']; end
 
 function [p,msg] = sf_SzChk(p,n,msg)
 %=======================================================================
+%-Size checking
 if nargin<3, msg=''; end
 if nargin<2, n=NaN; else, n=n(:)'; end
 if nargin<1, error('insufficient arguments'), end
