@@ -54,5 +54,5 @@ for i=1:6
 	eval([Rens(i,:) ' = ' Rens(i,:) ' * (64/(eps+max(max(' Rens(i,:) '))));']);
 end
 
-save render.mat Matrixes Rens Depths MT0 MT1 MS0 MS1 MC0 MC1 MS1 MS0 tra0 tra1 sag0 sag1 cor0 cor1 tz0 tz1 sz0 sz1 cz0 cz1
+save render.mat Matrixes Rens Depths MT0 MT1 MS0 MS1 MC0 MC1 tra0 tra1 sag0 sag1 cor0 cor1 tz0 tz1 sz0 sz1 cz0 cz1
 
