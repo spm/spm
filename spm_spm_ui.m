@@ -1,31 +1,28 @@
-function spm_spm_ui
+function varargout=spm_spm_ui(varargin)
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston %E%
 SCCSid  = '%I%';
 
-%=======================================================================
-% - S E T U P
-%=======================================================================
-SPMid = spm('FnBanner',mfilename,SCCSid);
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Setup statistical analysis',0);
-spm_help('!ContextHelp',[mfilename,'.m'])
+%-Condition arguments
+%-----------------------------------------------------------------------
+if (nargin==0), Action = 'CFG'; else, Action = varargin{1}; end
 
-%-Design parameters
+
+switch lower(Action), case 'cfg'
 %=======================================================================
-%-Note: struct expands cell array values to give multiple records:
-%       => must embed cell arrays within another cell array!
-%-Negative indices for iCC indicates default (first taken)
-D = struct(...
-	'DesName',	'Single-subject: replication of conditions',...
-	'n',	[Inf 2 1 1],	'sF',{{'repl','condition','subject','study'}},...
-	'Hform',		'i2,''+0m'',''condition''',...
-	'Bform',		'i3,''-'',''constant''',...
-	'nC',[Inf,Inf],'iCC',{{[1:8],1}},'iCFI',{{[1,-2,3:7],1}},...
-	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
-	'iGXcalc',[1:2,-3],'iGMsca',[1:7,8,-9],'GM',[],...
-	'iGloNorm',[1:9],'iGC',[1:9,-10,-11],...
-	'b',struct('aTime',1));
-iDD = length(D); %-Above design is the default design definition
+% - C O N F I G U R E   D E S I G N
+%=======================================================================
+% spm_spm_ui('CFG',D)
+
+%-GUI setup
+%-----------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Setup analysis',0);
+spm_help('!ContextHelp',mfilename)
+
+
+%-****
+D = spm_spm_ui('DesDefs_SPM98PET');
 
 
 %-Option definitions
@@ -41,12 +38,12 @@ sCFI = {'<none>';...							%-1
 %-DesMtx argument components for covariate by factor interaction options
 % (Used for CFI's Covariate Centering (CC), GMscale & Global normalisation)
 CFIforms = {	'[]',		'C',	'{}';...			%-1
-		'i1',		'FxC',	'{D.sF{1}}';...			%-2
-		'i2',		'FxC',	'{D.sF{2}}';...			%-3
-		'i3',		'FxC',	'{D.sF{3}}';...			%-4
-		'i4',		'FxC',	'{D.sF{4}}';...			%-5
-		'[i4,i2]',	'FxC',	'{D.sF{4},D.sF{2}}';...		%-6
-		'[i4,i3]',	'FxC',	'{D.sF{4},D.sF{3}}'	};	%-7
+		'I(:,1)',	'FxC',	'{D.sF{1}}';...			%-2
+		'I(:,2)',	'FxC',	'{D.sF{2}}';...			%-3
+		'I(:,3)',	'FxC',	'{D.sF{3}}';...			%-4
+		'I(:,4)',	'FxC',	'{D.sF{4}}';...			%-5
+		'I(:,[4,2])',	'FxC',	'{D.sF{4},D.sF{2}}';...		%-6
+		'I(:,[4,3])',	'FxC',	'{D.sF{4},D.sF{3}}'	};	%-7
 
 %-Centre (mean correction) options for covariates & globals            (CC)
 % (options 9-12 are for centering of global when using AnCova GloNorm) (GC)
@@ -63,7 +60,7 @@ sCC = {		'around overall mean';...				%-1
 		'GM';...						%-11
 		'(redundant: not doing AnCova)'}';			%-12
 %-DesMtx I forms for covariate centering options
-CCforms = {'ones(size(i1))',CFIforms{2:end,1},''}';
+CCforms = {'ones(nScan,1)',CFIforms{2:end,1},''}';
 
 
 %-Global normalization options (options 1-7 match CFIforms)       (GloNorm)
@@ -72,8 +69,8 @@ sGloNorm = {	'AnCova';...						%-1
 		'AnCova by sF2';...					%-3
 		'AnCova by sF3';...					%-4
 		'AnCova by sF4';...					%-5
-		'AnCova by sF2 (by sF4)';...				%-6
-		'AnCova by sF3 (by sF4)';...				%-7
+		'AnCova by sF2 (within sF4)';...			%-6
+		'AnCova by sF3 (within sF4)';...			%-7
 		'proportional scaling';...				%-8
 		'<no global normalisation>'};				%-9
 
@@ -88,7 +85,6 @@ sGMsca = {	'scaling of overall grand mean';...			%-1
 		'(implicit in PropSca global normalisation)';...	%-8
 		'<no grand Mean scaling>'	};			%-9
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
-dGM = 50;			%-Default GM (if isempty(D.GM))
 
 
 %-Global calculation options                                       (GXcalc)
@@ -107,7 +103,7 @@ sGXcalc  = {	'omit';...						%-1
 %=======================================================================
 %-Get design type
 %-----------------------------------------------------------------------
-D = D(spm_input('Select design type...',1,'m',{D.DesName}',[],iDD));
+D = D(spm_input('Select design type...',1,'m',{D.DesName}',[]));
 
 %-Set factor names for this design
 %-----------------------------------------------------------------------
@@ -116,108 +112,10 @@ sCFI      = sf_estrrep(sCFI,[sF',D.sF']);
 sGloNorm  = sf_estrrep(sGloNorm,[sF',D.sF']);
 sGMsca    = sf_estrrep(sGMsca,[sF',D.sF']);
 
-%-Get filenames, accrue study, subject, condition & replication indicies
+%-Get filenames & factor indicies
 %-----------------------------------------------------------------------
-i4 = [];		% factor 4 index (usually study)
-i3 = [];		% factor 3 index (usually subject), per f4
-i2 = [];		% factor 2 index (usually condition), per f3/f4
-i1 = [];		% factor 1 index (usually replication), per f2/f3/f4
-P  = {};		% cell array of string filenames
-
-if isinf(D.n(4)), n4 = spm_input(['#',D.sF{4},'.s'],'+1','w',[],1);
-	else, n4 = D.n(4); end
-bL4 = n4>1;
-
-ti2 = '';
-GUIpos = spm_input('!NextPos');
-for j4  = 1:n4
-    spm_input('!SetNextPos',GUIpos);
-    sF4P=''; if bL4, sF4P=[D.sF{4},'.',int2str(j4),': ']; end
-    if isinf(D.n(3)), n3=spm_input([sF4P,'#',D.sF{3},'.s'],'+1','w',[],1);
-	    else, n3 = D.n(3); end
-    bL3 = n3>1;
-    
-    if D.b.aTime & D.n(2)>1
-	disp('NB:selecting in time order - manually specify conditions')%-**
-	%-NB: This means f2 levels might not be 1:n2
-	GUIpos2 = spm_input('!NextPos');
-	for j3 = 1:n3
-	    sF3P=''; if bL3, sF3P=[D.sF{3},'.',int2str(j3),': ']; end
-	    str = [sF4P,sF3P];
-	    tP = spm_get(D.n(2)*D.n(1),'.img',{[str,'select scans...']});
-	    n21 = length(tP);
-	    ti2 = spm_input([str,'iCond'],GUIpos2,'c',ti2',n21,D.n(2));
-	    %-Work out i1 & check
-	    [tl2,null,j] = unique(ti2);
-	    tn1 = zeros(size(tl2)); ti1 = zeros(size(ti2));
-	    for i=1:length(tl2)
-		    tn1(i)=sum(j==i); ti1(ti2==tl2(i))=1:tn1(i); end
-	    if isfinite(D.n(1)) & any(tn1~=D.n(1))
-		%-#i1 levels mismatches specification in D.n(1)
-		error(sprintf('#%s not %d as pre-specified',D.sF{1},D.n(1)))
-	    end
-	    P   = [P;tP];
-	    i4 = [i4, j4*ones(n21,1)];
-	    i3 = [i3, j3*ones(n21,1)];
-	    i2 = [i2, ti2];
-	    i1 = [i1, ti1];
-	end
-
-    else
-
-	if isinf(D.n(2))
-	    n2 = spm_input([sF4P,'#',D.sF{2},'.s'],'+1','w',[],1);
-	else
-	    n2 = D.n(2);
-	end
-	bL2 = n2>1;
-
-	if n2==1 & D.n(1)==1 %-single scan per f3 (subj)
-	    disp('NB:single scan per f3')%-**
-	    str = [sF4P,'select scans, ',D.sF{3},' 1-',int2str(n3)];
-	    P     = [P;spm_get(n3,'.img',{str})];
-	    i4 = [i4, j4*ones(n3,1)];
-	    i3 = [i3, [1:n3]'];
-	    i2 = [i2, ones(n3,1)];
-	    i1 = [i1, ones(n3,1)];
-	else
-	    %-multi scan per f3 (subj) case
-	    disp('NB:multi scan per f3')%-**
-	    for j3 = 1:n3
-		sF3P=''; if bL3, sF3P=[D.sF{3},'.',int2str(j3),': ']; end
-		if D.n(1)==1
-			%-No f1 (repl) within f2 (cond)
-			disp('NB:no f1 within f2')%-**
-			str = [sF4P,sF3P,'select scans: ',D.sF{2},...
-				 ' 1-',int2str(n2)];
-			P = [P;spm_get(n2,'.img',{str})];
-			i4 = [i4, j4*ones(n2,1)];
-			i3 = [i3, j3*ones(n2,1)];
-			i2 = [i2, [1:n2]'];
-			i1 = [i1, ones(n2,1)];
-		else
-		    %-multi f1 (repl) within f2 (cond)
-		    disp('NB:f1 within f2')%-**
-		    for j2 = 1:n2
-			sF2P='';
-			if bL2, sF2P=[D.sF{2},'.',int2str(j2),': ']; end
-			str = [sF4P,sF3P,sF2P,' select scans...'];
-			tP  = spm_get(D.n(1),'.img',{str});
-			n1 = size(tP,1);
-			P   = [P;tP];
-			i4 = [i4, j4*ones(n1,1)];
-			i3 = [i3, j3*ones(n1,1)];
-			i2 = [i2, j2*ones(n1,1)];
-			i1 = [i1, [1:n1]'];
-		    end                         % (for j2)
-		end                             % (if D.n(1)==1)
-	    end                                 % (for j3)
-	end                                     % (if  n2==1 &...)
-    end                                         % (if D.b.aTime & D.n(2)>1)
-end                                             % (for j4)
-clear n1 n2 n3 n4 bL1 bL2 bL3 bL4
-nScan = length(P);			%-#observations
-I     = [i1,i2,i3,i4];			%-Factor indices
+[P,I] = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime);	%-Files & indices
+nScan = length(P);					%-#observations
 
 %-Additional design parameters
 %-----------------------------------------------------------------------
@@ -235,6 +133,12 @@ eval(['[H,Hnames] = spm_DesMtx(',D.Hform,');'])
 if rank(H)==nScan, error('unestimable condition effects'), end
 eval(['[B,Bnames] = spm_DesMtx(',D.Bform,');'])
 if rank(B)==nScan, error('unestimable block effects'), end
+
+%-Drop a constant H partition if B partition can model constant
+if size(H,2)>0 & all(H(:)==1) & (rank([H B])==rank(B))
+	H = []; Hnames = {};
+	warning('Dropping redundant constant H partition')
+end
 
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
@@ -260,8 +164,9 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
         c = spm_input(str,GUIpos,'r',[],[nScan,Inf]);
         if any(isnan(c(:))), break, end		%-NaN is dummy value to exit
 	nc(i)  = nc(i)+1;			%-#Covariates (so far)
-       	cname  = spm_input([str,' name?'],'+1','s',...
-       		[dcname{i},'^{',num2str(nc(i)),'}']);
+	if nC(i)>1,	tstr = sprintf('%s^{%d}',dcname{i},nc(i));
+	else,		tstr = dcname{i}; end
+       	cname  = spm_input([str,' name?'],'+1','s',tstr);
        	rc     = c;				%-Save covariate value
 	rcname = cname;				%-Save covariate name
 
@@ -383,20 +288,15 @@ end
 %-----------------------------------------------------------------------
 if iGMsca==9                            %-Not scaling (GMsca or PropSca)
     GM=0;                               %-Set GM to zero when not scaling
-else                                    %-Set value of GM
-    if ~isempty(D.GM) & D.GM~=0 %-D.GM contains GM value to use
-        GM = D.GM;
-    else                                %-Ask user for GM
-        %-Default response is dGM
-        if iGloNorm==8
-            str='PropSca global mean to';
-        else
-            str=[strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
-        end
-        GM = spm_input(str,'+1','r',dGM,1);
-    end
-    %-If GM is zero then don't GMsca! or PropSca GloNorm
-    if GM==0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
+else                                    %-Ask user value of GM
+	if iGloNorm==8
+		str='PropSca global mean to';
+	else
+		str=[strrep(sGMsca{iGMsca},'scaling of','scale'),' to'];
+	end
+	GM = spm_input(str,'+1','r',D.GM,1);
+	%-If GM is zero then don't GMsca! or PropSca GloNorm
+	if GM==0, iGMsca=9; if iGloNorm==8, iGloNorm=9; end, end
 end
 
 %-Sort out description strings for GloNorm and GMsca
@@ -425,7 +325,7 @@ end
 %-If not doing AnCova then GC is irrelevant
 if ~any(iGloNorm==[1:7])
 	iGC = 12;
-	gc  = 0;
+	gc  = [];
 else
 	%-Annotate options 10 & 11 with specific details
 	%---------------------------------------------------------------
@@ -441,24 +341,24 @@ else
 	iGC = intersect(abs(D.iGC),find([1,bFI,1,1,1,1]));
 	%-Omit 'GM' option if didn't GMsca (iGMsca~=8 'cos doing AnCova)
 	if any(iGMsca==[8,9]), iGC = setdiff(iGC,11); end
-	%-Omit '(as implied by AnCova)' if same as GM
-	if iGloNorm==iGMsca, iGC = setdiff(iGC,10); end
+	%-Omit 'GM' option if same as '(as implied by AnCova)'
+	if iGloNorm==iGMsca, iGC = setdiff(iGC,11); end
 
-	%-Set defaults (if any), & get answer
+	%-If there's a choice, set defaults (if any), & get answer
 	%---------------------------------------------------------------
-	dGC = max([0,intersect(iGC,-D.iGC(D.iGC<0))]);
-	str = 'Centre global covariate';
-	if iGMsca<8, str = [str,' (after grand mean scaling)']; end
-	iGC = spm_input(str,'+1','m',sCC(iGC),iGC,find(iGC==dGC));
-
-	%-If "as implied by AnCova" then set iGC accordingly
-	%---------------------------------------------------------------
-	if iGC==10, iGC = iGloNorm; end
+	if length(iGC)>1
+		dGC = max([0,intersect(iGC,-D.iGC(D.iGC<0))]);
+		str = 'Centre global covariate';
+		if iGMsca<8, str = [str,' (after grand mean scaling)']; end
+		iGC = spm_input(str,'+1','m',sCC(iGC),iGC,find(iGC==dGC));
+	elseif isempty(iGC)
+		error('Configuration error: empty iGC')
+	end
 
 	%-If 'user specified' then get value
 	%---------------------------------------------------------------
 	if iGC==9
-		gc     = spm_input('Centre globals around','+0','r',dGM,1)
+		gc     = spm_input('Centre globals around','+0','r',D.GM,1);
 		sCC{9} = sprintf('%s of %g',sCC{iGC},gc);
 	else
 		gc  = 0;
@@ -466,11 +366,93 @@ else
 end
 
 
-%-Global calculation                                            (GXcalc)
+%-Thresholds & masks defining voxels to analyse                   (MASK)
+%=======================================================================
+GUIpos = spm_input('!NextPos');
+
+%-Analysis threshold mask
 %-----------------------------------------------------------------------
+%-Work out available options:
+% -Inf=>None, complex=>proportional, real=>absolute (i.e. times global)
+M_T = D.M_.T; if isempty(M_T), M_T = [-Inf, 100, 0.8*sqrt(-1)]; end
+M_T = {	'none',		M_T(min(find(isinf(M_T))));...
+	'absolute',	M_T(min(find(isfinite(M_T)&(M_T==real(M_T)))));...
+	'prop''nal',	M_T(min(find(isfinite(M_T)&(M_T~=real(M_T)))))	};
+
+%-Work out available options
+q = ~[isempty(M_T{1,2}), isempty(M_T{2,2}), isempty(M_T{3,2})];
+
+%-If there's a choice between proportional and absolute then ask
+if all(q(2:3))
+	tmp = spm_input('Threshold masking',GUIpos,'b',M_T(q,1),find(q));
+	q(setdiff([1:3],tmp))=0;
+end
+
+%-Get mask value - note that at most one of q(2:3) is true
+if ~any(q)				%-Oops - nothing specified!
+	M_T = -Inf;
+elseif all(q==[1,0,0])			%-no threshold masking
+	M_T = -Inf;
+else					%-get mask value
+	if q(1),	args = {'br1','None',-Inf,abs(M_T{1+find(q(2:3)),2})};
+	else,		args = {'r',abs(M_T{1+find(q(2:3)),2})}; end
+	if q(2)
+		M_T = spm_input('analysis threshold',GUIpos,args{:});
+	elseif q(3)
+		M_T = spm_input('analysis thresh  (prop''n of global)',GUIpos,...
+								args{:});
+		if isfinite(M_T) & isreal(M_T), M_T=M_T*sqrt(-1); end
+	else
+		error('Shouldn''t get here!')
+	end
+end
+
+%-Make a description string
+if isinf(M_T)
+	xsM.Analysis_threshold = 'None (-Inf)';
+elseif isreal(M_T)
+	xsM.Analysis_threshold = sprintf('images thresholded at %6g',M_T);
+else
+	xsM.Analysis_threshold = sprintf(['images thresholded at %6g ',...
+		'times global'],imag(M_T));
+end
+
+
+%-Implicit masking: Ignore zero voxels in low data-types?
+%-----------------------------------------------------------------------
+% (Implicit mask is NaN in higher data-types.)
+type = getfield(spm_vol(P{1}),'dim')*[0,0,0,1]';
+if ~spm_type(type,'nanrep')
+	switch D.M_.I
+	case Inf,    M_I = spm_input('Implicit mask (ignore zero''s)?',...
+			'+1','y/n',[1,0],1);		%-Ask
+	case {0,1}, M_I = D.M_.I;			%-Pre-specified
+	otherwise,  error('unrecognised D.M_.I type')
+	end
+
+	if M_I, xsM.Implicit_masking = 'Yes: zero''s treated as missing';
+	else,   xsm.Implicit_masking = 'No'; end
+else
+	M_I = 1;
+	xsM.Implicit_masking = 'Yes: NaN''s treated as missing';
+end
+
+
+%-Explicit mask images (map them later...)
+%-----------------------------------------------------------------------
+switch(D.M_.X)
+case Inf,    M_X = spm_input('explicit mask images?','+1','y/n',[1,0],2);
+case {0,1}, M_X = D.M_.X;
+otherwise,  error('unrecognised D.M_.X type')
+end
+if M_X, M_P = spm_get(Inf,'*.img',{'select mask images'}); else, M_P = {}; end
+
+
+%-Global calculation                                            (GXcalc)
+%=======================================================================
 iGXcalc = abs(D.iGXcalc);
-%-Only offer "omit" option if not doing any GloNorm or GMsca
-if ~(iGloNorm==9 & iGMsca==9)
+%-Only offer "omit" option if not doing any GloNorm, GMsca or PropTHRESH
+if ~(iGloNorm==9 & iGMsca==9 & (isinf(M_T)|isreal(M_T)))
 	iGXcalc = intersect(iGXcalc,[2:size(sGXcalc,1)]);
 end
 if isempty(iGXcalc)
@@ -488,38 +470,6 @@ if iGXcalc==2				%-Get user specified globals
 	g = spm_input('globals','+0','r',[],[nScan,1]);
 end
 sGXcalc = sGXcalc{iGXcalc};
-
-
-%-Thresholds & masks defining voxels to analyse                  (THRESH)
-%-----------------------------------------------------------------------
-%-Threshold mask as proportion of global
-if iGXcalc>1, str = ' (times global)'; else, str = ''; end
-M_THp = spm_input(['Analysis threshold',str],'+1','br1','None',-Inf,0.8);
-if isfinite(M_THp)
-	xsM.Analysis_threshold = sprintf('images thresholded at %6f%s',...
-		M_THp,str);
-else
-	xsM.Analysis_threshold = 'None (-Inf)';
-end
-
-%-Implicit masking: Ignore zero voxels in low data-types?
-% (Implicit mask is NaN in higher data-types.)
-type = getfield(spm_vol(P{1}),'dim')*[0,0,0,1]';
-if ~spm_type(type,'nanrep')
-	M_I = spm_input('Implicit mask (ignore zero''s)?','+1','y/n',[1,0],1);
-	if M_I
-		xsM.Implicit_masking = 'Yes: zero''s treated as missing';
-	else
-		xsm.Implicit_masking = 'No';
-	end
-else
-	M_I = 1;
-	xsM.Implicit_masking = 'Yes: NaN''s treated as missing';
-end
-
-%-Explicit mask images (map them later...)
-M_X = spm_input('explicit mask images?','+1','y/n',[1,0],2);
-if M_X, M_P = spm_get(Inf,'*.img',{'select mask images'}); else, M_P = {}; end
 
 
 %=======================================================================
@@ -634,7 +584,7 @@ elseif iGloNorm==8 | iGXcalc>1
 	if iGloNorm==8
 		str = { 'global values: (used for proportional scaling)';...
 			'("raw" unscaled globals shown)'};
-	elseif isfinite(M_THp)
+	elseif isfinite(M_T) & ~isreal(M_T)
 		str = { 'global values: (used to compute analysis threshold)'};
 	else
 		str = { 'global values: (computed but not used)'};
@@ -664,7 +614,9 @@ xGX = struct(...
 %-Construct masking information structure and compute actual analysis
 % threshold using scaled globals (rg.*gSF)
 %-----------------------------------------------------------------------
-if iGXcalc>1, M_TH = (rg.*gSF)*M_THp; else, M_TH = M_THp; end
+if isreal(M_T),	M_TH =      M_T  * ones(nScan,1);	%-NB: -Inf is real
+else,		M_TH = imag(M_T) * (rg.*gSF); end
+
 if ~isempty(M_P)
 	VM = spm_vol(char(M_P));
 	xsM.Explicit_masking = [{'Yes: mask images :'};{VM.fname}'];
@@ -672,11 +624,11 @@ else
 	VM={};
 	xsM.Explicit_masking = 'No';
 end
-xM = struct('THp',M_THp, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
+xM = struct('T',M_T, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
 
 
 
-%-Design matrix canonicalisation
+%-Design matrix orthogonalisation & canonicalisation
 %=======================================================================
 %-raw design matrix
 rX = [H,C,B,G];
@@ -716,6 +668,7 @@ X      = [H C B G];
 Xnames = [Hnames; Cnames; Bnames; Gnames];
 tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
 xX     = struct(	'I',		I,...
+			'sF',		{D.sF},...
 			'rX',		rX,...
 			'X',		X,...
 			'K',		speye(size(X,1)),...
@@ -770,37 +723,13 @@ xsDes = struct(	'Design',			{D.DesName},...
 
 %-Save SPMcfg.mat file
 save SPMcfg SPMid D xsDes VY xM xC xX xGX xCon
-save
+save %-****
 
-
+%-Display Design report
 %=======================================================================
-% - D I S P L A Y   A N A L Y S I S   P A R A M E T E R S
-%=======================================================================
-Fgraph = spm_figure('GetWin','Graphics');
-spm_figure('Clear',Fgraph), figure(Fgraph)
-FS = spm_figure('FontSizes');
+spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM)
 
-
-%-Files, indices & covariates... & masking options
-%-----------------------------------------------------------------------
-spm_DesRep('Files&Vars',{VY.fname}',xX.I,xC,D.sF,xM.xs)
-spm_print
-
-
-%-Design matrix & design descriptions
-%-----------------------------------------------------------------------
-spm_DesRep('DesMtx',xX.X,xX.Xnames,{VY.fname}',xsDes)
-spm_print
-
-
-%-Covariates
-%-----------------------------------------------------------------------
-spm_DesRep('Covs',xC,xX.X,xX.Xnames)
-spm_print
-
-
-%=======================================================================
-% - A N A L Y S I S   P R O P E R
+%-Analysis Proper - ****
 %=======================================================================
 %-This is PET data so sigma = 0 (i.e. independent observations) 
 % RT is undefined
@@ -808,15 +737,593 @@ spm_print
 %spm_spm(VY,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
 
 
-
-%=======================================================================
-% - E N D
+%-End: Cleanup GUI
 %=======================================================================
 spm('FigName','Stats: done',Finter,CmdLine); spm('Pointer','Arrow')
 fprintf('\n\n')
 
 
 
+case 'files&indices'
+%=======================================================================
+% - Get files and factor indices
+%=======================================================================
+% [P,I] = spm_spm_ui('Files&Indices',DsF,Dn,DbaTime)
+% DbaTime=D.b.aTime; Dn=D.n; DsF=D.sF;
+if nargin<4, DbaTime = 1; else, DbaTime = varargin{4}; end
+if nargin<3, Dn  = [Inf,Inf,Inf,Inf]; else, Dn=varargin{3}; end
+if nargin<2, DsF = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
+
+%-----------------------------------------------------------------------
+i4 = [];		% factor 4 index (usually study)
+i3 = [];		% factor 3 index (usually subject), per f4
+i2 = [];		% factor 2 index (usually condition), per f3/f4
+i1 = [];		% factor 1 index (usually replication), per f2/f3/f4
+P  = {};		% cell array of string filenames
+
+if isinf(Dn(4)), n4 = spm_input(['#',DsF{4},'''s'],'+1','n1',[],1);
+	else, n4 = Dn(4); end
+bL4 = n4>1;
+
+ti2 = '';
+GUIpos = spm_input('!NextPos');
+for j4  = 1:n4
+    spm_input('!SetNextPos',GUIpos);
+    sF4P=''; if bL4, sF4P=[DsF{4},' ',int2str(j4),': ']; end
+    if isinf(Dn(3)), n3=spm_input([sF4P,'#',DsF{3},'''s'],'+1','n1',[],1);
+	    else, n3 = Dn(3); end
+    bL3 = n3>1;
+    
+    if DbaTime & Dn(2)>1
+	%disp('NB:selecting in time order - manually specify conditions')
+	%-NB: This means f2 levels might not be 1:n2
+	GUIpos2 = spm_input('!NextPos');
+	for j3 = 1:n3
+	    sF3P=''; if bL3, sF3P=[DsF{3},' ',int2str(j3),': ']; end
+	    str = [sF4P,sF3P];
+	    tP = spm_get(Dn(2)*Dn(1),'.img',{[str,'select images...']});
+	    n21 = length(tP);
+	    ti2 = spm_input([str,' ',DsF{2},'?'],GUIpos2,'c',ti2',n21,Dn(2));
+	    %-Work out i1 & check
+	    [tl2,null,j] = unique(ti2);
+	    tn1 = zeros(size(tl2)); ti1 = zeros(size(ti2));
+	    for i=1:length(tl2)
+		    tn1(i)=sum(j==i); ti1(ti2==tl2(i))=1:tn1(i); end
+	    if isfinite(Dn(1)) & any(tn1~=Dn(1))
+		%-#i1 levels mismatches specification in Dn(1)
+		error(sprintf('#%s not %d as pre-specified',DsF{1},Dn(1)))
+	    end
+	    P   = [P;tP];
+	    i4 = [i4; j4*ones(n21,1)];
+	    i3 = [i3; j3*ones(n21,1)];
+	    i2 = [i2; ti2];
+	    i1 = [i1; ti1];
+	end
+
+    else
+
+	if isinf(Dn(2))
+	    n2 = spm_input([sF4P,'#',DsF{2},'''s'],'+1','n1',[],1);
+	else
+	    n2 = Dn(2);
+	end
+	bL2 = n2>1;
+
+	if n2==1 & Dn(1)==1 %-single scan per f3 (subj)
+	    %disp('NB:single scan per f3')
+	    str = [sF4P,'select images, ',DsF{3},' 1-',int2str(n3)];
+	    P     = [P;spm_get(n3,'.img',{str})];
+	    i4 = [i4; j4*ones(n3,1)];
+	    i3 = [i3; [1:n3]'];
+	    i2 = [i2; ones(n3,1)];
+	    i1 = [i1; ones(n3,1)];
+	else
+	    %-multi scan per f3 (subj) case
+	    %disp('NB:multi scan per f3')
+	    for j3 = 1:n3
+		sF3P=''; if bL3, sF3P=[DsF{3},' ',int2str(j3),': ']; end
+		if Dn(1)==1
+			%-No f1 (repl) within f2 (cond)
+			%disp('NB:no f1 within f2')
+			str = [sF4P,sF3P,'select images: ',DsF{2},...
+				 ' 1-',int2str(n2)];
+			P = [P;spm_get(n2,'.img',{str})];
+			i4 = [i4; j4*ones(n2,1)];
+			i3 = [i3; j3*ones(n2,1)];
+			i2 = [i2; [1:n2]'];
+			i1 = [i1; ones(n2,1)];
+		else
+		    %-multi f1 (repl) within f2 (cond)
+		    %disp('NB:f1 within f2')
+		    for j2 = 1:n2
+			sF2P='';
+			if bL2, sF2P=[DsF{2},' ',int2str(j2),': ']; end
+			str = [sF4P,sF3P,sF2P,' select images...'];
+			tP  = spm_get(Dn(1),'.img',{str});
+			n1 = size(tP,1);
+			P   = [P;tP];
+			i4 = [i4; j4*ones(n1,1)];
+			i3 = [i3; j3*ones(n1,1)];
+			i2 = [i2; j2*ones(n1,1)];
+			i1 = [i1; [1:n1]'];
+		    end                         % (for j2)
+		end                             % (if Dn(1)==1)
+	    end                                 % (for j3)
+	end                                     % (if  n2==1 &...)
+    end                                         % (if DbaTime & Dn(2)>1)
+end                                             % (for j4)
+varargout = {P,[i1,i2,i3,i4]};
+
+
+case {'desrep','desrepui'}
+%=======================================================================
+% - D I S P L A Y   A N A L Y S I S   P A R A M E T E R S
+%=======================================================================
+% spm_spm_ui('DesRepUI',SPMcfg)
+% spm_spm_ui('DesRepUI',VY,xX,xC,xsDes,xM)
+if nargin==1
+	SPMcfg = load(spm_get(1,'SPMcfg.mat','Select SPMcfg.mat'));
+elseif nargin==2
+	if isstruct(varargin{2})
+		SPMcfg = varargin{2};
+	elseif isstr(varargin{2}) & exist(varargin{2},'file')==2
+		SPMcfg = load(varargin{2});
+	else
+		error('Mis-specified SPMcfg')
+	end
+elseif nargin==6
+	SPMcfg = struct(	'xM',		varargin{6},...
+				'xsDes',	varargin{5},...
+				'xC',		varargin{4},...
+				'xX',		varargin{3},...
+				'VY',		varargin{2}	);
+else
+	error('insufficient arguments')
+end
+
+
+%-Action 'DesRep' - print all reports
+%-----------------------------------------------------------------------
+if strcmp(lower(Action),'desrep')
+	%-Files, indices, covariates... & masking options
+	spm_DesRep('Files&Vars',{SPMcfg.VY.fname}',SPMcfg.xX.I,SPMcfg.xC,...
+		SPMcfg.xX.sF,SPMcfg.xM.xs)
+	spm_print
+	
+	%-Design matrix & design descriptions
+	spm_DesRep('DesMtx',SPMcfg.xX.X,SPMcfg.xX.Xnames,...
+		{SPMcfg.VY.fname}',SPMcfg.xsDes)
+	spm_print
+	
+	%-Covariates
+	spm_DesRep('Covs',SPMcfg.xC,SPMcfg.xX.X,SPMcfg.xX.Xnames)
+	spm_print
+end
+
+
+%-GUI setup
+%-----------------------------------------------------------------------
+Labels = {'Files & factors';'Design matrix';'Covariates'};
+cb     = {	['spm_DesRep(''Files&Vars'',{UD.VY.fname}'',UD.xX.I,UD.xC,',...
+			'UD.xX.sF,UD.xM.xs)'],...
+		['spm_DesRep(''DesMtx'',UD.xX.X,UD.xX.Xnames,',...
+			'{UD.VY.fname}'',UD.xsDes)'],...
+		['spm_DesRep(''Covs'',UD.xC,UD.xX.X,UD.xX.Xnames)']	};
+if ~length(SPMcfg.xC), Labels(3)=[]; cb(3)=[]; end
+h = spm_input('Select design summary','!_','p',Labels,cb,SPMcfg,1);
+
+
+
+case 'desdefs_stats'
+%=======================================================================
+% - Basic Stats Design definitions...
+%=======================================================================
+% D = spm_spm_ui('DesDefs_Stats');
+
+%-Note: struct expands cell array values to give multiple records:
+%       => must embed cell arrays within another cell array!
+%-Negative indices indicate defaults (first used)
+
+D = struct(...
+	'DesName','One sample t-test',...
+	'n',	[Inf 1 1 1],	'sF',{{'obs','','',''}},...
+	'Hform',		'I(:,2),''-'',''mean''',...
+	'Bform',		'[]',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',-Inf,'I',Inf,'X',Inf),...
+	'b',struct('aTime',0));
+
+D = [D, struct(...
+	'DesName','Two sample t-test',...
+	'n',	[Inf 2 1 1],	'sF',{{'obs','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'I(:,3),''-'',''\mu''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Paired t-test',...
+	'n',	[1 2 Inf 1],	'sF',{{'','cond','pair',''}},...
+	'Hform',		'I(:,2),''-'',''condition''',...
+	'Bform',		'I(:,3),''-'',''\gamma''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','One way Anova',...
+	'n',	[Inf Inf 1 1],	'sF',{{'repl','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'I(:,3),''-'',''\mu''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Simple regression (correlation)',...
+	'n',	[Inf 1 1 1],	'sF',{{'repl','','',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,2),''-'',''\mu''',...
+	'nC',[1,0],'iCC',{{1,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','AnCova',...
+	'n',	[Inf Inf 1 1],	'sF',{{'repl','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'I(:,3),''-'',''\mu''',...
+	'nC',[0,1],'iCC',{{8,1}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1,-9],'GM',[],...
+	'iGloNorm',9,'iGC',12,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+varargout = {D};
+
+
+case 'desdefs_spm98pet'
+%=======================================================================
+% - Standard SPM98 PET/SPECT Design definitions...
+%=======================================================================
+% D = spm_spm_ui('DesDefs_SPM98PET');
+
+%-Single subject
+%-----------------------------------------------------------------------
+D = struct(...
+	'DesName','Single-subject: conditions & covariates',...
+	'n',	[Inf Inf 1 1],	'sF',{{'repl','condition','',''}},...
+	'Hform',		'I(:,2),''-'',''cond''',...
+	'Bform',		'I(:,3),''-'',''\mu''',...
+	'nC',[Inf,Inf],'iCC',{{[-1,3,8],[-1,8]}},'iCFI',{{[1,3],1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1));
+
+D = [D, struct(...
+	'DesName','Single-subject: covariates only',...
+	'n',	[Inf 1 1 1],	'sF',{{'repl','','',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,3),''-'',''\mu''',...
+	'nC',[Inf,Inf],'iCC',{{[-1,8],[-1,8]}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+%-Multi-subject
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName','Multi-subj: conditions & covariates',...
+	'n',[Inf Inf Inf 1],	'sF',{{'repl','condition','subject',''}},...
+	'Hform',		'I(:,2),''-'',''cond''',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,3,4,8],[1,4,8]}},'iCFI',{{[1,3,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-4,9],'GM',50,...
+	'iGloNorm',[4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName',...
+	'Multi-subj: cond x subj  interaction & covariates (FixedFX)',...
+	'n',[Inf Inf Inf 1],	'sF',{{'repl','condition','subject',''}},...
+	'Hform',		'I(:,[3,2]),''-'',{''subj'',''cond''}',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,3,4,8],[1,4,8]}},'iCFI',{{[1,3,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-4,9],'GM',50,...
+	'iGloNorm',[4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Multi-subj: covariates only',...
+	'n',[Inf 1 Inf 1],	'sF',{{'repl','','subject',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,4,8],[1,4,8]}},'iCFI',{{[1,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-4,9],'GM',50,...
+	'iGloNorm',[4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+%-Multi-study
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName','Multi-study: conditions & covariates',...
+	'n',[Inf Inf Inf Inf],	'sF',{{'repl','condition','subject','study'}},...
+	'Hform',		'I(:,[4,2]),''-'',{''stud'',''cond''}',...
+	'Bform',		'I(:,[4,3]),''-'',{''stud'',''subj''}',...
+	'nC',[Inf,Inf],'iCC',{{[5:8],[5,7,8]}},'iCFI',{{[1,5,6,7],[1,5,7]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-7,9],'GM',50,...
+	'iGloNorm',[7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Multi-study: covariates only',...
+	'n',[Inf 1 Inf Inf],	'sF',{{'repl','','subject','study'}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,[4,3]),''-'',{''stud'',''subj''}',...
+	'nC',[Inf,Inf],'iCC',{{[5,7,8],[5,7,8]}},'iCFI',{{[1,5,7],[1,5,7]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-7,9],'GM',50,...
+	'iGloNorm',[7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+%-Population comparisons
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName',...
+	'Population main effect: 2 cond''s, 1 scan per cond (RandFX)',...
+	'n',[Inf Inf 1 1],	'sF',{{'subject','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'[]',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Compare-populations: 1 scan per subject (RandFX)',...
+	'n',[Inf Inf 1 1],	'sF',{{'subject','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'[]',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+%-The Full Monty!
+%-----------------------------------------------------------------------
+
+varargout = {D};
+
+case 'desdefs_spm96pet'
+%=======================================================================
+% - Standard SPM98 PET/SPECT Design definitions...
+%=======================================================================
+% D = spm_spm_ui('DesDefs_SPM98PET');
+
+%-Single subject
+%-----------------------------------------------------------------------
+D = struct(...
+	'DesName','Single-subject: replication of conditions',...
+	'n',	[Inf 2 1 1],	'sF',{{'repl','condition','',''}},...
+	'Hform',		'I(:,2),''-'',''condition''',...
+	'Bform',		'I(:,3),''-'',''constant''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1));
+
+D = [D, struct(...
+	'DesName','Single-subject: replicated conditions & covariates',...
+	'n',	[Inf Inf 1 1],	'sF',{{'repl','condition','',''}},...
+	'Hform',		'I(:,2),''-'',''condition''',...
+	'Bform',		'I(:,3),''-'',''constant''',...
+	'nC',[Inf,Inf],'iCC',{{[-1,3,8],[-1,8]}},'iCFI',{{[1,3],1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Single-subject: covariates only',...
+	'n',	[Inf 1 1 1],	'sF',{{'repl','','',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,3),''-'',''constant''',...
+	'nC',[Inf,Inf],'iCC',{{[-1,8],[-1,8]}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+%-Multi-subject
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName','Multi-subj: different conditions',...
+	'n',	[1 Inf Inf 1],	'sF',{{'','condition','subject',''}},...
+	'Hform',		'I(:,2),''-'',''cond''',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,-4,9],'GM',50,...
+	'iGloNorm',[1,4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-subj: replicated conditions',...
+	'n',[Inf Inf Inf 1],	'sF',{{'repl','condition','subject',''}},...
+	'Hform',		'I(:,2),''-'',''condition''',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,-4,9],'GM',50,...
+	'iGloNorm',[1,4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Multi-subj: different conditions & covariates',...
+	'n',	[1 Inf Inf 1],	'sF',{{'','condition','subject',''}},...
+	'Hform',		'I(:,2),''-'',''cond''',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,3,8],[1,3,8]}},'iCFI',{{[1,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,-4,9],'GM',50,...
+	'iGloNorm',[1,4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-subj: replicated conditions & covariates',...
+	'n',[Inf Inf Inf 1],	'sF',{{'repl','condition','subject',''}},...
+	'Hform',		'I(:,2),''-'',''condition''',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,3,4,8],[1,4,8]}},'iCFI',{{[1,3,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,-4,9],'GM',50,...
+	'iGloNorm',[1,4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',1))];
+
+D = [D, struct(...
+	'DesName','Multi-subj: covariates only',...
+	'n',[Inf 1 Inf 1],	'sF',{{'repl','','subject',''}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,3),''-'',''subj''',...
+	'nC',[Inf,Inf],'iCC',{{[1,4,8],[1,4,8]}},'iCFI',{{[1,4],[1,4]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,-4,9],'GM',50,...
+	'iGloNorm',[1,4,8:9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+%-Multi-study
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName','Multi-study: different conditions',...
+	'n',[1 Inf Inf Inf],	'sF',{{'','condition','subject','study'}},...
+	'Hform',		'I(:,[4,2]),''-'',{''study'',''cond''}',...
+	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,5,-7,9],'GM',50,...
+	'iGloNorm',[1,5,7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-study: replicated conditions',...
+	'n',[Inf Inf Inf Inf],	'sF',{{'repl','condition','subject','study'}},...
+	'Hform',		'I(:,[4,2]),''-'',{''study'',''condition''}',...
+	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,5,-7,9],'GM',50,...
+	'iGloNorm',[1,5,7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-study: different conditions & covariates',...
+	'n',[1 Inf Inf Inf],	'sF',{{'','condition','subject','study'}},...
+	'Hform',		'I(:,[4,2]),''-'',{''study'',''cond''}',...
+	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
+	'nC',[Inf,Inf],'iCC',{{[5:9],[5,7:9]}},'iCFI',{{[1,5,6,7],[1,5,7]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,5,-7,9],'GM',50,...
+	'iGloNorm',[1,5,7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-study: replicated conditions & covariates',...
+	'n',[Inf Inf Inf Inf],	'sF',{{'','condition','subject','study'}},...
+	'Hform',		'I(:,[4,2]),''-'',{''study'',''condition''}',...
+	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
+	'nC',[Inf,Inf],'iCC',{{[5:9],[5,7:9]}},'iCFI',{{[1,5,6,7],[1,5,7]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,5,-7,9],'GM',50,...
+	'iGloNorm',[1,5,7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+D = [D, struct(...
+	'DesName','Multi-study: covariates only',...
+	'n',[Inf 1 Inf Inf],	'sF',{{'','condition','subject','study'}},...
+	'Hform',		'[]',...
+	'Bform',		'I(:,[4,3]),''-'',{''study'',''subj''}',...
+	'nC',[Inf,Inf],'iCC',{{[5:9],[5,7:9]}},'iCFI',{{[1,5,6,7],[1,5,7]}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[1,5,-7,9],'GM',50,...
+	'iGloNorm',[1,5,7,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+%-Group comparisons
+%-----------------------------------------------------------------------
+D = [D, struct(...
+	'DesName','Compare-groups: 1 scan per subject',...
+	'n',[Inf Inf 1 1],	'sF',{{'subject','group','',''}},...
+	'Hform',		'I(:,2),''-'',''group''',...
+	'Bform',		'[]',...
+	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0,'CwH',0),...
+	'iGXcalc',[1:2,-3],'iGMsca',[-1,9],'GM',50,...
+	'iGloNorm',[1,8,9],'iGC',10,...
+	'M_',struct('T',[-Inf,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'b',struct('aTime',0))];
+
+varargout = {D};
+
+
+otherwise
+%=======================================================================
+% - U N K N O W N   A C T I O N
+%=======================================================================
+warning(['Illegal Action string: ',Action])
+
+
+%=======================================================================
+% - E N D
+%=======================================================================
+end
 
 
 
