@@ -93,8 +93,8 @@ end
 
 % compute variance of normalized derivatives in all directions
 %-----------------------------------------------------------------------
-str   = 'Spatial non-sphericity (over time)'
-fprintf('%-40s: %30s\n',str,'...estimating derivatives')      %-#
+str   = 'Spatial non-sphericity (over scans)';
+fprintf('%-40s: %30s',str,'...estimating derivatives')      %-#
 spm_progress_bar('Init',100,'smoothness estimation','');
 
 v     = zeros(size(Ix,1),N);
@@ -131,7 +131,7 @@ v(I,:) = []; Ix(I) = []; Iy(I) = []; Iz(I) = [];
 % FWHM   = sqrt(4.ln2/|dv/dx|))
 % fwhm   = 1/FWHM
 %-----------------------------------------------------------------------
-fprintf('%-40s: %30s\n',str,'...writing resels/voxel image')  %-#
+fprintf('\r%-40s: %30s\n',str,'...writing resels/voxel image')  %-#
 
 fwhm   = sqrt(v./(4*log(2)));
 resel  = prod(fwhm,2);
