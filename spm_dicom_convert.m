@@ -53,7 +53,7 @@ for i=1:length(hdr),
 	%-------------------------------------------------------------------
 	fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
 		hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
-
+	fname = fullfile(pwd,fname);
 
 	% Image dimensions and data
 	%-------------------------------------------------------------------
@@ -414,6 +414,7 @@ function write_volume(hdr)
 %-------------------------------------------------------------------
 fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
 	hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
+fname = fullfile(pwd,fname);
 
 % Image dimensions
 %-------------------------------------------------------------------
