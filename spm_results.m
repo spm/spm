@@ -65,6 +65,9 @@ elseif SPMF
 
 end
 
+% proceed if there are voxels
+%-----------------------------------------------------------------------
+if ~length(t); return; end
 set(Finter,'Name','SPM results','Pointer','Watch')
 
 %-Load SPM.mat file from appropriate directory
