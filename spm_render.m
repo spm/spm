@@ -1,15 +1,13 @@
-function spm_render(dat, flg)
+function spm_render(dat,flg)
 % Render blobs on surface of a 'standard' brain
-% FORMAT spm_render
-%_______________________________________________________________________
-% 
-% FORMAT spm_render(dat)
+% FORMAT spm_render(dat,flg)
+%
 % dat - a vertical cell array of length 1 to 3
 %       - each element is a structure containing:
-%         - XYZ - the x, y & z coordinated of the transformed t values.
+%         - XYZ - the x, y & z coordinates of the transformed t values.
 %                 in units of voxels.
-%         - t   - the transformed t values
-%         - mat - affine matrix mapping from XYZ to Talairach.
+%         - t   - the SPM{.} values
+%         - mat - affine matrix mapping from XYZ voxels to Talairach.
 %         - dim - dimensions of volume from which XYZ is drawn.
 % flg - optional.  If 1, then displays using the old style with hot
 %       metal for the blobs, and grey for the brain.
@@ -26,41 +24,44 @@ function spm_render(dat, flg)
 % surface.
 %_______________________________________________________________________
 % %W% John Ashburner FIL %E%
+SCCSid = '%I%';
 
 
-if nargin==0,
-
-	spm_figure('Clear','Interactive');
-	Finter = spm_figure('FindWin','Interactive');
-	set(Finter,'Name','SPM render')
+%=======================================================================
+if nargin==0
+	SPMid = spm('FnBanner',mfilename,SCCSid);
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 	flg = 0; if num==1, flg = spm_input('Style',1,'new|old',[0 1], 1); end;
 
 	dat = cell(num,1);
 	for i=1:num,
-		[SPM,VOL,DES] = spm_getSPM;
-		% if isempty(SPM.Z), spm_figure('Clear','Interactive'); return; end
-		imat   = inv(VOL.M);
-		XYZ    = round(imat(1:3,1:3)*VOL.XYZ + imat(1:3,4)*ones(1,size(VOL.XYZ,2)));
-		dat{i} = struct('XYZ',XYZ, 't',SPM.Z', 'mat',VOL.M, 'dim', VOL.DIM);
-	end;
+		[SPM,VOL] = spm_getSPM;
+		% if isempty(SPM.Z),
+		%	spm_figure('Clear',Finter)
+		%	return
+		% end
+		dat{i} = struct(	'XYZ',	SPM.XYZ,...
+					't',	SPM.Z',...
+					'mat',	VOL.M,...
+					'dim',	VOL.DIM);
+	end
 
-	spm_render(dat, flg);
-	return;
-end;
+	spm_render(dat,flg);
+	return
+end
 
-if nargin==1,
-	flg = 0;
-end;
+if nargin==1, flg = 0; end
+
 
 % Perform the rendering
-%_______________________________________________________________________
+%=======================================================================
+spm('Pointer','Watch')
 
-set(spm_figure('FindWin','Interactive'),'Name','executing','Pointer','watch');
 
 % Put the pre-computed data in the right format.
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 load render
 pre = cell(size(Matrixes,1),1);
 for i=1:size(Matrixes,1)
@@ -72,7 +73,8 @@ for i=1:size(Matrixes,1)
 	pre{i}.data = cell(size(dat,1),1);
 end
 
-spm_progress_bar('Init', size(dat,1)*size(pre,1), 'Making pictures', 'Number completed');
+spm_progress_bar('Init', size(dat,1)*size(pre,1),...
+			'Making pictures', 'Number completed');
 
 mx = zeros(size(pre,1),1)+eps;
 for j=1:size(dat,1),
@@ -84,7 +86,7 @@ for j=1:size(dat,1),
 	for i=1:size(pre,1)
 
 		% transform from Taliarach space to space of the rendered image
-		%---------------------------------------------------------------------------
+		%-------------------------------------------------------
 		M1  = pre{i}.MM*dat{j}.mat;
 		zm  = sum(M1(1:2,1:3).^2,2).^(-1/2);
 		M2  = diag([zm' 1 1]);
@@ -99,7 +101,7 @@ for j=1:size(dat,1),
 		d2  = ceil(max(xyz(1:2,:)'));
 
 		% calculate 'depth' of values
-		%---------------------------------------------------------------------------
+		%-------------------------------------------------------
 		dep = spm_slice_vol(pre{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
 		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
@@ -109,7 +111,7 @@ for j=1:size(dat,1),
 		if ~isempty(msk),
 
 			% generate an image of the integral of the blob values.
-			%---------------------------------------------------------------------------
+			%-----------------------------------------------
 			xyz = xyz(:,msk);
 			if flg==1, t0  = t(msk);
 			else,	dst = xyz(3,:) - z1(msk) - 5;
@@ -132,12 +134,12 @@ end
 mxmx = max(mx);
 
 spm_progress_bar('Clear');
-set(0,'CurrentFigure',spm_figure('FindWin','Graphics'));
-spm_figure('Clear','Graphics');
+Fgraph = spm_figure('GetWin','Graphics');
+spm_figure('Clear',Fgraph);
 
-if flg==1,
+if flg==1
 	% Old style split colourmap display.
-	%---------------------------------------------------------------------------
+	%---------------------------------------------------------------
 	load Split
 	colormap(split);
 	for i=1:size(Matrixes,1)
@@ -148,12 +150,12 @@ if flg==1,
 		subplot(4,2,i);
 		image(ren);
 		axis image off xy
-	end;
+	end
 
-else,
+else
 	% Combine the brain surface renderings with the blobs, and display using
 	% 24 bit colour.
-	%---------------------------------------------------------------------------
+	%---------------------------------------------------------------
 	for i=1:size(Matrixes,1)
 		ren = pre{i}.ren/64;
 		X = cell(3,1);
@@ -173,8 +175,8 @@ else,
 		subplot(4,2,i);
 		image(rgb);
 		axis image off xy
-	end;
-end;
+	end
+end
 
-spm_figure('Clear','Interactive');
+spm_figure('Clear','Interactive')
 
