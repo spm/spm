@@ -74,10 +74,27 @@ if (exist('rend') ~= 1), % Assume old format...
 	end;
 end;
 
+spm_progress_bar('Init', size(dat,1)*length(rend),...
+			'Formatting Renderings', 'Number completed');
 for i=1:length(rend),
 	rend{i}.max=0;
 	rend{i}.data = cell(size(dat,1),1);
+	if issparse(rend{i}.ren),
+		% Assume that images have been DCT compressed
+		% - the SPM99 distribution was originally too big.
+		d = size(rend{i}.ren);
+		B1 = spm_dctmtx(d(1),d(1));
+		B2 = spm_dctmtx(d(2),d(2));
+		rend{i}.ren = B1*rend{i}.ren*B2';
+		% the depths did not compress so well with
+		% a straight DCT - therefore it was modified slightly
+		rend{i}.dep = exp(B1*rend{i}.dep*B2')-1;
+	end;
+	msk = find(rend{i}.ren>1);rend{i}.ren(msk)=1;
+	msk = find(rend{i}.ren<0);rend{i}.ren(msk)=0;
+	spm_progress_bar('Set', i);
 end;
+spm_progress_bar('Clear');
 
 spm_progress_bar('Init', size(dat,1)*length(rend),...
 			'Making pictures', 'Number completed');
@@ -187,4 +204,5 @@ else,
 end;
 
 spm_figure('Clear','Interactive')
+spm('Pointer');
 
