@@ -1,6 +1,6 @@
-function [Fdf,F,BETA,T,RES] = spm_AnCova(C,G,sigma,X,CON)
+function [Fdf,F,BETA,T,RES,BCOV] = spm_AnCova(C,G,sigma,X,CON)
 % AnCova for temporally correlated variables
-% FORMAT [Fdf,F,BETA,T,RES] = spm_AnCova(C,G,sigma,[X,[CON]]);
+% FORMAT [Fdf,F,BETA,T,RES,BCOV] = spm_AnCova(C,G,sigma,[X,[CON]]);
 %
 % C     - Design matrix partition of interest (K*c)
 % C     - Design matrix partition of confounds (K*g)
@@ -13,6 +13,7 @@ function [Fdf,F,BETA,T,RES] = spm_AnCova(C,G,sigma,X,CON)
 % BETA  - {p x n} matrix of parameter estimates
 % T     - {t x n} matrix of T values
 % RES   - {1 x n} matrix of residual SSQ
+% BCOV  - {p x p} matrix such that cov{BETA) = RES*BCOV
 %_______________________________________________________________________
 %
 % spm_AnCova uses a General[ized] Least quares Model of the form
@@ -106,7 +107,6 @@ if ~GLOB
 	% the [effective] degrees of freedom
 	%-------------------------------------------------------------------
 	DF     = [trR0V^2/trR0V2 trRV^2/trRV2];
-
 end
 
 Fdf   = DF;
@@ -140,4 +140,10 @@ if nargin > 3
 			T(i,:) = c*BETA./RMS;		% T statistic
 		end
 	end
+end
+
+% matrices for computing the standard error of the paramter estimates
+%-------------------------------------------------------------------------
+if nargout > 5
+	BCOV  = PHV*PH'/trRV;
 end
