@@ -180,7 +180,7 @@ function varargout = spm_DesRep(varargin)
 % FORMAT spm_DesRep('DesOrth',xX,fnames)
 % Produces a one-page graphical summary of the design orthogonality
 % xX      - Structure containing design matrix information
-%         - the first of {xX.nX, xKXs.X, xX.X} is used for display
+%         - the first of {xX.nX, xX.xKXs.X, xX.X} is used for display
 % .nX     - Desgin matrix already scaled for display
 % .xKXs.X - temporally filtered design matrix (within space structure)
 % .X      - "raw" design matrix (as setup by spm{,_fmri}_ui routines)
