@@ -575,19 +575,21 @@ ylabel('images')
 xlabel('parameters')
 
 %-Parameter names
+s = spm_DesRep('ScanTick',nPar,32);
+set(hDesMtx,'XTick',s)
 if ~isempty(Xnames)
 	axes('Position',[.07 .8 .6 .1],'Visible','off',...
 		'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
 		'XLim',[0,nPar]+0.5)
-	for i = 1:nPar, text(i,.05,Xnames{i},'Rotation',90), end
+	for i=s, text(i,.05,Xnames{i},'Rotation',90), end
 end
 
 %-Filenames
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
 % ( down to <32 items. Always show last item so #images is indicated.   )     
+s = spm_DesRep('ScanTick',nScan,32);
+set(hDesMtx,'YTick',s)
 if ~isempty(fnames)
-	s = spm_DesRep('ScanTick',nScan,32);
-	set(hDesMtx,'YTick',s)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(8),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
