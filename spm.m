@@ -1,5 +1,12 @@
 function [R1,R2]=spm(Action,P2,P3)
 % SPM: Statistical Parametric Mapping (startup function)
+%_______________________________________________________________________
+%  ___  ____  __  __
+% / __)(  _ \(  \/  )  Statistical Parametric Mapping
+% \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
+% (___/(__)  (_/\/\_)  University College London
+%
+%_______________________________________________________________________
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
 % functional brain mapping experiments. It is the in-house package of
@@ -7,14 +14,19 @@ function [R1,R2]=spm(Action,P2,P3)
 % availabe to the scientific community.
 % 
 % Theoretical, computational and other details of the package are
-% available in SPM's "Help" facility. Details of this release are
-% availiable via the "About SPM" button on the splash screen.
-% (Or type help spm.man in MatLab)
+% available in SPM's "Help" facility. This can be launched from the
+% main SPM Menu window using the "Help" button, or directly from the
+% command line using the command `spm_help`.
+%
+% Details of this release are availiable via the "About SPM" help topic
+% (file spm.man), accessible from the SPM splash screen.  (Or type
+% `spm_help spm.man` in the MatLab command window)
 % 
 % This spm function initialises the default parameters, and displays a
-% splash screen with buttons leading to the PET(SPECT) & fMRI modalities
-% Alternatively, spm('pet') and spm('fmri') lead directly to the
-% respective modality interfaces.
+% splash screen with buttons leading to the PET(SPECT) & fMRI
+% modalities Alternatively, `spm('pet')` and `spm('fmri')`
+% (equivalently `spm pet` and `spm mri` lead directly to the respective
+% modality interfaces.
 %
 % Once the modlity is chosen, (and it can be toggled mid-session) the
 % SPM user interface is displayed. This provides a constant visual
@@ -29,13 +41,13 @@ function [R1,R2]=spm(Action,P2,P3)
 % 'Graphics' respectively, and should be referred to by their tags
 % rather than their figure numbers.)
 %
-% Arguments to this routine lead to various setup facilities, mainly of use to
-% SPM power users and programmers. See the programmers FORMAT & help
-% below.
+% Arguments to this routine lead to various setup facilities, mainly of
+% use to SPM power users and programmers. See the programmers FORMAT &
+% help in the main body of spm.m
 %
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
-%
+
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
@@ -59,8 +71,15 @@ function [R1,R2]=spm(Action,P2,P3)
 % windows for an SPM session. The buttons in the Menu window launch the
 % main analysis routines.
 %
-% F = FORMAT spm('CreateIntWin')
-% Creates an SPM Interactive window.
+% FORMAT Fmenu = spm('CreateMenuWin',Vis)
+% Creates SPM menu window, 'Tag'ged 'Menu'
+% F   - handle of figure created
+% Vis - Visibility, 'on' or 'off'
+%
+% Finter = FORMAT spm('CreateIntWin',Vis)
+% Creates an SPM Interactive window, 'Tag'ged 'Interactive'
+% F   - handle of figure created
+% Vis - Visibility, 'on' or 'off'
 %
 % FORMAT spm('ChMod',Modality)
 % Changes modality of SPM: Currently SPM supports PET & MRI modalities,
@@ -85,6 +104,14 @@ function [R1,R2]=spm(Action,P2,P3)
 % Sun display. A=[Xratio,Yratio,Xratio,Yratio]. Used for scaling other
 % GUI elements.
 %
+% Rect = spm('WinSize',Win,raw)
+% Returns sizes and positions for SPM windows.
+% Win  - 'Menu', 'Interactive', 'Graphics', or '0'
+%      -  Window whose position is required. Only first character is
+%         examined. '0' returns size of root workspace.
+% raw  - If specified, then positions are for a 1152 x 900 Sun display.
+%        Otherwise the positions are scaled for the current display.
+%
 % FORMAT SPMdir=spm('Dir',Fname)
 % Returns the directory containing the version of spm in use,
 % identified as the first in MATLABPATH containing the Mfile spm (this
@@ -97,6 +124,9 @@ function [R1,R2]=spm(Action,P2,P3)
 % FORMAT [c,cName]=spm('Colour')
 % Returns the rgb tripls and a description for the current en-vogue SPm
 % colour, the background colour for the Menu and Help windows.
+%
+% CmdLine = spm('isGCmdLine')
+% Returns true if global CMDLINE exists and is itself true.
 %
 % FORMAT spm('SetCmdWinLabel',WinStripe,IconLabel)
 % Sets the names on the headers and icons of Sun command tools.
@@ -183,7 +213,7 @@ uicontrol(F,'String','About SPM',...
 	'Position',[140 030 150 030],...
 	'CallBack',[...
 		'set(gcf,''Visible'',''off''),',...
-		'spm_help(''Topic'',''spm.man'')'],...
+		'spm_help(''spm.man'')'],...
 	'Interruptible','yes',...
 	'ForegroundColor','g');
 uicontrol(F,'String','Quit',...
@@ -217,44 +247,45 @@ Modality = upper(Action);
 close all
 
 %-Draw SPM windows
-%=======================================================================
-
-%-Work out figure positions and sizes
 %-----------------------------------------------------------------------
-A  = spm('GetWinScale');
-S1 = [108 429 400 445].*A;
-S2 = [108 008 400 395].*A;
-S3 = [515 008 600 865].*A;
+Fmenu = spm('CreateMenuWin','off');
+Finter = spm('CreateIntWin','off');
+spm('SetWinDefaults')
+Fgraph = spm_figure('Create','Graphics','Graphics','off');
 
-%-Menu window
+%-Setup for current modality
+%-----------------------------------------------------------------------
+spm('ChMod',Modality)
+
+%-Reveal windows
+%-----------------------------------------------------------------------
+set([Fmenu,Finter,Fgraph],'Visible','on')
+
+return
+
+
+
+
+elseif strcmp(lower(Action),lower('CreateMenuWin'))
+%=======================================================================
+% Fmenu = spm('CreateMenuWin',Vis)
+if nargin<2, Vis='on'; else, Vis=P2; end
+
+%-Close any existing 'Menu' 'Tag'ged windows
+close(spm_figure('FindWin','Menu'))
+
+%-Get size and scalings and create Menu window
+%-----------------------------------------------------------------------
+A = spm('GetWinScale');
+Rect = spm('WinSize','Menu','raw').*A;
+
 Fmenu = figure('Tag','Menu',...
 	'Name',spm('Ver'),...
 	'Color',[1 1 1]*.8,...
-	'Position',S1,...
+	'Position',Rect,...
 	'NumberTitle','off',...
 	'Resize','off',...
 	'Visible','off');
-
-spm('SetWinDefaults')
-Finter = figure('Tag','Interactive',...
-	'Name','',...
-	'Color',[1 1 1]*.7,...
-	'Position',S2,...
-	'NumberTitle','off',...
-	'Resize','off',...
-	'Visible','off');
-
-Fgraph = figure('Tag','Graphics',...
-	'Name','Results',...
-	'Position',S3,...
-	'NumberTitle','off',...
-	'Resize','off',...
-	'Visible','off',...
-	'PaperPosition',[.75 1.5 7 9.5]);
-spm_figure('CreateBar','Graphics');
-
-%-Main menu
-%=======================================================================
 
 %-Frames and text
 %-----------------------------------------------------------------------
@@ -292,12 +323,15 @@ uicontrol(Fmenu,'Style','Text',...
 	'BackgroundColor',[1 1 1]*.8,...
 	'HorizontalAlignment','center',...
 	'Position',[020 125 360 020].*A,...
-	'Tag','FMRI','visible','off')
+	'Tag','FMRI','Visible','off')
 
 uicontrol(Fmenu,'Style','Frame','BackgroundColor',spm('Colour'),...
 	'Position',[010 010 380 112].*A,'Tag','Empty');
 
 %-Objects with Callbacks - main spm_*_ui.m routines
+%-----------------------------------------------------------------------
+
+%-Spatial
 %-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Realign',	'Position',[040 370 080 30].*A,...
 	'CallBack','spm_realign',	'Interruptible','yes');
@@ -314,6 +348,8 @@ uicontrol(Fmenu,'String','Coregister',	'Position',[040 330 080 30].*A,...
 uicontrol(Fmenu,'String','Segment',	'Position',[280 330 080 30].*A,...
 	'CallBack','spm_segment',	'Interruptible','yes');
 
+%-Statistics
+%-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*A,...
 	'CallBack','spm_spm_ui',	'Interruptible','yes',...
 	'Visible','off',		'Tag','PET');
@@ -325,6 +361,8 @@ uicontrol(Fmenu,'String','Statistics',	'Position',[040 245 140 30].*A,...
 uicontrol(Fmenu,'String','Eigenimages',	'Position',[220 245 140 30].*A,...
 	'CallBack','spm_svd_ui',	'Interruptible','yes');
 
+%-Results
+%-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','SPM{F}',	'Position',[045 165 070 30].*A,...
 	'CallBack','spm_projectionsF_ui','Interruptible','yes');
 
@@ -334,6 +372,8 @@ uicontrol(Fmenu,'String','Results',	'Position',[165 165 070 30].*A,...
 uicontrol(Fmenu,'String','SPM{Z}',	'Position',[285 165 070 30].*A,...
 	'CallBack','spm_projections_ui','Interruptible','yes');
 
+%-Utility buttons (first line)
+%-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Analyze',	'Position',[020 088 082 024].*A,...
 	'CallBack','!analyze',		'Interruptible','yes');
 
@@ -351,6 +391,8 @@ uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 		'end'],...
 					'Interruptible','yes');
 
+%-Utility buttons (second line)
+%-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','GhostView',	'Position',[020 054 082 024].*A,...
 	'CallBack',[...
 		'unix([''ghostview '',spm_get(1,''.ps'',''Select ',...
@@ -360,7 +402,7 @@ uicontrol(Fmenu,'String','GhostView',	'Position',[020 054 082 024].*A,...
 uicontrol(Fmenu,'String','CD',		'Position',[112 054 083 024].*A,...
 	'CallBack',[...
 		'cd(spm_get(-1,[],''Select new working directory'')),',...
-		'fprintf(''\nCurrent working directory:\n\t%s\n\n'',pwd)',...
+		'fprintf(''\nSPM working directory:\n\t%s\n\n'',pwd)',...
 			],		'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Mean',	'Position',[205 054 083 024].*A,...
@@ -369,6 +411,8 @@ uicontrol(Fmenu,'String','Mean',	'Position',[205 054 083 024].*A,...
 uicontrol(Fmenu,'String','ImCalc',	'Position',[298 054 082 024].*A,...
 	'CallBack','spm_image_funks',	'Interruptible','yes');
 
+%-Utility buttons (third line)
+%-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*A,...
 	'CallBack','spm_help',		'Interruptible','yes',...
 	'ForeGroundColor','g');
@@ -377,39 +421,39 @@ uicontrol(Fmenu,'String','Defaults',	'Position',[112 020 083 024].*A,...
 	'CallBack','spm_defaults_edit',	'Interruptible','yes');
 
 User = getenv('USER');
-uicontrol(1,'String',['<',User,'>'],	'Position',[205 020 083 024].*A,...
+uicontrol(Fmenu,'String',['<',User,'>'],'Position',[205 020 083 024].*A,...
 					'Interruptible','yes',...
 	'CallBack',...
 		['if exist(''' User ''');',...
-		 User,';else;spm_help(''Topic'',''UserButton''); end']);
+		 User,';else;spm_help(''UserButton''); end']);
 
 uicontrol(Fmenu,'String','Quit',	'Position',[298 020 082 024].*A,...
 	'ForeGroundColor','r',...
 	'CallBack','close all,clear all,clc,fprintf(''Bye...\n\n>> '')');
-
-%=======================================================================
-
-%-Setup for current modality
 %-----------------------------------------------------------------------
-spm('ChMod',Modality)
-
-%-Reveal windows
-%-----------------------------------------------------------------------
-set([Fmenu,Finter,Fgraph],'Visible','on')
-
+% set(Fmenu,'Visible',Vis)
+R1 = Fmenu;
 return
+
 
 
 elseif strcmp(lower(Action),lower('CreateIntWin'))
 %=======================================================================
-% spm('CreateWin',Windows)
+% Finter = spm('CreateIntWin',Vis)
+if nargin<2, Vis='on'; else, Vis=P2; end
+
+%-Close any existing 'Interactive' 'Tag'ged windows
+close(spm_figure('FindWin','Interactive'))
+
+%-Create SPM Interactive window
+Rect = spm('WinSize','Interactive');
 Finter = figure('Tag','Interactive',...
 	'Name','',...
 	'Color',[1 1 1]*.7,...
-	'Position',[108 008 400 395].*spm('GetWinScale'),...
+	'Position',Rect,...
 	'NumberTitle','off',...
 	'Resize','off',...
-	'Visible','on');
+	'Visible',Vis);
 R1 = Finter;
 return
 
@@ -457,6 +501,7 @@ return
 
 elseif strcmp(lower(Action),lower('SetWinDefaults'))
 %=======================================================================
+% spm('SetWinDefaults')
 whitebg(0,'w')
 set(0,'DefaultFigureColormap',gray);
 set(0,'DefaultFigurePaperType','a4letter')
@@ -560,6 +605,41 @@ R1  = [S(3)/1152 S(4)/900 S(3)/1152 S(4)/900];
 return
 
 
+elseif strcmp(lower(Action),lower('WinSize'))
+%=======================================================================
+% Rect = spm('WinSize',Win,raw)
+if nargin<3, raw=0; else, raw=1; end
+if nargin<2, Win=''; else, Win=P2; end
+
+Rect = [	[108 429 400 445];...
+		[108 008 400 395];...
+		[515 008 600 865] ];
+
+WS = spm('GetWinScale');
+
+if isempty(Win)
+	WS = ones(3,1)*WS;
+elseif upper(Win(1))=='M'
+	%-Menu window
+	Rect = Rect(1,:);
+elseif upper(Win(1))=='I'
+	%-Interactive window
+	Rect = Rect(2,:);
+elseif upper(Win(1))=='G'
+	%-Graphics window
+	Rect = Rect(3,:);
+elseif Win(1)=='0'
+	%-Root workspace
+	Rect = get(0,'ScreenSize');
+else
+	error('Unknown Win type');
+end
+
+if ~raw, Rect = Rect.*WS; end
+R1 = Rect;
+return
+
+
 elseif strcmp(lower(Action),lower('Dir'))
 %=======================================================================
 % spm('Dir',Mfile)
@@ -602,6 +682,15 @@ elseif strcmp(lower(Action),lower('Colour'))
 R1 = [0.8 0.8 1.0];
 R2 = 'Diluted Blackcurrent Purple';
 return
+
+
+elseif strcmp(lower(Action),lower('isGCmdLine'))
+%=======================================================================
+% CmdLine = spm('isGCmdLine')
+global CMDLINE
+if isempty(CMDLINE), R1 = 0; else, R1 = CMDLINE; end
+return
+
 
 elseif strcmp(lower(Action),lower('SetCmdWinLabel'))
 %=======================================================================
