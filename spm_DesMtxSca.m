@@ -1,4 +1,4 @@
-function [nX,nXnames]=spm_DesMtxSca(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10)
+function [nX,nXnames]=spm_DesMtxSca(varargin)
 % Scaling of design matrix portions to lie in [-1,1], for visual display.
 % FORMAT [nX,nXnames]=spm_DesMtxSca(X1,X1names,X2,X2names,...);
 %
@@ -12,7 +12,7 @@ function [nX,nXnames]=spm_DesMtxSca(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10)
 %
 % nX		- Normalised image of the design matrix
 % nXnames	- Names of the effects.
-%____________________________________________________________________________
+%_______________________________________________________________________
 %
 % Returns a normalised version of the design matrix, with values in the
 % interval [-1,1]. This is provided for imaging of design matrices.
@@ -28,8 +28,8 @@ function [nX,nXnames]=spm_DesMtxSca(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10)
 % which depend on the conventions adopted for naming effects in
 % spm_DesMtx:
 % 
-% 	An `-' in the first effect name => inteaction effect.
-% 	An `_' in an effect name => a factor.
+% 	An `-' in the first effect name => Factor by covariate interaction
+% 	An `_' in an effect name => a factor (or interaction of factors)
 % 
 % These characters should therefore be avoided when naming effects to
 % spm_DesMtx.
@@ -39,30 +39,18 @@ function [nX,nXnames]=spm_DesMtxSca(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10)
 % 
 % See also: spm_DesMtx
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 % %W% Andrew Holmes %E%
-
-%-version control-%
-% 		    V1	- 02/05/95 - 
-% V1	- 22/05/95 - modified by KJF
 
 %-Compute
 %=======================================================================
 nX   = []; nXnames = '';
 Carg = 1;
-while(Carg <= nargin) %-loop through arguments
-	X = eval(['P',int2str(Carg)]); Carg=Carg+1;
-	if (Carg<=nargin)
-		Xnames = eval(['P',int2str(Carg)]);
-		if isstr(Xnames)
-			Carg=Carg+1;
-		else
-			Xnames = setstr(ones(size(X,2),1)*['<UnSpec>']);
-		end % (if)
-	else
-		Xnames = setstr(ones(size(X,2),1)*['<UnSpec>']);
-
-	end % (if)
+while(Carg <= nargin)
+	X = varargin{Carg}; Carg=Carg+1;
+	if Carg<=nargin & isstr(varargin{Carg})
+		Xnames = varargin{Carg}; Carg=Carg+1;
+	else,	Xnames = setstr(ones(size(X,2),1)*['<UnSpec>']); end
 
 	while(~isempty(X))
 		s=find(Xnames(1,:)=='-');
@@ -70,32 +58,33 @@ while(Carg <= nargin) %-loop through arguments
 			s=find(Xnames(1,:)=='_');
 			if isempty(s) %-Straight covariate (or constant)
 				if all(X(:,1)==X(1,1))
-					nX=[nX,X(:,1)./max(abs(X(1,1)))];
+					nX=[nX,X(:,1)./abs(X(1,1))];
 				else
-					nX=[nX,...
-						(X(:,1)-mean(X(:,1)))/max(abs(X(:,1)-mean(X(:,1))))];
+					nX=[nX, (X(:,1)-mean(X(:,1)))/...
+						max(abs(X(:,1)-mean(X(:,1))))];
 				end
-				nXnames=str2mat(nXnames,Xnames(1,:));
+				nXnames=strvcat(nXnames,Xnames(1,:));
 				X(:,1)=[]; Xnames(1,:)=[];
 			else %-Levels of a factor - find rest
 				d=~any(diff(abs(Xnames(:,1:s)))')';
 				%-Watch out for interactions with same factor
 				d=d & ~any(Xnames(2:size(Xnames,1),:)'=='-')';
 				t=1:min(find([d;0]==0));
-				tX=X(:,t); tXnames=Xnames(t,:); X(:,t)=[]; Xnames(t,:)=[];
+				tX=X(:,t); tXnames=Xnames(t,:);
+				X(:,t)=[]; Xnames(t,:)=[];
 				%-Normalise block
-				if all(all(tX(1,:)==-1 + tX(1,:)==0 + tX(1,:)==1))
+				if all(all(tX(1,:)==-1+tX(1,:)==0+tX(1,:)==1))
 					%-Simple factor (poss. with constraints)
 					nX=[nX,tX]; %-no normalisation
-					nXnames=str2mat(nXnames,tXnames);
+					nXnames=strvcat(nXnames,tXnames);
 				else
-					%-Mean constrained factor - no normalisation
+					%-Mean constrained factor - no norm
 					nX=[nX,tX];
-					nXnames=str2mat(nXnames,tXnames);
-				end % (if)
-			end % (if)
+					nXnames=strvcat(nXnames,tXnames);
+				end
+			end
 		else
-			%-interaction-isolate the block (where one factor constant)
+			%-interaction: isolate the block (where one factor constant)
 			str=Xnames(1,:);
 			p1=1:min([find(str(1:s)=='_'),s]);
 			p2=s:min([find(str(s:length(str))=='_'),length(str)]);
@@ -109,16 +98,14 @@ while(Carg <= nargin) %-loop through arguments
 				%-Straight interaction of factors (poss. with constraints)
 				% no normalisation - values should be -1,0&1.
 				nX=[nX,tX];
-				nXnames=str2mat(nXnames,tXnames);
+				nXnames=strvcat(nXnames,tXnames);
 			else
 				%-Factor by covariate interaction
 				vtX=tX(tX~=0);
 				tX(tX~=0)=(vtX-min(vtX)+0.05)/max(vtX-min(vtX)+0.05);
 				nX=[nX,tX];
-				nXnames=str2mat(nXnames,tXnames);
-			end % (if all...)
-		end % (if isempty...)
-	end % (while)
-end % (while Carg...)
-
-if isempty(deblank(nXnames(1,:))), nXnames(1,:)=[]; end
+				nXnames=strvcat(nXnames,tXnames);
+			end
+		end
+	end
+end
