@@ -10,7 +10,7 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % .STAT  - distribution {Z, T, X or F}     
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .u     - height threshold
-% .k     - extent threshold {resels}
+% .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
 %
 % VOL    - structure containing details of volume analysed
@@ -47,7 +47,7 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % the Z-variate of the primary maxima.  See 'Sections' in the help facility
 % and spm_maxima.m for a more complete characterization of maxima within
 % a region. Z-variates (based on the uncorrected p value) are the Z score
-% equivalent of the statistic. Volumes are expressed in resels.
+% equivalent of the statistic. Volumes are expressed in voxels.
 %
 % Click on co-ordinates to jump results cursor to location ****
 % Click on tabulated data to extract accurate value to MatLab
@@ -59,12 +59,12 @@ function spm_list(SPM,VOL,Dis,Num,title)
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin<2, error('insufficient arguments'), end
-if nargin<5, title=spm_str_manip(SPM.swd,'a50'); end
-if nargin<4, Num=[]; end
-if isempty(Num), Num=3; end
-if nargin<3, Dis=[]; end
-if isempty(Dis), Dis=8; end
+if nargin < 2,   error('insufficient arguments'), end
+if nargin < 5,   title = spm_str_manip(SPM.swd,'a50'); end
+if nargin < 4,   Num = []; end
+if isempty(Num), Num = 3;  end
+if nargin < 3,   Dis = []; end
+if isempty(Dis), Dis = 8;  end
 
 
 %-Setup graphics pane
@@ -95,9 +95,14 @@ end
 
 [N Z XYZ A] = spm_max(SPM.Z,SPM.XYZ);
 
-%-Convert cluster sizes from voxels to resels
-N         = N/prod(VOL.FWHM);
+%-Convert cluster sizes and extent threshold from voxels to resels
+%-----------------------------------------------------------------------
+v2r       = 1/prod(VOL.FWHM);				% voxels to resels
+N         = N*v2r;
+k         = k*v2r;
+
 %-Convert maxima locations from voxels to mm
+%-----------------------------------------------------------------------
 XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
@@ -170,15 +175,23 @@ set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(7))
 
 %-Set-level p values {c}
 %-----------------------------------------------------------------------
+
 c     = max(A);					%-Number of clusters
 Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
-h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
-	'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
-hPage = [hPage, h];
-h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
-	'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
-hPage = [hPage, h];
 
+% do not display if reporting a single cluster
+%-----------------------------------------------------------------------
+mfile = dbstack;
+if length(mfile) == 1;
+
+	h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
+		'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
+	hPage = [hPage, h];
+	h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
+		'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
+	hPage = [hPage, h];
+
+end
 TabDat = {Pc,c};				%-Table data
 TabLin = 1;					%-Table data line
 
@@ -188,7 +201,7 @@ while max(Z)
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
-	if y < (Num+1)*dy
+	if y < (Num + 1)*dy
 		h     = text(0.5,-5*dy,...
 			sprintf('Page %d',spm_figure('#page')),...
 			'FontName','Helvetica','FontAngle','Italic',...
@@ -209,6 +222,7 @@ while max(Z)
 	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
 	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
+	Nv      = N(i)/v2r;			% extent        {voxels}
 	Ze      = spm_invNcdf(1 -Pz);		% Equivalent Z-variate
 
 
@@ -217,7 +231,7 @@ while max(Z)
 	h     = text(0.17,y,sprintf('%0.3f',Pk),	'FontWeight','Bold',...
 		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.27,y,sprintf('%0.2f',N(i)),	'FontWeight','Bold',...
+	h     = text(0.27,y,sprintf('%0.0f',Nv),	'FontWeight','Bold',...
 		'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 	h     = text(0.35,y,sprintf('%0.3f',Pn),	'FontWeight','Bold',...
@@ -247,15 +261,15 @@ while max(Z)
  
 	y     = y - dy;
 	
-	[TabDat{TabLin,3:10}] = deal(Pk,N(i),Pn,Pu,U,Ze,Pz,XYZmm(:,i));
-	TabLin = TabLin+1;
+	[TabDat{TabLin,3:10}] = deal(Pk,Nv,Pn,Pu,U,Ze,Pz,XYZmm(:,i));
+	TabLin = TabLin + 1;
 
 	%-Print Num secondary maxima (> Dis mm apart)
     	%---------------------------------------------------------------
 	[l q] = sort(-Z(j));				% sort on Z value
 	D     = i;
 	for i = 1:length(q)
-	    d    = j(q(i));
+	    d = j(q(i));
 	    if min(sqrt(sum((XYZmm(:,D)-XYZmm(:,d)*ones(1,size(D,2))).^2)))>Dis;
 		if length(D) < Num
 			
@@ -269,8 +283,8 @@ while max(Z)
 				'UserData',Pu,...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
-			h     = text(0.57,y,sprintf('%6.2f',U),...
-				'UserData',U,...
+			h     = text(0.57,y,sprintf('%6.2f',Z(d)),...
+				'UserData',Z(d),...
 				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
 			h     = text(0.66,y,sprintf('(%5.2f)',Ze),...
@@ -291,7 +305,7 @@ while max(Z)
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - dy;
-			[TabDat{TabLin,6:10}] = deal(Pu,U,Ze,Pz,XYZmm(:,d));
+			[TabDat{TabLin,6:10}] = deal(Pu,Z(d),Ze,Pz,XYZmm(:,d));
 			TabLin = TabLin+1;
 		end
 	    end
@@ -313,13 +327,14 @@ end
 str = sprintf(['table shows at most %d subsidiary maxima ',...
 	'>%.1fmm apart per cluster'],Num,Dis);
 text(0.5,4,str,'HorizontalAlignment','Center',...
-	'FontAngle','Italic','FontSize',FS(7))
+	'FontAngle','Italic','FontSize',FS(8))
 
 
 %-Volume, resels and smoothness 
 %===========================================================================
 FWHMmm          = VOL.FWHM.*VOL.VOX'; 				% FWHM {mm}
 Pz              = spm_P(1,0,u,df,STAT,1,n);
+Pu              = spm_P(1,0,u,df,STAT,R,n);
 [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n);
 
 %-Footnote with SPM parameters
@@ -329,33 +344,41 @@ set(gca,'DefaultTextFontName','Helvetica',...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 TabFut = cell(4,2);
 TabFut{1} = ...
-	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',STAT,u,Pz,P);
+	sprintf('Height threshold %c = %0.2f, p = %0.3f (%0.3f corr)',...
+		 STAT,u,Pz,Pu);
+TabFut{2} = ...
+	sprintf('Extent threshold k = %0.0f voxels, p = %0.3f (%0.3f corr)',...
+	         k/v2r,Pn,P);
+TabFut{3} = ...
+	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
+TabFut{4} = ...
+	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
+TabFut{5} = ...
+	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
+TabFut{6} = ...
+	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
+		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
+TabFut{7} = ...
+	sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
+	         '(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
+TabFut{8} = ...
+	sprintf('');
+
 text(0.0,-1*dy,TabFut{1},...
-	'UserData',[u,Pz,P],'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{2} = sprintf('Extent threshold: k = %0.2f resels, p = %0.3f',k,Pn);
+	'UserData',[u,Pz,Pu],'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.0,-2*dy,TabFut{2},...
-	'UserData',[k,Pn],'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{3} = sprintf('Expected resels per cluster, E[n] = %0.3f',En);
+	'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.0,-3*dy,TabFut{3},...
-	'UserData',En,'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{4} = sprintf('Expected number of clusters, E[m] = %0.2f',Em*Pn);
+	'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
 text(0.0,-4*dy,TabFut{4},...
 	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
-
-
-TabFut{5} = sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
 text(0.5,-1*dy,TabFut{5},...
 	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{6} = sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
-		' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
 text(0.5,-2*dy,TabFut{6},...
 	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{7} = sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
-	'(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
 text(0.5,-3*dy,TabFut{7},...
 	'UserData',[VOL.S,R(end),prod(VOL.FWHM)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
-TabFut{8} = sprintf('');
 text(0.5,-4*dy,TabFut{8},...
 	'UserData',[],'ButtonDownFcn','get(gcbo,''UserData'')')
 
@@ -363,7 +386,7 @@ text(0.5,-4*dy,TabFut{8},...
 %-Store TabDat in UserData of axes
 %=======================================================================
 % TabDat, TabHdr, TabFut
-h = uicontextmenu('Tag','TabDat');
+h      = uicontextmenu('Tag','TabDat');
 set(gca,'UIContextMenu',h,...
 	'Visible','on',...
 	'XColor','w','YColor','w')
