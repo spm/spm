@@ -1,6 +1,6 @@
-function [Yc,yc,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Y,y,beta,Bcov] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % Graphical display of adjusted data
-% FORMAT [Y y beta SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
+% FORMAT [Y y beta Bcov] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 %
 % SPM    - structure containing SPM, distribution & filtering detals
 %        - required fields are:
@@ -38,8 +38,8 @@ function [Yc,yc,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 %
 % Y      - fitted   data for the selected voxel
 % y      - adjusted data for the selected voxel
-% beta   - parameter estimates
-% SE     - standard error of parameter estimates
+% beta   - parameter estimates (ML or MAP)
+% Bcov   - Covariance of parameter estimates (ML or conditional)
 %
 % see spm_getSPM for details
 %_______________________________________________________________________
@@ -95,7 +95,7 @@ spm_results_ui('Clear',Fgraph,2);
 %-----------------------------------------------------------------------
 if ~length(SPM.XYZmm)
 	spm('alert!','No suprathreshold voxels!',mfilename,0);
-	Y = []; y = []; beta = []; SE = [];
+	Y = []; y = []; beta = []; Bcov = [];
 	return
 end
 
@@ -129,7 +129,7 @@ elseif SPM.QQ(i) == 0
 	case 'stay'
 		y       = [];
 	case 'cancel'
-		Y = []; y = []; beta = []; SE = [];
+		Y = []; y = []; beta = []; Bcov = [];
 		return
 	end
 else
@@ -168,10 +168,24 @@ else
 
 end
 
-%-Residual mean square: ResMS = sum(R.^2)/xX.trRV;
+%-Residual mean square: ResMS = sum(R.^2)/xX.trRV; or Cov(b|y)
 %-----------------------------------------------------------------------
-ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
-SE    = sqrt(ResMS*diag(xX.Bcov));
+if SPM.STAT ~= 'P'
+	ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
+	Bcov  = ResMS*xX.Bcov;
+
+else
+	% hyperparameter and Taylor approximation
+	%--------------------------------------------------------------
+	Bcov  = xSDM.PPM.Cby;
+	for j = 1:length(xSDM.PPM.l)
+
+		l    = spm_sample_vol(xSDM.VHp(j),rcp(1),rcp(2),rcp(3),0);
+		Bcov = Bcov + xSDM.PPM.dC{j}*(l - xSDM.PPM.l(j));
+	end
+end
+CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
+
 
 %-Colour specifications and index;
 %-----------------------------------------------------------------------
@@ -182,7 +196,7 @@ Col   = [0 0 0; .8 .8 .8; 1 .5 .5];
 
 % find out what to plot
 %-----------------------------------------------------------------------
-Cplot = {	'Contrast of parameter estimates',...
+Cplot = {	'Contrast estimates and 90% C.I.',...
 	 	'Fitted responses',...
 	 	'Event-related responses',...
 	 	'Parametric responses',...
@@ -204,12 +218,15 @@ switch Cplot
 
 % select contrast if
 %----------------------------------------------------------------------
-case {'Contrast of parameter estimates','Fitted responses'}
+case {'Contrast estimates and 90% C.I.','Fitted responses'}
 
 	% determine which contrast
 	%---------------------------------------------------------------
 	Ic    = spm_input('Which contrast?','!+1','m',{xCon.name});
 	TITLE = {Cplot xCon(Ic).name};
+	if SPM.STAT == 'P'
+		TITLE = {Cplot xCon(Ic).name '(conditional estimates)'};
+	end
 
 
 % select session and trial if
@@ -251,12 +268,12 @@ switch Cplot
 
 % plot parameter estimates
 %----------------------------------------------------------------------
-case 'Contrast of parameter estimates'
+case 'Contrast estimates and 90% C.I.'
 
-	% comute contrast of parameter estimates and standard error
+	% compute contrast of parameter estimates and 90% C.I.
 	%--------------------------------------------------------------
 	cbeta = xCon(Ic).c'*beta;
-	SE    = sqrt(ResMS*diag(xCon(Ic).c'*xX.Bcov*xCon(Ic).c));
+	CI    = CI*sqrt(diag(xCon(Ic).c'*Bcov*xCon(Ic).c));
 
 	% bar chart
 	%--------------------------------------------------------------
@@ -273,7 +290,7 @@ case 'Contrast of parameter estimates'
 	% standard error
 	%--------------------------------------------------------------
 	for j = 1:length(cbeta)
-		line([j j],([SE(j) 0 - SE(j)] + cbeta(j)),...
+		line([j j],([CI(j) 0 - CI(j)] + cbeta(j)),...
 			    'LineWidth',6,'Color',Col(3,:))
 	end
 
@@ -377,7 +394,7 @@ case 'Event-related responses'
 	% get plot type
 	%--------------------------------------------------------------
 	Rplot   = {	'fitted response and PSTH',...
-			'fitted response +/- standard error',...
+			'fitted response and 90% C.I.',...
 			'fitted response and adjusted data'};
 
 	if isempty(y)
@@ -405,7 +422,7 @@ case 'Event-related responses'
 	% fitted responses with standard error
 	%--------------------------------------------------------------
 	Y     = X*B;
-	se    = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+	CI    = CI*sqrt(diag(X*Bcov(j,j)*X'));
 
 	% peristimulus times and adjusted data (y = Y + R)
 	%--------------------------------------------------------------
@@ -421,14 +438,14 @@ case 'Event-related responses'
 	%--------------------------------------------------------------
 	INT   = -BIN:BIN:max(pst);
 	PSTH  = [];
-	SEM   = [];
+	SE    = [];
 	PST   = [];
 	for k = 1:(length(INT) - 1)
 		q = find(pst > INT(k) & pst <= INT(k + 1));
 		n = length(q);
 		if n
 			PSTH = [PSTH mean(y(q))];
-			SEM  = [SEM std(y(q))/sqrt(n)];
+			SE   = [SE  std(y(q))/sqrt(n)];
 			PST  = [PST mean(pst(q))];
 		end
 	end
@@ -442,14 +459,14 @@ case 'Event-related responses'
 
 		case 'fitted response and PSTH'
 		%------------------------------------------------------
-		errorbar(PST,PSTH,SEM)
+		errorbar(PST,PSTH,SE)
 		plot(PST,PSTH,'LineWidth',4,'Color',Col(2,:))
 		plot(x,Y,'-.','Color',Col(3,:))
 
-		case 'fitted response +/- standard error'
+		case 'fitted response and 90% C.I.'
 		%------------------------------------------------------
 		plot(x,Y,'Color',Col(2,:),'LineWidth',4)
-		plot(x,Y + se,'-.',x,Y - se,'-.','Color',Col(1,:))
+		plot(x,Y + CI,'-.',x,Y - CI,'-.','Color',Col(1,:))
 
 		case 'fitted response and adjusted data'
 		%------------------------------------------------------
@@ -465,7 +482,7 @@ case 'Event-related responses'
 	title(TITLE,'FontSize',12)
 	xlabel('peristimulus time {secs}')
 	ylabel(['response',XYZstr])
-
+	hold off
 
 % modeling evoked responses based on Sess
 %----------------------------------------------------------------------
