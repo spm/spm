@@ -1,12 +1,14 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.17 2003-12-16 15:55:49 john Exp $
+# $Id: Makefile,v 2.18 2004-11-09 11:01:04 john Exp $
 #
 ###############################################################################
 #
 # Suggestions for how to make this file a bit more elegant are welcome.  So far
 # it works under SunOS and Linux (at the FIL) and some Windows systems
+#
+# Thanks to Matthew, Darren, Alle Meije and others for various suggestions.
 #
 # $Log: not supported by cvs2svn $
 #
@@ -39,6 +41,8 @@ Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
 Linux.5:
 	make all SUF=mexlx   CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
+Linux.A64:
+	make all SUF=mexa64  CC="gcc -O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse"    MEX="mex COPTIMFLAGS='-O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse'"
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable" MEX="mex COPTIMFLAGS=-O"
 IRIX:
@@ -68,6 +72,8 @@ clean.Linux:
 	make clean SUF=mexglx
 clean.Linux.5:
 	make clean SUF=mexlx
+clean.Linux.A64:
+	make clean SUF=mexa64
 clean.HP-UX:
 	make clean SUF=mexhp7
 clean.IRIX:
@@ -427,6 +433,14 @@ verb.mexglx:
 	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 6.x) - using gcc"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexa64:
+	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
+	@ echo ""
+	@ echo "Linux compilation (Matlab 7.x, 64bits athlon) - using gcc"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
