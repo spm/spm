@@ -30,6 +30,7 @@ function [Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y,Ce)
 % repsonse variable and confounds if applicable
 %---------------------------------------------------------------------------
 y      = Y.y;
+u      = length(M.pE);
 v      = size(y,1);
 if isfield(Y,'X0')
 	X0  = Y.X0;
@@ -41,10 +42,25 @@ end
 
 % SVD of prior covariances
 %---------------------------------------------------------------------------
-V      = spm_svd(M.pC);
+if iscell(M.pC)
+	Q     = sparse(u,u);
+	for i = 1:length(M.pC);
+		Q = Q + M.pC{i};
+	end
+else
+	Q     = M.pC;
+end
+V      = spm_svd(Q);
 p      = M.pE(:);
 pE     = V'*M.pE(:);
-pC     = V'*M.pC*V;
+if iscell(M.pC)
+	for i = 1:length(M.pC);
+		pC{i} = V'*M.pC{i}*V;
+	end
+else
+	pC    = V'*M.pC*V;
+end
+
 P{1}.C = Ce;
 P{2}.C = pC;
 
