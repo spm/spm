@@ -171,8 +171,6 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %
 %_______________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
-
-
 SCCSid  = '%I%';
 
 %-GUI setup
@@ -180,6 +178,7 @@ SCCSid  = '%I%';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
+global defaults
 
 % get design matrix and/or data
 %=======================================================================
@@ -408,8 +407,13 @@ SPM.xGX.gSF   = gSF;
 
 %-Masking structure automatically set to 80% of mean
 %=======================================================================
+try
+	TH    = g.*gSF*defaults.mask.thresh;
+catch
+	TH    = g.*gSF*0.8;
+end
 SPM.xM        = struct(	'T',	ones(q,1),...
-			'TH',	g.*gSF*0.8,...
+			'TH',	TH,...
 			'I',	0,...
 			'VM',	{[]},...
 			'xs',	struct('Masking','analysis threshold'));
