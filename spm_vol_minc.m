@@ -47,7 +47,7 @@ end;
 
 
 dim   = [dim(1:3) d_types(img.nc_type)];
-if ~bigend, dim(4) = dim(4)*128; end;
+if ~bigend & dim(4)~=2, dim(4) = dim(4)*256; end;
 
 % This is something else I don't understand.  I thought that the
 % stuff that is now commented out should work.  It does for most
