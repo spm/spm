@@ -65,12 +65,15 @@ S3   = [515 008 600 865]*A;
 whitebg(0,'w')
 
 figure('Color',[1 1 1]*.8,'Name','SPM    Statistical Parametric Mapping',...
-	'NumberTitle','off','Position',S1,'Resize','off','Visible','off');
+	'NumberTitle','off','Position',S1,'Resize','off','Visible','off',...
+	'Tag','Menu');
 figure('Color',[1 1 1]*.7,'Name','',...
-	'NumberTitle','off','Position',S2,'Resize','off','Visible','off');
+	'NumberTitle','off','Position',S2,'Resize','off','Visible','off',...
+	'Tag','Interactive');
 figure('Name','Results',...
 	'NumberTitle','off','Position',S3,'Resize','off','Visible','off',...
-	'PaperPosition',[.75 1.5 7 9.5])
+	'PaperPosition',[.75 1.5 7 9.5],...
+	'Tag','Graphics')
 
 
 % set up figure 4 - a help window that is usually invisible
@@ -148,17 +151,14 @@ c  = ['if exist(''' USER ''');' USER '; else;spm_help_disp(''spm_BUTTON.m''); en
 uicontrol(1,'String',USER,              'Position',[200 20 80 24]*A,...
 	'CallBack',c,                   'Interruptible','yes');
 
-% Tag figures and tag as 'Empty', objects in main menu (figure 1)
+% Tag objects in main menu (figure 1)
 %----------------------------------------------------------------------------
-set(1,'Tag','Menu')
-set(2,'Tag','Interactive')
-set(3,'Tag','Graphics')
 set(get(1,'Children'),'Tag','Empty')
 
 % reveal windows and configure graphics bar
 %----------------------------------------------------------------------------
+spm_figure('Create','Graphics');
 set(1,'Visible','on')
 set(2,'Visible','on')
 set(3,'Visible','on')
-spm_figure
 
