@@ -1,10 +1,14 @@
 function [vargout] = spm_filter(Action,K,Y)
 % filter routine
-% FORMAT [K] = spm_filter('set',K)
+% FORMAT [K] = spm_filter('set'  ,K)
 % FORMAT [Y] = spm_filter('apply',K,Y)
+% FORMAT [Y] = spm_filter('high' ,K,Y)
+% FORMAT [Y] = spm_filter('low'  ,K,Y)
 %
 % Action    - 'set'   fills in filter structure K
 % Action    - 'apply' applies K to Y = K*Y
+% Action    - 'high'  only high-pass component
+% Action    - 'low '  only  low-pass component
 % K         - filter convolution matrix or:
 % K{s}      - cell of structs containing session-specific specifications
 %
@@ -113,7 +117,7 @@ switch Action
 	vargout = K;
 
 
-	case 'apply'
+	case {'apply','high','low'}
 	%-------------------------------------------------------------------
 	if iscell(K)
 
@@ -132,11 +136,13 @@ switch Action
 
 			% apply low pass filter
 			%---------------------------------------------------
-			y = K{s}.KL*y;
+			if ~strcmp(Action,'high')
+				y = K{s}.KL*y;
+			end
 
 			% apply high pass filter
 			%---------------------------------------------------
-			if ~isempty(K{s}.KH)
+			if ~isempty(K{s}.KH) & ~strcmp(Action,'low')
 				y = y - K{s}.KH*(K{s}.KH'*y);
 			end
 
@@ -156,6 +162,9 @@ switch Action
 	%-------------------------------------------------------------------
 	vargout   = Y;
 
+	case 'none'
+	%-------------------------------------------------------------------
+	vargout   = Y;
 
 	otherwise
 	%-------------------------------------------------------------------
