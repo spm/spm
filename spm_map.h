@@ -1,3 +1,10 @@
+/* spm_map.h */
+
+#include <sys/types.h>
+#ifdef SPM_WIN32
+#include "win32mmap.h"
+#endif
+
 #define MAGIC 110494
 
 #define UNSIGNED_CHAR     2
@@ -14,8 +21,6 @@
 #define UNSIGNED_INT      (SIGNED_INT+128)
 #define UNSIGNED_SHORT_S  (UNSIGNED_SHORT<<8)
 #define UNSIGNED_INT_S    (UNSIGNED_INT<<8)
-
-#include <sys/types.h>
 
 typedef struct map
 {

@@ -3,11 +3,15 @@ static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
 #include <fcntl.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
+#include <sys/types.h>
+#include <unistd.h>
+#ifdef SPM_WIN32
+#include <process.h>
+#endif
+
+#include "spm_vol_access.h"
 #include "mex.h"
-#include "spm_map.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -98,16 +102,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt(errstr);
 	}
 
+	#ifdef SPM_WIN32
+	(void)close(fd);
+	map->map = map_file(str, (caddr_t)0, map->len+map->off, map->prot, map->flags, (off_t)0);
+	#else
 	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, (off_t)0);
+	(void)close(fd);
+	#endif
 	if (map->map == (caddr_t)-1)
 	{
 		(void)perror("Memory Map");
-		(void)close(fd);
 		(void)sprintf(errstr,"Cant map image file (%s).", str);
 		mxFree(str);
 		mexErrMsgTxt(errstr);
 	}
 	map->data = (unsigned char *)(map->map) + map->off;
 	mxFree(str);
-	(void)close(fd);
 }

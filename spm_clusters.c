@@ -20,7 +20,6 @@ static char sccsid[]="%W% JB Poline %E%";
 */
 
 #include <math.h>
-#include <stdio.h>
 #include "mex.h"
 
 /* Input Output Arguments */
@@ -93,7 +92,7 @@ Matrix *plhs[], *prhs[];
 
     ind  = (int *)    mxCalloc (r,sizeof( int ));
 
-    if(!x || !y || !z || !ind) printf("\n memory alloc pb in loc_max ");
+    if(!x || !y || !z || !ind) mexErrMsgTxt("\n memory alloc pb in loc_max ");
 
     max_x =  (int) floor(L[0]/vox[0] + 0.5);
     max_y =  (int) floor(L[1]/vox[1] + 0.5);
@@ -125,7 +124,7 @@ Matrix *plhs[], *prhs[];
 	dxdy = dx*dy;
 
 	vol  = (float *) mxCalloc((dx*dy*dz), sizeof(*vol));
-	if(!vol) printf("\n memory alloc pb in loc_max ");
+	if(!vol) mexErrMsgTxt("\n memory alloc pb in loc_max ");
 
 	/* put the points in the volume */
 	for( i=0; i<r; i++) {

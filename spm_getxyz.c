@@ -5,9 +5,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 Extracts x, y and z co-ordinates from an image
 */
 
-#include <math.h>
-#include "mex.h"
-#include "spm_vol_utils.h"
+#include "spm_mapping.h"
 
 static void transverse_plane(double img[], MAPTYPE *map, int i)
 {
@@ -53,7 +51,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		transverse_plane(img,map,i);
 		
 		for(ptr=img, ptend=img+m*n, vp=vol+i*m*n; ptr<ptend; ptr++, vp++)
-			if (finite(*ptr) && *ptr)
+			if (mxIsFinite(*ptr) && *ptr)
 			{
 				*vp = 1;
 				nxyz++;

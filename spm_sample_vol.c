@@ -2,9 +2,7 @@
 static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
-#include <math.h>
-#include "mex.h"
-#include "spm_vol_utils.h"
+#include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 /*

@@ -2,27 +2,20 @@
 static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
+/* matlab dependent high level data access and map
+manipulation routines */
+
 #include <math.h>
-#include "mex.h"
-#include "spm_vol_utils.h"
-#include "spm_map.h"
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#ifdef SPM_WIN32
+#include <process.h>
+#endif
 
-
-int get_datasize(int type)
-{
-	if (type == UNSIGNED_CHAR || type == SIGNED_CHAR) return(8);
-	if (type == SIGNED_SHORT || type == SIGNED_SHORT_S) return(16);
-	if (type == UNSIGNED_SHORT || type == UNSIGNED_SHORT_S) return(16);
-	if (type == SIGNED_INT || type == SIGNED_INT_S) return(32);
-	if (type == UNSIGNED_INT || type == UNSIGNED_INT_S) return(32);
-	if (type == FLOAT || type == FLOAT_S) return(32);
-	if (type == DOUBLE || type == DOUBLE_S) return(64);
-	return(0);
-}
+#include "spm_mapping.h"
+#include "spm_datatypes.h"
 
 void free_maps(MAPTYPE *maps, int n)
 {
@@ -31,7 +24,11 @@ void free_maps(MAPTYPE *maps, int n)
 	{
 		if (maps[j].addr)
 		{
+			#ifdef SPM_WIN32
+			(void)unmap_file(maps[j].addr);
+			#else
 			(void)munmap(maps[j].addr, maps[j].len);
+			#endif
 			maps[j].addr=0;
 		}
 		if (maps[j].data)
@@ -141,17 +138,22 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 				mexErrMsgTxt("Cant stat image file.");
 			}
 			maps[i].len = stbuf.st_size;
+			#ifdef SPM_WIN32
+			(void)close(fd);
+			maps[i].addr = map_file(buf, (caddr_t)0, maps[i].len,
+				PROT_READ, MAP_SHARED, (off_t)0);
+			#else
 			maps[i].addr = mmap((caddr_t)0, maps[i].len,
 				PROT_READ, MAP_SHARED, fd, (off_t)0);
+			(void)close(fd);
+			#endif
 			if (maps[i].addr == (caddr_t)-1)
 			{
 				(void)perror("Memory Map");
-				(void)close(fd);
 				mxFree(buf);
 				free_maps(maps,i+1);
 				mexErrMsgTxt("Cant map image file.");
 			}
-			(void)close(fd);
 			mxFree(buf);
 		}
 
@@ -324,7 +326,7 @@ MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 	for(jj=0; jj<4; jj++)
 		maps->mat[jj + jj*4] = 1.0;
 
-	maps->dtype     = DOUBLE;
+	maps->dtype     = SPM_DOUBLE;
 
 	maps->data   = (void  **)mxCalloc(maps->dim[2],sizeof(void *));
 	maps->scale  = (double *)mxCalloc(maps->dim[2],sizeof(double));
@@ -374,4 +376,28 @@ void voxdim(MAPTYPE *map, double vdim[3])
 			t += map->mat[i+j*4]*map->mat[i+j*4];
 		vdim[j] = sqrt(t);
 	}
+}
+
+int get_dtype(const mxArray *ptr)
+{
+	mxArray *tmp;
+	double *pr;
+
+	if (!mxIsStruct(ptr))
+	{
+		mexErrMsgTxt("Not a structure.");
+		return(0);
+	}
+	tmp=mxGetField(ptr,0,"dim");
+	if (tmp == (mxArray *)0)
+	{
+		mexErrMsgTxt("Cant find dim.");
+	}
+	if (mxGetM(tmp)*mxGetN(tmp) != 4)
+	{
+		mexErrMsgTxt("Wrong sized dim.");
+	}
+	pr = mxGetPr(tmp);
+
+	return((int)fabs(pr[3]));
 }

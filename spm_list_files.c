@@ -1,7 +1,7 @@
 #ifndef lint
 static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
-#include <stdio.h>
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/param.h>
@@ -14,7 +14,18 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define MAXDIRS 10240
 #define MAXFILES 102400
 
-/*
+#ifdef SPM_WIN32
+#define MAXNAMLEN	1024
+#define SEPS "\\"
+#else
+#define SEPS "/"
+#endif
+
+/* constants for memory alloc to file name storage */
+#define MEMBLOCK 65536
+#define MAXBUFS 256
+
+/* 
 Checks for numeric values in the strings, so that strings like
 'image1.img' 'image10.img' 'image11.img' 'image12.img' 'image2.img' etc
 are ordered more sensibly.
@@ -114,13 +125,20 @@ static void list2mat(int m, int n, char *list[], mxArray **ptr)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int ndirs = 0, nfiles = 0, len, uid, maxdlen = 0, maxflen = 0;
-	int ngids;
-	gid_t gids[128];
+	int ndirs = 0, nfiles = 0, len, maxdlen = 0, maxflen = 0;
 	DIR *dirp;
 	struct dirent *dp;
 	char *filenames[MAXFILES], *directories[MAXDIRS], *ptr, *buf = (char *)0, *bufp, *fullpathname, *filter;
 	static struct stat stbuf;
+	/* monitoring buffer length */
+	int i, buflen = 0, bufctr = -1;
+	char *bufs[MAXBUFS+1];
+	#ifndef SPM_WIN32
+	int uid; 
+	int g;
+ 	int ngids;
+ 	gid_t gids[128];
+	#endif
 
 	if ((nrhs != 2) || (nlhs != 2))
 		mexErrMsgTxt("Incorrect Usage.");
@@ -139,52 +157,61 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	filter = (char *)mxCalloc(len+1, sizeof(char));
 	mxGetString(prhs[1],filter,len+1);
 
+	#ifndef SPM_WIN32
 	uid = getuid();
 	ngids = getgroups(128,gids);
+	#endif
 
 	if ((stat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
 	{
-		/* Apart from automounted directories, the sum of all the lengths
-		   of filenames within a directory should not exceed the the size
-		   of a directory (as ascertained with stat).  However, for
-		   automount directories such as /home, then the size of the
-		   directory is equal to the number of files in the directory.
-		   This was the reason for a bug that took ages to find.  As a
-		   hack, I will add 65536 to the size of buf.  This should protect
-		   against most automount directories.  The alternatives would either
-		   be a two pass approach to listing the contents of a directory, or
-		   to calloc space for files as needed.
+		/* Apart from automounted directories, and win32 directories, 
+		   the sum of all the lengths of filenames within a directory 
+		   should not exceed the the size of a directory (as ascertained with stat).
+		   For automount directories such as /home, then the size of the
+		   directory is equal to the number of files in the directory;
+		   for win32, the size returned by stat is 0.
+		   A quick way round this is malloc of large memory blocks for
+		   filename storage, iterating mallocs when space runs out.
 		*/
-		buf = (char *)mxCalloc((int)stbuf.st_size+65536, 1);
-		bufp = buf;
+		buf = (char *)mxCalloc(MEMBLOCK, 1);
+		bufctr=0;
+		bufs[bufctr] = bufp = buf;
 		ptr = fullpathname + strlen(fullpathname);
-		(void)strcat(fullpathname, "/");
+		(void)strcat(fullpathname, SEPS);
 		ptr++;
-
 		for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp))
 		{
 			*ptr = 0;
 			(void)strcpy(ptr, dp->d_name);
 			if (stat(fullpathname, &stbuf) != -1)
 			{
-				int g;
 				int mask = 0007;
 				if ((stbuf.st_mode & S_IFMT) == S_IFDIR
 					|| ((stbuf.st_mode & S_IFMT) == S_IFREG && wildcard(filter,dp->d_name)))
 				{
+					#ifndef SPM_WIN32
 					if (stbuf.st_uid == uid)
 						mask = 0700; /* user */
 					else
 						for(g=0; g<ngids; g++)
 							if (gids[g] == stbuf.st_gid)
 								mask = 0070; /* group */
-
+					#endif
+					/* check if buffer exhausted and realloc if so */
+					len = strlen(dp->d_name);
+					buflen = buflen + len + 1;
+					if (buflen > MEMBLOCK) {
+						if (++bufctr > MAXBUFS)
+							mexErrMsgTxt("Directory list too large.");
+						buf = (char *)mxCalloc(MEMBLOCK, 1);
+						bufs[bufctr] = bufp = buf;
+						buflen = len +1;
+					}
 					if ((stbuf.st_mode & S_IFMT) == S_IFDIR && (mask & 0555 & stbuf.st_mode))
 					{
 						if (ndirs == MAXDIRS)
 							mexErrMsgTxt("Too many subdirectories.");
-
-						len = strlen(dp->d_name);
+					
 						if (len > maxdlen) maxdlen = len;
 						directories[ndirs] = bufp;
 						bufp += (len+1);
@@ -195,7 +222,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 					{
 						if (nfiles == MAXFILES)
 							mexErrMsgTxt("Too many files match.");
-						len = strlen(dp->d_name);
 						if (len > maxflen) maxflen = len;
 
 						filenames[nfiles] = bufp;
@@ -204,16 +230,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 						nfiles++;
 					}
 				}
-			}
-		}
+			} /* entry statable */
+		} /* for entries in directory */
 		(void)closedir(dirp);
-	}
-	slowsort(nfiles, filenames);
-	list2mat(nfiles,maxflen,filenames,&plhs[0]);
+	} /* directory statable */
+		
+	/* to avoid unnecessary calls - wrap */
+	if (nfiles) {
+		if (nfiles>1)
+			slowsort(nfiles, filenames);
+		list2mat(nfiles,maxflen,filenames,&plhs[0]);
+	} else
+		plhs[0]=mxCreateString(0);
+	
+	if (ndirs) {
+		if (ndirs>1)
+			slowsort(ndirs, directories);
+		list2mat(ndirs, maxdlen,directories,&plhs[1]);
+	} else
+		plhs[1]=mxCreateString(0);
 
-	slowsort(ndirs, directories);
-	list2mat(ndirs,maxdlen,directories,&plhs[1]);
+	/* dealloc string buffer memory (bufctr=-1 if no buf alloc'd) */
+	for (i=0;i<=bufctr;i++) 
+		if (bufs[i]) (void)mxFree(bufs[i]); 
 
-	if (buf) (void)mxFree(buf);
+	mxFree(fullpathname);
 }
-

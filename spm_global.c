@@ -15,9 +15,7 @@
 static char sccsid[]="%W% anon %E%";
 #endif
 
-#include <math.h>
-#include "mex.h"
-#include "spm_vol_utils.h"
+#include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -33,12 +31,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	map = get_maps(prhs[0], &j);
+
 	if (j != 1)
 	{
 		free_maps(map, j);
 		mexErrMsgTxt("Inappropriate usage.");
 	}
-	n = map->dim[0]*map->dim[1];
+	n = (map->dim[0])*(map->dim[1]);
 	dat = (double *)mxCalloc(n, sizeof(double));
 
 	s1 = 0.0;
@@ -48,7 +47,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
-			if (finite(dat[j]))
+			if (mxIsFinite(dat[j]))
 			{
 				s1 += dat[j];
 				m ++;
@@ -63,7 +62,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
-			if (finite(dat[j]) && dat[j]>s1)
+			if (mxIsFinite(dat[j]) && dat[j]>s1)
 			{
 				m++;
 				s2+=dat[j];

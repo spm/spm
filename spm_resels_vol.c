@@ -4,12 +4,9 @@ static char sccsid[]="%W% John Ashburner %E%";
 /*
 See Worsley et al. (1996), Human Brain Mapping 4:58-73 for a description
 of what it does.
-
 */
 
-#include <math.h>
-#include "mex.h"
-#include "spm_vol_utils.h"
+#include "spm_mapping.h"
 
 static void resel_fun(int *curr, int *prev, /* current and previous planes */
 	int m, int n, /* image dimensions */
@@ -136,7 +133,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		slice(mat, img, m, n, map, 0, 0);
 		for(i1=0;i1<m; i1++)
 			for(j1=0; j1<n; j1++)
-				if (finite(img[i1+m*j1]) && img[i1+m*j1])
+				if (mxIsFinite(img[i1+m*j1]) && img[i1+m*j1])
 					curr[i1+1+(m+1)*(j1+1)] = 1;
 				else
 					curr[i1+1+(m+1)*(j1+1)] = 0;

@@ -1,12 +1,12 @@
 #ifndef lint
 static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU) %E%";
-#endif
+#endif lint
 
-#include "mex.h"
-#include "spm_vol_utils.h"
 #include <math.h>
-extern double floor(), fabs();
-
+#ifdef SPM_WIN32
+#include "rint.h"
+#endif
+#include "spm_mapping.h"
 
 /*
 INPUTS

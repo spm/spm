@@ -1,11 +1,10 @@
 #ifndef lint
-static char sccsid[]="%W% (c) John Ashburner %E%";
+static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
-#define PI 3.14159265358979
 #define TINY 5e-2
 
-#ifdef UNSIGNED_CHAR
+#ifdef SPM_UNSIGNED_CHAR
 #define RESAMPLE resample_uchar
 #define RESAMPLE_D resample_d_uchar
 #define SLICE slice_uchar
@@ -22,7 +21,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE unsigned char
 #endif
 
-#ifdef SIGNED_CHAR
+#ifdef SPM_SIGNED_CHAR
 #define RESAMPLE resample_schar
 #define RESAMPLE_D resample_d_schar
 #define SLICE slice_schar
@@ -39,8 +38,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE signed char
 #endif
 
-#ifdef SIGNED_SHORT
-#ifdef BYTESWAP
+#ifdef SPM_SIGNED_SHORT
+#ifdef SPM_BYTESWAP
 #define GET(x) getshort(x)
 #define RESAMPLE resample_short_s
 #define RESAMPLE_D resample_d_short_s
@@ -72,8 +71,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE short int
 #endif
 
-#ifdef UNSIGNED_SHORT
-#ifdef BYTESWAP
+#ifdef SPM_UNSIGNED_SHORT
+#ifdef SPM_BYTESWAP
 #define GET(x) getushort(x)
 #define RESAMPLE resample_ushort_s
 #define RESAMPLE_D resample_d_ushort_s
@@ -105,8 +104,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE unsigned short int
 #endif
 
-#ifdef SIGNED_INT
-#ifdef BYTESWAP
+#ifdef SPM_SIGNED_INT
+#ifdef SPM_BYTESWAP
 #define GET(x) getint(x)
 #define RESAMPLE resample_int_s
 #define RESAMPLE_D resample_d_int_s
@@ -138,8 +137,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE int
 #endif
 
-#ifdef UNSIGNED_INT
-#ifdef BYTESWAP
+#ifdef SPM_UNSIGNED_INT
+#ifdef SPM_BYTESWAP
 #define GET(x) getuint(x)
 #define RESAMPLE resample_uint_s
 #define RESAMPLE_D resample_d_uint_s
@@ -171,8 +170,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE unsigned int
 #endif
 
-#ifdef FLOAT
-#ifdef BYTESWAP
+#ifdef SPM_FLOAT
+#ifdef SPM_BYTESWAP
 #define GET(x) getfloat(x)
 #define RESAMPLE resample_float_s
 #define RESAMPLE_D resample_d_float_s
@@ -204,8 +203,8 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #define IMAGE_DTYPE float
 #endif
 
-#ifdef DOUBLE
-#ifdef BYTESWAP
+#ifdef SPM_DOUBLE
+#ifdef SPM_BYTESWAP
 #define GET(x) getdouble(x)
 #define RESAMPLE resample_double_s
 #define RESAMPLE_D resample_d_double_s
@@ -239,18 +238,13 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #include <math.h>
 
-extern void	make_lookup_sinc(), make_lookup_poly(),
-		make_lookup_sinc_grad(), make_lookup_poly_grad();
-extern short getshort();
-extern unsigned short getushort();
-extern int getint();
-extern unsigned int getuint();
-extern float getfloat();
-extern double getdouble();
+#include "spm_make_lookup.h"
+#include "spm_getdata.h"
+#ifdef SPM_WIN32
+#include "rint.h"
+#endif
 
 static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
-
-
 
 /* Zero order hold resampling - nearest neighbour */
 void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale,offset)

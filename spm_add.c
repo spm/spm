@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline%E%";
+static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline %E%";
 #endif
  
 /*
@@ -28,40 +28,11 @@ static char sccsid[]="%W% John Ashburner & Jean-Baptiste Poline%E%";
 */
 
 #include <math.h>
-#include <stdio.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#ifdef SPM_WIN32
+#include "rint.h"
+#endif
 
-#include "mex.h"
-#include "spm_vol_utils.h"
-
-static int get_dtype(const mxArray *ptr)
-{
-	mxArray *tmp;
-	double *pr;
-
-	if (!mxIsStruct(ptr))
-	{
-		mexErrMsgTxt("Not a structure.");
-		return(NULL);
-	}
-	tmp=mxGetField(ptr,0,"dim");
-	if (tmp == (mxArray *)0)
-	{
-		mexErrMsgTxt("Cant find dim.");
-	}
-	if (mxGetM(tmp)*mxGetN(tmp) != 4)
-	{
-		mexErrMsgTxt("Wrong sized dim.");
-	}
-	pr = mxGetPr(tmp);
-
-	return((int)fabs(pr[3]));
-}
+#include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -73,7 +44,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int mask0flag = 0, floatflag = 0;
 	double NaN = 0.0/0.0; /* the only way to get a NaN that I know */
 	mxArray *wplane_args[3];
-	int maxval, minval, dtype;
+	int maxval, minval;
+	int dtype;
 
 	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
@@ -144,6 +116,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	nj = maps[0].dim[2];
 	nk = maps[0].dim[0]*maps[0].dim[1];
 
+	/* The compiler doesn't like this line - but I think it's OK */
 	wplane_args[0] = (struct mxArray_tag *)prhs[1];
 	wplane_args[1] = mxCreateDoubleMatrix(maps[0].dim[0],maps[0].dim[1],mxREAL);
 	wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
@@ -168,7 +141,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 		for(i=0; i<ni; i++)
 		{
-			slice(mat, image, maps[i].dim[0],maps[i].dim[1], maps[i], 0, 0.0);
+			/* compiler complains here about 5th arg - was "maps[i]" */
+			slice(mat, image, maps[i].dim[0],maps[i].dim[1], &maps[i], 0, 0.0);
 			if (mask0flag &&
 				(maps[i].dtype == 2   || maps[i].dtype == 4    || maps[i].dtype == 8   ||
 				 maps[i].dtype == 512 || maps[i].dtype == 1024 || maps[i].dtype == 2048))
@@ -200,7 +174,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			mn = 9e99;
 			for(k=0; k<nk; k++)
 			{
-				if (!floatflag && !finite(sptr[k])) sptr[k] = 0.0;
+				/* use mxIsFinite for greater portability */
+				if (!floatflag && !mxIsFinite(sptr[k])) sptr[k] = 0.0;
 				if (sptr[k]>mx) mx=sptr[k];
 				if (sptr[k]<mn) mn=sptr[k];
 			}
@@ -258,3 +233,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mxGetPr(plhs[0])[0] = scale;
 	}
 }
+
+
