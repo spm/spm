@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="%W% Jean-Baptiste Poline, John Ashburner %E%";
+static char sccsid[]="%W% Jean-Baptiste Poline & John Ashburner %E%";
 #endif
  
 /*
@@ -51,9 +51,35 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int ni, nj, nk, i, j, k, fo;
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
 	char label[1024];
+	int mask0flag = 0, floatflag = 0;
+	double NaN = 0.0/0.0;
 
-	if (nrhs != 2 || nlhs > 1)
+	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
 		mexErrMsgTxt("Inappropriate usage.");
+
+	if (nrhs == 3)
+	{
+		if (!mxIsChar(prhs[2]))
+			mexErrMsgTxt("Inappropriate usage.");
+		else
+		{
+			char *buf;
+			int buflen;
+			buflen = mxGetN(prhs[2])*mxGetM(prhs[2])+1;
+			buf = mxCalloc(buflen,sizeof(char));
+			if (mxGetString(prhs[2],buf,buflen))
+			{
+				mxFree(buf);
+				mexErrMsgTxt("Cant get flags.");
+			}
+			for (i=0; i<buflen; i++)
+			{
+				if (buf[i] == 'm') mask0flag = 1;
+				if (buf[i] == 'f') floatflag = 1;
+			}
+			mxFree(buf);
+		}
+	}
 
 	maps = get_maps(prhs[0], &ni);
 
@@ -77,10 +103,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	nj = maps[0].dim[2];
 	nk = maps[0].dim[0]*maps[0].dim[1];
 
-	scales = (double *)mxCalloc(nj, sizeof(double));
 	sptr   = (double *)mxCalloc(nk, sizeof(double));
 	image  = (double *)mxCalloc(nk, sizeof(double));
-	dptr   = (short **)mxCalloc(nj, sizeof(double));
+
+	if (!floatflag)
+	{
+		scales = (double *)mxCalloc(nj, sizeof(double));
+		dptr   = (short **)mxCalloc(nj, sizeof(double));
+	}
 
 	for(j=0; j<maps[0].dim[2]; j++)
 	{
@@ -93,51 +123,81 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		for(i=0; i<ni; i++)
 		{
 			slice(mat, image, maps[i].dim[0],maps[i].dim[1], maps[i], 0, 0.0);
-			for(k=0; k<nk; k++)
-				sptr[k] += image[k];
+			if (mask0flag)
+			{
+				for(k=0; k<nk; k++)
+				{
+					if (image[k] != 0)
+						sptr[k] += image[k];
+					else
+						sptr[k] = NaN;
+				}
+			}
+			else
+			{
+				for(k=0; k<nk; k++)
+					sptr[k] += image[k];
+			}
 		}
 
-		/* Determine maximum and minimum */
-		mx = -9e99;
-		mn = 9e99;
-		for(k=0; k<nk; k++)
+		if (floatflag)
 		{
-			if (sptr[k]>mx) mx=sptr[k];
-			if (sptr[k]<mn) mn=sptr[k];
+			write(fo, sptr, sizeof(double)*nk);
 		}
-
-		if (mx > -mn)
-			scales[j] = mx/32767.0;
 		else
-			scales[j] = -mn/32768.0;
-
-		dptr[j] = (short *)mxCalloc(nk, sizeof(short));
-		for(k=0; k<nk; k++)
 		{
-			dptr[j][k] = (short)rint(sptr[k]/scales[j]);
+			/* Determine maximum and minimum */
+			mx = -9e99;
+			mn = 9e99;
+			for(k=0; k<nk; k++)
+			{
+				if (!floatflag && !finite(sptr[k])) sptr[k] = 0.0;
+				if (sptr[k]>mx) mx=sptr[k];
+				if (sptr[k]<mn) mn=sptr[k];
+			}
+
+			if (mx > -mn)
+				scales[j] = mx/32767.0;
+			else
+				scales[j] = -mn/32768.0;
+
+			dptr[j] = (short *)mxCalloc(nk, sizeof(short));
+			for(k=0; k<nk; k++)
+			{
+				dptr[j][k] = (short)rint(sptr[k]/scales[j]);
+			}
 		}
 	}
 
-	scale = 0.0;
-	for(j=0; j<nj; j++)
+	if (!floatflag)
 	{
-		if (scales[j]>scale)
-			scale = scales[j];
+
+		scale = 0.0;
+		for(j=0; j<nj; j++)
+		{
+			if (scales[j]>scale)
+				scale = scales[j];
+		}
+
+		for(j=0; j<nj; j++)
+		{
+			for(k=0; k<nk; k++)
+				dptr[j][k] = (short)rint(dptr[j][k]*(scales[j]/scale));
+			write(fo, dptr[j], sizeof(short)*nk);
+			mxFree((char *)(dptr[j]));
+		}
+
+		mxFree((char *)scales);
+		mxFree((char *)dptr);
+	}
+	else
+	{
+		scale = 1.0;
 	}
 
-	for(j=0; j<nj; j++)
-	{
-		for(k=0; k<nk; k++)
-			dptr[j][k] = (short)rint(dptr[j][k]*(scales[j]/scale));
-		write(fo, dptr[j], sizeof(short)*nk);
-		mxFree((char *)(dptr[j]));
-	}
-	close(fo);
-
-	mxFree((char *)scales);
 	mxFree((char *)sptr);
 	mxFree((char *)image);
-	mxFree((char *)dptr);
+	close(fo);
 
 	free_maps(maps, ni);
 
