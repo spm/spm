@@ -1,6 +1,6 @@
-function VO = spm_write_plane(V,A,p)
+function V = spm_write_plane(V,A,p)
 % Write a transverse plane of image data.
-% FORMAT spm_write_plane(V,A,p)
+% FORMAT V = spm_write_plane(V,A,p)
 % V   - data structure containing image information.
 %       - see spm_vol for a description.
 % A   - the two dimensional image to write.
@@ -13,15 +13,58 @@ function VO = spm_write_plane(V,A,p)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-if any(V.dim(1:2) ~= size(A))
-	error('Incompatible image dimensions');
-end;
+if any(V.dim(1:2) ~= size(A)), error('Incompatible image dimensions');      end;
+if p>V.dim(3),                 error('Plane number too high');              end;
+if ~isfield(V,'fid'),          error('This file does not seem to be open'); end;
+% Write Analyze image by default
+V = write_analyze_plane(V,A,p);
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function V = write_analyze_plane(V,A,p)
+
+types   = [    2      4      8   16   64   130    132    136,   512   1024   2048 4096 16384 33280  33792  34816];
+maxval  = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1, 2^8-1 2^15-1 2^31-1  Inf   Inf 2^8-1 2^16-1 2^32-1];
+minval  = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0,     0  -2^15  -2^31 -Inf  -Inf  -2^7      0      0];
+intt    = [    1      1      1    0    0     1      1      1,     1      1      1    0     0     1      1      1];
+prec = str2mat('uint8','int16','int32','float','double','int8','uint16','uint32','uint8','int16','int32','float','double','int8','uint16','uint32');
+
+dt      = find(types==V.dim(4));
+if isempty(dt), error('Unknown datatype'); end;
+
 A = double(A);
 
-% Write Analyze image by default
-VO = write_analyze_plane(V,A,p);
-if isempty(VO),
-	spm_progress_bar('Clear');
+% Rescale to fit appropriate range
+if intt(dt),
+	A(isnan(A)) = 0;
+	mxv         = maxval(dt);
+	mnv         = minval(dt);
+	A           = round(A*(1/V.pinfo(1)) - V.pinfo(2));
+	A(A > mxv)  = mxv;
+	A(A < mnv)  = mnv;
+end;
+
+% Seek to the appropriate offset
+datasize = V.hdr.dime.bitpix/8;
+off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
+if fseek(V.fid,off,'bof')==-1,
+	% Need this because fseek in Matlab does not seek past the EOF
+	fseek(V.fid,0,'eof');
+	curr_off = ftell(V.fid);
+	blanks   = zeros(off-curr_off,1);
+	if fwrite(V.fid,blanks,'uchar') ~= prod(size(blanks)),
+		write_error_message(V.fname);
+		error(['Error writing ' V.fname '.']);
+	end;
+	if fseek(V.fid,off,'bof') == -1,
+		write_error_message(V.fname);
+		error(['Error writing ' V.fname '.']);
+		return;
+	end;
+end;
+
+if fwrite(V.fid,A,deblank(prec(dt,:))) ~= prod(size(A)),
 	write_error_message(V.fname);
 	error(['Error writing ' V.fname '.']);
 end;
@@ -29,91 +72,13 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function VO = write_analyze_plane(V,A,p)
-VO = V;
-% Check datatype is OK
-dt = V.dim(4);
-
-% Convert to native datatype
-dt = spm_type(spm_type(dt));
-s  = find(dt == spm_type);
-if isempty(s)
-	sts = -1;
-	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
-	return;
-end;
-datasize = spm_type(dt,'bits')/8;
-
-% Open the image file
-fname = [spm_str_manip(V.fname,'sd') '.img'];
-fp    = fopen(fname,'r+');
-if fp == -1,
-	fp = fopen(fname,'w');
-	if fp == -1,
-		VO = [];
-		disp('Can''t open image file');
-		return;
-	end;
-end;
-
-% Rescale to fit appropriate range
-if spm_type(dt,'intt'),
-	maxval = max(spm_type(dt,'maxval')*V.pinfo(1,:) + V.pinfo(2,:));
-	if any(dt == [128+2 128+4 128+8]),
-		 % Convert to a form that Analyze will support
-		dt = dt - 128; 
-	end;
-	mxv    = spm_type(dt,'maxval');
-	mnv    = spm_type(dt,'minval');
-	scale  = maxval/mxv;
-	A(find(isnan(A))) = 0;
-	A                 = round(A/scale);
-	A(find(A > mxv))  = mxv;
-	A(find(A < mnv))  = mnv;
-else,
-	scale = max(V.pinfo(1,:));
-	A     = A/scale;
-end;
-
-% Seek to the appropriate offset
-off   = (p-1)*datasize*prod(V.dim(1:2)); % + V.pinfo(3,1);
-if fseek(fp,off,'bof')==-1,
-	% Need this because fseek in Matlab does not
-	% seek past the EOF
-	fseek(fp,0,'eof');
-	curr_off = ftell(fp);
-	blanks   = zeros(off-curr_off,1);
-	if fwrite(fp,blanks,'uchar') ~= prod(size(blanks)),
-		fclose(fp);
-		VO = [];
-		return;
-	end;
-	if fseek(fp,off,'bof') == -1,
-		fclose(fp);
-		VO = [];
-		return;
-	end;
-end;
-
-if fwrite(fp,A,spm_type(dt)) ~= prod(size(A)),
-	fclose(fp);
-	VO = [];
-	return;
-end;
-fclose(fp);
-
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function write_error_message(q)
-
 str = {...
 	'Error writing:',...
 	' ',...
 	['        ',spm_str_manip(q,'k40d')],...
 	' ',...
-	'Check file permissions / disk space / disk quota.'};
+	'Check disk space / disk quota.'};
 spm('alert*',str,mfilename,sqrt(-1));
 
 return;

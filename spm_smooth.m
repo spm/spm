@@ -39,7 +39,7 @@ if isstr(Q) & isstruct(P),
 	if isfield(P,'descrip'),
 		Q.descrip = sprintf('%s - conv (%g,%g,%g)',P.descrip, s);
 	end;
-	spm_create_image(Q);
+	Q = spm_create_vol(Q);
 end
 
 % compute parameters for spm_conv_vol
@@ -63,3 +63,5 @@ j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 
 spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
+spm_close_vol(Q);
+
