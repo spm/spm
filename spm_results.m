@@ -64,8 +64,7 @@ elseif SPMF
 
 end
 
-set(Finter,'Name','SPM results',...
-	'Pointer','Watch')
+set(Finter,'Name','SPM results','Pointer','Watch')
 
 %-Load SPM.mat file from appropriate directory
 % (CWD, set by spm_projections*_ui)
@@ -79,9 +78,15 @@ if SPMF, df = Fdf; end
 
 % Make description strings
 %-----------------------------------------------------------------------
+if SPMZ
+	tmp     = 1 - spm_Ncdf(U);
+elseif SPMF
+	tmp     = 1 - spm_Fcdf(U,df);
+end
+
 Descrip = spm('DirTrunc',CWD,24);
 Descrip = str2mat(Descrip,...
-	sprintf('Height threshold {u} = %0.2f, p = %0.3f',U,1 - spm_Ncdf(U)));
+	sprintf('Height threshold {u} = %0.2f, p = %0.3f',U,tmp));
 Descrip = str2mat(Descrip,...
 	sprintf('Extent threshold {k} = %i voxels',k));
 
