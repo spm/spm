@@ -1272,7 +1272,7 @@ spm('Pointer','Watch');
 %=======================================================================
 fprintf('%-40s: ','Mapping files')                                   %-#
 for  i = 1:nVar
-	VY(:,i) = spm_vol(char(P{:,i}));
+	VY(1:nScan,i) = spm_vol(char(P{:,i}));
 end
 
 %-Check compatability of images (Bombs for single image)
