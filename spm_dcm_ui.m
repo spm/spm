@@ -237,14 +237,11 @@ case 'specify'
 				c(i,k)   = get(h2(i)  ,'Value');
 			end
 
-			% get b ensuring 2nd order effects are allowed
+			% get b allowing any 2nd order effects 
 			%--------------------------------------------------
 			for i = 1:m
 				for j = 1:m
 					b(i,j,k) = get(h3(i,j),'Value');
-					if i == j & ~c(i,k)
-						b(i,j,k) = 0;
-					end
 				end
 			end
 			delete([h1(:); h2(:); h3(:)])
