@@ -77,6 +77,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 		free_maps(maps,i);
 		mexErrMsgTxt("Unknown volume datatype.");
 	}
+	dptr  = (unsigned char *)mxGetPr(tmp);
 
 	num_dims = mxGetNumberOfDimensions(tmp);
 	if (num_dims > 3)
@@ -84,13 +85,11 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 		free_maps(maps,i);
 		mexErrMsgTxt("Too many dimensions.");
 	}
-
 	dims     = mxGetDimensions(tmp);
 	for(j=0; j<num_dims; j++)
 		maps[i].dim[j]=dims[j];
 	for(j=num_dims; j<3; j++)
 		maps[i].dim[j]=1;
-
 	tmp=mxGetField(ptr,i,"dim");
 	if (tmp != (mxArray *)0)
 	{
@@ -121,11 +120,8 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 	maps[i].scale  = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
 	maps[i].offset = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
 
-
-	t     = maps[i].dim[0]*maps[i].dim[1]*get_datasize(maps[i].dtype)/8;
-	dptr  = (unsigned char *)mxGetPr(tmp);
-
-	tmp=mxGetField(ptr,i,"pinfo");
+	t   = maps[i].dim[0]*maps[i].dim[1]*get_datasize(maps[i].dtype)/8;
+	tmp = mxGetField(ptr,i,"pinfo");
 	if (tmp != (mxArray *)0)
 	{
 		if (mxGetM(tmp) != 2 || (mxGetN(tmp) != 1 && mxGetN(tmp) != maps[i].dim[2]))
@@ -156,8 +152,6 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 			maps[i].offset[j] = 0.0;
 			maps[i].data[j]   = &(dptr[j*t]);
 		}
-
-
 	tmp=mxGetField(ptr,i,"mat");
 	if (tmp != (mxArray *)0)
 	{
