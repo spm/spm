@@ -348,6 +348,14 @@ sx_res = sx_res(1:min(size(V, 2),MaxSmooEst),:);
 sy_res = sy_res(1:min(size(V, 2),MaxSmooEst),:);
 sz_res = sz_res(1:min(size(V, 2),MaxSmooEst),:);
 
+% remove zero component from the s?_res (null residual fields) 
+%-------------------------------------------------------------
+i_res = ~any( [[any(~(sx_res'))]; [any(~(sy_res'))]; [any(~(sy_res'))]] );
+sx_res = sx_res(i_res,:);
+sy_res = sy_res(i_res,:);
+sz_res = sz_res(i_res,:);
+
+
 if ~isempty(sx_res)
 	Wresid = sqrt([	 sx_res(:,1)./sx_res(:,2)...
 			 sy_res(:,1)./sy_res(:,2)...
