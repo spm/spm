@@ -20,7 +20,6 @@ function [ p,Cp,Ce] = spm_nlsi_GN(M,U,Y)
 % Y.X0 - Confounds or null space
 % Y.dt - sampling interval for outputs
 % Y.Ce - error covariance contraints
-% Y.pC - prior covariance of timing error Cov{q}, E{q} = 0 [default = 0]
 %
 % Static nonlinear models
 %___________________________________________________________________________
@@ -80,16 +79,6 @@ else
 	EB = 0;
 end
 
-% Covariance priors on timiing error (if not specified)
-%---------------------------------------------------------------------------
-if isfield(Y,'pC')
-	qE = sparse(m,1);
-	qC = Y.pC;
-else
-	qE = sparse(m,1);
-	qC = sparse(m,m);
-end
-
 % confounds (if specified)
 %---------------------------------------------------------------------------
 if isfield(Y,'X0')
@@ -107,30 +96,26 @@ uC     = speye(u,u)*1e+8;
 % SVD of prior covariances
 %---------------------------------------------------------------------------
 Vp     = spm_svd(pC,1e-16);
-Vq     = spm_svd(qC,1e-16);
 ip     = [1:size(Vp,2)];
-iq     = [1:size(Vq,2)] + ip(end);
 
 
 % If EB: i.e. prior covariance hyperparameter estimation
 %---------------------------------------------------------------------------
 pC     = Vp'*pC*Vp;
-qC     = Vq'*qC*Vq;
 if EB
 	P{1}.C = Ce;
-	P{2}.C = {blkdiag(0*pC, qC, uC), blkdiag(pC, 0*qC, 0*uC)};
+	P{2}.C = {blkdiag(0*pC, uC), blkdiag(pC, 0*uC)};
 	P{3}.C = 1e-8;
 	P{3}.X = 1;
 else
 	P{1}.C = Ce;
-	P{2}.C = blkdiag(pC, qC, uC);
+	P{2}.C = blkdiag(pC, uC);
 end
 
 % Gauss-Newton search 
 %===========================================================================
-a      = 0.8;
+a      = 0.8;						     % learning rate
 p      = pE;
-q      = qE;
 dv     = 1e-6;
 for  j = 1:32
 
@@ -139,8 +124,7 @@ for  j = 1:32
 	if isfield(M,'fp')
 		fp      = feval(M.fp,p,U);
 	else
-		[fp,fq] = spm_int(p,M,U,v);
-		fp      = fp + fq*diag(q);
+		fp      = spm_int(p,M,U,v);
 	end
 
 	% compute partial derivatives [Jp] dy(t)/dp*Vp {p = parameters}
@@ -150,38 +134,37 @@ for  j = 1:32
 		pi      = p + Vp(:,i)*dv;
 
 		if isfield(M,'fp')
-			dfp       = feval(M.fp,pi,U) - fp;
+			dfp = feval(M.fp,pi,U)  - fp;
 		else
-			[fpi fqi] = spm_int(pi,M,U,v);
-			fpi       = fpi + fqi*diag(q);
-			dfp       = fpi - fp;
+			dfp = spm_int(pi,M,U,v) - fp;
 		end
 
 		Jp(:,i) = dfp(:)/dv;
 	end
 
-	% compute partial derivatives [Jq] dy(t)/dq*Vq {q = delay}
-	%-------------------------------------------------------------------
-	Jq    = [];
-	if size(Vq,2)
-		for i = 1:m
-			Jq = blkdiag(Jq,fq(:,i));
-		end
-		Jq    = Jq*Vq;
-	end
-
 	% Bayesian [conditional] estimator of new expansion point E{p|y}
 	%-------------------------------------------------------------------
-	P{1}.X = [Jp Jq Ju];
-	P{2}.X = [Vp'*(pE - p); Vq'*(qE - q); uE];
+	P{1}.X = [Jp Ju];
+	P{2}.X = [Vp'*(pE - p); uE];
 	[C P]  = spm_PEB(y(:) - fp(:),P);
 
-	% update
+
+	% update - project condotional esitmates onto parameter space
 	%-------------------------------------------------------------------
 	dp     = Vp*C{2}.E(ip)*a;
-	dq     = Vq*C{2}.E(iq)*a;
+
+	% update - ensure the system is dissipative
+	%-------------------------------------------------------------------
+	for  i = 1:8
+		A    = spm_bi_reduce(M,p + dp);
+		s    = max(real(eig(full(A))));
+		if s > 0
+			dp = dp/2;
+		else
+			break
+		end
+	end
 	p      = p + dp;
-	if size(Vq,2), q = q + dq; end
 
 
 	% convergence
