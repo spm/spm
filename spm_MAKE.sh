@@ -36,15 +36,17 @@ added_objs="spm_mapping.o"
 
 case $arch in
     sun)
-	# (default) unix compile for Sun CC
+	echo "(default) unix compile for Sun CC"
+	echo ""
 	CC="cc -xO5"
 	cmex5="mex     COPTIMFLAGS=-xO5"
 	cmex4="mex -V4 COPTIMFLAGS=-xO5";;
     windows)
-	# windows compile with EGCS gcc/mingw32
-	# see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html
-	# for instructions about installing gcc for
-	# compiling Mex files.
+	echo "Windows compile with EGCS gcc/mingw32"
+	echo "see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html"
+	echo "for instructions about installing gcc for"
+	echo "compiling Mex files."
+	echo ""
 	deff=-DSPM_WIN32
 	CC="gcc -mno-cygwin $deff"
 	cmex5="mex.bat $deff "
@@ -54,25 +56,38 @@ case $arch in
 	$cmex5 spm_win32utils.c
 	added_objs="win32mmap.o spm_mapping.obj";;
     gcc)
-	# optimised standard unix compile for gcc
-	# this should work on Sun, Linux etc
-	# Note that the path to the gccopts.sh file may need
-	# changing.
+	echo "optimised standard unix compile for gcc"
+	echo "this should work on Sun, Linux etc"
+	echo "Note that the path to the gccopts.sh file may need"
+	echo "changing."
+	echo ""
 	CC="gcc -O2"
 	cmex5="mex     COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh"
 	cmex4="mex -V4 COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh";;
     sgi)
-	# not optimised unix compile for CC
-	CC="cc"
+	# unix compile for CC
+	echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
+	echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
+	echo "compiles with the old 32bit (o32) instruction set (MIPS2) only,"
+	echo "while cc by default compiles with the new32 bit (n32 or MIPS4)."
+	echo "Matlab 5.x only likes o32 for O2 R10000 systems."
+	echo ""
+	echo "We also suggest you modify your options file mexopts.sh in"
+	echo 'the sgi section: change LD="ld" to LD="ld -o32"'
+	echo "this tells the linker to use o32 instead of n32."
+	echo ""
+	CC="cc -mips2 -O"
 	cmex5="mex"
 	cmex4="mex -V4";;
     sgi64)
-	# not optimised sgi 64 bit compile for CC
+	echo "not optimised sgi 64 bit compile for CC"
+	echo ""
 	CC="cc -mips4 -64"
 	cmex5="mex"
 	cmex4="mex -V4";;
     hpux)
-	# unix compile for hpux cc, and maybe aix cc
+	echo "unix compile for hpux cc, and maybe aix cc"
+	echo ""
 	CC="cc -O +z -Ae +DAportable"
 	cmex5="mex     COPTIMFLAGS=-O"
 	cmex4="mex -V4 COPTIMFLAGS=-O";;
@@ -80,6 +95,7 @@ case $arch in
 	echo "Sorry, not set up for architecture $arch"
 	exit;;
 esac
+
 
 echo "Compiling volume utilities..."
 $CC -c -o utils_uchar.o		spm_vol_utils.c -DSPM_UNSIGNED_CHAR
