@@ -240,11 +240,11 @@ function spm_normalise_ui(opt)
 % 		  there is any region of NaN or Inf in the images.
 % [defaults.normalise.write.interp]
 %
-% 'Way to wrap images?'
-% 	'No wrapping'		- for PET or images that have already
-% 				  been spatially transformed.
-% 	'Wrap in X & Y'		- for 2D MRI
-% 	'Wrap in X, Y & Z'	- for 3D MRI
+% These are typically:
+%       'No wrapping' - for PET or images that have already
+%                       been spatially transformed.
+%       'Wrap in  Y'  - for (un-resliced) MRI where phase encoding
+%                       is in the Y direction (voxel space).
 % [defaults.normalise.write.wrap]
 %
 %
@@ -561,13 +561,12 @@ return;
 function wrap = get_wrap(wrap)
 % Get image wrapping information
 % FORMAT wrap = get_wrap(wrap)
-
-wraps = [0 0 0 ; 1 1 0 ; 1 1 1];
-t = find(all(repmat(wrap(:)',3,1) == wraps, 2));
+wraps = [0 0 0 ; 0 0 1; 0 1 0; 0 1 1; 1 0 0; 1 0 1; 1 1 0; 1 1 1];
+t     = find(all(repmat(wrap(:)',3,1) == wraps, 2));
 if isempty(t), t = 1; end;
-p = spm_input('Way to wrap images?','+1','m',...
-	['No wrapping|Wrap in X & Y|Wrap in X, Y & Z'],...
-	[1 2 3], t);
+p     = spm_input('Way to wrap images?','+1','m',...
+	['No wrap|Wrap X|Wrap Y|Wrap X & Y|Wrap Z|Wrap X & Z|Wrap Y & Z|Wrap X, Y & Z'],...
+	[1 2 3 4 5 6 7 8], t);
 wrap = wraps(p,:);
 return;
 
