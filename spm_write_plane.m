@@ -67,6 +67,8 @@ else,
 		if swapped(dt),
 			if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
 		end;
+		[pth,nam,ext] = fileparts(V.fname);
+		fname         = fullfile(pth,[nam, '.img'])
 		V.private.fid = fopen(fname,'r+',mach);
 		if V.private.fid == -1,
 			error(['Error opening ' fname '. Check that you have write permission.']);
