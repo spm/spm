@@ -289,8 +289,10 @@ if isempty(F), return, end
 %-Clear figure, leaving 'NoDelete' 'Tag'ed objects
 %-----------------------------------------------------------------------
 for h = get(F,'Children')'
-	if ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
+	h1 = get(F,'Children');
+	if any(h1==h) & ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
 end
+
 set(F,'Pointer','Arrow')
 
 %-If this is the 'Interactive' window, reset the name and pointer
