@@ -15,13 +15,13 @@ function varargout = spm_list(varargin)
 % .u     - height threshold
 % .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
+% .XYZmm - location of voxels {mm}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
-% .XYZmm - location of voxels {mm}
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 %
@@ -212,7 +212,7 @@ y0    = y;
 
 %-Table filtering note
 %-----------------------------------------------------------------------
-TabDat.str = sprintf(['table shows at most %d subsidiary maxima ',...
+TabDat.str = sprintf(['table shows at most %d maxima ',...
 	'> %.1fmm apart per cluster'],Num,Dis);
 text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
