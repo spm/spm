@@ -193,7 +193,12 @@ S.xX.sF   = sF;
 
 % 1st-level covariance components 
 %-----------------------------------------------------------------------
-Q     = SPM.xVi.Vi;
+try
+	Q = SPM.xVi.Vi;
+catch
+	Q = {SPM.xVi.V};
+end
+
 
 % 2nd-level covariance components (projected to first level)
 %-----------------------------------------------------------------------
