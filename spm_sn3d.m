@@ -729,6 +729,7 @@ if ~isempty(fg),
 			'Interpreter','none','Parent',ax);
 	end;
 
+	spm_orthviews('Reset');
 	h1 = spm_orthviews('Image',deblank(spms(1,:)),[0.01 0.1 .48 .6]);
 	linfun('Writing Image for Display..');
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
