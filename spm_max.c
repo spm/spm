@@ -32,7 +32,7 @@ static char sccsid[]="%W% JB Poline %E%";
 #define	XYZ	prhs[1]
 
 #define	NUM	plhs[0]
-#define	MAX	plhs[1]
+#define	Z_MAX	plhs[1]
 #define	LOC	plhs[2]
 #define	IND	plhs[3]
 
@@ -254,7 +254,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     mxFree(vol);
 
-    MAX   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
+    Z_MAX   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
     LOC   = mxCreateDoubleMatrix(3, nb_lm, mxREAL);
     NUM   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
     IND   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
@@ -264,7 +264,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    mxGetPr(NUM)[i] = (double) num[i];
     }
     for (i = 0; i < nb_lm; i++) {
-	    mxGetPr(MAX)[i] = (double) max[i];
+	    mxGetPr(Z_MAX)[i] = (double) max[i];
     }
     for (i = 0; i < 3*nb_lm; i++) {
 	    mxGetPr(LOC)[i] = (double) loc[i];
