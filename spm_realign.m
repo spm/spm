@@ -106,7 +106,7 @@ if (any(Flags == 'e'))
 
 	% define height of transverse slices (S) used in subsampling the volume
 	%----------------------------------------------------------------------------
-	S     = linspace((bb(1,3) + 8/V1(6)),(bb(2,3) - 8/V1(6)),8);	% transverse
+	S     = linspace((bb(1,3) + 6/V1(6)),(bb(2,3) - 8/V1(6)),8);	% transverse
 	h     = 5;						% number of recursions
 	M     = sb(1);						% rows per slice
 	N     = sb(2);						% columns per slice
