@@ -162,6 +162,7 @@ mt    = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
 if spm_flip_analyze_images, mt = diag([-1 1 1 1])*mt; end;
 
 if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
+	M = V.mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 	if exist(fname)==2,
 		clear mat
 		str = load(fname);
@@ -177,14 +178,14 @@ if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
 		end;
 		mat(:,:,V.n) = V.mat;
 		try,
-			save(fname,'mat','-append');
+			save(fname,'mat','M','-append');
 		catch, % Mat-file was probably Matlab 4
-			save(fname,'mat');
+			save(fname,'mat','M');
 		end;
 	else,
 		clear mat
 		mat(:,:,V.n) = V.mat;
-		save(fname,'mat');
+		save(fname,'mat','M');
 	end;
 end;
 

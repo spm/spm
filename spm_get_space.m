@@ -104,16 +104,17 @@ elseif nargin == 2,
 			end;
 			Mo(:,:,n) = mat;
 			mat       = Mo;
+			M = V.mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 			try,
-				save(mfname,'mat','-append');
+				save(mfname,'mat','M','-append');
 			catch,
-				save(mfname,'mat');
+				save(mfname,'mat','M');
 			end;
 		else,
 			clear Mo
 			Mo(:,:,n) = mat;
 			mat       = Mo;
-			save(mfname,'mat');
+			save(mfname,'mat','M');
 		end;
 	end;
 else,
