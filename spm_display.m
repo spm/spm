@@ -58,7 +58,7 @@ spm_unmap_vol(V);
 
 % compute axes to correct for anisotropy of voxels and (normalized) window
 %----------------------------------------------------------------------------
-set(3,'Units','pixels')
+set(gcf,'Units','pixels')
 WIN    = get(gcf,'Position');
 WIN    = WIN(3)/WIN(4);
 Y      = 0.36*DIM(2)*VOX(2)/max(DIM.*VOX);
