@@ -32,12 +32,12 @@ Finter = spm_figure('FindWin','Interactive');
 Fgraph = spm_figure('FindWin','Graphics');
 figure(Fgraph);
 
-
 % X and Sess
 %---------------------------------------------------------------------------
 if nargin == 0
 	load(spm_get(1,'.mat','select fMRIDesMtx'))
-	set(gcf,'UserData',{X Sess})
+	set(1,'UserData',{X Sess})
+
 end
 
 % defaults
@@ -46,22 +46,22 @@ if nargin < 4
 	s = 1;
 	i = 1;
 
-
-	hC    = uimenu(Fgraph,'Label','Display',...
+	hC    = uimenu(Finter,'Label','Display model for:',...
 		'HandleVisibility','CallBack','Separator','on');
 	for j = 1:length(Sess)
 		h = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
-	            'HandleVisibility','CallBack');
+	                      'HandleVisibility','CallBack');
 		for k = 1:length(Sess{j}.name)
-			str = sprintf('q = get(gcf,''UserData'');spm_fMRI_design_show(q{1},q{2},%d,%d);',j,k);
+			str = ['q = get(1,''UserData'');',...
+			sprintf('spm_fMRI_design_show(q{1},q{2},%d,%d);',j,k)];
 			uimenu(h,'Label',Sess{j}.name{k},...
-	     	   	'HandleVisibility','CallBack','CallBack',str)
+	     	   	         'HandleVisibility','CallBack','CallBack',str)
 		end
 	end
 
 	% Quit
 	%-------------------------------------------------------------------
-	str = 'spm_clf; h = get(gcf,''Children''); delete(h(length(h)));';
+	str = 'spm_clf; h = get(gcf,''Children''); delete(h(end));';
 	uimenu(hC,'Label','Quit',...
 	'HandleVisibility','CallBack','CallBack',str,'Separator','on');
 
