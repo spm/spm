@@ -891,7 +891,7 @@ if ~isempty(fg)
 
 	Params = zeros(prod(size(P)),12);
 	for i=1:prod(size(P))
-		Params(i,:) = spm_imatrix(P(1).mat\P(i).mat);
+		Params(i,:) = spm_imatrix(P(i).mat/P(1).mat);
 	end
 
 	% display results
@@ -1021,7 +1021,7 @@ P=spm_vol(P);
 
 % Check the matrixes
 for i=1:prod(size(P)),
-	pp = spm_imatrix(P(1).mat\P(i).mat);
+	pp = spm_imatrix(P(1).mat/P(i).mat);
 	if any(abs(pp(7:12)-[1 1 1 0 0 0]) > 1e-6),
 		error('Can''t do non isotropic voxels!');
 	end;
