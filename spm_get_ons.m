@@ -70,7 +70,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %                epoch.  Time is specified in terms of scans, where the
 %                start of the session begins at 0.
 %
-%	 'variable event duration'.  If you want to model trains of
+%	 'variable durations'.  If you want to model trains of
 %		 onsets then select 'yes'.  You will then be prompted for
 %		 a vector of durations for each onset.  This is useful when 
 %		 modeling short epochs of variable duration.
@@ -234,8 +234,8 @@ if v
 		Sstr  = 'Variable';	 
             end
 	    DSstr = [DSstr  Sstr ' SOA '];
-
-	    for i = 1:v
+	    i     = 1;
+	    while i <= v
 
 		% get onsets
 		%-------------------------------------------------------
@@ -244,39 +244,47 @@ if v
 			case 'Fixed'
 			%- In batch mode, Sstr is always 'Variable'
 			%-----------------------------------------------
-			str  = ['SOA (scans) for ' Cname{i}];
-			soa  = spm_input(str,3,'r');
-			on   = spm_input('time to first trial (scans)',4,'r',0);
-			on   = on:soa:k;
-			dur  = zeros(size(on));
+			str   = ['SOA (scans) for ' Cname{i}];
+			soa   = spm_input(str,3,'r');
+			on    = spm_input('time to 1st trial (scans)',4,'r',0);
+			on    = {on:soa:k};
+			dur   = {zeros(size(on{1}))};
 
 			case 'Variable'
 			%-----------------------------------------------
-			str  = ['vector of onsets (scans) for ' Cname{i}];
-			on   = spm_input(str,3,'batch',...
+			str   = ['vector of onsets (scans) - ' Cname{i}];
+			on    = spm_input(str,3,'batch',...
                                          {'conditions',s},'onsets',i);
-			dur  = zeros(size(on));
-
+			if ~iscell(on), on = {on}; end
+	
 			% get durationa
 			%-----------------------------------------------
-			if isempty(BCH)
-				str = 'variable event duration';
+			dur   = {};
+			for j = 1:length(on)
+			    dur{j}  = zeros(size(on{j}));
+			    if isempty(BCH) & length(on) == 1
+				str = 'variable durations';
 				if spm_input(str,'+1','y/n',[1 0],2)
-					dur = spm_input('durations (scans)',...
-						'+1','e',[],[1 length(on)]);
-					dur = round(dur*T);
+				    dur{j} = spm_input('durations (scans)',...
+					     '+1','e',[],[1 length(on{j})]);
+				    dur{j} = round(dur{j}*T);
 				end
+			    end
 			end
+
 		end
 
 		% create stick functions
 		%-----------------------------------------------
-	    	ons   = sparse(k*T,1);
-		for p = 1:length(on)
-			q  = round(on(p)*T + 1);
-			ons(q:(q + dur(p))) = 1;
+		for j = 1:length(on)
+	    		ons   = sparse(k*T,1);
+			for p = 1:length(on{j})
+				q  = round(on{j}(p)*T + 1);
+				ons(q:(q + dur{j}(p))) = 1;
+			end
+			sf{i} = ons(1:(k*T));
+			i     = i + 1;
 		end
-		sf{i} = ons(1:(k*T));
 
 	    end
 	end
