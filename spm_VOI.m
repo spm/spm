@@ -1,6 +1,6 @@
-function spm_VOI(SPM,VOL,hReg)
-% Tabular display of adjusted data
-% FORMAT spm_VOI
+function TabDat = spm_VOI(SPM,VOL)
+% List of local maxima and adjusted p-values for a small Volume of Interest
+% FORMAT TabDat = spm_VOI(SPM,VOL)
 %
 % SPM    - structure containing SPM, distribution & filtering details
 %        - required fields are:
@@ -22,13 +22,14 @@ function spm_VOI(SPM,VOL,hReg)
 % .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
-% hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
+% TabDat - Structure containing table data
+%        - see spm_list for definition
 %
 %_______________________________________________________________________
 %
 % spm_VOI is  called by the SPM results section and takes variables in
-% SPM and VOL to compute a p values corrected for a specified volume of
-% interest that is centred on the current voxel.
+% SPM and VOL to compute p-values corrected for a specified volume of
+% interest centred on the current voxel.
 %
 % This volume may be defined by the cluster in which it is embedded. Clearly
 % this cluster must have been defined independently of the SPM using a
@@ -44,7 +45,7 @@ spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
 
 %-Get current location
 %-----------------------------------------------------------------------
-xyzmm   = spm_XYZreg('GetCoords',hReg);
+xyzmm   = spm_results_ui('GetCoords');
 
 
 %-Specify search volume
@@ -77,7 +78,7 @@ elseif SPACE == 'V'
 	end
 
 	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyzmm,SPM.XYZmm);
-	spm_XYZreg('SetCoords',xyzmm,hReg);
+	spm_results_ui('SetCoords',xyzmm);
 	A     = spm_clusters(SPM.XYZ);
 	j     = find(A == A(i));
 	str   = sprintf('%0.0f voxel cluster',length(j));
@@ -85,6 +86,7 @@ elseif SPACE == 'V'
 	S     = length(j);
 end
 
+spm('Pointer','Watch')
 
 %-Select voxels within subspace
 %-----------------------------------------------------------------------
@@ -99,7 +101,7 @@ VOL.S     = S;
 %-----------------------------------------------------------------------
 str = sprintf('search volume: %s at (%.0f,%.0f,%.0f)',str,...
 	xyzmm(1),xyzmm(2),xyzmm(3));
-spm_list(SPM,VOL,4,16,str)
+TabDat = spm_list('List',SPM,VOL,4,16,str);
 
 %-Reset title
 %-----------------------------------------------------------------------
