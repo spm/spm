@@ -22,6 +22,14 @@ V       = zeros(12 ,size(P,1));
 MP      = zeros(4*4,size(P,1));
 Headers = zeros(8  ,size(P,1));
 
+% For evaluation using affine component only
+%----------------------------------------------------------------------------
+if 0
+	disp('Only using affine component');
+	Dims(2,:)=[0 0 0];
+	Transform=[];
+end
+
 for i=1:size(P,1)
 	p = spm_str_manip(P(i,:),'d');
 	V(:,i) = spm_map(p);
@@ -164,10 +172,12 @@ for j=1:length(z)
 		fp = fopen(q, open_mode);
 		if (fp == -1)
 			spm_progress_bar('Clear');
+			open_error_message(q);
 			error(['Error opening ' q '. Check that you have write permission.']);
 		end
 		if fwrite(fp,d,spm_type(Headers(8,i))) ~= prod(size(d))
 			spm_progress_bar('Clear');
+			write_error_message(q);
 			error(['Error writing ' q '. Check your disk space.']);
 		end
 		fclose(fp);
@@ -189,4 +199,32 @@ end
 
 spm_progress_bar('Clear');
 for i=1:size(V,2), spm_unmap(V(:,i)); end;
+return;
 
+
+
+function open_error_message(q)
+f=spm_figure('findwin','Graphics'); 
+if ~isempty(f), 
+	figure(f); 
+	spm_figure('Clear','Graphics'); 
+	spm_figure('Clear','Interactive'); 
+	ax=axes('Visible','off','Parent',f); 
+	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
+end
+return
+
+function write_error_message(q)
+f=spm_figure('findwin','Graphics'); 
+if ~isempty(f), 
+	figure(f); 
+	spm_figure('Clear','Graphics'); 
+	spm_figure('Clear','Interactive'); 
+	ax=axes('Visible','off','Parent',f); 
+	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
+	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
+end
+return;

@@ -49,7 +49,7 @@ function spm_defaults_edit(arg1, arg2)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% @(#)spm_defaults_edit.m	1.9 John Ashburner 96/09/27
 
 global MODALITY
 global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage

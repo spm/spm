@@ -1,5 +1,5 @@
 
-% Sets the initial defaults which are used by SPM at startup
+% Sets the defaults which are used by SPM
 %
 % FORMAT spm_defaults
 %_______________________________________________________________________
@@ -11,14 +11,11 @@
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% %W%	%E%
 
 global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
-
-% Misc defaults
-%=======================================================================
 
 % Default command for printing
 %-----------------------------------------------------------------------
@@ -56,8 +53,8 @@ proj_MultiPage = 0;	% No multipage tables
 
 % PET header defaults
 %-----------------------------------------------------------------------
-PET_DIM      = [128 128 43];		% Dimensions [x y z]
-PET_VOX      = [2.1 2.1 2.45];		% Voxel size [x y z]
+PET_DIM      = [128 128 63];		% Dimensions [x y z]
+PET_VOX      = [2.09 2.09 2.37];		% Voxel size [x y z]
 PET_TYPE     = 2;			% Data type
 PET_SCALE    = 1.0;			% Scaling coeficient
 PET_OFFSET   = 0;			% Offset in bytes
@@ -77,10 +74,12 @@ fMRI_DESCRIP = 'SPM-compatible';
 % Stats defaults
 %=======================================================================
 
-% UFp - Upper tail F probability threshold used to filter voxels after stats
+% UFp - Upper tail F probability threshold used to filter voxels after
+% stats
 %-----------------------------------------------------------------------
 PET_UFp  = 0.05;
 fMRI_UFp = 0.001;
+
 
 % Realignment defaults
 %=======================================================================
@@ -142,8 +141,9 @@ global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx sptl_Rglrz
 % Orientation/position of images. Used as a starting estimate for
 % affine normalisation.
 %-----------------------------------------------------------------------
-%sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0]; % Neurological Convention (R is R)
-sptl_Ornt  = [0 0 0 0 0 0 -1 1 1 0 0 0]; % Radiological Convention (L is R)
+%sptl_Ornt = [0 0 0  0 0 0  1 1 1 0 0 0]; % Neurological Convention (R is R)
+sptl_Ornt = [0 0 0  0 0 0 -1 1 1 0 0 0]; % Radiological Convention (L is R)
+
 
 % Customisation Option. Include option to customise the normalisation
 % options.
@@ -152,41 +152,29 @@ sptl_Ornt  = [0 0 0 0 0 0 -1 1 1 0 0 0]; % Radiological Convention (L is R)
 %sptl_CO = -1;		% Allow customised
 sptl_CO  =  1;		% Disallow Customised
 
-% Number of parameters for affine normalisation.
-%-----------------------------------------------------------------------
-% sptl_NAP =  2;	%  2 params (X & Y Translations)
-% sptl_NAP =  3;	%  3 params (Translations)
-% sptl_NAP =  5;	%  5 params (Translations + Pitch & Roll)
-% sptl_NAP =  6;	%  6 params (Rigid Body)
-% sptl_NAP =  8;	%  8 params (Rigid Body + X & Y Zoom)
-% sptl_NAP =  9;	%  9 params (Rigid Body + Zooms)
-% sptl_NAP = 11;	% 11 params (Rigid Body,  Zooms + X & Y Affine)
-sptl_NAP   = 12;	% 12 params (Rigid Body,  Zooms & Affine)
-
 % Number of nonlinear basis functions
 %-----------------------------------------------------------------------
-sptl_NBss = [0 0 0];	% None (ie. perform affine normalisation only).
-sptl_NBss = [4 5 4];
+%sptl_NBss = [0 0 0];	% None (ie. perform affine normalisation only).
+sptl_NBss = [7 8 7];
 
 % Regularization fudge factor:
-%	small values	-> less warping
-%	large values	-> more warping
+%	small values	-> less regularization -> more warping
+%	large values	-> more regularization -> less warping
 %-----------------------------------------------------------------------
-sptl_Rglrztn = 0.02;	% This value works well at the FIL.
-%sptl_Rglrztn = 0.005;	% This may be more appropriate for poor data.
-%sptl_Rglrztn = 0.001;	% Try this for even worse data.
+sptl_Rglrztn = 0.001;
 
 % Number of iterations of nonlinear spatial normalisation.
 %-----------------------------------------------------------------------
-sptl_NItr = 8;
+sptl_NItr = 12;
 
 % Bounding Box. The definition of the volume of the normalised image
 % which is written (mm relative to AC).
 % [[lowX lowY lowZ];[highX highY highZ]]
 %-----------------------------------------------------------------------
 sptl_BB = [[-78 -112 -50];[78 76 85]];
+%sptl_BB = [[-90 -126 -72];[91 91 109]];
 
 % Voxel sizes in mm of the normalised images
 %-----------------------------------------------------------------------
 sptl_Vx = [2 2 2];	% 2mm x 2mm x 2mm
-
+%sptl_Vx = [1.5 1.5 1.5];

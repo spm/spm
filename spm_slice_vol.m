@@ -7,10 +7,11 @@
 %           coordinates in 3-D space of the voxels in this image are assumed
 %           to range from 1,1,0 to i,j,0.
 % hold   -  sets the interpolation method for the resampling.
-%           0       Zero order hold (nearest neighbour).
-%           1       First order hold (trilinear interpolation).
-%           3-127   Sinc interpolation using different numbers of neighbours.
-%                   Anything above about 8 is serious overkill
+%           0          Zero-order hold (nearest neighbour).
+%           1          First-order hold (trilinear interpolation).
+%           2->127     Higher order Lagrange (polynomial) interpolation using
+%                      different holds (second-order upwards).
+%          -127 - -1   Different orders of sinc interpolation.
 % X      -  output image
 %____________________________________________________________________________
 %
@@ -21,4 +22,4 @@
 % see also spm_sample_vol.m
 %
 %__________________________________________________________________________
-% %W% %E%
+% %W% John Ashburner %E%

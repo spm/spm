@@ -57,6 +57,11 @@ function spm_coregister(PGF, PFF, PGG, PFG, others)
 % This form simply does a graphic display of how well the coregistration has
 % worked.
 
+do_disp = 1;
+
+global SWD
+DIR1 = [SWD '/coreg/'];
+
 global SWD sptl_WhchPtn
 if (nargin == 0)
 	% Act as user interface if there are no arguments
@@ -82,8 +87,8 @@ if (nargin == 0)
 	end
 
 	if (p == 1 | p == 3)
-		templates = str2mat([SWD '/templates/PET.img'], ...
-			[SWD '/templates/T1.img'], [SWD '/templates/T2.img']);
+		templates = str2mat([DIR1 'PET.img'], ...
+			[DIR1 'T1.img'], [DIR1 'T2.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
@@ -160,7 +165,7 @@ if (nargin == 0)
 		eval(['others = others' num2str(i) ';']);
 
 		if (p == 1 | p == 3)
-			spm_coregister(PGF, PFF, PGG, PFG, others);
+			eval('spm_coregister(PGF, PFF, PGG, PFG, others);','disp(''Coregistration Bombed Out'');');
 		end
 		if (p == 2 | p == 3)
 			% Write the coregistered images
@@ -169,7 +174,7 @@ if (nargin == 0)
 			if prod(size(others))>0
 				P = str2mat(P,others);
 			end
-			spm_realign(P,'rn');
+			eval('spm_realign(P,''rn'');','disp(''Writing Coregistered Bombed Out'');');
 		end
 		spm_figure('Clear','Interactive'); drawnow;
 	end
@@ -179,12 +184,13 @@ elseif nargin == 2
 	% Do the graphics
 	%=======================================================================
 
-	fig = figure(spm_figure('FindWin','Graphics'));
+	fig = spm_figure('FindWin','Graphics');
+	set(0,'CurrentFigure',fig);
 	spm_figure('Clear','Graphics');
 
-	axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
+	ax = axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fig);
 	text(0.5,0.90, 'Coregistration','FontSize',16,...
-		'FontWeight','Bold','HorizontalAlignment','center');
+		'FontWeight','Bold','HorizontalAlignment','center','Parent',ax);
 
 
 	VF = spm_map(deblank(PFF(1,:)));
@@ -193,25 +199,27 @@ elseif nargin == 2
 	MG = spm_get_space(deblank(PGF(1,:)));
 
 	Q = MG\MF;
-	text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
-	text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
-	text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
+	text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)),'Parent',ax);
+	text(0,0.80, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)),'Parent',ax);
+	text(0,0.75, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),'Parent',ax);
 	text(0.25,0.65, spm_str_manip(PFF,'k22'),...
-		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold','Parent',ax);
 	text(0.75,0.65, spm_str_manip(PGF,'k22'),...
-		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold');
+		'HorizontalAlignment','center','FontSize',14,'FontWeight','Bold','Parent',ax);
 
 	%-----------------------------------------------------------------------
 	for i=1:3
 		M = spm_matrix([0 0 i*VF(3)/4]);
-		axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
+		ax=axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off','Parent',fig);
+		set(fig,'CurrentAxes',ax);
 		img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
 		hold on;
 		imagesc(img1');
 		contour(img1',3,'r');
 		axis('off','image');
 
-		axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off');
+		ax=axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off','Parent',fig);
+		set(fig,'CurrentAxes',ax); 
 		img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
 		hold on;
 		imagesc(img2');
@@ -234,6 +242,7 @@ end
 MG = spm_get_space(deblank(PGF(1,:)));
 MF = spm_get_space(deblank(PFF(1,:)));
 
+tic;
 if strcmp(PGG,PFG) 	% Same modality
 
 
@@ -258,9 +267,11 @@ if strcmp(PGG,PFG) 	% Same modality
 	% Coregister the images together.
 	%-----------------------------------------------------------------------
 	disp('Coregistering')
+	spm_chi2_plot('Init','Coregistering','Convergence','Iteration');
 	params = spm_affsub3('rigid2', inameG, inameF, 1, 8);
-	params = spm_affsub3('rigid2', inameG, inameF, 1, 4, params);
+	params = spm_affsub3('rigid2', inameG, inameF, 1, 6, params);
 	MM     = spm_matrix(params);
+	spm_chi2_plot('Clear');
 
 	% Delete temporary files
 	%-----------------------------------------------------------------------
@@ -272,6 +283,18 @@ if strcmp(PGG,PFG) 	% Same modality
 		spm_unlink([iname '.img'], [iname '.hdr'], [iname '.mat']);
 	end
 
+	if do_disp==1,
+		im1 = PGF(1,:);
+		im2 = PFF(1,:);
+		M1=spm_get_space(im1);
+		M2=spm_get_space(im2);
+		d1=spm_hread(im1);
+		d2=spm_hread(im2);
+		fprintf('--------------------------------------------------------------\n');
+		fprintf('Method: 3\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+		disp_coreg_params(M1,MM*M2,d1,d2)
+fprintf('time=%g seconds\n',toc);
+	end
 
 else 	% Different modalities
 
@@ -285,21 +308,36 @@ else 	% Different modalities
 	PPG = str2mat(PGG(1,:), PFG(1,:));
 
 	disp('Rough coregistration');
+	spm_chi2_plot('Init','Rough Coregistration','Convergence','Iteration');
+	% Be careful here with the order of the matrix multiplications.
 	global sptl_Ornt;
 	if prod(size(sptl_Ornt)) == 12
-		params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1]';
+		tmp = spm_imatrix(inv(spm_matrix(sptl_Ornt(1:12))));
+		params = [tmp(1:6) tmp(1:6) tmp(7:12) 1 1]';
 	else
 		params = [zeros(1,12) 1 1 1 0 0 0  1 1]';
 	end
-	params = [sptl_Ornt(1:6) sptl_Ornt(1:6) sptl_Ornt(7:12) 1 1]';
-	params = spm_affsub3('register1', PPG, PPF, 1, 12, params);
-	params = spm_affsub3('register1', PPG, PPF, 1, 8 , params);
-	params = spm_affsub3('register1', PPG, PPF, 1, 4 , params);
+	params = spm_affsub3('register1', PPF, PPG, 1, 8 , params);
+	params = spm_affsub3('register1', PPF, PPG, 1, 6 , params);
+	spm_chi2_plot('Clear');
 
 	spm_unlink ./spm_coreg_tmpG.img ./spm_coreg_tmpG.hdr ./spm_coreg_tmpG.mat
 	spm_unlink ./spm_coreg_tmpF.img ./spm_coreg_tmpF.hdr ./spm_coreg_tmpF.mat
 
-	MM = spm_matrix(params([1:6 13:18]))\spm_matrix(params([7:12 13:18]));
+	MM = spm_matrix(params([1:6 13:18]))/spm_matrix(params([7:12 13:18]));
+
+	if do_disp==1,
+		im1 = PGF(1,:);
+		im2 = PFF(1,:);
+		M1=spm_get_space(im1);
+		M2=spm_get_space(im2);
+		d1=spm_hread(im1);
+		d2=spm_hread(im2);
+		fprintf('--------------------------------------------------------------\n');
+		fprintf('Method: 1\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+		disp_coreg_params(M1,MM*M2,d1,d2)
+fprintf('time=%g seconds\n',toc);
+	end
 
 	global QUICK_COREG
 	if ~any(QUICK_COREG == 1)
@@ -308,59 +346,47 @@ else 	% Different modalities
 		%-----------------------------------------------------------------------
 		disp('Segmenting and smoothing:')
 		disp(PGF);
-		spm_segment(PGF,spm_matrix(params([1:6 13:18])),'t');
+		spm_segment(PGF,inv(spm_matrix(params([1:6 13:18]))),'ft');
 
-		for i=4:4
-			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			spm_unlink([iname1 '.img'],[iname1 '.hdr'],[iname1 '.mat']);
-		end
-		PPG = [];
-		for i=1:3
-			iname1 = [spm_str_manip(PGF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp' num2str(i)];
-			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
-			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
-			PPG = str2mat(PPG, [iname2 '.img']);
-		end
-		PPG = PPG(2:size(PPG,1),:);
+		PPG = [ [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp1.img']
+			[spm_str_manip(PGF(1,:),'rd') '_sseg_tmp2.img']];
 
 		% Partition the object image(s) into smoothed segments
 		%-----------------------------------------------------------------------
 		disp('Segmenting and smoothing:')
 		disp(PFF);
-		spm_segment(PFF,spm_matrix(params([7:12 13:18])),'t');
+		spm_segment(PFF,inv(spm_matrix(params([7:12 13:18]))),'ft');
 
-		for i=4:4
-			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			spm_unlink([iname1 '.img'],[iname1 '.hdr'],[iname1 '.mat']);
-		end
-		PPF = [];
-		for i=1:3
-			iname1 = [spm_str_manip(PFF(1,:),'rd') '_seg_tmp'  num2str(i)];
-			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp' num2str(i)];
-			spm_smooth([iname1 '.img'],[iname2 '.img'],8);
-			spm_get_space(deblank([iname2 '.img']), MM*spm_get_space([iname2 '.img']));
-			spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
-			PPF = str2mat(PPF, [iname2 '.img']);
-		end
-		PPF = PPF(2:size(PPF,1),:);
+		PPF = [ [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp1.img']
+			[spm_str_manip(PFF(1,:),'rd') '_sseg_tmp2.img']];
 
 		% Coregister the segments together
 		%-----------------------------------------------------------------------
 		disp('Coregistering segments')
-		params = spm_affsub3('rigid1', PPG(1:3,:), PPF(1:3,:), 1, 8);
-		params = spm_affsub3('rigid1', PPG(1:3,:), PPF(1:3,:), 1, 4 , params);
-
-		MM = spm_matrix(params(1:12))*MM;
+		spm_chi2_plot('Init','Coregistering segments','Convergence','Iteration');
+		params = [spm_imatrix(MM) 1 1]';
+		params = spm_affsub3('rigid2', PPG(1:2,:), PPF(1:2,:), 1, 6, params);
+		MM = spm_matrix(params(1:12));
+		spm_chi2_plot('Clear');
 
 		% Delete temporary files
 		%-----------------------------------------------------------------------
-		for i=1:3
-			iname2 = [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp' num2str(i)];
+		for P = str2mat(PPG,PPF)';
+			iname2 = spm_str_manip(P','rd');
 			spm_unlink([iname2 '.img'], [iname2 '.hdr'], [iname2 '.mat']);
+		end
 
-			iname2 = [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp' num2str(i)];
-			spm_unlink([iname2 '.img'], [iname2 '.hdr'], [iname2 '.mat']);
+		if do_disp==1,
+			im1 = PGF(1,:);
+			im2 = PFF(1,:);
+			M1=spm_get_space(im1);
+			M2=spm_get_space(im2);
+			d1=spm_hread(im1);
+			d2=spm_hread(im2);
+			fprintf('--------------------------------------------------------------\n');
+			fprintf('Method: 2\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+			disp_coreg_params(M1,MM*M2,d1,d2)
+fprintf('time=%g seconds\n',toc);
 		end
 	end
 end
@@ -387,4 +413,25 @@ spm_print;
 
 disp('Done');
 spm_figure('Clear','Interactive');
+return
+
+
+
+
+function disp_coreg_params(M1,M2,d1,d2)
+v1=sqrt(sum(M1(1:3,1:3).^2));
+v2=sqrt(sum(M2(1:3,1:3).^2));
+M=M1\M2;
+c1=[0 0 0;1 0 0;0 1 0;1 1 0;0 0 1;1 0 1;0 1 1;1 1 1]*diag((d1-1).*v1);
+ci=[(c1/diag(v1)+1)';ones(1,size(c1,1))];
+ci=M2\M1*ci;
+ci=ci(1:3,:)';
+c2=(ci-1)*diag(v2);
+
+fprintf('Point     x        y        z    new_x    new_y    new_z\n\n');
+for i=1:size(c1),
+	fprintf('%.1d %9g%9g%9g%9g%9g%9g\n', i, c1(i,:), c2(i,:));
+end
+fprintf('--------------------------------------------------------------\n');
+return
 

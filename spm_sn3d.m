@@ -1,4 +1,4 @@
-function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
+function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 % Perform 3D spatial normalization
 %
 % --- The Prompts Explained ---
@@ -32,7 +32,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 % 	The default arguments for the custom normalisation have
 % 	(D) next to them.
 %
-% 	'Custom Affine Only'
+% 	'Affine Only'
 % 	Only perform an affine ('brain in a box') normalisation.
 % 	The affine normalisation corrects for gross differences in
 % 	brain size, and position.
@@ -73,13 +73,9 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 %	For images aquired in different orientations, it is possible
 % 	to use starting estimates which reflect these orientations.
 % 	eg. a pitch of +/- pi/2 radians for coronal images.
-% 	    a roll  of +/- pi/2 radians for sagittal images.
+% 	    a roll  of +/- pi/2 radians for saggital images.
 % 	For volumes which are flipped, then the appropriate scaling
 % 	can be set to -1 in the starting estimates.
-%
-% '# Affine Params?'
-% Most good data sets should be stable for 9 or 12 parameters.
-%
 %
 % '# Nonlinear Iterations?'
 % Try about 12 iterations.
@@ -153,7 +149,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 %
 %-----------------------------------------------------------------------
 %
-% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,aff_free)
+% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms)
 % P         - image(s) to normalize
 % matname   - name of file to store deformation definitions
 % bb        - bounding box for normalized image
@@ -169,14 +165,8 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,free)
 % params(6) - 'smoothness' of deformation field.
 % spms      - template image(s).
 % aff_parms - starting parameters for affine normalisation.
-% aff_free  - a vector of ones and zeros representing which parameters
-%             for the affine component should remain fixed at the
-%             starting estimates.
-%             - ones for parameters to be fitted.
-%             - zeros for fixed parameters.
 
-
-global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_NAP sptl_Ornt sptl_CO sptl_NItr;
+global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr;
 
 
 bboxes  = [   -78 78 -112 76  -50 85         
@@ -254,32 +244,11 @@ if (nargin == 0)
 			% Customise the normalisation
 			%-----------------------------------------------------------------------
 			a2  = spm_input('Normalisation Type?', pos, 'm',...
-				'Default Normalisation|Custom Affine Only|Custom Affine & Nonlinear', [0 1 2],1);
+				'Default Normalisation|Affine Only|Custom Affine & Nonlinear', [0 1 2],1);
 			pos = pos + 1;
 			if (a2 == 0)
-				nap        = sptl_NAP;
 				iterations = sptl_NItr;
 				nbasis     = sptl_NBss;
-			end
-
-
-			% Number of affine parameters
-			%-----------------------------------------------------------------------
-			if (a2 == 1 | a2 == 2)
-				tmp2 = [2 3 5 6 8 9 11 12];
-				tmp = find(tmp2 == sptl_NAP);
-				if isempty(tmp) tmp = length(tmp2); end;
-				nap = spm_input('# Affine Params?',pos,'m',[
-					' 2 params (X & Y Translations)|'...
-					' 3 params (Translations)|'...
-					' 5 params (Translations + Pitch & Roll)|'...
-					' 6 params (Rigid Body)|'...
-					' 8 params (Rigid Body + X & Y Zoom)|'...
-					' 9 params (Rigid Body + Zooms)|'...
-					'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
-					'12 params (Rigid Body,  Zooms & Affine)'
-					],tmp2,tmp);
-				pos = pos + 1;
 			end
 
 			if (a2 == 2)
@@ -323,7 +292,6 @@ if (nargin == 0)
 		else
 			nbasis     = sptl_NBss;
 			iterations = sptl_NItr;
-			nap        = sptl_NAP;
 		end
 	
 
@@ -361,7 +329,7 @@ if (nargin == 0)
 		% Get interpolation method (for writing images)
 		%-----------------------------------------------------------------------
 		Hold = spm_input('Interpolation Method?',pos,'m',['Nearest Neighbour|Bilinear Interpolation|'...
-			'Sinc Interpolation'],[0 1 5], 3);
+			'Sinc Interpolation'],[0 1 -9], 3);
 		pos = pos + 1;
 
 
@@ -414,6 +382,8 @@ if (nargin == 0)
 		Vox    = [4 4 4];
 	end
 
+	global sptl_Rglrztn
+	rglrztn = sptl_Rglrztn;
 
 	% Go and do the work
 	%-----------------------------------------------------------------------
@@ -422,7 +392,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.02],Template,aff_parms,ones(nap,1));
+			eval('spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms);','disp(''Normalization Bombed Out'');');
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
@@ -431,7 +401,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=PP' num2str(i) ';']);
-			spm_write_sn(P,matname,bb,Vox,Hold);
+			eval('spm_write_sn(P,matname,bb,Vox,Hold);','disp(''Writing Normalized Bombed Out'');');
 		end
 	end
 	
@@ -498,25 +468,6 @@ elseif strcmp(P,'Defaults')
 	sptl_CO  = spm_input(['Allow customised normalisation?'], pos, 'm',...
 		'   Allow customised|Disallow Customised',[-1 1], tmp);
 	pos = pos + 1;
-
-
-	% Get number of affine parameters
-	%-----------------------------------------------------------------------
-	tmp2 = [2 3 5 6 8 9 11 12];
-	tmp = find(tmp2 == sptl_NAP);
-	if isempty(tmp) tmp = length(tmp2); end;
-	sptl_NAP = spm_input(['# Affine Params?'],pos,'m',[
-		' 2 params (X & Y Translations)|'...
-		' 3 params (Translations)|'...
-		' 5 params (Translations + Pitch & Roll)|'...
-		' 6 params (Rigid Body)|'...
-		' 8 params (Rigid Body + X & Y Zoom)|'...
-		' 9 params (Rigid Body + Zooms)|'...
-		'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
-		'12 params (Rigid Body,  Zooms & Affine)'
-		],tmp2, tmp);
-	pos = pos + 1;
-
 
 	% Get number of nonlinear basis functions
 	%-----------------------------------------------------------------------
@@ -634,8 +585,6 @@ end
 % Perform the spatial normalisation
 %_______________________________________________________________________
 
-
-
 % Map the template(s).
 %-----------------------------------------------------------------------
 VG = [];
@@ -667,23 +616,17 @@ MG = spm_get_space(spms(1,:));
 
 % Affine Normalisation
 %-----------------------------------------------------------------------
-np     = size(VG,2);
-pdesc  = ones(12+np,1);
-gorder = ones(1,np);
-fr     = [zeros(12,1); ones(np,1)];
-fr(1:length(free)) = free;
-mean0  = [aff_parms ones(1,np)]';
-mg     = reshape(MG,16,1);
-mf     = reshape(MF,16,1);
-p1     = spm_affsub2(VG,VF, mg,mf, 1,8, mean0,fr,pdesc,gorder);
-p1     = spm_affsub2(VG,VF, mg,mf, 1,4, p1   ,fr,pdesc,gorder);
+spm_chi2_plot('Init','Affine Registration','Convergence');
+[p1] = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8);
+[p1] = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1);
+spm_chi2_plot('Clear');
 prms   = p1(1:12);
-scales = p1(12 + (1:np));
+scales = p1(13:length(p1));
 Affine = inv(inv(MG)*spm_matrix(prms')*MF);
 
 if (~any(params==0))
 	fprintf('3D Cosine Transform Normalization\n');
-	[Transform,Dims,scales] = spm_snbasis_map(VG,VF,Affine,params);
+	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
 else
 	Transform = [];
 	Dims = [VG(1:3,1)' ; 0 0 0];
@@ -693,48 +636,51 @@ end
 %-----------------------------------------------------------------------
 Dims = [Dims ; vox ; origin ; VF(1:3,1)' ; VF(4:6,1)'];
 mgc = 960209;
-eval(['save ' matname ' mgc Affine Dims Transform MF MG']);
+eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
 
-spm_unmap_vol(VF);
-
-spm_write_sn('./spm_sn3d_tmp.img',matname,bb,Vox,1);
-spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
-[tmp1,tmp2,tmp3,tmp4,tmp5,origin2,tmp6] = spm_hread('./nspm_sn3d_tmp.img');
+for v=VG, spm_unmap_vol(v); end
 
 % Do the display stuff
 %-----------------------------------------------------------------------
-centre = [10 0 0];
-VGT = VG;
-VGT(7,:) = VGT(7,:).*scales(:)';
-figure(spm_figure('FindWin','Graphics'));
-spm_figure('Clear','Graphics');
-axes('Position',[0.1 0.51 0.8 0.45],'Visible','off');
-text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold');
-text(0,0.75, [ 'Image		: ' P(1,:)],'FontSize',12,'FontWeight','Bold');
-text(0,0.7, [ 'Parameters	: ' [spm_str_manip(P,'sd') '_sn3d.mat']],'FontSize',12);
-
-Q = spm_matrix(prms');
-text(0,0.6, 'Linear {affine} component','FontWeight','Bold');
-text(0,0.55, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)));
-text(0,0.50, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)));
-text(0,0.45, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)));
-
-if (~any(params==0))
-	text(0,0.35, sprintf('%d nonlinear iterations',params(4)));
-	text(0,0.30, sprintf('%d x %d x %d basis functions',params(1:3)));
+fg = spm_figure('FindWin','Graphics');
+if isempty(fg)
+	spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
 else
-	text(0,0.35, 'No nonlinear components');
+	spm_figure('Clear','Graphics');
+	ax=axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fg);
+	text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
+		'Interpreter','none','Parent',ax);
+	text(0,0.75, [ 'Image		: ' P(1,:)],'FontSize',12,'FontWeight','Bold',...
+		'Interpreter','none','Parent',ax);
+	text(0,0.7, [ 'Parameters	: ' [spm_str_manip(P,'sd') '_sn3d.mat']],'FontSize',12,...
+		'Interpreter','none','Parent',ax);
+
+	Q = spm_matrix(prms');
+	text(0,0.6, 'Linear {affine} component','FontWeight','Bold',...
+		'Interpreter','none','Parent',ax);
+	text(0,0.55, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)),...
+		'Interpreter','none','Parent',ax);
+	text(0,0.50, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)),...
+		'Interpreter','none','Parent',ax);
+	text(0,0.45, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),...
+		'Interpreter','none','Parent',ax);
+
+	if (~any(params==0))
+		text(0,0.35, sprintf('%d nonlinear iterations',params(4)),...
+			'Interpreter','none','Parent',ax);
+		text(0,0.30, sprintf('%d x %d x %d basis functions',params(1:3)),...
+			'Interpreter','none','Parent',ax);
+	else
+		text(0,0.35, 'No nonlinear components',...
+			'Interpreter','none','Parent',ax);
+	end
+
+	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
+	spm_write_sn('./spm_sn3d_tmp.img',matname,bb,Vox,1);
+	h2=spm_orthviews('Image','./nspm_sn3d_tmp.img',[.5 0.1 .5 .5]);
+	spm_orthviews('Space',h2);
+	spm_print;
+	drawnow;
+	spm_unlink  ./spm_sn3d_tmp.img  ./spm_sn3d_tmp.hdr  ./spm_sn3d_tmp.mat
+	spm_unlink ./nspm_sn3d_tmp.img ./nspm_sn3d_tmp.hdr ./nspm_sn3d_tmp.mat
 end
-
-VN = spm_map('./nspm_sn3d_tmp.img');
-spm_orthviews(VGT,centre,origin ,bb,1,[0. 0.1 .5 .5],'Template');
-spm_orthviews(VN ,centre,origin2,bb,1,[.5 0.1 .5 .5],'Normalized');
-drawnow;
-spm_print
-
-spm_unlink ./nspm_sn3d_tmp.img ./nspm_sn3d_tmp.hdr ./nspm_sn3d_tmp.mat
-
-for v=[VG VN]
-	spm_unmap_vol(v);
-end
-

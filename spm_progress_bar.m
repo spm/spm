@@ -10,16 +10,17 @@ function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Clears the 'Interactive' window.
 %
 %-----------------------------------------------------------------------
-% %W% John Ashburner %E%
+% @(#)spm_progress_bar.m	1.4 John Ashburner 96/08/14
 
 global pb_pointer pb_name ax
 %-----------------------------------------------------------------------
 if (nargin == 0)
 	spm_progress_bar('Init');
 else
+	action = lower(action);
 	% initialize
 	%---------------------------------------------------------------
-	if (strcmp(action,'Init'))
+	if (strcmp(action,'init'))
 		if (nargin<4)
 			arg3 = '';
 			if (nargin<3)
@@ -30,51 +31,57 @@ else
 			end
 		end
 		fg = spm_figure('FindWin','Interactive');
-		pb_pointer = get(fg,'Pointer');
-		pb_name    = get(fg,'Name');
-		figure(fg);
-		spm_progress_bar('Clear');
-		set(fg,'Pointer','watch');
-		set(fg,'Name',pb_name);
-		ax = axes('Position', [0.45 0.2 0.05 0.6],...
-			'XTick',[],...
-			'Xlim', [0 1],...
-			'Ylim', [0 max([arg1 eps])],...
-			'Box', 'on');
-		xlabel(arg2,'FontSize',10);
-		ylabel(arg3,'FontSize',10);
-		title('0% Complete');
-		tim = clock;
-		tim = tim(4:6);
-		str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
-		t1=text(2,arg1/2,0,str,'FontSize',10);
-		set(t1,'Tag','StartTime');
-		line('Xdata',[0.5 0.5], 'Ydata',[0 0],...
-			'LineWidth',8, 'Color', [1 0 0],'Tag','ProgressBar');
-		drawnow;
+		if ~isempty(fg)
+			pb_pointer = get(fg,'Pointer');
+			pb_name    = get(fg,'Name');
+			spm_progress_bar('Clear');
+			set(fg,'Pointer','watch');
+			set(fg,'Name',pb_name);
+			ax = axes('Position', [0.45 0.2 0.05 0.6],...
+				'XTick',[],...
+				'Xlim', [0 1],...
+				'Ylim', [0 max([arg1 eps])],...
+				'Box', 'on',...
+				'Parent',fg);
+			xlabel(arg2,'FontSize',10);
+			ylabel(arg3,'FontSize',10);
+			title('0% Complete');
+			tim = clock;
+			tim = tim(4:6);
+			str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
+			t1=text(2,arg1/2,0,str,'FontSize',10,'Parent',ax);
+			set(t1,'Tag','StartTime');
+			line('Xdata',[0.5 0.5], 'Ydata',[0 0],...
+				'LineWidth',8, 'Color', [1 0 0],'Tag','ProgressBar',...
+				'Parent',ax);
+			drawnow;
+		end
 
 	% reset
 	%---------------------------------------------------------------
-	elseif (strcmp(action,'Set'))
+	elseif (strcmp(action,'set'))
 		if (nargin<2)
 			arg1 = 0;
 		end
 		F = spm_figure('FindWin','Interactive');
-		br = findobj(F,'Tag','ProgressBar');
-		if (~isempty(br))
-			set(br,'Ydata',[0 arg1]);
-			lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
-			title(sprintf('%.0f%% Complete',100*arg1/lim));
-			drawnow;
+		if ~isempty(F),
+			br = findobj(F,'Tag','ProgressBar');
+			if (~isempty(br))
+				set(br,'Ydata',[0 arg1]);
+				lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
+				title(sprintf('%.0f%% Complete',100*arg1/lim));
+				drawnow;
+			end
 		end
-
 	% clear
 	%---------------------------------------------------------------
-	elseif (strcmp(action,'Clear'))
+	elseif (strcmp(action,'clear'))
 		fg = spm_figure('FindWin','Interactive');
-		spm_figure('Clear',fg);
-		set(fg,'Pointer',pb_pointer);
-		set(fg,'Name',pb_name);
-		drawnow;
+		if ~isempty(fg),
+			spm_figure('Clear',fg);
+			set(fg,'Pointer',pb_pointer);
+			set(fg,'Name',pb_name);
+			drawnow;
+		end
 	end
 end

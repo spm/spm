@@ -1,6 +1,6 @@
-function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder)
+function [P] = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder,mean0,icovar0)
 % Another subroutine involved in affine transformations.
-% FORMAT nP = spm_affsub2(VG,VF,MG,MF,Hold,samp,oP,free,pdesc,gorder)
+% FORMAT [nP] = spm_affsub2(VG,VF,MG,MF,Hold,samp,oP,free,pdesc,gorder)
 %
 % VG        - Vector of memory mapped template image(s).
 % VF        - Memory mapped object image.
@@ -12,6 +12,8 @@ function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder)
 % free      - Ones and zeros indicating which parameters to fit.
 % pdesc     - Description of parameters.
 % gorder    - Order in which the template images are used.
+% mean0     - The mean of the a-priori probability distribution.
+% icovar0   - Inverse of covariance matrix describing the prob. dist.
 %
 % nP        - New parameter estimates.
 %__________________________________________________________________________
@@ -24,7 +26,7 @@ function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder)
 
 % Minimal amount of input checking.
 %-----------------------------------------------------------------------
-if nargin ~= 10
+if nargin ~= 12 & nargin ~= 10
 	error('Incorrect usage.');
 end
 if size(VF,2) ~= size(MF,2) | size(VG,2) ~= size(MG,2)
@@ -47,20 +49,35 @@ if ~all(size(free) == size(P)) | ~(size(pdesc,1) == size(P,1)) | size(P,2) ~= 1
 	error('Problem with vector sizes');
 end
 
-pchi2     = 9e99;
-iter      = 1;
-countdown = 0;
-bestP     = P;
-bestchi2  = 9e99;
+if nargin == 12
+	useW=1;
+	if any(size(mean0) ~= size(P))
+		error('A-priori means are wrong size');
+	end
+	if any(size(icovar0) ~= length(P))
+		error('A-priori inv-covariance is wrong size');
+	end
+else
+	useW=0;
+	mean0 = P;
+	icovar0 = diag(eps*ones(prod(size(mean0)),1));
+end
 
-qq  = find(free);
-qqq = find(free*free');
-nf  = sum(free ~= 0);
+iter       = 1;
+countdown  = 0;
+bestP      = P;
+logdet     = 0;
+bestlogdet = 0;
 
-while iter <= 64 & countdown < 3
+qq    = find(free);
+qqq   = find(free*free');
+nf    = sum(free ~= 0);
+IC0   = reshape(icovar0(qqq), nf, nf);
+P0    = mean0(qq);
 
-	ochi2 = pchi2;
-	pchi2 = 1;
+W = ones(size(pdesc,2),3)*Inf;
+while iter <= 128 & countdown < 4
+
 
 	% generate alpha and beta
 	%-----------------------------------------------------------------------
@@ -83,33 +100,52 @@ while iter <= 64 & countdown < 3
 		tmp = tmp(1);
 		mg  = reshape(MG(:,tmp),4,4);
 
-		[alpha_t, beta_t, chi2_t] = spm_affsub1(vg, vf, mg, mf, Hold,samp,P(pp));
+		%if iter>1 flg=1; else flg=0; end
+		flg=0;
 
-		beta(pp)   = beta(pp)   + beta_t(:) /chi2_t;
-		alpha(ppp) = alpha(ppp) + alpha_t(:)/chi2_t;
-		pchi2      = pchi2 * chi2_t;
-	end
-	fprintf('iteration: %d\tchi2: %g\n', iter, pchi2);
-	% If \chi^2 is better than the previous best, then save the parameters
-	% from the previous iteration.
-	%-----------------------------------------------------------------------
-	if (pchi2 < bestchi2)
-		bestchi2  = pchi2;
-		bestP     = P;
+		if useW,
+			[alpha_t, beta_t, chi2_t, W(im,:)] = ...
+				spm_affsub1(vg, vf, mg, mf, Hold,samp,P(pp),flg,W(im,:));
+		else
+			[alpha_t, beta_t, chi2_t] = ...
+				spm_affsub1(vg, vf, mg, mf, Hold,samp,P(pp),flg);
+		end
+
+		beta(pp)   = beta(pp)   + beta_t(:);
+		alpha(ppp) = alpha(ppp) + alpha_t(:);
 	end
 
-	% Update parameter estimates
-	%-----------------------------------------------------------------------
-	P(qq) = P(qq) + pinv(reshape(alpha(qqq), nf, nf))*beta(qq);
+	% Remove the `fixed' elements
+	%----------------------------------------------------------------------
+	alpha = reshape(alpha(qqq), nf, nf);
+	beta  = beta(qq);
+
+	% This should give a good indication of the tightness of the fit
+	%----------------------------------------------------------------------
+	logdet = sum(log(eps+svd(alpha+IC0)));
+
+	spm_chi2_plot('Set', logdet);
+	%fprintf('iteration: %d\tlog(det): %g\n', iter, logdet);
 
 	% Check stopping criteria. If satisfied then just do another few more
 	% iterations before stopping.
 	%-----------------------------------------------------------------------
-	if (2*(ochi2-pchi2)/(ochi2 + pchi2)) < 0.002
-		countdown = countdown + 1;
-	end
+	if (2*(logdet-bestlogdet)/(logdet+bestlogdet) < 0.0002) countdown = countdown + 1;
+	else countdown = 0; end;
+
+	% If the likelyhood is better than the previous best, then save the
+	% parameters from the previous iteration.
+	%-----------------------------------------------------------------------
+	if (logdet > bestlogdet & iter > 1)
+		bestlogdet = logdet;
+		bestP  = P;
+	end;
+
+	% Update parameter estimates
+	%----------------------------------------------------------------------
+	P(qq) = pinv(alpha + IC0) * (alpha*P(qq) - beta + IC0*P0);
 
 	iter = iter + 1;
 end
 
-P = bestP;
+%P = bestP;
