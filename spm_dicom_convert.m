@@ -11,6 +11,23 @@ function spm_dicom_convert(hdr,opts)
 % Converted files are written to the current directory
 %_______________________________________________________________________
 % %W% John Ashburner %E%
+%
+% This version has been hacked to allow for conversion of
+% diffusion weighted EPI data acquired with the GE scanners
+% at MRC, Karolinska, Stockholm.
+% The problem with these data is that there is NOTHING in
+% the DICOM headers to distinguish the different volumes
+% acquired with different diffusion gradients. The result
+% is that all slices from the entire dwi/DTI protocol get
+% squeezed into a single volume. This volume will then have
+% multiple slices with the same z-position, and will (in the
+% original version of spm_dicom_convert) cause a warning.
+% I have "solved" this by adding an additional branch to
+% be executed if we have multiple slices at the same location
+% AND data have been acquired on a GE scanner.
+% Its not pretty, but most of us aren't.
+%_______________________________________________________________________
+% Jesper Andersson
 
 if nargin<2, opts = 'all'; end;
 
@@ -157,6 +174,11 @@ return;
 %_______________________________________________________________________
 function vol = sort_into_volumes(hdr)
 
+%
+% First of all, sort into volumes based on relevant
+% fields in the header.
+%
+
 vol{1}{1} = hdr{1};
 for i=2:length(hdr),
 	orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
@@ -185,6 +207,11 @@ for i=2:length(hdr),
 	end;
 end;
 
+%
+% Secondly, sort volumes into ascending/descending
+% slices depending on .ImageOrientationPatient field.
+%
+
 for j=1:length(vol),
 	orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
 	proj   = null(orient');
@@ -198,8 +225,18 @@ for j=1:length(vol),
 	vol{j}    = vol{j}(index);
 	if length(vol{j})>1,
 		dist      = diff(z);
-		if any(diff(z)==0),
-			warning('Looks like there is something wrong with the conversion software.');
+		if any(diff(z)==0)
+		%
+		% So, if this is a GE scanner we might have
+		% the "DTI-series" problem. Lets assume so.
+
+			if isfield(hdr{1},'Manufacturer') &... 
+				strcmp(lower(hdr{1}.Manufacturer),'ge medical systems')
+				vol = sort_ge_into_volumes(vol);
+				break;
+			else
+				warning('Looks like there is something wrong with the conversion software.');
+			end
 		end;
 		if sum((dist-mean(dist)).^2)/length(dist)>0.001,
 			warning('Variable slice spacing');
@@ -207,6 +244,156 @@ for j=1:length(vol),
 	end;
 end;
 return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vol = sort_ge_into_volumes(pvol)
+%
+% This is a routine that will take the p(rovisional)
+% volumes in pvol and subdivide them into more volumes
+% based on circumstancial (at best) evidence in GE
+% file headers.
+%
+
+if ~isfield(pvol{1}{1},'Private_0021_104f') |...
+   ~isfield(pvol{1}{1},'Private_0019_1019') |...
+   ~isfield(pvol{1}{1},'Private_0019_101b')
+	warning('Looks like there is something wrong with the conversion software.');
+	vol = pvol;
+	return
+end
+   
+%
+% First of all check how many slices there "should" be
+% in each volume. And that there is agreement.
+%
+
+nsl = zeros(1,length(pvol));
+for i=1:length(pvol)
+	nsl(i) = pvol{i}{1}.Private_0021_104f;
+	for j=1:length(pvol{i})
+		if pvol{i}{j}.Private_0021_104f ~= nsl(i)
+			warning('Looks like there is something wrong with the conversion software.');
+			vol = pvol;
+			return
+		end
+	end
+end
+
+%
+% Next use independent method to assess
+% number of slices and check agreement.
+%
+
+for i=1:length(pvol)
+	insl = abs(pvol{i}{1}.Private_0019_101b - pvol{i}{1}.Private_0019_1019);
+	insl = round((insl + pvol{i}{1}.SliceThickness) / pvol{i}{1}.SpacingBetweenSlices);
+	if insl ~= nsl(i)
+		warning('Looks like there is something wrong with the conversion software.');
+		vol = pvol;
+		return
+	end
+end
+
+%
+% OK, so we have volumes with multiple slices with the
+% same slice-position. They could have been acquired in
+% volume order (i.e. complete one volume first and then
+% start on the next volume etc.) or they could have been
+% acquired in slice order (i.e. do e.g. all diffusion 
+% directions for one slice then go to next slice etc.).
+% We'll use the .InstanceNumber and .SliceLocation to
+% try and figure it out (don't you just love the DICOM
+% standard?).
+%
+
+in = zeros(1,length(pvol{1}));
+for i=1:length(pvol{1})
+	in(i) = pvol{1}{i}.InstanceNumber;
+end
+[in,index] = sort(in);
+if pvol{1}{index(1)}.SliceLocation == pvol{1}{index(2)}.SliceLocation % Slice First
+	order = 'SF';
+elseif pvol{1}{index(1)}.SliceLocation == pvol{1}{index(nsl(1)+1)}.SliceLocation % Volume first
+	order = 'VF';
+else  
+	warning('Looks like there is something wrong with the conversion software.');
+	vol = pvol;
+	return
+end
+
+vol{1}{1} = [];
+switch order
+case 'SF'
+	for i=1:length(pvol)
+		z = zeros(1,length(pvol{i}));
+		for j=1:length(pvol{i})
+			z(j) = pvol{i}{j}.SliceLocation;
+		end
+		[z,zindex] = sort(z);
+		tmp = pvol{i}(zindex);
+		nvol = length(pvol{i})/nsl(i);
+		for j=1:nsl(i)
+			in = zeros(1,nvol);
+			for k=1:nvol
+				in = tmp{(j-1)*nvol+k}.InstanceNumber;
+			end
+			[in,index] = sort(in);
+			tmp((j-1)*nvol+1:j*nvol) = tmp((j-1)*nvol+index);
+		end
+		for j=1:nvol
+			if isempty(vol{1}{1})
+				vol{end} = pvol{i}(j:nvol:length(pvol{i}));
+			else
+				vol{end+1} = pvol{i}(j:nvol:length(pvol{i}));
+			end
+		end
+	end
+case 'VF'
+	for i=1:length(pvol) 
+		in = zeros(1,length(pvol{i}));
+		for j=1:length(pvol{i})
+			in(j) = pvol{i}{j}.InstanceNumber;
+		end
+		[in,index] = sort(in);
+		for j=1:(length(pvol{i}) / nsl(i))
+			if isempty(vol{1}{1})
+				vol{end} = pvol{i}(index((j-1)*nsl(i)+1:j*nsl(i)));
+			else
+				vol{end+1} = pvol{i}(index((j-1)*nsl(i)+1:j*nsl(i)));
+			end
+		end
+	end
+end
+
+%
+% Finally, cut and paste from Johns code to sort 
+% the volumes acoording to his cunning scheme.
+%
+
+for j=1:length(vol),
+	orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
+	proj   = null(orient');
+	if det([orient proj])<0, proj = -proj; end;
+
+	z      = zeros(length(vol{j}),1);
+	for i=1:length(vol{j}),
+		z(i)  = vol{j}{i}.ImagePositionPatient*proj;
+	end;
+	[z,index] = sort(z);
+	vol{j}    = vol{j}(index);
+	if length(vol{j})>1,
+		dist      = diff(z);
+		if any(diff(z)==0)  % I give up!
+			warning('Looks like there is something wrong with the conversion software.');
+		end
+		if sum((dist-mean(dist)).^2)/length(dist)>0.001,
+			warning('Variable slice spacing');
+		end
+	end
+end
+
+return
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -341,6 +528,7 @@ end;
 return;
 %_______________________________________________________________________
 
+%_______________________________________________________________________
 function [mosaic,standard] = select_mosaic_images(hdr)
 mosaic   = {};
 standard = {};
@@ -354,6 +542,8 @@ for i=1:length(hdr),
 	end;
 end;
 return;
+%_______________________________________________________________________
+
 %_______________________________________________________________________
 function ok = checkfields(hdr,varargin)
 ok = 1;
@@ -468,3 +658,4 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
+
