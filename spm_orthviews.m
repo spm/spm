@@ -1225,20 +1225,8 @@ fg = spm_figure('Findwin','Graphics');set(0,'CurrentFigure',fg);
 item_parent = uicontextmenu;
 
 %contextsubmenu 0
-if isfield(st.vols{volhandle},'fname')
-	[p n e v] = fileparts(st.vols{volhandle}.fname);
-	item00  = uimenu(item_parent, 'Label',[n e v],         'Separator','on');
-else
-	item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
-end;
-item00_1  = uimenu(item00,     'Label','Swap image',    'Callback','spm_orthviews(''context_menu'',''swap_img'');');
-if isfield(st.vols{volhandle},'fname')
-	[p n e v] = fileparts(st.vols{volhandle}.fname);
-	item00  = uimenu(item_parent, 'Label',[n e v],         'Separator','on');
-else
-	item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
-end;
-item00_1  = uimenu(item00,      'Label','Swap image',    'Callback','spm_orthviews(''context_menu'',''swap_img'');');
+item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
+spm_orthviews('context_menu','image_info',item00,volhandle);
 item0a    = uimenu(item_parent, 'UserData','pos_mm',     'Callback','spm_orthviews(''context_menu'',''repos_mm'');','Separator','on');
 item0b    = uimenu(item_parent, 'UserData','pos_vx',     'Callback','spm_orthviews(''context_menu'',''repos_vx'');');
 item0c    = uimenu(item_parent, 'UserData','v_value');
@@ -1295,7 +1283,6 @@ item6_1_1_2 = uimenu(item6_1_1,  'Label','manual',     'Callback','spm_orthviews
 item6_1_2   = uimenu(item6_1,    'Label','global');
 item6_1_2_1 = uimenu(item6_1_2,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
 item6_1_2_2 = uimenu(item6_1_2,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
-%item6_2     = uimenu(item6,      'Label','Swap image', 'Callback','spm_orthviews(''context_menu'',''swap_img'');');
 
 %contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Blobs');
@@ -1326,6 +1313,59 @@ function c_menu(varargin)
 global st
 
 switch lower(varargin{1}),
+case 'image_info',
+	if nargin <3,
+		current_handle = get_current_handle;
+	else
+		current_handle = varargin{3};
+	end;
+	if isfield(st.vols{current_handle},'fname'),
+		[p,n,e,v] = fileparts(st.vols{current_handle}.fname);
+		set(varargin{2}, 'Label',[n e v]);
+	end;
+	delete(get(varargin{2},'children'));
+	if exist('p','var')
+		item1 = uimenu(varargin{2}, 'Label', p);
+	end;
+	if isfield(st.vols{current_handle},'descrip'),
+		item2 = uimenu(varargin{2}, 'Label',...
+		st.vols{current_handle}.descrip);
+	end;
+	if isfield(st.vols{current_handle},'dt'),
+		dt = st.vols{current_handle}.dt(1);
+	else,
+		dt = st.vols{current_handle}.dim(4);
+	end;
+	item3 = uimenu(varargin{2}, 'Label', sprintf('Data type: %s', spm_type(dt)));
+	str   = 'Intensity: varied';
+	if size(st.vols{current_handle}.pinfo,2) == 1,
+		if st.vols{current_handle}.pinfo(2),
+			str = sprintf('Intensity: Y = %g X + %g',...
+				st.vols{current_handle}.pinfo(1:2)');
+		else,
+			str = sprintf('Intensity: Y = %g X', st.vols{current_handle}.pinfo(1)');
+		end;
+	end;
+	item4  = uimenu(varargin{2}, 'Label',str);
+	item5  = uimenu(varargin{2}, 'Label', 'Image dims', 'Separator','on');
+	item51 = uimenu(varargin{2}, 'Label',...
+		sprintf('%dx%dx%d', st.vols{current_handle}.dim(1:3)));
+	prms   = spm_imatrix(st.vols{current_handle}.mat);
+	item6  = uimenu(varargin{2}, 'Label','Voxel size', 'Separator','on');
+	item61 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', prms(7:9)));
+	item7  = uimenu(varargin{2}, 'Label','Origin', 'Separator','on');
+	item71 = uimenu(varargin{2}, 'Label',...
+		sprintf('%.2f %.2f %.2f', prms(1:3)));
+	R      = spm_matrix([0 0 0 prms(4:6)]);
+	item8  = uimenu(varargin{2}, 'Label','Rotations', 'Separator','on');
+	item81 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(1,1:3)));
+	item82 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(2,1:3)));
+	item83 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(3,1:3)));
+	item9  = uimenu(varargin{2},...
+		'Label','Specify other image...',...
+		'Callback','spm_orthviews(''context_menu'',''swap_img'');',...
+		'Separator','on');
+
 case 'repos_mm',
 	oldpos_mm = spm_orthviews('pos');
 	newpos_mm = spm_input('New Position (mm)','+1','r',sprintf('%.2f %.2f %.2f',oldpos_mm),3);
