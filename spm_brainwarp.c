@@ -45,7 +45,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	int ny, double BY[], double dBY[],
 	int nz, double BZ[], double dBZ[],
 	double M[16], int samp[], int edgeskip[],
-	int *pnsamp, double ss_deriv[3],
+	double *pnsamp, double ss_deriv[3],
 	MAPTYPE *weight, MAPTYPE *weight2 )
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, ni4;
@@ -62,8 +62,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	if ((weight == (MAPTYPE *)0) && (weight2 == (MAPTYPE *)0))
 		wF = 0;
 
-	if (weight != (MAPTYPE *)0)
-		if (AbackslashB(weight->mat, vol2->mat, MW))
+	if (weight2 != (MAPTYPE *)0)
+		if (AbackslashB(weight2->mat, vol2->mat, MW))
 			mexErrMsgTxt("Can't invert matrix");
 
 	dim1 = vols1[0].dim;
@@ -105,7 +105,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 			alpha[m1*x1+x2] = 0.0;
 		beta[x1]= 0.0;
 	}
-	ss_deriv[0]=ss_deriv[1]=ss_deriv[2]=0;
+	ss=ss_deriv[0]=ss_deriv[1]=ss_deriv[2]=0;
 
 	for(s0[2]=1; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
 	{
@@ -194,11 +194,10 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					}
 				}
 
-				/* Affine component
+				/* Affine component */
 				s2[0] = M[0+4*0]*trans[0] + M[0+4*1]*trans[1] + M[0+4*2]*trans[2] + M[0+4*3];
 				s2[1] = M[1+4*0]*trans[0] + M[1+4*1]*trans[1] + M[1+4*2]*trans[2] + M[1+4*3];
-				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3]; */
-				MtimesX(M, trans, s2);
+				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3];
 
 
 				/* is the transformed position in range? */
@@ -215,6 +214,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					/* weighting */
 					if (wF) 
 					{
+						/* Weights are treated similar to 1/variance */
+
 						if (weight != (MAPTYPE *)0)
 							resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.0);
 						else
@@ -230,9 +231,15 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 							wt3 = 1.0;
 
 						if (wt && wt3)
+						{
+							/* Variances are additive */
 							wt = 1.0 /(1.0/wt + 1.0/wt3);
+						}
 						else
 							wt = 0.0;
+
+						/* Convert to reciprocal of standard deviation */
+						wt = sqrt(wt);
 
 						v *= wt;
 						dvds0[0] *= wt;
@@ -422,7 +429,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 
 
 	/* Fill in the symmetric bits
-	   - OK I know some bits are done more than once - but it shouldn't matter. */
+	   - OK I know some bits are done more than once. */
 
 	m1 = 3*nx*ny*nz+ni4;
 	for(i1=0; i1<3; i1++)	
@@ -489,9 +496,9 @@ static void scale(int m, double dat[], double s)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2;
-	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
+	int i, nx,ny,nz,ni=1, samp[3], edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
-	double pixdim[3];
+	double pixdim[3], nsamp;
 
 	/* also accept 13th argument - object volume weighting */
 	int iW;
