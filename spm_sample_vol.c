@@ -38,7 +38,7 @@ Matrix *plhs[], *prhs[];
 	m = mxGetM(prhs[1]);
 	n = mxGetN(prhs[1]);
 	if (mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n ||
-		mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n)
+		mxGetM(prhs[3]) != m || mxGetN(prhs[3]) != n)
 		mexErrMsgTxt("Coordinates must have compatible dimensions.");
 
 	if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) ||
