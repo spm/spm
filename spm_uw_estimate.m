@@ -368,7 +368,10 @@ for iter=1:ds.noi
          def = def - repmat(mean(def),length(def),1);
       end
       spm_uw_show('EndInv');
-      spm_uw_show('FinIter',SS,def,ds.fot,ds.sot,P(1),ds.q);
+      tmp = dispP.mat;
+      dispP.mat = P(1).mat;
+      spm_uw_show('FinIter',SS,def,ds.fot,ds.sot,dispP,ds.q);
+      dispP.mat = tmp;
    end
    clear AtA
 end
@@ -384,9 +387,9 @@ cleanup(P,ds)
 spm_uw_show('FinTot');
 
 catch % Try block ends here
-cleanup(P,ds)
-spm_uw_show('FinTot');
-fprintf('spm_FindFields.m terminated abnormally:\n%s',lasterr);
+   cleanup(P,ds)
+   spm_uw_show('FinTot');
+   fprintf('procedure terminated abnormally:\n%s',lasterr);
 end  % Catch block ends here.
 
 return
