@@ -45,7 +45,7 @@ end
 % eliminate inestimable components
 % NB: The threshold for normalized eigenvalues is 1e-6 in spm_svd
 %---------------------------------------------------------------------------
-u     = spm_svd(W,TOS)
+u     = spm_svd(W,TOS);
 for i = 1:size(u,2)
 	C{i}  = sparse(n,n);
 	for j = 1:m
