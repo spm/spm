@@ -275,7 +275,8 @@ case 'Fitted and adjusted responses'
 	if     Cx == 1
 
 		str  = 'Which column or effect?';
-		x    = xX.xKXs.X(:,spm_input(str,'!+1','m',xX.Xnames));
+		i    = spm_input(str,'!+1','m',xX.Xnames);
+		x    = xX.xKXs.X(:,i);
 		XLAB = xX.Xnames{i};
 
 	elseif Cx == 2
@@ -308,7 +309,9 @@ case 'Fitted and adjusted responses'
 	else
 		plot(x(q),y(q),'.b','MarkerSize',8); hold on
 		plot(x(q),Y(q),'.r','MarkerSize',16); hold off
-		set(gca,'XLim',[-1 1] + get(gca,'XLim'))
+		xlim = get(gca,'XLim');
+		xlim = [-1 1]*diff(xlim)/4 + xlim;
+		set(gca,'XLim',xlim)
 
 	end
 	YLAB  = 'response';
