@@ -208,14 +208,14 @@ case 'addcolouredimage',
 	addcolouredimage(varargin{1}, varargin{2},varargin{3});
  
 case 'addtruecolourimage',
- % spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx)
+ % spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
  % Adds blobs from an image in true colour
  % handle   - image number to add blobs to [default 1]
  % filename of image containing blob data [default - request via GUI]
  % colourmap - colormap to display blobs in [GUI input]
  % prop - intensity proportion of activation cf grayscale [0.4]
  % mx   - maximum intensity to scale to [maximum value in activation image]
- %
+ % mn   - minimum intensity to scale to [minimum value in activation image]
  %
  if nargin < 2
    varargin(1) = {1};
@@ -224,17 +224,25 @@ case 'addtruecolourimage',
    varargin(2) = {spm_get(1, 'img', 'Image with activation signal')};
  end
  if nargin < 4
-   varargin(3) = {spm_input('Colourmap for activation image')};
+   actc = [];
+   while isempty(actc)
+     actc = getcmap(spm_input('Colourmap for activation image', '+1','s'));
+   end
+   varargin(3) = {actc};
  end
  if nargin < 5
    varargin(4) = {0.4};
  end
  if nargin < 6
-   varargin(5) = {max([eps maxval(spm_vol(char(varargin{2})))])};
+   actv = spm_vol(varargin{2});
+   varargin(5) = {max([eps maxval(actv)])};
  end
- 
+ if nargin < 7
+   varargin(6) = {min([0 minval(actv)])};
+ end
+
  addtruecolourimage(varargin{1}, varargin{2},varargin{3}, varargin{4}, ...
-		    varargin{5});
+		    varargin{5}, varargin{6});
  redraw(varargin{1});
 
 case 'rmblobs',
@@ -340,12 +348,13 @@ for i=valid_handles(handle),
 	end;
 	axpos = get(st.vols{i}.ax{2}.ax,'Position');
 	mx = max([eps maxval(vol)]);
-	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
+	mn = min([0 minval(vol)]);
+	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
 end;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function addtruecolourimage(handle,fname,colourmap,prop,mx)
+function addtruecolourimage(handle,fname,colourmap,prop,mx,mn)
 % adds true colour image to current displayed image  
 global st
 for i=valid_handles(handle),
@@ -359,7 +368,7 @@ for i=valid_handles(handle),
   end;
 % axpos = get(st.vols{i}.ax{2}.ax,'Position');
   c = struct('cmap', colourmap,'prop',prop);
-  st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',c);
+  st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',c);
 end;
 return;
 %_______________________________________________________________________
@@ -591,7 +600,7 @@ for i=valid_handles(1:24),
 		'Units','normalized','Xlim',[0 CD(1)]+0.5,'Ylim',[0 CD(2)]+0.5,...
 		'Visible','on','XTick',[],'YTick',[]);
 
-	% Saggital
+	% Sagittal
 	if st.mode == 0,
 		set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
 			'Position',[offx+s*Dims(1)+skx offy s*Dims(3) s*Dims(2)],...
@@ -616,8 +625,10 @@ function mx = maxval(vol)
 if isstruct(vol),
 	mx = -Inf;
 	for i=1:vol.dim(3),
-		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
-		mx  = max(mx,max(tmp(find(finite(tmp)))));
+		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2), ...
+				    0);
+		imx = max(tmp(find(finite(tmp))));
+		if ~isempty(imx),mx = max(mx,imx);end
 	end;
 else,
 	mx = max(vol(find(finite(vol))));
@@ -627,8 +638,10 @@ function mn = minval(vol)
 if isstruct(vol),
         mn = Inf;
         for i=1:vol.dim(3),
-                tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
-                mn  = min(mn,min(tmp(find(finite(tmp)))));
+                tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2), ...
+				    0);
+		imn = min(tmp(find(finite(tmp))));
+		if ~isempty(imn),mn = min(mn,imn);end
         end;
 else,
         mn = min(vol(find(finite(vol))));
@@ -759,11 +772,12 @@ for i = valid_handles(arg1),
 				actp = ...
 				    st.vols{1}.blobs{1}.colour.prop;
 				
-				% scale grayscale image
-				imgt = scaletocmap(imgt,mn,mx,gryc);
-				imgc = scaletocmap(imgc,mn,mx,gryc);
-				imgs = scaletocmap(imgs,mn,mx,gryc);
-
+				% scale grayscale image, not finite -> black
+				imgt = scaletocmap(imgt,mn,mx,gryc,65);
+				imgc = scaletocmap(imgc,mn,mx,gryc,65);
+				imgs = scaletocmap(imgs,mn,mx,gryc,65);
+				gryc = [gryc; 0 0 0];
+				
 				% get max for blob image
 				vol = st.vols{i}.blobs{1}.vol;
 				mat = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
@@ -780,10 +794,12 @@ for i = valid_handles(arg1),
 				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
 				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
 				
-				% actimg scaled round 0
-				tmpt = scaletocmap(tmpt,-cmx,cmx,actc);
-				tmpc = scaletocmap(tmpc,-cmx,cmx,actc);
-				tmps = scaletocmap(tmps,-cmx,cmx,actc);
+				% actimg scaled round 0, black NaNs
+                                topc = size(actc,1)+1;
+				tmpt = scaletocmap(tmpt,-cmx,cmx,actc,topc);
+				tmpc = scaletocmap(tmpc,-cmx,cmx,actc,topc);
+				tmps = scaletocmap(tmps,-cmx,cmx,actc,topc);
+				actc = [actc; 0 0 0];
 				
 				% combine gray and blob data to
                                 % truecolour
@@ -950,9 +966,31 @@ st.vols = cell(24,1);
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function img=scaletocmap(inpimg,mn,mx,cmap)
+function img = scaletocmap(inpimg,mn,mx,cmap,miscol)
+if nargin < 5, miscol=1;end
 cml = size(cmap,1);
 scf = (cml-1)/(mx-mn);
 img = round((inpimg-mn)*scf)+1;
-img(find(img<1 | ~finite(img)))=1; 
+img(find(img<1))=1; 
 img(find(img>cml))=cml;
+img(~finite(img)) = miscol;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function cmap = getcmap(acmapname)
+% get colormap of name acmapname
+if ~isempty(acmapname)
+  cmap = evalin('base',acmapname,'[]');
+  if isempty(cmap) % not a matrix, is .mat file?
+    [p f e] = fileparts(acmapname);
+    acmat = fullfile(p, [f '.mat']);
+    if exist(acmat, 'file')
+      s = struct2cell(load(acmat));
+      cmap = s{1};
+    end
+  end
+end
+if size(cmap, 2)~=3
+  warning('Colormap was not an N by 3 matrix')
+  cmap = [];
+end
+return
