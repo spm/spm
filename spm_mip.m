@@ -1,18 +1,17 @@
-function spm_mip(X,VOL)
+function spm_mip(Z,XYZ,M,DIM)
 % SPM maximum intensity projection
-% FORMAT spm_mip(X,L,V);
-% V  -  SPM
-% L  -  Talairach coordinates
-% V  -  {6 x 1} vector of image & voxel sizes [DIM VOX]
-%    or {9 x 1} vector of image & voxel sizes, and origin [DIM VOX ORIGIN]
-%       (ORIGIN is required for 2D MIPs)
+% FORMAT spm_mip(Z,XYZ,M,DIM);
+% Z       - {1 x ?} vector point list of SPM values for MIP
+% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
+% M       - voxels - > mm matrix
+% DIM     - image dimensions {voxels}
 %_______________________________________________________________________
 %
-% If the data are 2 dimensional [V(3) = 1] the projection is simply an
+% If the data are 2 dimensional [DIM(3) = 1] the projection is simply an
 % image, otherwise:
 %
 % spm_mip creates and displays a maximum intensity projection of a point
-% list of voxel values (X) and their location (L) in three orthogonal
+% list of voxel values (Z) and their location (XYZ) in three orthogonal
 % views of the brain.  It is assumed voxel locations conform to the space
 % defined in the atlas of Talairach and Tournoux (1988).
 %
@@ -24,37 +23,35 @@ function spm_mip(X,VOL)
 %
 % A default colormap of 64 levels is assumed.
 %
-% If global XVIEWER is set to a PGM viewer program, images are also
-% displayed with that program.
-%
 %_______________________________________________________________________
-% %W% Karl Friston and others %E%
+% %W% Karl Friston et al. %E%
 
 
 %-Get GRID value
 %-----------------------------------------------------------------------
-global GRID, if isempty(GRID), GRID = 0.6; end
+GRID = spm('GetGlobal','GRID');
+if isempty(GRID), GRID = 0.6; end
 
 %-Remove negative values from point list and scale to a maximium of unity
 %-----------------------------------------------------------------------
-X    = X(:)';
-d    = find(X > 0);
-L    = VOL.XYZ(:,d);
-X    = X(d);
-X    = X/max(X);
+Z    = Z(:)';
+d    = find(Z > 0);
+XYZ  = XYZ(:,d);
+Z    = Z(d);
+Z    = Z/max(Z);
 
-% single slice case (ORIGIN = [0 0])
+%-Single slice case
 %=======================================================================
-if VOL.DIM(3) == 1,
-	vox = sqrt(sum(VOL.M(1:3,1:3).^2));
-	L   = round(VOL.M\[L ; ones(1,size(L,2))]);
-	mip = full(sparse(L(1,:),L(2,:),X,VOL.DIM(1),VOL.DIM(2)));
-	imagesc([1 VOL.DIM(1)*vox(1)],[1 VOL.DIM(2)*vox(2)],-mip');
+if DIM(3) == 1,
+	VOX = sqrt(sum(M(1:3,1:3).^2));
+	XYZ = round(M\[XYZ; ones(1,size(XYZ,2))]);
+	mip = full(sparse(XYZ(1,:),XYZ(2,:),Z,DIM(1),DIM(2)));
+	imagesc([1 DIM(1)*VOX(1)],[1 DIM(2)*VOX(2)],-mip');
 	axis xy image; 
 	set(gca,'FontSize',8,'TickDir','in')
-	xlabel('x'); ylabel('y');
-	return;
-end;
+	xlabel('x'), ylabel('y')
+	return
+end
 
 %-3d case
 %=======================================================================
@@ -63,25 +60,9 @@ end;
 load MIP
 mip  = mip96*GRID;
 c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
-	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1]-0.5;
-c    = (VOL.M(1:3,1:3)*c')';
+	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1] -0.5;
+c    = (M(1:3,1:3)*c')';
 dim  = [(max(c)-min(c)) size(mip)];
-d    = spm_project(X,round(L),dim);
+d    = spm_project(Z,round(XYZ),dim);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
-
-%-PGM file to viewer app
-%=======================================================================
-global XVIEWER TWD
-if ~isempty(XVIEWER) & isstr(XVIEWER)
-        if isempty(TWD); TWD = '/tmp'; end
-        % This should really be a subroutine...
-        t = clock;
-        TmpNm = sprintf('/%s/mip%02d%02d%02d%02d%02d.pgm',TWD, ...
-                                  floor(t(3:6)),floor(100*(t(6)-floor(t(6)))));
-        fid = fopen(TmpNm,'w');
-        fprintf(fid,'P5\n%d %d\n255\n',size(mip));
-        fwrite(fid,fliplr(mip*255),'uchar');
-        fclose(fid);
-        unix(['(' XVIEWER ' ' TmpNm ';\rm ' TmpNm ' ) &']);
-end
