@@ -284,10 +284,11 @@ end % (if)
 
 %-Generate options for factor by covariate interactions
 %-----------------------------------------------------------------------
-sCovEffInt = str2mat('no','study','subject');
+sCovEffInt = str2mat('no','cond','stud','subj');
 iCovEffInt = 1;
-if nStud  > 1, iCovEffInt = [iCovEffInt,2]; end
-if (nSUBJ > 1) & (nSUBJ < q), iCovEffInt = [iCovEffInt,3]; end
+if any(nCOND>1), iCovEffInt = [iCovEffInt,2]; end
+if nStud  > 1, iCovEffInt = [iCovEffInt,3]; end
+if (nSUBJ > 1) & (nSUBJ < q), iCovEffInt = [iCovEffInt,4]; end
 bAskFDCs   = bAskFDCs & (length(iCovEffInt) > 1);
 
 
@@ -312,10 +313,13 @@ if bAskCov
                 Ccnames = str2mat(Ccnames,dnames);
                 if bAskFDCs
                     i = spm_input(['Covariate',int2str(nCcs+1), ': specific fits'],J,'b',sCovEffInt(iCovEffInt,:),iCovEffInt);
-                    if (i==2) %-Interaction with study
+                    if (i==2) %-Interaction with condition
+                        [d,dnames] = spm_DesMtx([iCOND',d],...
+                        'FxC',str2mat('Cond',dnames));
+                    elseif (i==3) %-Interaction with study
                         [d,dnames] = spm_DesMtx([iStud',d],...
                         'FxC',str2mat('Stud',dnames));
-                    elseif (i==3) %-Interaction with subject
+                    elseif (i==4) %-Interaction with subject
                         [d,dnames]=spm_DesMtx([iSUBJ',d],...
                         'FxC',str2mat('SUBJ',dnames));
                     end % (if)
