@@ -150,12 +150,21 @@ function varargout=spm(varargin)
 % FORMAT User = spm('GetUser')
 % Returns current user, culled from the USER environment variable
 %
-% FORMAT spm('FnBanner',Fn,FnV)
-% Prints a function start banner, for version FnV of function Fn
+% FORMAT spm('Beep')
+% plays the keyboard beep!
+%
+% FORMAT spm('time')
+% Returns the current time and date as hh:mm dd/mm/yyyy
 %
 % FORMAT spm('Pointer',Pointer)
 % Changes pointer on all SPM (HandleVisible) windows to type Pointer
 % Pointer defaults to 'Arrow'. Robust to absence of windows
+%
+% FORMAT SPMid = spm('FnBanner',Fn,FnV)
+% Prints a function start banner, for version FnV of function Fn, & datestamps
+% Fn    - Function name (string)
+% FnV   - Function version (string)
+% SPMid - ID string: [SPMver: Fn (FnV)] 
 %
 % FORMAT [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
 % Robust UIsetup procedure for functions:
@@ -180,6 +189,11 @@ function varargout=spm(varargin)
 % Opens all SPM figure windows (with HandleVisibility) using `figure`.
 %   Maintains current figure.
 % Fs - vector containing all HandleVisible figures (i.e. get(0,'Children'))
+%
+% FORMAT spm('Clear',Finter, Fgraph)
+% Clears and resets SPM-GUI, clears and timestamps MatLab command window
+% Finter  - handle or 'Tag' of 'Interactive' figure [default 'Interactive']
+% Fgraph  - handle or 'Tag' of 'Graphics' figure [default 'Graphics']
 % 
 %_______________________________________________________________________
 
@@ -480,15 +494,16 @@ uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 
 %-Utility buttons (second line)
 %-----------------------------------------------------------------------
-uicontrol(Fmenu,'String','CD',		'Position',[020 054 082 024].*WS,...
-	'CallBack',[...
-		'global CWD,',...
-		'CWD=spm_get(-1,[],''Select new working directory'');',...
-		'cd(CWD), clear CWD,',...
-		'fprintf(''\nSPM working directory:\n\t%s\n\n>> '',pwd)'])
-
-uicontrol(Fmenu,'String','',		'Position',[112 054 083 024].*WS,...
+uicontrol(Fmenu,'String','',		'Position',[020 054 082 024].*WS,...
 	'CallBack','',			'Enable','off')
+
+uicontrol(Fmenu,'String','AdjMean',	'Position',[112 054 083 024].*WS,...
+	'CallBack','spm_adjmean_ui',...
+	'Visible','off',		'Tag','PET')
+
+uicontrol(Fmenu,'String','AdjMean',	'Position',[112 054 083 024].*WS,...
+	'CallBack','spm_adjmean_fmri_ui',...
+	'Visible','off',		'Tag','FMRI'	,'Enable','off')
 
 uicontrol(Fmenu,'String','ImCalc',	'Position',[205 054 083 024].*WS,...
 	'CallBack','spm_image_funks')
@@ -503,14 +518,17 @@ uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*WS,...
 	'ForeGroundColor','g')
 
 uicontrol(Fmenu,'Style','PopUp',...
-	'String','Utilities|Analyze|GhostView|Run mFile|Show figs',...
+	'String','Utilities|CD|Show SPM|Run mFile|SPMweb',...
 	'Tag','UtilPullDown',		'Position',[112 020 083 024].*WS,...
 	'CallBack','spm(''UtilPullDownCB'',gcbo)',...
-	'UserData',{	'!analyze',...
-			['unix([''ghostview '',spm_get(1,''.ps'',''Select ',...
-				'PostScript file to view''),'' &'']);'],...
+	'UserData',{	[...
+		'global CWD,',...
+		'CWD=spm_get(-1,''*'',''Select new working directory'',pwd);',...
+		'cd(CWD), clear CWD,',...
+		'fprintf(''\nSPM working directory:\n\t%s\n\n>> '',pwd)'],...
+			'spm(''ShowSPMfigs'');',...
 			'run(spm_get(1,''*.m'',''Select mFile to run''))',...
-			'spm(''ShowSPMfigs'');'} )
+			'web(''http://www.fil.ion.ucl.ac.uk/spm'')' } )
 
 uicontrol(Fmenu,'String','Defaults',	'Position',[205 020 083 024].*WS,...
 	'CallBack','spm_defaults_edit')
@@ -846,13 +864,12 @@ case 'beep'
 fprintf('%c',7)
 
 
-case 'fnbanner'
+case 'time'
 %=======================================================================
-% spm('FnBanner',Fn,FnV)
-fprintf('\n%s',spm('ver'))
-if nargin>=2, fprintf(': %s',varargin{2}), end
-if nargin>=3, fprintf(' (v%s)',varargin{3}), end
-fprintf('\n'), fprintf('%c','='*ones(1,72)),fprintf('\n')
+% timestr = spm('Time')
+tmp = clock;
+varargout = {...
+	sprintf('%02d:%02d - %02d/%02d/%4d',tmp(4),tmp(5),tmp(3),tmp(2),tmp(1))};
 
 
 case 'pointer'
@@ -860,6 +877,20 @@ case 'pointer'
 % spm('Pointer',Pointer)
 if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
+
+
+case 'fnbanner'
+%=======================================================================
+% SPMid = spm('FnBanner',Fn,FnV)
+time = spm('time');
+str  = spm('ver');
+if nargin>=2, str = [str,': 'varargin{2}]; end
+if nargin>=3, str = [str,' (v',varargin{3},')']; end
+fprintf('\n%s',str)
+fprintf('%c',' '*ones(1,72-length([str,time])))
+fprintf('%s\n',time)
+fprintf('%c','='*ones(1,72)),fprintf('\n')
+varargout = {str};
 
 
 case 'fnuisetup'
@@ -870,16 +901,16 @@ if nargin<3, bGX=1; else, bGX=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine
 	Finter = spm_figure('FindWin','Interactive');
-	if ~isempty(Finter), spm_clf(Finter), end
+	if ~isempty(Finter), spm_figure('Clear',Finter), end
 else
 	Finter = spm_figure('GetWin','Interactive');
-	spm_clf(Finter)
+	spm_figure('Clear',Finter)
 	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
 	set(Finter,'Name',str)
 end
 if bGX
 	Fgraph = spm_figure('GetWin','Graphics');
-	spm_clf(Fgraph)
+	spm_figure('Clear',Fgraph)
 else
 	Fgraph = spm_figure('FindWin','Graphics');
 end
@@ -894,9 +925,8 @@ if CmdLine, varargout={[]}; return, end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
 F = spm_figure('FindWin',F);
-if ~isempty(F)
-	str=spm('GetUser'); if ~isempty(Iname), str=[str,' - ',Iname]; end
-	set(F,'Name',str)
+if ~isempty(F) & ~isempty(Iname)
+	set(F,'Name',[spm('GetUser'),' - ',Iname])
 end
 varargout={F};
 
@@ -906,9 +936,24 @@ case 'showspmfigs'
 % Fs = spm('ShowSPMfigs')
 cF = get(0,'CurrentFigure');
 Fs = get(0,'Children');
+Fs = findobj(Fs,'flat','Visible','on');
 for F=Fs', figure(F), end
 set(0,'CurrentFigure',cF)
 varargout={Fs};
+
+
+case 'clear'
+%=======================================================================
+% spm('Clear',Finter, Fgraph)
+if nargin<3, Fgraph='Graphics'; else, Fgraph=varargin{3}; end
+if nargin<2, Finter='Interactive'; else, Finter=varargin{2}; end
+spm_figure('Clear',Fgraph)
+spm_figure('Clear',Finter)
+spm('Pointer','Arrow')
+spm_get('Initialise','reset');
+clc, spm('FnBanner','GUI cleared');
+fprintf('\n>> ');
+%evalin('Base','clear')
 
 
 otherwise
