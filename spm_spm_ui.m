@@ -1421,7 +1421,7 @@ for j4  = 1:n4
     else
 
 	if isinf(Dn(2))
-	    n2 = spm_input([sF4P,'#',DsF{2},'''s'],'+1','n1',[],1);
+	    n2 = spm_input([sF4P,'#',DsF{2},'''s'],'+1','n1');
 	else
 	    n2 = Dn(2);
 	end
