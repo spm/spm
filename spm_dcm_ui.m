@@ -578,7 +578,7 @@ case 'results'
 			%---------------------------------------------------
 			x     = DCM.xh;
 			y     = DCM.H1(:,:,i);
-			subplot(m,2,2*(i - 1) + 1)
+			subplot(m,3,3*(i - 1) + 1)
 			plot(x,y)
 			set(gca,'XLim',[0 8])
 			axis square
@@ -591,15 +591,32 @@ case 'results'
 					'HorizontalAlignment','Center')
 			end
 
+			% input effects - simulated EEG
+			%---------------------------------------------------
+			y     = gradient(y);
+			subplot(m,3,3*(i - 1) + 2)
+			plot(x,y)
+			set(gca,'XLim',[0 5])
+			axis square ij
+			title('simulated ERP')
+			grid on
+			xlabel('time {ms}')
+			for j = 1:l
+				text(x(j*8),y(j*8,j),DCM.Y.name{j},...
+					'FontSize',8,...
+					'HorizontalAlignment','Center')
+			end
+
 			% input effects - hemodynamic
 			%---------------------------------------------------
 			x     = DCM.xh;
+			y     = DCM.H1(:,:,i);
 			k     = DCM.K1(:,:,i);
-			subplot(m,2,2*(i - 1) + 2)
+			subplot(m,3,3*(i - 1) + 3)
 			plot(x,k,x,y,':')
 			set(gca,'XLim',[0 16])
 			axis square
-			title(['hemodynamic responses to ' DCM.U.name{i}])
+			title('hemodynamic responses')
 			grid on
 			xlabel('time {seconds}')
 			for j = 1:l
