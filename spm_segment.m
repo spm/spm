@@ -361,7 +361,7 @@ for iter = 1:niter
 				tmp = tmp.*(B1*t*B2');
 				dat(:,i) = tmp(:);
 			else
-				dat(:,i)=tmp;
+				dat(:,i)=tmp(:);
 			end
 		end
 		msk = find(~msk);
@@ -602,7 +602,7 @@ for pp=1:size(planes,2)
 		if length(tmp) == 1
 			dat = pr(:,tmp);
 		else
-			dat = sum(pr(:,tmp)')';
+			dat = sum(pr(:,tmp),2);
 		end
 		dat = round(dat./sp);
 		if fwrite(fp(j),dat,'uchar') ~= prod(size(dat))
