@@ -34,28 +34,20 @@ function spm_list(SPM,VOL,Dis,Num)
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-%-Defaults
+%-Default arguments
 %-----------------------------------------------------------------------
 global CWD
-if nargin < 4
-	Dis = 8;
-	Num = 3;
-end
+if nargin<4, Num=3; end
+if nargin<3, Dis=8; end
 
-%-If global proj_MultiPage is true then allow multi-page tables.
+%-Setup graphics pane
 %-----------------------------------------------------------------------
-global proj_MultiPage, if isempty(proj_MultiPage), proj_MultiPage = 0; end
-
-%-Delete previous axis and their pagination controls (if any)
-%-----------------------------------------------------------------------
-Fgraph    = spm_figure('FindWin','Graphics');
-figure(Fgraph)
+spm('Pointer','Watch')
+Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('ClearPane',Fgraph)
+figure(Fgraph)
+FS = spm_figure('FontSizes');
 
-
-
-%-Characterize and tabulate SPM{Z}
-%=======================================================================
 
 %-Characterize excursion set in terms of maxima
 % (sorted on Z values and grouped by regions)
@@ -72,30 +64,35 @@ FWHM      = VOL.FWHM;
 N         = N/prod(FWHM); % voxels -> resels
 
 
-% Table headings
-%-----------------------------------------------------------------------
-axes('Position',[0.1 0.06 0.8 0.46]); axis off
-text(0,24,['Statistics:  ',spm_str_manip(CWD,'a50')],...
-	'FontSize',12,'FontWeight','Bold');
-line([0 1],[23 23],'LineWidth',3,'Color',[0 0 0])
+%-Table axes & headings
+%=======================================================================
+hAx = axes('Position',[0.1 0.1 0.8 0.42],...
+	'DefaultTextFontSize',FS(1),...
+	'Units','points',...
+	'Visible','off');
+AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
+dy = FS(2); y = floor(AxPos(4)) -dy;
+
+text(0,y,['Statistics:  ',spm_str_manip(CWD,'a50')],...
+	'FontSize',FS(3),'FontWeight','Bold');	y=y-dy;
+line([0 1],[y y],'LineWidth',3,'Color','r'),	y=y-dy;
 
 %-Construct tables
 %-----------------------------------------------------------------------
-text(0.00,22,'set-level {c}'      ,'FontSize',10,'Tag','Empty');
-text(0.18,22,'cluster-level {k}  ','FontSize',10,'Tag','Empty');
-text(0.42,22,'voxel-level {Z}'    ,'FontSize',10,'Tag','Empty');
-text(0.62,22,'uncorrected k & Z'  ,'FontSize',10,'Tag','Empty');
-text(0.86,22,'x,y,z {mm}'         ,'FontSize',10,'Tag','Empty');
+text(0.00,y,'set-level {c}'      ,'FontSize',FS(2));
+text(0.18,y,'cluster-level {k}  ','FontSize',FS(2));
+text(0.42,y,'voxel-level {Z}'    ,'FontSize',FS(2));
+text(0.62,y,'uncorrected k & Z'  ,'FontSize',FS(2));
+text(0.86,y,'x,y,z {mm}'         ,'FontSize',FS(2));
 
-line([0 1],[21 21],'LineWidth',3,'Color',[0 0 0])
+y=y-dy;
+line([0 1],[y y],'LineWidth',1,'Color','r')
+y=y-dy;
 
-
-% Pagination variables
+%-Pagination variables
 %-----------------------------------------------------------------------
-y     = 20;
+y0    = y;
 hPage = [];
-nPage = 1;
-Vis   = 'on';
 
 
 %-Set-level p values {c}
@@ -104,21 +101,21 @@ c     = max(A);					% number of clusters
 Pc    = spm_P(c,k,u,df,STAT,R,n);		% set-level p value
 
 str   = sprintf('%-0.3f   (%i)',Pc,c);
-h     = text(0.00,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+h     = text(0.00,y,str,'FontSize',8,'FontWeight','Bold');
 hPage = [hPage, h];
 
-while max(T) & ((y > 2) | proj_MultiPage)
+
+%-Local maxima p-values & statistics
+%=======================================================================
+while max(T)
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
-	if (y < 6) & proj_MultiPage
-		h     = text(0.5,-2,['Page ',num2str(nPage)],...
-			'FontSize',8,'FontAngle','Italic','Visible',Vis);
-		hPage = [hPage, h];
-		spm_figure('NewPage',hPage)
+	if y < (Num+1)*dy
+		h     = text(0.5,-5*dy,sprintf('Page %d',spm_figure('#page')),...
+			'FontSize',FS(1),'FontAngle','Italic');
+		spm_figure('NewPage',[hPage,h])
 		hPage = [];
-		nPage = nPage + 1;
-		Vis   = 'off';
 		y     = y0;
 	end
 
@@ -139,18 +136,18 @@ while max(T) & ((y > 2) | proj_MultiPage)
 	%-Print cluster and maximum voxel-level p values {Z}
     	%---------------------------------------------------------------
         str   = sprintf('%-0.3f   (%-0.2f)',Pk,N(i));
-	h     = text(0.18,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	h     = text(0.18,y,str,'FontSize',8,'FontWeight','Bold');
 	hPage = [hPage, h];
         str   = sprintf('%-0.3f   (%-0.2f)',Pu,Ze);
-	h     = text(0.44,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	h     = text(0.44,y,str,'FontSize',8,'FontWeight','Bold');
 	hPage = [hPage, h];
         str   = sprintf('%-0.3f',Pn);
-	h     = text(0.64,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	h     = text(0.64,y,str,'FontSize',8,'FontWeight','Bold');
 	hPage = [hPage, h];
         str   = sprintf('%-0.3f',Pz);
-	h     = text(0.74,y,str,'FontSize',8,'FontWeight','Bold','Visible',Vis);
+	h     = text(0.74,y,str,'FontSize',8,'FontWeight','Bold');
 	hPage = [hPage, h];
-        str   = sprintf('%-6.0f',M(:,i));
+        str   = sprintf('%-06.0f',M(:,i));
 	h     = text(0.84,y,str,...
 		'FontSize',8,'FontWeight','Bold',...
 		'ButtonDownFcn','spm_mip_ui(''ShowGreens'')',...
@@ -158,7 +155,7 @@ while max(T) & ((y > 2) | proj_MultiPage)
 		'UserData',M(:,i));
 	hPage = [hPage, h];
  
-	y     = y - 1;
+	y     = y - dy;
 
 	%-Print Num secondary maxima (> Dis mm apart)
     	%---------------------------------------------------------------
@@ -176,38 +173,35 @@ while max(T) & ((y > 2) | proj_MultiPage)
 			Ze    = 1 - spm_invNcdf(Pz);
 
         		str   = sprintf('%-0.3f   (%-0.2f)',Pu,Ze);
-			h     = text(0.44,y,str,'FontSize',8,'Visible',Vis);
+			h     = text(0.44,y,str,'FontSize',8);
 			hPage = [hPage, h];
         		str   = sprintf('%-0.3f',Pz);
-			h     = text(0.74,y,str,'FontSize',8,'Visible',Vis);
+			h     = text(0.74,y,str,'FontSize',8);
 			hPage = [hPage, h];
-        		str   = sprintf('%-6.0f',M(:,d));
+        		str   = sprintf('%-06.0f',M(:,d));
 			h     = text(0.84,y,str,'FontSize',8,...
-				'Visible',Vis,...
 				'ButtonDownFcn',...
 				'spm_mip_ui(''ShowGreens'')',...
 				'Interruptible','off',...
 				'UserData',M(:,d));
 			hPage = [hPage, h];
 			D     = [D d];
-			y     = y - 1;
+			y     = y - dy;
 		end
 		end
 	end
 	T(j) = T(j)*0;		% Zero local maxima for this cluster
-end					% end region
+end				% end region
 
-%-Number and paginate last page (if pagination was required)
+
+%-Number and register last page (if paginated)
 %-----------------------------------------------------------------------
-if strcmp(Vis,'off')
-	%-Label last page
-	h     = text(0.5,-2,['Page ',num2str(nPage)],...
-		'FontSize',8,'FontAngle','Italic','Visible',Vis);
-	hPage = [hPage, h];
-	spm_figure('NewPage',hPage);
+if spm_figure('#page')>1
+	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
+		'FontSize',FS(1),'FontAngle','Italic')
+	spm_figure('NewPage',[hPage,h])
 end
 
-y      = min(3,y);
 
 %-Volume, resels and smoothness 
 %===========================================================================
@@ -217,30 +211,25 @@ Pz              = spm_P(1,0,u,df,STAT,1,n);
 
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
-y   = y + 0.5;
-line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
-y   = y - 0.5;
+line([0 1],[0 0],'LineWidth',1,'Color','r')
 str = sprintf('Height threshold {u} = %0.2f, p = %0.3f (%0.3f)',u,Pz,P);
-text(0,y,  str,'FontSize',9);
-y   = y - 1;
+text(0.0,-1*dy,str,'FontSize',FS(1));
 str = sprintf('Extent threshold {k} = %0.2f resels, p = %0.3f',k,Pn);
-text(0,y,  str,'FontSize',9);
-y   = y - 1;
+text(0.0,-2*dy,str,'FontSize',FS(1));
 str = sprintf('Expected resels per cluster, E{n} = %0.3f',En);
-text(0,y,  str,'FontSize',9);
-y   = y - 1;
+text(0.0,-3*dy,str,'FontSize',FS(1));
 str = sprintf('Expected number of clusters, E{m} = %0.2f',Em*Pn);
-text(0,y,  str,'FontSize',9);
-y   = y + 3;
-str = sprintf('Volume {S} = %0.0f voxels or %0.2f Resels ',VOL.S,R(length(R)));
-text(0.6,y,str,'FontSize',9);
-y   = y - 1;
-str = sprintf('Degrees of freedom = %0.1f %0.1f ',df);
-text(0.6,y,str,'FontSize',9);
-y   = y - 1;
-str = sprintf('Smoothness FWHM {mm} = %0.1f %0.1f %0.1f',FWHMmm);
-text(0.6,y,str,'FontSize',9);
-y   = y - 1;
-str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',FWHM);
-text(0.6,y,str,'FontSize',9);
+text(0.0,-4*dy,str,'FontSize',FS(1));
 
+str = sprintf('Volume {S} = %0.0f voxels or %0.2f Resels ',VOL.S,R(length(R)));
+text(0.6,-1*dy,str,'FontSize',FS(1));
+str = sprintf('Degrees of freedom = %0.1f %0.1f ',df);
+text(0.6,-2*dy,str,'FontSize',FS(1));
+str = sprintf('Smoothness FWHM {mm} = %0.1f %0.1f %0.1f',FWHMmm);
+text(0.6,-3*dy,str,'FontSize',FS(1));
+str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',FWHM);
+text(0.6,-4*dy,str,'FontSize',FS(1));
+
+%-End
+%=======================================================================
+spm('Pointer','Arrow')
