@@ -29,10 +29,12 @@ The SPM software is a suite of MatLab functions, scripts and data
 files, with some externally compiled C routines, implementing
 Statistical Parametric Mapping.
 
-SPM96 is written for Matlab 4.2c under UNIX. (SPM96 will not work with
-Matlab5.) Binaries of the external C-routines are provided for Solaris
-only, users of other UNIX platforms need an ANSI C compiler to compile
-the supplied C source (Makefile provided: spm_MAKE). See http://www.fil.ion.ucl.ac.uk/spm/distrib.html for details.
+SPM98 is written for Matlab 5.2 under UNIX. (SPM98 will not work with
+versions of Matlab 5 prior to 5.2, including Matlab 4.) Binaries of the
+external C-routines are provided for Solaris only, users of other UNIX
+platforms need an ANSI C compiler to compile the supplied C source
+(Makefile provided: spm_MAKE). See
+http://www.fil.ion.ucl.ac.uk/spm/distrib.html for details.
 
 ( Whilst the majority of the code is implemented as MatLab functions    )
 ( & scripts containing standard MatLab commands, a number of features   )
@@ -45,10 +47,9 @@ the supplied C source (Makefile provided: spm_MAKE). See http://www.fil.ion.ucl.
 ( spm_unmap_vol.c; & readdir (dirent.h) in spm_list_files.c. Not all    )
 ( UNIX flavours support mman.h.                                         )
 
-With the compiled c-mex files in place, simply add the SPM directory to
-your MatLab path to complete the installation.
-
-Note that SPM reads *only* Analyze format images.
+With the compiled c-mex files in place, simply prepend the SPM
+directory to your MatLab path to complete the installation. (Type `help
+path` in matlab for information on the MatLab path.)
 
 ________________________________________________________________________
                                                          Getting started
@@ -68,6 +69,19 @@ particularly the "Documentation" page. Of the resources listed there
 perhaps the most useful starting point are the SPM course notes, which
 explain the concepts and theories implemented in SPM at a lower level
 than the articles in the peer reviewed literature. There is no manual.
+
+Note that SPM uses Analyze format images as standard, although it can
+also read MINC & ECAT-7 images. You will either need to convert your
+image files to one of these formats (preferably Analyze), or construct
+an additional module for the SPM memory mapping subsystem to read your
+file format. Image conversion utilities for your image file format may
+be available in other packages, or may have been specially written by
+other SPM users. (Consult the SPM email discussion list, described
+below, by first searching the archives, and posting a query if
+necessary.) Unfortunately we have no resources to provide image
+conversion software, although we will collaborate in developing SPM
+memory mapping read-modules for popular image formats for inclusion in
+SPM.
 
 ________________________________________________________________________
                                                                Resources
