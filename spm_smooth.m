@@ -43,7 +43,7 @@ end
 if isstr(Q) & isstr(P),
 	VO         = V;
 	VO.fname   = Q;
-	VO.descrip = sprintf('%s -conv (%g,%g,%g)',DESCRIP,s);
+	VO.descrip = sprintf('conv (%g,%g,%g)',s);
 	spm_create_image(VO);
 end
 
