@@ -16,6 +16,7 @@ function [X,Sess] = spm_fmri_spm_ui
 % Sess{s}.name{i} - of ith trial type   for session s
 % Sess{s}.ind{i}  - column indices      for ith trial type {within session}
 % Sess{s}.bf{i}   - basis functions     for ith trial type
+% Sess{s}.sf{i}   - stick functions     for ith trial type
 % Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
 % Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
 % Sess{s}.para{i} - vector of paramters for ith trial type
@@ -23,33 +24,35 @@ function [X,Sess] = spm_fmri_spm_ui
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
 % filtering that specify the ensuing statistical analysis. These
-% arguments are passed to spm_spm that then performs the actual analysis.
+% arguments are passed to spm_spm that then performs the actual parameter
+% estimation.
 %
 % The design matrix defines the experimental design and the nature of
 % hypothesis testing to be implemented.  The design matrix has one row
 % for each scan and one column for each effect or explanatory variable.
-% (e.g. regression or stimulus function).  The parameters are estimated in
+% (e.g. regressor or stimulus function).  The parameters are estimated in
 % a least squares sense using the general linear model.  Specific profiles
 % within these parameters are tested using a linear compound or contrast
-% with the T or F statistic.  The resulting staistical map of constitutes 
+% with the T or F statistic.  The resulting statistical map constitutes 
 % an SPM.  The SPM{T}/{F} is then characterized in terms of focal or regional
 % differences by assuming that (under the null hypothesis) the components of
-% the SPM (i.e. residual fields) behave as a smooth stationary Gaussian field.
+% the SPM (i.e. residual fields) behave as smooth stationary Gaussian fields.
 %
 % spm_fmri_spm_ui allows you to (i) specify a statistical model in terms
-% of a design matrix, (ii) specify the data and (iii) proceed to estimate
-% the parameters of the model.  Inferences can be made about the ensuing
-% parameter estimates (at a first or fixed-effect level) in the results
-% section, or they can be re-entered into a second (random-effect) level
-% analysis by treating the session or subject-specific parameter
-% estimates as new summary data.  Inferences at any level obtain by
-% specifying appropriate T or F contrasts in the results section to
-% produce SPMs and tables of p values and statistics.
+% of a design matrix, (ii) review that design, (iii) associate some data
+% with a pre-specified design [or (iv) specify both the data and design]
+% and then proceed to estimate the parameters of the model.
+% Inferences can be made about the ensuing parameter estimates (at a first
+% or fixed-effect level) in the results section, or they can be re-entered
+% into a second (random-effect) level analysis by treating the session or 
+% subject-specific [contrasts of] parameter estimates as new summary data.
+% Inferences at any level obtain by specifying appropriate T or F contrasts
+% in the results section to produce SPMs and tables of p values and statistics.
 %
 % spm_fmri_spm calls spm_fMRI_design which allows you to configure a
 % design matrix in terms of events or epochs.  This design matrix can be
 % specified before or during data specification.  In some instances
-% (e.g.  with stochastic designs that have to realized before data
+% (e.g. with stochastic designs that have to realized before data
 % acquisition) it is necessary to build the design matrix first and then
 % select the corresponding data.  In others it may be simpler to specify
 % the data and then the design.  Both options are supported.  Once the
@@ -64,13 +67,13 @@ function [X,Sess] = spm_fmri_spm_ui
 % and possibly time-varying responses to state-related changes in
 % experimental conditions.  Event-related response are modelled in terms
 % of responses to instantaneous events.  Mathematically they are both
-% modelled by convolving a series of delta (or stick) functions,
+% modeled by convolving a series of delta (or stick) functions,
 % indicating the onset of an event or epoch with a set of basis
 % functions.  These basis functions can be very simple, like a box car,
 % or may model voxel-specific forms of evoked responses with a linear
-% combination of several basis functions (e.g.  a Fourier set).  Basis
+% combination of several basis functions (e.g. a Fourier set).  Basis
 % functions can be used to plot estimated responses to single events or
-% epochs once the parameters (i.e.  basis function coefficients) have
+% epochs once the parameters (i.e. basis function coefficients) have
 % been estimated.  The importance of basis functions is that they provide
 % a graceful transition between simple fixed response models (like the
 % box-car) and finite impulse response (FIR) models, where there is one
@@ -100,30 +103,23 @@ function [X,Sess] = spm_fmri_spm_ui
 % (random-effect) level of analysis.  If this is the case then (for
 % event-related studies) use a canonical hemodynamic response function
 % (HRF) and derivatives with respect to latency (and dispersion).  Unlike
-% other bases contrasts of these effects have a physical interpretation
+% other bases, contrasts of these effects have a physical interpretation
 % and represent a parsimonious way of characterising event-related
 % responses.  Bases such as a Fourier set require the SPM{F} for
 % inference and preclude second level analyses.
 % 
-% In epoch-related designs you will be asked to specify the epochs in
-% terms of condition order e.g.  010201020102 for conditions 1 and 2
-% intercalated with a baseline condition 0. Later you will be asked to
-% specify the number of scans for each epoch, again as a vector (list of
-% numbers).  If the epochs were all the same length, then just type in
-% that length once. The baseline condition will not be modelled
-% explicitly so that condition-specific responses are uniquely
-% estimable.
-% 
+% See spm_fMRI_design for more details about how designs are specified.
+%
 % Serial correlations in fast fMRI time-series are dealt with as
 % described in spm_spm.  At this stage you need to specific the filtering
 % that will be applied to the data (and design matrix).  This filtering
 % is important to ensure that bias in estimates of the standard error are
 % minimized.  This bias results from a discrepancy between the estimated
 % (or assumed) auto-correlation structure of the data and the actual
-% intrinsic correlations.  The intrinsic correlation will be estimated
+% intrinsic correlations.  The intrinsic correlations will be estimated
 % automatically using an AR(1) model during parameter estimation.  The
-% discrepancy between estimated and actual intrinsic (i.e.  prior to
-% filtering) correlation are greatest at low frequencies.  Therefore
+% discrepancy between estimated and actual intrinsic (i.e. prior to
+% filtering) correlations are greatest at low frequencies.  Therefore
 % specification of the high-pass component of the filter is particularly
 % important.  High pass filtering is now implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
@@ -134,8 +130,8 @@ function [X,Sess] = spm_fmri_spm_ui
 % N.B.
 % Burst Mode is a specialist design for intermittent epochs of acquisitions
 % (used for example to allow for intercalated EEG recording).  Each burst
-% is treated as a session but consistent within session effects (e.g. T1
-% effects) are modelled in X.bX.  The primary use of this mode is to generate
+% is treated as a session but consistent within-session effects (e.g. T1
+% effects) are modeled in X.bX.  The primary use of this mode is to generate
 % parameter estimate images for a second level analysis.
 %
 %---------------------------------------------------------------------------
@@ -159,7 +155,7 @@ function [X,Sess] = spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %___________________________________________________________________________
-% %W% Karl Friston, Jean-Baptiste Poline, Christian Buechel %E%
+% %W% Karl Friston, Jean-Baptiste Poline, Christian Buchel %E%
 
 
 
@@ -322,7 +318,7 @@ switch cLF
 
 	case 'none'
 	%-------------------------------------------------------------------
-	HParam = [];
+	HParam = cell(1,nsess);
 	LFstr  = cLF;
 
 end

@@ -12,16 +12,19 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
-% Sess{s}.BFstr   - basis function description string
-% Sess{s}.DSstr   - Design description string
-% Sess{s}.row     - scan   indices      for session s
-% Sess{s}.col     - effect indices      for session s
-% Sess{s}.name{i} - of ith trial type   for session s
-% Sess{s}.ind{i}  - column indices      for ith trial type {within session}
-% Sess{s}.bf{i}   - basis functions     for ith trial type
-% Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
-% Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
-% Sess{s}.para{i} - vector of paramters for ith trial type
+% Sess{s}.BFstr    - basis function description string
+% Sess{s}.DSstr    - Design description string
+% Sess{s}.rep      - session replication flag
+% Sess{s}.row      - scan   indices      for session s
+% Sess{s}.col      - effect indices      for session s
+% Sess{s}.name{i}  - of ith trial type   for session s
+% Sess{s}.ind{i}   - column indices      for ith trial type {within session}
+% Sess{s}.bf{i}    - basis functions     for ith trial type
+% Sess{s}.sf{i}    - stick functions     for ith trial type
+% Sess{s}.ons{i}   - stimuli onset times for ith trial type (secs)
+% Sess{s}.pst{i}   - peristimulus times  for ith trial type (secs)
+% Sess{s}.Pv{i}    - vector of paramters for ith trial type
+% Sess{s}.Pname{i} - name   of paramters for ith trial type
 %
 % saves fMRIDesMtx.mat (X Sess)
 %___________________________________________________________________________
@@ -48,28 +51,73 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % sampling and stimulus presentation does not have to be sychronized
 % thereby allowing a uniform and unbiased sampling of peri-stimulus time.
 %
-%
-% see spm_fmri_spm_ui for details
-%
-% NB:
-%
 % spm_fMRI_design allows you to combine both event- and epoch-related
 % responses in the same model.  You are asked to specify the number
-% of event and epoch types. Enter 0 to skip either (or both if you only
-% want to use regressors you have designed outside spm_fMRI_design).
-% 
+% of condition (epoch) or trial (event) types.  Epoch and event-related 
+% responses are modeled in exactly the same way by first specifying their
+% onsets [in terms of stimulus onset asynchronies (SOAs) or explicit onset 
+% times] and then convolving with appropriate basis functions (short ones
+% for event-related models and longer ones for epoch-related respones).
+% Enter 0 to skip these if you only want to use regressors you have designed 
+% outside spm_fMRI_design).
+%
+% Interactions or response modulations can enter at two levels.  Firstly
+% the stick function itself can be modulated by some parametric variate
+% (this can be time or some trial-specific variate like reaction time)
+% modeling the interaction between the trial and the variate or, secondly
+% interactions among the trials themselves can be modeled using a Volterra
+% series formulation that accommodates interactions over time (and therefore
+% within and between trial types).  The first sort of interaction is
+% specified by extra (modulated) stick functions in Sess{s}.sf{i}.  If
+% a polynomial expansion of the specified variate is requested there will
+% be more than one additional column.  The corresponding name of the
+% explanatory variables in X.Xname is Sn(s) trial i(p)[q] for the qth
+% order expansion of the variate convolved with the pth basis function
+% of the ith trial in the sth session.  If no parametric variate is
+% specified the name is simply Sn(s) trial i(p).  Interactions among
+% and within trials enter as new trial types but do not have .pst or .ons
+% fields.  These interactions can be characterized later, in results, in
+% terms of the corresponding second order Volterra Kernels.
+%
 % The design matrix is assembled on a much finer time scale (X.dt) than the 
 % TR and is then subsampled at the acquisition times.
 %
 % Sess{s}.ons{i} contains stimulus onset times in seconds relative to the
-% timing of the first scan and are provided to contruct stimuli.
+% timing of the first scan and are provided to contruct stimuli when using 
+% stochastic designs
 %
-% Parametric variations in evoked responses are modelled by modulating
-% event or epoch specific delta functions with a spcified vector of
-% parameters.  This could be trial-specific reaction times or another
-% perfomance or stimulus attribute.  Time effects are modelled at this
-% level.
 %
+% Notes on spm_get_ons, spm_get_bf and spm_Volterra are included below
+% for convenience.
+%_______________________________________________________________________
+%
+% spm_get_ons contructs a cell of sparse delta functions specifying the
+% onset of events or epochs (or both). These are convolved with a basis set
+% at a later stage to give regressors that enter into the design matrix.
+% Interactions of evoked responses with some parameter (time or a specified 
+% variate Pv) enter at this stage as additional columns in sf with each delta
+% function multiplied by the [expansion of the] trial-specific parameter.
+% If parametric modulation is modeled, P contains the original variate and
+% Pname is its name.  Otherwise P{i} = [] and Pname{i} = '';
+%-----------------------------------------------------------------------
+%
+%___________________________________________________________________________
+% spm_get_bf prompts for basis functions to model event or epoch-related
+% responses.  The basis functions returned are unitary and orthonormal
+% when defined as a function of peri-stimulus time in time-bins.
+% It is at this point that the distinction between event and epoch-related 
+% responses enters.
+%---------------------------------------------------------------------------
+%___________________________________________________________________________
+%
+% For first order expansions spm_Volterra simply convolves the causes
+% (e.g. stick functions) in SF by the basis functions in BF to create
+% a design matrix X.  For second order expansions new entries appear
+% in IND, BF and name that correspond to the interaction among the
+% orginal causes (if the events are sufficiently close in time).
+% The basis functions for these are two dimensional and are used to
+% assemble the second order kernel in spm_graph.m.  Second order effects
+% are computed for only the first column of SF.
 %---------------------------------------------------------------------------
 % @(#)spm_fMRI_design.m	2.9 Karl Friston 99/04/20
 
@@ -91,7 +139,7 @@ if isempty(fMRI_T0), fMRI_T0 = 16; end;
 % get nscan and RT if no arguments
 %---------------------------------------------------------------------------
 if nargin < 2
-	RT     = spm_input('Interscan interval {secs}','+1');
+	RT     = spm_input('Interscan interval {secs}','+1','r',[],1);
 end
 if nargin < 1
 	nscan  = spm_input(['scans per session e.g. 64 64 64'],'+1');
@@ -121,12 +169,8 @@ for s = 1:nsess
 	X       = [];
 	B       = [];
 	D       = [];
-	qx      = 1;
-	Xn      = {};
-	Bn      = {};
 	PST     = {};
 	ONS     = {};
-	BF      = {};
 	IND     = {};
 
 	% Event/epoch related responses			
@@ -135,22 +179,21 @@ for s = 1:nsess
 
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons,W,name,para,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC);
-	
+	[SF,name,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC);
+	ntrial     = size(SF,2);
+
 
 	% get basis functions for responses
 	%-------------------------------------------------------------------
-	[BF BFstr] = spm_get_bf(W,dt);
+	[BF BFstr] = spm_get_bf(name,fMRI_T,dt);
 
 
 	% peri-stimulus {PST} and onset {ONS} times in seconds
 	%-------------------------------------------------------------------
-	ntrial  = size(ons,2);
 	for   i = 1:ntrial
-
-		on    = find(ons(:,i))*dt;
-		pst   = [1:k]*RT - on(1);			
-		for j = 1:length(on)
+		on     = find(SF{i}(:,1))*dt;
+		pst    = [1:k]*RT - on(1);			
+		for  j = 1:length(on)
 			u      = [1:k]*RT - on(j);
 			v      = find(u >= -1);
 			pst(v) = u(v);
@@ -160,20 +203,20 @@ for s = 1:nsess
 	end
 
 
-	% convolve with basis functions and resample at acquisition times to 
-	% create design matrix {X}
+	% convolve with basis functions
 	%-------------------------------------------------------------------
-	for i = 1:ntrial
-		IND{i} = [];
-		for  j = 1:size(BF{i},2)
-			x      = conv(full(ons(:,i)),BF{i}(:,j));
-			X      = [X x([0:k-1]*fMRI_T + fMRI_T0,:)];
-			%-- X      = [X x([1:k]*T,:)];
-			Xn{qx} = [name{i} sprintf(': bf: %i',j)];
-			IND{i} = [IND{i} qx];
-			qx     = qx + 1;
-		end
+	str     = 'interactions among trials (Volterra)';
+	if spm_input(str,'+1','y/n',[1 0])
+
+		[X Xn IND BF name] = spm_Volterra(SF,BF,name,2);
+	else
+		[X Xn IND]         = spm_Volterra(SF,BF,name,1);
 	end
+
+
+	% Resample design matrix {X} at acquisition times
+	%-------------------------------------------------------------------
+	X     = X([0:k-1]*fMRI_T + fMRI_T0,:);
 
 
 	% get user specified regressors
@@ -192,10 +235,9 @@ for s = 1:nsess
 	% append regressors and names
 	%-------------------------------------------------------------------
 	for i = 1:size(D,2)
-		X      = [X D(:,i)];
-		str    = sprintf('regressor: %i',i);
-		Xn{qx} = spm_input(['name of ' str],2,'s',str);
-		qx     = qx + 1;
+		X           = [X D(:,i)];
+		str         = sprintf('regressor: %i',i);
+		Xn{end + 1} = spm_input(['name of ' str],2,'s',str);
 	end
 
 
@@ -212,24 +254,27 @@ for s = 1:nsess
 	%-------------------------------------------------------------------
 	Sess{s}.BFstr = BFstr;
 	Sess{s}.DSstr = DSstr;
+	Sess{s}.rep   = rep;
 	Sess{s}.row   = size(xX,1) + [1:k];
 	Sess{s}.col   = size(xX,2) + [1:size(X,2)];
 	Sess{s}.name  = name;
 	Sess{s}.ind   = IND;
 	Sess{s}.bf    = BF;
+	Sess{s}.sf    = SF;
 	Sess{s}.pst   = PST;
 	Sess{s}.ons   = ONS;
-	Sess{s}.para  = para;
+	Sess{s}.Pv    = Pv;
+	Sess{s}.Pname = Pname;
 
 	% Append names
 	%-------------------------------------------------------------------
 	q     = length(Xname);
 	for i = 1:length(Xn) 
-		Xname{q + i}  = [sprintf('Sn: %i ',s) Xn{i}];
+		Xname{q + i}  = [sprintf('Sn(%i) ',s) Xn{i}];
 	end
 	q     = length(Bname);
 	for i = 1:length(Bn) 
-		Bname{q + i}  = [sprintf('Sn: %i ',s) Bn{i}];
+		Bname{q + i}  = [sprintf('Sn(%i) ',s) Bn{i}];
 	end
 
 	% append into xX and bX

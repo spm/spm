@@ -9,16 +9,19 @@ function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
-% Sess{s}.BFstr   - basis function description string
-% Sess{s}.DSstr   - Design description string
-% Sess{s}.row     - scan   indices      for session s
-% Sess{s}.col     - effect indices      for session s
-% Sess{s}.name{i} - of ith trial type   for session s
-% Sess{s}.ind{i}  - column indices      for ith trial type {within session}
-% Sess{s}.bf{i}   - basis functions     for ith trial type
-% Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
-% Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
-% Sess{s}.para{i} - vector of paramters for ith trial type
+% Sess{s}.BFstr    - basis function description string
+% Sess{s}.DSstr    - Design description string
+% Sess{s}.rep      - session replication flag
+% Sess{s}.row      - scan   indices      for session s
+% Sess{s}.col      - effect indices      for session s
+% Sess{s}.name{i}  - of ith trial type   for session s
+% Sess{s}.ind{i}   - column indices      for ith trial type {within session}
+% Sess{s}.bf{i}    - basis functions     for ith trial type
+% Sess{s}.sf{i}    - stick functions     for ith trial type
+% Sess{s}.ons{i}   - stimuli onset times for ith trial type (secs)
+% Sess{s}.pst{i}   - peristimulus times  for ith trial type (secs)
+% Sess{s}.Pv{i}    - vector of paramters for ith trial type
+% Sess{s}.Pname{i} - name   of paramters for ith trial type
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -65,11 +68,11 @@ if nargin < 3
 		'UserData',struct('X',X,'Sess',{Sess}),...
 		'HandleVisibility','on');
 	for j = 1:length(Sess)
-		h = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
+		h     = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
 			'HandleVisibility','off');
 		for k = 1:length(Sess{j}.name)
 			cb = ['tmp = get(get(gcbo,''UserData''),',...
-					'''UserData''); ',...
+					         '''UserData''); ',...
 				sprintf(['spm_fMRI_design_show(',...
 					'tmp.X,tmp.Sess,%d,%d);'],j,k)];
 			uimenu(h,'Label',Sess{j}.name{k},...
@@ -78,12 +81,6 @@ if nargin < 3
 	     	   	         'HandleVisibility','off')
 		end
 	end
-
-% 	uimenu(hC,'Label','Quit','Separator','on',...
-% 		'CallBack','delete(get(gcbo,''UserData''))',...
-% 		'UserData',hC,...
-% 		'HandleVisibility','off')
-
 end
 
 
@@ -116,7 +113,7 @@ sX   = X.xX(Sess{s}.row,Sess{s}.col);
 imagesc(spm_en(sX)')
 set(gca,'YTick',[1:size(sX,1)])
 set(gca,'YTickLabel',X.Xname(Sess{s}.col)')
-title(sprintf('Session %d',s),'FontSize',16)
+title({sprintf('Session %d',s) Sess{s}.DSstr})
 
 % Collinearity
 %-----------------------------------------------------------------------
@@ -125,50 +122,62 @@ imagesc(corrcoef(sX))
 title('correlations')
 axis off, axis square
 
-% Trial-specific regressors
+% Trial-specific regressors - time domain
 %-----------------------------------------------------------------------
+rX    = sX(:,Sess{s}.ind{i});
 subplot(3,2,3)
-plot(Sess{s}.row,sX(:,Sess{s}.ind{i}))
+plot(Sess{s}.row,rX)
 xlabel('scan')
 ylabel('regressor[s]')
-title(['Regressors for ' Sess{s}.name{i}])
+title({['Regressors for ' Sess{s}.name{i}] })
 axis tight
 
-
-% Basis set and peristimulus sampling
+% Trial-specific regressors - frequency domain
 %-----------------------------------------------------------------------
 subplot(3,2,4)
-t    = [1:size(Sess{s}.bf{i},1)]*X.dt;
-pst  = Sess{s}.pst{i};
-plot(t,Sess{s}.bf{i},pst,0*pst,'.','MarkerSize',16)
-xlabel('time (secs}')
-title('Basis set and peristimulus sampling')
+gX    = abs(fft(rX)).^2;
+gX    = gX*diag(1./sum(gX));
+q     = size(gX,1);
+Hz    = [0:(q - 1)]/(q*X.RT);
+q     = 2:fix(q/2);
+plot(Hz(q),gX(q,:))
+xlabel('Frequency (Hz)')
+ylabel('spectral density')
+title('Frequency domain')
+grid on
 axis tight
-grid on
 
-% onsets and parametric modulation
+
+% if trial (as opposed to trial x trial interaction)
 %-----------------------------------------------------------------------
-subplot(3,2,6)
-plot(Sess{s}.ons{i},Sess{s}.para{i},'.','MarkerSize',8)
-xlabel('time (secs)')
-title('trial specific onsets or causes')
-grid on
+if length(Sess{s}.ons) >= i
 
-% textual data
-%-----------------------------------------------------------------------
-subplot(3,2,5)
-cla
-q     = 0.1;
-text(0,1 - 1*q,'Design','FontWeight','bold')
-text(0,1 - 2*q,Sess{s}.DSstr ,'FontSize',10)
-text(0,1 - 3*q,'Basis functions','FontWeight','bold')
-text(0,1 - 4*q,Sess{s}.BFstr,'FontSize',10)
-text(0,1 - 6*q,sprintf('%0.0f ms time bins',1000*X.dt),'FontSize',10)
-text(0,1 - 7*q,sprintf('%0.0f of %0.0f session[s],',s,length(Sess)),'FontSize',10)
-text(0,1 - 8*q,sprintf('%0.0f of %0.0f trial[s],',i,length(Sess{s}.name)),'FontSize',10)
-text(0,1 - 10*q,Sess{s}.name{i},'FontWeight','bold')
-axis off
+	% Basis set and peristimulus sampling
+	%---------------------------------------------------------------
+	subplot(3,2,5)
+	t    = [1:size(Sess{s}.bf{i},1)]*X.dt;
+	pst  = Sess{s}.pst{i};
+	plot(t,Sess{s}.bf{i},pst,0*pst,'.','MarkerSize',16)
+	str  = sprintf('TR = %0.0fsecs',X.RT);
+	xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*X.dt)})
+	title({'Basis set and peristimulus sampling' Sess{s}.BFstr})
+	axis tight
+	grid on
 
+	% if a paramteric variate is specified
+	%---------------------------------------------------------------
+	if length(Sess{s}.Pv{i})
+
+		% onsets and parametric modulation
+		%-------------------------------------------------------
+		subplot(3,2,6)
+		plot(Sess{s}.ons{i},Sess{s}.Pv{i},'.','MarkerSize',8)
+		title({'trial specific parameters' Sess{s}.Pname{i}})
+		xlabel('time (secs}')
+		ylabel(Sess{s}.Pname{i})
+		grid on
+	end
+end
 
 %-Pop up Graphics figure window
 %-----------------------------------------------------------------------

@@ -1,16 +1,20 @@
-function [BF,BFstr] = spm_get_bf(W,dt)
+function [BF,BFstr] = spm_get_bf(name,T,dt)
 % creates basis functions for each trial type {i} in struct BF{i}
-% FORMAT [BF BFstr] = spm_get_bf(W,dt)
+% FORMAT [BF BFstr] = spm_get_bf(name,T,dt)
 %
-% W     - W(i) window length {time bins} for trial type i
+% name  - name{1 x n} name of trials or conditions
+% T     - time bins per scan
 % dt    - time bin length {seconds}
 %
 % BF{i} - Array of basis functions for trial type {i}
 % BFstr - description of basis functions specified
 %___________________________________________________________________________
 %
-% if W(i) > 0 then temporally extended basis functions are specified
-% otherwise an event_related basis set is specified
+% spm_get_bf prompts for basis functions to model event or epoch-related
+% responses.  The basis functions returned are unitary and orthonormal
+% when defined as a function of peri-stimulus time in time-bins.
+% It is at this point that the distinction between event and epoch-related 
+% responses enters.
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
@@ -20,32 +24,40 @@ Fstr   = get(Finter,'name');
 
 % if no trials
 %---------------------------------------------------------------------------
-if length(W) == 0
-
+n      = length(name);
+if ~n
 	BF    = {};
 	BFstr = 'none';
 	return
 end
 
-
-% assemble basis functions {bf}
+% determine sort of basis functions
 %---------------------------------------------------------------------------
-if     all(W == 0)
+Rtype = {'events',...
+	 'epochs',...
+	 'mixed'};
+if n == 1
+	Rtype = Rtype(1:2); 
+	set(Finter,'name',name{1})
+end
+Rov   = spm_input('are these trials',1,'b',Rtype);
 
- 	% specification
-	%-------------------------------------------------------------------
-	set(Finter,'Name','event-related basis functions'); 
+switch Rov
+
+	% assemble basis functions {bf}
+	%===================================================================
+	case 'events'
 
 	% model event-related responses
 	%-------------------------------------------------------------------
 	Ctype = {
+		'hrf (alone)',...
+		'hrf (with time derivative)',...
+		'hrf (with time and dispersion derivatives)',...
 		'basis functions (Fourier set)',...
 		'basis functions (Windowed Fourier set)',...
 		'basis functions (Gamma functions)',...
-		'basis functions (Gamma functions with derivatives)',...
-		'hrf (alone)',...
-		'hrf (with time derivative)',...
-		'hrf (with time and dispersion derivatives)'};
+		'basis functions (Gamma functions with derivatives)'};
 	str   = 'Select basis set';
 	Cov   = spm_input(str,1,'m',Ctype);
 	BFstr = Ctype{Cov};
@@ -53,7 +65,7 @@ if     all(W == 0)
 
 	% create basis functions
 	%-------------------------------------------------------------------
-	if     Cov == 1 | Cov == 2
+	if     Cov == 4 | Cov == 5
 
 		% Windowed (Hanning) Fourier set
 		%-----------------------------------------------------------
@@ -65,7 +77,7 @@ if     all(W == 0)
 
 		% hanning window
 		%-----------------------------------------------------------
-		if Cov == 1
+		if Cov == 4
 			g = ones(size(pst));
 		else
 			g = (1 - cos(2*pi*pst))/2;
@@ -79,7 +91,7 @@ if     all(W == 0)
 			bf = [bf g.*cos(i*2*pi*pst)];	
 		end
 
-	elseif Cov == 3 | Cov == 4
+	elseif Cov == 6 | Cov == 7
 
 
 		% Gamma functions alone
@@ -90,12 +102,12 @@ if     all(W == 0)
 
 		% Gamma functions and derivatives
 		%---------------------------------------------------
-		if Cov == 4
-			bf    = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
+		if Cov == 7
+			bf  = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
 		end
 
 
-	elseif Cov == 5 | Cov == 6 | Cov == 7
+	elseif Cov == 1 | Cov == 2 | Cov == 3
 
 
 		% hrf and derivatives
@@ -104,7 +116,7 @@ if     all(W == 0)
 
 		% add time derivative
 		%-----------------------------------------------------------
-		if Cov == 6 | Cov == 7
+		if Cov == 2 | Cov == 3
 
 			dp    = 1;
 			p(6)  = p(6) + dp;
@@ -114,7 +126,7 @@ if     all(W == 0)
 
 			% add dispersion derivative
 			%---------------------------------------------------
-			if Cov == 7
+			if Cov == 3
 
 				dp    = 0.01;
 				p(3)  = p(3) + dp;
@@ -127,25 +139,23 @@ if     all(W == 0)
 
 	% Orthogonalize and fill in basis function structure
 	%-------------------------------------------------------------------
-	for i = 1:length(W)
-		BF{i}  =  spm_orth(bf);
+	bf    =  spm_orth(bf);
+	for i = 1:n
+		BF{i}  =  bf;
 	end
 
 
-elseif all(W > 0)
+	% assemble basis functions {bf}
+	%===================================================================
+	case 'epochs'
 
-
-	% specification
-	%-------------------------------------------------------------------
-	set(Finter,'Name','epoch-related basis functions'); 
 
 	% covariates of interest - Type
 	%-------------------------------------------------------------------
-	Ctype = {
-		'basis functions  (Discrete Cosine Set)',...
-		'basis functions  (Mean & exponential decay)',...
-		'fixed response   (Half-sine)',...
-		'fixed response   (Box-car)'};
+	Ctype = {'basis functions  (Discrete Cosine Set)',...
+		 'basis functions  (Mean & exponential decay)',...
+		 'fixed response   (Half-sine)',...
+		 'fixed response   (Box-car)'};
 	str   = 'Select type of response';
 	Cov   = spm_input(str,1,'m',Ctype);
 	BFstr = Ctype{Cov};
@@ -165,15 +175,16 @@ elseif all(W > 0)
 	% ask for temporal differences
 	%-------------------------------------------------------------------
 	str   = 'add temporal derivatives';
-	TD    = spm_input(str,3,'b','no|yes',[0 1]);
+	TD    = spm_input(str,3,'b','yes|no',[1 0]);
  
-
 
 	% Assemble basis functions for each trial type
 	%-------------------------------------------------------------------
-	for i = 1:length(W)
+	for i = 1:n
 
-		pst   = [1:W(i)]' - 1;
+		str   = ['epoch length {scans} for ' name{i}];
+		W     = spm_input(str,'+1','r');
+		pst   = [1:W*T]' - 1;
 		pst   = pst/max(pst);
 
 		% Discrete cosine set
@@ -228,19 +239,16 @@ elseif all(W > 0)
 		BF{i}         =  spm_orth(bf);
 	end
 
-else
 
 	% mixed event and epoch model
-	%-------------------------------------------------------------------
-	q          = find(~W);
-	[bf,bfstr] = spm_get_bf(W(q),dt);
-	BF(q)      = bf;
-	BFstr      = bfstr;
-	q          = find( W);
-	[bf,bfstr] = spm_get_bf(W(q),dt);
-	BF(q)      = bf;
-	BFstr      = [BFstr ' & ' bfstr];
+	%===================================================================
+	case 'mixed'
+	for i = 1:n
 
+		BF(i)  = spm_get_bf({[Fstr ': ' name{i}]},T,dt);
+
+	end
+	BFstr = 'mixed';
 
 end
 
@@ -256,11 +264,12 @@ function bf = spm_orth(BF)
 % FORMAT bf = spm_orth(bf)
 %___________________________________________________________________________
 bf    = BF(:,1);
+bf    = bf/sqrt(sum(bf.^2));
 for i = 2:size(BF,2)
 	D     = BF(:,i);
 	D     = D - bf*(pinv(bf)*D);
 	if any(D)
-		bf = [bf D];
+		bf = [bf D/sqrt(sum(D.^2))];
 	end
 end
 
