@@ -60,8 +60,8 @@ function varargout=spm_help(varargin)
 % controls at the bottom right of the Graphics window.
 %
 % The print button enables printing to the specified Print device. This
-% is set in the Defaults area, initially to the PostScript file
-% "spm.ps" in the current directory. Multi page topics are paged on
+% is set in the Defaults area, initially to a PostScript file
+% "spm*.ps" in the current directory. Multi page topics are paged on
 % screen, and printed page by page.
 %
 %
