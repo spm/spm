@@ -12,7 +12,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .Ic    - indices of contrasts (in xCon)
 % .Im    - indices of masking contrasts (in xCon)
 % .pm    - p-value for masking (uncorrected)
-% .Ex    - flag for exclusive masking (i.e. exclude voxel if signficant in mask)
+% .Ex    - flag for exclusive or inclusive masking
 % .u     - height threshold
 % .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
