@@ -569,8 +569,7 @@ for i = 1:nc
 end
 
 %-Prepend PWD to Fnames
-sep    = spm_platform('sepchar');
-Fnames = cellstr([repmat([pwd,sep],nc,1),char(Fnames)]);
+Fnames = cellstr([repmat([pwd,filesep],nc,1),char(Fnames)]);
 
 
 %-Save parameters to SPMadj.mat in current directory

@@ -286,7 +286,7 @@ iAdjTo   = DesDef.iAdjTo;
 %-Get filenames, build subject & condition indicies
 %-----------------------------------------------------------------------
 if bMSubj
-	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1','w1');
+	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1','n1');
 	bMSubj = nSubj > 1;
 else
 	nSubj  = 1;
@@ -612,8 +612,7 @@ for i = 1:nc
 end
 
 %-Prepend PWD to Fnames
-sep    = spm_platform('sepchar');
-Fnames = cellstr([repmat([pwd,sep],nc,1),char(Fnames)]);
+Fnames = cellstr([repmat([pwd,filesep],nc,1),char(Fnames)]);
 
 
 %-Save parameters to SPMadj.mat in current directory
