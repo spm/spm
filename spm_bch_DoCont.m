@@ -1,4 +1,5 @@
 function status = spm_bch_DoCont(batch_mat);
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %- initialise status
 %--------------------------------------------------

@@ -10,6 +10,7 @@ function status = spm_bch_headers(batch_mat,iA)
 % Programers : WARNING :
 % cheching on the arguments read in batch_mat
 % should be done in spm_bch_bchmat.m
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 
 

@@ -2,6 +2,8 @@ function status = spm_bch_GetCont(batch_mat,n_con);
 %
 % create an xCon.mat file from batch contrast, append to 
 % previous xCon if it exists
+%
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %--------------------------------------------------
 %- get xCon if exist; We are in Wdir.
