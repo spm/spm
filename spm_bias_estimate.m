@@ -1,8 +1,8 @@
-function T = spm_bias_estimate(P,flags)
+function T = spm_bias_estimate(V,flags)
 % Estimate image nonuniformity.
 %
-% FORMAT T = spm_bias_estimate(P,flags)
-%   P     - filename of image
+% FORMAT T = spm_bias_estimate(V,flags)
+%   V     - filename or vol struct of image
 %   flags - a structure containing the following fields
 %     nbins  - number of bins in histogram (1024)
 %     reg    - amount of regularisation (1)
@@ -34,7 +34,7 @@ reg     = flags.reg;     % Regularisation
 co      = flags.cutoff;  % Highest wavelength of DCT
 nh      = flags.nbins;
 
-V       = spm_vol(P);
+if ischar(V), V = spm_vol(V); end;
 mx      = 1.1*get_max(V); % Maximum value in histogram
 
 tmp     = sqrt(sum(V(1).mat(1:3,1:3).^2));
@@ -68,7 +68,7 @@ for iter = 1:128,
 	T     = (Alpha + IC0)\(Alpha*T - Beta);
 	T     = reshape([0 ; T],nbas);
 
-	[pth,nm,xt,vr] = fileparts(deblank(P));
+	[pth,nm,xt,vr] = fileparts(deblank(V.fname));
 	S              = fullfile(pth,['bias_' nm '.mat']);
 	save(S,'V','T','h');
 	fprintf('%g %g\n', ll, lp);

@@ -1,16 +1,21 @@
-function spm_bias_apply(P,T)
-% Apply bias field to images.
+function VO = spm_bias_apply(V,T)
+% Apply bias field to image.
 %
-% FORMAT spm_bias_apply(P,T)
-%   P - filename of image
+% FORMAT VO = spm_bias_apply(V,T)
+%   V - filename or vol struct of image
 %   T - DCT of bias field or filename containing this
+%   VO - bias corrected volume structure.
 %
-% Bias corrected images are written to disk, prefixed by 'm'.
+% If no output arguments, then the bias corrected image is written to
+% disk, prefixed by 'm'.
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-V = spm_vol(P);
+if ischar(V),
+	V = spm_vol(V);
+end;
+
 if ischar(T),
 	s = load(T);
 	T = s.T;
@@ -23,10 +28,18 @@ B3             = spm_dctmtx(V(1).dim(3),nbas(3));
 
 VO             = V;
 VO.dim(4)      = spm_type('float');
-VO.pinfo       = [1 0 0]';
-[pth,nm,xt,vr] = fileparts(deblank(P));
-VO.fname       = fullfile(pth,['m' nm xt vr]);
-VO             = spm_create_vol(VO);
+
+if nargout==0,
+	[pth,nm,xt,vr] = fileparts(deblank(V.fname));
+	VO.fname       = fullfile(pth,['m' nm xt vr]);
+	VO.pinfo       = [1 0 0]';
+	VO             = spm_create_vol(VO);
+else,
+	VO.fname       = 'bias_corrected.img';
+	VO.pinfo       = [1 0]';
+	VO.dat(1,1,1)  = single(0);
+	VO.dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+end;
 
 for p=1:V.dim(3),
 	M   = spm_matrix([0 0 p]);
@@ -34,8 +47,12 @@ for p=1:V.dim(3),
 	t   = reshape(T,  nbas(1)*nbas(2), nbas(3));
 	t   = reshape(t*B3(p,:)', nbas(1), nbas(2));
 	img = img.*exp(B1*t*B2');
-	VO  = spm_write_plane(VO,img,p);
+	if nargout==0,
+		VO  = spm_write_plane(VO,img,p);
+	else,
+		VO.dat(:,:,p) = img;
+	end;
 end;
-VO = spm_close_vol(VO);
+if nargout==0, VO = spm_close_vol(VO); end;
 return;
 %=======================================================================
