@@ -18,7 +18,9 @@
 % get image on which to render
 %----------------------------------------------------------------------------
 spms   = spm_get(1,'.img','select an image for rendering',[]);
-set(2,'Pointer','Watch');
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
 
@@ -70,7 +72,7 @@ Dt     = D/max(D(:));
 
 % delete previous axis
 %----------------------------------------------------------------------------
-figure(spm_figure('FindWin','Graphics'))
+figure(Fgraph)
 subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 
 
@@ -88,7 +90,7 @@ Q      = Tt(:) > U; Tt = Tt(Q)/d; Dt(Q) = 1 + Tt; Tt = D*Dt;
 
 % compute axes to correct for anisotropy of voxels and (normalized) window
 %----------------------------------------------------------------------------
-set(3,'Units','pixels')
+set(Fgraph,'Units','pixels')
 WIN    = get(gcf,'Position');
 WIN    = WIN(3)/WIN(4);
 Y      = 0.36;
@@ -138,4 +140,4 @@ set(gca,'XTickLabels',[])
 %----------------------------------------------------------------------------
 if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 spm_unmap(Vs);
-set(2,'Pointer','Arrow')
+set([Finter,Fgraph],'Pointer','Arrow')
