@@ -10,7 +10,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 %		'X' - Chi squared field
 %		'F' - F - field
 %		'P' - P - value
-% n     - number of component SPMs in conjunction
+% n     - Conjunction number
 % Ps    - Vector of sorted (ascending) p-values in search volume
 %
 % P     - corrected FDR   P value
