@@ -1,8 +1,8 @@
 #ifndef lint
 static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
-#include<stdio.h>
-#include<strings.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/stat.h>
