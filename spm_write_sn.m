@@ -63,11 +63,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 if isempty(V), return; end;
 
 if ischar(prm), prm = load(prm);  end;
-if ischar(V),   V   = spm_vol(V); end;                                                                                                                
-
-if nargout>0,
-	if length(V)>1, error('Too many images to save in memory'); end;
-end;
+if ischar(V),   V   = spm_vol(V); end;
 
 if nargin==3 & ischar(flags) & strcmp(lower(flags),'modulate'),
 	if nargout==0,
@@ -106,6 +102,10 @@ if nargin==4,
 		msk = extras;
 	end;
 end;
+
+if nargout>0 & length(V)>1,
+	error('Too many images to save in memory');
+end;                                                                                                                     
 
 if ~exist('msk','var')
 	msk         = get_snmask(V,prm,x,y,z,flags.wrap);
@@ -433,6 +433,7 @@ if prod(size(V))>1 & any(any(diff(t,1,1))),
 		msk{j} = uint32(find(Count ~= prod(size(V))));
 		spm_progress_bar('Set',j);
 	end;
+	 spm_progress_bar('Clear');
 else,
 	for j=1:length(z), msk{j} = uint32([]); end;
 end;
