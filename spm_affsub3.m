@@ -480,16 +480,11 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 		else,   wg         = ones(size(X)); end;
 
 		if ~isempty(VW2),
-			MatW             = inv(VG(1).mat\fun(P')*VW2(1).mat);
-			[XW,YW,ZW]       = aff_transform(MatW,X,Y,p);
-			[wf,dxW,dyW,dzW] = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
-			[dxW,dyW,dzW]    = transform_derivs(VW2(1).mat\VF(1).mat,dxW,dyW,dzW);
-		else,
-			wf               = ones(size(X));
-			dxW              = zeros(size(X));
-			dyW              = dxW;
-			dzW              = dxW;
-		end;
+			MatW       = inv(VG(1).mat\fun(P')*VW2(1).mat);
+			[XW,YW,ZW] = aff_transform(MatW,X,Y,p);
+			wf         = spm_sample_vol(VW2(1), XW, YW, ZW, 1);
+		else,   wf         = ones(size(X)); end;
+
 		wt    = sqrt(1./(1./(wg+eps) + 1./(wf+eps)));
 
 		% Only resample from within the volume VF.
@@ -535,16 +530,9 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 
 		% Generate matrix from rate of change of residuals wrt matrix elements.
 		%-----------------------------------------------------------------------
-		% Derivatives obtained by:
-		% maple diff((1/w1+1/w2(p1*b1(x)+p2*b2(x)))^(-1/2) * (p3*g-f(p1*b1(x)+p2*b2(x))),p1)
-		% to give something like:
-		% 	w = sqrt(1/(1/w1+1/w2))
-		% 	(1/2*w^3*(p3*g-f)/w2^2*D(w2)-w*D(f))*b1(x)
-
-		w1  = 0.5*(wt.*wt.*wt.*res+1e-20)./(wf.*wf+1e-12);
-		dx1 = w1.*dxW - wt.*dxF;
-		dy1 = w1.*dyW - wt.*dyF;
-		dz1 = w1.*dzW - wt.*dzF;
+		dx1 = -wt.*dxF;
+		dy1 = -wt.*dyF;
+		dz1 = -wt.*dzF;
 		dResdM(:,1:12) = [	X.*dx1 Y.*dx1 p*dx1 dx1 ...
 	       	            		X.*dy1 Y.*dy1 p*dy1 dy1 ...
 	       	            		X.*dz1 Y.*dz1 p*dz1 dz1 ];
@@ -570,7 +558,7 @@ for p=1:skipz:VG(1).dim(3),	% loop over planes
 			dxF  = wt.*(dxF - dxG);
 			dyF  = wt.*(dyF - dyG);
 			dzF  = wt.*(dzF - dzG);
-			dch2  = dch2 + [dxF'*dxF dyF'*dyF dzF'*dzF];
+			dch2 = dch2 + [dxF'*dxF dyF'*dyF dzF'*dzF];
 		end;
 	end;
 end;

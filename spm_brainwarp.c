@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU) %E%";
+static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL (& Matthew Brett MRCCU/CBU) %E%";
 #endif /* lint */
 
 #include <math.h>
@@ -224,8 +224,8 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					s2[1]>=1+edgeskip[1] && s2[1]<VF->dim[1]-edgeskip[1] &&
 					s2[2]>=1+edgeskip[2] && s2[2]<VF->dim[2]-edgeskip[2] )
 				{
-					double f, df[3], dv, dv1, dvds0[3];
-					double wtf, dwtf[3], wtg, wt;
+					double f, df[3], dv, dvds0[3];
+					double wtf, wtg, wt;
 					double s0d[3];
 					s0d[0]=s0[0];s0d[1]=s0[1];s0d[2]=s0[2];
 
@@ -239,14 +239,9 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					{
 						double s3[3];
 						MtimesX(MW, trans, s3);
-						resample_d(1,VWF,&wtf,&dwtf[0],&dwtf[1],&dwtf[2],s3,s3+1,s3+2, 1, 0.0);
-						transform_grads(MW, dwtf);
+						resample(1,VWF,&wtf,s3,s3+1,s3+2, 1, 0.0);
 					}
-					else
-					{
-						wtf = 1.0;
-						dwtf[0] = dwtf[1] = dwtf[2] = 0.0;
-					}
+					else wtf = 1.0;
 
 					if (wtf && wtg) wt = sqrt(1.0 /(1.0/wtf + 1.0/wtg));
 					else wt = 0.0;
@@ -278,14 +273,9 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 						dvds0[2] -= tmp*dg[2];
 					}
 
-					if (wtf>1e-6)
-						dv1 = 0.5*wt*wt*wt*dv/(wtf*wtf);
-					else
-						dv1 = 0.0;
-
 					for(i1=0; i1<3; i1++)
 					{
-						double tmp = dv1*dwtf[i1]-wt*df[i1];
+						double tmp = -wt*df[i1];
 						for(x1=0; x1<nx; x1++)
 							dvdt[i1*nx+x1] = tmp * B0[dim1[0]*x1+s0[0]];
 					}
