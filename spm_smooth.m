@@ -24,15 +24,12 @@ function spm_smooth(P,Q,s)
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
 
-
-% read and write header if we're working with files
-%-----------------------------------------------------------------------
-if isstr(P)
-	P   = spm_vol(P);
+if isstr(P), P = spm_vol(P); end;
+if isstruct(P),
 	VOX = sqrt(sum(P.mat(1:3,1:3).^2));
-else
+else,
 	VOX = [1 1 1];
-end
+end;
 
 if isstr(Q) & isstruct(P),
 	q         = Q;
