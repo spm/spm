@@ -101,10 +101,8 @@ fclose(fid);
 
 % convert to SPM global variables
 %---------------------------------------------------------------------------
-DIM    	  	= dim(2:5)';
-VOX       	= pixdim(2:5)';
-if DIM(4) 	== 1; DIM = DIM(1:3); end
-if VOX(4) 	== 0; VOX = VOX(1:3); end
+DIM    	  	= dim(2:4)';
+VOX       	= pixdim(2:4)';
 SCALE     	= funused1;
 SCALE    	= ~SCALE + SCALE;
 TYPE     	= datatype;
