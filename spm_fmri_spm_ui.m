@@ -135,7 +135,12 @@ sigma  = SIGMA/sqrt(8*log(2))/RT;
 
 % get design matrix
 %===========================================================================
-[X,Sess] = spm_fMRI_design(nscan,RT);
+if spm_input('Design Matrix: ',1,'b','create|load',[1 0])
+	[X,Sess] = spm_fMRI_design(nscan,RT);
+else
+	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
+	if ~exist('Sess'); Sess = []; end
+end
 
 
 % the interactive parts of spm_spm_ui are now finished
@@ -147,7 +152,7 @@ set(Finter,'Name','thankyou','Pointer','Watch')
 % Contruct convolution matrix
 %===========================================================================
 K     = [];
-for i = 1:length(Sess)
+for i = 1:length(nscan)
 	k      = nscan(i);
 	[x y]  = size(K);
 	K(([1:k] + x),([1:k] + y)) = spm_sptop(sigma,k);
@@ -177,8 +182,8 @@ for i  = 1:q, g(i) = spm_global(VY(i)); end
 if strcmp(Global,'Scaling')
 	gSF    = GM./g;
 else
-	for i = 1:length(Sess)
-		j      = Sess{i}.row;
+	for i = 1:length(nscan)
+		j      = find(X.bX(:,i));
 		gSF(j) = GM./mean(g(j));
 	end
 end
