@@ -71,7 +71,12 @@ for j=1:dim(3),
 		M1  = M\V1(i).mat\Mi;
 		img = spm_slice_vol(V1(i),M1,dim(1:2),[1 0]);
 		if nargin<3
-			msk = msk + (img~=0 & finite(img));
+			dt = V1(i).dim(4);
+			if (dt==2) | (dt==4) | (dt==8) | (dt==512) | (dt==1024) | (dt==2048), 
+				msk = msk + img~=0;
+			else,
+				msk = msk + finite(img);
+			end;
 		else,
 			msk = msk + (img>=thresh & finite(img));
 		end;
