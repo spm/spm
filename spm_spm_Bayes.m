@@ -188,19 +188,9 @@ for i = 1:s
 	%---------------------------------------------------------------
 	[C h W] = spm_reml(SPM.xVi.CY,X0,Q);
 
-	% check for negative variance component estimates
+	% check for negative variance components
 	%---------------------------------------------------------------
-	if any(h < 0)
-		Xname = SPM.xX.name{find(h == min(h))};
-		str = {	'Bayesian estimation is compromised';...
-			'by negative variance component estimates';...
-			[Xname 'was estimated imprecisely'];...
-			'Recommendation: Use a more';...
-			'parsimonious model'};
-		if spm_input(str,1,'bd','stop|continue',[1,0],1)
-			return
-		end
-	end
+	h       = abs(h);
 
 	% 2-level model for this partition using prior variances sP(i)
 	% treat confounds as fixed (i.e. infinite prior variance)
