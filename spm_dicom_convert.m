@@ -289,17 +289,17 @@ guff   = {};
 for i=1:length(hdr),
 	if ~checkfields(hdr{i},'Modality') | ~(strcmp(hdr{i}.Modality,'MR') |...
 		strcmp(hdr{i}.Modality,'PT') | strcmp(hdr{i}.Modality,'CT'))
-		disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
+		%disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
 		'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
-		disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
+		%disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient'),
-		disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
+		%disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	elseif ~checkfields(hdr{i},'StudyID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
-		disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
+		%disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	else,
 		images = {images{:},hdr{i}};
