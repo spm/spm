@@ -102,7 +102,7 @@ fg = figure('IntegerHandle','off',...
         'KeyPressFcn',@hitkey);
 
 fh = 0.05;
-fs = 10;
+%fs = 10;
 
 h1 = (0.96-4*fh-5*0.01)/2;
 if n(2)*fh<h1,
@@ -155,12 +155,12 @@ if strcmpi(typ,'image'),
         'style','edit',...
         'units','normalized',...
         'Position',[0.61 hp 0.37 fh],...
-        'FontSize',fs,...
         'Callback',@update_frames,...
         'tag','frame',...
-        'ForegroundGolor',col3,...
+        'FontSize',fs,...
         'BackgroundColor',col1,...
         'String','1','UserData',1);
+% 'ForegroundGolor',col3,...
 end;
 
 % Help
@@ -390,13 +390,15 @@ return;
 %=======================================================================
 function resize_fun(fg,varargin)
 ob = findobj(fg,'String','Filt','Style','pushbutton');
-ofs = get(ob,'FontSize');
-ex = get(ob,'Extent');
-ps = get(ob,'Position');
-fs = floor(ofs*min(ps(4)./ex(4))+1);
-fs = max(min(fs,30),4);
-ob = findobj(fg,'Fontsize',ofs);
-set(ob,'FontSize',fs);
+if ~isempty(ob),
+    ofs = get(ob,'FontSize');
+    ex = get(ob,'Extent');
+    ps = get(ob,'Position');
+    fs = floor(ofs*min(ps(4)./ex(4))+1);
+    fs = max(min(fs,30),4);
+    ob = findobj(fg,'Fontsize',ofs);
+    set(ob,'FontSize',fs);
+end;
 return;
 %=======================================================================
 
