@@ -209,7 +209,7 @@ global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
 if (nargin == 0)
 	% User interface.
 	%_______________________________________________________________________
-	SPMid = spm('FnBanner',mfilename,'%W%');
+	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 	spm_help('!ContextHelp','spm_realign.m');
 
@@ -293,13 +293,17 @@ if (nargin == 0)
 			else
 				def = 2;
 			end
-			DIR1 = [SWD '/coreg/'];
-			templates = str2mat([DIR1 'EPI.img'],[DIR1 'PET.img'], ...
-				[DIR1 'T1.img'], [DIR1 'T2.img'],[DIR1 'Transm.img']);
+			DIR1 = fullfile(SWD,'coreg');
+			templates = str2mat(	fullfile(DIR1,'EPI.img'),...
+						fullfile(DIR1,'PET.img'),...
+						fullfile(DIR1,'T1.img'),...
+						fullfile(DIR1,'T2.img'),...
+						fullfile(DIR1,'Transm.img'));
 			tmp = spm_input('Modality of images?',3,'m',...
 				'EPI MR images|PET images|T1 MR images|T2 MR images|Transm images',...
 				[1 2 3 4 5],def);
-			Q = str2mat(deblank(templates(tmp,:)),[SWD '/apriori/brainmask.img']);
+			Q = str2mat(deblank(templates(tmp,:)),...
+				fullfile(SWD,'apriori','brainmask.img'));
 		end
 		pos = pos + 1;
 	end

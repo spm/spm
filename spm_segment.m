@@ -57,7 +57,7 @@ function spm_segment(PF,PG,opts)
 % versions of those kindly supplied by Alan Evans, MNI, Canada
 % (ICBM, NIH P-20 project, Principal Investigator John Mazziotta).
 %_______________________________________________________________________
-% %W% (c) John Ashburner %E%
+% %W% John Ashburner %E%
 
 % Programmers notes
 %
@@ -90,11 +90,11 @@ if nargin<3
 end
 
 global SWD
-DIR1   = [SWD '/templates/'];
-DIR2   = [SWD '/apriori/'];
+DIR1   = fullfile(SWD,'templates');
+DIR2   = fullfile(SWD,'apriori');
 
 if (nargin==0)
-	SPMid = spm('FnBanner',mfilename,'%W%');
+	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Segment');
 	spm_help('!ContextHelp','spm_segment.m');
 
@@ -117,7 +117,10 @@ if (nargin==0)
 	if (tmp == 'n')
 		% Get template
 		%-----------------------------------------------------------------------
-		templates = str2mat([DIR1 'T1.img'], [DIR1 'T2.img'], [DIR1 'PD.img'], [DIR1 'EPI.img']);
+		templates = str2mat(	fullfile(DIR1,'T1.img'),...
+					fullfile(DIR1,'T2.img'),...
+					fullfile(DIR1,'PD.img'),...
+					fullfile(DIR1,'EPI.img'));
 
 		% Get modality of target
 		respt = spm_input('Modality of first image?','+1','m',...
@@ -181,7 +184,9 @@ end
 %_______________________________________________________________________
 
 %- A-Priori likelihood images.
-PB    = str2mat([DIR2 'gray.img'],[DIR2 'white.img'],[DIR2 'csf.img']);
+PB    = str2mat(	fullfile(DIR2,'gray.img'),...
+			fullfile(DIR2,'white.img'),...
+			fullfile(DIR2,'csf.img'));
 
 niter     = 64;      % Maximum number of iterations of Mixture Model
 nc        = [1 1 1 3]; % Number of clusters for each probability image
@@ -193,7 +198,7 @@ if ~isempty(PG) & isstr(PG)
 	% Affine normalisation
 	%-----------------------------------------------------------------------
 	MG = spm_get_space(PG(1,:));
-	spm_smooth(PF(1,:),'./spm_seg_tmp.img',8);
+	spm_smooth(PF(1,:),fullfile('.','spm_seg_tmp.img'),8);
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.
@@ -205,10 +210,12 @@ if ~isempty(PG) & isstr(PG)
 		prms = [0 0 0  0 0 0  1 1 1  0 0 0 ones(1,size(PG,1))]';
 	end
 	spm_chi2_plot('Init','Affine Registration','Convergence');
-	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 8, prms);
-	prms = spm_affsub3('affine3', PG, './spm_seg_tmp.img', 1, 6, prms);
+	prms = spm_affsub3('affine3', PG, fullfile('.','spm_seg_tmp.img'), 1, 8, prms);
+	prms = spm_affsub3('affine3', PG, fullfile('.','spm_seg_tmp.img'), 1, 6, prms);
 	spm_chi2_plot('Clear');
-	spm_unlink ./spm_seg_tmp.img ./spm_seg_tmp.hdr ./spm_seg_tmp.mat
+	spm_unlink(	fullfile('.','spm_seg_tmp.img'),...
+			fullfile('.','spm_seg_tmp.hdr'),...
+			fullfile('.','spm_seg_tmp.mat'))
 	MM = spm_matrix(prms);
 
 elseif all(size(PG) == [4 4])
