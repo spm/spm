@@ -1,6 +1,6 @@
-function [Z,XYZ,QQ,u,k,S,W,RES] = spm_projectionsF_ui(Action)
+function [Z,XYZ,QQ,u,k,S,W] = spm_projectionsF_ui(Action)
 % used to review results of statistical analysis (SPM{Z})
-% FORMAT [F,XYZ,QQ,u,k,S,W,RES] = spm_projectionsF_ui(Action)
+% FORMAT [F,XYZ,QQ,u,k,S,W] = spm_projectionsF_ui(Action)
 %
 % Action - 'Display'  - Calls spm_projections
 %        - 'Results'  - Just returns output variables
@@ -13,7 +13,6 @@ function [Z,XYZ,QQ,u,k,S,W,RES] = spm_projectionsF_ui(Action)
 % k      - selected extent threshold {voxels}
 % S      - search volume {voxels}
 % W      - smoothness estimators (of component fields)
-% RES    - SSQ of residuals
 %_______________________________________________________________________
 %
 % spm_projectionsF_ui allows the SPM{F} created by spm_spm.m to be
@@ -48,7 +47,6 @@ CWD = strrep(tmp,'/SPMF.mat','');
 %-----------------------------------------------------------------------
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
-load([CWD,'/RES'])
 load([CWD,'/SPMF'])
 
 QQ = (1:size(XYZ,2))';
@@ -75,7 +73,6 @@ if u < 1; u = spm_invFcdf(1 - u,Fdf); end
 %-----------------------------------------------------------------------
 Q     = find(Z > u);
 Z     = Z(Q);
-RES   = RES(Q);
 XYZ   = XYZ(:,Q);
 QQ    = QQ(Q);
 
@@ -104,7 +101,6 @@ end
 % eliminate voxels
 %-----------------------------------------------------------------------
 Z     = Z(Q);
-RES   = RES(Q);
 XYZ   = XYZ(:,Q);
 QQ    = QQ(Q);
 
