@@ -1,8 +1,8 @@
 function varargout = spm_list(varargin)
 % Display and analysis of SPM{.}
-% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,title)
+% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,Title)
 % Summary list of local maxima for entire volume of interest
-% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,title)
+% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,Title)
 % List of local maxima for a single suprathreshold cluster
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -28,14 +28,14 @@ function varargout = spm_list(varargin)
 % (see spm_getSPM for further details of SPM & VOL structures)
 %
 % Dis    - Minimum distance between maxima
-%          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
+%          {defaults (missing) to 8mm for 'List', 4mm for 'ListCluster'}
 % Num    - Maxiumum number of local maxima tabulated per cluster
-%          {defaults (missing or empty) to 2   for 'List', 16  for 'ListCluster'}
-% title  - title text for table
+%          {defaults (missing) to 2   for 'List', 16  for 'ListCluster'}
+% Title  - Title text for table
 %
 % TabDat - Structure containing table data
 %        - fields are
-% .tit   - table title (string)
+% .tit   - table Title (string)
 % .hdr   - table header (2x10 cell array)
 % .fmt   - fprintf format strings for table data (1x10 cell array)
 % .str   - table filtering note (string)
@@ -97,7 +97,7 @@ end
 %=======================================================================
 switch lower(varargin{1}), case 'list'                            %-List
 %=======================================================================
-% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,title)
+% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,Title)
 
 
 %-Tolerance for p-value underflow, when computing equivalent Z's
@@ -107,9 +107,9 @@ tol = eps*10;
 %-Parse arguments
 %-----------------------------------------------------------------------
 if nargin<3,   error('insufficient arguments'), end
-if nargin<6,   title = ['volume summary',...
+if nargin<6,   Title = ['volume summary',...
 			' (p-values corrected for entire volume)'];
-	else,  title = varargin{6}; end
+	else,  Title = varargin{6}; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
 if isempty(Num), Num = 3;  end
@@ -145,7 +145,7 @@ PF        = spm_platform('fonts');		%-Font names (for this platform)
 %-Table header & footer
 %=======================================================================
 
-%-Table axes & title
+%-Table axes & Title
 %-----------------------------------------------------------------------
 hAx   = axes('Position',[0.05 0.1 0.9 0.4],...
 	'DefaultTextFontSize',FS(8),...
@@ -157,7 +157,7 @@ AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
 dy    = FS(9);
 y     = floor(AxPos(4)) - dy;
 
-text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',title],...
+text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',Title],...
 	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
 line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 
@@ -175,7 +175,7 @@ h = text(0.09,y-9*dy/8,	'\itc ');				Hc = [Hc,h];
 text(0.22,y,		'cluster-level','FontSize',FS(9))
 line([0.16,0.42],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
 text(0.16,y-9*dy/8,	'\itp \rm_{corrected}')
-text(0.28,y-9*dy/8,	'\itk')
+text(0.28,y-9*dy/8,	'\itk \rm_E')
 text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}')
 
 text(0.60,y,		'voxel-level','FontSize',FS(9))
@@ -188,11 +188,11 @@ text(0.75,y-9*dy/8,	'\itp \rm_{uncorrected}')
 text(0.90,y - dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
 
 %-Headers for text table...
-TabDat.tit = title;
+TabDat.tit = Title;
 TabDat.hdr = {	'set',		'c';...
 		'set',		'p';...
 		'cluster',	'p(cor)';...
-		'cluster',	'k';...
+		'cluster',	'equivk';...
 		'cluster',	'p(unc)';...
 		'voxel',	'p(cor)';...
 		'voxel',	STAT;...
@@ -295,7 +295,12 @@ end
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
-N         = N*v2r;
+if isfield(varargin{3},'VRVP')
+	V2R = spm_sample_vol(varargin{3}.VRVP,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+else
+	V2R = v2r;
+end
+N         = N.*V2R;
 
 %-Convert maxima locations from voxels to mm
 %-----------------------------------------------------------------------
@@ -494,29 +499,30 @@ spm('Pointer','Arrow')
 %=======================================================================
 case 'listcluster'                       %-List for current cluster only
 %=======================================================================
-% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,title)
+% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,Title)
 
 spm('Pointer','Watch')
 
 %-Parse arguments
 %-----------------------------------------------------------------------
 if nargin<3,   error('insufficient arguments'), end
-if nargin<6,   title = ['single cluster summary',...
+if nargin<6,   Title = ['single cluster summary',...
 			' (p-values corrected for entire volume)'];
-	else,  title = varargin{6}; end
+	else,  Title = varargin{6}; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
 if isempty(Num), Num = 16; end
 if nargin<4,     Dis = [];
 	else,    Dis = varargin{4}; end
 if isempty(Dis), Dis = 4;  end
-% VOL is varargin{3} - Use by reference for speed
-SPM = varargin{2};
+VOL  = varargin{3};
+SPM  = varargin{2};
 
 
 %-if there are suprathreshold voxels, filter out all but current cluster
 %-----------------------------------------------------------------------
 if length(SPM.Z)
+
 	%-Jump to voxel nearest current location
 	[xyzmm,i] = spm_XYZreg('NearestXYZ',...
 			spm_results_ui('GetCoords'),SPM.XYZmm);
@@ -528,11 +534,12 @@ if length(SPM.Z)
 	SPM.Z     = SPM.Z(j);
 	SPM.XYZ   = SPM.XYZ(:,j);
 	SPM.XYZmm = SPM.XYZmm(:,j);
+	if isfield(VOL,'Rd'), VOL.Rd = VOL.Rd(:,j); end
 end
 
 %-Call 'list' functionality to produce table
 %-----------------------------------------------------------------------
-varargout = {spm_list('list',SPM,varargin{3},Dis,Num,title)};
+varargout = {spm_list('list',SPM,VOL,Dis,Num,Title)};
 
 
 
@@ -547,7 +554,7 @@ if nargin<2, error('Insufficient arguments'), end
 if nargin<3, c=1; else, c=varargin{3}; end
 TabDat = varargin{2};
 
-%-Table title
+%-Table Title
 %-----------------------------------------------------------------------
 fprintf('\n\nSTATISTICS: %s\n',TabDat.tit)
 fprintf('%c','='*ones(1,80)), fprintf('\n')
