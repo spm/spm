@@ -834,7 +834,15 @@ case {'fontsize','fontsizes'}
 %=======================================================================
 % FS = spm('FontSizes',FS)
 if nargin<2, FS=[1:36]; else, FS=varargin{2}; end
-varargout = {round(FS*min(spm('WinScale')))};
+WS  = spm('WinScale');
+WS  = WS(1:2)-1;
+tmp = min(find(abs(WS)==min(abs(WS))));
+sf  = 1 + 0.8*WS(tmp);
+if sf<1
+	varargout = {ceil(FS*sf)};
+else
+	varargout = {floor(FS*sf)};
+end
 
 
 case 'winsize'
