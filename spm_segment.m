@@ -197,7 +197,7 @@ end
 % Create headers, open files etc...
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(PF(1,:));
 M = MF;
-for j=1:size(VB,2)
+for j=1:(size(VB,2)+1)
 	iname = [spm_str_manip(PF(1,:),'rd') '_seg' num2str(j)];
 	fp(j) = fopen([iname '.img'],'w');
 	spm_hwrite([iname '.img'],DIM,VOX,1/255,2,0,ORIGIN,'Segmented image');
@@ -251,7 +251,7 @@ for p=1:VF(3)
 end
 fprintf('\n');
 
-for j=1:size(VB,2)
+for j=1:(size(VB,2)+1)
 	fclose(fp(j));
 end
 
