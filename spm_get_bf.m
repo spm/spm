@@ -88,7 +88,8 @@ switch Rov
 		'basis functions (Fourier set)',...
 		'basis functions (Fourier set with Hanning)',...
 		'basis functions (Gamma functions)',...
-		'basis functions (Gamma functions with derivatives)'};
+		'basis functions (Gamma functions with derivatives)',...
+		'basis functions (Finite Impulse Response)'};
 	str   = 'Select basis set';
 	Cov   = spm_input(str,2,'m',Ctype,'batch',...
                              {'conditions',n_s,'bf_ev',n_c},'ev_type');
@@ -140,6 +141,19 @@ switch Rov
 		if Cov == 7
 			bf  = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
 		end
+
+
+	elseif Cov == 8
+
+
+		% Finite Impulse Response
+		%-------------------------------------------------------
+		bin   = spm_input('bin size (seconds)',3,'e',2,'batch',...
+                                 {'conditions',n_s,'bf_ev',n_c},'binsize');	
+		nb    = spm_input('number of bins',4,'e',8,'batch',...
+                                 {'conditions',n_s,'bf_ev',n_c},'binsize');
+
+		bf    = kron(eye(nb),ones(round(bin/dt),1));
 
 
 	elseif Cov == 1 | Cov == 2 | Cov == 3
