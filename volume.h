@@ -6,7 +6,7 @@ static char hdr_sccsid[]="%W% John Ashburner %E%";
 #endif
 #include <sys/types.h>
 #include <sys/mman.h>
-#include "cmex.h"
+#include "mex.h"
 
 #define MAGIC 110494
 typedef struct maptype

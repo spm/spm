@@ -3,7 +3,7 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include <math.h>
-#include "cmex.h"
+#include "mex.h"
 #include "volume.h"
 
 
@@ -17,9 +17,9 @@ Matrix *plhs[], *prhs[];
 {
 	MAPTYPE *map;
 	int m,n, k, hold, xdim,ydim,zdim;
-	double *img, background=0.0;
+	double background=0.0;
 
-	if (nrhs != 5 || nlhs > 1)
+	if (nrhs != 5 || nlhs > 4)
 	{
 		mexErrMsgTxt("Inappropriate usage.");
 	}
@@ -46,37 +46,33 @@ Matrix *plhs[], *prhs[];
 		(mxGetM(prhs[4])*mxGetN(prhs[4]) != 1 && mxGetM(prhs[4])*mxGetN(prhs[4]) != 2))
 		mexErrMsgTxt("Bad hold & background argument.");
 
-	hold = abs((int)(*(mxGetPr(prhs[4]))));
+	hold = (int)(*(mxGetPr(prhs[4])));
+
+	if (abs(hold) > 127)
+		mexErrMsgTxt("Bad hold value.");
 
 	if (mxGetM(prhs[4])*mxGetN(prhs[4]) > 1)
 		background = mxGetPr(prhs[4])[1];
 
-	plhs[0] = mxCreateFull(m,n,REAL);
-	img = mxGetPr(plhs[0]);
+	if (nlhs<=1)
+	{
+		plhs[0] = mxCreateFull(m,n,REAL);
 
-	if (hold > 127 || hold == 2)
-		mexErrMsgTxt("Bad hold value.");
-
-	if (map->datatype == UNSIGNED_CHAR)
-		resample_uchar(m*n, map->data, img,
+		resample(m*n, map->data, mxGetPr(plhs[0]),
 			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
-				hold, background, map->scalefactor);
-	else if (map->datatype == SIGNED_SHORT)
-		resample_short(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
-				hold, background, map->scalefactor);
-	else if (map->datatype == SIGNED_INT)
-		resample_int(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
-				hold, background, map->scalefactor);
-	else if (map->datatype == FLOAT)
-		resample_float(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
-				hold, background, map->scalefactor);
-	else if (map->datatype == DOUBLE)
-		resample_double(m*n, map->data, img,
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
-				hold, background, map->scalefactor);
+			hold, background, map->scalefactor,0.0,map->datatype);
+	}
 	else
-		mexErrMsgTxt("Bad datatype.");
+	{
+		if (hold==0)
+			mexErrMsgTxt("This wont work for nearest neighbour resampling.");
+		plhs[0] = mxCreateFull(m,n,REAL);
+		plhs[1] = mxCreateFull(m,n,REAL);
+		plhs[2] = mxCreateFull(m,n,REAL);
+		plhs[3] = mxCreateFull(m,n,REAL);
+
+		resample_d(m*n, map->data, mxGetPr(plhs[0]),mxGetPr(plhs[1]),mxGetPr(plhs[2]),mxGetPr(plhs[3]),
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim,
+			hold, background, map->scalefactor,0.0,map->datatype);
+	}
 }

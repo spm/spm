@@ -3,7 +3,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
 #include <math.h>
-#include "cmex.h"
+#include "mex.h"
 #include "volume.h"
 
 #ifdef __STDC__
@@ -60,29 +60,15 @@ Matrix *plhs[], *prhs[];
 	{
 		mexErrMsgTxt("Hold & background argument must have one or two element(s).");
 	}
-	hold = abs((int)(*(mxGetPr(prhs[3]))));
-	if (hold > 127 || hold == 2)
+	hold = (int)(*(mxGetPr(prhs[3])));
+	if (abs(hold) > 127)
 		mexErrMsgTxt("Bad hold value.");
 
 	if (mxGetM(prhs[3])*mxGetN(prhs[3]) > 1)
 		background = mxGetPr(prhs[3])[1];
 
-	status = 1;
-	if (map->datatype == UNSIGNED_CHAR)
-		status = slice_uchar(mat, img, m, n, map->data, xdim, ydim, zdim,
-			hold, background, map->scalefactor);
-	else if (map->datatype == SIGNED_SHORT)
-		status = slice_short(mat, img, m, n, map->data, xdim, ydim, zdim,
-			hold, background, map->scalefactor);
-	else if (map->datatype == SIGNED_INT)
-		status = slice_int(mat, img, m, n, map->data, xdim, ydim, zdim,
-			hold, background, map->scalefactor);
-	else if (map->datatype == FLOAT)
-		status = slice_float(mat, img, m, n, map->data, xdim, ydim, zdim,
-			hold, background, map->scalefactor);
-	else if (map->datatype == DOUBLE)
-		status = slice_double(mat, img, m, n, map->data, xdim, ydim, zdim,
-			hold, background, map->scalefactor);
+	status = slice(mat, img, m, n, map->data, xdim, ydim, zdim,
+		hold, background, map->scalefactor,0.0,map->datatype);
 	if (status)
 		mexErrMsgTxt("Slicing failed.");
 }

@@ -7,118 +7,170 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #ifdef UNSIGNED_CHAR
 #define RESAMPLE resample_uchar
+#define RESAMPLE_D resample_d_uchar
 #define SLICE slice_uchar
-#define IMAGE_DTYPE unsigned char
 #define RESAMPLE_0 resample_uchar_0
 #define RESAMPLE_1 resample_uchar_1
-#define RESAMPLE_SINC resample_uchar_sinc
+#define RESAMPLE_D_1 resample_d_uchar_1
+#define RESAMPLE_POLY resample_uchar_poly
+#define RESAMPLE_D_POLY resample_d_uchar_poly
 #define SLICE_0 slice_uchar_0
 #define SLICE_1 slice_uchar_1
-#define SLICE_SINC slice_uchar_sinc
+#define SLICE_POLY slice_uchar_poly
+#define PLANE plane_uchar
+#define GET(x) (x)
+#define IMAGE_DTYPE unsigned char
+#endif
 
-#elif SIGNED_SHORT
+#ifdef SIGNED_SHORT
+#ifdef BYTESWAP
+#define GET(x) getshort(x)
+#define RESAMPLE resample_short_s
+#define RESAMPLE_D resample_d_short_s
+#define SLICE slice_short_s
+#define RESAMPLE_0 resample_short_s_0
+#define RESAMPLE_1 resample_short_s_1
+#define RESAMPLE_D_1 resample_d_short_s_1
+#define RESAMPLE_POLY resample_short_s_poly
+#define RESAMPLE_D_POLY resample_d_short_s_poly
+#define SLICE_0 slice_short_s_0
+#define SLICE_1 slice_short_s_1
+#define SLICE_POLY slice_short_s_poly
+#define PLANE plane_short_s
+#else
+#define GET(x) (x)
 #define RESAMPLE resample_short
+#define RESAMPLE_D resample_d_short
 #define SLICE slice_short
-#define IMAGE_DTYPE short int
 #define RESAMPLE_0 resample_short_0
 #define RESAMPLE_1 resample_short_1
-#define RESAMPLE_SINC resample_short_sinc
+#define RESAMPLE_D_1 resample_d_short_1
+#define RESAMPLE_POLY resample_short_poly
+#define RESAMPLE_D_POLY resample_d_short_poly
 #define SLICE_0 slice_short_0
 #define SLICE_1 slice_short_1
-#define SLICE_SINC slice_short_sinc
+#define SLICE_POLY slice_short_poly
+#define PLANE plane_short
+#endif
+#define IMAGE_DTYPE short int
+#endif
 
-#elif SIGNED_INT
+#ifdef SIGNED_INT
+#ifdef BYTESWAP
+#define GET(x) getint(x)
+#define RESAMPLE resample_int_s
+#define RESAMPLE_D resample_d_int_s
+#define SLICE slice_int_s
+#define RESAMPLE_0 resample_int_s_0
+#define RESAMPLE_1 resample_int_s_1
+#define RESAMPLE_D_1 resample_d_int_s_1
+#define RESAMPLE_POLY resample_int_s_poly
+#define RESAMPLE_D_POLY resample_d_int_s_poly
+#define SLICE_0 slice_int_s_0
+#define SLICE_1 slice_int_s_1
+#define SLICE_POLY slice_int_s_poly
+#define PLANE plane_int_s
+#else
+#define GET(x) (x)
 #define RESAMPLE resample_int
+#define RESAMPLE_D resample_d_int
 #define SLICE slice_int
-#define IMAGE_DTYPE int
 #define RESAMPLE_0 resample_int_0
 #define RESAMPLE_1 resample_int_1
-#define RESAMPLE_SINC resample_int_sinc
+#define RESAMPLE_D_1 resample_d_int_1
+#define RESAMPLE_POLY resample_int_poly
+#define RESAMPLE_D_POLY resample_d_int_poly
 #define SLICE_0 slice_int_0
 #define SLICE_1 slice_int_1
-#define SLICE_SINC slice_int_sinc
+#define SLICE_POLY slice_int_poly
+#define PLANE plane_int
+#endif
+#define IMAGE_DTYPE int
+#endif
 
-#elif FLOAT
+#ifdef FLOAT
+#ifdef BYTESWAP
+#define GET(x) getfloat(x)
+#define RESAMPLE resample_float_s
+#define RESAMPLE_D resample_d_float_s
+#define SLICE slice_float_s
+#define RESAMPLE_0 resample_float_s_0
+#define RESAMPLE_1 resample_float_s_1
+#define RESAMPLE_D_1 resample_d_float_s_1
+#define RESAMPLE_POLY resample_float_s_poly
+#define RESAMPLE_D_POLY resample_d_float_s_poly
+#define SLICE_0 slice_float_s_0
+#define SLICE_1 slice_float_s_1
+#define SLICE_POLY slice_float_s_poly
+#define PLANE plane_float_s
+#else
+#define GET(x) (x)
 #define RESAMPLE resample_float
+#define RESAMPLE_D resample_d_float
 #define SLICE slice_float
-#define IMAGE_DTYPE float
 #define RESAMPLE_0 resample_float_0
 #define RESAMPLE_1 resample_float_1
-#define RESAMPLE_SINC resample_float_sinc
+#define RESAMPLE_D_1 resample_d_float_1
+#define RESAMPLE_POLY resample_float_poly
+#define RESAMPLE_D_POLY resample_d_float_poly
 #define SLICE_0 slice_float_0
 #define SLICE_1 slice_float_1
-#define SLICE_SINC slice_float_sinc
+#define SLICE_POLY slice_float_poly
+#define PLANE plane_float
+#endif
+#define IMAGE_DTYPE float
+#endif
 
-#elif DOUBLE
+#ifdef DOUBLE
+#ifdef BYTESWAP
+#define GET(x) getdouble(x)
+#define RESAMPLE resample_double_s
+#define RESAMPLE_D resample_d_double_s
+#define SLICE slice_double_s
+#define RESAMPLE_0 resample_double_s_0
+#define RESAMPLE_1 resample_double_s_1
+#define RESAMPLE_D_1 resample_d_double_s_1
+#define RESAMPLE_POLY resample_double_s_poly
+#define RESAMPLE_D_POLY resample_d_double_s_poly
+#define SLICE_0 slice_double_s_0
+#define SLICE_1 slice_double_s_1
+#define SLICE_POLY slice_double_s_poly
+#define PLANE plane_double_s
+#else
+#define GET(x) (x)
 #define RESAMPLE resample_double
+#define RESAMPLE_D resample_d_double
 #define SLICE slice_double
-#define IMAGE_DTYPE double
 #define RESAMPLE_0 resample_double_0
 #define RESAMPLE_1 resample_double_1
-#define RESAMPLE_SINC resample_double_sinc
+#define RESAMPLE_D_1 resample_d_double_1
+#define RESAMPLE_POLY resample_double_poly
+#define RESAMPLE_D_POLY resample_d_double_poly
 #define SLICE_0 slice_double_0
 #define SLICE_1 slice_double_1
-#define SLICE_SINC slice_double_sinc
-
-#else
-#define RESAMPLE resample_uchar
-#define SLICE slice_uchar
-#define IMAGE_DTYPE unsigned char
-#define RESAMPLE_0 resample_uchar_0
-#define RESAMPLE_1 resample_uchar_1
-#define RESAMPLE_SINC resample_uchar_sinc
-#define SLICE_0 slice_uchar_0
-#define SLICE_1 slice_uchar_1
-#define SLICE_SINC slice_uchar_sinc
+#define SLICE_POLY slice_double_poly
+#define PLANE plane_double
+#endif
+#define IMAGE_DTYPE double
 #endif
 
 #include <math.h>
 
-#ifndef NOLOOKUP
-/* Generate a sinc lookup table with a Hanning filter envelope */
-void make_lookup(coord,nn,dim, d1, table,ptpend)
-double coord;
-double table[], **ptpend;
-int nn, dim, *d1;
-{
-	register int d2, d, fcoord;
-	register double *tp, *tpend, dtmp;
+extern void	make_lookup_sinc(), make_lookup_poly(),
+		make_lookup_sinc_grad(), make_lookup_poly_grad();
+extern short getshort();
+extern int getint();
+extern float getfloat();
+extern double getdouble();
 
-	if (fabs(coord-rint(coord))<0.00001)
-	{
-		/* Close enough to use nearest neighbour */
-		*d1=rint(coord);
-		if (*d1<1 || *d1>dim) /* Pixel location outside image */
-			*ptpend = table-1;
-		else
-		{
-			table[0]=1.0;
-			*ptpend = table;
-		}
-	}
-	else
-	{
-		fcoord = floor(coord);
-		*d1 = fcoord-nn;
-		if (*d1<1) *d1=1;
-		d2 = fcoord+nn;
-		if (d2>dim) d2 = dim;
+static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
 
-		*ptpend = tpend = table+(d2 - *d1);
-		d = *d1, tp = table;
-		while (tp <= tpend)
-		{
-			dtmp = PI*(coord-(d++));
-			*(tp++) = sin(dtmp)/dtmp* 0.5*(1.0 + cos(dtmp/nn)) ;
-		}
-	}
-}
-#endif
+
 
 /* Zero order hold resampling - nearest neighbour */
-void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale)
+void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale,offset)
 int m, xdim,ydim,zdim;
-double out[], x[], y[], z[], background, scale;
+double out[], x[], y[], z[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
 	int i;
@@ -131,16 +183,16 @@ IMAGE_DTYPE vol[];
 		zcoord = z[i]+0.5;
 		if (xcoord>=1 && xcoord<=xdim && ycoord>=1 &&
 			ycoord<=ydim && zcoord>=1 && zcoord<=zdim)
-			out[i] = scale*vol[xcoord  + xdim*(ycoord  + ydim*(zcoord))];
+			out[i] = scale*GET(vol[xcoord  + xdim*(ycoord  + ydim*(zcoord))])+offset;
 		else out[i] = background;
 	}
 }
 
 
 /* First order hold resampling - trilinear interpolation */
-void RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale)
+void RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale,offset)
 int m, xdim,ydim,zdim;
-double out[], x[], y[], z[], background, scale;
+double out[], x[], y[], z[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
 	int i, dim1xdim2 = xdim*ydim;
@@ -169,26 +221,98 @@ IMAGE_DTYPE vol[];
 			zcoord = (zcoord < 1) ? ((offz=0),1) : ((offz=(zcoord>=zdim) ? 0 : dim1xdim2),zcoord);
 
 			off1 = xcoord  + xdim*(ycoord  + ydim*zcoord);
-			k222 = vol[off1]; k122 = vol[off1+offx]; off2 = off1+offy;
-			k212 = vol[off2]; k112 = vol[off2+offx]; off1+= offz;
-			k221 = vol[off1]; k121 = vol[off1+offx]; off2 = off1+offy;
-			k211 = vol[off2]; k111 = vol[off2+offx];
+			k222 = GET(vol[off1]); k122 = GET(vol[off1+offx]); off2 = off1+offy;
+			k212 = GET(vol[off2]); k112 = GET(vol[off2+offx]); off1+= offz;
+			k221 = GET(vol[off1]); k121 = GET(vol[off1+offx]); off2 = off1+offy;
+			k211 = GET(vol[off2]); k111 = GET(vol[off2+offx]);
 
 			/* resampled pixel value (trilinear interpolation) */
 			out[i] = scale*(((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
-				+ ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1);
+				+ ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1) + offset;
 		}
 		else out[i] = background;
 
 	}
 }
 
+/* First order hold resampling - trilinear interpolation */
+void RESAMPLE_D_1(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim,background, scale,offset)
+int m, xdim,ydim,zdim;
+double out[],gradx[],grady[],gradz[], x[], y[], z[], background, scale,offset;
+IMAGE_DTYPE vol[];
+{
+	int i, dim1xdim2 = xdim*ydim;
+	vol -= (1 + xdim*(1 + ydim));
+	for (i=0; i<m; i++)
+	{
+		double xi,yi,zi;
+		xi=x[i];
+		yi=y[i];
+		zi=z[i];
+		if (zi>=1-TINY && zi<=zdim+TINY &&
+		    yi>=1-TINY && yi<=ydim+TINY &&
+		    xi>=1-TINY && xi<=xdim+TINY)
+		{
+			double k111,k112,k121,k122,k211,k212,k221,k222;
+			double dx1, dx2, dy1, dy2, dz1, dz2;
+			int off1, off2, offx, offy, offz, xcoord, ycoord, zcoord;
+
+			xcoord = (int)floor(xi); dx1=xi-xcoord; dx2=1.0-dx1;
+			ycoord = (int)floor(yi); dy1=yi-ycoord; dy2=1.0-dy1;
+			zcoord = (int)floor(zi); dz1=zi-zcoord; dz2=1.0-dz1;
+
+			xcoord = (xcoord < 1) ? ((offx=0),1) : ((offx=(xcoord>=xdim) ? 0 : 1        ),xcoord);
+			ycoord = (ycoord < 1) ? ((offy=0),1) : ((offy=(ycoord>=ydim) ? 0 : xdim     ),ycoord);
+			zcoord = (zcoord < 1) ? ((offz=0),1) : ((offz=(zcoord>=zdim) ? 0 : dim1xdim2),zcoord);
+
+			off1 = xcoord  + xdim*(ycoord  + ydim*zcoord);
+			k222 = GET(vol[off1]); k122 = GET(vol[off1+offx]); off2 = off1+offy;
+			k212 = GET(vol[off2]); k112 = GET(vol[off2+offx]); off1+= offz;
+			k221 = GET(vol[off1]); k121 = GET(vol[off1+offx]); off2 = off1+offy;
+			k211 = GET(vol[off2]); k111 = GET(vol[off2+offx]);
+
+			/* resampled pixel value (trilinear interpolation) and gradients
+			   old code:
+			gradx[i] = scale*(((k111     - k211    )*dy1 + (k121     - k221    )*dy2)*dz1
+			                + ((k112     - k212    )*dy1 + (k122     - k222    )*dy2)*dz2);
+			grady[i] = scale*(((k111*dx1 + k211*dx2)     - (k121*dx1 + k221*dx2)    )*dz1
+			                + ((k112*dx1 + k212*dx2)     - (k122*dx1 + k222*dx2)    )*dz2);
+			gradz[i] = scale*(((k111*dx1 + k211*dx2)*dy1 + (k121*dx1 + k221*dx2)*dy2)
+			                - ((k112*dx1 + k212*dx2)*dy1 + (k122*dx1 + k222*dx2)*dy2)    );
+
+			out[i]   = scale*(((k111*dx1 + k211*dx2)*dy1 + (k121*dx1 + k221*dx2)*dy2)*dz1
+			                + ((k112*dx1 + k212*dx2)*dy1 + (k122*dx1 + k222*dx2)*dy2)*dz2) + offset; */
+
+			gradx[i] = scale*(((k111 - k211)*dy1 + (k121 - k221)*dy2)*dz1
+			                + ((k112 - k212)*dy1 + (k122 - k222)*dy2)*dz2);
+
+			k111 = k111*dx1 + k211*dx2; k121 = k121*dx1 + k221*dx2;
+			k112 = k112*dx1 + k212*dx2; k122 = k122*dx1 + k222*dx2;
+
+			grady[i] = scale*((k111 - k121)*dz1 + (k112 - k122)*dz2);
+
+			k111 = k111*dy1 + k121*dy2;
+			k112 = k112*dy1 + k122*dy2;
+
+			gradz[i] = scale*(k111 - k112);
+			out[i]   = scale*(k111*dz1 + k112*dz2) + offset;
+		}
+		else
+		{
+			out[i]   = background;
+			gradx[i] = 0.0;
+			grady[i] = 0.0;
+			gradz[i] = 0.0;
+		}
+	}
+}
+
 
 
 /* Sinc resampling */
-void RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, nn,background, scale)
-int m, xdim,ydim,zdim, nn;
-double out[], x[], y[], z[], background, scale;
+void RESAMPLE_POLY(m,vol,out,x,y,z,xdim,ydim,zdim, q,background, scale,offset)
+int m, xdim,ydim,zdim, q;
+double out[], x[], y[], z[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
 	int i, dim1xdim2 = xdim*ydim;
@@ -205,9 +329,9 @@ IMAGE_DTYPE vol[];
 			IMAGE_DTYPE *dp1;
 			double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
 
-			make_lookup(x[i], nn, xdim, &dx1, tablex, &tp3end);
-			make_lookup(y[i], nn, ydim, &dy1, tabley, &tp2end);
-			make_lookup(z[i], nn, zdim, &dz1, tablez, &tp1end);
+			make_lookup(x[i], q, xdim, &dx1, tablex, &tp3end);
+			make_lookup(y[i], q, ydim, &dy1, tabley, &tp2end);
+			make_lookup(z[i], q, zdim, &dz1, tablez, &tp1end);
 
 			tp1 = tablez;
 			dy1 *= xdim;
@@ -223,23 +347,93 @@ IMAGE_DTYPE vol[];
 					register double dat3 = 0.0, *tp3 = tablex;
 					register IMAGE_DTYPE *dp3 = dp2 + dx1;
 					while(tp3 <= tp3end)
-						dat3 += *(dp3++) * *(tp3++);
+						dat3 += GET(*(dp3++)) * *(tp3++);
 					dat2 += dat3 * *(tp2++);
 					dp2 += xdim;
 				}
 				dat += dat2 * *(tp1++);
 				dp1 += dim1xdim2;
 			}
-			out[i] = scale*dat;
+			out[i] = scale*dat + offset;
 		}
 		else out[i] = background;
 	}
 }
 
+/* Sinc resampling */
+void RESAMPLE_D_POLY(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, q,background, scale,offset)
+int m, xdim,ydim,zdim, q;
+double out[],gradx[],grady[],gradz[], x[], y[], z[], background, scale,offset;
+IMAGE_DTYPE vol[];
+{
+	int i, dim1xdim2 = xdim*ydim;
+	int dx1, dy1, dz1;
+	static double  tablex[255],  tabley[255],  tablez[255];
+	static double dtablex[255], dtabley[255], dtablez[255];
+
+	vol -= (1 + xdim*(1 + ydim));
+	for (i=0; i<m; i++)
+	{
+		if (z[i]>=1-TINY && z[i]<=zdim+TINY &&
+		    y[i]>=1-TINY && y[i]<=ydim+TINY &&
+		    x[i]>=1-TINY && x[i]<=xdim+TINY)
+		{
+			IMAGE_DTYPE *d1;
+			double dat=0.0, datx = 0.0, daty = 0.0, datz = 0.0,
+			      *tp1, *tp1end, *tp2end, *tp3end, *dp1;
+			make_lookup_grad(x[i], q, xdim, &dx1, tablex, dtablex, &tp3end);
+			make_lookup_grad(y[i], q, ydim, &dy1, tabley, dtabley, &tp2end);
+			make_lookup_grad(z[i], q, zdim, &dz1, tablez, dtablez, &tp1end);
+			tp1 =  tablez;
+			dp1 = dtablez;
+			dy1 *= xdim;
+			d1  = vol + dim1xdim2*dz1;
+			while(tp1 <= tp1end)
+			{
+				IMAGE_DTYPE *d2 = d1 + dy1;
+				double dat2  = 0.0, *tp2 =  tabley;
+				double dat2x = 0.0, *dp2 = dtabley, dat2y = 0.0;
+				while (tp2 <= tp2end)
+				{
+					register IMAGE_DTYPE *d3 = d2 + dx1;
+					register double dat3  = 0.0, *tp3 =  tablex;
+					register double dat3x = 0.0, *dp3 = dtablex;
+					while(tp3 <= tp3end)
+					{
+						dat3x += GET(*(d3  )) * *(dp3++);
+						dat3  += GET(*(d3++)) * *(tp3++);
+					}
+					dat2x += dat3x * *(tp2  );
+					dat2  += dat3  * *(tp2++);
+					dat2y += dat3  * *(dp2++);
+					d2 += xdim;
+				}
+
+				datx += dat2x * *(tp1  );
+				daty += dat2y * *(tp1  );
+				dat  += dat2  * *(tp1++);
+				datz += dat2  * *(dp1++);
+				d1 += dim1xdim2;
+			}
+			out[i]   = scale*dat +offset;
+			gradx[i] = scale*datx;
+			grady[i] = scale*daty;
+			gradz[i] = scale*datz;
+		}
+		else
+		{
+			out[i]   = background;
+			gradx[i] = 0.0;
+			grady[i] = 0.0;
+			gradz[i] = 0.0;
+		}
+	}
+}
+
 
 /* Zero order hold resampling - nearest neighbour */
-SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale)
-double  mat[16], background, scale;
+int SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale,offset)
+double  mat[16], background, scale,offset;
 double image[];
 IMAGE_DTYPE vol[];
 int xdim1, ydim1, xdim2, ydim2, zdim2;
@@ -270,7 +464,7 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 			iy4 = rint((y3 += dy3)/s3);
 			iz4 = rint((z3 += dz3)/s3);
 			if (iz4>=1 && iz4<=zdim2 && iy4>=1 && iy4<=ydim2 && ix4>=1 && ix4<=xdim2)
-				image[t] = scale*(double)vol[ix4 + xdim2*(iy4 + ydim2*iz4)];
+				image[t] = scale*(double)GET(vol[ix4 + xdim2*(iy4 + ydim2*iz4)]) + offset;
 			else image[t] = background;
 			t++;
 		}
@@ -281,8 +475,8 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 #define TINY 5e-2
 
 /* First order hold resampling - trilinear interpolation */
-SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale)
-double  mat[16], background, scale;
+int SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale,offset)
+double  mat[16], background, scale,offset;
 double image[];
 IMAGE_DTYPE vol[];
 int xdim1, ydim1, xdim2, ydim2, zdim2;
@@ -328,14 +522,14 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 				iz4 = (iz4 < 1) ? ((offz=0),1) : ((offz=(iz4>=zdim2) ? 0 : dim1xdim2),iz4);
 
 				off1 = ix4  + xdim2*(iy4  + ydim2*iz4);
-				k222 = vol[off1]; k122 = vol[off1+offx]; off2 = off1+offy;
-				k212 = vol[off2]; k112 = vol[off2+offx]; off1+= offz;
-				k221 = vol[off1]; k121 = vol[off1+offx]; off2 = off1+offy;
-				k211 = vol[off2]; k111 = vol[off2+offx];
+				k222 = GET(vol[off1]); k122 = GET(vol[off1+offx]); off2 = off1+offy;
+				k212 = GET(vol[off2]); k112 = GET(vol[off2+offx]); off1+= offz;
+				k221 = GET(vol[off1]); k121 = GET(vol[off1+offx]); off2 = off1+offy;
+				k211 = GET(vol[off2]); k111 = GET(vol[off2+offx]);
 
 				/* resampled pixel value (trilinear interpolation) */
 				image[t] = scale*(((k222*dx2 + k122*dx1)*dy2 + (k212*dx2 + k112*dx1)*dy1)*dz2
-					  + ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1);
+					  + ((k221*dx2 + k121*dx1)*dy2 + (k211*dx2 + k111*dx1)*dy1)*dz1) + offset;
 			}
 			else image[t] = background; 
 			t++;
@@ -346,9 +540,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 
 
 /* Sinc resampling */
-SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, nn, background, scale)
-int ydim1,xdim1, xdim2,ydim2,zdim2, nn;
-double image[], mat[], background, scale;
+int SLICE_POLY(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, q, background, scale,offset)
+int ydim1,xdim1, xdim2,ydim2,zdim2, q;
+double image[], mat[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
 	int dim1xdim2 = xdim2*ydim2;
@@ -387,9 +581,9 @@ IMAGE_DTYPE vol[];
 				IMAGE_DTYPE *dp1;
 				double dat=0.0, *tp1, *tp1end, *tp2end, *tp3end;
 
-				make_lookup(x4, nn, xdim2, &dx1, tablex, &tp3end);
-				make_lookup(y4 , nn, ydim2, &dy1, tabley, &tp2end);
-				make_lookup(z4, nn, zdim2, &dz1, tablez, &tp1end);
+				make_lookup(x4, q, xdim2, &dx1, tablex, &tp3end);
+				make_lookup(y4, q, ydim2, &dy1, tabley, &tp2end);
+				make_lookup(z4, q, zdim2, &dz1, tablez, &tp1end);
 
 				tp1 = tablez;
 				dy1 *= xdim2;
@@ -405,14 +599,14 @@ IMAGE_DTYPE vol[];
 						register double dat3 = 0.0, *tp3 = tablex;
 						register IMAGE_DTYPE *dp3 = dp2 + dx1;
 						while(tp3 <= tp3end)
-							dat3 += *(dp3++) * *(tp3++);
+							dat3 += GET(*(dp3++)) * *(tp3++);
 						dat2 += dat3 * *(tp2++);
 						dp2 += xdim2;
 					}
 					dat += dat2 * *(tp1++);
 					dp1 += dim1xdim2;
 				}
-				*(image++) = scale*dat;
+				*(image++) = scale*dat + offset;
 			}
 			else *(image++) = background;
 		}
@@ -420,30 +614,113 @@ IMAGE_DTYPE vol[];
 	return(0);
 }
 
+/* simple extraction of transverse plane */
+void PLANE(p,image,vol,xdim,ydim,scale,offset)
+int p, xdim,ydim;
+double image[], scale,offset;
+IMAGE_DTYPE vol[];
+{
+	int n = xdim*ydim, i;
+	IMAGE_DTYPE *ptr = vol+n*(p-1);
+	for(i=0; i<n; i++)
+		image[i] = GET(ptr[i])*scale + offset;
+}
 
-SLICE(mat, image, xdim1,ydim1, vol, xdim2,ydim2,zdim2, hold,background, scale)
+/* Extract a slice through the image */
+int SLICE(mat, image, xdim1,ydim1, vol, xdim2,ydim2,zdim2, hold,background, scale,offset)
 int ydim1,xdim1, xdim2,ydim2,zdim2, hold;
-double image[], mat[], background, scale;
+double image[], mat[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
-	if (hold == 0)
-		return(SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale));
-	if (hold == 1)
-		return(SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale));
+	double t = 1e-10;
+	/* attempt a nice easy transverse plane first */
+	if (mat[0+0*4] > 1-t && mat[0+0*4] < 1+t &&
+	    mat[0+1*4] > -t  && mat[0+1*4] < t   &&
+	    mat[0+2*4] > -t  && mat[0+2*4] < t   &&
+	    mat[0+3*4] > -t  && mat[0+3*4] < t   &&
+	    mat[1+0*4] > -t  && mat[1+0*4] < t   &&
+	    mat[1+1*4] > 1-t && mat[1+1*4] < 1+t &&
+	    mat[1+2*4] > -t  && mat[1+2*4] < t   &&
+	    mat[1+3*4] > -t  && mat[1+3*4] < t   &&
+	    mat[2+0*4] > -t  && mat[2+0*4] < t   &&
+	    mat[2+1*4] > -t  && mat[2+1*4] < t   &&
+	    mat[2+2*4] > 1-t && mat[2+2*4] < 1+t &&
+	    fabs(rint(mat[2+3*4])-mat[2+3*4])<t  &&
+	    mat[3+0*4] > -t  && mat[3+0*4] < t   &&
+	    mat[3+1*4] > -t  && mat[3+1*4] < t   &&
+	    mat[3+2*4] > -t  && mat[3+2*4] < t   &&
+	    mat[3+3*4] > 1-t && mat[3+3*4] < 1+t &&
+	    xdim1 == xdim2 && ydim1 == ydim2 && mat[2+3*4]>=1.0 && mat[2+3*4]<=zdim2)
+	{
+		int p;
+		p = rint(mat[2+3*4]);
+		PLANE(p,image,vol,xdim2,ydim2,scale,offset);
+		return(0);
+	}
 	else
-		return(SLICE_SINC(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold, background, scale));
+	{
+		if (hold<0)
+		{
+			hold=abs(hold);
+			make_lookup = make_lookup_sinc;
+			return(SLICE_POLY(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold+1, background, scale,offset));
+		}
+		else
+		{
+			make_lookup = make_lookup_poly;
+		}
+		if (hold == 0)
+			return(SLICE_0(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale,offset));
+		if (hold == 1)
+			return(SLICE_1(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, background, scale,offset));
+		else
+			return(SLICE_POLY(mat, image, xdim1, ydim1, vol, xdim2, ydim2, zdim2, hold+1, background, scale,offset));
+	}
 }
 
-
-void RESAMPLE(m,vol,out,x,y,z,xdim,ydim,zdim, hold, background, scale)
+/* Resample image */
+void RESAMPLE(m,vol,out,x,y,z,xdim,ydim,zdim, hold, background, scale,offset)
 int m, xdim,ydim,zdim, hold;
-double out[], x[], y[], z[], background, scale;
+double out[], x[], y[], z[], background, scale,offset;
 IMAGE_DTYPE vol[];
 {
-	if (hold == 0)
-		RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale);
-	else if (hold == 1)
-		RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale);
+	if (hold<0)
+	{
+		hold=abs(hold);
+		make_lookup = make_lookup_sinc;
+		RESAMPLE_POLY(m,vol,out,x,y,z,xdim,ydim,zdim, hold+1, background, scale,offset);
+	}
 	else
-		RESAMPLE_SINC(m,vol,out,x,y,z,xdim,ydim,zdim, hold, background, scale);
+	{
+		make_lookup = make_lookup_poly;
+		if (hold == 0)
+			RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale,offset);
+		else if (hold == 1)
+			RESAMPLE_1(m,vol,out,x,y,z,xdim,ydim,zdim, background, scale,offset);
+		else
+			RESAMPLE_POLY(m,vol,out,x,y,z,xdim,ydim,zdim, hold+1, background, scale,offset);
+	}
 }
+
+/* Resample image and derivatives */
+void RESAMPLE_D(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, hold, background, scale,offset)
+int m, xdim,ydim,zdim, hold;
+double out[],gradx[],grady[],gradz[], x[], y[], z[], background, scale,offset;
+IMAGE_DTYPE vol[];
+{
+	if (hold<0)
+	{
+		hold=abs(hold);
+		make_lookup_grad = make_lookup_sinc_grad;
+		RESAMPLE_D_POLY(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, hold+1, background, scale,offset);
+	}
+	else
+	{
+		make_lookup_grad = make_lookup_poly_grad;
+		if (hold == 1)
+			RESAMPLE_D_1(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, background, scale,offset);
+		else
+			RESAMPLE_D_POLY(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, hold+1, background, scale,offset);
+	}
+}
+

@@ -2,7 +2,7 @@
 static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL %E%";
 #endif lint
 
-#include "cmex.h"
+#include "mex.h"
 #include "volume.h"
 #include <math.h>
 extern double floor(), fabs();
@@ -46,14 +46,14 @@ pnsamp[1*1]                - number of voxels sampled
 */
 
 
-void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, pnsamp)
-double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], dBX[], dBY[], dBZ[], M[], scale2, scale1[];
+void mrqcof(T, alpha, beta, pss, dt2,scale2,dim2,dat2, ni,dt1,scale1,dim1,dat1, nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, pnsamp, ss_deriv)
+double T[], alpha[], beta[], pss[], BX[], BY[], BZ[], dBX[], dBY[], dBZ[], M[], scale2, scale1[], ss_deriv[3];
 int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
 unsigned char *dat1[], dat2[];
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
-		*betaxy, *betax, *alphaxy, *alphax, ss=0.0, *scale1a;
+		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scale1a;
 
 	double *Jz[3][3], *Jy[3][3], J[3][3];
 	double *bz3[3], *by3[3], *bx3[3];
@@ -95,8 +95,9 @@ unsigned char *dat1[], dat2[];
 			alpha[m1*x1+x2] = 0.0;
 		beta[x1]= 0.0;
 	}
+	ss_deriv[0]=ss_deriv[1]=ss_deriv[2]=0;
 
-	for(s0[2]=0; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
+	for(s0[2]=1; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
 	{
 		/* build up the deformation field (and derivatives) from it's seperable form */
 		for(i1=0, ptr1=T; i1<3; i1++, ptr1 += nz*ny*nx)
@@ -127,7 +128,7 @@ unsigned char *dat1[], dat2[];
 			betaxy[x1]= 0.0;
 		}
 
-		for(s0[1]=0; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
+		for(s0[1]=1; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
 		{
 			/* build up the deformation field (and derivatives) from it's seperable form */
 			for(i1=0, ptr1=Tz; i1<3; i1++, ptr1+=ny*nx)
@@ -160,7 +161,7 @@ unsigned char *dat1[], dat2[];
 				betax[x1]= 0.0;
 			}
 
-			for(s0[0]=0; s0[0]<dim1[0]; s0[0]+=samp[0]) /* For each pixel in the row */
+			for(s0[0]=1; s0[0]<dim1[0]; s0[0]+=samp[0]) /* For each pixel in the row */
 			{
 				double trans[3];
 
@@ -190,8 +191,8 @@ unsigned char *dat1[], dat2[];
 
 
 				/* is the transformed position in range? */
-				if (s2[0]>=1.0 && s2[0]<dim2[0] && s2[1]>=1.0 &&
-					s2[1]<dim2[1] && s2[2]>=1.0 && s2[2]<dim2[2])
+				if (s2[0]>=1 && s2[0]<dim2[0] && s2[1]>=1 &&
+					s2[1]<dim2[1] && s2[2]>=1 && s2[2]<dim2[2])
 				{
 					double val000, val001, val010, val011, val100, val101, val110, val111;
 					double dx1, dy1, dz1, dx2, dy2, dz2;
@@ -294,7 +295,7 @@ unsigned char *dat1[], dat2[];
 					for(i1=0; i1<3; i1++)
 					{
 						for(x1=0; x1<nx; x1++)
-							dvdt[i1*nx+x1] = -dvds0[i1] * BX[dim1[0]*x1+s0[0]];
+							dvdt[i1*nx+x1] = -dvds1[i1] * BX[dim1[0]*x1+s0[0]];
 					}
 
 					/* coordinate of template voxel to sample */
@@ -305,23 +306,39 @@ unsigned char *dat1[], dat2[];
 					dv = v;
 					for(i1=0; i1<ni; i1++)
 					{
-						double tmp;
+						double tmp, tmp2, grads[3];
+
 						switch (dt1[i1])
 						{
 						case UNSIGNED_CHAR:
-							tmp = ((unsigned char *)(dat1[i1]))[off2]*scale1[i1];
+							tmp      = ((unsigned char *)(dat1[i1]))[off2]*scale1[i1];
+							grads[0] = tmp - ((unsigned char *)(dat1[i1]))[off2-1]*scale1[i1];
+							grads[1] = tmp - ((unsigned char *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
+							grads[2] = tmp - ((unsigned char *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
 							break;
 						case SIGNED_SHORT:
-							tmp = ((short         *)(dat1[i1]))[off2]*scale1[i1];
+							tmp      = ((short         *)(dat1[i1]))[off2]*scale1[i1];
+							grads[0] = tmp - ((short         *)(dat1[i1]))[off2-1]*scale1[i1];
+							grads[1] = tmp - ((short         *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
+							grads[2] = tmp - ((short         *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
 							break;
 						case SIGNED_INT:
 							tmp = ((int           *)(dat1[i1]))[off2]*scale1[i1];
+							grads[0] = tmp - ((int           *)(dat1[i1]))[off2-1]*scale1[i1];
+							grads[1] = tmp - ((int           *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
+							grads[2] = tmp - ((int           *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
 							break;
 						case FLOAT:
 							tmp = ((float         *)(dat1[i1]))[off2]*scale1[i1];
+							grads[0] = tmp - ((float         *)(dat1[i1]))[off2-1]*scale1[i1];
+							grads[1] = tmp - ((float         *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
+							grads[2] = tmp - ((float         *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
 							break;
 						case DOUBLE:
 							tmp = ((double        *)(dat1[i1]))[off2]*scale1[i1];
+							grads[0] = tmp - ((double        *)(dat1[i1]))[off2-1]*scale1[i1];
+							grads[1] = tmp - ((double        *)(dat1[i1]))[off2-dim1[0]]*scale1[i1];
+							grads[2] = tmp - ((double        *)(dat1[i1]))[off2-dim1[0]*dim1[1]]*scale1[i1];
 							break;
 						default:
 							mexErrMsgTxt("Bad data type.");
@@ -338,6 +355,12 @@ unsigned char *dat1[], dat2[];
 						dv -= dvdt[i1*4+1+3*nx]*scale1a[i1*4+1];
 						dv -= dvdt[i1*4+2+3*nx]*scale1a[i1*4+2];
 						dv -= dvdt[i1*4+3+3*nx]*scale1a[i1*4+3];
+
+						tmp2 = scale1a[i1*4] + s2[0]*scale1a[i1*4+1] +
+							s2[1]*scale1a[i1*4+2] + s2[2]*scale1a[i1*4+3];
+						dvds0[0] -= grads[0]*tmp2;
+						dvds0[1] -= grads[1]*tmp2;
+						dvds0[2] -= grads[2]*tmp2;
 					}
 
 
@@ -352,6 +375,9 @@ unsigned char *dat1[], dat2[];
 
 					/* sum of squares */
 					ss += dv*dv;
+					ss_deriv[0] += dvds0[0]*dvds0[0];
+					ss_deriv[1] += dvds0[1]*dvds0[1];
+					ss_deriv[2] += dvds0[2]*dvds0[2];
 				}
 			}
 
@@ -502,20 +528,9 @@ unsigned char *dat1[], dat2[];
 					ptrz[m1*x2+x1] = ptrz[m1*x1+x2];
 		}
 	}
-	for(x1=0; x1<nx*ny*nz*3; x1++)
+	for(x1=0; x1<nx*ny*nz*3+ni4; x1++)
 		for (x2=0; x2<x1; x2++)
 			alpha[m1*x2+x1] = alpha[m1*x1+x2];
-
-	ptr1 = alpha + nx*ny*nz*3;
-	ptr2 = alpha + nx*ny*nz*3*m1;
-	for(x1=0; x1<nx*ny*nz*3; x1++)
-		for(x2=0; x2<ni4; x2++)
-			ptr1[m1*x1+x2] = ptr2[m1*x2+x1];
-
-	ptr1 = alpha + nx*ny*nz*3*(m1+1);
-	for(x1=0; x1<ni4; x1++)
-		for (x2=0; x2<x1; x2++)
-			ptr1[m1*x2+x1] = ptr1[m1*x1+x2];
 
 	*pss = ss;
 	*pnsamp = nsamp;
@@ -540,7 +555,16 @@ unsigned char *dat1[], dat2[];
 	mexPrintf("\n");
 }
 
+void scale(m,dat,s)
+int m;
+double dat[], s;
+{
+	int i;
+	for(i=0; i<m; i++)
+		dat[i]*=s;
+}
 
+#define MAX(a,b) (((a)>(b)) ? (b) : (a))
 
 #ifdef __STDC__
 void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
@@ -554,12 +578,12 @@ Matrix *plhs[], *prhs[];
 	MAPTYPE **map1, *map2;
 	int i, nx,ny,nz,ni=1, samp[3];
 	int dim1[3], dim2[3], dt1[32], dt2, nsamp;
-        double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, scale1[32], scale2, fwhm;
+	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, scale1[32], scale2, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	unsigned char *dat1[32], *dat2;
 
-        if (nrhs != 11 || nlhs > 3)
+        if (nrhs != 11 || nlhs > 4)
         {
-                mexErrMsgTxt("Inappropriate usage. ([A,B,var]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
+                mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
         }
 
         map1 = get_maps(prhs[0], &ni);
@@ -602,8 +626,18 @@ Matrix *plhs[], *prhs[];
 	if (mxGetM(prhs[9])*mxGetN(prhs[9]) != 3*nx*ny*nz+ni*4)
 		mexErrMsgTxt("Transform is wrong size.");
 
-	if ( mxGetM(prhs[10])*mxGetN(prhs[10]) != 1) mexErrMsgTxt("FWHM should be a single value.");
-	fwhm = mxGetPr(prhs[10])[0];
+	if (mxGetM(prhs[10])*mxGetN(prhs[10]) == 1)
+	{
+		fwhm  = mxGetPr(prhs[10])[0];
+		fwhm2 = mxGetPr(prhs[10])[0];
+	}
+	else if (mxGetM(prhs[10])*mxGetN(prhs[10]) == 2)
+	{
+		fwhm  = mxGetPr(prhs[10])[0];
+		fwhm2 = mxGetPr(prhs[10])[1];
+	}
+	else
+		mexErrMsgTxt("FWHM should contain one or two values.");
 
 	/* sample about every fwhm/2 */
 	samp[0]   = rint(fwhm/2.0/map1[0]->xpixdim); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
@@ -627,16 +661,39 @@ Matrix *plhs[], *prhs[];
 	scale2    = map2->scalefactor;
 
 
-        plhs[0] = mxCreateFull(3*nx*ny*nz+ni*4,3*nx*ny*nz+ni*4,REAL);
-        plhs[1] = mxCreateFull(3*nx*ny*nz+ni*4,1,REAL);
+	plhs[0] = mxCreateFull(3*nx*ny*nz+ni*4,3*nx*ny*nz+ni*4,REAL);
+	plhs[1] = mxCreateFull(3*nx*ny*nz+ni*4,1,REAL);
 	plhs[2] = mxCreateFull(1,1,REAL);
+	plhs[3] = mxCreateFull(1,1,REAL);
 
-	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), mxGetPr(plhs[2]),
+	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
 		dt2,scale2,dim2,dat2,
 		ni,dt1,scale1,dim1,dat1,
-		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp);
+		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp, ss_deriv);
 
-	mxGetPr(plhs[2])[0] = mxGetPr(plhs[2])[0] / (nsamp - (3*nx*ny*nz + ni*4));
+	fwhm3 = ((map1[0]->xpixdim/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
+	         (map1[0]->ypixdim/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
+	         (map1[0]->zpixdim/sqrt(2.0*ss_deriv[2]/chi2))*sqrt(8.0*log(2.0)))/3.0;
+
+	*mxGetPr(plhs[3]) = fwhm3;
+
+	if (fwhm3<fwhm2)
+		fwhm2 = fwhm3;
+	if (fwhm2<fwhm)
+		fwhm2 = fwhm;
+
+	/* W = fwhm/sqrt(8*log(2))
+	   W*sqrt(2*pi) = fwhm*1.0645 */
+	df = (MAX((map1[0]->xpixdim*samp[0])/(fwhm2*1.0645),1.0) *
+	      MAX((map1[0]->ypixdim*samp[1])/(fwhm2*1.0645),1.0) *
+	      MAX((map1[0]->zpixdim*samp[2])/(fwhm2*1.0645),1.0)) * (nsamp - (3*nx*ny*nz + ni*4));
+
+	chi2 /= df;
+	mxGetPr(plhs[2])[0] = chi2;
+
+	scale((3*nx*ny*nz+ni*4)*(3*nx*ny*nz+ni*4), mxGetPr(plhs[0]), 1.0/chi2);
+	scale((3*nx*ny*nz+ni*4)                  , mxGetPr(plhs[1]), 1.0/chi2);
+
 	free_maps(map1);
 }
 
