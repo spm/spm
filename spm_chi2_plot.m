@@ -38,9 +38,12 @@ else
 			set(fg,'Name',pb_name);
 			ax = axes('Position', [0.15 0.1 0.8 0.75],...
 				'Box', 'on','Parent',fg);
-			xlabel(arg3,'FontSize',10,'Parent',ax);
-			ylabel(arg2,'FontSize',10,'Parent',ax);
-			title(arg1,'Parent',ax);
+			lab = get(ax,'Xlabel');
+			set(lab,'string',arg3,'FontSize',10);
+			lab = get(ax,'Ylabel');
+			set(lab,'string',arg2,'FontSize',10);
+			lab = get(ax,'Title');
+			set(lab,'string',arg1);
 			line('Xdata',[], 'Ydata',[],...
 				'LineWidth',2,'Tag','Chi2Plot','Parent',ax);
 			drawnow;
