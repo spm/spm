@@ -82,9 +82,8 @@ if exist('ERI')
     if spm_input('plot event-related responses',1,'b','yes|no',[1 0]);
 	j     = 1;
 	if size(ERI,2) > 1
-		j = spm_input('which events','!+1','e','1 2');
+		j    = spm_input('which events','!+1','e','1 2');
 	end
-
 	Cplot = str2mat(...
 			'Fitted response',...
 			'Fitted response +/- standard error of response.',...
@@ -101,6 +100,9 @@ if exist('ERI')
 	x     = [0:(size(DER,1) - 1)]*dx - 4;
 	K     = spm_sptop(SIGMA*RT/dx,length(x));
 	KDER  = K*DER;
+
+	% reconstruct response without smoothing
+	%--------------------------------------------------------------
 	if Cp ~=4
 		if spm_input('smooth fitted effects','!+1','b','yes|no',[0 1])
 			KDER  = DER;
@@ -114,9 +116,8 @@ if exist('ERI')
 		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
 		pst    = PST(:,i);
 		d      = round(pst + 4)/dx;
-		q      = find( (d >= 1) & (d <= size(KDER,1)) );
+		q      = find( (d >= 1) & (d <= size(KDER,1)) & pst);
 		pst    = pst(q);
-		y      = KDER(d(q),:)*BETA(ERI(:,i)) + R(q);
 		y      = C(q,ERI(:,i))*BETA(ERI(:,i)) + R(q);
 		d      = min(find(abs(Y) > max(abs(Y))/3));
 		T      = x(d);
