@@ -1,13 +1,14 @@
 function [C,P] = spm_PEB(y,P)
-% PEB estimation for hierarchical linear observation models
+% PEB estimation for hierarchical linear  models - FULL EFFICIENT version
 % FORMAT [C,P] = spm_PEB(y,P)
 % y       - (n x 1)     response variable
 %
 % PRIOR SPECIFICATION OF MODEL
 % P{i}.X  - (n x m)     ith level design matrix i.e:
-%                       prior contraints on the form of E{b{i - 1}}
+%                       contraints on the form of E{b{i - 1}}
 % P{i}.C  - {q}(n x n)  ith level contraints on the form of Cov{e{i}} i.e:
-%                       prior contraints on the form of Cov{b{i - 1}}
+%                       contraints on the form of Cov{b{i - 1}}
+% c{i}    - {q}         level-specific contrasts
 %
 % POSTERIOR OR CONDITIONAL ESTIMATES
 %
@@ -15,20 +16,33 @@ function [C,P] = spm_PEB(y,P)
 % C{i}.C  - (n x n)     conditional covariance  Cov{b{i - 1}|y} = Cov{e{i}|y}
 % C{i}.M  - (n x n)     ML estimate of Cov{b{i - 1}} = Cov{e{i}}
 % C{i}.h  - (q x 1)     ith level hyperparameters for covariance:
-%                       Cov{e{i}} = P{i}.h(1)*P{i}.C{1} +  ...
+%                       [inv]Cov{e{i}} = P{i}.h(1)*P{i}.C{1} +  ...
 %
-% if P{n}.C is not a cell the last structure is taken to specify the
-% expectation and known covariance of the penultimate level
+% HYPERPARAMETER ESTIMATES
+%
+% P{1}.h  - ReML Hyperparameter estimates
+% P{1}.W  - ReML precisions = ddln(p(y|h)/dhdh
+%
+% If P{i}.C is not a cell the covariance at that level is assumed to be kown
+% and Cov{e{i}} = P{i}.C (i.e. the hyperparameter is fixed at 1)
+%
+% If P{n}.C is not a cell this is taken to indicate that a full Bayesian
+% estimate is required where P{n}.X is the prior expectation and P{n}.C is
+% the known prior covariance.  For consistency, with PEB, this is implemented
+% by setting b{n} = 1 through appropriate constraints at level {n + 1}.
+%
+% To implement non-hierarchical Bayes with priors on the parameters use
+% a two level model setting the second level design matrix to zero.
 %___________________________________________________________________________
 %
 % Returns the moments of the posterior p.d.f. of the parameters of a 
 % hierarchical linear observation model under Gaussian assumptions
 %
-%                           y    = X{1}*b{1} + e{1}
-%                           b{1} = X{2}*b{2} + e{2}
-%                                     ...
+%                            y = X{1}*b{1} + e{1}
+%                         b{1} = X{2}*b{2} + e{2}
+%                                 ...
 %
-%                           b{n} = X{n}*b{n} + e{n}
+%                     b{n - 1} = X{n}*b{n} + e{n}
 %
 % e{n} ~ N{0,Ce{n}} 
 %
@@ -38,6 +52,7 @@ function [C,P] = spm_PEB(y,P)
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %___________________________________________________________________________
 % %W% Karl Friston, John Ashburner %E%
+
 
 % number of levels (p)
 %---------------------------------------------------------------------------
@@ -60,13 +75,6 @@ for i = 1:p
 	end
 
 end
-
-% If full Bayes - only estimate hyperparameters upto the penultimate level
-%---------------------------------------------------------------------------
-if ~iscell(P{end}.C)
-	p = p - 1;
-end
-
 
 % Construct augmented non-hierarchical model
 %===========================================================================
@@ -93,46 +101,33 @@ for i = 1:p
 
 end
 
-
-% last level constraints 
-%---------------------------------------------------------------------------
-n        = size(P{p}.X,2);
-I{p + 1} = [1:n] + I{end}(end);
-if ~iscell(P{end}.C)
-
-	% Full Bayes: remove expectation P{n}.X from y
-	%-------------------------------------------------------------------
-	y                 = y - X*P{end}.X;
-	C{p + 1}.E        = P{end}.X;
-
-	% and set Cb to P{n}.C    (i.e. Cov(b) = P{n}.C, <b> = P{n}.X)
-	%-------------------------------------------------------------------
-	Cp                = P{end}.C + sparse(1:n,1:n,1e-8,n,n);
-	C{p + 1}.M        = Cp;
-else
-
-	% Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
-	%-------------------------------------------------------------------
-	Cp                = sparse(1:n,1:n,1e8);
-	C{p + 1}.E        = sparse(1:n,1,0);
-	C{p + 1}.M        = Cp;
-end
-
-% put prior covariance in Cb
-%---------------------------------------------------------------------------
-q        = I{end}(end);
-Cb       = sparse(q,q);
-Cb(I{end},I{end}) = Cp;
-
-
 % augment design matrix and data
 %---------------------------------------------------------------------------
 n        = size(XX,2);
 XX       = [XX; speye(n,n)];
 y        = [y; sparse(n,1)];
 
+% last level constraints 
+%---------------------------------------------------------------------------
+n        = size(P{p}.X,2);
+I{p + 1} = [1:n] + I{end}(end);
+q        = I{end}(end);
+Cb       = sparse(q,q);
+if ~iscell(P{end}.C)
 
-% assemble augmented constraints Q 
+	% Full Bayes: (i.e. Cov(b) = 0, <b> = 1)
+	%-------------------------------------------------------------------
+	y( I{end})        = sparse(1:n,1,1);
+	Cb(I{end},I{end}) = sparse(1:n,1:n,1e-6);
+else
+
+	% Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
+	%-------------------------------------------------------------------
+	Cb(I{end},I{end}) = sparse(1:n,1:n,1e+6);
+end
+
+
+% assemble augmented  constraints Q: [inv]Cov{e} = Cb + h(i)*Q{i} + ...
 %===========================================================================
 if ~isfield(P{1},'Q')
 
@@ -142,52 +137,76 @@ if ~isfield(P{1},'Q')
 	Q     = {};
 	for i = 1:p
 
-		% collect constraints on prior covariances - Cov{e{i}}
+		% collect constraints on prior covariances - [inv]Cov{e{i}}
 		%-----------------------------------------------------------
-		m     = length(P{i}.C);
-		for j = 1:m
-			h                 = [h; any(diag(P{i}.C{j}))];
-			[u v s]           = find(P{i}.C{j});
-			u                 = u + I{i}(1) - 1;
-			v                 = v + I{i}(1) - 1;
-			Q{end + 1}        = sparse(u,v,s,q,q);
+		if iscell(P{i}.C)
+			m     = length(P{i}.C);
+			for j = 1:m
+				h          = [h; any(diag(P{i}.C{j}))];
+				[u v s]    = find(P{i}.C{j});
+				u          = u + I{i}(1) - 1;
+				v          = v + I{i}(1) - 1;
+				Q{end + 1} = sparse(u,v,s,q,q);
+			end
+
+			% indices for ith level hyperparameters
+			%---------------------------------------------------
+			K{i}  = [1:m] + K{end}(end);
+
+
+		% unless they are known - augment Cb  
+		%-----------------------------------------------------------
+		else
+			[u v s] = find(P{i}.C + speye(length(P{i}.C))*1e-6);
+			u       = u + I{i}(1) - 1;
+			v       = v + I{i}(1) - 1;
+			Cb      = Cb + sparse(u,v,s,q,q);
+
+			% indices for ith level hyperparameters
+			%---------------------------------------------------
+			K{i}  = [];
+
 		end
 
-		% indices for ith level hyperparameters
-		%-----------------------------------------------------------
-		K{i}  = [1:m] + K{end}(end);
 	end
 
-
-	% overlapping bases
+	% note overlapping bases - requiring 2nd order M-Step derivatives 
 	%-------------------------------------------------------------------
 	m     = length(Q);
+	d     = sparse(m,m);
+	for i = 1:m
+		XQX{i} = XX'*Q{i}*XX;
+	end
 	for i = 1:m
 	for j = i:m
-		d(i,j)  = nnz(Q{i}*Q{j});
+		o      = nnz(XQX{i}*XQX{j});
+		d(i,j) = o;
+		d(j,i) = o;
 	end
 	end
 
+	P{1}.Cb = Cb;
 	P{1}.Q  = Q;
 	P{1}.h  = h;
 	P{1}.K  = K;
 	P{1}.d  = d;
 
 end
+Cb    = P{1}.Cb;
 Q     = P{1}.Q;
 h     = P{1}.h;
 K     = P{1}.K;
 d     = P{1}.d;
 
 
-% Iterative EM estimation
+% Iterative EM
 %---------------------------------------------------------------------------
 m     = length(Q);
 dFdh  = zeros(m,1);
 W     = zeros(m,m);
 for k = 1:M
 
-	% assemble estimate of inv(Cov(e)) - iCe
+	% inv(Cov(e)) - iCe(h)
 	%-------------------------------------------------------------------
 	Ce    = Cb;
 	for i = 1:m
@@ -203,28 +222,31 @@ for k = 1:M
 	B     = Cby*(iCeX'*y);
 
 
-	% M-step: ML estimate of hyperparameters
+	% M-step: ReML estimate of hyperparameters (if m > 0)
 	%===================================================================
+	if m == 0, break, end
 
-	% Ce:  using dF/diCe = r*r' + X*Cby*X' and diCe/dh(i) = iCe*Q{i}*iCe
+	% Gradient dFd/h (first derivatives)
 	%-------------------------------------------------------------------
-	r     = y - XX*B;
-	Cr    = iCe*r;
+	Py    = iCe*(y - XX*B);
+	iCeXC = iCeX*Cby;
 	for i = 1:m
 
-		% dF/dh = trace(dF/diCe*iCe*Q{i}*iCe) = 
-		%----------------------------------------------------------
-		QC{i}   = Q{i}*iCe;
-		dFdh(i) = trace(QC{i}) - Cr'*Q{i}*Cr - ...
-			  sum(sum(Cby.*(iCeX'*Q{i}*iCeX)));
+		% dF/dh = -trace(dF/diCe*iCe*Q{i}*iCe) = 
+		%-----------------------------------------------------------
+		PQ{i}   = iCe*Q{i} - iCeXC*(iCeX'*Q{i});
+		dFdh(i) = -trace(PQ{i}) + Py'*Q{i}*Py;
 	end
+
+	% Expected curvature E{ddF/dhh} (second derivatives)
+	%-------------------------------------------------------------------
 	for i = 1:m
 		for j = i:m
 		if d(i,j)
 
-			% -ddF/dhh = trace{Q{i}*iCe*Q{j}*iCe}
-			%--------------------------------------------------
-			ddFdhh = sum(sum(QC{i}.*QC{j}));
+			% ddF/dhh = -trace{P*Q{i}*P*Q{j}}
+			%---------------------------------------------------
+			ddFdhh = sum(sum(PQ{i}.*PQ{j}'));
 			W(i,j) = ddFdhh;
 			W(j,i) = ddFdhh;
 
@@ -232,32 +254,32 @@ for k = 1:M
 		end
 	end
 
-	% Upadate dh = -ddF/dhh*dF/dh
+	% Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
 	%-------------------------------------------------------------------
 	dh    = W\dFdh;
-	h     = h - dh;
+	h     = h + dh;
 
-	% Convergence
+	% Convergence (or break if there is only one hyperparameter)
 	%===================================================================
-	w     = dh'*dh;
-	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+	w     = dFdh'*dFdh;
 	if w < 1e-6, break, end
-
+	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
 end
 
-% place hyperparameters in P{1}
+% place hyperparameters in P{1} and output structure for {n + 1}
 %---------------------------------------------------------------------------
-P{1}.h     = h;
+P{1}.h             = h;
+P{1}.W             = W;
+C{p + 1}.E         = B(J{p});
+C{p + 1}.M         = Cb(I{end},I{end});
 
-% conditional means E{b|y}
+% recursive computation of conditional means E{b|y} 
 %---------------------------------------------------------------------------
-B          = Cby*iCeX'*y;
-C{p + 1}.E = B(J{p}) + C{p + 1}.E;
 for i = p:-1:2
         C{i}.E     = B(J{i - 1}) + P{i}.X*C{i + 1}.E;
 end
 
-% conditional covariances Cov{b|y} and ML esimtates of Ce{i) = Cb{i - 1}
+% conditional covariances Cov{b|y} and ReML esimtates of Ce{i) = Cb{i - 1}
 %---------------------------------------------------------------------------
 for i = 1:p
         C{i + 1}.C = Cby(J{i},J{i});
@@ -265,8 +287,6 @@ for i = 1:p
         C{i}.h     = h(K{i});
 end
 
-
 % warning
 %---------------------------------------------------------------------------
 if k == M, warning('maximum number of iterations exceeded'), end
-
