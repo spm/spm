@@ -66,9 +66,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (mxGetN(prhs[2])*mxGetM(prhs[2]) != 5)
 		mexErrMsgTxt("Incompatible size for dimensions vector.");
 	dim  = mxGetPr(prhs[2]);
-	xdim = (int) (dim[0] + 0.99);
-	ydim = (int) (dim[1] + 0.99);
-	zdim = (int) (dim[2] + 0.99);
+	xdim = (int) (fabs(dim[0]) + 0.99);
+	ydim = (int) (fabs(dim[1]) + 0.99);
+	zdim = (int) (fabs(dim[2]) + 0.99);
 	m    = (int) (dim[3]);
 	m1   = (int) (dim[4]);
 
