@@ -16,8 +16,29 @@ function spm_xbrain
 %
 % Outputs:
 % The extracted brain is written to "brain_xxx.img" in the same
-% directory as xxx_seg1.img.  A "render_xxx.mat" file is also produced
-% that can be used for rendering activations on to.
+% directory as xxx_seg1.img.
+% A "render_xxx.mat" file can also be produced that can be used for
+% rendering activations on to.
+% In Matlab 5.3 and over, a "surf_xxx.mat" file can also be written.
+% This extracted brain surface can be viewed using code something
+% like:
+%    FV = load(spm_get(1,'surf_*.mat','Select surface data'));
+%    fg = spm_figure('GetWin','Graphics');
+%    ax = axes('Parent',fg);
+%    p  = patch(FV, 'Parent',ax,...
+%           'FaceColor', [0.8 0.7 0.7], 'FaceVertexCData', [],...
+%           'EdgeColor', 'none',...
+%	    'FaceLighting', 'phong',...
+%           'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
+%	    'DiffuseStrength', 0.7, 'SpecularExponent', 10);
+%    set(0,'CurrentFigure',fg);
+%    set(fg,'CurrentAxes',ax);
+%    l  = camlight(-40, 20); 
+%    axis image;
+%    box on;
+%    rotate3d on;
+%
+%
 % Note: that the images should be in a right handed co-ordinate system
 % (same as the Talairach system) - otherwise the resulting renderings are
 % reflections (mirror images) of the true images.
@@ -31,9 +52,22 @@ SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','XBrain');
 spm_help('!ContextHelp','spm_xbrain.m');
 P    = spm_get(2,'*_seg?.img','Select gray and white matter images');
-mode = spm_input('Save','+1','m',...
-	['Save Extracted Brain|Save Rendering|'...
-	 'Save Extracted Brain and Rendering'],[1 2 3],3);
+
+v    = sscanf(version,'%f');
+v    = v(1);
+if v>= 5.3,
+	mode = spm_input('Save','+1','m',...
+		['Save Extracted Brain|Save Rendering|Save Extracted Surface|'...
+		 'Save Extracted Brain and Rendering|'...
+		 'Save Extracted Brain and Surface|'...
+		 'Save Rendering and Surface|Save All'],[1 2 3 4 5 6 7],4);
+
+else,
+	mode = spm_input('Save','+1','m',...
+		['Save Extracted Brain|Save Rendering|'...
+		 'Save Extracted Brain and Rendering'],[1 2 4],3);
+end;
+
 spm('Pointer','Watch')
 spm('FigName','Xbrain: working',Finter,CmdLine);
 
@@ -82,7 +116,7 @@ ind = findstr(nam,'_seg1');
 if ~isempty(ind), nam((0:4)+ind(1))=[]; end;
 fname = fullfile(pth,['brain_' nam ext ver]);
 
-if mode==2 | mode==3,
+if any(mode==[2 4 6 7]),
 	% Produce rendering
 	%-----------------------------------------------------------------------
 	matname = fullfile(pth,['render_' nam '.mat']);
@@ -90,7 +124,18 @@ if mode==2 | mode==3,
 	renviews(tmp,matname);
 end;
 
-if mode==1 | mode==3,
+if any(mode==[3 5 6 7]),
+	% Produce extracted surface
+	%-----------------------------------------------------------------------
+	linfun(['Extracting surface - please be patient']);
+	matname = fullfile(pth,['surf_' nam '.mat']);
+	tmp = struct('dat',br,'dim',size(br),'mat',VG.mat);
+	[faces,vertices] = isosurface(br,0.5);
+	vertices = (VG.mat(1:3,:)*[vertices' ; ones(1,size(vertices,1))])';
+	save(matname,'faces','vertices');
+end;
+
+if any(mode==[1 4 5 7]),
 	% Final cleanup
 	%-----------------------------------------------------------------------
 	linfun(['Final cleanup - thresholding and multiplying']);
