@@ -44,7 +44,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	s1 = 0.0;
 	for (i=0; i<map->dim[2]; i++)
 	{
-		M[14] = i;
+		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
 			s1 += dat[j];
@@ -55,7 +55,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	m =0;
 	for (i=0; i<map->dim[2]; i++)
 	{
-		M[14] = i;
+		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
 			if (dat[j]>s1)
