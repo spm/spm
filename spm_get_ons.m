@@ -22,6 +22,60 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC)
 % function multiplied by the [expansion of the] trial-specific parameter.
 % If parametric modulation is modeled, P contains the original variate and
 % Pname is its name.  Otherwise P{i} = [] and Pname{i} = '';
+%
+% Notes on responding to questions:
+%
+% 'number of conditions or trials':  The number of conditions, trials,
+%        events or epochs in the design.  Generally the baseline condition
+%        (epoch-related) or null event (event-related) should not be included
+%        e.g. for a simple ABABAB.. design enter 1
+% 
+% STOCHASTIC DESIGNS
+%
+% 'stochastic design': If you want a random design select yes.  The ensuing
+%        design matrix and onset times in Sess are then used in 
+%        subsequent analysis of the data and stimulus design respectively.
+%
+%       'include a null event': for stochastic designs a null event should
+%                be included if you want to estimate responses common to
+%                all trial types
+%
+%       'SOA (scans)': Stimulus onset asynchrony for the sucessive occurrence
+%                of trials.  This is the time (in scans) between the onset
+%                of sucessive stimuli or trials (usually a fraction of a scan)
+%
+%       'relative frequency [trial 1,..n null]':  Enter a vector with a
+%                relative frequency of presentation for each trial type
+%                (and the null event if included).  The null event is last.
+%                The most efficient designs are given when all the frequencies
+%                are equal.
+%
+%       'stationary|modulated': If the occurence probabilities are
+%                the same for all scans then choose 'stationary'.  Modulated
+%                designs are more efficient but entail 'runs' of the
+%                same trial type.
+%
+% NON STOCHASTIC DESIGNS
+%
+% 'Fixed|Variable':  If the event of epoch starts with a fixed
+%        SOA choose 'Fixed'. If the SOA changes within any trial type
+%        choose variable.
+%
+%        'vector of onsets (scans) for trial n':  If the SOA are variable
+%                you have to enter a vector of onet times for each event or
+%                epoch.  Time is specified in terms of scans, where the
+%                start of the session begins at 0.
+% 
+%        'SOA (scans)' and 'first trial (scans)':  If the SOA is fixed you
+%                only have to specify what it is and when the first condition 
+%                starts. If your TR is long you may want to specfiy m + TR/2 
+%                scans as the onset if the condition commenced with
+%                acquisition of the mth scan.
+%
+% 'parametric modulation':  This allows you to model time of other effects
+%         on eveoked responses in terms of an interaction with the specified
+%         variate.
+%
 %-----------------------------------------------------------------------
 % %W% Karl Friston %E%
 
@@ -41,7 +95,7 @@ DSstr  = '';
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('number of conditions or trials',1,'w1',0);
+v     = spm_input('number of conditions or trials',1,'w1');
 for i = 1:v
 
 	% get names
@@ -73,21 +127,29 @@ if v
 
 		% occurence probabilities - stationary
 		%-------------------------------------------------------
+		if ne
+		    str = sprintf('relative frequency [trial 1,..%d null]',v);
+		else
+		    str = sprintf('relative frequency [trial 1,..%d]',v);
+		end
+		P       = ones(1,(v + ne));
+		P       = spm_input(str,'+1','r',P,[1 (v + ne)])
 		str     = 'occurence probability';
 		if spm_input(str,'+1','stationary|modulated',[1 0])
 			DSstr = [DSstr '(stationary) '];
-			P     = ones((v + ne),ns);
+			P     = P(:)*ones(1,ns);
  
 		% occurence probabilities - modulated (32 sec period)
 		%-------------------------------------------------------
 		else
 			DSstr = [DSstr '(modulated) '];
-			P     = ones((v + ne),ns);
+			p     = ones((v + ne),ns);
 			dc    = 32/dt;
 			for i = 1:(v + ne);
-				p      = sin(2*pi*(on/dc + (i - 1)/(v + 1)));
-				P(i,:) = 1 + p;
+				q      = sin(2*pi*(on/dc + (i - 1)/(v + ne)));
+				p(i,:) = 1 + q;
 			end
+			P     = diag(P)*p;
 		end
 
 		% assign trials
@@ -130,7 +192,7 @@ if v
 			%-----------------------------------------------
 			str   = ['SOA (scans) for ' Cname{i + 1}];
 			soa   = spm_input(str,'+1','r');
-			on    = spm_input('first trial (scans)','+1','r',1);
+			on    = spm_input('first trial (scans)','+1','r',0);
 			on    = on:soa:k;
 
 			case 'Variable'
@@ -177,7 +239,7 @@ if v
 	Ptype = {'none',...
 		 'time',...
 		 'other'};
-	Ptype = spm_input('parametric modulation ','+1','b',Ptype);
+	Ptype = spm_input('parametric modulation','+1','b',Ptype);
 	switch Ptype
 
 		case 'none'
@@ -252,10 +314,15 @@ if v
 
 			case 'polynom'
 			%------------------------------------------------
-			r              = spm_detrend(p(:));
-			q              = [];
+			u              = spm_detrend(p(:));
+			v              = zeros(size(u,1),h + 1);
+			q              = sparse(size(sf{i},1),h);
+			for j = 0:h
+ 				v(:,(j + 1)) = (u.^j) - v*(pinv(v)*(u.^j));
+			end
 			for j = 1:h
-				q(:,j) = sparse(on,1,r.^j,size(sf{i},1),1);
+				u      = v(:,(j + 1));
+				q(:,j) = sparse(on,1,u,size(sf{i},1),1);
 			end
 
 			case 'exponen'
@@ -272,7 +339,7 @@ if v
 
 		end
 
-		% appnd as new trials
+		% append as modulated stick functions
 		%--------------------------------------------------------
 		sf{i}    = [sf{i} q];
 		Pv{i}    = p;
