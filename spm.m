@@ -119,7 +119,7 @@ function [R1,R2]=spm(Action,P2,P3)
 %
 % FORMAT SPMver=spm('Ver')
 % Returns the current version of SPM, identified by the top line of the
-% Contents.m file in the directory containing the currently used spm.m
+% spm.man file in the directory containing the currently used spm.m
 %
 % FORMAT [c,cName]=spm('Colour')
 % Returns the rgb tripls and a description for the current en-vogue SPm
@@ -146,6 +146,7 @@ Modalities = str2mat('PET','FMRI');
 %-Format arguments
 %-----------------------------------------------------------------------
 if nargin == 0, Action='Welcome'; end
+
 
 
 if strcmp(lower(Action),lower('Welcome'))
@@ -246,28 +247,33 @@ elseif strcmp(lower(Action),lower('PET')) | ...
 % spm(Modality)
 
 clc
-spm('AsciiWelcome')
-fprintf('\tInitialising... ')
+spm('AsciiWelcome'),			fprintf('Initialising')
 
 Modality = upper(Action);
 
-close all
+close all,				fprintf('.')
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------
-Fmenu = spm('CreateMenuWin','off');
-Finter = spm('CreateIntWin','off');
+Fmenu = spm('CreateMenuWin','off');	fprintf('.')
+Finter = spm('CreateIntWin','off');	fprintf('.')
 spm('SetWinDefaults')
 Fgraph = spm_figure('Create','Graphics','Graphics','off');
+					fprintf('.')
+
+Fmotd = [spm('Dir'),'/spm_motd.man'];
+if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver'));
+	else, spm_figure('WaterMark',Fgraph,spm('Ver')), end
+					fprintf('.')
 
 %-Setup for current modality
 %-----------------------------------------------------------------------
-spm('ChMod',Modality)
+spm('ChMod',Modality),			fprintf('.')
 
 %-Reveal windows
 %-----------------------------------------------------------------------
 set([Fmenu,Finter,Fgraph],'Visible','on')
-fprintf('done\n\n')
+					fprintf('\n')
 
 return
 
@@ -666,7 +672,7 @@ elseif strcmp(lower(Action),lower('Ver'))
 %-----------------------------------------------------------------------
 if nargin<2, Mfile='spm'; else, Mfile=P2; end
 SPMdir = spm('Dir',Mfile);
-CFile  = [SPMdir,'/Contents.m'];
+CFile  = [SPMdir,'/spm.man'];
 if exist(CFile)
 	fid  = fopen(CFile,'r');
 	SPMver = setstr([fread(fid,80,'char')',setstr(10)]);
