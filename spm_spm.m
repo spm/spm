@@ -322,6 +322,15 @@ xX.pKXV       = xX.pKX*xX.V;		%-Needed for contrast variance weighting
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
 xX.edf        = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
 
+%-Check estimability
+%-----------------------------------------------------------------------
+if xX.edf<0
+    error(sprintf('This design is completely unestimable! (df=%-.2g)',xX.edf))
+elseif xX.edf==0
+    error('This design has no residuals! (df=0)')
+elseif xX.edf<4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.edf))
+end
 
 %-F-contrast for Y.mad pointlist filtering (only)
 %-----------------------------------------------------------------------
@@ -691,6 +700,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	    %-----------------------------------------------------------
 	    XYZ            = [XYZ,xyz(:,CrLm)];	%-InMask XYZ voxel coordinates
 	    S              = S + CrS;		%-Volume analysed (voxels)
+	    					% (equals size(XYZ,2))
 
 	    %-Roll... (BeVox(bch) is overwritten)
 	    %-----------------------------------------------------------
@@ -742,14 +752,17 @@ fprintf('\n')
 %=======================================================================
 % - P O S T   E S T I M A T I O N   C L E A N U P
 %=======================================================================
+if S==0, warning('No inmask voxels - empty analysis!'), end
 
 %-Smoothness estimates of component fields
 %-----------------------------------------------------------------------
 if zdim == 1
-	if any(~[nx,ny]),   error(sprintf('W: nx=%d, ny=%d',nx,ny)), end
+	if any(~[nx,ny])
+		warning(sprintf('W: nx=%d, ny=%d',nx,ny)), end
 	Lambda = diag([sx_res/nx sy_res/ny Inf]*(xX.edf-2)/(xX.edf-1));
 else
-	if any(~[nx,ny,nz]),error(sprintf('W: nx=%d, ny=%d, nz=%d',nx,ny,nz)),end
+	if any(~[nx,ny,nz])
+		warning(sprintf('W: nx=%d, ny=%d, nz=%d',nx,ny,nz)), end
 	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz]*(xX.edf-2)/(xX.edf-1));
 end
 W      = (2*diag(Lambda)').^(-1/2);
@@ -766,11 +779,12 @@ R      = spm_resels(FWHM,S);
 
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
-if UFp > 0, save Yidx Yidx, clear Yidx, end
+if UFp > 0, save Yidx Yidx, end
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...	%-General design parameters
+		'Vbeta','VResMS',...		%-Handles of beta & ResMS images
 		'XYZ',...			%-InMask XYZ voxel coords
 		'Fc','UFp','UF',...		%-F-thresholding data
 		'S','R','Lambda','W','FWHM'};	%-Smoothness data
