@@ -107,10 +107,10 @@ if exist('ERI')
 		Y      = KDER*BETA(ERI(:,i));
 		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
 		y      = C(:,ERI(:,i))*BETA(ERI(:,i)) + R;
-		d      = min(find(abs(Y) > max(abs(Y))/2));
+		d      = min(find(abs(Y) > max(abs(Y))/3));
 		T      = x(d);
-		dYdt   = gradient(Y')/dx;
-		seT    = se(d)/dYdt(d);
+		dYdt   = gradient(Y')'/dx;
+		seT    = se(d)./dYdt(d);
 
 		% plot
 		%------------------------------------------------------
@@ -166,14 +166,16 @@ if Cp == 1 | Cp == 2
 			i = spm_input('which effects {columns}','!+1','e',1);
 		end
 	end
+	BETA = BETA(i);
+	SE   = SE(i);
 
 	% bar chart
 	%--------------------------------------------------------------
 	figure(Fgraph)
-	[p q]  = bar(BETA(i));
+	[p q]  = bar(BETA);
 	fill(p,q,[1 1 1]*.9)
 	if Cp == 2
-	  for j = 1:length(i)
+	  for j = 1:length(BETA)
 	    line([j j],([SE(j) 0 - SE(j)] + BETA(j)),'LineWidth',6,'Color','r')
 	  end
 	end
