@@ -21,7 +21,7 @@ function varargout = spm_results_ui(varargin)
 % The SPM results section is for the interactive exploration and
 % characterisation of the results of a statistical analysis.
 % 
-% The user is prompted to select a SPM{Z}, SPM{T} or SPM{F}, that is
+% The user is prompted to select a SPM{T} or SPM{F}, that is
 % thresholded at user specified levels. The specification of the
 % contrasts to use and the height and size thresholds are described in
 % spm_getSPM.m. The resulting SPM is then displayed in the graphics
@@ -276,7 +276,7 @@ h = text(0,24,'SPMresults:','Parent',hResAx,...
 	'FontWeight','Bold','FontSize',FS(14));
 text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(SPM.swd,'a30'),'Parent',hResAx)
 text(0,12,sprintf('Height threshold %c = %0.2f',SPM.STAT,SPM.u),'Parent',hResAx)
-text(0,0,sprintf('Extent threshold k = %0.0f resels',SPM.k),'Parent',hResAx)
+text(0,0,sprintf('Extent threshold k = %0.0f voxels',SPM.k),'Parent',hResAx)
 
 
 %-Plot design matrix
@@ -292,25 +292,31 @@ set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 %-Plot contrasts
 %-----------------------------------------------------------------------
-nPar = size(xX.X,2);
-xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
-nCon = length(SPM.Ic);
-
-dy    = 0.15/max(nCon,2);
+nPar   = size(xX.X,2);
+xx     = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
+nCon   = length(SPM.Ic);
+dy     = 0.15/max(nCon,2);
 for ii = nCon:-1:1
     axes('Position',[0.65 (0.80 + dy*(nCon-ii+.1)) 0.25 dy*.9])
-    if xCon(SPM.Ic(ii)).STAT == 'T' & size(xCon(SPM.Ic(ii)).c,2)==1
+    if xCon(SPM.Ic(ii)).STAT == 'T' & size(xCon(SPM.Ic(ii)).c,2) == 1
+
 	%-Single vector contrast for SPM{t} - bar
+	%---------------------------------------------------------------
+
 	yy = [zeros(1,nPar);repmat(xCon(SPM.Ic(ii)).c',2,1);zeros(1,nPar)];
 	patch(xx,yy,[1,1,1]*.5)
 	set(gca,'Box','off','XTick',[],'YTick',[])
 	set(gca,'Tag','ConGrphAx')
+
     else
+
 	%-F-contrast - image
+	%---------------------------------------------------------------
 	sca = 1/max(abs(xCon(SPM.Ic(ii)).c(:)));
 	image((xCon(SPM.Ic(ii)).c'*sca+1)*32)
 	set(gca,'Box','on','XTick',[],'YTick',[])
 	set(gca,'Tag','ConGrphAx')
+
     end
     ylabel(num2str(SPM.Ic(ii)))
     axis tight
@@ -349,9 +355,9 @@ FS     = spm('FontSizes');
 
 %-Create frame for Results GUI objects; "Help"; "Exit", & "Clear" buttons...
 %-----------------------------------------------------------------------
-hReg    = uicontrol(Finter,'Style','Frame','BackgroundColor',spm('Colour'),...
+hReg   = uicontrol(Finter,'Style','Frame','BackgroundColor',spm('Colour'),...
 		'Position',[001 001 400 175].*WS);
-hFResUi = uicontrol(Finter,'Style','Frame','Position',[008 007 387 163].*WS);
+hFResUi= uicontrol(Finter,'Style','Frame','Position',[008 007 387 163].*WS);
 
 hClear = uicontrol(Finter,'Style','PushButton','String','clear',...
 	'ToolTipString','clears lower results subpane of Graphics window',...
@@ -443,7 +449,7 @@ uicontrol(Finter,'Style','PushButton','String','multiplane','FontSize',FS(10),..
 	'ToolTipString','Launch MultiPlanar viewing toolbox',...
 	'Tag','hB_MultiPlanar',...
 	'Callback',...
-		'hMP = spm_results_ui(''LaunchMP'',VOL.M,VOL.DIM,hReg,gcbo);',...
+		'hMP=spm_results_ui(''LaunchMP'',VOL.M,VOL.DIM,hReg,gcbo);',...
 	'Interruptible','on','Enable','off',...
 	'Position',[315 135 070 020].*WS)
 
@@ -597,13 +603,6 @@ set(hFxyz,'Tag','hFxyz','UserData',struct(...
 	'xyz',	xyz	));
 
 set([hX,hY,hZ],'UserData',hFxyz)
-
-%uicontrol(Finter,'Style','Text','String',spm('Ver'),...
-%	'Position',[310 005 080 020].*WS,...
-%	'FontName','Times','FontWeight','Bold',...
-%	'HorizontalAlignment','Center',...
-%	'ForegroundColor',[1 1 1]*.6)
-
 varargout = {hFxyz};
 
 
@@ -663,7 +662,7 @@ UD = get(hFxyz,'UserData');
 
 %-Check validity of coords only when called without a caller handle
 %-----------------------------------------------------------------------
-if hC<=0
+if hC <= 0
 	[xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.DIM);
 	if d>0 & nargout<2, warning(sprintf(...
 	    '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
@@ -734,7 +733,7 @@ end
 hGraphUIbg = uicontrol(Finter,'Style','Frame','Tag','hGraphUIbg',...
 		'BackgroundColor',spm('Colour'),...
 		'Position',[001 181 400 055].*WS);
-hGraphUI = uicontrol(Finter,'Style','Frame','Tag','hGraphUI',...
+hGraphUI   = uicontrol(Finter,'Style','Frame','Tag','hGraphUI',...
 		'Position',[008 187 387 043].*WS);
 hGraphUIButtsF = uicontrol(Finter,'Style','Frame',...
 		'Position',[010 190 380 030].*WS);
@@ -937,7 +936,7 @@ DIM  = varargin{3};
 M    = varargin{2};
 
 %-Check for existing MultiPlanar toolbox
-hMP = get(hBmp,'UserData');
+hMP  = get(hBmp,'UserData');
 if ishandle(hMP)
 	figure(spm_figure('ParentFig',hMP))
 	varargout = {hMP};
