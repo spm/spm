@@ -645,9 +645,9 @@ switch lower(Type)			%-Type specific defaults/setup
 case 's', TTstr='enter string';
 case 'e', TTstr='enter expression to evaluate';
 case 'n', TTstr='enter expression - natural number(s)';
-	if ~isempty(m), strM=sprintf(' (<=%d)',m); end
+	if ~isempty(m), strM=sprintf(' (in [1,%d])',m); TTstr=[TTstr,strM]; end
 case 'w', TTstr='enter expression - whole number(s)';
-	if ~isempty(m), strM=sprintf(' (<=%d)',m); end
+	if ~isempty(m), strM=sprintf(' (in [0,%d])',m); TTstr=[TTstr,strM]; end
 case 'i', TTstr='enter expression - integer(s)';
 case 'r', TTstr='enter expression - real number(s)';
 	if ~isempty(m), TTstr=[TTstr,sprintf(' in [%g,%g]',min(m),max(m))]; end
@@ -840,8 +840,8 @@ case {'-n1','n1','-w1','w1'}
 	if nargin<5, m=[];        else, m=varargin{5};       end
 	if nargin<4, DefItem=[];  else, DefItem=varargin{4}; end
 	switch lower(Type)
-	case {'n1','-n1'}, Labels=[1:min(5,m)]'; Values=Labels'; Type='-n1';
-	case {'w1','-w1'}, Labels=[0:min(4,m)]'; Values=Labels'; Type='-w1';
+	case {'n1','-n1'}, Labels=[1:min([5,m])]'; Values=Labels'; Type='-n1';
+	case {'w1','-w1'}, Labels=[0:min([4,m])]'; Values=Labels'; Type='-w1';
 	end
 end
 
