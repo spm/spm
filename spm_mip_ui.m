@@ -31,23 +31,25 @@ function varargout=spm_mip_ui(varargin)
 %
 % (1) Point & drop: Using the primary "select" mouse button, click on a
 %     cursor and drag the crosshair which appears to the desired location.
-%     On dropping, the cursors jump to the voxel centre nearest the drop site.
+%     On dropping, the cursors jump to the voxel centre nearest the drop
+%     site.
 %
 % (2) Dynamic drag & drop: Using the middle "extend" mouse button, click on
 %     a cursor and drag it about. The cursor follows the mouse, jumping to
-%     the voxel centre nearest the pointer. A dynamically updating information
-%     line appears above the MIP and gives the current co-ordinates. If the 
-%     current voxel centre is in the XYZ pointlist, then the corresponding
-%     image value is also printed.
+%     the voxel centre nearest the pointer. A dynamically updating
+%     information line appears above the MIP and gives the current
+%     co-ordinates. If the current voxel centre is in the XYZ pointlist,
+%     then the corresponding image value is also printed.
 %
 % (3) Magnetic drag & drop: As with "Dynamic drag & drop", except the cursors
-%     jump to the voxel centre in the pointlist nearest to the cursor. Use the
-%     right "alt" mouse button for "magnetic drag & drop".
+%     jump to the voxel centre in the pointlist nearest to the cursor. Use 
+%     the right "alt" mouse button for "magnetic drag & drop".
 %
 % In addition a ContextMenu is provided, giving the option to jump the
 % cursors to the nearest suprathreshold voxel, the nearest local
 % maxima, or to the global maxima. (Right click on the MIP to bring up
-% the ContextMenu.) A message in the MatLab command window describes the jump.
+% the ContextMenu.) A message in the MatLab command window describes the 
+% jump.
 %
 %                           ----------------
 %
@@ -69,9 +71,7 @@ function varargout=spm_mip_ui(varargin)
 % - FORMAT specifications for embedded CallBack functions
 %=======================================================================
 %( This is a multi function function, the first argument is an action  )
-%( string, specifying the particular action function to take. Recall   )
-%( MatLab's command-function duality: `spm_figure Create` is           )
-%( equivalent to `spm('Create')`.                                      )
+%( string, specifying the particular action function to take.          )
 %
 % FORMAT hMIPax = spm_mip_ui(Z,XYZ,V,F)
 % [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',Z,XYZ,V,F)
