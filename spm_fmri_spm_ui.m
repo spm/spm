@@ -131,12 +131,14 @@ function [xX,Sess] = spm_fmri_spm_ui
 % between the most frequently occurring event or epoch (i.e the minium of
 % all maximum intervals over event or epochs).
 %
-% N.B.
 % Burst Mode is a specialist design for intermittent epochs of acquisitions
 % (used for example to allow for intercalated EEG recording).  Each burst
 % is treated as a session but consistent within-session effects (e.g. T1
 % effects) are modeled in X.bX.  The primary use of this mode is to generate
 % parameter estimate images for a second level analysis.
+%
+% N.B: Burst Mode is an unsupported 'in-house' developmental feature.
+%      The feature is currently hidden from the user.
 %
 %-----------------------------------------------------------------------
 % Refs:
@@ -314,13 +316,17 @@ end
 
 % Burst mode
 %-----------------------------------------------------------------------
-if length(nscan) > 16 & ~any(diff(nscan))
-	spm_input('Burst mode?','+1','d',mfilename,'batch')
-	BM    = spm_input('Burst mode','+1','y/n',[1 0],...
-			    'batch',{},'burst_mode');
-else
-	BM    = 0;
-end
+% if length(nscan) > 16 & ~any(diff(nscan))
+% 	spm_input('Burst mode?','+1','d',mfilename,'batch')
+% 	BM    = spm_input('Burst mode?','+1','y/n',[1 0],2,...
+% 			    'batch',{},'burst_mode');
+% else
+% 	BM    = 0;
+% end
+
+%-** Burst mode is a developmental feature, disabled due to problems!
+%-** See (KJF) http://www.mailbase.ac.uk/lists/spm/1999-10/0009.html
+BM = 0;
 
 % Model scan effects as oppsed to session effects if burst mode
 %-----------------------------------------------------------------------
