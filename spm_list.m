@@ -72,7 +72,8 @@ if isempty(Dis), Dis = 8;  end
 spm('Pointer','Watch')
 Fgraph    = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph)
-FS        = spm('FontSizes');
+FS        = spm('FontSizes');			%-Scaled font sizes
+PF        = spm_platform('fonts');		%-Font names (for this platform)
 
 
 %-Characterize excursion set in terms of maxima
@@ -124,7 +125,7 @@ line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 
 %-Construct table header
 %-----------------------------------------------------------------------
-set(gca,'DefaultTextFontName','Helvetica','DefaultTextFontSize',FS(8))
+set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
 if max(A) > 1
 
@@ -171,7 +172,7 @@ y     = y - 5*dy/4;
 y0    = y;
 hPage = [];
 
-set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(7))
+set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
 
 %-Table proper (& note all data in cell array)
 %=======================================================================
@@ -206,7 +207,7 @@ while max(Z)
 	if y < (Num + 1)*dy
 		h     = text(0.5,-5*dy,...
 			sprintf('Page %d',spm_figure('#page')),...
-			'FontName','Helvetica','FontAngle','Italic',...
+			'FontName',PF.helvetica,'FontAngle','Italic',...
 			'FontSize',FS(8));
 		spm_figure('NewPage',[hPage,h])
 		hPage = [];
@@ -320,7 +321,7 @@ end				% end region
 %-----------------------------------------------------------------------
 if spm_figure('#page')>1
 	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-		'FontName','Helvetica','FontSize',FS(8),'FontAngle','Italic');
+		'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
 	spm_figure('NewPage',[hPage,h])
 end
 
@@ -328,7 +329,7 @@ end
 %===========================================================================
 str = sprintf(['table shows at most %d subsidiary maxima ',...
 	'> %.1fmm apart per cluster'],Num,Dis);
-text(0.5,4,str,'HorizontalAlignment','Center','FontName','Helvetica',...
+text(0.5,4,str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
     'FontSize',FS(8),'FontAngle','Italic')
 
 
@@ -342,7 +343,7 @@ Pu              = spm_P(1,0,u,df,STAT,R,n);
 %-Footnote with SPM parameters
 %-----------------------------------------------------------------------
 line([0 1],[0 0],'LineWidth',1,'Color','r')
-set(gca,'DefaultTextFontName','Helvetica',...
+set(gca,'DefaultTextFontName',PF.helvetica,...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 TabFut = cell(4,2);
 TabFut{1} = ...
