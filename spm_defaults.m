@@ -11,7 +11,7 @@
 %
 % Care must be taken when modifying this file
 %_______________________________________________________________________
-% %W%	%E%
+% %W% %E%
 
 global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
@@ -136,7 +136,8 @@ QUICK_COREG = 0;	% Full
 
 % Spatial Normalisation defaults
 %=======================================================================
-global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx sptl_Rglrztn sptl_MskBrn
+global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx
+global sptl_Rglrztn sptl_MskBrn sptl_MskObj
 
 % Orientation/position of images. Used as a starting estimate for
 % affine normalisation.
@@ -168,10 +169,19 @@ sptl_Rglrztn = 0.01;
 sptl_NItr = 12;
 
 % Estimate the spatial normalization parameters from the brain only
-% or use the whole head.
+% (of the template) or use the whole head.
 %-----------------------------------------------------------------------
 %sptl_MskBrn = 0; % Estimate from the whole head
 sptl_MskBrn = 1; % Estimate from the brain only
+
+% Estimate the spatial normalization parameters from only a limited
+% region of the object image.  This is intended for spatially
+% normalizing brains with lesions etc., by incorporating weighting
+% via an image with values between zero and one that matches the space
+% of the object image.
+%-----------------------------------------------------------------------
+sptl_MskObj = 0; % Estimate from the whole FOV of object image
+%sptl_MskObj = 1; % Estimate using a weighting image
 
 % Bounding Box. The definition of the volume of the normalised image
 % which is written (mm relative to AC).
@@ -183,4 +193,3 @@ sptl_BB = [[-78 -112 -50];[78 76 85]];
 % Voxel sizes in mm of the normalised images
 %-----------------------------------------------------------------------
 sptl_Vx = [2 2 2];	% 2mm x 2mm x 2mm
-%sptl_Vx = [1.5 1.5 1.5];
