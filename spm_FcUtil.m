@@ -169,8 +169,8 @@ if nargout > 1, error('Too many output arguments Set'), end;
 %-check arguments...
 %--------------------------------------------------------------------------
 if ~isstr(varargin{2}), error('~isstr(name)'), end;
-if ~(varargin{3}=='F'|varargin{3}=='T'), 
-	error('~(STAT==F|STAT==T)'), end;
+if ~(varargin{3}=='F'|varargin{3}=='T'|varar=='P'), 
+	error('~(STAT==F|S|TAT==TSTAT==P)'), end;
 if ~isstr(varargin{4}), error('~isstr(varargin{4})'); 
 else set_action = varargin{4}; end;
 
