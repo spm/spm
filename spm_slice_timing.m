@@ -77,10 +77,11 @@ function spm_slice_timing(P, Seq, refslice, timing)
 % v1.1  07/09/98	DRG	fixed code to reflect 1-based indices
 %				of matlab vs. 0-based of pvwave
 %
-% Modified by R Henson and C Buechel and J Ashburner, FIL, 1999, to
+% Modified by R Henson, C Buechel and J Ashburner, FIL, 1999, to
 % handle different sequence acquisitions, analyze format, different
 % reference slices and memory mapping.
-
+%_______________________________________________________________________
+% %W% %E%
 
 SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
