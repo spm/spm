@@ -602,7 +602,7 @@ else
 		for i=ss:es
 			P(i).mat = M*P(i).mat;
 		end;
-		ss = es;
+		ss = es+1;
 	end;
 
 	ss=1;
@@ -610,7 +610,7 @@ else
 		es = sessions(s);
 		fprintf('Registering together images from session %d..\n', s);
 		P(ss:es) = realign_series(P(ss:es),PW,Flags);
-		ss = es;
+		ss = es+1;
 	end;
 end
 
@@ -742,6 +742,7 @@ for i=2:length(P)
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end
+
 % figure(2);
 % img1 = spm_slice_vol(P(i),inv(spm_matrix([0 0 -25])*inv(P(1).mat)*P(i).mat),P(1).dim(1:2),1);
 % img2 = spm_slice_vol(P(1),inv(spm_matrix([0 0 -25])),P(1).dim(1:2),1);
