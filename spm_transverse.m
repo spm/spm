@@ -121,7 +121,8 @@ end;
 
 %-Configure {128 level} colormap
 %-----------------------------------------------------------------------
-colormap([gray(64); pink(64)])
+if size(colormap,1)~=128, colormap([gray(64); hot(64)]); end;
+
 D      = length(colormap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
 
