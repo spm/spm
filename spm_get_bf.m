@@ -20,7 +20,10 @@ Finter = spm_figure('FindWin','Interactive');
 % assemble basis functions {bf}
 %---------------------------------------------------------------------------
 if     all(W == 0)
- 
+
+ 	% specification
+	%-------------------------------------------------------------------
+	set(Finter,'Name','event-related basis functions'); 
 
 	% model event-related responses
 	%-------------------------------------------------------------------
@@ -34,7 +37,7 @@ if     all(W == 0)
 		'hrf (with time and dispersion derivatives)'};
 	str   = 'Select basis set';
 	Cov   = spm_input(str,1,'m',Ctype);
-	BFstr = Ctype(Cov);
+	BFstr = Ctype{Cov};
 
 
 	% create basis functions
@@ -121,6 +124,10 @@ if     all(W == 0)
 elseif all(W > 0)
 
 
+	% specification
+	%-------------------------------------------------------------------
+	set(Finter,'Name','epoch-related basis functions'); 
+
 	% covariates of interest - Type
 	%-------------------------------------------------------------------
 	Ctype = {
@@ -130,7 +137,7 @@ elseif all(W > 0)
 		'fixed response   (Box-car)'};
 	str   = 'Select type of response';
 	Cov   = spm_input(str,1,'m',Ctype);
-	BFstr = Ctype(Cov);
+	BFstr = Ctype{Cov};
 
 
 	% convolve with HRF?
@@ -212,17 +219,20 @@ elseif all(W > 0)
 
 else
 
+	% mixed event and epoch model
 	%-------------------------------------------------------------------
-	str   = get(Finter,'Name'); 
-	for i = 1:length(W)
-		set(Finter,'Name',[str sprintf(': Trial type: %d',i)]); 
+	q          = find(~W);
+	[bf,bfstr] = spm_get_bf(W(q),dt);
+	BF(q)      = bf;
+	BFstr      = bfstr;
+	q          = find( W);
+	[bf,bfstr] = spm_get_bf(W(q),dt);
+	BF(q)      = bf;
+	BFstr      = [BFstr ' & ' bfstr];
 
-		[bf,bfstr] = spm_get_bf(W(i),dt);
-		BF{i}      = bf{1};
-		BFstr{i}   = bfstr{1};
-	end
-	set(Finter,'Name',str); 
+
 end
+set(Finter,'Name',''); 
 
 
 % orthogonalize basis functions
