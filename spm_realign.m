@@ -708,6 +708,9 @@ function P = realign_series(P,Wt,Flags)
 % optimum scaling required to match the images.
 %_______________________________________________________________________
 
+global sptl_RlgnQlty
+if isempty(sptl_RlgnQlty), error('You need to set up the defaults'); end;
+
 if nargin < 2, Wt = []; end;
 if nargin < 3, Flags = ' '; end;
 
@@ -759,16 +762,49 @@ V=smooth_vol(P(1),fwhm);
 [b,dG1,dG2,dG3]=spm_sample_vol(V,x1,x2,x3,Hold1);
 clear V
 A0 = make_A(P(1).mat,x1,x2,x3,dG1,dG2,dG3,wt,lkp);
+
+%-----------------------------------------------------------------------
+if prod(size(P)) > 2,
+	% Remove voxels that contribute very little to the final estimate.
+	% Simulated annealing or something similar could be used to
+	% eliminate a better choice of voxels - but this way will do for
+	% now. It basically involves removing the voxels that contribute
+	% least to the determinant of the inverse covariance matrix.
+
+	spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
+		      'Iteration','Fractional loss of quality');
+	Alpha = spm_atranspa([A0 b]);
+	det0  = det(Alpha);
+	det1  = det0;
+	spm_chi2_plot('Set',det1/det0);
+	while det1/det0 > sptl_RlgnQlty,
+		dets  = zeros(size(A0,1),1);
+		for i=1:size(A0,1),
+			dets(i) = det(Alpha - spm_atranspa([A0(i,:) b(i)]));
+		end;
+		[junk,msk] = sort(det1-dets);
+		msk        = msk(1:round(length(dets)/10));
+		 A0(msk,:) = [];   b(msk,:) = [];
+		 x1(msk,:) = [];  x2(msk,:) = [];  x3(msk,:) = [];
+		dG1(msk,:) = []; dG2(msk,:) = []; dG3(msk,:) = [];
+		if ~isempty(wt),  wt(msk,:) = []; end;
+		Alpha = spm_atranspa([A0 b]);
+		det1  = det(Alpha);
+		spm_chi2_plot('Set',det1/det0);
+	end;
+	spm_chi2_plot('Clear');
+end;
+%-----------------------------------------------------------------------
+
 if ~isempty(wt), b = b.*wt; end
 
 if register_to_mean,
-	count = ones(n,1);
+	count = ones(size(b));
 	ave   = b;
 	grad1 = dG1;
 	grad2 = dG2;
 	grad3 = dG3;
 end;
-
 spm_progress_bar('Init',length(P)-1,'Registering Images');
 % Loop over images
 %-----------------------------------------------------------------------
@@ -796,15 +832,11 @@ for i=2:length(P),
 
 		pss        = ss;
 		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
-		if (pss-ss)/pss < 1e-8,	% Stopped converging.
-			if Hold == 1
-				% Switch to a better (slower) interpolation
-				% to finish with
-				Hold = Hold1;
-			elseif countdown == -1
-				% Do two final iterations to finish off with
-				countdown = 2;
-			end
+		if (pss-ss)/pss < 1e-8 & countdown==-1, % Stopped converging.
+			% Switch to a better (slower) interpolation
+			% and do two final iterations
+			Hold = Hold1;
+			countdown = 2;
 		end;
 		if countdown ~= -1,
 			if countdown==0, break; end;
@@ -1003,6 +1035,7 @@ return;
 %_______________________________________________________________________
 function edit_defaults
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
+global sptl_RlgnQlty
 
 tmp = 1;
 if sptl_WhchPtn == 1, tmp = 2; end;
@@ -1035,6 +1068,16 @@ if sptl_MskOptn == 1,
 end
 sptl_MskOptn  = spm_input(['Option to mask images?'], 5, 'm',...
 		'  Always mask|Optional mask', [1 -1], tmp);
+
+tmp2 = [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001];
+tmp = find(sptl_RlgnQlty == tmp2);
+if isempty(tmp) tmp = length(0.5); end
+sptl_RlgnQlty = spm_input('Registration Quality?','+1','m',...
+	['Quality 1.00  (slowest/most accurate) |Quality 0.90|' ...
+	 'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
+	 'Quality 0.05|Quality 0.01|' ...
+	 'Quality 0.005|Quality 0.001 (fastest/poorest)'],tmp2, tmp);
+
 return;
 %_______________________________________________________________________
 

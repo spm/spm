@@ -76,7 +76,7 @@ fMRI_UFp = 0.001;
 
 % Realignment defaults
 %=======================================================================
-global sptl_WhchPtn sptl_CrtWht sptl_DjstFMRI sptl_MskOptn
+global sptl_WhchPtn sptl_CrtWht sptl_DjstFMRI sptl_MskOptn sptl_RlgnQlty
 
 % Which Option?
 % This gives the flexibility for coregistering and reslicing images
@@ -114,6 +114,12 @@ sptl_DjstFMRI = -1;	% Optional adjust
 %sptl_MskOptn = -1;	% Optional mask
 sptl_MskOptn =  1;	% Always mask
 
+% Quality versus speed trade-off.  Highest quality (1) gives most
+% precise results, whereas lowest quality gives fastest realignment.
+% The idea is that some voxels contribute little to the estimation of
+% the realignment parameters.  The sptl_RlgnQlty variable selects the
+% number of voxels that are used.
+sptl_RlgnQlty = 0.5;
 
 % Coregistration defaults
 %=======================================================================
