@@ -126,7 +126,7 @@ fwrite(fid,glmin,	'int32');
 fwrite(fid,descrip,	'char');
 fwrite(fid,aux_file,    'char');
 fwrite(fid,0,           'char');
-fwrite(fid,origin,      'int16');
+fwrite(fid,round(origin),      'int16');
 if fwrite(fid,zeros(1,85), 'char')~=85
 	fclose(fid);
 	spm_unlink(P);
