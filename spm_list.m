@@ -49,6 +49,10 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % a region. Z-variates (based on the uncorrected p value) are the Z score
 % equivalent of the statistic. Volumes are expressed in resels.
 %
+% Click on co-ordinates to jump results cursor to location ****
+% Click on tabulated data to extract accurate value to MatLab
+% workspace. (Look in the MatLab command window.)
+%
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -98,7 +102,7 @@ XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 %-Table axes & headings
 %=======================================================================
-hAx   = axes('Position',[0.05 0.1 0.9 0.42],...
+hAx   = axes('Position',[0.05 0.1 0.9 0.4],...
 	'DefaultTextFontSize',FS(8),...
 	'DefaultTextInterpreter','Tex',...
 	'DefaultTextVerticalAlignment','Baseline',...
@@ -110,20 +114,35 @@ y     = floor(AxPos(4)) - dy;
 
 text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',title],...
 	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
-line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 3*dy/2;
+line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 5*dy/4;
 
-%-Construct tables
+%-Construct table header
 %-----------------------------------------------------------------------
-text(0.00,y,'set-level \{\it{c}\rm\}','FontSize',FS(9));
-text(0.15,y,'cluster-level \{\it{k}\rm_{max}\}','FontSize',FS(9));
-text(0.38,y,['voxel-level \{\it{',STAT,'}\rm_{max} \equiv \it{Z}\rm_{max}\}'],...
-							'FontSize',FS(9));
-text(0.66,y,['uncorrected \it{k}\rm & \it{',STAT,'}'],'FontSize',FS(9));
-text(0.90,y,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}'],'FontSize',FS(9));
+set(gca,'DefaultTextFontName','Helvetica','DefaultTextFontSize',FS(8))
 
-y     = y - dy/2;
+text(0.01,y,	'set-level','FontSize',FS(9))
+line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
+text(0.02,y-dy,	'\itp')			% '\itp\rm(\itC\rm > \itc\rm)'
+text(0.09,y-dy,	'\itc')			% '\{\itc\rm\}'
+
+text(0.22,y,	'cluster-level','FontSize',FS(9))
+line([0.16,0.42],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
+text(0.16,y-dy,	'\itp \rm_{corrected}')	% '\itp\rm(\itK_{max}>k\rm)'
+text(0.28,y-dy,	'\itk')			% '\{\itk\rm\}'
+text(0.33,y-dy,	'\itp \rm_{uncorrected}')% '\itp\rm(\itK>k\rm|\itK>0\rm)'
+
+text(0.60,y,	'voxel-level','FontSize',FS(9))
+line([0.48,0.83],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
+text(0.48,y-dy,	'\itp \rm_{corrected}')
+text(0.60,y-dy,	sprintf('\\it%c',STAT))
+text(0.68,y-dy,	'(\itZ\rm_\equiv)')
+text(0.75,y-dy,	'\itp \rm_{uncorrected}')
+
+text(0.90,y-dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
+
+y     = y - 7*dy/4;
 line([0 1],[y y],'LineWidth',1,'Color','r')
-y     = y - 3*dy/2;
+y     = y - 5*dy/4;
 
 %-Pagination variables
 %-----------------------------------------------------------------------
@@ -136,8 +155,11 @@ set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(7))
 %-----------------------------------------------------------------------
 c     = max(A);					%-Number of clusters
 Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
-str   = sprintf('%-0.3f  (%i)',Pc,c);
-h     = text(0.00,y,str,'FontWeight','Bold');
+h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
+	'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
+hPage = [hPage, h];
+h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
+	'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
 hPage = [hPage, h];
 
 
@@ -168,22 +190,34 @@ while max(Z)
 	Pz      = spm_P(1,0,   U,df,STAT,1,n);	% uncorrected p value
 	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
-	Ze      = spm_invNcdf(1 - Pz);		% Equivalent Z-variate
+	Ze      = spm_invNcdf(1 -Pz);		% Equivalent Z-variate
 
 
 	%-Print cluster and maximum voxel-level p values {Z}
     	%---------------------------------------------------------------
-	h     = text(0.17,y,sprintf('%0.3f  (%0.2f)',Pk,N(i)),...
-			'FontWeight','Bold');
+	h     = text(0.17,y,sprintf('%0.3f',Pk),	'FontWeight','Bold',...
+		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.38,y,sprintf('%5.3f   (%6.2f \\equiv %5.2f)',...
-			Pu,U,Ze),...
-			'FontWeight','Bold');
+	h     = text(0.27,y,sprintf('%0.2f',N(i)),	'FontWeight','Bold',...
+		'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.68,y,sprintf('%0.3f',Pn),'FontWeight','Bold');
+	h     = text(0.35,y,sprintf('%0.3f',Pn),	'FontWeight','Bold',...
+		'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-	h     = text(0.76,y,sprintf('%0.3f',Pz),'FontWeight','Bold');
+
+	h     = text(0.49,y,sprintf('%0.3f',Pu),	'FontWeight','Bold',...
+		'UserData',Pu,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
+	h     = text(0.57,y,sprintf('%6.2f',U),		'FontWeight','Bold',...
+		'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
+	hPage = [hPage, h];
+	h     = text(0.66,y,sprintf('(%5.2f)',Ze),	'FontWeight','Bold',...
+		'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
+	hPage = [hPage, h];
+	h     = text(0.77,y,sprintf('%0.3f',Pz),	'FontWeight','Bold',...
+		'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
+	hPage = [hPage, h];
+
 	h     = text(0.88,y,sprintf('%3.0f %3.0f %3.0f',XYZmm(:,i)),...
 		'FontWeight','Bold',...
 		'ButtonDownFcn',...
@@ -209,11 +243,21 @@ while max(Z)
 			Pu    = spm_P(1,0,Z(d),df,STAT,R,n);
 			Ze    = spm_invNcdf(1 - Pz);
 
-			h     = text(0.38,y,...
-				sprintf('%5.3f   (%6.2f \\equiv %5.2f)',...
-					Pu,Z(d),Ze));
+			h     = text(0.49,y,sprintf('%0.3f',Pu),...
+				'UserData',Pu,...
+				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
-			h     = text(0.76,y,sprintf('%0.3f',Pz));
+			h     = text(0.57,y,sprintf('%6.2f',U),...
+				'UserData',U,...
+				'ButtonDownFcn','get(gcbo,''UserData'')');
+			hPage = [hPage, h];
+			h     = text(0.66,y,sprintf('(%5.2f)',Ze),...
+				'UserData',Ze,...
+				'ButtonDownFcn','get(gcbo,''UserData'')');
+			hPage = [hPage, h];
+			h     = text(0.77,y,sprintf('%0.3f',Pz),...
+				'UserData',Pz,...
+				'ButtonDownFcn','get(gcbo,''UserData'')');
 			hPage = [hPage, h];
 			h     = text(0.88,y,...
 				sprintf('%3.0f %3.0f %3.0f',XYZmm(:,d)),...
@@ -260,13 +304,13 @@ Pz              = spm_P(1,0,u,df,STAT,1,n);
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 set(gca,'DefaultTextFontName','Helvetica',...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-str = sprintf('Height threshold {u} = %0.2f, p = %0.3f (%0.3f)',u,Pz,P);
+str = sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',STAT,u,Pz,P);
 text(0.0,-1*dy,str);
-str = sprintf('Extent threshold {k} = %0.2f resels, p = %0.3f',k,Pn);
+str = sprintf('Extent threshold: k = %0.2f resels, p = %0.3f',k,Pn);
 text(0.0,-2*dy,str);
-str = sprintf('Expected resels per cluster, E{n} = %0.3f',En);
+str = sprintf('Expected resels per cluster, E[n] = %0.3f',En);
 text(0.0,-3*dy,str);
-str = sprintf('Expected number of clusters, E{m} = %0.2f',Em*Pn);
+str = sprintf('Expected number of clusters, E[m] = %0.2f',Em*Pn);
 text(0.0,-4*dy,str);
 
 str = sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
@@ -274,7 +318,7 @@ text(0.5,-1*dy,str);
 str = sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
 		' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
 text(0.5,-2*dy,str);
-str = sprintf(['Volume {S} = %0.0f voxels = %0.2f resels ',...
+str = sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
 		'(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
 text(0.5,-3*dy,str);
 str = sprintf('');
