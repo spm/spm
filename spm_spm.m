@@ -800,7 +800,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     %-Construct voxel indices for BePm
     %-------------------------------------------------------------------
     Q     = find(BePm);
-    tmp   = zeros(xdim,ydim);
+    tmp   = NaN*ones(xdim,ydim);
 
 
     %-Write beta images
