@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #ifdef SPM_WIN32
+typedef char *caddr_t;
 #else
 #include <sys/mman.h>
 #endif

@@ -1,6 +1,7 @@
-#ifndef lint
-static char svnid[] = "$Id$";
-#endif
+/*
+ * $Id$
+ */
+
 #include "mex.h"
 #include "matrix.h"
 #include <stdlib.h>

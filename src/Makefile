@@ -93,7 +93,7 @@ windows:
 # After this, I have no idea what to do... because it's Windows
 #
 	make all SUF=dll\
-	        CC="gcc -O3 -mno-cygwin -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
+	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
 	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL"\
 	        ADDED_MEX=spm_win32utils.dll
 
@@ -101,7 +101,7 @@ CYGWIN_NT-4.0: windows
 
 CYGWIN_NT-5.0: windows
 
-CYGWIN_NT-6.0: windows
+CYGWIN_NT-5.1: windows
 
 ###############################################################################
 # Architecture specific cleaning
@@ -150,14 +150,14 @@ SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
-	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
+	spm_atranspa.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
 	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
 	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
-	$(ADDED_MEX)
+	spm_list_files.$(SUF) $(ADDED_MEX)
 
 ###############################################################################
 # The main ways to run make

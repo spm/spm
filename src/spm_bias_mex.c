@@ -1,14 +1,13 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+$Id$
+*/
 
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
-/* #include "spm_sys_deps.h" */
+#include "spm_sys_deps.h"
 /* #include "spm_vol_utils.h" */
-#include <math.h>
 #include "mex.h"
-
+/* #include <math.h> */
 #define EPS 2.2204460492503130808e-16
 #define MAXB 128 /* Maximum number of bases functions in each dimension */
 

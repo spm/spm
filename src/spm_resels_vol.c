@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 /*
 See Worsley et al. (1996), Human Brain Mapping 4:58-73 for a description
 of what it does.

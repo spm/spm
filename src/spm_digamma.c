@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

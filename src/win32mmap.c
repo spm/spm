@@ -17,10 +17,9 @@ map_file differs from mmap in that
 unmap_file is very similar to munmap, except it does not
 want the (second) length parameter, which is not easily
 implemented using Win32 
+
+$Id$
 */
-#ifndef lint
-static char svnid[] = "$Id$";
-#endif
 
 #include <windows.h>
 #include "win32mmap.h"

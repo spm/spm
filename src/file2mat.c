@@ -1,15 +1,13 @@
-#ifndef lint
-static char svnid[] = "$Id$";
-#endif
 /*
 Memory mapping is used by this module. For more information on this, see:
 http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
+
+$Id$
 */
 
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 #include <stdlib.h>
 #include "mex.h"
 
@@ -18,7 +16,9 @@ http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 #include <memory.h>
 #include <sys/types.h>
 HANDLE hFile, hMapping;
-typedef LPVOID caddr_t;
+typedef char *caddr_t;
+#else
+#include <sys/mman.h>
 #endif
 
 #define MXDIMS 256
@@ -407,7 +407,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             FILE_SHARE_READ,
             NULL,
             OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS,
             NULL);
         mxFree(buf);
         if (hFile == NULL)
@@ -428,9 +428,10 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/mapviewoffile.asp */
-        map->addr    = (caddr_t)MapViewOfFile(
+        map->addr    = (caddr_t)MapViewOfFileEx(
             hMapping,
             FILE_MAP_READ,
+            0,
             0,
             map->len,
             0);

@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 /* matlab dependent high level data access and map manipulation routines */
 
@@ -8,11 +8,12 @@ static char svnid[]="$Id$";
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
-typedef LPVOID caddr_t;
+typedef char *caddr_t;
+#else
+#include <unistd.h>
 #endif
 #include "spm_sys_deps.h"
 #include "spm_mapping.h"
@@ -325,7 +326,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 		       url=/library/en-us/fileio/base/mapviewoffile.asp */
 		maps[i].addr    = MapViewOfFile(hMapping, FILE_MAP_READ, 0, maps[i].len, 0);
 		(void)CloseHandle(hMapping);
-		if (map->addr == NULL)
+		if (maps[i].addr == NULL)
 			mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");
 #else
 		maps[i].addr = mmap((caddr_t)0, maps[i].len,

@@ -1,6 +1,7 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
+
 /*  Invert a deformation field.
 
    FORMAT: [IY1,IY2,IY3] = spm_invdef(Y1,Y2,Y3,dim,M1,M2);

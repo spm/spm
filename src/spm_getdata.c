@@ -1,7 +1,6 @@
-/* spm_getdata.c */
-#ifndef lint
-static char sccsid[] = "$Id$";
-#endif
+/*
+ * $Id$
+ */
 /* routines for accessing datatypes for images */
 
 short getshort(short x)

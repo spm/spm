@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnsid[] = "$Id$";
-#endif /* lint */
+/*
+$Id$
+*/
 
 #include <math.h>
 #include "spm_sys_deps.h"

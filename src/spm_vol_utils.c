@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 #define TINY 5e-2
 

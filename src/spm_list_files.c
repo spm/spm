@@ -1,12 +1,16 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#ifdef SPM_WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 #include "mex.h"
 

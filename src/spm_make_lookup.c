@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 /* Generate a lookup table for Lagrange interpolation
    See page 98 of `Fundamentals of Digital Image Processing'

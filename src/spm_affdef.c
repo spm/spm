@@ -1,6 +1,7 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+$Id$
+*/
+
 /* Note that according to the Matlab documentation, one should "avoid
    modifying input arguments in MEX-files".
    "In MATLAB 5.1 to 5.3.1, MATLAB arrays can share data.  There is

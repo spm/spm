@@ -1,6 +1,6 @@
-#ifndef lint
-static char sccsid[] = "$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 #include "mex.h"
 

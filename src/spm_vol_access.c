@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[] = "$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 /* matlab independent image access routines;
 gateway to routines compiled from spm_vol_utils.c */

@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnsid[]="$Id$";
-#endif
+/*
+ * $Id$
+*/
 /*
  * This code is based on that of Philippe Thevenaz, which I took from:
  *	http://bigwww.epfl.ch/algorithms.html

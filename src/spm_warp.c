@@ -1,6 +1,6 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 /* Note that according to the Matlab documentation, one should "avoid
    modifying input arguments in MEX-files".

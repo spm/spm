@@ -1,7 +1,6 @@
-/* spm_win32utils */
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 #include <windows.h>
 #include <string.h>

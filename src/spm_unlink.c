@@ -1,11 +1,13 @@
-#ifndef lint
-static char svnid[]="$Id$";
-#endif
+/*
+ * $Id$
+ */
 
 /* Do a silent deletion of files on disk */
 
 #include "mex.h"
+#ifndef SPM_WIN32
 #include <unistd.h>
+#endif
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

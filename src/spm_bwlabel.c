@@ -16,9 +16,9 @@
  ** and Image Processing 54(4):357-364.
  **
  ***************************************************************/
-#ifndef lint
-static char svnid[] = "$Id$";
-#endif
+/**
+ ** $Id$
+ **/
 
 #include "mex.h"
 #include <math.h>

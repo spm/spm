@@ -9,11 +9,10 @@
  
   The mean is estimated after discounting voxels outside the object
   using a criteria of greater than > (global mean)/8
+
+  $Id$
 */
 
-#ifndef lint
-static char sccsid[]="$Id$";
-#endif
 
 #include "spm_sys_deps.h"
 #include "spm_mapping.h"
