@@ -301,7 +301,7 @@ if isfield(SPM,'PPM') & xCon(Ic).STAT == 'T'
 	%-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
 	% The default is one conditional s.d. of the contrast
         %---------------------------------------------------------------
-	str           = 'contrast threshold (default: prior s.d)';
+	str           = 'threshold {default: prior s.d.}';
 	Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
 	xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
 
