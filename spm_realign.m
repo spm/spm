@@ -1,4 +1,4 @@
-function spm_realign2(arg1,arg2,arg3,arg4,arg5,arg6)
+function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % within mode image realignment routine
 %
 % --- The Prompts Explained ---
@@ -78,14 +78,33 @@ function spm_realign2(arg1,arg2,arg3,arg4,arg5,arg6)
 % With masking enabled, the program searches through the whole time series
 % looking for voxels which need to be sampled from outside the original
 % images. Where this occurs, that voxel is set to zero for the whole set
-% of images.
+% of images (unless the image format can represent NaN, in which case
+% NaNs are used where possible).
 %
 % 'Adjust sampling errors?' (fMRI only)
 % Adjust the data (fMRI) to remove interpolation errors arising from the
 % reslicing of the data.  The adjustment for each fMRI session is performed
 % independantly of any other session.  Bayesian statistics are used to
-% regularize the adjustment in order to prevent an excessive amount of signal
-% from being removed.
+% attempt to regularize the adjustment in order to prevent an excessive
+% amount of signal from being removed.  A priori variances for coefficients
+% are assumed to be stationary and are estimated by translating the first
+% image by a number of different distances using both Fourier and sinc
+% interpolation.  This gives a ball park figure on how much error is
+% likely to arise because of the approximations in the sinc interpolation.
+% The certainty of the solution is obtained from the residuals after
+% fitting the optimum linear combination of the basis functions through
+% the data.  Estimates of certainty based on the residuals are
+% unfortunately just an approximation.   
+% We still don't fully understand the nature of the movement artifacts
+% that arise using fMRI.  The current model is simply attempting to remove
+% interpolation errors.  There are many other sources of error that the
+% model does not attempt to remove.
+% It is possible that adjusting the data without taking into account
+% the design matrix for the statistics may be problematic when there are
+% stimulous correlated movements, since adjusting seperately requires the
+% assumption that the movements are independant from the paradigm.  It
+% may be be better to include the estimated motion parameters as confounds
+% when the statistics are run.
 %
 % 'Reslice Interpolation Method?'
 % 	'Trilinear Interpolation'
@@ -97,13 +116,14 @@ function spm_realign2(arg1,arg2,arg3,arg4,arg5,arg6)
 %	of realigned images.
 % 	This is slower than bilinear interpolation, but produces better
 % 	results. It is especially recommended for fMRI time series.
+%	An 11x11x11 kernel is used to resample the images.
 %
 %	'Fourier space Interpolation' (fMRI only)
 %	Rigid body rotations are executed as a series of shears, which
 %	are performed in Fourier space (Eddy et. al. 1996).  This routine
 %	only supports cubic voxels (since zooms can not be done by
 %	convolution in Fourier space).
-%	No adjustment is available for this yet.
+%	No adjustment is available for this.
 %
 %__________________________________________________________________________
 % Refs:
@@ -129,7 +149,7 @@ if (nargin == 0)
 	% User interface.
 	%_______________________________________________________________________
 	spm('FnUIsetup','Realign',1);
-	spm_help('!ContextHelp','spm_realign2.m');
+	spm_help('!ContextHelp','spm_realign.m');
 
 	pos = 1;
 
@@ -440,7 +460,7 @@ for x3 = 1:P(1).dim(3)
 			Y2(:,i)=y2;
 			Y3(:,i)=y3;
 		end;
-	end
+	end;
 	Mask = (Count == prod(size(P)));
 
 	if any(Flags == 'c'),
@@ -475,27 +495,26 @@ for x3 = 1:P(1).dim(3)
 	end;
 
 
-	if any(Flags == 'i')
+	if any(Flags == 'i'),
 		Integral(:,x3) = sum(X,2)./Count;
-	end
-
-	if any(Flags == 'k'),
-		X(find(~Mask),:) = 0;
-	end
+	end;
 
 	if ~any(Flags == 'N'),
+		if any(Flags == 'k'), notmsk = find(~Mask); else, notmsk=[]; end;
 		start_vol = 1;
 		if (any(Flags == 'n')) start_vol = 2; end
 
 		for i = start_vol:prod(size(P)),
-			spm_write_plane(PO(i),reshape(X(:,i),PO(i).dim(1:2)),x3);
-		end
+			tmp = reshape(X(:,i),PO(i).dim(1:2));
+			tmp(notmsk) = NaN;
+			spm_write_plane(PO(i),tmp,x3);
+		end;
 	end
 	spm_progress_bar('Set',x3);
-end
+end;
 
 
-if any(Flags == 'i')
+if any(Flags == 'i'),
 	% Write integral image (16 bit signed)
 	%-----------------------------------------------------------
 
@@ -511,7 +530,7 @@ if any(Flags == 'i')
 	for j=1:PO.dim(3),
 		spm_write_plane(PO,reshape(Integral(:,j),PO.dim(1:2)),j);
 	end;
-end
+end;
 
 spm_figure('Clear','Interactive');
 fprintf('Done\n');
@@ -551,7 +570,7 @@ if strcmp(MODALITY, 'PET'), Flags = [Flags 'p']; end;
 if nargin<2, Q = ''; end
 if ~isempty(Q),
 	tmp = clock;
-	ref = [pwd '/spm_realign2_tmp_' sprintf('%.2d%.2d%.2d%.2d%.4d',tmp(3),tmp(4),tmp(5),round(tmp(6)),round(rem(tmp(6),1)*10000)) '.img'];
+	ref = [pwd '/spm_realign_tmp_' sprintf('%.2d%.2d%.2d%.2d%.4d',tmp(3),tmp(4),tmp(5),round(tmp(6)),round(rem(tmp(6),1)*10000)) '.img'];
 	spm_smooth(P(1).fname,ref,8);
 	fprintf('Initial registration to templates..\n');
 	params  =spm_affsub3('affine2',Q(1:(end-1),:),ref,1,8);
@@ -608,7 +627,7 @@ return;
 %_______________________________________________________________________
 function P = realign_series(P,Wt,Flags)
 % Realign a time series of 3D images to the first of the series.
-% FORMAT P = spm_realign2_series(P,Wt,Flags)
+% FORMAT P = realign_series(P,Wt,Flags)
 % P  - a vector of volumes (see spm_vol)
 % Wt - an optional masking volume
 %-----------------------------------------------------------------------
@@ -719,15 +738,6 @@ for i=2:length(P)
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end
-
-% figure(2);
-% img1 = spm_slice_vol(P(i),inv(spm_matrix([0 0 -25])*inv(P(1).mat)*P(i).mat),P(1).dim(1:2),1);
-% img2 = spm_slice_vol(P(1),inv(spm_matrix([0 0 -25])),P(1).dim(1:2),1);
-% img3 = spm_slice_vol(Wt,inv(spm_matrix([0 0 -25])*inv(P(1).mat)*Wt.mat),P(1).dim(1:2),1);
-% subplot(2,2,1);imagesc(rot90(img2));axis image off;
-% subplot(2,2,2);imagesc(rot90(img1));axis image off;
-% subplot(2,2,3);imagesc(rot90(img3));axis image off;
-% drawnow;
 	end
 
 	if register_to_mean,
