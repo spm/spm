@@ -5,7 +5,7 @@
 % X design matrix
 % p AR model order
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% @(#)spm_vb_init_volume.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
 
 disp('Initialising volume');
 disp(' ');
@@ -26,7 +26,12 @@ for t=p+1:T,
 end
 
 [ux,dx,vx]=svd(X);
-ddx=diag(dx);
+if size(dx,2) > 1
+    ddx=diag(dx);
+else
+    % design matrix with a single column
+    ddx=dx;
+end
 svd_tol=max(ddx)*eps*slice.k;
 rank_X=sum(ddx > svd_tol);
 ddxm=diag(ones(rank_X,1)./ddx(1:rank_X));
