@@ -12,12 +12,20 @@
 % p < 0.05 (uncorrected)
 %
 %__________________________________________________________________________
-% %W% %E%
+% %W% Karl Friston %E%
 
-
+% find and clear Interactive window
 %---------------------------------------------------------------------------
-figure(2); clf; set(2,'Name','Eigenimages')
+Finter = spm_figure('FindWin','Interactive');
+if isempty(Finter), Finter=spm('CreateIntWin'); end
+spm_clf(Finter)
+spm_clf('Graphics')
+set(Finter,'Name','Eigenimages')
+
+% get adjusted data to analyse
+%---------------------------------------------------------------------------
 tmp = spm_get(1,'.mat','select adjusted data you wish to analyse','XA');
+global CWD
 CWD = strrep(tmp,'/XA.mat','');
 load([CWD,'/SPM'])
 load([CWD,'/XA'])
@@ -50,7 +58,7 @@ else
 end
 clear XA
 
-set(2,'Pointer','Watch'); figure(2); clf; drawnow
+set(Finter,'Pointer','Watch')
 
 
 % Singlar Value Decompostion
@@ -65,16 +73,19 @@ s       = length(s)*s/sum(s);
 e    = 1;
 spm_svd
 
-figure(2); clf; set(2,'Pointer','Arrow')
-c    = ['set(2,''Pointer'',''watch''); e = e + 1;; e = min([length(s) e]);',...
-	'spm_svd; set(2,''Pointer'',''arrow'');'];
-uicontrol(2,'Style','Pushbutton','Position',[80,200,100,30],...
+% setup buttons to move between eigenimages
+%----------------------------------------------------------------------------
+c    = ['set(Finter,''Pointer'',''watch''); e = e + 1;; e = min([length(s) e]);',...
+	'spm_svd; set(Finter,''Pointer'',''arrow'');'];
+uicontrol(Finter,'Style','Pushbutton','Position',[80,200,100,30],...
 	'String','next','Callback',c);
 
-c    = ['set(2,''Pointer'',''watch''); e = e - 1; e = max([1 e]);'...
-	'spm_svd; set(2,''Pointer'',''arrow'');'];
-uicontrol(2,'Style','Pushbutton','Position',[220,200,100,30],...
+c    = ['set(Finter,''Pointer'',''watch''); e = e - 1; e = max([1 e]);'...
+	'spm_svd; set(Finter,''Pointer'',''arrow'');'];
+uicontrol(Finter,'Style','Pushbutton','Position',[220,200,100,30],...
 	'String','previous','Callback',c);
 
-
-
+% bring Interactive window to the front and set it's pointer
+%----------------------------------------------------------------------------
+set(Finter,'Pointer','Arrow')
+figure(Finter)

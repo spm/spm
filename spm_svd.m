@@ -15,12 +15,17 @@
 % spm_svd_ui.m
 %
 %__________________________________________________________________________
-% %W% %E%
+% %W% Karl Friston %E%
 
 
 %---------------------------------------------------------------------------
 global CWD
-figure(3); spm_clf
+
+% find and clear Interactive window
+%---------------------------------------------------------------------------
+Fgraph = spm_figure('FindWin','Graphics');
+if isempty(Fgraph), Fgraph=spm_figure('Create','Graphics'); end
+figure(Fgraph), spm_clf(Fgraph)
 
 
 % eigenimages
