@@ -130,6 +130,8 @@ TD     = 0;				% switch for temporal differences
 REP    = 0;				% switch for session replications
 ons    = [];				% epoch or event onset times
 PST    = [];				% peri-stimulus times
+ERI    = [];				% Indices of C pretaing to events
+
 
 CONTRAST = [];				% row matrix of contrasts
 
@@ -161,16 +163,22 @@ q      = size(P,1);
 %---------------------------------------------------------------------------
 RT    = spm_input('Interscan interval {secs}','!+1');
 
+
+% default cutoff period (scans) for Hi-pass filtering
+%---------------------------------------------------------------------------
+CUT   = 320/RT;
+
 % Study type - epoch or event-related fMRI
 %---------------------------------------------------------------------------
 ER    = spm_input('epoch or event-related fMRI','!+1','epoch|event',[0 1]);
 
 % estimated hemodynamic response function
 %---------------------------------------------------------------------------
-u     = 0:16/RT;
-Del   = 6/RT;
-Dis   = 2.4/RT;
+u     = 0:32/RT;
+d     = 6; Del = d/RT; Dis = sqrt(d)/RT;
 hrf   = spm_Gpdf(u,[ (Del/Dis)^2 Del/Dis^2 ]);
+d     = 16; Del = d/RT; Dis = sqrt(d)/RT;
+hrf   = hrf - spm_Gpdf(u,[ (Del/Dis)^2 Del/Dis^2 ])/4;
 hrf   = hrf/sum(hrf);
 
 
@@ -190,11 +198,20 @@ if ER
 	%-------------------------------------------------------------------
 	if Cov == 1
 		str = 'order of Fourier series';
-		h   = spm_input(str,'!+1','e',4);
+		hf  = spm_input(str,'!+0','e',4);
+		h   = 1 + 2*hf;
 
 	elseif Cov == 2
 
 		h   = 6;
+
+		% create small design matrix of basis functions for plotting
+		%-----------------------------------------------------------
+		dx  = 0.01;
+		pst = -4:0.1:32;
+		D   = spm_Volt_W(pst);
+		DER = [D (spm_Volt_W(pst - dx) - D)/dx];
+
 	else
 		h   = 1;
 	end
@@ -205,24 +222,28 @@ if ER
 
 	% cycle over events
 	%-------------------------------------------------------------------
-	for v = 1:spm_input('number of event types','!+1','e',1)
+	for v = 1:spm_input('number of event types','!+0','e',1)
 	
 		str   = 'inter-stimulus intervals';
 		if spm_input(str,'!+1','fixed|variable',[1 0]);
-			isi = spm_input('interstimulus interval (scans)','!+1');
-			ons = spm_input('first stimulus (scans)','!+1','e',1);
+			isi = spm_input('interstimulus interval (scans)','!+0');
+			ons = spm_input('first stimulus (scans)','!+0','e',1);
 			ons = ons:isi:k;
 		else
-			ons = spm_input('stimulus onset times (scans)','!+1');
+			ons = spm_input('stimulus onset times (scans)','!+0');
 		end
 
 		% sort in ascending order
 		%-----------------------------------------------------------
 		ons   = sort(ons);
 
+		% cutoff period
+		%-----------------------------------------------------------
+		CUT   = min([CUT max(diff(ons))]);
+
 		% peri-stimulus time {PST}
 		%-----------------------------------------------------------
-		pst   = zeros(k,1);			
+		pst   = zeros(k,1) - 64;			
 		for i = 1:length(ons)
 			u  = ([1:k] - ons(i));
 			j  = find(u >= -1);
@@ -242,7 +263,7 @@ if ER
 			% zeroth and higher terms
 			%--------------------------------------------------
 			D     = g;
-			for i = 1:h
+			for i = 1:hf
 			    W = g.*sin(i*2*pi*pst/L);
 			    D = [D W(:)];
 			    W = g.*cos(i*2*pi*pst/L);
@@ -261,26 +282,32 @@ if ER
 		D     = D(1:k,:);
 
 
-		% append to E and PST
+		% append to E, ERI and PST
 		%-----------------------------------------------------------
-		E     = [E D];
+		ERI   = [ERI ([1:h] + size(E,2))'];
 		PST   = [PST pst];
+		E     = [E D];
 
 	end
 
 
 	% modeling evoked responses
 	%-------------------------------------------------------------------
-	Cinf  = str2mat(...
-		'all events',...
-		'one or more',...
-		'pairwise differencs');
-	str   = 'Make inferences about';
-	Cf    = spm_input(str,'!+1','m',Cinf,[1:size(Cinf,1)]);
+	nevent = v;
+	if nevent > 1
+		Cinf  = str2mat(...
+			'all events',...
+			'some events (others = confounds)',...
+			'pairwise differences');
+		str   = 'Make inferences about';
+		Cf    = spm_input(str,'!+1','m',Cinf,[1:size(Cinf,1)]);
+	else
+		Cf    = 1;
+	end
+
 
 	% all events
 	%-------------------------------------------------------------------
-	nevent = v;
 	if Cf == 1
 
 		% append to C
@@ -302,12 +329,13 @@ if ER
 	if Cf == 2
 
 		d     = 1:nevent;
-		u     = spm_input('events of interest {e.g 1 2}','!+1');
+		u     = spm_input('events of interest {e.g 1 2}','!+0');
 		d(u)  = [];
 
 		% select relevent psts
 		%-----------------------------------------------------------
 		PST   = PST(:,u)
+		ERI   = ERI(:,u)
 
 		for i = 1:length(u)
 
@@ -349,6 +377,7 @@ if ER
 		% no relevent psts
 		%-----------------------------------------------------------
 		PST   = [];
+		ERI   = [];
 		a     = E(:,([1:h] + (u(1) - 1)*h));
 		b     = E(:,([1:h] + (u(2) - 1)*h));
 
@@ -387,6 +416,11 @@ if ER
 		end
 	end
 
+	% save design matrix, indices and peri-stimulus times for plotting
+	%-------------------------------------------------------------------
+	if length(ERI)
+		save ER ERI DER PST
+	end
 
 % Epoch-related fMRI
 %---------------------------------------------------------------------------
@@ -410,6 +444,7 @@ else
 		h   = spm_input(str,'!+1','e',2);
 
 	elseif Cov == 2
+
 		h   = 2;
 	else
 		h   = 1;
@@ -417,7 +452,7 @@ else
 
 	% if fixed response ask for temporal differences
 	%-------------------------------------------------------------------
-	if Cov == 3 | Cov == 5
+	if Cov > 2
 		str = 'add temporal derivative';
 		TD  = spm_input(str,'!+1','b','no|yes',[0 1]);
 	end
@@ -446,7 +481,7 @@ else
 
 			% get covariates of interest
 			%---------------------------------------------------
-			c     = spm_input('number of covariates',4);
+			c     = spm_input('number of covariates','!+1');
 			D     = [];
 			while size(D,2) < c
 				u   = size(D,2) + 1;
@@ -459,7 +494,6 @@ else
 					D    = [D d];
 				end	
 			end
-			pst    = [];
 		end
 
 		% add labels
@@ -478,7 +512,7 @@ else
 
 			% vector of conditions
 			%---------------------------------------------------
-			str   = 'order of epochs eg 1 2 1 2....';
+			str   = 'epoch order eg 1 2 1..{0 = null}';
 			a     = spm_input(str,4);
 			a     = a(:); a = a';
 			ncond = max(a);
@@ -501,73 +535,66 @@ else
 			%---------------------------------------------------
 			ons   = cumsum(e) - e;
 
+			% cutoff period
+			%---------------------------------------------------
+			CUT   = min([CUT max(diff(ons))]);
+
 		end
 
-
-		% peri-stimulus time {PST}
+		% Assemble basis functions for each epoch
 		%-----------------------------------------------------------
-		pst   = ones(sum(nscan),ncond)*NaN;
-		for i = 1:ncond
-			on    = ons(find(a == i));
-			for j = 1:length(on)
-				u  = ([1:k]' - on(j));
-				d  = find(u >= -1);
-				pst(d + sum(nscan(1:(v - 1))),i) = u(d)*RT;
-			end
-		end
+		D     = zeros(k,ncond*h);
+		for i = 1:length(e)
 
+		    % Skip if null or rest {a(i) = 0}
+		    %-------------------------------------------------------
+		    if a(i)
 
-		% Discrete cos set
-		%-----------------------------------------------------------
-		if Cov == 1			
-		    D     = zeros(k,ncond*h);
-		    for i = 1:length(e)
-			for j = 1:h
-			    W = cos((j - 1)*pi*[1:e(i)]/e(i));
-			    D([1:length(W)] + ons(i),(a(i) - 1)*h + j) = W(:);	
-			end
-		    end
+		    	for j = 1:h
 
+			% Discrete cos set
+			%---------------------------------------------------
+			if Cov == 1			
+				W = cos((j - 1)*pi*[1:e(i)]/e(i));
+				D([1:length(W)]+ons(i),(a(i) - 1)*h + j) = W(:);	
 
-		% Exponential sine functions
-		%-----------------------------------------------------------
-		elseif Cov == 2			
-		    D     = zeros(k,ncond*h);
-		    for i = 1:length(e)
-			u     = [1:e(i)];
-			for j = 1:2
-			    W = sin(pi*u/e(i)).*exp((1.5 - j)*u/2);
-			    W = W(:)/max(W);
-			    D([1:length(W)] + ons(i),(a(i) - 1)*h + j) = W;	
-			end
-		    end
-		    D     = D(1:k,:);
+			% Exponential sine functions
+			%---------------------------------------------------
+			elseif Cov == 2			
+				u = [1:e(i)];
+				W = sin(pi*u/e(i)).*exp((1.5 - j)*u/2);
+				W = W(:)/max(W);
+				D([1:length(W)] + ons(i),(a(i) - 1)*h + j) = W;	
 	
 
-		% sine wave
-		%-----------------------------------------------------------
-		elseif Cov == 3
-
-			D     = zeros(k,ncond);
-			for i = 1:length(e)
+			% sine wave
+			%---------------------------------------------------
+			elseif Cov == 3
 				W = sin(pi*[0:(e(i) + 1)]'/(e(i) + 1));
 				D(([1:size(W,1)] + ons(i)),a(i)) = W/max(W);
-			end
-			D     = D(1:k,:);
 
-		% box car
-		%-----------------------------------------------------------
-		elseif Cov == 4
-			D     = zeros(k,ncond);
-			for i = 1:length(e)
+			% box car
+			%---------------------------------------------------
+			elseif Cov == 4
 				D([1:e(i)] + ons(i),a(i)) = ones(e(i),1);
+
 			end
-			D     = spm_detrend(D);
+
+			end
+		    end
 		end
 
 		% trim
 		%-----------------------------------------------------------
 		D     = D(1:k,:);
+
+		% mean centre box-cars if there are more than one
+		%-----------------------------------------------------------
+		if (Cov == 4) & min(a)
+			D     = spm_detrend(D);
+		end
+
+		
 
 		% append labels
 		%-----------------------------------------------------------
@@ -611,10 +638,6 @@ else
 	[i j]  = size(D);
 	C(([1:i] + x),([1:j] + y)) = D;
 
-	% append to PST
-	%-------------------------------------------------------------------
-	PST    = [PST pst];
-
 	end % (nsess)
 
 end
@@ -634,7 +657,6 @@ for v = 1:nsess
 	Bnames   = str2mat(Bnames,sprintf('Session %0.0f',v));
 end
 
-
 % confound parition - G
 %---------------------------------------------------------------------------
 for v = 1:nsess
@@ -646,12 +668,12 @@ for v = 1:nsess
 	% if replications assume previous parameters
 	%-------------------------------------------------------------------
 	if (v == 1) | ~REP
-		g = spm_input('# of confounds','!+1','e',0);
+		g = spm_input('# of confounds','!+0','e',0);
 		D = [];
 		while size(D,2) < g
 			u   = size(D,2) + 1;
 			str = sprintf('[%d]-confound %d, session %d',k,u,v);
-			d   = spm_input(str,'!+1','e',0);
+			d   = spm_input(str,'!+0');
 			if size(d,2) == k
 				d = d';
 			end
@@ -679,12 +701,8 @@ end
 % high pass filter using discrete cosine set
 %---------------------------------------------------------------------------
 if spm_input('high pass filter','!+1','yes|no',[1 0])
-	if length(ons)
-		CUT   = 2*round(mean(diff(ons))*RT);
-	else
-		CUT   = 120;
-	end
-	CUT   = spm_input('cut-off period {secs}','!+0','e',CUT);
+
+	CUT   = spm_input('cut-off period {secs}','!+0','e',2*CUT*RT);
 	for v = 1:nsess
 		D     = [];
 		k     = nscan(v);
@@ -703,7 +721,7 @@ if spm_input('high pass filter','!+1','yes|no',[1 0])
 
 	end
 
-	% protect effects of interest
+	% orthogonalize w.r.t. effects of interest
 	%-------------------------------------------------------------------
 	F      = spm_detrend(F);
 	F      = F - C*(pinv(C)*F);
@@ -741,6 +759,119 @@ set(gca,'YTick',[1:size(Cnames)],'YTickLabels',Cnames)
 xlabel('scan')
 title(['Effects of interest'],'Fontsize',16,'Fontweight','Bold')
 drawnow
+
+
+% time x condition interactions - over all sessions
+%---------------------------------------------------------------------------
+TxC = spm_input('time x response interactions','!+1','no|yes',[0 1]);
+
+if TxC
+
+	% number of scans
+	%-------------------------------------------------------------------
+	k     = sum(nscan);
+
+	% basis functions - Type
+	%-------------------------------------------------------------------
+	D     = [];
+	Ttype = str2mat(...
+		'basis functions (Discrete Cosine Set)',...
+		'basis functions (Exponential decay)',...
+		'User specified');
+	str   = 'Select type of response';
+	Tov   = spm_input(str,'!+1','m',Ttype,[1:size(Ttype,1)]);
+
+	% basis functions - create
+	%-------------------------------------------------------------------
+	if Tov == 1
+		for i = 1:spm_input('number of basis functions','!+0','e',2);
+			d = cos(i*pi*[0:(k - 1)]/(k - 1));
+			D = [D d(:)];
+		end
+
+	elseif Tov == 2
+		d   = spm_input('time constant {secs}','!+0','e',round(k/3*RT));
+		D   = exp(-[0:(k - 1)]/(d/RT))';
+
+
+	elseif Tov == 3
+		% get covariates of interest
+		%----------------------------------------------------------
+		t     = spm_input('number of functions','!+0');
+		while size(D,2) < t
+			str = sprintf('[%d]-variate %d',k,size(D,2) + 1);
+			d   = spm_input(str,'!+1');
+			if size(d,2) == k
+				d    = d';    
+			end
+			if size(d,1) == k
+				D    = [D d];
+			end	
+		end
+	end
+
+	% basis functions - select effects for interaction and apply
+	%-------------------------------------------------------------------
+	T     = [];
+	D     = spm_detrend(D);
+	t     = spm_input('which responses eg 1:2','!+0','e',1);
+	for i = 1:length(t)
+		d = C(:,t(i));
+		d = d - min(d);
+		d = (d*ones(1,size(D,2))).*D;
+		T = [T d];
+	end
+
+	% create labels
+	%-------------------------------------------------------------------
+	Tnames = [];
+	for i  = 1:size(T,2);
+		Tnames = str2mat(Tnames,'Interactions');
+	end
+	Tnames(1,:) = [];
+
+	% determine which partition to them in
+	%-------------------------------------------------------------------
+	Tinf  = str2mat(...
+		'as effects of interest',...
+		'as the only effects of interest',...
+		'as confounds');
+	str   = 'treat interactions';
+	Tf    = spm_input(str,'!+1','m',Tinf,[1:size(Tinf,1)]);
+
+	% asign these effects
+	%-------------------------------------------------------------------
+	if Tf == 1
+		C      = [C T];
+		Cnames = str2mat(Cnames,Tnames);
+
+	elseif Tf == 2
+
+		G      = [G C];
+		C      = T;
+		Gnames = str2mat(Gnames,Cnames);
+		Cnames = Tnames;
+
+	elseif Tf == 3
+
+		G      = [G T];
+		Gnames = str2mat(Gnames,Tnames);
+
+	end
+
+	% re-display design matrix partition C
+	%-------------------------------------------------------------------
+	figure(Fgraph); spm_clf; axis off
+	axes('Position',[0.2 0.5 0.6 0.4])
+	imagesc(spm_DesMtxSca(C)')
+	set(gca,'FontSize',8)
+	set(gca,'YTick',[1:size(Cnames)],'YTickLabels',Cnames)
+	xlabel('scan')
+	title(['Effects of interest'],'Fontsize',16,'Fontweight','Bold')
+	drawnow
+
+end
+
 
 % get contrasts or linear compound for parameters of interest - C
 %---------------------------------------------------------------------------
@@ -828,7 +959,7 @@ end
 CONTRAST = [CONTRAST zeros(i,(size([H C B G],2) - j))];
 
 
-%-centre confounds (not block, which can embody the constant term)
+%-centre confounds (not block, which embodies the constant term)
 %---------------------------------------------------------------------------
 G           = spm_detrend(G);
 Gnames(1,:) = [];
@@ -870,7 +1001,7 @@ y     = y - dy;
 
 %---------------------------------------------------------------------------
 if size(F,2)
-	str = sprintf('Hi-Pass cutoff %0.1f cycles/min',60/CUT);
+	str = sprintf('Hi-Pass cutoff %0.2f cycles/min',60/CUT);
 	text(0,y,str); y = y - dy;
 end
 
@@ -886,6 +1017,9 @@ end
 if GXxC
 	text(0,y,'Global x response interactions modelled'); y = y - dy;
 end
+if TxC
+	text(0,y,'Time x response interactions modelled'); y = y - dy;
+end
 
 % print
 %---------------------------------------------------------------------------
@@ -895,7 +1029,7 @@ spm_print
 
 % implement analysis proper
 %--------------------------------------------------------------------------
-spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT,PST);
+spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT);
 
 
 
