@@ -102,7 +102,7 @@ eval(['save ' matname ' mgc Affine Dims Transform MF MG']);
 spm_unmap_vol(VF);
 
 spm_write_sn('spm_sn3d_tmp.img',matname,bb,Vox,1);
-delete spm_sn3d_tmp.img spm_sn3d_tmp.hdr
+delete spm_sn3d_tmp.img spm_sn3d_tmp.hdr spm_sn3d_tmp.mat
 [tmp1,tmp2,tmp3,tmp4,tmp5,origin2,tmp6] = spm_hread('nspm_sn3d_tmp.img');
 
 % Map the normalized volumes
@@ -118,7 +118,7 @@ figure(3); spm_clf
 spm_orthviews(VGT,centre,origin ,bb,1,[0. 0. 1. .5],'Template');
 spm_orthviews(VN ,centre,origin2,bb,1,[0. .5 1. .5],'Normalized');
 drawnow;
-delete nspm_sn3d_tmp.img nspm_sn3d_tmp.hdr
+delete nspm_sn3d_tmp.img nspm_sn3d_tmp.hdr nspm_sn3d_tmp.mat
 spm_print
 
 for v=[VG VN]
