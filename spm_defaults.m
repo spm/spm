@@ -137,7 +137,7 @@ QUICK_COREG = 0;	% Full
 
 % Spatial Normalisation defaults
 %=======================================================================
-global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx
+global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx sptl_Rglrztn
 
 % Orientation/position of images. Used as a starting estimate for
 % affine normalisation.
@@ -167,6 +167,14 @@ sptl_NAP   = 12;	% 12 params (Rigid Body,  Zooms & Affine)
 %-----------------------------------------------------------------------
 sptl_NBss = [0 0 0];	% None (ie. perform affine normalisation only).
 sptl_NBss = [4 5 4];
+
+% Regularization fudge factor:
+%	small values	-> less warping
+%	large values	-> more warping
+%-----------------------------------------------------------------------
+sptl_Rglrztn = 0.02;	% This value works well at the FIL.
+%sptl_Rglrztn = 0.005;	% This may be more appropriate for poor data.
+%sptl_Rglrztn = 0.001;	% Try this for even worse data.
 
 % Number of iterations of nonlinear spatial normalisation.
 %-----------------------------------------------------------------------
