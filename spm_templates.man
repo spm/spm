@@ -1,0 +1,50 @@
+
+% SPM templates...
+%_______________________________________________________________________
+%
+% templates/PET.img
+% -----------------
+% An average of the PET scans of six normal male subjects. The PET
+% images were realigned to the corresponding MR images, and the MRIs
+% were normalised carrying the PET scans with them. These normalised PET
+% scans were averaged and smoothed with a 7mm Gaussian kernal.
+% 
+% templates/T1.img
+% ----------------
+% A T1 weighted MRI of a representative individual
+% - smoothed (7mm fwhm) & unsmoothed. templates/T1.img is intended to
+% be used as a template for spatial normalisation.
+%
+% templates/T2.img
+% ----------------
+% A rather crummy T2 image (from the T2 image which was distributed with
+% SPM95).
+%
+%
+% apriori/gray.img apriori/white.img apriori/csf.img
+% ---------------- ----------------- ---------------
+% Images kindly supplied by Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta). The original 1mm
+% resolution images were reduced to 2mm, and smoothed with a 7mm kernal.
+% These images represent the probabilities of finding gray matter, white
+% matter or csf at any point. These volumes are used largely for image
+% segmentation, although they can be used as templates for spatial
+% normalisation.
+% The 'symmetric_*.img' versions are actually used.
+%
+% misc/avg305T1.img
+% -----------------
+% The image which defines the 305 space.
+% Intended for superimposing blobs on to.
+%
+% misc/T1.img
+% -----------
+% The same image as templates/T1.img - but not smoothed.
+% Intended for superimposing blobs on to.
+%
+%=======================================================================
+% To generate your own templates which fill the same volume, use a
+% bounding box of -90:91 -126:91 -72:109, and voxel sizes of 2x2x2 mm.
+%
+%_______________________________________________________________________
+% %W% John Ashburner %E%
