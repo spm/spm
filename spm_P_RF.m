@@ -49,7 +49,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n)
 
 % get EC densities
 %---------------------------------------------------------------------------
-D       = length(R);
+D       = max(find(R));
 G       = sqrt(pi)./gamma(([1:D])/2);
 EC      = spm_ECdensity(STAT,Z,df);
 EC      = EC([1:D]);
