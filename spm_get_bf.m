@@ -16,6 +16,7 @@ function [BF,BFstr] = spm_get_bf(W,dt)
 
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
+Fstr   = get(Finter,'name');
 
 % if no trials
 %---------------------------------------------------------------------------
@@ -242,7 +243,10 @@ else
 
 
 end
-set(Finter,'Name',''); 
+
+% finished
+%---------------------------------------------------------------------------
+set(Finter,'Name',Fstr)
 
 
 % orthogonalize basis functions
