@@ -102,7 +102,7 @@ else, % Try other formats
 
 	% Try Ecat 7
 	if isempty(n), V=spm_vol_ecat7(p);
-	else,          V=spm_vol_ecat7(p,num2str(n)); end;
+	else,          V=spm_vol_ecat7(p,n); end;
 	if ~isempty(V), return; end;
 end;
 return;

@@ -71,7 +71,10 @@ elseif nargin == 2,
 			end;
 			Mo(:,:,n) = mat;
 			mat       = fill_empty(Mo,nam);
-			M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+			M = mat(:,:,1);
+			if spm_flip_analyze_images & (strcmp(ext,'.img') | strcmp(ext,'.hdr')),
+				M = diag([-1 1 1 1])*M;
+			end;
 			try,
 				save(mfname,'mat','M','-append');
 			catch,
@@ -81,7 +84,10 @@ elseif nargin == 2,
 			clear Mo
 			Mo(:,:,n) = mat;
 			mat       = fill_empty(Mo,nam);
-			M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+			M = mat(:,:,1);
+			if spm_flip_analyze_images  & (strcmp(ext,'.img') | strcmp(ext,'.hdr')),
+				M = diag([-1 1 1 1])*M;
+			end;
 			save(mfname,'mat','M');
 		end;
 	end;

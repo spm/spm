@@ -17,6 +17,13 @@ function V = spm_vol_ecat7(fname,required)
 V        = [];
 if nargin==1,
 	required = '1010001';
+elseif ischar(required),
+else,
+	if finite(required),
+		required = sprintf('%.7x',16842752+required);
+	else,
+		required = 'all';
+	end;
 end;
 
 fp       = fopen(fname,'r','ieee-be');
@@ -49,15 +56,17 @@ else,
 		matnum   = sscanf(required(i,:),'%x');
 		matches  = find( (list(:,1) == matnum) & ((list(:,4) == 1) | (list(:,4) == 2)));
 		if (size(matches,1) ~= 1)
-			error(['"' spm_str_manip(fname,'k20d') '" doesn''t have the required image.']);
+			Error(['"' spm_str_manip(fname,'k20d') '" doesn''t have the required image.']);
 			fclose(fp);
 		end;
 		llist(i,:) = list(matches,:);
 	end;
 end;
 
-V    = struct('fname','','dim',[],'mat',[],'pinfo',[], 'descrip','','mh',[],'sh',[]);
-V(:) = [];
+frame_num = sscanf(required,'%x')-16842752;
+private   = struct('mh',[],'sh',[]);
+V         = struct('fname','','dim',[],'pinfo',[],'mat',[], 'descrip','','n',[],'private',private);
+V(:)      = [];
 
 for i=1:size(llist,1),
 	sh       = ECAT7_sheader(fp,llist(i,2));
@@ -70,19 +79,21 @@ for i=1:size(llist,1),
 	step     = ([sh.X_PIXEL_SIZE sh.Y_PIXEL_SIZE sh.Z_PIXEL_SIZE]*10);
 	start    = -(dim(1:3)'/2).*step';
 	mat      = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
-	matname  = [spm_str_manip(fname,'sd') '.mat'];
+	[pth,nam,ext] = fileparts(fname);
+	matname  = fullfile(pth,[nam '.mat']);
 	if exist(matname) == 2,
 		str=load(matname);
-		if isfield(str,'M'),
-			mat = str.M;
-		elseif isfield(str,'mat'),
+		if isfield(str,'mat'),
 			mat = str.mat;
+		elseif isfield(str,'M'),
+			mat = str.M;
 		end;
 	end;
 	V(i).fname      = fname;
 	V(i).dim        = dim;
 	V(i).mat        = mat;
 	V(i).pinfo      = pinfo;
+	V(i).n          = llist(i,1)-16842752;
 	V(i).descrip    = sh.ANNOTATION;
 	V(i).private.mh = mh;
 	V(i).private.sh = sh;
