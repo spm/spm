@@ -32,4 +32,8 @@ elseif STAT == 'F'
 
 	u   = spm_invFcdf(1 - a,df   );
 
+elseif STAT == 'P'
+
+	u   = a;
+
 end
