@@ -167,7 +167,7 @@ function varargout = spm_DesRep(varargin)
 %
 % FORMAT spm_DesRep('Files&Factors',P,I,xC,sF,xs)
 % Produces multi-page listing of files, factor indices, and covariates.
-% P   - nx1 CellStr of filenames (i.e. {V.fname}')
+% P   - nxv CellStr of filenames (i.e. reshape({V.fname},size(V)))
 % I   - nx4 matrix of factor indices
 % xC  - Covariate structure array (see spm_spm_ui.m for definitions)
 %       ('rc' & 'cname' fields used)
@@ -189,9 +189,9 @@ function varargout = spm_DesRep(varargin)
 %
 % .Xnames - [optional] px1 CellStr of parameter names
 %
-% P       - [optional] nx1 CellStr of filenames (i.e. {V.fname}')
+% fnames  - [optional] nxv CellStr of filenames (i.e. reshape({V.fname},size(V)))
 % xs      - [optional] structure of extra strings containing descriptive
-%          information which is printed at the foot of the page.
+%          information which is printed at the foot of the page ('DesMtx' usage)
 %          The field names are used as sub-headings, the field values
 %          (which must be strings or CellStr) printed alongside.
 %
@@ -363,7 +363,8 @@ cb = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
 %-----------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
 		'CallBack',[cb,...
-		'spm_DesRep(''DesMtx'',tmp.xX,{tmp.VY.fname}'',tmp.xsDes)'],...
+		'spm_DesRep(''DesMtx'',tmp.xX,',...
+			'reshape({tmp.VY.fname},size(tmp.VY)),tmp.xsDes)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
 if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
@@ -372,7 +373,8 @@ if strcmp(D.cfg,'SPM_fMRIDesMtx'), set(hDesMtx,'Enable','off'), end
 %-----------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
 		'CallBack',[cb,...
-		'spm_DesRep(''DesOrth'',tmp.xX,{tmp.VY.fname}'')'],...
+		'spm_DesRep(''DesOrth'',tmp.xX,',...
+			'reshape({tmp.VY.fname},size(tmp.VY)))'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
 
@@ -384,7 +386,8 @@ switch modality
 case 'PET'
 	hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
 		'CallBack',[cb,...
-		'spm_DesRep(''Files&Factors'',{tmp.VY.fname}'',',...
+		'spm_DesRep(''Files&Factors'',',...
+			'reshape({tmp.VY.fname},size(tmp.VY)),',...
 			'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
 		'UserData',hC,...
 		'HandleVisibility','off');
@@ -455,18 +458,19 @@ varargout = {hC};
 %=======================================================================
 case 'files&factors'                         %-Summarise files & factors
 %=======================================================================
-% spm_DesRep('Files&Factors',P,I,xC,sF,xs)
+% spm_DesRep('Files&Factors',fnames,I,xC,sF,xs)
 if nargin<4, error('insufficient arguments'), end
-P  = varargin{2};
-I  = varargin{3};
-xC = varargin{4};
-sF = varargin{5};
+fnames  = varargin{2};
+I       = varargin{3};
+xC      = varargin{4};
+sF      = varargin{5};
 if nargin<6, xs=[]; else, xs = varargin{6}; end
 			%-Structure of description strings
 
-[P,CPath] = spm_str_manip(P,'c');	%-extract common path component
-nScan     = size(I,1);			%-#images
-bL        = any(diff(I,1),1); 		%-Multiple factor levels?
+[fnames,CPath] = spm_str_manip(fnames,'c');	%-extract common path component
+nScan          = size(I,1);			%-#images
+nVar           = size(fnames,2);		%-Variates
+bL             = any(diff(I,1),1); 		%-Multiple factor levels?
 
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
@@ -537,10 +541,12 @@ for i = 1:nScan
 		end
 	end
 
-	%-Filename tail
-	x=x+dx2; text(x,y,P{i})
-
-	y=y-dy;
+	%-Filename tail(s) - could be multivariate
+	x=x+dx2;
+	for j = 1:nVar
+		text(x,y,fnames{i,j})
+		y=y-dy;
+	end
 
 	%-Paginate if necessary
 	if y<dy
@@ -705,7 +711,7 @@ if desmtx & ~isempty(fnames)
 	axes('Position',[.68 .4 .3 .4],'Visible','off',...
 		'DefaultTextFontSize',FS(8),...
 		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i=STick, text(0,i,spm_str_manip(fnames{i},'a35')), end
+	for i=STick, text(0,i,spm_str_manip(fnames(i,:),'Ca35')), end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
@@ -782,8 +788,8 @@ else
 	line('Parent',hTax,...
 		'XData',[0.3 0.7],'YData',[0.14 0.14],'LineWidth',3,'Color','r')
 	hAx = axes('Position',[0.03,0.05,0.94,0.08],'Visible','off');
-	xs = struct('Measure',	['absolute value of cosine of angle between ',...
-				 'corresponding columns of design matrix'],...
+	xs = struct('Measure',	['abs. value of cosine of angle between ',...
+				 'columns of design matrix'],...
 		    'Scale',	{{	'black - colinear (cos=+1/-1)';...
 					'white - orthogonal (cos=0)';...
 					'gray  - not orthogonal or colinear'}});
@@ -1046,7 +1052,8 @@ case 'extend'
 	try, str = sprintf('Image %d: %s',ij(1),...
 		spm_str_manip(...
 		subsref(get(gco,'UserData'),...
-		struct('type',{'.','{}'},'subs',{'fnames',{ij(1)}})),'a40'));
+		struct('type',{'.','()'},...
+			'subs',{'fnames',{ij(1),':'}})),'Ca40'));
 	catch, str='(no cached image filenames to surf)'; end
 case 'alt'
 	try, str = sprintf('Parameter %d: %s',ij(2),...
