@@ -51,7 +51,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % based on conditonal estimates.
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_graph.m	2.40 Karl Friston 03/03/25
 
 
 %-Get Graphics figure handle
@@ -134,12 +134,47 @@ else
 	% Cov(b|y) through Taylor approximation
 	%---------------------------------------------------------------
 	beta  = spm_get_data(SPM.VCbeta, XYZ);
-	Bcov  = SPM.PPM.Cby;
-	for j = 1:length(SPM.PPM.l)
-
-		l    = spm_get_data(SPM.VHp(j),XYZ);
-		Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
-	end
+    
+    if isfield(SPM.PPM,'VB');
+        % Get approximate posterior covariance at ic
+        % using Taylor-series approximation
+        
+        % Get posterior SD beta's
+        Nk=size(SPM.xX.X,2);
+        for k=1:Nk,
+            sd_beta(k,:) = spm_get_data(SPM.VPsd(k),XYZ);
+        end
+        
+        % Get AR coefficients
+        for p=1:SPM.PPM.AR_P
+            a(p,:) = spm_get_data(SPM.VAR(p),XYZ);
+        end
+        
+        % Get noise SD
+        lambda = spm_get_data(SPM.VHp,XYZ);
+        
+        % Which slice are we in ?
+        slice_index=XYZ(3,1);
+        
+        % Reconstuct approximation to voxel wise correlation matrix
+        post_R=SPM.PPM.slice(slice_index).mean.R;
+        dh=a(:,1)'-SPM.PPM.slice(slice_index).mean.a;
+        dh=[dh lambda(1)-SPM.PPM.slice(slice_index).mean.lambda];
+        for i=1:length(dh),
+            post_R=post_R+SPM.PPM.slice(slice_index).mean.dR(:,:,i)*dh(i);
+        end 
+        % Reconstuct approximation to voxel wise covariance matrix
+        Bcov = (sd_beta(:,1)*sd_beta(:,1)').*post_R;
+        
+        
+    else
+        Bcov  = SPM.PPM.Cby;
+        for j = 1:length(SPM.PPM.l)
+            
+            l    = spm_get_data(SPM.VHp(j),XYZ);
+            Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
+        end
+    end
 end
 CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
 
@@ -370,9 +405,8 @@ case 'Event-related responses'
 
 		% build a simple FIR model subpartition (X); bin size = TR
 		%------------------------------------------------------
-		str         = 'bin size (secs)';
-                BIN         = sprintf('%0.2f',SPM.xY.RT);
-		BIN         = spm_input(str,'!+1','r',BIN);
+		BIN         = SPM.xY.RT;
+        %BIN         = max(2,BIN);
 		xBF         = SPM.xBF;
 		U           = Sess(s).U(u);
 		U.u         = U.u(:,1);
@@ -387,7 +421,7 @@ case 'Event-related responses'
 
 		% place X in SPM.xX.X
 		%------------------------------------------------------
-		jX          = Sess(s).row;
+		jX          = Sess(s).row; 
 		iX          = Sess(s).col(Sess(s).Fc(u).i);
 		iX0         = [1:size(SPM.xX.X,2)];
 		iX0(iX)     = [];
@@ -409,6 +443,8 @@ case 'Event-related responses'
 		PCI         = CI*sqrt(diag(bcov(1:j,(1:j))))/dt;
 	end
 
+    
+    
 	% basis functions and parameters
 	%--------------------------------------------------------------
 	X     = SPM.xBF.bf/dt;
@@ -430,6 +466,8 @@ case 'Event-related responses'
 	pst   = pst(q);
 	y     = y(q) + Y(bin(q) + 1);
 
+    
+    
 	% plot
 	%--------------------------------------------------------------
 	figure(Fgraph)
@@ -438,6 +476,8 @@ case 'Event-related responses'
 	switch TITLE
 
 		case 'fitted response and PSTH'
+            
+            PSTH 
 		%------------------------------------------------------
 		errorbar(PST,PSTH,PCI)
 		plot(PST,PSTH,'LineWidth',4,'Color',Col(2,:))
@@ -453,8 +493,9 @@ case 'Event-related responses'
 		plot(x,Y,'Color',Col(2,:),'LineWidth',4)
 		plot(pst,y,'.','Color',Col(3,:))
 
-	end
-
+    end
+ 
+    
 	% label
 	%-------------------------------------------------------------
 	[i j] = max(Y);
@@ -482,7 +523,7 @@ case 'Parametric responses'
 	% orthogonalised expansion of parameteric variable
 	%--------------------------------------------------------------
 	str   = 'which parameter';
-	p     = spm_input(str,'+1','m',{Sess(s).U(u).P.name});
+	p     = spm_input(str,'+1','m',cat(2,Sess(s).U(u).P.name));
 	P     = Sess(s).U(u).P(p).P;
 	q     = [];
 	for i = 0:Sess(s).U(u).P(p).h;
@@ -493,8 +534,7 @@ case 'Parametric responses'
 
 	% parameter estimates for this effect
 	%--------------------------------------------------------------
-	j     = Sess(s).col(Sess(s).Fc(u).i);
-	B     = beta(j);
+	B     = beta(Sess(s).Fc(u).i);
 
 	% reconstruct trial-specific responses
 	%--------------------------------------------------------------
@@ -547,8 +587,7 @@ case 'Volterra Kernels'
 
 		% Parameter estimates and kernel
 		%------------------------------------------------------
-		j     = Sess(s).col(Sess(s).Fc(u).i);
-		B     = beta(j);
+		B     = beta(Sess(s).Fc(u).i);
 		i     = 1;
 		Y     = 0;
 		for p = 1:size(bf,2)
@@ -582,8 +621,7 @@ case 'Volterra Kernels'
 	% first  order kernel
 	%--------------------------------------------------------------
 	else
-		j     = Sess(s).col(Sess(s).Fc(u).i(1:size(bf,2)));
-		B     = beta(j);
+		B     = beta(Sess(s).Fc(u).i(1:size(bf,2)));
 		Y     = bf*B;
 
 		% plot
