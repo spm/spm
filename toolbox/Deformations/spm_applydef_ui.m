@@ -1,14 +1,20 @@
-function spm_applydef_ui
+function spm_applydef_ui(P,PT)
 % Applies a deformation field to an image
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-n       = spm_input('Number of subjects','+0', 'n', '1', 1)';
-for i=1:n,
-        P{i}    = spm_get(1,{'*y_*.img','noexpand'},['Select deformation field ' num2str(i)]);
-        PT{i}   = spm_get(Inf,'*.img',['Image(s) to warp (' num2str(i) ')'
-]);
-end;
+if nargin<2
+	n = spm_input('Number of subjects','+0', 'n', '1', 1)';
+	for i=1:n
+		P{i}    = spm_get(1,{'*y_*.img','noexpand'},['Select deformation field ' num2str(i)]);
+		PT{i}   = spm_get(Inf,'*.img',['Image(s) to warp (' num2str(i) ')']);
+	end;
+else
+	n = length(P);
+	if n ~=length(PT)
+		error('Must have matching deformation / files list cell arrays as inputs to spm_applydef_ui')
+	end
+end
 
 spm_progress_bar('Init',n,'Applying deformations','subjects completed');
 for i=1:length(P),
@@ -32,7 +38,7 @@ for i=1:length(VO),
 	if ~isfield(VO,'descrip'), VO(i).descrip = ''; end;
 	VO(i).descrip  = ['warped ' VO(i).descrip];
 end;
-VO = spm_create_vol(VO(i));
+VO = spm_create_vol(VO);
 
 for p=1:VD(1).dim(3),
 	M  = spm_matrix([0 0 p]);
