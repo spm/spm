@@ -26,7 +26,7 @@ name.help    = {'Name of contrast'};
 
 tconvec.type    = 'entry';
 tconvec.name    = 'T contrast vector';
-tconvec.tag     = 'tconvec';
+tconvec.tag     = 'convec';
 tconvec.strtype = 's';
 tconvec.num     = [1 1];
 tconvec.help    = {[...
@@ -36,18 +36,25 @@ tconvec.help    = {[...
 
 fconvec.type    = 'entry';
 fconvec.name    = 'F contrast vector';
-fconvec.tag     = 'fconvec';
-fconvec.strtype = 's+';
+fconvec.tag     = 'convec';
+fconvec.strtype = 's';
 fconvec.num     = [1 1];
 fconvec.help    = {[...
     'Enter F contrast vector. This is done similarly to the ',...
     'SPM2 contrast manager. One or multiline contrasts ',...
     'may be entered.']};
 
+fconvecs.type = 'repeat';
+fconvecs.name = 'Contrast vectors';
+fconvecs.tag  = 'convecs';
+fconvecs.values = {fconvec};
+fconvecs.help = {[...
+'F contrasts are defined by a series of vectors.']};
+
 tcon.type   = 'branch';
 tcon.name   = 'T-contrast';
 tcon.tag    = 'tcon';
-tcon.val    = {name,tconvec,};
+tcon.val    = {name,tconvec};
 tcon.help = {[...
 '* Simple one-dimensional contrasts for an SPM{T}'],'',[...
 'A simple contrast for an SPM{T} tests the null hypothesis c''B=0 ',...
@@ -83,7 +90,7 @@ tcon.help = {[...
 fcon.type   = 'branch';
 fcon.name   = 'F-contrast';
 fcon.tag    = 'fcon';
-fcon.val    = {name,fconvec,};
+fcon.val    = {name,fconvecs};
 fcon.help   = {...
 '* Linear constraining matrices for an SPM{F}',...
 '',[...
@@ -401,14 +408,15 @@ load(job.spmmat{:});
 
 for i = 1:length(job.consess)
     if isfield(job.consess{i},'tcon')
-    name = job.consess{i}.tcon.name;
-    STAT = 'T';
-    con  = job.consess{i}.tcon.tconvec(:)';
+        name = job.consess{i}.tcon.name;
+        STAT = 'T';
+        con  = job.consess{i}.tcon.convec(:)';
+
     else %fcon
         name = job.consess{i}.fcon.name;
         STAT = 'F';
-        con = cellstr(job.consess{i}.fcon.fconvec);
-        
+        con = job.consess{i}.fcon.convec;
+
     end
     
     % Basic checking of contrast
@@ -418,9 +426,9 @@ for i = 1:length(job.consess)
     % Fill-in the contrast structure
     %------------------------------------------------------------
     if all(I)
-		DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-	else
-		DxCon = [];
+        DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
+    else
+        DxCon = [];
     end
     
     % Append to SPM.xCon. SPM will automatically save any contrasts that

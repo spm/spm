@@ -291,7 +291,7 @@ Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 %-Get SPM.mat[s] if necessary
 %-----------------------------------------------------------------------
 if nargin == 0
-        P       = spm_get(Inf,'SPM.mat',{'Select SPM.mat[s]'});
+        P       = spm_select(Inf,'^SPM\.mat$','Select SPM.mat[s]');
         for i = 1:length(P)
 	        swd     = fileparts(P{i});
 	        load(fullfile(swd,'SPM.mat'));

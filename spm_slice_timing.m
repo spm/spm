@@ -114,7 +114,7 @@ if nargin < 1,
 	for i = 1:nsubjects,
 		% Choose the images
 		PP = [];
-		PP = spm_get(+Inf,'*.img',...
+		PP = spm_select(Inf,'image',...
 			['Select images to acquisition correct for subject ' num2str(i)]);
 		P{i} = PP;
 	end;

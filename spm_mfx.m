@@ -84,7 +84,7 @@ Finter = spm('FigName','MFX specification...'); spm('Pointer','Arrow')
 %-Get SPM.mat if necessary
 %-----------------------------------------------------------------------
 if nargin ==0
-	load(spm_get(1,'SPM.mat','Select SPM.mat'));
+	load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 end
 swd   = SPM.swd;
 

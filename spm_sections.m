@@ -20,7 +20,7 @@ function spm_sections(SPM,hReg,spms)
 
 
 if nargin < 3 | isempty(spms)
-	spms   = spm_get(1,'IMAGE','select image for rendering on');
+	spms   = spm_select(1,'image','select image for rendering on');
 end
 
 Fgraph = spm_figure('FindWin','Graphics');

@@ -276,7 +276,7 @@ case 'desrepui'                                    %-Design reporting UI
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
 if nargin < 2
-	swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	swd     = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 	load(fullfile(swd,'SPM.mat'));
 	SPM.swd = swd;
 else

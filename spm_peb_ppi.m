@@ -87,7 +87,7 @@ header = get(Finter,'Name');
 % check inputs and set up variables
 %----------------------------------------------------------------------
 if ~nargin
-    swd   = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+    swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'))
     cd(swd)
 end
@@ -112,7 +112,7 @@ switch ppiflag
 case  'simple deconvolution'
     %=====================================================================
     spm_input('physiological variable:...  ',2,'d');
-    P      = spm_get(1,'VOI*.mat',{'select VOIs'});
+    P      = spm_select(1,'^VOI.*\.mat$',{'select VOIs'});
     p      = load(P{1},'xY');
     xY(i)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
@@ -122,7 +122,7 @@ case  'simple deconvolution'
 case  'physiophysiologic interaction' % interactions between 2 regions
     %=====================================================================
     spm_input('physiological variables:...  ',2,'d');
-    P      = spm_get(2,'VOI*.mat',{'select VOIs'});
+    P      = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
     for  i = 1:2
         p      = load(P{i},'xY');
         xY(i)  = p.xY;
@@ -134,7 +134,7 @@ case  'physiophysiologic interaction' % interactions between 2 regions
 case  'psychophysiologic interaction'  % get hemodynamic response 
     %=====================================================================
     spm_input('physiological variable:...  ',2,'d');
-    P      = spm_get(1,'VOI*.mat',{'select VOIs'});
+    P      = spm_select(1,'^VOI.*\.mat$',{'select VOIs'});
     p      = load(P{1},'xY');
     xY(1)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);

@@ -334,7 +334,9 @@ p3 = [...
   'within and between trial types).'];
 volt.help = {p1,'',p2,p3};
 %-------------------------------------------------------------------------
-mask = files('Explicit mask','mask','image',[0 1],{'Image for explicitly masking the analysis'});
+mask = files('Explicit mask','mask','image',[0 1],{[...
+'Image for explicitly masking the analysis. ',...
+'If no masking is required, then leave this field empty.']});
 mask.val = {''};
 %-------------------------------------------------------------------------
 cdir = files('Directory','dir','dir',1,'');

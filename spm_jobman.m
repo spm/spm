@@ -719,7 +719,7 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function [c] = expand_contract(c,unused)
+function c = expand_contract(c,unused)
 % Expand/contract a node (for visualisation)
 
 if isfield(c,'expanded') && ~isempty(c.val)
@@ -2389,36 +2389,39 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function doc = showdoc(str)
-if nargin == 0,
-    str = '';
-end;
+function doc = showdoc(str,wid)
+if nargin<1, str = ''; end;
+if nargin<2, wid = 60; end;
+
 tmp = [0 find([str '.']=='.')];
 node = {};
-for i=1:length(tmp)-1
-    node = {node{:},str((tmp(i)+1):(tmp(i+1)-1))};
+for i=1:length(tmp)-1,
+    tmp1 = str((tmp(i)+1):(tmp(i+1)-1));
+    if ~isempty(tmp1),
+        node = {node{:},tmp1};
+    end;
 end;
 if numel(node)>1 && strcmp(node{1},'jobs'),
     node = node(2:end);
 end;
 
 c = initialise_struct;
-doc = showdoc1(node,c);
+doc = showdoc1(node,c,wid);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function doc = showdoc1(node,c)
+function doc = showdoc1(node,c,wid)
 found = false;
 doc   = {};
 if isempty(node),
-    doc = showdoc2(c,'');
+    doc = showdoc2(c,'',wid);
     return;
 end;
 
 if isfield(c,'values'),
     for i=1:numel(c.values),
         if isfield(c.values{i},'tag') && strcmp(node(1),c.values{i}.tag),
-            doc = showdoc1(node(2:end),c.values{i});
+            doc = showdoc1(node(2:end),c.values{i},wid);
             return;
         end;
     end;
@@ -2427,7 +2430,7 @@ end;
 if isfield(c,'val'),
     for i=1:numel(c.val),
         if isfield(c.val{i},'tag') && strcmp(node(1),c.val{i}.tag),
-            doc = showdoc1(node(2:end),c.val{i});
+            doc = showdoc1(node(2:end),c.val{i},wid);
             return;
         end;
     end;
@@ -2435,11 +2438,12 @@ end;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function doc = showdoc2(c,lev)
+function doc = showdoc2(c,lev,wid)
 doc = {''};
 if ~isempty(lev) && sum(lev=='.')==1,
         % doc = {doc{:},repmat('_',1,80),''};
 end;
+
 if isfield(c,'name'),
     str   = sprintf('%s %s', lev, c.name);
     under = repmat('-',1,length(str));
@@ -2452,11 +2456,11 @@ if isfield(c,'name'),
     %     doc = {doc{:},'',txt, ''};
     %end;
     if isfield(c,'help');
-        hlp = spm_justify(60,c.help);
+        hlp = spm_justify(wid,c.help);
         doc = {doc{:},hlp{:}};
     end;
 
-if 0,
+if 1,
     switch (c.type),
     case {'repeat'},
         if length(c.values)==1,
@@ -2522,7 +2526,7 @@ if 0,
         otherwise,
             d = 'Values';
         end;
-        doc = {doc{:}, '',sprintf('%s are typed in by the user.',d),''};
+        doc = {doc{:}, '',sprintf('%s are entered.',d),''};
     end;
 end;
 
@@ -2533,7 +2537,7 @@ end;
             if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
                 i    = i+1;
                 lev1 = sprintf('%s%d.', lev, i);
-                doc1 = showdoc2(c.values{ii},lev1);
+                doc1 = showdoc2(c.values{ii},lev1,wid);
                 doc  = {doc{:}, doc1{:}};
             end;
         end;
@@ -2543,7 +2547,7 @@ end;
             if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
                 i    = i+1;
                 lev1 = sprintf('%s%d.', lev, i);
-                doc1 = showdoc2(c.val{ii},lev1);
+                doc1 = showdoc2(c.val{ii},lev1,wid);
                 doc  = {doc{:}, doc1{:}};
             end;
         end;

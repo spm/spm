@@ -78,7 +78,7 @@ Finter = spm('FigName','Stats: Bayesian estimation...');
 %-Select SPM.mat & change directory
 %-----------------------------------------------------------------------
 if ~nargin
-	swd = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	swd = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 	load(fullfile(swd,'SPM.mat'))
 	cd(swd)
 end

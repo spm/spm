@@ -163,7 +163,7 @@ end
 
 if nargin ==0
     %-Get SPM.mat 
-    swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+    swd     = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
 end
@@ -396,7 +396,7 @@ catch
 end
 
 if SPM.PPM.M_X, 
-    M_P = spm_get(Inf,'*.img',{'Select mask images'}); 
+    M_P = spm_select(Inf,'image','Select mask images'); 
 else, 
     M_P = {}; 
 end

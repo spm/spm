@@ -8,31 +8,70 @@ function vals = spm_config
 %   - required fields: 'type', 'name', 'tag', 'val'
 %   - optional fields: 'help'
 %
+%   The resulting data structure simply contains the contents of
+%   val{1}.
+%
+%
 % * 'menu'  - Data entry by menu
 %   - required fields: 'type', 'name', 'tag', 'labels', 'values'
 %   - optional fields: 'val', 'def', 'help'
+%
+%   The resulting data structure simply contains the contents of
+%   val{1}, which corresponds to the element of values selected
+%   by the user.
+%
 %
 % * 'entry' - Entry by typing
 %   - required fields: 'type', 'name', 'tag', 'strtype', 'num'
 %   - optional fields: 'val', 'def', 'extras', 'help'
 %
+%   The resulting data structure simply contains the contents of
+%   val{1}, which is what the user specified.
+%
+%
 % * 'files' - Entry by file selection
 %   - required fields: 'type', 'name', 'tag', 'filter', 'num'
 %   - optional fields: 'val', 'def', 'help'
+%
+%   The resulting data structure simply contains a cell array
+%   of filenames (from val{1} ).
+%
 %
 % * 'branch' - Branch of the tree structure
 %   - required fields: 'type', 'name', 'tag', 'val'
 %   - optional fields: 'prog', 'vfiles', 'check', 'modality', 'help'
 %
+%   The resulting data structure is a struct, with fieldnames according
+%   to the 'tag's of the child nodes.
+%
+%
 % * 'choice' - A choice of ways of changing the tree structure
 %   - required fields: 'type', 'name', 'tag', 'values'
 %   - optional fields: 'val', 'help'
 %
+%   The resulting data structure is a struct with a single field.  The
+%   name of the field is given by the 'tag' of the specified value.
+%
+%
 % * 'repeat' - Repeated kids in the tree structure
-%   - required fields: 'type', 'name', 'tag'^, 'values'
+%   - required fields: 'type', 'name', 'tag', 'values'
 %   - optional fields: 'help'
 %
-%     ^ except when length(values)==1
+%   If the number of elements in the 'values' field is greater than
+%   one, then the resulting data structure is a cell array.  Each
+%   element of the cell array is a struct with a single field, where
+%   the name of the field is given by the 'tag' of the child node.
+%
+%   If the 'values' field only contains one element, which is a 'branch',
+%   then the data structure is a struct array (in which case the 'tag'
+%   of the current node can be ignored).
+%
+%   If the 'values' field only contains one element, which is not a branch,
+%   then the data structure is a cell array, where each element is the value
+%   of the child node ((in which case the 'tag' of the current node can be
+%   ignored).
+%
+%
 %
 % Meanings of the fields:
 % 'type'
@@ -40,7 +79,8 @@ function vals = spm_config
 %
 % 'name'
 % A string containing a user readable name for the node.  This can
-% contain spaces etc.
+% contain spaces etc. This is what is used to prompt the user for
+% entries.
 %
 % 'tag'
 % A name for the node that is used in the data structure saved by
@@ -50,7 +90,7 @@ function vals = spm_config
 % 'help'
 % Contains information for the user about what the node represents.
 % If it is a cell array, then each element will be treated as a
-% paragraph, and justified accordingly.
+% paragraph, and justified accordingly. See spm_justify.
 %
 % 'values'
 % A cell vector of possible values.  It has different meanings in
@@ -74,13 +114,12 @@ function vals = spm_config
 % It is used by nodes of type 'menu'.
 %
 % 'filter'
-% A filter for file selection - e.g. '*.mat'
+% A filter for file selection.  See spm_select for filter usage.
 %
 % 'strtype'
 % The type of values that are entered by typing.  e.g. 'e' for evaluated.
 % The valid value types are:
 %   's'   string
-%   's+'  multi-line string
 %   'e'   evaluated expression
 %   'n'   natural number (1..n)
 %   'w'   whole number (0..n)
@@ -99,26 +138,46 @@ function vals = spm_config
 % value for the node.  For 'entry' nodes, it is the size of an
 % array.  For 'files' nodes, it is the min and max number of files.
 % Negative values have special meaning in both cases.  These refer
-% to elements of a 'dim' field.
+% to elements of a 'dim' field.  See spm_select for more.
 %
 % 'prog'
-%
+% This is a function handle that may be invoked.  The tree structure
+% of user specified things (starting at the point with this field) is
+% collected together and passed as the first (and only) argument to this
+% function via "feval". It is executed when the data structure is run
+% (usually when the "Run" button is hit).
+% e.g. opts.prog = @some_function;
+% 
 % 'vfiles'
+% Another function handle.  This is usually used to produce a list of
+% files that would be created when the program is run.  This list is in the
+% form of a cell array of strings.  When creating batch jobs, it is useful
+% to be able to select files that have not yet been created (see spm_select).
+% As in the case of the 'prog' field, the user-specified things are collected
+% together and passed as the first argument.
+% e.g. opts.prog = @some_function;
 %
 % 'check'
+% Another function handle.  Sometimes it is advisable to do some checking of
+% what the user has entered (to ensure dimensions match etc).  Note that
+% it is not a good idea for the checking to have to open files etc, as some
+% of the files that have been selected may not yet exist.  Again, the user
+% specified data structure is collected together and passed as the first
+% argument.  The output is either empty, or it is a string that explains
+% what the problem is.
+% e.g. opts.prog = @some_function;
 %
 % 'modality'
-% 
-% 'dim' - obsolete.
-% Dimensions.  This one is tricky to explain, but it allows dimensions
-% to be shared between values that are descendents in the tree
-% structure.  An element of a 'num' of e.g. -3, refers to dim(3), where
-% dim is accumulated from all the dim fields in the ancestry of the
-% node containing the num of -3.
+% A cell array of strings indicating which modalities this branch of the tree
+% structure should be visible for.  If there is no modality field, then it is
+% visible for all.
+% e.g. opts.modality = {'PET','FMRI'};
+%      opts.modality = {'EEG'};
+%
 %_______________________________________________________________________
 %
-% The easiest way to figure this stuff out is to look at examples in the
-% spm_config_*.m files.
+% The easiest way to figure this stuff out is to look at working
+% examples in the spm_config_*.m files.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 

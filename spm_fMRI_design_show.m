@@ -14,7 +14,7 @@ function spm_fMRI_design_show(SPM,s,i)
 % SPM
 %-----------------------------------------------------------------------
 if nargin == 0
-	load(spm_get(1,'SPM.mat','Select SPM.mat'));
+	load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 end
 
 Sess  = SPM.Sess;

@@ -2,12 +2,23 @@ function [t,sts] = spm_select(varargin)
 % File selector
 % FORMAT [t,sts] = spm_select(n,typ,mesg,sel)
 %     n    - Number of files
+%            A single value or a range.  e.g.
+%            1       - Select one file
+%            Inf     - Select any number of files
+%            [1 Inf] - Select 1 to Inf files
+%            [0 1]   - select 0 or 1 files
+%            [10 12] - select from 10 to 12 files
 %     typ  - file type
 %           'any'   - all files
-%           'image' - Image files
+%           'image' - Image files (".img" and ".nii")
+%                     Note that it gives the option to select
+%                     individual volumes of the images.
 %           'xml'   - XML files
 %           'mat'   - Matlab .mat files
 %           'batch' - SPM batch files (.mat and XML)
+%           'dir'   - select a directory
+%           Other strings act as a filter to regexp.  This means
+%           that e.g. DCM*.mat files should have a typ of '^DCM.*\.mat$'
 %      mesg - a prompt (default 'Select files...')
 %      sel  - list of already selected files
 %
@@ -57,13 +68,13 @@ already = strvcat(already);
 
 t = '';
 switch lower(typ),
-case {'any'},   isim = 0; ext = {'.*'};
-case {'image'}, isim = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
-case {'xml'},   isim = 0; ext = {'.*\.xml$','.*\.XML$'};
-case {'mat'},   isim = 0; ext = {'.*\.mat$','.*\.MAT$'};
-case {'batch'}, isim = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
-case {'dir'},   isim =-1; ext = {'.*'};
-otherwise,      isim = 0; ext = {[typ]};
+case {'any'},   code = 0; ext = {'.*'};
+case {'image'}, code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'xml'},   code = 0; ext = {'.*\.xml$','.*\.XML$'};
+case {'mat'},   code = 0; ext = {'.*\.mat$','.*\.MAT$'};
+case {'batch'}, code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
+case {'dir'},   code =-1; ext = {'.*'};
+otherwise,      code = 0; ext = {[typ]};
 end;
 
 fg = figure('IntegerHandle','off',...
@@ -182,7 +193,7 @@ uicontrol(fg,...
     'FontSize',fs);
 
 % Filter
-ud     = struct('ext',{ext},'isim',isim);
+ud     = struct('ext',{ext},'code',code);
 uicontrol(fg,...
     'style','edit',...
     'units','normalized',...
@@ -404,7 +415,7 @@ return;
 function re = getfilt(ob)
 ob  = sib(ob,'regexp');
 ud  = get(ob,'UserData');
-re  = struct('isim',ud.isim,...
+re  = struct('code',ud.code,...
              'frames',get(sib(ob,'frame'),'UserData'),...
              'ext',{ud.ext},...
              'filt',get(sib(ob,'regexp'),'String'));
@@ -663,10 +674,11 @@ if nargin<1, dr   = '.'; end;
 de      = dir(dr);
 if ~isempty(de),
     d       = {de(find( cell2mat({de.isdir}))).name};
-    if filt.isim~=-1,
+    if filt.code~=-1,
         f   = {de(find(~cell2mat({de.isdir}))).name};
     else
-        f   = d(3:end);
+        % f = d(3:end);
+        f   = d;
     end;
 else
     d = {'.','..'};
@@ -677,7 +689,7 @@ msg(ob,['Filtering ' num2str(numel(f)) ' files...']);
 f  = do_filter(f,filt.ext);
 f  = do_filter(f,{filt.filt});
 ii = cell(1,numel(f));
-if filt.isim==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
+if filt.code==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
     msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
     for i=1:numel(f),
         try
@@ -691,7 +703,7 @@ if filt.isim==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
         for j=1:numel(msk), msk(j) = any(d4==filt.frames(j)); end;
         ii{i} = filt.frames(msk);
     end;
-elseif filt.isim==1 && (numel(filt.frames)==1 && filt.frames(1)==1),
+elseif filt.code==1 && (numel(filt.frames)==1 && filt.frames(1)==1),
     for i=1:numel(f),
         ii{i} = 1;
     end;
@@ -699,7 +711,7 @@ end;
 
 msg(ob,'Listing virtual files...');
 [fv,dv,iv] = vfiles('list',dr);
-if filt.isim==-1,
+if filt.code==-1,
     fv = dv;
     iv = cell(size(fv));
 end;
@@ -708,7 +720,7 @@ msg(ob,['Filtering ' num2str(numel(fv)) ' virtual files...']);
 iv         = iv(ind);
 [fv,ind]   = do_filter(fv,{filt.filt});
 iv         = iv(ind);
-if filt.isim==1,
+if filt.code==1,
     for i=1:numel(iv),
         msk   = false(size(filt.frames));
         for j=1:numel(msk), msk(j) = any(iv{i}==filt.frames(j)); end;
@@ -716,8 +728,8 @@ if filt.isim==1,
     end;
 end;
 
-d       = {d{:},dv{:}};
-f       = {f{:},fv{:}};
+d       = { d{:},dv{:}};
+f       = { f{:},fv{:}};
 ii      = {ii{:},iv{:}};
 
 msg(ob,['Listing ' num2str(numel(f)) ' files...']);
@@ -729,8 +741,7 @@ if ~isempty(f), f{1} = deblank(f{1}); end;
 for i=2:numel(f),
     f{i} = deblank(f{i});
     if strcmp(f{i-1},f{i}),
-        if filt.isim==1,
-            %ii{i}   = sort([ii{i}(:) ; ii{i-1}(:)]);
+        if filt.code==1,
             tmp      = sort([ii{i}(:) ; ii{i-1}(:)]);
             tmp(~diff(tmp,1)) = [];
             ii{i}    = tmp;
@@ -739,14 +750,14 @@ for i=2:numel(f),
     end;
 end;
 f        = f(msk);
-if filt.isim==1,
+if filt.code==1,
     ii       = ii(msk);
     c        = cell(size(f));
     for i=1:numel(f),
         c{i} = [repmat([f{i} ','],numel(ii{i}),1) num2str(ii{i}(:)) ];
     end;
     f        = strvcat(c{:});
-elseif filt.isim==-1,
+elseif filt.code==-1,
     fs = filesep;
     for i=1:numel(f),
         f{i} = [f{i} fs];

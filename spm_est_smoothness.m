@@ -49,10 +49,10 @@ if nargin > 2
 	return;
 end
 if nargin < 1
-	V   = spm_get(inf, 'ResI*.img', 'Select residual images');
+	V   = spm_select(inf, '^ResI.*\.img$', 'Select residual images');
 end
 if nargin < 2
-	VM  = spm_get(1, 'mask.img', 'Select mask image');
+	VM  = spm_select(1, 'mask.img', 'Select mask image');
 end
 
 % intialise

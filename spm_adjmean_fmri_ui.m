@@ -211,7 +211,7 @@ spm_help('!ContextHelp',[mfilename,'.m'])
 
 %-Get filenames
 %-----------------------------------------------------------------------
-P     = spm_get(Inf,'.img',{'select scans (single session)'});
+P     = spm_select(Inf,'image','select scans (single session)');
 nScan = size(P,1);
 if nScan==1, error('Only one image - gimme more!'), end
 

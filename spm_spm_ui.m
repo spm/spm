@@ -145,7 +145,7 @@ function varargout = spm_spm_ui(varargin)
 %
 % The data should all have the same orientation and image and voxel size.
 %
-% File selection is handled by spm_get.m - the help for which describes
+% File selection is handled by spm_select.m - the help for which describes
 % efficient use of the interface.
 %
 % You may be asked to indicate the conditions for a set of scans, with
@@ -1177,7 +1177,7 @@ case 'cfg'
     case {0,1}, M_X = D.M_.X;
     otherwise,  error('unrecognised D.M_.X type')
     end
-    if M_X, M_P = spm_get(Inf,'*.img',{'select mask images'}); else, M_P = {}; end
+    if M_X, M_P = spm_select(Inf,'image','select mask images'); else, M_P = {}; end
     
     
     %-Global calculation                                        (GXcalc)
@@ -1562,7 +1562,7 @@ case 'files&indices'
                 n21 = Dn(2)*Dn(1);
                 for v=1:nV
                     vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                    ttP = spm_get(n21,'.img',{[str,'select images',vstr]});
+                    ttP = spm_select(n21,'image',{[str,'select images',vstr]});
                     n21 = length(ttP);
                     tP  = [tP,ttP];
                 end
@@ -1598,7 +1598,7 @@ case 'files&indices'
                 tP = {};
                 for v=1:nV
                     vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                    ttP = spm_get(n3,'.img',{[str,vstr]});
+                    ttP = spm_select(n3,'image',{[str,vstr]});
                     tP = [tP,ttP];
                 end
                 P   = [P;tP];
@@ -1619,7 +1619,7 @@ case 'files&indices'
                         tP = {};
                         for v=1:nV
                             vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                            ttP = spm_get(n2,'.img',{[str,vstr]});
+                            ttP = spm_select(n2,'image',{[str,vstr]});
                             tP = [tP,ttP];
                         end
                         P   = [P;tP];
@@ -1638,7 +1638,7 @@ case 'files&indices'
                             n1  = Dn(1);
                             for v=1:nV
                                 vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                                ttP = spm_get(n1,'.img',{[str,vstr]});
+                                ttP = spm_select(n1,'image',{[str,vstr]});
                                 n1  = length(ttP);
                                 tP  = [tP,ttP];
                             end

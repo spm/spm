@@ -38,7 +38,7 @@ if nargin < 1
     %-get results
     %-------------------------------------------------------------------
     num_models = spm_input('How many DCM models to average ? ','+1','r',[],1);
-    P     = spm_get(num_models,'DCM*.mat',{'select DCM*.mat files'});
+    P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
     name  = spm_input('name for DCM_avg_???.mat','+1','s');
 end
 

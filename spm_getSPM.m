@@ -171,7 +171,7 @@ spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+swd    = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 
 %-Preliminaries...
 %=======================================================================

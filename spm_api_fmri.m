@@ -511,7 +511,7 @@ case {'refresh'}
 %----------------------------------------------------------------------------
 case {'load'}
     
-    f     = spm_get(1,'*t','select MAT or text file');
+    f     = spm_select(1,'.*t$','select MAT or text file');
     try
         x = load(f,'-ascii');
     catch

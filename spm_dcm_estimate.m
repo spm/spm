@@ -17,7 +17,7 @@ if nargin < 1
     set(Finter,'name','Dynamic Causal Modeling')
     %-get results
     %-------------------------------------------------------------------
-    P     = spm_get(1,'DCM*.mat',{'select DCM_???.mat'});
+    P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
 else
     P{1} = DCM_filename;
 end

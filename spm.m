@@ -43,7 +43,7 @@ function varargout=spm(varargin)
 %
 % Further interaction with the user is (mainly) via questioning in the
 % 'Interactive' window (managed by spm_input), and file selection
-% (managed by spm_get). See the help on spm_input.m and spm_get.m for
+% (managed by spm_select). See the help on spm_input.m and spm_select.m for
 % details on using these functions.
 %
 % If a "message of the day" file named spm_motd.man exists in the SPM
@@ -279,7 +279,7 @@ function varargout=spm(varargin)
 % F (output) - Handle of figure named
 %
 % FORMAT spm('GUI_FileDelete')
-% CallBack for GUI for file deletion, using spm_get and confirmation dialogs
+% CallBack for GUI for file deletion, using spm_select and confirmation dialogs
 %
 % FORMAT Fs = spm('Show')
 % Opens all SPM figure windows (with HandleVisibility) using `figure`.
@@ -1046,7 +1046,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 	'CallBack','spm(''PopUpCB'',gcbo)',...
 	'UserData',{	[...
 	    'spm(''FnBanner'',''CD'');',...
-	       'cd(spm_get(-1,''*'',''Select new working directory'',pwd)),',...
+	       'cd(spm_select(1,''dir'',''Select new working directory'')),',...
 	       'spm(''alert"'',',...
 	    	    '{''New working directory:'',[''    '',pwd]},',...
 	    	    '''CD'',sqrt(-1));'],...
@@ -1055,7 +1055,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 	    	'''PWD'',0);'],...
 	    'spm(''GUI_FileDelete'')',...
 	    'spm(''Show'');',...
-	    'run(spm_get(1,''*.m'',''Select mFile to run''))',...
+	    'run(spm_select(1,''*\.m$'',''Select mFile to run''))',...
 	    'web(''http://www.fil.ion.ucl.ac.uk/spm/'')' } )
 
 uicontrol(Fmenu,'String','Defaults',...
@@ -1721,7 +1721,7 @@ case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
 %-----------------------------------------------------------------------
-P = spm_get(Inf,'*',{'Select file(s) to delete'},pwd,0);
+P = spm_select(Inf,'*','Select file(s) to delete');
 n = length(P);
 if n==0
 	spm('alert"','Nothing selected to delete!','file delete',0);
@@ -1763,7 +1763,7 @@ if nargin<2, Finter='Interactive'; else, Finter=varargin{2}; end
 spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
-spm_get('Initialise','reset');
+spm_select('clearvfiles');
 spm_conman('Initialise','reset');
 local_clc, spm('FnBanner','GUI cleared');
 fprintf('\n');

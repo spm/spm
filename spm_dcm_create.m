@@ -247,7 +247,7 @@ switch upper(source_model)
     case 'IMPORT'
         % Import existing model - prompt user to choose it
         %=================================================
-    	P     = spm_get(1,'DCM*.mat',{'Select source DCM_???.mat'});
+    	P     = spm_select(1,'^DCM.*\.mat$','Select source DCM_???.mat');
     	load(P{:})
 
         

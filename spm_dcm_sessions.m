@@ -34,7 +34,7 @@ Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');
 
 num_models = spm_input('Apply contrast to how many DCM models ? ','+1','r',[],1);
-P     = spm_get(num_models,'DCM*.mat',{'select DCM*.mat files'});
+P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
 
 % Get contrast
 str     = 'contrast for';

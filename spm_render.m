@@ -60,7 +60,7 @@ end;
 % get surface
 %-----------------------------------------------------------------------
 if nargin < 3,
-	rendfile = spm_get(1,'render*.mat','Render file',fullfile(spm('Dir'),'rend'));
+	rendfile = spm_select(1,'^render.*\.mat$','Render file');
 end;
 
 % get brightness

@@ -50,7 +50,7 @@ if nargin==0,
 	SPMid = spm('FnBanner',mfilename,'$Rev$');
 	spm_help('!ContextHelp',mfilename);
 
-	P    = spm_get([1 Inf],'IMAGE','Select images');
+	P    = spm_select([1 Inf],'image','Select images');
 
 	mode = spm_input('Save','+1','m',...
 		['Save Rendering|Save Extracted Surface|'...

@@ -104,7 +104,7 @@ case 'specify'
 
 	% get design and directory
 	%===================================================================
-	swd   = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+	swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 	load(fullfile(swd,'SPM.mat'))
 	cd(swd)
 
@@ -117,7 +117,7 @@ case 'specify'
 
 	% get cell array of region structures
 	%-------------------------------------------------------------------
-	P     = spm_get([2 8],'VOI*.mat',{'select VOIs'});
+	P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'});
 	m     = length(P);
 	for i = 1:m
 		p     = load(P{i},'xY');
@@ -332,7 +332,7 @@ case 'review'
 
 	%-get results
 	%-------------------------------------------------------------------
-	P     = spm_get(1,'DCM*.mat',{'select DCM_???.mat'});
+	P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
 	load(P{:})
 	m     = DCM.M.m;
 	n     = DCM.M.n;
@@ -753,7 +753,7 @@ case 'review'
 case 'compare',
     
     num_models = spm_input('Number of DCM models to compare','+1','r',[],1);
-	P     = spm_get(num_models,'DCM*.mat',{'select DCM*.mat files'});
+	P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
     
     % load all models and compute their evidence
     for model_index=1:num_models,

@@ -299,7 +299,7 @@ guiPos = spm_input('!NextPos');
 tmp = [];
 for subj  = 1:nSubj
 	if bMSubj, strS = [sSubj,' ',int2str(subj),': ']; else, strS = ''; end
-	tP = spm_get(Inf,'.img',{[strS,'select scans...']});
+	tP = spm_select(Inf,'image',[strS,'select scans...']);
 	nt = size(tP,1);
 	P     = [P;tP];
 	iSubj = [iSubj; subj*ones(nt,1)];

@@ -202,7 +202,7 @@ if ~nargin
 
 		% get design
 		%-------------------------------------------------------
-		load(spm_get(1,'SPM.mat','Select SPM.mat'));
+		load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 
 	end
 
@@ -240,7 +240,7 @@ catch
 	P     = [];
 	for i = 1:nsess
 		str = sprintf('select scans for session %0.0f',i);
-		q   = spm_get(nscan(i),'.img',str);
+		q   = spm_select(nscan(i),'image',str);
 		P   = strvcat(P,q);
 	end
 
