@@ -51,7 +51,7 @@ elseif (nargin == 2)
 	% Delete the matrix if it exists
 	spm_unlink(matname);
 	M    = mat;
-	vx   = [M(1,1) M(2,2) M(3,3)];
+	vx   = abs([M(1,1) M(2,2) M(3,3)]);
 	orgn = round(-M(1:3,4)' ./ vx);
 	off = -vx.*orgn;
 	mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
