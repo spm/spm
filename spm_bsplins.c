@@ -6,14 +6,14 @@ static char sccsid[]="%W% John Ashburner %E%";
  *	http://bigwww.epfl.ch/algorithms.html
  *
  * It has been substantially modified, so blame me (John Ashburner) if there
- * are any bugs.
+ * are any bugs. Many thanks to Philippe Thevenaz for advice with the code.
  *
  * See:
  *	M. Unser.
  *	"Splines: A Perfect Fit for Signal and Image Processing,"
  *	IEEE Signal Processing Magazine, 16(6):22-38 (1999)
  *
- *	P. Thévenaz and T. Blu and M. Unser.
+ *	P. Thevenaz and T. Blu and M. Unser.
  *	"Interpolation Revisited"
  *	IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
 */
@@ -24,15 +24,10 @@ static char sccsid[]="%W% John Ashburner %E%";
 #include "spm_sys_deps.h"
 
 /***************************************************************************************
-Different orders of B-splines
+Different degrees of B-splines
 	x - position relative to origin
 	returns value of basis function at x
 */
-static double wt0(double x)
-{
-	/* a bit dodgy for nearest neighbour because of rounding errors */
-	return((x >= 0.5) ? (0.0) : ((x < -0.5) ? (0.0) : (1.0)));
-}
 
 static double wt1(double x)
 {
@@ -57,7 +52,7 @@ static double wt3(double x)
 {
 	x = fabs(x);
 	if (x < 1.0)
-		return((x*x*(x - 2.0)*3.0 + 4.0)*(1.0/6.0));
+		return(x*x*(x - 2.0)*0.5 + 2.0/3.0);
 	if (x < 2.0)
 	{
 		x = 2.0 - x;
@@ -154,34 +149,16 @@ static double wt7(double x)
 	return(0.0);
 }
 
-
 /***************************************************************************************
-Derivatives of different orders of B-splines
+Derivatives of different degrees of B-splines
 	x - position relative to origin
 	returns derivative of basis function at x
 */
 
-static double dwt0(double x)
-{
-	return(0.0);
-}
-
-static double dwt1(double x)
-{	/* dodgy */
-	int s;
-	if (x < -1.0 || x > 1.0)
-		return(0.0);
-	if (x > 0.0)
-		return(1.0);
-	if (x < 0.0)
-		return(-1.0);
-	return(0.0);
-}
-
 static double dwt2(double x)
 {
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 	if (x < 0.5)
@@ -194,7 +171,7 @@ static double dwt2(double x)
 static double dwt3(double x)
 {
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 
@@ -211,7 +188,7 @@ static double dwt3(double x)
 static double dwt4(double x)
 {
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 	if (x < 0.5)
@@ -231,7 +208,7 @@ static double dwt4(double x)
 static double dwt5(double x)
 {
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 	if (x < 1.0)
@@ -251,7 +228,7 @@ static double dwt6(double x)
 {
 	double y;
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 	if (x < 0.5)
@@ -279,7 +256,7 @@ static double dwt7(double x)
 {
 	double y;
 	int s;
-	s = (x<0 ? 1 : -1);
+	s = (x>0 ? 1 : -1);
 	x = fabs(x);
 
 	if (x < 1.0)
@@ -303,105 +280,109 @@ static double dwt7(double x)
 	return(0.0);
 }
 
-
 /***************************************************************************************
 Generate B-spline basis functions
-	o	- order of spline
+	d	- degree of spline
 	x	- position relative to centre
-	pi	- pointer to first voxel position in convolution
+	i	- pointer to first voxel position in convolution
 	w	- vector of spline values
 
-	Should really combine this function with wt1 to wt7 for most
+	Should really combine this function with wt2 to wt7 for most
 	efficiency (as for case 0).
+
+	Note that 0th degree B-spline returns nearest neighbour basis.
 */
-static void weights(int o, double x, int *pi, double w[])
+static void weights(int d, double x, int *i, double w[])
 {
-	int i, k;
-	switch (o){
+	int k;
+
+	*i = floor(x-(d-1)*0.5);
+	x -= *i;
+
+	switch (d){
 	case 2:
-		i =  rint(x)-1; for(k=0; k<=2; k++) w[k] = wt2(i+k-x);
+		for(k=0; k<=2; k++) w[k] = wt2(x-k);
 		break;
 	case 3:
-		i = floor(x)-1; for(k=0; k<=3; k++) w[k] = wt3(i+k-x);
+		for(k=0; k<=3; k++) w[k] = wt3(x-k);
 		break;
 	case 4:
-		i =  rint(x)-2; for(k=0; k<=4; k++) w[k] = wt4(i+k-x);
+		for(k=0; k<=4; k++) w[k] = wt4(x-k);
 		break;
 	case 5:
-		i = floor(x)-2; for(k=0; k<=5; k++) w[k] = wt5(i+k-x);
+		for(k=0; k<=5; k++) w[k] = wt5(x-k);
 		break;
 	case 6:
-		i =  rint(x)-3; for(k=0; k<=6; k++) w[k] = wt6(i+k-x);
+		for(k=0; k<=6; k++) w[k] = wt6(x-k);
 		break;
 	case 7:
-		i = floor(x)-3; for(k=0; k<=7; k++) w[k] = wt7(i+k-x);
+		for(k=0; k<=7; k++) w[k] = wt7(x-k);
 		break;
 
 	case 1:
-		i = floor(x)  ; w[0] = wt1(i-x);w[1] = wt1(i+1-x);
+		w[0] = 1.0-x;
+		w[1] = x;
 		break;
 	case 0:
-		i = rint(x);
-		/* w[0] = wt0(i-x); */
-		w[0] = 1.0;
+		w[0] = 1.0; /* Not correct at discontinuities */
 		break;
 
 	default:
-		i = floor(x)-3; for(k=0; k<=7; k++) w[k] = wt7(i+k-x);
+		for(k=0; k<=7; k++) w[k] = wt7(x-k);
 	}
-	*pi = i;
 }
 
 
 /***************************************************************************************
 Generate derivatives of B-spline basis functions
-	o	- order of spline
+	d	- degree of spline
 	x	- position relative to centre
-	pi	- pointer to first voxel position in convolution
+	i	- pointer to first voxel position in convolution
 	w	- vector of spline values
 
 	Should really combine this function with dwt2 to dwt7 for most
 	efficiency (as for case 0 and case 1).
+
+	Note that 0th and 1st degree B-spline return derivatives of
+	nearest neighbour and linear interpolation bases.
 */
-static void dweights(int o, double x, int *pi, double w[])
+static void dweights(int d, double x, int *i, double w[])
 {
-	int i, k;
-	switch (o){
+	int k;
+	*i = floor(x-(d-1)*0.5);
+	x -= *i;
+
+	switch (d){
 	case 2:
-		i =  rint(x)-1; for(k=0; k<=2; k++) w[k] = dwt2(i+k-x);
+		for(k=0; k<=2; k++) w[k] = dwt2(x-k);
 		break;
 	case 3:
-		i = floor(x)-1; for(k=0; k<=3; k++) w[k] = dwt3(i+k-x);
+		for(k=0; k<=3; k++) w[k] = dwt3(x-k);
 		break;
 	case 4:
-		i =  rint(x)-2; for(k=0; k<=4; k++) w[k] = dwt4(i+k-x);
+		for(k=0; k<=4; k++) w[k] = dwt4(x-k);
 		break;
 	case 5:
-		i = floor(x)-2; for(k=0; k<=5; k++) w[k] = dwt5(i+k-x);
+		for(k=0; k<=5; k++) w[k] = dwt5(x-k);
 		break;
 	case 6:
-		i =  rint(x)-3; for(k=0; k<=6; k++) w[k] = dwt6(i+k-x);
+		for(k=0; k<=6; k++) w[k] = dwt6(x-k);
 		break;
 	case 7:
-		i = floor(x)-3; for(k=0; k<=7; k++) w[k] = dwt7(i+k-x);
+		for(k=0; k<=7; k++) w[k] = dwt7(x-k);
 		break;
 
 	case 1:
-		i = floor(x);
-		/* w[0] = dwt1(i-x);w[1] = dwt1(i+1-x); */
-		w[0] = -1.0;
-		w[1] = 1.0;
+		w[0] = -1.0; /* Not correct at discontinuities */
+		w[1] =  1.0; /* Not correct at discontinuities */
 		break;
 	case 0:
-		i = rint(x);
-		/*w[0] = dwt0(i-x); */
-		w[0] = 0.0;
+		w[0] = 0.0; /* Not correct at discontinuities */
 		break;
 
 	default:
-		i = floor(x)-3; for(k=0; k<=7; k++) w[k] = dwt7(i+k-x);
+		for(k=0; k<=7; k++) w[k] = dwt7(x-k);
 	}
-	*pi = i;
 }
 
 
@@ -409,11 +390,10 @@ static void dweights(int o, double x, int *pi, double w[])
 Work out what to do with positions outside the FOV
 	i	- Co-ordinate (0<=i<m)
 	m	- dimension
-	returns wrapped co-ordinate
+	returns reflected co-ordinate
 */
-static int wrap(int i, int m)
+static int mirror(int i, int m)
 {
-	/* Reflect rather than wrap */
 	int m2;
 	i  = abs(i);
 	if (i< m) return(i);
@@ -423,20 +403,34 @@ static int wrap(int i, int m)
 	return((i<m) ? i : m2-i);
 }
 
-/* For MRI, it may be better to wrap the boundaries
-	- especially in the read and phase encode directions.
-   #define wrap(a,b) ((a)%(b)) */
+/***************************************************************************************
+Work out what to do with positions outside the FOV
+        i       - Co-ordinate (0<=i<m)
+        m       - dimension
+        returns wrapped co-ordinate
 
+        For MRI, it may be better to wrap the boundaries
+        - especially in the read and phase encode directions.
+
+	NOTE THAT THIS IS NOT WORKING YET
+*/
+static int wrap(int i, int m)
+{
+	if (i<0) return(m-1-((-i-1) % m));
+	return(i % m);
+}
 
 /***************************************************************************************
 Resample a point
 	c	- Volume of B-spline coefficients
 	m0,m1,m2	- dimensions of c
 	x0,x1,x2	- co-ordinate to sample
-	o	- order of spline used
+	d	- degree of spline used
 	returns value of sampled point
 */
-static double sample(double c[], int m0, int m1, int m2, double x0, double x1, double x2,int o)
+static double sample(double c[], int m0, int m1, int m2,
+	double x0, double x1, double x2, int d,
+	int (*bnd0)(), int (*bnd1)(),int (*bnd2)())
 {
 	double w0[32], w1[32], w2[32]; /* B-spline weights */
 	int    o0[32], o1[32], o2[32]; /* Offsets */
@@ -446,28 +440,28 @@ static double sample(double c[], int m0, int m1, int m2, double x0, double x1, d
 	double *cp;
 
 	/* Generate seperable B-spline basis functions */
-	weights(o, x0, &i0, w0);
-	weights(o, x1, &i1, w1);
-	weights(o, x2, &i2, w2);
+	weights(d, x0, &i0, w0);
+	weights(d, x1, &i1, w1);
+	weights(d, x2, &i2, w2);
 
 	/* Create lookups of voxel locations - for coping with edges */
-	for(k=0; k<=o; k++)
+	for(k=0; k<=d; k++)
 	{
-		o0[k] = wrap(k+i0, m0);
-		o1[k] = wrap(k+i1, m1)*m0;
-		o2[k] = wrap(k+i2, m2)*(m0*m1);
+		o0[k] = bnd0(k+i0, m0);
+		o1[k] = bnd1(k+i1, m1)*m0;
+		o2[k] = bnd2(k+i2, m2)*(m0*m1);
 	}
 
 	/* Convolve coefficients with basis functions */
 	d2 = 0.0;
-	for(i2=0; i2<=o; i2++)
+	for(i2=0; i2<=d; i2++)
 	{
 		d1 = 0.0;
-		for(i1=0; i1<=o; i1++)
+		for(i1=0; i1<=d; i1++)
 		{
 			cp = c+o2[i2]+o1[i1];
 			d0 = 0.0;
-			for(i0=0; i0<=o; i0++)
+			for(i0=0; i0<=d; i0++)
 				d0 += cp[o0[i0]] * w0[i0];
 			d1 += d0 * w1[i1];
 		}
@@ -482,12 +476,14 @@ Resample a point and its gradients
 	c	- Volume of B-spline coefficients
 	m0,m1,m2	- dimensions of c
 	x0,x1,x2	- co-ordinate to sample
-	o	- order of spline used
+	d	- degree of spline used
 	pg0,pg1,pg2	- gradients
 	returns value of sampled point
 */
-static double dsample(double c[], int m0, int m1, int m2, double x0, double x1, double x2,
-	int o, double *pg0, double *pg1, double *pg2)
+static double dsample(double c[], int m0, int m1, int m2,
+	double x0, double x1, double x2,
+	int d, double *pg0, double *pg1, double *pg2,
+	int (*bnd0)(), int (*bnd1)(),int (*bnd2)())
 {
 	double  w0[32],  w1[32],  w2[32]; /* B-spline weights */
 	double dw0[32], dw1[32], dw2[32]; /* B-spline derivatives */
@@ -499,32 +495,32 @@ static double dsample(double c[], int m0, int m1, int m2, double x0, double x1, 
 	double *cp;
 
 	/* Generate seperable B-spline basis functions */
-	weights(o, x0, &i0, w0);
-	weights(o, x1, &i1, w1);
-	weights(o, x2, &i2, w2);
+	weights(d, x0, &i0, w0);
+	weights(d, x1, &i1, w1);
+	weights(d, x2, &i2, w2);
 
-	dweights(o, x0, &i0, dw0);
-	dweights(o, x1, &i1, dw1);
-	dweights(o, x2, &i2, dw2);
+	dweights(d, x0, &i0, dw0);
+	dweights(d, x1, &i1, dw1);
+	dweights(d, x2, &i2, dw2);
 
 	/* Create lookups of voxel locations - for coping with edges */
-	for(k=0; k<=o; k++)
+	for(k=0; k<=d; k++)
 	{
-		o0[k] = wrap(k+i0, m0);
-		o1[k] = wrap(k+i1, m1)*m0;
-		o2[k] = wrap(k+i2, m2)*(m0*m1);
+		o0[k] = bnd0(k+i0, m0);
+		o1[k] = bnd1(k+i1, m1)*m0;
+		o2[k] = bnd2(k+i2, m2)*(m0*m1);
 	}
 
 	/* Convolve coefficients with basis functions */
 	g20 = g21 = g22 = d2 = 0.0;
-	for(i2=0; i2<=o; i2++)
+	for(i2=0; i2<=d; i2++)
 	{
 		g10 = g11 = d1 = 0.0;
-		for(i1=0; i1<=o; i1++)
+		for(i1=0; i1<=d; i1++)
 		{
 			cp = c+o2[i2]+o1[i1];
 			g00 = d0  = 0.0;
-			for(i0=0; i0<=o; i0++)
+			for(i0=0; i0<=d; i0++)
 			{
 				d0  += cp[o0[i0]] *  w0[i0];
 				g00 += cp[o0[i0]] * dw0[i0];
@@ -552,25 +548,29 @@ Loop through data and resample the points
 	m0,m1,m2	- dimensions of c
 	n	- number of points to resample
 	x0,x1,x2	- array of co-ordinate to sample
-	o	- order of spline used
+	d	- degree of spline used
+	cond	- code determining boundaries to mask at
+	bnd0, bnd1, bnd2	- functions for dealing with edges
 	f	- resampled data
 */
-
 #define TINY 5e-2
 
 static void fun(double c[], int m0, int m1, int m2,
-	int n, double x0[], double x1[], double x2[],int o, double f[])
+	int n, double x0[], double x1[], double x2[], int d,
+	int cond, int (*bnd0)(),int (*bnd1)(),int (*bnd2)(),
+	double f[])
 {
 	int j;
+	double NaN = mxGetNaN();
 
 	for(j=0; j<n; j++)
 	{
-		if (x0[j]>=1-TINY && x0[j]<=m0+TINY &&
-			x1[j]>=1-TINY && x1[j]<=m1+TINY &&
-			x2[j]>=1-TINY && x2[j]<=m2+TINY)
-			f[j] = sample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, o);
+		if (((cond&1) | (x0[j]>=1-TINY && x0[j]<=m0+TINY)) &&
+			((cond&2) | (x1[j]>=1-TINY && x1[j]<=m1+TINY)) &&
+			((cond&4) | (x2[j]>=1-TINY && x2[j]<=m2+TINY)))
+			f[j] = sample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, d, bnd0,bnd1,bnd2);
 		else
-			f[j] = 0.0;
+			f[j] = NaN;
 	}
 }
 
@@ -581,24 +581,29 @@ Loop through data and resample the points and their derivatives
 	m0,m1,m2	- dimensions of c
 	n	- number of points to resample
 	x0,x1,x2	- array of co-ordinate to sample
-	o	- order of spline used
+	d	- degree of spline used
+	cond	- code determining boundaries to mask at
+	bnd0, bnd1, bnd2	- functions for dealing with edges
 	f	- resampled data
 	df0, df1, df2	- gradients
 */
 static void dfun(double c[], int m0, int m1, int m2,
-	int n, double x0[], double x1[], double x2[],int o,
+	int n, double x0[], double x1[], double x2[],int d,
+	int cond, int (*bnd0)(),int (*bnd1)(),int (*bnd2)(),
 	double f[], double df0[], double df1[], double df2[])
 {
 	int j;
+	double NaN = mxGetNaN();
 
 	for(j=0; j<n; j++)
 	{
-		if (x0[j]>=1-TINY && x0[j]<=m0+TINY &&
-			x1[j]>=1-TINY && x1[j]<=m1+TINY &&
-			x2[j]>=1-TINY && x2[j]<=m2+TINY)
-			f[j] = dsample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, o, &df0[j],&df1[j],&df2[j]);
+		if (((cond&1) | (x0[j]>=1-TINY && x0[j]<=m0+TINY)) &&
+			((cond&2) | (x1[j]>=1-TINY && x1[j]<=m1+TINY)) &&
+			((cond&4) | (x2[j]>=1-TINY && x2[j]<=m2+TINY)))
+			f[j] = dsample(c, m0,m1,m2, x0[j]-1,x1[j]-1,x2[j]-1, d,
+				&df0[j],&df1[j],&df2[j], bnd0,bnd1,bnd2);
 		else
-			f[j] = 0.0;
+			f[j] = NaN;
 	}
 }
 
@@ -606,22 +611,22 @@ static void dfun(double c[], int m0, int m1, int m2,
 /***************************************************************************************/
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int k, o, n, nd;
+	int k, d, n, nd;
 	int m0=1, m1=1, m2=1;
 	double *x0, *x1, *x2, *c, *f, *df0, *df1, *df2;
 	const int *dims;
 
 	/* Usage:
-			f = function(c,x0,x1,x2,o)
+			f = function(c,x0,x1,x2,d)
 				c - B-spline coefficients
 				x0, x1, x2 - co-ordinates
-				o	- B-spline order
+				d	- B-spline degree
 				f	- sampled function
 	   or:
-			[f,df0,df1,df2] = function(c,x0,x1,x2,o)
+			[f,df0,df1,df2] = function(c,x0,x1,x2,d)
 				c - B-spline coefficients
 				x0, x1, x2 - co-ordinates
-				o	- B-spline order
+				d	- B-spline degree
 				f	- sampled function
 				df0, df1, df2	- sampled derivatives
 	*/
@@ -638,13 +643,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (mxGetM(prhs[4])*mxGetN(prhs[4]) != 1)
 		mexErrMsgTxt("Inappropriate usage.");
 
-	/* Order of spline */
-	o = rint(mxGetPr(prhs[4])[0]);
-	if (o<0 || o>7)
-		mexErrMsgTxt("Bad spline order.");
+	/* Degree of spline */
+	d = floor(mxGetPr(prhs[4])[0]+0.5);
+	if (d<0 || d>7)
+		mexErrMsgTxt("Bad spline degree.");
 
-	if (o==0 && nlhs>1)
-		mexErrMsgTxt("Cant compute gradients when using NN interp.");
+	if (d==0 && nlhs>1)
+		mexErrMsgTxt("Cant compute gradients when using B-spline(0) interp.");
 
 	/* Dimensions of coefficient volume */
 	nd = mxGetNumberOfDimensions(prhs[0]);
@@ -678,7 +683,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	f  = mxGetPr(plhs[0]);
 
 	if (nlhs<=1)
-		fun(c, m0, m1, m2, n, x0, x1, x2,o, f);
+#if   defined(MRI3D)
+		fun(c, m0,m1,m2, n, x0,x1,x2, d, 7,wrap,wrap,wrap,       f);
+#elif defined(MRI2D)
+		fun(c, m0,m1,m2, n, x0,x1,x2, d, 3,wrap,wrap,mirror,     f);
+#else
+		fun(c, m0,m1,m2, n, x0,x1,x2, d, 0,mirror,mirror,mirror, f);
+#endif
 	else
 	{
 		plhs[1] = mxCreateNumericArray(nd,dims, mxDOUBLE_CLASS, mxREAL);
@@ -687,6 +698,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		df0 = mxGetPr(plhs[1]);
 		df1 = mxGetPr(plhs[2]);
 		df2 = mxGetPr(plhs[3]);
-		dfun(c, m0, m1, m2, n, x0, x1, x2,o, f,df0,df1,df2);
+#if defined(MRI3D)
+		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 7,wrap,wrap,wrap,       f,df0,df1,df2);
+#elif defined(MRI2D)
+		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 3,wrap,wrap,mirror,     f,df0,df1,df2);
+#else
+		dfun(c, m0,m1,m2, n, x0,x1,x2, d, 0,mirror,mirror,mirror, f,df0,df1,df2);
+#endif
 	}
 }
