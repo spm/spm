@@ -89,7 +89,7 @@ for iter=1:param(4)
 	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VW, VW2);
 	fwhm(2) = min([fw fwhm(2)]);
 
-	len = len + fprintf('   FWHM = %6.4g Var = %g', fw,Var);
+	len = len + fprintf('   FWHM = %6.4g Var = %g                   ', fw,Var);
 	fprintf('%s', sprintf('\b')*ones(1,len));
 
 	% Parameter estimates biased towards affine.
