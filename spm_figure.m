@@ -294,7 +294,13 @@ end
 set(F,'Pointer','Arrow')
 
 %-If this is the 'Interactive' window, reset the name and pointer
-if strcmp(get(F,'Tag'),'Interactive'), set(F,'Pointer','Arrow','Name',''), end
+if strcmp(get(F,'Tag'),'Interactive')
+	set(F,'Pointer','Arrow',...
+		'Name','',...
+		'UserData',[],...
+		'ButtonDownFcn','',...
+		'KeyPressFcn','')
+end
 
 return
 
