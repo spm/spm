@@ -162,8 +162,13 @@ function varargout=spm(varargin)
 % a1, a2,...       - corresponding values of global variables with given names
 %                    ([] is returned as value if global variable doesn't exist)
 %
-% FORMAT CmdLine = spm('isGCmdLine')
-% Returns true if global CMDLINE exists and is itself true.
+% FORMAT CmdLine = spm('CmdLine',CmdLine)
+% Command line SPM usage?
+% CmdLine (input)  - CmdLine preference
+%                    [defaults (missing or empty) to global        ]
+%                    [CMDLINE, if it exists, or 0 (GUI) otherwise. ]
+% CmdLine (output) - true if global CmdLine if true,
+%                    or if on a terminal with no support for graphics windows.
 %
 % FORMAT v = spm('MLver')
 % Returns MatLab version, truncated to major & minor revision numbers
@@ -177,7 +182,7 @@ function varargout=spm(varargin)
 % Callback handler for PopUp UI menus with multiple callbacks as cellstr UserData
 %
 % FORMAT str = spm('GetUser',fmt)
-% Returns current user, culled from the USER environment variable
+% Returns current users login name, extracted from the hosting environment
 % fmt   - format string: If USER is defined then sprintf(fmt,USER) is returned
 %
 % FORMAT spm('Beep')
@@ -205,7 +210,7 @@ function varargout=spm(varargin)
 %   Creates 'Interactive' figure if ~CmdLine, creates 'Graphics' figure if bGX.
 % Iname   - Name for 'Interactive' window
 % bGX     - Need a Graphics window? [default 1]
-% CmdLine - CommandLine usage? [default spm('isGCmdLine')]
+% CmdLine - CommandLine usage? [default spm('CmdLine')]
 % Finter  - handle of 'Interactive' figure
 % Fgraph  - handle of 'Graphics' figure
 % CmdLine - CommandLine usage?
@@ -215,7 +220,7 @@ function varargout=spm(varargin)
 % Robust to absence of figure.
 % Iname      - Name for figure
 % F (input)  - Handle (or 'Tag') of figure to name [default 'Interactive']
-% CmdLine    - CommandLine usage? [default spm('isGCmdLine')]
+% CmdLine    - CommandLine usage? [default spm('CmdLine')]
 % F (output) - Handle of figure named
 %
 % FORMAT Fs = spm('Show')
@@ -918,13 +923,16 @@ for i=1:nargin-1
 	end
 end
 
-case 'isgcmdline'
+case {'cmdline','isgcmdline'}
 %=======================================================================
-% CmdLine = spm('isGCmdLine')
-% if any(strcmp(who('global'),'CMDLINE')), global CMDLINE; else, CMDLINE=[]; end
-CMDLINE = spm('GetGlobal','CMDLINE');
-if isempty(CMDLINE), varargout = {0}; else, varargout = {CMDLINE}; end
-
+% CmdLine = spm('CmdLine',CmdLine)
+% isGCmdLine usage is Grandfathered
+if nargin<2, CmdLine=[]; else, CmdLine = varargin{2}; end
+if isempty(CmdLine)
+	CMDLINE = spm('GetGlobal','CMDLINE');
+	if isempty(CMDLINE), CmdLine = 0; else, CmdLine = CMDLINE; end
+end
+varargout = {CmdLine | get(0,'ScreenDepth')==0};
 
 case 'mlver'
 %=======================================================================
@@ -1029,7 +1037,7 @@ varargout = {str};
 case 'fnuisetup'
 %=======================================================================
 % [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
-if nargin<4, CmdLine=spm('isGCmdLine'); else, CmdLine=varargin{4}; end
+if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
 if nargin<3, bGX=1; else, bGX=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine
@@ -1059,7 +1067,7 @@ varargout = {Finter,Fgraph,CmdLine};
 case 'figname'
 %=======================================================================
 % F = spm('FigName',Iname,F,CmdLine)
-if nargin<4, CmdLine=spm('isGCmdLine'); else, CmdLine=varargin{4}; end
+if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
 
