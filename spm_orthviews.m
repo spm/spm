@@ -85,6 +85,61 @@ function varargout = spm_orthviews(action,varargin)
 %_______________________________________________________________________
 % %W% John Ashburner & Matthew Brett %E%
 
+
+% The basic fields of st are:
+%         n        - the number of images currently being displayed
+%         vols     - a cell array containing the data on each of the
+%                    displayed images.
+%         Space    - a mapping between the displayed images and the
+%                    mm space of each image.
+%         bb       - the bounding box of the displayed images.
+%         centre   - the current centre of the orthogonal views
+%         callback - a callback to be evaluated on a button-click.
+%         xhairs   - crosshairs off/on
+%         hld      - the interpolation method
+%         fig      - the figure that everything is displayed in
+%         mode     - the position/orientation of the sagittal view.
+%                    - currently always 1
+% 
+%         st.registry.hReg \_ See spm_XYZreg for documentation
+%         st.registry.hMe  /
+% 
+% For each of the displayed images, there is a non-empty entry in the
+% vols cell array.  Handles returned by "spm_orthviews('Image',.....)"
+% indicate the position in the cell array of the newly created ortho-view.
+% Operations on each ortho-view require the handle to be passed.
+% 
+% When a new image is displayed, the cell entry contains the information
+% returned by spm_vol (type help spm_vol for more info).  In addition,
+% there are a few other fields, some of which I will document here:
+% 
+%         premul - a matrix to premultiply the .mat field by.  Useful
+%                  for re-orienting images.
+%         window - either 'auto' or an intensity range to display the
+%                  image with.
+% 
+%         ax     - a cell array containing an element for the three
+%                  views.  The fields of each element are handles for
+%                  the axis, image and crosshairs.
+% 
+%         blobs - optional.  Is there for using to superimpose blobs.
+%                 vol     - 3D array of image data
+%                 mat     - a mapping from vox-to-mm (see spm_vol, or
+%                           help on image formats).
+%                 max     - maximum intensity for scaling to.  If it
+%                           does not exist, then images are auto-scaled.
+% 
+%                 There are two colouring modes: full colour, and split
+%                 colour.  When using full colour, there should be a
+%                 'colour' field for each cell element.  When using
+%                 split colourscale, there is a handle for the colorbar
+%                 axis.
+% 
+%                 colour  - if it exists it contains the
+%                           red,green,blue that the blobs should be
+%                           displayed in.
+%                 cbar    - handle for colorbar (for split colourscale).
+
 global st;
 
 if isempty(st), reset_st; end;
