@@ -1,11 +1,11 @@
 
 % Statistical Parametric Mapping - SPM99b
-% SPM99b is the public beta release of SPM'99   -   released 17/05/1999
+% SPM99 is the final public release of SPM'99   -   released 25/01/2000
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
-% / __)(  _ \(  \/  )  Statistical Parametric Mapping
-% \__ \ )___/ )    (   Wellcome Department of Cognitive Neurology & Collaborators
+% / __)(  _ \(  \/  )  
+% \__ \ )___/ )    (   Statistical Parametric Mapping
 % (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %
 %    John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
@@ -20,14 +20,14 @@
 %
 %                           ----------------
 %
-% Please refer to this software in all communications and publications
-% as SPM99b, citing the Wellcome Department of Cognitive Neurology.
+% Please refer to this version as "SPM99" in papers and communications.
 %
 %                           ----------------
 % Contents:
 %      1) SPM - The software
 %      2) New features in SPM99
-%      3) SPM99b: Status, planned features, future toolboxes
+%      3) SPM99b: Updates since the beta release
+%      4) SPM Toolboxes
 % 
 %
 % ======================================================================
@@ -46,6 +46,10 @@
 % ______________________________________________________________________
 %                                                                Authors
 %
+% SPM is developed under the auspices of The Wellcome Department of
+% Cognitive Neurology, a department of the Institute of Neurology at
+% University College London.
+%
 % SPM94 was written primarily by Karl Friston in the first half of
 % 1994, with assistance from John Ashburner (MRC-CU), Jon Heather
 % (WDoCN), and Andrew Holmes (Department of Statistics, University of
@@ -60,10 +64,11 @@
 % Canada).
 %
 % SPM99 was developed by: John Ashburner (spatial, image handling),
-% Karl Friston (project director), Andrew Holmes (project management,
-% statistics, user interfaces), Jean-Baptiste Poline (statistics, batch
-% system (with Stephanie Rouquette)), with assistance from Matthew
-% Brett (WinNT implementation, misc. stats).
+% Karl Friston (project director, fMRI design), Andrew Holmes (project
+% management, statistics, user interfaces), Jean-Baptiste Poline
+% (statistics, batch system (with Stephanie Rouquette)), with
+% contributions from Matthew Brett (WinNT implementation, misc. stats),
+% and theoretical input from Keith Worsley.
 %
 % We would like to thank everyone who has provided feedback on SPM.
 %
@@ -634,74 +639,145 @@
 % ______________________________________________________________________
 %                                                            STATISTICAL
 %
-%     ^                                                            ^    
-%    / \                                                          / \   
-%   / ! \       *   U N D E R   C O N S T R U C T I O N   *      / ! \  
-%  /_____\                                                      /_____\ 
+% SPM99 features completely redesigned and re-written statistics.
 %
-% -andrew 
+% The new features are fully described in the help text of the
+% statistical routines, which may be browsed using the spm_help
+% viewer.
 %
-%
-%
-%
-%
-%
-%
-%
-%
-%
+% For PET/SPECT/Basic stats design setup, see: spm_spm_ui.m
+% For fMRI design setup, see:                  spm_fmri_spm_ui.m
+% For random effects issues, see:              spm_RandFX.man
+% For contrasts, and F-contrasts, see:         spm_conman.m
+% For estimation, see:                         spm_spm.m
+% For contrast estimation & images, see:       spm_getSPM.m
+% For the new results section, see:            spm_results_ui.m
 %
 %
 % ======================================================================
-% 3)  SPM99b: Status, planned features, future toolboxes
+% 3)  SPM99b: Updates since the beta release
 % ======================================================================
 %
-% The core of SPM99 is now feature-complete, and has undergone alpha
-% testing in-house. We are now seeking final testing and feedback
-% through a public beta release.
+% A public beta release of SPM99, SPM99b, was released on 17/05/1999.
 %
-%            There will be bugs!  Please report bugs to:
-%     ^                  <spm-bugs@fil.ion.ucl.ac.uk>
-%    / \     Peculiarities, feedback, and general queries on the use and 
-%   / ! \    theory of the software should be raised on the SPM email list:
-%  /_____\               <spm@mailbase.ac.uk>
-%            Bugs and fixes will be posted on the list and SPM99 web page:
-%                         http://www.fil.ion.ucl.ac.uk/spm/spm99.html
+% ______________________________________________________________________
+%                                                                   BUGS
 %
-% We envisage making a full SPM99 release early in the autumn of 1999
+% During beta testing, a number of bugs were discovered. Few were
+% serious, but all are documented in the SPM99b "bugs & fixes" area of
+% the SPMweb site:
+%       http://ftp.fil.ion.ucl.ac.uk/spm/spm99.html#Bugs99b
 %
-%                           ----------------
+% Those of note include:
+% * spm_sn3d.m (2.19) - 18/05/1999
+%   Write normalised failed with a non-integer target pixel size.
+% * spm_fMRI_design.m (2.17) & spm_fmri_spm_ui.m (2.26) - 19/05/1999
+%   "barfed" when no conditions were used in the fMRI stats.
+% * spm_P.m (2.3) - 01/06/1999
+%   Omission of a term b in equation for EC density, containing the
+%   gamma function, possibly leading to p-values that are too liberal.
+% * spm_spm_ui.m (2.26) 08/06/1999
+%   Maximum number of groups for AnCova & Anova models hardcoded to 1!
+% * spm_hread.m (2.5) 10/06/1999 & spm_hread.m (2.5) 06/07/1999
+%   Problems with string conversion, including spaces in filenames.
+% * spm_spm.m (2.28)
+%   Bug in explicit masking code produced "tube" like masks!
+% * spm_sp.m (2.8) 01/05/1999
+%   Nasty bug affecting designs where the number of parameter is greater
+%   than half the number of scans, AND when the projection on the
+%   residual space is done on a bunch of voxels which number is greater
+%   than 5 times the number of scans.
+%   (Discussed in http://www.mailbase.ac.uk/lists/spm/1999-07/0085.html)
+% * spm_graph.m (2.20) 15/07.1999
+%   Problem plotting fitted and adjusted responses against an
+%   explanatory variable.
+% * spm_sp.m (2.10) & spm_SpUtil.m (2.13) 11/08/1999
+%   Enhancements for large design matrices.
+% * spm_orthviews.m (2.17) 18/08/1999
+%   Crashed with single slice data.
+% * spm_write_plane.m (2.9) 16/09/1999
+%   Problems handling image filenames with "=" in the name.
+% * spm_transverse.m (2.15) 14/10/1999
+%   Slight mismatch in "overlay-slices".
 %
-% Known limitations:
-%    * Some functions still need help documentation completing
-%      - spm_conman.m (the contrast manager)
-%      - fMRI design setup - detailed descriptions of the questions
-%      - spm_list.m (tabular stats output) - overview of MCP, corrected
-%        & uncorrected p-values, MCP, levels of inference & power
-%    * Some help is still out of date
-%      - spm_pet.man (overview of PET analyses)
-%      - spm_fmri.man (overview of fMRI analyses)
+% Other bugs were on the whole either cosmetic or platform specific fixes.
 %
-% Planned features still to be implemented for SPM99
-%    * Design orthogonality display (on "Design" menu)
+% ______________________________________________________________________
+%                                                           ENHANCEMENTS
+%
+% The following enhancements have been added to SPM99 since the beta release:
+%
+% Spatial:
+% * Image registration based on Mutual Information
+% * Speeded up parameter estimation by sampling only the most useful voxels
+% * Extra options from <Display>
+% * <Check Reg> now accepts variable number of images
+% * Support for ToolBox launching
+% * <Xtract Brain> option for generating brain surfaces (Matlab 5.3+ omly)
+% * Support for datatypes other than double when sampling Matlab 3D arrays
+% * Cosmetic improvements to spm_coregister & spm_realign
+%
+% Statistical:
+% * fMRI design allows trains of onsets to emulate variable length epochs
+% * Increased efficiency in fMRI model estimation
+% * Various robustness and speed improvements in stats estimation
+% * Smoothness estimator computed on the basis of the averge determinant
+%   - allowing for nonstationary smoothness
+% * More efficient contrast handling (particulaly relevant for F-contrasts)
+% * More efficient handling of larger design matrices
+% * Cross-platform handling of results files
+% * Uncorrected threshold for a conjunction now the p-value for the
+%   conjunction SPM, rather than for the component SPM's.
+% * Specification by mask image of search volume for corrected
+%   significance (SVC)
+% * Design orthogonality explorer
+% * "surfable" contrast plots
+% * Double-click extraction of data from design matrices & contrast weights
+% * dynamic co-ordinate highlighting in results tables
+% * spm_regions.m timecourse extraction integrated into results section
+%
+% Misc:
+% * Batch system: See spm_bch.man
+%
+% ______________________________________________________________________
+%                                                       PLANNED FEATURES
+%
+% Planned features due to be implemented for SPM99, which weren't:
 %    * Contrast utilities & exploration: Contrast summary, contrast
 %      orthogonality, design space partitioning display
 %    * Dynamic thresholding in Results interface
 %    * New robust measure of "global" background scan intensity
+%      - to appear as an SPM ToolBox
 %    * Model diagnostic plots: fitted vs. residuals, Q-Q plots
 %    * Voxel statistics display: Statistics, significances, R^2,
 %      partial correlations
-%    * Specification by mask image of search volume for corrected
-%      significance (SVC)
 %    * Additional user interface enhancements
 %    * Conversion program for SPM96/7 Stats results files
 %
+% ======================================================================
+% 4)                    S P M   T o o l B o x e s
+% ======================================================================
+%
+% SPM toolboxes are MatLab applications that enhance or build upon the
+% SPM software platform. Authors are encouraged to collaborate with the
+% SPM authors in the production of SPM ToolBoxes for open
+% distribution.
+%
+% Toolboxes should conform to SPM user interface and coding standards.
+%
+% The "ToolBox" PullDown on the SPM99 Menu window allows easy launching
+% of a ToolBox GUI. See spm.m for details of thie feature.
+%
+% ______________________________________________________________________
+%                                                      PLANNED TOOLBOXES
+%
 % Planned toolboxes:
-%    * SPMvis : Visualisation toolbox                      (CHutton)
-%    * SnPM   : Permutation based non-parametric inference (AHolmes & TNichols)
-%    * SPMmv  : Multivariate statistics toolbox            (JB Poline)
-%    * SPMsc  : Effective connectivity toolbox             (CBuechel)
-%    * SPM??  : Morphometry toolbox                        (JAshburner)
+%    * SPMvis : Visualisation toolbox                (CHutton)
+%    * SnPM   : Non-parametric inference             (AHolmes & TNichols)
+%    * SPMmv  : Multivariate statistics toolbox      (JB Poline)
+%    * SPMsc  : Effective connectivity toolbox       (CBuechel)
+%    * SPM??  : Morphometry toolbox                  (JAshburner)
+%    * SPM??  : Robust global effect estimation      (Jandersson)
 %
 % ______________________________________________________________________
 % %W% The FIL methods group %E%
