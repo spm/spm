@@ -21,7 +21,6 @@
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-if ~exist('PST'); PST = []; end
 
 % Find nearest voxel [Euclidean distance] in the point list of locations XYZ
 %-----------------------------------------------------------------------
@@ -38,11 +37,14 @@ spm_mip_ui('SetCoords',L);
 
 % Get adjusted data y and fitted effects Y
 %-----------------------------------------------------------------------
-y     = spm_readXA(QQ(i));
-Y     = [K H C B G]*(pinv([K H C B G])*y);
-h     = H;
-c     = C;
-
+y     = spm_readXA(QQ(i));			% adjusted data
+BETA  = pinv([H C 0*B 0*G])*y;			% parameter estimate
+Y     = [H C 0*B 0*G]*BETA;			% fitted data
+R     = y - Y;					% residuals
+RES   = sum(R.^2);				% SSQ of residuals
+SE    = sqrt(diag(BCOV));			% standard error of estimates
+HC    = [H C];
+Msize = 12;
 
 % Inference (for title)
 %-----------------------------------------------------------------------
@@ -50,14 +52,14 @@ if SPMZ
 
 	Pu    = spm_P(1,W,t(i),0,S);		% voxel-level p value
 	Pz    = 1 - spm_Ncdf(t(i));		% uncorrected p value (Z)
-	TITLE = sprintf('Z = %0.2f, p = %0.3f (%.3f corrected)',t(i),Pz,Pu);
+	STR   = sprintf('Z = %0.2f, p = %0.3f (%.3f corrected)',t(i),Pz,Pu);
 
 %-----------------------------------------------------------------------
 elseif SPMF
 
 	Pu    = spm_pF(S,W,df,t(i));		% voxel-level p value
 	Pz    = 1 - spm_Fcdf(t(i),df);		% uncorrected p value (F)
-	TITLE = sprintf('F = %0.2f, p = %0.3f (%.3f corrected)',t(i),Pz,Pu);
+	STR   = sprintf('F = %0.2f, p = %0.3f (%.3f corrected)',t(i),Pz,Pu);
 
 end
 
@@ -72,198 +74,228 @@ if ~strcmp(get(gca,'NextPlot'),'add');
 	delete(gca); subplot(2,1,2); axis off;
 end
 
-% More than one subject or session
+
+% modeling evoked responses
 %----------------------------------------------------------------------
-b     = size(B,2);
-if  b > 1
+if exist('ERI')
+    if spm_input('plot event-related responses',1,'b','yes|no',[1 0]);
+	j     = 1;
+	if size(ERI,2) > 1
+		j = spm_input('which events','!+1','e',1:size(ERI,2));
+	end
 
-	BLOCK = spm_input('which sessions/subjects',...
-		1,'b','all|mean|specify',[0 1 2]);
+	Cplot = str2mat(...
+			'Fitted response',...
+			'Fitted response +/- standard error.',...
+			'Fitted response and adjusted data');
+	str   = 'plot in terms of';
+	Cp    = spm_input(str,'!+1','m',Cplot,[1:size(Cplot,1)]);
+	TITLE = deblank(Cplot(Cp,:));
 
-	% mean over block
+
+	% cycle over selected events
 	%--------------------------------------------------------------
-	if BLOCK == 1
-		d     = 0;
-		D     = 0;
-		if size(C,2)
-			c = 0;
-		end
-		if size(H,2)
-			h = 0;
-		end
-		for j = 1:size(B,2);
-			d = d + y((B(:,j) > 0))/b;
-			D = D + Y((B(:,j) > 0))/b;
-			if size(C,2)
-				c = c + C((B(:,j) > 0),:)/b;
-			end
-			if size(H,2)
-				h = h + H((B(:,j) > 0),:)/b;
-			end
-		end
-		y     = d;
-		Y     = D;
+	figure(Fgraph)
+	hold on
+	x     = -4:0.1:32;
+	for i = j
+		Y      = DER*BETA(ERI(:,i));
+		se     = sqrt(diag(DER*BCOV(ERI(:,i),ERI(:,i))*DER')*RES);
+		y      = C*BETA(ERI(:,i)) + R;
 
-	% subset of block
-	%--------------------------------------------------------------
-	elseif BLOCK == 2
+		% plot
+		%------------------------------------------------------
+		if Cp == 1
+			plot(x,Y)
 
-		j     = spm_input('sessions/subjects eg 1:3','!+1');
-		j     = B(:,j);
-		j     = any(j' > 0);
-		y     = y(j(:));
-		Y     = Y(j(:));
-		if size(C,2)
-			c = C(j(:),:);
-		end
-		if size(H,2)
-			h = H(j(:),:);
+		elseif Cp == 2
+			plot(x,Y,x,Y + se,'-.',x,Y - se,'-.')
+
+		elseif Cp == 3
+			plot(x,Y,PST(:,i),y,'.','MarkerSize',12)
+
 		end
 	end
+
+	hold off; axis on
+	set(gca,'XLim',[min(x) max(x)])
+	xlabel('peri-stimulus time {secs}')
+	ylabel(STR,'FontSize',8)
+	title(TITLE,'FontSize',16)
+
+	spm_graph_ui(gca)
+	return
+
+    end
 end
 
-% Bar chart of condition effects
-%-----------------------------------------------------------------------
-BAR    = 0;
-if size(H,2)
-	BAR = spm_input('condition bar chart',1,'b','yes|no',[1 0]);
-end
+
+% find out what to plot
+%----------------------------------------------------------------------
+Cplot = str2mat(...
+		'Parameter estimates',...
+		'Parameter estimates +/- standard error',...
+		'Fitted response',...
+		'Adjusted data',...
+		'Fitted response and adjusted data');
+str   = 'plot in terms of';
+Cp    = spm_input(str,1,'m',Cplot,[1:size(Cplot,1)]);
+TITLE = deblank(Cplot(Cp,:));
+
+% plot parameter estimates
+%----------------------------------------------------------------------
+if Cp == 1 | Cp == 2
+	i = 1:size(HC,2);
+	if length(i) > 1
+		if spm_input('which effects','!+1','b','all|specify',[0 1]);
+			i = spm_input('which effects {columns}','!+1','e',1);
+		end
+	end
+
+	% bar chart
+	%--------------------------------------------------------------
+	figure(Fgraph)
+	[p q]  = bar(BETA(i));
+	fill(p,q,[1 1 1]*.9)
+	if Cp == 2
+	  for j = 1:length(i)
+	    line([j j],([SE(j) 0 - SE(j)] + BETA(j)),'LineWidth',6,'Color','r')
+	  end
+	end
+	xlabel('effect')
+	ylabel(STR,'FontSize',8)
+	title(TITLE,'FontSize',16)
+
+	spm_graph_ui(gca)
+	return
+
 
 
 % All fitted effects or selected effects
 %-----------------------------------------------------------------------
-if spm_input('which effects or events',1,'b','all|specify',[0 1])
+elseif Cp >= 3
 
-	if size(PST,2)
-		str = sprintf('which epoch or event (1-%0.0f)',size(PST,2));
-		e   = spm_input(str,1,'e',1);
-
-		% columns of design matrix (C)
-		%-------------------------------------------------------
-		d   = size(c,2)/size(PST,2);
-		j   = [1:d] + (e - 1)*d;
-	else
-		% get effects
-		%-------------------------------------------------------
-		str = sprintf('which effects (1-%0.0f)',size([h c],2));
-		j   = spm_input(str,1,'e',1);
-	end
-
-	% re-fit effects
+	% bar chart of condition means if H exists
 	%---------------------------------------------------------------
-	g       = [h c];
-	c       = g(:,j);
-	g(:,j)  = [];
-	ey      = mean(y);
-	y       = y - ey;
-	BETA    = pinv([c g])*y;
-	y       = y - [0*c g]*BETA + ey;
-	Y       = [c 0*g]*BETA + ey;
+	if size(H,2)
+	
+		% organize adjusted data and get mean
+		%-------------------------------------------------------
+		i      = any(H')';
+		y      = y(i);
+		H      = H(i,:);
+		x      = [];
+		Y      = [];
+		for j  = 1:length(y)
+			x(j) = find(H(j,:) > 0);
+		end
+		for j  = 1:size(H,2)
+			Y(j) = mean(y(H(:,j)));
+		end
 
-	% re-fit effects
+		% bar chart
+		%-------------------------------------------------------
+		figure(Fgraph)
+		if Cp == 3
+
+			[p q]  = bar(Y);
+			fill(p,q,[1 1 1]*.9)
+
+		elseif Cp == 4
+
+			line(x,y,'LineStyle','.','MarkerSize',MSize)
+
+		elseif Cp == 5
+
+			[p q]  = bar(Y);
+			fill(p,q,[1 1 1]*.9)
+			line(x,y,'LineStyle','.','MarkerSize',MSize)
+
+		end
+
+		xlabel('effect')
+		ylabel(STR,'FontSize',8)
+		title(TITLE,'FontSize',16)
+
+		spm_graph_ui(gca)
+		return
+
+	end
+
+
+	% get ordinates
 	%---------------------------------------------------------------
-	if BAR
-		h = h(:,j);
-	end
-end
+	Cplot = str2mat(...
+			'A covariate',...
+			'scan or time.',...
+			'user specified ordinate');
+	str   = 'plot as a function of';
+	Cx    = spm_input(str,'!+1','m',Cplot,[1:size(Cplot,1)]);
 
+	if Cx == 1
 
-% epoch/event-related responses
-%----------------------------------------------------------------------
-if size(PST,2) & ~BAR
-	ER   = spm_input('plot event-related responses',1,'b','yes|no',[1 0]);
-end
-
-% get ordinates
-%----------------------------------------------------------------------
-MSize = 12;
-if ER
-
-	str   = sprintf('plot in relation to event (1-%0.0f)',size(PST,2));
-	e     = spm_input(str,1,'e',1);
-
-	% get ordinates from PST
-	%--------------------------------------------------------------
-	x     = PST(:,e);
-	Xlab  = 'peri-stimulus time {secs}';
-	MSize = 4;
-
-elseif ~BAR
-
-	% get ordinate
-	%--------------------------------------------------------------
-	COV  = 0;
-	if size(C,2)
-		str  = 'plot as a function of';
-		COV  = spm_input(str,'!+1','b','covariate|scan',[1 0]);
-	end
-	if COV
 		str  = sprintf('covariate 1 - %i',size(C,2));
 		q    = spm_input(str,'!+1','e',1);
 		x    = C(:,q);
 		Xlab = sprintf('covariate %i',q);
 
-	else
-		x    = [1:size(y,1)]';
-		Xlab = 'scan';
+	elseif Cx == 2
+
+		if length(RT)
+			x    = RT*[1:size(Y,1)]';
+			Xlab = 'time {seconds}';
+		else
+			x    = [1:size(Y,1)]';
+			Xlab = 'scan';
+
+		end
+
+	elseif Cx == 3
+
+		x    = [];
+		str  = sprintf('enter {1 x %i} ordinate',size(Y,1));
+		while length(x) ~= length(Y)
+			x = spm_input(str,'!+1');
+			x = x(:);
+		end
+		Xlab = 'ordinate';
+
 	end
-
-end
-
-% Plot
-%----------------------------------------------------------------------
-spm_clf(Finter);
-figure(Fgraph)
-if BAR
-
-	% organize adjusted data and get mean
-	%---------------------------------------------------------------
-	i      = any(h')';
-	y      = y(i);
-	h      = h(i,:);
-	x      = [];
-	Y      = [];
-	for j  = 1:length(y)
-		x(j) = find(h(j,:));
-	end
-	for j  = 1:size(h,2)
-		Y(j) = mean(y(h(:,j)));
-	end
-
-	% bar chart
-	%---------------------------------------------------------------
-	[p q]  = bar(Y);
-	fill(p,q,[1 1 1]*.9)
-	line(x,y,'LineStyle','.','MarkerSize',12)
-	xlabel('level')
-	ylabel('adjusted response')
-	axis([0 (size(h,2) + 1) (min(y) - 1) (max(y) + 1)])
-	axis square
-
-else
 
 	% plot
 	%---------------------------------------------------------------
+	figure(Fgraph)
 	[p q] = sort(-x);
-	if all(diff(x(q)))
-		plot(x(q),Y(q),'b',x(q),y(q),':')
-	else
-		plot(x(q),Y(q),'b')
-	end
-	axis square
-	line(x,y,'LineStyle','.','MarkerSize',MSize)
-	xlabel(Xlab)
-	ylabel('adjusted and fitted response')
+	x     = x(q);
+	Y     = Y(q);
+	y     = y(q);
 
-	uicontrol(3,'Style','Pushbutton','String','hold on','Callback',...
-	['hold on'],  'Position',...
-	[40 60 60 20],'Interruptible','yes');
-	uicontrol(3,'Style','Pushbutton','String','hold off','Callback',...
-	['hold off'], 'Position',...
-	[40 40 60 20],'Interruptible','yes');
+	if Cp == 3
+
+		plot(x,Y)
+
+	elseif Cp == 4
+
+		plot(x,y)
+
+	elseif Cp == 5
+
+		if all(diff(x))
+			plot(x,Y,'b',x,y,':')
+		else
+			plot(x,Y,'b')
+		end
+		axis square
+		line(x,y,'LineStyle','.','MarkerSize',MSize)
+
+	end
+	xlabel(Xlab)
+	ylabel(STR,'FontSize',8)
+	title(TITLE,'FontSize',16)
+
+	spm_graph_ui(gca)
+	return
 
 end
 
-%----------------------------------------------------------------------
-title(TITLE,'FontSize',16)
-spm_clf(Finter)
+
