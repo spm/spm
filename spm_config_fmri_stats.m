@@ -581,6 +581,7 @@ function run_stats(job)
 
 spm_defaults;
 global defaults
+defaults.modality='FMRI';
 
 original_dir = pwd;
 my_cd(job.dir);
