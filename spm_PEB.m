@@ -134,7 +134,7 @@ y        = [y; sparse(n,1)];
 
 % assemble augmented constraints Q 
 %===========================================================================
-if ~isfield(P{1},'iQ')
+if ~isfield(P{1},'Q')
 
 	% covariance contraints Q on Cov{e{i}} = Cov{b{i - 1}}
 	%-------------------------------------------------------------------
