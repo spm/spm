@@ -130,7 +130,11 @@ if any(mode==[3 5 6 7]),
 	linfun(['Extracting surface - please be patient']);
 	matname = fullfile(pth,['surf_' nam '.mat']);
 	tmp = struct('dat',br,'dim',size(br),'mat',VG.mat);
-	[faces,vertices] = isosurface(br,0.5);
+
+	% This is done with an eval statement because Matlab5.2
+	% complains otherwise...
+	eval('[faces,vertices] = isosurface(br,0.5);');
+
 	vertices = (VG.mat(1:3,:)*[vertices' ; ones(1,size(vertices,1))])';
 	save(matname,'faces','vertices');
 end;
