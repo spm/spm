@@ -10,12 +10,18 @@ function spm_spm(VY,xX,xM,c,varargin)
 % xX    - Structure containing design matrix information
 %       - Required fields are:
 %         xX.X      - Design matrix (raw, not temporally smoothed)
+%         xX.Xnames - cellstr of parameter names corresponding to columns
+%                     of design matrix
+%       - Optional fields are:
 %         xX.K      - Sparse temporal smoothing matrix (see spm_sptop)
 %                   - Design & data are smoothed using K
 %                     (model is K*Y = K*X*beta + K*e)
 %                   - Note that K should not smooth across block boundaries
-%         xX.Xnames - cellstr of parameter names corresponding to columns
-%                     of design matrix
+%                   - defaults to speye(size(xX.X,1))
+%         xX.xVi    - structure describing intrinsic temporal auto-correlation
+%                   - required fields are
+%                     xX.xVi.Vi - intrinsic temporal auto-correlation matrix
+%                               - defaults to speye(size(xX.X,1))
 %
 % xM    - Structure containing masking information, or a simple column vector
 %         of thresholds corresponding to the images in VY.
@@ -156,6 +162,9 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     xX.erdf   - effective residual degrees of freedom (trRV^2/trRVRV)
 % 
 %     xM        - as input (but always in the structure format)
+%
+%     Vbeta     - array of handle structures for beta images
+%     VResMS    - handle structure of ResMS image
 %     XYZ       - 3xS (S below) vector of in-mask voxel coordinates
 %     Fc        - as input
 %     UFp       - critical p-value for F-thresholding
@@ -247,8 +256,8 @@ function spm_spm(VY,xX,xM,c,varargin)
 % be tweaked for your system by editing the code.
 %
 %_______________________________________________________________________
-% @(#)spm_spm.m	2.11 Andrew Holmes, Jean-Baptiste Poline, Karl Friston 99/02/18
-SCCSid = '2.11';
+% %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
+SCCSid = '%I%';
 
 %-Parameters
 %-----------------------------------------------------------------------
@@ -262,11 +271,15 @@ if nargin<2, error('Insufficient arguments'), end
 if nargin<3, xM  = zeros(size(X,1),1); end
 if nargin<4, c   = []; end
 
-%-Check required fields of xX structure exist
+%-Check required fields of xX structure exist - default optional fields
 %-----------------------------------------------------------------------
-for tmp = {'X','K','xVi','Xnames'}, if ~isfield(xX,tmp)
+for tmp = {'X','K','Xnames'}, if ~isfield(xX,tmp)
     error(sprintf('xX Design structure doesn''t contain ''%s'' field',tmp{:}))
 end, end
+
+if ~isfield(xX,'K'),   xX.K   = speye(size(xX.X,1)); end
+if ~isfield(xX,'xVi'), xX.xVi = struct('Vi',speye(size(xX.X,1))); end
+
 
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
@@ -290,11 +303,21 @@ if exist('./SPM.mat','file')==2
 	warning(sprintf(['Existing results in this directory will be ',...
 		'overwritten\n\t (pwd = %s) '],pwd))
 end
-spm_unlink SPM.mat Yidx.mat Y.mad
-spm_unlink mask.img mask.hdr ResMS.img ResMS.hdr
-spm_unlink con.mat
-[files,null] = spm_list_files(pwd,'beta_????.*');
-for i=1:size(files,1), spm_unlink(deblank(files(i,:))), end
+
+files = {	'SPM.mat','Yidx.mat','Y.mad',...
+		'mask.???','ResMS.???',...
+		'xCon.mat',...
+		'beta_????.???','con_????.???','spm_????.???'};
+for str = files
+	if any(str=='*'|str=='?')
+		[tmp,null] = spm_list_files(pwd,str);
+		for i=1:size(tmp,1)
+			spm_unlink(deblank(tmp(i,:)))
+		end
+	else
+		spm_unlink(str)
+	end
+end
 
 
 %=======================================================================
@@ -317,16 +340,16 @@ if any(size(xX.K)~=size(xX.X,1)), error('K not a temporal smoothing matrix'), en
 %-Construct design parmameters, and store in design structure xX
 % Take care to apply temporal convolution
 %-----------------------------------------------------------------------
-[nScan,nbeta] = size(xX.X);					%- #scans & #parameters
-xX.V          = xX.K*xX.xVi.Vi*xX.K';			%-V matrix
-xX.xKXs       = spm_sp('Set',xX.K*xX.X);		%-Compute design space structure
-xX.pKX        = spm_sp('pinv',xX.xKXs);	%-Pseudoinverse of X, for parameter est.
-xX.pKXV       = xX.pKX*xX.V;				%-Needed for contrast variance weighting
-xX.Bcov       = xX.pKXV * xX.pKX';			%-Var-cov matrix of parameter estimates
-                                        		% (multiply by ResMS)
-[xX.trRV,xX.trRVRV] ...					%-Expectations of variance (trRV)
+[nScan,nbeta] = size(xX.X);			%- #scans & #parameters
+xX.V          = xX.K*xX.xVi.Vi*xX.K';		%-V matrix
+xX.xKXs       = spm_sp('Set',xX.K*xX.X);	%-Design space struct
+xX.pKX        = spm_sp('pinv',xX.xKXs);		%-Pinv of KX
+xX.pKXV       = xX.pKX*xX.V;			%-for contrast variance weighting
+xX.Bcov       = xX.pKXV * xX.pKX';		%-Var-cov matrix of est. par.
+                                        	% (multiply by ResMS)
+[xX.trRV,xX.trRVRV] ...				%-Expectations of variance (trRV)
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
-xX.erdf       = xX.trRV^2/xX.trRVRV;			%-Effective residual d.f.
+xX.erdf       = xX.trRV^2/xX.trRVRV;		%-Effective residual d.f.
 
 %-Check estimability
 %-----------------------------------------------------------------------
@@ -368,8 +391,8 @@ if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
 	%-Compute subspace corresponding to F-contrast, ESS variance
 	% expectation and corresponding F degrees of freedom.
 	%---------------------------------------------------------------
-	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);	%-Contrast Ho space
-	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);			%-Expectations
+	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);	%-Ho space
+	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);		%-Expectations
 					%-(trR0V & trR0V2 in spm_AnCova)
 	eFdf          = [trMV^2/trMVMV, xX.erdf];	%-Effective F-df
 
@@ -745,7 +768,6 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
     if length(Q), tmp(Q) = CrResMS; end
     VResMS = spm_write_plane(VResMS,tmp,z);		   
 
-	   
     %-Report progress
     %-------------------------------------------------------------------
     fprintf('%s%30s',sprintf('\b')*ones(1,30),' ')%-#
@@ -782,6 +804,12 @@ R      = spm_resels(FWHM,S);
 
 %-Save remaining results files and analysis parameters
 %=======================================================================
+
+%-"close" image files, updating scalefactor information
+%-----------------------------------------------------------------------
+VM                      = spm_create_image(VM);
+for i=1:nbeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
+VResMS                  = spm_create_image(VResMS)
 
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
