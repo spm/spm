@@ -24,15 +24,18 @@ function [U] = spm_get_ons(SPM,s)
 %
 % With longs TRs you may want to shift the regressors so that they are
 % aligned to a particular slice.  This is effected by resetting the
-% values of fMRI_T and fMRI_T0 in som_defaults.  fMRI_T is the number of
-% time-bins per scan used when building regressors.  Onsets are defined
-% in temporal units of scans starting at 0.  fMRI_T0 is the first
-% time-bin at which the regressors are resampled to coincide with data
-% acquisition.  If fMRI_T0 = 1 then the regressors will be appropriate
-% for the first slice.  If you want to temporally realign the regressors
-% so that they match responses in the middle slice then make fMRI_T0 =
-% fMRI_T/2 (assuming there is a negligible gap between volume
-% acquisitions. Default values are fMRI_T = 16 and fMRI_T0 = 1.
+% values of defaults.stats.fmri.t and defaults.stats.fmri.t0 in
+% spm_defaults. defaults.stats.fmri.t is the number of time-bins per
+% scan used when building regressors.  Onsets are defined
+% in temporal units of scans starting at 0.  defaults.stats.fmri.t0 is
+% the first time-bin at which the regressors are resampled to coincide
+% with data acquisition.  If defaults.stats.fmri.t0 = 1 then the
+% regressors will be appropriate for the first slice.  If you want to
+% temporally realign the regressors so that they match responses in the
+% middle slice then make defaults.stats.fmri.t0 =
+% defaults.stats.fmri.t/2 (assuming there is a negligible gap between
+% volume acquisitions. Default values are defaults.stats.fmri.t = 16
+% and defaults.stats.fmri.t0 = 1.
 %
 %
 %_______________________________________________________________________

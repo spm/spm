@@ -180,9 +180,14 @@ try
 	fMRI_T     = SPM.xBF.T;
 	fMRI_T0    = SPM.xBF.T0;
 catch
-	global fMRI_T fMRI_T0
-	if isempty(fMRI_T),  fMRI_T  = 16; end;
-	if isempty(fMRI_T0), fMRI_T0 = 1;  end;
+	global defaults
+	if ~isempty(defaults),
+		fMRI_T  = defaults.stats.fmri.t;
+		fMRI_T0 = defaults.stats.fmri.t0;
+	else,
+		fMRI_T  = 16;
+		fMRI_T0 = 1;
+	end;
 	SPM.xBF.T  = fMRI_T;
 	SPM.xBF.T0 = fMRI_T0;
 end

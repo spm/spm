@@ -21,8 +21,12 @@ function [hrf,p] = spm_hrf(RT,P);
 
 % global parameter
 %-----------------------------------------------------------------------
-global fMRI_T; 
-if isempty(fMRI_T), fMRI_T = 16; end;
+global defaults
+if ~isempty(defaults),
+	fMRI_T = defaults.stats.fmri.t;
+else,
+	fMRI_T = 16;
+end;
 
 % default parameters
 %-----------------------------------------------------------------------
