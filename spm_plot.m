@@ -28,11 +28,16 @@ L     = XYZ(:,i);
 if V(3) == 1
 	set(h1,'String',sprintf('%0.0f',L(1)));
 	set(h2,'String',sprintf('%0.0f',L(2)));
+	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
+	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
 	set(X1,'Position',[L(1)  L(2) 1]);
 else
 	set(h1,'String',sprintf('%0.0f',L(1)));
 	set(h2,'String',sprintf('%0.0f',L(2)));
 	set(h3,'String',sprintf('%0.0f',L(3)));
+	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
+	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
+	set(hZstr,'String',sprintf('z = %0.0f',L(3)));
 	set(X1,'Position',[(P1 + L(2))  (P2 + L(1)) 1]);
 	set(X2,'Position',[(P1 + L(2))  (P3 - L(3)) 1]);
 	set(X3,'Position',[(P4 + L(1))  (P3 - L(3)) 1]);
@@ -45,11 +50,12 @@ d      = min(find(CONTRAST(con(1),:)));
 
 % delete previous axis
 %----------------------------------------------------------------------------
-subplot(2,1,2); delete(gca)
+subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 subplot(2,1,2);
-DIR    = CWD(max([1 max(find(CWD == '/'))]):length(CWD));
 
 if d > (size(H,2) + size(K,2));	% covariate
+
+DIR = spm('DirTrunc',CWD,2);
 
 	if size(B,2)		% more than one subject
 		y     = [];
