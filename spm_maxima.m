@@ -43,13 +43,13 @@ function spm_maxima(SPM,VOL,hReg)
 
 %-Get voxel nearest current location
 %-----------------------------------------------------------------------
-[xyzmm,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
-if isempty(xyzmm)
+if ~length(SPM.Z)
 	msgbox('No voxels survive masking & threshold(s)!',...
 		sprintf('%s%s: %s...',spm('ver'),...
 		spm('GetUser',' (%s)'),mfilename),'help','modal')
 	return
 end
+[xyzmm,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
 
 %-Find selected cluster
 %-----------------------------------------------------------------------
