@@ -247,8 +247,9 @@ switch cLF
 		end
 	end
 	param   = ceil(param);
+	param(param < 32) = 32;
 	str     = 'Cut off period[s] for each session';
-	param   = spm_input(str,'+1','e',param(param < 32) = 32);
+	param   = spm_input(str,'+1','e',param);
 	if length(param) == 1
 		 param = param*ones(1,nsess);
 	end
