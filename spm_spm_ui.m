@@ -48,7 +48,7 @@ function spm_spm_ui
 % taken from the first image specified.
 %
 %__________________________________________________________________________
-% %W% Andrew Holmes, Karl Friston %E%
+% %E% Andrew Holmes, Karl Friston %W%
 
 
 %-Clear and label Interactive window
@@ -440,8 +440,9 @@ THRESH = spm_input('Gray matter threshold ?',J,'e',0.8); J=J+1;
 
 %-Get contrasts or linear compound for parameters of interest [H C]
 %-----------------------------------------------------------------------
-t     = spm_input('# of contrasts',J); J=J+1;
 a     = size([H C],2);
+if a>0, t = spm_input('# of contrasts',J); J=J+1;
+	else, t=0; end
 CONTRAST = [];
 while size(CONTRAST,1) < t
 	d = spm_input(sprintf('[%d] - contrast %d',a,size(CONTRAST,1) + 1),J);
@@ -560,24 +561,25 @@ end
 
 %-Ensure validity of contrast of condition effects, zero pad
 %-----------------------------------------------------------------------
-if ~isempty(H)
-	%-Ensure contrasts of condition effects sum to zero within study
-	if ~bMStud | bBetGrp
-		tmp = ones(size(H,2),1);
-	else
-		tmp = zeros(size(H,2),1);
-		tmp(cumsum([1,nCond(1:nStud-1)])) = ones(nStud,1);
-		tmp = cumsum(tmp);
+if ~isempty(CONTRAST)
+	if ~isempty(H)
+		%-Ensure contrasts of cond effects sum to zero within study
+		if ~bMStud | bBetGrp
+			tmp = ones(size(H,2),1);
+		else
+			tmp = zeros(size(H,2),1);
+			tmp(cumsum([1,nCond(1:nStud-1)])) = ones(nStud,1);
+			tmp = cumsum(tmp);
+		end
+		d        = 1:size(H,2);
+		CONTRAST(:,d) = CONTRAST(:,d)-spm_meanby(CONTRAST(:,d)',tmp)';
 	end
-	d        = 1:size(H,2);
-	CONTRAST(:,d) = CONTRAST(:,d) - spm_meanby(CONTRAST(:,d)',tmp)';
+	%-Remove zero contrasts
+	CONTRAST(find(all(CONTRAST'==0)),:)=[];
+	
+	%-zero pad for B & G partitions
+	CONTRAST = [CONTRAST, zeros(size(CONTRAST,1),size([B G],2))];
 end
-%-Remove zero contrasts
-CONTRAST(find(all(CONTRAST'==0)),:)=[];
-
-%-zero pad for B & G partitions
-CONTRAST = [CONTRAST, zeros(size(CONTRAST,1),size([B G],2))];
-
 
 %-Display analysis parameters
 %=======================================================================
