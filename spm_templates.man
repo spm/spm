@@ -27,6 +27,14 @@
 % "Design and Construction of a Realistic Digital Brain Phantom"
 % IEEE Transactions on Medical Imaging, vol.17, No.3, p.463-468.
 %
+% It should be noted that:
+% THE MNI NEVER RECOMMENDED THIS BRAIN AS A STEREOTACTIC STANDARD.  THIS
+% IS SOMETHING THAT WE AT THE FIL CHOSE TO DO.  THE OFFICIAL STANDARD FOR
+% THE ICBM STEREOTACTIC SPACE IS THE MNI305 BRAIN - WHICH THIS IS NOT.
+% THIS BRAIN HAS MANY MERITS FOR SIMULATION BUT IT SUFFERS FROM ALL THE
+% SINGLE BRAIN CRITICISMS THAT APPLY TO TALAIRACH.
+% See http://www.bic.mni.mcgill.ca/cgi/icbm_view for a comparison of the
+% different brains from Montreal.
 %
 % templates/T2.img
 % ----------------
