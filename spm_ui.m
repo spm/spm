@@ -30,7 +30,7 @@ close  all
 
 % Set default values for gobal variables
 %----------------------------------------------------------------------------
-global SWD CWD PRINTSTR LOGFILE CMDLINE GRID DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP TWD UFp
+global SWD CWD PRINTSTR LOGFILE CMDLINE GRID DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP TWD UFp MODALITY
 
 SWD      = spm_get_path;				% SPM directory
 CWD      = pwd;						% working directory
@@ -53,6 +53,8 @@ DESCRIP	 = 'spm compatible';				% description
 UFp      = 0.05;					% Upper tail F-prob
 
 USER     = getenv('USER');
+
+MODALITY = 'PET';
 
 % position figures and set PaperPosition for printing
 %----------------------------------------------------------------------------
