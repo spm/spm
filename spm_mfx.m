@@ -1,9 +1,11 @@
 function [SPM] = spm_mfx(SPM)
 % converts a 1st-level design specification into a MFX specification
 % FORMAT [SPM] = spm_mfx(SPM)
-% SPM  - design and estimation structure after a 1st-level analysis
+% SPM {in} - design and estimation structure after a 1st-level analysis
 %
-% spm_mfx takes the products of a 1st-level analysis of a [balanced]
+% SPM {out} is saved in SPM.swd/mfx/SPM.mat
+%
+% spm_mfx takes the SPM.mat of a 1st-level estimation of a repeated-measure
 % multi-session study and produces the SPM design specification for a
 % full mixed-effects (MFX) analysis.  The 1st-level design (X1) must have
 % the same number of parameters for each session.  These are assumed to
