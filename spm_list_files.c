@@ -159,9 +159,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if ((stat(fullpathname, &stbuf) != -1) && (dirp = opendir(fullpathname)))
 	{
-		ptr = fullpathname + strlen(fullpathname);
-		(void)strcat(fullpathname, SEPS);
-		ptr++;
+		ptr = fullpathname + strlen(fullpathname)-1;
+		if ((*ptr++) != SEPCHAR)  /* could be root */
+			*ptr++ = SEPCHAR;
 		for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp))
 		{
 			*ptr = 0;

@@ -5,10 +5,10 @@
 	#ifdef SPM_WIN32
 		#define rint(x) floor((x)+0.5)  /* round to nearest int */
 		#define finite(x) mxIsFinite(x) /* finite */
-		#define SEPS      "\\"          /* directory separator */
+		#define SEPCHAR      '\\'          /* directory separator */
 		#include <process.h>
 	#else /* SPM_WIN32 */
-		#define SEPS      "/"           /* directory separator */
+		#define SEPCHAR      '/'           /* directory separator */
 		extern double rint(double);
 	#endif /* SPM_WIN32 */
 	#ifndef MAXNAMLEN
