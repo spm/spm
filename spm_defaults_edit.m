@@ -48,19 +48,20 @@ function spm_defaults_edit(arg1,arg2)
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
+SCCSid = '%I%';
 
 global MODALITY
 global PRINTSTR LOGFILE CMDLINE GRID
 global UFp DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
-global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET ...
+	PET_ORIGIN PET_DESCRIP
+global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET ...
+	fMRI_ORIGIN fMRI_DESCRIP
 
 if nargin == 0
-	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),...
-		'Name','Defaults Edit');
-	spm_help('!ContextHelp','spm_defaults_edit.m')
-	pos = 1;
+	SPMid = spm('FnBanner',mfilename,SCCSid);
+	spm('FnUIsetup','Defaults Edit');
+	spm_help('!ContextHelp',mfilename)
 
 	callbacks = str2mat(...
 		'spm_defaults_edit(''Printing'');',...
@@ -72,7 +73,7 @@ if nargin == 0
 		'spm_defaults_edit(''Reset'');'...
 		);
 
-	a1 = spm_input('Defaults Area?',pos,'m',...
+	a1 = spm_input('Defaults Area?',1,'m',...
 		['Printing Options|'...
 		 'Miscellaneous Defaults|'...
 		 'Header Defaults - ',MODALITY,'|'...
@@ -89,18 +90,25 @@ elseif strcmp(arg1, 'Misc')
 
 	% Miscellaneous
 	%---------------------------------------------------------------
+	c = (abs(CMDLINE)>0) -1;
+
 	if ~isempty(LOGFILE), tmp='yes'; def=1; else, tmp='no'; def=2; end
-	if spm_input(['Log to file? (' tmp ')'],2,'y/n',[1,0],def)
+	if spm_input(['Log to file? (' tmp ')'],2*c,'y/n',[1,0],def)
 		LOGFILE = ...
 			deblank(spm_input('Logfile Name:',2,'s', LOGFILE));
 	else
 		LOGFILE = '';
 	end
 
-	if CMDLINE ~= 0, tmp='yes'; def=1; else, tmp='no'; def=2; end
-	CMDLINE = ...
-	    spm_input(['Command Line Input (' tmp ')?'],3,'y/n',[1,0],def);
-	GRID = spm_input('Grid value (0-1):', 4, 'e', GRID);
+	CMDLINE = abs(CMDLINE)>0 * sign(CMDLINE);
+	def = find(CMDLINE==[0,1,-1]);
+	CMDLINE = spm_input('Command Line Input?',3*c,'m',...
+		{	'always use GUI',...
+			'always use CmdLine',...
+			'GUI for files, CmdLine for input'},...
+		[0,1,-1],def);
+
+	GRID = spm_input('Grid value (0-1):', 4*c, 'e', GRID);
 
 elseif strcmp(arg1, 'Printing')
 
