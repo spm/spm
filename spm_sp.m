@@ -115,7 +115,8 @@ function varargout = spm_sp(varargin)
 % Otherwise, the use of spm_sp will generally speed up computations
 % and better deal with the memory. 
 %
-%
+%_______________________________________________________________________
+% %W% Jean-Baptiste Poline %E%
 
 if nargin==0, error('do what? no arguments given...')
 	else, action = varargin{1}; end
