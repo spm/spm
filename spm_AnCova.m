@@ -4,7 +4,7 @@ function [df,F,BETA,T,RES] = spm_AnCova(C,G,sigma,X,CON)
 %
 % C     - Design matrix partition of interest (K*c)
 % C     - Design matrix partition of confounds (K*g)
-% sigma - SD of Gaussian kernel K
+% sigma - SD of Gaussian kernel K (or kernel itself)
 % X     - {m x n} matrix of response {m x 1} variables (K*x)
 % CON   - {t x p} matrix of contrasts p = size([C G],2)
 %
@@ -41,50 +41,31 @@ if size(G,2) == 0; G = zeros(q,1); end
 
 % temporal convolution kernel
 %---------------------------------------------------------------------------
-if sigma
-	k = exp(-[(-6*sigma):(6*sigma)].^2/(2*sigma^2));
-	k = k/max(k);
-else
-	k = 1;
-end
-v     = conv(k,k);
-vv    = conv(v,v);
+K     = spm_sptop(sigma,q);
+V     = K*K;
 
 
 % cunning piece of code to compute expectations of variances and effective
 % degrees of freedom by capitalizing on the sparsity structure of the problem
 %---------------------------------------------------------------------------
 PH     = pinv(H);
-PHV    = PH;
-for i  = 1:size(PHV,1)
-	d        = conv(PHV(i,:),v);
-	PHV(i,:) = d([1:q] + (length(v) - 1)/2);
-end
+PHV    = PH*V;
 PG     = pinv(G);
-PGV    = PG;
-for i  = 1:size(PGV,1)
-	d        = conv(PGV(i,:),v);
-	PGV(i,:) = d([1:q] + (length(v) - 1)/2);
-end
-PHVV   = PHV;
-for i  = 1:size(PHVV,1)
-	d         = conv(PHVV(i,:),v);
-	PHVV(i,:) = d([1:q] + (length(v) - 1)/2);
-end
+PGV    = PG*V;
+PHVV   = PHV*V;
 
 % traces
 %---------------------------------------------------------------------------
-d      = conv(ones(1,q),v.^2);
-trV    = v((length(v) + 1)/2)*q;
-trVV   = sum(d([1:q] + (length(v) - 1)/2));
+trV    = trace(V);
+trVV   = sum(sum(V.*V));
 
 trQ    = sum(sum(H'.*PHV));
 trP    = sum(sum(G'.*PGV));
 trQV   = sum(sum(H'.*PHVV));
 
-trQQ   = trace(H*(PHV*H)*PHV);
-trPP   = trace(G*(PGV*G)*PGV);
-trPQ   = trace(G*(PGV*H)*PHV);
+trQQ   = sum(sum(H'.*((PHV*H)*PHV)));
+trPP   = sum(sum(G'.*((PGV*G)*PGV)));
+trPQ   = sum(sum(G'.*((PGV*H)*PHV)));
 
 trRV   = trV - trQ;
 trRV2  = trVV - 2*trQV + trQQ;
@@ -106,10 +87,21 @@ if nargin > 3
 	% estimate parameters and sum of squares due to error
 	%-------------------------------------------------------------------
 	BETA  = (PH*X);					% parameter estimates
-	R     = X - H*BETA;				% residuals under Ha
-	N     = X - G*(PG*X);				% residuals under Ho
-	RES   = sum(R.^2);				% SSQ under Ha
-	NUL   = sum(N.^2);				% SSQ under Ho
+
+	% chunk if data are enourmous
+	%-------------------------------------------------------------------
+	n     = size(X,2);
+	RES   = zeros(1,n);
+	NUL   = zeros(1,n);
+	U     = round(64^3/q);
+	for i = 1:ceil(n/U)
+		j      = [1:U] + (i - 1)*U;
+		j      = j(j <= n);
+		R      = X(:,j) - H*BETA(:,j);		% residuals under Ha
+		N      = X(:,j) - G*(PG*X(:,j));	% residuals under Ho
+		RES(j) = sum(R.^2);			% SSQ under Ha
+		NUL(j) = sum(N.^2);			% SSQ under Ho
+	end
 
 	% test for effects with he F ratio of variances
 	%-----------------------------------------------------------------
