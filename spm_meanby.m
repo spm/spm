@@ -33,7 +33,7 @@ for p_i = 1:length(iVals)
 end
 
 %-Work out means by index
-Mi = I'*X ./ sum(I)'*ones(1,size(X,2));
+Mi = (I'*X) ./ (sum(I)'*ones(1,size(X,2)) );
 
 %-Combine into matrix same size as X:
 % Effectively replacing each observation by its group mean
