@@ -4,7 +4,7 @@ function varargout=spm(varargin)
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
 % \__ \ )___/ )    (   Statistical Parametric Mapping
-% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
+% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm/
 %_______________________________________________________________________
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
@@ -295,7 +295,7 @@ function varargout=spm(varargin)
 
 %-Parameters
 %-----------------------------------------------------------------------
-Modalities = str2mat('PET','FMRI','EEG');
+Modalities = {'PET','FMRI','EEG'};
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -410,10 +410,10 @@ uicontrol(F,'String','About SPM',...
 uicontrol(F,'String','SPMweb',...
 	'FontWeight','Bold','FontName',PF.courier,...
 	'ToolTipString',...
-	'launch web browser - http://www.fil.ion.ucl.ac.uk/spm',...
+	'launch web browser - http://www.fil.ion.ucl.ac.uk/spm/',...
 	'Position',[250 025 100 030],...
 	'CallBack',['set(gcbf,''Pointer'',''Watch''),',...
-			'web(''http://www.fil.ion.ucl.ac.uk/spm'');',...
+			'web(''http://www.fil.ion.ucl.ac.uk/spm/'');',...
 			'set(gcbf,''Pointer'',''Arrow'')'],...
 	'ForegroundColor','k')
 
@@ -433,7 +433,7 @@ case 'asciiwelcome'                           %-ASCII SPM banner welcome
 disp( ' ___  ____  __  __                                                  ')
 disp( '/ __)(  _ \(  \/  )                                                 ')
 disp( '\__ \ )___/ )    (   Statistical Parametric Mapping                 ')
-disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm'])
+disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm/'])
 fprintf('\n')
 
 
@@ -956,7 +956,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 			'spm_surf;'	})
 
 uicontrol(Fmenu,'Style','PopUp',...
-	'String',Modalities,...
+	'String',char(Modalities),...
 	'ToolTipString','change modality PET<->fMRI<->EEG',...
 	'Tag','Modality',...
 	'Position',[298 088 082 024].*WS,...
@@ -1041,7 +1041,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 	    'spm(''GUI_FileDelete'')',...
 	    'spm(''Show'');',...
 	    'run(spm_get(1,''*.m'',''Select mFile to run''))',...
-	    'web(''http://www.fil.ion.ucl.ac.uk/spm'')' } )
+	    'web(''http://www.fil.ion.ucl.ac.uk/spm/'')' } )
 
 uicontrol(Fmenu,'String','Defaults',...
 	'Position',[205 020 083 024].*WS,...
@@ -1063,11 +1063,11 @@ set(Fmenu,'Visible',Vis)
 varargout = {Fmenu};
 
 
-
 %=======================================================================
 case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
+%-----------------------------------------------------------------------
 if nargin<2, Vis='on'; else, Vis=varargin{2}; end
 
 %-Close any existing 'Interactive' 'Tag'ged windows
@@ -1101,71 +1101,69 @@ varargout = {Finter};
 case 'chmod'                            %-Change SPM modality PET<->fMRI
 %=======================================================================
 % spm('ChMod',Modality)
+%-----------------------------------------------------------------------
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
 if nargin<2, Modality = ''; else, Modality = varargin{2}; end
 [Modality,ModNum] = spm('CheckModality',Modality);
 
-if strcmp(Modality,'PET'), OModality = 'FMRI'; else, OModality='PET'; end
-
-
 %-Sort out global defaults
 %-----------------------------------------------------------------------
-spm('defaults',Modality)
+spm('defaults',Modality);
 
 %-Sort out visability of appropriate controls on Menu window
 %-----------------------------------------------------------------------
 Fmenu = spm_figure('FindWin','Menu');
 if isempty(Fmenu), error('SPM Menu window not found'), end
 
-if strcmp(Modality, 'PET')
-	set(findobj(Fmenu,'Tag', 'FMRI'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'EEG'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'PETFMRI'),'Visible','on');
-	set(findobj(Fmenu,'Tag', 'PET'),'Visible','on');
-
-elseif strcmp(Modality,'FMRI')
-	set(findobj(Fmenu,'Tag', 'EEG'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'PET'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'PETFMRI'),'Visible','on');
-	set(findobj(Fmenu,'Tag', 'FMRI'),'Visible','on');
+if strcmpi(Modality,'PET')
+	set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
+	set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'on' );
+elseif strcmpi(Modality,'FMRI')
+	set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
+	set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'on' );
 else
-	set(findobj(Fmenu,'Tag', 'PETFMRI'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'PET'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'FMRI'),'Visible','off');
-	set(findobj(Fmenu,'Tag', 'EEG'),'Visible','on');
+	set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
+	set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'on' );
 end
-set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum)
+set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 
 
 %=======================================================================
 case 'defaults'                 %-Set SPM defaults (as global variables)
 %=======================================================================
 % spm('defaults',Modality)
+%-----------------------------------------------------------------------
 global defaults
-if isempty(defaults), spm_defaults, end;
+if isempty(defaults), spm_defaults; end;
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
 if nargin<2, Modality=''; else, Modality=varargin{2}; end
 Modality          = spm('CheckModality',Modality);
 defaults.modality = Modality;
-defaults.SWD      = spm('Dir');				% SPM directory
-defaults.TWD      = spm_platform('tempdir');		% Temp directory
+defaults.SWD      = spm('Dir');              % SPM directory
+defaults.TWD      = spm_platform('tempdir'); % Temp directory
 	
 %-Set Modality specific default (global variables)
 %-----------------------------------------------------------------------
 global UFp
-if strcmp(lower(defaults.modality),'pet')
+if strcmpi(defaults.modality,'pet')
 	UFp	= defaults.stats.pet.ufp;		% Upper tail F-prob
-elseif strcmp(lower(defaults.modality),'fmri')
+elseif strcmpi(defaults.modality,'fmri')
 	UFp	= defaults.stats.fmri.ufp;		% Upper tail F-prob
-elseif strcmp(lower(defaults.modality),'eeg')
+elseif strcmpi(defaults.modality,'eeg')
     ;
-elseif strcmp(lower(defaults.modality),'unknown')
+elseif strcmpi(defaults.modality,'unknown')
 else
-	error('Illegal Modality')
+	error('Illegal Modality');
 end
 
 
@@ -1174,9 +1172,9 @@ case 'quit'                                      %-Quit SPM and clean up
 %=======================================================================
 % spm('Quit')
 %-----------------------------------------------------------------------
-delete(get(0,'Children'))
-clc
-fprintf('Bye for now...\n\n')
+delete(get(0,'Children'));
+clc;
+fprintf('Bye for now...\n\n');
 
 
 %=======================================================================
@@ -1187,19 +1185,18 @@ case 'checkmodality'              %-Check & canonicalise modality string
 if nargin<2, Modality=''; else, Modality=upper(varargin{2}); end
 if isempty(Modality)
 	global defaults
-	if isfield(defaults,'modality'); Modality = defaults.modality;
+	if isfield(defaults,'modality'), Modality = defaults.modality;
 	else, Modality = 'UNKNOWN'; end
 end
-if isstr(Modality)
-	ModNum = find(all(Modalities(:,1:length(Modality))'==...
-			Modality'*ones(1,size(Modalities,1))));
+if ischar(Modality)
+	ModNum = find(ismember(Modalities, upper(Modality)));
 else
-	if ~any(Modality==[1:size(Modalities,1)])
+	if ~any(Modality==[1:length(Modalities)])
 		Modality = 'ERROR';
 		ModNum   = [];
 	else
 		ModNum   = Modality;
-		Modality = deblank(Modalities(ModNum,:));
+		Modality = Modalities{ModNum};
 	end
 end
 
@@ -1211,6 +1208,7 @@ varargout = {upper(Modality),ModNum};
 case {'winscale','getwinscale'}  %-Window scale factors (to fit display)
 %=======================================================================
 % WS = spm('WinScale')
+%-----------------------------------------------------------------------
 if strcmp(lower(Action),'getwinscale')
 	warning('spm(''GetWinScale'' GrandFathered, use ''WinScale''')
 end
@@ -1230,6 +1228,7 @@ case {'fontsize','fontsizes','fontscale'}                 %-Font scaling
 % [FS,sf] = spm('FontSize',FS)
 % [FS,sf] = spm('FontSizes',FS)
 % sf = spm('FontScale')
+%-----------------------------------------------------------------------
 if nargin<3, c=0; else, c=1; end
 if nargin<2, FS=[1:36]; else, FS=varargin{2}; end
 
@@ -1246,6 +1245,7 @@ end
 case 'winsize'                 %-Standard SPM window locations and sizes
 %=======================================================================
 % Rect = spm('WinSize',Win,raw)
+%-----------------------------------------------------------------------
 if nargin<3, raw=0; else, raw=1; end
 if nargin<2, Win=''; else, Win=varargin{2}; end
 
@@ -1298,6 +1298,7 @@ varargout = {spm_str_manip(SPMdir,'H')};
 case 'ver'                                                 %-SPM version
 %=======================================================================
 % SPMver = spm('Ver',Mfile,ReDo,Cache,Con)
+%-----------------------------------------------------------------------
 if nargin<5, Con=[]; else, Con=varargin{5}; end
 if isempty(Con), Con=1; end
 if nargin<4, Cache=[]; else, Cache=varargin{4}; end
@@ -1361,6 +1362,7 @@ varargout = {v,c};
 case 'tbs'                                %-Identify installed toolboxes
 %=======================================================================
 % xTB = spm('TBs')
+%-----------------------------------------------------------------------
 
 Tdir   = fullfile(spm('Dir'),'toolbox');
 
@@ -1392,6 +1394,7 @@ varargout = {struct('name',tboxs,'prog',tprog,'dir',tdirs)};
 case 'tblaunch'                                  %-Launch an SPM toolbox
 %=======================================================================
 % xTB = spm('TBlaunch',xTB,i)
+%-----------------------------------------------------------------------
 
 if nargin<3, i=1; else, i=varargin{3}; end
 if nargin<2, error('insufficient arguments'), end
@@ -1433,6 +1436,7 @@ case 'colour'                                     %-SPM interface colour
 case 'getglobal'                           %-Get global variable cleanly
 %=======================================================================
 % varargout = spm('GetGlobal',varargin)
+%-----------------------------------------------------------------------
 wg = who('global');
 for i=1:nargin-1
 	if any(strcmp(wg,varargin{i+1}))
@@ -1448,6 +1452,7 @@ case {'cmdline','isgcmdline'}                   %-SPM command line mode?
 %=======================================================================
 % CmdLine = spm('CmdLine',CmdLine)
 % isGCmdLine usage is Grandfathered
+%-----------------------------------------------------------------------
 if nargin<2, CmdLine=[]; else, CmdLine = varargin{2}; end
 if isempty(CmdLine),
 	global defaults
@@ -1463,6 +1468,7 @@ varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 case 'mlver'                       %-MatLab major & point version number
 %=======================================================================
 % v = spm('MLver')
+%-----------------------------------------------------------------------
 v = version; tmp = find(v=='.');
 if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
@@ -1496,6 +1502,7 @@ disp([']l' WinStripe '\]L' IconLabel '\'])
 case 'popupcb'               %-Callback handling utility for PopUp menus
 %=======================================================================
 % spm('PopUpCB',h)
+%-----------------------------------------------------------------------
 if nargin<2, h=gcbo; else, h=varargin{2}; end
 v   = get(h,'Value');
 if v==1, return, end
@@ -1508,6 +1515,7 @@ evalin('base',CBs{v-1})
 case 'getuser'                                           %-Get user name
 %=======================================================================
 % str = spm('GetUser',fmt)
+%-----------------------------------------------------------------------
 str = spm_platform('user');
 if ~isempty(str) & nargin>1, str = sprintf(varargin{2},str); end
 varargout = {str};
@@ -1524,6 +1532,7 @@ fprintf('%c',7)
 case 'time'                          %-Return formatted date/time string
 %=======================================================================
 % [timestr, date_vec] = spm('Time')
+%-----------------------------------------------------------------------
 tmp = clock;
 varargout = {sprintf('%02d:%02d:%02d - %02d/%02d/%4d',...
 			tmp(4),tmp(5),floor(tmp(6)),tmp(3),tmp(2),tmp(1)),...
@@ -1534,6 +1543,7 @@ varargout = {sprintf('%02d:%02d:%02d - %02d/%02d/%4d',...
 case 'pointer'                 %-Set mouse pointer in all MatLab windows
 %=======================================================================
 % spm('Pointer',Pointer)
+%-----------------------------------------------------------------------
 if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
 
@@ -1542,6 +1552,7 @@ set(get(0,'Children'),'Pointer',Pointer)
 case {'alert','alert"','alert*','alert!'}                %-Alert dialogs
 %=======================================================================
 % h = spm('alert',Message,Title,CmdLine,wait)
+%-----------------------------------------------------------------------
 
 %- Globals 
 %-----------------------------------------------------------------------
@@ -1605,6 +1616,7 @@ case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 % SPMid = spm('FnBanner', Fn,FnV)
 % SPMid = spm('SFnBanner',Fn,FnV)
 % SPMid = spm('SSFnBanner',Fn,FnV)
+%-----------------------------------------------------------------------
 time = spm('time');
 str  = spm('ver');
 if nargin>=2, str = [str,': ',varargin{2}]; end
@@ -1636,6 +1648,7 @@ varargout = {str};
 case 'fnuisetup'                %-Robust UI setup for main SPM functions
 %=======================================================================
 % [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
+%-----------------------------------------------------------------------
 if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
 if nargin<3, bGX=1; else, bGX=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
@@ -1667,6 +1680,7 @@ varargout = {Finter,Fgraph,CmdLine};
 case 'figname'                                %-Robust SPM figure naming
 %=======================================================================
 % F = spm('FigName',Iname,F,CmdLine)
+%-----------------------------------------------------------------------
 if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, Iname=''; else, Iname=varargin{2}; end
@@ -1684,6 +1698,7 @@ varargout={F};
 case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
+%-----------------------------------------------------------------------
 P = spm_get(Inf,'*',{'Select file(s) to delete'},pwd,0);
 n = length(P);
 if n==0
@@ -1706,6 +1721,7 @@ end
 case 'show'                   %-Bring visible MatLab windows to the fore
 %=======================================================================
 % Fs = spm('Show')
+%-----------------------------------------------------------------------
 cF = get(0,'CurrentFigure');
 Fs = get(0,'Children');
 Fs = findobj(Fs,'flat','Visible','on');
@@ -1719,6 +1735,7 @@ varargout={Fs};
 case 'clear'                                             %-Clear SPM GUI
 %=======================================================================
 % spm('Clear',Finter, Fgraph)
+%-----------------------------------------------------------------------
 if nargin<3, Fgraph='Graphics'; else, Fgraph=varargin{3}; end
 if nargin<2, Finter='Interactive'; else, Finter=varargin{2}; end
 spm_figure('Clear',Fgraph)
@@ -1735,6 +1752,7 @@ fprintf('\n');
 case 'help'                                  %-Pass through for spm_help
 %=======================================================================
 % spm('Help',varargin)
+%-----------------------------------------------------------------------
 if nargin>1, spm_help(varargin{2:end}), else, spm_help, end
 
 
