@@ -70,7 +70,8 @@ figure('Color',[1 1 1]*.7,'Name','',...
 	'NumberTitle','off','Position',S2,'Resize','off','Visible','off');
 figure('Name','Results',...
 	'NumberTitle','off','Position',S3,'Resize','off','Visible','off',...
-	'PaperPosition',[.75 1.5 7 9.5])
+	'PaperPosition',[.75 1.5 7 9.5],...
+	'Tag','Graphics')
 
 
 % set up figure 4 - a help window that is usually invisible
@@ -152,10 +153,10 @@ set(get(1,'Children'),'Tag','Empty')
 
 % reveal windows and configure graphics bar
 %----------------------------------------------------------------------------
+spm_figure('Create','Graphics');
 set(1,'Visible','on')
 set(2,'Visible','on')
 set(3,'Visible','on')
-spm_figure
 
 
 % check maximium number of files open (descriptors)
