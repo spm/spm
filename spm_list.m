@@ -132,8 +132,6 @@ xyzmm     = spm_results_ui('GetCoords');
 %-Extract data from xSPM
 %-----------------------------------------------------------------------
 S     = varargin{2}.S;
-R     = varargin{2}.R;
-FWHM  = varargin{2}.FWHM;
 VOX   = varargin{2}.VOX;
 DIM   = varargin{2}.DIM;
 n     = varargin{2}.n;
@@ -144,6 +142,11 @@ M     = varargin{2}.M;
 k     = varargin{2}.k;
 QPs   = varargin{2}.Ps;
 
+if STAT~='P'
+    R     = varargin{2}.R;
+    FWHM  = varargin{2}.FWHM;
+end
+
 try
       global defaults
       units = defaults.units;
@@ -153,13 +156,17 @@ end
 
 DIM   = DIM > 1;				% dimensions
 VOX   = VOX(DIM);				% scaling
-FWHM  = FWHM(DIM);				% Full width at max/2
-FWmm  = FWHM.*VOX; 				% FWHM {units}
-v2r   = 1/prod(FWHM);				% voxels to resels
-QPs   = sort(QPs(:));				% Needed for FDR
-k     = k*v2r;					% extent threshold in resels
 
-R(find(~DIM) + 1) = [];				% eliminate null resel counts
+if STAT~='P'
+    FWHM  = FWHM(DIM);				% Full width at max/2
+    FWmm  = FWHM.*VOX; 				% FWHM {units}
+    v2r   = 1/prod(FWHM);				% voxels to resels
+    k     = k*v2r;					% extent threshold in resels
+    R(find(~DIM) + 1) = [];				% eliminate null resel counts
+end
+
+QPs   = sort(QPs(:));				% Needed for FDR
+
 
 %-get number and separation for maxima to be reported
 %-----------------------------------------------------------------------
@@ -382,12 +389,14 @@ Z           = Z - minz - 1;
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
-if isfield(varargin{2},'VRvp')
+if STAT~='P'
+  if isfield(varargin{2},'VRvp')
 	V2R = spm_get_data(varargin{2}.VRvp,XYZ);
-else
+  else
 	V2R = v2r;
+  end
+  N           = N.*V2R;
 end
-N           = N.*V2R;
 
 %-Convert maxima locations from voxels to mm
 %-----------------------------------------------------------------------
@@ -458,7 +467,11 @@ while prod(size(find(finite(Z))))
 
     	%-Compute cluster {k} and voxel-level {u} p values for this cluster
     	%---------------------------------------------------------------
-	Nv      = N(i)/v2r;			% extent        {voxels}
+	if STAT~='P'
+           Nv= N(i)/v2r;			% extent        {voxels}
+        else
+           Nv =N(i);
+        end
 
 
 	if STAT ~= 'P'
