@@ -21,7 +21,8 @@
 % ___________________________________________________________________________
 %
 % The template image, and a-priori likelihood images are modified versions of
-% those kindly supplied by the MNI group in Montreall.
+% those kindly supplied by Alan Evans, MNI, Canada (ICBM, NIH P-20 project,
+% Principal Investigator John Mazziotta).
 
 % %W% (c) John Ashburner %E%
 
@@ -235,12 +236,13 @@ for p=1:VF(3)
 	sp = sum(pr')'/255;
 
 	nn = 1;
-	for j=1:(length(nc)-1)
+	for j=1:(length(nc))
 		dat = pr(:,nn);
-		for i=2:nc(j)
+		ncj = nc(j); if (j==length(nc)) ncj = ncj - 1; end;
+		for i=2:ncj
 			dat = dat + pr(:,(nn+i-1));
 		end
-		nn = nn + nc(j);
+		nn = nn + ncj;
 		dat = round(dat./sp);
 		fwrite(fp(j),dat,'uchar');
 	end
