@@ -172,7 +172,7 @@ while (~isempty(options))
 			tmp    = size(strout);
 			strout = char(strout(:));
 			msk    = diff(strout+0)~=0;
-			d1     = min(find(sum(msk)));
+			d1     = min(find(sum(msk,1)));
 			d1     = max([find(strout(1,1:d1) == sep) 0]);
 			R2     = strout(1,1:d1);
 			strout = reshape(cellstr(strout(:,d1+1:end)),tmp);
