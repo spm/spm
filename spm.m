@@ -123,12 +123,16 @@ function varargout=spm(varargin)
 % identified as the first in MATLABPATH containing the Mfile spm (this
 % file) (or Fname if specified).
 %
-% FORMAT SPMver=spm('Ver',Fname,ReDo)
+% FORMAT SPMver=spm('Ver',Fname,ReDo,Cache)
 % Returns the current version of SPM, identified by the top line of the
 % Contents.m file in the directory containing the currently used file
 % Fname (defaults on omission or empty to 'spm'). Inside SPM, the
-% version is saved as the UserData of the Menu window, for quick
-% retrieval. Specifying the ReDo argument forces re-evaluation.
+% version can be saved in a structure as the UserData of the Menu
+% window, for quick retrieval. If Cache [default 1] is true, then the
+% version information is so cached. If ReDo [default 0] is true this
+% forces re-evaluation, regardless of the presence of the information
+% in the MenuWin's UserData. (For toolboxes, should therefore use
+% spm('Ver',Fname,1,0) where Fname is one of the toolbox routines.)
 %
 % FORMAT [c,cName]=spm('Colour')
 % Returns the RGB triple and a description for the current en-vogue SPM
@@ -384,7 +388,7 @@ Rect = spm('WinSize','Menu','raw').*WS;		%-Menu window rectangle
 FS3  = 2*round(12*min(WS)/2);			%-Standard font size
 FS2  = round(9*min(WS));			%-Smaller font size
 
-[SPMver,SPMc] = spm('Ver','',1);
+[SPMver,SPMc] = spm('Ver','',1,1);
 
 Fmenu = figure('IntegerHandle','off',...
 	'Name',[spm('GetUser'),' - ',SPMver],'NumberTitle','off',...
@@ -784,8 +788,11 @@ varargout = {SPMdir};
 
 case 'ver'
 %=======================================================================
-% SPMver = spm('Ver',Mfile,ReDo)
-if nargin<3, ReDo=0; else, ReDo=1; end
+% SPMver = spm('Ver',Mfile,ReDo,Cache)
+if nargin<4, Cache=[]; else, Cache=varargin{4}; end
+if isempty(Cache), Cache=1; end
+if nargin<3, ReDo=[]; else, ReDo=varargin{3}; end
+if isempty(ReDo), ReDo=0; end
 if nargin<2, Mfile=''; else, Mfile=varargin{2}; end
 if isempty(Mfile), Mfile='spm'; end
 Fmenu = spm_figure('FindWin','Menu');
@@ -823,7 +830,7 @@ end
 
 %-Store version info in UserData of SPM Menu window, if it exists
 %-----------------------------------------------------------------------
-if ~isempty(Fmenu)
+if ~isempty(Fmenu) & Cache
 	xSPM = get(Fmenu,'UserData');
 	if ~isempty(xSPM) & ~isstruct(xSPM)
 		warning('Fmenu UserData being overwritten!'), end
