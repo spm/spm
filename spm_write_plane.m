@@ -32,13 +32,13 @@ dt = V.dim(4);
 if dt>256,
 	dt = dt/256;
 end;
-s = find(dt == [2 4 8 16 64]);
+s = find(dt == [2 4 8 16 64 128+2 128+4 128+8]);
 if isempty(s)
 	sts = -1;
 	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
 	return;
 end;
-datasize = [1 2 4 4 8];
+datasize = [1 2 4 4 8 1 2 4];
 datasize = datasize(s);
 
 % Open the image file
@@ -54,7 +54,9 @@ if fp == -1,
 end;
 
 % Rescale to fit appropriate range
-if any(dt == [2 4 8]),
+if any(dt == [2 4 8 128+2 128+4 128+8]),
+	msk = find(~finite(A));
+	A(msk) = 0.0;
 	if dt == 2,
 		maxval = max(255*V.pinfo(1,:) + V.pinfo(2,:));
 		scale  = maxval/255;
@@ -73,6 +75,27 @@ if any(dt == [2 4 8]),
 		A      = round(A/scale);
 		A(find(A >  2^31-1)) =  2^31-1;
 		A(find(A < -2^31  )) = -2^31;
+	elseif dt == 128+2,
+		maxval = max(127*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/255;
+		A      = round(A/scale);
+		A(find(A <   0)) =   0;
+		A(find(A > 255)) = 255;
+		dt     = dt - 128;
+	elseif dt == 128+4,
+		maxval = max(65535*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/32767;
+		A      = round(A/scale);
+		A(find(A >  32767)) =  32767;
+		A(find(A < -32768)) = -32768;
+		dt     = dt - 128;
+	elseif (dt == 128+8)
+		maxval = max((2^32-1)*V.pinfo(1,:) + V.pinfo(2,:));
+		scale  = maxval/(2^31-1);
+		A      = round(A/scale);
+		A(find(A >  2^31-1)) =  2^31-1;
+		A(find(A < -2^31  )) = -2^31;
+		dt     = dt - 128;
 	end;
 end;
 
@@ -97,7 +120,7 @@ if fseek(fp,off,'bof')==-1,
 end;
 
 sts=0;
-if fwrite(fp,A,spm_type(V.dim(4))) ~= prod(size(A)),
+if fwrite(fp,A,spm_type(dt)) ~= prod(size(A)),
 	fclose(fp);
 	sts = -1;
 	return;

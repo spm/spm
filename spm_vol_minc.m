@@ -45,56 +45,94 @@ else
 	dim(3) = dim0(end-2).dim_length;
 end;
 
-
-dim   = [dim(1:3) d_types(img.nc_type)];
-if ~bigend & dim(4)~=2, dim(4) = dim(4)*256; end;
-
-% This is something else I don't understand.  I thought that the
-% stuff that is now commented out should work.  It does for most
-% cases - except for some t-statistic images I tried.
-%-----------------------------------------------------------------------
-range = findvar(img.vatt_array,'valid_range');
-range = range.val;
-
-fp    = fopen(fname,'r','ieee-be');
-imax  = findvar(img.vatt_array,'image-max');
-if imax.nc_type == 2,
-	imax = findvar(cdf.var_array,imax.val(5:end));
-	fseek(fp,imax.begin,'bof');
-	% For some reason this does not work....
-	%if ~strcmp(dim0(imax.dimid(end)).name,'zspace')
-	%	fclose(fp);
-	%	error('Problem with dimensions');
-	%end;
-	%ddim = fliplr(cat(1,dim0(imax.dimid).dim_length));
-	ddim = dim(3);
-	imax = fread(fp,prod(ddim),dtypestr(imax.nc_type))';
-	imax = reshape(imax,[ddim 1 1]);
-	imax = imax(:,1,1)';
+datatype = d_types(img.nc_type);
+signed   = findvar(img.vatt_array,'signtype');
+signed   = strcmp(signed.val,'signed__');
+is_flt   = 0;
+switch datatype,
+	case {2},
+		if signed,
+			datatype = datatype + 128;
+			range = [-2^7 2^7-1]';
+		else,
+			range = [0 2^8-1]';
+		end;
+	case {4},
+		if signed,
+			range = [-2^15 2^15-1]';
+		else,
+			datatype = datatype + 128;
+			range = [0 2^16-1]';
+		end;
+	case {8},
+		if signed,
+			range = [-2^31 2^31-1]';
+		else,
+			datatype = datatype + 128;
+			range = [0 2^32-1]';
+		end;
+	otherwise,
+		is_flt = 1;
 end;
-imin  = findvar(img.vatt_array,'image-min');
-if imin.nc_type == 2,
-	imin = findvar(cdf.var_array,imin.val(5:end));
-	fseek(fp,imin.begin,'bof');
-	%if ~strcmp(dim0(imin.dimid(end)).name,'zspace')
-	%	fclose(fp);
-	%	V = [];
-	%	return;
-	%end;
-	%ddim = fliplr(cat(1,dim0(imin.dimid).dim_length));
-	ddim = dim(3);
-	imin = fread(fp,prod(ddim),dtypestr(imin.nc_type))';
-	imin = reshape(imin,[ddim 1 1]);
-	imin = imin(:,1,1)';
+if ~bigend & datatype~=2, datatype = datatype*256; end;
+
+dim   = [dim(1:3) datatype];
+
+if ~is_flt,
+	% This is something else I don't understand.  I thought that the
+	% stuff that is now commented out should work.  It does for most
+	% cases - except for some t-statistic images I tried.
+	%-----------------------------------------------------------------------
+	tmp = findvar(img.vatt_array,'valid_range');
+	if isempty(tmp),
+		disp(['Can''t get valid_range for "' fname '" - having to guess']);
+	else
+		range = tmp.val;
+	end;
+
+	fp    = fopen(fname,'r','ieee-be');
+	imax  = findvar(img.vatt_array,'image-max');
+	if imax.nc_type == 2,
+		imax = findvar(cdf.var_array,imax.val(5:end));
+		fseek(fp,imax.begin,'bof');
+		% For some reason this does not work....
+		%if ~strcmp(dim0(imax.dimid(end)).name,'zspace')
+		%	fclose(fp);
+		%	error('Problem with dimensions');
+		%end;
+		%ddim = fliplr(cat(1,dim0(imax.dimid).dim_length));
+		ddim = dim(3);
+		imax = fread(fp,prod(ddim),dtypestr(imax.nc_type))';
+		imax = reshape(imax,[ddim 1 1]);
+		imax = imax(:,1,1)';
+	end;
+	imin  = findvar(img.vatt_array,'image-min');
+	if imin.nc_type == 2,
+		imin = findvar(cdf.var_array,imin.val(5:end));
+		fseek(fp,imin.begin,'bof');
+		%if ~strcmp(dim0(imin.dimid(end)).name,'zspace')
+		%	fclose(fp);
+		%	V = [];
+		%	return;
+		%end;
+		%ddim = fliplr(cat(1,dim0(imin.dimid).dim_length));
+		ddim = dim(3);
+		imin = fread(fp,prod(ddim),dtypestr(imin.nc_type))';
+		imin = reshape(imin,[ddim 1 1]);
+		imin = imin(:,1,1)';
+	end;
+	fclose(fp);
+	scale = (imax-imin)/(range(2)-range(1));
+	dcoff = imin-range(1)*scale;
+else,
+	scale = ones(1,dim(3));
+	dcoff = zeros(1,dim(3));
 end;
-fclose(fp);
 
 off   = img.begin;
 psize = dsizes(img.nc_type)*prod(dim(1:2));
 off   = cumsum(ones(1,dim(3))*psize)-psize+off;
 
-scale = (imax-imin)/(range(2)-range(1));
-dcoff = imin-range(1)*scale;
 pinfo = [scale ; dcoff ; off];
 
 % Extract affine transformation from voxel to world co-ordinates

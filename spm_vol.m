@@ -51,7 +51,15 @@ return;
 function V = subfunc1(P)
 if size(P,1)==0, V = []; end;
 for i=1:size(P,1),
-	V(i) = subfunc(P(i,:));
+	if i~=1,
+		v = subfunc(P(i,:));
+		f = fieldnames(v);
+		for j=1:size(f,1),
+			eval(['V(i).' f{j} ' = v.' f{j} ';']);
+		end;
+	else,
+		V(i) = subfunc(P(i,:));
+	end;
 end;
 return;
 

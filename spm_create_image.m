@@ -37,7 +37,7 @@ dt = V.dim(4);
 if dt>256,
 	dt = dt/256;
 end;
-s = find(dt == [2 4 8 16 64]);
+s = find(dt == [2 4 8 16 64 128+2 128+4 128+8]);
 if isempty(s)
 	sts = -1;
 	disp(['Unrecognised data type (' num2str(V.dim(4)) ')']);
@@ -54,6 +54,18 @@ elseif dt == 4,
 elseif (dt == 8)
 	maxval = max((2^31-1)*V.pinfo(1,:) + V.pinfo(2,:));
 	scale  = maxval/(2^31-1);
+elseif dt == 128+2,
+	maxval = max(127*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/255;
+	dt     = dt - 128;
+elseif dt == 128+4,
+	maxval = max(65535*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/32767;
+	dt     = dt - 128;
+elseif (dt == 128+8)
+	maxval = max((2^32-1)*V.pinfo(1,:) + V.pinfo(2,:));
+	scale  = maxval/(2^31-1);
+	dt     = dt - 128;
 else
 	scale = 1.0;
 end;
@@ -61,7 +73,7 @@ end;
 
 % Write the header
 s    = spm_hwrite(deblank(V.fname), [V.dim(1:3) 1],...
-	vx, scale, V.dim(4), 0, orgn, descrip);
+	vx, scale, dt, 0, orgn, descrip);
 if s~= 348,
 	sts = -1;
 end;
