@@ -290,7 +290,7 @@ function [x1,x2,x3] = get_sampling(MM,VF,samp,bb1)
 %return;
 
 % A bounding box for the brain in Talairach space.
-bb1 = [ [-88 88]' [-122 86]' [-60 95]'];
+if nargin<4, bb1 = [ [-88 88]' [-122 86]' [-60 95]']; end;
 
 % A mapping from a unit radius sphere to a hyper-ellipse
 % that is just enclosed by the bounding box in Talairach
@@ -309,9 +309,8 @@ bb  = round([M0(1:3,4)-tmp M0(1:3,4)+tmp])';
 bb  = min(max(bb,[1 1 1 ; 1 1 1]),[VF(1).dim(1:3) ; VF(1).dim(1:3)]);
 
 % Want to sample about every 3mm
-tmp  = inv(VF(1).mat);
-tmp  = tmp(1:3,1:3);
-samp = round(max(abs(tmp*[1 1 1]'*samp), [1 1 1]'));
+tmp  = sqrt(sum(VF(1).mat(1:3,1:3).^2))';
+samp = round(max(abs(tmp.^(-1)*samp), [1 1 1]'));
 
 x1 = bb(1,1):samp(1):bb(2,1);
 x2 = bb(1,2):samp(2):bb(2,2);
