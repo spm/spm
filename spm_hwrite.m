@@ -29,7 +29,7 @@ function [s] = spm_hwrite(P,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP)
 %---------------------------------------------------------------------------
 P               = P(P ~= ' ');
 q    		= length(P);
-if P(q - 3) == '.'; P = P(1:(q - 4)); end
+if q>=4 & P(q - 3) == '.', P = P(1:(q - 4)); end;
 P     		= [P '.hdr'];
 
 % For byte swapped data-types, also swap the bytes around in the headers.

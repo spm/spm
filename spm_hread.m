@@ -27,7 +27,7 @@ function [DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP] = spm_hread(P)
 %---------------------------------------------------------------------------
 P     = deblank(P);
 q     = length(P);
-if P(q - 3) == '.'; P = P(1:(q - 4)); end
+if q>=4 & P(q - 3) == '.'; P = P(1:(q - 4)); end
 P     = [P '.hdr'];
 
 % open header file
