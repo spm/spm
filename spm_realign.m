@@ -1,10 +1,10 @@
 function spm_realign(P,Flags)
 % within mode image realignment routine
 %
-%
 % FORMAT spm_realign
 % With no arguments, spm_realign acts as a user interface for setting
 % up the realignment parameters.
+%
 %____________________________________________________________________________
 % The prompts are:
 % 'number of subjects'
@@ -22,6 +22,9 @@ function spm_realign(P,Flags)
 %	file XXXX.mat. This is a Matlab file, containing the matrix 'M'.
 % 	The location of an image voxel (in mm) can be determined by
 % 	computing M(1:3,:)*[xcoord ycoord zcoord 1].
+%	Note that if the coregistration is performed more than once on
+%	the unresliced data, the starting estimates are obtained from
+% 	parameters stored in the '.mat' files.
 %
 % 	'Reslice Only'
 % 	Reslice the specified images according to the contents of the
@@ -44,8 +47,8 @@ function spm_realign(P,Flags)
 % Options for coregistering:
 %
 % 'Coregister 2 with 1 only?'
-% This is for if you wish to register a group of scans,
-% to a scan of the same subject which was performed at a different time.
+% This is for if you wish to register a group of scans, to a scan of the
+% same subject which was performed at a different time.
 % This option allows the user to determine the parameters which would
 % transform image 2 to the space of image 1, and apply same transformation
 % parameters to images 3..n.
@@ -80,6 +83,12 @@ function spm_realign(P,Flags)
 %
 % 'Mask the images?'
 % To avoid artifactual movement-related variance.
+% Because of subject motion, different images are likely to have different
+% patterns of zeros from where it was not possible to sample data.
+% With masking enabled, the program searches through the whole time series
+% looking for voxels which need to be sampled from outside the original
+% images. Where this occurs, that voxel is set to zero for the whole set
+% of images.
 %
 % 'Adjust for motion in Z?' (fMRI only)
 % Adjust the data (fMRI) to remove movement-related components.
@@ -93,12 +102,12 @@ function spm_realign(P,Flags)
 % 'Interpolation Method?'	'Bilinear Interpolation' (for PET)
 % 'Interpolation Method?'	'Sinc Interpolation'     (for fMRI)
 %
-% 'Coregister 2 with 1 only?'	NO
-% 'More iterations?'         	NO
+% 'Coregister 2 with 1 only?'	'NO'
+% 'More iterations?'         	'NO'
 %
 % 'Create what?'        	'All Images + Mean Image'
-% 'Mask the images?'       	YES
-% 'Adjust for motion in Z?'	YES
+% 'Mask the images?'       	'YES'
+% 'Adjust for motion in Z?'	'YES' (for fMRI)
 %____________________________________________________________________________
 %
 % FORMAT spm_realign(P, Flags)
@@ -122,14 +131,14 @@ function spm_realign(P,Flags)
 %         E - same as "e" but with more iterations.
 %             For correcting more than just patient movement.
 %
-%         a - only register image 2 with image 1, and apply the transformations
-%             to the subsequent images (which should be in the same space as
-%             image 1).
+%         a - only register image 2 with image 1, and apply the 
+%             transformations to the subsequent images (which should be in
+%             the same space as image 1).
 %
 %         m - write transformation matrixes
 %             Matrixes are written which define the space of the images.
-%             From these matrixes it is possible to reslice any of the images,
-%             to the same space as any other image.
+%             From these matrixes it is possible to reslice any of the
+%             images, to the same space as any other image.
 %
 %         r - reslice images
 %             The spatially realigned and adjusted images are written to
@@ -143,24 +152,27 @@ function spm_realign(P,Flags)
 %             explicitly includes a spin excitation history effect.
 %
 %         k - mask output images
-%             To avoid artifactual movement-related variance the realigned set
-%             of images can be internally masked, within the set (i.e. if any image
-%             has a zero value at a voxel than all images have zero values at that
-%             voxel).  Zero values occur when regions 'outside' the image are moved 
-%             'inside' the image during realignment.
+%             To avoid artifactual movement-related variance the realigned
+%             set of images can be internally masked, within the set (i.e.
+%             if any image has a zero value at a voxel than all images have
+%             zero values at that voxel).  Zero values occur when regions
+%             'outside' the image are moved 'inside' the image during
+%             realignment.
 %
 %         i - write mean image
-%             The average of all the realigned scans is written to mean*.img.
+%             The average of all the realigned scans is written to
+%             mean*.img.
 %
 %         s - use sinc interpolation for parameter estimates (7x7x7).
 %
 %         S - use sinc interpolation for reslicing (11x11x11).
 %
 %         n - don't reslice the first image
-%             The first image is not actually moved, so it may not be necessary to
-%             resample it.
+%             The first image is not actually moved, so it may not be
+%             necessary to resample it.
 %
-%         N - don't reslice any of the images - except possibly create a mean image.
+%         N - don't reslice any of the images - except possibly create a
+%             mean image.
 %____________________________________________________________________________
 %
 %
@@ -168,7 +180,7 @@ function spm_realign(P,Flags)
 %
 % Friston KJ, Ashburner J, Frith CD, Poline J-B, Heather JD & Frackowiak
 % RSJ (1995) Spatial registration and normalization of images Hum. Brain
-% Map. 0:00-00
+% Map. 2:165-189
 %
 % Friston KJ, Williams SR, Howard R Frackowiak RSJ and Turner R (1995)
 % Movement-related effect in fMRI time-series.  Mag. Res. Med. 0:00-00
@@ -185,15 +197,19 @@ if (nargin == 0)
 
 	n     = spm_input('number of subjects',1);
 	for i = 1:n
-		P = spm_get(Inf,'.img',['select scans for subject ' num2str(i)]);
+		P = spm_get(Inf,'.img',...
+			['select scans for subject ' num2str(i)]);
 		eval(['P' num2str(i) ' = P;']);
 	end
 
 	Flags = 'm';
-	p = spm_input('Which option?',1,'m','Coregister only|Reslice Only|Coregister & Reslice',[1 2 3]);
+	p = spm_input('Which option?',1,'m',...
+		'Coregister only|Reslice Only|Coregister & Reslice',...
+		[1 2 3]);
 	if (p == 1 | p == 3) Flags = [Flags 'e']; end
 	if (p == 2 | p == 3) Flags = [Flags 'r']; end
-	p = spm_input('Interpolation Method?',2,'m','Bilinear Interpolation|Sinc Interpolation',[1 2]);
+	p = spm_input('Interpolation Method?',2,'m',...
+		'Bilinear Interpolation|Sinc Interpolation',[1 2]);
 	if (p == 2) Flags = [Flags 'sS']; end
 
 	if (any(Flags == 'e'))
@@ -204,42 +220,52 @@ if (nargin == 0)
 	end
 
 	if (any(Flags == 'r'))
-		p = spm_input('Create what?',5,'m',' All Images (1..n)| Images 2..n| All Images + Mean Image| Mean Image Only',[1 2 3 4]);
+		p = spm_input('Create what?',5,'m',...
+			[' All Images (1..n)| Images 2..n|'...
+			 ' All Images + Mean Image| Mean Image Only',...
+			[1 2 3 4]);
 		if (p == 2) Flags = [Flags 'n']; end
 		if (p == 3) Flags = [Flags 'i']; end
 		if (p == 4) Flags = [Flags 'Ni']; end
 		if (~any(Flags == 'N'))
-			if (spm_input('Mask the images?'       ,6,'y/n') == 'y') Flags = [Flags 'k']; end
+			if (spm_input('Mask the images?'       ,6,'y/n')...
+				== 'y') Flags = [Flags 'k']; end
 			if (strcmp(MODALITY,'FMRI'))
-				if (spm_input('Adjust for motion in Z?',7,'y/n') == 'y') Flags = [Flags 'c']; end
+				if (spm_input(...
+					'Adjust for motion in Z?'...
+					,7,'y/n') == 'y')
+					Flags = [Flags 'c'];
+				end
 			end
 		end
 	end
 
-	set(spm_figure('FindWin','Interactive'),'Name','executing','Pointer','Watch'); drawnow
+	set(spm_figure('FindWin','Interactive'),'Name','executing',...
+		'Pointer','Watch'); drawnow
 	for i = 1:n
 		eval(['P = P' num2str(i) ';'])
 		spm_realign(P,Flags);
 	end
 	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),'Name','','Pointer','Arrow'); drawnow
+	set(spm_figure('FindWin','Interactive'),'Name','',...
+		'Pointer','Arrow');
+	drawnow
 	return;
 end
 
 
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 global PRINTSTR
 
 % set up file identifiers and check image and voxel sizes are consistent
-%----------------------------------------------------------------------------
-
-Q     = zeros(size(P,1),6);			% initial estimate/default values
+%---------------------------------------------------------------------------
+Q     = zeros(size(P,1),6);		% initial estimate/default values
 
 nreg = size(P,1);
 if any(Flags == 'a') nreg = 2; end
 
 % Computation of Realignment Parameters - uses P & Q
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 if (any(Flags == 'e') | any(Flags == 'E'))
 
 	Hold = 1;
@@ -249,17 +275,17 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	V1 = spm_map('spm_ref.img');
 
 	% center, bounding box and margins
-	%----------------------------------------------------------------------------
-	bb    = spm_bb(P(1,:));					% bb = bounding box
-	sb    = diff(bb);					% size of bb
+	%-------------------------------------------------------------------
+	bb    = spm_bb(P(1,:));		% bb = bounding box
+	sb    = diff(bb);		% size of bb
 
 
 	% compute matrices
 	% dQ  = 6 ortholinear transformation parameters
-	%----------------------------------------------------------------------------
-	a     = pi/180;						% dQ (rotation) radians
-	b     = 1;						% dQ (translation) mm
-	dQ    = [b 0 0 0 0 0;					% unit transformations
+	%-------------------------------------------------------------------
+	a     = pi/180;			% dQ (rotation) radians
+	b     = 1;			% dQ (translation) mm
+	dQ    = [b 0 0 0 0 0;		% unit transformations
  		 0 b 0 0 0 0;
 		 0 0 b 0 0 0;
 	         0 0 0 a 0 0;
@@ -267,24 +293,27 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	         0 0 0 0 0 a];
 
 
-	% define height of transverse slices (S) used in subsampling the volume
-	%----------------------------------------------------------------------------
-	S     = linspace((bb(1,3) + 6/V1(6)),(bb(2,3) - 8/V1(6)),8);	% transverse
-	h     = 5;						% number of recursions
+	% define height of transverse slices (S) used in
+	% subsampling the volume
+	%-------------------------------------------------------------------
+	% transverse
+	S     = linspace((bb(1,3) + 6/V1(6)),(bb(2,3) - 8/V1(6)),8);	
+	h     = 5;				% number of recursions
 	if (any(Flags == 'E')) h = 25; end;
-	M     = sb(1);						% rows per slice
-	N     = sb(2);						% columns per slice
-	n     = M*N;						% voxels per slice
+	M     = sb(1);				% rows per slice
+	N     = sb(2);				% columns per slice
+	n     = M*N;				% voxels per slice
 
 	U = [1 2 3 4 5 6];
-	if V1(3,1) == 1; U = [1 2 6]; end			% 3 params for slices
+	if V1(3,1) == 1; U = [1 2 6]; end	% 3 params for slices
 
-	if sb(3) == 0; S = 1; end				% 1 section for slices
+	if sb(3) == 0; S = 1; end		% 1 section for slices
 
 	C1 = spm_get_space(spm_str_manip(P(1,:), 'd'));
 
-	% compute X (the reference image) and dX/dQ (the effects of moving X)
-	%----------------------------------------------------------------------------
+	% compute X (the reference image) and dX/dQ
+	% (the effects of moving X).
+	%-------------------------------------------------------------------
 	X     = zeros(n*length(S),1);
 	Y     = zeros(n*length(S),1);
 	dXdQ  = zeros(n*length(S),size(U,2));
@@ -294,7 +323,8 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	  	X([1:n] + (i - 1)*n) = x(:);
 	        for j = 1:size(U,2)
 			A      = spm_matrix(dQ(U(j),:));
-			d      = spm_slice_vol(V1,inv(B*inv(C1)*A*C1),[M N],Hold);
+			d      = spm_slice_vol(V1,inv(B*inv(C1)*A*C1),...
+				[M N],Hold);
 			dX     = d - x;
 			dXdQ(([1:n] + (i - 1)*n),j) = dX(:);
 		end
@@ -303,9 +333,9 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 
 	% least squares solution for Q the movements where:
 	% Y = X + dX/dQ.Q  => Q = [-dX/dQ Y]\X
-	% The estimate is repeated iteratively h times and the estimates of Q
-	% are cumulated arithmetically (an aproximation but good enough)
-	%---------------------------------------------------------------------------
+	% The estimate is repeated iteratively h times and the estimates of
+	% Q are cumulated arithmetically (an aproximation but good enough)
+	%-------------------------------------------------------------------
 	spm_progress_bar('Init',nreg,'Coregistering','volumes completed');
 
 	% Base starting estimates on solution for previous run
@@ -319,8 +349,10 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 
 	    for i = 1:h
 	  	for j = 1:length(S)
-			B      = spm_matrix([-bb(1,1) -bb(1,2) -S(j) 0 0 0 1 1 1]);
-			y      = spm_slice_vol(V2,inv(B*inv(C1)*spm_matrix(q)*C2),[M N],Hold);
+			B      = spm_matrix(...
+				[-bb(1,1) -bb(1,2) -S(j) 0 0 0 1 1 1]);
+			y      = spm_slice_vol(V2,...
+				inv(B*inv(C1)*spm_matrix(q)*C2),[M N],Hold);
 			Y(([1:n] + (j - 1)*n)) = y(:);
 	  	end
 		q0 = [-dXdQ Y]\X;
@@ -335,13 +367,13 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	end
 	Q((nreg+1):size(P,1),:) = ones(size(P,1)-nreg,1)*Q(nreg,:);
 	spm_unmap(V1); spm_unlink spm_ref.img spm_ref.hdr spm_ref.mat
-	spm_clf('Interactive');
+	spm_figure('Clear','Interactive');
 
 	% display results
 	% translation and rotation over time series
-	%---------------------------------------------------------------------------
-	spm_figure('FindWin','Graphics');
-	spm_clf('Graphics');
+	%-------------------------------------------------------------------
+	figure(spm_figure('FindWin','Graphics'));
+	spm_figure('Clear','Graphics');
 	subplot(3,1,1);
 	axis off
 	title('Image realignment','FontSize',16,'FontWeight','Bold')
@@ -375,27 +407,26 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	grid
 
 	% print realigment parameters and figure 2 attributes
-	%----------------------------------------------------------------------
 	spm_print
 end
 
 
 
 % Application of Realignment Parameters - uses P & Q
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 if any(Flags == 'r')
 
 	Hold = 1;
 	if (any(Flags == 'S')) Hold = 5; end
 
 	% Get properties of image to realign to
-	%----------------------------------------------------------------------------
+	%-------------------------------------------------------------------
 	p = spm_str_manip(P(1,:), 'd');
 	M = spm_get_space(p);
 	[DIM VOX SCALE TYPE OFFSET ORIGIN] = spm_hread(p);
 
 	% Get properties of all the images
-	%----------------------------------------------------------------------------
+	%-------------------------------------------------------------------
 	Headers = zeros(size(P,1),(3+1+1));
 	Matrixes = zeros(16,size(P,1));
 	V     = zeros(12,size(P,1));
@@ -414,25 +445,28 @@ if any(Flags == 'r')
 	end
 
 
-	% Start progress plot
-	%----------------------------------------------------------------------------
 	spm_progress_bar('Init',DIM(3),'Reslicing','planes completed');
 
 	Xm = kron(ones(DIM(2),1),[1:DIM(1)]');
 	Ym = kron([1:DIM(2)]',ones(DIM(1),1));
 	open_mode = 'w';
-	if (any(Flags == 'i') | any(Flags == 'c')) Integral = zeros(prod(DIM(1:2)),DIM(3)); end
+	if (any(Flags == 'i') | any(Flags == 'c'))
+		Integral = zeros(prod(DIM(1:2)),DIM(3));
+	end
 
 	start_vol = 1;
 	if (any(Flags == 'n') & ~any(Flags == 'i')) start_vol = 2; end
 
 	for j = 1:DIM(3)
 		B     = spm_matrix([0 0 -j 0 0 0 1 1 1]);
-		if (any(Flags == 'c')) X = zeros(DIM(1)*DIM(2),size(P,1)); end
+		if (any(Flags == 'c'))
+			X = zeros(DIM(1)*DIM(2),size(P,1));
+		end
 
 		% get masks for this plane
-		%------------------------------------------------------------------
-		if (any(Flags == 'i') | any(Flags == 'k') | any(Flags == 'c'))
+		%-----------------------------------------------------------
+		if (any(Flags == 'i') | any(Flags == 'k') |...
+			any(Flags == 'c'))
 			Count = zeros(prod(DIM(1:2)),1);
 			for i = 1:size(P,1)
 				M0  = reshape(Matrixes(:,i),4,4);
@@ -440,14 +474,20 @@ if any(Flags == 'r')
 
 				tiny = 5e-2; % From spm_vol_utils.c
 				% Find range of slice
-				tmp = M1(1,1)*Xm + M1(1,2)*Ym + (M1(1,3)*0 + M1(1,4));
-				Mask =        (tmp >= (1-tiny) & tmp <= (Headers(i,1)+tiny));
+				tmp = M1(1,1)*Xm + M1(1,2)*Ym +...
+					(M1(1,3)*0 + M1(1,4));
+				Mask = (tmp >= (1-tiny) &...
+					 tmp <= (Headers(i,1)+tiny));
 
-				tmp = M1(2,1)*Xm + M1(2,2)*Ym + (M1(2,3)*0 + M1(2,4));
-				Mask = Mask & (tmp >= (1-tiny) & tmp <= (Headers(i,2)+tiny));
+				tmp  = M1(2,1)*Xm + M1(2,2)*Ym +...
+					(M1(2,3)*0 + M1(2,4));
+				Mask = Mask & (tmp >= (1-tiny) &...
+					tmp <= (Headers(i,2)+tiny));
 
-				tmp = M1(3,1)*Xm + M1(3,2)*Ym + (M1(3,3)*0 + M1(3,4));
-				Mask = Mask & (tmp >= (1-tiny) & tmp <= (Headers(i,3)+tiny));
+				tmp = M1(3,1)*Xm + M1(3,2)*Ym +...
+					(M1(3,3)*0 + M1(3,4));
+				Mask = Mask & (tmp >= (1-tiny) &...
+					tmp <= (Headers(i,3)+tiny));
 
 				Count = Count + Mask;
 			end
@@ -455,42 +495,46 @@ if any(Flags == 'r')
 		end
 
 		% get values for this plane
-		%------------------------------------------------------------------
+		%-----------------------------------------------------------
 		for i = start_vol:size(P,1)
 			M0  = reshape(Matrixes(:,i),4,4);
 			M1 = inv(B*M0);
 
 			d  = spm_slice_vol(V(:,i),M1,DIM(1:2),Hold);
 
-			if (any(Flags == 'i') | any(Flags == 'c')) Integral(:,j) = Integral(:,j) + d(:); end
+			if (any(Flags == 'i') | any(Flags == 'c'))
+				Integral(:,j) = Integral(:,j) + d(:);
+			end
 
 			if (~any(Flags == 'c'))
 				% don't need to load the whole time series.
 				if (i > 1 | ~any(Flags == 'n'))
 					d = d/Headers(i,4);
-					if any(Flags == 'k') d = d(:).*Mask; end
-
-					% Deal with different data types
-					if (Headers(i,5) == 2)
-						d = round(d);
-						tmp = find(d > 255);
-						d(tmp) = zeros(size(tmp))+255;
-						tmp = find(d < 0);
-						d(tmp) = zeros(size(tmp));
-					elseif (Headers(i,5) == 4)
-						d = round(d);
-						tmp = find(d > 32767);
-						d(tmp) = zeros(size(tmp))+32767;
-						tmp = find(d < -32768);
-						d(tmp) = zeros(size(tmp))-32768;
-					elseif (Headers(i,5) == 8)
-						d = round(d);
-						tmp = find(d > 2^31-1);
-						d(tmp) = zeros(size(tmp))+(2^31-1);
-						tmp = find(d < -2^31);
-						d(tmp) = zeros(size(tmp))-2^31;
+					if any(Flags == 'k')
+						d = d(:).*Mask;
 					end
-				end
+
+			% Deal with different data types
+			if (Headers(i,5) == 2)
+				d = round(d);
+				tmp = find(d > 255);
+				d(tmp) = zeros(size(tmp))+255;
+				tmp = find(d < 0);
+				d(tmp) = zeros(size(tmp));
+			elseif (Headers(i,5) == 4)
+				d = round(d);
+				tmp = find(d > 32767);
+				d(tmp) = zeros(size(tmp))+32767;
+				tmp = find(d < -32768);
+				d(tmp) = zeros(size(tmp))-32768;
+			elseif (Headers(i,5) == 8)
+				d = round(d);
+				tmp = find(d > 2^31-1);
+				d(tmp) = zeros(size(tmp))+(2^31-1);
+				tmp = find(d < -2^31);
+				d(tmp) = zeros(size(tmp))-2^31;
+			end
+		end
 
 				if (~any(Flags == 'N'))
 					p  = spm_str_manip(P(i,:), 'd');
@@ -505,27 +549,33 @@ if any(Flags == 'r')
 			end
 		end
 
-		if (any(Flags == 'i') | any(Flags == 'c')) Integral(:,j) = Integral(:,j)./(Count + eps); end
+		if (any(Flags == 'i') | any(Flags == 'c'))
+			Integral(:,j) = Integral(:,j)./(Count + eps);
+		end
 
 
 		if (any(Flags == 'c'))
 			% Adjust for motion in Z
-			%------------------------------------------------------------------
+			%---------------------------------------------------
 			Mask = (Count == size(P,1));
 
 			X = X'; % Transpose to reduce paging
 			lzm1 = size(P,1)-1;
 			for y=1:DIM(2)
-				Zmotion  = Matrixes(7,:)*y + Matrixes(11,:)*j + Matrixes(15,:);
+				Zmotion  = Matrixes(7,:)*y +...
+					Matrixes(11,:)*j + Matrixes(15,:);
 				Zmotion  = Zmotion' - Zmotion(1);
 				dZmotion = Matrixes(3,:)' - Matrixes(3,1);
 				for x = 1:DIM(1)
 					xy = x+(y-1)*DIM(1);
 					if (Mask(xy))
-						Tac = X(:,xy) - Integral(xy,j);
-						Zmotion = Zmotion + dZmotion*x;
-						A = [Zmotion Zmotion.^2 [0 ; Zmotion(1:lzm1)] [0 ; Zmotion(1:lzm1)].^2];
-						X(:,xy) = Tac + Integral(xy,j) - A*((A'*A)\(A'*Tac));
+
+	Tac = X(:,xy) - Integral(xy,j);
+	Zmotion = Zmotion + dZmotion*x;
+	A = [Zmotion Zmotion.^2 [0 ; Zmotion(1:lzm1)] ...
+		[0 ; Zmotion(1:lzm1)].^2];
+	X(:,xy) = Tac + Integral(xy,j) - A*((A'*A)\(A'*Tac));
+
 					end
 				end
 			end
@@ -579,14 +629,15 @@ if any(Flags == 'r')
 			p = spm_str_manip(P(i,:), 'd');
 			q = max([find(p == '/') 0]);
 			q = [p(1:q) 'r' p((q + 1):length(p))];
-			spm_hwrite(q,DIM,VOX,Headers(i,4),Headers(i,5),0,ORIGIN,'spm - realigned');
+			spm_hwrite(q,DIM,VOX,Headers(i,4),Headers(i,5),...
+				0,ORIGIN,'spm - realigned');
 			if (any(Flags == 'm')) spm_get_space(q,M); end
 		end
 	end
 
 	if any(Flags == 'i')
 		% Write integral image (16 bit signed)
-		%------------------------------------------------------------------
+		%-----------------------------------------------------------
 		mx = max(max(Integral));
 		SCALE  = mx/32767;
 		p      = P(1,:);
@@ -610,7 +661,7 @@ if any(Flags == 'r')
 end
 
 % Saving of Realignment Parameters - uses P & Q
-%----------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 if (any(Flags == 'm') & any(Flags == 'e'))
 	for k = 1:size(P,1)
 		C2 = spm_get_space(spm_str_manip(P(k,:), 'd'));
@@ -618,4 +669,4 @@ if (any(Flags == 'm') & any(Flags == 'e'))
 	end
 end
 
-spm_clf('Interactive');
+spm_figure('Clear','Interactive');
