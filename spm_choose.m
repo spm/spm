@@ -6,7 +6,7 @@ function spm_choose(varargin)
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  Statistical Parametric Mapping
 % \__ \ )___/ )    (   The Wellcome Department of Cognitive Neurology
-% (___/(__)  (_/\/\_)  Institute of Neurology, University College London
+% (___/(__)  (_/\/\_)  
 %
 %_______________________________________________________________________
 %
@@ -60,7 +60,6 @@ SPMs ={	'SPMdevel',		'devel',	'/local/spm/spm_devel';...
 	'SPM99  (FIL)',		'99',		'/local/spm/spm99_fil';...
 	'SPM99  (public)',	'99p',		'/local/spm/spm99_pub';...
 	'SPM99b (public)',	'99b',		'/local/spm/spm99b_pub';...
-	'SPM99a (public)',	'99a',		'/local/spm/spm99a_pub';...
 	'invalid',		'inv',		'/local/nowhere';
 	'worse still'		'worse',	{'/tmp','/var/tmp'}};
 
