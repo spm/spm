@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)spm_hist2.c	2.4 John Ashburner 01/04/02";
+static char sccsid[] = "%W% John Ashburner %E%";
 #endif
 #include "math.h"
 #define local_rint(a) floor((a)+0.5)
