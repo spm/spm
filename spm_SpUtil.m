@@ -1,15 +1,17 @@
-function varargout = spm_DesUtil(varargin)
-% Design matrix utilities
-% FORMAT varargout = spm_DesUtil(action,varargin)
+function varargout = spm_SpUtil(varargin)
+% Space matrix utilities
+% FORMAT varargout = spm_SpUtil(action,varargin)
 %
 %_______________________________________________________________________
 %
-% spm_DesUtil is a multi-function function containing various utilities
-% for Design matrix construction and manipulation
+% spm_SpUtil is a multi-function function containing various utilities
+% for Design matrix construction and manipulation;
+% In general, it accepts space structure or plain matrices. See 
+% spm_sp for space structure.
 %
 % ======================================================================
 %
-% FORMAT i = spm_DesUtil('pds',v,m,n)
+% FORMAT i = spm_SpUtil('pds',v,m,n)
 %
 % Patterned data setting function - inspired by MINITAB's "SET" command
 % v - base pattern vector
@@ -20,7 +22,7 @@ function varargout = spm_DesUtil(varargin)
 %
 %                           ----------------
 %
-% spm_DesUtil('pds'... is a simple utility for patterned data setting,
+% spm_SpUtil('pds'... is a simple utility for patterned data setting,
 % inspired by MINITAB's "SET" command. It is particularly useful for
 % creating structured indicator vectors.
 %
@@ -29,16 +31,16 @@ function varargout = spm_DesUtil(varargin)
 % length n*m*length(v)
 %
 % Examples:
-%     spm_DesUtil('pds',1:3)       % = [1,2,3]
-%     spm_DesUtil('pds',1:3,2)     % = [1,1,2,2,3,3]
-%     spm_DesUtil('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
+%     spm_SpUtil('pds',1:3)       % = [1,2,3]
+%     spm_SpUtil('pds',1:3,2)     % = [1,1,2,2,3,3]
+%     spm_SpUtil('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
 % NB: MINITAB's "SET" command has syntax n(v)m:
 %
 % ======================================================================
 %
-% FORMAT i = spm_DesUtil('isCon',X,c,tol)
+% FORMAT i = spm_SpUtil('isCon',X,c,tol)
 % Tests whether weight vectors specify contrasts
-% X   - design matrix
+% X   - Space design matrix
 % c   - contrast matrix (I.e. matrix of contrast weights, contrasts in rows)
 %       Must have row dimension matching that of X
 %       [defaults to eye(size(X,2)) to test uniqueness of parameter estimates]
@@ -59,9 +61,9 @@ function varargout = spm_DesUtil(varargin)
 %
 % ======================================================================
 %
-% FORMAT i = spm_DesUtil('allCon',X,c)
+% FORMAT i = spm_SpUtil('allCon',X,c)
 % Tests whether all weight vectors specify contrasts:
-% Same as all(spm_DesUtil('isCon',X,c)), but works directly.
+% Same as all(spm_SpUtil('isCon',X,c)), but works directly.
 %
 % Since a contrast must have weight vector contained in the space
 % spanned by the rows of the design matrix X, [X;c] will have the same
@@ -69,7 +71,7 @@ function varargout = spm_DesUtil(varargin)
 %
 % ======================================================================
 %
-% FORMAT r = spm_DesUtil('ConR',X,c,tol)
+% FORMAT r = spm_SpUtil('ConR',X,c,tol)
 % Assess orthogonality of contrasts (wirit the data)
 % X   - design matrix
 % c   - contrast matrix (I.e. matrix of contrast weights, contrasts in rows)
@@ -93,7 +95,7 @@ function varargout = spm_DesUtil(varargin)
 % 
 % ======================================================================
 %
-% FORMAT r = spm_DesUtil('ConO',X,c,tol)
+% FORMAT r = spm_SpUtil('ConO',X,c,tol)
 % Assess orthogonality of contrasts (wirit the data)
 % X   - design matrix
 % c   - contrast matrix (I.e. matrix of contrast weights, contrasts in rows)
@@ -102,14 +104,14 @@ function varargout = spm_DesUtil(varargin)
 % tol - Tolerance for computation [default max(size(X))*norm(X)*eps, as in rank]
 % r   - Contrast orthogonality matrix, of dimension the number of contrasts.
 %
-% This is the same as ~spm_DesUtil('ConR',X,c), but uses a quicker
+% This is the same as ~spm_SpUtil('ConR',X,c), but uses a quicker
 % algorithm by looking at the orthogonality of the subspaces of the
 % design space which are implied by the contrasts:
 %       r = abs(c*X'*X*c')<tol
 % 
 % ======================================================================
 %
-% FORMAT c = spm_DesUtil('FCon',X,i0)
+% FORMAT c = spm_SpUtil('FCon',X,i0)
 % Return F-contrast for specified design matrix partition
 % X   - design matrix
 % i0  - column indices of null hypothesis design matrix
@@ -129,13 +131,13 @@ function varargout = spm_DesUtil(varargin)
 % 
 % ======================================================================
 %
-% FORMAT [X0,X1] = spm_DesUtil('cNullSpace',X,c)
-% Contrast null space for a design matrix and contrast
+% FORMAT [X0,X1] = spm_SpUtil('cTestSp',X,c)
+% Contrast test space for a design matrix and contrast
 % X   - design matrix
 % c   - contrast
-% X0  - null design space - matrix reduced according to null hypothesis
 % X1  - contrast space - design matrix corresponding according to contrast
 %       (orthogonalised wirit X0)
+% X0  - matrix reduced according to null hypothesis
 %
 % This functionality returns a design matrix subpartition whose columns
 % span the null space of a given contrast.
@@ -164,7 +166,7 @@ switch lower(action), case 'pds'
 %=======================================================================
 %-Condition arguments
 %-----------------------------------------------------------------------
-% i = spm_DesUtil('pds',v,m,n)
+% i = spm_SpUtil('pds',v,m,n)
 if nargin<4, n=1; else, n=varargin{4}; end
 if nargin<3, m=1; else, m=varargin{3}; end
 if nargin<2, varargout={[]}, return, else, v=varargin{2}; end
@@ -182,95 +184,464 @@ varargout = {reshape(repmat(v(:)',m,n),si)};
 
 case {'iscon','allcon','conr','cono'}
 %=======================================================================
-% i = spm_DesUtil('isCon',X,c,tol)
-if nargin<2, X=[]; else, X=varargin{2}; end
-if isempty(X), varargout={[]}; return, end
-if nargin<3, c=eye(size(X,2)); else, c=varargin{3}; end
-if nargin<4, tol=max(size(X))*norm(X)*eps; else, tol=varargin{4}; end
+% i = spm_SpUtil('isCon',x,c,tol)
+if nargin==1, varargout={[]}; end;
+if nargin==2, c=eye(size(varargin{2},2)); else, c=varargin{3}; end
+if nargin>=4, tol=varargin{4}; else tol = []; end
 
-switch lower(action), case 'iscon'
-	varargout = {all(abs(c'-X'*pinv(X')*c')<tol,1)'};
+switch lower(action), 
+case 'iscon'
+   if spm_sp('isspc',varargin{2})
+	% if size(c,1) ~= size(varargin{2}.X,2) 
+	%	error('Contrast not of the right size'); end; %-done in spm_sp
+	varargout = { spm_sp('isinspp',varargin{2},c)};
+   else
+	if size(c,1) ~= size(varargin{2},2) 
+		error('Contrast not of the right size'); end; 
+	if isempty(tol)
+	    tol = max(size(varargin{2})) * norm(varargin{2}) * eps; end;
+	varargout = {  (varargin{2}*pinv(varargin{2})*c - c) < tol };
+   end
 case 'allcon'
-	varargout = { rank(X)==rank([X;c]) };
+   if spm_sp('isspc',varargin{2})
+	% if size(c,1) ~= size(varargin{2}.X,2) 
+	%	error('Contrast not of the right size'); end; %-done in spm_sp
+	varargout = { all(spm_sp('isinspp',varargin{2},c))};
+   else
+	if size(c,1) ~= size(varargin{2},2) 
+		error('Contrast not of the right size'); end; 
+	if isempty(tol)
+	    tol = max(size(varargin{2})) * norm(varargin{2}) * eps; end;
+	varargout = { all( (varargin{2}*pinv(varargin{2})*c - c) < tol )};
+   end
+
 case 'conr'
-	w   = c*pinv(X);		%-contrast vectors for data
-	r   = w*w';			%-inner products of data weight vectors
-	tmp = diag(r); tmp = sqrt(tmp)*sqrt(tmp)';
-	r   = r./tmp;			%-normalise r
+   if spm_sp('isspc',varargin{2})
+	if size(c,1) ~= size(varargin{2}.X,2) 
+		error('Contrast not of the right size'); end; 
+	r   = c'*spm_sp('pinvxpx',varargin{2})*c;	
+					%-inner products of data weight vectors
+	r   = r./(sqrt(diag(r))*sqrt(diag(r))');
+					%-normalize by "cov(r)" to get
+					%-correlations
+	r(abs(r)<varargin{2}.tol)=0;	%-set near-zeros to zero
+	varargout = {r};		%-return r
+   else 
+	if size(c,1) ~= size(varargin{2},2) 
+		error('Contrast not of the right size'); end; 
+	if isempty(tol)
+	    tol = max(size(varargin{2})) * norm(varargin{2}) * eps; end;
+	r = c'*pinv(varargin{2}'*varargin{2})*c;
+	r   = r./(sqrt(diag(r))*sqrt(diag(r))');
+					%-normalize by "cov(r)" to get 
+					%-correlations
 	r(abs(r)<tol)=0;		%-set near-zeros to zero
 	varargout = {r};		%-return r
+   end
+
 case 'cono'
-	%-This is the same as ~spm_DesUtil('ConR',X,c), and so returns
+	%-This is the same as ~spm_SpUtil('ConR',X,c), and so returns
 	% the contrast orthogonality (though not their corelations).
-	varargout = {abs(c*X'*X*c')<tol};
-end
+   if spm_sp('isspc',varargin{2})
+	varargout = {abs(c'*varargin{2}.X'*varargin{2}.X*c)<tol};
+   else 
+	if isempty(tol)
+	    tol = max(size(varargin{2})) * norm(varargin{2}) * eps; end;
+	varargout = {abs(c'*varargin{2}'*varargin{2}*c)<tol};
+   end;
+
+end % switch lower(action), case {'iscon','allcon','conr','cono'}
+
 
 
 case 'fcon'
 %=======================================================================
-% c = spm_DesUtil('FCon',X,i0)
+% c = spm_SpUtil('FCon',x,i0)
 if nargin<3, error('insufficient arguments'), end
-X  = varargin{2};
 i0 = varargin{3};
+
+%-Argument checks and Computation
+%-----------------------------------------------------------------------
+if spm_sp('isspc',varargin{2}) 
+   if isempty(i0) varargout = {varargin{2}.X'*varargin{2}.X}; return; end;
+   p = size(varargin{2}.X,2);
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1),   varargout = {0}; 
+      disp('Warning : dont you want to test for something ? '); return; 
+   end;
+   x0   = spm_sp('set',varargin{2}.X(:,i0)); 
+				%- x0 = Space of hypothesised null model
+   varargout = {varargin{2}.X'*spm_sp('res',x0,varargin{2}.X(:,i1))};
+   % Note : the result can be orthogonolized if necessary
+else
+   if isempty(i0) varargout = {varargin{2}'*varargin{2}}; return; end;
+   p = size(varargin{2},2);
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1),   varargout = {0}; 
+      disp('Warning : dont you want to test for something ? '); return; 
+   end;
+   x0   = spm_sp('set',varargin{2}(:,i0)); 
+				%- x0 = Space of hypothesised null model
+   varargout = {varargin{2}'*spm_sp('res',x0,varargin{2}(:,i1))};
+   % Note : the result can be orthogonolized if necessary
+end
+
+%-----------------------------------------------------------------------
+
+case 'ctestsp' % 
+%=======================================================================
+% [X1,X0] = spm_SpUtil('cTestSp',X,c)
+% return the space tested and not tested by the contrast
+% Note that unless X0 is reduced to a set of linearely independant 
+% vectors, c will only be contained in the null space of X0. 
+% If X0 is "reduced", then the "parent" space of c must be reduced
+% as well for c to be the actual null space of X0.
+
+if nargin<3, error('Insufficient arguments'), end
+if ~spm_sp('isspc',varargin{3})
+	c = spm_sp('set',varargin{3});
+else c = varargin{3}; end
+
+
+if spm_sp('isspc',varargin{2})
+   if size(c.X,1) ~= size(varargin{2}.X,2)
+	error('dimensions argin 2 and 3 dont match'); end
+
+   rk = varargin{2}.rk;
+   if rk == 0 error('Rank is null '), end
+
+   % X_0 = varargin{2}.X*orth(spm_sp('res',c,varargin{2}.X'));
+   X0 = varargin{2}.X*spm_sp('res',c,varargin{2}.v(:,1:rk));
+   X1 = varargin{2}.X*c.X - X0*pinv(X0)*varargin{2}.X*c.X;
+
+
+   varargout = {X1, X0};
+					% can be orthogonalised if necessary
+else
+   if size(c.X,1) ~= size(varargin{2},2)
+	error('dimensions argin 2 and 3 dont match'); end
+   
+   X0 = varargin{2}*spm_sp('res',c,orth(varargin{2}'));
+   X1 = varargin{2}*spm_sp('oP',c,orth(varargin{2}'));
+   X1 = varargin{2}*c.X - X0*pinv(X0)*varargin{2}*c.X;
+   varargout = {X1,X0};
+					% can be orthogonalised if necessary
+end;
+
+case 'itestsp' % 
+%=======================================================================
+% [X1] = spm_SpUtil('iTestSp',X,i0)
+% return the space tested while keeping X(i0) 
+% Note that unless X0 is reduced to a set of linearely independant 
+% vectors, c will only be contained in the null space of X0. 
+% If X0 is "reduced", then the "parent" space of c must be reduced
+% as well for c to be the actual null space of X0.
+
+if nargin<3, error('Insufficient arguments'), end
+i0 = varargin{3};
+
+if spm_sp('isspc',varargin{2})
+   p = size(varargin{2}.X,2);
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1) varargout = {spm_sp('oP',varargin{2})}; 
+   else 
+      varargout = {varargin{2}.X(:,i1) - ...
+	varargin{2}.X(:,i0)*pinv(varargin{2}.X(:,i0))*varargin{2}.X(:,i1)};
+   end
+else 
+   p = size(varargin{2},2);
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end;
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1) varargout = {varargin{2}*pinv(varargin{2})}; 
+   else 
+      varargout = {varargin{2}(:,i1) -  ...
+	      varargin{2}(:,i0)*pinv(varargin{2}(:,i0))*varargin{2}(:,i1)};
+   end
+end
+
+
+case 'trrv'
+%=======================================================================
+% [trRV  [trRVRV]]= spm_SpUtil('trRV', x [, V])
+% returns trace(RV) or trace(R) if only one input argument.
+% returns [trace(RV) trace(RVRV)] if two ouput arguments.
+% This uses the Karl's cunning understanding of the trace:
+% (tr(A*B) = sum(sum(A'*B)).
+% If the space of X is set, then it uses x.u to avoid 
+% extra computation. 
+
+if nargin == 1, error('insufficient arguments'), end
+if nargin == 2, 			%- no V
+   
+   if spm_sp('isspc',varargin{2}) % assumes it's filled 
+     	varargout = {size(varargin{2}.X,1) - varargin{2}.rk, ...
+			size(varargin{2}.X,1) - varargin{2}.rk};
+   else
+	rk  = rank(varargin{2});
+	varargout = {size(varargin{2},1) - rk, ...
+		     size(varargin{2},1) - rk}; 
+   end;
+   
+else 					%- V provided, assumed correct !
+   if spm_sp('isspc',varargin{2}) % assumes varargin{2} is set
+	
+	rk   = varargin{2}.rk; 
+        if rk == 0 error('Rank is null '), end
+
+	if nargout==1 		% only trRV is needed then use : 
+	   trMV	= sum(sum( varargin{2}.u(:,1:rk)' .* ...
+			   (varargin{2}.u(:,1:rk)'*varargin{3}) ));
+	   varargout = { trace(varargin{3}) - trMV};
+	else 		 		%  trMV is needed then use : 
+ 	   % assume trRVRV is needed as well : 
+
+	   MV	= varargin{2}.u(:,1:rk)*(varargin{2}.u(:,1:rk)'*varargin{3});
+	   trMV	= trace(MV);		%- possible to avoid computing MV;
+					%- Use MV = u*(u'*V) 
+					
+	   trRVRV	= sum(sum(varargin{3}.*varargin{3})) - ...
+			2*sum(sum(varargin{3}.*MV)) + ...
+			sum(sum(MV'.*MV));
+
+	   varargout = {(trace(varargin{3}) - trMV), trRVRV};
+	end
+   else 
+	if nargout==1 		% only trRV is needed then use : 
+	   trMV	= sum(sum( varargin{2}' .* (pinv(varargin{2})*varargin{3}) ));
+	   varargout = { trace(varargin{3}) - trMV};
+	else 		 		%  trMV is needed then use : 
+ 	   % assume trRVRV is needed as well : 
+
+	   MV	= varargin{2}*(pinv(varargin{2})*varargin{3});
+	   trMV	= trace(MV);		%- possible to avoid computing MV;
+					%- Use MV = u*(u'*V) 
+					
+	   trRVRV	= sum(sum(varargin{3}.*varargin{3})) - ...
+			2*sum(sum(varargin{3}.*MV)) + ...
+			sum(sum(MV'.*MV));
+
+	   varargout = {(trace(varargin{3}) - trMV), trRVRV};
+	end
+   end
+end
+
+case 'trmv'
+%=======================================================================
+% [trMV [trMVMV]] = spm_SpUtil('trMV', x [, V])
+% returns trace(MV) or trace(M) if only one input argument.
+% returns [trace(MV) trace(MVMV)] if two ouput arguments.
+% This uses the Karl's cunning understanding of the trace:
+% (tr(A*B) = sum(sum(A'.*B)).
+% If the space of X is set, then it uses x.u to avoid 
+% extra computation. 
+
+if nargin == 1, error('insufficient arguments'), end
+if nargin == 2, 			%- no V
+   
+   if spm_sp('isspc',varargin{2}) % assumes it's filled 
+     	varargout = {varargin{2}.rk, varargin{2}.rk};
+   else rk = rank(varargin{2}); varargout = {rk,rk}; end;
+   
+else 					%- V provided, and assumed correct !
+
+   if spm_sp('isspc',varargin{2})	% if varargin{2} is set as a space
+
+	rk   = varargin{2}.rk; 
+        if rk == 0 error('Rank is null '), end
+
+	if nargout==1 		% only trMV is needed then use : 
+	   trMV   = sum(sum(varargin{2}.u(:,1:rk)' .* ...
+ 			    (varargin{2}.u(:,1:rk)'*varargin{3}) ));
+	   varargout = {trMV};
+	else 
+ 	   % assume trMVMV is needed as well : 
+
+	   MV	= varargin{2}.u(:,1:rk)*(varargin{2}.u(:,1:rk)'*varargin{3});
+				%- See note on saving mem. for MV in 'trRV'
+	   trMVMV	=  sum(sum(MV'.*MV));
+	   disp([trace(MV)  trMVMV]);
+	   varargout = {trace(MV), trMVMV};
+	end
+
+   else 
+	if nargout==1 		% only trMV is needed then use : 
+	   trMV = sum(sum(varargin{2}'.* (pinv(varargin{2})*varargin{3}) ))
+	   varargout = {trMV};
+	else
+	   MV	=  varargin{2}*(pinv(varargin{2})*varargin{3});
+	   trMVMV	=  sum(sum(MV'.*MV));
+	   varargout = {trace(MV), trMVMV};
+	end
+   end
+end
+
+
+
+case 'betarc'
+%=======================================================================
+% ('BetaRc', x, c)
+% input : space x of the design and {F|t}contrast  
+% output : R such that beta'*R*beta = extra sum of square for contrast c
+
+
+if nargin < 3, error('insufficient arguments'), end
+c = varargin{3};
+if spm_sp('isspc',varargin{2})
+   if ~spm_sp('isinspp',varargin{2},varargin{3}), ...
+		error('contrast not estimable'); end;
+   varargout = { c*pinv(c'*spm_sp('pinvXpX',varargin{2})*c)*c' };
+				% Note that there is a better way for 
+				% that: first sets the space of c ..
+else % no space provided, use 
+   varargout = { c*pinv(c'*pinv(varargin{2}'*varargin{2})*c)*c' };
+end
+
+case 'mpc'
+%=======================================================================
+% ('Mpc', x, c)
+% input : space x of the design and {F|t}contrast  
+% output : Mp such that Y'*Mp*Y = extra sum of square
+
+if nargin == 1, error('insufficient arguments'), end
+c	= varargin{3};
+if spm_sp('isspc',varargin{2})
+   if ~spm_sp('isinspp',varargin{2},varargin{3}), 
+				error('contrast not estimable'); end;
+   varargout = ...
+   {varargin{2}.X*c*pinv(c'*spm_sp('xpx', varargin{2})*c)*c'* varargin{2}.X'};
+				% Note that there is a better way for 
+				% that with first setting the space of c.
+else % no space provided, use 
+   varargout = ...
+   {varargin{2}*c*pinv(c'*varargin{2}'*varargin{2}*c)*c'*varargin{2}'};
+end
+
+case 'mpx1'
+%=======================================================================
+% ('MpX1',x,i1)
+% input : space x of the design and subspace of x you want to test for.
+% output : MpX1 such that Y'*MpX1*Y = extra sum of square
+
+if nargin<3, error('insufficient arguments'), end
+i1 = varargin{3};
 
 %-Argument checks
 %-----------------------------------------------------------------------
-p = size(X,2);
-if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
-	error('vector of column indices required')
+
+
+if spm_sp('isspc',varargin{2})
+   p = size(varargin{2}.X,2);
+   if max(size(i1))==p & all( ismember(i1,[0 1]) ) i1 = find(i1); end;
+   if any(floor(i1)~=i1) | any(i1<1) | any(i1>p)
+	error('vector of column indices required'); end;
+   P = varargin{2}.X(:,i1); 
+   varargout = {varargin{2}.X(:,i1)*...
+      pinv(varargin{2}.X(:,i1)'*varargin{2}.X(:,i1))*varargin{2}.X(:,i1)'};
+else 
+   p = size(varargin{2},2);
+   if max(size(i1))==p & all( ismember(i1,[0 1]) ) i1 = find(i1); end;
+   if any(floor(i1)~=i1) | any(i1<1) | any(i1>p)
+	error('vector of column indices required'); end;
+   %- P = varargin{2}(:,i1); 
+   varargout = {varargin{2}(:,i1)*...
+	pinv(varargin{2}(:,i1)'*varargin{2}(:,i1))*varargin{2}(:,i1)'};
 end
 
-%-Computation
-%-----------------------------------------------------------------------
-i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
-X0   = X(:,i0);			%-Design matrix of hypothesised null model
-X1   = X(:,i1);			%-Design matrix columns hypothesised redundant
 
-X1o  = X1 - X0*pinv(X0)*X1;	%-X1 columns orthogonalised wirit X0
-
-oX1o = orth(X1o);		%-Orthonormal basis for columns of X1o
-				% space spanned by this basis set is the
-				% design space hypothesised redundant
-
-c1   = orth(X1o');		%-Orthonormal basis set for rows of X1o
-				%-These are the contrast coefficients for X1
-
-%c1   = orth(X1o'*pinv(X1o')*eye(length(i1)));	%-JB's version
-				%-Orthonormal basis set for identity matrix
-				% projected onto rows of X1o
-				%-These are the contrast coefficients for X1
-
-c       = zeros(size(X,2),size(c1,2));
-c(i1,:) = c1;			%-Form full contrast matrix
-c       = c';			%-Transpose to usual SPM contrast orientation
-				% with contrasts as row vectors
-
-varargout = {c};
-
-
-case 'cnullspace'
+case 'mpx0'
 %=======================================================================
-% X0 = spm_DesUtil('cNullSpace',X,c)
-if nargin<3, error('Insufficient arguments'), end
-X = varargin{2};
+% MpX1 = spm_SpUtil('MpX0',x,i0)
+% input : space x and i0: the subspace of x you dont want keep.
+% output : MpX1 such that Y'*MpX1*Y = extra sum of square
+
+%-Argument checks
+%-----------------------------------------------------------------------
+if nargin<3, error('insufficient arguments'), end
+i0 = varargin{3};
+
+
+if spm_sp('isspc',varargin{2})
+   p = size(varargin{2}.X,2);
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end;
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1) varargout = {spm_sp('oP',varargin{2})};
+   else 
+      P    = varargin{2}.X(:,i1) - ...
+	  varargin{2}.X(:,i0)*pinv(varargin{2}.X(:,i0))*varargin{2}.X(:,i1);
+      varargout = {P*pinv(P)};
+   end
+else 
+   p = size(varargin{2},2);
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end;
+   i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+   if isempty(i1) varargout = {varargin{2}*pinv(varargin{2})}; 
+   else 
+      P = varargin{2}(:,i1) - ...
+	  varargin{2}(:,i0)*pinv(varargin{2}(:,i0))*varargin{2}(:,i1); 
+      varargout = {P*pinv(P)};
+   end
+end
+
+
+case 'cxpequi'
+%=======================================================================
+% c = spm_SpUtil('cxpequi',x,c)
+% input : space x of the design and c a contrast.
+% output : 0 if x.X' and c dont span the same space
+
+if nargin<3, error('insufficient arguments'), end
 c = varargin{3};
 
-%-Computation
-%-----------------------------------------------------------------------
-c0 = orth(X' -c'*pinv(c')*X')';		%-Compliment of current contrast
-					% (Null contrast space)
+if spm_sp('isspc',varargin{2})
+	varargout = {all(spm_sp('isinspp',varargin{2},c)) & ...
+	 	  all(spm_sp('isinsp',spm_sp('set',c), varargin{2}.X'))}; 
+else 
+	rkc	= rank(c);
+	if size(c,1) ~= size(varargin{2},2)
+	   error('dimensions dont match '), end
+	varargout = { 	(rank([varargin{2}' c]) == rkc) & ...
+			(rkc == rank(varargin{2}')) };
+end
 
-X0 = X*c0';				%-Design space corresponding to null
-					% contrast space
+case 'edf'
+%=======================================================================
+%[df1 df2] = spm_SpUtil('edf', x, i0, V)
+% returns df1 and df2 the residual df for the projector onto the null 
+% space of x' (residual forming projector) and the numerator of 
+% the F-test where i0 are the columns for the null hypothesis model.
+    
+   if spm_sp('isspc',varargin{2}), p = size(varargin{2}.X,2);
+   else p = size(varargin{2},2); end;
 
-X1 = orth(X*c' -X0*pinv(X0)*(X*c'));	%-Contrast design space
-					% (orthogonalised wirit X0)
-varargout = {X0,X1};
+   i0 = varargin{3};
+   if max(size(i0))==p & all( ismember(i0,[0 1]) ) i0 = find(i0); end;
+   if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required'); end;
 
+   [trRV trRVRV] = spm_SpUtil('trRV', varargin{2}, varargin{4});
+   [trMpV trMpVMpV] =  ...
+	spm_SpUtil('trMV',spm_SpUtil('iTestSp',varargin{2}, i0), ...
+		    varargin{4});
+   varargout = {trMpV^2/trMpVMpV, trRV^2/trRVRV};
 
 otherwise
 %=======================================================================
-error('Unknown action string')
+error('Unknown action string in spm_SpUtil')
 
 
 
