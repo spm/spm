@@ -1,10 +1,10 @@
-function [Z,XYZ,QQ,u,k,S,W] = spm_projectionsF_ui(Action,Fname)
+function [Z,XYZ,QQ,u,k,S,W,RES] = spm_projectionsF_ui(Action)
 % used to review results of statistical analysis (SPM{Z})
-% FORMAT [F,XYZ,QQ,u,k,S,W] = spm_projectionsF_ui(Action,Fname)
+% FORMAT [F,XYZ,QQ,u,k,S,W,RES] = spm_projectionsF_ui(Action)
 %
 % Action - 'Display'  - Calls spm_projections
 %        - 'Results'  - Just returns output variables
-%        - 'Writing'  - writes filtered SPM{F} to Fname
+%        - 'Writing'  - writes filtered SPM{F}
 %
 % F      - F values after filtering on height and size thresholds
 % XYZ    - location in mm
@@ -13,6 +13,7 @@ function [Z,XYZ,QQ,u,k,S,W] = spm_projectionsF_ui(Action,Fname)
 % k      - selected extent threshold {voxels}
 % S      - search volume {voxels}
 % W      - smoothness estimators (of component fields)
+% RES    - SSQ of residuals
 %_______________________________________________________________________
 %
 % spm_projectionsF_ui allows the SPM{F} created by spm_spm.m to be
@@ -42,20 +43,20 @@ set(Finter,'Name','SPM{F} projections')
 
 tmp = spm_get(1,'.mat','select SPMF.mat for analysis','SPMF');
 CWD = strrep(tmp,'/SPMF.mat','');
-K   = [];
 
 %-Get data
 %-----------------------------------------------------------------------
 load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
+load([CWD,'/RES'])
 load([CWD,'/SPMF'])
-if strcmp(lower(Action),lower('Results'))
-	QQ = (1:size(XYZ,2))';
-end
+
+QQ = (1:size(XYZ,2))';
+
 
 %-Design matrix
 %-----------------------------------------------------------------------
-DES   = [K H C B G];
+DES   = [H C B G];
 Z     = SPMF;
 
 
@@ -74,10 +75,9 @@ if u < 1; u = spm_invFcdf(1 - u,Fdf); end
 %-----------------------------------------------------------------------
 Q     = find(Z > u);
 Z     = Z(Q);
+RES   = RES(Q);
 XYZ   = XYZ(:,Q);
-if strcmp(lower(Action),lower('Results'))
-	QQ    = QQ(Q);
-end
+QQ    = QQ(Q);
 
 %-Return if there are no voxels
 %-----------------------------------------------------------------------
@@ -104,10 +104,9 @@ end
 % eliminate voxels
 %-----------------------------------------------------------------------
 Z     = Z(Q);
+RES   = RES(Q);
 XYZ   = XYZ(:,Q);
-if strcmp(lower(Action),lower('Results'))
-	QQ    = QQ(Q);
-end
+QQ    = QQ(Q);
 
 
 %-Return if there are no clusters
@@ -142,12 +141,8 @@ elseif  strcmp(lower(Action),lower('Results'))
 %-----------------------------------------------------------------------
 elseif  strcmp(lower(Action),lower('Writing'))
 
-	if nargin < 2
-		FName = spm_input('Filename ?',3,'s','SPM_filtered');
-	else
-		FName = P2;
-	end
-	str = sprintf('spm{F}-filtered: u = %5.3f, k = %d',u,k);
+	FName   = spm_input('Filename ?',3,'s','SPM_filtered');
+	str     = sprintf('spm{F}-filtered: u = %5.3f, k = %d',u,k);
 
 	%-Reconstruct filtered image from XYZ & t
 	%---------------------------------------------------------------
