@@ -875,42 +875,21 @@ F = spm_figure('FindWin',F);
 %-Get handles of objects in Graphics window & note permanent results objects
 %-----------------------------------------------------------------------
 H = get(F,'Children');				%-Get contents of window
-H = findobj(H,'flat','HandleVisibility','on');	%-Lose GUI components
-h = findobj(H,'flat','Tag','PermRes');		%-Look for 'Res' obj
-if ~isempty(h)					% (which has perm. res. obj. h's)
+H = findobj(H,'flat','HandleVisibility','on');	%-Drop GUI components
+h = findobj(H,'flat','Tag','PermRes');		%-Look for 'PermRes' object
+
+if ~isempty(h)
+	%-Found 'PermRes' object
+	% This has handles of permanent results objects in it's UserData
 	tmp  = get(h,'UserData');
 	HR   = tmp.H;
 	HRv  = tmp.Hv;
-elseif mode==0
+else
+	%-No trace of permanent results objects
 	HR   = [];
 	HRv  = {};
-else
-	%-Can't find stored handles of permanent results objects
-	% (Work out as everything in top half of figure)
-	%-This won't work properly with "hiding" of permanent results objects
-	warning('Can''t find cache of permanent results objects - deriving')
-	un   = get(H,'Units');
-	set(H,'Units','normalized')
-	tmp  = get(H,'Position');
-	if length(H)==1
-		un = {un};
-		if tmp(2)>0.5
-			HR=H;  HRv = {get(HR,'Visible')};
-		else
-			HR=[]; HRv = {};
-		end
-	elseif ~isempty(tmp)
-		tmp  = cat(1,tmp{:});
-		HR   = H(tmp(:,2)>0.5);
-		HRv  = get(HR,'Visible');
-	else
-		HR   = [];
-		HRv  = {};
-	end
-	set(H,{'Units'},un)
 end
 H = setdiff(H,HR);				%-Drop permanent results obj
-
 
 
 %-Delete stuff as appropriate
