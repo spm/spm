@@ -99,41 +99,40 @@ else,
 	if ischar(VG), VG = spm_vol(VG); end;
 end;
 if nargin < 2,
-	VF = spm_vol(spm_get(1,'IMAGE','Select moved image'));
+	VF = spm_vol(spm_get(Inf,'IMAGE','Select moved image(s)'));
 else,
 	VF = varargin{2};
-	if ischar(VF), VF = spm_vol(VF); end;
+	if ischar(VF) || iscellstr(VF), VF = spm_vol(strvcat(VF)); end;
 end;
-
-
-% Voxel sizes (mm)
-vxg   = sqrt(sum(VG.mat(1:3,1:3).^2));
-vxf   = sqrt(sum(VF.mat(1:3,1:3).^2));
-
-% Smoothnesses
-fwhmg = sqrt(max([1 1 1]*flags.sep(end)^2 - vxg.^2, [0 0 0]))./vxg;
-fwhmf = sqrt(max([1 1 1]*flags.sep(end)^2 - vxf.^2, [0 0 0]))./vxf;
 
 if ~isfield(VG, 'uint8'),
 	VG.uint8 = loaduint8(VG);
+	vxg      = sqrt(sum(VG.mat(1:3,1:3).^2));
+	fwhmg    = sqrt(max([1 1 1]*flags.sep(end)^2 - vxg.^2, [0 0 0]))./vxg;
 	VG       = smooth_uint8(VG,fwhmg); % Note side effects
 end;
-if ~isfield(VF, 'uint8'),
-	VF.uint8 = loaduint8(VF);
-	VF       = smooth_uint8(VF,fwhmf); % Note side effects
-end;
-
 
 sc = flags.tol(:)'; % Required accuracy
 sc = sc(1:length(flags.params));
 xi = diag(sc*20);
-x  = flags.params(:);
-for samp=flags.sep(:)',
-	[x,fval] = spm_powell(x(:), xi,sc,mfilename,VG,VF,samp,flags.cost_fun,flags.fwhm);
-	x        = x(:)';
-end;
-if flags.graphics,
-	display_results(VG,VF,x,flags);
+
+for k=1:numel(VF),
+	VFk = VF(k);
+	if ~isfield(VFk, 'uint8'),
+		VFk.uint8 = loaduint8(VFk);
+		vxf       = sqrt(sum(VFk.mat(1:3,1:3).^2));
+		fwhmf     = sqrt(max([1 1 1]*flags.sep(end)^2 - vxf.^2, [0 0 0]))./vxf;
+		VFk       = smooth_uint8(VFk,fwhmf); % Note side effects
+	end;
+
+	xk  = flags.params(:);
+	for samp=flags.sep(:)',
+		[xk,fval] = spm_powell(xk(:), xi,sc,mfilename,VG,VFk,samp,flags.cost_fun,flags.fwhm);
+		x(k,:)    = xk(:)';
+	end;
+	if flags.graphics,
+		display_results(VG,VF,xk(:)',flags);
+	end;
 end;
 return;
 %_______________________________________________________________________
