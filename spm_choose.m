@@ -23,7 +23,9 @@ function spm_choose(varargin)
 % themselves. See the parameters section in the code for further details.
 %
 % Once a version is chosen, the appropriate directory is prepended to
-% the MatLab path, all functions cleared, and `spm` called.
+% the MatLab path, all functions cleared, and `spm` called. Note that
+% since the SPM path is prepended, standard SPM functions will take
+% precedence over functions in other directories on the path.
 %
 % Versions can be selected from the command line by specifying their
 % short names as parameter. MatLab's command-function duality means
