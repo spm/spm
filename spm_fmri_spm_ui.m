@@ -239,8 +239,9 @@ end
 %----------------------------------------------------------------------------
 F     = [];
 if spm_input('high pass filter',6,'yes|no',[1 0])
+      d     = spm_input('cut-off period {secs}',6);
       u     = [1:k/2];
-      u     = find(u < (k*RT)/60);
+      u     = find(u < 2*(k*RT)/d);
       for v = 1:length(u)
               d = sin(pi*[1:k]*u(v)/k);
               F = [F d(:)];
