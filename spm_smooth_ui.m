@@ -14,10 +14,9 @@ function spm_smooth_ui
 %----------------------------------------------------------------------------
 set(2,'Name','Smoothing')
 
-n     = spm_input('number of scans to smooth',1);
-s     = spm_input('smoothing {FWHM in mm}',2);
-P     = spm_get(n,'.img','select scans');
-
+s     = spm_input('smoothing {FWHM in mm}',1);
+P     = spm_get(Inf,'.img','select scans');
+n     = size(P,1);
 % implement the convolution
 %---------------------------------------------------------------------------
 set(2,'Name','executing','Pointer','watch')
