@@ -289,7 +289,7 @@ uicontrol(Fhelp,'String','Methods',...
 	'ForegroundColor','b')
 uicontrol(Fhelp,'String','Variables',...
 	'Position',[303 410 087 30].*A+O,...
-	'CallBack','spm_help(''spm_ui.man'');',...
+	'CallBack','spm_help(''spm_input.m'');',...
 	'Tag','NoDelete','UserData','HelpMenu',...
 	'ForegroundColor','b')
 
@@ -563,16 +563,6 @@ elseif strcmp(lower(Action),lower('!Topic'))
 %=======================================================================
 % spm_help('!Topic',Topic)
 if nargin<2, Topic='Menu'; else, Topic=P2; end
-bMenu = strcmp(Topic,'Menu');
-
-%-Callback from PrevTopics passes integer Topic
-if ~isstr(Topic)
-	%-Current object contains new Topic
-	Topic = get(gco,'String');
-	n     = get(gco,'Value');
-	if  n==1, return, end		% Don't process the prompt!
-	Topic = deblank(Topic(n,:));
-end
 
 %-Find (or create) help window.
 %-----------------------------------------------------------------------
@@ -583,6 +573,33 @@ else
 	set(Fhelp,'Visible','on')
 end
 set(Fhelp,'Pointer','Watch')
+
+%-Sort out integer Topic parameters from uicontrol CallBacks
+%-----------------------------------------------------------------------
+%-PrevTopics passes Topic as PullDown value, Back button passes -1
+if ~isstr(Topic)
+	if Topic>0
+		%-Current object is PrevTopics pulldown,
+		% Topic is row of topic to go back to
+		hPTopics = gco;
+	else
+		%-Go back to last topic - find PrevTopics pulldown
+		hPTopics = findobj(Fhelp,'UserData','PrevTopics');
+		if isempty(get(findobj(Fhelp,'UserData','Topic'),'String'))
+			%-Topic string is empty - no topic displayed
+			% go to last displayed topic (if there was one)
+			Topic = min(get(hPTopics,'max'),2);
+		else
+			%-Current topic is second, previous is third
+			Topic = min(get(hPTopics,'max'),3);
+		end
+	end
+	if Topic==1, return, end
+	PrevTopics = get(hPTopics,'String');
+	if Topic>2, PrevTopics(2:Topic-1,:)=[]; end
+	Topic = deblank(PrevTopics(2,:));
+end
+bMenu = strcmp(Topic,'Menu');
 
 %-Load text file or get text from 'ShortTopics'
 %-----------------------------------------------------------------------
@@ -614,21 +631,26 @@ set(findobj(Fhelp,'UserData','Topic'),'String',Topic);
 if Err, set(Fhelp,'Pointer','Arrow'), return, end
 
 %-Sort out previous topics pulldown
+%-For "PrevTopics" & "Back" buttons we did this above
 %-----------------------------------------------------------------------
-hPTopics   = findobj(Fhelp,'UserData','PrevTopics');
-PrevTopics = get(hPTopics,'String');
-Prompt     = PrevTopics(1,:); PrevTopics(1,:)=[];
-PrevTopics = str2mat(Topic,PrevTopics);
-%-Delete any replications of Topic within PrevTopics
-if size(PrevTopics,1)>1
-	IDRows=[0, all( PrevTopics(2:size(PrevTopics,1),:)'==...
-		setstr(ones(size(PrevTopics,1)-1,1)*PrevTopics(1,:))' ) ];
-	PrevTopics(IDRows,:)=[];
+if isempty(hPTopics)
+	hPTopics   = findobj(Fhelp,'UserData','PrevTopics');
+	PrevTopics = get(hPTopics,'String');
+	Prompt     = PrevTopics(1,:); PrevTopics(1,:)=[];
+	PrevTopics = str2mat(Topic,PrevTopics);
+	% %-Delete any replications of Topic within PrevTopics
+	% if size(PrevTopics,1)>1
+	% 	IDRows=[0, all( PrevTopics(2:size(PrevTopics,1),:)'==...
+	% 		setstr(ones(size(PrevTopics,1)-1,1)*...
+	% 		PrevTopics(1,:))' ) ];
+	% 	PrevTopics(IDRows,:)=[];
+	% end
+	%-Truncate to 20 items max
+	if size(PrevTopics,1)>20 PrevTopics(21:size(PrevTopics,1),:)=[]; end
+	PrevTopics=str2mat(Prompt,PrevTopics);
 end
-%-Truncate to 20 items max.
-if size(PrevTopics,1)>20 PrevTopics(21:size(PrevTopics,1),:)=[]; end
 %-Update popup
-set(hPTopics,'String',str2mat(Prompt,PrevTopics),'Value',1)
+set(hPTopics,'String',PrevTopics,'Value',1)
 
 %-Find referenced topics
 %-----------------------------------------------------------------------
@@ -639,7 +661,7 @@ q     = findstr(S,'spm_');
 for i = 1:length(q)
     d = [0:32] + q(i);
     Q = S(d(d <= length(S)));
-    d = find((Q == ';') | (Q == '(') | (Q == 10) | (Q == '.') | (Q == ' '));
+    d = find(Q==';'|Q=='('|Q==')'|Q==10|Q=='.'|Q==','|Q==' ');
 	if length(d)
 	  tmp = [0:3]+min(d); tmp = Q(tmp(tmp<=length(Q)));
 	  if strcmp(tmp,'.man')
@@ -791,8 +813,8 @@ elseif strcmp(lower(Action),lower('!CreateBar'))
 %=======================================================================
 % spm_help('!CreateBar',F)
 %-----------------------------------------------------------------------
-% Print | Clear		| Current Topic		| Menu	| Help | Quit
-%   SPMver		| Referenced Topics	| Previous Topics
+% Print | Clear | Current Topic     | Menu | Help | Back | Exit
+% About SPMver  | Referenced Topics |   Previous Topics  |
 %-----------------------------------------------------------------------
 
 if nargin<2, F='Help'; else, F = P2; end
@@ -806,7 +828,7 @@ set(F,'Units','Pixels');
 P     = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
 S_Gra = P./[600, 865];				% x & y scaling coefs
 
-nBut  = 10;
+nBut  = 11;
 nGap  = 4;
 sx    = floor(P(1)./(nBut+(nGap+2)/6));		% uicontrol object width
 dx    = floor(2*sx/6);				% inter-uicontrol gap
@@ -854,13 +876,13 @@ uicontrol(F,'Style','PopUp',...
 	'Position',[x-1,y2-1,4*sx+1,sy],...
 	'String','Referenced Topics...',...
 	'Callback',...
-		'spm_help(get(gco,''Value''))',...
+		'spm_help(''!PullDownTopic'')',...
 	'Tag','NoDelete',...
 	'UserData','RefdTopics',...
 	'HorizontalAlignment','Left',...
 	'ForegroundColor','k'), x = x+sx;
 
-uicontrol(F,'Style','Edit',	'String','<topic>',...
+uicontrol(F,'Style','Edit',	'String','',...
 	'Position',[x y 3*sx sy],...
 	'CallBack','spm_help(get(gco,''String''))',...
 	'Tag','NoDelete',...
@@ -877,7 +899,7 @@ uicontrol(F,'Style','PopUp',...
 	'Position',[x-1,y2-1,3*sx+2*dx+1,sy],...
 	'String',str2mat('Previous Topics...','Menu'),...
 	'Callback',...
-		'spm_help(get(gco,''Value''))',...
+	'if get(gco,''Value'')~=1,spm_help(get(gco,''Value'')),end',...
 	'Tag','NoDelete',...
 	'UserData','PrevTopics',...
 	'HorizontalAlignment','Left',...
@@ -888,18 +910,69 @@ uicontrol(F,'String','Help',   'Position',[x y sx sy],...
 	'Interruptible','No',...
 	'Tag','NoDelete','ForegroundColor','g'), x = x+sx+dx;
 
+uicontrol(F,'String','Back',   'Position',[x y sx sy],...
+	'CallBack','spm_help(''!Topic'',-1)',...
+	'Interruptible','No',...
+	'Tag','NoDelete'), x = x+sx+dx;
+
 uicontrol(F,'String','Exit',   'Position',[x y sx sy],...
 	'CallBack','spm_help(''!Quit'')',...
 	'Interruptible','No',...
 	'Tag','NoDelete','ForegroundColor','r')
+
+%-Create FigureKeyPressFcn to edit Topic widget
+%-----------------------------------------------------------------------
+cb=['spm_help(''!FigKeyPressFcn'',',...
+	'findobj(gcf,''UserData'',''Topic''),',...
+	'get(gcf,''CurrentCharacter''))'];
+set(F,'KeyPressFcn',cb)
+
 return
 
+elseif strcmp(lower(Action),lower('!PullDownTopic'))
+%=======================================================================
+% spm_help('!PullDownTopic')
+Topic = get(gco,'Value');
+if Topic==1, return, end
+Topics = get(gco,'String');
+spm_help('!Topic',deblank(Topics(Topic,:)))
+return
+
+
+elseif strcmp(lower(Action),lower('!FigKeyPressFcn'))
+%=======================================================================
+% spm_help('!FigKeyPressFcn',h,ch)
+if nargin<2, error('Insufficient arguments'), else, h=P2; end
+if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
+
+tmp = get(h,'String');
+
+if abs(ch)==13
+	%-Goto topic
+	spm_help(tmp)
+	return
+elseif any(abs(ch)==[32:126])
+	tmp = [tmp, ch];
+elseif abs(ch)==21
+	%- ^U - kill
+	tmp = '';
+elseif any(abs(ch)==[8,127])
+	%-BackSpace or Delete
+	if length(tmp), tmp(length(tmp))=''; end
+elseif abs(ch)==13
+	fprintf('Return shouldn''t be passed to this routine!')
+else
+	%-Illegal character
+	return
+end
+set(h,'String',tmp)
+return
 
 elseif strcmp(lower(Action),lower('!Clear'))
 %=======================================================================
 % spm_help('!Clear',F)
 %-Clear window, leaving 'NoDelete' 'Tag'ed objects, hiding 'HelpMenu'
-% 'UserData' Tagged objects.
+% 'UserData' Tagged objects. Clear "Topic" window.
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
@@ -913,6 +986,7 @@ for h = get(F,'Children')'
 	if ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
 end
 set(findobj(F,'UserData','HelpMenu'),'Visible','off')
+set(findobj(F,'UserData','Topic'),'String','');
 return
 
 
