@@ -53,6 +53,7 @@ elseif SPMF
 	[t,XYZ,XA,U,k,s,w] = spm_projectionsF_ui('Results');
 
 end
+K        = [];
 load([CWD,'/SPM'])
 S        = s;
 W        = w;
