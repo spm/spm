@@ -133,7 +133,7 @@ for iter=1:64
 	movement = max(sqrt(sum(corners1-corners2).^2));
 	fprintf(' %.3f\n', movement);
 
-	if (movement < 0.25 & iter >= 8)
+	if (movement < 0.25 & iter >= 12)
 		break;
 	end
 end

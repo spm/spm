@@ -91,7 +91,7 @@ if (a1 == 1 | a1 == 3)
 	for i=1:nsubjects
 		eval(['matname=matname' num2str(i) ';']);
 		eval(['P=P' num2str(i) ';']);
-		spm_sn3d(P,matname,bb,Vox,[nbasis iterations 7 smoothness],Template);
+		spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 smoothness],Template);
 	end
 end
 set(2,'Name','Writing     Normalised','Pointer','Watch'); drawnow;
