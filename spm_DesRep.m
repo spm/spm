@@ -10,8 +10,8 @@ function varargout = spm_DesRep(varargin)
 %
 % ======================================================================
 %
-% FORMAT spm_DesRep('Files&Vars',P,I,xC,sF,xs)
-% Produces multi-page listing of indices, covariates and files
+% FORMAT spm_DesRep('Files&Factors',P,I,xC,sF,xs)
+% Produces multi-page listing of files, factor indices, and covariates.
 % P   - nx1 CellStr of filenames (i.e. {V.fname}')
 % I   - nx4 matrix of factor indices
 % xC  - Covariate structure array (see spm_spm_ui.m for definitions)
@@ -76,9 +76,9 @@ if nargin==0, error('do what? no arguments given...')
 
 
 
-switch lower(action), case 'files&vars'    %-Summarise files & variables
+switch lower(action), case 'files&factors'   %-Summarise files & factors
 %=======================================================================
-% spm_DesRep('Files&Vars',P,I,xC,sF,xs)
+% spm_DesRep('Files&Factors',P,I,xC,sF,xs)
 if nargin<4, error('insufficient arguments'), end
 P  = varargin{2};
 I  = varargin{3};
@@ -460,7 +460,7 @@ for i = 1:length(xC)
 	%-Highlight parameter names
 	%---------------------------------------------------------------
 	hCurPNames = hPNames(xC(i).cols);
-	set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(2))
+	set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(1))
 
 
 	%-Paginate (if more than one covariate)
