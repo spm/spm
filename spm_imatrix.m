@@ -10,59 +10,35 @@ function P = spm_imatrix(M)
 %-----------------------------------------------------------------------
 R         = M(1:3,1:3);
 C         = chol(R'*R);
-Pt        = [M(1:3,4)' 0 0 0  diag(C)'  0 0 0];
-if det(R)<0, Pt(7)=-Pt(7);end % Fix for -ve determinants
+P         = [M(1:3,4)' 0 0 0  diag(C)'  0 0 0];
+if det(R)<0, P(7)=-P(7);end % Fix for -ve determinants
 
 % Shears
 %-----------------------------------------------------------------------
 C         = diag(diag(C))\C;
-Pt(10:12) = C([4 7 8]);
-R0        = spm_matrix([0 0 0  0 0 0 Pt(7:12)]);
+P(10:12)  = C([4 7 8]);
+R0        = spm_matrix([0 0 0  0 0 0 P(7:12)]);
 R0        = R0(1:3,1:3);
-
-% This just leaves us with rotations in matrix R1
-%-----------------------------------------------------------------------
 R1        = R/R0;
 
-% We aren't sure of `x' if we know `sin(x)', so try different
-% combinations.
+% This just leaves rotations in matrix R1
 %-----------------------------------------------------------------------
-perm = [
- 1  1  1
- 1  1  0
- 1  0  1
- 1  0  0
- 0  1  1
- 0  1  0
- 0  0  1
- 0  0  0]';
+%[          c5*c6,           c5*s6, s5]
+%[-s4*s5*c6-c4*s6, -s4*s5*s6+c4*c6, s4*c5]
+%[-c4*s5*c6+s4*s6, -c4*s5*s6-s4*c6, c4*c5]
 
-ss = Inf;
-for p=perm
+P(5) = asin(rang(R1(1,3)));
+if (abs(P(5))-pi/2).^2 < 1e-9,
+	P(4) = 0;
+	P(6) = atan2(-rang(R1(2,1)), rang(-R1(3,1)/R1(1,3)));
+else,
+	c    = cos(P(5));
+	P(4) = atan2(rang(R1(2,3)/c), rang(R1(3,3)/c));
+	P(6) = atan2(rang(R1(1,2)/c), rang(R1(1,1)/c));
+end;
+return;
 
-	t = R1(1,3);
-	t = min(max(t, -1), 1); % Fix for occasional rounding errors
-	Pt(5) = asin(t);
-	if p(1)==1, Pt(5) = pi-Pt(5); end;
-
-	t = R1(1,2)/cos(Pt(5));
-	t = min(max(t, -1), 1); % Fix for occasional rounding errors
-	Pt(6) = asin(t);
-	if p(2)==1, Pt(6) = pi-Pt(6); end;
-
-	t = R1(2,3)/cos(Pt(5));
-	t = min(max(t, -1), 1); % Fix for occasional rounding errors
-	Pt(4) = asin(t);
-	if p(3)==1, Pt(4) = pi-Pt(4); end;
-
-	% See which version works best
-	%-----------------------------------------------------------------------
-	M1 =	[1 0 0; 0 cos(Pt(4)) sin(Pt(4)); 0 -sin(Pt(4)) cos(Pt(4))] * ...
-		[cos(Pt(5)) 0 sin(Pt(5)); 0 1 0; -sin(Pt(5)) 0 cos(Pt(5))] * ...
-		[cos(Pt(6)) sin(Pt(6)) 0; -sin(Pt(6)) cos(Pt(6)) 0; 0 0 1];
-
-	% use the parameters that produce the closest matrix
-	% but also have the smallest magnitude.
-	s = sum((M1(:)-R1(:)).^2) + (Pt(4)+Pt(5)+Pt(6))/1000;
-	if (s<ss), ss = s; P = Pt; end
-end
+% There may be slight rounding errors making b>1 or b<-1.
+function a = rang(b)
+a = min(max(b, -1), 1);
+return;
