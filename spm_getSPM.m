@@ -134,7 +134,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
 
-SCCSid   = '2.37';
+SCCSid   = '%I%';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -666,7 +666,9 @@ end % (if ~isempty(XYZ))
 
 %-Extent threshold (only for allowed cases)
 %-----------------------------------------------------------------------
-if ~isempty(XYZ) & length(Ic) == 1 & STAT == 'T'
+
+%if ~isempty(XYZ) & length(Ic) == 1 & STAT == 'T'
+if ~isempty(XYZ) & length(Ic) == 1
 
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
