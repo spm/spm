@@ -694,6 +694,7 @@ if isempty(Fhelp)
 else
 	set(Fhelp,'Visible','on')
 end
+FS = spm_figure('FontSizes');
 set(Fhelp,'Pointer','Watch')
 spm_help('!Clear',Fhelp)
 
@@ -714,56 +715,57 @@ q     = min([length(S),findstr(S,setstr([10 10]))]);	% find empty lines
 q     = find(S(1:q(1)) == 10);				% find line breaks
 
 figure(Fhelp)
-hAxes = axes('Position',[0.05,0.05,0.8,0.85],...
+hAxes = axes('Position',[0.05,0.05,0.9,0.85],...
 		'DefaultTextInterpreter','none',...
 		'Units','Points','Visible','off');
-y     = floor(get(hAxes(1),'Position'));
-y0    = y(3);
-set(hAxes(1),'Ylim',[0,y0])
-text(-0.05,y0,TTitle,'FontSize',16,'FontWeight','bold');
-y     = y0 - 24;
+AxPos = get(hAxes,'Position'); set(hAxes,'YLim',[0,AxPos(4)])
+
+dy = FS(1)*1.2; y0 = floor(AxPos(4)) -dy; y  = y0;
+
+text(-0.03,y0,TTitle,'FontSize',FS(5),'FontWeight','bold');
+y     = y0 - FS(5);
 
 
 %-Loop over pages & lines of text
 %-----------------------------------------------------------------------
-Vis     = 'on';
 FmtLine = 1;
 for i = 1:(length(q) - 1)
 	d = S((q(i) + 1):(q(i + 1) - 1));
+
+	%-Display help text lines
 	if d(1) == abs('%');
 		%-For some reason, '|' characters cause a CR.
 		d = strrep(d,'|','I');
 		h = text(0,y,d(2:length(d)),...
-			'FontName','Courier','FontSize',10,'Visible',Vis);
+			'FontName','Courier','FontSize',FS(1));
 		if FmtLine
 			set(h,'FontWeight','bold',...
-				'FontName','Times','FontSize',12);
-			y=y-5;
+				'FontName','Times','FontSize',FS(3));
+			y = y - FS(1);
 			FmtLine=0;
 		end
-		y = y - 7;
+		y = y - dy;
 	end
-	if y<0 %-Start new page
+
+	%-Paginate if necessary
+	if y<0
 		text(0.5,-10,['Page ',num2str(length(hAxes))],...
-			'FontSize',8,'FontAngle','Italic',...
-			'Visible',Vis)
-		spm_figure('NewPage',get(gca,'Children'))
-		hAxes = [hAxes,axes('Position',[0.05,0.05,0.8,0.85],...
+			'FontSize',FS(1),'FontAngle','Italic')
+		spm_figure('NewPage',[hAxes(end);get(hAxes(end),'Children')])
+		hAxes = [hAxes,axes('Units','Points','Position',AxPos,...
 				'DefaultTextInterpreter','none',...
-				'Units','Points',...
-				'Visible','off')];
-		set(hAxes(length(hAxes)),'Ylim',[0,y0])
+				'YLim',[0,AxPos(4)],'Visible','off')];
 		y     = y0;
-		Vis   = 'off';
 	end
 end
-if strcmp(Vis,'off')
-	%-Label last page
-	text(0.5,-10,['Page ',num2str(length(hAxes))],...
-		'FontSize',8,'FontAngle','Italic',...
-		'Visible',Vis)
-	spm_figure('NewPage',get(gca,'Children'))
+
+%-Register last page if paginated
+if length(hAxes)>1
+	text(0.5,-10,sprintf('Page %d/%d',length(hAxes)*[1,1]),...
+		'FontSize',FS(1),'FontAngle','italic')
+	spm_figure('NewPage',[hAxes(end);get(hAxes(end),'Children')])
 end
+
 set(Fhelp,'Pointer','Arrow')
 
 
