@@ -659,8 +659,9 @@ for i = valid_handles(arg1),
 				msk  = find(tmpc>0); imgc(msk) = 64+tmpc(msk)*(64/mx);
 				msk  = find(tmps>0); imgs(msk) = 64+tmps(msk)*(64/mx);
 				cmap = get(st.fig,'Colormap');
-				if size(cmap,1)~=128,
-					set(st.fig,'Colormap',[gray(64); hot(64)]);
+				if size(cmap,1)~=128
+					figure(st.fig)
+					spm_figure('Colormap','gray-hot')
 				end;
 			else,
 				% Add full colour blobs - several sets at once
