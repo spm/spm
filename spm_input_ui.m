@@ -388,8 +388,45 @@ function varargout = spm_input(varargin)
 %		Displays message in next GUI position in red and sounds
 %               the keyboard bell. Message is labelled as a 'Warning'
 %               Position used is returned in YPos.
+%
+%-----------------------------------------------------------------------
+% FORMAT h = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB);
+% PullDown menu utility - creates a pulldown menu in the Interactive window
+%
+% Prompt, YPos, Labels - as with 'm'enu type
+% cb  - CallBack string
+% UD  - UserData
+% XCB - Extended CallBack handling - allows different CallBack for each item,
+%       and use of CB in CallBack strings.
+% h   - Handle of 'PullDown' uicontrol
+%
+% In "normal" mode (when XCB is false), this is essentially a utility
+% to create a PullDown menu widget in the SPM 'Interactive' figure,
+% using positioning and Label definition conveniences of the spm_input
+% 'm'enu type. If Prompt is not empty, then the PullDown appears on the
+% right, with the Prompt on the left, otherwise the PullDown uses the
+% whole width of the Interactive figure. The PopUp's CallBack string is
+% specified in cb, and [optional] UserData may be passed as UD.
+%
+% In "extended callback" mode (when XCB is true), you can specify a
+% different CallBack string for each item (pass cb as a string matrix
+% or cellstr with same number of items as there are Labels), and can
+% use UD in the CallBack strings. (What happens is this: The cb & UD
+% are stored as fields in the PopUp's UserData structure, and the
+% PopUp's callback is set to spm_input('!p_cb'), which reads UD into
+% the functions workspace and eval's the appropriate CallBack string.
+% Note that this means that base workspace variables are inaccessible
+% (put what you need in UD), and that any return arguments from
+% CallBack functions are not passed back to the base workspace).
+% 
+%
 %-----------------------------------------------------------------------
 % UTILITY FUNCTIONS:
+%
+% FORMAT colour = spm_input('!Colour')
+% Returns colour for input widgets, as specified in COLOUR parameter at 
+% start of code.
+% colour  - [r,g,b] colour triple
 %
 % FORMAT [iCond,msg] = spm_input('!iCond',str,n,m)
 % Parser for special 'c'ondition type: Handles digit strings and
@@ -493,6 +530,9 @@ function varargout = spm_input(varargin)
 % FORMAT spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
 % KeyPress callback for GUI pulldown menus
 %
+% FORMAT spm_input('!p_cb')
+% Extended CallBack handler for 'p' PullDown utility type
+%
 % FORMAT spm_input('!dScroll',h,str)
 % Scroll text string in object h
 % h      - handle of text object
@@ -520,7 +560,7 @@ function varargout = spm_input(varargin)
 
 %-Parameters
 %=======================================================================
-COLOR    = [.8,.8,1];	%-Question background colour
+COLOUR   = [.8,.8,1];	%-Question background colour
 PJump    = 1;		%-Jumping of pointer to question?
 TTips    = 1;		%-Use ToolTipStrings? (which can be annoying!)
 ConCrash = 1;		%-Add "crash out" option to 'Interactive'fig.ContextMenu
@@ -528,9 +568,10 @@ ConCrash = 1;		%-Add "crash out" option to 'Interactive'fig.ContextMenu
 
 %-Condition arguments
 %=======================================================================
-if nargin<1|isempty(varargin{1}), Prompt='<not set>';else,Prompt=varargin{1};end
+if nargin<1|isempty(varargin{1}), Prompt=''; else, Prompt=varargin{1}; end
 
-if Prompt(1)=='!'	%-Utility functions have Prompt starting with '!'
+if ~isempty(Prompt) & Prompt(1)=='!'
+	%-Utility functions have Prompt starting with '!'
 	Type = Prompt;
 else			%-Should be an input request: get Type & YPos
 	if nargin<3|isempty(varargin{3}), Type='e';  else, Type=varargin{3}; end
@@ -552,52 +593,7 @@ else			%-Should be an input request: get Type & YPos
 end
 
 
-switch lower(Type), case {'d','d!'}                    %-Display message
-%=======================================================================
-%-Condition arguments
-if nargin<4, Label=''; else, Label=varargin{4}; end
-
-if strcmp(lower(Type),'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
-if CmdLine
-	fprintf('\n     +-%s%s+',Label,repmat('-',1,57-length(Label)))
-	Prompt = [Prompt,' '];
-	while length(Prompt)>0
-		tmp = length(Prompt);
-		if tmp>56, tmp=min([max(find(Prompt(1:56)==' ')),56]); end
-		fprintf('\n     | %s%s |',Prompt(1:tmp),repmat(' ',1,56-tmp))
-		Prompt(1:tmp)=[];
-	end
-	fprintf('\n     +-%s+\n',repmat('-',1,57))
-else
-	if ~isempty(Label), Prompt = [Label,': ',Prompt]; end
-	figure(Finter)
-	%-Create text axes and edit control objects
-	%---------------------------------------------------------------
-	h = uicontrol(Finter,'Style','Text',...
-		'String',Prompt(1:min(length(Prompt),56)),...
-		'Tag',['GUIinput_',int2str(YPos)],...
-		'HorizontalAlignment','Center',...
-		'ForegroundColor',dCol,...
-		'UserData',Prompt,...
-		'Position',QRec);
-	if length(Prompt)>56
-		pause(1)
-		set(h,'ToolTipString',Prompt)
-		spm_input('!dScroll',h)
-		uicontrol(Finter,'Style','PushButton','String','>',...
-			'ToolTipString','press to scroll message',...
-			'Tag',['GUIinput_',int2str(YPos)],...
-			'UserData',h,...
-			'CallBack',[...
-			 'set(gcbo,''Visible'',''off''),',...
-			 'spm_input(''!dScroll'',get(gcbo,''UserData'')),',...
-			 'set(gcbo,''Visible'',''on'')'],...
-			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
-	end
-end
-varargout={[],YPos};
-
-
+switch lower(Type)
 case {'s','e','n','w','i','r','c','x'}      %-String and evaluated input
 %=======================================================================
 %-Condition arguments
@@ -681,18 +677,18 @@ else
 		'UserData',hPrmpt,...
 		'CallBack',cb,...
 		'Horizontalalignment','Left',...
-		'BackgroundColor',COLOR,...
+		'BackgroundColor',COLOUR,...
 		'Position',RRec);
 	set(hDef,'UserData',[hPrmpt,h])
 	if TTips
-		switch Type
+		switch lower(Type)
 		case 's', str='enter string';
 		case 'e', str='enter expression to evaluate';
 		case 'n', str='enter expression - natural number(s)';
 		case 'w', str='enter expression - whole number(s)';
 		case 'i', str='enter expression - integer(s)';
 		case 'r', str='enter expression - real number(s)';
-		case 'c', str='enter conditions e.g. 0101...  or abab...';
+		case 'c', str='enter indicator vector e.g. 0101...  or abab...';
 		case 'x', str='enter contrast matrix';
 		otherwise, str='enter expression'; end
 		set(h,'ToolTipString',str)
@@ -771,7 +767,7 @@ case {'b','b|','y/n','be1','bn1','bw1','bi1','br1',...
 	'-n1','n1','-w1','w1','m'}             %-'b'utton & 'm'enu Types
 %=======================================================================
 %-Condition arguments
-switch Type, case {'b','be1','bi1','br1','m'}
+switch lower(Type), case {'b','be1','bi1','br1','m'}
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels='';   else, Labels =varargin{4}; end
@@ -795,7 +791,7 @@ case 'bw1'
 	if nargin<4, Labels=[0:4]'; Values=[0:4]; Type='-w1';
 		else, Labels=varargin{4}; end
 case {'-n1','n1','-w1','w1'}
-	switch Type
+	switch lower(Type)
 	case {'n1','-n1'}, Labels=[1:5]'; Values=[1:5]; Type='-n1';
 	case {'w1','-n1'}, Labels=[0:4]'; Values=[0:4]; Type='-w1';
 	end
@@ -843,7 +839,7 @@ if isnumeric(Labels)
 end
 
 
-switch Type, case {'b','b|','y/n'}                %-Process button types
+switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 %=======================================================================
 	
 	%-Make unique character keys for the Labels, sort DefItem
@@ -948,7 +944,7 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 					'Tag',Tag,...
 					'Max',hPrmpt,...
 					'UserData',i,...
-					'BackgroundColor',COLOR,...
+					'BackgroundColor',COLOUR,...
 					'Callback',cb,...
 					'Position',[RRec(1)+(i-1)*dX+1 ...
 							RRec(2) dX-2 RRec(4)]);
@@ -1076,7 +1072,7 @@ if CmdLine
 
 		%-"specify option chosen: ask user to specify
 		%-------------------------------------------------------
-		switch Type(2)
+		switch lower(Type(2))
                 case 's', tstr=' string';        case 'e', tstr='n expression';
                 case 'n', tstr=' natural number';case 'w', tstr=' whole number';
                 case 'i', tstr='n integer';      case 'r', tstr=' real number';
@@ -1132,7 +1128,7 @@ else
 			'ToolTipString',str,...
 			'Tag',Tag,...
 			'UserData',i,...
-			'BackgroundColor',COLOR,...
+			'BackgroundColor',COLOUR,...
 			'Callback',cb,...
 			'Position',[RRec(1)+(i-1)*dX+1 RRec(2) dX-2 RRec(4)]);
 		H = [H,h];
@@ -1169,7 +1165,7 @@ else
 		'UserData',hPrmpt,...
 		'CallBack',cb,...
 		'Horizontalalignment','Center',...
-		'BackgroundColor',COLOR,...
+		'BackgroundColor',COLOUR,...
 		'Position',...
 			[RRec(1)+RRec(3)*(2/3)+2 RRec(2) RRec(3)/3-2 RRec(4)]);
 	set(hDef,'UserData',[hPrmpt,h])
@@ -1289,8 +1285,8 @@ case 'm'                                             %-Process menu type
 			hPopUp = uicontrol(Finter,'Style','PopUp',...
 				'HorizontalAlignment','Left',...
 				'ForegroundColor','k',...
-				'BackgroundColor',COLOR,...
-				'String',str2mat([Prompt,'...'],Labs),...
+				'BackgroundColor',COLOUR,...
+				'String',strvcat([Prompt,'...'],Labs),...
 				'Tag',Tag,...
 				'UserData',DefItem,...
 				'CallBack',cb,...
@@ -1339,7 +1335,7 @@ case 'm'                                             %-Process menu type
 	p = Values(k,:); if ischar(p), p=deblank(p); end
 
 otherwise, error('unrecognised type')
-end % (switch Type within case {'b','m'})
+end % (switch lower(Type) within case {'b','b|','y/n'})
 
 
 %-Log the transaction & return response
@@ -1350,14 +1346,135 @@ varargout = {p,YPos};
 
 
 
+case 'p'                                         %-PullDown menu utility
+%=======================================================================
+% h = spm_input(Prompt,YPos,'p',Labels,cb,UD,XCB)
+%-Condition arguments
+if nargin<7, XCB    = 0;  else, XCB    = varargin{7}; end
+if nargin<6, UD     = []; else, UD     = varargin{6}; end
+if nargin<5, cb     = ''; else, cb     = varargin{5}; end
+if nargin<4, Labels = []; else, Labels = varargin{4}; end
+
+if CmdLine, error('Can''t do CmdLine PullDowns!'), end
+if isempty(cb), cb = 'disp(''(CallBack not set)'')'; end
+if length(cb)>1, XCB=1; end
+
+if iscellstr(Labels), Labels=char(Labels); end
+%-Convert Labels "option" string to string matrix if required
+if any(Labels=='|')
+	OptStr=Labels;
+	BarPos=find([OptStr=='|',1]);
+	Labels=OptStr(1:BarPos(1)-1);
+	for Bar = 2:sum(OptStr=='|')+1
+		Labels=strvcat(Labels,OptStr(BarPos(Bar-1)+1:BarPos(Bar)-1));
+	end
+end
+
+%-Sort out UserData for extended callbacks (handled by spm_input('!p_cb')
+%-----------------------------------------------------------------------
+if XCB
+	if ischar(cb), cb = cellstr(cb); end
+	if ~( length(cb)==1 | (length(cb)==size(Labels,1)) )
+		error('Labels & Callbacks size mismatch'), end
+	if iscell(UD), UD={UD}; end
+	UD = struct('UD',UD,'cb',{cb});
+	cb = 'spm_input(''!p_cb'')';
+end
+
+%-Draw Prompt & PullDown
+%-----------------------------------------------------------------------
+Tag = ['GUIinput_',int2str(YPos)];			%-Tag for widgets
+
+if ~isempty(Prompt)
+	uicontrol(Finter,'Style','Text',...
+		'String',Prompt,...
+		'Tag',Tag,...
+		'HorizontalAlignment','Right',...
+		'Position',PRec)
+	Rec = RRec;
+else
+	Rec = QRec;
+end
+
+h = uicontrol(Finter,'Style','PopUp',...
+	'HorizontalAlignment','Left',...
+	'ForegroundColor','k',...
+	'BackgroundColor',COLOUR,...
+	'String',Labels,...
+	'Tag',['GUIinput_',int2str(YPos)],...
+	'UserData',UD,...
+	'CallBack',cb,...
+	'Position',Rec);
+
+
+%-Bring window to fore & jump pointer to menu widget
+[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
+
+varargout = {h};
+
+
+
+case {'d','d!'}                                        %-Display message
+%=======================================================================
+%-Condition arguments
+if nargin<4, Label=''; else, Label=varargin{4}; end
+
+if strcmp(lower(Type),'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
+if CmdLine
+	fprintf('\n     +-%s%s+',Label,repmat('-',1,57-length(Label)))
+	Prompt = [Prompt,' '];
+	while length(Prompt)>0
+		tmp = length(Prompt);
+		if tmp>56, tmp=min([max(find(Prompt(1:56)==' ')),56]); end
+		fprintf('\n     | %s%s |',Prompt(1:tmp),repmat(' ',1,56-tmp))
+		Prompt(1:tmp)=[];
+	end
+	fprintf('\n     +-%s+\n',repmat('-',1,57))
+else
+	if ~isempty(Label), Prompt = [Label,': ',Prompt]; end
+	figure(Finter)
+	%-Create text axes and edit control objects
+	%---------------------------------------------------------------
+	h = uicontrol(Finter,'Style','Text',...
+		'String',Prompt(1:min(length(Prompt),56)),...
+		'Tag',['GUIinput_',int2str(YPos)],...
+		'HorizontalAlignment','Center',...
+		'ForegroundColor',dCol,...
+		'UserData',Prompt,...
+		'Position',QRec);
+	if length(Prompt)>56
+		pause(1)
+		set(h,'ToolTipString',Prompt)
+		spm_input('!dScroll',h)
+		uicontrol(Finter,'Style','PushButton','String','>',...
+			'ToolTipString','press to scroll message',...
+			'Tag',['GUIinput_',int2str(YPos)],...
+			'UserData',h,...
+			'CallBack',[...
+			 'set(gcbo,''Visible'',''off''),',...
+			 'spm_input(''!dScroll'',get(gcbo,''UserData'')),',...
+			 'set(gcbo,''Visible'',''on'')'],...
+			'Position',[QRec(1)+QRec(3)-10,QRec(2),15,QRec(4)]);
+	end
+end
+varargout={[],YPos};
+
+
+
 %=======================================================================
 % U T I L I T Y   F U N C T I O N S 
 %=======================================================================
 
+case '!colour'
+%=======================================================================
+% colour = spm_input('!Colour')
+varargout = {COLOUR};
+
+
 case '!icond'
 %=======================================================================
 % [iCond,msg] = spm_input('!iCond',str,n,m)
-% Parse condition spec strings:
+% Parse condition indicator spec strings:
 %	'2 3 2 3', '0 1 0 1', '2323', '0101', 'abab', 'R A R A'
 if nargin<4, m=Inf; else, m=varargin{4}; end
 if nargin<3, n=NaN; else, n=varargin{3}; end
@@ -1374,7 +1491,7 @@ if ischar(i)
 	if i(1)=='0' & all(ismember(unique(i(:)),setstr(abs('0'):abs('9'))))
 		%-Leading zeros in a digit list
 		msg = sprintf('%s expanded',i);
-		z = min(find(diff(i=='0')));
+		z = min(find([diff(i=='0'),1]));
 		i = [zeros(1,z), spm_input('!iCond',i(z+1:end))'];
 	else
 		%-Try an eval, for functions & string #s
@@ -1389,8 +1506,9 @@ if ischar(i)
 		%-Map characters a-z to 1-26, but let 'r' be zero (rest)
 		tmp = c-'a'+1; tmp(tmp=='r'-'a'+1)=0;
 		i   = tmp(i);
-		msg = [sprintf('[%s] mapped to [%d',c,tmp(1)),...
-			sprintf(',%d',tmp(2:end)),']'];
+		msg = [sprintf('[%s] mapped to [',c),...
+			sprintf('%d,',tmp(1:end-1)),...
+			sprintf('%d',tmp(end)),']'];
 	else
 		i = '!'; msg = 'evaluation error';
 	end
@@ -1766,6 +1884,28 @@ else
 end
 
 
+case '!p_cb'     %-CallBack handler for extended CallBack 'p'ullDown type
+%=======================================================================
+% spm_input('!p_cb')
+
+%-Get PopUp handle and value
+h   = gcbo;
+n   = get(h,'Value');
+
+%-Get PopUp's UserData, check cb and UD fields exist, extract cb & UD
+tmp = get(h,'UserData');
+if ~(isfield(tmp,'cb') & isfield(tmp,'UD'))
+	error('Invalid UserData structure for spm_input extended callback')
+end
+cb  = tmp.cb;
+UD  = tmp.UD;
+
+%-Evaluate appropriate CallBack string (ignoring any return arguments)
+% NB: Using varargout={eval(cb{n})}; gives an error if the CallBack 
+% has no return arguments!
+if length(cb)==1, eval(char(cb)); else, eval(cb{n}); end
+
+
 case '!dscroll'
 %=======================================================================
 % spm_input('!dScroll',h,Prompt)
@@ -1844,7 +1984,7 @@ case 'n'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
-	elseif any(floor(p(:))~=p(:)|p(:)<1|~isreal(p(:)))
+	elseif any(floor(p(:))~=p(:)|p(:)<1)|~isreal(p)
 		p='!'; msg='natural number(s) required';
 	elseif ~any(isnan(n(:)))
 		[p,msg] = sf_SzChk(p,n);
@@ -1855,7 +1995,7 @@ case 'w'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
-	elseif any(floor(p(:))~=p(:)|p(:)<0|~isreal(p(:)))
+	elseif any(floor(p(:))~=p(:)|p(:)<0)|~isreal(p)
 		p='!'; msg='whole number(s) required';
 	elseif ~any(isnan(n(:)))
 		[p,msg] = sf_SzChk(p,n);
@@ -1866,7 +2006,7 @@ case 'i'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
-	elseif any(floor(p(:))~=p(:)|~isreal(p(:)))
+	elseif any(floor(p(:))~=p(:))|~isreal(p)
 		p='!'; msg='integer(s) required';
 	elseif ~any(isnan(n(:)))
 		[p,msg] = sf_SzChk(p,n);
@@ -1877,7 +2017,7 @@ case 'r'
 	p = evalin('base',['[',str,']'],'''!''');
 	if isstr(p)
 		msg = 'evaluation error';
-	elseif any(~isreal(p(:)))
+	elseif ~isreal(p)
 		p='!'; msg='real number(s) required';
 	elseif ~any(isnan(n(:)))
 		[p,msg] = sf_SzChk(p,n);
