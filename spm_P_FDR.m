@@ -5,10 +5,11 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Z     - height (minimum of n statistics)
 % df    - [df{interest} df{error}]
 % STAT  - Statisical field
-%		'Z' - Gaussian feild
-%		'T' - T - feild
-%		'X' - Chi squared feild
-%		'F' - F - feild
+%		'Z' - Gaussian field
+%		'T' - T - field
+%		'X' - Chi squared field
+%		'F' - F - field
+%		'P' - P - value
 % n     - number of component SPMs in conjunction
 % Ps    - Vector of sorted (ascending) p-values in search volume
 %
@@ -82,6 +83,8 @@ elseif  STAT == 'X'
   PZ = (1 - spm_Xcdf(Z,df(2))).^n;
 elseif  STAT == 'F'
   PZ = (1-spm_Fcdf(Z,df)).^n;
+elseif  STAT == 'P'
+  PZ = Z;
 end
 
 %-Calculate FDR p values
