@@ -16,6 +16,7 @@
 global PRINTSTR LOGFILE CMDLINE GRID
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+global fMRI_T fMRI_T0
 
 % Default command for printing
 %-----------------------------------------------------------------------
@@ -184,3 +185,9 @@ sptl_BB = [[-78 -112 -50];[78 76 85]];
 % Voxel sizes in mm of the normalised images
 %-----------------------------------------------------------------------
 sptl_Vx = [2 2 2];	% 2mm x 2mm x 2mm
+
+% fMRI defaults for time sampling
+%-----------------------------------------------------------------------
+fMRI_T = 16;
+fMRI_T0 = 1;
+
