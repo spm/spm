@@ -444,7 +444,14 @@ if ~isfield(xVi,'V')
 	Hsqr   = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
 	trRV   = spm_SpUtil('trRV',xX.xKXs);
 	trMV   = spm_SpUtil('trMV',X1o);
-	UFp    = spm('GetGlobal','UFp');
+
+	% Threshold for voxels entering non-sphericity esimtates 
+	%---------------------------------------------------------------
+	try
+		UFp = eval(['defaults.stats.' lower(defaults.modality) '.ufp']);
+	catch
+		UFp = 0.001;
+	end
 	UF     = spm_invFcdf(1 - UFp,[trMV,trRV]);
 end
 
