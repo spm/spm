@@ -22,9 +22,10 @@ function spm_eeg_convertmat2ana(S)
 % Stefan Kiebel
 % $Id$
 
-[Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
-
+% [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
+% 
 % select matfiles to convert
+
 try
     Fname = S.Fname;
 catch
