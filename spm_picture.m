@@ -1,18 +1,24 @@
+
 % rendering of regional effects [SPM{Z}] on drawing of the cortical surface
 % FORMAT spm_picture
 %____________________________________________________________________________
 %
-% spm_picture is called by spm_sections_ui and uses variables in working
+% spm_picture is called after spm_results_ui, and uses variables in working
 % memory to load images/pictures of the cortical surface.  Regional
 % foci from the selected SPM{Z} are rendered on these drawings.
 %
 % These are crude renders usually used for didactic purposes only.  The
 % voxels are assigned to four parasaggistal blocks (x < -24, 0 > x > -24
-% 0 < x x< 24 and x > 24) and are displayed (as a MIP) on the appropriate
+% 0 < x  x< 24 and x > 24) and are displayed (as a MIP) on the appropriate
 % surface.
 %__________________________________________________________________________
+% %W% Karl Friston %E%
 
-set(2,'Pointer','Watch');
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+
+set(Finter,'Pointer','Watch');
+
 load Split
 colormap default
 colormap gray
@@ -89,14 +95,14 @@ end
 
 % delete previous axis
 %----------------------------------------------------------------------------
-figure(3)
+figure(Fgraph)
 subplot(2,1,2); delete(gca)
 subplot(2,2,4); image(sr');axis xy; axis image; axis off
 subplot(2,2,3); image(sl');axis xy; axis image; axis off
 
 % unmap and reset pointer (and x locations is necessary)
 %----------------------------------------------------------------------------
-set(2,'Pointer','Arrow')
+set(Finter,'Pointer','Arrow')
 
 if spm_input('write to disk ?',6,'b','yes|no',[1 0]);
 	d = spm_input('filename',6,'s');
