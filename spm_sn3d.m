@@ -349,7 +349,7 @@ if (nargin == 0)
 					subj(i).objmask = spm_get([0,1],'.img',...
 						['Select object masking image (or Done for none)']);
 				else,
-					subj(i).objmask = spm_input('batch', {},objmask',i);
+					subj(i).objmask = spm_input('batch', {},'objmask',i);
 				end;
 			end;
 
