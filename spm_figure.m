@@ -660,6 +660,9 @@ if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
+cSHH = get(0,'ShowHiddenHandles');
+set(0,'ShowHiddenHandles','on')
+
 t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
 set(findobj(t0,'Position',1),'Separator','on');
 t1 = uimenu('Parent',t0,'Position',1,...
@@ -682,6 +685,7 @@ t2=uimenu('Parent',t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''b
 t2=uimenu('Parent',t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
 t0=uimenu('Parent', F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
 t0=uimenu('Parent', F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+set(0,'ShowHiddenHandles',cSHH)
 %=======================================================================
 
 
@@ -696,7 +700,10 @@ else
 	if isempty(F), error('no such figure'), end
 end
 h       = uicontextmenu('Parent',F,'HandleVisibility','CallBack');
+cSHH = get(0,'ShowHiddenHandles');
+set(0,'ShowHiddenHandles','on')
 copy_menu(F,h);
+set(0,'ShowHiddenHandles',cSHH)
 set(F,'UIContextMenu',h)
 varargout = {h};
 
