@@ -323,6 +323,14 @@ nb = prod(size(VB));
 sumbp = zeros(1,n);
 osumpr = -Inf;
 
+% Occasionally the dynamic range of the images is such that many voxels
+% all have the same intensity.  Adding cv0 is an attempt to improve the
+% stability of the algorithm if this occurs. The value 0.083 was obtained
+% from var(rand(1000000,1)).  It prbably isn't the best way of doing
+% things, but it appears to work.
+cv0= zeros(m,m);
+for i=1:m, cv0(i,i)=0.083*mean(VF.pinfo(1,:)); end;
+
 cv = zeros(m,m,n);	% (Co)variances
 mn = zeros(m,n);	% Means
 mg = zeros(1,n);	% Number of voxels/cluster
@@ -479,7 +487,7 @@ for iter = 1:niter
 
 		tmp = (mom0(1,i).*mn(:,i))*mn(:,i)';
 		tmp = tmp-eye(size(tmp))*eps*1000;
-		cv(:,:,i) = (mom2(:,:,i) - tmp)/mom0(1,i);
+		cv(:,:,i) = (mom2(:,:,i) - tmp)/mom0(1,i) + cv0;
 	end
 	%-----------------------------------------------------------------------
 
