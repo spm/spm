@@ -17,14 +17,13 @@ spm_help('!ContextHelp',[mfilename,'.m'])
 %-Negative indices for iCC indicates default (first taken)
 D = struct(...
 	'DesName',	'Single-subject: replication of conditions',...
-	'n',	[Inf 2 1 1],...
-	'sF',	{{'repl','condition','subject','study'}},...
+	'n',	[Inf 2 1 1],	'sF',{{'repl','condition','subject','study'}},...
 	'Hform',		'i2,''+0m'',''cond''',...
 	'Bform',		'i3,''-'',''const''',...
-	'nC',[Inf,Inf],...
-	'iCC',{{[1:8],1}},...
-	'iCFI',{{[1,-2,3:7],1}},...
-	'iGloNorm',[1:9],	'iGMsca',[1:7,8,-9],	'GM',[],...
+	'nC',[Inf,Inf],'iCC',{{[1:8],1}},'iCFI',{{[1,-2,3:7],1}},...
+	'Xorth',struct('GwB',0,'HwBG',0,'CwBG',0),...
+	'iGXcalc',[-1,2:3],'iGMsca',[1:7,8,-9],'GM',[],...
+	'iGloNorm',[1:9],'iGC',[1:9,-10,-11],...
 	'b',struct('aTime',1));
 iDD = length(D); %-Above design is the default design definition
 
@@ -65,8 +64,6 @@ sCC = {		'around overall mean';...				%-1
 		'(redundant: not doing AnCova)'}';			%-12
 %-DesMtx I forms for covariate centering options
 CCforms = {'ones(size(i1))',CFIforms{2:end,1},''}';
-%-Default centering options for globals when using AnCova GloNorm
-DiGC = [1:9,-10,-11];
 
 
 %-Global normalization options                                    (GloNorm)
@@ -98,7 +95,6 @@ dGM = 50;			%-Default GM (if isempty(D.GM))
 sGXcalc  = {	'mean voxel value (within per image fullmean/8 mask)';...%-1
 		'user specified';...					%-2
 		'omit'};						%-3
-DiGXcalc = [-1,2:3];
 
 
 %-Variable "decoder"
@@ -403,7 +399,7 @@ sGMsca = sGMsca{iGMsca};
 % GX around its (overall) mean (iGC=1).
 
 %-This code allows more general options to be specified (but is a bit complex)
-%-Setting DiGC=[-10,-11] gives the standard choices above
+%-Setting D.iGC=[-10,-11] gives the standard choices above
 
 %-If not doing AnCova then GC is irrelevant
 if ~any(iGloNorm==[1:7])
@@ -420,7 +416,7 @@ else
 	%-Constuct vector of allowable iGC
 	%---------------------------------------------------------------
 	%-Weed out redundent factor combinations from pre-set allowable options
-	iGC = intersect(abs(DiGC),find([1,bFI,1,1,1,1]));
+	iGC = intersect(abs(D.iGC),find([1,bFI,1,1,1,1]));
 	%-Omit 'GM' option if didn't GMsca (iGMsca~=8 'cos doing AnCova)
 	if any(iGMsca==[8,9]), iGC = setdiff(iGC,11); end
 	%-Omit '(as implied by AnCova)' if same as GM
@@ -428,7 +424,7 @@ else
 
 	%-Set defaults (if any), & get answer
 	%---------------------------------------------------------------
-	dGC = max([0,intersect(iGC,-DiGC(DiGC<0))]);
+	dGC = max([0,intersect(iGC,-D.iGC(D.iGC<0))]);
 	str = 'GC: Centre global covariate';
 	if iGMsca<8, str = [str,' (after grand mean scaling)']; end
 	iGC = spm_input(str,'+1','m',sCC(iGC),iGC,find(iGC==dGC));
@@ -446,21 +442,22 @@ else
 		gc  = 0;
 	end
 end
+sGC = sCC{iGC};
 
 
 %-Global calculation                                            (GXcalc)
 %-----------------------------------------------------------------------
 %-Only offer "omit" option if not doing any GloNorm or GMsca
-iGXcalc = intersect(abs(DiGXcalc),find([1,1,iGloNorm==9 & iGMsca==9]));
+iGXcalc = intersect(abs(D.iGXcalc),find([1,1,iGloNorm==9 & iGMsca==9]));
 if isempty(iGXcalc)
 	error('no GXcalc options')
 elseif length(iGXcalc)>1
 	%-User choice of global calculation options, default is negative
-	dGXcalc = max([1,intersect(iGXcalc,-DiGXcalc(DiGXcalc<0))]);
+	dGXcalc = max([1,intersect(iGXcalc,-D.iGXcalc(D.iGXcalc<0))]);
 	iGXcalc = spm_input('Global calculation','+1','m',...
 	    	sGXcalc(iGXcalc),iGXcalc,find(iGXcalc==dGXcalc));
 else
-	iGXcalc = abs(DiGXcalc);
+	iGXcalc = abs(D.iGXcalc);
 end
 
 if iGXcalc==2				%-Get user specified globals
@@ -469,11 +466,28 @@ end
 sGXcalc = sGXcalc{iGXcalc};
 
 
-%-Threshold defining voxels to analyse                          (THRESH)
+%-Thresholds & masks defining voxels to analyse                  (THRESH)
 %-----------------------------------------------------------------------
-vMask = spm_input('Analysis (grey&white) threshold','+1','r',0.8,1);
-%-**** Allow -Inf, default, or mask image? Default -Inf for -ve data?
+%-Threshold mask as proportion of global
+if iGXcalc
+	mTHp = spm_input('Analysis (grey&white) threshold',...
+		'+1','br1','None',-Inf,0.8);
+else
+	mTHp = -Inf;
+end
 
+%-Implicit masking: Ignore zero voxels in low data-types?
+% (Implicit mask is NaN in higher data-types.)
+type = getfield(spm_vol(P{1}),'dim')*[0,0,0,1]';
+if ~spm_type(type,'nanrep')
+	mI = spm_input('Implicit mask (Ie. ignore zero''s)?','+0','y/n',[1,0],1);
+else
+	mI = 1;
+end
+
+%-Explicit mask images (map them later...)
+mX = spm_input('explicit mask images?','+0','y/n',[1,0],2);
+if mX, mXP = spm_get(Inf,'*.img','select mask images'); else, mXP = {}; end
 
 
 %=======================================================================
@@ -486,24 +500,16 @@ spm('Pointer','Watch');
 %-Images & image info
 %=======================================================================
 
-%-File handles
+%-File handles for Y images
 %-----------------------------------------------------------------------
 V = spm_vol(char(P));
 
-%-Check for consistency of image dimensions and orientation / voxel size
+%-Check for consistency of Y image dimensions and orientation / voxel size
 %-----------------------------------------------------------------------
 if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
 	error('images do not all have the same dimensions'), end
 if any(any(any(diff(cat(3,V.mat),1,3),3)))
 	error('images do not all have same orientation & voxel size'), end
-
-%-Work out required Analyze header info from handles
-%-----------------------------------------------------------------------
-%*Do we need these? ****
-DIM    = V(1).dim(1:3);
-VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
-ORIGIN = (V(1).mat\[0 0 0 1]')';
-ORIGIN = round(ORIGIN(1:3));
 
 
 %-Global values, scaling and global normalisation
@@ -548,7 +554,9 @@ otherwise
 	error('illegal iGMsca')
 end
 
-%-Apply gSF to memory-mapped scalefactors
+
+%-Apply gSF to memory-mapped scalefactors to implement scaling
+%-----------------------------------------------------------------------
 for i=1:nScan, V(i).pinfo(1:2,:)=V(i).pinfo(1:2,:)*gSF(i); end
 
 
@@ -578,7 +586,7 @@ if any(iGloNorm==[1:7])
 	tI        = [eval(CFIforms{iGloNorm,1}),g-gc];
 	tConst    = CFIforms{iGloNorm,2};
 	tFnames   = [eval(CFIforms{iGloNorm,3}),{'global'}];
-	[g,gname] = spm_DesMtx(tI,tConst,tFnames)
+	[g,gname] = spm_DesMtx(tI,tConst,tFnames);
 	clear tI tConst tFnames
 
 	%-Save GX info in rGX struct for reference
@@ -596,9 +604,18 @@ end
 %-----------------------------------------------------------------------
 GX = struct(...
 	'iGXcalc',iGXcalc,	'sGXcalc',sGXcalc,	'rg',rg,...
-	'iGMsca',iGMsca,	'sGMsca',sGMsca',	'GM',GM,'gSF',gSF,...
+	'iGMsca',iGMsca,	'sGMsca',sGMsca,	'GM',GM,'gSF',gSF,...
 	'iGC',	iGC,		'sGC',	sGC,		'gc',	gc,...
 	'iGloNorm',iGloNorm,	'sGloNorm',sGloNorm);
+
+
+%-Construct masking information structure and compute actual analysis
+% threshold using scaled globals (rg.*gSF)
+%-----------------------------------------------------------------------
+if iGXcalc, mTH = (rg.*gSF)*mTHp; else, mTH = mTHp; end
+if ~isempty(mXP), mXV = spm_vol(char(mXV)); else, mXV={}; end
+vM = struct(	'mTHp',mTHp,	'mTH',mTH,	'mI',mI,	'mXV',{mXV});
+
 
 
 %-===============================-*@*-=================================-
@@ -629,8 +646,10 @@ iX     = struct(	'H',	[1:size(H,2)],...
 nX = spm_DesMtx('sca',X,Xnames);
 
 
-%-Pre-specified contrast weights
+%-Pre-specified contrasts?
 %=======================================================================
+%-****?
+
 
 %-===============================-*@*-=================================-
 
@@ -779,8 +798,10 @@ spm_print
 %-----------------------------------------------------------------------
 spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
 
-%-Clear figure
-%-----------------------------------------------------------------------
-spm_clf(Finter)
-set(Finter,'Name',' ')
+
+%=======================================================================
+% - E N D
+%=======================================================================
+spm('FigName','AdjMean - done',Finter,CmdLine);
 spm('Pointer','Arrow')
+fprintf('\n\n')
