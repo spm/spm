@@ -14,25 +14,23 @@ function spm_renviews(P0,thresh)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-
-V      = spm_map(P0);
-v      = V(1:3).*V(4:6);
-M      = spm_get_space(P0);
-shift0 = inv(spm_matrix(v(1:3)'/2));
-shift  = spm_matrix(V(1:3)'/2);
-zoom   = spm_matrix([0 0 0 0 0 0 V(4:6)']);
-
+V      = spm_vol(P0);
+v      = V.dim(1:3).*sqrt(sum(V.mat(1:3,1:3).^2));
+M      = V.mat;
+shift0 = inv(spm_matrix(v/2));
+shift  = spm_matrix(V.dim(1:3)/2);
+zoom   = spm_matrix([0 0 0 0 0 0 sqrt(sum(V.mat(1:3,1:3).^2))]);
 
 MT0 = zoom;
 
 MT1 = MT0 * shift * spm_matrix([0 0 0 0 pi 0]) * inv(shift);
 
-MS0 = spm_matrix(v([3 2 1])'/2) * spm_matrix([0 0 0 0 pi/2]) ...
+MS0 = spm_matrix(v([3 2 1])/2) * spm_matrix([0 0 0 0 pi/2]) ...
 	* shift0 * zoom;
 
 MS1 = MS0 * shift * spm_matrix([0 0 0 0 0 pi]) * inv(shift);
 
-MC0 = spm_matrix(v([3 1 2])'/2) * spm_matrix([0 0 0 0 0 pi/2]) ...
+MC0 = spm_matrix(v([3 1 2])/2) * spm_matrix([0 0 0 0 0 pi/2]) ...
 	* spm_matrix([0 0 0 pi/2]) * shift0 * zoom;
 
 MC1 = MC0 * shift * spm_matrix([0 0 0 0 0 pi]) * inv(shift);
