@@ -19,7 +19,7 @@ global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN f
 
 % Default command for printing
 %-----------------------------------------------------------------------
-PRINTSTR = [spm_figure('DefPrintCmd'),'spm98.ps'];
+PRINTSTR = [spm_figure('DefPrintCmd'),'spm99.ps'];
 
 % Log user input to SPM. If LOGFILE is '', then don't log.
 %-----------------------------------------------------------------------
