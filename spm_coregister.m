@@ -71,7 +71,7 @@ linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
 do_disp = 0;
 
 global SWD
-DIR1 = [SWD '/templates/'];
+DIR1 = [fullfile(SWD,'templates'),filesep];
 
 global SWD sptl_WhchPtn
 if (nargin == 0)
@@ -320,11 +320,12 @@ else 	% Different modalities
 	% Rough coregistration
 	%-----------------------------------------------------------------------
 	linfun(['Smoothing "' spm_str_manip(PGF(1,:),'a40') '"..']);
-	spm_smooth(PGF(1,:),'./spm_coreg_tmpG.img',8);
+	spm_smooth(PGF(1,:),fullfile('.','spm_coreg_tmpG.img'),8);
 	linfun(['Smoothing "' spm_str_manip(PFF(1,:),'a40') '"..']);
-	spm_smooth(PFF(1,:),'./spm_coreg_tmpF.img',8);
+	spm_smooth(PFF(1,:),fullfile('.','spm_coreg_tmpF.img'),8);
 
-	PPF = str2mat('./spm_coreg_tmpG.img', './spm_coreg_tmpF.img');
+	PPF = str2mat(	fullfile('.','spm_coreg_tmpG.img'),...
+			fullfile('.','spm_coreg_tmpF.img')    );
 	PPG = str2mat(PGG(1,:), PFG(1,:));
 
 	spm_chi2_plot('Init','Rough Coregistration','Convergence','Iteration');

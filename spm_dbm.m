@@ -52,7 +52,7 @@ return;
 %=======================================================================
 function xtract_shapes
 Q = spm_input('Shape filename',1,'s');
-q = max([find(Q == '/') 0]);
+q = max([find(Q == filesep) 0]);
 Q = [spm_str_manip(Q((q+1):length(Q)),'sd') '_shape.mat'];
 
 matfiles = spm_get(Inf,'_sn3d.mat',['Normalization Parameters'],'');
@@ -269,7 +269,7 @@ end;
 Mat = (tmp*MF)*Affine*inv(MG);
 
 global SWD;
-V = spm_vol([SWD '/apriori/brainmask.img']);
+V = spm_vol(fullfile(SWD,'apriori','brainmask.img'));
 
 Vox = [2 2 2];
 bb  = reshape([-90 91 -126 91  -72 109],2,3);
@@ -401,7 +401,7 @@ Dims = [
    46.0000   64.0000   37.0000];
 
 global SWD;
-V = spm_vol([SWD '/apriori/gray.img']);
+V = spm_vol(fullfile(SWD,'apriori','gray.img'));
 
 Vox = [2 2 2];
 bb = reshape([-90 91 -126 91  -72 109],2,3);
