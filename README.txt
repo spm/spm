@@ -33,12 +33,12 @@ MathWorks, Inc.  Natick, MA, USA. http://www.mathworks.com/
 eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 special toolboxes are required).
 
-SPM99 is written for Matlab 5.2 under UNIX. (SPM will not work with
-versions of Matlab 5 prior to 5.2, including Matlab 4.) Binaries of the
-external C-mex routines are provided for Solaris, Linux and Windows
-only, users of other UNIX platforms need an ANSI C compiler to compile
-the supplied C source (Makefile provided: spm_MAKE). See
-http://www.fil.ion.ucl.ac.uk/spm/distrib.html for details.
+SPM2 is written for Matlab versions 5.3, 6.0 and 6.5 under UNIX. (SPM2
+will not work with versions of Matlab 5 prior to 5.3, including
+Matlab 4.) Binaries of the external C-mex routines are provided for]
+Solaris, Linux, Windows and MacOS X only, users of other UNIX platforms
+need an ANSI C compiler to compile the supplied C source (Makefile
+provided). See http://www.fil.ion.ucl.ac.uk/spm/spm2b.html for details.
 
 ( Whilst the majority of the code is implemented as MatLab functions    )
 ( & scripts containing standard MatLab commands, a number of features   )
