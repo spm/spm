@@ -1347,7 +1347,7 @@ P  = {};		% cell array of string filenames
 
 %-Accrue filenames and factor level indicator vectors
 %-----------------------------------------------------------------------
-if isinf(Dn(4)), n4 = spm_input(['#',DsF{4},'''s'],'+1','n1',[],1);
+if isinf(Dn(4)), n4 = spm_input(['#',DsF{4},'''s'],'+1','n1');
 	else, n4 = Dn(4); end
 bL4 = n4>1;
 
@@ -1356,7 +1356,7 @@ GUIpos = spm_input('!NextPos');
 for j4  = 1:n4
     spm_input('!SetNextPos',GUIpos);
     sF4P=''; if bL4, sF4P=[DsF{4},' ',int2str(j4),': ']; end
-    if isinf(Dn(3)), n3=spm_input([sF4P,'#',DsF{3},'''s'],'+1','n1',[],1);
+    if isinf(Dn(3)), n3=spm_input([sF4P,'#',DsF{3},'''s'],'+1','n1');
 	    else, n3 = Dn(3); end
     bL3 = n3>1;
     
