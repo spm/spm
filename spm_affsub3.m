@@ -291,7 +291,7 @@ if nargin ~= 13 & nargin ~= 11
 	error('Incorrect usage.');
 end
 tmp = sum(pdesc ~= 0);
-if size(tmp,2) ~= size(VF,2)
+if size(tmp,2) ~= size(VF,1)
 	error(['Incompatible number of object images']);
 end
 for i=1:length(tmp)
@@ -300,7 +300,7 @@ for i=1:length(tmp)
 	end
 
 end
-if any(gorder > size(VG,2))
+if any(gorder > size(VG,1))
 	error(['Problem with gorder']);
 end
 if ~all(size(free) == size(P)) | ~(size(pdesc,1) == size(P,1)) | size(P,2) ~= 1

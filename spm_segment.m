@@ -512,9 +512,10 @@ for iter = 1:niter
 
 	% Stopping criterion
 	%-----------------------------------------------------------------------
-	if iter == 2
+	if iter ==4 
 		sumpr2 = sumpr;
-	elseif iter > 3
+	elseif iter > 4
+disp([sumpr osumpr sumpr2 (sumpr-osumpr)/(sumpr-sumpr2)]);
 		if (sumpr-osumpr)/(sumpr-sumpr2) < 0.0003
 			break;
 		end
