@@ -10,7 +10,7 @@
 % prefixed with a 't'
 %
 % This facility also allows the creation and amendment of header files
-% by providing access to spm_fix_header (a standalone module).
+% by providing access to spm_header_edit (a standalone module).
 %
 % The red lines drawn on the images are the planes that contain the ORIGIN as
 % specified in the header.  To change this, or any other parameter, save
@@ -77,9 +77,9 @@ uicontrol(3,'Style','Pushbutton','String','write image','Callback',c,...
 c    = ['spm_hwrite(P,DIM,VOX,SCALE,TYPE,OFFSET,ORIGIN,DESCRIP);'];
 uicontrol(3,'Style','Pushbutton','String','save header','Callback',c,...
          'Position',[320 300 110 20]*A);
-c    = ['spm_fix_header;'];
+c    = ['spm_header_edit;'];
 uicontrol(3,'Style','Pushbutton','String','Fix header[s]','Callback',c,...
-         'Position',[450 300 110 20]*A);
+         'Position',[450 300 110 20]*A,'Interruptible','yes');
 
 
 c    = ['B(1) = eval(get(get(3,''CurrentObject''),''string''));'];
