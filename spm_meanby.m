@@ -35,5 +35,6 @@ end
 %-Work out means by index
 Mi = I'*X ./ sum(I)'*ones(1,size(X,2));
 
-%-Combine into matrix of group means for each observation
+%-Combine into matrix same size as X:
+% Effectively replacing each observation by its group mean
 M = Mi(i,:);
