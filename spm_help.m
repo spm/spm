@@ -126,7 +126,7 @@ function varargout=spm_help(varargin)
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take. Recall   )
 %( MatLab's command-function duality: `spm_help MenuWin` is equivalent )
-%( to `spm('MenuWin')`.                                                )
+%( to `spm_help('MenuWin')`.                                           )
 %
 % FORMAT spm_help
 % Makes Help window visible if there is one around. Otherwise

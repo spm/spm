@@ -80,7 +80,7 @@ function varargout=spm_figure(varargin)
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take. Recall   )
 %( MatLab's command-function duality: `spm_figure Create` is           )
-%( equivalent to `spm('Create')`.                                      )
+%( equivalent to `spm_figure('Create')`.                               )
 %
 % FORMAT F = spm_figure
 % [ShortCut] Defaults to Action 'Create'

@@ -136,9 +136,7 @@ function varargout = spm_DesRep(varargin)
 % - FORMAT specifications for embedded functions
 %=======================================================================
 %( This is a multi function function, the first argument is an action  )
-%( string, specifying the particular action function to take. Recall   )
-%( MatLab's command-function duality: `spm_figure Create` is           )
-%( equivalent to `spm_figure('Create')`.                               )
+%( string, specifying the particular action function to take.          )
 %
 % FORMAT h = spm_DesRep('DesRepUI',D)
 % Setup "design" menu for design reporting.
