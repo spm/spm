@@ -41,23 +41,8 @@ Q = [p(1:q) Q];
 
 if (nargin < 3) func = 'nothing'; end
 
-p = spm_str_manip(P(1,:), 'd');
-M = spm_get_space(p);
-[DIM VOX SCALE TYPE OFFSET ORIGIN] = spm_hread(p);
-
-% Get properties of all the images
-%----------------------------------------------------------------------------
-Matrixes = zeros(16,m);
-V        = zeros(12,m);
-for i = 1:m,
-	p  = deblank(P(i,:));
-	C2 = spm_get_space(p);
-	M1  = inv(M)*C2;
-	Matrixes(:,i) = M1(:);
-	V(:,i) = spm_map(p);
-end
-
-
+V=spm_vol(P);
+DIM = V(1).dim(1:3);
 Output = zeros(prod(DIM(1:2)),DIM(3));
 
 X = kron(ones(DIM(2),1),[1:DIM(1)]');
@@ -71,10 +56,8 @@ for j = 1:DIM(3),
 	B     = spm_matrix([0 0 -j 0 0 0 1 1 1]);
 
 	for i = 1:m,
-		M0  = reshape(Matrixes(:,i),4,4);
-		M1 = inv(B*M0);
-
-		d  = spm_slice_vol(V(:,i),M1,DIM(1:2),Hold);
+		M1=inv(B*inv(V(1).mat)*V(i).mat);
+		d  = spm_slice_vol(V(i),M1,DIM(1:2),Hold);
 		eval(['i' num2str(i) '=d;']);
 	end
 
@@ -100,8 +83,12 @@ for j = 1:DIM(3),
 	fwrite(fp,d,spm_type(4));
 end
 fclose(fp);
-spm_hwrite(Q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - algebra');
-spm_get_space(Q,M);
 
-for i = 1:m, spm_unmap(V(:,i)); end
+VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
+ORIGIN = V(1).mat\[0 0 0 1]';
+ORIGIN = round(ORIGIN(1:3));
+
+spm_hwrite(Q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - algebra');
+spm_get_space(Q,V(1).mat);
+
 spm_progress_bar('Clear');
