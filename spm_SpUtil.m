@@ -98,7 +98,7 @@ function varargout = spm_DesUtil(varargin)
 % X   - design matrix
 % i0  - column indices of null hypothesis design matrix
 %
-% This function returns a nxp matrix of contrasts suitable for an
+% This functionality returns a nxp matrix of contrasts suitable for an
 % extra-sum-of-squares F-test comparing the design X, with a reduced
 % design. The design matrix for the reduced design is X0 = X(:,i0), a
 % reduction of n degrees of freedom.
@@ -110,6 +110,30 @@ function varargout = spm_DesUtil(varargin)
 % are a variety of ways to produce equivalent F-contrasts. This method
 % produces contrasts with non-zero weights only for the hypothesised
 % redundant columns.
+% 
+% ======================================================================
+%
+% FORMAT [X0,X1] = spm_DesUtil('cNullSpace',X,c)
+% Contrast null space for a design matrix and contrast
+% X   - design matrix
+% c   - contrast
+% X0  - null design space - matrix reduced according to null hypothesis
+% X1  - contrast space - design matrix corresponding according to contrast
+%       (orthogonalised wirit X0)
+%
+% This functionality returns a design matrix subpartition whose columns
+% span the null space of a given contrast.
+%
+% The algorithm (andrew's), computes the compliment (null space)
+% contrast as an orthonormal basis set for the rows of the design
+% matrix orthogonalised with respect to the contrast c, and then
+% multiplying the columns of the design matrix by this null space
+% contrast. The resulting mini design matrix has columns spanning the
+% null design space implied by the contrast.
+%
+% Note that the null space design matrix will probably not be a simple
+% sub-partition of the full design matrix, althouth the space spanned
+% will be the same.
 %_______________________________________________________________________
 % %W% Andrew Holmes, Jean-Baptiste Poline %E%
 
@@ -207,6 +231,25 @@ c       = c';			%-Transpose to usual SPM contrast orientation
 
 varargout = {c};
 
+
+case 'cnullspace'
+%=======================================================================
+% X0 = spm_DesUtil('cNullSpace',X,c)
+if nargin<3, error('Insufficient arguments'), end
+X = varargin{2};
+c = varargin{3};
+
+%-Computation
+%-----------------------------------------------------------------------
+c0 = orth(X' -c'*pinv(c')*X')';		%-Compliment of current contrast
+					% (Null contrast space)
+
+X0 = X*c0';				%-Design space corresponding to null
+					% contrast space
+
+X1 = orth(X*c' -X0*pinv(X0)*(X*c'));	%-Contrast design space
+					% (orthogonalised wirit X0)
+varargout = {X0,X1};
 
 
 otherwise
