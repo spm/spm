@@ -226,7 +226,7 @@ SPMid = spm('FnBanner',mfilename,SCCSid);
 
 %-Get thresholded SPM data and parameters of design
 %=======================================================================
-[SPM,VOL,xX,xSDM] = spm_getSPM;
+[SPM,VOL,xX,xCon,xSDM] = spm_getSPM;
 
 
 %-Setup Results User Interface; Display MIP, design matrix & parameters
@@ -256,7 +256,9 @@ text(0.5,0,SPM.title,'Parent',hTitAx,...
 hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
 hMIPax = spm_mip_ui(SPM.Z,SPM.XYZmm,VOL.M,VOL.DIM,hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
-text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold',...
+text(260,260,['SPM\{',SPM.STATstr,'\}'],...
+	'Interpreter','TeX',...
+	'FontSize',16,'Fontweight','Bold',...
 	'Parent',hMIPax)
 
 
@@ -279,35 +281,41 @@ text(0,0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),'Parent',hResAx)
 
 %-Plot design matrix
 %-----------------------------------------------------------------------
-nX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
-hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.60 0.25 0.25]);
-hDesMtxIm = image((nX+1)*32);
-set(hDesMtx,'YTick',spm_DesRep('ScanTick',size(nX,1),24),'TickDir','out')
+hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
+hDesMtxIm = image((xX.nKX+1)*32);
+set(hDesMtx,'YTick',spm_DesRep('ScanTick',size(xX.nKX,1),24),'TickDir','out')
 xlabel('Design matrix')
-set(hDesMtxIm,'UserData',xX.xKXs.X)
-set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''cb_DesMtxIm'')')
+set(hDesMtxIm,'UserData',...
+	struct('X',xX.xKXs.X,'fnames',{{xSDM.VY.fname}'},'Xnames',{xX.Xnames}))
+set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 
 %-Plot contrasts
 %-----------------------------------------------------------------------
 nPar = size(xX.X,2);
 xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
+nCon = length(SPM.Ic);
 
-dy    = 0.11/max(size(SPM.c,2),2);
-for i = 1:size(SPM.c,2)
-	axes('Position',[0.65 (0.85 + dy*(i-0.9)) 0.25 dy*.9])
-	if SPM.STAT == 'T' & size(SPM.c{i},2)==1
-		%-Single vector contrast for SPM{t} - bar
-		yy = [zeros(1,nPar);repmat(SPM.c{i}',2,1);zeros(1,nPar)];
-		patch(xx,yy,[1,1,1]*.5)
-		set(gca,'Box','off','XTick',[],'YTick',[])
-	else
-		%-F-contrast - image
-		image((SPM.c{i}+1)'*32)
-		set(gca,'Box','on','XTick',[],'YTick',[])
-	end
+dy    = 0.15/max(nCon,2);
+for ii = nCon:-1:1
+    axes('Position',[0.65 (0.80 + dy*(nCon-ii+.1)) 0.25 dy*.9])
+    if xCon(SPM.Ic(ii)).STAT == 'T' & size(xCon(SPM.Ic(ii)).c,2)==1
+	%-Single vector contrast for SPM{t} - bar
+	yy = [zeros(1,nPar);repmat(xCon(SPM.Ic(ii)).c',2,1);zeros(1,nPar)];
+	patch(xx,yy,[1,1,1]*.5)
+	set(gca,'Box','off','XTick',[],'YTick',[])
+	set(gca,'Tag','ConGrphAx')
+    else
+	%-F-contrast - image
+	sca = 1/max(abs(xCon(SPM.Ic(ii)).c(:)));
+	image((xCon(SPM.Ic(ii)).c'*sca+1)*32)
+	set(gca,'Box','on','XTick',[],'YTick',[])
+	set(gca,'Tag','ConGrphAx')
+    end
+    ylabel(num2str(SPM.Ic(ii)))
 end
 title('Contrast(s)')
+
 
 %-Store handles of results section Graphics window objects
 %-----------------------------------------------------------------------
@@ -320,7 +328,7 @@ set(hResAx,'Tag','PermRes','UserData',struct('H',H,'Hv',{Hv}))
 
 %-Finished results setup
 %-----------------------------------------------------------------------
-varargout = {hReg,SPM,VOL,xX,xSDM};
+varargout = {hReg,SPM,VOL,xX,xCon,xSDM};
 spm('Pointer','Arrow')
 
 
@@ -486,7 +494,7 @@ uicontrol(Finter,'Style','Text','String','Voxel level functions',...
 	'ForegroundColor','w')
 uicontrol(Finter,'Style','PushButton','String','plot','FontSize',Fs,...
 	'ToolTipString','plotting of parameters & data at this voxel',...
-	'Callback','[Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xSDM,hReg);',...
+	'Callback','[Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg);',...
 	'Interruptible','on','Enable','on',...
 	'Position',[015 055 070 020].*WS)
 uicontrol(Finter,'Style','PushButton','String','slices','FontSize',Fs,...
@@ -786,7 +794,7 @@ h4 = uicontrol(Finter,'Style','PopUp',...
 h5 = uicontrol(Finter,'Style','PopUp',...
 	'ToolTipString','change various axes attributes',...
 	'FontSize',Fs,...
-	'String','attrib|LineWidth|XLim|YLim|handle|raddish',...
+	'String','attrib|LineWidth|XLim|YLim|handle',...
 	'Callback','spm_results_ui(''PlotUiCB'')',...
 	'Interruptible','off','Enable','on',...
 	'Position',[315 195 070 020].*WS);
@@ -859,7 +867,7 @@ F = spm_figure('FindWin',F);
 
 %-Clear input objects from 'Interactive' window
 %-----------------------------------------------------------------------
-spm_input('!DeleteInputObj')
+%spm_input('!DeleteInputObj')
 
 
 %-Get handles of objects in Graphics window & note permanent results objects
@@ -882,7 +890,14 @@ else
 	un   = get(H,'Units');
 	set(H,'Units','normalized')
 	tmp  = get(H,'Position');
-	if ~isempty(tmp)
+	if length(H)==1
+		un = {un};
+		if tmp(2)>0.5
+			HR=H;  HRv = {get(HR,'Visible')};
+		else
+			HR=[]; HRv = {};
+		end
+	elseif ~isempty(tmp)
 		tmp  = cat(1,tmp{:});
 		HR   = H(tmp(:,2)>0.5);
 		HRv  = get(HR,'Visible');
