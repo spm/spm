@@ -53,7 +53,7 @@ defaults.realign.write.wrap      = [0 0 0];
 % Unwarp defaults
 %=======================================================================
 defaults.unwarp.estimate.fwhm    = 4;
-defaults.unwarp.estimate.basfcn  = [10 10];
+defaults.unwarp.estimate.basfcn  = [12 12];
 defaults.unwarp.estimate.regorder= 1;
 defaults.unwarp.estimate.regwgt  = 1e5;
 defaults.unwarp.estimate.soe     = 1;
