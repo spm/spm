@@ -416,24 +416,10 @@ SPM.xM        = struct(	'T',	ones(q,1),...
 %-Degrees of freedom assuming i.i.d. errors
 %=======================================================================
 
-%-Parameter projection matrix and traces
+%-Parameter projection matrix
 %-----------------------------------------------------------------------
 SPM.xX.xKXs  = spm_sp('Set',spm_filter(SPM.xX.K, SPM.xX.X));
 SPM.xX.pKX   = spm_sp('x-',SPM.xX.xKXs);
-SPM.xX.trRV  = spm_SpUtil('trRV',SPM.xX.xKXs);
-SPM.xX.erdf  = SPM.xX.trRV;
-
-
-%-Check estimability
-%-----------------------------------------------------------------------
-if     SPM.xX.erdf < 0
-    error(sprintf('This design is unestimable!   (df=%-.2g)',SPM.xX.erdf))
-elseif SPM.xX.erdf == 0
-    error('This design has no residuals! (df = 0)')
-elseif SPM.xX.erdf <  4
-    warning(sprintf('Very low degrees of freedom (df=%-.2g)',SPM.xX.erdf))
-end
-
 
 %-Create Contrast structure array - xCon
 %=======================================================================
@@ -455,7 +441,6 @@ for s = 1:nsess
 	end
 end
 SPM.xCon  = xCon;
-
 
 
 %-Design description (an nx2 cellstr) - for saving and display
@@ -483,7 +468,7 @@ fprintf('%30s\n','...SPM.mat saved')                                 %-#
  
 %-Display Design report
 %=======================================================================
-fprintf('%-40s: ','Design reporting')                        %-#
+fprintf('%-40s: ','Design reporting')                                %-#
 fname     = cat(1,{SPM.xY.VY.fname}');
 spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
 fprintf('%30s\n','...done')                                          %-#
