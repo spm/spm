@@ -124,8 +124,6 @@
 % Female: 3,4,3,0,1,7,6,3,6,3,2,1,0,0
 % Male:   2,4,4,2,2,5,4,4,4,1,1,0,2,1
 % 
-% Scatter has not been subtracted from the images.
-% 
 % All 75 subjects were  acquired after injection of  500 MBq Tc-99m
 % HMPAO on a triple head  Philips Irix camera with high  resolution
 % parallel hole  collimators.   The photopeak window  was 20%  wide
@@ -139,7 +137,8 @@
 % filtered  backprojection  reconstruction.    Uniform  attenuation
 % correction  was  performed  with  an  attenuation  coefficient of
 % 0.12/cm  (0.10/cm without scatter subtraction)  within elliptical
-% edges manually fitted to sections 2 pixels thick.
+% edges  manually  fitted to sections 2 pixels thick.  Scatter  has
+% been subtracted from the images.
 % 
 % The 'raw' transaxial  sections  were first  edited to  remove hot
 % facial  activity  and  yield e* files.   Two  passes  of  Spatial
