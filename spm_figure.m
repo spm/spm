@@ -253,7 +253,7 @@ elseif isstr(F)
 	end
 else
 	% F is supposed to be a figure number - check it
-	if ~any(F==findobj(get(0,'Children'))), F=[]; end
+	if ~any(F==get(0,'Children')), F=[]; end
 end
 
 R1 = F;
