@@ -67,8 +67,7 @@ C     = [];
 for i = 1:m
     C = [C Q{i}(:)];
 end
-I     = speye(n,n);
-h     = inv(C'*C)*(C'*I(:));
+h     = inv(C'*C)*(C'*Cy(:));
 dh    = sparse(m,1);
 
 % and Ce		
@@ -140,7 +139,7 @@ for k = 1:32
     
     % Convergence
     %===================================================================
-    w     = dh'*dh;
+    w     = (dh'*dh)/(h'*h);
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
     if w < TOL, break, end
 
