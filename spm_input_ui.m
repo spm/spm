@@ -16,12 +16,11 @@ function varargout = spm_input(varargin)
 % - STRING, EVALUATED & CONDITION input -
 % For STRING, EVALUATED and CONDITION input types, a prompt is
 % displayed adjacent to an editable text entry widget (with a lilac
-% background!).  This entry widget will initially contain any default
-% reply. Pressing <RETURN> or <ENTER> will accept the default. Clicking
-% in the entry widget allows editing, pressing <RETURN> or <ENTER>
-% enters the result. You must enter something, empty answers are not
-% accepted. Default values will be pre-specified in the entry widget,
-% which will be outlined. Clicking the border accepts the default value.
+% background!). Clicking in the entry widget allows editing, pressing
+% <RETURN> or <ENTER> enters the result. You must enter something,
+% empty answers are not accepted. A default values may be pre-specified
+% in the entry widget, which will then be outlined. Clicking the border
+% accepts the default value.
 %
 % Basic editing of the entry widget is supported *without* clicking in
 % the widget, provided no other graphics widget has the focus. (If a
