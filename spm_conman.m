@@ -286,7 +286,7 @@ set(hConList,'String',str,...
 	'FontAngle',FontAngle,'FontWeight',FontWeight,...
 	'Enable',Enable)
 
-spm_conman('GraphCons',xCon,q,get(hConList,'Parent'))
+spm_conman('GraphCons',xCon,Q(q),get(hConList,'Parent'))
 spm_conman('StatusLine',get(hConList,'Parent'))
 
 
@@ -798,7 +798,8 @@ STATmode = get(findobj(F,'Tag','STATmode'),'UserData');
 set(F,'UIContextMenu',[])				%-Disable Fig ContextMenu
 H = get(findobj(F,'Tag','DefineNew'),'UserData');	%-Get define UI handles
 set(findobj(H,'flat','Tag','D_name'),'String','')	%-Clear name
-set(H,'Visible','on')
+%set(findobj(H,'flat','Tag','D_ConMtx'),'UserData',[])	%-Clear con definition
+set(H,'Visible','on')					%-Show UI
 spm_conman('D_TF',F,STAT,STATmode);			%-Setup rest of define UI
 
 
@@ -829,20 +830,23 @@ if fcn==1                              %-Parse string from ConMtx widget
 
 	set(hD_X1cols,'String','')
 	[c,I,emsg,imsg] = spm_conman('ParseCon',str,xX.xKXs,STAT);
+	if all(I)
+		DxCon = spm_FcUtil('Set','',STAT,'c',c,xX.xKXs);
+	else
+		DxCon = [];
+	end
 
 elseif fcn==2               %-Process column indicies from X1cols widget
 %-----------------------------------------------------------------------
 	set(hD_ConMtx,'String','')
 
-	nPar    = spm_SpUtil('size',xX.xKXs,2);
+	nPar     = spm_SpUtil('size',xX.xKXs,2);
 	[i,imsg] = spm_conman('ParseIStr',str,nPar);
-	i0      = setdiff([1:nPar],i);
-	try	%-try-catch block for any errors in spm_SpUtil!
-		c = spm_SpUtil('Fcon',xX.xKXs,i0);
-		if STAT=='T' & size(c,2)>1
-			I    = 0;
-			emsg = {'! t-contrasts must be vectors';...
-				'  (select only a single column to test)'};
+
+	try	%-try-catch block for any errors in spm_FcUtil!
+		DxCon = spm_FcUtil('Set','',STAT,'iX0',i,xX.xKXs);
+		if STAT=='T' & size(DxCon.c,2)>1
+			I = 0; emsg = {'! t-contrasts must be vectors'};
 		else
 			I = 1; emsg = '';
 		end			
@@ -858,9 +862,8 @@ end
 set(findobj(F,'Tag','D_ConErrs'),'String',emsg,'Value',[])
 set(findobj(F,'Tag','D_ConInfo'),'String',imsg,'Value',[])
 if all(I)
-	set(hD_ConMtx,'UserData',c);			%-Store contrast
-	spm_conman('GraphCons',...			%-Depict contrast
-		struct('STAT',STAT,'c',c),-1,F)
+	set(hD_ConMtx,'UserData',DxCon);		%-Store contrast
+	spm_conman('GraphCons',DxCon,-1,F)		%-Depict contrast
 else
 	set(hD_ConMtx,'UserData',[]);			%-Clear contrast store
 	spm_conman('GraphCons',[],[],F)			%-Clear contrast plot
@@ -875,6 +878,7 @@ case 'd_reset_cb'
 
 STAT = get(findobj(gcbf,'Tag','TFA','Value',1),'UserData');
 set(findobj(gcbf,'Tag','D_name'),'String','')		%-Clear name
+set(findobj(gcbf,'Tag','D_ConMtx'),'UserData',[])	%-Contrast definition
 spm_conman('D_TF',gcbf,STAT);				%-Setup rest of define UI
 
 
@@ -895,12 +899,12 @@ case 'd_ok_cb'
 
 F = gcbf;
 
-name = get(findobj(F,'Tag','D_name'),'String');
-c    = get(findobj(F,'Tag','D_ConMtx'),'UserData');
-STAT = get(findobj(F,'Tag','D_TF','Value',1),'UserData');
+name  = get(findobj(F,'Tag','D_name'),'String');
+DxCon = get(findobj(F,'Tag','D_ConMtx'),'UserData');
+STAT  = get(findobj(F,'Tag','D_TF','Value',1),'UserData');
 
 dNam = ~isempty(name);
-dCon = ~isempty(c);
+dCon = ~isempty(DxCon);
 
 if ~(dNam & dCon)
 	spm('Beep')
@@ -915,13 +919,14 @@ end
 
 %-Append new contrast to xCon structure of ConMan figure 'UserData'
 %-----------------------------------------------------------------------
-xCon = get(F,'UserData');
-i    = length(xCon)+1;
-
-xCon(i).name = name;
-xCon(i).c    = c;
-xCon(i).STAT = STAT;
-
+DxCon.name = name;
+if ~strcmp(DxCon.STAT,STAT), error('STAT & DxCon.STAT mismatch!'), end
+xCon     = get(F,'UserData');
+if isempty(xCon)
+	xCon = DxCon;
+else
+	xCon = [xCon, DxCon];
+end
 set(F,'UserData',xCon);
 
 
@@ -932,10 +937,10 @@ Q        = get(hConList,'UserData');
 I        = Q(get(hConList,'Value'));
 n        = get(findobj(F,'Tag','Prompt'),'UserData');
 
-if abs(n)>1, I=[I,i]; else, I=i; end
+if abs(n)>1, I=[I,length(xCon)]; else, I=length(xCon); end
 
-spm_conman('TFA',F,xCon(i).STAT);			%-Set STAT
-spm_conman('ListCon',hConList,xCon,xCon(i).STAT,I)	%-ListCon
+spm_conman('TFA',F,xCon(end).STAT);			%-Set STAT
+spm_conman('ListCon',hConList,xCon,xCon(end).STAT,I)	%-ListCon
 
 %-Hide the DefineNew UI
 %-----------------------------------------------------------------------
@@ -1246,19 +1251,19 @@ h = uicontrol(F,'Style','Text','String','or','Tag','D_Ftxt',...
 		'HorizontalAlignment','Left',...
 		'Position',[025 205 030 020].*WS);
 H = [H,h];
-h = uicontrol(F,'Style','Text','String','columns to','Tag','D_Ftxt',...
+h = uicontrol(F,'Style','Text','String','columns for','Tag','D_Ftxt',...
 		'FontSize',FS(8),...
 		'HorizontalAlignment','Right',...
 		'Position',[022 190 070 010].*WS);
 H = [H,h];
-h = uicontrol(F,'Style','Text','String','test','Tag','D_Ftxt',...
+h = uicontrol(F,'Style','Text','String','reduced design','Tag','D_Ftxt',...
 		'FontSize',FS(8),...
 		'HorizontalAlignment','Right',...
 		'Position',[022 180 070 010].*WS);
 H = [H,h];
 h = uicontrol(F,'Style','Edit','Tag','D_X1cols',...
 		'ToolTipString',...
-			'enter indicies of design matrix column(s) to test',...
+			'enter column indicies of reduced design matrix X0',...
 		'HorizontalAlignment','Left',...
 		'BackgroundColor',COLOUR,...
 		'CallBack','spm_conman(''D_X1cols_CB'')',...
