@@ -100,15 +100,17 @@ iu     = [1:nu] + np;
 
 % treat confounds as fixed effects
 %---------------------------------------------------------------------------
-uE     = inv(Ju'*Ju)*Ju'*y(:);
+uE     = sparse(nu,1);
 uC     = speye(nu,nu)*1e6;
-
 
 % compbine priors on free parameters and confounds
 %---------------------------------------------------------------------------
-p      = [sparse(np,1); uE];
 pC     = blkdiag(Vp'*pC*Vp, uC);
 ipC    = inv(pC);
+
+% initialise free parameters
+%---------------------------------------------------------------------------
+p      = [sparse(np,1); inv(Ju'*Ju)*Ju'*y(:)];
 
 % EM 
 %===========================================================================
@@ -185,6 +187,7 @@ for  k = 1:32
 
     	% objective function
 	%===================================================================
+        Cp    = inv(J'*iS*J  + ipC);
         Fp    = - e'*iS*e/2 ...
                 - p'*ipC*p/2 ...
                 - log(det(S))/2 ...
