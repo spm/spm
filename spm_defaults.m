@@ -136,7 +136,7 @@ QUICK_COREG = 0;	% Full
 
 % Spatial Normalisation defaults
 %=======================================================================
-global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx sptl_Rglrztn
+global sptl_Ornt sptl_CO sptl_NAP sptl_NBss sptl_NItr sptl_BB sptl_Vx sptl_Rglrztn sptl_MskBrn
 
 % Orientation/position of images. Used as a starting estimate for
 % affine normalisation.
