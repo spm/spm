@@ -12,7 +12,6 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %      xGX: [1x1 struct] - Global variate stucture
 %      xVi: [1x1 struct] - Non-sphericity stucture
 %       xM: [1x1 struct] - Masking stucture
-%     xCon: [1x? struct] - Constrast stucture
 %    xsDes: [1x1 struct] - Design description stucture
 %
 %
@@ -185,10 +184,8 @@ spm_help('!ContextHelp',mfilename)
 %=======================================================================
 if ~nargin
 
-	str = {	'specify a design',...
-		'assign data to a specified design'};
-
-	if spm_input('What would you like to do?',1,'m',str,[1 0]);
+	str = 'specify a design or assign data';
+	if spm_input(str,1,'b',{'design','data'},[1 0]);
 
 		% specify a design
 		%-------------------------------------------------------
@@ -411,39 +408,7 @@ SPM.xM        = struct(	'T',	ones(q,1),...
 			'xs',	struct('Masking','analysis threshold'));
 
 
-
-
-%-Degrees of freedom assuming i.i.d. errors
-%=======================================================================
-
-%-Parameter projection matrix
-%-----------------------------------------------------------------------
-SPM.xX.xKXs  = spm_sp('Set',spm_filter(SPM.xX.K, SPM.xX.X));
-SPM.xX.pKX   = spm_sp('x-',SPM.xX.xKXs);
-
-%-Create Contrast structure array - xCon
-%=======================================================================
-iX0    = SPM.xX.iB;
-Fcname = 'effects of interest';
-xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,SPM.xX.xKXs);
-
-%-Trial-specifc effects specified by SPM.Sess(1).Fc
-%-----------------------------------------------------------------------
-for s = 1:nsess
-	str   = sprintf('Session %d: ',s);
-	for i = 1:length(SPM.Sess(1).Fc)
-		iX0           = 1:size(SPM.xX.X,2);
-		iX            = SPM.Sess(s).col(SPM.Sess(s).Fc(i).i);
-		iX0(iX)       = [];
-		Fcname        = [str SPM.Sess(s).Fc(i).name];
-		xCon(end + 1) = ...
-		spm_FcUtil('Set',Fcname,'F','iX0',iX0,SPM.xX.xKXs);
-	end
-end
-SPM.xCon  = xCon;
-
-
-%-Design description (an nx2 cellstr) - for saving and display
+%-Design description - for saving and display
 %=======================================================================
 for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
 Fstr      = sprintf('[min] Cutoff period %d seconds',min(HParam));

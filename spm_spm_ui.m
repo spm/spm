@@ -1,4 +1,4 @@
-function varargout=spm_spm_ui(varargin)
+function varargout = spm_spm_ui(varargin)
 % Setting up the general linear model for independent data
 % FORMATs (given in Programmers Help)
 %_______________________________________________________________________
@@ -444,10 +444,6 @@ function varargout=spm_spm_ui(varargin)
 %                 of the design, displaying the fieldnames (with "_"'s 
 %                 converted to spaces) in bold as topics, with
 %                 the corresponding text to the right
-% 
-% xCon          - Design matrix columns of effects of no interest
-%                (For F-contrasts)
-%                (Used in spm_spm.m for filtering data saved for plotting)
 % 
 % SPMid         - String identifying SPM and program versions
 %
@@ -1447,9 +1443,7 @@ end
 xM     = struct('T',M_T, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
 
 
-
-%-Construct full design matrix (X), parameter names,
-% and design information structure (xX)
+%-Construct full design matrix (X), parameter names and structure (xX)
 %=======================================================================
 X      = [H C B G];
 tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
@@ -1461,47 +1455,6 @@ xX     = struct(	'X',		X,...
 			'name',		{[Hnames; Cnames; Bnames; Gnames]},...
 			'I',		I,...
 			'sF',		{D.sF});
-
-
-
-%-Degrees of freedom assuming i.i.d. errors
-%=======================================================================
-
-%-Parameter projection matrix and traces
-%-----------------------------------------------------------------------
-xX.xKXs  = spm_sp('Set',xX.X);
-xX.pKX   = spm_sp('x-',xX.xKXs);
-xX.trRV  = spm_SpUtil('trRV',xX.xKXs);
-xX.erdf  = xX.trRV;
-
-
-%-Check estimability
-%-----------------------------------------------------------------------
-if     xX.erdf < 0
-    error(sprintf('This design is unestimable!   (df = %-.2g)',xX.erdf))
-elseif xX.erdf == 0
-    error('This design has no residuals! (df = 0)')
-elseif xX.erdf <  4
-    warning(sprintf('Very low degrees of freedom (df = %-.2g)',xX.erdf))
-end
-
-
-%-Pre-specified contrast for F-test on effects of interest
-%=======================================================================
-if ~isempty([H,C])
-
-	%-Some effects designated "of interest"
-	%---------------------------------------------------------------
-	F_iX0        = (size(H,2) + size(C,2)) + [1:(size(B,2) + size(G,2))];
-
-else
-	%-No effects designated "of interest" - F-test for B = 0
-	%---------------------------------------------------------------
-	F_iX0        = [];
-
-end
-Fcname = 'effects of interest';
-xCon   = spm_FcUtil('Set',Fcname,'F','iX0',F_iX0,xX.xKXs);
 
 
 %-Design description (an nx2 cellstr) - for saving and display
@@ -1533,7 +1486,6 @@ SPM.xC		= xC;			% covariate structure
 SPM.xGX		= xGX;			% global structure
 SPM.xVi		= xVi;			% non-sphericity structure
 SPM.xM		= xM;			% mask structure
-SPM.xCon	= xCon;			% contrast structure
 SPM.xsDes	= xsDes;		% description
 SPM.SPMid	= SPMid;		% version
 
