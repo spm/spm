@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.15 2003-04-17 12:59:29 john Exp $
+# $Id: Makefile,v 2.16 2003-05-12 10:56:45 john Exp $
 #
 ###############################################################################
 #
@@ -51,10 +51,13 @@ OSF1:
 	make all SUF=mexaxp
 MAC:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a"
-windows:
-	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 #windows:
-#	make all SUF=dll     CC="gcc -mno-cygwin -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > null" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+#	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+windows:
+# Consider adding either of the following, depending on your platform:
+#       -march=pentium3
+#       -march=pentium4
+	make all SUF=dll     CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -march=pentium4 -mfpmath=sse -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 
 ###############################################################################
 # Architecture specific cleaning
