@@ -258,8 +258,8 @@ for i=valid_handles(handle),
 		rcp      = round(xyz);
 		dim      = max(rcp,[],2)';
 		off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
-		vol      = zeros(dim);
-		vol(off) = t.*(t > 0);
+		vol      = zeros(dim)+NaN;
+		vol(off) = t;
 		vol      = reshape(vol,dim);
 		st.vols{i}.blobs=cell(1,1);
 		if st.mode == 0,
@@ -267,12 +267,13 @@ for i=valid_handles(handle),
 		else,
 			axpos = get(st.vols{i}.ax{1}.ax,'Position');
 		end;
-		ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+		ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
 			'Box','on');
 		mx = max([eps max(t)]);
-		image([0 mx/32],[0 mx],[1:64]' + 64,'Parent',ax);
+		mn = min([0 min(t)]);
+		image([0 mx/32],[mn mx],[1:64]' + 64,'Parent',ax);
 		set(ax,'YDir','normal','XTickLabel',[]);
-		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
+		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx, 'min',mn);
 	end;
 end;
 return;
@@ -292,7 +293,8 @@ for i=valid_handles(handle),
 	ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
 		'Box','on');
 	mx = max([eps maxval(vol)]);
-	image([0 mx/32],[0 mx],[1:64]' + 64,'Parent',ax);
+	mn = min([0 minval(vol)]);
+	image([0 mx/32],[mn mx],[1:64]' + 64,'Parent',ax);
 	set(ax,'YDir','normal','XTickLabel',[]);
 	st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
 end;
@@ -306,8 +308,8 @@ for i=valid_handles(handle),
 		rcp      = round(xyz);
 		dim      = max(rcp,[],2)';
 		off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
-		vol      = zeros(dim);
-		vol(off) = t.*(t > 0);
+		vol      = zeros(dim)+NaN;
+		vol(off) = t;
 		vol      = reshape(vol,dim);
 		if ~isfield(st.vols{i},'blobs'),
 			st.vols{i}.blobs=cell(1,1);
@@ -317,7 +319,8 @@ for i=valid_handles(handle),
 		end;
 		axpos = get(st.vols{i}.ax{2}.ax,'Position');
 		mx = max([eps maxval(vol)]);
-		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
+		mn = min([0 minval(vol)]);
+		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
 	end;
 end;
 return;
@@ -614,12 +617,24 @@ if isstruct(vol),
 	mx = -Inf;
 	for i=1:vol.dim(3),
 		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
-		mx  = max(mx,max(tmp(:)));
+		mx  = max(mx,max(tmp(find(finite(tmp)))));
 	end;
 else,
-	mx = max(vol(:));
+	mx = max(vol(find(finite(vol))));
+end;
+%_______________________________________________________________________
+function mn = minval(vol)
+if isstruct(vol),
+        mn = Inf;
+        for i=1:vol.dim(3),
+                tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
+                mn  = min(mn,min(tmp(find(finite(tmp)))));
+        end;
+else,
+        mn = min(vol(find(finite(vol))));
 end;
 
+%_______________________________________________________________________
 %_______________________________________________________________________
 function redraw(arg1)
 global st
@@ -709,15 +724,25 @@ for i = valid_handles(arg1),
 					mx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
 					st.vols{i}.blobs{1}.max = mx;
 				end;
+				if isfield(st.vols{i}.blobs{1},'min'),
+					mn = st.vols{i}.blobs{1}.min;
+				else,
+					mn = min([0 minval(st.vols{i}.blobs{1}.vol)]);
+					st.vols{i}.blobs{1}.min = mn;
+				end;
+
 				vol  = st.vols{i}.blobs{1}.vol;
 				M    = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
-				tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,0)';
-				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,0)';
-				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,0)';
+				tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])';
+				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
+				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
 
-				msk  = find(tmpt>0); imgt(msk) = 64+tmpt(msk)*(64/mx);
-				msk  = find(tmpc>0); imgc(msk) = 64+tmpc(msk)*(64/mx);
-				msk  = find(tmps>0); imgs(msk) = 64+tmps(msk)*(64/mx);
+				sc   = 64/(mx-mn);
+				off  = 65.51-mn*sc;
+				msk  = find(finite(tmpt)); imgt(msk) = off+tmpt(msk)*sc;
+				msk  = find(finite(tmpc)); imgc(msk) = off+tmpc(msk)*sc;
+				msk  = find(finite(tmps)); imgs(msk) = off+tmps(msk)*sc;
+
 				cmap = get(st.fig,'Colormap');
 				if size(cmap,1)~=128
 					figure(st.fig)
@@ -747,14 +772,13 @@ for i = valid_handles(arg1),
 				else,
 					cmx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
 				end;
-				
+
 				% get blob data
 				vol  = st.vols{i}.blobs{1}.vol;
 				M    = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
-				tmpt = spm_slice_vol(vol,inv(TM0* ...
-							     (st.Space\M)),TD,0)';
-				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,0)';
-				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,0)';
+				tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])';
+				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
+				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
 				
 				% actimg scaled round 0
 				tmpt = scaletocmap(tmpt,-cmx,cmx,actc);
@@ -796,22 +820,32 @@ for i = valid_handles(arg1),
 						mx = max([eps max(st.vols{i}.blobs{j}.vol(:))]);
 						st.vols{i}.blobs{j}.max = mx;
 					end;
+					if isfield(st.vols{i}.blobs{j},'min'),
+						mn = st.vols{i}.blobs{j}.min;
+					else,
+						mn = min([0 min(st.vols{i}.blobs{j}.vol(:))]);
+						st.vols{i}.blobs{j}.min = mn;
+					end;
+
 					vol  = st.vols{i}.blobs{j}.vol;
 					M    = st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
-					tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,1)';
-					tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,1)';
-					tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,1)';
+					tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[1 NaN])'/(mx-mn)+mn;
+					tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[1 NaN])'/(mx-mn)+mn;
+					tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[1 NaN])'/(mx-mn)+mn;
+					tmpt(find(~finite(tmpt))) = 0;
+					tmpc(find(~finite(tmpc))) = 0;
+					tmps(find(~finite(tmps))) = 0;
 
-					tmp  = cat(3,tmpt*(colour(1)/mx),tmpt*(colour(2)/mx),tmpt*(colour(3)/mx));
-					imgt = (repmat((1-tmpt/mx),[1 1 3]).*imgt+tmp);
+					tmp  = cat(3,tmpt*colour(1),tmpt*colour(2),tmpt*colour(3));
+					imgt = (repmat(1-tmpt,[1 1 3]).*imgt+tmp);
 					tmp = find(imgt<0); imgt(tmp)=0; tmp = find(imgt>1); imgt(tmp)=1;
 
-					tmp  = cat(3,tmpc*(colour(1)/mx),tmpc*(colour(2)/mx),tmpc*(colour(3)/mx));
-					imgc = (repmat((1-tmpc/mx),[1 1 3]).*imgc+tmp);
+					tmp  = cat(3,tmpc*colour(1),tmpc*colour(2),tmpc*colour(3));
+					imgc = (repmat(1-tmpc,[1 1 3]).*imgc+tmp);
 					tmp = find(imgc<0); imgc(tmp)=0; tmp = find(imgc>1); imgc(tmp)=1;
 
-					tmp  = cat(3,tmps*(colour(1)/mx),tmps*(colour(2)/mx),tmps*(colour(3)/mx));
-					imgs = (repmat((1-tmps/mx),[1 1 3]).*imgs+tmp);
+					tmp  = cat(3,tmps*colour(1),tmps*colour(2),tmps*colour(3));
+					imgs = (repmat(1-tmps,[1 1 3]).*imgs+tmp);
 					tmp = find(imgs<0); imgs(tmp)=0; tmp = find(imgs>1); imgs(tmp)=1;
 				end;
 			end;

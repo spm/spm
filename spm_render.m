@@ -113,6 +113,8 @@ if showbar, spm_progress_bar('Init', length(dat)*length(rend),...
 			'Making pictures', 'Number completed'); end;
 
 mx = zeros(length(rend),1)+eps;
+mn = zeros(length(rend),1);
+
 for j=1:length(dat),
 	XYZ = dat(j).XYZ;
 	t   = dat(j).t;
@@ -154,7 +156,7 @@ for j=1:length(dat),
 				dst = max(dst,0);
 				t0  = t(msk).*exp((log(0.5)/10)*dst)';
 			end;
-			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
+			X0  = full(sparse(round(xyz(1,:)), round(xyz(2,:)), t0, d2(1), d2(2)));
 			hld = 1; if ~finite(brt), hld = 0; end;
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
 			msk = find(X<0);
@@ -167,6 +169,8 @@ for j=1:length(dat),
 		if finite(brt), X = X.^brt; end;
 
 		mx(j) = max([mx(j) max(max(X))]);
+		mn(j) = min([mn(j) min(min(X))]);
+
 		rend{i}.data{j} = X;
 
 		if showbar, spm_progress_bar('Set', i+(j-1)*length(rend)); end;
@@ -174,6 +178,7 @@ for j=1:length(dat),
 end;
 
 mxmx = max(mx);
+mnmn = min(mn);
 
 if showbar, spm_progress_bar('Clear'); end;
 Fgraph = spm_figure('GetWin','Graphics');
@@ -193,9 +198,9 @@ if ~finite(brt),
 	colormap(split);
 	for i=1:length(rend),
 		ren = rend{i}.ren;
-		X   = rend{i}.data{1}/mxmx;
+		X   = (rend{i}.data{1}-mnmn)/(mxmx-mnmn);
 		msk = find(X);
-		ren(msk) = X(msk)+1;
+		ren(msk) = X(msk)+(1+1.51/64);
 		ax=axes('Parent',Fgraph,'units','normalized',...
 			'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
 			'Visible','off');
@@ -212,7 +217,7 @@ else,
 		ren = rend{i}.ren;
 		X = cell(3,1);
 		for j=1:length(rend{i}.data),
-			X{j} = rend{i}.data{j}/mxmx;
+			X{j} = rend{i}.data{j}/(mxmx-mnmn)-mnmn;
 		end
 		for j=(length(rend{i}.data)+1):3
 			X{j}=zeros(size(X{1}));

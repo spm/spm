@@ -325,7 +325,14 @@ if ~length(varargin{2}.Z)
 	return
 end
 
-[N Z XYZ A] = spm_max(varargin{2}.Z,varargin{2}.XYZ);
+% Includes Darren Gitelman's code for working around bug in
+% spm_max for conjunctions with negative thresholds
+%-----------------------------------------------------------------------
+minz = abs(min(min(varargin{2}.Z)));
+zscores = 1+minz+varargin{2}.Z;
+[N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
+Z = Z-minz-1;
+%-----------------------------------------------------------------------
 
 %-Convert cluster sizes from voxels to resels
 %-----------------------------------------------------------------------
@@ -374,7 +381,7 @@ TabLin     = 1;					%-Table data line
 %-Local maxima p-values & statistics
 %-----------------------------------------------------------------------
 HlistXYZ = [];
-while max(Z)
+while prod(size(find(finite(Z))))
 
 	% Paginate if necessary
 	%---------------------------------------------------------------
@@ -516,7 +523,7 @@ while max(Z)
 		end
 	    end
 	end
-	Z(j) = Z(j)*0;		% Zero local maxima for this cluster
+	Z(j) = NaN;		% Set local maxima to NaN
 end				% end region
 
 

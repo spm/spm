@@ -85,36 +85,44 @@ zoomM1 =     spm_matrix([0 0  0  0 0 0  transv.blob.vox([1 2]) 1]);
 
 Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)) < 0.5);
 T2     = full(sparse(transv.blob.xyz(1,Q),transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-T2     = spm_slice_vol(T2,zoomM,dim([1 2]),hld);
+T2     = spm_slice_vol(T2,zoomM,dim([1 2]),[hld NaN]);
+Q      = find(~T2) ; T2(Q) = NaN;
 D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
 D2     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
-maxD   = max(D2(:));
+maxD   = max([max(D2(:)) eps]);
+minD   = min([min(D2(:)) eps]);
 
 if transv.blob.dim(3) > 1
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)+1) < 0.5);
 	T1     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),hld);
+	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),[hld NaN]);
+	Q      = find(~T1) ; T1(Q) = NaN;
 	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
 	D1     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D1(:)]);
+	minD   = min([minD ; D1(:)]);
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)-1) < 0.5);
 	T3     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),hld);
+	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),[hld NaN]);
+	Q      = find(~T3) ; T3(Q) = NaN;
 	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
 	D3     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D3(:)]);
+	minD   = min([minD ; D3(:)]);
 end
 
-d      = max(T2(:));
-D2     = D2/maxD;
+mx     = max([max(T2(:)) eps]);
+mn     = min([min(T2(:)) 0]);
+D2     = (D2-minD)/(maxD-minD);
 if transv.blob.dim(3) > 1,
-	D1 = D1/maxD;
-	D3 = D3/maxD;
-	d = max([d ; T1(:) ; T3(:) ; eps]);
+	D1 = (D1-minD)/(maxD-minD);
+	D3 = (D3-minD)/(maxD-minD);
+	mx = max([mx ; T1(:) ; T3(:) ; eps]);
+	mn = min([mn ; T1(:) ; T3(:) ; 0]);
 end;
 
 %-Configure {128 level} colormap
@@ -127,11 +135,11 @@ if size(cmap,1) ~= 128
 end
 
 D      = length(cmap)/2;
-Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
+Q      = find(T2(:) > transv.blob.u); T2 = (T2(Q)-mn)/(mx-mn); D2(Q) = 1+1.51/D + T2; T2 = D*D2;
 
 if transv.blob.dim(3) > 1
-    Q  = T1(:) > transv.blob.u; T1 = T1(Q)/d; D1(Q) = 1 + T1; T1 = D*D1;
-    Q  = T3(:) > transv.blob.u; T3 = T3(Q)/d; D3(Q) = 1 + T3; T3 = D*D3;
+    Q  = find(T1(:) > transv.blob.u); T1 = (T1(Q)-mn)/(mx-mn); D1(Q) = 1+1.51/D + T1; T1 = D*D1;
+    Q  = find(T3(:) > transv.blob.u); T3 = (T3(Q)-mn)/(mx-mn); D3(Q) = 1+1.51/D + T3; T3 = D*D3;
 end
 
 set(Fgraph,'Units','pixels')
@@ -172,7 +180,7 @@ if transv.blob.dim(3) > 1
 	%-----------------------------------------------------------------------
 	q      = [80+dim(1)*zm*3+xo 20+yo 20 dim(2)*zm];
 	transv.h(13) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off','DeleteFcn','spm_transverse(''clear'');');
-	transv.h(14) = image([0 d/32],[0 d],[1:D]' + D);
+	transv.h(14) = image([0 mx/32],[mn mx],[1:D]' + D);
 	str    = [SPM.STAT ' value'];
 	axis xy; title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
@@ -193,7 +201,7 @@ else,
 	%-----------------------------------------------------------------------
 	q      = [40+dim(1)*zm+xo 20+yo 20 dim(2)*zm];
 	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off','DeleteFcn','spm_transverse(''clear'');');
-	transv.h(6) = image([0 d/32],[0 d],[1:D]' + D);
+	transv.h(6) = image([0 mx/32],[mn mx],[1:D]' + D);
 	str    = [SPM.STAT ' value'];
 	axis xy; title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
@@ -235,36 +243,44 @@ zoomM1 =     spm_matrix([0 0  0  0 0 0  transv.blob.vox([1 2]) 1]);
 
 Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)) < 0.5);
 T2     = full(sparse(transv.blob.xyz(1,Q),transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-T2     = spm_slice_vol(T2,zoomM,dim([1 2]),hld);
+T2     = spm_slice_vol(T2,zoomM,dim([1 2]),[hld NaN]);
+Q      = find(~T2) ; T2(Q) = NaN;
 D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
 D2     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
-maxD   = max(D2(:));
+maxD   = max([max(D2(:)) eps]);
+minD   = min([min(D2(:)) 0]);
 
 if transv.blob.dim(3) > 1
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)+1) < 0.5);
 	T1     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),hld);
+	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),[hld NaN]);
+	Q      = find(~T1) ; T1(Q) = NaN;
 	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
 	D1     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D1(:)]);
+	minD   = min([minD ; D1(:)]);
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)-1) < 0.5);
 	T3     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),hld);
+	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),[hld NaN]);
+	Q      = find(~T3) ; T3(Q) = NaN;
 	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
 	D3     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D3(:)]);
+	minD   = min([minD ; D3(:)]);
 end
 
-d      = max(T2(:));
-D2     = D2/maxD;
+mx     = max([max(T2(:)) eps]);
+mn     = min([min(T2(:)) 0]);
+D2     = (D2-minD)/(maxD-minD);
 if transv.blob.dim(3) > 1,
-	D1 = D1/maxD;
-	D3 = D3/maxD;
-	d = max([d ; T1(:) ; T3(:) ; eps]);
+	D1 = (D1-minD)/(maxD-minD);
+	D3 = (D3-minD)/(maxD-minD);
+	mx = max([mx ; T1(:) ; T3(:) ; eps]);
+	mn = min([mn ; T1(:) ; T3(:) ; 0]);
 end;
 
 %-Configure {128 level} colormap
@@ -277,11 +293,11 @@ if size(cmap,1) ~= 128
 end
 
 D      = length(cmap)/2;
-Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
+Q      = find(T2(:) > transv.blob.u); T2 = (T2(Q)-mn)/(mx-mn); D2(Q) = 1+1.51/D + T2; T2 = D*D2;
 
 if transv.blob.dim(3) > 1
-    Q  = T1(:) > transv.blob.u; T1 = T1(Q)/d; D1(Q) = 1 + T1; T1 = D*D1;
-    Q  = T3(:) > transv.blob.u; T3 = T3(Q)/d; D3(Q) = 1 + T3; T3 = D*D3;
+    Q  = find(T1(:) > transv.blob.u); T1 = (T1(Q)-mn)/(mx-mn); D1(Q) = 1+1.51/D + T1; T1 = D*D1;
+    Q  = find(T3(:) > transv.blob.u); T3 = (T3(Q)-mn)/(mx-mn); D3(Q) = 1+1.51/D + T3; T3 = D*D3;
 end
 
 P = xyz.*transv.blob.vox';
@@ -307,8 +323,8 @@ if transv.blob.dim(3) > 1
 
 	% colorbar
 	%-----------------------------------------------------------------------
-	set(transv.h(14), 'Ydata',[0 d], 'Cdata',[1:D]' + D);
-	set(transv.h(13),'XTickLabel',[],'Ylim',[0 d]);
+	set(transv.h(14), 'Ydata',[mn mx], 'Cdata',[1:D]' + D);
+	set(transv.h(13),'XTickLabel',[],'Ylim',[mn mx]);
 else,
 	set(transv.h(2),'Cdata',rot90(spm_grid(T2)));
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
