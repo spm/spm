@@ -188,3 +188,5 @@ for i=1:size(P,1)
 end
 
 spm_progress_bar('Clear');
+for i=1:size(V,2), spm_unmap(V(:,i)); end;
+
