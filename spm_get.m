@@ -631,6 +631,7 @@ case 'reset'
 	set(F,'Visible','off')				%-Make window Invisible
 	set(findobj(F,'Tag','Done'),'UserData',-1)	%-Set Done UserData to -1
 	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
+	drawnow
 	return
 case 'off'
 	if isempty(F), varargout={[],cF}; return, end
@@ -638,6 +639,7 @@ case 'off'
 	set(F,'Visible','off')				%-Make window Invisible
 	set(findobj(F,'Tag','Done'),'UserData',1)	%-Set Done UserData to 1
 	delete(get(F,'CurrentAxes'))			%-delete 'dir' axes
+	drawnow
 	return
 case 'on'
 	if isempty(F)
