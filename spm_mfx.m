@@ -153,7 +153,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...ReML esimation')      %-#
 spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
 
 xsDes.Design = '2nd-level MFX analysis';
-xsDes.Name   = SPM.xCon.name;
+xsDes.Name   = xCon.name;
 S.xsDes	     = xsDes;		% description
 
 
