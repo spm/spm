@@ -1,6 +1,5 @@
-/* spm_datatypes.h */
-
-/* constants etc defining analyze / spm image data types */
+/* %W% %E%
+   constants etc defining analyze / spm image data types */
 
 #define SPM_UNSIGNED_CHAR     2
 #define SPM_SIGNED_SHORT      4

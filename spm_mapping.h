@@ -1,7 +1,5 @@
-/* spm_mapping.h */
-
-/* matlab dependent high level data access and map
-manipulation routines */
+/* %W% %E%
+   matlab dependent high level data access and map manipulation routines */
 
 #include "spm_vol_access.h"
 #include "mex.h"

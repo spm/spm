@@ -1,3 +1,5 @@
+/* %W% %E%
+*/
 #define UNSIGNED_CHAR     2
 #define SIGNED_SHORT      4
 #define SIGNED_INT        8

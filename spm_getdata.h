@@ -1,6 +1,5 @@
-/* spm_getdata.h */
-
-/* routines for accessing datatypes for images */
+/* %W% %E%
+   routines for accessing datatypes for images */
 
 short getshort(short x);
 unsigned short getushort(unsigned short x);

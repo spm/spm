@@ -1,8 +1,8 @@
-/* win32mmap.h 
+/* %W% %E% 
 mmap replacement for 32 bit windows
 does not implement mmap, but map_file 
 See win32mmap.c for comments
- */
+*/
 
 #ifndef WIN32MMAP_DEF
 #define WIN32MMAP_DEF

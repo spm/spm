@@ -1,4 +1,5 @@
-/* spm_make_lookup.h */
+/* %W% %E%
+*/
 
 void make_lookup_poly(double coord, int q, int dim, int *d1,
 	double *table, double **ptpend);

@@ -1,6 +1,5 @@
-/* spm_vol_access.h */
-
-/* matlab independent image access routines */
+/* %W% %E%
+   matlab independent image access routines */
 
 #include <sys/types.h>
 #ifdef SPM_WIN32
