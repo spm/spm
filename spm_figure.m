@@ -370,7 +370,10 @@ if ~isempty(off),
 	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
 	if length(off1)>1,
 		fname = deblank(ca(off1(end),:));
-		if exist(fname)~=2,
+		% if exist(fname)~=2,
+		fd = fopen(fname,'r');
+		if fd~=-1,
+			fclose(fd);
 			PRINTSTR(off:(off+7))='';
 		end;
 	end;
