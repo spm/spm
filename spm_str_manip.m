@@ -9,7 +9,7 @@ function strout = spm_str_manip(strin, options)
 % The options are:
 % 	'r'              - remove trailing suffix
 % 	's'              - remove trailing suffix -
-%			   only if it is either '.img' or '.hdr'
+%			   only if it is either '.img', '.hdr', or '.mat'
 % 	'e'              - remove everything except the suffix
 % 	'h'              - remove trailing pathname component
 % 	't'              - remove leading pathname component
@@ -18,6 +18,10 @@ function strout = spm_str_manip(strin, options)
 %	['k' num2str(n)] - produce a string of at most n characters long.
 %			   If the input string is longer than n, then
 %			   it is prefixed with '..' and the last n-2 characters
+%	['a' num2str(n)] - similar to above - except the leading directory is
+%			   replaced by '../'.
+%			   eg. spm_str_manip('/dir1/dir2/file.img','a16') would
+%			   produce '../dir2/file.img'.
 %			   are returned.
 % 	'c'		 - remove leading components which are common to
 %			   all rows of string-matrix
@@ -104,11 +108,27 @@ while (~isempty(options))
 				stri = ['..' stri(l-c+2:l)];
 			end
 
+		elseif (opt(1)=='a')
+			% Last few characters
+			stri = deblank(stri);
+			m1   = find(stri == '/');
+			l    = length(stri);
+			if (c < l)
+				m2   = find(l-m1+1+2 <= c);
+				if ~isempty(m2)
+					stri = ['..' stri(m1(min(m2)):l)];
+				else
+					stri = ['..' stri(max(m1):l)];
+				end
+			end
+
 		elseif (opt(1)=='s')
-			% Strip off '.img' or '.hdr' suffixes only
+			% Strip off '.img', '.hdr' or '.mat' suffixes only
 			l = length(stri);
 			if (l > 4)
-				if (strcmp(stri((l-3):l),'.img') | strcmp(stri((l-3):l),'.hdr'))
+				if (strcmp(stri((l-3):l),'.img') | ...
+				    strcmp(stri((l-3):l),'.hdr') | ...
+				    strcmp(stri((l-3):l),'.mat'))
 					stri = spm_str_manip(stri, 'r');
 				end
 			end
