@@ -3,10 +3,10 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Defaults)
 %_______________________________________________________________________
 %
-% spm_input handles most forms of user input for SPM. This can be
-% either via GUI with keyboard shortcuts (in the SPM "Interactive"
-% window), or on the command line (in the MatLab command window) if
-% requested.
+% spm_input handles most forms of user input for SPM. (File selection
+% is handled by spm_get.m) This can be either via GUI with keyboard
+% shortcuts (in the SPM "Interactive" window), or on the command line
+% (in the MatLab command window) if requested.
 %
 % There are four types of input: String, Evaluated, Buttons and Menus:
 % These prompt for string input; string input which is evaluated to
@@ -41,11 +41,38 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % functions or workspace variables. I.e.:
 %   i)  - a number, vector or matrix        e.g. "[1 2 3 4]"
 %                                                "[1:4]"
-%                                             or "1:4"
-%  ii)  - an expression                     e.g. "pi^2" 
+%                                                "1:4"
+%  ii)  - an expression                     e.g. "pi^2"
+%                                                "exp(-[1:36]/5.321)"
 % iii)  - a function (that will be invoked) e.g. "spm_load('tmp.dat')"
+%         (function must be on MATLABPATH)       "input_cov(36,5.321)"
 %  iv)  - a variable from the base workspace
 %                                           e.g. "tmp"
+%
+% The last three options provide a great deal of power: spm_load will
+% load a matrix from an ASCII data file and return the results. The
+% second example assummes a custom funcion called input_cov has been
+% written which expects two arguments, for example the following file
+% saved as input_cov.m somewhere on the MATLABPATH (~/matlab, the
+% matlab subdirectory of your home area, and the current directory, are
+% on the MATLABPATH by default):
+%
+%       function [x] = input_cov(n,decay)
+%       % data input routine - mono-exponential covariate
+%       % FORMAT [x] = input_cov(n,decay)
+%       % n     -  number of time points
+%       % decay - decay constant
+%       x = exp(-[1:n]/decay);
+%
+% Although this example is trivial, specifying large vectors of empirical 
+% data (e.g. reaction times for 72 scans) is efficient and reliable using 
+% this device.
+%
+% Alternatively, variables containing the required responses may be
+% setup in the MatLab base workspace before invoking the SPM routine.
+% E.g.
+% >> tmp=exp(-[1:36]/5.321)
+%
 % Errors in string evaluation are handled gracefully, and the user
 % prompted to re-enter.
 %
@@ -97,9 +124,8 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %-----------------------------------------------------------------------
 % Programers help is contained in the main body of spm_input.m
 %-----------------------------------------------------------------------
-% See      : input.m (MATLAB Reference Guide)
-% See also : spm_get.m and 'Variables' (spm_ui.man) in the help facility
-%
+% See      : input.m   (MatLab Reference Guide)
+% See also : spm_get.m (SPM file selector dialog)
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
@@ -806,7 +832,6 @@ elseif abs(ch)==13
 	fprintf('Return shouldn''t be passed to this routine!')
 else
 	%-Illegal character
-	fprintf('%g ',abs(ch))
 	return
 end
 set(h,'String',tmp)
