@@ -5,7 +5,7 @@ function status = spm_bch_GetCont(batch_mat,n_con);
 
 %--------------------------------------------------
 %- get xCon if exist; We are in Wdir.
-%- WDir = char(spm_input_b('batch',batch_mat,{},'WDir'));
+%- WDir = char(spm_input('batch',batch_mat,{},'WDir'));
 %--------------------------------------------------
 
 
@@ -49,9 +49,9 @@ end
 %- get contrast to create
 %--------------------------------------------------
 
-names = spm_input_b('batch',batch_mat,{'contrastes',n_con},'names');
-types = spm_input_b('batch',batch_mat,{'contrastes',n_con},'types');
-values = spm_input_b('batch',batch_mat,{'contrastes',n_con},'values');
+names = spm_input('batch',batch_mat,{'contrastes',n_con},'names');
+types = spm_input('batch',batch_mat,{'contrastes',n_con},'types');
+values = spm_input('batch',batch_mat,{'contrastes',n_con},'values');
 
 %- check that the lengths are identical ? NO, should be done in spm_bch_bchmat
 

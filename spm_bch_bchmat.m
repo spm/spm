@@ -61,10 +61,13 @@ bch_names = {'defaults_edit', 'type_area' ...
 	     'Normalisation','RealignCoreg','Reset'};
 
 %===============================================================
-case {'headers','means','realignment',...
-     'normalisation','smooth'}
+case {'headers','means','normalize','smooth'}
 
 bch_names = {typeA};
+
+%===============================================================
+case 'realign' 
+bch_names = {'realign','sessions'};
 
 
 %===============================================================
