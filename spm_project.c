@@ -74,9 +74,9 @@ Matrix *plhs[], *prhs[];
     v    = mxGetPr(V);
     dim  = mxGetPr(DIM);
 
-    xdim = (int) (dim[3] + 0.5);
-    ydim = (int) (dim[4] + 0.5);
-    zdim = (int) (dim[5] + 0.5);
+    xdim = (int) (dim[3] + 0.99);
+    ydim = (int) (dim[4] + 0.99);
+    zdim = (int) (dim[5] + 0.99);
 
     if (m == DY+DX && m1 == DZ+DX) /* MNI Space */
     {
