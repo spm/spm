@@ -200,6 +200,13 @@ case 'addblobs',
 case 'addcolouredblobs',
 	addcolouredblobs(varargin{1}, varargin{2},varargin{3},varargin{4},varargin{5});
 
+case 'addimage',
+	addimage(varargin{1}, varargin{2});
+	redraw(varargin{1});
+
+case 'addcolouredimage',
+	addcolouredimage(varargin{1}, varargin{2},varargin{3});
+
 case 'rmblobs',
 	rmblobs(varargin{1});
 	redraw(varargin{1});
@@ -241,6 +248,26 @@ end;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
+function addimage(handle, fname)
+global st
+for i=valid_handles(handle),
+	vol = spm_vol(fname);
+	mat = vol.mat;
+	st.vols{i}.blobs=cell(1,1);
+	if st.mode == 0,
+		axpos = get(st.vols{i}.ax{2}.ax,'Position');
+	else,
+		axpos = get(st.vols{i}.ax{1}.ax,'Position');
+	end;
+	ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+		'Box','on');
+	mx = max([eps max(t)]);
+	image([0 mx/32],[0 mx],[1:64]' + 64,'Parent',ax);
+	set(ax,'YDir','normal','XTickLabel',[]);
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
 function addcolouredblobs(handle, xyz, t, mat,colour)
 global st
 for i=valid_handles(handle),
@@ -258,9 +285,28 @@ for i=valid_handles(handle),
 			bset = length(st.vols{i}.blobs)+1;
 		end;
 		axpos = get(st.vols{i}.ax{2}.ax,'Position');
-		mx = max([eps max(t)]);
+		mx = max([eps maxval(vol)]);
 		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
 	end;
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function addcolouredimage(handle, fname,colour)
+global st
+for i=valid_handles(handle),
+
+	vol = spm_vol(fname);
+	mat = vol.mat;
+	if ~isfield(st.vols{i},'blobs'),
+		st.vols{i}.blobs=cell(1,1);
+		bset = 1;
+	else,
+		bset = length(st.vols{i}.blobs)+1;
+	end;
+	axpos = get(st.vols{i}.ax{2}.ax,'Position');
+	mx = max([eps maxval(vol)]);
+	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
 end;
 return;
 %_______________________________________________________________________
@@ -513,6 +559,17 @@ global st
 redraw(1:24);
 return;
 %_______________________________________________________________________
+function mx = maxval(vol)
+if isstruct(vol),
+	mx = -Inf;
+	for i=1:vol.dim(3),
+		tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
+		mx  = max(mx,max(tmp(:)));
+	end;
+else,
+	mx = max(vol(:));
+end;
+
 %_______________________________________________________________________
 function redraw(arg1)
 global st
@@ -587,7 +644,7 @@ for i = valid_handles(arg1),
 				if isfield(st.vols{i}.blobs{1},'max'),
 					mx = st.vols{i}.blobs{1}.max;
 				else,
-					mx = max([eps max(st.vols{i}.blobs{1}.vol(:))]);
+					mx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
 					st.vols{i}.blobs{1}.max = mx;
 				end;
 				vol  = st.vols{i}.blobs{1}.vol;
