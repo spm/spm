@@ -136,15 +136,19 @@ sptl_WghtRg = 0;     % Dont give option to supply a weighting image.
 
 % Coregistration defaults
 %=======================================================================
-global QUICK_COREG
+global sptl_QckCrg sptl_UsMtlInfrmtn
 
-% Hidden option to just do a quick between mode coregistration
+% Option to just do a quick between mode coregistration
 % This option misses out the segmenting, and coregistering segments
 % steps.
 %-----------------------------------------------------------------------
-%QUICK_COREG = 1;	% Quick and simple
-QUICK_COREG = 0;	% Full
+%sptl_QckCrg = 1;	% Quick and simple
+sptl_QckCrg = 0;	% Full
 
+% Option to use Mutual Information coregistration.
+%-----------------------------------------------------------------------
+sptl_UsMtlInfrmtn = 0; % Dont use MI
+%sptl_UsMtlInfrmtn = 1; % Use MI
 
 % Spatial Normalisation defaults
 %=======================================================================

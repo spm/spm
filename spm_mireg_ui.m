@@ -51,41 +51,49 @@ function spm_mireg_ui
 % _______________________________________________________________________
 % %W% John Ashburner %E%
 
+global BCH
+
 SPMid = spm('FnBanner',mfilename,'2.8');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MI Coregister');
 spm_help('!ContextHelp','spm_mireg_ui.m');
 
 % get number of subjects
-nsubjects = spm_input('number of subjects',1, 'e', 1);
+nsubjects = spm_input('number of subjects',1, 'e', 1, 'batch',{},'subject_nb');
 if nsubjects < 1,
 	spm_figure('Clear','Interactive');
 	return;
 end;
 
-global sptl_WhchPtn
-if sptl_WhchPtn ~= 1,
-	p = spm_input('Which option?',2,'m',...
+p = spm_input('Which option?',2,'m',...
 	'Coregister only|Reslice Only|Coregister & Reslice',...
-	[1 2 3],3);
-else,
-	p = 3;
-end;
-
+	[1 2 3],3, 'batch',{},'opt');
 
 if p == 1 | p == 3,
 	for i = 1:nsubjects,
 		mireg(i) = struct('VG',[],'VF',[],'PO','');
 		
 		% select target(s)
-		PG = spm_get(1,'.img', ['select target image for subject ' num2str(i)]);
+		if isempty(BCH),
+			PG = spm_get(1,'.img', ['select target image for subject ' num2str(i)]);
+		else,
+			PG = spm_input('batch',{},'target_image');
+		end;
 		mireg(i).VG = spm_vol(PG);
 		
 		% select object(s)
-		PF = spm_get(1,'.img', ['select object image for subject ' num2str(i)]);
+		if isempty(BCH),
+			PF = spm_get(1,'.img', ['select object image for subject ' num2str(i)]);
+		else,
+			PF = spm_input('batch',{},'object_image');
+		end;
 		mireg(i).VF = spm_vol(PF);
 
 		% select others
-		PO = spm_get(Inf,'.img', ['select other images for subject ' num2str(i)]);
+		if isempty(BCH),
+			PO = spm_get(Inf,'.img', ['select other images for subject ' num2str(i)]);
+		else,
+			PO = spm_input('batch',{},'other_image');
+		end;
 		if isempty(PO),
 			mireg(i).PO = PF;
 		else,
@@ -98,10 +106,18 @@ if p==2,
 	for i = 1:nsubjects,
 		mireg(i) = struct('VG',[],'VF',[],'VO',[]);
 		% select target space
-		PG = spm_get(1,'.img', ['select image defining space for subject ' num2str(i)]);
+		if isempty(BCH),
+			PG = spm_get(1,'.img', ['select image defining space for subject ' num2str(i)]);
+		else,
+			PG = spm_input('batch',{},'target_image');
+		end;
 		mireg(i).VG = spm_vol(PG);
 
-		PO = spm_get(Inf,'.img', ['select images to reslice ' num2str(i)]);
+		if isempty(BCH),
+			PO = spm_get(Inf,'.img', ['select images to reslice ' num2str(i)]);
+		else,
+			PO = spm_input('batch',{},'reslice_image');
+		end;
 		mireg(i).VO = PO;
 	end;
 end;
