@@ -28,9 +28,9 @@ function varargout = spm_list(varargin)
 % (see spm_getSPM for further details of SPM & VOL structures)
 %
 % Dis    - Minimum distance between maxima
-%          {defaults (missing) to 8mm for 'List', 4mm for 'ListCluster'}
+%          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
 % Num    - Maxiumum number of local maxima tabulated per cluster
-%          {defaults (missing) to 2   for 'List', 16  for 'ListCluster'}
+%          {defaults (missing or empty) to 3   for 'List', 16  for 'ListCluster'}
 % Title  - Title text for table
 %
 % TabDat - Structure containing table data
