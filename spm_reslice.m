@@ -372,7 +372,8 @@ return;
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
+%PO            = fullfile(pth,[pre nm xt vr]);
+PO             = [pre nm xt vr];
 return;
 %_______________________________________________________________________
 

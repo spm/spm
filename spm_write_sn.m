@@ -282,34 +282,44 @@ for i=1:prod(size(V)),
 
 	if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
 
-	X  = x'*ones(1,length(y));
-	Y  = ones(length(x),1)*y;
 	Tr = prm.Tr;
-	BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
-	BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
-	BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
-	DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
-	DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
-	DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-	for j=1:length(z),   % Cycle over planes
+	if isempty(Tr),
+		for j=1:length(z),   % Cycle over planes
+			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0) * detAff;
+			Dat(:,:,j) = single(dat);
+			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+		end;
+	else,
+		X  = x'*ones(1,length(y));
+		Y  = ones(length(x),1)*y;
+		BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
+		BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
+		BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
+		DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
+		DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
+		DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-		tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
-		ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
-		tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
+		for j=1:length(z),   % Cycle over planes
 
-		j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
-		j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
-		j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
+			tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
+			ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
+			tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
 
-		% The determinant of the Jacobian reflects relative volume changes.
-		%------------------------------------------------------------------
-		dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
-		dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
-		Dat(:,:,j) = single(dat);
+			j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
+			j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
+			j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
 
-		if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+			% The determinant of the Jacobian reflects relative volume changes.
+			%------------------------------------------------------------------
+			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
+			dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
+			Dat(:,:,j) = single(dat);
+
+			if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+		end;
 	end;
+
 	if nargout==0,
 		VO = spm_write_vol(VO,Dat);
 	else,
@@ -349,7 +359,8 @@ return;
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
+%PO            = fullfile(pth,[pre nm xt vr]);
+PO             = [pre nm '.img'];
 return;
 %_______________________________________________________________________
 

@@ -69,7 +69,8 @@ for iter = 1:128,
 	T     = reshape([0 ; T],nbas);
 
 	[pth,nm,xt,vr] = fileparts(deblank(V.fname));
-	S              = fullfile(pth,['bias_' nm '.mat']);
+	%S             = fullfile(pth,['bias_' nm '.mat']);
+	S              = ['bias_' nm '.mat'];
 	save(S,'V','T','h');
 	fprintf('%g %g\n', ll, lp);
 
