@@ -305,10 +305,11 @@ for i = 1:V(3,1)
   end 			% (conditional on non-zero voxels)
 end			% (loop over planes)
 
-%-Smoothness estimates %-----------------------------------------------------------------------
+%-Smoothness estimates 
+%-----------------------------------------------------------------------
 if ~isempty(sx)
 	W = sqrt([sx(:,1)./sx(:,2) sy(:,1)./sy(:,2) sz(:,1)./sz(:,2)]/2); end
-if V(3,1) == 1;   W = W(1:2);  end			% 2 dimnesional data
+if V(3,1) == 1;   W = W(:,1:2);  end			% 2 dimnesional data
 if size(W,1) > 1; W = mean(W); end			% average over contrasts
 
 FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
