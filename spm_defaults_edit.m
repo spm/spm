@@ -1,5 +1,4 @@
 function spm_defaults_edit(arg1, arg2)
-
 % Modify defaults
 % FORMAT spm_defaults_edit
 %_______________________________________________________________________
@@ -25,8 +24,18 @@ function spm_defaults_edit(arg1, arg2)
 % Header Defaults
 % 	The values to be taken as default when there are no Analyze
 %	image headers. There are two different sets which depend on
-%	the modality in which SPM is running: 	
-%  
+%	the modality in which SPM is running.
+%		* image size in x,y and z {voxels}
+% 		* voxel size in x,y and z {mm}
+%		* scaling co-efficient applied to *.img data on entry
+%		  into SPM. 
+%		* data type.  (see spm_type.m for supported types
+%		  and specifiers)
+%		* offest of the image data in file {bytes}
+%		* the voxel corresponding the [0 0 0] in the location
+%		  vector XYZ
+%		* a string describing the nature of the image data.
+% 
 % Realignment & Coregistration Defaults
 % 	An assortment of defaults.
 % Spatial Normalisation Defaults
