@@ -596,18 +596,6 @@ set(findobj(Fmenu,'Tag',OModality),'Visible','off')
 set(findobj(Fmenu,'Tag', Modality),'Visible','on')
 set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum)
 
-%-For fMRI, check descriptors limit
-%-----------------------------------------------------------------------
-if strcmp(Modality,'FMRI')
-	[s,w] = unix('limit');
-	d     = findstr(w,'descriptors');
-	w     = eval(w((d + 11):length(w)));
-	if (w < 256) warndlg(['To increase; quit SPM & MatLab, type ',...
-		'''unlimit'', and restart'],...
-		sprintf('WARNING: file descriptors = %d',w))
-	end
-end
-
 
 case 'defaults'
 %=======================================================================
