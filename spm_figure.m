@@ -1,6 +1,6 @@
-function R1=spm_figure(Action,P2,P3,P4,P5)
+function R1=spm_figure(Action,P2,P3,P4,P5,P6)
 % Setup and callback functions for Graphics window
-% FORMAT R1=spm_figure(Action,P2,P3,P4,P5)
+% FORMAT R1=spm_figure(Action,P2,P3,P4,P5,P6)
 %	- An embedded callback, multi-function function
 %       - For detailed programmers comments, see the format specifications
 %         below
@@ -54,10 +54,6 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 % * Edit : To edit text, select a text object with the circle cursor,
 %          and edit the text in the editable text widget that appears.
 %
-%
-% Objects with the attribute Tag = 'NoDelete' are exempt from deletion
-% when spm_clf (spm_figure('Clear')) is used.
-%
 % For SPM usage, the figure should be 'Tag'ed as 'Graphics'.
 %
 % For SPM power users, and programmers, spm_figure provides utility
@@ -105,11 +101,15 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 %	- If a vector, then first object handle is used
 % F	- Number or parent figure
 %
-% FORMAT spm_figure('Clear',F)
-% F	- 'Tag' string or figure number of figure to clear, defaults to gcf
-% Clears figure, leaving ToolBar (& other objects 'Tag'ed as 'NoDelete')
-% intact. If figure F is 'Tag'ged 'Interactive' (SPM usage), then the window
+% FORMAT spm_figure('Clear',F,Tags)
+% Clears figure, leaving ToolBar (& other objects with invisible handles)
+% Optional third argument specifies 'Tag's of objects to delete.
+% If figure F is 'Tag'ged 'Interactive' (SPM usage), then the window
 % name and pointer are reset.
+% F	- 'Tag' string or figure number of figure to clear, defaults to gcf
+% Tags  - 'Tag's (vector cell array or single string) of objects to delete
+%         *regardless* of 'HandleVisibility'. Only these objects are deleted.
+%         '!all' denotes all objects
 %
 % FORMAT F = spm_figure('CreateWin',Tag,Name,Visible)
 % Creates a full length WhiteBg figure 'Tag'ged Tag (if specified).
@@ -150,12 +150,13 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 % F	- [Optional] Figure in which to attempt to turn the page
 %         Defaults to 'Graphics' 'Tag'ged window
 %
-% FORMAT spm_figure('WaterMark',F,str,Tag,Angle)
+% FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 % Adds watermark to figure windows.
 % F	- Figure for watermark. Defaults to gcf
 % str   - Watermark string. Defaults (missing or empty) to SPM
 % Tag   - Tag for watermark axes. Defaults to ''
 % Angle - Angle for watermark. Defaults to -45
+% Perm  - If specified, then watermark is permanent (HandleVisibility 'off')
 %
 % FORMAT spm_figure('TurnPage',move,F)
 % SPM pagination function: Turn to specified page
@@ -189,23 +190,21 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 %-Condition arguments
 %-----------------------------------------------------------------------
 if (nargin==0), Action = 'Create'; end
-if ~isstr(Action), P2=Action; Action='CreateBar'; end
 
-if strcmp(lower(Action),lower('Create'))
+switch lower(Action), case 'create'
 %=======================================================================
 % F = spm_figure('Create',Tag,Name,Visible)
 %-Condition arguments
 if nargin<4, Visible='on'; else, Visible=P4; end
-if nargin<3, Name='Graphics'; else, Name=P3; end
-if nargin<2, Tag = []; else, Tag=P2; end
+if nargin<3, Name=''; else, Name=P3; end
+if nargin<2, Tag=''; else, Tag=P2; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F)
 R1 = F;
-return
 
 
-elseif strcmp(lower(Action),lower('CreateWin'))
+case 'createwin'
 %=======================================================================
 % F=spm_figure('CreateWin',Tag,Name,Visible)
 
@@ -213,29 +212,42 @@ elseif strcmp(lower(Action),lower('CreateWin'))
 %-----------------------------------------------------------------------
 if nargin<4, Visible=''; else, Visible=P4; end
 if isempty(Visible), Visible='on'; end
-if nargin<3, Name='Graphics'; else, Name=P3; end
-if nargin<2, Tag=[]; else, Tag=P2; end
+if nargin<3, Name=''; else, Name=P3; end
+if nargin<2, Tag=''; else, Tag=P2; end
 
 S0   = get(0,'ScreenSize');
 WS   = [S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900];
 
-F      = figure('Position',[515 008 600 865].*WS,...
+F      = figure(...
+	'Tag',Tag,...
+	'Position',[515 008 600 865].*WS,...
 	'Resize','off',...
-	'Visible','off',...
+	'MenuBar','none',...
+	'DefaultTextFontSize',2*round(12*min(WS)/2),...
+	'DefaultUicontrolFontSize',2*round(12*min(WS)/2),...
+	'DefaultUicontrolInterruptible','on',...
+	'Color','w',...
+	'ColorMap',gray(64),...
+	'DefaultTextColor','k',...
+	'DefaultAxesColor','w',...
+	'DefaultAxesXColor','k',...
+	'DefaultAxesYColor','k',...
+	'DefaultAxesZColor','k',...
+	'DefaultPatchFaceColor','k',...
+	'DefaultPatchEdgeColor','k',...
+	'DefaultSurfaceEdgeColor','k',...
+	'DefaultLineColor','k',...
 	'PaperPosition',[.75 1.5 7 9.5],...
 	'PaperType','a4letter',...
-	'DefaultTextFontSize',2*round(12*min(WS)/2),...
-	'Color','w',...
-	'ColorMap',gray(64));
-whitebg(F,'w')
-if ~isempty(Tag), set(F,'Tag',Tag), end
-if ~isempty(Name), set(F,'Name',Name,'NumberTitle','off'), end
+	'InvertHardcopy','off',...
+	'Visible','off');
+if ~isempty(Name)
+	set(F,'Name',[spm('GetUser'),' - ',Name],'NumberTitle','off'), end
 set(F,'Visible',Visible)
 R1 = F;
-return
 
 
-elseif strcmp(lower(Action),lower('FindWin'))
+case 'findwin'
 %=======================================================================
 % F=spm_figure('FindWin',F)
 % F=spm_figure('FindWin',Tag)
@@ -260,54 +272,60 @@ else
 	% F is supposed to be a figure number - check it
 	if ~any(F==get(0,'Children')), F=[]; end
 end
-
 R1 = F;
-return
 
-elseif strcmp(lower(Action),lower('FindParentWin'))
+
+case 'findparentwin'
 %=======================================================================
 % F=spm_figure('FindParentWin',h)
 if nargin<2, error('No object specified'), else, h=P2; end
 F = get(h(1),'Parent');
 while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
 R1 = F;
-return
 
 
-elseif strcmp(lower(Action),lower('Clear'))
+case 'clear'
 %=======================================================================
-% spm_figure('Clear',F)
-%-Clear window, leaving 'NoDelete' 'Tag'ed objects, reset pointer & name
+% spm_figure('Clear',F,Tags)
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
-	else, F=P2; end
+if nargin<3, Tags=[]; else, Tags=P3; end
+if nargin<2, F=get(0,'CurrentFigure'); else, F=P2; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
-%-Clear figure, leaving 'NoDelete' 'Tag'ed objects
+%-Clear figure
 %-----------------------------------------------------------------------
-for h = get(F,'Children')'
-	h1 = get(F,'Children');
-	if any(h1==h) & ~strcmp(get(h,'Tag'),'NoDelete'), delete(h), end
+if isempty(Tags)
+	%-Clear figure of objects with 'HandleVisibility' 'on'
+	delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
+else
+	%-Clear specified objects from figure
+	cSHH = get(0,'ShowHiddenHandles');
+	set(0,'ShowHiddenHandles','on')
+	if isstr(Tags); Tags={Tags}; end
+	if any(strcmp(Tags,'!all'))
+		delete(get(F,'Children'))
+	else
+	    for i=1:length(Tags)
+		delete(findobj(get(F,'Children'),'flat','Tag',Tags{i}));
+	    end
+	end	
+	set(0,'ShowHiddenHandles',cSHH)
 end
-
 set(F,'Pointer','Arrow')
 
-%-If this is the 'Interactive' window, reset the name and pointer
+%-If this is the 'Interactive' window, reset the name, UserData & callbacks
 if strcmp(get(F,'Tag'),'Interactive')
-	set(F,'Pointer','Arrow',...
-		'Name','',...
+	set(F,'Name','',...
 		'UserData',[],...
 		'ButtonDownFcn','',...
 		'KeyPressFcn','')
 end
 
-return
 
-
-elseif strcmp(lower(Action),lower('Print'))
+case 'print'
 %=======================================================================
 % spm_figure('Print',F,PFile)
 
@@ -321,12 +339,15 @@ F=spm_figure('FindWin',F);
 if isempty(F), if any(get(0,'Children')), F = gcf; end, end
 if isempty(F), return, end
 
+%-Switch to figure to print
+cF = get(0,'CurrentFigure');
+set(0,'CurrentFigure',F)
+
 %-See if window has paging controls
 hNextPage = findobj(F,'Tag','NextPage');
 hPrevPage = findobj(F,'Tag','PrevPage');
 hPageNo   = findobj(F,'Tag','PageNo');
 iPaged    = ~isempty(hNextPage);
-figure(F)
 
 %-Retrieve print command
 %-----------------------------------------------------------------------
@@ -340,8 +361,6 @@ if isempty(PRINTSTR) | (nargin>3)
 else
 	PrintCmd = PRINTSTR;
 end
-%-Handle specification of figure not supported my MatLab yet.
-% PrintCmd = strrep(PrintCmd,'print','print -fhandle F')
 
 %-Create footnote with SPM version, username, date and time.
 %-----------------------------------------------------------------------
@@ -365,7 +384,8 @@ else
 	hAxes     = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
 	nPages    = size(hAxes,1);
-	
+
+	set([hNextPage,hPrevPage,hPageNo],'Visible','off')
 	if Cpage~=1
 		set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','off'), end
 	for p = 1:nPages
@@ -373,12 +393,13 @@ else
 		eval(PrintCmd)
 		set(hAxes(p,hAxes(p,:)~=0),'Visible','off')
 	end
-	if Cpage~=1
-		set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','on'), end
+	set(hAxes(Cpage,hAxes(Cpage,:)~=0),'Visible','on')
+	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
-return
+set(0,'CurrentFigure',cF)
 
-elseif strcmp(lower(Action),lower('NewPage'))
+
+case 'newpage'
 %=======================================================================
 % h = spm_figure('NewPage',hPage,MoveOn)
 if nargin<3, MoveOn=0; else, MoveOn=1; end
@@ -396,12 +417,14 @@ hPageNo   = findobj(Fgraph,'Tag','PageNo');
 %-----------------------------------------------------------------------
 if isempty(hNextPage)
 	hNextPage = uicontrol(Fgraph,'Style','Pushbutton',...
+		'HandleVisibility','CallBack',...
 		'String','>',...
 		'Callback','spm_figure(''TurnPage'',''+1'',gcf)',...
 		'Position',[580 020 015 015].*spm('GetWinScale'),...
 		'ForegroundColor',[0 0 0],...
 		'Tag','NextPage','UserData',[]);
 	hPrevPage = uicontrol(Fgraph,'Style','Pushbutton',...
+		'HandleVisibility','CallBack',...
 		'String','<',...
 		'Callback','spm_figure(''TurnPage'',''-1'',gcf)',...
 		'Position',[565 020 015 015].*spm('GetWinScale'),...
@@ -409,10 +432,12 @@ if isempty(hNextPage)
 		'ForegroundColor',[1 1 1]*0.5,...
 		'Tag','PrevPage');
 	hPageNo = uicontrol(Fgraph,'Style','Text',...
+		'HandleVisibility','CallBack',...
 		'String','',...
+		'FontSize',8,...
 		'HorizontalAlignment','center',...
 		'BackgroundColor','w',...
-		'Position',[560 005 040 015].*spm('GetWinScale'),...
+		'Position',[560 007 040 015].*spm('GetWinScale'),...
 		'Visible','on',...
 		'Tag','PageNo','UserData',1);
 end
@@ -436,10 +461,8 @@ if nargout>0
 	R1 = [hNextPage, hPrevPage, hPageNo];
 end
 
-return
 
-
-elseif strcmp(lower(Action),lower('TurnPage'))
+case 'turnpage'
 %=======================================================================
 % spm_figure('TurnPage',move,F)
 if nargin<3, F='Graphics'; else, F=P3; end
@@ -475,9 +498,9 @@ else, set(hPrevPage,'ForegroundColor',[0 0 0]), end
 if Npage==nPages, set(hNextPage,'ForegroundColor',[1 1 1]*0.5)
 else, set(hNextPage,'ForegroundColor',[0 0 0]), end
 
-return
 
-elseif strcmp(lower(Action),lower('DeletePageControls'))
+
+case 'deletepagecontrols'
 %=======================================================================
 % spm_figure('DeletePageControls',F)
 if nargin<2, F='Graphics'; else, F=P2; end
@@ -490,14 +513,14 @@ hPageNo   = findobj(Fgraph,'Tag','PageNo');
 
 delete([hNextPage hPrevPage hPageNo])
 
-return
 
-
-elseif strcmp(lower(Action),lower('WaterMark'))
+case 'watermark'
 %=======================================================================
-% spm_figure('WaterMark',F,str,Tag,Angle)
+% spm_figure('WaterMark',F,str,Tag,Angle,Perm)
+if nargin<6, HVis='on'; else, HVis='off'; end
 if nargin<5, Angle=-45; else, Angle=P5; end
 if nargin<4, Tag=''; else, Tag=P4; end
+if isempty(Tag), Tag='WaterMark'; end
 if nargin<3, str=''; else, str=P3; end
 if isempty(str), str='SPM'; end
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
@@ -509,19 +532,18 @@ if isempty(F), return, end
 %-----------------------------------------------------------------------
 Colour = get(F,'Color');
 %-Only mess with grayscale backgrounds
-if ~all(Colour), return, end
+if ~all(Colour==Colour(1)), return, end
 %-Work out colour - lighter unless grey value > 0.9
 Colour = Colour+(2*(Colour(1)<0.9)-1)*0.02;
 
-delete(findobj(F,'UserData','WaterMark'))
+cF = get(0,'CurrentFigure');
+set(0,'CurrentFigure',F)
 Units=get(F,'Units');
 set(F,'Units','normalized');
-figure(F)
-axes('Position',[0.45,0.5,0.1,0.1],...
+h = axes('Position',[0.45,0.5,0.1,0.1],...
 	'Units','normalized',...
 	'Visible','off',...
-	'Tag',Tag,...
-	'UserData','WaterMark');
+	'Tag',Tag);
 set(F,'Units',Units)
 text(0.5,0.5,str,...
 	'FontSize',96,...
@@ -533,13 +555,14 @@ text(0.5,0.5,str,...
 	'EraseMode','normal',...
 	'Color',Colour,...
 	'ButtonDownFcn',[...
-		'if strcmp(get(gcf,''SelectionType''),''alt''),',...
-			'delete(get(gco,''Parent'')),',...
+		'if strcmp(get(gcbf,''SelectionType''),''open''),',...
+			'delete(get(gcbo,''Parent'')),',...
 		'end'])
-return
+set(h,'HandleVisibility',HVis)
+set(0,'CurrentFigure',cF)
 
 
-elseif strcmp(lower(Action),lower('CreateBar'))
+case 'createbar'
 %=======================================================================
 % spm_figure('CreateBar',F)
 if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
@@ -549,7 +572,7 @@ if isempty(F), return, end
 
 %-Get position and size parameters
 %-----------------------------------------------------------------------
-figure(F);
+cUnits = get(F,'Units');
 set(F,'Units','Pixels');
 P     = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
 S_Gra = P./[600, 865];				% x & y scaling coefs
@@ -564,28 +587,36 @@ x     = dx/2;					% uicontrol x position
 y     = P(2) - sy;				% uicontrol y position
 y2    = P(2) - 2.25*sy;				% uicontrol y position
 
-%-Delete any existing 'NoDelete' ToolBar objects
+FS    = round(12*min(S_Gra));			% uicontrol font size
+
+%-Delete any existing 'ToolBar' 'Tag'ged objects
 %-----------------------------------------------------------------------
-h = findobj(F,'Tag','NoDelete');
-delete(h);
+cSHH = get(0,'ShowHiddenHandles');
+set(0,'ShowHiddenHandles','on')
+delete(findobj(F,'Tag','ToolBar'));
+set(0,'ShowHiddenHandles',cSHH)
 
 %-Create Frame for controls
 %-----------------------------------------------------------------------
 uicontrol(F,'Style', 'Frame',...
 	'Position',[-4 (P(2) - 1.25*sy) P(1)+8 1.25*sy+4],...
-	'Tag','NoDelete');
+	'Tag','ToolBar','HandleVisibility','callback');
 
 %-Create uicontrol objects
 %-----------------------------------------------------------------------
 uicontrol(F,'String','Print' ,'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Print'',gcf)',...
-	'Interruptible','No',...
-	'Tag','NoDelete','ForegroundColor','b'); x = x+sx;
+	'FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback',...
+	'ForegroundColor','b'); x = x+sx;
 
 hPrint = uicontrol(F,'String','Clear' ,'Position',[x y sx sy],...
 	'CallBack','spm_figure(''Clear'',gcf)',...
-	'Interruptible','No',...
-        'Tag','NoDelete','ForegroundColor','b'); x = x+sx+dx;
+	'FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+        'Tag','ToolBar','HandleVisibility','callback',...
+	'ForegroundColor','b'); x = x+sx+dx;
 if strcmp(get(F,'Tag'),'Graphics')
 	set(hPrint,'CallBack',...
 	'spm_figure(''Clear'',gcf), spm_figure(''Clear'',''Interactive'')')
@@ -598,7 +629,8 @@ uicontrol(F,'Style','PopUp','String','ColorMap|gray|hot|split',...
 			'set(gco,''Value'',1),',...
 			'spm_figure(''ColorMap'',get(gco,''UserData'')),',...
 			'end'],...
-	'Tag','NoDelete',...
+	'FontSize',FS,...
+	'Tag','ToolBar','HandleVisibility','callback',...
 	'UserData','Pop'); x = x + 2*sx;
 
 uicontrol(F,'Style','PopUp','String','Effects|invert|brighten|darken',...
@@ -608,38 +640,41 @@ uicontrol(F,'Style','PopUp','String','Effects|invert|brighten|darken',...
 			'set(gco,''Value'',1),',...
 			'spm_figure(''ColorMap'',get(gco,''UserData'')),',...
 			'end'],...
-	'Tag','NoDelete',...
+	'FontSize',FS,...
+	'Tag','ToolBar','HandleVisibility','callback',...
 	'UserData','Pop'); x = x + 2*sx + dx;
 
 uicontrol(F,'String','cut',   'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsCut'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete'); x = x+sx;
+	'CallBack','spm_figure(''GraphicsCut'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
 uicontrol(F,'String','move',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsMoveStart'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete'); x = x+sx;
+	'CallBack','spm_figure(''GraphicsMoveStart'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
 uicontrol(F,'String','size',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsSize'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete'); x = x+sx;
+	'CallBack','spm_figure(''GraphicsSize'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
 uicontrol(F,'String','text',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsText'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete'); x = x+sx;
+	'CallBack','spm_figure(''GraphicsText'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx;
 uicontrol(F,'String','edit',  'Position',[x y sx sy],...
-	'CallBack','spm_figure(''GraphicsTextEdit'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete'); x = x+sx+dx;
+	'CallBack','spm_figure(''GraphicsTextEdit'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','cancel',...
+	'Tag','ToolBar','HandleVisibility','callback'); x = x+sx+dx;
 
 uicontrol(F,'String','?',     'Position',[x y dx sy],...
-	'CallBack','spm_help(''spm_figure.m'')',...
-	'Interruptible','No',...
-	'Tag','NoDelete','ForegroundColor','g'); x = x+2*dx;
-return
+	'CallBack','spm_help(''spm_figure.m'')','FontSize',FS,...
+	'Interruptible','off','BusyAction','queue',...
+	'Tag','ToolBar','HandleVisibility','callback',...
+	'ForegroundColor','g'); x = x+2*dx;
+
+set(F,'Units',cUnits)
 
 
-elseif strcmp(lower(Action),lower('ColorMap'))
+case 'colormap'
 %=======================================================================
 % spm_figure('Colormap',ColAction,h)
 if nargin<3, h=[]; else, h=P3; end
@@ -665,179 +700,173 @@ else
 	error('Illegal ColAction specification')
 end
 
-return
 
-elseif strcmp(lower(Action),lower('GraphicsCut'))
+case 'graphicscut'
 %=======================================================================
-% Delete next object clicked, provided it's deletable and in this figure
+% Delete next object clicked, provided it's deletable & in this gcbf
+% "normal" mouse button deletes
+% "extend" mouse button deletes blocks of text (deletes parent axes)
+% "alt"    mouse button cancels operation
 % spm_figure('GraphicsCut')
 
-F = gcf;
-hBut  = gco;
+F = gcbf;
+hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
 set(F,'Name',...
 	'Cut: Select item to delete, RightMouse=cancel...');
 set(F,'Pointer','Circle')
 waitforbuttonpress;
+h        = gco(F);
+hType    = get(h,'Type');
+SelnType = get(gcf,'SelectionType');
 set(F,'Pointer','Arrow')
 set(F,'Name',tmp)
 
-if strcmp(get(gcf,'SelectionType'),'alt')
-	%-Quit option
-	set(hBut,'ForegroundColor','k')
-	return
-end
-
-h = gco(F);
-NoDel=[F; findobj(F,'Tag','NoDelete')];
-if ( ~any(h==NoDel) & (gcf==F) )
+if strcmp(get(h,'HandleVisibility'),'on') & ...
+		~strcmp(SelnType,'alt') & ...
+		~strcmp(hType,{'root','figure','uimenu','uicontrol'}) & ...
+		gcf==F
 	tmp  = get(h,'Type');
-	if ( strcmp(tmp,'patch') | strcmp(tmp,'line') | strcmp(tmp,'image') )
+	if any(strcmp(hType,{'image','line','patch','surface'}))
 		delete(get(h,'Parent'))
-	else
+	elseif strcmp(SelnType,'extend') & strcmp(hType,'text')
+		delete(get(h,'Parent'))
+	elseif any(strcmp(tmp,{'text','axes'}))
 		delete(h)
 	end
 end
-
 set(hBut,'ForegroundColor','k')
 
-return
 
-
-elseif strcmp(lower(Action),lower('GraphicsMoveStart'))
+case 'graphicsmovestart'
 %=======================================================================
 % Move the next object clicked, provided it's movable and in this figure
-% "alt" mouse button cancels operation
-% spm_figure('GraphicsMove')
+% "extend" mouse button moves blocks of text
+% "alt"    mouse button cancels operation
+% spm_figure('GraphicsMoveStart')
 
-F = gcf;
-hMoveBut  = gco;
+F          = gcbf;
+hMoveBut   = gcbo;
 set(hMoveBut,'ForegroundColor','r')
-tmp = get(F,'Name');
-set(F,'Name',...
-	'Move: MiddleMouse moves blocks of text. RightMouse=cancel');
+tmp        = get(F,'Name');
+set(F,'Name','Move: MiddleMouse moves blocks of text. RightMouse=cancel');
 set(F,'Pointer','CrossHair')
 waitforbuttonpress;
+hPress     = gco(F);
+hPressType = get(hPress,'Type');
+SelnType   = get(gcf,'SelectionType');
+set(F,'Pointer','Fleur')
 set(F,'Name',tmp)
 
-if strcmp(get(gcf,'SelectionType'),'alt')
-	%-Quit option
+if strcmp(get(hPress,'HandleVisibility'),'on') & ...
+		~strcmp(SelnType,'alt') & ...
+		~strcmp(hPressType,{'root','figure','uimenu','uicontrol'})&...
+		gcf==F
+	MS.cFUnits = get(F,'Units');
+	set(F,'Units','Pixels')
+	MS.OPt  = get(F,'CurrentPoint');
+	set(F,'Units',MS.cFUnits)
+	if any(strcmp(hPressType,{'image','line','patch','surface'}))
+		hMove = get(hPress,'Parent');
+	elseif strcmp(SelnType,'extend') & strcmp(hPressType,'text')
+		hMove = get(hPress,'Parent');
+	elseif any(strcmp(hPressType,{'text','axes'}))
+		hMove = hPress;
+	else
+		set(hMoveBut,'ForegroundColor','k')
+		set(F,'Pointer','Arrow')
+		return
+	end
+
+	%-Store info in UserData of hPress
+	MS.hMove    = hMove;
+	MS.hMoveBut = hMoveBut;
+	MS.chMUnits = get(hMove,'Units');
+	set(hMove,'Units','Pixels');
+	MS.OPos     = get(hMove,'Position');
+	MS.UserData = get(F,'UserData');
+	set(hPress,'UserData',MS)
+
+	%-Set Motion & ButtonUp functions
+	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')')
+	set(F,'WindowButtonUpFcn','spm_figure(''GraphicsMoveEnd'')')
+else
 	set(hMoveBut,'ForegroundColor','k')
 	set(F,'Pointer','Arrow')
-	return
 end
 
-hPress = gco;
-NoDel=[F; findobj(F,'Tag','NoDelete')];
-if (~any(hPress==NoDel) & gcf==F)
-	set(F,'Units','Pixels')
-	OPt  = get(F,'CurrentPoint');
-	tmp  = get(hPress,'Type');
-	if ( strcmp(tmp,'patch') | strcmp(tmp,'line') | strcmp(tmp,'image') )
-		hMove = get(hPress,'Parent');
-	elseif strcmp(get(gcf,'SelectionType'),'extend') & strcmp(tmp,'text')
-		hMove = get(hPress,'Parent');
-	else
-		hMove = hPress;
-	end
-	set(hMove,'Units','Pixels');
-	OPos = get(hMove,'Position');
-	set(hMoveBut,'UserData',[hMove,OPt,OPos])
-	set(F,'WindowButtonUpFcn','spm_figure(''GraphicsMoveEnd'')',...
-		'Interruptible','no')
-	set(F,'WindowButtonMotionFcn','spm_figure(''GraphicsMoveMotion'')',...
-		'Interruptible','no')
-	set(F,'Pointer','Fleur')
-else
-	set(F,'Pointer','Arrow')
 
-end
-return
-
-
-elseif strcmp(lower(Action),lower('GraphicsMoveMotion'))
+case 'graphicsmovemotion'
 %=======================================================================
-F     = gcf;
-hPress = gco;
-hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
-tmp   = get(hMoveBut,'UserData');
-hMove = tmp(1); OPt = tmp(2:3); OPos = tmp(4:length(tmp));
-CPt   = get(F,'CurrentPoint');
-Disp  = CPt - OPt;
-set(hMove,'Units','Pixels')
-CPos  = OPos; CPos(1:2) = CPos(1:2) + Disp;
-set(hMove,'Position',CPos)
-set(hMove,'Units','Normalized')
+% spm_figure('GraphicsMoveMotion')
+MS = get(gco,'UserData');
+set(MS.hMove,'Units','Pixels',...
+	'Position',...
+	MS.OPos + [get(gcf,'CurrentPoint')-MS.OPt(1:2),0*MS.OPos(3:end)])
 
 
-elseif strcmp(lower(Action),lower('GraphicsMoveEnd'))
+case 'graphicsmoveend'
 %=======================================================================
+% spm_figure('GraphicsMoveEnd')
+MS = get(gco,'UserData');
+set(gco,'Units',MS.chMUnits,...
+	'UserData',MS.UserData)
+set(gcf,'Units',MS.cFUnits,...
+	'WindowButtonMotionFcn','',...
+	'WindowButtonUpFcn','',...
+	'Pointer','Arrow')
+set(MS.hMoveBut,'ForegroundColor','k')
 
-hMoveBut = findobj(gcf,'CallBack','spm_figure(''GraphicsMoveStart'')');
-set(hMoveBut,'UserData',[],'ForegroundColor','k')
-set(gcf,'WindowButtonMotionFcn',' ')
-set(gcf,'WindowButtonUpFcn',' ')
-set(gcf,'Pointer','Arrow')
 
-return
-
-
-
-elseif strcmp(lower(Action),lower('GraphicsSize'))
+case 'graphicssize'
 %=======================================================================
 % Change size of next object clicked, provided it's editable and in figure
 % "normal" mouse button decreases size
 % "extend" mouse button increases size
-% "alt" mouse button cancels operation
+% "alt"    mouse button cancels operation
 % spm_figure('GraphicsSize')
 
-F = gcf;
-hBut  = gco;
+F     = gcbf;
+hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
-tmp = get(F,'Name');
+tmp   = get(F,'Name');
 set(F,'Name',...
 	'Resize: LeftMouse=shrink, MiddleMouse=grow, RightMouse=cancel...');
 set(F,'Pointer','Circle')
 waitforbuttonpress;
+h        = gco(F);
+hType    = get(h,'Type');
+SelnType = get(gcf,'SelectionType');
+u = 2*strcmp(SelnType,'extend')-1;
 set(F,'Pointer','Arrow')
 set(F,'Name',tmp)
 
-if strcmp(get(gcf,'SelectionType'),'alt')
-	%-Quit option
-	set(hBut,'ForegroundColor','k')
-	return
-end
-
-h = gco(F);
-NoDel=[F; findobj(F,'Tag','NoDelete')];
-if ( ~any(h==NoDel) & (gcf==F) )
-	u = strcmp(get(F,'SelectionType'),'extend');
-	c  = get(h,'Type');
-	if ( strcmp(c,'patch') | strcmp(c,'line') | strcmp(c,'image') )
-		h = get(h,'Parent'); c = get(h,'Type'); end
-	if strcmp(c,'text')
-		set(h,'Fontsize',(get(h,'FontSize')+2*(2*u-1))); end
-	if strcmp(c,'axes') | strcmp(c,'uicontrol')
-		if u; u = 1.24; else u = 1/1.24; end
+if strcmp(get(h,'HandleVisibility'),'on') & ...
+		~strcmp(SelnType,'alt') & ...
+		~strcmp(hType,{'root','figure','uimenu','uicontrol'}) & ...
+		gcf==F
+	if any(strcmp(hType,{'image','line','patch','surface'}))
+		h = get(h,'Parent'); hType = get(h,'Type'); end
+	if strcmp(hType,'text')
+		set(h,'Fontsize',(get(h,'FontSize')+2*u))
+	elseif strcmp(hType,'axes')
+		if u==1; u = 1.24; else, u = 1/1.24; end
 		P = get(h,'Position');
 		set(h,'Position',[P(1:2)-P(3:4)*(u-1)/2, P(3:4)*u])
 	end
 end
-
 set(hBut,'ForegroundColor','k')
 
-return
 
 
-
-elseif strcmp(lower(Action),lower('GraphicsText'))
+case 'graphicstext'
 %=======================================================================
 % Add text annotation to a figure
 % spm_figure('GraphicsText')
 
-F = gcf;
-hBut  = gco;
+F     = gcbf;
+hBut  = gcbo;
 set(hBut,'ForegroundColor','r')
 tmp = get(F,'Name');
 set(F,'Name',...
@@ -847,94 +876,88 @@ waitforbuttonpress;
 set(F,'Pointer','Arrow')
 set(F,'Name',tmp)
 
-if strcmp(get(gcf,'SelectionType'),'alt')
-	%-Quit option
-	set(hBut,'ForegroundColor','k')
-	return
+if ~strcmp(get(gcf,'SelectionType'),'alt') & gcf==F
+	cUnits = get(F,'Units');
+	set(F,'Units','Normalized')
+	CPt = get(F,'CurrentPoint');
+	
+	%-Set up axes for text widget
+	axes('Position',[CPt, 0.1, 0.1],'Visible','off');
+	
+	%-Set uicontrol object and Callback
+	set(F,'Units','Pixels')
+	P = get(F,'Position');
+	uicontrol(F,'Style','Edit',...
+		'Position',[CPt(1:2).*P(3:4), (1-CPt(1))*P(3), 20],...
+		'BackGroundColor',[0.8,0.8,1.0],...
+		'HorizontalAlignment','Left',...
+		'Callback','text(0,0,get(gcbo,''String'')); delete(gcbo)');
+	set(F,'Units',cUnits)
 end
-
-set(F,'Units','Normalized')
-CPt = get(F,'CurrentPoint');
-
-%-Set up axes for text widget
-axes('Position',[CPt, 0.1, 0.1],'Visible','off');
-
-%-Set uicontrol object and Callback
-set(F,'Units','Pixels')
-P = get(F,'Position'); P  = P(3:4);		% Figure dimensions {pixels}
-uicontrol(F,'Style','Edit',...
-	'Position',[CPt(1:2).*P, (1-CPt(1))*P(1), 20],...
-	'BackGroundColor',[.8,.8,1],...
-	'HorizontalAlignment','Left',...
-	'Callback','text(0,0,get(gco,''String'')); delete(gco)');
-
 set(hBut,'ForegroundColor','k')
 
-return
 
-
-elseif strcmp(lower(Action),lower('GraphicsTextEdit'))
+case 'graphicstextedit'
 %=======================================================================
 % Add text annotation to a figure
 % spm_figure('GraphicsText')
 
-F = gcf;
-hBut  = gco;
+F        = gcbf;
+hBut     = gcbo;
 set(hBut,'ForegroundColor','r')
-tmp = get(F,'Name');
-set(F,'Name',...
-	'Select text to edit. RightMouse=cancel..');
+tmp      = get(F,'Name');
+set(F,'Name','Select text to edit. RightMouse=cancel..');
 set(F,'Pointer','Circle')
 waitforbuttonpress;
+h        = gco(F);
 set(F,'Pointer','Arrow')
 set(F,'Name',tmp)
 
-if strcmp(get(gcf,'SelectionType'),'alt')
-	%-Quit option
-	set(hBut,'ForegroundColor','k')
-	return
-end
-
-NoDel=[F; findobj(F,'Tag','NoDelete')];
-if any(gco==NoDel) | gcf~=F | ~strcmp(get(gco,'Type'),'text')
+if ~strcmp(get(h,'HandleVisibility'),'on') | ...
+		strcmp(get(gcf,'SelectionType'),'alt') | ...
+		~strcmp(get(h,'Type'),'text') | ...
+		gcf ~= F
 	set(hBut,'ForegroundColor','k')
 	return
 end
 
 %-Save units of various objects
-Funits = get(F,'Units');
-Aunits = get(gca,'Units');
-Tunits = get(gca,'Units');
+cFUnits     = get(F,'Units');
+cAUnits     = get(gca,'Units');
+chUnits     = get(h,'Units');
+chFontUnits = get(h,'FontUnits');
 
 %-Get locations
 set(F,'Units','Pixels')
 set(gca,'Units','Pixels')
-set(gco,'Units','Pixels')
+set(h,'Units','Pixels')
+set(h,'FontUnits','Points')
+tExtent = get(h,'Extent');
 tmp = [1,1,0,0].*get(gca,'Position') ...
-	+ [1,1,0,0].*get(gco,'Extent')...
-	+ [0,0,max([0,0,1,1].*get(gco,'Extent')),20];
+	+ [1,1,0,0].*tExtent...
+	+ [0,0,1.2*max([0,0,1,1].*tExtent),ceil(20*get(h,'FontSize')/12)];
 
 %-Create editable text widget to adjust text string
-h = uicontrol(F,'Style','Edit',...
-	'String',get(gco,'String'),...
+uicontrol(F,'Style','Edit',...
+	'String',get(h,'String'),...
+	'FontAngle',get(h,'FontAngle'),...
+	'FontName',get(h,'FontName'),...
+	'FontSize',get(h,'FontSize'),...
 	'Position',tmp,...
-	'BackGroundColor',[.8,.8,1],...
-	'HorizontalAlignment','Left',...
-	'UserData',gco,...
-	'Callback',['set(get(gco,''UserData''),'...
-		'''String'',get(gco,''String'')), delete(gco)']);
+	'BackGroundColor',[0.8,0.8,1.0],...
+	'HorizontalAlignment',get(h,'HorizontalAlignment'),...
+	'UserData',h,...
+	'Callback',['set(get(gcbo,''UserData''),'...
+		'''String'',get(gcbo,''String'')), delete(gcbo)']);
 
 %-Reset stuff
 set(hBut,'ForegroundColor','k')
-set(F,'Units',Funits)
-set(gca,'Units',Aunits)
-set(gco,'Units',Tunits)
+set(F,'Units',cFUnits)
+set(gca,'Units',cAUnits)
+set(h,'Units',chUnits)
+set(h,'FontUnits',chFontUnits)
 
-return
-
-
-
-else
+otherwise
 %=======================================================================
 error('Illegal Action string')
 
