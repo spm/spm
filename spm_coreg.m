@@ -83,24 +83,24 @@ def_flags = struct('sep',[4 2],'params',[0 0 0  0 0 0], 'cost_fun','nmi','fwhm',
 	'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
 if nargin < 3,
 	flags = def_flags;
-else,
+else
 	flags = varargin{3};
 	fnms  = fieldnames(def_flags);
 	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}), flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i})); end;
+		if ~isfield(flags,fnms{i}), flags.(fnms{i}) = def_flags.(fnms{i}); end;
 	end;
 end;
 %disp(flags)
 
 if nargin < 1,
 	VG = spm_vol(spm_get(1,'IMAGE','Select reference image'));
-else,
+else
 	VG = varargin{1};
 	if ischar(VG), VG = spm_vol(VG); end;
 end;
 if nargin < 2,
 	VF = spm_vol(spm_get(Inf,'IMAGE','Select moved image(s)'));
-else,
+else
 	VF = varargin{2};
 	if ischar(VF) || iscellstr(VF), VF = spm_vol(strvcat(VF)); end;
 end;
@@ -127,8 +127,8 @@ for k=1:numel(VF),
 
 	xk  = flags.params(:);
 	for samp=flags.sep(:)',
-		[xk,fval] = spm_powell(xk(:), xi,sc,mfilename,VG,VFk,samp,flags.cost_fun,flags.fwhm);
-		x(k,:)    = xk(:)';
+		xk     = spm_powell(xk(:), xi,sc,mfilename,VG,VFk,samp,flags.cost_fun,flags.fwhm);
+		x(k,:) = xk(:)';
 	end;
 	if flags.graphics,
 		display_results(VG,VFk,xk(:)',flags);
@@ -152,8 +152,8 @@ H = spm_hist2(VG.uint8,VF.uint8, VF.mat\spm_matrix(x(:)')*VG.mat ,sg);
 
 % Smooth the histogram
 lim  = ceil(2*fwhm);
-krn1 = smoothing_kernel(fwhm(1),[-lim(1):lim(1)]) ; krn1 = krn1/sum(krn1); H = conv2(H,krn1);
-krn2 = smoothing_kernel(fwhm(2),[-lim(2):lim(2)])'; krn2 = krn2/sum(krn2); H = conv2(H,krn2);
+krn1 = smoothing_kernel(fwhm(1),-lim(1):lim(1)) ; krn1 = krn1/sum(krn1); H = conv2(H,krn1);
+krn2 = smoothing_kernel(fwhm(2),-lim(2):lim(2))'; krn2 = krn2/sum(krn2); H = conv2(H,krn2);
 
 % Compute cost function from histogram
 H  = H+eps;
@@ -205,10 +205,10 @@ return;
 %_______________________________________________________________________
 function udat = loaduint8(V)
 % Load data from file indicated by V into an array of unsigned bytes.
-if size(V.pinfo,2)==1 & V.pinfo(1) == 2,
+if size(V.pinfo,2)==1 && V.pinfo(1) == 2,
 	mx = 255*V.pinfo(1) + V.pinfo(2);
 	mn = V.pinfo(2);
-else,
+else
 	spm_progress_bar('Init',V.dim(3),...
 		['Computing max/min of ' spm_str_manip(V.fname,'t')],...
 		'Planes complete');
@@ -232,7 +232,7 @@ for p=1:V.dim(3),
 	acc = paccuracy(V,p);
 	if acc==0,
 		udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
-	else,
+	else
 		% Add random numbers before rounding to reduce aliasing artifact
 		r = rand(size(img))*acc;
 		udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
@@ -245,10 +245,10 @@ return;
 function acc = paccuracy(V,p)
 if ~spm_type(V.dim(4),'intt'),
 	acc = 0;
-else,
+else
 	if size(V.pinfo,2)==1,
 		acc = abs(V.pinfo(1,1));
-	else,
+	else
 		acc = abs(V.pinfo(1,p));
 	end;
 end;
@@ -258,10 +258,9 @@ end;
 function V = smooth_uint8(V,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
-s  = fwhm/sqrt(8*log(2));
-x  = [-lim(1):lim(1)]; x = smoothing_kernel(fwhm(1),x); x  = x/sum(x);
-y  = [-lim(2):lim(2)]; y = smoothing_kernel(fwhm(2),y); y  = y/sum(y);
-z  = [-lim(3):lim(3)]; z = smoothing_kernel(fwhm(3),z); z  = z/sum(z);
+x  = -lim(1):lim(1); x = smoothing_kernel(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = smoothing_kernel(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = smoothing_kernel(fwhm(3),z); z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
@@ -310,7 +309,7 @@ if isempty(fig), return; end;
 set(0,'CurrentFigure',fig);
 spm_figure('Clear','Graphics');
 
-txt = 'Information Theoretic Coregistration';
+%txt = 'Information Theoretic Coregistration';
 switch lower(flags.cost_fun)
 	case 'mi',  txt = 'Mutual Information Coregistration';
 	case 'ecc', txt = 'Entropy Correlation Coefficient Registration';
@@ -357,7 +356,7 @@ ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);
 % Display ortho-views
 %-----------------------------------------------------------------------
 spm_orthviews('Reset');
-h1 = spm_orthviews('Image',VG.fname,[0.01 0.01 .48 .49]);
+     spm_orthviews('Image',VG.fname,[0.01 0.01 .48 .49]);
 h2 = spm_orthviews('Image',VF.fname,[.51 0.01 .48 .49]);
 global st
 st.vols{h2}.premul = inv(spm_matrix(x(:)'));
