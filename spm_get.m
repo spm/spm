@@ -1649,8 +1649,23 @@ for i=1:prod(size(cpath))
 
 	%-Prepend cwd to relative pathnames
 	%---------------------------------------------------------------
-	if ~isabspath(cpath{i}), cpath{i}=fullfile(cwd,cpath{i}); end
-	
+	%-Try to figure out "~username" paths on unix/linux
+	%if ~isabspath(cpath{i}), cpath{i}=fullfile(cwd,cpath{i}); end
+	if ~isabspath(cpath{i}),
+		if isunix & ~isempty(cpath{i}) & cpath{i}(1)=='~'
+			try
+				opwd=pwd;
+				cd(cpath{i});
+				cpath{i}=pwd;
+				cd(opwd);
+			catch
+				cpath{i}=fullfile(cwd,cpath{i});
+			end;
+		else
+			cpath{i}=fullfile(cwd,cpath{i});
+		end;
+	end
+
 	%-Sort out stationary relative pathnames './' & '/.'
 	%---------------------------------------------------------------
 	%-Remove midpath '/./'
