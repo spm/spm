@@ -69,14 +69,15 @@ Designs = str2mat(...
 Designs = str2mat(Designs,...
 	'Multi-subject: different conditions',...			%-2a
 	'Multi-subject: with replications',...				%-2b
-	'Multi-subject: with replications & covariates',...		%-2c
-	'Multi-subject: condition & covariates',...			%-2d
+	'Multi-subject: condition & covariates',...			%-2c
+	'Multi-subject: with replications & covariates',...		%-2d
 	'Multi-subject: covariates only');				%-2e
 Designs = str2mat(Designs,...
 	'Multi-study: different conditions',...				%-3a
 	'Multi-study: with replications',...				%-3b
 	'Multi-study: condition & covariates',...			%-3c
-	'Multi-study: covariates only');				%-3d
+	'Multi-study: with replications & covariates',...		%-3d
+	'Multi-study: covariates only');				%-3e
 Designs = str2mat(Designs,...
 	'Compare-groups: 1 scan per subject');				%-4
 
@@ -91,13 +92,14 @@ DesDefaults = [ ...
 0,	0,	0,	1,	3,	1,	0,	123;...		%-1c
 0,	1,	1,	0,	1,	0,	0,	1234;...	%-2a
 0,	1,	1,	1,	2,	0,	0,	1234;...	%-2b
-0,	1,	1,	1,	2,	1,	1,	1234;...	%-2c
-0,	1,	1,	0,	1,	1,	1,	1234;...	%-2d
+0,	1,	1,	0,	1,	1,	1,	1234;...	%-2c
+0,	1,	1,	1,	2,	1,	1,	1234;...	%-2d
 0,	1,	0,	1,	3,	1,	1,	1234;...	%-2e
 1,	1,	1,	0,	4,	0,	0,	12345;...	%-3a
 1,	1,	1,	1,	5,	0,	0,	12345;...	%-3b
-1,	1,	1,	0,	4,	1,	1,	12345;...	%-3b
-1,	1,	0,	1,	3,	1,	1,	12345;...	%-3d
+1,	1,	1,	0,	4,	1,	1,	12345;...	%-3c
+1,	1,	1,	1,	5,	1,	1,	12345;...	%-3d
+1,	1,	0,	1,	3,	1,	1,	12345;...	%-3e
 1,	1,	0,	0,	6,	0,	0,	123	];	%-4
 
 bAskNCCs = 0;
@@ -292,7 +294,7 @@ bAskFDCs   = bAskFDCs & (length(iCovEffInt) > 1);
 %-----------------------------------------------------------------------
 C = []; Cnames = ''; Cc = []; Ccnames = '';
 if bAskCov
-    c = spm_input('# of covariates (of interest)',J,'0|1|2|3|4|5|>',0:6);
+    c = spm_input('# of covariates (of interest)',J,'0|1|2|3|4|5|>',0:6,1);
     if (c == 6), c = spm_input('# of covariates (of interest)',J); end
     J=J+1;
     while size(Cc,2) < c
@@ -304,7 +306,7 @@ if bAskCov
             Cc = [Cc,d];
             %-Centre the covariate?
             if bAskNCCs
-                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0]);
+                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0],1);
             else, tmp = 1; end
             if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
             dnames = [str,'CovInt#',int2str(nCcs + 1)];
@@ -314,7 +316,7 @@ if bAskCov
                 if bAskFDCs
                     i = spm_input(['Covariate',int2str(nCcs+1),...
                             ': specific fits'],J,'b',...
-                            sCovEffInt(iCovEffInt,:),iCovEffInt);
+                            sCovEffInt(iCovEffInt,:),iCovEffInt,1);
                     if (i==2) %-Interaction with condition
                         [d,dnames] = spm_DesMtx([iCOND',d],...
                         'FxC',str2mat('Cond',dnames));
@@ -350,7 +352,7 @@ if size(Cc,2), Cnames(1,:) = []; Ccnames(1,:) = []; end
 %-----------------------------------------------------------------------
 G = []; Gnames = ''; Gc = []; Gcnames = '';
 if bAskCov
-    g = spm_input('# of confounding covariates',J,'0|1|2|3|4|5|>',0:6);
+    g = spm_input('# of confounding covariates',J,'0|1|2|3|4|5|>',0:6,1);
     if (c == 6), g = spm_input('# of confounding covariates',J); end
     J=J+1;
     while size(Gc,2) < g
@@ -362,7 +364,7 @@ if bAskCov
             Gc = [Gc,d];
             %-Centre the covariate?
             if bAskNCCs
-                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0]);
+                tmp=spm_input('Centre covariate(s) ?',J,'yes|no',[1 0],1);
             else, tmp = 1; end
             if tmp, d  = d - ones(q,1)*mean(d); str=''; else, str='r'; end
             dnames = [str,'ConfCov#',int2str(nGcs+1)];
@@ -372,7 +374,7 @@ if bAskCov
                 if bAskFDCs
                     i = spm_input(['Confound',int2str(nGcs + 1),...
                             ': specific fits'],J,'b',...
-                            sCovEffInt(iCovEffInt,:),iCovEffInt);
+                            sCovEffInt(iCovEffInt,:),iCovEffInt,1);
                      if (i==2) %-Interaction with study      
                          [d,dnames] = spm_DesMtx([iStud',d],...
                          'FxC',str2mat('Stud',dnames));
@@ -500,6 +502,7 @@ else, error('Invalid iGMsca option'), end
 %-Construct Global part of covariates of no interest partition.
 %-Centre global means if included in AnCova models, by mean correction.
 %-----------------------------------------------------------------------
+%-Save scaled globals for printing later on
 Gc    = [Gc,GX];
 if isempty(Gcnames), Gcnames = 'Global';
     else Gcnames = str2mat(Gcnames,'Global'); end
@@ -557,15 +560,23 @@ end
 
 %-Ensure validity of contrast of condition effects, zero pad
 %-----------------------------------------------------------------------
-a        = size(CONTRAST,1);
-d        = 1:size(H,2);
-if d
-	for i = 1:a
-		CONTRAST(i,d) = CONTRAST(i,d) - mean(CONTRAST(i,d));
-	end % (for)
-end % (if)
+if ~isempty(H)
+	%-Ensure contrasts of condition effects sum to zero within study
+	if ~bMStud | bBetGrp
+		tmp = ones(size(H,2),1);
+	else
+		tmp = zeros(size(H,2),1);
+		tmp(cumsum([1,nCond(1:nStud-1)])) = ones(nStud,1);
+		tmp = cumsum(tmp);
+	end
+	d        = 1:size(H,2);
+	CONTRAST(:,d) = CONTRAST(:,d) - spm_meanby(CONTRAST(:,d)',tmp)';
+end
+%-Remove zero contrasts
+CONTRAST(find(all(CONTRAST'==0)),:)=[];
 
-CONTRAST = [CONTRAST, zeros(a,size([B G],2))];
+%-zero pad for B & G partitions
+CONTRAST = [CONTRAST, zeros(size(CONTRAST,1),size([B G],2))];
 
 
 %-Display analysis parameters
@@ -595,7 +606,7 @@ for i = 1:size(Cc,2)
 	x = x + dx; end
 for i = 1:size(Gc,2)
 	text(x + 0.02,0.85,Gcnames(i,:),'Rotation',90);
-	x = x + 2*dx; end
+	x = x + dx; end
 text(x,0.92,'Base directory:','FontSize',10,'Fontweight','Bold');
 text(x,0.90,CPath,'FontSize',10);
 text(x,0.87,'Filename Tails');
@@ -612,7 +623,7 @@ for i = 1:q
 		x = x + dx; end
 	for j = 1:size(Gc,2)
 		text(x,y,sprintf('%-8.6g',Gc(i,j)),'FontSize',10)
-		x = x + 2*dx; end
+		x = x + dx; end
 	text(x,y,Q(i,:),'FontSize',10);
 	y     = y - dy;
 	if y < 0;
