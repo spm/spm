@@ -10,7 +10,7 @@ function LogFile = spm_log(varargin)
 % writes the passed string matrices to the log file.
 %
 %__________________________________________________________________________
-% %W% Andrew Holmes %E%
+% @(#)spm_log.m	1.2 Andrew Holmes 97/08/08
 
 
 %-Find out LogFile name, return if not logging.
@@ -24,8 +24,15 @@ if nargin==0, return, end
 %----------------------------------------------------------------------------
 [fid,message] = fopen(LogFile,'a');
 if fid==-1
-	fprintf('%cspm_log error : tNo logging!\n\t%s\n\n',7,message);
-	return
+    if strcmp(message,'Sorry. No help in figuring out the problem . . .')
+	tmp = LogFile;
+	if (tmp(1)~='/'); tmp = [pwd '/' tmp]; end
+	fprintf('%cspm_log error:  No write permission for ''%s''\n',...
+		7,tmp);
+    else    
+	fprintf('%cspm_log error:  No logging!\n\t%s\n\n',7,message);
+    end    
+    return
 end
 
 
@@ -35,6 +42,8 @@ for arg = 1:nargin
 	tmp = varargin{arg};
 	if isstr(tmp)
 		Str = tmp;
+	elseif isempty(tmp)
+	        Str = '[]';
 	else
 		%-Build string matrix representation of numeric matrix
 		fmt = '%8.6g ';
