@@ -94,9 +94,7 @@ spm_results_ui('Clear',Fgraph,2);
 %-Find nearest voxel [Euclidean distance] in point list & update GUI
 %-----------------------------------------------------------------------
 if ~length(SPM.XYZmm)
-	msgbox('No voxels survive masking & threshold(s)!',...
-		sprintf('%s%s: %s...',spm('ver'),...
-		spm('GetUser',' (%s)'),mfilename),'help','modal')
+	spm('alert!','No suprathreshold voxels!',mfilename,0);
 	Y = []; y = []; beta = []; SE = [];
 	return
 end
@@ -116,22 +114,29 @@ cd(SPM.swd)				%-Temporarily move to results dir
 %     rather than recomputing them on the basis of the Y.mad data.
 %-----------------------------------------------------------------------
 if exist(fullfile('.','Y.mad')) ~= 2
-	sf_noYwarn([])
+	h = spm('alert"',{'No raw data saved with this analysis:',...
+			'Data portions of plots will be unavailable...'},...
+		mfilename,0,1);
 	y    = [];
 
 elseif SPM.QQ(i) == 0
-	sf_noYwarn
-	if spm_input('move to nearest voxel',-1,'y/n',[1 0])
+	switch questdlg({'No raw data saved at this location:',...
+		'Data portions of plots unavailable at this location.',...
+		' ','Jump to the nearest voxel with saved raw data?'},...
+		sprintf('%s%s: %s...',spm('ver'),...
+		spm('GetUser',' (%s)'),mfilename),...
+		'jump','stay','cancel','stay')
+	case 'jump'
 		Q       = find(SPM.QQ);
-		[xyz,i] = spm_XYZreg('NearestXYZ',...
-			  spm_XYZreg('GetCoords',hReg),SPM.XYZmm(:,Q));
+		[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm(:,Q));
 		i       = Q(i);
 		y       = spm_extract('Y.mad',SPM.QQ(i));
-
-	else
+	case 'stay'
 		y       = [];
+	case 'cancel'
+		Y = []; y = []; beta = []; SE = [];
+		return
 	end
-
 else
 	y    = spm_extract('Y.mad',SPM.QQ(i));
 end
@@ -475,28 +480,3 @@ ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
 
 spm_results_ui('PlotUi',gca)
-
-
-
-
-
-%=======================================================================
-%- S U B - F U N C T I O N S
-%=======================================================================
-
-
-function sf_noYwarn(Q)
-%=======================================================================
-if nargin < 1, Q = 0; end
-
-if isempty(Q)
-	str = {'Graphing unavailable: ',...
-		'No time-series data saved with this analysis'};
-elseif Q(1) == 0
-	str = {'Graphing unavailable: ',...
-		'No time-series data saved for this voxel'};
-else
-	return
-end
-msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
-	spm('GetUser',' (%s)'),mfilename),'error','modal')
