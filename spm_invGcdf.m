@@ -1,60 +1,130 @@
-function g = spm_invGcdf(p,df)
+function x = spm_invGcdf(F,h,c,tol)
 % Inverse Cumulative Distribution Function (CDF) of Gamma distribution
-% FORMAT g = spm_invGcdf(p,df)
-% p   - Lower tail probability
-% df  - degrees of freedom
+% FORMAT x = spm_invGcdf(p,h,c,tol)
 %
-%     - Multiple p may be supplied, with either constant df, or matrix of
-%       pairs of df corresponding to the elements of p(:)'
-%     - df must be a 2 x n (or n x 2) matrix of pairs of degrees of freedom.
-%       (2x2 matrices are read as having df pairs in columns)
+% F   - CDF (lower tail p-value)
+% h   - Shape parameter (h>0)
+% c   - Scale parameter (c>0)
+% x   - Gamma ordinates at which CDF F(x)=F
+% tol - tolerance [default 10^-6]
 %__________________________________________________________________________
 %
 % spm_invGcdf implements the inverse Cumulative Distribution Function
 % for Gamma distributions.
 %
-% Returns the Gamma-variate g such that Pr(G <= g) = p for G, a Gamma
-% random variable on df degrees of freedom.
+% Returns the Gamma-variate x such that Pr{X<x} = F for X a Gamma
+% random variable with shape parameter h and scale c.
 %
-% Works using spm_fzero to find the point where spm_Gcdf equals p.
+% Definition:
+%-----------------------------------------------------------------------
+% The Gamma distribution has shape parameter h and scale c, and is
+% defined for h>0 & c>0 and for x in [0,Inf) (See Evans et al., Ch18).
+% The Cumulative Distribution Function (CDF) F(x) is the probability
+% that a realisation of a Gamma random variable X has value less than
+% x. F(x)=Pr{X<x}:  (See Evans et al., Ch18)
 %
+% Variate relationships: (Evans et al., Ch8 & Ch18)
+%-----------------------------------------------------------------------
+% For natural (strictly +ve integer) shape h this is an Erlang distribution.
+%
+% The Standard Gamma distribution has a single parameter, the shape h.
+% The scale taken as c=1.
+%
+% The Chi-squared distribution with v degrees of freedom is equivalent
+% to the Gamma distribution with scale parameter 2 and shape parameter v/2.
+%
+% Algorithm:
+%-----------------------------------------------------------------------
+% Interval bisection to find the inverse CDF to within tol.
+%
+% References:
+%-----------------------------------------------------------------------
+% Evans M, Hastings N, Peacock B (1993)
+%	"Statistical Distributions"
+%	 2nd Ed. Wiley, New York
+%
+% Abramowitz M, Stegun IA, (1964)
+%	"Handbook of Mathematical Functions"
+%	 US Government Printing Office
+%
+% Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
+%	"Numerical Recipes in C"
+%	 Cambridge
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
+
 %-Parameters
-%---------------------------------------------------------------------------
-Tol=[];
+%-----------------------------------------------------------------------
+Dtol   = 10^-8;
+maxIt = 10000;
 
-%-Argument range and size checks
-%---------------------------------------------------------------------------
-if nargin<2 error('insufficient arguments'), end
+%-Format arguments, note & check sizes
+%-----------------------------------------------------------------------
+if nargin<4, tol = Dtol; end
+if nargin<3, error('Insufficient arguments'), end
 
-if any(abs(p(:)-0.5)>0.5) error('p must be in [0,1]'), end
-if any(df(:)<=0) error('df must be strictly positive'), end
+ad = [ndims(F);ndims(h);ndims(c)];
+rd = max(ad);
+as = [	[size(F),ones(1,rd-ad(1))];...
+	[size(h),ones(1,rd-ad(2))];...
+	[size(c),ones(1,rd-ad(3))]     ];
+rs = max(as);
+xa = prod(as,2)>1;
+if sum(xa)>1 & any(any(diff(as(xa,:)),1))
+	error('non-scalar args must match in size'), end
 
-%-re-orient df to 2 x n size, if n x 2 with n~=2.
-if (size(df,1)~=2)&(size(df,2)==2) df=df'; end
-if size(df,1)~=2 error('df must have 2 rows or 2 columns'), end
+%-Computation - Undefined and special cases
+%-----------------------------------------------------------------------
+%-Initialise result to zeros
+x = zeros(rs);
 
-%-check sizes of arguments
-if prod(size(p))==size(df,2)
-elseif length(p)==1
-	p=p*ones(1,size(df,2));
-elseif size(df,2)==1
-	df=meshgrid(df,1:prod(size(p)))';
-else
-	error('p and df not of compatible size'), end
-end % if (size)
+%-Only defined for F in [0,1] & strictly positive h & c.
+% Return NaN if undefined.
+md = ( F>=0  &  F<=1  &  h>0  &  c>0 );
+if any(~md(:)), x(~md) = NaN;
+	warning('Returning NaN for out of range arguments'), end
 
-%-Computation
-%---------------------------------------------------------------------------
-g=zeros(size(p));
-%-Avoid case where p=1, where invcdf is infinite
-g(p==1)=+Inf*ones(sum(p==1),1);
+%-Special cases: x=0 when F=0, x=Inf when F=1
+x(md & F==1) = Inf;
 
-InitGuess=10;
-trace=0;
-%-Avoid case where p=0, since Gcdf(f,df) is zero for all negative f
-for k=find(abs(p-0.5)<0.5)
-	g(k)=spm_fzero('spm_Gcdf',InitGuess,Tol,trace,df(:,k),p(k));
-end % for
+%-Compute where defined & not special case
+%-----------------------------------------------------------------------
+Q  = find( md  &  F>0  &  F<1 );
+if isempty(Q), return, end
+if xa(1), FQ=F(Q); FQ=FQ(:); else, FQ=F*ones(length(Q),1); end
+if xa(2), hQ=h(Q); hQ=hQ(:); else, hQ=h*ones(length(Q),1); end
+if xa(3), cQ=c(Q); cQ=cQ(:); else, cQ=c*ones(length(Q),1); end
+%-?Q=?Q(:) stuff is to avoid discrepant orientations of vector arguments!
+
+%-Compute initial interval estimates [0,mean] & Grow to encompass F(QF);
+%-----------------------------------------------------------------------
+a  = zeros(length(Q),1);
+b  = hQ.*cQ./2;
+QQ = 1:length(Q);
+while length(QQ)
+	b(QQ) = 2*b(QQ);
+	QQ    = find(spm_Gcdf(b,hQ,cQ) < FQ);
+end
+
+%-Interval bisection
+%-----------------------------------------------------------------------
+fa = spm_Gcdf(a,hQ,cQ)-FQ;
+fb = spm_Gcdf(b,hQ,cQ)-FQ;
+i  = 0;
+xQ = a+(b-a)/2;
+QQ = 1:length(Q);
+
+while length(QQ) &  i<maxIt
+	fxQQ        = spm_Gcdf(xQ(QQ),hQ(QQ),cQ(QQ))-FQ(QQ);
+	mQQ         = fa(QQ).*fxQQ > 0;
+	a(QQ(mQQ))  = xQ(QQ(mQQ));   fa(QQ(mQQ))  = fxQQ(mQQ);
+	b(QQ(~mQQ)) = xQ(QQ(~mQQ));  fb(QQ(~mQQ)) = fxQQ(~mQQ);
+	xQ(QQ)      = a(QQ) + (b(QQ)-a(QQ))/2;
+	QQ          = QQ( (b(QQ)-a(QQ))>tol );
+	i           = i+1;
+end
+
+if i==maxIt, warning('convergence criteria not reached - maxIt reached'), end
+
+x(Q) = xQ;
