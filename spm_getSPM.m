@@ -155,10 +155,10 @@ function [SPM,xSPM] = spm_getSPM
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
+% @(#)spm_getSPM.m	2.56 Andrew Holmes, Karl Friston & Jean-Baptiste Poline 04/12/02
 
 
-SCCSid = '%I%';
+SCCSid = '2.56';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -371,29 +371,29 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
 if isfield(SPM,'PPM') & (xCon(Ic(1)).STAT == 'T') | (xCon(Ic(1)).STAT == 'P')
-
+    
     if nc == 1 & isempty(xCon(Ic).Vcon)
-
-	if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
-
-	% set STAT to 'P'
-        %---------------------------------------------------------------
-	xCon(Ic).STAT = 'P';
-
-        %---------------------------------------------------------------
-        str           = 'Effect size threshold for PPM';
-        if isfield(SPM.PPM,'VB')
-		% For VB Gamma is stored explicitly
-		Gamma=SPM.PPM.Gamma;
-	else
-		%-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
-		% The default is one conditional s.d. of the contrast
-		Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
-	end
-	xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
-
-	end
+        % con image not yet written
+        if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
+            
+            % set STAT to 'P'
+            %---------------------------------------------------------------
+            xCon(Ic).STAT = 'P';
+            
+        end
     end
+    %---------------------------------------------------------------
+    str           = 'Effect size threshold for PPM';
+    if isfield(SPM.PPM,'VB')
+        % For VB Gamma is stored explicitly
+        Gamma=SPM.PPM.Gamma;
+    else
+        %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
+        % The default is one conditional s.d. of the contrast
+        Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+    end
+    xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+    
 end
 
 
