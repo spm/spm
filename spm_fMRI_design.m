@@ -321,8 +321,8 @@ for s = 1:length(SPM.nscan)
 	SPM.Sess(s).U      = U;
 	SPM.Sess(s).C.C    = C;
 	SPM.Sess(s).C.name = Cname;
-	SPM.Sess(s).row    = size(Xx,1) + [1:k];;
-	SPM.Sess(s).col    = size(Xx,2) + [1:size(X,2)];;
+	SPM.Sess(s).row    = size(Xx,1) + [1:k];
+	SPM.Sess(s).col    = size(Xx,2) + [1:size(X,2)];
 	SPM.Sess(s).Fc     = Fc;
 
 	% Append names
