@@ -25,10 +25,8 @@ P = str2mat([prepend(VF.fname, 'y_') ',1'], ...
             [prepend(VF.fname, 'y_') ',2'], ...
             [prepend(VF.fname, 'y_') ',3']);
 ok = 1;
-for i=1:3,
-	if exist(deblank(P(i,:)))~=2,
-		ok = 0;
-	end;
+if exist(prepend(VF.fname, 'y_'))~=2,
+	ok = 0;
 end;
 
 if ok,
