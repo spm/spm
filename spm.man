@@ -175,9 +175,7 @@
 % for many other formats could be added by modifying:
 % spm_vol.m, spm_get_space.m, spm_create_vol.m and spm_write_plane.m.
 % 
-% -John
 %
-%                           ----------------
 %
 % ______________________________________________________________________
 %                                                                SPATIAL
@@ -283,7 +281,19 @@
 % priori distribution of the errors.
 % 
 %                           ----------------
+% * Slice timing
 %
+% A button has been added for correcting fMRI time series data for the
+% differences in image acquisition time between slices.  It is based on
+% ACQCORRECT by Mark D'Exposito, Geof Aquirre and Eric Zarahn at U. Penn
+% which was modified (to NMH_ACQCORRECT) by Darren Gitelman at
+% Northwestern U and in turn modified by Rick Henson and Christian Buechel
+% and John Ashburner at the FIL.
+% Note that there is nothing at all spatial about this procedure.  It is
+% included here because it is an optional pre-processing step that should
+% improve results - especially for event related studies.
+% 
+%                           ----------------
 % * Segment
 %
 % An error with the a priori probability images has been fixed (see
@@ -359,25 +369,49 @@
 % 
 % Graphical display of spatially normalized images is improved - (see
 % Check Reg)
+%
+% New templates for spatial normalization are included with this release.
 % 
 % The basis function spatial normalization is described in:
 % J. Ashburner and K. J. Friston (submitted).  "Nonlinear Spatial
 % Normalization using Basis Functions".  Human Brain Mapping
 %  
 %                           ----------------
+% * Brain Extraction
+%
+% A utility has been added that will take grey and white matter segments
+% (from Segment) and clean them up to produce an extracted brain.  This
+% will also produce optional rendering images that can be used by the
+% Render button. 
+%
+%                           ----------------
 % * Render
 %
 % Rendering can now display up to three sets of blobs.  Each pattern of
 % blobs is displayed in red, green or blue in a semi-transparent brain.
 % The intensity of voxels inside brain decays exponentially with distance.
+% Extra pre-defined rendering images have been included.  There is a
+% higher resolution image of a single subject brain, and also a smooth
+% average brain surface (which I prefer because it is not as misleading).
+% Other brain surfaces can also be used (see Brain Extraction) below.
 % 
 %                           ----------------
 % * Check Reg
 %
 % Allows orthogonal sections through any pair of registered images to be
 % displayed.  Clicking anywhere in one of the images shifts the centre of
-% the orthogonal sections.  Intended for checking registration and spatial
-% normalization results.
+% the orthogonal sections (see Display).  Intended for checking
+% registration and spatial normalization results.
+%
+%                           ----------------
+% * Display
+% The display utility has been re-written to be an interactive orthogonal
+% image viewer (see Check Reg).  It allows images to be viewed in different 
+% orientations and to be re-oriented via their ".mat" files.  The images
+% can be zoomed and visualized using different interpolation methods.
+% Translucent activation blobs can be superimposed in different colours on
+% the displayed image.
+%
 % 
 % 
 %                           ----------------
@@ -392,7 +426,8 @@
 %     apriori/gray.img, apriori/white.img & apriori/csf.img.
 % The error has been remedied.  Also, new gray, white and csf images have
 % been obtained from Montreal that are based upon 151 subjects (see
-% templates.man).
+% templates.man).  New template images are now included that are mostly
+% based on 152 brain averages (see spm_templates.man).
 % 
 % -John
 %
