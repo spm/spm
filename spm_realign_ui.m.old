@@ -26,15 +26,19 @@ if (p == 2 | p == 3) Flags = [Flags 'r']; end
 p = spm_input('Interpolation Method?',2,'m','Bilinear Interpolation|Sinc Interpolation',[1 2]);
 if (p == 2) Flags = [Flags 'sS']; end
 
+if (p == 1 | p == 3)
+	if (spm_input('More iterations?'       ,5,'y/n') == 'y') Flags = [Flags 'E']; end
+end
+
 if (any(Flags == 'r'))
-	p = spm_input('Create what?',3,'m',' All Images (1..n)| Images 2..n| All Images + Mean Image| Mean Image Only',[1 2 3 4]);
+	p = spm_input('Create what?',4,'m',' All Images (1..n)| Images 2..n| All Images + Mean Image| Mean Image Only',[1 2 3 4]);
 	if (p == 2) Flags = [Flags 'n']; end
 	if (p == 3) Flags = [Flags 'i']; end
 	if (p == 4) Flags = [Flags 'Ni']; end
 	if (~any(Flags == 'N'))
-		if (spm_input('Mask the images?'       ,4,'y/n') == 'y') Flags = [Flags 'k']; end
+		if (spm_input('Mask the images?'       ,5,'y/n') == 'y') Flags = [Flags 'k']; end
 		if (strcmp(MODALITY,'FMRI'))
-			if (spm_input('Adjust for motion in Z?',5,'y/n') == 'y') Flags = [Flags 'c']; end
+			if (spm_input('Adjust for motion in Z?',6,'y/n') == 'y') Flags = [Flags 'c']; end
 		end
 	end
 end

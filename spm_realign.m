@@ -16,6 +16,9 @@ function spm_realign(P,Flags)
 %             in terms of the partial derivatives measured using smoothed scans.
 %             Subsequent scans are realigned with the first.
 %
+%         E - same as "e" but with more iterations.
+%             For correcting more than just patient movement.
+%
 %         m - write transformation matrixes
 %             Matrixes are written which define the space of the images. From these matrixes
 %             it is possible to reslice any of the images, to the same space as any other image.
@@ -77,7 +80,7 @@ Q     = zeros(size(P,1),6);			% initial estimate/default values
 
 % Computation of Realignment Parameters - uses P & Q
 %----------------------------------------------------------------------------
-if (any(Flags == 'e'))
+if (any(Flags == 'e') | any(Flags == 'E'))
 
 	Hold = 1;
 	if (any(Flags == 's')) Hold = 3; end
@@ -108,6 +111,7 @@ if (any(Flags == 'e'))
 	%----------------------------------------------------------------------------
 	S     = linspace((bb(1,3) + 6/V1(6)),(bb(2,3) - 8/V1(6)),8);	% transverse
 	h     = 5;						% number of recursions
+	if (any(Flags == 'E')) h = 25; end;
 	M     = sb(1);						% rows per slice
 	N     = sb(2);						% columns per slice
 	n     = M*N;						% voxels per slice
@@ -172,7 +176,7 @@ if (any(Flags == 'e'))
 
 	    spm_unmap(V2); delete spm_mov.img spm_mov.hdr
 
-	    line('Parent', ax,...
+	    line(...
 		'Xdata',[0.5 0.5],...
 		'Ydata',[0 k],...
 		'LineWidth',16,...
@@ -421,7 +425,7 @@ if any(Flags == 'r')
 		end
 		open_mode = 'a';
 
-		line('Parent', ax, 'Xdata',[0.5 0.5], 'Ydata',[0 j],...
+		line('Xdata',[0.5 0.5], 'Ydata',[0 j],...
 			'LineWidth',16, 'Color', [1 0 0]);
 		drawnow;
 	end
@@ -434,7 +438,7 @@ if any(Flags == 'r')
 			q = max([find(p == '/') 0]);
 			q = [p(1:q) 'r' p((q + 1):length(p))];
 			spm_hwrite(q,DIM,VOX,Headers(i,4),Headers(i,5),0,ORIGIN,'spm - realigned');
-			if (any(Flags == 'm')) eval(['save ' spm_str_manip(q,'rd') '.mat M']); end
+			if (any(Flags == 'm')) spm_get_space(q,M); end
 		end
 	end
 
@@ -457,7 +461,7 @@ if any(Flags == 'r')
 			fwrite(fp,d,spm_type(4));
 		end
 		spm_hwrite(q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - mean image');
-		if (any(Flags == 'm')) eval(['save ' spm_str_manip(q,'rd') '.mat M']); end
+		if (any(Flags == 'm')) spm_get_space(q,M); end
 	end
 
 	for i = 1:size(P,1); spm_unmap(V(:,i)); end
@@ -468,8 +472,7 @@ end
 if (any(Flags == 'm') & any(Flags == 'e'))
 	for k = 1:size(P,1)
 		C2 = spm_get_space(spm_str_manip(P(k,:), 'd'));
-		M  = spm_matrix(Q(k,:))*C2;
-		eval(['save ' spm_str_manip(P(k,:), 'sd') '.mat M']);
+		spm_get_space(P(k,:), spm_matrix(Q(k,:))*C2);
 	end
 end
 
