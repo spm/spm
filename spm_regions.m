@@ -1,6 +1,6 @@
-function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY)
 % VOI time-series extraction of adjusted data (local eigenimage analysis)
-% FORMAT [Y xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg);
+% FORMAT [Y xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY);
 %
 % SPM    - structure containing SPM, distribution & filtering detals
 % VOL    - structure containing details of volume analysed
@@ -9,17 +9,20 @@ function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg)
 % xCon   - Contrast definitions structure (see spm_FcUtil.m for details)
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
-% Y      - first eigenvariate of VOI
-% xY     - structure with:
+% Y      - first scaled eigenvariate of VOI {i.e. weighted mean}
+% xY     - VOI structure
+%       xY.xyz          - centre of VOI {mm}
 %       xY.name         - name of VOI
-%       xY.y            - voxel-wise data (filtered and adjusted)
-%       xY.u            - first eigenvariate
+%       xY.Ic           - contrast used to adjust data (0 - no adjustment)
+%       xY.filter       - filtering (yes|no)
+%       xY.Sess         - session indices
+%       xY.def          - VOI definition
+%       xY.spec         - VOI definition parameters
+%       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
+%       xY.y            - voxel-wise data
+%       xY.u            - first eigenvariate {scaled - c.f. mean response}
 %       xY.v            - first eigenimage
-%       xY.s            - eigenimages
-%       xY.XYZmm        - Co-ordinates of voxels used within VOI
-%       xY.xyz          - centre of VOI (mm)
-%       xY.radius       - radius of VOI (mm)
-%       xY.dstr         - description of filtering & adjustment applied
+%       xY.s            - eigenvalues
 %
 % Y and xY are also saved in VOI_*.mat in the SPM working directory
 %
@@ -52,11 +55,13 @@ function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg)
 %-----------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');
+header = get(Finter,'Name');
 set(Finter,'Name','VOI time-series extraction')
+if ~exist('xY')
+	xY = {};
+end
 
-
-%-Find nearest voxel [Euclidean distance] in point list with data saved
-% in Y.mad, and update GUI location
+%-Find nearest voxel [Euclidean distance] in point list in Y.mad
 %-----------------------------------------------------------------------
 if ~length(SPM.XYZmm)
 	spm('alert!','No suprathreshold voxels!',mfilename,0);
@@ -73,54 +78,89 @@ elseif ~any(SPM.QQ)
 	return
 end
 
+if ~isfield(xY,'xyz')
+	[xyz,i] = spm_XYZreg('NearestXYZ',...
+		      spm_XYZreg('GetCoords',hReg),SPM.XYZmm(:,find(SPM.QQ)));
+	xY.xyz  = xyz;
+else
+	xyz     = xY.xyz;
+end
 
-[xyz,i] = spm_XYZreg('NearestXYZ',...
-		spm_XYZreg('GetCoords',hReg),SPM.XYZmm(:,find(SPM.QQ)));
+% and update GUI location
+%-----------------------------------------------------------------------
 spm_XYZreg('SetCoords',xyz,hReg);
 
 
 %-Get adjustment options and VOI name
 %-----------------------------------------------------------------------
-spm_input(sprintf('at [%3.0f %3.0f %3.0f]',xyz),1,'d',...
+spm_input(sprintf('at [%3.0f %3.0f %3.0f]',xY.xyz),1,'d',...
 	'VOI time-series extraction')
-Ic      = spm_input('Adjust data for (select contrast)',2,'m',...
-		{'<don''t adjust>',xCon.name}) - 1;
-K       = spm_input('Filter',3,'yes|no',[1 0]);
-Rname   = spm_input('name of region',4,'s','VOI');
+
+if ~isfield(xY,'name')
+	xY.name = spm_input('name of region','!+1','s','VOI');
+end
+
+if ~isfield(xY,'Ic')
+	q     = 0;
+	Con   = {'<don''t adjust>'};
+	for i = 1:length(xCon)
+		if strcmp(xCon(i).STAT,'F')
+			  q(end + 1) = i;
+			Con{end + 1} = xCon(i).name;
+		end
+	end
+	i     = spm_input('adjust data for (select contrast)','!+1','m',Con);
+	xY.Ic = q(i);
+end
+
+%-if fMRI data get sessions and filtering options
+%-----------------------------------------------------------------------
+if isfield(xSDM,'Sess')
+
+	if ~isfield(xY,'filter')
+		xY.filter = spm_input('filter','!+1','apply|none|high');
+	end
+
+	if ~isfield(xY,'Sess')
+		s         = length(xSDM.Sess);
+		s         = spm_input('which session[s]','+1','n',1,[1 Inf],s);
+		xY.Sess   = s;
+	end
+end
 
 
 %-Specify VOI
 %-----------------------------------------------------------------------
-str     = sprintf(' at [%.0f,%.0f,%.0f]',xyz(1),xyz(2),xyz(3));
-SPACE   = spm_input('VOI definition...',5,'m',...
-		{['Sphere',str],['Box',str],'Cluster',},['S','B','V']);
+if ~isfield(xY,'def')
+	xY.def    = spm_input('VOI definition...','!+1','b',...
+			{'sphere','box','cluster'});
+end
 Q       = ones(1,size(SPM.XYZmm,2));
 
 
-switch SPACE, case 'S'                                          % Sphere
+switch xY.def
+
+	case 'sphere'
 	%---------------------------------------------------------------
-	R     = spm_input('VOI radius (mm)',6,'r',0,1,[0,Inf]);
+	if ~isfield(xY,'spec')
+		xY.spec = spm_input('VOI radius (mm)','!+1','r',0,1,[0,Inf]);
+	end
 	d     = [SPM.XYZmm(1,:)-xyz(1);
 		 SPM.XYZmm(2,:)-xyz(2);
 		 SPM.XYZmm(3,:)-xyz(3)];
-	Q     = find(sum(d.^2) <= R^2);
+	Q     = find(sum(d.^2) <= xY.spec^2);
 
-case 'B'                                                           % Box
+	case 'box'
 	%---------------------------------------------------------------
-	D     = spm_input('box dimensions [x y z] {mm}',6,'r','0 0 0',3);
-	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	Q     = find(all(abs(SPM.XYZmm - xyz*Q) <= D(:)*Q/2));
-
-case 'V'                                                        %-Voxels
-	%---------------------------------------------------------------
-	if ~length(SPM.XYZ)
-		spm('alert!','No suprathreshold clusters!',mfilename,0);
-		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
-		return
+	if ~isfield(xY,'spec')
+		xY.spec = spm_input('box dimensions [x y z] {mm}',...
+			'!+1','r','0 0 0',3);
 	end
+	Q     = find(all(abs(SPM.XYZmm - xyz*Q) <= xY.spec(:)*Q/2));
 
-	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm);
-	spm_results_ui('SetCoords',xyzmm);
+	case 'cluster'
+	%---------------------------------------------------------------
+	[x i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm);
 	A     = spm_clusters(SPM.XYZ);
 	Q     = find(A == A(i));
 end
@@ -131,11 +171,11 @@ spm('Pointer','Watch')
 q      = find(SPM.QQ(Q));
 if any(SPM.QQ(Q)==0)
     spm('alert"',{...
-        sprintf('Don''t have raw data for all %d suprathreshold',length(Q)),...
-	sprintf('voxels within %.1gmm of [%3.0f %3.0f %3.0f]',R,xyz),' ',...
-	sprintf('Proceeding using the %d voxels that are.',length(q)),...
+        sprintf('Incomplete data for all %d suprathreshold',length(Q)),...
+	sprintf('voxels.  Proceeding using the %d voxels saved.',length(q)),...
 	},mfilename,sqrt(-1));
 end
+
 
 
 %-Extract required data from results files
@@ -144,36 +184,47 @@ end
 %-Get (approximate) raw data y from Y.mad file
 %-NB: Data in Y.mad file is compressed, and therefore not fully accurate
 %-----------------------------------------------------------------------
-y       = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(Q(q)));
-rcp     = VOL.iM(1:3,:)*[SPM.XYZmm(:,Q(q));ones(size(q))];
+y        = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(Q(q)));
+rcp      = VOL.iM(1:3,:)*[SPM.XYZmm(:,Q(q));ones(size(q))];
+xY.XYZmm = SPM.XYZmm(:,Q(q));
 
-%-Parameter estimates: beta = xX.pKX*xX.K*y; (load from file for accuracy)
-%-----------------------------------------------------------------------
-nBeta = length(xSDM.Vbeta);
-beta  = ones(nBeta,size(q,2));
-for   i = 1:nBeta
-	beta(i,:) = spm_sample_vol(xSDM.Vbeta(i),rcp(1,:),rcp(2,:),rcp(3,:),0);
-end
 
 
 %-Computation
 %=======================================================================
 
-% filter and remove confounds
+% remove null space of contrast (prior to filering)
 %-----------------------------------------------------------------------
-dstr   = [];
-if K
-	y    = spm_filter('apply',xX.K, y);
-	dstr = [dstr 'Filtered & '];
+if xY.Ic
 
-else
-	dstr = [dstr 'Unfiltered & '];
+	%-Parameter estimates: beta = xX.pKX*xX.K*y
+	%---------------------------------------------------------------
+	nBeta   = length(xSDM.Vbeta);
+	beta    = ones(nBeta,size(q,2));
+	for   i = 1:nBeta
+		beta(i,:) = ...
+		spm_sample_vol(xSDM.Vbeta(i),rcp(1,:),rcp(2,:),rcp(3,:),0);
+	end
+
+	Fc      = spm_FcUtil('Set','Fc','F','iX0',xCon(xY.Ic).iX0,xX.X);
+	y       = y - spm_FcUtil('Y0',Fc,xX.X,beta);
 end
-if Ic
-	y    = y - spm_FcUtil('Y0',xCon(Ic),xX.xKXs,beta);
-	dstr = [dstr 'adjusted for ',xCon(Ic).name];
-else
-	dstr = [dstr 'not adjusted'];
+
+% fMRI-specific operations
+%-----------------------------------------------------------------------
+if isfield(xY,'Sess')
+
+	% filter
+	%---------------------------------------------------------------
+	y       = spm_filter(xY.filter,xX.K,y);
+
+	% extract sessions
+	%---------------------------------------------------------------
+	j       = [];
+	for   i = 1:length(xY.Sess)
+		j = [j xSDM.Sess{xY.Sess(xY.Sess)}.row];
+	end
+	y       =  y(j,:);
 end
 
 % compute regional response in terms of first eigenvariate
@@ -193,44 +244,58 @@ end
 d       = sign(sum(v));
 u       = u*d;
 v       = v*d;
-Y       = u;
+Y       = u*sqrt(s(1)/n);
 
-
-%-Display MIP of VOI weighting and timecourse
-% NB: timecourse axes overlap MIP: This obscures the coronal MIP (for MIP96)
-%     in 3D mode, but for 2D data half the plane image will be obscured.
+% set in structure
 %-----------------------------------------------------------------------
-spm_results_ui('Clear',Fgraph);
-figure(Fgraph);
-axes('Position',[0.0500,0.1100,0.5500,0.3388])
-spm_mip(v(:,1),SPM.XYZmm(:,Q(q)),VOL.M,VOL.DIM)
-title('VOI weighting                                          ')
+xY.y    = y;
+xY.u    = Y;
+xY.v    = v;
+xY.s    = s;
 
-axes('Position',[0.376,0.130,0.520,0.294])
-plot(Y)
-set(gca,'YAxisLocation','Right')
-title(['1st eigenvariate: ' Rname],'FontSize',16)
-str = {	'scan number';' ';sprintf(...
-	'%d voxels in sphere of radius %.1gmm at [%3.0f %3.0f %3.0f]',...
-	length(q),R,xyz);dstr;sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
-xlabel(str)
-
-% create structure
+%-Display VOI weighting and eigenvariate
 %-----------------------------------------------------------------------
-xY      = struct('name',	Rname,...
-		 'y',		y,...
-		 'u',		u,...
-		 'v',		v,...
-		 's',		s,...
-		 'XYZmm',	SPM.XYZmm(:,Q(q)),...
-		 'xyz',		xyz,...
-		 'radius',	R,...
-		 'dstr',	dstr);
+if nargin < 7
+
+
+	% show position
+	%---------------------------------------------------------------
+	spm_results_ui('Clear',Fgraph);
+	figure(Fgraph);
+	subplot(2,2,3)
+	spm_dcm_display(xY,[],[],[],[[1 0 0];[0 1 0]]',64)
+
+
+	% show dynamics
+	%---------------------------------------------------------------
+	subplot(2,2,4)
+	if isfield(xX,'RT')
+		plot(xX.RT*[1:length(xY.u)],Y)
+		str = 'time (seconds}';
+	else
+		plot(Y)
+		str = 'scan';
+	end
+	title(['1st eigenvariate: ' xY.name],'FontSize',10)
+	str = {	str;' ';sprintf(...
+		'%d voxels in VOI at [%3.0f %3.0f %3.0f]',...
+		length(q),xyz);sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
+	xlabel(str)
+	axis tight square
+end
+
+
 % save
 %-----------------------------------------------------------------------
-save(fullfile(SPM.swd,['VOI_',Rname]),'Y','xY')
+str     = ['VOI_' xY.name];
+if isfield(xY,'Sess')
+	if length(xY.Sess) == 1
+		str = sprintf('VOI_%s_%i',xY.name,xY.Sess);
+	end
+end
+save(fullfile(SPM.swd,str),'Y','xY')
 
 %-Reset title
 %-----------------------------------------------------------------------
-spm('FigName',['SPM{',SPM.STAT,'}: Results']);
+spm('FigName',header);
 spm('Pointer','Arrow')
