@@ -121,14 +121,12 @@ end;
 
 if length(VG)==1,
 	[G,dG1,dG2,dG3]  = spm_sample_vol(VG(1),x1,x2,x3,1);
-	AG               = make_A(x1,x2,x3,dG1,dG2,dG3);
 	if ~isempty(flags.WG),
 		WG = abs(spm_sample_vol(flags.WG,x1,x2,x3,1))+eps;
 	end;
 end;
 
 [F,dF1,dF2,dF3]  = spm_sample_vol(VF(1),y1,y2,y3,1);
-AF               = make_A(y1,y2,y3,dF1,dF2,dF3);
 if ~isempty(flags.WF),
 	WF = abs(spm_sample_vol(flags.WF,y1,y2,y3,1))+eps;
 end;
@@ -171,7 +169,10 @@ for iter=1:256,
 		[t1,t2,t3] = coords((M*VF(1).mat)\VG(1).mat,x1,x2,x3);
 		msk        = find((t1>=1 & t1<=df(1) & t2>=1 & t2<=df(2) & t3>=1 & t3<=df(3)));
 		if length(msk)<32, error_message; end;
-		t          = spm_sample_vol(VF(1), t1(msk),t2(msk),t3(msk),1);
+		t1         = t1(msk);
+		t2         = t2(msk);
+		t3         = t3(msk);
+		t          = spm_sample_vol(VF(1), t1,t2,t3,1);
 
 		% Get weights
 		% ---------------------------------------------------------------
@@ -179,25 +180,25 @@ for iter=1:256,
 			if isempty(flags.WF),
 				wt = WG(msk);
 			else,
-				wt = spm_sample_vol(flags.WF(1), t1(msk),t2(msk),t3(msk),1)+eps;
+				wt = spm_sample_vol(flags.WF(1), t1,t2,t3,1)+eps;
 				if ~isempty(flags.WG), wt = 1./(1./wt + 1./WG(msk)); end;
 			end;
 			wt = sparse(1:length(wt),1:length(wt),wt);
 		else,
 			wt = speye(length(msk));
+			wt = [];
 		end;
 		% ---------------------------------------------------------------
+		clear t1 t2 t3
 
 		% Update the cost function and its 1st and second derivatives.
 		% ---------------------------------------------------------------
-		A     = [AG(msk,:), scal^(-2)*t];
-		b     = G(msk) - (1/scal)*t;
-		Alpha = Alpha + R'*(A'*wt*A)*R;
-		Beta  = Beta  + R'*(A'*wt*b);
-		ss1   = b'*wt*b;
-		ss    = ss + ss1;
-		n1    = trace(wt);
-		n     = n + n1;
+		[AA,Ab,ss1,n1] = costfun(x1,x2,x3,dG1,dG2,dG3,msk,scal^(-2)*t,G(msk)-(1/scal)*t,wt);
+		Alpha = Alpha + R'*AA*R;
+		Beta  = Beta  + R'*Ab;
+		ss    = ss    + ss1;
+		n     = n     + n1;
+		t     = G(msk) - (1/scal)*t;
 	end;
 
 	if 1,
@@ -246,27 +247,27 @@ for iter=1:256,
 			[ds1,ds2,ds3] = transform_derivs(VG(1).mat\M*VF(1).mat,dF1(msk),dF2(msk),dF3(msk));
 			for i=1:length(VG),
 				[t(:,i),dt1,dt2,dt3] = spm_sample_vol(VG(i), t1,t2,t3,1);
-				ds1   = ds1 - dt1*scal(i);
-				ds2   = ds2 - dt2*scal(i);
-				ds3   = ds3 - dt3*scal(i);
+				ds1   = ds1 - dt1*scal(i); clear dt1
+				ds2   = ds2 - dt2*scal(i); clear dt2
+				ds3   = ds3 - dt3*scal(i); clear dt3
 			end;
 			dss   = [ds1'*wt*ds1 ds2'*wt*ds2 ds3'*wt*ds3];
+			clear ds1 ds2 ds3
 		else,
 			for i=1:length(VG),
 				t(:,i)= spm_sample_vol(VG(i), t1,t2,t3,1);
 			end;
 		end;
 
+		clear t1 t2 t3
+
 		% Update the cost function and its 1st and second derivatives.
 		% ---------------------------------------------------------------
-		A     = [AF(msk,:), -t];
-		b     = F(msk) - t*scal;
-		Alpha = Alpha  + R'*(A'*wt*A)*R;
-		Beta  = Beta   + R'*(A'*wt*b);
-		ss2   = b'*wt*b;
+		[AA,Ab,ss2,n2] = costfun(y1,y2,y3,dF1,dF2,dF3,msk,-t,F(msk)-t*scal,wt);
+		Alpha = Alpha  + R'*AA*R;
+		Beta  = Beta   + R'*Ab;
 		ss    = ss     + ss2;
-		n2    = trace(wt);
-		n     = n + n2;
+		n     = n      + n2;
 	end;
 
 	if est_smo,
@@ -448,7 +449,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function A = make_A(x1,x2,x3,dG1,dG2,dG3)
+function A = make_A(x1,x2,x3,dG1,dG2,dG3,t)
 % Generate part of a design matrix using the chain rule...
 % df/dm = df/dy * dy/dm
 % where
@@ -460,7 +461,42 @@ function A = make_A(x1,x2,x3,dG1,dG2,dG3)
 A  = [x1.*dG1 x1.*dG2 x1.*dG3 ...
 	  x2.*dG1 x2.*dG2 x2.*dG3 ...
 	  x3.*dG1 x3.*dG2 x3.*dG3 ...
-	      dG1     dG2     dG3];
+	      dG1     dG2     dG3    t];
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function [AA,Ab,ss,n] = costfun(x1,x2,x3,dG1,dG2,dG3,msk,lastcols,b,wt)
+chunk = 10240;
+lm    = length(msk);
+AA    = zeros(12+size(lastcols,2));
+Ab    = zeros(12+size(lastcols,2),1);
+ss    = 0;
+n     = 0;
+
+for i=1:ceil(lm/chunk),
+	ind  = (((i-1)*chunk+1):min(i*chunk,lm))';
+	msk1 = msk(ind);
+
+	A1   = make_A(x1(msk1),x2(msk1),x3(msk1),dG1(msk1),dG2(msk1),dG3(msk1),lastcols(ind,:));
+	b1   = b(ind);
+	if ~isempty(wt),
+		wt1   = wt(ind,ind);
+		AA    = AA  + A1'*wt1*A1;
+		%Ab   = Ab  + A1'*wt1*b1;
+		Ab    = Ab  + (b1'*wt1*A1)';
+		ss    = ss  + b1'*wt1*b1;
+		n     = n   + trace(wt1);
+		clear wt1
+	else,
+		AA    = AA  + spm_atranspa(A1);
+		%Ab   = Ab  + A1'*b1;
+		Ab    = Ab  + (b1'*A1)';
+		ss    = ss  + b1'*b1;
+		n     = n   + length(msk1);
+	end;
+	clear A1 b1 msk1 ind
+end;
 return;
 %_______________________________________________________________________
 
@@ -478,7 +514,6 @@ return
 
 %_______________________________________________________________________
 function piccies(VF,VG,M,scal,b)
-% return;
 % This is for debugging purposes.
 % It shows the linear combination of template images, the affine
 % transformed source image, the residual image and a histogram of the
