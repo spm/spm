@@ -80,22 +80,28 @@ if ~is_flt,
 
 	fp    = fopen(fname,'r','ieee-be');
 	imax  = findvar(img.vatt_array,'image-max');
-	if imax.nc_type == 2,
+	if ~isempty(imax) & imax.nc_type == 2,
 		imax = findvar(cdf.var_array,imax.val(5:end));
 		fseek(fp,imax.begin,'bof');
 		ddim = dim(3);
 		imax = fread(fp,prod(ddim),dtypestr(imax.nc_type))';
 		imax = reshape(imax,[ddim 1 1]);
 		imax = imax(:,1,1)';
+	else,
+		imax = ones(1,dim(3));
+		disp(['Can''t get imax for "' fname '" - guessing it is one']);
 	end;
 	imin  = findvar(img.vatt_array,'image-min');
-	if imin.nc_type == 2,
+	if ~isempty(imin) & imin.nc_type == 2,
 		imin = findvar(cdf.var_array,imin.val(5:end));
 		fseek(fp,imin.begin,'bof');
 		ddim = dim(3);
 		imin = fread(fp,prod(ddim),dtypestr(imin.nc_type))';
 		imin = reshape(imin,[ddim 1 1]);
 		imin = imin(:,1,1)';
+	else,
+		imin = zeros(1,dim(3));
+		disp(['Can''t get imax for "' fname '" - guessing it is zero']);
 	end;
 	fclose(fp);
 	scale = (imax-imin)/(range(2)-range(1));
@@ -113,7 +119,7 @@ pinfo = [scale ; dcoff ; off];
 
 % Extract affine transformation from voxel to world co-ordinates
 %-----------------------------------------------------------------------
-step  = [0 0 0];
+step  = [1 1 1];
 start = [0 0 0]';
 dircos = eye(3);
 
@@ -121,14 +127,15 @@ for j=1:3,
 	nam    = cdf.dim_array(4-j).name;
 	space  = findvar(cdf.var_array,nam);
 	tmp    = findvar(space.vatt_array,'step');
-	if ~isempty(tmp), step(j) = tmp.val; else, step(3) = 1; end;
+	if ~isempty(tmp), step(j) = tmp.val; end;
 	tmp    = findvar(space.vatt_array,'start');
 	if ~isempty(tmp), start(j) = tmp.val; else, start(j) = -dim(j)/2*step(j); end;
 	tmp    = findvar(space.vatt_array,'direction_cosines');
 	if ~isempty(tmp), dircos(:,j) = tmp.val; end;
 end;
 
-mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
+shiftm = [1 0 0 -1; 0 1 0 -1; 0 0 1 -1; 0 0 0 1];
+mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
 
 % Because there are not yet any routines to write the matrix information
 % to MINC files, any changes to the matrix values will be made to `.mat'
