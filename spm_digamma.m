@@ -7,3 +7,5 @@ function [y] = spm_digamma(x)
 % Solaris: spm_digamma.mexsol
 %
 % Compiled via make function (based on mex spm_digamma.c)
+%
+% %W% Will Penny %E%
