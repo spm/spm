@@ -25,12 +25,12 @@ end
 for i = 1:n
     load(voi_filenames{1});
     
-    Nscans_y=length(DCM.Y.y(:,i));
-    Nscans_u=length(xY.u);
-    if ~(Nscans_y==Nscans_u)
-        disp(sprintf('Error in spm_dcm_voi: mismatching number of scans in region %s',xY.name));
-        return
-    end
+    %Nscans_y=length(DCM.Y.y(:,i));
+    %Nscans_u=length(xY.u);
+    %if ~(Nscans_y==Nscans_u)
+    %    disp(sprintf('Error in spm_dcm_voi: mismatching number of scans in region %s',xY.name));
+    %    return
+    %end
     DCM.Y.y(:,i)  = xY.u;
     
     DCM.Y.name{i} = xY.name;
