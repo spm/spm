@@ -118,8 +118,6 @@ elseif ~isfield(xSDM,'M')
 	%-SPM.mat from SPM99b (which saved mmapped handles) **
 	xSDM.M      = xSDM.Vbeta(1).mat;
 	xSDM.DIM    = xSDM.Vbeta(1).dim(1:3)';
-	%-**xSDM.VY     = reshape({xSDM.VY.fname},size(xSDM.VY));
-	%-**if isstruct(xSDM.xM.VM), xSDM.xM.VM = {xSDM.xM.VM.fname}'; end
 	xSDM.VM     = 'mask.img';
 	xSDM.Vbeta  = {xSDM.Vbeta.fname}';
 	xSDM.VResMS = xSDM.VResMS.fname;
@@ -278,9 +276,9 @@ if wOK, save(fullfile(swd,'xCon.mat'),'xCon'), end
 %-Create/Get title string for comparison
 %-----------------------------------------------------------------------
 if length(Ic)==1
-	str = xCon(Ic).name;
+	str  = xCon(Ic).name;
 else
-	str = [	sprintf('contrasts {%d',Ic(1)),...
+	str  = [sprintf('contrasts {%d',Ic(1)),...
 		sprintf(',%d',Ic(2:end)),'}'];
 end
 if Ex
@@ -289,10 +287,10 @@ else
 	mstr = 'masked [inclusive] by';
 end
 if length(Im)==1
-	str = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
+	str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
 elseif ~isempty(Im)
-	str = [	sprintf('%s (%s {%d',str,mstr,Im(1)),...
+	str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
 end
@@ -435,7 +433,7 @@ for ii = 1:length(I)
 	case 'F'                                  %-Compute SPM{F} image
         %---------------------------------------------------------------
 	if isempty(trMV)
-		trMV = spm_SpUtil('trMV',spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V);
+	    trMV = spm_SpUtil('trMV',spm_FcUtil('X1o',xCon(i),xX.xKXs),xX.V);
         end
 	Z =(spm_sample_vol(xCon(i).Vcon,XYZ(1,:),XYZ(2,:),XYZ(3,:),0)/trMV)./...
 	   (spm_sample_vol(xSDM.VResMS, XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
@@ -591,9 +589,9 @@ if ~isempty(XYZ)
 	u  = spm_input('corrected p value','+0','r',0.05,1,[0,1]);
 	u  = spm_uc(u,edf,STAT,xSDM.R,n);
     else
-	%-NB: Uncorrected p for conjunctions is p of each component comparison
+	%-NB: Uncorrected p for conjunctions is p of the conjunction SPM
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
-	if u <= 1; u = spm_u(u,edf,STAT); end
+	if u <= 1; u = spm_u(u^(1/n),edf,STAT); end
     end
 
     %-Calculate height threshold filtering
