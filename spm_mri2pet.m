@@ -72,7 +72,7 @@ To      = spm_matrix([0 0 0 0 0 0 vox/2])*To;		% anisotropy of voxels
 
 [FS BS] = spm_hist(M(M ~= ' '),dim,bits);
 BS      = BS*scale;
-FS      = FS(:).*hanning(length(FS));
+FS      = FS(:).*spm_hanning(length(FS));
 FG      = spm_fit_Gaussians(BS(:),FS);
 
 MAX1    = FG(1);
