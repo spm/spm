@@ -13,7 +13,7 @@
 %_______________________________________________________________________
 % %W% John Ashburner, Andrew Holmes %E%
 
-global CWD PRINTSTR LOGFILE CMDLINE GRID
+global PRINTSTR LOGFILE CMDLINE GRID
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
