@@ -69,7 +69,8 @@ if nargin<3
 end
 
 global SWD
-DIR   = [SWD '/mni/'];
+DIR1   = [SWD '/templates/'];
+DIR2   = [SWD '/apriori/'];
 
 if (nargin==0)
 	n     = spm_input('number of subjects',1);
@@ -89,7 +90,7 @@ if (nargin==0)
 		ok = 0;
 		while (~ok)
 			PG = spm_get(Inf,'.img',['Select Template(s) for normalisation'],...
-				'', DIR);
+				'', DIR1);
 			if (size(PG,1)>0)
 				dims = zeros(size(PG,1),9);
 				for i=1:size(PG,1)
@@ -125,8 +126,8 @@ end
 %_______________________________________________________________________
 
 %- A-Priori likelihood images. Use symmetric versions of the probability images.
-%PB    = str2mat([DIR 'pgray.img'],[DIR 'pwhite.img'],[DIR 'pcsf.img']);
-PB    = str2mat([DIR 'symmetric_gray.img'],[DIR 'symmetric_white.img'],[DIR 'symmetric_csf.img']);
+%PB    = str2mat([DIR2 'gray.img'],[DIR2 'white.img'],[DIR2 'csf.img']);
+PB    = str2mat([DIR2 'symmetric_gray.img'],[DIR2 'symmetric_white.img'],[DIR2 'symmetric_csf.img']);
 
 niter     = 24;
 nc        = [1 1 1 3]; % Number of clusters for each probability image

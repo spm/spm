@@ -235,7 +235,7 @@ if (nargin == 0)
 		% Get template(s)
 		ok = 0;
 		while (~ok)
-			Template = spm_get(Inf,'.img',['select Template(s) '],'', [SWD '/mni']);
+			Template = spm_get(Inf,'.img',['select Template(s) '],'', [SWD '/templates']);
 			if (size(Template,1)>0)
 				dims = zeros(size(Template,1),9);
 				for i=1:size(Template,1)

@@ -53,7 +53,7 @@ if (nargin == 0)
 	end
 
 	if (p == 1 | p == 3)
-		templates = str2mat([SWD '/mni/cbf.img'], [SWD '/mni/sT1_ss.img'], [SWD '/mni/t2.img']);
+		templates = str2mat([SWD '/templates/PET.img'], [SWD '/templates/T1.img'], [SWD '/templates/T2.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
