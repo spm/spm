@@ -104,7 +104,7 @@ elseif nargin == 2,
 			end;
 			Mo(:,:,n) = mat;
 			mat       = Mo;
-			M = V.mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+			M = mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 			try,
 				save(mfname,'mat','M','-append');
 			catch,
