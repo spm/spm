@@ -54,7 +54,11 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % workspace. (Look in the MatLab command window.)
 %
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston, Andrew Holmes %E%
+
+%-Tolerance for p-value underflow, when computing equivalent Z's
+%-----------------------------------------------------------------------
+tol = eps*10;
 
 
 %-Parse arguments
@@ -66,6 +70,15 @@ if isempty(Num), Num = 3;  end
 if nargin < 3,   Dis = []; end
 if isempty(Dis), Dis = 8;  end
 
+%-Extract data from structures
+%-----------------------------------------------------------------------
+v2r       = 1/prod(VOL.FWHM);				%-voxels to resels
+n         = SPM.n;
+STAT      = SPM.STAT;
+df        = SPM.df;
+u         = SPM.u;
+k         = SPM.k*v2r;
+R         = VOL.R;
 
 %-Setup graphics pane
 %-----------------------------------------------------------------------
@@ -76,39 +89,13 @@ FS        = spm('FontSizes');			%-Scaled font sizes
 PF        = spm_platform('fonts');		%-Font names (for this platform)
 
 
-%-Characterize excursion set in terms of maxima
-% (sorted on Z values and grouped by regions)
-%-----------------------------------------------------------------------
-n         = SPM.n;
-STAT      = SPM.STAT;
-df        = SPM.df;
-u         = SPM.u;
-k         = SPM.k;
-R         = VOL.R;
-
-if ~length(SPM.Z)
-	spm('Pointer','Arrow')
-	msgbox('No voxels survive masking & threshold(s)!',...
-		sprintf('%s%s: %s...',spm('ver'),...
-		spm('GetUser',' (%s)'),mfilename),'help','modal')
-	return
-end
-
-[N Z XYZ A] = spm_max(SPM.Z,SPM.XYZ);
-
-%-Convert cluster sizes and extent threshold from voxels to resels
-%-----------------------------------------------------------------------
-v2r       = 1/prod(VOL.FWHM);				% voxels to resels
-N         = N*v2r;
-k         = k*v2r;
-
-%-Convert maxima locations from voxels to mm
-%-----------------------------------------------------------------------
-XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 
 
-%-Table axes & headings
+%-Table header & footer
 %=======================================================================
+
+%-Table axes & title
+%-----------------------------------------------------------------------
 hAx   = axes('Position',[0.05 0.1 0.9 0.4],...
 	'DefaultTextFontSize',FS(8),...
 	'DefaultTextInterpreter','Tex',...
@@ -123,17 +110,16 @@ text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',title],...
 	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
 line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
 
+
 %-Construct table header
 %-----------------------------------------------------------------------
 set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
-if max(A) > 1
-
-	text(0.01,y,		'set-level','FontSize',FS(9))
-	line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
-	text(0.02,y-9*dy/8,	'\itp ')
-	text(0.09,y-9*dy/8,	'\itc ')
-end
+Hc = [];
+h = text(0.01,y,	'set-level','FontSize',FS(9));		Hc = [Hc,h];
+h=line([0.00,0.11],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r');Hc = [Hc,h];
+h = text(0.02,y-9*dy/8,	'\itp ');				Hc = [Hc,h];
+h = text(0.09,y-9*dy/8,	'\itc ');				Hc = [Hc,h];
 
 text(0.22,y,		'cluster-level','FontSize',FS(9))
 line([0.16,0.42],[y-dy/4,y-dy/4],'LineWidth',0.5,'Color','r')
@@ -166,40 +152,128 @@ TabDat.hdr = {	'set',		'c';...
 y     = y - 7*dy/4;
 line([0 1],[y y],'LineWidth',1,'Color','r')
 y     = y - 5*dy/4;
-
-%-Pagination variables
-%-----------------------------------------------------------------------
 y0    = y;
-hPage = [];
 
-set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
+
+%-Table filtering note
+%-----------------------------------------------------------------------
+str = sprintf(['table shows at most %d subsidiary maxima ',...
+	'> %.1fmm apart per cluster'],Num,Dis);
+text(0.5,4,str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
+    'FontSize',FS(8),'FontAngle','Italic')
+
+
+%-Volume, resels and smoothness 
+%-----------------------------------------------------------------------
+FWHMmm          = VOL.FWHM.*VOL.VOX'; 				% FWHM {mm}
+Pz              = spm_P(1,0,u,df,STAT,1,n);
+Pu              = spm_P(1,0,u,df,STAT,R,n);
+[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n);
+
+
+%-Footnote with SPM parameters
+%-----------------------------------------------------------------------
+line([0 1],[0 0],'LineWidth',1,'Color','r')
+set(gca,'DefaultTextFontName',PF.helvetica,...
+	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
+TabFut = cell(4,2);
+TabFut{1} = ...
+	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f corrected)',...
+		 STAT,u,Pz,Pu);
+TabFut{2} = ...
+sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f corrected)',...
+	         k/v2r,Pn,P);
+TabFut{3} = ...
+	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
+TabFut{4} = ...
+	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
+TabFut{5} = ...
+	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
+TabFut{6} = ...
+	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
+		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
+TabFut{7} = ...
+	sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
+	         '(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
+TabFut{8} = ...
+	sprintf('');
+
+text(0.0,-1*dy,TabFut{1},...
+	'UserData',[u,Pz,Pu],'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.0,-2*dy,TabFut{2},...
+	'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.0,-3*dy,TabFut{3},...
+	'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.0,-4*dy,TabFut{4},...
+	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.5,-1*dy,TabFut{5},...
+	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.5,-2*dy,TabFut{6},...
+	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.5,-3*dy,TabFut{7},...
+	'UserData',[VOL.S,R(end),prod(VOL.FWHM)],...
+	'ButtonDownFcn','get(gcbo,''UserData'')')
+text(0.5,-4*dy,TabFut{8},...
+	'UserData',[],'ButtonDownFcn','get(gcbo,''UserData'')')
+
+
+
+
+%-Characterize excursion set in terms of maxima
+% (sorted on Z values and grouped by regions)
+%=======================================================================
+if ~length(SPM.Z)
+	text(0.5,y-6*dy,'no suprathreshold clusters',...
+		'HorizontalAlignment','Center',...
+		'FontAngle','Italic','FontWeight','Bold',...
+		'FontSize',FS(16),'Color',[1,1,1]*.5);
+	spm('Pointer','Arrow')
+	return
+end
+
+[N Z XYZ A] = spm_max(SPM.Z,SPM.XYZ);
+
+%-Convert cluster sizes from voxels to resels
+%-----------------------------------------------------------------------
+N         = N*v2r;
+
+%-Convert maxima locations from voxels to mm
+%-----------------------------------------------------------------------
+XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+
+
 
 %-Table proper (& note all data in cell array)
 %=======================================================================
 
-%-Set-level p values {c}
+%-Pagination variables
 %-----------------------------------------------------------------------
+hPage = [];
+set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
 
+
+%-Set-level p values {c} - do not display if reporting a single cluster
+%-----------------------------------------------------------------------
 c     = max(A);					%-Number of clusters
 Pc    = spm_P(c,k,u,df,STAT,R,n);		%-Set-level p-value
 
-% do not display if reporting a single cluster
-%-----------------------------------------------------------------------
 if c > 1;
-
 	h     = text(0.00,y,sprintf('%-0.3f',Pc),'FontWeight','Bold',...
 		'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 	h     = text(0.08,y,sprintf('%g',c),'FontWeight','Bold',...
 		'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
-
+else
+	set(Hc,'Visible','off')
 end
+
 TabDat = {Pc,c};				%-Table data
 TabLin = 1;					%-Table data line
 
+
 %-Local maxima p-values & statistics
-%=======================================================================
+%-----------------------------------------------------------------------
 while max(Z)
 
 	% Paginate if necessary
@@ -226,7 +300,11 @@ while max(Z)
 	Pu      = spm_P(1,0,   U,df,STAT,R,n);	% corrected     {based on Z)
 	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n);	% [un]corrected {based on k)
 	Nv      = N(i)/v2r;			% extent        {voxels}
-	Ze      = spm_invNcdf(1 -Pz);		% Equivalent Z-variate
+	if Pz<tol				% Equivalent Z-variate
+	    Ze  = Inf;	 			% (underflow => can't compute)
+	else
+	    Ze  = spm_invNcdf(1 -Pz);
+	end
 
 
 	%-Print cluster and maximum voxel-level p values {Z}
@@ -280,7 +358,7 @@ while max(Z)
 			%-----------------------------------------------
 			Pz    = spm_P(1,0,Z(d),df,STAT,1,n);
 			Pu    = spm_P(1,0,Z(d),df,STAT,R,n);
-			Ze    = spm_invNcdf(1 - Pz);
+			if Pz<tol, Ze=Inf; else, Ze = spm_invNcdf(1 - Pz); end
 
 			h     = text(0.49,y,sprintf('%0.3f',Pu),...
 				'UserData',Pu,...
@@ -325,65 +403,6 @@ if spm_figure('#page')>1
 	spm_figure('NewPage',[hPage,h])
 end
 
-%-Table filtering note
-%===========================================================================
-str = sprintf(['table shows at most %d subsidiary maxima ',...
-	'> %.1fmm apart per cluster'],Num,Dis);
-text(0.5,4,str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
-    'FontSize',FS(8),'FontAngle','Italic')
-
-
-%-Volume, resels and smoothness 
-%===========================================================================
-FWHMmm          = VOL.FWHM.*VOL.VOX'; 				% FWHM {mm}
-Pz              = spm_P(1,0,u,df,STAT,1,n);
-Pu              = spm_P(1,0,u,df,STAT,R,n);
-[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n);
-
-%-Footnote with SPM parameters
-%-----------------------------------------------------------------------
-line([0 1],[0 0],'LineWidth',1,'Color','r')
-set(gca,'DefaultTextFontName',PF.helvetica,...
-	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-TabFut = cell(4,2);
-TabFut{1} = ...
-	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f corrected)',...
-		 STAT,u,Pz,Pu);
-TabFut{2} = ...
-sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f corrected)',...
-	         k/v2r,Pn,P);
-TabFut{3} = ...
-	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
-TabFut{4} = ...
-	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
-TabFut{5} = ...
-	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
-TabFut{6} = ...
-	sprintf(['Smoothness FWHM = %0.1f %0.1f %0.1f {mm} ',...
-		 ' = %0.1f %0.1f %0.1f {voxels}'],FWHMmm,VOL.FWHM);
-TabFut{7} = ...
-	sprintf(['Volume: S = %0.0f voxels = %0.2f resels ',...
-	         '(1 resel = %0.1f voxels)'],VOL.S,R(end),prod(VOL.FWHM));
-TabFut{8} = ...
-	sprintf('');
-
-text(0.0,-1*dy,TabFut{1},...
-	'UserData',[u,Pz,Pu],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-2*dy,TabFut{2},...
-	'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-3*dy,TabFut{3},...
-	'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-4*dy,TabFut{4},...
-	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-1*dy,TabFut{5},...
-	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-2*dy,TabFut{6},...
-	'UserData',FWHMmm,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-3*dy,TabFut{7},...
-	'UserData',[VOL.S,R(end),prod(VOL.FWHM)],...
-	'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-4*dy,TabFut{8},...
-	'UserData',[],'ButtonDownFcn','get(gcbo,''UserData'')')
 
 
 %-Store TabDat in UserData of axes
@@ -401,11 +420,11 @@ uimenu(h,'Separator','on','Label','Print table as text',...
 	'Tag','TD_TxtTab',...
 	'CallBack','',...
 	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','on','Label','Print table (to cluster level) as text',...
+uimenu(h,'Separator','off','Label','Print table (to cluster level) as text',...
 	'Tag','TD_TxtTab',...
 	'CallBack','',...
 	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','on','Label','Print table (to voxel level) as text',...
+uimenu(h,'Separator','off','Label','Print table (to voxel level) as text',...
 	'Tag','TD_TxtTab',...
 	'CallBack','',...
 	'Interruptible','off','BusyAction','Cancel');
