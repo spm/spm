@@ -128,7 +128,7 @@ function [R1,R2]=spm(Action,P2,P3)
 %
 % FORMAT SPMver=spm('Ver',Fname,ReDo)
 % Returns the current version of SPM, identified by the top line of the
-% spm.man file in the directory containing the currently used file
+% Contents.m file in the directory containing the currently used file
 % Fname (defaults on omission or empty to 'spm'). Inside SPM, the
 % version is saved as the UserData of the Menu window, for quick
 % retrieval. Specifying the ReDo argument forces re-evaluation.
@@ -699,26 +699,21 @@ elseif strcmp(lower(Action),lower('Ver'))
 if nargin<3, ReDo=0; else, ReDo=1; end
 if nargin<2, Mfile=''; else, Mfile=P2; end
 if isempty(Mfile), Mfile='spm'; end
+Fmenu = spm_figure('FindWin','Menu');
 
-%-See if SPM window exists - It's UserData should contain the version
+%-See if SPM Menu window exists - It's UserData should contain the version
 %-----------------------------------------------------------------------
 if ~ReDo
-	Fmenu = spm_figure('FindWin','Menu');
 	if ~isempty(Fmenu)
 		SPMver = get(Fmenu,'UserData');
 		if ~isempty(SPMver), R1=SPMver; return, end
 	end
 end
 
-%%-See if global SPM_VER exists - It contains the version
-%%-----------------------------------------------------------------------
-%global SPM_VER; if ~isempty(SPM_VER) & ~ReDo; R1 = SPM_VER; return, end
-
-
 %-Work version out from file
 %-----------------------------------------------------------------------
 SPMdir = spm('Dir',Mfile);
-CFile  = [SPMdir,'/spm.man'];
+CFile  = [SPMdir,'/Contents.m'];
 if exist(CFile)
 	fid  = fopen(CFile,'r');
 	SPMver = setstr([fread(fid,80,'char')',setstr(10)]);
@@ -728,9 +723,14 @@ if exist(CFile)
 else
 	SPMver = 'SPM';
 end
+
+%-Store version in UserData of SPM Menu window, if it exists
+%-----------------------------------------------------------------------
+if ~isempty(Fmenu), set(Fmenu,'UserData',SPMver); end
+
 R1      = SPMver;
-%if ReDo, SPM_VER = SPMver; end
 return
+
 
 elseif strcmp(lower(Action),lower('Colour'))
 %=======================================================================
