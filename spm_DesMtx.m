@@ -769,11 +769,11 @@ end
 %=======================================================================
 function nX = sf_tXsca(tX)
 if nargin==0, nX=[]; return, end
-if abs(max(abs(tX(:)))-0.7)<(.3+eps)
+if abs(max(abs(tX(:)))-0.7)<(.3+1e-10)
 	nX = tX;
 elseif all(tX(:)==tX(1))
 	nX = ones(size(tX));
-elseif max(abs(tX(:)))<eps*100
+elseif max(abs(tX(:)))<1e-10
 	nX = zeros(size(tX));
 else
 	nX = 2*(tX-min(tX(:)))/max(tX(:)-min(tX(:)))-1;
