@@ -47,7 +47,7 @@ k  = (length(z) - 1)/2;
 
 V  = spm_map(P);
 spm_conv_vol(V,Q,x,y,z,(-[i,j,k]));
-spm_unmap_vol(V);
+spm_unmap(V);
 
 
 

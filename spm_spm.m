@@ -317,7 +317,7 @@ FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
 
 %-Unmap volumes
 %-----------------------------------------------------------------------
-for i  = 1:q; spm_unmap_vol(V(:,i)); end
+for i  = 1:q; spm_unmap(V(:,i)); end
 
 %-Save design matrix, and other key variables; S UF CONTRAST W V and FWHM
 %-----------------------------------------------------------------------

@@ -447,10 +447,10 @@ end
 
 % close, unmap and delete
 %----------------------------------------------------------------------------
-spm_unmap_vol(Vu)
-spm_unmap_vol(Vv)
-spm_unmap_vol(Vp)
-spm_unmap_vol(Vs)
+spm_unmap(Vu)
+spm_unmap(Vv)
+spm_unmap(Vp)
+spm_unmap(Vs)
 
 delete temp1.img
 delete temp1.hdr

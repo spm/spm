@@ -485,9 +485,9 @@ spm_print
 
 % close, unmap and delete
 %----------------------------------------------------------------------------
-for i = 1:size(V,2); spm_unmap_vol(V(:,i)); end
-spm_unmap_vol(Vu)
-spm_unmap_vol(Vs)
+for i = 1:size(V,2); spm_unmap(V(:,i)); end
+spm_unmap(Vu)
+spm_unmap(Vs)
 
 delete temp1.img
 delete temp2.img

@@ -141,5 +141,5 @@ set(gca,'XTickLabels',[])
 % unmap and reset pointer (and x locations is necessary)
 %----------------------------------------------------------------------------
 if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
-spm_unmap_vol(Vs);
+spm_unmap(Vs);
 set(2,'Pointer','Arrow')

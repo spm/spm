@@ -66,5 +66,5 @@ text(24,-16,'results directory:')
 text(96,-16,CWD,'Fontsize',16,'Fontweight','Bold')
 
 % unmap %----------------------------------------------------------------------------
-spm_unmap_vol(Vz)
-spm_unmap_vol(Vs)
+spm_unmap(Vz)
+spm_unmap(Vs)
