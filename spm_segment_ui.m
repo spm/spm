@@ -121,7 +121,7 @@ function spm_segment_ui(P)
 % [defaults.segment.estimate.affreg.smosrc]
 % Amount of smoothing to use for the source image during the affine
 % registration step.
-% [defaults.segment.estimate.affreg.regtyp] - specifies the way that affine
+% [defaults.segment.estimate.affreg.regtype] - specifies the way that affine
 % registration is regularised (see spm_affreg.m).
 % [defaults.segment.estimate.affreg.weight] -  Template weighting image
 % applied during affine registration.

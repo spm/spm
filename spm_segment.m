@@ -56,7 +56,7 @@ def_flags.estimate.cutoff = 30;
 def_flags.estimate.samp   = 3;
 def_flags.estimate.bb     =  [[-88 88]' [-122 86]' [-60 95]'];
 def_flags.estimate.affreg.smosrc = 8;
-def_flags.estimate.affreg.regtyp = 'mni';
+def_flags.estimate.affreg.regtype = 'mni';
 def_flags.estimate.affreg.weight = '';
 def_flags.write.cleanup   = 1;
 def_flags.write.wrt_cor   = 1;
@@ -73,8 +73,8 @@ if ~isfield(flags.estimate,'affreg'), flags.estimate.affreg = def_flags.estimate
 if ~isfield(flags.estimate.affreg,'smosrc'),
 	flags.estimate.affreg.smosrc = def_flags.estimate.affreg.smosrc;
 end;
-if ~isfield(flags.estimate.affreg,'regtyp'),
-	flags.estimate.affreg.regtyp = def_flags.estimate.affreg.regtyp;
+if ~isfield(flags.estimate.affreg,'regtype'),
+	flags.estimate.affreg.regtype = def_flags.estimate.affreg.regtype;
 end;
 if ~isfield(flags.estimate.affreg,'weight'),
 	flags.estimate.affreg.weight = def_flags.estimate.affreg.weight;
@@ -238,7 +238,7 @@ if ~isempty(VG) & isstruct(VG),
 	VFS(1).pinfo(1:2,:) = VFS(1).pinfo(1:2,:)/spm_global(VFS(1));
 
 	spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration');
-	flags     = struct('sep',aflags.smosrc, 'regtype',aflags.regtyp,'WG',[],'globnorm',0,'debug',0);
+	flags     = struct('sep',aflags.smosrc, 'regtype',aflags.regtype,'WG',[],'globnorm',0,'debug',0);
 	M         = eye(4);
 	[M,scal]  = spm_affreg(VG, VFS, flags, M);
 

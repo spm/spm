@@ -75,7 +75,7 @@ if nargin==3 & ischar(flags) & strcmp(lower(flags),'modulate'),
 end;
 
 def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0);
-[def_flags.bb, def_flags.vox] = bbvox_from_V(prm.VG);
+[def_flags.bb, def_flags.vox] = bbvox_from_V(prm.VG(1));
 
 if nargin < 3,
 	flags = def_flags;
@@ -138,7 +138,7 @@ d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 spm_progress_bar('Init',prod(size(V)),'Resampling','volumes completed');
 for i=1:prod(size(V)),
 	VO     = make_hdr_struct(V(i),x,y,z,mat);
-	detAff = det(prm.VF.mat*prm.Affine/prm.VG.mat);
+	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 	if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
 
 	if nargout>0,
@@ -202,7 +202,7 @@ d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 spm_progress_bar('Init',prod(size(V)),'Resampling','volumes completed');
 for i=1:prod(size(V)),
 	VO     = make_hdr_struct(V(i),x,y,z,mat);
-	detAff = det(prm.VF.mat*prm.Affine/prm.VG.mat);
+	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 
 	if flags.preserve | nargout>0,
 		%Dat= zeros(VO.dim(1:3));
@@ -273,7 +273,7 @@ spm_progress_bar('Init',prod(size(V)),'Modulating','volumes completed');
 for i=1:prod(size(V)),
 	VO          = V(i);
 	VO.fname    = prepend(VO.fname,'m');
-	detAff      = det(prm.VF.mat*prm.Affine/prm.VG.mat);
+	detAff      = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 	%Dat        = zeros(VO.dim(1:3));
 	Dat         = single(0);
 	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
@@ -477,6 +477,6 @@ og  = -vxg.*ogn;
 of  = -vox.*(round(-bb(1,:)./vox)+1);
 M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
-mat = prm.VG.mat*inv(M1)*M2;
+mat = prm.VG(1).mat*inv(M1)*M2;
 return;
 

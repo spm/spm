@@ -135,7 +135,7 @@ if ischar(VWG), VWG=spm_vol(VWG); end;
 if ischar(VWF), VWF=spm_vol(VWF); end;                                                                     
 
 
-def_flags = struct('smosrc',8,'smoref',0,'regtyp','mni',...
+def_flags = struct('smosrc',8,'smoref',0,'regtype','mni',...
 	'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
 if nargin < 6,
 	flags = def_flags;
