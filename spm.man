@@ -1,4 +1,4 @@
-
+% SPM96b
 % Statistical Parametric Mapping - SPM'96
 %_______________________________________________________________________
 % 
@@ -682,3 +682,11 @@
 % 
 %__________________________________________________________________________
 % %W% The FIL methods group. %E%
+
+%=======================================================================
+% PROGRAMMERS NOTE:
+% This (spm.man) is the contents file for SPM, used by spm('Ver') to
+% recover the version number. MatLab's ver uses Contents.m which should
+% therefore be a symbolic link to this spm.man in the spm directory.
+% Line1: Version (one word). Line2: One line description
+%=======================================================================
