@@ -1,8 +1,11 @@
-function V = spm_vol_ecat7(fname)
+function V = spm_vol_ecat7(fname,required)
 % Get header information etc. for ECAT 7 images.
-%  FORMAT V = spm_vol_ecat7(P)
-%  P - an ECAT 7 filename.
-%  V - a structure containing image volume information.
+%  FORMAT V = spm_vol_ecat7(fname,required)
+%  P         - an ECAT 7 filename.
+%  fname     - a structure containing image volume information.
+%  required  - an optional text argument specifying which volumes to
+%              use.  The default is '1010001'.  Also, the argument
+%              'all' will result in all matrices being extracted.
 %
 % The elements of V are described by the help for spm_vol, except for
 % additional fields (V.mh and V.sh) that contains the main- and sub-
@@ -12,7 +15,10 @@ function V = spm_vol_ecat7(fname)
 % %W% John Ashburner and Roger Gunn %E%
 
 V        = [];
-required = '1010001';
+if nargin==1,
+	required = '1010001';
+end;
+
 fp       = fopen(fname,'r','ieee-be');
 if (fp == -1)
 	fname  = [spm_str_manip(fname,'sr') '.v'];
@@ -29,43 +35,52 @@ if ~strcmp(mh.MAGIC_NUMBER,'MATRIX70v') & ~strcmp(mh.MAGIC_NUMBER,'MATRIX71v') &
 end
 
 if (mh.FILE_TYPE ~= 7)
-        error(['"' spm_str_manip(fname,k20d') '" isn''t an image.']);
+        error(['"' spm_str_manip(fname,'k20d') '" isn''t an image.']);
         fclose(fp);
         return;
 end
 
 list     = s7_matlist(fp);
-matnum   = sscanf(required,'%x');
-matches  = find( (list(:,1) == matnum) & ((list(:,4) == 1) | (list(:,4) == 2)));
-if (size(matches,1) ~= 1)
-        error(['"' spm_str_manip(fname,k20d') '" doesn''t have the required image.']);
-        fclose(fp);
-        return;
-end
-list     = list(matches,:);
+if strcmp(required(1,:),'all'),
+	matches  = find((list(:,4) == 1) | (list(:,4) == 2));
+	llist = list(matches,:);
+else,
+	for i=1:size(required,1),
+		matnum   = sscanf(required(i,:),'%x');
+		matches  = find( (list(:,1) == matnum) & ((list(:,4) == 1) | (list(:,4) == 2)));
+		if (size(matches,1) ~= 1)
+			error(['"' spm_str_manip(fname,'k20d') '" doesn''t have the required image.']);
+			fclose(fp);
+		end;
+		llist(i,:) = list(matches,:);
+	end;
+end;
 
-sh       = ECAT7_sheader(fp,list(2));
+V    = struct('fname','','dim',[],'mat',[],'pinfo',[], 'descrip','','mh',[],'sh',[]);
+V(:) = [];
+
+for i=1:size(llist,1),
+	sh       = ECAT7_sheader(fp,llist(i,2));
+	dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
+	if ~spm_platform('bigend') & dim(4)~=2, dim(4) = dim(4)*256; end;
+
+	pinfo    = [sh.SCALE_FACTOR ; 0 ; 512*llist(i,2)];
+
+	dircos   = diag([-1 -1 -1]);
+	step     = ([sh.X_PIXEL_SIZE sh.Y_PIXEL_SIZE sh.Z_PIXEL_SIZE]*10);
+	start    = -(dim(1:3)'/2).*step';
+	mat      = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
+	matname  = [spm_str_manip(fname,'sd') '.mat'];
+	if exist(matname) == 2,
+		load(matname);
+		if exist('M') == 1,
+			mat = M;
+		end;
+	end;
+	V(i)        = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,...
+			'descrip',sh.ANNOTATION,'mh',mh,'sh',sh);
+end;
 fclose(fp);
-
-dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
-if ~spm_platform('bigend') & dim(4)~=2, dim(4) = dim(4)*256; end;
-
-pinfo    = [sh.SCALE_FACTOR ; 0 ; 512*list(2)];
-
-dircos   = diag([-1 -1 -1]);
-step     = ([sh.X_PIXEL_SIZE sh.Y_PIXEL_SIZE sh.Z_PIXEL_SIZE]*10);
-start    = -(dim(1:3)'/2).*step';
-mat      = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
-matname  = [spm_str_manip(fname,'sd') '.mat'];
-if (exist(matname) == 2)
-	load(matname);
-	if (exist('M') == 1)
-		mat = M;
-	end
-end
-
-V        = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,...
-		'descrip',sh.ANNOTATION,'mh',mh,'sh',sh);
 return;
 %_______________________________________________________________________
 
