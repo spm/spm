@@ -95,6 +95,7 @@ dt     = RT/T;						% time bin {secs}
 
 % separate specifications for non-relicated sessions
 %--------------------------------------------------------------------------
+rep = 0;
 if nsess > 1 & ~any(nscan - nscan(1))
 	rep = spm_input(['are sessions replicated exactly'],2,'yes|no',[1 0]);
 end
