@@ -25,7 +25,9 @@ typedef struct maptype
 	int magic;
 	int prot;
 	int flags;
+/*
 	int fd;
+*/
 	pid_t pid;
 }	MAPTYPE;
 
@@ -81,7 +83,7 @@ Matrix *matrix_ptr;
 	{
 		mexErrMsgTxt("Who screwed up the handle??");
 	}
-
+/*
 	if (fstat(map->fd, &stbuf) == -1)
 	{
 		mexErrMsgTxt("Cant stat image file.");
@@ -89,7 +91,8 @@ Matrix *matrix_ptr;
 	if (stbuf.st_size < map->off+map->len)
 	{
 		mexErrMsgTxt("Image file too small.");
-        }
+	}
+*/
 	return(map);
 }
 #endif

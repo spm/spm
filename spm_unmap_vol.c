@@ -21,7 +21,6 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Inappropriate usage.");
 
 	map=get_map(prhs[0]);
-	(void)close(map->fd);
 	(void)munmap(map->map, map->off+map->len);
 
 	dat = mxGetPr(prhs[0]);

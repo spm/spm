@@ -18,7 +18,7 @@ Matrix *plhs[], *prhs[];
 #endif
 {
 	char *str;
-	int k,stlen, datasize;
+	int k,stlen, datasize, fd;
 	MAPTYPE *map;
 	double *ptr;
 	static struct stat stbuf;
@@ -82,32 +82,33 @@ Matrix *plhs[], *prhs[];
 	map->prot = PROT_READ;
 	map->flags = MAP_SHARED;
 
-	if ((map->fd = open(str, O_RDONLY)) == -1)
+	if ((fd = open(str, O_RDONLY)) == -1)
 	{
 		mxFree(str);
 		mexErrMsgTxt("Cant open image file.");
 	}
 
-	if (fstat(map->fd, &stbuf) == -1)
+	if (fstat(fd, &stbuf) == -1)
 	{
-		close(map->fd);
+		close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Cant stat image file.");
 	}
 	if (stbuf.st_size < map->off+map->len)
 	{
-		close(map->fd);
+		close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Image file too small.");
 	}
 
-	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, map->fd, 0);
+	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, fd, 0);
 	if (map->map == (caddr_t)-1)
 	{
-		close(map->fd);
+		close(fd);
 		mxFree(str);
 		mexErrMsgTxt("Cant map image file.");
 	}
 	map->data = (unsigned char *)(map->map) + map->off;
 	mxFree(str);
+	close(fd);
 }
