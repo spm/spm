@@ -330,19 +330,12 @@ for iter = 1:64,
 		[raw,msk] = get_raw(VF,x1,x2,x3(pp));
 		s         = get_sp(SP,x1,x2,x3(pp));
 		cor       = bf.*raw;
-
-%if pp==round(length(x3)/2),
-%	figure(2);
-%	imagesc(cor(:,:,1)');
-%	axis image xy off
-%end;
-
 		[P,ll0]   = get_p(cor,msk,s,sums,CP,bf);
-
-		ll = ll + ll0;
-		CP = update_cp_est(CP,P,cor,msk,pp);
-		BP = update_bp_est(BP,P,cor,CP,msk,x1,x2,x3(pp));
+		ll        = ll + ll0;
+		CP        = update_cp_est(CP,P,cor,msk,pp);
+		BP        = update_bp_est(BP,P,cor,CP,msk,x1,x2,x3(pp));
 	end;
+
 	BP = update_bp(BP);
 	if iter>1, spm_chi2_plot('Set',ll); end;
 	%fprintf('\t%g\n', ll);
@@ -428,6 +421,7 @@ for j=1:size(BP.Alpha,3),
 	wt2       = cr.*(cr.*w2 - w1);
 	wt1(~msk) = 0;
 	wt2(~msk) = 0;
+
 	BP.Beta(:,j)    = BP.Beta(:,j)    + kron(B3',spm_krutil(wt1,B1,B2,0));
 	BP.Alpha(:,:,j) = BP.Alpha(:,:,j) + kron(B3'*B3,spm_krutil(wt2,B1,B2,1));
 end;
@@ -493,7 +487,11 @@ CP.mom2 = zeros(m,m,n,p)+eps;
 % from var(rand(1000000,1)).  It prbably isn't the best way of doing
 % things, but it appears to work.
 CP.cv0 = zeros(m,m);
-for i=1:m, CP.cv0(i,i)=0.083*mean(VF(i).pinfo(1,:)); end;
+for i=1:m,
+	if spm_type(VF(i).dim(4),'intt'),
+		CP.cv0(i,i)=0.083*mean(VF(i).pinfo(1,:));
+	end;
+end;
 return;
 %=======================================================================
  
@@ -518,7 +516,8 @@ m   = size(dat,3);
 d   = size(P);
 P   = reshape(P,[d(1)*d(2),d(3)]);
 dat = reshape(dat,[d(1)*d(2),m]);
-P(~msk(:),:) = 0;
+P(~msk(:),:)   = [];
+dat(~msk(:),:) = [];
 for i=1:size(CP.mom0,2),
 	CP.mom0(1,i,p)   = sum(P(:,i));
 	CP.mom1(:,i,p)   = sum((P(:,i)*ones(1,m)).*dat)';
@@ -533,9 +532,7 @@ for i=1:size(CP.mom0,2),
 	tmp          = tmp-eye(size(tmp))*eps*1000;
 	CP.cv(:,:,i) = (sum(CP.mom2(:,:,i,:),4) - tmp)/CP.mg(1,i) + CP.cv0;
 end;
-
 CP.mg   = CP.mg/sum(CP.mg);
-
 return;
 %=======================================================================
  
