@@ -153,10 +153,11 @@ for i = 1:size(P,1)
 	spm_hwrite(q,DIM,VOX,SCALE,TYPE,0,ORIGIN,'spm - realigned');
 end
 
-% movement-related covariates to be removed
+% movement-related covariates to be removed - only those with a z component
 %---------------------------------------------------------------------------
-G     = [zeros(1,size(Q,2)); Q([1:(size(Q,1) - 1)],:)];
-G     = [Q Q.^2 G G.^2 ones(size(Q,1),1)];
+G     = Q(:,[3 4 5]);
+d     = [zeros(1,size(G,2)); G([1:(size(G,1) - 1)],:)];
+G     = [G G.^2 d d.^2 ones(size(d,1),1)];
 
 
 % write the realigned images to output files 
