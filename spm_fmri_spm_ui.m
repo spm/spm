@@ -100,13 +100,6 @@ K     = [];				% string matrix for graphical output
 
 CONTRAST = [];
 
-% temporal smoothing
-%----------------------------------------------------------------------------
-%SIGMA  = 1;
-if spm_input('Temporal smoothing',6,'yes|no',[1 0])
-	SIGMA  = 1;
-end
-
 % get Repeat time
 %----------------------------------------------------------------------------
 RT     = spm_input('Interscan interval {secs}',1);
@@ -304,7 +297,16 @@ while size(CONTRAST,1) ~= t
 end
 %-Get orientation of images
 %-----------------------------------------------------------------------
-FLIP   = spm_input('Image left = subject''s ',10,'right|left',[1,0]);
+FLIP   = spm_input('Image left = subject''s ',9,'right|left',[1,0]);
+
+% temporal smoothing
+%----------------------------------------------------------------------------
+%SIGMA  = 1;
+if spm_input('Temporal smoothing',10,'yes|no',[1 0])
+	SIGMA  = 1;
+else
+	SIGMA  = 0;
+end
 
 
 
