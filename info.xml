@@ -1,0 +1,45 @@
+<!-- $Id: info.xml 44 2005-03-31 11:42:09Z guillaume $ -->
+<productinfo
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">
+<?xml-stylesheet type="text/xsl" href="http://www.mathworks.com/namespace/info/v1/info.xsl"?>
+
+  <matlabrelease>14</matlabrelease>
+  <name>SPM</name>
+  <type>toolbox</type>
+  <icon>$toolbox/matlab/icons/matlabicon.gif</icon>
+  
+  <!-- <help_location>./helpfiles/</help_location>  -->
+  <!-- http://www.mathworks.com/support/solutions/data/1-1C77F.html?solution=1-1C77F -->
+  <!-- http://www.mathworks.com/support/solutions/data/1-18U6Q.html?solution=1-18U6Q -->
+  <!-- http://www.mathworks.com/access/helpdesk/help/techdoc/matlab_env/guiref16.html -->
+  <!-- http://www.mathworks.com/access/helpdesk/help/techdoc/matlab_env/guiref15.html -->
+  <list>
+
+    <listitem>
+      <label>SPM</label>
+      <callback>spm</callback>
+      <icon>$toolbox/matlab/icons/figureicon.gif</icon>
+    </listitem>
+
+    <listitem>
+      <label>Help</label>
+      <callback>spm help</callback>
+      <icon>$toolbox/matlab/icons/book_mat.gif</icon>
+    </listitem>
+
+	<listitem>
+      <label>SPM Wiki</label>
+      <callback>web http://en.wikibooks.org/wiki/SPM -browser;</callback>
+      <icon>$toolbox/matlab/icons/demoicon.gif</icon>
+    </listitem>
+
+    <listitem>
+      <label>SPMWeb</label>
+      <callback>web http://www.fil.ion.ucl.ac.uk/spm/ -browser;</callback>
+      <icon>$toolbox/matlab/icons/webicon.gif</icon>
+    </listitem>
+
+  </list>
+
+</productinfo>
