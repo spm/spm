@@ -86,13 +86,5 @@
 % resampling the images several times).  The `.mat' files are also used
 % by the spatial normalisation module.
 %
-%-----------------------------------------------------------------------
-% See also:
-%        spm_hread.m
-%        spm_hwrite.m
-%        spm_type.m
-%        spm_defaults.m
-%        spm_get_space.m
-%        spm_create_image.m
 %__________________________________________________________________________
 % %W% John Ashburner %E%
