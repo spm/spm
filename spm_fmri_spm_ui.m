@@ -13,17 +13,7 @@ function [xX,Sess] = spm_fmri_spm_ui
 % xX.Xnames     - cellstr of effect names corresponding to columns
 %                 of the design matrix
 %
-% Sess{s}.BFstr   - basis function description string
-% Sess{s}.DSstr   - Design description string
-% Sess{s}.row     - scan   indices      for session s
-% Sess{s}.col     - effect indices      for session s
-% Sess{s}.name{i} - of ith trial type   for session s
-% Sess{s}.ind{i}  - column indices      for ith trial type {within session}
-% Sess{s}.bf{i}   - basis functions     for ith trial type
-% Sess{s}.sf{i}   - stick functions     for ith trial type
-% Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
-% Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
-% Sess{s}.para{i} - vector of paramters for ith trial type
+% Sess{s}      -  see spm_fMRI_design
 %____________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
@@ -54,30 +44,23 @@ function [xX,Sess] = spm_fmri_spm_ui
 % in the results section to produce SPMs and tables of p values and statistics.
 %
 % spm_fmri_spm calls spm_fMRI_design which allows you to configure a
-% design matrix in terms of events or epochs.  This design matrix can be
-% specified before or during data specification.  In some instances
-% (e.g. with stochastic designs that have to realized before data
-% acquisition) it is necessary to build the design matrix first and then
-% select the corresponding data.  In others it may be simpler to specify
-% the data and then the design.  Both options are supported.  Once the
-% design matrix, data and filtering have been specified spm_fmri_spm_ui
-% calls spm_spm to estimate the model parameters that are then saved for
-% subsequent analysis.
+% design matrix in terms of events or epochs.  
 %
 % spm_fMRI_design allows you to build design matrices with separable
 % session-specific partitions.  Each partition may be the same (in which
 % case it is only necessary to specify it once) or different.  Responses
-% can be either event- or epoch related, where the latter model prolonged
-% and possibly time-varying responses to state-related changes in
-% experimental conditions.  Event-related response are modelled in terms
-% of responses to instantaneous events.  Mathematically they are both
-% modeled by convolving a series of delta (or stick) functions,
+% can be either event- or epoch related, The only distinction is the duration
+% of the underlying input or stimulus function. Mathematically they are both
+% modeled by convolving a series of delta (stick) or box functions (u),
 % indicating the onset of an event or epoch with a set of basis
-% functions.  These basis functions can be very simple, like a box car,
-% or may model voxel-specific forms of evoked responses with a linear
-% combination of several basis functions (e.g. a Fourier set).  Basis
-% functions can be used to plot estimated responses to single events or
-% epochs once the parameters (i.e. basis function coefficients) have
+% functions.  These basis functions model the hemodynamic convolution,
+% applied by the brain, to the inputs.  This convolution can be first-order
+% or a generalized convolution modeled to second order (if you specify the 
+% Volterra option). [The same inputs are used by the hemodynamic model or
+% or dynamic causal models which model the convolution explicitly in terms of 
+% hidden state variables (see spm_hdm_ui and spm_dcm_ui).]
+% Basis functions can be used to plot estimated responses to single events 
+% once the parameters (i.e. basis function coefficients) have
 % been estimated.  The importance of basis functions is that they provide
 % a graceful transition between simple fixed response models (like the
 % box-car) and finite impulse response (FIR) models, where there is one
@@ -91,13 +74,11 @@ function [xX,Sess] = spm_fmri_spm_ui
 % specified probably at successive intervals in time.  These
 % probabilities can be fixed (stationary designs) or time-dependent
 % (modulated or non-stationary designs).  The most efficient designs
-% obtain when the probabilities of every trial type are equal and this is
-% enforced in SPM.  The modulation of non-stationary designs is simply
-% sinusoidal with a period of 32 seconds.  A critical aspect of
-% stochastic event-related designs is whether to include null events or
-% not.  If you wish to estimate the evoke response to a specific event
+% obtain when the probabilities of every trial type are equal.
+% A critical issue in stochastic designs is whether to include null events
+% If you wish to estimate the evoke response to a specific event
 % type (as opposed to differential responses) then a null event must be
-% included (even though it is not modelled explicitly).
+% included (even if it is not modelled explicitly).
 % 
 % The choice of basis functions depends upon the nature of the inference
 % sought.  One important consideration is whether you want to make
@@ -110,7 +91,7 @@ function [xX,Sess] = spm_fmri_spm_ui
 % other bases, contrasts of these effects have a physical interpretation
 % and represent a parsimonious way of characterising event-related
 % responses.  Bases such as a Fourier set require the SPM{F} for
-% inference and preclude second level analyses.
+% inference.
 % 
 % See spm_fMRI_design for more details about how designs are specified.
 %
@@ -136,11 +117,8 @@ function [xX,Sess] = spm_fmri_spm_ui
 % ReML estimator of serial correlations resolves the robustenss issues to
 % a degree. High-pass filtering is implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
-% matrix).  The default cutoff period is twice the maximum time interval
-% between the most frequently occurring event or epoch (i.e the minimum of
-% all maximum intervals over event or epochs).  This is only a guide
-% and can be adjusted depending on the frequency structure of the
-% contrasts of interest.
+% matrix).  The default cutoff period is 128 seconds.  Use 'explore design'
+% to ensure this cuttof is not removing too much experimental variance.
 %
 %-----------------------------------------------------------------------
 % Refs:
@@ -187,16 +165,17 @@ spm_help('!ContextHelp',mfilename)
 
 % get design matrix and/or data
 %=======================================================================
-MType = {'specify a model',...
+MType = {  'specify a model',...
 	   'review a specified model',...
 	   'estimate a specified model',...
 	   'specify and estimate a model'};
 MT    = spm_input('What would you like to do?',1,'m',MType,...
                   'batch',{},'types');
 
-%-Initialise output arguments in case return early
+%-Initialise output arguments
+%-----------------------------------------------------------------------
 xX   = [];
-Sess = [];
+Sess = {};
 
 switch MT
 %-----------------------------------------------------------------------
@@ -237,30 +216,30 @@ switch MT
 	P      = [];
 	if nsess < 16
 		for i = 1:nsess
-		   str = sprintf('select scans for session %0.0f',i);
+		   str    = sprintf('select scans for session %0.0f',i);
 		   if isempty(BCH)
 			q = spm_get(nscan(i),'.img',str);
 		   else
 			q = sf_bch_get_q(i);
 		   end %- 
- 		   P   = strvcat(P,q);
+ 		   P      = strvcat(P,q);
 		end
 	else
-		str   = sprintf('select scans for this study');
+		str       = sprintf('select scans for this study');
 		if isempty(BCH)
-			P     = spm_get(sum(nscan),'.img',str);
+			P = spm_get(sum(nscan),'.img',str);
 		else
-		   for i = 1:nsess
+		   for  i = 1:nsess
 			q = sf_bch_get_q(i);
 			P = strvcat(P,q);
 		   end
 		end
 	end
 
+
 	% Repeat time
 	%---------------------------------------------------------------
 	RT     = xX.RT;
-
 
 	case 4
 	% get filenames and design matrix
@@ -293,18 +272,10 @@ switch MT
 end
 
 
-% Assemble other design parameters
+% Assemble remaining design parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
 spm_input('Global intensity normalisation...',1,'d',mfilename,'batch')
-
-% get rows
-%-----------------------------------------------------------------------
-for i = 1:nsess
-	row{i} = find(xX.X(:,xX.iB(i)));
-end
-BFstr  = Sess{1}.BFstr;
-DSstr  = Sess{1}.DSstr;
 
 
 % Global normalization
@@ -312,10 +283,6 @@ DSstr  = Sess{1}.DSstr;
 str    = 'remove Global effects';
 Global = spm_input(str,'+1','scale|none',{'Scaling' 'None'},...
 		    'batch',{},'global_effects');
-if ischar(Global),
-	Global = {Global};
-end
-
 
 % Temporal filtering
 %=======================================================================
@@ -329,60 +296,41 @@ switch cF
 
 	case 'specify'
 
-	% default based on peristimulus time
-	% param = cut-off period (max = 512, min = 32)
+	% default 128 seconds
 	%---------------------------------------------------------------
-	HParam = 512*ones(1,nsess);
-	for  i = 1:nsess
-		for j = 1:length(Sess{i}.pst)
-		   HParam(i) = min([HParam(i) 2*max(Sess{i}.pst{j})]);
-		end
-	end
-	HParam = ceil(HParam);
-	HParam(HParam < 32) = 32;
+	HParam = 128*ones(1,nsess);
 	str    = 'session cutoff period (secs)';
 	HParam = spm_input(str,'+1','e',HParam,[1 nsess],...
 	                  'batch',{},'HF_cut');
 
-	% LF description
+	% Filter description
 	%---------------------------------------------------------------
 	Fstr   = sprintf('[min] Cutoff period %d seconds',min(HParam));
 
 	case 'none'
 	%---------------------------------------------------------------
-	HParam = cell(1,nsess);
+	HParam = Inf*ones(1,nsess);;
 	Fstr   = cF;
-
 end
 
 
-% create filter struct
+% create and set filter struct
 %-----------------------------------------------------------------------
 for i = 1:nsess
-	K{i} = struct(	'HChoice',	cF,...
-			'HParam',	HParam(i),...
-			'LChoice',	'none',...
-			'LParam',	[],...
-			'row',		row{i},...
-			'RT',		RT);
+	K{i} = struct(	'HParam',	HParam(i),...
+			'row',		Sess{i}.row,...
+			'RT',		xX.RT);
 end
+K       = spm_filter(K);
+
 
 
 % intrinsic autocorrelations (Vi)
 %-----------------------------------------------------------------------
 str     = 'Correct for serial correlations?';
-cVimenu = {'none','AR(1) + w'};
-cVi     = spm_input(str,'+1','b',cVimenu,'batch',{},'int_corr');
+cVi     = {'none','AR(1) + w'};
+cVi     = spm_input(str,'+1','b',cVi,'batch',{},'int_corr');
 
-
-%-Estimation options
-%=======================================================================
-spm_input('Estimation options',1,'d',mfilename,'batch')
-
-%-Generate default trial-specific F-contrasts specified by session?
-%-----------------------------------------------------------------------
-bFcon = spm_input('Setup trial-specific F-contrasts?','+1','y/n',[1,0],1,...
-		'batch',{},'trial_fcon');
 
 %-Estimate now or later?
 %-----------------------------------------------------------------------
@@ -397,14 +345,8 @@ spm('FigName','Configuring, please wait...',Finter,CmdLine);
 spm('Pointer','Watch');
 
 
-% Contruct K and Vi structs
+% Contruct Vi structure for non-sphericity ReML estimation
 %=======================================================================
-K       = spm_filter('set',K);
-
-
-% Adjust for missing scans
-%-----------------------------------------------------------------------
-[xX,Sess,K,P,nscan,row] = spm_bch_tsampl(xX,Sess,K,P,nscan,row); %-SR
 
 % create Vi struct
 %-----------------------------------------------------------------------
@@ -453,7 +395,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 gSF     = GM./g;
 if strcmp(Global,'None')
 	for i = 1:nsess
-		j      = row{i};
+		j      = Sess{i}.row;
 		gSF(j) = GM./mean(g(j));
 	end
 end
@@ -485,58 +427,39 @@ if length(xX.iC)
 				'name',		'effects of interest');
 else
 	F_iX0  = [];
-	DSstr  = 'Block [session] effects only';
 end
 
 %-Trial-specifc effects specified by Sess
 %-----------------------------------------------------------------------
-if bFcon
-	i      = length(F_iX0) + 1;
-	if (Sess{1}.rep)
-		for t = 1:length(Sess{1}.name)
-			u     = [];
-			for s = 1:length(Sess)
-				u = [u Sess{s}.col(Sess{s}.ind{t})];
-			end
-			q             = 1:size(xX.X,2);
-			q(u)          = [];
-			F_iX0(i).iX0  = q;
-			F_iX0(i).name = Sess{s}.name{t};
-			i             = i + 1;
-		end
-	else
-		for s = 1:length(Sess)
-			str   = sprintf('Session %d: ',s);
-			for t = 1:length(Sess{s}.name)
-				q             = 1:size(xX.X,2);
-				q(Sess{s}.col(Sess{s}.ind{t})) = [];
-				F_iX0(i).iX0  = q;
-				F_iX0(i).name = [str Sess{s}.name{t}];
-				i             = i + 1;
-			end
-		end
+for s = 1:nsess
+	str   = sprintf('Session %d: ',s);
+	for i = 1:length(Sess{s}.Fci)
+		q                  = 1:size(xX.X,2);
+		FciX               = Sess{s}.col(Sess{s}.Fci{i});
+		q(FciX)            = [];
+		F_iX0(end + 1).iX0 = q;
+		F_iX0(end).name    = [str Sess{s}.Fcname{i}];
 	end
 end
 
 
 %-Design description (an nx2 cellstr) - for saving and display
 %=======================================================================
-for i    = 1:length(Sess), ntr(i) = length(Sess{i}.name); end
-sGXcalc  = 'mean voxel value';
-sGMsca   = 'session specific';
-xsDes    = struct(	'Design',			DSstr,...
-			'Basis_functions',		BFstr,...
-			'Number_of_sessions',		sprintf('%d',nsess),...
-			'Conditions_per_session',	sprintf('%-3d',ntr),...
-			'Interscan_interval',		sprintf('%0.2f',RT),...
-			'High_pass_Filter',		Fstr,...
-			'Intrinsic_correlations',	xVi.form,...
-			'Global_calculation',		sGXcalc,...
-			'Grand_mean_scaling',		sGMsca,...
-			'Global_normalisation',		Global);
+for i   = 1:length(Sess), ntr(i) = length(Sess{i}.U); end
+sGXcalc = 'mean voxel value';
+sGMsca  = 'session specific';
+xsDes   = struct(	'Basis_functions',	Sess{1}.Bfname,...
+			'Number_of_sessions',	sprintf('%d',nsess),...
+			'Trials_per_session',	sprintf('%-3d',ntr),...
+			'Interscan_interval',	sprintf('%0.2f',xX.RT),...
+			'High_pass_Filter',	Fstr,...
+			'Serial_correlations',	xVi.form,...
+			'Global_calculation',	sGXcalc,...
+			'Grand_mean_scaling',	sGMsca,...
+			'Global_normalisation',	Global);
 %-global structure
 %-----------------------------------------------------------------------
-xGX.iGXcalc  = Global{1};
+xGX.iGXcalc  = Global{:};
 xGX.sGXcalc  = sGXcalc;
 xGX.rg       = g;
 xGX.sGMsca   = sGMsca;
@@ -595,8 +518,7 @@ fprintf('\n\n')
 
 function abort = sf_abort(i)
 %=======================================================================
-
-if nargin<1, i=[1:3]; end
+if nargin < 1, i = [1:3]; end
 tmp    = zeros(1,3);
 tmp(i) = 1;
 tmp = tmp & [	exist(fullfile('.','SPM_fMRIDesMtx.mat'),'file')==2 ,...
@@ -623,12 +545,13 @@ function q = sf_bch_get_q(i)
 % This is to deal with a specific case where the sampling   
 % isn't regular. Only implemented in bch mode.
 % 
-q 	= spm_input('batch',{},'files',i);
-files 	= q;
-t_sampl  = spm_input('batch',{},'time_sampl',i);
-remain 	= spm_input('batch',{},'remain',i);
-q(remain,:) = files;
+q 	     = spm_input('batch',{},'files',i);
+files 	     = q;
+t_sampl      = spm_input('batch',{},'time_sampl',i);
+remain       = spm_input('batch',{},'remain',i);
+q(remain,:)  = files;
 
-%- fills the gap with the first images .... 
-%- there should be enough first images !
+%- fills the gap with the first images ...
+%-----------------------------------------------------------------------
+%- there should be enough first images!
 q(t_sampl,:) = files(1:length(t_sampl),:);
