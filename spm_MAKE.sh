@@ -22,12 +22,19 @@ case $arch in
 
     unix)
 	# (default) unix compile
-	CC="gcc -Wall -O2"
-	cmex5="mex     COPTIMFLAGS=-O2"
-	cmex4="mex -V4 COPTIMFLAGS=-O2"
+	#CC="gcc -Wall -O2"
+	#cmex5="mex     COPTIMFLAGS=-O2"
+	#cmex4="mex -V4 COPTIMFLAGS=-O2"
+	CC="cc -xO5"
+	cmex5="mex     COPTIMFLAGS=-xO5"
+	cmex4="mex -V4 COPTIMFLAGS=-xO5"
 	added_objs="spm_mapping.o";;
     windows)
 	# set options for windows compile with gcc/mingw32
+	#
+	# see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html
+	# for instructions about installing gcc for
+	# compiling Mex files.
 	deff=-DSPM_WIN32
 	CC="gcc -mno-cygwin -Wall $deff"
 	cmex5="cmd /c mex $deff "
@@ -35,9 +42,8 @@ case $arch in
 
 	# Windows added utility files
 	$CC -c -o win32mmap.o win32mmap.c
-	$CC -c -o rint.o rint.c
 
-	added_objs="rint.o win32mmap.o spm_mapping.obj";;
+	added_objs="win32mmap.o spm_mapping.obj";;
 
    *)
 	echo "Sorry, not set up for architecture $arch"
