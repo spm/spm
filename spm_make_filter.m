@@ -6,43 +6,40 @@ function [K] = spm_make_filter(k,RT,filterHF,filterLF)
 % RT		: Repetition time in seconds
 % filterHF	: High Frequency specification (Low  pass)
 % filterLF	: Low  Frequency specification (High pass)
-% norm 		: normalization
 %__________________________________________________________________________
 % Routine to construct band pass filter convolution matrices;
 % First, a high pass filter is designed (specified in filterLF),
 % then a low pass (filterHF). These are combined in the temporal domain.
-% See spm_fmri_spm_ui for filter structure.
-% norm = 'norm' for normalisation such that the signal variance
-% is unchanged by the filter.
+% See spm_fmri_spm_ui for filter structures.
 %------------------------------------------------------------------
 % %W% Jean-Baptiste Poline %E%
 
 
 % Low frequencies   '64 second cut-off'|'specify'|'no'
-%   '64 second cut-off'
 %   'specify'
-%   '64 second cut-off -FIR'
 %   'specify -FIR'
-%   'no'
+%   'none'
 %------------------------------------------------------------------
 switch filterLF.Choice
 
-	case 'no'
-		KLF = speye(k);
-	
-	case {'64 second cut-off -FIR','specify -FIR'}
-		freqLF = 2*RT/filterLF.Param;
-		n      = 32;	
-		FIL    = spm_fir(n,freqLF,[0 1]);
-		FIL    = [FIL([1:n/2] + n/2) zeros(1,k - n/2)];
-		KLF    = sparse(toeplitz(FIL));
+	case 'none'
 
-	case {'64 second cut-off','specify'}
+		KLF = speye(k);
+
+	case {'specify'}
 
 		n      = fix(2*(k*RT)/filterLF.Param + 1);
 		X      = spm_dctmtx(k,n);
 		X      = X(:,[2:n]);
 		KLF    = eye(k) - X*X';
+
+	case {'specify -FIR'}
+
+		freqLF = 2*RT/filterLF.Param;
+		n      = 32;	
+		FIL    = spm_fir(n,freqLF,[0 1]);
+		FIL    = [FIL([1:n/2] + n/2) zeros(1,k - n/2)];
+		KLF    = sparse(toeplitz(FIL));
 
 	otherwise
 
@@ -51,11 +48,11 @@ switch filterLF.Choice
 end
 	
 % High frequencies 
-%   'smooth with hrf'
-%   'smooth with hrf derivative'
-%   'smooth with Gaussian kernel'
+%   'hrf'
+%   'hrf -derivative'
+%   'Gaussian'
 %   'none'
-%   'specify'
+%   'specify -FIR'
 %------------------------------------------------------------------
 switch filterHF.Choice
 
@@ -63,7 +60,8 @@ switch filterHF.Choice
 
 		KHF = eye(k);
 
-	case 'specify'
+	case 'specify -FIR'
+
 		freqHF = 2*RT/filterHF.Param;
 		n      = 32;	
 		FIL    = spm_fir(n,freqLF,[1 0]);
@@ -71,7 +69,8 @@ switch filterHF.Choice
 		KHF    = sparse(toeplitz(FIL));
 
 
-	case 'smooth with hrf'  	
+	case 'hrf'
+
 		h      = spm_hrf(RT);
 		h      = [h; zeros(size(h))];
 		n      = length(h);
@@ -83,7 +82,8 @@ switch filterHF.Choice
 		FIL    = [FIL zeros(1,k - n/2)];
 		KHF    = sparse(toeplitz(FIL));
 
-	case 'smooth with hrf derivative'
+	case 'hrf -derivative'
+
 		h      = gradient(spm_hrf(RT));
 		h      = [h; zeros(size(h))];
 		n      = length(h);
@@ -95,11 +95,13 @@ switch filterHF.Choice
 		FIL    = [FIL zeros(1,k - n/2)];
 		KHF    = sparse(toeplitz(FIL));
 	
-	case 'smooth with Gaussian kernel'
+	case 'Gaussian'
+
 		FIL    = exp(-[0:(k - 1)].^2/(2*(filterHF.Param/RT)^2));
 		KHF    = toeplitz(FIL);
 
 	otherwise
+
 		warning('Low pass Filter option unknown');
 
 end
