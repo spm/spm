@@ -19,6 +19,7 @@ function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY)
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
 %       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
+%	xY.V		- error correlations (prior to filtering)
 %       xY.y            - voxel-wise data
 %       xY.u            - first eigenvariate {scaled - c.f. mean response}
 %       xY.v            - first eigenimage
@@ -128,6 +129,7 @@ if isfield(xSDM,'Sess')
 		end
 		xY.Sess   = s;
 	end
+
 else
 	xY.filter = 0;
 end
@@ -197,6 +199,7 @@ xY.XYZmm = SPM.XYZmm(:,Q(q));
 %-Computation
 %=======================================================================
 
+
 % remove null space of contrast (prior to filering)
 %-----------------------------------------------------------------------
 if xY.Ic
@@ -210,8 +213,10 @@ if xY.Ic
 		spm_sample_vol(xSDM.Vbeta(i),rcp(1,:),rcp(2,:),rcp(3,:),0);
 	end
 
-	Fc      = spm_FcUtil('Set','Fc','F','iX0',xCon(xY.Ic).iX0,xX.X);
-	y       = y - spm_FcUtil('Y0',Fc,xX.X,beta);
+	%-subtract XO*beta
+	%---------------------------------------------------------------
+	y       = y - spm_FcUtil('Y0',xCon(xY.Ic),xX.X,beta);
+
 end
 
 % filter
@@ -220,19 +225,35 @@ if xY.filter
 	y       = spm_filter(xX.K,y);
 end
 
+% non-sphericity {V}
+%-----------------------------------------------------------------------
+if iscell(xX.xVi.Vi)
+	xY.V  = sparse(length(y),length(y));
+	for j = 1:length(xX.xVi.Vi)
+		xY.V = xY.V + xX.xVi.Vi{j}*xX.xVi.Param(j);
+	end
+else
+	xY.V  = {speye(m,m)};
+end
+
 
 % fMRI-specific operations
 %-----------------------------------------------------------------------
 if isfield(xY,'Sess')
 
-	% extract sessions
+	% extract row indices for specified session (j)
 	%---------------------------------------------------------------
 	j       = [];
 	for   i = 1:length(xY.Sess)
 		j = [j xSDM.Sess{xY.Sess(i)}.row];
 	end
-	y       =  y(j,:);
+
+	% extract sessions
+	%---------------------------------------------------------------
+	y       = y(j,:);
+	xY.V    = xY.V(j,j);
 end
+xY.V    = xY.V*length(xY.V)/trace(xY.V);
 
 % compute regional response in terms of first eigenvariate
 %-----------------------------------------------------------------------
