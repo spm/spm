@@ -17,6 +17,10 @@ function varargout=spm_platform(varargin)
 %        - 'user'    - returns username
 %        - 'tempdir' - returns name of temp directory
 %
+% FORMAT PlatFontNames = spm_platform('fonts')
+% Returns structure with fields named after the generic (UNIX) fonts, the
+% field containing the name of the platform specific font.
+%
 % FORMAT PlatFontName = spm_platform('font',GenFontName)
 % Maps generic (UNIX) FontNames to platform specific FontNames
 %
@@ -89,6 +93,7 @@ varargout = {SPM_PLATFORM.filesys};
 
 case 'sepchar'                         %-Return file separator character
 %=======================================================================
+warning('use filesep instead (supported by MathWorks)')
 varargout = {SPM_PLATFORM.sepchar};
 
 case 'rootlen'           %-Return length in chars of root directory name 
@@ -123,18 +128,18 @@ end
 varargout = {twd};
 
 
-case 'font'              %-Map default font names to platform font names
+case {'font','fonts'}    %-Map default font names to platform font names
 %=======================================================================
-if nargin<2, error('Please specify font type to return'), end
-switch varargin{2}
-case 'default'
-	varargout = {SPM_PLATFORM.font.helvetica};
+if nargin<2, varargout={SPM_PLATFORM.font}; return, end
+switch lower(varargin{2})
 case 'times'
 	varargout = {SPM_PLATFORM.font.times};
 case 'courier'
 	varargout = {SPM_PLATFORM.font.courier};
 case 'helvetica'
 	varargout = {SPM_PLATFORM.font.helvetica};
+case 'symbol'
+	varargout = {SPM_PLATFORM.font.symbol};
 otherwise
 	warning(['Unknown font ',varargin{2},', using default'])
 	varargout = {SPM_PLATFORM.font.helvetica};
@@ -202,7 +207,7 @@ SPM_PLATFORM.filesys = PDefs(ci).filesys;
 %-File separators character
 %-Length of root directory strings
 %-User name finding
-%-(mouse button labels in due course)
+%-(mouse button labels?)
 switch (SPM_PLATFORM.filesys)
 case 'unx'
 	SPM_PLATFORM.sepchar = '/';
@@ -211,7 +216,9 @@ case 'unx'
 case 'win'
 	SPM_PLATFORM.sepchar = '\';
 	SPM_PLATFORM.rootlen = 3;
-	SPM_PLATFORM.user    = getenv('USER');
+	SPM_PLATFORM.user    = getenv('USERNAME');
+	if isempty(SPM_PLATFORM.user)
+		SPM_PLATFORM.user = spm_win32utils('username'); end
 case 'mac'
 	SPM_PLATFORM.sepchar = ':';
 	SPM_PLATFORM.rootlen = 1;			%-** Not sure!?
@@ -227,8 +234,10 @@ case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86'}
 	SPM_PLATFORM.font.helvetica = 'Helvetica';
 	SPM_PLATFORM.font.times     = 'Times';
 	SPM_PLATFORM.font.courier   = 'Courier';
+	SPM_PLATFORM.font.symbol    = 'Symbol';
 case {'PCWIN'}
 	SPM_PLATFORM.font.helvetica = 'Arial Narrow';
 	SPM_PLATFORM.font.times     = 'Times New Roman';
 	SPM_PLATFORM.font.courier   = 'Courier New';
+	SPM_PLATFORM.font.symbol    = 'Symbol';
 end
