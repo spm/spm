@@ -605,10 +605,26 @@ if nargin<2, F=spm_figure('FindWin','Graphics'); else, F=varargin{2}; end
 spm_input('!DeleteInputObj')
 spm_figure('DeletePageControls',F)
 set(0,'CurrentFigure',F)
-subplot(2,1,2);
-if ~RNP | ~strcmp(get(gca,'NextPlot'),'add');
-	delete(gca); subplot(2,1,2); axis off;
-end
+
+kids = get(F,'Children');
+for k=kids',
+	if ishandle(k) & strcmp(get(k,'Type'),'axes'),
+		un = get(k,'Units');
+		set(k,'Units','normalized');
+		pos = get(k,'Position');
+		if pos(2) < 0.5,
+			delete(k);
+		else,
+			set(k,'Units',un);
+		end;
+	end;
+end;
+
+% The original code:-
+%subplot(2,1,2);
+%if ~RNP | ~strcmp(get(gca,'NextPlot'),'add');
+%	delete(gca); subplot(2,1,2); axis off;
+%end
 
 
 
