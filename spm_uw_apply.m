@@ -1,6 +1,8 @@
-function spm_uw_apply(ds,flags)
+function varargout = spm_uw_apply(ds,flags)
 % Reslices images volume by volume
-% FORMAT spm_uw_apply(ds,flags)
+% FORMAT spm_uw_apply(ds,[flags])
+% or
+% FORMAT P = spm_uw_apply(ds,[flags])
 %
 %               
 % ds       - a structure created by spm_uw_estimate.m containing the fields:
@@ -29,12 +31,17 @@ function spm_uw_apply(ds,flags)
 %                that dimension is calculated to yield a roughly
 %                equal spatial cut-off in all directions.
 %                Default: [8 8 *]
-% .sfield      - Static field supplied by the user. It could be either
-%                an nx1 vector (where n is the number of voxels in
-%                the image volume) or it could be a prod(order)x1 vector
-%                with weights for a DCT basis set.
-% .sf_acq      - Static field acquired 'Before' or 'After' time series.
-%                Default: 'Before'
+% .sfP         - Static field supplied by the user. It should be a 
+%                filename or handle to a voxel-displacement map in
+%                the same space as the first EPI image of the time-
+%                series. If using the FieldMap toolbox, realignment
+%                should (if necessary) have been performed as part of
+%                the process of creating the VDM. Note also that the
+%                VDM mut be in undistorted space, i.e. if it is
+%                calculated from an EPI based field-map sequence
+%                it should have been inverted before passing it to
+%                spm_uw_estimate. Again, the FieldMap toolbox will
+%                do this for you.
 % .regorder    - Regularisation of derivative fields is based on the
 %                regorder'th (spatial) derivative of the field.
 %                Default: 1
@@ -110,13 +117,27 @@ function spm_uw_apply(ds,flags)
 %_______________________________________________________________________
 % %W% Jesper Andersson %E%
 
+global defaults
+
 def_flags = struct('mask',       1,...
                    'mean',       1,...
                    'interp',     4,...
                    'wrap',       [0 1 0],...
                    'which',      1,...
                    'udc',        1);
+
 defnames = fieldnames(def_flags);
+
+%
+% Replace hardcoded defaults with spm_defaults
+% when exist and defined.
+%
+if exist('defaults','var') & isfield(defaults,'realign') & isfield(defaults.realign,'write')
+   wd = defaults.realign.write;
+   if isfield(wd,'interp'),    def_flags.interp = wd.interp; end
+   if isfield(wd,'wrap'),      def_flags.wrap = wd.wrap; end
+   if isfield(wd,'mask'),      def_flags.mask = wd.mask; end
+end
 
 if nargin < 1 | isempty(ds)
    ds = load(spm_get(1,'*uw.mat','Select Unwarp result file'));
@@ -160,6 +181,18 @@ hold = [repmat(flags.interp,1,3) flags.wrap];
 linfun = inline('fprintf(''%-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 %
+% Create empty sfield for all structs.
+%
+[ds.sfield] = deal([]);
+
+%
+% Make space for output P-structs if required
+%
+if nargout > 0
+   oP = cell(length(ds),1);
+end
+
+%
 % First, create mask if so required.
 %
 
@@ -182,15 +215,16 @@ if flags.mask | flags.mean,
       Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
       By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
       Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
+      if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+         T = ds(s).sfP.mat\ds(1).P(1).mat;
+         txyz = xyz * T';
+         c = spm_bsplinc(ds(s).sfP,ds(s).hold);
+         ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
+         ds(s).sfield = ds(s).sfield(:);
+         clear c txyz;
+      end 
       for i=1:size(ds(s).beta,2)
          def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
-      end
-      if flags.udc > 1
-         ddef_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-         dBy = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2),'diff');
-         for i=1:size(ds(s).beta,2)
-            ddef_array(:,i) = spm_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
-         end
       end
       for i = 1:prod(size(ds(s).P))
          T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
@@ -203,6 +237,20 @@ if flags.mask | flags.mean,
          tv = tv+1;
       end
       if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - msk; end
+      %
+      % Include static field in estmation of mask.
+      %
+      if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+         T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
+         txyz = xyz * T';
+         msk = msk + real(txyz(:,1) < 1 | txyz(:,1) > ds(s).P(1).dim(1) |...
+                          txyz(:,2) < 1 | txyz(:,2) > ds(s).P(1).dim(2) |...
+                          txyz(:,3) < 1 | txyz(:,3) > ds(s).P(1).dim(3)); 
+      
+      end
+      if isfield(ds(s),'sfield') & ~isempty(ds(s).sfield)
+         ds(s).sfield = [];
+      end
    end
    if flags.mask, msk = find(msk ~= 0); end
 end
@@ -224,6 +272,14 @@ for s=1:length(ds)
    Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
    By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
    Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
+   if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+      T = ds(s).sfP.mat\ds(1).P(1).mat;
+      txyz = xyz * T';
+      c = spm_bsplinc(ds(s).sfP,ds(s).hold);
+      ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
+      ds(s).sfield = ds(s).sfield(:);
+      clear c txyz;
+   end 
    for i=1:size(ds(s).beta,2)
       def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
    end
@@ -267,7 +323,10 @@ for s=1:length(ds)
             ima(msk) = NaN;
          end
          ivol = reshape(ima,PO.dim(1:3));
-         spm_write_vol(PO,ivol);
+         tP = spm_write_vol(PO,ivol);
+	 if nargout > 0
+	    oP{s}(i) = tP;
+	 end
       end
       %
       % Build up mean image if so required.
@@ -277,6 +336,9 @@ for s=1:length(ds)
       end
       spm_progress_bar('Set',tv);
       tv = tv+1;
+   end
+   if isfield(ds(s),'sfield') & ~isempty(ds(s).sfield)
+      ds(s).sfield = [];
    end
 end
 
@@ -297,6 +359,10 @@ end
 
 linfun(' ');
 spm_figure('Clear','Interactive');
+
+if nargout > 0
+   varargout{1} = oP;
+end
 
 return;
 

@@ -15,13 +15,18 @@ function ds = spm_uw_estimate(P,par)
 %                If the third dimension is left out, the order for 
 %                that dimension is calculated to yield a roughly
 %                equal spatial cut-off in all directions.
-%                Default: [8 8 *]
-% .sfield      - Static field supplied by the user. It could be either
-%                an nx1 vector (where n is the number of voxels in
-%                the image volume) or it could be a prod(order)x1 vector
-%                with weights for a DCT basis set.
-% .sf_acq      - Static field acquired 'Before' or 'After' time series.
-%                Default: 'Before'
+%                Default: [12 12 *]
+% .sfP         - Static field supplied by the user. It should be a 
+%                filename or handle to a voxel-displacement map in
+%                the same space as the first EPI image of the time-
+%                series. If using the FieldMap toolbox, realignment
+%                should (if necessary) have been performed as part of
+%                the process of creating the VDM. Note also that the
+%                VDM mut be in undistorted space, i.e. if it is
+%                calculated from an EPI based field-map sequence
+%                it should have been inverted before passing it to
+%                spm_uw_estimate. Again, the FieldMap toolbox will
+%                do this for you.
 % .regorder    - Regularisation of derivative fields is based on the
 %                regorder'th (spatial) derivative of the field.
 %                Default: 1
@@ -55,7 +60,7 @@ function ds = spm_uw_estimate(P,par)
 %                Default: 'Average'.
 % ds           - The returned structure contains the following fields
 % .P           - Copy of P on input.
-% .sfield      - Copy of sfield on input (if non-empty).
+% .sfP         - Copy of sfP on input (if non-empty).
 % .order       - Copy of order on input, or default.
 % .regorder    - Copy of regorder on input, or default.
 % .lambda      - Copy of lambda on input, or default.
@@ -164,17 +169,17 @@ function ds = spm_uw_estimate(P,par)
 %_______________________________________________________________________
 % %W% Jesper Andersson %E%
 
+global defaults
 
 if nargin < 1 | isempty(P), P = spm_get(Inf,'*.img'); end
 if ~isstruct(P), P = spm_vol(P); end
 
 %
-% Default input parameters.
+% Hardcoded default input parameters.
 %
-defpar = struct('order',           [10 10],...
-                'sfield',          [],...
+defpar = struct('order',           [12 12],...
+                'sfP',             [],...
                 'M',               P(1).mat,...
-                'sf_acq',          'First',...
                 'regorder',        1,...
                 'lambda',          1e5,...
                 'jm',              0,...
@@ -187,6 +192,22 @@ defpar = struct('order',           [10 10],...
                 'hold',            [1 1 1 0 1 0]);
 
 defnames = fieldnames(defpar);
+
+%
+% Replace hardcoded defaults with spm_defaults
+% when exist and defined.
+%
+if exist('defaults','var') & isfield(defaults,'unwarp') & isfield(defaults.unwarp,'estimate')
+   ud = defaults.unwarp.estimate;
+   if isfield(ud,'basfcn'),    defpar.order = ud.basfcn; end
+   if isfield(ud,'regorder'),  defpar.regorder = ud.regorder; end
+   if isfield(ud,'regwgt'),    defpar.lambda = ud.regwgt; end
+   if isfield(ud,'jm'),        defpar.jm = ud.jm; end
+   if isfield(ud,'fwhm'),      defpar.fwhm = ud.fwhm; end
+   if isfield(ud,'rem'),       defpar.rem = ud.rem; end
+   if isfield(ud,'noi'),       defpar.noi = ud.noi; end
+   if isfield(ud,'expround'),  defpar.exp_round = ud.expround; end
+end
 
 %
 % Go through input parameters, chosing the default
@@ -220,12 +241,11 @@ if length(ds.order) == 2
    mm          = sqrt(sum(P(1).mat(1:3,1:3).^2)).*P(1).dim(1:3);
    ds.order(3) = round(ds.order(1)*mm(3)/mm(1));
 end
-if size(ds.sfield,1) == prod(ds.order)
-   ds.sfield = spm_get_def(P(1).dim(1:3),ds.order,ds.sfield);
-elseif ~isempty(ds.sfield) & size(ds.sfield,1) ~= prod(P(1).dim(1:3))
-   error('Incompatible size of static field');
+if isfield(ds,'sfP') & ~isempty(ds.sfP)
+   if ~isstruct(ds.sfP)
+      ds.sfP = spm_vol(ds.sfP);
+   end
 end
-
 nscan = length(P);
 nof   = prod(size(ds.fot)) + size(ds.sot,1);
 ds.P  = P;
@@ -298,6 +318,10 @@ xyz        = [x(:) y(:) z(:) ones(length(x(:)),1)]; clear x y z;
 def        = zeros(size(xyz,1),nof);
 ddefa      = zeros(size(xyz,1),nof);
 
+%
+% Create file struct for use with spm_orthviews to draw
+% representations of the field.
+%
 dispP       = P(1);
 dispP       = rmfield(dispP,{'fname','descrip','n','private'});
 dispP.dim   = [nx ny nz 64];
@@ -308,8 +332,25 @@ p(2)       = -mean(1:ny)*p(8);
 p(3)       = -mean(1:nz)*p(9);
 dispP.mat  = spm_matrix(p); clear p;
 
-msk        = get_mask(P,xyz,ds,[nx ny nz]);
-SS         = [];
+%
+% We will need to resample the static field (if one was supplied)
+% on the same grid (given by xs, ys and zs) as we are going to use
+% for the time series. We will assume that the fieldmap has been
+% realigned to the space of the first EPI image in the time-series.
+%
+if isfield(ds,'sfP') & ~isempty(ds.sfP)
+   T = ds.sfP.mat\ds.M;
+   txyz = xyz*T(1:3,:)';
+   c = spm_bsplinc(ds.sfP,ds.hold);
+   ds.sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds.hold);
+   ds.sfield = ds.sfield(:);
+   clear c txyz;
+else
+   ds.sfield = [];
+end
+
+msk = get_mask(P,xyz,ds,[nx ny nz]);
+ssq = [];
 %
 % Here starts iterative search for deformation fields.
 %
@@ -324,7 +365,7 @@ for iter=1:ds.noi
    clear ref dx dy dz
 
    % Check that residual error still decreases.
-   if iter > 1 & yty > SS(iter-1)
+   if iter > 1 & yty > ssq(iter-1)
       %
       % This means previous iteration was no good,
       % and we should go back to old_beta.
@@ -332,13 +373,13 @@ for iter=1:ds.noi
       beta = old_beta;
       break;
    else
-      SS(iter) = yty;
+      ssq(iter) = yty;
 
       spm_uw_show('StartInv',1);
 
       % Solve for beta
       Aty = Aty + AtA*beta;
-      AtA = AtA + ds.lambda * kron(eye(nof),diag(H)) * SS(iter)/(nscan*sum(msk));
+      AtA = AtA + ds.lambda * kron(eye(nof),diag(H)) * ssq(iter)/(nscan*sum(msk));
 
       try % Fastest if it works
          beta0(:,iter) = AtA\Aty;
@@ -370,7 +411,7 @@ for iter=1:ds.noi
       spm_uw_show('EndInv');
       tmp = dispP.mat;
       dispP.mat = P(1).mat;
-      spm_uw_show('FinIter',SS,def,ds.fot,ds.sot,dispP,ds.q);
+      spm_uw_show('FinIter',ssq,def,ds.fot,ds.sot,dispP,ds.q);
       dispP.mat = tmp;
    end
    clear AtA
@@ -381,10 +422,17 @@ for i=1:length(ds.P)
    ds.P(i).mat = P(i).mat;    % Save P with new movement parameters.
 end
 ds.beta = reshape(refit(P,dispP,ds,def),prod(ds.order),nof);
-ds.SS   = SS;
+ds.SS   = ssq;
+if isfield(ds,'sfield');
+   ds = rmfield(ds,'sfield');
+end
 
 cleanup(P,ds)
 spm_uw_show('FinTot');
+
+% Document outcome
+
+spm_print
 
 catch % Try block ends here
    cleanup(P,ds)
@@ -572,7 +620,8 @@ function AtA = uwAtA1(y,Bx,By,Bz)
 AtA     = zeros(mx*my*mz);
 for sl =1:nz
    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
-   AtA  = AtA + kron(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp,Bx,By,1));
+   spm_krutil(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp,Bx,By,1),AtA);
+%    AtA  = AtA + kron(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp,Bx,By,1));
 end
 return
 %_______________________________________________________________________
@@ -590,7 +639,8 @@ function AtA = uwAtA2(y,Bx1,By1,Bz1,Bx2,By2,Bz2)
 AtA      = zeros(mx1*my1*mz1,mx2*my2*mz2);
 for sl =1:nz
    tmp  = reshape(y((sl-1)*nx*ny+1:sl*nx*ny),nx,ny);
-   AtA  = AtA + kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
+   spm_krutil(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2),AtA);
+%   AtA  = AtA + kron(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2));
 end
 return
 %_______________________________________________________________________
@@ -811,7 +861,8 @@ for i=1:nof
       indx  = (sl-1)*nx*ny+1:sl*nx*ny;
       tmp1  = reshape(field(indx).*wgt(indx),nx,ny);
       tmp2  = reshape(wgt(indx),nx,ny);
-      AtA   = AtA + kron(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp2,Bx,By,1));
+      spm_krutil(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp2,Bx,By,1),AtA);
+%      AtA   = AtA + kron(Bz(sl,:)'*Bz(sl,:),spm_krutil(tmp2,Bx,By,1));
       Aty   = Aty + kron(Bz(sl,:)',spm_krutil(tmp1,Bx,By,0));
    end
    beta((i-1)*prod(ds.order)+1:i*prod(ds.order)) = AtA\Aty;
@@ -842,6 +893,17 @@ for i=1:length(P)
    msk  = msk & tmsk;
    spm_uw_show('MaskUpdate',i);
 end
+%
+% Include static field in mask estimation
+% if one has been supplied.
+%
+if isfield(ds,'sfP') & ~isempty(ds.sfP)
+   txyz = xyz * (ds.sfP.mat\ds.M)';
+   tmsk = (txyz(:,1)>=1 & txyz(:,1)<=P(1).dim(1) &...
+           txyz(:,2)>=1 & txyz(:,2)<=P(1).dim(2) &...
+           txyz(:,3)>=1 & txyz(:,3)<=P(1).dim(3));
+   msk  = msk & tmsk;
+end
 msk = erode_msk(msk,dm);
 spm_uw_show('MaskEnd');
 
@@ -857,22 +919,10 @@ return;
 function omsk = erode_msk(msk,dim)
 omsk = zeros(dim+[4 4 4]);
 omsk(3:end-2,3:end-2,3:end-2) = reshape(msk,dim);
-omsk = erode(omsk(:),dim+[4 4 4]);
+omsk = spm_erode(omsk(:),dim+[4 4 4]);
 omsk = reshape(omsk,dim+[4 4 4]);
 omsk = omsk(3:end-2,3:end-2,3:end-2);
 omsk = omsk(:);
 return
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function outmap = erode(inmap,dim);
-%
-if nargin == 1
-   outmap = spm_dilate(+(inmap==0));
-else
-   outmap = spm_dilate(+(inmap==0),dim);
-end
-outmap = +(outmap == 0);
-return;
 %_______________________________________________________________________
 
