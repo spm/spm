@@ -238,6 +238,7 @@
 %  - Coregister
 %        - "tweaked" for slightly better results
 %        - extended for other modalities
+%        - optional mutual information registration
 %  - Normalize
 %        - affine part made more stable by using a MAP scheme
 %        - improved regularization for nonlinear part
@@ -745,6 +746,7 @@
 % Planned features due to be implemented for SPM99, which weren't:
 %    * Contrast utilities & exploration: Contrast summary, contrast
 %      orthogonality, design space partitioning display
+%    * Command line contrast manager
 %    * Dynamic thresholding in Results interface
 %    * New robust measure of "global" background scan intensity
 %      - to appear as an SPM ToolBox
@@ -752,6 +754,7 @@
 %    * Voxel statistics display: Statistics, significances, R^2,
 %      partial correlations
 %    * Additional user interface enhancements
+%    * Enhanced GUI file & directory handling - mkdir, rmdir &amp;c
 %    * Conversion program for SPM96/7 Stats results files
 %
 % ======================================================================
