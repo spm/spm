@@ -810,8 +810,15 @@ case 'graphicsmoveend'
 %=======================================================================
 % spm_figure('GraphicsMoveEnd')
 MS = get(gco,'UserData');
-set(gco,'Units',MS.chMUnits,...
-	'UserData',MS.UserData)
+hType = get(gco,'Type');
+if any(strcmp(hType,{'image','line','patch','surface'}))
+	set(get(gco,'Parent'),'Units',MS.chMUnits);
+	set(gco,'UserData',MS.UserData);
+else
+	set(gco,'Units',MS.chMUnits,...
+		'UserData',MS.UserData);
+end
+
 set(gcf,'Units',MS.cFUnits,...
 	'WindowButtonMotionFcn','',...
 	'WindowButtonUpFcn','',...
