@@ -261,7 +261,7 @@ spm_figure('clear',hSat);
 M          = SPM.xVol.M;
 DIM        = SPM.xVol.DIM;
 
-% ensure pwd = swd so that reative filenames are valid
+% ensure pwd = swd so that relative filenames are valid
 %-----------------------------------------------------------------------
 cd(SPM.swd)
 
