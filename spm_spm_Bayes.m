@@ -2,6 +2,14 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Conditional parameter estimation of a General Linear Model
 % FORMAT [SPM] = spm_spm_Bayes(SPM)
 %_______________________________________________________________________
+%
+% For single subject fMRI analysis this function switches to
+% using voxel-wise GLM-AR models that are spatially regularised
+% using the VB framework. This is implemented using spm_spm_vb.m.
+% One need not have previously analysed the data using classical estimation.
+% For more on this option please see the help in that file. 
+% Otherwise, read on.
+%
 % spm_spm_Bayes returns to voxels identified by spm_spm (ML parameter
 % estimation) to get conditional parameter estimates and ReML hyper-
 % parameter estimates.  These estimates use prior covariances, on the
