@@ -13,9 +13,6 @@ function hdr = spm_dicom_headers(P)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-ver = sscanf(version,'%d');
-if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;
-
 dict = readdict;
 j    = 0;
 hdr  = {};
