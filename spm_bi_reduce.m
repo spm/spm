@@ -1,7 +1,6 @@
 function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 % reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L1,L2] = spm_bi_reduce(M,P,1);  order 1 [default]
-% FORMAT [M0,M1,L1]    = spm_bi_reduce(M,P,2);  order 2
+% FORMAT [M0,M1,L1,L2] = spm_bi_reduce(M,P);
 %
 % M   - model specification structure
 % Required fields:
@@ -47,7 +46,19 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 %---------------------------------------------------------------------------
 if  isfield(M,'bi')
 	funbi      = fcnchk(M.bi,'M','P');
-	[M0,M1,L1] = feval(funbi,M,P);
+	try
+		[M0,M1,L1,L2] = feval(funbi,M,P);
+	catch
+
+		% assume L2 = 0
+		%-----------------------------------------------------------
+		[M0,M1,L1]    = feval(funbi,M,P);
+		l     = size(L1,1);
+		n     = size(M0,1);
+		for i = 1:l
+			L2{i} = sparse(n,n);
+		end
+	end
 	return
 end
 
@@ -59,7 +70,7 @@ if ~isfield(M,'f')
 	M.x = sparse(0,0);
 end
 
-% default = 1st order
+% default = 1st order [2nd order expansion is a hidden feature]
 %---------------------------------------------------------------------------
 if nargin ~= 3, O = 1; end
 
@@ -229,3 +240,7 @@ for i = 1:l
 	Ddldx   = dldxx(i,:,:);
 	L1(i,:) = [l0(i) dldx(i,:) Ddldx(:)'/2];
 end
+for i = 1:l
+	L2{i} = sparse(n + 1,n + 1);
+end
+
