@@ -1,4 +1,4 @@
-%-**** function spm_adjmean_ui
+function spm_adjmean_ui
 % Scaled (for grand mean) & adjusted (for global) mean using GenLinModel
 % FORMAT spm_adjmean_ui
 %_______________________________________________________________________
@@ -42,8 +42,8 @@
 % either all zero, or that there is usable data from all images. This
 % is *not* a softmean.
 %
-% GM, the value for grand mean scaling, is user specified. The default
-% value is 50. Specifying GM as 0 turns off scaling.
+% GM, the value for grand mean scaling, is user specified.
+% The default value is 50.
 %
 % If computing adjusted means for subsequent (2nd level) modelling, as
 % with a random effects analysis, then it is important to use a
@@ -120,34 +120,17 @@
 % the input images.
 %
 %
-% Note
+% Platform
 % ----------------------------------------------------------------------
-% This version was written for MatLab4.2c with SPM'96
+% This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-Development notes
-%-----------------------------------------------------------------------
-% No grand mean scaling for proportional scaling since this scales to
-% subject grand mean.  spm_spm_ui effectively scales to 1 with no grand
-% mean scaling.
-%
-% Grand mean scaling by subject for seperability of adjustments.
-%
-% ToDo:
-%   Restructure GM scaling & global handling
-%   Diagnostic output
-%   Add contrast orthogonality matrix?
-%   Try it out with SPM'96 & a paired design
-%   Try it out with loads of images (for fMRI)
-% Q: Why would you AnCova AdjTo to a anything different than the GMsca GM?
-%   If you had quantitative data: GM=0 & adjust to 50/mean
-
 %=======================================================================
 %-Setup
 %=======================================================================
-fprintf('\nSnPM: spm_adjmean_ui\n'),fprintf('%c','='*ones(1,72)),fprintf('\n')
+fprintf('\nSPM: spm_adjmean_ui\n'),fprintf('%c','='*ones(1,72)),fprintf('\n')
 spm_clf('Interactive')
 % set(Finter,'Name','AdjMean')
 
@@ -176,14 +159,14 @@ DesPrams = str2mat(...
 						'iAdjTo');
 
 DesDefaults = [ ...
-1,	1,	0,	2,	1,	1,	NaN;...		%-1
-1,	1,	0,	1,	2,	2,	NaN;...		%-2
-0,	1,	0,	1,	3,	2,	1;...		%-3
-1,	1,	0,	1,	4,	3,	2;...		%-4
-0,	0,	1,	3,	2,	2,	NaN;...		%-5
-0,	0,	1,	3,	3,	2,	1;...		%-6
-1,	0,	1,	4,	2,	3,	NaN;...		%-7
-1,	0,	1,	4,	4,	3,	2;	];	%-8
+1,	1,	0,	2,	1,	1,	4;...		%-1
+1,	1,	0,	1,	2,	4,	4;...		%-2
+0,	1,	0,	1,	3,	2,	2;...		%-3
+1,	1,	0,	1,	4,	3,	3;...		%-4
+0,	0,	1,	3,	2,	4,	4;...		%-5
+0,	0,	1,	3,	3,	2,	2;...		%-6
+1,	0,	1,	4,	2,	4,	4;...		%-7
+1,	0,	1,	4,	4,	3,	3;	];	%-8
 
 HForms = str2mat(...
 	'iSubj,''-'',''AdjMean''',...
@@ -202,22 +185,22 @@ sGloNorm = str2mat(...
 sGMsca = str2mat(...
 	'No Grand Mean Scaling',...
 	'Scaling of overall Grand Mean',...
-	'Scaling of subject Grand Means');
+	'Scaling of subject Grand Means',...
+	'(Implicit in PropSca global normalisation)');
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
 
 %-Adjustment options for AnCova designs (for centering of globals)
 %-If Grand mean scaling, then would usually AnCova adjust in a similar
 % fashion, i.e. to GM.
 sAdjTo = str2mat(...
+	'Specify...',...
 	'Grand mean (mean of all globals)',...
 	'Subject grand mean (mean of subjects globals)',...
-	'Mean used for scaling (i.e. GM)',...
-	'Specify...');
+	'(redundant: not doing AnCova)');
 
 if ( size(DesNames,1) ~= size(DesDefaults,1)) | ...
 	(size(DesPrams,1) ~= size(DesDefaults,2))
-	fprintf('%cSize mismatch in design parameter specification\n',7)
-	return
+	error('Size mismatch in design parameter specification')
 end
 
 %-Initialise indicies
@@ -290,6 +273,9 @@ end
 
 %-Grand mean scaling options
 %-----------------------------------------------------------------------
+%-Grand mean scaling is implicit in PropSca global normalisation
+if iGloNorm==2, iGMsca=4; end
+
 if iGMsca>9
 	%-User has a choice from the options in iGMsca.
 	%-iGMsca contains an integer, each digit specifies an option
@@ -297,29 +283,25 @@ if iGMsca>9
 	str = int2str(iGMsca);
 	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
 	%-Scaling by subject redundent if proportional scaling,
-	% don't offer subject specifics if not bMSubj
-	if (iGloNorm==2 | ~bMSubj) & any(tmp==3), tmp(find(tmp==3))=[]; end
+	%-Don't offer subject specifics if not bMSubj
+	if ~bMSubj, tmp(find(tmp==3))=[]; end
 	iGMsca=spm_input...
 	    ('Grand mean scaling','+1','m',sGMsca(tmp,:),tmp);
 end
 
-%-Get value for grand mean scaling. GM==0 implies no scaling
 if iGMsca>1
-	if iGloNorm==2, t_str='global mean'; else, t_str='grand mean'; end
-	GM = spm_input(['GM: scaled ',t_str,' ?'],'+1','e',50);
-	if GM==0, iGMsca=1; end
+	%-Get value for grand mean scaling
+	if iGloNorm==2, str='GM: PropSca global mean to ?';
+		else, str='GM: Scale grand mean to ?'; end
+	GM = spm_input(str,'+1','e',50);
 else
 	GM=0;
 end
-%-If PropSca global norm. with no grand mean scaling, implicitly GM=1
-if (iGloNorm==2 & GM==0), GM=1; end
 
 
 %-Adjustment options for AnCova designs (for centering of globals)
 %-----------------------------------------------------------------------
-%-If Grand mean scaling, then would usually AnCova adjust in a similar
-% fashion, i.e. to GM.
-if any(iGloNorm==[1,2]), iAdjTo=1; end
+if any(iGloNorm==[1,2]), iAdjTo=4; end
 if iAdjTo>9
 	%-User has a choice from the options in iAdjTo.
 	%-iAdjTo contains an integer, each digit specifies an option
@@ -328,19 +310,12 @@ if iAdjTo>9
 	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
 	%-Don't offer subject specifics if not bMSubj
 	if ~bMSubj, tmp(find(tmp==2))=[]; end
-	%-Don't offer GM option if didn't global scale
-	if iGMsca==1, tmp(find(tmp==3))=[]; end
 	iAdjTo=spm_input...
 		('AnCova adjust (centre globals), after any scaling to',...
 		 '+1','m',sAdjTo(tmp,:),tmp);
 end
-%-Get value for grand mean scaling. GM==0 implies no scaling
-if iAdjTo==4
-	aGM = spm_input('AnCova adjust to ?','+1','e',GM);
-	if aGM==GM, iGMsca=3; end
-else
-	aGM=[];
-end
+if iAdjTo==1, aGM = spm_input('AnCova adjust to ?','+1','e',GM); end
+
 
 
 %=======================================================================
@@ -368,76 +343,52 @@ for i  = 1:q, GX(i) = spm_global(V(:,i)); end
 
 %-Save scalefactors, unmap files and canonicalise V
 %-----------------------------------------------------------------------
-SF = V(7,:)';
+iSF = V(7,:)';
 for v = V; spm_unmap(v); end
 V = [V(1:6,1); ORIGIN(:)];
 
 
-%-Grand mean scaling for AnCova / no normalisation options (if required)
-%-Scale scaling coefficients so that Grand mean (mean of global means) is GM
+%-Scaling: compute global scaling factors required to implement proportional
+% scaling global normalisation or Grand mean scaling, as requested
 %-----------------------------------------------------------------------
-rGX = GX; rSF = SF;
-if iGMsca==1 | iGloNorm==2
-	%-No grand mean scaling requested, or
-	% Proportional scaling global normalisation, which implicitly
-	% includes grand mean scaling
+rGX = GX;
+if iGloNorm==2
+	%-Proportional scaling global normalisation
+	gSF = GM./GX;
+	GX  = GM*ones(q,1);
+	%**** scale rGX for printout? ...or just graph them?
 elseif iGMsca==2
 	%-Grand mean scaling (overall)
-	SF = SF*GM/mean(rGX);
-	GX = GX*GM/mean(rGX);
+	gSF = GM/mean(GX);
+	GX  = GX*gSF;
 elseif iGMsca==3
 	%-Grand mean scaling by subject
-	SF = SF.*GM./spm_meanby(rGX,iSubj);
-	GX = GX.*GM./spm_meanby(rGX,iSubj);
-else, error('Invalid iGMsca option'), end
-sGX = GX;
-%-NB: sGX./rGX returns the GM scale factors.
-%    -Might be better (in the future) to keep the image scalefactors SF
-%     seperate to the scaling factors (weights) needed to impose Grand
-%     mean scaling (& proportional global scaling global normalisation),
-%     particularly since new (SPM98) volume mapping hides the image
-%     scalefactors deep within the map-handle data structure.
-%    -Might also be simpler to restructure this scale/normalisation into
-%     scaling(grand or proportional for globals), and then AnCova options &
-%     design matrix construction!
-
-%-Construct Global covariates of no interest partition.
-%-Centre global means if included in AnCova models, as requested
-%-----------------------------------------------------------------------
-%-NB: ****Bug: Forces aGM=0 if no GMsca (when GM=0) & choose iAdjTo==3
-if any(iGloNorm==[3,4])
-	if iAdjTo==1
-		aGM = mean(GX);
-	elseif iAdjTo==2
-		aGM = spm_meanby(GX,iSubj);
-	elseif iAdjTo==3
-		aGM = GM;
-	elseif iAdjTo==4
-		%-aGM set by user
-	else
-		error('Illegal iAdjTo')
-	end
-else
-	%-If doing proportional global normalisation, or none at all, then
-	% adjustment is effectively to the grand mean (after scaling).
-	aGM=GM;
+	gSF = GM./spm_meanby(GX,iSubj);
+	GX  = GX.*gSF;
+else	%-No scaling
+	gSF = ones(q,1);
 end
 
-if iGloNorm == 1
-	%-No global adjustment -----------------------------------------
-	G = []; GNames = '';
-elseif iGloNorm == 2
-	%-Proportional scaling -----------------------------------------
-	G  = []; GNames = '';
-	SF = rSF./rGX*GM;
-	GX = ones(size(rGX))*GM;
-elseif iGloNorm == 3
-	%-AnCova -------------------------------------------------------
-	G  = GX - aGM; Gnames = 'Global';
-elseif iGloNorm == 4
-	%-AnCova by subject --------------------------------------------
-	[G,Gnames] = spm_DesMtx([iSubj,GX-aGM],'FxC',['Block ';'Global']);
-else, error('Invalid iGloNorm option\n',7), end
+%-AnCova options: Construct Global covariates of no interest partition
+%-----------------------------------------------------------------------
+if any(iGloNorm==[3,4])
+	if iAdjTo==1
+		%-aGM set by user
+	elseif iAdjTo==2
+		aGM = mean(GX);
+	elseif iAdjTo==3
+		aGM = spm_meanby(GX,iSubj);
+	else,	error('Illegal iAdjTo')
+	end
+
+	if iGloNorm == 3	%-AnCova
+	    G  = GX - aGM; Gnames = 'Global';
+	elseif iGloNorm == 4	%-AnCova by subject
+	    [G,Gnames] = spm_DesMtx([iSubj,GX-aGM],'FxC',['Block ';'Global']);
+	end
+else
+	G = []; Gnames = '';
+end
 
 
 %-Computation - calculations handled by spm_mean.c
@@ -460,36 +411,36 @@ cNames = Hnames;
 
 %-Save parameters to SPMadj.mat in current directory
 %-----------------------------------------------------------------------
-%-**** OK to overwrite? - add code to check
+%**** OK to overwrite? - add code to check
 save SPMadj ...
 	iDesType DesName ...
 	iHForm iGloNorm iAdjTo iGMsca ...
 	iSubj nSubj iCond iRepl P ...
 	H Hnames G Gnames c cNames...
-	rGX sGX GX GM
+	rGX gSF GX GM
 	
 
 %-Parameter images (of interest) - Adjusted mean images
 %-----------------------------------------------------------------------
-fprintf('\tWriting parameter images...\n')
+fprintf('\twriting parameter images...\n')
 guiPos = '+1'; %**** guiPos = spm_input('!NextPos');
 for i = 1:size(c,1)
 	Fn = deblank(cNames(i,:)); Fn=Fn(Fn~=' ');
 	Fn = spm_input(sprintf('%s: file to write?',Fn),guiPos,'s',Fn);
-	w = c(i,:)*XTXinvX.*SF';
+	w = c(i,:)*XTXinvX.*gSF'.*iSF';
 	Q = find(abs(w)>0);
 	sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
 	DESCRIP = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
 	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,DESCRIP);
 	spm_get_space(Fn,spm_get_space(P(1,:)));
-	fprintf('\t...written parameter image %d: %s\n',i,Fn)
+	fprintf('\t...written image %d: %s\n',i,Fn)
 end
 
 
 %-Diagnostic output
 %=======================================================================
-%-****
-% fprintf('\tDisplaying diagnostic output...\n')
+%****
+% fprintf('\tdisplaying diagnostic output...\n')
 % plot(iSubj,GX,'x'), xlabel('Subject'), ylabel('Global')
 
 
