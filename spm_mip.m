@@ -32,13 +32,11 @@ function spm_mip(Z,XYZ,M,DIM)
 GRID = spm('GetGlobal','GRID');
 if isempty(GRID), GRID = 0.6; end
 
-%-Remove negative values from point list and scale to a maximium of unity
+%-Scale & offset point list values to fit in [0.25,1]
 %-----------------------------------------------------------------------
 Z    = Z(:)';
-d    = find(Z > 0);
-XYZ  = XYZ(:,d);
-Z    = Z(d);
-Z    = Z/max(Z);
+Z    = Z - min(Z);
+Z    = (1 + 3*Z/max(Z))/4;
 
 %-Single slice case
 %=======================================================================
