@@ -1,11 +1,12 @@
 % Segment a T1 weighted MR image into Gray White & CSF.
-% FORMAT spm_segment(PF)
-% PF - name(s) of image(s) to segment
+% FORMAT spm_segment(PF,PG)
+% PF - name(s) of image(s) to segment (must have same dimensions).
+% PG - name(s) of template image(s) for realignment.
 % ___________________________________________________________________________
 %
 %                      The algorithm is three step:
 %
-% 1) Determine the affine transform which best matches the T1 image with a
+% 1) Determine the affine transform which best matches the image with a
 %    template image. If the name of more than one image is passed, then the
 %    first image is used in this step.
 %
@@ -26,28 +27,42 @@
 
 % %W% (c) John Ashburner %E%
 
-function spm_segment(PF)
+function spm_segment(PF,PG)
+
+global SWD
+DIR   = [SWD '/mni/'];
 
 if (nargin==0)
+	global SWD
 	PF = spm_get(Inf,'.img','MRI(s)');
+	if (size(PF,1)==0) return; end
+	% Get template(s)
+	ok = 0;
+	PG = '';
+	while (~ok)
+		PG = spm_get(Inf,'.img',['select Template(s) '],'', DIR);
+		if (size(PG,1)>0)
+			dims = zeros(size(PG,1),9);
+			for i=1:size(PG,1)
+				[dim vox dummy dummy dummy origin dummy] = spm_hread(deblank(PG(i,:)));
+				dims(i,:) = [dim vox origin];
+			end
+			if size(dims,1) == 1 | ~any(diff(dims)) ok = 1; end
+		else
+			ok = 1; % assume already normalised.
+		end
+	end
+
 	set(2,'Name','Segmenting..','Pointer','Watch'); drawnow;
-	spm_segment(PF);
+	spm_segment(PF,PG);
 	set(2,'Name','','Pointer','Arrow'); drawnow;
 	figure(2);clf
 	return;
 end
 
 
-
-global SWD
-DIR   = [SWD '/mni/'];
-
 %- A-Priori likelihood images
 PB    = str2mat([DIR 'spgray.img'],[DIR 'spwhite.img'],[DIR 'spcsf.img']);
-
-%- Template image
-%PG    = str2mat([DIR 'scolin.img'],PB);
-PG    = [DIR 'scolin.img'];
 
 niter = 24;
 nc    = [1 1 1 3]; % Number of clusters for each probability image
