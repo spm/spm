@@ -250,7 +250,7 @@ if nargin == 0, Action=+Inf'; else, Action = varargin{1}; end
 %-Allow pointer jumping?
 PJump = 0;
 
-if ~isstr(Action)
+if ~ischar(Action)
 %=======================================================================
 % P = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
 
@@ -272,7 +272,7 @@ if isempty(CmdLine)
 end
 
 %-NB: spm_get callbacks use single filter string, or 0 for previous filtering
-if isstr(Suffix)
+if ischar(Suffix)
 	if Suffix(1)~='*', Suffix = ['*',Suffix]; end
 	Filter = [Prefix,Suffix];
 else
@@ -642,7 +642,7 @@ set(findobj(F,'Tag','CDpwd'),'UserData',1)
 %-Filter string
 %-Only set if different to previously passed one, held as UserData of
 % Filter Edit uicontrol.
-if isstr(Filter)
+if ischar(Filter)
 	if ~strcmp(Filter,get(findobj(F,'Tag','Filter'),'UserData'))
 	    set(findobj(F,'Tag','Filter'),'String',Filter,'UserData',Filter)
 	end
