@@ -14,6 +14,9 @@ function [vargout] = spm_filter(Action,K,Y)
 % K{s}.LParam   - Gaussian parameter in seconds
 % K{s}.HChoice  - High-pass filtering {'specify' 'none'}
 % K{s}.HParam   - cut-off period in seconds
+%
+% K{s}.HP       - low frequencies to be removed
+% K{s}.LP       - sparse toepltz low-pass convolution matrix
 % 
 % Y         - data matrix
 %
@@ -47,7 +50,8 @@ switch Action
 
 			case 'none'
 			%---------------------------------------------------
-			K{s}.KL = speye(k);
+			h       = 1;
+			d       = 0;
 
 			case 'hrf'
 			%---------------------------------------------------
@@ -55,26 +59,27 @@ switch Action
 			h       = [h; zeros(size(h))];
 			g       = abs(fft(h));
 			h       = real(ifft(g));
+			h       = fftshift(h)';
 			n       = length(h);
-			h       = h([1:n/2]);
-			FIL     = [h' zeros(1,k - n/2)];
-			K{s}.KL = sparse(toeplitz(FIL));
+			d       = [1:n] - n/2 - 1;
 
 			case 'Gaussian'
 			%---------------------------------------------------
 			sigma   = K{s}.LParam/K{s}.RT;
-			FIL     = exp(-[0:(k-1)].^2/(2*sigma^2));
-			FIL     = FIL.*(FIL > 1e-4);
-			K{s}.KL = sparse(toeplitz(FIL));
+			h       = exp(-[-4*sigma:4*sigma].^2/(2*sigma^2));
+			n       = length(h);
+			d       = [1:n] - (n + 1)/2;
 
 			otherwise
 			%---------------------------------------------------
-			warning('Low pass Filter option unknown');
+			error('Low pass Filter option unknown');
+			return
 
 		end
 
-		% normalize low pass
+		% create and normalize low pass filter
 		%-----------------------------------------------------------
+		K{s}.KL = spdiags(ones(k,1)*h,d,k,k);
 		K{s}.KL = spdiags(1./sum(K{s}.KL')',0,k,k)*K{s}.KL;
 
 
