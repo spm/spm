@@ -3,7 +3,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % FORMAT [SPM] = spm_contrasts(SPM,Ic);
 % Ic  - indices of xCon to compute
 %_______________________________________________________________________
-% %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
+% @(#)spm_contrasts.m	2.3 Andrew Holmes, Karl Friston & Jean-Baptiste Poline 02/12/30
 
 
 %-Get and change to results directory
@@ -37,7 +37,6 @@ if xCon(Ic(1)).STAT == 'P'
 	% Conditional estimators and error variance hyperparameters
 	%----------------------------------------------------------------
     Vbeta = SPM.VCbeta;
-    VHp   = SPM.VHp;
 else
     
 	% OLS estimators and error variance estimate
@@ -92,14 +91,14 @@ for i = 1:length(Ic)
 
         %-Write image
 	    %-----------------------------------------------------------
-            fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
+            fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
             xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
 	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
             xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon,'noopen');
 	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
             
-            fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+            fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
                 '...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
 
 
@@ -124,7 +123,7 @@ for i = 1:length(Ic)
 
             %-Write image
 	    %-----------------------------------------------------------
-            fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
+            fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
             xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon = spm_resss(Vbeta,xCon(ic).Vcon,h);
 	    xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
@@ -167,32 +166,33 @@ for i = 1:length(Ic)
         %---------------------------------------------------------------
 	c     = xCon(ic).c;
 	cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-        if isfield(SPM.PPM,'VB');
-           % If posterior variance image for that contrast does
-           % not already exist, then compute it
-           try
-             SPM.PPM.Vcon_var(ic);
-           catch
-             SPM = spm_vb_contrasts(SPM,XYZ,xCon,ic);
-           end
-           % Read in posterior variance image for contrast
-           VcB = spm_get_data(SPM.PPM.Vcon_var(ic),XYZ);
-	else
-          VcB   = c'*SPM.PPM.Cby*c;
-          for j = 1:length(SPM.PPM.l)
+    if isfield(SPM.PPM,'VB');
+        % If posterior sd image for that contrast does
+        % not already exist, then compute it
+        try
+            SPM.PPM.Vcon_sd(ic);
+        catch
+            SPM = spm_vb_contrasts(SPM,XYZ,xCon,ic);
+        end
+        % Read in posterior sd image for contrast
+        Vsd = spm_get_data(SPM.PPM.Vcon_sd(ic),XYZ);
+        VcB = Vsd.^2;
+    else
+        VcB   = c'*SPM.PPM.Cby*c;
+        for j = 1:length(SPM.PPM.l)
             
             % hyperparameter and Taylor approximation
             %-------------------------------------------------------
-            l   = spm_get_data(VHp(j),XYZ);
+            l   = spm_get_data(SPM.VHp(j),XYZ);
             VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
-          end
         end
+    end
     
 	% posterior probability cB > g
-        %---------------------------------------------------------------
+    %---------------------------------------------------------------
  	Gamma         = xCon(ic).eidf;
 	Z             = 1 - spm_Ncdf(Gamma,cB,VcB);
-        str           = sprintf('[%.2f]',Gamma);
+    str           = sprintf('[%.2f]',Gamma);
 	%xCon(ic).name = [xCon(ic).name ' ' str];
 
 
@@ -201,7 +201,7 @@ for i = 1:length(Ic)
 	MVM   = spm_get_data(xCon(ic).Vcon,XYZ)/trMV;
 	RVR   = spm_get_data(VHp,XYZ);
 	Z     = MVM./RVR;
-        str   = sprintf('[%.1f,%.1f]',xCon(ic).eidf,SPM.xX.erdf);
+    str   = sprintf('[%.1f,%.1f]',xCon(ic).eidf,SPM.xX.erdf);
 
 	otherwise
         %---------------------------------------------------------------
@@ -211,7 +211,7 @@ for i = 1:length(Ic)
 
         %-Write SPM - statistic image
         %---------------------------------------------------------------
-        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing')      %-#
+        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
 
         xCon(ic).Vspm = struct(...
 	    'fname',  sprintf('spm%c_%04d.img',xCon(ic).STAT,ic),...
@@ -229,7 +229,7 @@ for i = 1:length(Ic)
 
 
 	clear tmp Z
-        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
             '...written %s',spm_str_manip(xCon(ic).Vspm.fname,'t')))  %-#
 
     end % (if ~isfield...)
