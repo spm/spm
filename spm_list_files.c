@@ -11,6 +11,40 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 #include "mex.h"
 
 
+/*
+Checks for numeric values in the strings, so that strings like
+'image1.img' 'image10.img' 'image11.img' 'image12.img' 'image2.img' etc
+are ordered more sensibly.
+*/
+num_strcmp(str1, str2)
+char *str1, *str2;
+{
+	char *p1, *p2;
+	int i1, i2;
+
+	for(p1=str1, p2=str2; *p1 && *p2; p1++, p2++)
+	{
+		if (*p1>='0' && *p1<='9' && *p2>='0' && *p2<='9')
+		{
+			i1 = i2 = 0;
+			while(*p1>='0' && *p1<='9')
+				i1 = i1*10 + (*(p1++) -'0');
+			while(*p2>='0' && *p2<='9')
+				i2 = i2*10 + (*(p2++) -'0');
+			if (i1>i2)
+				return(1);
+			else if (i1<i2)
+				return(-1);
+		}
+		if (*p1 > *p2)
+			return(1);
+		else if (*p1 < *p2)
+			return(-1);
+	}
+	return(0);
+}
+
+
 slowsort(argc, argv)
 char **argv;
 int argc;
@@ -19,7 +53,7 @@ int argc;
 	for(i=argc; i>1; i--)
 		for(j=1; j<i; j++)
 		{
-			if(strcmp(argv[j], argv[j-1]) < 0)
+			if(num_strcmp(argv[j], argv[j-1]) < 0)
 			{
 				char *tempp;
 				tempp = argv[j];
