@@ -18,9 +18,9 @@ while 1
 		u     = any(X(:,i),2);
 		while 1
 			v  = any( X(u,:) ,1);
-			du = any( X(:,v) ,2);
+			du = any( X(:,v) ,2) | u;
 			if any(u - du)
-				u = (u | du);
+				u  = du;
 			else
 				U = [U u];
 				V = [V;v];
