@@ -59,9 +59,9 @@ Matrix *plhs[], *prhs[];
 	map = (MAPTYPE *)mxGetPr(plhs[0]);
 
 	map->magic = MAGIC;
-	map->xdim = abs(nint(ptr[0]));
-	map->ydim = abs(nint(ptr[1]));
-	map->zdim = abs(nint(ptr[2]));
+	map->xdim = nint(ptr[0]);
+	map->ydim = nint(ptr[1]);
+	map->zdim = nint(ptr[2]);
 	map->xpixdim = ptr[3];
 	map->ypixdim = ptr[4];
 	map->zpixdim = ptr[5];
@@ -69,16 +69,11 @@ Matrix *plhs[], *prhs[];
 	map->datatype = abs(nint(ptr[7]));
 	map->off = abs(nint(ptr[8]));
 	map->pid = getpid();
+	if (map->xdim < 1 || map->ydim < 1 || map->zdim < 1)
+		mexErrMsgTxt("Dimensions too small.");
 
-	if (map->datatype == UNSIGNED_CHAR)
-	{
-		datasize = 8;
-	}
-	else if (map->datatype == SIGNED_SHORT)
-	{
-		datasize = 16;
-	}
-	else
+	datasize = get_datasize(map->datatype);
+	if (datasize == 0)
 	{
 		mxFree(str);
 		mexErrMsgTxt("Unrecognised datatype.");

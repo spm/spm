@@ -32,6 +32,20 @@ typedef struct maptype
 /* a few datatypes nicked from ANALYZE */
 #define UNSIGNED_CHAR	2
 #define SIGNED_SHORT	4
+#define SIGNED_INT	8
+#define FLOAT	16
+#define DOUBLE	64
+
+int get_datasize(type)
+int type;
+{
+	if (type == UNSIGNED_CHAR) return(8);
+	if (type == SIGNED_SHORT) return(16);
+	if (type == SIGNED_INT) return(32);
+	if (type == FLOAT) return(32);
+	if (type == DOUBLE) return(64);
+	return(0);
+}
 
 MAPTYPE *get_map(matrix_ptr)
 Matrix *matrix_ptr;
@@ -56,11 +70,8 @@ Matrix *matrix_ptr;
 	{
 		mexErrMsgTxt("Invalid image handle (from old session).");
 	}
-	if (map->datatype == UNSIGNED_CHAR)
-		datasize = 8;	
-	else if (map->datatype == SIGNED_SHORT)
-		datasize = 16;
-	else
+	datasize = get_datasize(map->datatype);	
+	if (datasize == 0)
 		mexErrMsgTxt("Bad datatype in image handle.");
 
 	xdim = abs(nint(map->xdim));
