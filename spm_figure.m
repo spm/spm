@@ -182,9 +182,10 @@ function varargout=spm_figure(varargin)
 % GUI elements.
 % (Function duplicated in spm.m, repeated to reduce inter-dependencies.)
 %
-% FORMAT FS = spm_figure('FontSize')
-% Returns a vector of fontsizes [08,10,12,14,16], scaled to the nearest
-% two points for the current display.
+% FORMAT FS = spm_figure('FontSizes',FS)
+% Returns fontsizes FS scaled for the current display.
+% FS     - (vector of) Font sizes to scale
+%          [default [08,09,11,13,14,6:36]]
 %
 % FORMAT spm_figure('CreateBar',F)
 % Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
@@ -354,7 +355,7 @@ set(F,'Pointer','Arrow')
 case 'defprintcmd'
 %=======================================================================
 % spm_figure('DefPrintCmd')
-varargout = {'print -dpsc2 -append -noui '};
+varargout = {'print -dpsc2 -painters -append -noui '};
 
 
 case 'print'
@@ -644,8 +645,9 @@ varargout = {[S(3)/1152 S(4)/900 S(3)/1152 S(4)/900]};
 
 case 'fontsizes'
 %=======================================================================
-% FS = spm_figure('FontSizes')
-varargout = {round([08,09,11,13,14]*min(spm_figure('GetWinScale')))};
+% FS = spm_figure('FontSizes',FS)
+if nargin<2, FS=[08,09,11,13,14,6:36]; else, FS=varargin{2}; end
+varargout = {round(FS*min(spm_figure('GetWinScale')))};
 
 
 case 'createbar'
