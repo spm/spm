@@ -418,11 +418,51 @@ set(H,{'Units'},un)
 set(0,'CurrentFigure',cF)
 
 
+case 'printto'
+%=======================================================================
+% spm_figure('PrintTo',F)
+
+%-Arguments & defaults
+if nargin<2, F='Graphics'; else, F=varargin{2}; end
+
+%-Find window to print, default to gcf if specified figure not found
+% Return if no figures
+F=spm_figure('FindWin',F);
+if isempty(F), F = get(0,'CurrentFigure'); end
+if isempty(F), return, end
+
+global defaults;
+% Get probable file name
+invdefname=strtok(defaults.printstr(end:-1:1));
+
+% construct input dialog
+f=figure('Position',[get(0,'pointerlocation')+[-10 -20] 80 40], ...
+	'Menu','none', 'resize','off', 'Windowstyle','modal');
+h=uicontrol('Style','edit', 'parent',f, 'String',invdefname(end:-1:1), ...
+	'Position',[10 10 60 20], ...
+	'Callback',['spm_figure(''PrintToCB'',' num2str(F) ',' num2str(f) ');']);
+set(f,'CurrentObject',h);
+
+
+case 'printtocb'
+%=======================================================================
+% spm_figure('PrintToCB',F,H)
+
+F = varargin{2};
+H = varargin{3};
+
+global defaults;
+[tmp invprintstr]=strtok(defaults.printstr(end:-1:1));
+defaults.printstr=[invprintstr(end:-1:1) ' ' get(gcbo,'String')];
+spm_figure('print',F);
+close(H);
+
+
 case 'newpage'
 %=======================================================================
 % [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',h)
 if nargin<2 | isempty(varargin{2}), error('No handles to paginate')
-	else, h=varargin{2}(:)'; end
+else, h=varargin{2}(:)'; end
 
 %-Work out which figure we're in
 F = spm_figure('ParentFig',h(1));
@@ -486,7 +526,7 @@ if isempty(hPg)
 	hPg = {h(mVis), h(~mVis)};
 else
 	hPg = [hPg; {h(mVis), h(~mVis)}];
-	set(h(mVis),'Visible','off')
+	set(h(mVis),'Visible','off','HitTest','off')
 end
 set(hNextPage,'UserData',hPg)
 
@@ -518,6 +558,12 @@ Npage = max(min(Npage,nPages),1);
 set(hPg{Cpage,1},'Visible','off')
 set(hPg{Npage,1},'Visible','on')
 set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
+
+for k = 1:length(hPg{Npage,1}) % VG
+	if strcmp(get(hPg{Npage,1}(k),'Type'),'axes')
+		axes(hPg{Npage,1}(k))
+	end;
+end;
 
 %-Disable appropriate page turning control if on first/last page (for neatness)
 if Npage==1, set(hPrevPage,'Enable','off')
@@ -705,7 +751,10 @@ t2=uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
 t2=uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
 t2=uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
 t0=uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
-t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
+t1=uimenu( t0,'Label','Current print file','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t1=uimenu( t0,'Label','Other print file', 'HandleVisibility','off', ...
+	'CallBack',['spm_figure(''PrintTo'',' num2str(F) ');']);
 
 % ### CODE FOR SATELLITE FIGURE ###
 % Code checks if there is a satellite window and if results are currently displayed
