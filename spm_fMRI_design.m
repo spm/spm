@@ -119,14 +119,21 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % assemble the second order kernel in spm_graph.m.  Second order effects
 % are computed for only the first column of SF.
 %---------------------------------------------------------------------------
-% @(#)spm_fMRI_design.m	2.9 Karl Friston 99/04/20
+% %W% Karl Friston %E%
+SCCSid  = '%I%';
+
+%-GUI setup
+%-----------------------------------------------------------------------
+SPMid = spm('SFnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','',0);
+spm_help('!ContextHelp',mfilename)
+
 
 % construct Design matrix {X} - cycle over sessions
 %===========================================================================
 
 % Initialize variables
 %---------------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
 STOC   = 0;
 
 % global parameters
@@ -164,7 +171,7 @@ for s = 1:nsess
 
 	% specify design for this session?
 	%-------------------------------------------------------------------
-	set(Finter,'Name',sprintf('Session %0.0f',s));
+	spm('FigName',sprintf('Session %0.0f',s),Finter,CmdLine);
         if   (s == 1) | ~rep
 	X       = [];
 	B       = [];
@@ -296,7 +303,10 @@ X.bX    = bX;
 X.Xname = Xname;
 X.Bname = Bname;
 
-%-End: Cleanup GUI
+%-End: Save fMRIDesMtx.mat & Cleanup GUI
 %---------------------------------------------------------------------------
+fprintf('\t%-32s: ','Saving fMRI design')                                %-#
 save fMRIDesMtx X Sess
+fprintf('%30s\n','...fMRIDesMtx.mat saved')                              %-#
+
 spm_clf(Finter);
