@@ -11,7 +11,8 @@ function spm_render(dat,flg,rendfile)
 %         - dim - dimensions of volume from which XYZ is drawn.
 % flg - optional.  If 1, then displays using the old style with hot
 %       metal for the blobs, and grey for the brain.
-% rendfile - the file containing the images to render on to.
+% rendfile - the file containing the images to render on to. See also
+%            spm_xbrain.m.
 %
 % Without arguments, spm_render acts as its own UI.
 %_______________________________________________________________________
@@ -143,7 +144,8 @@ for j=1:size(dat,1),
 				t0  = t(msk).*exp(-dst/10)';
 			end;
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
-			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),1);
+			hld = 1; if flg==1, hld = 0; end;
+			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
 		else,
 			X = zeros(size(rend{i}.dep));
 		end;
@@ -170,9 +172,9 @@ if flg==1,
 	colormap(split);
 	for i=1:length(rend),
 		ren = rend{i}.ren;
-		X = rend{i}.data{1};
-		msk = find(X > mxmx);
-		ren(msk) = X(msk)*(1/mxmx)+1;
+		X   = rend{i}.data{1}/mxmx;
+		msk = find(X);
+		ren(msk) = X(msk)+1;
 		subplot(nrow,2,i);
 		image(ren*64);
 		axis image off xy
