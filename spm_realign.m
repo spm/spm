@@ -81,19 +81,21 @@ function P = spm_realign(P,flags)
 
 if nargin==0, return; end;
 
-def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','','graphics',1);
+def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','','graphics',1,'lkp',1:6);
 if nargin < 2,
 	flags = def_flags;
-else,
+else
 	fnms = fieldnames(def_flags);
 	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}), flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i})); end;
+		if ~isfield(flags,fnms{i}),
+			flags.(fnms{i}) = def_flags.(fnms{i});
+		end;
 	end;
 end;
 
 if ~iscell(P), tmp = cell(1); tmp{1} = P; P = tmp; end;
 for i=1:length(P), if ischar(P{i}), P{i} = spm_vol(P{i}); end; end;
-if ~isempty(flags.PW) & ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
+if ~isempty(flags.PW) && ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
 
 % Remove empty cells
 PN = {};
@@ -108,20 +110,20 @@ if isempty(P), warning('Nothing to do'); return; end;
 if length(P)==1,
 	P{1} = realign_series(P{1},flags);
 	if nargout==0, save_parameters(P{1}); end;
-else,
+else
 	Ptmp = P{1}(1);
-	for s=2:prod(size(P)),
+	for s=2:numel(P),
 		Ptmp = [Ptmp ; P{s}(1)];
 	end;
 	Ptmp = realign_series(Ptmp,flags);
-	for s=1:prod(size(P)),
+	for s=1:numel(P),
 		M  = Ptmp(s).mat*inv(P{s}(1).mat);
-		for i=1:prod(size(P{s})),
+		for i=1:numel(P{s}),
 			P{s}(i).mat = M*P{s}(i).mat;
 		end;
 	end;
 
-	for s=1:prod(size(P)),
+	for s=1:numel(P),
 		P{s} = realign_series(P{s},flags);
 		if nargout==0, save_parameters(P{s}); end;
 	end;
@@ -130,8 +132,8 @@ end;
 if nargout==0, 
 	% Save Realignment Parameters
 	%---------------------------------------------------------------------------
-	for s=1:prod(size(P)),
-		for i=1:prod(size(P{s})),
+	for s=1:numel(P),
+		for i=1:numel(P{s}),
 			spm_get_space([P{s}(i).fname ',' num2str(P{s}(i).n)], P{s}(i).mat);
 		end;
 	end;
@@ -155,19 +157,18 @@ function P = realign_series(P,flags)
 % optimum scaling required to match the images.
 %_______________________________________________________________________
 
-if prod(size(P))<2, return; end;
+if numel(P)<2, return; end;
 
 skip = sqrt(sum(P(1).mat(1:3,1:3).^2)).^(-1)*flags.sep;
 d    = P(1).dim(1:3);                                                                                                                        
-
-lkp = [1 2 3 4 5 6];
+lkp = flags.lkp;
 rand('state',0); % want the results to be consistant.
 if d(3) < 3,
 	lkp = [1 2 6];
 	[x1,x2,x3] = ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3));
 	x1   = x1 + rand(size(x1))*0.5;
 	x2   = x2 + rand(size(x2))*0.5;
-else,
+else
 	[x1,x2,x3]=ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3)-.5);
 	x1   = x1 + rand(size(x1))*0.5;
 	x2   = x2 + rand(size(x2))*0.5;
@@ -188,11 +189,9 @@ if ~isempty(flags.PW),
 	x2  = x2(msk);
 	x3  = x3(msk);
 	wt  = wt(msk);
-else,
+else
 	wt = [];
 end;
-n = prod(size(x1));
-
 
 % Compute rate of change of chi2 w.r.t changes in parameters (matrix A)
 %-----------------------------------------------------------------------
@@ -207,7 +206,7 @@ b  = G;
 if ~isempty(wt), b = b.*wt; end;
 
 %-----------------------------------------------------------------------
-if prod(size(P)) > 2,
+if numel(P) > 2,
 	% Remove voxels that contribute very little to the final estimate.
 	% Simulated annealing or something similar could be used to
 	% eliminate a better choice of voxels - but this way will do for
@@ -277,7 +276,7 @@ for i=2:length(P),
 
 		pss        = ss;
 		ss         = sum(b1.^2)/length(b1);
-		if (pss-ss)/pss < 1e-8 & countdown == -1, % Stopped converging.
+		if (pss-ss)/pss < 1e-8 && countdown == -1, % Stopped converging.
 			countdown = 2;
 		end;
 		if countdown ~= -1,
@@ -307,7 +306,7 @@ if ~flags.rtm, return; end;
 M=P(1).mat;
 A0 = make_A(M,x1,x2,x3,grad1./count,grad2./count,grad3./count,wt,lkp);
 if ~isempty(wt), b = (ave./count).*wt;
-else, b = (ave./count); end
+else b = (ave./count); end
 
 clear ave grad1 grad2 grad3
 
@@ -339,7 +338,7 @@ for i=1:length(P),
 
 		pss        = ss;
 		ss         = sum(b1.^2)/length(b1);
-		if (pss-ss)/pss < 1e-8 & countdown == -1 % Stopped converging.
+		if (pss-ss)/pss < 1e-8 && countdown == -1 % Stopped converging.
 			% Do three final iterations to finish off with
 			countdown = 2;
 		end;
@@ -378,9 +377,9 @@ return;
 function V = smooth_vol(P,hld,wrp,fwhm)
 % Convolve the volume in memory.
 s  = sqrt(sum(P.mat(1:3,1:3).^2)).^(-1)*(fwhm/sqrt(8*log(2)));
-x  = round(6*s(1)); x = [-x:x];
-y  = round(6*s(2)); y = [-y:y];
-z  = round(6*s(3)); z = [-z:z];
+x  = round(6*s(1)); x = -x:x;
+y  = round(6*s(2)); y = -y:y;
+z  = round(6*s(3)); z = -z:z;
 x  = exp(-(x).^2/(2*(s(1)).^2));
 y  = exp(-(y).^2/(2*(s(2)).^2));
 z  = exp(-(z).^2/(2*(s(3)).^2));
@@ -401,14 +400,14 @@ return;
 function A = make_A(M,x1,x2,x3,dG1,dG2,dG3,wt,lkp)
 % Matrix of rate of change of weighted difference w.r.t. parameter changes
 p0 = [0 0 0  0 0 0  1 1 1  0 0 0];
-A  = zeros(prod(size(x1)),length(lkp));
+A  = zeros(numel(x1),length(lkp));
 for i=1:length(lkp)
 	pt         = p0;
 	pt(lkp(i)) = pt(i)+1e-6;
 	[y1,y2,y3] = coords(pt,M,M,x1,x2,x3);
 	tmp        = sum([y1-x1 y2-x2 y3-x3].*[dG1 dG2 dG3],2)/(-1e-6);
 	if ~isempty(wt), A(:,i) = tmp.*wt;
-	else, A(:,i) = tmp; end
+	else A(:,i) = tmp; end
 end
 return;
 %_______________________________________________________________________
@@ -424,8 +423,6 @@ str = {	'There is not enough overlap in the images',...
 	'Please check that your header information is OK.'};
 spm('alert*',str,mfilename,sqrt(-1));
 error('insufficient image overlap')
-
-return
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -434,8 +431,8 @@ fg=spm_figure('FindWin','Graphics');
 if ~isempty(fg),
 	P = cat(1,P{:});
 	if length(P)<2, return; end;
-	Params = zeros(prod(size(P)),12);
-	for i=1:prod(size(P)),
+	Params = zeros(numel(P),12);
+	for i=1:numel(P),
 		Params(i,:) = spm_imatrix(P(i).mat/P(1).mat);
 	end
 
@@ -447,11 +444,11 @@ if ~isempty(fg),
 	set(get(ax,'Title'),'String','Image realignment','FontSize',16,'FontWeight','Bold','Visible','on');
 	x     =  0.1;
 	y     =  0.9;
-	for i = 1:min([prod(size(P)) 12])
+	for i = 1:min([numel(P) 12])
 		text(x,y,[sprintf('%-4.0f',i) P(i).fname],'FontSize',10,'Interpreter','none','Parent',ax);
 		y = y - 0.08;
 	end
-	if prod(size(P)) > 12
+	if numel(P) > 12
 		text(x,y,'................ etc','FontSize',10,'Parent',ax); end
 
 	ax=axes('Position',[0.1 0.35 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
