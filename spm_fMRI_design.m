@@ -98,7 +98,7 @@ function [SPM] = spm_fMRI_design(SPM)
 % of trial (event or epoch) types.  Epoch and event-related 
 % responses are modeled in exactly the same way by first specifying their
 % onsets [in terms of onset times] and then their durations.  Events are 
-% specified with a duration or 0.  If you enter a single number for the
+% specified with a duration of 0.  If you enter a single number for the
 % durations it will be assumed that all trials conform to this duration.
 %
 % Interactions or response modulations can enter at two levels.  Firstly
@@ -113,7 +113,7 @@ function [SPM] = spm_fMRI_design(SPM)
 % be more than one column.  The corresponding name of the explanatory
 % variables in X.name is Sn(s) trial(u)xparam(p)^q*bf(i) for the qth
 % order expansion of the parameter convolved with the ith basis function
-% for the ith trial in the sth session.  If no parametric variate is
+% for the uth trial in the sth session.  If no parametric variate is
 % specified the name is simply Sn(s) trial(u)*bf(i).  Interactions among
 % and within trials enter as new trial types but do not have .pst or .ons
 % fields.  These interactions can be characterized later, in results, in
@@ -138,8 +138,7 @@ function [SPM] = spm_fMRI_design(SPM)
 % this stage as additional columns in U(u).u with each trial multiplied
 % by the [expansion of the] trial-specific parameter. If parametric
 % modulation is modeled, P(p).P contains the original variate and
-% P(p).name is its name.  Otherwise P(p).P is simply time in seconds and
-% P(p).name = 'time'.  The 0th order expansion of this is simply the main
+% P(p).name is its name. The 0th order expansion of this is simply the main
 % effect in the first column of U(u).u
 %
 %                           ----------------
