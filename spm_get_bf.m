@@ -21,7 +21,7 @@ Finter = spm_figure('FindWin','Interactive');
 %---------------------------------------------------------------------------
 if length(W) == 0
 
-	BF    = [];
+	BF    = {};
 	BFstr = 'none';
 	return
 end
