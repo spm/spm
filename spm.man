@@ -185,11 +185,33 @@
 % are required to the general linear model to accommodate temporal
 % correlations (see fMRI_2, fMRI_3 and fMRI_4 below).  The reference
 % waveforms are specified separately for each condition (allowing many
-% conditions) using either a single (half sine wave) or two basis
-% functions for the response.  The latter allows for different forms of
-% response to task-specific epochs (see fMRI_5 and MRI_6 below).
+% conditions) using either a box-car, a single (half sine wave) or two
+% basis functions for the response.  The latter allows for different
+% forms of response to task-specific epochs (see fMRI_5 and MRI_6
+% below).  If you use a box-car (i.e. square wave) function you can
+% optionally include its temporal derivative as an additional covariate
+% of interest.  The box-car function is delayed by 6 seconds, however
+% this may be two much or too little for some brain regions.  The timing
+% covariate (temporal derivative) models a small shift in time that best
+% fits the data.  Inferences about whether the observed delay is
+% significantly different than 6 seconds can be tested using contrasts in
+% the usual way (a positive parameter estimate means a shorter delay).
 %
-% d) Multisubject fMRI studies: 
+% The way that epochs or successive conditions are specified is now more
+% intuitive and flexible.  If there are 3 conditions just type in the
+% conditions in the order they were presented i.e. 1 2 3 3 2 1 ....
+% Later you will be asked to specify the number of scans for each epoch,
+% again as a vector (list of numbers).  If the epochs were all the same
+% length, then just type in that length once.
+%
+% d) Multisubject fMRI studies
+% Epochs can now vary in length (and order) within and between subjects or runs.
+% If multiple subjects or sessions are specified, then subject or run-specific
+% waveforms are used.  This means that main effects of conditions and
+% interactions between conditions and subjects (or sessions) can be evaluated
+% with the appropriate contrast.  If you want to treat all your sessions (or
+% subjects) as one then specify just one session/subject.
+%
 %
 %
 % 
@@ -263,6 +285,28 @@
 % New features - iv - Statistics
 % 
 % Clearly statistics do not change...
+%
+% The core routine (spm_spm) has now been consolidated to deal with both
+% PET and fMRI data.  The case of independent observations (PET) is now
+% treated as a limiting [uncorrelated] case of 'serially correlated
+% regression' as used for fMRI.  spm_spm now samples little cubes of data
+% (as opposed to planes).  This allows very large data sets to be
+% analyzed (over 2000 64x64x64 voxel images) without two much paging or
+% related memory problems.
+% 
+% The specification of thresholds for the maximum intensity projections
+% is now more exhaustive and comprehensive.  The height threshold is
+% specified as before in terms of an uncorrected p value or Z score.  If
+% you only want to see clusters that survive a corrected p value (based
+% on spatial extent) than the corrected p value you enter will specify
+% the extent threshold employed.  If however you choose to see all
+% clusters you can specify an extent threshold in terms of an uncorrected
+% p value (i.e. the probability of getting a cluster that size or larger,
+% assuming it exists) or voxels.  If you want to see all voxels simply
+% enter 0 (i.e.  SPM95 style).  In this instance the 'set-level'
+% inference can be considered an 'omnibus test' based on the number of
+% clusters that obtain (see statistical inference below).
+% 
 %
 % _____________________________________________________
 % 
@@ -490,10 +534,33 @@ e and introduction of source control.
 % number of clusters and voxels per cluster to guide your
 % interpretation.
 % 
+% The p values are based on the probability of obtaining c, or more,
+% clusters of k, or more, voxels above u, in the volume S analysed =
+% P(u,k,c).  For specified thresholds u, k, the set-level inference is
+% based on the observed number of clusters C = P(u,k,C).  For each cluster
+% of size K the cluster-level inference is based on P(u,K,1) and for each
+% voxel (or selected maxima) of height U, in that cluster, the voxel-level
+% inference is based on P(U,0,1).  All three levels of inference are
+% supported with a tabular presentation of the p values and the underlying
+% statistic (u, k or c). 
+% 
 % 
 % _____________________________________________________
 %
 % New features - xvii - Conjunctions and masking
+%
+% Either single contrasts can be examined or conjunctions of different
+% contrasts.  In the latter case a new SPM{Z} is created, that reflects
+% the sum of all specified effects and voxels are eliminated where there
+% are significant differences among these effects (at p < 0.05
+% uncorrected).  A conjunction is therefore the conjoint expression of
+% two or more effects (each specified in terms of a contrast) to a
+% similar degree.
+%
+% Masking simply eliminates voxels from the current contrast if they
+% do not survive an uncorrected p value (based on height) in one or
+% more further contrasts.  No account is taken of this masking in the
+% statistical inference pertaining to the masked contrast.
 %
 % 
 % _____________________________________________________
@@ -524,6 +591,8 @@ e and introduction of source control.
 % New features - ??? - Miscellaneous
 %
 % Filtered SPM{Z} can be written out to Analyze files (spm_projections_ui)
+% SPM*.img are no longer automatically written out during the staistical
+% analysis.
 %
 %_______________________________________________________________________
 %
