@@ -44,7 +44,8 @@ R     = y - Y;					% residuals
 RES   = sum(R.^2);				% SSQ of residuals
 SE    = sqrt(RES*diag(BCOV));			% standard error of estimates
 HC    = [H C];
-MSize = 12;
+MSize = 8;
+COL   = ['r' 'b' 'g' 'c' 'y'];
 
 % Inference (for title)
 %-----------------------------------------------------------------------
@@ -86,7 +87,8 @@ if exist('ERI')
 
 	Cplot = str2mat(...
 			'Fitted response',...
-			'Fitted response +/- standard error.',...
+			'Fitted response +/- standard error of response.',...
+			'Fitted response +/- standard error of onset.',...
 			'Fitted response and adjusted data');
 	str   = 'plot in terms of';
 	Cp    = spm_input(str,'!+1','m',Cplot,[1:size(Cplot,1)]);
@@ -100,22 +102,32 @@ if exist('ERI')
 	dx    = 0.1;
 	x     = -4:dx:32;
 	K     = spm_sptop(SIGMA*RT/dx,length(x));
-	DER   = K*DER;
+	KDER  = K*DER;
 	for i = j
-		Y      = DER*BETA(ERI(:,i));
-		se     = sqrt(diag(DER*BCOV(ERI(:,i),ERI(:,i))*DER')*RES);
+		Y      = KDER*BETA(ERI(:,i));
+		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
 		y      = C(:,ERI(:,i))*BETA(ERI(:,i)) + R;
+		d      = min(find(Y > max(Y)/2));
+		T      = x(d);
+		dYdt   = gradient(Y')/dx;
+		seT    = se(d)/dYdt(d);
 
 		% plot
 		%------------------------------------------------------
 		if Cp == 1
-			plot(x,Y)
+			plot(x,Y,COL(i))
 
 		elseif Cp == 2
-			plot(x,Y,x,Y + se,'-.',x,Y - se,'-.')
+			plot(x,Y,x,Y + se,'-.',x,Y - se,'-.','Color',COL(i))
 
 		elseif Cp == 3
-			plot(x,Y,PST(:,i),y,'.','MarkerSize',12)
+			plot(x,Y,'Color',COL(i))
+			line(([0-seT seT] + T),[Y(d) Y(d)],...
+				'LineWidth',6,'Color',COL(i))
+
+		elseif Cp == 4
+			plot(x,Y,PST(:,i),y,'.',...
+				'MarkerSize',MSize,'Color',COL(i))
 
 		end
 	end
@@ -186,14 +198,14 @@ elseif Cp >= 3
 		%-------------------------------------------------------
 		i      = any(H')';
 		y      = y(i);
-		H      = H(i,:);
+		h      = H(i,:);
 		x      = [];
 		Y      = [];
 		for j  = 1:length(y)
-			x(j) = find(H(j,:) > 0);
+			x(j) = find(h(j,:) > 0);
 		end
-		for j  = 1:size(H,2)
-			Y(j) = mean(y(H(:,j)));
+		for j  = 1:size(h,2)
+			Y(j) = mean(y(h(:,j)));
 		end
 
 		% bar chart
