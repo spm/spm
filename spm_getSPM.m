@@ -232,7 +232,7 @@ end
 if wOK, save('xCon.mat','xCon'), end
 
 
-%-Get title for comparison
+%-Get title string for comparison
 %-----------------------------------------------------------------------
 if length(Ic)==1
 	str = xCon(Ic).name;
@@ -253,7 +253,7 @@ elseif ~isempty(Im)
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
 end
-TITLE = spm_input('title for comparison','+1','s',str);
+titlestr = spm_input('title for comparison','+1','s',str);
 
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
@@ -576,7 +576,7 @@ end % (if ~isempty(XYZ))
 %-Assemble output structures of unfiltered data
 %=======================================================================
 SPM    = struct('swd',		swd,...
-		'title',	TITLE,...
+		'title',	titlestr,...
 		'Z',		Z,...
 		'n',		n,...
 		'STAT',		STAT,...
