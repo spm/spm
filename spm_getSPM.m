@@ -26,8 +26,8 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .FWHM  - smoothness {voxels}     
 % .M     - voxels - > mm matrix
 % .iM    - mm -> voxels matrix
-% .VOX   - voxel dimensions {mm}
-% .DIM   - image dimensions {voxels}
+% .VOX   - voxel dimensions {mm} - column vector
+% .DIM   - image dimensions {voxels} - column vector
 % 
 %
 % xX     - Design Matrix structure
@@ -42,12 +42,13 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % .iX0   - Indicies of design matrix columns to form the reduced design matrix.
 % .X1o   - Remaining design space (orthogonal to X0).
 % .eidf  - Effective interest degrees of freedom (numerator df)
-% .Vcon  - Handle of contrast (for 'T's) or ESS (for 'F's) image
-% .Vspm  - Handle of SPM image
+% .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
+% .Vspm  - Name of SPM image
 %
 % xSDM   - structure containing contents of SPM.mat file
 %          ( see spm_spm.m for contents...
 %          ( ...except that xX & XYZ are removed, being returned separately
+%          ( ...and xSDM.Vbeta & xSDM.VResMS are re-mmapped
 %
 %_______________________________________________________________________
 %
@@ -99,31 +100,38 @@ swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 %-Preliminaries...
 %=======================================================================
 
-%-Get Stats data from SPM.mat
+%-Load and check/canonicalise SPM.mat
 %-----------------------------------------------------------------------
 xSDM   = load(fullfile(swd,'SPM.mat'));	%-Contents of SPM.mat (in a struct)
-if ~isfield(xSDM,'SPMid') 		%-Check version of SPM.mat...
- 	error('Incompatible SPM.mat - old results format!?')
+
+if ~isfield(xSDM,'SPMid')
+	%-SPM.mat pre SPM99
+ 	error('Incompatible SPM.mat - old SPM results format!?')
+elseif ~isfield(xSDM,'M')
+	%-SPM.mat from SPM99b (which saved mmapped handles) **
+	xSDM.M      = xSDM.Vbeta(1).mat;
+	xSDM.DIM    = xSDM.Vbeta(1).dim(1:3)';
+	%-**xSDM.VY     = {xSDM.VY.fname}';
+	%-**if isstruct(xSDM.xM.VM), xSDM.xM.VM = {xSDM.xM.VM.fname}'; end
+	xSDM.VM     = 'mask.img';
+	xSDM.Vbeta  = {xSDM.Vbeta.fname}';
+	xSDM.VResMS = xSDM.VResMS.fname;
 end
+
+
+%-Get Stats data from SPM.mat
+%-----------------------------------------------------------------------
 xX     = xSDM.xX;			%-Design definition structure
 XYZ    = xSDM.XYZ;			%-XYZ coordinates
 S      = xSDM.S;			%-search Volume {voxels}
 R      = xSDM.R;			%-search Volume {resels}
 xSDM   = rmfield(xSDM,{'xX','XYZ'});	%-Remove (large) duplicate fields
 
-%-Canonicalise relative pathnames in xSDM by prepending swd
-% (SPM result image handles kept with relative pathnames, for robustness.)
+%-Get/Compute mm<->voxel matrices & image dimensions from SPM.mat
 %-----------------------------------------------------------------------
-for i=1:length(xSDM.Vbeta)
-	xSDM.Vbeta(i).fname = fullfile(swd,xSDM.Vbeta(i).fname);
-end
-xSDM.VResMS.fname = fullfile(swd,xSDM.VResMS.fname);
-
-%-Compute mm<->voxel matrices
-%-----------------------------------------------------------------------
- M     = xSDM.Vbeta(1).mat;
+ M     = xSDM.M;
 iM     = inv(M);
-dim    = xSDM.Vbeta(1).dim(1:3);
+DIM    = xSDM.DIM;
 
 %-Build index from XYZ into corresponding Y.mad locations
 %-----------------------------------------------------------------------
@@ -133,6 +141,16 @@ if exist(fullfile(swd,'Yidx.mat'),'file') & exist(fullfile(swd,'Y.mad'),'file')
 	QQ(Yidx) = 1:length(Yidx);
 end
 
+%-Map beta and ResMS images, canonicalising relative pathnames
+% (SPM result images stored with relative pathnames, for robustness.)
+%-----------------------------------------------------------------------
+xSDM.Vbeta  = ...
+	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
+xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
+
+
+%-Contrast definitions
+%=======================================================================
 
 %-Load contrast definitions (if available)
 %-----------------------------------------------------------------------
@@ -142,6 +160,12 @@ else
 	xCon = [];
 end
 
+%-Canonicalise SPM99b format xCon (which saved mmapped handles) **
+%-----------------------------------------------------------------------
+for i=1:length(xCon)
+	if isstruct(xCon(i).Vcon), xCon(i).Vcon=xCon(i).Vcon.fname; end
+	if isstruct(xCon(i).Vspm), xCon(i).Vspm=xCon(i).Vspm.fname; end
+end
 
 %-See if can write to current directory (by trying to resave xCon.mat)
 %-----------------------------------------------------------------------
@@ -287,7 +311,7 @@ for ii = 1:length(I)
     %-Write contrast/ESS images?
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'Vcon') | isempty(xCon(i).Vcon) | ...
-        ~exist(fullfile(swd,xCon(i).Vcon.fname),'file')
+        ~exist(fullfile(swd,xCon(i).Vcon),'file')
         
         %-Bomb out (nicely) if can't write to results directory
         %---------------------------------------------------------------
@@ -315,7 +339,7 @@ for ii = 1:length(I)
 	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
 	        'fname',  fullfile(swd,sprintf('con_%04d.img',i)),...
-                'dim',    [dim,16],...
+                'dim',    [DIM',16],...
                 'mat',    M,...
                 'pinfo',  [1,0,0]',...
                 'descrip',sprintf('SPM contrast - %d: %s',i,xCon(i).name));
@@ -343,7 +367,7 @@ for ii = 1:length(I)
 	    %-----------------------------------------------------------
 	    xCon(i).Vcon = struct(...
 	        'fname',  fullfile(swd,sprintf('ess_%04d.img',i)),...
-                'dim',    [dim,16],...
+                'dim',    [DIM',16],...
                 'mat',    M,...
                 'pinfo',  [1,0,0]',...
                 'descrip',sprintf('SPM ESS - contrast %d: %s',i,xCon(i).name));
@@ -364,9 +388,9 @@ for ii = 1:length(I)
 
     else
 
-	%-Already got contrast/ESS image - fullpath fname
+	%-Already got contrast/ESS image - remap it w/ full pathname
         %---------------------------------------------------------------
-	xCon(i).Vcon.fname = fullfile(swd,xCon(i).Vcon.fname);
+	xCon(i).Vcon = spm_vol(fullfile(swd,xCon(i).Vcon));
 
     end % (if ~isfield...)
 
@@ -375,7 +399,7 @@ for ii = 1:length(I)
     %-Write statistic image(s)
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
-        ~exist(fullfile(swd,xCon(i).Vspm.fname),'file')
+        ~exist(fullfile(swd,xCon(i).Vspm),'file')
 	
         %-Bomb out (nicely) if can't write to results directory
         %---------------------------------------------------------------
@@ -417,14 +441,14 @@ for ii = 1:length(I)
         fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
         xCon(i).Vspm = struct(...
 	    'fname',  fullfile(swd,sprintf('spm%c_%04d.img',xCon(i).STAT,i)),...
-	    'dim',    [dim,16],...
+	    'dim',    [DIM',16],...
 	    'mat',    M,...
 	    'pinfo',  [1,0,0]',...
 	    'descrip',sprintf('SPM{%c_%s} - contrast %d: %s',...
 	                       xCon(i).STAT,str,i,xCon(i).name));
 
-        tmp = zeros(dim);
-	tmp(cumprod([1,dim(1:2)])*XYZ -sum(cumprod(dim(1:2)))) = Z;
+        tmp = zeros(DIM');
+	tmp(cumprod([1,DIM(1:2)'])*XYZ -sum(cumprod(DIM(1:2)'))) = Z;
 
 	xCon(i).Vspm       = spm_write_vol(xCon(i).Vspm,tmp);
 
@@ -434,9 +458,9 @@ for ii = 1:length(I)
 
     else
 
-	%-Already got statistic image - fullpath fname
+	%-Already got statistic image - remap it w/ full pathname
         %---------------------------------------------------------------
-	xCon(i).Vspm.fname = fullfile(swd,xCon(i).Vspm.fname);
+	xCon(i).Vspm = spm_vol(fullfile(swd,xCon(i).Vspm));
 
     end % (if ~isfield...)
 
@@ -510,8 +534,8 @@ spm_progress_bar('Set',100)                                          %-#
 %=======================================================================
 if wOK
     for i = [Ic,Im];
-        xCon(i).Vcon.fname = spm_str_manip(xCon(i).Vcon.fname,'t');
-        xCon(i).Vspm.fname = spm_str_manip(xCon(i).Vspm.fname,'t');
+        xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
+        xCon(i).Vspm = spm_str_manip(xCon(i).Vspm.fname,'t');
     end
     save(fullfile(swd,'xCon.mat'),'xCon')
     fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
@@ -628,4 +652,4 @@ VOL    = struct('S',		S,...
 		'M',		M,...
 		'iM',		iM,...
 		'VOX',		sqrt(sum(M(1:3,1:3).^2))',...
-		'DIM',		xSDM.Vbeta(1).dim(1:3)');
+		'DIM',		DIM);
