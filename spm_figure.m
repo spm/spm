@@ -353,11 +353,7 @@ iPaged    = ~isempty(hNextPage);
 %-----------------------------------------------------------------------
 global PRINTSTR
 if isempty(PRINTSTR) | (nargin>3)
-	if iPaged
-		PrintCmd = ['print -dpsc2 -append ',PFile];
-	else
-		PrintCmd = ['print -dpsc2 ',PFile];
-	end
+	PrintCmd = ['print -dpsc2 -append ',PFile];
 else
 	PrintCmd = PRINTSTR;
 end
