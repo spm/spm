@@ -241,7 +241,7 @@
 % to be in.
 % 
 % To generate your own templates which fill the same volume, use  a
-% bounding  box of -90:91 -126:91 -72:109, and voxel sizes of 2x2x2
+% bounding  box of -90:90 -126:90 -72:108, and voxel sizes of 2x2x2
 % mm.
 %
 % =======================================================================
