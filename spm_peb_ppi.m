@@ -175,31 +175,13 @@ spm('Pointer','watch')
 hrf   = spm_hrf(dt);
 
 
-% get neuronal inputs {xu}
-%-------------------------------------------------------------------------
-xu    = [];
-Hxu   = [];
-for i = 1:length(Sess.U)
-    for j  = 1:size(Sess.U(i).u,2)
-        u  = full(Sess.U(i).u(33:end,j));
-        xu = [xu u];
-    end
-end
-M     = size(xu,2);
-
-
-% create convolved explanatory {Hxb and Hxu} variables in scan time
+% create convolved explanatory {Hxb} variables in scan time
 %-------------------------------------------------------------------------
 xb    = spm_dctmtx(N*NT + 128,N);
 Hxb   = zeros(N,N);
-Hxu   = zeros(N,M);
 for i = 1:N
     Hx       = conv(xb(:,i),hrf);
     Hxb(:,i) = Hx(k + 128);
-end
-for i = 1:M
-    Hx       = conv(xu(:,i),hrf);
-    Hxu(:,i) = Hx(k);
 end
 xb    = xb(129:end,:);
 
@@ -207,7 +189,7 @@ xb    = xb(129:end,:);
 % get confounds (in scan time) and constant term
 %-------------------------------------------------------------------------
 X0    = xY(1).X0;
-K     = size(X0,2);
+M     = size(X0,2);
 
 
 % get response variable,
@@ -228,28 +210,19 @@ end
 
 % specify covariance components; assume neuronal response is white
 %-------------------------------------------------------------------------
-C     = {sparse([1:N],[1:N],1,                M + N + K,M + N + K),...
-         sparse([1:M] + N,[1:M] + N,1,        M + N + K,M + N + K),...
-         sparse([1:K] + N + M,[1:K] + N + M,1,M + N + K,M + N + K)};
-
+Q      = speye(N,N)*N/trace(Hxb'*Hxb);
+Q      = blkdiag(Q, diag(8./sum(X0.^2)) );
 
 % get whitening matrix (NB: confounds have already been whitened)
 %-------------------------------------------------------------------------
-W     = SPM.xX.W(Sess.row,Sess.row);
-
-
-% treat designed effects and confounds as fixed
-%-------------------------------------------------------------------------
-h     = [32 1e6 1e6];
-C     = h(1)*C{1} + h(2)*C{2} + h(3)*C{3}; 
-
+W      = SPM.xX.W(Sess.row,Sess.row);
 
 % create structure for spm_PEB
 %-------------------------------------------------------------------------
-P{1}.X = [W*Hxb W*Hxu X0];	% Design matrix for lowest level
-P{1}.C = speye(N,N);		% i.i.d assumptions
-P{2}.X = sparse(N + M + K,1);	% Design matrix for parameters (0's)
-P{2}.C = C;
+P{1}.X = [W*Hxb X0];		% Design matrix for lowest level
+P{1}.C = speye(N,N)/8;		% i.i.d assumptions
+P{2}.X = sparse(N + M,1);	% Design matrix for parameters (0's)
+P{2}.C = Q;
 
 
 switch ppiflag
@@ -258,7 +231,7 @@ switch ppiflag
 case  'simple deconvolution'
     %=====================================================================
     C       = spm_PEB(Y,P);
-    xn      = [xb xu]*C{2}.E(1:(N + M));
+    xn      = xb*C{2}.E(1:N);
     xn      = spm_detrend(xn);
     
     % save variables
@@ -282,9 +255,9 @@ case  'simple deconvolution'
 case  'physiophysiologic interaction' % PHYSIOPHYSIOLOGIC INTERACTIONS
     %=====================================================================
     C       = spm_PEB(Y(:,1),P);
-    xn1     = [xb xu]*C{2}.E(1:(N + M));
+    xn1     = xb*C{2}.E(1:N);
     C       = spm_PEB(Y(:,2),P);
-    xn2     = [xb xu]*C{2}.E(1:(N + M));
+    xn2     = xb*C{2}.E(1:N);
     xn1     = spm_detrend(xn1);
     xn2     = spm_detrend(xn2);
     xnxn    = xn1.*xn2;
@@ -345,7 +318,7 @@ case  'psychophysiologic interaction'
     % activity to convolve with the psychological variable in mircrotime
     %---------------------------------------------------------------------
     C       = spm_PEB(Y,P);
-    xn      = [xb xu]*C{2}.E(1:(N + M));
+    xn      = xb*C{2}.E(1:N);
     xn      = spm_detrend(xn);
     
     % setup psychological variable from inputs and contast weights
