@@ -4,11 +4,12 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %
 % q     - critical expected False Discovery Rate
 % df    - [df{interest} df{residuals}]
-% STAT  - Statisical feild  (see comments below about FWER and EFDR)
-%		'Z' - Gaussian feild
-%		'T' - T - feild
-%		'X' - Chi squared feild
-%		'F' - F - feild
+% STAT  - Statisical field  (see comments below about FWER and EFDR)
+%		'Z' - Gaussian field
+%		'T' - T - field
+%		'X' - Chi squared field
+%		'F' - F - field
+%		'P' - P - value
 % n     - number of component SPMs in conjunction
 % Vs    - Mapped statistic image(s)
 %          -or-
@@ -142,7 +143,7 @@ else
   if isstruct(Vs)
     u = Ts(I);
   else 
-    % We don't have original statistic values; determine from p-value
+    % We don't have original statistic values; determine from p-value...
     if      STAT == 'Z'
       u = spm_invNcdf(1-Ps(I).^(1/n));
     elseif  STAT == 'T'
@@ -151,6 +152,9 @@ else
       u = spm_invXcdf(1-Ps(I).^(1/n),df(2));
     elseif  STAT == 'F'
       u = spm_invFcdf(1-Ps(I).^(1/n),df);
+    % ... except in case when we want a P-value
+    elseif  STAT == 'P'
+      u = Ps(I);
     end
   end
 end
