@@ -54,7 +54,7 @@
 % benefited from substantial input (technical and theoretical) from:
 % John Ashburner (WDoCN), Andrew Holmes (WDoCN & Robertson Centre for
 % Biostatistics, University of Glasgow, Scotland), Jean-Baptiste Poline
-% (WDoCN & CEA/DRM/SHEFJ, Orsay, France), Christian Buechel (WDoCN),
+% (WDoCN & CEA/DRM/SHFJ, Orsay, France), Christian Buechel (WDoCN),
 % Matthew Brett (MRC-CBU, Cambridge, England), Chloe Hutton (WDoCN) and
 % Keith Worsley (Department of Statistics, McGill University, Montreal,
 % Canada).
