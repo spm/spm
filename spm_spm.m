@@ -132,7 +132,7 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %
 %                           ----------------
 %
-%
+% MV:
 % If the response variable is multivariate (i.e. size(VY,2) > 1) then
 % spm_spm proceeds with a voxel by voxel ManCova to produce a SPM{F}
 % based on Wilks Lambda for all effects of interest (specified by F_iX0).
@@ -196,6 +196,8 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %     xX.erdf   - effective residual degrees of freedom (trRV^2/trRVRV)
 %     xX.nKX    - design matrix (xX.xKXs.X) scaled for display
 %                 (see spm_DesMtx('sca',... for details)
+%     xX.X0     - (MV use only: Null design partition of original contrast)
+%     xX.pX0    - (MV use only: Pseudo-inverse of above)
 % 
 %     xM        - as input (but always in the structure format)
 %
@@ -222,24 +224,25 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % xCon.mat                                        - contrast definitions
 % The xCon.mat file contains a single structure defining the default F-contrast
 % (The results section can be used to define additional contrasts.)
-%     xCon      - Contrast structure (created by spm_FcUtil.m)
-%     xCon.name - Name of contrast
-%     xCon.STAT - 'F', 'T' or 'X' - for F/T-contrast ('X' for multivariate)
-%     xCon.c    - (F) Contrast weights
-%     xCon.X0   - Reduced design matrix (spans design space under Ho)
-%                 It is in the form of a matric (spm99b) or the
-%                 coordinates of this matrix in the orthogonal basis
-%                 of xX.X defined in spm_sp. 
-%     xCon.iX0  - Indicies of design matrix columns to form the reduced
-%                 design matrix. (Input argument F_iX0 in this case.)
-%               - (Is 0 if X0 was specified, [] if c was specified.)
-%     xCon.X1o  - Remaining design space (orthogonal to X0).
-%                 It is in the form of a matric (spm99b) or the
-%                 coordinates of this matrix in the orthogonal basis
-%                 of xX.X defined in spm_sp. 
-%     xCon.eidf - Effective interest degrees of freedom (numerator df)
-%     xCon.Vcon - ...for handle of contrast/ESS image (empty at this stage)
-%     xCon.Vspm - ...for handle of SPM image (empty at this stage)
+%     xCon       - Contrast structure (created by spm_FcUtil.m)
+%     xCon.name  - Name of contrast
+%     xCon.STAT  - 'F', 'T' or 'X' - for F/T-contrast ('X' for multivariate)
+%     xCon.c     - (F) Contrast weights
+%     xCon.X0    - Reduced design matrix (spans design space under Ho)
+%                  It is in the form of a matrix (spm99b) or the
+%                  coordinates of this matrix in the orthogonal basis
+%                  of xX.X defined in spm_sp. 
+%     xCon.iX0   - Indicies of design matrix columns to form the reduced
+%                  design matrix. (Input argument F_iX0 in this case.)
+%                - (Is 0 if X0 was specified, [] if c was specified.)
+%     xCon.X1o   - Remaining design space (orthogonal to X0).
+%                  It is in the form of a matrix (spm99b) or the
+%                  coordinates of this matrix in the orthogonal basis
+%                  of xX.X defined in spm_sp.
+%     xCon.nativ - How the contrast was defined: One of {'c','c+','X0','iX0'}
+%     xCon.eidf  - Effective interest degrees of freedom (numerator df)
+%     xCon.Vcon  - ...for handle of contrast/ESS image (empty at this stage)
+%     xCon.Vspm  - ...for handle of SPM image (empty at this stage)
 %
 %                           ----------------
 %
@@ -381,7 +384,7 @@ if exist(fullfile('.','SPM.mat'),'file')==2
 end
 
 files = {	'SPM.mat','Yidx.mat','Y.mad','xCon.mat',...
-		'mask.???','ResMS.???',...
+		'mask.???','ResMS.???','RVP.???',...
 		'beta_????.???','con_????.???',...
 		'ess_????.???', 'spm?_????.???'};
 
@@ -483,6 +486,8 @@ h             = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
 %-Modify structures for multivariate inference
 %-----------------------------------------------------------------------
 if nVar > 1
+
+	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...multivariate prep')%-#
 
 	% pseudoinverse of null partition X0 & orthogonlize KX w.r.t. it
 	%---------------------------------------------------------------
@@ -1118,11 +1123,10 @@ xX.nKX   = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
 %-----------------------------------------------------------------------
 VResMS.pinfo(1) = 1/xX.trRV;
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
-
 
 %-"close" written image files, updating scalefactor information
 %=======================================================================
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...closing image files')  %-#
 VM                      = spm_create_image(VM);
 for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
 if nVar > 1,   Vspm     = spm_create_image(Vspm);     end
@@ -1132,6 +1136,7 @@ VRPV                    = spm_create_image(VRPV);
 
 %-Smoothness estimates of component fields and RESEL counts for volume
 %=======================================================================
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...smoothness')           %-#
 FWHM   = FWHM/Srpv;
 RESEL  = RESEL/Srpv;
 
@@ -1141,11 +1146,10 @@ FWHM   = FWHM*((RESEL/prod(FWHM(1:N))).^(1/N));
 FWHM   = 1./FWHM;
 R      = spm_resels_vol(VM,FWHM)';
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
-
-%-Unmap files, retaining image names and rest erdf
+%-Unmap files, retaining image names, and reset erdf if MV
 %-----------------------------------------------------------------------
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...tidying file handles') %-#
 VM     = VM.fname;
 Vbeta  = {Vbeta.fname}';
 VResMS = VResMS.fname;
@@ -1155,7 +1159,7 @@ if nVar > 1
 	xX.erdf   = erdf;
 end
 
-
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
 
