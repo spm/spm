@@ -139,9 +139,9 @@ if nargout==0,
 	spm_progress_bar('Clear');
 end;
 
-VO(1).dat = g; VO(1).pinfo = VO(1).pinfo(1:2,:); VO(1).fname = 'GM.img';
-VO(2).dat = w; VO(2).pinfo = VO(2).pinfo(1:2,:); VO(2).fname = 'WM.img';
-VO(3).dat = c; VO(3).pinfo = VO(3).pinfo(1:2,:); VO(3).fname = 'CSF.img';
+VO(1).dat = g; VO(1).pinfo = VO(1).pinfo(1:2,:);
+VO(2).dat = w; VO(2).pinfo = VO(2).pinfo(1:2,:);
+VO(3).dat = c; VO(3).pinfo = VO(3).pinfo(1:2,:);
 
 if flags.graphics, display_graphics(VF,VO,CP.mn,CP.cv,CP.mg); end;
 
