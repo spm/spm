@@ -7,7 +7,8 @@ function varargout = spm_DesUtil(varargin)
 % spm_DesUtil is a multi-function function containing various utilities
 % for Design matrix construction and manipulation
 %
-%=======================================================================
+% ======================================================================
+%
 % FORMAT i = spm_DesUtil('pds',v,m,n)
 %
 % Patterned data setting function - inspired by MINITAB's "SET" command
@@ -33,7 +34,8 @@ function varargout = spm_DesUtil(varargin)
 %     spm_DesUtil('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
 % NB: MINITAB's "SET" command has syntax n(v)m:
 %
-%=======================================================================
+% ======================================================================
+%
 % FORMAT i = spm_DesUtil('isCon',X,c,tol)
 % Tests whether weight vectors specify contrasts
 % X   - design matrix
@@ -55,7 +57,8 @@ function varargout = spm_DesUtil(varargin)
 %	"Plane Answers to Complex Questions"
 %	 2nd Ed. Springer-Verlag, New York
 %
-%=======================================================================
+% ======================================================================
+%
 % FORMAT i = spm_DesUtil('allCon',X,c)
 % Tests whether all weight vectors specify contrasts:
 % Same as all(spm_DesUtil('isCon',X,c)), but works directly.
@@ -64,7 +67,8 @@ function varargout = spm_DesUtil(varargin)
 % spanned by the rows of the design matrix X, [X;c] will have the same
 % rank as X if all the weight vectors of c specify contrasts.
 %
-%=======================================================================
+% ======================================================================
+%
 % FORMAT r = spm_DesUtil('ConR',X,c,tol)
 % Assess orthogonality of contrasts (wirit the data)
 % X   - design matrix
@@ -87,8 +91,27 @@ function varargout = spm_DesUtil(varargin)
 %
 % The logical matrix ~r will be true for orthogonal pairs of contrasts.
 % 
+% ======================================================================
+%
+% FORMAT c = spm_DesUtil('FCon',X,i0)
+% Return F-contrast for specified design matrix partition
+% X   - design matrix
+% i0  - column indices of null hypothesis design matrix
+%
+% This function returns a nxp matrix of contrasts suitable for an
+% extra-sum-of-squares F-test comparing the design X, with a reduced
+% design. The design matrix for the reduced design is X0 = X(:,i0), a
+% reduction of n degrees of freedom.
+%
+% The algorithm, due to J-B, and derived from Christensen, computes the
+% contrasts as an orthonormal basis set for the rows of the
+% hypothesised redundant columns of the design matrix, after
+% orthogonalisation with respect to X0. For non-unique designs, there
+% are a variety of ways to produce equivalent F-contrasts. This method
+% produces contrasts with non-zero weights only for the hypothesised
+% redundant columns.
 %_______________________________________________________________________
-% %E% Andrew Holmes %W%
+% %W% Andrew Holmes, Jean-Baptiste Poline %E%
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -126,7 +149,7 @@ if nargin<3, c=eye(size(X,2)); else, c=varargin{3}; end
 if nargin<4, tol=max(size(X))*norm(X)*eps; else, tol=varargin{4}; end
 
 switch lower(action), case 'iscon'
-	varargout = {all(abs(c'-X'*pinv(X')*c')<tol,1)};
+	varargout = {all(abs(c'-X'*pinv(X')*c')<tol,1)'};
 case 'allcon'
 	varargout = { rank(X)==rank([X;c]) };
 case 'conr'
@@ -136,7 +159,53 @@ case 'conr'
 	r   = r./tmp;			%-normalise r
 	r(abs(r)<tol)=0;		%-set near-zeros to zero
 	varargout = {r};		%-return r
+case 'cono'
+	%-J-B reckons that the following is the same as ~spm_DesUtil('conr',X,c)
+	% but we haven't worked out why yet!
+	varargout = {abs(c*X'*X*c')<tol};
 end
+
+
+case 'fcon'
+%=======================================================================
+% c = spm_DesUtil('FCon',X,i0)
+if nargin<3, error('insufficient arguments'), end
+X  = varargin{2};
+i0 = varargin{3};
+
+%-Argument checks
+%-----------------------------------------------------------------------
+p = size(X,2);
+if any(floor(i0)~=i0) | any(i0<1) | any(i0>p)
+	error('vector of column indices required')
+end
+
+%-Computation
+%-----------------------------------------------------------------------
+i1   = setdiff([1:p],i0);	%-Indices of columns hypothesised redundant
+X0   = X(:,i0);			%-Design matrix of hypothesised null model
+X1   = X(:,i1);			%-Design matrix columns hypothesised redundant
+
+X1o  = X1 - X0*pinv(X0)*X1;	%-X1 columns orthogonalised wirit X0
+
+oX1o = orth(X1o);		%-Orthonormal basis for columns of X1o
+				% space spanned by this basis set is the
+				% design space hypothesised redundant
+
+c1   = orth(X1o');		%-Orthonormal basis set for rows of X1o
+				%-These are the contrast coefficients for X1
+
+%c1   = orth(X1o'*pinv(X1o')*eye(length(i1)));	%-JB's version
+				%-Orthonormal basis set for identity matrix
+				% projected onto rows of X1o
+				%-These are the contrast coefficients for X1
+
+c       = zeros(size(X,2),size(c1,2));
+c(i1,:) = c1;			%-Form full contrast matrix
+c       = c';			%-Transpose to usual SPM contrast orientation
+				% with contrasts as row vectors
+
+varargout = {c};
 
 
 
