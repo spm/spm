@@ -94,10 +94,6 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 	end
 	set(Finter,'Name','please wait a moment','Pointer','watch')
 
-	% load adjusted data
-	%---------------------------------------------------------------
-	load([CWD,'/XA'])
-
 
 	% create sequential models (i.e. design matrix partitions)
 	%---------------------------------------------------------------
@@ -109,15 +105,31 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
 	% get sequential F statistics
 	%---------------------------------------------------------------
-	[Fdf0,F0]      = spm_AnCova(X1,[X0 B G],SIGMA,XA);
-	CON            = [1 zeros(1,size([X1 X0 B G],2))];
-	[Fdf,F,BE,T]   = spm_AnCova(X2,[X1 X0 B G],SIGMA,XA,CON);
-	df             = Fdf(2);
+	con   = [1 zeros(1,size([X1 X0 B G],2))];
+	n     = size(XYZ,2);
+	m     = 1024;
+	F     = zeros(1,n);
+	T     = zeros(1,n);
+	for j = 1:ceil(n/m)
+
+		% get data and refit
+		%-------------------------------------------------------
+		Q             = [1:m] + (j - 1)*m;
+		Q             = Q(Q <= n);
+		XA            = spm_readXA(Q,[CWD,'/XA.mat']);
+		[Fdf0,f]      = spm_AnCova(X1,[X0 B G],SIGMA,XA);
+		[Fdf,F1,BE,t] = spm_AnCova(X2,[X1 X0 B G],SIGMA,XA,con);
+
+		F(Q)  = f;
+		T(Q)  = t;
+	end
+
 
 	% find voxels with significant interactions
 	%---------------------------------------------------------------
+	df    = Fdf(2);
 	U     = spm_invFcdf((1 - 0.05),Fdf0);
-	Q     = find(F0 < U);
+	Q     = find(F < U);
 
 	% eliminate voxels with significant interactions
 	%---------------------------------------------------------------
