@@ -215,21 +215,8 @@ end
 %-NB: spm_mip's `image` uses a newplot, & screws stuff without the figure.
 figure(F)
 spm_mip(Z,XYZ,M,DIM);
-
-%-Canonicalise axis positioning & save
-%-----------------------------------------------------------------------
-%-We're assumming the MIP fills the MIP axes bounding box, which is only
-% true if stretch-to-fit is on (which it isn't with `axis image`), or that
-% the axis bounding box itself has the correct aspect ratio.
-%-So, shrink axes to the correct AspectRatio.
-% Get aspect ratio from MIP graphic in case 2D
-AR       = diff(get(hMIPax,'Xlim'))/diff(get(hMIPax,'Ylim'));
-set(hMIPax,'Units','pixels')
-MIPaxPos = get(hMIPax,'Position');
-if (MIPaxPos(3)/MIPaxPos(4) > AR), MIPaxPos(3) = MIPaxPos(4)*AR;
-	else, MIPaxPos(4) = MIPaxPos(3)./AR; end
-set(hMIPax,'Position',MIPaxPos)
 hMIPim = get(gca,'Children');
+
 
 %-Print coordinates
 %-----------------------------------------------------------------------
