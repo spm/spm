@@ -1,7 +1,7 @@
 function [y] = spm_lambda_HRF(x,P)
 % simulated BOLD response to input
 % FORMAT [y] = spm_lambda_HRF(x,P)
-% y    - BOLD response (%)
+% y    - BOLD response (%)         (y)
 %
 % x    - state vector     (see spm_fx_HRF)
 % P    - Parameter vector (see spm_fx_HRF)
@@ -25,4 +25,5 @@ k3    = 2*E0 - 0.2;
 
 % BOLD signal
 %---------------------------------------------------------------------------
-y     = 100*V0*(k1*(1 - x(4)) + k2*(1 - x(4)/x(3)) + k3*(1 - x(3)));
+y(1)  = 100*V0*(k1*(1 - x(4)) + k2*(1 - x(4)/x(3)) + k3*(1 - x(3)));
+
