@@ -2,9 +2,9 @@
 static char sccsid[] = "%W% John Ashburner %E%";
 #endif
 #include "spm_vol_utils.h"
+#include <stdio.h>
 
-
-void resample(m,vol,out,x,y,z,hold, background)
+resample(m,vol,out,x,y,z,hold, background)
 int m, hold;
 double out[], x[], y[], z[], background;
 MAPTYPE *vol;
@@ -41,10 +41,14 @@ MAPTYPE *vol;
 		resample_double_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else
-		exit(1);
+	{
+		(void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
+		return(1);
+	}
+	return(0);
 }
 
-void resample_d(m,vol,out,gradx,grady,gradz,x,y,z, hold, background)
+resample_d(m,vol,out,gradx,grady,gradz,x,y,z, hold, background)
 int m, hold;
 double out[], gradx[],grady[],gradz[], x[], y[], z[], background;
 MAPTYPE *vol;
@@ -81,7 +85,11 @@ MAPTYPE *vol;
 		resample_d_double_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
 			hold, background, vol->scale,vol->offset);
 	else
-		exit(1);
+	{
+		(void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
+		return(1);
+	}
+	return(0);
 }
 
 slice(mat, image, xdim1,ydim1, vol, hold,background)
@@ -118,7 +126,10 @@ MAPTYPE *vol;
 		sts = slice_double_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
 			hold,background, vol->scale,vol->offset);
 	else
+	{
+		(void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
 		sts = 1;
+	}
 	return(sts);
 }
 
