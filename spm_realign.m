@@ -254,17 +254,18 @@ for i=2:length(P),
 		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
-		A          = [A0(msk,:) F];
-		Alpha      = spm_atranspa(A);
-		Beta       = A'*b(msk);
-		soln       = Alpha\Beta;
+		A          = A0(msk,:);
+		b1         = b(msk);
+		sc         = sum(b1)/sum(F);
+		b1         = b1-F*sc;
+		soln       = spm_atranspa(A)\(A'*b1);
 
 		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = soln(1:(end-1));
+		p(lkp)     = soln;
 		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
 		pss        = ss;
-		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
+		ss         = sum(b1.^2)/length(b1);
 		if (pss-ss)/pss < 1e-8 & countdown == -1, % Stopped converging.
 			countdown = 2;
 		end;
@@ -272,8 +273,9 @@ for i=2:length(P),
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end;
+fprintf('%g ', ss);
 	end;
-
+fprintf('\n');
 	if flags.rtm,
 		% Generate mean and derivatives of mean
 		tiny = 5e-2; % From spm_vol_utils.c
@@ -282,10 +284,10 @@ for i=2:length(P),
 		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
 		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),deg);
-		ave(msk)   = ave(msk)   +   G.*soln(end);
-		grad1(msk) = grad1(msk) + dG1.*soln(end);
-		grad2(msk) = grad2(msk) + dG2.*soln(end);
-		grad3(msk) = grad3(msk) + dG3.*soln(end);
+		ave(msk)   = ave(msk)   +   G*sc;
+		grad1(msk) = grad1(msk) + dG1*sc;
+		grad2(msk) = grad2(msk) + dG2*sc;
+		grad3(msk) = grad3(msk) + dG3*sc;
 	end;
 	spm_progress_bar('Set',i-1);
 end;
@@ -315,17 +317,18 @@ for i=1:length(P),
 		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
-		A          = [A0(msk,:) F];
-		Alpha      = spm_atranspa(A);
-		Beta       = A'*b(msk);
-		soln       = Alpha\Beta;
+		A          = A0(msk,:);
+		b1         = b(msk);
+		sc         = sum(b1)/sum(F);
+		b1         = b1-F*sc;
+		soln       = spm_atranspa(A)\(A'*b1);
 
 		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = soln(1:(end-1));
+		p(lkp)     = soln;
 		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
 		pss        = ss;
-		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
+		ss         = sum(b1.^2)/length(b1);
 		if (pss-ss)/pss < 1e-8 & countdown == -1 % Stopped converging.
 			% Do three final iterations to finish off with
 			countdown = 2;
