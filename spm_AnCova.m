@@ -72,7 +72,7 @@ if ~GLOB
 	% temporal convolution kernel
 	%-------------------------------------------------------------------
 	K      = spm_sptop(sigma,q);
-	V      = K*K;
+	V      = K*K';
 
 
 	% cunning piece of code to compute expectations of variances and 
