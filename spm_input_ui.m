@@ -1730,8 +1730,8 @@ FRec = get(F,'Position');
 set(F,'Units',Units);
 Xdim = FRec(3); Ydim = FRec(4);
 
-WS   = spm('GetWinScale');
-Sz   = 2*round(22*min(WS)/2);	%-Height
+WS   = spm('WinScale');
+Sz   = round(22*min(WS));	%-Height
 Pd   = Sz/2;			%-Pad
 Se   = 2*round(25*min(WS)/2);	%-Seperation
 Yo   = round(2*min(WS));	%-Y offset for responses
@@ -1877,7 +1877,7 @@ if nargin<3
 	end
 end
 
-Se   = 2*round(25*min(spm('GetWinScale'))/2);
+Se   = round(25*min(spm('WinScale')));
 MPos = floor((FRec3-5)/Se);
 
 varargout = {MPos};
