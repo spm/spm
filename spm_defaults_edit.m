@@ -22,8 +22,6 @@ function spm_defaults_edit(arg1, arg2)
 %       the Matlab window.
 %     * The intensity of any grid which superimposed on any
 %       displayed images.
-%     * Specification of paging option for tabular output of cluster
-%       statistics, enabling more exhaustive classifications
 % 
 % Header Defaults (for the currnet Modality - PET or fMRI)
 %     The values to be taken as default when there are no Analyze
@@ -49,10 +47,10 @@ function spm_defaults_edit(arg1, arg2)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% @(#)spm_defaults_edit.m	1.9 John Ashburner 96/09/27
+% %W% John Ashburner %E%
 
 global MODALITY
-global CWD PRINTSTR LOGFILE CMDLINE GRID proj_MultiPage
+global CWD PRINTSTR LOGFILE CMDLINE GRID
 global UFp DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
@@ -111,10 +109,6 @@ elseif strcmp(arg1, 'Misc')
 	CMDLINE = ...
 	    spm_input(['Command Line Input (' tmp ')?'],3,'y/n',[1,0],def);
 	GRID = spm_input('Grid value (0-1):', 4, 'e', GRID);
-
-	if proj_MultiPage, tmp='yes'; def=1; else, tmp='no'; def=2; end
-	proj_MultiPage = ...
-		spm_input(['Paging of stats (' tmp ')?'],5,'y/n',[1,0],def);
 
 elseif strcmp(arg1, 'Printing')
 
