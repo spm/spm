@@ -71,28 +71,37 @@ function spm_realign(P,Flags)
 % images. Where this occurs, that voxel is set to zero for the whole set
 % of images.
 %
-% 'Adjust for motion in Z?' (fMRI only)
-% Adjust the data (fMRI) to remove movement-related components.  The
-% adjustment procedure is based on a autoregression-moving average-like
-% model (ARMA) of the effect of position on signal and explicitly
-% includes a spin excitation history effect. Do not use this option if
-% you are reslicing any less than about 20 images or your TR is
-% sufficiently long for these effects to be discounted (e.g. 6 secs).
-% Clearly the ARMA model assumes that the scans are entered in the order
-% of acquisition.
+% 'Adjustment for movement?' (fMRI only)
+% Adjust the data (fMRI) to remove movement effects which can not simply
+% be corrected by resampling the data.
+%	'No adjustment            (TR>4s n<30)'
+%	This disables the adjustment option.
+%
+%	'1st order adjustment     (TR>4s 30<n<40)'
+%	Takes 6 degrees of freedom, by covarying out the movement parameters.
+%
+%	'2nd order adjustment     (TR>4s n>40)'
+%	Takes 12 degrees of freedom, by covarying out the movement parameters
+%	and the movement parameters squared.
+%
+%	'1st order + Spin history (TR<4s n>40)'
+%	Takes 12 degrees of freedom, by covarying out the movement parameters
+%	and the movement parameters from the previous images.
+%
+%	'2nd order + Spin history (TR<2s n>60)'
+%	Takes 24 degrees of freedom, by covarying out the movement parameters
+%	and the movement parameters squared from both the current and the
+%	previous images.
+%
 %
 %____________________________________________________________________________
 % TO OBTAIN SIMILAR RESULTS TO SPM95, select:
 % 'Which option?'        	'Coregister & Reslice'
 % 'Interpolation Method?'	'Bilinear Interpolation' (for PET)
 % 'Interpolation Method?'	'Sinc Interpolation'     (for fMRI)
-%
-% 'Coregister 2 with 1 only?'	'NO'
-% 'More iterations?'         	'NO'
-%
 % 'Create what?'        	'All Images + Mean Image'
 % 'Mask the images?'       	'YES'
-% 'Adjust for motion in Z?'	'YES' (for fMRI)
+% 'Adjustment for movement?' '2nd order+Spin history (TR<2s n>60)' (for fMRI)
 %____________________________________________________________________________
 %
 %
@@ -132,8 +141,8 @@ function spm_realign(P,Flags)
 %             For correcting more than just patient movement.
 %
 %         a - only register image 2 with image 1, and apply the 
-%             transformations to the subsequent images (which should be in
-%             the same space as image 1).
+%             same transformations to the subsequent images (which should
+%             be in the same space as image 2).
 %
 %         r - reslice images
 %             The spatially realigned and adjusted images are written to
@@ -141,10 +150,15 @@ function spm_realign(P,Flags)
 %             with a 'r'.
 %             They are all aligned with the first.
 %
-%         c - adjust the data (fMRI) to remove movement-related components
+%         c - adjust the data (fMRI) to remove first order movement-related
+%             components.
+%
+%         p - adjust the data to remove first and second order components.
+%
+%         h - adjust the data to remove spin history effects. 
 %             The adjustment procedure is based on a autoregression-moving 
-%             average-like model of the effect of position on signal and 
-%             explicitly includes a spin excitation history effect.
+%             average-like model of the effect of position on signal.
+%             Adjustment is first order - unless option 'p' is specified.
 %
 %         k - mask output images
 %             To avoid artifactual movement-related variance the realigned
@@ -235,14 +249,17 @@ if (nargin == 0)
 				pos = pos + 1;
 			end
 			if (strcmp(MODALITY, 'FMRI'))
-				if (sptl_DjstFMRI == 1)
-					Flags = [Flags 'c'];
-				elseif sptl_DjstFMRI ~= 0
-					if (spm_input(...
-						'Adjust for motion in Z?'...
-						,pos,'y/n') == 'y')
-						Flags = [Flags 'c'];
-					end
+				opts = ['   ';'c  ';'cp ';'ch ';'cph'];
+				if any([0 1 2 3 4] == sptl_DjstFMRI)
+					Flags = [Flags deblank(opts(sptl_DjstFMRI+1,:))];
+				else
+					p = spm_input('Adjustment for movement?',pos, 'm',...
+						['No adjustment            (TR>4s n<30)|'...
+						 '1st order adjustment     (TR>4s 30<n<40)|'...
+						 '2nd order adjustment     (TR>4s n>40)|'...
+						 '1st order + Spin history (TR<4s n>40)|'...
+						 '2nd order + Spin history (TR<2s n>60) '], [1 2 3 4 5],3);
+					Flags = [Flags deblank(opts(p,:))];
 					pos = pos + 1;
 				end
 			end
@@ -282,16 +299,15 @@ elseif nargin == 1 & strcmp(P,'Defaults')
 		'All Images + Mean Image|Full options', [1 -1], tmp);
 
 
-	tmp = 3;
-	if sptl_DjstFMRI == 1,
-		tmp = 1;
-	elseif sptl_DjstFMRI == 0
-		tmp = 2;
-	end
-	sptl_DjstFMRI = spm_input(['fMRI adjustment for movement?'],4,'m',...
-			'   Always adjust |    Never adjust|Optional adjust',...
-			[1 0 -1], tmp);
-
+	tmp = 1;
+	if (any([0 1 2 3 4] == sptl_DjstFMRI)), tmp = sptl_DjstFMRI+2; end;
+	sptl_DjstFMRI = spm_input('Adjustment for movement?',pos, 'm',...
+		['Optional adjust                         |'...
+		 'No adjustment            (TR>4s n<30)   |'...
+		 '1st order adjustment     (TR>4s 30<n<40)|'...
+		 '2nd order adjustment     (TR>4s n>40)   |'...
+		 '1st order + Spin history (TR<4s n>40)   |'...
+		 '2nd order + Spin history (TR<2s n>64)    '], [-1 0 1 2 3 4], tmp);
 
 	tmp = 2;
 	if sptl_MskOptn == 1,
@@ -316,6 +332,9 @@ if any(Flags == 'a') nreg = 2; end
 %---------------------------------------------------------------------------
 if (any(Flags == 'e') | any(Flags == 'E'))
 
+	% Bilinear interpolation gives a better approximation for smooth
+	% images than does the truncated sinc function.
+	%---------------------------------------------------------------------------
 	Hold = 1;
 	if (any(Flags == 's')) Hold = 3; end
 
@@ -346,7 +365,7 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	%-------------------------------------------------------------------
 	% transverse
 	S     = linspace((bb(1,3) + 6/V1(6)),(bb(2,3) - 8/V1(6)),8);	
-	h     = 5;				% number of recursions
+	h     = 8;				% number of iterations
 	if (any(Flags == 'E')) h = 25; end;
 	M     = sb(1);				% rows per slice
 	N     = sb(2);				% columns per slice
@@ -480,6 +499,7 @@ end
 % Application of Realignment Parameters - uses P
 %---------------------------------------------------------------------------
 if any(Flags == 'r')
+        if (any(Flags == 'p') | any(Flags == 'h')), Flags = [Flags 'c']; end;
 
 	Hold = 1;
 	if (any(Flags == 'S')) Hold = 5; end
@@ -492,21 +512,31 @@ if any(Flags == 'r')
 
 	% Get properties of all the images
 	%-------------------------------------------------------------------
-	Headers = zeros(size(P,1),(3+1+1));
+	Headers  = zeros(size(P,1),(3+1+1));
 	Matrixes = zeros(16,size(P,1));
-	V     = zeros(12,size(P,1));
+	V        = zeros(12,size(P,1));
 	for i = 1:size(P,1)
 		p  = deblank(P(i,:));
-
-		M1  = M\spm_get_space(p);
+		M1            = M\spm_get_space(p);
 		Matrixes(:,i) = M1(:);
-
 		[dim dummy scale typ dummy dummy] = spm_hread(p);
-		Headers(i,:) = [dim scale typ];
-
-		V(:,i) = spm_map(spm_str_manip(P(i,:),'d'));
+		Headers(i,:)  = [dim scale typ];
+		V(:,i)        = spm_map(spm_str_manip(P(i,:),'d'));
 	end
 
+
+	if any(Flags == 'c')
+		% movement-related covariates to be removed
+		%---------------------------------------------------------------------------
+		G = zeros(size(P,1),6);
+		for i = 1:size(P,1)
+			tmp    = spm_imatrix(reshape(Matrixes(:,i),4,4));
+			G(i,:) = tmp(1:6);
+		end
+		if (any(Flags == 'p')), G = [G G.^2]; end
+		if (any(Flags == 'h')), G = [G [zeros(1,size(G,2)); G([1:(size(G,1) - 1)],:)]]; end
+		G = [G ones(size(G,1),1)];
+	end
 
 	spm_progress_bar('Init',DIM(3),'Reslicing','planes completed');
 
@@ -626,31 +656,20 @@ if any(Flags == 'r')
 
 
 		if (any(Flags == 'c'))
-			% Adjust for motion in Z
+			% Adjust for motion
 			%---------------------------------------------------
 			Mask = (Count == size(P,1));
 
-			X = X'; % Transpose to reduce paging
-			lzm1 = size(P,1)-1;
-			dZmotion = Matrixes(3,:)' - Matrixes(3,1);
-			for y=1:DIM(2)
-				Zmotiony  = Matrixes(7,:)*y +...
-					Matrixes(11,:)*j + Matrixes(15,:);
-				Zmotiony  = Zmotiony' - Zmotiony(1);
-				for x = 1:DIM(1)
-					xy = x+(y-1)*DIM(1);
-					if (Mask(xy))
 
-	Tac = X(:,xy) - Integral(xy,j);
-	Zmotion = Zmotiony + dZmotion*x;
-	A = [Zmotion Zmotion.^2 [0 ; Zmotion(1:lzm1)] ...
-		[0 ; Zmotion(1:lzm1)].^2];
-	X(:,xy) = X(:,xy) - A*((A'*A)\(A'*Tac));
+			% remove any components correlated with movement and mask
+			%------------------------------------------------------------------
+			X1        = X(Mask,:)';
+			E         = ones(size(X1,1),1)*Integral(Mask,j)';
+			X1        = X1 - E;
+			X1        = X1 - G*(G\X1);
+			X1        = X1 + E;
+			X(Mask,:) = X1';
 
-					end
-				end
-			end
-			X = X';
 			start_vol = 1;
 			if (any(Flags == 'n')) start_vol = 2; end
 
