@@ -51,24 +51,29 @@ else
 
 end
 
-% reformat as a matrix if possible 
+% reformat as a matrix if appropriate 
 %--------------------------------------------------------------------------
 if length(n) == 1
 
     % if there are no arguments to differentiate w.r.t. ...
     %-----------------------------------------------------------------------
-    if ~length(x{n}(:))
+    if ~length(x{n})
         J = sparse(length(f0(:)),0);
     
     % if there are no arguments to differentiate
     %-----------------------------------------------------------------------
-    elseif ~size(f0,1)
+    elseif ~length(f0)
         J = sparse(0,length(x{n}(:)));
     end
 
-    % f and x{n} are vector 
-    %------------------------------------------------------------------
-    if sum([size(f0) size(x{n})] > 1) < 3
+    % if f and x{n} are vectors 
+    %----------------------------------------------------------------------
+    if min(size(f0)) == 1 & min(size(x{n})) == 1
+        J = spm_cat(J(:)');
+
+    % if f or x{n} are scalars 
+    %----------------------------------------------------------------------
+    elseif length(f0) == 1 | length(x{n}) == 1
         J = spm_cat(J);
     end
 end
