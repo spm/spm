@@ -10,7 +10,7 @@ function LogFile = spm_log(varargin)
 % writes the passed string matrices to the log file.
 %
 %__________________________________________________________________________
-% @(#)spm_log.m	1.2 Andrew Holmes 97/08/08
+% %W% Andrew Holmes %E%
 
 
 %-Find out LogFile name, return if not logging.
