@@ -89,7 +89,7 @@ Matrix *plhs[], *prhs[];
 	    if (x-xdim/2>=0 && x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
 	    {
 		    q = v[i];
-		    if (q > spm[y + (DX-x)*m])
+		    if (q > spm[y-2 + (DX-x-2)*m])
 		    {
 			    for (j = -ydim/2; j <= ydim/2; j++) {
 				    for (k = -xdim/2; k <= xdim/2; k++) {
