@@ -297,6 +297,8 @@ function do_disp(PGF, PFF)
 % Do the graphical display
 
 fig = spm_figure('FindWin','Graphics');
+if isempty(fig), return; end;
+
 set(0,'CurrentFigure',fig);
 spm_figure('Clear','Graphics');
 
