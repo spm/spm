@@ -84,7 +84,12 @@ if n(2)*fh<h1,
 end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
-prevdirs([fileparts(which(mfilename)) filesep]);
+SPMdir = fileparts(which(mfilename));
+if str2num(version('-release'))==14 && isdeployed,
+    ind = findstr(SPMdir,'_mcr')-1;
+    [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
+end;
+prevdirs([SPMdir filesep]);
 [pd,vl] = prevdirs([wd filesep]);
 
 % Selected Files

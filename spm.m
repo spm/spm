@@ -448,7 +448,7 @@ case {'pet','fmri','eeg'}             %-Initialise SPM in PET, fMRI modality
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
-clc, spm('SetCmdWinLabel')
+local_clc, spm('SetCmdWinLabel')
 spm('AsciiWelcome'),			fprintf('\n\nInitialising SPM')
 Modality = upper(Action);					fprintf('.')
 delete(get(0,'Children')),					fprintf('.')
@@ -1184,7 +1184,7 @@ case 'quit'                                      %-Quit SPM and clean up
 % spm('Quit')
 %-----------------------------------------------------------------------
 delete(get(0,'Children'));
-clc;
+local_clc;
 fprintf('Bye for now...\n\n');
 
 
@@ -1303,7 +1303,13 @@ if isempty(SPMdir)			%-Not found or full pathname given
 		error(['Can''t find ',Mfile,' on MATLABPATH']);
 	end
 end
-varargout = {spm_str_manip(SPMdir,'H')};
+[SPMdir,junk] = fileparts(SPMdir);
+
+if str2num(version('-release'))==14 && isdeployed,
+    ind = findstr(SPMdir,'_mcr')-1;
+    [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
+end;
+varargout = {SPMdir};
 
 
 %=======================================================================
@@ -1755,7 +1761,7 @@ spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
 spm_get('Initialise','reset');
 spm_conman('Initialise','reset');
-clc, spm('FnBanner','GUI cleared');
+local_clc, spm('FnBanner','GUI cleared');
 fprintf('\n');
 %evalin('Base','clear')
 
@@ -1786,4 +1792,9 @@ if get(ob,'Value')==1,
 else
 	spm_jobman('interactive','','jobs.spatial.realignunwarp');
 end;
+
+function local_clc
+if str2num(version('-release'))~=14 || ~isdeployed,
+    clc
+end
 
