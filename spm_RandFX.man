@@ -2,14 +2,12 @@
 % Random effects analyses for SPM'96 using a multi-level approach
 %_______________________________________________________________________
 %
-%                      **** under construction ****
-%
 % In general mixed effects models (with both random and fixed effects)
 % are difficult to analyse. However, in functional neuroimaging the
-% models are fairly simple, and the only random effect of concern is
-% the subject by condition interaction: Further, the models are
-% seperable into individual subject models. This enables a basic mixed
-% effects analysis to be easily be carried out in two stages,
+% models are fairly simple, balanced, and the only random effect of
+% concern is the subject by condition interaction: Further, the models
+% are seperable into individual subject models. This enables a basic
+% mixed effects analysis to be easily be carried out in two stages,
 % corresponding to the two levels of variability in question. The first
 % level is the intra-subject level, the second the inter-subject
 % (intra-population) level.
@@ -19,7 +17,7 @@
 % appropriate inter and intra-subject variance components, and effects
 % a mixed effects analysis appropriate for population inference. With
 % repeated measures the trick then is to collapse over replications to
-% give a single image representative of each condition for each
+% give a single summary image representative of each condition for each
 % subject. Such collapsing may be as simple as a straight mean of the
 % replicate observations, or can be a sophisticated weighted mean of
 % adjusted data effected via the General Linear Model, enabling removal
@@ -28,7 +26,7 @@
 %
 % Basically:
 %   1. Collapse data to single scan per condition per subject
-%      (See spm_adjmean_ui & spm_adjmean_fmri_ui)
+%      (See spm_adjmean_ui & spm_adjmean_fmri_ui, and their help)
 %   2. Run collapsed data as a multisubject "conditions only" design in SPM-PET
 %      ( No need for grand mean scaling or global normalisation )
 %      ( if spm_adjmean{_fmri}_ui used correctly                )
@@ -46,18 +44,60 @@
 % 1992 paper, with the exception that they used a globally pooled
 % variance estimate (now deemed inappropriate).
 %
-%                      **** under construction ****
+%                           ----------------
 %
-% Let me know how you get on...
+% A paper is currently (20/02/1998) in preparation. In the interim, you
+% are referred to the relevant correspondance on the SPM disussion
+% list: Messages are archived at the UK's Academic MailBase facility:
+%
+% Discussion with Jack Van-Horn: concerning appropriate variances...
+%       http://www.mailbase.ac.uk/lists/spm/1997-11/0011.html
+%       http://www.mailbase.ac.uk/lists/spm/1997-11/0015.html (APH)
+%       http://www.mailbase.ac.uk/lists/spm/1997-11/0028.html
+%       http://www.mailbase.ac.uk/lists/spm/1997-12/0005.html (APH)
+% 
+% APH to Eric Zahrahn:
+% Subject by task interactions & group by task interactions...
+%       http://www.mailbase.ac.uk/lists/spm/1997-12/0031.html (APH)
+% 
+% Discussion with Darren Gitelman: adjusting images...
+%       http://www.mailbase.ac.uk/lists/spm/1998-01/0001.html (DG)
+%       http://www.mailbase.ac.uk/lists/spm/1998-01/0036.html (APH)
+% 
+% Dsicussion with Andy Saykin: Multisubject and Between Group fMRI Analyses...
+%                               (one scan per condition per subject)...
+%       http://www.mailbase.ac.uk/lists/spm/1997-12/0004.html (AS)
+%       http://www.mailbase.ac.uk/lists/spm/1997-12/0006.html (KJF)
+%       http://www.mailbase.ac.uk/lists/spm/1997-12/0013.html (APH)
+% 
+% Queries are included in replies where relevant, so only the (APH)
+% replies need be looked up.
+%
 %
 % ======================================================================
-% The (beta release) of the basic random effects kit for SPM96 consists of:
 %
-% spm_RandFX.man	1.2	- This file
-% spm_adjmean_ui.m	1.4.1.1	- Adjusted means for PET designs
-% spm_adjmean_fmri_ui.m	1.1.1.1	- Adjusted means for fMRI
-% spm_hrf.m		1.2	- Approx HRF for fMRI
-% spm_sptop.m		1.7	- SParse TOePlitz update (v1.2 came with SPM96)
+% The basic random effects kit for SPM96 consists of:
 %
+%     spm_RandFX.man        1.3      - This file
+%     spm_adjmean_ui.m      1.5.1.1  - Adjusted means for PET designs
+%     spm_adjmean_fmri_ui.m 1.2.1.1  - Adjusted means for fMRI
+%     spm_hrf.m             1.2      - Approx HRF for fMRI
+%     spm_sptop.m           1.7      - SParse TOePlitz update
+%                                      (v1.2 came with SPM96)
+%
+% ...and includes updates to two SPM interface routines, allowing easy
+% launching of the new programs:
+%
+%     spm.m                 1.26.1.2 - "Mean" button altered to "AdjMean", calls
+%                                      spm_adjmean_ui or spm_adjmean_fmri_ui
+%                                      according to the current SPM mode,
+%                                      PET of fMRI
+%     spm_help.m            1.15.1.2 - Menu topic changed to reflect new
+%                                      AdjMean button
+%
+% spm_sptop.m (v1.7), spm.m (v1.26.1.2) & spm_help.m (v1.15.1.2) are
+% backwards compatible with the versions supplied with SPM96, so the
+% SPM96 random effects kit can be installed over an SPM96
+% installation.
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
