@@ -21,7 +21,9 @@ function spm_mip(Z,XYZ,M,DIM)
 % The outline and grid are superimposed at intensity GRID (global default),
 % defaulting to 0.6.
 %
-% A default colormap of 64 levels is assumed.
+% A default colormap of 64 levels is assumed. The pointlist image is
+% scaled to fit in the interval [0.25,1]*64 for display. Flat images
+% are scaled to 1*64.
 %
 %_______________________________________________________________________
 % %W% Karl Friston et al. %E%
@@ -36,7 +38,12 @@ if isempty(GRID), GRID = 0.6; end
 %-----------------------------------------------------------------------
 Z    = Z(:)';
 Z    = Z - min(Z);
-Z    = (1 + 3*Z/max(Z))/4;
+mZ   = max(Z);
+if mZ	%-Scale
+	Z = (1 + 3*Z/mZ)/4;
+else	%-Image is flat: set to ones:
+	Z = ones(1,length(Z));
+end
 
 %-Single slice case
 %=======================================================================
