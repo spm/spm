@@ -201,7 +201,7 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 %__________________________________________________________________________
-% %W% Karl Friston & John Ashburner %E%
+% %W% Karl Friston & John Ashburner - with input from Oliver Josephs %E%
 
 
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
@@ -1185,8 +1185,7 @@ spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________
 
-%_______________________________________________________________________
-function v = kspace3d(v,M)
+function v1 = kspace3d(v,M)
 % 3D rigid body transformation performed in Fourier space.
 % FORMAT v1 = kspace3d(v,M)
 % v - the image stored as a 3D array.
@@ -1197,80 +1196,69 @@ function v = kspace3d(v,M)
 % W. F. Eddy, M. Fitzgerald and D. C. Noll (1996)
 % Improved Image Registration by Using Fourier Interpolation
 % Magnetic Resonance in Medicine 36(6):923-931
+%
+% Code optimized slightly, and improved with help from Oliver Josephs.
 %_______________________________________________________________________
 p  = spm_imatrix(M);
-if any(abs(p(7:12)-[1 1 1 0 0 0]) > 1e-7), error('Can''t do zooms or shears!'); end;
-if all(abs(p(1:6)))<1e-7, return; end;
+if any(abs(p(7:12)-[1 1 1 0 0 0]) > 1e-7), error('Can''t do zooms or shears using the current K-space reslicing algorithm!'); end;
+if all(abs(p(1:6))<1e-7), v1 = v; return; end;
 d  = [size(v) 1 1 1];
 
 % Pad if necessary (may be an idea to pad more - but the operation would then
 % be extremely slow.
-g = my_nextpow2(d);
-if any(g~=d), tmp = v; v=zeros(g); v(1:d(1),1:d(2),1:d(3)) = tmp; clear tmp; end;
+g = 2.^ceil(log2(d));
 
-r  = isreal(v);
-t  = trf([g(1) 1 1],-p(1));
-for k=1:g(3),
-	for j=1:g(2),
-		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
-	end;
+if any(g~=d),
+	tmp = v;
+	v   = zeros(g);
+	v(1:d(1),1:d(2),1:d(3)) = tmp;
+	clear tmp;
 end;
-t  = trf([1 1 g(3)],-p(3));
-for j=1:g(2),
-	for i=1:g(1),
-		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
-	end;
-end;
+
+t  = repmat(trf([g(1) 1 1],-p(1)),[1,g(2:3)]);
+v  = real(ifft(fft(v,[],1).*t,[],1));
+t  = repmat(trf([1 1 g(3)],-p(3)),[g(1:2) 1]);
+v  = real(ifft(fft(v,[],3).*t,[],3));
+
+% combine a translation and a shear
 for k=1:g(3),
-	t = trf([1 g(2) 1],-tan(p(4)/2)*k-p(2));
-	for i=1:g(1),
-		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
-	end;
+	t        = repmat(trf([1 g(2) 1],-tan(p(4)/2)*k-p(2)),[d(1) 1 1]);
+	v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
 end;
 for j=1:g(2),
-	t = trf([1 1 g(3)], sin(p(4)  )*j);
-	for i=1:g(1),
-		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
-	end;
+	t        = repmat(trf([1 1 g(3)], sin(p(4))*j),[g(1) 1 1]);
+	v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
 end;
 for k=1:g(3),
-	t = trf([1 g(2) 1],-tan(p(4)/2)*k);
-	for i=1:g(1),
-		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
-	end;
+	t        = repmat(trf([1 g(2) 1],-tan(p(4)/2)*k),[g(1) 1 1]);
+	v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
 end;
 for k=1:g(3),
-	t = trf([g(1) 1 1],-tan(p(5)/2)*k);
-	for j=1:g(2),
-		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
-	end;
+	t        = repmat(trf([g(1) 1 1],-tan(p(5)/2)*k),[1 g(2) 1]);
+	v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
 end;
 for i=1:g(1),
-	t = trf([1 1 g(3)], sin(p(5)  )*i);
-	for j=1:g(2),
-		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
-	end;
+	t        = repmat(trf([1 1 g(3)], sin(p(5))*i),[1 g(2) 1]);
+	v(i,:,:) = real(ifft(fft(v(i,:,:),[],3).*t,[],3));
 end;
+
+% combine two shears into one.
+tmp1 = sqrt(-1)*2*pi*([0:((g(1)-1)/2) 0 (-g(1)/2+1):-1]')/g(1);
 for k=1:g(3),
-	for j=1:g(2),
-		t = trf([g(1) 1 1],-tan(p(6)/2)*j-tan(p(5)/2)*k);
-		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
-	end;
+	t        = conj(exp(tmp1*[-tan(p(6)/2)*(1:g(2))-tan(p(5)/2)*k]));
+	v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
 end;
+
 for i=1:g(1),
-	t = trf([1 g(2) 1], sin(p(6)  )*i);
-	for k=1:g(3),
-		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
-	end;
+	t        = repmat(trf([1 g(2) 1], sin(p(6))*i),[1 1 g(3)]);
+	v(i,:,:) = real(ifft(fft(v(i,:,:),[],2).*t,[],2));
 end;
 for j=1:g(2),
-	t = trf([g(1) 1 1],-tan(p(6)/2)*j);
-	for k=1:g(3),
-		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
-	end;
+	t        = repmat(trf([g(1) 1 1],-tan(p(6)/2)*j),[1 1 g(3)]);
+	v(:,j,:) = real(ifft(fft(v(:,j,:),[],1).*t,[],1));
 end;
-if r==1, v=real(v); end
-if any(g~=d), tmp = v; v = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
+v1=v;
+if any(g~=d), tmp = v1; v1 = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
 
 return;
 %_______________________________________________________________________
@@ -1285,22 +1273,8 @@ function t = trf(sz,tr)
 %
 % This is a satellite routine for kspace3d
 %_______________________________________________________________________
-m  = prod(sz);
-t = reshape(fftshift(exp(sqrt(-1)*2*pi*tr*((-m/2):((m-1)/2))/m)'),sz);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function f=my_nextpow2(d)
-f=zeros(size(d));
-for j=1:prod(size(d)),
-	i=0;
-	while d(j)>1,
-		d(j) = d(j)/2;
-		i = i + 1;
-	end;
-	f(j) = 2^i;
-end;
+m = prod(sz);
+t = reshape(exp(sqrt(-1)*2*pi*tr*([0:((m-1)/2) 0 (-m/2+1):-1])/m)',sz);
 return;
 %_______________________________________________________________________
 
