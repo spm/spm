@@ -25,7 +25,7 @@ function x = spm_invXcdf(F,v)
 %
 % Algorithm:
 %-----------------------------------------------------------------------
-% Using routine spm_invXcdf for Gamma distribution, with appropriate parameters.
+% Using routine spm_invGcdf for Gamma distribution, with appropriate parameters.
 %
 % References:
 %-----------------------------------------------------------------------
