@@ -157,7 +157,7 @@ bL        = any(diff(I,1),1); 		%-Multiple factor levels?
 
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
-spm_figure('Clear',Fgraph)
+spm_results_ui('Clear',Fgraph,0)
 FS     = spm('FontSizes');
 
 %-Display header information
@@ -269,6 +269,10 @@ if spm_figure('#page')>1
 		'FontSize',FS(8),'FontAngle','italic')
 	spm_figure('NewPage',[hAx;get(hAx,'Children')])
 end
+
+%-Pop up the Graphics window
+%-----------------------------------------------------------------------
+figure(Fgraph)
 
 
 
@@ -415,21 +419,24 @@ if ~isempty(xs)
 	end
 end
 
+%-Pop up the Graphics window
+%-----------------------------------------------------------------------
+figure(Fgraph)
+
 
 
 case 'covs'                %-Plot and describe covariates (one per page)
 %=======================================================================
-% spm_DesRep('Covs',xC,X,Xnames)
-if nargin<4, error('insufficient arguments'), end
-xC     = varargin{2};	%-Struct array of covariate information
-X      = varargin{3};	%-nxp Design matrix
-Xnames = varargin{4};	%-px1 CellStr of parameter names
+% spm_DesRep('Covs',xX,xC)
+if nargin<3, error('insufficient arguments'), end
+xC     = varargin{3};	%-Struct array of covariate information
+if ~isstruct(varargin{2}), error('design matrix structure required'), end
 
-if ~length(xC), return, end
+if ~length(xC), spm('alert!','No covariates!',mfilename), return, end
 
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
-spm_figure('Clear',Fgraph)
+spm_results_ui('Clear',Fgraph,0)
 FS = spm('FontSizes');
 
 %-Title
@@ -452,23 +459,31 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 
 %-Design matrix (as underlay for plots) and parameter names
 %-----------------------------------------------------------------------
+[nScan,nPar]   = size(varargin{2}.X);
+if isfield(varargin{2},'Xnames') & ~isempty(varargin{2}.Xnames)
+	Xnames = varargin{2}.Xnames; else, Xnames = {}; end
+
 %-Design matrix
-nX = spm_DesMtx('sca',X,Xnames);
 hDesMtx = axes('Position',[.1 .5 .7 .3]);
-image((nX' + 1)*32);
+if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
+	image(varargin{2}.nKX'*32+32)
+elseif isfield(varargin{2},'xKXs') & ~isempty(varargin{2}.xKXs)
+	image(spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames)*32+32)
+else
+	image(spm_DesMtx('sca',varargin{2}.X,Xnames)*32+32)
+end
 set(hDesMtx,'Visible','off')
 
 %-Parameter names
 hParAx = axes('Position',[.8 .5 .2 .3],'Visible','off',...
 	'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
-	'YLim',[0.5,size(X,2)+0.5],'YDir','Reverse');
-hPNames = zeros(size(X,2),1);
-for i = 1:size(X,2), hPNames(i) = text(.05,i,Xnames{i}); end
+	'YLim',[0.5,nPar+0.5],'YDir','Reverse');
+hPNames = zeros(nPar,1);
+for i = 1:nPar, hPNames(i) = text(.05,i,Xnames{i}); end
 
 
 %-Covariates - one page each
 %-----------------------------------------------------------------------
-nScan = size(X,1);
 for i = 1:length(xC)
 
 	%-Title
@@ -571,6 +586,10 @@ for i = 1:length(xC)
 	end
 
 end
+
+%-Pop up the Graphics window
+%-----------------------------------------------------------------------
+figure(Fgraph)
 
 
 case 'scantick'
