@@ -6,7 +6,7 @@ function spm_spm_ui
 % spm_spm_ui configures the design matrix, data specification and
 % thresholds that specify the ensuing statistical analysis. These
 % arguments are passed to spm_spm that then performs the actual
-% analysis The design matrix defines the experimental design and the
+% analysis. The design matrix defines the experimental design and the
 % nature of hypothesis testing to be implemented.  The design matrix
 % has one row for each scan and one column for each effect or
 % parameter.  These parameters (e.g. mean condition effect, subject or
@@ -22,9 +22,9 @@ function spm_spm_ui
 % The effects are designated as (i) of interest or of no interest and (ii)
 % levels of a treatment (indicator type variables) or parameters
 % (covariates). E.g:
-% level of interest = condition effect
-% covariate of interest = reaction time. symptom severity, perfomance, etc
-% level of no interest = subject effect
+% level of interest        = condition effect
+% covariate of interest    = reaction time. symptom severity, perfomance, etc
+% level of no interest     = subject effect
 % covariate of no interest = global activity, time, age, dose, etc
 %
 % From the user's perspective it is important to specify the design
@@ -50,8 +50,6 @@ function spm_spm_ui
 %__________________________________________________________________________
 % %W% Andrew Holmes, Karl Friston %E%
 
-%-----------------------------------------------------------------------
-clear
 
 %-Get filenames and other user specified parameters
 %=======================================================================
@@ -100,7 +98,7 @@ DesDefaults = [ ...
 1,	1,	1,	0,	4,	1,	1,	12345;...	%-3b
 1,	1,	0,	1,	3,	1,	1,	12345	];	%-3d
 
-sGloNorm=str2mat(...
+sGloNorm = str2mat(...
 	'No Global Normalisation',...
 	'Proportional scaling',...
 	'AnCova',...
@@ -197,7 +195,7 @@ for stud  = 1:nStud
 			if ~bMRepl %-No replications within conditions
 				t_str = [sStud,sSubj,'Select scans ',...
 					 'conditions 1 -',int2str(nCond)];
- 				P = str2mat(P,spm_get(nCond,'.img',t_str));
+ 				P     = str2mat(P,spm_get(nCond,'.img',t_str));
 				iStud = [iStud, stud*ones(1,nCond)];
 				iSubj = [iSubj, subj*ones(1,nCond)];
 				iCond = [iCond, 1:nCond];
@@ -219,17 +217,12 @@ for stud  = 1:nStud
 				iRepl = [iRepl, 1:nRepl];
 
 			    end 		% (for cond)
-
 			end 			% (if ~bMRepl)
 		end 				% (for subject)
 	end 					% (if  nCond==...)
 end 						% (for study)
 
 P(1,:)  = [];
-
-%-clear working variables
-%-----------------------------------------------------------------------
-clear sStud sSubj nSubj bBalCond nCond subj cond
 
 %-Total #observations
 %-----------------------------------------------------------------------
@@ -259,23 +252,17 @@ eval(['[H,Hnames] = spm_DesMtx(',HForm,');'])
 if (nCOND == 1) | (nCOND == q)			%-Unestimable effects
 	H = []; Hnames = ''; end
 
-%-Include a constant term if empty H partition - design subpartition K
-%-----------------------------------------------------------------------
-if isempty(H)
-	K = ones(q,1); Knames = 'Constant';
-else
-	K = []; Knames = '';
-end
 
 %-Always model block (subject) effects if possible
 %-----------------------------------------------------------------------
-if (nSUBJ == 1) | (nSUBJ == q)		%-No | Unestimable effects
+if (nSUBJ == 1) | (nSUBJ == q)			%-Unestimable effects
 	B = []; Bnames = [];
 else
 	%-Use implicit SumToZero constraints via relative block effects & pinv.
 	%-See spm_DesMtx for more information on this.
+	%---------------------------------------------------------------
 	[B,Bnames] = spm_DesMtx(iSUBJ,'+0m','SUBJ');
-end % (if)
+end % 
 
 
 
@@ -301,11 +288,11 @@ if bAskCov
     J = J + 1;
     while size(Cc,2) < c
         nCcs = size(Cc,2);
-        d = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),J);
+        d    = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),J);
         if size(d,1) == 1, d = d'; end
         if size(d,1) == q
             if spm_input('Centre this covariate ?',J,'yes|no',[1 0]);
-                d = d - ones(q,1)*mean(d); end
+                d  = d - ones(q,1)*mean(d); end
             dnames = ['CovInt#',int2str(nCcs + 1)];
             if size(d,2) == 1
                 %-Single covariate entered - ask about interactions
@@ -339,6 +326,7 @@ if bAskCov
     end % (while)
 end % (if bAskCov)
 
+
 %-Strip off blank line from str2mat concatenations
 %-----------------------------------------------------------------------
 if size(Cc,2), Cnames(1,:) = []; Ccnames(1,:) = []; end
@@ -357,7 +345,7 @@ if bAskCov
         if (size(d,1) == 1), d = d'; end
         if size(d,1) == q
             if spm_input('Centre this covariate ?',J,'yes|no',[1 0]);
-                d = d - ones(q,1)*mean(d); end
+                d  = d - ones(q,1)*mean(d); end
             dnames = ['ConfCov#',int2str(nGcs+1)];
             if size(d,2) == 1
                 %-Single covariate entered - ask about interactions
@@ -386,6 +374,7 @@ if bAskCov
     end % (while)
 end % (if bAskCov)
 
+
 %-Strip off blank line from str2mat concatenations
 %-----------------------------------------------------------------------
 if size(Gc,2), Gnames(1,:)=[]; Gcnames(1,:)=[]; end
@@ -395,7 +384,8 @@ if size(Gc,2), Gnames(1,:)=[]; Gcnames(1,:)=[]; end
 %-----------------------------------------------------------------------
 if iGloNorm>9
 	%-User has a choice from the options in iGloNorm.
-	%-iGloNorm contains an integer, each digit specifies an allowable option
+	%-iGloNorm contains an integer, each digit specifies an option
+	%---------------------------------------------------------------
 	str = int2str(iGloNorm);
 	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
 	iGloNorm=spm_input...
@@ -404,21 +394,16 @@ if iGloNorm>9
 end
 
 
-%-Get orientation of images
-%-----------------------------------------------------------------------
-FLIP   = spm_input('Image left = subject''s ',J,'right|left',[1,0]);
-
-
 %-Get threshold defining voxels to analyse
 %-----------------------------------------------------------------------
 THRESH = spm_input('Gray matter threshold ?',J,'e',0.8);
 
 
-%-Get value to be assigned to grand mean:
-% 50 is usual for rCBF. 0 for no scaling
+%-Value to be assigned to grand mean: 50 is usual for rCBF. 0 for no scaling
 %-----------------------------------------------------------------------
 GM    = spm_input('Value for grand mean ?',J,'e',50);
 J     = J + 1;
+
 
 %-Get contrasts or linear compound for parameters of interest [H C]
 %-----------------------------------------------------------------------
@@ -426,13 +411,13 @@ t     = spm_input('# of contrasts',J);
 a     = size([H C],2);
 J     = J + 1;
 
-CONTRAST = []; % row matrix of contrasts
+
+CONTRAST = [];
 while size(CONTRAST,1) < t
 	d = spm_input(sprintf('[%d] - contrast %d',a,size(CONTRAST,1) + 1),J);
  	if (size(d,2) ~= a), d = d'; end
 	if (size(d,2) == a), CONTRAST = [CONTRAST; d]; end
 end % (while)
-
 
 
 %-The interactive parts of spm_spm_ui are now finished
@@ -459,7 +444,7 @@ if ~(all(all(~diff(V([1:6],:)'))))
 %-Get ORIGIN
 %-----------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN] = spm_hread(P(1,:));
-if DIM(3) == 1; ORIGIN = [0 0 0]; FLIP = 0; end
+if DIM(3) == 1; ORIGIN = [0 0 0]; end
 
 %-Compute global values
 %-----------------------------------------------------------------------
@@ -523,10 +508,19 @@ else
 end % (if)
 
 
+%-Include a constant term in G if H isempty
+%-----------------------------------------------------------------------
+if ~size(H,2)
+	K = ones(q,1); Knames = 'Constant';
+	G = [G K];
+   	if isempty(Gnames), Gnames = Knames;
+       	else Gnames = str2mat(Gnames,Knames); end
+end
+
 %-Construct full design matrix and name matrices for display
 %-----------------------------------------------------------------------
-[nKHCBG,KHCBGnames]=...
-	spm_DesMtxSca(K,Knames,H,Hnames,C,Cnames,B,Bnames,G,Gnames);
+[nHCBG,HCBGnames]=...
+	spm_DesMtxSca(H,Hnames,C,Cnames,B,Bnames,G,Gnames);
 
 
 %-Ensure validity of contrast of condition effects, zero pad
@@ -539,7 +533,7 @@ if d
 	end % (for)
 end % (if)
 
-CONTRAST = [zeros(a,size(K,2)), CONTRAST, zeros(a,size([B G],2))];
+CONTRAST = [CONTRAST, zeros(a,size([B G],2))];
 
 
 %-Display analysis parameters
@@ -549,7 +543,8 @@ CONTRAST = [zeros(a,size(K,2)), CONTRAST, zeros(a,size([B G],2))];
 %-----------------------------------------------------------------------
 d     = max(find(P(1,1:min(find(~all(P == ones(q,1)*P(1,:))))-1)=='/')) - 1;
 CPath = P(1,1:d);
-Q     = P(:,d+1:size(P,2));
+Q     = P(:,[(d + 1):size(P,2)]);
+
 
 %-Display
 %-----------------------------------------------------------------------
@@ -603,12 +598,6 @@ if (GM~=0)
 	text(0,y,sprintf(['Images scaled to a grand mean of %g'],GM))
 	y = y - dy;
 end
-if (FLIP)
-	text(0,y,'The data will be flipped in accord with neurological')
-	y = y - dy;
-	text(0,y,['convention - left corresponds to the subjects left'])
-	y = y - dy;
-end
 text(0,y,sprintf(...
     'Gray matter threshold is %6.0f%% of the whole brain mean',THRESH*100))
 
@@ -623,14 +612,14 @@ text(0.30,1.02,'Design Matrix','Fontsize',16,'Fontweight','Bold');
 %-Label the effects
 %-----------------------------------------------------------------------
 hDesMtx = axes('Position',[0.2 0.3 0.6 0.5]);
-image((nKHCBG + 1)*32);
+image((nHCBG + 1)*32);
 ylabel('Observations')
 xlabel('effects')
 hEfLabs = axes('Position',[0.2 0.82 0.6 0.1],'Visible','off');
 y     = 0.1;
-dx    = 1/size(nKHCBG,2);
-for i = 1:size(nKHCBG,2)
-	text((i - 0.5)*dx,y,deblank(KHCBGnames(i,:)),...
+dx    = 1/size(nHCBG,2);
+for i = 1:size(nHCBG,2)
+	text((i - 0.5)*dx,y,deblank(HCBGnames(i,:)),...
 		'Fontsize',8,'Rotation',90)
 end % (for)
 
@@ -642,19 +631,20 @@ text(0,1,['Design: ',DesName]);
 text(0,.8,['Global normalisation: ',deblank(sGloNorm(iGloNorm,:))]);
 
 text(0,.6,'Parameters:','Fontsize',12,'Fontweight','Bold');
-text(0,.4,sprintf(['%d (Constant) + %d Condition + %d Covariate ',...
+text(0,.4,sprintf(['%d Condition + %d Covariate ',...
 	'+ %d Block + %d Confound'],...
-	size(K,2),size(H,2),size(C,2),size(B,2),size(G,2)),...
+	size(H,2),size(C,2),size(B,2),size(G,2)),...
 	'Fontsize',10);
 text(0,.25,sprintf(['= %d parameters, having %d degrees of freedom, ',...
 	'giving %d residual df (%d scans).'],...
-	size([K H C B G],2),rank([K H C B G]),q-rank([K H C B G]),q),...
+	size([H C B G],2),rank([H C B G]),q - rank([H C B G]),q),...
 	'Fontsize',10);
 
 spm_print
 
 %-Implement analysis proper
 %=======================================================================
-Ut = spm_invNcdf(1 - 0.01);
-spm_spm(V,K,H,C,B,G,CONTRAST,Ut,ORIGIN,THRESH*GX,FLIP,KHCBGnames);
 
+%-This is PET data so sigma = 0 (i.e. independent observations)
+%-----------------------------------------------------------------------
+spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
