@@ -34,12 +34,13 @@ mfname = fullfile(pth,[nam '.mat']);
 ifname = fullfile(pth,[nam   ext ]);
 
 if nargin == 1,
+
 	% If we can read info from a ".mat" file with the corresponding
 	% name, then use this information.
 	if exist(mfname) == 2,
 		clear M
 		str = load(mfname);
-		if isfield(str,'mat') & n<size(str.mat,3),
+		if isfield(str,'mat') & n<=size(str.mat,3),
 			M = str.mat(:,:,n);
 			return;
 		elseif isfield(str,'M'),
