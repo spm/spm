@@ -1,6 +1,6 @@
-function [p,fret] = spm_powell(p,xi,tolsc,func,varargin)
+function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Powell optimisation method
-% FORMAT [p,fret] = spm_powell(p,xi,tolsc,func,varargin)
+% FORMAT [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % 	p        - Starting parameter values
 %	xi       - columns containing directions in which to begin
 % 	           searching.
@@ -11,36 +11,33 @@ function [p,fret] = spm_powell(p,xi,tolsc,func,varargin)
 % 	varargin - remaining arguments to func (after p)
 %
 % 	p        - final parameter estimates
-% 	fret     - function value at minimum
+% 	f        - function value at minimum
 %
 %_______________________________________________________________________
-% Method is documented in Numerical Recipes in C (Press, Flannery,
-% Teukolsky & Vetterling).
+% Method is based on Powell's optimisation method from Numerical Recipes
+% in C (Press, Flannery, Teukolsky & Vetterling).
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
 p     = p(:);
-fret  = feval(func,p,varargin{:});
+f     = feval(func,p,varargin{:});
 for iter=1:128,
 	fprintf('iteration %d...\n', iter);
-	pt   = p;
-	fp   = fret;
+	pp   = p;
+	fp   = f;
 	del  = 0;
 	for i=1:length(p),
-		fptt = fret;
-		[p,junk,fret] = linmin(p,xi(:,i),func,fret,tolsc,varargin{:});
-		if abs(fptt-fret) > del,
-			del  = abs(fptt-fret);
+		ft = f;
+		[p,junk,f] = linmin(p,xi(:,i),func,f,tolsc,varargin{:});
+		if abs(ft-f) > del,
+			del  = abs(ft-f);
 			ibig = i;
 		end;
 	end;
-	if sqrt(sum(((p(:)-pt(:))./tolsc(:)).^2))<1, return; end;
-	fptt = feval(func,2.0*p-pt,varargin{:});
-	if fptt < fp,
-		t = 2.0*(fp-2.0*fret+fptt)*(fp-fret-del).^2-del*(fp-fptt).^2;
-		if t < 0.0,
-			[p,xi(:,ibig),fret] = linmin(p,p-pt,func,fret,tolsc,varargin{:});
-		end;
+	if sqrt(sum(((p(:)-pp(:))./tolsc(:)).^2))<1, return; end;
+	ft = feval(func,2.0*p-pp,varargin{:});
+	if ft < f,
+		[p,xi(:,ibig),f] = linmin(p,p-pp,func,f,tolsc,varargin{:});
 	end;
 end;
 warning('Too many optimisation iterations');
@@ -48,22 +45,26 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [p,pi,fret] = linmin(p,pi,func,fret,tolsc,varargin)
+function [p,pi,f] = linmin(p,pi,func,f,tolsc,varargin)
 % Line search for minimum.
 
 global lnm % used in linmineval
 lnm      = struct('p',p,'pi',pi,'func',func,'args',[]);
 lnm.args = varargin;
+
 linmin_plot('Init', 'Line Minimisation','Function','Parameter Value');
-linmin_plot('Set', 0, fret);
-tol           = 1/sqrt(sum((pi(:)./tolsc(:)).^2));
-t             = bracket(fret);
-[fret,pmin]   = brents(t,tol);
-pi            = pi*pmin;
-p             = p + pi;
-for i=1:length(p), fprintf('%-8.4g', p(i)); end;
-fprintf(' | %.5g\n',-fret);
+linmin_plot('Set', 0, f);
+
+tol      = 1/sqrt(sum((pi(:)./tolsc(:)).^2));
+t        = bracket(f);
+[f,pmin] = brents(t,tol);
+pi       = pi*pmin;
+p        = p + pi;
+
+for i=1:length(p), fprintf('%-8.4g ', p(i)); end;
+fprintf('| %.5g\n', f);
 linmin_plot('Clear');
+
 return;
 %_______________________________________________________________________
 
@@ -106,7 +107,7 @@ while t(2).f > t(3).f,
 
 	% minimum is when gradient of polynomial is zero
 	% sign of pol(3) (the 2nd deriv) should be +ve
-	d   = pol(2)/(2*pol(3)+eps);
+	d   = -pol(2)/(2*pol(3)+eps);
 	u.p = t(2).p+d;
 
 	ulim = t(2).p+100*(t(3).p-t(2).p);
@@ -205,7 +206,7 @@ for iter=1:128,
 	pol = pinv([ones(3,1) tmp tmp.^2])*cat(1,t.f);
 
 	% minimum is when gradient of polynomial is zero
-	d   = pol(2)/(2*pol(3)+eps);
+	d   = -pol(2)/(2*pol(3)+eps);
 	u.p = t(1).p+d;
 
 	% check so that displacement is less than the last but two,
@@ -243,7 +244,7 @@ for iter=1:128,
 		end;
 	end;
 end;
-warning('Too many iterations in Brent');
+warning('Too many iterations in Brents');
 return;
 %_______________________________________________________________________
 
