@@ -82,8 +82,28 @@ function varargout = spm_orthviews(action,varargin)
 % hReg      - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %
+% FORMAT spm_orthviews('AddQuiver',handle, Vqfnames, Vmaskfname, ...
+%                                  [MaskMin, MaskMax, ls, qst, ql])
+%
+% Adds 3D-quiver plots of vector data to the image specified by handle.
+% handle   - image number to add quiver plots to
+% Vqfnames - names of files containing the vector x-, y- and z-directions
+%            ( string array as returned by spm_get(3,'*.img') )
+% Vmaskfname - name of file containing a mask for display of quiver plots
+%              This can be e.g. a brain mask or a mask of white matter 
+%
+% Optional arguments
+% MaskMin  - Minimum threshold for masking (default 0.1)
+% MaskMax  - Maximum threshold for masking (default Inf)
+% ls       - Line style for quiver (default 'y.')
+% qst      - Step size for display of quiver lines (default 3)
+% ql       - Scaling factor for length of quiver lines (default 0.5)
+%
+% FORMAT spm_orthviews('RmQuiver', handle)
+%
+% Removes all quiver plots from the image specified by handle
 %_______________________________________________________________________
-% %W% John Ashburner & Matthew Brett %E%
+% %W% John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche %E%
 
 
 % The basic fields of st are:
@@ -254,6 +274,7 @@ case 'addblobs',
 
 case 'addcolouredblobs',
 	addcolouredblobs(varargin{1}, varargin{2},varargin{3},varargin{4},varargin{5});
+	redraw(varargin{1});
 
 case 'addimage',
 	addimage(varargin{1}, varargin{2});
@@ -261,49 +282,57 @@ case 'addimage',
 
 case 'addcolouredimage',
 	addcolouredimage(varargin{1}, varargin{2},varargin{3});
- 
-case 'addtruecolourimage',
- % spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
- % Adds blobs from an image in true colour
- % handle   - image number to add blobs to [default 1]
- % filename of image containing blob data [default - request via GUI]
- % colourmap - colormap to display blobs in [GUI input]
- % prop - intensity proportion of activation cf grayscale [0.4]
- % mx   - maximum intensity to scale to [maximum value in activation image]
- % mn   - minimum intensity to scale to [minimum value in activation image]
- %
- if nargin < 2
-   varargin(1) = {1};
- end
- if nargin < 3
-   varargin(2) = {spm_get(1, 'img', 'Image with activation signal')};
- end
- if nargin < 4
-   actc = [];
-   while isempty(actc)
-     actc = getcmap(spm_input('Colourmap for activation image', '+1','s'));
-   end
-   varargin(3) = {actc};
- end
- if nargin < 5
-   varargin(4) = {0.4};
- end
- if nargin < 6
-   actv = spm_vol(varargin{2});
-   varargin(5) = {max([eps maxval(actv)])};
- end
- if nargin < 7
-   varargin(6) = {min([0 minval(actv)])};
- end
+	redraw(varargin{1});
 
- addtruecolourimage(varargin{1}, varargin{2},varargin{3}, varargin{4}, ...
-		    varargin{5}, varargin{6});
- redraw(varargin{1});
+case 'addtruecolourimage',
+	% spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
+	% Adds blobs from an image in true colour
+	% handle   - image number to add blobs to [default 1]
+	% filename of image containing blob data [default - request via GUI]
+	% colourmap - colormap to display blobs in [GUI input]
+	% prop - intensity proportion of activation cf grayscale [0.4]
+	% mx   - maximum intensity to scale to [maximum value in activation image]
+	% mn   - minimum intensity to scale to [minimum value in activation image]
+	%
+	if nargin < 2
+		varargin(1) = {1};
+	end
+	if nargin < 3
+		varargin(2) = {spm_get(1, 'img', 'Image with activation signal')};
+	end
+	if nargin < 4
+		actc = [];
+		while isempty(actc)
+			actc = getcmap(spm_input('Colourmap for activation image', '+1','s'));
+		end
+		varargin(3) = {actc};
+	end
+	if nargin < 5
+		varargin(4) = {0.4};
+	end
+	if nargin < 6
+		actv = spm_vol(varargin{2});
+		varargin(5) = {max([eps maxval(actv)])};
+	end
+	if nargin < 7
+		varargin(6) = {min([0 minval(actv)])};
+	end
+
+	addtruecolourimage(varargin{1}, varargin{2},varargin{3}, varargin{4}, ...
+	                   varargin{5}, varargin{6});
+	redraw(varargin{1});
 
 case 'rmblobs',
 	rmblobs(varargin{1});
 	redraw(varargin{1});
 
+case 'addquiver' %VG
+	addquiver(varargin{1}, varargin{2}, varargin{3:end});
+	redraw(varargin{1});
+    
+case 'rmquiver',
+	rmquiver(varargin{1});
+	redraw(varargin{1});
 otherwise,
 	warning('Unknown action string')
 end;
@@ -438,6 +467,65 @@ for i=valid_handles(handle),
 			end;
 		end;
 		st.vols{i} = rmfield(st.vols{i},'blobs');
+	end;
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function addquiver(handle, Vqfnames, Vmaskfname, Vfafname, varargin)
+global st
+Vq = spm_vol(Vqfnames);
+Vmask = spm_vol(Vmaskfname);
+Vfa = spm_vol(Vfafname);
+if length(Vq) == 3
+    for i=valid_handles(handle),
+        st.vols{i}.quiver = struct('qx',Vq(1),'qy',Vq(2),'qz',Vq(3), ...
+            'mask',Vmask, 'fa',Vfa, 'maskmin', .1, 'maskmax', Inf, 'ls','y.', ...
+            'qst',3,'ql',.9,'qht',[],'qhc',[],'qhs',[]);
+    end;
+else
+    error('addquiver: Please specify 3 images!');
+end;
+if nargin > 4
+    if ~isempty(varargin{1})
+        st.vols{i}.quiver.maskmin = varargin{1};
+    end;
+end;
+if nargin > 5
+    if ~isempty(varargin{2})
+        st.vols{i}.quiver.maskmax = varargin{2};
+    end;
+end
+if nargin > 6
+    if isstr(varargin{3})
+        st.vols{i}.quiver.ls = varargin{3};
+    end;
+end;
+if nargin > 7
+    if ~isempty(varargin{4})
+        st.vols{i}.quiver.qst = varargin{4};
+    end;
+end;
+if isempty(st.vols{i}.quiver.fa)
+  st.vols{i}.quiver.ql = .35;
+end;
+if nargin > 8
+    if ~isempty(varargin{5})
+        st.vols{i}.quiver.ql = varargin{5};
+    end;
+end;
+
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function rmquiver(handle)
+global st
+for i=valid_handles(handle),
+	if isfield(st.vols{i},'quiver'),
+		delete(st.vols{i}.quiver.qht);
+        delete(st.vols{i}.quiver.qhc);
+        delete(st.vols{i}.quiver.qhs);
+		st.vols{i} = rmfield(st.vols{i},'quiver');
 	end;
 end;
 return;
@@ -588,10 +676,10 @@ DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
 V.ax = cell(3,1);
 for i=1:3,
 	ax = axes('Visible','off','DrawMode','fast','Parent',st.fig,'DeleteFcn',DeleteFcn,...
-		'YDir','normal');
+		'YDir','normal','ButtonDownFcn','spm_orthviews(''Reposition'');');
 	d  = image(0,'Tag','Transverse','Parent',ax,...
 		'DeleteFcn',DeleteFcn);
-	set(ax,'Ydir','normal');
+	set(ax,'Ydir','normal','ButtonDownFcn','spm_orthviews(''Reposition'');');
 	lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 	ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 	if ~st.xhairs,
@@ -616,7 +704,8 @@ TD = Dims([1 2])';
 CD = Dims([1 3])';
 if st.mode == 0, SD = Dims([3 2])'; else, SD = Dims([2 3])'; end;
 
-un    = get(st.fig,'Units');set(st.fig,'Units','Pixels');sz=get(st.fig,'Position');set(st.fig,'Units',un);
+un    = get(st.fig,'Units');set(st.fig,'Units','Pixels');
+sz    = get(st.fig,'Position');set(st.fig,'Units',un);
 sz    = sz(3:4);
 sz(2) = sz(2)-40;
 
@@ -782,8 +871,8 @@ for i = valid_handles(arg1),
 				imgc = imgc*scal+dcoff;
 				imgs = imgs*scal+dcoff;
 
-				vol = st.vols{i}.blobs{1}.vol;
-				mat = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
+
+
 				if isfield(st.vols{i}.blobs{1},'max'),
 					mx = st.vols{i}.blobs{1}.max;
 				else,
@@ -875,15 +964,20 @@ for i = valid_handles(arg1),
 				imgc = repmat(imgc*scal+dcoff,[1,1,3]);
 				imgs = repmat(imgs*scal+dcoff,[1,1,3]);
 
-				for j=1:length(st.vols{i}.blobs),
-					vol = st.vols{i}.blobs{j}.vol;
-					mat = st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
+				cimgt = zeros(size(imgt));
+				cimgc = zeros(size(imgc));
+				cimgs = zeros(size(imgs));
+				for j=1:length(st.vols{i}.blobs), % get colours of all images first
 					if isfield(st.vols{i}.blobs{j},'colour'),
-						colour = st.vols{i}.blobs{j}.colour;
+						colour(j,:) = reshape(st.vols{i}.blobs{j}.colour, [1 3]);
 					else,
-						colour = [1 0 0];
+						colour(j,:) = [1 0 0];
 					end;
-					if isfield(st.vols{i}.blobs{j},'max'),
+				end;
+				colour = colour/max(sum(colour));   % scale to preserve colour proportions (users may specify non-orthogonal colours)
+
+				for j=1:length(st.vols{i}.blobs),
+				if isfield(st.vols{i}.blobs{j},'max'),
 						mx = st.vols{i}.blobs{j}.max;
 					else,
 						mx = max([eps max(st.vols{i}.blobs{j}.vol(:))]);
@@ -905,18 +999,27 @@ for i = valid_handles(arg1),
 					tmpc(find(~finite(tmpc))) = 0;
 					tmps(find(~finite(tmps))) = 0;
 
-					tmp  = cat(3,tmpt*colour(1),tmpt*colour(2),tmpt*colour(3));
-					imgt = (repmat(1-tmpt,[1 1 3]).*imgt+tmp);
+					tmp  = cat(3,tmpt*colour(j,1),tmpt*colour(j,2),tmpt*colour(j,3));
+					cimgt = cimgt+tmp;
+					tmp = find(cimgt<0); cimgt(tmp)=0; tmp = find(cimgt>1); cimgt(tmp)=1;
+					imgt = repmat(1-tmpt,[1 1 3]).*imgt;
 					tmp = find(imgt<0); imgt(tmp)=0; tmp = find(imgt>1); imgt(tmp)=1;
 
-					tmp  = cat(3,tmpc*colour(1),tmpc*colour(2),tmpc*colour(3));
-					imgc = (repmat(1-tmpc,[1 1 3]).*imgc+tmp);
+					tmp  = cat(3,tmpc*colour(j,1),tmpc*colour(j,2),tmpc*colour(j,3));
+					cimgc = cimgc+tmp;
+					tmp = find(cimgc<0); cimgc(tmp)=0; tmp = find(cimgc>1); cimgc(tmp)=1;
+					imgc = repmat(1-tmpc,[1 1 3]).*imgc;
 					tmp = find(imgc<0); imgc(tmp)=0; tmp = find(imgc>1); imgc(tmp)=1;
 
-					tmp  = cat(3,tmps*colour(1),tmps*colour(2),tmps*colour(3));
-					imgs = (repmat(1-tmps,[1 1 3]).*imgs+tmp);
+					tmp  = cat(3,tmps*colour(j,1),tmps*colour(j,2),tmps*colour(j,3));
+					cimgs = cimgs+tmp;
+					tmp = find(cimgs<0); cimgs(tmp)=0; tmp = find(cimgs>1); cimgs(tmp)=1;
+					imgs = repmat(1-tmps,[1 1 3]).*imgs;
 					tmp = find(imgs<0); imgs(tmp)=0; tmp = find(imgs>1); imgs(tmp)=1;
 				end;
+				imgt = (1-cimgt).*imgt+cimgt;
+				imgc = (1-cimgc).*imgc+cimgc;
+				imgs = (1-cimgs).*imgs+cimgs;
 			end;
 		else,
 			scal = 64/(mx-mn);
@@ -926,31 +1029,138 @@ for i = valid_handles(arg1),
 			imgs = imgs*scal+dcoff;
 		end;
 
-		callback = 'spm_orthviews(''Reposition'');';
-
-		set(st.vols{i}.ax{1}.d,'ButtonDownFcn',callback, 'Cdata',imgt);
-		set(st.vols{i}.ax{1}.lx,'ButtonDownFcn',callback,...
+		set(st.vols{i}.ax{1}.d,'HitTest','off', 'Cdata',imgt);
+		set(st.vols{i}.ax{1}.lx,'HitTest','off',...
 			'Xdata',[0 TD(1)]+0.5,'Ydata',[1 1]*(cent(2)-bb(1,2)+1));
-		set(st.vols{i}.ax{1}.ly,'ButtonDownFcn',callback,...
+		set(st.vols{i}.ax{1}.ly,'HitTest','off',...
 			'Ydata',[0 TD(2)]+0.5,'Xdata',[1 1]*(cent(1)-bb(1,1)+1));
 
-		set(st.vols{i}.ax{2}.d,'ButtonDownFcn',callback, 'Cdata',imgc);
-		set(st.vols{i}.ax{2}.lx,'ButtonDownFcn',callback,...
+		set(st.vols{i}.ax{2}.d,'HitTest','off', 'Cdata',imgc);
+		set(st.vols{i}.ax{2}.lx,'HitTest','off',...
 			'Xdata',[0 CD(1)]+0.5,'Ydata',[1 1]*(cent(3)-bb(1,3)+1));
-		set(st.vols{i}.ax{2}.ly,'ButtonDownFcn',callback,...
+		set(st.vols{i}.ax{2}.ly,'HitTest','off',...
 			'Ydata',[0 CD(2)]+0.5,'Xdata',[1 1]*(cent(1)-bb(1,1)+1));
 
-		set(st.vols{i}.ax{3}.d,'ButtonDownFcn',callback,'Cdata',imgs);
+		set(st.vols{i}.ax{3}.d,'HitTest','off','Cdata',imgs);
 		if st.mode ==0,
-			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
+			set(st.vols{i}.ax{3}.lx,'HitTest','off',...
 				'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(2)-bb(1,2)+1));
-			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
+			set(st.vols{i}.ax{3}.ly,'HitTest','off',...
 				'Ydata',[0 SD(2)]+0.5,'Xdata',[1 1]*(cent(3)-bb(1,3)+1));
 		else,
-			set(st.vols{i}.ax{3}.lx,'ButtonDownFcn',callback,...
+			set(st.vols{i}.ax{3}.lx,'HitTest','off',...
 				'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(3)-bb(1,3)+1));
-			set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
+			set(st.vols{i}.ax{3}.ly,'HitTest','off',...
 				'Ydata',[0 SD(2)]+0.5,'Xdata',[1 1]*(bb(2,2)+1-cent(2)));
+		end;
+
+		if isfield(st.vols{i},'quiver')
+			% need to delete old quiver lines before redrawing
+			delete(st.vols{i}.quiver.qht);
+			delete(st.vols{i}.quiver.qhc);
+			delete(st.vols{i}.quiver.qhs);
+            
+			qx  = st.vols{i}.quiver.qx;
+			qy  = st.vols{i}.quiver.qy;
+			qz  = st.vols{i}.quiver.qz;
+			mask = st.vols{i}.quiver.mask;
+			fa = st.vols{i}.quiver.fa;
+			maskmin = st.vols{i}.quiver.maskmin;
+			maskmax = st.vols{i}.quiver.maskmax;
+			ls = st.vols{i}.quiver.ls;
+            
+			% step size for selection of locations
+			qst = ceil(st.vols{i}.quiver.qst/st.Space(1,1)); 
+			ql = st.vols{i}.quiver.ql; % scaling of arrow length
+			qst1 = ceil(qst/2);
+
+			Mx   = st.vols{i}.premul*qx.mat;
+			My   = st.vols{i}.premul*qy.mat;
+			Mz   = st.vols{i}.premul*qz.mat;
+			Mm   = st.vols{i}.premul*mask.mat;
+			if ~isempty(fa)
+				fat = spm_slice_vol(fa,inv(TM0*(st.Space\Mx)),TD,0)';
+			else
+				fat = 1;
+			end;
+			qxt = fat.*spm_slice_vol(qx,inv(TM0*(st.Space\Mx)),TD,0)';
+			qyt = fat.*spm_slice_vol(qy,inv(TM0*(st.Space\My)),TD,0)';
+			qzt = fat.*spm_slice_vol(qz,inv(TM0*(st.Space\Mz)),TD,0)';
+
+			maskt = spm_slice_vol(mask,inv(TM0*(st.Space\Mm)),TD,0)';
+			xt = [1:TD(1)]-.5; 
+			yt = [1:TD(2)]-.5;
+			zt = zeros(size(qxt));
+			zt((maskt < maskmin)|(maskt > maskmax)) = NaN;
+			zt((qxt == 0) & (qyt == 0) & (qzt == 0)) = NaN;
+            
+			if ~isempty(fa)
+				fac = spm_slice_vol(fa,inv(CM0*(st.Space\Mx)),CD,0)';
+			else
+				fac = 1;
+			end;
+			qxc = fac.*spm_slice_vol(qx,inv(CM0*(st.Space\Mx)),CD,0)';
+			qyc = fac.*spm_slice_vol(qy,inv(CM0*(st.Space\My)),CD,0)';
+			qzc = fac.*spm_slice_vol(qz,inv(CM0*(st.Space\Mz)),CD,0)';
+
+			maskc = spm_slice_vol(mask,inv(CM0*(st.Space\Mm)),CD,0)';
+			xc = [1:CD(1)]-.5;
+			yc = [1:CD(2)]-.5;
+			zc = zeros(size(qxc));
+			zc((maskc < maskmin)|(maskc > maskmax)) = NaN;
+			zc((qxc == 0) & (qyc == 0) & (qzc == 0)) = NaN;            
+ 
+			if ~isempty(fa)
+				fas = spm_slice_vol(fa,inv(SM0*(st.Space\Mx)),SD,0)';
+			else
+				fas = 1;
+			end;   
+			qxs = fas.*spm_slice_vol(qx,inv(SM0*(st.Space\Mx)),SD,0)';
+			qys = fas.*spm_slice_vol(qy,inv(SM0*(st.Space\My)),SD,0)';
+			qzs = fas.*spm_slice_vol(qz,inv(SM0*(st.Space\Mz)),SD,0)';
+            
+			masks = spm_slice_vol(mask,inv(SM0*(st.Space\Mm)),SD,0)';
+			xs = [1:SD(1)]-.5;
+			ys = [1:SD(2)]-.5;
+			zs = zeros(size(qxs));
+			zs((masks < maskmin)|(masks > maskmax)) = NaN;
+			zs((qxs == 0) & (qys == 0) & (qzs == 0)) = NaN;
+
+			% transverse - plot (x y z)
+			np = get(st.vols{i}.ax{1}.ax,'NextPlot');
+			set(st.vols{i}.ax{1}.ax,'NextPlot','add');
+			axes(st.vols{i}.ax{1}.ax);
+			st.vols{i}.quiver.qht = quiver3(xt(qst1:qst:end),...
+				yt(qst1:qst:end), zt(qst1:qst:end,qst1:qst:end), ...
+				qxt(qst1:qst:end,qst1:qst:end),...
+				qyt(qst1:qst:end,qst1:qst:end),...
+				qzt(qst1:qst:end,qst1:qst:end),ql,ls);
+			set(st.vols{i}.ax{1}.ax,'NextPlot',np);
+			set(st.vols{i}.quiver.qht, 'Parent',st.vols{i}.ax{1}.ax, 'HitTest','off');
+            
+			% coronal - plot (x z y)
+			np = get(st.vols{i}.ax{2}.ax,'NextPlot');
+			set(st.vols{i}.ax{2}.ax,'NextPlot','add');
+			axes(st.vols{i}.ax{2}.ax);
+			st.vols{i}.quiver.qhc = quiver3(xc(qst1:qst:end),...
+			yc(qst1:qst:end), zc(qst1:qst:end,qst1:qst:end), ...
+			qxc(qst1:qst:end,qst1:qst:end), ...
+			qzc(qst1:qst:end,qst1:qst:end), ...
+			qyc(qst1:qst:end,qst1:qst:end),ql, ls);
+			set(st.vols{i}.ax{2}.ax,'NextPlot',np);
+			set(st.vols{i}.quiver.qhc, 'Parent',st.vols{i}.ax{2}.ax, 'HitTest','off');
+            
+			% sagittal - plot (y z x)
+			np = get(st.vols{i}.ax{3}.ax,'NextPlot');
+			set(st.vols{i}.ax{3}.ax,'NextPlot','add');
+			axes(st.vols{i}.ax{3}.ax);
+			st.vols{i}.quiver.qhs = quiver3(xs(qst1:qst:end),...
+				ys(qst1:qst:end), zs(qst1:qst:end,qst1:qst:end), ...
+				qys(qst1:qst:end,qst1:qst:end), ...
+				qzs(qst1:qst:end,qst1:qst:end), ...
+				qxs(qst1:qst:end,qst1:qst:end),ql,ls);
+			set(st.vols{i}.ax{3}.ax,'NextPlot',np);
+			set(st.vols{i}.quiver.qhs, 'Parent',st.vols{i}.ax{3}.ax, 'HitTest','off');
 		end;
 	end;
 end;
@@ -967,11 +1177,7 @@ cp     = [];
 for i=valid_handles(1:24),
 	for j=1:3,
 		if ~isempty(obj),
-			if any([st.vols{i}.ax{j}.d  ...
-				st.vols{i}.ax{j}.lx ...
-				st.vols{i}.ax{j}.ly]== obj)
-				cp = get(get(obj,'Parent'),'CurrentPoint');
-			elseif (st.vols{i}.ax{j}.ax == obj),
+			if (st.vols{i}.ax{j}.ax == obj),
 				cp = get(obj,'CurrentPoint');
 			end;
 		end;
@@ -1047,3 +1253,4 @@ if size(cmap, 2)~=3
   cmap = [];
 end
 return
+
