@@ -138,7 +138,11 @@ Fi  = (1:S)'/S*q/cV;
 %-----------------------------------------------------------------------
 I = max(find(Ps<=Fi));
 if isempty(I)
-  u = Inf;
+  if STAT == 'P'
+    u = 0;
+  else    
+    u = Inf;
+  end    
 else
   if isstruct(Vs)
     u = Ts(I);
