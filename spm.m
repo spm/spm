@@ -41,8 +41,12 @@ function [R1,R2]=spm(Action,P2,P3)
 % 'Graphics' respectively, and should be referred to by their tags
 % rather than their figure numbers.)
 %
+% If a "message of the day" file named spm_motd.man exists in the SPM
+% directory (alongside spm.m) then it is displayed in the Graphics
+% window on startup.
+%
 % Arguments to this routine lead to various setup facilities, mainly of
-% use to SPM power users and programmers. See the programmers FORMAT &
+% use to SPM power users and programmers. See programmers FORMAT &
 % help in the main body of spm.m
 %
 %_______________________________________________________________________
@@ -117,9 +121,12 @@ function [R1,R2]=spm(Action,P2,P3)
 % identified as the first in MATLABPATH containing the Mfile spm (this
 % file) (or Fname if specified).
 %
-% FORMAT SPMver=spm('Ver')
+% FORMAT SPMver=spm('Ver',Fname,ReDo)
 % Returns the current version of SPM, identified by the top line of the
-% spm.man file in the directory containing the currently used spm.m
+% spm.man file in the directory containing the currently used file
+% Fname (defaults on omission or empty to 'spm'). Inside SPM, the
+% version is saved as the UserData of the Menu window, for quick
+% retrieval. Specifying the ReDo argument forces re-evaluation.
 %
 % FORMAT [c,cName]=spm('Colour')
 % Returns the rgb tripls and a description for the current en-vogue SPm
@@ -172,7 +179,6 @@ F = figure('Color',[1 1 1]*.8,...
 	'Tag','Welcome',...
 	'Pointer','Watch',...
 	'Visible','off');
-spm('SetWinDefaults')
 spm('SetCmdWinLabel')
 
 %-Frames and text
@@ -247,33 +253,32 @@ elseif strcmp(lower(Action),lower('PET')) | ...
 % spm(Modality)
 
 clc
-spm('AsciiWelcome'),			fprintf('Initialising')
+spm('AsciiWelcome'),			fprintf('\n\nInitialising SPM')
 
-Modality = upper(Action);
+Modality = upper(Action);					fprintf('.')
 
-close all,				fprintf('.')
+close all,							fprintf('.')
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------
-Fmenu = spm('CreateMenuWin','off');	fprintf('.')
-Finter = spm('CreateIntWin','off');	fprintf('.')
-spm('SetWinDefaults')
-Fgraph = spm_figure('Create','Graphics','Graphics','off');
-					fprintf('.')
+Fmenu = spm('CreateMenuWin','off');				fprintf('.')
+Finter = spm('CreateIntWin','off');				fprintf('.')
+spm_figure('WaterMark',Finter,spm('Ver'),'NoDelete',45),	fprintf('.')
+spm('SetWinDefaults'),						fprintf('.')
+Fgraph = spm_figure('Create','Graphics','Graphics','off');	fprintf('.')
 
 Fmotd = [spm('Dir'),'/spm_motd.man'];
-if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver'));
-	else, spm_figure('WaterMark',Fgraph,spm('Ver')), end
-					fprintf('.')
+if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
+								fprintf('.')
 
 %-Setup for current modality
 %-----------------------------------------------------------------------
-spm('ChMod',Modality),			fprintf('.')
+spm('ChMod',Modality),						fprintf('.')
 
 %-Reveal windows
 %-----------------------------------------------------------------------
 set([Fmenu,Finter,Fgraph],'Visible','on')
-					fprintf('\n')
+							fprintf('done\n\n')
 
 return
 
@@ -293,8 +298,11 @@ close(spm_figure('FindWin','Menu'))
 A = spm('GetWinScale');
 Rect = spm('WinSize','Menu','raw').*A;
 
+SPMver = spm('Ver','',1);
+
 Fmenu = figure('Tag','Menu',...
-	'Name',spm('Ver'),...
+	'UserData',SPMver,...
+	'Name',SPMver,...
 	'Color',[1 1 1]*.8,...
 	'Position',Rect,...
 	'NumberTitle','off',...
@@ -533,6 +541,7 @@ Modality = spm('CheckModality',Modality);
 
 %-Set MODALITY
 %-----------------------------------------------------------------------
+clear global
 global MODALITY
 MODALITY = Modality;
 
@@ -668,9 +677,28 @@ return
 
 elseif strcmp(lower(Action),lower('Ver'))
 %=======================================================================
-% spm('Ver',Mfile)
+% spm('Ver',Mfile,ReDo)
+if nargin<3, ReDo=0; else, ReDo=1; end
+if nargin<2, Mfile=''; else, Mfile=P2; end
+if isempty(Mfile), Mfile='spm'; end
+
+%-See if SPM window exists - It's UserData should contain the version
 %-----------------------------------------------------------------------
-if nargin<2, Mfile='spm'; else, Mfile=P2; end
+if ~ReDo
+	Fmenu = spm_figure('FindWin','Menu');
+	if ~isempty(Fmenu)
+		SPMver = get(Fmenu,'UserData');
+		if ~isempty(SPMver), R1=SPMver; return, end
+	end
+end
+
+%%-See if global SPM_VER exists - It contains the version
+%%-----------------------------------------------------------------------
+%global SPM_VER; if ~isempty(SPM_VER) & ~ReDo; R1 = SPM_VER; return, end
+
+
+%-Work version out from file
+%-----------------------------------------------------------------------
 SPMdir = spm('Dir',Mfile);
 CFile  = [SPMdir,'/spm.man'];
 if exist(CFile)
@@ -682,7 +710,8 @@ if exist(CFile)
 else
 	SPMver = 'SPM';
 end
-R1 = SPMver;
+R1      = SPMver;
+%if ReDo, SPM_VER = SPMver; end
 return
 
 elseif strcmp(lower(Action),lower('Colour'))
