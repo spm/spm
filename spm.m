@@ -173,11 +173,14 @@ function varargout=spm(varargin)
 % Changes pointer on all SPM (HandleVisible) windows to type Pointer
 % Pointer defaults to 'Arrow'. Robust to absence of windows
 %
-% FORMAT SPMid = spm('FnBanner',Fn,FnV)
+% FORMAT SPMid = spm('FnBanner', Fn,FnV)
 % Prints a function start banner, for version FnV of function Fn, & datestamps
 % Fn    - Function name (string)
 % FnV   - Function version (string)
 % SPMid - ID string: [SPMver: Fn (FnV)] 
+%
+% FORMAT SPMid = spm('SFnBanner',Fn,FnV)
+% Prints a sub-function start banner (arguments as for 'FnBanner')
 %
 % FORMAT [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
 % Robust UIsetup procedure for functions:
@@ -958,17 +961,30 @@ if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
 
 
-case 'fnbanner'
+case {'fnbanner','sfnbanner'}
 %=======================================================================
-% SPMid = spm('FnBanner',Fn,FnV)
+% SPMid = spm('FnBanner', Fn,FnV)
+% SPMid = spm('SFnBanner',Fn,FnV)
 time = spm('time');
 str  = spm('ver');
 if nargin>=2, str = [str,': 'varargin{2}]; end
 if nargin>=3, str = [str,' (v',varargin{3},')']; end
-fprintf('\n%s',str)
-fprintf('%c',' '*ones(1,72-length([str,time])))
-fprintf('%s\n',time)
-fprintf('%c','='*ones(1,72)),fprintf('\n')
+
+switch lower(Action(1))
+case 'f'
+	tab = '';
+	wid = 72;
+	lch = '=';
+case 's'
+	tab = sprintf('\t');
+	wid = 72-8;
+	lch = '-';
+end
+
+fprintf('\n%s%s',tab,str)
+fprintf('%c',' '*ones(1,wid-length([str,time])))
+fprintf('%s\n%s',time,tab)
+fprintf('%c',lch*ones(1,wid)),fprintf('\n')
 varargout = {str};
 
 
@@ -981,6 +997,7 @@ if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine
 	Finter = spm_figure('FindWin','Interactive');
 	if ~isempty(Finter), spm_figure('Clear',Finter), end
+	if ~isempty(Iname), fprintf('%s:\n',Iname), end
 else
 	Finter = spm_figure('GetWin','Interactive');
 	spm_figure('Clear',Finter)
@@ -991,7 +1008,7 @@ else
 	end
 	set(Finter,'Name',str)
 end
-if ~isempty(Iname), fprintf('%s:\n',Iname), end
+
 if bGX
 	Fgraph = spm_figure('GetWin','Graphics');
 	spm_figure('Clear',Fgraph)
@@ -1038,7 +1055,7 @@ spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
 spm_get('Initialise','reset');
-clc, spm('FnBanner','Workspace cleared');
+clc, spm('FnBanner','GUI cleared');
 fprintf('\n');
 %evalin('Base','clear')
 
