@@ -275,8 +275,8 @@ SPM.xGX.sGMsca  = 'session specific';
 % low frequency confounds
 %-----------------------------------------------------------------------
 try
-	HP   = SPM.xX.K(1).HP;
-	HP   = HP*ones(1,nsess);
+	HParam   = SPM.xX.K(1).HParam;
+	HParam   = HParam*ones(1,nsess);
 catch
 	% specify low frequnecy confounds
 	%---------------------------------------------------------------
@@ -285,22 +285,22 @@ catch
 
 		case 'specify'  % default 128 seconds
 		%-------------------------------------------------------
-		HP     = 128*ones(1,nsess);
+		HParam = 128*ones(1,nsess);
 		str    = 'cutoff period (secs)';
-		HP     = spm_input(str,'+1','e',HP,[1 nsess]);
+		HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
 
 		case 'none'     % Inf seconds (i.e. constant term only)
 		%-------------------------------------------------------
-		HP     = Inf*ones(1,nsess);
+		HParam = Inf*ones(1,nsess);
 	end
 end
 
 % create and set filter struct
 %---------------------------------------------------------------
 for  i = 1:nsess
-	K(i) = struct(	'HP',	HP(i),...
-			'row',	SPM.Sess(i).row,...
-			'RT',	SPM.xY.RT);
+	K(i) = struct(	'HParam',	HParam(i),...
+			'row',		SPM.Sess(i).row,...
+			'RT',		SPM.xY.RT);
 end
 SPM.xX.K = spm_filter(K);
 
@@ -410,13 +410,13 @@ SPM.xM        = struct(	'T',	ones(q,1),...
 %-Design description - for saving and display
 %=======================================================================
 for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
-Fstr      = sprintf('[min] Cutoff period %d seconds',min(HP));
+Fstr      = sprintf('[min] Cutoff period %d seconds',min(HParam));
 SPM.xsDes = struct(...
 	'Basis_functions',	SPM.xBF.name,...
 	'Number_of_sessions',	sprintf('%d',nsess),...
 	'Trials_per_session',	sprintf('%-3d',ntr),...
 	'Interscan_interval',	sprintf('%0.2f {s}',SPM.xY.RT),...
-	'High_pass_Filter',	sprintf('Cutoff: %d {s}',SPM.xX.K(1).HP),...
+	'High_pass_Filter',	sprintf('Cutoff: %d {s}',SPM.xX.K(1).HParam),...
 	'Serial_correlations',	SPM.xVi.form,...
 	'Global_calculation',	SPM.xGX.sGXcalc,...
 	'Grand_mean_scaling',	SPM.xGX.sGMsca,...
