@@ -412,7 +412,7 @@ line([0 1],[0.92,0.92],'LineWidth',3);
 line([0 1],[0.85 0.85],'LineWidth',1);
 
 text(0,0.96,'Results directory:')
-text(0.23,0.96,CWD,'FontSize',12,'Fontweight','Bold')
+text(0.23,0.96,pwd,'FontSize',12,'Fontweight','Bold')
 text(0,0.88,'Contrasts','FontSize',12,'Fontweight','Bold')
 
 x0 = 0.25; y0 = 0.82; dx = 0.1; dy = 0.04;
