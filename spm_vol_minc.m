@@ -1,4 +1,4 @@
-function V=spm_vol_minc(fname)
+function V=spm_vol_minc(fname,n)
 % Get header information etc. for MINC images.
 %  FORMAT V = spm_vol(P)
 %  P - a MINC filename.
@@ -17,23 +17,34 @@ function V=spm_vol_minc(fname)
 % _______________________________________________________________________
 %  %W% John Ashburner %E%
 
-cdf = read_netcdf(fname);
+if nargin<2, n = 1; end;
+if ischar(n), n = str2num(n); end;
+
+cdf = spm_read_netcdf(fname);
 if isempty(cdf), V=[]; return; end;
 
+d_types     = [2 2 4 8 16 64];
+dsizes      = [1 1 2 4  4  8];
+space_names = {'xspace','yspace','zspace'};
+img         = findvar(cdf.var_array,'image');
+nd          = length(img.dimid);
 
-d_types = [2 2 4 8 16 64];
-dsizes  = [1 1 2 4  4  8];
-
-img   = findvar(cdf.var_array,'image');
-
-% Extract the dimensions.  This is stuff I don't fully understand
-% so there may be problems.
-%-----------------------------------------------------------------------
-for i=1:prod(size(img.dimid)),
-	dim0(i) = cdf.dim_array(img.dimid(i));
+if nd<3, error(['Not enough dimensions in "' fname '"']); end;
+for i=1:3,
+	if ~strcmp(space_names{i},cdf.dim_array(img.dimid(nd+1-i)).name),
+		error(['Incompatible dimension names in "' fname '"']);
+	end;
 end;
 
-dim = fliplr(cat(2,dim0.dim_length));
+dim = zeros(1,nd);
+for i=1:nd,
+	dim(i) = cdf.dim_array(img.dimid(nd+1-i)).dim_length;
+end;
+dim = [dim 1];
+if prod(dim(4:end))<n, error(['No volume # ' num2str(n) ' in "' fname '".']);end;
+
+% Extract the dimensions.
+%-----------------------------------------------------------------------
 dim = dim(1:min(size(dim,2),3));
 dim = [dim ones(1,3-size(dim,2))];
 
@@ -78,58 +89,24 @@ if ~is_flt,
 		range = tmp.val;
 	end;
 
-	fp    = fopen(fname,'r','ieee-be');
-	imax  = findvar(img.vatt_array,'image-max');
-	if ~isempty(imax) & imax.nc_type == 2,
-		imax = findvar(cdf.var_array,imax.val(5:end));
-		fseek(fp,imax.begin,'bof');
-		ddim = dim(3);
-		nel  = imax.vsize/(spm_type(dtypestr(imax.nc_type),'bits')/8);
-		imax = fread(fp,nel,dtypestr(imax.nc_type))';
-		if nel==1,
-			imax = imax*ones(1,dim(3));
-		elseif nel==ddim,
-			imax = reshape(imax,[ddim 1 1]);
-			imax = imax(:,1,1)';
-		else,
-			error('Problem with IMAX');
-		end;
-	else,
-		imax = ones(1,dim(3));
-		disp(['Can''t get imax for "' fname '" - guessing it is one']);
-	end;
-	imin  = findvar(img.vatt_array,'image-min');
-	if ~isempty(imin) & imin.nc_type == 2,
-		imin = findvar(cdf.var_array,imin.val(5:end));
-		fseek(fp,imin.begin,'bof');
-		ddim = dim(3);
-		nel  = imin.vsize/(spm_type(dtypestr(imin.nc_type),'bits')/8);
-		imin = fread(fp,nel,dtypestr(imin.nc_type))';
-		if nel==1,
-			imin = imin*ones(1,dim(3));
-		elseif nel==ddim,
-			imin = reshape(imin,[ddim 1 1]);
-			imin = imin(:,1,1)';
-		else,
-			error('Problem with IMIN');
-		end;
-	else,
-		imin = zeros(1,dim(3));
-		disp(['Can''t get imax for "' fname '" - guessing it is zero']);
-	end;
+	fp   = fopen(fname,'r','ieee-be');
+	imax = get_imax(fp, cdf, 'image-max', fname, 1, n);
+	imin = get_imax(fp, cdf, 'image-min', fname, 0, n);
 	fclose(fp);
+
 	scale = (imax-imin)/(range(2)-range(1));
 	dcoff = imin-range(1)*scale;
 else,
-	scale = ones(1,dim(3));
+	scale =  ones(1,dim(3));
 	dcoff = zeros(1,dim(3));
 end;
 
-off   = img.begin;
+off   = img.begin + (n-1)*dsizes(img.nc_type)*prod(dim(1:3));
 psize = dsizes(img.nc_type)*prod(dim(1:2));
 off   = cumsum(ones(1,dim(3))*psize)-psize+off;
 
 pinfo = [scale ; dcoff ; off];
+
 
 % Extract affine transformation from voxel to world co-ordinates
 %-----------------------------------------------------------------------
@@ -138,7 +115,7 @@ start = [0 0 0]';
 dircos = eye(3);
 
 for j=1:3,
-	nam    = cdf.dim_array(4-j).name;
+	nam    = cdf.dim_array(img.dimid(nd+1-j)).name;
 	space  = findvar(cdf.var_array,nam);
 	tmp    = findvar(space.vatt_array,'step');
 	if ~isempty(tmp), step(j) = tmp.val; end;
@@ -156,14 +133,16 @@ mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
 % files.  The values in the `.mat' files should override the values from the
 % headers.
 matname = [spm_str_manip(fname,'sd') '.mat'];
-if (exist(matname) == 2)
-	load(matname,'M');
-	if (exist('M') == 1)
-		mat = M;
-	end
-end
+if exist(matname) == 2,
+	str=load(matname);
+	if isfield(str,'M'),
+		mat = str.M;
+	elseif isfield(str,'M'),
+		mat = str.mat;
+	end;
+end;
 
-V      = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'cdf',cdf);
+V      = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'descrip','MINC file','cdf',cdf);
 return;
 %_______________________________________________________________________
 
@@ -183,104 +162,6 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function cdf = read_netcdf(fname)
-% Read the header information from a CDF file into a data structure.
-dsiz     = [1 1 2 4 4 8];
-fp=fopen(fname,'r','ieee-be');
-if fp==-1,
-	cdf = [];
-	return;
-end;
-
-% Return null if not a CDF file.
-%-----------------------------------------------------------------------
-mgc = fread(fp,4,'uchar')';
-if ~all(['CDF' 1] == mgc),
-	cdf = [];
-	fclose(fp);
-	return;
-end
-
-% I've no idea what this is for
-numrecs = fread(fp,1,'uint32');
-
-cdf = struct('numrecs',numrecs,'dim_array',[], 'gatt_array',[], 'var_array', []);
-
-dt = fread(fp,1,'uint32');
-if dt == 10,
-	% Dimensions
-	nelem = fread(fp,1,'uint32');
-	for j=1:nelem,
-		str   = readname(fp);
-		dim_length = fread(fp,1,'uint32');
-		cdf.dim_array(j).name       = str;
-		cdf.dim_array(j).dim_length = dim_length;
-	end;
-	dt   = fread(fp,1,'uint32');
-end
-
-while ~dt, dt   = fread(fp,1,'uint32'); end;
-
-if dt == 12,
-	% Attributes
-	nelem = fread(fp,1,'uint32');
-	for j=1:nelem,
-		str    = readname(fp);
-		nc_type= fread(fp,1,'uint32');
-		nnelem = fread(fp,1,'uint32');
-		val    = fread(fp,nnelem,dtypestr(nc_type));
-		if nc_type == 2, val = deblank([val' ' ']); end
-		padding= fread(fp,ceil(nnelem*dsiz(nc_type)/4)*4-nnelem*dsiz(nc_type),'uchar');
-		cdf.gatt_array(j).name    = str;
-		cdf.gatt_array(j).nc_type = nc_type;
-		cdf.gatt_array(j).val     = val;
-	end;
-	dt   = fread(fp,1,'uint32');
-end
-
-while ~dt, dt   = fread(fp,1,'uint32'); end;
-
-if dt == 11,
-	% Variables
-	nelem = fread(fp,1,'uint32');
-	for j=1:nelem,
-		str    = readname(fp);
-		nnelem = fread(fp,1,'uint32');
-		val    = fread(fp,nnelem,'uint32');
-		cdf.var_array(j).name    = str;
-		cdf.var_array(j).dimid   = val+1;
-		cdf.var_array(j).nc_type = 0;
-		cdf.var_array(j).vsize   = 0;
-		cdf.var_array(j).begin   = 0;
-		dt0    = fread(fp,1,'uint32');
-		if dt0 == 12,
-			nelem0 = fread(fp,1,'uint32');
-			for jj=1:nelem0,
-				str    = readname(fp);
-				nc_type= fread(fp,1,'uint32');
-				nnelem = fread(fp,1,'uint32');
-				val    = fread(fp,nnelem,dtypestr(nc_type));
-				if nc_type == 2, val = deblank([val' ' ']); end
-				padding= fread(fp,...
-					ceil(nnelem*dsiz(nc_type)/4)*4-nnelem*dsiz(nc_type),'uchar');
-				cdf.var_array(j).vatt_array(jj).name    = str;
-				cdf.var_array(j).vatt_array(jj).nc_type = nc_type;
-				cdf.var_array(j).vatt_array(jj).val     = val;
-			end;
-			dt0    = fread(fp,1,'uint32');
-		end;
-		cdf.var_array(j).nc_type  = dt0;
-		cdf.var_array(j).vsize = fread(fp,1,'uint32');
-		cdf.var_array(j).begin = fread(fp,1,'uint32');
-	end;
-	dt   = fread(fp,1,'uint32');
-end;
-
-fclose(fp);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function str = dtypestr(i)
 % Returns a string appropriate for reading or writing the CDF data-type.
 types = str2mat('uint8','uint8','int16','int32','float','double');
@@ -289,11 +170,45 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function name = readname(fp)
-% Extracts a name from a CDF file pointed to at the right location by
-% fp.
-stlen  = fread(fp,1,'uint32');
-name   = deblank([fread(fp,stlen,'uchar')' ' ']);
-padding= fread(fp,ceil(stlen/4)*4-stlen,'uchar');
+function imax = get_imax(fp, cdf, strng, fname, def, n)
+img     = findvar(cdf.var_array,'image');
+nd      = length(img.dimid);
+alldims = zeros(1,length(cdf.dim_array));
+for i=1:length(alldims),
+	alldims(i) = cdf.dim_array(i).dim_length;
+end;
+
+str  = findvar(cdf.var_array,strng);
+
+if ~isempty(str) & str.nc_type == 6,
+	if any(str.dimid == img.dimid(nd)) | any(str.dimid == img.dimid(nd-1)),
+		error(['Fastest two dimensions of "' fname '" should all have the same scalefactors etc']);
+	end;
+
+	ddim = fliplr(alldims(str.dimid));
+	fseek(fp,str.begin,'bof');
+	nel  = str.vsize/(spm_type(dtypestr(str.nc_type),'bits')/8);
+	imax = fread(fp,nel,dtypestr(str.nc_type))';
+
+	if nel==1,
+		imax = imax*ones(1,dim(3));
+	elseif nel== prod(ddim),
+		imax = reshape(imax,[ddim 1 1]);
+
+		% This bit is a fudge and may not work in all situations
+		% ======================================================
+		if str.dimid(end)==img.dimid(end-2),
+			imax = imax(:,n)';
+		else,
+			imax = imax(n)*ones(1,dim(3));
+		end;
+		% ======================================================
+
+	else,
+		error(['Problem with ' strng]);
+	end;
+else,
+	imax = ones(1,dim(3))*def;
+	disp(['Can''t get ' strng ' for "' fname '" - guessing it is' num2str(def) '.']);
+end;
 return;
-%_______________________________________________________________________

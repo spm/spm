@@ -72,9 +72,11 @@ for i=1:size(llist,1),
 	mat      = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
 	matname  = [spm_str_manip(fname,'sd') '.mat'];
 	if exist(matname) == 2,
-		load(matname,'M');
-		if exist('M') == 1,
-			mat = M;
+		str=load(matname);
+		if isfield(str,'M'),
+			mat = str.M;
+		elseif isfield(str,'mat'),
+			mat = str.mat;
 		end;
 	end;
 	V(i).fname   = fname;

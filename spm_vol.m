@@ -71,22 +71,35 @@ return;
 
 function V = subfunc(p)
 p = deblank(p);
+[pth,nam,ext] = fileparts(deblank(p));
+t = find(ext==',');
 
-if exist([spm_str_manip(p,'sd') '.hdr']) == 2,
-	[dim vox scale dtype offset origin descrip] = spm_hread(p);
-	mat = spm_get_space([spm_str_manip(p,'sd') '.img']);
-	V   = struct('fname',[spm_str_manip(p,'sd') '.img'],...
-	           'dim',[dim dtype],'mat',mat,'pinfo',[scale 0 offset]',...
-	           'descrip',descrip);
+n = 1;
+if ~isempty(t),
+	if length(t)==1,
+		n1 = ext((t+1):end);
+		if ~isempty(n1),
+			n = str2num(n1);
+			ext = ext(1:(t-1));
+		end;
+	end;
+end;
+p = fullfile(pth,[nam   ext]);
 
+if exist(fullfile(pth,[nam '.hdr'])) == 2,
+	if isempty(n), V = spm_vol_ana(p);
+	else,          V = spm_vol_ana(p,n); end;
+	if ~isempty(V), return; end;
 else, % Try other formats
 
 	% Try MINC format
-	V=spm_vol_minc(p);
+	if isempty(n), V=spm_vol_minc(p);
+	else,          V=spm_vol_minc(p,n); end;
 	if ~isempty(V), return; end;
 
 	% Try Ecat 7
-	V=spm_vol_ecat7(p);
+	if isempty(n), V=spm_vol_ecat7(p);
+	else,          V=spm_vol_ecat7(p,n); end;
 	if ~isempty(V), return; end;
 end;
 return;

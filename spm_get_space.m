@@ -18,73 +18,102 @@ function M = spm_get_space(imagename, mat)
 % %W% John Ashburner FIL %E%
 
 imagename = deblank(imagename);
-matname = [spm_str_manip(imagename,'sd') '.mat'];
-if (nargin == 1)
-	% If we can read M from a ".mat" file with the corresponding
+[pth,nam,ext] = fileparts(imagename);
+t = find(ext==',');
+n = 1;
+if ~isempty(t),
+	if length(t)==1,
+		n1 = ext((t+1):end);
+		if ~isempty(n1),
+			n   = str2num(n1);
+			ext = ext(1:(t-1));
+		end;
+	end;
+end;
+mfname = fullfile(pth,[nam '.mat']);
+ifname = fullfile(pth,[nam   ext ]);
+
+if nargin == 1,
+	% If we can read info from a ".mat" file with the corresponding
 	% name, then use this information.
-	if (exist(matname) == 2)
-		load(matname,'M');
-		if (exist('M') == 1)
+	if exist(mfname) == 2,
+		clear M
+		str = load(mfname);
+		if isfield(str,'mat') & n<size(str.mat,3),
+			M = str.mat(:,:,n);
 			return;
-		end
-	end
+		elseif isfield(str,'M'),
+			M = str.M;
+			if spm_flip_analyze_images & (strcmp(ext,'.img') | strcmp(ext,'.hdr')),
+				M = diag([-1 1 1 1])*M;
+			end;
+			return;
+		end;
+	end;
 
-	if exist([spm_str_manip(imagename,'sd') '.hdr']) == 2,
-		% Read as much information from the ANALYZE header.
+	hfname = fullfile(pth,[nam '.hdr']);
+	if exist(hfname) == 2,
+		% Read as much information as is stored in the ANALYZE header.
 		% Assume transverse slices.
-		[dim vox scale typ offset origin descrip] = spm_hread([spm_str_manip(imagename,'sd') '.img']);
-		if isempty(dim),
-			error(sprintf('Can''t read header for "%s"\n', [spm_str_manip(imagename,'sd') '.img']));
+		hdr = spm_read_hdr(hfname);
+		if isempty(hdr),
+			error(sprintf('Can''t read header for "%s"\n', imagename));
 		end
-
-		% If origin hasn't been set, then assume
-		% it is the centre of the image.
-		if all(origin == 0), origin = (dim(1:3)+1)/2; end;
+		if any(hdr.hist.origin(1:3)),
+			origin = hdr.hist.origin(1:3);
+		else,
+			origin = (hdr.dime.dim(2:4)+1)/2;
+		end;
+		vox    = hdr.dime.pixdim(2:4);
 		if all(vox == 0), vox = [1 1 1]; end;
-		off = -vox.*origin;
-		M   = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+		off    = -vox.*origin;
+		M      = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+		if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+
 	else
 		% Assume it is a MINC file
-		V=spm_vol_minc(imagename);
+		V = spm_vol_minc(imagename);
 		if ~isempty(V),
-			M=V.mat;
+			M = V.mat;
 		else,
 			% Try Ecat format
-			V=spm_vol_ecat7(imagename);
+			V = spm_vol_ecat7(imagename);
 			if ~isempty(V),
-				M=V.mat;
+				M = V.mat;
 			else,
 				error(['Can''t read matrix information from "' imagename '".']);
 			end;
 		end;
 	end;
-elseif (nargin == 2)
-	% Delete the matrix if it exists
-	spm_unlink(matname);
-	M    = mat;
-	if exist([spm_str_manip(imagename,'sd') '.hdr']) == 2,
-		% vx   = sqrt(sum(M(1:3,1:3).^2));
-		% orgn = round(-M(1:3,4)' ./ vx);
-		% off  = -vx.*orgn;
-		% mt   = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
-
-		[dim vox scale typ offset origin descrip] = spm_hread([spm_str_manip(imagename,'sd') '.img']);
-		if isempty(dim),
-			error(sprintf('Can''t read header for "%s"\n', [spm_str_manip(imagename,'sd') '.img']));
-		end
-		if all(origin == 0), origin = (dim(1:3)+1)/2; end;
-		if all(vox == 0), vox = [1 1 1]; end;
-		off = -vox.*origin;
-		mt  = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
-
-		% only write the .mat file if necessary
-		if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > eps*eps*12)
-			save(matname,'M','-v4');
-		end
-	else,
-		% Write the file anyway
-		save(matname,'M','-v4');
+elseif nargin == 2,
+	v = spm_vol(sprintf('%s,%d', imagename, n));
+	if sum((mat(:) - v.mat(:)).*(mat(:) - v.mat(:))) > eps*eps*12,
+		% only do something if matrices are not identical
+		if exist(mfname)==2,
+			clear Mo
+			str = load(mfname);
+			if isfield(str,'mat'),
+				Mo = str.mat;
+			elseif isfield(str,'M'),
+				Mo = str.M;
+				if spm_flip_analyze_images & (strcmp(ext,'.img') | strcmp(ext,'.hdr')),
+					Mo = diag([-1 1 1 1])*Mo;
+				end;
+			end;
+			Mo(:,:,n) = mat;
+			mat       = Mo;
+			try,
+				save(mfname,'mat','-append');
+			catch,
+				save(mfname,'mat');
+			end;
+		else,
+			clear Mo
+			Mo(:,:,n) = mat;
+			mat       = Mo;
+			save(mfname,'mat');
+		end;
 	end;
-else
+else,
 	error('Incorrect Usage.');
-end
+end;

@@ -46,7 +46,8 @@ end;
 
 %-Create and write image
 %-----------------------------------------------------------------------
-V = spm_create_image(V);
+V = spm_create_vol(V);
 for p=1:V.dim(3),
 	V = spm_write_plane(V,Y(:,:,p),p);
-end
+end;
+V = spm_close_vol(V);
