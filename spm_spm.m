@@ -227,7 +227,6 @@ for i = 1:V(3)
 	if length(P) % proceed
 
 	F     = F(P);
-	T     = T(:,P);
 	BETA  = BETA(:,P);
 	XYZ   = XYZ(:,P);
 
@@ -243,7 +242,7 @@ for i = 1:V(3)
 	spm_append('BETA',BETA);
 	spm_append('XYZ',XYZ);
 	if ~isempty(T)
-		spm_append('SPMt',spm_t2z(T,df)); end
+		spm_append('SPMt',spm_t2z(T(:,P),df)); end
 
 
 	end % proceed P
