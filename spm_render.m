@@ -7,8 +7,10 @@ function spm_render(dat)
 % dat - a vertical cell array of length 1 to 3
 %       - each element is a structure containing:
 %         - XYZ - the x, y & z coordinated of the transformed t values.
+%                 in units of voxels.
 %         - t   - the transformed t values
-%         - v   - a vector containing the voxel sizes.
+%         - mat - affine matrix mapping from XYZ to Talairach.
+%         - dim - dimensions of volume from which XYZ is drawn.
 %
 % Without arguments, spm_render acts as its own UI.
 %_______________________________________________________________________
@@ -24,7 +26,7 @@ function spm_render(dat)
 % %W% John Ashburner FIL %E%
 
 
-if (nargin==0)
+if nargin==0,
 
 	spm_figure('Clear','Interactive');
 	Finter = spm_figure('FindWin','Interactive');
@@ -39,7 +41,7 @@ if (nargin==0)
 	num = spm_input('Number of sets',2,'1 set|2 sets|3 sets',[1 2 3]);
 
 	dat = cell(num,1);
-	for i=1:num
+	for i=1:num,
 		
 		% Get thresholded data, thresholds and parameters
 		%-----------------------------------------------------------------------
@@ -53,12 +55,18 @@ if (nargin==0)
 		% get voxel sizes (in 'V') from mat file
 		%-----------------------------------------------------------------------
 		load([CWD '/SPM.mat']);
-		dat{i} = struct('XYZ',XYZ,'t',t,'v',V(4:6));
-	end
+		origin = V(7:9); if all(origin == 0), origin = dim(1:3)/2; end;
+		vox    = V(4:6); if all(vox    == 0), vox    = [1 1 1]   ; end;
+		off    = -vox.*origin;
+		mat    = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+		imat   = inv(mat);
+		XYZ    = round(imat(1:3,1:3)*XYZ + imat(1:3,4)*ones(1,size(XYZ,2)));
+		dat{i} = struct('XYZ',XYZ,'t',t,'mat',mat, 'dim', V(1:3));
+	end;
 
 	spm_render(dat);
 	return;
-end
+end;
 
 
 
@@ -84,78 +92,47 @@ spm_progress_bar('Init', size(dat,1)*size(pre,1), 'Making pictures', 'Number com
 
 mx = zeros(size(pre,1),1)+eps;
 for j=1:size(dat,1),
-
-	% field should be sampled every mm.
-	%---------------------------------------------------------------------------
-	v =  dat{j}.v;
-	t1       = [];
-	XYZ1     = [];
-	XYZ      = dat{j}.XYZ;
-	xx       = XYZ(1,:);
-	for x1=(-v(1)/2):(v(1)/2-eps*20)
-		XYZ(1,:) = xx+x1;
-		XYZ1 = [XYZ1 XYZ];
-		t1   = [t1 dat{j}.t];
-	end
-
-	t0        = [];
-	yy        = XYZ1(2,:);
-	XYZ       = [];
-	for y1=(-v(2)/2):(v(2)/2-eps*20)
-		XYZ1(2,:) = yy+y1;
-		XYZ       = [XYZ XYZ1];
-		t0        = [t0 t1];
-	end
-
-	t        = [];
-	XYZ1     = [];
-	zz       = XYZ(3,:);
-	for z1=(-v(3)/2):(v(3)/2-eps*20)
-		XYZ(3,:)  = zz+z1;
-		XYZ1      = [XYZ1 XYZ];
-		t         = [t t0];
-	end
-
-
+	XYZ = dat{j}.XYZ;
+	t   = dat{j}.t;
+	dim = dat{j}.dim;
+	mat = dat{j}.mat;
 
 	for i=1:size(pre,1)
 
 		% transform from Taliarach space to space of the rendered image
 		%---------------------------------------------------------------------------
-		MM = pre{i}.MM;
-		xyz      = (MM(1:3,1:3)*XYZ1);
-		xyz(1,:) = xyz(1,:) + MM(1,4);
-		xyz(2,:) = xyz(2,:) + MM(2,4);
-		xyz(3,:) = xyz(3,:) + MM(3,4);
-		xyz      = round(xyz);
-
-		% only use values which will fit on the image
-		%---------------------------------------------------------------------------
-		dep = pre{i}.dep;
-
-		msk = find((xyz(1,:) >= 1) & (xyz(1,:) <= size(dep,1)) ...
-			&  (xyz(2,:) >= 1) & (xyz(2,:) <= size(dep,2)));
-
-		X = zeros(size(dep));
-
-		xyz      = xyz(:,msk);
-		t0       = reshape(t(msk),1,prod(size(msk)));
+		M1  = pre{i}.MM*dat{j}.mat;
+		zm  = sum(M1(1:2,1:3).^2,2).^(-1/2);
+		M2  = diag([zm' 1 1]);
+		MM  = M2*M1;
+		cor = [1 1 1 ; dim(1) 1 1 ; 1 dim(2) 1; dim(1) dim(2) 1 ;
+		       1 1 dim(3) ; dim(1) 1 dim(3) ; 1 dim(2) dim(3); dim(1) dim(2) dim(3)]';
+		tcor= MM(1:3,1:3)*cor + MM(1:3,4)*ones(1,8);
+		off = min(tcor(1:2,:)');
+		M2  = spm_matrix(-off+1)*M2;
+		MM  = M2*M1;
+		xyz = (MM(1:3,1:3)*XYZ + MM(1:3,4)*ones(1,size(XYZ,2)));
+		d2  = ceil(max(xyz(1:2,:)'));
 
 		% calculate 'depth' of values
 		%---------------------------------------------------------------------------
-		z1  = dep(xyz(1,:)+(xyz(2,:)-1)*size(dep,1));
+		dep = spm_slice_vol(pre{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
+		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 		msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5));
 
-		if ~isempty(msk)
+		if ~isempty(msk),
 
 			% generate an image of the integral of the blob values.
 			%---------------------------------------------------------------------------
 			xyz = xyz(:,msk);
 			dst = xyz(3,:) - z1(msk) - 5;
 			dst = max(dst,0);
-			t0  = t0(msk).*exp(-dst/10);
-			X = full(sparse(xyz(1,:), xyz(2,:), t0, size(dep,1), size(dep,2)));
-		end
+			t0  = t(msk).*exp(-dst/10)';
+			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
+			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(pre{i}.dep),1);
+		else,
+			X = zeros(size(dep));
+		end;
 
 		mx(j) = max([mx(j) max(max(X))]);
 		pre{i}.data{j} = X;
