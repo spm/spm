@@ -172,12 +172,17 @@ UF      = spm_invFcdf(1 - UFp,Fdf);
 %-Initialise variables
 %-----------------------------------------------------------------------
 D     = zeros(V(1,1)*V(2,1),size(CONTRAST,1)); % dummy matrix for smoothness
-sx    = zeros(size(CONTRAST,1),2);             % smoothness estimators {x}
-sy    = zeros(size(CONTRAST,1),2);             % smoothness estimators {y}
-sz    = zeros(size(CONTRAST,1),2);             % smoothness estimators {z}
-TH    = TH*ones(1,V(1,1)*V(2,1));              % global activities
-S     = 0;                                     % Volume analyzed
+
+
+TH    = TH*ones(1,V(1,1)*V(2,1));              	% global activities
+S     = 0;                                     	% Volume analyzed
 W     = [NaN NaN NaN];
+MaxSmooEst	= 32;				% Maximum number of 
+						% Resi. fields for W asess.
+PrevPlane       = zeros(V(1,1)*V(2,1),MaxSmooEst);
+sx_res    = zeros(MaxSmooEst, 2);              
+sy_res    = zeros(MaxSmooEst, 2);             
+sz_res    = zeros(MaxSmooEst, 2);             
 
 
 %-Cycle over planes to avoid working memory problems
@@ -216,7 +221,57 @@ for i = 1:V(3,1)
 	%-------------------------------------------------------------------
 	clear BETA
 	BETA  = pinv([K H C B G])*X;
-	ResSS = sum((X - [K H C B G]*BETA).^2);
+	Res = X - [K H C B G]*BETA;	
+	ResSS = sum(Res.^2);
+
+
+	%-------------------------------------------------------------------
+	%------ Smoothness estimation
+	%-------------------------------------------------------------------
+
+	%--- subsampling the nb of scan for quicker smoothness estimation -- 
+	if (size(V, 2) > MaxSmooEst) 
+		ListScanEst = ceil( [1:size(V, 2)]*MaxSmooEst/size(V, 2));
+		tmp = zeros(1,MaxSmooEst);
+		for ii 		= 1:MaxSmooEst 
+			tmp(ii) = min(find(ListScanEst == ii));
+		end;
+		Res		= Res(tmp,:);
+		clear tmp;
+	end;
+
+	%-Compute sums of squares of SPM{Z}, and spatial derivatives
+	%-----------------------------------------------------------
+
+	for k = 1:min(size(V, 2),MaxSmooEst)
+		CurrPlane       = zeros(V(1,1)*V(2,1),1);
+
+		%------------ Remove mean of Residuals
+		CurrPlane(Q) = Res(k, :) - mean(Res(k, :));
+
+		dz_res      = PrevPlane(:,k) - CurrPlane(:);
+
+		CurrPlane       = reshape(CurrPlane,V(1,1),V(2,2));
+		[dy_res dx_res] = gradient(CurrPlane);
+		Y       = ~CurrPlane;
+		Y       = ~(Y | abs(gradient(Y))); 
+		Y       = Y(:);
+		sx_res(k,1) = sx_res(k,1) + sum( CurrPlane(Y).^2);
+		sx_res(k,2) = sx_res(k,2) + sum(dx_res(Y).^2);
+		sy_res(k,1) = sy_res(k,1) + sum( CurrPlane(Y).^2);
+		sy_res(k,2) = sy_res(k,2) + sum(dy_res(Y).^2);
+		sz_res(k,1) = sz_res(k,1) + ...
+				sum( CurrPlane(PrevPlane(:,k) & CurrPlane(:)).^2);
+
+		sz_res(k,2) = sz_res(k,2) + ...
+				sum(dz_res(PrevPlane(:,k) & CurrPlane(:)).^2);
+		PrevPlane(:,k)  = CurrPlane(:);
+	end
+
+	%----------------------------------
+	% clear residuals for that plane
+	clear Res;
+	%-------------------------------------------------------------------
 
 
 	%-Test for overall evidence of effects of interest
@@ -238,6 +293,7 @@ for i = 1:V(3,1)
 	% giving SPM{t}, perform univariate probability transform to z-scores, 
 	% giving SPM{Z}.
 	%-------------------------------------------------------------------
+
 	T     = zeros(size(CONTRAST,1),size(BETA,2));
 	ResMS = ResSS / df;
 	for j = 1:size(CONTRAST,1)
@@ -251,28 +307,6 @@ for i = 1:V(3,1)
         	%-write SPM{Z}
 		%-----------------------------------------------------------
         	fwrite(U(j),d.*(d > 0)*16,spm_type(2));
-
-		%-Smoothness estimation
-		% Remove the mean of the SPM{Z} prior to smoothness estimation
-		%-----------------------------------------------------------
-		d       = zeros(V(1,1)*V(2,1),1);
-		d(Q)    = T(j,:) - mean(T(j,:));
-
-		%-Compute sums of squares of SPM{Z}, and spatial derivatives
-		%-----------------------------------------------------------
-		dz      = D(:,j) - d;
-		d       = reshape(d,V(1,1),V(2,2));
-		[dy dx] = gradient(d);
-		Y       = ~d;
-		Y       = ~(Y | abs(gradient(Y))); 
-		Y       = Y(:);
-		sx(j,1) = sx(j,1) + sum( d(Y).^2);
-		sx(j,2) = sx(j,2) + sum(dx(Y).^2);
-		sy(j,1) = sy(j,1) + sum( d(Y).^2);
-		sy(j,2) = sy(j,2) + sum(dy(Y).^2);
-		sz(j,1) = sz(j,1) + sum( d(D(:,j) & d(:)).^2);
-		sz(j,2) = sz(j,2) + sum(dz(D(:,j) & d(:)).^2);
-		D(:,j)  = d(:);
 	end % (for j)
 
 	%-Adjustment (remove effects of no interest)
@@ -305,15 +339,21 @@ for i = 1:V(3,1)
   end 			% (conditional on non-zero voxels)
 end			% (loop over planes)
 
-%-Smoothness estimates 
-%-----------------------------------------------------------------------
-if ~isempty(sx)
-	W = sqrt([sx(:,1)./sx(:,2) sy(:,1)./sy(:,2) sz(:,1)./sz(:,2)]/2); end
-if V(3,1) == 1;   W = W(:,1:2);  end			% 2 dimnesional data
+
+
+
+
+%-Smoothness estimates %-----------------------------------------------------------------------
+if ~isempty(sx_res)
+	W = sqrt([	 sx_res(:,1)./sx_res(:,2)...
+			 sy_res(:,1)./sy_res(:,2)...
+			 sz_res(:,1)./sz_res(:,2)]/2);
+end
+% save W_res W
+if V(3,1) == 1;   W = W(1:2);  end			% 2 dimnesional data
 if size(W,1) > 1; W = mean(W); end			% average over contrasts
 
 FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
-
 
 %-Unmap volumes
 %-----------------------------------------------------------------------
@@ -333,7 +373,7 @@ load XYZ
 load SPMF
 axes('Position',[-0.05 0.5 0.8 0.4]);
 spm_mip(sqrt(SPMF),XYZ,V(1:6))
-title(sprintf('SPM{F} p < %f, df: %d,%d',UFp,Fdf),'FontSize',16,'Fontweight','Bold')
+title(sprintf('SPM{F} p < %f, df: %d,%d',UFp,Fdf),'FontSize',14,'Fontweight','Bold')
 text(240,220,sprintf('Search volume: %d voxels',S))
 text(240,240,sprintf('Image size: %d %d %d voxels',V(1:3)))
 text(240,260,sprintf('Voxel size  %0.1f %0.1f %0.1f mm',V(4:6)))
