@@ -31,7 +31,12 @@ function [P,EN,Em,En,Pk] = spm_P(c,s,u,k,S)
 
 %---------------------------------------------------------------------------
 D    = length(s);
-EN   = S*(1 - spm_Ncdf(u));
+u    = min([u 24]);
+if u > 6
+	EN = S*exp(-(u.^2)/2)./(u*sqrt(2*pi));
+else
+	EN = S*(1 - spm_Ncdf(u));
+end
 Em   = S*(2*pi)^(-(D + 1)/2)*prod(2*s.^2)^(-1/2)*u^(D - 1)*exp(-(u^2)/2);
 En   = EN/Em;
 beta = (gamma(D/2 + 1)/En)^(2/D);
