@@ -22,6 +22,28 @@ v=DCM.v;
 pCdiag=diag(DCM.M.pC);
 wsel=find(~(pCdiag==0));
 
+% Ensure residuals have been estimated correctly
+if length(isnan(DCM.R))>0,
+    % Assume that reason for incorrect R was zero columns in X0
+    
+    % 1. Remove zero columns from X0 if there are any 
+    X0=DCM.Y.X0;
+    ncol_X0=size(X0,2);
+    new_X0=[];
+    for col_X0=1:ncol_X0,
+        if ~(length(find(X0(:,col_X0)==0))==DCM.v)
+            new_X0=[new_X0 X0(:,col_X0)];
+        end
+    end
+    X0=new_X0;
+    
+    % 2. Recompute residuals
+    R     = DCM.Y.y - DCM.y;
+    R     = R - X0*inv(X0'*X0)*(X0'*R);
+    DCM.R = R;
+    
+    % Note DCM.R not saved to file
+end
 
 % Look at costs of coding prediction errors by region
 n=size(DCM.A,1); 
