@@ -1,14 +1,15 @@
 % Sets the defaults which are used by SPM
 %
 % FORMAT spm_defaults
-%-----------------------------------------------------------------------
+%_______________________________________________________________________
+%
 % This file is intended to be customised for the site.
 % Individual users can make copies which can be stored in their own
 % matlab subdirectories. If ~/matlab is ahead of the SPM directory
 % in the MATLABPATH, then the users own personal defaults are used.
 %
 % Care must be taken when modifying this file
-
+%_______________________________________________________________________
 % %W% %E%
 
 global CWD PRINTSTR LOGFILE CMDLINE GRID
