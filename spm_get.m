@@ -1534,12 +1534,12 @@ for i=1:prod(size(cpath))
 		end
 	end
 	
-	%-Process trailing '/..'
+	%-Process trailing '/..' (Don't remove first '/')
 	if length(cpath{i})>3 & strcmp(cpath{i}(end-2:end),'/..')
 		t2 = length(cpath{i})-2;
 		t1 = t0+max([0,find(cpath{i}(t0+1:t2-1)=='/')]);
 		if t1~=t0 & ~strcmp(cpath{i}(t1:t2),'/../')
-			cpath{i}(t1:t2+2)='';
+			cpath{i}(max(t1,2):t2+2)='';
 		end
 	end
 	
