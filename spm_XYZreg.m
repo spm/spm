@@ -11,7 +11,7 @@ function varargout=spm_XYZreg(varargin)
 % xyz - (Input) 3-vector of X, Y & Z locations, in "real" co-ordinates
 % M   - 4x4 transformation matrix relating voxel to "real" co-ordinates
 % D   - 3 vector of image X, Y & Z dimensions (DIM)
-% V   - 9-vector if image and voxel sizes, and origin [DIM,VOX,ORIGIN]'
+% V   - 9-vector of image and voxel sizes, and origin [DIM,VOX,ORIGIN]'
 %       M derived as [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]]
 %       DIM    - D
 %       VOX    - Voxel dimensions in units of "real" co-ordinates
