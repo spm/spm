@@ -1,21 +1,24 @@
+function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Display a 'Progress Bar'
 % FORMAT spm_progress_bar('Init',height,xlabel,ylabel)
 % Initialises the bar in the 'Interactive' window.
 %
 % FORMAT spm_progress_bar('Set',value)
-% Sets the height of the bar itsself.
+% Sets the height of the bar itself.
 %
 % FORMAT spm_progress_bar('Clear')
 % Clears the 'Interactive' window.
 %
-
+%-----------------------------------------------------------------------
 % %W% John Ashburner %E%
 
-function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 global pb_pointer pb_name ax
+%-----------------------------------------------------------------------
 if (nargin == 0)
 	spm_progress_bar('Init');
 else
+	% initialize
+	%---------------------------------------------------------------
 	if (strcmp(action,'Init'))
 		if (nargin<4)
 			arg3 = '';
@@ -33,21 +36,25 @@ else
 		spm_progress_bar('Clear');
 		set(fg,'Pointer','watch');
 		set(fg,'Name',pb_name);
-		ax = axes('Position', [0.45 0.2 0.1 0.6],...
+		ax = axes('Position', [0.45 0.2 0.05 0.6],...
 			'XTick',[],...
 			'Xlim', [0 1],...
 			'Ylim', [0 arg1],...
 			'Box', 'on');
-		xlabel(arg2);
-		ylabel(arg3);
+		xlabel(arg2,'FontSize',10);
+		ylabel(arg3,'FontSize',10);
 		title('0% Complete');
 		tim = clock;
 		tim = tim(4:6);
-		t1=text(1.1,arg1/2,0,sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3)));
+		str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
+		t1=text(2,arg1/2,0,str,'FontSize',10);
 		set(t1,'Tag','StartTime');
 		line('Xdata',[0.5 0.5], 'Ydata',[0 0],...
-			'LineWidth',16, 'Color', [1 0 0],'Tag','ProgressBar');
+			'LineWidth',8, 'Color', [1 0 0],'Tag','ProgressBar');
 		drawnow;
+
+	% reset
+	%---------------------------------------------------------------
 	elseif (strcmp(action,'Set'))
 		if (nargin<2)
 			arg1 = 0;
@@ -59,8 +66,10 @@ else
 			lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
 			title(sprintf('%.0f%% Complete',100*arg1/lim));
 			drawnow;
-			% fprintf(['%.1f%%' 8 8 8 8 8 8 8 ],100*arg1/lim);
 		end
+
+	% clear
+	%---------------------------------------------------------------
 	elseif (strcmp(action,'Clear'))
 		fg = spm_figure('FindWin','Interactive');
 		spm_figure('Clear',fg);
