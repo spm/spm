@@ -1,6 +1,6 @@
-function [C,P] = spm_PEB(y,P)
+function [C,P] = spm_PEB(y,P,TOL)
 % PEB estimation for hierarchical linear  models - FULL EFFICIENT version
-% FORMAT [C,P] = spm_PEB(y,P)
+% FORMAT [C,P] = spm_PEB(y,P,TOL)
 % y       - (n x 1)     response variable
 %
 % PRIOR SPECIFICATION OF MODEL
@@ -8,7 +8,7 @@ function [C,P] = spm_PEB(y,P)
 %                       contraints on the form of E{b{i - 1}}
 % P{i}.C  - {q}(n x n)  ith level contraints on the form of Cov{e{i}} i.e:
 %                       contraints on the form of Cov{b{i - 1}}
-% c{i}    - {q}         level-specific contrasts
+% TOL - Tolerance {default = 1e-6}
 %
 % POSTERIOR OR CONDITIONAL ESTIMATES
 %
@@ -52,6 +52,10 @@ function [C,P] = spm_PEB(y,P)
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %___________________________________________________________________________
 % %W% Karl Friston, John Ashburner %E%
+
+% set tolerance if not specified
+%---------------------------------------------------------------------------
+if nargin < 3, TOL = 1e-6; end
 
 
 % number of levels (p)
@@ -256,13 +260,13 @@ for k = 1:M
 
 	% Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
 	%-------------------------------------------------------------------
-	dh    = W\dFdh;
+	dh    = pinv(W)*dFdh;
 	h     = h + dh;
 
 	% Convergence (or break if there is only one hyperparameter)
 	%===================================================================
 	w     = dFdh'*dFdh;
-	if w < 1e-6, break, end
+	if w < TOL, break, end
 	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
 end
 

@@ -14,7 +14,7 @@ function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY)
 %       xY.xyz          - centre of VOI {mm}
 %       xY.name         - name of VOI
 %       xY.Ic           - contrast used to adjust data (0 - no adjustment)
-%       xY.filter       - filtering (yes|no)
+%       xY.filter       - filtering (1 = yes| 0 = no)
 %       xY.Sess         - session indices
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
@@ -118,14 +118,18 @@ end
 if isfield(xSDM,'Sess')
 
 	if ~isfield(xY,'filter')
-		xY.filter = spm_input('filter','!+1','apply|none|high');
+		xY.filter = spm_input('filter','!+1','yes|no',[1 0]);
 	end
 
 	if ~isfield(xY,'Sess')
 		s         = length(xSDM.Sess);
-		s         = spm_input('which session[s]','+1','n',1,[1 Inf],s);
+		if s > 1
+			s = spm_input('which session[s]','+0','n',1,[1 Inf],s);
+		end
 		xY.Sess   = s;
 	end
+else
+	xY.filter = 0;
 end
 
 
@@ -143,7 +147,7 @@ switch xY.def
 	case 'sphere'
 	%---------------------------------------------------------------
 	if ~isfield(xY,'spec')
-		xY.spec = spm_input('VOI radius (mm)','!+1','r',0,1,[0,Inf]);
+		xY.spec = spm_input('VOI radius (mm)','!+0','r',0,1,[0,Inf]);
 	end
 	d     = [SPM.XYZmm(1,:)-xyz(1);
 		 SPM.XYZmm(2,:)-xyz(2);
@@ -154,7 +158,7 @@ switch xY.def
 	%---------------------------------------------------------------
 	if ~isfield(xY,'spec')
 		xY.spec = spm_input('box dimensions [x y z] {mm}',...
-			'!+1','r','0 0 0',3);
+			'!+0','r','0 0 0',3);
 	end
 	Q     = find(all(abs(SPM.XYZmm - xyz*Q) <= xY.spec(:)*Q/2));
 
@@ -210,13 +214,16 @@ if xY.Ic
 	y       = y - spm_FcUtil('Y0',Fc,xX.X,beta);
 end
 
+% filter
+%-----------------------------------------------------------------------
+if xY.filter
+	y       = spm_filter(xX.K,y);
+end
+
+
 % fMRI-specific operations
 %-----------------------------------------------------------------------
 if isfield(xY,'Sess')
-
-	% filter
-	%---------------------------------------------------------------
-	y       = spm_filter(xY.filter,xX.K,y);
 
 	% extract sessions
 	%---------------------------------------------------------------
