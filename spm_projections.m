@@ -1,53 +1,49 @@
-function [t,XYZ]=spm_projections(t,XYZ,U,V,W,S,G,C,df,pV,nam)
+function [t,XYZ] = spm_projections(t,XYZ,u,k,V,W,S,G,C,df)
 % display and analysis of SPM{Z} [SPM{t}]
-% FORMAT spm_projections(Z,XYZ,U,V,W,S,G,C,df,[pV,nam])
-% t   - row vector of {n} voxel values
+% FORMAT [Z XYZ] = spm_projections(Z,XYZ,u,k,V,W,S,G,C,df);
+%
+% Z   - row vector of {n} voxel values
 % XYZ - {3 x n} matrix of spatial locations {mm}
-% U   - threshold (uncorrected)
+% u   - height threshold (uncorrected)
+% k   - extent threshold (uncorrected)
 % V   - vector of image and voxel sizes (see spm_map.m)
 % W   - vector of smoothness estimates (one element for each dimension)
 % S   - Lebesgue measure or volume of search space
-% G   - design Matrix for the experiment
+% G   - design matrix for the experiment
 % C   - row vector contrast for the SPM{Z}
 % df  - degrees of freedom due to error
-% pV  - threshold (corrected)
-% nam - design matrix labels
-%-t & XYZ are filtered by corrected p-value, and returned
+%
+% Z & XYZ - filtered according to threshold criteria
 %___________________________________________________________________________
 %
-% spm_projections applies a threshold {U} to a point list of voxel values {Z}
+% spm_projections applies a threshold {u} to a point list of voxel values {Z}
 % (specified with their locations {XYZ}) and characterizes the resulting
 % excursion set as a collection of face, edge and vertex connected subsets
-% or regions.  The significance of each region is assessed on the basis of its
-% spatial extent {k} [P(nmax > k)] and its peak Z value {u} [P(Zmax > u)].  
-% These estimates are based on distributional approximations assuming that the
-% voxel values come from a Gaussian field of smoothness {W = FWHM/sqrt(8.ln2)}.
+% or clusters.  The significance of the results are based on set, cluster
+% and voxel-level inferences using distributional approximations from the
+% Theory of Gaussian Feilds.  These distributions assume that the SPM is
+% a reasonable lattice approximation to a Gaussian field of smoothness
+% {W = FWHM/sqrt(8.ln2)}
 %
-% The approximation for P(Zmax > u) is based upon <m>, the expected
-% number of maxima m  above u.  Assuming a Poisson form for the p.d.f of the
-% number of maxima the probability of there being one or more maxima (i.e.
-% 1 - P(m = 0) = 1 - exp(-<m>) is calculated using expressions for <m> based
-% on the theory of Gaussian Fields.  An extended analysis, using 
-% asymptotically correct distributional forms and <m> gives the equivalent
-% probability of one or more regions of the size observed, or larger.
-% These probabilities can be regarded as corrected p values.
+% The p values are based on the probability of obtaining c, or more,
+% clusters of k, or more, voxels above u, in the volume S analysed =
+% P(u,k,c).  For specified thresholds u, k, the set-level inference is
+% based on the observed number of clusters C = P(u,k,C).  For each cluster
+% of size K the cluster-level inference is based on P(u,K,1) and for each
+% voxel (or selected maxima) of height U, in that cluster, the voxel-level
+% inference is based on P(U,0,1).  All three levels of inference are
+% supported with a tabular presentation of the p values and the underlying
+% statistic (u, k or c).  The table is grouped by regions and sorted on
+% the Z value of the primary maxima.  See 'Sections' in the help facility
+% and spm_maxima.m for a more complete characterization of maxima within
+% a region.
 %
-% For each region the size {k} and significance [P(nmax > k)] are tabulated
-% The primary maximum (largest Z value) and up to 2 secondary maxima are
-% provided with their corrected [P(Zmax > u)] and uncorrected p values.
-% The table is grouped by regions and sorted on the Z value of the primary 
-% maxima.  See 'Sections' in the help facility and spm_maxima.m for a more
-% complete characterization of maxima within a region.
-%
-% If several contrasts are specified the uncorrected p value is raised
-% to the appropriate power, assuming the contrasts are othogonal.  Corrected
-% p values are not, in this instance, shown.
+% If several contrasts are specified, only voxels surviving the height
+% threshold u are considered further.  The mean of the component Z values
+% (for each contrast) is corrected for the number of, and correlations
+% among, the correpsonding compounds to give a new Z statistic.
 %
 % The secondary maxima are selected to be at least 8mm apart.
-%
-% The uncorrected threshold defines the excursion set and the corrected
-% threshold removes regions that fail to reach a corrected level of
-% significance.  To see all the voxels set the corrected p value to 1.
 %
 %__________________________________________________________________________
 % %W% %E%
@@ -59,38 +55,38 @@ global CWD
 %===========================================================================
 figure(3); spm_clf; set(3,'Units','Normalized');
 
-% apply threshold {U}
+% apply threshold {u}
 %---------------------------------------------------------------------------
-if size(t,1) > 1
-	Q = all(t > U);
+if size(C,1) > 1
+	Q = all(t > u);
+
+	g = C*pinv(G'*G)*C';
+	r = inv(diag(sqrt(diag(g))))'*g*inv(diag(sqrt(diag(g))));
+	t = sum(t(:,Q))/sqrt(sum(r(:)));
+
 else
-	Q = t > U;
+	Q = t > u;
+	t = t(1,Q);
+
 end
-t       = t(1,Q);
-XYZ     = XYZ(:,Q);
+XYZ       = XYZ(:,Q);
 
 % return if there are no voxels
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD,'Fontsize',16,'FontWeight','Bold');
-	text(0,0.7,'No voxels above this threshold');
+	text(0,0.8,CWD);
+	text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
 	return
 end
 
-% set the corrected p value and design matrix names (if not specified)
-%---------------------------------------------------------------------------
-if nargin < 10; pV  = 1;  end
-if nargin < 11; nam = []; end
-
-
-% filter on P(nmax > k) and P(Zmax > u)
+% apply threshold {k}
 %---------------------------------------------------------------------------
 A         = spm_clusters(XYZ,V([4 5 6]));
 Q         = [];
 for i     = 1:max(A)
 	j = find(A == i);
-	if ( spm_Pn(length(j),W,U,S) <= pV  ) | (spm_Pz(W,max(t(j)),S) <= pV )
+	if length(j) >= k
 		Q = [Q j];
 	end
 end
@@ -99,12 +95,12 @@ end
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,CWD,'Fontsize',16,'FontWeight','Bold');
-	text(0,0.7,'No voxels significant at this level');
+	text(0,0.8,CWD);
+	text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
 	return
 end
 
-t       = t(1,Q);
+t       = t(Q);
 XYZ     = XYZ(:,Q);
 
 
@@ -116,23 +112,18 @@ spm_mip(t,XYZ,V(1:6)); axis image
 title('SPM{Z}','FontSize',16,'Fontweight','Bold')
 
 axes('Position',[0.65 0.6 0.2 0.2])
-imagesc((spm_DesMtxSca(G,nam) + 1)*32)
-xlabel 'Design Matrix'
+imagesc(spm_DesMtxSca(G))
+xlabel 'design matrix'
 axes('Position',[0.65 0.8 0.2 0.1])
 bar(C'); hold on
-[j k]   = bar(C(1,:));
-fill(j,k,[1 1 1]*.8);
-set(gca,'Xlim',[min(j) max(j)]) 
+[i j]   = bar(C(1,:));
+fill(i,j,[1 1 1]*.8);
+set(gca,'Xlim',[min(i) max(i)]) 
 title 'contrast'; axis off; hold off
 
 	
-% characterize local excursions in terms of maxima {N - voxels},  maxima
-% Z values {Z} and locations (M)
-%---------------------------------------------------------------------------
+% characterize excursion set in terms of maxima %---------------------------------------------------------------------------
 [N Z M A] = spm_max(t,XYZ,V([4 5 6]));
-Pn        = spm_Pn(N,W,U,S);
-Pz        = spm_Pz(W,Z,S);
-Pu        = 1 - spm_Ncdf(Z);
 
 % display (sorted on Z values and grouped by regions)
 %===========================================================================
@@ -140,154 +131,141 @@ Pu        = 1 - spm_Ncdf(Z);
 
 % table headings
 %---------------------------------------------------------------------------
+y   = 24;
 axes('Position',[0.1 0.06 0.8 0.46]); axis off
-y  = 24;
-text(0,y,['Regional effects:    ' CWD],'Fontsize',16,'FontWeight','Bold');
-y  = y - 1.2;
+text(0,y,['P values & statistics:   ' CWD],'FontSize',12,'FontWeight','Bold');
+y   = y - 1;
+line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
+y   = y - 1;
+
+% Construct tables
+%===========================================================================
+text(0.00,y,'set-level {c}'      ,'FontSize',10);
+text(0.18,y,'cluster-level {k,Z}','FontSize',10);
+text(0.42,y,'voxel-level {Z}'    ,'FontSize',10);
+text(0.64,y,'uncorrected'        ,'FontSize',10);
+text(0.84,y,'location {mm}'      ,'FontSize',10);
+y  = y - 1;
+
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
 y  = y - 1;
 
+% set-level p values {c}
+%-----------------------------------------------------------------------
+c      = max(A);				% number of clusters
+Pc     = spm_P(c,W,u,k,S);			% set-level p value
 
+% print set
+%-----------------------------------------------------------------------
+str    = sprintf('%-0.3f   (%i)',Pc,c);
+text(0.00,y,str,'FontSize',8,'FontWeight','Bold')
 
-% multiple orthogonal contrasts
-%===========================================================================
-if (size(C,1) > 1) & all(all(~(C*C' - diag(diag(C*C')))))
+while max(Z) & (y > 0)
 
-    % product of p values
-    %-----------------------------------------------------------------------
-    Pu  = Pu*( (1 - spm_Ncdf(U))^(size(C,1) - 1) );
+    	% cluster-level p values {k}
+    	%--------------------------------------------------------------------
+	[U i] = max(Z);				% largest Z value
+	j     = find(A == A(i));		% maxima in cluster
+	Pk    = spm_P(1,W,u,N(i),S);		% cluster-level p value
+	Pu    = spm_P(1,W,U,0,S);		% voxel-level p value
+	Pz    = 1 - spm_Ncdf(U);		% uncorrected p value
 
-    text(0.00,y,'region');
-    text(0.10,y,'size {k}');
-    text(0.42,y,'Z');
-    text(0.54,y,'P value (Uncorrected)','Fontsize',10);
-    text(0.84,y,'{x,y,z mm}');
-    y  = y - 1;
+        if N(i) < k; break; end
 
-    line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
-    y  = y - 1;
-
-    % list of maxima
-    %-----------------------------------------------------------------------
-    region = 1;
-    while max(Z) & (y > 0)
-
-	[j i] = max(Z);				% largest Z value
-	j     = find(A == A(i));		% maxima in that region
-
-
-	% print region and largest maximum
+	% print cluster and maximum voxel-level p values {Z}
 	%-------------------------------------------------------------------
-	text(0.00,y,sprintf('%-0.0f',region),'Fontsize',10,'FontWeight','Bold')
-	text(0.10,y,sprintf('%-0.0f',N(i))  ,'Fontsize',10,'FontWeight','Bold')
-	text(0.42,y,sprintf('%-0.2f',Z(i))  ,'Fontsize',10,'FontWeight','Bold')
-	text(0.82,y,sprintf('%-6.0f',M(:,i)),'Fontsize',10,'FontWeight','Bold')
-	text(0.60,y,sprintf('%-0.3g',Pu(i)) ,'Fontsize',10)
+        str   = sprintf('%-0.3f   (%i, %0.2f)',Pk,N(i),U);
+	text(0.18,y,str,'FontSize',8,'FontWeight','Bold')
+        str   = sprintf('%-0.3f   (%-0.2f)',Pu,U);
+	text(0.44,y,str,'FontSize',8,'FontWeight','Bold')
+        str   = sprintf('%-0.3f',Pz);
+	text(0.68,y,str,'FontSize',8,'FontWeight','Bold')
+        str   = sprintf('%-6.0f',M(:,i));
+	text(0.84,y,str,'FontSize',8,'FontWeight','Bold')
+ 
 	y     = y - 1;
 
-	% print region and 4 secondary maxima (8mm apart)
+	% print 2 secondary maxima (> 8mm apart)
 	%-------------------------------------------------------------------
-	[l k] = sort(-Z(j));			% sort on Z value
+	[l q] = sort(-Z(j));				% sort on Z value
 	D     = i;
-	for i = 1:length(k)
-		d    = j(k(i));
+	for i = 1:length(q)
+		d    = j(q(i));
 		if min(sqrt(sum((M(:,D) - M(:,d)*ones(1,size(D,2))).^2))) > 8;
 		    if length(D) < 3
-			text(0.42,y,sprintf('%-0.2f',Z(d))   ,'Fontsize',10)
-			text(0.82,y,sprintf('%-6.0f',M(:,d)) ,'Fontsize',10)
-			text(0.60,y,sprintf('%-0.3g',Pu(d))  ,'Fontsize',10)
-			D = [D d];
-			y = y - 1;
+			
+			% voxel-level p values {Z}
+			%----------------------------------------------------
+			Pu  = spm_P(1,W,Z(d),0,S);	% voxel-level p value
+			Pz  = 1 - spm_Ncdf(Z(d));	% uncorrected p value
+
+        		str = sprintf('%-0.3f   (%-0.2f)',Pu,Z(d));
+			text(0.44,y,str,'FontSize',8)
+        		str = sprintf('%-0.3f',Pz);
+			text(0.68,y,str,'FontSize',8)
+        		str = sprintf('%-6.0f',M(:,d));
+			text(0.84,y,str,'FontSize',8)
+			D   = [D d];
+			y   = y - 1;
 		    end
 		end
 	end
 	Z(j) = Z(j)*0;
-	region = region + 1;			% next region
-    end						% end region
-    text(0,y,'NB multiple orthogonal contrasts','Color',[1 0 0])
-    y = y - 1;
-
-
-else			% single contrast or nonorthogonal contrasts
-%===========================================================================
-    text(0.00,y,'region');
-    text(0.10,y,'size {k}');
-    text(0.24,y,'P(n      > k)');
-    text(0.29,y,'max','Fontsize',8);
-    text(0.42,y,'Z');
-    text(0.48,y,'P(Z      > u)');
-    text(0.53,y,'max','Fontsize',8);
-    text(0.64,y,'(Uncorrected)','Fontsize',10);
-    text(0.84,y,'{x,y,z mm}');
-    y  = y - 1;
-
-    line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])
-    y  = y - 1;
-
-    % list of maxima
-    %-----------------------------------------------------------------------
-    region = 1;
-    while max(Z) & (y > 0)
-
-	[j i] = max(Z);				% largest Z value
-	j     = find(A == A(i));		% maxima in that region
-
-
-	% print region and largest maximum
-	%-------------------------------------------------------------------
-	text(0.00,y,sprintf('%-0.0f',region),'Fontsize',10,'FontWeight','Bold')
-	text(0.10,y,sprintf('%-0.0f',N(i))  ,'Fontsize',10,'FontWeight','Bold')
-	text(0.24,y,sprintf('%-0.3f',Pn(i)) ,'Fontsize',10,'FontWeight','Bold')
-	text(0.42,y,sprintf('%-0.2f',Z(i))  ,'Fontsize',10,'FontWeight','Bold')
-	text(0.54,y,sprintf('%-0.3f',Pz(i)) ,'Fontsize',10,'FontWeight','Bold')
-	text(0.82,y,sprintf('%-6.0f',M(:,i)),'Fontsize',10,'FontWeight','Bold')
-	text(0.64,y,sprintf('(%-0.3f)',Pu(i)) ,'Fontsize',10)
-	y     = y - 1;
-
-	% print region and 4 secondary maxima (8mm apart)
-	%-------------------------------------------------------------------
-	[l k] = sort(-Z(j));			% sort on Z value
-	D     = i;
-	for i = 1:length(k)
-		d    = j(k(i));
-		if min(sqrt(sum((M(:,D) - M(:,d)*ones(1,size(D,2))).^2))) > 8;
-		    if length(D) < 3
-			text(0.42,y,sprintf('%-0.2f',Z(d))   ,'Fontsize',10)
-			text(0.54,y,sprintf('%-0.3f',Pz(d))  ,'Fontsize',10)
-			text(0.82,y,sprintf('%-6.0f',M(:,d)) ,'Fontsize',10)
-			text(0.64,y,sprintf('(%-0.3f)',Pu(d)),'Fontsize',10)
-			D = [D d];
-			y = y - 1;
-		    end
-		end
-	end
-	Z(j) = Z(j)*0;
-	region = region + 1;			% next region
-    end						% end region
-end						% end conditional
-
+end					% end region
+if size(C,1) > 1
+	str = 'NB multiple contrasts - use voxel-level inferences';
+	text(0,y,str,'Color',[1 0 0])
+	y = y - 1;
+end
 
 line([0 1],[y y],'LineWidth',1,'Color',[0 0 0])
-y     = y - 1;
+y     = y - 0.5;
 
 % volume, resels and smoothness 
 %---------------------------------------------------------------------------
-D     = length(W);					% dimension of SPM
-FWHM  = sqrt(8*log(2))*W.*V(([1:D] + 3),1)'; 		% FWHM in mm
-RESEL = S*prod(V([1:D] + 3))/prod(FWHM);		% RESELS
+D               = length(W);					% dimension
+FWHM            = sqrt(8*log(2))*W.*V(([1:D] + 3),1)'; 		% FWHM {mm}
+RESEL           = S*prod(V([1:D] + 3))/prod(FWHM);		% RESELS
+[P,EN,Em,En,Pk] = spm_P(1,W,u,k,S);
+
 
 % footnote with SPM parameters
 %---------------------------------------------------------------------------
-d  = sprintf('Threshold = %0.2f; Volume [S] = %0.0f voxels; df = %0.0f',U,S,df);
-text(0,y,d,'Fontsize',10);
+str = sprintf('Height threshold {u} = %0.2f, p = %0.3f',u,1 - spm_Ncdf(u));
+text(0,y,str,'FontSize',8);
 y  = y - 1;
+str = sprintf('Extent threshold {k} = %i voxels',k);
+text(0,y,str,'FontSize',8);
+y  = y - 1;
+str = sprintf('Expected voxels per cluster, E{n} = %0.1f',En);
+text(0,y,str,'FontSize',8);
+y  = y - 1;
+str = sprintf('Expected number of clusters, E{m} = %0.1f',Em*Pk);
+text(0,y,str,'FontSize',8);
+y  = y + 3;
+str = sprintf('Volume {S} = %i voxels or %0.1f Resels ',S,RESEL);
+text(0.6,y,str,'FontSize',8);
+y  = y - 1;
+str = sprintf('Degrees of freedom due to error = %0.0i ',df);
+text(0.6,y,str,'FontSize',8);
+y  = y - 1;
+
 if D == 2
-    d = sprintf('FWHM = [%0.1f %0.1f] mm (i.e. %0.0f RESELS) ',FWHM,RESEL);
+    str = sprintf('Smoothness = %0.1f %0.1f mm {FWHM}',FWHM);
 end
 if D == 3
-    d = sprintf('FWHM = [%0.1f %0.1f %0.1f] mm (i.e. %0.0f RESELS)',FWHM,RESEL);
+    str = sprintf('Smoothness = %0.1f %0.1f %0.1f mm {FWHM}',FWHM);
 end
-text(0,y,d,'Fontsize',10);
+text(0.6,y,str,'FontSize',8);
+y  = y - 1;
+if D == 2
+    str = sprintf(' = %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
+end
+if D == 3
+    str = sprintf(' = %0.1f %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
+end
+text(0.6,y,str,'FontSize',8);
 
 
 set(gca,'Ylim',[y 24]);
+
