@@ -5,12 +5,11 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 %
 %_______________________________________________________________________
 %
-% Most of the code is taken from spm_fmri_spm_ui and the functionality is
-% the same.
+% Specification of M/EEG designs
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel
+% Stefan Kiebel, Karl Friston
 % $Id$
 
 %-GUI setup
@@ -28,7 +27,7 @@ if ~nargin
 		%-------------------------------------------------------
 		if sf_abort, spm_clf(Finter), return, end
 		SPM = spm_eeg_design;
-% 		spm_DesRep('DesMtx',SPM.xX);
+
 		return
 	else
 		% get design
@@ -61,8 +60,8 @@ catch
         end
         Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
         
-        % Problem, spm_get doesn't know about 4D-images
-        % q = spm_select(Nimages, 'image', str);
+        % spm_get doesn't know how many 3D-images are in a 4D-image volume
+        % (inf instead of Nimages):
         q = spm_select(inf, 'image', str);
 		P = strvcat(P, q);
 	end
