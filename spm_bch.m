@@ -163,12 +163,12 @@ for cA = 1:length(iA) % length(iA) == number of analyses to be done
 	    %---------------------------------------------------------------
 	    case 'headers'
 		BCH.index0  = {'headers',iA(cA)};
-		s = spm_bch_headers
+		s = spm_bch_headers;
     
 	    %---------------------------------------------------------------
 	    case 'means'
 		BCH.index0  = {'means',iA(cA)};
-		s = spm_means
+		s = spm_means;
 	    
 	    %---------------------------------------------------------------
 	    case 'realign'

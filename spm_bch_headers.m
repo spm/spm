@@ -24,7 +24,7 @@ function status = spm_bch_headers
 status.str = '';
 status.err = 0;
 
-files = spm_input('batch',{},'files')
+files = spm_input('batch',{},'files');
 
 %------- no files ------- 
 if ~size(files,1), return, end;
@@ -52,7 +52,7 @@ str = [str ']'];
 	
 for k=1:size(files,1)
 
-	P = files(k,:)
+	P = files(k,:);
 	
 	%----------  read the empty parameters from header
 	% [str ' = spm_hread('''  deblank(P)  ''');']
