@@ -42,7 +42,7 @@ BETA  = pinv([H C 0*B 0*G])*y;			% parameter estimate
 Y     = [H C 0*B 0*G]*BETA;			% fitted data
 R     = y - Y;					% residuals
 RES   = sum(R.^2);				% SSQ of residuals
-SE    = sqrt(diag(BCOV));			% standard error of estimates
+SE    = sqrt(RES*diag(BCOV));			% standard error of estimates
 HC    = [H C];
 MSize = 12;
 
@@ -81,7 +81,7 @@ if exist('ERI')
     if spm_input('plot event-related responses',1,'b','yes|no',[1 0]);
 	j     = 1;
 	if size(ERI,2) > 1
-		j = spm_input('which events','!+1','e',1:size(ERI,2));
+		j = spm_input('which events','!+1','e','1 2');
 	end
 
 	Cplot = str2mat(...
@@ -97,11 +97,14 @@ if exist('ERI')
 	%--------------------------------------------------------------
 	figure(Fgraph)
 	hold on
-	x     = -4:0.1:32;
+	dx    = 0.1;
+	x     = -4:dx:32;
+	K     = spm_sptop(SIGMA*RT/dx,length(x));
+	DER   = K*DER;
 	for i = j
 		Y      = DER*BETA(ERI(:,i));
 		se     = sqrt(diag(DER*BCOV(ERI(:,i),ERI(:,i))*DER')*RES);
-		y      = C*BETA(ERI(:,i)) + R;
+		y      = C(:,ERI(:,i))*BETA(ERI(:,i)) + R;
 
 		% plot
 		%------------------------------------------------------
@@ -203,7 +206,7 @@ elseif Cp >= 3
 
 		elseif Cp == 4
 
-			line(x,y,'LineStyle','.','MarkerSize',MSize)
+			plot(x,y,'LineStyle','.','MarkerSize',MSize)
 
 		elseif Cp == 5
 
