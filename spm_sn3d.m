@@ -279,7 +279,7 @@ if (nargin == 0)
 				nbasis = nbasis(:)';
 			end
 			pos = pos+1;
-		else
+		elseif (a2 == 1)
 			nbasis     = [0 0 0];
 			iterations = 0;
 			smoothness = 0;
