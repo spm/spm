@@ -1,25 +1,21 @@
 
-% averages a series of images - a compiled routine
-% FORMAT s = spm_mean(n,TYPE,Q,P,S)
-% n	-	number of voxels per image
-% TYPE	- 	data type (see spm_type.m & volume.h)
-% Q	-	filename for averaged image
-% P	-	matrix of filenames to be averaged (rowwise strings)
-% S	-	optional vector of scalefactors / weights
-% s	-	the scalefactor which should be assigned to Q
+% integrates a series of images - a compiled routine
+% FORMAT s = spm_mean(V,Q,flags)
+% V     - Vector of mapped volumes (from spm_map or spm_vol).
+% Q     - Filename for averaged image
+% flags - Flags can be:
+%               'f' - writes floating point output image.
+%               'm' - masks the mean to zero or NaN wherever
+%                     a zero occurs in the input images.
+% s     - Scalefactor for output image.
 %_______________________________________________________________________
 %
-% spm_mean computes a weighted sum of a set of image files to produce
-% an mean image that is written to a named file (Q). No headers are
-% read or written, in particular scalefactors are ignored. The image is
-% written in the same type as the input images.
-%
-% The weights (S) default to 1/size(P,1) - resulting an average of the
-% image files being written to Q. For a "proper" average including
-% scalefactors, the weights s should be specified as sf/length(sf) for
-% sf a vector of scalefactors for the image files specified in P.
+% spm_mean computes a sum of a set of image volumes to produce an
+% integral image that is written to a named file (Q).
+% The image is written as signed short (16 bit) unless the `f' flag
+% is specified.
 %
 % See also: spm_average - for details on how to usefully use this function
 %
 %_______________________________________________________________________
-% %W% Jean-Baptiste Poline, John Ashburner%E%
+% %W% John Ashburner (highly modified from JB's original version) %E%
