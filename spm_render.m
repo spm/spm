@@ -31,44 +31,20 @@ if nargin==0,
 	spm_figure('Clear','Interactive');
 	Finter = spm_figure('FindWin','Interactive');
 	set(Finter,'Name','SPM render')
-	global CWD
-
-	% Which SPM
-	%-----------------------------------------------------------------------
-	SPMZ     = spm_input('which SPM',1,'b','SPM{Z}|SPM{F}',[1 0]);
-	SPMF     = ~SPMZ;
 
 	num = spm_input('Number of sets',2,'1 set|2 sets|3 sets',[1 2 3]);
-
 	dat = cell(num,1);
 	for i=1:num,
-		
-		% Get thresholded data, thresholds and parameters
-		%-----------------------------------------------------------------------
-		if SPMZ
-			[t,XYZ,QQ,U,k,s,w] = spm_projections_ui('Results');
-		elseif SPMF
-			[t,XYZ,QQ,U,k,s,w] = spm_projectionsF_ui('Results');
-		end
-		if isempty(t), spm_figure('Clear','Interactive'); return; end
-
-		% get voxel sizes (in 'V') from mat file
-		%-----------------------------------------------------------------------
-		load([CWD '/SPM.mat']);
-		origin = V(7:9); if all(origin == 0), origin = dim(1:3)/2; end;
-		vox    = V(4:6); if all(vox    == 0), vox    = [1 1 1]   ; end;
-		off    = -vox.*origin;
-		mat    = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
-		imat   = inv(mat);
-		XYZ    = round(imat(1:3,1:3)*XYZ + imat(1:3,4)*ones(1,size(XYZ,2)));
-		dat{i} = struct('XYZ',XYZ,'t',t,'mat',mat, 'dim', V(1:3));
+		[SPM,VOL,DES] = spm_getSPM;
+		% if isempty(SPM.Z), spm_figure('Clear','Interactive'); return; end
+		imat   = inv(VOL.M);
+		XYZ    = round(imat(1:3,1:3)*VOL.XYZ + imat(1:3,4)*ones(1,size(VOL.XYZ,2)));
+		dat{i} = struct('XYZ',XYZ, 't',SPM.Z', 'mat',VOL.M, 'dim', VOL.DIM);
 	end;
 
 	spm_render(dat);
 	return;
 end;
-
-
 
 % Perform the rendering
 %_______________________________________________________________________
