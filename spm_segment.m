@@ -27,6 +27,17 @@
 
 function spm_segment(PF)
 
+if (nargin==0)
+	PF = spm_get(Inf,'.img','Registered MRI(s) - T1 first');
+	set(2,'Name','Segmenting..','Pointer','Watch'); drawnow;
+	spm_segment(PF);
+	set(2,'Name','','Pointer','Arrow'); drawnow;
+	figure(2);clf
+	return;
+end
+
+
+
 global SWD
 DIR   = [SWD '/mni/'];
 
