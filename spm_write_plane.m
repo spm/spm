@@ -46,7 +46,7 @@ if intt(dt),
 	A(A < mnv)  = mnv;
 end;
 
-if ~isfield(V,'fid') | isempty(V.fid),
+if ~isfield(V,'private') | ~isfield(V.private,'fid') | isempty(V.private.fid),
 	mach = 'native';
 	if swapped(dt),
 		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
@@ -61,11 +61,11 @@ if ~isfield(V,'fid') | isempty(V.fid),
 		end;
 	end;
 else,
-	fid = V.fid;
+	fid = V.private.fid;
 end;
 
 % Seek to the appropriate offset
-datasize = V.hdr.dime.bitpix/8;
+datasize = V.private.hdr.dime.bitpix/8;
 off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
 if fseek(fid,off,'bof')==-1,
 	% Need this because fseek in Matlab does not seek past the EOF
@@ -88,7 +88,7 @@ if fwrite(fid,A,deblank(prec(dt,:))) ~= prod(size(A)),
 	error(['Error writing ' V.fname '.']);
 end;
 
-if ~isfield(V,'fid') | isempty(V.fid), fclose(fid); end;
+if ~isfield(V,'private') | ~isfield(V.private,'fid') | isempty(V.private.fid), fclose(fid); end;
 
 return;
 %_______________________________________________________________________

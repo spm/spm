@@ -23,22 +23,23 @@ return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function V = create_vol(V,varargin)
-if ~isfield(V,'n')       | isempty(V.n),       V.n       = 1;                 end;
-if ~isfield(V,'descrip') | isempty(V.descrip), V.descrip = 'SPM2 compatible'; end;
-if ~isfield(V,'hdr')     | isempty(V.hdr),     V.hdr     = create_defaults;   end;
+if ~isfield(V,'n')           | isempty(V.n),           V.n           = 1;                 end;
+if ~isfield(V,'descrip')     | isempty(V.descrip),     V.descrip     = 'SPM2 compatible'; end;
+if ~isfield(V,'private'),                              V.private     = struct('hdr',[]);  end;
+if ~isfield(V.private,'hdr') | isempty(V.private.hdr), V.private.hdr = create_defaults;   end;
 
 % Orientation etc...
-M = V.mat;
+M  = V.mat;
 if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
-vx     = sqrt(sum(M(1:3,1:3).^2));
+vx = sqrt(sum(M(1:3,1:3).^2));
 if det(M(1:3,1:3))<0, vx(1) = -vx(1); end;
 origin = M\[0 0 0 1]';
 origin = round(origin(1:3));
 
-V.hdr.dime.pixdim(2:4) = vx;
-V.hdr.dime.dim(2:4)    = V.dim(1:3);
-V.hdr.dime.dim(5)      = V.n;
-V.hdr.hist.origin(1:3) = origin;
+V.private.hdr.dime.pixdim(2:4) = vx;
+V.private.hdr.dime.dim(2:4)    = V.dim(1:3);
+V.private.hdr.dime.dim(5)      = V.n;
+V.private.hdr.hist.origin(1:3) = origin;
 
 dt = spm_type(spm_type(V.dim(4)));
 if any(dt == [128+2 128+4 128+8]),
@@ -48,47 +49,47 @@ if any(dt == [128+2 128+4 128+8]),
 		V.dim(4) = dt*256;
 	end;
 end;
-V.hdr.dime.datatype    = dt;
-V.hdr.dime.bitpix      = spm_type(dt,'bits');
+V.private.hdr.dime.datatype    = dt;
+V.private.hdr.dime.bitpix      = spm_type(dt,'bits');
 
 if spm_type(dt,'intt'),
 
 	if 0, % Allow DC offset
-	V.hdr.dime.glmax    = spm_type(dt,'maxval');
-	V.hdr.dime.glmin    = spm_type(dt,'minval');
-	V.hdr.dime.cal_max  = max(V.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-	V.hdr.dime.cal_min  = min(V.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
-	V.hdr.dime.funused1 = 0;
-	scal                = (V.hdr.dime.cal_max - V.hdr.dime.cal_min)/...
-	                      (V.hdr.dime.glmax   - V.hdr.dime.glmin);
-	dcoff               =  V.hdr.dime.cal_min - V.hdr.dime.glmin*scal;
+	V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
+	V.private.hdr.dime.glmin    = spm_type(dt,'minval');
+	V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+	V.private.hdr.dime.cal_min  = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
+	V.private.hdr.dime.funused1 = 0;
+	scal                = (V.private.hdr.dime.cal_max - V.private.hdr.dime.cal_min)/...
+	                      (V.private.hdr.dime.glmax   - V.private.hdr.dime.glmin);
+	dcoff               =  V.private.hdr.dime.cal_min - V.private.hdr.dime.glmin*scal;
 	V.pinfo             = [scal dcoff 0]';
 
 	else, % Don't allow DC offset
-	V.hdr.dime.glmax    = spm_type(dt,'maxval');
-	V.hdr.dime.glmin    = 0;
-	V.hdr.dime.cal_max  = max(V.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-	V.hdr.dime.cal_min  = 0;
-	V.hdr.dime.funused1 = V.hdr.dime.cal_max/V.hdr.dime.glmax;
-	V.pinfo             = [V.hdr.dime.funused1 0 0]';
+	V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
+	V.private.hdr.dime.glmin    = 0;
+	V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+	V.private.hdr.dime.cal_min  = 0;
+	V.private.hdr.dime.funused1 = V.private.hdr.dime.cal_max/V.private.hdr.dime.glmax;
+	V.pinfo             = [V.private.hdr.dime.funused1 0 0]';
 	end;
 
 else,
-	V.hdr.dime.glmax    = 1;
-	V.hdr.dime.glmin    = 0;
-	V.hdr.dime.cal_max  = 1;
-	V.hdr.dime.cal_min  = 0;
-	V.hdr.dime.funused1 = 1;
+	V.private.hdr.dime.glmax    = 1;
+	V.private.hdr.dime.glmin    = 0;
+	V.private.hdr.dime.cal_max  = 1;
+	V.private.hdr.dime.cal_min  = 0;
+	V.private.hdr.dime.funused1 = 1;
 end;
 
-d                      = 1:min([length(V.descrip) 79]);
-hist.descrip	       = char(zeros(1,80));
-V.hdr.hist.descrip(d)  = V.descrip(d);
-V.hdr.hk.db_name       = char(zeros(1,18));
-[pth,nam,ext]          = fileparts(V.fname);
-d                      = 1:min([length(nam) 17]);
-V.hdr.hk.db_name(d)    = nam(d);
-mach                   = 'native';
+d                              = 1:min([length(V.descrip) 79]);
+hist.descrip	               = char(zeros(1,80));
+V.private.hdr.hist.descrip(d)  = V.descrip(d);
+V.private.hdr.hk.db_name       = char(zeros(1,18));
+[pth,nam,ext]                  = fileparts(V.fname);
+d                              = 1:min([length(nam) 17]);
+V.private.hdr.hk.db_name(d)    = nam(d);
+mach                           = 'native';
 
 fname         = fullfile(pth,[nam, '.hdr']);
 [hdr,swapped] = spm_read_hdr(fname);
@@ -96,16 +97,16 @@ fname         = fullfile(pth,[nam, '.hdr']);
 if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 	% cannot simply overwrite the header
 
-	hdr.dime.dim(5) = max(V.hdr.dime.dim(5),hdr.dime.dim(5));
-	if any(V.hdr.dime.dim(2:4) ~= hdr.dime.dim(2:4))
+	hdr.dime.dim(5) = max(V.private.hdr.dime.dim(5),hdr.dime.dim(5));
+	if any(V.private.hdr.dime.dim(2:4) ~= hdr.dime.dim(2:4))
 		error('Incompatible image dimensions');
 	end;
 
-	if sum((V.hdr.dime.pixdim(2:4)-hdr.dime.pixdim(2:4)).^2)>1e-6,
+	if sum((V.private.hdr.dime.pixdim(2:4)-hdr.dime.pixdim(2:4)).^2)>1e-6,
 		error('Incompatible voxel sizes');
 	end;
 
-	V.dim(4) = spm_type(hdr.dime.datatype);
+	V.dim(4) = spm_type(spm_type(hdr.dime.datatype));
 	if swapped,
 		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
 	end;
@@ -125,19 +126,19 @@ if ~isempty(hdr) & (hdr.dime.dim(5)>1 | V.n>1),
 	end;
 	V.pinfo(1:2)    = [scal dcoff]';
 	hdr.dime.dim(5) = max(hdr.dime.dim(5),V.hdr.dime.dim(5));
-	V.hdr           = hdr;
+	V.private.hdr   = hdr;
 end;
 
-V.pinfo(3) = prod(V.hdr.dime.dim(2:4))*V.hdr.dime.bitpix/8*(V.n-1);
+V.pinfo(3) = prod(V.private.hdr.dime.dim(2:4))*V.private.hdr.dime.bitpix/8*(V.n-1);
 
 fid           = fopen(fname,'w',mach);
 if (fid == -1),
 	error(['Error opening ' fname '. Check that you have write permission.']);
 end;
 
-write_hk(fid,V.hdr.hk);
-write_dime(fid,V.hdr.dime);
-write_hist(fid,V.hdr.hist);
+write_hk(fid,V.private.hdr.hk);
+write_dime(fid,V.private.hdr.dime);
+write_hist(fid,V.private.hdr.hist);
 fclose(fid);
 
 fname = fullfile(pth,[nam, '.mat']);
@@ -174,10 +175,10 @@ end;
 
 if nargin==1 | ~strcmp(varargin{1},'noopen'),
 	fname         = fullfile(pth,[nam, '.img']);
-	V.fid         = fopen(fname,'r+',mach);
-	if (V.fid == -1),
-		V.fid     = fopen(fname,'w',mach);
-		if (V.fid == -1),
+	V.private.fid = fopen(fname,'r+',mach);
+	if (V.private.fid == -1),
+		V.private.fid     = fopen(fname,'w',mach);
+		if (V.private.fid == -1),
 			error(['Error opening ' fname '. Check that you have write permission.']);
 		end;
 	end;
@@ -310,6 +311,3 @@ hdr.hist = hist;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function savestruct(t,fname)
-f=fieldnames(t);
-

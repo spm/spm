@@ -120,7 +120,7 @@ else
 	end;
 end;
 
-offset = hdr.dime.vox_offset + (n-1)*spm_type(hdr.dime.datatype,'bits')/8;
+offset = hdr.dime.vox_offset + (n-1)*prod(dim(1:3))*spm_type(hdr.dime.datatype,'bits')/8;
 
 if rem(offset, spm_type(hdr.dime.datatype,'bits')/8),
 	error(['Offset into file must be a multiple of ' spm_type(hdr.dime.datatype,'bits')/8 '.']);
@@ -128,6 +128,8 @@ end;
 
 pinfo   = [scal dcoff offset]';
 %-----------------------------------------------------------------------
+
+private = struct('hdr',hdr);
 
 % Make volume handle
 %-----------------------------------------------------------------------
@@ -139,7 +141,7 @@ V       = struct(...
 	'mat',		mat,...
 	'descrip',	descrip,...
 	'n',		n,...
-	'hdr',		hdr);
+	'private',	private);
 %-----------------------------------------------------------------------
 return;
 %_______________________________________________________________________

@@ -5,7 +5,7 @@ function V=spm_vol_minc(fname,n)
 %  V - a structure containing image volume information.
 %
 % The elements of V are described by the help for spm_vol, except for
-% an additional field (V.cdf) that contains the NetCDF header
+% an additional field (V.private.cdf) that contains the NetCDF header
 % information.
 %
 % The MINC file format was developed by Peter Neelin at the Montréal
@@ -142,7 +142,8 @@ if exist(matname) == 2,
 	end;
 end;
 
-V      = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'descrip','MINC file','cdf',cdf);
+private = struct('cdf',cdf);
+V       = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'descrip','MINC file','private',private);
 return;
 %_______________________________________________________________________
 

@@ -4,8 +4,8 @@ function V = spm_close_vol(V)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 for i=1:prod(size(V)),
-	if isfield(V(i),'fid') & ~isempty(V(i).fid),
-		fclose(V(i).fid);
+	if isfield(V,'private') & isfield(V(i).private,'fid') & ~isempty(V(i).private.fid),
+		fclose(V(i).private.fid);
+		V(i).private = rmfield(V(i).private,'fid');
 	end;
 end;
-if isfield(V,'fid'), V = rmfield(V,'fid'); end;
