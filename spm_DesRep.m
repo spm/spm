@@ -273,8 +273,8 @@ case 'desrepui'                                    %-Design reporting UI
 %-----------------------------------------------------------------------
 if nargin < 2
 	cfg       = spm_get(1,'SPM.mat','Select SPM design file...');
-	load(cfg);
-	D         = SPM;
+	tmp       = load(cfg);
+	D         = tmp.SPM;
 	[swd,cfg] = fileparts(cfg);
 	D.swd     = swd;
 	if any(strcmp(cfg,{'SPM_fMRIDesMtx','SPMcfg','SPM'}))
