@@ -35,7 +35,7 @@ function varargout = spm_matx(matfile,varargin)
 %-----------------------------------------------------------------------
 if nargin<2, varargout={}; return, end
 matfile = [spm_str_manip(matfile,'s'),'.mat'];
-if exist(matfile,'file')~=2, error(['invalid mat-file: ',mfilename]), end
+if exist(matfile,'file')~=2, error(['invalid mat-file: ',matfile]), end
 
 
 %-Note mat-file variables into structure M (feature introduced in v5.2)
