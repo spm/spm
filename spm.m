@@ -135,7 +135,13 @@ function varargout=spm(varargin)
 % Returns the RGB triple and a description for the current en-vogue SPM
 % colour, the background colour for the Menu and Help windows.
 %
-% CmdLine = spm('isGCmdLine')
+% FORMAT [v1,v2,...] = spm('GetGlobal',name1,name2,...)
+% Returns values of global variables (without declaring them global)
+% name1, name2,... - name strings of desired globals
+% a1, a2,...       - corresponding values of global variables with given names
+%                    ([] is returned as value if global variable doesn't exist)
+%
+% FORMAT CmdLine = spm('isGCmdLine')
 % Returns true if global CMDLINE exists and is itself true.
 %
 % FORMAT v = spm('MLver')
@@ -839,10 +845,24 @@ varargout = {[0.7,1.0,0.7],'Lime Green'};
 % varargout = {[0.8 0.8 1.0],'Diluted Blackcurrent Purple'};
 
 
+case 'getglobal'
+%=======================================================================
+% varargout = spm('GetGlobal',varargin)
+wg = who('global');
+for i=1:nargin-1
+	if any(strcmp(wg,varargin{i+1}))
+		eval(['global ',varargin{i+1},', tmp=',varargin{i+1},';'])
+		varargout{i} = tmp;
+	else
+		varargout{i} = [];
+	end
+end
+
 case 'isgcmdline'
 %=======================================================================
 % CmdLine = spm('isGCmdLine')
-if any(strcmp(who('global'),'CMDLINE')), global CMDLINE; else, CMDLINE=[]; end
+% if any(strcmp(who('global'),'CMDLINE')), global CMDLINE; else, CMDLINE=[]; end
+CMDLINE = spm('GetGlobal','CMDLINE');
 if isempty(CMDLINE), varargout = {0}; else, varargout = {CMDLINE}; end
 
 
