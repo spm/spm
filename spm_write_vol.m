@@ -24,31 +24,46 @@ if any(dt == [128+2 128+4 128+8]),
 	% Convert to a form that Analyze will support
 	dt = dt - 128;
 end;
-s = find(dt == [2 4 8 128+2 128+4 128+8]);
-dmnmx = [0 -2^15 -2^31 -2^7 0 0 ; 2^8-1 2^15-1 2^31-1 2^7-1 2^16 2^32];
-dmnmx = dmnmx(:,s);
-V.pinfo(1,:)=1;
-V.pinfo(2,:)=0;
+s            = find(dt == [2 4 8 128+2 128+4 128+8]);
+dmnmx        = [0 -2^15 -2^31 -2^7 0 0 ; 2^8-1 2^15-1 2^31-1 2^7-1 2^16 2^32];
+dmnmx        = dmnmx(:,s);
+V.pinfo(1,:) = 1;
+V.pinfo(2,:) = 0;
+mxs          = zeros(dim(3),1)+NaN;
+mns          = zeros(dim(3),1)+NaN;
 if ~isempty(s),
+	for p=1:dim(3),
+		tmp    = double(Y(:,:,p));
+		tmp    = tmp(finite(tmp));
+		if ~isempty(tmp),
+			mxs(p) = max(tmp);
+			mns(p) = min(tmp);
+		end;
+	end;
+
 	if size(V.pinfo,2) ~= 1,
 		for p=1:dim(3),
-			mx = double(max(max(Y(:,:,p))));
-			mn = double(min(min(Y(:,:,p))));
+			mx = mxs(p);
+			mn = mns(p);
+			if ~finite(mx), mx = 0; end;
+			if ~finite(mn), mn = 0; end;
 			if mx~=mn,
 				V.pinfo(1,p) = (mx-mn)/(dmnmx(2)-dmnmx(1));
 				V.pinfo(2,p) = ...
-					(dmnmx(2)*mn -dmnmx(1)*mx)/(dmnmx(2) -dmnmx(1));
+					(dmnmx(2)*mn-dmnmx(1)*mx)/(dmnmx(2)-dmnmx(1));
 			else,
 				V.pinfo(1,p) = 0;
 				V.pinfo(2,p) = mx;
 			end;
 		end;
 	else,
-		mx = double(max(max(max(Y))));
-		mn = double(min(min(min(Y))));
+		mx = max(mxs(finite(mxs)));
+		mn = min(mns(finite(mns)));
+		if isempty(mx), mx = 0; end;
+		if isempty(mn), mn = 0; end;
 		if mx~=mn,
 			V.pinfo(1,1) = (mx-mn)/(dmnmx(2)-dmnmx(1));
-			V.pinfo(2,1) = (dmnmx(2)*mn - dmnmx(1)*mx)/(dmnmx(2) - dmnmx(1));
+			V.pinfo(2,1) = (dmnmx(2)*mn-dmnmx(1)*mx)/(dmnmx(2)-dmnmx(1));
 		else,
 			V.pinfo(1,1) = 0;
 			V.pinfo(2,1) = mx;
