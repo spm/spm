@@ -93,7 +93,7 @@ end;
 
 if isempty(P), warning('Nothing to do'); return; end;
 if ~iscell(P), tmp = cell(1); tmp{1} = P; P = tmp; end;
-P = spm_vol(P);
+for i=1:length(P), if ischar(P{i}), P{i} = spm_vol(P{i}); end; end;
 if ~isempty(flags.PW) & ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
 
 if length(P)==1,
