@@ -876,7 +876,7 @@ if exist('spm_log')==2
 	switch lower(Type), case 's'
 		spm_log([mfilename,' : ',Prompt,':',p]);
 	case 's+'
-		spm_log([mfilename,' : ',Prompt,':'],char(p));
+		spm_log([mfilename,' : ',Prompt,':'],p);
 	otherwise
 		spm_log([mfilename,' : ',Prompt,': (',str,')'],p);
 	end
