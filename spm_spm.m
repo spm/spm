@@ -349,25 +349,32 @@ sz_res = sz_res(1:min(size(V, 2),MaxSmooEst),:);
 
 % remove zero component from the s?_res (null residual fields) 
 %-------------------------------------------------------------
-i_res = ~any( [[any(~(sx_res'))]; [any(~(sy_res'))]; [any(~(sy_res'))]] );
-sx_res = sx_res(i_res,:);
-sy_res = sy_res(i_res,:);
-sz_res = sz_res(i_res,:);
+if V(3,1) == 1 
+	i_res = ~any( [[any(~(sx_res'))]; [any(~(sy_res'))]] );
+	sx_res = sx_res(i_res,:);
+	sy_res = sy_res(i_res,:);
+	if ~isempty(sx_res)
+	   Wresid = sqrt([	sx_res(:,1)./sx_res(:,2)...
+			 	sy_res(:,1)./sy_res(:,2)]/2);
+	end
+else
+	i_res = ~any( [	[any(~(sx_res'))];...
+			[any(~(sy_res'))]; [any(~(sy_res'))]] );
+	sx_res = sx_res(i_res,:);
+	sy_res = sy_res(i_res,:);
+	sz_res = sz_res(i_res,:);
 
 
-if ~isempty(sx_res)
-	Wresid = sqrt([	 sx_res(:,1)./sx_res(:,2)...
+	if ~isempty(sx_res)
+		Wresid = sqrt([	 sx_res(:,1)./sx_res(:,2)...
 			 sy_res(:,1)./sy_res(:,2)...
 			 sz_res(:,1)./sz_res(:,2)]/2);
+	end
 end
 
 W = (spm_lambda_n(df+1))^(-1/2)*Wresid;
 
-if size(W,1) > 1; W = mean(W); end			% average over contrasts
-if V(3,1) == 1;   					% 2 dimnesional data
-	W = W(1:2);  
-	Wresid = Wresid(:,1:2);
-end			
+if size(W,1) > 1; W = mean(W); end			% average over residual
 
 FWHM  = sqrt(8*log(2))*W.*V(([1:length(W)] + 3),1)'; 	% FWHM in mm
 
