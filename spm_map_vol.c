@@ -106,12 +106,13 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Image file too small.");
 	}
 
-	map->map = mmap((caddr_t)0, map->len, map->prot, map->flags, map->fd, map->off);
+	map->map = mmap((caddr_t)0, map->len+map->off, map->prot, map->flags, map->fd, 0);
 	if (map->map == (caddr_t)-1)
 	{
 		close(map->fd);
 		mxFree(str);
 		mexErrMsgTxt("Cant map image file.");
 	}
+	map->data = (unsigned char *)(map->map) + map->off;
 	mxFree(str);
 }

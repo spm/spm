@@ -263,11 +263,11 @@ Matrix *plhs[], *prhs[];
 	hold = nint(*(mxGetPr(prhs[3])));
 
 	if (hold == 0)
-		slice_8bit_0(mat, img, m, n, (unsigned char *)(map->map), xdim, ydim, zdim);
+		slice_8bit_0(mat, img, m, n, map->data, xdim, ydim, zdim);
 	else if (hold == 1)
-		slice_8bit_1(mat, img, m, n, (unsigned char *)(map->map), xdim, ydim, zdim);
+		slice_8bit_1(mat, img, m, n, map->data, xdim, ydim, zdim);
 	else if (hold >= 3 && hold <= 127)
-		slice_8bit_sinc(mat, img, m, n, (unsigned char *)(map->map), xdim, ydim, zdim, hold);
+		slice_8bit_sinc(mat, img, m, n, map->data, xdim, ydim, zdim, hold);
 	else
 		mexErrMsgTxt("Bad hold value.");
 

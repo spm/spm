@@ -199,13 +199,13 @@ Matrix *plhs[], *prhs[];
 	img = mxGetPr(plhs[0]);
 
 	if (hold == 0)
-		resample_8bit_0(m*n,(unsigned char *)(map->map),img,
+		resample_8bit_0(m*n, map->data, img,
 			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim);
 	else if (hold == 1)
-		resample_8bit_1(m*n,(unsigned char *)(map->map),img,
+		resample_8bit_1(m*n, map->data, img,
 			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim);
 	else if (hold >= 3 && hold <= 127)
-		resample_8bit_sinc(m*n,(unsigned char *)(map->map),img,
+		resample_8bit_sinc(m*n, map->data, img,
 			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
 	else
 		mexErrMsgTxt("Bad hold value.");
