@@ -33,7 +33,7 @@ DSstr  = '';
 % get trials
 %-----------------------------------------------------------------------
 v     = spm_input('event types (without null event)','+1','w1',0);
-u     = spm_input('epoch types (without baseline  )','+1','w1',0);
+u     = spm_input('epoch types (without baseline)  ','+1','w1',0);
 ons   = sparse(k*T,v + u);
 for i = 1:v
 
@@ -110,31 +110,48 @@ if v
 	%---------------------------------------------------------------
 	else
 
-	    for i = 1:v
+
+	    % get onsets
+	    %-------------------------------------------------------
+	    Sstr  = spm_input('SOA','+1','fixed|variable');
+	    DSstr = [DSstr '(' Sstr ' SOA) '];
+	    i     = 0;
+	    while i < v
 
 		% set name
 		%-------------------------------------------------------
-		set(Finter,'Name',name{i})
+		set(Finter,'Name',name{i + 1})
+		switch Sstr
 
-		% get onsets
-		%-------------------------------------------------------
-		if spm_input('SOA','+1','fixed|variable',[1 0])
-			DSstr = [DSstr '(fixed SOA) '];
+			case 'fixed'
+			%-----------------------------------------------
 			soa   = spm_input('SOA (scans)','+1','r');
 			on    = spm_input('first trial (scans)','+1','r',1);
 			on    = on:soa:k;
 
-		else
-			DSstr = [DSstr '(variable SOA) '];
-			on    = spm_input('trial onset times (scans)','+1');
+			case 'variable'
+			%-----------------------------------------------
+			str   = 'vector [or array] of onsets (scans)'
+			on    = spm_input(str,'+1');
 		end
 
-		% create stick functions
-		%-------------------------------------------------------
-		ons(round(on*T + 1),i) = 1;
+		if iscell(on)
+
+			% create stick functions
+			%-------------------------------------------------
+			for j = 1:length(on)
+				i = i + 1
+				ons(round(on{j}*T + 1),i) = 1;
+			end
+		else
+			% create stick functions
+			%------------------------------------------------
+			i = i + 1;
+			ons(round(on*T + 1),i) = 1;
+		end
 
 	    end
-
+	    v = i;
 	end
 
 	% basis function lengths (W == 0 implies event-related)
@@ -194,6 +211,7 @@ end
 % get parameters, contruct interactions and append
 %=======================================================================
 v     = length(W);
+set(Finter,'Name','')
 if spm_input('model parametric or time effects',1,'y/n',[1 0])
 
 
