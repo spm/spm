@@ -71,7 +71,7 @@ for k = 1:32
 	% Convergence
 	%===================================================================
 	w     = dh'*dh;
-	fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+	fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
 	if w < 1e-6, break, end
 
 end
