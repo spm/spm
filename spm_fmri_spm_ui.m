@@ -466,22 +466,17 @@ if ER
 
 	    % append to C
 	    %---------------------------------------------------------------
-	    [x y]  = size(C);
-	    [i j]  = size(CD);
-	    d      = [1:i] + x;
-	    C(d,([1:j] + y)) = CD;
+	    d      = [1:nscan(s)] + sum(nscan(1:(s - 1)));
+	    C(d,([1:size(CD,2)] + size(C,2))) = CD;
 
 	    % append to G
 	    %---------------------------------------------------------------
-	    [x y] = size(G);
-	    [i j] = size(GD);
-	    G(d,([1:j] + y)) = GD;
+	    G(d,([1:size(GD,2)] + size(G,2))) = GD;
+
 
 	    % append to PST
 	    %---------------------------------------------------------------
-	    [x y] = size(PST);
-	    [i j] = size(PSTD);
-	    PST(d,([1:j] + y)) = PSTD + 1e-8;
+	    PST(d,([1:size(PSTD,2)] + size(PST,2))) = PSTD + 1e-8;
 
 
 	end % (loop over sessions)
