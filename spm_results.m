@@ -57,11 +57,11 @@ SPMF     = ~SPMZ;
 %-----------------------------------------------------------------------
 if SPMZ
 
-	[t,XYZ,QQ,U,k,s,w] = spm_projections_ui('Results');
+	[t,XYZ,QQ,U,k,s,w,RES] = spm_projections_ui('Results');
 
 elseif SPMF
 
-	[t,XYZ,QQ,U,k,s,w] = spm_projectionsF_ui('Results');
+	[t,XYZ,QQ,U,k,s,w,RES] = spm_projectionsF_ui('Results');
 
 end
 
@@ -73,8 +73,6 @@ set(Finter,'Name','SPM results','Pointer','Watch')
 %-Load SPM.mat file from appropriate directory
 % (CWD, set by spm_projections*_ui)
 %-----------------------------------------------------------------------
-K        = [];
-FLIP     = 0;
 load([CWD,'/SPM'])
 S        = s;
 W        = w;
@@ -90,16 +88,16 @@ if exist(str); load(str); end
 % Make description strings
 %-----------------------------------------------------------------------
 if SPMZ
-	tmp     = 1 - spm_Ncdf(U);
+	tmp = 1 - spm_Ncdf(U);
 elseif SPMF
-	tmp     = 1 - spm_Fcdf(U,df);
+	tmp = 1 - spm_Fcdf(U,df);
 end
 
 Descrip = spm_str_manip(CWD,'a30');
 Descrip = str2mat(Descrip,...
-	sprintf('Height threshold {u} = %0.2f, p = %0.6f',U,tmp));
+	sprintf('Height threshold {u} = %0.2f, p = %0.3f',U,tmp));
 Descrip = str2mat(Descrip,...
-	sprintf('Extent threshold {k} = %i voxels',k));
+	sprintf('Extent threshold {k} = %0.0f voxels',k));
 
 % Display SPM{Z/F} & setup buttons
 %=======================================================================
