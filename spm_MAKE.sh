@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#     @(#)spm_MAKE.sh	2.17 JA, mods by Matthew Brett 99/05/26
+#     %W% JA, mods by Matthew Brett %E%
 #
 # spm_MAKE.sh will compile spm*.c scripts in a platform specific fashion
 # see mex
@@ -144,14 +144,13 @@ echo "Compiling mex files..."
 $cmex5 spm_sample_vol.c	spm_vol_utils.a 
 $cmex5 spm_slice_vol.c	spm_vol_utils.a 
 $cmex5 spm_brainwarp.c	spm_vol_utils.a spm_matfuns.c
-$cmex5 spm_map_vol.c	spm_vol_utils.a 
-$cmex5 spm_unmap_vol.c	spm_vol_utils.a 
 $cmex5 spm_add.c	spm_vol_utils.a 
 $cmex5 spm_conv_vol.c	spm_vol_utils.a 
 $cmex5 spm_render_vol.c	spm_vol_utils.a 
 $cmex5 spm_global.c	spm_vol_utils.a 
 $cmex5 spm_resels_vol.c	spm_vol_utils.a 
 $cmex5 spm_getxyz.c	spm_vol_utils.a 
+$cmex5 spm_hist2.c	spm_vol_utils.a
 
 $cmex5 spm_atranspa.c
 $cmex5 spm_list_files.c
