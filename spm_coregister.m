@@ -183,7 +183,7 @@ if (nargin == 0)
 			if prod(size(others))>0
 				P = str2mat(P,others);
 			end
-			spm_realign(P,'rn');
+			spm_realign('Reslice',P,'n');
 		end
 		spm_figure('Clear','Interactive'); drawnow;
 	end
