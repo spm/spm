@@ -106,6 +106,15 @@ if (nargin==0)
 	t    = t(Q);
 	XYZ  = XYZ(:,Q);
 
+	% flip if necessary
+	%---------------------------------------------------------------------------
+	if exist('FLIP') == 1
+		if FLIP == 1
+			XYZ(1,:) = -XYZ(1,:);
+		end
+	end
+
+
 	spm_render(XYZ,t,V);
 	return;
 end
@@ -123,8 +132,6 @@ if (nargin<3)
 end
 
 load render
-load Split
-colormap(split);
 
 mx = 0;
 
@@ -210,6 +217,8 @@ end
 spm_progress_bar('Clear');
 figure(spm_figure('FindWin','Graphics'));
 spm_figure('Clear','Graphics');
+load Split
+colormap(split);
 
 % Combine the brain surface renderings with the blobs, and display.
 %---------------------------------------------------------------------------
