@@ -214,9 +214,9 @@ IMAGE_DTYPE *vol[];
 			ycoord = (int)floor(yi); dy1=yi-ycoord; dy2=1.0-dy1;
 			zcoord = (int)floor(zi); dz1=zi-zcoord; dz2=1.0-dz1;
 
-			xcoord = (xcoord < 0) ? ((offx=0),0) : ((xcoord>=xdim-1) ? ((offx=0),xdim-2) : ((offx=1   ),xcoord));
-			ycoord = (ycoord < 0) ? ((offy=0),0) : ((ycoord>=ydim-1) ? ((offy=0),ydim-2) : ((offy=xdim),ycoord));
-			zcoord = (zcoord < 0) ? ((offz=0),0) : ((zcoord>=zdim-1) ? ((offz=0),zdim-2) : ((offz=1   ),zcoord));
+			xcoord = (xcoord < 0) ? ((offx=0),0) : ((xcoord>=xdim-1) ? ((offx=0),xdim-1) : ((offx=1   ),xcoord));
+			ycoord = (ycoord < 0) ? ((offy=0),0) : ((ycoord>=ydim-1) ? ((offy=0),ydim-1) : ((offy=xdim),ycoord));
+			zcoord = (zcoord < 0) ? ((offz=0),0) : ((zcoord>=zdim-1) ? ((offz=0),zdim-1) : ((offz=1   ),zcoord));
 
 			off1 = xcoord  + xdim*ycoord;
 			off2 = off1+offy;
@@ -512,9 +512,9 @@ int xdim1, ydim1, xdim2, ydim2, zdim2;
 				iy4 = floor(y4); dy1=y4-iy4; dy2=1.0-dy1;
 				iz4 = floor(z4); dz1=z4-iz4; dz2=1.0-dz1;
 
-				ix4 = (ix4 < 0) ? ((offx=0),0) : ((ix4>=xdim2-1) ? ((offx=0),xdim2-2) : ((offx=1    ),ix4));
-				iy4 = (iy4 < 0) ? ((offy=0),0) : ((iy4>=ydim2-1) ? ((offy=0),ydim2-2) : ((offy=xdim2),iy4));
-				iz4 = (iz4 < 0) ? ((offz=0),0) : ((iz4>=zdim2-1) ? ((offz=0),zdim2-2) : ((offz=1    ),iz4));
+				ix4 = (ix4 < 0) ? ((offx=0),0) : ((ix4>=xdim2-1) ? ((offx=0),xdim2-1) : ((offx=1    ),ix4));
+				iy4 = (iy4 < 0) ? ((offy=0),0) : ((iy4>=ydim2-1) ? ((offy=0),ydim2-1) : ((offy=xdim2),iy4));
+				iz4 = (iz4 < 0) ? ((offz=0),0) : ((iz4>=zdim2-1) ? ((offz=0),zdim2-1) : ((offz=1    ),iz4));
 
 				off1 = ix4  + xdim2*iy4;
 				off2 = off1+offy;
