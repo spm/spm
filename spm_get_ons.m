@@ -30,8 +30,8 @@ W      = [];
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('number of event types','+1','w1',1);
-u     = spm_input('number of epoch types','+1','w1',1);
+v     = spm_input('event types (without null event)','+1','w1',1);
+u     = spm_input('epoch types (without baseline)  ','+1','w1',1);
 ons   = sparse(k*T,v + u);
 for i = 1:v
 
@@ -158,7 +158,7 @@ if u
 	w     = zeros(1,u + 1);
 	while sum(w(a)) ~= k
 		str = sprintf('scans per epoch 0 to %d',u);
-		w   = spm_input(str,'+1');
+		w   = spm_input(str,'+0');
 		while length(w) < (u + 1), w = [w w]; end
 		w   = w(1:u + 1);
 	end
@@ -166,7 +166,7 @@ if u
 
 	% epoch onsets (discounting baseline)
 	%---------------------------------------------------------------
-	on    = spm_input('start of first epoch {scans}','+1','r',0);
+	on    = spm_input('start of first epoch {scans}','+1','r',1);
 	c     = cumsum(w(a)) - w(a) + on*T;
 	for i = 1:u
 		ons(round(c(find(a == (i + 1))) + 1),i + v) = 1;
@@ -188,7 +188,7 @@ if spm_input('model parametric or time effects',1,'y/n',[1 0])
 	% cycle over selected trial types
 	%---------------------------------------------------------------
 	str   = sprintf('which effect[s] 1 to %d',v);
-	for i = spm_input(str,2,'e',1)
+	for i = spm_input(str,'+1','e',1)
 
 		% basis functions - Type
 		%-------------------------------------------------------
@@ -210,8 +210,8 @@ if spm_input('model parametric or time effects',1,'y/n',[1 0])
 		if     Pov == 1
 
 			while length(p) ~= ns
-				str = sprintf('[%d]-vector',ns);
-				p   = spm_input(str,4);
+				str = 'vector of parameters';
+				p   = spm_input(str,'+1','r',[],[1,ns]);
 			end
 
 		% exponential adaptation
@@ -219,14 +219,14 @@ if spm_input('model parametric or time effects',1,'y/n',[1 0])
 		elseif Pov == 2
 
 			tau = round(k*T*dt/4);
-			tau = spm_input('time constant {secs}',4,'e',tau);
+			tau = spm_input('time constant {secs}','+1','r',tau);
 			p   = exp(-on*dt/tau)';
 
 		% linear adaptation
 		%-------------------------------------------------------
 		elseif Pov == 3
 
-			p   = on/max(on);
+			p   = on*dt;
 		end
 		p     = spm_detrend(p(:));
 
