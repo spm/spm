@@ -1,11 +1,9 @@
-function [P] = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder,mean0,icovar0)
+function [P] = spm_affsub2(VG,VF,VW, Hold,samp, P,free,pdesc,gorder,mean0,icovar0)
 % Another subroutine involved in affine transformations.
-% FORMAT [nP] = spm_affsub2(VG,VF,MG,MF,Hold,samp,oP,free,pdesc,gorder)
+% FORMAT [nP] = spm_affsub2(VG,VF,VW,Hold,samp,oP,free,pdesc,gorder)
 %
 % VG        - Vector of memory mapped template image(s).
 % VF        - Memory mapped object image.
-% MG        - Space of the template image(s).
-% MF        - Space of the object image.
 % Hold      - Interpolation method.
 % samp      - Frequency (in mm) of sampling.
 % oP        - Old parameter estimates.
@@ -26,11 +24,8 @@ function [P] = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder,mean0,ic
 
 % Minimal amount of input checking.
 %-----------------------------------------------------------------------
-if nargin ~= 12 & nargin ~= 10
+if nargin ~= 11 & nargin ~= 9
 	error('Incorrect usage.');
-end
-if size(VF,2) ~= size(MF,2) | size(VG,2) ~= size(MG,2)
-	error('Incompatible number of position matrixes');
 end
 tmp = sum(pdesc ~= 0);
 if size(tmp,2) ~= size(VF,2)
@@ -89,26 +84,29 @@ while iter <= 128 & countdown < 4
 		pp  = find(pdesc(:,im));
 		ppp = find(pdesc(:,im)*pdesc(:,im)');
 
-		vf  = VF(:,im);
-		vg  = VG(:,find(gorder == im));
-		mf  = reshape(MF(:,im),4,4);
+		vf  = VF(im);
+		vg  = VG(find(gorder == im));
+		if ~isempty(VW)
+			vw  = VW(im);
+		else
+			vw  = [];
+		end
 
 		% Note: only the matrix of the first template image is used
 		%       when registering one image to many.
 		%-----------------------------------------------------------------------
 		tmp = find(gorder == im);
 		tmp = tmp(1);
-		mg  = reshape(MG(:,tmp),4,4);
 
 		%if iter>1 flg=1; else flg=0; end
 		flg=0;
 
 		if useW,
 			[alpha_t, beta_t, chi2_t, W(im,:)] = ...
-				spm_affsub1(vg, vf, mg, mf, Hold,samp,P(pp),flg,W(im,:));
+				spm_affsub1(vg, vf, vw, Hold,samp,P(pp),flg,W(im,:));
 		else
 			[alpha_t, beta_t, chi2_t] = ...
-				spm_affsub1(vg, vf, mg, mf, Hold,samp,P(pp),flg);
+				spm_affsub1(vg, vf, vw, Hold,samp,P(pp),flg);
 		end
 
 		beta(pp)   = beta(pp)   + beta_t(:);

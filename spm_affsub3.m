@@ -1,6 +1,6 @@
-function [params] = spm_affsub3(mode, PG, PF, Hold, samp, params)
+function params = spm_affsub3(mode, PG, PF, Hold, samp, params,PW,MW)
 % Highest level subroutine involved in affine transformations.
-% FORMAT [params] = spm_affsub3(mode, PG, PF, Hold, samp, params)
+% FORMAT params = spm_affsub3(mode, PG, PF, Hold, samp, params)
 %
 % mode      - Mode of action.
 % PG        - Matrix of template image name.
@@ -8,6 +8,10 @@ function [params] = spm_affsub3(mode, PG, PF, Hold, samp, params)
 % Hold      - Interpolation method.
 % samp      - Frequency (in mm) of sampling.
 % params    - Parameter estimates.
+%
+% optional:
+% PW        - Name of weight image.
+% MW        - Affine matrix mapping weight image to space of PG images.
 %__________________________________________________________________________
 %
 % Currently mode must be one of the following:
@@ -35,10 +39,12 @@ function [params] = spm_affsub3(mode, PG, PF, Hold, samp, params)
 %		Affine normalisation.
 %		Each F is mapped to a linear combination of Gs.
 %
+%	'2d1'
+%		For 2d rigid-body registration.
 %__________________________________________________________________________
 % %W% John Ashburner FIL %E%
 
-if nargin<5 | nargin>6
+if nargin<5 | nargin>8
 	error('Incorrect usage.');
 end
 
@@ -208,17 +214,20 @@ end
 
 % Map the images & get their positions in space.
 %-----------------------------------------------------------------------
-for i=1:size(PG,1)
-	filename = deblank(PG(i,:));
-	VG(:,i) = spm_map(filename);
-	MG(:,i) = reshape(spm_get_space(filename),16,1);
+VG = spm_vol(PG);
+VF = spm_vol(PF);
+if nargin<8,
+	VW = [];
+else,
+	if ~isempty(PW),
+		VW = spm_vol(PW);
+		for i=1:length(VW)
+			VW(i).mat = MW*VW(i).mat;
+		end;
+	else,
+		VW = [];
+	end;
 end
-for i=1:size(PF,1)
-	filename = deblank(PF(i,:));
-	VF(:,i) = spm_map(filename);
-	MF(:,i) = reshape(spm_get_space(filename),16,1);
-end
-
 
 % Do the optimisation
 %-----------------------------------------------------------------------
@@ -227,14 +236,8 @@ if nargin == 5
 end
 
 if nobayes == 1
-	[params] = spm_affsub2(VG,VF, MG,MF, Hold,samp,params,free,pdesc,gorder);
+	[params] = spm_affsub2(VG,VF,VW, Hold,samp,params,free,pdesc,gorder);
 else
-	[params] = spm_affsub2(VG,VF, MG,MF, Hold,samp,params,free,pdesc,gorder,mean0,icovar0);
+	[params] = spm_affsub2(VG,VF,VW, Hold,samp,params,free,pdesc,gorder,mean0,icovar0);
 end
 
-% Tidy up
-%-----------------------------------------------------------------------
-for V = [VF VG]
-	spm_unmap(V);
-end
-%fprintf('\n');
