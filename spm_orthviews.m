@@ -83,7 +83,7 @@ function varargout = spm_orthviews(action,varargin)
 % See spm_XYZreg for more information.
 %
 %_______________________________________________________________________
-% %W% John Ashburner %E%
+% %W% John Ashburner & Matthew Brett %E%
 
 global st;
 
@@ -206,6 +206,36 @@ case 'addimage',
 
 case 'addcolouredimage',
 	addcolouredimage(varargin{1}, varargin{2},varargin{3});
+ 
+case 'addtruecolourimage',
+ % spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx)
+ % Adds blobs from an image in true colour
+ % handle   - image number to add blobs to [default 1]
+ % filename of image containing blob data [default - request via GUI]
+ % colourmap - colormap to display blobs in [GUI input]
+ % prop - intensity proportion of activation cf grayscale [0.4]
+ % mx   - maximum intensity to scale to [maximum value in activation image]
+ %
+ %
+ if nargin < 2
+   varargin(1) = {1};
+ end
+ if nargin < 3
+   varargin(2) = {spm_get(1, 'img', 'Image with activation signal')};
+ end
+ if nargin < 4
+   varargin(3) = {spm_input('Colourmap for activation image')};
+ end
+ if nargin < 5
+   varargin(4) = {0.4};
+ end
+ if nargin < 6
+   varargin(5) = {max([eps maxval(spm_vol(char(varargin{2})))])};
+ end
+ 
+ addtruecolourimage(varargin{1}, varargin{2},varargin{3}, varargin{4}, ...
+		    varargin{5});
+ redraw(varargin{1});
 
 case 'rmblobs',
 	rmblobs(varargin{1});
@@ -308,6 +338,25 @@ for i=valid_handles(handle),
 	axpos = get(st.vols{i}.ax{2}.ax,'Position');
 	mx = max([eps maxval(vol)]);
 	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function addtruecolourimage(handle,fname,colourmap,prop,mx)
+% adds true colour image to current displayed image  
+global st
+for i=valid_handles(handle),
+  vol = spm_vol(fname);
+  mat = vol.mat;
+  if ~isfield(st.vols{i},'blobs'),
+    st.vols{i}.blobs=cell(1,1);
+    bset = 1;
+  else,
+    bset = length(st.vols{i}.blobs)+1;
+  end;
+% axpos = get(st.vols{i}.ax{2}.ax,'Position');
+  c = struct('cmap', colourmap,'prop',prop);
+  st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',c);
 end;
 return;
 %_______________________________________________________________________
@@ -674,6 +723,57 @@ for i = valid_handles(arg1),
 					figure(st.fig)
 					spm_figure('Colormap','gray-hot')
 				end;
+			elseif isstruct(st.vols{i}.blobs{1}.colour),
+				% Add blobs for display using a defined
+                                % colourmap
+
+				% colourmaps
+				gryc = [0:63]'*ones(1,3)/63;
+				actc = ...
+				    st.vols{1}.blobs{1}.colour.cmap;
+				actp = ...
+				    st.vols{1}.blobs{1}.colour.prop;
+				
+				% scale grayscale image
+				imgt = scaletocmap(imgt,mn,mx,gryc);
+				imgc = scaletocmap(imgc,mn,mx,gryc);
+				imgs = scaletocmap(imgs,mn,mx,gryc);
+
+				% get max for blob image
+				vol = st.vols{i}.blobs{1}.vol;
+				mat = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
+				if isfield(st.vols{i}.blobs{1},'max'),
+					cmx = st.vols{i}.blobs{1}.max;
+				else,
+					cmx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
+				end;
+				
+				% get blob data
+				vol  = st.vols{i}.blobs{1}.vol;
+				M    = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
+				tmpt = spm_slice_vol(vol,inv(TM0* ...
+							     (st.Space\M)),TD,0)';
+				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,0)';
+				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,0)';
+				
+				% actimg scaled round 0
+				tmpt = scaletocmap(tmpt,-cmx,cmx,actc);
+				tmpc = scaletocmap(tmpc,-cmx,cmx,actc);
+				tmps = scaletocmap(tmps,-cmx,cmx,actc);
+				
+				% combine gray and blob data to
+                                % truecolour
+				imgt = reshape(actc(tmpt(:),:)*actp+ ...
+					       gryc(imgt(:),:)*(1-actp), ...
+					       [size(imgt) 3]);
+				imgc = reshape(actc(tmpc(:),:)*actp+ ...
+					       gryc(imgc(:),:)*(1-actp), ...
+					       [size(imgc) 3]);
+				imgs = reshape(actc(tmps(:),:)*actp+ ...
+					       gryc(imgs(:),:)*(1-actp), ...
+					       [size(imgs) 3]);
+				
+				
 			else,
 				% Add full colour blobs - several sets at once
 				scal = 1/(mx-mn);
@@ -814,3 +914,11 @@ bb      = [ [-78 78]' [-112 76]' [-50 85]' ];
 st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1);
 st.vols = cell(24,1);
 return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function img=scaletocmap(inpimg,mn,mx,cmap)
+cml = size(cmap,1);
+scf = (cml-1)/(mx-mn);
+img = round((inpimg-mn)*scf)+1;
+img(find(img<1 | ~finite(img)))=1; 
+img(find(img>cml))=cml;
