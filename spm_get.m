@@ -1326,7 +1326,7 @@ while ~Done
 	while ~( OK | (strcmp(str,Tstr) & AllowEnd) )
 		if strcmp(str,Tstr)
 			fprintf('%c\tSelect %d files!',7,abs(n))
-			else, fprintf('%c\t%s doesn''t exist!',7,str), end
+			else, fprintf('%c\t%s isn''t a file!\n',7,str), end
 		str=[]; while isempty(str)
 			str=ddeblank(input(sprintf('  %3d  : ',nP+1),'s'));end
 		if (~isabspath(str))&(~strcmp(str,Tstr))
