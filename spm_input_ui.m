@@ -126,7 +126,7 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % ( wait for a response in a computer intensive loop. To avoid           )
 % ( hammering the CPU when queries are left unattended, spm_input has    )
 % ( "sleep" modes. Wake spm_input by clicking in any MatLab window. For  )
-% ( GUI menu selections using spm_input, you have 120s to make a         )
+% ( GUI menu selections using spm_input, you have 60s to make a          )
 % ( selection before sleep mode sets in. For GUI button selections, you  )
 % ( have 10s to release the chosen button, after which a further GUI     )
 % ( event will accept the selection.                                     )
@@ -757,14 +757,14 @@ elseif Type(1)=='m'
 		%-Wait for menu selection
 		%-------------------------------------------------------
 		while ~isstr(get(hPopUp,'UserData'))
-			%-Give approx 120s grace for menu selection
+			%-Give approx 60s grace for menu selection
 			%-After this time spm_input "sleeps", waiting for
 			% a buttonpress to reactivate.
 			% ( This loop hammers the CPU, but there's no other )
 			% ( way to do an interruptible pause for PullDowns. )
 			% ( NB: pause (ML4.2c) only works for integer       )
 			% ( seconds!                                        )
-			tic, while(toc<120)
+			tic, while(toc<60)
 				if isstr(get(hPopUp,'UserData')), break, end
 				pause(0.25)
 			end
