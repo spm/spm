@@ -163,7 +163,7 @@ if p == 1 | p == 3,
 			others = spm_get(Inf,'.img',...
 				['select other images for subject ' num2str(i)]);
 		else,
-			PFF = spm_input('batch',{},'other_image');
+			others = spm_input('batch',{},'other_image');
 		end;
 
 		eval(['PGF'    num2str(i) ' = PGF;']);
