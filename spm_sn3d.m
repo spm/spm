@@ -92,7 +92,8 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 % parameters are saved in the "*_sn3d.mat" file.
 % 
 % 
-% References and further information
+%____________________________________________________________________________
+% Refs:
 % K.J. Friston, J. Ashburner, C.D. Frith, J.-B. Poline,
 % J.D. Heather, and R.S.J. Frackowiak
 % Spatial Registration and Normalization of Images.
@@ -101,7 +102,10 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 % J. Ashburner, P. Neelin, D.L. Collins, A.C. Evans and K. J. Friston
 % Incorporating Prior Knowledge into Image Registration.
 % NeuroImage 6:344-352 (1997)
-% Perform 3D spatial normalization
+%
+% J. Ashburner and K. J. Friston
+% Nonlinear Spatial Normalization using Basis Functions.
+% Human Brain Mapping 7(4):in press (1999)
 %
 %_______________________________________________________________________
 %
@@ -284,9 +288,8 @@ basprompt = 'none|2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x
 
 if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
-
-	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),'Name','Spatial Normalisation');
+	SPMid = spm('FnBanner',mfilename,'%W%');
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Normalize');
 	spm_help('!ContextHelp','spm_sn3d.m');
 
 	%-----------------------------------------------------------------------
@@ -462,11 +465,11 @@ if (nargin == 0)
 
 	% Go and do the work
 	%-----------------------------------------------------------------------
+	spm('Pointer','Watch')
 	if a1 == 1 | a1 == 3,
 		for i=1:length(subj),
-			set(spm_figure('FindWin','Interactive'),'Name',...
-				['Normalising, subj ' num2str(i)],'Pointer','Watch');
-			drawnow;
+			spm('FigName',['Normalize: working on subj ' num2str(i)],Finter,CmdLine);
+			fprintf('\rSubject %d: ', i);
 			spm_sn3d(subj(i).P,subj(i).matname,bb,Vox,...
 				[nbasis(:)' iterations 8 rglrztn],Template,...
 				brainmask, subj(i).objmask);
@@ -475,20 +478,18 @@ if (nargin == 0)
 	
 	if a1 == 2 | a1 == 3,
 		for i=1:length(subj),
-			set(spm_figure('FindWin','Interactive'),...
-				'Name',['Writing Normalised, subj' num2str(i)],...
-				'Pointer','Watch');
-			drawnow;
+			spm('FigName',['Normalize: writing subj ' num2str(i)],Finter,CmdLine);
+			fprintf('\rSubject %d: Writing Normalized..', i);
 			spm_write_sn(subj(i).PP,subj(i).matname,bb,Vox,Hold);
 		end;
 	end;
-	
-	spm_figure('Clear','Interactive');
+	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));
+	spm('FigName','Normalize: done',Finter,CmdLine);
+	spm('Pointer');
 	return;
 
 elseif strcmp(P,'Defaults')
 
-	spm_figure('Clear','Interactive');
 	% Edit defaults
 	%_______________________________________________________________________
 
@@ -624,20 +625,23 @@ end;
 % Perform the spatial normalisation
 %_______________________________________________________________________
 
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+
 VG = spm_vol(spms);
 
-fprintf('smoothing..');
+linfun('Smoothing..');
 spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
 VF = spm_vol('./spm_sn3d_tmp.img');
-fprintf(' ..done\n');
 
 
 % Affine Normalisation
 %-----------------------------------------------------------------------
 spm_chi2_plot('Init','Affine Registration','Convergence');
 % use object mask, if present, for rough coregistration
+linfun('Coarse Affine Registration..');
 p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8,[],'', objmask);
 % call to affsub3 allows empty brainmask, objmask
+linfun('Fine Affine Registration..');
 p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1,brainmask,objmask);
 
 spm_chi2_plot('Clear');
@@ -647,12 +651,12 @@ Affine = inv(inv(VG(1).mat)*spm_matrix(prms')*VF(1).mat);
 
 fov = VF(1).dim(1:3).*sqrt(sum(VF(1).mat(1:3,1:3).^2));
 if any(fov<60),
-	fprintf('The field of view is too small to attempt nonlinear registration\n');
+	warning('The field of view is too small to attempt nonlinear registration\n');
 	params(1:4)=0;
 end;
 
 if ~any(params(1:4)==0) & params(6)~=Inf,
-	fprintf('3D Cosine Transform Normalization\n');
+	len = fprintf('  %s', '3D Cosine Transform Normalization: ');
 	% check for masks and initialise as nec
 	VW  = [];
 	VW2 = [];
@@ -664,6 +668,7 @@ if ~any(params(1:4)==0) & params(6)~=Inf,
 	end;
    
 	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW,VW2);
+	fprintf('%s', sprintf('\b')*ones(1,len));
 else,
 	Transform = [];
 	Dims = [VG(1).dim(1:3) ; 0 0 0];
@@ -671,6 +676,7 @@ end
 
 % Save parameters for future use.
 %-----------------------------------------------------------------------
+linfun('Saving Parameters..');
 MF     = VF(1).mat;
 MG     = VG(1).mat;
 vox    = sqrt(sum(MG(1:3,1:3).^2));
@@ -718,6 +724,7 @@ if ~isempty(fg),
 	end;
 
 	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
+	linfun('Writing Image for Display..');
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
 	p  = spm_str_manip(P(1,:), 'd');
 	q  = max([find(p == spm_platform('sepchar')) 0]);
@@ -727,6 +734,7 @@ if ~isempty(fg),
 	spm_print;
 	drawnow;
 end;
+linfun(' ');
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________

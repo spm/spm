@@ -92,11 +92,13 @@ T = zeros(s2,1);
 T(s1+(1:4:prod(size(VG))*4)) = 1;
 
 for iter=1:param(4)
-	fprintf('iteration # %d: ', iter);
+	len = fprintf(' iteration %2d: ', iter);
 	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VW, VW2);
 	fwhm(2) = min([fw fwhm(2)]);
 
-	fprintf('FWHM = %g\tVar = %g\n', fw,Var);
+	len = len + fprintf('   FWHM = %6.4g Var = %g', fw,Var);
+	fprintf('%s', sprintf('\b')*ones(1,len));
+
 	% Parameter estimates biased towards affine.
 	%
 	% Assume that the problem is linear.
@@ -131,6 +133,7 @@ for iter=1:param(4)
 	T = (Alpha + IC0)\(Alpha*T + Beta);
 	drawnow;
 end
+fprintf('%60s%s', ' ', sprintf('\b')*ones(1,len));
 
 % Dimensions and values of the 3D-DCT
 %-----------------------------------------------------------------------

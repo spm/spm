@@ -68,7 +68,7 @@ transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
 
 %-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
-spm_results_ui('ClearPane',Fgraph);
+spm_results_ui('Clear',Fgraph);
 
 
 %-Get current location and convert to pixel co-ordinates

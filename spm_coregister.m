@@ -66,18 +66,20 @@ function spm_coregister(PGF, PFF, PGG, PFG, others,flags)
 % This form simply does a graphic display of how well the coregistration has
 % worked.
 
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+
 do_disp = 0;
 
 global SWD
-DIR1 = [SWD '/coreg/'];
+DIR1 = [SWD '/templates/'];
 
 global SWD sptl_WhchPtn
 if (nargin == 0)
 	% Act as user interface if there are no arguments
 	%_______________________________________________________________________
 
-	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),'Name','Coregistration');
+	SPMid = spm('FnBanner',mfilename,'%W%');
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Coregister');
 	spm_help('!ContextHelp','spm_coregister.m');
 
 	% get number of subjects
@@ -99,23 +101,23 @@ if (nargin == 0)
 		flags = ' ';
 		templates = str2mat([DIR1 'PET.img'], ...
 			[DIR1 'T1.img'], [DIR1 'T2.img'],...
-			[DIR1 'EPI.img'],[DIR1 'Transm.img']);
+			[DIR1 'PD.img'],[DIR1 'EPI.img'],[DIR1 'Transm.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
 		respt = spm_input('Modality of first target image?',3,'m',...
-			'target - PET|target - T1 MRI|target - T2 MRI|target - EPI|target - Transm',...
-			[1 2 3 4 5],1);
+			'target - PET|target - T1 MRI|target - T2 MRI|target - PD MRI|target - EPI|target - Transm',...
+			[1 2 3 4 5 6],1);
 		PGG = deblank(templates(respt,:));
 
 		% Get modality of object
 		%-----------------------------------------------------------------------
 		respo = spm_input('Modality of first object image?',4,'m',...
-			'object - PET|object - T1 MRI|object - T2 MRI|object - EPI|object - Transm',...
-			[1 2 3 4 5],2);
+			'object - PET|object - T1 MRI|object - T2 MRI|object - PD MRI|object - EPI|object - Transm',...
+			[1 2 3 4 5 6],2);
 		PFG = deblank(templates(respo,:));
 
-		if (respo==5 | respt==5),
+		if (respo==6 | respt==6),
 			% only perform the first step of the registration
 			% because transmission/CT images do not segment very
 			% well.
@@ -152,8 +154,8 @@ if (nargin == 0)
 		end
 	end
 
-	if (p==2)
-		for i = 1:nsubjects
+	if p==2,
+		for i = 1:nsubjects,
 			% select target space
 			PGF = spm_get(1,'.img',...
 					['select image defining space for subject ' num2str(i)]);
@@ -166,35 +168,38 @@ if (nargin == 0)
 			eval(['PGF'    num2str(i) ' = PGF;']);
 			eval(['PFF'    num2str(i) ' = PFF;']);
 			eval(['others' num2str(i) ' = [];']);
-		end
-	end
+		end;
+	end;
 
 
 	% For each subject, recursively call the program to perform the
 	% registration.
 	%-----------------------------------------------------------------------
-	for i=1:nsubjects
-		set(spm_figure('FindWin','Interactive'),...
-			'Name',['Coregistering subject ' num2str(i)],'Pointer','Watch');
-		drawnow;
+	spm('Pointer','Watch')
+	for i=1:nsubjects,
+		spm('FigName',['Coregister: working on subj ' num2str(i)],Finter,CmdLine);
+		fprintf('\rCoregistering Subject %d: ', i);
+
 		eval(['PGF    =    PGF' num2str(i) ';']);
 		eval(['PFF    =    PFF' num2str(i) ';']);
 		eval(['others = others' num2str(i) ';']);
 
-		if (p == 1 | p == 3)
+		if p == 1 | p == 3,
 			spm_coregister(PGF, PFF, PGG, PFG, others,flags);
-		end
-		if (p == 2 | p == 3)
+		end;
+		if p == 2 | p == 3,
 			% Write the coregistered images
 			%-----------------------------------------------------------------------
 			P = str2mat(PGF(1,:),PFF);
-			if prod(size(others))>0
+			if prod(size(others))>0,
 				P = str2mat(P,others);
-			end
+			end;
 			spm_realign('Reslice',P,'n');
-		end
-		spm_figure('Clear','Interactive'); drawnow;
-	end
+		end;
+	end;
+	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));
+	spm('FigName','Coregister: done',Finter,CmdLine);
+	spm('Pointer');
 	return;
 elseif nargin == 2
 
@@ -265,24 +270,26 @@ if strcmp(PGG,PFG), 	% Same modality
 
 	% Smooth the images
 	%-----------------------------------------------------------------------
-	disp('Smoothing')
 	disp(PGF);
 	disp(PFF);
-	for i=1:size(PFF,1)
+	for i=1:size(PFF,1),
 		inameG = str2mat(inameG, [spm_str_manip(PGF(i,:),'rd') '_tmpG.img']);
+		linfun(['Smoothing "' spm_str_manip(PGF(i,:),'a40') '"..']);
 		spm_smooth(deblank(PGF(i,:)),deblank(inameG(i+1,:)),8);
 
 		inameF = str2mat(inameF, [spm_str_manip(PFF(i,:),'rd') '_tmpF.img']);
+		linfun(['Smoothing "' spm_str_manip(PFF(i,:),'a40') '"..']);
 		spm_smooth(deblank(PFF(i,:)),deblank(inameF(i+1,:)),8);
-	end
+	end;
 	inameG = inameG(2:size(inameG,1),:);
 	inameF = inameF(2:size(inameF,1),:);
 
 	% Coregister the images together.
 	%-----------------------------------------------------------------------
-	disp('Coregistering')
 	spm_chi2_plot('Init','Coregistering','Convergence','Iteration');
+	linfun('Coarse Coregistration..');
 	params = spm_affsub3('rigid2', inameG, inameF, 1, 8);
+	linfun('Fine Coregistration..');
 	params = spm_affsub3('rigid2', inameG, inameF, 1, 6, params);
 	MM     = spm_matrix(params);
 	spm_chi2_plot('Clear');
@@ -295,6 +302,7 @@ if strcmp(PGG,PFG), 	% Same modality
 	end
 
 	if do_disp==1,
+		linfun(' ');
 		im1 = spm_vol(PGF(1,:));
 		im2 = spm_vol(PFF(1,:));
 		M1=im1.mat;
@@ -305,20 +313,20 @@ if strcmp(PGG,PFG), 	% Same modality
 		fprintf('Method: 3\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1.fname,im2.fname);
 		disp_coreg_params(M1,MM*M2,d1,d2)
 fprintf('time=%g seconds\n',toc);
-	end
+	end;
 
 else 	% Different modalities
 
 	% Rough coregistration
 	%-----------------------------------------------------------------------
-	disp('Smoothing');
+	linfun(['Smoothing "' spm_str_manip(PGF(1,:),'a40') '"..']);
 	spm_smooth(PGF(1,:),'./spm_coreg_tmpG.img',8);
+	linfun(['Smoothing "' spm_str_manip(PFF(1,:),'a40') '"..']);
 	spm_smooth(PFF(1,:),'./spm_coreg_tmpF.img',8);
 
 	PPF = str2mat('./spm_coreg_tmpG.img', './spm_coreg_tmpF.img');
 	PPG = str2mat(PGG(1,:), PFG(1,:));
 
-	disp('Rough coregistration');
 	spm_chi2_plot('Init','Rough Coregistration','Convergence','Iteration');
 	% Be careful here with the order of the matrix multiplications.
 	global sptl_Ornt;
@@ -327,7 +335,9 @@ else 	% Different modalities
 	else
 		params = [zeros(1,12) 1 1 1 0 0 0  1 1]';
 	end
+	linfun('First Pass Coregistration - coarse..');
 	params = spm_affsub3('register1', PPG, PPF, 1, 8 , params);
+	linfun('First Pass Coregistration - fine..');
 	params = spm_affsub3('register1', PPG, PPF, 1, 6 , params);
 	spm_chi2_plot('Clear');
 
@@ -340,6 +350,7 @@ else 	% Different modalities
 	MM  = MGR\MFR; % equivalent to (MTA*MGR)\(MTA*MFR)
 
 	if do_disp==1,
+		linfun(' ');
 		im1 = spm_vol(PGF(1,:));
 		im2 = spm_vol(PFF(1,:));
 		M1  = im1.mat;
@@ -357,8 +368,7 @@ fprintf('time=%g seconds\n',toc);
 
 		% Partition the target image(s) into smoothed segments
 		%-----------------------------------------------------------------------
-		disp('Segmenting and smoothing:')
-		disp(PGF);
+		linfun('Segmenting and Smoothing Reference Image(s)..');
 		spm_segment(PGF,MTA*MGR,'ft');
 
 		PPG = [ [spm_str_manip(PGF(1,:),'rd') '_sseg_tmp1.img']
@@ -366,8 +376,7 @@ fprintf('time=%g seconds\n',toc);
 
 		% Partition the object image(s) into smoothed segments
 		%-----------------------------------------------------------------------
-		disp('Segmenting and smoothing:')
-		disp(PFF);
+		linfun('Segmenting and Smoothing Object Image(s)..');
 		spm_segment(PFF,MTA*MFR,'ft');
 
 		PPF = [ [spm_str_manip(PFF(1,:),'rd') '_sseg_tmp1.img']
@@ -375,6 +384,7 @@ fprintf('time=%g seconds\n',toc);
 
 		% Coregister the segments together
 		%-----------------------------------------------------------------------
+		linfun('Coregistering the image segments..');
 		disp('Coregistering segments')
 		spm_chi2_plot('Init','Coregistering segments','Convergence','Iteration');
 		params = [spm_imatrix(MM) 1 1]';
@@ -389,6 +399,7 @@ fprintf('time=%g seconds\n',toc);
 		end
 
 		if do_disp==1,
+			linfun(' ');
 			im1 = spm_vol(PGF(1,:));
 			im2 = spm_vol(PFF(1,:));
 			M1  = im1.mat;
@@ -407,6 +418,7 @@ end
 % the transformations are applied - just in case any images have
 % been included more than once in the list.
 %-----------------------------------------------------------------------
+linfun('Saving Parameters..');
 if isempty(others),
 	Images = PFF;
 else,
@@ -428,7 +440,7 @@ end
 spm_coregister(PGF, PFF);
 spm_print;
 
-disp('Done');
+linfun(' ');
 spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________

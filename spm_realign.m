@@ -209,7 +209,8 @@ global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
 if (nargin == 0)
 	% User interface.
 	%_______________________________________________________________________
-	spm('FnUIsetup','Realign',1);
+	SPMid = spm('FnBanner',mfilename,'%W%');
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
 	spm_help('!ContextHelp','spm_realign.m');
 
 	pos = 1;
@@ -354,11 +355,10 @@ if (nargin == 0)
 		end
 	end
 
-	set(spm_figure('FindWin','Interactive'),'Name','executing',...
-		'Pointer','Watch'); drawnow
-
+	spm('Pointer','Watch');
 	for i = 1:n
-		fprintf('\n---- Subject %d -----\n', i);
+		spm('FigName',['Realign: working on subject ' num2str(i)],Finter,CmdLine);
+		fprintf('\rRealigning Subject %d: ', i);
 		if WhchPtn==1 | WhchPtn==3,
 			realign_images(P{i},Q,sessions{i});
 		end
@@ -366,10 +366,9 @@ if (nargin == 0)
 			reslice_images(P{i},FlagsR,sessions{i})
 		end;
 	end
-	spm_figure('Clear','Interactive');
-	set(spm_figure('FindWin','Interactive'),'Name','',...
-		'Pointer','Arrow');
-	drawnow
+	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));
+	spm('FigName','Realign: done',Finter,CmdLine);
+	spm('Pointer');
 	return;
 
 elseif nargin == 1 & strcmp(arg1,'Defaults'),
@@ -450,7 +449,9 @@ take_abs = 0; if any(Flags == 'a'), take_abs = 1; end;
 
 P=spm_vol(P);
 
-fprintf('Reslicing images..\n');
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+linfun('Reslicing images..');
+
 Hold = 1;
 if (any(Flags == 'S')) Hold = -11; end
 
@@ -472,8 +473,6 @@ end
 
 spm_progress_bar('Init',P(1).dim(3),'Reslicing','planes completed');
 
-
-
 if any(Flags == 'i')
 	Integral = zeros(P(1).dim(1)*P(1).dim(2),P(1).dim(3));
 end
@@ -481,6 +480,7 @@ end
 tiny = 5e-2; % From spm_vol_utils.c
 
 if any(Flags == 'c'),
+	linfun('Estimating a priori covariance matrix..');
 	Y1 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
 	Y2 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
 	Y3 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
@@ -492,6 +492,7 @@ if any(Flags == 'c'),
 	npix   = 0;
 	for x3 = 1:P(1).dim(3),
 		tmp = spm_slice_vol(P(1),spm_matrix([0 0 x3]),P(1).dim(1:2),0);
+		paddlewheel;
 		msk = find(tmp > gl*0.8);
 		tmp = reshape(interp_errors(tmp,Hold),prod(P(1).dim(1:2)),4);
 		varerr = varerr + sum(sum(tmp(msk,:).^2));
@@ -508,6 +509,7 @@ x1=repmat((1:P(1).dim(1))',1,P(1).dim(2));x1=x1(:);
 x2=repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);x2=x2(:);
 
 for x3 = 1:P(1).dim(3)
+	linfun(['Reslicing plane ' num2str(x3) '..']);
 	Count = zeros(prod(P(1).dim(1:2)),1);
 	for i = 1:prod(size(P))
 		M = inv(P(1).mat\P(i).mat);
@@ -521,6 +523,7 @@ for x3 = 1:P(1).dim(3)
 		Count = Count + Mask;
 
 		d  = spm_sample_vol(P(i),y1,y2,y3,Hold);
+		paddlewheel;
 		if take_abs==1, d = abs(d); end;
 		X(:,i)= d;
 
@@ -596,7 +599,6 @@ if any(Flags == 'i'),
 end;
 
 spm_figure('Clear','Interactive');
-fprintf('Done\n');
 return;
 %_______________________________________________________________________
 
@@ -624,6 +626,7 @@ function realign_images(P,Q,sessions)
 %         over the first image of the series.
 %
 
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
 
 global MODALITY
 P=spm_vol(P);
@@ -634,7 +637,7 @@ if ~isempty(Q),
 	tmp = clock;
 	ref = [pwd '/spm_realign_tmp_' sprintf('%.2d%.2d%.2d%.2d%.4d',tmp(3),tmp(4),tmp(5),round(tmp(6)),round(rem(tmp(6),1)*10000)) '.img'];
 	spm_smooth(P(1).fname,ref,8);
-	fprintf('Initial registration to templates..\n');
+	linfun('Initial registration to templates..');
 	params  =spm_affsub3('affine2',Q(1:(end-1),:),ref,1,8);
 	params = spm_affsub3('affine2',Q(1:(end-1),:),ref,1,6,params);
 	tmp = spm_str_manip(ref,'rd');
@@ -647,10 +650,10 @@ else
 end
 
 if (length(sessions)==1),
-	fprintf('Registering images..\n');
+	linfun('Registering images..');
 	P = realign_series(P,PW,Flags);
 else
-	fprintf('Registering together the first image of each session..\n');
+	linfun('Registering together the first image of each session..');
 	tmp = [1 sessions(1:(end-1))+1];
 	Ptmp = realign_series(P(tmp),PW,Flags);
 	ss=1;
@@ -666,7 +669,7 @@ else
 	ss=1;
 	for s=1:length(sessions)
 		es = sessions(s);
-		fprintf('Registering together images from session %d..\n', s);
+		linfun(['Registering together images from session ' num2str(s) '..']);
 		P(ss:es) = realign_series(P(ss:es),PW,Flags);
 		save_parameters(P(ss:es));
 		ss = es+1;
@@ -675,11 +678,10 @@ end
 
 % Save Realignment Parameters
 %---------------------------------------------------------------------------
-fprintf('Saving parameters..');
+linfun('Saving parameters..');
 for i=1:prod(size(P)),
 	spm_get_space(P(i).fname, P(i).mat);
 end;
-fprintf(' ..done\n');
 
 plot_parameters(P);
 
@@ -730,6 +732,7 @@ x3 = x3(:);
 if ~isempty(Wt),
 	[y1,y2,y3]=coords([0 0 0  0 0 0],P(1).mat,Wt.mat,x1,x2,x3);
 	wt = spm_sample_vol(Wt,y1,y2,y3,1);
+	paddlewheel;
 	msk = find(wt>0.01);
 	x1=x1(msk);
 	x2=x2(msk);
@@ -747,6 +750,7 @@ n=prod(size(x1));
 %-----------------------------------------------------------------------
 V=smooth_vol(P(1),fwhm);
 [b,dG1,dG2,dG3]=spm_sample_vol(V,x1,x2,x3,Hold1);
+paddlewheel;
 clear V
 A0 = make_A(P(1).mat,x1,x2,x3,dG1,dG2,dG3,wt,lkp);
 if ~isempty(wt), b = b.*wt; end
@@ -762,17 +766,18 @@ end;
 spm_progress_bar('Init',length(P)-1,'Registering Images');
 % Loop over images
 %-----------------------------------------------------------------------
-for i=2:length(P)
+for i=2:length(P),
 	V=smooth_vol(P(i),fwhm);
 	ss = Inf;
 	countdown = -1;
 	Hold = 1;	% Begin with bi-linear interpolation.
-	for iter=1:64
+	for iter=1:64,
 		[y1,y2,y3] = coords([0 0 0  0 0 0],P(1).mat,P(i).mat,x1,x2,x3);
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold);
+		paddlewheel;
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -786,7 +791,7 @@ for i=2:length(P)
 
 		pss        = ss;
 		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
-		if (pss-ss)/pss < 1e-8	% Stopped converging.
+		if (pss-ss)/pss < 1e-8,	% Stopped converging.
 			if Hold == 1
 				% Switch to a better (slower) interpolation
 				% to finish with
@@ -795,12 +800,13 @@ for i=2:length(P)
 				% Do three final iterations to finish off with
 				countdown = 4;
 			end
-		end
-		if countdown ~= -1
+		end;
+		if countdown ~= -1,
 			if countdown==0, break; end;
 			countdown = countdown -1;
-		end
-	end
+		end;
+		paddlewheel;
+	end;
 
 	if register_to_mean,
 		% Generate mean and derivatives of mean
@@ -810,6 +816,7 @@ for i=2:length(P)
 		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
 		[G,dG1,dG2,dG3] = spm_sample_vol(V,y1(msk),y2(msk),y3(msk),Hold1);
+		paddlewheel;
 		ave(msk)   = ave(msk)   + G.*soln(end);
 		grad1(msk) = grad1(msk) + dG1.*soln(end);
 		grad2(msk) = grad2(msk) + dG2.*soln(end);
@@ -831,16 +838,17 @@ clear ave grad1 grad2 grad3
 % Loop over images
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',length(P),'Registering Images to Mean');
-for i=1:length(P)
+for i=1:length(P),
 	V=smooth_vol(P(i),fwhm);
 	ss = Inf;
 	countdown = -1;
-	for iter=1:64
+	for iter=1:64,
 		[y1,y2,y3] = coords([0 0 0  0 0 0],M,P(i).mat,x1,x2,x3);
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold1);
+		paddlewheel;
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -856,12 +864,13 @@ for i=1:length(P)
 		if (pss-ss)/pss < 1e-8 & countdown == -1 % Stopped converging.
 			% Do three final iterations to finish off with
 			countdown = 3;
-		end
+		end;
 		if countdown ~= -1
 			if countdown==0, break; end;
 			countdown = countdown -1;
-		end
-	end
+		end;
+		paddlewheel;
+	end;
 	spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
@@ -940,7 +949,7 @@ if ~isempty(f),
 	text(0,0.25, ['Offending image: "' P.fname '".'],'FontSize', 12, 'Interpreter', 'none');
 end
 
-fprintf('There is not enough overlap of the images to obtain a solution\n');
+fprintf('%60s\n','There is not enough overlap of the images to obtain a solution');
 error(['The offending image is "' P.fname '".']);
 return;
 %_______________________________________________________________________
@@ -1087,7 +1096,10 @@ if any(Flags == 'F'),
 	end;
 end;
 
+linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
+
 if any(Flags == 'k') | any(Flags == 'i'),
+	linfun('Computing mask..');
 	spm_progress_bar('Init',P(1).dim(3),'Computing available voxels','planes completed');
 	x1    = repmat((1:P(1).dim(1))',1,P(1).dim(2));
 	x2    = repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
@@ -1101,10 +1113,11 @@ if any(Flags == 'k') | any(Flags == 'i'),
 		if any(Flags == 'k'), msk{x3} = find(tmp ~= prod(size(P))); end;
 		if any(Flags == 'i'), Count(:,:,x3) = tmp; end;
 		spm_progress_bar('Set',x3);
+		paddlewheel;
 	end;
 end;
 
-fprintf('Reslicing images..\n');
+linfun('Reslicing images..');
 Hold = 1;
 if (any(Flags == 'S')) Hold = -11; end
 spm_progress_bar('Init',prod(size(P)),'Reslicing','volumes completed');
@@ -1118,6 +1131,7 @@ tiny = 5e-2; % From spm_vol_utils.c
 
 PO = P;
 for i = start_vol:prod(size(P)),
+	linfun(['Reslicing volume ' num2str(i) '..']);
 
 	PO(i).fname   = prepend(P(i).fname,'r');
 	PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
@@ -1144,6 +1158,7 @@ for i = start_vol:prod(size(P)),
 			if (i>1) | ~any(Flags == 'n') | any(Flags == 'i'),
 				M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
 				v = spm_slice_vol(P(i),M,P(1).dim(1:2),Hold);
+				paddlewheel;
 			end;
 			if any(Flags == 'i'),
 				Integral(:,:,x3) = Integral(:,:,x3) + v;
@@ -1171,7 +1186,6 @@ if any(Flags == 'i')
 end
 
 spm_figure('Clear','Interactive');
-fprintf('Done\n');
 return;
 %_______________________________________________________________________
 
@@ -1205,60 +1219,70 @@ for k=1:g(3),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
+paddlewheel;
 t  = trf([1 1 g(3)],-p(3));
 for j=1:g(2),
 	for i=1:g(1),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
+paddlewheel;
 for k=1:g(3),
 	t = trf([1 g(2) 1],-tan(p(4)/2)*k-p(2));
 	for i=1:g(1),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
+paddlewheel;
 for j=1:g(2),
 	t = trf([1 1 g(3)], sin(p(4)  )*j);
 	for i=1:g(1),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
+paddlewheel;
 for k=1:g(3),
 	t = trf([1 g(2) 1],-tan(p(4)/2)*k);
 	for i=1:g(1),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
+paddlewheel;
 for k=1:g(3),
 	t = trf([g(1) 1 1],-tan(p(5)/2)*k);
 	for j=1:g(2),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
+paddlewheel;
 for i=1:g(1),
 	t = trf([1 1 g(3)], sin(p(5)  )*i);
 	for j=1:g(2),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
+paddlewheel;
 for k=1:g(3),
 	for j=1:g(2),
 		t = trf([g(1) 1 1],-tan(p(6)/2)*j-tan(p(5)/2)*k);
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
+paddlewheel;
 for i=1:g(1),
 	t = trf([1 g(2) 1], sin(p(6)  )*i);
 	for k=1:g(3),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
+paddlewheel;
 for j=1:g(2),
 	t = trf([g(1) 1 1],-tan(p(6)/2)*j);
 	for k=1:g(3),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
+paddlewheel;
 if r==1, v=real(v); end
 if any(g~=d), tmp = v; v = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
 
@@ -1311,6 +1335,7 @@ function v = loadvol(V)
 v = zeros(V.dim(1:3));
 for i=1:V.dim(3),
 	v(:,:,i) = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
+	paddlewheel;
 end;
 return;
 %_______________________________________________________________________
@@ -1372,3 +1397,15 @@ else,
 	PO   = [head spm_platform('sepchar') pre tail];
 end;
 return;
+
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function paddlewheel
+str = '|/-\';
+global paddle;
+if isempty(paddle), paddle = 0; end;
+paddle = rem(paddle,4)+1;
+fprintf('%c\b',str(paddle));
+return;
+%_______________________________________________________________________

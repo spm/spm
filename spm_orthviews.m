@@ -138,8 +138,10 @@ case 'space',
 	if length(varargin)<1,
 		st.Space = eye(4);
 		st.bb = maxbb;
+		redraw_all;
 	else,
 		space(varargin{1});
+		redraw_all;
 	end;
 	bbox;
 
@@ -216,23 +218,22 @@ return;
 function addblobs(handle, xyz, t, mat)
 global st
 for i=valid_handles(handle),
-	% iM     = inv(mat);
-	% rcp    = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
-	rcp      = round(xyz);
-	dim      = max(rcp,[],2)';
-	off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
-	vol      = zeros(dim);
-	vol(off) = t.*(t > 0);
-	vol      = reshape(vol,dim);
-	st.vols{i}.blobs=cell(1,1);
-	axpos = get(st.vols{i}.ax{2}.ax,'Position');
-	ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-		'Box','on');
-	mx = max([eps max(t)]);
-	image([0 mx/32],[0 mx],[1:64]' + 64,'Parent',ax);
-	set(ax,'YDir','normal','XTickLabel',[]);
-	st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
-
+	if ~isempty(xyz),
+		rcp      = round(xyz);
+		dim      = max(rcp,[],2)';
+		off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
+		vol      = zeros(dim);
+		vol(off) = t.*(t > 0);
+		vol      = reshape(vol,dim);
+		st.vols{i}.blobs=cell(1,1);
+		axpos = get(st.vols{i}.ax{2}.ax,'Position');
+		ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+			'Box','on');
+		mx = max([eps max(t)]);
+		image([0 mx/32],[0 mx],[1:64]' + 64,'Parent',ax);
+		set(ax,'YDir','normal','XTickLabel',[]);
+		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
+	end;
 end;
 return;
 %_______________________________________________________________________
@@ -240,23 +241,23 @@ return;
 function addcolouredblobs(handle, xyz, t, mat,colour)
 global st
 for i=valid_handles(handle),
-	% iM     = inv(mat);
-	% rcp    = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
-	rcp      = round(xyz);
-	dim      = max(rcp,[],2)';
-	off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
-	vol      = zeros(dim);
-	vol(off) = t.*(t > 0);
-	vol      = reshape(vol,dim);
-	if ~isfield(st.vols{i},'blobs'),
-		st.vols{i}.blobs=cell(1,1);
-		bset = 1;
-	else,
-		bset = length(st.vols{i}.blobs)+1;
+	if ~isempty(xyz),
+		rcp      = round(xyz);
+		dim      = max(rcp,[],2)';
+		off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
+		vol      = zeros(dim);
+		vol(off) = t.*(t > 0);
+		vol      = reshape(vol,dim);
+		if ~isfield(st.vols{i},'blobs'),
+			st.vols{i}.blobs=cell(1,1);
+			bset = 1;
+		else,
+			bset = length(st.vols{i}.blobs)+1;
+		end;
+		axpos = get(st.vols{i}.ax{2}.ax,'Position');
+		mx = max([eps max(t)]);
+		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
 	end;
-	axpos = get(st.vols{i}.ax{2}.ax,'Position');
-	mx = max([eps max(t)]);
-	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'colour',colour);
 end;
 return;
 %_______________________________________________________________________
@@ -398,9 +399,9 @@ if ~isempty(st.vols{arg1})
 	bb = [bb [1;1]];
 	bb=bb*Mat';
 	bb=bb(:,1:3);
+	st.Space  = Space;
+	st.bb = bb;
 end;
-st.Space  = Space;
-st.bb = bb;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
