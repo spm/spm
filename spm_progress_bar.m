@@ -56,7 +56,7 @@ else,
 			set(lab,'string','0% Complete','Interpreter',interp);
 			tim = clock;
 			tim = tim(4:6);
-			str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
+			str = sprintf('Began %2.0f:%02.0f:%02.0f',tim(1),tim(2),tim(3));
 			t1=text(2,arg1/2,0,str,'FontSize',10,'Parent',ax);
 			set(t1,'Tag','StartTime');
 			line('Xdata',[0.5 0.5], 'Ydata',[0 0],...
