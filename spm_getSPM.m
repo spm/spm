@@ -111,8 +111,6 @@ elseif ~isfield(xSDM,'M')
 	%-SPM.mat from SPM99b (which saved mmapped handles) **
 	xSDM.M      = xSDM.Vbeta(1).mat;
 	xSDM.DIM    = xSDM.Vbeta(1).dim(1:3)';
-	%-**xSDM.VY     = {xSDM.VY.fname}';
-	%-**if isstruct(xSDM.xM.VM), xSDM.xM.VM = {xSDM.xM.VM.fname}'; end
 	xSDM.VM     = 'mask.img';
 	xSDM.Vbeta  = {xSDM.Vbeta.fname}';
 	xSDM.VResMS = xSDM.VResMS.fname;
@@ -125,17 +123,6 @@ end
 xSDM.Vbeta  = ...
 	spm_vol([repmat([swd,filesep],length(xSDM.Vbeta),1),char(xSDM.Vbeta)]);
 xSDM.VResMS = spm_vol(fullfile(swd,xSDM.VResMS));
-
-
-%-If appropriate promtp for 2nd-level multivariate inference
-%-----------------------------------------------------------------------
-if isfield(xSDM,'Sess') & length(xSDM.Sess) >= 6 & xSDM.Sess{1}.rep
-	if spm_input('2nd-level [multivariate] inference','+1','y/n',[1 0]);
-		[SPM,VOL,xX,xCon,xSDM] = spm_get_mvSPM(swd,xSDM);
-		return
-	end
-end
-
 
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
@@ -196,11 +183,15 @@ end
 % - C O N T R A S T S ,  S P M   C O M P U T A T I O N ,   M A S K I N G
 %=======================================================================
 
-%-Get contrasts...
+%-Get contrasts (if multivariate there is only one structure)
 %-----------------------------------------------------------------------
-[Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
-	'Select contrasts...',' for conjunction',wOK);
-
+nVar    = size(xSDM.VY,2);
+if nVar == 1
+	[Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
+	'	Select contrasts...',' for conjunction',wOK);
+else
+	Ic = 1;
+end
 
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
@@ -389,7 +380,6 @@ for ii = 1:length(I)
             xCon(i).Vcon  = spm_resss(xSDM.Vbeta,xCon(i).Vcon,h);
             xCon(i).Vcon  = spm_create_image(xCon(i).Vcon);
 
-
 	otherwise
         %---------------------------------------------------------------
 	    error(['unknown STAT "',xCon(i).STAT,'"'])
@@ -524,15 +514,21 @@ else
     end
 end
 
-%-Generate STAT string describing marginal distribution
+%-Degrees of Fredom and STAT string describing marginal distribution
 %-----------------------------------------------------------------------
-if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
+edf   = [xCon(Ic(1)).eidf xX.erdf];
+if     length(Ic) > 1
+	str = sprintf('^{%d}',length(Ic));
+elseif nVar > 1
+	str = sprintf('^{%i-variate}',nVar);
+else
+	str = '';
+end
 switch xCon(Ic(1)).STAT
 case 'T'
-	STATstr = sprintf('%c%s_{%.4g}',xCon(Ic(1)).STAT,str,xX.erdf);
+	STATstr = sprintf('%c%s_{%.4g}','T',str,edf(2));
 case 'F'
-	STATstr = sprintf('%c%s_{[%.4g,%.4g]}',...
-			xCon(Ic(1)).STAT,str,xCon(Ic(1)).eidf,xX.erdf);
+	STATstr = sprintf('%c%s_{[%.4g,%.4g]}','F',str,edf(1),edf(2));
 end
 
 
@@ -544,8 +540,12 @@ spm_progress_bar('Set',100)                                          %-#
 %=======================================================================
 if wOK
     for i = [Ic,Im];
-        xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
-        xCon(i).Vspm = spm_str_manip(xCon(i).Vspm.fname,'t');
+	if length(xCon(i).Vcon)
+        	xCon(i).Vcon = spm_str_manip(xCon(i).Vcon.fname,'t');
+	end
+	if length(xCon(i).Vspm)
+        	xCon(i).Vspm = spm_str_manip(xCon(i).Vspm.fname,'t');
+	end
     end
     save(fullfile(swd,'xCon.mat'),'xCon')
     fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
@@ -553,9 +553,8 @@ end
 
 %-Various parameters...
 %-----------------------------------------------------------------------
-n    = length(Ic);
 STAT = xCon(Ic(1)).STAT;
-edf  = [xCon(Ic(1)).eidf, xX.erdf];
+n    = length(Ic);
 u    = -Inf;
 k    = 0;
 
@@ -663,3 +662,12 @@ VOL    = struct('S',		S,...
 		'iM',		iM,...
 		'VOX',		sqrt(sum(M(1:3,1:3).^2))',...
 		'DIM',		DIM);
+
+% RESELS per voxel (density) if it exists
+%-----------------------------------------------------------------------
+if isfield(xSDM,'VRVP')
+
+	VOL.VRVP  = spm_vol(xSDM.VRVP);
+
+end % (isfield(xSDM,'VRVP')
+
