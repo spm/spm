@@ -36,7 +36,7 @@ CMDLINE = 0;
 % It determines the intensity of any grids which are superimposed
 % on displayed images.
 %-----------------------------------------------------------------------
-GRID = 0.6;
+GRID = 0.4;
 
 
 % Header defaults
