@@ -1,10 +1,10 @@
 function [K] = spm_sptop(sigma,q,c)
-% returns a sparse Toeplitz convolution matrix
-% FORMAT [K] = spm_sptop(sigma,q)
+% Sparse Toeplitz convolution matrix given convolution kernel
+% FORMAT [K] = spm_sptop(sigma,q,c)
+%
 % sigma - of Gaussian kernel K (or kernel itself)
 % q     - order of matrix
 % c     - kernel index at t = 0 {default c = length(sigma)/2) 
-%
 % K     - q x q sparse convolution matrix
 %_______________________________________________________________________
 %
@@ -14,12 +14,12 @@ function [K] = spm_sptop(sigma,q,c)
 % obtain an assymmetrical convolution matrix (i.e. implement a phase shift
 % set c = 1.
 %
-% Boundary handling: The row-wise sum of K is set to unity.
+% Boundary handling: The row-wise sum of K is set to unity (kernel truncation)
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
-% if simgma = 0 return identity matrix, if q = 1 return 1.
+% if sigma = 0, return identity matrix; if q = 1, return 1.
 %-----------------------------------------------------------------------
 if ~any(sigma); K = speye(q); return; end
 if q == 1;      K = 1;        return; end
@@ -27,7 +27,6 @@ if q == 1;      K = 1;        return; end
 % otherwise get kernel function
 %-----------------------------------------------------------------------
 if length(sigma) == 1
-
 	E  = ceil(3*sigma);
 	x  = [-E:E];
 	k  = exp(-x.^2/(2*sigma^2));
@@ -48,9 +47,6 @@ i  = x(:)*ones(1,q) + j;
 
 % setting the row-wise sum to unity
 %-----------------------------------------------------------------------
-i  = i(:);
-j  = j(:);
-K  = K(:);
 Q  = find((i >= 1) & (i <= q));
 K  = sparse(i(Q),j(Q),K(Q));
 Q  = sum(K');
