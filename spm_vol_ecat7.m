@@ -330,7 +330,7 @@ data_units               = fread(fid,32,'char',0);
 septa_state              = fread(fid,1,'uint16',0);
 fill                     = fread(fid,1,'uint16',0);
 	
-magic_number             = deblank(char(magic_number.*(magic_number>0))');
+magic_number             = deblank(char(magic_number.*(magic_number>32))');
 original_file_name       = deblank(char(original_file_name.*(original_file_name>0))');
 serial_number            = deblank(char(serial_number.*(serial_number>0))');
 isotope_name             = deblank(char(isotope_name.*(isotope_name>0))');
