@@ -11,7 +11,7 @@ function [] = spm_dcm_generate(DCM_filename,SNR,show_data)
 %           Y.secs  overall number of seconds
 %           Y.Ce    Error covariance
 %
-% @(#)spm_dcm_generate.m	2.1 Will Penny 03/10/16
+% %W% Will Penny %E%
 
 
 % Check parameters and load specified DCM
