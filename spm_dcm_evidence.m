@@ -1,8 +1,6 @@
 function [evidence] = spm_dcm_evidence (DCM)
-
-% function [evidence] = spm_dcm_evidence (DCM)
-%
 % Compute evidence of DCM model
+% FORMAT [evidence] = spm_dcm_evidence (DCM)
 % 
 % DCM       DCM data structure
 %
