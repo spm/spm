@@ -57,7 +57,7 @@ int nlhs, nrhs;
 Matrix *plhs[], *prhs[];
 #endif
 {
-     double		*n,*b,*p;
+     double		*p;
      char 		label[1024];
      char 		error_msg[1024];
      unsigned char      *ku;
@@ -67,15 +67,15 @@ Matrix *plhs[], *prhs[];
      double		*pixel;
      double	        *kd;
      double		scale;
-     int 		i,j,g,h;
+     int 		i,j,g,h, n,b;
      int		fo, fp[1024];
 
      if ((nrhs != 4 && nrhs != 5) || nlhs > 1)
          mexErrMsgTxt("Inappropriate usage.");
 
      /* open destination file */
-     n   = mxGetPr(prhs[0]);
-     b   = mxGetPr(prhs[1]);
+     n   = (int)mxGetPr(prhs[0])[0];
+     b   = (int)mxGetPr(prhs[1])[0];
      p   = mxGetPr(prhs[2]);
      h   = (int) mxGetN(prhs[3]);
      g   = (int) mxGetM(prhs[3]);
@@ -113,86 +113,86 @@ Matrix *plhs[], *prhs[];
      }
 
      /* read and accumulate */
-     pixel = (double *) mxCalloc((int) (n[0]),sizeof(double));
+     pixel = (double *) mxCalloc((int) (n),sizeof(double));
 
-     if ((int) b[0] == 2) {
-         ku     = (unsigned char *) mxCalloc((int) n[0], sizeof(unsigned char));
+     if ((int) b == 2) {
+         ku     = (unsigned char *) mxCalloc((int) n, sizeof(unsigned char));
          for (j = 0; j < g; j++) {
             if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
 
-            read(fp[j], ku, sizeof(unsigned char)*(int) n[0]);
-            for (i = 0; i < (int) n[0]; i++)
+            read(fp[j], ku, sizeof(unsigned char)*(int) n);
+            for (i = 0; i < (int) n; i++)
                pixel[i] += (double) ku[i]*scale;
 	    close(fp[j]);
          }
-         scale = rescale(g,pixel, 255.0);
-         for (i = 0; i < (int) n[0]; i++)
+         scale = rescale(n,pixel, 255.0);
+         for (i = 0; i < (int) n; i++)
              ku[i] = (unsigned char) pixel[i];
-         write(fo, ku, sizeof(unsigned char)*(int) n[0]);
+         write(fo, ku, sizeof(unsigned char)*(int) n);
       }
 
-      else if ((int) b[0] == 4) {
-         ks     = (short *) mxCalloc((int) n[0], sizeof(short));
+      else if (b == 4) {
+         ks     = (short *) mxCalloc(n, sizeof(short));
          for (j = 0; j < g; j++) {
             if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
 
-            read(fp[j], ks, sizeof(short)*(int) n[0]);
-            for (i = 0; i < (int) n[0]; i++)
+            read(fp[j], ks, sizeof(short)*n);
+            for (i = 0; i < n; i++)
                pixel[i] += (double) ks[i]*scale;
 	    close(fp[j]);
          }
-         scale = rescale(g,pixel, 32767.0);
-         for (i = 0; i < (int) n[0]; i++)
+         scale = rescale(n,pixel, 32767.0);
+         for (i = 0; i < n; i++)
              ks[i] = (short) pixel[i];
-         write(fo, ks, sizeof(short)*(int) n[0]);
+         write(fo, ks, sizeof(short)*n);
       }
 
-      else if ((int) b[0] == 8) {
-         ki     = (int *) mxCalloc((int) n[0], sizeof(int));
+      else if (b == 8) {
+         ki     = (int *) mxCalloc(n, sizeof(int));
          for (j = 0; j < g; j++) {
             if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
 
-            read(fp[j], ki, sizeof(int)*(int) n[0]);
-            for (i = 0; i < (int) n[0]; i++)
+            read(fp[j], ki, sizeof(int)*n);
+            for (i = 0; i < n; i++)
                pixel[i] += (double) ki[i]*scale;
 	    close(fp[j]);
          }
-         scale = rescale(g,pixel, 2147483647.0);
-         for (i = 0; i < (int) n[0]; i++)
+         scale = rescale(n,pixel, 2147483647.0);
+         for (i = 0; i < n; i++)
              ki[i] = (int) pixel[i];
-         write(fo, ki, sizeof(int)*(int) n[0]);
+         write(fo, ki, sizeof(int)*n);
       }
 
-      else if ((int) b[0] == 16) {
-         kf     = (float *) mxCalloc((int) n[0], sizeof(float));
+      else if (b == 16) {
+         kf     = (float *) mxCalloc(n, sizeof(float));
          for (j = 0; j < g; j++) {
             if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
 
-            read(fp[j], kf, sizeof(float)*(int) n[0]);
-            for (i = 0; i < (int) n[0]; i++)
+            read(fp[j], kf, sizeof(float)*n);
+            for (i = 0; i < n; i++)
                pixel[i] += (double) kf[i]*scale;
 	    close(fp[j]);
          }
          scale = 1.0;
-         for (i = 0; i < (int) n[0]; i++)
+         for (i = 0; i < n; i++)
              kf[i] = (float) pixel[i];
-         write(fo, kf, sizeof(float)*(int) n[0]);
+         write(fo, kf, sizeof(float)*n);
       }
 
-      else if ((int) b[0] == 32) {
-         kd     = (double *) mxCalloc((int) n[0], sizeof(double));
+      else if (b == 32) {
+         kd     = (double *) mxCalloc(n, sizeof(double));
          for (j = 0; j < g; j++) {
             if (nrhs == 5) scale = mxGetPr(prhs[4])[j]; else scale = 1.0/((double) g);
 
-            read(fp[j], kd, sizeof(double)*(int) n[0]);
-            for (i = 0; i < (int) n[0]; i++)
+            read(fp[j], kd, sizeof(double)*n);
+            for (i = 0; i < n; i++)
                pixel[i] += (double) kd[i]*scale;
 	    close(fp[j]);
          }
          scale = 1.0;
-         for (i = 0; i < (int) n[0]; i++)
+         for (i = 0; i < n; i++)
              kd[i] = (double) pixel[i];
-         write(fo, kd, sizeof(double)*(int) n[0]);
+         write(fo, kd, sizeof(double)*n);
       }
 
       else  {
