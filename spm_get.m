@@ -974,6 +974,7 @@ if my>0
 	set(h,'Visible','off')
 else
 	set(h,	'UserData',	get(hAxes,'Position'),...
+		'Value',	0,...
 		'Max',		0,...
 		'Min',		my-dy,...
 		'SliderStep',	min([0.5,1],[3*dy,(y0-dy)]/(-my+dy)),...
@@ -1510,10 +1511,7 @@ for i=1:prod(size(cpath))
 
 	%-Prepend cwd to relative pathnames
 	%---------------------------------------------------------------
-	if isempty(cpath{i}) | ~isabspath(cpath{i})
-		if (cwd(end)==sepchar), cpath{i}=[cwd,cpath{i}];
-		else			cpath{i}=[cwd,sepchar,cpath{i}]; end
-	end
+	if ~isabspath(cpath{i}), cpath{i}=fullfile(cwd,cpath{i}); end
 	
 	%-Sort out stationary relative pathnames './' & '/.'
 	%---------------------------------------------------------------
@@ -1533,6 +1531,10 @@ for i=1:prod(size(cpath))
 		end
 	end
 	
+	%-Remove any residual '//'s
+	while length(cpath{i})>=2 & length(findstr(cpath{i},dubsep))
+		cpath{i}=strrep(cpath{i},dubsep,sepchar); end
+
 	%-Sort out relative pathnames '/..'
 	%---------------------------------------------------------------
 	%-Process midpath '/../'
@@ -1624,8 +1626,12 @@ case 'unx'
 	rootf = strcmp(path,'/');
 case 'win'
 	%-Accepts e.g e: and e:\ as root paths
-	rootf = ( length(path)==2 & path(2)==':') | ...
-		( length(path)>2  & strcmp(path(2:end),':\') );
+	if (length(path)==2 & path(2)==':') | ...
+	   (length(path)>2 & strcmp(path(2:end),':\'))
+		rootf = 1;
+	else
+		rootf = 0;
+	end
 otherwise
 	error('isroot not coded for this filesystem');
 end
@@ -1636,9 +1642,9 @@ function absf = isabspath(path)           %%-Platform specifics (MBrett)
 %-Returns true if path is absolute, false if relative (or empty)
 switch (spm_platform('filesys'))
 case 'unx'
-	absf = ~isempty(path) & path(1)=='/';
+	if (~isempty(path) & path(1)=='/'), absf=1; else, absf=0; end
 case 'win'
-	absf = length(path)>1 & path(2)==':';
+	if (length(path)>1 & path(2)==':'), absf=1; else, absf=0; end
 otherwise
 	error('isabspath not coded for this filesystem');
 end
