@@ -5,9 +5,8 @@ static char sccsid[]="%W% JB Poline %E%";
 /*  spm_plateau.c JB Poline 10/11/94 
 
 % Return cluster index for a point list
-% FORMAT [A] = spm_cluster2(L,VOX)
-% L     - locations [x y x]' {in mm}
-% VOX   - voxel size {in mm}
+% FORMAT [A] = spm_cluster2(L)
+% L     - locations [x y x]' {in vox}
 %
 % A     - cluster index or region number
 %____________________________________________________________________________
@@ -24,7 +23,6 @@ static char sccsid[]="%W% JB Poline %E%";
 
 /* Input Output Arguments */
 #define	XYZ	prhs[0]
-#define	VOX	prhs[1]
 
 #define	IND	plhs[0]
 
@@ -45,41 +43,21 @@ static char sccsid[]="%W% JB Poline %E%";
 	
 	is defined */
 
-
-
-
-#ifdef __STDC__
-void mexFunction(
-	int		nlhs,
-	Matrix	*plhs[],
-	int		nrhs,
-	Matrix	*prhs[]
-	)
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    double		*L,*vox,*loc,*max;
-    float		*vol, *Uv, *Lv, *Cv, *Uvp, *Lvp, *Cvp,
-			*Uvl, *Lvl, *Cvl, fl_tmp;
-    int 		n,i,j,k,d,r,s,a,b;
+    double		*L;
+    float		*vol, fl_tmp;
+    int 		i,j,d,r;
     int			max_x, max_y, max_z, min_x, min_y, min_z,
-			 dx, dy, dz, dxdy, *num, *ind, index;
+			 dx, dy, dz, dxdy, *ind, index;
     int			*x,*y,*z;
 
 
-    if (nrhs != 2 )
+    if ((nrhs != 1) || (nlhs > 1))
 		mexErrMsgTxt("Inappropriate usage.");
 
     /* Assign pointers to the parameters */
     L    = mxGetPr(XYZ);
-    vox  = mxGetPr(VOX);
-
-    i    = mxGetM(VOX);
-    j    = mxGetN(VOX);
-    if(i*j != 3) mexErrMsgTxt("  VOX M*N-dimension should be 3 ");
     i    = mxGetM(XYZ);
     if(i != 3) mexErrMsgTxt("  XYZ M-dimension should be 3 ");
     r    = mxGetN(XYZ);
@@ -94,22 +72,22 @@ Matrix *plhs[], *prhs[];
 
     if(!x || !y || !z || !ind) mexErrMsgTxt("\n memory alloc pb in loc_max ");
 
-    max_x =  (int) floor(L[0]/vox[0] + 0.5);
-    max_y =  (int) floor(L[1]/vox[1] + 0.5);
-    max_z =  (int) floor(L[2]/vox[2] + 0.5);
-    min_x =  (int) floor(L[0]/vox[0] + 0.5);
-    min_y =  (int) floor(L[1]/vox[1] + 0.5);
-    min_z =  (int) floor(L[2]/vox[2] + 0.5);
+    max_x =  (int) floor(L[0] + 0.5);
+    max_y =  (int) floor(L[1] + 0.5);
+    max_z =  (int) floor(L[2] + 0.5);
+    min_x =  (int) floor(L[0] + 0.5);
+    min_y =  (int) floor(L[1] + 0.5);
+    min_z =  (int) floor(L[2] + 0.5);
 
     d	 = 0;
     for (i = 0; i < 3*r; i = i + 3) {
-	x[d] = (int) floor(L[i + 0]/vox[0] + 0.5);
+	x[d] = (int) floor(L[i + 0] + 0.5);
 	if (x[d] > max_x) max_x = x[d];
 	if (x[d] < min_x) min_x = x[d];
-	y[d] = (int) floor(L[i + 1]/vox[1] + 0.5);
+	y[d] = (int) floor(L[i + 1] + 0.5);
 	if (y[d] > max_y) max_y = y[d];
 	if (y[d] < min_y) min_y = y[d];
-	z[d] = (int) floor(L[i + 2]/vox[2] + 0.5);
+	z[d] = (int) floor(L[i + 2] + 0.5);
 	if (z[d] > max_z) max_z = z[d];
 	if (z[d] < min_z) min_z = z[d];
 	d++;
@@ -143,9 +121,9 @@ Matrix *plhs[], *prhs[];
     index = 1;
     for (i = 0; i < r; i++) {
 
-	pos3.x = (int) floor( L[i*3 + 0]/vox[0] - min_x + 1 + 0.5);
-	pos3.y = (int) floor( L[i*3 + 1]/vox[1] - min_y + 1 + 0.5);
-	pos3.z = (int) floor( L[i*3 + 2]/vox[2] - min_z + 1 + 0.5);
+	pos3.x = (int) floor( L[i*3 + 0] - min_x + 1 + 0.5);
+	pos3.y = (int) floor( L[i*3 + 1] - min_y + 1 + 0.5);
+	pos3.z = (int) floor( L[i*3 + 2] - min_z + 1 + 0.5);
 	pos3.size  = 0;
 	pos3.label = (float) -(i+1) ;
 	
@@ -175,7 +153,7 @@ Matrix *plhs[], *prhs[];
 
     mxFree(vol);
 
-    IND   = mxCreateFull(1, r, REAL);
+    IND   = mxCreateDoubleMatrix(1, r, mxREAL);
 
     for (i = 0; i < r; i++) {
 	    mxGetPr(IND)[i] = (double) ind[i];

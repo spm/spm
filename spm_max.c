@@ -5,15 +5,14 @@ static char sccsid[]="%W% JB Poline %E%";
 /*  spm_max.c JB Poline 10/11/94 
 
 % Return sizes, maxima and locations of local excursion {X > u} sets 
-% FORMAT [N Z M A] = spm_lmax(X,L,VOX)
+% FORMAT [N Z M A] = spm_lmax(X,L)
 %
 % X     - values of 3-D field
-% L     - locations [x y x]' {in mm}
-% VOX   - voxel size {in mm}
+% L     - locations [x y x]' {in vox}
 %
 % N     - size of region {in voxels)
 % Z     - Z values of maxima
-% M     - location of maxima {in mm}
+% M     - location of maxima {in vox}
 % A     - region number
 %____________________________________________________________________________
 %
@@ -31,7 +30,6 @@ static char sccsid[]="%W% JB Poline %E%";
 /* Input Output Arguments */
 #define	SPM	prhs[0]
 #define	XYZ	prhs[1]
-#define	VOX	prhs[2]
 
 #define	NUM	plhs[0]
 #define	MAX	plhs[1]
@@ -55,13 +53,8 @@ static char sccsid[]="%W% JB Poline %E%";
 	
 	is defined */
 
-
-find_loc_max_strict_c18(vol, dx, dy, dz, minx, miny, minz, vox, max, loc, nb_lm)
-float	*vol;
-double	*vox,*loc,*max;
-int	minx, miny, minz;
-int	*nb_lm, dx, dy, dz;
-
+void find_loc_max_strict_c18(float *vol, int dx, int dy, int dz,
+	int minx, int miny, int minz, double *max, double *loc, int *nb_lm)
 {
 	int	i,j,k, dxdy = dx*dy;
 	float	*Uv, *Lv, *Cv, *Uvp,
@@ -116,9 +109,9 @@ int	*nb_lm, dx, dy, dz;
 		   )
 
 		  {
-		   loc[(3* (*nb_lm) + 0)] = (i + minx -1)*vox[0];
-	    	   loc[(3* (*nb_lm) + 1)] = (j + miny -1)*vox[1];
-	    	   loc[(3* (*nb_lm) + 2)] = (k + minz -1)*vox[2];
+		   loc[(3* (*nb_lm) + 0)] = (i + minx -1);
+	    	   loc[(3* (*nb_lm) + 1)] = (j + miny -1);
+	    	   loc[(3* (*nb_lm) + 2)] = (k + minz -1);
 	    	   max[ *nb_lm ]         = (double) *Cv;
 	    	   (*nb_lm)++;		 		
 
@@ -132,42 +125,25 @@ int	*nb_lm, dx, dy, dz;
 
 
 
-#ifdef __STDC__
-void mexFunction(
-	int		nlhs,
-	Matrix	*plhs[],
-	int		nrhs,
-	Matrix	*prhs[]
-	)
-#else
-mexFunction(nlhs, plhs, nrhs, prhs)
-int nlhs, nrhs;
-Matrix *plhs[], *prhs[];
-#endif
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    double		*X,*L,*vox,*loc,*max;
+    double		*X,*L,*loc,*max;
     float		*vol, fl_tmp;
-    int 		n,i,j,k,d;
+    int 		n,i,j,d;
     int			max_x, max_y, max_z, min_x, min_y, min_z,
 			dx, dy, dz, dxdy, *num, *ind, index, nb_lm;
     int			*x,*y,*z;
 
-    if (nrhs != 3 )
+    if ((nrhs != 3 ) || (nlhs > 4))
 		mexErrMsgTxt("Inappropriate usage.");
 
     /* Assign pointers to the parameters */
     X    = mxGetPr(SPM);
     L    = mxGetPr(XYZ);
-    vox  = mxGetPr(VOX);
 
 
     i    = mxGetM(XYZ);
-    if(i != 3) mexErrMsgTxt("  XYZ M-dimension should be 3 ");
-
-    i    = mxGetM(VOX);
-    j    = mxGetN(VOX);
-    if(i*j != 3) mexErrMsgTxt("  VOX MxN-dimension should be 3 ");
-
+    if(i != 3) mexErrMsgTxt("XYZ M-dimension should be 3 ");
 
     n    = mxGetN(XYZ);
     i    = mxGetM(SPM);
@@ -184,21 +160,21 @@ Matrix *plhs[], *prhs[];
     z    = (int *) mxCalloc (n,sizeof( int ));
 
 
-    max_x =  (int) floor( L[0]/vox[0]+ 0.5);
-    max_y =  (int) floor( L[1]/vox[1]+ 0.5);
-    max_z =  (int) floor( L[2]/vox[2]+ 0.5);
-    min_x =  (int) floor( L[0]/vox[0]+ 0.5);
-    min_y =  (int) floor( L[1]/vox[1]+ 0.5);
-    min_z =  (int) floor( L[2]/vox[2]+ 0.5);
+    max_x =  (int) floor( L[0] + 0.5);
+    max_y =  (int) floor( L[1] + 0.5);
+    max_z =  (int) floor( L[2] + 0.5);
+    min_x =  (int) floor( L[0] + 0.5);
+    min_y =  (int) floor( L[1] + 0.5);
+    min_z =  (int) floor( L[2] + 0.5);
 
     for (i = 0, d = 0; i < 3*n; i = i + 3, d++) {
-	x[d] = (int) floor(L[i + 0]/vox[0] + 0.5);
+	x[d] = (int) floor(L[i + 0] + 0.5);
 	if (x[d] > max_x) max_x = x[d];
 	if (x[d] < min_x) min_x = x[d];
-	y[d] = (int) floor(L[i + 1]/vox[1] + 0.5);
+	y[d] = (int) floor(L[i + 1] + 0.5);
 	if (y[d] > max_y) max_y = y[d];
 	if (y[d] < min_y) min_y = y[d];
-	z[d] = (int) floor(L[i + 2]/vox[2] + 0.5);
+	z[d] = (int) floor(L[i + 2] + 0.5);
 	if (z[d] > max_z) max_z = z[d];
 	if (z[d] < min_z) min_z = z[d];	
     }
@@ -231,7 +207,7 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("\n memory alloc pb in loc_max ");
 
 
-find_loc_max_strict_c18(vol,dx,dy,dz, min_x,min_y,min_z, vox,max,loc, &nb_lm);
+	find_loc_max_strict_c18(vol,dx,dy,dz, min_x,min_y,min_z, max,loc, &nb_lm);
 
 
 /*--------------------------------*/
@@ -246,9 +222,9 @@ find_loc_max_strict_c18(vol,dx,dy,dz, min_x,min_y,min_z, vox,max,loc, &nb_lm);
     index = 1;
     for (i = 0; i < nb_lm; i++) {
 
-	pos3.x = (int) floor( loc[i*3 + 0]/vox[0] - min_x + 1+ 0.5);
-	pos3.y = (int) floor( loc[i*3 + 1]/vox[1] - min_y + 1+ 0.5);
-	pos3.z = (int) floor( loc[i*3 + 2]/vox[2] - min_z + 1+ 0.5);
+	pos3.x = (int) floor( loc[i*3 + 0] - min_x + 1+ 0.5);
+	pos3.y = (int) floor( loc[i*3 + 1] - min_y + 1+ 0.5);
+	pos3.z = (int) floor( loc[i*3 + 2] - min_z + 1+ 0.5);
 	pos3.size  = 0;
 	pos3.label = (float) -(i+1) ;
 	
@@ -278,10 +254,10 @@ find_loc_max_strict_c18(vol,dx,dy,dz, min_x,min_y,min_z, vox,max,loc, &nb_lm);
 
     mxFree(vol);
 
-    MAX   = mxCreateFull(1, nb_lm, REAL);
-    LOC   = mxCreateFull(3, nb_lm, REAL);
-    NUM   = mxCreateFull(1, nb_lm, REAL);
-    IND   = mxCreateFull(1, nb_lm, REAL);
+    MAX   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
+    LOC   = mxCreateDoubleMatrix(3, nb_lm, mxREAL);
+    NUM   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
+    IND   = mxCreateDoubleMatrix(1, nb_lm, mxREAL);
 
 
     for (i = 0; i < nb_lm; i++) {

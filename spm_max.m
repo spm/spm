@@ -1,12 +1,11 @@
-function [N Z M A] = spm_max(X,L,VOX)
+
 % Return sizes, maxima and locations of local excursion {X > u} sets 
-% FORMAT [N Z M A] = spm_max(X,L,VOX)
+% FORMAT [N Z M A] = spm_max(X,L)
 % X     - values of 3-D field
-% L     - locations [x y x]' {in mm}
-% VOX   - voxel size {in mm}
+% L     - locations [x y x]' {in voxels}
 % N     - size of region {in voxels)
 % Z     - Z values of maxima
-% M     - location of maxima {in mm}
+% M     - location of maxima {in voxels}
 % A     - region number
 %____________________________________________________________________________
 %

@@ -105,7 +105,7 @@ $cmex5 spm_unlink.c
 $cmex5 spm_kronutil.c
 $cmex5 spm_project.c
 
-$cmex4 spm_max.c
-$cmex4 spm_clusters.c
+$cmex5 spm_max.c
+$cmex5 spm_clusters.c
 
 echo "Done."

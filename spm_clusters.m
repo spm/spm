@@ -1,8 +1,7 @@
 
 % Returns the cluster index for a point list
-% FORMAT [A] = spm_clusters(L,VOX)
-% L     - locations [x y x]' {in mm}
-% VOX   - voxel size {in mm}
+% FORMAT [A] = spm_clusters(L)
+% L     - locations [x y x]' {in voxels}
 %
 % A     - cluster index or region number
 %____________________________________________________________________________
