@@ -625,7 +625,7 @@ for  z = 1:zdim,
             Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
             
             Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
-            if xM.I & ~YNaNrep & xM.TH(i) < 0	%-Use implicit mask
+            if xM.I & xM.TH(i) < 0	%-Use implicit mask
                 Cm(Cm) = abs(Y(i,Cm)) > eps;
             end
         end
