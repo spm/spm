@@ -189,7 +189,7 @@ else,
 end;
 clear VF1 VG1
 
-flags.version = '%W% %E%';
+flags.version = '%M% %I% %E%';
 flags.date    = date;
 
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
@@ -226,7 +226,6 @@ function Tr = snbasis(VG,VF,VWG,VWF,Affine,fwhm,cutoff,nits,reg)
 % discrete cosine transform.
 %
 %______________________________________________________________________
-% %W% John Ashburner FIL (& Matthew Brett MRCCU) %E%
 
 fwhm    = [fwhm 30];
 
