@@ -145,6 +145,12 @@ X2       = xCon(I).c;
 X2       = kron(X2,speye(nP,nP));
 nC       = size(X2,2);
 
+% compute
+%-----------------------------------------------------------------------
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...ReML esimation')      %-#
+spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
+
+
 % names for nC contrasts in X2 and nP parameters
 %-----------------------------------------------------------------------
 name  = {};
@@ -190,15 +196,25 @@ end
 % 1st-level non-sphericity - ReML estimates, restricted to the Null
 % space of 'fixed' effects X1*X2 and X0
 %-----------------------------------------------------------------------
-V1       = spm_reml(SPM.xVi.Cy,[X1*X2 X0],Q);
+[V1 h]   = spm_reml(SPM.xVi.Cy,[X1*X2 X0],Q);
 
 % 2nd-level non-sphericity (including original whitening and filtering)
 %-----------------------------------------------------------------------
 W        = SPM.xX.W;
 K        = SPM.xX.K;
 pX1      = SPM.xX.pKX;
-V2       = pX1*spm_filter(K,spm_filter(K,W*V1*W')')*pX1';
-S.xVi.V  = sparse(V2(iX1,iX1));
+M1       = pX1(iX1,:)*spm_filter(K,W);
+
+% project 1st-level covariance components to 2nd-level and save in xVi
+%-----------------------------------------------------------------------
+V2    = M1*V1*M1';
+for i = 1:length(Q);
+	Vi{i} = M1*Q{i}*M1';
+end
+
+S.xVi.V  = sparse(V2);
+S.xVi.Vi = sparse(V2);
+S.xVi.h  = sparse(V2);
 
 
 % smoothness and volume infomation
@@ -212,12 +228,18 @@ S.xM.I   = 1;
 
 %-Change to SPM.swd/mfx and save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-cd(swd)
-mkdir mfx;
-cd mfx
 SPM      = S;
-SPM.swd  = pwd;
-save SPM SPM
+cd(swd)
+try
+	mkdir mfx;
+end
+try
+	cd mfx
+	SPM.swd = pwd;
+	save SPM SPM
+catch
+	warning('could not save SPM.mat in mfx')
+end
 
 %=======================================================================
 %- E N D: Cleanup GUI
