@@ -788,6 +788,19 @@ if ~isfield(xVi,'V')
 		[V,h] = spm_reml(Cy,xX.X,xVi.Vi);
 	end
 
+	% check for negative hyperparameters
+	%---------------------------------------------------------------
+	if any(h < 0)
+		str = {	'Variance component [hyperparameter]';...
+			'estimation has been been compromised';...
+			'by negative estimates.';...
+			'Could you specify a slightly less';...
+			'exuberant non-sphericity for this model?'};
+		if spm_input(str,1,'bd','abort|continue',[1,0],1)
+				return
+		end
+	end
+	
 	% normalize non-sphericity and save hyperparameters
 	%---------------------------------------------------------------
 	V           = V*nScan/trace(V);
