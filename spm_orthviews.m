@@ -334,7 +334,7 @@ for i=valid_handles(handle),
 			'Box','on');
 		mx = max([eps max(t)]);
 		mn = min([0 min(t)]);
-		image([0 mx/32],[mn mx],[1:64]' + 64,'Parent',ax);
+		image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
 		set(ax,'YDir','normal','XTickLabel',[]);
 		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx, 'min',mn);
 	end;
@@ -357,7 +357,7 @@ for i=valid_handles(handle),
 		'Box','on');
 	mx = max([eps maxval(vol)]);
 	mn = min([0 minval(vol)]);
-	image([0 mx/32],[mn mx],[1:64]' + 64,'Parent',ax);
+	image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
 	set(ax,'YDir','normal','XTickLabel',[]);
 	st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
 end;
