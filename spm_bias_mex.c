@@ -10,30 +10,6 @@ static char sccsid[]="%W% John Ashburner %E%";
 
 #define IGNORE_ZEROS
 
-/********************************************************************************/
-
-/********************************************************************************/
-/* Same as the Matlab tic/toc commands
- */
-#include <sys/time.h>
-#include <unistd.h>
-static struct timeval ptime;
-static void tic()
-{
-	struct timezone tz;
-	(void)gettimeofday(&ptime, &tz);
-}
-
-static double toc()
-{
-	struct timeval ctime;
-	struct timezone tz;
-	(void)gettimeofday(&ctime, &tz);
-	return(ctime.tv_sec-ptime.tv_sec + 1e-6*(ctime.tv_usec-ptime.tv_usec));
-}
-
-/********************************************************************************/
-
 
 /********************************************************************************/
 /* Extract a slice from a mapped volume
