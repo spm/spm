@@ -35,10 +35,6 @@ function spm_reslice(P,flags)
 %                      necessary to resample it.
 %                2   - reslice all the images.
 %
-%         fudge - adjust the data (fMRI) to remove movement-related components.
-%                 This is enabled when the fudge field exists in the flags
-%                 structure.  See help from spm_realign_ui for details.
-%
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
@@ -106,32 +102,14 @@ else,
 		end;
 	end;
 end;
-
-if flags.which == 0 & isfield(flags,'fudge'), flags = rmfield(flags,'fudge'); end;
-if ~finite(flags.hold) | ~isfield(flags,'fudge'),
-	if isfield(flags,'fudge'), warning('No adjustment will be done'); end;
-	if iscell(P), P = cat(1,P{:}); end;
-	reslice_images_volbyvol(P,flags);
-else,
-	if iscell(P),
-		sessions=zeros(length(P),1);
-		for i=1:length(P),
-			sessions(i) = length(P{i});
-		end;
-		sessions = cumsum(sessions);
-		P = cat(1,P{:});
-	else,
-		sessions = length(P);
-	end;
-	reslice_adjust(P,flags,sessions);
-end;
+reslice_images(P,flags);
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function reslice_images_volbyvol(P,flags)
+function reslice_images(P,flags)
 % Reslices images volume by volume
-% FORMAT reslice_images_volbyvol(P,flags)
+% FORMAT reslice_images(P,flags)
 %
 % P        - matrix of image handles from spm_vol.
 %            All operations are performed relative to the first image.
@@ -387,233 +365,6 @@ for i=1:V.dim(3),
 end;
 return;
 %_______________________________________________________________________
-%_______________________________________________________________________
-
-
-
-
-
-
-
-
-
-
-
-
-%_______________________________________________________________________
-%_______________________________________________________________________
-function reslice_adjust(P,flags,sessions)
-% Reslices images volume by volume
-% FORMAT reslice_images_volbyvol(P,flags)
-% P        - matrix of image handles from spm_vol.
-%            All operations are performed relative to the first image.
-%            ie. resampling of images is into the space of the first image.
-%
-% flags    - a structure containing various options.  The fields are:
-%
-%         mask - mask output images (1 for yes, 0 for no)
-%                To avoid artifactual movement-related variance the realigned
-%                set of images can be internally masked, within the set (i.e.
-%                if any image has a zero value at a voxel than all images have
-%                zero values at that voxel).  Zero values occur when regions
-%                'outside' the image are moved 'inside' the image during
-%                realignment.
-%
-%         mean - write mean image
-%                The average of all the realigned scans is written to
-%                mean*.img.
-%
-%         hold - the interpolation method (see spm_slice_vol or spm_sample_vol).
-%                Non-finite values result in Fourier interpolation
-%
-%         which - Values of 0, 1 or 2 are allowed.
-%                0   - don't create any resliced images.
-%                      Useful if you only want a mean resliced image.
-%                1   - don't reslice the first image.
-%                      The first image is not actually moved, so it may not be
-%                      necessary to resample it.
-%                2   - reslice all the images.
-%
-%             The spatially realigned images are written to the orginal
-%             subdirectory with the same filename but prefixed with an 'r'.
-%             They are all aligned with the first.
-%
-% sessions - the last scan in each of the sessions.  For example,
-%            the images in the second session would be
-%            P((sessions(2-1)+1):sessions(2),:).
-%
-% The only reason for reslicing a series plane by plane is to do the adjustment.
-
-linfun = inline('fprintf(''%-60s%s'', x,sprintf(''\b'')*ones(1,60))');
-linfun('Reslicing images..');
-
-start_vol = 1;
-if flags.which == 1, start_vol = 2; end
-
-% Write headers and matrixes
-%------------------------------------------------------------------
-PO = P;
-for i = start_vol:prod(size(P)),
-	PO(i).fname   = prepend(P(i).fname,'r');
-	PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
-	PO(i).mat     = P(1).mat;
-	PO(i).descrip = 'spm - realigned';
-	spm_create_image(PO(i));
-end;
-
-spm_progress_bar('Init',P(1).dim(3),'Reslicing','planes completed');
-
-if flags.mean,
-	Integral = zeros(P(1).dim(1)*P(1).dim(2),P(1).dim(3));
-end;
-
-tiny = 5e-2; % From spm_vol_utils.c
-
-linfun('Estimating a priori covariance matrix..');
-Y1 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
-Y2 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
-Y3 = zeros(prod(P(1).dim(1:2)),prod(size(P)));
-
-% Estimate a priori covariance matrix describing the distribution of
-% the basis functions for the adjustment.
-gl = spm_global(P(1));
-varerr = 0;
-npix   = 0;
-for x3 = 1:P(1).dim(3),
-	tmp = spm_slice_vol(P(1),spm_matrix([0 0 x3]),P(1).dim(1:2),0);
-	msk = find(tmp > gl*0.8);
-	tmp = reshape(interp_errors(tmp,flags.hold),prod(P(1).dim(1:2)),4);
-	varerr = varerr + sum(sum(tmp(msk,:).^2));
-	npix = npix + prod(size(msk));
-end;
-varerr = varerr/npix;
-IC0  = eye(6)/varerr;
-
-X  = zeros(prod(P(1).dim(1:2)),prod(size(P)));
-
-
-x1=repmat((1:P(1).dim(1))',1,P(1).dim(2));x1=x1(:);
-x2=repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);x2=x2(:);
-
-for x3 = 1:P(1).dim(3)
-	linfun(['Reslicing plane ' num2str(x3) '..']);
-	Count = zeros(prod(P(1).dim(1:2)),1);
-	for i = 1:prod(size(P))
-		M = inv(P(1).mat\P(i).mat);
-		y1=M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
-		y2=M(2,1)*x1+M(2,2)*x2+(M(2,3)*x3+M(2,4));
-		y3=M(3,1)*x1+M(3,2)*x2+(M(3,3)*x3+M(3,4));
-
-		Mask =        (y1 >= (1-tiny) & y1 <= (P(i).dim(1)+tiny));
-		Mask = Mask & (y2 >= (1-tiny) & y2 <= (P(i).dim(2)+tiny));
-		Mask = Mask & (y3 >= (1-tiny) & y3 <= (P(i).dim(3)+tiny));
-		Count = Count + Mask;
-
-		X(:,i) = spm_sample_vol(P(i),y1,y2,y3,flags.hold);
-
-		if isfield(flags,'fudge'),
-			Y1(:,i)=y1;
-			Y2(:,i)=y2;
-			Y3(:,i)=y3;
-		end;
-	end;
-	Mask = (Count == prod(size(P)));
-
-	ss = 1;
-	for s = 1:length(sessions),
-		se = sessions(s);
-		degrf = se-ss+1-7;
-
-		for xx=find(Mask)',
-			% Basis functions appropriate for sinc interpolation
-			A = [cos(2*pi*Y1(xx,ss:se)') sin(2*pi*Y1(xx,ss:se)') ...
-			     cos(2*pi*Y2(xx,ss:se)') sin(2*pi*Y2(xx,ss:se)') ...
-			     cos(2*pi*Y3(xx,ss:se)') sin(2*pi*Y3(xx,ss:se)')];
-
-			Tac   = X(xx,ss:se)';
-			% centre the signal and covariates
-			Tac   = Tac - mean(Tac);
-			A     = A - repmat(mean(A,1),size(A,1),1);
-			alpha = A'*A;
-			beta  = A'*Tac;
-
-			% Estimate the distribution of the errors.
-			sumsq = sum((Tac - A*(pinv(alpha)*beta)).^2)/degrf;
-
-			% Subtract a MAP estimate of the interpolation errors
-			% from the data.
-			Tac   = X(xx,ss:se)' - A*((alpha + IC0*sumsq)\beta);
-			X(xx,ss:se) = Tac';
-		end
-		ss = se+1;
-	end;
-
-
-	if flags.mean,
-		Integral(:,x3) = sum(X,2)./Count;
-	end;
-
-	if flags.mask, notmsk = find(~Mask); else, notmsk=[]; end;
-
-	for i = start_vol:prod(size(P)),
-		tmp = reshape(X(:,i),PO(i).dim(1:2));
-		tmp(notmsk) = NaN;
-		spm_write_plane(PO(i),tmp,x3);
-	end;
-	spm_progress_bar('Set',x3);
-end;
-
-
-if flags.mean,
-	% Write integral image (16 bit signed)
-	%-----------------------------------------------------------
-	PO         = P(1);
-	PO.fname   = prepend(P(1).fname, 'mean');
-	PO.pinfo   = [max(max(Integral))/32767 0 0]';
-	PO.descrip = 'spm - mean image';
-	PO.dim(4)  = 4;
-	spm_write_vol(PO,reshape(Integral,PO.dim(1:3)));
-end;
-
-linfun(' ');
-spm_figure('Clear','Interactive');
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function A = interp_errors(img,Hold)
-fimg = fft2(img);
-t1 = 0.5;
-t2 = 0.25;
-A = zeros([size(img) 4]);
-A(:,:,1) = interp_errors_sub1(fimg,[0 t1],Hold)-img;
-A(:,:,2) = interp_errors_sub1(fimg,[0 t2],Hold)-img;
-A(:,:,3) = interp_errors_sub1(fimg,[t1 0],Hold)-img;
-A(:,:,4) = interp_errors_sub1(fimg,[t2 0],Hold)-img;
-M = inv([1-cos(t1*2*pi) 1-cos(t2*2*pi); sin(t1*2*pi) sin(t2*2*pi)]);
-M = [M zeros(2); zeros(2) M];
-A = reshape(reshape(A,[prod(size(img)) 4])*M,[size(img) 4]);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function img2 = interp_errors_sub1(fimg,t,Hold)
-d    = size(fimg);
-tr   = t(2);
-if tr ~= 0,
-	c    = fftshift(exp(sqrt(-1)*2*pi*tr*((-d(1)/2):((d(1)-1)/2))/d(1)))';
-	fimg = fimg.*repmat(c,1,d(2));
-end;
-tr   = -t(1);
-if tr ~= 0,
-	c    = fftshift(exp(sqrt(-1)*2*pi*tr*((-d(2)/2):((d(2)-1)/2))/d(2)));
-	fimg = fimg.*repmat(c,d(1),1);
-end;
-img1 = real(ifft2(fimg));
-img2 = spm_slice_vol(img1,spm_matrix([t(2) t(1) 1]),size(img1),Hold);
-return;
-%_______________________________________________________________________
-
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
