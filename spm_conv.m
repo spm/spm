@@ -18,7 +18,10 @@ function [X] = spm_conv(X,sx,sy)
 % assume isomorphic smoothing
 %---------------------------------------------------------------------------
 if nargin < 3; sy = sx; end
+sx      = abs(sx);
+sy      = abs(sy);
 [lx ly] = size(X);
+
 
 
 % FWHM -> sigma
