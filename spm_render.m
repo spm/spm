@@ -1,6 +1,6 @@
-function spm_render(dat,flg,rendfile)
+function spm_render(dat,brt,rendfile)
 % Render blobs on surface of a 'standard' brain
-% FORMAT spm_render(dat,flg,rendfile)
+% FORMAT spm_render(dat,brt,rendfile)
 %
 % dat - a vertical cell array of length 1 to 3
 %       - each element is a structure containing:
@@ -9,9 +9,11 @@ function spm_render(dat,flg,rendfile)
 %         - t   - the SPM{.} values
 %         - mat - affine matrix mapping from XYZ voxels to Talairach.
 %         - dim - dimensions of volume from which XYZ is drawn.
-% flg - optional flag:
-%            If 1, then displays using the old style with hot
+% brt - brightness control:
+%            If NaN, then displays using the old style with hot
 %            metal for the blobs, and grey for the brain.
+%            Otherwise, it is used as a ``gamma correction'' to
+%            optionally brighten the blobs up a little.
 % rendfile - the file containing the images to render on to. See also
 %            spm_xbrain.m.
 %
@@ -58,9 +60,12 @@ if nargin<3,
 end;
 
 if nargin<2,
-	flg = 0;
+	brt = 1;
 	if num==1,
-		flg = spm_input('Style',1,'new|old',[0 1], 1);
+		brt = spm_input('Style',1,'new|old',[1 NaN], 1);
+	end;
+	if finite(brt),
+		brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
 	end;
 end;
 
@@ -136,7 +141,7 @@ for j=1:length(dat),
 		dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
 		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
-		if flg==1, msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
+		if ~finite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
 		else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end;
 
 		if ~isempty(msk),
@@ -144,17 +149,20 @@ for j=1:length(dat),
 			% generate an image of the integral of the blob values.
 			%-----------------------------------------------
 			xyz = xyz(:,msk);
-			if flg==1, t0  = t(msk);
+			if ~finite(brt), t0  = t(msk);
 			else,	dst = xyz(3,:) - z1(msk) - 5;
 				dst = max(dst,0);
 				t0  = t(msk).*exp(-dst/10)';
 			end;
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
-			hld = 1; if flg==1, hld = 0; end;
+			hld = 1; if ~finite(brt), hld = 0; end;
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
 		else,
 			X = zeros(size(rend{i}.dep));
 		end;
+
+		% Brighten the blobs
+		if finite(brt), X = X.^brt; end;
 
 		mx(j) = max([mx(j) max(max(X))]);
 		rend{i}.data{j} = X;
@@ -176,7 +184,7 @@ ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible
 image(0,'Parent',ax);
 set(ax,'YTick',[],'XTick',[]);
 
-if flg==1,
+if ~finite(brt),
 	% Old style split colourmap display.
 	%---------------------------------------------------------------
 	load Split;
