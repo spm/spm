@@ -17,7 +17,12 @@ function [hrf,p] = spm_hrf(RT,P);
 % hrf  - hemodynamic response function
 % p    - parameters of the response function
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% @(#)spm_hrf.m	2.5 Karl Friston 99/03/29
+
+% global parameter
+%-----------------------------------------------------------------------
+global fMRI_T; 
+if isempty(fMRI_T), fMRI_T = 16; end;
 
 % default parameters
 %-----------------------------------------------------------------------
@@ -28,8 +33,8 @@ end
 
 % modelled hemodynamic response function - {mixture of Gammas}
 %-----------------------------------------------------------------------
-dt    = RT/16;
+dt    = RT/fMRI_T;
 u     = [0:(p(7)/dt)] - p(6)/dt;
 hrf   = spm_Gpdf(u,p(1)/p(3),dt/p(3)) - spm_Gpdf(u,p(2)/p(4),dt/p(4))/p(5);
-hrf   = hrf([0:(p(7)/RT)]*16 + 1);
+hrf   = hrf([0:(p(7)/RT)]*fMRI_T + 1);
 hrf   = hrf'/sum(hrf);
