@@ -76,13 +76,13 @@ if (sum(xa)==2 & any(diff(as))), error('non-scalar args must match in size'), en
 c = zeros(sc);
 
 %-Non zero only where n & r are whole and 0<=r<=n
-q = find( n==floor(n)  &  r==floor(r)  &  n>=r  &  r>=0 );
-if isempty(q), return, end
-if xa(1), qn=q; else qn=1; end
-if xa(2), qr=q; else qr=1; end
+Q = find( n==floor(n)  &  r==floor(r)  &  n>=r  &  r>=0 );
+if isempty(Q), return, end
+if xa(1), Qn=Q; else Qn=1; end
+if xa(2), Qr=Q; else Qr=1; end
 
 %-Compute
-c(q) = round(exp(gammaln(n(qn)+1) -gammaln(r(qr)+1) - gammaln(n(qn)-r(qr)+1)));
+c(Q) = round(exp(gammaln(n(Qn)+1) -gammaln(r(Qr)+1) - gammaln(n(Qn)-r(Qr)+1)));
 
 %-Return
 %-----------------------------------------------------------------------
