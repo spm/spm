@@ -19,10 +19,13 @@ function spm_mip(X,L,V)
 % contours and grids defining the space of Talairach & Tournoux (1988)
 % A default colormap of 64 levels is assumed.
 %
+% If global XVIEWER is set to a PGM viewer program, images are also
+% displayed with that program.
+%
 %__________________________________________________________________________
 % %W% %E%
 
-global GRID
+global GRID XVIEWER TWD
 
 % default GRID value
 %---------------------------------------------------------------------------
@@ -59,3 +62,18 @@ spm_project(X,L,d,V);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
 
+%
+%
+%
+if ~isempty(XVIEWER) & isstr(XVIEWER)
+        if isempty(TWD); TWD = '/tmp'; end
+        % This should really be a subroutine...
+        t = clock;
+        TmpNm = sprintf('/%s/mip%02d%02d%02d%02d%02d.pgm',TWD, ...
+                                  floor(t(3:6)),floor(100*(t(6)-floor(t(6)))));
+        fid = fopen(TmpNm,'w');
+        fprintf(fid,'P5\n%d %d\n255\n',size(mip));
+        fwrite(fid,fliplr(mip*255),'uchar');
+        fclose(fid);
+        unix(['(' XVIEWER ' ' TmpNm ';\rm ' TmpNm ' ) &']);
+end
