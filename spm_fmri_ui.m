@@ -97,7 +97,7 @@ uicontrol(1,'Style','Text', 'Position',[100 165 200 20]*A,'String','results','Fo
 % objects with Callbacks - main spm_*_ui.m routines
 %----------------------------------------------------------------------------
 uicontrol(1,'String','Realign',         'Position',[040 370 080 30]*A,...
-	'CallBack','spm_fmri_realign_ui','Interruptible','yes');
+	'CallBack','spm_realign_ui','Interruptible','yes');
 
 uicontrol(1,'String','Normalize',       'Position',[150 370 100 30]*A,...
 	'CallBack','spm_mri_sn_ui',     'Interruptible','yes');
