@@ -374,7 +374,8 @@ static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
 	int i, j, k, vox[MAXV][3], nvox;
 	REAL Y0[4][3], Y[4][3], M[4][3], IM[4][3];
 
-	k = (x0 + x1 + x2)%2; /* Determine tetrahedral arrangement - may need to be k = (x0 + x1 + x2 + 1)%2; */
+	/* Determine tetrahedral arrangement */
+        k = (x0%2)==(x1%2)==(x2%2);
  
 	for(i=0; i<5; i++) /* Five tetrahedra within a cube */
 	{
