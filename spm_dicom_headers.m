@@ -311,7 +311,6 @@ if strcmp(fmt,'ieee-be'),
         fclose(fp);
         fp  = fopen(fname,perm,'ieee-le');
         fseek(fp,pos,'bof');
-        flg = 'b';
 end;
 
 c   = fread(fp,4,'char');
@@ -323,7 +322,7 @@ else,
 	t = decode_csa1(fp,lim);
 end;
 
-if strcmp(fmt,'ieee-le'),
+if strcmp(fmt,'ieee-be'),
 	fclose(fp);
 	fp  = fopen(fname,perm,fmt);
 end;
