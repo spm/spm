@@ -31,6 +31,12 @@ function [strout,R2] = spm_str_manip(strin,options)
 %       'p'              - canonicalise pathname (see spm_get('CPath',strin))
 % 	'c'		 - remove leading components common to all strings
 %                          returns leading component as a second output argument
+%	'C'              - returns single string compressed version of a
+%                          cellstr, such as '/data/pic{01,12,23}.img'.
+%                          Second argument is a structure with fields:
+%                            .s - start string (E.g. '/data/pic')
+%                            .m - middle bits cellstr (E.g.{'01','02','03'})
+%                            .e - end string (E.g. '.img')
 %	'd'		 - deblank - this is always done!
 %
 %_______________________________________________________________________
@@ -39,10 +45,11 @@ function [strout,R2] = spm_str_manip(strin,options)
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end
 
-sep = filesep;
+sep      = filesep;
 
-strout = cellstr(strin);
-R2     = '';
+strout   = cellstr(strin);
+bSStrOut = ischar(strin);
+R2       = '';
 
 while (~isempty(options))
 	o = 2;
@@ -64,7 +71,7 @@ while (~isempty(options))
 	end
 
 
-	%-Process option
+	%-Process option - string by string processing options
 	%---------------------------------------------------------------
 	for i=1:prod(size(strout))
 		str = deblank(strout{i});
@@ -157,7 +164,7 @@ while (~isempty(options))
 		case 'p'
 			str = spm_get('CPath',str);
 
-		case {'c','d'}
+		case {'c','C','d'}
 			%-Allow these options (implemented below)
 		otherwise
 			warning(['ignoring unrecognised option: ',options(1)])
@@ -167,6 +174,8 @@ while (~isempty(options))
 		strout{i} = str;
 	end
 		
+	%-Process option - all strings options
+	%---------------------------------------------------------------
 	if options(1)=='c'	% Remove common path components
 		if length(strout)>1
 			tmp    = size(strout);
@@ -177,6 +186,35 @@ while (~isempty(options))
 			R2     = strout(1,1:d1);
 			strout = reshape(cellstr(strout(:,d1+1:end)),tmp);
 		end
+	
+	elseif options(1)=='C'	%-Common path components
+		if length(strout)>1
+			tmp  = size(strout);
+			str  = char(strout);
+			msk  = diff(str+0)~=0;
+			d1   = min(find(sum(msk,1)));
+			if isempty(d1)
+				R2.s = str(1,:);
+				R2.e = '';
+				R2.m = cell(tmp);
+				[R2.m{:}] = deal('');
+			else
+				R2.s = str(1,1:d1-1);
+				str  = cellstr(str(:,d1:end));
+				for i=1:length(str), str{i}=fliplr(str{i}); end
+				str  = char(str);
+				msk  = diff(str+0)~=0;
+				d1   = max([1,min(find(sum(msk,1)))]);
+				R2.e = fliplr(str(1,1:d1-1));
+				str  = cellstr(str(:,d1:end));
+				for i=1:length(str), str{i}=fliplr(str{i}); end
+				R2.m = reshape(str,tmp);
+			end
+			strout = {[	sprintf('%s{%s',R2.s,R2.m{1}),...
+					sprintf(',%s',R2.m{2:end}),...
+					sprintf('}%s',R2.e)]};
+		end
+		bSStrOut = 1;
 
 	elseif options(1)=='d'	% Deblanking is always done by cellstr above
 		% strout = deblank(strout);
@@ -186,4 +224,4 @@ while (~isempty(options))
 
 end
 
-if ischar(strin), strout=char(strout); end
+if bSStrOut, strout=char(strout); end
