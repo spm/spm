@@ -297,6 +297,7 @@ end;
 % as two seperate statements in Matlab 6.5...
 %-----------------------------------------------------------------------
 Tr = reshape(T(1:s1),[k 3]);
+drawnow;
 Tr = Tr*stabilise.^3;
 return;
 
