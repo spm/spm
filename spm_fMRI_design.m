@@ -120,7 +120,10 @@ function [SPM] = spm_fMRI_design(SPM)
 % terms of the corresponding second order Volterra Kernels.
 %
 % The design matrix is assembled on a much finer time scale (xBF.dt) than the 
-% TR and is then subsampled at the acquisition times.
+% TR and is then sub-sampled at the acquisition times.  After down-sampling
+% the regressors for each input are othogonalised.  This ensures that 
+% components due to the canonical hrf are not explained away by other basis
+% functions or parametric modulators.
 %
 % Sess(s).ons(u) contains onset times in seconds or scans relative to the
 % timing of the first scan 
@@ -273,6 +276,12 @@ for s = 1:length(SPM.nscan)
 		%-------------------------------------------------------
 		try
 			X = X([0:(k - 1)]*fMRI_T + fMRI_T0 + 32,:);
+		end
+
+		% and orthonalise (within trial type)
+		%-------------------------------------------------------
+        for i = 1:length(Fc)
+			X(:,Fc(i).i) = spm_orth(X(:,Fc(i).i));
 		end
 
 
