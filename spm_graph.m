@@ -390,6 +390,7 @@ case 'Event-related responses'
 		iX0         = [1:size(SPM.xX.X,2)];
 		iX0(iX)     = [];
 		X           = [X SPM.xX.X(jX,iX0)];
+		X           = SPM.xX.W(jX,jX)*X;
 		X           = spm_filter(SPM.xX.K(s),X);
 
 		% Re-estimate to get PSTH and CI
