@@ -160,7 +160,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     Fc        - as input
 %     UFp       - critical p-value for F-thresholding
 %     UF        - F-threshold value
-%     S         - Lebegue measure or volume (in voxels)
+%     S         - Lebesgue measure or volume (in voxels)
 %     R         - vector of resel counts    (in resels)
 %     Lambda    - Variance-covariance matrix of partial derivatives of
 %                 standardised residuals.
@@ -197,8 +197,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %
 %                           ----------------
 %
-%-----------------------------------------------------------------------
-% Yidx.mat                - containing 1xn vector Yidx of column indices
+% Yidx.mat [optional]     - containing 1xn vector Yidx of column indices
 % If raw data is being written out in compressed pointlist format to a
 % Y.mad file (i.e. UFp>0), then Yidx.mat contains Yidx, a 1xn matrix of
 % column indices. XYZ(:,Yidx) are then the voxel coordinates of the
@@ -206,7 +205,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %
 %                           ----------------
 %
-% Y.mad                               - compressed pointlist of raw data
+% Y.mad [optional]                    - compressed pointlist of raw data
 % The Y.mad file contains the raw (unsmoothed) data at voxels with an
 % F-statistic significant at UFp. Essentially, columns contain the data
 % at a single voxel, rows correspond to the input images (VY). The
