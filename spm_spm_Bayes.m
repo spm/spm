@@ -148,13 +148,13 @@ for i = 1:nHp
 end
 VHp   = spm_create_vol(VHp,'noopen');
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 
 
 %=======================================================================
 % - E M P I R I C A L  B A Y E S  F O R  P R I O R  V A R I A N C E
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...estimatng priors')   %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimatng priors')   %-#
 
 % get row u{i} and column v{i}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
@@ -362,11 +362,11 @@ end
 
 %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
 Vbeta      = spm_close_vol(Vbeta);
 VHp        = spm_close_vol(VHp);
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 
 %-Save remaining results files and analysis parameters
@@ -381,7 +381,7 @@ SPM.PPM    = PPM;			% PPM structure
 
 save SPM SPM
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 
 %=======================================================================

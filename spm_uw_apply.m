@@ -178,7 +178,7 @@ end
 
 hold = [repmat(flags.interp,1,3) flags.wrap];
 
-linfun = inline('fprintf(''%-60s%s'', x,sprintf(''\b'')*ones(1,60))');
+linfun = inline('fprintf(''%-60s%s'', x,repmat(sprintf(''\b''),1,60))');
 
 %
 % Create empty sfield for all structs.

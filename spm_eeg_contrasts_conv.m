@@ -59,14 +59,14 @@ switch(xCon(Ic).STAT)
         
         %-Write image
         %-----------------------------------------------------------
-        fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
+        fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
         xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
         xCon(Ic).Vcon.pinfo(1,1) = spm_add(V, xCon(Ic).Vcon);
         xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
         xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon, 'noopen');
         xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
         
-        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
             '...written %s',spm_str_manip(xCon(Ic).Vcon.fname, 't')))%-#
         
         % multi-dimensional contrast, ESS
@@ -90,7 +90,7 @@ switch(xCon(Ic).STAT)
         
         %-Write image
         %-----------------------------------------------------------
-        fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
+        fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
         xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
         xCon(Ic).Vcon = spm_resss(SPM.Vbeta,xCon(Ic).Vcon,h);
         xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);

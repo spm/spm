@@ -124,7 +124,7 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %                           ----------------
 %
-% @(#)spm_spm_vb.m	1.1 Will Penny 04/08/04
+% %W% Will Penny %E%
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
@@ -321,7 +321,7 @@ for i = 1:SPM.PPM.AR_P
 end
 VAR   = spm_create_vol(VAR,'noopen');
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised');        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
 
 % Set up masking details
 %-If xM is not a structure then assumme its a vector of thresholds
@@ -469,7 +469,7 @@ for  z = 1:zdim,
         
         %-Get data & construct analysis mask
         %===============================================================
-        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...read & mask data')%-#
         Cm    = logical(ones(1,nVox));			%-current mask
         
         %-Compute explicit mask
@@ -636,14 +636,14 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 
  %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
 Vbeta      = spm_close_vol(Vbeta);
 VHp        = spm_close_vol(VHp);
 VPsd        = spm_close_vol(VPsd);
 VAR        = spm_close_vol(VAR);
 VM         = spm_close_vol(VM);
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 %-Create 1st contrast for 'effects of interest' (all if not specified)
 %=======================================================================
@@ -697,7 +697,7 @@ SPM.xCon   = xCon;				%-contrast structure
 
 save SPM SPM
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 
 if SPM.PPM.window

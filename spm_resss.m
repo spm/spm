@@ -102,7 +102,7 @@ for j=1:ni, im(j)=~spm_type(Vi(j).dim(4),'NaNrep'); end	%-Images without NaNrep
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
-	fprintf('%s%16s',sprintf('\b')*ones(1,16),...
+	fprintf('%s%16s',repmat(sprintf('\b'),1,16),...
 		sprintf('...plane %3d/%-3d',p,Vo.dim(3)))       %-#
 
 	M = spm_matrix([0 0 p]);			%-Sampling matrix
@@ -121,5 +121,5 @@ end
 
 %-End
 %-----------------------------------------------------------------------
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),...
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
 	sprintf('...written %s',spm_str_manip(Vo.fname,'t')))        %-#

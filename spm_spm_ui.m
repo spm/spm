@@ -1294,10 +1294,10 @@ case 'cfg'
         fprintf('%-40s: %30s','Calculating globals',' ')             %-#
         for i = 1:nScan
             str = sprintf('%3d/%-3d',i,nScan);
-            fprintf('%s%30s',sprintf('\b')*ones(1,30),str)%-#
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),str)%-#
             g(i) = spm_global(VY(i));
         end
-        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')       %-#
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')       %-#
     otherwise
         error('illegal iGXcalc')
     end
