@@ -1,10 +1,4 @@
 function spm_segment(VF,PG,flags)
-
-%VF   = '/home/john/data/T1_ICBM_normal_1mm_pn3_rf100.mnc';
-%PG   = eye(4);
-%global defaults
-%flags = defaults.segment;
-
 % Segment an MR image into Gray, White & CSF.
 %
 % FORMAT spm_segment(PF,PG,flags)
