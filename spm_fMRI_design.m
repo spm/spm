@@ -125,8 +125,8 @@ function [xX,Sess] = spm_fMRI_design(nscan,RT)
 % are computed for only the first column of SF.
 %
 %_______________________________________________________________________
-% @(#)spm_fMRI_design.m	2.18 Karl Friston 99/08/13
-SCCSid  = '2.18';
+% @(#)spm_fMRI_design.m	2.20 Karl Friston 99/08/20
+SCCSid  = '2.20';
 
 global batch_mat;
 global iA;
@@ -156,7 +156,7 @@ if isempty(fMRI_T0), fMRI_T0 = 1;  end;
 % get nscan and RT if no arguments
 %-----------------------------------------------------------------------
 if nargin < 2
-	spm_input('Basic parameters...',1,'d',mfilename)
+	spm_input('Basic parameters...',1,'d',mfilename,'batch',batch_mat)
 	RT = spm_input('Interscan interval {secs}','+1','r',[],1,...
                          'batch',batch_mat,{'model',iA},'RT');
 end
@@ -174,13 +174,13 @@ dt     = RT/fMRI_T;					% time bin {secs}
 rep = 0;
 tim = 0;
 if nsess > 1
-	str = 'are conditions replicated exactly';
+	str = 'are conditions replicated';
 	rep = spm_input(str,'+1','yes|no',[1 0],...
-                         'batch',batch_mat,{'model',iA},'replicated');
+     'batch',batch_mat,{'model',iA},'replicated');
 	if rep & ~any(nscan - nscan(1))
-		str = 'are timing/paramters the same';
+		str = ['are timing/parameters the same'];
 		tim = spm_input(str,'+1','yes|no',[1 0],...
-                               'batch',batch_mat,{'model',iA},'replicated');
+      'batch',batch_mat,{'model',iA},'same_time_param');
 	end
 end
 Xx    = [];
@@ -190,23 +190,12 @@ Bname = {};
 Sess  = {};
 for s = 1:nsess
 
+	% set prompt string
+	%---------------------------------------------------------------
 	if tim
 		Fstr = 'All sessions';
 	else
 		Fstr = sprintf('Session %d/%d',s,nsess);
-	end
-
-	% initialize variables for first session
-	%---------------------------------------------------------------
-        if   (s == 1)
-		X       = [];			% design matrix
-		B       = [];			% block partition
-		D       = [];			% covariates
-		PST     = {};			% Peri-stimulus times
-		ONS     = {};			% onset times
-		IND     = {};			% design matrix indices
-		name    = {};			% condition names
-		Xn      = {};			% regressor names
 	end
 
 	% Event/epoch related responses			
@@ -217,13 +206,14 @@ for s = 1:nsess
 	%---------------------------------------------------------------
 	if (s == 1) | ~rep
 
-		[SF,Cname,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC,Fstr,[],[],s);
-		ntrial     = size(SF,2);
+		[SF,Cname,Pv,Pname,DSstr] = ...
+			spm_get_ons(k,fMRI_T,dt,STOC,Fstr,[],[],s);
+		ntrial = size(SF,2);
 
 	elseif ~tim
 
 		[SF,Cname,Pv,Pname,DSstr] = ...
-				spm_get_ons(k,fMRI_T,dt,STOC,Fstr,ntrial,Cname,s);
+			spm_get_ons(k,fMRI_T,dt,STOC,Fstr,ntrial,Cname,s);
 	end
 
 	% get basis functions for this session
@@ -235,6 +225,9 @@ for s = 1:nsess
 		[BF BFstr] = spm_get_bf(Cname,fMRI_T,dt,Fstr,s);
 	end
 
+
+
+
 	% complete design matrix partition for this session
 	%---------------------------------------------------------------
         if (s == 1) | ~tim
@@ -243,38 +236,50 @@ for s = 1:nsess
 		%-Reset ContextHelp
 		%-------------------------------------------------------
 		spm_help('!ContextHelp',mfilename)
+		spm_input('Design matrix options...',1,'d',mfilename,...
+      'batch',batch_mat)
 
+		if ~ntrial
 
-		% peri-stimulus {PST} and onset {ONS} times in seconds
-		%-------------------------------------------------------
-		for   i = 1:ntrial
-			on     = find(SF{i}(:,1))*dt;
-			pst    = [1:k]*RT - on(1);			
-			for  j = 1:length(on)
-				u      = [1:k]*RT - on(j);
-				v      = find(u >= -1);
-				pst(v) = u(v);
+			% declare variables
+			%-----------------------------------------------
+			ONS     = {};		% onset times
+			PST     = {};		% Peri-stimulus times
+			X       = [];		% design matrix
+			Xn      = {};		% regressor names
+			IND     = {};		% design matrix indices
+			name    = {};		% condition names
+
+		else
+
+			% peri-stimulus {PST} and onset {ONS} (seconds)
+			%-----------------------------------------------
+			for   i = 1:ntrial
+				on     = find(SF{i}(:,1))*dt;
+				pst    = [1:k]*RT - on(1);			
+				for  j = 1:length(on)
+					u      = [1:k]*RT - on(j);
+					v      = find(u >= -1);
+					pst(v) = u(v);
+				end
+				ONS{i} = on;
+				PST{i} = pst;
 			end
-			ONS{i} = on;
-			PST{i} = pst;
-		end
 
-		spm_input('Additional design matrix options...',1,'d',mfilename,...
-   			    'batch',batch_mat)
 
-		% convolve with basis functions
-		%-------------------------------------------------------
-		if ntrial
-
+			% convolve with basis functions
+			%-----------------------------------------------
 			str   = 'interactions among trials (Volterra)';
-      			if spm_input(str,'+1','y/n',[1 0],...
-      			      'batch',batch_mat,{'model',iA,'conditions',s},'volterra')
+			if spm_input(str,'+1','y/n',[1 0],... 
+     		'batch',batch_mat,{'model',iA,'conditions',s},'volterra')
 
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,2);
+
 			else
 
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,1);
 			end
+
 
 			% Resample design matrix {X} at acquisition times
 			%-----------------------------------------------
@@ -282,16 +287,16 @@ for s = 1:nsess
 		end
 
 
-
 		% get user specified regressors
 		%=======================================================
+		spm_input('Other regressors',1,'d',Fstr,'batch,'batch_mat)
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0,...
-    			   'batch',batch_mat,{'model',iA,'regressors',s},'number');
-		while size(D,2) < c
+    	  'batch',batch_mat,{'model',iA,'regressors',s},'number');
+	while size(D,2) < c
 			str   = sprintf('regressor %i',size(D,2) + 1);
-			D     = [D spm_input(str,2,'e',[],[k Inf],...
-      				'batch',batch_mat,{'model',iA,'regressors',s},'values')];
+		   D = [D spm_input(str,2,'e',[],[k Inf],...
+      	'batch',batch_mat,{'model',iA,'regressors',s},'values')];
 		end
 		if      c & length(DSstr)
 			DSstr = [DSstr '& user specified covariates '];
@@ -305,9 +310,10 @@ for s = 1:nsess
 			X           = [X D(:,i)];
 			str         = sprintf('regressor: %i',i);
 			Xn{end + 1} = spm_input(['name of ' str],'+0','s',str,...
-		      				'batch',batch_mat,...
-						{'model',iA,'regressors',s},'names',i);
+		     'batch',batch_mat,{'model',iA,'regressors',s},'names',i);
 		end
+
+
 
 		% Confounds: Session effects 
 		%=======================================================
@@ -320,7 +326,7 @@ for s = 1:nsess
 	%---------------------------------------------------------------
 	Sess{s}.BFstr = BFstr;
 	Sess{s}.DSstr = DSstr;
-	Sess{s}.rep   = rep;
+	Sess{s}.rep   = tim;
 	Sess{s}.row   = size(Xx,1) + [1:k];
 	Sess{s}.col   = size(Xx,2) + [1:size(X,2)];
 	Sess{s}.name  = name;
@@ -351,6 +357,7 @@ for s = 1:nsess
 	[x y]   = size(Xb);
 	[i j]   = size(B);
 	Xb(([1:i] + x),([1:j] + y)) = B;
+
 end
 
 % finished
@@ -371,3 +378,4 @@ fprintf('\t%-32s: ','Saving fMRI design')                            %-#
 save SPM_fMRIDesMtx SPMid xX Sess
 fprintf('%30s\n\n','...SPM_fMRIDesMtx.mat saved')                    %-#
 spm_input('!DeleteInputObj')
+

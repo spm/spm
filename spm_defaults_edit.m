@@ -47,7 +47,8 @@ function spm_defaults_edit(arg1,arg2)
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
 %_______________________________________________________________________
-% @(#)spm_defaults_edit.m	2.6 John Ashburner 99/05/18
+% @(#)spm_defaults_edit.m	2.9 John Ashburner 99/07/30
+SCCSid = '2.9';
 
 global batch_mat iA;
 
@@ -109,8 +110,7 @@ elseif strcmp(arg1, 'Misc')
       			'batch',batch_mat,{arg1,iA},'log_to_file')
 		LOGFILE = ...
 			deblank(spm_input('Logfile Name:',2,'s', LOGFILE,...
-         			'batch',batch_mat,...
-				{arg1,iA},'log_file_name'));
+         'batch',batch_mat,{arg1,iA},'log_file_name'));
 	else
 		LOGFILE = '';
 	end
@@ -121,8 +121,7 @@ elseif strcmp(arg1, 'Misc')
 		{	'always use GUI',...
 			'always use CmdLine',...
 			'GUI for files, CmdLine for input'},...
-		[0,1,-1],def,...
-      		'batch',batch_mat,{arg1,iA},'cmdline');
+		[0,1,-1],def,'batch',batch_mat,{arg1,iA},'cmdline');
 
 	GRID = spm_input('Grid value (0-1):', 4*c, 'e', GRID,...
       			   'batch',batch_mat,{arg1,iA},'grid');
@@ -141,7 +140,7 @@ elseif strcmp(arg1, 'Printing')
 	if (a0 == 1)
 		fname = date; fname(find(fname=='-')) = []; fname = ['spmfig_' fname];
 		fname = spm_str_manip(spm_input('Postscript filename:',3,'s',fname,...
-         				'batch',batch_mat,{arg1,iA},'postscript_filename'),'rtd');
+         'batch',batch_mat,{arg1,iA},'postscript_filename'),'rtd');
 
 		a1    = spm_input('Postscript Type?', 4, 'm', [...
 			'PostScript for black and white printers|'...
@@ -156,7 +155,7 @@ elseif strcmp(arg1, 'Printing')
 			'Encapsulated Colour         with TIFF preview|'...
 			'Encapsulated Level 2        with TIFF preview|'...
 			'Encapsulated Level 2 Colour with TIFF preview|'],...
-         			'batch',batch_mat,{arg1,iA},'postscript_type');
+         'batch',batch_mat,{arg1,iA},'postscript_type');
 
 		prstr1 = str2mat(...
 			['print(''-noui'',''-painters'',''-dps'' ,''-append'',''' fname '.ps'');'],...
@@ -186,7 +185,7 @@ elseif strcmp(arg1, 'Printing')
 		if (spm_input('Default Printer?', 3, 'y/n', ...
      			'batch',batch_mat,{arg1,iA},'default_printer') == 'n')
 			printer = spm_input('Printer Name:',3,'s',...
-         				'batch',batch_mat,{arg1,iA},'postscript_type')
+         'batch',batch_mat,{arg1,iA},'printer_name')
 			printer = [' -P' printer];
 		end
 		a1 = spm_input('Postscript Type:',4,'b','B & W|Colour', ...
@@ -195,7 +194,7 @@ elseif strcmp(arg1, 'Printing')
 		PRINTSTR = ['print -noui -painters ' a1 printer];
 	elseif (a0 == 3)
 		fname = date; fname(find(fname=='-')) = []; fname = ['spmfig_' fname];
-		fname = spm_str_manip(spm_input('Graphics filename:',3,'s', fname),'rtd','batch',batch_mat,{arg1,iA},'graphics_filename');
+		fname = spm_str_manip(spm_input('Graphics filename:',3,'s', fname,'batch',batch_mat,{arg1,iA},'graphics_filename'),'rtd');
 		a1    = spm_input('Graphics Type?', 4, 'm', [...
 			'HPGL compatible with Hewlett-Packard 7475A plotter|'...
 			'Adobe Illustrator 88 compatible illustration file|'...
@@ -305,10 +304,10 @@ elseif strcmp(arg1, 'Reset')
 	if exist('spm_defaults')==2
 		spm_defaults;
 	end
-   	if isempty(batch_mat)	
-      		spm('chmod',MODALITY);
-   	else
-      		spm('defaults',MODALITY);
-   	end
+   if isempty(batch_mat)	
+      	spm('chmod',MODALITY);
+   else
+      	spm('defaults',MODALITY);
+   end
 end
 
