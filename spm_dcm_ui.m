@@ -4,6 +4,7 @@ function [DCM] = spm_dcm_ui(Action)
 % FORMAT [DCM] = spm_dcm_ui('estimate');
 % FORMAT [DCM] = spm_dcm_ui('review');
 % FORMAT [DCM] = spm_dcm_ui('compare');
+% FORMAT [DCM] = spm_dcm_ui('average');
 %
 % Specify a new model
 % Estimate a specified model
@@ -82,8 +83,14 @@ WS     = spm('WinScale');
 %---------------------------------------------------------------------------
 if ~nargin
 	str    = 'Action: ';
-	Action = spm_input(str,1,'b',{'specify','estimate','review','compare'});
+	%Action = spm_input(str,1,'b',{'specify','estimate','review','compare'});
+    
+    % Use pull-down menu
+    Actions={'specify','estimate','review','compare','average','quit'};
+    selected = spm_input(str,1,'m',Actions);
+    Action=Actions{selected};
 end
+
 
 switch Action
 
@@ -814,5 +821,21 @@ case 'compare',
     
     spm_input('Model comparison details in MATLAB command window',1,'d');
     spm_input('Thank you',3,'d');
+    return
+    
+case 'average',
+    
+    spm_dcm_average;
+    spm_clf
+    spm('FigName',header);
+    spm('Pointer','Arrow')
+    spm_input('Thank you',1,'d')
+    return
+    
+case 'quit',
+    spm_clf
+    spm('FigName',header);
+    spm('Pointer','Arrow')
+    spm_input('Thank you',1,'d')
     return
 end
