@@ -13,7 +13,7 @@ function Dout = spm_eeg_merge(S);
 try
     D = S.D;
 catch
-    D = spm_get([2 inf], '.mat', 'Select EEG mat files');
+    D = spm_select([2 inf], '\.mat$', 'Select EEG mat files');
 end
 
 P = spm_str_manip(D(1,:), 'H');

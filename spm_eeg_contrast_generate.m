@@ -29,7 +29,7 @@ function [c, comp] = spm_eeg_contrast_generate(SPM, comp)
 try
     SPM;
 catch
-    SPM = spm_get(1, 'SPM.mat', 'Select SPM.mat');
+    SPM = spm_select(1, '^SPM\.mat$', 'Select SPM.mat');
     load SPM;
 end
 

@@ -1767,8 +1767,13 @@ while(1),
         workaround(help_box);
 
         if isfield(c,'prog'),
-            [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
-            spm('FigName',[c.name ': setup'],Finter,CmdLine);
+            try,
+                set(help_box,'HandleVisibility','off');
+                [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
+                spm('FigName',[c.name ': setup'],Finter,CmdLine);
+            catch
+            end;
+            set(help_box,'HandleVisibility','on');
         end;
     end;
 

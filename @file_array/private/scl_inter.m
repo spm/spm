@@ -27,9 +27,10 @@ dat = obj.scl_inter;
 return;
 
 function obj = asgn(obj,dat)
-if isnumeric(dat) && numel(dat)<=1,
+if isnumeric(dat), % && numel(dat)<=1,
     obj.scl_inter = double(dat);
 else
-    error('"scl_inter" must be a scalar or empty.');
+    error('"scl_inter" must be numeric.');
 end;
 return;
+

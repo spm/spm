@@ -76,7 +76,7 @@ if length(varargin) == 0
         h = findobj('Tag','ConMan');
         SPM = get(h, 'UserData');
     catch
-        P = spm_get(1,'SPM.mat','Select SPM.mat');
+        P = spm_select(1,'^SPM\.mat$','Select SPM.mat');
         load(P);
     end
 else

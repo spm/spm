@@ -44,6 +44,9 @@ if length(subs.subs) < length(dm),
     if numel(sobj) ~= 1,
         error('Can only reshape simple file_array objects.');
     end;
+    if numel(sobj.scl_slope)>1 || numel(sobj.scl_inter)>1,
+        error('Can not reshape file_array objects with multiple slopes and intercepts.');
+    end;
 end;
 
 do   = ones(1,16);
@@ -89,23 +92,35 @@ return
 
 function sobj = subfun(sobj,dat,varargin)
 va = varargin;
-if ~isempty(sobj.scl_slope) || ~isempty(sobj.scl_inter),
-    slope = 1;
-    inter = 0;
-    if ~isempty(sobj.scl_slope), slope = sobj.scl_slope; end;
-    if ~isempty(sobj.scl_inter), inter = sobj.scl_inter; end;
-    dat = (dat - inter)/slope;
+
+if ~isempty(sobj.scl_inter),
+    inter = sobj.scl_inter;
+    if numel(inter)>1,
+        inter = resize_scales(inter,sobj.dim,varargin);
+    end;
+    dat = double(dat) - inter;
 end;
+
+if ~isempty(sobj.scl_slope),
+    slope = sobj.scl_slope;
+    if numel(slope)>1,
+        slope = resize_scales(slope,sobj.dim,varargin);
+        dat   = double(dat)./slope;
+    else
+        dat   = double(dat)/slope;
+    end;
+end;
+
 dt  = datatypes;
 ind = find(cat(1,dt.code)==sobj.dtype);
 if isempty(ind) error('Unknown datatype'); end;
-dat = feval(dt(ind).conv,dat);
+dat   = feval(dt(ind).conv,dat);
 nelem = dt(ind).nelem;
 if nelem==1,
     mat2file(sobj,dat,va{:});
 elseif nelem==2,
-    sobj1     = sobj;
-    sobj1.dim = [2 sobj.dim];
+    sobj1       = sobj;
+    sobj1.dim   = [2 sobj.dim];
     sobj1.dtype = dt(find(strcmp(dt(ind).prec,{dt.prec}) & (cat(2,dt.nelem)==1))).code;
     dat         = reshape(dat,[1 size(dat)]);
     dat         = [real(dat) ; imag(dat)];

@@ -33,7 +33,7 @@ if ~nargin
 	else
 		% get design
 		%-------------------------------------------------------
-		load(spm_get(1,'SPM.mat','Select SPM.mat'));
+		load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 	end
 else
 	% get design matrix
@@ -62,8 +62,8 @@ catch
         Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
         
         % Problem, spm_get doesn't know about 4D-images
-        % q = spm_get(Nimages, '.img', str);
-        q = spm_get(inf, '.img', str);
+        % q = spm_select(Nimages, 'image', str);
+        q = spm_select(inf, 'image', str);
 		P = strvcat(P, q);
 	end
 

@@ -24,13 +24,13 @@ function D = spm_eeg_rdata_bdf(S)
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_get(1, '.bdf', 'Select bdf-file');
+	Fdata = spm_select(1, '\.bdf$', 'Select bdf-file');
 end
 
 try
     Fchannels = S.Fchannels;
 catch
-    Fchannels = spm_get(1, '.mat', 'Select channel template file', fullfile(spm('dir'), 'EEGtemplates'));
+    Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 
 D.channels.ctf = spm_str_manip(Fchannels, 't');

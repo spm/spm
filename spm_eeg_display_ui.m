@@ -26,7 +26,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     try
         D = S.D;
     catch
-        D = spm_get(1, '.mat', 'Select EEG mat file');
+        D = spm_select(1, '\.mat$', 'Select EEG mat file');
         try
             D = spm_eeg_ldata(D);
         catch

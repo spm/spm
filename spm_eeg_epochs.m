@@ -36,7 +36,7 @@ function D = spm_eeg_epochs(S)
 try
     D = S.D;
 catch
-    D = spm_get(1, '.mat', 'Select EEG mat file');
+    D = spm_select(1, '\.mat$', 'Select EEG mat file');
 end
 
 P = spm_str_manip(D, 'H');

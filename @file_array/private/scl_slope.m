@@ -27,9 +27,9 @@ dat = obj.scl_slope;
 return;
 
 function obj = asgn(obj,dat)
-if isnumeric(dat) && numel(dat)<=1,
+if isnumeric(dat), % && numel(dat)<=1,
     obj.scl_slope = double(dat);
 else
-    error('"scl_slope" must be a scalar or empty.');
+    error('"scl_slope" must be numeric.');
 end;
 return;

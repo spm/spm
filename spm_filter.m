@@ -85,7 +85,7 @@ else
 
 	% return filtered data
 	%-------------------------------------------------------------------
-	if any(~finite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
+	%if any(~finite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
 	argout = Y;
 end
 

@@ -28,7 +28,7 @@ function Do = spm_eeg_grandmean(S)
 try
     P = S.P;
 catch
-    P = spm_get(inf, '.mat', 'Select EEG mat files');
+    P = spm_select(inf, '\.mat$', 'Select EEG mat files');
 end
 
 clear D

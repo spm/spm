@@ -18,7 +18,7 @@ function D = spm_eeg_ldata(P)
 try
     P;
 catch
-    P = spm_get(1, '.mat', 'Select EEG mat file');
+    P = spm_select(1, '\.mat$', 'Select EEG mat file');
 end
 
 Ppath = spm_str_manip(P, 'H');

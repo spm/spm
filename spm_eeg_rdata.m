@@ -21,13 +21,13 @@ function D = spm_eeg_rdata(S)
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_get(1, '.cnt', 'Select cont. neuroscan-file');
+	Fdata = spm_select(1, '\.cnt$', 'Select cont. neuroscan-file');
 end
 
 try
     Fchannels = S.Fchannels;
 catch
-    Fchannels = spm_get(1, '.mat', 'Select channel template file', fullfile(spm('dir'), 'EEGtemplates'));
+    Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 
 % % There doesn't seem to be information in the CNT-file which channel(s) is the reference

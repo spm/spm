@@ -40,7 +40,7 @@ if Ilevel ~= 1
     try
         SPM.eeg.subordinate;
     catch
-        SPM.eeg.subordinate = spm_get(1, 'SPM.mat', 'Select SPM.mat of subordinate level');
+        SPM.eeg.subordinate = spm_select(1, '^SPM\.mat$', 'Select SPM.mat of subordinate level');
     end
     
     S = load(SPM.eeg.subordinate);

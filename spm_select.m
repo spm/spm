@@ -1,6 +1,6 @@
 function [t,sts] = spm_select(varargin)
 % File selector
-% FORMAT [t,sts] = spm_select(n,typ,mesg,sel)
+% FORMAT [t,sts] = spm_select(n,typ,mesg,sel,wd)
 %     n    - Number of files
 %            A single value or a range.  e.g.
 %            1       - Select one file
@@ -21,6 +21,7 @@ function [t,sts] = spm_select(varargin)
 %           that e.g. DCM*.mat files should have a typ of '^DCM.*\.mat$'
 %      mesg - a prompt (default 'Select files...')
 %      sel  - list of already selected files
+%      wd   - Directory to start off in
 %
 %      t    - selected files
 %      sts  - status (1 means OK, 0 means window quit)
@@ -62,7 +63,8 @@ return;
 %=======================================================================
 
 %=======================================================================
-function [t,ok] = selector(n,typ,mesg,already,varargin)
+function [t,ok] = selector(n,typ,mesg,already,wd,varargin)
+if nargin<5, wd   = pwd; end;
 if nargin<4, already = {''}; end;
 if nargin<3, mesg = 'Select files...'; end;
 if nargin<2, typ  = 'any'; end;
@@ -98,7 +100,6 @@ fg = figure('IntegerHandle','off',...
         'KeyPressFcn',@hitkey);
 
 fh = 0.05;
-wd = pwd;
 fs = 10;
 
 h1 = (0.96-4*fh-5*0.01)/2;
@@ -317,7 +318,7 @@ uicontrol(fg,...
     'String','Dir');
 
 resize_fun(fg);
-update(sel,pwd)
+update(sel,wd)
 
 waitfor(dne);
 if ishandle(sel),

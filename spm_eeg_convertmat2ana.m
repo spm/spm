@@ -28,7 +28,7 @@ function spm_eeg_convertmat2ana(S)
 try
     Fname = S.Fname;
 catch
-    Fname = spm_get(inf, '.mat', 'Select EEG mat file');
+    Fname = spm_select(inf, '\.mat$', 'Select EEG mat file');
 end
 
 Nsub = size(Fname, 1);

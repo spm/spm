@@ -18,7 +18,7 @@ function D = spm_eeg_rdata_dat(S)
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_get(1, '.dat', 'Select dat neuroscan-file');
+	Fdata = spm_select(1, '\.dat$', 'Select dat neuroscan-file');
 end
 
 % Read dat-file into cell vector of strings

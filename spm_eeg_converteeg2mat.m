@@ -52,20 +52,20 @@ try
 catch
     switch fmt
         case {'CNT'}
-            str = '.cnt';
+            str = '\.cnt$';
         case {'BDF'}
-            str = '.bdf';
+            str = '\.bdf$';
         otherwise
             error(sprintf('Unknown format: %s', fmt));
     end
-    Mname = spm_get(inf, str, sprintf('Select %s-files', str));
+    Mname = spm_select(inf, str, sprintf('Select %s-files', str));
 end
 
 % which channel template file
 try
     Fchannels = S.Fchannels;
 catch
-    Fchannels = spm_get(1, '.mat', 'Select channel template file', fullfile(spm('dir'), 'EEGtemplates'));
+    Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 
 Nfiles = size(Mname, 1);

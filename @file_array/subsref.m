@@ -37,6 +37,9 @@ if length(subs.subs) < length(dim),
     if numel(sobj) ~= 1,
         error('Can only reshape simple file_array objects.');
     else
+        if numel(sobj.scl_slope)>1 || numel(sobj.scl_inter)>1,
+            error('Can not reshape file_array objects with multiple slopes and intercepts.');
+        end;
         sobj.dim = dim;
     end;
 end;
@@ -79,7 +82,16 @@ if ~isempty(sobj.scl_slope) || ~isempty(sobj.scl_inter)
     inter = 0;
     if ~isempty(sobj.scl_slope), slope = sobj.scl_slope; end;
     if ~isempty(sobj.scl_inter), inter = sobj.scl_inter; end;
-    t = double(t)*slope + inter;
+    if numel(slope)>1,
+        slope = resize_scales(slope,sobj.dim,varargin);
+        t     = double(t).*slope;
+    else
+        t     = double(t)*slope;
+    end;
+    if numel(inter)>1,
+        inter = resize_scales(inter,sobj.dim,varargin);
+    end;
+    t = t + inter;
 end;
 return;
 
