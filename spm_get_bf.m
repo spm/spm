@@ -222,7 +222,7 @@ switch Rov
 	for i = 1:n
 
 		str   = ['epoch length {scans} for ' name{i}];
-		W     = spm_input(str,'+1','r','batch',...
+		W     = spm_input(str,'+1','r','',1,'batch',...
  	                        {'conditions',n_s,'bf_ep',n_c},'length');
 		pst   = [1:W*T]' - 1;
 		pst   = pst/max(pst);
