@@ -26,26 +26,8 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 %   those slices were acquired.
 %
 %   To check the order of slices within an image file, use the SPM Display
-%   option to view the image, and select "Voxel Space" rather than "World Space".
-%   Then the bottom slice in the (eg saggital) display window is the first
-%   slice in the image.
-%
-%   Thus an image of axial slices in which the first slice was from the top of 
-%   the brain, and which was acquired with a "descending" acquisition scheme
-%   (where descending refers to "world space"), would have a sliceorder:
-%
-%	[1 2 3 ... N]
-%
-%   while if the same image file were derived from an "ascending" sequence, 
-%   the sliceorder would be:
-%
-%	[N N-1 N-2 ... 1]
-%
-%   However, if the first slice in the image file were from the bottom of
-%   the brain, and a "descending" acquisition sequence was used, then the
-%   sliceorder would be:
-%
-%	[N N-1 N-2 ... 1]
+%   option and move the crosshairs to a voxel co-ordinate of z=1.  This
+%   corresponds to a point in the first slice of the volume.
 %
 %   The function corrects differences in slice acquisition times.
 %   This routine is intended to correct for the staggered order of
