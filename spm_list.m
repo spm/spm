@@ -373,7 +373,7 @@ while max(Z)
 		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 	h     = text(0.27,y,sprintf(TabDat.fmt{4},Nv),	'FontWeight','Bold',...
-		'UserData',N(i),'ButtonDownFcn','get(gcbo,''UserData'')');
+		'UserData',Nv,'ButtonDownFcn','get(gcbo,''UserData'')');
 	hPage = [hPage, h];
 	h     = text(0.35,y,sprintf(TabDat.fmt{5},Pn),	'FontWeight','Bold',...
 		'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
