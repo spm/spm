@@ -1,5 +1,5 @@
 function VO = spm_write_sn(V,prm,flags,extras)
-% Write Out Normalized Images.
+% Write Out Warped Images.
 % FORMAT VO = spm_write_sn(V,prm,flags,msk)
 % V         - Images to transform (filenames or volume structure).
 % matname   - Transformation information (filename or structure).
@@ -16,6 +16,8 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %                      concentrations.
 % msk       - An optional cell array for masking the spatially
 %             normalised images (see below).
+%
+% Warped images are written prefixed by "w".
 %
 % Non-finite vox or bounding box suggests that values should be derived
 % from the template image.
@@ -323,7 +325,7 @@ return;
 %_______________________________________________________________________
 function VO = make_hdr_struct(V,x,y,z,mat)
 VO          = V;
-VO.fname    = prepend(V.fname,'n');
+VO.fname    = prepend(V.fname,'w');
 VO.mat      = mat;
 if spm_flip_analyze_images,
 	Flp    = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
