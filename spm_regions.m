@@ -12,8 +12,10 @@ function [Y,xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg)
 % Y      - first eigenvariate of VOI
 % xY     - structure with:
 %       xY.name         - name of VOI
-%       xY.Y            - first eigenvariate
 %       xY.y            - voxel-wise data (filtered and adjusted)
+%       xY.u            - first eigenvariate
+%       xY.v            - first eigenimage
+%       xY.s            - eigenimages
 %       xY.XYZmm        - Co-ordinates of voxels used within VOI
 %       xY.xyz          - centre of VOI (mm)
 %       xY.radius       - radius of VOI (mm)
@@ -135,12 +137,22 @@ end
 
 % compute regional response in terms of first eigenvariate
 %-----------------------------------------------------------------------
-[u s v] = svd(y,0);
-d       = sign(mean(v(:,1)));
+[m n]   = size(y);
+if m > n
+	[v s v] = svd(spm_atranspa(y));
+	s       = diag(s);
+	v       = v(:,1);
+	u       = y'*v/sqrt(s(1));
+else
+	[u s u] = svd(spm_atranspa(y'));
+	s       = diag(s);
+	u       = u(:,1);
+	v       = y'*u/sqrt(s(1));
+end
+d       = sign(sum(v));
 u       = u*d;
 v       = v*d;
-Y       = u(:,1);
-s       = diag(s).^2;
+Y       = u;
 
 
 %-Display MIP of VOI weighting and timecourse
@@ -165,8 +177,10 @@ xlabel(str)
 % create structure
 %-----------------------------------------------------------------------
 xY      = struct('name',	Rname,...
-		 'Y',		Y,...
 		 'y',		y,...
+		 'u',		u,...
+		 'v',		v,...
+		 's',		s,...
 		 'XYZmm',	SPM.XYZmm(:,Q(q)),...
 		 'xyz',		xyz,...
 		 'radius',	R,...
