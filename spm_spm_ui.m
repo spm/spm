@@ -1186,18 +1186,25 @@ sGXcalc = sGXcalc{iGXcalc};
 
 % Non-sphericity correction
 %=======================================================================
-if spm_input('non-sphericity correction?','+1','y/n',[1,0],2);
+f     = max(I);
+f     = find(f > 1 & f ~= max(f));
+nsc   = 0;
 
+% if there are repeated measures ask for correction
+%----------------------------------------------------------------------
+if length(f)
+	nsc   = spm_input('non-sphericity correction?','+1','y/n',[1,0],2);
+end
+
+if nsc
 	% identically distributed assumptions
 	%---------------------------------------------------------------
 	spm_input('Are the errors distributed identically','+1','d')
 	d     = spm_input_ui('!NextPos');
 	Q     = {};
-	f     = max(I);
 
 	% assume factor with most levels is repeated measure
 	%---------------------------------------------------------------
-	f     = find(f > 1 & f ~= max(f));
 	for i = f
 		p     = max(I(:,i));
 		if spm_input(['over ' D.sF{i} 's?'],d,'y/n',[0,1],2);
