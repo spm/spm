@@ -4,11 +4,17 @@ function hdr = spm_dicom_headers(P)
 % P   - array of filenames
 % hdr - cell array of headers, one element for each file.
 %
-% Contents of headers are explained in:
+% Contents of headers are approximately explained in:
 % http://medical.nema.org/dicom/2001.html
+%
+% This code will not work for all cases of DICOM data, as DICOM is an
+% extremely complicated "standard".
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
+
+ver = sscanf(version,'%d');
+if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;
 
 dict = readdict;
 j    = 0;
@@ -71,15 +77,16 @@ while ~isempty(tag),
 			ret  = setfield(ret,tag.name,dat);
 			switch dat,
 			case {'1.2.840.10008.1.2'},      % Implicit VR Little Endian
-				flg = 'i';
+				flg = 'il';
 			case {'1.2.840.10008.1.2.1'},    % Explicit VR Little Endian
-				flg = 'e';
+				flg = 'el';
 			case {'1.2.840.10008.1.2.1.99'}, % Deflated Explicit VR Little Endian
 				warning(['Cant read Deflated Explicit VR Little Endian file "' fopen(fp) '".']);
+				flg = 'dl';
 				return;
 			case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
-				warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
-				return;
+				%warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
+				flg = 'eb';
 			otherwise,
 				warning(['Unknown Transfer Syntax UID for "' fopen(fp) '".']);
 				return;
@@ -178,7 +185,7 @@ function tag = read_tag(fp,flg,dict)
 tag.group   = fread(fp,1,'ushort');
 tag.element = fread(fp,1,'ushort');
 if isempty(tag.element), tag=[]; return; end;
-if tag.group == 2, flg = 'e'; end;
+if tag.group == 2, flg = 'el'; end;
 t           = dict.tags(tag.group+1,tag.element+1);
 if t>0,
 	tag.name = dict.values(t).name;
@@ -188,7 +195,17 @@ else,
 	tag.vr   = 'UN';
 end;
 
-if flg=='e',
+if flg(2) == 'b',
+	[fname,perm,fmt] = fopen(fp);
+	if strcmp(fmt,'ieee-le'),
+		pos = ftell(fp);
+		fclose(fp);
+		fp  = fopen(fname,perm,'ieee-be');
+		fseek(fp,pos,'bof');
+	end;
+end;
+
+if flg(1) =='e',
 	tag.vr      = char(fread(fp,2,'char'))';
 	tag.le      = 6;
 	switch tag.vr,
@@ -252,10 +269,26 @@ return;
 
 function t = read_numaris4_stuff(fp,lim)
 % Decode shadow information (0029,1010) and (0029,1020)
+
+flg = 'l';
+[fname,perm,fmt] = fopen(fp);
+if strcmp(fmt,'ieee-be'),
+	pos = ftell(fp);
+	fclose(fp);
+	fp  = fopen(fname,perm,'ieee-le');
+	fseek(fp,pos,'bof');
+	flg = 'b';
+end;
 n   = fread(fp,1,'uint32')';
 if n>128 | n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
+	if flg=='b',
+		pos = ftell(fp);
+		fclose(fp);
+		fp  = fopen(fname,perm,'ieee-be');
+		fseek(fp,pos,'bof');
+	end;
 	return;
 end;
 xx  = fread(fp,1,'uint32')'; % "M" or 77 for some reason
@@ -288,6 +321,12 @@ for i=1:n,
 		fread(fp,4-rem(len,4),'char')';
 		tot              = tot + 4*4+len+(4-rem(len,4));
 	end;
+end;
+if flg=='b',
+	pos = ftell(fp);
+	fclose(fp);
+	fp  = fopen(fname,perm,'ieee-be');
+	fseek(fp,pos,'bof');
 end;
 fseek(fp,lim-tot,'cof');
 return;
