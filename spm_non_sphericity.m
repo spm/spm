@@ -55,6 +55,7 @@ function [xVi] = spm_non_sphericity(xVi)
 % create covariance components Q{:}
 %===========================================================================
 [n f] = size(xVi.I);			% # observations, % # Factors
+l     = max(xVi.I);                     % levels
 Q     = {};
 
 % error components
@@ -63,9 +64,8 @@ for i = 1:f
     
     % add variance component for level j of factor i
     %-----------------------------------------------------------------------
-    l     =  max(xVi.I(:,i));
-    if xVi.var(i) & (l > 1)
-        for j = 1:l
+    if xVi.var(i) & (l(i) > 1)
+        for j = 1:l(i)
             u          = xVi.I(:,i) == j;
             q          = spdiags(u,0,n,n);
             Q{end + 1} = q;
@@ -79,16 +79,27 @@ if ~any(xVi.var)
     Q = speye(n,n);
 end
 
-% random effects
+% effects (discounting factors with dependencies)
+%---------------------------------------------------------------------------
+X    = [];
+for i = 1:f
+    if (l(i) > 1) & ~xVi.dep(i)
+        q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
+        X     = [X q];
+    end
+end
+
+% dependencies among repeated measures
 %---------------------------------------------------------------------------
 for i = 1:f
-    
-    % dependencies among repeated measure levels induced by factor i
-    %-----------------------------------------------------------------------
-    l     =  max(xVi.I(:,i));
-    if xVi.dep(i) & (l > 1)
-        q     = sparse(1:n,xVi.I(:,i),1,n,l);
-        Q{end + 1} = q*q';
+    if xVi.dep(i) & (l(i) > 1)
+        q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
+        P     = q*q';
+        for j = 1:size(X,2)
+            for k = (j + 1):size(X,2)
+                Q{end + 1} = (X(:,j)*X(:,k)' + X(:,k)*X(:,j)').*P;
+            end
+        end
     end
 end
 

@@ -1200,7 +1200,7 @@ case 'cfg'
     sGXcalc = sGXcalc{iGXcalc};
     
     
-    % Non-sphericity correction
+    % Non-sphericity correction (set xVi.var and .dep)
     %===================================================================
     xVi.I   = I;
     xVi.var = sparse(1,4);
@@ -1215,28 +1215,27 @@ case 'cfg'
         
         % ask whether repeated measures are identically distributed
         %---------------------------------------------------------------
-        if spm_input('are errors identical','+1','y/n',[0,1],1)
+        if spm_input('are errors different','+1','y/n',[1,0],0)
             for i = mL
-		str        = ['equal ' D.sF{i} ' error'];
-                xVi.var(i) = spm_input(str,'+0','y/n',[0,1]);
+		str        = sprintf('among (%i) %ss',nL(i),D.sF{i});
+                xVi.var(i) = spm_input(str,'+0','y/n',[1,0],0);
             end
         end
 
         % ask whether there are dependencies induced by random effects
         %---------------------------------------------------------------
-        if spm_input('are errors independent','+1','y/n',[0,1],0)
+        if spm_input('are errors dependent','+1','y/n',[1,0],0)
             for i = mL
-		str        = ['random ' D.sF{i} ' effects'];
-                xVi.dep(i) = spm_input(str,'+0','y/n',[1,0]);
+		str        = sprintf('within a (%i) %s',nL(i),D.sF{i});
+                xVi.dep(i) = spm_input(str,'+0','y/n',[1,0],0);
             end
         end 
-           
-        %-Place covariance components Q{:} in xVi.Vi
-        %---------------------------------------------------------------
-        xVi     = spm_non_sphericity(xVi);
-        
     end
     
+    %-Place covariance components Q{:} in xVi.Vi
+    %-------------------------------------------------------------------
+    xVi     = spm_non_sphericity(xVi);
+
     %===================================================================
     % - C O N F I G U R E   D E S I G N
     %===================================================================
