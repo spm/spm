@@ -43,9 +43,12 @@ else
 				'Ylim', [0 max([arg1 eps])],...
 				'Box', 'on',...
 				'Parent',fg);
-			xlabel(arg2,'FontSize',10);
-			ylabel(arg3,'FontSize',10);
-			title('0% Complete');
+			lab = get(ax,'Xlabel');
+			set(lab,'string',arg2,'FontSize',10);
+			lab = get(ax,'Ylabel');
+			set(lab,'string',arg3,'FontSize',10);
+			lab = get(ax,'Title');
+			set(lab,'string','0% Complete');
 			tim = clock;
 			tim = tim(4:6);
 			str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
@@ -69,7 +72,8 @@ else
 			if (~isempty(br))
 				set(br,'Ydata',[0 arg1]);
 				lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
-				title(sprintf('%.0f%% Complete',100*arg1/lim));
+				lab = get(ax,'Title'); 
+				set(lab,'string',sprintf('%.0f%% Complete',100*arg1/lim)); 
 				drawnow;
 			end
 		end
