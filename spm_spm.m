@@ -103,9 +103,9 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 %
 % Results matrices in .mat files (at voxels satisfying P{F > f} < UFp)
 %-----------------------------------------------------------------------
-% XA 	-	adjusted data  		{with grand mean}
-% BETA 	-	parameter estimates	{mean corrected}
-% XYZ	-	location 		{mm [Talairach]}
+% XA 	-	adjusted data  		{i.e. confounds removed}
+% BETA 	-	parameter estimates	{pertaining to the design matrix}
+% XYZ	-	location 		{x, y and z in mm [Talairach]}
 % SPMF	-	SPM{F}
 % SPMt	-	SPM{Z}
 % RES 	-	residual SSQ
