@@ -7,7 +7,7 @@ function spm_sections(SPM,VOL,hReg)
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .STAT  - distribution {Z, T, X or F}     
 % .u     - height threshold
-% .XYZ   - location of voxels {mm}
+% .XYZ   - location of voxels {voxel coords}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
@@ -49,11 +49,9 @@ spm('Pointer','Watch');
 spm_results_ui('ClearPane',Fgraph,'RNP');
 
 
-%-Convert to pixel co-ordinates
+%-Get current location & convert to pixel co-ordinates
 %-----------------------------------------------------------------------
-XYZ    = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
-xyz    = spm_XYZreg('GetCoords',hReg);
-xyz    = round(VOL.iM(1:3,:)*[xyz; 1]);
+xyz    = round(VOL.iM(1:3,:)*[spm_XYZreg('GetCoords',hReg); 1]);
 
 
 %-Extract data from SPM [sagittal {Zs} coronal {Zc} transverse {Zt}]
@@ -65,22 +63,22 @@ Vs     = spm_vol(spms);
 A      = VOL.M\Vs.mat;
 hld    = 1;
 
-Q      = find(abs(XYZ(1,:) - xyz(1)) < 0.5);
-Zs     = full(sparse(XYZ(3,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(2)));
+Q      = find(abs(SPM.XYZ(1,:) - xyz(1)) < 0.5);
+Zs     = full(sparse(SPM.XYZ(3,Q),SPM.XYZ(2,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(2)));
 zoomM  = spm_matrix([0 0 -1  0 0 0  vox([3 2]) 1]);
 Zs     = spm_slice_vol(Zs,inv(zoomM),dim([3 2]),hld);
 D      = zoomM*[0 0 1 0;0 1 0 0;1 0 0 -xyz(1);0 0 0 1]*A;
 Ds     = spm_slice_vol(Vs,inv(D),dim([3 2]),1);
 
-Q      = find(abs(XYZ(2,:) - xyz(2)) < 0.5);
-Zc     = full(sparse(XYZ(3,Q),XYZ(1,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(1)));
+Q      = find(abs(SPM.XYZ(2,:) - xyz(2)) < 0.5);
+Zc     = full(sparse(SPM.XYZ(3,Q),SPM.XYZ(1,Q),SPM.Z(Q),VOL.DIM(3),VOL.DIM(1)));
 zoomM  = spm_matrix([0 0 -1  0 0 0  vox([3 1]) 1]);
 Zc     = spm_slice_vol(Zc,inv(zoomM),dim([3 1]),hld);
 D      = zoomM*[0 0 1 0;1 0 0 0;0 1 0 -xyz(2);0 0 0 1]*A;
 Dc     = spm_slice_vol(Vs,inv(D),dim([3 1]),1);
 
-Q      = find(abs(XYZ(3,:) - xyz(3)) < 0.5);
-Zt     = full(sparse(XYZ(1,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
+Q      = find(abs(SPM.XYZ(3,:) - xyz(3)) < 0.5);
+Zt     = full(sparse(SPM.XYZ(1,Q),SPM.XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
 zoomM  = spm_matrix([0 0 -1  0 0 0  vox([1 2]) 1]);
 Zt     = spm_slice_vol(Zt,inv(zoomM),dim([1 2]),hld);
 D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;

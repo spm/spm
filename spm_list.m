@@ -1,5 +1,5 @@
 function spm_list(SPM,VOL,Dis,Num,title)
-% display and analysis of SPM{.}
+% Display and analysis of SPM{.}
 % FORMAT spm_list(SPM,VOL)
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -11,14 +11,13 @@ function spm_list(SPM,VOL,Dis,Num,title)
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .u     - height threshold
 % .k     - extent threshold {resels}
-% .XYZ   - location of voxels {mm}
+% .XYZ   - location of voxels {voxel coords}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
-% .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
 % Dis    - Minimum distance between maxima                 {default = 8mm}
@@ -86,8 +85,7 @@ if ~length(SPM.Z)
 	return
 end
 
-rcp = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
-[N Z M A] = spm_max(SPM.Z,rcp,[1,1,1]);
+[N Z M A] = spm_max(SPM.Z,SPM.XYZ);
 
 %-Convert cluster sizes from voxels to resels
 N         = N/prod(VOL.FWHM);

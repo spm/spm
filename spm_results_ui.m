@@ -154,7 +154,7 @@ SCCSid = '%I%';
 % Setup editable XYZ control widgets at foot of Interactive window
 % M      - 4x4 transformation matrix relating voxel to "real" co-ordinates
 % DIM    - 3 vector of image X, Y & Z dimensions
-% xyz    - Initial xyz location
+% xyz    - Initial xyz location {mm}
 % Finter - handle of Interactive window
 % hFxyz  - handle of XYZ control - the frame containing the edit widgets
 %
@@ -164,18 +164,18 @@ SCCSid = '%I%';
 % FORMAT xyz = spm_results_ui('GetCoords',hFxyz)
 % Get current co-ordinates from editable XYZ control
 % hFxyz - handle of frame enclosing widgets - the Tag object for this control
-% xyz   - current co-ordinates
+% xyz   - current co-ordinates {mm}
 % NB: When using the results section, should use XYZregistry to get/set location
 %
 % FORMAT [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
 % Set co-ordinates to XYZ widget
-% xyz   - (Input) desired co-ordinates
+% xyz   - (Input) desired co-ordinates {mm}
 % hFxyz - handle of XYZ control - the frame containing the edit widgets
 % hC    - handle of calling object, if used as a callback. [Default 0]
 % xyz   - (Output) Desired co-ordinates are rounded to nearest voxel if hC
 %         is not specified, or is zero. Otherwise, caller is assummed to
 %         have checked verity of desired xyz co-ordinates. Output xyz returns
-%         co-ordinates actually set.
+%         co-ordinates actually set {mm}.
 % d     - Euclidean distance between desired and set co-ordinates.
 % NB: When using the results section, should use XYZregistry to get/set location
 %
@@ -263,7 +263,7 @@ text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),...
 %-Setup Maximium intensity projection (MIP) & register
 %---------------------------------------------------------------------------
 hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.55 0.55 0.4],'Visible','off');
-hMIPax = spm_mip_ui(SPM.Z,SPM.XYZ,VOL.M,VOL.DIM,hMIPax);
+hMIPax = spm_mip_ui(SPM.Z,SPM.XYZmm,VOL.M,VOL.DIM,hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
 text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold',...
 	'Parent',hMIPax)
@@ -404,7 +404,7 @@ uicontrol(Finter,'Style','PushButton','String','','FontSize',Fs,...
 	'Position',[090 135 070 020].*WS)
 uicontrol(Finter,'Style','PushButton','String','write','FontSize',Fs,...
 	'ToolTipString','Write current current filtered SPM',...
-	'Callback',['spm_write_filtered(SPM.Z,SPM.XYZ,VOL.M,VOL.DIM,',...
+	'Callback',['spm_write_filtered(SPM.Z,SPM.XYZ,VOL.DIM,VOL.M,',...
 		'sprintf(''SPM{%c}-filtered: u = %5.3f, k = %d'',',...
 			'SPM.STAT,SPM.u,SPM.k));'],...
 	'Interruptible','on','Enable','on',...

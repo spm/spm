@@ -11,7 +11,8 @@ function spm_VOI(SPM,VOL,hReg)
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .u     - height threshold
 % .k     - extent threshold {resels}
-% .XYZ   - location of voxels {mm}
+% .XYZ   - location of voxels {voxel coords}
+% .XYZmm - location of voxels {mm}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
@@ -43,21 +44,19 @@ spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
 
 %-Get current location
 %-----------------------------------------------------------------------
-xyz     = spm_XYZreg('GetCoords',hReg);
-%[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZ);
-%spm_XYZreg('SetCoords',xyz,hReg);
+xyzmm   = spm_XYZreg('GetCoords',hReg);
 
 
 %-Specify search volume
 %-----------------------------------------------------------------------
 SPACE   = spm_input('search volume',-1,'b','Sphere|Box|Cluster',['S','B','V']);
-Q       = ones(1,size(SPM.XYZ,2));
-xyz     = xyz*Q;
+Q       = ones(1,size(SPM.XYZmm,2));
+xyzmm   = xyzmm*Q;
 if     SPACE == 'S'
 
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
-	j     = find(sum((SPM.XYZ - xyz).^2) <= D^2);
+	j     = find(sum((SPM.XYZmm - xyzmm).^2) <= D^2);
 	D     = D./VOL.VOX;
 	S     = (4/3)*pi*prod(D);
 
@@ -65,31 +64,34 @@ elseif SPACE == 'B'
 
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	j     = find(all(abs(SPM.XYZ - xyz) <= D(:)*Q/2));
+	j     = find(all(abs(SPM.XYZmm - xyzmm) <= D(:)*Q/2));
 	D     = D(:)./VOL.VOX;
 	S     = prod(D);
 
 elseif SPACE == 'V'
-	rcp   = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
-	A     = spm_clusters(rcp,[1,1,1]);
+	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyzmm,SPM.XYZmm);
+	spm_XYZreg('SetCoords',xyzmm,hReg);
+	A     = spm_clusters(SPM.XYZ);
 	j     = find(A == A(i));
 	str   = sprintf('%0.0f voxel cluster',length(j));
-	D     = SPM.XYZ(:,j); D  = D./(VOL.VOX*ones(1,size(D,2)));
+	D     = SPM.XYZ(:,j);
 	S     = length(j);
 end
 
 
 %-Select voxels within subspace
 %-----------------------------------------------------------------------
-SPM.Z   = SPM.Z(j);
-SPM.XYZ = SPM.XYZ(:,j);
-VOL.R   = spm_resels(VOL.FWHM,D,SPACE);
-VOL.S   = S;
+SPM.Z     = SPM.Z(j);
+SPM.XYZ   = SPM.XYZ(:,j);
+SPM.XYZmm = SPM.XYZmm(:,j);
+VOL.R     = spm_resels(VOL.FWHM,D,SPACE);
+VOL.S     = S;
 
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
-str = sprintf('search volume: %s at (%.0f,%.0f,%.0f)',str,xyz(1),xyz(2),xyz(3));
+str = sprintf('search volume: %s at (%.0f,%.0f,%.0f)',str,...
+	xyzmm(1),xyzmm(2),xyzmm(3));
 spm_list(SPM,VOL,4,16,str)
 
 %-Reset title

@@ -1,11 +1,12 @@
-function Vo = spm_write_filtered(Z,XYZ,M,DIM,descrip)
+function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 % Writes the filtered SPM as an image
-% FORMAT spm_write_filtered(Z,XYZ,M,DIM,descrip)
+% FORMAT spm_write_filtered(Z,XYZ,DIM,M,descrip)
 %
 % Z       - {1 x ?} vector point list of SPM values for MIP
-% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
-% M       - voxels - > mm matrix
+% XYZ     - {3 x ?} matrix of coordinates of points (voxel coordinates)
 % DIM     - image dimensions {voxels}
+% M       - voxels - > mm matrix (used for header & written in *.mat file)
+%           [default spm_matrix(-(DIM+1)/2) ]
 % descrip - description string [default 'SPM-filtered']
 %
 %-----------------------------------------------------------------------
@@ -21,8 +22,9 @@ function Vo = spm_write_filtered(Z,XYZ,M,DIM,descrip)
 
 %-Parse arguments
 %-----------------------------------------------------------------------
+if nargin<3, error('Insufficient arguments'), end
+if nargin<4, M = spm_matrix(-(DIM+1)/2); end
 if nargin<5, descrip='SPM-filtered'; end
-if nargin<4, error('Insufficient arguments'), end
 
 %-Get filename
 %-----------------------------------------------------------------------
@@ -37,15 +39,13 @@ Vo      = struct(...
 		'mat',		M,...
 		'descrip', 	descrip);
 
-%-Reconstruct filtered image from XYZ & Z
+%-Reconstruct (filtered) image from XYZ & Z pointlist
 %-----------------------------------------------------------------------
 Y      = zeros(DIM(1:3)');
-iM     = inv(M);
-rcp    = round(iM(1:3,:)*[XYZ; ones(1,size(XYZ,2))]);
-OFF    = rcp(1,:) + DIM(1)*(rcp(2,:) + DIM(2)*rcp(3,:));
+OFF    = XYZ(1,:) + DIM(1)*(XYZ(2,:) + DIM(2)*XYZ(3,:));
 Y(OFF) = Z.*(Z > 0);
 
-%-Write the filtered volume
+%-Write the reconstructed volume
 %-----------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
 fprintf('\n%s: %s\n\n',mfilename,spm_get('CPath',Q,pwd))

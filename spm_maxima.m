@@ -11,14 +11,14 @@ function spm_maxima(SPM,VOL,hReg)
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .u     - height threshold
 % .k     - extent threshold {resels}
-% .XYZ   - location of voxels {mm}
+% .XYZ   - location of voxels {voxel coords}
+% .XYZmm - location of voxels {mm}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
 % .FWHM  - smoothness {voxels}     
-% .iM    - mm -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 %
 % hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
@@ -39,30 +39,28 @@ function spm_maxima(SPM,VOL,hReg)
 %_______________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
 
-%-Find the cluster selected
+
+%-Get voxel nearest current location
 %-----------------------------------------------------------------------
-xyz     = spm_XYZreg('GetCoords',hReg);
-[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZ);
+[xyzmm,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
 
 
 %-Find selected cluster
 %-----------------------------------------------------------------------
-rcp     = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
-A       = spm_clusters(rcp,[1,1,1]);
-j       = find(A == A(i));
-SPM.Z   = SPM.Z(j);
-SPM.XYZ = SPM.XYZ(:,j);
+A         = spm_clusters(SPM.XYZ);
+j         = find(A == A(i));
+SPM.Z     = SPM.Z(j);
+SPM.XYZ   = SPM.XYZ(:,j);
+SPM.XYZmm = SPM.XYZmm(:,j);
 
 
 %-Update GUI to cluster's maximum
 %-----------------------------------------------------------------------
 [i,j]   = max(SPM.Z);
-spm_XYZreg('SetCoords',SPM.XYZ(:,j),hReg);
+spm_XYZreg('SetCoords',SPM.XYZmm(:,j),hReg);
 
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
-str = 'single cluster list (corrected p-values for entire volume)';
+str = 'single cluster list (p-values corrected for entire volume)';
 spm_list(SPM,VOL,4,16,str)
-
-title('Maxima within cluster')

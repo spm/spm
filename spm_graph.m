@@ -2,15 +2,39 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xSDM,hReg)
 % Graphical display of adjusted data
 % FORMAT [Y y beta SE] = spm_graph(SPM,VOL,xX,xSDM,hReg)
 %
-% SPM  - SPM structure      {'Z' 'n' 'STAT' 'df' 'u' 'k'}
-% VOL  - Spatial structure  {'R' 'FWHM' 'S' 'DIM' 'VOX' 'ORG' 'M' 'XYZ' 'QQ'}
-% DES  - Design structure   {'X' 'C' 'B'}
-% hReg - handle of MIP register
+% SPM    - structure containing SPM, distribution & filtering detals
+%        - required fields are:
+% .swd   - SPM working directory - directory containing current SPM.mat
+% .c     - contrast(s) - in cell array
+% .Z     - minimum of n Statistics {filtered on u and k}
+% .n     - number of conjoint tests        
+% .STAT  - distribution {Z, T, X or F}     
+% .df    - degrees of freedom [df{interest}, df{residual}]
+% .XYZmm - location of voxels {mm}
+% .QQ    - indices of volxes in Y.mad file
 %
-% Y    - fitted   data for the selected voxel
-% Y    - adjusted data for the selected voxel
-% beta - parameter estimates
-% SE   - standard error of parameter estimates
+%
+% VOL    - structure containing details of volume analysed
+%        - required fields are:
+% .R     - search Volume {resels}
+% .iM    - mm -> voxels matrix
+% 
+%
+% xX     - Design Matrix structure
+%        - (see spm_spm.m for structure)
+%
+% xSDM   - structure containing contents of SPM.mat file
+%        - required fields are:
+% .Vbeta
+% .VResMS
+%          ( see spm_spm.m for contents...
+%
+% hReg   - handle of MIP register
+%
+% Y      - fitted   data for the selected voxel
+% y      - adjusted data for the selected voxel
+% beta   - parameter estimates
+% SE     - standard error of parameter estimates
 %
 % see spm_getSPM for details
 %_______________________________________________________________________
@@ -50,10 +74,9 @@ spm_results_ui('ClearPane',Fgraph,'RNP');
 % if exist(str,'file'); load(str); end
 
 
-%-Find nearest voxel [Euclidean distance] in point list XYZ & update GUI
+%-Find nearest voxel [Euclidean distance] in point list & update GUI
 %-----------------------------------------------------------------------
-xyz     = spm_XYZreg('GetCoords',hReg);
-[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZ);
+[xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
 

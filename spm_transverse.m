@@ -7,7 +7,7 @@ function spm_transverse(SPM,VOL,hReg)
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .STAT  - distribution {Z, T, X or F}     
 % .u     - height threshold
-% .XYZ   - location of voxels {mm}
+% .XYZ   - location of voxels {voxel coords}
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
@@ -26,7 +26,7 @@ function spm_transverse(SPM,VOL,hReg)
 % background image.  Regional foci from the selected SPM{T/F} are
 % rendered on this image.
 %
-% Although the SPM{Z} adopts the neurological convention (left = left)
+% Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %_______________________________________________________________________
 % %W% Karl Friston %E%
@@ -45,14 +45,13 @@ spm('Pointer','Watch');
 
 %-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
-spm_results_ui('ClearPane',Fgraph,'RNP');
+spm_results_ui('ClearPane',Fgraph);
 
 
-%-Convert to pixel co-ordinates
+%-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
-XYZ    = VOL.iM(1:3,:)*[SPM.XYZ; ones(1,size(SPM.XYZ,2))];
-xyz0   = spm_XYZreg('GetCoords',hReg);
-xyz    = round(VOL.iM(1:3,:)*[xyz0; 1]);
+xyzmm  = spm_XYZreg('GetCoords',hReg);
+xyz    = round(VOL.iM(1:3,:)*[xyzmm; 1]);
 
 % extract data from SPM [at one plane separation]
 % and get background slices
@@ -65,8 +64,8 @@ hld    = 0;
 
 zoomM  = spm_matrix([0 0 -1  0 0 0  vox([1 2]) 1]);
 
-Q      = find(abs(XYZ(3,:) - xyz(3)) < 0.5);
-T2     = full(sparse(XYZ(1,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
+Q      = find(abs(SPM.XYZ(3,:) - xyz(3)) < 0.5);
+T2     = full(sparse(SPM.XYZ(1,Q),SPM.XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
 T2     = spm_slice_vol(T2,inv(zoomM),dim([1 2]),hld);
 D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
 D2     = spm_slice_vol(Vs,inv(D),dim([1 2]),1);
@@ -74,15 +73,17 @@ maxD   = max(D2(:));
 
 if VOL.DIM(3) > 1
 
-	Q      = find(abs(XYZ(3,:) - xyz(3)+1) < 0.5);
-	T1     = full(sparse(XYZ(1,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
+	Q      = find(abs(SPM.XYZ(3,:) - xyz(3)+1) < 0.5);
+	T1     = full(sparse(SPM.XYZ(1,Q),...
+			SPM.XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
 	T1     = spm_slice_vol(T1,inv(zoomM),dim([1 2]),hld);
 	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
 	D1     = spm_slice_vol(Vs,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D1(:)]);
 
-	Q      = find(abs(XYZ(3,:) - xyz(3)-1) < 0.5);
-	T3     = full(sparse(XYZ(1,Q),XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
+	Q      = find(abs(SPM.XYZ(3,:) - xyz(3)-1) < 0.5);
+	T3     = full(sparse(SPM.XYZ(1,Q),...
+			SPM.XYZ(2,Q),SPM.Z(Q),VOL.DIM(1),VOL.DIM(2)));
 	T3     = spm_slice_vol(T3,inv(zoomM),dim([1 2]),hld);
 	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
 	D3     = spm_slice_vol(Vs,inv(D),dim([1 2]),1);
@@ -97,7 +98,7 @@ if VOL.DIM(3) > 1,
 	d = max([d ; T1(:) ; T3(:)]);
 end;
 
-% configure {128 level} colormap
+%-Configure {128 level} colormap
 %-----------------------------------------------------------------------
 colormap([gray(64); pink(64)])
 D      = length(colormap)/2;
@@ -112,7 +113,7 @@ set(Fgraph,'Units','pixels')
 siz    = get(Fgraph,'Position');
 siz    = siz(3:4);
 
-% render activation foci on background images
+%-Render activation foci on background images
 %-----------------------------------------------------------------------
 if VOL.DIM(3) > 1
 	zm     = min([(siz(1) - 120)/(dim(1)*3),(siz(2)/2 - 60)/dim(2)]);
@@ -124,21 +125,21 @@ if VOL.DIM(3) > 1
 	axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T1)))
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',(xyz0(3) - vox(3))))
+	title(sprintf('z = %0.0fmm',(xyzmm(3) - vox(3))))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
 	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T2)))
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',xyz0(3)))
+	title(sprintf('z = %0.0fmm',xyzmm(3)))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
 	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
 	axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T3)))
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',(xyz0(3) + vox(3))))
+	title(sprintf('z = %0.0fmm',(xyzmm(3) + vox(3))))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
 	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
@@ -159,7 +160,7 @@ else,
 	axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm])
 	image(rot90(spm_grid(T2)))
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',xyz0(3)))
+	title(sprintf('z = %0.0fmm',xyzmm(3)))
 	line([1 1]*P(1),[0 dim(2)],'Color','w')
 	line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
 
