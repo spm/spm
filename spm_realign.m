@@ -237,7 +237,7 @@ if (nargin == 0)
 		'Pointer','Watch'); drawnow
 	for i = 1:n
 		eval(['P = P' num2str(i) ';'])
-		eval('spm_realign(P,Flags);','disp(''Realignment Bombed Out'');');
+		spm_realign(P,Flags);
 	end
 	spm_figure('Clear','Interactive');
 	set(spm_figure('FindWin','Interactive'),'Name','',...
