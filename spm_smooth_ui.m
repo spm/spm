@@ -12,14 +12,16 @@ function spm_smooth_ui
 
 % get filenames and kernel width
 %----------------------------------------------------------------------------
-set(2,'Name','Smoothing')
+spm_figure('Clear','Interactive');
+set(spm_figure('FindWin','Interactive'),'Name','Smoothing')
 
 s     = spm_input('smoothing {FWHM in mm}',1);
 P     = spm_get(Inf,'.img','select scans');
 n     = size(P,1);
 % implement the convolution
 %---------------------------------------------------------------------------
-set(2,'Name','executing','Pointer','watch')
+set(spm_figure('FindWin','Interactive'),'Name','executing','Pointer','watch');
+spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
 	Q = P(i,:);
 	Q = Q(Q ~= ' ');
@@ -27,5 +29,6 @@ for i = 1:n
 	U = [Q(1:d) 's' Q((d + 1):length(Q))];
 	if ~strcmp(U([1:4] + length(U) - 4),'.img'); U = [U '.img']; end
 	spm_smooth(Q,U,s);
+	spm_progress_bar('Set',i);
 end
-set(2,'Name','','Pointer','arrow'); figure(2); clf
+spm_figure('Clear','Interactive');
