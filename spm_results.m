@@ -57,11 +57,11 @@ SPMF     = ~SPMZ;
 %-----------------------------------------------------------------------
 if SPMZ
 
-	[t,XYZ,QQ,U,k,s,w,RES] = spm_projections_ui('Results');
+	[t,XYZ,QQ,U,k,s,w] = spm_projections_ui('Results');
 
 elseif SPMF
 
-	[t,XYZ,QQ,U,k,s,w,RES] = spm_projectionsF_ui('Results');
+	[t,XYZ,QQ,U,k,s,w] = spm_projectionsF_ui('Results');
 
 end
 
