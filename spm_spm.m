@@ -15,17 +15,16 @@ function [SPM] = spm_spm(SPM)
 %         xX.name   - cellstr of parameter names corresponding to columns
 %                     of design matrix
 %       - Optional fields are:
-%         xX.K      - Sparse temporal smoothing matrix (see spm_sptop)
-% 		    - Or cell of session-specific structures (see spm_filter)
+%         xX.K      - cell of session-specific structures (see spm_filter)
 %                   - Design & data are pre-multiplied by K
 %                     (K*Y = K*X*beta + K*e)
 %                   - Note that K should not smooth across block boundaries
 %                   - defaults to speye(size(xX.X,1))
-%         xX.W      - Optional [full] whitening/weighting matrix used to give
+%         xX.W      - Optional whitening/weighting matrix used to give
 %                     weighted least squares estimates (WLS). If not specified
 %                     spm_spm will set this to whiten the data and render
 %                     the OLS estimtes maximum likelihood
-%                     (i.e. W*W' = inv(xVi.V).
+%                     i.e. W*W' = inv(xVi.V).
 %
 % xVi   - structure describing intrinsic temporal non-sphericity
 %       - required fields are:
@@ -804,9 +803,9 @@ if ~isfield(xVi,'V')
 		[V,h] = spm_reml(Cy,xX.X,xVi.Vi);
 	end
 
-	% check for negative hyperparameters
+	% check for negative variance component hyperparameters
 	%---------------------------------------------------------------
-	if any(h < 0)
+	if any(h < 0) & ~isfield(SPM,'Sess')
 		str = {	'Variance component [hyperparameter]';...
 			'estimation has been been compromised';...
 			'by negative estimates.';...
@@ -821,7 +820,7 @@ if ~isfield(xVi,'V')
 	%---------------------------------------------------------------
 	V           = V*nScan/trace(V);
 	xVi.h       = h;
-	xVi.V       = V;			% SAVE NON_SPHERICITY xVi.V
+	xVi.V       = V;			% Save non-sphericity xVi.V
 	xVi.Cy      = Cy;			%-spatially whitened <Y*Y'>
 	SPM.xVi     = xVi;			% non-sphericity structure
 
@@ -852,22 +851,12 @@ xX.Bcov         = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
 VResMS.pinfo(1) = 1/xX.trRV;
 VResMS          = spm_create_vol(VResMS,'noopen');
 
-
-%-Check estimability
-%-----------------------------------------------------------------------
-if     xX.erdf  < 0
-    error(sprintf('This design is unestimable!   (df=%-.2g)',xX.erdf))
-elseif xX.erdf == 0
-    error('This design has no residuals! (df = 0)')
-elseif xX.erdf <  4
-    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
-end
-
 %-Create 1st contrast for 'effects of interest'
 %=======================================================================
 Fcname    = 'effects of interest';
-iX0       = [xX.iB xX.iG];
-xCon      = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+iX        = [xX.iH xX.iC];
+c         = sparse(iX,1:length(iX),1,nBeta,length(iX));
+xCon      = spm_FcUtil('Set',Fcname,'F','c',c,xX.xKXs);
 
 %-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
 %-----------------------------------------------------------------------
