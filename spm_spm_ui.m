@@ -405,12 +405,7 @@ function varargout=spm_spm_ui(varargin)
 %                 (with "_"'s converted to spaces) in bold as topics, with
 %                 the corresponding text to the right
 % 
-% xCon          - structure array of contrasts
-% xCon(i).name  - name of contrast i
-% xCon(i).c     - contrast vector / matrix (for F-contrasts)
-% xCon(i).V     - memory mapping structure of numerator image - contrast
-%                 of parameter estimates (for vector contrasts), or
-%                 extra sum-of-squares (for F-contrasts)
+% Fc            - F - contrast
 % 
 % SPMid         - String identifying SPM and program versions
 %_______________________________________________________________________
@@ -653,8 +648,8 @@ spm_input('Note that SPM98d results aren''t available!',1,'d!','Warning');
 %-Delete files from previous analyses...
 %-----------------------------------------------------------------------
 if exist('./SPMcfg.mat','file')==2
-	warning(sprintf(['\tCurrent directory contains an SPMcfg.mat...\n',...
-			'\t\t(pwd = %s)'],pwd))
+	warning(sprintf(['Current directory contains an SPMcfg.mat...\n',...
+			'\t(pwd = %s)'],pwd))
 	if ~spm_input('Overwrite existing SPMcfg?','+1','y/n',[1,0],2)
 		error('Existing SPMcfg.mat: Run in another directory...')
 	end
@@ -888,7 +883,7 @@ for i=1:2			% 1:covariates of interest, 2:nuisance variables
     end	% (while)
 
 end % (for)
-clear tI tConst tFnames
+clear c tI tConst tFnames
 spm_input('!SetNextPos',GUIpos);
 
 %-Unpack into C & G design matrix sub-partitions
@@ -1297,26 +1292,25 @@ xX     = struct(	'I',		I,...
 %-Pre-specified contrast for F-test on effects of interest
 %=======================================================================
 if ~isempty([H,C])
+	%-Effects designated "of interest" - constuct an F-contrast
+	% to test for any significant effects of interest, for use in
+	% spm_spm F-thresholding of interesting voxels to save for plotting.
 	%-Have a first guess at a simple F-contrast!
-	c = [diff(eye(size(H,2))), zeros(size(H,2)-1,size([C,B,G],2));...
+	Fc = [diff(eye(size(H,2))), zeros(size(H,2)-1,size([C,B,G],2));...
 		zeros(size(C,2),size(H,2)), eye(size(C,2)),...
-			zeros(size(C,2),size([B,G],2))];
+			zeros(size(C,2),size([B,G],2))]';
 
-	%-If that's not of the same rank as the hypothesised redundant design
-	% subspace, or the rows aren't all contrasts, make a fancy F-contrast
-	if ~spm_DesUtil('AllCon',X,c) | size(c,1)~=(rank([H,C,B,G])-rank([B,G]))
-		c = spm_DesUtil('FCon',X,size([H,C],2)+[1:size([B,G],2)]);
+	%-If that's not equivalent to a test of [BH;BC]=0 for BH & BC the
+	% parameters corresponding to the H & C partitions,
+	% then make a fancy F-contrast
+	if ~spm_SpUtil('AllCon',X,Fc) | rank(Fc)~=(rank(X)-rank([B,G]))
+		Fc = spm_SpUtil('FCon',X,size([H,C],2)+[1:size([B,G],2)]);
 	end
 	
-	xCon = struct(	'name',	'no effects of interest',...
-			'c',	c',...
-			'V',	[]);
-
-%elseif ~isempty(G)
 else
-
-	xCon = [];
-
+	%-No effects designated "of interest" - F-contrast for B=0
+	% (i.e. total model fit, comparing raw SS w/ ResSS)
+	Fc = spm_SpUtil('FCon',X,[]);
 end
 
 
@@ -1336,17 +1330,15 @@ xsDes = struct(	'Design',			{D.DesName},...
 
 
 %-Save SPMcfg.mat file
-save SPMcfg SPMid D xsDes VY xX xC xGX xM xCon
-%-Save con.mat file
-save con xCon
+save SPMcfg SPMid D xsDes VY xX xC xGX xM Fc
 
 %-Display Design report & "Run" button
 %=======================================================================
-spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,xCon)
+spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,Fc)
 
 %-Analysis Proper
 %=======================================================================
-%spm_spm(VY,xX.X,xX.Xnames,xM,xX.K,xCon(1).c,xX,xC,xsDes)
+%spm_spm(VY,xX.X,xX.Xnames,xM,xX.K,Fc,xX,xC,xsDes)
 
 %-End: Cleanup GUI
 %=======================================================================
@@ -1474,7 +1466,7 @@ case {'desrep','desrepui','run'}
 % - A N A L Y S I S   P A R A M E T E R S   /   R U N
 %=======================================================================
 % spm_spm_ui({'DesRep','DesRepUI','Run'},SPMcfg)
-% spm_spm_ui({'DesRep','DesRepUI','Run'},VY,xX,xC,xsDes,xM,xCon)
+% spm_spm_ui({'DesRep','DesRepUI','Run'},VY,xX,xC,xsDes,xM,Fc)
 if nargin==1
 	SPMcfg = load(spm_get(1,'SPMcfg.mat','Select SPMcfg.mat'));
 elseif nargin==2
@@ -1491,7 +1483,7 @@ elseif nargin==7
 				'xC',		varargin{4},...
 				'xsDes',	varargin{5},...
 				'xM',		varargin{6},...
-				'xCon',		varargin{7}	);
+				'Fc',		varargin{7}	);
 else
 	error('insufficient arguments')
 end
@@ -1539,17 +1531,7 @@ end
 %-Run
 %-----------------------------------------------------------------------
 if strcmp(lower(Action),'run')
-
-	%-Unpack SPMcfg structure into appropriately named variables
-	VY    = SPMcfg.VY;
-	xX    = SPMcfg.xX;
-	xC    = SPMcfg.xC;
-	xsDes = SPMcfg.xsDes;
-	xM    = SPMcfg.xM;
-	xCon  = SPMcfg.xCon;
-
-	%-Run spm_spm
-	spm_spm(SPMcfg.VY,SPMcfg.xX,SPMcfg.xM,SPMcfg.xCon(1).c,xC,xsDes)
+	spm_spm(SPMcfg.VY,SPMcfg.xX,SPMcfg.xM,SPMcfg.Fc,SPMcfg.xC,SPMcfg.xsDes)
 end
 
 
