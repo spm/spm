@@ -125,8 +125,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		for(i=0; i<ni; i++)
 		{
 			slice(mat, image, maps[i].dim[0],maps[i].dim[1], maps[i], 0, 0.0);
-			if (maps[i].dtype == 2   || maps[i].dtype == 4   || maps[i].dtype == 8 ||
-			    maps[i].dtype == 256 || maps[i].dtype == 512 || maps[i].dtype == 1024)
+			if (maps[i].dtype == 2   || maps[i].dtype == 4    || maps[i].dtype == 8 ||
+			    maps[i].dtype == 512 || maps[i].dtype == 1024 || maps[i].dtype == 2048)
 			{
 				for(k=0; k<nk; k++)
 				{
