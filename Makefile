@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.16 2003-05-12 10:56:45 john Exp $
+# $Id: Makefile,v 2.17 2003-12-16 15:55:49 john Exp $
 #
 ###############################################################################
 #
@@ -42,9 +42,9 @@ Linux.5:
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable" MEX="mex COPTIMFLAGS=-O"
 IRIX:
-	make all SUF=mexsg   CC="cc  -O -mips2"             MEX="mex"
+	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON"  MEX="mex COPTIMFLAGS='-O'"
 IRIX64:
-	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex"
+	make all SUF=mexsg64 CC="cc  -O -mips4 -64"         MEX="mex COPTIMFLAGS='-O'"
 AIX:
 	make all SUF=mexrs6
 OSF1:
@@ -105,7 +105,9 @@ SPMMEX =\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_bias_mex.$(SUF) spm_dilate.$(SUF) $(ADDED_MEX)
+	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
+	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
+	$(ADDED_MEX)
 
 ###############################################################################
 # The main ways to run make
@@ -213,12 +215,16 @@ utils_double_s.$(SUF).o: $(UTILS)
 	@ $(CHMODIT) $@
 
 spm_getdata.$(SUF).o: spm_getdata.c spm_sys_deps.h
+	$(CC) -c -o $@ spm_getdata.c
+	@ $(CHMODIT) $@
 
 spm_vol_access.$(SUF).o:  spm_vol_access.c spm_vol_access.h spm_datatypes.h
+	$(CC) -c -o $@ spm_vol_access.c
+	@ $(CHMODIT) $@
 
 spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
-
-spm_getdata.$(SUF).o: spm_getdata.c 
+	$(CC) -c -o $@ spm_make_lookup.c
+	@ $(CHMODIT) $@
 
 spm_mapping.$(SUF).o:     spm_mapping.c spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) -c spm_mapping.c
@@ -267,22 +273,48 @@ spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 	@ $(CHMODIT) $@
 
 spm_atranspa.$(SUF): spm_atranspa.c spm_sys_deps.h
+	$(MEX) spm_atranspa.c
+	@ $(CHMODIT) $@
 
 spm_unlink.$(SUF): spm_unlink.c spm_sys_deps.h
+	$(MEX) spm_unlink.c
+	@ $(CHMODIT) $@
 
 spm_max.$(SUF): spm_max.c spm_sys_deps.h
+	$(MEX) spm_max.c
+	@ $(CHMODIT) $@
 
 spm_clusters.$(SUF): spm_clusters.c spm_sys_deps.h
+	$(MEX) spm_clusters.c
+	@ $(CHMODIT) $@
 
-spm_hist2.$(SUF):      spm_hist2.c spm_sys_deps.h
+spm_hist2.$(SUF): spm_hist2.c spm_sys_deps.h
+	$(MEX) spm_hist2.c
+	@ $(CHMODIT) $@
 
 spm_krutil.$(SUF): spm_krutil.c spm_sys_deps.h
+	$(MEX) spm_krutil.c
+	@ $(CHMODIT) $@
 
 spm_dilate.$(SUF): spm_dilate.c
+	$(MEX) spm_dilate.c
+	@ $(CHMODIT) $@
+
+spm_bwlabel.$(SUF): spm_bwlabel.c
+	$(MEX) spm_bwlabel.c
+	@ $(CHMODIT) $@
+
+spm_get_lm.$(SUF): spm_get_lm.c
+	$(MEX) spm_get_lm.c
+	@ $(CHMODIT) $@
 
 spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
+	$(MEX) spm_list_files.c
+	@ $(CHMODIT) $@
 
 spm_project.$(SUF): spm_project.c spm_sys_deps.h
+	$(MEX) spm_project.c
+	@ $(CHMODIT) $@
 
 spm_render_vol.$(SUF): spm_render_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h
@@ -316,6 +348,7 @@ spm_win32utils.$(SUF): spm_win32utils.c
 
 verb.unknown:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "PROBLEM: Dont know how to do this."
 	@ echo "_____________________________________________________________"
@@ -323,6 +356,7 @@ verb.unknown:
 
 verb.mexhp7:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "unix compile for hpux cc, and maybe aix cc"
 	@ echo ""
@@ -337,6 +371,7 @@ verb.mexhp7:
 
 verb.mexsg:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
 	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
@@ -352,13 +387,17 @@ verb.mexsg:
 
 verb.mexsg64:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "not optimised sgi 64 bit compile for CC"
+	@ echo ""
+	@ echo "Note that this option is only for Matlab versions below 6.0"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.dll:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Windows compile with gcc/mingw"
 	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
@@ -369,6 +408,7 @@ verb.dll:
 
 verb.mexsol:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Unix compile for Sun cc"
 	@ echo "_____________________________________________________________"
@@ -376,6 +416,7 @@ verb.mexsol:
 
 verb.mexlx:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 5.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -383,6 +424,7 @@ verb.mexlx:
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 6.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -390,6 +432,7 @@ verb.mexglx:
 
 verb.mexaxp:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "keep your fingers crossed"
 	@ echo "_____________________________________________________________"
@@ -397,7 +440,9 @@ verb.mexaxp:
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
+	@ echo "%W% %E%"
 	@ echo ""
 	@ echo "Unix compile for MacOS X"
 	@ echo "_____________________________________________________________"
 	@ echo ""
+
