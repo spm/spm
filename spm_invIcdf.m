@@ -1,6 +1,6 @@
-function r = spm_invBcdf(F,n,p)
+function r = spm_invIcdf(F,n,p)
 % Inverse Cumulative Distribution Function (CDF) of Binomial distribution
-% FORMAT r = spm_invBcdf(F,n,p)
+% FORMAT r = spm_invIcdf(F,n,p)
 %
 % F - CDF (lower tail p-value)
 % n - Binomial n
@@ -8,7 +8,7 @@ function r = spm_invBcdf(F,n,p)
 % r - ordinate
 %_______________________________________________________________________
 %
-% spm_invBcdf returns the inverse Cumulative Distribution Function for
+% spm_invIcdf returns the inverse Cumulative Distribution Function for
 % the Binomial family of distributions.
 %
 % Definition:
@@ -80,10 +80,10 @@ if xa(3), Qp=Q; else Qp=1; end
 
 %-Compute by directly summing Bin PDF's for successive r & comparing with F
 tr  = 0;
-Ftr = spm_Bpdf(tr,n(Qn),p(Qp));
+Ftr = spm_Ipdf(tr,n(Qn),p(Qp));
 while any(F(QF)>Ftr) & any(n(Qn)>tr)
 	tr      = tr+1;
 	i       = find(Ftr<F(QF));
 	r(Q(i)) = r(Q(i)) + 1;
-	Ftr     = Ftr + spm_Bpdf(tr,n(Qn),p(Qp));
+	Ftr     = Ftr + spm_Ipdf(tr,n(Qn),p(Qp));
 end
