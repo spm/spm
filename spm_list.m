@@ -71,19 +71,34 @@ function varargout = spm_list(varargin)
 % The p values are based on the probability of obtaining c, or more,
 % clusters of k, or more, resels above u, in the volume S analysed =
 % P(u,k,c).  For specified thresholds u, k, the set-level inference is
-% based on the observed number of clusters C = P(u,k,C).  For each
+% based on the observed number of clusters C, = P(u,k,C).  For each
 % cluster of size K the cluster-level inference is based on P(u,K,1)
 % and for each voxel (or selected maxima) of height U, in that cluster,
 % the voxel-level inference is based on P(U,0,1).  All three levels of
 % inference are supported with a tabular presentation of the p values
-% and the underlying statistic (voxel statistic U, k or c).  The table
-% is grouped by regions and sorted on the Z-variate of the primary
-% maxima.  Z-variates (based on the uncorrected p value) are the Z
-% score equivalent of the statistic. Volumes are expressed in voxels.
+% and the underlying statistic:
+%
+% Set-level     - c    = number of suprathreshold clusters
+%               - P    = prob(c or more clusters in the search volume)
+%
+% Cluster-level - k    = number of voxels in this cluster
+%               - Pc   = prob(k or more voxels in the search volume)
+%               - Pu   = prob(k or more voxels in a cluster)
+%
+% Voxel-level   - T/F  = Statistic upon which the SPM is based
+%               - Ze   = The eqivalent Z score - prob(Z > Ze) = prob(t > T)
+%               - Pc   = prob(Ze or higher in the search volume)
+%               - Pu   = prob(Ze or higher at that voxel)
+%
+% x,y,z (mm)    - Coordinates of the voxel
+%
+% The table is grouped by regions and sorted on the Ze-variate of the
+% primary maxima.  Ze-variates (based on the uncorrected p value) are the
+% Z score equivalent of the statistic. Volumes are expressed in voxels.
 %
 % Clicking on values in the table returns the value to the Matlab
 % workspace. In addition, clicking on the co-ordinates jumps the
-% results section cursor to that locatioin. The table has a contextmenu
+% results section cursor to that locatioin. The table has a context menu
 % (obtained by right-clicking in the background of the table),
 % providing options to print the current table as a text table, and to
 % extract the table data to the Matlab workspace.
