@@ -1,6 +1,6 @@
-function spm_realign(P,flags)
+function P = spm_realign(P,flags)
 % Estimation of within modality rigid body movement parameters
-% FORMAT spm_realign(P,flags)
+% FORMAT P = spm_realign(P,flags)
 %
 % P     - matrix of filenames {one string per row}
 %         All operations are performed relative to the first image.
@@ -41,11 +41,11 @@ function spm_realign(P,flags)
 % A series of *.img conforming to SPM data format (see 'Data Format').
 %
 % Outputs
-% The parameter estimation part writes out ".mat" files for each of the
-% input images.  The details of the transformation are displayed in the
+% If no output argument, then an updated ".mat" file is written for each of
+% the input images.  The details of the transformation are displayed in the
 % results window as plots of translation and rotation.
 % A set of realignment parameters are saved for each session, named:
-% realignment_params_*.txt.
+% rp_*.txt.
 %__________________________________________________________________________
 %
 % The `.mat' files.
@@ -81,7 +81,7 @@ function spm_realign(P,flags)
 
 if nargin==0, spm_realign_ui; return; end;
 
-def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','');
+def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','','graphics',1);
 if nargin < 2,
 	flags = def_flags;
 else,
@@ -98,7 +98,7 @@ if ~isempty(flags.PW) & ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
 
 if length(P)==1,
 	P{1} = realign_series(P{1},flags);
-	save_parameters(P{1});
+	if nargout==0, save_parameters(P{1}); end;
 else,
 	Ptmp = P{1}(1);
 	for s=2:prod(size(P)),
@@ -114,18 +114,21 @@ else,
 
 	for s=1:prod(size(P)),
 		P{s} = realign_series(P{s},flags);
-		save_parameters(P{s});
+		if nargout==0, save_parameters(P{s}); end;
 	end;
 end;
 
-% Save Realignment Parameters
-%---------------------------------------------------------------------------
-for s=1:prod(size(P)),
-	for i=1:prod(size(P{s})),
-		spm_get_space(P{s}(i).fname, P{s}(i).mat);
+if nargout==0, 
+	% Save Realignment Parameters
+	%---------------------------------------------------------------------------
+	for s=1:prod(size(P)),
+		for i=1:prod(size(P{s})),
+			spm_get_space(P{s}(i).fname, P{s}(i).mat);
+		end;
 	end;
 end;
-plot_parameters(P);
+
+if flags.graphics, plot_parameters(P); end;
 
 return;
 %_______________________________________________________________________
@@ -461,7 +464,7 @@ return;
 
 %_______________________________________________________________________
 function save_parameters(V)
-fname = [spm_str_manip(prepend(V(1).fname,'realignment_params_'),'s') '.txt'];
+fname = [spm_str_manip(prepend(V(1).fname,'rp_'),'s') '.txt'];
 n = length(V);
 Q = zeros(n,6);
 for j=1:n,
