@@ -82,6 +82,7 @@ end
 %-Return if there are no voxels
 %-----------------------------------------------------------------------
 if ~length(Q)
+	figure(Fgraph)
 	axis off
 	text(0,0.3,spm_str_manip(CWD,'a50'));
 	text(0,0.2,'No voxels above this threshold {u}','FontSize',16);
@@ -112,6 +113,7 @@ end
 %-Return if there are no clusters
 %-----------------------------------------------------------------------
 if ~length(Q)
+	figure(Fgraph)
 	axis off
 	text(0,0.3,spm_str_manip(CWD,'a50'));
 	text(0,0.2,'No clusters above this threshold {k}','FontSize',16);
