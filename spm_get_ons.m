@@ -69,7 +69,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
 % 
 %        'SOA (scans)' and 'first trial (scans)':  If the SOA is fixed you
 %                only have to specify what it is and when the first condition 
-%                starts. With longs TRs you may want to specify m - 1 + TR/2 
+%                starts. With longs TRs you may want to specify m - 1/2 
 %                scans as the onset if the condition commenced with
 %                acquisition of the mth scan.
 %
