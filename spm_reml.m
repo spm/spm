@@ -30,18 +30,18 @@ for i = 1:m
 end
 for i = 1:m
 for j = i:m
-	o      = nnz(XQX{i}*XQX{j});
-	d(i,j) = o;
-	d(j,i) = o;
+	k      = (nnz(XQX{i}*XQX{j}));
+	d(i,j) = k;
+	d(j,i) = k;
 end
 end
 
 % recursive calling for (p) seperable partitions 
 %---------------------------------------------------------------------------
+u     = spm_svd(d^length(d) > 0);
 h     = zeros(m,1);
 n     = length(Cy);
 Ce    = sparse(n,n); 
-u     = spm_svd(d);
 p     = size(u,2);
 if p > 1
 
@@ -138,7 +138,8 @@ for k = 1:32
 
 	% Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
 	%-------------------------------------------------------------------
-	dh    = W\dFdh;
+	if rank(W) < m, warning('inestimable hyperparameters'); end
+	dh    = pinv(W)*dFdh;
 	h     = h + dh;
 
 	% Convergence (or break if there is only one hyperparameter)
