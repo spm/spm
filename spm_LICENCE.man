@@ -1,5 +1,13 @@
 
 % SPM is copyright, distributed under the GNU General Public Licence.
+%_______________________________________________________________________
+%
+% SPM (being the collection of files given in the manifest in the
+% Contents.m file) is free but copyright software, distributed under
+% the terms of the GNU General Public Licence as published by the Free
+% Software Foundation (either version 2, as given below, or at your
+% option, any later version).
+%
 % For more details on "copyleft", see http://www.gnu.org/copyleft/
 %_______________________________________________________________________
 %
@@ -7,7 +15,7 @@
 % 		       Version 2, June 1991
 % 
 %  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-%                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%      59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %  Everyone is permitted to copy and distribute verbatim copies
 %  of this license document, but changing it is not allowed.
 % 
