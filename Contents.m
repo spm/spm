@@ -44,7 +44,7 @@ help Contents
 % This file was produced with the help of:
 %      what *.h | nawk '{if (NF>1) printf("%c %-30s %s\n", 37, $1, $2)}'
 %=======================================================================
-% spm.m                          2.80
+% spm.m                          2.81
 % spm_add.m                      2.7
 % spm_adjmean_fmri_ui.m          2.9
 % spm_adjmean_ui.m               2.8
