@@ -1,7 +1,8 @@
-function V = spm_map(P)
+function V = spm_map(P,ID)
 % memory map of a volume image
-% FORMAT V = spm_map(P)
+% FORMAT V = spm_map(P,[ID])
 % P - filename
+% ID - Image descriptors passed to spm_map_vol
 %____________________________________________________________________________
 %
 % spm_map returns a vector V identifying a memory mapped image
@@ -24,5 +25,9 @@ if P(q - 3) == '.'; P = P(1:(q - 4)); end
 
 % get image descriptors and memory map
 %-----------------------------------------------------------------------
-[DIM VOX SCALE TYPE OFFSET] = spm_hread([P '.hdr']);
-V        = spm_map_vol(Filename,[DIM(1:3) VOX(1:3) SCALE TYPE OFFSET]);
+if (nargin = 1)
+	[DIM VOX SCALE TYPE OFFSET] = spm_hread([P '.hdr']);
+	ID = [DIM(1:3) VOX(1:3) SCALE TYPE OFFSET];
+end
+
+V        = spm_map_vol(Filename,ID);
