@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.4 2001-11-01 17:35:52 john Exp $
+# $Id: Makefile,v 2.5 2002-07-30 17:10:26 john Exp $
 #
 ###############################################################################
 #
@@ -86,9 +86,9 @@ SPMMEX =\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF) spm_getxyz.$(SUF)\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
-	spm_kronutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
+	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_flatten_mex.$(SUF)
+	spm_bias_mex.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -232,11 +232,11 @@ spm_brainwarp.$(SUF): spm_brainwarp.c  spm_vol_utils.$(SUF).a spm_matfuns.c\
 
 spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
-	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a -DMRI2D
+	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a
 	@ chmod 644 $@
 
 spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
-	$(MEX) spm_bsplins.c -DMRI2D
+	$(MEX) spm_bsplins.c
 
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
@@ -254,6 +254,8 @@ spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
 	@ chmod 644 $@
 
 spm_hist2.$(SUF):      spm_hist2.c spm_sys_deps.h
+
+spm_krutil.$(SUF): spm_krutil.c spm_sys_deps.h
 
 spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
 
@@ -277,8 +279,8 @@ spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a
 	@ chmod 644 $@
 
-spm_flatten_mex.$(SUF): spm_flatten_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_flatten_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
+spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
+	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a -DIGNORE_ZEROS
 	@ chmod 644 $@
 
 ###############################################################################
