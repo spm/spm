@@ -11,23 +11,54 @@ function [] = spm_dcm_generate(DCM_filename,SNR,show_data)
 %           Y.secs  overall number of seconds
 %           Y.Ce    Error covariance
 %
-% %W% Will Penny %E%
+% @(#)spm_dcm_generate.m	2.1 Will Penny 03/10/16
 
+
+% Check parameters and load specified DCM
+%-------------------------------------------------------------------
 if (nargin<2) | isempty(SNR)
-    SNR=1;
+    SNR         = 1;
 end
 if (nargin<3) | isempty(show_data)
-    show_data=0;
+    show_data   = 0;
 end
 
 FP{1} = DCM_filename;
 load(FP{:})
 
-U=DCM.U;
-v=DCM.v;
-n=DCM.n;
+U   = DCM.U;
+v   = DCM.v;        % number of scans
+n   = DCM.n;        % number of regions
+m   = size(U.u,2);  % number of inputs
 
-% Creat M matrix for spm_int
+
+% Check whether the model is stable by examining the eigenvalue 
+% spectrum for the combined connectivity matrix at each time
+% point (i.e. scan) - this is not very elegant, but takes into account all
+% possible temporal relations of the inputs
+%-------------------------------------------------------------------
+stable  = 1;
+s       = 2;    % index for current scan
+u       = 1;    % index for current input 
+TR      = DCM.Y.dt;
+while (stable & s<=v)
+    while (stable & u<=m)
+        u_t             = round(s*TR/U.dt) + 32;    % value of current input for current time point (i.e. scan)
+                                                    % NB: spm_get_ons uses an offset of 32 bins!
+        eigval          = eig(DCM.A + U.u(u_t,u)*DCM.B(:,:,u));
+        if max(eigval) > 0 
+            disp (['Modelled system is unstable: Lyapunov exponent of combined connectivity matrix is ' num2str(max(eigval))]);
+            disp ('No synthetic data generated.')
+            return
+        end
+        u   = u + 1;
+    end
+    u   = 1;
+    s   = s + 1;
+end
+
+
+% Create M matrix for spm_int
 %-------------------------------------------------------------------
 M.f  = 'spm_fx_dcm';
 M.g  = 'spm_lx_dcm';
@@ -76,7 +107,7 @@ DCM.Y=Y;
 save(FP{:},'DCM');
 
 if show_data,
-    figure
+    F = spm_figure('CreateWin','Simulated BOLD time series');
     t=Y.dt*[1:1:v];
     for i=1:n,
         subplot(n,1,i);
@@ -87,3 +118,4 @@ if show_data,
     xlabel('secs');
 end
 
+return
