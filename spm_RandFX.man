@@ -1,0 +1,20 @@
+
+% Random effects analyses for SPM'96 using a multi-level approach
+%_______________________________________________________________________
+%
+% **** under construction ****
+%
+% Basically:
+%    * Collapse data to single scan per condition per subject
+%      (See spm_adjmean_ui & spm_adjmean_fmri_ui)
+%    * Run as a multisubject "conditions only" design in SPM-PET
+%    * Can include more than two conditions, but should only consider
+%      contrasting them in pairs.
+%    * Can compare groups using "multistudy-conditions only" and using
+%      examining interaction of pairs of conditions:
+%      E.g: 2 studies, 2 conditions per study: [-1 +1 +1 -1] & [+1 -1 -1 +1]
+%
+% Let me know how you get on...
+%
+%_______________________________________________________________________
+% %W% Andrew Holmes %E%
