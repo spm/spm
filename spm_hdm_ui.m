@@ -71,7 +71,9 @@ xY     = struct(	'Ic'		,1,...
 
 %-confounds
 %---------------------------------------------------------------------------
-X0     = SPM.xX.X(:,[SPM.xX.iB SPM.xX.iG]);
+i      = SPM.Sess(1).row;
+j      = [SPM.xX.iB SPM.xX.iG];
+X0     = SPM.xX.X(i,j);
 try
 	X0 = [X0 full(SPM.xX.K(s).KH)];
 end
