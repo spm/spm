@@ -54,7 +54,8 @@ function spm_spm_ui
 %-Clear and label Interactive window
 %=======================================================================
 Finter = spm_figure('FindWin','Interactive');
-spm_clf(Finter)
+Fgraph = spm_figure('FindWin','Graphics');
+spm_clf(Finter), spm_clf(Fgraph)
 set(Finter,'Name','Statistical analysis');
 
 %-Design parameters
@@ -108,6 +109,13 @@ sGloNorm = str2mat(...
 	'AnCova {subject-specific}',...
 	'AnCova {study-specific}');
 
+sGMsca = str2mat(...
+	'No Grand Mean Scaling',...
+	'Scaling of overall Grand Mean',...
+	'Scaling of study Grand Means');
+iGMsca = 123;
+%-NB: Grand mean scaling by study is redundent for proportional scaling
+
 HForms = str2mat(...
 	'iCond,''-'',''Scan''',...
 	'iCond,''-'',''Cond''',...
@@ -156,7 +164,7 @@ J       = 1;		% Position of user interafce input
 
 %-Get design type
 %-----------------------------------------------------------------------
-DesType = spm_input('Select design type...',J,'m',Designs); J = J + 1;
+DesType = spm_input('Select design type...',J,'m',Designs); J=J+1;
 DesName = deblank(Designs(DesType,:));
 for p   = 1:size(DesPrams,1)
     eval([deblank(DesPrams(p,:)),' = DesDefaults(DesType,p);']), end
@@ -165,13 +173,15 @@ HForm   = HForms(iHForm,:);
 %-Specials for between group comparison design
 %-----------------------------------------------------------------------
 bBetGrp = any(dBetGrp==iHForm);
-if ~bBetGrp, sStud='Study'; else, sStud='Group'; end
+if ~bBetGrp, sStud='Study';
+else, sStud='Group'; sGMsca(3,:)=strrep(sGMsca(3,:),'study','group'); end
 
 %-Get filenames, accrue study, subject, condition & replication indicies
 %-----------------------------------------------------------------------
-nStud     = 1;
+nStud  = 1;
 if bMStud, nStud = spm_input(['Number of ',lower(sStud),'s ?'],J); J=J+1; end
-J0        = J;
+bMStud = nStud>1;
+J0     = J;
 for stud  = 1:nStud
 	J     = J0;
 	sStudP = []; if bMStud, sStudP = [sStud,' ',int2str(stud),': ']; end
@@ -284,7 +294,7 @@ C = []; Cnames = ''; Cc = []; Ccnames = '';
 if bAskCov
     c = spm_input('# of covariates (of interest)',J,'0|1|2|3|4|5|>',0:6);
     if (c == 6), c = spm_input('# of covariates (of interest)',J); end
-    J = J + 1;
+    J=J+1;
     while size(Cc,2) < c
         nCcs = size(Cc,2);
         d    = spm_input(sprintf('[%d] - Covariate %d',[q,nCcs+1]),J);
@@ -342,7 +352,7 @@ G = []; Gnames = ''; Gc = []; Gcnames = '';
 if bAskCov
     g = spm_input('# of confounding covariates',J,'0|1|2|3|4|5|>',0:6);
     if (c == 6), g = spm_input('# of confounding covariates',J); end
-    J = J + 1;
+    J=J+1;
     while size(Gc,2) < g
         nGcs = size(Gc,2);
         d = spm_input(sprintf('[%d] - Covariate %d',[q,nGcs + 1]),J);
@@ -402,25 +412,34 @@ if iGloNorm>9
 	J   = J + 1;
 end
 
+%-Grand mean scaling options
+%-----------------------------------------------------------------------
+if iGMsca>9
+	%-User has a choice from the options in iGMsca.
+	%-iGMsca contains an integer, each digit specifies an option
+	%---------------------------------------------------------------
+	str = int2str(iGMsca);
+	tmp = []; for i = 1:length(str), tmp = [tmp, eval(str(i))]; end
+	%-Scaling by study redundent if proportional scaling,
+	% don't offer study specifics if not bMStud
+	if (iGloNorm==2 | ~bMStud) & any(tmp==3), tmp(find(tmp==3))=[]; end
+	iGMsca=spm_input...
+	    ('Grand mean scaling',J,'m',sGMsca(tmp,:),tmp);
+	J=J+1;
+end
+if iGMsca>1,	GM = spm_input('Value for grand mean ?',J,'e',50); J=J+1;
+		if GM==0, iGMsca=1; end
+else, GM=0; end
 
 %-Get threshold defining voxels to analyse
 %-----------------------------------------------------------------------
-THRESH = spm_input('Gray matter threshold ?',J,'e',0.8);
-
-
-%-Value to be assigned to grand mean: 50 is usual for rCBF. 0 for no scaling
-%-----------------------------------------------------------------------
-GM    = spm_input('Value for grand mean ?',J,'e',50);
-J     = J + 1;
+THRESH = spm_input('Gray matter threshold ?',J,'e',0.8); J=J+1;
 
 
 %-Get contrasts or linear compound for parameters of interest [H C]
 %-----------------------------------------------------------------------
-t     = spm_input('# of contrasts',J);
+t     = spm_input('# of contrasts',J); J=J+1;
 a     = size([H C],2);
-J     = J + 1;
-
-
 CONTRAST = [];
 while size(CONTRAST,1) < t
 	d = spm_input(sprintf('[%d] - contrast %d',a,size(CONTRAST,1) + 1),J);
@@ -431,8 +450,6 @@ end % (while)
 
 %-The interactive parts of spm_spm_ui are now finished
 %-----------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
 set(Finter,'Name','thankyou','Pointer','Watch')
 
 
@@ -462,17 +479,23 @@ GX     = zeros(q,1);
 for i  = 1:q
 	GX(i) = spm_global(V(:,i)); end
 
-%-Scale scaling coefficients so that Grand mean (mean of global means)
-% for each study is GM (if GM~=0)
+%-Grand mean scaling (if required): Scale scaling coefficients so that
+% Grand mean (mean of global means) (for each study) is GM
 %-----------------------------------------------------------------------
-if GM ~= 0
-   for i = 1:max(iStud)
-	SStu_d       = find(iStud==i);
-	SStu_m	     = mean(GX(SStu_d));
-	V(7,SStu_d)  = V(7,SStu_d) *GM/SStu_m;
-	GX(SStu_d)   = GX(SStu_d)  *GM/SStu_m;
-   end
-end
+if iGMsca==1
+	%-No grand mean scaling
+elseif iGMsca==2
+	%-Grand mean scaling (overall)
+	V(7,:) = V(7,:)*GM/mean(GX);
+	GX     = GX*GM/mean(GX);
+elseif iGMsca==3
+	%-Grand mean scaling by block
+	for i = 1:max(iStud)
+		SStu_d = find(iStud==i); SStu_m = mean(GX(SStu_d));
+		V(7,SStu_d)  = V(7,SStu_d) *GM/SStu_m;
+		GX(SStu_d)   = GX(SStu_d)  *GM/SStu_m;
+	end
+else, error('Invalid iGMsca option'), end
 
 %-Construct Global part of covariates of no interest partition.
 %-Centre global means if included in AnCova models, by mean correction.
@@ -572,7 +595,7 @@ for i = 1:size(Cc,2)
 	x = x + dx; end
 for i = 1:size(Gc,2)
 	text(x + 0.02,0.85,Gcnames(i,:),'Rotation',90);
-	x = x + dx; end
+	x = x + 2*dx; end
 text(x,0.92,'Base directory:','FontSize',10,'Fontweight','Bold');
 text(x,0.90,CPath,'FontSize',10);
 text(x,0.87,'Filename Tails');
@@ -589,7 +612,7 @@ for i = 1:q
 		x = x + dx; end
 	for j = 1:size(Gc,2)
 		text(x,y,sprintf('%-8.6g',Gc(i,j)),'FontSize',10)
-		x = x + dx; end
+		x = x + 2*dx; end
 	text(x,y,Q(i,:),'FontSize',10);
 	y     = y - dy;
 	if y < 0;
@@ -603,8 +626,12 @@ end % (for i = 1:q)
 
 y      = y - dy;
 dy     = dy*1.2;
-if (GM~=0)
-	text(0,y,sprintf(['Images scaled to a grand mean of %g'],GM))
+if iGMsca==2
+	text(0,y,sprintf(['Images scaled to an overall grand mean of %g'],GM))
+	y = y - dy;
+elseif iGMsca==3
+	text(0,y,sprintf(...
+		['Images scaled to ',lower(sStud),' grand means of %g'],GM))
 	y = y - dy;
 end
 text(0,y,sprintf(...
