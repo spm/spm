@@ -85,8 +85,8 @@ h     = 3;						% number of recursions
 M     = sb(1);						% rows per slice
 N     = sb(2);						% columns per slice
 n     = M*N;						% voxels per slice
-FWHM  = [8/V(4) 8/V(5)];
-						% in plane smoothing
+FWHM  = [8/V(4) 8/V(5)];				% in plane smoothing
+
 if V(3,1) == 1; dQ = dQ([1 2 6],:); end			% 3 params for slices
 if sb(3) == 0; S = 1; end				% 1 section for slices
 
@@ -155,9 +155,9 @@ end
 
 % movement-related covariates to be removed - only those with a z component
 %---------------------------------------------------------------------------
-G     = Q(:,[3 4 5]);
+G     = Q(:,[find(dQ(:,3)) find(dQ(:,4)) find(dQ(:,5))]);
 d     = [zeros(1,size(G,2)); G([1:(size(G,1) - 1)],:)];
-G     = [G G.^2 d d.^2 ones(size(d,1),1)];
+G     = [G G.^2 d d.^2 ones(size(Q,1),1)];
 
 
 % write the realigned images to output files 
