@@ -87,6 +87,7 @@ end
 spm_XYZreg('SetCoords',xyz,hReg);
 rcp     = VOL.iM(1:3,:)*[xyz;1];
 
+
 %-Extract required data from results files
 %=======================================================================
 cwd  = pwd;				%-Note current working directory
@@ -102,22 +103,31 @@ if exist(fullfile('.','Y.mad'))~=2
 	y    = [];
 %-****	sf_noYwarn([])
 %-****	return
-elseif SPM.QQ(i)==0
+elseif SPM.QQ(i) == 0
 	gotY = 0;
 	y    = [];
 %-****	sf_noYwarn(SPM.QQ(i))
 %-****	return
 else
 	gotY = 1;
-	y = spm_extract('Y.mad',SPM.QQ(i));
+	y    = spm_extract('Y.mad',SPM.QQ(i));
 end
+
+
+% inference (for xlabel)
+%-----------------------------------------------------------------------
+Z      = SPM.Z(i);
+Pz     = spm_P(1,0,Z,SPM.df,SPM.STAT,1,    SPM.n);
+Pu     = spm_P(1,0,Z,SPM.df,SPM.STAT,VOL.R,SPM.n);
+STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected.)',Z,Pz,Pu)];
+
 
 
 %-Get parameter estimates, ResMS, (compute) fitted data & residuals
 %-NB: Data in Y.mad is raw, must (re)apply temporal smoothing in K
-%     Fitted data & residuals are for temporally smoothed model.
-%-----------------------------------------------------------------------
+%     Fitted data & residuals are for temporally smoothed model
 %-Parameter estimates: beta = xX.pKX * xX.K*y;
+%-----------------------------------------------------------------------
 beta  = ones(length(xSDM.Vbeta),1);
 for i = 1:length(beta)
 	beta(i) = spm_sample_vol(xSDM.Vbeta(i),rcp(1),rcp(2),rcp(3),0);
@@ -131,19 +141,12 @@ else
 end
 
 %-Residual mean square: ResMS = sum(R.^2)/xX.trRV;
+%-----------------------------------------------------------------------
 ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
-
 SE    = sqrt(ResMS*diag(xX.Bcov));	%-S.E. of parameter estimates
-
 COL   = ['r','b','g','c','y','m','r','b','g','c','y','m'];
 
 
-% inference (for xlabel)
-%-----------------------------------------------------------------------
-Z      = SPM.Z(i);
-Pz     = spm_P(1,0,Z,SPM.df,SPM.STAT,1,    SPM.n);
-Pu     = spm_P(1,0,Z,SPM.df,SPM.STAT,VOL.R,SPM.n);
-STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected.)',Z,Pz,Pu)];
 
 %-Return to previous directory
 %-----------------------------------------------------------------------
@@ -156,7 +159,12 @@ cd(cwd)					%-Go back to original working dir.
 
 % find out what to plot
 %----------------------------------------------------------------------
-Cplot = {'parameter estimates','responses','event-related responses'};
+Cplot = {	'parameter estimates',...
+	 	'responses',...
+		'event/epoch-related responses'};
+if ~length(xSDM.Sess)
+	Cplot = Cplot(1:2);
+end
 Cp    = spm_input('Plot',-1,'m',Cplot);
 TITLE = Cplot{Cp};
 
@@ -168,10 +176,12 @@ if     Cp == 1
 	% specify [contrasts] of parameter estimate to bar
 	%--------------------------------------------------------------
 	Cplot = {	'all parameters',...
-			'parameters specified by contrast',...
+			'parameters spanned by contrast',...
 			'contrast of parameters'};
 	%-Don't offer option 3 for conjunctions or F-contrasts!
-	if ( length(SPM.Ic)>1 | size(xCon(SPM.Ic(1)),2)>1 ), Cplot(3)=[]; end
+	if ( length(SPM.Ic) > 1 | size(xCon(SPM.Ic(1)),2) > 1 )
+		Cplot(3) = [];
+	end
 	Cp    = spm_input('Estimates to plot',-1,'m',Cplot);
 	TITLE = Cplot{Cp};
 	XLAB  = 'effect';
@@ -207,6 +217,7 @@ if     Cp == 1
 		line([j j],([SE(j) 0 - SE(j)] + beta(j)),...
 			    'LineWidth',3,'Color','r')
 	end
+	set(gca,'XLim',[0.4 (length(beta) + 0.6)])
 
 
 
@@ -318,41 +329,66 @@ elseif Cp == 2
 elseif Cp == 3
 
 	if (isempty(gotY)|~gotY), sf_noYwarn(gotY), return, end
-
-	j     = 1;
-	if size(ERI,2) > 1
-		j    = spm_input('which events','-1','n','1 2');
-	end
+	
+	% get session and trials
+	%--------------------------------------------------------------
+	str   = sprintf('which sessions (1 - %d)',length(xSDM.Sess));
+	ss    = spm_input(str,1,'n','1');
+	str   = sprintf('which trials (1 - %d)',length(xSDM.Sess{ss(1)}.bf));
+	tr    = spm_input(str,2,'n','1');
 	Cplot = {	'fitted response',...
 			'fitted response and PSTH',...
 			'fitted response +/- standard error of response',...
 			'fitted response +/- standard error of onset',...
-			'fitted response and adjusted data'};
-	Cp    = spm_input('plot in terms of','!+1','m',Cplot);
-	TITLE = deblank(Cplot(Cp,:));
+			'fitted response and adjusted data',...
+			'parametric plot'};
+	Cp    = spm_input('plot in terms of',3,'m',Cplot);
+	TITLE = Cplot{Cp};
+	YLAB  = 'effect size';
+	XLAB  = 'peri-stimulus time {secs}';
 
 
 	% cycle over selected events
 	%--------------------------------------------------------------
-	dx    = 0.1;
-	x     = [0:(size(DER,1) - 1)]'*dx - 4;
+	dx    = xX.dt;
 
-	% reconstruct response without smoothing
+	% reconstruct response with filtering
 	%--------------------------------------------------------------
 	figure(Fgraph)
 	subplot(2,1,2)
-	XLAB  = 'peri-stimulus time {secs}';
 	hold on
+	XLim  = 0;
 	u     = 1;
-	for i = j
-		Y      = DER*beta(ERI(:,i));
-		se     = sqrt(diag(DER*xX.Bcov(ERI(:,i),ERI(:,i))*DER')*ResMS);
-		pst    = PST(:,i);
-		bin    = round((pst + 4)/dx);
-		q      = find( (bin >= 1) & (bin <= size(DER,1)) & pst);
-		bin    = bin(q);
-		pst    = pst(q);
-		y      = DER(bin,:)*beta(ERI(:,i)) + R(q);
+	for s = ss
+	for t = tr
+
+		% trial-specific parameters
+		%------------------------------------------------------
+		i      = xSDM.Sess{s}.row;
+		j      = xSDM.Sess{s}.col(xSDM.Sess{s}.ind{t});
+
+		% basis functions, filter and parameters
+		%------------------------------------------------------
+		B      = beta(j);
+		X      = xSDM.Sess{s}.bf{t};
+		q      = size(X,1);
+		x      = [1:q]*dx;
+		K      = spm_make_filter(q,dx,xX.filterHF,xX.filterLF);
+		Q      = xSDM.Sess{s}.para{t};
+
+		% fitted responses, adjusted data and standard error
+		%------------------------------------------------------
+		Y      = K*X*B;
+		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+		pst    = xSDM.Sess{s}.pst{t};
+		bin    = round(pst/dx);
+		q      = find( (bin >= 0) & (bin <= size(X,1)));
+		y      = zeros(size(R));
+		y(q)   = Y(bin(q));
+		y      = y + R;
+
+		% onset
+		%------------------------------------------------------
 		v      = min(find(abs(Y) > max(abs(Y))/2));
 		T      = x(v);
 		dYdt   = gradient(Y')'/dx;
@@ -360,19 +396,19 @@ elseif Cp == 3
 
 		% PSTH
 		%------------------------------------------------------
-		dBIN   = 2/dx;
-		BIN    = 1/dx:dBIN:32/dx;
-		PSTH   = zeros(length(BIN) - 1,1);
-		SEM    = zeros(length(BIN) - 1,1);
-		for k  = 1:(length(BIN) - 1)
-			q = find(bin > BIN(k) & bin <= BIN(k + 1));
+		INT      = min(pst):2:max(pst);
+		PSTH   = [];
+		SEM    = [];
+		PST    = [];
+		for k  = 1:(length(INT) - 1)
+			q = find(pst > INT(k) & pst <= INT(k + 1));
 			n = length(q);
 			if n
-				PSTH(k) = mean(y(q));
-				SEM(k)  = std(y(q))/sqrt(n);
+				PSTH = [PSTH mean(y(q))];
+				SEM  = [SEM std(y(q))/sqrt(n)];
+				PST  = [PST mean(pst(q))];
 			end
 		end
-		BIN    = (BIN(1:k) + dBIN/2)*dx - 4;
 		
 
 		% plot
@@ -381,31 +417,40 @@ elseif Cp == 3
 			plot(x,Y,COL(u))
 
 		elseif Cp == 2
-			errorbar(BIN,PSTH,SEM,[':' COL(u)])
-			plot(BIN,PSTH,['.' COL(u)],'MarkerSize',16), hold on
-			plot(BIN,PSTH,COL(u),'LineWidth',2)
+			errorbar(PST,PSTH,SEM,[':' COL(u)])
+			plot(PST,PSTH,['.' COL(u)],'MarkerSize',16), hold on
+			plot(PST,PSTH,COL(u),'LineWidth',2)
 			plot(x,Y,['-.' COL(u)])
 			TITLE = 'Peristimulus histogram (2s bins with sem)';
 
 		elseif Cp == 3
-			plot(x,Y,COL(u),x,Y + se,...
-				['-.' COL(u)],x,Y - se,['-.' COL(u)])
+			plot(x,Y,COL(u))
+			plot(x,Y + se,['-.' COL(u)],x,Y - se,['-.' COL(u)])
 
 		elseif Cp == 4
 			plot(x,Y,COL(u))
 			line(([-seT seT] + T),[Y(v) Y(v)],'LineWidth',6)
 
 		elseif Cp == 5
-			plot(x,Y,COL(u),pst,y,['.' COL(u)],...
-				'MarkerSize',8,'LineWidth',2)
+			plot(x,Y,COL(u),pst,y,['.' COL(u)],'MarkerSize',8)
+
+		elseif Cp == 6
+			hold off
+			surf(x',Q',Q*Y')
+			YLAB  = 'parameter';
 
 		end
-		XLAB = str2mat(XLAB,[sprintf('Trial type %d - ',i) COL(u)]);
-		u    = u + 1;
-	end
 
+		% xlabel
+		%------------------------------------------------------
+		str  = [xSDM.Sess{s}.name{t} sprintf(' (Session %d) - ',s)];
+		XLAB = str2mat(XLAB,[str COL(u)]);
+		u    = u + 1;
+		XLim = max([XLim max(x)]);
+	end
+	end
 	hold off; axis on
-	set(gca,'XLim',[min(x) max(x)])
+	set(gca,'XLim',[-4 XLim])
 
 end
 
@@ -413,9 +458,8 @@ end
 %-Label and call Plot UI
 %----------------------------------------------------------------------
 axis square
-XLAB      = str2mat(XLAB,STR);
-YLAB      = 'effect size';
-xlabel(XLAB, 'FontSize',10)
+XLAB   = str2mat(XLAB,STR);
+xlabel(XLAB,'FontSize',10)
 ylabel(YLAB,'FontSize',10)
 title(TITLE,'FontSize',16)
 
@@ -432,14 +476,14 @@ spm_results_ui('PlotUi',gca)
 
 function sf_noYwarn(Q)
 %=======================================================================
-if nargin<1, Q=0; end
+if nargin < 1, Q = 0; end
 
 if isempty(Q)
 	str = {'Graphing unavailable: ',...
-		'No timecourse data saved with this analysis'};
-elseif Q(1)==0
+		'No time-series data saved with this analysis'};
+elseif Q(1) == 0
 	str = {'Graphing unavailable: ',...
-		'No timecourse data saved for this voxel'};
+		'No time-series data saved for this voxel'};
 else
 	return
 end
