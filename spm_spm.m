@@ -127,21 +127,39 @@ H     = K*H;
 C     = K*C;
 G     = K*G;
 
+% cubic VOI and indices
+%---------------------------------------------------------------------------
+r     = 8;
+x     = [1:r] - 1;
+y     = [1:r] - 1;
+z     = [1:r] - 1;
+Q     = 0*x;
+if V(3) == 1; z = 0; end
+Xs    = [];
+for i = 1:length(z)
+	for j = 1:length(y)
+		d  = [x; Q + y(j); Q + z(i)];
+		Xs = [Xs d];
+	end
+end
+Qs    = zeros(size(Xs));
+for i = 1:size(Xs,2)
+	d = find(all(Xs == [Xs(1,i) + 1; Xs(2,i); Xs(3,i)]*ones(1,size(Xs,2))));
+	if length(d); Qs(1,i) = d; end
+	d = find(all(Xs == [Xs(1,i); Xs(2,i) + 1; Xs(3,i)]*ones(1,size(Xs,2))));
+	if length(d); Qs(2,i) = d; end
+	d = find(all(Xs == [Xs(1,i); Xs(2,i); Xs(3,i) + 1]*ones(1,size(Xs,2))));
+	if length(d); Qs(3,i) = d; end
+end
 
-%-Location vectors {Xp - voxels, Xq - mm}
-%-----------------------------------------------------------------------
-x     = 1:V(1); 
-y     = 1:V(2);
-z     = 1:V(3);
-[yp xp] = meshgrid(y,x');
-xp    = xp(:)';
-yp    = yp(:)';
-zp    = zeros(size(yp));
-op    = ones(size(yp));
-p2mm  = spm_matrix([0 0 0 0 0 0 V(4:6,1)'])*spm_matrix(-ORIGIN);
+
+% transformatino matrix {voxels to mm}
+%---------------------------------------------------------------------------
+Xq     = spm_matrix([0 0 0 0 0 0 V(4:6,1)'])*spm_matrix(-ORIGIN);
+Xq     = Xq([1:3],:);
 
 %-Critical value for F comparison at probability threshold (UFp)
-%-----------------------------------------------------------------------
+%---------------------------------------------------------------------------
 DESMTX = [H C B G];
 Fdf    = spm_AnCova([H C],[B G],SIGMA);
 UF     = spm_invFcdf(1 - UFp,Fdf);
@@ -149,66 +167,73 @@ df     = Fdf(2);
 
 
 %-Initialise variables
-%-----------------------------------------------------------------------
+%---------------------------------------------------------------------------
 S      = 0;                                     	% Volume analyzed
-n_res  = min([q 32]);					% Residuals to be
-i_res  = linspace(1,q,n_res);				% used in smoothness
-PrevPl = zeros(V(1,1)*V(2,1),n_res);			% estimation
 sx_res = 0;              
 sy_res = 0;             
 sz_res = 0; 
-nx_res = 0;
-ny_res = 0;
-nz_res = 0;            
+nx     = 0;
+ny     = 0;
+nz     = 0;
+i_res  = round(linspace(1,q,min([q 64])));		% RSSQ used for smoothness
+N      = prod(V(1:3));					% number of voxels
+I      = 0;						% voxel counter
+xyz    = [1;1;1];					% starting location
+p      = size(Xs,2);					% voxels per cycle
 
 
-
-%-Cycle over planes to avoid working memory problems
+%-Cycle over cubic regions to avoid memory problems
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',100,'AnCova',' ');
 
-for i = 1:V(3)
+while(1)
+
+	%-next location
+	%---------------------------------------------------------------
+	I     = I + p;
+	if xyz(1) > V(1); xyz(1) = 1; xyz(2) = xyz(2) + r; end
+	if xyz(2) > V(2); xyz(2) = 1; xyz(3) = xyz(3) + r; end
+	if xyz(3) > V(3); break; end
+	x     = xyz(1) + Xs(1,:);
+	y     = xyz(2) + Xs(2,:);
+	z     = xyz(3) + Xs(3,:);
+
 
 	%-identify intracranial voxels
 	%---------------------------------------------------------------
-	Xp    = [xp; yp; (z(i) + zp); op];
-	X     = spm_sample_vol(V(:,1),Xp(1,:)',Xp(2,:)',Xp(3,:)',0);
+	X     = spm_sample_vol(V(:,1),x,y,z,0);
 	Q     = find(X > TH(1));
-	if length(Q) % proceed
 
+	if length(Q) % proceed
 
 	%-get data
 	%---------------------------------------------------------------
 	U     = Q;
 	X     = zeros(q,length(Q));
-	Xp    = Xp(:,Q);
+	x     = x(Q);
+	y     = y(Q);
+	z     = z(Q);
 	for j = 1:q
-		d      = spm_sample_vol(V(:,j),Xp(1,:)',Xp(2,:)',Xp(3,:)',0);
+		d      = spm_sample_vol(V(:,j),x,y,z,0);
 		U      = U & (d > TH(j));
-		X(j,:) = d';
+		X(j,:) = d;
 	end
 	U     = find(U);
-	if length(U); % proceed
 
+	if length(U); % proceed
 
 	%-volume and locations
 	%---------------------------------------------------------------
 	Q     = Q(U);
-	Xp    = Xp(:,U);
 	Y     = X(:,U); clear X
 	S     = S + length(Q); 
-	XYZ   = p2mm*Xp;
-	XYZ   = XYZ([1:3],:);
+	XYZ   = Xq*[x; y; z; ones(size(x))];
 
 
 	%-Remove the grand mean and replace it later
 	%---------------------------------------------------------------
 	EX    = mean(Y);
-	if  q > 512
-		for j = 1:size(Y,2); Y(:,j) = Y(:,j) - EX(j); end
-	else
-		Y     = Y - ones(q,1)*EX;
-	end
+	Y     = Y - ones(q,1)*EX;
 
 	%-Convolve
 	%---------------------------------------------------------------
@@ -218,70 +243,58 @@ for i = 1:V(3)
 	%-AnCova; employing pseudoinverse to allow for non-unique designs	
 	%---------------------------------------------------------------
 	[Fdf F BETA T] = spm_AnCova([H C],[B G],SIGMA,X,CONTRAST);
-	Res            = X(i_res,:) - DESMTX(i_res,:)*BETA;	
 
 
 	%-Remove voxels with (uncorrected) non-significant F-statistic
 	%---------------------------------------------------------------
 	P     = find(F > UF);
+
 	if length(P) % proceed
 
-	F     = F(P);
-	BETA  = BETA(:,P);
-	XYZ   = XYZ(:,P);
-
-	%-Adjustment: remove confounds and replace grand mean
-	%---------------------------------------------------------------
-	XA  = X(:,P) - [zeros(size([H C])) B G]*BETA + ones(q,1)*EX(:,P);
+		%-Adjustment: remove confounds and replace grand mean
+		%-------------------------------------------------------
+		d     = [1:size([B G],2)] + size([H C],2);
+		XA    = X(:,P) - [B G]*BETA(d,P) + ones(q,1)*EX(:,P);
 
 
-	%-Cumulate remaining voxels
-	%---------------------------------------------------------------
-	spm_append('XA',XA);
-	spm_append('SPMF',F );
-	spm_append('BETA',BETA);
-	spm_append('XYZ',XYZ);
-	if ~isempty(T)
-		spm_append('SPMt',spm_t2z(T(:,P),df)); end
+		%-Cumulate remaining voxels
+		%-------------------------------------------------------
+		spm_append('XA',XA);
+		spm_append('SPMF',F(P) );
+		spm_append('BETA',BETA(:,P));
+		spm_append('XYZ',XYZ(:,P));
+		if ~isempty(T)
+			spm_append('SPMt',spm_t2z(T(:,P),df)); end
 
 
 	end % proceed P
-	clear BETA XA 
 
 
-	% Normalize residuals
+	% Smoothness estimation - Normalize residuals
 	%---------------------------------------------------------------
+	Res    = X(i_res,:) - DESMTX(i_res,:)*BETA;	
 	ResSS  = sqrt(sum(Res.^2));
 	for  j = 1:size(Res,1)
 		Res(j,:) = Res(j,:)./ResSS; end
 
-
 	%-Compute spatial derivatives
 	%---------------------------------------------------------------
-	Qx     = zeros(V(1)*V(2),1);
-	Qx(Q)  = Q;
-	Qx     = reshape(Qx,V(1),V(2));
-	Qx     = find(~(~Qx | abs(gradient(~Qx))));
-	Qy     = Qx;
-	Qz     = zeros(V(1)*V(2),1);
-	Qz(Q)  = Q;
-	Qz     = find(PrevPl(:,1) & Qz(:));
-	nx_res = nx_res + length(Qx);
-	ny_res = ny_res + length(Qy);
-	nz_res = nz_res + length(Qz);
-	for j  = 1:size(Res,1)
-		CurrPl      = zeros(V(1)*V(2),1);
-		CurrPl(Q)   = Res(j,:);
-		dz          = PrevPl(:,j) - CurrPl;
-		PrevPl(:,j) = CurrPl;
-		[dy dx]     = gradient(reshape(CurrPl,V(1),V(2)));
-
-		d       = dx(Qx); d = d(finite(d));
-		sx_res  = sx_res + sum(d.^2);
-		d       = dy(Qy); d = d(finite(d));
-		sy_res  = sy_res + sum(d.^2);
-		d       = dz(Qz); d = d(finite(d));
-		sz_res  = sz_res + sum(d.^2);
+	for j = 1:min([length(Q) 64])
+		d      = find(Q == Qs(1,Q(j)));
+		if length(d)
+			sx_res = sx_res + sum(((Res(:,j) - Res(:,d))).^2);
+			nx     = nx + 1;
+		end
+		d      = find(Q == Qs(2,Q(j)));
+		if length(d)
+			sy_res = sy_res + sum(((Res(:,j) - Res(:,d))).^2);
+			ny     = ny + 1;
+		end
+		d      = find(Q == Qs(3,Q(j)));
+		if length(d)
+			sz_res = sz_res + sum(((Res(:,j) - Res(:,d))).^2);
+			nz     = nz + 1;
+		end
 	end
 
 
@@ -290,7 +303,8 @@ for i = 1:V(3)
 
 	% progress
 	%---------------------------------------------------------------
-	spm_progress_bar('Set',i*100/V(3));
+	xyz   = xyz + [r;0;0];
+	spm_progress_bar('Set',100*I/N);
 
 end  % (loop over planes)
 spm_progress_bar('Clear');
@@ -298,7 +312,7 @@ spm_progress_bar('Clear');
 
 %-Smoothness estimates %-----------------------------------------------------------------------
 Lc2z   = spm_lambda(df);
-L_res  = [sx_res/nx_res sy_res/ny_res sz_res/nz_res]*(df - 2)/(df - 1);
+L_res  = [sx_res/nx sy_res/ny sz_res/nz]*(df - 2)/(df - 1);
 W      = (2*Lc2z*L_res).^(-1/2);
 if V(3) == 1
 	W = W(:,[1:2]); end		% 2 dimnesional data
@@ -310,7 +324,6 @@ for i  = 1:q; spm_unmap(V(:,i)); end
 %-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
-TH     = TH(:,1);
 save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT
 
 
