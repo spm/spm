@@ -4,8 +4,9 @@ function spm_clf(F)
 % F	- Figure number, or 'Tag' string of figure(s) to clear
 %___________________________________________________________________________
 %
-% Clears the specified figure, deleting all objects with visible handles.
-% ('HandleVisibility'=='on').
+% Clears the specified figure, deleting all objects with visible
+% handles.  ('HandleVisibility'=='on'). This is the same as MatLab5's
+% clf, except that the figure can be specified.
 %
 % If the current window is 'Tag'ged interactive, then the figures name
 % is cleared and the pointer reset.
