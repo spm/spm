@@ -61,7 +61,7 @@ spm_unmap_vol(V);
 set(3,'Units','pixels')
 WIN    = get(gcf,'Position');
 WIN    = WIN(3)/WIN(4);
-Y      = 0.36;
+Y      = 0.36*DIM(2)*VOX(2)/max(DIM.*VOX);
 X      = Y*DIM(1)*VOX(1)/(DIM(2)*VOX(2));
 Z      = Y*DIM(3)*VOX(3)/(DIM(2)*VOX(2));
 
