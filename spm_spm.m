@@ -1,6 +1,6 @@
-function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
+function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT,PST)
 % Statistical analysis with the General linear model
-% FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT);
+% FORMAT spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT,PST);
 %
 % V   - {12 x q} matrix of identifiers of memory mapped data {q scans}
 % H   - {q  x h} condition subpartition of the design matrix {h conditions}
@@ -15,6 +15,7 @@ function spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,TH,Dnames,Fnames,SIGMA,RT)
 % Fnames   - string matrix of Filenames corresponding to observations
 % SIGMA    - Gaussian parameter of K for correlated observations
 % RT       - Repeat time for EPI fMRI (generally interscan interval)
+% PST      - peri-stimulus time (for epoch or event related fMRI)
 %_______________________________________________________________________
 %
 % spm_spm is the heart of the SPM package and implements the general
@@ -325,7 +326,7 @@ for i  = 1:q; spm_unmap(V(:,i)); end
 %-Save design matrix, and other key variables; S UF CONTRAST W V and df
 %-----------------------------------------------------------------------
 V      = [V(1:6,1); ORIGIN(:)];
-save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT
+save SPM H C B G S UF V W CONTRAST df Fdf TH Dnames Fnames SIGMA RT PST
 
 
 %-Display and print SPM{F}, Design matrix and textual information
