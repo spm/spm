@@ -46,7 +46,7 @@ if nargin==0,
 
 	mode = spm_input('Save','+1','m',...
 		['Save Rendering|Save Extracted Surface|'...
-		 'Save Rendering and Surface'],[1 2 3],3);
+		 'Save Rendering and Surface|Save Surface as OBJ format'],[1 2 3 4],3);
 end;
 
 spm('FigName','Surface: working',Finter,CmdLine);
@@ -92,10 +92,9 @@ if any(mode==[1 3]),
 	renviews(tmp,matname);
 end;
 
-if any(mode==[2 3]),
+if any(mode==[2 3 4]),
 	% Produce extracted surface
 	%-----------------------------------------------------------------------
-	matname = fullfile(pth,['surf_' nam '.mat']);
 	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
 
 	[faces,vertices] = isosurface(br,0.5);
@@ -104,8 +103,24 @@ if any(mode==[2 3]),
 	% wierd and wonderful reason.
 	Mat      = V(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
 	vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
-	save(matname,'faces','vertices');
-end;
+	if any(mode==[2 3]),
+		matname = fullfile(pth,['surf_' nam '.mat']);
+		save(matname,'faces','vertices');
+	if any(mode==[4]),
+		fname = fullfile(pth,['surf_' nam '.obj']);
+		fid   = fopen(fname,'w');
+		%for i=1:size(v,1),
+		%	fprintf(fid,'v %f %f %f\n',vertices(i,1),vertices(i,2),vertices(i,3));
+		%end;
+		fprintf(fid,'v %f %f %f\n',vertices');
+		fprintf(fid,'g Cortex\n'); % Group Cortex
+		%for i=1:size(f,1),
+		%	fprintf(fid,'f %d %d %d\n',faces(i,1),faces(i,2),faces(i,3));
+		%end;
+		fprintf(fid,'f %d %d %d\n',faces');
+		fprintf(fid,'g\n');
+		fclose(fid);
+	end;
 
 spm('Pointer')
 
