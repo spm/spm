@@ -5,6 +5,7 @@ static char sccsid[]="%W% Matthew Brett %E%";
 
 #include <windows.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "mex.h"
 
@@ -53,6 +54,33 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		RegCloseKey(
  			 regkey   // handle to key to close
 		);
+
+		/* Return registry username */
 		plhs[0]=mxCreateString(regname);
+
+	} else if (strcmp(actionstr, "drives")==0){
+		int drive, driveno = 0, curdrive;
+		UINT prevemode;
+		char drives[27];
+
+		/* turn off insert disk in drive messages */
+		prevemode = SetErrorMode(SEM_FAILCRITICALERRORS);
+
+		/* Save current drive. */
+		curdrive = _getdrive();
+
+		/* If we can switch to the drive, it exists. */
+		/* start at c:, don't check floppy drives */
+		for( drive = 3; drive <= 26; drive++ )
+			if( !_chdrive( drive ) )
+				drives[driveno++]='A'+drive-1;
+			drives[driveno]=0;
+
+		/* Restore original drive and error mode.*/
+		_chdrive( curdrive );
+		SetErrorMode(prevemode);
+
+		/* Return string of drive letters */
+		plhs[0]=mxCreateString(drives);
 	}
 }
