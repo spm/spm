@@ -280,7 +280,11 @@ if isfield(xY,'Sess')
 		str = sprintf('VOI_%s_%i',xY.name,xY.Sess);
 	end
 end
-save(fullfile(SPM.swd,str),'Y','xY')
+if str2num(version('-release'))>=14
+	save(fullfile(SPM.swd,str),'-V6','Y','xY')
+else
+	save(fullfile(SPM.swd,str),'Y','xY')
+end
 
 %-Reset title
 %-----------------------------------------------------------------------

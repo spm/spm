@@ -204,6 +204,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
     const double *pr;
     mxArray *arr;
     int siz;
+
     if (!mxIsStruct(ptr)) mexErrMsgTxt("Not a structure.");
 
     dtype = (int)(getpr(ptr, "dtype", 1, &n)[0]);
@@ -262,6 +263,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
                 mexErrMsgTxt("Cant open file.");
             }
         }
+
         mxFree(buf);
     }
     else

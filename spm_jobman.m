@@ -17,12 +17,14 @@ else
         else
             setup_ui;
         end;
+
     case {'serial'}
         if nargin>=2,
             serial(varargin{2:nargin});
         else
             serial;
         end;
+
     case {'run'}
         if nargin<2
             error('Nothing to run');
@@ -37,10 +39,15 @@ else
 
     case {'pulldown'}
        pulldown;
+
     case {'chmod'}
         if nargin>1,
             chmod(varargin{2});
         end;
+
+    %case {'help'},
+    %    show_help(varargin{2:nargin})
+
     otherwise
         error(['"' varargin{1} '" - unknown option']);
     end;
@@ -58,7 +65,7 @@ function w = helpwidth
 %if isempty(pw)
     h   = findobj('tag','help_box');
     if isempty(h)
-        w = 60;
+        w = 50;
         return;
     end;
     h = h(1);
@@ -422,7 +429,7 @@ if isfield(c,'datacheck') && ~isempty(c.datacheck),
 end;
 if isfield(c,'name'), nam = c.name; end;
 
-if isfield(c,'expanded') && isfield(c,'val') && ~isempty(c.val)
+if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
     if c.expanded
         str = {[repmat('.   ',1,l) '-' nam]};
         for i=1:length(c.val)
@@ -704,9 +711,9 @@ function [c] = expand_contract(c,unused)
 
 if isfield(c,'expanded') && ~isempty(c.val)
     if c.expanded
-        c.expanded = 0;
+        c.expanded = false;
     else
-        c.expanded = 1;
+        c.expanded = true;
     end;
 end;
 return;
@@ -981,7 +988,7 @@ return;
 function c = choose(c,val)
 % Specify the value of c to be val
 c.val{1}   = uniq_id(val);
-c.expanded = 1;
+c.expanded = true;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
@@ -1036,8 +1043,8 @@ return;
 %------------------------------------------------------------------------
 function c = series(c,new)
 % Add a new repeat
-c.expanded    = 1;
-new.removable = 1;
+c.expanded    = true;
+new.removable = true;
 if isfield(c,'val')
     c.val = {c.val{:},uniq_id(new)};
 else
@@ -1199,7 +1206,11 @@ if ischar(filename)
         savexml(fullfile(pathname,filename),'jobs');
         spm('Pointer');
     elseif strcmp(ext,'.mat')
-        save(fullfile(pathname,filename),'jobs');
+        if str2num(version('-release'))>=14,
+            save(fullfile(pathname,filename),'-V6','jobs');
+        else
+            save(fullfile(pathname,filename),'jobs');
+        end;
     else
         questdlg(['Unknown extension (' ext ')'],'Nothing saved','OK','OK');
     end;
@@ -1527,16 +1538,19 @@ uimenu(f0,'Label','Batch','CallBack',@interactive,'Separator','on');
 uimenu(f0,'Label','Defaults','CallBack',@defaults_edit,'Separator','off');
 f1 = uimenu(f0,'Label','Serial');
 pulldown2(f1,c,c.tag);
-f1 = uimenu(f0,'Label','Modality');
-modalities = {'FMRI','PET','EEG'};
-for i=1:length(modalities)
-    tmp = modalities{i};
-    if strcmp(tmp,getdef('modality')),
-        tmp = ['*' tmp];
-    else
-        tmp = [' ' tmp];
+
+if 0, % Currently unused
+    f1 = uimenu(f0,'Label','Modality');
+    modalities = {'FMRI','PET','EEG'};
+    for i=1:length(modalities)
+        tmp = modalities{i};
+        if strcmp(tmp,getdef('modality')),
+            tmp = ['*' tmp];
+        else
+            tmp = [' ' tmp];
+        end;
+        uimenu(f1,'Label',tmp,'CallBack',@chmod);
     end;
-    uimenu(f1,'Label',tmp,'CallBack',@chmod);
 end;
 return;
 %------------------------------------------------------------------------
@@ -1612,12 +1626,14 @@ function chmod(mod,varargin)
 global defaults
 if isempty(defaults), spm_defaults; end;
 if ischar(mod),
+    %if strcmpi(defaults.modality,mod),
+    %    spm('ChMod',mod);
+    %end;
     defaults.modality = mod;
 else
     tmp = get(mod,'Label');
     defaults.modality = tmp(2:end);
 end;
-spm('ChMod',defaults.modality);
 pulldown;
 return;
 %------------------------------------------------------------------------
@@ -1651,7 +1667,7 @@ delete(findobj(0,'tag','help_box'));
 t=uicontrol(fg,...
     'Style','listbox',...
     'Units','normalized',...
-    'Position',[0.02 0.02 0.96 0.48],...
+    'Position',[0.02 0.02 0.96 0.62],...
     'Tag','help_box2',...
     'FontName','fixedwidth',...
     'FontSize',12,...
@@ -2017,7 +2033,7 @@ case {'branch'}
         c.val = {};
     end;
 
-    c.expanded = 1;
+    c.expanded = false;
     if ~isfield(c,'help'), c.help = {'Branch structure'}; end;
 
 case {'choice'}
@@ -2034,7 +2050,7 @@ case {'choice'}
     %if ~isfield(c,'val') || ~iscell(c.val) || length(c.val) ~= 1
     %    c.val = {c.values{1}};
     %end;
-    c.expanded = 1;
+    c.expanded = true;
     if ~isfield(c,'help'), c.help = {'Choice structure'}; end;
 
 case {'repeat'}
@@ -2052,7 +2068,7 @@ case {'repeat'}
     %    disp(c); warning(['"' c.name '" has unused tag']);
         c = rmfield(c,'tag');
     end;
-    c.expanded = 1;
+    c.expanded = true;
     if ~isfield(c,'help'), c.help = {'Repeated structure'}; end;
 
 end;
@@ -2262,7 +2278,7 @@ case {'repeat'}
         for i=1:length(job)
             if strcmp(gettag(c.values{1}),tag)
                 c.val{i} = job_to_struct(c.values{1},job(i),tag);
-                c.val{i}.removable = 1;
+                c.val{i}.removable = true;
             end;
         end;
     elseif length(c.values)>1
@@ -2274,7 +2290,7 @@ case {'repeat'}
             for j=1:length(c.values)
                 if strcmp(gettag(c.values{j}),tag)
                     c.val{i} = job_to_struct(c.values{j},job{i}.(tag),tag);
-                    c.val{i}.removable = 1;
+                    c.val{i}.removable = true;
                     break;
                 end;
             end;
@@ -2283,7 +2299,7 @@ case {'repeat'}
         if ~iscell(job), return; end;
         for i=1:length(job)
             c.val{i} = job_to_struct(c.values{1},job{i},tag);
-            c.val{i}.removable = 1;
+            c.val{i}.removable = true;
         end;
     end;
 

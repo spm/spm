@@ -301,7 +301,11 @@ case 'specify'
     
     %-Save and reset title
 	%-------------------------------------------------------------------
-	save(fullfile(swd,['DCM_' name]),'DCM');
+	if str2num(version('-release'))>=14,
+		save(fullfile(swd,['DCM_' name]),'-V6','DCM');
+	else
+		save(fullfile(swd,['DCM_' name]),'DCM');
+	end;
 	spm('FigName',header);
 	spm('Pointer','Arrow')
 	return

@@ -1,20 +1,40 @@
-function spm_print(F)
-% SPM print function: Appends footnote & executes PRINTSTR
-% FORMAT spm_print(F)
-% F	- [Optional] Figure to print ('Tag' or figure number)
-%	- defaults to the figure 'Tag'ged as 'Graphics'
-%	- If no such figure found, uses CurrentFigure, if avaliable
-%_______________________________________________________________________
-%
-% spm_print creates a footnote with details of the current
-% session and evaluates the global string variable PRINTSTR
-%
-% This is just a gateway to spm_figure('Print',F)
-%_______________________________________________________________________
-% @(#)spm_print.m	1.3 96/04/25
+function do_print
+global defaults
+try,
 
-if nargin==0
-	spm_figure('Print')
-else
-	spm_figure('Print',F)
-end
+    if isfield(defaults,'ui') && isfield(defaults.ui,'print'),
+        pd = defaults.ui.print;
+    else
+        pd = struct('opt',{{'-dpsc2'  '-append'}},'append',true,'ext','.ps');
+    end;
+
+    mon = {'Jan','Feb','Mar','Apr','May','Jun',...
+            'Jul','Aug','Sep','Oct','Nov','Dec'};
+    t   = clock;
+    nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d',t(3))];
+
+    if pd.append,
+        nam1 = fullfile(pwd,[nam pd.ext]);
+    else
+        nam1 = sprintf('%s_%3d',nam,1);
+        for i=1:100000,
+            nam1 = fullfile(pwd,sprintf('%s_%3d%s',nam,i,pd.ext));
+            if ~exist(nam1,'file'), break; end;
+        end;
+    end;
+    opts = {nam1,'-noui','-painters',pd.opt{:}};
+    print(opts{:});
+catch,
+    errstr = lasterr;
+    tmp = [find(abs(errstr)==10),length(errstr)+1];
+    str = {errstr(1:tmp(1)-1)};
+    for i = 1:length(tmp)-1
+        if tmp(i)+1 < tmp(i+1)
+            str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
+        end
+    end
+    str = {str{:},  '','- Print options are:', opts{:},...
+                    '','- Current directory is:',['    ',pwd],...
+                    '','            * nothing has been printed *'};
+    spm('alert!',str,'printing problem...',sqrt(-1));
+end;

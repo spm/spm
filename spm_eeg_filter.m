@@ -98,7 +98,11 @@ fclose(fpd);
 D.data = [];
 
 D.fname = ['f' D.fname];
- 
-save(fullfile(P, D.fname), 'D');
+
+if str2num(version('-release'))>=14
+    save(fullfile(P, D.fname), '-V6', 'D');
+else
+    save(fullfile(P, D.fname), 'D');
+end
 
 spm('Pointer', 'Arrow');

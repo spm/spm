@@ -202,7 +202,11 @@ if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
 if ~isempty(matname),
 	fprintf('Saving Parameters..\n');
-	save(matname,'Affine','Tr','VF','VG','flags');
+	if str2num(version('-release'))>=14,
+		save(matname,'-V6','Affine','Tr','VF','VG','flags');
+	else
+		save(matname,'Affine','Tr','VF','VG','flags');
+	end;
 end;
 return;
 %_______________________________________________________________________

@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)nifti_stats_mex.c	1.1 04/11/26";
+static char sccsid[] = "%W% %E%";
 #endif
 /* 
  * This is a Matlab mex interface for Bob Cox's extensive nifti_stats.c

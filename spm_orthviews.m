@@ -1342,7 +1342,7 @@ case 'image_info',
 	if isfield(st.vols{current_handle},'dt'),
 		dt = st.vols{current_handle}.dt(1);
 	else,
-		dt = st.vols{current_handle}.dim(4);
+		dt = st.vols{current_handle}.dt(1);
 	end;
 	item3 = uimenu(varargin{2}, 'Label', sprintf('Data type: %s', spm_type(dt)));
 	str   = 'Intensity: varied';

@@ -77,7 +77,8 @@ for i=1:length(hdr),
 		end;
 		volume(:,:,j) = img;
 	end;
-	dim = [size(volume) spm_type('int16')];
+	dim = [size(volume)];
+	dt  = [spm_type('int16') spm_platform('bigend')];
 
 	% Orientation information
 	%-------------------------------------------------------------------
@@ -148,7 +149,7 @@ for i=1:length(hdr),
 		volume = volume + hdr{i}.RescaleIntercept;
 	end;
 
-	V = struct('fname',fname,'dim',dim,'mat',mat,'descrip',descrip);
+	V = struct('fname',fname, 'dim',dim, 'dt',dt, 'mat',mat, 'descrip',descrip);
 	spm_write_vol(V,volume);
 	spm_progress_bar('Set',i);
 end;
@@ -273,8 +274,8 @@ for j=1:length(vol),
 		end;
 	end;
 end;
-dcm = vol;
-save('dicom_headers.mat','dcm');
+%dcm = vol;
+%save('dicom_headers.mat','dcm');
 return;
 %_______________________________________________________________________
 
@@ -541,7 +542,8 @@ fname = fullfile(pwd,fname);
 nc = hdr{1}.Columns;
 nr = hdr{1}.Rows;
 
-dim    = [nc nr length(hdr) spm_type('int16')];
+dim    = [nc nr length(hdr)];
+dt     = [spm_type('int16') spm_platform('bigend')];
 
 % Orientation information
 %-------------------------------------------------------------------
@@ -616,7 +618,7 @@ end;
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-V = struct('fname',fname, 'dim',dim, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
+V = struct('fname',fname, 'dim',dim, 'dt',dt, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
 V = spm_create_vol(V);
 for i=1:length(hdr),
 	plane = read_image_data(hdr{i});

@@ -324,7 +324,8 @@ ddefa      = zeros(size(xyz,1),nof);
 %
 dispP       = P(1);
 dispP       = rmfield(dispP,{'fname','descrip','n','private'});
-dispP.dim   = [nx ny nz 64];
+dispP.dim   = [nx ny nz];
+dispP.dt    = [64 spm_platform('bigend')];
 dispP.pinfo = [1 0]';
 p          = spm_imatrix(dispP.mat); p = p.*[zeros(1,6) ss 0 0 0];
 p(1)       = -mean(1:nx)*p(7);
@@ -910,7 +911,8 @@ spm_uw_show('MaskEnd');
 % maskP                 = P(1);
 % [mypath,myname,myext] = fileparts(maskP.fname);
 % maskP.fname           = fullfile(mypath,['mask' myext]);
-% maskP.dim             = [nx ny nz P(1).dim(4)];
+% maskP.dim             = [nx ny nz];
+% maskP.dt              = P(1).dt;
 % maskP                 = spm_write_vol(maskP,reshape(msk,[nx ny nz]));
 return;
 %_______________________________________________________________________

@@ -20,7 +20,7 @@ dtype.type = 'menu';
 dtype.name = 'Data Type';
 dtype.tag  = 'dtype';
 dtype.labels = {'UINT8  - unsigned char','INT16 - signed short','INT32 - signed int','FLOAT - single prec. float','DOUBLE - double prec. float'};
-dtype.values = {spm_type('uint8'),spm_type('int16'),spm_type('int32'),spm_type('float'),spm_type('double')};
+dtype.values = {spm_type('uint8'),spm_type('int16'),spm_type('int32'),spm_type('float32'),spm_type('float64')};
 dtype.val = {spm_type('int16')};
 dtype.help = spm_justify(w,[...
 'Data-type of output images. '...

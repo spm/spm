@@ -140,4 +140,9 @@ D.events.Ntypes = length(D.events.types);
 
 fclose(fpout);
 
-save(fullfile(P, D.fname), 'D');
+if str2num(version('-release'))>=14
+    save(fullfile(P, D.fname), '-V6', 'D');
+else
+    save(fullfile(P, D.fname), 'D');
+end
+

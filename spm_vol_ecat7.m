@@ -65,13 +65,13 @@ end;
 
 frame_num = sscanf(required,'%x')-16842752;
 private   = struct('mh',[],'sh',[]);
-V         = struct('fname','','dim',[],'pinfo',[],'mat',[], 'descrip','','n',[],'private',private);
+V         = struct('fname','','dim',[],'dt',[],'pinfo',[],'mat',[], 'descrip','','n',[],'private',private);
 V(:)      = [];
 
 for i=1:size(llist,1),
 	sh       = ECAT7_sheader(fp,llist(i,2));
-	dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
-	if ~spm_platform('bigend') & dim(4)~=2, dim(4) = dim(4)*256; end;
+	dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION];
+	dt       = [4 spm_platform('bigend')];
 
 	pinfo    = [sh.SCALE_FACTOR*mh.ECAT_CALIBRATION_FACTOR ; 0 ; 512*llist(i,2)];
 
@@ -91,6 +91,7 @@ for i=1:size(llist,1),
 	end;
 	V(i).fname      = fname;
 	V(i).dim        = dim;
+	V(i).dt		= dt;
 	V(i).mat        = mat;
 	V(i).pinfo      = pinfo;
 	V(i).n          = llist(i,1)-16842752;

@@ -97,12 +97,16 @@ ind = find(cat(1,dt.code)==sobj.dtype);
 if isempty(ind) error('Unknown datatype'); end;
 dat = feval(dt(ind).conv,dat);
 nelem = dt(ind).nelem;
-if nelem==2,
+if nelem==1,
+    mat2file(sobj,dat,va{:});
+elseif nelem==2,
     sobj1     = sobj;
     sobj1.dim = [2 sobj.dim];
     sobj1.dtype = dt(find(strcmp(dt(ind).prec,{dt.prec}) & (cat(2,dt.nelem)==1))).code;
     dat         = reshape(dat,[1 size(dat)]);
     dat         = [real(dat) ; imag(dat)];
     mat2file(sobj1,dat,int32([1 2]),va{:});
+else
+    error('Inappropriate number of elements per voxel.');
 end;
 return

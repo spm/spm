@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_mapping.c	2.7 John Ashburner 01/02/09";
+static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
 /* matlab dependent high level data access and map manipulation routines */
@@ -93,7 +93,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 	tmp=mxGetField(ptr,i,"dim");
 	if (tmp != (mxArray *)0)
 	{
-		if (mxGetM(tmp)*mxGetN(tmp) != 4)
+		if (mxGetM(tmp)*mxGetN(tmp) != 3)
 		{
 			free_maps(maps,i);
 			mexErrMsgTxt("Wrong sized dim.");
@@ -106,10 +106,20 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 			free_maps(maps,i);
 			mexErrMsgTxt("Incompatible volume dimensions in dim.");
 		}
-		if (dtype != (int)fabs(pr[3]))
+	}
+	tmp=mxGetField(ptr,i,"dt");
+	if (tmp != (mxArray *)0)
+	{
+		if (mxGetM(tmp)*mxGetN(tmp) != 1 && mxGetM(tmp)*mxGetN(tmp) != 2)
 		{
 			free_maps(maps,i);
-			mexErrMsgTxt("Incompatible datatype in dim.");
+			mexErrMsgTxt("Wrong sized dt.");
+		}
+		pr = mxGetPr(tmp);
+		if (dtype != (int)fabs(pr[0]))
+		{
+			free_maps(maps,i);
+			mexErrMsgTxt("Incompatible datatype in dt.");
 		}
 	}
 
@@ -181,6 +191,11 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 	mxArray *tmp;
 	double *pr;
 	int dsize, off;
+#ifdef BIGENDIAN
+	int be = 1;
+#else
+	int be = 0;
+#endif
 
 	tmp=mxGetField(ptr,i,"dim");
 	if (tmp == (mxArray *)0)
@@ -188,7 +203,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 		free_maps(maps,i);
 		mexErrMsgTxt("Cant find dim.");
 	}
-	if (mxGetM(tmp)*mxGetN(tmp) != 4)
+	if (mxGetM(tmp)*mxGetN(tmp) != 3)
 	{
 		free_maps(maps,i);
 		mexErrMsgTxt("Wrong sized dim.");
@@ -202,13 +217,42 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 	maps[i].scale  = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
 	maps[i].offset = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
 
-	dsize = get_datasize(maps[i].dtype);
-	if (dsize==0)
+	tmp=mxGetField(ptr,i,"dt");
+	if (tmp == (mxArray *)0)
 	{
 		free_maps(maps,i+1);
-		mexErrMsgTxt("Unknown datatype.");
+		mexErrMsgTxt("Cant find dt.");
 	}
-
+	if (mxGetM(tmp)*mxGetN(tmp) != 2)
+	{
+		free_maps(maps,i+1);
+		mexErrMsgTxt("Wrong sized dt.");
+	}
+	pr = mxGetPr(tmp);
+	if ((int)(pr[1])==be)
+	{
+		if      (pr[0]==    2) {maps[i].dtype = SPM_UNSIGNED_CHAR;  dsize =  8;}
+		else if (pr[0]==  256) {maps[i].dtype = SPM_SIGNED_CHAR;    dsize =  8;}
+		else if (pr[0]==    4) {maps[i].dtype = SPM_SIGNED_SHORT;   dsize = 16;}
+		else if (pr[0]==  512) {maps[i].dtype = SPM_UNSIGNED_SHORT; dsize = 16;}
+		else if (pr[0]==    8) {maps[i].dtype = SPM_SIGNED_INT;     dsize = 32;}
+		else if (pr[0]==  768) {maps[i].dtype = SPM_UNSIGNED_INT;   dsize = 32;}
+		else if (pr[0]==   16) {maps[i].dtype = SPM_FLOAT;          dsize = 32;}
+		else if (pr[0]==   64) {maps[i].dtype = SPM_DOUBLE;         dsize = 64;}
+		else {free_maps(maps,i+1);mexErrMsgTxt("Unknown datatype.");}
+	}
+	else
+	{
+		if      (pr[0]==    2) {maps[i].dtype = SPM_UNSIGNED_CHAR;    dsize =  8;}
+		else if (pr[0]==  256) {maps[i].dtype = SPM_SIGNED_CHAR;      dsize =  8;}
+		else if (pr[0]==    4) {maps[i].dtype = SPM_SIGNED_SHORT_S;   dsize = 16;}
+		else if (pr[0]==  512) {maps[i].dtype = SPM_UNSIGNED_SHORT_S; dsize = 16;}
+		else if (pr[0]==    8) {maps[i].dtype = SPM_SIGNED_INT_S;     dsize = 32;}
+		else if (pr[0]==  768) {maps[i].dtype = SPM_UNSIGNED_INT_S;   dsize = 32;}
+		else if (pr[0]==   16) {maps[i].dtype = SPM_FLOAT_S;          dsize = 32;}
+		else if (pr[0]==   64) {maps[i].dtype = SPM_DOUBLE_S;         dsize = 64;}
+		else {free_maps(maps,i+1);mexErrMsgTxt("Unknown datatype.");}
+	}
 
 	tmp=mxGetField(ptr,i,"fname");
 	if (tmp == (mxArray *)0)
@@ -376,87 +420,6 @@ static MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 
 /**************************************************************************/
 
-static MAPTYPE *get_maps_oldstyle(const mxArray *matrix_ptr, int *pn)
-{
-	MAP *current_map;
-	MAPTYPE *maps;
-	int n, j;
-
-	if ((!mxIsNumeric(matrix_ptr) || mxIsComplex(matrix_ptr) ||
-		mxIsSparse(matrix_ptr) || !mxIsDouble(matrix_ptr) ||
-		mxGetM(matrix_ptr) != (sizeof(MAP)+sizeof(double)-1)/sizeof(double)))
-	{
-		mexErrMsgTxt("Bad image handle dimensions.");
-	}
-	n = mxGetN(matrix_ptr);
-
-	for (j=0; j<n; j++)
-	{
-		int xdim, ydim, zdim, datasize;
-		current_map = (MAP *)(mxGetPr(matrix_ptr)+
-			+ j*((sizeof(MAP)+sizeof(double)-1)/sizeof(double)));
-		if (current_map->magic != MAGIC)
-		{
-			mexErrMsgTxt("Bad magic number in image handle.");
-		}
-		if (current_map->pid != getpid())
-		{
-			mexErrMsgTxt("Invalid image handle (from old session).");
-		}
-		datasize = get_datasize(current_map->dtype);	
-		if (datasize == 0)
-			mexErrMsgTxt("Bad datatype in image handle.");
-
-		xdim = abs((int)current_map->dim[0]);
-		ydim = abs((int)current_map->dim[1]);
-		zdim = abs((int)current_map->dim[2]);
-		if ((xdim*ydim*zdim*datasize+7)/8 != current_map->len)
-		{
-			mexErrMsgTxt("Who screwed up the handle??");
-		}
-	}
-
-	maps = (MAPTYPE *)mxCalloc(n, sizeof(MAPTYPE));
-	for (j=0; j<n; j++)
-	{
-		int jj, t;
-		current_map = (MAP *)(mxGetPr(matrix_ptr)
-			+ j*((sizeof(MAP)+sizeof(double)-1)/sizeof(double)));
-
-		maps[j].dtype     = current_map->dtype;
-
-		maps[j].dim[0]    = current_map->dim[0];
-		maps[j].dim[1]    = current_map->dim[1];
-		maps[j].dim[2]    = current_map->dim[2];
-
-		maps[j].data   = (void  **)mxCalloc(maps[j].dim[2],sizeof(void *));
-		maps[j].scale  = (double *)mxCalloc(maps[j].dim[2],sizeof(double));
-		maps[j].offset = (double *)mxCalloc(maps[j].dim[2],sizeof(double));
-
-		t = maps[j].dim[0]*maps[j].dim[1]*get_datasize(maps[j].dtype)/8;
-		for(jj=0; jj<maps[j].dim[2]; jj++)
-		{
-			maps[j].scale[jj]  = current_map->scale;
-			maps[j].offset[jj] = 0.0;
-			maps[j].data[jj]   = current_map->data + jj*t;
-		}
-
-		for(jj=0; jj<16; jj++)
-			maps[j].mat[jj] = 0.0;
-		maps[j].mat[0 + 0*4] = current_map->pixdim[0];
-		maps[j].mat[1 + 1*4] = current_map->pixdim[1];
-		maps[j].mat[2 + 2*4] = current_map->pixdim[2];
-		maps[j].mat[3 + 3*4] = 1.0;
-
-		maps[j].addr      = 0;
-		maps[j].len       = 0;
-	}
-	*pn = n;
-	return(maps);
-}
-
-/**************************************************************************/
-
 static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 {
 	int num_dims, jj, t, dtype;
@@ -522,10 +485,6 @@ MAPTYPE *get_maps(const mxArray *ptr, int *n)
 {
 	if (mxIsStruct(ptr))
 		return(get_maps_struct(ptr, n));
-	/* else if (mxIsNumeric(ptr) && !mxIsComplex(ptr) &&
-		!mxIsSparse(ptr) && mxIsDouble(ptr) &&
-		mxGetM(ptr) == (sizeof(MAP)+sizeof(double)-1)/sizeof(double))
-		return(get_maps_oldstyle(ptr, n)); */
 	else if (mxGetNumberOfDimensions(ptr) <= 3 &&
 		mxIsNumeric(ptr) && !mxIsComplex(ptr) &&
 		!mxIsSparse(ptr))
@@ -563,18 +522,18 @@ int get_dtype(const mxArray *ptr)
 		mexErrMsgTxt("Not a structure.");
 		return(0);
 	}
-	tmp=mxGetField(ptr,0,"dim");
+	tmp=mxGetField(ptr,0,"dt");
 	if (tmp == (mxArray *)0)
 	{
-		mexErrMsgTxt("Cant find dim.");
+		mexErrMsgTxt("Cant find dt.");
 	}
-	if (mxGetM(tmp)*mxGetN(tmp) != 4)
+	if (mxGetM(tmp)*mxGetN(tmp) != 2)
 	{
-		mexErrMsgTxt("Wrong sized dim.");
+		mexErrMsgTxt("Wrong sized dt.");
 	}
 	pr = mxGetPr(tmp);
 
-	return((int)fabs(pr[3]));
+	return((int)fabs(pr[0]));
 }
 
 /**************************************************************************/

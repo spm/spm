@@ -231,8 +231,13 @@ switch(lower(varargin{1}))
         spm('Pointer', 'Watch');
         gfx = D.gfx;
         D = rmfield(D, 'gfx');
-        
-        save(fullfile(D.path, D.fname), 'D');
+
+        if str2num(version('-release'))>=14
+            save(fullfile(D.path, D.fname), '-V6', 'D');
+        else
+            save(fullfile(D.path, D.fname), 'D');
+        end
+
         D.gfx = gfx;
         spm('Pointer', 'Arrow');
         

@@ -72,7 +72,7 @@ for j=1:dim(3),
 
 		img = spm_slice_vol(V1(i),M1,dim(1:2),[0 NaN]);
 		if nargin<3
-			if ~spm_type(V1(i).dim(4),'nanrep'),
+			if ~spm_type(V1(i).dt(1),'nanrep'),
 				msk = msk + (img~=0 & finite(img));
 			else,
 				msk = msk + finite(img);

@@ -1,7 +1,7 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 % _______________________________________________________________________
-% @(#)getdict.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 persistent dict;
 if ~isempty(dict),

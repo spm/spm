@@ -352,7 +352,7 @@ if flags.mean
    PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
    PO.descrip = 'spm - mean undeformed image';
-   PO.dim(4)  = 4;
+   PO.dt      = [4 spm_platform('bigend')];
    ivol = reshape(Integral,PO.dim(1:3));
    spm_write_vol(PO,ivol);
 end

@@ -106,9 +106,11 @@ DCM.Ce     = Ce;
 
 %-Save and reset title
 %-------------------------------------------------------------------
-
-save(P{:},'DCM');
-
+if str2num(version('-release'))>=14,
+    save(P{:},'-V6','DCM');
+else
+    save(P{:},'DCM');
+end;
 
 if nargin < 1
     spm('Pointer','Arrow');

@@ -1,4 +1,4 @@
-
+function spm_defaults
 % Sets the defaults which are used by SPM
 %
 % FORMAT spm_defaults
@@ -95,16 +95,16 @@ defaults.normalise.write.wrap       = [0 0 0];
 % Segmentation defaults
 %=======================================================================
 defaults.segment.estimate.priors = str2mat(...
-	fullfile(spm('Dir'),'apriori','gray.mnc'),...
-	fullfile(spm('Dir'),'apriori','white.mnc'),...
-	fullfile(spm('Dir'),'apriori','csf.mnc'));
+	fullfile(spm('Dir'),'apriori','gray.nii'),...
+	fullfile(spm('Dir'),'apriori','white.nii'),...
+	fullfile(spm('Dir'),'apriori','csf.nii'));
 defaults.segment.estimate.reg    = 0.01;
 defaults.segment.estimate.cutoff = 30;
 defaults.segment.estimate.samp   = 3;
 defaults.segment.estimate.bb     =  [[-88 88]' [-122 86]' [-60 95]'];
 defaults.segment.estimate.affreg.smosrc = 8;
 defaults.segment.estimate.affreg.regtype = 'mni';
-%defaults.segment.estimate.affreg.weight = fullfile(spm('Dir'),'apriori','brainmask.mnc'); 
+%defaults.segment.estimate.affreg.weight = fullfile(spm('Dir'),'apriori','brainmask.nii'); 
 defaults.segment.estimate.affreg.weight = '';
 defaults.segment.write.cleanup   = 1;
 defaults.segment.write.wrt_cor   = 1;

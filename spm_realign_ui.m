@@ -551,7 +551,11 @@ else
                         ads(j) = ds;
 			[path,name,ext,ver] = fileparts(P{i}{j}(1,:));
 			pefile = fullfile(path,[name '_uw.mat']);
-			save(pefile,'ds');
+			if str2num(version('-release'))>=14,
+				save(pefile,'-V6','ds');
+			else
+				save(pefile,'ds');
+			end;
 		end		
 		spm_uw_apply(ads,uwr_flags);
 	end

@@ -3,7 +3,7 @@ function M = Q2M(Q)
 % where Q = [x y z], and w = 1-x^2-y^2-z^2.
 % See: http://skal.planet-d.net/demo/matrixfaq.htm
 % _______________________________________________________________________
-% @(#)Q2M.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 Q = Q(1:3); % Assume rigid body
 w = sqrt(1 - sum(Q.^2));

@@ -809,8 +809,13 @@ for i = 1:numel(P)
     ads(i) = ds;
     [path,name] = fileparts(P{i}(1,:));
     pefile =  fullfile(path,[name '_uw.mat']);
-    save(pefile,'ds');
-end
+
+    if str2num(version('-release'))>=14,
+        save(pefile,'-V6','ds');
+    else
+        save(pefile,'ds');
+    end;
+end;
 % unwarp write - done at the single subject level since Batch
 % forwards one subjects data at a time for analysis, assuming
 % that subjects should be grouped as new spatial nodes. Sessions

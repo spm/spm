@@ -1,4 +1,4 @@
-function [varargout] = subsref(opt,subs)
+function varargout = subsref(opt,subs)
 % Subscript referencing
 %
 % Fields are:
@@ -36,10 +36,8 @@ function [varargout] = subsref(opt,subs)
 % cal         - a two-element vector containing cal_min and cal_max
 % aux_file    - name of an auxiliary file
 % _______________________________________________________________________
-% @(#)subsref.m	1.1 John Ashburner 04/11/26
-
-c         = rec(opt,subs);
-varargout = c(:);
+% %W% John Ashburner %E%
+varargout = rec(opt,subs);
 return;
 
 function c = rec(opt,subs)
@@ -223,9 +221,12 @@ case {'()'},
     opt  = struct(opt);
     t    = subsref(opt,subs(1));
     if length(subs)>1
-        subs = subs(2:end);
-        t    = class(t,'nifti');
-        c    = rec(t,subs);
+        c = {};
+        for i=1:numel(t),
+            ti = class(t(i),'nifti');
+            ti = rec(ti,subs(2:end));
+            c  = {c{:}, ti{:}};
+        end;
     else
         c    = {class(t,'nifti')};
     end;

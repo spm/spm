@@ -659,7 +659,12 @@ end
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration with explicit mask')   %-#
-save('SPM','SPM');
+if str2num(version('-release'))>=14,
+    save('SPM','-V6','SPM');
+else
+    save('SPM','SPM');
+end;
+
 fprintf('%30s\n','...SPM.mat with mask saved')                     %-#
 
 SPM = spm_spm(SPM);

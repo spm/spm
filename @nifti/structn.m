@@ -1,7 +1,7 @@
 function t = structn(obj)
 % Convert a NIFTI-1 object into a form of struct
 % _______________________________________________________________________
-% @(#)structn.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 if numel(obj)~=1,
     error('Too many elements to convert');

@@ -209,7 +209,8 @@ for i = 1:prod(size(P)),
 		if write_vol,
 			VO         = P(i);
 			VO.fname   = prepend(P(i).fname,'r');
-			VO.dim     = [P(1).dim(1:3) P(i).dim(4)];
+			VO.dim     = P(1).dim(1:3);
+			V0.dt      = P(i).dt;
 			VO.mat     = P(1).mat;
 			VO.descrip = 'spm - realigned';
 			VO         = spm_create_vol(VO);
@@ -255,7 +256,7 @@ if flags.mean
 	PO.fname   = prepend(P(1).fname, 'mean');
 	PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
 	PO.descrip = 'spm - mean image';
-	PO.dim(4)  = 4;
+	PO.dt      = [4 spm_platform('bigend')];
 	spm_write_vol(PO,Integral);
 end
 

@@ -6,6 +6,6 @@
 %
 % This function is normally called by file_array/subsasgn
 % _______________________________________________________________________
-% @(#)mat2file.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 error('This function needs to be compiled.');

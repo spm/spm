@@ -1149,7 +1149,7 @@ case 'cfg'
     %-Implicit masking: Ignore zero voxels in low data-types?
     %-------------------------------------------------------------------
     % (Implicit mask is NaN in higher data-types.)
-    type = getfield(spm_vol(P{1,1}),'dim')*[0,0,0,1]';
+    type = getfield(spm_vol(P{1,1}),'dt')*[1,0]';
     if ~spm_type(type,'nanrep')
         switch D.M_.I
         case Inf,    M_I = spm_input('Implicit mask (ignore zero''s)?',...
@@ -1269,7 +1269,7 @@ case 'cfg'
     
     %-Check compatability of images (Bombs for single image)
     %-------------------------------------------------------------------
-    if any(any(diff(cat(1,VY(:).dim),1,1),1) & [1,1,1,0]) 
+    if any(any(diff(cat(1,VY(:).dim),1,1),1)) 
         error('images do not all have the same dimensions')
     end
     if any(any(any(diff(cat(3,VY(:).mat),1,3),3)))

@@ -27,7 +27,7 @@ function varargout = nifti_stats(varargin)
 %_______________________________________________________________________
 % 99.99% of the work by RW Cox - SSCC/NIMH/NIH/DHHS/USA/EARTH - March 2004
 %  0.01% of the work (the mex wrapper) by John Ashburner - FIL/ION/UCL
-% @(#)nifti_stats.m	1.1 04/11/26
+% %W% %E%
 
 fprintf('******************************************\n');
 fprintf('Compile the nifti_stats function with\n');

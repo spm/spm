@@ -1,5 +1,5 @@
 #ifndef lint
-static char sccsid[] = "@(#)nifti_stats.c	1.1 R.W. Cox 04/11/26";
+static char sccsid[] = "%W% R.W. Cox %E%";
 #endif
  /************************************************************************/
  /**  Functions to compute cumulative distributions and their inverses  **/

@@ -77,9 +77,9 @@ switch datatype,
 	otherwise,
 		is_flt = 1;
 end;
-if ~spm_platform('bigend') & datatype~=2 & datatype~=2+128, datatype = datatype*256; end;
 
-dim   = [dim(1:3) datatype];
+dt    = [datatype spm_platform('bigend')];
+dim   = dim(1:3);
 
 if ~is_flt,
 	tmp = findvar(img.vatt_array,'valid_range');
@@ -145,7 +145,7 @@ if exist(matname) == 2,
 end;
 
 private = struct('cdf',cdf);
-V       = struct('fname',fname,'dim',dim,'mat',mat,'pinfo',pinfo,'n',1,...
+V       = struct('fname',fname,'dim',dim,'dt',dt,'mat',mat,'pinfo',pinfo,'n',1,...
 		'descrip','MINC file','private',private);
 return;
 %_______________________________________________________________________
@@ -168,7 +168,7 @@ return;
 %_______________________________________________________________________
 function str = dtypestr(i)
 % Returns a string appropriate for reading or writing the CDF data-type.
-types = str2mat('uint8','uint8','int16','int32','float','double');
+types = str2mat('uint8','uint8','int16','int32','float32','float64');
 str   = deblank(types(i,:));
 return;
 %_______________________________________________________________________

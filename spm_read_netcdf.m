@@ -106,7 +106,7 @@ return;
 %_______________________________________________________________________
 function str = dtypestr(i)
 % Returns a string appropriate for reading or writing the CDF data-type.
-types = str2mat('uint8','uint8','int16','int32','float','double');
+types = str2mat('uint8','uint8','int16','int32','float32','float64');
 str   = deblank(types(i,:));
 return;
 %_______________________________________________________________________

@@ -2,7 +2,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Subscript assignment
 % See subsref for meaning of fields.
 % _______________________________________________________________________
-% @(#)subsasgn.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 switch subs(1).type,
 case {'.'},
@@ -87,7 +87,7 @@ case {'.'},
         switch(subs(1).subs)
         case {'extras'}
             if length(subs)>1,
-                val = subsasgn(obj.extras,subs(2:end),val);
+                obj.extras = subsasgn(obj.extras,subs(2:end),val);
             else
                 obj.extras = val;
             end;

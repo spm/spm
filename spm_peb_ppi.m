@@ -388,7 +388,12 @@ end % (switch)
 PPI.xY  = xY;
 PPI.dt  = dt;
 str     = ['PPI_' PPI.name];
-save(fullfile(SPM.swd,str),'PPI')
+
+if str2num(version('-release'))>=14
+    save(fullfile(SPM.swd,str),'-V6','PPI')
+else
+    save(fullfile(SPM.swd,str),'PPI')
+end
 
 % clean up
 %-------------------------------------------------------------------------

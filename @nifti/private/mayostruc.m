@@ -1,7 +1,7 @@
 function o = mayostruc
 % Create a data structure describing Analyze headers
 % _______________________________________________________________________
-% @(#)mayostruc.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 persistent org;
 if ~isempty(org),

@@ -425,7 +425,7 @@ set(sib(lb,'files'),'Value',1,'String',f);
 set(sib(lb,'previous'),'String',ls,'Value',mch);
 set(sib(lb,'edit'),'String',dr);
 
-if length(dr>1) && dr(2)==':',
+if numel(dr)>1 && dr(2)==':',
     str = get(sib(lb,'drive'),'String');
     str = cat(1,char(str));
     mch = find(lower(str(:,1))==lower(dr(1)));

@@ -3,7 +3,7 @@ function create(obj)
 % This writes out the header information, and an empty image
 % volume if necesary.
 % _______________________________________________________________________
-% @(#)create.m	1.1 John Ashburner 04/11/26
+% %W% John Ashburner %E%
 
 if ~isa(obj.dat,'file_array'),
     error('Data must be a file-array');
@@ -36,23 +36,27 @@ fp    = fopen(iname,'a+');
 if fp==-1,
     error(['Unable to create image for "' fname '".']);
 end;
-fseek(fp,0,'eof');
-pos = ftell(fp);
-if pos<nbytes,
-    bs      = 2048; % Buffer-size
-    nbytes  = nbytes - pos;
-    buf     = uint8(0);
-    buf(bs) = 0;
-    while(nbytes>0)
-        if nbytes<bs, buf = buf(1:nbytes); end;
-        nw = fwrite(fp,buf,'uint8');
-        if nw<min(bs,nbytes),
-            fclose(fp);
-            error(['Problem while creating image for "' fname '".']);
+
+if 0,
+    fseek(fp,0,'eof');
+    pos = ftell(fp);
+    if pos<nbytes,
+        bs      = 2048; % Buffer-size
+        nbytes  = nbytes - pos;
+        buf     = uint8(0);
+        buf(bs) = 0;
+        while(nbytes>0)
+            if nbytes<bs, buf = buf(1:nbytes); end;
+            nw = fwrite(fp,buf,'uint8');
+            if nw<min(bs,nbytes),
+                fclose(fp);
+                error(['Problem while creating image for "' fname '".']);
+            end;
+            nbytes = nbytes - nw;
         end;
-        nbytes = nbytes - nw;
     end;
 end;
+
 fclose(fp);
 return;
 

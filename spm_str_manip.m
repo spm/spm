@@ -9,7 +9,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % The options are:
 %       'r'              - remove trailing suffix
 %       's'              - remove trailing suffix -
-%                          only if it is either '.img', '.hdr', '.mat' or '.mnc'
+%                          only if it is either '.img', '.hdr', '.mat' or '.nii'
 %       'e'              - remove everything except the suffix
 %       'h'              - remove trailing pathname component
 %       'H'              - always remove trailing pathname component
@@ -145,7 +145,7 @@ while (~isempty(options))
 			if (l > 4)
 				if (strcmp(str((l-3):l),'.img') | ...
 				    strcmp(str((l-3):l),'.hdr') | ...
-				    strcmp(str((l-3):l),'.mnc') | ...
+				    strcmp(str((l-3):l),'.nii') | ...
 				    strcmp(str((l-3):l),'.mat'))
 					str = spm_str_manip(str, 'r');
 				end

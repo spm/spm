@@ -72,7 +72,7 @@ L       = M3*L;
 % get T1 background
 %---------------------------------------------------------------------------
 try
-	V = spm_vol(fullfile(spm('Dir'),'canonical','single_subj_T1.mnc'));
+	V = spm_vol(fullfile(spm('Dir'),'canonical','single_subj_T1.nii'));
 catch
 	V = spm_vol('mask.img');
 	figure(Fgraph)

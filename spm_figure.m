@@ -72,7 +72,7 @@ function varargout=spm_figure(varargin)
 % See also: spm_print, spm_clf
 %
 %_______________________________________________________________________
-% @(#)spm_figure.m	2.42 Andrew Holmes 05/02/09
+% %W% Andrew Holmes %E%
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -350,22 +350,16 @@ iPaged    = ~isempty(hNextPage);
 
 %-Construct print command
 %-----------------------------------------------------------------------
-global defaults
-if ~isempty(defaults),
-	PRINTSTR = defaults.printstr;
-else,
-	PRINTSTR = [spm_figure('DefPrintCmd'),'spm2.ps'];
-end
 
-%-Create footnote with SPM version, username, date and time.
+%-Create footnote with SPM version, username, date and time (now removed).
 %-----------------------------------------------------------------------
-FNote = sprintf('%s%s: %s',spm('ver'),spm('GetUser',' (%s)'),spm('time'));
+%FNote = sprintf('%s%s: %s',spm('ver'),spm('GetUser',' (%s)'),spm('time'));
 %-Delete old tag lines, and print new one
-delete(findobj(F,'Tag','SPMprintFootnote'));
-axes('Position',[0.005,0.005,0.1,0.1],...
-	'Visible','off',...
-	'Tag','SPMprintFootnote')
-text(0,0,FNote,'FontSize',6);
+%delete(findobj(F,'Tag','SPMprintFootnote'));
+%axes('Position',[0.005,0.005,0.1,0.1],...
+%	'Visible','off',...
+%	'Tag','SPMprintFootnote')
+%text(0,0,FNote,'FontSize',6);
 
 %-Temporarily change all units to normalized prior to printing
 % (Fixes bizzarre problem with stuff jumping around!)
@@ -377,10 +371,8 @@ set(H,'Units','normalized')
 
 %-Print
 %-----------------------------------------------------------------------
-err = 0;
 if ~iPaged
-	printstr = clean_PRINTSTR(PRINTSTR);
-	try, eval(printstr), catch, err=1; end
+	do_print;
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -391,29 +383,12 @@ else
 		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
 		set(hPg{p,1},'Visible','on');
-		printstr = clean_PRINTSTR(PRINTSTR);
-		try, eval(printstr), catch, err=1; end
+		do_print;
 		set(hPg{p,1},'Visible','off')
 	end
 	set(hPg{Cpage,1},'Visible','on')
 	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
-
-if err
-	errstr = lasterr;
-	tmp = [find(abs(errstr)==10),length(errstr)+1];
-	str = {errstr(1:tmp(1)-1)};
-	for i = 1:length(tmp)-1
-		if tmp(i)+1 < tmp(i+1) 
-			str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
-		end
-	end
-	str = {str{:},	'','- print command is:',['    ',printstr],...
-			'','- current directory is:',['    ',pwd],...
-			'','            * nothing has been printed *'};
-	spm('alert!',str,'printing problem...',sqrt(-1));
-end
-
 set(H,{'Units'},un)
 set(0,'CurrentFigure',cF)
 
@@ -891,36 +866,46 @@ end;
 return;
 %=======================================================================
 
-
 %=======================================================================
-function PRINTSTR = clean_PRINTSTR(PRINTSTR)
+function do_print
 %=======================================================================
-% Matlab 6.5 printing doesn't like the -append option if the file does
-% not already exist
-%-----------------------------------------------------------------------
-off = findstr('-append',PRINTSTR);
-if ~isempty(off),
-	bl = [0 find(isspace(PRINTSTR)) (length(PRINTSTR)+1)];
-	for i=1:(length(bl)-1),
-		ca{i} = PRINTSTR((bl(i)+1):(bl(i+1)-1));
-	end;
-	ca = strvcat(ca);
-	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
-	if length(off1)>1,
-		fname = deblank(ca(off1(end),:));
+global defaults
+try,
 
-		% If there is no path to the file, then make it the
-		% current directory
-		[pth,nam,ext] = fileparts(fname);
-		if isempty(pth), fname = ['.' filesep nam ext]; end;
+    if isfield(defaults,'ui') && isfield(defaults.ui,'print'),
+        pd = defaults.ui.print;
+    else
+        pd = struct('opt',{{'-dpsc2'  '-append'}},'append',true,'ext','.ps');
+    end;
 
-		fd = fopen(fname,'r');
-		if fd~=-1,
-			% File exists, so -append can be used
-			fclose(fd);
-		else,
-			% File does not exist, so remove -append option
-			PRINTSTR(off:(off+7))='';
-		end;
-	end;
+    mon = {'Jan','Feb','Mar','Apr','May','Jun',...
+            'Jul','Aug','Sep','Oct','Nov','Dec'};
+    t   = clock;
+    nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d\n',t(3))];
+
+    if pd.append,
+        nam1 = fullfile(pwd,[nam pd.ext]);
+    else
+        nam1 = sprintf('%s_%.3d',1);
+        for i=1:100000,
+            nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
+            if ~exist(nam1,'file'), break; end;
+        end;
+    end;
+    opts = {nam1,'-noui','-painters',pd.opt{:}};
+    print(opts{:});
+catch,
+    errstr = lasterr;
+    tmp = [find(abs(errstr)==10),length(errstr)+1];
+    str = {errstr(1:tmp(1)-1)};
+    for i = 1:length(tmp)-1
+        if tmp(i)+1 < tmp(i+1)
+            str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
+        end
+    end
+    str = {str{:},  '','- Print options are:', opts{:},...
+                    '','- Current directory is:',['    ',pwd],...
+                    '','            * nothing has been printed *'};
+    spm('alert!',str,'printing problem...',sqrt(-1));
 end;
+

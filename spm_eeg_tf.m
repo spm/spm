@@ -139,8 +139,14 @@ D2.Nchannels = length(D2.tf.channels);
 D.fname = ['t1_' D.fname];
 D2.fname = ['t2_' D2.fname];
 
-save(fullfile(P, D.fname), 'D');
-D = D2;
-save(fullfile(P, D2.fname), 'D');
+if str2num(version('-release'))>=14
+    save(fullfile(P, D.fname), '-V6', 'D');
+    D = D2;
+    save(fullfile(P, D2.fname), '-V6', 'D');
+else
+    save(fullfile(P, D.fname), 'D');
+    D = D2;
+    save(fullfile(P, D2.fname), 'D');
+end
 
 spm('Pointer', 'Arrow');

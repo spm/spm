@@ -162,7 +162,7 @@ function spm_normalise_ui(opt)
 %
 % 'Weight template when registering?'
 %       'No Weighting'       - no template weighting
-%       'Default Brain Mask' - weighting with .../apriori/brainmask.mnc
+%       'Default Brain Mask' - weighting with .../apriori/brainmask.nii
 %       'Specified Weighting' - user selected weighting file
 % Applies a weighting mask to the template(s) during the parameter
 % estimation.  With the default brain mask, weights in and around the
@@ -424,7 +424,7 @@ function weight = get_weight(weight)
 % Get an image to weight the registration with
 % FORMAT weight = get_weight(weight)
 
-def_brainmask = fullfile(spm('Dir'),'apriori','brainmask.mnc');
+def_brainmask = fullfile(spm('Dir'),'apriori','brainmask.nii');
 tmp = ~isempty(weight);
 if tmp, tmp = tmp + 1 - strcmp(weight,def_brainmask); end;
 tmp = spm_input('Weight template when registering?', '+1', 'm',...

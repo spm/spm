@@ -109,7 +109,11 @@ if any(mode==[2 3 4]),
 	vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
 	if any(mode==[2 3]),
 		matname = fullfile(pth,['surf_' nam '.mat']);
-		save(matname,'faces','vertices');
+		if str2num(version('-release'))>=14,
+			save(matname,'-V6','faces','vertices');
+		else
+			save(matname,'faces','vertices');
+		end;
 	end;
 	if any(mode==[4]),
 		fname = fullfile(pth,[nam '.obj']);
@@ -159,7 +163,11 @@ linfun('Rendering: Coronal 1..');       rend{5} = make_struct(V,[pi/2 pi/2 0]);
 linfun('Rendering: Coronal 2..');       rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
 linfun('Rendering: Save..');
-save(oname,'rend');
+if str2num(version('-release'))>=14,
+	save(oname,'-V6','rend');
+else
+	save(oname,'rend');
+end;
 linfun('                 ');
 disp_renderings(rend);
 spm_print;

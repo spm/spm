@@ -235,7 +235,11 @@ DCM.contrast(num_contrast).con_vec=con_vec;
 DCM.contrast(num_contrast).con_mat=con_mat;
 DCM.contrast(num_contrast).con_type=D;
 
-save(P{:},'DCM');
+if str2num(version('-release'))>=14,
+    save(P{:},'-V6','DCM');
+else
+    save(P{:},'DCM');
+end;
 
 if nargin < 2
     close 

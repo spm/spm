@@ -41,7 +41,7 @@ end;
 buff = zeros([V.dim(1:2) r{3}.s*2+1]);
 
 VO        = V;
-VO.dim(4) = spm_type('uint8');
+VO.dt     = [spm_type('uint8') spm_platform('bigend')];
 V0.dat    = uint8(0);
 V0.dat(VO.dim(1:3)) = uint8(0);
 VO.pinfo  = [];

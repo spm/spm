@@ -1,6 +1,6 @@
 #!make -f
 #
-# @(#)Makefile	2.19 John Ashburner 04/11/26
+# %W% John Ashburner %E%
 # $Id$
 #
 ###############################################################################
@@ -9,6 +9,10 @@
 # it works under SunOS and Linux (at the FIL) and some Windows systems
 #
 # Thanks to Matthew, Darren, Alle Meije and others for various suggestions.
+#
+# For a list of compatible compilers, see
+# http://www.mathworks.com/support/tech-notes/1600/1601.html
+# http://www.mathworks.com/support/tech-notes/1600/1601_files/1601_65.html
 #
 # $Log$
 #
@@ -36,37 +40,51 @@ ADDED_OBS=
 ADDED_MEX=
 
 SunOS:
-	make all SUF=mexsol  CC="cc -xO5 -DBIGENDIAN"                   MEX="mex COPTIMFLAGS=-xO5 -DBIGENDIAN"
+	make all SUF=mexsol  CC="cc -xO5 -DBIGENDIAN"\
+	         MEX="mex COPTIMFLAGS=-xO5 -DBIGENDIAN"
+SunOS.gcc:
+# Assumes that gccopts.sh has been copied to the current directory
+	make all SUF=mexsol  CC="gcc -O3 -funroll-loops -DBIGENDIAN -fPIC"\
+	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN' -f gccopts.sh"
 Linux:
-	make all SUF=mexglx  CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
-Linux.5:
-	make all SUF=mexlx   CC="gcc -O3 -funroll-loops"    MEX="mex COPTIMFLAGS='-O3 -funroll-loops'"
+	make all SUF=mexglx  CC="gcc -O3 -funroll-loops -fPIC -fexceptions"\
+	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
 Linux.A64:
-	make all SUF=mexa64  CC="gcc -O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse"    MEX="mex COPTIMFLAGS='-O3 -fPIC -funroll-loops -march=k8 -mfpmath=sse'"
+	make all SUF=mexa64  CC="gcc -O3 -funroll-loops -fPIC -march=k8 -mfpmath=sse"\
+	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=k8 -mfpmath=sse'"
 HP-UX:
-	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN" MEX="mex COPTIMFLAGS=-O -DBIGENDIAN"
+	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN"
+	       MEX="mex COPTIMFLAGS=-O -DBIGENDIAN"
 IRIX:
-	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON -DBIGENDIAN"  MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
+	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON -DBIGENDIAN"\
+	       MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
 IRIX64:
-	make all SUF=mexsg64 CC="cc  -O -mips4 -64 -DBIGENDIAN"         MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
+	make all SUF=mexsg64   CC="cc  -O -mips4 -64 -DBIGENDIAN"\
+	       MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
 AIX:
-	make all SUF=mexrs6 CC="cc -DBIGENDIAN"	MEX = "mex -O -DBIGENDIAN"
+	make all SUF=mexrs6 CC="cc -DBIGENDIAN"\
+	       MEX = "mex -O -DBIGENDIAN"
 OSF1:
-	make all SUF=mexaxp CC="cc -DBIGENDIAN"      MEX = "mex -O -DBIGENDIAN"
+	make all SUF=mexaxp CC="cc -DBIGENDIAN"\
+	       MEX = "mex -O -DBIGENDIAN"
 MAC:
-	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"      MEX = "mex -O -DBIGENDIAN"
+	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"\
+	       MEX="mex -O -DBIGENDIAN"
 #windows:
 #	make all  SUF=dll MOSUF=obj CHMODIT="echo > null"  ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 windows:
 # Consider adding either of the following, depending on your platform:
 #       -march=pentium3
 #       -march=pentium4
-	make all SUF=dll     CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -march=pentium4 -mfpmath=sse -DSPM_WIN32" MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
+	make all SUF=dll CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -march=pentium4 -mfpmath=sse -DSPM_WIN32"\
+	         MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="echo > NUL" ADDED_OBS=win32mmap.dll.o ADDED_MEX=spm_win32utils.dll
 
 ###############################################################################
 # Architecture specific cleaning
 ###############################################################################
 clean.SunOS:
+	make clean SUF=mexsol
+clean.SunOS.gcc:
 	make clean SUF=mexsol
 clean.Linux:
 	make clean SUF=mexglx
@@ -359,7 +377,7 @@ spm_win32utils.$(SUF): spm_win32utils.c
 
 verb.unknown:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "PROBLEM: Dont know how to do this."
 	@ echo "_____________________________________________________________"
@@ -367,7 +385,7 @@ verb.unknown:
 
 verb.mexhp7:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "unix compile for hpux cc, and maybe aix cc"
 	@ echo ""
@@ -382,7 +400,7 @@ verb.mexhp7:
 
 verb.mexsg:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
 	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
@@ -398,7 +416,7 @@ verb.mexsg:
 
 verb.mexsg64:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "not optimised sgi 64 bit compile for CC"
 	@ echo ""
@@ -408,7 +426,7 @@ verb.mexsg64:
 
 verb.dll:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Windows compile with gcc/mingw"
 	@ echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
@@ -419,15 +437,15 @@ verb.dll:
 
 verb.mexsol:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
-	@ echo "Unix compile for Sun cc"
+	@ echo "Unix compile"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.mexlx:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 5.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -435,7 +453,7 @@ verb.mexlx:
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 6.x) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -443,7 +461,7 @@ verb.mexglx:
 
 verb.mexa64:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 7.x, 64bits athlon) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -451,7 +469,7 @@ verb.mexa64:
 
 verb.mexaxp:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "keep your fingers crossed"
 	@ echo "_____________________________________________________________"
@@ -459,7 +477,7 @@ verb.mexaxp:
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
-	@ echo "Makefile 2.19 04/11/26"
+	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Unix compile for MacOS X"
 	@ echo "_____________________________________________________________"

@@ -82,6 +82,7 @@ dat.fname  = fullfile(pwd,[nam opts.ext]);
 dat.dim    = idat.dim;
 dat.dtype  = [opts.dtype spm_platform('bigend')];
 dat.offset = 0;
+
 if ~spm_type(opts.dtype,'intt'),
     dat.scl_slope = 1;
     dat.scl_inter = 0;
@@ -167,7 +168,7 @@ return;
 %_______________________________________________________________________
 function str = dtypestr(i)
 % Returns a string appropriate for reading or writing the CDF data-type.
-types = str2mat('uint8','uint8','int16','int32','float','double');
+types = str2mat('uint8','uint8','int16','int32','float32','float64');
 str   = deblank(types(i,:));
 return;
 %_______________________________________________________________________

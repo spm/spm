@@ -167,7 +167,7 @@ for i=1:prod(size(V)),
 		VO = spm_close_vol(VO);
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dim(4) = spm_type('float');
+		VO.dt     = [spm_type('float') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);
@@ -246,7 +246,7 @@ for i=1:prod(size(V)),
 		end;
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dim(4) = spm_type('float');
+		VO.dt     = [spm_type('float') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);
@@ -311,7 +311,7 @@ for i=1:prod(size(V)),
 		VO = spm_write_vol(VO,Dat);
 	else,
 		VO.pinfo  = [1 0]';
-		VO.dim(4) = spm_type('float');
+		VO.dt     = [spm_type('float') spm_platform('bigend')];
 		VO.dat    = Dat;
 	end;
 	spm_progress_bar('Set',i);

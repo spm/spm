@@ -286,7 +286,11 @@ DCM.Y   = Y;
 
 %-Save and reset title
 %-------------------------------------------------------------------
-save(['DCM_',syn_model],'DCM');
+if str2num(version('-release'))>=14,
+    save(['DCM_',syn_model],'-V6','DCM');
+else
+    save(['DCM_',syn_model],'DCM');
+end;
 
 % Now generate synthetic output data
 spm_dcm_generate(['DCM_' syn_model],source_model,SNR);

@@ -71,6 +71,10 @@ Dout.fname = ['g' D{1}.fname];
 Dout.datatype = 'int16';
 
 D = Dout;
-save(fullfile(P, Dout.fname), 'D');
+if str2num(version('-release'))>=14
+    save(fullfile(P, Dout.fname), '-V6', 'D');
+else
+    save(fullfile(P, Dout.fname), 'D');
+end
 
 spm('Pointer', 'Arrow');

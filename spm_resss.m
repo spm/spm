@@ -82,7 +82,7 @@ mask = any(flags=='m');
 if nargin<3, error('insufficient arguments'); end
 ni = size(R,2);					%-ni = #images
 if ni~=prod(size(Vi)), error('incompatible dimensions'); end
-if Vo.dim(4)~=16, error('only float output images supported'), end
+if Vo.dt(1)~=16, error('only float output images supported'), end
 
 %-Image dimension, orientation and voxel size checks
 %-----------------------------------------------------------------------
@@ -98,7 +98,7 @@ fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')	     %-#
 Y  = zeros([Vo.dim(1:2),ni]);				%-PlaneStack data
 
 im = logical(zeros(ni,1));
-for j=1:ni, im(j)=~spm_type(Vi(j).dim(4),'NaNrep'); end	%-Images without NaNrep
+for j=1:ni, im(j)=~spm_type(Vi(j).dt(1),'NaNrep'); end	%-Images without NaNrep
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)

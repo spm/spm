@@ -33,7 +33,7 @@ function V = spm_vol(P)
 % This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
 % MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
-% @(#)spm_vol.m	2.19 John Ashburner 04/07/09
+% %W% John Ashburner %E%
 
 % If is already a vol structure then just return;
 if isstruct(P), V = P; return; end;
@@ -61,7 +61,20 @@ if isempty(P),
 	V = [];
 	return;
 end;
+for i=1:size(P,1),
+    v = subfunc(P(i,:));
+    if isempty(v),
+        hread_error_message(P(i,:));
+        error(['Can''t get volume information for ''' P(i,:) '''']);
+    end;
 
+    f = fieldnames(v);
+    for j=1:size(f,1),
+        V(i).(f{j}) = v.(f{j});
+    end;
+end;
+
+if 0,
 counter = 0;
 for i=1:size(P,1),
 	v = subfunc(P(i,:));
@@ -81,6 +94,7 @@ for i=1:size(P,1),
 	end;
 	counter = counter + size(v,2);
 end;
+end;
 return;
 
 function V = subfunc(p)
@@ -90,40 +104,31 @@ t = find(ext==',');
 
 n = [];
 if ~isempty(t),
-	if length(t)==1,
-		n1 = ext((t+1):end);
-		if ~isempty(n1),
-			n = str2num(n1);
-			ext = ext(1:(t-1));
-		end;
-	end;
+    t = t(1);
+    n1 = ext((t+1):end);
+    if ~isempty(n1),
+        n   = str2num(n1);
+        ext = ext(1:(t-1));
+    end;
 end;
 p = fullfile(pth,[nam   ext]);
 
-if strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2,
-	if isempty(n), V = spm_vol_ana(p);
-	else,          V = spm_vol_ana(p,n); end;
-    
-    % sjk
-    if isempty(n) & V.private.hdr.dime.dim(5) > 1
-        V0(1) = V;
-        for i = 2:V.private.hdr.dime.dim(5)
-            V0(i) = spm_vol_ana(p, i);
-        end
-        V = V0;
-    end
+if strcmp(ext,'.nii') || (strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2),
+	if isempty(n), V = spm_vol_nifti(p);
+	else,          V = spm_vol_nifti(p,n); end;
 	if ~isempty(V), return; end;
+
 else, % Try other formats
 
-	% Try MINC format
-	if isempty(n), V=spm_vol_minc(p);
-	else,          V=spm_vol_minc(p,n); end;
-	if ~isempty(V), return; end;
+	%% Try MINC format
+	%if isempty(n), V=spm_vol_minc(p);
+	%else,          V=spm_vol_minc(p,n); end;
+	%if ~isempty(V), return; end;
 
-	% Try Ecat 7
-	if isempty(n), V=spm_vol_ecat7(p);
-	else,          V=spm_vol_ecat7(p,n); end;
-	if ~isempty(V), return; end;
+	%% Try Ecat 7
+	%if isempty(n), V=spm_vol_ecat7(p);
+	%else,          V=spm_vol_ecat7(p,n); end;
+	%if ~isempty(V), return; end;
 end;
 return;
 
