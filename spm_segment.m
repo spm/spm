@@ -27,6 +27,7 @@
 
 function spm_segment(PF)
 
+global SWD
 DIR   = [SWD '/mni/'];
 
 %- A-Priori likelihood images
