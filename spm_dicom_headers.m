@@ -30,7 +30,9 @@ for i=1:size(P,1),
 end;
 spm_progress_bar('Clear');
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function ret = readdicomfile(P,dict)
 ret = [];
 P   = deblank(P);
@@ -40,9 +42,18 @@ if fp==-1, warning(['Cant open "' P '".']); return; end;
 fseek(fp,128,'bof');
 dcm = char(fread(fp,4,'char'))';
 if ~strcmp(dcm,'DICM'),
-	fclose(fp);
-	warning(['"' P '" is not a DICOM file.']);
-	return;
+	% Try truncated DICOM file fomat
+	fseek(fp,0,'bof');
+	tag.group   = fread(fp,1,'ushort');
+	tag.element = fread(fp,1,'ushort');
+	t           = dict.tags(tag.group+1,tag.element+1);
+	if t == 0  % entry not found in DICOM dict
+		fclose(fp);
+		warning(['"' P '" is not a DICOM file.']);
+		return;
+	else,
+		fseek(fp,0,'bof');
+	end;
 end;
 ret = read_dicom(fp, 'le',dict);
 fclose(fp);
@@ -125,6 +136,9 @@ while ~isempty(tag),
 					else,
 						[h,m,s] = strread(dat,'%2d%2d%f');
 					end;
+					if isempty(h), h = 0, end;
+					if isempty(m), m = 0, end;
+					if isempty(s), s = 0, end;
 					dat = s+60*(m+60*h);
 				otherwise,
 				end;
@@ -219,7 +233,6 @@ if flg(1) =='e',
 			res        = fread(fp,1,'ushort');
 		end;
 		tag.length = double(fread(fp,1,'uint'));
-		% should check for length of FFFFFFFFH
 		tag.le     = tag.le + 6;
 	case {'AE','AS','AT','CS','DA','DS','DT','FD','FL','IS','LO','LT','PN','SH','SL','SS','ST','TM','UI','UL','US'},
 		tag.length = double(fread(fp,1,'ushort'));
@@ -232,12 +245,14 @@ if flg(1) =='e',
 else,
 	tag.le =  8;
 	tag.length = double(fread(fp,1,'uint'));
-	% should check for length of FFFFFFFFH
 end;
 if isempty(tag.vr) | isempty(tag.length)
 	tag = [];
 	return;
 end;
+
+% should check for length of FFFFFFFFH
+
 if tag.length==13,
 	% disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
 	% For some bizarre reason, known only to themselves, they confuse lengths of
