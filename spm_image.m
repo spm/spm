@@ -277,7 +277,7 @@ B      = [0 0 0 0 0 0 1 1 1];			% tranformation matrix
 
 % locate Graphics window and clear it
 %-----------------------------------------------------------------------
-WS = spm('GetWinScale');
+WS = spm('WinScale');
 
 % Widgets for re-orienting images.
 %-----------------------------------------------------------------------
