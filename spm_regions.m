@@ -79,21 +79,56 @@ end
 spm_XYZreg('SetCoords',xyz,hReg);
 
 
-%-Get adjustment options, VOI name and radius
+%-Get adjustment options and VOI name
 %-----------------------------------------------------------------------
 spm_input(sprintf('at [%3.0f %3.0f %3.0f]',xyz),1,'d',...
 	'VOI time-series extraction')
 Ic      = spm_input('Adjust data for (select contrast)',2,'m',...
-		{'<don''t adjust>',xCon.name})-1;
-Rname   = spm_input('name of region',3,'s');
-R       = spm_input('VOI radius (mm)',4,'r',0,1,[0,Inf]);
+		{'<don''t adjust>',xCon.name}) - 1;
+K       = spm_input('Filter',3,'yes|no',[1 0]);
+Rname   = spm_input('name of region',4,'s','VOI');
 
-%-Find suprathreshold voxels within radius, & note those also in Y.mad
+
+%-Specify VOI
 %-----------------------------------------------------------------------
-d       = [SPM.XYZmm(1,:)-xyz(1); SPM.XYZmm(2,:)-xyz(2); SPM.XYZmm(3,:)-xyz(3)];
-Q       = find(sum(d.^2) <= R^2);
-q       = find(SPM.QQ(Q));
+str     = sprintf(' at [%.0f,%.0f,%.0f]',xyz(1),xyz(2),xyz(3));
+SPACE   = spm_input('VOI definition...',5,'m',...
+		{['Sphere',str],['Box',str],'Cluster',},['S','B','V']);
+Q       = ones(1,size(SPM.XYZmm,2));
 
+
+switch SPACE, case 'S'                                          % Sphere
+	%---------------------------------------------------------------
+	R     = spm_input('VOI radius (mm)',6,'r',0,1,[0,Inf]);
+	d     = [SPM.XYZmm(1,:)-xyz(1);
+		 SPM.XYZmm(2,:)-xyz(2);
+		 SPM.XYZmm(3,:)-xyz(3)];
+	Q     = find(sum(d.^2) <= R^2);
+
+case 'B'                                                           % Box
+	%---------------------------------------------------------------
+	D     = spm_input('box dimensions [x y z] {mm}',6,'r','0 0 0',3);
+	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
+	Q     = find(all(abs(SPM.XYZmm - xyz*Q) <= D(:)*Q/2));
+
+case 'V'                                                        %-Voxels
+	%---------------------------------------------------------------
+	if ~length(SPM.XYZ)
+		spm('alert!','No suprathreshold clusters!',mfilename,0);
+		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
+		return
+	end
+
+	[xyzmm,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm);
+	spm_results_ui('SetCoords',xyzmm);
+	A     = spm_clusters(SPM.XYZ);
+	Q     = find(A == A(i));
+end
+
+% voxels defined
+%-----------------------------------------------------------------------
+spm('Pointer','Watch')
+q      = find(SPM.QQ(Q));
 if any(SPM.QQ(Q)==0)
     spm('alert"',{...
         sprintf('Don''t have raw data for all %d suprathreshold',length(Q)),...
@@ -126,13 +161,19 @@ end
 
 % filter and remove confounds
 %-----------------------------------------------------------------------
-y    = spm_filter('apply',xX.K, y);
+dstr   = [];
+if K
+	y    = spm_filter('apply',xX.K, y);
+	dstr = [dstr 'Filtered & '];
 
-if Ic
-	y = y - spm_FcUtil('Y0',xCon(Ic),xX.xKXs,beta);
-	dstr = ['adjusted for ',xCon(Ic).name];
 else
-	dstr = 'not adjusted';
+	dstr = [dstr 'Unfiltered & '];
+end
+if Ic
+	y    = y - spm_FcUtil('Y0',xCon(Ic),xX.xKXs,beta);
+	dstr = [dstr 'adjusted for ',xCon(Ic).name];
+else
+	dstr = [dstr 'not adjusted'];
 end
 
 % compute regional response in terms of first eigenvariate
@@ -192,3 +233,4 @@ save(fullfile(SPM.swd,['VOI_',Rname]),'Y','xY')
 %-Reset title
 %-----------------------------------------------------------------------
 spm('FigName',['SPM{',SPM.STAT,'}: Results']);
+spm('Pointer','Arrow')
