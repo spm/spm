@@ -35,20 +35,19 @@ matfile = [spm_str_manip(matfile,'s'),'.mat'];
 if exist(matfile,'file')~=2, error(['invalid mat-file: ',mfilename]), end
 
 
-%-Note mat-file variables and load mat-file
+%-Note mat-file variables into structure M (feature introduced in v5.2)
 %-----------------------------------------------------------------------
-matvars = who('-file',matfile);
-load(matfile)
+M = load(matfile);
 
 
 %-Loop through varargin putting named variables into output arguments
 %-----------------------------------------------------------------------
 varargout = cell(1,nargout);
 for i=1:min(nargout,nargin-1)
-	if ~any(strcmp(varargin{i},matvars))
+	if isfield(M,varargin{i})
+		varargout{i} = getfield(M,varargin{i});
+	else
 		warning(['variable "',varargin{i},'" not found in mat-file: ',...
 				matfile])
-	else
-		varargout{i} = eval(varargin{i});
 	end
 end
