@@ -70,7 +70,7 @@ function [slice] = spm_vb_glmar (Y,slice)
 %
 %               There are other fields that are used internally
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% @(#)spm_vb_glmar.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
 
 tic;
 
@@ -128,7 +128,7 @@ for it = 1:slice.maxits, % Loop over iterations
         slice=spm_vb_beta (Y,slice);
     end
     if slice.update_F
-        F=spm_vb_F (Y,slice);
+        [F,Lav,KL]=spm_vb_F (Y,slice);
     end
     if slice.verbose
         disp(sprintf('Iteration %d, F=%1.2f',it,F));
@@ -151,6 +151,8 @@ end;
 
 if slice.update_F
     slice.F=F;
+    slice.Lav=Lav;
+    slice.KL=KL;
 end
     
 slice=spm_vb_gamma(Y,slice);
