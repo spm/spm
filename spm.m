@@ -940,7 +940,7 @@ if strcmp(lower(defaults.modality),'pet')
 	UFp	= defaults.stats.pet.ufp;		% Upper tail F-prob
 elseif strcmp(lower(defaults.modality),'fmri')
 	UFp	= defaults.stats.fmri.ufp;		% Upper tail F-prob
-elseif strcmp(lower(defults.modality),'unknown')
+elseif strcmp(lower(defaults.modality),'unknown')
 else
 	error('Illegal Modality')
 end
