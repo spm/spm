@@ -40,7 +40,7 @@ function varargout=spm_XYZreg(varargin)
 % FORMAT [hReg,xyz] = spm_XYZreg('InitReg',hReg,M,D,xyz)
 % Initialise registry in graphics object
 % hReg - Handle of HandleGraphics object to build registry in. Object must
-%        bu un'Tag'ged and have empty 'UserData'
+%        be un'Tag'ged and have empty 'UserData'
 % M    - 4x4 transformation matrix relating voxel to "real" co-ordinates, used
 %        and stored for checking validity of co-ordinates
 % D    - 3 vector of image X, Y & Z dimensions (DIM), used
@@ -161,7 +161,7 @@ function varargout=spm_XYZreg(varargin)
 %
 % The concept of the registry is of a central entity which "knows"
 % about other GUI objects holding XYZ co-ordinates, and keeps them all
-% in synch. Changes to the registry's XYZ co-ordinates are passed on to
+% in sync. Changes to the registry's XYZ co-ordinates are passed on to
 % registered functions by the registry (forward registration).
 % Individual objects which can change the XYZ co-ordinates should
 % therefore update the registry with the new co-ordinates (back
