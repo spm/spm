@@ -1,34 +1,17 @@
-function spm_segment(PF,PG,opts)
-% Segment an MR image into Gray, White, CSF & other.
+function spm_segment(VF,PG,flags)
+
+%VF   = '/home/john/data/T1_ICBM_normal_1mm_pn3_rf100.mnc';
+%PG   = eye(4);
+%global defaults
+%flags = defaults.segment;
+
+% Segment an MR image into Gray, White & CSF.
 %
-% --- The Prompts Explained ---
-%
-% 'select MRI(s) for subject '
-% If more than one volume is specified (eg T1 & T2), then they must be
-% in register (same position, size, voxel dims etc..).
-%
-% 'select Template(s) '
-% If the images have been spatially normalised, then there is no need to
-% select any images. Otherwise, select one or more template images which
-% will be used for affine normalisation of the images. Note that the
-% affine transform is only determined from the first image specified
-% for segmentation. 
-%
-% 'Attempt to correct intensity inhomogeneities?'
-% This uses a Bayesian framework (again) to model intensity
-% inhomogeneities in the image(s).  The variance associated with each
-% tissue class is assumed to be multiplicative (with the
-% inhomogeneities).  The low frequency intensity variability is
-% modelled by a linear combination of three dimensional DCT basis
-% functions (again), using a fast algorithm (again) to generate the
-% curvature matrix.  The regularization is based upon minimizing the
-% integral of square of the third derivatives of the modulation field
-% (the integral of the squares of the first and second derivs give the
-% membrane and bending energies respectively).  A small amount of
-% regularization is used when correcting for `Lots of inhomogeneity',
-% whereas more regularization is used for `A little inhomogeneity'.
-%
-%_______________________________________________________________________
+% FORMAT spm_segment(PF,PG,flags)
+% PF   - name(s) of image(s) to segment (must have same dimensions).
+% PG   - name(s) of template image(s) for realignment.
+%      - or a 4x4 transformation matrix which maps from the image to
+%        the set of templates.
 %
 %                      The algorithm is three step:
 %
@@ -43,7 +26,11 @@ function spm_segment(PF,PG,opts)
 %    then they they are all assumed to be in register, and the voxel
 %    values are fitted to multi-normal distributions.
 %
-% 3) Write the segmented image. The names of these images have
+% 3) Perform morphometric operations on the grey and white partitions
+%    in order to more accurately identify brain tissue. This is then used
+%    to clean up the grey and white matter segments. 
+%
+% 4) Write the segmented image. The names of these images have
 %    "_seg1", "_seg2" & "_seg3" appended to the name of the
 %    first image passed.
 %
@@ -61,613 +48,69 @@ function spm_segment(PF,PG,opts)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-% Programmers notes
-%
-% FORMAT spm_segment(PF,PG,opts)
-% PF   - name(s) of image(s) to segment (must have same dimensions).
-% PG   - name(s) of template image(s) for realignment.
-%      - or a 4x4 transformation matrix which maps from the image to
-%        the set of templates.
-% opts - options string.
-%        - 't' - write images called *_seg_tmp* rather than *_seg*
-%                (that are smoothed with an 8mm Gaussian).
-%        - 'f' - fix number of voxels in each cluster
-%        - 'c' - attempt to correct small intensity inhomogeneities
-%        - 'C' - attempt to correct large intensity inhomogeneities
-%        - 'w' - write inhomogeneity corrected image(s) (with the 'c'
-%                or 'C' options only)
-%
-debug = 0;
 
+if ischar(VF), VF= spm_vol(VF); end;
 
-linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
+SP         = init_sp(flags.estimate,VF,PG);
+[x1,x2,x3] = get_sampling(SP.MM,VF,flags.estimate.samp,flags.estimate.bb);
+BP         = init_bp(VF, flags.estimate.cutoff, flags.estimate.reg);
+CP         = init_cp(VF,x3);
+sums       = zeros(8,1);
 
-if nargin<3
-	% set to ' ' rather than '' to get rid of annoying warnings
-	%opts = 'f';
-	opts = ' ';
-	if nargin<2
-		PG = '';
-	end
-end
-
-global SWD
-DIR1   = fullfile(SWD,'templates');
-DIR2   = fullfile(SWD,'apriori');
-
-if (nargin==0)
-	SPMid = spm('FnBanner',mfilename,'%I%');
-	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Segment');
-	spm_help('!ContextHelp','spm_segment.m');
-
-	n     = spm_input('number of subjects',1,'e',1);
-	if n < 1,
-		spm_figure('Clear','Interactive');
-		return;
-	end;
-
-
-	for i = 1:n,
-		PF = spm_get(Inf,'.img',...
-			['Select MRI(s) for subject ' num2str(i)]);
-		eval(['PF' num2str(i) ' = PF;']);
-	end;
-
-	PG = '';
-
-	if spm_input('Are they spatially normalised?', 1, 'y/n') == 'n',
-		% Get template
-		%-----------------------------------------------------------------------
-		templates = str2mat(	fullfile(DIR1,'T1.img'),...
-					fullfile(DIR1,'T2.img'),...
-					fullfile(DIR1,'PD.img'),...
-					fullfile(DIR1,'EPI.img'));
-
-		% Get modality of target
-		respt = spm_input('Modality of first image?','+1','m',...
-			'modality - T1 MRI|modality - T2 MRI|modality - PD MRI|modality - EPI MR|--other--',...
-			[1 2 3 4 0],1);
-		if respt > 0,
-			PG = deblank(templates(respt,:));
-		else,
-			ok = 0;
-			while ~ok,
-				PG = spm_get(Inf,'.img',['Select Template(s) for affine matching'],DIR1);
-				if size(PG,1)>0,
-					vv = spm_vol(PG);
-					if prod(size(vv))==1,
-						ok = 1;
-					else,
-						tmp1 = cat(1,vv.dim);
-						tmp2 = cat(3,vv.mat);
-						if ~any(any(diff(tmp1(:,1:3)))) & ~any(any(any(diff(tmp2,1,3)))),
-							ok=1;
-						end;
-					end;
-				else,
-					ok = 0;
-				end;
-			end;
-		end;
-	end;
-
-	tmp = spm_input('Attempt to correct intensity inhomogeneities?',...
-		'+1','m',...
-		['No inhomogeneity correction|' ...
-		 'A little inhomogeneity correction|' ...
-		 'Lots of inhomogeneity correction'],...
-		[' ' 'c' 'C'],1);
-	opts = [tmp opts];
-	if any(opts == 'c') | any(opts == 'C'),
-		tmp = spm_input('Save inhomogeneity corrected images ?',...
-			'+1','m',...
-			['Don''t save corrected images|' ...
-			 'Save inhomogeneity corrected images'],...
-			[' ' 'w'],1);
-		opts = [tmp opts];
-	end;
-
-	spm('Pointer','Watch');
-	for i = 1:n,
-		spm('FigName',['Segment: working on subj ' num2str(i)],Finter,CmdLine);
-		fprintf('\Segmenting Subject %d: ', i);
-
-		eval(['PF = PF' num2str(i) ';']);
-		if (size(PF,1)~=0) spm_segment(PF,PG,opts); end
-	end;
-
-	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));
-	spm_figure('Clear','Interactive');
-	spm('FigName','Segment: done',Finter,CmdLine);
-	spm('Pointer');
-	return;
+for pp=1:length(x3),
+	[raw,msk] = get_raw(VF,x1,x2,x3(pp));
+	s         = get_sp(SP,x1,x2,x3(pp));
+	CP        = update_cp_est(CP,s,raw,msk,pp);
+	sums      = sums + reshape(sum(sum(s,1),2),8,1);
 end;
+sums = sums/sum(sums);
+CP   = shake_cp(CP);
 
-%_______________________________________________________________________
-%_______________________________________________________________________
+[CP,BP,SP] = run_segment(CP,BP,SP,VF,sums,x1,x2,x3);
 
-%- A-Priori likelihood images.
-PB    = str2mat(	fullfile(DIR2,'gray.img'),...
-			fullfile(DIR2,'white.img'),...
-			fullfile(DIR2,'csf.img'));
+save segmentation_results.mat CP BP SP VF sums
 
-niter     = 64;        % Maximum number of iterations of Mixture Model
-nc        = [1 1 1 3]; % Number of clusters for each probability image
+[g,w,c] = get_gwc(VF,BP,SP,CP,sums,flags.write.wrt_cor);
+if flags.write.cleanup, [g,w,c] = clean_gwc(g,w,c); end;
 
-
-% Determine matrix MM that will transform the image to Talairach space.
-%_______________________________________________________________________
-if ~isempty(PG) & isstr(PG)
-	% Affine registration so that a priori images match the image to
-	% be segmented.
-	%-----------------------------------------------------------------------
-	linfun('Smoothing..');
-	VG = spm_vol(PG);
-	for i=1:prod(size(VG)),
-		VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/spm_global(VG(i));
-	end;
-
-	spm_smooth(PF(1,:),'spm_seg_tmp.img',8);
-	VF = spm_vol('spm_seg_tmp.img');
-	VF.pinfo(1:2,:) = VF.pinfo(1:2,:)/spm_global(VF);
-
-	global sptl_MskBrn
-	VW = [];
-	if ~isempty(sptl_MskBrn), VW = spm_vol(sptl_MskBrn); end;
-
-	% perform affine normalisation at different sampling frequencies
-	% with increasing numbers of parameters.
-	linfun('Determining Affine Mapping..');
-	global sptl_Ornt
-	if prod(size(sptl_Ornt)) == 12,
-		prms = [sptl_Ornt ones(1,size(PG,1))]';
-	else,
-		prms = [0 0 0  0 0 0  1 1 1  0 0 0 ones(1,size(PG,1))]';
-	end;
-	spm_chi2_plot('Init','Affine Registration','Convergence');
-	prms = spm_affsub3('affine3', VG, VF, 1, 8, prms);
-	prms = spm_affsub3('affine3', VG, VF, 1, 6, prms, VW);
-	spm_chi2_plot('Clear');
-	spm_unlink(	'spm_seg_tmp.img',...
-			'spm_seg_tmp.hdr',...
-			'spm_seg_tmp.mat')
-	MM = spm_matrix(prms);
-
-elseif all(size(PG) == [4 4])
-	% Assume that second argument is a matrix that will do the job
-	%-----------------------------------------------------------------------
-	MM = PG;
-else
-	% Assume that image is normalized
-	%-----------------------------------------------------------------------
-	MM = spm_matrix([0 0 0 0 0 0 1 1 1 0 0 0]');
-end
-
-VF = spm_vol(PF);
-VB = spm_vol(PB);
-m  = size(PF,1);
+% Write the segmented images.
 %-----------------------------------------------------------------------
-
-
-
-% Voxels to sample during the cluster analysis
-%-----------------------------------------------------------------------
-
-% A bounding box for the brain in Talairach space.
-bb1 = [ [-88 88]' [-122 86]' [-60 95]'];
-
-% A mapping from a unit radius sphere to a hyper-ellipse
-% that is just enclosed by the bounding box in Talairach
-% space.
-M0 = [diag(diff(bb1)/2) mean(bb1)';[0 0 0 1]];
-
-% The mapping from voxels to Talairach space is
-% MM*VF(1).mat, so the ellipse in the space
-% of the first image becomes:
-M0 = inv(MM*VF(1).mat)*M0;
-
-% So to work out the bounding box in the space of the
-% image that just encloses the hyper-ellipse.
-tmp = M0(1:3,1:3);
-tmp = diag(tmp*tmp'/diag(sqrt(diag(tmp*tmp'))));
-bb  = round([M0(1:3,4)-tmp M0(1:3,4)+tmp])';
-
-% Want to sample about every 4mm
-tmp  = inv(VF(1).mat);
-tmp  = tmp(1:3,1:3);
-samp = round(max(abs(tmp*[4 4 4]'), [1 1 1]'));
-%-----------------------------------------------------------------------
-
-
-
-reg = 0;
-if any(opts == 'c') | any(opts == 'C')
-	% I don't know what the best values for reg are yet.
-	% I guess a bit more experimentation is needed.
-	reg = 10000000; co = 32;
-	if any(opts == 'C'), reg = 1000000; co = 25; end
-
-	% Stuff for intensity modulation
-	%-----------------------------------------------------------------------
-	% Set up basis functions
-	tmp = sqrt(sum(VF(1).mat(1:3,1:3).^2));
-	nbas = max(round((VF(1).dim(1:3).*tmp)/co),[1 1 1]);
-	B1=spm_dctmtx(VF(1).dim(1),nbas(1),bb(1,1):samp(1):bb(2,1));
-	B2=spm_dctmtx(VF(1).dim(2),nbas(2),bb(1,2):samp(2):bb(2,2));
-	B3=spm_dctmtx(VF(1).dim(3),nbas(3),bb(1,3):samp(3):bb(2,3));
-
-	d = [size(B1,1) size(B2,1) size(B3,1)];
-
-	% Set up a priori covariance matrix - based on energy per
-	% millimeter
-	mm = sqrt(sum(VF(1).mat(1:3,1:3).^2)).*VF(1).dim(1:3);
-	kx=(pi*((1:nbas(1))'-1)/mm(1)).^2; ox=ones(nbas(1),1);
-	ky=(pi*((1:nbas(2))'-1)/mm(2)).^2; oy=ones(nbas(2),1);
-	kz=(pi*((1:nbas(3))'-1)/mm(3)).^2; oz=ones(nbas(3),1);
-
-	% Cost function based on sum of squared 3rd derivatives
-	IC0 = (	  kron(kz.*kz.*kz,kron(oy        ,ox        )) + ...
-		  kron(oz        ,kron(ky.*ky.*ky,ox        )) +...
-		  kron(oz        ,kron(oy        ,kx.*kx.*kx)) +...
-		3*kron(kz.*kz    ,kron(ky        ,ox        )) + ...
-		3*kron(kz.*kz    ,kron(oy        ,kx        )) + ...
-		3*kron(kz        ,kron(ky.*ky    ,ox        )) + ...
-		3*kron(oz        ,kron(ky.*ky    ,kx        )) +...
-		3*kron(kz        ,kron(oy        ,kx.*kx    )) + ...
-		3*kron(oz        ,kron(ky        ,kx.*kx    )) +...
-		6*kron(kz        ,kron(ky        ,kx        )) )*reg;
-
-	% Unused cost function based upon bending energy..
-	% IC0 = (kron(kz.*kz,kron(oy,ox)) + kron(oz,kron(ky.*ky,ox)) + kron(oz,kron(oy,kx.*kx)) +...
-	% 	 2*kron(kz,kron(ky,ox))   + 2*kron(kz,kron(oy,kx))   +  2*kron(oz,kron(ky,kx)))*reg;
-	% Unused cost function based upon membrane energy..
-	% IC0 =(kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox))*reg;
-
-	% Assume a tiny variance for the DC coefficient.
-	IC0(1)     = max(IC0)*1000;
-	IC0        = diag(IC0);
-
-	% Mode of the a priori distribution
-	X0         = zeros(prod(nbas),1);
-	X0(1)      = sqrt(prod(VF(1).dim(1:3)));
-
-	% Initial estimate for intensity modulation field
-	T          = zeros(nbas(1),nbas(2),nbas(3),m);
-	T(1,1,1,:) = sqrt(prod(VF(1).dim(1:3)));
-	%-----------------------------------------------------------------------
-else,
-	T = sqrt(prod(VF(1).dim(1:3)));
-	nbas = [1 1 1];
-end;
-
-
-lkp    = []; for i=1:size(nc,2), lkp = [lkp ones(1,nc(i))*i]; end;
-
-n      = size(lkp,2);
-nb     = prod(size(VB));
-
-sumbp  = zeros(1,n);
-osumpr = -Inf;
-
-% Occasionally the dynamic range of the images is such that many voxels
-% all have the same intensity.  Adding cv0 is an attempt to improve the
-% stability of the algorithm if this occurs. The value 0.083 was obtained
-% from var(rand(1000000,1)).  It prbably isn't the best way of doing
-% things, but it appears to work.
-cv0 = zeros(m,m);
-for i=1:m, cv0(i,i)=0.083*mean(VF(i).pinfo(1,:)); end;
-
-cv  = zeros(m,m,n);	% (Co)variances
-mn  = zeros(m,n);	% Means
-mg  = zeros(1,n);	% Number of voxels/cluster
-
-z   = bb(1,3):samp(3):bb(2,3);
-d   = [length(bb(1,1):samp(1):bb(2,1)) length(bb(1,2):samp(2):bb(2,2)) length(bb(1,3):samp(2):bb(2,3))];
-
-spm_chi2_plot('Init','Segmenting','Log-likelihood','Iteration #');
-for iter = 1:niter,
-	linfun(['Segmenting ' num2str(iter) '..']); 
-
-	% Initialize variables that are modified during the loop over each plane
-	%-----------------------------------------------------------------------
-	sumpr= 0;
-	mom0 = zeros(1,n)+eps;
-	mom1 = zeros(m,n);
-	mom2 = zeros(m,m,n)+eps;
-
-	if reg~=0,
-		Alpha = zeros(prod(nbas),prod(nbas),m);
-		Beta  = zeros(prod(nbas),m);
-	end;
-
-	%-----------------------------------------------------------------------
-	for pp = 1:length(z),	% Loop over planes
-		clear dat bp pr
-
-
-		B = spm_matrix([-bb(1,1)/samp(1)+1 -bb(1,2)/samp(2)+1 -z(pp)...
-			0 0 0 1/samp(1) 1/samp(2) 1]);
-
-		% Ignore voxels of value zero - since we don't know if it is because they
-		% are truly zero - or if it is because they are zeros due to some kind of
-		% image editing or from outside the original FOV
-		msk = zeros(d(1)*d(2),1);
-
-		for i=1:m,
-			M   = VF(i).mat\VF(1).mat*inv(B);
-			tmp = spm_slice_vol(VF(i),M, d(1:2),1);
-			msk = msk | tmp(:)==0;
-			if reg~=0,
-				% Non-uniformity correct.
-				t = reshape(reshape(T(:,:,:,i),...
-					nbas(1)*nbas(2),nbas(3))*B3(pp,:)', nbas(1), nbas(2));
-				rawdat(:,:,i) = tmp;
-				tmp = tmp.*(B1*t*B2');
-			end;
-			dat(:,i) = tmp(:);
-		end;
-		msk = find(~msk);
-
-		% If there are at least some voxels to work with..
-		if length(msk)>0,
-
-			% A priori probability data for GM, WM and CSF..
-			bp = zeros(d(1)*d(2),nb+1);
-			for j=1:nb,
-				M       = inv(B*inv(MM*VF(1).mat)*VB(j).mat);
-				tmp     = spm_slice_vol(VB(j),M, d(1:2),1)/nc(j);
-				bp(:,j) = tmp(:);
-			end;
-			% A priori probability for all other tissue..
-			bp(:,nb+1) = abs(ones(d(1)*d(2),1) - bp(:,1:nb)*nc(1:nb)')/nc(nb+1);
-
-			pr = zeros(d(1)*d(2),n);
-			if iter==1,
-				% Initial probability estimates based upon
-				% a priori knowledge
-				%-----------------------------------------------------------------------
-				for i=1:n,
-					pr(msk,i) = bp(msk,lkp(i));
-					sumbp(i)  = sumbp(i) + sum(bp(msk,lkp(i)));
-				end;
-			else,
-				% Compute PDFs for each cluster
-				%-----------------------------------------------------------------------
-				for i=1:n,
-					amp       = 1/sqrt((2*pi)^m * det(cv(:,:,i)));
-					dst       = (dat(msk,:)-ones(size(msk,1),1)*mn(:,i)')/sqrtm(cv(:,:,i));
-					dst       = sum(dst.*dst,2);
-					pr(msk,i) = amp*exp(-0.5*dst).*(bp(msk,lkp(i))*(mg(1,i)/sumbp(i)));
-				end;
-				%-----------------------------------------------------------------------
-			end;
-
-			% Compute log likelihood, and normalize likelihoods to sum to unity
-			%-----------------------------------------------------------------------
-			sp       = sum(pr(msk,:),2);
-			sumpr    = sumpr + sum(log(sp));
-			msk2     = find(~sp);
-			sp(msk2) = 1;
-			for i=1:n, pr(msk,i) = pr(msk,i)./sp; end;
-			%-----------------------------------------------------------------------
-
-
-			% Compute new n, mean & var for each cluster - step 1
-			%-----------------------------------------------------------------------
-			for i=1:n,
-				mom0(1,i)   = mom0(1,i)   + sum(pr(:,i));
-				mom1(:,i)   = mom1(:,i)   + sum((pr(:,i)*ones(1,m)).*dat)';
-				mom2(:,:,i) = mom2(:,:,i) + ((pr(:,i)*ones(1,m)).*dat)'*dat;
-			end;
-			%-----------------------------------------------------------------------
-
-			if reg~=0 & iter > 1,
-				% Build up A'*A and A'*b to solve for intensity modulations
-				%-----------------------------------------------------------------------
-				pr  = reshape(pr ,d(1),d(2),n);
-				for j=1:m,
-					for i=1:2,
-						wt = pr(:,:,i)*(cv(j,j,i).^(-0.5));
-						if i==1,
-							[alpha,beta] = spm_kronutil(wt.*rawdat(:,:,j),wt*mn(j,i),B1,B2);
-						else,
-							[alph ,bet ] = spm_kronutil(wt.*rawdat(:,:,j),wt*mn(j,i),B1,B2);
-							alpha = alpha + alph;
-							beta  = beta  + bet;
-						end;
-					end;
-					Alpha(:,:,j) = Alpha(:,:,j) + kron(B3(pp,:)'*B3(pp,:),alpha);
-					Beta(:,j)    = Beta(:,j)    + kron(B3(pp,:)', beta);
-				end;
-				pr  = reshape(pr ,d(1)*d(2),n);
-			end;
-		end;
-	end;
-
-	% Solve for intensity modulations
-	%-----------------------------------------------------------------------
-	if reg~=0 & iter>1,
-		for i=1:m,
-			x = (Alpha(:,:,i) + IC0)\(IC0*X0 + Beta(:,i));
-			T(:,:,:,i) = reshape(x,nbas);
-		end;
-	end;
-	%-----------------------------------------------------------------------
-
-	if iter>2, spm_chi2_plot('Set',sumpr); end;
-
-
-	% Compute new n, mean & var for each cluster - step 2
-	%-----------------------------------------------------------------------
-	for i=1:n,
-		mg(1,i)   = mom0(1,i);
-		if any(opts == 'f') & i<=nb, mg(1,i) = sumbp(i); end;
-		mn(:,i)   = mom1(:,i)/mom0(1,i);
-
-		tmp       = (mom0(1,i).*mn(:,i))*mn(:,i)';
-		tmp       = tmp-eye(size(tmp))*eps*1000;
-		cv(:,:,i) = (mom2(:,:,i) - tmp)/mom0(1,i) + cv0;
-	end;
-	%-----------------------------------------------------------------------
-
-
-	if iter==1,
-		% Split the clusters
-		%-----------------------------------------------------------------------
-		nn = 0;
-		for j=1:length(nc),
-			for i=2:nc(j),
-				cv(:,:,nn+i) = cv(:,:,nn+i)*0.8^(1-i);
-				mn(:,nn+i)   = mn(:,nn+i)*0.8^(1-i);
-			end;
-			nn = nn + nc(j);
-		end;
-
-		% Background Cluster.
-		%    Strictly speaking, since voxels contain absolute values,
-		%    the distributions should be modified accordingly. However
-		%    in practice, the only allowance made for this is for the
-		%    distribution of a background cluster. The mean of this
-		%    cluster is assumed to be zero, and in order for the model
-		%    to fit properly, the number of voxels contained in this 
-		%    cluster is doubled.
-		%-----------------------------------------------------------------------
-		mn(:,n)   = zeros(m,1);
-		mg(1,n)   = 2*mg(1,n);
-		cv(:,:,n) = (mom2(:,:,n))/mom0(1,n);
-	end;
-
-	% Stopping criterion
-	%-----------------------------------------------------------------------
-	if iter == 4,
-		sumpr2 = sumpr;
-	elseif iter > 4,
-		if (sumpr-osumpr)/(sumpr-sumpr2) < 0.0003
-			break;
-		end;
-	end;
-	osumpr = sumpr;
-end;
-spm_chi2_plot('Clear');
-
-%save segmentation_results.mat T mg mn cv MM
-
-
-%-----------------------------------------------------------------------
-%-----------------------------------------------------------------------
-
-% Create headers, open files etc...
-%-----------------------------------------------------------------------
-dm     = VF(1).dim(1:3);
-planes = 1:VF(1).dim(3);
-k      = prod(dm(1:2));
-
-if any(opts == 't')
-	app  = '_seg_tmp';
-	nimg = 2;
-else
-	app  = '_seg';
-	nimg = nb;
-end
-
-
-B1 = spm_dctmtx(VF(1).dim(1),nbas(1));
-B2 = spm_dctmtx(VF(1).dim(2),nbas(2));
-B3 = spm_dctmtx(VF(1).dim(3),nbas(3));
-
-for j=1:nimg,
+for j=1:3,
 	VO(j) = struct(...
-		'fname',  [spm_str_manip(PF(1,:),'rd') app num2str(j) '.img'],...
+		'fname',  [spm_str_manip(VF(1).fname,'rd') '_seg' num2str(j) '.img'],...
 		'dim',    [VF(1).dim(1:3) 2],...
 		'mat',    VF(1).mat,...
 		'pinfo',  [1/255 0 0]',...
 		'descrip','Segmented image');
-	spm_create_image(VO(j));
 end;
+VO = spm_create_vol(VO);
 
-if any(opts == 'w'),
-	fpc = ones(m,1)*(-1);
-	for j=1:m,
-		[pth,nm,xt,vr] = fileparts(deblank(VF(j).fname));
-		VC(j) = struct(...
-			'fname',  fullfile(pth,['corr_' nm xt vr]),...
-			'dim',    [VF(1).dim(1:3) VF(j).dim(4)],...
-			'mat',    VF(1).mat,...
-			'pinfo',  VF(j).pinfo(:,1),...
-			'descrip','Corrected image');
-		spm_create_image(VC(j));
-	end;
-end;
-
-
-% Write the segmented images.
-%-----------------------------------------------------------------------
-spm_progress_bar('Init',dm(3),'Writing Segmented','planes completed');
-clear pr bp dat dat0
-
-for pp=1:size(planes,2)
-	linfun(['Writing Segmented ' num2str(pp) '..']);
-	p  = planes(pp);
-	B  = spm_matrix([0 0 -p]);
-	M2 = B*inv(MM*VF(1).mat);
-
-	for i=1:m,
-		% The image data
-		M1  = inv(B*(VF(1).mat\VF(i).mat));
-		tmp = spm_slice_vol(VF(i), M1, dm(1:2), 1);
-		if reg~=0,
-			% Apply non-uniformity correction
-			t = reshape(reshape(T(:,:,:,i),...
-				nbas(1)*nbas(2),nbas(3))*B3(pp,:)', nbas(1), nbas(2));
-			t = B1*t*B2';
-			dat0(:,i) = tmp(:).*t(:);
-		else,
-			dat0(:,i) = tmp(:);
-		end;
-	end;
-
-	bp = zeros(size(dat0,1),nb+1);
-	for j=1:nb,
-		M       = inv(M2*VB(j).mat);
-		tmp     = spm_slice_vol(VB(j), M, dm(1:2),1);
-		bp(:,j) = tmp(:)/nc(j);
-	end;
-
-	bp(:,nb+1) = abs(ones(k,1) - bp(:,1:nb)*nc(1:nb)')/nc(nb+1);
-
-	for i=1:n,
-		amp     = 1/sqrt((2*pi)^m * det(cv(:,:,i)));
-		dst     = (dat0-ones(k,1)*mn(:,i)')/sqrtm(cv(:,:,i));
-		dst     = sum(dst.*dst,2);
-		pr(:,i) = amp*exp(-0.5*dst).*(bp(:,lkp(i))*(mg(1,i)/sumbp(i)));
-	end;
-
-	sp = (sum(pr,2)+eps);
-
-	for j=1:nimg,
-		tmp = find(lkp(1:(length(lkp)-1))==j);
-		if length(tmp) == 1,
-			dat = pr(:,tmp);
-		else,
-			dat = sum(pr(:,tmp),2);
-		end;
-		spm_write_plane(VO(j),reshape(dat./sp,VO(j).dim(1:2)),pp);
-	end;
-
-	if any(opts == 'w'),
-		% Write nonuniformity corrected images.
-		%-----------------------------------------------------------------------
-		for i=1:m,
-			spm_write_plane(VC(i),reshape(dat0(:,i),VC(i).dim(1:2)),pp);
-		end;
-	end;
+spm_progress_bar('Init',VF(1).dim(3),'Writing Segmented','planes completed');
+for pp=1:VF(1).dim(3),
+	VO(1) = spm_write_plane(VO(1),double(g(:,:,pp))/255,pp);
+	VO(2) = spm_write_plane(VO(2),double(w(:,:,pp))/255,pp);
+	VO(3) = spm_write_plane(VO(3),double(c(:,:,pp))/255,pp);
 	spm_progress_bar('Set',pp);
 end;
+VO = spm_close_vol(VO);
 spm_progress_bar('Clear');
 
-
-% Do the graphics
+display_graphics(VF,VO,CP.mn,CP.cv,CP.mg);
+return;
 %=======================================================================
+
+%=======================================================================
+function [y1,y2,y3] = affine_transform(x1,x2,x3,M)
+	y1 = M(1,1)*x1 + M(1,2)*x2 + M(1,3)*x3 + M(1,4);
+	y2 = M(2,1)*x1 + M(2,2)*x2 + M(2,3)*x3 + M(2,4);
+	y3 = M(3,1)*x1 + M(3,2)*x2 + M(3,3)*x3 + M(3,4);
+return;
+%=======================================================================
+
+%=======================================================================
+function display_graphics(VF,VS,mn,cv,mg)
+% Do the graphics
+nb = 3;
 spm_figure('Clear','Graphics');
 fg = spm_figure('FindWin','Graphics');
 if ~isempty(fg),
@@ -677,7 +120,7 @@ if ~isempty(fg),
 	text(0.5,0.80, 'Segmentation','FontSize',16,'FontWeight','Bold',...
 		'HorizontalAlignment','center','Parent',ax);
 
-	text(0,0.65, ['Image:  ' spm_str_manip(PF(1,:),'k50d')],...
+	text(0,0.65, ['Image:  ' spm_str_manip(VF(1).fname,'k50d')],...
 		'FontSize',14,'FontWeight','Bold','Parent',ax);
 
 	text(0,0.40, 'Means:','FontSize',12,'FontWeight','Bold','Parent',ax);
@@ -694,31 +137,26 @@ if ~isempty(fg),
 			'FontSize',12,'FontWeight','Bold',...
 			'HorizontalAlignment','center','Parent',ax);
 	end;
-	if m > 1,
+	if length(VF) > 1,
 		text(0,0.10,...
 		'Note: only means and variances for the first image are shown',...
 		'Parent',ax,'FontSize',12);
 	end;
 
-	% and display a few images.
-	%-----------------------------------------------------------------------
-	V = spm_vol(deblank(PF(1,:)));
-	for j=1:nimg,
-		iname = [spm_str_manip(PF(1,:),'rd') app num2str(j) '.img'];
-		VS(j) = spm_vol(iname);
-	end;
 	M1 = VS(1).mat;
 	M2 = VF(1).mat;
 	for i=1:5,
-		M   = spm_matrix([0 0 i*V(1).dim(3)/6]);
-		img = spm_slice_vol(V(1),M,V(1).dim(1:2),1);
+		M   = spm_matrix([0 0 i*VF(1).dim(3)/6]);
+		img = spm_slice_vol(VF(1),M,VF(1).dim(1:2),1);
 		img(1,1) = eps;
-		ax = axes('Position',[0.05 0.75*(1-i/5)+0.05 0.9/(nb+1) 0.75/5],'Visible','off','Parent',fg);
+		ax = axes('Position',...
+			[0.05 0.75*(1-i/5)+0.05 0.9/(nb+1) 0.75/5],...
+			'Visible','off','Parent',fg);
 		imagesc(rot90(img), 'Parent', ax);
 		set(ax,'Visible','off','DataAspectRatio',[1 1 1]);
 
-		for j=1:nimg,
-			img = spm_slice_vol(VS(j),M2\M1*M,V(1).dim(1:2),1);
+		for j=1:3,
+			img = spm_slice_vol(VS(j),M2\M1*M,VF(1).dim(1:2),1);
 			ax  = axes('Position',...
 				[0.05+j*0.9/(nb+1) 0.75*(1-i/5)+0.05 0.9/(nb+1) 0.75/5],...
 				'Visible','off','Parent',fg);
@@ -730,16 +168,462 @@ if ~isempty(fg),
 	spm_print;
 	drawnow;
 end;
+return;
+%=======================================================================
 
+%=======================================================================
+function M = get_affine_mapping(VF,VG,aflags)
 
-if any(opts == 't'),
-	for i=1:nimg,
-		linfun(['Smoothing ' num2str(i) '..']);
-		iname1 = [spm_str_manip(PF(1,:),'rd') app num2str(i)];
-		iname2 = [spm_str_manip(PF(1,:),'rd') '_sseg_tmp' num2str(i)];
-		spm_smooth([iname1 '.img'],[iname2 '.img'],8);
-		spm_unlink([iname1 '.img'], [iname1 '.hdr'], [iname1 '.mat']);
+if ~isempty(VG) & ischar(VG), VG = spm_vol(VG); end;
+
+if ~isempty(VG) & isstruct(VG),
+	% Affine registration so that a priori images match the image to
+	% be segmented.
+	%-----------------------------------------------------------------------
+
+	VFS = spm_smoothto8bit(VF(1),aflags.smosrc);
+
+	% Scale all images approximately equally
+	% ---------------------------------------------------------------
+	for i=1:length(VG),
+		VG(i).pinfo(1:2,:) = VG(i).pinfo(1:2,:)/spm_global(VG(i));
 	end;
+	VFS(1).pinfo(1:2,:) = VFS(1).pinfo(1:2,:)/spm_global(VFS(1));
+
+	spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration');
+	flags     = struct('sep',aflags.smosrc, 'regtype',aflags.regtyp,'WG',[],'globnorm',0,'debug',0);
+	M         = eye(4);
+	[M,scal]  = spm_affreg(VG, VFS, flags, M);
+
+	if ~isempty(aflags.weight), flags.WG = spm_vol(aflags.weight); end;
+
+	flags.sep = aflags.smosrc/2;
+	M         = spm_affreg(VG, VFS, flags, M,scal);
+	spm_chi2_plot('Clear');
+
+elseif all(size(VG) == [4 4])
+	% Assume that second argument is a matrix that will do the job
+	%-----------------------------------------------------------------------
+	M = VG;
+else
+	% Assume that image is normalized
+	%-----------------------------------------------------------------------
+	M = eye(4);
+end
+return;
+%=======================================================================
+
+%=======================================================================
+function [x1,x2,x3] = get_sampling(MM,VF,samp,bb1)
+% Voxels to sample during the cluster analysis
+%-----------------------------------------------------------------------
+
+% A bounding box for the brain in Talairach space.
+%bb = [ [-88 88]' [-122 86]' [-60 95]'];
+%c = [bb(1,1) bb(1,2) bb(1,3) 1
+%     bb(1,1) bb(1,2) bb(2,3) 1
+%     bb(1,1) bb(2,2) bb(1,3) 1
+%     bb(1,1) bb(2,2) bb(2,3) 1
+%     bb(2,1) bb(1,2) bb(1,3) 1
+%     bb(2,1) bb(1,2) bb(2,3) 1
+%     bb(2,1) bb(2,2) bb(1,3) 1
+%     bb(2,1) bb(2,2) bb(2,3) 1]';
+%tc = MM\c;
+%tc = tc(1:3,:)';
+%mx = max(tc);
+%mn = min(tc);
+%bb = [mn ; mx];
+%vx = sqrt(sum(VF(1).mat(1:3,1:3).^2));
+%samp = round(max(abs([4 4 4]./vx), [1 1 1]));
+%x1 = bb(1,1):samp(1):bb(2,1);
+%x2 = bb(1,2):samp(2):bb(2,2);
+%x3 = bb(1,3):samp(3):bb(2,3);
+%return;
+
+% A bounding box for the brain in Talairach space.
+bb1 = [ [-88 88]' [-122 86]' [-60 95]'];
+
+% A mapping from a unit radius sphere to a hyper-ellipse
+% that is just enclosed by the bounding box in Talairach
+% space.
+M0 = [diag(diff(bb1)/2) mean(bb1)';[0 0 0 1]];
+
+% The mapping from voxels to Talairach space is MM,
+% so the ellipse in the space of the image becomes:
+M0 = MM\M0;
+
+% So to work out the bounding box in the space of the
+% image that just encloses the hyper-ellipse.
+tmp = M0(1:3,1:3);
+tmp = diag(tmp*tmp'/diag(sqrt(diag(tmp*tmp'))));
+bb  = round([M0(1:3,4)-tmp M0(1:3,4)+tmp])';
+bb  = min(max(bb,[1 1 1 ; 1 1 1]),[VF(1).dim(1:3) ; VF(1).dim(1:3)]);
+
+% Want to sample about every 3mm
+tmp  = inv(VF(1).mat);
+tmp  = tmp(1:3,1:3);
+samp = round(max(abs(tmp*[1 1 1]'*samp), [1 1 1]'));
+
+x1 = bb(1,1):samp(1):bb(2,1);
+x2 = bb(1,2):samp(2):bb(2,2);
+x3 = bb(1,3):samp(3):bb(2,3);
+
+return;
+%=======================================================================
+
+%=======================================================================
+function [CP,BP,SP] = run_segment(CP,BP,SP,VF,sums,x1,x2,x3)
+oll = -Inf;
+spm_chi2_plot('Init','Segmenting','Log-likelihood','Iteration #');
+
+for iter = 1:64,
+	ll= 0;
+	for pp = 1:length(x3), % Loop over planes
+		bf        = get_bp(BP,x1,x2,x3(pp));
+		[raw,msk] = get_raw(VF,x1,x2,x3(pp));
+		s         = get_sp(SP,x1,x2,x3(pp));
+		cor       = bf.*raw;
+
+%if pp==round(length(x3)/2),
+%	figure(2);
+%	imagesc(cor(:,:,1)');
+%	axis image xy off
+%end;
+
+		[P,ll0]   = get_p(cor,msk,s,sums,CP,bf);
+
+		ll = ll + ll0;
+		CP = update_cp_est(CP,P,cor,msk,pp);
+		BP = update_bp_est(BP,P,cor,CP,msk,x1,x2,x3(pp));
+	end;
+	BP = update_bp(BP);
+	if iter>1, spm_chi2_plot('Set',ll); end;
+	%fprintf('\t%g\n', ll);
+
+	% Stopping criterion
+	%-----------------------------------------------------------------------
+	if iter == 2,
+		ll2 = ll;
+	elseif iter > 2 & abs((ll-oll)/(ll-ll2)) < 0.0001
+		break;
+	end;
+	oll = ll;
 end;
-linfun(' ');
+spm_chi2_plot('Clear');
+return;
+%=======================================================================
+
+%=======================================================================
+function BP = init_bp(VF,co,reg)
+m        = length(VF);
+tmp      = sqrt(sum(VF(1).mat(1:3,1:3).^2));
+BP.nbas  = max(round((VF(1).dim(1:3).*tmp)/co),[1 1 1]);
+BP.B1    = spm_dctmtx(VF(1).dim(1),BP.nbas(1));
+BP.B2    = spm_dctmtx(VF(1).dim(2),BP.nbas(2));
+BP.B3    = spm_dctmtx(VF(1).dim(3),BP.nbas(3));
+
+nbas     = BP.nbas;
+if BP.nbas>1,
+	% Set up a priori covariance matrix
+	vx = sqrt(sum(VF(1).mat(1:3,1:3).^2));
+	kx=(pi*((1:nbas(1))'-1)*pi/vx(1)/VF(1).dim(1)*10).^2;
+	ky=(pi*((1:nbas(2))'-1)*pi/vx(2)/VF(1).dim(2)*10).^2;
+	kz=(pi*((1:nbas(3))'-1)*pi/vx(3)/VF(1).dim(3)*10).^2;
+
+	% Cost function based on sum of squares of 4th derivatives
+	IC0 =  (1*kron(kz.^4,kron(ky.^0,kx.^0)) +...
+	        1*kron(kz.^0,kron(ky.^4,kx.^0)) +...
+	        1*kron(kz.^0,kron(ky.^0,kx.^4)) +...
+	        4*kron(kz.^3,kron(ky.^1,kx.^0)) +...
+	        4*kron(kz.^3,kron(ky.^0,kx.^1)) +...
+	        4*kron(kz.^1,kron(ky.^3,kx.^0)) +...
+	        4*kron(kz.^0,kron(ky.^3,kx.^1)) +...
+	        4*kron(kz.^1,kron(ky.^0,kx.^3)) +...
+	        4*kron(kz.^0,kron(ky.^1,kx.^3)) +...
+	        6*kron(kz.^2,kron(ky.^2,kx.^0)) +...
+	        6*kron(kz.^2,kron(ky.^0,kx.^2)) +...
+	        6*kron(kz.^0,kron(ky.^2,kx.^2)) +...
+	       12*kron(kz.^2,kron(ky.^1,kx.^1)) +...
+	       12*kron(kz.^1,kron(ky.^2,kx.^1)) +...
+	       12*kron(kz.^1,kron(ky.^1,kx.^2)) )*reg;
+
+	%IC0(1) = max(IC0);
+	BP.IC0 = diag(IC0(2:end));
+
+	% Initial estimate for intensity modulation field
+	BP.T   = zeros(nbas(1),nbas(2),nbas(3),length(VF));
+	%-----------------------------------------------------------------------
+else,
+	BP.T   = zeros([1 1 1 length(VF)]);
+	BP.IC0 = [];
+end;
+BP.Alpha = zeros(prod(BP.nbas(1:3)),prod(BP.nbas(1:3)),m);
+BP.Beta  = zeros(prod(BP.nbas(1:3)),m);
+return;
+%=======================================================================
+
+%=======================================================================
+function BP = update_bp_est(BP,p,cor,CP,msk,x1,x2,x3)
+if prod(BP.nbas<=1), return; end;
+B1 = BP.B1(x1,:);
+B2 = BP.B2(x2,:);
+B3 = BP.B3(x3,:);
+for j=1:size(BP.Alpha,3),
+	cr  = cor(:,:,j);
+	w1 = zeros(size(cr));
+	w2 = zeros(size(cr));
+	for i=[1 2 3 4 5 6 7 8],
+		tmp = p(:,:,i)*CP.cv(j,j,i)^(-1);
+		w1  = w1 + tmp.*(CP.mn(j,i) - cr);
+		w2  = w2 + tmp;
+	end;
+	wt1       = 1 + cr.*w1;
+	wt2       = cr.*(cr.*w2 - w1);
+	wt1(~msk) = 0;
+	wt2(~msk) = 0;
+	BP.Beta(:,j)    = BP.Beta(:,j)    + kron(B3',spm_krutil(wt1,B1,B2,0));
+	BP.Alpha(:,:,j) = BP.Alpha(:,:,j) + kron(B3'*B3,spm_krutil(wt2,B1,B2,1));
+end;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function BP = update_bp(BP)
+if prod(BP.nbas<=1), return; end;
+for j=1:size(BP.Alpha,3),
+	x     = BP.T(:,:,:,j);
+	x     = x(:);
+	x     = x(2:end);
+	Alpha = BP.Alpha(2:end,2:end,j);
+	Beta  = BP.Beta(2:end,j);
+	x     = (Alpha + BP.IC0)\(Alpha*x + Beta);
+
+	BP.T(:,:,:,j) = reshape([0 ; x],BP.nbas(1:3));
+	BP.Alpha      = zeros(size(BP.Alpha));
+	BP.Beta       = zeros(size(BP.Beta));
+end;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function bf = get_bp(BP,x1,x2,x3)
+bf = ones(length(x1),length(x2),size(BP.Alpha,3));
+if prod(BP.nbas<=1), return; end;
+B1 = BP.B1(x1,:);
+B2 = BP.B2(x2,:);
+B3 = BP.B3(x3,:);
+for i=1:size(BP.Alpha,3),
+	t = reshape(reshape(BP.T(:,:,:,i),...
+		BP.nbas(1)*BP.nbas(2),BP.nbas(3))*B3', BP.nbas(1), BP.nbas(2));
+	bf(:,:,i) = exp(B1*t*B2');
+end;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function [dat,msk] = get_raw(VF,x1,x2,x3)
+[X1,X2,X3] = ndgrid(x1,x2,x3);
+for i=1:length(VF),
+	[Y1,Y2,Y3] = affine_transform(X1,X2,X3,VF(i).mat\VF(1).mat);
+	dat(:,:,i) = spm_sample_vol(VF(i),Y1,Y2,Y3,1);
+end;
+msk = all(dat,3);
+return;
+%=======================================================================
+ 
+%=======================================================================
+function CP = init_cp(VF,x3)
+n = 8;
+m = length(VF);
+p = length(x3);
+CP.mom0 = zeros(1,n,p)+eps;
+CP.mom1 = zeros(m,n,p);
+CP.mom2 = zeros(m,m,n,p)+eps;
+
+% Occasionally the dynamic range of the images is such that many voxels
+% all have the same intensity.  Adding cv0 is an attempt to improve the
+% stability of the algorithm if this occurs. The value 0.083 was obtained
+% from var(rand(1000000,1)).  It prbably isn't the best way of doing
+% things, but it appears to work.
+CP.cv0 = zeros(m,m);
+for i=1:m, CP.cv0(i,i)=0.083*mean(VF(i).pinfo(1,:)); end;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function CP = shake_cp(CP);
+CP.mom0(:,5,:)   = CP.mom0(:,1,:);
+CP.mom0(:,6,:)   = CP.mom0(:,2,:);
+CP.mom0(:,7,:)   = CP.mom0(:,3,:);
+CP.mom1(:,5,:)   = CP.mom1(:,1,:);
+CP.mom1(:,6,:)   = CP.mom1(:,2,:);
+CP.mom1(:,7,:)   = CP.mom1(:,3,:);
+CP.mom1(:,8,:)   = 0;
+CP.mom2(:,:,5,:) = CP.mom2(:,:,1,:);
+CP.mom2(:,:,6,:) = CP.mom2(:,:,2,:);
+CP.mom2(:,:,7,:) = CP.mom2(:,:,3,:);
+return;
+%=======================================================================
+ 
+%=======================================================================
+function CP = update_cp_est(CP,P,dat,msk,p)
+m   = size(dat,3);
+d   = size(P);
+P   = reshape(P,[d(1)*d(2),d(3)]);
+dat = reshape(dat,[d(1)*d(2),m]);
+P(~msk(:),:) = 0;
+for i=1:size(CP.mom0,2),
+	CP.mom0(1,i,p)   = sum(P(:,i));
+	CP.mom1(:,i,p)   = sum((P(:,i)*ones(1,m)).*dat)';
+	CP.mom2(:,:,i,p) = ((P(:,i)*ones(1,m)).*dat)'*dat;
+end;
+
+for i=1:size(CP.mom0,2),
+	CP.mg(1,i)   = sum(CP.mom0(1,i,:),3);
+	CP.mn(:,i)   = sum(CP.mom1(:,i,:),3)/CP.mg(1,i);
+
+	tmp          = (CP.mg(1,i).*CP.mn(:,i))*CP.mn(:,i)';
+	tmp          = tmp-eye(size(tmp))*eps*1000;
+	CP.cv(:,:,i) = (sum(CP.mom2(:,:,i,:),4) - tmp)/CP.mg(1,i) + CP.cv0;
+end;
+
+CP.mg   = CP.mg/sum(CP.mg);
+
+return;
+%=======================================================================
+ 
+%=======================================================================
+function [p,ll] = get_p(cor,msk,s,sums,CP,bf)
+d   = [size(cor) 1 1];
+n   = size(CP.mg,2);
+cor = reshape(cor,d(1)*d(2),d(3));
+cor = cor(msk,:);
+p   = zeros(d(1)*d(2),n);
+if ~any(msk), p  = reshape(p,d(1),d(2),n); ll=0; return; end;
+
+for i=1:n,
+	amp       = 1/sqrt((2*pi)^d(3) * det(CP.cv(:,:,i)));
+	dst       = (cor-ones(size(cor,1),1)*CP.mn(:,i)')/sqrtm(CP.cv(:,:,i));
+	dst       = sum(dst.*dst,2);
+	tmp       = s(:,:,i);
+	p(msk,i)  = (amp*CP.mg(1,i)/sums(i))*exp(-0.5*dst).*tmp(msk) +eps;
+end;
+sp = sum(p,2);
+ll = sum(log(sp(msk).*bf(msk)));
+sp(~msk) = Inf;
+for i=1:n, p(:,i) = p(:,i)./sp; end;
+p  = reshape(p,d(1),d(2),n);
+return;
+%=======================================================================
+ 
+%=======================================================================
+function SP = init_sp(flags,VF,PG,x1,x2,x3);
+SP.VB       = spm_vol(flags.priors);
+MM          = get_affine_mapping(VF,PG,flags.affreg);
+%VF          = spm_vol(PF);
+SP.MM       = MM*VF(1).mat;
+SP.w        = 0.98;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function s = get_sp(SP,x1,x2,x3)
+[X1,X2,X3] = ndgrid(x1,x2,x3);
+[Y1,Y2,Y3] = affine_transform(X1,X2,X3,SP.VB(1).mat\SP.MM);
+w1  = SP.w;
+w2  = (1-w1)/2;
+s   = zeros([size(Y1),4]);
+for i=1:3,
+	s(:,:,i) = spm_sample_vol(SP.VB(i),Y1,Y2,Y3,1)*w1+w2;
+end;
+s(:,:,4:8)   = repmat(abs(1-sum(s(:,:,1:3),3))/5,[1 1 5]);
+return;
+%=======================================================================
+ 
+%=======================================================================
+function [g,w,c] = get_gwc(VF,BP,SP,CP,sums,wc)
+
+if wc,
+	VC = VF;
+	for j=1:length(VF),
+		[pth,nm,xt,vr] = fileparts(deblank(VF(j).fname));
+		VC(j).fname = fullfile(pth,['m' nm xt vr]);
+		VC(j).descrip = 'Bias orrected image';
+	end;
+	VC = spm_create_vol(VC);
+end;
+
+spm_progress_bar('Init',VF(1).dim(3),'Creating Segmented','planes completed');
+x1 = 1:VF(1).dim(1);
+x2 = 1:VF(1).dim(2);
+x3 = 1:VF(1).dim(3);
+
+g = uint8(0); g(VF(1).dim(1),VF(1).dim(2),VF(1).dim(3)) = 0;
+w = uint8(0); w(VF(1).dim(1),VF(1).dim(2),VF(1).dim(3)) = 0;
+c = uint8(0); c(VF(1).dim(1),VF(1).dim(2),VF(1).dim(3)) = 0;
+
+for pp=1:length(x3),
+	bf        = get_bp(BP,x1,x2,x3(pp));
+	[raw,msk] = get_raw(VF,x1,x2,x3(pp));
+	cor       = raw.*bf;
+	if wc,
+		for j=1:length(VC),
+			VC(j) = spm_write_plane(VC(j),cor(:,:,j),pp);
+		end;
+	end;
+	s         = get_sp(SP,x1,x2,x3(pp));
+	p         = get_p(cor,msk,s,sums,CP,bf);
+	g(:,:,pp) = uint8(round(p(:,:,1)*255));
+	w(:,:,pp) = uint8(round(p(:,:,2)*255));
+	c(:,:,pp) = uint8(round(p(:,:,3)*255));
+
+	spm_progress_bar('Set',pp);
+end;
+spm_progress_bar('Clear');
+
+if wc, VC = spm_close_vol(VC); end;
+return;
+%=======================================================================
+ 
+%=======================================================================
+function [g,w,c] = clean_gwc(g,w,c)
+b    = w;
+b(1) = w(1);
+
+% Build a 3x3x3 seperable smoothing kernel
+%-----------------------------------------------------------------------
+kx=[0.75 1 0.75];
+ky=[0.75 1 0.75];
+kz=[0.75 1 0.75];
+sm=sum(kron(kron(kz,ky),kx))^(1/3);
+kx=kx/sm; ky=ky/sm; kz=kz/sm;
+
+% Erosions and conditional dilations
+%-----------------------------------------------------------------------
+niter = 32;
+spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
+for j=1:niter,
+	if j>2, th=0.15; else, th=0.6; end; % Dilate after two its of erosion.
+	for i=1:size(b,3),
+		gp = double(g(:,:,i));
+		wp = double(w(:,:,i));
+		bp = double(b(:,:,i))/255;
+		bp = (bp>th).*(wp+gp);
+		b(:,:,i) = uint8(round(bp));
+	end;
+	spm_conv_vol(b,b,kx,ky,kz,-[1 1 1]);
+	spm_progress_bar('Set',j);
+end;
+th = 0.05;
+for i=1:size(b,3),
+	gp       = double(g(:,:,i))/255;
+	wp       = double(w(:,:,i))/255;
+	cp       = double(c(:,:,i))/255;
+	bp       = double(b(:,:,i))/255;
+	bp       = ((bp>th).*(wp+gp))>th;
+	g(:,:,i) = uint8(round(255*gp.*bp./(gp+wp+cp+eps)));
+	w(:,:,i) = uint8(round(255*wp.*bp./(gp+wp+cp+eps)));
+	c(:,:,i) = uint8(round(255*(cp.*bp./(gp+wp+cp+eps)+cp.*(1-bp))));
+end;
+spm_progress_bar('Clear');
 return;

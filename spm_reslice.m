@@ -9,31 +9,31 @@ function spm_reslice(P,flags)
 %
 % flags    - a structure containing various options.  The fields are:
 %
-%         mask - mask output images (1 for yes, 0 for no)
-%                To avoid artifactual movement-related variance the realigned
-%                set of images can be internally masked, within the set (i.e.
-%                if any image has a zero value at a voxel than all images have
-%                zero values at that voxel).  Zero values occur when regions
-%                'outside' the image are moved 'inside' the image during
-%                realignment.
+%         mask   - mask output images (1 for yes, 0 for no)
+%                  To avoid artifactual movement-related variance the realigned
+%                  set of images can be internally masked, within the set (i.e.
+%                  if any image has a zero value at a voxel than all images have
+%                  zero values at that voxel).  Zero values occur when regions
+%                  'outside' the image are moved 'inside' the image during
+%                  realignment.
 %
-%         mean - write mean image (1 for yes, 0 for no)
-%                The average of all the realigned scans is written to
-%                mean*.img.
+%         mean   - write mean image (1 for yes, 0 for no)
+%                  The average of all the realigned scans is written to
+%                  mean*.img.
 %
-%         hold - the B-spline interpolation method. 
-%                Non-finite values result in Fourier interpolation.  Note that
-%                Fourier interpolation only works for purely rigid body
-%                transformations.  Voxel sizes must all be identical and
-%                isotropic.
+%         interp - the B-spline interpolation method. 
+%                  Non-finite values result in Fourier interpolation.  Note that
+%                  Fourier interpolation only works for purely rigid body
+%                  transformations.  Voxel sizes must all be identical and
+%                  isotropic.
 %
-%         which - Values of 0, 1 or 2 are allowed.
-%                0   - don't create any resliced images.
-%                      Useful if you only want a mean resliced image.
-%                1   - don't reslice the first image.
-%                      The first image is not actually moved, so it may not be
-%                      necessary to resample it.
-%                2   - reslice all the images.
+%         which   - Values of 0, 1 or 2 are allowed.
+%                  0   - don't create any resliced images.
+%                        Useful if you only want a mean resliced image.
+%                  1   - don't reslice the first image.
+%                        The first image is not actually moved, so it may not be
+%                        necessary to resample it.
+%                  2   - reslice all the images.
 %
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
@@ -89,9 +89,9 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 % %W% John Ashburner %E%
 
-P = spm_vol(P);
+if ischar(P), P = spm_vol(P); end;
 
-def_flags = struct('hold',1,'mask',1,'mean',1,'which',2);
+def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]');
 if nargin < 2,
 	flags = def_flags;
 else,
@@ -130,7 +130,7 @@ function reslice_images(P,flags)
 %                The average of all the realigned scans is written to
 %                mean*.img.
 %
-%         hold - the interpolation method (see spm_slice_vol or spm_sample_vol).
+%         interp - the B-spline interpolation method (see spm_bsplinc and spm_bsplins).
 %                Non-finite values result in Fourier interpolation
 %
 %         which - Values of 0, 1 or 2 are allowed.
@@ -140,12 +140,15 @@ function reslice_images(P,flags)
 %                      The first image is not actually moved, so it may not be
 %                      necessary to resample it.
 %                2   - reslice all the images.
+%         wrap - three values of either 0 or 1, representing wrapping in each of
+%                the dimensions.  For fMRI, [1 1 0] would be used.  For PET, it would
+%                be [0 0 0].
 %
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
 
-if ~finite(flags.hold), % Use Fourier method
+if ~finite(flags.interp), % Use Fourier method
 	% Check for non-rigid transformations in the matrixes
 	for i=1:prod(size(P)),
 		pp = P(1).mat\P(i).mat;
@@ -155,16 +158,13 @@ if ~finite(flags.hold), % Use Fourier method
 			fprintf('\n  These  can not yet be  done  using  the');
 			fprintf('\n  Fourier reslicing method.  Switching to');
 			fprintf('\n  7th degree B-spline interpolation instead.\n\n');
-			flags.hold = 7;
+			flags.interp = 7;
 			break;
 		end;
 	end;
 end;
 
-linfun = inline('fprintf(''%-60s%s'', x,sprintf(''\b'')*ones(1,60))');
-
 if flags.mask | flags.mean,
-	linfun('Computing mask..');
 	spm_progress_bar('Init',P(1).dim(3),'Computing available voxels','planes completed');
 	x1    = repmat((1:P(1).dim(1))',1,P(1).dim(2));
 	x2    = repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
@@ -176,7 +176,7 @@ if flags.mask | flags.mean,
 	for x3 = 1:P(1).dim(3),
 		tmp = zeros(P(1).dim(1:2));
 		for i = 1:prod(size(P)),
-			tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+			tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
 		end;
 		if flags.mask, msk{x3} = find(tmp ~= prod(size(P))); end;
 		if flags.mean, Count(:,:,x3) = tmp; end;
@@ -184,7 +184,6 @@ if flags.mask | flags.mean,
 	end;
 end;
 
-linfun('Reslicing images..');
 nread = prod(size(P));
 if ~flags.mean,
 	if flags.which == 1, nread = nread - 1; end;
@@ -196,55 +195,52 @@ tiny = 5e-2; % From spm_vol_utils.c
 
 [x1,x2] = ndgrid(1:P(1).dim(1),1:P(1).dim(2));
 
-PO = P;
+PO    = P;
 nread = 0;
+d     = [flags.interp*[1 1 1]' flags.wrap(:)];
+
 for i = 1:prod(size(P)),
 
 	if (i>1 & flags.which==1) | flags.which==2, write_vol = 1; else, write_vol = 0; end;
 	if write_vol | flags.mean,                   read_vol = 1; else   read_vol = 0; end;
 
 	if read_vol,
-		linfun(['Reslicing volume ' num2str(i) '..']);
-		PO(i).fname   = prepend(P(i).fname,'r');
-		PO(i).dim     = [P(1).dim(1:3) P(i).dim(4)];
-		PO(i).mat     = P(1).mat;
-		PO(i).descrip = 'spm - realigned';
+		if write_vol,
+			VO         = P(i);
+			VO.fname   = prepend(P(i).fname,'r');
+			VO.dim     = [P(1).dim(1:3) P(i).dim(4)];
+			VO.mat     = P(1).mat;
+			VO.descrip = 'spm - realigned';
+			VO         = spm_create_vol(VO);
+		end;
 
-		if ~finite(flags.hold),
-			v = abs(kspace3d(loadvol(P(i)),P(1).mat\P(i).mat));
+		if ~finite(flags.interp),
+			v = abs(kspace3d(spm_bsplinc(P(i),[0 0 0 ; 0 0 0]'),P(1).mat\P(i).mat));
 			for x3 = 1:P(1).dim(3),
 				if flags.mean,
 					Integral(:,:,x3) = Integral(:,:,x3) + ...
-						v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
+						v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
 				end;
 				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
+				if write_vol,  VO = spm_write_plane(VO,v,x3); end;
 			end;
-			if write_vol, spm_write_vol(PO(i),v); end;
 		else,
-			if write_vol, spm_create_image(PO(i)); end;
-
-			if any(flags.hold==[2 3 4 5 6 7]),
-				C = spm_bsplinc(P(i),flags.hold);
-			end;
-
+			C = spm_bsplinc(P(i), d);
 			for x3 = 1:P(1).dim(3),
-				if any(flags.hold==[2 3 4 5 6 7]),
-					[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3));
-					v  = spm_bsplins(C, y1,y2,y3, flags.hold);
-					v(~tmp)=0;
-				else,
-					M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
-					v = spm_slice_vol(P(i),M,P(1).dim(1:2),flags.hold);
-				end;
+
+				[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
+				v              = spm_bsplins(C, y1,y2,y3, d);
+				% v(~tmp)        = 0;
 
 				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + v; end;
 
 				if write_vol,
 					if flags.mask, v(msk{x3}) = NaN; end;
-					spm_write_plane(PO(i),v,x3);
+					VO = spm_write_plane(VO,v,x3);
 				end;
 			end;
 		end;
+		if write_vol, VO = spm_close_vol(VO); end;
 		nread = nread + 1;
 	end;
 	spm_progress_bar('Set',nread);
@@ -262,7 +258,6 @@ if flags.mean
 	spm_write_vol(PO,Integral);
 end
 
-linfun(' ');
 spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________
@@ -361,28 +356,18 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [Mask,y1,y2,y3] = getmask(M,x1,x2,x3,dim)
+function [Mask,y1,y2,y3] = getmask(M,x1,x2,x3,dim,wrp)
 tiny = 5e-2; % From spm_vol_utils.c
-y1=M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
-y2=M(2,1)*x1+M(2,2)*x2+(M(2,3)*x3+M(2,4));
-y3=M(3,1)*x1+M(3,2)*x2+(M(3,3)*x3+M(3,4));
-Mask =        (y1 >= (1-tiny) & y1 <= (dim(1)+tiny));
-Mask = Mask & (y2 >= (1-tiny) & y2 <= (dim(2)+tiny));
-Mask = Mask & (y3 >= (1-tiny) & y3 <= (dim(3)+tiny));
+y1   = M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
+y2   = M(2,1)*x1+M(2,2)*x2+(M(2,3)*x3+M(2,4));
+y3   = M(3,1)*x1+M(3,2)*x2+(M(3,3)*x3+M(3,4));
+Mask = logical(ones(size(y1)));
+if ~wrp(1), Mask = Mask & (y1 >= (1-tiny) & y1 <= (dim(1)+tiny)); end;
+if ~wrp(2), Mask = Mask & (y2 >= (1-tiny) & y2 <= (dim(2)+tiny)); end;
+if ~wrp(3), Mask = Mask & (y3 >= (1-tiny) & y3 <= (dim(3)+tiny)); end;
 return;
 %_______________________________________________________________________
 
-%_______________________________________________________________________
-function v = loadvol(V)
-v = spm_bsplinc(P(i),0);
-
-%v = zeros(V.dim(1:3));
-%for i=1:V.dim(3),
-%	v(:,:,i) = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
-%end;
-
-return;
-%_______________________________________________________________________
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));

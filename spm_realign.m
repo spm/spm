@@ -33,7 +33,7 @@ function spm_realign(P,flags)
 %                   standard deviation).  If field does not exist, then
 %                   no weighting is done.
 %
-%         hold    - B-spline degree used for interpolation
+%         interp  - B-spline degree used for interpolation
 %
 %__________________________________________________________________________
 %
@@ -81,31 +81,25 @@ function spm_realign(P,flags)
 
 if nargin==0, spm_realign_ui; return; end;
 
-def_flags = struct('quality',1,'fwhm',5,'sep',4,'hold',2);
+def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','');
 if nargin < 2,
 	flags = def_flags;
 else,
 	fnms = fieldnames(def_flags);
 	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}),
-			flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
-		end;
+		if ~isfield(flags,fnms{i}), flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i})); end;
 	end;
 end;
-
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 if isempty(P), warning('Nothing to do'); return; end;
 if ~iscell(P), tmp = cell(1); tmp{1} = P; P = tmp; end;
 P = spm_vol(P);
-if isfield(flags,'PW'), flags.PW = spm_vol(flags.PW); end;
+if ~isempty(flags.PW) & ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
 
 if length(P)==1,
-	linfun('Registering images..');
 	P{1} = realign_series(P{1},flags);
 	save_parameters(P{1});
 else,
-	linfun('Registering together the first image of each session..');
 	Ptmp = P{1}(1);
 	for s=2:prod(size(P)),
 		Ptmp = [Ptmp ; P{s}(1)];
@@ -119,7 +113,6 @@ else,
 	end;
 
 	for s=1:prod(size(P)),
-		linfun(['Registering together images from session ' num2str(s) '..']);
 		P{s} = realign_series(P{s},flags);
 		save_parameters(P{s});
 	end;
@@ -127,7 +120,6 @@ end;
 
 % Save Realignment Parameters
 %---------------------------------------------------------------------------
-linfun('Saving parameters..');
 for s=1:prod(size(P)),
 	for i=1:prod(size(P{s})),
 		spm_get_space(P{s}(i).fname, P{s}(i).mat);
@@ -174,7 +166,7 @@ x3   = x3(:);
 
 % Possibly mask an area of the sample volume.
 %-----------------------------------------------------------------------
-if isfield(flags,'PW'),
+if ~isempty(flags.PW),
 	[y1,y2,y3]=coords([0 0 0  0 0 0],P(1).mat,flags.PW.mat,x1,x2,x3);
 	wt  = spm_sample_vol(flags.PW,y1,y2,y3,1);
 	msk = find(wt>0.01);
@@ -190,9 +182,10 @@ n = prod(size(x1));
 
 % Compute rate of change of chi2 w.r.t changes in parameters (matrix A)
 %-----------------------------------------------------------------------
-V = smooth_vol(P(1),flags.hold,flags.fwhm);
+V = smooth_vol(P(1),flags.interp,flags.wrap,flags.fwhm);
+d = [flags.interp*[1 1 1]' flags.wrap(:)];
 
-[G,dG1,dG2,dG3] = spm_bsplins(V,x1,x2,x3,flags.hold);
+[G,dG1,dG2,dG3] = spm_bsplins(V,x1,x2,x3,d);
 clear V
 A0 = make_A(P(1).mat,x1,x2,x3,dG1,dG2,dG3,wt,lkp);
 
@@ -233,7 +226,7 @@ end;
 %-----------------------------------------------------------------------
 
 
-if isfield(flags,'rtm'),
+if flags.rtm,
 	count = ones(size(b));
 	ave   = G;
 	grad1 = dG1;
@@ -245,7 +238,7 @@ spm_progress_bar('Init',length(P)-1,'Registering Images');
 % Loop over images
 %-----------------------------------------------------------------------
 for i=2:length(P),
-	V = smooth_vol(P(i),flags.hold,flags.fwhm);
+	V = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
 	ss = Inf;
 	countdown = -1;
 	for iter=1:64,
@@ -253,7 +246,7 @@ for i=2:length(P),
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),flags.hold);
+		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),d);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -267,7 +260,6 @@ for i=2:length(P),
 
 		pss        = ss;
 		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
-fprintf('\t%g\n', ss);
 		if (pss-ss)/pss < 1e-8 & countdown == -1, % Stopped converging.
 			countdown = 2;
 		end;
@@ -276,16 +268,15 @@ fprintf('\t%g\n', ss);
 			countdown = countdown -1;
 		end;
 	end;
-fprintf('\n');
 
-	if isfield(flags,'rtm'),
+	if flags.rtm,
 		% Generate mean and derivatives of mean
 		tiny = 5e-2; % From spm_vol_utils.c
 		msk        = find((y1>=(1-tiny) & y1<=(d(1)+tiny) &...
 		                   y2>=(1-tiny) & y2<=(d(2)+tiny) &...
 		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
-		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),flags.hold);
+		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),d);
 		ave(msk)   = ave(msk)   +   G.*soln(end);
 		grad1(msk) = grad1(msk) + dG1.*soln(end);
 		grad2(msk) = grad2(msk) + dG2.*soln(end);
@@ -295,7 +286,7 @@ fprintf('\n');
 end;
 spm_progress_bar('Clear');
 
-if ~isfield(flags,'rtm'), return; end;
+if ~flags.rtm, return; end;
 %_______________________________________________________________________
 M=P(1).mat;
 A0 = make_A(M,x1,x2,x3,grad1./count,grad2./count,grad3./count,wt,lkp);
@@ -308,7 +299,7 @@ clear ave grad1 grad2 grad3
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',length(P),'Registering Images to Mean');
 for i=1:length(P),
-	V = smooth_vol(P(i),flags.hold,flags.fwhm);
+	V = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
 	ss = Inf;
 	countdown = -1;
 	for iter=1:64,
@@ -316,7 +307,7 @@ for i=1:length(P),
 		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 		if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),flags.hold);
+		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),d);
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -330,7 +321,6 @@ for i=1:length(P),
 
 		pss        = ss;
 		ss         = sum((F*soln(end)-b(msk)).^2)/length(msk);
-fprintf('\t%g\n', ss);
 		if (pss-ss)/pss < 1e-8 & countdown == -1 % Stopped converging.
 			% Do three final iterations to finish off with
 			countdown = 2;
@@ -341,7 +331,6 @@ fprintf('\t%g\n', ss);
 		end;
 	end;
 	spm_progress_bar('Set',i);
-fprintf('\n');                                                                                                                               
 end;
 spm_progress_bar('Clear');
 
@@ -368,7 +357,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function V = smooth_vol(P,hld,fwhm)
+function V = smooth_vol(P,hld,wrp,fwhm)
 % Convolve the volume in memory.
 s  = sqrt(sum(P.mat(1:3,1:3).^2)).^(-1)*(fwhm/sqrt(8*log(2)));
 x  = round(6*s(1)); x = [-x:x];
@@ -384,7 +373,8 @@ z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
-V  = spm_bsplinc(P,hld);
+d  = [hld*[1 1 1]' wrp(:)];
+V  = spm_bsplinc(P,d);
 spm_conv_vol(V,V,x,y,z,-[i j k]);
 return;
 %_______________________________________________________________________
@@ -407,7 +397,6 @@ return;
 
 %_______________________________________________________________________
 function error_message(P)
-
 str = {	'There is not enough overlap in the images',...
 	'to obtain a solution.',...
 	' ',...

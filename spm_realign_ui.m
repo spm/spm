@@ -54,11 +54,12 @@ function spm_realign_ui(arg1)
 % for Functional MRI.  Submitted to MRM (April 1999) and avaliable from:
 % http://varda.biophysics.mcw.edu/~cox/index.html.
 %
-%__________________________________________________________________________
+%_______________________________________________________________________
 %
-% --- The Prompts Explained ---
+%                        The Prompts Explained
+%_______________________________________________________________________
 %
-% 'number of subjects'
+% 'Number of subjects'
 % Enter the number of subjects you wish to realign.
 %
 % For fMRI, it will ask you the number of sessions for each subject.
@@ -72,7 +73,7 @@ function spm_realign_ui(arg1)
 % The adjustment step (correcting for resampling artifacts) is also
 % performed completely independantly between each of the fMRI sessions.
 %
-% 'select scans for subject ..'
+% 'Images, subject # ..'
 % Select the scans you wish to realign. All operations are relative
 % to the first image selected.
 %
@@ -126,28 +127,74 @@ function spm_realign_ui(arg1)
 %	'Mean Image Only'
 % 	Creates the mean image only.
 %
-% 'Mask the images?'
-% To avoid artifactual movement-related variance.
+%_______________________________________________________________________
+%
+%                           Defaults Options
+%_______________________________________________________________________
+%
+% 'Registration Quality?'
+% Quality versus speed trade-off.  Highest quality (1) gives most
+% precise results, whereas lower qualities gives faster realignment.
+% The idea is that some voxels contribute little to the estimation of
+% the realignment parameters. This parameter is involved in selecting
+% the number of voxels that are used.
+% [defaults.realign.estimate.quality]
+%
+% 'Allow weighting of reference image?'
+% Give the option of providing a weighting image to weight each voxel
+% of the reference image differently when estimating the realignment
+% parameters.  The weights are proportional to the inverses of the
+% standard deviations.
+% For example, when there is a lot of extra-brain motion - e.g., during
+% speech, or when there are serious artifacts in a particular region of
+% the images.
+% [defaults.realign.estimate.weight]
+%
+%
+% 'Reslice interpolation Method?'
+% The method by which the images are sampled when being written in a
+% different space.
+%       'Nearest Neighbour'
+%               - Fastest, but not normally recommended.
+%       'Bilinear Interpolation'
+%               - OK for PET, or realigned fMRI.
+%
+%       'B-spline Interpolation'
+%               - Better quality (but slower) interpolation, especially
+%                 with higher degree splines.  Don't use B-splines when
+%                 there is any region of NaN or Inf in the images.
+%       'Fourier space Interpolation'
+%               - Rigid body rotations are executed as a series of shears,
+%                 which are performed in Fourier space (Eddy et. al. 1996).
+%                 Unfortunately, this method can only be applied to images
+%                 with cubic voxels (since zooms can not be done by
+%                 convolution in Fourier space). 
+% [defaults.realign.write.interp]
+%
+% 'Way to wrap images?'
+%       'No wrapping'           - for PET or images that have already
+%                                 been spatially transformed.
+%       'Wrap in X & Y'         - for 2D MRI
+%       'Wrap in X, Y & Z'      - for 3D MRI
+% [defaults.realign.write.wrap]
+%
+% 'Mask images?'
 % Because of subject motion, different images are likely to have different
 % patterns of zeros from where it was not possible to sample data.
 % With masking enabled, the program searches through the whole time series
 % looking for voxels which need to be sampled from outside the original
 % images. Where this occurs, that voxel is set to zero for the whole set
 % of images (unless the image format can represent NaN, in which case
-% NaNs are used where possible).
+% NaNs are used where possible). This is in order to avoid artifactual
+% movement-related variance the realigned images.
+% [defaults.realign.write.mask]
 %
-% 'Reslice Interpolation Method?'
-% A number of different interpolation options are available.  Nearest
-% neighbour interpolation produces very low quality "blocky" resliced images,
-% whereas the higher order B-spline methods do a better job.
-% For data containing NaNs, you must use either nearest neighbour or trlinear
-% interpolation.
-%
-% You may also like to try 'Fourier space Interpolation', whereby rigid body
-% rotations are executed as a series of shears, which are performed in
-% Fourier space (Eddy et. al. 1996).  Unfortunately, this method can only
-% be applied to images with cubic voxels (since zooms can not be done by
-% convolution in Fourier space).
+% Other Defaults are useful for making spm_realign_ui.m more flexible:
+% [defaults.realign.estimate.interp] - interpolation method for parameter
+% estimation.
+% [defaults.realign.estimate.wrap] - wrapping used for parameter estimation.
+% This should probably also influence the way that smoothing is done, but
+% the smoothing code has not yet been modified to include wrapping.
 %
 %__________________________________________________________________________
 %
@@ -176,210 +223,153 @@ function spm_realign_ui(arg1)
 % normalisation module.
 %__________________________________________________________________________
 % %W% John Ashburner - with input from Oliver Josephs %E%
+global defaults
 
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% and spm_bch_bchmat (if necessary) accordingly. 
-% Calls to spm_input in this routine use the BCH gobal variable.  
-%    BCH.bch_mat 
-%    BCH.index0  = {'realign',index_of_Analysis};
-% or 
-%    BCH.index0  = {'RealignCoreg',index_of_Analysis}; (when
-%                   spm_realign is launched for edit_defaults 
-%
-%_______________________________________________________________________
-
-
-global MODALITY sptl_WhchPtn sptl_CrtWht sptl_MskOptn
-global BCH sptl_RlgnQlty sptl_WghtRg;
-
-if (nargin == 0)
-	% User interface.
-	%_______________________________________________________________________
-	SPMid = spm('FnBanner',mfilename,'2.21');
-	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
-	spm_help('!ContextHelp','spm_realign_ui.m');
-
-	n     = spm_input('number of subjects', 1, 'e', 1,...
-                          'batch',{},'subject_nb');
-	if (n < 1)
-		spm_figure('Clear','Interactive');
-		return;
-	end
-
-	P = cell(n,1);
-	for i = 1:n,
-		if strcmp(MODALITY,'FMRI'),
-			ns = spm_input(['num sessions for subject ' num2str(i)], '+1',...
-                                       'e', 1,'batch',{},'num_sessions');
-			pp = cell(1,ns);
-			for s=1:ns,
-				p = '';
-				while size(p,1)<1,
-					if isempty(BCH),
-						p = spm_get(Inf,'.img',...
-						['scans for subj ' num2str(i) ', sess' num2str(s)]);
-					else,
-						p = spm_input('batch',{'sessions',i},'images',s);
-					end;
-				end;
-				pp{s} = p;
-			end;
-			P{i} = pp;
-		else, %- no batch mode for 'PET'
-			p  = cell(1,1);
-			p{1} = '';
-			while size(p{1},1)<1,
-			      p{1} = spm_get(Inf,'.img',...
-				  ['select scans for subject ' num2str(i)]);
-			end;
-			P{i} = p;
-		end;
-	end;
-
-
-	if strcmp(MODALITY,'PET'),
-		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',7,'rtm',[]);
-	else,
-		FlagsC = struct('quality',sptl_RlgnQlty,'fwhm',5);
-	end;
-
-	if sptl_WhchPtn == 1,
-		WhchPtn = 3;
-	else,
-		WhchPtn = spm_input('Which option?', '+1', 'm',...
-			'Coregister only|Reslice Only|Coregister & Reslice',...
-			[1 2 3],3,'batch',{},'option');
-	end;
-
-	PW = '';
-	if (WhchPtn == 1 | WhchPtn == 3) & sptl_WghtRg,
-		if spm_input(...
-			['Weight the reference image(s)?'],...
-			2, 'm',...
-			['Dont weight registration|'...
-			 'Weight registration'], [0 1], 1,...
-			 'batch',{},'weight_reg'),
-
-			if isempty(BCH),
-				PW = spm_get(n,'.img',...
-					'Weight images for each subj');
-			else,
-				PW = spm_input('batch',{'sessions',i},'weights',s);
-			end;
-		end;
-	end;
-
-	% Reslicing options
-	%-----------------------------------------------------------------------
-	if WhchPtn == 2 | WhchPtn == 3,
-		FlagsR = struct('hold',1,'mask',0,'which',2,'mean',1);
-		FlagsR.hold = spm_input('Reslice interpolation method?','+1','m',...
-			     ['Nearest Neighbour|Trilinear|2nd Degree B-Spline|'...
-			      '3rd Degree B-Spline|4th Degree B-Spline|5th Degree B-Spline|'...
-			      '6th Degree B-Spline|7th Degree B-Spline|Fourier Interpolation'],...
-			     [0 1 2 3 4 5 6 7 Inf],3,'batch',{},'reslice_method');
-
-		if sptl_CrtWht == 1,
-			p = 3;
-		else
-			p = spm_input('Create what?','+1','m',...
-				[' All Images (1..n)| Images 2..n|'...
-				 ' All Images + Mean Image| Mean Image Only'],...
-				[1 2 3 4],3,'batch',{},'create');
-		end
-		if (p == 1) FlagsR.which = 2; FlagsR.mean = 0; end
-		if (p == 2) FlagsR.which = 1; FlagsR.mean = 0; end
-		if (p == 3) FlagsR.which = 2; FlagsR.mean = 1; end
-		if (p == 4) FlagsR.which = 0; FlagsR.mean = 1; end
-		if FlagsR.which > 0,
-			if sptl_MskOptn == 1,
-				FlagsR.mask = 1;
-			else,
-				if spm_input('Mask the resliced images?','+1','y/n',...
-                                              'batch',{},'mask') == 'y',
-					FlagsR.mask = 1;
-				end;
-			end;
-		end;
-	end;
-
-	spm('Pointer','Watch');
-	for i = 1:n
-		spm('FigName',['Realign: working on subject ' num2str(i)],Finter,CmdLine);
-		fprintf('\rRealigning Subject %d: ', i);
-		if WhchPtn==1 | WhchPtn==3,
-			flagsC = FlagsC;
-			if ~isempty(PW), flagsC.PW = deblank(PW(i,:)); end;
-			spm_realign(P{i},flagsC);
-		end
-		if WhchPtn==2 | WhchPtn==3,
-			spm_reslice(P{i},FlagsR)
-		end;
-	end
-	fprintf('\r%60s%s', ' ',sprintf('\b')*ones(1,60));
-	spm('FigName','Realign: done',Finter,CmdLine);
-	spm('Pointer');
-	return;
-
-elseif nargin == 1 & strcmp(arg1,'Defaults'),
-	edit_defaults;
-	return;
+if nargin==0 | strcmp(lower(opt),'ui'),
+	run_ui(defaults.realign, defaults.modality);
+elseif nargin>0 & strcmp(lower(opt),'defaults'),
+	defaults.realign = get_defs(defaults.realign);
 end;
+return;
+
+function run_ui(defs, modality)
+% User interface.
+%_______________________________________________________________________
+SPMid                   = spm('FnBanner',mfilename,'%I%');
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Realign');
+spm_help('!ContextHelp',mfilename);
+
+n     = spm_input('Num subjects', '+1', 'e', 1);
+if n<1, spm_figure('Clear','Interactive'); return; end
+
+P = cell(n,1);
+for i = 1:n,
+	if strcmp(lower(modality),'fmri'),
+		ns = spm_input(['Num sessions, subj ' num2str(i)], '+1', 'e', 1);
+		pp = cell(1,ns);
+		for s=1:ns,
+			p = '';
+			while size(p,1)<1,
+				p = spm_get(Inf,'.img',...
+					['Images, subj ' num2str(i) ', sess' num2str(s)]);
+			end;
+			pp{s} = p;
+		end;
+		P{i} = pp;
+	else,
+		p  = cell(1,1);
+		p{1} = '';
+		while size(p{1},1)<1,
+		      p{1} = spm_get(Inf,'.img',...
+			  ['Images, subj ' num2str(i)]);
+		end;
+		P{i} = p;
+	end;
+end;
+
+
+if strcmp(lower(modality),'pet'),
+	FlagsC = struct('quality',defs.estimate.quality,'fwhm',7,'rtm',1);
+else,
+	FlagsC = struct('quality',defs.estimate.quality,'fwhm',5,'rtm',0);
+end;
+
+WhchPtn = spm_input('Which option?', '+1', 'm',...
+	'Coregister only|Reslice Only|Coregister & Reslice',...
+	[1 2 3],3);
+
+PW = '';
+if (WhchPtn == 1 | WhchPtn == 3) & defs.estimate.weight,
+	if spm_input(...
+		['Weight the reference image(s)?'],...
+		'+1', 'm',...
+		['Dont weight registration|'...
+		 'Weight registration'], [0 1], 1);
+
+		PW = spm_get(n,'.img', 'Weight images for each subj');
+	end;
+end;
+
+% Reslicing options
+%-----------------------------------------------------------------------
+if WhchPtn == 2 | WhchPtn == 3,
+	FlagsR = struct('interp',defs.reslice.interp,...
+		'wrap',defs.reslice.wrap,...
+		'mask',defs.reslice.mask,...
+		'which',2,'mean',1);
+
+	if strcmp(lower(modality),'pet'), FlagsR.wrap = [0 0 0]; end;
+
+	p = spm_input('Create what?','+1','m',...
+		[' All Images (1..n)| Images 2..n|'...
+		 ' All Images + Mean Image| Mean Image Only'],...
+		[1 2 3 4],3);
+	if p==1, FlagsR.which = 2; FlagsR.mean = 0; end
+	if p==2, FlagsR.which = 1; FlagsR.mean = 0; end
+	if p==3, FlagsR.which = 2; FlagsR.mean = 1; end
+	if p==4, FlagsR.which = 0; FlagsR.mean = 1; end
+end;
+
+spm('Pointer','Watch');
+for i = 1:n
+	if WhchPtn==1 | WhchPtn==3,
+		spm('FigName',['Realigning subj ' num2str(i)],Finter,CmdLine);
+		flagsC = FlagsC;
+		if ~isempty(PW), flagsC.PW = deblank(PW(i,:)); end;
+		spm_realign(P{i},flagsC);
+	end
+	if WhchPtn==2 | WhchPtn==3,
+		spm('FigName',['Reslicing subj ' num2str(i)],Finter,CmdLine);
+		spm_reslice(P{i},FlagsR);
+	end;
+end;
+spm('FigName','Realign: done',Finter,CmdLine);
+spm('Pointer');
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function edit_defaults
-global MODALITY sptl_WhchPtn sptl_CrtWht sptl_MskOptn
-global sptl_RlgnQlty sptl_WghtRg
-
-%- in batch mode, the top level variable here is 'RealignCoreg',iA
-
-tmp = 1;
-if sptl_WhchPtn == 1, tmp = 2; end;
-sptl_WhchPtn = spm_input(...
-	['Coregistration and reslicing?'],...
-	2, 'm',...
-	['Allow separate coregistration and reslicing|'...
-	 'Combine coregistration and reslicing'], [-1 1], tmp,...
-         'batch',{},'separate_combine');
-
-tmp = 2;
-if sptl_CrtWht == 1,
-	tmp = 1;
-end
-sptl_CrtWht   = spm_input(['Images to create?'], 3, 'm',...
-	       'All Images + Mean Image|Full options', [1 -1], tmp,...
-               'batch',{},'create');
-
-tmp = 2;
-if sptl_MskOptn == 1,
-	tmp = 1;
-end
-sptl_MskOptn  = spm_input(['Option to mask images?'], 5, 'm',...
-		'  Always mask|Optional mask', [1 -1], tmp,...
-	        'batch',{},'mask');
+function defs = edit_defaults(defs)
 
 tmp2 = [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001];
-tmp = find(sptl_RlgnQlty == tmp2);
+tmp = find(defs.estimate.quality == tmp2);
 if isempty(tmp) tmp = 1; end
-sptl_RlgnQlty = spm_input('Registration Quality?','+1','m',...
+defs.estimate.quality = spm_input('Registration Quality?','+1','m',...
 	['Quality 1.00  (slowest/most accurate) |Quality 0.90|' ...
 	 'Quality 0.75|Quality 0.50|Quality 0.25|Quality 0.10|' ...
 	 'Quality 0.05|Quality 0.01|' ...
-	 'Quality 0.005|Quality 0.001 (fastest/poorest)'],tmp2, tmp,...
-                'batch',{},'reg_quality');
+	 'Quality 0.005|Quality 0.001 (fastest/poorest)'],tmp2, tmp);
 
-
-tmp = 0; if sptl_WghtRg == 1, tmp = 1; end;
-sptl_WghtRg = spm_input(...
+tmp = 0; if defs.estimate.weight == 1, tmp = 1; end;
+defs.estimate.weight = spm_input(...
 	['Allow weighting of reference image?'],...
 	'+1', 'm',...
 	['Allow weighting|'...
-	 'Dont allow weighting'], [1 0], tmp,...
-         'batch',{},'weight_reg');
+	 'Dont allow weighting'], [1 0], tmp);
+
+tmp2 = [0 1 2 3 4 5 6 7 Inf];
+tmp = find(defs.write.interp == tmp2);
+if ~finite(defs.write.interp), tmp = 9; end;
+if isempty(tmp), tmp = 2; end;
+defs.write.interp = spm_input('Reslice interpolation method?','+1','m',...
+	['Nearest Neighbour|Trilinear|2nd Degree B-Spline|'...
+	 '3rd Degree B-Spline|4th Degree B-Spline|5th Degree B-Spline|'...
+	 '6th Degree B-Spline|7th Degree B-Spline|Fourier Interpolation'],...
+	tmp2,tmp);
+
+wraps = [0 0 0 ; 1 1 0 ; 1 1 1];
+t     = find(all(repmat(defs.write.wrap(:)',3,1) == wraps, 2));
+if isempty(t), t = 1; end;
+p     = spm_input('Way to wrap images?','+1','m',...
+	['No wrapping|Wrap in X & Y|Wrap in X, Y & Z'],...
+	[1 2 3], t);
+defs.write.wrap    = wraps(p,:);
+defs.estimate.wrap = defs.write.wrap;
+
+tmp = 2;
+if defs.write.mask == 1, tmp = 1; end;
+defs.write.mask  = spm_input(['Mask images?'], '+1', 'm',...
+		'  Mask images|Dont mask images', [1 0], tmp);
 
 return;
 %_______________________________________________________________________
