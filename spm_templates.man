@@ -1,9 +1,7 @@
 % 
 % SPM templates and other images...
 % _______________________________________________________________________
-% 
-% _______________________________________________________________________
-% _______________________________________________________________________
+%
 % /TEMPLATES/ DIRECTORY
 % This directory contains images for use as templates for spatially
 % normalizing  images to the same stereotactic space.  The space is
