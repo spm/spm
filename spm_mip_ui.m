@@ -227,15 +227,15 @@ hMIPim = get(gca,'Children');
 
 %-Print coordinates
 %-----------------------------------------------------------------------
-hMIPxyz = text(0,max(get(hMIPax,'YLim')),'{\bfSPM}{\itmip}',...
+hMIPxyz = text(0,max(get(hMIPax,'YLim'))/2,...
+	{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',xyz(1:3))},...
 	'Interpreter','TeX','FontName',spm_platform('font','times'),...
-	'Color',[0,0,.5],...
-	'HorizontalAlignment','Left',...
+	'Color',[1,1,1]*.7,...
+	'HorizontalAlignment','Center',...
 	'VerticalAlignment','Bottom',...
 	'Rotation',90,...
 	'Tag','hMIPxyz',...
-	'UserData',xyz,...
-	'Visible','off');
+	'UserData',xyz);
 
 %-Create point markers
 %-----------------------------------------------------------------------
@@ -342,6 +342,7 @@ end
 %-----------------------------------------------------------------------
 spm_mip_ui('PosnMarkerPoints',xyz,h,'r');
 set(MD.hMIPxyz,'UserData',reshape(xyz(1:3),3,1))
+set(MD.hMIPxyz,'String',{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',xyz(1:3))})
 
 %-Tell the registry, if we've not been called by the registry...
 %-----------------------------------------------------------------------
@@ -502,7 +503,7 @@ if strcmp(get(cF,'SelectionType'),'normal') | isempty(MD.XYZ)
 	%-Set Figure callbacks for drop but no drag (DragType 0)
 	%---------------------------------------------------------------
 	set(MD.hMIPxyz,'Visible','on','String',...
-		'{\bfSPM}{\itmip}: \itPoint & drop...')
+		{'{\bfSPM}{\itmip}','\itPoint & drop...'})
 	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''Move'',0)',...
 		'Interruptible','off')
 	set(cF,'Pointer','CrossHair')
@@ -510,7 +511,7 @@ elseif strcmp(get(cF,'SelectionType'),'extend')
 	%-Set Figure callbacks for drag'n'drop (DragType 1)
 	%---------------------------------------------------------------
 	set(MD.hMIPxyz,'Visible','on','String',...
-		'{\bfSPM}{\itmip}: \itDynamic drag & drop...')
+		{'{\bfSPM}{\itmip}','\itDynamic drag & drop...'})
 	set(cF,'WindowButtonMotionFcn','spm_mip_ui(''Move'',1)',...
 		'Interruptible','off')
 	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''MoveEnd'')',...
@@ -520,7 +521,7 @@ elseif strcmp(get(cF,'SelectionType'),'alt')
 	%-Set Figure callbacks for drag'n'drop with co-ord updating (DragType 2)
 	%---------------------------------------------------------------
 	set(MD.hMIPxyz,'Visible','on','String',...
-		'{\bfSPM}{\itmip}: \it`Magnetic'' drag & drop...')
+		{'{\bfSPM}{\itmip}','\itMagnetic drag & drop...'})
 	set(cF,'WindowButtonMotionFcn','spm_mip_ui(''Move'',2)',...
 		'Interruptible','off')
 	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''MoveEnd'')',...
@@ -604,15 +605,15 @@ if DragType==0
 	spm_mip_ui('MoveEnd')
 elseif DragType==1
 	if isempty(i)
-		str = sprintf('{\\bfSPM}{\\itmip}: [%g, %g, %g]: ??',xyz);
+		str = {'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',xyz)};
 	else
-		str = sprintf('{\\bfSPM}{\\itmip}: [%g, %g, %g]: %.4f',...
-			xyz,MD.Z(i));
+		str = {'{\bfSPM}{\itmip}: ',...
+			sprintf('[%g, %g, %g]: %.4f',xyz,MD.Z(i))};
 	end
 	set(MD.hMIPxyz,'String',str)
 elseif DragType==2
 	set(MD.hMIPxyz,'String',...
-		sprintf('{\\bfSPM}{\\itmip}: [%g, %g, %g]: %.4f',xyz,MD.Z(i)) )
+		{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]: %.4f',xyz,MD.Z(i))})
 else
 	error('Illegal DragType')
 end
@@ -633,7 +634,8 @@ MS      = get(cO,'UserData');
 set(gcbf,'WindowButtonMotionFcn',' ')
 set(gcbf,'WindowButtonUpFcn',' ')
 set(gcbf,'Pointer','arrow')
-set(MS.hMIPxyz,'String','{\bfSPM}{\itmip}','Visible','off')
+set(MS.hMIPxyz,'String',...
+	{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',get(MS.hMIPxyz,'UserData'))})
 
 %-Set coordinates after drag'n'drop, tell registry
 %-----------------------------------------------------------------------
