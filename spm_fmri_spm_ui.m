@@ -140,7 +140,6 @@ Gnames = ' ';
 % get ORIGIN
 %----------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
-if DIM(3) == 1; ORIGIN = [0 0 0]; end
 
 
 % covariates of interest - Type

@@ -446,7 +446,6 @@ if ~(all(all(~diff(V([1:6],:)'))))
 %-Get ORIGIN
 %-----------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN] = spm_hread(P(1,:));
-if DIM(3) == 1; ORIGIN = [0 0 0]; end
 
 %-Compute global values
 %-----------------------------------------------------------------------
