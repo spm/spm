@@ -93,9 +93,9 @@ if ~length(Q)
 	return
 end
 
-%-Get and apply extent threshold [default = E{n}]
+%-Get and apply extent threshold [default = 0]
 %-----------------------------------------------------------------------
-k     = spm_input('& extent threshold {voxels}',2,'e',round(prod(W)));
+k     = spm_input('& extent threshold {voxels}',2,'e',0);
 A     = spm_clusters(XYZ,V([4 5 6]));
 Q     = [];
 for i = 1:max(A)
