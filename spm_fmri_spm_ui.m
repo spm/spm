@@ -33,9 +33,9 @@ function [xX,Sess] = spm_fmri_spm_ui
 % the SPM (i.e. residual fields) behave as smooth stationary Gaussian fields.
 %
 % spm_fmri_spm_ui allows you to (i) specify a statistical model in terms
-% of a design matrix, (ii) review that design, (iii) associate some data
-% with a pre-specified design [or (iv) specify both the data and design]
-% and then proceed to estimate the parameters of the model.
+% of a design matrix, (ii) associate some data with a pre-specified design
+% [or (iii) specify both the data and design] and then proceed to estimate
+% the parameters of the model.
 % Inferences can be made about the ensuing parameter estimates (at a first
 % or fixed-effect level) in the results section, or they can be re-entered
 % into a second (random-effect) level analysis by treating the session or 
@@ -165,10 +165,9 @@ spm_help('!ContextHelp',mfilename)
 
 % get design matrix and/or data
 %=======================================================================
-MType = {  'specify a model',...
-	   'review a specified model',...
-	   'estimate a specified model',...
-	   'specify and estimate a model'};
+MType = {  'specify a design',...
+	   'assign data to a design',...
+	   'specify both data and design'};
 MT    = spm_input('What would you like to do?',1,'m',MType,...
                   'batch',{},'types');
 
@@ -181,7 +180,7 @@ switch MT
 %-----------------------------------------------------------------------
 
 	case 1
-	% specify a design matrix
+	% specify a design
 	%---------------------------------------------------------------
 	if sf_abort, spm_clf(Finter), return, end
 	[xX,Sess] = spm_fMRI_design;
@@ -189,13 +188,6 @@ switch MT
 	return
 
 	case 2
-	% 'review a specified model'
-	%---------------------------------------------------------------
-	spm_clf(Finter)
-	[xX,Sess] = spm_fMRI_design_show;
-	return
-
-	case 3
 	% load pre-specified design matrix
 	%---------------------------------------------------------------
 	if sf_abort([2,3]), spm_clf(Finter), return, end
@@ -205,35 +197,22 @@ switch MT
 	   load('SPM_fMRIDesMtx.mat');
 	end
 
-
 	% get filenames
 	%---------------------------------------------------------------
 	nsess  = length(xX.iB);
 	nscan  = zeros(1,nsess);
 	for  i = 1:nsess
-		nscan(i) = length(find(xX.X(:,xX.iB(i))));
+		nscan(i)  = length(find(xX.X(:,xX.iB(i))));
 	end
 	P      = [];
-	if nsess < 16
-		for i = 1:nsess
-		   str    = sprintf('select scans for session %0.0f',i);
-		   if isempty(BCH)
-			q = spm_get(nscan(i),'.img',str);
-		   else
-			q = sf_bch_get_q(i);
-		   end %- 
- 		   P      = strvcat(P,q);
-		end
-	else
-		str       = sprintf('select scans for this study');
+	for i = 1:nsess
+		str       = sprintf('select scans for session %0.0f',i);
 		if isempty(BCH)
-			P = spm_get(sum(nscan),'.img',str);
+			q = spm_get(nscan(i),'.img',str);
 		else
-		   for  i = 1:nsess
 			q = sf_bch_get_q(i);
-			P = strvcat(P,q);
-		   end
 		end
+		P         = strvcat(P,q);
 	end
 
 
@@ -241,7 +220,7 @@ switch MT
 	%---------------------------------------------------------------
 	RT     = xX.RT;
 
-	case 4
+	case 3
 	% get filenames and design matrix
 	%---------------------------------------------------------------
 	if sf_abort, spm_clf(Finter), return, end
@@ -251,11 +230,11 @@ switch MT
 	nscan  = zeros(1,nsess);
 	P      = [];
 	for  i = 1:nsess
-		str  = sprintf('select scans for session %0.0f',i);
+		str      = sprintf('select scans for session %0.0f',i);
 		if isempty(BCH)
-		   q = spm_get(Inf,'.img',str);
+		   q     = spm_get(Inf,'.img',str);
 		else
-		   q = sf_bch_get_q(i);
+		   q     = sf_bch_get_q(i);
 		end
  		P        = strvcat(P,q);
 		nscan(i) = size(q,1);
@@ -423,10 +402,10 @@ xX.xVi = xVi;
 %-Effects designated "of interest" - constuct F-contrast structure array
 %-----------------------------------------------------------------------
 if length(xX.iC)
-	F_iX0  = struct(	'iX0',		xX.iB,...
-				'name',		'effects of interest');
+	F_iX0 = struct(	'iX0',		xX.iB,...
+			'name',		'effects of interest');
 else
-	F_iX0  = [];
+	F_iX0 = [];
 end
 
 %-Trial-specifc effects specified by Sess
@@ -459,12 +438,12 @@ xsDes   = struct(	'Basis_functions',	Sess{1}.Bfname,...
 			'Global_normalisation',	Global);
 %-global structure
 %-----------------------------------------------------------------------
-xGX.iGXcalc  = Global{:};
-xGX.sGXcalc  = sGXcalc;
-xGX.rg       = g;
-xGX.sGMsca   = sGMsca;
-xGX.GM       = GM;
-xGX.gSF      = gSF;
+xGX.iGXcalc = Global{:};
+xGX.sGXcalc = sGXcalc;
+xGX.rg      = g;
+xGX.sGMsca  = sGMsca;
+xGX.GM      = GM;
+xGX.gSF     = gSF;
 
 
 %-Save SPMcfg.mat file
