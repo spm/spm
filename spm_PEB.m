@@ -37,14 +37,12 @@ function [C,P] = spm_PEB(y,P)
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston, John Ashburner %E%
 
 % number of levels (p)
 %---------------------------------------------------------------------------
 M     = 32;				% maximum number of iterations
-W     = 1;				% eigenvalue threshold
 p     = length(P);
-
 
 % If full Bayes - only estimate hyperparameters upto the penultimate level
 %---------------------------------------------------------------------------
@@ -101,13 +99,11 @@ if ~iscell(P{end}.C)
 	%-------------------------------------------------------------------
 	y                 = y - X*P{end}.X;
 	C{p + 1}.E        = P{end}.X;
-	C{p + 2}.E        = 1;
 
 	% and set Cb to P{n}.C    (i.e. Cov(b) = P{n}.C, <b> = P{n}.X)
 	%-------------------------------------------------------------------
 	Cp                = P{end}.C + sparse(1:n,1:n,1e-8,n,n);
 	C{p + 1}.M        = Cp;
-	C{p + 2}.M        = 0;
 else
 
 	% Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
@@ -158,104 +154,88 @@ if ~isfield(P{1},'Q')
 	P{1}.h = h;
 	P{1}.K = K;
 
-
-	% svd of contraints
-	%-------------------------------------------------------------------
-	m      = length(Q);
-	P{1}.U = {};
-	P{1}.V = {};
-	for  i = 1:m
-		[u s v]    = spm_svd(Q{i},W);
-		P{1}.U{i}  = u;
-		P{1}.V{i}  = v;
-		P{1}.UX{i} = u'*XX;
-		P{1}.XV{i} = XX'*v;
-	end
-
-	% estimation matrix for hyperparameters
-	%-------------------------------------------------------------------
-	T      = sparse(m,m);
-	for  j = 1:m
-	for  k = 1:m
-			T(j,k) = trace(P{1}.U{j}'*Q{k}*P{1}.V{j});
-	end
-	end
-	P{1}.iT = inv(T'*T)*T';
-
 end
 Q     = P{1}.Q;
 h     = P{1}.h;
 K     = P{1}.K;
-U     = P{1}.U;
-V     = P{1}.V;
-UX    = P{1}.UX;
-XV    = P{1}.XV;
-iT    = P{1}.iT;
-m     = length(Q);
-T     = sparse(m,1);
 H     = h;
 
 % initial estimate of Ce
 %---------------------------------------------------------------------------
+q     = length(Q);
 Ce    = Cb;
-for i = 1:m
+for i = 1:q
 	Ce = Ce + h(i)*Q{i};
 end
 iCe   = inv(Ce);
-
+u     = sparse(q,1);
+W     = sparse(q,q);
 
 % Iterative EM estimation
 %---------------------------------------------------------------------------
-for j = 1:M
+for k = 1:M
 
-	% E-step: conditional mean E{B|y} and covariance cov(B|y)
+	% E-step: conditional covariance cov(B|y)
 	%===================================================================
-	Cby    = inv(XX'*iCe*XX);
-	B      = Cby*(XX'*(iCe*y));
+	iCeX  = iCe*XX;
+	Cby   = inv(XX'*iCeX);
+	R     = iCe - iCeX*Cby*iCeX';
 
-	% M-step: ML estimate of hyperparameters
+
+	% M-step: REML estimate of hyperparameters
 	%===================================================================
-
-	% Ce:  <e*e'> + <X*Cov{b|y}*X'> = Cov{e} = <w(1)*Ce{1} + ...>
-	%-------------------------------------------------------------------
-	R      = y - XX*B;
-	for  i = 1:m
-		T(i) = (R'*U{i})*(V{i}'*R) + trace(UX{i}*Cby*XV{i});
+	r     = R*y;
+	for i = 1:q
+		RQ{i}  = R*Q{i};
+		u(i)   = r'*Q{i}*r;
 	end
-	h      = iT*T;
+	for i = 1:q
+	for j = 1:q
+		W(i,j) = sum(sum(RQ{i}.*RQ{j}'));
+	end
+	end
+	h     = W\u;
 
 	% assemble new estimate
 	%-------------------------------------------------------------------
-	Ce     = Cb;
-	for  i = 1:m
+	Ce    = Cb;
+	for i = 1:m
 		Ce = Ce + h(i)*Q{i};
 	end
-	iCe    = inv(Ce);
+	iCe   = inv(Ce);
 
 
 	% Convergence
 	%===================================================================
 	w     = full(sum(H - h)^2);
 	if iscell(P{end}.C)
-		fprintf('%-30s: %i %30s%e\n','PEB Iteration',j,'...',w);
+		fprintf('%-30s: %i %30s%e\n','PEB Iteration',k,'...',w);
 	end
 	if w < 1e-16, break, end
 	H     = h;
 end
 
+
+% place hyperparameters in P{1}
+%---------------------------------------------------------------------------
+P{1}.h     = h;
+
+% conditional means E{b|y}
+%---------------------------------------------------------------------------
+B          = Cby*iCeX'*y;
+C{p + 1}.E = B(J{p}) + C{p + 1}.E;
+for i = p:-1:2
+	C{i}.E     = B(J{i - 1}) + P{i}.X*C{i + 1}.E;
+end
+
+% conditional covariances Cov{b|y} and REML esimtates of Ce{i) = Cb{i - 1}
+%---------------------------------------------------------------------------
+for i = 1:p
+	C{i + 1}.C = Cby(J{i},J{i});
+	C{i}.M     = Ce(I{i},I{i});
+	C{i}.h     = h(K{i});
+end
+
 % warning
 %---------------------------------------------------------------------------
 if j == M, warning('maximum number of iterations exceeded'), end
-
-% re-organize conditional moments hierarchically
-%---------------------------------------------------------------------------
-P{1}.h     = h;
-R          = [R(I{1}); B];
-C{p + 1}.E = R(I{p + 1}) + C{p + 1}.E;
-for      i = p:-1:1
-	C{i}.E     = R(I{i}) + P{i}.X*C{i + 1}.E;
-	C{i}.M     = Ce(I{i},I{i});
-	C{i}.h     = h(K{i});
-	C{i + 1}.C = Cby(J{i},J{i});
-end
-
