@@ -61,14 +61,12 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % Getting adjusted data:
 % Ensuring the data are adjusted properly can be important (e.g.  in
 % constructing explanatory variables such as in a psychophysiological
-% interaction)  If you are not asked to specify a contrast then the data
-% are adjusted by removing session or subject effects.  To remove further
-% specific effects from the data, specify an appropriate F contrast and
-% simply plot the fitted (and adjusted) responses after selecting that F
-% contrast.  The vectors Y and y in the workspace will now be adjusted
-% for the effects in the reduced design matrix (X0) specified in the
-% contrast manager with the column indices (iX0) of the confounds in this
-% adjustment.
+% interaction). To remove or correct for specific effects, specify an
+% appropriate F contrast and simply plot the fitted (and adjusted)
+% responses after selecting that F contrast.  The vectors Y and y in the
+% workspace will now be corrected for the effects in the reduced design
+% matrix (X0) specified in the contrast manager with the column indices
+% (iX0) of the confounds in this adjustment.
 % 
 % Plotting data:
 % All data and graphics use filtered data and residuals.    In PET
@@ -104,6 +102,7 @@ if ~length(SPM.XYZmm)
 end
 
 [xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),SPM.XYZmm);
+spm_XYZreg('SetCoords',xyz,hReg);
 
 
 %-Extract required data from results files
@@ -122,11 +121,11 @@ if exist(fullfile('.','Y.mad')) ~= 2
 
 elseif SPM.QQ(i) == 0
 	sf_noYwarn
-	if spm_input('move to nearest voxel','-1','y/n',[1 0])
+	if spm_input('move to nearest voxel',-1,'y/n',[1 0])
 		Q       = find(SPM.QQ);
 		[xyz,i] = spm_XYZreg('NearestXYZ',...
 			  spm_XYZreg('GetCoords',hReg),SPM.XYZmm(:,Q));
-
+		i       = Q(i);
 		y       = spm_extract('Y.mad',SPM.QQ(i));
 
 	else
@@ -156,7 +155,7 @@ STR    = [SPM.STAT sprintf(' = %0.2f, p = %0.3f (%.3f corrected)',Z,Pz,Pu)];
 %-NB: Data in Y.mad is raw, must (re)apply temporal smoothing in K
 %     Fitted data & residuals are for temporally smoothed model
 
-%-Parameter estimates: beta = xX.pKX * xX.K*y;
+%-Parameter estimates: beta = xX.pKX*xX.K*y;
 %-----------------------------------------------------------------------
 beta  = ones(length(xSDM.Vbeta),1);
 for i = 1:length(beta)
@@ -169,21 +168,12 @@ if isempty(y)
 
 	% make R = NaN so it will not be plotted
 	%---------------------------------------------------------------
-	Y = []; R = NaN;
+	R   = NaN*ones(size(xX.xKXs.X,1),1);
 
 else
-
 	% residuals
 	%---------------------------------------------------------------
-	R = xX.K*y - xX.xKXs.X*beta;
-
-	% fitted and adjusted data
-	%---------------------------------------------------------------
-	X     = xX.xKXs.X;
-	X0    = X(:,xSDM.F_iX0);
-	X1o   = X - X0*(pinv(X0)*X);
-	Y     = X1o*beta;
-	y     = Y + R;
+	R   = xX.K*y - xX.xKXs.X*beta;
 
 end
 
@@ -206,19 +196,33 @@ cd(cwd)					%-Go back to original working dir.
 % find out what to plot
 %----------------------------------------------------------------------
 Cplot = {	'Contrast of parameter estimates',...
-	 	'Fitted (and adjusted) responses',...
+	 	'Fitted and adjusted responses',...
 		'event/epoch-related responses'};
 if ~length(y), Cplot{2} = 'Fitted responses'; end
 if ~isfield(xSDM,'Sess'), Cplot = Cplot(1:2); end
 Cp    = spm_input('Plot',-1,'m',Cplot);
 
-% select contrast to plot
+% select contrast to plot and compute fitted and adjusted data
 %----------------------------------------------------------------------
 if Cp < 3
+
+	% determine current contrasts
+	%---------------------------------------------------------------
 	for i = 1:length(xCon)
 		Icstr{i} = xCon(i).name;
 	end
 	Ic    = spm_input('Which contrast?','!+1','m',Icstr);
+	TITLE = {Cplot{Cp} xCon(Ic).name};
+
+
+	% fitted (corrected) data (Y = X1o*beta)
+	%---------------------------------------------------------------
+	Y     = spm_FcUtil('Yc',xCon(Ic),xX.xKXs,beta);
+
+	% adjusted data
+	%---------------------------------------------------------------
+	y     = Y + R;
+
 end
 
 
@@ -244,8 +248,6 @@ if     Cp == 1
 			    'LineWidth',3,'Color','r')
 	end
 	set(gca,'XLim',[0.4 (length(cbeta) + 0.6)])
-
-	TITLE = {Cplot{Cp} xCon(Ic).name};
 	XLAB  = {'effect' STR};
 	YLAB  = 'effect size';
 
@@ -253,18 +255,6 @@ if     Cp == 1
 % all fitted effects or selected effects
 %-----------------------------------------------------------------------
 elseif Cp == 2
-
-
-	% fitted (corrected) data (Y = X1o*beta)
-	%---------------------------------------------------------------
-	X     = xX.xKXs.X;
-	Hb    = spm_FcUtil('H',xCon(Ic),xX.xKXs);
-	Y     = X*spm_sp('xpx-',xX.xKXs)*Hb*beta;
-
-	% adjusted data
-	%---------------------------------------------------------------
-	y     = Y + R;
-
 
 	% get ordinates
 	%---------------------------------------------------------------
@@ -313,8 +303,6 @@ elseif Cp == 2
 		set(gca,'XLim',[-1 1] + get(gca,'XLim'))
 
 	end
-
-	TITLE = {Cplot{Cp} xCon(Ic).name};
 	YLAB  = 'response';
 	XLAB  = {XLAB STR};
 
@@ -343,15 +331,16 @@ elseif Cp == 3
 			'fitted response +/- standard error of onset',...
 			'fitted response and adjusted data',...
 			'parametric plot'};
-	Cp    = spm_input('plot in terms of',-2,'m',Cplot);
-	TITLE = Cplot{Cp};
-	YLAB  = 'effect size';
+	if isempty(y), Cplot = Cplot([1 3 4]); end
+	Cp      = spm_input('plot in terms of',-2,'m',Cplot);
+	TITLE   = Cplot{Cp};
+	YLAB    = 'effect size';
 	XLAB{1} = 'peri-stimulus time {secs}';
 
 
 	% cycle over selected events
 	%--------------------------------------------------------------
-	dx    = xX.dt;
+	dx      = xX.dt;
 
 	% reconstruct response with filtering
 	%--------------------------------------------------------------
@@ -381,7 +370,7 @@ elseif Cp == 3
 		%------------------------------------------------------
 		KX     = K*X;
 		Y      = KX*B;
-		SE     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
+		se     = sqrt(diag(X*xX.Bcov(j,j)*X')*ResMS);
 		pst    = xSDM.Sess{s}.pst{t};
 		bin    = round(pst/dx);
 		q      = find( (bin >= 0) & (bin <= size(X,1)));
@@ -394,7 +383,7 @@ elseif Cp == 3
 		v      = min(find(abs(Y) > max(abs(Y))/2));
 		T      = x(v);
 		dYdt   = gradient(Y')'/dx;
-		seT    = SE(v)./dYdt(v);
+		seT    = se(v)./dYdt(v);
 
 		% PSTH
 		%------------------------------------------------------
@@ -413,30 +402,45 @@ elseif Cp == 3
 		end
 		
 
+	Cplot = {	'fitted response',...
+			'fitted response and PSTH',...
+			'fitted response +/- standard error of response',...
+			'fitted response +/- standard error of onset',...
+			'fitted response and adjusted data',...
+			'parametric plot'};
+
 		% plot
 		%------------------------------------------------------
-		if Cp == 1
+		switch TITLE
+
+			case 'fitted response'
+			%----------------------------------------------
 			plot(x,Y,COL(u))
 
-		elseif Cp == 2
+			case 'fitted response and PSTH'
+			%----------------------------------------------
 			errorbar(PST,PSTH,SEM,[':' COL(u)])
 			plot(PST,PSTH,['.' COL(u)],'MarkerSize',16), hold on
 			plot(PST,PSTH,COL(u),'LineWidth',2)
 			plot(x,Y,['-.' COL(u)])
 			TITLE = 'Peristimulus histogram (2s bins with sem)';
 
-		elseif Cp == 3
+			case 'fitted response +/- standard error of response'
+			%----------------------------------------------
 			plot(x,Y,COL(u))
-			plot(x,Y + SE,['-.' COL(u)],x,Y - SE,['-.' COL(u)])
+			plot(x,Y + se,['-.' COL(u)],x,Y - se,['-.' COL(u)])
 
-		elseif Cp == 4
+			case 'fitted response +/- standard error of onset'
+			%----------------------------------------------
 			plot(x,Y,COL(u))
 			line(([-seT seT] + T),[Y(v) Y(v)],'LineWidth',6)
 
-		elseif Cp == 5
+			case 'fitted response and adjusted data'
+			%----------------------------------------------
 			plot(x,Y,COL(u),pst,y,['.' COL(u)],'MarkerSize',8)
 
-		elseif Cp == 6
+			case 'parametric plot'
+			%----------------------------------------------
 			hold off
 			surf(x',Q',Q*Y')
 			YLAB  = 'parameter';
