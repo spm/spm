@@ -40,17 +40,15 @@ function varargout = spm_get(varargin)
 % selected can be unselected by clicking it again. If a specific number
 % of items have been requested (n), then this number of files must be
 % selected. A status message at the foot of the window explains the
-% current status. The item window is scrolled up and down with the
-% buttons provided. The small button above the ^ button scrolls to the
-% top of the listing.
+% current status.
 %
-% The directory window is editable. Pull down menus of previous
-% directories and subdirectories of the current directory are
-% maintained. The red "pwd" button changes directory to the current
-% MatLab working directory, the "home" button to the users home
-% directory. (The bold red list of subdirectories that used to appear
-% alongside the files in the item window have had to be withdrawn due
-% to a problem with MatLab5.)
+% Clicking on a directory name (red) changes to that directory. The
+% current directory name window can edited to change directory. Also,
+% pull down menus of previous directories and subdirectories of the
+% current directory are maintained. (On Windows platforms, an
+% additional pull down menu of drives is also provided.) The red "pwd"
+% button changes directory to the current MatLab working directory, the
+% "home" button to the users home directory.
 %
 % All files in the current window can be selected *in the order in which
 % they appear* with the "All" button, and the "Reset" button clears the
@@ -256,6 +254,9 @@ function varargout = spm_get(varargin)
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
+% FORMAT str = spm_get('DrivesPullDownStr')
+% returns string for Drives pull down menu on Windows platforms
+%
 %-----------------------------------------------------------------------
 % SUBFUNCTIONS:
 %
@@ -452,13 +453,34 @@ uicontrol(F,'Style','Edit','String',WDir,...
 	'CallBack','spm_get(''cd'')',...
 	'Position',[010 325 380 022].*WS);
 
+if strcmp(spm_platform('filesys'),'win')
+	off=100;
+	h = uicontrol(F,'Style','PopUp','Tag','DrivesPopup',...
+		'ToolTipString','drives',...
+		'HorizontalAlignment','Left',...
+		'ForegroundColor','r',...
+		'String',spm_get('DrivesPullDownStr'),...
+		'Callback','spm_get(''cd'')',...
+		'Position',[010+335-off 303 off 022].*WS);
+	uicontrol(F,'Style','PopUp','Tag','DrivesPopup',...
+		'ToolTipString','drives',...
+		'HorizontalAlignment','Left',...
+		'ForegroundColor','r',...
+		'String',spm_get('DrivesPullDownStr'),...
+		'Callback',['spm_get(''cd''),'...
+			'get(gcbo,''string''),',...
+		    'set(gcbo,''String'',spm_get(''DrivesPullDownStr''))'],...
+		'Position',[010+335-off 303 off 022].*WS);
+else
+	off=0;
+end
 uicontrol(F,'Style','PopUp','Tag','SubDirsPopup',...
 	'ToolTipString','cd to subdirectories of this directory',...
 	'HorizontalAlignment','Left',...
 	'ForegroundColor','r',...
 	'String','SubDirectories...',...
 	'Callback','spm_get(''cd'')',...
-	'Position',[010 303 335 022].*WS);
+	'Position',[010 303 335-off 022].*WS);
 
 uicontrol(F,'Style','PushButton','Tag','CDhome',...
 	'String','home',...
@@ -466,10 +488,6 @@ uicontrol(F,'Style','PushButton','Tag','CDhome',...
 	'ForegroundColor','r',...
 	'CallBack',['spm_get(''cd'',''',deblank(LastDirs(2,:)),''')'],...
 	'Position',[345 303 045 022].*WS);
-
-%uicontrol(F,'Style','Text',...
-%	'String','Filter',...
-%	'Position',[010 278 040 022].*WS);
 
 uicontrol(F,'Style','Pushbutton',...
 	'String','Filter',...
@@ -753,6 +771,7 @@ if nargin<2
 		val = get(gcbo,'Value');
 		if val==1 set(F,'Pointer','Arrow'), return, end
 		NewDir=NewDir(val,:);
+		set(gcbo,'Value',1)
 	end
 else
 	NewDir=varargin{2};
@@ -803,7 +822,7 @@ LastDirs = [LastDirs; FLastDirs];
 
 %-Write LastDirs to LastDirsPopup, write new directory to WDir Edit widget
 %-----------------------------------------------------------------------
-set(findobj(F,'Tag','LastDirsPopup'),'Value',1,...
+set(findobj(F,'Tag','LastDirsPopup'),...
 	'String',strvcat('Previous Directories...',LastDirs))
 set(findobj(F,'Tag','WDir'),'String',NewDir,'UserData',NewDir)
 
@@ -1596,6 +1615,14 @@ end
 
 if ischar(varargin{2}), varargout={char(cpath)}; else, varargout={cpath}; end
 
+
+case 'drivespulldownstr'
+%=======================================================================
+% str = spm_get('DrivesPullDownStr')
+drivestr  = spm_win32utils('drives');
+n         = length(drivestr);
+varargout = ...
+	{['Drives...',reshape(['|'*ones(1,n);drivestr;':'*ones(1,n)],1,3*n)]};
 
 otherwise
 %=======================================================================
