@@ -342,12 +342,10 @@ end
 %-----------------------------------------------------------------------
 if exist(fullfile('.','SPM.mat'),'file')==2
     spm('alert!',{...
-        'Current directory already contains SPM results!',...
-        '(i.e. a SPM.mat file)',...
+        'Current directory contains some SPMstats results files!',...
         ['        (pwd = ',pwd,')'],...
-        ' ',...
         'Existing results are being overwritten!'},...
-        mfilename,sqrt(-1));
+        mfilename,1);
     warning(sprintf('Overwriting existing results\n\t (pwd = %s) ',pwd))
     drawnow
 end
@@ -355,7 +353,7 @@ end
 files = {	'SPM.mat','Yidx.mat','Y.mad','xCon.mat',...
 		'mask.???','ResMS.???',...
 		'beta_????.???','con_????.???',...
-		'ess_????.???','spm?_????.???'};
+		'ess_????.???', 'spm?_????.???'};
 for i=1:length(files)
 	if any(files{i} == '*'|files{i} == '?' )
 		[tmp,null] = spm_list_files(pwd,files{i});
@@ -382,33 +380,41 @@ if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 
 %-Initialise design space
 %=======================================================================
-fprintf('%-40s: %30s','Initialising design space','...checking')     %-#
+fprintf('%-40s: %30s','Initialising design space','...computing')    %-#
 
 %-Construct design parmameters, and store in design structure xX
 % Take care to apply temporal convolution - KX stored as xX.xKX.X
+%-Note that Vi may not be known exactly at this point, if it is to be
+% estimated. Parameters dependent on Vi are committed to xX at the end.
+%-Note that the default F-contrast (used to identify "interesting" voxels
+% to save raw data for) computation requires Vi. Thus, if Vi is to be
+% estimated, any F-threshold will only be have upper tail probability UFp. 
 %-----------------------------------------------------------------------
-fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')            %-#
+[nScan nBeta] = size(xX.X);			%-#scans & #parameters
 
-[nScan nbeta] = size(xX.X);			%-#scans & #parameters
-
-KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
-xX.V          = spm_filter('apply',xX.K,KVi');  %-V matrix
-KX            = spm_filter('apply',xX.K, xX.X);
-xX.xKXs       = spm_sp('Set',KX);		%-Design space structure
-xX.pKX        = spm_sp('x-',xX.xKXs);		%-Pseudoinverse of KX
-[xX.trRV xX.trRVRV] ...				%-Variance expectations
-              = spm_SpUtil('trRV',xX.xKXs,xX.V);%-(trRV & trRV2 in spm_AnCova)
-xX.erdf       = xX.trRV^2/xX.trRVRV;		%-Effective residual d.f.
-xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames); %-Scale for display
+KVi       = spm_filter('apply',xX.K, xX.xVi.Vi);
+%xX.V      = [];
+V         = spm_filter('apply',xX.K,KVi');	%-V matrix
+xX.xKXs   ...					%-Design space structure
+          = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
+xX.pKX    = spm_sp('x-',xX.xKXs);		%-Pseudoinverse of KX
+%xX.pKXV   = [];
+%xX.Bcov   = [];
+%xX.trRV   = [];
+%xX.trRVRV = [];
+[trRV,trRVRV] ...				%-Variance expectations
+          = spm_SpUtil('trRV',xX.xKXs,V);
+%xX.erdf   = [];
+erdf      = trRV^2/trRVRV;			%-Effective residual d.f.
 
 %-Check estimability
 %-----------------------------------------------------------------------
-if xX.erdf<0
-    error(sprintf('This design is completely unestimable! (df=%-.2g)',xX.erdf))
-elseif xX.erdf==0
+if erdf<0
+    error(sprintf('This design is completely unestimable! (df=%-.2g)',erdf))
+elseif erdf==0
     error('This design has no residuals! (df=0)')
-elseif xX.erdf<4
-    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
+elseif erdf<4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',erdf))
 end
 
 
@@ -423,14 +429,14 @@ else
 	str   = 'effects of interest';
 end
 xCon          = spm_FcUtil('Set',str,'F','iX0',F_iX0,xX.xKXs);
-[trMV,trMVMV] = spm_SpUtil('trMV',xCon.X1o,xX.V);
-xCon.eidf     = trMV^2/trMVMV;
+[trMV,trMVMV] = spm_SpUtil('trMV',xCon.X1o,V);
+eidf          = trMV^2/trMVMV;
 h             = spm_FcUtil('Hsqr',xCon,xX.xKXs);
 
-%-Compute UF, the F-threshold
+%-Compute UF, the F-threshold (using approximate Vi)
 %-----------------------------------------------------------------------
 if UFp > 0 & UFp < 1				%-F-filter for Y.mad file
-	UF   = spm_invFcdf(1 - UFp,[xCon.eidf,xX.erdf]);
+	UF   = spm_invFcdf(1 - UFp,[eidf,erdf]);
 	Yidx = [];
 elseif UFp == 1					%-No filtering - save all data
 	UF   = -Inf;
@@ -459,7 +465,7 @@ XYZ = [];
 
 %-Intialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
-VM = struct(		'fname',	'mask',...
+VM = struct(		'fname',	'mask.img',...
 			'dim',		[VY(1).dim(1:3),spm_type('uint8')],...
 			'mat',		VY(1).mat,...
 			'pinfo',	[1 0 0]',...
@@ -469,13 +475,13 @@ VM = spm_create_image(VM);
 
 %-Intialise beta image files
 %-----------------------------------------------------------------------
-Vbeta(1:nbeta) = deal(struct(...
+Vbeta(1:nBeta) = deal(struct(...
 			'fname',	[],...
 			'dim',		[VY(1).dim(1:3) spm_type('float')],...
 			'mat',		VY(1).mat,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	''));
-for i=1:nbeta
+for i=1:nBeta
 	Vbeta(i).fname   = sprintf('beta_%04d.img',i);
 	Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.Xnames{i});
 	spm_unlink(Vbeta(i).fname)
@@ -535,7 +541,8 @@ nx     = 0; ny     = 0; nz     = 0;		%-# {x,y,z} partial derivs
 
 %-Indexes of residual images to sample for smoothness estimation
 %-----------------------------------------------------------------------
-i_res  = round(linspace(1,nScan,min(nScan,maxRes4S)))';
+nSres  = min(nScan,maxRes4S);			%- #residual images to use
+i_res  = round(linspace(1,nScan,nSres))';	%- Indicies
 
 %-parameter for estimation of intrinsic correlations AR(1) model
 %-----------------------------------------------------------------------
@@ -549,7 +556,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     zords   = z*ones(xdim*ydim,1)';	%-plane Z coordinates
     CrBl    = [];			%-current plane betas
-    CrResMS = [];			%-current plane ResMS
+    CrResSS = [];			%-current plane ResSS
     
     for bch = 1:nbch			%-loop over bunches of lines (planks)
 
@@ -646,8 +653,8 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...parameter estimation')   %-#
 		beta  = xX.pKX * KY;			%-Parameter estimates
-		res   = spm_sp('r',xX.xKXs,KY);	%-Residuals
-		ResMS = sum(res.^2)/xX.trRV;		%-Residual mean square
+		res   = spm_sp('r',xX.xKXs,KY);		%-Residuals
+		ResSS = sum(res.^2);			%-Residual sun-of-squares
 		clear KY				%-Clear to save memory
 
 
@@ -660,7 +667,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 				spm_append(Y,'Y.mad',2)	%-append data
 				Yidx = [Yidx,S+[1:CrS]];%-save indexes to coords
 			else				%-F-threshold
-				tmp  = (sum((h*beta).^2)/trMV) > ResMS*UF;
+				tmp  = (sum((h*beta).^2)/trMV) > UF*ResSS/trRV;
 				spm_append(Y(:,tmp),'Y.mad',2);
 				Yidx = [Yidx, (S + find(tmp))];
 			end
@@ -670,19 +677,17 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 		%-Save betas for current plane in memory as we go along
 		% (if there is not enough memory, could save directly as float)
-		% (analyze images, or *.mad and retreived when plane complete )
+		% (analyze images, or *.mad and retreive when plane complete )
 		%-------------------------------------------------------
 		CrBl 	= [CrBl,beta];
-		CrResMS = [CrResMS,ResMS];
+		CrResSS = [CrResSS,ResSS];
 
-		% Smoothness estimation - Normalize subsampled residuals
+		% Smoothness estimation - Normalize subsample of residuals
 		%-------------------------------------------------------
-		res     = res(i_res,:);	
-		tResSS  = sqrt(sum(res.^2));		%-ResSS of subsample
-		for   j = 1:size(res,1)
-			res(j,:) = res(j,:)./tResSS;
+		CrVox.res = res(i_res,:);
+		for j = 1:nSres
+			CrVox.res(j,:) = CrVox.res(j,:)./sqrt(ResSS);
 		end
-		CrVox.res = res;
 
 
 	   	%-Smoothness estimation: compute spatial derivatives...
@@ -818,14 +823,17 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     %-Write beta images
     %-------------------------------------------------------------------
-    for i = 1:nbeta
+    for i = 1:nBeta
         if length(Q), tmp(Q) = CrBl(i,:); end
 	Vbeta(i) = spm_write_plane(Vbeta(i),tmp,z);
     end
 	    
-    %-Write ResMS (variance) image
+    %-Write ResSS into ResMS (variance) image
+    % (Scaling of ResSS to ResMS by trRV is accomplished by adjusting the
+    % (scalefactor at the end, once the intrinsic temporal autocorrelation
+    % (Vi has been estimated.
     %-------------------------------------------------------------------
-    if length(Q), tmp(Q) = CrResMS; end
+    if length(Q), tmp(Q) = CrResSS; end
     VResMS = spm_write_plane(VResMS,tmp,z);		   
 
     %-Report progress
@@ -842,10 +850,14 @@ fprintf('\n')                                                        %-#
 %=======================================================================
 if S == 0, warning('No inmask voxels - empty analysis!'), end
 
-%-Intrinsic autocorrelations Vi (session specific)
+
+%-Intrinsic autocorrelations: Vi
+%=======================================================================
+fprintf('%-40s: %30s','Design parameters','...intrinsic autocorrelation') %-#
+
+%-Compute (session specific) intrinsic autocorrelation Vi
 %-----------------------------------------------------------------------
 switch xX.xVi.Form
-
 	case 'AR(1)'
 	%---------------------------------------------------
 	p     = length(A) - 1;			% order AR(p)
@@ -864,56 +876,64 @@ end
 xX.xVi.Param = A;
 
 
-%-[Re]-enter Vi in design structure xX and default contrast
+%-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
-KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
-xX.V          = spm_filter('apply',xX.K,KVi');  %-V matrix
-xX.pKXV       = xX.pKX*xX.V;			%-for contrast variance weight
-xX.Bcov       = xX.pKXV*xX.pKX';		%-Variance of est. param.
-[trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);%-Variance expectations
-xX.erdf       = trRV^2/trRVRV;			%-Effective residual d.f.
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...autocorrelation & expectations')%-#
+KVi      = spm_filter('apply',xX.K, xX.xVi.Vi);
+xX.V     = spm_filter('apply',xX.K,KVi'); 	%-V matrix
+xX.pKXV  = xX.pKX*xX.V;				%-for contrast variance weight
+xX.Bcov  = xX.pKXV*xX.pKX';			%-Variance of est. param.
+[xX.trRV,xX.trRVRV] ...				%-Variance expectations
+         = spm_SpUtil('trRV',xX.xKXs,xX.V);
+xX.erdf  = xX.trRV^2/xX.trRVRV;			%-Effective residual d.f.
 
-[trMV trMVMV] = spm_SpUtil('trMV',xCon.X1o,xX.V);
-xCon.eidf     = trMV^2/trMVMV;
-
-%-adjust trRV in ResMS scalefactor ans design structure
+%-Compute scaled design matrix for display purposes
 %-----------------------------------------------------------------------
-VResMS.pinfo(1) = xX.trRV/trRV;
-xX.trRV         = trRV;
-xX.trRVRV       = trRVRV;
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...scaling DesMtx')       %-#
+xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
+
+%-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
+%-----------------------------------------------------------------------
+VResMS.pinfo(1) = 1/xX.trRV;
+
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+
+
+%-"close" image files, updating scalefactor information
+%=======================================================================
+VM                      = spm_create_image(VM);
+for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
+VResMS                  = spm_create_image(VResMS);
 
 
 %-Smoothness estimates of component fields
-%-----------------------------------------------------------------------
+%=======================================================================
+fprintf('%-40s: %30s','Smoothness parameters','...working')          %-#
 if zdim == 1
 	if any(~[nx,ny])
 		warning(sprintf('W: nx=%d, ny=%d',nx,ny)), end
-	Lambda = diag([sx_res/nx sy_res/ny Inf]*(xX.erdf-2)/(xX.erdf-1));
+	Lambda = diag([sx_res/nx sy_res/ny Inf] * (nScan/nSres) * ...
+						(xX.erdf-2)/(xX.erdf-1));
 else
 	if any(~[nx,ny,nz])
 		warning(sprintf('W: nx=%d, ny=%d, nz=%d',nx,ny,nz)), end
-	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz]*(xX.erdf-2)/(xX.erdf-1));
+	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz] * (nScan/nSres) * ...
+						(xX.erdf-2)/(xX.erdf-1));
 end
 W      = (2*diag(Lambda)').^(-1/2);
 FWHM   = sqrt(8*log(2))*W;
 
 
+%-Estimate RESEL counts for volume
+%-----------------------------------------------------------------------
+R    = spm_resels_vol(VM,FWHM)';
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+
+
+
 %-Save remaining results files and analysis parameters
 %=======================================================================
 fprintf('%-40s: %30s','Saving results','...writing')                 %-#
-
-%-"close" image files, updating scalefactor information
-%-----------------------------------------------------------------------
-VM                      = spm_create_image(VM);
-for i=1:nbeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
-VResMS                  = spm_create_image(VResMS);
-
-
-%-Estimate RESEL counts for volume
-%-----------------------------------------------------------------------
-% R    = spm_resels_vol(VM,FWHM);
-R      = spm_resels(FWHM,S);		%-Assumme a sphere
-
 
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
@@ -938,9 +958,11 @@ if nargin > 4
 end
 save('SPM',SPMvars{:})
 
+
 %-Save contrast structure
 %-----------------------------------------------------------------------
 save('xCon.mat','xCon')
+
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
