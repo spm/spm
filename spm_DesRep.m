@@ -158,17 +158,17 @@ bL        = any(diff(I,1),1); 		%-Multiple factor levels?
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
 spm_figure('Clear',Fgraph)
-FS = spm_figure('FontSizes');
+FS     = spm('FontSizes');
 
 %-Display header information
 %-----------------------------------------------------------------------
 hTax = axes('Position',[0.03,0.85,0.94,0.1],...
-	'DefaultTextFontSize',FS(2),...
+	'DefaultTextFontSize',FS(9),...
 	'XLim',[0,1],'YLim',[0,1],...
 	'Visible','off');
 
 text(0.5,1,'Statistical analysis: Image files & covariates...',...
-	'Fontsize',FS(5),'Fontweight','Bold',...
+	'Fontsize',FS(14),'Fontweight','Bold',...
 	'HorizontalAlignment','center')
 
 dx1 = 0.05;
@@ -191,7 +191,7 @@ end
 
 x=x+dx2;
 text(x,0.65,'Base directory:','FontWeight','Bold')
-text(x,0.5,CPath,'FontSize',FS(1))
+text(x,0.5,CPath,'FontSize',FS(8))
 text(x,0.2,'filename tails...')
 
 line('XData',[0 1],'YData',[0 0],'LineWidth',3,'Color','r')
@@ -199,12 +199,12 @@ line('XData',[0 1],'YData',[0 0],'LineWidth',3,'Color','r')
 %-Tabulate file & covariate information
 %-----------------------------------------------------------------------
 hAx = axes('Position',[0.03,0.05,0.94,0.8],...
-	'DefaultTextFontSize',FS(1),...
+	'DefaultTextFontSize',FS(8),...
 	'Units','points',...
 	'Visible','off');
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
 
-dy = FS(2); y0 = floor(AxPos(4)) -dy; y  = y0;
+dy = FS(9); y0 = floor(AxPos(4)) -dy; y  = y0;
 
 for i = 1:nScan
 
@@ -232,10 +232,10 @@ for i = 1:nScan
 	%-Paginate if necessary
 	if y<dy
 		text(0.5,0,sprintf('Page %d',spm_figure('#page')),...
-			'FontSize',FS(1),'FontAngle','italic')
+			'FontSize',FS(8),'FontAngle','italic')
 		spm_figure('NewPage',[hAx;get(hAx,'Children')])
 		hAx = axes('Units','points','Position',AxPos,...
-			'DefaultTextFontSize',FS(1),'YLim',[0,AxPos(4)],...
+			'DefaultTextFontSize',FS(8),'YLim',[0,AxPos(4)],...
 			'Visible','off');
 		y = y0;
 		text(y,0,'continued...','FontAngle','Italic')
@@ -253,11 +253,11 @@ if ~isempty(xs)
 	for sf = fieldnames(xs)'
 		text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
 			'HorizontalAlignment','Right','FontWeight','Bold',...
-			'FontSize',FS(2))
+			'FontSize',FS(9))
 		s = getfield(xs,sf{1});
 		if ~iscellstr(s), s={s}; end
 		for i=1:prod(size(s))
-			text(0.31,y,s{i},'FontSize',FS(2))
+			text(0.31,y,s{i},'FontSize',FS(9))
 			y=y-dy;
 		end
 	end
@@ -266,7 +266,7 @@ end
 %-Register last page if paginated
 if spm_figure('#page')>1
 	text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-		'FontSize',FS(1),'FontAngle','italic')
+		'FontSize',FS(8),'FontAngle','italic')
 	spm_figure('NewPage',[hAx;get(hAx,'Children')])
 end
 
@@ -305,7 +305,7 @@ if isfield(varargin{2},'Xnames') & ~isempty(varargin{2}.Xnames)
 %-----------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
-FS = spm_figure('FontSizes');
+FS = spm('FontSizes');
 
 %-Title
 %-----------------------------------------------------------------------
@@ -380,7 +380,7 @@ set(hPEstAx,...
 xlabel('paremeter estimability')
 text((nPar+0.5 + nPar/30),1,...
 	'(gray \rightarrow \beta not uniquely specified)',...
-	'Interpreter','TeX','FontSize',FS(1))
+	'Interpreter','TeX','FontSize',FS(8))
 set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
 set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 set(Fgraph,'DefaultTextInterpreter',tmp);
@@ -395,21 +395,21 @@ if ~isempty(xs)
 	AxPos = get(hAx,'Position');
 	set(hAx,'YLim',[0,AxPos(4)])
 	
-	dy = FS(2); y0 = floor(AxPos(4)) -dy; y = y0;
+	dy = FS(9); y0 = floor(AxPos(4)) -dy; y = y0;
 
 	text(0.3,y,'Design description...',...
 		'HorizontalAlignment','Center',...
-		'FontWeight','Bold','FontSize',FS(3))
+		'FontWeight','Bold','FontSize',FS(11))
 	y=y-2*dy;
 	
 	for sf = fieldnames(xs)'
 		text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
 			'HorizontalAlignment','Right','FontWeight','Bold',...
-			'FontSize',FS(2))
+			'FontSize',FS(9))
 		s = getfield(xs,sf{1});
 		if ~iscellstr(s), s={s}; end
 		for i=1:prod(size(s))
-			text(0.31,y,s{i},'FontSize',FS(2))
+			text(0.31,y,s{i},'FontSize',FS(9))
 			y=y-dy;
 		end
 	end
@@ -430,21 +430,21 @@ if ~length(xC), return, end
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
 spm_figure('Clear',Fgraph)
-FS = spm_figure('FontSizes');
+FS = spm('FontSizes');
 
 %-Title
 %-----------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
-	'DefaultTextFontSize',FS(2),...
+	'DefaultTextFontSize',FS(9),...
 	'XLim',[0,1],'YLim',[0,1],...
 	'Visible','off');
 
 text(0.5,0.95,'Statistical analysis: Covariates',...
-	'Fontsize',FS(5),'Fontweight','Bold',...
+	'Fontsize',FS(14),'Fontweight','Bold',...
 	'HorizontalAlignment','center')
 
 text(0.5,0.82,'(covariates plotted over transposed design matrix)',...
-	'FontSize',FS(1),'HorizontalAlignment','center')
+	'FontSize',FS(8),'HorizontalAlignment','center')
 
 line('XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
 line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
@@ -460,7 +460,7 @@ set(hDesMtx,'Visible','off')
 
 %-Parameter names
 hParAx = axes('Position',[.8 .5 .2 .3],'Visible','off',...
-	'DefaultTextFontSize',FS(1),'DefaultTextInterpreter','TeX',...
+	'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
 	'YLim',[0.5,size(X,2)+0.5],'YDir','Reverse');
 hPNames = zeros(size(X,2),1);
 for i = 1:size(X,2), hPNames(i) = text(.05,i,Xnames{i}); end
@@ -476,7 +476,7 @@ for i = 1:length(xC)
 	hSTitle = text(0.5,0.87,sprintf('%d : %s',i,xC(i).rcname),...
 			'Parent',hTax,...
 			'HorizontalAlignment','center',...
-			'FontSize',FS(4),'FontWeight','Bold');
+			'FontSize',FS(13),'FontWeight','Bold');
 
 	%-Plot
 	%---------------------------------------------------------------
@@ -498,16 +498,16 @@ for i = 1:length(xC)
 	tmp = get(hDAx,'Position');
 	set(hDAx,'YLim',[0,tmp(4)])
 	
-	dy = FS(2); y0 = floor(tmp(4)) -dy; y = y0;
+	dy = FS(9); y0 = floor(tmp(4)) -dy; y = y0;
 
 	%-Description strings from xC(i).descrip
 	text(0.3,y,'Details :',...
 		'HorizontalAlignment','Right',...
-		'FontWeight','Bold','FontSize',FS(2))
+		'FontWeight','Bold','FontSize',FS(9))
 	s = xC(i).descrip;
 	if ~iscellstr(s), s={s}; end
 	for j=1:prod(size(s))
-		text(0.31,y,s{j},'FontSize',FS(2))
+		text(0.31,y,s{j},'FontSize',FS(9))
 		y=y-dy;
 	end
 	y=y-dy;
@@ -518,7 +518,7 @@ for i = 1:length(xC)
 		ColorOrder = get(hAx,'ColorOrder');
 		text(0.3,y,'Key :',...
 			'HorizontalAlignment','Right',...
-			'FontWeight','Bold','FontSize',FS(2))
+			'FontWeight','Bold','FontSize',FS(9))
 		for j = 1:size(xC(i).rc,2)
 			color = ColorOrder(mod(j-1,size(ColorOrder,1))+1,:);
 			if size(xC(i).rc,2)==length(xC(i).cname)
@@ -526,11 +526,11 @@ for i = 1:length(xC)
 			else
 				str = sprintf('column %d',j);
 			end
-			text(0.31,y,str,'FontSize',FS(2),...
+			text(0.31,y,str,'FontSize',FS(9),...
 				'Color',color)
 			text(0.5,xC(i).rc(1,j),[str,' \rightarrow'],...
 				'Parent',hAx,...
-				'FontSize',FS(1),'FontWeight','Bold',...
+				'FontSize',FS(8),'FontWeight','Bold',...
 				'HorizontalAlignment','Right',...
 				'Interpreter','TeX',...
 				'Color',color)
@@ -544,13 +544,13 @@ for i = 1:length(xC)
 	%---------------------------------------------------------------
 	text(0.3,y,'Design matrix columns :',...
 		'HorizontalAlignment','Right',...
-		'FontWeight','Bold','FontSize',FS(2))
+		'FontWeight','Bold','FontSize',FS(9))
 	if isempty(xC(i).cols)
-		text(0.31,y,'(none)','FontSize',FS(2))
+		text(0.31,y,'(none)','FontSize',FS(9))
 	else
 		for j = xC(i).cols
 			text(0.31,y,sprintf('%d : %s',j,Xnames{j}),...
-				'FontSize',FS(2),'Interpreter','TeX')
+				'FontSize',FS(9),'Interpreter','TeX')
 			y=y-dy;
 		end
 	end
@@ -560,7 +560,7 @@ for i = 1:length(xC)
 	%-Highlight parameter names
 	%---------------------------------------------------------------
 	hCurPNames = hPNames(xC(i).cols);
-	set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(1))
+	set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(8))
 
 
 	%-Paginate (if more than one covariate)
