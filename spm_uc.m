@@ -25,7 +25,7 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 %     spm_uc_Bonf
 %
 %___________________________________________________________________________
-% %E% Thomas Nichols %E%
+% %W% Thomas Nichols %E%
 
 % set global var NOBONF to 1 to turn off Bonferroni.
 global NOBONF; if ~isempty(NOBONF) & NOBONF, S = []; end
