@@ -42,6 +42,9 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %         matrix. The ensuing F-test (implemented through F-contrasts)
 %         is labelled "effects of interest", and is to filter the saved
 %         data pointlist (Y.mad).
+%       - If F_iX0 is a structure array
+%	  F_iX0.iX0  - indices as above
+%	  F_iX0.name - name of F-contrast
 %       - See Christensen for details of F-contrasts
 %
 % varargin - Additional arguments are passed through to the SPM.mat file
@@ -186,7 +189,9 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %     Vbeta     - array of handle structures for beta images
 %     VResMS    - handle structure of ResMS image
 %     XYZ       - 3xS (S below) vector of in-mask voxel coordinates
-%     F_iX0     - as input
+%     F_iX0     - structure array of default F-contrasts
+%     F_iX0.iX0 - as input
+%     F_iX0.name- as input
 %     UFp       - critical p-value for F-thresholding
 %     UF        - F-threshold value
 %     S         - Lebesgue measure or volume (in voxels)
@@ -393,45 +398,51 @@ fprintf('%-40s: %30s','Initialising design space','...computing')    %-#
 [nScan nBeta] = size(xX.X);			%-#scans & #parameters
 
 KVi       = spm_filter('apply',xX.K, xX.xVi.Vi);
-%xX.V      = [];
 V         = spm_filter('apply',xX.K,KVi');	%-V matrix
 xX.xKXs   ...					%-Design space structure
           = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
 xX.pKX    = spm_sp('x-',xX.xKXs);		%-Pseudoinverse of KX
-%xX.pKXV   = [];
-%xX.Bcov   = [];
-%xX.trRV   = [];
-%xX.trRVRV = [];
 [trRV,trRVRV] ...				%-Variance expectations
           = spm_SpUtil('trRV',xX.xKXs,V);
-%xX.erdf   = [];
 erdf      = trRV^2/trRVRV;			%-Effective residual d.f.
 
 %-Check estimability
 %-----------------------------------------------------------------------
-if erdf<0
+if erdf < 0
     error(sprintf('This design is completely unestimable! (df=%-.2g)',erdf))
-elseif erdf==0
+elseif erdf == 0
     error('This design has no residuals! (df=0)')
-elseif erdf<4
+elseif erdf < 4
     warning(sprintf('Very low degrees of freedom (df=%-.2g)',erdf))
 end
 
 
-%-Default F-contrast (in contrast structure) & Y.mad pointlist filtering
+%-Default F-contrasts (in contrast structure) & Y.mad pointlist filtering
 %=======================================================================
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...F-contrast')           %-#
 UFp   = spm('GetGlobal','UFp'); if isempty(UFp), UFp = Def_UFp; end
 
 if isempty(F_iX0)
-	str   = 'all effects';
-else
-	str   = 'effects of interest';
+	F_iX0 = struct(	'iX0',	[],...
+			'name',	'all effects');
+elseif ~isstruct(F_iX0)
+	F_iX0 = struct(	'iX0',	F_iX0,...
+			'name',	'effects of interest');
 end
-xCon          = spm_FcUtil('Set',str,'F','iX0',F_iX0,xX.xKXs);
-[trMV,trMVMV] = spm_SpUtil('trMV',xCon.X1o,V);
+
+%-Create Contrast structre array
+%-----------------------------------------------------------------------
+xCon  = spm_FcUtil('Set',F_iX0(1).name,'F','iX0',F_iX0(1).iX0,xX.xKXs);
+for i = 2:length(F_iX0)
+	xcon = spm_FcUtil('Set',F_iX0(i).name,'F','iX0',F_iX0(i).iX0,xX.xKXs);
+	xCon = [xCon xcon];
+end
+
+%-Parameters for saving in Y.mad (based on first F-contrast)
+%-----------------------------------------------------------------------
+[trMV,trMVMV] = spm_SpUtil('trMV',xCon(1).X1o,V);
 eidf          = trMV^2/trMVMV;
-h             = spm_FcUtil('Hsqr',xCon,xX.xKXs);
+h             = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
 
 %-Compute UF, the F-threshold (using approximate Vi)
 %-----------------------------------------------------------------------
