@@ -300,8 +300,8 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % MAXMEM (in bytes) [default = 2^20]
 %
 %_______________________________________________________________________
-% @(#)spm_spm.m	2.48 Andrew Holmes, Jean-Baptiste Poline, Karl Friston 02/02/18
-SCCSid   = '2.48';
+% %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
+SCCSid   = '%I%';
 
 %-Say hello
 %-----------------------------------------------------------------------
@@ -425,12 +425,12 @@ if iscell(xX.xVi.Vi)
 else
 	Vi    = xX.xVi.Vi;
 end
-KVi           = spm_filter(xX.K, Vi);
-V             = spm_filter(xX.K,KVi');
+KVi           = spm_filter('apply',xX.K, Vi);
+V             = spm_filter('apply',xX.K,KVi');
 
 %-Parameter projection matrix and traces
 %-----------------------------------------------------------------------
-xX.xKXs       = spm_sp('Set',spm_filter(xX.K, xX.X));
+xX.xKXs       = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
 xX.pKX        = spm_sp('x-',xX.xKXs);
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,V);
 erdf          = trRV^2/trRVRV;
@@ -659,7 +659,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
 					'...temporal filtering')     %-#
 
-		KY         = spm_filter(xX.K,Y);
+		KY         = spm_filter('apply',xX.K,Y);
 
 		%-General linear model: least squares estimation
 		% (Using pinv to allow for non-unique designs
@@ -835,8 +835,8 @@ end
 
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
-KVi      = spm_filter(xX.K, Vi);
-xX.V     = spm_filter(xX.K,KVi'); 		%-Non-sphericity V
+KVi      = spm_filter('apply',xX.K, Vi);
+xX.V     = spm_filter('apply',xX.K,KVi'); 		%-Non-sphericity V
 xX.pKXV  = xX.pKX*xX.V;					%-for contrast variance 
 xX.Bcov  = xX.pKXV*xX.pKX';				%-for Cov(Beta)
 [xX.trRV xX.trRVRV] = spm_SpUtil('trRV',xX.xKXs,xX.V);	%-Variance expectations
