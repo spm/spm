@@ -57,11 +57,11 @@ Q      = find(abs(XYZ(1,:) - L(1)) < V(4)/2);
 Ts     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(2,Q) + R)/V(5),t(Q),O/V(6),Ny/V(5));
 Ts     = spm_resize(full(Ts),O,Ny);
 
-Q      = find(abs(XYZ(2,:) - L(2)) < V(5));
+Q      = find(abs(XYZ(2,:) - L(2)) < V(5)/2);
 Tc     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(1,Q) + J)/V(4),t(Q),O/V(6),Nx/V(4));
 Tc     = spm_resize(full(Tc),O,Nx);
 
-Q      = find(abs(XYZ(3,:) - L(3)) < V(6));
+Q      = find(abs(XYZ(3,:) - L(3)) < V(6)/2);
 Tt     = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + R)/V(5),t(Q),Nx/V(4),Ny/V(5));
 Tt     = spm_resize(full(Tt),Nx,Ny);
 
