@@ -1,4 +1,4 @@
-function spm_defaults_edit(arg1, arg2)
+function spm_defaults_edit(arg1,arg2)
 % Modify defaults
 % FORMAT spm_defaults_edit
 %_______________________________________________________________________
@@ -50,7 +50,7 @@ function spm_defaults_edit(arg1, arg2)
 % %W% John Ashburner %E%
 
 global MODALITY
-global CWD PRINTSTR LOGFILE CMDLINE GRID
+global PRINTSTR LOGFILE CMDLINE GRID
 global UFp DIM VOX TYPE SCALE OFFSET ORIGIN DESCRIP
 global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
@@ -84,14 +84,6 @@ if nargin == 0
 
 	eval(deblank(callbacks(a1,:)));
 	spm_figure('Clear','Interactive');
-
-elseif strcmp(arg1, 'Directory')
-
-	% Default directory for results files etc..
-	%---------------------------------------------------------------
-	CWD = deblank(spm_get(-1,'*','Directory'));
-	chdir(CWD);
-
 
 elseif strcmp(arg1, 'Misc')
 
