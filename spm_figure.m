@@ -289,7 +289,11 @@ if isempty(F), return, end
 %-----------------------------------------------------------------------
 if isempty(Tags)
 	%-Clear figure of objects with 'HandleVisibility' 'on'
+	pos = get(F,'Position');
 	delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
+	drawnow
+	set(F,'Position',pos);
+
 	%-Reset figures callback functions
 	set(F,'KeyPressFcn','',...
 		'WindowButtonDownFcn','',...
