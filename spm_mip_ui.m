@@ -102,9 +102,9 @@ function R1=spm_mip_ui(Action,P2,P3,P4,P5)
 %            Defaults to UserData of gco
 % V       - [Optional] {9 x 1} vector of image and voxel sizes, and origin
 %
-% FORMAT spm_mip_ui('HideGreens',Win)
+% FORMAT spm_mip_ui('HideGreens',cbf)
 % Hides green secondary marker points
-% Win     - [Optional] If true then resets WindowButtonUpFcn
+% cbf     - [Optional] If true then resets WindowButtonUpFcn
 %           Used in CallBacks
 %
 % FORMAT spm_mip_ui('MoveStart')
@@ -147,7 +147,8 @@ end
 %-See spm_project.c for derivation
 DXYZ = [182 218 182];
 CXYZ = [091 127 073];
-%-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij')
+% DMIP = [DXYZ(2)+DXYZ(1), DXYZ(1)+DXYZ(3)];
+%-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij' + rot90)
 % Transverse: [Po(1), Po(2)]
 % Saggital  : [Po(1), Po(3)]
 % Coronal   : [Po(4), Po(3)]
@@ -157,48 +158,48 @@ Po(2)  = DXYZ(3)+DXYZ(1) -CXYZ(1)   ;
 Po(3)  = DXYZ(3)         -CXYZ(3)   ;
 Po(4)  = DXYZ(2)         +CXYZ(1) -4;
 
-%-Format arguments
+%-Condition arguments
 %=======================================================================
-if nargin == 0, Action='Welcome'; end
-if ~isstr(Action) & nargin>=3
-	if nargin==4, P5 = P4; end
-	P4 = P3;
-	P3 = P2;
-	P2 = Action;
-	Action = 'Display';
-	nargin = nargin + 1;
+nin = nargin;
+if nin == 0, Action='Welcome'; end
+if ~isstr(Action) & nin>=3
+	if nin==4, P5 = P4; end
+	P4 = P3; P3 = P2; P2 = Action; Action = 'Display'; nin = nin + 1;
 end
 
 
-if strcmp(lower(Action),lower('Display'))
+switch lower(Action), case 'display'
 %=======================================================================
 % spm_mip_ui('Display',t,XYZ,V,Descrip)
-if nargin < 4, error('Insufficient arguments'), end
+if nin < 4, error('Insufficient arguments'), end
 t       = P2;
 XYZ     = P3;
 V       = P4;
-if nargin < 5, Descrip='SPM Maximum Intensity Projections';
+if nin < 5, Descrip='SPM Maximum Intensity Projections';
 	else, Descrip = P5; end
+
 
 %-Display MIP
 %-----------------------------------------------------------------------
 figure(Fgraph)
 spm_clf(Fgraph)
 set(Fgraph,'Units','normalized')
-hMIPax = axes('Position',[0.24 0.54 0.62 0.42],'Tag','MIPaxes');
+hMIPax = axes('Position',[0.24 0.54 0.62 0.42]);
 spm_mip(t,XYZ,V);
 
-%-Sort out aspect ratio - always shrink!
-axis normal
-set(Fgraph,'Units','pixels')
+%-Canonicalise axis positioning & save
+%-----------------------------------------------------------------------
+%-We're assumming the MIP fills the MIP axes bounding box, which is only
+% true if stretch-to-fit is on (which it isn't with `axis image`), or that
+% the axis bounding box itself has the correct aspect ratio.
+%-So, shrink axes to the correct AspectRatio.
+% Get aspect ratio from MIP graphic in case 2D
+AR       = diff(get(hMIPax,'Xlim'))/diff(get(hMIPax,'Ylim'));
 set(hMIPax,'Units','pixels')
-AR = diff(get(hMIPax,'Xlim'))/diff(get(hMIPax,'Ylim'));
 MIPaxPos = get(hMIPax,'Position');
-if MIPaxPos(3)/MIPaxPos(4) > AR
-	set(hMIPax,'Position',[MIPaxPos(1:2),MIPaxPos(4)*AR,MIPaxPos(4)]);
-else
-	set(hMIPax,'Position',[MIPaxPos(1:2),MIPaxPos(3),MIPaxPos(3)./AR]);
-end
+if (MIPaxPos(3)/MIPaxPos(4) > AR), MIPaxPos(3) = MIPaxPos(4)*AR;
+	else, MIPaxPos(4) = MIPaxPos(3)./AR; end
+set(hMIPax,'Position',MIPaxPos,'Tag','MIPaxes','UserData',MIPaxPos(1:2))
 
 %-Create point markers
 %-----------------------------------------------------------------------
@@ -206,7 +207,6 @@ xyz = spm_mip_ui('RoundCoords',[0,0,0],V);
 if V(3) == 1
 	%-2 dimensional data
 	%---------------------------------------------------------------
-	% set(hMIPax,'Position',[0.24 0.54 0.52 0.36])
 	X1   = text(xyz(1),xyz(2),'<','Color','r','Fontsize',16,...
 			'Tag','X1',...
 			'ButtonDownFcn','spm_mip_ui(''MoveStart'')');
@@ -234,23 +234,11 @@ else
 			'Tag','X2g','Visible','off');
 	X3g  = text(Po(4),Po(3),'<','Color','g','Fontsize',12,...
 			'Tag','X3g','Visible','off');
-
 end
-
-%-Reset axis attributes and get MIPaxes position in pixels
-%-----------------------------------------------------------------------
-set(hMIPax,'Units','Pixels')
-set(Fgraph,'Units','Pixels')
-AXES = get(hMIPax,'Position');
-AXES = AXES(1:2);
-set(hMIPax,'UserData',AXES,...
-	'Units','normalized')
 
 %-Print coordinates
 %-----------------------------------------------------------------------
-% tmp = [0.08 0.90 0.10 0.03];
-tmp = [0.08 0.80 0.10 0.03];
-hCoordAxes = axes('Position',tmp,...
+hCoordAxes = axes('Position',[0.08 0.80 0.10 0.03],...
 	'Visible','off',...
 	'Units','Normalized',...
 	'Tag','hV',...
@@ -288,40 +276,49 @@ set(h,'UserData',hCoordAxes,...
 %-----------------------------------------------------------------------
 uicontrol(Fgraph,'Style','Frame','Position',[20 670 100 096].*WS);
 uicontrol(Fgraph,'Style','Text','String','SPM - MIP',...
-	'Position',[035 740 070 016],...
+	'Position',[025 745 090 016].*WS,...
+	'FontName','Times','FontWeight','Bold',...
 	'ForegroundColor','w',...
 	'HorizontalAlignment','Center')
-uicontrol(Fgraph,'Style','Text','Position',[30 720 16 16].*WS,'String','x');
-uicontrol(Fgraph,'Style','Text','Position',[30 700 16 16].*WS,'String','y');
-uicontrol(Fgraph,'Style','Text','Position',[30 680 16 16].*WS,'String','z');
+uicontrol(Fgraph,'Style','Text','FontName','Times',...
+	'Position',[30 720 16 16].*WS,'String','x');
+uicontrol(Fgraph,'Style','Text','FontName','Times',...
+	'Position',[30 700 16 16].*WS,'String','y');
+uicontrol(Fgraph,'Style','Text','FontName','Times',...
+	'Position',[30 680 16 16].*WS,'String','z');
 
 %-Editable co-ordinate windows
 %-----------------------------------------------------------------------
 hX   = uicontrol(Fgraph,'Style','Edit',...
 	'String',sprintf('%.2f',xyz(1)),...
+	'FontSize',12,...
 	'Tag','hX',...
 	'Callback','spm_mip_ui(''SetCoords'');',...
-	'Position',[050 720 055 016].*WS);
+	'Position',[050 718 055 020].*WS);
 hY   = uicontrol(Fgraph,'Style','Edit',...
 	'String',sprintf('%.2f',xyz(2)),...
+	'FontSize',12,...
 	'Tag','hY',...
 	'Callback','spm_mip_ui(''SetCoords'');',...
-	'Position',[050 700 055 016].*WS);
+	'Position',[050 698 055 020].*WS);
 hZ   = uicontrol(Fgraph,'Style','Edit',...
 	'String',sprintf('%.2f',xyz(3)),...
+	'FontSize',12,...
 	'Tag','hZ',...
 	'Callback','spm_mip_ui(''SetCoords'');',...
-	'Position',[050 680 055 016].*WS);
+	'Position',[050 678 055 020].*WS);
 return
 
 
-elseif strcmp(lower(Action),lower('GetCoords'))
+case 'getcoords'
 %=======================================================================
 % xyz = spm_mip_ui('GetCoords')
 
 hX = findobj(Fgraph,'Tag','hX');
 hY = findobj(Fgraph,'Tag','hY');
 hZ = findobj(Fgraph,'Tag','hZ');
+
+if length([hX,hY,hZ])~=3, error('Co-ord widgets not found'), end
 
 xyz = [	eval(get(hX,'String'));...
 	eval(get(hY,'String'));...
@@ -331,12 +328,12 @@ R1 = xyz;
 return
 
 
-elseif strcmp(lower(Action),lower('RoundCoords'))
+case 'roundcoords'
 %=======================================================================
 % xyz = spm_mip_ui('RoundCoords',xyz,V)
-if nargin < 3, V = []; else, V = P3; end
+if nin < 3, V = []; else, V = P3; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
 
 %-Round xyz to coordinates of actual voxel centre
 %-Do rounding in voxel coordinates & ensure within image size
@@ -351,12 +348,12 @@ R1 = xyz(1:3);
 return
 
 
-elseif strcmp(lower(Action),lower('SetCoords'))
+case 'setcoords'
 %=======================================================================
 % xyz = spm_mip_ui('SetCoords',xyz,V)
-if nargin < 3, V = []; else, V = P3; end
+if nin < 3, V = []; else, V = P3; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
 
 xyz = spm_mip_ui('RoundCoords',xyz,V);
 
@@ -368,10 +365,10 @@ R1 = xyz(1:3);
 return
 
 
-elseif strcmp(lower(Action),lower('PrntCords'))
+case 'prntcords'
 %=======================================================================
 % spm_mip_ui('PrntCords',xyz)
-if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
 
 %-Get handles of Co-ordinate strings
 %-----------------------------------------------------------------------
@@ -388,10 +385,10 @@ set(hZstr,'String',sprintf('z = %0.2f',xyz(3)))
 return
 
 
-elseif strcmp(lower(Action),lower('SetCordCntls'))
+case 'setcordcntls'
 %=======================================================================
 % spm_mip_ui('SetCordCntls',xyz)
-if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
 
 %-Get handles of Co-ordinate controls
 %-----------------------------------------------------------------------
@@ -409,12 +406,12 @@ set(hZ,'String',sprintf('%0.2f',xyz(3)))
 return
 
 
-elseif strcmp(lower(Action),lower('PosnMarkerPoints'))
+case 'posnmarkerpoints'
 %=======================================================================
 % spm_mip_ui('PosnMarkerPoints',xyz,V)
-if nargin < 3, V = []; else, V = P3; end
+if nin < 3, V = []; else, V = P3; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nargin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
+if nin < 2, xyz = spm_mip_ui('GetCoords'); else, xyz = P2; end
 
 b2d = V(3) == 1;
 
@@ -440,12 +437,12 @@ end
 return
 
 
-elseif strcmp(lower(Action),lower('ShowGreens'))
+case 'showgreens'
 %=======================================================================
 % spm_mip_ui('ShowGreens',xyz,V)
-if nargin < 3, V = []; else, V = P3; end
+if nin < 3, V = []; else, V = P3; end
 if isempty(V), V = get(findobj('Tag','hV'),'UserData'); end
-if nargin < 2, xyz = get(gco,'UserData'); else, xyz = P2; end
+if nin < 2, xyz = get(gco,'UserData'); else, xyz = P2; end
 
 b2d = V(3) == 1;
 
@@ -471,17 +468,17 @@ end
 
 %-If called as a callback (xyz from gco), then set WindowButtonUpFcn
 %-----------------------------------------------------------------------
-if nargin<2
-	set(gcf,'WindowButtonUpFcn','spm_mip_ui(''HideGreens'',1)')
+if nin<2
+	set(gcbf,'WindowButtonUpFcn','spm_mip_ui(''HideGreens'',1)')
 end
 
 return
 
 
-elseif strcmp(lower(Action),lower('HideGreens'))
+case 'hidegreens'
 %=======================================================================
-% spm_mip_ui('HideGreens',Win)
-if nargin<2, Win=0; else, Win=1; end
+% spm_mip_ui('HideGreens',cbf)
+if nin<2, cbf=0; else, cbf=1; end
 
 V = get(findobj('Tag','hV'),'UserData');
 b2d = V(3) == 1;
@@ -496,107 +493,98 @@ if ~b2d
 	set([X1g,X2g,X3g],'Visible','off')
 end
 
-%-Reset WindowButtonUpFcn if needed
+%-Reset WindowButtonUpFcn if this was a callback function
 %-----------------------------------------------------------------------
-if Win, set(gcf,'WindowButtonUpFcn',' '), end
+if cbf, set(gcbf,'WindowButtonUpFcn',' '), end
 return
 
 
-elseif strcmp(lower(Action),lower('MoveStart'))
+case 'movestart'
 %=======================================================================
 % spm_mip_ui('MoveStart')
+[cO,cF] = gcbo;
 
-%-Store useful quantities in UserData of gco, the object to be dragged
+%-Store useful quantities in UserData of gcbo, the object to be dragged
 %-----------------------------------------------------------------------
-xyz  = spm_mip_ui('GetCoords');
-AXIS = get(findobj(gcf,'Tag','MIPaxes'),'UserData');
-V    = get(findobj(gcf,'Tag','hV'),'UserData');
-X1 = findobj(gcf,'Tag','X1');
-b2d = V(3) == 1;
-if b2d
-	X2 = 0;
-	X3 = 0;
+MS.xyz      = spm_mip_ui('GetCoords');
+MS.MIPaxPos = get(findobj(cF,'Tag','MIPaxes'),'UserData');
+MS.V        = get(findobj(cF,'Tag','hV'),'UserData');
+MS.X1       = findobj(cF,'Tag','X1');
+if MS.V(3) == 1
+	MS.X2 = 0;
+	MS.X3 = 0;
 else
-	X2 = findobj(gcf,'Tag','X2');
-	X3 = findobj(gcf,'Tag','X3');
+	MS.X2 = findobj(cF,'Tag','X2');
+	MS.X3 = findobj(cF,'Tag','X3');
 end
-hX    = findobj(gcf,'Tag','hX');
-hY    = findobj(gcf,'Tag','hY');
-hZ    = findobj(gcf,'Tag','hZ');
-set(gco,'UserData',[xyz; AXIS'; V; X1; X2; X3; hX; hY; hZ])
+MS.hX      = findobj(cF,'Tag','hX');
+MS.hY      = findobj(cF,'Tag','hY');
+MS.hZ      = findobj(cF,'Tag','hZ');
+set(cO,'UserData',MS)
 
 %-Initiate dragging
 %-----------------------------------------------------------------------
-if strcmp(get(gcf,'SelectionType'),'normal')
+if strcmp(get(cF,'SelectionType'),'normal')
 	%-Set Figure callbacks for drag'n'drop (DragType 1)
 	%---------------------------------------------------------------
-	set(gcf,'WindowButtonMotionFcn','spm_mip_ui(''Move'',1)',...
-		'Interruptible','no')
-	set(gcf,'WindowButtonUpFcn',    'spm_mip_ui(''Move'',0)',...
-		'Interruptible','no')
-	set(gcf,'Pointer','Fleur')
-elseif strcmp(get(gcf,'SelectionType'),'extend')
-	%-Set Figure callbacks for drag'n'drop with co-ord updating
-	% (DragType 2)
+	set(cF,'WindowButtonMotionFcn','spm_mip_ui(''Move'',1)',...
+		'Interruptible','off')
+	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''Move'',0)',...
+		'Interruptible','off')
+	set(cF,'Pointer','Fleur')
+elseif strcmp(get(cF,'SelectionType'),'extend')
+	%-Set Figure callbacks for drag'n'drop with co-ord updating (DragType 2)
 	%---------------------------------------------------------------
-	set(gcf,'WindowButtonMotionFcn','spm_mip_ui(''Move'',2)',...
-		'Interruptible','no')
-	set(gcf,'WindowButtonUpFcn',    'spm_mip_ui(''MoveEnd'',2)',...
-		'Interruptible','no')
-	set(gcf,'Pointer','Fleur')
-elseif strcmp(get(gcf,'SelectionType'),'alt')
+	set(cF,'WindowButtonMotionFcn','spm_mip_ui(''Move'',2)',...
+		'Interruptible','off')
+	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''MoveEnd'',2)',...
+		'Interruptible','off')
+	set(cF,'Pointer','Fleur')
+elseif strcmp(get(cF,'SelectionType'),'alt')
 	%-Set Figure callbacks for drop but no drag (DragType 0)
 	%---------------------------------------------------------------
-	set(gcf,'WindowButtonUpFcn',    'spm_mip_ui(''Move'',0)',...
-		'Interruptible','no')
-	set(gcf,'Pointer','CrossHair')
+	set(cF,'WindowButtonUpFcn',    'spm_mip_ui(''Move'',0)',...
+		'Interruptible','off')
+	set(cF,'Pointer','CrossHair')
 end
 return
 
 
-elseif strcmp(lower(Action),lower('Move'))
+case 'move'
 %=======================================================================
 % spm_mip_ui('Move',DragType)
-if nargin<2, DragType = 2; else, DragType = P2; end
+if nin<2, DragType = 2; else, DragType = P2; end
+cF = gcbf;
+cO = gco;
 
-%-Get useful data from UserData of gco, the object to be dragged
+%-Get useful data from UserData of gcbo, the object to be dragged
 %-----------------------------------------------------------------------
-tmp = get(gco,'UserData');
-% xyz  = tmp(1:3);
-AXIS   = tmp(4:5)';
-V      = tmp(6:14);
-X1     = tmp(15);
-X2     = tmp(16);
-X3     = tmp(17);
-hX     = tmp(18);
-hY     = tmp(19);
-hZ     = tmp(20);
+MS = get(cO,'UserData');
+b2d = MS.V(3) == 1;
 
-b2d = V(3) == 1;
-
-%-Work out where we are moving to
+%-Work out where we are moving to - Use HandleGraphics to give positon
 %-----------------------------------------------------------------------
-set(gcf,'Units','pixels')
-d = get(gcf,'CurrentPoint') - AXIS;
-set(gco,'Units','pixels')
-set(gco,'Position',d)
-set(gco,'Units','data')
-d = get(gco,'Position');
+set(cF,'Units','pixels')
+d = get(cF,'CurrentPoint') - MS.MIPaxPos;
+set(cO,'Units','pixels')
+set(cO,'Position',d)
+set(cO,'Units','data')
+d = get(cO,'Position');
 
 
 %-Work out xyz, depending on which view is being manipulated
 %-----------------------------------------------------------------------
-sMarker = get(gco,'Tag');
+sMarker = get(cO,'Tag');
 if strcmp(sMarker,'X1')
 	if b2d
-		xyz = [d(1); d(2); tmp(3)];
+		xyz = [d(1); d(2); MS.xyz(3)];
 	else
-		xyz = [d(2) - Po(2); d(1) - Po(1); tmp(3)];
+		xyz = [d(2) - Po(2); d(1) - Po(1); MS.xyz(3)];
 	end
 elseif strcmp(sMarker,'X2')
-	xyz = [tmp(1); d(1) - Po(1); Po(3) - d(2)];
+	xyz = [MS.xyz(1); d(1) - Po(1); Po(3) - d(2)];
 elseif strcmp(sMarker,'X3')
-	xyz = [d(1) - Po(4); tmp(2); Po(3) - d(2)];
+	xyz = [d(1) - Po(4); MS.xyz(2); Po(3) - d(2)];
 else
 	error('Can''t work out which marker point')
 end
@@ -604,21 +592,21 @@ end
 %-Round coordinates to nearest voxel center
 %-----------------------------------------------------------------------
 % xyz = spm_mip_ui('RoundCoords',xyz,V);
-M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]];
-xyz = M*max([min([round(inv(M)*[xyz(:); 1])';[V(1:3)',1]]);[1,1,1,1]])';
+M = [ [diag(MS.V(4:6)), -(MS.V(7:9).*MS.V(4:6))]; [zeros(1,3) ,1]];
+xyz = M*max([min([round(inv(M)*[xyz(:); 1])';[MS.V(1:3)',1]]);[1,1,1,1]])';
 xyz = xyz(1:3);
 
 %-Move marker points
 %-----------------------------------------------------------------------
-% spm_mip_ui('PosnMarkerPoints',xyz,V)
+% spm_mip_ui('PosnMarkerPoints',xyz,MS.V)
 if b2d
-	set(X1,'Units','Data')
-	set(X1,'Position',[xyz(1), xyz(2), 1],'Visible','on')
+	set(MS.X1,'Units','Data')
+	set(MS.X1,'Position',[xyz(1), xyz(2), 1],'Visible','on')
 else
-	set([X1,X2,X3],'Units','Data')
-	set(X1,'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
-	set(X2,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
-	set(X3,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
+	set([MS.X1,MS.X2,MS.X3],'Units','Data')
+	set(MS.X1,'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
+	set(MS.X2,'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
+	set(MS.X3,'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
 end
 
 %-Set Co-ordinate strings (if appropriate DragType)
@@ -633,9 +621,9 @@ if DragType==0
 elseif DragType==1
 	% Nothing! DragType 1 ends with ButtonUp of DragType 0 (drop)
 elseif DragType==2
-	set(hX,'String',sprintf('%0.2f',xyz(1)))
-	set(hY,'String',sprintf('%0.2f',xyz(2)))
-	set(hZ,'String',sprintf('%0.2f',xyz(3)))
+	set(MS.hX,'String',sprintf('%0.2f',xyz(1)))
+	set(MS.hY,'String',sprintf('%0.2f',xyz(2)))
+	set(MS.hZ,'String',sprintf('%0.2f',xyz(3)))
 else
 	error('Illegal DragType')
 end
@@ -643,10 +631,10 @@ end
 return
 
 
-elseif strcmp(lower(Action),lower('MoveEnd'))
+case 'moveend'
 %=======================================================================
 % spm_mip_ui('MoveEnd',EndType)
-if nargin<2, EndType = 0; else, EndType = P2; end
+if nin<2, EndType = 0; else, EndType = P2; end
 
 %-Reset WindowButton functions & pointer
 %-----------------------------------------------------------------------
@@ -659,7 +647,8 @@ set(gcf,'Pointer','arrow')
 if EndType, spm_mip_ui('PrntCords'), end
 return
 
-elseif strcmp(lower(Action),lower('ShowHiddenCoords'))
+
+case 'showhiddencoords'
 %=======================================================================
 % spm_mip_ui('ShowHiddenCoords')
 if strcmp(get(gcf,'SelectionType'),'normal'), return, end
@@ -680,7 +669,7 @@ end
 return
 
 
-else
+otherwise
 %=======================================================================
 error('Unknown action string')
 
