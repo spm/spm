@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.1 2001-08-03 15:24:18 john Exp $
+# $Id: Makefile,v 2.2 2001-08-24 12:01:47 john Exp $
 #
 ###############################################################################
 #
@@ -231,10 +231,11 @@ spm_brainwarp.$(SUF): spm_brainwarp.c  spm_vol_utils.$(SUF).a spm_matfuns.c\
 
 spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
-	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a
+	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a -DMRI2D
 	@ chmod 644 $@
 
 spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
+	$(MEX) spm_bsplins.c -DMRI2D
 
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
