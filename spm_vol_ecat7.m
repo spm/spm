@@ -23,7 +23,7 @@ if (fp == -1)
 end
 
 mh       = ECAT7_mheader(fp);
-if ~strcmp(mh.MAGIC_NUMBER,'MATRIX70v'),
+if ~strcmp(mh.MAGIC_NUMBER,'MATRIX70v') & ~strcmp(mh.MAGIC_NUMBER,'MATRIX71v') & ~strcmp(mh.MAGIC_NUMBER,'MATRIX72v'),
         fclose(fp);
         return; % Quietly return.
 end
