@@ -22,7 +22,7 @@ if nargin<1, Wdir   = '.'; end;
 
 Filter = deblank(Filter);
 
-if strcmp(Filter,'IMAGE') | (length(Filter>5) & strcmp(Filter((end-4):end),'IMAGE')),
+if strcmp(Filter,'IMAGE') | (length(Filter)>5 & strcmp(Filter((end-4):end),'IMAGE')),
 	if length(Filter)>5,
 		Filter = [Filter(1:(end-5)) '*'];
 	else,
