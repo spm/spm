@@ -483,9 +483,18 @@ else,
 	basZ = spm_dctmtx(sn.VG(1).dim(3),st(3),z-1); 
 end,
 
-VX = spm_create_vol(VX);
-VY = spm_create_vol(VY);
-VZ = spm_create_vol(VZ);
+if strcmp(computer,'PCWIN'),
+	% Windows may not like more than one file handle
+	% to the same file.
+
+	VX = spm_create_vol(VX,'noopen');
+	VY = spm_create_vol(VY,'noopen');
+	VZ = spm_create_vol(VZ,'noopen');
+else,
+	VX = spm_create_vol(VX);
+	VY = spm_create_vol(VY);
+	VZ = spm_create_vol(VZ);
+end;
 
 % Cycle over planes
 %----------------------------------------------------------------------------
@@ -522,9 +531,13 @@ for j=1:length(z)
 	VZ = spm_write_plane(VZ,Z2,j);
 
 end;
-VX = spm_close_vol(VX);
-VY = spm_close_vol(VY);
-VZ = spm_close_vol(VZ);
+
+if ~strcmp(computer,'PCWIN'),
+	VX = spm_close_vol(VX);
+	VY = spm_close_vol(VY);
+	VZ = spm_close_vol(VZ);
+end;
+
 return;
 %_______________________________________________________________________
 
