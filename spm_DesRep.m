@@ -414,9 +414,9 @@ end
 %-----------------------------------------------------------------------
 switch modality
 case 'PET'
-	str = 'spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,tmp.xC,tmp.xsDes)';
+	str = 'xC=tmp.xC; xsDes=tmp.xsDes; spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,xC,xsDes)';
 case 'fMRI'
-	str = 'spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,tmp.Sess,tmp.xsDes)';
+	str = 'Sess=tmp.Sess; xsDes=tmp.xsDes; spm_spm(tmp.VY,tmp.xX,tmp.xM,tmp.F_iX0,Sess,xsDes)';
 end
 
 str = [...
