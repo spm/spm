@@ -202,11 +202,15 @@ function varargout = spm_get(varargin)
 % File summary routine
 % Fnames   - String matrix of filenames (all unique)
 % Cend     - CommonEND - 'front', 'end' or 'both'
-%            Specifys which end to take as common for file summary
+%            Specifies which end to take as common for file summary
 %            Defaults to 'both', which gives 'front' precedence over 'back'
 % Filter   - Filename filter - suffix filter is appended to 'front' items
 % len      - Length of section to define common files
 %            Defaults to 3
+% FSpecs   - String matrix of file patterns, with n rows
+% FnamePos - Matrix of n rows.
+%            Each row contains the indicies of all Fnames matching the pattern
+%            given in the corresponding row of FSpecs. Padded with zeros.
 %
 % FORMAT spm_get('Add',h)
 % Adds current object (of object h) to selection
@@ -1012,7 +1016,7 @@ if nargin<2, error('Flip what?'), else, S = varargin{2}; end
 
 %-FlipLR the Fnames matrix, but watch out for trailing blanks/spaces
 [nS,Sl] = size(S);
-fS = ones(nS,Sl);
+fS = char(zeros(nS,Sl));
 for i = 1:nS
 	c = max(find(S(i,:)~=' '));
 	fS(i,:) = S(i,[c:-1:1,Sl:-1:c+1]);
@@ -1031,15 +1035,16 @@ else Fnames = varargin{2}; end
 %-Implicit assumption in this code is that no two files have the same name
 
 if strcmp(Cend,'front')
-	if size(Fnames,1) == 1	%-Only one filename!
-		varargout = {deblank(Fnames),1};
+	if size(Fnames,1)==1 | size(Fnames,2)<len
+		%-Only one filename | text shorter than required common length
+		varargout = {deblank(Fnames),[1:size(Fnames,1)]'};
 		return
 	end
 	WildCard    = Filter(max(find(Filter=='*')):end);
 	nFnames     = size(Fnames,1);
-	[sFnames,I] = spm_get('StrSort',Fnames);
+	[sFnames,I] = sortrows(Fnames);
 	tmp         = diff(abs(sFnames));
-	i           = [0,find(any(tmp(:,1:len)')),nFnames];
+	i           = [0,find(any(tmp(:,1:len),2))',nFnames];
 	nFgroups    = length(i)-1;
 	FSpecs      = '';
 	FnamePos    = [];
@@ -1050,22 +1055,26 @@ if strcmp(Cend,'front')
 		if nCfnames == 1
 			tmp    = max(find(Cfnames~=' '));
 			FSpecs = strvcat(FSpecs,Cfnames(1,1:tmp));
-		elseif nCfnames == 2
-			tmp    = min(find([diff(abs(Cfnames)),1]))-1;
-			FSpecs = strvcat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
 		else
-			tmp    = min(find([any(diff(abs(Cfnames))),1]))-1;
+			tmp    = min(find([any(diff(abs(Cfnames)),1),1]))-1;
 			FSpecs = strvcat(FSpecs,[Cfnames(1,1:tmp),WildCard]);
 		end
-		tI       = I(cI);
+		%-Note indices of Fnames in this group, retain original ordering
+		tI       = sort(I(cI));
 		tmp	 = max([nCfnames,size(FnamePos,2)]);
 		FnamePos = [FnamePos,...
 				zeros(size(FnamePos).*[1 -1]+[0,tmp]);...
 				tI', zeros(1,tmp-length(tI))];
 	end
+	%-Order groups by original ordering of first member occurence
+	[null,tmp] = sort(FnamePos(:,1));
+	FSpecs     = FSpecs(tmp,:);
+	FnamePos   = FnamePos(tmp,:);
+	
 elseif strcmp(Cend,'end')
 	fFnames           = spm_get('strfliplr',Fnames);
-	[FSpecs,FnamePos] = spm_get('FileSummary',fFnames,'front');
+	fFilter           = fliplr(Filter);
+	[FSpecs,FnamePos] = spm_get('FileSummary',fFnames,'front',fFilter,len);
 	FSpecs            = spm_get('strfliplr',FSpecs);
 elseif strcmp(Cend,'both')
 	[hSpecs,hI] = spm_get('FileSummary',Fnames,'front');
@@ -1088,7 +1097,8 @@ elseif strcmp(Cend,'both')
 		%-Watch out for blank lines (e.g for files abc & abcde)
 		bI = find(all(Cfnames==' ',2));
 		if ~isempty(bI)
-		    % There'll be one blank line at most
+		    %-Assumming unique input => one blank line at most
+		    % NB: This may change ordering of groups by first member
 		    FSpecs   = strvcat(FSpecs,...
 			hSpecs(i,1:find(hSpecs(i,:)=='*')-1) );
 		    tmp      = max([1,size(FnamePos,2)]);
@@ -1099,10 +1109,15 @@ elseif strcmp(Cend,'both')
 		    chI(bI)       = [];
 		end
 		%-Even if we've deleted a blank line, there'll be some left
-		[tSpecs,tI] = spm_get('FileSummary',Cfnames,'end');
+		%-Look for common endings
+		[tSpecs,tI] = spm_get('FileSummary',Cfnames,'end',Filter,len);
+		%-If no common endings then don't expand to individual files!
+		if size(tI,1)>1 & size(tI,2)==1
+			tSpecs = '*';
+			tI = tI';
+		end
 		for j = 1:size(tSpecs,1)
-		    %-Sort in next line keeps ordering by headers
-		    cI       = chI(sort(tI(j,tI(j,:)>0)));
+		    cI       = chI(tI(j,tI(j,:)>0));
 		    if length(cI) == 1
 			%-Unique, don't bother with '*'s
 			cFSpec = [hSpecs(i,1:find(hSpecs(i,:)=='*')-1),...
