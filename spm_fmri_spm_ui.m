@@ -1000,12 +1000,7 @@ end
 
 % get contrasts or linear compound for parameters of interest - C
 %---------------------------------------------------------------------------
-if ~ER
-	t   = spm_input('# of contrasts','!+1');
-else
-	t   = 0;
-end
-
+t   = spm_input('# of contrasts','!+1');
 while size(CONTRAST,1) ~= t
 	d   = [];
         str = sprintf('[%0.0f] contrast %0.0f',size(C,2),size(CONTRAST,1) + 1);
