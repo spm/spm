@@ -395,10 +395,7 @@ MD   = get(h,'UserData');
 %-----------------------------------------------------------------------
 if isempty(MD.XYZ), loc='dntmv'; end
 switch lower(loc), case 'dntmv'
-	msgbox('No suprathreshold voxels to jump to!',...
-		sprintf('%s%s: %s...',spm('ver'),...
-			spm('GetUser',' (%s)'),mfilename),...
-		'warn','modal')
+	spm('alert!','No suprathreshold voxels to jump to!',mfilename,0);
 	varargout = {oxyz, 0};
 	return
 case 'nrvox'
@@ -415,7 +412,7 @@ case 'glmax'
 	str       = 'global maxima';
 	i         = find(MD.Z==max(MD.Z));
 	xyz       = MD.XYZ(:,i);
-	d         = sum((oxyz-xyz).^2);
+	d         = sqrt(sum((oxyz-xyz).^2));
 otherwise
 	warning('Unknown jumpmode')
 	varargout = {xyz,0};
@@ -426,7 +423,7 @@ end
 %-----------------------------------------------------------------------
 fprintf(['\n\t%s:\tJumped %0.2fmm from [%3.0f, %3.0f, %3.0f],\n\t\t\t',...
 		'to %s at [%3.0f, %3.0f, %3.0f]\n'],...
-	mfilename, sqrt(d), oxyz, str, xyz)
+	mfilename, d, oxyz, str, xyz)
 
 spm_mip_ui('SetCoords',xyz,h,h);
 varargout = {xyz, d};
