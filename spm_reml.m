@@ -26,8 +26,10 @@ X     = spm_svd(X);
 m     = length(Q);
 n     = length(Cy);
 d     = zeros(m,m);
+RQR   = sparse(n,n);
 for i = 1:m
 	RQ{i} = Q{i} - X*(X'*Q{i});
+	RQR   = RQR | RQ{i};
 end
 for i = 1:m
 for j = i:m
@@ -37,43 +39,35 @@ for j = i:m
 end
 end
 
-% recursive calling for (p) seperable partitions 
+% recursive calling for (p) separable partitions 
 %---------------------------------------------------------------------------
-u     = spm_blk_diag(d);
+u     = spm_blk_diag(RQR);
 h     = zeros(m,1);
 W     = zeros(m,m); 
 Ce    = sparse(n,n); 
 p     = size(u,2);
 if p > 1
-
-	% cycle over (p) partitions
-	% j = indices of {1 x b} Q  for ith partition
-	% q = indices of (n x n) Cy for ith partition
-	%-------------------------------------------------------------------
 	for i = 1:p
 
-		fprintf('%-30s- %i\n','  ReML Partition',i);
-
-		% find subset of bases (indexed by j) and partitions (by q)
+		% find subset of bases (indexed by J) and partitions (by q)
 		%-----------------------------------------------------------
-		j     = find(u(:,i));
-		b     = length(j);
+		J     = [];
 		C     = {};
-		q     = sparse(1,n);
-		for k = 1:b
-			q = q + any(Q{j(k)});
-		end
-		q     = find(q);
-		for k = 1:b
-			C{k} = Q{j(k)}(q,q);
+		q     = find(u(:,i));
+		for j = 1:m
+			if nnz(Q{j}(q,q))
+				C{end + 1} = Q{j}(q,q);
+				J(end + 1) = j;
+			end
 		end
 
 		% ReML
 		%-----------------------------------------------------------
+		fprintf('%-30s- %i\n','  ReML Partition',i);
 		[Cep,hp,Wp] = spm_reml(Cy(q,q),X(q,:),C,1e-16);
 		Ce(q,q)     = Ce(q,q) + Cep;
-		h(j)        = hp;
-		W(j,j)      = Wp;
+		h(J)        = hp;
+		W(J,J)      = Wp;
 		
 	end
 
