@@ -8,10 +8,12 @@ function spm_image(op,varargin)
 % of the three images moves the point around which the orthogonal
 % sections are viewed.  The co-ordinates of the cursor are shown both
 % in voxel co-ordinates and millimeters within some fixed framework.
-% The intensity at that point in the image (sampled using tri-linear
-% interpolation) is also given. The position of the crosshairs can also
-% be moved by specifying the co-ordinates in millimeters to which they
-% should be moved.
+% The intensity at that point in the image (sampled using the current
+% interpolation scheme) is also given. The position of the crosshairs
+% can also be moved by specifying the co-ordinates in millimeters to
+% which they should be moved.  Clicking on the horizontal bar above
+% these boxes will move the cursor back to the origin  (analogous to
+% setting the crosshair position (in mm) to [0 0 0]).
 %
 % The images can be re-oriented by entering appropriate translations,
 % rotations and zooms into the panel on the left.  The transformations
@@ -21,6 +23,11 @@ function spm_image(op,varargin)
 % considered to be relative to any existing transformations that may be
 % stored in the ``.mat'' files.  Note that the order that the
 % transformations are applied in is the same as in ``spm_matrix.m''.
+%
+% The ``Reset...'' button next to it is for setting the orientation of
+% images back to transverse.  It retains the current voxel sizes,
+% but sets the origin of the images to be the centre of the volumes
+% and all rotations back to zero.
 %
 % The right panel shows miscellaneous information about the image.
 % This includes:
@@ -192,6 +199,35 @@ if strcmp(op,'reorient'),
 	return;
 end;
 
+if strcmp(op,'resetorient'),
+	% Time to modify the ``.mat'' files for the images.
+	% I hope that giving people this facility is the right thing to do....
+	%-----------------------------------------------------------------------
+	P = spm_get(Inf, 'img','Images to reset orientation of');
+	V = spm_vol(P);
+	spm_progress_bar('Init',size(P,1),'Resetting orientations',...
+		'Images Complete');
+	for i=1:size(P,1),
+		V    = spm_vol(deblank(P(i,:)));
+		M    = V.mat;
+		vox  = sqrt(sum(M(1:3,1:3).^2));
+		orig = (V.dim(1:3)+1)/2;
+                off  = -vox.*orig;
+                M    = [vox(1) 0      0      off(1)
+		        0      vox(2) 0      off(2)
+		        0      0      vox(3) off(3)
+		        0      0      0      1];
+		spm_get_space(P(i,:),M);
+		spm_progress_bar('Set',i);
+	end;
+	spm_progress_bar('Clear');
+	tmp = spm_get_space(st.vols{1}.fname);
+	if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
+		spm_image('init',st.vols{1}.fname);
+	end;
+	return;
+end;
+
 if strcmp(op,'update_info'),
 	% Modify the positional information in the right hand panel.
 	%-----------------------------------------------------------------------
@@ -273,40 +309,47 @@ WS = spm('WinScale');
 % Widgets for re-orienting images.
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_image(''reset'');');
-uicontrol(fg,'Style','Text', 'Position',[90 220 100 016].*WS,'String','right  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[90 200 100 016].*WS,'String','foward  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[90 180 100 016].*WS,'String','up  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[90 160 100 016].*WS,'String','pitch  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[90 140 100 016].*WS,'String','roll  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[90 120 100 016].*WS,'String','yaw  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[90 100 100 016].*WS,'String','resize  {x}');
-uicontrol(fg,'Style','Text', 'Position',[90  80 100 016].*WS,'String','resize  {y}');
-uicontrol(fg,'Style','Text', 'Position',[90  60 100 016].*WS,'String','resize  {z}');
+uicontrol(fg,'Style','Text', 'Position',[75 220 100 016].*WS,'String','right  {mm}');
+uicontrol(fg,'Style','Text', 'Position',[75 200 100 016].*WS,'String','foward  {mm}');
+uicontrol(fg,'Style','Text', 'Position',[75 180 100 016].*WS,'String','up  {mm}');
+uicontrol(fg,'Style','Text', 'Position',[75 160 100 016].*WS,'String','pitch  {rad}');
+uicontrol(fg,'Style','Text', 'Position',[75 140 100 016].*WS,'String','roll  {rad}');
+uicontrol(fg,'Style','Text', 'Position',[75 120 100 016].*WS,'String','yaw  {rad}');
+uicontrol(fg,'Style','Text', 'Position',[75 100 100 016].*WS,'String','resize  {x}');
+uicontrol(fg,'Style','Text', 'Position',[75  80 100 016].*WS,'String','resize  {y}');
+uicontrol(fg,'Style','Text', 'Position',[75  60 100 016].*WS,'String','resize  {z}');
 
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',1)','Position',[190 220 050 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',2)','Position',[190 200 050 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',3)','Position',[190 180 050 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',4)','Position',[190 160 050 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',5)','Position',[190 140 050 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',6)','Position',[190 120 050 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',7)','Position',[190 100 050 020].*WS,'String','1','ToolTipString','zoom');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',8)','Position',[190  80 050 020].*WS,'String','1','ToolTipString','zoom');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',9)','Position',[190  60 050 020].*WS,'String','1','ToolTipString','zoom');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',1)','Position',[175 220 065 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',2)','Position',[175 200 065 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',3)','Position',[175 180 065 020].*WS,'String','0','ToolTipString','translate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',4)','Position',[175 160 065 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',5)','Position',[175 140 065 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',6)','Position',[175 120 065 020].*WS,'String','0','ToolTipString','rotate');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',7)','Position',[175 100 065 020].*WS,'String','1','ToolTipString','zoom');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',8)','Position',[175  80 065 020].*WS,'String','1','ToolTipString','zoom');
+uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',9)','Position',[175  60 065 020].*WS,'String','1','ToolTipString','zoom');
 
 uicontrol(fg,'Style','Pushbutton','String','Reorient images...','Callback','spm_image(''reorient'')',...
-         'Position',[90 35 150 020].*WS,'ToolTipString','modify position information of selected images');
+         'Position',[70 35 125 020].*WS,'ToolTipString','modify position information of selected images');
+
+uicontrol(fg,'Style','Pushbutton','String','Reset...','Callback','spm_image(''resetorient'')',...
+         'Position',[195 35 55 020].*WS,'ToolTipString','reset orientations of selected images');
 
 % Crosshair position
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[70 250 180 90].*WS);
 uicontrol(fg,'Style','Text', 'Position',[75 320 170 016].*WS,'String','Crosshair Position');
-uicontrol(fg,'Style','Text', 'Position',[75 300 35 016].*WS,'String','mm:');
-uicontrol(fg,'Style','Text', 'Position',[75 280 35 016].*WS,'String','vx:');
-uicontrol(fg,'Style','Text', 'Position',[75 260 65 016].*WS,'String','Intensity:');
+uicontrol(fg,'Style','PushButton', 'Position',[75 316 170 006].*WS,...
+	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
+% uicontrol(fg,'Style','PushButton', 'Position',[75 315 170 020].*WS,'String','Crosshair Position',...
+%	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
+uicontrol(fg,'Style','Text', 'Position',[75 295 35 020].*WS,'String','mm:');
+uicontrol(fg,'Style','Text', 'Position',[75 275 35 020].*WS,'String','vx:');
+uicontrol(fg,'Style','Text', 'Position',[75 255 65 020].*WS,'String','Intensity:');
 
-st.mp = uicontrol(fg,'Style','edit', 'Position',[110 300 135 020].*WS,'String','','Callback','spm_image(''setposmm'')','ToolTipString','move crosshairs to mm coordinates');
-st.vp = uicontrol(fg,'Style','edit', 'Position',[110 280 135 020].*WS,'String','','Callback','spm_image(''setposvx'')','ToolTipString','move crosshairs to voxel coordinates');
-st.in = uicontrol(fg,'Style','Text', 'Position',[140 260  85 016].*WS,'String','');
+st.mp = uicontrol(fg,'Style','edit', 'Position',[110 295 135 020].*WS,'String','','Callback','spm_image(''setposmm'')','ToolTipString','move crosshairs to mm coordinates');
+st.vp = uicontrol(fg,'Style','edit', 'Position',[110 275 135 020].*WS,'String','','Callback','spm_image(''setposvx'')','ToolTipString','move crosshairs to voxel coordinates');
+st.in = uicontrol(fg,'Style','Text', 'Position',[140 255  85 020].*WS,'String','');
 
 % General information
 %-----------------------------------------------------------------------
