@@ -599,7 +599,7 @@ MF     = VF(1).mat;
 MG     = VG(1).mat;
 vox    = sqrt(sum(MG(1:3,1:3).^2));
 origin = MG\[0 0 0 1]';
-origin = origin(1:3)';
+origin = round(origin(1:3)');
 Dims   = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
 mgc    = 960209;
 eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
@@ -624,11 +624,11 @@ if ~isempty(fg),
 	Q = spm_matrix(prms');
 	text(0,0.6, ['Linear {affine} component - ' str],'FontWeight','Bold',...
 		'Interpreter','none','Parent',ax);
-	text(0,0.55, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)),...
+	text(0,0.55, sprintf('X1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(1,:)),...
 		'Interpreter','none','Parent',ax);
-	text(0,0.50, sprintf('Y1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(2,:)),...
+	text(0,0.50, sprintf('Y1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(2,:)),...
 		'Interpreter','none','Parent',ax);
-	text(0,0.45, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),...
+	text(0,0.45, sprintf('Z1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(3,:)),...
 		'Interpreter','none','Parent',ax);
 
 	if (~any(params(1:4)==0) & params(6)~=Inf),
