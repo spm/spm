@@ -1,5 +1,5 @@
 % SPM96b
-% Statistical Parametric Mapping - SPM'96
+% Statistical Parametric Mapping - SPM96
 %_______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -12,7 +12,7 @@
 %
 % Contents:
 %      1) SPM - General comments
-%      2) New features in SPM'96
+%      2) New features in SPM96
 %      3) Bibliography - see spm_pet.man & spm_fmri.man
 % 
 % ====================
@@ -31,7 +31,8 @@
 % UK) The distributed version is the same as that we use ourselves.
 % The current version was written on HyperSPARC 20-HS21 workstations
 % (64Mb RAM, 200Mb swap) under Solaris2.4 and OpenWindows3.4 using
-% MATLAB (Version 4.2c.  MathWorks Inc. Sherborn MA USA).  SPM requires
+% MATLAB (Version 4.2c.  MathWorks, Inc. Natick, MA, USA
+% http://www.mathworks.com/ eMail:info@mathworks.com).  SPM requires
 % only core MATLAB to run (no special toolboxes are required).  The
 % image format used is the simple header and image file format of
 % ANALYZE (Mayo Clinic) (see "Data Format" in the online help).
@@ -44,7 +45,7 @@
 % sufficiently simple and transparent that is should be maintenance
 % free. In particular there is no manual.  The primary reference for
 % the software are the theoretical papers published in the peer
-% reviewed literature.  An informal email help line exists, which the
+% reviewed literature.  An informal eMail help line exists, which the
 % authors monitor (spm@mailbase.ac.uk)
 %
 % Availability
@@ -291,7 +292,7 @@
 % treated as a limiting [uncorrelated] case of 'serially correlated
 % regression' as used for fMRI.  spm_spm now samples little cubes of data
 % (as opposed to planes).  This allows very large data sets to be
-% analyzed (over 2000 64x64x64 voxel images) without two much paging or
+% analysed (over 2000 64x64x64 voxel images) without two much paging or
 % related memory problems.
 % 
 % The specification of thresholds for the maximum intensity projections
@@ -372,8 +373,8 @@
 % New features - vii - Help
 % 
 % The Help facility has been improved. A new help window is used for
-% help display and interaction. A pulldown menu of previous topics is
-% maintained in addition to a pulldown menu of topics referenced by the
+% help display and interaction. A pull-down menu of previous topics is
+% maintained in addition to a pull-down menu of topics referenced by the
 % current topic, enhancing the recursive help facility. Long topics are
 % paged, with page controls appearing in the bottom right when
 % required. These multi-page help files now print properly.
@@ -393,8 +394,8 @@
 % We now use SCCS source code control for SPM development. At it's most
 % basic, this enables you to see the improvements/alterations between
 % releases, and to compare any customised versions you may have with
-% the SCCS history.  SCCS was introduced after the release of SPM'95,
-% so most of SPM'95's routines can be regarded as v1.1, although some
+% the SCCS history.  SCCS was introduced after the release of SPM95,
+% so most of SPM95's routines can be regarded as v1.1, although some
 e and introduction of source control.
 %
 % The SCCS subdirectory is *not* shipped with SPM (it's quite large),
@@ -449,12 +450,12 @@ e and introduction of source control.
 % New features - xiii - SPM{F} - inference and display
 % 
 % SPM{F} now emulates SPM{Z} in providing summary data on the SPMs.  P
-% values corrected for the volume analyzed are available for the SPM{F}
-% based on peak hieght.  P values based on spatial extent, or the number
+% values corrected for the volume analysed are available for the SPM{F}
+% based on peak height.  P values based on spatial extent, or the number
 % of clusters are not yet available and these fields are filled in with
 % NaN at the present.  'Results' can now also handle SPM{F}, which allows
 % you to display graphical and image data about selected clusters in the
-% SPM{F}.  This facility is in preparattion for a more extented use of
+% SPM{F}.  This facility is in preparation for a more extented use of
 % the SPM{F} particularly in relation to model selection and fMRI data
 % analysis.
 % 
@@ -464,12 +465,12 @@ e and introduction of source control.
 % New features - xiv - Displaying results
 %
 % As noted above 'results' display now includes the facility to view
-% SPM{F}s.  The plotting routines have been generalized such that one can
+% SPM{F}s.  The plotting routines have been generalised such that one can
 % plot adjusted and fitted data against scan number, any specified
 % covariate or specified ordinate.  This should be useful for plotting
 % responses against some parameter in parametric designs and nonlinear
 % regressions.  The table option has been removed.  Adjusted and fitted
-% data are contined in the variables y and Y following a plot of the
+% data are contained in the variables y and Y following a plot of the
 % voxel in question.  These data are arranged in a matrix with data from
 % each subject in a column.  If the number of scans per subject is not
 % constant then column vectors are returned.  The variable Fnames
@@ -490,10 +491,10 @@ e and introduction of source control.
 %
 % New features - xv - left-right orientation
 %
-% This has always been a difficult area for people analyzing data.  We
+% This has always been a difficult area for people analysing data.  We
 % have chosen the simplest option - namely orientate your images to the
-% required convention at the point of spatial normalization.  Following
-% this SPM will simply analyze what it is given.  SPM does not know what
+% required convention at the point of spatial normalisation.  Following
+% this SPM will simply analyse what it is given.  SPM does not know what
 % is left or what is right but generally the neurological convention that
 % right is right (i,e, looking at slices from the top) is preferred and
 % is adopted by SPM.
@@ -567,7 +568,7 @@ e and introduction of source control.
 %
 % New features - xviii - Smoothness estimators
 %
-% The smoothness estimator is now based on the normalized residuals and
+% The smoothness estimator is now based on the normalisation residuals and
 % is, we hope, a much more robust estimator.  In particular it is not
 % affected by deviations from the null hypothesis or the contrasts
 % specified
@@ -591,7 +592,7 @@ e and introduction of source control.
 % New features - ??? - Miscellaneous
 %
 % Filtered SPM{Z} can be written out to Analyze files (spm_projections_ui)
-% SPM*.img are no longer automatically written out during the staistical
+% SPM*.img are no longer automatically written out during the statistical
 % analysis.
 %
 %_______________________________________________________________________
@@ -780,7 +781,7 @@ e and introduction of source control.
 % 
 % SPM_5: Detecting Activations in PET and fMRI: Levels of Inference and Power
 % Friston KJ, Holmes A, Poline J-B, Price CJ and Frith CD.
-% Neuroimage (Accepted)
+% NeuroImage (Accepted)
 % 
 % Abstract
 %    This paper is about detecting activations in statistical parametric
@@ -805,7 +806,7 @@ e and introduction of source control.
 %    generally more powerful than cluster-level inferences and that
 %    cluster-level inferences are generally more powerful than
 %    voxel-level inferences. The price paid for this increased
-%    sensitivity is reduced localizing power: Voxel-level tests permit
+%    sensitivity is reduced localising power: Voxel-level tests permit
 %    individual voxels to be identified as significant, whereas cluster
 %    and set-level inferences only allows clusters or sets of clusters to
 %    be so identified. For all levels of inference the spatial size of
