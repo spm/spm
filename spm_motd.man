@@ -12,7 +12,7 @@
 % Therefore, we recommend you use a single SPM version for any given
 % project.
 %
-% Please take time to review the the (mostly updated) help, in
+% Please take time to review the (mostly updated) help, in
 % particular the "About SPM" topic (spm.man), which lists new features
 % of SPM2.
 %
