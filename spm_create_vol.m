@@ -54,26 +54,29 @@ V.private.hdr.dime.bitpix      = spm_type(dt,'bits');
 
 if spm_type(dt,'intt'),
 
-	if 0, % Allow DC offset
 	V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
 	V.private.hdr.dime.glmin    = spm_type(dt,'minval');
-	V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-	V.private.hdr.dime.cal_min  = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
-	V.private.hdr.dime.funused1 = 0;
-	scal                = (V.private.hdr.dime.cal_max - V.private.hdr.dime.cal_min)/...
-	                      (V.private.hdr.dime.glmax   - V.private.hdr.dime.glmin);
-	dcoff               =  V.private.hdr.dime.cal_min - V.private.hdr.dime.glmin*scal;
-	V.pinfo             = [scal dcoff 0]';
 
+	if 0, % Allow DC offset
+		V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+		V.private.hdr.dime.cal_min  = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
+		V.private.hdr.dime.funused1 = 0;
+		scal                = (V.private.hdr.dime.cal_max - V.private.hdr.dime.cal_min)/...
+		                      (V.private.hdr.dime.glmax   - V.private.hdr.dime.glmin);
+		dcoff               =  V.private.hdr.dime.cal_min - V.private.hdr.dime.glmin*scal;
+		V.pinfo             = [scal dcoff 0]';
 	else, % Don't allow DC offset
-	V.private.hdr.dime.glmax    = spm_type(dt,'maxval');
-	V.private.hdr.dime.glmin    = 0;
-	V.private.hdr.dime.cal_max  = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
-	V.private.hdr.dime.cal_min  = 0;
-	V.private.hdr.dime.funused1 = V.private.hdr.dime.cal_max/V.private.hdr.dime.glmax;
-	V.pinfo             = [V.private.hdr.dime.funused1 0 0]';
+		cal_max                     = max(V.private.hdr.dime.glmax*V.pinfo(1,:) + V.pinfo(2,:));
+		cal_min                     = min(V.private.hdr.dime.glmin*V.pinfo(1,:) + V.pinfo(2,:));
+		V.private.hdr.dime.funused1 = cal_max/V.private.hdr.dime.glmax;
+		if V.private.hdr.dime.glmin,
+			V.private.hdr.dime.funused1 = max(V.private.hdr.dime.funused1,...
+		                                  cal_min/V.private.hdr.dime.glmin);
+		end;
+		V.private.hdr.dime.cal_max  = V.private.hdr.dime.glmax*V.private.hdr.dime.funused1;
+		V.private.hdr.dime.cal_min  = V.private.hdr.dime.glmin*V.private.hdr.dime.funused1;
+		V.pinfo             = [V.private.hdr.dime.funused1 0 0]';
 	end;
-
 else,
 	V.private.hdr.dime.glmax    = 1;
 	V.private.hdr.dime.glmin    = 0;
