@@ -461,11 +461,11 @@ return
 
 elseif strcmp(Action,'Add')
 %=======================================================================
-% spm_get_cb('Add',h)
+% spm_get_cb('Add',H)
 % Add filename to current list
-%-h - [Optional] handle to object
+%-H - [Optional] (vector of) handles to file/dir name objects
 %
-if (nargin==2), h=P2; else h=gco; end
+if (nargin==2), H=P2; else H=gco; end
 
 %-Recover variables from holding objects
 %-----------------------------------------------------------------------
@@ -478,18 +478,27 @@ WDir = get(findobj(F,'Tag','WDir'),'UserData');
 %-----------------------------------------------------------------------
 if finite(n), if (size(P,1)>=abs(n)), return, end, end
 
-%-Add item to P, update StatusLine
+%-Add items to P (until P is full)
 %-----------------------------------------------------------------------
-FName = get(h,'String');
-FPath = [WDir,'/',FName];
-if isempty(P) P=FPath; else P=str2mat(P,FPath); end
+for h = H'
+	FName = get(h,'String');
+	FPath = [WDir,'/',FName];
+	if isempty(P) P=FPath; else P=str2mat(P,FPath); end
+	set(h,'String',[int2str(size(P,1)),' :',FName],'Color','b',...
+		'Tag','SelIName',...
+		'ButtonDownFcn','spm_get_cb(''Delete'')')
 
+	%-Don't add any more if #items has been specified, and P is full
+	if finite(n), if (size(P,1)>=abs(n)), break, end, end
+end
+
+%-Return new P to holding object
+%-----------------------------------------------------------------------
 set(findobj(F,'Tag','P'),'UserData',P);
 
-set(h,'String',[int2str(size(P,1)),' :',FName],'Color','b',...
-	'Tag','SelIName',...
-	'ButtonDownFcn','spm_get_cb(''Delete'')')
 
+%-Update StatusLine
+%-----------------------------------------------------------------------
 spm_get_cb('StatusLine',size(P,1),n)
 
 
@@ -532,18 +541,19 @@ elseif strcmp(Action,'All')
 %
 %-MatLab's built in findobj gives a bus error for more than 99 matching
 % target objects. :-(
+F = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
+set(F,'Pointer','Watch')
 h = get(gca,'Children');
-Handles = [];
+H = [];
 while length(h)>99
-	Handles = [Handles; findobj(h(1:99),'Flat','Tag','IName')];
+	H = [H; findobj(h(1:99),'Flat','Tag','IName')];
 	h(1:99)=[];
 end
-Handles = flipud([Handles; findobj(h,'Flat','Tag','IName')]);
+H = flipud([H; findobj(h,'Flat','Tag','IName')]);
 
-for h = Handles'
-	spm_get_cb('Add',h);
-end
+spm_get_cb('Add',H);
 
+set(F,'Pointer','Arrow')
 return
 
 elseif strcmp(Action,'CmdLine')
