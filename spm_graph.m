@@ -1,7 +1,7 @@
 
 % graphical display of adjusted data
-% FORMAT spm_plot
-%____________________________________________________________________________
+% FORMAT spm_graph
+%_______________________________________________________________________
 %
 % spm_graph is a CallBack script that uses variables in working memory to
 % produce plots of adjusted activity at the significant (p < 0.05
@@ -18,41 +18,24 @@
 % matrix, The variable Y represents the fitted responses [e.g. means]
 % accross subjects).
 %
-%__________________________________________________________________________
-% @(#)spm_plot.m	1.5 96/06/10
+%_______________________________________________________________________
+% %W% Karl Friston %E%
 
 
-% find nearest voxel [in a Euclidean sense] in the point list of locations XYZ
-%----------------------------------------------------------------------------
-[d i] = min(sum(([(XYZ(1,:) - L(1));(XYZ(2,:) - L(2));(XYZ(3,:) - L(3))]).^2));
+% Find nearest voxel [Euclidean distance] in the point list of locations XYZ
+%-----------------------------------------------------------------------
+[d i] = min( sum(([	(XYZ(1,:) - L(1));...
+			(XYZ(2,:) - L(2));...
+			(XYZ(3,:) - L(3))	]).^2));
 L     = XYZ(:,i);
 
 
-% reset the pointer and posotion strings created by spm_sections_ui.m
-%----------------------------------------------------------------------------
-if V(3) == 1
-	set(h1,'String',sprintf('%0.0f',L(1)));
-	set(h2,'String',sprintf('%0.0f',L(2)));
-	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
-	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
-	set(X1,'Position',[L(1)  L(2) 1]);
-else
-	set(h1,'String',sprintf('%0.0f',L(1)));
-	set(h2,'String',sprintf('%0.0f',L(2)));
-	set(h3,'String',sprintf('%0.0f',L(3)));
-	set(hXstr,'String',sprintf('x = %0.0f',L(1)));
-	set(hYstr,'String',sprintf('y = %0.0f',L(2)));
-	set(hZstr,'String',sprintf('z = %0.0f',L(3)));
-	set(X1,'Position',[(P1 + L(2))  (P2 + L(1)) 1]);
-	set(X2,'Position',[(P1 + L(2))  (P3 - L(3)) 1]);
-	set(X3,'Position',[(P4 + L(1))  (P3 - L(3)) 1]);
+% Reset the pointer and position strings created by spm_results_ui
+%-----------------------------------------------------------------------
+spm_mip_ui('SetCoords',L);
 
-end
-
-
-
-% plot
-%----------------------------------------------------------------------------
+% Plot
+%-----------------------------------------------------------------------
 x    = [];
 y    = [];
 PLOT = 1;
@@ -61,7 +44,7 @@ if size(H,2)
 end
 
 
-% delete previous axis and their pagination controls (if any)
+% Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
 Fgraph = spm_figure('FindWin','Graphics');
 Finter = spm_figure('FindWin','Interactive');
@@ -70,9 +53,8 @@ subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 subplot(2,1,2); axis off
 
 if PLOT
-
 	% more than one subject with balanced design
-	%--------------------------------------------------------------------
+	%---------------------------------------------------------------
 	if ~any(diff(sum(B > 0))) & size(B,2)		
 		y     = [];
 		for j = 1:size(B,2);
@@ -83,7 +65,7 @@ if PLOT
 	end
 
 	% get ordinate
-	%--------------------------------------------------------------------
+	%---------------------------------------------------------------
 	str   = 'plot as a function of';
 	if size(C,2)
 		j    = spm_input(str,1,'b','cov|scan|specify',[2 1 3]);
@@ -104,7 +86,8 @@ if PLOT
 
 	elseif j == 3
 	    while any(size(x) - size(y))
-		str  = sprintf('enter {%i x %i} ordinate',size(y,1),size(y,2));
+		str  = sprintf('enter {%i x %i} ordinate',...
+			size(y,1),size(y,2));
 		x    = spm_input(str,2);
 		if any(size(x) == 1)
 			x    = x(:)*ones(1,size(y,2));
@@ -134,11 +117,11 @@ if PLOT
 	ylabel('response and estimate')
 
 
-% bar chart of condition effects
-%---------------------------------------------------------------------------
 else			
+% Bar chart of condition effects
+%-----------------------------------------------------------------------
 	% organize adjusted data and get mean
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	y      = XA(:,i)
 	x      = [];
 	Y      = [];
@@ -147,7 +130,7 @@ else
 
 
 	% plot
-	%-------------------------------------------------------------------
+	%---------------------------------------------------------------
 	[u v]  = bar(Y);
 	fill(u,v,[1 1 1]*.9)
 	line(x,y,'LineStyle','.','MarkerSize',12)
@@ -157,7 +140,7 @@ else
 	axis square
 end
 
-%----------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if SPMZ
 
 	Pu    = spm_P(1,W,t(i),0,S);		% voxel-level p value
