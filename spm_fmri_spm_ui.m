@@ -431,7 +431,8 @@ xlabel('scan')
 title(['Design Matrix'],'Fontsize',16,'Fontweight','Bold')
 
 axes('Visible','off')
-text(0.00,0.40,['AnCova for ' spm('DirTrunc',pwd,24)],'Fontsize',16);
+text(0.00,0.40,...
+	['AnCova for ' spm_str_manip(pwd,'a24')],'Fontsize',16);
 text(0.00,0.32,'Session, scan and Filename');
 y     = 0.28;
 dy    = 0.03;
