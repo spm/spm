@@ -1153,7 +1153,7 @@ end
 
 %-----------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
-if spm('isGCmdLine')
+if spm('CmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)
 	varargout = {0};
 elseif ~isempty(Finter)
