@@ -6,7 +6,6 @@ static char sccsid[]="%W% Matthew Brett %E%";
 #include <windows.h>
 #include <string.h>
 #include <dirent.h>
-
 #include "mex.h"
 
 #define STRSIZE 1024
@@ -62,22 +61,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		int drive, driveno = 0, curdrive;
 		UINT prevemode;
 		char drives[27];
+		char curdir[_MAX_PATH];
 
 		/* turn off insert disk in drive messages */
 		prevemode = SetErrorMode(SEM_FAILCRITICALERRORS);
 
 		/* Save current drive. */
 		curdrive = _getdrive();
+		/* Get the current working directory: */
+		_getcwd( curdir, _MAX_PATH );
 
 		/* If we can switch to the drive, it exists. */
 		/* start at c:, don't check floppy drives */
 		for( drive = 3; drive <= 26; drive++ )
 			if( !_chdrive( drive ) )
 				drives[driveno++]='A'+drive-1;
-			drives[driveno]=0;
+		drives[driveno]=0;
 
-		/* Restore original drive and error mode.*/
+		/* Restore original drive, dir and error mode.*/
 		_chdrive( curdrive );
+	        _chdir( curdir ); 
 		SetErrorMode(prevemode);
 
 		/* Return string of drive letters */
