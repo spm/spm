@@ -385,6 +385,10 @@ case 'fMRI'
     end
 end
 
+hxvi = uimenu(hExplore, 'Label','Covariance structure', ...
+    'Callback',[cb, 'spm_DesRep(''xVi'', tmp.xVi);'], 'UserData',hC, 'HandleVisibility','off');
+if ~isfield(SPM,'xVi') | (isfield(SPM.xVi,'iid') & SPM.xVi.iid) | ...
+    ~(isfield(SPM.xVi,'V')|isfield(SPM.xVi,'Vi')), set(hxvi,'Enable','off'); end;
 
 %-Clear, Quit, Help
 %-----------------------------------------------------------------------
@@ -538,7 +542,106 @@ end
 %-----------------------------------------------------------------------
 figure(Fgraph)
 
+%=======================================================================
+case 'xvi'
+%=======================================================================
+% spm_DesRep('xVi',xVi)
+if nargin<2, error('insufficient arguments'), end
+if ~isstruct(varargin{2}), error('covariance matrix structure required'), end
 
+%-Display
+%=======================================================================
+
+%-Get graphics window & FontSizes
+%-----------------------------------------------------------------------
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph,0)
+FS = spm('FontSizes');
+
+%-Title
+%-----------------------------------------------------------------------
+hTax = axes('Position',[0.03,0,0.94,1],...
+      'DefaultTextFontSize',FS(9),...
+      'XLim',[0,1],'YLim',[0,1],...
+      'Visible','off');
+
+str='Statistical analysis: Covariance structure';
+text(0.5,0.95,str,'Fontsize',FS(14),'Fontweight','Bold',...
+      'HorizontalAlignment','center')
+
+line('Parent',hTax,...
+      'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
+
+
+%-Display covariance matrix
+%-----------------------------------------------------------------------
+hCovMtx(1) = axes('Position',[.07 .4 .6 .4]);
+if isfield(varargin{2},'V')
+  clim = [-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]; % scale 0 to gray
+  hCovMtxIm(1) = imagesc(varargin{2}.V, clim);
+  hCovMtxSc = colorbar('vert');
+  set(hCovMtxSc,'Ylim',[0 clim(2)]); % cut colorbar at 0
+  %-Setup callbacks to allow interrogation of covariance matrix
+  %-----------------------------------------------------------------------
+  set(hCovMtxIm(1),'UserData',...
+      varargin{2})
+  set(hCovMtxIm(1),'ButtonDownFcn','spm_DesRep(''SurfxVi_CB'')')
+  if isfield(varargin{2},'form')
+    str = sprintf('Covariance structure V: %s',varargin{2}.form);
+  else
+    str = 'Covariance structure V';
+  end;
+  if isfield(varargin{2},'var') & isfield(varargin{2},'dep') & ...
+      isfield(varargin{2},'sF') & isfield(varargin{2},'I')
+    r     = find((max(varargin{2}.I) > 1) & ~varargin{2}.var & ~varargin{2}.dep);
+    if any(varargin{2}.dep)
+      cmstr = 'yes';
+    else
+      cmstr = 'no';
+    end;
+    str = sprintf(['Covariance structure V - replications over ''%s''\n'...
+        'Correlated repeated measures: %s'], ...
+      varargin{2}.sF{r},cmstr);
+  end;
+  xlabel(str);
+else
+  text(.5,.5,'Covariance not available', 'HorizontalAlignment','center');
+end;
+
+if isfield(varargin{2},'h')
+  hPEstAx   = axes('Position',[.07 .315 .6 .025],...
+      'DefaultTextInterpreter','TeX');
+  hParEstIm   = imagesc(varargin{2}.h',clim);
+  set(hPEstAx,...
+      'XLim',[0,length(varargin{2}.h)]+.5,'XTick',[1:length(varargin{2}.h)-1]+.5,'XTickLabel','',...
+      'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
+      'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
+  xlabel('hyperparameter estimates')
+  set(hParEstIm,'UserData',varargin{2}.h)
+  set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfHPEstIm_CB'')')
+else
+  hPEstAx = [];
+end;
+spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Children')])
+ 
+%-Show components of covariance matrix
+%-----------------------------------------------------------------------
+
+for k = 1:length(varargin{2}.Vi)
+%-Display covariance component xVi.Vi{k}
+%-----------------------------------------------------------------------
+  hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
+  hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
+  xlabel(sprintf('Covariance component Vi{%d}', k));
+  if k<length(varargin{2}.Vi)
+    spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+  end;
+end;
+
+if spm_figure('#page')>1
+      spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+end
+axes(hCovMtx(1));
 
 %=======================================================================
 case {'desmtx','desorth'} %-Display design matrix / design orthogonality
@@ -1215,6 +1318,125 @@ end
 
 set(h,'String',str,'Interpreter',istr)
 
+%=======================================================================
+case {'surfxvi_cb','surfxvimo_cb','surfxviup_cb'} %-Surf Xvi
+%=======================================================================
+% spm_DesRep('SurfxVi_CB')
+% spm_DesRep('SurfxViMo_CB')
+% spm_DesRep('SurfxViUp_CB')
+
+h    = get(gca,'Xlabel');
+
+if strcmp(lower(varargin{1}),'surfxviup_cb')
+      UD = get(h,'UserData');
+      set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+              'UserData',UD.UserData)
+      set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+      return
+end
+
+
+if strcmp(lower(varargin{1}),'surfxvi_cb')
+      UD = struct(    'String',       get(h,'String'),...
+                      'Interpreter',  get(h,'Interpreter'),...
+                      'UserData',     get(h,'UserData'));
+      set(h,'UserData',UD)
+      set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfxViMo_CB'')',...
+               'WindowButtonUpFcn',    'spm_DesRep(''SurfxViUp_CB'')')
+end
+
+mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
+ij  = get(gca,'CurrentPoint');
+ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
+istr = 'none';
+switch get(gcbf,'SelectionType')
+case 'normal'
+      try, str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
+              subsref(get(gco,'UserData'),...
+              struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
+      catch, str='(no cached covariance matrix to surf)'; end
+case 'extend'
+        try,
+        ind = 1:length(subsref(get(gco,'Userdata'),...
+            struct('type','.','subs','h')));
+        isel = logical(zeros(size(ind)));
+        for k = 1:length(ind)
+          isel(k) = subsref(get(gco,'UserData'),...
+              struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;
+        end,
+        if any(isel)
+          str = [sprintf('V(%d,%d): ',ij(1),ij(2)) sprintf('Vi{%d}',ind(isel))];
+        else
+          str = sprintf('no Vi at (%d,%d)',ij(1),ij(2));
+        end;
+      catch
+      end;
+case 'alt'
+        return;
+case 'open'
+      try,    assignin('base','ans',subsref(get(gco,'UserData'),...
+                      struct('type',{'.'},'subs',{'V'})))
+              evalin('base','ans')
+      catch,  fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
+      end
+      return
+end
+
+set(h,'String',str,'Interpreter',istr)
+
+%=======================================================================
+case {'surfhpestim_cb','surfhpestimmo_cb','surfhpestimup_cb'}  %-Surf ParHpestim
+%=======================================================================
+% spm_DesRep('SurfHPEstim_CB')
+% spm_DesRep('SurfHPEstimMo_CB')
+% spm_DesRep('SurfHPEstimUp_CB')
+
+h    = get(gca,'Xlabel');
+
+if strcmp(lower(varargin{1}),'surfhpestimup_cb')
+      UD = get(h,'UserData');
+      set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+              'UserData',UD.UserData)
+      set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+      return
+end
+
+if strcmp(lower(varargin{1}),'surfhpestim_cb')
+      UD = struct(    'String',       get(h,'String'),...
+                      'Interpreter',  get(h,'Interpreter'),...
+                      'UserData',     get(h,'UserData'));
+      set(h,'UserData',UD)
+      set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfHPEstimMo_CB'')',...
+               'WindowButtonUpFcn',    'spm_DesRep(''SurfHPEstimUp_CB'')')
+end
+
+mm  = [get(gca,'XLim')]+[.5,-.5];
+i   = get(gca,'CurrentPoint');
+i   = round(min(max(i(1,1),mm(1)),mm(2)));
+
+istr = 'none';
+switch get(gcbf,'SelectionType')
+case 'normal'
+      try,
+      str = sprintf('Hyperparameter %d : %f',...
+              i,...
+              subsref(get(gco,'UserData'),...
+                      struct('type',{'()'},'subs',{{i}})));
+              istr = 'tex';
+      catch, str='(no cached data to surf)'; end
+case {'extend','alt'}
+      return
+case 'open'
+      try,    UD = get(gco,'UserData');
+              assignin('base','ans',...
+                      get(gco,'UserData'));
+              evalin('base','ans')
+      catch,  fprintf('%s GUI: can''t find hyperparameter estimates\n',mfilename)
+      end
+      return
+end
+
+set(h,'String',str,'Interpreter',istr)
 
 %=======================================================================
 otherwise                                        %-Unknown action string
