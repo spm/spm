@@ -20,7 +20,7 @@ function TabDat = spm_VOI(SPM,hReg)
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels} - column vector
 % .Vspm  - Mapped statistic image(s)
-% .Msk   - mask: a list of scalar indicies into image voxel space
+% .Msk   - mask: a list of scalar indices into image voxel space
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
@@ -63,9 +63,10 @@ spm('FigName',['SPM{',SPM.STAT,'}: Small Volume Correction']);
 %-Get current location
 %-----------------------------------------------------------------------
 xyzmm   = spm_results_ui('GetCoords');
-v2mm    = diag([VOL.M(1,1) VOL.M(2,2) VOL.M(3,3)]);
-mm2v    = inv(v2mm);
-xyz     = VOL.M \ [xyzmm; 1]; xyz = xyz(1:3);
+M       = SPM.M(1:3,1:3);
+iM      = SPM.iM(1:3,1:3);
+DIM     = SPM.DIM;
+VSF     = [1 1 1];   		% voxel scaling factor for extrinsic VOIs
 
 %-Specify search volume
 %-----------------------------------------------------------------------
@@ -74,58 +75,26 @@ SPACE   = spm_input('Search volume...',-1,'m',...
 		{['Sphere',str],['Box',str],'Nearest cluster',...
 		'Image'},['S','B','V','I']);
 Q       = ones(1,size(SPM.XYZmm,2));
-vsc     = [1 1 1];				%-Voxel size scaling for FWHM
-DIM     = VOL.DIM;
 
-switch SPACE, case 'S'                                          % Sphere
+switch SPACE
+
+	case 'S' % Sphere
 	%---------------------------------------------------------------
 	D     = spm_input('radius of spherical VOI {mm}',-2);
 	str   = sprintf('%0.1fmm sphere',D);
 	j     = find(sum((SPM.XYZmm - xyzmm*Q).^2) <= D^2);
-
-	d     = ceil(mm2v*[D D D]')+1;
-	rxyz  = round(xyz);
-	[jx jy jz]  = ndgrid(rxyz(1)+(-d(1):d(1)),...
-			     rxyz(2)+(-d(2):d(2)),...
-			     rxyz(3)+(-d(3):d(3)));
-	XYZ   = [jx(:) jy(:) jz(:)]';
-	XYZ(:,any(XYZ<=0)) = []; 
-	XYZ(:,(XYZ(1,:)>DIM(1)|XYZ(2,:)>DIM(2)|XYZ(3,:)>DIM(3))) = []; 
-	Qs    = ones(1,size(XYZ,2));
-	js    = find(sum((v2mm*(XYZ - xyz*Qs)).^2) <= D^2);
-	XYZ   = XYZ(:,js);
-
-	% Convert to indicies; map T image, check image for zeros; delete
-        % those entries from XYZ
-
 	D     = D./SPM.VOX;
 	S     = (4/3)*pi*prod(D);
 
-case 'B'                                                           % Box
+	case 'B' % Box
 	%---------------------------------------------------------------
 	D     = spm_input('box dimensions [k l m] {mm}',-2);
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
 	j     = find(all(abs(SPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
-
-	d     = ceil(mm2v*D(:))+1;
-	rxyz  = round(xyz);
-	[jx jy jz]  = ndgrid(rxyz(1)+(-d(1):d(1)),...
-			     rxyz(2)+(-d(2):d(2)),...
-			     rxyz(3)+(-d(3):d(3)));
-	XYZ   = [jx(:) jy(:) jz(:)]';
-	XYZ(:,any(XYZ<=0)) = [];
-	XYZ(:,(XYZ(1,:)>DIM(1)|XYZ(2,:)>DIM(2)|XYZ(3,:)>DIM(3))) = []; 
-	Qs    = ones(1,size(XYZ,2));
-	js    = find(all(abs(v2mm*(XYZ - xyz*Qs)) <= D(:)*Qs/2));
-	XYZ   = XYZ(:,js);
-
-	% Convert to indicies; map T image, check image for zeros; delete
-        % those entries from XYZ
-
 	D     = D(:)./SPM.VOX(:);
 	S     = prod(D);
 
-case 'V'                                                        %-Voxels
+	case 'V' %-Voxels
 	%---------------------------------------------------------------
 	if ~length(SPM.XYZ)
 		spm('alert!','No suprathreshold clusters!',mfilename,0);
@@ -141,35 +110,20 @@ case 'V'                                                        %-Voxels
 	D     = SPM.XYZ(:,j);
 	S     = length(j);
 
-case 'I'                                                         % Image
+	case 'I' % Image
 	%---------------------------------------------------------------
-	%-The VOI image must be in the same (real) space as the SPM:
-	%-Although the masking code below does take account of the
-	% .mat file for the VOI image, the orientation of the VOI image
-	% .mat file is *not* used in the resel calculation,
-	% (see spm_resels_vol.c) so any mat file should contain
-	% no rotations / shears relative to the SPM, for accuracy.
-	im    = spm_get(1,'img','Image defining volume subset');
-	D     = spm_vol(im);
-	tM    = D.mat \ SPM.M;
-	if any(tM([2:5,7:10,12]))
-		spm('alert!',{	'Mask image rotated/sheared!',...
-				'(relative to SPM image)',...
-				'Can''t use for SVC.'},mfilename,0);
-		spm('FigName',['SPM{',SPM.STAT,'}: Results']);
-		return
-	end
-	mXYZ  = D.mat \ [SPM.XYZmm; ones(1, size(SPM.XYZmm, 2))];
-	j     = find(spm_sample_vol(D, mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0) > 0);
-	str   = sprintf('image mask: %s',spm_str_manip(im,'a30'));
-	%-Compute in-mask volume S:
-	% Correct for differences in mask and SPM voxel sizes
-	Y     = spm_read_vols(D);
-	vsc   = sqrt(sum(D.mat(1:3,1:3).^2)) ./ SPM.VOX;
-	S     = sum(Y(:)>0) * prod(vsc);
+	Msk   = spm_get(1,'.img','Image defining search volume');
+	D     = spm_vol(Msk);
+	MM    = D.mat(1:3,1:3);
+	VSF   = SPM.VOX./sqrt(diag(MM'*MM))';
+
+	XYZ   = D.mat \ [SPM.XYZmm; ones(1, size(SPM.XYZmm, 2))];
+	j     = find(spm_sample_vol(D, XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > 0);
+	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
+
+	S     = length(find(spm_read_vols(D)));
 
 end
-
 spm('Pointer','Watch')
 
 %-Select voxels within subspace
@@ -177,25 +131,12 @@ spm('Pointer','Watch')
 SPM.Z     = SPM.Z(j);
 SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
-SPM.R     = spm_resels(SPM.FWHM./vsc,D,SPACE);
-SPM.S     = S;
-if (SPACE=='S') | (SPACE=='B')
-  SPM.Msk   = XYZ(1,:) + ...
-             (XYZ(2,:)-1)*DIM(1) + ...
-             (XYZ(3,:)-1)*DIM(1)*DIM(2);
-  % Eliminate voxels with no data; assume zero masking of stat images
-  Y         = spm_read_vols(SPM.Vspm);
-  SPM.Msk(Y(SPM.Msk)==0) = [];
-  % Note, we get a more accurate (smaller) S, but the RFT doesn't
-  % make use of it.
-  SPM.S = length(SPM.Msk);
-elseif (SPACE=='V')
-  SPM.Msk   = SPM.XYZ(1,:) + ...
-             (SPM.XYZ(2,:)-1)*DIM(1) + ...
-             (SPM.XYZ(3,:)-1)*DIM(1)*DIM(2);
-elseif (SPACE=='I')
-  SPM.Msk   = D;
-end
+SPM.R     = spm_resels(SPM.FWHM.*VSF,D,SPACE);
+SPM.S     = S/prod(VSF);
+
+SPM.Msk   =  SPM.XYZ(1,:) + ...
+            (SPM.XYZ(2,:) - 1)*DIM(1) + ...
+            (SPM.XYZ(3,:) - 1)*DIM(1)*DIM(2);
 
 
 %-Tabulate p values
@@ -204,7 +145,8 @@ str    = sprintf('search volume: %s',str);
 if any(strcmp(SPACE,{'S','B','V'}))
 	str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
 end
-TabDat = spm_list('List',SPM,hReg);
+
+TabDat = spm_list('List',SPM,hReg,Num,Dis,str);
 
 %-Reset title
 %-----------------------------------------------------------------------
