@@ -92,23 +92,33 @@ function spm_spm(VY,xX,xM,c,varargin)
 % axis directions (the diagonal of Lambda). The covariances (off
 % diagonal elements of Lambda) are assumed zero.
 % 
-% For temporally correlated data, the algorithm implements the
-% technique of Worsley & Friston (1995). In this approach the model is
-% assummed to fit such that only slight short-term autocorrelation
-% exists in the residuals. The data and model are then temporally
-% smoothed prior to model fitting, giving model K*Y = K*X*beta + K*e,
-% for K a sparse (toeplitz) matrix implementing an appropriate
-% convolution kernel (see spm_sptop). The original auto-correlation of
-% the residuals is then swamped by the temporal smoothing, such that
-% the variance-covariance structure of K*e is essentially that imposed
-% by the smoothing, K. Standard results for serially correlated
-% regression can then be used to produce variance estimates and
-% effective degrees of freedom corrected for the temporal
-% auto-correlation.
+%                           ----------------
 %
-% The volume analsed is the intersection of the threshold masks,
-% explicit masks and implicit masks. See spm_spm_ui for further details
-% on masking options.
+% For temporally correlated (fMRI) data, the algorithm implements the
+% technique of Worsley & Friston (1995). In this approach the model is
+% assummed to fit such that the residuals have (slight) short-term
+% (intrinsic) autocorrelation given by Vi. The data and model are then
+% temporally filtered prior to model fitting by a linear filter given
+% by matrix K, giving model K*Y = K*X*beta + K*e. K=inv(sqrt(Vi))
+% corresponds to pre-whitening, K=I to no temporal smoothing
+% (appropriate for independent data when Vi=I), and K=S (a temporal
+% smoothing matrix - see spm_sptop) to temporal smoothing.
+% 
+% The autocorrelation in the filtered time series is then K*V*K'
+% Standard results for serially correlated regression can then be used
+% to produce variance estimates and effective degrees of freedom
+% corrected for the temporal auto-correlation. Note that these
+% corrections give non-integer degrees of freedom.
+% 
+% Vi can be passed as a parameter. If Vi is not specified then it is
+% taken as I. Often Vi is unknown (or spatially variant, or just
+% difficult to estimate). Provided the intrinsic autocorrelation Vi is
+% small relative to that imposed by temporal smoothing (i.e. the
+% temporal smoothing swamps the intrinsic autocorrelation), the
+% variance-covariance structure of K*e is approximately that imposed by
+% the smoothing, i.e V = KK'.  The volume analsed is the intersection
+% of the threshold masks, explicit masks and implicit masks. See
+% spm_spm_ui for further details on masking options.
 %
 %-----------------------------------------------------------------------
 %
@@ -144,7 +154,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     xX        - design matrix structure
 %               - all the fields of the input xX are retained
 %               - the following additional fields are added:
-%     xX.V      - V matrix (xX.K*xX.K')
+%     xX.V      - V matrix (xX.K*xX.xVi.Vi*xX.K')
 %     xX.xKXs   - space structure for K*X (xX.K*xX.X), the temporally smoothed
 %                 design matrix
 %               - given as spm_sp('Set',xX.K*xX.X) - see spm_sp for details
@@ -160,6 +170,8 @@ function spm_spm(VY,xX,xM,c,varargin)
 %     xX.trRV   - trace of R*V, computed efficiently by spm_SpUtil
 %     xX.trRVRV - trace of RVRV (this was called trRV2 in spm_AnCova)
 %     xX.erdf   - effective residual degrees of freedom (trRV^2/trRVRV)
+%     xX.nKX    - design matrix (xX.xKXs.X) scaled for display
+%                 (see spm_DesMtx('sca',... for details)
 % 
 %     xM        - as input (but always in the structure format)
 %
@@ -273,7 +285,7 @@ if nargin<4, c   = []; end
 
 %-Check required fields of xX structure exist - default optional fields
 %-----------------------------------------------------------------------
-for tmp = {'X','K','Xnames'}, if ~isfield(xX,tmp)
+for tmp = {'X','Xnames'}, if ~isfield(xX,tmp)
     error(sprintf('xX Design structure doesn''t contain ''%s'' field',tmp{:}))
 end, end
 
@@ -307,15 +319,15 @@ end
 files = {	'SPM.mat','Yidx.mat','Y.mad',...
 		'mask.???','ResMS.???',...
 		'xCon.mat',...
-		'beta_????.???','con_????.???','spm_????.???'};
-for str = files
-	if any(str=='*'|str=='?')
-		[tmp,null] = spm_list_files(pwd,str);
+		'beta_????.???','con_????.???','ess_????.???','spm?_????.???'};
+for i=1:length(files)
+	if any(files{i}=='*'|files{i}=='?')
+		[tmp,null] = spm_list_files(pwd,files{i});
 		for i=1:size(tmp,1)
 			spm_unlink(deblank(tmp(i,:)))
 		end
 	else
-		spm_unlink(str)
+		spm_unlink(files{i})
 	end
 end
 
@@ -323,6 +335,7 @@ end
 %=======================================================================
 % - A N A L Y S I S   P R E L I M I N A R I E S
 %=======================================================================
+fprintf('%-40s: %30s','Initialising design space','...checking')     %-#
 
 %-Check Y images have same dimensions, orientation & voxel size
 %-----------------------------------------------------------------------
@@ -340,6 +353,7 @@ if any(size(xX.K)~=size(xX.X,1)), error('K not a temporal smoothing matrix'), en
 %-Construct design parmameters, and store in design structure xX
 % Take care to apply temporal convolution
 %-----------------------------------------------------------------------
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')            %-#
 [nScan,nbeta] = size(xX.X);			%- #scans & #parameters
 xX.V          = xX.K*xX.xVi.Vi*xX.K';		%-V matrix
 xX.xKXs       = spm_sp('Set',xX.K*xX.X);	%-Design space struct
@@ -350,6 +364,7 @@ xX.Bcov       = xX.pKXV * xX.pKX';		%-Var-cov matrix of est. par.
 [xX.trRV,xX.trRVRV] ...				%-Expectations of variance (trRV)
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
 xX.erdf       = xX.trRV^2/xX.trRVRV;		%-Effective residual d.f.
+xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames); %-Scale DesMtx for display
 
 %-Check estimability
 %-----------------------------------------------------------------------
@@ -363,6 +378,7 @@ end
 
 %-F-contrast for Y.mad pointlist filtering (only)
 %-----------------------------------------------------------------------
+fprintf('%s%30s',sprintf('\b')*ones(1,30),'...F-contrast for Y.mad') %-#
 UFp = spm('GetGlobal','UFp'); if isempty(UFp), UFp = Def_UFp; end
 
 if isempty(c) & UFp>0 & UFp<1		%-Want to F-threshold but no contrast!
@@ -414,6 +430,9 @@ end
 %-----------------------------------------------------------------------
 Fc = c;
 
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%-40s: %30s','Output images','...initialising')             %-#
+
 %-Image dimensions
 %-----------------------------------------------------------------------
 xdim    = VY(1).dim(1); ydim = VY(1).dim(2); zdim = VY(1).dim(3);
@@ -458,7 +477,7 @@ VResMS = struct(	'fname',	'ResMS.img',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
 VResMS = spm_create_image(VResMS);
 
-
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 
 
 %=======================================================================
@@ -518,7 +537,8 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 	%-# Print progress information in command window
 	%---------------------------------------------------------------
-	fprintf('\rPlane %3d/%-3d : plank %3d/%-3d%30s',z,zdim,bch,nbch,' ')
+	fprintf('\r%-40s: %30s',sprintf('Plane %3d/%-3d, plank %3d/%-3d',...
+		z,zdim,bch,nbch),' ')                                %-#
 
 	cl   = clines(bch); 	 	%-line index of first line of bunch
 	bl   = blines(bch);  		%-number of lines for this bunch
@@ -577,7 +597,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-Temporal smoothing
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-						'...temporal smoothing')%-#
+					'...temporal smoothing')     %-#
 		KY    = xX.K*Y;
 
 		%-General linear model: least squares estimation
@@ -585,7 +605,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		% (Including temporal convolution of design matrix with K)
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-						'...parameter estimation')%-#
+					'...parameter estimation')   %-#
 		beta  = xX.pKX * KY;			%-Parameter estimates
 		res   = spm_sp('res',xX.xKXs,KY);	%-Residuals
 		ResMS = sum(res.^2)/xX.trRV;		%-Residual mean square
@@ -596,7 +616,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-------------------------------------------------------
 		if UFp>0
 			fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-							'...saving data')%-#
+						'...saving data')    %-#
 			if UFp == 1			%-Save all data
 				spm_append(Y,'Y.mad',2)	%-append data
 				Yidx = [Yidx,S+[1:CrS]];%-save indexes to coords
@@ -639,7 +659,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		% mask (eg in y-dim when not at the begining of the plane).
 
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-						'...smoothness estimation')%-#
+					'...smoothness estimation') %-#
 
 
 		%-Construct utility vector to map from mask (CrLm) to voxel
@@ -743,7 +763,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     %-Plane complete, write out plane data to image files
     %===================================================================
-    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...saving plane')%-#
+    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...saving plane')     %-#
 
     %-Mask image
     %-------------------------------------------------------------------
@@ -770,11 +790,11 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     %-Report progress
     %-------------------------------------------------------------------
-    fprintf('%s%30s',sprintf('\b')*ones(1,30),' ')%-#
+    fprintf('%s%30s',sprintf('\b')*ones(1,30),'...done')             %-#
     spm_progress_bar('Set',100*(bch + nbch*(z-1))/(nbch*zdim));
 
 end % (for z = 1:zdim)
-fprintf('\n')
+fprintf('\n')                                                        %-#
 
 
 %=======================================================================
@@ -797,19 +817,23 @@ W      = (2*diag(Lambda)').^(-1/2);
 FWHM   = sqrt(8*log(2))*W;
 
 
-%-Estimate RESEL counts for volume (assume a sphere)
+%-Estimate RESEL counts for volume
 %-----------------------------------------------------------------------
-R      = spm_resels(FWHM,S);
+fprintf('%-40s: %30s','Estimating RESELS','...(working hard)')       %-#
+R      = spm_resels(FWHM,S);		%-Assummes a sphere
+%R      = spm_resels(FWHM,XYZ,'V');	%-Takes ages!
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
 %-Save remaining results files and analysis parameters
 %=======================================================================
+fprintf('%-40s: %30s','Saving results','...writing')                 %-#
 
 %-"close" image files, updating scalefactor information
 %-----------------------------------------------------------------------
 VM                      = spm_create_image(VM);
 for i=1:nbeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
-VResMS                  = spm_create_image(VResMS)
+VResMS                  = spm_create_image(VResMS);
 
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
@@ -832,6 +856,7 @@ if nargin>4
 	end
 end
 save('SPM',SPMvars{:})
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
 %=======================================================================
@@ -839,4 +864,5 @@ save('SPM',SPMvars{:})
 %=======================================================================
 spm_progress_bar('Clear')
 spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-fprintf('\n\n')
+fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
+fprintf('...use the results section for assessment\n\n')             %-#
