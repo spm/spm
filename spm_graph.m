@@ -370,7 +370,9 @@ case 'Event-related responses'
 
 		% build a simple FIR model subpartition (X); bin size = TR
 		%------------------------------------------------------
-		BIN         = SPM.xY.RT;
+		str         = 'bin size (secs)';
+                BIN         = sprintf('%0.2f',SPM.xY.RT);
+		BIN         = spm_input(str,'!+1','r',BIN);
 		xBF         = SPM.xBF;
 		U           = Sess(s).U(u);
 		U.u         = U.u(:,1);
@@ -491,7 +493,8 @@ case 'Parametric responses'
 
 	% parameter estimates for this effect
 	%--------------------------------------------------------------
-	B     = beta(Sess(s).Fc(u).i);
+	j     = Sess(s).col(Sess(s).Fc(u).i);
+	B     = beta(j);
 
 	% reconstruct trial-specific responses
 	%--------------------------------------------------------------
@@ -544,7 +547,8 @@ case 'Volterra Kernels'
 
 		% Parameter estimates and kernel
 		%------------------------------------------------------
-		B     = beta(Sess(s).Fc(u).i);
+		j     = Sess(s).col(Sess(s).Fc(u).i);
+		B     = beta(j);
 		i     = 1;
 		Y     = 0;
 		for p = 1:size(bf,2)
@@ -578,7 +582,8 @@ case 'Volterra Kernels'
 	% first  order kernel
 	%--------------------------------------------------------------
 	else
-		B     = beta(Sess(s).Fc(u).i(1:size(bf,2)));
+		j     = Sess(s).col(Sess(s).Fc(u).i(1:size(bf,2)));
+		B     = beta(j);
 		Y     = bf*B;
 
 		% plot
