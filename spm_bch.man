@@ -12,7 +12,7 @@
 %
 % [BCH_EX_DIR] = ~spm/spm_devel/batch/examples
 %_______________________________________________________________________
-% %W% JB Poline & Stephanie Rouquette %E%
+% @(#)spm_bch.man	2.6 JB Poline & Stephanie Rouquette 99/10/27
 %
 %
 %
@@ -170,7 +170,8 @@
 % |  'types',    {{'events','events','events','events','events'}}, ... 
 % |  'bf_ev',   [1 2 1 1 1], ...
 % |  'bf_ep',   [0 0 0 0 0], ...
-% |  'volterra',  0 ...
+% |  'volterra',  0, ...
+%    'variable_dur', 0 ...
 % | );
 % | 
 % | 
@@ -464,10 +465,12 @@
 %----------------------------------------
 %................[UNIQUE]...................
 % 'volterra',    'y/n',[1 0]
+% 'variable_dur',    'yes|no',[1 0],
 %................[MULTIPLE]................
 % 'types',       STRINGS, {'events','epochs'},
 % 'names',       STRINGS
-% 'onsets',      VALUE_ARRAYS   
+% 'onsets',      VALUE_ARRAYS
+% 'durations',   VALUE_ARRAYS   
 % 'bf_ev',       INDICES
 % 'bf_ep',       INDICES
 %
