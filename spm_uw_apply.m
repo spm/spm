@@ -120,7 +120,6 @@ function varargout = spm_uw_apply(ds,flags)
 % Jesper Andersson
 % $Id$
 
-
 global defaults
 
 def_flags = struct('mask',       1,...
@@ -144,8 +143,7 @@ if exist('defaults','var') & isfield(defaults,'realign') & isfield(defaults.real
 end
 
 if nargin < 1 | isempty(ds)
-    % ds = load(spm_select(1,'.*uw.mat$','Select Unwarp result file'));
-    ds   = getfield(load(spm_select(1,'.*uw.mat$','Select Unwarp result file')),'ds');
+    ds   = getfield(load(spm_select(1,'.*uw\.mat$','Select Unwarp result file')),'ds');
 end
 
 %
@@ -231,17 +229,21 @@ if flags.mask | flags.mean,
       for i=1:size(ds(s).beta,2)
          def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
       end
+      sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
+      tiny = 5e-2; 
       for i = 1:prod(size(ds(s).P))
          T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
          txyz = xyz * T';
          txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
-         msk = msk + real(txyz(:,1) < 1 | txyz(:,1) > ds(s).P(1).dim(1) |...
-                          txyz(:,2) < 1 | txyz(:,2) > ds(s).P(1).dim(2) |...
-                          txyz(:,3) < 1 | txyz(:,3) > ds(s).P(1).dim(3)); 
+         sess_msk = sess_msk + real(txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(1).dim(1)+tiny) |...
+                                    txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(1).dim(2)+tiny) |...
+                                    txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).P(1).dim(3)+tiny));     % Changed 23/3-05   
          spm_progress_bar('Set',tv);
          tv = tv+1;
       end
-      if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - msk; end
+      msk = msk + sess_msk;
+      if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - sess_msk; end   % Changed 23/3-05
+  
       %
       % Include static field in estmation of mask.
       %
@@ -323,10 +325,15 @@ for s=1:length(ds)
       %
       if flags.which
          PO.fname   = prepend(ds(s).P(i).fname,'u');
+	 ivol       = ima; 
          if flags.mask
-            ima(msk) = NaN;
+	    %
+	    % Changed to fix "lost data in mean" bug.
+	    % 23/3-05 Jesper A
+	    %
+	    ivol(msk) = NaN;
          end
-         ivol = reshape(ima,PO.dim(1:3));
+         ivol = reshape(ivol,PO.dim(1:3));
          tP = spm_write_vol(PO,ivol);
 	 if nargout > 0
 	    oP{s}(i) = tP;
@@ -356,7 +363,7 @@ if flags.mean
    PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
    PO.descrip = 'spm - mean undeformed image';
-   PO.dt      = [4 spm_platform('bigend')];
+   PO.dim(4)  = 4;
    ivol = reshape(Integral,PO.dim(1:3));
    spm_write_vol(PO,ivol);
 end

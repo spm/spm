@@ -679,20 +679,14 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering')	%-#
 
 		KWY   = spm_filter(xX.K,W*Y);
-
 if isfield(xX,'W') && any(~finite(KWY(:))),
 	% Try to find the wierd Matlab 7 bug that I
 	% was getting on my Linux machine -JA
-	drawnow
-	t1 = spm_filter(xX.K,W*Y);
-	if any(finite(t1(:)) ~= finite(KWY(:))),
-		fprintf('\n');
-		disp('Please inform the SPM developers about');
-		disp('the configuration of your machine, and the');
-		disp('MATLAB version that you are running.');
-		warning('Found non-finite values in KWY.');
-	end;
-	warning('Found non-finite values in KWY (could be the data).');
+	fprintf('\n');
+	disp('Please inform the SPM developers about');
+	disp('the configuration of your machine, and the');
+	disp('MATLAB version that you are running.');
+	warning('Found non-finite values in KWY.');
 end;
 
 		%-General linear model: Weighted least squares estimation
@@ -761,29 +755,33 @@ end;
 
 	%-Write Mask image
 	%-------------------------------------------------------------------
-	j   = sparse(xdim,ydim);
-	if length(Q), j(Q) = 1; end
-	VM    = spm_write_plane(VM, j, z);
+	jj    = sparse(xdim,ydim);
+	if length(Q), jj(Q) = 1; end
+	VM    = spm_write_plane(VM, jj, z);
 
 	%-Write beta images
 	%-------------------------------------------------------------------
-	j   = NaN*ones(xdim,ydim);
+	% For some reason, on my machine with Matlab 7.0.1, some of the
+	% values from jj appear in unexpected places in KWY (but not in
+	% argout within spm_filter).  Something strange happens on
+	% returning out of the function
+	jj   = NaN*ones(xdim,ydim);
 	for i = 1:nBeta
-		if length(Q), j(Q) = CrBl(i,:); end
-		Vbeta(i) = spm_write_plane(Vbeta(i), j, z);
+		if length(Q), jj(Q) = CrBl(i,:); end
+		Vbeta(i) = spm_write_plane(Vbeta(i), jj, z);
 	end
 
 	%-Write residual images
 	%-------------------------------------------------------------------
 	for i = 1:nSres
-		if length(Q), j(Q) = CrResI(i,:); end
-		VResI(i) = spm_write_plane(VResI(i), j, z);
+		if length(Q), jj(Q) = CrResI(i,:); end
+		VResI(i) = spm_write_plane(VResI(i), jj, z);
 	end
 
 	%-Write ResSS into ResMS (variance) image scaled by tr(RV) above
 	%-------------------------------------------------------------------
-	if length(Q), j(Q) = CrResSS;    end
-	VResMS  = spm_write_plane(VResMS,j,z);
+	if length(Q), jj(Q) = CrResSS;    end
+	VResMS  = spm_write_plane(VResMS,jj,z);
 		
     end % (xX,'W')
 

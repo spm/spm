@@ -479,29 +479,29 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function sts = all_set(c)
+function ok = all_set(c)
 % Return whether all the necessary fields have been filled in.
 % This is a recursive function that a branch of the data structure
 % is passed to.
 
 if isfield(c,'hidden'),
-    sts = 1;
+    ok = true;
     return;
 end;
 
-sts = 1;
+ok = true;
 
 switch c.type
 case {'files','menu','entry','const','choice'}
     if isempty(c.val)
-        sts = 0;
+        ok = false;
     end;
 
 case {'branch','repeat'}
     for i=1:length(c.val),
-        sts1 = all_set(c.val{i});
-        sts  = sts && sts1;
-        if ~sts, break; end;
+        ok1 = all_set(c.val{i});
+        ok  = ok && ok1;
+        if ~ok, break; end;
     end;
 end;
 return;
@@ -1742,7 +1742,7 @@ c       = start_node(c,@run_ui,{});
 spm_input('!DeleteInputObj');
 delete(findobj(fg,'Parent',fg));
 [unused,jobs] = harvest(c);
-savexml('lastjob.xml','jobs');
+%savexml('job_last.xml','jobs');
 run_job(jobs);
 return;
 %------------------------------------------------------------------------

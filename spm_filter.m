@@ -1,4 +1,4 @@
-function [vargout] = spm_filter(K,Y)
+function [argout] = spm_filter(K,Y)
 % Removes low frequency confounds X0
 % FORMAT [Y] = spm_filter(K,Y)
 % FORMAT [K] = spm_filter(K)
@@ -48,7 +48,7 @@ if nargin == 1 & isstruct(K)
 
 	% return structure
 	%-------------------------------------------------------------------
-	vargout = K;
+	argout = K;
 
 else
 	% apply
@@ -85,6 +85,7 @@ else
 
 	% return filtered data
 	%-------------------------------------------------------------------
-	vargout   = Y;
-
+	if any(~finite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
+	argout = Y;
 end
+
