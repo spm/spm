@@ -14,19 +14,6 @@ function varargout = spm_FcUtil(varargin)
 % See spm_sp for details of (design) space structures and their
 % manipulation.
 %
-% Since the 99 beta version :
-% Improvements in F-contrast handling :  The first F-contrast structure
-% used to store matrices such that each contrast may take as much memory
-% as the design matrix. Because sometimes the number of contrasts tested
-% is important, the matlab file storing those contrast became huge and
-% could not be handled in matlab anymore. The contrast handling has been
-% improved in 2 ways : first, memory requirements are now cut down to
-% matrices that have sizes [number_of_parameters rank_of_contrast]. To do
-% this, we store an orthonormal basis of the design space and the
-% coordinates of the subspaces of the design space in this basis.
-% Secondly, this allows a cut-down in computing time (see help in
-% spm_FcUtil routines code) when computing an F-contrast.
-%
 %
 % ======================================================================
 % case 'fconfields'				%- fields of F contrast
@@ -65,12 +52,6 @@ function varargout = spm_FcUtil(varargin)
 %
 %- compute the effective degrees of freedom of the numerator edf_tsp
 %- and (optionally) the denominator edf_Xsp of the contrast.
-%- 									
-%=======================================================================
-% case 'rcompatible'				%- Rcompatible F and sX
-% b = spm_FcUtil('Rcompatible',Fc, sX)
-%
-%- Not implemented. Will check the contrast and the space compatibility
 %
 %=======================================================================
 % case 'hsqr' %-Extra sum of squares sqr matrix for beta's from contrast
@@ -367,25 +348,6 @@ end;
 
 
 
-case 'rcompatible'				%- Rcompatible F and sX
-%=======================================================================
-% b = spm_FcUtil('Rcompatible',Fc, sX)
-
-%- Check if the space and the contrast are compatible.
-
-%if nargin ~=3, error('Insufficient arguments'), end
-%Fc = varargin{2};
-%sX = varargin{3};
-%if ~sf_IsFcon(Fc), error('Fc must be Fcon'), end
-%if ~spm_sp('isspc',sX)
-%	sX = spm_sp('set',sX);	end;
-%
-%varargout = {sf_rcompatible(Fc,sX)};
-
-varargout = {1};
-
-
-
 %=======================================================================
 %=======================================================================
 %		part that use F contrast
@@ -577,11 +539,11 @@ case {'|_?'}    	%-  Are contrasts orthogonals
 if nargin < 3, error('Insufficient arguments'), end
 Fc1 = varargin{2}; sX = varargin{3};
 if nargin > 3, Fc2 = varargin{4}; else, Fc2 = []; end;
-if isempty(Fc1), error('give at leat one non empty contrast'), end;
+if isempty(Fc1), error('give at least one non empty contrast'), end;
 
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
 for i=1:length(Fc1)
-    if ~sf_IsFcon(Fc1(i)), error('Fc1(i) must be a contrast'), end
+	if ~sf_IsFcon(Fc1(i)), error('Fc1(i) must be a contrast'), end
 end
 for i=1:length(Fc2)
 	if ~sf_IsFcon(Fc2(i)), error('Fc2(i) must be a contrast'), end
@@ -915,17 +877,6 @@ end
 function boul = sf_isnull(Fc,sX)
 %
 boul = ~any(any(spm_sp('oPp:',sX,Fc.c)));
-
-%=======================================================================
-%
-function boul = sf_rcompatible(Fc,sX)
-%
-%- ways for Fc and sX to be uncompatible
-% 		size(c,1) ~= size(sX.X,2)
-%		size(Fc.X0,1) ~= size(sX.X,1)
-%		size(Fc.X1o,1) ~= size(sX.X,1)
-
-boul = 1;
 
 %=======================================================================
 % Fc = spm_FcUtil('Set',name, STAT, set_action, value, sX)
