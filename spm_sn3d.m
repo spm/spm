@@ -392,7 +392,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			eval('spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms);','disp(''Normalization Bombed Out'');');
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms);
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
@@ -401,7 +401,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=PP' num2str(i) ';']);
-			eval('spm_write_sn(P,matname,bb,Vox,Hold);','disp(''Writing Normalized Bombed Out'');');
+			spm_write_sn(P,matname,bb,Vox,Hold);
 		end
 	end
 	
