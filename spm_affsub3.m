@@ -52,6 +52,7 @@ if strcmp(mode,'register1')
 		  0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1]';
 	gorder = [1 2];
 	free   = [ones(1,18) ones(1, 2)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'rigid1')
 	% Rigid body registration.
@@ -65,6 +66,7 @@ elseif strcmp(mode,'rigid1')
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
 	free   = [ones(1,6) zeros(1,6) zeros(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'rigid2')
 	% Rigid body registration.
@@ -78,6 +80,7 @@ elseif strcmp(mode,'rigid2')
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
 	free   = [ones(1,6) zeros(1,6) ones(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'rigid3')
 	% Rigid body registration.
@@ -91,6 +94,7 @@ elseif strcmp(mode,'rigid3')
 	pdesc  = ones(12+np,1);
 	gorder = ones(1,np);
 	free   = [ones(1,6) zeros(1,6) ones(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'affine1')
 	% Affine normalisation.
@@ -104,6 +108,7 @@ elseif strcmp(mode,'affine1')
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
 	free   = [ones(1,12) zeros(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'affine2')
 	% Affine normalisation.
@@ -117,6 +122,7 @@ elseif strcmp(mode,'affine2')
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
 	free   = [ones(1,12) ones(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
 
 elseif strcmp(mode,'affine3')
 	% Affine normalisation.
@@ -130,6 +136,8 @@ elseif strcmp(mode,'affine3')
 	pdesc  = ones(12+np,1);
 	gorder = ones(1,np);
 	free   = [ones(1,12) ones(1, np)]';
+	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+
 else
 	error('I dont understand');
 end
@@ -151,6 +159,9 @@ end
 
 % Do the optimisation
 %-----------------------------------------------------------------------
+if nargin == 5
+	params = mean0;
+end
 params = spm_affsub2(VG,VF, MG,MF, Hold,samp,params,free,pdesc,gorder);
 
 
