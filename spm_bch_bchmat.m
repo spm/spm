@@ -174,7 +174,8 @@ str = [str  ' bch_names'];
 % .mat saved here: here bch_mat does contain the path of the 
 % bch_mfile (because we are in the working dir).
 %-----------------------------------------------------------------------
-eval(['save ' spm_str_manip(bch_mfile,'rp') ' ' str]);
+%eval(['save ' spm_str_manip(bch_mfile,'rp') ' ' str]);
+save(spm_str_manip(bch_mfile,'rp'),str);
 
 bch_mat = spm_str_manip(bch_mfile,'rp'); %-here contains the path
 

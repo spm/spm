@@ -380,7 +380,7 @@ xX     = struct(	'X',		[Xx Xb],...
 %-End: Save SPM_fMRIDesMtx.mat
 %-----------------------------------------------------------------------
 fprintf('\t%-32s: ','Saving fMRI design')                            %-#
-save SPM_fMRIDesMtx SPMid xX Sess
+save('SPM_fMRIDesMtx','SPMid','xX','Sess');
 fprintf('%30s\n\n','...SPM_fMRIDesMtx.mat saved')                    %-#
 spm_input('!DeleteInputObj')
 

@@ -101,7 +101,7 @@ for k=1:size(files,1)
 		  0 VOX(2) 0 offs(2) ; ...
 		  0 0 VOX(3) offs(3) ; 0 0 0 1];
 	   try
-		eval(['save ' matname ' M -v4']);
+		save(matname,'M','-v4');
 	   catch
 		status.str = [status.str 'pb in saving ' matname];
 		status.err = 3;
