@@ -94,7 +94,7 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % box-car) and finite impulse response (FIR) models, where there is one
 % basis function for each scan following an event or epoch onset.  The
 % nice thing about basis functions, compared to FIR models, is that data
-% sampling and stimulus presentation does not have to be sychronized
+% sampling and stimulus presentation does not have to be synchronized
 % thereby allowing a uniform and unbiased sampling of peri-stimulus time.
 % 
 % Event-related designs may be stochastic or deterministic.  Stochastic
@@ -106,7 +106,7 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % A critical issue in stochastic designs is whether to include null events
 % If you wish to estimate the evoke response to a specific event
 % type (as opposed to differential responses) then a null event must be
-% included (even if it is not modelled explicitly).
+% included (even if it is not modeled explicitly).
 % 
 % The choice of basis functions depends upon the nature of the inference
 % sought.  One important consideration is whether you want to make
@@ -143,11 +143,11 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % High-pass filtering is implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
 % matrix).  The default cutoff period is 128 seconds.  Use 'explore design'
-% to ensure this cuttof is not removing too much experimental variance.
+% to ensure this cutof is not removing too much experimental variance.
 % Note that high-pass filtering uses a residual forming matrix (i.e.
 % it is not a convolution) and is simply to a way to remove confounds
 % without estimating their parameters explicitly.  The constant term
-% is also incorportated into this filter matrix.
+% is also incorporated into this filter matrix.
 %
 %-----------------------------------------------------------------------
 % Refs:
