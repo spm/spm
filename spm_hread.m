@@ -81,7 +81,7 @@ fseek(fid,148,'bof');
 descrip		= setstr(fread(fid,80,'char'))';
 aux_file	= setstr(fread(fid,24,'char'))';
 orient		= fread(fid,1,'char');
-origin		= fread(fid,5,'uint16');
+origin		= fread(fid,5,'int16');
 generated	= setstr(fread(fid,10,'char'))';
 scannum		= setstr(fread(fid,10,'char'))';
 patient_id	= setstr(fread(fid,10,'char'))';
