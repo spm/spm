@@ -343,7 +343,7 @@ function varargout = spm_input(varargin)
 %		Since there's only one button, this just displays the response
 %		in GUI position 1 (or on the command line if global CMDLINE
 %		is true), and returns 1.
-%	p = spm_input(str,'+0','b1r','None|Mask',[-Inf,NaN],0.8)
+%	p = spm_input(str,'+0','br1','None|Mask',[-Inf,NaN],0.8)
 %               Presents two buttons labelled "None" & "Mask" (which return
 %               -Inf & NaN if clicked), together with an editable text widget
 %               for entry of a single real number. The default of 0.8 is
@@ -1875,7 +1875,7 @@ if dn==2 & min(n)==1
 	i = min(find(n==max(n)));
 	if n(i)==1 & max(sp)>1
 		p='!'; msg='scalar required';
-	elseif ndims(p)~=2 | ~any(sp==1) | ( isfinite(n(i)) & max(sp)~=n )
+	elseif ndims(p)~=2 | ~any(sp==1) | ( isfinite(n(i)) & max(sp)~=n(i) )
 		%-error: Not2D | not vector | not right length
 		if isfinite(n(i)), str=sprintf('%d-',n(i)); else, str=''; end
 		p='!'; msg=[str,'vector required'];
