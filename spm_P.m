@@ -11,6 +11,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 %		'T' - T - feild
 %		'X' - Chi squared feild
 %		'F' - F - feild
+%		'P' - Posterior probability
 % R     - RESEL Count {defining search volume}
 % n     - number of component SPMs in conjunction
 % S     - Voxel count
@@ -34,15 +35,16 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 %___________________________________________________________________________
 % %W% Thomas Nichols %E%
 
-% set global var NOBONF to 1 to turn off Bonferroni.
+% set global var NOBONF to 1 to turn off Bonferroni
+%---------------------------------------------------------------------------
 global NOBONF; if ~isempty(NOBONF) & NOBONF, S = []; end
 
-if (nargin<8), S=[]; end
+if (nargin < 8), S = []; end
 
 [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n);
 
 % Use lower Bonferroni P value (if possible)
 %===========================================================================
-if ~isempty(S) & (c==1 & k==0) & ~(length(R)==1 & R==1)
+if ~isempty(S) & (c == 1 & k == 0) & ~(length(R) == 1 & R == 1)
     P = min(P,spm_P_Bonf(Z,df,STAT,S,n));
 end
