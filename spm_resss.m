@@ -86,11 +86,8 @@ if Vo.dim(4)~=16, error('only float output images supported'), end
 
 %-Image dimension, orientation and voxel size checks
 %-----------------------------------------------------------------------
-V = [Vi(:);Vo];
-if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
-	error('images don''t all have the same dimensions'), end
-if any(any(any(diff(cat(3,V.mat),1,3),3)))
-	error('images don''t all have same orientation & voxel size'), end
+[samef msg] = spm_vol_check(Vi, Vo);
+if ~samef, disp(char(msg)),error('Cannot use images'),end;
 
 
 %=======================================================================
