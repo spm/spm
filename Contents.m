@@ -1,5 +1,5 @@
-% SPM99 (c) 1991,1994-2000
-% Statistical Parametric Mapping           -                       SPM99 
+% SPM2 (c) 1991,1994-2002
+% Statistical Parametric Mapping           -                       SPM2 
 %_______________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -10,7 +10,7 @@
 % This Contents.m file holds the version ID for this release of Matlab,
 % and contains a manifest of the included functions and their version numbers.
 %
-% SPM99 is written for Matlab v5.2.1 under UNIX and Windows
+% SPM2 is written for Matlab v6.0.0 under UNIX and Windows
 % ( Compiled binaries of external MEX functions are provided for:       )
 % (                   Solaris2, Linux, and Windows                      )
 %
