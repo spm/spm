@@ -1,0 +1,48 @@
+
+% Description of output files from spm_spm.m
+%___________________________________________________________________________
+%
+% SEE ALSO
+% spm_spm.m
+%
+% The results of "Statistcs" (spm_spm.m) are saved in *.mat and SPM*.img
+% files for subsequent analysis and display.  They are saved in CWD (see
+% 'Defaults')
+%
+%
+% SPMF.mat contains a 1 x N vector of F values reflecting the omnibus 
+% significance of effects [of interest] at each of the N 'significant' voxels.
+% 'Significance' is defined by the p-value of the F ratio (UF).
+%
+% XYZ.mat contains a 3 x N matrix of the x,y and z location of the voxels in 
+% SPMF in mm (usually referring the the standard anatomical space (Talairach 
+% and Tournoux 1988)} (0,0,0) corresponds to the centre of the voxel specified 
+% by ORIGIN in the *.hdr of the original and related data.
+%
+% BETA.mat contains a p x N matrix of the p parameter estimates at each of the 
+% N voxels.  These parameters include all effects specified by the design 
+% matrix.
+%
+% XA.mat contains a q x N matrix of adjusted activity values having removed 
+% the effects of no interest at each of the N voxels for all q scans.
+%
+% SPMt.mat contains a c x N matrix of the c SPM{Z} defined by the c contrasts 
+% supplied for all N voxels at locations XYZ.
+%
+% SPM.mat  contains a collection of matrices that pertain to the analysis; 
+% including the partitions of the deign matrix [H C B G], the number of voxels 
+% analyzed (S), smoothness estimates of the SPM{Z} [W FWHM], image and voxel
+% sizes, the origin of the space, threshold [UF] and a c x p matrix of 
+% contrasts [CONTRAST]
+%
+% SPM*.img  8 bit (unsigned char) images of the SPM{Z}.  The values of the 
+% SPM{Z} are restricted to positive values and have been scaled by a factor 
+% of 16.  These images may be useful in surface rendering and other display 
+% applications outside SPM (e.g. ANALYZE).
+%
+% Output to the results window includes maximum intensity projections of the 
+% SPM{F}, the design matrix and a series of pages for the SPM{Z} (see also
+% 'Projections' in the help facility).
+%
+%__________________________________________________________________________
+% %W% %E%

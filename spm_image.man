@@ -1,0 +1,34 @@
+
+% Image display and header editing 
+%___________________________________________________________________________
+%
+% SEE ALSO
+%
+% spm_image.m
+% spm_display.m
+% spm_fix_header.m
+%
+% This is an image and header display facility that displays three orthogonal 
+% sections through the centre of the image space.  The display takes account 
+% of voxel anisotropy.  6 parameter (rigid body) transformations can be 
+% applied to the image and the results of this spatial transformation can be 
+% written to the disk. This facility also allows headers to be edited and
+% written to disk.  If a header does not exist default values are used (see 
+% 'Defaults')
+%
+% The red lines overlaying the sections are the planes that contain the
+% voxel specified by the ORIGIN field of the header.  This facility could
+% be used to specify the anterior commissure manually (as an alternative
+% to spatial normalization).
+%
+% Inputs
+% *.img (and *.hdr) and user specified transformations.
+%
+% Outputs (if any)
+%
+% A transformed *.img is written to the same subdirectory with a 't' prefix 
+% (i.e. t*.img).
+%
+%__________________________________________________________________________
+% %W% %E%
+

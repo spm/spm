@@ -1,0 +1,15 @@
+
+% User specific button
+%___________________________________________________________________________
+%
+% SEE ALSO:
+%
+% spm_ui.m
+%
+% This button will invoke USERNAME.m, if it exists.  Otherwise a friendly
+% message is displayed.  This facility is included to allow customized
+% routines to be called upon from the user interface.  These routines
+% should be in a directory listed in MATLABPATH.
+%
+%__________________________________________________________________________
+% %W% %E%

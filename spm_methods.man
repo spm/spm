@@ -1,0 +1,117 @@
+
+% Writing the methods section on Data Analysis
+%___________________________________________________________________________
+%
+% The following represents an concise description of the methods that you are
+% using and a guide to help you during preparation of manuscripts
+%
+% Data Analysis
+% 
+% 
+%    The data were analysed with statistical parametric mapping (using software
+% from the Wellcome Dept. of Cognitive Neurology, London, UK) implemented 
+% in Matlab (Mathworks Inc. Sherborn MA, USA).  Statistical parametric maps 
+% are spatially extended statistical processes that are used to characterise 
+% regionally specific effects in imaging data.  Statistical parametric mapping 
+% combines the general linear model (to create the statistical map or SPM) and
+% the theory of Gaussian fields to make statistical inferences about regional  
+% effects (Friston et al 1991, Worsley et al 1992, Friston et al 1994)
+% 
+% 
+% Spatial realignment and normalization
+%  
+%    The scans from each subject were realigned using the first as a reference.
+% The six parameters of this rigid body transformation were estimated using
+% a least squares approach (Friston et al 1995a).  This approach is based on
+% an approximate linear relationship between the images and their partial
+% derivatives with respect to parameters of the transformation.   Following
+% realignment all images were transformed into a standard space (Talairach 
+% and Tournoux 1988). This normalizing spatial transformation matches each 
+% scan (in a least squares sense) to a reference or template image that 
+% already conforms to the standard space.  The procedure involves a 12
+% parameter affine  (linear) and quadratic (nonlinear) 3-dimensional
+% transformations. [This is followed by a 2-dimensional piece-wise (transverse
+% slices) nonlinear matching, using a set of smooth basis functions that allow 
+% for normalization at a finer anatomical scale (Friston et al 1995a).]
+%    Again the parameters were estimated using standard least squares after
+% linearizing the problem.  As a final pre-processing step the images were 
+% smoothed using an (16mm FWHM) isotropic Gaussian kernel.
+% 
+% 
+% Statistical analysis
+% 
+%    After specifying the appropriate design matrix (see Figure 1) the
+% condition, subject and covariate effects were estimated according to the 
+% general linear model at each and every voxel (see Friston et al 1995b).  
+% [The design matrix included global activity as a confounding covariate and
+% this analysis can therefore be regarded as an ANCOVA (Friston et al 
+% 1990].  To test hypotheses about regionally specific condition [or 
+% covariate] effects the estimates were compared using linear compounds or 
+% contrasts.  The resulting set of voxel values for each contrast constitute 
+% a statistical parametric map of the t statistic SPM{t}.
+% 
+% Statistical inference
+% 
+%    The SPM{t} were transformed to the unit normal distribution (SPM{Z}) 
+% and thresholded at 3.09 [or p = 0.001 uncorrected].  The resulting foci 
+% were then characterized in terms of spatial extent (k) and peak height (u).
+% The significance of each region was estimated using distributional 
+% approximations from the theory of Gaussian Fields.  This characterization 
+% is in terms of the probability that a region of the observed number of voxels
+% (or bigger) could have occurred by chance [P(nmax > k)], or that the peak
+% height observed (or higher) could have occurred by chance [P(Zmax > u)]
+% over the entire volume analyzed [i.e a corrected p-value].
+% 
+% 
+% Legends for Figures
+%
+% (output from spm_spm.m and spm_projections.m)
+%
+% Upper left panel: Statistical parametric map of the t statistic [after
+% transformation to a SPM{Z}] corresponding to the first comparison
+% of condition [or covariate] effects.  The SPM is displayed in a standard 
+% format as a maximum intensity projection viewed from the back, the right
+% hand side and the top of the brain.  The anatomical space corresponds to
+% the atlas of Talairach and Tournoux (1988). The SPM has been thresholded 
+% at 3.09 and the color scale is arbitrary.  Upper right panel: Top - the 
+% contrast used for this SPM.  The contrast is displayed above the design 
+% matrix for this experiment to show the effects (columns of the design 
+% matrix) that we have tested in this analysis.  These effects were 
+% differences between conditions 1 3 and 5 and conditions 2 4 and 6 i.e. the 
+% differences between task A and task B.  Lower panel:  Table of regional
+% effects [activations or regional differences] characterized by the volume of
+% each region (k), its significnace based on patial extent P(nmax > k), the
+% highest Z value (u), its significance based on P(Zmax > u) and the location
+% of this primary maximum.  We have also included up to three secondary maxima
+% for each region and their associated significance based on the corrected p
+% value [P(Zmax > u)] and the uncorrected p value.
+% 
+% 
+% References
+% Friston KJ Frith CD Liddle PF Dolan RJ Lammertsma AA & Frackowiak RSJ 
+% (1990) The relationship between global and local changes in PET scans J 
+% Cereb Blood Flow Metab 10:458-466
+% 
+% Friston KJ Frith CD Liddle PF and Frackowiak, RSJ. (1991)  Comparing 
+% functional (PET) images: The assessment of significant change. J. Cereb. 
+% Blood Flow Metab.  11:690-699.
+% 
+% Friston KJ Worsley KJ Frackowiak RSJ Mazziotta JC & Evans AC (1994) 
+% Assessing the significance of focal activations using their spatial 
+% extent. Human Brain Mapping 1:214-220
+% 
+% Friston KJ Ashburner J Poline JB Frith CD Heather JD and Frackowiak RSJ 
+% (1995a) Spatial realignment and normalization of images: Human Brain
+% Mapping - in press.
+% 
+% Friston KJ Holmes AP Worsley KJ Poline JB Frith CD and Frackowiak RSJ  
+% (1995b) Statistical parametric maps in functional imaging: A general 
+% approach: Human Brain Mapping 2:189-210
+%
+% Worsley KJ  Evans AC Marrett S & Neelin P (1992) A three-dimensional 
+% statistical analysis for rCBF activation studies in human brain. J. Cereb.
+% Blood. Flow Metab. 12:900-918
+%
+%__________________________________________________________________________
+% %W% %E%
+

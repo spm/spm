@@ -1,0 +1,181 @@
+% 
+% Introduction
+% 
+%    The following outline and selected abstracts represent a summary
+%    of the analytic stages proposed for the analysis of [S]PET
+%    studies. The stages of analysis include (i) realignment, (ii)
+%    spatial normalisation, (iii) smoothing, (iv) voxel-wise
+%    statistical analysis (using the general linear model)  and (v)
+%    statistical inference based on the spatial extent and maxima of
+%    the activation foci that ensue (using the theory of Gaussian
+%    fields).
+% 
+% 
+% Outline of Stages
+% 
+% Realignment
+%    Movement-related components in imaging time-series represent a
+%    serious confound.  The procedure adopted in this framework is to
+%    estimate head movements using a least squares analysis (that
+%    obtains after linearising the problem with a first order Taylor
+%    series).  These estimates are then used to re-position the
+%    images.
+% 
+% Spatial normalisation
+%    To facilitate intersubject averaging and the reporting of results
+%    in a conventional way the data are transformed into a standard
+%    anatomical space (usually that described in the atlas of Talairach
+%    and Tournoux 1988).  The spatial normalisation is based on a high
+%    resolution volumetric PET (or MRI data that is in register with
+%    the PET data).   The space into which the images are normalised is
+%    defined by the specified template or model image.
+% 
+% Smoothing
+%    This step has two objectives: (i) To increase signal to noise and,
+%    in intersubject averaging, reduce the impact of variable
+%    functional anatomy.   (ii) Convoluting with a Gaussian kernel
+%    conditions the data in the sense that it conforms more closely to
+%    a Gaussian field model.  This is important if one wants to use the
+%    theory of Gaussian fields to make statistical inferences about
+%    (i.e. assign p-values to) the activations.
+% 
+% Statistical Analysis
+%    This component corresponds to statistical parametric mapping using
+%    the general linear model and the theory of Gaussian fields.
+%    Specific hypotheses, specified in terms of linear compounds of
+%    estimates of effects due to factor levels or covariates, are
+%    tested with a t value at each and every voxel.  These t values
+%    constitute the statistical parametric map SPM{t}.  The SPM{t} is
+%    transformed to the unit normal distribution to give a SPM{Z}.
+% 
+% Statistical inference
+%    The SPM{Z} above is now subject to standard procedures developed
+%    for statistical parametric mapping using the theory of Gaussian
+%    fields.  These procedures give a p-value for each activated region
+%    (above some arbitrary threshold) and a p-value for each maximum
+%    within that region.  These p-values are corrected for the multiple
+%    non-independent comparisons implicit in the analysis.  These
+%    results [the SPM{Z} and associated p-value] are the endpoint of
+%    the analysis.
+% 
+% 
+% Selected Bibliography
+% 
+%    The key papers detailing the framework described above are listed,
+%    with their abstracts, below.  These papers are not a comprehensive
+%    bibliography of the field and are restricted to our own recent
+%    work (the background and converging work of others will be found
+%    in these papers).  Unfortunately most of these papers are still in
+%    press but should be available in the next month or so.
+% 
+% 
+% 
+% SPM_1: Spatial registration and normalisation of images Friston KJ,
+% Ashburner J, Frith CD, Poline J-B,  Heather JD and Frackowiak RSJ
+% Hum. Brain Mapping. in press
+% 
+% Abstract
+%    This paper concerns the spatial and intensity transformations that
+%    map one image onto another.  We present a general technique that
+%    facilitates non-linear spatial (stereotactic) normalisation and
+%    image realignment.  This technique minimises the sum of squares
+%    between two images following non-linear spatial deformations and
+%    transformations of the voxel (intensity) values.  The spatial and
+%    intensity transformations are obtained simultaneously, and
+%    explicitly, using a least squares solution and a series of
+%    linearising devices.  The approach is completely noninteractive
+%    (automatic), non-linear and non iterative.  It can be applied in
+%    any number of dimensions.  Various applications are considered,
+%    including the realignment of functional MRI time-series, linear
+%    (affine) and non-linear spatial normalisation of PET and
+%    structural MRI images, the coregistration of PET to structural MRI
+%    and, implicitly, the conjoining of PET and MRI to obtain high
+%    resolution functional images.
+% 
+% This paper describes the general approach to estimating movement
+% parameters and is a useful background read that deals with the many
+% instantiations of this theory in SPM95
+% 
+% 
+% SPM_2: Assessing the significance of focal activations using their
+% spatial extent.  Friston KJ, Worsley KJ, Frackowiak RSJ, Mazziotta JC
+% & Evans, AC Human Brain Mapping 1:214-220
+% 
+% Abstract
+%    Current approaches to detecting significantly activated regions of
+%    cerebral tissue use statistical parametric maps, which are
+%    thresholded to render the probability of one or more activated
+%    regions of one voxel, or larger, suitably small (e.g. 0.05).  We
+%    present an approximate analysis which gives the probability that
+%    one or more activated regions of a specified volume, or larger,
+%    could have occurred by chance.  These results mean that the
+%    detection of significant activations no longer depends on a fixed
+%    (and high) threshold but can be effected at any (lower) threshold,
+%    in terms of the spatial extent of the activated region.  The
+%    substantial improvement in sensitivity which ensues is illustrated
+%    using a power analysis and a simulated phantom activation study.
+% 
+% A key paper that presented theoretical expressions for the
+% probability of obtaining 'big' clusters of voxels.  It also contains
+% a brief review of the more general use of the theory of Gaussian
+% fields in statistical parametric mapping.
+% 
+% 
+% SPM_3: Statistical parametric maps in functional imaging: A general
+% linear approach Friston KJ, Holmes AP, Worsley KJ, Poline J-P Frith
+% CD and Frackowiak RSJ Human Brain Mapping - in press
+% 
+% Abstract
+%    Statistical parametric maps are spatially extended statistical
+%    processes that are used to test hypotheses about regionally
+%    specific effects in neuroimaging data.   The most established
+%    sorts of statistical parametric maps (e.g. Friston et al 1991,
+%    Worsley et al 1992) are based on linear models, for example
+%    ANCOVA, correlation coefficients and t tests.  In the sense that
+%    these examples are all special cases of the general linear model
+%    it should be possible to implement them (and many others) within a
+%    unified framework.  We present here a general approach that
+%    accommodates most forms of experimental layout and ensuing
+%    analysis (designed experiments with fixed effects for factors,
+%    covariates and interaction of factors).  This approach brings
+%    together two well established bodies of theory (the general linear
+%    model and the theory of Gaussian Fields) to provide a complete and
+%    simple framework for the analysis of imaging data.  The importance
+%    of this framework is twofold:  (i) Conceptual and mathematical
+%    simplicity, in that the small number of operational equations used
+%    are the same, irrespective of the complexity of the experiment or
+%    nature of the statistical model and (ii) the generality of the
+%    framework provides for great latitude in experimental design and
+%    analysis.
+% 
+% This is a general introduction to the general linear model in the
+% context of functional imaging.  Statistical parametric mapping can be
+% seen as the combined use of the general liner model to create a
+% spatially extended statistical process, that is then interpreted with
+% reference to the theory of Gaussian fields.
+% 
+% 
+% SPM_4: Estimating smoothness in statistical parametric maps:
+% Confidence intervals on p values Poline J.-B, Friston K.J., Worsley
+% K.J. and Frackowiak R.S.J JCAT - submitted
+% 
+% Abstract
+%    The smoothness parameter, that characterises the spatial
+%    dependence of pixel values in functional brain images, is usually
+%    estimated empirically from the data. Since this parameter is
+%    essential for the assessment of significant changes in brain
+%    activity, it is important to know (i) the variance of its
+%    estimator and (ii) how this variability affects the results of the
+%    ensuing statistical analysis.  In this paper, we derive an
+%    approximate expression for the variance of the smoothness
+%    estimator and investigate the effects of this variability on
+%    assessing the significance of cerebral activation in statistical
+%    parametric maps.  Our results suggest that, for p values around
+%    0.05, the variability in the p value (due to smoothness
+%    estimation) is about 20%.
+% 
+% A short paper dealing with the impact of estimating smoothness on
+% statistical inference using SPMs
+% 
+%__________________________________________________________________________
+% %W% %E%

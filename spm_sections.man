@@ -1,0 +1,44 @@
+
+% SPM{Z} section display and rendering
+%___________________________________________________________________________
+%
+% SEE ALSO
+% spm_sections_ui.m
+% spm_table.m
+% spm_plot.m
+% spm_transverse.m
+% spm_sections.m
+%
+% spm_surface_ui.m
+% spm_surface.m
+%
+% Facilitates further characterization of regional effects in tabular
+% graphical or image format.
+%
+% Uses
+%
+% To assess effects at a particular location in the brain and display the 
+% results (i) in a table [of adjusted parameter estimates (e.g. adjusted mean 
+% rCBF) and significance based on the Z score], (ii) as a plot (of mean 
+% condition-specific activities and individual variability about that mean) 
+% or (iii) images [where the SPM{Z} is sectioned in three orthogonal planes, or 
+% three contiguous transverse slices, and rendered on a suitable structural 
+% image (e.g. the PET template or an individual MRI scan where the latter 
+% has been registered with the original functional data and subject to the 
+% same spatial normalization)].  Render is used to explicitly render the
+% SPM{Z} under the cortical or other surface using surface rendering.  It
+% uses image format SPM{Z}.
+%
+% Inputs
+%
+% SPM{Z} in SPMt.mat (sections) or SPM*.img (render) and (if required) a 
+% structural image on which to render the results.  This structural image 
+% must have ORIGIN set to correspond to (0,0,0) in XYZ (the vector of 
+% locations)
+%
+% Outputs
+%
+% Tables, graphs and images are displayed in the results window.
+%
+%__________________________________________________________________________
+% %W% %E%

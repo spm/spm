@@ -1,0 +1,71 @@
+
+% Image Format
+%___________________________________________________________________________
+%
+% SEE ALSO
+%
+% spm_hread.m
+% spm_hwrite.m
+% spm_type.m
+% spm_defaults.m
+% spm_fix_header.m
+%
+% SPM has been written to deal with two or three dimensional data of any size 
+% (either image dimensions or voxel size). The data however should be
+% organized with a separate file for each scan, comprising transverse slices
+% running from the bottom to the top of the brain.  More specifically:
+%
+%
+% The image file.
+%
+% *.img: An uninterrupted array of (unsigned integer, signed short, signed 
+% integer, float or double) voxel values running over x (see below), y 
+% (back to front) and then z (bottom to top).  Each *.img usually has an 
+% associated header file that contains information about the image process in 
+% question
+%
+% The right-left orientation of the data is arbitrary and can follow a:
+%
+% 1) Neurological Conventino {image left = subject's left}
+% 2) Radiological Conventino {image left = subject's right}
+%
+% Your data can follow either convention.  Most units acquire PET data
+% according to the radiological convention and some then flip into the
+% neurological convention to facilitate easy inspection.  At the point
+% of specifying the statistical design you will be asked whether the
+% image left corresponds to the subject's left or right.  This allows
+% for any arbitrary left-right orientation of the data.  The ensuing
+% maximum intensity projections and Talairach coordinates are flipped
+% accordingly.  The rendering of SPMs retains the original orientation.
+%
+% It is assumed that fMRI data conform unviversally to the radiological
+% convention (image left = subject's right).
+%
+%
+% The header file.
+%
+% *.hdr: The format of the 348 byte header file is that adopted by ANALYZE 
+% (The Mayo Clinic, Rochester USA).  The fields that are necessary in the 
+% context of SPM include information about:
+%
+% Field    [SPM global variable]
+%
+% image size {in voxels for x, y and z}    [DIM]
+% voxel size {in mm for x, y and z}    [VOX]
+% data type {see spm_type.m}    [TYPE}
+% a scaling coefficient {applied during memory mapping}    [SCALE]
+% offset of voxel values in *.img {in bytes}    [OFFSET]
+% the origin {in voxels for x, y and z} {e.g. the anterior commissure} [ORIGIN]
+% description {a short string}    [DESCRIP]
+%
+% If *.hdr does not exist then default values are assumed.  Default values can 
+% be changed by selecting 'defaults'.  *.hdr can be created (and can 
+% be edited) using the 'Display' facility.
+%
+% The 'Display' facility also includes a 'Fix header' module that allows
+% multiple header files to be created and ammended interactively.  It is
+% important that these header files are correct.  The most common problems
+% with using SPM usually reduce to incomplete or incorrect header files.
+%
+%__________________________________________________________________________
+% %W% %E%

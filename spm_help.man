@@ -1,0 +1,59 @@
+
+% Help
+%___________________________________________________________________________
+%
+% SEE ALSO
+% spm_help.m
+% spm_fmri_help.m
+% spm_help_disp.m
+% spm_sub.m
+%
+% Help is available at three levels;
+%
+% (i) the current application provides a simple overview of each component of 
+% SPM (e.g. Eigenimages)
+% (ii)  information on each routine within SPM (e.g. spm_svd.m) can be accessed
+% by selecting the appropriate routine under "SPM routines"
+% (iii) by reading the correpsonding ASCII spm_*.m file.
+%
+% (i) The current application:  Press the appropriate button to display a short
+% overview of each component, its relation to other components, the
+% inputs and outputs and references to further information.  Each manual page
+% or help page is searched for related SPM routines and these are listed
+% under SPM routines.
+%
+% (ii) Select the appropriate spm_*.m file.
+% Commented header text from that spm_*.m is displayed in the following
+% format:
+%
+% A one line description
+% FORMAT [outputs] = spm_routine(inputs);
+% inputs  -  the input arguments
+% outputs -  the output arguments
+% A short paragraph detailing what the routine does and other
+% pertinent information
+% ref:  citations
+%
+% The selected routine is now searched for further subroutines and the help
+% comments are displayed.  This procedure can be repeated recursively,
+% thereby allowing more elemental subroutines to be accessed.
+%
+% (iii) The spm_*.m routines are ASCII files that are interpreted by Matlab 
+% and implemented.  They can be viewed in any standard text-edit application.
+% The annotation is concise but reasonably clear and should facilitate
+% modification extension or recoding in other languages (e.g. IDL or C).
+% 
+% Matlab syntax is very similar to standard matrix notation that would be 
+% found in much of the literature on matrices.  In this sense the SPM software
+% can be used (with Matlab) for data analysis, or it can be regarded as the 
+% ultimate pseudocode specification of the underlying ideas. There is no 
+% 'manual' for SPM;  these help routines and the software itself constitute 
+% a manual.
+%
+% The "Help" facilities are about software and implementation.  The underlying 
+% mathematics, concepts and operational equations have been (will be) 
+% published in the peer reviewed literature and the interested user is 
+% referred to these sources.
+%
+%__________________________________________________________________________
+% %W% %E%

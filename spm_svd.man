@@ -1,0 +1,43 @@
+
+% Eigenimages and Singular Value Decomposition
+%___________________________________________________________________________
+%
+% SEE ALSO
+% spm_svd_ui.m
+% spm_svd.m
+%
+% This routine takes a series of spatially extended data from the analysis 
+% implemented by 'Satistics' and computes the eigenimages (spatial modes)
+% associated with that series. 
+% These eigenimages are derived using singular value decomposition (SVD)
+%
+% Uses
+%
+% To characterize the variance-covariance structure of a data set using a 
+% small number of orthogonal eigenimages or spatial modes.  If the data series
+% are a time-series these spatial modes can be interpreted in terms of
+% functional connectivity (Friston et al 1993).  Otherwise interpretation will
+% depend on the sources of variance-covariance in the series chosen.
+%
+% Inputs
+%
+% The data series subtending the spatial modes are adjusted data stored in 
+% the XA.mat.  A distinction here is that the spatial modes can be 
+% evaluated using the means (parameter estimates) over subjects or for each 
+% subject alone.
+%
+% Outputs
+%
+% The results of these analyses are displayed in the results window.  
+%
+% References and further information
+%
+% Friston KJ, Frith CD, Liddle PF & Frackowiak RSJ (1993) Functional 
+% connectivity: The principal component analysis of large (PET) data sets. J. 
+% Cereb. Blood Flow Metab. 13:5-14
+%
+% Friston KJ, Jezzard P and Turner R (1994) Analysis of functional MRI 
+% time-series Human Brain Mapping 1:69-74
+%
+%__________________________________________________________________________
+% %W% %E%
