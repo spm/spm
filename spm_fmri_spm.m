@@ -398,10 +398,16 @@ spm_print
 
 % display, characterize and print SPM{Z}
 %---------------------------------------------------------------------------
+D	= length(W);
+EN   	= S*(1 - spm_Ncdf(Ut));
+Em   	= S*(2*pi)^(-(D + 1)/2)*prod(2*W.^2)^(-1/2)*Ut^(D - 1)*exp(-(Ut^2)/2);
+k   	= EN/Em;
+if (k<1) k=1; end;
+
 if ~isempty(CONTRAST)
 	load SPMt
 	for i = 1:size(CONTRAST,1)
-	    spm_projections(SPMt(i,:),XYZ,Ut,V,W,S,[H C B G],CONTRAST(i,:),df);
+	    spm_projections(SPMt(i,:),XYZ,Ut,k,V,W,S,[H C B G],CONTRAST(i,:),df);
 	    spm_print
 	end
 end
