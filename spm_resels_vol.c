@@ -150,6 +150,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	(void)mxFree((char *)curr);
 	(void)mxFree((char *)prev);
+	(void)mxFree((char *)img);
 	free_maps(map, 1);
 
 	R[0] = P - (E[0]+E[1]+E[2])+(F[0]+F[1]+F[2])-C;
