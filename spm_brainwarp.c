@@ -43,13 +43,14 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	int nx, double BX[], double dBX[],
 	int ny, double BY[], double dBY[],
 	int nz, double BZ[], double dBZ[],
-	double M[16], int samp[], int edgeskip[], int *pnsamp, double ss_deriv[3])
+	double M[16], int samp[], int edgeskip[], int *pnsamp, double ss_deriv[3], MAPTYPE *weight)
 {
-	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
+	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0,  *scale1a;
 	double *Jz[3][3], *Jy[3][3], J[3][3];
 	double *bz3[3], *by3[3], *bx3[3];
+	double wt = 1.0, nsamp = 0.0;
 	int *dim1;
 	dim1 = vols1[0].dim;
 
@@ -164,7 +165,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 				for(i1=0, ptr1 = Ty; i1<3; i1++, ptr1 += nx)
 				{
 					/* compute nonlinear deformation field */
-					tmp = 1.0;
+					tmp = 0.0;
 					for(x1=0; x1<nx; x1++)
 						tmp  += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
 					trans[i1] = tmp + s0[i1];
@@ -191,8 +192,20 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					s2[2]>=1+edgeskip[2] && s2[2]<vol2->dim[2]-edgeskip[2] )
 				{
 					double v,dv;
-					nsamp ++;
+					double s0d[3];
+					s0d[0]=s0[0];s0d[1]=s0[1];s0d[2]=s0[2];
+
 					resample_d(1,vol2,&v,dvds0,dvds0+1,dvds0+2,s2,s2+1,s2+2, 1, 0.0);
+
+					if (weight != (MAPTYPE *)0)
+					{
+						resample(1,weight,&wt,s0d,s0d+1,s0d+2, 1, 0.001);
+						v *= wt;
+						dvds0[0] *= wt;
+						dvds0[1] *= wt;
+						dvds0[2] *= wt;
+					}
+					nsamp += wt;
 
 					/* affine transform the gradients of object image*/
 					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
@@ -216,10 +229,14 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					for(i1=0; i1<ni; i1++)
 					{
 						double tmp, tmp2, grads[3];
-						double s0d[3];
-						s0d[0]=s0[0];s0d[1]=s0[1];s0d[2]=s0[2];
 						resample_d(1,&vols1[i1],&tmp,grads,grads+1,grads+2,s0d,s0d+1,s0d+2, 1, 0.0);
-
+						if (weight != (MAPTYPE *)0)
+						{
+							tmp *= wt;
+							grads[0] *= wt;
+							grads[1] *= wt;
+							grads[2] *= wt;
+						}
 						/* linear combination of image and image modulated by constant
 						   gradients in x, y and z */
 						dvdt[i1*4  +3*nx] = tmp;
@@ -263,7 +280,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 			/* Kronecker tensor products */
 			for(y1=0; y1<ny; y1++)
 			{
-				double wt = BY[dim1[1]*y1+s0[1]];
+				double wt1 = BY[dim1[1]*y1+s0[1]];
 
 				for(i1=0; i1<3; i1++)	/* loop over deformations in x, y and z */
 				{
@@ -273,7 +290,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 						for(y2=0; y2<=y1; y2++)
 						{
 							/* Kronecker tensor products with BY'*BY */
-							double wt2 = wt * BY[dim1[1]*y2+s0[1]];
+							double wt2 = wt1 * BY[dim1[1]*y2+s0[1]];
 
 							ptr1 = alphaxy + nx*(m1*(ny*i1 + y1) + ny*i2 + y2);
 							ptr2 = alphax  + nx*(m2*i1 + i2);
@@ -292,12 +309,12 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					for(x1=0; x1<ni4; x1++)
 					{
 						for (x2=0;x2<nx;x2++)
-							ptr1[m1*x1+x2] += wt * ptr2[m2*x1+x2];
+							ptr1[m1*x1+x2] += wt1 * ptr2[m2*x1+x2];
 					}
 
 					/* spatial component of beta */
 					for(x1=0; x1<nx; x1++)
-						betaxy[x1+nx*(ny*i1 + y1)] += wt * betax[x1 + nx*i1];
+						betaxy[x1+nx*(ny*i1 + y1)] += wt1 * betax[x1 + nx*i1];
 				}
 			}
 			ptr1 = alphaxy + nx*(m1*ny*3 + ny*3);
@@ -319,7 +336,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 		/* Kronecker tensor products */
 		for(z1=0; z1<nz; z1++)
 		{
-			double wt = BZ[dim1[2]*z1+s0[2]];
+			double wt1 = BZ[dim1[2]*z1+s0[2]];
 
 			for(i1=0; i1<3; i1++)	/* loop over deformations in x, y and z */
 			{
@@ -329,7 +346,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 					for(z2=0; z2<=z1; z2++)
 					{
 						/* Kronecker tensor products with BZ'*BZ */
-						double wt2 = wt * BZ[dim1[2]*z2+s0[2]];
+						double wt2 = wt1 * BZ[dim1[2]*z2+s0[2]];
 
 						ptr1 = alpha   + nx*ny*(m1*(nz*i1 + z1) + nz*i2 + z2);
 						ptr2 = alphaxy + nx*ny*(m2*i1 + i2);
@@ -347,12 +364,12 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 				for(y1=0; y1<ni4; y1++)
 				{
 					for (y2=0;y2<ny*nx;y2++)
-						ptr1[m1*y1+y2] += wt * ptr2[m2*y1+y2];
+						ptr1[m1*y1+y2] += wt1 * ptr2[m2*y1+y2];
 				}
 
 				/* spatial component of beta */
 				for(y1=0; y1<ny*nx; y1++)
-					beta[y1 + nx*ny*(nz*i1 + z1)] += wt * betaxy[y1 + nx*ny*i1];
+					beta[y1 + nx*ny*(nz*i1 + z1)] += wt1 * betaxy[y1 + nx*ny*i1];
 			}
 		}
 
@@ -443,12 +460,12 @@ static void scale(int m, double dat[], double s)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	extern double rint(double);
-	MAPTYPE *map1, *map2, *get_maps();
+	MAPTYPE *map1, *map2, *mapw, *get_maps();
 	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3];
 
-        if (nrhs != 11 || nlhs > 4)
+        if (((nrhs != 11) && (nrhs != 12)) || (nlhs > 4))
         {
                 mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,BX,BY,BZ,dBX,dBY,dBZ,T,fwhm);)");
         }
@@ -462,7 +479,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 
-	for (i=0; i<11; i++)
+	for (i=2; i<=10; i++)
 		if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) ||
 			mxIsSparse(prhs[i]) || !mxIsDouble(prhs[i]))
 		{
@@ -577,9 +594,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[2] = mxCreateDoubleMatrix(1,1,mxREAL);
 	plhs[3] = mxCreateDoubleMatrix(1,1,mxREAL);
 
+	if (nrhs>=12)
+	{
+		mapw = get_maps(prhs[11], &i);
+		if (i!=1)
+		{
+			free_maps(map1, ni);
+			free_maps(map2,  1);
+			free_maps(mapw,  i);
+			mexErrMsgTxt("Inappropriate usage.");
+		}
+	}
+	else
+		mapw = (MAPTYPE *)0;
+
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
 		map2, ni,map1,
-		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip, &nsamp, ss_deriv);
+		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip, &nsamp, ss_deriv, mapw);
 
 	fwhm3 = ((pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
 	         (pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
@@ -606,5 +637,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	free_maps(map1, ni);
 	free_maps(map2,  1);
+	if (nrhs>=12)
+		free_maps(mapw,  i);
 }
 
