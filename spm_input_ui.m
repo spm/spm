@@ -214,7 +214,7 @@ function varargout = spm_input(varargin)
 %                     - 'r'eals
 %                  - 'c'ondition indicator vector
 %                  - 'b'uttons
-%                  - button/edit combo's: 'bs1','be1','bn1','bw1','bi1','br1'
+%                  - button/edit combo's: 'be1','bn1','bw1','bi1','br1'
 %                     - second letter of b?1 specifies type for edit widget
 %                  - 'n1' - single natural number (buttons 1,2,... & edit)
 %                  - 'w1' - single whole number   (buttons 0,1,... & edit)
@@ -323,8 +323,8 @@ function varargout = spm_input(varargin)
 %               Yes/No buttons for question with prompt str, in position one 
 %               before the last used Returns 'y' or 'n'.
 %       p = spm_input(str,'-1','y/n',[1,0],2)
-%               As above, but returns yes response or 0 for no, with 'no' as
-%               the default response
+%               As above, but returns 1 for yes response, 0 for no,
+%               with 'no' as the default response
 %       p = spm_input(str,4,'AnCova|Scaling')
 %               Presents two buttons labelled 'AnCova' & 'Scaling', with 
 %               prompt str, in position 4 of the dialog figure. Returns the 
@@ -546,7 +546,7 @@ switch lower(Type), case {'d','d!'}                    %-Display message
 %-Condition arguments
 if nargin<4, Label=''; else, Label=varargin{4}; end
 
-if strcmp(Type,'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
+if strcmp(lower(Type),'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
 if CmdLine
 	fprintf('\n     +-%s%s+',Label,repmat('-',1,57-length(Label)))
 	Prompt = [Prompt,' '];
@@ -606,7 +606,9 @@ if CmdLine
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
 
 	%-Do Eval Types in Base workspace, catch errors
-	if any(Type=='enwirc')
+	if Type=='s'
+		p = str; msg = '';
+	else
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
@@ -614,8 +616,6 @@ if CmdLine
 			if isempty(str), str=DefStr; end
 			[p,msg] = sf_eEval(str,Type,n,m);
 		end
-	else
-		p = str; msg='';
 	end
 	if ~isempty(msg), fprintf('\t%s\n',msg), end
 
@@ -643,7 +643,7 @@ else
 		'BackgroundColor',COLOR,...
 		'Position',RRec);
 	if TTips
-		switch lower(Type)
+		switch Type
 		case 's', str='enter string';
 		case 'e', str='enter expression to evaluate';
 		case 'n', str='enter expression - natural number(s)';
@@ -681,7 +681,9 @@ else
 	if ~ishandle(hPrmpt), error(['Input window cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	str = get(hPrmpt,'UserData');
-	if any(Type=='enwirc')
+	if Type=='s'
+		p = str; msg = '';
+	else
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
 			set(h,'Style','Text',...
@@ -699,8 +701,6 @@ else
 			str = get(hPrmpt,'UserData');
 			[p,msg] = sf_eEval(str,Type,n,m);
 		end
-	else
-		p = str; msg='';
 	end
 
 	%-Fix edit window, clean up, reposition pointer, set CurrentFig back
@@ -724,11 +724,11 @@ end
 varargout = {p,YPos};
 
 
-case {'b','b|','y/n','bs1','be1','bn1','bw1','bi1','br1',...
+case {'b','b|','y/n','be1','bn1','bw1','bi1','br1',...
 	'-n1','n1','-w1','w1','m'}             %-'b'utton & 'm'enu Types
 %=======================================================================
 %-Condition arguments
-switch lower(Type), case {'b','bs1','be1','bi1','br1','m'}
+switch Type, case {'b','be1','bi1','br1','m'}
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values =varargin{5}; end
 	if nargin<4, Labels='';   else, Labels =varargin{4}; end
@@ -752,7 +752,7 @@ case 'bw1'
 	if nargin<4, Labels=[0:4]'; Values=[0:4]; Type='-w1';
 		else, Labels=varargin{4}; end
 case {'-n1','n1','-w1','w1'}
-	switch lower(Type)
+	switch Type
 	case {'n1','-n1'}, Labels=[1:5]'; Values=[1:5]; Type='-n1';
 	case {'w1','-n1'}, Labels=[0:4]'; Values=[0:4]; Type='-w1';
 	end
@@ -954,7 +954,7 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 	end
 
 
-case {'bs1','be1','bn1','bw1','bi1','br1','-n1','-w1'}
+case {'be1','bn1','bw1','bi1','br1','-n1','-w1'}
                                       %-Process button/entry combo types
 %=======================================================================
 if ischar(DefItem), DefStr=DefItem; else, DefStr = num2str(DefItem); end
@@ -1667,7 +1667,7 @@ if isempty(ch)
 elseif (DefItem & ch==13)
 	But = DefItem;
 else
-	But = find(ch==Keys);
+	But = find(lower(ch)==lower(Keys));
 end
 if ~isempty(But), set(h,'UserData',But), end
 
@@ -1728,7 +1728,8 @@ end
 
 otherwise
 %=======================================================================
-warning('Invalid type / action')
+error(['Invalid type/action: ',Type])
+
 
 %=======================================================================
 end % (case lower(Type))
