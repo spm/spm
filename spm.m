@@ -11,7 +11,8 @@ function varargout=spm(varargin)
 % SPM (Statistical Parametric Mapping) is a package for the analysis
 % functional brain mapping experiments. It is the in-house package of
 % the Wellcome Department of Cognitive Neurology, and is available to
-% the scientific community as freeware.
+% the scientific community as copyright freeware under the terms of the
+% GNU General Public Licence.
 % 
 % Theoretical, computational and other details of the package are
 % available in SPM's "Help" facility. This can be launched from the
