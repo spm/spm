@@ -370,7 +370,7 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
-if isfield(SPM,'PPM') & xCon(Ic(1)).STAT == 'T'
+if isfield(SPM,'PPM') & (xCon(Ic(1)).STAT == 'T') | (xCon(Ic(1)).STAT == 'P')
 
     if nc == 1 & isempty(xCon(Ic).Vcon)
 
@@ -381,8 +381,8 @@ if isfield(SPM,'PPM') & xCon(Ic(1)).STAT == 'T'
 	xCon(Ic).STAT = 'P';
 
         %---------------------------------------------------------------
-	str           = 'threshold {default: prior s.d.}';
-	if SPM.PPM.VB==1
+        str           = 'Effect size threshold for PPM';
+        if isfield(SPM.PPM,'VB')
 		% For VB Gamma is stored explicitly
 		Gamma=SPM.PPM.Gamma;
 	else
@@ -535,7 +535,7 @@ if STAT ~= 'P'
 %-----------------------------------------------------------------------
 elseif STAT == 'P'
 
-	u  = spm_input(['p value threshold for PPM'],'+0','r',.95,1);
+	u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',.95,1);
 
 end % (if STAT)
 
