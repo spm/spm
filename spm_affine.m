@@ -54,7 +54,6 @@ corners1 = Affine*corners;
 corners1 = diag(VF(4:6,1))*corners1(1:3,:);
 
 np = 12;
-scales = ones(size(VG,2),1);
 
 for iter=1:64
 	fprintf('iteration # %d:', iter);
@@ -99,7 +98,7 @@ for iter=1:64
 
 			% Sample referance image(s)
 			for i=1:size(VG,2)
-				dFdM(:,np+i)=spm_sample_vol(VG(:,i), XM, YM, ZM, 1)*scales(i) - F;
+				dFdM(:,np+i)=spm_sample_vol(VG(:,i), XM, YM, ZM, 1);
 			end
 
 			% Not yet 100% sure about this.
@@ -123,7 +122,6 @@ for iter=1:64
 	% Least squares solution
 	q = alpha\beta;
 	Affine(1:3,1:4) = Affine(1:3,1:4) + reshape(q(1:np),4,3)';
-	scales = scales + q((1:size(VG,2))+np);
 
 	% If the maximum movement is less than 0.25 mm since the
 	% last iteration - then finished.
