@@ -58,8 +58,8 @@ kx=kx/sm; ky=ky/sm; kz=kz/sm;
 %-----------------------------------------------------------------------
 th = 0.6;	% Threshold for the erosions
 spm_progress_bar('Init',25,'Extracting Brain','Iterations completed');
-for j=1:25,
-	if j>2, th=0.2; end;	% Dilate after two iterations of erosion. 
+for j=1:32,
+	if j>2, th=0.15; end;	% Dilate after two iterations of erosion. 
 	linfun(['Iteration ' num2str(j) ' - thresholding and multiplying']);
 	for i=1:VW.dim(3),
 		w=spm_slice_vol(VW,spm_matrix([0 0 i]),VW.dim(1:2),1);
