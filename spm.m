@@ -113,9 +113,13 @@ function varargout=spm(varargin)
 % GUI elements.
 % (Function duplicated in spm_figure.m, repeated to reduce inter-dependencies.)
 %
-% FORMAT FS = spm('FontSizes',FS)
+% FORMAT [FS,sf] = spm('FontSize',FS)
+% FORMAT [FS,sf] = spm('FontSizes',FS)
 % Returns fontsizes FS scaled for the current display.
+% FORMAT sf = spm('FontScale')
+% Returns font scaling factor
 % FS     - (vector of) Font sizes to scale [default [1:36]]
+% sf     - font scaling factor (FS(out) = floor(FS(in)*sf)
 %
 % Rect = spm('WinSize',Win,raw)
 % Returns sizes and positions for SPM windows.
@@ -840,18 +844,20 @@ if all(S0==1), error('Can''t open any graphics windows...'), end
 varargout = {[S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900]};
 
 
-case {'fontsize','fontsizes'}
+case {'fontsize','fontsizes','fontscale'}
 %=======================================================================
-% FS = spm('FontSizes',FS)
+% [FS,sf] = spm('FontSize',FS)
+% [FS,sf] = spm('FontSizes',FS)
+% sf = spm('FontScale')
+if nargin<3, c=0; else, c=1; end
 if nargin<2, FS=[1:36]; else, FS=varargin{2}; end
-WS  = spm('WinScale');
-WS  = WS(1:2)-1;
-tmp = min(find(abs(WS)==min(abs(WS))));
-sf  = 1 + 0.8*WS(tmp);
-if sf<1
-	varargout = {ceil(FS*sf)};
+
+sf  = 1 + 0.85*(min(spm('WinScale'))-1);
+
+if strcmp(lower(Action),'fontscale')
+	varargout = {sf};
 else
-	varargout = {floor(FS*sf)};
+	varargout = {floor(FS*sf),sf};
 end
 
 
@@ -948,7 +954,7 @@ if exist(Vfile)
 	tmp = min(find(str==10|str==32));
 	v = str(1:tmp-1);
 	if str(tmp)==32
-		c = str(tmp+1:tmp+min(find(str(tmp+1:end)==10)));
+		c = str(tmp+1:tmp+min(find(str(tmp+1:end)==10))-1);
 	else
 		c = '(c) The Wellcome Department of Cognitive Neurology';
 	end
