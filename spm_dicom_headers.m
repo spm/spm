@@ -186,6 +186,12 @@ while len<lim,
 	tag.element = fread(fp,1,'ushort');
 	tag.length  = fread(fp,1,'uint');
 	if isempty(tag.length), return; end;
+	if tag.length == 2^32-1,
+		% Philips Integra has "Stack Sequence" tag, group 2001/xx5F (hex)
+		% which has trouble being read - this skips it.
+		fseek(fp,lim-(len+8),'cof');
+		return,
+	end;
 	if tag.length==13, tag.length=10; end;
 	len         = len + 8 + tag.length;
 	if (tag.group == 65534) & (tag.element == 57344),
