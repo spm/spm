@@ -27,7 +27,7 @@ function spm_render(dat,brt,rendfile)
 %
 % The blobs which are displayed are the integral of all transformed t
 % values, exponentially decayed according to their depth. Voxels that
-% are 10cm behind the surface have half the intensity of ones at the
+% are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %_______________________________________________________________________
 % %W% John Ashburner FIL %E%
@@ -150,9 +150,9 @@ for j=1:length(dat),
 			%-----------------------------------------------
 			xyz = xyz(:,msk);
 			if ~finite(brt), t0  = t(msk);
-			else,	dst = xyz(3,:) - z1(msk) - 5;
+			else,	dst = xyz(3,:) - z1(msk);
 				dst = max(dst,0);
-				t0  = t(msk).*exp(-dst/10)';
+				t0  = t(msk).*exp((log(0.5)/10)*dst)';
 			end;
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
 			hld = 1; if ~finite(brt), hld = 0; end;
