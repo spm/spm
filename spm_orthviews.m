@@ -31,29 +31,38 @@ function H = spm_orthviews(action,arg1,arg2,arg3)
 %
 % FORMAT spm_orthviews('Reset')
 % clears the orthogonal views
+%
+% FORMAT spm_orthviews('Pos')
+% returns the co-ordinate of the crosshairs in millimetres in the
+% standard space.
+%
+% FORMAT spm_orthviews('Pos', i)
+% returns the voxel co-ordinate of the crosshairs in the image in the
+% ith orthogonal section.
+%
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
 
 global centre;
 
-if (nargin==0)
+if nargin==0,
 	spm_orthviews('BB');
 	return;
-end
+end;
 
 global st;
 fig = spm_figure('FindWin','Graphics');
 
-if isempty(st)
+if isempty(st),
 	bb     = [ [-78 78]' [-112 76]' [-50 85]' ];
 	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';');
 	st.vols = cell(24,1);
-end
+end;
 
 action = lower(action);
 
-if strcmp(action,'image')
+if strcmp(action,'image'),
 	if (nargin<2), return; end;
 
 	ok = 1;
@@ -61,22 +70,22 @@ if strcmp(action,'image')
 	if ok == 0,
 		fprintf('Can not use image "%s"\n', arg1);
 		return;
-	end
+	end;
 
 	if nargin>2,
 		V.area = arg2;
-	else
+	else,
 		V.area = [0. 0. 1. 1.];
-	end
+	end;
 
 	ii = 1;
-	while ~isempty(st.vols{ii})
+	while ~isempty(st.vols{ii}),
 		ii = ii + 1;
-	end
+	end;
 
 	DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
 	V.ax = cell(3,1);
-	for i=1:3
+	for i=1:3,
 		ax = axes('Visible','off','DrawMode','fast','Parent',fig,'DeleteFcn',DeleteFcn,...
 			'YDir','normal');
 		d  = image(0,'Tag','Transverse','Parent',ax,...
@@ -85,25 +94,24 @@ if strcmp(action,'image')
 		lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 		ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 		V.ax{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
-	end
+	end;
 
 	st.vols{ii} = V;
 
 	H = ii;
 	if isempty(st.bb),
 		spm_orthviews('Space', H);
-	else
+	else,
 		spm_orthviews('BB',st.bb);
-	end
-end
+	end;
+end;
 
-if strcmp(action,'bb')
+if strcmp(action,'bb'),
 	if nargin == 1,
 		bb = st.bb;
-	else
+	else,
 		bb = arg1;
 	end;
-
 
 	Dims = diff(bb)';
 
@@ -115,8 +123,8 @@ if strcmp(action,'bb')
 	sz = sz(3:4);
 	sz(2) = sz(2)-40;
 
-	for i=1:24
-		if ~isempty(st.vols{i})
+	for i=1:24,
+		if ~isempty(st.vols{i}),
 
 			area = st.vols{i}.area(:);
 			area = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
@@ -146,56 +154,60 @@ if strcmp(action,'bb')
 				'Units','normalized','Xlim',[1 SD(1)]+0.5,'Ylim',[1 SD(2)]+0.5,...
 				'Visible','off');
 
-		end
-	end
+		end;
+	end;
 	st.bb = bb;
 	spm_orthviews('Reposition',st.centre);
-end
+end;
 
 
-if strcmp(action,'reposition')
+if strcmp(action,'reposition'),
 	centre = [];
-	if (nargin == 1)
+	if (nargin == 1),
 		cp = [];
 		obj = get(fig,'CurrentObject');
 		a = 0;
-		for i=1:24
-			if ~isempty(st.vols{i})
-				for j=1:3
+		for i=1:24,
+			if ~isempty(st.vols{i}),
+				for j=1:3,
 					if any([st.vols{i}.ax{j}.d  ...
 						st.vols{i}.ax{j}.lx ...
 						st.vols{i}.ax{j}.ly]== obj)
 						cp = get(get(obj,'Parent'),'CurrentPoint');
-					elseif (st.vols{i}.ax{j}.ax == obj)
+					elseif (st.vols{i}.ax{j}.ax == obj),
 						cp = get(obj,'CurrentPoint');
-					end
-					if ~isempty(cp)
+					end;
+					if ~isempty(cp),
 						cp = cp(1,1:2);
 						centre = st.centre;
-						switch j
+						switch j,
 							case 1,
 							centre([1 2])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,2)];
 							case 2,
 							centre([1 3])=[cp(1)+st.bb(1,1) cp(2)+st.bb(1,3)];
 							case 3,
 							centre([3 2])=[cp(1)+st.bb(1,3) cp(2)+st.bb(1,2)];
-						end
+						end;
 						break;
-					end
-				end
+					end;
+				end;
 				if ~isempty(centre), break; end;
-			end
-		end
+			end;
+		end;
 		if isempty(centre), return; end;
-	else
+		centre = st.Space(1:3,1:3)*centre + st.Space(1:3,4);
+	else,
 		centre = arg1;
-	end
+	end;
 
 	bb = st.bb;
 	Dims = diff(bb)';
 
-	for i=1:24
-		if ~isempty(st.vols{i})
+	is = inv(st.Space);
+	centre = is(1:3,1:3)*centre(:) + is(1:3,4);
+
+	for i=1:24,
+		if ~isempty(st.vols{i}),
 			M=st.vols{i}.mat;
 			TM0 = [
 				1 0 0 -bb(1,1)
@@ -223,10 +235,9 @@ if strcmp(action,'reposition')
 			eval('imgt  = (spm_slice_vol(st.vols{i},TM,TD,1))'';','ok=0;');
 			eval('imgc  = (spm_slice_vol(st.vols{i},CM,CD,1))'';','ok=0;');
 			eval('imgs  = (spm_slice_vol(st.vols{i},SM,SD,1))'';','ok=0;');
-			if (ok==0)
+			if (ok==0),
 				fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
-			else
-	
+			else,
 				scal = 64/max([max(max(imgt)) max(max(imgc)) max(max(imgs))]);
 	
 				posn = [centre(1)+bb(1,1) centre(2)+bb(1,2) centre(3)+bb(1,3) 1]';
@@ -253,19 +264,19 @@ if strcmp(action,'reposition')
 				set(st.vols{i}.ax{3}.ly,'ButtonDownFcn',callback,...
 					'Ydata',[0 SD(2)],'Xdata',[1 1]*posn(3));
 				drawnow;
-			end
-		end
-	end
+			end;
+		end;
+	end;
 	st.centre = centre;
 	eval(st.callback);
-end
+end;
 
 
 
-if (strcmp(action,'space'))
+if strcmp(action,'space'),
 	Space = eye(4);
 	bb = [ [-64 64]' [-104 68]' [-28 72]' ];
-	if (nargin>1)
+	if (nargin>1),
 		if ~isempty(st.vols{arg1})
 			num = arg1;
 			Mat = st.vols{num}.mat(1:3,1:3);
@@ -275,20 +286,20 @@ if (strcmp(action,'space'))
 			bb = [bb [1;1]];
 			bb=bb*Mat';
 			bb=bb(:,1:3);
-		end
-	end
+		end;
+	end;
 	st.centre = (Space\st.Space)*[st.centre';1];
 	st.centre = st.centre(1:3)';
 	st.Space  = Space;
 	st.bb = bb;
 	spm_orthviews('BB',bb);
-end
+end;
 
-if (strcmp(action,'maxbb'))
+if strcmp(action,'maxbb'),
 	mn = [Inf Inf Inf];
 	mx = -mn;
-	for i=1:24
-		if ~isempty(st.vols{i})
+	for i=1:24,
+		if ~isempty(st.vols{i}),
 			bb = [[1 1 1];st.vols{i}.dim(1:3)];
 			c = [	bb(1,1) bb(1,2) bb(1,3) 1
 				bb(1,1) bb(1,2) bb(2,3) 1
@@ -302,13 +313,13 @@ if (strcmp(action,'maxbb'))
 			tc = tc(1:3,:)';
 			mx = max([tc ; mx]);
 			mn = min([tc ; mn]);
-		end
-	end
+		end;
+	end;
 	spm_orthviews('BB',[mn ; mx]);
-end
+end;
 
 
-if (strcmp(action,'resolution'))
+if (strcmp(action,'resolution')),
 	if nargin ~= 2, return; end
 	res = arg1;
 	Mat = diag([res res res 1]);
@@ -316,37 +327,49 @@ if (strcmp(action,'resolution'))
 	st.bb = st.bb/res;
 	st.centre = st.centre/res;
 	spm_orthviews('BB',st.bb);
-end
+end;
 
-if (strcmp(action,'delete'))
-	if nargin ~= 2, return; end
+if (strcmp(action,'delete')),
+	if nargin ~= 2, return; end;
 	arg1 = arg1(find(arg1>=1 & arg1<=24));
-	for i=arg1
-		if ~isempty(st.vols{i})
+	for i=arg1,
+		if ~isempty(st.vols{i}),
 			kids = get(fig,'Children');
 			for j=1:3,
 				if any(kids == st.vols{i}.ax{j}.ax),
 					set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
 					delete(st.vols{i}.ax{j}.ax);
-				end
-			end
+				end;
+			end;
 			st.vols{i} = [];
-		end
-	end
-end
+		end;
+	end;
+end;
 
-if (strcmp(action,'replace'))
-	if nargin ~= 3, return; end
+if (strcmp(action,'replace')),
+	if nargin ~= 3, return; end;
 	image = arg1;
 	del   = arg2;
 	area = st.vols{del}.area;
 	spm_orthviews('Delete',del);
 	spm_orthviews('Image',image,area);
-end
+end;
 
-if (strcmp(action,'reset'))
+if (strcmp(action,'reset')),
 	if nargin ~= 1, return; end
 	spm_orthviews('Delete',1:24);
 	st = [];
-end
+end;
+
+if (strcmp(action,'pos')),
+	H = st.Space(1:3,1:3)*st.centre(:) + st.Space(1:3,4);
+	if nargin >= 2,
+		if arg1<24 & ~isempty(st.vols{arg1}),
+			is = inv(st.vols{arg1}.mat);
+			H = is(1:3,1:3)*H(:) + is(1:3,4);
+		else,
+			H = [];
+		end;
+	end;
+end;
 
