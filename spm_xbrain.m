@@ -27,7 +27,7 @@ function spm_xbrain
 
 linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
 
-SPMid = spm('FnBanner',mfilename,'%W%');
+SPMid = spm('FnBanner',mfilename,'%I%');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','XBrain');
 spm_help('!ContextHelp','spm_xbrain.m');
 P    = spm_get(2,'*_seg?.img','Select gray and white matter images');
