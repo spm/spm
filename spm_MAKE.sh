@@ -43,7 +43,7 @@ case $arch in
 	cmex4="mex -V4 COPTIMFLAGS=-xO5";;
     windows)
 	echo "Windows compile with EGCS gcc/mingw32"
-	echo "see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html"
+	echo "see http://www.mrc-cbu.cam.ac.uk/Imaging/gnumex20.html"
 	echo "for instructions about installing gcc for"
 	echo "compiling Mex files."
 	echo ""
