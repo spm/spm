@@ -221,13 +221,17 @@ case 'specify'
 				'Position',[160 360-dx*i 020 020].*WS,...
 				'Style','radiobutton');
 		end
-		for i = 1:m
-		    for j = 1:m
-			h3(i,j) = uicontrol(Finter,...
-				'Position',[220+dx*j 360-dx*i 020 020].*WS,...
-				'Style','radiobutton');
-		    end
-		end
+        for i = 1:m
+            for j = 1:m
+                if a(i,j)==1
+                    % If there is an intrinsic connection
+                    % allow it to be modulated
+                    h3(i,j) = uicontrol(Finter,...
+                        'Position',[220+dx*j 360-dx*i 020 020].*WS,...
+                        'Style','radiobutton');
+                end
+            end
+        end
 		drawnow
 
 		% wait for 'done'
@@ -246,12 +250,14 @@ case 'specify'
 
 			% get b allowing any 2nd order effects 
 			%--------------------------------------------------
-			for i = 1:m
-				for j = 1:m
-					b(i,j,k) = get(h3(i,j),'Value');
-				end
-			end
-			delete([h1(:); h2(:); h3(:)])
+            for i = 1:m
+                for j = 1:m
+                    if a(i,j)==1
+                        b(i,j,k) = get(h3(i,j),'Value');
+                    end
+                end
+            end
+			delete([h1(:); h2(:); h3(find(a==1))])
 			spm_input('Thank you',1,'d')
 			break
 
