@@ -665,7 +665,7 @@ while(Carg <= nargin)
 
 
 	elseif size(rX,2)>1 & max(1,findstr(rPnames(1,:),'_{')) < ...
-					max(0,find(rPnames(1,:)=='}'))
+					max([0,find(rPnames(1,:)=='}')])
 	%-Factor, interaction of factors, or FxC: find the rest...
 	%===============================================================
 		c1 = max(findstr(rPnames(1,:),'_{'));
