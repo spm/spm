@@ -9,6 +9,7 @@ function conf = spm_config_fmri_stats
 
 % Define inline types.
 %-----------------------------------------------------------------------
+
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num,''help'',hlp)'],...
     'name','tag','strtype','num','hlp');
@@ -53,7 +54,9 @@ p2 = [...
   'volume acquisitions. Default values are defaults.stats.fmri.t = 16 ',...
   'and defaults.stats.fmri.t0 = 1.'];
 onset.help = {p1,'','Slice Timing Information',p2};
+
 %-------------------------------------------------------------------------
+
 duration = entry('Durations','duration','e',[Inf 1],'Duration/s');
 duration.help = [...
   'Specify the event durations (in seconds). Epoch and event-related ',...
@@ -63,7 +66,9 @@ duration.help = [...
   'durations it will be assumed that all trials conform to this duration. ',...
   'If you have multiple different durations, then the number must match the ',...
   'number of onset times.'];
+
 %-------------------------------------------------------------------------
+
 time_mod = mnu('Time Modulation','tmod',...
     {'No Time Modulation','1st order Time Modulation',...
      '2nd order Time Modulation','3rd order Time Modulation',...
@@ -86,19 +91,25 @@ p2 = [...
   'series formulation that accommodates interactions over time (and therefore ',...
   'within and between trial types).'];
 time_mod.help = {p1,'',p2};
+
 %-------------------------------------------------------------------------
 %ply = mnu('Polynomial Expansion','poly',...
 %    {'None','1st order','2nd order','3rd order','4th order','5th order','6th order'},...
 %    {0,1,2,3,4,5,6},'Polynomial Order');
 %ply.val = {0};
 %-------------------------------------------------------------------------
+
 name      = entry('Name','name','s', [1 Inf],'Name of parameter');
 name.val  = {'Param'};
 name.help = {'Enter a name for this parameter.'};
+
 %-------------------------------------------------------------------------
+
 param  = entry('Values','param','e',[Inf 1],'Parameter vector');
 param.help = {'Enter a vector of values, one for each occurence of the event.'};
+
 %-------------------------------------------------------------------------
+
 ply = mnu('Polynomial Expansion','poly',...
     {'1st order','2nd order','3rd order','4th order','5th order','6th order'},...
     {1,2,3,4,5,6},'Polynomial Order');
@@ -109,7 +120,9 @@ ply.help = {[...
   'heights over different values of the parameter. Higher order modulation will ',...
   'introduce further columns that ',...
   'contain the stick functions scaled by parameter squared, cubed etc.']};
+
 %-------------------------------------------------------------------------
+
 pother = branch('Parameter','mod',{name,param,ply},'Custom parameter');
 p1 = [...
   'Model interractions with user specified parameters. ',...
@@ -124,6 +137,7 @@ p2 = [...
   'series formulation that accommodates interactions over time (and therefore ',...
   'within and between trial types).'];
 pother.help = {p1,'',p2};
+
 %-------------------------------------------------------------------------
 mod      = repeat('Parametric Modulations','mod',{pother},'');
 mod.help = {[...
@@ -131,10 +145,14 @@ mod.help = {[...
   '(this can be time or some trial-specific variate like reaction time) ',...
   'modeling the interaction between the trial and the variate. ',...
   'The events can be modulated by zero or more parameters.']};
+
 %-------------------------------------------------------------------------
+
 name     = entry('Name','name','s',[1 Inf],'Condition Name');
 name.val = {'Trial'};
+
 %-------------------------------------------------------------------------
+
 cond  = branch('Condition/Trial','cond',{name,onset,duration,time_mod,mod},...
     'Condition/Trial');
 cond.check = @cond_check;
@@ -147,7 +165,9 @@ cond.help = {[...
   'this stage as additional columns in the design matrix with each trial multiplied ',...
   'by the [expansion of the] trial-specific parameter. ',...
   'The 0th order expansion is simply the main effect in the first column.']};
+
 %-------------------------------------------------------------------------
+
 conditions = repeat('Conditions/Trials','condrpt',{cond},'Conditions');
 conditions.help = {[...
   'You are allowed to combine both event- and epoch-related ',...
@@ -157,12 +177,18 @@ conditions.help = {[...
   'onsets [in terms of onset times] and their durations.  Events are ',...
   'specified with a duration of 0.  If you enter a single number for the ',...
   'durations it will be assumed that all trials conform to this duration.']};
+
 %-------------------------------------------------------------------------
+
 name     = entry('Name','name','s',[1 Inf],'Regressor Name');
 name.val = {'Regressor'};
+
 %-------------------------------------------------------------------------
+
 val      = entry('Value','val','e',[Inf 1],'Param Value');
+
 %-------------------------------------------------------------------------
+
 regress  = branch('Regressor','regress',{name,val},'regressor');
 regressors = repeat('Regressors','regress',{regress},'Regressors');
 regressors.help = {[...
@@ -170,12 +196,16 @@ regressors.help = {[...
   'which may model effects that would not be convolved with the ',...
   'haemodynamic response.  One such example would be the estimated movement ',...
   'parameters, which may confound the data.']};
+
 %-------------------------------------------------------------------------
+
 scans    = files('Scans','scans','image',[1 Inf],'Select scans');
 scans.help = {[...
 'Select the scans for this session.  Note that they all need to have the same ',...
 'image dimensions, orientation, voxel size etc.']};
+
 %-------------------------------------------------------------------------
+
 hpf      = entry('High-pass filter','hpf','e',[1 1],'');
 hpf.val  = {Inf};
 hpf.help = {[...
@@ -187,7 +217,9 @@ hpf.help = {[...
     'it is not a convolution) and is simply to a way to remove confounds ',...
     'without estimating their parameters explicitly.  The constant term ',...
     'is also incorportated into this filter matrix.']};
+
 %-------------------------------------------------------------------------
+
 sess  = branch('Subject/Session','sess',{scans,conditions,regressors,hpf},'Session');
 sess.check = @sess_check;
 p1 = [...
@@ -195,7 +227,9 @@ p1 = [...
 'session-specific partitions.  These partitions are usually either one per ',...
 'subject, or one per fMRI scanning session for that subject.'];
 sess.help = {p1};
+
 %-------------------------------------------------------------------------
+
 block = repeat('Data & Design','blocks',{sess},'');
 p1 = [...
   'The design matrix defines the experimental design and the nature of ',...
@@ -220,18 +254,26 @@ p2 = [...
   'encoding the input or stimulus function. with a set of hemodynamic ',...
   'basis functions.'];
 block.help = {'Specify the Data and Design','',p1,'',p2};
+
 %-------------------------------------------------------------------------
+
 rt       = entry('Interscan interval','RT','e',[1 1],'Interscan interval {secs}');
 rt.help = {[...
 'Interscan interval {secs}.  This is the time between acquiring a plane of one volume ',...
 'and the same plane in the next volume.  It is assumed to be constant throughout.']};
+
 %-------------------------------------------------------------------------
+
 units    = mnu('Units for design spec','units',{'Scans','Seconds'},{'scans','secs'},'');
 units.help = {'Units for design spec.'};
+
 %-------------------------------------------------------------------------
+
 glob  = mnu('Global normalisation','global',...
     {'Scaling','None'},{'Scaling','None'},{'Global intensity normalisation'});
+
 %-------------------------------------------------------------------------
+
 cvi   = mnu('Serial correlations','cvi',{'none','AR(1)'},{'none','AR(1)'},...
     {'Correct for serial correlations'});
 p1 = [...
@@ -253,6 +295,24 @@ p2 = [...
     'specification of the high-pass filter is particularly important.'];
 cvi.help = {p1,p2};
 
+%-------------------------------------------------------------------------
+ 
+slices  = entry('Slices','Slices','e',[Inf 1],'Enter Slice Numbers');
+
+volume  = struct('type','const','name','Volume','tag','Volume','val',{{1}});
+
+space   = choice('Analysis Space','space',{volume,slices},'Analyse whole volume or selected slices only');
+
+est_class = branch('Classical','Classical',{cvi},'Classical Estimation');
+
+est_bayes = branch('Bayesian','Bayesian',{space},'Bayesian Estimation');
+
+meth   = choice('Method','Method',{est_class,est_bayes},'Type of estimation procedure');
+
+when   = mnu('Execution','when',{'At Run Time','Later'},{'At Run Time','Later'},'Specify when estimation will take place');
+
+estim   = branch('Estimation','estim',{when,meth},'Specify estimation procedure');
+
 %-----------------------------------------------------------------------
 
 % These are currently unused
@@ -269,6 +329,7 @@ cvi.help = {p1,p2};
 %    '   p(7) - length of kernel (seconds)                 32'};
 
 %-------------------------------------------------------------------------
+
 derivs = mnu('Model derivatives','derivs',...
     {'No derivatives', 'Time derivatives', 'Time and Dispersion derivatives'},...
     {[0 0],[1 0],[1 1]},'Model HRF Derivatives');
@@ -276,7 +337,9 @@ derivs.val = {[0 0]};
 derivs.help = {[...
 'Model HRF Derivatives.  Modelling time and dispersion derivatives is recommended ',...
 'if you plan to use a second level analyses of event related fMRI.']}; 
+
 %-------------------------------------------------------------------------
+
 hrf   = branch('Canonical HRF','hrf',{derivs},'Canonical Heamodynamic Response Function');
 hrf.help = {[...
 'Canonical Heamodynamic Response Function - Useful if (i) you wish to use a SPM{T} to ',...
@@ -285,7 +348,9 @@ hrf.help = {[...
 'Unlike other bases, contrasts of these effects have a physical interpretation ',...
 'and represent a parsimonious way of characterising event-related ',...
 'responses.']};
+
 %-------------------------------------------------------------------------
+
 len   = entry('Window length','length','e',[1 1],'window length {secs}');
 order = entry('Order','order','e',[1 1],'order');
 o1    = branch('Fourier Set','fourier',{len,order},'');
@@ -296,7 +361,9 @@ o3    = branch('Gamma Functions','gamma',{len,order},'');
 o3.help = {'Gamma basis functions - requires SPM{F} for inference.'};
 o4    = branch('Finite Impulse Response','fir',{len,order},'');
 o4.help = {'Finite impulse response - requires SPM{F} for inference.'};
+
 %-------------------------------------------------------------------------
+
 bases = choice('Basis Functions','bases',{hrf,o1,o2,o3,o4},'');
 bases.val = {hrf};
 bases.help = {[...
@@ -313,6 +380,7 @@ bases.help = {[...
     'responses.  Bases such as a Fourier set require the SPM{F} for ',...
     'inference.']};
 %-------------------------------------------------------------------------
+
 volt  = mnu('Model Interactions (Volterra)','volt',{'Do not model Interractions','Model Interractions'},{1,2},'');
 volt.val = {1};
 p1 = ['Generalized convolution of inputs (U) with basis set (bf).'];
@@ -333,19 +401,28 @@ p3 = [...
   'series formulation that accommodates interactions over time (and therefore ',...
   'within and between trial types).'];
 volt.help = {p1,'',p2,p3};
+
 %-------------------------------------------------------------------------
+
 mask = files('Explicit mask','mask','image',[0 1],{[...
 'Image for explicitly masking the analysis. ',...
 'If no masking is required, then leave this field empty.']});
 mask.val = {''};
+
 %-------------------------------------------------------------------------
+
 cdir = files('Directory','dir','dir',1,'');
 cdir.help = {[...
 'Select an analysis directory to change to. ',...
 'This is where the results of the statistics will be written.']};
+
 %-------------------------------------------------------------------------
+
+% conf = branch('FMRI Stats','fmri_stats',...
+%     {block,bases,volt,cdir,rt,units,glob,cvi,mask},'fMRI design');
+
 conf = branch('FMRI Stats','fmri_stats',...
-    {block,bases,volt,cdir,rt,units,glob,cvi,mask},'fMRI design');
+    {block,bases,volt,cdir,rt,units,glob,mask,estim},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
 conf.check  = @check_dir;
@@ -435,6 +512,7 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
+
 function t = check_dir(job)
 t = {};
 %d = pwd;
@@ -455,6 +533,7 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
+
 function t = cond_check(job)
 t   = {};
 if (numel(job.onset) ~= numel(job.duration)) && (numel(job.duration)~=1),
@@ -471,6 +550,7 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
+
 function t = sess_check(sess)
 t = {};
 for i=1:numel(sess.regress),

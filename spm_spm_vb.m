@@ -149,7 +149,7 @@ nsess=length(SPM.Sess);
 try 
     SPM.PPM.window;
 catch
-    SPM.PPM.window=1;
+    SPM.PPM.window=0;
 end
 
 if SPM.PPM.window
@@ -260,37 +260,40 @@ Vbeta = spm_create_vol(Vbeta,'noopen');
 try 
     SPM.PPM.AR_P;
 catch
-    str=' AR model order';
-    SPM.PPM.AR_P      = spm_input(str,1,'e',0,[1 1]);
+    %     str=' AR model order';
+    %     SPM.PPM.AR_P      = spm_input(str,1,'e',0,[1 1]);
+    SPM.PPM.AR_P=3;
 end
 
 % Specify type of prior for regression coefficients
 try
     SPM.PPM.priors.W;
 catch
-    spm_input('Regression coefficient priors ...',1,'d');
-    Ctype = {
-        'Spatial - GMRF',...
-            'Spatial - LORETA',...
-            'Voxel - Shrinkage',...
-            'Voxel - Uninformative'};
-    str   = 'Select prior';
-    Sel   = spm_input(str,2,'m',Ctype);
-    SPM.PPM.priors.W = Ctype{Sel};
+%     spm_input('Regression coefficient priors ...',1,'d');
+%     Ctype = {
+%         'Spatial - GMRF',...
+%             'Spatial - LORETA',...
+%             'Voxel - Shrinkage',...
+%             'Voxel - Uninformative'};
+%     str   = 'Select prior';
+%     Sel   = spm_input(str,2,'m',Ctype);
+%     SPM.PPM.priors.W = Ctype{Sel};
+    SPM.PPM.priors.W='Spatial - GMRF';
 end
 
 % Specify type of prior for AR coefficients
 try
     SPM.PPM.priors.A;
 catch
-    spm_input('AR coefficient priors ...',1,'d');
-    Ctype = {
-        'Spatial - GMRF',...
-            'Spatial - LORETA',...
-            'Discrete'};
-    str   = 'Select prior';
-    Sel   = spm_input(str,2,'m',Ctype);
-    SPM.PPM.priors.A = Ctype{Sel};
+%     spm_input('AR coefficient priors ...',1,'d');
+%     Ctype = {
+%         'Spatial - GMRF',...
+%             'Spatial - LORETA',...
+%             'Discrete'};
+%     str   = 'Select prior';
+%     Sel   = spm_input(str,2,'m',Ctype);
+%     SPM.PPM.priors.A = Ctype{Sel};
+    SPM.PPM.priors.A='Spatial - GMRF'
 end
 
 % Get structural info if necessary
@@ -430,13 +433,14 @@ end
 try 
     SPM.PPM.space_type;
 catch
-    spm_input('Data to analyse...',1,'d')
-    Ctype = {
-        'Volume',...
-            'Slices'};
-    str   = 'Select space';
-    Sel   = spm_input(str,2,'m',Ctype);
-    SPM.PPM.space_type = Ctype{Sel};
+%     spm_input('Data to analyse...',1,'d')
+%     Ctype = {
+%         'Volume',...
+%             'Slices'};
+%     str   = 'Select space';
+%     Sel   = spm_input(str,2,'m',Ctype);
+%     SPM.PPM.space_type = Ctype{Sel};
+    SPM.PPM.space_type='Volume';
 end
 
 switch SPM.PPM.space_type,
