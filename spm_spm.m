@@ -677,7 +677,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 		%-If UFp > 0, save raw data in 8bit squashed *.mad file format
 		%-------------------------------------------------------
 		if UFp > 0
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),saving data')    %-#
+		fprintf('%s%30s',sprintf('\b')*ones(1,30),'saving data') %-#
 
 			% F-threshold
 			%-----------------------------------------------
@@ -813,7 +813,7 @@ VResMS.pinfo(1) = 1/xX.trRV;
 
 %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s',sprintf('\b')*ones(1,30),'...closing image files')  %-#
+fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing image files')  %-#
 VM                      = spm_create_image(VM);
 for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
 for i=1:nSres, VResI(i) = spm_create_image(VResI(i)); end
