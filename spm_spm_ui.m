@@ -426,7 +426,7 @@ function varargout=spm_spm_ui(varargin)
 % 
 % xM            - structure describing masking options
 % xM.T          - Threshold masking value (-Inf=>None,
-%                 complex=>proportional (i.e. times global), real=>absolute )
+%                 real=>absolute, complex=>proportional (i.e. times global) )
 % xM.TH         - nScan x 1 vector of analysis thresholds, one per image
 % xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
 % xM.VM         - struct array of explicit mask images
@@ -1083,7 +1083,7 @@ GUIpos = spm_input('!NextPos');
 %-Analysis threshold mask
 %-----------------------------------------------------------------------
 %-Work out available options:
-% -Inf=>None, complex=>proportional, real=>absolute (i.e. times global)
+% -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
 M_T = D.M_.T; if isempty(M_T), M_T = [-Inf, 100, 0.8*sqrt(-1)]; end
 M_T = {	'none',		M_T(min(find(isinf(M_T))));...
 	'absolute',	M_T(min(find(isfinite(M_T)&(M_T==real(M_T)))));...
