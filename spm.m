@@ -41,10 +41,10 @@ MODALITY = 'unknown';
 % objects with Callbacks - main spm_*_ui.m routines
 %----------------------------------------------------------------------------
 uicontrol(1,'String','PET and SPECT',         'Position',[040 066 150 30],...
-'CallBack','MODALITY = ''PET''; spm_ui','Interruptible','yes','ForegroundColor',[0 1 1]);
+'CallBack','global MODALITY ; MODALITY = ''PET''; spm_ui','Interruptible','yes','ForegroundColor',[0 1 1]);
 
 uicontrol(1,'String','fMRI time-series',      'Position',[210 066 150 30],...
-'CallBack','MODALITY = ''FMRI''; spm_fmri_ui','Interruptible','yes','ForegroundColor',[0 1 1]);
+'CallBack','global MODALITY ; MODALITY = ''FMRI''; spm_fmri_ui','Interruptible','yes','ForegroundColor',[0 1 1]);
 
 uicontrol(1,'String','notes and bibliography','Position',[040 030 320 30],...
 'CallBack','spm_bib','Interruptible','yes','ForegroundColor',[0 1 1]);

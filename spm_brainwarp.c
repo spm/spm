@@ -1,10 +1,12 @@
 #ifndef lint
-static char sccsid[] = "%W% (c) John Ashburner MRCCU & FIL %E%";
+static char sccsid[] = "%W% (c) John Ashburner MRCCU/FIL %E%";
 #endif lint
 
 #include <math.h>
 #include "cmex.h"
 #include "volume.h"
+double fabs();
+
 
 /*
 INPUTS
@@ -46,13 +48,13 @@ int dt2, dim2[], dt1[], dim1[], ni, nx, ny, nz, samp[], *pnsamp;
 unsigned char *dat1[], dat2[];
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0;
-	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
+	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *ptr3, *ptr4, *Tz, *Ty, tmp,dtmp,
 		*betaxy, *betax, *alphaxy, *alphax, ss=0.0, *scale1a;
 	extern double floor();
 
 	dvdt    = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
-	Tz      = (double *)mxCalloc( 3*nx*ny                     , sizeof(double));
-	Ty      = (double *)mxCalloc( 3*nx                        , sizeof(double));
+	Tz      = (double *)mxCalloc( 2*3*nx*ny                   , sizeof(double));
+	Ty      = (double *)mxCalloc( 2*3*nx                      , sizeof(double));
 	betax   = (double *)mxCalloc( 3*nx    + ni                , sizeof(double));
 	betaxy  = (double *)mxCalloc( 3*nx*ny + ni                , sizeof(double));
 	alphax  = (double *)mxCalloc((3*nx    + ni)*(3*nx    + ni), sizeof(double));
@@ -69,16 +71,24 @@ unsigned char *dat1[], dat2[];
 		beta[x1]= 0.0;
 	}
 
-	for(s0[2]=0; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
+	for(s0[2]=0; s0[2]<dim1[2]-1; s0[2]+=samp[2]) /* For each plane of the template images */
 	{
 		/* build up the deformation field from it's seperable form */
-		for(i1=0, ptr1=T, ptr2=Tz; i1<3; i1++, ptr1 += nz*ny*nx, ptr2+=ny*nx)
+		for(i1=0, ptr1=T, ptr2=Tz; i1<3; i1++, ptr1 += nz*ny*nx, ptr2 += ny*nx)
 			for(x1=0; x1<nx*ny; x1++)
 			{
-				tmp = 0.0;
+				dtmp = tmp = 0.0;
 				for(z1=0; z1<nz; z1++)
-					tmp += ptr1[x1+z1*ny*nx] * BZ[dim1[2]*z1+s0[2]];
+				{
+					tmp  += ptr1[x1+z1*ny*nx] *  BZ[dim1[2]*z1+s0[2]];
+					if (i1==2)
+						dtmp += ptr1[x1+z1*ny*nx] * (BZ[dim1[2]*z1+s0[2]]*0.9+BZ[dim1[2]*z1+s0[2]+1]*0.1);					
+				}
 				ptr2[x1] = tmp;
+				if (i1==2)
+					ptr2[x1 + 3*nx*ny] = dtmp;
+				else
+					ptr2[x1 + 3*nx*ny] = tmp;
 			}
 
 		/* only zero half the matrix */
@@ -90,17 +100,25 @@ unsigned char *dat1[], dat2[];
 			betaxy[x1]= 0.0;
 		}
 
-		for(s0[1]=0; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
+		for(s0[1]=0; s0[1]<dim1[1]-1; s0[1]+=samp[1]) /* For each row of the template images plane */
 		{
 			/* build up the deformation field from it's seperable form */
 			for(i1=0, ptr1=Tz, ptr2=Ty; i1<3; i1++, ptr1+=ny*nx, ptr2+=nx)
 			{
 				for(x1=0; x1<nx; x1++)
 				{
-					tmp = 0.0;
+					dtmp = tmp = 0.0;
 					for(y1=0; y1<ny; y1++)
-						tmp += ptr1[x1+y1*nx] * BY[dim1[1]*y1+s0[1]];
-					ptr2[x1] = tmp;
+					{
+						tmp  += ptr1[x1+y1*nx] *  BY[dim1[1]*y1+s0[1]];
+						if (i1==1)
+							dtmp += ptr1[x1+nx*(y1+3*ny)] * (BY[dim1[1]*y1+s0[1]]*0.9+BY[dim1[1]*y1+s0[1]+1]*0.1);
+						else
+							dtmp += ptr1[x1+nx*(y1+3*ny)] *  BY[dim1[1]*y1+s0[1]];
+
+					}
+					ptr2[x1     ] = tmp;
+					ptr2[x1+3*nx] = dtmp;
 				}
 			}
 
@@ -113,21 +131,30 @@ unsigned char *dat1[], dat2[];
 				betax[x1]= 0.0;
 			}
 
-			for(s0[0]=0; s0[0]<dim1[0]; s0[0]+=samp[0]) /* For each pixel in the row */
+			for(s0[0]=0; s0[0]<dim1[0]-1; s0[0]+=samp[0]) /* For each pixel in the row */
 			{
-				double trans[3];
+				double trans[3], dtrans[3], dtrans1[3], volume = 1;
 
 				/* nonlinear deformation of the atlas space, followed by the affine transform */
 				for(i1=0, ptr1 = Ty; i1<3; i1++, ptr1 += nx)
 				{
-					tmp = 0.0;
+					dtmp = tmp = 1.0;
 					for(x1=0; x1<nx; x1++)
-						tmp += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
-					trans[i1] = tmp + s0[i1];
+					{
+						tmp  += ptr1[x1] * BX[dim1[0]*x1+s0[0]];
+						if (i1==0)
+							dtmp += ptr1[x1+3*nx] * (BX[dim1[0]*x1+s0[0]]*0.9+BX[dim1[0]*x1+s0[0]+1]*0.1);
+						else
+							dtmp += ptr1[x1+3*nx] *  BX[dim1[0]*x1+s0[0]];
+					}
+					 trans[i1] = tmp + s0[i1];
+					dtrans[i1] = 1 + (dtmp-tmp)/0.1;
 				}
+
 				s2[0] = M[0+4*0]*trans[0] + M[0+4*1]*trans[1] + M[0+4*2]*trans[2] + M[0+4*3];
 				s2[1] = M[1+4*0]*trans[0] + M[1+4*1]*trans[1] + M[1+4*2]*trans[2] + M[1+4*3];
 				s2[2] = M[2+4*0]*trans[0] + M[2+4*1]*trans[1] + M[2+4*2]*trans[2] + M[2+4*3];
+
 
 				/* is the transformed position in range? */
 				if (s2[0]>=1.0 && s2[0]<dim2[0] && s2[1]>=1.0 &&
@@ -163,7 +190,7 @@ unsigned char *dat1[], dat2[];
 						val110 = dat2[off1]; val010 = dat2[off1+1];
 						off2 = off1+dim2[0];
 						val100 = dat2[off2]; val000 = dat2[off2+1];
-						break;	
+						break;
 					case SIGNED_SHORT:
 						val111 = ((short *)dat2)[off1]; val011 = ((short *)dat2)[off1+1];
 						off2 = off1+dim2[0];
@@ -210,18 +237,19 @@ unsigned char *dat1[], dat2[];
 
 					/* local gradients accross resampled pixel */
 					dvds0[0] = ((dy2*(val011-val111) + dy1*(val001-val101))*dz2
-						 + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2;
+						 + (dy2*(val010-val110) + dy1*(val000-val100))*dz1)*scale2*dtrans[0];
 
 					dvds0[1] = ((dx2*(val101-val111) + dx1*(val001-val011))*dz2
-						 + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2;
+						 + (dx2*(val100-val110) + dx1*(val000-val010))*dz1)*scale2*dtrans[1];
 
 					dvds0[2] = ((dx2*(val110-val111) + dx1*(val010-val011))*dy2
-						 + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2;
+						 + (dx2*(val100-val101) + dx1*(val000-val001))*dy1)*scale2*dtrans[2];
 
 					/* transform the gradients to the same space as the atlas */
-					dvds1[0] = M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2];
-					dvds1[1] = M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2];
-					dvds1[2] = M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2];
+					dvds1[0] = (M[0+4*0]*dvds0[0] + M[1+4*0]*dvds0[1] + M[2+4*0]*dvds0[2]);
+					dvds1[1] = (M[0+4*1]*dvds0[0] + M[1+4*1]*dvds0[1] + M[2+4*1]*dvds0[2]);
+					dvds1[2] = (M[0+4*2]*dvds0[0] + M[1+4*2]*dvds0[1] + M[2+4*2]*dvds0[2]);
+
 
 					/* there is no change in the contribution from BY and BZ, so only
 					   work from BX */
@@ -269,7 +297,6 @@ unsigned char *dat1[], dat2[];
 							alphax[m1*x1+x2] += dvdt[x1]*dvdt[x2];
 						betax[x1] += dvdt[x1]*dv;
 					}
-
 				}
 			}
 
