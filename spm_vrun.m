@@ -29,14 +29,14 @@ function spm_vrun(Vcode,SPMarg)
 %=======================================================================
 Vcodes = str2mat(	'spm_devel',...			%-1
 			'spm99',...			%-2
-			'spm98',...			%-3
+			'spm99r',...			%-3
 			'spm97',...			%-4
 			'spm96',...			%-5
 			'spm95'	);			%-6
 
 Vpaths = str2mat(	'/local/spm/spm_devel',...	%-1
 			'/local/spm/spm99_fil',...	%-2
-			'/local/spm/spm_devel',...	%-3
+			'/local/spm/spm99_rel',...	%-3
 			'/local/spm/spm97_fil',...	%-4
 			'/local/spm/spm96_fil',...	%-5
 			'/local/spm/spm95_fil'	);	%-6
