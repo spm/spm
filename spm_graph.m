@@ -28,7 +28,7 @@
 			(XYZ(2,:) - L(2));...
 			(XYZ(3,:) - L(3))	]).^2));
 L     = XYZ(:,i);
-
+xa    = spm_readXA(QQ(i));
 
 % Reset the pointer and position strings created by spm_results_ui
 %-----------------------------------------------------------------------
@@ -58,10 +58,10 @@ if PLOT
 	if ~any(diff(sum(B > 0))) & size(B,2)		
 		y     = [];
 		for j = 1:size(B,2);
-			y = [y XA((B(:,j) > 0),i)];
+			y = [y xa((B(:,j) > 0))];
 		end
 	else
-		y      = XA(:,i);
+		y      = xa;
 	end
 
 	% get ordinate
@@ -106,7 +106,7 @@ if PLOT
 	subplot(2,1,2)
 	Y     = y
 	D     = [K H C B G];
-	Y(:)  = D*(pinv(D)*XA(:,i));
+	Y(:)  = D*(pinv(D)*xa);
 	for j = 1:size(x,2)
 		[p q] = sort(-x(:,j));
 		plot(x(q,j),Y(q,j),'b',x(q,j),y(q,j),':'); hold on;
@@ -122,7 +122,7 @@ else
 %-----------------------------------------------------------------------
 	% organize adjusted data and get mean
 	%---------------------------------------------------------------
-	y      = XA(:,i)
+	y      = xa
 	x      = [];
 	Y      = [];
 	for j  = 1:length(y); x(j) = find(H(j,:));    end
