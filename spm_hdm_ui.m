@@ -94,6 +94,7 @@ Y.y    = y;
 Y.dt   = xX.RT;
 Y.X0   = X0;
 Y.Ce   = spm_Ce(n,h);
+Y.pC   = (Y.dt/2).^2;          % prior covariance on timing error
 
 
 % estimate
