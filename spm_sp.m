@@ -172,7 +172,7 @@ function varargout = spm_sp(varargin)
 % x - space structure
 % b - true if the basic fields are non-empty
 %_______________________________________________________________________
-% %W%	2.8 Jean-Baptiste Poline %E%
+% %W% Jean-Baptiste Poline %E%
 
 if nargin==0
 	error('Do what? no arguments given...')
@@ -308,7 +308,7 @@ case {'xp-','x-p'}                              %-Pseudo-inverse of X'
 %=======================================================================
 % pX = spm_sp('xp-',x) 
 
-varargout = {  sf_pinv(sX)' };
+varargout = {  sf_pinvxp(sX) };
 
 case {'pinvxpx', 'xpx-', 'pinvxpx:', 'xpx-:',} %- Pseudo-inv of (X'X)
 %=======================================================================
@@ -960,6 +960,15 @@ if r > 0
 	px = sX.v(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.u(:,1:r)';
 else 
 	px = zeros(size(sX.X,2),size(sX.X,1));
+end
+
+function px = sf_pinvxp(sX)
+%=======================================================================
+r = sX.rk;
+if r > 0 
+	px = sX.u(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.v(:,1:r)';
+else 
+	px = zeros(size(sX.X));
 end
 
 function px = sf_pinvxpx(sX)
