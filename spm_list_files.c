@@ -4,7 +4,6 @@ static char sccsid[]="%W% (c) John Ashburner %E%";
 
 #include <string.h>
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -25,7 +24,7 @@ static int getmask(struct stat *stbuf)
         static int ngids;
 	int g;
 
-	if (uid == (uid_t)-1)
+	if (uid == -1)
 	{
 		uid   = getuid();
 		ngids = getgroups(128,gids);
