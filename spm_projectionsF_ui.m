@@ -49,7 +49,7 @@ load([CWD,'/SPM'])
 load([CWD,'/XYZ'])
 load([CWD,'/SPMF'])
 
-QQ = (1:size(XYZ,2))';
+QQ    = (1:size(XYZ,2))';
 
 
 %-Design matrix
@@ -63,11 +63,18 @@ Z     = SPMF;
 [Lc2z Lc2t Lt2z] = spm_lambda(df);
 W     = W*sqrt(Lc2z);
 
-
-%-Get and apply height threshold [default p < 0.001]
+%-Get and apply height threshold
 %-----------------------------------------------------------------------
-u     = spm_input('height threshold for SPM{F}',1,'e',0.001);
-if u < 1; u = spm_invFcdf(1 - u,Fdf); end
+if spm_input('use corrected height threshold','!+1','b','no|yes',[0 1],1)
+	u  = spm_input('corrected p value','!+0','e',0.05);
+	u  = spm_F(u,W,Fdf,S);
+else
+	%-Get and apply height threshold [default p < 0.001 uncorrected]
+	%---------------------------------------------------------------
+	u  = spm_input('height threshold {F or p value}','!+0','e',0.001);
+	if u < 1; u = spm_invFcdf(1 - u,Fdf); end
+end
+
 
 % eliminate voxels
 %-----------------------------------------------------------------------
@@ -133,7 +140,7 @@ elseif  strcmp(lower(Action),lower('Results'))
 	set(Finter,'Name','Thankyou')
 
 
-% Write SPM{Z}
+% Write SPM{F}
 %-----------------------------------------------------------------------
 elseif  strcmp(lower(Action),lower('Writing'))
 
