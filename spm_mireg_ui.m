@@ -32,10 +32,15 @@ function spm_mireg_ui
 % H  = H.*log2((H+eps)./(s2*s1+eps));
 % mi = sum(H(:));
 % 
-% where H is a 256x256 histogram, and mi is the mutual information.
-% As an attempt to improve the convergence properties, the algorithm
-% minimises exp(-mi).  This is what gets plotted for each line
-% minimisation of the optimisation.
+% where H is a smoothed 256x256 joint histogram, and mi is the mutual information.
+%
+% This was subsequently refined to use the Entropy Correlation Coefficient:
+% ecc = 2*mi/(-sum(s1.*log(s1))-sum(s2.*log(s2)));
+%
+% according to:
+% F Maes, A Collignon, D Vandermeulen, G Marchal & P Suetens (1997).
+% "Multimodality image registration by maximisation of mutual
+% information". IEEE Transactions on Medical Imaging 16(2):187-198
 % 
 % The optimisation has been taken from "Numerical Recipes in C"
 % (1992, 2nd Ed.), by WH Press, SA Teukolsky, WT Vetterling &
