@@ -24,9 +24,7 @@ matname = [spm_str_manip(imagename,'sd') '.mat'];
 if (nargin == 1)
 	% If we can read M from a ".mat" file with the corresponding
 	% name, then use this information.
-	fp = fopen(matname,'r');
-	if (fp ~= -1)
-		fclose(fp);
+	if (exist(matname) == 2)
 		load(matname);
 		if (exist('M') == 1)
 			return;
@@ -50,6 +48,8 @@ if (nargin == 1)
 	off = -vox.*origin;
 	M = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
 elseif (nargin == 2)
+	% Delete the matrix if it exists
+	spm_unlink(matname);
 	M    = mat;
 	vx   = [M(1,1) M(2,2) M(3,3)];
 	orgn = round(-M(1:3,4)' ./ vx);
