@@ -231,12 +231,14 @@ case 'reposition',
 	if isfield(st,'registry'),
 		spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
 	end;
+	cm_pos;
 
 case 'setcoords',
 	st.centre = varargin{1};
 	st.centre = st.centre(:);
 	redraw_all;
 	eval(st.callback);
+	cm_pos;
 
 case 'space',
 	if length(varargin)<1,
@@ -357,16 +359,23 @@ case 'rmblobs',
 	% redraw(varargin{1});
 
 case 'addcontext',
-	addcontexts(varargin{1});
+	if nargin == 1,
+		handles = 1:24;
+	else,
+		handles = varargin{1};
+	end;
+	addcontexts(handles);
 
 case 'rmcontext',
-	rmcontexts(varargin{1});
+	if nargin == 1,
+		handles = 1:24;
+	else,
+		handles = varargin{1};
+	end;
+	rmcontexts(handles);
 
 case 'context_menu',
 	c_menu(varargin{:});
-
-case 'set_pos2cm',
-	cm_pos(varargin{:});
 
 otherwise,
   addonaction = strcmp(st.plugins,action);
@@ -678,17 +687,13 @@ for i=1:3,
 	ax = axes('Visible','off','DrawMode','fast','Parent',st.fig,'DeleteFcn',DeleteFcn,...
 		'YDir','normal','ButtonDownFcn',...
 		['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
-		'spm_orthviews(''set_pos2cm'');',...
 		'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''Reposition'');',...
-		'spm_orthviews(''set_pos2cm'');',...
 		'spm_orthviews(''context_menu'',''ts'',1);end;']);
 	d  = image(0,'Tag','Transverse','Parent',ax,...
 		'DeleteFcn',DeleteFcn);
 	set(ax,'Ydir','normal','ButtonDownFcn',...
 		['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
-		'spm_orthviews(''set_pos2cm'');',...
 		'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''reposition'');',...
-		'spm_orthviews(''set_pos2cm'');',...
 		'spm_orthviews(''context_menu'',''ts'',1);end;']);
 
 	lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
@@ -716,6 +721,7 @@ for ii = valid_handles(handles),
 		st.vols{ii}.ax{i}.cm = cm_handle;
 	end;
 end;
+spm_orthviews('reposition',spm_orthviews('pos'));
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -923,6 +929,10 @@ for i = valid_handles(arg1),
 				tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])';
 				tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
 				tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
+
+				%tmpt_z = find(tmpt==0);tmpt(tmpt_z) = NaN;
+				%tmpc_z = find(tmpc==0);tmpc(tmpc_z) = NaN;
+				%tmps_z = find(tmps==0);tmps(tmps_z) = NaN;
 
 				sc   = 64/(mx-mn);
 				off  = 65.51-mn*sc;
@@ -1222,9 +1232,16 @@ else
 	item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
 end;
 item00_1  = uimenu(item00,     'Label','Swap image',    'Callback','spm_orthviews(''context_menu'',''swap_img'');');
-item0a    = uimenu(item_parent,'UserData','pos_mm','Separator','on');
-item0b    = uimenu(item_parent,'UserData','pos_vx');
-item0c    = uimenu(item_parent,'UserData','v_value');
+if isfield(st.vols{volhandle},'fname')
+	[p n e v] = fileparts(st.vols{volhandle}.fname);
+	item00  = uimenu(item_parent, 'Label',[n e v],         'Separator','on');
+else
+	item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
+end;
+item00_1  = uimenu(item00,      'Label','Swap image',    'Callback','spm_orthviews(''context_menu'',''swap_img'');');
+item0a    = uimenu(item_parent, 'UserData','pos_mm',     'Callback','spm_orthviews(''context_menu'',''repos_mm'');','Separator','on');
+item0b    = uimenu(item_parent, 'UserData','pos_vx',     'Callback','spm_orthviews(''context_menu'',''repos_vx'');');
+item0c    = uimenu(item_parent, 'UserData','v_value');
 
 %contextsubmenu 1
 item1     = uimenu(item_parent,'Label','Zoom');
@@ -1236,20 +1253,35 @@ item1_5   = uimenu(item1,      'Label','20x20x20mm',    'Callback','spm_orthview
 item1_6   = uimenu(item1,      'Label','10x10x10mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',1);');
 
 %contextsubmenu 2
+checked={'off','off'};
+checked{st.xhairs+1} = 'on';
 item2     = uimenu(item_parent,'Label','Crosshairs');
-item2_1   = uimenu(item2,      'Label','on', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked','on');
-item2_2   = uimenu(item2,      'Label','off', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');');
+item2_1   = uimenu(item2,      'Label','on',  'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked',checked{2});
+item2_2   = uimenu(item2,      'Label','off', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');','Checked',checked{1});
 
 %contextsubmenu 3
+if st.Space == eye(4)
+	checked = {'off', 'on'};
+else
+	checked = {'on', 'off'};
+end;
 item3     = uimenu(item_parent,'Label','Orientation');
-item3_1   = uimenu(item3,      'Label','World space', 'Callback','spm_orthviews(''context_menu'',''orientation'',2);');
-item3_2   = uimenu(item3,      'Label','Voxel space', 'Callback','spm_orthviews(''context_menu'',''orientation'',1);','Checked','on');
+item3_1   = uimenu(item3,      'Label','World space', 'Callback','spm_orthviews(''context_menu'',''orientation'',3);','Checked',checked{2});
+item3_2   = uimenu(item3,      'Label','Voxel space (1st image)', 'Callback','spm_orthviews(''context_menu'',''orientation'',2);','Checked',checked{1});
+item3_3   = uimenu(item3,      'Label','Voxel space (this image)', 'Callback','spm_orthviews(''context_menu'',''orientation'',1);','Checked','off');
 
 %contextsubmenu 4
+if st.hld == 0,
+	checked = {'off', 'off', 'on'};
+elseif st.hld > 0,
+	checked = {'off', 'on', 'off'};
+else,
+	checked = {'on', 'off', 'off'};
+end;
 item4     = uimenu(item_parent,'Label','Interpolation');
-item4_1   = uimenu(item4,      'Label','NN',    'Callback','spm_orthviews(''context_menu'',''interpolation'',3);');
-item4_2   = uimenu(item4,      'Label','Bilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked','on');
-item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''context_menu'',''interpolation'',1);');
+item4_1   = uimenu(item4,      'Label','NN',    'Callback','spm_orthviews(''context_menu'',''interpolation'',3);', 'Checked',checked{3});
+item4_2   = uimenu(item4,      'Label','Bilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked',checked{2});
+item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''context_menu'',''interpolation'',1);','Checked',checked{1});
 
 %contextsubmenu 5
 % item5     = uimenu(item_parent,'Label','Position', 'Callback','spm_orthviews(''context_menu'',''position'');');
@@ -1294,6 +1326,18 @@ function c_menu(varargin)
 global st
 
 switch lower(varargin{1}),
+case 'repos_mm',
+	oldpos_mm = spm_orthviews('pos');
+	newpos_mm = spm_input('New Position (mm)','+1','r',sprintf('%.2f %.2f %.2f',oldpos_mm),3);
+	spm_orthviews('reposition',newpos_mm);
+
+case 'repos_vx'
+	current_handle = get_current_handle;
+	oldpos_vx = spm_orthviews('pos', current_handle);
+	newpos_vx = spm_input('New Position (voxels)','+1','r',sprintf('%.2f %.2f %.2f',oldpos_vx),3);
+	newpos_mm = st.vols{current_handle}.mat*[newpos_vx;1];
+	spm_orthviews('reposition',newpos_mm(1:3));
+
 case 'zoom'
 	zoom_all(varargin{2});
 	bbox;
@@ -1310,15 +1354,23 @@ case 'xhair',
 	end;
 
 case 'orientation',
-	if varargin{2} == 2,
-		spm_orthviews('Space');
-	else,
-		spm_orthviews('Space',1);
-	end;
 	cm_handles = get_cm_handles;
 	for i = 1:length(cm_handles),
 		z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
 		set(z_handle,'Checked','off');
+	end;
+	if varargin{2} == 3,
+		spm_orthviews('Space');
+	elseif varargin{2} == 2,
+		spm_orthviews('Space',1);
+	else,
+		spm_orthviews('Space',get_current_handle);
+		z_handle = get(findobj(st.vols{get_current_handle}.ax{1}.cm,'label','Orientation'),'Children');
+		set(z_handle(1),'Checked','on');
+		return;
+	end;
+	for i = 1:length(cm_handles),
+		z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
 		set(z_handle(varargin{2}),'Checked','on');
 	end;
 
@@ -1338,7 +1390,12 @@ case 'window',
 	if varargin{2} == 2,
 		spm_orthviews('window',current_handle);
 	else
-		spm_orthviews('window',current_handle,spm_input('Range','+1','e','',2));
+		if isnumeric(st.vols{current_handle}.window)
+			defstr = sprintf('%.2f %.2f', st.vols{current_handle}.window);
+		else
+			defstr = '';
+		end;
+		spm_orthviews('window',current_handle,spm_input('Range','+1','e',defstr,2));
 	end;
 
 case 'window_gl',
@@ -1347,7 +1404,14 @@ case 'window_gl',
 			st.vols{i}.window = 'auto';
 		end;
 	else,
-		data = spm_input('Range','+1','e','',2);
+		current_handle = get_current_handle;
+		if isnumeric(st.vols{current_handle}.window)
+			defstr = sprintf('%d %d', st.vols{current_handle}.window);
+		else
+			defstr = '';
+		end;
+		data = spm_input('Range','+1','e',defstr,2);
+
 		for i = 1:length(get_cm_handles),
 			st.vols{i}.window = data;
 		end;
