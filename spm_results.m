@@ -81,6 +81,12 @@ W        = w;
 
 if SPMF, df = Fdf; end
 
+%-Load ER.mat (event-related) file if it exists
+%-----------------------------------------------------------------------
+str      = [CWD,'/ER.mat'];
+if exist(str); load(str); end
+
+
 % Make description strings
 %-----------------------------------------------------------------------
 if SPMZ
