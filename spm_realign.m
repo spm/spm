@@ -339,10 +339,12 @@ if (any(Flags == 'e') | any(Flags == 'E'))
 	%-------------------------------------------------------------------
 	spm_progress_bar('Init',nreg-1,'Coregistering','volumes completed');
 
-	% Base starting estimates on solution for previous run
-
-	q = zeros(1,size(dQ,1));
 	for k = 2:nreg
+
+	    % decided against basing starting estimates on
+	    % solution for previous run
+	    q = zeros(1,size(dQ,1));
+
 	    C2 = spm_get_space(spm_str_manip(P(k,:), 'd'));
 
 	    spm_smooth(spm_str_manip(P(k,:),'d'),'spm_mov.img',8);
