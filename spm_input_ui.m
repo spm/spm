@@ -1,4 +1,4 @@
-function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
+function [R1,R2,R3,R4,R5,R6] = spm_input(P1,P2,P3,P4,P5,P6)
 % Comprehensive graphical and command line input function
 % FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Defaults)
 %_______________________________________________________________________
@@ -77,8 +77,6 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % Errors in string evaluation are handled gracefully, and the user
 % prompted to re-enter.
 %
-% In the CommandLine variant evaluated input is evaluated in the
-% spm_input's workspace, so base workspace variables are not available.
 % Any default response is indicated, and accepted if an empty line is
 % input.
 %
@@ -292,6 +290,11 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 % PLoc  - Pointer location before jumping
 % cF    - Current figure before making F current.
 %
+% FORMAT [PLoc,cF] = spm_input('!PointerJumpBack',PLoc,cF)
+% Replace pointer and reset CurrentFigure back
+% PLoc  - Pointer location before jumping
+% cF    - Previous current figure
+%
 % FORMAT spm_input('!PrntPrmpt',Prompt)
 % Print prompt for CmdLine questioning
 % Prompt - Prompt string
@@ -303,7 +306,7 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %         Defaults to '', which returns them all.
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 % FRec  - Position of interactive window
-% QRec  - Position of question
+% QRec  - Position of entire question
 % PRec  - Position of prompt
 % RRec  - Position of response
 %
@@ -346,6 +349,7 @@ function [R1,R2,R3,R4] = spm_input(P1,P2,P3,P4,P5,P6)
 %-Parameters
 %=======================================================================
 COLOR = [.8,.8,1];	%-Question background colour
+PJump = 0;		%-Jumping of pointer to question?
 
 
 %-Condition arguments
@@ -422,7 +426,7 @@ if CmdLine
 		fprintf('%c',setstr(ones(1,58)*'-'),'+')
 		fprintf('\n')
 else
-	Prompt = [Labels,': ',Prompt];
+	if ~isempty(Labels), Prompt = [Labels,': ',Prompt]; end
 	figure(Finter)
 	%-Create text axes and edit control objects
 	%---------------------------------------------------------------
@@ -527,8 +531,8 @@ else
 				'ForegroundColor','k',...
 				'UserData',0)
 			waitfor(h,'UserData')
-			str = get(h,'String')
-			p = evalin('base',['[',str,']'],'''<ERROR>''')
+			str = get(h,'String');
+			p = evalin('base',['[',str,']'],'''<ERROR>''');
 		end % (while)
 	else
 		p = str;
@@ -538,7 +542,7 @@ else
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'BackgroundColor',[.7,.7,.7]), drawnow
 	set(Finter,'UserData',[],'KeyPressFcn','')
-	set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
+	spm_input('!PointerJumpBack',PLoc,cF)
 
 end % (if CmdLine)
 
@@ -687,7 +691,7 @@ elseif Type(1)=='b'
 					'BackGroundColor','k',...
 					'ForeGroundColor','k',...
 					'Position',...
-				[RRec(1)+(lab-1)*dX RRec(2)-1 dX 022]);
+				[RRec(1)+(lab-1)*dX RRec(2)-1 dX RRec(4)+2]);
 				XDisp = (lab-1/3)*dX;
 				H = [H,h];
 			end
@@ -699,7 +703,7 @@ elseif Type(1)=='b'
 				'BackgroundColor',COLOR,...
 				'Callback',cb,...
 				'Position',...
-				[RRec(1)+(lab-1)*dX+1 RRec(2) dX-2 020]);
+				[RRec(1)+(lab-1)*dX+1 RRec(2) dX-2 RRec(4)]);
 			H = [H,h];
 		end
 	
@@ -731,7 +735,7 @@ elseif Type(1)=='b'
 			'Horizontalalignment','Center',...
 			'BackgroundColor',[.7,.7,.7],...
 			'Position',RRec);
-		set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
+		spm_input('!PointerJumpBack',PLoc,cF)
 
 	end % (if CmdLine)
 
@@ -806,7 +810,7 @@ elseif Type(1)=='m'
 			'Horizontalalignment','Center',...
 			'String',deblank(Labels(k,:)),...
 			'BackgroundColor',[.7,.7,.7])
-		set(0,'PointerLocation',PLoc,'CurrentFigure',cF)
+		spm_input('!PointerJumpBack',PLoc,cF)
 	end % (if CmdLine)
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
@@ -824,14 +828,14 @@ if exist('spm_log')==2
 %-Return
 %-----------------------------------------------------------------------
 return
-
+end
 
 
 %=======================================================================
 % U T I L I T Y   F U N C T I O N S 
 %=======================================================================
 
-elseif strcmp(lower(Type),lower('!CmdLine'))
+switch lower(Type), case '!cmdline'
 %=======================================================================
 % [CmdLine,YPos] = spm_input('!CmdLine',YPos)
 %-Sorts out whether to use CmdLine or not & canonicalises YPos
@@ -853,7 +857,7 @@ end
 R1 = CmdLine; R2 = YPos;
 return
 
-elseif strcmp(lower(Type),lower('!GetWin'))
+case '!getwin'
 %=======================================================================
 % Finter = spm_input('!GetWin',F)
 %-Locate (or create) figure to work in (Don't use 'Tag'ged figs)
@@ -869,7 +873,7 @@ R1 = Finter;
 return
 
 
-elseif strcmp(lower(Type),lower('!PointerJump'))
+case '!pointerjump'
 %=======================================================================
 % [PLoc,cF] = spm_input('!PointerJump',RRec,F,XDisp)
 %-Raise window & jump pointer over question
@@ -883,13 +887,25 @@ cF   = get(0,'CurrentFigure');
 figure(F)
 FRec = get(F,'Position');
 if isempty(XDisp), XDisp=RRec(3)*4/5; end
-set(0,'PointerLocation',...
-	[(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)]);
+if PJump, set(0,'PointerLocation',...
+	floor([(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)])); end
 R1 = PLoc; R2=cF;
 return
 
 
-elseif strcmp(lower(Type),lower('!PrntPrmpt'))
+case '!pointerjumpback'
+%=======================================================================
+% spm_input('!PointerJumpBack',PLoc,cF)
+%-Replace pointer and reset CurrentFigure back
+if nargin<4, cF=[]; else, F=P3; end
+if nargin<2, error('Insufficient arguments'), else, PLoc=P2; end
+if PJump, set(0,'PointerLocation',PLoc), end
+cF = spm_figure('FindWin',cF);
+if ~isempty(cF), set(0,'CurrentFigure',cF); end
+return
+
+
+case '!prntprmpt'
 %=======================================================================
 % spm_input('!PrntPrmpt',Prompt)
 %-Print prompt for CmdLine questioning
@@ -902,9 +918,9 @@ fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
 return
 
 
-elseif strcmp(lower(Type),lower('!InputRects'))
+case '!inputrects'
 %=======================================================================
-% [Frec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,rec,F)
+% [Frec,QRec,PRec,RRec,Sz,Se] = spm_input('!InputRects',YPos,rec,F)
 if nargin<4, F='Interactive'; else, F=P4; end
 if nargin<3, rec=''; else, rec=P3; end
 if nargin<2, YPos=1; else, YPos=P2; end
@@ -917,13 +933,19 @@ FRec = get(F,'Position');
 set(F,'Units',Units);
 Xdim = FRec(3); Ydim = FRec(4);
 
+WS   = spm('GetWinScale');
+Sz   = 2*round(22*min(WS)/2);	%-Height
+Pd   = Sz/2;			%-Pad
+Se   = 2*round(25*min(WS)/2);	%-Seperation
+Yo   = round(2*min(WS));	%-Y offset for responses
+
 a = 5.5/10;
-y = Ydim - 25*YPos;
-QRec = [010     y      Xdim-20      020];
-PRec = [010     y  (a*Xdim -20)     020];
-RRec = [a*Xdim  y  ((1-a)*Xdim -10) 020];
-MRec = [010     y      Xdim-50      020];
-BRec = MRec + [Xdim-50+1, 0+1, 50-Xdim+30, 0];
+y = Ydim - Se*YPos;
+QRec   = [Pd            y         Xdim-2*Pd        Sz];	%-Question
+PRec   = [Pd            y     floor(a*Xdim)-2*Pd   Sz];	%-Prompt
+RRec   = [ceil(a*Xdim)  y+Yo  floor((1-a)*Xdim)-Pd Sz];	%-Response
+% MRec = [010           y         Xdim-50          Sz];	%-Menu PullDown
+% BRec = MRec + [Xdim-50+1, 0+1, 50-Xdim+30, 0];	%-Menu PullDown OK butt.
 
 if ~isempty(rec)
 	R1 = eval(rec);
@@ -932,13 +954,13 @@ else
 	R2 = QRec;
 	R3 = PRec;
 	R4 = RRec;
-	R5 = MRec;
-	R6 = BRec;
+	R5 = Sz;
+	R6 = Se;
 end
 return
 
 
-elseif strcmp(lower(Type),lower('!CurrentPos'))
+case '!currentpos'
 %=======================================================================
 % [CPos,hCPos] = spm_input('!CurrentPos',F)
 % hPos contains handles: Columns contain handles corresponding to Pos
@@ -980,7 +1002,7 @@ R1 = CPos;
 R2 = hCPos;
 return
 
-elseif strcmp(lower(Type),lower('!NextPos'))
+case '!nextpos'
 %=======================================================================
 % [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F,CmdLine)
 %-Return next position to use
@@ -1022,7 +1044,7 @@ R1=NPos; R2=CPos; R3=hCPos;
 return
 
 
-elseif strcmp(lower(Type),lower('!MaxPos'))
+case '!maxpos'
 %=======================================================================
 % MPos = spm_input('!MaxPos',F,FRec3)
 %
@@ -1039,12 +1061,14 @@ if nargin<3
 		set(F,'Units',Units);
 	end
 end
-MPos = floor((FRec3-5)/25);
+
+Se   = 2*round(25*min(spm('GetWinScale'))/2);
+MPos = floor((FRec3-5)/Se);
 
 R1 = MPos;
 return
 
-elseif strcmp(lower(Type),lower('!EditableKeyPressFcn'))
+case '!editablekeypressfcn'
 %=======================================================================
 % spm_input('!EditableKeyPressFcn',h,ch)
 if nargin<2, error('Insufficient arguments'), else, h=P2; end
@@ -1074,7 +1098,7 @@ set(h,'String',tmp)
 return
 
 
-elseif strcmp(lower(Type),lower('!ButtonKeyPressFcn'))
+case '!buttonkeypressfcn'
 %=======================================================================
 % spm_input('!ButtonKeyPressFcn',h,Keys,DefItem,ch)
 %-Callback for KeyPress, to store valid button # in UserData of Prompt,
@@ -1099,7 +1123,7 @@ if ~isempty(But), set(h,'UserData',But), end
 return
 
 
-elseif strcmp(lower(Type),lower('!PullDownKeyPressFcn'))
+case '!pulldownkeypressfcn'
 %=======================================================================
 % spm_input('!PullDownKeyPressFcn',h,ch,DefItem)
 if nargin<2, error('Insufficient arguments'), else, h=P2; end
@@ -1136,7 +1160,7 @@ end
 return
 
 
-elseif strcmp(lower(Type),lower('!dScroll'))
+case '!dscroll'
 %=======================================================================
 % spm_input('!dScroll',h,Prompt)
 %-Scroll text in object h
@@ -1155,8 +1179,9 @@ end
 return
 
 
-else
+otherwise
 %=======================================================================
 error('Invalid Type')
 
+%=======================================================================
 end
