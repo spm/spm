@@ -46,6 +46,7 @@ cmex5 spm_add.c	spm_vol_utils.a spm_mapping.c
 cmex5 spm_conv_vol.c	spm_vol_utils.a spm_mapping.c
 cmex5 spm_render_vol.c	spm_vol_utils.a spm_mapping.c
 cmex5 spm_global.c	spm_vol_utils.a spm_mapping.c
+cmex5 spm_resels_vol.c	spm_vol_utils.a spm_mapping.c
 
 cmex5 spm_atranspa.c
 cmex5 spm_list_files.c
