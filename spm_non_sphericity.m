@@ -6,9 +6,9 @@ function [xVi] = spm_non_sphericity(xVi)
 % xVi.I    - n x 4 matrix of factor level indicators
 %              I(n,i) is the level of factor i for observation n
 % xVi.var  - 1 x 4 vector of flags
-%              var(i) = 1; levels of factor i have unequal error variances
+%              var(i) = 1; different variance among levels of factor i
 % xVi.dep  - 1 x 4 vector of flags
-%              dep(i) = 1; levels of factor i induce random effects
+%              dep(i) = 1;      dependencies within levels of factor i
 %
 % Output:
 % xVi.Vi   -  cell of covariance components
@@ -58,61 +58,51 @@ function [xVi] = spm_non_sphericity(xVi)
 %===========================================================================
 [n f] = size(xVi.I);			% # observations, % # Factors
 l     = max(xVi.I);                     % levels
-Q     = {};
 
-% if i.i.d
+% if var(i): add variance component for each level of factor i,
 %---------------------------------------------------------------------------
-if ~any(xVi.var) & ~any(xVi.dep)
-    xVi.V  = speye(n,n);
-    return
+Q     = {};
+for i = find(xVi.var)
+    for j = 1:l(i)
+        u          = xVi.I(:,i) == j;
+        q          = spdiags(u,0,n,n);
+        Q{end + 1} = q;
+    end
 end
 
-
-% error components
+% effects (discounting factors with dependencies) as defined by interactions
 %---------------------------------------------------------------------------
-for i = 1:f
-    
-    % add variance component for level j of factor i
-    %-----------------------------------------------------------------------
-    if xVi.var(i) & (l(i) > 1)
-        for j = 1:l(i)
-            u          = xVi.I(:,i) == j;
-            q          = spdiags(u,0,n,n);
-            Q{end + 1} = q;
+X     = ones(n,1);
+for i = find(~xVi.dep & (l > 1))
+    Xi    = sparse(1:n,xVi.I(:,i),1,n,l(i));
+    Xj    = X;
+    X     = sparse(n,0);
+    for j = 1:size(Xi,2)
+        for k = 1:size(Xj,2)
+            X(:,end + 1) = Xi(:,j) & Xj(:,k);
         end
     end
 end
 
-% unless all repeated measures are identically distributed
-%---------------------------------------------------------------------------
-if ~length(Q)
-    Q{end + 1} = speye(n,n);
-end
-
-% effects (discounting factors with dependencies)
-%---------------------------------------------------------------------------
-X    = [];
-for i = 1:f
-    if (l(i) > 1) & ~xVi.dep(i)
-        q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
-        X     = [X q];
-    end
-end
-
-% dependencies among repeated measures
-%---------------------------------------------------------------------------
-for i = 1:f
-    if xVi.dep(i) & (l(i) > 1)
-        q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
-        P     = q*q';
-        for j = 1:size(X,2)
-            for k = (j + 1):size(X,2)
-                Q{end + 1} = (X(:,j)*X(:,k)' + X(:,k)*X(:,j)').*P;
-            end
+% dependencies among repeated measures created by the hadamrad product %---------------------------------------------------------------------------
+for i = find(xVi.dep)
+    q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
+    P     = q*q';
+    for j = 1:size(X,2)
+        for k = (j + 1):size(X,2)
+            Q{end + 1} = (X(:,j)*X(:,k)' + X(:,k)*X(:,j)').*P;
         end
     end
 end
 
 % set Q in non-sphericity structure
 %---------------------------------------------------------------------------
-xVi.Vi = Q;
+
+
+% if i.i.d nonsphericity (V) is known otherwise there are components {Vi}
+%---------------------------------------------------------------------------
+if length(Q) > 1
+    xVi.Vi = Q;
+else
+    xVi.V  = speye(n,n);
+end
