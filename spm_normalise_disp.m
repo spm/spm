@@ -1,0 +1,59 @@
+function spm_normalise_disp(matname)
+% Display results of spatial normalisation
+% FORMAT spm_normalise_disp(matname)
+% matname - name of sn3d.mat file
+%_______________________________________________________________________
+% %W% John Ashburner %E%
+
+fg = spm_figure('FindWin','Graphics');
+if isempty(fg), return; end;
+
+if nargin<1, matname = spm_get(1,'*_sn3d.mat'); end;
+
+t = load(deblank(matname));
+Q = t.VG(1).mat*inv(t.Affine)/t.VF(1).mat;
+
+spm_figure('Clear','Graphics');
+ax=axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fg);
+text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
+	'Interpreter','none','Parent',ax);
+text(0,0.75, [ 'Image     : ' t.VF(1).fname],'FontSize',12,'FontWeight','Bold',...
+	'Interpreter','none','Parent',ax);
+text(0,0.7, [ 'Parameters : ' spm_str_manip(matname,'sd')],'FontSize',12,...
+	'Interpreter','none','Parent',ax);
+
+str = 'no flipping';
+if det(t.Affine(1:3,1:3))<0, str = 'image flipped'; end;
+text(0,0.6, ['Linear {affine} component - ' str],'FontWeight','Bold',...
+	'Interpreter','none','Parent',ax);
+text(0,0.55, sprintf('X1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(1,:)),...
+	'Interpreter','none','Parent',ax);
+text(0,0.50, sprintf('Y1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(2,:)),...
+	'Interpreter','none','Parent',ax);
+text(0,0.45, sprintf('Z1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(3,:)),...
+	'Interpreter','none','Parent',ax);
+
+d = [size(t.Tr) 1 1 1];
+d = d(1:3);
+
+if prod(d)>1 & finite(t.flags.reg),
+	text(0,0.35, sprintf('%d nonlinear iterations',t.flags.nits),...
+		'Interpreter','none','Parent',ax);
+	text(0,0.30, sprintf('%d x %d x %d basis functions',d),...
+		'Interpreter','none','Parent',ax);
+else,
+	text(0,0.35, 'No nonlinear components',...
+		'Interpreter','none','Parent',ax);
+end;
+
+spm_orthviews('Reset');
+h1 = spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
+spm_write_sn(t.VF.fname,matname);
+[pth,nm,xt,vr] = fileparts(t.VF(1).fname);
+q              = fullfile(pth,['n' nm xt vr]);
+h2 = spm_orthviews('Image',q,[.51 0.1 .48 .6]);
+spm_orthviews('Space',h2);
+spm_print;
+drawnow;
+return;
+
