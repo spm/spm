@@ -242,13 +242,13 @@ if (nargin == 0)
 				subj(i).objmask = spm_get(1+sqrt(-1),'.img',['Select object masking image (or Done for none)']);
 			end;
 
-			subj(i).matname = [spm_str_manip(P,'sd') '_sn3d.mat'];
+			subj(i).matname = [spm_str_manip(subj(i).P,'sd') '_sn3d.mat'];
 		else,
 			subj(i).matname = spm_get(1,'_sn3d.mat',['subj ' num2str(i) ' - Normalisation parameter set:']);
 		end;
 	
 		if a1 == 2 | a1 == 3,
-			subj(i).P = spm_get(Inf,'.img',['subj ' num2str(i) ' - Images to write normalised']);
+			subj(i).PP = spm_get(Inf,'.img',['subj ' num2str(i) ' - Images to write normalised']);
 		end;
 	end;
 
@@ -401,7 +401,7 @@ if (nargin == 0)
 		for i=1:length(subj),
 			set(spm_figure('FindWin','Interactive'),'Name',['Writing Normalised, subj' num2str(i)],'Pointer','Watch');
 			drawnow;
-			spm_write_sn(subj(i).P,subj(i).matname,bb,Vox,Hold);
+			spm_write_sn(subj(i).PP,subj(i).matname,bb,Vox,Hold);
 		end;
 	end;
 	
