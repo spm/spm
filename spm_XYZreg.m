@@ -428,11 +428,11 @@ varargout = {hReg,xyz};
 
 
 %=======================================================================
-case 'uninitreg'	% UnInitialise registry in handle h
+case 'uninitreg'	% UnInitialise registry in handle hReg
 %=======================================================================
 % spm_XYZreg('UnInitReg',hReg)
 hReg = varargin{2};
-if ~strcmp(get(h,'Tag'),'hReg'), warning('Not an XYZ registry'), return, end
+if ~strcmp(get(hReg,'Tag'),'hReg'), warning('Not an XYZ registry'), return, end
 set(hReg,'Tag','','UserData',[])
 
 
