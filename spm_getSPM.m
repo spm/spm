@@ -84,7 +84,7 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % see spm_results_ui.m for further details
 %
 %_______________________________________________________________________
-% @(#)spm_getSPM.m	2.17 Andrew Holmes & Karl Friston 99/04/28
+% %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
 SCCSid   = '%I%';
 
 %-GUI setup
@@ -133,6 +133,22 @@ end
 if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; end
 
 
+%-See if can write to current directory (by trying to resave xCon.mat)
+%-----------------------------------------------------------------------
+wOK = 1;
+try
+	save('xCon.mat','xCon')
+catch
+	wOK = 0;
+	str = {	'Can''t write to the results directory:',...
+        	'(problem saving xCon.mat)',...
+		['        ',swd],...
+		' ','-> results restricted to contrasts already computed'};
+	spm('alert!',str,mfilename,1);
+end
+
+
+
 %=======================================================================
 % - C O N T R A S T S ,  S P M   C O M P U T A T I O N ,   M A S K I N G
 %=======================================================================
@@ -140,17 +156,13 @@ if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; en
 %-Get contrasts...
 %-----------------------------------------------------------------------
 [Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
-	'Select contrasts...',' for conjunction',1);
+	'Select contrasts...',' for conjunction',wOK);
 
 
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-
 % (Don't want to ask orthogonalisation order if not needed.)
-% NB: This amalgamates columns of F-contrasts, perhaps causing
-% orthogonalisation when only an F-contrast has non-ortho. cols
-
 if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
     %-Get orthogonalisation order from user
@@ -199,7 +211,7 @@ end % if length(Ic)...
 %-----------------------------------------------------------------------
 if spm_input('mask with other contrast(s)','+1','y/n',[1,0],2)
 	[Im,xCon] = spm_conman(xX,xCon,'T&F',-Inf,...
-		'Select contrasts for masking...',' for masking',1);
+		'Select contrasts for masking...',' for masking',wOK);
 
 	%-Threshold for mask (uncorrected p-value)
 	%---------------------------------------------------------------
@@ -215,17 +227,10 @@ else
 end
 
 
-%-Preliminary save of the contrast structure (to see if we can write)
+%-Save contrast structure (if wOK) - ensures new contrasts are saved
 %-----------------------------------------------------------------------
-try
-	save('xCon.mat','xCon')
-catch
-	str = {	'Problem saving xCon.mat:','',...
-		'SPM needs write access to results directory:',...
-		['    ',swd]};
-	spm('alert*',str,mfilename);
-	error(['can''t write to results directory: ',swd])
-end
+if wOK, save('xCon.mat','xCon'), end
+
 
 %-Get title for comparison
 %-----------------------------------------------------------------------
@@ -274,6 +279,15 @@ for ii = 1:length(I)
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'Vcon') | isempty(xCon(i).Vcon) | ...
         ~exist(fullfile('.',xCon(i).Vcon.fname),'file')
+        
+        %-Bomb out (nicely) if can't write to results directory
+        %---------------------------------------------------------------
+        if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
+		['        ',swd],' ','=> can''t compute new contrasts'},...
+		mfilename,sqrt(-1));
+		cd(cwd), spm('Pointer','Arrow')
+		error('can''t write contrast image')
+        end
 	
 	switch(xCon(i).STAT)
 
@@ -346,6 +360,16 @@ for ii = 1:length(I)
     if ~isfield(xCon(i),'Vspm') | isempty(xCon(i).Vspm) | ...
         ~exist(fullfile('.',xCon(i).Vspm.fname),'file')
 	
+        %-Bomb out (nicely) if can't write to results directory
+        %---------------------------------------------------------------
+        if ~wOK, spm('alert*',{	'Can''t write to the results directory:',...
+		['        ',swd],' ','=> can''t compute new contrasts'},...
+		mfilename,sqrt(-1));
+		cd(cwd), spm('Pointer','Arrow')
+		error('can''t write SPM image')
+        end
+
+
         fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(i).STAT,i),...
                                                     '...computing')  %-#
 
@@ -397,10 +421,12 @@ for ii = 1:length(I)
 end % (for i=[Ic,Im])
 
 
-%-Save contrast structure
+%-Save contrast structure (if wOK)
 %=======================================================================
-save('xCon.mat','xCon')
-fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
+if wOK
+    save('xCon.mat','xCon')
+    fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
+end
 
 %-Compute (unfiltered) SPM pointlist for requested masked conjunction
 %=======================================================================
