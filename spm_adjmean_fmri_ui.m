@@ -132,7 +132,7 @@ function spm_adjmean_fmri_ui
 %
 % Platform
 % ----------------------------------------------------------------------
-% This version was written for MatLab4.2c with SPM'97d (spm_mean.m v1.11)
+% This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
@@ -392,11 +392,13 @@ for i = 1:nx
 	Fnames = str2mat(Fnames,Fn);
 	w  = W(i,:).*gSF'.*iSF';
 	Q  = find(abs(w)>0);
-	wV = V(:,Q);	wV(7,:) = w(Q);
+	%wV = V(:,Q);	wV(7,:) = w(Q);
 	fprintf('\t...writing image %d: %-20s',i,Fn)
-	sf = spm_mean(wV,[Fn,'.img']);
+	%sf = spm_mean(wV,[Fn,'.img']);
+	sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
 	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
-	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);
+	%spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);
+	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str);
 	spm_get_space(Fn,spm_get_space(P(1,:)));
 	fprintf(' (done)\n')
 	guiPos = '0';
