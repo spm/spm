@@ -1,7 +1,8 @@
 function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Display a 'Progress Bar'
-% FORMAT spm_progress_bar('Init',height,xlabel,ylabel)
+% FORMAT spm_progress_bar('Init',height,xlabel,ylabel,flgs)
 % Initialises the bar in the 'Interactive' window.
+% If flgs contains a 't', then use tex interpreter for labels.
 %
 % FORMAT spm_progress_bar('Set',value)
 % Sets the height of the bar itself.
@@ -21,15 +22,19 @@ else,
 	% initialize
 	%---------------------------------------------------------------
 	if strcmp(action,'init'),
-		if nargin<4,
-			arg3 = '';
-			if nargin<3,
-				arg2 = 'Computing';
-				if nargin<2,
-					arg1 = 1;
+		if nargin<5,
+			arg4 = ' ';
+			if nargin<4,
+				arg3 = '';
+				if nargin<3,
+					arg2 = 'Computing';
+					if nargin<2,
+						arg1 = 1;
+					end;
 				end;
 			end;
 		end;
+		if any(arg4=='t'), interp = 'tex'; else, interp = 'none'; end;
 		fg = spm_figure('FindWin','Interactive');
 		if ~isempty(fg),
 			pb_pointer = get(fg,'Pointer');
@@ -44,11 +49,11 @@ else,
 				'Box', 'on',...
 				'Parent',fg);
 			lab = get(ax,'Xlabel');
-			set(lab,'string',arg2,'FontSize',10);
+			set(lab,'string',arg2,'FontSize',10,'Interpreter',interp);
 			lab = get(ax,'Ylabel');
-			set(lab,'string',arg3,'FontSize',10);
+			set(lab,'string',arg3,'FontSize',10,'Interpreter',interp);
 			lab = get(ax,'Title');
-			set(lab,'string','0% Complete');
+			set(lab,'string','0% Complete','Interpreter',interp);
 			tim = clock;
 			tim = tim(4:6);
 			str = sprintf('Began %2.0f:%2.0f:%2.0f',tim(1),tim(2),tim(3));
