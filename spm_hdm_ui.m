@@ -1,6 +1,6 @@
-function [Ep,Cp] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
+function [Ep,Cp,Ce] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
 % user interface for hemodynamic model estimation
-% FORMAT [Ep Cp] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg);
+% FORMAT [Ep Cp Ce] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg);
 %
 % SPM    - structure containing SPM, distribution & filtering detals
 % VOL    - structure containing details of volume analysed
@@ -12,6 +12,7 @@ function [Ep,Cp] = spm_hdm_ui(SPM,VOL,xX,xCon,xSDM,hReg)
 % Ep     - conditional expectations of the hemodynamic model parameters
 % Cp     - conditional  covariance  of the hemodynamic model parameters
 %          (see main body of routine for details of model specification)
+% Ce     - ML estimate of error covariance
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -72,9 +73,15 @@ xY     = struct(	'Ic'		,1,...
 %---------------------------------------------------------------------------
 [y xY] = spm_regions(SPM,VOL,xX,xCon,xSDM,hReg,xY);
 
+
+% serial correlations?
+%---------------------------------------------------------------------------
+h      = spm_input('model serial correlations','+1','b','yes|no',[2 1]);
+
 %-append low frequency confounds
 %---------------------------------------------------------------------------
-X0     = ones(size(xY.y,1),1);
+n      = size(xY.y,1);
+X0     = ones(n,1);
 if ~strcmp(xY.filter,'none')
 	X0   = [X0 full(xX.K{s}.KH)];
 end
@@ -86,6 +93,7 @@ y      = y - X0*(pinv(X0)*y);
 Y.y    = y;
 Y.dt   = xX.RT;
 Y.X0   = X0;
+Y.Ce   = spm_Ce(n,h);
 
 
 % estimate
