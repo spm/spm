@@ -18,18 +18,16 @@
 % get image on which to render
 %----------------------------------------------------------------------------
 spms   = spm_get(1,'.img','select an image for rendering',[]);
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
 set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
 
 % memory map background image and create transformation matrix {A}
 %----------------------------------------------------------------------------
-L      = V(4:6)'.*round(L./V(4:6)');
+L      = spm_XYZreg('RoundCoords',L,V);
 Vs     = spm_map(spms);					% memory mapped
-M      = round(V(1)*V(4));				% SPM size (mm)
-N      = round(V(2)*V(5));				% SPM size (mm)
+Nx     = round(V(1)*V(4));				% SPM size (mm)
+Ny     = round(V(2)*V(5));				% SPM size (mm)
 O      = round(V(3)*V(6));				% SPM size (mm)
 J      = round(V(7)*V(4));				% corner of SPM (mm)
 R      = round(V(8)*V(5));				% corner of SPM (mm)
@@ -42,37 +40,36 @@ A      = spm_matrix([J R 0])*A;				% re-center to corner
 % extract data from SPM{t} [sagittal {Ts} coronal {Tc} transverse {Tt}]
 %----------------------------------------------------------------------------
 Q      = find(abs(XYZ(1,:) - L(1)) < V(4)/2);
-Ts     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(2,Q) + R)/V(5),t(Q),O/V(6),N/V(5));
-Ts     = spm_resize(full(Ts),O,N);
+Ts     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(2,Q) + R)/V(5),t(Q),O/V(6),Ny/V(5));
+Ts     = spm_resize(full(Ts),O,Ny);
 
 Q      = find(abs(XYZ(2,:) - L(2)) < V(5));
-Tc     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(1,Q) + J)/V(4),t(Q),O/V(6),M/V(4));
-Tc     = spm_resize(full(Tc),O,M);
+Tc     = sparse((XYZ(3,Q) + I)/V(6),(XYZ(1,Q) + J)/V(4),t(Q),O/V(6),Nx/V(4));
+Tc     = spm_resize(full(Tc),O,Nx);
 
 Q      = find(abs(XYZ(3,:) - L(3)) < V(6));
-Tt     = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + R)/V(5),t(Q),M/V(4),N/V(5));
-Tt     = spm_resize(full(Tt),M,N);
+Tt     = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + R)/V(5),t(Q),Nx/V(4),Ny/V(5));
+Tt     = spm_resize(full(Tt),Nx,Ny);
 
 
 % get background slices and combine
 %----------------------------------------------------------------------------
 D      = [0 0 1 I;0 1 0 0;-1 0 0 (J + L(1));0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[O N],1);
+D      = spm_slice_vol(Vs,inv(D),[O Ny],1);
 Ds     = D/max(D(:));
 
 D      = [0 0 1 I;1 0 0 0;0 -1 0 (R + L(2));0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[O M],1);
+D      = spm_slice_vol(Vs,inv(D),[O Nx],1);
 Dc     = D/max(D(:));
 
 D      = [1 0 0 0;0 1 0 0;0 0 1 -L(3);0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[M N],1);
+D      = spm_slice_vol(Vs,inv(D),[Nx Ny],1);
 Dt     = D/max(D(:));
 
 
-% delete previous axis
-%----------------------------------------------------------------------------
-figure(Fgraph)
-subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
+%-Delete previous axis and their pagination controls (if any)
+%-----------------------------------------------------------------------
+spm_results_ui('ClearPane',Fgraph,'RNP');
 
 
 % configure {128 level} colormap
@@ -93,29 +90,29 @@ set(Fgraph,'Units','pixels')
 WIN    = get(gcf,'Position');
 WIN    = WIN(3)/WIN(4);
 Y      = 0.36;
-X      = Y*M/N;
-Z      = Y*O/N;
+X      = Y*Nx/Ny;
+Z      = Y*O/Ny;
 
 % render activation foci on background image
 %----------------------------------------------------------------------------
 axes('Position',[0.1 (0.46 - Z*WIN) Y Z*WIN])
 image(Ts)
 axis image; axis('xy'); axis off; 	title 'sagittal'
-line([0 N],([I I] + L(3)))
+line([0 Ny],([I I] + L(3)))
 line(([R R] + L(2)),[0 O])
 
 axes('Position',[(0.2 + Y) (0.46 - Z*WIN) X Z*WIN])
 image(Tc)
 axis image; axis('xy'); axis off; 	title 'coronal'
-line([0 M],([I I] + L(3)))
+line([0 Nx],([I I] + L(3)))
 line(([J J] + L(1)),[0 O])
 
 axes('Position',[0.1 (0.46 - Z*WIN - 0.1*WIN - X*WIN) Y X*WIN])
 image(Tt)
 axis image; axis off;
 title 'transverse'
-line([0 N],([J J] + L(1)))
-line(([R R] + L(2)),[0 M])
+line([0 Ny],([J J] + L(1)))
+line(([R R] + L(2)),[0 Nx])
 
 
 % colorbar
@@ -128,7 +125,7 @@ if SPMZ str ='Z value'; end;
 if SPMF str = 'F-value'; end;
 
 axis xy; ylabel(str);
-set(gca,'XTickLabels',[])
+set(gca,'XTickLabel',[])
 
 
 % unmap and reset pointer (and x locations is necessary)

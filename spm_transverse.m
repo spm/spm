@@ -17,18 +17,16 @@
 % get the image on which to render
 %-----------------------------------------------------------------------
 spms   = spm_get(1,'.img','select an image for rendering');
-Finter = spm_figure('FindWin','Interactive');
-Fgraph = spm_figure('FindWin','Graphics');
 set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
 
 % memory map the background image and create transformation matrix {A}
 %-----------------------------------------------------------------------
-L      = V(4:6)'.*round(L./V(4:6)');
+L      = spm_XYZreg('RoundCoords',L,V);
 Vs     = spm_map(spms);					% memory mapped
-M      = round(V(1)*V(4));				% SPM size (mm)
-N      = round(V(2)*V(5));				% SPM size (mm)
+Nx     = round(V(1)*V(4));				% SPM size (mm)
+Ny     = round(V(2)*V(5));				% SPM size (mm)
 J      = round(V(7)*V(4));				% corner of SPM (mm)
 Z      = round(V(8)*V(5));				% corner of SPM (mm)
 A      = spm_matrix(-origin);				% center on origin
@@ -40,39 +38,38 @@ A      = spm_matrix([J Z 0])*A;				% re-center to corner
 % extract data from SPM{t} [at one plane separation]
 %-----------------------------------------------------------------------
 Q      = find(abs(XYZ(3,:) - L(3)) < V(6));
-T      = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),M/V(4),N/V(5));
-Tc     = spm_resize(full(T),M,N);
+T      = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),Nx/V(4),Ny/V(5));
+Tc     = spm_resize(full(T),Nx,Ny);
 
 if V(3) > 1
     Q  = find(abs(XYZ(3,:) - L(3) - V(6)) < V(6));
-    T  = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),M/V(4),N/V(5));
-    Ts = spm_resize(full(T),M,N);
+    T  = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),Nx/V(4),Ny/V(5));
+    Ts = spm_resize(full(T),Nx,Ny);
 
     Q  = find(abs(XYZ(3,:) - L(3) + V(6)) < V(6));
-    T  = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),M/V(4),N/V(5));
-    Tt = spm_resize(full(T),M,N);
+    T  = sparse((XYZ(1,Q) + J)/V(4),(XYZ(2,Q) + Z)/V(5),t(Q),Nx/V(4),Ny/V(5));
+    Tt = spm_resize(full(T),Nx,Ny);
 end
 
 % get background slices and combine
 %-----------------------------------------------------------------------
 D      = [1 0 0 0;0 1 0 0;0 0 1 -L(3);0 0 0 1]*A;
-D      = spm_slice_vol(Vs,inv(D),[M N],1);
+D      = spm_slice_vol(Vs,inv(D),[Nx Ny],1);
 Dc     = D/max(D(:));
 
 if V(3) > 1
     D  = [1 0 0 0;0 1 0 0;0 0 1 (-L(3) - V(6));0 0 0 1]*A;
-    D  = spm_slice_vol(Vs,inv(D),[M N],1);
+    D  = spm_slice_vol(Vs,inv(D),[Nx Ny],1);
     Ds = D/max(D(:));
 
     D  = [1 0 0 0;0 1 0 0;0 0 1 (-L(3) + V(6));0 0 0 1]*A;
-    D  = spm_slice_vol(Vs,inv(D),[M N],1);
+    D  = spm_slice_vol(Vs,inv(D),[Nx Ny],1);
     Dt = D/max(D(:));
 end
 
-% delete previous axis
+%-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
-figure(Fgraph)
-subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
+spm_results_ui('ClearPane',Fgraph,'RNP');
 
 % configure {128 level} colormap
 %-----------------------------------------------------------------------
@@ -95,28 +92,28 @@ if V(3) > 1
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L(3)))
-	line(([J J] + L(1)),[0 N])
-	line([0 M],((N - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny])
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
 
 	subplot(2,4,5)
 	image(rot90(spm_grid(Tt)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',(L(3) - V(6))))
-	line(([J J] + L(1)),[0 N])
-	line([0 M],((N - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny])
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
 
 	subplot(2,4,7)
 	image(rot90(spm_grid(Ts)))
 	axis image; axis off; title(sprintf('z = %0.0fmm',(L(3) + V(6))))
-	line(([J J] + L(1)),[0 N])
-	line([0 M],((N - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny])
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
 else
 	axes('position', [0.3 0.1 0.4 0.3])
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',L(3)))
-	line(([J J] + L(1)),[0 N])
-	line([0 M],((N - Z)*[1 1] - L(2)))
+	line(([J J] + L(1)),[0 Ny])
+	line([0 Nx],((Ny - Z)*[1 1] - L(2)))
 end
 
 % colorbar
@@ -129,10 +126,10 @@ if SPMF str = 'F-value'; end;
 
 axis xy; ylabel(str);
 
-set(gca,'XTickLabels',[])
+set(gca,'XTickLabel',[])
 
 
-% unmap and reset pointer (and x locations if necessary)
+% unmap and reset pointer
 %-----------------------------------------------------------------------
 spm_unmap(Vs);
 set([Finter,Fgraph],'Pointer','Arrow')

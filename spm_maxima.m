@@ -21,34 +21,27 @@
 
 % Characterize point list in terms of maxima and regions
 %-----------------------------------------------------------------------
-[N Z M A] = spm_max(t,XYZ,V([4 5 6]));
+[N Z ML A] = spm_max(t,XYZ,V([4 5 6]));
 
-
-% Find nearest maximum [in a Euclidean sense] in the point list
+% Find nearest maximum [in a Euclidean sense] in point list & update GUI
 %-----------------------------------------------------------------------
-[d i] = min(sum(([(M(1,:) - L(1));(M(2,:) - L(2));(M(3,:) - L(3))]).^2));
-L     = M(:,i);
-
-
-% Reset the pointer and position strings created by spm_results
-%-----------------------------------------------------------------------
-spm_mip_ui('SetCoords',L);
+[L,i,d] = spm_XYZreg('NearestXYZ',L,ML);
+spm_XYZreg('SetCoords',L,hReg);
 
 % Select region and compute p values for all its maxima
 %-----------------------------------------------------------------------
 d     = A == A(i);
 N     = N(d);
 Z     = Z(d);
-M     = M(:,d);
-
-% Delete previous axis and their pagination controls (if any)
-%-----------------------------------------------------------------------
-subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
-subplot(2,1,2); axis off
+ML    = ML(:,d);
 
 
 % Display (sorted on Z/F)
 %=======================================================================
+
+%-Delete previous axis and their pagination controls (if any)
+%-----------------------------------------------------------------------
+spm_results_ui('ClearPane',Fgraph)
 
 % Table headings
 %-----------------------------------------------------------------------
@@ -121,13 +114,13 @@ hPage = [hPage, h];
 str   = sprintf('%-0.3f',Pz);
 h     = text(0.74,y,str,'FontSize',8,'FontWeight','Bold');
 hPage = [hPage, h];
-h     = text(0.84,y,sprintf('%-6.0f',M(:,i)),...
+h     = text(0.84,y,sprintf('%-6.0f',ML(:,i)),...
 	'Fontsize',8,'FontWeight','Bold',...
 	'ButtonDownFcn','spm_mip_ui(''ShowGreens'')',...
-	'Interruptible','no',...
-	'UserData',M(:,i));
+	'Interruptible','off',...
+	'UserData',ML(:,i));
 hPage = [hPage, h];
-if all(~(M(:,i) - L)), set(h,'Color','r','FontAngle','Italic'); end
+if all(~(ML(:,i) - L)), set(h,'Color','r','FontAngle','Italic'); end
 
 y     = y - 1;
 
@@ -136,7 +129,7 @@ y     = y - 1;
 [l q] = sort(-Z);			% sort on Z value
 D     = i;
 for i = 2:length(q)
-	d     =  min(sum((M(:,D) - M(:,q(i))*ones(1,size(D,2))).^2));
+	d     =  min(sum((ML(:,D) - ML(:,q(i))*ones(1,size(D,2))).^2));
 	if (d > 64 )
 
 		% Paginate if necessary
@@ -173,14 +166,14 @@ for i = 2:length(q)
 		str   = sprintf('%-0.3f',Pz);
 		h     = text(0.74,y,str,'FontSize',8,'Visible',Vis);
 		hPage = [hPage, h];
-		str   = sprintf('%-6.0f',M(:,q(i)));
+		str   = sprintf('%-6.0f',ML(:,q(i)));
 		h     = text(0.84,y,str,'FontSize',8,...
 				'Visible',Vis,...
 				'ButtonDownFcn',...
 					'spm_mip_ui(''ShowGreens'')',...
-				'Interruptible','no',...
-				'UserData',M(:,q(i)));
-		if all(~(M(:,q(i)) - L))
+				'Interruptible','off',...
+				'UserData',ML(:,q(i)));
+		if all(~(ML(:,q(i)) - L))
 			set(h,'Color','r','FontAngle','Italic'); end
 		hPage = [hPage, h];
 		D     = [D q(i)];

@@ -22,17 +22,10 @@
 % %W% Karl Friston %E%
 
 
-% Find nearest voxel [Euclidean distance] in the point list of locations XYZ
+% Find nearest voxel [Euclidean distance] in point list XYZ & update GUI
 %-----------------------------------------------------------------------
-[d i] = min( sum(([	(XYZ(1,:) - L(1));...
-			(XYZ(2,:) - L(2));...
-			(XYZ(3,:) - L(3))	]).^2));
-
-
-% Reset the pointer and position strings created by spm_results_ui
-%-----------------------------------------------------------------------
-L     = XYZ(:,i);
-spm_mip_ui('SetCoords',L);
+[L,i,d] = spm_XYZreg('NearestXYZ',L,XYZ);
+spm_XYZreg('SetCoords',L,hReg);
 
 
 % Get adjusted data y and fitted effects Y
@@ -46,6 +39,7 @@ SE    = sqrt(RES*diag(BCOV));			% standard error of estimates
 HC    = [H C];
 MSize = 8;
 COL   = ['r' 'b' 'g' 'c' 'y' 'm' 'r' 'b' 'g' 'c' 'y' 'm'];
+
 
 % Inference (for title)
 %-----------------------------------------------------------------------
@@ -65,16 +59,9 @@ elseif SPMF
 end
 
 
-% Delete previous axis and their pagination controls (if any)
+%-Delete previous axis and their pagination controls (if any)
 %-----------------------------------------------------------------------
-Fgraph = spm_figure('FindWin','Graphics');
-Finter = spm_figure('FindWin','Interactive');
-figure(Fgraph)
-subplot(2,1,2); spm_figure('DeletePageControls')
-if ~strcmp(get(gca,'NextPlot'),'add'); 
-	delete(gca); subplot(2,1,2); axis off;
-end
-
+spm_results_ui('ClearPane',Fgraph,'RNP');
 
 % modeling evoked responses
 %----------------------------------------------------------------------
@@ -150,7 +137,7 @@ if exist('ERI')
 	ylabel(STR,'FontSize',8)
 	title(TITLE,'FontSize',16)
 
-	spm_graph_ui(gca)
+	spm_results_ui('PlotUi',gca)
 	return
 
     end
@@ -184,8 +171,7 @@ if Cp == 1 | Cp == 2
 	% bar chart
 	%--------------------------------------------------------------
 	figure(Fgraph)
-	[p q]  = bar(BETA);
-	fill(p,q,[1 1 1]*.9)
+	h = bar(BETA,1); set(h,'FaceColor',[1 1 1]*.8)
 	if Cp == 2
 	  for j = 1:length(BETA)
 	    line([j j],([SE(j) 0 - SE(j)] + BETA(j)),'LineWidth',6,'Color','r')
@@ -195,7 +181,7 @@ if Cp == 1 | Cp == 2
 	ylabel(STR,'FontSize',8)
 	title(TITLE,'FontSize',16)
 
-	spm_graph_ui(gca)
+	spm_results_ui('PlotUi',gca)
 	return
 
 
@@ -227,8 +213,7 @@ elseif Cp >= 3
 		figure(Fgraph)
 		if Cp == 3
 
-			[p q]  = bar(Y);
-			fill(p,q,[1 1 1]*.9)
+			h = bar(Y,1); set(h,'FaceColor',[1 1 1]*.9)
 
 		elseif Cp == 4
 
@@ -236,8 +221,7 @@ elseif Cp >= 3
 
 		elseif Cp == 5
 
-			[p q]  = bar(Y);
-			fill(p,q,[1 1 1]*.9)
+			h = bar(Y,1); set(h,'FaceColor',[1 1 1]*.9)
 			line(x,y,'LineStyle','.','MarkerSize',MSize)
 
 		end
@@ -246,7 +230,7 @@ elseif Cp >= 3
 		ylabel(STR,'FontSize',8)
 		title(TITLE,'FontSize',16)
 
-		spm_graph_ui(gca)
+		spm_results_ui('PlotUi',gca)
 		return
 
 	end
@@ -319,7 +303,7 @@ elseif Cp >= 3
 	ylabel(STR,'FontSize',8)
 	title(TITLE,'FontSize',16)
 
-	spm_graph_ui(gca)
+	spm_results_ui('PlotUi',gca)
 	return
 
 end
