@@ -1,7 +1,7 @@
 function varargout = spm_nlsi(M,U,Y)
 % nonlinear system identification of a MIMO system
-% FORMAT [Ep,Cp,Ce,K0,K1,K2,M0,M1,L] = spm_nlsi(M,U,Y)
-% FORMAT [K0,K1,K2,M0,M1,L] = spm_nlsi(M)
+% FORMAT [Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y)
+% FORMAT [K0,K1,K2,M0,M1,L1,L2]          = spm_nlsi(M)
 %
 % Model specification
 %---------------------------------------------------------------------------
@@ -34,7 +34,7 @@ function varargout = spm_nlsi(M,U,Y)
 %---------------------------------------------------------------------------
 % Ep    - (p x 1)         	conditional expectation  E{P|y}
 % Cp    - (p x p)        	conditional covariance   Cov{P|y}
-% Ce    - (v x v)        	ML estimate of           Cov{e}
+% Ce    - (v x v)        	ReML estimate of           Cov{e}
 %
 % System identification     - Volterra kernels
 %---------------------------------------------------------------------------
@@ -45,10 +45,12 @@ function varargout = spm_nlsi(M,U,Y)
 % System identification     - Bilinear approximation
 %---------------------------------------------------------------------------
 % M0    - (n x n)     		dq/dx
-% M1    - (n x n x m) 		d2q/dxdu
-% L     - (n x l)     		dl/dq
+% M1    - {m}(n x n) 		d2q/dxdu
+% L1    - (n x l)     		dl/dq
+% L2    - {m}(n x n)     	d2l/dqdq
 %
 %___________________________________________________________________________
+%
 % Returns the moments of the posterior p.d.f. of the parameters of a 
 % nonlinear MIMO model under Gaussian assumptions
 %
@@ -62,12 +64,15 @@ function varargout = spm_nlsi(M,U,Y)
 % representations of the Bilinear approximation are provided,
 % The Bilinear approximation to (1), evaluated at x(0) = x and u = 0 is:
 %
-%		dq/dt = M0*q + u*M1*q
-%		 y(t) = L*q
+%		dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
+%		 y(i) = L1(i,:)*q + q'*L2{i}*q;
 %
-%		 q(t) = [1; x(t) - x(0); kron(x(t) - x(0),x(t) - x(0))]
+% whwew the states are augmented with a constant
 %
-% The associated kernels are derived using closed form expressions
+%		 q(t) = [1; x(t) - x(0)]
+%
+% The associated kernels are derived using closed form expressions based
+% on the bilinear approximation.
 %
 %---------------------------------------------------------------------------
 % If the inputs U and outputs Y are not specified the model is simply
@@ -110,18 +115,18 @@ end
 
 % Bilinear representation
 %===========================================================================
-[M0,M1,L]  = spm_bi_reduce(M,Ep);
+[M0,M1,L1,L2] = spm_bi_reduce(M,Ep);
 
 
 % Volterra kernels
 %===========================================================================
-[K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
+[K0,K1,K2]    = spm_kernels(M0,M1,L1,L2,M.N,M.dt);
 
 
 % output arguments
 %---------------------------------------------------------------------------
 if nargin == 3
-	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L};
+	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1};
 else
-	varargout = {K0,K1,K2,M0,M1,L};
+	varargout = {K0,K1,K2,M0,M1,L1,L2};
 end

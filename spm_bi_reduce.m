@@ -1,25 +1,26 @@
-function [M0,M1,L] = spm_bi_reduce(M,P,O)
+function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 % reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L] = spm_bi_reduce(M,P,[O])
+% FORMAT [M0,M1,L1,L2] = spm_bi_reduce(M,P,1);  order 1 [default]
+% FORMAT [M0,M1,L1]    = spm_bi_reduce(M,P,2);  order 2
 %
 % M   - model specification structure
 % Required fields:
 %   M.fx  - dx/dt    = f(x,u,P)                     {function string or m-file}
 %   M.lx  - y(t)     = l(x,P)                       {function string or m-file}
-%   M.bi  - bilinear form [M0,M1,L] = bi(M,P)       {function string or m-file}
+%   M.bi  - bilinear form [M0,M1,L1,L2] = bi(M,P)   {function string or m-file}
 %   M.m   - m inputs
 %   M.n   - n states
 %   M.l   - l outputs
 %   M.x   - (n x 1) = x(0) = expanston point
-% P   - model parameters
-% O   - order [default] = 1 
 %
-% if called with O = 1 a 1st order Bilinear approximation is returned where
-% the implcit states are
+% P   - model parameters
+%
+% if called with 1 a 1st order Bilinear approximation is returned where
+% the states are
 %
 %		 q(t) = [1; x(t) - x(0)]
 %
-% if called with O = 2 then a 2nd order approximation is used with states
+% if called with 2 then a 2nd order expansion is used with states
 %
 %		 q(t) = [1; x(t) - x(0); kron(x(t) - x(0),x(t) - x(0))]
 %
@@ -32,10 +33,10 @@ function [M0,M1,L] = spm_bi_reduce(M,P,O)
 %
 % evaluated at x(0) = x and u = 0
 %
-%		dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q +....
-%		 y(t) = L*q
+%		dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
+%		 y(i) = L1(i,:)*q + q'*L2{i}*q;
 %
-%
+% (Note second order effects are already in L1 for the 2nd order expansion)
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
@@ -45,8 +46,8 @@ function [M0,M1,L] = spm_bi_reduce(M,P,O)
 % use M.bi if provided
 %---------------------------------------------------------------------------
 if isfield(M,'bi')
-	funbi     = fcnchk(M.bi,'M','P');
-	[M0,M1,L] = feval(funbi,M,P);
+	funbi      = fcnchk(M.bi,'M','P');
+	[M0,M1,L1] = feval(funbi,M,P);
 	return
 end
 
@@ -84,6 +85,19 @@ for i = 1:n
     xi(i)     = xi(i) + dx;
     lx(:,i)   = feval(funl,xi,P);
     dldx(:,i) = (lx(:,i) - l0)/dx;
+end
+
+% dl(x(0))/dxdx (& L2)
+%---------------------------------------------------------------------------
+for i = 1:n
+	for j = 1:n
+		xi                = x;
+    		xi(i)             = xi(i) + dx;
+    		xi(j)             = xi(j) + dx;
+		lxx               = feval(funl,xi,P);
+		dldxx(:,i,j)      = ((lxx - lx(:,j))/dx - dldx(:,i))/dx;
+		dldqq(i + 1,j + 1,:) = dldxx(:,i,j);
+	end
 end
 
 
@@ -126,7 +140,7 @@ end
 %===========================================================================
 I     = speye(n,n);
 n0    = sparse(n*n,1);
-if  O == 1
+if  O ~= 2
 
 	% Bilinear operator - M0
 	%-------------------------------------------------------------------
@@ -142,9 +156,12 @@ if  O == 1
 	 		 [Df Ddfdx/2    ]];
 	end
 
-	% Output matrix - L
+	% Output matrices - L1 & L2
 	%-------------------------------------------------------------------
-	L     = [l0 dldx];
+	L1    = [l0 dldx];
+	for i = 1:l
+		L2{i} = dldqq(:,:,i);
+	end
 
 	return
 end
@@ -161,18 +178,6 @@ for i = 1:n
 		xi(j)        = xi(j) + dx;
 		fxx(:,i,j)   = feval(funx,xi,u,P);
 		dfdxx(:,i,j) = ((fxx(:,i,j) - fx(:,j))/dx - dfdx(:,i))/du;
-	end
-end
-
-% dl(x(0))/dxdx
-%---------------------------------------------------------------------------
-for i = 1:n
-	for j = 1:n
-		xi           = x;
-    		xi(i)        = xi(i) + dx;
-    		xi(j)        = xi(j) + dx;
-		lxx          = feval(funl,xi,P);
-		dldxx(:,i,j) = ((lxx - lx(:,j))/dx - dldx(:,i))/dx;
 	end
 end
 
@@ -206,6 +211,6 @@ end
 % Output matrix
 %---------------------------------------------------------------------------
 for i = 1:l
-	Ddldx  = dldxx(i,:,:);
-	L(i,:) = [l0(i) dldx(i,:) Ddldx(:)'/2];
+	Ddldx   = dldxx(i,:,:);
+	L1(i,:) = [l0(i) dldx(i,:) Ddldx(:)'/2];
 end

@@ -1,9 +1,13 @@
-function [K0,K1,K2,H1] = spm_kernels(M0,M1,L,N,dt)
+function [K0,K1,K2,H1] = spm_kernels(varargin)
 % returns global Volterra kernels for a MIMO Bilinear system
-% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,L,N,dt)
-% M0    - (n x n)     df(x(0),0)/dx                    - n states
-% M1    - {m}(n x n)  d2f(x(0),0)/dxdu                 - m inputs
-% L     - (n x l)     dldx                             - l outputs
+% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,N,dt)          - state kernels
+% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,L1,N,dt)       - output kernels (1st)
+% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt)    - output kernels (2nd)
+%
+% M0    - (n x n)     df(q(0),0)/dq                    - n states
+% M1    - {m}(n x n)  d2f(q(0),0)/dqdu                 - m inputs
+% L1    - (l x n)     dldq                             - l outputs
+% L2    - {m}(n x n)  dl2dqq
 % N     - kernel depth       {intervals}
 % dt    - interval           {seconds}
 %
@@ -16,20 +20,57 @@ function [K0,K1,K2,H1] = spm_kernels(M0,M1,L,N,dt)
 %___________________________________________________________________________
 % Returns Volterra kernels for bilinear systems of the form
 %
-% dx/dt = f(x,u) = M0*x + M1{1}*x*u1 + ... M1{m}*x*um
-%  y(t) = L*x(t)
+%         dq/dt   = f(q,u) = M0*q + M1{1}*q*u1 + ... M1{m}*q*um
+%            y(i) = L1(i,:)*q + q'*L2{i}*q
+%
+% where q = [1 x(t)] are the states augmented with a constant term 
 %
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
+% assign inputs
+%---------------------------------------------------------------------------
+if nargin == 4
+
+	M0 = varargin{1};
+	M1 = varargin{2};
+	N  = varargin{3};
+	dt = varargin{4};
+
+elseif nargin == 5
+
+	M0 = varargin{1};
+	M1 = varargin{2};
+        L1 = varargin{3};
+	N  = varargin{4};
+	dt = varargin{5};
+
+elseif nargin == 6
+
+	M0 = varargin{1};
+	M1 = varargin{2};
+        L1 = varargin{3};
+	L2 = varargin{4};
+	N  = varargin{5};
+	dt = varargin{6};
+end
+
+
 % Volterra kernels for bilinear systems
 %===========================================================================
+
+% make states the outputs (i.e. remove constant) if L1 is not specified
+%---------------------------------------------------------------------------
+if nargin < 5
+	L1 = speye(size(M0));
+	L1 = L1(2:end,:);
+end
 
 % parameters
 %---------------------------------------------------------------------------
 n     = size(M0,1);					% state variables
 m     = size(M1,2);					% inputs
-l     = size(L ,1);					% ouputs
+l     = size(L1,1);					% ouputs
 H1    = zeros(N,n,m);
 K1    = zeros(N,l,m);
 K2    = zeros(N,N,l,m,m);
@@ -54,7 +95,7 @@ end
 X0    = sparse(1,1,1,n,1);
 if nargout > 0
 	H0    = e1^N*X0;
-	K0    = L*H0;
+	K0    = L1*H0;
 end
 
 
@@ -67,7 +108,7 @@ if nargout > 1
 		% 1st order kernel
 		%-----------------------------------------------------------
 		H1(i,:,p) = M{i,p}*H0;
-		K1(i,:,p) = H1(i,:,p)*L';
+		K1(i,:,p) = H1(i,:,p)*L1';
 	end
 	end
 end
@@ -81,16 +122,25 @@ if nargout > 2
 
 		% 2nd order kernel
 		%-----------------------------------------------------------
-		H  = L*M{j,q}*H1([j:N],:,p)';
+		H  = L1*M{j,q}*H1([j:N],:,p)';
 		K2(j,[j:N],:,q,p) = H';
 		K2([j:N],j,:,p,q) = H';
 
-		% overflow
-		%-----------------------------------------------------------
-		if max(max(abs(H1([j:N],:,p)))) < 1e-2
-			break
-		end
 	end
 	end
 	end
+
+	if nargin < 6. return, end
+
+	% add output nonlinearity
+	%-------------------------------------------------------------------
+	for i = 1:m
+	for j = 1:m
+	for p = 1:l
+		K2(:,:,p,i,j) = K2(:,:,p,i,j) + H1(:,:,i)*L2{p}*H1(:,:,j)';
+	end
+	end
+	end
+
+	
 end

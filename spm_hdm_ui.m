@@ -86,8 +86,6 @@ Y.y    = y;
 Y.dt   = SPM.xY.RT;
 Y.X0   = X0;
 Y.Ce   = {xY.V};
-Y.pC   = (Y.dt/2).^2;          % prior covariance on timing error
-
 
 % estimate
 %===========================================================================
@@ -134,7 +132,7 @@ M.dt    = 24/M.N;
 
 % nonlinear system identification
 %---------------------------------------------------------------------------
-[Ep,Cp,Ce,K0,K1,K2,M0,M1,L] = spm_nlsi(M,U,Y);
+[Ep,Cp,Ce,K0,K1,K2,M0,M1] = spm_nlsi(M,U,Y);
 
 %-display results
 %===========================================================================
@@ -186,14 +184,9 @@ set(gca,'YTickLabel',{	'SIGNAL decay',...
 % get display state kernels (i.e. state dynamics) 
 %===========================================================================
 
-% Bilinear representation (2nd order)
-%---------------------------------------------------------------------------
-[M0,M1,L] = spm_bi_reduce(M,Ep);
-L         = sparse([1:M.n],[1:M.n] + 1,1,M.n,length(M0));
-
 % Volterra kernels of states
 %---------------------------------------------------------------------------
-[H0,H1] = spm_kernels(M0,M1,L,M.N,M.dt);
+[H0,H1] = spm_kernels(M0,M1,M.N,M.dt);
 
 subplot(3,2,2)
 plot(t,H1(:,:,j))
