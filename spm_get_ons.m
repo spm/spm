@@ -231,14 +231,23 @@ for i = 1:v
 	end
 
 	% create stimulus functions (32 bin offset)
+	%===============================================================
+
+	% space out events that fall in the same time bin
 	%---------------------------------------------------------------
-	sf         = sparse(k*T + 32,size(u,2));
-	ons        = round(ons*TR/dt) + 32;			% onsets
-	sf(ons,:)  = u;
-	off        = round(dur*TR/dt) + ons + 1;		% offsets
-	sf(off,:)  = -u;
-	sf         = cumsum(sf);				% integrate
-	sf         = sf(1:(k*T + 32),:);
+	ton        = round(ons*TR/dt) + 32;			
+	while any(~diff(ton))
+		j           = find(~diff(ton));
+		ton(j + 1) = ton(j + 1) + 1;
+	end
+
+	tof        = round(dur*TR/dt) + ton + 1;
+	ons        = sparse(k*T + 32,size(u,2));		% onsets
+	off        = sparse(k*T + 32,size(u,2));		% offsets
+	ons(ton,:) = u;
+	off(tof,:) = u;
+	sf         = cumsum(ons - off);				% integrate
+	sf         = sf(1:(k*T + 32),:);			% stimulus
 
 
 	% place in ouputs structure
