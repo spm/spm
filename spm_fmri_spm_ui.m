@@ -83,6 +83,14 @@ function spm_fmri_spm_ui
 % of the CONTRAST) should be the same as the number of covariates of interest
 % By specifying different contrasts one can effect a wide variety of analyses.
 %
+% ER.mat is saved if event-related designs ares specified
+%-----------------------------------------------------------------------
+% variables pertaining to event-related fMRI in ER.mat
+%
+%	ERI 	- indices of DER pertaing to each event type
+%	DER 	- Design matrix containing the basis functions for each event
+%	PST	- Peri-stimulus time for each scan
+%
 % Refs:
 %
 % Friston KJ, Holmes A, Poline J-B, Grasby PJ, Williams SCR, Frackowiak
@@ -99,11 +107,16 @@ function spm_fmri_spm_ui
 % Frith CD, Turner R & Frackowiak RSJ (1995) Characterising evoked 
 % hemodynamics with fMRI Friston KJ, NeuroImage 2:157-165
 %
+% Josephs O, Turner R and Friston KJ (1997) Event-related fMRI, Hum. Brain
+% Map. 0:00-00
+%
 %___________________________________________________________________________
 % %W% Karl Friston, Jean-Baptiste Poline %E%
 
 
+%-Delete files from previous analyses, if they exist
 %---------------------------------------------------------------------------
+spm_unlink ER.mat
 
 
 % get filenames and other user specified parameters
