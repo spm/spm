@@ -124,16 +124,6 @@
 %    results [the SPM{Z} and associated p-value] are the endpoint of
 %    the analysis.
 % 
-%-----------------------------------------------------------------------
-% 
-% Selected Bibliography
-% 
-%    The key papers detailing the framework described above are listed,
-%    with their abstracts, in spm.man. These papers are not a comprehensive
-%    bibliography of the field and are restricted to our own recent
-%    work (the background and converging work of others will be found
-%    in these papers).
-%
 %_______________________________________________________________________
 % %W% Karl Friston %E%
 
