@@ -34,7 +34,7 @@
 % template images).
 % _______________________________________________________________________
 % 
-% templates/T1.img
+% templates/T1.mnc
 % ----------------
 % Image  derived  from   icbm_avg_152_t1_tal_lin.mnc,   which   was
 % originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
@@ -43,7 +43,7 @@
 % Gaussian filter.
 % Sequence Details: Spoiled FLASH sequence, TE=10, TR=18, FA=30.
 %
-% templates/T2.img
+% templates/T2.mnc
 % ----------------
 % Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
 % originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
@@ -52,7 +52,7 @@
 % Gaussian filter.
 % Sequence Details: Dual echo spin echo, TE=120ms, TR=3300ms, FA=90.
 % 
-% templates/PD.img
+% templates/PD.mnc
 % ----------------
 % Image  derived  from   icbm_avg_152_pd_tal_lin.mnc,   which   was
 % originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
@@ -61,12 +61,12 @@
 % Gaussian filter.
 % Sequence Details: Dual echo spin echo, TE=35ms, TR=3300ms, FA=90.
 % 
-% templates/EPI.img
+% templates/EPI.mnc
 % -------------
 % The image was created from the average of 13 subjects  mean  fMRI
 % images.   The  grey matter was segmented from the original images
 % using the segmentation in SPM.  This was spatially normalized  by
-% matching  to  the  apriori/gray.img  file  using  a  12-parameter
+% matching  to  the  apriori/gray.mnc  file  using  a  12-parameter
 % affine  registration,  followed   by   a nonlinear   registration
 % (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
 % heavy   regularization).     These    estimated  parameters  were
@@ -84,22 +84,22 @@
 % Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479
 %                  1514 1589 1644 1646.
 % 
-% templates/filT1.img
+% templates/filT1.mnc
 % -------------------
 % Average of images from 12  subjects  spatially  normalized  to  a
-% linear  combination  of  T1.img,  T2.img  and  PD.img using a 12-
+% linear  combination  of  T1.mnc,  T2.mnc  and  PD.mnc using a 12-
 % parameter  affine  transformation,   followed  by   a   nonlinear
 % registration  (using the 7x8x7 lowest frequency DCT coefficients,
 % and medium regularization).  Images acquired on a 2 Tesla Siemens
 % Magnetom  Vision scanner at the FIL,  using a T1 weighted  MPRAGE
 % sequence  (TRel=9.7, TEch=4, TInv=600, Fang=12, SThi=1.5).   Same
-% subjects    were   also    used    for    templates/PET.img   and
-% templates/Transm.img.   This image is included  as   it  has  the
+% subjects    were   also    used    for    templates/PET.mnc   and
+% templates/Transm.mnc.   This image is included  as   it  has  the
 % same  contrast as the T1 weighted images from the FIL  (so we can
 % use it for spatial normalization).
 % Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
 % 
-% templates/PET.img
+% templates/PET.mnc
 % -----------------
 % Average of images from 12 subjects spatially normalized to  ICBM.
 % Images  were  first  registered to the T1-weighted MR images, and
@@ -108,13 +108,13 @@
 % labeled water. Averaged images smoothed using 8mm FWHM  Gaussian.
 % Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
 % 
-% templates/Transm.img
+% templates/Transm.mnc
 % --------------------
 % Average transmission image of 11 subjects.  Template generated in
-% similar way to PET.img.
+% similar way to PET.mnc.
 % Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
 %
-% templates/SPECT.img
+% templates/SPECT.mnc
 % -------------------
 % The SPECT template was created by Leighton Barnden et al from the
 % Department of Nuclear Medicine at the Queen Elizabeth Hospital in
@@ -142,7 +142,7 @@
 % belonging to a particular tissue type.
 % _______________________________________________________________________
 % 
-% apriori/gray.img, apriori/white.img & apriori/csf.img
+% apriori/gray.mnc, apriori/white.mnc & apriori/csf.mnc
 % ----------------  -----------------   ---------------
 % Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
 % project,  Principal  Investigator  John Mazziotta).  Original 1mm
@@ -174,7 +174,7 @@
 % on to.
 % _______________________________________________________________________
 % 
-% canonical/avg305T1.img
+% canonical/avg305T1.mnc
 % ----------------------
 % Image derived from norm_avg_305_mri_1mm.mnc, which was originally
 % supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
@@ -185,15 +185,15 @@
 % volumes" Proc. IEEE-Nuclear Science Symposium and Medical Imaging
 % Conference pages 1813-1817
 % 
-% canonical/avg152T1.img, avg152T2.img & avg152PD.img
+% canonical/avg152T1.mnc, avg152T2.mnc & avg152PD.mnc
 % ----------------------  ------------   ------------
 % These  images  were  derived  from   icbm_avg_152_t1_tal_lin.mnc,
 % icbm_avg_152_t2_tal_lin.mnc  and icbm_avg_152_pd_tal_lin.mnc res-
 % pectively, which were originally supplied by  Alan  Evans,   MNI,
 % Canada   (ICBM,   NIH  P-20  project, Principal Investigator John
-% Mazziotta).   See  templates/T1.img, T2.img and PD.img.
+% Mazziotta).   See  templates/T1.mnc, T2.mnc and PD.mnc.
 % 
-% canonical/single_subj_T1.img
+% canonical/single_subj_T1.mnc
 % ----------------------------
 % A T1 weighted MRI of  a  representative  male  individual.   This
 % image  was  used  for  the  T1  template supplied with SPM96.  It
@@ -224,5 +224,9 @@
 % To generate your own templates which fill the same volume, use  a
 % bounding  box of -90:91 -126:91 -72:109, and voxel sizes of 2x2x2
 % mm.
+%
+% =======================================================================
+% The images were converted from the .img format of SPM99 to resolve
+% confusion about left- versus right-handedness of co-ordinate systems.
 % _______________________________________________________________________
 % %W% John Ashburner %E%
