@@ -81,7 +81,7 @@ QQ = (1:size(XYZ,2))';
 
 %-Get contrast[s]
 %-----------------------------------------------------------------------
-DES  = [H C B G]; 	% design matrix
+XD   = [H C B G]; 	% design matrix
 i    = 0;
 if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 
@@ -92,37 +92,51 @@ if spm_input('Conjunction analysis',1,'b','no|yes',[0 1],1)
 		i   = spm_input(str,1);
 		CON = CONTRAST(i,:);
 	end
+	set(Finter,'Name','please wait a moment','Pointer','watch')
 
-	% correlation between the Z scores under the null hypothesis
+	% load adjusted data
 	%---------------------------------------------------------------
-	J     = CON*BCOV*CON';
-	J     = inv(diag(sqrt(diag(J))))'*J*inv(diag(sqrt(diag(J))));
+	load([CWD,'/XA'])
+
+
+	% create sequential models (i.e. design matrix partitions)
+	%---------------------------------------------------------------
+	X0    = [H C];
+	X1    = X0*CONTRAST(i,[1:size(X0,2)])';
+	X2    = sum(X1')';
+	X0    = X0 - X1*(pinv(X1)*X0);
+	X1    = X1 - X2*(pinv(X2)*X1);
+
+	% get sequential F statistics
+	%---------------------------------------------------------------
+	[Fdf0,F0]      = spm_AnCova(X1,[X0 B G],SIGMA,XA);
+	CON            = [1 zeros(1,size([X1 X0 B G],2))];
+	[Fdf,F,BE,T]   = spm_AnCova(X2,[X1 X0 B G],SIGMA,XA,CON);
+	df             = Fdf(2);
+
+	% find voxels with significant interactions
+	%---------------------------------------------------------------
+	U     = spm_invFcdf((1 - 0.05),Fdf0);
+	Q     = find(F0 < U);
+
+	% eliminate voxels with significant interactions
+	%---------------------------------------------------------------
+	S     = S - (length(T) - length(Q));
+	T     = T(Q);
+	SPMt  = SPMt(:,Q);
+	XYZ   = XYZ(:,Q);
+	QQ    = QQ(Q);
 
 	% transform
 	%---------------------------------------------------------------
-	[e v] = eig(J);
-	T     = e*inv(sqrt(v));
-	Z     = SPMt(i,:)'*T;
-	o     = inv(T)*ones(length(i),1);
-	r     = sum(Z'.^2);
-	Z     = Z*o/sqrt(o'*o);
-
-	% eliminate voxels with significant deviation from a conjunction
-	%---------------------------------------------------------------
-	r     = r - Z'.^2;
-	U     = spm_invXcdf((1 - 0.05),length(i) - 1);
-	Q     = find(r' < U);
-	S     = S - (length(Z) - length(Q)) ;
-	Z     = Z(Q);
-	XYZ   = XYZ(:,Q);
-	SPMt  = SPMt(:,Q);
-	QQ    = QQ(Q);
+	Z     = spm_t2z(T,df);
+	set(Finter,'Name','Conjunction analysis','Pointer','arrow')
 
 else
 	% straightforward contrast
 	%---------------------------------------------------------------
 	if size(CONTRAST,1) > 1
-			while any(i < 1 | i > size(CONTRAST,1))
+		while any(i < 1 | i > size(CONTRAST,1))
 			str = sprintf('contrast ? 1 - %i',size(CONTRAST,1));
 			i   = spm_input(str,1);
 			CON = CONTRAST(i(1),:);
@@ -245,7 +259,7 @@ end
 if      strcmp(lower(Action),lower('Display'))
 
 	set(Finter,'Name','Thankyou','Pointer','watch')
-	spm_projections(Z,XYZ,u,k,V,W,S,DES,CON,df);
+	spm_projections(Z,XYZ,u,k,V,W,S,XD,CON,df);
 
 % Results
 %-----------------------------------------------------------------------
