@@ -4,8 +4,9 @@ function [A,B,C,D,L,O] = spm_bireduce(M,P)
 %
 % M   - model specification structure
 % Required fields:
-%   M.fx  - dx/dt   = f(x,u,P)  {function string or m-file}
-%   M.lx  - y(t)    = l(x,P)    {function string or m-file}
+%   M.fx  - dx/dt    = f(x,u,P)                     {function string or m-file}
+%   M.lx  - y(t)     = l(x,P)                       {function string or m-file}
+%   M.J   - bilinear form for df(x,u,P)/dx          {function string or m-file}
 %   M.m   - m inputs
 %   M.n   - n states
 %   M.l   - l ouputs
@@ -30,11 +31,6 @@ function [A,B,C,D,L,O] = spm_bireduce(M,P)
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
-% create inline functions
-%---------------------------------------------------------------------------
-funx   = fcnchk(M.fx,'x','u','P');
-funl   = fcnchk(M.lx,'x','P');
-
 % compute Jacobian and partial derivatives involving x and u
 %===========================================================================
 m      = M.m;					% m inputs
@@ -43,10 +39,23 @@ l      = M.l;					% l ouputs
 x      = M.x(:);
 dx     = 1e-3;
 du     = 1e-3;
+u      = zeros(m,1);
+
+% use M.J if provided
+%---------------------------------------------------------------------------
+if isfield(M,'J')
+	funJ          = fcnchk(M.J,'x','u','P');
+	[A,B,C,D,L,O] = feval(funJ,x,u,P);
+	return
+end
+
+% create inline functions
+%---------------------------------------------------------------------------
+funx   = fcnchk(M.fx,'x','u','P');
+funl   = fcnchk(M.lx,'x','P');
 
 % f(x(0),0)
 %---------------------------------------------------------------------------
-u      = zeros(m,1);
 fx0    = feval(funx,x,u,P);
 
 % df(x,0)/du
