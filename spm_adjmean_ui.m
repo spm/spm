@@ -177,6 +177,7 @@ function spm_adjmean_ui
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
+
 %=======================================================================
 % - S E T U P
 %=======================================================================
@@ -184,6 +185,7 @@ SCCSid = '%I%';
 SPMid = spm('FnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','AdjMean',1);
 spm_help('!ContextHelp',[mfilename,'.m'])
+
 
 %=======================================================================
 % - D E S I G N   P A R A M E T E R S
@@ -195,8 +197,8 @@ DesDefF = {...
 'DesName';						%-Design name
 	'HForm';...					%-Form of H partition
 					'aPMap';...	%-Parameter mappings 
-	'bMSubj';...					%-Multi-subject/block ?
-		'bMCond';...				%-Multi-condition?
+	'bMSubj';...					%-#subject/block 0=ask
+		'bMCond';...				%-#conditions 0=ask
 			'iGloNorm';...			%-GloNorm codes
 				'iGMsca';...		%-GMsca codes
 					'GM';...	%-Grand Mean value
@@ -262,7 +264,6 @@ sAdjTo = {	'Specify...',...					%-1
 %-----------------------------------------------------------------------
 iSubj   = [];		% Subject (block) index
 iCond   = [];		% condition (or scan) (per subject) index
-iRepl   = [];		% replication (per condition) index
 P       = {};		% cell array of string filenames
 
 
@@ -282,7 +283,7 @@ iGMsca   = DesDef.iGMsca;
 GM       = DesDef.GM;
 iAdjTo   = DesDef.iAdjTo;
 
-%-Get filenames, accrue subject, condition & replication indicies
+%-Get filenames, build subject & condition indicies
 %-----------------------------------------------------------------------
 if bMSubj
 	nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1');
@@ -290,18 +291,19 @@ if bMSubj
 else
 	nSubj  = 1;
 end
+guiPos = spm_input('!NextPos');
 for subj  = 1:nSubj
 	if bMSubj, strS = [sSubj,' ',int2str(subj),': ']; else, strS = ''; end
-	if bMCond, nCond = spm_input([strS,'# of conditions ? '],'+0');
-		else, nCond = 1; end
-	for cond  = 1:nCond
-	    if nCond > 1, strC = sprintf('cond %d: ',cond); else strC=''; end
-	    tP    = spm_get(Inf,'.img',{[strS,strC,'Select scans...']});
-	    nRepl = size(tP,1);
-	    P     = [P;tP];
-	    iSubj = [iSubj; subj*ones(nRepl,1)];
-	    iCond = [iCond; cond*ones(nRepl,1)];
-	    iRepl = [iRepl; [1:nRepl]'];
+	tP = spm_get(Inf,'.img',{[strS,'select scans...']});
+	nt = size(tP,1);
+	P     = [P;tP];
+	iSubj = [iSubj; subj*ones(nt,1)];
+	if bMCond
+		str = sprintf('%s[%d] iCond index',strS,nt);
+		tmp = spm_input(str,guiPos,'c','',nt);
+		iCond = [iCond; reshape(tmp,nt,1)];
+	else
+		iCond = [iCond; ones(nt,1)];
 	end
 end
 
@@ -445,7 +447,7 @@ iX = struct(	'H',	[1:size(H,2)],	'C',	[],...
 		'B',	[],		'G',	size(H,2) + [1:size(G,2)]);
 XTXinvX     = inv(X'*X)*X';
 
-%-Contrasts (c)
+%-Contrasts (c) & associated weight matrix (W)
 %-----------------------------------------------------------------------
 c  = [eye(size(H,2)), zeros(size(H,2),size(G,2))];
 nc = size(c,1);
@@ -454,36 +456,12 @@ W  = c * XTXinvX;
 cNames = spm_DesMtx('Fnames',EXnames(iX.H));
 Fnames = cNames;
 
-%-Pack design parameters up in a structure
-%-----------------------------------------------------------------------
-Des = struct(...
-		'DesName',	DesName,...
-		'HForm',	HForm,...
-		'iSubj',	iSubj,...
-		'iCond',	iCond,...
-		'iRepl',	iRepl,...
-		'iGloNorm',	iGloNorm,...
-		'sGloNorm',	sGloNorm,...
-		'iGMsca',	iGMsca,...
-		'sGMsca',	sGMsca,...
-		'GM',		GM,...
-		'gSF',		gSF,...
-		'iAdjTo',	iAdjTo,...
-		'sAdjTo',	sAdjTo,...
-		'aGM',		aGM,...
-		'X',		X,...
-		'nX',		nX,...
-		'Xnames',	Xnames,...
-		'aPMap',	aPMap,...
-		'EXnames',	EXnames,...
-		'iX',		iX		);
-
-
 
 %=======================================================================
 % - D I A G N O S T I C   O U T P U T
 %=======================================================================
 figure(Fgraph);
+
 
 %-Display files and variables
 %=======================================================================
@@ -496,8 +474,7 @@ text(.40,1,'Adjusted means','Fontsize',16,'Fontweight','Bold')
 text(.05,.85,'Scan Index','Rotation',90)
 if bMSubj, text(.10,.85, sSubj,     'Rotation',90), end
 if bMCond, text(.15,.85,'condition',  'Rotation',90), end
-text(.20,.85,'Replication','rotation',90)
-x0    = .25; y0 = .83;
+x0    = .20; y0 = .83;
 dx    = .08; dy = .018;
 x     = x0;
 text(x + .02,.85,'global','Rotation',90), x = x + 1.5*dx;
@@ -510,7 +487,6 @@ for i = 1:nScan
 	text(.03,y,sprintf('%02d :',i));
 	if bMSubj, text(.08,y,sprintf('%2d',iSubj(i))), end
 	if bMCond, text(.13,y,sprintf('%2d',iCond(i))), end
-	text(.18,y,sprintf('%2d',iRepl(i)))
 	x     = x0;
 	text(x,y,sprintf('%-8.6g',GX(i)),'FontSize',10), x = x + 1.5*dx;
 	text(x,y,P{i},'FontSize',10)
@@ -540,7 +516,7 @@ spm_clf(Fgraph); axes('Position',[0 0 1 .95],'Visible','off')
 text(.2,1,'Design Matrix, contrasts & contrast files',...
 	'Fontsize',16,'Fontweight','Bold');
 
-%-Image scaled design matrix, label the effects, add filenames (if <=24)
+%-Image scaled design matrix, label the effects, add filenames (if <=32)
 %-----------------------------------------------------------------------
 hDesMtx = axes('Position',[.07 .5 .6 .3]);
 image((nX + 1)*32);
@@ -554,7 +530,7 @@ for i = 1:size(nX,2)
 	text((i - .5)*dx    ,.1,tXnames{i},'Fontsize',10,'Interpreter','TeX')
 	text((i - .5)*dx+.01,.3,EXnames{i},'Fontsize',9,'Rotation',90)
 end
-if nScan<=24
+if nScan<=32
 	set(hDesMtx,'YTick',1:nScan)
 	axes('Position',[.68 .5 .3 .3],'Visible','off')
 	dy = 1/nScan;
@@ -576,8 +552,6 @@ text(0,0,sprintf('...in %s',pwd),'FontSize',8)
 hFnames = zeros(1,nc);
 for i = 1:nc
 	axes('Position',[.1 (.45 -dy*i) .6 .9*dy])
-	%[tx ty] = bar(c(i,:));
-	%fill(tx,ty,[1 1 1]*.8);
 	h = bar(c(i,:),1);
 	set(h,'FaceColor',[1 1 1]*.8)
 	set(gca,'XLim',[.5,size(c,2)+.5],'Visible','off')
@@ -622,11 +596,32 @@ for i = 1:nc
 	spm_get_space(Fnames{i},V(1).mat);
 	fprintf(' (done)\n')
 end
+Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
 
 
 %-Save parameters to SPMadj.mat in current directory
 %-----------------------------------------------------------------------
-Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
+%-Pack design parameters up in a structure
+Des = struct(...
+		'DesName',	DesName,...
+		'HForm',	HForm,...
+		'iSubj',	iSubj,...
+		'iCond',	iCond,...
+		'iGloNorm',	iGloNorm,...
+		'sGloNorm',	sGloNorm,...
+		'iGMsca',	iGMsca,...
+		'sGMsca',	sGMsca,...
+		'GM',		GM,...
+		'gSF',		gSF,...
+		'iAdjTo',	iAdjTo,...
+		'sAdjTo',	sAdjTo,...
+		'aGM',		aGM,...
+		'X',		X,...
+		'nX',		nX,...
+		'Xnames',	Xnames,...
+		'aPMap',	aPMap,...
+		'EXnames',	EXnames,...
+		'iX',		iX		);
 save SPMadj SPMid ...
 	DesDef Des V ...
 	c cNames W ...
