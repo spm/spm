@@ -38,15 +38,19 @@ else
     case {'defaults'},
         setup_ui('defaults');
 
-    case {'helpwidth'}
-        varargout{1} = helpwidth;
-
     case {'pulldown'}
        pulldown;
 
     case {'chmod'}
         if nargin>1,
             chmod(varargin{2});
+        end;
+
+    case {'help'}
+        if nargin>=2,
+            varargout{1} = showdoc(varargin{2:nargin});
+        else
+            varargout{1} = showdoc;
         end;
 
     %case {'help'},
@@ -703,7 +707,12 @@ txt = '';
 if isfield(c,'help'), txt = c.help; end;
 help_box = findobj(0,'tag','help_box');
 if ~isempty(help_box)
-    set(help_box,'String',txt);
+    set(help_box,'String','                    ');
+    workaround(help_box);
+    ext = get(help_box,'Extent');
+    pos = get(help_box,'position');
+    pw   = floor(pos(3)/ext(3)*21-4);
+    set(help_box,'String',spm_justify(pw,txt));
     workaround(help_box);
 end;
 return;
@@ -1685,7 +1694,6 @@ if nargin<2, node = 'jobs'; end;
 fg = spm_figure('FindWin','Interactive');
 if isempty(fg), fg = spm('CreateIntWin'); end;
 delete(findobj(fg,'Parent',fg));
-delete(findobj(0,'tag','help_box'));
 t=uicontrol(fg,...
     'Style','listbox',...
     'Units','normalized',...
@@ -1728,7 +1736,12 @@ while(1),
 
     help_box = findobj(0,'tag','help_box2');
     if ~isempty(help_box),
-        set(help_box,'String',hlp);
+        set(help_box,'String','                    ');
+        workaround(help_box);
+        ext = get(help_box,'Extent');
+        pos = get(help_box,'position');
+        pw   = floor(pos(3)/ext(3)*21-4);
+        set(help_box,'String',spm_justify(pw,hlp));
         workaround(help_box);
     end;
 
@@ -1851,7 +1864,7 @@ case 'branch',
     for i=1:numel(c.val),
         [ci,n,hlp] = get_node(c.val{i},n);
         if ~isempty(ci),
-            hlp = {hlp{:},repmat('=',1,helpwidth),'',['* ' upper(c.name)],c.help{:},'',''};
+            hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
             return;
         end;
     end;
@@ -1860,7 +1873,7 @@ case 'repeat',
     for i=1:numel(c.val),
         [ci,n,hlp] = get_node(c.val{i},n);
         if ~isempty(ci),
-            hlp = {hlp{:},repmat('=',1,helpwidth),'',['* ' upper(c.name)],c.help{:},'',''};
+            hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
             return;
         end;
     end;
@@ -1911,9 +1924,7 @@ function c = initialise_struct(job,modality)
 % is updated to contain the current structure.
 
 persistent c0
-persistent w0
-if isempty(w0) || isempty(c0) || spm_jobman('HelpWidth') ~= w0,
-    w0 = spm_jobman('HelpWidth');
+if isempty(c0),
     c0 = spm_config;
     c0 = tidy_struct(c0);
 end;
@@ -2358,3 +2369,166 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
+function doc = showdoc(str)
+if nargin == 0,
+    str = '';
+end;
+tmp = [0 find([str '.']=='.')];
+node = {};
+for i=1:length(tmp)-1
+    node = {node{:},str((tmp(i)+1):(tmp(i+1)-1))};
+end;
+if numel(node)>1 && strcmp(node{1},'jobs'),
+    node = node(2:end);
+end;
+
+c = initialise_struct;
+doc = showdoc1(node,c);
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function doc = showdoc1(node,c)
+found = false;
+doc   = {};
+if isempty(node),
+    doc = showdoc2(c,'');
+    return;
+end;
+
+if isfield(c,'values'),
+    for i=1:numel(c.values),
+        if isfield(c.values{i},'tag') && strcmp(node(1),c.values{i}.tag),
+            doc = showdoc1(node(2:end),c.values{i});
+            return;
+        end;
+    end;
+end;
+
+if isfield(c,'val'),
+    for i=1:numel(c.val),
+        if isfield(c.val{i},'tag') && strcmp(node(1),c.val{i}.tag),
+            doc = showdoc1(node(2:end),c.val{i});
+            return;
+        end;
+    end;
+end;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function doc = showdoc2(c,lev)
+doc = {''};
+if ~isempty(lev) && sum(lev=='.')==1,
+        % doc = {doc{:},repmat('_',1,80),''};
+end;
+if isfield(c,'name'),
+    str   = sprintf('%s %s', lev, c.name);
+    under = repmat('-',1,length(str));
+    doc = {doc{:},str};
+    % if isfield(c,'modality'),
+    %     txt = 'Only for ';
+    %     for i=1:numel(c.modality),
+    %         txt = [txt ' ' c.modality{i}];
+    %     end;
+    %     doc = {doc{:},'',txt, ''};
+    %end;
+    if isfield(c,'help');
+        hlp = spm_justify(60,c.help);
+        doc = {doc{:},hlp{:}};
+    end;
+
+if 0,
+    switch (c.type),
+    case {'repeat'},
+        if length(c.values)==1,
+            doc = {doc{:}, '', sprintf('Repeat "%s", any number of times.',c.values{1}.name)};
+        else
+            doc = {doc{:}, '', 'Any of the following options can be chosen, any number of times'};
+            i = 0;
+            for ii=1:length(c.values),
+                if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
+                    i    = i+1;
+                    doc = {doc{:}, sprintf('    %2d) %s', i,c.values{ii}.name)};
+                end;
+            end;
+        end;
+        doc = {doc{:},''};
+
+    case {'choice'},
+        doc = {doc{:}, '', 'Any one of these options can be selected:'};
+        i = 0;
+        for ii=1:length(c.values),
+            if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
+                i    = i+1;
+                doc = {doc{:}, sprintf('    %2d) %s', i,c.values{ii}.name)};
+            end;
+        end;
+        doc = {doc{:},''};
+
+    case {'branch'},
+        doc = {doc{:}, '', sprintf('This item contains %d fields:', length(c.val))};
+        i = 0;
+        for ii=1:length(c.val),
+            if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
+                i    = i+1;
+                doc = {doc{:}, sprintf('    %2d) %s', i,c.val{ii}.name)};
+            end;
+        end;
+        doc = {doc{:},''};
+
+    case {'menu'},
+        doc = {doc{:}, '', 'One of these values is chosen:'};
+        for k=1:length(c.labels),
+            doc = {doc{:}, sprintf('    %2d) %s', k, c.labels{k})};
+        end;
+        doc = {doc{:},''};
+
+    case {'files'},
+        if length(c.num)==1 && isfinite(c.num(1)) && c.num(1)>=0,
+            doc = {doc{:}, '', sprintf('A "%s" file is selected by the user.',c.filter),''};
+        else
+            doc = {doc{:}, '', sprintf('"%s" files are selected by the user.\n',c.filter),''};
+        end;
+
+    case {'entry'},
+        switch c.strtype,
+        case {'e'},
+            d = 'Evaluated statements';
+        case {'n'},
+            d = 'Natural numbers';
+        case {'r'},
+            d = 'Real numbers';
+        case {'w'},
+            d = 'Whole numbers';
+        otherwise,
+            d = 'Values';
+        end;
+        doc = {doc{:}, '',sprintf('%s are typed in by the user.',d),''};
+    end;
+end;
+
+    i = 0;
+    doc = {doc{:},''};
+    if isfield(c,'values'),
+        for ii=1:length(c.values),
+            if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
+                i    = i+1;
+                lev1 = sprintf('%s%d.', lev, i);
+                doc1 = showdoc2(c.values{ii},lev1);
+                doc  = {doc{:}, doc1{:}};
+            end;
+        end;
+    end;
+    if isfield(c,'val'),
+        for ii=1:length(c.val),
+            if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
+                i    = i+1;
+                lev1 = sprintf('%s%d.', lev, i);
+                doc1 = showdoc2(c.val{ii},lev1);
+                doc  = {doc{:}, doc1{:}};
+            end;
+        end;
+    end;
+    doc = {doc{:},''};
+end;
+
+

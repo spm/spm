@@ -1,19 +1,27 @@
 function out = spm_justify(n,varargin)
 % Justify text
-% FORMAT out = justify(n,varargin)
+% FORMAT out = justify(n,txt)
 % out - a cell array of lines of text
 % n   - line length
-% varargin - various bits of a paragraph
+% txt - a text string or a cell array of text strings
+%
+% If txt is a cell array, then each element is treated
+% as a paragraph and justified, otherwise the string is
+% treated as a paragraph and is justified.
+% Non a-z or A-Z characters at the start of a paragraph
+% are used to define any indentation required (such as
+% for enumeration, bullets etc.  If less than one line
+% of text is returned, then no formatting is done.
 %
 % Example usage:
 %
-%    out = spm_justify(40,'Statistical Parametric',...
-%    'Mapping refers to the construction and',...
-%    'assessment of spatially extended',...
-%    'statistical process used to test hypotheses',...
-%    'about [neuro]imaging data from SPECT/PET &',...
-%    'fMRI. These ideas have been instantiated',...
-%    'in software that is called SPM');
+%    out = spm_justify(40,{['Statistical Parametric ',...
+%    'Mapping refers to the construction and ',...
+%    'assessment of spatially extended ',...
+%    'statistical process used to test hypotheses ',...
+%    'about [neuro]imaging data from SPECT/PET & ',...
+%    'fMRI. These ideas have been instantiated ',...
+%    'in software that is called SPM']});
 %    strvcat(out{:})
 %
 %------------------------------------------------------------------------
@@ -22,8 +30,39 @@ function out = spm_justify(n,varargin)
 % John Ashburner
 % $Id$
 
+out = {};
+for i=1:nargin-1,
+    if iscell(varargin{i}),
+        for j=1:numel(varargin{i}),
+            para = justify_paragraph(n,varargin{i}{j});
+            out  = {out{:},para{:}};
+        end;
+    else
+        para = justify_paragraph(n,varargin{i});
+        out = {out{:},para{:}};
+    end;
+end;
 
+function out = justify_paragraph(n,txt)
+off = find((txt'>='a' & txt'<='z') | (txt'>='A' & txt'<='Z'));
+off = off(off<n);
+if isempty(off),
+    out{1} = txt;
+else
+    off  = off(1);
+    para = justify_para(n-off+1,txt(off:end));
+    if numel(para)>1,
+        out{1} = [txt(1:(off-1)) para{1}];
+        for j=2:numel(para),
+            out{j} = [repmat(' ',1,off-1) para{j}];
+        end;
+    else
+        out{1} = txt;
+    end;
+end;
+return;
 
+function out = justify_para(n,varargin)
 % Collect varargs into a single string
 str = varargin{1};
 for i=2:length(varargin),

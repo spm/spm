@@ -9,17 +9,13 @@ function con = spm_config_contrasts
 
 %_______________________________________________________________________
 
-w = spm_jobman('HelpWidth');
-
-%------------------------------------------------------------------------
 
 spm.type = 'files';
 spm.name = 'Select SPM.mat';
 spm.tag  = 'spmmat';
 spm.num  = [1 1];
 spm.filter = 'mat';
-spm.help   = spm_justify(w,...
-    'Select SPM.mat file for contrasts');
+spm.help   = {'Select SPM.mat file for contrasts'};
 
 name.type    = 'entry';
 name.name    = 'Name';
@@ -33,20 +29,20 @@ tconvec.name    = 'T contrast vector';
 tconvec.tag     = 'tconvec';
 tconvec.strtype = 's';
 tconvec.num     = [1 1];
-tconvec.help    = spm_justify(w,...
-    'Enter T contrast vector. This is done similarly to the',...
-    'SPM2 contrast manager. A 1 x n vector should be entered',...
-    'for T-contrasts.');
+tconvec.help    = {[...
+    'Enter T contrast vector. This is done similarly to the ',...
+    'SPM2 contrast manager. A 1 x n vector should be entered ',...
+    'for T-contrasts.']};
 
 fconvec.type    = 'entry';
 fconvec.name    = 'F contrast vector';
 fconvec.tag     = 'fconvec';
 fconvec.strtype = 's+';
 fconvec.num     = [1 1];
-fconvec.help    = spm_justify(w,...
-    'Enter F contrast vector. This is done similarly to the',...
-    'SPM2 contrast manager. One or multiline contrasts',...
-    'may be entered.');
+fconvec.help    = {[...
+    'Enter F contrast vector. This is done similarly to the ',...
+    'SPM2 contrast manager. One or multiline contrasts ',...
+    'may be entered.']};
 
 tcon.type   = 'branch';
 tcon.name   = 'T-contrast';
@@ -71,8 +67,7 @@ con.name = 'Contrast Manager';
 con.tag  = 'con';
 con.val = {spm,consess};
 con.prog   = @setupcon;
-con.help = {...
-    'Set up T and F contrasts.'};
+con.help = {'Set up T and F contrasts.'};
 
 %--------------------------------------------------------
 function setupcon(varargin)

@@ -539,15 +539,21 @@ elseif strcmp(Topic,'QuitSPM')
 		'%%\n',...
 		'%s\n%%\n%% The FIL methods group\n'],Usep,Usep);
 else
-	S = sprintf([...
-		'\n%% ! - Topic not found\n',...
-		'%s\n%%\n',...
-		'%% This topic is not recognised by the help system.\n',...
-		'%s\n%%\n'],Usep,Usep);
-	Err = 1;
+	doc = spm_jobman('help',Topic);
+        if ~isempty(doc),
+		doc = char(doc{:});
+		doc = [repmat('% ',size(doc,1),1) doc repmat(sprintf('\n'),size(doc,1),1)]';
+		S   = doc(:)';
+	else
+		S = sprintf([...
+			'\n%% ! - Topic not found\n',...
+			'%s\n%%\n',...
+			'%% This topic is not recognised by the help system.\n',...
+			'%s\n%%\n'],Usep,Usep);
+		Err = 1;
+	end
 end
 varargout = {S,Err};
-
 
 
 case '!topic'
@@ -695,7 +701,7 @@ Fhelp = spm_figure('FindWin',F);
 if isempty(Fhelp)
 	Fhelp = spm_help('!CreateHelpWin');
 else
-	set(Fhelp,'Visible','on')
+	set(Fhelp,'Visible','on');
 end
 FS = spm('FontSizes');
 PF = spm_platform('fonts');

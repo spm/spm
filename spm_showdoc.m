@@ -72,11 +72,8 @@ if isfield(c,'name'),
 		fprintf('\n\n');
 	end;
 	if isfield(c,'help');
-		if iscell(c.help),
-			disp(str2mat(c.help{:}));
-        else
-			disp(c.help);
-		end;
+		hlp = spm_justify(80,c.help);
+		disp(strvcat(hlp{:}));
 	end;
 
 	switch (c.type),

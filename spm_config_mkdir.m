@@ -6,12 +6,8 @@ function opts = spm_config_mkdir
 % Darren Gitelman
 % $Id$
 
-
 %_______________________________________________________________________
 
-w = spm_jobman('HelpWidth');
-
-%_______________________________________________________________________
 
 data.type = 'dirs';
 data.name = 'Select a base directory';
@@ -25,7 +21,7 @@ name.name = 'Enter a directory name';
 name.tag = 'name';
 name.strtype = 's';
 name.num     = [1 1];
-name.help = 'Enter a directory name';
+name.help = {'Enter a directory name'};
 
 opts.type = 'branch';
 opts.name = 'Make Directory';
@@ -33,11 +29,9 @@ opts.tag  = 'md';
 opts.val  = {data,name};
 opts.prog = @my_cd;
 opts.vdirs = @vdirs_mydirs;
-p1 = spm_justify(w,[...
+opts.help = {[...
 'This facilty allows programming a directory change. Directories are ',...
-'selected in the right listbox.']);
-
-opts.help = {p1{:}};
+'selected in the right listbox.']};
 
 %------------------------------------------------------------------------
 

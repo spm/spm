@@ -1,6 +1,15 @@
 % 
 % SPM templates and other images...
 % _______________________________________________________________________
+% /TPM/ DIRECTORY
+% Contains Tissue probability maps provided by the International
+% Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga.
+% http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html
+%
+% The original datasets were affine transformed to match the MNI152
+% space (by affine registration of the grey matter with the grey
+% matter image in the apriori directory).
+% _______________________________________________________________________
 %
 % /TEMPLATES/ DIRECTORY
 % This directory contains images for use as templates for spatially
@@ -66,7 +75,7 @@
 % The image was created from the average of 13 subjects  mean  fMRI
 % images.   The  grey matter was segmented from the original images
 % using the segmentation in SPM.  This was spatially normalized  by
-% matching  to  the  apriori/gray.nii  file  using  a  12-parameter
+% matching  to  the  apriori/grey.nii  file  using  a  12-parameter
 % affine  registration,  followed   by   a nonlinear   registration
 % (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
 % heavy   regularization).     These    estimated  parameters  were
@@ -161,7 +170,7 @@
 % belonging to a particular tissue type.
 % _______________________________________________________________________
 % 
-% apriori/gray.nii, apriori/white.nii & apriori/csf.nii
+% apriori/grey.nii, apriori/white.nii & apriori/csf.nii
 % ----------------  -----------------   ---------------
 % Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
 % project,  Principal  Investigator  John Mazziotta).  Original 1mm
@@ -169,7 +178,7 @@
 % and    icbm_avg_151_csf.mnc.     Images    were    masked   using
 % average_305_mask_1mm.mnc, reduced to 2mm resolution and  smoothed
 % using   an   8mm  FWHM  Gaussian.   These  images  represent  the
-% probabilities of finding gray matter, white  matter  or  cerebro-
+% probabilities of finding grey matter, white  matter  or  cerebro-
 % spinal  fluid  at  any  point. These volumes are used largely for
 % image segmentation, although they can be used  as  templates  for
 % spatial  normalization.  151  subjects  were  used to create each

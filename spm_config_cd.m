@@ -6,13 +6,6 @@ function opts = spm_config_cd
 % Darren Gitelmann
 % $Id$
 
-
-%_______________________________________________________________________
-
-w = spm_jobman('HelpWidth');
-
-%_______________________________________________________________________
-
 data.type = 'dirs';
 data.name = 'Select a directory';
 data.tag  = 'directory';
@@ -25,18 +18,18 @@ opts.name = 'Change Directory';
 opts.tag  = 'cd';
 opts.val  = {data};
 opts.prog = @my_cd;
-p1 = spm_justify(w,[...
+p1 = [...
 'This facilty allows programming a directory change. Directories are ',...
-'selected in the right listbox.']);
+'selected in the right listbox.'];
 
-opts.help = {p1{:}};
+opts.help = {p1};
 
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function my_cd(varargin)
 job = varargin{1};
-if ~isempty(job.directory)
+if ~isempty(job.directory),
     cd(job.directory{:});
-end
+end;
 return;

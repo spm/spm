@@ -6,11 +6,6 @@ function opts = spm_config_ui
 % John Ashburner
 % $Id$
 
-
-%_______________________________________________________________________
-
-w = spm_jobman('HelpWidth');
-
 %_______________________________________________________________________
 col1 = struct('type','entry','name','Background Colour 1','tag','colour1',...
               'def','ui.colour1','num',[1 3],'strtype','e','val',{{[.8 .8 1]}},...
@@ -43,7 +38,7 @@ app.type = 'branch';
 app.name = 'Appearance';
 app.tag  = 'disp';
 app.val  = {col1,col2,col3,fs};
-app.help = spm_justify(w, 'Appearance of user interface');
+app.help = {'Appearance of user interface'};
 
 opt.type   = 'menu';
 opt.name   = 'Printing';
@@ -90,11 +85,11 @@ opt.values  = {...
     pop({'-djpeg'},false,'.jpg'),...
     pop({'-dtiff'},false,'.tif'),...
     pop({'-dtiffnocompression'},false,'.tif')};
-opt.help    = spm_justify(w,[...
+opt.help    = {[...
     'Select the printing option you want.  The figure will be printed to ',...
     'a file named spm5*.*, in the current directory.  PostScript files will ',...
     'be appended to, but other files will have "page numbers" appended to ',...
-    'them.']);
+    'them.']};
 
 opts = struct('type','branch','name','User Interface','tag','ui','val',{{app,opt}});
 
