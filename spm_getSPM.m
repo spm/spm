@@ -1,19 +1,19 @@
 function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % computs a specified and thresholded following parameter estimation
-% FORMAT [SPM,VOL,xX,xSDM] = spm_getSPM;
+% FORMAT [SPM,VOL,xX,xCon,xSDM] = spm_getSPM;
 %
-% SPM    - structure containing SPM, distribution & filtering detals
+% SPM    - structure containing SPM, distribution & filtering details
 % .swd   - SPM working directory - directory containing current SPM.mat
 % .title - title for comparison (string)
 % .Z     - minimum of n Statistics {filtered on u and k}
 % .n     - number of conjoint tests        
 % .STAT  - distribution {Z, T, X or F}     
 % .df    - degrees of freedom [df{interest}, df{residual}]
-% .Ic    - indicies of contrasts (in xCon)
-% .Im    - indicies of masking contrasts (in xCon)
+% .Ic    - indices of contrasts (in xCon)
+% .Im    - indices of masking contrasts (in xCon)
 % .pm    - p-value for masking (uncorrected)
 % .u     - height threshold
-% .k     - extent threshold {resels}
+% .k     - extent threshold {voxels}
 % .XYZ   - location of voxels {voxel coords}
 % .XYZmm - location of voxels {mm}
 % .QQ    - indices of volxes in Y.mad file
@@ -72,15 +72,12 @@ function [SPM,VOL,xX,xCon,xSDM] = spm_getSPM
 % statistical inference pertaining to the masked contrast.
 % 
 % The SPM is subject to thresholding on the basis of height (u) and the
-% number of resels comprising its clusters {k}. The height threshold is
+% number of voxels comprising its clusters {k}. The height threshold is
 % specified as above in terms of an [un]corrected p value or
 % statistic.  Clusters can also be thresholded on the basis of their
-% spatial extent.  (SPM99 expresses all cluster volumes in terms of
-% resels.  These are effective resolution elements and comprise several
-% voxels, depending on the smoothness estimator.) If you want to see
-% all voxels simply enter 0.  In this instance the 'set-level'
-% inference can be considered an 'omnibus test' based on the number of
-% clusters that obtain.
+% spatial extent. If you want to see all voxels simply enter 0.  In this
+% instance the 'set-level' inference can be considered an 'omnibus test'
+% based on the number of clusters that obtain.
 % 
 % see spm_results_ui.m for further details
 %
@@ -90,13 +87,13 @@ SCCSid = '%I%';
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SPMid = spm('SFnBanner',mfilename,SCCSid);
+SPMid  = spm('SFnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & go to that directory
 %-----------------------------------------------------------------------
-swd  = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat for analysis'),'H');
-cwd  = pwd;				%-Note current working directory
+swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+cwd    = pwd;				%-Note current working directory
 cd(swd)					%-Temporarily move to results dir
 
 %-Preliminaries...
@@ -104,26 +101,25 @@ cd(swd)					%-Temporarily move to results dir
 
 %-Get Stats data from SPM.mat
 %-----------------------------------------------------------------------
-xSDM = load(fullfile('.','SPM.mat'));	%-Contents of SPM.mat (in a struct)
-if ~isfield(xSDM,'SPMid') | ...		%-Check version of SPM.mat...
-0 %	max([1,eval(xSDM.SPMid(findstr(xSDM.SPMid,' (v')+3:end-1),'[]')]) < 2
-	error('Incompatible SPM.mat - old results format!?')
+xSDM   = load(fullfile('.','SPM.mat'));	%-Contents of SPM.mat (in a struct)
+if ~isfield(xSDM,'SPMid') 		%-Check version of SPM.mat...
+ 	error('Incompatible SPM.mat - old results format!?')
 end
-xX   = xSDM.xX;				%-Design definition structure
-XYZ  = xSDM.XYZ;			%-XYZ coordinates
-S    = xSDM.S;				%-search Volume {voxels}
-R    = xSDM.R;				%-search Volume {resels}
-xSDM = rmfield(xSDM,{'xX','XYZ'});	%-Remove (large) duplicate fields
+xX     = xSDM.xX;			%-Design definition structure
+XYZ    = xSDM.XYZ;			%-XYZ coordinates
+S      = xSDM.S;			%-search Volume {voxels}
+R      = xSDM.R;			%-search Volume {resels}
+xSDM   = rmfield(xSDM,{'xX','XYZ'});	%-Remove (large) duplicate fields
 
 %-Compute mm<->voxel matrices
 %-----------------------------------------------------------------------
- M  = xSDM.Vbeta(1).mat;
-iM  = inv(M);
-dim = xSDM.Vbeta(1).dim(1:3);
+ M     = xSDM.Vbeta(1).mat;
+iM     = inv(M);
+dim    = xSDM.Vbeta(1).dim(1:3);
 
 %-Build index from XYZ into corresponding Y.mad locations
 %-----------------------------------------------------------------------
-QQ  = zeros(1,S);
+QQ     = zeros(1,S);
 if exist(fullfile('.','Yidx.mat'),'file') & exist(fullfile('.','Y.mad'),'file')
 	load('Yidx.mat')
 	QQ(Yidx) = 1:length(Yidx);
@@ -150,18 +146,20 @@ if exist(fullfile('.','xCon.mat'),'file'), load('xCon.mat'), else, xCon = []; en
 %-----------------------------------------------------------------------
 tol = 1e-10;					%-Tolerance ****
 
-Xc = xX.xKXs.X * cat(2,xCon(Ic).c);		%-NB: This amalgamates columns of
+Xc  = xX.xKXs.X*cat(2,xCon(Ic).c);		%-NB: This amalgamates columns of
 						% F-contrasts, perhaps causing
 						% orthogonalisation when only an
 						% F-contrast has non-ortho. cols
-
-if length(Ic)>1 & any(any(triu(Xc'*Xc,1)>tol))	%-(Probably) need 2 orthogonalise
+% if colinear
+%-----------------------------------------------------------------------
+if length(Ic) > 1 & any(any(triu(abs(Xc'*Xc),1) > tol))
 
     %-Get orthogonalisation order from user
     Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
     
-    %-Successively orthogonalise...
-    i=1; while(i<length(Ic)), i = i +1;
+    %-Successively orthogonalise
+    %-------------------------------------------------------------------
+    i = 1; while(i < length(Ic)), i = i + 1;
 	%-NB: This loop is peculiarly controlled to account for the
 	%     possibility that Ic may shrink if some contrasts diasppear
 	%     on orthogonalisation (i.e. if there are colineaities)
@@ -177,31 +175,31 @@ if length(Ic)>1 & any(any(triu(Xc'*Xc,1)>tol))	%-(Probably) need 2 orthogonalise
 	% or is colinear with a previous one. Define a new contrast if
 	% neither is the case.
 	%---------------------------------------------------------------
-	d  = ones(1,length(xCon));
+	d     = ones(1,length(xCon));
 	for j = 1:length(xCon)
 	    if xCon(Ic(i)).STAT==xCon(j).STAT & size(c,2)==size(xCon(j).c,2)
-		d(j) = max(max(abs(c-xCon(j).c)));
+		d(j) = max(max(abs(c - xCon(j).c)));
 	    end
 	end 
-	if any(max(abs(c))<tol)
+	if any(max(abs(c)) < tol)
 	    %-A contrast column was colinear with a previous one
 	    % (NB: Might be a single constraint of an F-contrast)
-	    c(:,max(abs(c))<tol) = [];
+	    c(:,max(abs(c)) < tol) = [];
 	end
 	if isempty(c)
 	    %-Contrast was completely colinear with a previous one - drop it
-	    Ic(i)   = [];
-	    i       = i -1;
-	elseif any(d<tol)
+	    Ic(i)    = [];
+	    i        = i - 1;
+	elseif any(d < tol)
 	    %-Contrast unchanged or already defined - note index
-	    Ic(i)   = min(find(d<tol));
+	    Ic(i)    = min(find(d < tol));
 	else
 	    %-Define orthogonalised contrast as new contrast
-	    j       = length(xCon)+1;
-	    str     = [xCon(Ic(i)).name,'  (orthogonalized wirit {',...
-    	    	sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))]
-    	    xCon(j) = spm_FcUtil('Set',str,xCon(Ic(i)).STAT,'c',c,xX.xKXs);
-	    Ic(i)   = j;
+	    j        = length(xCon) + 1;
+	    str      = [xCon(Ic(i)).name,'  (orthogonalized w.r.t {',...
+    	    	sprintf('%d,', Ic(1:i-2)),sprintf('%d})',Ic(i-1  ))];
+    	    xCon(j)  = spm_FcUtil('Set',str,xCon(Ic(i)).STAT,'c',c,xX.xKXs);
+	    Ic(i)    = j;
 	end
     end % while...
 end % if length(Ic)...
@@ -248,26 +246,24 @@ elseif ~isempty(Im)
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
 end
-title = spm_input('title for comparison','+1','s',str);
-
-
-spm('Pointer','Watch')
-spm_progress_bar('Init',100,'computing...')                          %-#
+TITLE = spm_input('title for comparison','+1','s',str);
 
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
+spm('Pointer','Watch')
+spm_progress_bar('Init',100,'computing...')                          %-#
 nPar   = size(xX.X,2);
 I      = [Ic,Im];
 for ii = 1:length(I)
 
-    i = I(ii);
+    i  = I(ii);
 
     %-Canonicalise contrast structure with required fields
     %-------------------------------------------------------------------
     if ~isfield(xCon(i),'eidf') | isempty(xCon(i).eidf)
 	[trMV,trMVMV] = spm_SpUtil('trMV',xCon(i).X1o,xX.V);
-        xCon(i).eidf  = trMV^2 / trMVMV;
+        xCon(i).eidf  = trMV^2/trMVMV;
     else
         trMV = []; trMVMV = [];
     end
@@ -278,14 +274,16 @@ for ii = 1:length(I)
         ~exist(fullfile('.',xCon(i).Vcon.fname),'file')
 	
 	switch(xCon(i).STAT)
+
 	case 'T'       %-Implement contrast as sum of scaled beta images
         %---------------------------------------------------------------
             fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
                                       '(spm_add)','...initialising') %-#
-	    Q = find(abs(xCon(i).c)>0);
-	    V = xSDM.Vbeta(Q);
-	    for j=1:length(Q)
-	        V(j).pinfo(1,:)=V(j).pinfo(1,:)*xCon(i).c(Q(j));
+
+	    Q     = find(abs(xCon(i).c) > 0);
+	    V     = xSDM.Vbeta(Q);
+	    for j = 1:length(Q)
+	        V(j).pinfo(1,:) = V(j).pinfo(1,:)*xCon(i).c(Q(j));
 	    end
 	    
 	    %-Prepare handle for contrast image
@@ -402,16 +400,16 @@ fprintf('\t%-32s: %30s','SPM computation','...initialising')         %-#
 
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
-if (length(Ic)>1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
-					 any(diff(cat(1,xCon(Ic).eidf))>tol) )
+if (length(Ic) > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
+		       any(diff(cat(1,xCon(Ic).eidf)) > tol) )
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
 end
 
-%-Compute mask first...
+%-Compute mask first
 %-----------------------------------------------------------------------
 if ~isempty(Im), fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking'), end %-#
-for i=Im
-	Q = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > ...
+for i = Im
+	Q     = spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0) > ...
 		spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
 	XYZ   = XYZ(:,Q);
 	QQ    = QQ(Q);
@@ -425,23 +423,25 @@ spm_progress_bar('Set',100*((2*length([Ic,Im])+1)/(2*length([Ic,Im])+2)))%-#
 if isempty(XYZ)
     fprintf('\n')                                                    %-#
     warning(sprintf('No voxels survive masking at p=%4.3g',pm))
-    Z = [];
+    Z     = [];
 else
     fprintf('%s%30s',sprintf('\b')*ones(1,30),'...computing')        %-#
-    Z = Inf;
-    for i=Ic
+    Z     = Inf;
+    for i = Ic
         Z = min(Z,spm_sample_vol(xCon(i).Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0));
     end
 end
 
 %-Compute STAT string
 %-----------------------------------------------------------------------
-if length(Ic)>1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
-switch xCon(Ic(1)).STAT, case 'T'
-	STATstr = sprintf('%c%s_{%g}',...
+if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
+switch xCon(Ic(1)).STAT
+
+	case 'T'
+	STATstr = sprintf('%c%s_{%.2g}',...
 			xCon(Ic(1)).STAT,str,xX.erdf);
-case 'F'
-	STATstr = sprintf('%c%s_{[%g,%g]}',...
+	case 'F'
+	STATstr = sprintf('%c%s_{[%.2g,%.2g]}',...
 			xCon(Ic(1)).STAT,str,xCon(Ic(1)).eidf,xX.erdf);
 end
 
@@ -474,6 +474,7 @@ spm('Pointer','Arrow')
 
 if ~isempty(XYZ)                                      %-Height threshold
 %-----------------------------------------------------------------------
+
     %-Get height threshold
     %-------------------------------------------------------------------
     if spm_input('corrected height threshold','+1','y/n',[1,0],2)
@@ -501,19 +502,20 @@ if ~isempty(XYZ)                                      %-Height threshold
 end % (if ~isempty(XYZ))
 
 
-if ~isempty(XYZ)                                      %-Height threshold
+if ~isempty(XYZ)                                      %-Extent threshold
 %-----------------------------------------------------------------------
+
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
-    k     = spm_input('& extent threshold {resels}','+1','r',0,1,[0,Inf]);
+    k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
 
     %-Calculate extent threshold filtering
     %-------------------------------------------------------------------
     A     = spm_clusters(XYZ);
     Q     = [];
     for i = 1:max(A)
-        j = find(A==i);
-        if length(j)*R(end)/S >= k; Q = [Q j]; end
+        j = find(A == i);
+        if length(j) >= k; Q = [Q j]; end
     end
 
     % ...eliminate voxels
@@ -535,7 +537,7 @@ end % (if ~isempty(XYZ))
 %-Assemble output structures of unfiltered data
 %=======================================================================
 SPM    = struct('swd',		swd,...
-		'title',	title,...
+		'title',	TITLE,...
 		'Z',		Z,...
 		'n',		n,...
 		'STAT',		STAT,...
