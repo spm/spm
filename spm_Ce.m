@@ -33,9 +33,9 @@ if l > 1
 			[x y q]    = find(dCda{j});
 			x          = x    + k;
 			y          = y    + k;
-			k          = v(i) + k;
 			C{end + 1} = sparse(x,y,q,n,n);
 		end
+		k          = v(i) + k;
 	end
 else
 	% dCda
