@@ -77,7 +77,7 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 		double *pr;
 		int dsize, off;
 
-		tmp=mxGetField(ptr,0,"dim");
+		tmp=mxGetField(ptr,i,"dim");
 		if (tmp == (mxArray *)0)
 		{
 			free_maps(maps,i+1);
@@ -105,7 +105,7 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 		}
 
 
-		tmp=mxGetField(ptr,0,"fname");
+		tmp=mxGetField(ptr,i,"fname");
 		if (tmp == (mxArray *)0)
 		{
 			free_maps(maps,i+1);
@@ -154,7 +154,7 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 		}
 
 
-		tmp=mxGetField(ptr,0,"mat");
+		tmp=mxGetField(ptr,i,"mat");
 		if (tmp == (mxArray *)0)
 		{
 			free_maps(maps,i+1);
@@ -171,7 +171,7 @@ MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 			maps[i].mat[j] = pr[j];
 		}
 
-		tmp=mxGetField(ptr,0,"pinfo");
+		tmp=mxGetField(ptr,i,"pinfo");
 		if (tmp == (mxArray *)0)
 		{
 			free_maps(maps,i+1);
