@@ -148,21 +148,9 @@ swd    = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
 %-Preliminaries...
 %=======================================================================
 
-%-Load and check/canonicalise SPM.mat
+%-Load SPM.mat
 %-----------------------------------------------------------------------
 xSDM   = load(fullfile(swd,'SPM.mat'));	%-Contents of SPM.mat (in a struct)
-
-if ~isfield(xSDM,'SPMid')
-	%-SPM.mat pre SPM99
- 	error('Incompatible SPM.mat - old SPM results format!?')
-elseif ~isfield(xSDM,'M')
-	%-SPM.mat from SPM99b (which saved mmapped handles) **
-	xSDM.M      = xSDM.Vbeta(1).mat;
-	xSDM.DIM    = xSDM.Vbeta(1).dim(1:3)';
-	xSDM.VM     = 'mask.img';
-	xSDM.Vbeta  = {xSDM.Vbeta.fname}';
-	xSDM.VResMS = xSDM.VResMS.fname;
-end
 
 
 %-Map beta and ResMS images, canonicalising relative pathnames
@@ -188,10 +176,11 @@ DIM    = xSDM.DIM;
 
 %-Build index from XYZ into corresponding Y.mad locations
 %-----------------------------------------------------------------------
-QQ     = zeros(1,S);
 if exist(fullfile(swd,'Yidx.mat'),'file') & exist(fullfile(swd,'Y.mad'),'file')
 	load(fullfile(swd,'Yidx.mat'))
-	QQ(Yidx) = 1:length(Yidx);
+	QQ = sparse(1,Yidx,1:length(Yidx),1,S);
+else
+	QQ = sparse(1,S);
 end
 
 %-Contrast definitions
@@ -203,13 +192,6 @@ if exist(fullfile(swd,'xCon.mat'),'file')
 	load(fullfile(swd,'xCon.mat'))
 else
 	xCon = [];
-end
-
-%-Canonicalise SPM99b format xCon (which saved mmapped handles) **
-%-----------------------------------------------------------------------
-for i=1:length(xCon)
-	if isstruct(xCon(i).Vcon), xCon(i).Vcon=xCon(i).Vcon.fname; end
-	if isstruct(xCon(i).Vspm), xCon(i).Vspm=xCon(i).Vspm.fname; end
 end
 
 %-See if can write to current directory (by trying to open for appending)
@@ -234,21 +216,18 @@ end
 
 %-Get contrasts (if multivariate there is only one structure)
 %-----------------------------------------------------------------------
-nVar    = size(xSDM.VY,2);
-if nVar == 1
-	[Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
+[Ic,xCon] = spm_conman(xX,xCon,'T|F',Inf,...
 	'	Select contrasts...',' for conjunction',wOK);
-else
-	Ic = 1;
-end
+
 
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-% (Don't want to ask orthogonalisation order if not needed.)
+% (Don't ask orthogonalisation order if not needed.)
 if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
     %-Get orthogonalisation order from user
+    %-------------------------------------------------------------------
     Ic = spm_input('orthogonlization order','+1','p',Ic,Ic);
     
     %-Successively orthogonalise
@@ -274,10 +253,13 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 	    Ic(i)    = [];
 	    i        = i - 1;
 	elseif any(d)
+
 	    %-Contrast unchanged or already defined - note index
 	    %-----------------------------------------------------------
 	    Ic(i)    = min(d);
+
 	else
+
 	    %-Define orthogonalised contrast as new contrast
 	    %-----------------------------------------------------------
 	    oxCon.name = [xCon(Ic(i)).name,' (orthogonalized w.r.t {',...
@@ -320,8 +302,7 @@ if wOK, save(fullfile(swd,'xCon.mat'),'xCon'), end
 if length(Ic)==1
 	str  = xCon(Ic).name;
 else
-	str  = [sprintf('contrasts {%d',Ic(1)),...
-		sprintf(',%d',Ic(2:end)),'}'];
+	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
 end
 if Ex
 	mstr = 'masked [exclusive] by';
@@ -529,7 +510,7 @@ fprintf('\t%-32s: %30s','SPM computation','...initialising')         %-#
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
 if (length(Ic) > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
-		       any(abs(diff(cat(1,xCon(Ic).eidf))) > 1e-6) )
+		       any(abs(diff(cat(1,xCon(Ic).eidf))) > 1) )
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
 end
 
@@ -550,9 +531,9 @@ for i = Im
 	if isempty(Q), break, end
 end
 if ~isempty(Im) & ~isempty(Q)
-  Msk = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
+	Msk = XYZ(1,:)+(XYZ(2,:)-1)*DIM(1)+(XYZ(3,:)-1)*DIM(1)*DIM(2);
 else
-  Msk = 0;  %-Statistic images are zero-masked
+	Msk = 0;  %-Statistic images are zero-masked
 end
 
 spm_progress_bar('Set',100*((2*length(I)+1)/(2*length(I)+2)))        %-#
@@ -576,17 +557,15 @@ end
 edf   = [xCon(Ic(1)).eidf xX.erdf];
 if length(Ic) > 1
 	str = sprintf('^{%d}',length(Ic));
-elseif nVar > 1
-	str = sprintf('^{%d-variate}',nVar);
 else
 	str = '';
 end
 
 switch xCon(Ic(1)).STAT
 case 'T'
-	STATstr = sprintf('%c%s_{%.4g}','T',str,edf(2));
+	STATstr = sprintf('%c%s_{%.1f}','T',str,edf(2));
 case 'F'
-	STATstr = sprintf('%c%s_{[%.4g,%.4g]}','F',str,edf(1),edf(2));
+	STATstr = sprintf('%c%s_{[%.1f,%.1f]}','F',str,edf(1),edf(2));
 end
 
 
@@ -594,6 +573,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 spm_progress_bar('Set',100)                                          %-#
 
 %-Save mappped statistic image(s) to put in VOL
+%-----------------------------------------------------------------------
 VspmSv = cat(1,xCon(Ic).Vspm);
 
 %-Save contrast structure (if wOK), with relative pathnames to image files
@@ -634,29 +614,38 @@ if ~isempty(XYZ)
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    str   = 'FWE|FDR|uncorrected';
-    d = spm_input('corrected height threshold','+1','b',str,[],3);
-    if strcmp(d,'FWE')
-	u  = spm_input('FWE-corrected p value','+0','r',0.05,1,[0,1]);
+    str   = 'FWE|FDR|none';
+    d = spm_input('p value adjustment to control','+1','b',str,[],3);
+
+    switch d
+
+	case 'FWE' % family-wise false positive rate
+        %---------------------------------------------------------------
+	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
 	u  = spm_uc(u,edf,STAT,xSDM.R,n,xSDM.S);
-    elseif strcmp(d,'FDR')
-	u  = spm_input('FDR-corrected p value','+0','r',0.05,1,[0,1]);
+
+	case 'FDR' % False discovery rate
+	%---------------------------------------------------------------	
+	u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
 	u  = spm_uc_FDR(u,edf,STAT,n,VspmSv,0);
-    else
-	%-NB: Uncorrected p for conjunctions is p of the conjunction SPM
+
+	otherwise  %-NB: no adjustment
+	% p for conjunctions is p of the conjunction SPM
+   	%---------------------------------------------------------------
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
 	if u <= 1; u = spm_u(u^(1/n),edf,STAT); end
+
     end
 
     %-Calculate height threshold filtering
     %-------------------------------------------------------------------
-    Q     = find(Z > u);
+    Q      = find(Z > u);
 
     %-Apply height threshold
     %-------------------------------------------------------------------
-    Z     = Z(:,Q);
-    XYZ   = XYZ(:,Q);
-    QQ    = QQ(Q);
+    Z      = Z(:,Q);
+    XYZ    = XYZ(:,Q);
+    QQ     = QQ(Q);
 
     if isempty(Q)
         warning(sprintf('No voxels survive height threshold u=%0.2g',u)), end
@@ -664,10 +653,8 @@ if ~isempty(XYZ)
 end % (if ~isempty(XYZ))
 
 
-%-Extent threshold (only for allowed cases)
+%-Extent threshold (disallowed for conjunctions)
 %-----------------------------------------------------------------------
-
-%if ~isempty(XYZ) & length(Ic) == 1 & STAT == 'T'
 if ~isempty(XYZ) & length(Ic) == 1
 
     %-Get extent threshold [default = 0]
