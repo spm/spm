@@ -268,7 +268,7 @@ if strcmp(PGG,PFG) 	% Same modality
 		iname  = spm_str_manip(inameG(i,:),'sd');
 		spm_unlink([iname '.img'], [iname '.hdr'], [iname '.mat']);
 
-		iname  = spm_str_manip(inameG(i,:),'sd');
+		iname  = spm_str_manip(inameF(i,:),'sd');
 		spm_unlink([iname '.img'], [iname '.hdr'], [iname '.mat']);
 	end
 
