@@ -1,7 +1,5 @@
 #ifndef lint
-static char sccsid[]="@(#)spm_conv_vol.c	1.6 (c) John Ashburner 95/02/08";
-static char sccsid2[]="%W% mods by Tom Nichols %E%";
-
+static char sccsid[]="%W% (c) John Ashburner %E%";
 #endif
 
 #include <math.h>
