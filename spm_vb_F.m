@@ -12,7 +12,8 @@ function [F,Lav, KL] = spm_vb_F (Y,slice)
 %
 % This function implements equation 18 in paper VB4
 %
-% Will Penny & Nelson Trujillo-Barreto $Id$
+% Will Penny and Nelson Trujillo-Barreto $Id$
+
 
 if slice.verbose
     disp('Updating F');
