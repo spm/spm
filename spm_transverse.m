@@ -11,7 +11,7 @@ function spm_transverse(SPM,VOL,hReg,junk1)
 %
 % VOL    - structure containing details of volume analysed
 %        - required fields are:
-% .M     - voxels - > mm matrix
+% .iM    - mm  -> voxels matrix
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels}
 %
@@ -32,7 +32,7 @@ function spm_transverse(SPM,VOL,hReg,junk1)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %_______________________________________________________________________
-% %W% Karl Friston %E%
+% %W% Karl Friston - modified by John Ashburner %E%
 
 if nargin==3 & isstruct(SPM),
 	init(SPM,VOL,hReg);
@@ -60,9 +60,9 @@ spms   = spm_get(1,'.img','select an image for rendering');
 spm('Pointer','Watch');
 
 transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg);
-tmp    = inv(VOL.M);
-transv.blob = struct('xyz',tmp(1:3,:)*[VOL.XYZ ; ones(1,size(VOL.XYZ,2))], 't',SPM.Z, 'dim',VOL.DIM(1:3),...
-	             'M',VOL.M, 'vox',sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
+transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
+	             'iM',VOL.iM,...
+		     'vox', sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
 
 
 
@@ -74,14 +74,13 @@ spm_results_ui('ClearPane',Fgraph);
 %-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
 xyzmm  = spm_XYZreg('GetCoords',transv.hReg);
-tmp    = inv(transv.blob.M);
-xyz    = round(tmp(1:3,:)*[xyzmm; 1]);
+xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);
 
 % extract data from SPM [at one plane separation]
 % and get background slices
 %----------------------------------------------------------------------
 dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
-A      = transv.blob.M\transv.V.mat;
+A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
 
 zoomM  = spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]);
@@ -216,14 +215,13 @@ global transv
 %-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
 % xyzmm  = spm_XYZreg('GetCoords',transv.hReg)
-tmp    = inv(transv.blob.M);
-xyz    = round(tmp(1:3,:)*[xyzmm; 1]);
+xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);
 
 % extract data from SPM [at one plane separation]
 % and get background slices
 %----------------------------------------------------------------------
 dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
-A      = transv.blob.M\transv.V.mat;
+A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
 
 zoomM  = spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]);

@@ -136,7 +136,7 @@ if strcmp(op,'addblobs'),
 		[SPM,VOL,DES] = spm_getSPM;
 		c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
 		colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-		spm_orthviews('addcolouredblobs',1,VOL.XYZ,SPM.Z,VOL.M,colours(c,:));
+		spm_orthviews('addcolouredblobs',1,SPM.XYZ,SPM.Z,VOL.M,colours(c,:));
 		set(st.blobber,'String','Remove Blobs','Callback','spm_image(''rmblobs'');');
 	end;
 	spm_orthviews('Redraw');

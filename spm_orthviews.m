@@ -113,11 +113,15 @@ case 'bb',
 
 case 'redraw',
 	redraw_all;
+	eval(st.callback);
+	if isfield(st,'registry'),
+		spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
+	end;
 
 case 'reposition',
 	if length(varargin)<1, tmp = findcent;
 	else, tmp = varargin{1}; end;
-	if length(tmp)==3, st.centre = tmp; end;
+	if length(tmp)==3, st.centre = tmp(:); end;
 	redraw_all;
 	eval(st.callback);
 	if isfield(st,'registry'),
@@ -126,6 +130,7 @@ case 'reposition',
 
 case 'setcoords',
 	st.centre = varargin{1};
+	st.centre = st.centre(:);
 	redraw_all;
 	eval(st.callback);
 
@@ -211,9 +216,9 @@ return;
 function addblobs(handle, xyz, t, mat)
 global st
 for i=valid_handles(handle),
-	% rcp    = round(xyz);
-	iM       = inv(mat);
-	rcp      = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
+	% iM     = inv(mat);
+	% rcp    = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
+	rcp      = round(xyz);
 	dim      = max(rcp,[],2)';
 	off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
 	vol      = zeros(dim);
@@ -235,9 +240,9 @@ return;
 function addcolouredblobs(handle, xyz, t, mat,colour)
 global st
 for i=valid_handles(handle),
-	% rcp    = round(xyz);
-	iM       = inv(mat);
-	rcp      = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
+	% iM     = inv(mat);
+	% rcp    = round(iM(1:3,:)*[xyz; ones(1,size(xyz,2))]);
+	rcp      = round(xyz);
 	dim      = max(rcp,[],2)';
 	off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
 	vol      = zeros(dim);
@@ -274,9 +279,16 @@ return;
 function register(hreg)
 global st
 tmp = uicontrol('Position',[0 0 1 1],'Visible','off','Parent',st.fig);
-st.registry = struct('hReg',hreg,'hMe', tmp);
-spm_XYZreg('Add2Reg',st.registry.hReg,st.registry.hMe, 'spm_orthviews');
+h   = valid_handles(1:24);
+if ~isempty(h),
+	tmp = st.vols{h(1)}.ax{1}.ax;
+	st.registry = struct('hReg',hreg,'hMe', tmp);
+	spm_XYZreg('Add2Reg',st.registry.hReg,st.registry.hMe, 'spm_orthviews');
+else,
+	warning('Nothing to register with');
+end;
 st.centre = spm_XYZreg('GetCoords',st.registry.hReg);
+st.centre = st.centre(:);
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -303,7 +315,7 @@ global st
 H = [];
 for arg1=valid_handles(arg1),
 	is = inv(st.vols{arg1}.premul*st.vols{arg1}.mat);
-	H = is(1:3,1:3)*st.centre + is(1:3,4);
+	H = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 end;
 return;
 %_______________________________________________________________________
@@ -483,7 +495,6 @@ function redraw(arg1)
 global st
 bb   = st.bb;
 Dims = diff(bb)';
-
 is   = inv(st.Space);
 cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 
