@@ -39,7 +39,7 @@ for i=1:length(hdr),
 
 	% Output filename
 	%-------------------------------------------------------------------
-	fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.StudyID),...
+	fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
 		hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
 
 
@@ -201,7 +201,7 @@ function write_volume(hdr)
 
 % Output filename
 %-------------------------------------------------------------------
-fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.StudyID),...
+fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
 	hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
 
 % Image dimensions
@@ -298,7 +298,7 @@ for i=1:length(hdr),
 	elseif ~checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient'),
 		%disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
-	elseif ~checkfields(hdr{i},'StudyID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+	elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
 		%disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	else,
