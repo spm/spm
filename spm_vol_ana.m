@@ -22,14 +22,15 @@ function V = spm_vol_ana(fname, n)
 % 	* If the .hdr is not customised for storing orientation information
 % 	  then the following fields may be read to derive the information:
 % 		* .mat file if it exists
-% 		* otherwise hdr.dime.dim(2:4) to get origin in centre of volume
+% 		* otherwise hdr.hist.origin to get origin of volume
 % 		  and hdr.dime.pixdim(2:4) to get the voxel sizes.
+%               * if hdr.hist.origin is set to [0 0 0], then the origin is
+%                 assumed to be at the centre of the volume
+%                 - (hdr.dime.dim(2:4)+1)/2.
 % 	* Scalefactors are derived from hdr.dime.funused1 if it is set,
 % 	  otherwise they are derived from hdr.dime.cal_max, hdr.dime.cal_min,
 % 	  hdr.dime.glmax and hdr.dime.glmin.
 % 	* hdr.dime.vox_offset to get the offset into the volume.
-% 	* hdr.hk.sizeof_hdr > 348 is used to determine if orientation
-% 	  information is stored.
 %
 %_______________________________________________________________________
 % %W% John Ashburner (from Karl's old code) %E%
