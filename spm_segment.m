@@ -515,7 +515,6 @@ for iter = 1:niter
 	if iter ==4 
 		sumpr2 = sumpr;
 	elseif iter > 4
-disp([sumpr osumpr sumpr2 (sumpr-osumpr)/(sumpr-sumpr2)]);
 		if (sumpr-osumpr)/(sumpr-sumpr2) < 0.0003
 			break;
 		end
