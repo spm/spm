@@ -101,7 +101,7 @@ iu     = [1:nu] + np;
 % treat confounds as fixed effects
 %---------------------------------------------------------------------------
 uE     = inv(Ju'*Ju)*Ju'*y(:);
-uC     = speye(nu,nu)*1e8;
+uC     = speye(nu,nu)*1e6;
 
 
 % compbine priors on free parameters and confounds
@@ -194,38 +194,24 @@ for  k = 1:32
 	%-------------------------------------------------------------------
         if Fp < F
                 if ~lm
-                    lm = speye(np + nu)/128;
+                    lm = speye(np + nu)/256;
                 else
                     lm = lm*2;
                 end
-	        p  = p - dp;
+	        p     = p - dp;
         else
-	        % update F
+
+	        % update gradients, curvatures and F
 	        %----------------------------------------------------------
-                F  = Fp;
+                dFdp  = -J'*iS*e - ipC*p;
+                dFdpp = -J'*iS*J - ipC;
+                F     = Fp;
+
         end
 
 	% E-Step: Conditional estimator of new expansion point E{p|y}
 	%===================================================================
-        dFdp  = -J'*iS*e - ipC*p;
-        dFdpp = -J'*iS*J - ipC;
         dp    = inv(-dFdpp + lm*norm(full(dFdpp)))*dFdp;
-        
-	% update - ensuring the system is dissipative (and break if not)
-	%-------------------------------------------------------------------
-	for i = 1:8
-		A    = spm_bi_reduce(M,p0 + Vp*dp(ip));
-		s    = max(real(eig(full(A))));
-		if s > 0
-			dp = dp/2;
-		else
-			break
-		end
-	end
-        if i == 8
-                warndlg('system is unstable')
-                break
-        end
         p     = p + dp;
 
 	% convergence
