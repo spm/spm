@@ -135,7 +135,7 @@ function varargout = spm_get(varargin)
 % body of the code.
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes (X-platform stuff by Matthew Brett) %E%
+% %W% Andrew Holmes (X-platform stuff with Matthew Brett) %E%
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -262,8 +262,13 @@ function varargout = spm_get(varargin)
 % FORMAT so = ddeblank(si)
 % Double tailed deblank - strips blanks from both ends of string matrix
 %
+% FORMAT rootf = isroot(path)
+% Tests filepath in string path: Returns true if path is root directory
+%
+% FORMAT absf = isabspath(path)
+% Tests filepath in string path: Returns true if path is absolute
 %_______________________________________________________________________
-% Andrew Holmes
+% Andrew Holmes (X-platform stuff with Matthew Brett)
 
 
 %-Parameters
@@ -386,8 +391,9 @@ F  = figure('IntegerHandle','off',...
 	'Units','Pixels',...
 	'MenuBar','none',...
 	'DefaultTextInterpreter','none',...
-	'DefaultTextFontName','Helvetica',...
+	'DefaultTextFontName',spm_platform('font','helvetica'),...
 	'DefaultTextFontSize',2*round(12*min(WS)/2),...
+	'DefaultTextFontName',spm_platform('font','helvetica'),...
 	'DefaultUicontrolFontSize',2*round(12*min(spm('GetWinScale'))/2),...
 	'DefaultUicontrolInterruptible','on',...
 	'Visible','off');
@@ -409,7 +415,7 @@ uicontrol(F,'Style','Frame','Tag','P','UserData',[],...
 
 uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...
 	'String','<Prompt not set yet>',...
-	'FontName','Times',...
+	'FontName',spm_platform('font','times'),...
 	'FontWeight','Bold',...
 	'FontAngle','Italic',...
 	'FontSize',2*round(16*min(WS)/2),...
@@ -1185,7 +1191,8 @@ for h = H'
 	if isfinite(n), if (nP+nItems>abs(n)), break, end, end
 
 	%-Add items to P
-	FPath  = [repmat([WDir,filesep],nItems,1),Items];
+	if WDir(end)~=filesep, WDir = [WDir,filesep]; end
+	FPath  = [repmat(WDir,nItems,1),Items];
 	P      = strvcat(P,FPath);
 	if nItems==1
 		tmp = [int2str(nP+1),' :',IName];
@@ -1212,13 +1219,14 @@ case 'delete'
 F      = findobj(get(0,'Children'),'Flat','Tag','SelFileWin');
 if nargin<2, h=gcbo; else, h=varargin{2}; end
 WDir   = get(findobj(F,'Tag','WDir'),'UserData');
+if WDir(end)~=filesep, WDir = [WDir,filesep]; end
 P      = get(findobj(F,'Tag','P'),'UserData');
 n      = get(findobj(F,'Tag','Prompt'),'UserData');
 IName  = get(h,'String');
 IName(1:find(IName==':')) = [];
 Items  = get(h,'UserData');
 nItems = size(Items,1);
-FPath  = [repmat([WDir,filesep],nItems,1),Items];
+FPath  = [repmat(WDir,nItems,1),Items];
 nP     = size(P,1);
 
 %-Compare Items with end of P (Can only delete from the end)
@@ -1327,7 +1335,7 @@ h = uicontrol(F,'Style','Frame',...
 Handles = [Handles, h];
 
 h = uicontrol(F,'Style','Text','String',Prompt,...
-	'FontName','Times',...
+	'FontName',spm_platform('font','times'),...
 	'FontWeight','Bold',...
 	'FontAngle','Italic',...
 	'FontSize',2*round(16*min(WS)/2),...
@@ -1494,7 +1502,9 @@ if nargin<3, cwd=pwd; else, cwd=spm_get('CPath',varargin{3}); end
 if nargin<2, error('insufficient arguments'), end
 cpath = cellstr(varargin{2});
 
-sepchar = filesep;
+sepchar = filesep;			%-File seperator character
+dubsep  = [sepchar,sepchar];		%-Double file separator character
+rootlen = spm_platform('rootlen');	%-Length of root paths ('/' & 'C:\' &c)
 
 for i=1:prod(size(cpath))
 
@@ -1508,29 +1518,27 @@ for i=1:prod(size(cpath))
 	%-Sort out stationary relative pathnames './' & '/.'
 	%---------------------------------------------------------------
 	%-Remove midpath '/./'
-	dubsep = [sepchar,sepchar];
 	cpath{i}=strrep(cpath{i},[sepchar,'.',sepchar], sepchar);
-	while length(cpath{i})>=2 & length(findstr(cpath{i},dubsep))
-		cpath{i}=strrep(cpath{i},dubsep,sepchar); end
 	
 	%-Remove '.' from trailing '/.'
 	if length(cpath{i})>=2 & strcmp(cpath{i}(end-1:end),[sepchar,'.'])
 		cpath{i}(end)=''; end
 	
-	%-Remove trailing '/'        %%-Might give problems with Windows
-	if length(cpath{i})>=2 & cpath{i}(end)==sepchar
-		cpath{i}(end)=''; end
+	%-Remove trailing '/'s (unless root, in which case ensure trailing '/')
+	if isroot(cpath{i})
+		if cpath{i}(end)~=sepchar, cpath{i}(end+1)=sepchar; end
+	else
+		while(length(cpath{i})>rootlen) & cpath{i}(end)==sepchar
+			cpath{i}(end)='';
+		end
+	end
 	
 	%-Sort out relative pathnames '/..'
 	%---------------------------------------------------------------
-	%-Canonicalise paths starting '/..' to '/'
-	if length(cpath{i})>=3 & strcmp(cpath{i}(1:3),'/..')
-		cpath{i}(2:3)=''; end
-	
-	%-Process midpath '/../' 	           %%-Test with Windows!
+	%-Process midpath '/../'
 	t0 = 0;
 	downstr = [sepchar,'..',sepchar];
-	while length(cpath{i})>=4 & max([0,findstr(cpath{i},downstr)])>t0
+	while length(cpath{i})>=rootlen+4 & max([0,findstr(cpath{i},downstr)])>t0
 		t2 = t0+min(findstr(cpath{i}(t0+1:end),downstr));
 		t1 = t0+max([0,find(cpath{i}(t0+1:t2-1)==sepchar)]);
 		if t1==t0 | strcmp(cpath{i}(t1:t2),downstr)
@@ -1539,17 +1547,35 @@ for i=1:prod(size(cpath))
 			cpath{i}(t1:t2+2)='';
 		end
 	end
-	
-	%-Process trailing '/..' (Don't remove first '/') %%-Test w/ Win
-	if length(cpath{i})>3 & strcmp(cpath{i}(end-2:end),[sepchar '..'])
+
+	%-Process trailing '/..' (Don't remove first '/')
+	if length(cpath{i})>rootlen+2 & ...
+	   strcmp(cpath{i}(end-2:end),[sepchar,'..'])
 		t2 = length(cpath{i})-2;
 		t1 = t0+max([0,find(cpath{i}(t0+1:t2-1)==sepchar)]);
 		if t1~=t0 & ~strcmp(cpath{i}(t1:t2),downstr)
-			cpath{i}(max(t1,2):t2+2)='';
+			cpath{i}(max(t1,rootlen+1):t2+2)='';
 		end
 	end
-	
-	%-Final canonicalisations
+
+	%-Remove any leading '/../'s
+	while length(cpath{i})>=rootlen+3 & ...
+	      strcmp(cpath{i}(rootlen+[0:3]),downstr)
+		cpath{i}(rootlen+[1:3])='';
+	end
+
+	%-Canonicalise '/..' to '/'
+	if length(cpath{i})==rootlen+2 & ...
+	   strcmp(cpath{i}(rootlen+[0:2]),[sepchar,'..'])
+		cpath{i}(rootlen+[1:2])='';
+	end
+
+	%-Remove any residual '//'s
+	while length(cpath{i})>=2 & length(findstr(cpath{i},dubsep))
+		cpath{i}=strrep(cpath{i},dubsep,sepchar); end
+
+
+	%-Final canonicalisations for relative pathnames
 	%---------------------------------------------------------------
 	% %-Remove leading './'
 	% if length(cpath{i})>2 & strcmp(cpath{i}(1:2),['.',sepchar])
@@ -1592,12 +1618,14 @@ so = si(:,max(1,min(find(b))):min(max(find(b)),length(b)));
 
 function rootf = isroot(path)             %%-Platform specifics (MBrett)
 %=======================================================================
-% returns true if path is root directory, else false
+%-Returns true if path is root directory, else false
 switch (spm_platform('filesys'))
 case 'unx'
 	rootf = strcmp(path,'/');
 case 'win'
-	rootf = length(path)>1 & strcmp(path(2:end),':\');
+	%-Accepts e.g e: and e:\ as root paths
+	rootf = ( length(path)==2 & path(2)==':') | ...
+		( length(path)>2  & strcmp(path(2:end),':\') );
 otherwise
 	error('isroot not coded for this filesystem');
 end
@@ -1605,7 +1633,7 @@ end
 
 function absf = isabspath(path)           %%-Platform specifics (MBrett)
 %=======================================================================
-% returns true if path is absolute, false if relative
+%-Returns true if path is absolute, false if relative (or empty)
 switch (spm_platform('filesys'))
 case 'unx'
 	absf = ~isempty(path) & path(1)=='/';
