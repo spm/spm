@@ -176,7 +176,7 @@ function varargout = spm_input_orig(varargin)
 %=======================================================================
 % - generic       - [p,YPos] = spm_input_orig(Prompt,YPos,Type,...)
 % - string        - [p,YPos] = spm_input_orig(Prompt,YPos,'s',DefStr)
-% - string+       - [p,YPos] = spm_input_orig(Prompt,YPos,'s',DefStr)
+% - string+       - [p,YPos] = spm_input_orig(Prompt,YPos,'s+',DefStr)
 % - evaluated     - [p,YPos] = spm_input_orig(Prompt,YPos,'e',DefStr,n)
 %   - natural     - [p,YPos] = spm_input_orig(Prompt,YPos,'n',DefStr,n,mx)
 %   - whole       - [p,YPos] = spm_input_orig(Prompt,YPos,'w',DefStr,n,mx)
