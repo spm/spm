@@ -173,17 +173,17 @@ if p > 0
     end
 end
 
-if slice.update_F
-    disp('Computing log determinant of spatial precision matrix for evidence');
-    % Get log determinant of D
-    [vvv,ddd]=eig(full(slice.D));
-    dd=diag(ddd);
-    if strcmp(slice.priors.WA,'Spatial - LORETA')
-        % Ignore 1st eigenvalue which is zero
-        dd=dd(2:end);
-    end
-    slice.log_det_D=sum(log(dd));
-end
+% if slice.update_F
+%     disp('Computing log determinant of spatial precision matrix for evidence');
+%     % Get log determinant of D
+%     [vvv,ddd]=eig(full(slice.D));
+%     dd=diag(ddd);
+%     if strcmp(slice.priors.WA,'Spatial - LORETA')
+%         % Ignore 1st eigenvalue which is zero
+%         dd=dd(2:end);
+%     end
+%     slice.log_det_D=sum(log(dd));
+% end
 
 disp('Computing data projections');
 % Set up design and data projections
