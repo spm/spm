@@ -213,9 +213,7 @@ if ~isempty(PG) & isstr(PG)
 
 	global sptl_MskBrn
 	VW = [];
-	if sptl_MskBrn==1,
-		VW = spm_vol(fullfile(SWD,'apriori','brainmask.img'));
-	end;
+	if ~isempty(sptl_MskBrn), VW = spm_vol(sptl_MskBrn); end;
 
 	% perform affine normalisation at different sampling frequencies
 	% with increasing numbers of parameters.

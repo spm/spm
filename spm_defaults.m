@@ -184,11 +184,11 @@ sptl_Rglrztn = 0.01;
 %-----------------------------------------------------------------------
 sptl_NItr = 12;
 
-% Estimate the spatial normalization parameters from the brain only
-% (of the template) or use the whole head.
+% Estimate the spatial normalization parameters from region specified
+% by the image sptl_MskBrn, or use the whole volume.
 %-----------------------------------------------------------------------
-%sptl_MskBrn = 0; % Estimate from the whole head
-sptl_MskBrn = 1; % Estimate from the brain only
+%sptl_MskBrn = ''; % Estimate from the whole head
+sptl_MskBrn = fullfile(spm('Dir'),'apriori','brainmask.img');
 
 % Estimate the spatial normalization parameters from only a limited
 % region of the object image.  This is intended for spatially
