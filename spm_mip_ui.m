@@ -380,7 +380,11 @@ hX = getfield(get(h,'UserData'),['hX',r]);
 %-----------------------------------------------------------------------
 set(hX,'Units','Data')
 if length(hX)==1
-	set(hX,'Position',[xyz(1), xyz(2), 1])
+	tmp = get(varargin{3},'UserData');
+	vx  = sqrt(sum(tmp.M(1:3,1:3).^2));
+	tmp = tmp.M\[xyz ; 1];
+	tmp = tmp(1:2).*vx(1:2)';
+	set(hX,'Position',[tmp(1), tmp(2), 1])
 else
 	set(hX(1),'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
 	set(hX(2),'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
@@ -567,7 +571,9 @@ d = get(cO,'Position');
 sMarker = get(cO,'Tag');
 if strcmp(sMarker,'hX1r')
 	if b2d
-		xyz = [d(1); d(2); MS.xyz(3)];
+		vx  = sqrt(sum(MS.M(1:3,1:3).^2));
+		tmp = [d(1)/vx(1) d(2)/vx(2) 1]';
+		xyz = MS.M(1:3,:)*[tmp' 1]';
 	else
 		xyz = [d(2) - Po(2); d(1) - Po(1); MS.xyz(3)];
 	end
@@ -600,7 +606,10 @@ set(MS.hMIPxyz,'UserData',xyz)
 % spm_mip_ui('PosnMarkerPoints',xyz,hMIPax,'r')
 set(MS.hX,'Units','Data')
 if b2d
-	set(MS.hX,'Position',[xyz(1), xyz(2), 1],'Visible','on')
+	vx  = sqrt(sum(MS.M(1:3,1:3).^2));
+	tmp = MS.M\[xyz ; 1];
+	tmp = tmp(1:2).*vx(1:2)';
+	set(MS.hX,'Position',[tmp(1), tmp(2), 1],'Visible','on')
 else
 	set(MS.hX(1),'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
 	set(MS.hX(2),'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])

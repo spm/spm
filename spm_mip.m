@@ -51,10 +51,10 @@ if DIM(3) == 1,
 	VOX = sqrt(sum(M(1:3,1:3).^2));
 	XYZ = round(M\[XYZ; ones(1,size(XYZ,2))]);
 	mip = full(sparse(XYZ(1,:),XYZ(2,:),Z,DIM(1),DIM(2)));
-	imagesc([1 DIM(1)*VOX(1)],[1 DIM(2)*VOX(2)],-mip');
+	image([1 DIM(1)]*VOX(1),[1 DIM(2)]*VOX(2),(1-mip'/max(mip(:)))*64);
 	axis xy image; 
-	set(gca,'FontSize',8,'TickDir','in')
-	xlabel('x'), ylabel('y')
+	set(gca,'FontSize',8,'TickDir','in','XTick',[],'YTick',[])
+	%xlabel('x'), ylabel('y')
 	return
 end
 

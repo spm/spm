@@ -114,7 +114,7 @@ D2     = D2/maxD;
 if transv.blob.dim(3) > 1,
 	D1 = D1/maxD;
 	D3 = D3/maxD;
-	d = max([d ; T1(:) ; T3(:)]);
+	d = max([d ; T1(:) ; T3(:) ; eps]);
 end;
 
 %-Configure {128 level} colormap
@@ -138,14 +138,14 @@ set(Fgraph,'Units','pixels')
 siz    = get(Fgraph,'Position');
 siz    = siz(3:4);
 
+P = xyz.*transv.blob.vox';
+
 %-Render activation foci on background images
 %-----------------------------------------------------------------------
 if transv.blob.dim(3) > 1
 	zm     = min([(siz(1) - 120)/(dim(1)*3),(siz(2)/2 - 60)/dim(2)]);
 	xo     = (siz(1)-(dim(1)*zm*3)-120)/2;
 	yo     = (siz(2)/2 - dim(2)*zm - 60)/2;
-
-	P = xyz.*transv.blob.vox';
 
 	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
 	transv.h(2) = image(rot90(spm_grid(T1)));
@@ -182,12 +182,12 @@ else,
 	xo     = (siz(1)-(dim(1)*zm)-80)/2;
 	yo     = (siz(2)/2 - dim(2)*zm - 60)/2;
 
-	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');')
-	transv.h(2) = image(rot90(spm_grid(T2)))
+	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
+	transv.h(2) = image(rot90(spm_grid(T2)));
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',xyzmm(3)))
-	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w')
-	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w')
+	title(sprintf('z = %0.0fmm',xyzmm(3)));
+	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w');
+	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
 
 	% colorbar
 	%-----------------------------------------------------------------------
@@ -275,6 +275,7 @@ if size(cmap,1) ~= 128
 	spm_figure('Colormap','gray-hot')
 	cmap   = get(transv.fig,'Colormap');
 end
+
 D      = length(cmap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
 
@@ -283,11 +284,11 @@ if transv.blob.dim(3) > 1
     Q  = T3(:) > transv.blob.u; T3 = T3(Q)/d; D3(Q) = 1 + T3; T3 = D*D3;
 end
 
+P = xyz.*transv.blob.vox';
 
 %-Render activation foci on background images
 %-----------------------------------------------------------------------
 if transv.blob.dim(3) > 1
-	P = xyz.*transv.blob.vox';
 
 	set(transv.h(2),'Cdata',rot90(spm_grid(T1)));
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3) - transv.blob.vox(3))));
@@ -307,7 +308,7 @@ if transv.blob.dim(3) > 1
 	% colorbar
 	%-----------------------------------------------------------------------
 	set(transv.h(14), 'Ydata',[0 d], 'Cdata',[1:D]' + D);
-	set(transv.h(13),'XTickLabel',[],'Ylim',[0 d])
+	set(transv.h(13),'XTickLabel',[],'Ylim',[0 d]);
 else,
 	set(transv.h(2),'Cdata',rot90(spm_grid(T2)));
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
