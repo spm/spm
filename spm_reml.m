@@ -53,7 +53,7 @@ for k = 1:128
 	% convergence
 	%------------------------------------------------------------------
 	dh    = (H - h)'*(H - h);
-	if dh < 1e-16, break, end
+	if dh < 1e-6, break, end
         fprintf('%-30s: %i %30s%e\n','REML Iteration',k,'...',full(dh));
 	H     = h;
 
