@@ -23,7 +23,7 @@ if (nargin == 1)
 	% If we can read M from a ".mat" file with the corresponding
 	% name, then use this information.
 	if (exist(matname) == 2)
-		load(matname);
+		load(matname,'M');
 		if (exist('M') == 1)
 			return;
 		end

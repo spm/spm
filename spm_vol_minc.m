@@ -143,7 +143,7 @@ mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
 % headers.
 matname = [spm_str_manip(fname,'sd') '.mat'];
 if (exist(matname) == 2)
-	load(matname);
+	load(matname,'M');
 	if (exist('M') == 1)
 		mat = M;
 	end

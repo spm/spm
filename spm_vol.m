@@ -63,7 +63,8 @@ for i=1:size(P,1),
 	end;
 	f = fieldnames(v);
 	for j=1:size(f,1),
-		eval(['V(i).' f{j} ' = v.' f{j} ';']);
+		%eval(['V(i).' f{j} ' = v.' f{j} ';']);
+		V(i) = setfield(V(i),f{j},getfield(v,f{j}));
 	end;
 end;
 return;
