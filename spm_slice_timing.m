@@ -1,11 +1,12 @@
-function spm_slice_timing(P, Seq, refslice, timing)
+function spm_slice_timing(P, sliceorder, refslice, timing)
 % function spm_slice_timing(P, Seq,refslice,timing)
 % INPUT:
 % 	P		nimages x ?	Matrix with filenames
 %                       can also be a cell array of the above (multiple subj).
-%	Seq		slice acquisition order (1,2,3 = asc, desc, interl)
-%                       Alternatively it can be a vector containing the
-%                       slice order.
+%	sliceorder	slice acquisition order, a vector of integers, each
+%                       integer referring the slice number in the image file
+%			(1=first), and the order of integers representing their
+%			temporal acquisition order
 %	refslice	slice for time 0
 %	timing		additional information for sequence timing
 %			timing(1) = time between slices
@@ -16,7 +17,37 @@ function spm_slice_timing(P, Seq, refslice, timing)
 % OUTPUT:
 %	None
 %
-% NMH_ACQCORRECT  Correct differences in image acquisition time between slices
+%   Slice-time corrected files are prepended with an 'a'
+%
+%   Note: The sliceorder arg that specifies slice acquisition order is
+%   a vector of N numbers, where N is the number of slices per volume.
+%   Each number refers to the position of a slice within the image file.
+%   The order of numbers within the vector is the temporal order in which
+%   those slices were acquired.
+%
+%   To check the order of slices within an image file, use the SPM Display
+%   option to view the image, and select "Voxel Space" rather than "World Space".
+%   Then the bottom slice in the (eg saggital) display window is the first
+%   slice in the image.
+%
+%   Thus an image of axial slices in which the first slice was from the top of 
+%   the brain, and which was acquired with a "descending" acquisition scheme
+%   (where descending refers to "world space"), would have a sliceorder:
+%
+%	[1 2 3 ... N]
+%
+%   while if the same image file were derived from an "ascending" sequence, 
+%   the sliceorder would be:
+%
+%	[N N-1 N-2 ... 1]
+%
+%   However, if the first slice in the image file were from the bottom of
+%   the brain, and a "descending" acquisition sequence was used, then the
+%   sliceorder would be:
+%
+%	[N N-1 N-2 ... 1]
+%
+%   The function corrects differences in slice acquisition times.
 %   This routine is intended to correct for the staggered order of
 %   slice acquisition that is used during echoplanar scanning. The
 %   correction is necessary to make the data on each slice correspond
@@ -43,7 +74,7 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %   The correction works by lagging (shifting forward) the time-series
 %     data on each slice using sinc-interpolation. This results in each
 %     time series having the values that would have been obtained had
-%     the slice been acquired at the beginning of each TR.
+%     the slice been acquired at the same time as the reference slice.
 %
 %   To make this clear, consider a neural event (and ensuing hemodynamic
 %     response) that occurs simultaneously on two adjacent slices. Values
@@ -63,13 +94,9 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %     logical signal change was present at frequencies higher than our
 %     typical Nyquist (0.25 HZ).
 %
-%   NOTE WELL:  This correction should be the first performed (i.e.,
-%     before orienting, motion correction, padding, smoothing, etc.).
-%     Additionally, it should only be performed once!
-%
 % Written by Darren Gitelman at Northwestern U., 1998
 %
-% Based (in large part) on ACQCORRECT.PRO from Geof Aquirre and
+% Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and
 % Eric Zarahn at U. Penn.
 %
 % v1.0	07/04/98	DRG
@@ -77,11 +104,12 @@ function spm_slice_timing(P, Seq, refslice, timing)
 %				of matlab vs. 0-based of pvwave
 %
 % Modified by R Henson, C Buechel and J Ashburner, FIL, to
-% handle different sequence acquisitions, analyze format, different
-% reference slices and memory mapping.
+% handle different reference slices and memory mapping.
 %
 % Modified by M Erb, at U. Tuebingen, 1999, to ask for non-continuous
 % slice timing and number of sessions.
+%
+% Modified by R Henson for more general slice order and SPM2
 %_______________________________________________________________________
 % %W% %E%
 
@@ -116,46 +144,21 @@ end;
 Vin 	= spm_vol(P{1}(1,:));
 nslices	= Vin(1).dim(3);
 
+% Modified (simplified) by R. Henson	03/06/25
 if nargin < 2,
-	% select fMRI acquisition sequence type
-	Stype = str2mat(...
-		'ascending (first slice=bottom)',...
-		'descending (first slice=top)',...
-		'interleaved (first slice=top)',...
-		'interleaved (1 3.. 2 4 ..)',...
-		'user specified');
-	str   = 'Select sequence type';
-	Seq   = spm_input(str,'!+1','m',Stype,[1:size(Stype,1)]);
-end;
-
-if Seq==[1],
-	sliceorder = [1:1:nslices];
-elseif Seq==[2],
-	sliceorder = [nslices:-1:1];
-elseif Seq==[3],
-	% Assumes interleaved sequences top-middle downwards
-	for k=1:nslices,
-		sliceorder(k) = round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1;
-	end;
-elseif Seq==[4],
-	sliceorder = [1:2:nslices 2:2:nslices];
-else,
-	if length(Seq)>1,
-		sliceorder = Seq;
-		Seq        = 5;
-	else,
-		sliceorder = [];
-	end;
+  	sliceorder=[];
 	while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
 		min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
-		sliceorder = spm_input('Order of slices (1=bottom)','!+0','e');
+		sliceorder = spm_input(...
+		   'Acquisition order? (1=first slice in image)','!+0','e');
 	end;
 end;
+% End of modification by R. Henson
 
 if nargin < 3,
 	% Choose reference slice (in Analyze format, slice 1 = bottom)
 	% Note: no checking that 1 < refslice < no.slices (default = middle slice)
-	refslice = spm_input('Reference Slice (1=bottom)','!+0','e',floor(Vin(1).dim(3)/2));
+	refslice = spm_input('Reference slice? (1=first slice in image)','!+0','e',floor(Vin(1).dim(3)/2));
 end;
 
 if nargin < 4,
@@ -211,10 +214,12 @@ for subj = 1:nsubjects
 
 		% For loop to read data slice by slice do correction and write out
 		% In analzye format, the first slice in is the first one in the volume.
+
+		rslice = find(sliceorder==refslice);
 		for k = 1:nslices,
 
 			% Set up time acquired within slice order
-			shiftamount  = (find(sliceorder==k) - find(sliceorder==refslice)) * factor;
+			shiftamount  = (find(sliceorder==k) - rslice) * factor;
 
 			% Read in slice data
 			B  = spm_matrix([0 0 k]);
