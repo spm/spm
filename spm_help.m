@@ -199,10 +199,13 @@ function [R1,R2]=spm_help(Action,P2,P3,P4,P5)
 % h         - handle of button (if one is created)
 %_______________________________________________________________________
 
+% Can't change the value of nargin within Matlab 5 - so use nin instead
+%-----------------------------------------------------------------------
+nin = nargin;
 
 %-Condition arguments for all uses
 %-----------------------------------------------------------------------
-if nargin==0
+if nin==0
 	Fhelp = spm_figure('FindWin','Help');
 	if ~isempty(Fhelp)
 		set(Fhelp,'Visible','on')
@@ -211,11 +214,11 @@ if nargin==0
 		Action='';
 	end
 end
-if isempty(Action), Action='Menu'; nargin=1; end
+if isempty(Action), Action='Menu'; nin=1; end
 
 %-All actions begin '!' - Other actions are topics
 %-----------------------------------------------------------------------
-if Action(1)~='!', nargin=2; P2=Action; Action='!Topic'; end
+if Action(1)~='!', nin=2; P2=Action; Action='!Topic'; end
 
 
 
@@ -437,7 +440,7 @@ return
 elseif strcmp(lower(Action),lower('!ShortTopics'))
 %=======================================================================
 % [S,Err] = spm_help('!ShortTopics',Topic)
-if nargin<2, Topic='!Topics'; else, Topic=P2; end
+if nin<2, Topic='!Topics'; else, Topic=P2; end
 
 Usep = sprintf('%%%s',setstr('_'*ones(1,71)));
 Err = 0;
@@ -562,7 +565,7 @@ return
 elseif strcmp(lower(Action),lower('!Topic'))
 %=======================================================================
 % spm_help('!Topic',Topic)
-if nargin<2, Topic='Menu'; else, Topic=P2; end
+if nin<2, Topic='Menu'; else, Topic=P2; end
 
 %-Find (or create) help window.
 %-----------------------------------------------------------------------
@@ -683,10 +686,10 @@ return
 elseif strcmp(lower(Action),lower('!Disp'))
 %=======================================================================
 % spm_help('!Disp',Fname,S,F,TTitle)
-if nargin<5, TTitle=''; else, TTitle=P5; end
-if nargin<4, F='Help'; else, F=P4; end
-if nargin<3, S=''; else, S=P3; end
-if nargin<2, Fname='spm.man'; else, Fname=P2; end
+if nin<5, TTitle=''; else, TTitle=P5; end
+if nin<4, F='Help'; else, F=P4; end
+if nin<3, S=''; else, S=P3; end
+if nin<2, Fname='spm.man'; else, Fname=P2; end
 if isempty(TTitle), TTitle=Fname; end
 
 
@@ -817,7 +820,7 @@ elseif strcmp(lower(Action),lower('!CreateBar'))
 % About SPMver  | Referenced Topics |   Previous Topics  |
 %-----------------------------------------------------------------------
 
-if nargin<2, F='Help'; else, F = P2; end
+if nin<2, F='Help'; else, F = P2; end
 F=spm_figure('FindWin',F);
 if isempty(F), error('Help figure not found'), end
 
@@ -942,8 +945,8 @@ return
 elseif strcmp(lower(Action),lower('!FigKeyPressFcn'))
 %=======================================================================
 % spm_help('!FigKeyPressFcn',h,ch)
-if nargin<2, error('Insufficient arguments'), else, h=P2; end
-if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
+if nin<2, error('Insufficient arguments'), else, h=P2; end
+if nin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=P3; end
 
 tmp = get(h,'String');
 
@@ -976,7 +979,7 @@ elseif strcmp(lower(Action),lower('!Clear'))
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, F='Help'; else, F = P2; end
+if nin<2, F='Help'; else, F = P2; end
 F=spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -993,7 +996,7 @@ return
 elseif strcmp(lower(Action),lower('!ContextHelp'))
 %=======================================================================
 % h = spm_help('!ContextHelp',Topic)
-if nargin<2, Topic=''; else Topic=P2; end
+if nin<2, Topic=''; else Topic=P2; end
 
 if spm('isGCmdLine')
 	fprintf('\nSPM: Type `help %s` for help on this routine.\n',Topic)

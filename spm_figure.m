@@ -188,7 +188,7 @@ function R1=spm_figure(Action,P2,P3,P4,P5)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if (nargin==0), Action = 'Create'; nargin=1; end
+if (nargin==0), Action = 'Create'; end
 if ~isstr(Action), P2=Action; Action='CreateBar'; end
 
 if strcmp(lower(Action),lower('Create'))
