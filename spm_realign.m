@@ -715,7 +715,7 @@ for i=2:length(P)
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold);
-		if ~isempty(wt), F = F.*wt(t); end;
+		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
 		Alpha      = spm_atranspa(A);
@@ -787,7 +787,7 @@ for i=1:length(P)
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold1);
-		if ~isempty(wt), F = F.*wt(msk)'; end;
+		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
 		Alpha      = spm_atranspa(A);
@@ -867,7 +867,7 @@ for i=1:length(lkp)
 	pt(lkp(i)) = pt(i)+1e-6;
 	[y1,y2,y3] = coords(pt,M,M,x1,x2,x3);
 	tmp        = sum([y1-x1 y2-x2 y3-x3].*[dG1 dG2 dG3],2)/(-1e-6);
-	if ~isempty(wt), A(:,i) = tmp.*wt';
+	if ~isempty(wt), A(:,i) = tmp.*wt;
 	else, A(:,i) = tmp; end
 end
 return;
