@@ -1260,7 +1260,9 @@ if ~CmdLine & ~bBCH
 	str = sprintf('%s  %s  %s',SPMv,repmat(' ',1,tmp-4),timestr);
 	h   = msgbox([{''};Message(:);{''};{''};{str}],...
 		sprintf('%s%s: %s',SPMv,spm('GetUser',' (%s)'),Title),...
-		icon,'modal');
+		icon,'non-modal');
+	drawnow
+	set(h,'windowstyle','modal');
 end
 
 if wait & ~bBCH

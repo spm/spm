@@ -629,7 +629,7 @@ yords  = ones(xdim,1)*[1:ydim];  yords = yords(:)'; %-plane Y coordinates
 
 %-Initialise XYZ matrix of in-mask voxel co-ordinates (real space)
 %-----------------------------------------------------------------------
-XYZ   = [];
+XYZ    = zeros(3,xdim*ydim*zdim);
 
 %-Smoothness estimation variables
 %-----------------------------------------------------------------------
@@ -979,19 +979,19 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 		% cumulate
 		%-------------------------------------------------------
-		fwhm      = sqrt([sx_res; sy_res; sz_res]/(4*log(2)));
-		resel     = prod(fwhm(1:N,:));
-		FWHM      = FWHM  + sum(fwhm');
-		RESEL     = RESEL + sum(resel);
-		Srpv      = Srpv  + s;
-		RVP(I(i)) = resel;
+		fwhm       = sqrt([sx_res; sy_res; sz_res]/(4*log(2)));
+		resel      = prod(fwhm(1:N,:));
+		FWHM       = FWHM  + sum(fwhm');
+		RESEL      = RESEL + sum(resel);
+		Srpv       = Srpv  + s;
+		RVP(I(i))  = resel;
 
 	end
 
 	%-Append new inmask voxel locations and volumes
 	%---------------------------------------------------------------
-	XYZ            = [XYZ,xyz(:,CrLm)];	%-InMask XYZ voxel coordinates
-	S              = S + CrS;		%-Volume analysed (voxels)
+	XYZ(:,S + [1:CrS]) = xyz(:,CrLm);	%-InMask XYZ voxel coordinates
+	S                  = S + CrS;		%-Volume analysed (voxels)
 	    					% (equals size(XYZ,2))
 
 	%-Roll... (BeVox(bch) is overwritten)
@@ -1141,12 +1141,13 @@ fprintf('%-40s: %30s','Saving results','...writing')                 %-#
 %-Save coordinates of within mask voxels (for Y.mad pointlist use)
 %-----------------------------------------------------------------------
 if UFp > 0, save Yidx Yidx, end
+XYZ    = XYZ(:,1:S);
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...	%-General design parameters
 		'M','DIM',...			%-Image space parameters
-		'VM','Vbeta','VResMS',...	%-Relative beta & ResMS filenames
+		'VM','Vbeta','VResMS',...	%-beta & ResMS filenames
 		'XYZ',...			%-InMask XYZ voxel coords
 		'F_iX0','UFp','UF',...		%-F-thresholding data
 		'S','R','FWHM'};		%-Smoothness data
