@@ -255,6 +255,9 @@ case 'Contrast estimates and 90% C.I.'
 	set(gca,'XLim',[0.4 (length(cbeta) + 0.6)])
 	hold off
 
+	% set Y to empty so outputs are assigned
+	%-------------------------------------------------------------
+	Y = [];
 
 % all fitted effects or selected effects
 %-----------------------------------------------------------------------
@@ -466,7 +469,7 @@ case 'Parametric responses'
 
 	% return gracefully if no parameters
 	%--------------------------------------------------------------
-	if ~Sess(s).U(u).P(1).h, break, end
+	if ~Sess(s).U(u).P(1).h, return, end
 
 	% basis functions
 	%--------------------------------------------------------------
