@@ -2,19 +2,62 @@
 % Random effects analyses for SPM'96 using a multi-level approach
 %_______________________________________________________________________
 %
-% **** under construction ****
+%                      **** under construction ****
+%
+% In general mixed effects models (with both random and fixed effects)
+% are difficult to analyse. However, in functional neuroimaging the
+% models are fairly simple, and the only random effect of concern is
+% the subject by condition interaction: Further, the models are
+% seperable into individual subject models. This enables a basic mixed
+% effects analysis to be easily be carried out in two stages,
+% corresponding to the two levels of variability in question. The first
+% level is the intra-subject level, the second the inter-subject
+% (intra-population) level.
+%
+% The key is to avoid repeated measures: If we have only one scan per
+% condition per subject, then the residual variance incorporates the
+% appropriate inter and intra-subject variance components, and effects
+% a mixed effects analysis appropriate for population inference. With
+% repeated measures the trick then is to collapse over replications to
+% give a single image representative of each condition for each
+% subject. Such collapsing may be as simple as a straight mean of the
+% replicate observations, or can be a sophisticated weighted mean of
+% adjusted data effected via the General Linear Model, enabling removal
+% of confounds. (See spm_adjmean_ui & spm_adjmean_fmri_ui for further
+% details on computing adjusted mean images).
 %
 % Basically:
-%    * Collapse data to single scan per condition per subject
+%   1. Collapse data to single scan per condition per subject
 %      (See spm_adjmean_ui & spm_adjmean_fmri_ui)
-%    * Run as a multisubject "conditions only" design in SPM-PET
-%    * Can include more than two conditions, but should only consider
+%   2. Run collapsed data as a multisubject "conditions only" design in SPM-PET
+%      ( No need for grand mean scaling or global normalisation )
+%      ( if spm_adjmean{_fmri}_ui used correctly                )
+%    - Can include more than two conditions, but should only consider
 %      contrasting them in pairs.
-%    * Can compare groups using "multistudy-conditions only" and using
+%    - Can compare groups using "multistudy-conditions only" and using
 %      examining interaction of pairs of conditions:
 %      E.g: 2 studies, 2 conditions per study: [-1 +1 +1 -1] & [+1 -1 -1 +1]
 %
+% For example, consider a simple multi-subject two condition PET
+% activation study. A simple analysis would be to proportionally scale
+% the images to have the same global value; compute mean images for
+% each condition for each subject; and assess using a paired t-test.
+% This was effectively what Worsley et al. proposed in their seminal
+% 1992 paper, with the exception that they used a globally pooled
+% variance estimate (now deemed inappropriate).
+%
+%                      **** under construction ****
+%
 % Let me know how you get on...
+%
+% ======================================================================
+% The (beta release) of the basic random effects kit for SPM96 consists of:
+%
+% spm_RandFX.man	1.2	- This file
+% spm_adjmean_ui.m	1.4.1.1	- Adjusted means for PET designs
+% spm_adjmean_fmri_ui.m	1.1.1.1	- Adjusted means for fMRI
+% spm_hrf.m		1.2	- Approx HRF for fMRI
+% spm_sptop.m		1.7	- SParse TOePlitz update (v1.2 came with SPM96)
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
