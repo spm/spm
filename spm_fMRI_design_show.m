@@ -6,7 +6,7 @@ function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % xX.X          - design matrix
 % xX.dt         - time bin {secs}
 % xX.RT         - Repetition time {secs}
-% xX.iH         - vector of H partition (condition effects)      indices,
+% xX.iH         - vector of H partition (condition effects)      indices
 % xX.iC         - vector of C partition (covariates of interest) indices
 % xX.iB         - vector of B partition (block effects)          indices
 % xX.iG         - vector of G partition (nuisance variables)     indices
@@ -33,7 +33,7 @@ function [xX,Sess] = spm_fMRI_design_show(xX,Sess,s,i)
 % xX and Sess
 %-----------------------------------------------------------------------
 if nargin == 0
-	load(spm_get(1,'.mat','select fMRIDesMtx'))
+	load(spm_get(1,'fMRIDesMtx.mat','select SPM_fMRIDesMtx'))
 elseif nargin<2
 	error('insufficient arguments')
 end
@@ -55,20 +55,20 @@ if nargin < 3
 	s = 1;
 	i = 1;
 
-	%-Get Interactive window and delete any previous fMRIDesShow menu
+	%-Get Interactive window and delete any previous DesRepUI menu
 	%---------------------------------------------------------------
 	Finter = spm_figure('GetWin','Interactive');
-	delete(findobj(get(Finter,'Children'),'flat','Tag','fMRIDesShow'))
+	delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
 
 	%-Add a scaled design matrix to the design data structure
 	%---------------------------------------------------------------
-	if ~isfield(xX,'nxbX'), xX.nxbX = spm_DesMtx('Sca',xX.X); end
+	if ~isfield(xX,'nKX'), xX.nKX = spm_DesMtx('Sca',xX.X,xX.Xnames); end
 
 	%-Draw menu
 	%---------------------------------------------------------------
-	hC     = uimenu(Finter,'Label','explore fMRI design',...
+	hC     = uimenu(Finter,'Label','Explore fMRI design',...
 		'Separator','on',...
-		'Tag','fMRIDesShow',...
+		'Tag','DesRepUI',...
 		'UserData',struct('xX',xX,'Sess',{Sess}),...
 		'HandleVisibility','on');
 	for j = 1:length(Sess)
@@ -97,22 +97,28 @@ Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
 
 
-% Display X
+% Display design matrix X
 %-----------------------------------------------------------------------
-subplot(3,4,1)
-if isfield(xX,'nxbX')
-	image(xX.nxbX*32+32)
+axes('Position',[0.125,0.700,0.155,0.225])
+if isfield(xX,'nKX')
+	hDesMtxIm = image(xX.nKX*32+32);
 else
-	imagesc(spm_en(xX.X))
+	hDesMtxIm = imagesc(spm_en(xX.X));
 end
 xlabel('effect')
 ylabel('scan')
 title('Design Matrix','FontSize',16)
 
+%-Setup callbacks to allow interrogation of design matrix
+%-----------------------------------------------------------------------
+set(hDesMtxIm,'UserData',struct('X',xX.X,'Xnames',{xX.Xnames}))
+set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
+
+
 
 % Session subpartition
 %-----------------------------------------------------------------------
-subplot(3,4,3)
+axes('Position',[0.550,0.700,0.155,0.225])
 sX   = xX.X(Sess{s}.row,Sess{s}.col);
 imagesc(spm_en(sX)')
 set(gca,'YTick',[1:size(sX,1)])
@@ -121,7 +127,7 @@ title({sprintf('Session %d',s) Sess{s}.DSstr})
 
 % Collinearity
 %-----------------------------------------------------------------------
-subplot(3,4,4)
+axes('Position',[0.750,0.700,0.155,0.225])
 imagesc(corrcoef(sX))
 title('correlations')
 axis off, axis square
@@ -129,7 +135,7 @@ axis off, axis square
 % Trial-specific regressors - time domain
 %-----------------------------------------------------------------------
 rX    = sX(:,Sess{s}.ind{i});
-subplot(3,2,3)
+axes('Position',[0.125,0.405,0.325,0.225])
 plot(Sess{s}.row,rX)
 xlabel('scan')
 ylabel('regressor[s]')
@@ -138,7 +144,7 @@ axis tight
 
 % Trial-specific regressors - frequency domain
 %-----------------------------------------------------------------------
-subplot(3,2,4)
+axes('Position',[0.580,0.405,0.325,0.225])
 gX    = abs(fft(rX)).^2;
 gX    = gX*diag(1./sum(gX));
 q     = size(gX,1);
@@ -158,7 +164,7 @@ if length(Sess{s}.ons) >= i
 
 	% Basis set and peristimulus sampling
 	%---------------------------------------------------------------
-	subplot(3,2,5)
+	axes('Position',[0.125,0.110,0.325,0.225])
 	t    = [1:size(Sess{s}.bf{i},1)]*xX.dt;
 	pst  = Sess{s}.pst{i};
 	plot(t,Sess{s}.bf{i},pst,0*pst,'.','MarkerSize',16)
@@ -174,7 +180,7 @@ if length(Sess{s}.ons) >= i
 
 		% onsets and parametric modulation
 		%-------------------------------------------------------
-		subplot(3,2,6)
+		axes('Position',[0.580,0.110,0.325,0.225])
 		plot(Sess{s}.ons{i},Sess{s}.Pv{i},'.','MarkerSize',8)
 		title({'trial specific parameters' Sess{s}.Pname{i}})
 		xlabel('time (secs}')
