@@ -26,7 +26,7 @@ void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], 
 					int k111,k112,k121,k122,k211,k212,k221,k222;
 					float dx1, dx2, dy1, dy2, dz1, dz2;
 					int off0, ix4, iy4, iz4;
-					int vg = g[x-1+dg[0]*(y-1+dg[1]*(z-1))];
+					int vf, vg = g[x-1+dg[0]*(y-1+dg[1]*(z-1))];
 
 					ix4 = floor(x4); dx1=x4-ix4; dx2=1.0-dx1;
 					iy4 = floor(y4); dy1=y4-iy4; dy2=1.0-dy1;
@@ -39,6 +39,14 @@ void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], 
 					k221 = f[off0      ]; k121 = f[off0      +1];
 					k211 = f[off0+df[0]]; k111 = f[off0+df[0]+1];
 
+					vf = (int)rint((((k222*dx2+k122*dx1)*dy2       +
+					                 (k212*dx2+k112*dx1)*dy1))*dz2 +
+					               (((k221*dx2+k121*dx1)*dy2       +
+					                 (k211*dx2+k111*dx1)*dy1))*dz1);
+
+					H[vf+vg*256] ++;
+
+					/*
 					H[k222+vg*256] += dx2*dy2*dz2;
 					H[k122+vg*256] += dx1*dy2*dz2;
 					H[k212+vg*256] += dx2*dy1*dz2;
@@ -48,6 +56,7 @@ void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], 
 					H[k121+vg*256] += dx1*dy2*dz1;
 					H[k211+vg*256] += dx2*dy1*dz1;
 					H[k111+vg*256] += dx1*dy1*dz1;
+					*/
 				}
 			}
 		}
