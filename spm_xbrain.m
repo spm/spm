@@ -1,4 +1,4 @@
-function spm_xbrain
+function spm_xbrain(P,mode)
 % Brain extraction.
 % FORMAT spm_xbrain
 %
@@ -46,27 +46,45 @@ function spm_xbrain
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
+if nargin==0,
+	global BCH
+	SPMid = spm('FnBanner',mfilename,'%I%');
+	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','XBrain');
+	spm_help('!ContextHelp','spm_xbrain.m');
 
-SPMid = spm('FnBanner',mfilename,'%I%');
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','XBrain');
-spm_help('!ContextHelp','spm_xbrain.m');
-P    = spm_get(2,'*_seg?.img','Select gray and white matter images');
+	if isempty(BCH),
+		P    = spm_get(2,'*_seg?.img','Select gray and white matter images');
+	else,
+		P    = spm_input('batch',{},'images');
+	end;
 
-v    = sscanf(version,'%f');
-v    = v(1);
-if v>= 5.3,
-	mode = spm_input('Save','+1','m',...
-		['Save Extracted Brain|Save Rendering|Save Extracted Surface|'...
-		 'Save Extracted Brain and Rendering|'...
-		 'Save Extracted Brain and Surface|'...
-		 'Save Rendering and Surface|Save All'],[1 2 3 4 5 6 7],4);
+	v    = sscanf(version,'%f');
+	v    = v(1);
+	if v>= 5.3,
+		mode = spm_input('Save','+1','m',...
+			['Save Extracted Brain|Save Rendering|Save Extracted Surface|'...
+			 'Save Extracted Brain and Rendering|'...
+			 'Save Extracted Brain and Surface|'...
+			 'Save Rendering and Surface|Save All'],[1 2 3 4 5 6 7],4,...
+			 'batch',{},'opt');
 
-else,
-	mode = spm_input('Save','+1','m',...
-		['Save Extracted Brain|Save Rendering|'...
-		 'Save Extracted Brain and Rendering'],[1 2 4],3);
+	else,
+		mode = spm_input('Save','+1','m',...
+			['Save Extracted Brain|Save Rendering|'...
+			 'Save Extracted Brain and Rendering'],[1 2 4],3,...
+			 'batch',{},'opt');
+	end;
 end;
+
+do_it(P,mode);
+
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function do_it(P,mode)
+
+linfun = inline('fprintf([''%-60s%s''],x,[sprintf(''\b'')*ones(1,60)])','x');
 
 spm('Pointer','Watch')
 spm('FigName','Xbrain: working',Finter,CmdLine);
