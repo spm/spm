@@ -46,8 +46,9 @@ if V(3) == 1
 %	d   = rcp(1,:) > 1 & rcp(1,:) < V(1) & rcp(2) > 1 & rcp(2,:) < V(2);
 %	mip = full(sparse(rcp(1,d),rcp(2,d),X(d),V(1),V(2)));
 	mip = full(sparse(rcp(1,:),rcp(2,:),X,V(1),V(2)));
+	%-NB: rot90(X) & axis xy is equivalent to X' & axis ij
 	imagesc([V(4)*(1-V(7)):V(4):V(4)*(V(1)-V(7))],...
-		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],rot90(1 - mip))
+		[V(5)*(1-V(8)):V(5):V(5)*(V(2)-V(8))],(1 - mip)')
 	axis xy image off
 	xlabel('x'), ylabel('y')
 	return
