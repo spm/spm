@@ -161,7 +161,7 @@ sptl_NBss = [7 8 7];
 %	small values	-> less regularization -> more warping
 %	large values	-> more regularization -> less warping
 %-----------------------------------------------------------------------
-sptl_Rglrztn = 0.001;
+sptl_Rglrztn = 0.01;
 
 % Number of iterations of nonlinear spatial normalisation.
 %-----------------------------------------------------------------------
