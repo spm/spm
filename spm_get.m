@@ -1623,7 +1623,10 @@ if (nP<n.mn | nP>n.mx)
 	msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
 		spm('GetUser',' (%s)'),mfilename),'error','non-modal')
 	drawnow
-	set(F,'windowstyle','modal')
+
+	% Not sure about this bit - JA
+	% set(F,'windowstyle','modal')
+
 	return
 end
 
