@@ -53,7 +53,7 @@ D       = max(find(R));
 R       = R(1:D);
 G       = sqrt(pi)./gamma(([1:D])/2);
 EC      = spm_ECdensity(STAT,Z,df);
-EC      = EC([1:D]);
+EC      = EC([1:D]) + eps;
 
 % corrected p value
 %---------------------------------------------------------------------------
