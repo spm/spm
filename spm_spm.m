@@ -846,7 +846,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			%-----------------------------------------------
 			if nVar == 1
 
-				tmp  = (sum((h*beta).^2)/trMV) > UF*ResSS/trRV;
+				tmp  = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
 
 			% mvF-threshold
 			%-----------------------------------------------
