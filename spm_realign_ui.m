@@ -1,4 +1,4 @@
-function spm_realign_ui(arg1)
+function spm_realign_ui(opt)
 % Within Mode Image Realignment
 %___________________________________________________________________________
 %
@@ -329,7 +329,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function defs = edit_defaults(defs)
+function defs = get_defs(defs)
 
 tmp2 = [1.00 0.90 0.75 0.50 0.25 0.10 0.05 0.01 0.005 0.001];
 tmp = find(defs.estimate.quality == tmp2);
@@ -340,12 +340,13 @@ defs.estimate.quality = spm_input('Registration Quality?','+1','m',...
 	 'Quality 0.05|Quality 0.01|' ...
 	 'Quality 0.005|Quality 0.001 (fastest/poorest)'],tmp2, tmp);
 
-tmp = 0; if defs.estimate.weight == 1, tmp = 1; end;
+tmp = 1;
+if defs.estimate.weight == 1, tmp = 2; end;
 defs.estimate.weight = spm_input(...
 	['Allow weighting of reference image?'],...
 	'+1', 'm',...
-	['Allow weighting|'...
-	 'Dont allow weighting'], [1 0], tmp);
+	['Dont allow weighting|'...
+	 'Allow weighting'], [0 1], tmp);
 
 tmp2 = [0 1 2 3 4 5 6 7 Inf];
 tmp = find(defs.write.interp == tmp2);
@@ -366,8 +367,8 @@ p     = spm_input('Way to wrap images?','+1','m',...
 defs.write.wrap    = wraps(p,:);
 defs.estimate.wrap = defs.write.wrap;
 
-tmp = 2;
-if defs.write.mask == 1, tmp = 1; end;
+tmp = 1;
+if ~defs.write.mask, tmp = 2; end;
 defs.write.mask  = spm_input(['Mask images?'], '+1', 'm',...
 		'  Mask images|Dont mask images', [1 0], tmp);
 
