@@ -5,7 +5,7 @@ function [SPM,xSPM] = spm_getSPM
 % xSPM      - structure containing SPM, distribution & filtering details
 % .swd      - SPM working directory - directory containing current SPM.mat
 % .title    - title for comparison (string)
-% .Z        - minimum of n Statistics {filtered on u and k}
+% .Z        - minimum of Statistics {filtered on u and k}
 % .n        - conjunction number <= number of contrasts        
 % .STAT     - distribution {Z, T, X, F or P}     
 % .df       - degrees of freedom [df{interest}, df{residual}]
@@ -90,34 +90,43 @@ function [SPM,xSPM] = spm_getSPM
 % F-contrasts). See the help for the contrast manager [spm_conman.m]
 % for a further details on contrasts and contrast specification.
 % 
-% A conjunction assesses the conjoint expression of one or more
-% effects. The conjunction SPM is the minimum of the component SPMs
-% defined by the multiple contrasts. The distributional results used
-% for minimum fields require the SPMs to be identically distributed and
-% independent. Thus, all component SPMs must be either SPM{t}'s, or
-% SPM{F}'s with the same degrees of freedom. Independence is roughly
-% guaranteed for large degrees of freedom (and independent data) by
-% ensuring that the contrasts are "orthogonal". Note that it is *not*
-% the contrast weight vectors per se that are required to be
-% orthogonal, but the subspaces of the data space implied by the null
-% hypotheses defined by the contrasts (c'pinv(X)). Furthermore,
-% this assumes that the errors are i.i.d. (i.e. the estimates are
-% maximum likelihood or Gauss-Markov. This is the default in spm_spm). 
-% To ensure approximate independence of the component SPMs in a
-% conjunction, non-orthogonal contrasts are serially orthogonalised
-% in the order specified, possibly generating new contrasts, such that the
-% second is orthogonal to the first, the third to the first two, and so on.
+% A conjunction assesses the conjoint expression of multiple effects. The
+% conjunction SPM is the minimum of the component SPMs defined by the
+% multiple contrasts.  Inference on the minimum statistics can be
+% performed in different ways.  Inference on the Conjunction Null (one or
+% more of the effects null) is accomplished by assessing the minimum as
+% if it were a single statistic; one rejects the conjunction null in
+% favor of the alternative that k=nc, that the number of active effects k
+% is equal to the number of contrasts nc.  No assumptions are needed on
+% the dependence between the tests.
 %
-% By default the conjunction p-value is computed for one or more
-% effects (i.e. k > 1).  This implies the null hypothesis is k = 0.  
-% There may be instances where you want to infer two or more effects
-% (e.g. in cognitive conjunctions) or more.  This can be tested with
-% a null hypothesis that k = 1.  You will be asked to specify the number
-% of effects present under the null.  The tabulated p-values correspond
-% to an upper bound on the false positive rate for inferring more than
-% this number of effects were present.  For a conventional conjunction
-% analysis with consistent contrasts enter 0.  To infer a conjunction of
-% effects enter n - 1, where n is the number of contrasts
+% Another approach is to make inference on the Global Null (all effects
+% null).  Rejecting the Global Null of no (u=0) effects real implies an
+% alternative that k>0, that one or more effects are real.   A third
+% Intermediate approach, is to use a null hypothesis of no more than u
+% effects are real.  Rejecting the intermediate null that k<=u implies an
+% alternative that k>u, that more than u of the effects are real.  
+% 
+% The Global and Intermediate nulls use results for minimum fields which
+% require the SPMs to be identically distributed and independent. Thus,
+% all component SPMs must be either SPM{t}'s, or SPM{F}'s with the same
+% degrees of freedom. Independence is roughly guaranteed for large
+% degrees of freedom (and independent data) by ensuring that the
+% contrasts are "orthogonal". Note that it is *not* the contrast weight
+% vectors per se that are required to be orthogonal, but the subspaces of
+% the data space implied by the null hypotheses defined by the contrasts
+% (c'pinv(X)). Furthermore, this assumes that the errors are
+% i.i.d. (i.e. the estimates are maximum likelihood or Gauss-Markov. This
+% is the default in spm_spm).  
+%
+% To ensure approximate independence of the component SPMs in the case of
+% the global or intermediate null, non-orthogonal contrasts are serially
+% orthogonalised in the order specified, possibly generating new
+% contrasts, such that the second is orthogonal to the first, the third
+% to the first two, and so on.  Note that significant inference on the
+% global null only allows one to conclude that one or more of the effects
+% are real.  Significant inference on the conjunction null allows one to
+% conclude that all of the effects are real.
 %
 % Masking simply eliminates voxels from the current contrast if they
 % do not survive an uncorrected p value (based on height) in one or
@@ -217,18 +226,50 @@ end
 		'	Select contrasts...',' for conjunction',1);
 
 
+nc       = length(Ic);  % Number of contrasts
+
+%-Allow user to extend the null hypothesis for conjunctions
+%
+% n: conjunction number
+% u: Null hyp is k<=u effects real; Alt hyp is k>u effects real 
+%    (NB Here u is from Friston et al 2004 paper, not statistic thresh).
+%                  u         n      
+% Conjunction Null nc-1      1     |    u = nc-n
+% Intermediate     1..nc-2   nc-u  |    #effects under null <= u
+% Global Null      0         nc    |    #effects under alt  > u,  >= u+1
+%----------------------------------+-------------------------------------
+if (nc > 1)
+  if nc==2
+    But='Conjunction|Global';      Val=[1 nc]; 
+  else
+    But='Conj''n|Intermed|Global'; Val=[1 NaN nc]; 
+  end
+  n = spm_input('Null hyp. to assess?','+1','b',But,Val,1);
+  if isnan(n)
+    if nc==3,
+      n = nc-1;
+    else
+      n = nc-spm_input('Effects under null ','0','n1','1',nc-1);
+    end
+  end
+else
+  n = 1;
+end
+
+
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %-----------------------------------------------------------------------
-if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
+if nc>1 & n>1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
-    
+    OrthWarn = 0;
+
     %-Successively orthogonalise
     %-NB: This loop is peculiarly controlled to account for the
     %     possibility that Ic may shrink if some contrasts diasppear
     %     on orthogonalisation (i.e. if there are colinearities)
     %-------------------------------------------------------------------
-    i = 1; while(i < length(Ic)), i = i + 1;
+    i = 1; while(i < nc), i = i + 1;
     
 	%-Orthogonalise (subspace spanned by) contrast i wirit previous
 	%---------------------------------------------------------------
@@ -255,6 +296,8 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
 	else
 
+	    OrthWarn = OrthWarn + 1;
+
 	    %-Define orthogonalised contrast as new contrast
 	    %-----------------------------------------------------------
 	    oxCon.name = [xCon(Ic(i)).name,' (orth. w.r.t {',...
@@ -265,8 +308,13 @@ if length(Ic) > 1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
     end % while...
     
+    if OrthWarn
+      warning(sprintf('Contrasts changed!  %d contrasts orthogonalized ',...
+		      'to allow conjunction inf.', OrthWarn))
+    end
+
     SPM.xCon = xCon;
-end % if length(Ic)...
+end % if nc>1...
 
 
 %-Get contrasts for masking
@@ -291,10 +339,17 @@ end
 
 %-Create/Get title string for comparison
 %-----------------------------------------------------------------------
-if length(Ic) == 1
+if nc == 1
 	str  = xCon(Ic).name;
 else
 	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
+	if n==nc
+	    str = [str ' (global null)'];
+	elseif n==1
+	    str = [str ' (conj. null)'];
+	else
+	    str = [str sprintf(' (Ha: k>=%d)',(nc-n)+1)];
+	end
 end
 if Ex
 	mstr = 'masked [excl.] by';
@@ -317,7 +372,7 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 %-----------------------------------------------------------------------
 if isfield(SPM,'PPM') & xCon(Ic(1)).STAT == 'T'
 
-    if length(Ic) == 1 & isempty(xCon(Ic).Vcon)
+    if nc == 1 & isempty(xCon(Ic).Vcon)
 
 	if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
 
@@ -356,27 +411,24 @@ end
 xCon     = SPM.xCon;
 VspmSv   = cat(1,xCon(Ic).Vspm);
 STAT     = xCon(Ic(1)).STAT;
-n        = length(Ic);
 
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
-if (n > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
+if (nc > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
 	      any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
-end
-
-%-Allow user to extend the null hypothesis for conjunctions
-%-----------------------------------------------------------------------
-if (n > 1)
-        n  = n - spm_input('effects under null ','!+1','w1','0',n - 1);
 end
 
 
 %-Degrees of Freedom and STAT string describing marginal distribution
 %-----------------------------------------------------------------------
 df          = [xCon(Ic(1)).eidf xX.erdf];
-if n > 1
-	str = sprintf('^{%d}',n);
+if nc>1
+	if n>1
+	    str = sprintf('^{%d \\{Ha:k\\geq%d\\}}',nc,(nc-n)+1);
+	else
+	    str = sprintf('^{%d \\{Ha:k=%d\\}}',nc,(nc-n)+1);
+	end
 else
 	str = '';
 end
@@ -502,7 +554,7 @@ end
 
 %-Extent threshold (disallowed for conjunctions)
 %-----------------------------------------------------------------------
-if ~isempty(XYZ) & length(Ic) == 1
+if ~isempty(XYZ) & nc == 1
 
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
