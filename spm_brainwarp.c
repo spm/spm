@@ -43,7 +43,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 	int nx, double BX[], double dBX[],
 	int ny, double BY[], double dBY[],
 	int nz, double BZ[], double dBZ[],
-	double M[16], int samp[], int *pnsamp, double ss_deriv[3])
+	double M[16], int samp[], int edgeskip[], int *pnsamp, double ss_deriv[3])
 {
 	int i1,i2, s0[3], x1,x2, y1,y2, z1,z2, m1, m2, nsamp = 0, ni4;
 	double dvds0[3],dvds1[3], *dvdt, s2[3], *ptr1, *ptr2, *Tz, *Ty, tmp,
@@ -186,8 +186,9 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 
 
 				/* is the transformed position in range? */
-				if (s2[0]>=1 && s2[0]<vol2->dim[0] && s2[1]>=1 &&
-					s2[1]<vol2->dim[1] && s2[2]>=1 && s2[2]<vol2->dim[2])
+				if (	s2[0]>=1+edgeskip[0] && s2[0]<vol2->dim[0]-edgeskip[0] &&
+					s2[1]>=1+edgeskip[1] && s2[1]<vol2->dim[1]-edgeskip[1] &&
+					s2[2]>=1+edgeskip[2] && s2[2]<vol2->dim[2]-edgeskip[2] )
 				{
 					double v,dv;
 					nsamp ++;
@@ -443,7 +444,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	extern double rint(double);
 	MAPTYPE *map1, *map2, *get_maps();
-	int i, nx,ny,nz,ni=1, samp[3], nsamp;
+	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3];
 
@@ -552,6 +553,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	else
 		mexErrMsgTxt("FWHM should contain one or two values.");
 
+	voxdim(&map2[0],pixdim);
+	/* Because of edge effects from the smoothing, ignore voxels that are too close */
+	edgeskip[0]   = rint(fwhm/pixdim[0]); edgeskip[0] = ((edgeskip[0]<1) ? 0 : edgeskip[0]);
+	edgeskip[1]   = rint(fwhm/pixdim[1]); edgeskip[1] = ((edgeskip[1]<1) ? 0 : edgeskip[1]);
+	edgeskip[2]   = rint(fwhm/pixdim[2]); edgeskip[2] = ((edgeskip[2]<1) ? 0 : edgeskip[2]);
+
 	voxdim(&map1[0],pixdim);
 
 	/* sample about every fwhm/2 */
@@ -572,7 +579,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	mrqcof(T, mxGetPr(plhs[0]), mxGetPr(plhs[1]), &chi2,
 		map2, ni,map1,
-		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, &nsamp, ss_deriv);
+		nx,BX,dBX, ny,BY,dBY, nz,BZ,dBZ, M, samp, edgeskip, &nsamp, ss_deriv);
 
 	fwhm3 = ((pixdim[0]/sqrt(2.0*ss_deriv[0]/chi2))*sqrt(8.0*log(2.0)) +
 	         (pixdim[1]/sqrt(2.0*ss_deriv[1]/chi2))*sqrt(8.0*log(2.0)) + 
