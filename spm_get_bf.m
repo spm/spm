@@ -1,40 +1,40 @@
-function [BF,BFstr] = spm_get_bf(ST,W,dt)
+function [BF,BFstr] = spm_get_bf(W,dt)
 % creates basis functions for each trial type {i} in struct BF{i}
-% FORMAT [BF BFstr] = spm_get_bf(ST,W,dt)
+% FORMAT [BF BFstr] = spm_get_bf(W,dt)
 %
-% ST    - Study type
-% 	1  - event-related fMRI (single events)
-% 	2  - event-related fMRI (epochs of events)
-% 	3  - epoch-related fMRI (fixed length epochs)
-%
-% W     - W(i) window length {time bins} for trial type {i}
+% W     - W(i) window length {time bins} for trial type i
 % dt    - time bin length {seconds}
 %
 % BF{i} - Array of basis functions for trial type {i}
 % BFstr - description of basis functions specified
-%_______________________________________________________________________
+%___________________________________________________________________________
+%
+% if W(i) > 0 then temporally extended basis functions are specified
+% otherwise an event_related basis set is specified
+%---------------------------------------------------------------------------
 % %W% Karl Friston %E%
 
-
+%---------------------------------------------------------------------------
+Finter = spm_figure('FindWin','Interactive');
 
 % assemble basis functions {bf}
-%-----------------------------------------------------------------------
-if     ST == 1 | ST == 2
+%---------------------------------------------------------------------------
+if     all(W == 0)
  
 
 	% model event-related responses
 	%-------------------------------------------------------------------
-	Ctype = str2mat(...
+	Ctype = {
 		'basis functions (Fourier set)',...
 		'basis functions (Windowed Fourier set)',...
 		'basis functions (Gamma functions)',...
 		'basis functions (Gamma functions with derivatives)',...
 		'hrf (alone)',...
 		'hrf (with time derivative)',...
-		'hrf (with time and dispersion derivatives)');
+		'hrf (with time and dispersion derivatives)'};
 	str   = 'Select basis set';
-	Cov   = spm_input(str,1,'m',Ctype,[1:size(Ctype,1)]);
-	BFstr = deblank(Ctype(Cov,:));
+	Cov   = spm_input(str,1,'m',Ctype);
+	BFstr = Ctype(Cov);
 
 
 	% create basis functions
@@ -77,7 +77,6 @@ if     ST == 1 | ST == 2
 		% Gamma functions and derivatives
 		%---------------------------------------------------
 		if Cov == 4
-
 			bf    = [bf (spm_gamma_bf(pst - dx) - bf)/dx];
 		end
 
@@ -112,26 +111,26 @@ if     ST == 1 | ST == 2
 	end
 
 
-	% Orthogonalize and fill in Sess structure
+	% Orthogonalize and fill in basis function structure
 	%-------------------------------------------------------------------
 	for i = 1:length(W)
 		BF{i}  =  spm_orth(bf);
 	end
 
 
-elseif ST == 3
+elseif all(W > 0)
 
 
 	% covariates of interest - Type
 	%-------------------------------------------------------------------
-	Ctype = str2mat(...
+	Ctype = {
 		'basis functions  (Discrete Cosine Set)',...
 		'basis functions  (Mean & exponential decay)',...
 		'fixed response   (Half-sine)',...
-		'fixed response   (Box-car)');
+		'fixed response   (Box-car)'};
 	str   = 'Select type of response';
-	Cov   = spm_input(str,1,'m',Ctype,[1:size(Ctype,1)]);
-	BFstr = deblank(Ctype(Cov,:));
+	Cov   = spm_input(str,1,'m',Ctype);
+	BFstr = Ctype(Cov);
 
 
 	% convolve with HRF?
@@ -210,6 +209,19 @@ elseif ST == 3
 		%-----------------------------------------------------------
 		BF{i}         =  spm_orth(bf);
 	end
+
+else
+
+	%-------------------------------------------------------------------
+	str   = get(Finter,'Name'); 
+	for i = 1:length(W)
+		set(Finter,'Name',[str sprintf(': Trial type: %d',i)]); 
+
+		[bf,bfstr] = spm_get_bf(W(i),dt);
+		BF{i}      = bf{1};
+		BFstr{i}   = bfstr{1};
+	end
+	set(Finter,'Name',str); 
 end
 
 

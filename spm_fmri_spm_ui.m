@@ -86,34 +86,74 @@ function spm_fmri_spm_ui
 % Map. 0:00-00
 %
 %___________________________________________________________________________
-% @(#)spm_fmri_spm_ui.m	2.4 Karl Friston, Jean-Baptiste Poline, Christian Buechel 99/01/11
+% %W% Karl Friston, Jean-Baptiste Poline, Christian Buechel %E%
 
 
 
 % Initialize variables
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
-
-
-% get filenames and other user specified parameters
-%===========================================================================
 set(Finter,'Name','fMRI analysis'); 
-nsess  = spm_input(['number of sessions'],1,'e',1);
-nscan  = zeros(1,nsess);
-Q      = [];
-for  i = 1:nsess
-	str      = sprintf('select scans for session %0.0f',i);
-	P        = spm_get(Inf,'.img',str);
- 	Q        = str2mat(Q,P);
-	nscan(i) = size(P,1);
+
+% get design matrix and data
+%===========================================================================
+if spm_input('Use a pre-specified design?',1,'b','yes|no',[1 0])
+
+	% load pre-specified design matrix
+	%-------------------------------------------------------------------
+	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
+
+	% get filenames
+	%-------------------------------------------------------------------
+	nsess  = length(Sess);
+	nscan  = zeros(1,nsess);
+	P      = [];
+	if nsess < 16
+		for  i = 1:nsess
+			nscan(i) = length(Sess{i}.row);
+			str      = sprintf('select scans for session %0.0f',i);
+			q        = spm_get(nscan(i),'.img',str);
+ 			P        = strvcat(P,q);
+		end
+	else
+		for  i = 1:nsess
+			nscan(i) = length(Sess{i}.row);
+		end
+		str    = sprintf('select scans for session %0.0f',i);
+		P      = spm_get(sum(nscan),'.img',str);
+	end
+
+	% Repeat time
+	%-------------------------------------------------------------------
+	RT     = X.RT;
+
+else
+
+	% get filenames and other user specified parameters
+	%-------------------------------------------------------------------
+	nsess  = spm_input(['number of sessions'],1,'e',1);
+	nscan  = zeros(1,nsess);
+	P      = [];
+	for  i = 1:nsess
+		str      = sprintf('select scans for session %0.0f',i);
+		q        = spm_get(Inf,'.img',str);
+ 		P        = strvcat(P,q);
+		nscan(i) = size(q,1);
+	end
+
+	% get Repeat time
+	%-------------------------------------------------------------------
+	RT     = spm_input('Interscan interval {secs}',2);
+
+	% get design matrix
+	%-------------------------------------------------------------------
+	[X,Sess] = spm_fMRI_design(nscan,RT);
+
 end
-Q(1,:) = [];
-P      = Q;
-clear Q;
+
 
 % Threshold for F statistic
 %---------------------------------------------------------------------------
-global UFp
 UFp    = spm_input('threshold for F, p = ',2,'e',0.001);
 
 
@@ -123,119 +163,116 @@ str    = 'remove Global effects';
 Global = spm_input(str,3,'scale|none',{'Scaling' 'None'});
 
 
-% get Repeat time
-%---------------------------------------------------------------------------
-RT     = spm_input('Interscan interval {secs}',4);	% interscan interval
-
-
-% get design matrix
+% Temporal filtering
 %===========================================================================
-if spm_input('Design Matrix: ',1,'b','create|load',[1 0])
-	[X,Sess] = spm_fMRI_design(nscan,RT);
-else
-	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
-	if ~exist('Sess'); Sess = []; end
-end
 
-
-
-% temporal filtering input: after spm_fMRI_design to get the inter stimuli 
-% periods taken from Sess if it exists.
+% High-pass filtering
 %---------------------------------------------------------------------------
-
-%---------------------------------
-str	= 'Cut low frequencies (LF) ?';
-cLFmenu   = {'Cut LF with defaults',...
-	     'None',...
-	     'Specify'};
-cLF      = spm_input(str,4,'m',cLFmenu);
-cLFstr   = deblank(cLFmenu{cLF});
-dft_no_sess = 120;
-dft_min_period = 32; 					%-- 2*hrf duration for minimum period 
-cLF_period	= [];
+str	= 'Remove low frequencies?';
+cLFmenu = {'64 second cut-off',...
+	   'specify',...
+	   'no'};
+cLF     = spm_input(str,4,'m',cLFmenu);
 
 
-if cLF == 1 							%-- Cut LF with defaults
-
-	if size(Sess)
-	   for  i = 1:nsess
-	     	cLF_period = [cLF_period ...
-			  	max(dft_min_period, 2*max(cat(2,Sess{i}.pst{:})))];
-	   end
-	else 
-	   	cLF_period = dft_no_sess*[1:nsess]; 	%- no session, default
+% default based on peristimulus time
+% param = cut-off period (max = 256, min = 32)
+%---------------------------------------------------------------------------
+param   = 256*ones(1,nsess);
+for   i = 1:nsess
+	for j = 1:length(Sess{i}.pst)
+		param(i) = min([param(i) 2*max(Sess{i}.pst{j})]);
 	end
-	
-elseif cLF == 2 						%-- Cut none
+end
+param   = round(param);
+param(param < 32) = 32;
 
-	cLF_period = 2*max(nscan)*RT*[1:nsess];
 
-else 										%-- Specify
+% specify cut-off (default based on peristimulus time)
+%---------------------------------------------------------------------------
+switch cLF
 
-	cLF_period = [];
-	while (prod(size(cLF_period)) ~= nsess) & (prod(size(cLF_period)) ~= 1)
-	   cLF_period = spm_input('Cut off period(s)',4,'e',dft_no_sess);
+	case 1
+	%-------------------------------------------------------------------
+	param   = 64*ones(1,nsess);
+
+	case 2
+	%-------------------------------------------------------------------
+	str     = 'Cut off period[s] for each session';
+	param   = spm_input(str,4,'e',param);
+	if length(param) == 1
+		 param = param*ones(1,nsess);
 	end
-	if prod(size(cLF_period)) == 1, cLF_period = cLF_period*ones(1,nsess); end;
 
+	case 3
+	%-------------------------------------------------------------------
+	param   = param*Inf;
 end
 
-filterLF(1:nsess) = struct('Menu',{cLFmenu},'Choice',cLF,'Param',cLF_period);
+% create filterLF struct array
+%---------------------------------------------------------------------------
+for i = 1:nsess
+	filterLF{i} = struct('Choice',cLFmenu{cLF},'Param',param(i));
+end
 
 
-%---------------------------------
-str    = 'Cut high frequencies (HF) ? ';
-cHFmenu   = {'Cut HF with default hrf',...
-	     'Cut HF with hrf derivative',...
-	     'None',...
-	     'Specify with gaussian filter',...
-	     'Specify with cutting frequency'};
-cHF      = spm_input(str,4,'m',cHFmenu);
-cHFstr   = deblank(cHFmenu{cHF});
-sigma = 0;
-param	= [];
 
+% Low-pass filtering
+%---------------------------------------------------------------------------
+str     = 'remove high frequencies?';
+cHFmenu = {'smooth with hrf',...
+	   'smooth with hrf derivative',...
+	   'smooth with Gaussian kernel',...
+	   'none'};
+cHF     = spm_input(str,5,'m',cHFmenu);
+param   = [];
 
+% get Gaussian parameter
+%---------------------------------------------------------------------------
 switch cHF
 
-	case 4
-		sigma = spm_input('Gaussian filter FWHM',4,'e',4,1);
-		sigma = sigma/sqrt(8*log(2))/RT; % sigma in scan 
-		param = ones(1,nsess)*sigma;
-	case 5
-		cutF = -1;
-		while cutF <= 0
-			cutF = spm_input('Cut frequency in Hz',4,'e',1/RT/4,1);
-		end
-		param = ones(1,nsess)*cutF;
+	case 3
+	%-------------------------------------------------------------------
+	param = spm_input('Gaussian FWHM (secs)',5,'e',4);
+	param = param/sqrt(8*log(2)); 
 end
 
-filterHF(1:nsess) = struct('Menu',{cHFmenu},'Choice',cHF,'Param',param);
+% create filterHF struct
+%---------------------------------------------------------------------------
+filterHF = struct('Choice',cHFmenu{cHF},'Param',param);
 
 
-%---------------------------------
-% Vi : intrinsic autocorrelation
-% Vi_par : parameters of form if assumed
-% Vi_Flag : 1 if formed assumed 0 otherwise
+% intrinsic autocorrelations (Vi)
+%---------------------------------------------------------------------------
+str     = 'Form of intrinsic autocorrelations?';
+cVimenu = {'None',...
+	   '1/f'};
+cVi     = spm_input(str,6,'m',cVimenu);
 
-str    = 'Assume an intrinsic autocorrelation ? ';
-if spm_input(str,4,'yes|no',[1 0])
-	Vi_par = [0.0178];
+switch cVi
 
-	Vi     = [];
-	for i = 1:nsess
-	    k      = nscan(i);
-	    [x y]  = size(Vi);
-	    Vi(([1:k] + x),([1:k] + y)) = spm_Vintrinsic(k,RT,'1/f',Vi_par);
+	case 1
+	%-------------------------------------------------------------------
+	param   = [];
+	Vi      = speye(sum(nscan));
+
+	case 2
+	%-------------------------------------------------------------------
+	param   = 0.0178;
+	Vi      = [];
+	for   i = 1:nsess
+		k      = nscan(i);
+		[x y]  = size(Vi);
+		q      = spm_Vintrinsic(k,RT,'1/f',param);
+		Vi(([1:k] + x),([1:k] + y)) = q;
 	end
-	Vi     = sparse(Vi);
-	Vi_Flag = 1;	
-else 
-	Vi_par = [];
-	Vi = speye(sum(nscan));
-	Vi_Flag = 0;
+	Vi      = sparse(Vi);
+
 end
-xVi = struct('Vi',Vi,'flag',Vi_Flag,'Param',Vi_par);
+
+% create Vi struct
+%---------------------------------------------------------------------------
+xVi    = struct('Vi',Vi,'Form',cVimenu{cVi},'Param',param);
 
 
 % the interactive parts of spm_spm_ui are now finished
@@ -246,16 +283,15 @@ set(Finter,'Name','thankyou','Pointer','Watch')
 
 % Contruct convolution matrix
 %===========================================================================
-
-
 K     = [];
 for i = 1:nsess
 	k      = nscan(i);
 	[x y]  = size(K);
-	%- K(([1:k] + x),([1:k] + y)) = spm_sptop(sigma,k);
-	K(([1:k] + x),([1:k] + y)) = spm_make_filter(k,RT,filterHF(i),filterLF(i),'norm');
+	q      = spm_make_filter(k,RT,filterHF,filterLF{i});
+	K(([1:k] + x),([1:k] + y)) = q;
 end
 K     = sparse(K);
+
 
 % get file identifiers and Global values
 %===========================================================================
@@ -279,7 +315,7 @@ for i  = 1:q, g(i) = spm_global(VY(i)); end
 gSF    = GM./g;
 if strcmp(Global,'None')
 	for i = 1:nsess
-		j      = find(X.bX(:,i));
+		j      = Sess{i}.row;
 		gSF(j) = GM./mean(g(j));
 	end
 end
@@ -301,50 +337,43 @@ xM = struct(	'T',	ones(q,1),...
 %-Construct full design matrix (X), parameter names (Xnames),
 % and design information structure (xX)
 %===========================================================================
-Xnames = [X.Xname X.Bname X.Cname];
-xX     = struct(	'X',		[X.xX X.bX X.cX],...
+Xnames = [X.Xname X.Bname];
+xX     = struct(	'X',		[X.xX X.bX],...
 			'K',		K,...
 			'xVi',		xVi,...
-			'RT',		RT,...
+			'RT',		X.RT,...
 			'dt',		X.dt,...
-			'sigma',	sigma,...
-			'iB',		[1:nsess] + size(X.xX,2),...
+			'filterLF',	filterLF,...
+			'filterHF',	filterHF,...
 			'Xnames',	{Xnames'});
 
 
 
-%-Pre-specified contrast for F-test on effects of interest
-%===========================================================================
-if ~isempty(X.xX)
-
-	%-Effects designated "of interest" - constuct an F-contrast
-	%------------------------------------------------------------------
-	Fc = [diff(eye(size(X.xX,2))), zeros(size(X.xX,2) - 1,...
-	     (size(X.bX,2) + size(X.cX,2)))]';
-end
+%-Effects designated "of interest" - constuct an F-contrast
+%--------------------------------------------------------------------------
+Fc = [diff(eye(size(X.xX,2))), zeros(size(X.xX,2) - 1,size(X.bX,2))]';
 
 
 %-Design description (an nx2 cellstr) - for saving and display
-%=======================================================================
-str =  {X.DesN{2};
-	sprintf('number of sessions: %d',nsess);
-	sprintf('interscan interval: %0.2f secs',RT);
-	sprintf('temporal smoothing: %0.2f secs',sigma*sqrt(8*log(2))/RT);
-	};
-
-sGXcalc  = {'mean voxel value'};
-sGMsca   = {'scaling of overall grand mean'};
-xsDes    = struct(	'Design',			{X.DesN{1}},...
-			'Global_calculation',		{sGXcalc},...
-			'Grand_mean_scaling',		{sGMsca},...
-			'Global_normalisation',		{Global},...
-			'Parameters',			{str});
+%==========================================================================
+sGXcalc  = 'mean voxel value';
+sGMsca   = 'session specific';
+xsDes    = struct(	'Design',			X.DesN(1),...
+			'Basis_functions',		X.DesN(2),...
+			'Number_of_sessions',		sprintf('%d',nsess),...
+			'Interscan_interval',		sprintf('%0.2f',RT),...
+			'High_pass_Filter',		filterHF.Choice,...
+			'Low_pass_Filter',		filterLF{1}.Choice,...
+			'Intrinsic_correlations',	xVi.Form,...
+			'Global_calculation',		sGXcalc,...
+			'Grand_mean_scaling',		sGMsca,...
+			'Global_normalisation',		Global);
 %-global structure
 %---------------------------------------------------------------------------
-xGX.iGXcalc  = {Global};
-xGX.sGXcalc  = {sGXcalc};
+xGX.iGXcalc  = Global{1};
+xGX.sGXcalc  = sGXcalc;
 xGX.rg       = g;
-xGX.sGMsca   = {sGMsca};
+xGX.sGMsca   = sGMsca;
 xGX.GM       = GM;
 xGX.gSF      = gSF;
 
@@ -353,15 +382,16 @@ xGX.gSF      = gSF;
 %---------------------------------------------------------------------------
 save SPMcfg xsDes VY xX xM xGX Fc Sess
 
-%-Display Design report & "Run" button
+%-Display Design report
 %===========================================================================
-spm_DesRep('DesMtx',xX.X,xX.Xnames,{VY.fname}',xsDes)
+spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
 
 
 %-Analysis Proper
 %===========================================================================
-if spm_input('Estimate',1,'b',['now|later'],[1 0]);
-	spm_spm(VY,xX,xM,Fc,Sess)
+spm_clf(Finter);
+if spm_input('estimate?',1,'b','yes|no',[1 0])
+	spm_spm(VY,xX,xM,Fc,Sess);
 end
 
 
