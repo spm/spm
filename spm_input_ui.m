@@ -862,8 +862,9 @@ else                                             %-Use GUI to get answer
 	delete([hM,hDef]), set(Finter,'KeyPressFcn','')
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'ToolTipString',msg,...
-		'BackgroundColor',[.7,.7,.7]), drawnow
+		'BackgroundColor',[.7,.7,.7])
 	spm_input('!PointerJumpBack',PLoc,cF)
+	drawnow
 
 end % (if CmdLine)
 
@@ -1136,6 +1137,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 			'Horizontalalignment','Center',...
 			'BackgroundColor',[.7,.7,.7],...
 			'Position',RRec);
+		drawnow
 
 		p = Values(k,:); if ischar(p), p=deblank(p); end
 
@@ -1377,6 +1379,7 @@ else
 		'Horizontalalignment','Center',...
 		'BackgroundColor',[.7,.7,.7],...
 		'Position',RRec);
+	drawnow
 
 end % (if CmdLine)
 
@@ -1481,6 +1484,7 @@ case 'm'                                             %-Process menu type
 			'Horizontalalignment','Center',...
 			'BackgroundColor',[.7,.7,.7],...
 			'Position',QRec);
+		drawnow
 	end
 
 	p = Values(k,:); if ischar(p), p=deblank(p); end
