@@ -173,6 +173,7 @@ function varargout = spm_input(varargin)
 %   - integer - [p,YPos] = spm_input(Prompt,YPos,'i',DefStr,n)
 %   - real    - [p,YPos] = spm_input(Prompt,YPos,'r',DefStr,n)
 % - condition - [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
+% - contrast  - [p,YPos] = spm_input(Prompt,YPos,'x',DefStr,n,X)
 % - button    - [p,YPos] = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - button/edit combo's (edit for string or typed scalar evaluated input)
 %               [p,YPos] = spm_input(Prompt,YPos,'b?1',Labels,Values,DefStr)
@@ -213,6 +214,10 @@ function varargout = spm_input(varargin)
 %                     - 'i'ntegers
 %                     - 'r'eals
 %                  - 'c'ondition indicator vector
+%                  - 'x' - contrast entry
+%                     - if design matrix X is specified, then contrast matrices
+%                       are padded with zeros to have correct length, and are
+%                       checked for validity (i.e. in the row-space of X)
 %                  - 'b'uttons
 %                  - button/edit combo's: 'be1','bn1','bw1','bi1','br1'
 %                     - second letter of b?1 specifies type for edit widget
@@ -234,6 +239,8 @@ function varargout = spm_input(varargin)
 %          - length of n(:) specifies dimension - elements specify dimension
 %          - Inf implies no restriction
 %          - Scalar n expanded to [n,1] (i.e. a column vector)
+%                   - except for 'x' contrast type, when it's [1,n]
+%                     (since in SPM we do contrasts as row vectors)
 %          - E.g: [n,1] & [1,n] (scalar n) prompt for an n-vector,
 %                         returned as column or row vector respectively
 %                 [1,Inf] & [Inf,1] prompt for a single vector,
@@ -248,9 +255,11 @@ function varargout = spm_input(varargin)
 %          - NaN for 'c' type treated as Inf
 %          - Defaults (missing or empty) to NaN
 %
-% m        - Number of unique conditions required by 'c' types
+% m        - Number of unique conditions required by 'c' type
 %          - Inf implies no restriction
 %          - Defaults (missing or empty) to Inf - no restriction
+%
+% X        - Design matrix for contrast checking in 'x' type
 %
 % Labels   - Labels for button and menu types.
 %                  - string matrix, one label per row
@@ -587,7 +596,7 @@ end
 varargout={[],YPos};
 
 
-case {'s','e','n','w','i','r','c'}          %-String and evaluated input
+case {'s','e','n','w','i','r','c','x'}      %-String and evaluated input
 %=======================================================================
 %-Condition arguments
 if nargin<6|isempty(varargin{6}), m=Inf; else, m=varargin{6}; end
@@ -596,9 +605,19 @@ if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
 if ~ischar(DefStr), DefStr=num2str(DefStr); end
 DefStr = DefStr(:)';
 
+
+switch lower(Type), case 'x'
+	n=n(:); n(isnan(n))=Inf; if length(n)==1, n=[1,n]; end
+	strM='';
+case 'c'
+	if isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
+otherwise
+	strM='';
+end
+strN = sf_SzStr(n);
+
+
 if CmdLine
-	strN = sf_SzStr(n,1);
-	if isfinite(m), strM=sprintf('(\t%d conditions)',m); else, strM=''; end
 	spm_input('!PrntPrmpt',[Prompt,strN,strM])
 
 	if ~isempty(DefStr)
@@ -623,8 +642,6 @@ else
 
 	%-Create text and edit control objects
 	%---------------------------------------------------------------
-	strN = sf_SzStr(n);
-	if isfinite(m), strM=sprintf(' (%d)',m); else, strM=''; end
 	hPrmpt = uicontrol(Finter,'Style','Text',...
 		'String',[strN,Prompt,strM],...
 		'Tag',['GUIinput_',int2str(YPos)],...
@@ -651,6 +668,7 @@ else
 		case 'i', str='enter expression - integer(s)';
 		case 'r', str='enter expression - real number(s)';
 		case 'c', str='enter conditions e.g. 0101...  or abab...';
+		case 'x', str='enter contrast matrix';
 		otherwise, str='enter expression'; end
 		set(h,'ToolTipString',str)
 	end
@@ -1828,6 +1846,32 @@ case 'r'
 	end
 case 'c'
 	[p,msg] = spm_input('!iCond',str,n,m);
+case 'x'
+	msg = '';
+
+	X = m;		%-Design matrix
+			%-m is 1 (for t's) or Inf (for F's)
+	p = evalin('base',['[',str,']'],'''!''');
+	if isstr(p)
+		msg = 'evaluation error';
+	else
+		[p,msg] = sf_SzChk(p,n);
+	end
+
+	if ~isstr(p) & ~( isempty(X) | any(isinf(X(:))) )
+		if size(p,2)>size(X,2)
+			p='!'; msg=sprintf('too long - only %d prams',size(X,2));
+		elseif size(p,2)<size(X,2)
+			tmp = size(X,2)-size(p,2);
+			p   = [p, zeros(size(p,1),tmp)];
+			msg = sprintf('%s (right padded with %d zeros)',msg,tmp);
+		end
+
+		if ~isstr(p) & rank(X)~=rank([X;p])
+			p='!'; msg='invalid contrast';
+		end
+	end
+
 otherwise
 	error('unrecognised type');
 end
