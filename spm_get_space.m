@@ -114,6 +114,7 @@ elseif nargin == 2,
 			clear Mo
 			Mo(:,:,n) = mat;
 			mat       = Mo;
+			M = mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 			save(mfname,'mat','M');
 		end;
 	end;
