@@ -354,8 +354,8 @@ PJump = 0;		%-Jumping of pointer to question?
 
 %-Condition arguments
 %=======================================================================
-if nargin<1, Prompt=''; else, Prompt=varargin{1}; end
-if isempty(Prompt), Prompt='Enter an expression'; end
+if nargin<1 | isempty(varargin{1}), Prompt='Enter an expression';
+else, Prompt=varargin{1}; end
 
 if Prompt(1)=='!'
 	%-Utility functions have Prompt starting with '!'
@@ -363,24 +363,22 @@ if Prompt(1)=='!'
 else
 	%-Condition arguments for question types
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
-	if nargin<5, Values=[]; else, Values=varargin{5}; end
-	if nargin<4, Labels=[]; else, Labels=varargin{4}; end
-	if nargin<3, Type='';   else, Type=varargin{3}; end
-	if isempty(Type), Type='e'; end
+	if nargin<5, Values=[];   else, Values=varargin{5};  end
+	if nargin<4, Labels=[];   else, Labels=varargin{4};  end
+	if nargin<3 | isempty(varargin{3}), Type='e'; else, Type=varargin{3}; end
 	if strcmp(Type,'y/n')
-		Type = 'b';
-		DefItem=Values;
-		Values=Labels; if isempty(Values), Values='yn'; end
-		Labels='yes|no';
+		Type    = 'b';
+		DefItem = Values;
+		Values  = Labels; if isempty(Values), Values='yn'; end
+		Labels  = 'yes|no';
 	end
 	if any(Type=='|')
-		DefItem=Values;
-		Values=Labels;
-		Labels=Type;
-		Type='b';
+		DefItem = Values;
+		Values  = Labels;
+		Labels  = Type;
+		Type    = 'b';
 	end
-	if nargin<2, YPos=[];   else, YPos=varargin{2}; end
-	if isempty(YPos), YPos='+1'; end
+	if nargin<2|isempty(varargin{2}), YPos='+1'; else, YPos=varargin{2}; end
 end
 
 
@@ -409,22 +407,15 @@ if Type(1)=='d'
 %=======================================================================
 if strcmp(Type,'d!'), spm('Beep'), dCol='r'; else, dCol='k'; end
 if CmdLine
-	fprintf('\n%s+-',setstr(ones(1,5)*' '))
-		fprintf('%s',Labels),
-		fprintf('%c',setstr(ones(1,max(1,57-length(Labels)))*'-'),'+')
-		fprintf('\n')
+	fprintf('\n     +-%s%s+',Labels,repmat('-',1,57-length(Labels)))
 	Prompt = [Prompt,' '];
 	while length(Prompt)>0
 		tmp = length(Prompt);
 		if tmp>56, tmp=min([max(find(Prompt(1:56)==' ')),56]); end
-		fprintf('%s%s%s%s\n','     | ',...
-			Prompt(1:tmp),...
-			setstr(ones(1,56-tmp)*' '),' |')
+		fprintf('\n     | %s%s |',Prompt(1:tmp),repmat(' ',1,56-tmp))
 		Prompt(1:tmp)=[];
 	end
-	fprintf('%s+',setstr(ones(1,5)*' '))
-		fprintf('%c',setstr(ones(1,58)*'-'),'+')
-		fprintf('\n')
+	fprintf('\n     +-%s%s+\n',Labels,repmat('-',1,57-length(Labels)))
 else
 	if ~isempty(Labels), Prompt = [Labels,': ',Prompt]; end
 	figure(Finter)
@@ -468,14 +459,14 @@ if CmdLine
 
 	%-Eval Type 'e' in Base workspace, catch eval errors
 	while (strcmp(p,'<ERROR>') & Type(1)=='e') | isempty(p)
-		spm('Beep'), fprintf('! spm_input : ')
+		spm('Beep'), fprintf('! %s : ',mfilename)
 		if isempty(p), fprintf('enter something!\n')
 			else,  fprintf('evaluation error\n'), end
 		str = input([Prompt,' : '],'s');
 		if isempty(str), str=DefString; end
 		if Type(1)=='e', p=evalin('base',['[',str,']'],'''<ERROR>''');
 			else, p=str; end
-	end % (while)
+	end
 
 else
 
@@ -533,7 +524,7 @@ else
 			waitfor(h,'UserData')
 			str = get(h,'String');
 			p = evalin('base',['[',str,']'],'''<ERROR>''');
-		end % (while)
+		end
 	else
 		p = str;
 	end
@@ -654,7 +645,7 @@ elseif Type(1)=='b'
 			fprintf('%c',7)
 			str = input([Prmpt,'? '],'s');
 			if isempty(str), str=DefString; end
-		end % (while)
+		end
 		fprintf('\n')
 	
 		k = find(lower(Keys)==lower(str(1)));
@@ -737,7 +728,7 @@ elseif Type(1)=='b'
 			'Position',RRec);
 		spm_input('!PointerJumpBack',PLoc,cF)
 
-	end % (if CmdLine)
+	end
 
 
 elseif Type(1)=='m'
@@ -767,7 +758,7 @@ elseif Type(1)=='m'
 
 		Tag = ['GUIinput_',int2str(YPos)];
 
-		Labs=[setstr(ones(NoLabels,2)*' '),Labels];
+		Labs=[repmat(' ',NoLabels,2),Labels];
 		if DefItem
 			Labs(DefItem,1)='*';
 			H = uicontrol(Finter,'Style','Frame',...
@@ -811,7 +802,7 @@ elseif Type(1)=='m'
 			'String',deblank(Labels(k,:)),...
 			'BackgroundColor',[.7,.7,.7])
 		spm_input('!PointerJumpBack',PLoc,cF)
-	end % (if CmdLine)
+	end
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
 
@@ -909,10 +900,7 @@ case '!prntprmpt'
 %-Print prompt for CmdLine questioning
 if nargin<2, Prompt=''; else, Prompt=varargin{2}; end
 if isempty(Prompt), Prompt='Enter an expression'; end
-
-fprintf('\n'), fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
-fprintf('\t%s\n',Prompt)
-fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
+fprintf('\n%s\n\t%s\n%s\n',repmat('=',1,70),Prompt,repmat('=',1,70))
 return
 
 
