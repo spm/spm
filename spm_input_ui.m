@@ -310,11 +310,20 @@ function varargout = spm_input(varargin)
 % PRec  - Position of prompt
 % RRec  - Position of response
 %
+% FORMAT spm_input('!DeleteInputObj',F)
+% Deltes input objects (only) from figure F
+% F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+%
 % FORMAT [CPos,hCPos] = spm_input('!CurrentPos',F)
 % Returns currently used GUI question positions & their handles
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 % CPos  - Vector of position indices
 % hCPos - (n x CPos) matrix of object handles
+%
+% FORMAT h = spm_input('!FindInputObj',F)
+% Returns handles of input GUI objects in figure F
+% F - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
+% h - vector of object handles
 %
 % FORMAT [NPos,CPos,hCPos] = spm_input('!NextPos',YPos,F)
 % Returns next position index, specified by YPos
@@ -870,15 +879,17 @@ case '!pointerjump'
 if nargin<4, XDisp=[]; else, XDisp=varargin{4}; end
 if nargin<3, F='Interactive'; else, F=varargin{3}; end
 if nargin<2, error('Insufficient arguments'), else, RRec=varargin{2}; end
-Finter = spm_figure('FindWin',F);
-if isempty(Finter), error('Interactive figure not found'), end
+F = spm_figure('FindWin',F);
 PLoc = get(0,'PointerLocation');
 cF   = get(0,'CurrentFigure');
-figure(F)
-FRec = get(F,'Position');
-if isempty(XDisp), XDisp=RRec(3)*4/5; end
-if PJump, set(0,'PointerLocation',...
-	floor([(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)])); end
+if ~isempty(F)
+	figure(F)
+	FRec = get(F,'Position');
+	if isempty(XDisp), XDisp=RRec(3)*4/5; end
+	if PJump, set(0,'PointerLocation',...
+		floor([(FRec(1)+RRec(1)+XDisp), (FRec(2)+RRec(2)+RRec(4)/3)]));
+	end
+end
 varargout = {PLoc,cF};
 
 
@@ -940,9 +951,18 @@ else
 end
 
 
-case '!currentpos'
+case '!deleteinputobj'
+%=======================================================================
+% spm_input('!DeleteInputObj',F)
+if nargin<2, F='Interactive'; else, F=varargin{2}; end
+h = spm_input('!FindInputObj',F);
+delete(h(h>0))
+
+
+case {'!currentpos','!findinputobj'}
 %=======================================================================
 % [CPos,hCPos] = spm_input('!CurrentPos',F)
+% h            = spm_input('!FindInputObj',F)
 % hPos contains handles: Columns contain handles corresponding to Pos
 if nargin<2, F='Interactive'; else, F=varargin{2}; end
 F = spm_figure('FindWin',F);
@@ -961,25 +981,26 @@ for h = get(F,'Children')'
 	end
 end
 
-if nargout<2
-	CPos  = max([YPos,0]);
-	hCPos = [];
-elseif isempty(H)
-	CPos  = [];
-	hCPos = [];
-else
-	%-Sort out 
-	tmp     = sort(YPos);
-	CPos    = tmp(find([1,diff(tmp)]));
-	nPos    = length(CPos);
-	nPerPos = diff(find([1,diff(tmp),1]));
-	hCPos   = zeros(max(nPerPos),nPos);
-	for i = 1:nPos
-		hCPos(1:nPerPos(i),i) = H(YPos==CPos(i))';
+switch lower(Type), case '!findinputobj'
+	varargout = {H};
+case '!currentpos'
+	if nargout<2
+		varargout = {max([YPos,0]),[]};
+	elseif isempty(H)
+		varargout = {[],[]};
+	else
+		%-Sort out 
+		tmp     = sort(YPos);
+		CPos    = tmp(find([1,diff(tmp)]));
+		nPos    = length(CPos);
+		nPerPos = diff(find([1,diff(tmp),1]));
+		hCPos   = zeros(max(nPerPos),nPos);
+		for i = 1:nPos
+			hCPos(1:nPerPos(i),i) = H(YPos==CPos(i))';
+		end
+		varargout = {CPos,hCPos};
 	end
 end
-varargout = {CPos,hCPos};
-
 
 case '!nextpos'
 %=======================================================================
@@ -1156,7 +1177,7 @@ end
 
 otherwise
 %=======================================================================
-error('Invalid Type')
+warning('Invalid type / action')
 
 %=======================================================================
 end
