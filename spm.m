@@ -1285,7 +1285,7 @@ case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 % SPMid = spm('SSFnBanner',Fn,FnV)
 time = spm('time');
 str  = spm('ver');
-if nargin>=2, str = [str,': 'varargin{2}]; end
+if nargin>=2, str = [str,': ',varargin{2}]; end
 if nargin>=3, str = [str,' (v',varargin{3},')']; end
 
 switch lower(Action)
