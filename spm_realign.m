@@ -206,7 +206,7 @@ function spm_realign(arg1,arg2,arg3,arg4,arg5,arg6)
 % images several times).  The `.mat' files are also used by the spatial
 % normalisation module.
 %__________________________________________________________________________
-% @(#)spm_realign.m	2.21 Karl Friston & John Ashburner - with input from Oliver Josephs 99/08/23
+% %W% Karl Friston & John Ashburner - with input from Oliver Josephs %E%
 
 
 global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD

@@ -241,7 +241,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,brainmask,objmask)
 % The voxel sizes (x, y & z, in mm) of the written normalised images.
 %
 %_______________________________________________________________________
-% @(#)spm_sn3d.m	2.20 John Ashburner MRCCU/FIL 99/08/23
+% %W% John Ashburner MRCCU/FIL %E%
 % With suggested modifications by Matthew Brett of the MRCCU
 
 % Programmers notes

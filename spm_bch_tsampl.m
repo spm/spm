@@ -1,11 +1,13 @@
-function [xXa,Sessa,Ka,Pa,nscana,row] = spm_bch_tsampl(xX,Sess,K,P,nscan)
+function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
+% Used only in bch mode for the case of non regular temporal sampling
+% %W% Stephanie Rouquette %E%
 
 global batch_mat;
 global iA;
 
-[xXa,Sessa,Ka,Pa,nscana] = deal(xX,Sess,K,P,nscan);
+[xXa,Sessa,Ka,Pa,nscana,rowa] = deal(xX,Sess,K,P,nscan,row);
 
-if ~strcmp(batch_mat,'')
+if ~isempty(batch_mat)
 	xXa.X = [];
 	Pa = '';
 	compt1 = 0;
@@ -15,9 +17,9 @@ if ~strcmp(batch_mat,'')
 		nscana(s) = length(sample);
 		xXa.X = [xXa.X;xX.X(compt1+sample,:)];
 		Pa = [Pa;P(compt1+sample,:)];
-		row{s} = (compt2+(1:nscana(s)))';
-		Sessa{s}.row = row{s};
-		Ka{s}.row = row{s};	
+		rowa{s} = (compt2+(1:nscana(s)))';
+		Sessa{s}.rowa = rowa{s};
+		Ka{s}.rowa = rowa{s};	
 		compt1 = compt1+spm_input('batch',batch_mat,{'model',iA},'nscans',s);
 		compt2 = compt2+nscan(s);
 	end % for s = 1:length(Sess)

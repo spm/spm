@@ -21,7 +21,7 @@ function spm_smooth_ui
 % original *.img and are prefixed with a 's' (i.e. s*.img)
 %
 %__________________________________________________________________________
-% @(#)spm_smooth_ui.m	2.4 99/04/01
+% %W%  %E%
 
 global batch_mat;
 global iA;

@@ -4,18 +4,13 @@ function  spm_bch(varargin);
 % bch_mfile : 	m file containing the description of the batch
 % 		analyses
 %
-% bch_mfile will contain a variable 'analyses' with fields 
-% 
-%  'type',  	 INDICES
-%  'contrastes', INDICES
-%  'model',      INDICES
-%  'work_dir',   INDICES               
+% bch_mfile will contain a variable 'analyses'              
 %
 % and variables : 'type', 'contrastes', 'model', 'work_dir'
-% See batch_doc.txt for indication on how to fill these
+% See spm_bch.man for indication on how to fill these
 %
 % 
-% Jean-Baptiste Poline & Stephanie Rouquette 
+% %W%  Jean-Baptiste Poline & Stephanie Rouquette  %E%
 %---------------------------------------------------------------
 
 %---------------------------------------------------------------
