@@ -11,6 +11,8 @@ function [] = spm_dcm_create (u)
 % This function is intended to be used to create 
 % DCM networks with known connectivity
 % parameters from which synthetic data can be generated
+%
+% %W% Will Penny %E%
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');

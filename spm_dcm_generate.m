@@ -10,6 +10,8 @@ function [] = spm_dcm_generate(DCM_filename,SNR,show_data)
 %           Y.y     synthetic BOLD data
 %           Y.secs  overall number of seconds
 %           Y.Ce    Error covariance
+%
+% %W% Will Penny %E%
 
 if (nargin<2) | isempty(SNR)
     SNR=1;

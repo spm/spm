@@ -16,6 +16,7 @@ function [evidence] = spm_dcm_evidence (DCM)
 %
 %            All of the above are in units of NATS (not bits)
 %
+% %W% Will Penny %E%
 
 v=DCM.v;
 

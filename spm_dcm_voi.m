@@ -10,6 +10,8 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % This function can be used, for example, to replace subject X's data by subject Y's.
 % The model can then be re-estimated without having to go through
 % model specification again.
+%
+% %W% Will Penny %E%
 
 load(DCM_filename);
 

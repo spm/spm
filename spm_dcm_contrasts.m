@@ -6,6 +6,8 @@ function [con] = spm_dcm_contrasts (DCM_filename,D)
 % D             'A','B' or 'C' ie. contrast for which connectivity matrix
 %
 % con           Column vector specifying contrast of parameters
+%
+% %W% Will Penny %E%
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');

@@ -3,6 +3,7 @@ function [] = spm_dcm_sessions ()
 %
 % FORMAT [] = spm_dcm_sessions ()
 %
+% %W% Will Penny %E%
 
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');
