@@ -83,7 +83,8 @@ if isfield(D, 'Nfrequencies');
 				
 				for i = 1 : D.events.Ntypes
 					Itrials = find(D.events.code == D.events.types(i) & ~D.events.reject);
-					dname = sprintf('trialtype%d', D.events.types(i));
+					cd(D.path)
+					dname = sprintf('ROI_TF_trialtype%d', D.events.types(i));
 					[m, sta] = mkdir(dname);
 					cd(dname);
 					
@@ -102,7 +103,7 @@ if isfield(D, 'Nfrequencies');
 						data=squeeze(mean(D.data(D.electrodes_of_interest,:,:,i),1));	
 						V.fname = fname;
 						V.dim = [D.Nfrequencies D.Nsamples  1 ];
-						V.dt=[spm_type('double') 0]; %%%check later with john
+						V.dt=[spm_type('float64') 0]; %%%check later with john
 						V.mat = eye(4);
 						V.pinfo = [1 0 0]';
 						
