@@ -62,8 +62,8 @@ case $arch in
 	echo "changing."
 	echo ""
 	CC="gcc -O2"
-	cmex5="mex     COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh"
-	cmex4="mex -V4 COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh";;
+	cmex5="mex     COPTIMFLAGS=-O2 -f gccopts.sh"
+	cmex4="mex -V4 COPTIMFLAGS=-O2 -f gccopts.sh";;
     sgi)
 	# unix compile for CC
 	echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
@@ -87,6 +87,13 @@ case $arch in
 	cmex4="mex -V4";;
     hpux)
 	echo "unix compile for hpux cc, and maybe aix cc"
+	echo ""
+	echo "Under HPUX 10.20 with MATLAB 5.2.1 and gcc, you may wish"
+	echo "to modify this spm_MAKE.sh file to say something like:"
+	echo '	CC    = "gcc -O -fpic"'
+	echo '	cmex5 = "mex COPTIMFLAGS=-O -f gccopts.sh";;'
+	echo "where the gccopts.sh file is modified to remove the +z"
+	echo "(which is used with version 9.0 and possibly also 10.0)."
 	echo ""
 	CC="cc -O +z -Ae +DAportable"
 	cmex5="mex     COPTIMFLAGS=-O"
