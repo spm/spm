@@ -88,7 +88,6 @@ SPMid = spm('FnBanner',mfilename,'2.6');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
-nsubjects = 1;
 if nargin < 1,
         % get number of subjects
         nsubjects = spm_input('number of subjects/sessions',1, 'e', 1, ...
@@ -97,7 +96,12 @@ if nargin < 1,
                 spm_figure('Clear','Interactive');
                 return;
         end
-        for i = 1:nsubjects
+else,
+	nsubjects = 1;
+end;
+
+for i = 1:nsubjects
+	if nargin < 1,
 		% Choose the images
 		P = [];
 		if isempty(BCH),
@@ -106,13 +110,11 @@ if nargin < 1,
 		else,
 			P = spm_input('batch',{},'files');
 		end;
-                eval(['P'    num2str(i) ' = P;']);
-        end
+	end;
+	eval(['P' num2str(i) ' = P;']);
 end;
 
-Vin 	= spm_vol(P);
-nimgo	= size(P,1);
-nimg	= 2^(floor(log2(nimgo))+1);
+Vin 	= spm_vol(P1(1,:));
 nslices	= Vin(1).dim(3);
 
 if nargin < 2,
@@ -169,7 +171,7 @@ end;
 spm('Pointer','Watch')
 
 for subj = 1:nsubjects
-	task=['Slice timing: working on session ' num2str(subj)];
+	task = ['Slice timing: working on session ' num2str(subj)];
 	spm('FigName',task,Finter,CmdLine);
         if nsubjects > 1, eval(['P    =    P' num2str(subj) ';']); end;
 	Vin 	= spm_vol(P);
@@ -180,91 +182,90 @@ for subj = 1:nsubjects
 		fprintf('Number of slices differ! %d %\n', nimg);
 	else
 
-% create new header files
-Vout 	= Vin;
-for k=1:nimgo,
-	[pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
-	Vout(k).fname  = fullfile(pth,['a' nm xt vr]);
-	if isfield(Vout(k),'descrip'),
-		desc = [Vout(k).descrip ' '];
-	else,
-		desc = '';
-	end;
-	Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
-	Vout(k) = spm_create_image(Vout(k));
-end;
-
-% Set up large matrix for holding image info
-% Organization is time by voxels
-slices = zeros([Vout(1).dim(1:2) nimgo]);
-stack  = zeros([nimg Vout(1).dim(1)]);
-
-spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete');
-
-% For loop to read data slice by slice do correction and write out
-% In analzye format, the first slice in is the first one in the volume.
-for k = 1:nslices,
-
-	% Set up time acquired within slice order
-	shiftamount  = (find(sliceorder==k) - find(sliceorder==refslice)) * factor;
-
-	% Read in slice data
-	B  = spm_matrix([0 0 k]);
-	for m=1:nimgo,
-		slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
-	end;
-
-	% set up shifting variables
-	len     = size(stack,1);
-	phi     = zeros(1,len);
-
-	% Check if signal is odd or even -- impacts how Phi is reflected
-	%  across the Nyquist frequency. Opposite to use in pvwave.
-	OffSet  = 0;
-	if rem(len,2) ~= 0, OffSet = 1; end;
-
-	% Phi represents a range of phases up to the Nyquist frequency
-	% Shifted phi 1 to right.
-	for f = 1:len/2,
-		phi(f+1) = -1*shiftamount*2*pi/(len/f);
-	end;
-
-	% Mirror phi about the center
-	% 1 is added on both sides to reflect Matlab's 1 based indices
-	% Offset is opposite to program in pvwave again because indices are 1 based
-	phi(len/2+1+1-OffSet:len) = -fliplr(phi(1+1:len/2+OffSet));
-	
-	% Transform phi to the frequency domain and take the complex transpose
-	shifter = [cos(phi) + sin(phi)*sqrt(-1)].';
-	shifter = shifter(:,ones(size(stack,2),1)); % Tony's trick
-
-	% Loop over columns
-	for i=1:Vout(1).dim(2),
-
-		% Extract columns from slices
-		stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
-
-		% fill in continous function to avoid edge effects
-		for g=1:size(stack,2),
-			stack(nimgo+1:end,g) = linspace(stack(nimgo,g),stack(1,g),nimg-nimgo)';
+		% create new header files
+		Vout 	= Vin;
+		for k=1:nimgo,
+			[pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
+			Vout(k).fname  = fullfile(pth,['a' nm xt vr]);
+			if isfield(Vout(k),'descrip'),
+				desc = [Vout(k).descrip ' '];
+			else,
+				desc = '';
+			end;
+			Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
+			Vout(k) = spm_create_image(Vout(k));
 		end;
 
-		% shift the columns
-		stack = real(ifft(fft(stack,[],1).*shifter,[],1));
+		% Set up large matrix for holding image info
+		% Organization is time by voxels
+		slices = zeros([Vout(1).dim(1:2) nimgo]);
+		stack  = zeros([nimg Vout(1).dim(1)]);
 
-		% Re-insert shifted columns
-		slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
-	end;
+		spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete');
 
-	% write out the slice for all volumes
-	for p = 1:nimgo,
-		Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
-	end;
-	spm_progress_bar('Set',k);
-end;
+		% For loop to read data slice by slice do correction and write out
+		% In analzye format, the first slice in is the first one in the volume.
+		for k = 1:nslices,
 
-spm_progress_bar('Clear');
+			% Set up time acquired within slice order
+			shiftamount  = (find(sliceorder==k) - find(sliceorder==refslice)) * factor;
 
+			% Read in slice data
+			B  = spm_matrix([0 0 k]);
+			for m=1:nimgo,
+				slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
+			end;
+
+			% set up shifting variables
+			len     = size(stack,1);
+			phi     = zeros(1,len);
+
+			% Check if signal is odd or even -- impacts how Phi is reflected
+			%  across the Nyquist frequency. Opposite to use in pvwave.
+			OffSet  = 0;
+			if rem(len,2) ~= 0, OffSet = 1; end;
+
+			% Phi represents a range of phases up to the Nyquist frequency
+			% Shifted phi 1 to right.
+			for f = 1:len/2,
+				phi(f+1) = -1*shiftamount*2*pi/(len/f);
+			end;
+
+			% Mirror phi about the center
+			% 1 is added on both sides to reflect Matlab's 1 based indices
+			% Offset is opposite to program in pvwave again because indices are 1 based
+			phi(len/2+1+1-OffSet:len) = -fliplr(phi(1+1:len/2+OffSet));
+	
+			% Transform phi to the frequency domain and take the complex transpose
+			shifter = [cos(phi) + sin(phi)*sqrt(-1)].';
+			shifter = shifter(:,ones(size(stack,2),1)); % Tony's trick
+
+			% Loop over columns
+			for i=1:Vout(1).dim(2),
+
+				% Extract columns from slices
+				stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
+
+				% fill in continous function to avoid edge effects
+				for g=1:size(stack,2),
+					stack(nimgo+1:end,g) = linspace(stack(nimgo,g),...
+						stack(1,g),nimg-nimgo)';
+				end;
+
+				% shift the columns
+				stack = real(ifft(fft(stack,[],1).*shifter,[],1));
+
+				% Re-insert shifted columns
+				slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
+			end;
+
+			% write out the slice for all volumes
+			for p = 1:nimgo,
+				Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
+			end;
+			spm_progress_bar('Set',k);
+		end;
+		spm_progress_bar('Clear');
 	end
 end
 
