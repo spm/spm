@@ -1,11 +1,12 @@
-function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL);
+function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL,TOS);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL);
+% FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL,TOS);
 %
 % Cy  - (m x m) data covariance matrix y*y'  {y = (m x n) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
-% TOL - Tolerance {default = 1e-6}
+% TOL - Tolerance for convergence [norm of gradient df/dh; default = 1e-6]
+% TOS - Tolerance for SVD of curvature [ddf/dhdh;          default = 1e-6]
 %
 % Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) hyperparameters
@@ -17,6 +18,7 @@ function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL);
 % set tolerance if not specified
 %---------------------------------------------------------------------------
 if nargin < 4, TOL = 1e-6; end
+if nargin < 5, TOS = 1e-6; end
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
@@ -43,7 +45,7 @@ end
 % eliminate inestimable components
 % NB: The threshold for normalized eigenvalues is 1e-6 in spm_svd
 %---------------------------------------------------------------------------
-u     = spm_svd(W);
+u     = spm_svd(W,TOS)
 for i = 1:size(u,2)
 	C{i}  = sparse(n,n);
 	for j = 1:m
