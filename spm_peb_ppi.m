@@ -235,7 +235,7 @@ C     = {sparse([1:N],[1:N],1,                M + N + K,M + N + K),...
 
 % get whitening matrix (NB: confounds have already been whitened)
 %-------------------------------------------------------------------------
-W     = SPM.xX.W;
+W     = SPM.xX.W(Sess.row,Sess.row);
 
 
 % treat designed effects and confounds as fixed
