@@ -599,12 +599,13 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
 		%-Estimate intrinsic correlation structure AR(1) model
 		%-------------------------------------------------------
-		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-					'...AR(1) estimation')	     %-#
 		switch xX.xVi.Form
 
 		    case 'AR(1)'
 		    %---------------------------------------------------
+		    fprintf('%s%30s',sprintf('\b')*ones(1,30),...
+					'...AR(1) estimation')	     %-#
+
 		    for i = 1:length(xX.xVi.row)
 			y   = spm_detrend(Y(xX.xVi.row{i},:));
 			q   = 1:(size(y,1) - 1);
