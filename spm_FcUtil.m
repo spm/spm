@@ -281,7 +281,7 @@ varargout = {Fc};
 
 
 %!!!15/10
-case 'xO' % spm_FcUtil('X0',Fc,sX)
+case 'x0' % spm_FcUtil('X0',Fc,sX)
 %=======================================================================
 if nargin ~= 3, 
    error('too few/many input arguments - need 2');
