@@ -165,7 +165,7 @@ if (nargin == 0)
 		eval(['others = others' num2str(i) ';']);
 
 		if (p == 1 | p == 3)
-			eval('spm_coregister(PGF, PFF, PGG, PFG, others);','disp(''Coregistration Bombed Out'');');
+			spm_coregister(PGF, PFF, PGG, PFG, others);
 		end
 		if (p == 2 | p == 3)
 			% Write the coregistered images
@@ -174,7 +174,7 @@ if (nargin == 0)
 			if prod(size(others))>0
 				P = str2mat(P,others);
 			end
-			eval('spm_realign(P,''rn'');','disp(''Writing Coregistered Bombed Out'');');
+			spm_realign(P,'rn');
 		end
 		spm_figure('Clear','Interactive'); drawnow;
 	end
