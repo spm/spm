@@ -315,7 +315,7 @@ if (nargin == 0)
 			elseif (tmp == 2)
 				aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
 				se = 0;
-				while prod(size(se)) > 12 & prod(size(se)) < 8
+				while prod(size(se)) > 12 | prod(size(se)) < 8
 					se = spm_input('Enter Affine Starting Estimates:',pos);
 					se = se(:)';
 				end
@@ -456,7 +456,7 @@ elseif strcmp(P,'Defaults')
 			se = se(:)';
 		end
 		sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
-		aff_parms(1:prod(size(se))) = se(:);
+		sptl_Ornt(1:prod(size(se))) = se(:);
 	elseif (tmp == -1)
 		sptl_Ornt = 0;
 	end
