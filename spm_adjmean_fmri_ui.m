@@ -56,18 +56,16 @@ function spm_adjmean_fmri_ui
 % and the user prompted to enter/confirm filenames for the adjusted
 % condition images.
 %
-%
 % The model, filenames, global values and options are saved to a MatLab
 % *.mat file named SPMadj.mat in the current working directory.
 %
-% No masking is carried out: The adjusted mean is calculated at all
-% voxels. Voxels which are zero in *all* the input images pertaining to
-% an adjusted mean (usually those from the appropriate subject), will
-% remain zero, since the computation is only a weighted mean. Modelling
-% (& computation) proceeds assumming that at each voxel the data is
-% either all zero, or that there is usable data from all images. (This
-% is *not* a softmean.) Data realigned in a single session with SPM'96
-% (or later) are automatically consistently masked in this way.
+% Implicit masking is carried out: Zero voxels are implicitly assummed
+% to be masked out. Thus, the adjusted mean is calculated at voxels
+% which are non-zero in *all* the input images pertaining to the
+% adjusted mean (usually those from the appropriate subject). (This is
+% *not* a softmean.) Data realigned in a single session with SPM'96 (or
+% later) are automatically implicitly zero masked with a consistent
+% mask in this way.
 %
 % GM, the value for grand mean scaling, is user specified.
 % The default value is 100.
@@ -127,6 +125,38 @@ function spm_adjmean_fmri_ui
 %
 % Variables saved in SPMadj.mat data file
 % ----------------------------------------------------------------------
+% Des           Structure containing design parameters & specification
+%   .DesName    Design name
+%   .HForm      Form of DesMtx H partition
+%   .iSubj      Subject indicator vector
+%   .iCond      Condition indicator vector
+%   .iRepl      Replication indicator vector
+%   .iGloNorm   Global normalisation option
+%   .sGloNorm   Global normalisation description
+%   .iGMsca     Grand mean scaling option
+%   .sGMsca     Grand mean scaling description
+%   .GM         Grand Mean used for scaling
+%   .iAdjTo     Adjustment (for AnCova) option
+%   .sAdjTo     Adjustment (for AnCova) description
+%   .aGM        AnCova adjustment value (subtracted from GX before AnCova)
+%   .gSF        Image scale factors for global scaling
+%   .X          Design matrix
+%   .nX         Normalised (for imaging) design matrix
+%   .Xnames     Effects corresponding to cols of X (cellstr)
+%   .aPMap      Additional parameter to effect name mappings (see spm_desMtx)
+%   .EXnames    English effect names corresponding to TeX parameters of Xnames 
+%   .iX         Structure defining design matrix subpartitions
+%       .H      Columns of X corresponding to H partition
+%       .C      Columns of X corresponding to C partition
+%       .B      Columns of X corresponding to B partition
+%       .G      Columns of X corresponding to G partition
+% c             Matrix of contrasts, contrasts in rows
+% cNames        Names associated with contrasts
+% W             Weights for images corresponding to contrasts
+% Fnames        Filenames of adjusted mean images written (cellstr)
+% rGX           raw global means (before any scaling)
+% GX            Global means after scaling
+%
 % P		String matrix of filenames
 % iCond		Condition indicator vector
 % iGloNorm	Global normalisation option
@@ -158,24 +188,17 @@ function spm_adjmean_fmri_ui
 % GM		Grans Mean used for scaling
 %
 %
-% Platform
-% ----------------------------------------------------------------------
-% This version was written for MatLab4.2c with SPM'97d (spm_mean.m v1.11)
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%SPM96:This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 
 %=======================================================================
 % - S E T U P
 %=======================================================================
-fprintf('\nSPM: spm_adjmean_fmri_ui\n')
-fprintf('%c','='*ones(1,72)),fprintf('\n')
-Finter = spm_figure('FindWin','Interactive');
-if isempty(Finter), Finter=spm('CreateIntWin'); end
-spm_clf(Finter)
-set(Finter,'Name','AdjMean/fMRI')
-spm_help('!ContextHelp','spm_adjmean_fmri_ui.m')
+SCCSid = '%I%';
+SPMid = spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','AdjMean/fMRI',1);
+spm_help('!ContextHelp',[mfilename,'.m'])
 
 
 %=======================================================================
@@ -184,32 +207,32 @@ spm_help('!ContextHelp','spm_adjmean_fmri_ui.m')
 
 %-Get filenames
 %-----------------------------------------------------------------------
-P = spm_get(Inf,'.img','select scans (single session)');
-n = size(P,1);
+P     = spm_get(Inf,'.img',{'select scans (single session)'});
+nScan = size(P,1);
+if nScan==1, error('Only one image - gimme more!'), end
 
 %-Get condition information & construct vector of conditions indices
 %-----------------------------------------------------------------------
 %-Epoch condition order
-a     = spm_input('epoch order eg 1 2 1..{0 = null}',1);
-a     = a(:)';
-nCond = max(a);
+eCond = spm_input('epoch order Eg 121... {0=null}',1,'c');
+eCond = eCond(:)';
+Conds = unique(eCond);
 
 %-Epoch length(s)
-e     = [];
-guiPos = '+1';
-while any(~e) | sum(e) ~= n
-	e   = spm_input('scans per epoch eg 8 or 8 6... ',guiPos);
-	if prod(size(e))==1, e=e*ones(1,length(a)); end
-	guiPos='0';
+eLen   = [];
+guiPos = spm_input('!NextPos');
+while any(~eLen) | sum(eLen) ~= nScan
+	eLen = spm_input('#scans/epoch Eg 8 or 8 6 8... ',guiPos);
+	if length(eLen)==1, eLen=eLen*ones(1,length(eCond)); end
 end
-e     = e(:)';
+eLen    = eLen(:)';
 
-% epoch onsets, in scans, starting at 0
-ons = cumsum(e) - e;
+%-Epoch onsets, in scans, starting at 1
+eOns = cumsum(eLen) - eLen + 1;
 
 %-iCond condition indicator vector
-iCond = zeros(n,1);
-for i = 1:length(e), iCond([1:e(i)]+ons(i)) = a(i)*ones(e(i),1); end
+iCond = zeros(nScan,1);
+for i=1:length(eLen), iCond(eOns(i)+[1:eLen(i)]-1)=eCond(i); end
 
 
 %-Get Repeat time, construct approximate haemodynamic response function
@@ -220,26 +243,24 @@ hrf = spm_hrf(RT);
 
 %-Construct design matrix C partition
 % (box-cars convolved with approximate HRF if requested)
+% null condition with iCond==0 is ignored by spm_DesMtx
 %-----------------------------------------------------------------------
-%-Design matrix (box-cars) - omit condition `0' as null (baseline)
-[rC,Cnames,Ci] = spm_DesMtx(iCond,'-','cond');
-if Ci(1)==0, rC(:,1)=[]; Cnames(1,:)=[]; Ci(1)=[]; end
-% rC = spm_detrend(rC);
+[C,Cnames,Ci] = spm_DesMtx(iCond,'-','\alpha');
+% C = spm_detrend(C);
 
 %-Convolve with hemodynamic response function, if requested
-C = rC;
 bHRFconv = spm_input('Conv. box-cars with approx HRF?','+1','y/n',[1,0],1);
 if bHRFconv
 	d = length(hrf);
 	C = [ones(d,1)*C(1,:); C];
-	C = spm_sptop(hrf,n + d,1)*C;
-	C = C([1:n]+d,:);
+	C = spm_sptop(hrf,nScan + d,1)*C;
+	C = C([1:nScan]+d,:);
 end
 
 
 %-Construct design matrix block (B) partition
 %-----------------------------------------------------------------------
-B = ones(n,1); Bnames = 'Constant';
+B = ones(nScan,1); Bnames = '\mu';
 
 
 %-Construct design matrix confound (G) partition?
@@ -253,33 +274,30 @@ G = []; Gnames = '';
 %-----------------------------------------------------------------------
 bHPF = spm_input('Use high pass filter?','+1','y/n',[1 0],1);
 if bHPF
-	HPFc = n; for i = 0:nCond, HPFc = min([HPFc,max(diff(ons(a == i)))]); end
-	HPFc = spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
+	HPFc=nScan;
+	for i=Conds, HPFc = min([HPFc,max(diff(eOns(eCond==i)))]); end
+	HPFc=spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
 	%-Find max order for discrete cosine set, HPFk
-	% (from period>HPFc, period=n*RT/(k/2) for order k; k<n/2)
-	HPFk = fix(min(2*(n*RT)/HPFc,n/2));
-	HPF = [];
+	% (from period>HPFc, period=nScan*RT/(k/2) for order k; k<nScan/2)
+	HPFk = fix(min(2*(nScan*RT)/HPFc,nScan/2));
+	HPF = []; HPFnames = '';
 	for k = 1:HPFk
-		HPF = [HPF, cos(k*pi*([1:n]-1)'/(n-1))];
+		HPF = [HPF, cos(k*pi*([1:nScan]-1)'/(nScan-1))];
+		HPFnames = ...
+			strvcat(HPFnames,sprintf('LowHz (%4.0fs)',2*RT*nScan/k));
 	end
-	HPF = HPF - ones(n,1)*mean(HPF);	%-Mean correct (by column)
+	HPF = HPF - ones(nScan,1)*mean(HPF);	%-Mean correct (by column)
 	sHPF = sprintf('High-pass filter of %d components, cut off = %ds',...
 		HPFk,HPFc);
 
-	%-Construct effect names
-	HPFnames = '';
-	for i = 1:size(HPF,2);
-		HPFnames = str2mat(HPFnames,sprintf('Low Hz (%d)',i));
-	end
-	HPFnames(1,:)=[];
-	G = [G, HPF]; Gnames = str2mat(Gnames,HPFnames);
+	G = [G, HPF]; Gnames = strvcat(Gnames,HPFnames);
 else
 	HPFc=0; HPF=[]; sHPF='No high-pass filter';
 end
 
 %-Global normalization options
 %-----------------------------------------------------------------------
-sGloNorm = str2mat('None','Proportional scaling','AnCova');
+sGloNorm = strvcat('None','Proportional scaling','AnCova');
 iGloNorm = spm_input('Select global normalisation',...
 	'+1','m',sGloNorm,[],2);
 sGloNorm = deblank(sGloNorm(iGloNorm,:));
@@ -287,7 +305,7 @@ sGloNorm = deblank(sGloNorm(iGloNorm,:));
 
 %-Grand mean scaling
 %-----------------------------------------------------------------------
-sGMsca = str2mat('None','Scaling of overall Grand Mean',...
+sGMsca = strvcat('None','Scaling of overall Grand Mean',...
 	'(Implicitly via PropSca global normalisation)');
 if iGloNorm==2, iGMsca=3; else, iGMsca=2; end
 sGMsca = deblank(sGMsca(iGMsca,:));
@@ -305,34 +323,34 @@ GM = 100;
 %=======================================================================
 % - C O M P U T A T I O N
 %=======================================================================
-set(Finter,'Name','AdjMean/fMRI - computing','Pointer','watch')
-fprintf('\tcomputing: ')
+spm('FigName','AdjMean/fMRI: configuring',Finter,CmdLine);
+fprintf('\tconfiguring: ')
+spm('Pointer','Watch');
 
-%-Get file identifiers
+%-Memory map files
 %-----------------------------------------------------------------------
-V     = zeros(12,n);
-for i = 1:n; V(:,i) = spm_map(P(i,:));  end
+V = spm_vol(char(P));
 
-%-Check for consistency of image size and voxel size
+%-Check for consistency of image dimensions and orientation / voxel size
 %-----------------------------------------------------------------------
-if ~all(all(~diff(V([1:6],:)')))
-	error('data do not have the same image and voxel size'); end
+if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
+	error('images do not all have the same dimensions'), end
+if any(any(any(diff(cat(3,V.mat),1,3),3)))
+	error('images do not all have same orientation & voxel size'), end
 
-%-Get ORIGIN from first image
+%-Work out required Analyze header info from handles
 %-----------------------------------------------------------------------
-[DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P(1,:));
+DIM    = V(1).dim(1:3);
+VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
+ORIGIN = (V(1).mat\[0 0 0 1]')';
+ORIGIN = round(ORIGIN(1:3));
 
 %-Compute global values
 %-----------------------------------------------------------------------
 fprintf('(globals)')
-GX     = zeros(n,1);
-for i  = 1:n, GX(i) = spm_global(V(:,i)); end
+GX     = zeros(nScan,1);
+for i  = 1:nScan, GX(i) = spm_global(V(i)); end
 fprintf('\b - done)\n')
-
-%-Save image scalefactors
-%-----------------------------------------------------------------------
-iSF = V(7,:)';
-
 
 %-Scaling: compute global scaling factors required to implement proportional
 % scaling global normalisation or Grand mean scaling, as requested
@@ -341,16 +359,15 @@ rGX = GX;
 if iGloNorm==2
 	%-Proportional scaling global normalisation
 	gSF = GM./GX;
-	GX  = GM*ones(n,1);
+	GX  = GM*ones(nScan,1);
 	sGloNorm = sprintf('%s, to %g',sGloNorm,GM);
-	%** scale rGX for printout? ...or just graph them?
 elseif iGMsca==2
 	%-Grand mean scaling (overall)
 	gSF = GM/mean(GX);
 	GX  = GX*gSF;
 	sGMsca = sprintf('%s, to %g',sGMsca,GM);
 else	%-No scaling
-	gSF = ones(n,1);
+	gSF = ones(nScan,1);
 end
 
 
@@ -358,22 +375,23 @@ end
 %-----------------------------------------------------------------------
 if iGloNorm==3
 	G      = [G, GX-mean(GX)];
-	Gnames = str2mat(Gnames,'Global');
+	Gnames = strvcat(Gnames,'Global');
 	sGloNorm = [sGloNorm,', to Grand Mean'];
 end
-%-Clean blank top line from Gnames (if necessary)
-if size(Gnames,1), if all(Gnames(1,:)==' '), Gnames(1,:)=[]; end, end
 
 %-Design matrix - raw & with effects of interest orthogonalised wirit G
 %-----------------------------------------------------------------------
 rC = C;
 rX = [rC B G];
-[nrX,Xnames] = spm_DesMtxSca(C,Cnames,B,Bnames,G,Gnames);
+[nrX,Xnames] = spm_DesMtx('sca',C,Cnames,B,Bnames,G,Gnames);
 if size(G,2)
 	C  = C - G*pinv(G)*C;
 end
 X  = [C B G];
-nX = spm_DesMtxSca(X,Xnames);
+nX = spm_DesMtx('sca',X,Xnames);
+EXnames = spm_DesMtx('ETeXNames',Xnames);
+iX = struct(	'H',	[],		'C',	[1:size(C,2)],...
+		'B',	size(C,2)+1,	'G',	size(C,2) +1 +[1:size(G,2)]);
 
 %-Temporal smoothing?
 %-----------------------------------------------------------------------
@@ -382,83 +400,31 @@ nX = spm_DesMtxSca(X,Xnames);
 % match SPM-fMRI.
 %**** Q:Orthogonalisation of C wirit G pre or post temporal smoothing?
 
-
-%-Contrasts (c)
-%-----------------------------------------------------------------------
-nc     = size(C,2);
-c      = [eye(nc), ones(nc,size(B,2)), zeros(nc,size(G,2))];
-cNames = Cnames;
-%-if we have a null condition, then constant *is* null condition effect
-if min(iCond)==0
-	c      = [zeros(1,nc), 1, zeros(1,size(G,2)); c];
-	cNames = str2mat('baseline',cNames);
-	nc     = nc+1;
-end
-
 %-Parameter estimation matrix & data weights matrix for contrasts
 %-----------------------------------------------------------------------
 pX  = pinv(X);
-W   = c * pX;
 
-
-%-Parameter images (of interest) - Adjusted mean images
+%-Contrasts (c) & associated weight matrix (W)
 %-----------------------------------------------------------------------
-set(Finter,'Name','AdjMean/fMRI - writing','Pointer','arrow')
-fprintf('\twriting parameter images... enter filenames...\n')
-
-%-Computation: calculations handled by spm_mean.c
-% Relying on all images used to make each contrast image being masked
-% identically, with out of mask values set to zero. This is the case
-% for sets of images realigned with SPM'96 realignment.
-
-Fnames = []; CWD = pwd;
-guiPos = '+1'; %*** guiPos = spm_input('!NextPos');
-for i = 1:nc
-	Fn = deblank(cNames(i,:)); Fn=Fn(Fn~=' ');
-	Fn = spm_input(sprintf('Contrast %d: filename?',i),guiPos,'s',Fn);
-	%*** make sure Fn is valid? Allow overwriting?
-	Fnames = str2mat(Fnames,Fn);
-	w  = W(i,:).*gSF'.*iSF';
-	Q  = find(abs(w)>0);
-	wV = V(:,Q);	wV(7,:) = w(Q);		%SPM97:
-	fprintf('\t...writing image %d: %-20s',i,Fn)
-	sf = spm_mean(wV,[Fn,'.img']);		%SPM97:
-	%SPM96:sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
-	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
-	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);	%SPM97:
-	%SPM96:spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str);
-	spm_get_space(Fn,spm_get_space(P(1,:)));
-	fprintf(' (done)\n')
-	guiPos = '0';
+nc     = size(C,2);
+c      = [eye(nc), ones(nc,size(B,2)), zeros(nc,size(G,2))];
+cNames = spm_DesMtx('Fnames',EXnames(iX.C));
+%-if we have a null condition, then constant *is* null condition effect
+if any(Conds==0)
+	c      = [zeros(1,nc), 1, zeros(1,size(G,2)); c];
+	cNames = [{'baseline'};cNames];
+	nc     = nc+1;
 end
-Fnames(1,:)=[];
 
-%-Unmap files and canonicalise V
-%-----------------------------------------------------------------------
-for v = V; spm_unmap(v); end
-V = [V(1:6,1); ORIGIN(:)];
-
-%-Save parameters to SPMadj.mat in current directory
-%-----------------------------------------------------------------------
-save SPMadj ...
-	P iCond ...
-	iGloNorm sGloNorm iGMsca sGMsca ...
-	HPFc HPF sHPF ...
-	rC C Cnames B Bnames G Gnames ...
-	rX X nrX nX ...
-	c cNames W ...
-	CWD Fnames ...
-	rGX gSF GX GM
+W   = c * pX;
+Fnames = cNames;
 
 
 %=======================================================================
 % - D I A G N O S T I C   O U T P U T
 %=======================================================================
-set(Finter,'Name','AdjMean/fMRI - done')
 fprintf('\tdisplaying diagnostic output...\n')
-
-Fgraph = spm_figure('FindWin','Graphics');
-if isempty(Fgraph), Fgraph = spm_figure('Create','Graphics','Graphics'); end
+figure(Fgraph);
 
 
 %-Display files and variables
@@ -469,7 +435,7 @@ if isempty(Fgraph), Fgraph = spm_figure('Create','Graphics','Graphics'); end
 figure(Fgraph); spm_clf; axis off
 text(0.30,1.00,'Adjusted means (fMRI)','Fontsize',16,'Fontweight','Bold')
 text(-.10,0.96,'Files:','Fontweight','Bold')
-text(-.10,0.94,sprintf('1 to %4d: %s...',n,deblank(P(1,:))),'FontSize',10)
+text(-.10,0.94,sprintf('1 to %4d: %s...',nScan,P{1}),'FontSize',10)
 text(-.10,0.92,sprintf('Repeat time = %.4f seconds',RT),'FontSize',10)
 text(-.10,0.88,'Image Global means (& conditions):','Fontweight','Bold')
 
@@ -495,7 +461,7 @@ else
 	plot(GX)
 	ylabel('global mean (post-scaling)')
 end
-set(gca,'XLim',[0.5,n+0.5])
+set(gca,'XLim',[0.5,nScan+0.5],'Color','none')
 xlabel('scan index')
 
 spm_print
@@ -503,46 +469,130 @@ spm_print
 
 %-Depict and label design matrix, depict & label contrasts
 %=======================================================================
-spm_clf(Fgraph); axis off
-text(0.1,1.02,'Design Matrix, contrasts & contrast files',...
+spm_clf(Fgraph); axes('Position',[0 0 1 .95],'Visible','off')
+text(.2,1,'Design Matrix, contrasts & contrast files',...
 	'Fontsize',16,'Fontweight','Bold');
 
-%-Image scaled design matrix & label the effects
+%-Image scaled design matrix, label the effects, add filenames (if <=32)
 %-----------------------------------------------------------------------
-hDesMtx = axes('Position',[0.1 0.5 0.6 0.3]);
+hDesMtx = axes('Position',[.07 .5 .6 .3]);
 image((nX + 1)*32);
+set(hDesMtx,'TickDir','out')
 ylabel('scans')
 xlabel('parameters')
-hEfLabs = axes('Position',[0.1 0.8 0.6 0.1],'Visible','off');
-y     = 0.1;
+axes('Position',[.07 .8 .6 .1],'Visible','off')
 dx    = 1/size(nX,2);
+tXnames = spm_DesMtx('TeXnames',Xnames);
 for i = 1:size(nX,2)
-	text((i - 0.5)*dx,y,deblank(Xnames(i,:)),'Fontsize',8,'Rotation',90)
+	text((i - .5)*dx+.01,.3,EXnames{i},'Fontsize',9,'Rotation',90)
+	if ~strcmp(Xnames{i},EXnames{i})
+		text((i - .5)*dx,.1,tXnames{i},'Fontsize',10,'Interpreter','TeX')
+	end
+end
+if nScan<=32
+	set(hDesMtx,'YTick',1:nScan)
+	axes('Position',[.68 .5 .3 .3],'Visible','off')
+	dy = 1/nScan;
+	tP = spm_str_manip(P,'k40');
+	for i=1:nScan
+		text(0,(nScan-i+0.5)*dy,tP{i},'FontSize',8)
+	end
 end
 
-%-Depict contrasts and associated filenames
+%-Depict contrasts and associated (preliminary) filenames
 %-----------------------------------------------------------------------
-dy = 0.4/nc;
-axes('Position',[0.025 0.05 0.05 0.4],'Visible','off')
-text(0,0.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
+dy = .4/nc;
+axes('Position',[.025 .05 .05 .4],'Visible','off')
+text(0,.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
 	'FontSize',14,'FontWeight','Bold')
-axes('Position',[0.6 0.44 0.40 0.02],'Visible','off')
+axes('Position',[.6 .44 .40 .02],'Visible','off')
 text(0,1,'Contrast files...','FontSize',10,'FontWeight','Bold')
-text(0,0,sprintf('...in %s',CWD),'FontSize',8)
+text(0,0,sprintf('...in %s',pwd),'FontSize',8)
+hFnames = zeros(1,nc);
 for i = 1:nc
-	axes('Position',[0.1 (0.45 -dy*i) 0.6 0.9*dy])
-	[tx ty] = bar(c(i,:));
-	fill(tx,ty,[1 1 1]*.8);
-	% h = bar(c(i,:),1);
-	% set(h,'FaceColor',[1 1 1]*.8)
-	set(gca,'XLim',[0.5,size(c,2)+0.5],'Visible','off')
+	axes('Position',[.1 (.45 -dy*i) .6 .9*dy])
+	h = bar(c(i,:),1);
+	set(h,'FaceColor',[1 1 1]*.8)
+	set(gca,'XLim',[.5,size(c,2)+.5],'Visible','off')
 	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
-	text(size(c,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10)
+	hFnames(i) = text(size(c,2)+.55,.1,Fnames{i},'FontSize',10,...
+		'Color',[1 1 1]*.5,'FontAngle','Italic');
 end
 
+
+
+%=======================================================================
+% - W R I T E   C O N T R A S T   I M A G E S
+%=======================================================================
+fprintf('\tspecify filenames for contrast images...\n')
+spm('Pointer');
+guiPos = spm_input('!NextPos');
+for i = 1:nc
+	Fnames{i} = spm_input(sprintf('Contrast %d: filename?',i),...
+			guiPos,'s',Fnames{i});
+	set(hFnames(i),'string',Fnames{i},'Color','k','FontAngle','Normal')
+end
 spm_print
 
+%-Parameter images (of interest) - Adjusted mean images
+%-----------------------------------------------------------------------
+spm('FigName','AdjMean/fMRI - writing',Finter,CmdLine);
+spm('Pointer','Watch');
 
-%-END
+%-Computation - calculations handled by spm_mean.c
+%-Using implicit zero masking feature of spm_add: The resultant image
+% will be zero at voxels where *any* of the input images are zero.
+
+for i = 1:nc
+	w  = W(i,:).*gSF';
+	Q  = find(abs(w)>0);
+	w  = w(Q); wV = V(Q);
+	for j=1:length(Q), wV(j).pinfo(1,:)=wV(j).pinfo(1,:)*w(j); end
+	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
+	sf  = spm_add(wV,[Fnames{i},'.img'],'m');
+	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
+	spm_hwrite([Fnames{i},'.hdr'],DIM,VOX,sf,spm_type('int16'),0,ORIGIN,str);
+	spm_get_space(Fnames{i},V(1).mat);
+	fprintf(' (done)\n')
+end
+Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
+
+
+%-Save parameters to SPMadj.mat in current directory
+%-----------------------------------------------------------------------
+%-Pack design parameters up in a structure
+Des = struct(...
+		'DesName',	'Single sess. fMRI box-cars',...
+		'HForm',	[],...
+		'iSubj',	[],...
+		'iCond',	iCond,...
+		'iGloNorm',	iGloNorm,...
+		'sGloNorm',	sGloNorm,...
+		'iGMsca',	iGMsca,...
+		'sGMsca',	sGMsca,...
+		'GM',		GM,...
+		'gSF',		gSF,...
+		'iAdjTo',	[],...
+		'sAdjTo',	[],...
+		'aGM',		[],...
+		'X',		X,...
+		'nX',		nX,...
+		'Xnames',	Xnames,...
+		'aPMap',	[],...
+		'EXnames',	EXnames,...
+		'iX',		iX		);
+
+save SPMadj SPMid ...
+	Des V ...
+	c cNames W ...
+	Fnames ...
+	HPFc HPF sHPF ...
+	rX nrX ...
+	rGX GX
+
+
 %=======================================================================
+% - E N D
+%=======================================================================
+set(Finter,'Name','AdjMean/fMRI - done'), spm('Pointer','Arrow')
 fprintf('\n\n')
