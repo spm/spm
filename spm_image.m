@@ -211,6 +211,7 @@ if strcmp(op,'resetorient'),
 		V    = spm_vol(deblank(P(i,:)));
 		M    = V.mat;
 		vox  = sqrt(sum(M(1:3,1:3).^2));
+		if det(M(1:3,1:3))<0, vox(1) = -vox(1); end;
 		orig = (V.dim(1:3)+1)/2;
                 off  = -vox.*orig;
                 M    = [vox(1) 0      0      off(1)
