@@ -1,4 +1,4 @@
-
+function [hReg,SPM,VOL,xX,xSPM] = spm_results
 % Display and analysis of regional effects
 % FORMAT spm_results
 %_______________________________________________________________________
@@ -8,18 +8,18 @@
 % 
 % The user is prompted to select a SPM{Z}, SPM{T} or SPM{F}, that is
 % thresholded at user specified levels. The specification of the
-% contrasts to use and the height and size thresholds are the same as
-% that described in spm_getSPM.m. The resulting SPM is then
-% displayed in the graphics window as a maximum intensity projection,
-% alongside the design matrix and contrasts employed.
+% contrasts to use and the height and size thresholds are described in
+% spm_getSPM.m. The resulting SPM is then displayed in the graphics
+% window as a maximum intensity projection, alongside the design matrix
+% and contrasts employed.
 %
 % The cursors in the MIP can be moved (dragged) to select a particular
 % voxel. The three mouse buttons give different drag and drop behaviour:
 % Button 1 - point & drop; Button 2 - "dynamic" drag & drop with
 % co-ordinate & SPM value updating; Button 3 - "magnetic" drag & drop,
 % where the cursor jumps to the nearest suprathreshold voxel in the
-% MIP, and shows the value there. See spm_mip_ui.m, the MIP GUI handling
-% function.
+% MIP, and shows the value there. (See spm_mip_ui.m, the MIP GUI handling
+% function for further details.)
 %
 % The current voxel specifies the voxel, suprathreshold cluster, or
 % orthogonal planes (planes passing through that voxel) for subsequent
@@ -117,55 +117,81 @@ SCCSid = '%I%';
 SPMid = spm('FnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Results');
 
-global CWD	%-**** Want to get rid of this global CWD!
-
 
 %-Get thresholded SPM data and parameters of design
 %===========================================================================
-[SPM,VOL,DES] = spm_getSPM;
+[SPM,VOL,xX,xSPM] = spm_getSPM;
 
 
 %-Setup Results User Interface; Display MIP, design matrix & parameters
 %===========================================================================
+spm('FigName',['SPM{',SPM.STAT,'}: Results'],Finter,CmdLine);
 spm('Pointer','Watch')
+
+
+%-CD to swd?
+%---------------------------------------------------------------------------
+cd(SPM.swd)
+fprintf('\nSPM working directory now:\n\t%s\n\n',pwd)
 
 
 %-Setup results GUI
 %---------------------------------------------------------------------------
-hReg   = spm_results_ui('SetupGUI',VOL.M,VOL.DIM);
-figure(Fgraph)
+hReg   = spm_results_ui('SetupGUI',VOL.M,VOL.DIM,Finter);
 
 
 %-Print summary information
 %---------------------------------------------------------------------------
-hTxtAx = axes('Position',[0.05 0.92 0.90 0.03],...
+hTxtAx = axes('Parent',Fgraph,...
+		'Position',[0.05 0.92 0.90 0.03],...
 		'DefaultTextFontSize',10,...
 		'DefaultTextVerticalAlignment','baseline',...
 		'Visible','off');
-h = text(0,1,'SPM results: ','FontWeight','Bold','FontSize',14);
-text(get(h,'Extent')*[0;0;1;0],1,spm_str_manip(CWD,'a30'))
-text(0.1,0.5,sprintf('Height threshold {u} = %0.2f',SPM.u))
-text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k));
+h = text(0,1,'SPM results: ','Parent',hTxtAx,'FontWeight','Bold','FontSize',14);
+text(get(h,'Extent')*[0;0;1;0],1,spm_str_manip(SPM.swd,'a30'),'Parent',hTxtAx)
+text(0.1,0.5,sprintf('Height threshold {u} = %0.2f',SPM.u),'Parent',hTxtAx)
+text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k),...
+	'Parent',hTxtAx);
 
 
 %-Setup Maximium intensity projection (MIP) & register
 %---------------------------------------------------------------------------
-hMIPax = axes('Position',[0.05 0.55 0.55 0.4],'Visible','off');
-hMIPax = spm_mip_ui(SPM.Z,VOL,hMIPax);
+hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.55 0.55 0.4],'Visible','off');
+hMIPax = spm_mip_ui(SPM.Z,SPM.XYZ,VOL.M,VOL.DIM,hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
-text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold')
+text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold',...
+	'Parent',hMIPax)
 
 
-%-Design matrix & contrast(s)
+%-Plot design matrix
 %---------------------------------------------------------------------------
-axes('Position',[0.65 0.55 0.25 0.25])
-image(spm_DesMtx('sca',DES.X)*64)	%-****Need names for proper DesMtxSca
+nX        = spm_DesMtx('sca',xX.xKXs.X,xX.Xnames);
+hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
+hDesMtxIm = image((nX+1)*32);
+set(hDesMtx,'YTick',spm_DesRep('ScanTick',size(nX,1),24),'TickDir','out')
 xlabel('Design matrix')
-dy     = 0.1/size(DES.C,1);
-for i = 1:size(DES.C,1)
-	axes('Position',[0.65 (0.8 + dy*(i - 1)) 0.25 dy])
-	bar(DES.C(i,:));
-	axis tight, axis off
+set(hDesMtxIm,'UserData',xX.xKXs.X)
+set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''cb_DesMtxIm'')')
+
+
+%-Plot contrasts
+%---------------------------------------------------------------------------
+nPar = size(xX.X,2);
+xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
+
+dy    = 0.15/max(size(SPM.c,2),2);
+for i = 1:size(SPM.c,2)
+	axes('Position',[0.65 (0.8 + dy*(i-0.9)) 0.25 dy*.9])
+	if SPM.STAT == 'T' & size(SPM.c{i},2)==1
+		%-Single vector contrast for SPM{t} - bar
+		yy = [zeros(1,nPar);repmat(SPM.c{i}',2,1);zeros(1,nPar)];
+		patch(xx,yy,[1,1,1]*.5)
+		set(gca,'Box','off','XTick',[],'YTick',[])
+	else
+		%-F-contrast - image
+		image((SPM.c{i}+1)'*32)
+		set(gca,'Box','on','XTick',[],'YTick',[])
+	end
 end
 title('Contrast(s)')
 
