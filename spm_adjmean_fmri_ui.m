@@ -569,9 +569,7 @@ for i = 1:nc
 	Vo         = spm_create_vol(Vo);
 	%-Compute & rewrite header scalefactor
 	Vo.pinfo(1)  = spm_add(wV,Vo,'m');
-	Vo           = spm_close_vol(Vo);
-	Vo           = spm_create_vol(Vo,'noopen');
-	Vo           = spm_close_vol(Vo);
+	Vo           = spm_create_vol(Vo);
 
 	fprintf(' (done)\n')
 end

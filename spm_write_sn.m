@@ -167,9 +167,7 @@ for i=1:prod(size(V)),
 		end;
 		if prod(size(V))<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 	end;
-	if nargout==0,
-		VO = spm_close_vol(VO);
-	else,
+	if nargout~=0,
 		VO.pinfo  = [1 0]';
 		VO.dt     = [spm_type('float32') spm_platform('bigend')];
 		VO.dat    = Dat;
@@ -245,8 +243,6 @@ for i=1:prod(size(V)),
 	if nargout==0,
 		if flags.preserve,
 			VO = spm_write_vol(VO,Dat);
-		else,
-			VO = spm_close_vol(VO);
 		end;
 	else,
 		VO.pinfo  = [1 0]';

@@ -146,15 +146,41 @@ for i=1:length(hdr),
 		volume = flipdim(volume,1);
 	end;
 
+	%if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
+	%	volume = volume*hdr{i}.RescaleSlope;
+	%end;
+	%if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0,
+	%	volume = volume + hdr{i}.RescaleIntercept;
+	%end;
+	%V = struct('fname',fname, 'dim',dim, 'dt',dt, 'mat',mat, 'descrip',descrip);
+	%spm_write_vol(V,volume);
+
+	% Note that data are no longer scaled by the maximum amount.
+	% This may lead to rounding errors in smoothed data, but it
+	% will get around other problems.
+	RescaleSlope     = 1;
+	RescaleIntercept = 0;
 	if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
-		volume = volume*hdr{i}.RescaleSlope;
+		RescaleSlope     = hdr{i}.RescaleSlope;
 	end;
 	if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0,
-		volume = volume + hdr{i}.RescaleIntercept;
+		RescaleIntercept = hdr{i}.RescaleIntercept;
+	end;
+	N      = nifti;
+	N.dat  = file_array(fname,dim,dt,0,RescaleSlope,RescaleIntercept);
+	N.mat  = mat;
+	N.mat0 = mat;
+	N.mat_intent  = 'Scanner';
+	N.mat0_intent = 'Scanner';
+	N.descrip     = descrip;
+	create(N);
+
+	% Write the data unscaled
+	dat = file_array(fname,dim,dt,0);
+	for i=1:dim(3),
+		dat(:,:,i) = volume(:,:,i);
 	end;
 
-	V = struct('fname',fname, 'dim',dim, 'dt',dt, 'mat',mat, 'descrip',descrip);
-	spm_write_vol(V,volume);
 	spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
@@ -622,8 +648,17 @@ end;
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-V = struct('fname',fname, 'dim',dim, 'dt',dt, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
-V = spm_create_vol(V);
+%V = struct('fname',fname, 'dim',dim, 'dt',dt, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
+%V = spm_create_vol(V);
+N      = nifti;
+N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
+N.mat  = mat;
+N.mat0 = mat;
+N.mat_intent  = 'Scanner';
+N.mat0_intent = 'Scanner';
+N.descrip     = descrip;
+create(N);
+
 for i=1:length(hdr),
 	plane = read_image_data(hdr{i});
 
@@ -632,10 +667,10 @@ for i=1:length(hdr),
 
 	plane = fliplr(plane);
 	if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
-	V     = spm_write_plane(V,plane,i);
+	%V     = spm_write_plane(V,plane,i);
+	N.dat(:,:,i) = plane;
 	spm_progress_bar('Set',i);
 end;
-spm_close_vol(V);
 spm_progress_bar('Clear');
 return;
 %_______________________________________________________________________

@@ -16,8 +16,7 @@ case {'.HDR','.IMG','.NII'}
 otherwise
     mname = fullfile(pth,[nam '.mat']);
 end
-
-if isstruct(extras),
+if isstruct(extras) && ~isempty(fieldnames(extras)),
     savefields(mname,extras);
 end;
 
@@ -27,6 +26,8 @@ fn = fieldnames(p);
 for i_=1:length(fn),
     eval([fn{i_} '= p.' fn{i_} ';']);
 end;
-save(fnam,fn{:});
+if numel(fn)>0,
+    save(fnam,fn{:});
+end;
 return;
 

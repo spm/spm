@@ -140,7 +140,6 @@ if nargout==0,
 		VO(3) = spm_write_plane(VO(3),double(c(:,:,pp))/255,pp);
 		spm_progress_bar('Set',pp);
 	end;
-	VO = spm_close_vol(VO);
 	spm_progress_bar('Clear');
 end;
 
@@ -631,7 +630,6 @@ for pp=1:length(x3),
 end;
 spm_progress_bar('Clear');
 
-if wc, spm_close_vol(VC); end;
 return;
 %=======================================================================
  

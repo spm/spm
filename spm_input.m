@@ -4,9 +4,7 @@ function varargout = spm_input(varargin)
 %_______________________________________________________________________
 %
 % spm_input handles most forms of interactive user input for SPM.
-% (File selection is handled by spm_get.m) This can be either via GUI
-% with keyboard shortcuts (in the SPM "Interactive" window), or on the
-% command line (in the MatLab command window) if requested.
+% (File selection is handled by spm_select.m)
 %
 % There are five types of input: String, Evaluated, Conditions, Buttons
 % and Menus:  These prompt for string input; string input which is
@@ -167,7 +165,7 @@ function varargout = spm_input(varargin)
 % Programers help is contained in the main body of spm_input.m
 %-----------------------------------------------------------------------
 % See      : input.m     (MatLab Reference Guide)
-% See also : spm_get.m   (SPM file selector dialog)
+% See also : spm_select.m   (SPM file selector dialog)
 %          : spm_input.m (Input wrapper function - handles batch mode)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
@@ -817,7 +815,7 @@ else                                             %-Use GUI to get answer
 	%-Figure ContextMenu for shortcuts
 	hM = spm_input('!InptConMen',Finter,[hPrmpt,hDef,h]);
 	cb = [	'set(get(gcbo,''UserData''),''String'',',...
-			'[''spm_load('''''',spm_get(1),'''''')'']), ',...
+			'[''spm_load('''''',spm_select(1),'''''')'']), ',...
 		'set(get(get(gcbo,''UserData''),''UserData''),''UserData'',',...
 			'get(get(gcbo,''UserData''),''String''))'];
 	uimenu(hM,'Label','load from text file','Separator','on',...

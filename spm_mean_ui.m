@@ -57,9 +57,7 @@ for i=1:prod(size(Vi))
 
 Vo            = spm_create_vol(Vo);
 Vo.pinfo(1,1) = spm_add(Vi,Vo);
-Vo            = spm_close_vol(Vo);
 Vo            = spm_create_vol(Vo);
-Vo            = spm_close_vol(Vo);
 
 
 %-End - report back

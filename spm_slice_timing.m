@@ -189,7 +189,7 @@ for subj = 1:nsubjects
 			end;
 			Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
 		end;
-		Vout = spm_create_vol(Vout,'noopen');
+		Vout = spm_create_vol(Vout);
 
 		% Set up large matrix for holding image info
 		% Organization is time by voxels
@@ -264,7 +264,6 @@ for subj = 1:nsubjects
 		end;
 		spm_progress_bar('Clear');
 	end
-	Vout = spm_close_vol(Vout);
 end
 
 spm('FigName','Slice timing: done',Finter,CmdLine);

@@ -41,7 +41,6 @@ for p=1:VO(1).dim(3),
 	VO(3) = spm_write_plane(VO(3),y3,p);
         spm_progress_bar('Set',p);
 end;
-VO = spm_close_vol(VO);
 spm_progress_bar('Clear')
 return;
 %_______________________________________________________________________

@@ -148,7 +148,6 @@ for  i = 1:VM.dim(3)
 	end
 	VRpv = spm_write_plane(VRpv, d, i);
 end
-VRpv   = spm_close_vol(VRpv);
 
 % global equivalent FWHM {prod(1/FWHM) = (unbiased) RESEL estimator}
 %-----------------------------------------------------------------------

@@ -66,4 +66,3 @@ k  = (length(z) - 1)/2;
 
 if isstruct(Q), Q = spm_create_vol(Q); end; 
 spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
-if isstruct(Q), Q = spm_close_vol(Q);  end;

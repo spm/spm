@@ -58,7 +58,6 @@ for p=1:VD(1).dim(3),
 		VO(i) = spm_write_plane(VO(i),img,p);
 	end;
 end;
-VO = spm_close_vol(VO);
 return;
 %_______________________________________________________________________
 

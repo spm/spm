@@ -102,11 +102,11 @@ if ~isempty(N0),
     end;
 
     if ~isempty(N0.extras) && isstruct(N0.extras) && isfield(N0.extras,'mat'),
-        N0.extras(:,:,V.n(1)) = N.mat;
-        N.extras              = N0.extras;
+        N0.extras.mat(:,:,V.n(1)) = N.mat;
+        N.extras                  = N0.extras;
     end;
-    if sum((N.mat(:)-N0.mat(:)).^2) > 1e-4,
-        N.extras.mat(:,:,V.n(1)) = N.mat;
+    if sum((V.mat(:)-N0.mat(:)).^2) > 1e-4,
+        N.extras.mat(:,:,V.n(1)) = V.mat;
     end;
 end;
 create(N);

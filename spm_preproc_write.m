@@ -143,14 +143,7 @@ for z=1:length(x3),
 end;
 spm_progress_bar('clear');
 
-if opts.biascor,
-    VB = spm_close_vol(VB);
-end;
-
 for k1=1:size(sopts,1),
-    if sopts(k1,3),
-        spm_close_vol(VO(k1));
-    end;
     if any(sopts(k1,1:2)),
         so      = struct('wrap',[0 0 0],'interp',1,'vox',[NaN NaN NaN],...
                          'bb',ones(2,3)*NaN,'preserve',0);

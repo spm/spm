@@ -177,7 +177,6 @@ for p=1:vo.dim(3),
 		end;
 	end;
 end;
-VO = spm_close_vol(VO);
 return;
 %_______________________________________________________________________
 
@@ -198,7 +197,6 @@ for p=1:VO.dim(3),
 	    + A(:,:,3,1).*(A(:,:,1,2).*A(:,:,2,3) - A(:,:,1,3).*A(:,:,2,2));
 	VO = spm_write_plane(VO,dtA,p);
 end;
-VO = spm_close_vol(VO);
 return;
 %_______________________________________________________________________
 
@@ -228,7 +226,6 @@ for p=1:vo.dim(3),
 		VO(i) = spm_write_plane(VO(i),E(:,:,i),p);
 	end;
 end;
-VO = spm_close_vol(VO);
 return;
 %_______________________________________________________________________
 
@@ -487,18 +484,9 @@ else,
 	basZ = spm_dctmtx(sn.VG(1).dim(3),st(3),z-1); 
 end,
 
-if strcmp(computer,'PCWIN'),
-	% Windows may not like more than one file handle
-	% to the same file.
-
-	VX = spm_create_vol(VX,'noopen');
-	VY = spm_create_vol(VY,'noopen');
-	VZ = spm_create_vol(VZ,'noopen');
-else,
-	VX = spm_create_vol(VX);
-	VY = spm_create_vol(VY);
-	VZ = spm_create_vol(VZ);
-end;
+VX = spm_create_vol(VX);
+VY = spm_create_vol(VY);
+VZ = spm_create_vol(VZ);
 
 % Cycle over planes
 %----------------------------------------------------------------------------
@@ -534,12 +522,6 @@ for j=1:length(z)
 	VY = spm_write_plane(VY,Y2,j);
 	VZ = spm_write_plane(VZ,Z2,j);
 
-end;
-
-if ~strcmp(computer,'PCWIN'),
-	VX = spm_close_vol(VX);
-	VY = spm_close_vol(VY);
-	VZ = spm_close_vol(VZ);
 end;
 
 return;

@@ -256,7 +256,7 @@ for i = 1:nBeta
 	Vbeta(i).descrip = sprintf('Posterior mean of beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
 end
-Vbeta = spm_create_vol(Vbeta,'noopen');
+Vbeta = spm_create_vol(Vbeta);
 
 %-Intialise hyperparameter (AR 1..p and noise variance) image files
 %-----------------------------------------------------------------------
@@ -311,7 +311,7 @@ for s=1:nsess,
     SPM.PPM.Sess(s).VHp.fname   = sprintf('Sess%d_SDerror.img',s);
     SPM.PPM.Sess(s).VHp.descrip = sprintf('Sess%d Error SD',s);
     spm_unlink(SPM.PPM.Sess(s).VHp.fname);
-    SPM.PPM.Sess(s).VHp   = spm_create_vol(SPM.PPM.Sess(s).VHp,'noopen');
+    SPM.PPM.Sess(s).VHp   = spm_create_vol(SPM.PPM.Sess(s).VHp);
 end
 
 % Initialise Posterior SD images
@@ -328,7 +328,7 @@ for i = 1:nPsd
 	VPsd(i).descrip = sprintf('Posterior SD of beta (%04d)',i);
 	spm_unlink(VPsd(i).fname)
 end
-VPsd   = spm_create_vol(VPsd,'noopen');
+VPsd   = spm_create_vol(VPsd);
 
 % Initialise AR images
 for s=1:nsess,
@@ -344,7 +344,7 @@ for s=1:nsess,
         SPM.PPM.Sess(s).VAR(i).descrip = sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
         spm_unlink(SPM.PPM.Sess(s).VAR(i).fname)
     end
-    SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR,'noopen');
+    SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR);
 end
 
 % Find number of pre-specified contrasts
@@ -373,8 +373,8 @@ for ic=1:ncon,
         'pinfo',  [1,0,0]',...
         'descrip',sprintf('PPM contrast SD - %d: %s',ic,SPM.xCon(ic).name));
     
-    SPM.xCon(ic).Vcon = spm_create_vol(SPM.xCon(ic).Vcon,'noopen');
-    V=spm_create_vol(V,'noopen');
+    SPM.xCon(ic).Vcon = spm_create_vol(SPM.xCon(ic).Vcon);
+    V=spm_create_vol(V);
     SPM.PPM.Vcon_sd(ic) = V;
 end
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
@@ -797,26 +797,6 @@ end
 %=======================================================================
 
 if S == 0, warning('No inmask voxels - empty analysis!'), end
-
-
- %-"close" written image files, updating scalefactor information
-%=======================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
-Vbeta      = spm_close_vol(Vbeta);
-VM         = spm_close_vol(VM);
-VPsd        = spm_close_vol(VPsd);
-for s=1:nsess,
-    SPM.PPM.Sess(s).VAR        = spm_close_vol(SPM.PPM.Sess(s).VAR);
-    SPM.PPM.Sess(s).VHp        = spm_close_vol(SPM.PPM.Sess(s).VHp);
-end
-% Close contrast and contrast variance images
-if ncon > 0
-    for ic=1:ncon,
-        SPM.xCon(ic).Vcon    = spm_close_vol(SPM.xCon(ic).Vcon);
-        SPM.PPM.Vcon_sd(ic)    = spm_close_vol(SPM.PPM.Vcon_sd(ic));
-    end
-end
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 %-Create 1st contrast for 'effects of interest' (all if not specified)
 %=======================================================================

@@ -7,7 +7,7 @@ function extras = read_extras(fname)
 % $Id$
 
 
-extras = [];
+extras = struct([]);
 [pth,nam,ext] = fileparts(fname);
 switch ext
 case {'.hdr','.img','.nii'}

@@ -58,6 +58,5 @@ for p=1:V.dim(3),
 		VO.dat(:,:,p) = single(img);
 	end;
 end;
-if nargout==0, VO = spm_close_vol(VO); end;
 return;
 %=======================================================================

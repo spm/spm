@@ -95,9 +95,8 @@ V = struct(...
 
 %-Write image
 %-----------------------------------------------------------
-V = spm_create_vol(V,'noopen');
+V  = spm_create_vol(V);
 V  = spm_write_vol(V,Y);
-V = spm_close_vol(V);
 
 SPM.PPM.Vcon_sd(ic)=V;
 

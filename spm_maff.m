@@ -46,16 +46,16 @@ if nargin>2,
 end;
 
 if nargin==0
-    V = spm_get(1,'*.IMAGE');
+    V = spm_select(1,'image');
 else
     V = varargin{1};
 end;
 if ischar(V), V = spm_vol(V); end;
 
 B = strvcat(...
-    fullfile(spm('Dir'),'apriori','gray.mnc'),...
-    fullfile(spm('Dir'),'apriori','white.mnc'),...
-    fullfile(spm('Dir'),'apriori','csf.mnc'));
+    fullfile(spm('Dir'),'tpm','grey.nii'),...
+    fullfile(spm('Dir'),'tpm','white.nii'),...
+    fullfile(spm('Dir'),'tpm','csf.nii'));
 
 opts0 = struct('M',eye(4), 'tpm',B,'regtyp','mni','fudge',9,'samp',2);
 

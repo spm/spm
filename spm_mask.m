@@ -98,6 +98,5 @@ for j=1:dim(3),
 
 	spm_progress_bar('Set',j);
 end;
-VO = spm_close_vol(VO);
 spm_progress_bar('Clear');
 return;

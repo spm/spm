@@ -13,8 +13,8 @@ function spm_procrustes_ui
 % $Id$
 
 
-P   = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
-PW  = spm_get(1,'*.img','Weighting image');
+P   = spm_select(Inf,'.*y_.*\.img$','Select deformation fields');
+PW  = spm_select(1,'image','Weighting image');
 flg = spm_input('Remove size?','+1','y/n',[1,0],1);
 n   = size(P,1);
 spm_progress_bar('Init',n,'Tweaking deformations','volumes completed');

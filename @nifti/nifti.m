@@ -14,7 +14,7 @@ case 0,
     for i=1:length(org),
         hdr.(org(i).label) = feval(org(i).dtype.conv,org(i).def);
     end;
-    h = struct('hdr',hdr,'dat',[],'extras',[]);
+    h = struct('hdr',hdr,'dat',[],'extras',struct([]));
     h = class(h,'nifti');
 case 1
     if ischar(varargin{1})
@@ -36,6 +36,11 @@ case 1
             if vol.hdr.sform_code == vol.hdr.qform_code,
                 vol.hdr = encode_qform0(extras.mat(:,:,1),vol.hdr);
             end;
+        end;
+
+        if isfield(extras,'M'), extras = rmfield(extras,'M'); end;
+        if isfield(extras,'mat') && size(extras.mat,3)<=1,
+            extras = rmfield(extras,'mat');
         end;
 
         dim   = double(vol.hdr.dim);
@@ -64,7 +69,7 @@ case 1
         h     = class(varargin{1},'nifti');
     elseif iscell(varargin{1})
         fnames = varargin{1};
-        h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',[]);
+        h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',struct([]));
         h     = class(h,'nifti');
         for i=1:numel(fnames),
             h(i) = nifti(fnames{i});

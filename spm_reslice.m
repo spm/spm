@@ -246,7 +246,6 @@ for i = 1:prod(size(P)),
 				end;
 			end;
 		end;
-		if write_vol, VO = spm_close_vol(VO); end;
 		nread = nread + 1;
 	end;
 	spm_progress_bar('Set',nread);

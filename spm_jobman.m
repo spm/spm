@@ -1910,14 +1910,14 @@ function c = initialise_struct(job,modality)
 % to it, and generally tidy it up.  The batch box
 % is updated to contain the current structure.
 
-
 persistent c0
 persistent w0
 if isempty(w0) || isempty(c0) || spm_jobman('HelpWidth') ~= w0,
     w0 = spm_jobman('HelpWidth');
     c0 = spm_config;
+    c0 = tidy_struct(c0);
 end;
-c = tidy_struct(c0);
+c = insert_defs(c0);
 if nargin==1 && ischar(job) && strcmp(job,'defaults'),
     c      = defsub(c,{});
     c.name = 'SPM Defaults';
@@ -1964,10 +1964,39 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
+function c = insert_defs(c)
+% Recursively descend through the tree structure, 
+% and assigning default values.
+if ~isstruct(c) || ~isfield(c,'type'),
+    return;
+end;
+switch c.type
+case {'menu','entry','files'}
+    if isfield(c,'def')
+        c.val = getdef(c.def);
+        if strcmp(c.type,'files') && ~isempty(c.val)
+            c.val = {cellstr(c.val{1})};
+        end;
+    end;
+case {'repeat'},
+    if isfield(c,'values') && strcmp(c.type,'repeat')
+        for i=1:numel(c.values)
+            c.values{i} = insert_defs(c.values{i});
+        end;
+    end;
+end;
+if isfield(c,'val')
+    for i=1:numel(c.val)
+        c.val{i} = insert_defs(c.val{i});
+    end;
+end;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
 function c = tidy_struct(c)
 % Recursively descend through the tree structure, cleaning up
-% fields that may be missing, adding an 'expanded' field
-% where necessary, and assigning default values.
+% fields that may be missing and adding an 'expanded' field
+% where necessary.
 
 if ~isstruct(c) || ~isfield(c,'name') || ~isfield(c,'type')
     return;
@@ -2096,29 +2125,29 @@ end;
 
 if ~isfield(c,'val'), c.val = {}; end;
 
-switch c.type
-case {'menu','entry','files'}
-    %if isempty(c.val)
-        if isfield(c,'def')
-            c.val = getdef(c.def);
-            if strcmp(c.type,'files') && ~isempty(c.val)
-                c.val = {cellstr(c.val{1})};
-            end;
-        end;
-    %end;
-end;
+%switch c.type
+%case {'menu','entry','files'}
+%    %if isempty(c.val)
+%        if isfield(c,'def')
+%            c.val = getdef(c.def);
+%            if strcmp(c.type,'files') && ~isempty(c.val)
+%                c.val = {cellstr(c.val{1})};
+%            end;
+%        end;
+%    %end;
+%end;
 
 if isfield(c,'val')
     for i=1:length(c.val)
         c.val{i} = tidy_struct(c.val{i});
     end;
 end;
-
 if isfield(c,'values') && strcmp(c.type,'repeat')
     for i=1:length(c.values)
         c.values{i} = tidy_struct(c.values{i});
     end;
 end;
+
 return;
 %------------------------------------------------------------------------
 

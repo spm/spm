@@ -24,31 +24,28 @@ function varargout=spm_platform(varargin)
 % FORMAT PlatFontName = spm_platform('font',GenFontName)
 % Maps generic (UNIX) FontNames to platform specific FontNames
 %
-% FORMAT SPM_PLATFORM = spm_platform('init',comp)
-% Initialises platform specific parameters in global SPM_PLATFORM
+% FORMAT PLATFORM = spm_platform('init',comp)
+% Initialises platform specific parameters in persistent PLATFORM
 % (External gateway to init_platform(comp) subfunction)
 % comp         - computer to use [defaults to MatLab's `computer`]
-% SPM_PLATFORM - copy of global SPM_PLATFORM
+% PLATFORM - copy of persistent PLATFORM
 %
 % FORMAT spm_platform
-% Initialises platform specific parameters in global SPM_PLATFORM
+% Initialises platform specific parameters in persistent PLATFORM
 % (External gateway to init_platform(computer) subfunction)
-%
-% FORMAT spm_platform('clear')
-% Clears global SPM_PLATFORM containing platform specific parameters 
 %
 %                           ----------------
 % SUBFUNCTIONS:
 %
 % FORMAT init_platform(comp)
-% Initialise platform specific parameters in global SPM_PLATFORM
+% Initialise platform specific parameters in persistent PLATFORM
 % comp         - computer to use [defaults to MatLab's `computer`]
 %
 %-----------------------------------------------------------------------
 %
 % Since calls to spm_platform will be made frequently, most platform
-% specific parameters are stored as a structure in the global variable
-% SPM_PLATFORM. Subsequent calls use the information from this global
+% specific parameters are stored as a structure in the persistent variable
+% PLATFORM. Subsequent calls use the information from this persistent
 % variable, if it exists.
 %
 % Platform specific difinitions are contained in the data structures at
@@ -64,8 +61,8 @@ function varargout=spm_platform(varargin)
 
 %-Initialise
 %-----------------------------------------------------------------------
-global SPM_PLATFORM
-if isempty(SPM_PLATFORM), init_platform, end
+persistent PLATFORM
+if isempty(PLATFORM), PLATFORM = init_platform; end
 
 if nargin==0, return, end
 
@@ -73,17 +70,13 @@ if nargin==0, return, end
 switch lower(varargin{1}), case 'init'                  %-(re)initialise
 %=======================================================================
 init_platform(varargin{2:end})
-varargout = {SPM_PLATFORM};
+varargout = {PLATFORM};
    
-case 'clear'                                       %-Clear SPM_PLATFORM
-%=======================================================================
-clear global SPM_PLATFORM
-
 case 'bigend'                      %-Return endian for this architecture
 %=======================================================================
-varargout = {SPM_PLATFORM.bigend};
-if ~finite(SPM_PLATFORM.bigend),
-	if isnan(SPM_PLATFORM.bigend)
+varargout = {PLATFORM.bigend};
+if ~finite(PLATFORM.bigend),
+	if isnan(PLATFORM.bigend)
 		error(['I don''t know if "',computer,'" is big-endian.'])
 	else
 		error(['I don''t think that "',computer,...
@@ -93,20 +86,20 @@ end
 
 case 'filesys'                                      %-Return file system
 %=======================================================================
-varargout = {SPM_PLATFORM.filesys};
+varargout = {PLATFORM.filesys};
 
 case 'sepchar'                         %-Return file separator character
 %=======================================================================
 warning('use filesep instead (supported by MathWorks)')
-varargout = {SPM_PLATFORM.sepchar};
+varargout = {PLATFORM.sepchar};
 
 case 'rootlen'           %-Return length in chars of root directory name 
 %=======================================================================
-varargout = {SPM_PLATFORM.rootlen};
+varargout = {PLATFORM.rootlen};
 
 case 'user'                                         %-Return user string
 %=======================================================================
-varargout = {SPM_PLATFORM.user};
+varargout = {PLATFORM.user};
 
 case 'tempdir'                              %-Return temporary directory
 %=======================================================================
@@ -119,19 +112,19 @@ varargout = {twd};
 
 case {'font','fonts'}    %-Map default font names to platform font names
 %=======================================================================
-if nargin<2, varargout={SPM_PLATFORM.font}; return, end
+if nargin<2, varargout={PLATFORM.font}; return, end
 switch lower(varargin{2})
 case 'times'
-	varargout = {SPM_PLATFORM.font.times};
+	varargout = {PLATFORM.font.times};
 case 'courier'
-	varargout = {SPM_PLATFORM.font.courier};
+	varargout = {PLATFORM.font.courier};
 case 'helvetica'
-	varargout = {SPM_PLATFORM.font.helvetica};
+	varargout = {PLATFORM.font.helvetica};
 case 'symbol'
-	varargout = {SPM_PLATFORM.font.symbol};
+	varargout = {PLATFORM.font.symbol};
 otherwise
 	warning(['Unknown font ',varargin{2},', using default'])
-	varargout = {SPM_PLATFORM.font.helvetica};
+	varargout = {PLATFORM.font.helvetica};
 end
 
 otherwise                                        %-Unknown Action string
@@ -148,10 +141,9 @@ end
 %=======================================================================
 
 
-function init_platform(comp)             %-Initialise platform variables
+function PLATFORM = init_platform(comp)             %-Initialise platform variables
 %=======================================================================
 if nargin<1, comp=computer; end
-global SPM_PLATFORM
 
 %-Platform definitions
 %-----------------------------------------------------------------------
@@ -183,15 +175,12 @@ if isempty(ci), error([comp,' not supported architecture for SPM']), end
 
 %-Set bigend
 %-----------------------------------------------------------------------
-SPM_PLATFORM.bigend = PDefs(ci).endian;
-% Commented out as ISIEEE is obsolete and will be removed in future
-% versions of MATLAB:
-%if ~isieee, SPM_PLATFORM.bigend = Inf; end	%-Last check for IEEE math
+PLATFORM.bigend = PDefs(ci).endian;
 
 
 %-Set filesys
 %-----------------------------------------------------------------------
-SPM_PLATFORM.filesys = PDefs(ci).filesys;
+PLATFORM.filesys = PDefs(ci).filesys;
 
 
 %-Set filesystem dependent stuff
@@ -200,37 +189,37 @@ SPM_PLATFORM.filesys = PDefs(ci).filesys;
 %-Length of root directory strings
 %-User name finding
 %-(mouse button labels?)
-switch (SPM_PLATFORM.filesys)
+switch (PLATFORM.filesys)
 case 'unx'
-	SPM_PLATFORM.sepchar = '/';
-	SPM_PLATFORM.rootlen = 1;
-	SPM_PLATFORM.user    = getenv('USER');
+	PLATFORM.sepchar = '/';
+	PLATFORM.rootlen = 1;
+	PLATFORM.user    = getenv('USER');
 case 'win'
-	SPM_PLATFORM.sepchar = '\';
-	SPM_PLATFORM.rootlen = 3;
-	SPM_PLATFORM.user    = getenv('USERNAME');
-	if isempty(SPM_PLATFORM.user)
-		SPM_PLATFORM.user = spm_win32utils('username'); end
+	PLATFORM.sepchar = '\';
+	PLATFORM.rootlen = 3;
+	PLATFORM.user    = getenv('USERNAME');
+	if isempty(PLATFORM.user)
+		PLATFORM.user = spm_win32utils('username'); end
 otherwise
-	error(['Don''t know filesystem ',SPM_PLATFORM.filesys])
+	error(['Don''t know filesystem ',PLATFORM.filesys])
 end
 
 %-Fonts
 %-----------------------------------------------------------------------
 switch comp
 case {'SOL2'}	%-Some Sol2 platforms give segmentation violations with Helvetica
-	SPM_PLATFORM.font.helvetica = 'Lucida';
-	SPM_PLATFORM.font.times     = 'Times';
-	SPM_PLATFORM.font.courier   = 'Courier';
-	SPM_PLATFORM.font.symbol    = 'Symbol';
+	PLATFORM.font.helvetica = 'Lucida';
+	PLATFORM.font.times     = 'Times';
+	PLATFORM.font.courier   = 'Courier';
+	PLATFORM.font.symbol    = 'Symbol';
 case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC'}
-	SPM_PLATFORM.font.helvetica = 'Helvetica';
-	SPM_PLATFORM.font.times     = 'Times';
-	SPM_PLATFORM.font.courier   = 'Courier';
-	SPM_PLATFORM.font.symbol    = 'Symbol';
+	PLATFORM.font.helvetica = 'Helvetica';
+	PLATFORM.font.times     = 'Times';
+	PLATFORM.font.courier   = 'Courier';
+	PLATFORM.font.symbol    = 'Symbol';
 case {'PCWIN'}
-	SPM_PLATFORM.font.helvetica = 'Arial Narrow';
-	SPM_PLATFORM.font.times     = 'Times New Roman';
-	SPM_PLATFORM.font.courier   = 'Courier New';
-	SPM_PLATFORM.font.symbol    = 'Symbol';
+	PLATFORM.font.helvetica = 'Arial Narrow';
+	PLATFORM.font.times     = 'Times New Roman';
+	PLATFORM.font.courier   = 'Courier New';
+	PLATFORM.font.symbol    = 'Symbol';
 end

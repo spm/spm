@@ -129,7 +129,7 @@ for i = 1:nBeta
 	Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
 end
-Vbeta = spm_create_vol(Vbeta,'noopen');
+Vbeta = spm_create_vol(Vbeta);
 
 %-Intialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
@@ -152,7 +152,7 @@ for i = 1:nHp
 	VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
 	spm_unlink(VHp(i).fname)
 end
-VHp   = spm_create_vol(VHp,'noopen');
+VHp   = spm_create_vol(VHp);
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 
@@ -364,16 +364,6 @@ for i = 1:s
 	PPM.dC{i}(v,v)  = dC(j,j);
 	PPM.ddC{i}(v,v) = ddC(j,j);
 end
-
-
-%-"close" written image files, updating scalefactor information
-%=======================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
-Vbeta      = spm_close_vol(Vbeta);
-VHp        = spm_close_vol(VHp);
-
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
-
 
 %-Save remaining results files and analysis parameters
 %=======================================================================

@@ -67,9 +67,7 @@ switch(xCon(Ic).STAT)
         fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
         xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
         xCon(Ic).Vcon.pinfo(1,1) = spm_add(V, xCon(Ic).Vcon);
-        xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon, 'noopen');
-        xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
+        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
         
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
             '...written %s',spm_str_manip(xCon(Ic).Vcon.fname, 't')))%-#
@@ -99,9 +97,7 @@ switch(xCon(Ic).STAT)
         fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
         xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
         xCon(Ic).Vcon = spm_resss(SPM.Vbeta,xCon(Ic).Vcon,h);
-        xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
-        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon,'noopen');
-        xCon(Ic).Vcon = spm_close_vol(xCon(Ic).Vcon);
+        xCon(Ic).Vcon = spm_create_vol(xCon(Ic).Vcon);
 
 end
 SPM.xCon = xCon;

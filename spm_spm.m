@@ -521,7 +521,7 @@ VM    = struct(		'fname',	'mask.img',...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:resultant analysis mask');
-VM    = spm_create_vol(VM,'noopen');
+VM    = spm_create_vol(VM);
 
 
 %-Intialise beta image files
@@ -538,7 +538,7 @@ for i = 1:nBeta
 	Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.name{i});
 	spm_unlink(Vbeta(i).fname)
 end
-Vbeta = spm_create_vol(Vbeta,'noopen');
+Vbeta = spm_create_vol(Vbeta);
 
 
 %-Intialise residual sum of squares image file
@@ -549,7 +549,7 @@ VResMS = struct(	'fname',	'ResMS.img',...
 			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
-VResMS = spm_create_vol(VResMS,'noopen');
+VResMS = spm_create_vol(VResMS);
 
 
 %-Intialise residual images
@@ -567,7 +567,7 @@ for i = 1:nSres
 	VResI(i).descrip = sprintf('spm_spm:ResI (%04d)', i);
 	spm_unlink(VResI(i).fname);
 end
-VResI = spm_create_vol(VResI,'noopen');
+VResI = spm_create_vol(VResI);
 end % (xX,'W')
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
@@ -782,18 +782,6 @@ spm_progress_bar('Clear')
 %=======================================================================
 if S == 0, warning('No inmask voxels - empty analysis!'), end
 
-%-close written image files (unless 1st pass)
-%=======================================================================
-if isfield(xX,'W')
-
-	fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')  %-#
-	VM              = spm_close_vol(VM);
-	Vbeta           = spm_close_vol(Vbeta);
-	VResI           = spm_close_vol(VResI);
-	VResMS          = spm_close_vol(VResMS);
-
-end % (xVi,'V')
-
 %-average sample covariance and mean of Y (over voxels)
 %-----------------------------------------------------------------------
 CY          = CY/S;
@@ -881,7 +869,7 @@ xX.Bcov         = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
 %-Set VResMS scalefactor as 1/trRV (raw voxel data is ResSS)
 %-----------------------------------------------------------------------
 VResMS.pinfo(1) = 1/xX.trRV;
-VResMS          = spm_create_vol(VResMS,'noopen');
+VResMS          = spm_create_vol(VResMS);
 
 % Do not store a default effects of interest F-contrast
 % and do not create other contrasts automatically
@@ -913,8 +901,6 @@ end
 %-----------------------------------------------------------------------
 xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
-
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
 
 %-Save remaining results files and analysis parameters
 %=======================================================================

@@ -23,10 +23,11 @@ end;
 N = nifti(P);
 if nargin==2,
     if n(1)==1,
-        N.mat = M;
+        N.mat        = M;
+	N.mat_intent = 'Aligned';
         if ~isempty(N.extras) && isstruct(N.extras) && isfield(N.extras,'mat') &&...
-            size(N.extras.mat,3)>=1 && ~sum(N.extras.mat(:,:,1)),
-            N.extras.mat(:,:,1) = M;
+            size(N.extras.mat,3)>=1,
+            N.extras.mat(:,:,n(1)) = M;
         end;
     else
         if sum((N.mat(:)-M(:)).^2) > 1e-4,
@@ -42,3 +43,4 @@ else
         M = N.mat;
     end;
 end;
+
