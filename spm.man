@@ -1,6 +1,6 @@
 
-% Statistical Parametric Mapping - SPM99b
-% SPM2 is the beta public release of SPM'2   -   released 01/10/2002
+% Statistical Parametric Mapping - SPM2b
+% SPM2 is the beta public release of SPM'2   -   released XX/11/2002
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -8,7 +8,6 @@
 % \__ \ )___/ )    (   Statistical Parametric Mapping
 % (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
 %
-%    John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 % ______________________________________________________________________
 %
 %    Statistical Parametric Mapping refers to the construction and
@@ -25,10 +24,7 @@
 %                           ----------------
 % Contents:
 %      1) SPM - The software
-%      2) Release notes for SPM99
-%      3) SPM99b: Updates since the beta release
-%      4) Release notes for SPM2
-%      5) SPM Toolboxes
+%      2) Release notes for SPM2
 % 
 %
 % ======================================================================
@@ -48,30 +44,32 @@
 %                                                                Authors
 %
 % SPM is developed under the auspices of The Wellcome Department of
-% Cognitive Neurology, a department of the Institute of Neurology at
+% Imaging Neuroscience, a department of the Institute of Neurology at
 % University College London.
 %
 % SPM94 was written primarily by Karl Friston in the first half of
 % 1994, with assistance from John Ashburner (MRC-CU), Jon Heather
-% (WDoCN), and Andrew Holmes (Department of Statistics, University of
+% (WDoIN), and Andrew Holmes (Department of Statistics, University of
 % Glasgow). Subsequent development, under the direction of Prof. Karl
-% Friston at the Wellcome Department of Cognitive Neurology, has
+% Friston at the Wellcome Department of Imaging Neuroscience, has
 % benefited from substantial input (technical and theoretical) from:
-% John Ashburner (WDoCN), Andrew Holmes (WDoCN & Robertson Centre for
+% John Ashburner (WDoIN), Andrew Holmes (WDoIN & Robertson Centre for
 % Biostatistics, University of Glasgow, Scotland), Jean-Baptiste Poline
-% (WDoCN & CEA/DRM/SHFJ, Orsay, France), Christian Buechel (WDoCN),
-% Matthew Brett (MRC-CBU, Cambridge, England), Chloe Hutton (WDoCN) and
+% (WDoIN & CEA/DRM/SHFJ, Orsay, France), Christian Buechel (WDoIN),
+% Matthew Brett (MRC-CBU, Cambridge, England), Chloe Hutton (WDoIN) and
 % Keith Worsley (Department of Statistics, McGill University, Montreal,
 % Canada).
 %
-% SPM99 was developed by: John Ashburner (spatial, image handling),
-% Karl Friston (project director, fMRI design), Andrew Holmes (project
-% management, statistics, user interfaces), Jean-Baptiste Poline
-% (statistics, batch system (with Stephanie Rouquette)), with
-% contributions from Matthew Brett (WinNT implementation, misc. stats),
-% and theoretical input from Keith Worsley.
-%
-% We would like to thank everyone who has provided feedback on SPM.
+% SPM2 was developed by: John Ashburner (spatial, image handling),
+% Karl Friston (project director, fMRI design), Andrew Holmes
+% (statistics, user interfaces), Jean-Baptiste Poline (statistics,
+% batch system), Philippe Ciuciu (batch system), Tom Nichols (statistics),
+% Matthew Brett (WinNT implementation and other stuff), Volkmar
+% Glauche (visualisation) & Darren Gitelman (various bits).
+% Theoretical input was provided by Christian Buchel, Daniel Glaser,
+% Rik Henson, Stefan Kiebel, Will Penny, Keith Worsley and loads of
+% other people. We would like to thank everyone who has provided
+% feedback on SPM.
 %
 % We envisage that this software will be used in a diverse number of
 % ways.  Although SPM has grown out of a PET background, it is now an
@@ -97,11 +95,6 @@
 % 
 %                           ----------------
 %
-% Unfortunately we have insufficient resources to support SPM as a
-% commercial package. Thus, there is no user guide for SPM. However,
-% the software itself offers help and documentation at three levels,
-% described in spm_help.m
-%
 % In order to use the advanced spatial, statistical modelling and
 % inference tools of SPM, it is vital to have at least a conceptual
 % understanding of the theoretical underpinnings. Therefore, we
@@ -124,19 +117,13 @@
 % eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 % special toolboxes are required).
 % 
-% SPM99 is written for Matlab 5.2.1 under UNIX, LINUX and
-% Windows(95/98/NT). (SPM will not work with versions of Matlab 5 prior
-% to 5.2.1, including Matlab 4.)
+% SPM2b is written for Matlab versions 5.2.1, 6.0 and 6.5 under UNIX,
+% LINUX and Windows(95/98/NT). (SPM will not work with versions of
+% Matlab 5 prior to 5.2.1, including Matlab 4.)
 % 
-% The current version was developed and tested on 200MHz UltraSPARC 2
-% workstations (128Mb RAM, 200Mb swap) under Solaris2.5.1
-% (OpenWindows3.5.1) using MATLAB version 5.2.1.
-%
-% Binaries of the external C-mex routines are provided for Solaris,
-% Linux and Windows only, users of other UNIX platforms need an ANSI C
-% compiler to compile the supplied C source (Makefile provided:
-% spm_MAKE). See http://www.fil.ion.ucl.ac.uk/spm/distrib.html for
-% additional details.
+% Binaries of the external C-mex routines are provided for Solaris and
+% Linux only, users of other UNIX platforms need an ANSI C
+% compiler to compile the supplied C source (Makefile provided)
 % ______________________________________________________________________
 %                                                  Copyright & licencing
 % 
@@ -210,559 +197,8 @@
 % software, although we will collaborate in developing SPM memory
 % mapping read-modules for popular image formats for inclusion in SPM.
 %
-%
-%
-%
 % ======================================================================
-% 2)               Release Notes for   S P M 9 9
-% ======================================================================
-%
-% SPM99 was a major update to the SPM software, containing substantial
-% theoretical, algorithmic, organisational and interface enhancements
-% over previous versions.
-% 
-% ______________________________________________________________________
-%                                                               OVERVIEW
-%
-% Spatial
-%  - support for re-orienting images via their ".mat" files
-%  - Realign
-%        - handles multiple fMRI sessions
-%        - two pass procedure for PET realignment (images registered to mean)
-%        - checks for stopping criterion
-%        - Fourier interpolation (for data with isotropic voxels)
-%        - algorithm generally improved
-%        - saves realignment parameters for use as confounds to stats
-%  - Segment
-%        - simultaneous nonuniformity correction
-%        - fixed problem with prior probability images
-%  - Coregister
-%        - "tweaked" for slightly better results
-%        - extended for other modalities
-%        - optional mutual information registration
-%  - Normalize
-%        - affine part made more stable by using a MAP scheme
-%        - improved regularization for nonlinear part
-%        - optional weighting so that out of brain structures don't contribute
-%        - new templates
-%  - Slice timing
-%        - temporal resampling of fMRI time series
-%        - to correct differences in slice timing of 2D acquisitions
-%  - Enhanced cortical surface extraction for rendering
-%
-% Volume I/O
-%  - copes with byte-swapped Analyze format data
-%  - re-working of memory mapping to overcome 2 or 4 Gbyte datasize limit
-%  - modular image mapping code - support for reading CTI & MINC data
-%
-% Completely re-structured & re-written statistics section
-%  - split into three stages: setup, estimation, and assessment (results)
-%    - setup saves an SPMcfg.mat file which can be run in batch mode
-%    - fMRI models can be re-used: Design information saved in SPM-fMRIDesMtx.mat
-%  - estimation stage can be run in batch mode
-%  - enhanced event related fMRI modelling
-%  - band-pass filtering for fMRI time series
-%  - intrinsic temporal autocorrelation estimation
-%  - enhanced PET models
-%    - subject separable ready for random effects
-%    - time order entry of images in PET/SPECT & basic stats
-%    - enter all scans for a subject, indicate conditions by "abababa"...
-%    - design matrix shows actual experimental design
-%    - easier enterng of covariates (don't have to reorder)
-%    - customisable via documented "design definition structure"
-%  - new "basic stats designs" - t-tests, Anova, regression &c
-%  - implicit masking: Dummy value for out-of-brain voxels (0 or NaN)
-%  - explicit masking: mask images
-%  - absolute & proportional threshold masking
-%  - user-defined globals (for clinical applications)
-%  - supports masked data, explicit masks, and negative data
-%  - efficient handling of design spaces via space structures (JBP)
-%  - statistics results files are plain image files
-%    - parameter estimates, variance estimates, contrasts and SPM's
-%    - mask images, showing exactly the volume analyzed
-%  - integrated random effects for balanced designs, via multi-level analyses
-%  - contrasts entered after estimation (in the results section)
-%  - new "contrast manager": contrast naming and validity checking
-%  - "F-contrasts" (JBP) to specify F-tests (& hence two-sided T-tests)
-%    - flexible specification of general linear hypotheses
-%    - model comparison
-%    - efficiently computed from projections of parameter estimates
-%  - inference directly on t & F fields
-%    - no "Gaussianisation" of statistic images
-%    - tabular summaries give equivalent Z-values
-%  - small volume corrections (Keith Worsleys' unified theory)
-%  - new conjunctions formulation (as minimum field) - with K Worsley
-%  - contrast orthogonalisation for conjunctions
-%  - inclusive & exclusive masking (allowing old-style conjunctions)
-%  - no "F-thresholding" of results saved for analysis
-%    - results available at all voxels within 
-%    - only of voxels whose data is saved for plotting
-%  - raw data saved at F-significant voxels in compressed format for plotting
-%    - much smaller stats files than old "XA.mat" files
-%  - integrated interactive results, contrast and design interrogation section
-%  - "surfable" design matrices
-%  - clearer tabular output of p-values and statistics
-%    - active table - click to extract data or jump to location
-%    - ASCII text output of p-value & statistics table
-%  - enhanced plotting routines, particularly for event-related fMRI
-% ...bags of other stuff... (I can't remember what SPM96 did!)
-%
-% New utilities
-%  - enhanced image algebra (ImCalc)
-%    - powerful command -line options
-%  - improved display facility - *.mat file sensitive
-%  - CheckReg - clickable ortho projections of two images side by side
-%  - improved rendering facility with cortical surface extraction utility
-%  - brain extraction routine
-%  - file and directory management from the GUI
-%
-% Enhanced GUI & command line use
-%  - range checking of input
-%  - context menus (right mouse button)
-%  - command line input has access to base workspace
-%  - assisted input of parameters from ASCII files
-%  - neater "crashing out" of GUI i/o
-%    - just press "Clear", or use "crash out" ContextMenus
-%  - timestamping in command window
-%  - dynamic progress reporting in command window
-%  - more robust GUI / no-GUI handling
-%  - additional input dialogs
-%  - full command line support for question answering
-%    - except results section, which is GUI orientated
-%  - context help and ToolTips
-%  - alerts & dialogs
-%  - ToolTips
-%  - context help for most functions
-%  - enhanced graphics editing in SPM graphics window
-%  - neater window handling
-%
-% Re-written for Matlab version 5 (5.2.1 or greater required)
-%  - no additional toolboxes required
-%  - simplified structure
-%  - better documented interfacces and file formats
-%  - numerous i/o, file & GUI handling primitives
-%  - comprehensive statistical distribution functions
-%
-% Cross platform support
-%  - Solaris, Linux & WindowsNT supported "out of the box"
-%    ( *.mexsol, *.mexlx & *.dll's provided)
-%  - makefile supports many other UNIX platforms
-%
-% ______________________________________________________________________
-%                                          FILE FORMATS & MEMORY MAPPING
-%
-% The functions for reading and writing images have changed.  All writing
-% of images is via the functions spm_create_vol and spm_write_plane (even
-% mex routines now call these functions).
-% 
-% A handle for an image volume is now via the "spm_vol" function:
-% 	V   = spm_vol('filename.img');
-% The structure "V" is a structure or a matrix/cell-array of structures
-% taking a similar form to the matrix/cell-array of strings that define
-% the image file names.  The form of each element of V is described in
-% spm_vol.m.  Sampling the image still involves passing the handle to
-% spm_slice_vol, or spm_sample_vol.  Because of the limitation on the
-% amount of virtual memory allowed for a process (either 2 or 4 Gbytes,
-% depending on the OS), the actual mapping is done as the data is
-% required, and not at the spm_vol stage. Because mapping is done on
-% the fly  (from the image filename stored in the handle structure),
-% handles from spm_vol.m can be saved and used across Matlab sessions
-% (provided the files haven't moved).
-% 
-% A number of new data types are supported, including signed and unsigned
-% versions of existing types, and also byte-swapped versions. Also, the
-% volume no longer needs to be contiguous, and each slice can have
-% different scalefactor and offset, so formats such as ECAT 6 could in
-% theory be supported.
-% 
-% Byte-swapped Analyze files can now be read, so mixing different computer
-% architectures on the same network should be less of a problem.
-% 
-% ECAT 7 files can now be read, providing that they only contain a single
-% frame (matrix number 1010001).  Some MINC files can also be read,
-% although I'm not sure about all the different possible ways of
-% representing images in the MINC format.  I'm not 100% sure about the
-% MINC stuff, so it may be worth checking this out properly.  Full support
-% for many other formats could be added by modifying:
-% spm_vol.m, spm_get_space.m, spm_create_vol.m and spm_write_plane.m.
-% 
-% ______________________________________________________________________
-%                                                                SPATIAL
-%
-% * Realign
-%
-% A number of modifications have been made to the realignment module.
-% Many of these reflect the questions asked on the SPM discussion list.
-% The realignment can be thought of as three components: parameter
-% estimation, image resampling and correction of motion artifacts
-% (adjustment).
-% 
-% fMRI sessions are now handled differently, because of the assumption
-% that there may be systematic differences between the images in
-% different sessions.  The first volume of each session is now aligned
-% to the first volume of the first session.  Subsequent volumes in each
-% session are then aligned to the first volume of the session. This should
-% acheive increased accuracy within session, since all the images are
-% aligned to an image from the same session.  This also saves time,
-% because subject movement between sessions tends to be larger than
-% subject movement within session.  The large systematic differences
-% between sessions are therefore removed in the first realignment step.
-% Adjustment is performed separately for each session, but the same mask
-% for writing the realigned images is used for all images of all sessions.
-%  
-% PET realignment is now a two pass procedure.  The first pass aligns all
-% the images to the first image in the series.  A mean of the realigned
-% images is created, and the second pass aligns all the images to the
-% mean.  The second pass effectively matches the images to a less noisy
-% template, and so should result in more accurate movement estimates.
-% 
-% Previously, the estimates of motion continued for a fixed number of
-% iterations.  This may be OK for small movements, but was inadequate for
-% large ones.  The realignment now continues until a stopping criterion
-% has been acheived.
-% 
-% Movement estimation begins by using (faster but less accurate)
-% tri-linear interpolation to resample the data.  The final iterations are
-% done using sinc interpolation in order to obtain the final high
-% accuracy.
-% 
-% The algorithm for the SPM96 motion correction was very similar to that
-% of the previous version (SPM94).  However, both these implementations
-% included an assumption about the rate of change of sum of squared
-% difference with respect to parameter changes that only held when the
-% rotations were small.  This has been fixed.
-% 
-% Occasionally it may be necessary to attempt to sample voxels that lie
-% outside the field of view of the original image.  The parameter
-% estimates in the SPM96 implementation assumed that the values of such
-% voxels should be zero.  In SPM99, these voxels are excluded from the
-% computation of motion estimates.
-% 
-% The sinc interpolation has changed.  In the previous version, the width
-% of the hanning window was 1 pixel narrower than the optimal width.  This
-% has been fixed.  Also, the integral under the sinc kernal has been set
-% to one (by a renormalizing step).  Both odd and even numbers of
-% neighbours can now be used by the interpolation.  Windowed sinc
-% interpolation schemes are acheived by passing a negative hold to
-% functions such as spm_sample_vol.  Positive holds will result in
-% polynomial (Lagrange) interpolation being used, whereas negative holds
-% use sinc interpolation.  The gradient of the images can also be directly
-% obtained by spm_sample_vol.
-% 
-% A three dimensional Fourier interpolation has been implemented that is
-% based on the paper by Eddy et al.  This method is used for resampling
-% fMRI data, but it requires the voxel sizes of the images to all be
-% isotropic (since zooming can not be performed using this method).
-% Preliminary tests showed that this method did not greatly reduce the
-% resampling errors.
-% 
-% The fMRI adjustment has been modified.
-% Rather than removing signal that is correlated to functions of the six
-% parameters describing the rigid body movement of the subject, the
-% adjustment now uses functions that are dependant upon the displacement
-% of each voxel.  This requires three parameters to describe it rather
-% than six, but it is now a different function for each voxel.  The
-% functions that are covaried from the data are periodic in terms of the
-% number of voxels displaced, and are based upon sines and cosines of the
-% number of voxels displaced.  e.g., the functions for a displacement of
-% two voxels are identical to the functions for a displacement of one
-% voxel.  The functions were appropriate for simulated data, and with
-% phantom data that was "moved" by moving the field of view of the
-% scanner.  However, the method is not quite so good for real subject
-% movement within the scanner.
-% 
-% The adjustment step is now regularized.
-% This regularization is based upon Bayesian statistics which states that:
-% 	p(a|b) \propto p(b|a) \times p(a)
-% If (a) is the coefficients of the regressors, and (b) is the data, we
-% wish to find the suitable values for (a) which maximize the posteriori
-% probability of (a) given (b).  Taking the Gibb's transform of these
-% functions gives us:
-% 	H(a|b) = H(b|a) + H(a) + c
-% which expresses the Bayesian furmulation in terms of energy cost
-% functions.  The objective is now to find the coefficients that minimize
-% the cost function.  The model assumes that the errors on (b) are
-% normally distributed, and that H(b|a) is proportional to the residual
-% sum of squares between the data and the fitted function.  Probability
-% distributions for H(a) are estimated by translating the first image of
-% the series by different amounts, using the windowed sinc function, and
-% Fourier interpolation.  This allows an estimate to be made for the a
-% priori distribution of the errors.
-% 
-%                           ----------------
-% * Slice timing
-%
-% A button has been added for correcting fMRI time series data for the
-% differences in image acquisition time between slices.  It is based on
-% ACQCORRECT by Mark D'Exposito, Geof Aquirre and Eric Zarahn at U. Penn
-% which was modified (to NMH_ACQCORRECT) by Darren Gitelman at
-% Northwestern U and in turn modified by Rick Henson and Christian Buechel
-% and John Ashburner at the FIL.
-% Note that there is nothing at all spatial about this procedure.  It is
-% included here because it is an optional pre-processing step that should
-% improve results - especially for event related studies.
-% 
-%                           ----------------
-% * Segment
-%
-% An error with the a priori probability images has been fixed (see
-% Problem with Templates and Probability Images).
-% 
-% Segmentation now includes a bias correction, but extensive evaluation
-% of this has not been performed. The theory for the bias correction was
-% described by a poster at HBM'98:
-% J. Ashburner and K. J. Friston (1998). "MRI Sensitivity Correction and
-% Tissue Classification". NeuroImage 7(4):S107.
-% The basic partitioning algorithm is described in:
-% Ashburner and Friston (1997), NeuroImage 6(3):209-217.
-% 
-%                           ----------------
-% * Coregister
-%
-% Inter-modality registration is normally a three step procedure.  The
-% first step involves simultaneous constrained affine registration of the
-% images to a template.  The affine registration in this step is now more
-% stable because it has been regularized as described in:
-% J. Ashburner, P. Neelin, D. L. Collins, A. C. Evans and K. J. Friston
-% (1997).  "Incorporating Prior Knowledge into Image Registration".
-% NeuroImage 6:344-352.
-% New templates have been developed for this stage, including an EPI
-% template for T2* fMRI.  The new templates are described in
-% templates.man.
-% 
-% The second step is segmentation, which has been improved by having more
-% correct images of prior probability.  Other tweeks have also been done
-% in order to improve the results slightly.  For example, better PET/MR
-% registration is possible when the CSF partition is not used.  The method
-% is described and evaluated on a small dataset in:
-% J. Ashburner and K. J. Friston (1997).  "Multimodal Image Coregistration
-% and Partitioning - a Unified Framework".  NeuroImage 6(3):209-217
-% 
-%                           ----------------
-% * Normalize
-%
-% The estimation of spatial normalization parameters consists of two
-% parts: affine registration and basis function registration.  The affine
-% registration has been made more robust by placing it within a Bayesian
-% framework.  Zooms and shears from a large number of different brains
-% provide knowledge of the a priori variability of brain sizes.  The full
-% method is described in:
-% J. Ashburner, P. Neelin, D. L. Collins, A. C. Evans and K. J. Friston
-% (1997).  "Incorporating Prior Knowledge into Image Registration".
-% NeuroImage 6:344-352.
-% 
-% The basis function registration is now more stable.  Part of the
-% problem was because of edge effects due to the smoothing (because
-% values outside the FOV are unknown).  Voxels less than 8mm from the
-% edge are now used in the intensity matching.  The regularization has
-% been increased in order to improve stability.  Improved estimates of
-% the likelihood potential have been made by considering the image
-% smoothness when estimating the degrees of freedom.  A bug was found in
-% SPM96 in the computation of the rate of change of the cost function
-% with respect to changes in the parameters.  This occured because the
-% gradient computation was based on the gradient computation code from
-% SPM95 (which was also slightly wrong).  It has subsequently been fixed.
-% 
-% In principle, the spatial normalization can fit an image to a linear
-% combination of templates.  This didn't work in SPM96, but has now been
-% fixed.  An error with the templates has also been remedied (see Problem
-% with Templates and Probability Images).
-% 
-% Weighting images can now be used to mask out regions of the images not
-% to be included in the computations.  Use of a weighting image to mask
-% out the effects of scalp is described briefly in:
-% J. Ashburner, C. Hutton, R.S.J. Frackowiak, I. Johnsrude, C. Price and
-% K. J. Friston (1998).  "Identifying Global Anatomical Differences:
-% Deformation-Based Morphometry".  Human Brain Mapping 6(5):348-357
-% A weighting image can also be used to mask out strokes, tumours etc.
-% 
-% Graphical display of spatially normalized images is improved - (see
-% Check Reg)
-%
-% New templates for spatial normalization are included with this release.
-% 
-% The basis function spatial normalization is described in:
-% J. Ashburner and K. J. Friston (submitted).  "Nonlinear Spatial
-% Normalization using Basis Functions".  Human Brain Mapping
-%  
-%                           ----------------
-% * Brain Extraction
-%
-% A utility has been added that will take grey and white matter segments
-% (from Segment) and clean them up to produce an extracted brain.  This
-% will also produce optional rendering images that can be used by the
-% Render button. 
-%
-%                           ----------------
-% * Render
-%
-% Rendering can now display up to three sets of blobs.  Each pattern of
-% blobs is displayed in red, green or blue in a semi-transparent brain.
-% The intensity of voxels inside brain decays exponentially with distance.
-% Extra pre-defined rendering images have been included.  There is a
-% higher resolution image of a single subject brain, and also a smooth
-% average brain surface (which I prefer because it is not as misleading).
-% Other brain surfaces can also be used (see Brain Extraction) below.
-% 
-%                           ----------------
-% * Check Reg
-%
-% Allows orthogonal sections through any pair of registered images to be
-% displayed.  Clicking anywhere in one of the images shifts the centre of
-% the orthogonal sections (see Display).  Intended for checking
-% registration and spatial normalization results.
-%
-%                           ----------------
-% * Display
-% The display utility has been re-written to be an interactive orthogonal
-% image viewer (see Check Reg).  It allows images to be viewed in different 
-% orientations and to be re-oriented via their ".mat" files.  The images
-% can be zoomed and visualized using different interpolation methods.
-% Translucent activation blobs can be superimposed in different colours on
-% the displayed image.
-%
-%                           ----------------
-%
-% * Problem with Templates and Probability Images.
-%
-% A problem was identified in the conversion of the original MINC files to
-% Analyze format.  When the files were converted, we did not realize that
-% all planes in the volumes were scaled to their own maximum values.
-% The affected files were:
-%     templates/T1.img, canonical/avg305T1.img, canonical/T1.img,
-%     apriori/gray.img, apriori/white.img & apriori/csf.img.
-% The error has been remedied.  Also, new gray, white and csf images have
-% been obtained from Montreal that are based upon 151 subjects (see
-% templates.man).  New template images are now included that are mostly
-% based on 152 brain averages (see spm_templates.man).
-% 
-% -John
-%
-% ______________________________________________________________________
-%                                                            STATISTICAL
-%
-% SPM99 features completely redesigned and re-written statistics.
-%
-% The new features are fully described in the help text of the
-% statistical routines, which may be browsed using the spm_help
-% viewer.
-%
-% For PET/SPECT/Basic stats design setup, see: spm_spm_ui.m
-% For fMRI design setup, see:                  spm_fmri_spm_ui.m
-% For random effects issues, see:              spm_RandFX.man
-% For contrasts, and F-contrasts, see:         spm_conman.m
-% For estimation, see:                         spm_spm.m
-% For contrast estimation & images, see:       spm_getSPM.m
-% For the new results section, see:            spm_results_ui.m
-%
-%
-% ======================================================================
-% 3)  SPM99b: Updates since the beta release
-% ======================================================================
-%
-% A public beta release of SPM99, SPM99b, was released on 17/05/1999.
-%
-% ______________________________________________________________________
-%                                                                   BUGS
-%
-% During beta testing, a number of bugs were discovered. Few were
-% serious, but all are documented in the SPM99b "bugs & fixes" area of
-% the SPMweb site:
-%       http://ftp.fil.ion.ucl.ac.uk/spm/spm99.html#Bugs99b
-%
-% Those of note include:
-% * spm_sn3d.m (2.19) - 18/05/1999
-%   Write normalised failed with a non-integer target pixel size.
-% * spm_fMRI_design.m (2.17) & spm_fmri_spm_ui.m (2.26) - 19/05/1999
-%   "barfed" when no conditions were used in the fMRI stats.
-% * spm_P.m (2.3) - 01/06/1999
-%   Omission of a term b in equation for EC density, containing the
-%   gamma function, possibly leading to p-values that are too liberal.
-% * spm_spm_ui.m (2.26) 08/06/1999
-%   Maximum number of groups for AnCova & Anova models hardcoded to 1!
-% * spm_hread.m (2.5) 10/06/1999 & spm_hread.m (2.5) 06/07/1999
-%   Problems with string conversion, including spaces in filenames.
-% * spm_spm.m (2.28)
-%   Bug in explicit masking code produced "tube" like masks!
-% * spm_sp.m (2.8) 01/05/1999
-%   Nasty bug affecting designs where the number of parameter is greater
-%   than half the number of scans, AND when the projection on the
-%   residual space is done on a bunch of voxels which number is greater
-%   than 5 times the number of scans.
-%   (Discussed in http://www.mailbase.ac.uk/lists/spm/1999-07/0085.html)
-% * spm_graph.m (2.20) 15/07.1999
-%   Problem plotting fitted and adjusted responses against an
-%   explanatory variable.
-% * spm_sp.m (2.10) & spm_SpUtil.m (2.13) 11/08/1999
-%   Enhancements for large design matrices.
-% * spm_orthviews.m (2.17) 18/08/1999
-%   Crashed with single slice data.
-% * spm_write_plane.m (2.9) 16/09/1999
-%   Problems handling image filenames with "=" in the name.
-% * spm_transverse.m (2.15) 14/10/1999
-%   Slight mismatch in "overlay-slices".
-%
-% Other bugs were on the whole either cosmetic or platform specific fixes.
-%
-% ______________________________________________________________________
-%                                                           ENHANCEMENTS
-%
-% The following enhancements have been added to SPM99 since the beta release:
-%
-% Spatial:
-% * Image registration based on Mutual Information
-% * Speeded up parameter estimation by sampling only the most useful voxels
-% * Extra options from <Display>
-% * <Check Reg> now accepts variable number of images
-% * Support for ToolBox launching
-% * <Xtract Brain> option for generating brain surfaces (Matlab 5.3+ omly)
-% * Support for datatypes other than double when sampling Matlab 3D arrays
-% * Cosmetic improvements to spm_coregister & spm_realign
-%
-% Statistical:
-% * fMRI design allows trains of onsets to emulate variable length epochs
-% * Increased efficiency in fMRI model estimation
-% * Various robustness and speed improvements in stats estimation
-% * Smoothness estimator computed on the basis of the averge determinant
-%   - allowing for nonstationary smoothness
-% * More efficient contrast handling (particulaly relevant for F-contrasts)
-% * More efficient handling of larger design matrices
-% * Cross-platform handling of results files
-% * Uncorrected threshold for a conjunction now the p-value for the
-%   conjunction SPM, rather than for the component SPM's.
-% * Specification by mask image of search volume for corrected
-%   significance (SVC)
-% * Design orthogonality explorer
-% * "surfable" contrast plots
-% * Double-click extraction of data from design matrices & contrast weights
-% * dynamic co-ordinate highlighting in results tables
-% * spm_regions.m timecourse extraction integrated into results section
-%
-% Misc:
-% * Batch system: See spm_bch.man
-%
-% ______________________________________________________________________
-%                                                       PLANNED FEATURES
-%
-% Planned features due to be implemented for SPM99, which weren't:
-%    * Contrast utilities & exploration: Contrast summary, contrast
-%      orthogonality, design space partitioning display
-%    * Command line contrast manager
-%    * Dynamic thresholding in Results interface
-%    * New robust measure of "global" background scan intensity
-%      - to appear as an SPM ToolBox
-%    * Model diagnostic plots: fitted vs. residuals, Q-Q plots
-%    * Voxel statistics display: Statistics, significances, R^2,
-%      partial correlations
-%    * Additional user interface enhancements
-%    * Enhanced GUI file & directory handling - mkdir, rmdir &amp;c
-%    * Conversion program for SPM96/7 Stats results files
-%
-%
-%
-%
-% ======================================================================
-% 4)                RELEASE NOTES FOR  S P M 2
+% 2)                RELEASE NOTES FOR  S P M 2 b
 % ======================================================================
 % 
 % 1. OVERVIEW
@@ -1288,6 +724,13 @@
 % determined from grey and white matter, it tended to push down the intensity
 % in these regions, and compensated by increasing the intensity of other
 % regions. This is now fixed with a new objective function.
+% The segmentation procedure also includes a "cleanup" procedure whereby
+% small regions of non-brain tissue that are misclassified as brain are
+% removed. Also, the prior probability images are scaled such that they have
+% less influence on the segmentation.  Previously, abnormal brains could be
+% extremely problematic if there was (e.g.) CSF where the prior probability
+% images suggested that there was 0% probability of obtaining it. The
+% modified code may be able to cope slightly better with these abnormalities.
 % 
 % 4.6 Specifying fMRI designs (spm_fmri_spm_ui.m)
 % fMRI design specification is now simpler. The distinction between event-
@@ -1337,33 +780,5 @@
 % epoch-related designs.  This is equivalent to a peri-stimulus time
 % histogram of hemodynamic responses and is estimated by refitting an FIR
 % model at the selected voxel.
-% 
-% 
-% 
-% ======================================================================
-% 5)                    S P M   T o o l B o x e s
-% ======================================================================
-%
-% SPM toolboxes are MatLab applications that enhance or build upon the
-% SPM software platform. Authors are encouraged to collaborate with the
-% SPM authors in the production of SPM ToolBoxes for open
-% distribution.
-%
-% Toolboxes should conform to SPM user interface and coding standards.
-%
-% The "ToolBox" PullDown on the SPM99 Menu window allows easy launching
-% of a ToolBox GUI. See spm.m for details of thie feature.
-%
-% ______________________________________________________________________
-%                                                      PLANNED TOOLBOXES
-%
-% Planned toolboxes:
-%    * SPMvis : Visualisation toolbox                (CHutton)
-%    * SnPM   : Non-parametric inference             (AHolmes & TNichols)
-%    * SPMmv  : Multivariate statistics toolbox      (JB Poline)
-%    * SPMsc  : Effective connectivity toolbox       (CBuechel)
-%    * SPM??  : Morphometry toolbox                  (JAshburner)
-%    * SPM??  : Robust global effect estimation      (Jandersson)
-%
 % ______________________________________________________________________
 % %W% The FIL methods group %E%
