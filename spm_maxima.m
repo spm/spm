@@ -92,7 +92,7 @@ Vis   = 'on';
 if SPMZ
 
 Pk    = spm_P(1,W,U,N(i),S);		% cluster-level p value
-Pkn   = spm_Pkn(N(i),(u - U),W,u,S);	% cluster-level (Bivariate)
+Pkn   = spm_Pkn(N(i),(u - U),W,U,S);	% cluster-level (Bivariate)
 Pu    = spm_P(1,W,u,0,S);		% voxel-level p value
 Pn    = 1 - spm_kcdf(N(i),U,W);		% uncorrected p value (k)
 Pz    = 1 - spm_Ncdf(u);		% uncorrected p value (Z)
