@@ -12,11 +12,5 @@
 % This function is called by spm_mireg for rapidly computing
 % scatterplots for mutual information image registration.
 %
-% Interpolation is dealt with as described in:
-% A Collignon, F Maes, D Delaere, D Vandermeulen, P Suetens & G Marchal
-% (1995) "Automated Multi-modality Image Registration Based On
-% Information Theory". In the proceedings of Information Processing in
-% Medical Imaging (1995).  Y. Bizais et al. (eds.).  Kluwer Academic
-% Publishers.
 %_______________________________________________________________________
 % %W% John Ashburner %E%
