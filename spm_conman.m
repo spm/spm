@@ -304,10 +304,14 @@ if isempty(I)
 
 else
 
-	nPar = size(xCon(1).c,1);
-	xx   = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
-	nCon = length(I);
-	dy    = 0.2/max(nCon,2);
+	nPar   = size(xCon(1).c,1);
+	xx     = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
+	nCon   = length(I);
+	dy     = 0.2/max(nCon,2);
+	hConAx = axes('Position',[0.65 (0.70 + dy*.1) 0.30 dy*(nCon-.1)],...
+			'Tag','ConGrphAx','Visible','off');
+	title('contrast(s)')
+	htxt   = get(hConAx,'title'); set(htxt,'Visible','on')
 
 	for ii = nCon:-1:1
 	    i  = abs(I(ii));
@@ -315,7 +319,7 @@ else
 	    if xCon(i).STAT == 'T' & size(xCon(i).c,2)==1
 		%-Single vector contrast for SPM{t} - bar
 		yy = [zeros(1,nPar);repmat(xCon(i).c',2,1);zeros(1,nPar)];
-		patch(xx,yy,[1,1,1]*.5)
+		h = patch(xx,yy,[1,1,1]*.5);
 		set(gca,'Tag','ConGrphAx',...
 			'Box','off','TickDir','out',...
 			'XTick',[],...
@@ -325,7 +329,7 @@ else
 				[-1 +1] * max(abs(xCon(i).c))/10	)
 	    else
 		%-F-contrast - image
-		image((xCon(i).c'/max(abs(xCon(i).c(:)))+1)*32)
+		h = image((xCon(i).c'/max(abs(xCon(i).c(:)))+1)*32);
 		set(gca,'Tag','ConGrphAx',...
 			'Box','on','TickDir','out',...
 			'XTick',[],...
@@ -334,9 +338,11 @@ else
 			'YLim',	[0,size(xCon(i).c,2)]+0.5	)
 	    end
 	    if I(ii)>0, ylabel(num2str(i)), end
+	    set(h,'ButtonDownFcn','spm_DesRep(''SurfCon_CB'')',...
+		  'UserData',	struct(	'i',		I(ii),...
+					'h',		htxt,...
+					'xCon',		xCon(i)))
 	end
-	title('Contrast(s)')
-
 end
 
 set(0,'CurrentFigure',cF)		%-Reset CurrentFigure to previous figure

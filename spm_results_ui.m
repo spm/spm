@@ -38,6 +38,12 @@ function varargout = spm_results_ui(varargin)
 % MIP, and shows the value there. (See spm_mip_ui.m, the MIP GUI handling
 % function for further details.)
 %
+% The design matrix and contrast pictures are "surfable": Click and
+% drag over the images to report associated data. Clicking with
+% different buttons produces different results. Double-clicking
+% extracts the underlying data into the base workspace.
+% See spm_DesRep for further details.
+%
 % The current voxel specifies the voxel, suprathreshold cluster, or
 % orthogonal planes (planes passing through that voxel) for subsequent
 % localised utilities.
@@ -336,6 +342,11 @@ nPar   = size(xX.X,2);
 xx     = [repmat([0:nPar-1],2,1);repmat([1:nPar],2,1)];
 nCon   = length(SPM.Ic);
 dy     = 0.15/max(nCon,2);
+hConAx = axes('Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
+		'Tag','ConGrphAx','Visible','off');
+title('contrast(s)')
+htxt = get(hConAx,'title'); set(htxt,'Visible','on','HandleVisibility','on')
+
 for ii = nCon:-1:1
     axes('Position',[0.65 (0.80 + dy*(nCon-ii+.1)) 0.25 dy*.9])
     if xCon(SPM.Ic(ii)).STAT == 'T' & size(xCon(SPM.Ic(ii)).c,2) == 1
@@ -343,7 +354,7 @@ for ii = nCon:-1:1
 	%-Single vector contrast for SPM{t} - bar
 	%---------------------------------------------------------------
 	yy = [zeros(1,nPar);repmat(xCon(SPM.Ic(ii)).c',2,1);zeros(1,nPar)];
-	patch(xx,yy,[1,1,1]*.5)
+	h = patch(xx,yy,[1,1,1]*.5);
 	set(gca,'Tag','ConGrphAx',...
 		'Box','off','TickDir','out',...
 		'XTick',spm_DesRep('ScanTick',nPar,10)-0.5,'XTickLabel','',...
@@ -356,7 +367,7 @@ for ii = nCon:-1:1
 
 	%-F-contrast - image
 	%---------------------------------------------------------------
-	image((xCon(SPM.Ic(ii)).c'/max(abs(xCon(SPM.Ic(ii)).c(:)))+1)*32)
+	h = image((xCon(SPM.Ic(ii)).c'/max(abs(xCon(SPM.Ic(ii)).c(:)))+1)*32);
 	set(gca,'Tag','ConGrphAx',...
 		'Box','on','TickDir','out',...
 		'XTick',spm_DesRep('ScanTick',nPar,10),'XTickLabel','',...
@@ -366,8 +377,11 @@ for ii = nCon:-1:1
 
     end
     ylabel(num2str(SPM.Ic(ii)))
+    set(h,'ButtonDownFcn','spm_DesRep(''SurfCon_CB'')',...
+    	'UserData',	struct(	'i',		SPM.Ic(ii),...
+    				'h',		htxt,...
+    				'xCon',		xCon(SPM.Ic(ii))))
 end
-title('Contrast(s)')
 
 
 %-Store handles of results section Graphics window objects
