@@ -1,4 +1,4 @@
-function spm_defaults_edit(arg1,arg2)
+function spm_defaults_edit(varargin)
 % Modify defaults
 % FORMAT spm_defaults_edit
 %_______________________________________________________________________
@@ -46,17 +46,25 @@ function spm_defaults_edit(arg1,arg2)
 %
 % The 'reset' option re-loads the startup defaults from spm_defaults.m
 %
+%_______________________________________________________________________
 % %W% John Ashburner  %E%
-%_______________________________________________________________________
-
-% Programmers Guide
-% Batch system implemented on this routine. See spm_bch.man
-% If inputs are modified in this routine, try to modify spm_bch.man
-% accordingly. 
-%_______________________________________________________________________
-
 SCCSid = '%I%';
 
+% Programmers Note:
+%-----------------------------------------------------------------------
+% Batch system implemented on this routine: See spm_bch.man.
+% If inputs are modified in this routine, please modify spm_bch.man
+% accordingly. 
+%-----------------------------------------------------------------------
+
+
+%-Format arguments
+%-----------------------------------------------------------------------
+if nargin == 0, Action='!EditMenu'; else, Action = varargin{1}; end
+
+
+%-Get/setup global defaults variables
+%-----------------------------------------------------------------------
 global BCH
 
 global MODALITY
@@ -69,11 +77,12 @@ global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET ...
 global fMRI_T fMRI_T0
 
 
-if nargin == 0
+
+switch lower(Action), case '!editmenu'                    %-Defaults menu
+%=======================================================================
 	SPMid = spm('FnBanner',mfilename,SCCSid);
 	spm('FnUIsetup','Defaults Edit');
 	spm_help('!ContextHelp',mfilename)
-
 
 	callbacks = str2mat(...
 		'spm_defaults_edit(''Printing'');',...
@@ -92,24 +101,26 @@ if nargin == 0
 		 'Realignment & Coregistration|'...
 		 'Spatial Normalisation|'...
 		 'Statistics - ',MODALITY,'|'...
-		 'Reset All'] ...
-             ); %- nargin == 0 => not called by batch 
+		 'Reset All']);
+		%- nargin == 0 => not called by batch 
 
 	eval(deblank(callbacks(a1,:)));
 	spm_figure('Clear','Interactive');
 
-elseif strcmp(arg1, 'RealignCoreg')
+case 'realigncoreg'                       %-Realignment & Coreg defaults
+%=======================================================================
 
-    spm_realign_ui('Defaults');
+	spm_realign_ui('Defaults');
 
-elseif strcmp(arg1, 'Normalisation')
+case 'normalisation'                    %-Spatial normalisation defaults
+%=======================================================================
 
-    spm_sn3d('Defaults');
+	spm_sn3d('Defaults');
 
-elseif strcmp(arg1, 'Misc')
+case 'misc'                                     %-Miscellaneous defaults
+%=======================================================================
 
-	% Miscellaneous
-	%---------------------------------------------------------------
+	%-Store CMDLINE setting
 	c = (abs(CMDLINE)>0) -1;
 
 	if ~isempty(LOGFILE), tmp='yes'; def=1; else, tmp='no'; def=2; end
@@ -128,15 +139,15 @@ elseif strcmp(arg1, 'Misc')
 		{	'always use GUI',...
 			'always use CmdLine',...
 			'GUI for files, CmdLine for input'},...
-		[0,1,-1],def,'batch', {},'cmdline');
+		[0,1,-1],def,'batch',{},'cmdline');
 
 	GRID = spm_input('Grid value (0-1):', 4*c, 'e', GRID,...
-      			   'batch', {},'grid');
+      			   'batch',{},'grid');
 
-elseif strcmp(arg1, 'Printing')
 
-	% Printing Defaults
-	%---------------------------------------------------------------
+case 'printing'                                      %-Printing defaults
+%=======================================================================
+
 	a0 = spm_input('Printing Mode?', 2, 'm', [...
 			'Postscript to File|'...
 			'Postscript to Printer|'...
@@ -226,52 +237,38 @@ elseif strcmp(arg1, 'Printing')
 		PRINTSTR = deblank(prstr1(a1,:));
 	else
 		PRINTSTR = spm_input('Print String',3,'s',...
-      'batch', {},'print_string');
+      'batch',{},'print_string');
 	end
 
-elseif strcmp(arg1, 'Hdr')
+case 'hdr'                                             %-Header defaults
+%=======================================================================
 
-	% Header Defaults
-	%---------------------------------------------------------------
+	DIM = spm_input('Image size {voxels}',2,'n',DIM(:)',[1,3],...
+		'batch',{},'image_size_voxels');
 
-	n = 0;
-	while n ~= 3
-		tmp      = spm_input('Image size {voxels}',2,'s',...
-			[num2str(DIM(1)) ' ' num2str(DIM(2)) ' ' num2str(DIM(3))],...
-         'batch', {},'image_size_voxels');
-		[dim, n] = sscanf(tmp,'%d %d %d');
-	end
-	DIM = reshape(dim,1,3);
+	VOX = spm_input('Voxel Size {mm}',3,'r',VOX(:)',[1,3],[0,Inf],...
+		'batch',{},'voxel_size_mm');
 
-	n = 0;
-	while n ~= 3
-		tmp      = spm_input('Voxel Size {mm}',3,'s',...
-			[num2str(VOX(1)) ' ' num2str(VOX(2)) ' ' num2str(VOX(3))],...
-         'batch', {},'voxel_size_mm');
-		[vox, n] = sscanf(tmp,'%g %g %g');
-	end
-	VOX = reshape(vox,1,3);
+	SCALE = spm_input('Scaling Coefficient',4,'r',SCALE,1,...
+		'batch',{},'scale');
 
-	SCALE = spm_input('Scaling Coefficient',4,'e',[SCALE],...
-     'batch', {},'scale');
+	TYPE = spm_input('Data Type',5,'m',...
+		{	'Unsigned Char  ( 8 bit)',...
+			'Signed Short (16 bit)',...
+			'Signed Integer (32 bit)',...
+			'Floating Point',...
+			'Double Precision'},...
+		[2 4 8 16 64],find([2 4 8 16 64]==TYPE),...
+		'batch', {},'data_type');
 
-	type_val = [2 4 8 16 64];
-	type_str = str2mat('Unsigned Char','Signed Short','Signed Integer',...
-      'Floating Point','Double Precision');
-	TYPE = spm_input(['Data Type (' deblank(type_str(find(type_val==TYPE),:)) ')'],5,'m',...
-		'Unsigned Char	(8  bit)|Signed Short	(16 bit)|Signed Integer	(32 bit)|Floating Point|Double Precision',...
-[2 4 8 16 64],'batch', {},'data_type');
-	OFFSET = spm_input('Offset  {bytes}',6,'e',[OFFSET],...
-   'batch', {},'offset');
-	n = 0;
-	while n ~= 3
-		tmp      = spm_input('Origin {voxels}',7,'s',...
-			[num2str(ORIGIN(1)) ' ' num2str(ORIGIN(2)) ' ' num2str(ORIGIN(3))],'batch', {},'origin_voxels');
-		[origin, n] = sscanf(tmp,'%d %d %d');
-	end
-	ORIGIN = reshape(origin,1,3);
-	DESCRIP = spm_input('Description',8,'s', DESCRIP,...
-   'batch', {},'description');
+	OFFSET = spm_input('Offset  {bytes}',6,'w',OFFSET,1,...
+		'batch',{},'offset');
+
+	ORIGIN = spm_input('Origin {voxels}',7,'i',ORIGIN(:)',[1,3],...
+		'batch',{},'origin_voxels');
+
+	DESCRIP = spm_input('Description',8,'s',DESCRIP,...
+		'batch',{},'description');
 
 	if strcmp(MODALITY,'PET')
 		PET_DIM       = DIM;
@@ -291,13 +288,16 @@ elseif strcmp(arg1, 'Hdr')
 		fMRI_DESCRIP  = DESCRIP;
 	end
 
-elseif strcmp(arg1, 'Statistics')
+
+case 'statistics'                                       %-Stats defaults
+%=======================================================================
+
 	UFp = spm_input('Upper tail F prob. threshold',2,'e',UFp,1, ...
   			  'batch', {},'F_threshold');
 	if strcmp(MODALITY,'PET')
-		PET_UFp       = UFp;
+		PET_UFp  = UFp;
 	elseif strcmp(MODALITY,'FMRI')
-		fMRI_UFp      = UFp;
+		fMRI_UFp = UFp;
 	end
 	if strcmp(MODALITY,'FMRI'),
 		fMRI_T  = spm_input('Number of Bins/TR' ,3,'n',fMRI_T,1,...
@@ -307,7 +307,8 @@ elseif strcmp(arg1, 'Statistics')
 	end;
 
 
-elseif strcmp(arg1, 'Reset')
+case 'reset'                                            %-Reset defaults
+%=======================================================================
 	if exist('spm_defaults')==2
 		spm_defaults;
 	end
@@ -316,5 +317,13 @@ elseif strcmp(arg1, 'Reset')
    else
       	spm('defaults',MODALITY);
    end
+
+
+otherwise
+%=======================================================================
+error(['Invalid type/action: ',Action])
+
+
+%=======================================================================
 end
 
