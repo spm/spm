@@ -21,8 +21,8 @@ if nargin == 2
 	s = sx;
 	if sx == 0; O = X; return; end;
 	[lx ly] = size(X);
-	E       = round(s*1.8);
         s       = s/sqrt(8*log(2));
+	E       = round(s*4);
         x       = exp(-[-E:E].^2/(2*s^2));
         x       = x/sum(x);
 	if min([lx ly]) == 1
@@ -43,14 +43,15 @@ else
 	if sx == 0 & sy == 0; O=X; return; end;
 	[lx ly] = size(X);
 	if sx ~= 0;
-		Ex=round(sx*1.8);
 		sx=sx/sqrt(8*log(2));
+		Ex = round(s*4);
+
 		x=exp(-[-Ex:Ex].^2/(2*sx^2));
 		xx=x/sum(x);
 	end
 	if sy ~= 0;
-		Ey = round(sy*1.8);
 		sy = sy/sqrt(8*log(2));
+		Ex = round(s*4);
 		x  = exp(-[-Ey:Ey].^2/(2*sy^2));
 		xy = x/sum(x);
 	end
