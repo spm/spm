@@ -1,9 +1,14 @@
 function [DCM] = spm_dcm_ui(Action)
-% user interface for Dynamic Causal Modeling (DCM)
+% User interface for Dynamic Causal Modeling (DCM)
 % FORMAT [DCM] = spm_dcm_ui('specify');
+% FORMAT [DCM] = spm_dcm_ui('estimate');
 % FORMAT [DCM] = spm_dcm_ui('review');
+% FORMAT [DCM] = spm_dcm_ui('compare');
 %
-% Specify a new model or review a previously estimated model
+% Specify a new model
+% Estimate a specified model
+% Review a previously estimated model
+% Compare two or more estimated models
 %
 % saves DCM_???.mat
 %
@@ -18,14 +23,20 @@ function [DCM] = spm_dcm_ui(Action)
 %	DCM.pA     - pA - posterior probabilities
 %	DCM.pB     - pB - posterior probabilities
 %	DCM.pC     - pC - posterior probabilities
+%	DCM.vA     - vA - variance of parameter estimates
+%	DCM.vB     - vB - variance of parameter estimates
+%	DCM.vC     - vC - variance of parameter estimates
 %	DCM.H1     - 1st order Volterra Kernels - hemodynamic
 %	DCM.H2     - 1st order Volterra Kernels - hemodynamic
 %	DCM.K1     - 1st order Volterra Kernels - neuronal
 %	DCM.K1     - 1st order Volterra Kernels - neuronal
 %	DCM.R      - residuals
-%	DCM.y      - predicte responses
+%	DCM.y      - predicted responses
 %	DCM.xY     - original response variable structures
 %	DCM.T      - threshold for inference based on posterior p.d.f
+%   DCM.Ce     - Estimated observation noise covariance
+%   DCM.v      - Number of scans
+%   DCM.n      - Number of regions
 %
 %___________________________________________________________________________
 %
@@ -53,10 +64,10 @@ function [DCM] = spm_dcm_ui(Action)
 % neuroimaging data with the general linear model or DCM is a more natural
 % way to analyse data from designed experiments.  Given that the vast
 % majority of imaging neuroscience relies upon designed experiments we
-% consider DCM a potentially useful complement to existing techniques.  In
-% the remainder of this section we consider two potential limitations of DCM
+% consider DCM a potentially useful complement to existing techniques.  
 %___________________________________________________________________________
-% %W% Karl Friston %E%
+% %W%	Karl Friston %E%
+
 
 % get figure handles
 %---------------------------------------------------------------------------
@@ -66,11 +77,12 @@ header = get(Finter,'Name');
 set(Finter,'Name','Dynamic Causal Modelling')
 WS     = spm('WinScale');
 
+
 % options
 %---------------------------------------------------------------------------
 if ~nargin
-	str    = 'specify or review a model';
-	Action = spm_input(str,1,'b',{'specify','review'});
+	str    = 'Action: ';
+	Action = spm_input(str,1,'b',{'specify','estimate','review','compare'});
 end
 
 switch Action
@@ -191,8 +203,8 @@ case 'specify'
 		str   = sprintf(...
 			'Effects of %-12s on regions... and connections',...
 			 U.name{k});
-		spm_input(str,1,'d')
-
+		spm_input(str,1,'d');
+        
 		dx    = 20;
 		for i = 1:m
 			h1(i)  = uicontrol(Finter,'String',xY(i).name,...
@@ -245,12 +257,7 @@ case 'specify'
 	end
 	delete(d)
 
-	% Model specification:
-	%===================================================================
-	spm('Pointer','Watch')
-	spm('FigName','Estimation in progress');
-
-	% confounds (NB: the data have been filtered and whitened)
+    % confounds (NB: the data have been filtered and whitened)
 	%-------------------------------------------------------------------
 	v     = size(xY(1).u,1);
 	X0    = xY(1).X0;
@@ -272,76 +279,28 @@ case 'specify'
 	%-------------------------------------------------------------------
 	Y.Ce  = spm_Ce(ones(1,n)*v);
 
-
-	% priors - expectations
-	%-------------------------------------------------------------------
-	[pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
-
-	% model specification and nonlinear system identification
-	%-------------------------------------------------------------------
-	M.f   = 'spm_fx_dcm';
-	M.g   = 'spm_lx_dcm';
-	M.x   = sparse(n*5,1);
-	M.pE  = pE;
-	M.pC  = pC;
-	M.m   = size(U.u,2);
-	M.n   = size(M.x,1);
-	M.l   = n;
-	M.N   = 32;
-	M.dt  = 16/M.N;
-
-	% NLSI (IDENTIFICATON)
-	%===================================================================
-	[Ep,Cp,Ce,H0,H1,H2,M0,M1,L] = spm_nlsi(M,U,Y);
-
-
-	% predicted responses and residuals
-	%-------------------------------------------------------------------
-	y     = spm_int(Ep,M,U,v);
-	R     = Y.y - y;
-	R     = R - X0*inv(X0'*X0)*(X0'*R);
-
-	% neuronal kernels
-	%-------------------------------------------------------------------
-	L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
-	[K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
-
-	% Bayesian inference and reshape {threshold T1/2 = log(2)/T}
-	%-------------------------------------------------------------------
-	T          = log(2)/8;			
-	pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
-	[ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
-	[pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
-
-
-	% assemble model estimation structure
-	%-------------------------------------------------------------------
-	DCM.M      = M;
-	DCM.Y      = Y;
-	DCM.U      = U;
-	DCM.Ep     = Ep;
-	DCM.Cp     = Cp;
-	DCM.A      = A;
-	DCM.B      = B;
-	DCM.C      = C;
-	DCM.pA     = pA;
-	DCM.pB     = pB;
-	DCM.pC     = pC;
-	DCM.H1     = H1;
-	DCM.H2     = H2;
-	DCM.K1     = K1;
-	DCM.K2     = K2;
-	DCM.R      = R;
-	DCM.y      = y;
-	DCM.xY     = xY;
-	DCM.T      = T;
-
-
-	%-Save and reset title
+    DCM.a=a;
+    DCM.b=b;
+    DCM.c=c;
+    DCM.U=U;
+    DCM.Y=Y;
+    DCM.xY=xY;
+    DCM.v=v;
+    DCM.n=n;
+    
+    
+    %-Save and reset title
 	%-------------------------------------------------------------------
 	save(fullfile(swd,['DCM_' name]),'DCM');
 	spm('FigName',header);
 	spm('Pointer','Arrow')
+	return
+    
+case 'estimate',
+	
+    
+    spm_dcm_estimate;
+
 	return
 
 
@@ -392,7 +351,7 @@ case 'review'
 	spm_figure('Clear',Fgraph)
 
 
-	% Effectos inputs
+	% Inputs
 	%-------------------------------------------------------------------
 	if OPT <= m 
 
@@ -506,23 +465,30 @@ case 'review'
 		switch D
 
 			case 'A' % intrinsic
+                
 			%---------------------------------------------------
-			str     = sprintf('[%.0f]contrast for A(:)',l*l);
-			C       = spm_input(str,1,'e');
+% 			str     = sprintf('[%.0f]contrast for A(:)',l*l);
+% 			C       = spm_input(str,1,'e');
+            C       = spm_dcm_contrasts(P{1},'A');
 			i       = find(C); j = 1;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
+            
+            keyboard
+            
 			case 'B' % intrinsic
 			%---------------------------------------------------
-			str     = sprintf('[%.0f]contrast for B(:)',l*l*m);
-			C       = spm_input(str,1,'e');
+% 			str     = sprintf('[%.0f]contrast for B(:)',l*l*m);
+% 			C       = spm_input(str,1,'e');
+            C       = spm_dcm_contrasts(P{1},'B');
 			i       = find(C); j = 1 + l*l;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
 			case 'C' % intrinsic
 			%---------------------------------------------------
-			str     = sprintf('[%.0f]contrast for C(:)',l*m);
-			C       = spm_input(str,1,'e');
+% 			str     = sprintf('[%.0f]contrast for C(:)',l*m);
+% 			C       = spm_input(str,1,'e');
+            C       = spm_dcm_contrasts(P{1},'C');
 			i       = find(C); j = 1 + l*l + l*l*m;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
@@ -644,11 +610,16 @@ case 'review'
 			subplot(m,1,i)
 			plot(x,DCM.U.u(:,i))
 			title(['Input - ' DCM.U.name{i}],'FontSize',12)
-			axis tight
+			%axis tight
 			ylabel('event density {Hz}')
 			xlabel('time {seconds}')
-			axis square tight
+			%axis square tight
 			grid on
+            % Change axis so we can see boxcars properly
+            u_min=min(DCM.U.u(:,i));
+            u_max=max(DCM.U.u(:,i));
+            u_range=u_max-u_min;
+            axis([0 max(x) u_min-0.1*u_range u_max*1.1]);
 		end
 
 
@@ -660,23 +631,25 @@ case 'review'
 		%-----------------------------------------------------------
 		x  = [1:length(DCM.y)]*DCM.Y.dt;;
 		for i = 1:l
-			subplot(l,2,2*(i - 1) + 1)
-			plot(x,DCM.Y.y(:,i))
-			title(['Response - ' DCM.Y.name{i}],'FontSize',12)
-			axis tight
-			xlabel('time {seconds}')
-			axis square tight
-			grid on
-
-			subplot(l,2,2*(i - 1) + 2)
-			plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),'.')
-			title('Predicted','FontSize',12)
-			axis tight
-			xlabel('time {seconds}')
-			axis square tight
-			grid on
-		end
-
+            subplot(l,1,i);
+            plot(x,DCM.Y.y(:,i));
+            xlabel('time {seconds}');
+ 			grid on
+            hold on
+            X0=DCM.Y.X0;
+            
+            % Note: adding on X0*beta to DCM prediction y
+            % is equivalent to orthogonalising y WRT X0
+            % because data have already been orth wrt X0
+            % (overall_prediction=DCM.y(:,i)+X0*beta;)
+            overall_prediction=DCM.y(:,i)-X0*inv(X0'*X0)*X0'*DCM.y(:,i);
+            plot(x,overall_prediction,'r');
+            title([DCM.Y.name{i} ': data and model predictions' ],'FontSize',12);
+            axis normal
+        end
+        disp(' ');
+        
+        
 	% Kernels
 	%-------------------------------------------------------------------
 	elseif OPT == 6 + m
@@ -740,4 +713,106 @@ case 'review'
 	%-end while
 	%-------------------------------------------------------------------
 	end
+case 'compare',
+    
+    num_models = spm_input('Number of DCM models to compare','+1','r',[],1);
+	P     = spm_get(num_models,'DCM*.mat',{'select DCM*.mat files'});
+    
+    for model_index=1:num_models,
+	    load(P{model_index});
+        evidence(model_index)=spm_dcm_evidence(DCM);
+        aic(model_index)=evidence(model_index).aic_overall;
+        bic(model_index)=evidence(model_index).bic_overall;
+    end
+    
+    % Get and plot posterior probabilities of models assuming
+    % each model has equal probability a-priori 
+    maic=aic-mean(aic);
+    pm=exp(maic)/sum(exp(maic));
+
+    figure(Fgraph);
+    spm_clf
+    subplot(2,1,1);
+    bar(pm);
+    Vscale=axis;
+    Vscale(4)=1;
+    axis(Vscale);
+    set(gca,'FontSize',18);
+    ylabel('p(m|y)');
+    xlabel('m');
+    title('Posterior probabilities of models from AIC');
+    
+    mbic=bic-mean(bic);
+    pm=exp(mbic)/sum(exp(mbic));
+
+    subplot(2,1,2);
+    bar(pm);
+    Vscale=axis;
+    Vscale(4)=1;
+    axis(Vscale);
+    set(gca,'FontSize',18);
+    ylabel('p(m|y)');
+    xlabel('m');
+    title('Posterior probabilities of models from BIC');
+    
+    % Output model comparison details to MATLAB command window
+    for ii=1:num_models,
+        for jj=1:num_models,
+            if ~(jj==ii)
+                disp('---------------------------------------------------------------');
+                    disp(sprintf('Model %d: %s',ii,P{ii}));
+                    disp('          versus ');
+                    disp(sprintf('Model %d: %s',jj,P{jj}));
+                    diff=1;
+                disp(' ');
+                
+                disp('All costs are in units of binary bits');
+                disp(' ');
+                for k=1:size(DCM.A,1),
+                    nats=-(evidence(ii).region_cost(k)-evidence(jj).region_cost(k));
+                    bits=nats/log(2);
+                    disp(sprintf('Region %s: relative cost  = %1.2f, BF= %1.2f',DCM.Y.name{k},bits,2^(-bits)));
+                end
+                % AIC penalty
+                nats=evidence(ii).aic_penalty-evidence(jj).aic_penalty;
+                bits=nats/log(2);
+                disp(sprintf('AIC Penalty = %1.2f, BF = %1.2f',bits,2^(-bits)));
+                % BIC penalty
+                nats=evidence(ii).bic_penalty-evidence(jj).bic_penalty;
+                bits=nats/log(2);
+                disp(sprintf('BIC Penalty = %1.2f, BF = %1.2f',bits,2^(-bits)));
+                % AIC overall
+                nats=-diff*(aic(ii)-aic(jj));
+                bits=nats/log(2);
+                bf_aic=2^(-bits);
+                disp(sprintf('AIC Overall = %1.2f, BF = %1.2f',bits,bf_aic));
+                % BIC overall
+                nats=-diff*(bic(ii)-bic(jj));
+                bits=nats/log(2);
+                bf_bic=2^(-bits);
+                disp(sprintf('BIC Overall = %1.2f, BF = %1.2f',bits,bf_bic));
+                disp(' ');
+                
+                if (bf_bic > exp(1)) & (bf_aic > exp(1))
+                    disp(sprintf('Consistent evidence in favour of model %d',ii));
+                    disp(sprintf('Bayes factor >= %1.2f', min(bf_aic,bf_bic)));
+                    disp(' ');
+                elseif ((1/bf_bic) > exp(1)) & ((1/bf_aic) > exp(1))
+                    disp(sprintf('Consistent evidence in favour of model %d',jj));
+                     disp(sprintf('Bayes factor >= %1.2f', min(1/bf_aic,1/bf_bic)));
+                    disp(' ');
+                else
+                    disp('No consistent evidence in favour of either model');
+                    disp(' ');
+                end
+                disp('---------------------------------------------------------------');
+                
+            end
+        end
+    end
+    
+    
+    spm_input('Model comparison details in MATLAB command window',1,'d');
+    spm_input('Thank you',3,'d');
+    return
 end
