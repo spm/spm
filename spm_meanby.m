@@ -12,11 +12,14 @@ function [M,Mi,V,Vi,iVals]=spm_meanby(X,i)
 % V     - Matrix of same size as X, with observations replaced by the
 %	  appropriate group sample variance
 %_______________________________________________________________________
+%
 % spm_meanby computes means for grouped data presented as columns of
 % data with a vector of group indicators
 %_______________________________________________________________________
 % %E% Andrew Holmes %W%
 
+%-Check arguments
+%=======================================================================
 if nargin<2, i=ones(size(X,1),1); end
 M = zeros(size(X));
 V = zeros(size(X));
@@ -32,7 +35,7 @@ if size(X,1)~=length(i), error('X must have row dimension the length of i'), end
 
 %-Sort out unique indicator levels
 tmp    = sort(i);
-iVals  = tmp([1;diff(tmp)>0]);
+iVals  = tmp(logical([1;diff(tmp)>0]));
 
 %-Compute indicator matrix
 I       = zeros(size(X,1),length(iVals));
