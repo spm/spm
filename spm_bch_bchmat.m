@@ -5,6 +5,7 @@ function bch_mat = spm_bch_bchmat(bch_mfile,typeA)
 % bach process and returns a .mat file containing 
 % the variables used during the batch.
 %---------------------------------------------------------------
+% %W% Jean-Baptiste Poline & Stephanie Rouquette %E%
 
 %---------------------------------------------------------------
 % Programmers  :  when a type of analysis is added, 
