@@ -37,24 +37,26 @@ function [X,Enames,Index]=spm_DesMtx(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12);
 % of the factor.
 %  ConstraintStrings for main effects are:
 %                  '-'   - No Constraints
-%                  '+0'  - SumToZero constraints
-%                  '+0m' - SumToZero constraints, row "mean correction"
+%                  '+0'  - sum-to-zero constraints
+%                  '+0m' - Implicit sum-to-zero constraints
 %                  '.'   - CornerPoint constraints
 %  Constraints for two way interaction effects are
 %    '-'                 - No Constraints
-%    '+i0','+j0','+ij0'  - SumToZero constraints
+%    '+i0','+j0','+ij0'  - sum-to-zero constraints
 %    '.i', '.j', '.ij'   - CornerPoint constraints
+%    '+0im', '+0jm'      - Implicit sum-to-zero constraints
 %
-% The '+0m' constraint "mean corrects" the rows of the design matrix
-% block, corresponding to factor effects B_i, where B_i = B'_i -
-% mean(B'_i) : The B'_i are the fitted parameters, effectively
-% *relative* factor parameters, relative to their mean. This leads to a
-% rank deficient design matrix block. If pinv is used to solve the
-% least squares problem, then the solution with smallest L2 norm is
-% found, which has mean(B'_i)=0 provided the remainder of the design is
-% unique (design matrix blocks of full rank).  In this case therefore
-% the B_i are identically the B'_i - the mean correction imposes the
-% constraint.
+% The implicit sum-to-zero constraints "mean correct" appropriate rows
+% of the relevant design matrix block. For a main effect, constraint
+% '+0m' "mean corrects" the main effect block across columns,
+% corresponding to factor effects B_i, where B_i = B'_i - mean(B'_i) :
+% The B'_i are the fitted parameters, effectively *relative* factor
+% parameters, relative to their mean. This leads to a rank deficient
+% design matrix block. If pinv is used to solve the least squares
+% problem, then the solution with smallest L2 norm is found, which has
+% mean(B'_i)=0 provided the remainder of the design is unique (design
+% matrix blocks of full rank).  In this case therefore the B_i are
+% identically the B'_i - the mean correction imposes the constraint.
 %      
 % COVARIATES: The FCLevels matrix here is an nxc matrix whose columns
 % contain the covariate values. An effect is included for each covariate.
@@ -97,13 +99,6 @@ function [X,Enames,Index]=spm_DesMtx(P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12);
 %__________________________________________________________________________
 % %W% Andrew Holmes %E%
 
-%-version control-%
-% V1	- 07/08/94 - Rewritten from ah_Ind2DesMtx (which only processed
-%                  - a single factor) to include interactions and covariates,
-%		-          - introduced recursive solution.
-% V2a	- 06/10/94 - Added support for factor by covariate interactions
-% V2b	- 08/10/94 - Added cornerpoint constraints for interactions.
-% V3a	- 08/02/95 - Rewritten from ah_DesMtx for SPM, Enames introduced.
 
 %-Parse arguments for recursive construction of design matrices
 %=======================================================================
@@ -113,29 +108,28 @@ if nargin==0 error('Insufficient arguments'), end
 
 if ~isstr(P2)
 	if nargin>=2
-		Args=[]; for t=3:nargin Args=[Args, ',P' num2str(t)]; end
+		Args='P2'; for t=3:nargin Args=[Args, ',P' num2str(t)]; end
 		[X1,Enames1]=spm_DesMtx(P1);
-		[X2,Enames2]=eval(['spm_DesMtx(P2',Args ')']);
+		[X2,Enames2]=eval(['spm_DesMtx(',Args ')']);
 		X=[X1,X2]; Enames=str2mat(Enames1,Enames2);
 		return
 	end
 elseif ~isstr(P3)
 	if nargin>=3
-		Args=[]; for t=4:nargin Args=[Args, ',P' num2str(t)]; end
+		Args='P3'; for t=4:nargin Args=[Args, ',P' num2str(t)]; end
 		[X1,Enames1]=spm_DesMtx(P1,P2);
-		[X2,Enames2]=eval(['spm_DesMtx(P3',Args ')']);
+		[X2,Enames2]=eval(['spm_DesMtx(',Args ')']);
 		X=[X1,X2]; Enames=str2mat(Enames1,Enames2);
 		return
 	end
 elseif nargin>=4
-		Args=[]; for t=5:nargin Args=[Args, ',P' num2str(t)]; end
+		Args='P4'; for t=5:nargin Args=[Args, ',P' num2str(t)]; end
 		[X1,Enames1]=spm_DesMtx(P1,P2,P3);
-		[X2,Enames2]=eval(['spm_DesMtx(P4',Args ')']);
+		[X2,Enames2]=eval(['spm_DesMtx(',Args ')']);
 		X=[X1,X2]; Enames=str2mat(Enames1,Enames2);
 		return
 end
 
-if isempty(P2) P2='-'; end
 
 %-Computation
 %=======================================================================
@@ -143,9 +137,11 @@ if isempty(P2) P2='-'; end
 %-Sort out arguments P1, P2 & P3
 %-----------------------------------------------------------------------
 I=P1;
-if size(I,1)==1 I=I'; end %-make a row vector
-%-Sort out constraint and Factor/Covariate name parameters from P2
-Constraint=P2; FCnames=P3;
+%-If I is a vector, make it a row vector
+if size(I,1)==1 I=I'; end
+%-Sort out constraint and Factor/Covariate name parameters from P2 & P3
+if isempty(P2), Constraint='-'; else, Constraint=P2; end
+FCnames=P3;
 
 %-Empty I case
 %-----------------------------------------------------------------------
@@ -160,10 +156,9 @@ elseif strcmp(Constraint,'FxC')
 	if isempty(FCnames) FCnames = [' ';' ']; end
 	if size(FCnames,1)~=2
 		error('Two row FCnames required for FxC interaction'), end
-	Fname=FCnames(1,:); Cname=FCnames(2,:);
 
 	if size(I,2)~=2 error('Two column I for ''FxC'''), I, end
-	%-Factor by Covariate interaction-%
+	%-Factor by Covariate interaction
 	if all(floor(I(:,1))==ceil(I(:,1)))
 		C=I(:,2); I=I(:,1);
 		Fname=FCnames(1,:); Cname=FCnames(2,:);
@@ -213,25 +208,27 @@ elseif size(I,2)==1
 	%-Set up unconstrained X matrix
 	%-Columns in ascending order of corresponding factor level
 	X=zeros(nXrows,nXcols);
-	for p_i=1:nXcols				%-p_i is position of i in Index
+	for p_i=1:nXcols		%-p_i is position of i in Index
 		X(:,p_i)=I==Index(p_i);
 		%-Can't use for i=Index X(:,i)=I==i in case
 		% Index has holes &/or doesn't start at 1!
 	end % for i
 	
-	%-Impose Constraint
+	%-Impose constraint if specified & if more than one effect
 	%-Apply uniqueness constraints ('+0' & '.')  to last effect, which is
 	% in last column, since column i corresponds to level Index(i)
-	if strcmp(Constraint,'+0')
+	if strcmp(Constraint,'+0') & nXcols>1
 		X(X(:,nXcols),:)=-1*ones(sum(X(:,nXcols)),nXcols);
 		X(:,nXcols)=[];
 		Index(nXcols)=[];
-	elseif strcmp(Constraint,'+0m')
+	elseif strcmp(Constraint,'+0m') & nXcols>1
 		X = X - 1/nXcols;
-	elseif strcmp(Constraint,'.')
+	elseif strcmp(Constraint,'.') & nXcols>1
 		X(:,nXcols)=[];
 		Index(nXcols)=[];
 	elseif strcmp(Constraint,'-')
+	elseif ~strcmp(Constraint,'-') & nXcols==1
+		error('Can''t constrain constant effect')
 	else
 		error('unknown constraint type for main effect')
 	end % if SumToZero
@@ -242,7 +239,8 @@ elseif size(I,2)==1
 	if ~isempty(Index)
 		Enames=[FCnames,'_',int2str(Index(1))];
 		for p_i=2:length(Index)
-			Enames=str2mat(Enames,[FCnames,'_',int2str(Index(p_i))]);
+			Enames = str2mat(Enames,...
+				[FCnames,'_',int2str(Index(p_i))]);
 		end % (for)
 	end % (if)
 
@@ -264,18 +262,54 @@ elseif size(I,2)==2
 	for c=1:length(sIndex)
 		rp=min(find(rIndex==sIndex(c)));
 		Index=[Index, [I(rp);J(rp)]];
-	end %
+	end
 
 	%-Impose Constraints
-	if (Constraint(1)=='+')
+	if (Constraint(length(Constraint))=='m')
+		%-Implicit sum to zero constraints
+		SumIToZero=strcmp(Constraint,'+i0m');
+		SumJToZero=strcmp(Constraint,'+j0m');
+		if (~(SumIToZero|SumJToZero))
+		    error('Illegal SumToZero constraint type for interaction')
+		end % if (error)
+		if (SumIToZero)
+			%-impose SumIToZero constraints
+			Js = sort(Index(2,:)); Js = Js([1,diff(Js)>0]);
+			for j = Js
+				rows = find(J==j);
+				cols = find(Index(2,:)==j);
+				if length(cols)==1
+				   error('Only one level: Can''t constrain')
+				end
+				X(rows,cols) = X(rows,cols) - 1/length(cols);
+			end
+		end % if SumIToZero
+
+		if (SumJToZero)
+			Is = sort(Index(1,:)); Is = Is([1,diff(Is)>0]);
+			for i = Is
+				rows = find(I==i);
+				cols = find(Index(1,:)==i);
+				if length(cols)==1
+				   error('Only one level: Can''t constrain')
+				end
+				X(rows,cols) = X(rows,cols) - 1/length(cols);
+			end
+		end % if SumJToZero
+
+	elseif (Constraint(1)=='+')
+		%-Explicit sum to zero constraints
 		SumIToZero=strcmp(Constraint,'+i0')|strcmp(Constraint,'+ij0');
 		SumJToZero=strcmp(Constraint,'+j0')|strcmp(Constraint,'+ij0');
 		if (~(SumIToZero|SumJToZero))
 		    error('Illegal SumToZero constraint type for interaction')
 		end % if (error)
 		if (SumIToZero)
-			%-impose SumIToZero constraints-%
+			%-impose SumIToZero constraints
 			i=max(Index(1,:));
+			if i==min(Index(1,:))
+				error('Only one i level: Can''t constrain')
+			end
 			cols=find(Index(1,:)==i); % columns to delete
 			for c=cols
 				j=Index(2,c);
@@ -286,50 +320,62 @@ elseif size(I,2)==2
 				%-So subtract weight of this ij factor frow
 				% weights for all other ij factors for this j
 				% to impose the constraint.
-				X(t_rows,t_cols)=X(t_rows,t_cols)...
-					-1*meshgrid(X(t_rows,c),1:length(t_cols))';
-%-(This next line would do it, but only first time round, when all weights	)
-% (are 1, and only one weight per row for this j.							)
+				X(t_rows,t_cols) = X(t_rows,t_cols)...
+					-1*meshgrid(...
+					X(t_rows,c),1:length(t_cols))';
+%-(This next line would do it, but only first time round, when all weights
+% (are 1, and only one weight per row for this j.
 % X(t_rows,t_cols)=-1*ones(length(t_rows),length(t_cols));
 			end % for c
-			%-delete columns-%
+			%-delete columns
 			X(:,cols)=[]; Index(:,cols)=[];
 		end % if SumIToZero
 
 		if (SumJToZero)
-			%-impose SumJToZero constraints-%
+			%-impose SumJToZero constraints
 			j=max(Index(2,:));
+			if j==min(Index(2,:))
+				error('Only one j level: Can''t constrain')
+			end
 			cols=find(Index(2,:)==j); % columns to delete
 			for c=cols
 				i=Index(1,c);
 				t_cols=find(Index(1,:)==i);
 				t_rows=find(X(:,c));
-				X(t_rows,t_cols)=X(t_rows,t_cols)...
-					-1*meshgrid(X(t_rows,c),1:length(t_cols))';
+				X(t_rows,t_cols) = X(t_rows,t_cols)...
+					-1*meshgrid(...
+					X(t_rows,c),1:length(t_cols))';
 			end % for c
-			%-delete columns-%
+			%-delete columns
 			X(:,cols)=[]; Index(:,cols)=[];
 		end % if SumJToZero
 
 	elseif (Constraint(1)=='.')
+		%-Corner point constraints
 		CornerPointI=strcmp(Constraint,'.i')|strcmp(Constraint,'.ij');
 		CornerPointJ=strcmp(Constraint,'.j')|strcmp(Constraint,'.ij');
 		if (~(CornerPointI|CornerPointJ))
-			error('Illegal CornerPoint constraint type for interaction')
+		error('Illegal CornerPoint constraint type for interaction')
 		end % if (error)
 		if (CornerPointI)
-			%-impose CornerPointI constraints-%
+			%-impose CornerPointI constraints
 			i=max(Index(1,:));
+			if i==min(Index(1,:))
+				error('Only one i level: Can''t constrain')
+			end
 			cols=find(Index(1,:)==i); % columns to delete
-			%-delete columns-%
+			%-delete columns
 			X(:,cols)=[]; Index(:,cols)=[];
 		end % if CornerPointI
 
 		if (CornerPointJ)
-			%-impose CornerPointJ constraints-%
+			%-impose CornerPointJ constraints
 			j=max(Index(2,:));
+			if j==min(Index(2,:))
+				error('Only one j level: Can''t constrain')
+			end
 			cols=find(Index(2,:)==j); % columns to delete
-			%-delete columns-%
+			%-delete columns
 			X(:,cols)=[]; Index(:,cols)=[];
 		end % if CornerPointJ
 
