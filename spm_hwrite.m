@@ -31,11 +31,22 @@ P               = P(P ~= ' ');
 q    		= length(P);
 if P(q - 3) == '.'; P = P(1:(q - 4)); end
 P     		= [P '.hdr'];
-fid             = fopen(P,'w');
 
-if (fid == -1)
+% For byte swapped data-types, also swap the bytes around in the headers.
+mach = 'native';
+if spm_type(TYPE,'swapped'),
+	if spm_platform('bigend'),
+		mach = 'ieee-le';
+	else,
+		mach = 'ieee-be';
+	end;
+	TYPE = spm_type(spm_type(TYPE));
+end;
+fid             = fopen(P,'w',mach);
+
+if (fid == -1),
 	error(['Error opening ' P '. Check that you have write permission.']);
-end
+end;
 %---------------------------------------------------------------------------
 data_type 	= ['dsr      ' 0];
 
