@@ -1,6 +1,6 @@
 function [T] = spm_type(x)
 % translates data type specifiers within SPM 
-% FORMAY [T] = spm_type(x)
+% FORMAT [T] = spm_type(x)
 % x    - specifier {strings must be at least 5 characters}
 % T    - type
 %___________________________________________________________________________
@@ -35,7 +35,7 @@ if isstr(x)
 	if all(x == 'float');  T = 16; end
 	if all(x == 'doubl');  T = 64; end
 else
-	T = 'unkmown';
+	T = 'unknown';
 	if (x == 1);  T = 'uint1';  end
 	if (x == 2);  T = 'uint8';  end
 	if (x == 4);  T = 'int16';  end
