@@ -151,7 +151,7 @@ switch Rov
 		bin   = spm_input('bin size (seconds)',3,'e',2,'batch',...
                                  {'conditions',n_s,'bf_ev',n_c},'binsize');	
 		nb    = spm_input('number of bins',4,'e',8,'batch',...
-                                 {'conditions',n_s,'bf_ev',n_c},'binsize');
+                                 {'conditions',n_s,'bf_ev',n_c},'numbins');
 
 		bf    = kron(eye(nb),ones(round(bin/dt),1));
 
