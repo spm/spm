@@ -1,5 +1,5 @@
 function varargout=spm_spm_ui(varargin)
-% Setting up the general linear model
+% Setting up the general linear model for independent data
 % FORMATs (given in Programmers Help)
 %_______________________________________________________________________
 %
