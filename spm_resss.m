@@ -100,9 +100,8 @@ Y  = zeros([Vo.dim(1:2),ni]);				%-PlaneStack data
 
 spm_progress_bar('Init',Vo.dim(3),mfilename,['planes / 'num2str(Vo.dim(3))]);
 
-dt = cat(1,Vi.dim)*[0;0;0;1];				%-Data types
-im = (dt==2) | (dt==4) | (dt==8) | ...
-	(dt==512) | (dt==1024) | (dt==2048);		%-Images without NaNrep
+im = logical(zeros(ni,1));
+for j=1:ni, im(j)=~spm_type(Vi(j).dim(4),'NaNrep'); end	%-Images without NaNrep
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
