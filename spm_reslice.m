@@ -611,3 +611,11 @@ img1 = real(ifft2(fimg));
 img2 = spm_slice_vol(img1,spm_matrix([t(2) t(1) 1]),size(img1),Hold);
 return;
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function PO = prepend(PI,pre)
+[pth,nm,xt,vr] = fileparts(deblank(PI));
+PO             = fullfile(pth,[pre nm xt vr]);
+return;
+%_______________________________________________________________________
+
