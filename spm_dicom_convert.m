@@ -137,7 +137,7 @@ for i=1:length(hdr),
 
 	% descrip = [deblank(descrip) '   ' hdr{i}.PatientsName];
 
-	if ~spm_flip_analyze_images,
+	if ~true, % LEFT-HANDED STORAGE
 		mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 		volume = flipdim(volume,1);
 	end;
@@ -600,7 +600,7 @@ else
 	descrip = hdr{1}.Modality;
 end;
 
-if ~spm_flip_analyze_images,
+if ~TRUE, % LEFT-HANDED STORAGE
 	mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 end; 
 
@@ -627,7 +627,7 @@ for i=1:length(hdr),
 	if isfield(hdr{i},'RescaleIntercept'),  plane = plane+hdr{i}.RescaleIntercept; end;
 
 	plane = fliplr(plane);
-	if ~spm_flip_analyze_images, plane = flipud(plane); end;
+	if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
 	V     = spm_write_plane(V,plane,i);
 	spm_progress_bar('Set',i);
 end;

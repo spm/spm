@@ -50,8 +50,13 @@ Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops -fPIC -fexceptions"\
 	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
 Linux.A64:
-	make all SUF=mexa64  CC="gcc -O3 -funroll-loops -fPIC -march=k8 -mfpmath=sse"\
-	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=k8 -mfpmath=sse'"
+# The '-fPIC' option is nexessary to allow the linking proces to complete. 
+# '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
+# If the code is running on a 64bit Xeon you can change '-march=x86-64' to 
+# '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
+# Also possibly use '-march=k8' for 64 bit Athlon.
+	make all SUF=mexa64  CC="gcc -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse"\
+	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'"
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN"
 	       MEX="mex COPTIMFLAGS=-O -DBIGENDIAN"
@@ -463,7 +468,7 @@ verb.mexa64:
 	@ echo "_____________________________________________________________"
 	@ echo "%M% %I% %E%"
 	@ echo ""
-	@ echo "Linux compilation (Matlab 7.x, 64bits athlon) - using gcc"
+	@ echo "Linux compilation (Matlab 7.x, 64bits) - using gcc"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
