@@ -632,6 +632,7 @@ if ~isempty(st.vols{arg1})
 	bb = [bb [1;1]];
 	bb=bb*Mat';
 	bb=bb(:,1:3);
+	bb=sort(bb);
 	st.Space  = Space;
 	st.bb = bb;
 end;
