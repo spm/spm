@@ -93,11 +93,10 @@ if any(~mQb)
 	%-Compute (smaller) tail probability
 	%-Chunk up to avoid convergence problems for long vectors in betacore
 	p   = zeros(size(QQnb));
-	tmp = [1:500:length(QQnb)];
-	if tmp(end)<length(QQnb), tmp=[tmp,length(QQnb)]; end
+	tmp = [1,[501:500:length(QQnb)],length(QQnb)+1];
 	for i = 1:length(tmp)-1
-	    p(tmp(i):tmp(i+1)) = ...
-	       betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)))).^2),df/2,.5)/2;
+	    p(tmp(i):tmp(i+1)-1) = ...
+	       betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)-1))).^2),df/2,.5)/2;
 	end
 	
 	%-Compute standard normal deviate lower tail prob equal to p
