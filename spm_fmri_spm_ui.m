@@ -742,7 +742,7 @@ end
 % global normalization
 %---------------------------------------------------------------------------
 str    = 'remove global effects';
-GLOBAL = spm_input(str,'!+1','yes|no',[1 0]);
+GLOBAL = spm_input(str,'!+1','scale|ancova|none',[2 1 0]);
 str    = 'remove effects on response';
 GXxC   = spm_input(str,'!+1','yes|no',[1 0]);
 
@@ -921,15 +921,26 @@ V(7,:) = V(7,:)*GM/mean(GX);
 GX     = GX*GM/mean(GX);
 
 % remove global effects
-%---------------------------------------------------------------------------
-if GLOBAL
-	G      = [G GX];
-	Gnames = str2mat(Gnames,'Global'); 
+%----------------------------------------------------------------------------
+if GLOBAL == 1
+	for v = 1:nsess
+
+		% append to G
+		%-----------------------------------------------------------
+		d        = GX.*B(:,v);
+		d        = spm_detrend(d);
+		G        = [G d(:)];
+
+		% append labels
+		%-----------------------------------------------------------
+		Gnames   = str2mat(Gnames,sprintf('Global %0.0f',v));
+	end
+
 end
 
 % remove global x response interactions
 %---------------------------------------------------------------------------
-if GXxC
+if GXxC == 1
 
 	% interaction terms
 	%-------------------------------------------------------------------
@@ -957,6 +968,12 @@ if GXxC
 	
 end
 
+% scale if specified 
+%---------------------------------------------------------------------------
+if GLOBAL == 2
+	V(7,:) = GM*V(7,:)./GX';
+	GX = GM*GX./GX;
+end
 
 % zero pad contrast 
 %---------------------------------------------------------------------------
@@ -1017,7 +1034,10 @@ text(0,y,['Response Form: ' Ctype(Cov,:)  ]); y = y - dy;
 text(0,y,sprintf('SPM{F} threshold p = %0.3f',UFp)); y = y - dy;
 
 %---------------------------------------------------------------------------
-if GLOBAL
+if GLOBAL == 2
+	text(0,y,'Data scaled to Grand Mean'); y = y - dy;
+end
+if GLOBAL == 1
 	text(0,y,'Global effects modelled'); y = y - dy;
 end
 if GXxC
@@ -1034,11 +1054,11 @@ spm_print
 
 
 % implement analysis proper
-%--------------------------------------------------------------------------
+%---------------------------------------------------------------------------
 spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,GX,HCBGnames,P,SIGMA,RT);
 
 
 
 %-Clear figure
-%-----------------------------------------------------------------------
+%---------------------------------------------------------------------------
 spm_clf(Finter); set(Finter,'Name',' ','Pointer','Arrow');
