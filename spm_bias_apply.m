@@ -31,8 +31,8 @@ VO.dim(4)      = spm_type('float');
 
 if nargout==0,
 	[pth,nm,xt,vr] = fileparts(deblank(V.fname));
-	%VO.fname      = fullfile(pth,['m' nm xt vr]);
-	VO.fname       = ['m' nm xt vr];
+	VO.fname       = fullfile(pth,['m' nm xt vr]);
+	%VO.fname      = ['m' nm xt vr];
 	VO.pinfo       = [1 0 0]';
 	VO             = spm_create_vol(VO);
 else,
@@ -51,7 +51,7 @@ for p=1:V.dim(3),
 	if nargout==0,
 		VO  = spm_write_plane(VO,img,p);
 	else,
-		VO.dat(:,:,p) = img;
+		VO.dat(:,:,p) = single(img);
 	end;
 end;
 if nargout==0, VO = spm_close_vol(VO); end;

@@ -87,7 +87,7 @@ spm_conv_vol(br,br,kx,ky,kz,-[1 1 1]);
 if any(mode==[1 3]),
 	% Produce rendering
 	%-----------------------------------------------------------------------
-	matname = ['render_' nam '.mat'];
+	matname = fullfile(pth,['render_' nam '.mat']);
 	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
 	renviews(tmp,matname);
 end;
@@ -95,7 +95,7 @@ end;
 if any(mode==[2 3]),
 	% Produce extracted surface
 	%-----------------------------------------------------------------------
-	matname = ['surf_' nam '.mat'];
+	matname = fullfile(pth,['surf_' nam '.mat']);
 	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
 
 	[faces,vertices] = isosurface(br,0.5);
