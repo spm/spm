@@ -71,7 +71,7 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % level.
 %
 %---------------------------------------------------------------------------
-% %W% Karl Friston %E%
+% @(#)spm_fMRI_design.m	2.9 Karl Friston 99/04/20
 
 % construct Design matrix {X} - cycle over sessions
 %===========================================================================
@@ -79,6 +79,13 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % Initialize variables
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
+
+% global parameter
+%-----------------------------------------------------------------------
+global fMRI_T; 
+global fMRI_T0; 
+if isempty(fMRI_T), fMRI_T = 16; end;
+if isempty(fMRI_T0), fMRI_T0 = 16; end;
 
 % get nscan and RT if no arguments
 %---------------------------------------------------------------------------
@@ -89,8 +96,9 @@ if nargin < 1
 	nscan  = spm_input(['scans per session e.g. 64 64 64'],1);
 end
 nsess  = length(nscan);
-T      = 16;						% bins per scan
-dt     = RT/T;						% time bin {secs}
+dt     = RT/fMRI_T;						% time bin {secs}
+
+
 
 
 % separate specifications for non-relicated sessions
@@ -127,7 +135,7 @@ for s = 1:nsess
 
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons,W,name,para,DSstr] = spm_get_ons(k,T,dt);
+	[ons,W,name,para,DSstr] = spm_get_ons(k,fMRI_T,dt);
 	
 
 	% get basis functions for responses
@@ -159,7 +167,8 @@ for s = 1:nsess
 		IND{i} = [];
 		for  j = 1:size(BF{i},2)
 			x      = conv(full(ons(:,i)),BF{i}(:,j));
-			X      = [X x([1:k]*T,:)];
+			X      = [X x([0:k-1]*fMRI_T + fMRI_T0,:)];
+			%-- X      = [X x([1:k]*T,:)];
 			Xn{qx} = [name{i} sprintf(': bf: %i',j)];
 			IND{i} = [IND{i} qx];
 			qx     = qx + 1;
