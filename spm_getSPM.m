@@ -470,7 +470,7 @@ end
 %-Compute mask and eliminate masked voxels
 %-----------------------------------------------------------------------
 for i = Im
-	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...masking')
+	fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')
 
 	Mask = spm_get_data(xCon(i).Vspm,XYZ);
 	um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
