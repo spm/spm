@@ -983,7 +983,7 @@ if strcmp(lower(Action),'getwinscale')
 end
 S0   = get(0,'ScreenSize');
 if all(S0==1), error('Can''t open any graphics windows...'), end
-varargout = {[S0(3)/1152 S0(4)/900 S0(3)/1152 S0(4)/900]};
+varargout = {[S0(3)/1152 (S0(4)-50)/900 S0(3)/1152 (S0(4)-50)/900]};
 
 
 %=======================================================================
