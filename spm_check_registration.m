@@ -6,22 +6,33 @@ function spm_check_registration(images)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
-if nargin==0
-	images=spm_get(2,'.img',['Select two images']);
+if nargin==0,
+	images = spm_get([1 15],'.img',['Select images']);
 	spm_check_registration(images);
-elseif nargin==1
+elseif nargin==1,
 	fg = spm_figure('Findwin','Graphics');
-	if isempty(fg)
+	if isempty(fg),
 		fg=spm_figure('Create','Graphics');
-		if isempty(fg)
+		if isempty(fg),
 			error('Cant create graphics window');
-		end
-	else
+		end;
+	else,
 		spm_figure('Clear','Graphics');
-	end
-	h1=spm_orthviews('Image', images(1,:), [0.0 0.0 1 0.5]);
-	spm_orthviews('Space',1);
-	spm_orthviews('Image', images(2,:), [0.0 0.5 1 0.5]);
-else
+	end;
+
+	mn = size(images,1);
+	n  = round(mn^0.4);
+	m  = ceil(mn/n);
+	w  = 1/n;
+	h  = 1/m;
+	ds = (w+h)*0.02;
+	for ij=1:mn,
+		i  = 1-h*(floor((ij-1)/n)+1);
+		j  = w*rem(ij-1,n);
+		handle(ij) = spm_orthviews('Image', images(ij,:),...
+			[j+ds/2 i+ds/2 w-ds h-ds]);
+		if ij==1, spm_orthviews('Space',1); end;
+	end;
+else,
 	error('Incorrect Usage');
-end
+end;
