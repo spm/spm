@@ -2,9 +2,10 @@
 static char sccsid[]="%W% John Ashburner %E%";
 #endif
 
-/* #include "spm_mapping.h" */
-#include "spm_sys_deps.h"
-#include "spm_vol_utils.h"
+#include "spm_mapping.h"
+#include "spm_datatypes.h"
+/* #include "spm_sys_deps.h" */
+/* #include "spm_vol_utils.h" */
 #include <math.h>
 #include "mex.h"
 
@@ -29,11 +30,11 @@ static void get_slice(MAPTYPE *vol, int i, double dat[])
 	mat[14] = i+1.0;
 	slice(mat,dat,vol->dim[0],vol->dim[1], vol, 0,0);
 
-	if ((vol->dtype == UNSIGNED_CHAR)    || (vol->dtype == SIGNED_SHORT)   ||
-	    (vol->dtype == SIGNED_INT)       || (vol->dtype == SIGNED_SHORT_S) ||
-	    (vol->dtype == SIGNED_INT_S)     || (vol->dtype == SIGNED_CHAR)    ||
-	    (vol->dtype == UNSIGNED_SHORT)   || (vol->dtype == UNSIGNED_INT)   ||
-	    (vol->dtype == UNSIGNED_SHORT_S) || (vol->dtype == UNSIGNED_INT_S))
+	if ((vol->dtype == SPM_UNSIGNED_CHAR)    || (vol->dtype == SPM_SIGNED_SHORT)   ||
+	    (vol->dtype == SPM_SIGNED_INT)       || (vol->dtype == SPM_SIGNED_SHORT_S) ||
+	    (vol->dtype == SPM_SIGNED_INT_S)     || (vol->dtype == SPM_SIGNED_CHAR)    ||
+	    (vol->dtype == SPM_UNSIGNED_SHORT)   || (vol->dtype == SPM_UNSIGNED_INT)   ||
+	    (vol->dtype == SPM_UNSIGNED_SHORT_S) || (vol->dtype == SPM_UNSIGNED_INT_S))
 	{
 		/* Only a relatively small finite number of values can be stored as
 		   integers.  This can cause aliasing problems in the histograms.

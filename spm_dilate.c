@@ -17,7 +17,7 @@ int connected(unsigned int    i,
               unsigned int    dim[3],
               double          *visit);
 
-int index(unsigned int   i,
+int get_index(unsigned int   i,
           unsigned int   j,
           unsigned int   k,
           unsigned int   dim[3]);
@@ -38,7 +38,7 @@ void uw_dilate(double        *inmap,
       {
          for (i=1; i<=dim[0]; i++)
 	 {
-	   if (!inmap[(indx = index(i,j,k,dim))])
+	   if (!inmap[(indx = get_index(i,j,k,dim))])
 	   {
 	      if (connected(i,j,k,dim,inmap) > 0)
 	      {
@@ -71,12 +71,12 @@ int connected(unsigned int    i,
 {
   int   indx = 0;
 
-  if ((indx = index(i+1,j,k,dim)) > 0 & visit[indx] > 0) return(indx);
-  if ((indx = index(i-1,j,k,dim)) > 0 & visit[indx] > 0) return(indx);
-  if ((indx = index(i,j+1,k,dim)) > 0 & visit[indx] > 0) return(indx);
-  if ((indx = index(i,j-1,k,dim)) > 0 & visit[indx] > 0) return(indx);
-  if ((indx = index(i,j,k+1,dim)) > 0 & visit[indx] > 0) return(indx);
-  if ((indx = index(i,j,k-1,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i+1,j,k,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i-1,j,k,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i,j+1,k,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i,j-1,k,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i,j,k+1,dim)) > 0 & visit[indx] > 0) return(indx);
+  if ((indx = get_index(i,j,k-1,dim)) > 0 & visit[indx] > 0) return(indx);
 
   return(-1);
 }
@@ -84,7 +84,7 @@ int connected(unsigned int    i,
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int index(unsigned int   i,
+int get_index(unsigned int   i,
           unsigned int   j,
           unsigned int   k,
           unsigned int   dim[3])
