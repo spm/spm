@@ -337,7 +337,7 @@ end
 
 %-Convert P to cellstr if Prompt is one
 %-----------------------------------------------------------------------
-if iscellstr(Prompt), P = cellstr(P); end
+if iscellstr(Prompt), if isempty(P), P={}; else, P = cellstr(P); end, end
 
 %-Log the transaction
 %-----------------------------------------------------------------------
@@ -1480,7 +1480,7 @@ set(findobj(F,'Tag','Done'),'UserData',1)
 case 'cpath'
 %=======================================================================
 % cpath = spm_get('cpath',path,cwd)
-if nargin<3, cwd='.'; else, cwd=varargin{3}; end
+if nargin<3, cwd=pwd; else, cwd=spm_get('CPath',varargin{3}); end
 if nargin<2, error('insufficient arguments'), end
 cpath = cellstr(varargin{2});
 
