@@ -370,11 +370,18 @@ if ~isempty(off),
 	off1 = find(ca(:,1)~='-'); % either 'print' or a filename
 	if length(off1)>1,
 		fname = deblank(ca(off1(end),:));
-		% if exist(fname)~=2,
+
+		% If there is no path to the file, then make it the
+		% current directory
+		[pth,nam,ext] = fileparts(fname);
+		if isempty(pth), fname = ['.' filesep nam ext]; end;
+
 		fd = fopen(fname,'r');
 		if fd~=-1,
+			% File exists, so -append can be used
 			fclose(fd);
 		else,
+			% File does not exist, so remove -append option
 			PRINTSTR(off:(off+7))='';
 		end;
 	end;
@@ -389,7 +396,6 @@ axes('Position',[0.005,0.005,0.1,0.1],...
 	'Visible','off',...
 	'Tag','SPMprintFootnote')
 text(0,0,FNote,'FontSize',6);
-
 
 %-Temporarily change all units to normalized prior to printing
 % (Fixes bizzarre problem with stuff jumping around!)
