@@ -37,8 +37,17 @@ figure(Fgraph);
 if nargin == 0
 	load(spm_get(1,'.mat','select fMRIDesMtx'))
 	set(1,'UserData',{X Sess})
-
 end
+
+% Do not proceed unless there are trials specified
+%---------------------------------------------------------------------------
+for i = 1:length(Sess)
+	if ~length(Sess{i}.name)
+		 msgbox('User-specifed regressors only','Warning','warn')
+		return
+	end
+end
+
 
 % defaults
 %---------------------------------------------------------------------------

@@ -131,6 +131,13 @@ function [X,Sess] = spm_fmri_spm_ui
 % between the most frequently occurring event or epoch (i.e the minium of
 % all maximum intervals over event or epochs).
 %
+% N.B.
+% Burst Mode is a specialist design for intermittent epochs of acquisitions
+% (used for example to allow for intercalated EEG recording).  Each burst
+% is treated as a session but consistent within session effects (e.g. T1
+% effects) are modelled in X.bX.  The primary use of this mode is to generate
+% parameter estimate images for a second level analysis.
+%
 %---------------------------------------------------------------------------
 % Refs:
 %
@@ -196,22 +203,21 @@ switch MT
 
 	% get filenames
 	%-------------------------------------------------------------------
-	nsess  = length(Sess);
+	nsess  = size(X.bX,2);
 	nscan  = zeros(1,nsess);
+	for  i = 1:nsess
+		nscan(i) = length(find(X.bX(:,i)));
+	end
 	P      = [];
 	if nsess < 16
-		for  i = 1:nsess
-			nscan(i) = length(Sess{i}.row);
-			str      = sprintf('select scans for session %0.0f',i);
-			q        = spm_get(nscan(i),'.img',str);
- 			P        = strvcat(P,q);
+		for i = 1:nsess
+			str = sprintf('select scans for session %0.0f',i);
+			q   = spm_get(nscan(i),'.img',str);
+ 			P   = strvcat(P,q);
 		end
 	else
-		for  i = 1:nsess
-			nscan(i) = length(Sess{i}.row);
-		end
-		str    = sprintf('select scans for session %0.0f',i);
-		P      = spm_get(sum(nscan),'.img',str);
+		str   = sprintf('select scans for this study');
+		P     = spm_get(sum(nscan),'.img',str);
 	end
 
 	% Repeat time
@@ -234,14 +240,22 @@ switch MT
 
 	% get Repeat time
 	%-------------------------------------------------------------------
-	RT     = spm_input('Interscan interval {secs}',2);
+	RT       = spm_input('Interscan interval {secs}',2);
 
 	% get design matrix
 	%-------------------------------------------------------------------
-	[X,Sess] = spm_fMRI_design(nscan,RT);
+	[X,Sess] = spm_fMRI_design(nscan,RT,0);
 
 end
 
+% Assemble other deisgn parameters
+%===========================================================================
+
+% get rows
+%---------------------------------------------------------------------------
+for i = 1:nsess
+	row{i} = find(X.bX(:,i));
+end
 
 % Global normalization
 %---------------------------------------------------------------------------
@@ -249,17 +263,41 @@ str    = 'remove Global effects';
 Global = spm_input(str,1,'scale|none',{'Scaling' 'None'});
 
 
+% Burst mode
+%---------------------------------------------------------------------------
+if length(nscan) > 16 & ~any(diff(nscan))
+	BM    = spm_input('Burst mode','+1','y/n',[1 0]);
+else
+	BM    = 0;
+end
+
+% Model scan effects as oppsed to session effects if burst mode
+%---------------------------------------------------------------------------
+if BM
+	k       = nscan(1);
+	X.bX    = kron(ones(nsess,1),eye(k));
+	for   i = 1:k
+		Bname{i} = sprintf('scan: %i ',i);
+	end
+	X.DSstr = [X.DSstr '[burst-mode] '];
+end
+
+
 % Temporal filtering
 %===========================================================================
 
 % High-pass filtering
 %---------------------------------------------------------------------------
-cLF     = spm_input('High-pass filter?','+1','b','none|specify');
+if BM
+	cLF = 'none';
+else
+	cLF = spm_input('High-pass filter?','+1','b','none|specify');
+end
 
 % specify cut-off (default based on peristimulus time)
 % param = cut-off period (max = 512, min = 32)
 %---------------------------------------------------------------------------
-param   = 512*ones(1,nsess);
+param  = 512*ones(1,nsess);
 switch cLF
 
 	case 'specify'
@@ -328,7 +366,7 @@ cVi     = spm_input(str,'+1','b',cVimenu);
 Vi      = speye(sum(nscan));
 xVi     = struct('Vi',Vi,'Form',cVi);
 for   i = 1:nsess
-	xVi.row{i} = Sess{i}.row;
+	xVi.row{i} = row{i};
 end
 
 % the interactive parts of spm_spm_ui are now finished: Cleanup GUI
@@ -371,7 +409,7 @@ for i  = 1:q, g(i) = spm_global(VY(i)); end
 gSF    = GM./g;
 if strcmp(Global,'None')
 	for i = 1:nsess
-		j      = Sess{i}.row;
+		j      = row{i};
 		gSF(j) = GM./mean(g(j));
 	end
 end
