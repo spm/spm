@@ -63,33 +63,51 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 %
 % MAIN EFFECTS: For a main effect, or single factor, the FCLevels
 % matrix is an integer vector whose values represent the levels of the
-% factor. The integer factor levels need not be positive, nor in order.
-% A factor level of zero is treated as no effect, and no column of
-% design matrix is created for zero levels.  Effects for the factor
-% levels are entered into the design matrix *in increasing order* of
-% the factor levels. Check Pnames to find out which columns correspond
-% to which levels of the factor.
+% factor. The integer factor levels need not be positive, nor in
+% order.  In the '~' constraint types (below), a factor level of zero
+% is ignored (treated as no effect), and no corresponding column of
+% design matrix is created.  Effects for the factor levels are entered
+% into the design matrix *in increasing order* of the factor levels.
+% Check Pnames to find out which columns correspond to which levels of
+% the factor.
 %
 % TWO WAY INTERACTIONS: For a two way interaction effect between two
 % factors, the FCLevels matrix is an nx2 integer matrix whose columns
 % indicate the levels of the two factors. An effect is included for
 % each unique combination of the levels of the two factors. Again,
-% factor levels must be integer, though not necessarily positive, and a
-% zero level is ignored.
+% factor levels must be integer, though not necessarily positive.
+% Zero levels are ignored in the '~' constraint types described below.
 %
 % CONSTRAINTS: Each FactorLevels vector/matrix may be followed by an 
-% (optional) ConstraintString. Constraints are applied to the last level
-% of the factor.
-%  ConstraintStrings for main effects are:
-%                  '-'   - No Constraints
-%                  '+0'  - sum-to-zero constraints
-%                  '+0m' - Implicit sum-to-zero constraints
-%                  '.'   - CornerPoint constraints
+% (optional) ConstraintString.
+%
+% ConstraintStrings for main effects are:
+%                  '-'   - No Constraint
+%                  '~'   - Ignore zero level of factor
+%                          (I.e. cornerPoint constraint on zero level,
+%                          (same as '.0', except zero level is always ignored,
+%                          (even if factor only has zero level, in which case
+%                          (an empty DesMtx results and a warning is given
+%                  '+0'  - sum-to-zero constraint
+%                  '+0m' - Implicit sum-to-zero constraint
+%                  '.'   - CornerPoint constraint
+%                  '.0'  - CornerPoint constraint applied to zero factor level
+%                          (warns if there is no zero factor level)
 %  Constraints for two way interaction effects are
 %    '-'                 - No Constraints
+%                  '~'   - Ignore zero level of any factor
+%                          (I.e. cornerPoint constraint on zero level,
+%                          (same as '.ij0', except zero levels are always ignored
 %    '+i0','+j0','+ij0'  - sum-to-zero constraints
 %    '.i', '.j', '.ij'   - CornerPoint constraints
+%    '.i0','.j0','.ij0'  - CornerPoint constraints applied to zero factor level
+%                          (warns if there is no zero factor level)
 %    '+i0m', '+j0m'      - Implicit sum-to-zero constraints
+%
+% With the exception of the "ignore zero" '~' constraint, constraints
+% are only applied if there are sufficient factor levels. CornerPoint
+% and explicit sum-to-zero Constraints are applied to the last level of
+% the factor.
 %
 % The implicit sum-to-zero constraints "mean correct" appropriate rows
 % of the relevant design matrix block. For a main effect, constraint
@@ -115,7 +133,8 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % 'FxC'. The last column is understood to contain the covariate. Other
 % columns are taken to contain integer FactorLevels vectors. The
 % (unconstrained) interaction of the factors is interacted with the
-% covariate. Zero factor levels are ignored.
+% covariate. Zero factor levels are ignored if ConstraintString '~FxC'
+% is used.
 %
 % NAMES: Each Factor/Covariate can be 'named', by passing a name
 % string.  Pass a string matrix, or cell array (vector) of strings,
@@ -251,7 +270,7 @@ end
 
 
 
-case '-(1)'                                         %-Simple main effect
+case {'-(1)','~(1)'}      %-Simple main effect ('~' ignores zero levels)
 %=======================================================================
 %-Sort out arguments
 %-----------------------------------------------------------------------
@@ -260,9 +279,19 @@ if any(I~=floor(I)), error('Non-integer indicator vector'), end
 if isempty(FCnames), FCnames = {'<Fac>'};
 elseif length(FCnames)>1, error('Too many FCnames'), end
 
-% Sort out unique factor levels - ignore zero level of factor
+% Sort out unique factor levels - ignore zero level in '~(1)' usage
 %-----------------------------------------------------------------------
-tmp   = sort(I(I~=0)');
+if Constraint(1)~='~'
+	tmp = sort(I');
+else
+	tmp = sort(I(I~=0)');
+	if isempty(tmp)
+		X=[]; Pnames={}; Index=[];
+		warning(['factor has only zero level - ',...
+			'returning empty DesMtx partition'])
+		return
+	end
+end
 Index = tmp([1,1+find(diff(tmp))]);
 
 %-Determine sizes of design matrix X
@@ -284,16 +313,17 @@ end
 if nXcols==1, Pnames=FCnames; end
 
 
-case {'-','-(*)'}             %-Main effect or unconstrained interaction
+case {'-','~'}     %-Main effect / interaction ('~' ignores zero levels)
 %=======================================================================
 if size(I,2)==1
-	[X,Pnames,Index] = spm_DesMtx(I,'-(1)',FCnames);
+	%-Main effect - process directly
+	[X,Pnames,Index] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
 	return
 end
 
 if any((I(:))~=floor(I(:))), error('Non-integer indicator vector'), end
 
-%-Create design matrix for all (interaction) effects
+% Sort out unique factor level combinations & build design matrix
 %-----------------------------------------------------------------------
 %-Make "raw" index to unique effects
 nI     = I - ones(size(I,1),1)*min(I);
@@ -301,12 +331,22 @@ tmp    = max(I)-min(I)+1;
 tmp    = [fliplr(cumprod(tmp(end:-1:2))),1];
 rIndex = sum(nI.*(ones(size(I,1),1)*tmp),2)+1;
 
-%-Ignore zero level of any factor
-rIndex(any(I==0,2))=0;
+%-Ignore combinations where any factor has level zero in '~' usage
+if Constraint(1)=='~'
+	rIndex(any(I==0,2))=0;
+	if all(rIndex==0)
+		X=[]; Pnames={}; Index=[];
+		warning(['no non-zero factor level combinations - ',...
+			'returning empty DesMtx partition'])
+		return
+	end
+end
 
-[X,null,sIndex]=spm_DesMtx(rIndex,'-(1)');
+%-Build design matrix based on unique factor combinations
+[X,null,sIndex]=spm_DesMtx(rIndex,[Constraint,'(1)']);
 
-%-Build Index matrix
+
+%-Sort out Index matrix
 %-----------------------------------------------------------------------
 Index = zeros(size(I,2),length(sIndex));
 for c = 1:length(sIndex)
@@ -331,7 +371,8 @@ end
 
 
 
-case 'FxC'      %-Factor dependent covariate effect - Cov in last column
+case {'FxC','-FxC','~FxC'}           %-Factor dependent covariate effect
+%                                       ('~' ignores zero factor levels)
 %=======================================================================
 %-Check
 %-----------------------------------------------------------------------
@@ -344,7 +385,7 @@ if ~all(all(F==floor(F),1),2)
 	error('non-integer indicies in F partition of FxC'), end
 
 if isempty(FCnames)
-	Fnames = {''};
+	Fnames = '';
 	Cnames = '<Cov>';
 elseif length(FCnames)==size(I,2)
 	Fnames = FCnames(1:end-1);
@@ -353,15 +394,16 @@ else
 	error('#FCnames mismatches #Factors+#Cov in FxC')
 end
 
-%-Set up design matrix X & names matrix
+%-Set up design matrix X & names matrix - ignore zero levels if '~FxC' use
 %-----------------------------------------------------------------------
-[X,Pnames,Index] = spm_DesMtx(F,'-(1)',Fnames);
+if Constraint(1)~='~',	[X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
+	else,		[X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
 X = X.*(C*ones(1,size(X,2)));
 Pnames = cellstr([repmat([Cnames,'@'],length(Index),1),char(Pnames)]);
 
 
 
-case {'.','+0','+0m'}                   %-Constrained simple main effect
+case {'.','.0','+0','+0m'}              %-Constrained simple main effect
 %=======================================================================
 
 if size(I,2)~=1, error('Simple main effect requires vector index'), end
@@ -372,11 +414,18 @@ if size(I,2)~=1, error('Simple main effect requires vector index'), end
 %-----------------------------------------------------------------------
 %-Apply uniqueness constraints ('.' & '+0')  to last effect, which is
 % in last column, since column i corresponds to level Index(i)
+%-'.0' corner point constraint is applied to zero factor level only
 nXcols = size(X,2);
-if nXcols==1
-	error('Can''t constrain an effect with only one level!')
+zCol   = find(Index==0);
+if nXcols==1 & ~strcmp(Constraint,'.0')
+	error('only one level: can''t constrain')
 elseif strcmp(Constraint,'.')
 	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
+elseif strcmp(Constraint,'.0')
+	zCol = find(Index==0);
+	if isempty(zCol),	warning('no zero level to constrain')
+	elseif nXcols==1,	error('only one level: can''t constrain'), end
+	X(:,zCol)=[];	Pnames(zCol)=[]; Index(zCol)=[];
 elseif strcmp(Constraint,'+0')
 	X(find(X(:,nXcols)),:)=-1;
 	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
@@ -386,7 +435,7 @@ end
 
 
 
-case {'.i','.j','.ij','+i0','+j0','+ij0','+i0m','+j0m'}
+case {'.i','.i0','.j','.j0','.ij','.ij0','+i0','+j0','+ij0','+i0m','+j0m'}
                                            %-Two way interaction effects
 %=======================================================================
 if size(I,2)~=2, error('Two way interaction requires Nx2 index'), end
@@ -471,26 +520,32 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
 
 %-Corner point constraints
 %-----------------------------------------------------------------------
-elseif any(strcmp(Constraint,{'.i','.j','.ij'}))
-	CornerPointI = any(strcmp(Constraint,{'.i','.ij'}));
-	CornerPointJ = any(strcmp(Constraint,{'.j','.ij'}));
+elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
+	CornerPointI = any(strcmp(Constraint,{'.i','.i0','.ij','.ij0'}));
+	CornerPointJ = any(strcmp(Constraint,{'.j','.j0','.ij','.ij0'}));
 
 	if CornerPointI	%-impose CornerPointI constraints
-		i=max(Index(1,:));
-		if i==min(Index(1,:))
-			error('Only one i level: Can''t constrain')
-		end
+		if Constraint(end)~='0',	i = max(Index(1,:));
+			else,			i = 0; end
 		cols=find(Index(1,:)==i); %-columns to delete
+		if isempty(cols)
+			warning('no zero i level to constrain')
+		elseif all(Index(1,:)==i)
+			error('only one i level: can''t constrain')
+		end
 		%-delete columns
 		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 
 	if CornerPointJ	%-impose CornerPointJ constraints
-		j=max(Index(2,:));
-		if j==min(Index(2,:))
-			error('Only one j level: Can''t constrain')
-		end
+		if Constraint(end)~='0',	j = max(Index(2,:));
+			else,			j = 0; end
 		cols=find(Index(2,:)==j);
+		if isempty(cols)
+			warning('no zero j level to constrain')
+		elseif all(Index(2,:)==j)
+			error('only one j level: can''t constrain')
+		end
 		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 end
@@ -515,7 +570,23 @@ while(Carg <= nargin)
 
 
     while(~isempty(rX))
-	if size(rX,2)>1 & max(1,findstr(rPnames(1,:),'_{')) < ...
+	if size(rX,2)>1 & max(1,find(rPnames(1,:)=='(')) < ...
+					max(0,find(rPnames(1,:)==')'))
+	%-Block: find the rest & normalise together
+	%===============================================================
+		c1 = max(find(rPnames(1,:)=='('));
+		d  = any(diff(abs(rPnames(:,1:c1))),2)...
+			| ~any(rPnames(2:end,c1+1:end)==')',2);
+		t  = min(find([d;1]));
+
+		%-Normalise block
+		%-------------------------------------------------------
+		nX = [nX,sf_tXsca(rX(:,1:t))];
+		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+		rX(:,1:t) = []; rPnames(1:t,:)=[];
+
+
+	elseif size(rX,2)>1 & max(1,findstr(rPnames(1,:),'_{')) < ...
 					max(0,find(rPnames(1,:)=='}'))
 	%-Factor, interaction of factors, or FxC: find the rest...
 	%===============================================================
@@ -534,22 +605,6 @@ while(Carg <= nargin)
 		else				%-Straight interaction
 			nX = [nX,sf_tXsca(tX)];
 		end
-		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
-		rX(:,1:t) = []; rPnames(1:t,:)=[];
-
-
-	elseif size(rX,2)>1 & max(1,find(rPnames(1,:)=='(')) < ...
-					max(0,find(rPnames(1,:)==')'))
-	%-Block: find the rest & normalise together
-	%===============================================================
-		c1 = max(find(rPnames(1,:)=='('));
-		d  = any(diff(abs(rPnames(:,1:c1))),2)...
-			| ~any(rPnames(2:end,c1+1:end)==')',2);
-		t  = min(find([d;1]));
-
-		%-Normalise block
-		%-------------------------------------------------------
-		nX = [nX,sf_tXsca(rX(:,1:t))];
 		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
 		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
