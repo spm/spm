@@ -1,4 +1,4 @@
-% SPM96b
+
 % Statistical Parametric Mapping - SPM96b
 %_______________________________________________________________________
 % 
@@ -599,17 +599,22 @@
 %
 %_______________________________________________________________________
 %
-% 3) Bibliography.
+% ===============
+% 3) Bibliography
+% ===============
 % 
+% The key papers detailing the SPM approach are listed, with their
+% abstracts, below. These papers are not a comprehensive bibliography of
+% the field and are restricted to our own recent work (the background and
+% converging work of others will be found in these papers).
+%
 % For those of you having difficulties getting hold of back issues of
 % Human Brain Mapping and NeuroImage manuscripts of our methodological
-% papers (germane to SPM) are available via the Web. The Wellcome
-% Department of Cognitive Neurology's Web page is
-% http://www.fil.ion.ucl.ac.uk/, where links lead to the manuscripts
+% papers (germane to SPM) are available via the Web. The SPM home page is
+% http://www.fil.ion.ucl.ac.uk/spm, where links lead to the documentation
 % page. This page is kept up to date with current references, which are
 % linked to PostScript and Acrobat versions of (most of) the papers.
 %
-% 
 %-----------------------------------------------------------------------
 % 
 % SPM_1:   Spatial registration and normalisation of images
@@ -1019,11 +1024,3 @@
 % 
 %__________________________________________________________________________
 % %W% The FIL methods group %E%
-
-%=======================================================================
-% PROGRAMMERS NOTE:
-% This (spm.man) is the contents file for SPM, used by spm('Ver') to
-% recover the version number. MatLab's ver uses Contents.m which should
-% therefore be a symbolic link to this spm.man in the spm directory.
-% Line1: Version (one word). Line2: One line description
-%=======================================================================
