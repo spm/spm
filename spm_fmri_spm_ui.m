@@ -4,13 +4,13 @@ function [X,Sess] = spm_fmri_spm_ui
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
-% X.BFstr - basis function description string
-% X.DSstr - Design description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
+% Sess{s}.BFstr   - basis function description string
+% Sess{s}.DSstr   - Design description string
 % Sess{s}.row     - scan   indices      for session s
 % Sess{s}.col     - effect indices      for session s
 % Sess{s}.name{i} - of ith trial type   for session s
@@ -191,8 +191,8 @@ switch MT
 	case 2
 	% 'review a specified model'
 	%-------------------------------------------------------------------
-	[X,Sess] = spm_fMRI_design_show;
 	spm_clf(Finter)
+	[X,Sess] = spm_fMRI_design_show;
 	return
 
 	case 3
@@ -256,6 +256,9 @@ end
 for i = 1:nsess
 	row{i} = find(X.bX(:,i));
 end
+BFstr  = Sess{1}.BFstr;
+DSstr  = Sess{1}.DSstr;
+
 
 % Global normalization
 %---------------------------------------------------------------------------
@@ -280,7 +283,7 @@ if BM
 	for   i = 1:k
 		X.Bname{i} = sprintf('scan: %i ',i);
 	end
-	X.DSstr = [X.DSstr '[burst-mode] '];
+	DSstr = '[burst-mode]';
 end
 
 
@@ -370,7 +373,7 @@ cVi     = spm_input(str,'+1','b',cVimenu);
 % the interactive parts of spm_spm_ui are now finished: Cleanup GUI
 %---------------------------------------------------------------------------
 spm_clf(Finter);
-set(Finter,'Name','thankyou: please wait (computing globals)','Pointer','Watch')
+set(Finter,'Name','thank you please wait (computing globals)','Pointer','Watch')
 
 
 % Contruct K and Vi structs
@@ -454,8 +457,8 @@ end
 for i    = 1:length(Sess), ntr(i) = length(Sess{i}.name); end
 sGXcalc  = 'mean voxel value';
 sGMsca   = 'session specific';
-xsDes    = struct(	'Design',			X.DSstr,...
-			'Basis_functions',		X.BFstr,...
+xsDes    = struct(	'Design',			DSstr,...
+			'Basis_functions',		BFstr,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
 			'Conditions_per_session',	sprintf('%-3d',ntr),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
