@@ -166,7 +166,7 @@ function varargout = spm_input(varargin)
 % - condition - FORMAT [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n,m)
 % - button    - FORMAT [p,YPos]= spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
 % - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - whole 1   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w1')
+% - whole 1   - FORMAT [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr)
 % - display   - FORMAT     spm_input(Message,YPos,'d',Label)
 % - alert     - FORMAT     spm_input(Alert,YPos,'d!',Label)
 %
@@ -587,15 +587,17 @@ else
 	hPrmpt = uicontrol(Finter,'Style','Text',...
 		'String',[strN,Prompt,strM],...
 		'Tag',['GUIinput_',int2str(YPos)],...
+		'UserData','',...
 		'HorizontalAlignment','Right',...
 		'Position',PRec);
 
-	%-Edit widget: Callback sets UserData to true when edited
+	%-Edit widget: Callback sets hPrmpt UserData to string value when edited
+	cb = 'set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))';
 	h = uicontrol(Finter,'Style','Edit',...
 		'String',DefStr,...
 		'Tag',['GUIinput_',int2str(YPos)],...
-		'UserData',[],...
-		'CallBack','set(gcbo,''UserData'',1)',...
+		'UserData',hPrmpt,...
+		'CallBack',cb,...
 		'Horizontalalignment','Left',...
 		'BackgroundColor',COLOR,...
 		'Position',RRec);
@@ -614,16 +616,14 @@ else
 
 	%-Figure ContextMenu for shortcuts
 	hM = spm_input('!InptConMen',Finter,[hPrmpt,h]);
+	cb = [	'set(get(gcbo,''UserData''),''String'',',...
+			'[''spm_load('''''',spm_get(1),'''''')'']), ',...
+		'set(get(get(gcbo,''UserData''),''UserData''),''UserData'',',...
+			'get(get(gcbo,''UserData''),''String''))'];
 	uimenu(hM,'Label','load from text file','Separator','on',...
-		'CallBack',[...
-		'set(get(gcbo,''UserData''),''UserData'',1,''String'',',...
-			'[''spm_load('''''',spm_get(1),'''''')''])'],...
-		'UserData',h)
+		'CallBack',cb,'UserData',h)
 
-	%-Setup FigureKeyPressFcn to enable editing of entry widget
-	% without clicking in it.
-	%-If edit widget is clicked in, then it grabs all keyboard input.
-	%-Store handle of entry widget in figure UserData
+	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
 	set(Finter,'KeyPressFcn',[...
 	    'spm_input(''!EditableKeyPressFcn'',',...
 	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
@@ -636,10 +636,10 @@ else
 
 	%-Wait for edit, do eval Types in Base workspace, catch errors
 	%---------------------------------------------------------------
-	waitfor(h,'UserData')
-	if ~ishandle(h), error(['Input window cleared whilst waiting ',...
+	waitfor(hPrmpt,'UserData')
+	if ~ishandle(hPrmpt), error(['Input window cleared whilst waiting ',...
 		'for response: Bailing out!']), end
-	str = get(h,'String');
+	str = get(hPrmpt,'UserData');
 	if any(Type=='enwirc')
 		[p,msg] = sf_eEval(str,Type,n,m);
 		while isstr(p)
@@ -650,12 +650,12 @@ else
 			set(h,'Style','Edit',...
 				'String',str,...
 				'HorizontalAlignment','Left',...
-				'ForegroundColor','k',...
-				'UserData',0)
-			waitfor(h,'UserData')
-			if ~ishandle(h), error(['Input window cleared ',...
+				'ForegroundColor','k')
+			%set(hPrmpt,'UserData','');
+			waitfor(hPrmpt,'UserData')
+			if ~ishandle(hPrmpt), error(['Input window cleared ',...
 				'whilst waiting for response: Bailing out!']),end
-			str = get(h,'String');
+			str = get(hPrmpt,'UserData');
 			[p,msg] = sf_eEval(str,Type,n,m);
 		end
 	else
@@ -799,7 +799,7 @@ switch Type, case {'b','b|','y/n'}                %-Process button types
 	
 	else
 
-		Tag = ['GUIinput_',int2str(YPos)];
+		Tag = ['GUIinput_',int2str(YPos)];	%-Tag for widgets
 
 		%-Create text and edit control objects
 		%-'UserData' of prompt contains answer
@@ -931,7 +931,7 @@ case 'm'
 	
 	else
 
-		Tag = ['GUIinput_',int2str(YPos)];
+		Tag = ['GUIinput_',int2str(YPos)];	%-Tag for widgets
 
 		if nLabels==1
 			%-Only one choice - auto-pick
@@ -1016,23 +1016,29 @@ if exist('spm_log')==2
 
 case 'w1'   %-Single whole {0,1,2,...} number - button/entry combination
 %=======================================================================
+if nargin<4, DefStr=''; else, DefStr=varargin{4}; end
+if ~ischar(DefStr), DefStr=num2str(DefStr); end
+DefStr = DefStr(:)';
+
 if CmdLine
 	spm_input('!PrntPrmpt',sprintf('%s\t(enter a whole number)',Prompt))
-	str = input([Prompt,' : '],'s');
+	if ~isempty(DefStr)
+		Prompt=[Prompt,' (Default: ',DefStr,' )']; end
+	str = input([Prompt,' : '],'s'); if isempty(str), str=DefStr; end
 
 	%-Eval in Base workspace, catch errors
 	[p,msg] = sf_eEval(str,Type);
 	while isstr(p)
 		spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 		str = input([Prompt,' : '],'s');
+		if isempty(str), str=DefStr; end
 		[p,msg] = sf_eEval(str,Type);
 	end
 
 else
 
-	Tag = ['GUIinput_',int2str(YPos)];
-
-	n = 5;
+	Tag = ['GUIinput_',int2str(YPos)];		%-Tag for widgets
+	n   = 5;					%-#buttons
 
 	%-Create text and edit control objects
 	%-'UserData' of prompt contains answer
@@ -1047,31 +1053,20 @@ else
 	%-Draw buttons & entry widget, & process response
 	dX = RRec(3)/(n+2);
 
+	%-Store handle of prompt string in buttons UserData
 	%-Store button # in 'Max' property
-	%-Store handle of prompt string in buttons UserData - Button
-	% callback sets UserData of prompt string to number of pressed button
+	%-Callback sets UserData of prompt string to button value.
 	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''Max''))'];
-	if TTips, str = ['select 0-',num2str(n),' by mouse/kbd ',...
+	if TTips, str = ['select 0-',num2str(n),' by mouse ',...
 		'or enter in text widget'];
 	else, str=''; end
 	H = [];
 	for i=0:n
-		if i==0
-			%-Default button, outline it
-			h = uicontrol(Finter,'Style','Frame',...
-				'Tag',Tag,...
-				'BackGroundColor','k',...
-				'ForeGroundColor','k',...
-				'Position',...
-				[RRec(1)+i*dX RRec(2)-1 dX RRec(4)+2]);
-			XDisp = (i+2/3)*dX;
-			H = [H,h];
-		end
 		h = uicontrol(Finter,'Style','Pushbutton',...
 			'String',int2str(i),...
+			'Max',i,...
 			'ToolTipString',str,...
 			'Tag',Tag,...
-			'Max',i+1,...
 			'UserData',hPrmpt,...
 			'BackgroundColor',COLOR,...
 			'Callback',cb,...
@@ -1079,27 +1074,37 @@ else
 		H = [H,h];
 	end
 
-	%-Callback for KeyPress, to store valid button # in
-	% UserData of Prompt, DefItem of 1 if return (ASCII-13) is pressed
-	set(Finter,'KeyPressFcn',...
-		['spm_input(''!ButtonKeyPressFcn'',',...
-		'findobj(gcf,''Tag'',''',Tag,''',',...
-			'''Style'',''text''),',...
-		'''',char('0'+[0:n]),''',1,',...
-		'get(gcbf,''CurrentCharacter''))'])
-
+	%-Edit widget is default response (on pressing return) - outline it
+	h = uicontrol(Finter,'Style','Frame',...
+		'Tag',Tag,...
+		'BackGroundColor','k',...
+		'ForeGroundColor','k',...
+		'Position',...
+		[RRec(1)+(n+1)*dX RRec(2)-1 1.3*dX RRec(4)+2]);
+	H = [H,h];
 	%-Edit widget: Callback puts string into hPrompts UserData
 	cb = ['set(get(gcbo,''UserData''),''UserData'',get(gcbo,''String''))'];
 	h = uicontrol(Finter,'Style','Edit',...
-		'String','',...
+		'String',DefStr,...
+		'ToolTipString',str,...
 		'Tag',Tag,...
 		'UserData',hPrmpt,...
 		'CallBack',cb,...
-		'Horizontalalignment','Left',...
+		'Horizontalalignment','Center',...
 		'BackgroundColor',COLOR,...
 		'Position',[RRec(1)+(n+1)*dX+1 RRec(2) 1.3*dX-2 RRec(4)]);
-	if TTips, set(h,'ToolTipString','enter whole number or use buttons'), end
 	H = [H,h];
+	XDisp = (n+6/3)*dX;
+
+
+	%-Setup FigureKeyPressFcn for editing of entry widget without clicking
+	% UserData of Prompt, DefItem of 1 if return (ASCII-13) is pressed
+	set(Finter,'KeyPressFcn',[...
+	    'spm_input(''!EditableKeyPressFcn'',',...
+	    'findobj(gcf,''Tag'',''GUIinput_',int2str(YPos),''',',...
+	    	'''Style'',''edit''),',...
+	    'get(gcbf,''CurrentCharacter''))'])
+
 
 	%-Figure ContextMenu for shortcuts
 	hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
@@ -1111,12 +1116,10 @@ else
 	%-Wait for button press, process results
 	%---------------------------------------------------------------
 	waitfor(hPrmpt,'UserData')
-	if ~ishandle(hPrmpt)
-		error(['Input objects cleared whilst ',...
-		'waiting for response: Bailing out!'])
-	end
+	if ~ishandle(hPrmpt), error(['Input objects cleared whilst waiting ',...
+		'for response: Bailing out!']), end
 	p = get(hPrmpt,'UserData');
-	if isstr(p), [p,msg] = sf_eEval(p,'w1'); else, p=p-1; end
+	if isstr(p), [p,msg] = sf_eEval(p,'w1'); end
 	while isstr(p)
 		set(H,'Visible','off')
 		h = uicontrol('Style','Text','String',msg,...
@@ -1125,13 +1128,12 @@ else
 			'Tag',Tag,'Position',RRec);
 		spm('Beep')
 		pause(2), delete(h), set(H,'Visible','on')
-		if ~ishandle(hPrmpt)
-			error(['Input objects cleared whilst ',...
-			'waiting for response: Bailing out!'])
-		end
+		set(hPrmpt,'UserData','')
 		waitfor(hPrmpt,'UserData')
+		if ~ishandle(hPrmpt), error(['Input objects cleared ',...
+			'whilst waiting for response: Bailing out!']),end
 		p = get(hPrmpt,'UserData');
-		if isstr(p), [p,msg] = sf_eEval(p,'w1'); else, p=p-1; end
+		if isstr(p), [p,msg] = sf_eEval(p,'w1'); end
 	end
 
 	%-Clean up
@@ -1482,10 +1484,11 @@ varargout = {MPos};
 
 case '!editablekeypressfcn'
 %=======================================================================
-% spm_input('!EditableKeyPressFcn',h,ch)
+% spm_input('!EditableKeyPressFcn',h,ch,hPrmpt)
 if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
 if isempty(h), set(gcbf,'KeyPressFcn','','UserData',[]), return, end
 if nargin<3, ch=get(get(h,'Parent'),'CurrentCharacter'); else, ch=varargin{3};end
+if nargin<4, hPrmpt=get(h,'UserData'); else, hPrmpt=varargin{4}; end
 
 tmp = get(h,'String');
 
@@ -1501,7 +1504,7 @@ elseif any(abs(ch)==[8,127])
 	%-BackSpace or Delete
 	if length(tmp), tmp(length(tmp))=''; end
 elseif abs(ch)==13
-	if ~isempty(tmp), set(h,'UserData',1), end
+	if ~isempty(tmp), set(hPrmpt,'UserData',get(h,'String')), end
 else
 	%-Illegal character
 	return
