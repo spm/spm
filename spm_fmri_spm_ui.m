@@ -172,12 +172,12 @@ for v = 1:nsubj
 
     	% number of covariates of interest
 	%-------------------------------------------------------------------
-	c     = spm_input('# of waveforms or conditions','!+1');
+	c     = spm_input('# of waveforms or conditions',4);
 	D     = [];
 	while size(D,2) < c
 		u   = size(D,2) + 1;
 		str = sprintf('[%d]-covariate %d, session %d',k,u,v);
-		d   = spm_input(str,'!+0');
+		d   = spm_input(str,'!+1');
 		if size(d,2) == k
 			d    = d';    end
 		if size(d,1) == k
@@ -191,7 +191,7 @@ for v = 1:nsubj
 
 	% vector of conditions
 	%-------------------------------------------------------------------
-	a     = spm_input('order of epochs eg 1 2 1 2....','!+1');
+	a     = spm_input('order of epochs eg 1 2 1 2....',4);
 	a     = a(:); a = a';
 	
 	% vector of epoch lengths
@@ -283,7 +283,7 @@ for v = 1:nsubj
     while size(D,2) < g
 	u   = size(D,2) + 1;
 	str = sprintf('[%d]-confound %d, session %d',k,u,v);
-	d   = spm_input(str,'!+0','e',0);
+	d   = spm_input(str,'!+1','e',0);
 	if size(d,2) == k
 		d = d'; 	end
 	if size(d,1) == k
