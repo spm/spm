@@ -700,9 +700,9 @@ spm_print
 %=======================================================================
 
 %-This is PET data so sigma = 0 (i.e. independent observations) 
-% RT and PST are undefined
+% RT is undefined
 %-----------------------------------------------------------------------
-spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[],[])
+spm_spm(V,H,C,B,G,CONTRAST,ORIGIN,THRESH*GX,HCBGnames,P,0,[])
 
 %-Clear figure
 %-----------------------------------------------------------------------
