@@ -1,6 +1,6 @@
-function f = spm_Bpdf(x,n,p)
+function f = spm_Ipdf(x,n,p)
 % Probability Distribution Function of Binomial distribution
-% FORMAT f = spm_Bpdf(x,n,p)
+% FORMAT f = spm_Ipdf(x,n,p)
 %
 % x - ordinates
 % n - Binomial n
@@ -8,7 +8,7 @@ function f = spm_Bpdf(x,n,p)
 % f - PDF
 %_______________________________________________________________________
 %
-% spm_Bpdf returns the Probability (Distribution) Function (PDF) for
+% spm_Ipdf returns the Probability (Distribution) Function (PDF) for
 % the Binomial family of distributions.
 %
 % Definition:
