@@ -87,7 +87,7 @@ DesPrams = str2mat(...
 
 DesDefaults = [ ...
 1,	1,	1,	0,	4,	1,	1,	12345;...	%-0
-0,	0,	1,	1,	1,	0,	0,	123;...		%-1a
+0,	0,	1,	1,	2,	0,	0,	123;...		%-1a
 0,	0,	1,	1,	1,	1,	0,	123;...		%-1b
 0,	0,	0,	1,	3,	1,	0,	123;...		%-1c
 0,	1,	1,	0,	1,	0,	0,	1234;...	%-2a
@@ -119,11 +119,11 @@ iGMsca = 123;
 %-NB: Grand mean scaling by study is redundent for proportional scaling
 
 HForms = str2mat(...
-	'iCond,''-'',''Scan''',...
-	'iCond,''-'',''Cond''',...
+	'iCond,''+0m'',''Scan''',...
+	'iCond,''+0m'',''Cond''',...
 	'[]',...
-	'[iStud'',iCond''],''-'',str2mat(''Stud'',''Scan'')',...
-	'[iStud'',iCond''],''-'',str2mat(''Stud'',''Cond'')',...
+	'[iStud'',iCond''],''+j0m'',str2mat(''Stud'',''Scan'')',...
+	'[iStud'',iCond''],''+j0m'',str2mat(''Stud'',''Cond'')',...
 	'iStud,''-'',''Group''');
 dBetGrp = 6; %-Between group designs
 
@@ -264,15 +264,12 @@ if (nCOND == 1) | (nCOND == q)			%-Unestimable effects
 	H = []; Hnames = ''; end
 
 
-%-Always model block (subject) effects if possible
+%-Always model block (subject/constant) effects
 %-----------------------------------------------------------------------
-if (nSUBJ == 1) | (nSUBJ == q)			%-Unestimable effects
-	B = []; Bnames = [];
+if (nSUBJ == 1) | (nSUBJ == q)
+  	B = ones(q,1); Bnames = 'Constant';
 else
-	%-Use implicit SumToZero constraints via relative block effects & 
-	% MatLabs pinv. See spm_DesMtx for more information on this.
-	%---------------------------------------------------------------
-	[B,Bnames] = spm_DesMtx(iSUBJ,'+0m','SUBJ');
+	[B,Bnames] = spm_DesMtx(iSUBJ,'-','SUBJ');
 end
 
 
@@ -544,16 +541,6 @@ else
     fprintf('%cError: invalid iGloNorm option\n',7)
 
 end % (if)
-
-
-%-Include a constant term in G if H isempty
-%-----------------------------------------------------------------------
-if ~size(H,2)
-	K = ones(q,1); Knames = 'Constant';
-	G = [G K];
-   	if isempty(Gnames), Gnames = Knames;
-       	else Gnames = str2mat(Gnames,Knames); end
-end
 
 %-Construct full design matrix and name matrices for display
 %-----------------------------------------------------------------------
