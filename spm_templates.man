@@ -105,7 +105,27 @@
 % Average transmission image of 11 subjects.  Template generated in
 % similar way to PET.img.
 % Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
-% 
+%
+% templates/SPECT.img
+% -------------------
+% The SPECT template was created by Leighton Barnden et al from the
+% Department of Nuclear Medicine at the Queen Elizabeth Hospital in
+% Adelaide and  was  used  in  their  SPECT  to  MR  coregistration
+% validation. It is the mean of 22 normal female subjects. Each was
+% scanned after injection of Tc-99m HMPAO on a triple  head  camera
+% with ultra-high resolution fanbeam collimators using a 126-154keV
+% (20%) photopeak and a 111-125 keV  scatter  window.  After  lower
+% window   scatter   subtraction   (1.5xscatter   images  after  2D
+% Butterworth smooth with cutoff 0.25  cycles/cm,  order  3.0)  the
+% photopeak projections were rebinned, pre-filtered (2D Butterworth
+% smooth with cutoff 0.7  cycles/cm,order  6.0)  and  reconstructed
+% using  Filtered  BackProjection.   The  SPECT tomograms were then
+% coregistered to the subject's 3D T1  MR  using  AMIR.  Parameters
+% from  SPM99b MR to MR Spatial Normalisation (affine + non-linear)
+% were used  to  transform  the  SPECT  images  to  SPM's  standard
+% anatomical space. The mean yielded the SPECT template.
+%
+%
 % _______________________________________________________________________
 % _______________________________________________________________________
 % /APRIORI/ DIRECTORY
