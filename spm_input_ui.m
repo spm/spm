@@ -857,7 +857,7 @@ switch lower(Type), case {'b','b|','y/n'}         %-Process button types
 	nLabels     = size(Labels,1);
 	[Keys,Labs] = sf_labkeys(Labels);
 
-	if ~isempty(DefItem)
+	if ~isempty(DefItem) & any(DefItem==[1:nLabels])
 		DefKey = Keys(DefItem);
 	else
 		DefItem = 0;
@@ -1244,6 +1244,7 @@ end % (if CmdLine)
 case 'm'                                             %-Process menu type
 %=======================================================================
 	nLabels = size(Labels,1);
+	if ~isempty(DefItem) & ~any(DefItem==[1:nLabels]), DefItem=[]; end
 	%-Process pull down menu type
 	if CmdLine
 		spm_input('!PrntPrmpt',Prompt)
