@@ -269,6 +269,7 @@ if flags.mean
 	spm_write_vol(PO,Integral);
 end
 
+linfun(' ');
 spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________
@@ -574,6 +575,7 @@ if flags.mean,
 	spm_write_vol(PO,reshape(Integral,PO.dim(1:3)));
 end;
 
+linfun(' ');
 spm_figure('Clear','Interactive');
 return;
 %_______________________________________________________________________
