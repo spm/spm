@@ -1,14 +1,18 @@
-function [F,Lav, KL_w,KL_alpha,KL_lambda,KL_a] = spm_vb_F (Y,slice)
+function [F,Lav, KL] = spm_vb_F (Y,slice)
 % Compute lower bound on evidence, F, for VB GLMAR models
-% FORMAT [F,Lav, KL_w,KL_alpha,KL_lambda,KL_a] = spm_vb_F (Y,slice)
+% FORMAT [F,Lav, KL] = spm_vb_F (Y,slice)
 %
 % Y             [T x N] time series 
 % slice         data structure containing the following fields:
 %
+% F             Lower bound on model evidence, F
+% Lav           Average Likelihood
+% KL            Kullback-Liebler Divergences with fields
+%               .w, .alpha, .beta, .Lambda, .a
 %
 % This function implements equation 18 in paper VB4
 %
-% %W% Will Penny and Nelson Trujillo-Barreto %E%
+% @(#)spm_vb_F.m	1.1 Will Penny and Nelson Trujillo-Barreto 04/08/04
 
 if slice.verbose
     disp('Updating F');
@@ -58,7 +62,7 @@ for n=1:slice.N,
     end
 
     C1  = C1 + spm_digamma(slice.c_lambda(n)) + log(slice.b_lambda(n));
-    KL_lambda=KL_lambda+spm_kl_gamma(slice.b_lambda(n),slice.c_lambda(n),slice.b_lambda_prior,slice.c_lambda_prior);
+    KL_lambda=KL_lambda+spm_kl_gamma(slice.b_lambda(n),slice.c_lambda(n),slice.b_lambda_prior(n),slice.c_lambda_prior(n));
     
     tr_B_qcov=tr_B_qcov+trace(B(block_n,block_n)*slice.w_cov{n});
     log_det_qcov=log_det_qcov+log(det(slice.w_cov{n}));
@@ -72,7 +76,7 @@ Lav = ((T-p)*C1 - Lav_term - C2)./2;
 KL_alpha=0;
 log_det_alphas=0;
 for j = 1:k,
-    KL_alpha=KL_alpha+spm_kl_gamma(slice.b_alpha(j),slice.c_alpha(j),slice.b_alpha_prior,slice.c_alpha_prior);
+    KL_alpha=KL_alpha+spm_kl_gamma(slice.b_alpha(j),slice.c_alpha(j),slice.b_alpha_prior(j),slice.c_alpha_prior(j));
     log_det_alphas=log_det_alphas+log(slice.mean_alpha(j));
 end
 term1=-0.5*N*log_det_alphas;
@@ -82,7 +86,7 @@ if slice.p > 0
     KL_beta=0;
     log_det_betas=0;
     for j = 1:p,
-        KL_beta=KL_beta+spm_kl_gamma(slice.b_beta(j),slice.c_beta(j),slice.b_beta_prior,slice.c_beta_prior);
+        KL_beta=KL_beta+spm_kl_gamma(slice.b_beta(j),slice.c_beta(j),slice.b_beta_prior(j),slice.c_beta_prior(j));
         log_det_betas=log_det_betas+log(slice.mean_beta(j));
     end
     beta_term1=-0.5*N*log_det_betas;
@@ -107,6 +111,11 @@ if slice.p > 0
     F = Lav - (KL_w+KL_alpha+KL_lambda+KL_a+KL_beta);
 else
     F = Lav - (KL_w+KL_alpha+KL_lambda);
+    KL_a=0;KL_beta=0;
 end
 
-
+KL.w=KL_w;
+KL.alpha=KL_alpha;
+KL.beta=KL_beta;
+KL.Lambda=KL_lambda;
+KL.a=KL_a;
