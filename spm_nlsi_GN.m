@@ -45,12 +45,14 @@ end
 if iscell(M.pC)
 	Q     = sparse(u,u);
 	for i = 1:length(M.pC);
-		Q = Q + M.pC{i};
+		if any(diag(M.pC{i}))
+			Q = Q + M.pC{i};
+		end
 	end
 else
 	Q     = M.pC;
 end
-V      = spm_svd(Q);
+V      = spm_svd(Q,1e-16);
 p      = M.pE(:);
 pE     = V'*M.pE(:);
 if iscell(M.pC)
