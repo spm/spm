@@ -20,7 +20,7 @@ f     = fcnchk(varargin{1});
 x     = varargin(2:(end - 1));
 n     = varargin{end};
 dx    = 1e-4;
-J     = cell(1,length(x{n(end)}(:)));
+J     = cell(size(x{n(end)}));
 
 % proceed to derivatives.
 %---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ if length(n) == 1
     % dfdx
     %-----------------------------------------------------------------------
     f0    = feval(f,x{:});
-    for i = 1:length(x{n}(:))
+    for i = 1:length(J(:))
         xi       = x;
         xi{n}(i) = xi{n}(i) + dx;
         fi       = feval(f,xi{:});
@@ -41,7 +41,7 @@ else
     % dfdxdxdx....
     %-----------------------------------------------------------------------
     f0    = spm_diff(f,x{:},n(1:end - 1));
-    for i = 1:length(x{n(end)}(:))
+    for i = 1:length(J(:))
         xi            = x;
         xi{n(end)}(i) = xi{n(end)}(i) + dx;
         fi            = spm_diff(f,xi{:},n(1:end - 1));
@@ -51,27 +51,25 @@ else
 
 end
 
+% reformat as a matrix if possible 
+%--------------------------------------------------------------------------
+if length(n) == 1
 
-try
     % if there are no arguments to differentiate w.r.t. ...
     %-----------------------------------------------------------------------
     if ~length(x{n}(:))
-        J = sparse(length(f0),0);
+        J = sparse(length(f0(:)),0);
     end
-end
-
-try
+    
     % if there are no arguments to differentiate
     %-----------------------------------------------------------------------
     if ~size(J{1},1)
         J = sparse(0,length(x{n}(:)));
     end
-end
 
-try
-    % reformat as a matrix
-    %-----------------------------------------------------------------------
-    if size(J{1},2) == 1
+    % f and x{n} are vector 
+    %------------------------------------------------------------------
+    if sum([size(f0) size(x{n})] > 1) < 3
         J = spm_cat(J);
     end
 end
@@ -81,7 +79,8 @@ function dfdx = spm_dfdx(f,f0,dx)
 % cell subtraction
 %--------------------------------------------------------------------------
 if iscell(f)
-   for i = 1:length(f)
+   dfdx  = f;
+   for i = 1:length(f(:))
        dfdx{i} = spm_dfdx(f{i},f0{i},dx);
    end
 else
