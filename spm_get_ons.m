@@ -9,7 +9,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 % Fstr  - Prompt string (usually indicates session)
 % v     - number of conditions or trials 		: can be empty
 % Cname - {1 x v}   cell of names for each condition 	: can be empty
-% s	- session number (used for by batch system)
+% s	- session number (used by batch system)
 %
 % sf    - {1 x n}   cell of stick function matrices
 % Cname - {1 x n}   cell of names for each condition
@@ -25,7 +25,7 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 % variate Pv) enter at this stage as additional columns in sf with each delta
 % function multiplied by the [expansion of the] trial-specific parameter.
 % If parametric modulation is modeled, P contains the original variate and
-% Pname is its name.  Otherwise P{i} = [] and Pname{i} = '';
+% Pname is its name.  Otherwise Pv{i} = [] and Pname{i} = '';
 %
 % Notes on responding to questions:
 %
@@ -69,13 +69,18 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname,s)
 %                you have to enter a vector of onet times for each event or
 %                epoch.  Time is specified in terms of scans, where the
 %                start of the session begins at 0.
+%
+%	 'variable event duration'.  If you want to model trains of
+%		 onsets then select 'yes'.  You will then be prompted for
+%		 a vector of durations for each onset.  This is useful when 
+%		 modeling short epochs of variable duration.
 % 
 %        'SOA (scans)' and 'first trial (scans)':  If the SOA is fixed you
 %                only have to specify what it is and when the first condition 
 %                starts. 
 %
-% 'parametric modulation':  This allows you to model time of other effects
-%         on eveoked responses in terms of an interaction with the specified
+% 'parametric modulation':  This allows you to model time or other effects
+%         on evoked responses in terms of an interaction with the specified
 %         variate.
 %
 % SLCIE TIMIING
@@ -224,50 +229,55 @@ if v
 	    % get onsets
 	    %-----------------------------------------------------------
 	    if isempty(BCH)
-               Sstr  = spm_input('SOA',2,'Fixed|Variable');
+		Sstr  = spm_input('SOA',2,'Fixed|Variable');
             else 
 		Sstr  = 'Variable';	 
             end
 	    DSstr = [DSstr  Sstr ' SOA '];
-	    i     = 0;
-	    while i < v
+
+	    for i = 1:v
 
 		% get onsets
 		%-------------------------------------------------------
 		switch Sstr
-			%- In batch mode, Sstr is always 'Variable'
+
 			case 'Fixed'
+			%- In batch mode, Sstr is always 'Variable'
 			%-----------------------------------------------
-			str   = ['SOA (scans) for ' Cname{i + 1}];
-			soa   = spm_input(str,3,'r');
-			on    = spm_input('time to first trial (scans)',4,'r',0);
-			on    = on:soa:k;
+			str  = ['SOA (scans) for ' Cname{i}];
+			soa  = spm_input(str,3,'r');
+			on   = spm_input('time to first trial (scans)',4,'r',0);
+			on   = on:soa:k;
+			dur  = zeros(size(on));
 
 			case 'Variable'
 			%-----------------------------------------------
-			str   = ['vector of onsets (scans) for ' Cname{i + 1}];
-			on    = spm_input(str,3,'batch',...
-                                         {'conditions',s},'onsets',i+1);
-		end
+			str  = ['vector of onsets (scans) for ' Cname{i}];
+			on   = spm_input(str,3,'batch',...
+                                         {'conditions',s},'onsets',i);
+			dur  = zeros(size(on));
 
-		if iscell(on)
-
-			% create stick functions
+			% get durationa
 			%-----------------------------------------------
-			for j = 1:length(on)
-				i     = i + 1;
-	    			ons   = sparse(k*T,1);
-				ons(round(on{j}*T + 1)) = 1;
-				sf{i} = ons(1:(k*T));
+			if isempty(BCH)
+				str = 'variable event duration';
+				if spm_input(str,'+1','y/n',[1 0],2)
+					dur = spm_input('durations (scans)',...
+						'+1','e',[],[1 length(on)]);
+					dur = round(dur*T);
+				end
 			end
-		else
-			% create stick functions
-			%-----------------------------------------------
-			i     = i + 1;
-	    		ons   = sparse(k*T,1);
-			ons(round(on*T + 1)) = 1;
-			sf{i} = ons(1:(k*T));
 		end
+
+		% create stick functions
+		%-----------------------------------------------
+	    	ons   = sparse(k*T,1);
+		for p = 1:length(on)
+			q  = round(on(p)*T + 1);
+			ons(q:(q + dur(p))) = 1;
+		end
+		sf{i} = ons(1:(k*T));
+
 	    end
 	end
 
@@ -324,7 +334,7 @@ if v
                       		      'batch',{'parametrics',s},'time_cst');
 
 		else
-		   h = spm_input('decay constant','+1','r',...
+			h = spm_input('decay constant','+1','r',...
                                  'batch',{'parametrics',s},'decay_cst');
 		end
 
