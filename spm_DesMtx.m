@@ -64,14 +64,18 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % MAIN EFFECTS: For a main effect, or single factor, the FCLevels
 % matrix is an integer vector whose values represent the levels of the
 % factor. The integer factor levels need not be positive, nor in order.
-% Effects for the factor levels are entered into the design matrix *in
-% increasing order* of the factor levels. Check Pnames to find out which
-% columns correspond to which levels of the factor.
+% A factor level of zero is treated as no effect, and no column of
+% design matrix is created for zero levels.  Effects for the factor
+% levels are entered into the design matrix *in increasing order* of
+% the factor levels. Check Pnames to find out which columns correspond
+% to which levels of the factor.
 %
 % TWO WAY INTERACTIONS: For a two way interaction effect between two
 % factors, the FCLevels matrix is an nx2 integer matrix whose columns
-% indicate the levels of the two factors. An effect is included for each
-% unique combination of the levels of the two factors.
+% indicate the levels of the two factors. An effect is included for
+% each unique combination of the levels of the two factors. Again,
+% factor levels must be integer, though not necessarily positive, and a
+% zero level is ignored.
 %
 % CONSTRAINTS: Each FactorLevels vector/matrix may be followed by an 
 % (optional) ConstraintString. Constraints are applied to the last level
@@ -93,12 +97,12 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % corresponding to factor effects B_i, where B_i = B'_i - mean(B'_i) :
 % The B'_i are the fitted parameters, effectively *relative* factor
 % parameters, relative to their mean. This leads to a rank deficient
-% design matrix block. If Matlab's pinv, which uses a Moore-Penrose
-% pseudoinverse, is used to solve the least squares problem, then the
-% solution with smallest L2 norm is found, which has mean(B'_i)=0
-% provided the remainder of the design is unique (design matrix blocks
-% of full rank). In this case therefore the B_i are identically the
-% B'_i - the mean correction imposes the constraint.
+% design matrix block. If Matlab's pinv, which implements a
+% Moore-Penrose pseudoinverse, is used to solve the least squares
+% problem, then the solution with smallest L2 norm is found, which has
+% mean(B'_i)=0 provided the remainder of the design is unique (design
+% matrix blocks of full rank). In this case therefore the B_i are
+% identically the B'_i - the mean correction imposes the constraint.
 %      
 % COVARIATES: The FCLevels matrix here is an nxc matrix whose columns
 % contain the covariate values. An effect is included for each covariate.
@@ -111,7 +115,7 @@ function [X,Pnames,Index]=spm_DesMtx(varargin);
 % 'FxC'. The last column is understood to contain the covariate. Other
 % columns are taken to contain integer FactorLevels vectors. The
 % (unconstrained) interaction of the factors is interacted with the
-% covariate.
+% covariate. Zero factor levels are ignored.
 %
 % NAMES: Each Factor/Covariate can be 'named', by passing a name
 % string.  Pass a string matrix, or cell array (vector) of strings,
@@ -249,14 +253,16 @@ end
 
 case '-(1)'                                         %-Simple main effect
 %=======================================================================
-%-Sort out arguments & unique factor levels
+%-Sort out arguments
 %-----------------------------------------------------------------------
 if size(I,2)>1, error('Simple main effect requires vector index'), end
 if any(I~=floor(I)), error('Non-integer indicator vector'), end
 if isempty(FCnames), FCnames = {'<Fac>'};
 elseif length(FCnames)>1, error('Too many FCnames'), end
 
-tmp   = sort(I');
+% Sort out unique factor levels - ignore zero level of factor
+%-----------------------------------------------------------------------
+tmp   = sort(I(I~=0)');
 Index = tmp([1,1+find(diff(tmp))]);
 
 %-Determine sizes of design matrix X
@@ -274,7 +280,8 @@ for ii=1:nXcols			%-ii indexes i in Index
 	% in case Index has holes &/or doesn't start at 1!
 	Pnames{ii} = sprintf('%s_{%d}',FCnames{1},Index(ii));
 end
-
+%-Don't append effect level if only one level
+if nXcols==1, Pnames=FCnames; end
 
 
 case {'-','-(*)'}             %-Main effect or unconstrained interaction
@@ -293,6 +300,9 @@ nI     = I - ones(size(I,1),1)*min(I);
 tmp    = max(I)-min(I)+1;
 tmp    = [fliplr(cumprod(tmp(end:-1:2))),1];
 rIndex = sum(nI.*(ones(size(I,1),1)*tmp),2)+1;
+
+%-Ignore zero level of any factor
+rIndex(any(I==0,2))=0;
 
 [X,null,sIndex]=spm_DesMtx(rIndex,'-(1)');
 
@@ -345,7 +355,7 @@ end
 
 %-Set up design matrix X & names matrix
 %-----------------------------------------------------------------------
-[X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
+[X,Pnames,Index] = spm_DesMtx(F,'-(1)',Fnames);
 X = X.*(C*ones(1,size(X,2)));
 Pnames = cellstr([repmat([Cnames,'@'],length(Index),1),char(Pnames)]);
 
@@ -364,7 +374,7 @@ if size(I,2)~=1, error('Simple main effect requires vector index'), end
 % in last column, since column i corresponds to level Index(i)
 nXcols = size(X,2);
 if nXcols==1
-	error('Can''t constrain a constant effect!')
+	error('Can''t constrain an effect with only one level!')
 elseif strcmp(Constraint,'.')
 	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'+0')
@@ -522,7 +532,7 @@ while(Carg <= nargin)
 			tX(tX~=0) = 2*(C-min(C))/max(C-min(C))-1;
 			nX        = [nX,tX];
 		else				%-Straight interaction
-			nX = [nX,tXsca(tX)];
+			nX = [nX,sf_tXsca(tX)];
 		end
 		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
 		rX(:,1:t) = []; rPnames(1:t,:)=[];
@@ -539,14 +549,14 @@ while(Carg <= nargin)
 
 		%-Normalise block
 		%-------------------------------------------------------
-		nX = [nX,tXsca(rX(:,1:t))];
+		nX = [nX,sf_tXsca(rX(:,1:t))];
 		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
 		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
 	else                              %-Dunno! Just column normalise
 	%===============================================================
-		nX       = [nX,tXsca(rX(:,1))];
+		nX       = [nX,sf_tXsca(rX(:,1))];
 		nPnames  = [nPnames; cellstr(rPnames(1,:))];
 		rX(:,1)  = []; rPnames(1,:)=[];
 
@@ -644,7 +654,7 @@ end
 %=======================================================================
 % - S U B F U N C T I O N S
 %=======================================================================
-function nX = tXsca(tX)
+function nX = sf_tXsca(tX)
 if nargin==0, nX=[]; return, end
 if abs(max(abs(tX(:)))-0.7)<(.3+eps)
 	nX = tX;
