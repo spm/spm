@@ -9,8 +9,9 @@ function spm_render(dat,flg,rendfile)
 %         - t   - the SPM{.} values
 %         - mat - affine matrix mapping from XYZ voxels to Talairach.
 %         - dim - dimensions of volume from which XYZ is drawn.
-% flg - optional.  If 1, then displays using the old style with hot
-%       metal for the blobs, and grey for the brain.
+% flg - optional flag:
+%            If 1, then displays using the old style with hot
+%            metal for the blobs, and grey for the brain.
 % rendfile - the file containing the images to render on to. See also
 %            spm_xbrain.m.
 %
@@ -19,7 +20,9 @@ function spm_render(dat,flg,rendfile)
 % 
 % spm_render prompts for details of up to three SPM{Z}s or SPM{t}s that
 % are then displayed superimposed on the surface of a standard brain.
+%
 % The first is shown in red, then green then blue.
+%
 % The blobs which are displayed are the integral of all transformed t
 % values, exponentially decayed according to their depth. Voxels that
 % are 10cm behind the surface have half the intensity of ones at the
@@ -29,35 +32,37 @@ function spm_render(dat,flg,rendfile)
 
 global SWD;
 
+%-Parse arguments, get data if not passed as parameters
 %=======================================================================
-if nargin==0
+if nargin<1
 	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
-	rendfile = spm_get(1,'render*.mat',['Render file'],...
-				fullfile(SWD,'rend'));
-
 	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
-	flg = 0; if num==1, flg = spm_input('Style',1,'new|old',[0 1], 1); end;
 
-	dat = cell(num,1);
 	for i=1:num,
 		[SPM,VOL] = spm_getSPM;
-		% if isempty(SPM.Z),
-		%	spm_figure('Clear',Finter)
-		%	return
-		% end
-		dat{i} = struct(	'XYZ',	SPM.XYZ,...
+		dat(i)    = struct(	'XYZ',	SPM.XYZ,...
 					't',	SPM.Z',...
 					'mat',	VOL.M,...
 					'dim',	VOL.DIM);
 	end
-
-	spm_render(dat,flg,rendfile);
-	return;
+else
+	num = length(dat);
 end
 
-if nargin==1, flg = 0; end
+if nargin<3
+	rendfile = spm_get(1,'render*.mat','Render file',fullfile(SWD,'rend'));
+end
+
+if nargin<2
+	flg = 0;
+	if num==1
+		flg = spm_input('Style',1,'new|old',[0 1], 1);
+	end
+
+end
+
 
 
 % Perform the rendering
@@ -103,16 +108,16 @@ spm_progress_bar('Init', size(dat,1)*length(rend),...
 
 mx = zeros(length(rend),1)+eps;
 for j=1:size(dat,1),
-	XYZ = dat{j}.XYZ;
-	t   = dat{j}.t;
-	dim = dat{j}.dim;
-	mat = dat{j}.mat;
+	XYZ = dat(j).XYZ;
+	t   = dat(j).t;
+	dim = dat(j).dim;
+	mat = dat(j).mat;
 
 	for i=1:length(rend),
 
 		% transform from Taliarach space to space of the rendered image
 		%-------------------------------------------------------
-		M1  = rend{i}.M*dat{j}.mat;
+		M1  = rend{i}.M*dat(j).mat;
 		zm  = sum(M1(1:2,1:3).^2,2).^(-1/2);
 		M2  = diag([zm' 1 1]);
 		M  = M2*M1;
@@ -161,7 +166,7 @@ mxmx = max(mx);
 
 spm_progress_bar('Clear');
 Fgraph = spm_figure('GetWin','Graphics');
-spm_figure('Clear',Fgraph);
+spm_results_ui('Clear',Fgraph);
 
 nrow = ceil(length(rend)/2);
 
@@ -206,6 +211,5 @@ else,
 	end;
 end;
 
-spm_figure('Clear','Interactive')
-spm('Pointer');
+spm('Pointer')
 
