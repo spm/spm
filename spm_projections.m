@@ -347,9 +347,9 @@ y   = y - 1;
 str = sprintf('Degrees of freedom due to error = %0.1f %0.1f ',df);
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf('Smoothness = %0.1f %0.1f %0.1f mm {FWHM}',FWHM);
+str = sprintf('Smoothness {FWHM mm} = %0.1f %0.1f %0.1f',FWHM);
 text(0.6,y,str,'FontSize',8);
 y   = y - 1;
-str = sprintf(' = %0.1f %0.1f %0.1f {voxels}',W.*V([1:D] + 3)');
+str = sprintf(' {voxels} = %0.1f %0.1f %0.1f',W.*V([1:D] + 3)');
 text(0.6,y,str,'FontSize',8);
 
