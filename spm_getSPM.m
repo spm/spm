@@ -471,9 +471,9 @@ if length(Ic) > 1, str = sprintf('^{%d}',length(Ic)); else, str = ''; end
 switch xCon(Ic(1)).STAT
 
 	case 'T'
-	STATstr = sprintf('%c%s_{%.2g}',xCon(Ic(1)).STAT,str,xX.erdf);
+	STATstr = sprintf('%c%s_{%.4g}',xCon(Ic(1)).STAT,str,xX.erdf);
 	case 'F'
-	STATstr = sprintf('%c%s_{[%.2g,%.2g]}',...
+	STATstr = sprintf('%c%s_{[%.4g,%.4g]}',...
 			xCon(Ic(1)).STAT,str,xCon(Ic(1)).eidf,xX.erdf);
 end
 
