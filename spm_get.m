@@ -1142,22 +1142,26 @@ if nP>0
 end
 fprintf('\nEnter paths :')
 AllowEnd = AllowEnd | isinf(n);
-Tstr = 'END '; %-Append a space for later...
+Tstr = 'END'; %-Append a space for later...
 if AllowEnd, fprintf(' (Type "END" to terminate input.)')
 	else fprintf(' to %d items:',abs(n)-nP), end
 
 Done=0;
 while ~Done
-	%-Get input, append a space to avoid empty str.
-	str = [input(sprintf('  %3d  : ',nP+1),'s'),' '];
-	%-Prepend WDir to incomplete pathnames, prevents exist searching the path.
+	%-Get input
+	str = []; while isempty(str)
+		str=deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+	%-Prepend WDir to incomplete pathnames
 	if (str(1)~='/')&(~strcmp(str,Tstr)), str = [WDir,'/',str]; end
-	if (n>0), OK=exist(str)==2; else, OK=~unix(['test -d ',str]); end
+	if (n>0),OK=exist(str)==2;else,OK=~unix(['test -d ',str]);end
 	while ~( OK | (strcmp(str,Tstr) & AllowEnd) )
-		fprintf('%c\t%s doesn''t exist!',7,str)
-		str = [input(sprintf('  %3d! : ',nP+1),'s'),' '];
-		if (str(1)~='/')&(~strcmp(str,Tstr)), str = [WDir,'/',str]; end
-		if (n>0), OK=exist(str)==2; else, OK=~unix(['test -d ',str]); end
+		if strcmp(str,Tstr)
+			fprintf('%c\tSelect %d files!',7,abs(n))
+			else, fprintf('%c\t%s doesn''t exist!',7,str), end
+		str=[]; while isempty(str)
+			str=deblank(input(sprintf('  %3d  : ',nP+1),'s'));end
+		if (str(1)~='/')&(~strcmp(str,Tstr)), str=[WDir,'/',str]; end
+		if (n>0),OK=exist(str)==2;else,OK=~unix(['test -d ',str]);end
 	end
 	if ~strcmp(str,Tstr)
 		if isempty(P), P=str; else, P=str2mat(P,str); end, end
