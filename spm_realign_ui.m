@@ -246,7 +246,7 @@ if (nargin == 0)
 	pos = pos + 1;
 	for i = 1:n,
 		if strcmp(MODALITY,'FMRI'),
-			ns = spm_input(['num sessions for subject 'num2str(i)], pos,...
+			ns = spm_input(['num sessions for subject ' num2str(i)], pos,...
                                        'e', 1,'batch',{},'num_sessions');
 			pp = cell(1,ns);
 			for s=1:ns,
