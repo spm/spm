@@ -102,7 +102,7 @@ Matrix *plhs[], *prhs[];
 	    if (z-zdim/2>=0 && z+zdim/2<DZ && y-ydim/2>=0 && y+ydim/2<DY) /* sagittal */
 	    {
 		    q = v[i];
-		    if (q > spm[y + (DX+z)*m])
+		    if (q > spm[y-2 + (DX+z-2)*m])
 		    {
 			    for (j = -ydim/2; j <= ydim/2; j++) {
 				    for (k = -zdim/2; k <= zdim/2; k++) {
@@ -115,7 +115,7 @@ Matrix *plhs[], *prhs[];
 	    if (x-xdim/2>=0 && x+xdim/2<DX && z-zdim/2>=0 && z+zdim/2<DZ) /* coronal */
 	    {
 		    q = v[i];
-		    if (q > spm[DY+x + (DX+z)*m])
+		    if (q > spm[DY+x-2 + (DX+z-2)*m])
 		    {
 			    for (j = -xdim/2; j <= xdim/2; j++) {
 				    for (k = -zdim/2; k <= zdim/2; k++) {
