@@ -45,7 +45,7 @@ RES   = sum(R.^2);				% SSQ of residuals
 SE    = sqrt(RES*diag(BCOV));			% standard error of estimates
 HC    = [H C];
 MSize = 8;
-COL   = ['r' 'b' 'g' 'c' 'y'];
+COL   = ['r' 'b' 'g' 'c' 'y' 'm' 'r' 'b' 'g' 'c' 'y' 'm'];
 
 % Inference (for title)
 %-----------------------------------------------------------------------
@@ -103,11 +103,11 @@ if exist('ERI')
 
 	% reconstruct response without smoothing
 	%--------------------------------------------------------------
-	if Cp ~=4
-		if spm_input('smooth fitted effects','!+1','b','yes|no',[0 1])
-			KDER  = DER;
-		end
-	end
+	% if Cp ~=4
+	%	if spm_input('smooth fitted effects','!+1','b','yes|no',[0 1])
+	%		KDER  = DER;
+	%	end
+	% end
 	figure(Fgraph)
 	hold on
 
