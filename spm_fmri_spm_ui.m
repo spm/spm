@@ -598,7 +598,7 @@ xGX.gSF      = gSF;
 %-Save SPMcfg.mat file
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
-save SPMcfg SPMid xsDes VY xX xM xGX F_iX0 Sess
+save('SPMcfg','SPMid','xsDes','VY','xX','xM','xGX','F_iX0','Sess');
 fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 
  

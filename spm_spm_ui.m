@@ -1406,7 +1406,7 @@ fprintf('%30s\n','...done')                                          %-#
 
 %-Save SPMcfg.mat file
 fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
-save SPMcfg SPMid D xsDes VY xX xC xGX xM F_iX0
+save('SPMcfg','SPMid','D','xsDes','VY','xX','xC','xGX','xM','F_iX0');
 fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 
 

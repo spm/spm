@@ -781,7 +781,7 @@ origin = MG\[0 0 0 1]';
 origin = round(origin(1:3)');
 Dims   = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
 mgc    = 960209;
-eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
+save(matname,'mgc','Affine','Dims','Transform','MF','MG','-v4');
 
 delete_image(fullfile('.','spm_sn3d_tmp.img'));
 

@@ -79,11 +79,11 @@ elseif (nargin == 2)
 
 		% only write the .mat file if necessary
 		if (sum((mat(:) - mt(:)).*(mat(:) - mt(:))) > eps*eps*12)
-			eval(['save ' matname ' M -v4']);
+			save(matname,'M','-v4');
 		end
 	else,
 		% Write the file anyway
-		eval(['save ' matname ' M -v4']);
+		save(matname,'M','-v4');
 	end;
 else
 	error('Incorrect Usage.');
