@@ -566,7 +566,7 @@ fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised')        %-#
 %-----------------------------------------------------------------------
 if ydim < 2, error('ydim < 2'), end		    %-need at least 2 lines
 
-blksz  = maxMem/8/nScan/nVar;			    %-block size
+blksz  = ceil(maxMem/8/nScan/nVar);		    %-block size
 nbch   = ceil(xdim*ydim/blksz);			    %-# blocks
 
 
