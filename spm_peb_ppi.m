@@ -15,6 +15,13 @@ function PPI = spm_peb_ppi(SPM)
 % PPI.U.name = Names of psychological conditions (PPIs only)
 %---------------------------------------------------------------------
 %
+% This routine is effectively a hemodynamic deconvolution using 
+% emprical priors and EM to deconvolve the HRF from a hemodynamic
+% time series to give a neuronal time series [that can be found in
+% PPI.xn].  This deconvolution is like Weiner filtering but with
+% emprically [automatically] detmined priors.
+% The neuronal sequence is then used to form PPIs.....
+%
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % ==================================================================
 % PPI's were initially conceived as a means of identifying regions whose
@@ -60,7 +67,7 @@ function PPI = spm_peb_ppi(SPM)
 % the psychological variable. In this case k is a vector 
 % representing the time resolution of the scans.
 %
-% Version 1.3 and beyond of this routine was renamed spm_ped_ppi
+% Version 1.3 and beyond of this routine was renamed spm_peb_ppi
 % as it now uses parametric empirical Bayes to estimate the parameters
 % producing the deconvolution. See spm_PEB for details of the inputs
 % and outputs.
@@ -103,13 +110,26 @@ NT     = RT/dt;
 % Ask whether to perform physiophysiologic or psychophysiologic interactions
 %--------------------------------------------------------------------------
 set(Finter,'name','PPI Setup')
-ppiflag    = spm_input('Analysis type?',1,'b','PHI-PHI|PSY-PHI',[0 1],2);
+ppiflag    = {	'simple deconvolution',...
+		'psychophysiologic interaction',...
+		'physiophysiologic interaction'};
+i          = spm_input('Analysis type?',1,'m',ppiflag);
+ppiflag    = ppiflag{i};
+
+switch ppiflag
 
 
-if ~ppiflag  % physiophysiologic
-    
-    % Assume that user will examine interactions between 2 regions
-    %----------------------------------------------------------------------
+    case  'simple deconvolution'
+    %=====================================================================
+    spm_input('physiological variable:...  ',1,'d');
+    P      = spm_get(1,'VOI*.mat',{'select VOIs'});
+    p      = load(P{1},'xY');
+    xY(i)  = p.xY;
+    Sess   = SPM.Sess(xY(1).Sess);
+
+
+    case  'physiophysiologic interaction' % interactions between 2 regions
+    %=====================================================================
     spm_input('physiological variables:...  ',1,'d');
     P      = spm_get(2,'VOI*.mat',{'select VOIs'});
     for  i = 1:2
@@ -118,16 +138,14 @@ if ~ppiflag  % physiophysiologic
     end
     Sess   = SPM.Sess(xY(1).Sess);
 
-else        % psychophysiologic
-    
-    % get hemodynamic response 
-    %----------------------------------------------------------------------
+
+    case  'psychophysiologic interaction'  % get hemodynamic response 
+    %=====================================================================
     spm_input('physiological variable:...  ',1,'d');
     P      = spm_get(1,'VOI*.mat',{'select VOIs'});
     p      = load(P{1},'xY');
     xY(1)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
-
 
     % get 'causes' or inputs U
     %----------------------------------------------------------------------
@@ -148,7 +166,8 @@ else        % psychophysiologic
         end
     end
 
-end % end setup
+
+end % (switch setup)
 
 
 % Setup some variables based on BOLD
@@ -166,7 +185,7 @@ PPI.name = spm_input('Name of PPI','!+1','s','PPI');
 % create basis functions and hrf in scan time and microtime
 %-------------------------------------------------------------------------
 spm('Pointer','watch')
-hrf    = spm_hrf(dt);
+hrf   = spm_hrf(dt);
 
 % get neuronal responses to known inputs
 %-------------------------------------------------------------------------
@@ -220,10 +239,36 @@ P{1}.C = {speye(N,N)};		% i.i.d assumptions
 P{2}.X = sparse(N + M + K,1);	% Design matrix for parameters (0's)
 P{2}.C = C;
 
-if ~ppiflag
+switch ppiflag
 
-    % COMPUTE PHYSIOPHYSIOLOGIC INTERACTIONS
+
+    case  'simple deconvolution'
+    %=====================================================================
+    C       = spm_PEB(Y,P);
+    xn      = [xb xu]*C{2}.E(1:(N + M));
+    xn      = spm_detrend(xn);
+    
+    % save variables
     %---------------------------------------------------------------------
+    PPI.xn  = xn;
+
+    % Plot so the user can see the results
+    %---------------------------------------------------------------------
+    figure(Fgraph);
+    t       = RT*[1:N];
+    T       = dt*[1:(N*NT)];
+
+    subplot(2,1,1)
+    plot(t,Y,T,PPI.xn)
+    title('hemodynamic and neuronal responses')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+
+
+    case  'physiophysiologic interaction' % PHYSIOPHYSIOLOGIC INTERACTIONS
+    %=====================================================================
     C       = spm_PEB(Y(:,1),P);
     xn1     = [xb xu]*C{2}.E(1:(N + M));
     C       = spm_PEB(Y(:,2),P);
@@ -237,13 +282,43 @@ if ~ppiflag
     ppi     = conv(xnxn,hrf);
     ppi     = ppi(k);
     
-    % save (empty) psychological variables
+    % save variables
     %---------------------------------------------------------------------
-    PPI.psy = [];
-    PPI.P   = [];
     PPI.xn  = [xn1 xn2];
+    PPI.ppi = spm_detrend(ppi);
 
-else
+
+    % Plot so the user can see the results
+    %---------------------------------------------------------------------
+    figure(Fgraph);
+    t       = RT*[1:N];
+    T       = dt*[1:(N*NT)];
+
+    subplot(2,1,1)
+    plot(t,PPI.ppi)
+    title('PPI')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+    subplot(2,2,3)
+    plot(t,Y(:,1),T,PPI.xn(:,1))
+    title('hemodynamic and neuronal responses (1st)')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+    subplot(2,2,4)
+    plot(t,Y(:,2),T,PPI.xn(:,2))
+    title('hemodynamic and neuronal responses (2nd)')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+ 
+
+    case  'psychophysiologic interaction'  
+    %=====================================================================
 
     % COMPUTE PSYCHOPHYSIOLOGIC INTERACTIONS
     % use basis set in microtime
@@ -267,77 +342,66 @@ else
     PSY     = spm_detrend(PSY);
 
     % multiply psychological variable by neural signal
-    %----------------------------------------------------------------------
+    %---------------------------------------------------------------------
     PSYxn   = PSY.*xn;
         
     % convolve and resample at each scan for bold signal
-    %----------------------------------------------------------------------
+    %---------------------------------------------------------------------
     ppi	    = conv(PSYxn,hrf);
     ppi     = ppi(k);
 
     % similarly for psychological effect
-    %----------------------------------------------------------------------
+    %---------------------------------------------------------------------
     PSYHRF  = conv(PSY,hrf);
     PSYHRF  = PSYHRF(k);
     
     % save psychological variables
-    %----------------------------------------------------------------------
+    %---------------------------------------------------------------------
     PPI.psy = U;
     PPI.P   = PSYHRF;
     PPI.xn  = xn;
-    
-end % end computation of physiophysiologic vs. psychophysiologic interactions
+    PPI.ppi = spm_detrend(ppi);
+
+
+    % Plot so the user can see the results
+    %---------------------------------------------------------------------
+    figure(Fgraph);
+    t       = RT*[1:N];
+    T       = dt*[1:(N*NT)];
+
+    subplot(2,1,1)
+    plot(t,Y(:,1),T,PPI.xn(:,1))
+    title('hemodynamic and neuronal responses')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+    subplot(2,2,3)
+    plot(t,PPI.P,T,PSY,'--')
+    title('[convolved] psych. variable')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+    subplot(2,2,4)
+    plot(t,PPI.ppi)
+    title('PPI')
+    xlabel('time (secs)')
+    axis tight square
+    grid on
+
+
+end % (switch)
 
 % setup other output variables
-%--------------------------------------------------------------------------
-PPI.ppi = spm_detrend(ppi);
+%-------------------------------------------------------------------------
 PPI.xY  = xY;
 PPI.dt  = dt;
 str     = ['PPI_' PPI.name];
 save(fullfile(SPM.swd,str),'PPI')
 
-
-% Plot so the user can see the results
-%--------------------------------------------------------------------------
-figure(Fgraph);
-subplot(2,1,1)
-t       = RT*[1:N];
-T       = dt*[1:(N*NT)];
-plot(t,Y(:,1),T,PPI.xn(:,1))
-xlabel('time (secs)')
-ylabel('hemodynamic and neuronal responses')
-title('Phsyiological variable')
-axis tight square
-grid on
-
-subplot(2,2,4)
-plot(t,PPI.ppi)
-title('PPI')
-xlabel('time (secs)')
-axis tight square
-grid on
-
-
-if ~ppiflag
-
-	subplot(2,2,3)
-	plot(t,Y(:,2),T,PPI.xn(:,2))
-	ylabel('hemodynamic and neuronal responses')
-	title('2nd Phsyiological variable')
-
-
-else
-	subplot(2,2,3)
-	plot(t,PPI.P,T,PSY,'--')
-	title('psychological variable')
-end
-xlabel('time (secs)')
-axis tight square
-grid on
-
-
 % clean up
-%--------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 spm('Pointer','arrow')
 spm('FigName',header);
 fprintf('\ndone\n')
