@@ -1,6 +1,6 @@
 function varargout = spm_input(varargin)
 % Comprehensive graphical and command line input function
-% FORMAT p = spm_input(Prompt,YPos,Type,Labels,Values,Default)
+% FORMAT [p,YPos] = spm_input(Prompt,YPos,Type,Labels,Values,Default)
 %_______________________________________________________________________
 %
 % spm_input handles most forms of user input for SPM. (File selection
@@ -8,26 +8,19 @@ function varargout = spm_input(varargin)
 % shortcuts (in the SPM "Interactive" window), or on the command line
 % (in the MatLab command window) if requested.
 %
-% There are four types of input: String, Evaluated, Buttons and Menus:
-% These prompt for string input; string input which is evaluated to
-% give a numerical result; selection of one item from a set of buttons;
-% selection of an item from a menu.
+% There are five types of input: String, Evaluated, Conditions, Buttons
+% and Menus:  These prompt for string input; string input which is
+% evaluated to give a numerical result; selection of one item from a
+% set of buttons; selection of an item from a menu.
 %
-% - STRING & EVALUATED input -
-% For String and Evaluated input, a prompt is displayed adjacent to an
-% editable text entry widget (with a lilac background!). This entry
-% widget will initially contain the defualt reply, if specified.
-% Pressing <RETURN> or <ENTER> will accept the default. Clicking in the
-% entry widget allows editing, pressing <RETURN> or <ENTER> enters the
-% result. You must enter something, empty answers are not accepted.
-% (Note that once you start editing you must make a change before
-% <RETURN> or <ENTER> will submit your answer - a quirk of MatLab I'm
-% afraid.)
-%
-% The entry widget can be pasted into in the usual manner for your
-% platform. On UNIX, this is a Motif widget, so select the text you
-% wish to enter and use the middle mouse button to paste the it into
-% the entry widget.
+% - STRING, EVALUATED & CONDITION input -
+% For STRING, EVALUATED and CONDITION input types, a prompt is
+% displayed adjacent to an editable text entry widget (with a lilac
+% background!).  This entry widget will initially contain any default
+% reply. Pressing <RETURN> or <ENTER> will accept the default. Clicking
+% in the entry widget allows editing, pressing <RETURN> or <ENTER>
+% enters the result. You must enter something, empty answers are not
+% accepted.
 %
 % Basic editing of the entry widget is supported *without* clicking in
 % the widget. This enables you to type responses to a sequence of
@@ -36,7 +29,12 @@ function varargout = spm_input(varargin)
 % are appended to the text in the entry widget. Press <RETURN> or <ENTER>
 % to submit your response.
 %
-% For evaluated input, the string submitted is evaluated in the base
+% A ContextMenu is provided (in the figure background) giving access to
+% relevant utilities including the facility to load input from a file
+% (see spm_load.m and examples given below): Click the right button on
+% the figure background.
+%
+% For EVALUATED input, the string submitted is evaluated in the base
 % MatLab workspace (see MatLab's `eval` command) to give a numerical
 % value. This permits the entry of numerics, matrices, expressions,
 % functions or workspace variables. I.e.:
@@ -51,12 +49,13 @@ function varargout = spm_input(varargin)
 %                                           e.g. "tmp"
 %
 % The last three options provide a great deal of power: spm_load will
-% load a matrix from an ASCII data file and return the results. The
-% second example assummes a custom funcion called input_cov has been
-% written which expects two arguments, for example the following file
-% saved as input_cov.m somewhere on the MATLABPATH (~/matlab, the
-% matlab subdirectory of your home area, and the current directory, are
-% on the MATLABPATH by default):
+% load a matrix from an ASCII data file and return the results, and is
+% easily used from the ContextMenu. The second example assummes a
+% custom funcion called input_cov has been written which expects two
+% arguments, for example the following file saved as input_cov.m
+% somewhere on the MATLABPATH (~/matlab, the matlab subdirectory of
+% your home area, and the current directory, are on the MATLABPATH by
+% default):
 %
 %       function [x] = input_cov(n,decay)
 %       % data input routine - mono-exponential covariate
@@ -70,15 +69,20 @@ function varargout = spm_input(varargin)
 % this device.
 %
 % Alternatively, variables containing the required responses may be
-% setup in the MatLab base workspace before invoking the SPM routine.
+% setup in the MatLab base workspace before starting an SPM procedure
 % E.g.
 % >> tmp=exp(-[1:36]/5.321)
 %
+% CONDITIONS type input is for getting indicator vectors. The features
+% of evaluated input described above are complimented as follows:
+%   v)  - a compressed list of digits 0-9   e.g. "12121212"
+%  ii)  - a list of indicator characters    e.g. "abababab"
+%         (chars mapped to whole numbers in alphabetical order)
+%         (case insensitive, [A:Z,a:z] only)
+% ...in addition the response is checked to ensure integer condition indices.
+%
 % Errors in string evaluation are handled gracefully, and the user
 % prompted to re-enter.
-%
-% Any default response is indicated, and accepted if an empty line is
-% input.
 %
 % - BUTTON input -
 % For Button input, the prompt is displayed adjacent to a small row of
@@ -131,17 +135,18 @@ function varargout = spm_input(varargin)
 %=======================================================================
 % - FORMAT specifications for programers
 %=======================================================================
-% - generic    - FORMAT p = spm_input(Prompt,YPos,Type,...)
-% - string     - FORMAT p = spm_input(Prompt,YPos,'s',DefStr)
-% - evaluated  - FORMAT p = spm_input(Prompt,YPos,'e',DefStr)
-% - button     - FORMAT p = spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
-% - menu       - FORMAT p = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
-% - display    - FORMAT     spm_input(Message,YPos,'d',Label)
-% - alert      - FORMAT     spm_input(Alert,YPos,'d!',Label)
+% - generic   - FORMAT [p,YPos] = spm_input(Prompt,YPos,Type,...)
+% - string    - FORMAT [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
+% - evaluated - FORMAT [p,YPos] = spm_input(Prompt,YPos,'e',DefStr,n)
+% - condition - FORMAT [p,YPos] = spm_input(Prompt,YPos,'c',DefStr,n)
+% - button    - FORMAT [p,YPos]= spm_input(Prompt,YPos,'b',Labels,Values,DefItem)
+% - menu      - FORMAT [p,YPos]= spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
+% - display   - FORMAT     spm_input(Message,YPos,'d',Label)
+% - alert     - FORMAT     spm_input(Alert,YPos,'d!',Label)
 %
-% - yes/no     - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
+% - yes/no    - FORMAT p = spm_input(Prompt,YPos,'y/n',Values,DefItem)
 % - buttons (shortcut) where Labels is a bar delimited string
-%              - FORMAT p = spm_input(Prompt,YPos,Labels,Values,DefItem)
+%             - FORMAT p = spm_input(Prompt,YPos,Labels,Values,DefItem)
 %
 % -- Parameters (input) --
 %
@@ -172,6 +177,13 @@ function varargout = spm_input(varargin)
 %
 % DefStr   - Default string to be placed in entry widget for string and
 %            evaluated types
+%          - Defaults to ''
+%
+% n        - Length of vectors required by 'e' & 'c' types
+%            Actually, if *any* dimension is n then input is accepted.
+%            This enables input of matrices.
+%          - Inf implies no restriction
+%          - Default (missing or empty) to Inf - no restriction
 %
 % Labels   - Labels for button and menu types.
 %                          - string matrix, one label per row
@@ -224,6 +236,16 @@ function varargout = spm_input(varargin)
 %               Evaluated string input, prompted by contents of string str,
 %               in next position of the dialog figure.
 %               Default value of 0.001 offered.
+%       p = spm_input(str,2,'e',[],5)
+%               Evaluated string input, prompted by contents of string str,
+%               in second position of the dialog figure.
+%               Vector of length 5 required.
+%       p = spm_input(str,0,'c','ababab')
+%               Condition string input, prompted by contents of string str
+%               Uses command line interface.
+%               Default string of 'ababab' offered.
+%       p = spm_input(str,0,'c','010101')
+%               As above, but default string of '010101' offered.
 %       [p,YPos] = spm_input(str,'0','s','Image')
 %               String input, same position as last used, prompted by str,
 %               default of 'Image' offered. YPos returns GUI position used.
@@ -271,6 +293,14 @@ function varargout = spm_input(varargin)
 %               Position used is returned in YPos.
 %-----------------------------------------------------------------------
 % UTILITY FUNCTIONS:
+%
+% [iCond,msg] = spm_input('!iCond',str,n)
+% Parser for special 'c'ondition type: Handles digit strings and
+% strings of indicator chars.
+% str     - input string
+% n       - length of condition vector required [defaut Inf - no restriction]
+% iCond   - Integer condition indicator vector
+% msg     - status message
 %
 % [CmdLine,YPos] = spm_input('!CmdLine',YPos)
 % Sorts out whether to use CmdLine or not & canonicalises YPos
@@ -363,6 +393,12 @@ function varargout = spm_input(varargin)
 % Scroll text string in object h
 % h      - handle of text object
 % Prompt - Text to scroll (Defaults to 'UserData' of h)
+%
+%-----------------------------------------------------------------------
+% SUBFUNCTIONS:
+%
+% FORMAT [p,msg] = sf_ecEval(str,Type,n)
+% Common code for evaluating 'e' & 'c' types.
 %_______________________________________________________________________
 % Andrew Holmes
 
@@ -384,7 +420,7 @@ else
 	%-Condition arguments for question types
 	if nargin<6, DefItem=[];  else, DefItem=varargin{6}; end
 	if nargin<5, Values=[];   else, Values=varargin{5};  end
-	if nargin<4, Labels=[];   else, Labels=varargin{4};  end
+	if nargin<4, Labels='';   else, Labels=varargin{4};  end
 	if nargin<3 | isempty(varargin{3}), Type='e'; else, Type=varargin{3}; end
 	if strcmp(Type,'y/n')
 		Type    = 'b';
@@ -403,7 +439,7 @@ else
 end
 
 
-if any(Type(1)=='desbm')
+if any(Type(1)=='descbm')
 %=======================================================================
 %-Setup for GUI use
 [CmdLine,YPos] = spm_input('!CmdLine',YPos);
@@ -418,7 +454,7 @@ if ~CmdLine
 	[FRec,QRec,PRec,RRec] = spm_input('!InputRects',YPos,'',Finter);
 end
 R2 = YPos;
-end % (any(Type(1)=='desbm'))
+end % (any(Type(1)=='descbm'))
 
 if Type(1)=='d'
 %-Display message
@@ -433,7 +469,7 @@ if CmdLine
 		fprintf('\n     | %s%s |',Prompt(1:tmp),repmat(' ',1,56-tmp))
 		Prompt(1:tmp)=[];
 	end
-	fprintf('\n     +-%s%s+\n',Labels,repmat('-',1,57-length(Labels)))
+	fprintf('\n     +-%s+\n',repmat('-',1,57))
 else
 	if ~isempty(Labels), Prompt = [Labels,': ',Prompt]; end
 	figure(Finter)
@@ -446,11 +482,12 @@ else
 		'ForegroundColor',dCol,...
 		'UserData',Prompt,...
 		'Position',QRec);
-	pause(1)
 	if length(Prompt)>56
+		pause(1)
+		set(h,'ToolTipString',Prompt)
 		spm_input('!dScroll',h)
-		uicontrol(Finter,'Style','PushButton',...
-			'String','>',...
+		uicontrol(Finter,'Style','PushButton','String','>',...
+			'ToolTipString','press to scroll message',...
 			'Tag',['GUIinput_',int2str(YPos)],...
 			'UserData',h,...
 			'CallBack',[...
@@ -462,40 +499,42 @@ else
 end
 return
 
-elseif any(Type(1)=='es')
+elseif any(Type(1)=='esc')
 %-String and evaluated string input.
 %=======================================================================
-DefString = Labels; if ~isstr(DefString), DefString=num2str(DefString); end
+DefString = Labels; if ~ischar(DefString), DefString=num2str(DefString); end
+n = Values; if isempty(Values), n=Inf; end
 
 if CmdLine
 	spm_input('!PrntPrmpt',Prompt)
 	if ~isempty(DefString)
 		Prompt=[Prompt,' (Default: ',DefString,' )']; end
 	str = input([Prompt,' : '],'s'); if isempty(str), str=DefString; end
-	if Type(1)=='e', p=evalin('base',['[',str,']'],'''<ERROR>''');
-		else, p=str; end
 
-	%-Eval Type 'e' in Base workspace, catch eval errors
-	while (strcmp(p,'<ERROR>') & Type(1)=='e') | isempty(p)
-		spm('Beep'), fprintf('! %s : ',mfilename)
-		if isempty(p), fprintf('enter something!\n')
-			else,  fprintf('evaluation error\n'), end
-		str = input([Prompt,' : '],'s');
-		if isempty(str), str=DefString; end
-		if Type(1)=='e', p=evalin('base',['[',str,']'],'''<ERROR>''');
-			else, p=str; end
+	%-Eval Types 'e' & 'c' in Base workspace, catch errors
+	if any(Type(1)=='ec')
+		[p,msg] = sf_ecEval(str,Type,n);
+		while isempty(p)
+			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
+			str = input([Prompt,' : '],'s');
+			if isempty(str), str=DefString; end
+			[p,msg] = sf_ecEval(str,Type,n);
+		end
+	else
+		p = str; msg='';
 	end
+	if ~isempty(msg), fprintf('\t%s\n',msg), end
 
 else
 
 	%-Create text and edit control objects
 	%---------------------------------------------------------------
-	uicontrol(Finter,'Style','Text',...
+	hPrmpt = uicontrol(Finter,'Style','Text',...
 		'String',Prompt,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'HorizontalAlignment','Right',...
 		'Position',PRec);
-	
+
 	%-Edit widget: Callback sets UserData to true when edited
 	h = uicontrol(Finter,'Style','Edit',...
 		'String',DefString,...
@@ -506,6 +545,20 @@ else
 		'BackgroundColor',COLOR,...
 		'Position',RRec);
 
+	%-Figure ContextMenu for shortcuts
+	hM = uicontextmenu('Parent',Finter);
+	uimenu(hM,'Label','load from text file',...
+		'CallBack',[...
+		'set(get(gcbo,''UserData''),''UserData'',1,''String'',',...
+			'[''spm_load('''''',spm_get(1),'''''')''])'],...
+		'UserData',h)
+	uimenu(hM,'Label','help on spm_input',...
+		'CallBack','spm_help(''spm_input.m'')')
+	uimenu(hM,'Label','crash out','Separator','on',...
+		'CallBack','delete(get(gcbo,''UserData''))',...
+		'UserData',[hPrmpt,h,hM])
+	set(Finter,'UIContextMenu',hM)
+	
 	%-Setup FigureKeyPressFcn to enable editing of entry widget
 	% without clicking in it.
 	%-If edit widget is clicked in, then it grabs all keyboard input.
@@ -520,20 +573,18 @@ else
 	[PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
 
 
-	%-Wait for edit, evaluate string in Base workspace if Type 'e',
-	% catch evaluation errors.
+	%-Wait for edit, evaluate 'e' & 'c' Types in Base workspace, catch errors
 	%---------------------------------------------------------------
 	waitfor(h,'UserData')
 	if ~ishandle(h), error(['Input window cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	str = get(h,'String');
-	if Type(1)=='e'
-		p = evalin('base',['[',str,']'],'''<ERROR>''');
-		while strcmp(p,'<ERROR>')
+	if any(Type(1)=='ec')
+		[p,msg] = sf_ecEval(str,Type,n);
+		while isempty(p)
 			spm('Beep')
 			set(h,'Style','Text',...
-				'String','<ERROR>',...
-				'Horizontalalignment','Center',...
+				'String',msg,...
 				'ForegroundColor','r')
 			pause(2)
 			set(h,'Style','Edit',...
@@ -545,15 +596,17 @@ else
 			if ~ishandle(h), error(['Input window cleared ',...
 				'whilst waiting for response: Bailing out!']),end
 			str = get(h,'String');
-			p = evalin('base',['[',str,']'],'''<ERROR>''');
+			[p,msg] = sf_ecEval(str,Type,n);
 		end
 	else
-		p = str;
+		p = str; msg='';
 	end
 
 	%-Fix edit window, clean up, reposition pointer, set CurrentFig back
 	set(h,'Style','Text','HorizontalAlignment','Center',...
+		'ToolTipString',msg,...
 		'BackgroundColor',[.7,.7,.7]), drawnow
+	delete(hM)
 	set(Finter,'UserData',[],'KeyPressFcn','')
 	spm_input('!PointerJumpBack',PLoc,cF)
 
@@ -568,7 +621,7 @@ if exist('spm_log')==2
 		spm_log(['spm_input : ',Prompt,':',p]);
 	end
 end
-varargout = {p};
+varargout = {p,YPos};
 return
 
 
@@ -671,7 +724,7 @@ elseif Type(1)=='b'
 		fprintf('\n')
 	
 		k = find(lower(Keys)==lower(str(1)));
-		p = Values(k,:); if isstr(p), p=deblank(p); end
+		p = Values(k,:); if ischar(p), p=deblank(p); end
 	
 	else
 
@@ -739,7 +792,7 @@ elseif Type(1)=='b'
 		if ~ishandle(hPrmpt), error(['Input window cleared whilst ',...
 			'waiting for response: Bailing out!']), end
 		k = get(hPrmpt,'UserData');
-		p = Values(k,:); if isstr(p), p=deblank(p); end
+		p = Values(k,:); if ischar(p), p=deblank(p); end
 		
 		%-Display answer and clean up window
 		delete(H)
@@ -830,12 +883,12 @@ elseif Type(1)=='m'
 		spm_input('!PointerJumpBack',PLoc,cF)
 	end
 
-	p = Values(k,:); if isstr(p), p=deblank(p); end
+	p = Values(k,:); if ischar(p), p=deblank(p); end
 
 end % (if Type(1)==...) switch for 'b' or 'm' within any(Type(1)=='bm')
 
 %-Set return value
-varargout = {p};
+varargout = {p,YPos};
 
 %-Log the transaction
 %-----------------------------------------------------------------------
@@ -852,7 +905,51 @@ end
 % U T I L I T Y   F U N C T I O N S 
 %=======================================================================
 
-switch lower(Type), case '!cmdline'
+switch lower(Type), case '!icond'
+%=======================================================================
+% [iCond,msg] = spm_input('!iCond',str,n)
+% Parse condition spec strings:
+%	'2 3 2 3', '0 1 0 1', '2323', '0101', 'abab', 'R A R A'
+if nargin<3, n=Inf; else, n=varargin{3}; end
+if nargin<2, i=''; else, i=varargin{2}; end
+if isempty(i), varargout={[],'empty input'}; return, end
+msg = ''; i=i(:)';
+
+if ischar(i)
+	if i(1)=='0' & all(ismember(unique(i(:)),setstr(abs('0'):abs('9'))))
+		%-Leading zeros in a digit list
+		msg = sprintf('%s expanded',i);
+		z = min(find(diff(i=='0')));
+		i = [zeros(1,z), spm_input('!iCond',i(z+1:end))];
+	else
+		%-Try an eval, for functions & string #s
+		i = evalin('base',['[',i,']'],'i');
+	end
+end
+
+if ischar(i)
+	%-Evaluation error from above: see if it's an 'abab' or 'a b a b' type:
+	[c,null,i] = unique(lower(i(~isspace(i))));
+	if ~all(ismember(c,setstr(abs('a'):abs('z'))))
+		i = [];	msg = 'evaluation error';
+	else
+		msg = sprintf('[%s] mapped to [1:%d]',c,length(c));
+	end
+elseif ~all(floor(i(:))==i(:))
+	i = []; msg = 'must be integers';
+elseif length(i)==1 & n>1
+	msg = sprintf('%d expanded',i);
+	i = floor(i./10.^[floor(log10(i)+eps):-1:0]);
+	i = i-[0,10*i(1:end-1)];
+end
+if ~isempty(i) & isfinite(n) & length(i)~=n
+	i = []; msg = sprintf('%d-vector required',n);
+end
+
+varargout = {i,msg};
+
+
+case '!cmdline'
 %=======================================================================
 % [CmdLine,YPos] = spm_input('!CmdLine',YPos)
 %-Sorts out whether to use CmdLine or not & canonicalises YPos
@@ -863,7 +960,7 @@ if isempty(YPos), YPos='+1'; end
 CmdLine = spm('isGCmdLine');
 
 %-Special YPos specifications
-if isstr(YPos)
+if ischar(YPos)
 	if(YPos(1)=='!'), CmdLine=0; YPos(1)=[]; end
 elseif YPos==0
 	CmdLine=1;
@@ -1041,7 +1138,7 @@ if CmdLine
 	NPos = 0;
 else
 	MPos = spm_input('!MaxPos',F);
-	if isstr(YPos)
+	if ischar(YPos)
 		%-Relative YPos
 		%-Strip any '!' prefix from YPos
 		if(YPos(1)=='!'), YPos(1)=[]; end
@@ -1212,4 +1309,26 @@ otherwise
 warning('Invalid type / action')
 
 %=======================================================================
+end
+
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+function [p,msg] = sf_ecEval(str,Type,n)
+%-----------------------------------------------------------------------
+if nargin<3, n=Inf; end
+if nargin<2, Type='e'; end
+if nargin<1, str=''; end
+if isempty(str), p=[]; msg='empty input'; return, end
+switch Type(1)
+case 'e'
+	p = evalin('base',['[',str,']'],'[]');
+	if isempty(p), msg = 'evaluation error'; else, msg=''; end
+case 'c'
+	[p,msg] = spm_input('!iCond',str);
+end
+if ~isempty(p) & isfinite(n) & ~any(size(p)==n)
+	p = []; msg = sprintf('%d-vector required',n);
 end
