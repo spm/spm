@@ -1,44 +1,20 @@
 function spm_print(F)
-% SPM print function that executes PRINTSTR
+% SPM print function: Appends footnote & executes PRINTSTR
 % FORMAT spm_print(F)
-% F	- [Optional] Figure to print
+% F	- [Optional] Figure to print ('Tag' or figure number)
 %	- defaults to the figure 'Tag'ged as 'Graphics'
-%	- If no such figure is found, then CurrentFigure is used, if avaliable
-%___________________________________________________________________________
+%	- If no such figure found, uses CurrentFigure, if avaliable
+%_______________________________________________________________________
 %
 % spm_print creates a footnote with details of the current
 % session and evaluates the global string variable PRINTSTR
 %
-%__________________________________________________________________________
+% This is just a gateway to spm_figure('Print',F)
+%_______________________________________________________________________
 % %W% %E%
 
-
-%-Retrieve print command
-%---------------------------------------------------------------------------
-global PRINTSTR
-if isempty(PRINTSTR)
-	PrintCmd = 'print -dps2 fig.ps';
+if nargin==0
+	spm_figure('Print')
 else
-	PrintCmd = PRINTSTR;
+	spm_figure('Print',F)
 end
-
-%-Find window to print
-%---------------------------------------------------------------------------
-if (nargin<1), F = findobj(get(0,'Children'),'Tag','Graphics'); end
-if (isempty(F) & length(get(0,'Children'))), F = gcf; end
-figure(F)
-
-%-Create footnote
-%---------------------------------------------------------------------------
-NAME	        = getenv('USER');			% username
-GRAPHSTR  	= ['SPM analysis - date: ' date '  user: ' NAME];
-GRAPHSTR  	= GRAPHSTR(GRAPHSTR ~= 10);		% footnote
-
-%-Create axis and text objects
-%---------------------------------------------------------------------------
-axes('position',[0.02 0.02 1 1],'Visible','off')
-text(0,0,GRAPHSTR,'FontSize',10);
-
-%-Print command
-%---------------------------------------------------------------------------
-eval(PrintCmd)
