@@ -11,36 +11,116 @@
 % 
 % templates/T1.img
 % ----------------
-% A T1 weighted MRI of a representative individual
-% - smoothed (7mm fwhm) & unsmoothed. templates/T1.img is intended to
-% be used as a template for spatial normalisation.
+% Image supplied by Alan Evans, MNI, Canada
+% A T1 weighted MRI of a representative male individual - smoothed
+% (8mm FWHM) intended to be used as a template for spatial normalisation.
+% The subject used for the brain simulation project at Montreal,
+% details of which can be found at http://www.bic.mni.mcgill.ca/brainweb
+% The simulator is described in:
+% RK-S Kwan, AC Evans, GB Pike (1996)
+% "An Extensible MRI Simulator for Post-Processing Evaluation"
+% Visualization in Biomedical Computing (VBC'96).
+% Lecture Notes in Computer Science, vol. 1131. Springer-Verlag. 135-140.
+% and:
+% DL Collins, AP Zijdenbos, V Kollokian, JG Sled, NJ Kabani,
+% CJ Holmes, AC Evans (June 1998)
+% "Design and Construction of a Realistic Digital Brain Phantom"
+% IEEE Transactions on Medical Imaging, vol.17, No.3, p.463-468.
+%
 %
 % templates/T2.img
 % ----------------
-% A rather crummy T2 image (from the T2 image which was distributed with
-% SPM95).
+% Average of two T2 weighted images registered to match the canonical T1
+% template, smoothed with 8mm FWHM Gaussian.
 %
+% templates/EPI.img
+% -----------------
+% - see coreg/EPI.img
+%
+% templates/Transm.img
+% --------------------
+% - see coreg/Transm.img
 %
 % apriori/gray.img apriori/white.img apriori/csf.img
 % ---------------- ----------------- ---------------
-% Images kindly supplied by Alan Evans, MNI, Canada (ICBM, NIH P-20
-% project, Principal Investigator John Mazziotta). The original 1mm
-% resolution images were reduced to 2mm, and smoothed with a 7mm kernal.
+% Images supplied by Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).
+% Original 1mm resolution images were icbm_avg_151_gm.mnc,
+% icbm_avg_151_wm.mnc and icbm_avg_151_csf.mnc.
+% Images were masked using average_305_mask_1mm.mnc, reduced to 2mm
+% resolution and smoothed using an 8mm FWHM Gaussian.
 % These images represent the probabilities of finding gray matter, white
 % matter or csf at any point. These volumes are used largely for image
 % segmentation, although they can be used as templates for spatial
-% normalisation.
-% The 'symmetric_*.img' versions are actually used.
+% normalisation. 151 subjects were used to create each volume.
 %
 % misc/avg305T1.img
 % -----------------
-% The image which defines the 305 space.
-% Intended for superimposing blobs on to.
+% Image supplied by Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).
+% The image which defines the 305 space, and is intended for
+% superimposing blobs on to. The original file was
+% norm_avg_305_mri_1mm.mnc.  See:
+% AC Evans, DL Collins, SR Mills, ED Brown, RL Kelly & TM Peters (1993)
+% "3D statistical neuroanatomical models from 305 MRI volumes"
+% Proc. IEEE-Nuclear Science Symposium and Medical Imaging Conference
+% pages 1813-1817
 %
 % misc/T1.img
 % -----------
 % The same image as templates/T1.img - but not smoothed.
 % Intended for superimposing blobs on to.
+%
+% coreg/T1.img
+% ------------
+% Average of images from 12 subjects spatially normalized to ICBM
+% using a 12-parameter affine transformation.  Images acquired on
+% a 2 Tesla Siemens Magnetom Vision scanner at the FIL, using a
+% T1 weighted MPRAGE sequence (TRel=9.7, TEch=4, TInv=600,
+% Fang=12, SThi=1.5).  Same subjects were also used for
+% coreg/PET.img and coreg/Transm.img.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
+%
+% coreg/PET.img
+% -------------
+% Average of images from 12 subjects spatially normalized to ICBM.
+% Images were first registered to the T1-weighted MR images, and
+% spatially transformed using the same transformation.  Images
+% were acquired on a Siemens ECAT HR+ at the FIL, using Oxygen-15
+% labelled water. Averaged images smoothed using 8mm FWHM Gaussian.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
+%
+% coreg/Transm.img
+% ----------------
+% Average transmission image of 11 subjects (same as for
+% coreg/PET.img, except for subject 826).  Template generated in
+% similar way to PET.img.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
+%
+% coreg/EPI.img
+% -------------
+% The image was created from the average of 13 subjects mean fMRI images.
+% The original images were registered to the structural images, and the
+% structurals were spatially normalized to coreg/T1.img. The same
+% transformations were applied to the functional images, which were
+% then averaged and smoothed with an 8mm FWHM Gaussian kernel.
+% The EPI images were aquired on a Siemens Vision scanner working at 2T.
+% The original resolution of the images was an isotropic 3mm (1.8mm
+% slice thickness + 1.2mm gap).  A gradient echo sequence was used with
+% TE@ms and a TR of about 3s.  Inter echo spacing is 800 micro seconds
+% with a sinusoidal gradient waveform and nonlinear ADC sampling.
+% Nyquist ghost suppression is achieved using a 2 echo reference scan
+% (only 0th and 1st order phase correction implemented). Maximum gradient
+% strength is approx. 20mT/m.
+% Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479 1514
+%                  1589 1644 1646
+% coreg/T2.img
+% ------------
+% Average of T2 weighted images from three subjects acquired at the FIL.
+% Images spatially normalized by coregistering to T1 images of same
+% subjects, and matching the T1 images to the coreg/T1.img template.
+% Average created and smoothed 8mm FWHM.
+% Subject numbers: 527 553 1991.
 %
 %=======================================================================
 % To generate your own templates which fill the same volume, use a
