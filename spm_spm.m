@@ -851,16 +851,8 @@ xX.Bcov         = xX.pKX*xX.V*xX.pKX';				% Cov(beta)
 VResMS.pinfo(1) = 1/xX.trRV;
 VResMS          = spm_create_vol(VResMS,'noopen');
 
-
-%-Create 1st contrast for 'effects of interest' (all if not specified)
-%=======================================================================
-Fcname          = 'effects of interest';
-try
-	iX0     = [xX.iB xX.iG];
-catch
-	iX0     = [];
-end
-xCon            = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
+% Do not store a default effects of interest F-contrast
+xCon =[];
 
 %-Append contrasts for fMRI - specified by SPM.Sess(s).Fc(i)
 %-----------------------------------------------------------------------
