@@ -416,7 +416,7 @@ catch
 		% otherwise make W a whitening filter W*W' = inv(V)
 		%-------------------------------------------------------
 		[u s] = spm_svd(xVi.V);
-		s     = spdiags(1./sqrt(diag(s)),0,nScan,nScan);
+		s     = spdiags(1./sqrt(diag(s)),0,length(s),length(s));
 		W     = u*s*u';
 		W     = W.*(abs(W) > 1e-6);
 		xX.W  = sparse(W);
