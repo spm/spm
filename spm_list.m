@@ -123,10 +123,10 @@ if isempty(Title), Title = ['volume summary',...
 			' (p-values corrected for entire volume)']; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
-if isempty(Num), Num = 3;  end
+if isempty(Num), Num = 03; end
 if nargin<4,     Dis = [];
 	else,    Dis = varargin{4}; end
-if isempty(Dis), Dis = 8;  end
+if isempty(Dis), Dis = 08; end
 % VOL is varargin{3} - Use by reference for speed
 % SPM is varargin{2} - Don't copy into local variables
 
@@ -549,7 +549,7 @@ if nargin<5,     Num = [];
 if isempty(Num), Num = 16; end
 if nargin<4,     Dis = [];
 	else,    Dis = varargin{4}; end
-if isempty(Dis), Dis = 4;  end
+if isempty(Dis), Dis = 04; end
 VOL  = varargin{3};
 SPM  = varargin{2};
 
