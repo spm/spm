@@ -122,6 +122,7 @@ if nargin < 2,
 		'ascending (first slice=bottom)',...
 		'descending (first slice=top)',...
 		'interleaved (first slice=top)',...
+		'interleaved (1 3.. 2 4 ..)',...
 		'user specified');
 	str   = 'Select sequence type';
 	Seq   = spm_input(str,'!+1','m',Stype,[1:size(Stype,1)]);
@@ -136,10 +137,12 @@ elseif Seq==[3],
 	for k=1:nslices,
 		sliceorder(k) = round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1;
 	end;
+elseif Seq==[4],
+	sliceorder = [1:2:nslices 2:2:nslices];
 else,
 	if nargin<2 & length(Seq)>1,
 		sliceorder = Seq;
-		Seq        = 4;
+		Seq        = 5;
 	else,
 		sliceorder = [];
 	end;
@@ -176,7 +179,7 @@ spm('Pointer','Watch')
 for subj = 1:nsubjects
 	task = ['Slice timing: working on session ' num2str(subj)];
 	spm('FigName',task,Finter,CmdLine);
-        if nsubjects > 1, PP = P{subj}; end;
+	PP      = P{subj};
 	Vin 	= spm_vol(PP);
 	nimgo	= size(PP,1);
 	nimg	= 2^(floor(log2(nimgo))+1);
