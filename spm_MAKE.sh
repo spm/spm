@@ -5,46 +5,77 @@
 # spm_MAKE.sh will compile spm*.c scripts in a platform specific fashion
 # see mex
 #
-# default compilation is for Unix
-# pass string "windows" to script for Windows compile
-# ie ./spm_MAKE.sh windows
+# default compilation is for Sun cc
+# pass string to script from list below for other compile types
+# e.g. ./spm_MAKE.sh windows
 
 if [ $# = 0 ]; then
-	arch="unix";
+	arch="sun";
 else
-	arch=$1;
+	if [ $1 = "--help" ]; then
+		echo "spm_MAKE [architecture/compiler]"
+		echo "Call with architecture/compiler as argument, where"
+		echo "architecture/compiler may be:"
+		echo "   sun (default)   - Sun (SunOS, solaris) ?DEC, using cc"
+		echo "   windows         - windows (NT, 95/98), using EGCS gcc"
+		echo "   gcc             - gcc compile for unix, including Sun, linux"
+		echo "   sgi             - Irix 32 bit compile with cc"
+		echo "   sgi64           - Irix 64 bit compile with cc"
+		echo "   hpux            - ?HPUX (HP) or ??AIX (IBM) compile with cc"
+		exit
+	else
+		arch=$1;
+	fi
 fi
 
+echo
 echo "SPM mex file compile for $arch"
 echo 
 
 case $arch in
-
-    unix)
-	# (default) unix compile
-	#CC="gcc -Wall -O2"
-	#cmex5="mex     COPTIMFLAGS=-O2"
-	#cmex4="mex -V4 COPTIMFLAGS=-O2"
+    sun)
+	# (default) unix compile for Sun CC
 	CC="cc -xO5"
 	cmex5="mex     COPTIMFLAGS=-xO5"
 	cmex4="mex -V4 COPTIMFLAGS=-xO5"
 	added_objs="spm_mapping.o";;
     windows)
-	# set options for windows compile with gcc/mingw32
-	#
+	# windows compile with EGCS gcc/mingw32
 	# see http://www.physiol.ox.ac.uk/~mb3/gnumex20.html
 	# for instructions about installing gcc for
 	# compiling Mex files.
 	deff=-DSPM_WIN32
-	CC="gcc -mno-cygwin -Wall $deff"
+	CC="gcc -mno-cygwin $deff"
 	cmex5="cmd /c mex $deff "
 	cmex4="cmd /c mex $deff -V4 "
-
-	# Windows added utility files
+	# Windows added utility file
 	$CC -c -o win32mmap.o win32mmap.c
-
 	added_objs="win32mmap.o spm_mapping.obj";;
-
+    gcc)
+	# optimised standard unix compile for gcc
+	# this should work on Sun, Linux etc
+	CC="gcc -O2"
+	cmex5="mex     COPTIMFLAGS=-O2"
+	cmex4="mex -V4 COPTIMFLAGS=-O2"
+	added_objs="spm_mapping.o";;
+    sgi)
+	# not optimised unix compile for CC
+	CC="cc"
+	cmex5="mex"
+	cmex4="mex -V4"
+	added_objs="spm_mapping.o";;
+    sgi64)
+	# not optimised sgi 64 bit compile for CC
+	CC="cc -64"
+	cmex5="mex"
+	cmex4="mex -V4"
+	added_objs="spm_mapping.o";;
+    hpux)
+	# unix compile for hpux cc, and maybe aix cc
+	CC="cc -O +Z"
+	cmex5="mex     COPTIMFLAGS=-O"
+	cmex4="mex -V4 COPTIMFLAGS=-O"
+	added_objs="spm_mapping.o";;
    *)
 	echo "Sorry, not set up for architecture $arch"
 	exit;;
