@@ -26,7 +26,6 @@ set([Finter,Fgraph],'Pointer','Watch');
 % memory map the background image and create transformation matrix {A}
 %-----------------------------------------------------------------------
 L      = V(4:6)'.*round(L./V(4:6)');
-if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 Vs     = spm_map(spms);					% memory mapped
 M      = round(V(1)*V(4));				% SPM size (mm)
 N      = round(V(2)*V(5));				% SPM size (mm)
@@ -95,11 +94,7 @@ if V(3) > 1
 	subplot(2,4,6)
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
-	if FLIP
-		title(sprintf('z = %0.0fmm {left = right}',L(3)));
-	else
-		title(sprintf('z = %0.0fmm',L(3)))
-	end
+	title(sprintf('z = %0.0fmm',L(3)))
 	line(([J J] + L(1)),[0 N])
 	line([0 M],((N - Z)*[1 1] - L(2)))
 
@@ -119,11 +114,7 @@ else
 	axes('position', [0.3 0.1 0.4 0.3])
 	image(rot90(spm_grid(Tc)))
 	axis image; axis off;
-	if FLIP
-		title(sprintf('z = %0.0fmm {left = right}',L(3)));
-	else
-		title(sprintf('z = %0.0fmm',L(3)))
-	end
+	title(sprintf('z = %0.0fmm',L(3)))
 	line(([J J] + L(1)),[0 N])
 	line([0 M],((N - Z)*[1 1] - L(2)))
 end
@@ -143,6 +134,5 @@ set(gca,'XTickLabels',[])
 
 % unmap and reset pointer (and x locations if necessary)
 %-----------------------------------------------------------------------
-if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 spm_unmap(Vs);
 set([Finter,Fgraph],'Pointer','Arrow')

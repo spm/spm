@@ -27,7 +27,6 @@ set([Finter,Fgraph],'Pointer','Watch');
 % memory map background image and create transformation matrix {A}
 %----------------------------------------------------------------------------
 L      = V(4:6)'.*round(L./V(4:6)');
-if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 Vs     = spm_map(spms);					% memory mapped
 M      = round(V(1)*V(4));				% SPM size (mm)
 N      = round(V(2)*V(5));				% SPM size (mm)
@@ -114,11 +113,7 @@ line(([J J] + L(1)),[0 O])
 axes('Position',[0.1 (0.46 - Z*WIN - 0.1*WIN - X*WIN) Y X*WIN])
 image(Tt)
 axis image; axis off;
-if FLIP
-	title 'transverse {left = right}'
-else
-	title 'transverse'
-end
+title 'transverse'
 line([0 N],([J J] + L(1)))
 line(([R R] + L(2)),[0 M])
 
@@ -138,6 +133,5 @@ set(gca,'XTickLabels',[])
 
 % unmap and reset pointer (and x locations is necessary)
 %----------------------------------------------------------------------------
-if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 spm_unmap(Vs);
 set([Finter,Fgraph],'Pointer','Arrow')
