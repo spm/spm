@@ -80,6 +80,7 @@ datasize = bits(dt)/8;
 off   = (p-1)*datasize*prod(V.dim(1:2)) + V.pinfo(3,1);
 if fseek(fid,off,'bof')==-1,
 	% Need this because fseek in Matlab does not seek past the EOF
+	fseek(fid,0,'bof'); % A bug in Matlab 6.5 means that a rewind is needed
 	fseek(fid,0,'eof');
 	curr_off = ftell(fid);
 	blanks   = zeros(off-curr_off,1);
