@@ -645,7 +645,7 @@ spm_help('!ContextHelp',mfilename)
 
 %-Print warning that results section isn't complete yet!
 %-----------------------------------------------------------------------
-spm_input('Note that SPM98d results aren''t available!',1,'d!','Warning');
+spm_input('Note that SPM98d results aren''t available yet!',1,'d!','Warning');
 
 
 %-Delete files from previous analyses...
