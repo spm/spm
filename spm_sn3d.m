@@ -24,20 +24,25 @@
 % squares sense) to the optimum linear combination of these templates.
 %
 % 'Normalisation Type?'
-% 	'Affine Only'
+% 	'Default Normalisation'
+% 	This is a 12 parameter affine normalisation, followed by
+% 	5 iterations of the nonlinear normalisation using 4x5x4 basis
+% 	functions. If this doesn't work, or if you wish to push the
+% 	normalisation a bit harder, try a custom normalisation.
+% 	The default arguments for the custom normalisation have
+% 	(D) next to them.
+%
+% 	'Custom Affine Only'
 % 	Only perform an affine ('brain in a box') normalisation.
 % 	The affine normalisation corrects for gross differences in
 % 	brain size, and position.
 %
-% 	'Affine & Nonlinear'
+% 	'Custom Affine & Nonlinear'
 % 	Perform an affine and also a 3D nonlinear normalisation. The
 % 	nonlinear part of the normalisation corrects for more subtle
 % 	differences in brain shape.
 %
-% '# Affine Params?'
-% Most good data sets should be stable for 9 or 12 parameters.
-%
-% 'Starting Estimates?'
+% 'Affine Starting Estimates?'
 % The normalised images should use neurological convention for their
 % orientation. If any flipping needs doing, it should be done at this
 % stage.
@@ -52,7 +57,7 @@
 % 	[0 0 0 0 0 0 -1 1 1 0 0 0].
 %
 % 	'Custom Starting Estimates'
-% 	Enter starting estimates in following order:
+% 	Enter starting estimates in the following order:
 % 		x translation (mm)
 % 		y translation (mm)
 % 		z translation (mm)
@@ -71,6 +76,10 @@
 % 	    a roll  of +/- pi/2 radians for saggital images.
 % 	For volumes which are flipped, then the appropriate scaling
 % 	can be set to -1 in the starting estimates.
+%
+% '# Affine Params?'
+% Most good data sets should be stable for 9 or 12 parameters.
+%
 %
 % '# Nonlinear Iterations?'
 % Try 5 iterations.
@@ -174,11 +183,14 @@ if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
 
 	spm_figure('Clear','Interactive');
-	a1 = spm_input('Which option?',1,'m',...
+	pos = 1;
+	a1 = spm_input('Which option?',pos,'m',...
 		'Determine Parameters Only|Write Normalised Only|Determine Parameters & Write Normalised',...
 		[1 2 3]);
-	nsubjects = spm_input('# Subjects',1);
-	
+	pos = pos + 1;
+	nsubjects = spm_input('# Subjects',pos);
+	pos = pos + 1;
+
 	for i=1:nsubjects
 		if (a1 == 1 | a1 == 3)
 			P = spm_get(1,'.img',['Image to Normalise - subject ' num2str(i)]);
@@ -195,13 +207,11 @@ if (nargin == 0)
 		end
 	end
 	
-	bases =     [2 2 2;2 3 2;3 3 3;3 4 3;4 4 4;4 5 4;5 5 5;5 6 5;6 6 6;6 7 6;7 7 7;7 8 7;8 8 8];
-	basprompt = '2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x7x7|7x8x7|8x8x8';
-
+	bases =     [2 2 2;2 3 2;3 3 3;3 4 3;4 4 4;4 5 4    ;5 5 5;5 6 5;6 6 6;6 7 6;7 7 7;7 8 7;8 8 8];
+	basprompt = '2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4 (D)|5x5x5|5x6x5|6x6x6|6x7x6|7x7x7|7x8x7|8x8x8';
 	aff_parms = [0 0 0 0 0 0 1 1 1 0 0 0];
-	pos = 1;
+
 	if (a1 == 1 | a1 == 3)
-	
 		% Get template(s)
 		ok = 0;
 		while (~ok)
@@ -215,23 +225,21 @@ if (nargin == 0)
 				if size(dims,1) == 1 | ~any(diff(dims)) ok = 1; end
 			end
 		end
-		a2  = spm_input('Normalisation Type?',2,'m','Affine Only|Affine & Nonlinear',[1 2]);
-		nap = spm_input('# Affine Params?',3,'m',[
-			' 2 params (X & Y Translations)|'...
-			' 3 params (Translations)|'...
-			' 5 params (Translations + Pitch & Roll)|'...
-			' 6 params (Rigid Body)|'...
-			' 8 params (Rigid Body + X & Y Zoom)|'...
-			' 9 params (Rigid Body + Zooms)|'...
-			'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
-			'12 params (Rigid Body,  Zooms & Affine)'
-			],[2 3 5 6 8 9 11 12]);
+		a2  = spm_input('Normalisation Type?',pos,'m','Default Normalisation|Custom Affine Only|Custom Affine & Nonlinear',[0 1 2]);
+		pos = pos + 1;
+		if (a2 == 0)
+			nap        = 12;
+			iterations = 5;
+			nbasis     = [4 5 4];
+		end
 
-		tmp = spm_input('Starting Estimates?',4,'m',...
+		tmp = spm_input('Affine Starting Estimates?',pos,'m',...
 			['Neurological Convention (R is R)|'...
 			 'Radiological Convention (L is R)|'...
-			 'Custom Starting Estimates'],...
+			 'Custom Affine Starting Estimates'],...
 			[0 1 2]);
+		pos = pos + 1;
+
 		if (tmp == 0)
 			aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
 		elseif (tmp == 1)
@@ -240,24 +248,37 @@ if (nargin == 0)
 			aff_parms = [0 0 0 0 0 0  1 1 1 0 0 0];
 			se = ones(13,1);
 			while prod(size(se)) > 12 & prod(size(se)) < 8
-				se = spm_input('Enter Starting Estimates:',4);
+				se = spm_input('Enter Affine Starting Estimates:',pos);
 				se = se(:)';
 			end
 			aff_parms(1:prod(size(se))) = se(:);
 		end
 
-		pos = 4;
+		if (a2 == 1 | a2 == 2)
+			nap = spm_input('# Affine Params?',pos,'m',[
+				' 2 params (X & Y Translations)|'...
+				' 3 params (Translations)|'...
+				' 5 params (Translations + Pitch & Roll)|'...
+				' 6 params (Rigid Body)|'...
+				' 8 params (Rigid Body + X & Y Zoom)|'...
+				' 9 params (Rigid Body + Zooms)|'...
+				'11 params (Rigid Body,  Zooms + X & Y Affine)|'...
+				'12 params (Rigid Body,  Zooms & Affine) (D)'
+				],[2 3 5 6 8 9 11 12]);
+			pos = pos + 1;
+		end
+
 		if (a2 == 2)
-			iterations = spm_input('# Nonlinear Iterations?',pos+1,'m','1  iteration |3  iterations|5  iterations|8  iterations|12 iterations|16 iterations',[1 3 5 8 12 16]);
+			iterations = spm_input('# Nonlinear Iterations?',pos,'m','1  nonlinear iteration |3  nonlinear iterations|5  nonlinear iterations (D)|8  nonlinear iterations|12 nonlinear iterations|16 nonlinear iterations',[1 3 5 8 12 16]);
+			pos = pos + 1;
 			nbasis = [];
-			nb = spm_input('# Basis Functions?',pos+2,'m',[basprompt '|Custom'],[1:size(bases,1) 0]);
+			nb = spm_input('# Nonlinear Basis Functions?',pos,'m',[basprompt '|Custom'],[1:size(bases,1) 0]);
 			if (nb>0), nbasis = bases(nb,:); end
 			while prod(size(nbasis)) ~= 3 | any(nbasis < 1) | prod(nbasis) > 1000
-				nbasis = spm_input('# Basis Functions (x y z)',pos+3);
+				nbasis = spm_input('# Basis Functions (x y z)',pos);
 				nbasis = nbasis(:)';
 			end
-			smoothness = spm_input('Deformation Smoothness',pos+4,'e',0.001);
-			pos = pos+4;
+			pos = pos+1;
 		else
 			nbasis     = [0 0 0];
 			iterations = 0;
@@ -277,37 +298,40 @@ if (nargin == 0)
 
 	if (a1 == 2 | a1 == 3)
 	
-		Hold = spm_input('Interpolation Method?',pos+1,'m',['Nearest Neighbour|Bilinear Interpolation|'...
+		Hold = spm_input('Interpolation Method?',pos,'m',['Nearest Neighbour|Bilinear Interpolation|'...
 			'Rough   Sinc Interpolation|Medium  Sinc Interpolation (slow)|'...
 			'Better Sinc Interpolation (very slow)'],[0 1 3 5 8]);
-	
-			ans = spm_input('Bounding Box?',pos+2,'m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0]);
-			if (ans>0)
-				bb=reshape(bboxes(ans,:),2,3);
-			else
-				directions = 'XYZ';
-				bb = zeros(2,1);
-				for d=1:3
-					bbx = [];
-					while size(bbx,1) ~= 2
-						bbx = spm_input(['Bounding Box ' directions(d) ], pos+1+d);
-						bbx = bbx(:);
-					end
-					bb(:,d) = bbx;
-				end
-				pos = pos+2;
-			end
+		pos = pos + 1;
 
-			ans = spm_input('Voxel Sizes?',pos+3,'m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0]);
+		ans = spm_input('Bounding Box?',pos,'m',[ bbprompt '|Customise'], [1:size(bboxes,1) 0]);
+		if (ans>0)
+			pos = pos + 1;
+			bb=reshape(bboxes(ans,:),2,3);
+		else
+			directions = 'XYZ';
+			bb = zeros(2,1);
+			for d=1:3
+				bbx = [];
+				while size(bbx,1) ~= 2
+					bbx = spm_input(['Bounding Box ' directions(d) ], pos);
+					bbx = bbx(:);
+				end
+				bb(:,d) = bbx;
+				pos = pos + 1;
+			end
+		end
+
+			ans = spm_input('Voxel Sizes?',pos,'m',[ voxprompts '|Customise'], [1:size(voxdims,1) 0]);
 			if (ans>0)
 				Vox = voxdims(ans,:);
 			else
 				Vox = [];
 				while size(Vox,2) ~= 3
-					Vox = spm_input('Voxel Sizes ',pos+3);
+					Vox = spm_input('Voxel Sizes ',pos);
 					Vox = Vox(:)';
 				end
 			end
+			pos = pos + 1;
 	else
 		bb     = reshape(bboxes(1,:),2,3);
 		Vox    = [2 2 4];
@@ -318,7 +342,7 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 smoothness],Template,aff_parms,ones(nap,1));
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 0.001],Template,aff_parms,ones(nap,1));
 		end
 	end
 	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
