@@ -48,7 +48,7 @@ Y(OFF) = Z.*(Z > 0);
 %-Write the reconstructed volume
 %-----------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-fprintf('\n%s: %s\n\n',mfilename,spm_get('CPath',Q,pwd))
+spm('alert"',{'Written:',['    ',spm_get('CPath',Q)]},mfilename,sqrt(-1));
 
 %-End
 %-----------------------------------------------------------------------
