@@ -265,6 +265,7 @@ function varargout=spm(varargin)
 % 
 %_______________________________________________________________________
 
+
 %-Parameters
 %-----------------------------------------------------------------------
 Modalities = str2mat('PET','FMRI');
@@ -1087,6 +1088,13 @@ set(get(0,'Children'),'Pointer',Pointer)
 case {'alert','alert"','alert*','alert!'}
 %=======================================================================
 % h = spm('alert',Message,Title,CmdLine,wait)
+
+%- Globals 
+%-----------------------------------------------------------------------
+global BCH
+
+if ~isempty(BCH), return, end
+
 if nargin<5, wait    = 0;  else, wait    = varargin{5}; end
 if nargin<4, CmdLine = []; else, CmdLine = varargin{4}; end
 if nargin<3, Title   = ''; else, Title   = varargin{3}; end
