@@ -1215,7 +1215,14 @@ fg = spm_figure('Findwin','Graphics');set(0,'CurrentFigure',fg);
 item_parent = uicontextmenu;
 
 %contextsubmenu 0
-item0a    = uimenu(item_parent,'UserData','pos_mm');
+if isfield(st.vols{volhandle},'fname')
+	[p n e v] = fileparts(st.vols{volhandle}.fname);
+	item00  = uimenu(item_parent, 'Label',[n e v],         'Separator','on');
+else
+	item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
+end;
+item00_1  = uimenu(item00,     'Label','Swap image',    'Callback','spm_orthviews(''context_menu'',''swap_img'');');
+item0a    = uimenu(item_parent,'UserData','pos_mm','Separator','on');
 item0b    = uimenu(item_parent,'UserData','pos_vx');
 item0c    = uimenu(item_parent,'UserData','v_value');
 
@@ -1256,7 +1263,7 @@ item6_1_1_2 = uimenu(item6_1_1,  'Label','manual',     'Callback','spm_orthviews
 item6_1_2   = uimenu(item6_1,    'Label','global');
 item6_1_2_1 = uimenu(item6_1_2,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
 item6_1_2_2 = uimenu(item6_1_2,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
-item6_2     = uimenu(item6,      'Label','Swap image', 'Callback','spm_orthviews(''context_menu'',''swap_img'');');
+%item6_2     = uimenu(item6,      'Label','Swap image', 'Callback','spm_orthviews(''context_menu'',''swap_img'');');
 
 %contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Blobs');
