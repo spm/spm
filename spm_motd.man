@@ -1,22 +1,10 @@
 
-% This is the SPM'96 public beta edition...
+% This is SPM96
 %_______________________________________________________________________
 %
-% This is SPM96b, the public beta edition of SPM'96 - released 28/09/96.
-%
-% Unfortunately, we haven't been able to have a full two month period
-% of internal beta testing and feature stabilisation. However, we feel
-% that the software is stable enough to release, and that a public beta
-% will iron out any remaining difficulties much more efficiently than
-% internal testing, and provide an introduction to SPM96 without
-% further delay.
-% 
-% There may be bugs, especially in the more esoteric parts of SPM that
-% are infrequently visited. Please report bugs to
-% spm-bugs@fil.ion.ucl.ac.uk. Peculiarities and general queries should
-% be raised on the SPM discussion list. We will report patches to the
-% list and make updates available if necessary. We envisage making a
-% full SPM96 release in a couple of months.
+% This is SPM96, the public edition of SPM'96  -  released 09/04/1997.
+% Please refer to this version as "SPM96" in papers and communications,
+% citing the "Wellcome Department of Cognitive Neurology"
 %
 %                           ----------------
 %
@@ -34,17 +22,29 @@
 % use this facility. (System administrators need to edit the version
 % and path definitions in spm_choose.m for this to work.)
 %
-%                           ----------------
-%
-% Please take time to review the the (new) help system, in particular
-% the "About SPM" topic (spm.man). Further information may be found at
-% the SPMweb site, http://www.fil.ion.ucl.ac.uk/spm
+% Please take time to review the the help system, in particular the
+% "About SPM" topic (spm.man).
 %
 %                           ----------------
+%
+% SPM96 is SPM96b with the public patches applied, together with some
+% additional (cosmetic) improvements. The Contents.m file contains a
+% list of the differences. Details of the SPM96b updates are on the
+% SPMweb site.
+%                           ----------------
+%
+% Further information may be found at the SPMweb site:
+%                  http://www.fil.ion.ucl.ac.uk/spm
+% ...where details of the SPM email discussion list can be found:
+%                  http://www.fil.ion.ucl.ac.uk/spm/help
+%
+%                           ----------------
+%
+%
 %
 % Warmest regards,
 %            the authors.                                   spm_motd.man
 %_______________________________________________________________________
 % The FIL methods group : The Wellcome Department of Cognitive Neurology
 
-% %W% %E%
+% %Z%%M% %I% %E%

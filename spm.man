@@ -1,5 +1,5 @@
 
-% Statistical Parametric Mapping - SPM96b
+% Statistical Parametric Mapping - SPM96
 %_______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -10,7 +10,7 @@
 % John Ashburner, Karl Friston, Andrew Holmes, Jean-Baptiste Poline
 %_______________________________________________________________________
 %
-% SPM96b is the public beta edition of SPM'96 - released 28/09/96.
+%  SPM96 is the public edition of SPM'96      -      released 09/04/1997
 %
 % Contents:
 %      1) SPM - General comments
