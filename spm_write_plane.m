@@ -29,6 +29,7 @@ maxval  = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1, 2^8-1 2^15-1 2^31-
 minval  = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0,     0  -2^15  -2^31 -Inf  -Inf  -2^7      0      0];
 intt    = [    1      1      1    0    0     1      1      1,     1      1      1    0     0     1      1      1];
 prec = str2mat('uint8','int16','int32','float','double','int8','uint16','uint32','uint8','int16','int32','float','double','int8','uint16','uint32');
+swapped = [    0      0      0    0    0     0      0      0,     1      1      1    1     1     1      1      1];
 
 dt      = find(types==V.dim(4));
 if isempty(dt), error('Unknown datatype'); end;
@@ -45,12 +46,16 @@ if intt(dt),
 	A(A < mnv)  = mnv;
 end;
 
-if ~isfield(V,'fid'),
+if ~isfield(V,'fid') | isempty(V.fid),
+	mach = 'native';
+	if swapped(dt),
+		if spm_platform('bigend'), mach = 'ieee-le'; else, mach = 'ieee-be'; end;
+	end; 
 	[pth,nam,ext] = fileparts(V.fname);
 	fname         = fullfile(pth,[nam, '.img']);
-	fid         = fopen(fname,'r+',mach);
+	fid           = fopen(fname,'r+',mach);
 	if (fid == -1),
-		fid     = fopen(fname,'w',mach);
+		fid   = fopen(fname,'w',mach);
 		if (fid == -1),
 			error(['Error opening ' fname '. Check that you have write permission.']);
 		end;
@@ -83,7 +88,7 @@ if fwrite(fid,A,deblank(prec(dt,:))) ~= prod(size(A)),
 	error(['Error writing ' V.fname '.']);
 end;
 
-~isfield(V,'fid'), fclose(fid); end;
+if ~isfield(V,'fid') | isempty(V.fid), fclose(fid); end;
 
 return;
 %_______________________________________________________________________

@@ -8,7 +8,11 @@ function V = spm_create_vol(V,varargin)
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 for i=1:prod(size(V)),
-	v = create_vol(V(i),varargin{:});
+	if nargin>1,
+		v = create_vol(V(i),varargin{:});
+	else,
+		v = create_vol(V(i));
+	end;
 	f = fieldnames(v);
 	for j=1:size(f,1),
 		%eval(['V(i).' f{j} ' = v.' f{j} ';']);
@@ -168,7 +172,7 @@ if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
 	end;
 end;
 
-if ~(nargin>1 & strcmp(varargin{1},'noopen')),
+if nargin==1 | ~strcmp(varargin{1},'noopen'),
 	fname         = fullfile(pth,[nam, '.img']);
 	V.fid         = fopen(fname,'r+',mach);
 	if (V.fid == -1),
