@@ -1,10 +1,9 @@
-function [X,Sess] = spm_fMRI_design(nscan,RT,BM)
+function [X,Sess] = spm_fMRI_design(nscan,RT)
 % Assembles a design matrix for fMRI studies
-% FORMAT [X,Sess] = spm_fMRI_design(nscan,RT,BM)
+% FORMAT [X,Sess] = spm_fMRI_design(nscan,RT)
 %
 % nscan   - n vector {nscan(n) = number of scans in session n}
 % RT      - intercans interval {seconds}
-% BM      - Burst-mode flag
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
@@ -58,12 +57,6 @@ function [X,Sess] = spm_fMRI_design(nscan,RT,BM)
 % responses in the same model.  You are asked to specify the number
 % of event and epoch types. Enter 0 to skip either (or both if you only
 % want to use regressors you have designed outside spm_fMRI_design).
-%
-% Burst Mode is a specialist design for intermittent epochs of acquisitions
-% (used for example to allow for intercalated EEG recording).  Each burst
-% is treated as a session but consistent within session effects (e.g. T1
-% effects) are modelled in X.bX.  The primary use of this mode is to generate
-% parameter estimate images for a second level analysis.
 % 
 % The design matrix is assembled on a much finer time scale (X.dt) than the 
 % TR and is then subsampled at the acquisition times.
@@ -89,9 +82,6 @@ Finter = spm_figure('FindWin','Interactive');
 
 % get nscan and RT if no arguments
 %---------------------------------------------------------------------------
-if nargin < 3
-	BM     = spm_input('Burst mode?',1,'b','no|yes',[0 1]);
-end
 if nargin < 2
 	RT     = spm_input('Interscan interval {secs}',2);
 end
@@ -105,8 +95,7 @@ dt     = RT/T;						% time bin {secs}
 
 % separate specifications for non-relicated sessions
 %--------------------------------------------------------------------------
-rep   = BM;
-if nsess > 1 & ~any(nscan - nscan(1)) & ~rep
+if nsess > 1 & ~any(nscan - nscan(1))
 	rep = spm_input(['are sessions replicated exactly'],2,'yes|no',[1 0]);
 end
 xX    = [];
@@ -129,7 +118,7 @@ for s = 1:nsess
 	PST     = {};
 	ONS     = {};
 	BF      = {};
-	IND     = [];
+	IND     = {};
 
 	% Event/epoch related responses			
 	%===================================================================
@@ -181,15 +170,20 @@ for s = 1:nsess
 	%===================================================================
 	c     = spm_input('user specified regressors',1,'w1',0);
 	while size(D,2) < c
-		str = sprintf('regressor %i',size(D,2) + 1);
-		D   = spm_input(str,2,'e',[],[k Inf]);
+		str   = sprintf('regressor %i',size(D,2) + 1);
+		D     = [D spm_input(str,2,'e',[],[k Inf])];
+	end
+	if length(DSstr)
+		DSstr = [DSstr '& user specified covariates '];
+	else
+		DSstr = 'user specified covariates ';
 	end
 
 	% append regressors and names
 	%-------------------------------------------------------------------
 	for i = 1:size(D,2)
 		X      = [X D(:,i)];
-		str    = sprintf('regressor: %i',i);
+		str    = sprintf('name of regressor: %i',i);
 		Xn{qx} = spm_input(str,2,'s',str);
 		qx     = qx + 1;
 	end
@@ -197,10 +191,8 @@ for s = 1:nsess
 
 	% Confounds: Session effects 
 	%===================================================================
-	if ~BM
-		B      = ones(k,1);
-		Bn{1}  = sprintf('constant');
-	end
+	B      = ones(k,1);
+	Bn{1}  = sprintf('constant');
 
 	% end specification
 	%-------------------------------------------------------------------
@@ -236,15 +228,6 @@ for s = 1:nsess
 	[x y]   = size(bX);
 	[i j]   = size(B);
 	bX(([1:i] + x),([1:j] + y)) = B;
-end
-
-% Burst mode - model main effect of scan
-%---------------------------------------------------------------------------
-if BM
-	bX    = kron(ones(nsess,1),eye(k));
-	for i = 1:k
-		Bname{i} = sprintf('scan: %i ',i);
-	end
 end
 
 % finished
