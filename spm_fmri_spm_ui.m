@@ -4,68 +4,116 @@ function spm_fmri_spm_ui
 %____________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
-% thresholds that specify the ensuing statistical analysis. These
+% filtering that specify the ensuing statistical analysis. These
 % arguments are passed to spm_spm that then performs the actual analysis.
 %
 % The design matrix defines the experimental design and the nature of
 % hypothesis testing to be implemented.  The design matrix has one row
 % for each scan and one column for each effect or explanatory variable.
-% (e.g. reference waveform, subject).  The paramters are estimated in a
-% least squares sense using the general linear model.  Specific profiles
-% within these parameters are tested using a linear compound or CONTRAST
-% with the t statistic.  The resulting map of t values constitutes the
-% SPM{t}.  The SPM{t} is then characterized in terms of focal or regional
-% differences by assuming that (under the null hypothesis) the SPM{t}
-% behaves as a smooth stationary Gaussian field.
+% (e.g. regression or stimulus function).  The parameters are estimated in
+% a least squares sense using the general linear model.  Specific profiles
+% within these parameters are tested using a linear compound or contrast
+% with the T or F statistic.  The resulting staistical map of constitutes 
+% an SPM.  The SPM{T}/{F} is then characterized in terms of focal or regional
+% differences by assuming that (under the null hypothesis) the components of
+% the SPM (i.e. residual fields) behave as a smooth stationary Gaussian field.
 %
-%     From the user's perspective it is important to specify the design
-% matrix and contrasts correctly.  The design matrix is built when you
-% specify the number of sessions/subjects and conditions.  The covariates 
-% (that constitute the columns of the design matrix) can be thought of as
-% reference vectors and can be specified as such.  Alternatively one
-% can specify reference vectors in terms of response functions or
-% waveforms: Waveforms are specified for each EPOCH of scans that
-% constitute a particular condition.  Note that if there are two
-% conditions, then two covariates are specified each expressing the
-% same waveform[s] every time the condition occurs.  A waveform is
-% simply a transient response to the onset of an epoch, that lasts for
-% the duration of that epoch.  The form of this response waveform can
-% be fixed (e.g. a box-car or half sine wave) or allowed to vary
-% between conditions by using two (exponentially modulated sine)
-% waveforms.  In the latter case there are two covariates for each
-% condition (and the CONTRAST must be specified with this in mind).
-% These two response functions correspond to the early and late
-% components of a modeled response and differential adaptation of the
-% hemodynamics during condition-specific epochs can be tested with the
-% appropriate CONTRAST (see the final reference below) 
+% spm_fmri_spm_ui allows you to (i) specify a statistical model in terms
+% of a design matrix, (ii) specify the data and (iii) proceed to estimate
+% the parameters of the model.  Inferences can be made about the ensuing
+% parameter estimates (at a first or fixed-effect level) in the results
+% section, or they can be re-entered into a second (random-effect) level
+% analysis by treating the session or subject-specific parameter
+% estimates as new summary data.  Inferences at any level obtain by
+% specifying appropriate T or F contrasts in the results section to
+% produce SPMs and tables of p values and statistics.
+%
+% spm_fmri_spm calls spm_fMRI_design which allows you to configure a
+% design matrix in terms of events or epochs.  This design matrix can be
+% specified before or during data specification.  In some instances
+% (e.g.  with stochastic designs that have to realized before data
+% acquisition) it is necessary to build the design matrix first and then
+% select the corresponding data.  In others it may be simpler to specify
+% the data and then the design.  Both options are supported.  Once the
+% design matrix, data and filtering have been specified spm_fmri_spm_ui
+% calls spm_spm to estimate the model parameters that are then saved for
+% subsequent analysis.
+%
+% spm_fMRI_design allows you to build design matrices with separable
+% session-specific partitions.  Each partition may be the same (in which
+% case it is only necessary to specify it once) or different.  Responses
+% can be either event- or epoch related, where the latter model prolonged
+% and possibly time-varying responses to state-related changes in
+% experimental conditions.  Event-related response are modelled in terms
+% of responses to instantaneous events.  Mathematically they are both
+% modelled by convolving a series of delta (or stick) functions,
+% indicating the onset of an event or epoch with a set of basis
+% functions.  These basis functions can be very simple, like a box car,
+% or may model voxel-specific forms of evoked responses with a linear
+% combination of several basis functions (e.g.  a Fourier set).  Basis
+% functions can be used to plot estimated responses to single events or
+% epochs once the parameters (i.e.  basis function coefficients) have
+% been estimated.  The importance of basis functions is that they provide
+% a graceful transition between simple fixed response models (like the
+% box-car) and finite impulse response (FIR) models, where there is one
+% basis function for each scan following an event or epoch onset.  The
+% nice thing about basis functions, compared to FIR models, is that data
+% sampling and stimulus presentation does not have to be sychronized
+% thereby allowing a uniform and unbiased sampling of peri-stimulus time.
 % 
-% If you use a box-car (i.e. square wave) function you can optionally
-% include its temporal derivative as an additional covariate of
-% interest.  The box-car function is delayed by 6 seconds, however this
-% may be two much or too little for some brain regions.  The timing
-% covariate (temporal derivative) models a small shift in time that best
-% fits the data.  Inferences about whether the observed delay is
-% significantly different than 6 seconds can be tested using contrasts in
-% the usual way (a positive parameter estimate means a shorter delay).
+% Event-related designs may be stochastic or deterministic.  Stochastic
+% designs involve one of a number of trial-types occurring with a
+% specified probably at successive intervals in time.  These
+% probabilities can be fixed (stationary designs) or time-dependent
+% (modulated or non-stationary designs).  The most efficient designs
+% obtain when the probabilities of every trial type are equal and this is
+% enforced in SPM.  The modulation of non-stationary designs is simply
+% sinusoidal with a period of 32 seconds.  A critical aspect of
+% stochastic event-related designs is whether to include null events or
+% not.  If you wish to estimate the evoke response to a specific event
+% type (as opposed to differential responses) then a null event must be
+% included (even though it is not modelled explicitly).
 % 
-% Covariates of no interest (called confounds) can also be specfied.  You
-% will be prompted for some specific confounds such as low frequency
-% artifacts (and whole brain activity).
+% The choice of basis functions depends upon the nature of the inference
+% sought.  One important consideration is whether you want to make
+% inferences about compounds of parameters (i.e.  contrasts).  This is
+% the case if (i) you wish to use a SPM{T} to look separately at
+% activations and deactivations or (ii) you with to proceed to a second
+% (random-effect) level of analysis.  If this is the case then (for
+% event-related studies) use a canonical hemodynamic response function
+% (HRF) and derivatives with respect to latency (and dispersion).  Unlike
+% other bases contrasts of these effects have a physical interpretation
+% and represent a parsimonious way of characterising event-related
+% responses.  Bases such as a Fourier set require the SPM{F} for
+% inference and preclude second level analyses.
+% 
+% In epoch-related designs you will be asked to specify the epochs in
+% terms of condition order e.g.  010201020102 for conditions 1 and 2
+% intercalated with a baseline condition 0. Later you will be asked to
+% specify the number of scans for each epoch, again as a vector (list of
+% numbers).  If the epochs were all the same length, then just type in
+% that length once. The baseline condition will not be modelled
+% explicitly so that condition-specific responses are uniquely
+% estimable.
+% 
+% Serial correlations in fast fMRI time-series are dealt with as
+% described in spm_spm.  At this stage you need to specific the filtering
+% that will be applied to the data (and design matrix).  This filtering
+% is important to ensure that bias in estimates of the standard error are
+% minimized.  This bias results from a discrepancy between the estimated
+% (or assumed) auto-correlation structure of the data and the actual
+% intrinsic correlations.  The intrinsic correlation will be estimated
+% automatically using an AR(1) model during parameter estimation.  The
+% discrepancy between estimated and actual intrinsic (i.e.  prior to
+% filtering) correlation are greatest at low frequencies.  Therefore
+% specification of the high-pass component of the filter is particularly
+% important.  High pass filtering is now implemented at the level of the
+% filtering matrix K (as opposed to entering as confounds in the design
+% matrix).  The default cutoff period is twice the maximum time interval
+% between the most frequently occurring event or epoch (i.e the minium of
+% all maximum intervals over event or epochs).
 %
-% Epochs can vary in length (and order) within and between subjects or runs.
-% If multiple subjects or sessions are specified, then subject or run-specific
-% waveforms are used.  This means that main effects of conditions and
-% interactions between conditions and subjects (or runs) can be evaluated
-% with the appropriate contrast.  If you want to treat all your sessions (or
-% subjects) as one then specify just one session/subject.
-%
-% The way that epochs or successive conditions are specified is now more
-% intuitive and flexible.  If there are 3 conditions just type in the
-% conditions in the order they were presented i.e. 1 2 3 3 2 1 ....
-% Later you will be asked to specify the number of scans for each epoch,
-% again as a vector (list of numbers).  If the epochs were all the same
-% length, then just type in that length once.
-%
+%---------------------------------------------------------------------------
 % Refs:
 %
 % Friston KJ, Holmes A, Poline J-B, Grasby PJ, Williams SCR, Frackowiak
@@ -95,13 +143,29 @@ function spm_fmri_spm_ui
 Finter = spm_figure('FindWin','Interactive');
 set(Finter,'Name','fMRI analysis'); 
 
-% get design matrix and data
+% get design matrix and/or data
 %===========================================================================
-if spm_input('Use a pre-specified design?',1,'b','yes|no',[1 0])
+MType   = {'specify a model',...
+	   'estimate a specified model',...
+	   'specify and estimate a model'};
+str     = 'Would you like to';
+MT      = spm_input(str,1,'m',MType);
 
+
+switch MT
+%---------------------------------------------------------------------------
+
+	case 1
+	% specify a design matrix
+	%-------------------------------------------------------------------
+	spm_fMRI_design;
+	return
+
+	case 2
 	% load pre-specified design matrix
 	%-------------------------------------------------------------------
 	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
+
 
 	% get filenames
 	%-------------------------------------------------------------------
@@ -127,9 +191,9 @@ if spm_input('Use a pre-specified design?',1,'b','yes|no',[1 0])
 	%-------------------------------------------------------------------
 	RT     = X.RT;
 
-else
 
-	% get filenames and other user specified parameters
+	case 3
+	% get filenames and deisgn matrix
 	%-------------------------------------------------------------------
 	nsess  = spm_input(['number of sessions'],1,'e',1);
 	nscan  = zeros(1,nsess);
@@ -152,15 +216,10 @@ else
 end
 
 
-% Threshold for F statistic
-%---------------------------------------------------------------------------
-UFp    = spm_input('threshold for F, p = ',2,'e',0.001);
-
-
 % Global normalization
 %---------------------------------------------------------------------------
 str    = 'remove Global effects';
-Global = spm_input(str,3,'scale|none',{'Scaling' 'None'});
+Global = spm_input(str,1,'scale|none',{'Scaling' 'None'});
 
 
 % Temporal filtering
@@ -168,111 +227,80 @@ Global = spm_input(str,3,'scale|none',{'Scaling' 'None'});
 
 % High-pass filtering
 %---------------------------------------------------------------------------
-str	= 'Remove low frequencies?';
-cLFmenu = {'64 second cut-off',...
-	   'specify',...
-	   'no'};
-cLF     = spm_input(str,4,'m',cLFmenu);
-
-
-% default based on peristimulus time
-% param = cut-off period (max = 256, min = 32)
-%---------------------------------------------------------------------------
-param   = 256*ones(1,nsess);
-for   i = 1:nsess
-	for j = 1:length(Sess{i}.pst)
-		param(i) = min([param(i) 2*max(Sess{i}.pst{j})]);
-	end
-end
-param   = round(param);
-param(param < 32) = 32;
-
+str	= 'High-pass filter?';
+cLFmenu = {'specify',...
+	   'none'};
+cLF     = spm_input(str,'+1','b',cLFmenu);
+param   = [];
 
 % specify cut-off (default based on peristimulus time)
+% param = cut-off period (max = 512, min = 32)
 %---------------------------------------------------------------------------
 switch cLF
 
-	case 1
+	case 'specify'
 	%-------------------------------------------------------------------
-	param   = 64*ones(1,nsess);
-
-	case 2
-	%-------------------------------------------------------------------
+	param   = 512*ones(1,nsess);
+	for   i = 1:nsess
+		for j = 1:length(Sess{i}.pst)
+			param(i) = min([param(i) 2*max(RT + Sess{i}.pst{j})]);
+		end
+	end
+	param   = ceil(param);
 	str     = 'Cut off period[s] for each session';
-	param   = spm_input(str,4,'e',param);
+	param   = spm_input(str,'+1','e',param(param < 32) = 32);
 	if length(param) == 1
 		 param = param*ones(1,nsess);
 	end
-
-	case 3
-	%-------------------------------------------------------------------
-	param   = param*Inf;
 end
 
-% create filterLF struct array
+% create filterLF struct
 %---------------------------------------------------------------------------
 for i = 1:nsess
-	filterLF{i} = struct('Choice',cLFmenu{cLF},'Param',param(i));
+	filterLF{i} = struct('Choice',cLF,'Param',param(i));
 end
-
-
 
 % Low-pass filtering
 %---------------------------------------------------------------------------
-str     = 'remove high frequencies?';
-cHFmenu = {'smooth with hrf',...
-	   'smooth with hrf derivative',...
-	   'smooth with Gaussian kernel',...
-	   'none'};
-cHF     = spm_input(str,5,'m',cHFmenu);
-param   = [];
+if spm_input('Low-pass filter?','+1','specify/none',[1 0]);
+	cHFmenu = {'hrf',...
+		   'Gaussian'};
+	cHF     = spm_input('kernel','+1','b',cHFmenu);
+else
+	cHF     = 'none';
+end
 
 % get Gaussian parameter
 %---------------------------------------------------------------------------
 switch cHF
 
-	case 3
+	case 'Gaussian'
 	%-------------------------------------------------------------------
-	param = spm_input('Gaussian FWHM (secs)',5,'e',4);
+	param = spm_input('Gaussian FWHM (secs)','+1','r',4);
 	param = param/sqrt(8*log(2)); 
 end
 
 % create filterHF struct
 %---------------------------------------------------------------------------
-filterHF = struct('Choice',cHFmenu{cHF},'Param',param);
+for i = 1:nsess
+	filterHF{i} = struct('Choice',cHF,'Param',param);
+end
 
 
 % intrinsic autocorrelations (Vi)
 %---------------------------------------------------------------------------
-str     = 'Form of intrinsic autocorrelations?';
-cVimenu = {'None',...
-	   '1/f'};
-cVi     = spm_input(str,6,'m',cVimenu);
+str     = 'Model intrinsic correlations?';
+cVimenu = {'none','AR(1)'};
+cVi     = spm_input(str,'+1','b',cVimenu);
 
-switch cVi
-
-	case 1
-	%-------------------------------------------------------------------
-	param   = [];
-	Vi      = speye(sum(nscan));
-
-	case 2
-	%-------------------------------------------------------------------
-	param   = 0.0178;
-	Vi      = [];
-	for   i = 1:nsess
-		k      = nscan(i);
-		[x y]  = size(Vi);
-		q      = spm_Vintrinsic(k,RT,'1/f',param);
-		Vi(([1:k] + x),([1:k] + y)) = q;
-	end
-	Vi      = sparse(Vi);
-
-end
 
 % create Vi struct
 %---------------------------------------------------------------------------
-xVi    = struct('Vi',Vi,'Form',cVimenu{cVi},'Param',param);
+Vi      = speye(sum(nscan));
+xVi     = struct('Vi',Vi,'Form',cVi);
+for   i = 1:nsess
+	xVi.row{i} = Sess{i}.row;
+end
 
 
 % the interactive parts of spm_spm_ui are now finished
@@ -281,17 +309,16 @@ set(Finter,'Name','thankyou','Pointer','Watch')
 
 
 
-% Contruct convolution matrix
+% Contruct convolution matrix and Vi struct
 %===========================================================================
 K     = [];
 for i = 1:nsess
 	k      = nscan(i);
 	[x y]  = size(K);
-	q      = spm_make_filter(k,RT,filterHF,filterLF{i});
+	q      = spm_make_filter(k,RT,filterHF{i},filterLF{i});
 	K(([1:k] + x),([1:k] + y)) = q;
 end
 K     = sparse(K);
-
 
 % get file identifiers and Global values
 %===========================================================================
@@ -351,18 +378,19 @@ xX     = struct(	'X',		[X.xX X.bX],...
 
 %-Effects designated "of interest" - constuct an F-contrast
 %--------------------------------------------------------------------------
-Fc = [diff(eye(size(X.xX,2))), zeros(size(X.xX,2) - 1,size(X.bX,2))]';
+Fc = 1:size(X.xX,2);
 
 
 %-Design description (an nx2 cellstr) - for saving and display
 %==========================================================================
 sGXcalc  = 'mean voxel value';
 sGMsca   = 'session specific';
-xsDes    = struct(	'Design',			X.DesN(1),...
-			'Basis_functions',		X.DesN(2),...
+Design   = 'fMRI time-series';
+xsDes    = struct(	'Design',			Design,...
+			'Basis_functions',		X.DesN,...
 			'Number_of_sessions',		sprintf('%d',nsess),...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
-			'High_pass_Filter',		filterHF.Choice,...
+			'High_pass_Filter',		filterHF{1}.Choice,...
 			'Low_pass_Filter',		filterLF{1}.Choice,...
 			'Intrinsic_correlations',	xVi.Form,...
 			'Global_calculation',		sGXcalc,...
