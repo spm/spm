@@ -355,7 +355,7 @@ else
 	vx     = VF(4:6);
 	M      = MF;
 	orgn   = M\[0 0 0 1]';
-	orgn   = round(M(1:3)');
+	orgn   = round(orgn(1:3)');
 	planes = 1:VF(3);
 end
 
