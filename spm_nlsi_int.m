@@ -27,6 +27,7 @@ end
 if nargin < 5,
 	w    = 0;
 end
+lx           = fcnchk(M.lx,'x','P');			% output nonlinearity
 n            = M.n;					% n states
 m            = M.m;					% m inputs
 l            = M.l;					% l outputs
@@ -39,7 +40,7 @@ u            = size(U.u,1);				% input times
 % stable point x(0)
 %---------------------------------------------------------------------------
 x0           = spm_bilinear(A,B,C,D,M.x,1,v*U.dt);
-y0           = feval(M.lx,x0,P);
+y0           = feval(lx,x0,P);
 
 % make Lie matrices sparse
 %---------------------------------------------------------------------------
@@ -55,17 +56,18 @@ end
 s      = [1:v]*u/v + w/U.dt;			% output times
 t      = find(any(diff(U.u),2))';		% input  times
 [T s]  = sort([s t]);				% update times
-dt     = U.dt*diff(T);				% update intervals
+dt     = [U.dt*diff(T) 0];			% update intervals
 U      = U.u(t + 1,:);		
 
 % Integrate
 %---------------------------------------------------------------------------
 q      = length(dt);
 y      = zeros(v,l);
-x      = x0;
+x      = [1; x0];
 y(1,:) = y0;
-J      = A;
-K      = D;
+M0     = sparse(n + 1,n + 1);
+M0(2:end,1)     = D;
+M0(2:end,2:end) = A;
 for  i = 1:q
 
 	% input - update J and K
@@ -77,32 +79,17 @@ for  i = 1:q
 		for j = 1:m
 			J  = J + u(j)*E{j};
 		end
-		K     = C*u' + D;
+		M0(2:end,1)      = C*u' + D;
+		M0(2:end,2:end)  = J;
 
 	% output - implement l(x)
 	%-------------------------------------------------------------------
 	else
-		y(s(i),:) = feval(M.lx,x,P);
+		y(s(i),:) = feval(lx,x(2:end),P);
 	end
 
-        % compute dx = (expm(J*dt) - eye(n))*inv(J)*fx;
+        % compute x = expm(M0*dt)*x;
         %-------------------------------------------------------------------
-        fx    = (J*x + K)*dt(i);
-        dx    = fx;
-        for j = 1:32
-
-                fx = J*fx*dt(i)/(j + 1);
-                dx = dx + fx;
-
-		% break if converging
-		%-----------------------------------------------------------
-		if fx'*fx < 1e-16
-			break
-		end
-        end
-
-	% update
-	%-------------------------------------------------------------------
-        x     = x + dx;
+        x     = spm_expm(M0*dt(i),x);
 
 end
