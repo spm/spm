@@ -22,7 +22,7 @@ function spm_fmri_spm_ui
 % hypothesis testing to be implemented.  The design matrix has one row
 % for each scan and one column for each effect or parameter.  These
 % parameters (e.g. reference waveform, subject or block effect, 
-% regression slope of voxel on global activity etc) are estimated in a
+% regression slope of voxel on a confound etc) are estimated in a
 % least squares sense using the general linear model.  Specific profiles
 % within these parameters are tested using a linear compound or CONTRAST
 % with the t statistic.  The resulting map of t values constitutes the
@@ -32,8 +32,8 @@ function spm_fmri_spm_ui
 %
 %     From the user's perspective it is important to specify the design
 % matrix and contrasts correctly.  The design matrix is built when you
-% specify the number of subjects and conditions.  The covariates (that
-% constitute the columns of the design matrix) can be thought of as
+% specify the number of sessions/subjects and conditions.  The covariates 
+% (that constitute the columns of the design matrix) can be thought of as
 % reference vectors and can be specified as such.  Alternatively one
 % can specify reference vectors in terms of response functions or
 % waveforms: Waveforms are specified for each EPOCH of scans that
@@ -55,11 +55,11 @@ function spm_fmri_spm_ui
 % and whole brain activity.
 %
 % Epochs can vary in length (and order) within and between subjects or runs.
-% If multiple subjects or runs are specified, then subject or run-specific
-% waveforms are used.  This means that main effects of condotions and
+% If multiple subjects or sessions are specified, then subject or run-specific
+% waveforms are used.  This means that main effects of conditions and
 % interactions between conditions and subjects (or runs) can be evaluated
-% with the appropriate contrast.  If you want to treat all your runs (or
-% subjects) as one then specify just one subject.
+% with the appropriate contrast.  If you want to treat all your sessions (or
+% subjects) as one then specify just one session/subject.
 %
 % The CONTRAST is simply a list or vector of coefficients that are used
 % to test for a pattern of effects.  The number of coefficients (length
@@ -119,7 +119,7 @@ GM     = 100;
 
 % get filenames
 %----------------------------------------------------------------------------
-nsubj  = spm_input(['# of subjects or sessions'],2,'e',1);
+nsubj  = spm_input(['# of subjects or sessions'],'!+1','e',1);
 nscan  = zeros(1,nsubj);
 for i  = 1:nsubj
 	str      = sprintf('select scans for session %0.0f',i);
@@ -151,7 +151,7 @@ CovF  = str2mat(...
 	'2 temporal basis functions',...
 	'half sine-wave',...
 	'delayed box-car');
-Cov   = spm_input('Select type of response',3,'m',CovF,[1:size(CovF,1)]);
+Cov   = spm_input('Select type of response','!+1','m',CovF,[1:size(CovF,1)]);
 
 
 % for each subject
@@ -172,14 +172,14 @@ for v = 1:nsubj
 
     	% number of covariates of interest
 	%-------------------------------------------------------------------
-	c     = spm_input('# of waveforms or conditions',4);
+	c     = spm_input('# of waveforms or conditions','!+1');
 	D     = [];
 	while size(D,2) < c
 		u   = size(D,2) + 1;
 		str = sprintf('[%d]-covariate %d, session %d',k,u,v);
-		d   = spm_input(str,5);
+		d   = spm_input(str,'!+0');
 		if size(d,2) == k
-			d    = d'; 	 end
+			d    = d';    end
 		if size(d,1) == k
 			D    = [D d]; end	
 	end
@@ -191,14 +191,14 @@ for v = 1:nsubj
 
 	% vector of conditions
 	%-------------------------------------------------------------------
-	a     = spm_input('order of epochs eg 1 2 1 2....',4);
+	a     = spm_input('order of epochs eg 1 2 1 2....','!+1');
 	a     = a(:); a = a';
 	
 	% vector of epoch lengths
 	%-------------------------------------------------------------------
 	e     = [];
 	while length(e) ~= length(a) & all(e > 0)
-		e = spm_input('scans/epoch eg 10 or 8 6 8.... ',5);
+		e = spm_input('scans/epoch eg 10 or 8 6 8.... ','!+1');
 		if length(e) == 1; e = e*ones(1,length(a)); end
 	end
 	e     = e(:); e = e';
@@ -278,12 +278,12 @@ for v = 1:nsubj
 
     % covariates not of interest
     %---------------------------------------------------------------------------
-    g      = spm_input('# of covariates of no interest',5,'e',0);
+    g      = spm_input('# of covariates of no interest','!+1','e',0);
     D      = [];
     while size(D,2) < g
 	u   = size(D,2) + 1;
 	str = sprintf('[%d]-confound %d, session %d',k,u,v);
-	d   = spm_input(str,6,'e',0);
+	d   = spm_input(str,'!+0','e',0);
 	if size(d,2) == k
 		d = d'; 	end
 	if size(d,1) == k
@@ -305,8 +305,8 @@ end % loop over sessions
 
 % high pass filter using discrete cosine set
 %---------------------------------------------------------------------------
-if spm_input('high pass filter',6,'yes|no',[1 0])
-	CUT   = spm_input('cut-off period {secs}',6,'e',120);
+if spm_input('high pass filter','!+1','yes|no',[1 0])
+	CUT   = spm_input('cut-off period {secs}','!+0','e',120);
 	for v = 1:nsubj
 		D     = [];
 		k     = nscan(v);
@@ -338,28 +338,28 @@ end
 %----------------------------------------------------------------------------
 GLOBAL = 'None';
 str    = 'global normalization';
-if spm_input(str,7,'yes|no',[1 0])
-	GLOBAL = spm_input(str,7,'AnCova|Scaling'); end
+if spm_input(str,'!+1','yes|no',[1 0])
+	GLOBAL = 'Scaling'; end
 
 
 % get contrasts or linear compound for parameters of interest [H C]
 %---------------------------------------------------------------------------
 t         = 0;
 if size([H C],2)
-	t = spm_input('# of contrasts',8); end
+	t = spm_input('# of contrasts','!+1'); end
 
 while size(CONTRAST,1) ~= t
 	d   = [];
         str = sprintf('[%0.0f] contrast %0.0f',size(C,2),size(CONTRAST,1) + 1);
 	while size(d,2) ~= size([H C],2)
-		d = spm_input(str,9);
+		d = spm_input(str,'!+0');
 	end
      	CONTRAST = [CONTRAST; d]; end
 end
 
 % temporal smoothing
 %---------------------------------------------------------------------------
-if spm_input('Temporal smoothing',9,'yes|no',[1 0])
+if spm_input('Temporal smoothing','!+1','yes|no',[1 0])
 	SIGMA  = sqrt(8)/RT;
 else
 	SIGMA  = 0;
