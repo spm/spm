@@ -101,7 +101,7 @@ iu     = [1:nu] + np;
 
 % treat confounds as fixed effects
 %---------------------------------------------------------------------------
-uE     = inv(Ju'*Ju)*Ju'*y;
+uE     = inv(Ju'*Ju)*Ju'*y(:);
 uC     = speye(nu,nu)*1e8;
 
 
