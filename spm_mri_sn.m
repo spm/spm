@@ -209,7 +209,7 @@ end
 %---------------------------------------------------------------------------
 MRI     = spm_sample_vol(Vu,Xp(1,:)',Xp(2,:)',Xp(3,:)',0);
 [FS BS] = hist(MRI(MRI > mean(MRI)/8),64);
-FS      = FS(:).*hanning(length(FS));
+FS      = FS(:).*spm_hanning(length(FS));
 FG      = spm_fit_Gaussians(BS(:),FS);
 
 MAX1    = FG(1);
