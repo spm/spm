@@ -82,14 +82,18 @@ if fseek(fp,off,'bof')==-1,
 	% Need this because fseek in Matlab does not
 	% seek past the EOF
 	fseek(fp,0,'eof');
-	curr_off = ftell(fp)
+	curr_off = ftell(fp);
 	blanks = zeros(off-curr_off,1);
 	if fwrite(fp,blanks,'uchar') ~= prod(size(blanks)),
 		fclose(fp);
 		sts = -1;
 		return;
 	end;
-	fseek(fp,off,'bof');
+	if fseek(fp,off,'bof') == -1,
+		fclose(fp);
+		sts = -1;
+		return;
+	end;
 end;
 
 sts=0;
