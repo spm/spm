@@ -445,19 +445,6 @@ for ii = 1:length(I)
 end % (for ii = 1:length(I))
 
 
-%-Save contrast structure (if wOK), with relative pathnames to image files
-%=======================================================================
-if wOK
-    tmp = xCon;
-    for i = [Ic,Im];
-        xCon(i).Vcon.fname = spm_str_manip(xCon(i).Vcon.fname,'t');
-        xCon(i).Vspm.fname = spm_str_manip(xCon(i).Vspm.fname,'t');
-    end
-    save(fullfile(swd,'xCon.mat'),'xCon')
-    xCon = tmp;
-    fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
-end
-
 
 %-Compute (unfiltered) SPM pointlist for requested masked conjunction
 %=======================================================================
@@ -517,6 +504,18 @@ end
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 spm_progress_bar('Set',100)                                          %-#
+
+
+%-Save contrast structure (if wOK), with relative pathnames to image files
+%=======================================================================
+if wOK
+    for i = [Ic,Im];
+        xCon(i).Vcon.fname = spm_str_manip(xCon(i).Vcon.fname,'t');
+        xCon(i).Vspm.fname = spm_str_manip(xCon(i).Vspm.fname,'t');
+    end
+    save(fullfile(swd,'xCon.mat'),'xCon')
+    fprintf('\t%-32s: %30s\n','contrast structure','...saved to xCon.mat')%-#
+end
 
 %-Various parameters...
 %-----------------------------------------------------------------------
