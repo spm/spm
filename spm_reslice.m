@@ -220,7 +220,7 @@ for i = 1:prod(size(P)),
 			for x3 = 1:P(1).dim(3),
 				if flags.mean,
 					Integral(:,:,x3) = Integral(:,:,x3) + ...
-						v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
+						nan2zero(v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap));
 				end;
 				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
 				if write_vol,  VO = spm_write_plane(VO,v,x3); end;
@@ -233,7 +233,7 @@ for i = 1:prod(size(P)),
 				v              = spm_bsplins(C, y1,y2,y3, d);
 				% v(~tmp)        = 0;
 
-				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + v; end;
+				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v); end;
 
 				if write_vol,
 					if flags.mask, v(msk{x3}) = NaN; end;
@@ -374,5 +374,14 @@ function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
 return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vo = nan2zero(vi)
+vo = vi;
+vo(~finite(vo)) = 0;
+return;
+%_______________________________________________________________________
+
 %_______________________________________________________________________
 
