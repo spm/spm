@@ -220,7 +220,7 @@ end
 % separate specifications for non-relicated sessions
 %-----------------------------------------------------------------------
 rep     = 0;
-if length(SPM.nscan) > 1 & ~any(diff(SPM.nscan))
+if length(SPM.nscan) > 1 & ~any(diff(SPM.nscan)) & ~isfield(SPM,'Sess')
 	str = 'are sessions replications';
 	rep = spm_input(str,'+1','yes|no',[1 0]);
 end
