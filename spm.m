@@ -1,4 +1,4 @@
-function [R1,R2]=spm(Action,P2)
+function [R1,R2]=spm(Action,P2,P3)
 % SPM: Statistical Parametric Mapping (startup function)
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
@@ -42,7 +42,7 @@ function [R1,R2]=spm(Action,P2)
 % windows for an SPM session. The buttons in the Menu window launch the
 % main analysis routines.
 %
-% FORMAT spm('CreateIntWin')
+% F = FORMAT spm('CreateIntWin')
 % Creates an SPM Interactive window.
 %
 % FORMAT spm('ChMod',Modality)
@@ -86,10 +86,11 @@ function [R1,R2]=spm(Action,P2)
 % WinStripe defaults to a summary line identifying the user, host and
 % MatLab version; IconLabel to 'MatLab'.
 %
+% FORMAT TDname = spm('DirTrunc',Dname,len)
+% Truncates directory names to maximum length len characters,
+% prepending '...' and keeping components intact.
+%
 %_______________________________________________________________________
-
-global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
-global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
 
 %-Parameters
 Modalities=str2mat('PET','FMRI');
@@ -124,7 +125,10 @@ F = figure('Color',[1 1 1]*.8,...
 	'Name','',...
 	'NumberTitle','off',...
 	'Position',[S(3)/2-300,S(4)/2-140,500,280],...
-	'Resize','off');
+	'Resize','off',...
+	'Tag','Welcome',...
+	'Pointer','Watch',...
+	'Visible','off');
 spm('SetWinDefaults')
 spm('SetCmdWinLabel')
 
@@ -145,29 +149,38 @@ uicontrol(F,'Style','Text', 'Position',[112 220 376 30],...
 'String',c,'ForegroundColor',[1 0 0])
 
 c = 'The Wellcome Department of Cognitive Neurology,';
-uicontrol(F,'Style','Text', 'Position',[112 200 376 16],'String',c)
+uicontrol(F,'Style','Text', 'Position',[112 200 376 016],'String',c)
 c = 'The Institute of Neurology';
-uicontrol(F,'Style','Text', 'Position',[112 180 376 16],'String',c)
+uicontrol(F,'Style','Text', 'Position',[112 180 376 016],'String',c)
 c = 'University College London';
-uicontrol(F,'Style','Text', 'Position',[112 160 376 16],'String',c)
+uicontrol(F,'Style','Text', 'Position',[112 160 376 016],'String',c)
 
 %-Objects with Callbacks - PET, fMRI or About SPM
 %-----------------------------------------------------------------------
 uicontrol(F,'String','PET and SPECT',...
-	'Position',[140 066 150 30],...
+	'Position',[140 066 150 030],...
 	'CallBack','close(gcf), clear all, spm(''PET'')',...
 	'Interruptible','yes',...
 	'ForegroundColor',[0 1 1]);
 uicontrol(F,'String','fMRI time-series',...
-	'Position',[310 066 150 30],...
+	'Position',[310 066 150 030],...
 'CallBack','close(gcf), clear all, spm(''FMRI'')',...
 	'Interruptible','yes',...
 	'ForegroundColor',[0 1 1]);
 uicontrol(F,'String','About SPM',...
-	'Position',[140 030 320 30],...
-	'CallBack','spm_help(''Disp'',''spm.man'')',...
+	'Position',[140 030 150 030],...
+	'CallBack',[...
+		'set(gcf,''Visible'',''off''),',...
+		'spm_help(''Disp'',''spm.man'')'],...
 	'Interruptible','yes',...
 	'ForegroundColor',[0 1 1]);
+uicontrol(F,'String','Quit',...
+	'Position',[310 030 150 030],...
+	'CallBack','close all,clear all,clc,fprintf(''Bye...\n\n>> '')',...
+	'ForegroundColor','r');
+
+set(F,'Pointer','Arrow','Visible','on')
+
 return
 
 
@@ -295,18 +308,14 @@ uicontrol(Fmenu,'String','SPM{Z}',	'Position',[165 165 070 30].*A,...
 uicontrol(Fmenu,'String','Results',	'Position',[285 165 070 30].*A,...
 	'CallBack','spm_sections_ui',	'Interruptible','yes');
 
-%uicontrol(Fmenu,'String','Render',	'Position',[290 130 070 30].*A,...
-%	'CallBack','spm_surface_ui',	'Interruptible','yes',...
-%	'Visible','off',		'Tag','PET');
-
 uicontrol(Fmenu,'String','Analyze',	'Position',[020 088 082 024].*A,...
 	'CallBack','!analyze',		'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Display',	'Position',[112 088 083 024].*A,...
 	'CallBack','spm_image',		'Interruptible','yes');
 
-uicontrol(Fmenu,'String','<empty>',	'Position',[205 088 083 024].*A,...
-	'CallBack','','Visible','off',	'Interruptible','yes');
+uicontrol(Fmenu,'String','Render',	'Position',[205 088 083 024].*A,...
+	'CallBack','spm_render',	'Interruptible','yes');
 
 uicontrol(Fmenu,'Style','PopUp','String',Modalities,...
 	'Tag','Modality',		'Position',[298 088 082 024].*A,...
@@ -329,7 +338,10 @@ uicontrol(Fmenu,'String','ImCalc',	'Position',[112 054 083 024].*A,...
 %	'CallBack','spm_segment',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','Help',	'Position',[020 020 082 024].*A,...
-	'CallBack','spm_help',		'Interruptible','yes');
+					'Interruptible','yes',...
+	'CallBack',[...
+		'set(gcf,''Visible'',''off''),',...
+		'spm_help']);
 
 uicontrol(Fmenu,'String','Defaults',	'Position',[112 020 083 024].*A,...
 	'CallBack','spm_defaults_edit',	'Interruptible','yes');
@@ -434,7 +446,8 @@ MODALITY = Modality;
 
 %-Set global defaults (global variables)
 %-----------------------------------------------------------------------
-global SWD CWD TWD PRINTSTR LOGFILE CMDLINE GRID DESCRIP UFp
+global SWD TWD DESCRIP UFp
+global CWD
 
 SWD	 = spm('Dir');					% SPM directory
 CWD	 = pwd;						% Working directory
@@ -442,7 +455,12 @@ TWD	 = getenv('SPMTMP');				% Temporary directory
 if isempty(TWD)
 	TWD = '/tmp';
 end
+
 % Load system defaults
+%-----------------------------------------------------------------------
+global PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET PET_ORIGIN PET_DESCRIP
+global fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET fMRI_ORIGIN fMRI_DESCRIP
+
 spm_defaults;
 
 UFp	 = 0.05;					% Upper tail F-prob
@@ -540,8 +558,10 @@ return
 elseif strcmp(lower(Action),lower('Colour'))
 %=======================================================================
 % spm('Colour')
+%-Developmental livery
 % R1 = [0.7,1.0,0.7];
 % R2 = 'Lime Green';
+%-Distribution livery
 R1 = [0.8 0.8 1.0];
 R2 = 'Diluted Blackcurrent Purple';
 return
@@ -565,6 +585,25 @@ if nargin<2, WinStripe=[User,' - ',Host,' : MatLab ',version]; end
 %-Set window stripe
 disp([']l' WinStripe '\]L' IconLabel '\'])
 return
+
+elseif strcmp(lower(Action),lower('DirTrunc'))
+%=======================================================================
+% TDname = spm('DirTrunc',Dname,len)
+if nargin<3, len=50; else, len=P3; end
+if nargin<2, Dname=spm('Dir'); else, Dname=P2; end
+
+if length(Dname)>len
+	lDname = length(Dname);
+	tmp = min(find(Dname(lDname-len:lDname)=='/')) + lDname-len -1;
+	if isempty(tmp), tmp=max(find(Dname=='/')); end
+	TDname = ['...',Dname(tmp:lDname)];
+else
+	TDname=Dname;
+end
+
+R1 = TDname;
+return
+
 
 else
 %=======================================================================
