@@ -91,14 +91,14 @@ for i = 1:length(Ic)
 
         %-Write image
 	    %-----------------------------------------------------------
-            fprintf('%s%20s',sprintf('\b')*ones(1,20),'...computing')%-#
+            fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
             xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
 	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
             xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon,'noopen');
 	    xCon(ic).Vcon            = spm_close_vol(xCon(ic).Vcon);
             
-            fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+            fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
                 '...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
 
 
@@ -123,7 +123,7 @@ for i = 1:length(Ic)
 
             %-Write image
 	    %-----------------------------------------------------------
-            fprintf('%s',sprintf('\b')*ones(1,30))                   %-#
+            fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
             xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
             xCon(ic).Vcon = spm_resss(Vbeta,xCon(ic).Vcon,h);
 	    xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
@@ -211,7 +211,7 @@ for i = 1:length(Ic)
 
         %-Write SPM - statistic image
         %---------------------------------------------------------------
-        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...writing')      %-#
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing')      %-#
 
         xCon(ic).Vspm = struct(...
 	    'fname',  sprintf('spm%c_%04d.img',xCon(ic).STAT,ic),...
@@ -229,7 +229,7 @@ for i = 1:length(Ic)
 
 
 	clear tmp Z
-        fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
             '...written %s',spm_str_manip(xCon(ic).Vspm.fname,'t')))  %-#
 
     end % (if ~isfield...)

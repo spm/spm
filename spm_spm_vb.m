@@ -367,7 +367,7 @@ for ic=1:ncon,
     V=spm_create_vol(V,'noopen');
     SPM.PPM.Vcon_sd(ic) = V;
 end
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...initialised');        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
 
 % Set up masking details
 %-If xM is not a structure then assumme its a vector of thresholds
@@ -542,7 +542,7 @@ for  z = 1:zdim,
         
         %-Get data & construct analysis mask
         %===============================================================
-        fprintf('%s%30s',sprintf('\b')*ones(1,30),'...read & mask data')%-#
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...read & mask data')%-#
         Cm    = logical(ones(1,nVox));			%-current mask
         
         %-Compute explicit mask
@@ -790,7 +790,7 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 
  %-"close" written image files, updating scalefactor information
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...closing files')      %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...closing files')      %-#
 Vbeta      = spm_close_vol(Vbeta);
 VM         = spm_close_vol(VM);
 VPsd        = spm_close_vol(VPsd);
@@ -805,7 +805,7 @@ if ncon > 0
         SPM.PPM.Vcon_sd(ic)    = spm_close_vol(SPM.PPM.Vcon_sd(ic));
     end
 end
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 %-Create 1st contrast for 'effects of interest' (all if not specified)
 %=======================================================================
@@ -855,7 +855,7 @@ SPM.xM     = xM;				%-mask structure
 
 save SPM SPM
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 
 
 if SPM.PPM.window

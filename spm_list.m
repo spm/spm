@@ -749,13 +749,13 @@ TabDat = varargin{2};
 %-Table Title
 %-----------------------------------------------------------------------
 fprintf('\n\nSTATISTICS: %s\n',TabDat.tit)
-fprintf('%c','='*ones(1,80)), fprintf('\n')
+fprintf('%c',repmat('=',1,80)), fprintf('\n')
 
 %-Table header
 %-----------------------------------------------------------------------
 fprintf('%s\t',TabDat.hdr{1,c:end-1}), fprintf('%s\n',TabDat.hdr{1,end})
 fprintf('%s\t',TabDat.hdr{2,c:end-1}), fprintf('%s\n',TabDat.hdr{2,end})
-fprintf('%c','-'*ones(1,80)), fprintf('\n')
+fprintf('%c',repmat('-',1,80)), fprintf('\n')
 
 %-Table data
 %-----------------------------------------------------------------------
@@ -768,12 +768,12 @@ for i = 1:size(TabDat.dat,1)
 end
 for i=1:max(1,11-size(TabDat.dat,1)), fprintf('\n'), end
 fprintf('%s\n',TabDat.str)
-fprintf('%c','-'*ones(1,80)), fprintf('\n')
+fprintf('%c',repmat('-',1,80)), fprintf('\n')
 
 %-Table footer
 %-----------------------------------------------------------------------
 fprintf('%s\n',TabDat.ftr{:})
-fprintf('%c','='*ones(1,80)), fprintf('\n\n')
+fprintf('%c',repmat('=',1,80)), fprintf('\n\n')
 
 
 

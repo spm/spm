@@ -1648,9 +1648,9 @@ case 'ssfnbanner'
 end
 
 fprintf('\n%s%s',tab,str)
-fprintf('%c',' '*ones(1,wid-length([str,time])))
+fprintf('%c',repmat(' ',1,wid-length([str,time])))
 fprintf('%s\n%s',time,tab)
-fprintf('%c',lch*ones(1,wid)),fprintf('\n')
+fprintf('%c',repmat(lch,1,wid)),fprintf('\n')
 varargout = {str};
 
 

@@ -96,5 +96,5 @@ V = spm_close_vol(V);
 
 SPM.PPM.Vcon_sd(ic)=V;
 
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),sprintf(...
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
     '...written %s',spm_str_manip(V.fname,'t')))%-#
