@@ -1,9 +1,10 @@
-function [] = spm_dcm_U (DCM_filename,SPM_filename,input_nos)
+function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % Insert new inputs into a DCM model
-% FORMAT [] = spm_dcm_U (DCM_filename,SPM_filename,input_nos)
+% FORMAT [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 %
 % DCM_filename      Name of DCM file
-% Sess              Session field from SPM.Sess
+% SPM_filename      Name of SPM file (eg. 'SPM')
+% session           Session number (eg. 1)
 % input_nos         Inputs to include (eg. [1 3] to include inputs 1 and 3)
 %
 % This function can be used, for example, to replace subject X's inputs by subject Y's.
@@ -15,7 +16,13 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,input_nos)
 load(DCM_filename);
 load(SPM_filename);
 
-Sess   = SPM.Sess(DCM.xY(1).Sess);
+if session>length(SPM.Sess)
+    disp(sprintf('Error in spm_dcm_U: SPM file doesnt have %d sessions',session));
+    return
+end
+Sess   = SPM.Sess(session);
+
+% Get input sampling rate from first input
 U.dt   = Sess.U(1).dt;
 
 % Number of inputs in SPM file
@@ -47,5 +54,3 @@ DCM.U=U;
 
 instr=['save ',DCM_filename,' DCM'];
 eval(instr);
-
-
