@@ -11,7 +11,7 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .Ic    - indicies of contrasts (in xCon)
 % .XYZmm - location of voxels {mm}
-% .QQ    - indices of volxes in Y.mad file
+% .QQ    - indices of voxels in Y.mad file
 %
 %
 % VOL    - structure containing details of volume analysed
@@ -26,7 +26,7 @@ function [Y,y,beta,SE] = spm_graph(SPM,VOL,xX,xCon,xSDM,hReg)
 % xCon   - Contrast definitions structure
 %        - required fields are:
 % .c     - contrast vector/matrix
-%          ( see spm_SpUtil.m for details of contrast structure... )
+%          (see spm_FcUtil.m for details of contrast structure... )
 %
 % xSDM   - structure containing contents of SPM.mat file
 %        - required fields are:
@@ -106,16 +106,13 @@ spm_XYZreg('SetCoords',xyz,hReg);
 
 %-Extract required data from results files
 %=======================================================================
-cwd  = pwd;				%-Note current working directory
-cd(SPM.swd)				%-Temporarily move to results dir
-
 %-Get (approximate) raw data y from Y.mad file
 %-NB: Data in Y.mad file is compressed, and therefore not fully accurate
 %     Therefore, parameters & ResMS should be read from the image files,
 %     rather than recomputing them on the basis of the Y.mad data.
 %-----------------------------------------------------------------------
-if exist(fullfile('.','Y.mad')) ~= 2
-	h = spm('alert"',{'No raw data saved with this analysis:',...
+if exist(fullfile(SPM.swd,'Y.mad')) ~= 2
+	spm('alert"',{'No raw data saved with this analysis:',...
 			'Data portions of plots will be unavailable...'},...
 		mfilename,0,1);
 	y    = [];
@@ -129,7 +126,7 @@ elseif SPM.QQ(i) == 0
 		Q       = find(SPM.QQ);
 		[xyz,i] = spm_XYZreg('NearestXYZ',xyz,SPM.XYZmm(:,Q));
 		i       = Q(i);
-		y       = spm_extract('Y.mad',SPM.QQ(i));
+		y       = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(i));
 	case 'stay'
 		y       = [];
 	case 'cancel'
@@ -137,7 +134,7 @@ elseif SPM.QQ(i) == 0
 		return
 	end
 else
-	y    = spm_extract('Y.mad',SPM.QQ(i));
+	y    = spm_extract(fullfile(SPM.swd,'Y.mad'),SPM.QQ(i));
 end
 
 %-Reset pointer, compute voxel indices, compute location string
@@ -171,6 +168,7 @@ else
 	% residuals
 	%---------------------------------------------------------------
 	R   = spm_filter('apply',xX.K, y) - xX.xKXs.X*beta;
+%-**	R   = spm_sp('r',xX.xKXs,spm_filter('apply',xX.K,y));
 
 end
 
@@ -179,12 +177,6 @@ end
 ResMS = spm_sample_vol(xSDM.VResMS,rcp(1),rcp(2),rcp(3),0);
 SE    = sqrt(ResMS*diag(xX.Bcov));
 COL   = ['r','b','g','c','y','m','r','b','g','c','y','m'];
-
-
-
-%-Return to previous directory
-%-----------------------------------------------------------------------
-cd(cwd)					%-Go back to original working dir.
 
 
 %-Plot
@@ -218,10 +210,7 @@ case {'Contrast of parameter estimates','Fitted and adjusted responses'}
 
 	% determine current contrasts
 	%---------------------------------------------------------------
-	for i = 1:length(xCon)
-		Icstr{i} = xCon(i).name;
-	end
-	Ic    = spm_input('Which contrast?','!+1','m',Icstr);
+	Ic    = spm_input('Which contrast?','!+1','m',{xCon.name});
 	TITLE = {Cplot xCon(Ic).name};
 
 
