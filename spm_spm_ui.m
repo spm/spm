@@ -17,12 +17,12 @@ function varargout=spm_spm_ui(varargin)
 % ----------------------------------------------------------------------
 %
 % Various data and parameters need to be supplied to specify the design:
-%	* the image files
-%	* indicators of the corresponding condition/subject/group
-%	* any covariates, nuisance variables, or design matrix partitions
-%	* the type of global normalisation (if any)
-%	* grand mean scaling options
-%	* thresholds and masks defining the image volume to analyse
+%       * the image files
+%       * indicators of the corresponding condition/subject/group
+%       * any covariates, nuisance variables, or design matrix partitions
+%       * the type of global normalisation (if any)
+%       * grand mean scaling options
+%       * thresholds and masks defining the image volume to analyse
 %
 % The interface supports a comprehensive range of options for all these
 % parameters, which are described below in the order in which the
@@ -391,9 +391,9 @@ function varargout=spm_spm_ui(varargin)
 % xM.TH         - nScan x 1 vector of analysis thresholds, one per image
 % xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
 % xM.VM         - struct array of explicit mask images
-% 		  (empty if no explicit masks)
+%                 (empty if no explicit masks)
 % xM.xs         - structure describing masking options
-% 		  (format is same as for xsDes described below)
+%                 (format is same as for xsDes described below)
 % 
 % xsDes         - structure of strings describing the design:
 %                 Fieldnames are essentially topic strings (use "_"'s for
