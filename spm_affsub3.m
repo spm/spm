@@ -52,7 +52,7 @@ if strcmp(mode,'register1')
 		  0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1]';
 	gorder = [1 2];
 	free   = [ones(1,18) ones(1, 2)]';
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	mean0  = [[0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0] 1 1]';
 
 elseif strcmp(mode,'rigid1')
 	% Rigid body registration.
