@@ -90,8 +90,8 @@ if ~is_flt,
 	end;
 
 	fp   = fopen(fname,'r','ieee-be');
-	imax = get_imax(fp, cdf, 'image-max', fname, 1, n);
-	imin = get_imax(fp, cdf, 'image-min', fname, 0, n);
+	imax = get_imax(fp, cdf, 'image-max', fname, 1, n, dim);
+	imin = get_imax(fp, cdf, 'image-min', fname, 0, n, dim);
 	fclose(fp);
 
 	scale = (imax-imin)/(range(2)-range(1));
@@ -174,7 +174,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function imax = get_imax(fp, cdf, strng, fname, def, n)
+function imax = get_imax(fp, cdf, strng, fname, def, n, dim)
 img     = findvar(cdf.var_array,'image');
 nd      = length(img.dimid);
 alldims = zeros(1,length(cdf.dim_array));
@@ -216,3 +216,4 @@ else,
 	disp(['Can''t get ' strng ' for "' fname '" - guessing it is' num2str(def) '.']);
 end;
 return;
+
