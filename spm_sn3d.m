@@ -404,7 +404,7 @@ if (nargin == 0)
 
 					% Get the amount of regularization
 					%-----------------------------------------------------------------------
-					tmp2 = [1 0.1 0.01 0.001 0.0001];
+					tmp2 = [10 1 0.1 0.01 0.001];
 					tmp = find(tmp2 == rglrztn);
 					if isempty(tmp) tmp = length(tmp2); end;
 					rglrztn = spm_input('Nonlinear Regularization','+1','m',...
@@ -489,137 +489,141 @@ if (nargin == 0)
 	return;
 
 elseif strcmp(P,'Defaults')
-
 	% Edit defaults
 	%_______________________________________________________________________
 
+	if spm_input(['Defaults for..?'],1,'m',...
+		['Defaults for Parameter Estimation|'...
+		 'Defaults for Writing Normalized'],...
+		[1 0]),
 
-	% Starting estimates for image position
-	%-----------------------------------------------------------------------
-	if sptl_Ornt == 0, tmp1 = 4;
-	elseif sum(sptl_Ornt==[0 0 0 0 0 0  1 1 1 0 0 0])==12, tmp1 = 1;
-	elseif sum(sptl_Ornt==[0 0 0 0 0 0 -1 1 1 0 0 0])==12, tmp1 = 2;
-	else, tmp1 = 3; end;
-	tmp = spm_input(['Affine Starting Estimates?'],1,'m',...
-		['Neurological Convention (R is R)|'...
-		 'Radiological Convention (L is R)|'...
-		 'Custom Affine Starting Estimates'],...
-		[0 1 2], tmp1);
 
-	if tmp == 0,     sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
-	elseif tmp == 1, sptl_Ornt = [0 0 0 0 0 0 -1 1 1 0 0 0];
-	elseif tmp == 2,
-		se = 0;
-		if prod(size(sptl_Ornt)) > 12 | prod(size(sptl_Ornt)) < 8,
-			str = '[0 0 0 0 0 0  1 1 1 0 0 0]';
-		else,
-			str = [num2str(sptl_Ornt(1))];
-			for i=2:prod(size(sptl_Ornt))
-				str = [str ' ' num2str(sptl_Ornt(i))];
-			end
+		% Starting estimates for image position
+		%-----------------------------------------------------------------------
+		if sptl_Ornt == 0, tmp1 = 4;
+		elseif sum(sptl_Ornt==[0 0 0 0 0 0  1 1 1 0 0 0])==12, tmp1 = 1;
+		elseif sum(sptl_Ornt==[0 0 0 0 0 0 -1 1 1 0 0 0])==12, tmp1 = 2;
+		else, tmp1 = 3; end;
+		tmp = spm_input(['Affine Starting Estimates?'],1,'m',...
+			['Neurological Convention (R is R)|'...
+			 'Radiological Convention (L is R)|'...
+			 'Custom Affine Starting Estimates'],...
+			[0 1 2], tmp1);
+
+		if tmp == 0,     sptl_Ornt = [0 0 0 0 0 0  1 1 1 0 0 0];
+		elseif tmp == 1, sptl_Ornt = [0 0 0 0 0 0 -1 1 1 0 0 0];
+		elseif tmp == 2,
+			se = 0;
+			if prod(size(sptl_Ornt)) > 12 | prod(size(sptl_Ornt)) < 8,
+				str = '[0 0 0 0 0 0  1 1 1 0 0 0]';
+			else,
+				str = [num2str(sptl_Ornt(1))];
+				for i=2:prod(size(sptl_Ornt)),
+					str = [str ' ' num2str(sptl_Ornt(i))];
+				end;
+			end;
+			sptl_Ornt = spm_input('Enter Affine Starting Estimates:','+1', 'e', str, 12)';
 		end;
-		sptl_Ornt = spm_input('Enter Affine Starting Estimates:','+1', 'e', str, 12)';
-	end;
 
 
-	% Give option to customise the normalisation
-	%-----------------------------------------------------------------------
-	tmp = 1;
-	if sptl_CO == 1, tmp = 2; end;
-	sptl_CO  = spm_input(['Allow customised normalisation?'], '+1', 'm',...
-		'   Allow customised|Disallow Customised',[-1 1], tmp);
+		% Give option to customise the normalisation
+		%-----------------------------------------------------------------------
+		tmp = 1;
+		if sptl_CO == 1, tmp = 2; end;
+		sptl_CO  = spm_input(['Allow customised normalisation?'], '+1', 'm',...
+			'   Allow customised|Disallow Customised',[-1 1], tmp);
 
-	% Get number of nonlinear basis functions
-	%-----------------------------------------------------------------------
-	if prod(size(sptl_NBss)) == 3,
-		tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
-		if isempty(tmp),tmp = size(bases,1)+1; end;
-	else, tmp = size(bases,1)+2; end;
+		% Get number of nonlinear basis functions
+		%-----------------------------------------------------------------------
+		if prod(size(sptl_NBss)) == 3,
+			tmp = find(bases(:,1) == sptl_NBss(1) & bases(:,2) == sptl_NBss(2) & bases(:,3) == sptl_NBss(3));
+			if isempty(tmp),tmp = size(bases,1)+1; end;
+		else, tmp = size(bases,1)+2; end;
 
-	nb = spm_input(['# Nonlinear Basis Functions?'],'+1','m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
-	if nb>0, sptl_NBss = bases(nb,:);
-	elseif nb == 0,
-		if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
-		tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
-		NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3);
-		NBss = NBss(:)';
-		sptl_NBss = NBss(:)';
-	else, sptl_NBss = 0; end;
+		nb = spm_input(['# Nonlinear Basis Functions?'],'+1','m',[basprompt '|Custom'],[1:size(bases,1) 0], tmp);
+		if nb>0, sptl_NBss = bases(nb,:);
+		elseif nb == 0,
+			if (prod(size(sptl_NBss)) ~= 3) sptl_NBss = [5 6 5]; end;
+			tmp = sprintf('%d %d %d', sptl_NBss(1), sptl_NBss(2), sptl_NBss(3));
+			NBss = spm_input('# Basis Functions (x y z)','+0', 'w', tmp, 3);
+			NBss = NBss(:)';
+			sptl_NBss = NBss(:)';
+		else, sptl_NBss = 0; end;
 
 
-	% Get number of nonlinear iterations
-	%-----------------------------------------------------------------------
-	if prod(sptl_NItr) > 0,
-		tmp2 = [1 3 5 8 12 16];
-		tmp = find(tmp2 == sptl_NItr);
+		% Get number of nonlinear iterations
+		%-----------------------------------------------------------------------
+		if prod(sptl_NItr) > 0,
+			tmp2 = [1 3 5 8 12 16];
+			tmp = find(tmp2 == sptl_NItr);
+			if isempty(tmp) tmp = length(tmp2); end;
+			sptl_NItr = spm_input(['# Nonlinear Iterations?'],'+1','m',...
+				['1  nonlinear iteration |3  nonlinear iterations'...
+				'|5  nonlinear iterations|8  nonlinear iterations'...
+				'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
+		else, sptl_NItr = 0; end;
+
+		% Get the amount of regularization
+		%-----------------------------------------------------------------------
+		tmp2 = [10 1 0.1 0.01 0.001];
+		tmp = find(tmp2 == sptl_Rglrztn);
 		if isempty(tmp) tmp = length(tmp2); end;
-		sptl_NItr = spm_input(['# Nonlinear Iterations?'],'+1','m',...
-			['1  nonlinear iteration |3  nonlinear iterations'...
-			'|5  nonlinear iterations|8  nonlinear iterations'...
-			'|12 nonlinear iterations|16 nonlinear iterations'],tmp2, tmp);
-	else, sptl_NItr = 0; end;
+		sptl_Rglrztn = spm_input('Nonlinear Regularization','+1','m',...
+			['Extremely Heavy regularization|Heavy regularization|'...
+			 'Medium regularization|Light regularization|'...
+			 'Very Light regularization'], tmp2, tmp);
 
-	% Get the amount of regularization
-	%-----------------------------------------------------------------------
-	tmp2 = [1 0.1 0.01 0.001 0.0001];
-	tmp = find(tmp2 == sptl_Rglrztn);
-	if isempty(tmp) tmp = length(tmp2); end;
-	sptl_Rglrztn = spm_input('Nonlinear Regularization','+1','m',...
-		['Extremely Heavy regularization|Heavy regularization|'...
-		 'Medium regularization|Light regularization|'...
-		 'Very Light regularization'], tmp2, tmp);
-
-	tmp = [1 0];
-	sptl_MskBrn = spm_input('Mask brain when registering?', '+1', 'm',...
-		'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
+		tmp = [1 0];
+		sptl_MskBrn = spm_input('Mask brain when registering?', '+1', 'm',...
+			'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
    
-	% ask for object image weighting
-	sptl_MskObj = spm_input('Mask object brain when registering?', '+1', 'm',...
+		% ask for object image weighting
+		sptl_MskObj = spm_input('Mask object brain when registering?', '+1', 'm',...
 		'Mask object|Dont Mask object',[1 0],find([1 0] == sptl_MskObj));
-   
-	% Get default bounding box
-	%-----------------------------------------------------------------------
-	if prod(size(sptl_BB)) == 6,
-		tmp = find(	sptl_BB(1) == bboxes(:,1) & sptl_BB(2) == bboxes(:,2) & ...
-				sptl_BB(3) == bboxes(:,3) & sptl_BB(4) == bboxes(:,4) & ...
-				sptl_BB(5) == bboxes(:,5) & sptl_BB(6) == bboxes(:,6));
-		if isempty(tmp), tmp = size(bboxes,1)+1; end;
 	else,
-		tmp = size(bboxes,1)+2;
-		sptl_BB = reshape(bboxes(1,:),2,3);
-	end;
-
-	ans = spm_input('Bounding Box?','+1','m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
-	if ans>0, sptl_BB=reshape(bboxes(ans,:),2,3);
-	elseif ans == 0,
-		if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
-		directions = 'XYZ';
-		bb = zeros(2,1);
-		for d=1:3,
-			str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
-			sptl_BB(:,d) = spm_input(['Bounding Box ' directions(d) ], '+1', 'e', str, 2);
+		% Get default bounding box
+		%-----------------------------------------------------------------------
+		if prod(size(sptl_BB)) == 6,
+			tmp = find(	sptl_BB(1) == bboxes(:,1) & sptl_BB(2) == bboxes(:,2) & ...
+					sptl_BB(3) == bboxes(:,3) & sptl_BB(4) == bboxes(:,4) & ...
+					sptl_BB(5) == bboxes(:,5) & sptl_BB(6) == bboxes(:,6));
+			if isempty(tmp), tmp = size(bboxes,1)+1; end;
+		else,
+			tmp = size(bboxes,1)+2;
+			sptl_BB = reshape(bboxes(1,:),2,3);
 		end;
-	else, sptl_BB = 0; end;
+
+		ans = spm_input('Bounding Box?','+1','m',[ bbprompt '|Customise|Runtime option'], [1:size(bboxes,1) 0 -1], tmp);
+		if ans>0, sptl_BB=reshape(bboxes(ans,:),2,3);
+		elseif ans == 0,
+			if prod(size(sptl_BB)) ~= 6, sptl_BB = reshape(bboxes(1,:),2,3); end;
+			directions = 'XYZ';
+			bb = zeros(2,1);
+			for d=1:3,
+				str = sprintf('%d %d', sptl_BB(1,d), sptl_BB(2,d));
+				sptl_BB(:,d) = spm_input(['Bounding Box ' directions(d) ], '+1', 'e', str, 2);
+			end;
+		else, sptl_BB = 0; end;
 
 
-	% Get default voxel sizes
-	%-----------------------------------------------------------------------
-	if prod(size(sptl_Vx)) == 3,
-		tmp = find(voxdims(:,1) == sptl_Vx(1) & voxdims(:,2) == sptl_Vx(2) & voxdims(:,3) == sptl_Vx(3));
-		if isempty(tmp), tmp = size(voxdims,1)+1; end;
-	else, tmp = size(voxdims,1)+2; end;
-	ans = spm_input(...
-		['Voxel Sizes?'], '+1','m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
+		% Get default voxel sizes
+		%-----------------------------------------------------------------------
+		if prod(size(sptl_Vx)) == 3,
+			tmp = find(voxdims(:,1) == sptl_Vx(1) & voxdims(:,2) == sptl_Vx(2) & voxdims(:,3) == sptl_Vx(3));
+			if isempty(tmp), tmp = size(voxdims,1)+1; end;
+		else, tmp = size(voxdims,1)+2; end;
+		ans = spm_input(...
+			['Voxel Sizes?'], '+1','m', [ voxprompts '|Customise|Runtime option'], [1:size(voxdims,1) 0 -1], tmp);
 
-	if ans>0, sptl_Vx = voxdims(ans,:);
-	elseif ans == 0,
-		Vox = [];
-		if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
-		sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3);
-	else, sptl_Vx = 0; end;
+		if ans>0, sptl_Vx = voxdims(ans,:);
+		elseif ans == 0,
+			Vox = [];
+			if (prod(size(sptl_Vx)) ~= 3) sptl_Vx = [2 2 2]; end
+			sptl_Vx = spm_input('Voxel Sizes ','+0', 'e', sprintf('%d %d %d', sptl_Vx(1), sptl_Vx(2), sptl_Vx(3)), 3);
+		else, sptl_Vx = 0; end;
+	end;
 	return;
 end;
-
 
 
 % Perform the spatial normalisation
@@ -723,12 +727,12 @@ if ~isempty(fg),
 			'Interpreter','none','Parent',ax);
 	end;
 
-	h1 = spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
+	h1 = spm_orthviews('Image',deblank(spms(1,:)),[0.01 0.1 .48 .6]);
 	linfun('Writing Image for Display..');
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
 	[pth,nm,xt,vr] = fileparts(deblank(P(1,:)));
 	q              = fullfile(pth,['n' nm xt vr]);
-	h2 = spm_orthviews('Image',q,[.5 0.1 .5 .5]);
+	h2 = spm_orthviews('Image',q,[.51 0.1 .48 .6]);
 	spm_orthviews('Space',h2);
 	spm_print;
 	drawnow;

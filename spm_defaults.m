@@ -154,7 +154,7 @@ sptl_NBss = [7 8 7];
 %	small values	-> less regularization -> more warping
 %	large values	-> more regularization -> less warping
 %-----------------------------------------------------------------------
-sptl_Rglrztn = 0.01;
+sptl_Rglrztn = 0.1;
 
 % Number of iterations of nonlinear spatial normalisation.
 %-----------------------------------------------------------------------
@@ -163,8 +163,8 @@ sptl_NItr = 12;
 % Estimate the spatial normalization parameters from the brain only
 % (of the template) or use the whole head.
 %-----------------------------------------------------------------------
-%sptl_MskBrn = 0; % Estimate from the whole head
-sptl_MskBrn = 1; % Estimate from the brain only
+sptl_MskBrn = 0; % Estimate from the whole head
+%sptl_MskBrn = 1; % Estimate from the brain only
 
 % Estimate the spatial normalization parameters from only a limited
 % region of the object image.  This is intended for spatially
