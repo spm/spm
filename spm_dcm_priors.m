@@ -24,10 +24,11 @@ n     = length(A);
 
 % log(2)/b = half-life {b = self inhibition}
 %---------------------------------------------------------------------------
+p     = 1e-3;
 b     = 1;
-s     = spm_invNcdf(1 - 1e-3);
-q     = spm_invXcdf(1 - 1e-3,n*(n - 1));
-q     = 1/((n - 1)*q);
+s     = spm_invNcdf(1 - p);
+q     = spm_invXcdf(1 - p,n*(n - 1));
+q     = n/((n - 1)*q);
 
 % intrinsic connections A {additional priors from eigenvalues}
 %---------------------------------------------------------------------------
@@ -44,11 +45,11 @@ pE    = [b; A(:); B(:); C(:)];
 
 % HEMODYNAMIC PRIORS
 %===========================================================================
-% P(1)       - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(2) ~ 1sec
-% P(2)       - autoregulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(3)) ~ 10 sec
-% P(3)       - transit time               (t0)  ~ 1 sec
-% P(4)       - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
-% P(5)       - resting oxygen extraction  (E0)  ~ range 20 - 50%
+% P(1) - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(2) ~ 1sec
+% P(2) - autoregulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(3)) ~ 10 sec
+% P(3) - transit time               (t0)  ~ 1 sec
+% P(4) - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
+% P(5) - resting oxygen extraction  (E0)  ~ range 20 - 50%
 
 [qE,qC] = spm_hdm_priors(0);
 
@@ -120,7 +121,7 @@ grid on
 % graphics - response differentials
 %---------------------------------------------------------------------------
 subplot(2,2,2)
-plot([1:M.N]*M.dt,v(:,h)*sqrt(s(h,h)))
+plot([1:M.N]*M.dt,v(:,1),[1:M.N]*M.dt,v(:,2),'-.')
 xlabel('PST {secs}')
 title('hemodynamic modes')
 axis square
