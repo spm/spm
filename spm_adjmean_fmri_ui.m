@@ -127,16 +127,44 @@ function spm_adjmean_fmri_ui
 %
 % Variables saved in SPMadj.mat data file
 % ----------------------------------------------------------------------
-% **** under construction ****
+% P		String matrix of filenames
+% iCond		Condition indicator vector
+% iGloNorm	Global normalisation option
+% sGloNorm	Global normalisation description
+% iGMsca	Grand mean scaling option
+% sGMsca	Grand mean scaling description
+% HPFc		High pass filter cut-off period (s)
+% HPF		High pass filter
+% sHPF		Description of high-pass filter
+% rC		raw C partition of design matrix, prior to orthogonalisation
+% C		C (covariates of interest) partition of design matrix
+% Cnames	Names of parameters corresponding to columns of C
+% B		B (block) partition of the design matrix
+% Bnames	Names of parameters corresponding to columns of B
+% G		G (confounding covariates) partition of design matrix
+% Gnames	Names of parameters corresponding to columns of G
+% rX		raw design matrix, prior to orthogonalisation of C partition
+% X		design matrix (=[C,B,G])
+% nrX		raw design matrix, normalised for display
+% nX		design matrix, normalised for display
+% c		Matrix of contrasts, contrasts in rows
+% cNames	Names associated with contrasts
+% W		Weights for images corresponding to contrasts
+% CWD		Current Working Directory (when run)
+% Fnames	Filenames of adjusted mean images written
+% rGX		raw global means (before any scaling)
+% gSF		Image scale factors for global scaling (inc. grand mean scaling)
+% GX		Global means after scaling
+% GM		Grans Mean used for scaling
 %
 %
 % Platform
 % ----------------------------------------------------------------------
-% This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
-%
+% This version was written for MatLab4.2c with SPM'97d (spm_mean.m v1.11)
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
 
+%SPM96:This version was written for MatLab4.2c with SPM'96 (spm_mean.m v1.10)
 
 %=======================================================================
 % - S E T U P
@@ -223,9 +251,9 @@ G = []; Gnames = '';
 
 %-Add high-pass filter using discrete cosine set
 %-----------------------------------------------------------------------
-HPFc = n; for i = 0:nCond, HPFc = min([HPFc,max(diff(ons(a == i)))]); end
 bHPF = spm_input('Use high pass filter?','+1','y/n',[1 0],1);
 if bHPF
+	HPFc = n; for i = 0:nCond, HPFc = min([HPFc,max(diff(ons(a == i)))]); end
 	HPFc = spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
 	%-Find max order for discrete cosine set, HPFk
 	% (from period>HPFc, period=n*RT/(k/2) for order k; k<n/2)
@@ -355,22 +383,22 @@ nX = spm_DesMtxSca(X,Xnames);
 %**** Q:Orthogonalisation of C wirit G pre or post temporal smoothing?
 
 
-%-Contrasts (x)
+%-Contrasts (c)
 %-----------------------------------------------------------------------
-nx     = size(C,2);
-x      = [eye(nx), ones(nx,size(B,2)), zeros(nx,size(G,2))];
-xNames = Cnames;
+nc     = size(C,2);
+c      = [eye(nc), ones(nc,size(B,2)), zeros(nc,size(G,2))];
+cNames = Cnames;
 %-if we have a null condition, then constant *is* null condition effect
 if min(iCond)==0
-	x      = [zeros(1,nx), 1, zeros(1,size(G,2)); x];
-	xNames = str2mat('baseline',xNames);
-	nx     = nx+1;
+	c      = [zeros(1,nc), 1, zeros(1,size(G,2)); c];
+	cNames = str2mat('baseline',cNames);
+	nc     = nc+1;
 end
 
 %-Parameter estimation matrix & data weights matrix for contrasts
 %-----------------------------------------------------------------------
 pX  = pinv(X);
-W   = x * pX;
+W   = c * pX;
 
 
 %-Parameter images (of interest) - Adjusted mean images
@@ -385,20 +413,20 @@ fprintf('\twriting parameter images... enter filenames...\n')
 
 Fnames = []; CWD = pwd;
 guiPos = '+1'; %*** guiPos = spm_input('!NextPos');
-for i = 1:nx
-	Fn = deblank(xNames(i,:)); Fn=Fn(Fn~=' ');
+for i = 1:nc
+	Fn = deblank(cNames(i,:)); Fn=Fn(Fn~=' ');
 	Fn = spm_input(sprintf('Contrast %d: filename?',i),guiPos,'s',Fn);
 	%*** make sure Fn is valid? Allow overwriting?
 	Fnames = str2mat(Fnames,Fn);
 	w  = W(i,:).*gSF'.*iSF';
 	Q  = find(abs(w)>0);
-	%wV = V(:,Q);	wV(7,:) = w(Q);
+	wV = V(:,Q);	wV(7,:) = w(Q);		%SPM97:
 	fprintf('\t...writing image %d: %-20s',i,Fn)
-	%sf = spm_mean(wV,[Fn,'.img']);
-	sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
+	sf = spm_mean(wV,[Fn,'.img']);		%SPM97:
+	%SPM96:sf = spm_mean(prod(DIM),TYPE,[Fn,'.img'],P(Q,:),w(Q));
 	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fn);
-	%spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);
-	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str);
+	spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,spm_type('int16'),OFFSET,ORIGIN,str);	%SPM97:
+	%SPM96:spm_hwrite([Fn,'.hdr'],DIM,VOX,sf,TYPE,OFFSET,ORIGIN,str);
 	spm_get_space(Fn,spm_get_space(P(1,:)));
 	fprintf(' (done)\n')
 	guiPos = '0';
@@ -418,7 +446,7 @@ save SPMadj ...
 	HPFc HPF sHPF ...
 	rC C Cnames B Bnames G Gnames ...
 	rX X nrX nX ...
-	x xNames W ...
+	c cNames W ...
 	CWD Fnames ...
 	rGX gSF GX GM
 
@@ -494,22 +522,22 @@ end
 
 %-Depict contrasts and associated filenames
 %-----------------------------------------------------------------------
-dy = 0.4/nx;
+dy = 0.4/nc;
 axes('Position',[0.025 0.05 0.05 0.4],'Visible','off')
 text(0,0.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
 	'FontSize',14,'FontWeight','Bold')
 axes('Position',[0.6 0.44 0.40 0.02],'Visible','off')
 text(0,1,'Contrast files...','FontSize',10,'FontWeight','Bold')
 text(0,0,sprintf('...in %s',CWD),'FontSize',8)
-for i = 1:nx
+for i = 1:nc
 	axes('Position',[0.1 (0.45 -dy*i) 0.6 0.9*dy])
-	[tx ty] = bar(x(i,:));
+	[tx ty] = bar(c(i,:));
 	fill(tx,ty,[1 1 1]*.8);
-	% h = bar(x(i,:),1);
+	% h = bar(c(i,:),1);
 	% set(h,'FaceColor',[1 1 1]*.8)
-	set(gca,'XLim',[0.5,size(x,2)+0.5],'Visible','off')
+	set(gca,'XLim',[0.5,size(c,2)+0.5],'Visible','off')
 	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
-	text(size(x,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10)
+	text(size(c,2)+.55,0,sprintf('%s',deblank(Fnames(i,:))),'FontSize',10)
 end
 
 spm_print
