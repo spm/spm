@@ -57,6 +57,7 @@ global PET_UFp PET_DIM PET_VOX PET_TYPE PET_SCALE PET_OFFSET ...
 	PET_ORIGIN PET_DESCRIP
 global fMRI_UFp fMRI_DIM fMRI_VOX fMRI_TYPE fMRI_SCALE fMRI_OFFSET ...
 	fMRI_ORIGIN fMRI_DESCRIP
+global fMRI_T fMRI_T0
 
 if nargin == 0
 	SPMid = spm('FnBanner',mfilename,SCCSid);
@@ -254,13 +255,16 @@ elseif strcmp(arg1, 'Hdr')
 	end
 
 elseif strcmp(arg1, 'Statistics')
-	UFp = spm_input('Upper tail F prob. threshold',2,'e',UFp);
+	UFp = spm_input('Upper tail F prob. threshold',2,'e',UFp,1);
 	if strcmp(MODALITY,'PET')
 		PET_UFp       = UFp;
 	elseif strcmp(MODALITY,'FMRI')
 		fMRI_UFp      = UFp;
 	end
-
+	if strcmp(MODALITY,'FMRI'),
+		fMRI_T  = spm_input('Number of Bins/TR' ,3,'n',fMRI_T, 1 );
+		fMRI_T0 = spm_input('Sampled bin',4,'n',fMRI_T0,1, fMRI_T);
+	end;
 
 elseif strcmp(arg1, 'Reset')
 	if exist('spm_defaults')==2
