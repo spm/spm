@@ -1202,7 +1202,7 @@ if nsc
 	% identically distributed assumptions
 	%---------------------------------------------------------------
 	spm_input('Are the errors distributed identically','+1','d')
-	d     = spm_input_ui('!NextPos');
+	d     = spm_input('!NextPos');
 	Q     = {};
 
 	% assume factor with most levels is repeated measure
