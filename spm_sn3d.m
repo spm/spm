@@ -256,19 +256,19 @@ if (nargin == 0)
 
 		% Get template(s)
 		ok = 0;
-		while (~ok)
-			Template = spm_get(Inf,'.img',['Template image(s)'],'', [SWD '/templates']);
-			if (size(Template,1)>0)
-				dims = zeros(size(Template,1),9);
-				for i=1:size(Template,1)
-					[dim vox dummy dummy dummy origin dummy] = spm_hread(deblank(Template(i,:)));
-					dims(i,:) = [dim vox origin];
-				end
-				if size(dims,1) == 1 | ~any(diff(dims))
-					ok = 1;
-				end
-			end
-		end
+		while ~ok,
+			Template = spm_get(Inf,'.img',['Template image(s)'], [SWD '/templates']);
+			vv=spm_vol(Template);
+			if prod(size(vv))==1,
+				ok = 1;
+			else,
+				tmp1 = cat(1,vv.dim);
+				tmp2 = reshape(cat(3,vv.mat),4*4,prod(size(vv)));
+				if ~any(any(diff(tmp1(:,1:3)))) & ~any(any(diff(tmp2,1,2))),
+					ok=1;
+				end;
+			end;
+		end;
 
 		if sptl_CO ~= 1
 			% Customise the normalisation
@@ -652,9 +652,6 @@ spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
 VF = spm_vol('./spm_sn3d_tmp.img');
 fprintf(' ..done\n');
 
-MF = spm_get_space(P(1,:));
-MG = spm_get_space(spms(1,:));
-
 % Affine Normalisation
 %-----------------------------------------------------------------------
 spm_chi2_plot('Init','Affine Registration','Convergence');
@@ -679,9 +676,8 @@ end
 if (~any(params(1:4)==0) & params(6)~=Inf)
 	fprintf('3D Cosine Transform Normalization\n');
 	if ~isempty(brainmask),
-		VW=spm_map(brainmask);
+		VW=spm_vol(brainmask);
 		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW);
-		spm_unmap(VW);
 	else,
 		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
 	end;
@@ -713,7 +709,7 @@ if ~isempty(fg)
 		'Interpreter','none','Parent',ax);
 	text(0,0.75, [ 'Image		: ' P(1,:)],'FontSize',12,'FontWeight','Bold',...
 		'Interpreter','none','Parent',ax);
-	text(0,0.7, [ 'Parameters	: ' [spm_str_manip(P,'sd') '_sn3d.mat']],'FontSize',12,...
+	text(0,0.7, [ 'Parameters	: ' spm_str_manip(matname,'sd')],'FontSize',12,...
 		'Interpreter','none','Parent',ax);
 
 	Q = spm_matrix(prms');

@@ -202,10 +202,10 @@ elseif nargin == 2
 		'FontWeight','Bold','HorizontalAlignment','center','Parent',ax);
 
 
-	VF = spm_map(deblank(PFF(1,:)));
-	MF = spm_get_space(deblank(PFF(1,:)));
-	VG = spm_map(deblank(PGF(1,:)));
-	MG = spm_get_space(deblank(PGF(1,:)));
+	VF = spm_vol(PFF(1,:));
+	MF = VF.mat;
+	VG = spm_vol(PGF(1,:));
+	MG = VG.mat;
 
 	Q = MG\MF;
 	text(0,0.85, sprintf('X1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(1,:)),'Parent',ax);
@@ -218,10 +218,10 @@ elseif nargin == 2
 
 	%-----------------------------------------------------------------------
 	for i=1:3
-		M = spm_matrix([0 0 i*VF(3)/4]);
+		M = spm_matrix([0 0 i*VF(1).dim(3)/4]);
 		ax=axes('Position',[0.1 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off','Parent',fig);
 		set(fig,'CurrentAxes',ax);
-		img1 = spm_slice_vol(VF(:,1),M,VF(1:2,1),1);
+		img1 = spm_slice_vol(VF(1),M,VF(1).dim(1:2),1);
 		hold on;
 		imagesc(img1');
 		contour(img1',3,'r');
@@ -229,14 +229,12 @@ elseif nargin == 2
 
 		ax=axes('Position',[0.5 0.03+(0.75-0.25*i) 0.4 0.25],'Visible','off','Parent',fig);
 		set(fig,'CurrentAxes',ax); 
-		img2 = spm_slice_vol(VG(:,1),MG\MF*M,VF(1:2,1),1);
+		img2 = spm_slice_vol(VG(1),MG\MF*M,VF.dim(1:2),1);
 		hold on;
 		imagesc(img2');
 		contour(img1',3,'r');
 		axis('off','image');
 	end
-	spm_unmap_vol(VG);
-	spm_unmap_vol(VF);
 	drawnow;
 
 	return
@@ -252,7 +250,7 @@ MG = spm_get_space(deblank(PGF(1,:)));
 MF = spm_get_space(deblank(PFF(1,:)));
 
 tic;
-if strcmp(PGG,PFG) 	% Same modality
+if strcmp(PGG,PFG), 	% Same modality
 
 
 	inameG = [];
@@ -293,14 +291,14 @@ if strcmp(PGG,PFG) 	% Same modality
 	end
 
 	if do_disp==1,
-		im1 = PGF(1,:);
-		im2 = PFF(1,:);
-		M1=spm_get_space(im1);
-		M2=spm_get_space(im2);
-		d1=spm_hread(im1);
-		d2=spm_hread(im2);
+		im1 = spm_vol(PGF(1,:));
+		im2 = spm_vol(PFF(1,:));
+		M1=im1.mat;
+		M2=im2.mat;
+		d1=im1.dim(1:3);
+		d2=im2.dim(1:3);
 		fprintf('--------------------------------------------------------------\n');
-		fprintf('Method: 3\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+		fprintf('Method: 3\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1.fname,im2.fname);
 		disp_coreg_params(M1,MM*M2,d1,d2)
 fprintf('time=%g seconds\n',toc);
 	end
@@ -336,14 +334,14 @@ else 	% Different modalities
 	MM = spm_matrix(params([1:6 13:18]))/spm_matrix(params([7:12 13:18]));
 
 	if do_disp==1,
-		im1 = PGF(1,:);
-		im2 = PFF(1,:);
-		M1=spm_get_space(im1);
-		M2=spm_get_space(im2);
-		d1=spm_hread(im1);
-		d2=spm_hread(im2);
+		im1 = spm_vol(PGF(1,:));
+		im2 = spm_vol(PFF(1,:));
+		M1=im1.mat;
+		M2=im2.mat;
+		d1=im1.dim(1:3);
+		d2=im2.dim(1:3);
 		fprintf('--------------------------------------------------------------\n');
-		fprintf('Method: 1\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+		fprintf('Method: 1\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1.fname,im2.fname);
 		disp_coreg_params(M1,MM*M2,d1,d2)
 fprintf('time=%g seconds\n',toc);
 	end
@@ -386,14 +384,14 @@ fprintf('time=%g seconds\n',toc);
 		end
 
 		if do_disp==1,
-			im1 = PGF(1,:);
-			im2 = PFF(1,:);
-			M1=spm_get_space(im1);
-			M2=spm_get_space(im2);
-			d1=spm_hread(im1);
-			d2=spm_hread(im2);
+			im1 = spm_vol(PGF(1,:));
+			im2 = spm_vol(PFF(1,:));
+			M1=im1.mat;
+			M2=im2.mat;
+			d1=im1.dim(1:3);
+			d2=im2.dim(1:3);
 			fprintf('--------------------------------------------------------------\n');
-			fprintf('Method: 2\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1,im2);
+			fprintf('Method: 2\nDate: %s\nPatient Number: ??\nFrom: %s\nTo:   %s\n\n', date,im1.fname,im2.fname);
 			disp_coreg_params(M1,MM*M2,d1,d2)
 fprintf('time=%g seconds\n',toc);
 		end
@@ -404,7 +402,12 @@ end
 % the transformations are applied - just in case any images have
 % been included more than once in the list.
 %-----------------------------------------------------------------------
-Images   = str2mat(PFF,others);
+if isempty(others),
+	Images = PFF;
+else,
+	Images   = str2mat(PFF,others);
+end;
+
 Matrixes = zeros(16,size(Images,1));
 
 for i=1:size(Images,1)
