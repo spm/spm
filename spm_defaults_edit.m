@@ -159,7 +159,7 @@ elseif strcmp(arg1, 'Printing')
 			printer = [' -P' printer];
 		end
 		a1 = spm_input('Postscript Type:',4,'b','B & W|Colour', str2mat('-dps', '-dpsc'));
-		PRINTSTR = ['print ' a1 printer];
+		PRINTSTR = ['print -noui ' a1 printer];
 	elseif (a0 == 3)
 		fname = date; fname(find(fname=='-')) = []; fname = ['spmfig_' fname];
 		fname = spm_str_manip(spm_input('Graphics filename:',3,'s', fname),'rtd');
