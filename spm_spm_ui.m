@@ -60,8 +60,8 @@ function varargout=spm_spm_ui(varargin)
 %       - Multi-subj: conditions & covariates
 %       - Multi-subj: cond x subj  interaction & covariates
 %       - Multi-subj: covariates only
-%       - Multi-study: conditions & covariates
-%       - Multi-study: covariates only
+%       - Multi-group: conditions & covariates
+%       - Multi-group: covariates only
 %
 %       - Population main effect: 2 cond's, 1 scan/cond (paired t-test)
 %       - Dodgy population main effect: >2 cond's, 1 scan/cond
@@ -81,11 +81,11 @@ function varargout=spm_spm_ui(varargin)
 %       - SPM96:Multi-subject: different conditions & covariates
 %       - SPM96:Multi-subject: replicated conditions & covariates
 %       - SPM96:Multi-subject: covariates only
-%       - SPM96:Multi-study: different conditions
-%       - SPM96:Multi-study: replicated conditions
-%       - SPM96:Multi-study: different conditions & covariates
-%       - SPM96:Multi-study: replicated conditions & covariates
-%       - SPM96:Multi-study: covariates only
+%       - SPM96:Multi-group: different conditions
+%       - SPM96:Multi-group: replicated conditions
+%       - SPM96:Multi-group: different conditions & covariates
+%       - SPM96:Multi-group: replicated conditions & covariates
+%       - SPM96:Multi-group: covariates only
 %       - SPM96:Compare-groups: 1 scan per subject
 %
 %
@@ -97,13 +97,13 @@ function varargout=spm_spm_ui(varargin)
 % extends to the particular subjects under consideration (at the times
 % they were imaged).
 %
-% In particular, the multi-subject and multi-study designs ignore the
+% In particular, the multi-subject and multi-group designs ignore the
 % variability in response from subject to subject. Since the
 % scan-to-scan (within-condition, within-subject variability is much
 % smaller than the between subject variance which is ignored), this can
 % lead to detection of group effects that are not representative of the
 % population(s) from which the subjects are drawn. This is particularly
-% serious for multi-study designs comparing two groups. If inference
+% serious for multi-group designs comparing two groups. If inference
 % regarding the population is required, a random effects analysis is
 % required.
 %
@@ -170,11 +170,11 @@ function varargout=spm_spm_ui(varargin)
 % specific fits" in SPM95/6.) The full list of possible options is:
 %       - <none>
 %       - with replication
-%       - with condition (across study)
-%       - with subject (across study)
-%       - with study
-%       - with condition (within study)
-%       - with subject (within study)
+%       - with condition (across group)
+%       - with subject (across group)
+%       - with group
+%       - with condition (within group)
+%       - with subject (within group)
 %
 % * Covariate centering: At this stage may also be offered "covariate
 % centering" options. The default is usually that appropriate for the
@@ -184,11 +184,11 @@ function varargout=spm_spm_ui(varargin)
 % list of possible options is:
 %       - around overall mean
 %       - around replication means
-%       - around condition means (across study)
-%       - around subject means (across study)
-%       - around study means
-%       - around condition means (within study)
-%       - around subject means (within study)
+%       - around condition means (across group)
+%       - around subject means (across group)
+%       - around group means
+%       - around condition means (within group)
+%       - around subject means (within group)
 %       - <no centering>
 %
 %                           ----------------
@@ -215,15 +215,15 @@ function varargout=spm_spm_ui(varargin)
 % implicitly scaled to that value). When using AnCova or no global
 % normalisation, with data from different subjects or sessions, an
 % intermediate situation may be appropriate, and you may be given the
-% option to scale study, session or subject grand means seperately. The
+% option to scale group, session or subject grand means seperately. The
 % full list of possible options is:
 %       - scaling of overall grand mean
 %       - caling of replication grand means
-%       - caling of condition grand means (across study)
-%       - caling of subject grand means (across study)
-%       - caling of study grand means
-%       - caling of condition (within study) grand means
-%       - caling of subject (within study) grand means
+%       - caling of condition grand means (across group)
+%       - caling of subject grand means (across group)
+%       - caling of group grand means
+%       - caling of condition (within group) grand means
+%       - caling of subject (within group) grand means
 %       - implicit in PropSca global normalisation)
 %       - no grand Mean scaling>'
 %
@@ -251,11 +251,11 @@ function varargout=spm_spm_ui(varargin)
 % possible options is:
 %       - AnCova
 %       - AnCova by replication
-%       - AnCova by condition (across study)
-%       - AnCova by subject (across study)
-%       - AnCova by study
-%       - AnCova by condition (within study)
-%       - AnCova by subject (within study)
+%       - AnCova by condition (across group)
+%       - AnCova by subject (across group)
+%       - AnCova by group
+%       - AnCova by condition (within group)
+%       - AnCova by subject (within group)
 %       - Proportional scaling
 %       - <no global normalisation>
 %
@@ -272,11 +272,11 @@ function varargout=spm_spm_ui(varargin)
 % list of possible options is:
 %       - around overall mean
 %       - around replication means
-%       - around condition means (across study)
-%       - around subject means (across study)
-%       - around study means
-%       - around condition means (within study)
-%       - around subject means (within study)
+%       - around condition means (across group)
+%       - around subject means (across group)
+%       - around group means
+%       - around condition means (within group)
+%       - around subject means (within group)
 %       - <no centering>
 %       - around user specified value
 %       - (as implied by AnCova)
@@ -492,7 +492,7 @@ SCCSid  = '%I%';
 % D.Desname  - a string naming the design
 %
 % In general, spm_spm_ui.m accomodates four factors. Usually these are
-% 'study', 'subject', 'condition' & 'replication', but to allow for a
+% 'group', 'subject', 'condition' & 'replication', but to allow for a
 % flexible interface these are dynamically named for different designs,
 % and are referred to as Factor4, Factor3, Factor2, and Factor1
 % respectively. The first part of the D definition dictates the names
@@ -644,18 +644,24 @@ SPMid = spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
 
-%-Delete files from previous analyses...
+%-Ask about overwriting files from previous analyses...
 %-----------------------------------------------------------------------
-if exist(fullfile('.','SPMcfg.mat'),'file')==2
-    spm('alert*',{...
-        'Current directory already contains an SPM stats configuration.',...
-        ['        (pwd = ',pwd,')'],...
-        ' ','Rerun in a directory without an SPMcfg.mat file!',...
-        ' ','(The SPMcfg.mat file contains design configuration data)'},...
-        mfilename,sqrt(-1));
-	error(['current directory contains an existing ',...
-		'SPMcfg.mat design setup file...'])
+tmp = [	exist(fullfile('.','SPMcfg.mat'),    'file')==2 ,...
+	exist(fullfile('.','SPM.mat'),       'file')==2 ];
+if any(tmp)
+	str = {	'        SPMstats configuration (SPMcfg.mat)',...
+		'        SPMstats results files (inc. SPM.mat)'};
+	str = {	'Current directory contains existing SPMstats files:',...
+		str{tmp},['(pwd = ',pwd,')'],' ',...
+		'Continuing will overwrite existing files!'};
+	if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+		fprintf('%-40s: %30s\n\n',...
+			'Abort...   (existing SPMstats files)',spm('time'))
+		spm_clf(Finter)
+		return
+	end
 end
+
 
 
 %-Option definitions
@@ -1125,7 +1131,9 @@ spm('Pointer','Watch');
 %-Images & image info: Map Y image files and check consistency of
 % dimensions and orientation / voxel size
 %=======================================================================
+fprintf('%-40s: ','Mapping files')                                   %-#
 VY = spm_vol(char(P));
+fprintf('%30s\n','...done')                                          %-#
 
 if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0]) %NB: Bombs for single image
 	error('images do not all have the same dimensions'), end
@@ -1145,11 +1153,20 @@ case 2
 case 3
 	%-Compute as mean voxel value (within per image fullmean/8 mask)
 	g = zeros(nScan,1);
-	for i = 1:nScan, g(i) = spm_global(VY(i)); end
+	fprintf('%-40s: %30s','Calculating globals',' ')             %-#
+	for i = 1:nScan
+		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
+			sprintf('%3d/%-3d',i,nScan))                 %-#
+		g(i) = spm_global(VY(i));
+	end
+	fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')       %-#
 otherwise
 	error('illegal iGXcalc')
 end
 rg = g;
+
+
+fprintf('%-40s: ','Design configuration')                            %-#
 
 
 %-Scaling: compute global scaling factors gSF required to implement proportional
@@ -1315,12 +1332,17 @@ xsDes = struct(	'Design',			{D.DesName},...
 		'Parameters',			{tmp}			);
 
 
+fprintf('%30s\n','...done')                                          %-#
+
 %-Save SPMcfg.mat file
+fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
 save SPMcfg SPMid D xsDes VY xX xC xGX xM F_iX0
+fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 
 
 %-Display Design reports
 %=======================================================================
+fprintf('%-40s: ','Design reporting')                                %-#
 spm_DesRep('Files&Factors',{VY.fname}',xX.I,xC,xX.sF,xM.xs)
 spm_print
 
@@ -1331,22 +1353,24 @@ end
 
 spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
 spm_print
+fprintf('%30s\n','...done')                                          %-#
 
 
 %-Analysis Proper?
-%===========================================================================
+%=======================================================================
 spm('Pointer','Arrow')
+fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
 if spm_input('estimate?','_+0','b','now|later',[1,0],1)
-	drawnow
 	spm('Pointer','Watch')
-	spm_spm(VY,xX,xM,F_iX0,xC,xsDes)
 	spm('FigName','Stats: estimating...',Finter,CmdLine);
+	spm_spm(VY,xX,xM,F_iX0,xC,xsDes)
+	spm('Pointer','Arrow')
 else
-	% spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
 	spm('FigName','Stats: configured',Finter,CmdLine);
 	spm('Pointer','Arrow')
+	% spm_DesRep(****
+	% spm_spm_ui('DesRep',VY,xX,xC,xsDes,xM,F_iX0)
 end
-spm('Pointer','Arrow')
 fprintf('\n\n')
 
 
@@ -1364,7 +1388,7 @@ if nargin<2, DsF = {'Fac1','Fac2','Fac3','Fac4'}; else, DsF=varargin{2}; end
 
 %-Initialise variables
 %-----------------------------------------------------------------------
-i4 = [];		% factor 4 index (usually study)
+i4 = [];		% factor 4 index (usually group)
 i3 = [];		% factor 3 index (usually subject), per f4
 i2 = [];		% factor 2 index (usually condition), per f3/f4
 i1 = [];		% factor 1 index (usually replication), per f2/f3/f4
@@ -1646,7 +1670,7 @@ D = struct(...
 	'nC',[Inf,Inf],'iCC',{{[-1,3,8],[-1,8]}},'iCFI',{{[1,3],1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[1,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',1));
 
 D = [D, struct(...
@@ -1657,7 +1681,7 @@ D = [D, struct(...
 	'nC',[Inf,Inf],'iCC',{{[-1,8],[-1,8]}},'iCFI',{{1,1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[1,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',1))];
 
 %-Multi-subject
@@ -1670,7 +1694,7 @@ D = [D, struct(...
 	'nC',[Inf,Inf],'iCC',{{[1,3,4,8],[1,4,8]}},'iCFI',{{[1,3,4],[1,4]}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-4,9],'GM',50,...
 	'iGloNorm',[4,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',1))];
 
 D = [D, struct(...
@@ -1681,7 +1705,7 @@ D = [D, struct(...
 	'nC',[Inf,Inf],'iCC',{{[1,3,4,8],[1,4,8]}},'iCFI',{{[1,3,4],[1,4]}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-4,9],'GM',50,...
 	'iGloNorm',[4,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',1))];
 
 D = [D, struct(...
@@ -1692,31 +1716,31 @@ D = [D, struct(...
 	'nC',[Inf,Inf],'iCC',{{[1,4,8],[1,4,8]}},'iCFI',{{[1,4],[1,4]}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-4,9],'GM',50,...
 	'iGloNorm',[4,8:9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',0))];
 
-%-Multi-study
+%-Multi-group
 %-----------------------------------------------------------------------
 D = [D, struct(...
-	'DesName','Multi-study: conditions & covariates',...
-	'n',[Inf Inf Inf Inf],	'sF',{{'repl','condition','subject','study'}},...
+	'DesName','Multi-group: conditions & covariates',...
+	'n',[Inf Inf Inf Inf],	'sF',{{'repl','condition','subject','group'}},...
 	'Hform',		'I(:,[4,2]),''-'',{''stud'',''cond''}',...
 	'Bform',		'I(:,[4,3]),''-'',{''stud'',''subj''}',...
 	'nC',[Inf,Inf],'iCC',{{[5:8],[5,7,8]}},'iCFI',{{[1,5,6,7],[1,5,7]}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-7,9],'GM',50,...
 	'iGloNorm',[7,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',1))];
 
 D = [D, struct(...
-	'DesName','Multi-study: covariates only',...
-	'n',[Inf 1 Inf Inf],	'sF',{{'repl','','subject','study'}},...
+	'DesName','Multi-group: covariates only',...
+	'n',[Inf 1 Inf Inf],	'sF',{{'repl','','subject','group'}},...
 	'Hform',		'[]',...
 	'Bform',		'I(:,[4,3]),''-'',{''stud'',''subj''}',...
 	'nC',[Inf,Inf],'iCC',{{[5,7,8],[5,7,8]}},'iCFI',{{[1,5,7],[1,5,7]}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-7,9],'GM',50,...
 	'iGloNorm',[7,8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',0))];
 
 %-Population comparisons
@@ -1730,7 +1754,7 @@ D = [D, struct(...
 	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
@@ -1742,7 +1766,7 @@ D = [D, struct(...
 	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',0))];
 
 D = [D, struct(...
@@ -1753,7 +1777,7 @@ D = [D, struct(...
 	'nC',[0,0],'iCC',{{8,8}},'iCFI',{{1,1}},...
 	'iGXcalc',[1,2,-3],'iGMsca',[-1,9],'GM',50,...
 	'iGloNorm',[8,9],'iGC',10,...
-	'M_',struct('T',[-Inf,0,0.8*sqrt(-1)],'I',Inf,'X',Inf),...
+	'M_',struct('T',[0,0.8*sqrt(-1)],'I',0,'X',0),...
 	'b',struct('aTime',0))];
 
 %-The Full Monty!
