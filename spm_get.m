@@ -64,8 +64,7 @@ function [P] = spm_get(n,Suffix,Prompt,Prefix,NewWDir,CmdLine)
 %                                and unselection of filenames. Doesn't cd!
 %                                Negative n for directory selection.
 
-%
--Condition arguments
+%-Condition arguments
 %-----------------------------------------------------------------------------
 if nargin<6 CmdLine=[]; end
 if nargin<5 NewWDir=''; end
