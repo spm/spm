@@ -186,8 +186,10 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % 
 %     xM        - as input (but always in the structure format)
 %
-%     Vbeta     - array of handle structures for beta images
-%     VResMS    - handle structure of ResMS image
+%     M         - 4x4 voxel->mm transformation matrix
+%     DIM       - image dimensions {voxels} - column vector
+%     Vbeta     - cellstr of beta image filenames (relative)
+%     VResMS    - relative filename of ResMS image
 %     XYZ       - 3xS (S below) vector of in-mask voxel coordinates
 %     F_iX0     - structure array of default F-contrasts
 %     F_iX0.iX0 - as input
@@ -370,13 +372,15 @@ for i=1:length(files)
 	end
 end
 
-%-Check Y images have same dimensions, orientation & voxel size
+%-Check & note Y images dimensions, orientation & voxel size
 %-----------------------------------------------------------------------
 if any(any(diff(cat(1,VY.dim),1,1),1)&[1,1,1,0]) % NB: Bombs for single image
 	error('images do not all have the same dimensions'), end
 if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 	error('images do not all have same orientation & voxel size'), end
 
+M   = VY(1).mat;
+DIM = VY(1).dim(1:3)';
 
 
 %=======================================================================
@@ -477,8 +481,8 @@ XYZ = [];
 %-Intialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
 VM = struct(		'fname',	'mask.img',...
-			'dim',		[VY(1).dim(1:3),spm_type('uint8')],...
-			'mat',		VY(1).mat,...
+			'dim',		[DIM',spm_type('uint8')],...
+			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:resultant analysis mask');
 VM = spm_create_image(VM);
@@ -488,8 +492,8 @@ VM = spm_create_image(VM);
 %-----------------------------------------------------------------------
 Vbeta(1:nBeta) = deal(struct(...
 			'fname',	[],...
-			'dim',		[VY(1).dim(1:3) spm_type('float')],...
-			'mat',		VY(1).mat,...
+			'dim',		[DIM',spm_type('float')],...
+			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	''));
 for i=1:nBeta
@@ -503,8 +507,8 @@ end
 %-Intialise residual sum of squares image file
 %-----------------------------------------------------------------------
 VResMS = struct(	'fname',	'ResMS.img',...
-			'dim',		[VY(1).dim(1:3) spm_type('double')],...
-			'mat',		VY(1).mat,...
+			'dim',		[DIM',spm_type('double')],...
+			'mat',		M,...
 			'pinfo',	[1 0 0]',...
 			'descrip',	'spm_spm:Residual sum-of-squares');
 VResMS = spm_create_image(VResMS);
@@ -594,7 +598,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	% (note that these may not have same orientations)
 	%---------------------------------------------------------------
 	for i = 1:length(xM.VM)
-		tM   = inv(xM.VM(i).mat)*VY(1).mat;	%-Reorientation matrix
+		tM   = inv(xM.VM(i).mat)*M;		%-Reorientation matrix
 		tmp  = tM * [xyz;ones(1,size(xyz,2))];	%-Coords in mask image
 
 		%-Load mask image within current mask & update mask
@@ -910,7 +914,7 @@ VResMS.pinfo(1) = 1/xX.trRV;
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
-%-"close" image files, updating scalefactor information
+%-"close" written image files, updating scalefactor information
 %=======================================================================
 VM                      = spm_create_image(VM);
 for i=1:nBeta, Vbeta(i) = spm_create_image(Vbeta(i)); end
@@ -941,6 +945,14 @@ R    = spm_resels_vol(VM,FWHM)';
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
 
 
+%-Unmap files, retaining image names
+%-----------------------------------------------------------------------
+%-** VY     = {VY.fname}';
+%-** if isstruct(xM.VM), xM.VM = {xM.VM.fname}'; end
+VM     = VM.fname;
+Vbeta  = {Vbeta.fname}';
+VResMS = VResMS.fname;
+
 
 %-Save remaining results files and analysis parameters
 %=======================================================================
@@ -953,7 +965,8 @@ if UFp > 0, save Yidx Yidx, end
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...	%-General design parameters
-		'Vbeta','VResMS',...		%-Handles of beta & ResMS images
+		'M','DIM',...			%-Image space parameters
+		'VM','Vbeta','VResMS',...	%-Handles of beta & ResMS images
 		'XYZ',...			%-InMask XYZ voxel coords
 		'F_iX0','UFp','UF',...		%-F-thresholding data
 		'S','R','Lambda','W','FWHM'};	%-Smoothness data
