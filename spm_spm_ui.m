@@ -51,15 +51,14 @@ function spm_spm_ui
 % %W% Andrew Holmes, Karl Friston %E%
 
 
-%-Get filenames and other user specified parameters
+%-Clear and label Interactive window
 %=======================================================================
-
-%-Get filenames and create design matrix
-%-----------------------------------------------------------------------
-set(2,'Name','Statistical analysis'); drawnow
+Finter = spm_figure('FindWin','Interactive');
+spm_clf(Finter)
+set(Finter,'Name','Statistical analysis');
 
 %-Design parameters
-%-----------------------------------------------------------------------
+%=======================================================================
 
 Designs = str2mat(...
 	'SPM94 style questioning',...					%-0
@@ -77,7 +76,8 @@ Designs = str2mat(Designs,...
 	'Multi-study: with replications',...				%-3b
 	'Multi-study: condition & covariates',...			%-3c
 	'Multi-study: covariates only');				%-3d
-
+Designs = str2mat(Designs,...
+	'Compare-groups: 1 scan per subject');				%-4
 
 DesPrams = str2mat(...
 	'bMStud','bMSubj','bMCond','bMRepl','iHForm',...
@@ -96,7 +96,8 @@ DesDefaults = [ ...
 1,	1,	1,	0,	4,	0,	0,	12345;...	%-3a
 1,	1,	1,	1,	5,	0,	0,	12345;...	%-3b
 1,	1,	1,	0,	4,	1,	1,	12345;...	%-3b
-1,	1,	0,	1,	3,	1,	1,	12345	];	%-3d
+1,	1,	0,	1,	3,	1,	1,	12345;...	%-3d
+1,	1,	0,	0,	6,	0,	0,	123	];	%-4
 
 sGloNorm = str2mat(...
 	'No Global Normalisation',...
@@ -110,8 +111,9 @@ HForms = str2mat(...
 	'iCond,''-'',''Cond''',...
 	'[]',...
 	'[iStud'',iCond''],''-'',str2mat(''Stud'',''Scan'')',...
-	'[iStud'',iCond''],''-'',str2mat(''Stud'',''Cond'')');
-
+	'[iStud'',iCond''],''-'',str2mat(''Stud'',''Cond'')',...
+	'iStud,''-'',''Group''');
+dBetGrp = 6; %-Between group designs
 
 if ( size(Designs,1) ~= size(DesDefaults,1)) | ...
 	(size(DesPrams,1) ~= size(DesDefaults,2))
@@ -125,13 +127,14 @@ end
 % bMSubj   - Multi-Subject ?
 % bMCond   - Multi-Condition ? (No for correlation studies)
 % bMRepl   - Multiple replications per condition ?
+% bBetGrp  - Between group comparison?
 % iHForm   - Index to HForm for this design
 % bAskCov  - Ask for covariates and confounds?
 % iGloNorm - Global normalisation code, or allowable codes
 % bAskFDCs - Ask for [confounding] factor dependent covariate modelling
 %            (Seperate slope parameter for each subject/study)
-% sStud    - study number string (for i/o)
-% sSubj    - subject number string (for i/o)
+% sStudP   - study # prompt string (for i/o)
+% sSubjP   - subject # prompt string (for i/o)
 % nStud    - number of studies
 % nSubj    - number of subjects (current study)
 % bBalCond - balanced conditions (scans) per subject (current study)
@@ -148,66 +151,66 @@ iRepl   = [];		% replication (per condition) index
 P       = [];		% string matrix of filenames
 J       = 1;		% Position of user interafce input
 
-DesType = spm_input('Select design type...',J,'m',Designs); J = J + 1;
+%-Get design type
+%-----------------------------------------------------------------------
+DesType = spm_input('Select design type...',1,'m',Designs); J = J + 1;
 DesName = deblank(Designs(DesType,:));
 for p   = 1:size(DesPrams,1)
     eval([deblank(DesPrams(p,:)),' = DesDefaults(DesType,p);']), end
 HForm   = HForms(iHForm,:);
 
+%-Specials for between group comparison design
+%-----------------------------------------------------------------------
+bBetGrp = any(dBetGrp==iHForm);
+if ~bBetGrp, sStud='Study'; else, sStud='Group'; end
 
 %-Get filenames, accrue study, subject, condition & replication indicies
 %-----------------------------------------------------------------------
 nStud     = 1;
 if bMStud
-    nStud = spm_input('Number of studies ?',J); J = J + 1; end
+    nStud = spm_input(['Number of ',lower(sStud),'s ?'],J); J = J + 1; end
 J0        = J;
 for stud  = 1:nStud
 	J     = J0;
-	sStud = []; if bMStud sStud = ['Study ',int2str(stud),': ']; end
+	sStudP = []; if bMStud, sStudP = [sStud,' ',int2str(stud),': ']; end
 	nSubj = 1;
-	if bMSubj nSubj = spm_input([sStud,'# of subjects ?'],J); J = J + 1; end
+	if bMSubj
+		nSubj = spm_input([sStudP,'# of subjects ?'],J); J = J + 1;
+	end
 
 	if bMCond
-		nCond = spm_input([sStud,'# of conditions ? '],J);
-		J = J + 1;
+		nCond = spm_input([sStudP,'# of conditions ? '],J); J = J + 1;
 	else
 		nCond = 1;
 	end
 
 	if nCond == 1 & ~bMRepl %-Single scan per subject case
-		if nSubj<=1
-		    fprintf('%cOnly 1 subj. 1cond & no repl?\n',7)
-		    return
-		end
-
-		t_str = [sStud,'Select scans, subjects 1 - ',int2str(nSubj)];
+		t_str = [sStudP,'Select scans, subjects 1 - ',int2str(nSubj)];
  		P     = str2mat(P,spm_get(nSubj,'.img',t_str));
 		iStud = [iStud, stud*ones(1,nSubj)];
 		iSubj = [iSubj, [1:nSubj]];
 		iCond = [iCond, ones(1,nSubj)];
 		iRepl = [iRepl, ones(1,nSubj)];
-
 	else %-Multi scan per subject case
-
 		for subj      = 1:nSubj
-			sSubj = [];
-			if bMSubj sSubj = ['Subj.',int2str(subj),': ']; end
+			sSubjP = [];
+			if bMSubj sSubjP = ['Subj.',int2str(subj),': ']; end
 			if ~bMRepl %-No replications within conditions
-				t_str = [sStud,sSubj,'Select scans ',...
+				t_str = [sStudP,sSubjP,'Select scans ',...
 					 'conditions 1 -',int2str(nCond)];
- 				P     = str2mat(P,spm_get(nCond,'.img',t_str));
+ 				P = str2mat(P,spm_get(nCond,'.img',t_str));
 				iStud = [iStud, stud*ones(1,nCond)];
 				iSubj = [iSubj, subj*ones(1,nCond)];
 				iCond = [iCond, 1:nCond];
 				iRepl = [iRepl, ones(1,nCond)];
 			else
-
 			    for cond  = 1:nCond
 				t_str = [];
 				if nCond > 1
 					t_str = sprintf('Condition %d:',cond);
 				end
-				t_str = [sStud,sSubj,t_str,' Select scans...'];
+				t_str = [sStudP,sSubjP,t_str,...
+					' Select scans...'];
 				tP    = spm_get(Inf,'.img',t_str);
 				nRepl = size(tP,1);
 				P     = str2mat(P,tP);
@@ -235,12 +238,12 @@ q       = length(iStud);
 %-----------------------------------------------------------------------
 nSubj	= iSubj([diff(iStud),1]);   			%-#subject per study
 nSUBJ	= sum(nSubj);               			%-#subjects in total
-temp	= cumsum([0,nSubj]);
-iSUBJ	= iSubj+temp(cumsum([1,diff(iStud)])); 		%-Index to subjects
+tmp	= cumsum([0,nSubj]);
+iSUBJ	= iSubj+tmp(cumsum([1,diff(iStud)])); 		%-Index to subjects
 nCond   = []; for stud=1:nStud, nCond=[nCond,max(iCond(iStud==stud))]; end
 nCOND	= sum(nCond);               			%-#conditions in total
-temp	= cumsum([0,nCond]);
-iCOND   = iCond+temp(cumsum([1,diff(iStud)])); 		%-Index to conditions
+tmp	= cumsum([0,nCond]);
+iCOND   = iCond+tmp(cumsum([1,diff(iStud)])); 		%-Index to conditions
 
 
 %-Build Constant, Condition and Block partitions
@@ -258,8 +261,8 @@ if (nCOND == 1) | (nCOND == q)			%-Unestimable effects
 if (nSUBJ == 1) | (nSUBJ == q)			%-Unestimable effects
 	B = []; Bnames = [];
 else
-	%-Use implicit SumToZero constraints via relative block effects & pinv.
-	%-See spm_DesMtx for more information on this.
+	%-Use implicit SumToZero constraints via relative block effects & 
+	% MatLabs pinv. See spm_DesMtx for more information on this.
 	%---------------------------------------------------------------
 	[B,Bnames] = spm_DesMtx(iSUBJ,'+0m','SUBJ');
 end % 
@@ -551,7 +554,7 @@ Q     = P(:,[(d + 1):size(P,2)]);
 figure(Fgraph); spm_clf; axis off
 text(0.30,1.02,'Statistical analysis','Fontsize',16,'Fontweight','Bold');
 text(-0.10,0.85,'Scan Index','Rotation',90)
-if bMStud, text(-0.05,0.85,'Study',      'Rotation',90); end
+if bMStud, text(-0.05,0.85,sStud,        'Rotation',90); end
 if bMSubj, text(+0.00,0.85,'Subject',    'Rotation',90); end
 if bMCond, text(+0.05,0.85,'Condition',  'Rotation',90); end
 if bMRepl, text(+0.10,0.85,'Replication','Rotation',90); end
