@@ -1,5 +1,5 @@
 function PPI = spm_peb_ppi(SPM)
-% computes either physiophysiologic or psychophysiologic interactions
+% Bold deconvolution to create physio- or psycho-physiologic interactions
 % FORMAT PPI = spm_peb_ppi(SPM);
 %
 % SPM    - Structure containing generic details about the analysis
@@ -18,11 +18,10 @@ function PPI = spm_peb_ppi(SPM)
 %---------------------------------------------------------------------
 %
 % This routine is effectively a hemodynamic deconvolution using 
-% emprical priors and EM to deconvolve the HRF from a hemodynamic
+% full priors and EM to deconvolve the HRF from a hemodynamic
 % time series to give a neuronal time series [that can be found in
-% PPI.xn].  This deconvolution is like Weiner filtering with
-% emprically [automatically] determined priors.
-% The neuronal sequence is then used to form PPIs.....
+% PPI.xn].  This deconvolution conforms to Weiner filtering 
+% The neuronal process is then used to form PPIs.....
 %
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % ==================================================================
@@ -52,8 +51,8 @@ function PPI = spm_peb_ppi(SPM)
 %
 % The source's hemodynamics are x = HRF*xn;
 %
-% Using the constraint that xn should be continous and smooth 
-% we can expand x in terms of some temporal basis set (xb)
+% Using the constraint that xn should have a uniform spectral density 
+% we can expand x in terms of a discrete cosine set (xb)
 %
 %      xn  = xb*B
 %       B  = parameter estimate
@@ -62,12 +61,15 @@ function PPI = spm_peb_ppi(SPM)
 %
 %       x  = HRF(k,:)*xn
 %       x  = HRF(k,:) * xb * B
-%       B  = pinv(HRF(k,:)*Xb) * x
 %
 % This accounts for different time resolutions between
 % our hemodynamic signal and the discrete representation of
 % the psychological variable. In this case k is a vector 
 % representing the time resolution of the scans.
+%
+% Conditional estimates of B allow for priors that ensure
+% uniform variance over frequencies.
+%
 %---------------------------------------------------------------------
 % %W% Darren Gitelman %E%
 
@@ -76,6 +78,7 @@ function PPI = spm_peb_ppi(SPM)
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure;
 header = get(Finter,'Name');
+
 
 % check inputs and set up variables
 %----------------------------------------------------------------------
@@ -88,6 +91,7 @@ RT     = SPM.xY.RT;
 dt     = SPM.xBF.dt;
 NT     = RT/dt;
 
+
 % Ask whether to perform physiophysiologic or psychophysiologic interactions
 %--------------------------------------------------------------------------
 set(Finter,'name','PPI Setup')
@@ -96,6 +100,7 @@ ppiflag    = {	'simple deconvolution',...
 		'physiophysiologic interaction'};
 i          = spm_input('Analysis type?',1,'m',ppiflag);
 ppiflag    = ppiflag{i};
+
 
 switch ppiflag
     
@@ -107,6 +112,7 @@ case  'simple deconvolution'
     p      = load(P{1},'xY');
     xY(i)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
+
     
     
 case  'physiophysiologic interaction' % interactions between 2 regions
@@ -118,6 +124,7 @@ case  'physiophysiologic interaction' % interactions between 2 regions
         xY(i)  = p.xY;
     end
     Sess   = SPM.Sess(xY(1).Sess);
+
     
     
 case  'psychophysiologic interaction'  % get hemodynamic response 
@@ -155,19 +162,18 @@ end % (switch setup)
 %-------------------------------------------------------------------------
 PPI.name    = spm_input('Name of PPI',3,'s','PPI');
 
-% type of estimation (Full or emprical): Enforce Full
-%-------------------------------------------------------------------------
-% PPI.Bayes = spm_input('Name of PPI',4,'b',{'Full','Emprical'},[],2);
 
 % Setup variables
 %-------------------------------------------------------------------------
 N     = length(xY(1).u);
 k     = 1:NT:N*NT;  			% microtime to scan time indices
 
+
 % create basis functions and hrf in scan time and microtime
 %-------------------------------------------------------------------------
 spm('Pointer','watch')
 hrf   = spm_hrf(dt);
+
 
 % get neuronal inputs {xu}
 %-------------------------------------------------------------------------
@@ -180,6 +186,7 @@ for i = 1:length(Sess.U)
     end
 end
 M     = size(xu,2);
+
 
 % create convolved explanatory {Hxb and Hxu} variables in scan time
 %-------------------------------------------------------------------------
@@ -196,10 +203,12 @@ for i = 1:M
 end
 xb    = xb(129:end,:);
 
+
 % get confounds (in scan time) and constant term
 %-------------------------------------------------------------------------
-X0    = xY.X0;
+X0    = xY(1).X0;
 K     = size(X0,2);
+
 
 % get response variable,
 %-------------------------------------------------------------------------
@@ -207,7 +216,8 @@ for i = 1:size(xY,2)
     Y(:,i) = xY(i).u;
 end
 
-% remove confounds and save in ouput structure
+
+% remove confounds and save Y in ouput structure
 %-------------------------------------------------------------------------
 Yc    = Y - X0*inv(X0'*X0)*X0'*Y;
 PPI.Y = Yc(:,1);
@@ -215,32 +225,32 @@ if size(Y,2) == 2
     PPI.P  = Yc(:,2);
 end
 
-% specify covariance components; assume neuronal response is G
+
+% specify covariance components; assume neuronal response is white
 %-------------------------------------------------------------------------
 C     = {sparse([1:N],[1:N],1,                M + N + K,M + N + K),...
          sparse([1:M] + N,[1:M] + N,1,        M + N + K,M + N + K),...
          sparse([1:K] + N + M,[1:K] + N + M,1,M + N + K,M + N + K)};
 
+
 % get whitening matrix (NB: confounds have already been whitened)
 %-------------------------------------------------------------------------
 W     = SPM.xX.W;
 
-% fix hyperparameters if Full Bayes has been requested
+
+% treat designed effects and confounds as fixed
 %-------------------------------------------------------------------------
-try
-switch PPI.Bayes
-case 'Full'
-	h  = [32 1e6 1e6];
-	C  = h(1)*C{1} + h(2)*C{2} + h(3)*C{3}; 
-end
-end
+h     = [32 1e6 1e6];
+C     = h(1)*C{1} + h(2)*C{2} + h(3)*C{3}; 
+
 
 % create structure for spm_PEB
 %-------------------------------------------------------------------------
 P{1}.X = [W*Hxb W*Hxu X0];	% Design matrix for lowest level
-P{1}.C = speye(N,N)/2;		% i.i.d assumptions
+P{1}.C = speye(N,N);		% i.i.d assumptions
 P{2}.X = sparse(N + M + K,1);	% Design matrix for parameters (0's)
 P{2}.C = C;
+
 
 switch ppiflag
     
@@ -267,6 +277,7 @@ case  'simple deconvolution'
     xlabel('time (secs)')
     axis tight square
     grid on
+    legend('BOLD','neuronal')
     
 case  'physiophysiologic interaction' % PHYSIOPHYSIOLOGIC INTERACTIONS
     %=====================================================================
@@ -308,6 +319,8 @@ case  'physiophysiologic interaction' % PHYSIOPHYSIOLOGIC INTERACTIONS
     xlabel('time (secs)')
     axis tight square
     grid on
+    legend('BOLD','neuronal')
+
     
     subplot(2,2,4)
     plot(t,Yc(:,2),T,PPI.xn(:,2))
@@ -315,6 +328,7 @@ case  'physiophysiologic interaction' % PHYSIOPHYSIOLOGIC INTERACTIONS
     xlabel('time (secs)')
     axis tight square
     grid on
+    legend('BOLD','neuronal')
     
     
     
@@ -376,6 +390,7 @@ case  'psychophysiologic interaction'
     xlabel('time (secs)')
     axis tight square
     grid on
+    legend('BOLD','neuronal')
     
     subplot(2,2,3)
     plot(t,PPI.P,T,PSY,'--')
