@@ -35,9 +35,9 @@ spm_project.c
 #define DX 182
 #define DY 218
 #define DZ 182
-#define CX 91
-#define CY 127
-#define CZ 73
+#define CX 89
+#define CY 125
+#define CZ 71
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -84,13 +84,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			y = (int)rint(l[i*3 + 1]) + CY;
 			z = (int)rint(l[i*3 + 2]) + CZ;
 
-			if (x-xdim/2>=0 && x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
+			if (2*CX-x-xdim/2>=0 && 2*CX-x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
 			{
 				q = v[i];
 				for (j = -ydim/2; j <= ydim/2; j++)
 					for (k = -xdim/2; k <= xdim/2; k++)
 					{
-						o = j + y - 2 + (k + DX - x - 2)*m;
+						o = j + y + (k + 2*CX-x)*m;
 						if (spm[o]<q) spm[o] = q;
 					}
 			}
@@ -101,7 +101,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 				for (j = -ydim/2; j <= ydim/2; j++)
 					for (k = -zdim/2; k <= zdim/2; k++)
 					{
-						o = j + y - 2 + (DX + k + z - 2)*m;
+						o = j + y + (DX + k + z)*m;
 						if (spm[o]<q) spm[o] = q;
 					}
 			}
@@ -112,7 +112,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 				for (j = -xdim/2; j <= xdim/2; j++)
 					for (k = -zdim/2; k <= zdim/2; k++)
 					{
-						o = DY + j + x - 2 + (DX + k + z - 2)*m;
+						o = DY + j + x + (DX + k + z)*m;
 						if (spm[o]<q) spm[o] = q;
 					}
 			}
