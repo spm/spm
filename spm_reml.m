@@ -18,7 +18,7 @@ function [Ce,h,W,u,Q] = spm_reml(Cy,X,Q);
 % Tolerances 
 %---------------------------------------------------------------------------
 TOL   = 1e-6;       % for convergence [norm of gradient df/dh]
-TOS   = 1e-16;	    % for SVD of curvature [ddf/dhdh]
+TOS   = 1e-6;	    % for SVD of curvature [ddf/dhdh]
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
@@ -133,12 +133,12 @@ for k = 1:32
     %-------------------------------------------------------------------
     dh    = pinv(W)*dFdh(:);
     
-    % Convergence (or break if there is only one hyperparameter)
+    % Convergence
     %===================================================================
-    w     = dFdh'*dFdh;
-    if w < TOL, break, end
+    w     = dh'*dh;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
-    
+    if w < TOL, break, end
+
 end
 
 % rotate hyperparameter esimates and precision back
