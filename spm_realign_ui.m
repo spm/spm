@@ -310,7 +310,7 @@ if (nargin == 0)
 	% Reslicing options
 	%-----------------------------------------------------------------------
 	if WhchPtn == 2 | WhchPtn == 3,
-		FlagsR = struct('hold',1,'mask',0,'what',2,'mean',1);
+		FlagsR = struct('hold',1,'mask',0,'which',2,'mean',1);
 		FlagsR.hold = spm_input('Reslice interpolation method?',pos,'m',...
 			     'Trilinear Interpolation|Sinc Interpolation|Fourier space Interpolation',...
 			     [1 -9 Inf],2,'batch',{},'reslice_method');
@@ -325,11 +325,11 @@ if (nargin == 0)
 				[1 2 3 4],3,'batch',{},'create');
 			pos = pos + 1;
 		end
-		if (p == 1) FlagsR.what = 2; FlagsR.mean = 0; end
-		if (p == 2) FlagsR.what = 1; FlagsR.mean = 0; end
-		if (p == 3) FlagsR.what = 2; FlagsR.mean = 1; end
-		if (p == 4) FlagsR.what = 0; FlagsR.mean = 1; end
-		if FlagsR.what > 0,
+		if (p == 1) FlagsR.which = 2; FlagsR.mean = 0; end
+		if (p == 2) FlagsR.which = 1; FlagsR.mean = 0; end
+		if (p == 3) FlagsR.which = 2; FlagsR.mean = 1; end
+		if (p == 4) FlagsR.which = 0; FlagsR.mean = 1; end
+		if FlagsR.which > 0,
 			if sptl_MskOptn == 1,
 				FlagsR.mask = 1;
 			else,
