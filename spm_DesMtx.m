@@ -541,9 +541,11 @@ while(Carg <= nargin)
     end
 end
 
+%-Trim off redundent trailing spaces from nEnames
 X      = nX;
-Enames = nEnames;
-disp('Strip off redundent trailing spaces')
+Enames = nEnames(:,1:...
+		min(find([fliplr(cumprod(fliplr(all(nEnames==' ',1)))),1]))-1 );
+
 
 
 otherwise                              %-Mis-specified arguments - ERROR
