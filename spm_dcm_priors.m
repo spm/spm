@@ -81,17 +81,23 @@ for i = 1:5
 	Jq(:,i) = (q - J)/dp;
 end
 
-% orthonalize w.r.t amplitude modulations of HRF (J)
+
+% implied covariance of impulse response
 %---------------------------------------------------------------------------
-R     = speye(5,5) - (pinv(Jq)*J)*(pinv(J)*Jq);
-qC    = R*qC*R;
+Cq    = Jq*qC*Jq';
+
+% [ orthonalize w.r.t amplitude modulations of HRF (J) ]
+%---------------------------------------------------------------------------
+R     = speye(M.N,M.N) - J*pinv(J);
+% Cq  = R*Cq*R;
 
 % and reduce to h hemodynamic modes
 %---------------------------------------------------------------------------
 h     = 1:2;					
-[v s] = spm_svd(qC);
-qC    = v(:,h)*s(h,h)*v(:,h)';
-
+[v s] = spm_svd(Cq);
+v     = v(:,h);
+Cq    = v*v'*Cq*v*v';
+qC    = pinv(Jq)*Cq*pinv(Jq');
 
 % combine connectivity and hemodynamic priors
 %===========================================================================
@@ -115,6 +121,7 @@ grid on
 
 % graphics - response differentials
 %---------------------------------------------------------------------------
+[v s] = spm_svd(qC);
 subplot(2,2,2)
 plot([1:M.N]*M.dt,Jq*v(:,h)*sqrt(s(h,h)))
 xlabel('PST {secs}')
