@@ -196,8 +196,6 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %     xX.erdf   - effective residual degrees of freedom (trRV^2/trRVRV)
 %     xX.nKX    - design matrix (xX.xKXs.X) scaled for display
 %                 (see spm_DesMtx('sca',... for details)
-%     xX.X0     - (MV use only: Null design partition of original contrast)
-%     xX.pX0    - (MV use only: Pseudo-inverse of above)
 % 
 %     xM        - as input (but always in the structure format)
 %
@@ -490,12 +488,10 @@ if nVar > 1
 
 	fprintf('%s%30s',sprintf('\b')*ones(1,30),'...multivariate prep')%-#
 
-	% pseudoinverse of null partition X0 & orthogonlize KX w.r.t. it
+	% pseudoinverse of null partition KX0
 	%---------------------------------------------------------------
-	xX.X0     = spm_FcUtil('X0',xCon(1),xX.xKXs);
-	xX.pX0    = pinv(xX.X0);
-	% xX.xKXs   = spm_sp('Set',[xCon.X1o xCon.X0]);
-	% xX.pKX    = spm_sp('x-',xX.xKXs);
+	KX0         = spm_FcUtil('X0',xCon(1),xX.xKXs);
+	pKX0        = pinv(KX0);
 
 	%-Modify Contrast structure for multivariate inference
 	%---------------------------------------------------------------
@@ -798,7 +794,7 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			
 			%-parameter estimates
 			%-----------------------------------------------
-			y(:,:,i)  = y(:,:,i) - xX.X0*(xX.pX0 * y(:,:,i));
+			y(:,:,i)  = y(:,:,i) - KX0*(pKX0 * y(:,:,i));
 			BETA      = xX.pKX * y(:,:,i);
 			h         = xX.xKXs.X * BETA;
 			r         = y(:,:,i) - h;
