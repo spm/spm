@@ -166,7 +166,8 @@ while max(Z) & (y > 0)
     	%--------------------------------------------------------------------
 	[U i] = max(Z);				% largest Z value
 	j     = find(A == A(i));		% maxima in cluster
-	Pk    = spm_P(1,W,u,N(i),S);		% cluster-level p value
+	Pkn   = spm_Pkn(N(i),U-u,W,u,S);
+%	Pk    = spm_P(1,W,u,N(i),S);		% cluster-level p value
 	Pu    = spm_P(1,W,U,0,S);		% voxel-level p value
 	Pz    = 1 - spm_Ncdf(U);		% uncorrected p value
 
@@ -174,7 +175,7 @@ while max(Z) & (y > 0)
 
 	% print cluster and maximum voxel-level p values {Z}
 	%-------------------------------------------------------------------
-        str   = sprintf('%-0.3f   (%i, %0.2f)',Pk,N(i),U);
+        str   = sprintf('%-0.3f   (%i, %0.2f)',Pkn,N(i),U);
 	text(0.18,y,str,'FontSize',8,'FontWeight','Bold')
         str   = sprintf('%-0.3f   (%-0.2f)',Pu,U);
 	text(0.44,y,str,'FontSize',8,'FontWeight','Bold')
