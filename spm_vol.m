@@ -53,11 +53,12 @@ end;
 return;
 
 function V = subfunc1(P)
-if size(P,1)==0,
-	V=[];
-else,
-	V(size(P,1),1) = struct('fname','', 'dim', [0 0 0 0], 'mat',eye(4), 'pinfo', [1 0 0]');
+if isempty(P),
+	V = [];
+	return;
 end;
+
+V(size(P,1),1) = struct('fname','', 'dim', [0 0 0 0], 'mat',eye(4), 'pinfo', [1 0 0]');
 for i=1:size(P,1),
 	v = subfunc(P(i,:));
 	if isempty(v),
