@@ -91,11 +91,14 @@ function spm_realign(P,Flags)
 % of images.
 %
 % 'Adjust for motion in Z?' (fMRI only)
-% Adjust the data (fMRI) to remove movement-related components.
-% The adjustment procedure is based on a autoregression-moving average-like
-% model of the effect of position on signal and explicitly includes a spin
-% excitation history effect. Do not use this option if you are reslicing
-% any less than about 20 images.
+% Adjust the data (fMRI) to remove movement-related components.  The
+% adjustment procedure is based on a autoregression-moving average-like
+% model (ARMA) of the effect of position on signal and explicitly
+% includes a spin excitation history effect. Do not use this option if
+% you are reslicing any less than about 20 images or your TR is
+% sufficiently long for these effects to be discounted (e.g. 6 secs).
+% Clearly the ARMA model assumes that the scans are entered in the order
+% of acquisition.
 %
 %____________________________________________________________________________
 % TO OBTAIN SIMILAR RESULTS TO SPM95, select:
