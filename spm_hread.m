@@ -55,12 +55,12 @@ if sizeof_hdr==1543569408, % Appears to be other-endian
 	otherendian = 1;
 end;
 
-data_type  	= mysetstr(fread(fid,10,'char'))';
-db_name    	= mysetstr(fread(fid,18,'char'))';
+data_type  	= mysetstr(fread(fid,10,'uchar'))';
+db_name    	= mysetstr(fread(fid,18,'uchar'))';
 extents    	= fread(fid,1,'int32');
 session_error   = fread(fid,1,'int16');
-regular    	= mysetstr(fread(fid,1,'char'))';
-hkey_un0    	= mysetstr(fread(fid,1,'char'))';
+regular    	= mysetstr(fread(fid,1,'uchar'))';
+hkey_un0    	= mysetstr(fread(fid,1,'uchar'))';
 
 
 
@@ -69,8 +69,8 @@ hkey_un0    	= mysetstr(fread(fid,1,'char'))';
 fseek(fid,40,'bof');
 
 dim    		= fread(fid,8,'int16');
-vox_units    	= mysetstr(fread(fid,4,'char'))';
-cal_units    	= mysetstr(fread(fid,8,'char'))';
+vox_units    	= mysetstr(fread(fid,4,'uchar'))';
+cal_units    	= mysetstr(fread(fid,8,'uchar'))';
 unused1		= fread(fid,1,'int16');
 datatype	= fread(fid,1,'int16');
 bitpix		= fread(fid,1,'int16');
@@ -91,16 +91,16 @@ glmin		= fread(fid,1,'int32');
 %---------------------------------------------------------------------------
 fseek(fid,148,'bof');
 
-descrip		= mysetstr(fread(fid,80,'char'))';
-aux_file	= mysetstr(fread(fid,24,'char'))';
-orient		= fread(fid,1,'char');
+descrip		= mysetstr(fread(fid,80,'uchar'))';
+aux_file	= mysetstr(fread(fid,24,'uchar'))';
+orient		= fread(fid,1,'uchar');
 origin		= fread(fid,5,'int16');
-generated	= mysetstr(fread(fid,10,'char'))';
-scannum		= mysetstr(fread(fid,10,'char'))';
-patient_id	= mysetstr(fread(fid,10,'char'))';
-exp_date	= mysetstr(fread(fid,10,'char'))';
-exp_time	= mysetstr(fread(fid,10,'char'))';
-hist_un0	= mysetstr(fread(fid,3,'char'))';
+generated	= mysetstr(fread(fid,10,'uchar'))';
+scannum		= mysetstr(fread(fid,10,'uchar'))';
+patient_id	= mysetstr(fread(fid,10,'uchar'))';
+exp_date	= mysetstr(fread(fid,10,'uchar'))';
+exp_time	= mysetstr(fread(fid,10,'uchar'))';
+hist_un0	= mysetstr(fread(fid,3,'uchar'))';
 views		= fread(fid,1,'int32');
 vols_added	= fread(fid,1,'int32');
 start_field	= fread(fid,1,'int32');
