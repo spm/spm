@@ -43,7 +43,11 @@ else
 	C{1}  = spm_Q(a,v);
 	dCda  = spm_diff('spm_Q',a,v,1);
 	for i = 1:length(a)
-		C{i + 1} = reshape(dCda(:,i),v,v);
+            try
+		C{i + 1} = dCda{i};
+            catch
+                C{i + 1} = dCda;
+            end
 	end
 
 end
