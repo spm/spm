@@ -40,6 +40,11 @@ function H = spm_orthviews(action,arg1,arg2,arg3)
 % returns the voxel co-ordinate of the crosshairs in the image in the
 % ith orthogonal section.
 %
+% FORMAT spm_orthviews('Xhairs','off') OR spm_orthviews('Xhairs')
+% disables the cross-hairs on the display.
+%
+% FORMAT spm_orthviews('Xhairs','on')
+% enables the cross-hairs.
 %_______________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -56,7 +61,7 @@ fig = spm_figure('FindWin','Graphics');
 
 if isempty(st),
 	bb     = [ [-78 78]' [-112 76]' [-50 85]' ];
-	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';');
+	st = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1);
 	st.vols = cell(24,1);
 end;
 
@@ -93,6 +98,10 @@ if strcmp(action,'image'),
 		set(ax,'Ydir','normal');
 		lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
 		ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
+		if ~st.xhairs,
+			set(lx,'Visible','off');
+			set(ly,'Visible','off');
+		end;
 		V.ax{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
 	end;
 
@@ -308,7 +317,8 @@ if strcmp(action,'maxbb'),
 				bb(2,1) bb(1,2) bb(2,3) 1
 				bb(2,1) bb(2,2) bb(1,3) 1
 				bb(2,1) bb(2,2) bb(2,3) 1]';
-			tc = st.Space*st.vols{i}.mat*c;
+			%tc = st.vols{i}.mat*c;
+			tc = st.Space\st.vols{i}.mat*c;
 			tc = tc(1:3,:)';
 			mx = max([tc ; mx]);
 			mn = min([tc ; mn]);
@@ -320,7 +330,7 @@ end;
 
 if (strcmp(action,'resolution')),
 	if nargin ~= 2, return; end
-	res = arg1;
+	res = arg1/mean(svd(st.Space(1:3,1:3)));
 	Mat = diag([res res res 1]);
 	st.Space = st.Space*Mat;
 	st.bb = st.bb/res;
@@ -354,13 +364,13 @@ if (strcmp(action,'replace')),
 	spm_orthviews('Image',image,area);
 end;
 
-if (strcmp(action,'reset')),
+if strcmp(action,'reset'),
 	if nargin ~= 1, return; end
 	spm_orthviews('Delete',1:24);
 	st = [];
 end;
 
-if (strcmp(action,'pos')),
+if strcmp(action,'pos'),
 	H = st.centre(:);
 	% H = st.Space(1:3,1:3)*st.centre(:) + st.Space(1:3,4);
 	if nargin >= 2,
@@ -369,6 +379,27 @@ if (strcmp(action,'pos')),
 			H = is(1:3,1:3)*H(:) + is(1:3,4);
 		else,
 			H = [];
+		end;
+	end;
+end;
+
+if strcmp(action,'xhairs'),
+	st.xhairs = 0;
+	if nargin >= 2,
+		opt = arg1;
+		if ~strcmp(arg1,'on'),
+			opt = 'off';
+		else,
+			st.xhairs = 1;
+		end;
+	else, opt = 'off'; end;
+	
+	for i=1:24,
+		if ~isempty(st.vols{i}),
+			for j=1:3,
+				set(st.vols{i}.ax{j}.lx,'Visible',opt); 
+				set(st.vols{i}.ax{j}.ly,'Visible',opt);  
+			end; 
 		end;
 	end;
 end;
