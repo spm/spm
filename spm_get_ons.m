@@ -1,12 +1,17 @@
-function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
+function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname)
 % returns onset times for events
-% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
+% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr,v,Cname)
 %
 % k     - number of scans
 % T     - time bins per scan
 % dt    - time bin length (secs)
 % STOC  - flag to enable stochastic designs [0 or 1]
 % Fstr  - Prompt string (usually indicates session)
+%
+% Optional:
+% v     - number of conditions or trials
+% Cname - {1 x v}   cell of names for each condition
+%
 %
 % sf    - {1 x n}   cell of stick function matrices
 % Cname - {1 x n}   cell of names for each condition
@@ -69,13 +74,26 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
 % 
 %        'SOA (scans)' and 'first trial (scans)':  If the SOA is fixed you
 %                only have to specify what it is and when the first condition 
-%                starts. With longs TRs you may want to specify m - 1/2 
-%                scans as the onset if the condition commenced with
-%                acquisition of the mth scan.
+%                starts. 
 %
 % 'parametric modulation':  This allows you to model time of other effects
 %         on eveoked responses in terms of an interaction with the specified
 %         variate.
+%
+% SLCIE TIMIING
+%
+% With longs TRs you may want to shift the regressors so that they are
+% aligned to a particular slice.  This is effected by resetting the
+% values of fMRI_T and fMRI_T0 in som_defaults.  fMRI_T is the number of
+% time-bins per scan used when building regressors.  Onsets are defined
+% in temporal units of scans starting at 0.  fMRI_T0 is the first
+% time-bin at which the regressors are resampled to coincide with data
+% acquisition.  If fMRI_T0 = 1 then the regressors will be appropriate
+% for the first slice.  If you want to temporally realign the regressors
+% so that they match responses in the middle slice then make fMRI_T0 =
+% fMRI_T/2 (assuming there is a negligible gap between volume
+% acquisitions. Default values are fMRI_T = 16 and fMRI_T0 = 1.
+%
 %
 %_______________________________________________________________________
 % %W% Karl Friston %E%
@@ -86,14 +104,12 @@ spm_help('!ContextHelp',mfilename)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<4, Fstr = ''; end
-
+if nargin < 5, Fstr = ''; end
 spm_input(Fstr,1,'d')
 
-% time bins per scan
+% initialize variables
 %-----------------------------------------------------------------------
 sf     = {};
-Cname  = {};
 Pv     = {};
 Pname  = {};
 DSstr  = '';
@@ -103,13 +119,17 @@ DSstr  = '';
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('number of conditions or trials',2,'w1');
-
-for i = 1:v
-	% get names
-	%---------------------------------------------------------------
-	str         = sprintf('name for condition/trial %d ?',i);
-	Cname{i}    = spm_input(str,3,'s',sprintf('trial %d',i));
+if ~exist('v')
+	v     = spm_input('number of conditions or trials',2,'w1');
+end
+if ~exist('Cname')
+	Cname = {};
+	for i = 1:v
+		% get names
+		%---------------------------------------------------------------
+		str         = sprintf('name for condition/trial %d ?',i);
+		Cname{i}    = spm_input(str,3,'s',sprintf('trial %d',i));
+	end
 end
 
 
@@ -293,7 +313,7 @@ if v
 	% cycle over selected trial types
 	%----------------------------------------------------------------
 	str   = sprintf('which trial[s] 1 to %d',v);
-	Ypos = spm_input('!NextPos');
+	Ypos  = spm_input('!NextPos');
 	for i = spm_input(str,'+1','e',1)
 
 		spm_input(Cname{i},Ypos,'d',Fstr)
