@@ -4,6 +4,32 @@ static char sccsid[] = "%W% John Ashburner %E%";
 #include "math.h"
 #define local_rint(a) floor((a)+0.5)
 
+float samp(const int d[3], unsigned char f[], float x, float y, float z)
+{
+	int ix, iy, iz;
+	float dx1, dy1, dz1, dx2, dy2, dz2;
+	int k111,k112,k121,k122,k211,k212,k221,k222;
+	float vf;
+	unsigned char *ff;
+
+	ix = floor(x); dx1=x-ix; dx2=1.0-dx1;
+	iy = floor(y); dy1=y-iy; dy2=1.0-dy1;
+	iz = floor(z); dz1=z-iz; dz2=1.0-dz1;
+
+	ff   = f + ix-1+d[0]*(iy-1+d[1]*(iz-1));
+	k222 = ff[   0]; k122 = ff[     1];
+	k212 = ff[d[0]]; k112 = ff[d[0]+1];
+	ff  += d[0]*d[1];
+	k221 = ff[   0]; k121 = ff[     1];
+	k211 = ff[d[0]]; k111 = ff[d[0]+1];
+
+	vf = (((k222*dx2+k122*dx1)*dy2       +
+	       (k212*dx2+k112*dx1)*dy1))*dz2 +
+	     (((k221*dx2+k121*dx1)*dy2       +
+	       (k211*dx2+k111*dx1)*dy1))*dz1;
+	return(vf);
+}
+
 void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], const int df[3], 
 double H[65536], float s[3])
 {
@@ -20,13 +46,13 @@ double H[65536], float s[3])
 	                      0.0526927,0.941815,0.149972,0.384374,0.311059,0.168534,0.896648};
 	int iran=0;
 	float z;
-	for(z=1.0; z<dg[2]; z+=s[2])
+	for(z=1.0; z<dg[2]-s[2]; z+=s[2])
 	{
 		float y;
-		for(y=1.0; y<dg[1]; y+=s[1])
+		for(y=1.0; y<dg[1]-s[1]; y+=s[1])
 		{
 			float x;
-			for(x=1.0; x<dg[0]; x+=s[0])
+			for(x=1.0; x<dg[0]-s[0]; x+=s[0])
 			{
 				float rx, ry, rz, xp, yp, zp;
 
@@ -34,52 +60,15 @@ double H[65536], float s[3])
 				ry  = y + ran[iran = (iran+1)%97]*s[1];
 				rz  = z + ran[iran = (iran+1)%97]*s[2];
 
-				xp  = M[0]*rx + M[4]*ry + M[ 8]*rz + M[12]-1.0;
-				yp  = M[1]*rx + M[5]*ry + M[ 9]*rz + M[13]-1.0;
-				zp  = M[2]*rx + M[6]*ry + M[10]*rz + M[14]-1.0;
+				xp  = M[0]*rx + M[4]*ry + M[ 8]*rz + M[12];
+				yp  = M[1]*rx + M[5]*ry + M[ 9]*rz + M[13];
+				zp  = M[2]*rx + M[6]*ry + M[10]*rz + M[14];
 
-				if (zp>=0 && zp<df[2]-1 && yp>=0 && yp<df[1]-1 && xp>=0 && xp<df[0]-1)
+				if (zp>=1.0 && zp<df[2] && yp>=1.0 && yp<df[1] && xp>=1.0 && xp<df[0])
 				{
-					int k111,k112,k121,k122,k211,k212,k221,k222;
-					float dx1, dx2, dy1, dy2, dz1, dz2;
-					int off0, ix, iy, iz;
 					int vf, vg;
-
-					rx--;
-					ry--;
-					rz--;
-
-					ix = floor(rx); dx1=rx-ix; dx2=1.0-dx1;
-					iy = floor(ry); dy1=ry-iy; dy2=1.0-dy1;
-					iz = floor(rz); dz1=rz-iz; dz2=1.0-dz1;
-
-					off0 = ix+dg[0]*(iy+dg[1]*iz);
-					k222 = g[off0      ]; k122 = g[off0      +1];
-					k212 = g[off0+dg[0]]; k112 = g[off0+dg[0]+1];
-					off0 += dg[0]*dg[1];
-					k221 = g[off0      ]; k121 = g[off0      +1];
-					k211 = g[off0+dg[0]]; k111 = g[off0+dg[0]+1];
-
-					vg = (int)local_rint((((k222*dx2+k122*dx1)*dy2 +
-					                 (k212*dx2+k112*dx1)*dy1))*dz2 +
-					               (((k221*dx2+k121*dx1)*dy2       +
-					                 (k211*dx2+k111*dx1)*dy1))*dz1);
-
-					ix = floor(xp); dx1=xp-ix; dx2=1.0-dx1;
-					iy = floor(yp); dy1=yp-iy; dy2=1.0-dy1;
-					iz = floor(zp); dz1=zp-iz; dz2=1.0-dz1;
-
-					off0 = ix+df[0]*(iy+df[1]*iz);
-					k222 = f[off0      ]; k122 = f[off0      +1];
-					k212 = f[off0+df[0]]; k112 = f[off0+df[0]+1];
-					off0 += df[0]*df[1];
-					k221 = f[off0      ]; k121 = f[off0      +1];
-					k211 = f[off0+df[0]]; k111 = f[off0+df[0]+1];
-
-					vf = (int)local_rint((((k222*dx2+k122*dx1)*dy2 +
-					                 (k212*dx2+k112*dx1)*dy1))*dz2 +
-					               (((k221*dx2+k121*dx1)*dy2       +
-					                 (k211*dx2+k111*dx1)*dy1))*dz1);
+					vg = (int)local_rint(samp(dg, g, rx,ry,rz));
+					vf = (int)local_rint(samp(df, f, xp,yp,zp));
 					H[vf+vg*256] ++;
 				}
 			}
@@ -131,4 +120,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		dimsg, dimsf, mxGetPr(plhs[0]), s);
 
 }
+
 
