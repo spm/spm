@@ -17,7 +17,9 @@
 % get the image on which to render
 %-----------------------------------------------------------------------
 spms   = spm_get(1,'.img','select an image for rendering');
-set(2,'Pointer','Watch');
+Finter = spm_figure('FindWin','Interactive');
+Fgraph = spm_figure('FindWin','Graphics');
+set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
 if V(3) == 1
@@ -72,7 +74,7 @@ end
 
 % delete previous axis
 %-----------------------------------------------------------------------
-figure(spm_figure('FindWin','Graphics'))
+figure(Fgraph)
 subplot(2,1,2); delete(gca), spm_figure('DeletePageControls')
 
 % configure {128 level} colormap
@@ -133,7 +135,7 @@ end
 u     = get(gca,'Position');
 axes('position', [(u(1) + u(3) + 0.1) u(2) 0.01 u(3)])
 image([0 d/32],[0 d],[1:D]' + D)
-if SPMZ str ='Z value'; end;
+if SPMZ str = 'Z value'; end;
 if SPMF str = 'F-value'; end;
 
 axis xy; ylabel(str);
@@ -145,4 +147,4 @@ set(gca,'XTickLabels',[])
 %-----------------------------------------------------------------------
 if FLIP; XYZ(1,:) = -XYZ(1,:); L(1) = -L(1); end	% left = right
 spm_unmap(Vs);
-set(2,'Pointer','Arrow')
+set([Finter,Fgraph],'Pointer','Arrow')
