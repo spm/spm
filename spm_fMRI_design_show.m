@@ -1,18 +1,20 @@
-function spm_fMRI_design_show(X,Sess,s,i)
+function [X,Sess] = spm_fMRI_design_show(X,Sess,s,i)
 % Interactive review of fMRI design matrix
-% FORMAT spm_fMRI_design_show(X,Sess)
+% FORMAT [X,Sess] = spm_fMRI_design_show(X,Sess)
 %
 % X.dt    - time bin {secs}
-% X.DesN  - X.DesN{1} study type, X.DesN{2} basis function description
+% X.RT    - Repetition time {secs}
+% X.BFstr - basis function description string
+% X.DSstr - Design description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
-% Sess{s}.row     - scan indices        for session s
-% Sess{s}.col     - Des. matrix offset  for session s
+% Sess{s}.row     - scan   indices      for session s
+% Sess{s}.col     - effect indices      for session s
 % Sess{s}.name{i} - of ith trial type   for session s
-% Sess{s}.ind{i}  - Des. matrix indices for ith trial type
+% Sess{s}.ind{i}  - column indices      for ith trial type {within session}
 % Sess{s}.bf{i}   - basis functions     for ith trial type
 % Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
 % Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
@@ -51,7 +53,7 @@ if nargin < 4
 		h = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
 	            'HandleVisibility','CallBack');
 		for k = 1:length(Sess{j}.name)
-			str = sprintf('q = get(gcf,''UserData'');spm_fMRI_design_show(q{1},q{2},%d,%d)',j,k);
+			str = sprintf('q = get(gcf,''UserData'');spm_fMRI_design_show(q{1},q{2},%d,%d);',j,k);
 			uimenu(h,'Label',Sess{j}.name{k},...
 	     	   	'HandleVisibility','CallBack','CallBack',str)
 		end

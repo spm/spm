@@ -1,6 +1,24 @@
-function spm_fmri_spm_ui
+function [X,Sess] = spm_fmri_spm_ui
 % Setting up the general linear model for fMRI time-series
-% FORMAT spm_fmri_spm_ui
+% FORMAT [X,Sess] = spm_fmri_spm_ui
+%
+% X.dt    - time bin {secs}
+% X.RT    - Repetition time {secs}
+% X.BFstr - basis function description string
+% X.DSstr - Design description string
+% X.xX    - regressors
+% X.bX    - session effects
+% X.Xname - names of subpartiton columns {1xn}
+% X.Bname - names of subpartiton columns {1xn}
+%
+% Sess{s}.row     - scan   indices      for session s
+% Sess{s}.col     - effect indices      for session s
+% Sess{s}.name{i} - of ith trial type   for session s
+% Sess{s}.ind{i}  - column indices      for ith trial type {within session}
+% Sess{s}.bf{i}   - basis functions     for ith trial type
+% Sess{s}.ons{i}  - stimuli onset times for ith trial type (secs)
+% Sess{s}.pst{i}  - peristimulus times  for ith trial type (secs)
+% Sess{s}.para{i} - vector of paramters for ith trial type
 %____________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
@@ -146,6 +164,7 @@ set(Finter,'Name','fMRI analysis');
 % get design matrix and/or data
 %===========================================================================
 MType   = {'specify a model',...
+	   'review a specified model',...
 	   'estimate a specified model',...
 	   'specify and estimate a model'};
 str     = 'Would you like to';
@@ -158,10 +177,18 @@ switch MT
 	case 1
 	% specify a design matrix
 	%-------------------------------------------------------------------
-	spm_fMRI_design;
+	[X,Sess] = spm_fMRI_design;
+	spm_clf(Finter)
 	return
 
 	case 2
+	% 'review a specified model'
+	%-------------------------------------------------------------------
+	[X,Sess] = spm_fMRI_design_show;
+	spm_clf(Finter)
+	return
+
+	case 3
 	% load pre-specified design matrix
 	%-------------------------------------------------------------------
 	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
@@ -192,7 +219,7 @@ switch MT
 	RT     = X.RT;
 
 
-	case 3
+	case 4
 	% get filenames and design matrix
 	%-------------------------------------------------------------------
 	nsess  = spm_input(['number of sessions'],1,'e',1);
