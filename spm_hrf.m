@@ -23,7 +23,7 @@ function [hrf,p] = spm_hrf(RT,P);
 %-----------------------------------------------------------------------
 p     = [6 16 1 1 6 0 32];
 if nargin > 1
-      p(1:length(P)) = P
+      p(1:length(P)) = P;
 end
 
 % modelled hemodynamic response function - {mixture of Gammas}
