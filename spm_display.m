@@ -35,7 +35,7 @@ V      = spm_map(P);
 
 % apply A after centering the image and correcting for voxel anisotropy
 %----------------------------------------------------------------------------
-C      = spm_matrix((1-DIM)/2);				% image center
+C      = spm_matrix(-(1+DIM)/2);				% image center
 I      = spm_matrix([0 0 0 0 0 0 VOX]);			% isotropy
 A      = inv(C)*inv(I)*A*I*C;				% transformation
 ORIGIN = A*[ORIGIN(:); 1];

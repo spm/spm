@@ -24,7 +24,7 @@ Q     = Q(Q ~= ' ');
 %---------------------------------------------------------------------------
 [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P);
 V     = spm_map(P,[DIM VOX 1 TYPE OFFSET]);			% memory map
-C     = spm_matrix((1-DIM)/2);					% image center
+C     = spm_matrix(-(1+DIM)/2);					% image center
 I     = spm_matrix([0 0 0 0 0 0 VOX]);				% isotropy
 A     = inv(C)*inv(I)*A*I*C;					% transformation
 
