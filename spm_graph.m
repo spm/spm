@@ -255,12 +255,11 @@ if     Cp == 1
 elseif Cp == 2
 
 
-	% fitted data (using xCon(Ic).X1o **** but doesn't work *****)
+	% fitted (corrected) data (Y = X1o*beta)
 	%---------------------------------------------------------------
 	X     = xX.xKXs.X;
-	X0    = xCon(Ic).X0;
-	X1o   = X - X0*(pinv(X0)*X);
-	Y     = X1o*beta;
+	Hb    = spm_FcUtil('H',xCon(Ic),xX.xKXs);
+	Y     = X*spm_sp('xpx-',xX.xKXs)*Hb*beta;
 
 	% adjusted data
 	%---------------------------------------------------------------
