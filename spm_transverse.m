@@ -278,19 +278,16 @@ if transv.blob.dim(3) > 1
 	P = xyz.*transv.blob.vox';
 
 	set(transv.h(2),'Cdata',rot90(spm_grid(T1)));
-	%axis image; axis off;
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3) - transv.blob.vox(3))));
 	set(transv.h(3),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(4),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
 	set(transv.h(6),'Cdata',rot90(spm_grid(T2)));
-	%axis image; axis off;
 	set(get(transv.h(5),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3))));
 	set(transv.h(7),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(8),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
 	set(transv.h(10),'Cdata',rot90(spm_grid(T3)));
-	%axis image; axis off;
 	set(get(transv.h(9),'Title'),'String',sprintf('z = %0.0fmm',(xyzmm(3) + transv.blob.vox(3))));
 	set(transv.h(11),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(12),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
@@ -299,10 +296,8 @@ if transv.blob.dim(3) > 1
 	%-----------------------------------------------------------------------
 	set(transv.h(14), 'Ydata',[0 d], 'Cdata',[1:D]' + D);
 	set(transv.h(13),'XTickLabel',[],'Ylim',[0 d])
-	axis image
 else,
 	set(transv.h(2),'Cdata',rot90(spm_grid(T2)));
-	%axis image; axis off;
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
 	set(transv.h(3),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(4),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
@@ -310,7 +305,6 @@ else,
 	% colorbar
 	%-----------------------------------------------------------------------
 	set(transv.h(6), 'Ydata',[0 d], 'Cdata',[1:D]' + D);
-	str    = [SPM.STAT ' value'];
 	set(transv.h(5),'XTickLabel',[],'Ylim',[0 d]);
 end;
 
