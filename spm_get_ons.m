@@ -1,11 +1,12 @@
-function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC)
+function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
 % returns onset times for events
-% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC)
+% FORMAT [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC,Fstr)
 %
 % k     - number of scans
 % T     - time bins per scan
 % dt    - time bin length (secs)
 % STOC  - flag to enable stochastic designs [0 or 1]
+% Fstr  - Prompt string (usually indicates session)
 %
 % sf    - {1 x n}   cell of stick function matrices
 % Cname - {1 x n}   cell of names for each condition
@@ -76,14 +77,21 @@ function [sf,Cname,Pv,Pname,DSstr] = spm_get_ons(k,T,dt,STOC)
 %         on eveoked responses in terms of an interaction with the specified
 %         variate.
 %
-%-----------------------------------------------------------------------
+%_______________________________________________________________________
 % %W% Karl Friston %E%
 
+%-GUI setup
+%-----------------------------------------------------------------------
+spm_help('!ContextHelp',mfilename)
+
+%-Condition arguments
+%-----------------------------------------------------------------------
+if nargin<4, Fstr = ''; end
+
+spm_input(Fstr,1,'d')
 
 % time bins per scan
 %-----------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
-Fstr   = get(Finter,'name');
 sf     = {};
 Cname  = {};
 Pv     = {};
@@ -95,13 +103,13 @@ DSstr  = '';
 
 % get trials
 %-----------------------------------------------------------------------
-v     = spm_input('number of conditions or trials',1,'w1');
-for i = 1:v
+v     = spm_input('number of conditions or trials',2,'w1');
 
+for i = 1:v
 	% get names
 	%---------------------------------------------------------------
-	str         = sprintf('trial %d',i);
-	Cname{i}    = spm_input('condition or trial name','+1','s',str);
+	str         = sprintf('name for condition/trial %d ?',i);
+	Cname{i}    = spm_input(str,3,'s',sprintf('trial %d',i));
 end
 
 
@@ -111,9 +119,9 @@ if v
 
 	% stochastic designs
 	%---------------------------------------------------------------
-	set(Finter,'Name','trial specification')
+	spm_input('Trial specification...',1,'d',Fstr)
 	if STOC
-		STOC = spm_input('stochastic design',1,'y/n',[1 0]);
+		STOC = spm_input('stochastic design','+1','y/n',[1 0]);
 	end
 	if STOC
 
@@ -133,7 +141,7 @@ if v
 		    str = sprintf('relative frequency [trial 1,..%d]',v);
 		end
 		P       = ones(1,(v + ne));
-		P       = spm_input(str,'+1','r',P,[1 (v + ne)])
+		P       = spm_input(str,'+1','r',P,[1 (v + ne)]);
 		str     = 'occurence probability';
 		if spm_input(str,'+1','stationary|modulated',[1 0])
 			DSstr = [DSstr '(stationary) '];
@@ -178,8 +186,8 @@ if v
 	else
 
 	    % get onsets
-	    %-------------------------------------------------------
-	    Sstr  = spm_input('SOA',1,'Fixed|Variable');
+	    %-----------------------------------------------------------
+	    Sstr  = spm_input('SOA',2,'Fixed|Variable');
 	    DSstr = [DSstr  Sstr ' SOA '];
 	    i     = 0;
 	    while i < v
@@ -191,20 +199,20 @@ if v
 			case 'Fixed'
 			%-----------------------------------------------
 			str   = ['SOA (scans) for ' Cname{i + 1}];
-			soa   = spm_input(str,'+1','r');
-			on    = spm_input('first trial (scans)','+1','r',0);
+			soa   = spm_input(str,3,'r');
+			on    = spm_input('time to first trial (scans)',4,'r',0);
 			on    = on:soa:k;
 
 			case 'Variable'
 			%-----------------------------------------------
 			str   = ['vector of onsets (scans) for ' Cname{i + 1}];
-			on    = spm_input(str,'+1');
+			on    = spm_input(str,3);
 		end
 
 		if iscell(on)
 
 			% create stick functions
-			%-------------------------------------------------
+			%-----------------------------------------------
 			for j = 1:length(on)
 				i     = i + 1
 	    			ons   = sparse(k*T,1);
@@ -213,7 +221,7 @@ if v
 			end
 		else
 			% create stick functions
-			%------------------------------------------------
+			%-----------------------------------------------
 			i     = i + 1;
 	    		ons   = sparse(k*T,1);
 			ons(round(on*T + 1)) = 1;
@@ -225,7 +233,7 @@ if v
 
 	% get parameters, contruct interactions and append
 	%================================================================
-	set(Finter,'Name','Parametric specification')
+	spm_input('Parametric specification...','+1','d',Fstr)
 
 	% paramteric representation of causes - defaults for main effects
 	%----------------------------------------------------------------
@@ -244,7 +252,6 @@ if v
 
 		case 'none'
 		%--------------------------------------------------------
-		set(Finter,'Name',Fstr)
 		return
 
 		case 'other'
@@ -286,9 +293,10 @@ if v
 	% cycle over selected trial types
 	%----------------------------------------------------------------
 	str   = sprintf('which trial[s] 1 to %d',v);
+	Ypos = spm_input('!NextPos');
 	for i = spm_input(str,'+1','e',1)
 
-		set(Finter,'Name',Cname{i})
+		spm_input(Cname{i},Ypos,'d',Fstr)
 		on    = find(sf{i});
 		ns    = length(on);
 
@@ -347,8 +355,3 @@ if v
 
 	end
 end
-
-
-% finished
-%------------------------------------------------------------------------
-set(Finter,'Name',Fstr)
