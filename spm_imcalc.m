@@ -93,7 +93,7 @@ for p = 1:Vo.dim(3),
 		if dmtx, X(i,:) = d(:)'; else, eval(['i',num2str(i),'=d;']); end
 	end
 
-	eval(['Yp = ' f ';'],['error([''Can''t evaluate "'',f,''".'']);']);
+	eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
 	if (prod(Vo.dim(1:2)) ~= prod(size(Yp)))
 		error(['"',f,'" produced incompatible image.']); end
 	Y(:,:,p) = reshape(Yp,Vo.dim(1:2));
