@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.9 2002-08-14 18:30:31 john Exp $
+# $Id: Makefile,v 2.10 2002-08-15 12:07:19 john Exp $
 #
 ###############################################################################
 #
@@ -92,7 +92,7 @@ OBS =	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
 SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
-	spm_global.$(SUF) spm_resels_vol.$(SUF) spm_getxyz.$(SUF)\
+	spm_global.$(SUF) spm_resels_vol.$(SUF)\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
 	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
@@ -245,11 +245,6 @@ spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_sys_deps.h spm_mapping.h spm_datatypes.h
 	$(MEX) spm_conv_vol.c spm_vol_utils.$(SUF).a
-	@ $(CHMODIT) $@
-
-spm_getxyz.$(SUF): spm_getxyz.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_getxyz.c spm_vol_utils.$(SUF).a
 	@ $(CHMODIT) $@
 
 spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
