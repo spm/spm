@@ -50,11 +50,11 @@ global st
 if nargin==0,
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Display',0);
 	SPMid = spm('FnBanner',mfilename,'%I%');
-	spm_help('!ContextHelp',[mfilename,'.m'])
+	spm_help('!ContextHelp',[mfilename,'.m']);
 
 	% get the image's filename {P}
 	%-----------------------------------------------------------------------
-	P      = spm_get(1,'.img','please select image',[]);
+	P      = spm_get(1,'.img','please select image',[],0);
 	spm_image('init',P);
 	return;
 end;
@@ -167,12 +167,8 @@ if strcmp(op,'reorient'),
 	% I hope that giving people this facility is the right thing to do....
 	%-----------------------------------------------------------------------
 	mat = spm_matrix(st.B);
-	if det(mat)<=0,
-		h=msgbox('This will flip the images',...
-			sprintf('%s%s: %s...',spm('ver'),...
-				spm('GetUser',' (%s)'),mfilename),...
-			'warn','modal');
-		uiwait(h);
+	if det(mat)<=0
+		spm('alert!','This will flip the images',mfilename,0,1);
 	end;
 	P = spm_get(Inf, 'img','Images to reorient');
 	Mats = zeros(4,4,size(P,1));
@@ -256,15 +252,9 @@ if strcmp(op,'zoom_in'),
 end;
 
 if strcmp(op,'init'),
-fg = spm_figure('Findwin','Graphics');
-if isempty(fg)
-	fg=spm_figure('Create','Graphics');
-	if isempty(fg)
-		error('Cant create graphics window');
-	end
-else,
-	spm_figure('Clear','Graphics');
-end;
+fg = spm_figure('GetWin','Graphics');
+if isempty(fg), error('Can''t create graphics window'); end
+spm_figure('Clear','Graphics');
 
 P = deblank(varargin{1});
 spm_orthviews('Reset');
