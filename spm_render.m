@@ -1,4 +1,4 @@
-function spm_render(dat)
+function spm_render(dat, flg)
 % Render blobs on surface of a 'standard' brain
 % FORMAT spm_render
 %_______________________________________________________________________
@@ -11,6 +11,8 @@ function spm_render(dat)
 %         - t   - the transformed t values
 %         - mat - affine matrix mapping from XYZ to Talairach.
 %         - dim - dimensions of volume from which XYZ is drawn.
+% flg - optional.  If 1, then displays using the old style with hot
+%       metal for the blobs, and grey for the brain.
 %
 % Without arguments, spm_render acts as its own UI.
 %_______________________________________________________________________
@@ -32,7 +34,9 @@ if nargin==0,
 	Finter = spm_figure('FindWin','Interactive');
 	set(Finter,'Name','SPM render')
 
-	num = spm_input('Number of sets',2,'1 set|2 sets|3 sets',[1 2 3]);
+	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
+	flg = 0; if num==1, flg = spm_input('Style',1,'new|old',[0 1], 1); end;
+
 	dat = cell(num,1);
 	for i=1:num,
 		[SPM,VOL,DES] = spm_getSPM;
@@ -42,8 +46,12 @@ if nargin==0,
 		dat{i} = struct('XYZ',XYZ, 't',SPM.Z', 'mat',VOL.M, 'dim', VOL.DIM);
 	end;
 
-	spm_render(dat);
+	spm_render(dat, flg);
 	return;
+end;
+
+if nargin==1,
+	flg = 0;
 end;
 
 % Perform the rendering
@@ -94,16 +102,20 @@ for j=1:size(dat,1),
 		%---------------------------------------------------------------------------
 		dep = spm_slice_vol(pre{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
 		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
-		msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5));
+
+		if flg==1, msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
+		else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end;
 
 		if ~isempty(msk),
 
 			% generate an image of the integral of the blob values.
 			%---------------------------------------------------------------------------
 			xyz = xyz(:,msk);
-			dst = xyz(3,:) - z1(msk) - 5;
-			dst = max(dst,0);
-			t0  = t(msk).*exp(-dst/10)';
+			if flg==1, t0  = t(msk);
+			else,	dst = xyz(3,:) - z1(msk) - 5;
+				dst = max(dst,0);
+				t0  = t(msk).*exp(-dst/10)';
+			end;
 			X0  = full(sparse(xyz(1,:), xyz(2,:), t0, d2(1), d2(2)));
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(pre{i}.dep),1);
 		else,
@@ -118,33 +130,51 @@ for j=1:size(dat,1),
 end
 
 mxmx = max(mx);
+
 spm_progress_bar('Clear');
-figure(spm_figure('FindWin','Graphics'));
+set(0,'CurrentFigure',spm_figure('FindWin','Graphics'));
 spm_figure('Clear','Graphics');
 
-% Combine the brain surface renderings with the blobs, and display using
-% 24 bit colour.
-%---------------------------------------------------------------------------
-for i=1:size(Matrixes,1)
-	ren = pre{i}.ren/64;
-	X = cell(3,1);
-	for j=1:size(pre{i}.data,1),
-		X{j} = pre{i}.data{j}/mxmx;
-	end
-	for j=(size(pre{i}.data,1)+1):3
-		X{j}=zeros(size(X{1}));
-	end
+if flg==1,
+	% Old style split colourmap display.
+	%---------------------------------------------------------------------------
+	load Split
+	colormap(split);
+	for i=1:size(Matrixes,1)
+		ren = pre{i}.ren;
+		X = pre{i}.data{1};
+		msk = find(X > mxmx/64);
+		ren(msk) = X(msk)*(64/mxmx)+64;
+		subplot(4,2,i);
+		image(ren);
+		axis image off xy
+	end;
 
-	rgb = zeros([size(ren) 3]);
-	tmp = ren.*max(1-X{1}-X{2}-X{3},0);
-	rgb(:,:,1) = tmp + X{1};
-	rgb(:,:,2) = tmp + X{2};
-	rgb(:,:,3) = tmp + X{3};
+else,
+	% Combine the brain surface renderings with the blobs, and display using
+	% 24 bit colour.
+	%---------------------------------------------------------------------------
+	for i=1:size(Matrixes,1)
+		ren = pre{i}.ren/64;
+		X = cell(3,1);
+		for j=1:size(pre{i}.data,1),
+			X{j} = pre{i}.data{j}/mxmx;
+		end
+		for j=(size(pre{i}.data,1)+1):3
+			X{j}=zeros(size(X{1}));
+		end
 
-	subplot(4,2,i);
-	image(rgb);
-	axis image off xy
-end
+		rgb = zeros([size(ren) 3]);
+		tmp = ren.*max(1-X{1}-X{2}-X{3},0);
+		rgb(:,:,1) = tmp + X{1};
+		rgb(:,:,2) = tmp + X{2};
+		rgb(:,:,3) = tmp + X{3};
+
+		subplot(4,2,i);
+		image(rgb);
+		axis image off xy
+	end;
+end;
 
 spm_figure('Clear','Interactive');
 
