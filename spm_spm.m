@@ -153,7 +153,7 @@ function spm_spm(VY,xX,xM,c,varargin)
 %                 (of the parameter estimates. (ResSS/xX.trRV = ResMS)    )
 %     xX.trRV   - trace of R*V, computed efficiently by spm_SpUtil
 %     xX.trRVRV - trace of RVRV (this was called trRV2 in spm_AnCova)
-%     xX.edf    - effective degrees of freedom (trRV^2/trRVRV)
+%     xX.erdf   - effective residual degrees of freedom (trRV^2/trRVRV)
 % 
 %     xM        - as input (but always in the structure format)
 %     XYZ       - 3xS (S below) vector of in-mask voxel coordinates
@@ -326,16 +326,16 @@ xX.Bcov       = xX.pKXV * xX.pKX';	%-Var-cov matrix of parameter estimates
                                         % (multiply by ResMS)
 [xX.trRV,xX.trRVRV] ...			%-Expectations of variance (trRV)
               = spm_SpUtil('trRV',xX.xKXs,xX.V); %-(trRV & trRV2 in spm_AnCova)
-xX.edf        = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
+xX.erdf       = xX.trRV^2/xX.trRVRV;	%-Effective residual d.f.
 
 %-Check estimability
 %-----------------------------------------------------------------------
-if xX.edf<0
-    error(sprintf('This design is completely unestimable! (df=%-.2g)',xX.edf))
-elseif xX.edf==0
+if xX.erdf<0
+    error(sprintf('This design is completely unestimable! (df=%-.2g)',xX.erdf))
+elseif xX.erdf==0
     error('This design has no residuals! (df=0)')
-elseif xX.edf<4
-    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.edf))
+elseif xX.erdf<4
+    warning(sprintf('Very low degrees of freedom (df=%-.2g)',xX.erdf))
 end
 
 %-F-contrast for Y.mad pointlist filtering (only)
@@ -363,7 +363,7 @@ if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
 	% which can efficiently be computed via:
 	% 	ESS = sum(b.*(Dc*b))
 	% See also spm_SpUtil, which handles efficient computation of Dc
-	Dc    = spm_SpUtil('BetaRC',xX.xKXs,c);
+	Dc    = spm_SpUtil('BetaRc',xX.xKXs,c);
 
 	%-Compute subspace corresponding to F-contrast, ESS variance
 	% expectation and corresponding F degrees of freedom.
@@ -371,7 +371,7 @@ if UFp > 0 & UFp < 1			%-We're going to F-filter for Y.mad file
 	KX1           = spm_SpUtil('cTestSp',xX.xKXs,c);%-Contrast Ho space
 	[trMV,trMVMV] = spm_SpUtil('trMV',KX1,xX.V);	%-Expectations
 					%-(trR0V & trR0V2 in spm_AnCova)
-	eFdf          = [trMV^2/trMVMV, xX.edf];	%-Effective F-df
+	eFdf          = [trMV^2/trMVMV, xX.erdf];	%-Effective F-df
 
 	%-Work out UF, the F-threshold
 	%---------------------------------------------------------------
@@ -428,11 +428,11 @@ end
 
 %-Intialise residual sum of squares image file
 %-----------------------------------------------------------------------
-VResMS = struct(	'fname',	'ResMS',...
+VResMS = struct(	'fname',	'ResMS.img',...
 			'dim',		[VY(1).dim(1:3) spm_type('double')],...
 			'mat',		VY(1).mat,...
 			'pinfo',	[1 0 0]',...
-			'descrip',	'spm_spm:Residual Sum of Squares');
+			'descrip',	'spm_spm:Residual sum-of-squares');
 VResMS = spm_create_image(VResMS);
 
 
@@ -765,11 +765,11 @@ if S==0, warning('No inmask voxels - empty analysis!'), end
 if zdim == 1
 	if any(~[nx,ny])
 		warning(sprintf('W: nx=%d, ny=%d',nx,ny)), end
-	Lambda = diag([sx_res/nx sy_res/ny Inf]*(xX.edf-2)/(xX.edf-1));
+	Lambda = diag([sx_res/nx sy_res/ny Inf]*(xX.erdf-2)/(xX.erdf-1));
 else
 	if any(~[nx,ny,nz])
 		warning(sprintf('W: nx=%d, ny=%d, nz=%d',nx,ny,nz)), end
-	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz]*(xX.edf-2)/(xX.edf-1));
+	Lambda = diag([sx_res/nx sy_res/ny sz_res/nz]*(xX.erdf-2)/(xX.erdf-1));
 end
 W      = (2*diag(Lambda)').^(-1/2);
 FWHM   = sqrt(8*log(2))*W;
