@@ -82,7 +82,9 @@ Fc = sf_FconFields;
 Fc.name = varargin{2};
 if isempty(Fc.name), Fc.name = ' '; end;
 Fc.STAT = varargin{3};
-
+if Fc.STAT=='T'  &  ~(action == 'c' | action == 'c+') 
+	   warning('enter T stat with contrast');
+end;
 
 
 [sC sL] = spm_sp('size',sX);
@@ -104,6 +106,13 @@ switch varargin{4},
 			Fc.c 	= c;
    			[Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
 			Fc.iX0	= [];
+
+			%-- check the rank if T stat
+			if Fc.STAT=='T'
+			   if abs(rank(Fc.X1o) - 1) > eps,
+			      error('Set tries to define a t that is a F');
+			   end
+			end
 		end;
 
 	case 'X0'
@@ -379,8 +388,6 @@ case 'in'     %-  Fc1 is in list of  contrasts Fc2
 %
 % returns indice of Fc2 if in, 0 otherwise 
 
-
-
 %----------------------------
 if nargin < 4, error('Insufficient arguments'), end
 if nargout > 1, error('Too many output argument.'), end
@@ -395,16 +402,35 @@ end
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);	end;
 %----------------------------
 
-
+%- project Fc1.c if not estimable
 if ~spm_sp('isinspp',sX,Fc1.c), c1 = spm_sp('oPp',sX,Fc1.c);
-else, c1 = Fc1.c;
-end
+else, c1 = Fc1.c; end
+
 sc1 = spm_sp('Set',c1);
+S   = Fc1.STAT;
 
 boul = 0; i = 1;
 while ~boul & i <= L,
+   if Fc2(i).STAT==S
 	boul = spm_sp('==',sc1,spm_sp('oPp',sX,Fc2(i).c));
-	i = i+1;
+	%- if they are the same space and T stat (same direction),
+	%- then check wether they are in the same orientation
+	if boul & S == 'T'
+	   %- assumes size(Fc1.c,2) == 1
+	   if size(Fc1.c,2) == 1 & size(Fc2(i).c,2) == 1,
+	   	boul = ((sX.X*Fc1.c)' * sX.X*Fc2(i).c >0 );
+	   else 
+		error('not implemented');
+	   end;
+
+	   %if size(Fc1.X1o,1) ~= 1, X1o1 = orth(Fc1.X1o); 
+	   %else, X1o1=Fc1.X1o; end
+	   %if size(Fc2(i).X1o,1) ~= 1, X1o2 = orth(Fc2(i).X1o);
+	   %else, X1o2=Fc2(i).X1o; end
+	   %boul = ( X1o1'*X1o2 >= 0)  % same orientation
+	end
+   end;
+   i = i+1;
 end
 if boul, varargout = { i-1 }; else varargout = { 0 }; end;
 
