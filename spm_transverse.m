@@ -80,12 +80,13 @@ dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
 A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
 
-zoomM  = spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]);
+zoomM  = inv(spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]));
+zoomM1 =     spm_matrix([0 0  0  0 0 0  transv.blob.vox([1 2]) 1]);
 
 Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)) < 0.5);
 T2     = full(sparse(transv.blob.xyz(1,Q),transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-T2     = spm_slice_vol(T2,inv(zoomM),dim([1 2]),hld);
-D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
+T2     = spm_slice_vol(T2,zoomM,dim([1 2]),hld);
+D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
 D2     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 maxD   = max(D2(:));
 
@@ -94,16 +95,16 @@ if transv.blob.dim(3) > 1
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)+1) < 0.5);
 	T1     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T1     = spm_slice_vol(T1,inv(zoomM),dim([1 2]),hld);
-	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
+	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),hld);
+	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
 	D1     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D1(:)]);
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)-1) < 0.5);
 	T3     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T3     = spm_slice_vol(T3,inv(zoomM),dim([1 2]),hld);
-	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
+	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),hld);
+	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
 	D3     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D3(:)]);
 end
@@ -229,12 +230,13 @@ dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
 A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
 
-zoomM  = spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]);
+zoomM  = inv(spm_matrix([0 0 -1  0 0 0  transv.blob.vox([1 2]) 1]));
+zoomM1 =     spm_matrix([0 0  0  0 0 0  transv.blob.vox([1 2]) 1]);
 
 Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)) < 0.5);
 T2     = full(sparse(transv.blob.xyz(1,Q),transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-T2     = spm_slice_vol(T2,inv(zoomM),dim([1 2]),hld);
-D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
+T2     = spm_slice_vol(T2,zoomM,dim([1 2]),hld);
+D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3);0 0 0 1]*A;
 D2     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 maxD   = max(D2(:));
 
@@ -243,16 +245,16 @@ if transv.blob.dim(3) > 1
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)+1) < 0.5);
 	T1     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T1     = spm_slice_vol(T1,inv(zoomM),dim([1 2]),hld);
-	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
+	T1     = spm_slice_vol(T1,zoomM,dim([1 2]),hld);
+	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)+1;0 0 0 1]*A;
 	D1     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D1(:)]);
 
 	Q      = find(abs(transv.blob.xyz(3,:) - xyz(3)-1) < 0.5);
 	T3     = full(sparse(transv.blob.xyz(1,Q),...
 			transv.blob.xyz(2,Q),transv.blob.t(Q),transv.blob.dim(1),transv.blob.dim(2)));
-	T3     = spm_slice_vol(T3,inv(zoomM),dim([1 2]),hld);
-	D      = zoomM*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
+	T3     = spm_slice_vol(T3,zoomM,dim([1 2]),hld);
+	D      = zoomM1*[1 0 0 0;0 1 0 0;0 0 1 -xyz(3)-1;0 0 0 1]*A;
 	D3     = spm_slice_vol(transv.V,inv(D),dim([1 2]),1);
 	maxD   = max([maxD ; D3(:)]);
 end
