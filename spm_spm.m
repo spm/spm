@@ -300,8 +300,8 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % MAXMEM (in bytes) [default = 2^20]
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes, Jean-Baptiste Poline, Karl Friston %E%
-SCCSid   = '%I%';
+% @(#)spm_spm.m	2.48 Andrew Holmes, Jean-Baptiste Poline, Karl Friston 02/02/18
+SCCSid   = '2.48';
 
 %-Say hello
 %-----------------------------------------------------------------------
