@@ -1,12 +1,9 @@
-function spm_smooth(P,Q,s,Vi)
+function spm_smooth(P,Q,s)
 % 3 dimensional convolution of an image
 % FORMAT spm_smooth(P,Q,S,Vi)
 % P  - image to be smoothed
 % Q  - filename for smoothed image
 % S  - [sx sy sz] Guassian filter width {FWHM} in mm
-% Vi - image descriptor vector. Everything is ignored except Vi(4:6) which
-%      contains the voxel sizes (for compatability with the code in snpm).
-%
 %____________________________________________________________________________
 %
 % spm_smooth is used to smooth or convolve images in a file (maybe).
@@ -34,20 +31,23 @@ if length(s) == 1; s = [s s s]; end
 % read and write header if we're working with files
 %-----------------------------------------------------------------------
 if isstr(P)
-    [DIM VOX SCALE TYPE OFFSET ORIGIN DESCRIP] = spm_hread(P);
+	V   = spm_vol(P);
+	VOX = sqrt(sum(V.mat(1:3,1:3).^2));
 else
     if nargin < 4
 	error(['spm_smooth: Must specify image descriptor vector ', ...
 	    'if smoothing image from RAM']); end
-    VOX = Vi(4:6)';
+    VOX = [1 1 1];
 end
 
-if isstr(Q)
-    Desc = sprintf('%s -conv (%g,%g,%g)',DESCRIP,s);    
-    spm_hwrite(Q,DIM,VOX,SCALE,TYPE,0,ORIGIN,Desc);
+if isstr(Q) & isstr(P),
+	VO         = V;
+	VO.fname   = Q;
+	VO.descrip = sprintf('%s -conv (%g,%g,%g)',DESCRIP,s);
+	spm_create_image(VO);
 end
 
-    
+
 % compute parameters for spm_conv_vol
 %-----------------------------------------------------------------------
 s  = s./VOX;					% voxel anisotropy
@@ -70,7 +70,6 @@ k  = (length(z) - 1)/2;
 
 if isstr(P)
     spm_conv_vol(spm_vol(P),Q,x,y,z,-[i,j,k]);
-    spm_get_space(Q,spm_get_space(P));
 else
     spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
 end

@@ -32,18 +32,12 @@ end
 Hold = 1;
 m = size(P,1);
 
-q = max([find(Q == '/') 0]);
-Q = [spm_str_manip(Q((q+1):length(Q)),'sd') '.img'];
-p = P(1,:);
-p = p(p ~= ' ');
-q = max([find(p == '/') 0]);
-Q = [p(1:q) Q];
 
 if (nargin < 3) func = 'nothing'; end
 
 V=spm_vol(P);
 DIM = V(1).dim(1:3);
-Output = zeros(prod(DIM(1:2)),DIM(3));
+Output = zeros(DIM);
 
 X = kron(ones(DIM(2),1),[1:DIM(1)]');
 Y = kron([1:DIM(2)]',ones(DIM(1),1));
@@ -63,32 +57,30 @@ for j = 1:DIM(3),
 
 	eval(['d1 = ' func ';'], ['error([''Cant evaluate "'' func ''".'']);']);
 	if (prod(size(d)) ~= prod(size(d1))) error(['"' func '" produced incompatible image.']); end
-	Output(:,j) = d1(:);
+	Output(:,:,j) = d1;
 
 	spm_progress_bar('Set',j);
 end
 
 % Write output image (16 bit signed)
 %------------------------------------------------------------------
-mx = max(max(Output));
-SCALE  = mx/32767;
+VO           = V(1);
+q            = max([find(Q == '/') 0]);
+Q            = [spm_str_manip(Q((q+1):length(Q)),'sd') '.img'];
+p            = V(1).fname;
+p            = p(p ~= ' ');
+q            = max([find(p == '/') 0]);
+VO.fname     = [p(1:q) Q];
+SCALE        = max(max(max(Output)))/32767;
 if SCALE==0, SCALE=1; end; %For images of all zeros
-fp = fopen(Q,'w');
+VO.pinfo     = [SCALE 0 0]';
+VO.dim(4)    = 4;
+VO.descrip   = 'spm - algebra';
+
+spm_create_image(VO);
+
 for j = 1:DIM(3),
-	d = round(Output(:,j)/SCALE);
-	tmp = find(d > 32767);
-	d(tmp) = zeros(size(tmp))+32767;
-	tmp = find(d < -32768);
-	d(tmp) = zeros(size(tmp))-32768;
-	fwrite(fp,d,spm_type(4));
+	spm_write_plane(VO,Output(:,:,j),j);
 end
-fclose(fp);
-
-VOX    = sqrt(sum(V(1).mat(1:3,1:3).^2));
-ORIGIN = V(1).mat\[0 0 0 1]';
-ORIGIN = round(ORIGIN(1:3));
-
-spm_hwrite(Q,DIM,VOX,SCALE,4,0,ORIGIN,'spm - algebra');
-spm_get_space(Q,V(1).mat);
-
 spm_progress_bar('Clear');
+return;
