@@ -802,8 +802,8 @@ for i=2:length(P),
 				% to finish with
 				Hold = Hold1;
 			elseif countdown == -1
-				% Do three final iterations to finish off with
-				countdown = 4;
+				% Do two final iterations to finish off with
+				countdown = 2;
 			end
 		end;
 		if countdown ~= -1,
@@ -1094,7 +1094,7 @@ if any(Flags == 'F'),
 	end;
 end;
 
-linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,60))');
+linfun = inline('fprintf(''%-60s%s'', x,sprintf(''\b'')*ones(1,60))');
 
 if any(Flags == 'k') | any(Flags == 'i'),
 	linfun('Computing mask..');
@@ -1136,7 +1136,7 @@ for i = start_vol:prod(size(P)),
 	PO(i).descrip = 'spm - realigned';
 
 	if any(Flags == 'F'),
-		v = abs(kspace3d(loadvol(P(i)),inv(P(1).mat\P(i).mat)));
+		v = abs(kspace3d(loadvol(P(i)),P(1).mat\P(i).mat));
 		for x3 = 1:P(1).dim(3),
 			if any(Flags == 'i'),
 				Integral(:,:,x3) = Integral(:,:,x3) + ...
