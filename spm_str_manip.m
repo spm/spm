@@ -7,37 +7,37 @@ function [strout,R2] = spm_str_manip(strin,options)
 %_______________________________________________________________________
 % Each of the options is performed from left to right.
 % The options are:
-% 	'r'              - remove trailing suffix
-% 	's'              - remove trailing suffix -
-%			   only if it is either '.img', '.hdr', '.mat' or '.mnc'
-% 	'e'              - remove everything except the suffix
-% 	'h'              - remove trailing pathname component
-% 	'H'              - always remove trailing pathname component
+%       'r'              - remove trailing suffix
+%       's'              - remove trailing suffix -
+%                          only if it is either '.img', '.hdr', '.mat' or '.mnc'
+%       'e'              - remove everything except the suffix
+%       'h'              - remove trailing pathname component
+%       'H'              - always remove trailing pathname component
 %                          (returns '.' for straight filenames like 'test.img' )
 %                          (wheras 'h' option mimics csh & returns 'test.img'  )
-% 	't'              - remove leading pathname component
-% 	['f' num2str(n)] - remove all except first n characters
-% 	['l' num2str(n)] - remove all except last n characters
-%	['k' num2str(n)] - produce a string of at most n characters long.
-%			   If the input string is longer than n, then
-%			   it is prefixed with '..' and the last n-2 characters
-%	['a' num2str(n)] - similar to above - except the leading directories
-%			   are replaced by './'.
-%			   eg. spm_str_manip('/dir1/dir2/file.img','a16') would
-%			   produce '../dir2/file.img'.
-%			   are returned.
+%       't'              - remove leading pathname component
+%       ['f' num2str(n)] - remove all except first n characters
+%       ['l' num2str(n)] - remove all except last n characters
+%       ['k' num2str(n)] - produce a string of at most n characters long.
+%                          If the input string is longer than n, then
+%                          it is prefixed with '..' and the last n-2 characters
+%       ['a' num2str(n)] - similar to above - except the leading directories
+%                          are replaced by './'.
+%                          eg. spm_str_manip('/dir1/dir2/file.img','a16') would
+%                          produce '../dir2/file.img'.
+%                          are returned.
 %       'v'              - delete non valid filename characters
 %                          Valid are '.a..zA..Z01..9_-: ' & filesep
 %       'p'              - canonicalise pathname (see spm_get('CPath',strin))
-% 	'c'		 - remove leading components common to all strings
+%       'c'              - remove leading components common to all strings
 %                          returns leading component as a second output argument
-%	'C'              - returns single string compressed version of a
+%       'C'              - returns single string compressed version of a
 %                          cellstr, such as '/data/pic{01,12,23}.img'.
 %                          Second argument is a structure with fields:
 %                            .s - start string (E.g. '/data/pic')
 %                            .m - middle bits cellstr (E.g.{'01','02','03'})
 %                            .e - end string (E.g. '.img')
-%	'd'		 - deblank - this is always done!
+%       'd'              - deblank - this is always done!
 %
 %_______________________________________________________________________
 % %W% John Ashburner %E%
