@@ -37,7 +37,7 @@ end, end
 
 %-Apply implicit zero mask for image datatypes without a NaNrep
 %-----------------------------------------------------------------------
-dt = cat(1,Vi.dim)*[0;0;0;1];				%-Data types
+dt = cat(1,V.dim)*[0;0;0;1];				%-Data types
 im = (dt==2) | (dt==4) | (dt==8) | ...
 	(dt==512) | (dt==1024) | (dt==2048);		%-Images without NaNrep
 if mask, Y(Y(:,:,:,im)==0)=NaN; end			%-Mask
