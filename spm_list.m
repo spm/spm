@@ -1,8 +1,8 @@
 function varargout = spm_list(varargin)
 % Display and analysis of SPM{.}
-% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,Title)
+% FORMAT TabDat = spm_list('List',       SPM,VOL,Dis,Num,Title,hReg)
 % Summary list of local maxima for entire volume of interest
-% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,Title)
+% FORMAT TabDat = spm_list('ListCluster',SPM,VOL,Dis,Num,Title,hReg)
 % List of local maxima for a single suprathreshold cluster
 %
 % SPM    - structure containing SPM, distribution & filtering details
@@ -31,7 +31,8 @@ function varargout = spm_list(varargin)
 %          {defaults (missing or empty) to 8mm for 'List', 4mm for 'ListCluster'}
 % Num    - Maxiumum number of local maxima tabulated per cluster
 %          {defaults (missing or empty) to 3   for 'List', 16  for 'ListCluster'}
-% Title  - Title text for table
+% Title  - Title text for table {defaults on missing or empty}
+% hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
 % TabDat - Structure containing table data
 %        - fields are
@@ -43,11 +44,19 @@ function varargout = spm_list(varargin)
 % .dat   - table data (Nx10 cell array)
 %
 %                           ----------------
+%
 % FORMAT spm_list('TxtList',TabDat,c)
 % Prints a tab-delimited text version of the table
 % TabDat - Structure containing table data (format as above)
 % c      - Column of table data to start text table at
 %          (E.g. c=3 doesn't print set-level results contained in columns 1 & 2)
+%                           ----------------
+%
+% FORMAT spm_list('SetCoords',xyz,hAx,hC)
+% Highlighting of table co-ordinates (used by results section registry)
+% xyz    - 3-vector of new co-ordinate
+% hAx    - table axis (the registry object for tables)
+% hReg   - Handle of caller (not used)
 %_______________________________________________________________________
 %
 % spm_list characterizes SPMs (thresholded at u and k) in terms of
@@ -97,7 +106,7 @@ end
 %=======================================================================
 switch lower(varargin{1}), case 'list'                            %-List
 %=======================================================================
-% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,Title)
+% FORMAT TabDat = spm_list('list',SPM,VOL,Dis,Num,Title,hReg)
 
 
 %-Tolerance for p-value underflow, when computing equivalent Z's
@@ -106,10 +115,12 @@ tol = eps*10;
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin<3,   error('insufficient arguments'), end
-if nargin<6,   Title = ['volume summary',...
-			' (p-values corrected for entire volume)'];
-	else,  Title = varargin{6}; end
+if nargin<3,     error('insufficient arguments'), end
+if nargin<7,	 hReg=[]; else, hReg = varargin{7}; end
+if nargin<6,     Title = '';
+	else,    Title = varargin{6}; end
+if isempty(Title), Title = ['volume summary',...
+			' (p-values corrected for entire volume)']; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
 if isempty(Num), Num = 3;  end
@@ -118,6 +129,10 @@ if nargin<4,     Dis = [];
 if isempty(Dis), Dis = 8;  end
 % VOL is varargin{3} - Use by reference for speed
 % SPM is varargin{2} - Don't copy into local variables
+
+%-Get current location (to highlight selected voxel in table)
+%-----------------------------------------------------------------------
+xyzmm = spm_results_ui('GetCoords');
 
 %-Extract data from structures
 %-----------------------------------------------------------------------
@@ -339,6 +354,7 @@ TabLin     = 1;					%-Table data line
 
 %-Local maxima p-values & statistics
 %-----------------------------------------------------------------------
+HlistXYZ = [];
 while max(Z)
 
 	% Paginate if necessary
@@ -399,10 +415,15 @@ while max(Z)
 
 	h     = text(0.88,y,sprintf(TabDat.fmt{10},XYZmm(:,i)),...
 		'FontWeight','Bold',...
+		'Tag','ListXYZ',...
 		'ButtonDownFcn',...
 		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''));',...
 		'Interruptible','off','BusyAction','Cancel',...
 		'UserData',XYZmm(:,i));
+	HlistXYZ = [HlistXYZ, h];
+	if spm_XYZreg('Edist',xyzmm,XYZmm(:,i))<tol & ~isempty(hReg)
+		set(h,'Color','r')
+	end
 	hPage = [hPage, h];
  
 	y     = y - dy;
@@ -443,11 +464,16 @@ while max(Z)
 			hPage = [hPage, h];
 			h     = text(0.88,y,...
 				sprintf(TabDat.fmt{10},XYZmm(:,d)),...
+				'Tag','ListXYZ',...
 				'ButtonDownFcn',[...
 					'spm_mip_ui(''SetCoords'',',...
 					'get(gcbo,''UserData''));'],...
 				'Interruptible','off','BusyAction','Cancel',...
 				'UserData',XYZmm(:,d));
+			HlistXYZ = [HlistXYZ, h];
+			if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ~isempty(hReg)
+				set(h,'Color','r')
+			end
 			hPage = [hPage, h];
 			D     = [D d];
 			y     = y - dy;
@@ -489,6 +515,13 @@ uimenu(h,'Separator','off','Label','Extract table data structure',...
 	'CallBack','get(get(gcbo,''Parent''),''UserData'')',...
 	'Interruptible','off','BusyAction','Cancel');
 
+%-Setup registry
+%-----------------------------------------------------------------------
+set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ))
+spm_XYZreg('Add2Reg',hReg,hAx,'spm_list');
+
+%-Return TabDat structure & reset pointer
+%-----------------------------------------------------------------------
 varargout = {TabDat};
 spm('Pointer','Arrow')
 
@@ -499,16 +532,18 @@ spm('Pointer','Arrow')
 %=======================================================================
 case 'listcluster'                       %-List for current cluster only
 %=======================================================================
-% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,Title)
+% FORMAT TabDat = spm_list('listcluster',SPM,VOL,Dis,Num,Title,hReg)
 
 spm('Pointer','Watch')
 
 %-Parse arguments
 %-----------------------------------------------------------------------
-if nargin<3,   error('insufficient arguments'), end
-if nargin<6,   Title = ['single cluster summary',...
-			' (p-values corrected for entire volume)'];
-	else,  Title = varargin{6}; end
+if nargin<3,     error('insufficient arguments'), end
+if nargin<7,	 hReg=[]; else, hReg = varargin{7}; end
+if nargin<6,     Title = '';
+	else,    Title = varargin{6}; end
+if isempty(Title), Title = ['single cluster summary',...
+			' (p-values corrected for entire volume)']; end
 if nargin<5,     Num = [];
 	else,    Num = varargin{5}; end
 if isempty(Num), Num = 16; end
@@ -539,7 +574,7 @@ end
 
 %-Call 'list' functionality to produce table
 %-----------------------------------------------------------------------
-varargout = {spm_list('list',SPM,VOL,Dis,Num,Title)};
+varargout = {spm_list('list',SPM,VOL,Dis,Num,Title,hReg)};
 
 
 
@@ -584,6 +619,29 @@ fprintf('%s\n',TabDat.ftr{:})
 fprintf('%c','='*ones(1,80)), fprintf('\n\n')
 
 
+
+%=======================================================================
+case 'setcoords'                                    %-Co-ordinate change
+%=======================================================================
+% FORMAT spm_list('SetCoords',xyz,hAx,hReg)
+if nargin<3, error('Insufficient arguments'), end
+hAx = varargin{3};
+xyz = varargin{2};
+UD  = get(hAx,'UserData');
+HlistXYZ = UD.HlistXYZ(ishandle(UD.HlistXYZ));
+
+%-Set all co-ord strings to black
+%-----------------------------------------------------------------------
+set(HlistXYZ,'Color','k')
+
+%-If co-ord matches a string, highlight it in red
+%-----------------------------------------------------------------------
+XYZ = get(HlistXYZ,'UserData');
+if iscell(XYZ), XYZ = cat(2,XYZ{:}); end
+[null,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ);
+if d<eps
+	set(HlistXYZ(i),'Color','r')
+end
 
 
 %=======================================================================
