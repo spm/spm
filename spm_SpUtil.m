@@ -435,79 +435,103 @@ case 'trrv'                      %-Traces for (effective) df calculation
 % [trRV,trRVRV]= spm_SpUtil('trRV',x[,V])
 
 if nargin == 1, error('insufficient arguments');
-else sX = varargin{2}; end;
+else sX = varargin{2};  end;
+
 if ~spm_sp('isspc',sX), sX = spm_sp('Set',sX); end;
+
 rk = sX.rk;
-if rk==0, error('Rank is null'); end;
 sL = spm_sp('size',sX,1);
 
-if nargin == 2	 			%-no V specified: trRV == trRVRV
-		varargout = {sL - rk, sL - rk};
-		   
-else 					%-V provided: assume correct!
+if  sL == 0,
+	warning('space with no dimension '); 	
+	if nargout==1, varargout = {[]};
+	else varargout = {[], []}; end
+else, 
+
+   if nargin > 2 & ~isempty(varargin{3})	
+
 	V = varargin{3};
 
 	if nargout==1
 		%-only trRV needed
-		trMV = sum(sum( varargin{2}.u(:,1:rk)' .* ...
-			(varargin{2}.u(:,1:rk)'*V) ));
+		if rk==0 | isempty(rk),  trMV = 0; 
+		else,	trMV = sum(sum( sX.u(:,1:rk)' .* (sX.u(:,1:rk)'*V) ));
+		end;
 		varargout = { trace(V) - trMV};
-
 	else
 		%-trRVRV is needed as well
-		MV = varargin{2}.u(:,1:rk)*(varargin{2}.u(:,1:rk)'*V);
-		%-NB: It's possible to avoid computing MV; with MV = u*(u'*V) 
-		trMV = trace(MV);
-		trRVRV = sum(sum(V.*V)) - 2*sum(sum(V.*MV)) + sum(sum(MV'.*MV));
+		if rk==0 | isempty(rk),  
+			trMV = 0; 
+			trRVRV = sum(sum(V.*V));
+		else 
+			MV = sX.u(:,1:rk)*(sX.u(:,1:rk)'*V);
+			%-NB: It's possible to avoid computing MV; with MV = u*(u'*V) 
+			trMV = trace(MV);
+			trRVRV = sum(sum(V.*V)) - 2*sum(sum(V.*MV)) + sum(sum(MV'.*MV));
+		end
 		varargout = {(trace(V) - trMV), trRVRV};
-
 	end
+		   
+   else  %- nargin == 2 | isempty(varargin{3})
+
+	if nargout==1
+		if rk==0 | isempty(rk), varargout = {sL}; 
+		else, varargout = {sL - rk}; 
+		end;
+	else
+		if rk==0 | isempty(rk),  varargout = {sL,sL};
+		else, varargout = {sL - rk, sL - rk};
+		end;	
+	end
+
+    end
+
 end
 
 
 case 'trmv'                     %-Traces for (effective) Fdf calculation
 %=======================================================================
-% [trMV, trMVMV]] = spm_SpUtil('trMV',x[,V])
+% [trMV, trMVMV]] = spm_SpUtil('trMV',sX [,V])
+%
+% NB : When V is given empty, the routine asssumes it's identity
+% This is used in spm_FcUtil.
 
-if nargin == 1, error('insufficient arguments'), end
+if nargin == 1, error('insufficient arguments');
+else sX = varargin{2}; end;
+if ~spm_sp('isspc',sX), sX = spm_sp('Set',sX); end;
+rk = sX.rk;
 
-if nargin == 2	 			%-no V specified: trMV == trMVMV
-	if spm_sp('isspc',varargin{2})
-		varargout = {varargin{2}.rk, varargin{2}.rk};
-	else
-		rk = rank(varargin{2}); varargout = {rk,rk};
-	end
-   
-else 					%- V provided, and assumed correct !
+if isempty(rk)
+	warning('Rank is empty'); 	
+	if nargout==1, varargout = {[]};
+	else varargout = {[], []}; end
+	return; 
+elseif  rk==0, warning('Rank is null in spm_SpUtil trMV ');
+	if nargout==1, varargout = {0};
+	else varargout = {0, 0}; end
+	return; 
+end;
 
-    if spm_sp('isspc',varargin{2})
-	rk = varargin{2}.rk; 
-        if rk==0, error('Rank is null'), end
+if nargin > 2 & ~isempty(varargin{3}) %- V provided, and assumed correct !
 
+	V = varargin{3};
 	if nargout==1
 		%-only trMV needed
-		trMV = sum(sum(varargin{2}.u(:,1:rk)' .* ...
-			(varargin{2}.u(:,1:rk)'*varargin{3}) ));
+		trMV = sum(sum(sX.u(:,1:rk)' .* (sX.u(:,1:rk)'*V) ));
 		varargout = {trMV};
 	else 
 		%-trMVMV is needed as well
-		MV = varargin{2}.u(:,1:rk)*(varargin{2}.u(:,1:rk)'*varargin{3});
+		MV = sX.u(:,1:rk)*(sX.u(:,1:rk)'*V);
 		%-(See note on saving mem. for MV in 'trRV')
-		trMVMV = sum(sum(MV'.*MV));
-		varargout = {trace(MV), trMVMV};
+		varargout = {trace(MV), sum(sum(MV'.*MV))};
 	end
 
-    else 
+else  % nargin == 2 | isempty(varargin{3}) %-no V specified: trMV == trMVMV
 	if nargout==1
-		%-only trMV is needed then use : 
-		trMV = sum(sum(varargin{2}'.*(pinv(varargin{2})*varargin{3})));
-		varargout = {trMV};
+		varargout = {rk};
 	else
-		MV     =  varargin{2}*(pinv(varargin{2})*varargin{3});
-		trMVMV = sum(sum(MV'.*MV));
-		varargout = {trace(MV), trMVMV};
+		varargout = {rk, rk};
 	end
-    end
 end
 
 
