@@ -11,7 +11,7 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % The model can then be re-estimated without having to go through
 % model specification again.
 %
-% %W% Will Penny %E%
+% %W%	Will Penny %E%
 
 load(DCM_filename);
 
@@ -23,20 +23,19 @@ if ~(n==DCM.n)
 end
 
 for i = 1:n
-    load(voi_filenames{1});
+    load(voi_filenames{i});
     
-    %Nscans_y=length(DCM.Y.y(:,i));
-    %Nscans_u=length(xY.u);
-    %if ~(Nscans_y==Nscans_u)
-    %    disp(sprintf('Error in spm_dcm_voi: mismatching number of scans in region %s',xY.name));
-    %    return
-    %end
+    DCM.v=size(xY.u,1);
+    if (i==1)
+        DCM.Y.y=zeros(DCM.v,n);
+    end
     DCM.Y.y(:,i)  = xY.u;
     
     DCM.Y.name{i} = xY.name;
     DCM.Y.X0 = xY.X0;
     DCM.Y.Ce = spm_Ce(ones(1,DCM.n)*DCM.v);
-    DCM.xY = DCM.xY;
+    % Store new response variable structure in DCM 
+    DCM.xY(i) = xY;
 end
 
 
