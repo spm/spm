@@ -151,8 +151,14 @@ SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
 VOL.R     = spm_resels(VOL.FWHM./vsc,D,SPACE);
 VOL.S     = S;
-VOL.Msk   = j;
-
+if (SPACE=='I')
+  VOL.Msk   = D;
+else  
+  VOL.Msk   = SPM.XYZ(1,:) + ...
+             (SPM.XYZ(2,:)-1)*VOL.DIM(1) + ...
+             (SPM.XYZ(3,:)-1)*VOL.DIM(1)*VOL.DIM(2);
+end
+ 
 
 %-Tabulate p values
 %-----------------------------------------------------------------------
