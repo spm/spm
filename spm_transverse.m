@@ -34,7 +34,7 @@ function spm_transverse(SPM,VOL,hReg,junk1)
 %_______________________________________________________________________
 % %W% Karl Friston - modified by John Ashburner %E%
 
-if nargin==3 & isstruct(SPM),
+if nargin == 3 & isstruct(SPM),
 	init(SPM,VOL,hReg);
 end;
 if ~isstruct(SPM) & strcmp(lower(SPM),'setcoords'),
@@ -118,11 +118,12 @@ end;
 
 %-Configure {128 level} colormap
 %-----------------------------------------------------------------------
-cmap = get(transv.fig,'Colormap');
-if size(cmap,1)~=128,
-	cmap = [gray(64); hot(64)];
-	set(transv.fig,'Colormap',cmap);
-end;
+cmap   = get(Fgraph,'Colormap');
+if size(cmap,1) ~= 128
+	figure(Fgraph)
+	spm_figure('Colormap','gray-hot')
+	cmap   = get(Fgraph,'Colormap');
+end
 
 D      = length(cmap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
@@ -266,11 +267,12 @@ end;
 
 %-Configure {128 level} colormap
 %-----------------------------------------------------------------------
-cmap = get(transv.fig,'Colormap');
-if size(cmap,1)~=128,
-	cmap = [gray(64); hot(64)];
-	set(transv.fig,'Colormap',cmap);
-end;
+cmap   = get(transv.fig,'Colormap');
+if size(cmap,1) ~= 128
+	figure(transv.fig)
+	spm_figure('Colormap','gray-hot')
+	cmap   = get(transv.fig,'Colormap');
+end
 D      = length(cmap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
 
