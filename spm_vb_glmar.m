@@ -69,7 +69,6 @@ function [slice] = spm_vb_glmar (Y,slice)
 %               .c_lambda_prior
 %
 %               There are other fields that are used internally
-%
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
