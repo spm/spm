@@ -827,6 +827,8 @@ bFI      = [bL(1),bL(2:3)&~bL(4),bL(4),bL([2,3])&bL(4)];
 
 %-Build Condition (H) and Block (B) partitions
 %=======================================================================
+H=[];Hnames=[];
+B=[];Bnames=[];
 eval(['[H,Hnames] = spm_DesMtx(',D.Hform,');'])
 if rank(H)==nScan, error('unestimable condition effects'), end
 eval(['[B,Bnames] = spm_DesMtx(',D.Bform,');'])
@@ -1212,7 +1214,7 @@ else
 	for i = 1:4
 		mstr{i} = sprintf('%s (%i)',D.sF{i},nL(i));
 	end
-	str   = 'replications are over?';
+	str   = 'replications are over? eg. subjects';
 	rep   = spm_input(str,'+1','m',mstr(mL),1:length(mL));
 
 	% and ask whether repeated measures are independent
