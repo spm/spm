@@ -53,7 +53,7 @@ subplot(2,1,2); axis off
 % Table headings
 %-----------------------------------------------------------------------
 axes('Position',[0.1 0.06 0.8 0.46]); axis off
-text(0,24,['Statistics:  ',spm('DirTrunc',CWD)],...
+text(0,24,['Statistics:  ',spm_str_manip(CWD,'a50')],...
 	'FontSize',12,'FontWeight','Bold');
 line([0 1],[23 23],'LineWidth',3,'Color',[0 0 0])
 

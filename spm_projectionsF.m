@@ -45,7 +45,7 @@ set(Fgraph,'Units','Normalized');
 Q = SPMF > u;
 if sum(Q) == 0
 	axis off
-	text(0,0.8,spm('DirTrunc',CWD));
+	text(0,0.8,spm_str_manip(CWD,'a50'));
 	text(0,0.7,'No voxels above this threshold {u}','FontSize',16);
 	return
 end
@@ -57,7 +57,7 @@ SPMF  = SPMF(:,Q);
 %---------------------------------------------------------------------------
 if sum(Q) == 0
 	axis off
-	text(0,0.8,spm('DirTrunc',CWD));
+	text(0,0.8,spm_str_manip(CWD,'a50'));
 	text(0,0.7,'No clusters above this threshold {k}','FontSize',16);
 	return
 end
@@ -97,7 +97,7 @@ mkpv = [0.05 0.2 0.48 0.65];
 
 y   = 25;
 axes('Position',[0.1 0.06 0.8 0.46],'Tag','Empty'); axis off
-text(0,y,['P values & statistics:   ' spm('DirTrunc',CWD,40)],...
+text(0,y,['P values & statistics:   ' spm_str_manip(CWD,'a40')],...
 	'FontSize',12,'FontWeight','Bold');
 y   = y - 1;
 line([0 1],[y y],'LineWidth',3,'Color',[0 0 0])

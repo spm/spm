@@ -85,9 +85,9 @@ elseif SPMF
 	tmp     = 1 - spm_Fcdf(U,df);
 end
 
-Descrip = spm('DirTrunc',CWD,24);
+Descrip = spm_str_manip(CWD,'a30');
 Descrip = str2mat(Descrip,...
-	sprintf('Height threshold {u} = %0.2f, p = %0.3f',U,tmp));
+	sprintf('Height threshold {u} = %0.2f, p = %0.6f',U,tmp));
 Descrip = str2mat(Descrip,...
 	sprintf('Extent threshold {k} = %i voxels',k));
 
