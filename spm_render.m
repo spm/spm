@@ -34,7 +34,7 @@ if nargin==0
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	rendfile = spm_get(1,'render*.mat',['Render file'],...
-				[SWD '/rend']);
+				fullfile(SWD,'rend'));
 
 	num = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 	flg = 0; if num==1, flg = spm_input('Style',1,'new|old',[0 1], 1); end;

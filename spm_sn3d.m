@@ -288,7 +288,7 @@ basprompt = 'none|2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x
 
 if (nargin == 0)
 	% With no arguments, act as spm_sn3d_ui
-	SPMid = spm('FnBanner',mfilename,'%W%');
+	SPMid = spm('FnBanner',mfilename,'%I%');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Normalize');
 	spm_help('!ContextHelp','spm_sn3d.m');
 
@@ -340,7 +340,7 @@ if (nargin == 0)
 		ok = 0;
 		while ~ok,
 			Template = spm_get(Inf,'.img',['Template image(s)'],...
-				[SWD '/templates']);
+				fullfile(SWD,'templates'));
 			vv=spm_vol(Template);
 			if prod(size(vv))==1,
 				ok = 1;
@@ -358,7 +358,7 @@ if (nargin == 0)
 		rglrztn    = sptl_Rglrztn;
 
 		brainmask = '';
-		if sptl_MskBrn==1, brainmask = [SWD '/apriori/brainmask.img']; end;
+		if sptl_MskBrn==1, brainmask = fullfile(SWD,'apriori','brainmask.img'); end;
 
 		if sptl_CO ~= 1,
 			% Customise the normalisation
@@ -416,7 +416,7 @@ if (nargin == 0)
 				brainmask = '';
 				tmp = spm_input('Mask brain when registering?', '+1', 'm',...
 					'Mask Brain|Dont Mask Brain',[1 0],find([1 0] == sptl_MskBrn));
-				if tmp == 1, brainmask = [SWD '/apriori/brainmask.img']; end;
+				if tmp == 1, brainmask = fullfile(SWD,'apriori','brainmask.img'); end;
 			end;
 		end;
 
@@ -630,8 +630,8 @@ linfun = inline('fprintf(''  %-60s%s'', x,sprintf(''\b'')*ones(1,62))');
 VG = spm_vol(spms);
 
 linfun('Smoothing..');
-spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
-VF = spm_vol('./spm_sn3d_tmp.img');
+spm_smooth(P(1,:),fullfile('.','spm_sn3d_tmp.img'),params(5));
+VF = spm_vol(fullfile('.','spm_sn3d_tmp.img'));
 
 
 % Affine Normalisation
@@ -639,10 +639,10 @@ VF = spm_vol('./spm_sn3d_tmp.img');
 spm_chi2_plot('Init','Affine Registration','Convergence');
 % use object mask, if present, for rough coregistration
 linfun('Coarse Affine Registration..');
-p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8,[],'', objmask);
+p1 = spm_affsub3('affine3',spms,fullfile('.','spm_sn3d_tmp.img'),1,8,[],'', objmask);
 % call to affsub3 allows empty brainmask, objmask
 linfun('Fine Affine Registration..');
-p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1,brainmask,objmask);
+p1 = spm_affsub3('affine3',spms,fullfile('.','spm_sn3d_tmp.img'),1,6,p1,brainmask,objmask);
 
 spm_chi2_plot('Clear');
 prms   = p1(1:12);
@@ -686,7 +686,7 @@ Dims   = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
 mgc    = 960209;
 eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
 
-delete_image('./spm_sn3d_tmp.img');
+delete_image(fullfile('.','spm_sn3d_tmp.img'));
 
 % Do the display stuff
 %-----------------------------------------------------------------------
