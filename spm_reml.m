@@ -1,15 +1,16 @@
-function [Ce,h,W] = spm_reml(Cy,X,Q,TOL);
+function [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W] = spm_reml(Cy,X,Q,TOL);
+% FORMAT [Ce,h,W,u] = spm_reml(Cy,X,Q,TOL);
 %
 % Cy  - (m x m) data covariance matrix y*y'  {y = (m x n) data matrix}
 % X   - (m x p) design matrix
-% Q   - {1 x q} covariance constraints
+% Q   - {1 x q} covariance components
 % TOL - Tolerance {default = 1e-6}
 %
 % Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) hyperparameters
-% W   - (q x q) W*n = precision of hyperparameter estimates 
+% W   - (q x q) W*n = precision of hyperparameter estimates
+% u   - {1 x p} estimable components C{i} = u(1,i)*Q{1} + u(2,i)*Q{2} +...
 %___________________________________________________________________________
 % %W% John Ashburner, Karl Friston %E%
 
@@ -19,34 +20,47 @@ if nargin < 4, TOL = 1e-6; end
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
-X     = spm_svd(X,1e-16);
+X     = full(X);
+X     = orth(X);
 
-% find independent partitions (encoded in W)
+% find estimable components (encoded in W)
 %---------------------------------------------------------------------------
 m     = length(Q);
 n     = length(Cy);
-d     = zeros(m,m);
-RQR   = sparse(n,n);
+W     = zeros(m,m);
 for i = 1:m
-	RQ{i} = Q{i} - X*(X'*Q{i});
+	RQ{i}  = Q{i} - X*(X'*Q{i});
 end
 for i = 1:m
 for j = i:m
-	q      = sum(sum(RQ{i}.*RQ{j}'));
-	d(i,j) = q;
-	d(j,i) = q;
+	dFdhh  = sum(sum(RQ{i}.*RQ{j}'));
+	W(i,j) = dFdhh;
+	W(j,i) = dFdhh;
 end
 end
 
-% initialize hyperparameters
+% rotate Q {and eliminate redundant components}
 %---------------------------------------------------------------------------
-dFdh  = zeros(m,1);
-h     = zeros(m,1);
-W     = zeros(m,m); 
-for i = 1:m
-	h(i) = any(diag(Q{i}));
+u     = orth(W);
+for i = 1:size(u,2)
+	C{i}  = sparse(n,n);
+	for j = 1:m
+		C{i} = C{i} + Q{j}*u(j,i);
+	end
 end
-h     = d*pinv(d)*h;
+Q     = C;
+
+% initialize hyperparameters (assuming Cov{e} = 1}
+%---------------------------------------------------------------------------
+m     = length(Q);
+dFdh  = zeros(m,1);
+W     = zeros(m,m); 
+C     = [];
+for i = 1:m
+	C = [C Q{i}(:)];
+end
+I     = speye(n,n);
+h     = inv(C'*C)*C'*I(:);
 
 % Iterative EM
 %---------------------------------------------------------------------------
@@ -85,26 +99,35 @@ for k = 1:32
 	%-------------------------------------------------------------------
 	for i = 1:m
 		for j = i:m
-		   if d(i,j)
 
 			% ddF/dhh = -trace{P*Q{i}*P*Q{j}}
 			%---------------------------------------------------
-			ddFdhh = sum(sum(PQ{i}.*PQ{j}'))/2;
-			W(i,j) = ddFdhh;
-			W(j,i) = ddFdhh;
-		    end
+			dFdhh  = sum(sum(PQ{i}.*PQ{j}))/2;
+			W(i,j) = dFdhh;
+			W(j,i) = dFdhh;
 		end
 	end
 
 	% Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
 	%-------------------------------------------------------------------
-	dh    = pinv(W)*dFdh;
+	dh    = inv(W)*dFdh;
 	h     = h + dh;
 
 	% Convergence (or break if there is only one hyperparameter)
 	%===================================================================
 	w     = dFdh'*dFdh;
-	if w < TOL, break, end
+	if w < TOL | m == 1, break, end
 	fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
-	if m == 1,   break, end
 end
+
+% estimate of cov{e}
+%---------------------------------------------------------------------------
+Ce    = sparse(n,n);
+for i = 1:m
+	Ce = Ce + h(i)*Q{i};
+end
+
+% rotate hyperparameter esimates and precision back
+%---------------------------------------------------------------------------
+h     = u*h;
+W     = u*W*u';
