@@ -561,8 +561,8 @@ return;
 function wrap = get_wrap(wrap)
 % Get image wrapping information
 % FORMAT wrap = get_wrap(wrap)
-wraps = [0 0 0 ; 0 0 1; 0 1 0; 0 1 1; 1 0 0; 1 0 1; 1 1 0; 1 1 1];
-t     = find(all(repmat(wrap(:)',3,1) == wraps, 2));
+wraps = [0 0 0 ; 1 0 0; 0 1 0; 1 1 0; 0 0 1; 1 0 1; 0 1 1; 1 1 1];
+t     = find(all(repmat(wrap(:)',8,1) == wraps, 2));
 if isempty(t), t = 1; end;
 p     = spm_input('Way to wrap images?','+1','m',...
 	['No wrap|Wrap X|Wrap Y|Wrap X & Y|Wrap Z|Wrap X & Z|Wrap Y & Z|Wrap X, Y & Z'],...
