@@ -46,7 +46,7 @@ M = load(matfile);
 %-Loop through varargin putting named variables into output arguments
 %-----------------------------------------------------------------------
 varargout = cell(1,nargout);
-for i=1:min(nargout,nargin-1)
+for i=1:min(max(1,nargout),nargin-1)
 	if isfield(M,varargin{i})
 		varargout{i} = getfield(M,varargin{i});
 	else
