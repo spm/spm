@@ -211,7 +211,8 @@ function varargout = spm_SpUtil(varargin)
 % sz  - size
 %
 %_______________________________________________________________________
-% %W% Andrew Holmes, Jean-Baptiste Poline %E%
+% %W% Andrew Holmes Jean-Baptiste Poline 
+% + frobenius norm trick by S. Rouquette %E% 
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -469,25 +470,32 @@ else,
    if nargin > 2 & ~isempty(varargin{3})	
 
 	V = varargin{3};
-
+	u = sX.u(:,1:rk);
+	clear sX;
 	if nargout==1
 		%-only trRV needed
 		if rk==0 | isempty(rk),  trMV = 0; 
-		else,	trMV = sum(sum( sX.u(:,1:rk)' .* (sX.u(:,1:rk)'*V) ));
+		else,	trMV = sum(sum( u .* (V*u) ));
 		end;
 		varargout = { trace(V) - trMV};
 	else
 		%-trRVRV is needed as well
 		if rk==0 | isempty(rk),  
 			trMV = 0; 
-			trRVRV = sum(sum(V.*V));
+			trRVRV = (norm(V,'fro'))^2;
+         trV = trace(V);
+         clear V u
 		else 
-			MV = sX.u(:,1:rk)*(sX.u(:,1:rk)'*V);
-			%-NB: It's possible to avoid computing MV; with MV = u*(u'*V) 
-			trMV = trace(MV);
-			trRVRV = sum(sum(V.*V)) - 2*sum(sum(V.*MV)) + sum(sum(MV'.*MV));
+			Vu = V*u;
+			trV = trace(V);
+			trRVRV = (norm(V,'fro'))^2;
+         clear V; 
+			trRVRV = trRVRV - 2*(norm(Vu,'fro'))^2;
+			trRVRV = trRVRV + (norm(u'*Vu,'fro'))^2;
+			trMV = sum(sum( u .* Vu ));
+         clear u Vu
 		end
-		varargout = {(trace(V) - trMV), trRVRV};
+		varargout = {(trV - trMV), trRVRV};
 	end
 		   
    else  %- nargin == 2 | isempty(varargin{3})
@@ -503,8 +511,7 @@ else,
 	end
 
     end
-
-end
+end	
 
 
 case 'trmv'                     %-Traces for (effective) Fdf calculation
@@ -533,15 +540,21 @@ end;
 if nargin > 2 & ~isempty(varargin{3}) %- V provided, and assumed correct !
 
 	V = varargin{3};
+	u = sX.u(:,1:rk);
+	clear sX;
+
 	if nargout==1
 		%-only trMV needed
-		trMV = sum(sum(sX.u(:,1:rk)' .* (sX.u(:,1:rk)'*V) ));
+		trMV = sum(sum(u' .* (u'*V) ));
 		varargout = {trMV};
 	else 
 		%-trMVMV is needed as well
-		MV = sX.u(:,1:rk)*(sX.u(:,1:rk)'*V);
-		%-(See note on saving mem. for MV in 'trRV')
-		varargout = {trace(MV), sum(sum(MV'.*MV))};
+		Vu = V*u;
+      clear V
+		trMV = sum(sum( u .* Vu ));
+		trMVMV = (norm(u'*Vu,'fro'))^2;
+	   clear u Vu
+		varargout = {trMV, trMVMV};
 	end
 
 else  % nargin == 2 | isempty(varargin{3}) %-no V specified: trMV == trMVMV
@@ -551,6 +564,7 @@ else  % nargin == 2 | isempty(varargin{3}) %-no V specified: trMV == trMVMV
 		varargout = {rk, rk};
 	end
 end
+ 
 
 
 case {'i0->edf','edf'}                  %-Effective F degrees of freedom
@@ -627,6 +641,8 @@ error('Unknown action string in spm_SpUtil')
 
 %=======================================================================
 end
+
+
 
 
 function i0c = sf_check_i0(i0,sL)
