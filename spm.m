@@ -794,7 +794,7 @@ Fmenu = spm_figure('FindWin','Menu');
 %-----------------------------------------------------------------------
 if ~ReDo & ~isempty(Fmenu)
 	xSPM = get(Fmenu,'UserData');
-	if isstruct(xSPM) & isfield('SPMver') & isfield('SPMc')
+	if isstruct(xSPM) & isfield(xSPM,'SPMver') & isfield(xSPM,'SPMc')
 		varargout = {xSPM.SPMver,xSPM.SPMc};
 		return
 	end
@@ -821,9 +821,16 @@ else
 	SPMc   = '(c) The Wellcome Department of Cognitive Neurology';
 end
 
-%-Store version in UserData of SPM Menu window, if it exists
+%-Store version info in UserData of SPM Menu window, if it exists
 %-----------------------------------------------------------------------
-if ~isempty(Fmenu), set(Fmenu,'UserData',SPMver); end
+if ~isempty(Fmenu)
+	xSPM = get(Fmenu,'UserData');
+	if ~isempty(xSPM) & ~isstruct(xSPM)
+		warning('Fmenu UserData being overwritten!'), end
+	xSPM.SPMver = SPMver;
+	xSPM.SPMc   = SPMc;
+	set(Fmenu,'UserData',xSPM);
+end
 
 varargout = {SPMver,SPMc};
 
