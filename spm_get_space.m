@@ -31,7 +31,6 @@ if ~isempty(t),
 	end;
 end;
 mfname = fullfile(pth,[nam '.mat']);
-ifname = fullfile(pth,[nam   ext ]);
 
 if nargin == 1,
 
@@ -52,40 +51,8 @@ if nargin == 1,
 		end;
 	end;
 
-	hfname = fullfile(pth,[nam '.hdr']);
-	if exist(hfname) == 2,
-		% Read as much information as is stored in the ANALYZE header.
-		% Assume transverse slices.
-		hdr = spm_read_hdr(hfname);
-		if isempty(hdr),
-			error(sprintf('Can''t read header for "%s"\n', imagename));
-		end
-		if any(hdr.hist.origin(1:3)),
-			origin = hdr.hist.origin(1:3);
-		else,
-			origin = (hdr.dime.dim(2:4)+1)/2;
-		end;
-		vox    = hdr.dime.pixdim(2:4);
-		if all(vox == 0), vox = [1 1 1]; end;
-		off    = -vox.*origin;
-		M      = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
-		if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+	M = mat_from_header(imagename);
 
-	else
-		% Assume it is a MINC file
-		V = spm_vol_minc(imagename);
-		if ~isempty(V),
-			M = V.mat;
-		else,
-			% Try Ecat format
-			V = spm_vol_ecat7(imagename);
-			if ~isempty(V),
-				M = V.mat;
-			else,
-				error(['Can''t read matrix information from "' imagename '".']);
-			end;
-		end;
-	end;
 elseif nargin == 2,
 	%v = spm_vol(sprintf('%s,%d', imagename, n));
 	v = spm_vol(imagename);
@@ -103,8 +70,8 @@ elseif nargin == 2,
 				end;
 			end;
 			Mo(:,:,n) = mat;
-			mat       = Mo;
-			M = mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+			mat       = fill_empty(Mo,nam);
+			M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 			try,
 				save(mfname,'mat','M','-append');
 			catch,
@@ -113,11 +80,66 @@ elseif nargin == 2,
 		else,
 			clear Mo
 			Mo(:,:,n) = mat;
-			mat       = Mo;
-			M = mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+			mat       = fill_empty(Mo,nam);
+			M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 			save(mfname,'mat','M');
 		end;
 	end;
 else,
 	error('Incorrect Usage.');
 end;
+return;
+
+function Mo = fill_empty(Mo,imagename)
+todo = [];
+for i=1:size(Mo,3),
+	if ~any(any(Mo(:,:,i))),
+		todo = [todo i];
+	end;
+end;
+if ~isempty(todo),
+	Mfill = mat_from_header(imagename);
+	for i=1:length(todo),
+		Mo(:,:,todo(i)) = Mfill;
+	end;
+end;
+return;
+
+function M = mat_from_header(imagename)
+[pth,nam,ext] = fileparts(imagename);
+hfname        = fullfile(pth,[nam '.hdr']);
+if exist(hfname) == 2,
+	% Read as much information as is stored in the ANALYZE header.
+	% Assume transverse slices.
+	hdr = spm_read_hdr(hfname);
+	if isempty(hdr),
+		error(sprintf('Can''t read header for "%s"\n', imagename));
+	end
+	if any(hdr.hist.origin(1:3)),
+		origin = hdr.hist.origin(1:3);
+	else,
+		origin = (hdr.dime.dim(2:4)+1)/2;
+	end;
+	vox    = hdr.dime.pixdim(2:4);
+	if all(vox == 0), vox = [1 1 1]; end;
+	off    = -vox.*origin;
+	M      = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
+	if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
+
+else
+	% Assume it is a MINC file
+	V = spm_vol_minc(imagename);
+	if ~isempty(V),
+		M = V.mat;
+	else,
+		% Try Ecat format
+		V = spm_vol_ecat7(imagename);
+		if ~isempty(V),
+			M = V.mat;
+		else,
+			error(['Can''t read matrix information from "' imagename '".']);
+		end;
+	end;
+end;
+return;
+

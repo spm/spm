@@ -163,7 +163,6 @@ mt    = [vx(1) 0 0 off(1) ; 0 vx(2) 0 off(2) ; 0 0 vx(3) off(3) ; 0 0 0 1];
 if spm_flip_analyze_images, mt = diag([-1 1 1 1])*mt; end;
 
 if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
-	M = V.mat; if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 	if exist(fname)==2,
 		clear mat
 		str = load(fname);
@@ -178,6 +177,8 @@ if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
 			end;
 		end;
 		mat(:,:,V.n) = V.mat;
+		mat          = fill_empty(mat,mt);
+		M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 		try,
 			save(fname,'mat','M','-append');
 		catch, % Mat-file was probably Matlab 4
@@ -186,6 +187,8 @@ if sum((V.mat(:) - mt(:)).*(V.mat(:) - mt(:))) > eps*eps*12 | exist(fname)==2,
 	else,
 		clear mat
 		mat(:,:,V.n) = V.mat;
+		mat          = fill_empty(mat,mt);
+		M = mat(:,:,1); if spm_flip_analyze_images, M = diag([-1 1 1 1])*M; end;
 		save(fname,'mat','M');
 	end;
 end;
@@ -198,6 +201,21 @@ if nargin==1 | ~strcmp(varargin{1},'noopen'),
 		if (V.private.fid == -1),
 			error(['Error opening ' fname '. Check that you have write permission.']);
 		end;
+	end;
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function Mo = fill_empty(Mo,Mfill)
+todo = [];
+for i=1:size(Mo,3),
+	if ~any(any(Mo(:,:,i))),
+		todo = [todo i];
+	end;
+end;
+if ~isempty(todo),
+	for i=1:length(todo),
+		Mo(:,:,todo(i)) = Mfill;
 	end;
 end;
 return;
@@ -328,3 +346,4 @@ hdr.hist = hist;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
+
