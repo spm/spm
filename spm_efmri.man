@@ -1,4 +1,21 @@
-% Event related fMRI analyses for SPM'96
+
+% Event related fMRI analyses for SPM'96 - SPM'97
+%_______________________________________________________________________
+%
+% NOTE: In addition to providing an event-related fMRI interface for
+% SPM, this "kit" includes an updated interface for block fMRI
+% analyses, incorporating various features beyond those in SPM96. These
+% advances result in slightly different results to SPM96 (although
+% results files are cross-compatible between the two implementations).
+% SPM96 with this kit on top should be referred to as SPM97, a tag
+% which has been used in the literature.
+%
+% We recommend you maintain the integrity of your SPM96 installation
+% and install this kit in a seperate directory to SPM96. Place the
+% directory containing this kit before SPM96 on your Matlab path when
+% you wish to use SPM97 event related or the updated block fMRI
+% interface.
+%
 %_______________________________________________________________________
 % 
 %                        Event-related fMRI (efMRI)
@@ -90,9 +107,9 @@
 %                 an event-related fMRI study.
 %         Neuron  20:947-57
 % 
-%=======================================================================
+%_______________________________________________________________________
 % 
-%                  The event-related fMRI kit for SPM'96
+%              The event-related fMRI kit for SPM'96 - SPM'97
 % 
 % The SPM96 event-related fMRI kit for SPM96 consists of:
 % 
@@ -106,6 +123,8 @@
 % spm_hrf.m               (v1.2)          - new (included in RFX kit too)
 % spm_results_ui.m        (v1.10.1.1)     - replacing v1.7 of SPM96
 % spm_spm.m               (v1.32)         - replacing v1.23 of SPM96
+% spm_sptop.m             (v1.7)          - replacing v1.2 of SPM96
+%                                           (included in RFX kit too)
 % 
 %                           ----------------
 %  
@@ -114,6 +133,7 @@
 % 
 % spm_Volt_W.m            : creates gamma-functions
 % spm_hrf.m               : creates the synthetic hemodynamic response
+% spm_sptop.m             : creates toeplitz matrix for temporal smoothing
 % 
 % spm_fmri_spm_ui.m       : The main routine for fMRI. This routine creates
 %                           the design matrix and sets up the analysis
@@ -122,5 +142,11 @@
 % spm_graph_ui.m          : extended plotting routines for ER-fMRI
 % spm_results_ui.m        : 
 % 
+%                           ----------------
+%
+% Event related fMRI for SPM was developed by Oliver Josephs, Karl
+% Friston and Christian Buechel. The "kit" upgrading SPM96 to SPM97 was
+% compiled and tested by Christian Buechel and Andrew Holmes. Thanks
+% also to our beta testers.
 %_______________________________________________________________________
-% %W% Christian Buechel %E%
+% %W% Christian Buechel, Andrew Holmes %E%
