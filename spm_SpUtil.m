@@ -265,10 +265,7 @@ if isempty(c), varargout={[]}; return, end
 
 switch lower(action)
 	case 'iscon'
-		for k = 1:size(c,2)
-		    answ(k) = spm_sp('isinspp',sX,c(:,k));
-		    varargout = { answ };
-		end
+		varargout = { spm_sp('eachinspp',sX,c) };
 	case 'allcon'
 		varargout = {spm_sp('isinspp',sX,c)};
 	case 'conr'
