@@ -43,8 +43,8 @@ Matrix *plhs[], *prhs[];
 #endif
 {
      double		*n,*b,*p;
-     char 		label[128];
-     char 		error_msg[128];
+     char 		label[1024];
+     char 		error_msg[1024];
      unsigned char      *ku;
      short 	        *ks;
      int	        *ki;
@@ -96,7 +96,7 @@ Matrix *plhs[], *prhs[];
      if ((int) b[0] == 2) {
          ku     = (unsigned char *) mxCalloc((int) n[0], sizeof(unsigned char));
          for (j = 0; j < g; j++) {
-            read(fp[i], ku, sizeof(unsigned char)*(int) n[0]);
+            read(fp[j], ku, sizeof(unsigned char)*(int) n[0]);
             for (i = 0; i < (int) n[0]; i++)
                pixel[i] += (double) ku[i];
 	    close(fp[j]);
