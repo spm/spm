@@ -1,7 +1,7 @@
 #!make -f
 #
 # %W% John Ashburner %E%
-# $Id: Makefile,v 2.2 2001-08-24 12:01:47 john Exp $
+# $Id: Makefile,v 2.3 2001-11-01 16:26:28 john Exp $
 #
 ###############################################################################
 #
@@ -87,7 +87,8 @@ SPMMEX =\
 	spm_global.$(SUF) spm_resels_vol.$(SUF) spm_getxyz.$(SUF)\
 	spm_atranspa.$(SUF) spm_list_files.$(SUF) spm_unlink.$(SUF)\
 	spm_kronutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF) spm_max.$(SUF)\
-	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)
+	spm_clusters.$(SUF) spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
+	spm_flatten_mex.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -274,6 +275,10 @@ spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a spm_mapping.h
 
 spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a
+	@ chmod 644 $@
+
+spm_flatten_mex.$(SUF): spm_flatten_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
+	$(MEX) spm_flatten_mex.c spm_vol_utils.$(SUF).a
 	@ chmod 644 $@
 
 ###############################################################################
