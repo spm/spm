@@ -19,20 +19,15 @@
 spms   = spm_get(1,'.img','select an image for rendering');
 set([Finter,Fgraph],'Pointer','Watch');
 
-[d d d d d origin] = spm_hread(spms);
-
 % memory map the background image and create transformation matrix {A}
 %-----------------------------------------------------------------------
 L      = spm_XYZreg('RoundCoords',L,V);
-Vs     = spm_map(spms);					% memory mapped
+Vs     = spm_vol(spms);					% memory mapped
 Nx     = round(V(1)*V(4));				% SPM size (mm)
 Ny     = round(V(2)*V(5));				% SPM size (mm)
 J      = round(V(7)*V(4));				% corner of SPM (mm)
 Z      = round(V(8)*V(5));				% corner of SPM (mm)
-A      = spm_matrix(-origin);				% center on origin
-A      = spm_matrix([0 0 0 0 0 0 Vs(4:6)'])*A;		% anisotropy
-A      = spm_matrix([J Z 0])*A;				% re-center to corner
-
+A      = spm_matrix([J Z 0])*Vs.mat;			% re-center to corner
 
 
 % extract data from SPM{t} [at one plane separation]
@@ -129,7 +124,6 @@ axis xy; ylabel(str);
 set(gca,'XTickLabel',[])
 
 
-% unmap and reset pointer
+% reset pointer
 %-----------------------------------------------------------------------
-spm_unmap(Vs);
 set([Finter,Fgraph],'Pointer','Arrow')
