@@ -167,7 +167,7 @@ for i = 1:s
 	% add confound in 'filter'
 	%---------------------------------------------------------------
 	if isstruct(xX.K)
-		X0 = full([X0 xX.K(i).KH]);
+		X0 = full([X0 xX.K(i).X0]);
 	end
 
 	% orthogonalize X w.r.t. X0
