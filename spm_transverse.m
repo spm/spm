@@ -22,8 +22,6 @@ Fgraph = spm_figure('FindWin','Graphics');
 set([Finter,Fgraph],'Pointer','Watch');
 
 [d d d d d origin] = spm_hread(spms);
-if V(3) == 1
-	origin = [0 0 0]; L(3) = V(6); end
 
 % memory map the background image and create transformation matrix {A}
 %-----------------------------------------------------------------------
