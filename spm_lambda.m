@@ -39,5 +39,5 @@ Lt2z  = Lc2z/Lc2t;
 
 % for low df
 %-----------------------------------------------------------------------
-LC2T  = [Inf Inf 20.98 4.37 2.66 2.09 1.80];
-if df < length(LC2T); Lc2t = LC2T(df); end
+LC2T  = [Inf Inf Inf Inf 3.3332 2.2500 1.8667 1.6667];
+if df <= length(LC2T); Lc2t = LC2T(df); end
