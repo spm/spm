@@ -377,6 +377,12 @@ elseif nargin >= 1 & strcmp(arg1,'Reslice'),
 		end;
 	end;
 	reslice_images(P,Flags,Sessions);
+elseif nargin >= 1 & strcmp(arg1,'Realign'),
+	P = arg2;
+	Q = '';
+	if nargin<3, sessions = length(P);
+	else, sessions = arg3; end;
+	realign_images(P,Q,sessions);
 end;
 %_______________________________________________________________________
 
@@ -605,7 +611,7 @@ function realign_images(P,Q,sessions)
 %            the images in the second session would be
 %            P((sessions(2-1)+1):sessions(2),:).
 %
-% Q     - an optional matrix od filenames.  These are used for masking
+% Q     - an optional matrix of filenames.  These are used for masking
 %         out regions which are (roughly) considered to be outside the
 %         brain.  The last filename is an image containing values
 %         between zero and one, where each value is a weight.  The
@@ -660,6 +666,7 @@ else
 		es = sessions(s);
 		fprintf('Registering together images from session %d..\n', s);
 		P(ss:es) = realign_series(P(ss:es),PW,Flags);
+		save_parameters(P(ss:es));
 		ss = es+1;
 	end;
 end
@@ -796,7 +803,9 @@ for i=2:length(P)
 	if register_to_mean,
 		% Generate mean and derivatives of mean
 		tiny = 5e-2; % From spm_vol_utils.c
-		msk        = find((y1>=(1-tiny) & y1<=(d(1)+tiny) & y2>=(1-tiny) & y2<=(d(2)+tiny) & y3>=(1-tiny) & y3<=(d(3)+tiny)));
+		msk        = find((y1>=(1-tiny) & y1<=(d(1)+tiny) &...
+		                   y2>=(1-tiny) & y2<=(d(2)+tiny) &...
+		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
 		[G,dG1,dG2,dG3] = spm_sample_vol(V,y1(msk),y2(msk),y3(msk),Hold1);
 		ave(msk)   = ave(msk)   + G.*soln(end);
@@ -1323,3 +1332,27 @@ img1 = real(ifft2(fimg));
 img2 = spm_slice_vol(img1,spm_matrix([t(2) t(1) 1]),size(img1),Hold);
 return;
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function save_parameters(V)
+fname = [spm_str_manip(prepend(V(1).fname,'realignment_params_'),'s') '.txt'];
+n = length(V);
+Q = zeros(n,6);
+for j=1:n,
+	qq     = spm_imatrix(V(j).mat/V(1).mat);
+	Q(j,:) = qq(1:6);
+end;
+save(fname,'Q','-ascii');
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function PO = prepend(PI,pre)
+head = spm_str_manip(PI,'h');
+tail = spm_str_manip(PI,'t');
+if strcmp(head,tail),
+	PO = [pre tail];
+else,
+	PO   = [head '/' pre tail];
+end;
+return;
