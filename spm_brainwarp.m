@@ -2,7 +2,7 @@
 % Part of nonlinear spatial normalisation
 %_______________________________________________________________________
 % [Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,...
-%                                   dbasX,dbasY,dbasZ,T,fwhm,VW)
+%                                   dbasX,dbasY,dbasZ,T,fwhm,VW,VW2)
 % VG	- Template volume(s) (see spm_vol)
 % VF	- Object volume
 % Affine	- The affine transformation which maps between the object
@@ -19,6 +19,12 @@
 %         should be weighted more heavily in the fitting process.
 %         This volume should have the same dimensions and position
 %         as the volumes in VG.
+% VW2   - another optional weighting volume for determining which voxels
+%         should be weighted more heavily in the fitting process.
+%         This volume should have the same dimensions and position
+%         as the volumes in VF.
+% Without the weighting volumes, all voxels are assigned weights that
+% are uniformly one.
 % 
 % Alpha	- A*A - where A is the design matrix
 % Beta	- A*b - where f is the object image
@@ -54,7 +60,8 @@
 % 	factors. These are derived from T(3*prod(VG(1:3))+1),
 % 	T(3*prod(VG(1:3))+2)...
 %
-%       w is an optional vector of weights.
+%       w is an optional vector of weights, where w = 1/(1/w1 + 1/w2)
+%       where w1 and w2 are derived from the optional weighting images.
 % 
 % The vector b contains [diag(w)*(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
 %_______________________________________________________________________

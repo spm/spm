@@ -1,4 +1,4 @@
-function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
+function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask,objmask)
 % Perform 3D spatial normalization
 %
 % --- The Prompts Explained ---
@@ -94,7 +94,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 % fields.
 %
 % 'Mask brain when registering?'
-% Applies a weighting mask tothe template(s) during the parameter
+% Applies a weighting mask to the template(s) during the parameter
 % estimation.  Weights in and around the brain have values of one
 % whereas those clearly outside the brain have values of zero.
 % This is an attempt to base the normalization purely upon the
@@ -102,6 +102,11 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 % low frequency basis functions can not really cope with variations
 % in skull thickness).
 %
+% 'Mask object brain when registering?'
+% Applies a weighting mask to the object image(s) during the parameter
+% estimation.  Weights are as for the template mask (0-1).  Used
+% (usually) to prevent unusual or abnormal areas of brain (e.g.
+% stroke, tumour) influencing normalisation to normal brain
 %
 % Options for Write Normalised:
 % 'select Normalisation Parameter Set'
@@ -157,6 +162,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 % of images HBM 0:00-00
 %_______________________________________________________________________
 % %W% John Ashburner MRCCU/FIL %E%
+% With suggested modifications by Matthew Brett of the MRCCU
 
 % Programmers notes
 %-----------------------------------------------------------------------
@@ -166,7 +172,7 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 %
 %-----------------------------------------------------------------------
 %
-% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
+% FORMAT spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask, objmask)
 % P         - image(s) to normalize
 % matname   - name of file to store deformation definitions
 % bb        - bounding box for normalized image
@@ -183,9 +189,11 @@ function spm_sn3d(P,matname,bb,Vox,params,spms,aff_parms,brainmask)
 %             fields.
 % spms      - template image(s).
 % aff_parms - starting parameters for affine normalisation.
+% brainmask - Weighting image for template(s)
+% objmask   - Weighting image for object images
 
-global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn sptl_MskBrn;
-
+global SWD CWD sptl_Vx sptl_BB sptl_NBss sptl_Ornt sptl_CO sptl_NItr sptl_Rglrztn;
+global sptl_MskBrn sptl_MskObj;
 
 bboxes  = [   -78 78 -112 76  -50 85         
 	      -64 64 -104 68  -28 72         
@@ -248,6 +256,13 @@ if (nargin == 0)
 		else,
 			brainmask = '';
 		end;
+		% object weight
+  		if sptl_MskObj==1,
+			objmask = spm_get(1,'.img',['Object masking image']);
+		else,
+			objmask = '';
+		end;
+
 		nbasis     = sptl_NBss;
 		iterations = sptl_NItr;
 		rglrztn = sptl_Rglrztn;
@@ -338,8 +353,19 @@ if (nargin == 0)
 				else,
 					brainmask = '';
 				end;
+            
+				% get object weighting 
+				tmp = [1 0];
+				tmp = spm_input('Mask object brain when registering?', pos, 'm',...
+					'Mask object|Dont Mask object',[1 0],find(tmp == sptl_MskObj));
+				pos = pos + 1;
+				if tmp == 1,
+					objmask = spm_get(1,'.img',['Object masking image']);
+				else,
+					objmask = '';
+				end;
 			end;
-		end
+		end;
 
 
 		% Affine starting estimate
@@ -434,10 +460,12 @@ if (nargin == 0)
 		for i=1:nsubjects
 			eval(['matname=matname' num2str(i) ';']);
 			eval(['P=P' num2str(i) ';']);
-			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,brainmask);
+			spm_sn3d(P,matname,bb,Vox,[nbasis iterations 8 rglrztn],Template,aff_parms,...
+			brainmask, objmask);
 		end
 	end
-	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch'); drawnow;
+	set(spm_figure('FindWin','Interactive'),'Name','Writing     Normalised','Pointer','Watch');
+	drawnow;
 	
 	if (a1 == 2 | a1 == 3)
 		for i=1:nsubjects
@@ -569,8 +597,14 @@ elseif strcmp(P,'Defaults')
 	sptl_MskBrn = spm_input('Mask brain when registering?', pos, 'm',...
 		'Mask Brain|Dont Mask Brain',[1 0],find(tmp == sptl_MskBrn));
 	pos = pos + 1;
-
-	% Get default bounding box
+   
+   % ask for object image weighting
+   tmp = [1 0];
+	sptl_MskObj = spm_input('Mask object brain when registering?', pos, 'm',...
+		'Mask object|Dont Mask object',[1 0],find(tmp == sptl_MskObj));
+   pos = pos + 1;
+   
+   % Get default bounding box
 	%-----------------------------------------------------------------------
 	if prod(size(sptl_BB)) == 6
 		tmp = find(	sptl_BB(1) == bboxes(:,1) & sptl_BB(2) == bboxes(:,2) & ...
@@ -641,26 +675,21 @@ end
 % Perform the spatial normalisation
 %_______________________________________________________________________
 
-% Map the template(s).
-%-----------------------------------------------------------------------
 VG = spm_vol(spms);
 
-% Map the image to normalize.
-%-----------------------------------------------------------------------
 fprintf('smoothing..');
 spm_smooth(P(1,:),'./spm_sn3d_tmp.img',params(5));
 VF = spm_vol('./spm_sn3d_tmp.img');
 fprintf(' ..done\n');
 
+
 % Affine Normalisation
 %-----------------------------------------------------------------------
 spm_chi2_plot('Init','Affine Registration','Convergence');
-p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8);
-if ~isempty(brainmask),
-	p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1,brainmask,eye(4));
-else,
-	p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1);
-end;
+% use object mask, if present, for rough coregistration
+p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,8,[],'', objmask);
+% call to affsub3 allows empty brainmask, objmask
+p1 = spm_affsub3('affine3',spms,'./spm_sn3d_tmp.img',1,6,p1,brainmask,objmask);
 
 spm_chi2_plot('Clear');
 prms   = p1(1:12);
@@ -671,17 +700,26 @@ fov = VF(1).dim(1:3).*sqrt(sum(VF(1).mat(1:3,1:3).^2));
 if any(fov<60),
 	fprintf('The field of view is too small to attempt nonlinear registration\n');
 	params(1:4)=0;
-end
+end;
 
-if (~any(params(1:4)==0) & params(6)~=Inf)
+if ~any(params(1:4)==0) & params(6)~=Inf,
 	fprintf('3D Cosine Transform Normalization\n');
-	if ~isempty(brainmask),
-		VW=spm_vol(brainmask);
-		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW);
-	else,
-		[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params);
+	% check for masks and initialise as nec
+	VW  = [];
+	VW2 = [];
+	if nargin >= 8,
+		if ~isempty(brainmask),
+			VW=spm_vol(brainmask);
+		end;
+		if nargin >= 9,
+			if ~isempty(objmask),
+				VW2=spm_vol(objmask);
+			end;
+		end;
 	end;
-else
+   
+	[Transform,Dims,scales] = spm_snbasis(VG,VF,Affine,params,VW,VW2);
+else,
 	Transform = [];
 	Dims = [VG(1).dim(1:3) ; 0 0 0];
 end
@@ -693,16 +731,16 @@ MG     = VG(1).mat;
 vox    = sqrt(sum(MG(1:3,1:3).^2));
 origin = MG\[0 0 0 1]';
 origin = origin(1:3)';
-Dims = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
-mgc = 960209;
+Dims   = [Dims ; vox ; origin ; VF(1).dim(1:3) ; sqrt(sum(MF(1:3,1:3).^2))];
+mgc    = 960209;
 eval(['save ' matname ' mgc Affine Dims Transform MF MG -v4']);
 
-spm_unlink ./spm_sn3d_tmp.img ./spm_sn3d_tmp.hdr ./spm_sn3d_tmp.mat
+delete_image('./spm_sn3d_tmp.img');
 
 % Do the display stuff
 %-----------------------------------------------------------------------
 fg = spm_figure('FindWin','Graphics');
-if ~isempty(fg)
+if ~isempty(fg),
 	spm_figure('Clear','Graphics');
 	ax=axes('Position',[0.1 0.51 0.8 0.45],'Visible','off','Parent',fg);
 	text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
@@ -722,15 +760,15 @@ if ~isempty(fg)
 	text(0,0.45, sprintf('Z1 = %0.2f*X + %0.2f*Y + %0.2f*Z + %0.2f',Q(3,:)),...
 		'Interpreter','none','Parent',ax);
 
-	if (~any(params(1:4)==0) & params(6)~=Inf)
+	if (~any(params(1:4)==0) & params(6)~=Inf),
 		text(0,0.35, sprintf('%d nonlinear iterations',params(4)),...
 			'Interpreter','none','Parent',ax);
 		text(0,0.30, sprintf('%d x %d x %d basis functions',params(1:3)),...
 			'Interpreter','none','Parent',ax);
-	else
+	else,
 		text(0,0.35, 'No nonlinear components',...
 			'Interpreter','none','Parent',ax);
-	end
+	end;
 
 	h1=spm_orthviews('Image',deblank(spms(1,:)),[0. 0.1 .5 .5]);
 	spm_write_sn(P(1,:),matname,bb,Vox,1);
@@ -741,4 +779,12 @@ if ~isempty(fg)
 	spm_orthviews('Space',h2);
 	spm_print;
 	drawnow;
-end
+end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function delete_image(iname)
+iname = spm_str_manip(iname,'sd');
+spm_unlink([iname '.img'], [iname '.hdr'], [iname '.mat'], [iname '.mnc']);
+return;
+

@@ -1,7 +1,6 @@
-function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param,VW)
-
+function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param,VW,VW2)
 % 3D Basis Function Normalization
-% FORMAT [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param);
+% FORMAT [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param,VW,VW2)
 % VG        - Template volumes (see spm_vol).
 % VF        - Volume to normalize.
 % Affine    - A 4x4 transformation (in voxel space).
@@ -14,14 +13,22 @@ function [Transform,Dims,remainder] = spm_snbasis(VG,VF,Affine,param,VW)
 % Dims      - The dimensions of the transforms.
 % remainder - The scaling for each of the templates required
 %             to get the best match to the normalized image.
-% VW        - optional weighting Volume.
+% VW        - optional weighting Volume - for template.
+% VW2       - optional weighting Volume - for object.
 %
 % spm_snbasis performs a spatial normalization based upon a 3D
 % discrete cosine transform.
 % The images should all have an 8mm FWHM smoothness.
 %
+%______________________________________________________________________
+% %W% John Ashburner FIL (& Matthew Brett MRCCU) %E%
 
-% %W% John Ashburner FIL %E%
+if nargin<6, 
+	VW2 = [];
+	if nargin<5,
+		VW = [];
+	end;
+end;
 
 fwhm    = [param(5) 30];
 lambda  = param(6);
@@ -86,11 +93,7 @@ T(s1+(1:4:prod(size(VG))*4)) = 1;
 
 for iter=1:param(4)
 	fprintf('iteration # %d: ', iter);
-	if nargin>=5,
-		[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VW);
-	else,
-		[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm);
-	end;
+	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VW, VW2);
 	fwhm(2) = min([fw fwhm(2)]);
 
 	fprintf('FWHM = %g\tVar = %g\n', fw,Var);
@@ -137,3 +140,5 @@ Dims = [VG(1).dim(1:3); k];
 % Scaling for each template image.
 %-----------------------------------------------------------------------
 remainder = T((1:4:prod(size(VG))*4) + s1);
+return;
+
