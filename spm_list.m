@@ -65,7 +65,7 @@ function varargout = spm_list(varargin)
 % excursion sets (a collection of face, edge and vertex connected
 % subsets or clusters).  The currected significance of the results are
 % based on set, cluster and voxel-level inferences using distributional
-% approximations from the Theory of Gaussian Feilds.  These
+% approximations from the Theory of Gaussian Fields.  These
 % distributions assume that the SPM is a reasonable lattice
 % approximation of a continuous random field with known component field
 % smoothness.
@@ -191,13 +191,13 @@ PF    = spm_platform('fonts');			%-Font names (for this platform)
 
 %-Table axes & Title
 %----------------------------------------------------------------------
-if SatWindow, ht = 0.9; else, ht = 0.4; end;
+if SatWindow, ht = 0.85; bot = .14; else, ht = 0.4; bot = .1; end;
 
 if STAT == 'P'
 	Title = 'Posterior Probabilities';
 end
 	
-hAx   = axes('Position',[0.05 0.1 0.9 ht],...
+hAx   = axes('Position',[0.025 bot 0.9 ht],...
 	'DefaultTextFontSize',FS(8),...
 	'DefaultTextInterpreter','Tex',...
 	'DefaultTextVerticalAlignment','Baseline',...
@@ -621,9 +621,10 @@ end				% end region
 
 
 %-Number and register last page (if paginated)
+%-Changed to use Fgraph for numbering
 %-----------------------------------------------------------------------
 if spm_figure('#page',Fgraph)>1
-	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
+	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
 		'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
 	spm_figure('NewPage',[hPage,h])
 end
