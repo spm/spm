@@ -215,7 +215,12 @@ if xY.Ic
 
 	%-subtract XO*beta
 	%---------------------------------------------------------------
-	y       = y - spm_FcUtil('Y0',xCon(xY.Ic),xX.X,beta);
+	if length(xCon(xY.Ic).c)
+		Fc = spm_FcUtil('set','Fc','F','c',  xCon(xY.Ic).c,xX.X);
+	else
+		Fc = spm_FcUtil('set','Fc','F','iX0',xCon(xY.Ic).iX0,xX.X);
+	end
+	y          = y - spm_FcUtil('Y0',Fc,xX.X,beta);
 
 end
 
