@@ -190,7 +190,7 @@ switch MT
 	case 1
 	% specify a design matrix
 	%---------------------------------------------------------------
-	if sf_abort(1), spm_clf(Finter), return, end
+	if sf_abort, spm_clf(Finter), return, end
 	[xX,Sess] = spm_fMRI_design;
 	spm_fMRI_design_show(xX,Sess);
 	return
@@ -206,7 +206,7 @@ switch MT
 	% load pre-specified design matrix
 	%---------------------------------------------------------------
 	if sf_abort([2,3]), spm_clf(Finter), return, end
-	load(spm_get(1,'.mat','Select fMRIDesMtx.mat'))
+	load(spm_get(1,'fMRIDesMtx.mat','Select SPM_fMRIDesMtx.mat'))
 
 
 	% get filenames
@@ -422,7 +422,7 @@ q      = sum(nscan);
 g      = zeros(q,1);
 fprintf('%-40s: %30s','Calculating globals',' ')                     %-#
 for i  = 1:q
-	fprintf('%s%30s',sprintf('\b')*ones(1,30),sprintf('%3d/%-3d',i,q)) %-#
+	fprintf('%s%30s',sprintf('\b')*ones(1,30),sprintf('%4d/%-4d',i,q)) %-#
 	g(i) = spm_global(VY(i));
 end
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
@@ -522,13 +522,15 @@ xGX.gSF      = gSF;
 %-Save SPMcfg.mat file
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPMstats configuration')                   %-#
-save SPMcfg xsDes VY xX xM xGX F_iX0 Sess
+save SPMcfg SPMid xsDes VY xX xM xGX F_iX0 Sess
 fprintf('%30s\n','...SPMcfg.mat saved')                              %-#
 
 
 %-Display Design report
 %=======================================================================
+fprintf('%-40s: ','Design reporting')                                %-#
 spm_DesRep('DesMtx',xX,{VY.fname}',xsDes)
+fprintf('%30s\n','...done')                                          %-#
 
 
 %-Analysis Proper
@@ -537,12 +539,20 @@ spm_clf(Finter);
 if spm_input('estimate?',1,'b','now|later',[1,0],1)
 	spm('Pointer','Watch')
 	spm('FigName','Stats: estimating...',Finter,CmdLine);
-	spm_spm(VY,xX,xM,F_iX0,Sess);
+	spm_spm(VY,xX,xM,F_iX0,Sess,xsDes);
 	spm('Pointer','Arrow')
 else
 	spm('FigName','Stats: configured',Finter,CmdLine);
 	spm('Pointer','Arrow')
-	% spm_DesRep(****
+	spm_DesRep('DesRepUI',struct(	'xX',		xX,...
+					'VY',		VY,...
+					'xM',		xM,...
+					'F_iX0',	F_iX0,...
+					'Sess',		{Sess},...
+					'xsDes',	xsDes,...
+					'swd',		pwd,...
+					'SPMid',	SPMid,...
+					'cfg',		'SPMcfg'));
 end
 
 
@@ -561,13 +571,13 @@ function abort = sf_abort(i)
 if nargin<1, i=[1:3]; end
 tmp    = zeros(1,3);
 tmp(i) = 1;
-tmp = tmp & [	exist(fullfile('.','fMRIDesMtx.mat'),'file')==2 ,...
-		exist(fullfile('.','SPMcfg.mat'),    'file')==2 ,...
-		exist(fullfile('.','SPM.mat'),       'file')==2 ];
+tmp = tmp & [	exist(fullfile('.','SPM_fMRIDesMtx.mat'),'file')==2 ,...
+		exist(fullfile('.','SPMcfg.mat'),        'file')==2 ,...
+		exist(fullfile('.','SPM.mat'),           'file')==2 ];
 if any(tmp)
-	str = {	'        SPM fMRI design matrix config. (fMRIDesMtx.mat)',...
-		'        SPMstats configuration (SPMcfg.mat)',...
-		'        SPMstats results files (inc. SPM.mat)'};
+	str = {	'    SPM fMRI design matrix definition (SPM_fMRIDesMtx.mat)',...
+		'    SPMstats configuration            (SPMcfg.mat)',...
+		'    SPMstats results files            (inc. SPM.mat)'};
 	str = {	'Current directory contains existing SPMstats files:',...
 		str{tmp},['(pwd = ',pwd,')'],' ',...
 		'Continuing will overwrite existing files!'};
