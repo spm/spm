@@ -214,8 +214,7 @@ if nScan==1, error('Only one image - gimme more!'), end
 %-Get condition information & construct vector of conditions indices
 %-----------------------------------------------------------------------
 %-Epoch condition order
-eCond = spm_input('epoch order Eg 121... {0=null}',1,'c');
-eCond = eCond(:)';
+eCond = spm_input('epoch order Eg 121... {0=null}',1,'c')';
 Conds = unique(eCond);
 
 %-Epoch length(s)
@@ -249,7 +248,7 @@ hrf = spm_hrf(RT);
 % C = spm_detrend(C);
 
 %-Convolve with hemodynamic response function, if requested
-bHRFconv = spm_input('Conv. box-cars with approx HRF?','+1','y/n',[1,0],1);
+bHRFconv = spm_input('Conv. box-cars w/ approx HRF?','+1','y/n',[1,0],1);
 if bHRFconv
 	d = length(hrf);
 	C = [ones(d,1)*C(1,:); C];
@@ -539,22 +538,37 @@ spm_print
 spm('FigName','AdjMean/fMRI - writing',Finter,CmdLine);
 spm('Pointer','Watch');
 
-%-Computation - calculations handled by spm_mean.c
+%-Computation - calculations handled by spm_add.c
 %-Using implicit zero masking feature of spm_add: The resultant image
 % will be zero at voxels where *any* of the input images are zero.
 
+%-Create handle template for output images as 16bit Int16's
+Vo = struct(	'fname',	'',...
+		'dim',		[V(1).dim(1:3),4],...
+		'mat',		V(1).mat,...
+		'pinfo'	,	[1,0,0]',...
+		'descrip',	'');
+
+%-Loop over contrasts
 for i = 1:nc
+	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
+	%-Implement weighted sum by weighting scalefactors in image handles
 	w  = W(i,:).*gSF';
 	Q  = find(abs(w)>0);
 	w  = w(Q); wV = V(Q);
 	for j=1:length(Q), wV(j).pinfo(1,:)=wV(j).pinfo(1,:)*w(j); end
-	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
-	sf  = spm_add(wV,[Fnames{i},'.img'],'m');
-	str = sprintf('Adjusted mean (spm_adjmean) - %s',Fnames{i});
-	spm_hwrite([Fnames{i},'.hdr'],DIM,VOX,sf,spm_type('int16'),0,ORIGIN,str);
-	spm_get_space(Fnames{i},V(1).mat);
+	%-Write header
+	Vo.fname   = [Fnames{i},'.img'];
+	Vo.descrip = sprintf('Adjusted mean (spm_adjmean_fmri) - %s',Fnames{i});
+	Vo.pinfo   = [1,0,0]';
+	spm_create_image(Vo);
+	%-Compute & rewrite header scalefactor
+	Vo.pinfo(1)  = spm_add(wV,Vo,'m');
+	spm_create_image(Vo);
 	fprintf(' (done)\n')
 end
+
+%-Prepend PWD to Fnames
 Fnames = cellstr([repmat([pwd,'/'],nc,1),char(Fnames)]);
 
 
@@ -594,5 +608,6 @@ save SPMadj SPMid ...
 %=======================================================================
 % - E N D
 %=======================================================================
-set(Finter,'Name','AdjMean/fMRI - done'), spm('Pointer','Arrow')
+spm('FigName','AdjMean/fMRI - done',Finter,CmdLine);
+spm('Pointer','Arrow')
 fprintf('\n\n')
