@@ -151,7 +151,7 @@ nC       = size(X2,2);
 
 % Construct 2nd-level SPM specification (S)
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...ReML esimation')      %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...ReML esimation')      %-#
 spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
 
 xsDes.Design = '2nd-level MFX analysis';
@@ -267,7 +267,7 @@ end
 %=======================================================================
 %- E N D: Cleanup GUI
 %=======================================================================
-fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
 spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
 fprintf('%-40s: %30s\n','Completed',spm('time'))                     %-#
 fprintf('...you may now estimate this mixed-effects model\n\n')      %-#
