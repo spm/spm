@@ -7,13 +7,13 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 %
 % X.dt    - time bin {secs}
 % X.RT    - Repetition time {secs}
-% X.BFstr - basis function description string
-% X.DSstr - Design description string
 % X.xX    - regressors
 % X.bX    - session effects
 % X.Xname - names of subpartiton columns {1xn}
 % X.Bname - names of subpartiton columns {1xn}
 %
+% Sess{s}.BFstr   - basis function description string
+% Sess{s}.DSstr   - Design description string
 % Sess{s}.row     - scan   indices      for session s
 % Sess{s}.col     - effect indices      for session s
 % Sess{s}.name{i} - of ith trial type   for session s
@@ -79,26 +79,26 @@ function [X,Sess] = spm_fMRI_design(nscan,RT)
 % Initialize variables
 %---------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
+STOC   = 0;
 
-% global parameter
+% global parameters
 %-----------------------------------------------------------------------
 global fMRI_T; 
 global fMRI_T0; 
-if isempty(fMRI_T), fMRI_T = 16; end;
+if isempty(fMRI_T),  fMRI_T  = 16; end;
 if isempty(fMRI_T0), fMRI_T0 = 16; end;
 
 % get nscan and RT if no arguments
 %---------------------------------------------------------------------------
 if nargin < 2
-	RT     = spm_input('Interscan interval {secs}',2);
+	RT     = spm_input('Interscan interval {secs}','+1');
 end
 if nargin < 1
-	nscan  = spm_input(['scans per session e.g. 64 64 64'],1);
+	nscan  = spm_input(['scans per session e.g. 64 64 64'],'+1');
+	STOC   = 1;
 end
 nsess  = length(nscan);
-dt     = RT/fMRI_T;						% time bin {secs}
-
-
+dt     = RT/fMRI_T;					% time bin {secs}
 
 
 % separate specifications for non-relicated sessions
@@ -135,7 +135,7 @@ for s = 1:nsess
 
 	% event/epoch onsets {ons} and window lengths {W}
 	%-------------------------------------------------------------------
-	[ons,W,name,para,DSstr] = spm_get_ons(k,fMRI_T,dt);
+	[ons,W,name,para,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC);
 	
 
 	% get basis functions for responses
@@ -183,18 +183,18 @@ for s = 1:nsess
 		str   = sprintf('regressor %i',size(D,2) + 1);
 		D     = [D spm_input(str,2,'e',[],[k Inf])];
 	end
-	if length(DSstr)
+	if      c & length(DSstr)
 		DSstr = [DSstr '& user specified covariates '];
-	else
-		DSstr = 'user specified covariates ';
+	elseif  c
+		DSstr = 'User specified covariates ';
 	end
 
 	% append regressors and names
 	%-------------------------------------------------------------------
 	for i = 1:size(D,2)
 		X      = [X D(:,i)];
-		str    = sprintf('name of regressor: %i',i);
-		Xn{qx} = spm_input(str,2,'s',str);
+		str    = sprintf('regressor: %i',i);
+		Xn{qx} = spm_input(['name of ' str],2,'s',str);
 		qx     = qx + 1;
 	end
 
@@ -210,14 +210,16 @@ for s = 1:nsess
 
 	% Session structure
 	%-------------------------------------------------------------------
-	Sess{s}.row  = size(xX,1) + [1:k];
-	Sess{s}.col  = size(xX,2) + [1:size(X,2)];
-	Sess{s}.name = name;
-	Sess{s}.ind  = IND;
-	Sess{s}.bf   = BF;
-	Sess{s}.pst  = PST;
-	Sess{s}.ons  = ONS;
-	Sess{s}.para = para;
+	Sess{s}.BFstr = BFstr;
+	Sess{s}.DSstr = DSstr;
+	Sess{s}.row   = size(xX,1) + [1:k];
+	Sess{s}.col   = size(xX,2) + [1:size(X,2)];
+	Sess{s}.name  = name;
+	Sess{s}.ind   = IND;
+	Sess{s}.bf    = BF;
+	Sess{s}.pst   = PST;
+	Sess{s}.ons   = ONS;
+	Sess{s}.para  = para;
 
 	% Append names
 	%-------------------------------------------------------------------
@@ -244,8 +246,6 @@ end
 %---------------------------------------------------------------------------
 X.dt    = dt;
 X.RT    = RT;
-X.BFstr = BFstr;
-X.DSstr = DSstr;
 X.xX    = xX;
 X.bX    = bX;
 X.Xname = Xname;
