@@ -7,18 +7,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include "cmex.h"
-#include "dbh.h"
-#define MAGIC 170372
-typedef struct mayomaptype
-{
-	int magic;
-	struct dsr hdr;
-	caddr_t map;
-	size_t len;
-	int prot;
-	int flags;
-}	MAYOMAPTYPE;
-
+#include "volume.h"
 
 #ifdef __STDC__
 void mexFunction(int nlhs, Matrix *plhs[], int nrhs, Matrix *prhs[])
@@ -29,18 +18,19 @@ Matrix *plhs[], *prhs[];
 #endif
 {
 	char *str;
-	int k,stlen, fd;
-	MAYOMAPTYPE *mayomap;
-	struct image_dimension *dime;
+	int k,stlen, datasize;
+	MAPTYPE *map;
+	double *ptr;
+	static struct stat stbuf;
 
-	if (nrhs != 1 || nlhs > 1)
-		mexErrMsgTxt("inappropriate usage");
+	if (nrhs != 2 || nlhs > 1)
+		mexErrMsgTxt("Inappropriate usage.");
 
 	/* get filename */
 	if (!mxIsString(prhs[0]))
 		mexErrMsgTxt("filename should be a string");
 	stlen = mxGetN(prhs[0]);
-	str = (char *)mxCalloc(stlen+1+4, sizeof(char));
+	str = (char *)mxCalloc(stlen+1, sizeof(char));
 	mxGetString(prhs[0],str,stlen+1);
 
 	/* delete white space */
@@ -48,52 +38,80 @@ Matrix *plhs[], *prhs[];
 		if (str[k] == ' ')
 		{
 			str[k] = '\0';
-			stlen = k;
 			break;
 		}
 
-	/* check for suffixes */
-	if (!strcmp(str+stlen-4,".img") || !strcmp(str+stlen-4,".hdr"))
-		stlen -= 4;
-
-	/* load .hdr file */
-	sprintf(str+stlen, "%s", ".hdr");
-	if ((fd = open(str, O_RDONLY)) == 0)
+	/* get options */
+	if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
+		!mxIsFull(prhs[1]) || !mxIsDouble(prhs[1]))
 	{
 		mxFree(str);
-		mexErrMsgTxt("cant open .hdr file");
+		mexErrMsgTxt("Options vector must be numeric, real, full and double.");
 	}
-	plhs[0] = mxCreateFull((sizeof(MAYOMAPTYPE)+sizeof(double)-1)/sizeof(double),1,REAL);
-	mayomap = (MAYOMAPTYPE *)mxGetPr(plhs[0]);
-	mayomap->magic = MAGIC;
-	if (read(fd, (char *)(&(mayomap->hdr)), sizeof(struct dsr)) != sizeof(struct dsr))
+	if (mxGetM(prhs[1])* mxGetN(prhs[1]) != 9)
 	{
-		close(fd);
 		mxFree(str);
-		mexErrMsgTxt("cant read .hdr file");
+		mexErrMsgTxt("Options vector is wrong size.");
 	}
-	close(fd);
+	ptr = mxGetPr(prhs[1]);
 
-	/* map image file */
-	sprintf(str+stlen, "%s", ".img");
-	if ((fd = open(str, O_RDONLY)) == 0)
+	plhs[0] = mxCreateFull((sizeof(MAPTYPE)+sizeof(double)-1)/sizeof(double),1,REAL);
+	map = (MAPTYPE *)mxGetPr(plhs[0]);
+
+	map->magic = MAGIC;
+	map->xdim = abs(nint(ptr[0]));
+	map->ydim = abs(nint(ptr[1]));
+	map->zdim = abs(nint(ptr[2]));
+	map->xpixdim = ptr[3];
+	map->ypixdim = ptr[4];
+	map->zpixdim = ptr[5];
+	map->scalefactor = ptr[6];
+	map->datatype = abs(nint(ptr[7]));
+	map->off = abs(nint(ptr[8]));
+	map->pid = getpid();
+
+	if (map->datatype == UNSIGNED_CHAR)
 	{
-		mexErrMsgTxt("cant open .img file");
+		datasize = 8;
 	}
-	dime = &(mayomap->hdr.dime);
-	mayomap->len = (dime->dim[1]*dime->dim[2]*dime->dim[3]*dime->bitpix+7)/8;
-	mayomap->prot = PROT_READ;
-	mayomap->flags = MAP_SHARED;
-
-	mayomap->map = mmap((caddr_t)0, mayomap->len,
-		mayomap->prot , mayomap->flags, fd, (off_t)0);
-	if (mayomap->map == (caddr_t)-1)
+	else if (map->datatype == SIGNED_SHORT)
 	{
-		close(fd);
+		datasize = 16;
+	}
+	else
+	{
 		mxFree(str);
-		mexErrMsgTxt("cant map .img file");
+		mexErrMsgTxt("Unrecognised datatype.");
 	}
-	close(fd);
+	map->len = ((int)(map->xdim*map->ydim*map->zdim)*datasize+7)/8;
+	map->prot = PROT_READ;
+	map->flags = MAP_SHARED;
 
+	if ((map->fd = open(str, O_RDONLY)) == -1)
+	{
+		mxFree(str);
+		mexErrMsgTxt("Cant open image file.");
+	}
+
+	if (fstat(map->fd, &stbuf) == -1)
+	{
+		close(map->fd);
+		mxFree(str);
+		mexErrMsgTxt("Cant stat image file.");
+	}
+	if (stbuf.st_size < map->off+map->len)
+	{
+		close(map->fd);
+		mxFree(str);
+		mexErrMsgTxt("Image file too small.");
+	}
+
+	map->map = mmap((caddr_t)0, map->len, map->prot, map->flags, map->fd, map->off);
+	if (map->map == (caddr_t)-1)
+	{
+		close(map->fd);
+		mxFree(str);
+		mexErrMsgTxt("Cant map image file.");
+	}
 	mxFree(str);
 }

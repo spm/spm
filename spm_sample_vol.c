@@ -8,17 +8,7 @@ static char sccsid[]="%W% John Ashburner %E%";
 #include <sys/mman.h>
 #include <math.h>
 #include "cmex.h"
-#include "dbh.h"
-#define MAGIC 170372
-typedef struct mayomaptype
-{
-	int magic;
-	struct dsr hdr;
-	caddr_t map;
-	size_t len;
-	int prot;
-	int flags;
-}	MAYOMAPTYPE;
+#include "volume.h"
 
 
 /* Zero order hold resampling - nearest neighbour */
@@ -27,7 +17,7 @@ int m, xdim,ydim,zdim;
 double out[], x[], y[], z[];
 unsigned char vol[];
 {
-	int i, dim1xdim2 = xdim*ydim;
+	int i;
 	for (i=0; i<m; i++)
 	{
 		int xcoord, ycoord, zcoord;
@@ -161,32 +151,25 @@ int nlhs, nrhs;
 Matrix *plhs[], *prhs[];
 #endif
 {
-	MAYOMAPTYPE *mayomap;
-	struct image_dimension *dime;
-	int m,n, k, hold;
+	MAPTYPE *map;
+	int m,n, k, hold, xdim,ydim,zdim, datasize;
+	double *img;
+
 	if (nrhs != 5 || nlhs > 1)
 	{
 		mexErrMsgTxt("Inappropriate usage.");
 	}
 
-	if ((!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) ||
-		!mxIsFull(prhs[0]) || !mxIsDouble(prhs[0]) ||
-		mxGetN(prhs[0]) != 1 ||
-		mxGetM(prhs[0]) != (sizeof(MAYOMAPTYPE)+sizeof(double)-1)/sizeof(double)))
-	{
-		mexErrMsgTxt("Bad image handle.");
-	}
-	mayomap = (MAYOMAPTYPE *)mxGetPr(prhs[0]);
-	if (mayomap->magic != MAGIC)
-	{
-		mexErrMsgTxt("Bad magic number in image handle.");
-	}
+	map=get_map(prhs[0]);
 
-	dime = &(mayomap->hdr.dime);
-	if (dime->bitpix != 8)
+	if (map->datatype != UNSIGNED_CHAR)
 	{
 		mexErrMsgTxt("Can only handle 8 bit volume.");
 	}
+	datasize = 8;
+	xdim = abs(nint(map->xdim));
+	ydim = abs(nint(map->ydim));
+	zdim = abs(nint(map->zdim));
 
 	for(k=1; k<=3; k++)
 	{
@@ -211,20 +194,24 @@ Matrix *plhs[], *prhs[];
 		mexErrMsgTxt("Bad hold argument.");
 	}
 	hold = nint(*(mxGetPr(prhs[4])));
+
 	plhs[0] = mxCreateFull(m,n,REAL);
+	img = mxGetPr(plhs[0]);
 
 	if (hold == 0)
-		resample_8bit_0(m*n,(unsigned char *)(mayomap->map),mxGetPr(plhs[0]),
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
-			dime->dim[1], dime->dim[2], dime->dim[3]);
+		resample_8bit_0(m*n,(unsigned char *)(map->map),img,
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim);
 	else if (hold == 1)
-		resample_8bit_1(m*n,(unsigned char *)(mayomap->map),mxGetPr(plhs[0]),
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
-			dime->dim[1], dime->dim[2], dime->dim[3]);
+		resample_8bit_1(m*n,(unsigned char *)(map->map),img,
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim);
 	else if (hold >= 3 && hold <= 127)
-		resample_8bit_sinc(m*n,(unsigned char *)(mayomap->map),mxGetPr(plhs[0]),
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
-			dime->dim[1], dime->dim[2], dime->dim[3], hold);
+		resample_8bit_sinc(m*n,(unsigned char *)(map->map),img,
+			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]), xdim, ydim, zdim, hold);
 	else
 		mexErrMsgTxt("Bad hold value.");
+
+	/* final rescale */
+	if (map->scalefactor != 1.0 && map->scalefactor != 0)
+		for (k=0; k<m*n; k++)
+			img[k] *= map->scalefactor;
 }
