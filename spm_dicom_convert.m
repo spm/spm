@@ -51,8 +51,13 @@ for i=1:length(hdr),
 
 	% Output filename
 	%-------------------------------------------------------------------
-	fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
-		hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
+	if checkfields(hdr{i},'SeriesNumber','AcquisitionNumber') 
+		fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
+			hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
+	else
+		fname = sprintf('f%s-%.6d.img',strip_unwanted(hdr{i}.PatientID),hdr{i}.InstanceNumber);
+	end;
+
 	fname = fullfile(pwd,fname);
 
 	% Image dimensions and data
@@ -194,8 +199,10 @@ for i=2:length(hdr),
 		orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
 		xy2    = vol{j}{1}.ImagePositionPatient*orient;
 		dist2  = sum((xy1-xy2).^2);
-		if        hdr{i}.SeriesNumber            == vol{j}{1}.SeriesNumber &&...
-		          hdr{i}.AcquisitionNumber       == vol{j}{1}.AcquisitionNumber &&...
+		if ((~isfield(hdr{i},'SeriesNumber') && ~isfield(vol{j}{1},'SeriesNumber')) ||...
+		         (hdr{i}.SeriesNumber            == vol{j}{1}.SeriesNumber)) &&...
+		   ((~isfield(hdr{i},'AcquisitionNumber') && ~isfield(vol{j}{1},'AcquisitionNumber')) ||...
+		         (hdr{i}.AcquisitionNumber       == vol{j}{1}.AcquisitionNumber)) &&...
 	       ((~isfield(hdr{i},'SequenceName') && ~isfield(vol{j}{1},'SequenceName')) ||...
 		   strcmp(hdr{i}.SequenceName,              vol{j}{1}.SequenceName)) &&...
 	       ((~isfield(hdr{i},'SeriesInstanceUID') && ~isfield(vol{j}{1},'SeriesInstanceUID')) ||...
@@ -412,8 +419,12 @@ function write_volume(hdr)
 
 % Output filename
 %-------------------------------------------------------------------
-fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
-	hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
+if checkfields(hdr{1},'SeriesNumber','AcquisitionNumber')
+	fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
+		hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
+else
+	fname = sprintf('s%s-%.6d.img', strip_unwanted(hdr{1}.PatientID),hdr{1}.InstanceNumber);
+end;
 fname = fullfile(pwd,fname);
 
 % Image dimensions
@@ -530,7 +541,8 @@ for i=1:length(hdr),
 	elseif ~checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient'),
 		%disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
-	elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+	elseif ~checkfields(hdr{i},'PatientID','InstanceNumber'),
+	%elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
 		%disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
 	else
@@ -610,7 +622,7 @@ if hdr.PixelRepresentation,
 	% Signed data - done this way because bitshift only
 	% works with signed data.  Negative values are stored
 	% as 2s complement.
-	neg      = logical(bitand(img,uint32(2^hdr.HighBit)));
+	neg      = logical(bitshift(bitand(img,uint32(2^hdr.HighBit)),-hdr.HighBit));
 	msk      = (2^hdr.HighBit - 1);
 	img      = double(bitand(img,msk));
 	img(neg) = img(neg)-2^(hdr.HighBit);
