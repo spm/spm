@@ -6,7 +6,7 @@ function [SPM,xSPM] = spm_getSPM
 % .swd      - SPM working directory - directory containing current SPM.mat
 % .title    - title for comparison (string)
 % .Z        - minimum of n Statistics {filtered on u and k}
-% .n        - number of conjoint tests        
+% .n        - conjunction number <= number of contrasts        
 % .STAT     - distribution {Z, T, X, F or P}     
 % .df       - degrees of freedom [df{interest}, df{residual}]
 % .STATstr  - description string     
@@ -28,7 +28,7 @@ function [SPM,xSPM] = spm_getSPM
 % .Vspm     - Mapped statistic image(s)
 % .Ps       - list of P values for voxels at SPM.xVol.XYZ (used by FDR)
 %
-% Required feilds of SPM
+% Required fields of SPM
 %
 % xVol   - structure containing details of volume analysed
 %
@@ -46,7 +46,7 @@ function [SPM,xSPM] = spm_getSPM
 % .iX0   - Indicates how contrast was specified:
 %          If by columns for reduced design matrix then iX0 contains the
 %          column indices. Otherwise, it's a string containing the
-%          spm_FcUtil 'Set' action: Usuall one of {'c','c+','X0'}
+%          spm_FcUtil 'Set' action: Usually one of {'c','c+','X0'}
 % .X1o   - Remaining design space data (X1o is orthogonal to X0)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
 %          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
@@ -77,7 +77,7 @@ function [SPM,xSPM] = spm_getSPM
 % This allows the SPM be displayed and characterized in terms of regionally 
 % significant effects by subsequent routines.
 % 
-% For general linear model Y = XB + E with data Y, desgin matrix X,
+% For general linear model Y = XB + E with data Y, design matrix X,
 % parameter vector B, and (independent) errors E, a contrast c'B of the
 % parameters (with contrast weights c) is estimated by c'b, where b are
 % the parameter estimates given by b=pinv(X)*Y.
@@ -90,10 +90,10 @@ function [SPM,xSPM] = spm_getSPM
 % F-contrasts). See the help for the contrast manager [spm_conman.m]
 % for a further details on contrasts and contrast specification.
 % 
-% A conjunction assesses the conjoint expression of two or more
+% A conjunction assesses the conjoint expression of one or more
 % effects. The conjunction SPM is the minimum of the component SPMs
 % defined by the multiple contrasts. The distributional results used
-% for minimum fileds require the SPMs to be identically distributed and
+% for minimum fields require the SPMs to be identically distributed and
 % independent. Thus, all component SPMs must be either SPM{t}'s, or
 % SPM{F}'s with the same degrees of freedom. Independence is roughly
 % guaranteed for large degrees of freedom (and independent data) by
@@ -103,11 +103,21 @@ function [SPM,xSPM] = spm_getSPM
 % hypotheses defined by the contrasts (c'pinv(X)). Furthermore,
 % this assumes that the errors are i.i.d. (i.e. the estimates are
 % maximum likelihood or Gauss-Markov. This is the default in spm_spm). 
-% 
 % To ensure approximate independence of the component SPMs in a
 % conjunction, non-orthogonal contrasts are serially orthogonalised
 % in the order specified, possibly generating new contrasts, such that the
 % second is orthogonal to the first, the third to the first two, and so on.
+%
+% By default the conjunction p-value is computed for one or more
+% effects (i.e. k > 1).  This implies the null hypothesis is k = 0.  
+% There may be instances where you want to infer two or more effects
+% (e.g. in cognitive conjunctions) or more.  This can be tested with
+% a null hypothesis that k = 1.  You will be asked to specify the number
+% of effects present under the null.  The tabulated p-values correspond
+% to an upper bound on the false positive rate for inferring more than
+% this number of effects were present.  For a conventional conjunction
+% analysis with consistent contrasts enter 0.  To infer a conjunction of
+% effects enter n - 1, where n is the number of contrasts
 %
 % Masking simply eliminates voxels from the current contrast if they
 % do not survive an uncorrected p value (based on height) in one or
@@ -137,6 +147,7 @@ function [SPM,xSPM] = spm_getSPM
 % see also spm_contrasts.m
 %_______________________________________________________________________
 % %W% Andrew Holmes, Karl Friston & Jean-Baptiste Poline %E%
+
 
 SCCSid = '%I%';
 
@@ -347,6 +358,12 @@ n        = length(Ic);
 if (n > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
 	      any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
 	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
+end
+
+%-Allow user to extend the null hypothesis for conjunctions
+%-----------------------------------------------------------------------
+if (n > 1)
+        n  = n - spm_input('effects under null ','!+1','w1','0',n - 1);
 end
 
 
