@@ -480,7 +480,7 @@ case 'Parametric responses'
 	% orthogonalised expansion of parameteric variable
 	%--------------------------------------------------------------
 	str   = 'which parameter';
-	p     = spm_input(str,'+1','m',cat(2,Sess(s).U(u).P.name));
+	p     = spm_input(str,'+1','m',{Sess(s).U(u).P.name});
 	P     = Sess(s).U(u).P(p).P;
 	q     = [];
 	for i = 0:Sess(s).U(u).P(p).h;
