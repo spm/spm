@@ -56,9 +56,11 @@ case $arch in
     gcc)
 	# optimised standard unix compile for gcc
 	# this should work on Sun, Linux etc
+	# Note that the path to the gccopts.sh file may need
+	# changing.
 	CC="gcc -O2"
-	cmex5="mex     COPTIMFLAGS=-O2"
-	cmex4="mex -V4 COPTIMFLAGS=-O2";;
+	cmex5="mex     COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh"
+	cmex4="mex -V4 COPTIMFLAGS=-O2 -f /usr/local/matlab5.3/bin/gccopts.sh";;
     sgi)
 	# not optimised unix compile for CC
 	CC="cc"
