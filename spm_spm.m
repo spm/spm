@@ -832,13 +832,22 @@ VResMS                  = spm_create_image(VResMS);
 FWHM   = spm_est_smoothness(VResI,VM);
 R      = spm_resels_vol(VM,FWHM)';
 
+%-Delete the residuals images
+%=======================================================================
+for i=1:nSres,
+	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.img']);
+	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.hdr']);
+	spm_unlink([spm_str_manip(VResI(i).fname,'r') '.mat']);
+end;
+clear VResI
+
 
 %-Retain relative filenames for robustness
 %-----------------------------------------------------------------------
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...tidying file handles') %-#
 VM     = VM.fname;
 Vbeta  = {Vbeta.fname}';
-VResI  = {VResI.fname}';
+%VResI  = {VResI.fname}';
 VResMS = VResMS.fname;
 
 fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
@@ -857,7 +866,7 @@ XYZ    = XYZ(:,1:S);
 %-----------------------------------------------------------------------
 SPMvars = {	'SPMid','VY','xX','xM',...		%-Design parameters
 		'M','DIM',...				%-Image space parameters
-		'VM','VResI','Vbeta','VResMS',...	%-Filenames
+		'VM','Vbeta','VResMS',...		%-Filenames
 		'XYZ',...				%-InMask XYZ coords
 		'F_iX0','UFp','UF',...			%-F-thresholding data
 		'S','R','FWHM'};			%-Smoothness data
