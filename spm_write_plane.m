@@ -16,6 +16,7 @@ function VO = spm_write_plane(V,A,p)
 if any(V.dim(1:2) ~= size(A))
 	error('Incompatible image dimensions');
 end;
+A = double(A);
 
 % Write Analyze image by default
 VO = write_analyze_plane(V,A,p);
