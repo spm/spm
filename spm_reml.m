@@ -45,7 +45,6 @@ end
 % eliminate inestimable components
 %---------------------------------------------------------------------------
 [u s] = spm_svd(W,TOS);
-u     = u*inv(sqrt(s));
 for i = 1:size(u,2)
     C{i}  = sparse(n,n);
     for j = 1:m
