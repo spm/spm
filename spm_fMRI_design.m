@@ -297,10 +297,10 @@ for s = 1:nsess
 		spm_input('Other regressors',1,'d',Fstr,'batch')
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0,...
-    	                          'batch',{'regressors',s},'number');
+    	                          'batch',{},'regressors_nb');
                 while size(D,2) < c
-			str   = sprintf('regressor %i',size(D,2) + 1);
-		   D = [D spm_input(str,2,'e',[],[k Inf],...
+		      str   = sprintf('regressor %i',size(D,2) + 1);
+		      D = [D spm_input(str,2,'e',[],[k Inf],...
                                     'batch',{'regressors',s},'values')];
 		end
 		if      c & length(DSstr)
@@ -363,7 +363,7 @@ for s = 1:nsess
 	[i j]   = size(B);
 	Xb(([1:i] + x),([1:j] + y)) = B;
 
-end
+end %- for s = 1:nsess
 
 % finished
 %-----------------------------------------------------------------------
