@@ -101,6 +101,7 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
             off = indo+(ptr[ndim][i]-1)*nb;
             if (((off-poff)!=nb) || (len == 1024))
             {
+                printf("%d %d %d\n", len, dptr,wbuf);
                 swap(len,dptr,wbuf);
                 if (fwrite(wbuf,1,len,fp) != len)
                 {

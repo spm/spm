@@ -18,9 +18,8 @@ function [SPM] = spm_spm_vb(SPM)
 % Paper VB4: W.Penny, G. Flandin and N.Trujillo-Barreto (2005) Bayesian Comparison of 
 %            Spatially Regularised General Linear Models. Manuscript in preparation.
 %
-% The space to be analysed is a 'Volume', 'Slices' or 'Region'
+% The space to be analysed is a 'Volume' or 'Slices' 
 % For 'Slices' the numbers of the slices to be analysed are then entered
-% For 'Region' the centre and radius of a circular region must be specified
 %
 % ________________________________________________________________________________
 %
@@ -224,8 +223,6 @@ end
 % - A N A L Y S I S   P R E L I M I N A R I E S
 %=======================================================================
 
-
-
 %-Initialise output images
 %=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising')             %-#
@@ -301,14 +298,12 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
     try
         SPM.PPM.priors.SY;
     catch
-        SPM.PPM.priors.SY = spm_get(Inf,'*.img',{'Select strucutral images eg. brain or grey/white/CSF'}); 
+        SPM.PPM.priors.SY = spm_get(Inf,'*.img',{'Select structural images eg. brain or grey/white/CSF'}); 
     end
     SPM.PPM.priors.Sin=length(SPM.PPM.priors.SY);
     for j=1:SPM.PPM.priors.Sin
         xDiscrete(j)  = spm_vol(char(SPM.PPM.priors.SY(j).fname));
     end
-    % Get matrix to transfer from functional to structural co-ordinates
-    FtoS=inv(xDiscrete(1).mat)*VY(1).mat;
 end
 
 % Compute evidence at each iteration ?
@@ -438,34 +433,21 @@ catch
     spm_input('Data to analyse...',1,'d')
     Ctype = {
         'Volume',...
-            'Slices',...
-            'Region'};
+            'Slices'};
     str   = 'Select space';
     Sel   = spm_input(str,2,'m',Ctype);
     SPM.PPM.space_type = Ctype{Sel};
 end
 
 switch SPM.PPM.space_type,
-case 'Volume',
-    SPM.PPM.AN_slices=[1:1:zdim];
-case 'Slices',
-    try
-        SPM.PPM.AN_slices;
-    catch
-        SPM.PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
-    end
-case 'Region',
-    try 
-        SPM.PPM.centre;
-    catch
-        SPM.PPM.centre = spm_input(['Enter centre co-ordinates eg. 3 14 2'],'+1');
-    end
-    SPM.PPM.AN_slices=SPM.PPM.centre(3);
-    try 
-        SPM.PPM.radius;
-    catch
-        SPM.PPM.radius = spm_input(['Enter radius (in voxels) eg. 5'],'+1');
-    end
+    case 'Volume',
+        SPM.PPM.AN_slices=[1:1:zdim];
+    case 'Slices',
+        try
+            SPM.PPM.AN_slices;
+        catch
+            SPM.PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
+        end
 end
 
 if ~isempty(M_P)
@@ -489,13 +471,6 @@ VM    = struct(		'fname',	'mask.img',...
 			'descrip',	'spm_spm:resultant analysis mask');
 VM    = spm_create_vol(VM);
 
-
-%=======================================================================
-% - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
-%=======================================================================
-
-%-Cycle to avoid memory problems (plane by plane)
-
 if SPM.PPM.window
     %=======================================================================
     spm_progress_bar('Init',100,'VB estimation','');
@@ -504,7 +479,6 @@ end
 
 global defaults
 
-SHp=0; % Sum of noise variance hyperparameters
 xords = [1:xdim]'*ones(1,ydim); xords = xords(:)';  % plane X coordinates
 yords = ones(xdim,1)*[1:ydim];  yords = yords(:)';  % plane Y coordinates
 S     = 0;                                          % Number of in-mask voxels
@@ -561,6 +535,10 @@ for s=1:nsess,
     slice_template(s).update_F=SPM.PPM.update_F;
 end
 
+%=======================================================================
+% - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
+%=======================================================================
+
 index=1;
 for  z = 1:zdim,
 
@@ -579,8 +557,6 @@ for  z = 1:zdim,
     
     analyse_slice = length(find((SPM.PPM.AN_slices-z)==0));
     if analyse_slice
-        % Only ever use 1 bunch of lines (planks)
-        bch=1; nbch=1;
         
         %-# Print progress information in command window
         %---------------------------------------------------------------
@@ -636,13 +612,6 @@ for  z = 1:zdim,
         CrS    = sum(Cm);				%- Number of current voxels
         
         if CrS
-            
-            if strcmp(SPM.PPM.space_type,'Region')
-                % Update current mask to specify only this region
-                d=[xyz(1,:)-SPM.PPM.centre(1);
-                    xyz(2,:)-SPM.PPM.centre(2)];
-                Cm(find(sum(d.^2) > SPM.PPM.radius))=0;
-            end
             
             CrS = sum(Cm);
             Y   = Y(:,Cm);				%-Data within mask
@@ -701,17 +670,6 @@ for  z = 1:zdim,
                         SPM.PPM.priors.gamma(find(ii==j),j)=1;
                     end
                 end
-                
-                % Check structural info
-%                 dxyz=xyz(:,Cm);
-%                 for s=1:SPM.PPM.priors.S,
-%                     img_gamma=zeros(xdim,ydim);
-%                     for j=1:CrS,
-%                         img_gamma(dxyz(1,j),dxyz(2,j))=SPM.PPM.priors.gamma(j,s);
-%                     end
-%                     figure
-%                     imagesc(img_gamma);
-%                 end
             end
             
             % Estimate model for each session separately
@@ -728,10 +686,7 @@ for  z = 1:zdim,
                 
                 % Report AR values 
                 if SPM.PPM.AR_P > 0
-                    % Report AR values averaged over sessions
-                    %AR(1:SPM.PPM.AR_P,:)=AR(1:SPM.PPM.AR_P,:) + slice.ap_mean/nsess;
-                    
-                    % Report session specific AR values
+                    % session specific 
                     Sess(s).AR(1:SPM.PPM.AR_P,:)=slice.ap_mean;
                 end
                 
@@ -752,9 +707,6 @@ for  z = 1:zdim,
                     mean_col_index=SPM.Sess(nsess).col(end)+s;
                 end
                 beta(mean_col_index,:) = slice.wk_mean(ncols+1,:); % Session mean
-                
-                % Report noise variances averaged over sessions
-                % Hp(1,:)        = Hp(1,:)+(1/nsess)*sqrt(1./slice.mean_lambda');
                 
                 % Report session-specific noise variances 
                 Sess(s).Hp(1,:)        = sqrt(1./slice.mean_lambda');
@@ -806,9 +758,6 @@ for  z = 1:zdim,
             XYZ(:,S + [1:CrS]) = xyz(:,Cm);		%-InMask XYZ voxel coords
             Q                  = [Q I(Cm)];		%-InMask XYZ voxel indices
             S                  = S + CrS;		%-Volume analysed (voxels)
-            
-            % Sum of noise variance hyperparameters
-            SHp       = SHp + (1/nsess)*sum(Sess(s).Hp(1,:));
             
             %-Save for current plane in memory as we go along
             %---------------------------------------------------------------
