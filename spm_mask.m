@@ -23,26 +23,21 @@ V=spm_vol(P);
 M=V(1).mat;
 m=prod(size(V));
 
-% Extract voxel sizes and origin field from the matrix.
-vx   = sqrt(sum(M(1:3,1:3).^2));
-orig = M\[0 0 0 1]';
-orig = round(orig(1:3)');
-
-% Create headers and open files
-for i=1:m,
-	p  = spm_str_manip(V(i).fname, 'd');
+% Create headers
+VO=V;
+for i=1:prod(size(VO)),
+	p  = spm_str_manip(VO(i).fname, 'd');
 	q  = max([find(p == '/') 0]);
 	q  = [p(1:q) 'm' p((q + 1):length(p))];
-	V(i).fp = fopen(q, 'w');
-	V(i).q  = q;
-	if V(i).fp == -1,
-		open_error_message(q);
-		error(['Error opening ' q '. Check that you have write permission.']);
-	end;
-	spm_hwrite(q,V(1).dim(1:3),vx,V(i).pinfo(1,1),V(i).dim(4),0,orig,'Masked');
+	VO(i).fname    = q;
+
+	VO(i).descrip  = 'Masked';
+	VO(i).mat      = VO(1).mat;
+	VO(i).dim(1:3) = VO(1).dim(1:3);
+	spm_create_image(VO(i));
 end;
 
-A=zeros([V(1).dim(1:2) m]);
+A = zeros([V(1).dim(1:2) m]);
 spm_progress_bar('Init',V(1).dim(3),'Masking','planes completed')
 for j=1:V(1).dim(3),
 
@@ -60,24 +55,11 @@ for j=1:V(1).dim(3),
 	% Write the images.
 	for i=1:m,
 		tmp = A(:,:,i);
-		if any(V(i).dim(4) == [2 4 8]),
-			msk = find(~finite(tmp));
-			tmp(msk) = 0;
-		end;
-		l=fwrite(V(i).fp,tmp/V(i).pinfo(1),spm_type(V(i).dim(4)));
-		if l~=prod(size(tmp)),
-			spm_progress_bar('Clear');
-			write_error_message(V(i).q);
-			error(['Error writing ' V(i).q '. Check your disk space.']);
-		end; 
+		spm_write_plane(VO(i),A(:,:,i),j);
 	end;
 	spm_progress_bar('Set',j);
 end;
 spm_progress_bar('Clear');
-
-for i=1:m,
-	fclose(V(i).fp);
-end;
 return;
 
 
@@ -92,31 +74,4 @@ function A = apply_mask(A,msk)
 		A(msk,:) = NaN;
 	end;
 	A = reshape(A,d);
-return;
-
-
-function open_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
-return
-
-function write_error_message(q)
-f=spm_figure('findwin','Graphics'); 
-if ~isempty(f), 
-	figure(f); 
-	spm_figure('Clear','Graphics'); 
-	spm_figure('Clear','Interactive'); 
-	ax=axes('Visible','off','Parent',f); 
-	text(0,0.60,'Error opening:', 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.55,spm_str_manip(q,'k40d'), 'FontSize', 25, 'Interpreter', 'none'); 
-	text(0,0.40,'  Please check that you have write permission.', 'FontSize', 16, 'Interpreter', 'none'); 
-end
 return;
