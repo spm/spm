@@ -216,12 +216,13 @@ function varargout=spm(varargin)
 %
 % FORMAT SPMid = spm('FnBanner', Fn,FnV)
 % Prints a function start banner, for version FnV of function Fn, & datestamps
+% FORMAT SPMid = spm('SFnBanner',Fn,FnV)
+% Prints a sub-function start banner
+% FORMAT SPMid = spm('SSFnBanner',Fn,FnV)
+% Prints a sub-sub-function start banner
 % Fn    - Function name (string)
 % FnV   - Function version (string)
 % SPMid - ID string: [SPMver: Fn (FnV)] 
-%
-% FORMAT SPMid = spm('SFnBanner',Fn,FnV)
-% Prints a sub-function start banner (arguments as for 'FnBanner')
 %
 % FORMAT [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
 % Robust UIsetup procedure for functions:
@@ -984,7 +985,7 @@ if isempty(CmdLine)
 	CMDLINE = spm('GetGlobal','CMDLINE');
 	if isempty(CMDLINE), CmdLine = 0; else, CmdLine = CMDLINE; end
 end
-varargout = {CmdLine | get(0,'ScreenDepth')==0};
+varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
 
 case 'mlver'
 %=======================================================================
@@ -1114,23 +1115,28 @@ end
 varargout = {h};
 
 
-case {'fnbanner','sfnbanner'}
+case {'fnbanner','sfnbanner','ssfnbanner'}
 %=======================================================================
 % SPMid = spm('FnBanner', Fn,FnV)
 % SPMid = spm('SFnBanner',Fn,FnV)
+% SPMid = spm('SSFnBanner',Fn,FnV)
 time = spm('time');
 str  = spm('ver');
 if nargin>=2, str = [str,': 'varargin{2}]; end
 if nargin>=3, str = [str,' (v',varargin{3},')']; end
 
-switch lower(Action(1))
-case 'f'
+switch lower(Action)
+case 'fnbanner'
 	tab = '';
 	wid = 72;
 	lch = '=';
-case 's'
+case 'sfnbanner'
 	tab = sprintf('\t');
 	wid = 72-8;
+	lch = '-';
+case 'ssfnbanner'
+	tab = sprintf('\t\t');
+	wid = 72-2*8;
 	lch = '-';
 end
 
@@ -1150,7 +1156,7 @@ if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine
 	Finter = spm_figure('FindWin','Interactive');
 	if ~isempty(Finter), spm_figure('Clear',Finter), end
-	if ~isempty(Iname), fprintf('%s:\n',Iname), end
+	%if ~isempty(Iname), fprintf('%s:\n',Iname), end
 else
 	Finter = spm_figure('GetWin','Interactive');
 	spm_figure('Clear',Finter)
