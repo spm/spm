@@ -1083,9 +1083,15 @@ for i = valid_handles(arg1),
 			else
 				fat = 1;
 			end;
-			qxt = fat.*spm_slice_vol(qx,inv(TM0*(st.Space\Mx)),TD,0)';
-			qyt = fat.*spm_slice_vol(qy,inv(TM0*(st.Space\My)),TD,0)';
-			qzt = fat.*spm_slice_vol(qz,inv(TM0*(st.Space\Mz)),TD,0)';
+
+			rqt = cat(3,...
+				spm_slice_vol(qx,inv(TM0*(st.Space\Mx)),TD,0)', ...
+				spm_slice_vol(qy,inv(TM0*(st.Space\My)),TD,0)', ...
+				spm_slice_vol(qz,inv(TM0*(st.Space\Mz)),TD,0)');
+			rqt = st.vols{i}.premul(1:3,1:3)*reshape(rqt,TD(1)*TD(2),3)';
+			qxt = fat.*reshape(rqt(1,:)',TD(2),TD(1));
+			qyt = fat.*reshape(rqt(2,:)',TD(2),TD(1));
+			qzt = fat.*reshape(rqt(3,:)',TD(2),TD(1));
 
 			maskt = spm_slice_vol(mask,inv(TM0*(st.Space\Mm)),TD,0)';
 			xt = [1:TD(1)]-.5; 
@@ -1099,9 +1105,15 @@ for i = valid_handles(arg1),
 			else
 				fac = 1;
 			end;
-			qxc = fac.*spm_slice_vol(qx,inv(CM0*(st.Space\Mx)),CD,0)';
-			qyc = fac.*spm_slice_vol(qy,inv(CM0*(st.Space\My)),CD,0)';
-			qzc = fac.*spm_slice_vol(qz,inv(CM0*(st.Space\Mz)),CD,0)';
+
+			rqc = cat(3,...
+				spm_slice_vol(qx,inv(CM0*(st.Space\Mx)),CD,0)', ...
+				spm_slice_vol(qy,inv(CM0*(st.Space\My)),CD,0)', ...
+				spm_slice_vol(qz,inv(CM0*(st.Space\Mz)),CD,0)');
+			rqc = st.vols{i}.premul(1:3,1:3)*reshape(rqc,CD(1)*CD(2),3)';
+			qxc = fac.*reshape(rqc(1,:)',CD(2),CD(1));
+			qyc = fac.*reshape(rqc(2,:)',CD(2),CD(1));
+			qzc = fac.*reshape(rqc(3,:)',CD(2),CD(1));
 
 			maskc = spm_slice_vol(mask,inv(CM0*(st.Space\Mm)),CD,0)';
 			xc = [1:CD(1)]-.5;
@@ -1114,11 +1126,17 @@ for i = valid_handles(arg1),
 				fas = spm_slice_vol(fa,inv(SM0*(st.Space\Mx)),SD,0)';
 			else
 				fas = 1;
-			end;   
-			qxs = fas.*spm_slice_vol(qx,inv(SM0*(st.Space\Mx)),SD,0)';
-			qys = fas.*spm_slice_vol(qy,inv(SM0*(st.Space\My)),SD,0)';
-			qzs = fas.*spm_slice_vol(qz,inv(SM0*(st.Space\Mz)),SD,0)';
-            
+			end;
+
+			rqs = cat(3,...
+				spm_slice_vol(qx,inv(SM0*(st.Space\Mx)),SD,0)', ...
+				spm_slice_vol(qy,inv(SM0*(st.Space\My)),SD,0)', ...
+				spm_slice_vol(qz,inv(SM0*(st.Space\Mz)),SD,0)');
+			rqs = st.vols{i}.premul(1:3,1:3)*reshape(rqs,SD(1)*SD(2),3)';
+			qxs = fas.*reshape(rqs(1,:)',SD(2),SD(1));
+			qys = fas.*reshape(rqs(2,:)',SD(2),SD(1));
+			qzs = fas.*reshape(rqs(3,:)',SD(2),SD(1));
+
 			masks = spm_slice_vol(mask,inv(SM0*(st.Space\Mm)),SD,0)';
 			xs = [1:SD(1)]-.5;
 			ys = [1:SD(2)]-.5;
@@ -1130,8 +1148,8 @@ for i = valid_handles(arg1),
 			np = get(st.vols{i}.ax{1}.ax,'NextPlot');
 			set(st.vols{i}.ax{1}.ax,'NextPlot','add');
 			axes(st.vols{i}.ax{1}.ax);
-			st.vols{i}.quiver.qht = quiver3(xt(qst1:qst:end),...
-				yt(qst1:qst:end), zt(qst1:qst:end,qst1:qst:end), ...
+			st.vols{i}.quiver.qht = quiv(xt(qst1:qst:end),...
+				qyt(qst1:qst:end), zt(qst1:qst:end,qst1:qst:end), ...
 				qxt(qst1:qst:end,qst1:qst:end),...
 				qyt(qst1:qst:end,qst1:qst:end),...
 				qzt(qst1:qst:end,qst1:qst:end),ql,ls);
@@ -1142,7 +1160,7 @@ for i = valid_handles(arg1),
 			np = get(st.vols{i}.ax{2}.ax,'NextPlot');
 			set(st.vols{i}.ax{2}.ax,'NextPlot','add');
 			axes(st.vols{i}.ax{2}.ax);
-			st.vols{i}.quiver.qhc = quiver3(xc(qst1:qst:end),...
+			st.vols{i}.quiver.qhc = quiv(xc(qst1:qst:end),...
 			yc(qst1:qst:end), zc(qst1:qst:end,qst1:qst:end), ...
 			qxc(qst1:qst:end,qst1:qst:end), ...
 			qzc(qst1:qst:end,qst1:qst:end), ...
@@ -1154,9 +1172,9 @@ for i = valid_handles(arg1),
 			np = get(st.vols{i}.ax{3}.ax,'NextPlot');
 			set(st.vols{i}.ax{3}.ax,'NextPlot','add');
 			axes(st.vols{i}.ax{3}.ax);
-			st.vols{i}.quiver.qhs = quiver3(xs(qst1:qst:end),...
+			st.vols{i}.quiver.qhs = quiv(xs(qst1:qst:end),...
 				ys(qst1:qst:end), zs(qst1:qst:end,qst1:qst:end), ...
-				qys(qst1:qst:end,qst1:qst:end), ...
+				-qys(qst1:qst:end,qst1:qst:end), ...
 				qzs(qst1:qst:end,qst1:qst:end), ...
 				qxs(qst1:qst:end,qst1:qst:end),ql,ls);
 			set(st.vols{i}.ax{3}.ax,'NextPlot',np);
@@ -1166,6 +1184,14 @@ for i = valid_handles(arg1),
 end;
 drawnow;
 return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function hh = quiv(varargin)
+if exist('dti_quiver3') == 2,
+	hh = dti_quiver3(varargin);
+else,
+	hh = quiver3(varargin);
+end;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function centre = findcent
