@@ -45,26 +45,24 @@
 % free. In particular there is no manual.  The primary reference for
 % the software are the theoretical papers published in the peer
 % reviewed literature.  An informal email help line exists, which the
-% authors monitor. To join this list, email
-% spm-help-request+@andrew.cmu.edu, submissions should then be sent to
-% the list address at spm-help+@andrew.cmu.edu.
+% authors monitor (spm@mailbase.ac.uk)
 %
 % Availability
 % ------------
 % The Wellcome Department of Cognitive Neurology maintain a Web site
 % (URL http://www.fil.ion.ucl.ac.uk/spm) and an anonymous ftp site
-% (ftp.fil.ion.bpmf.ac.uk) from which the SPM distribution,
+% (ftp.fil.ion.ucl.ac.uk) from which the SPM distribution,
 % manuscripts, sample data sets and other resources can be obtained.
 % SPM can be considered shareware.
 % 
-% SPM'94 was written primarily by Karl Friston in the first half of
+% SPM94 was written primarily by Karl Friston in the first half of
 % 1994, with lots of help from John Ashburner, Jon Heather and Andrew
 % Holmes.  Subsequent development has benefited from substantial input
 % (technical and theoretical) from John Ashburner, Andrew Holmes,
 % Jean-Baptiste Poline and Keith Worsley.  We envisage that this
 % software will be used in a diverse number of ways.  Although SPM has
 % grown out of a PET background, it is becoming an established package
-% for routine analysis of fMRI data.
+% for the analysis of fMRI data.
 % 
 % The SPM distribution
 % --------------------
@@ -80,7 +78,7 @@
 %       results are available to the user after completion.
 %
 % Clearly MatLab is slower than writing everything in fully optimised
-% C; however the fundamental advantage of having a didactic pseudo code
+% C; however the fundamental advantage of having a didactic pseudo-code
 % specification of this sort is preferred over implementational
 % efficacy. Further, MatLab *is* optimised for matrix and vector
 % operations, which are utilised whenever possible.
@@ -117,7 +115,7 @@
 %   ii)    Alignment
 %  iii)    Spatial Normalisation
 %   iv)    Statistics
-%    v)    Non parametric Statistical Methods
+%    v)    Non parametric Statistical Methods (a planned toolbox)
 %   vi)    Interface improvements
 %  vii)    Help
 % viii)    Source code control
@@ -125,6 +123,13 @@
 %    x)    Tissue Classification
 %   xi)    Rendering
 %  xii)    Image Calculator
+% xiii)    SPM{F} - inference and display
+%  xiv)    Displaying results
+%   xv)    left-right orientation
+%  xvi)    P values and statistical inference
+% xvii)    Conjunctions and masking
+%xviii)    Smoothness estimators
+%
 %  ???)    Miscellaneous
 % 
 % In addition, there are several minor extensions and additions that
@@ -134,12 +139,12 @@
 % 
 % New features - i - [S]PET vs. Functional MRI
 % 
-% On invoking SPM95 you are asked to select one of two
+% On invoking SPM96 you are asked to select one of two
 % user-interfaces.  The first is for SPECT, PET and fMRI data that can
 % be considered a series of independent scans.  The second is for fast
 % fMRI that generates temporally correlated time-series.  The
 % interfaces are very similar and largely call upon the same routines.
-% The differences between these two components of SPM95 are:
+% The differences between these two components of SPM96 are:
 % 
 % a)  The fMRI realignment routines perform an optional mathematical
 % adjustment to remove movement-related variance components that remain
@@ -182,6 +187,10 @@
 % conditions) using either a single (half sine wave) or two basis
 % functions for the response.  The latter allows for different forms of
 % response to task-specific epochs (see fMRI_5 and MRI_6 below).
+%
+% d) Multisubject fMRI studies: 
+%
+%
 % 
 % _____________________________________________________
 % 
@@ -264,25 +273,6 @@
 % extend it to suit their own needs (or accommodate 'special'
 % designs).
 % 
-% The distinction between the data orientation (i.e. image left =
-% subject left - neurological convention as adopted by SPM vs. image
-% left = subject right - radiological convention) is addressed here by
-% specifying which convention your data conform to.  If they follow a
-% radiological convention then the data are handled appropriately with
-% spm_spm, such that the graphical outputs and ANALYE compatible SPM{Z}
-% all follow the neurological convention.  This should avoid having to
-% flip the images before using SPM95.
-% 
-% We have also asked to user to specify the threshold used to eliminate
-% non-gray matter (or extra cerebral) voxels [it is normally 0.8].
-% This allows for statistical inference in regions with pathologically
-% low activity in some subjects.
-% 
-% The display of SPM{Z} as maximum intensity projections now allows you
-% to specify a corrected p value.  If any region does not reach this p
-% value then it is not displayed.  To show every voxel above an
-% uncorrected threshold set the corrected p value to unity.
-% 
 % _____________________________________________________
 % 
 % New features - v - Non-Parametric Statistical Methods
@@ -361,8 +351,102 @@
 % A simple image calculator has been included. For example, to add two
 % images and divide by a third, this can be done with a simple expression
 % like "(i1+i2)./i3".
+%
+%_______________________________________________________________________
+%
+% xiii)    SPM{F} - inference and display
 % 
-% _____________________________________________________
+% SPM{F} now emulates SPM{Z} in providing summary data on the SPMs.  P
+% values corrected for the volume analyzed are available for the SPM{F}
+% based on peak hieght.  P values based on spatial extent, or the number
+% of clusters are not yet available and these fields are filled in with
+% NaN at the present.  'Results' can now also handle SPM{F}, which allows
+% you to display graphical and image data about selected clusters in the
+% SPM{F}.  This facility is in preparattion for a more extented use of
+% the SPM{F} particularly in relation to model selection and fMRI data
+% analysis.
+% 
+%
+%_______________________________________________________________________
+%
+%  xiv)    Displaying results
+%
+% As noted above 'results' display now includes the facility to view
+% SPM{F}s.  The plotting routines have been generalized such that one can
+% plot adjusted and fitted data against scan number, any specified
+% covariate or specified ordinate.  This should be useful for plotting
+% responses against some parameter in parametric designs and nonlinear
+% regressions.  The table option has been removed.  Adjusted and fitted
+% data are contined in the variables y and Y following a plot of the
+% voxel in question.  These data are arranged in a matrix with data from
+% each subject in a column.  If the number of scans per subject is not
+% constant then column vectors are returned.  The variable Fnames
+% contains the filenames of the associated data.
+%
+%_______________________________________________________________________
+%
+%   xv)    left-right orientation
+%
+% This has always been a difficult area for people analyzing data.  We
+% have chosen the simplest option - namely orientate your images to the
+% required convention at the point of spatial normalization.  Following
+% this SPM will simply analyze what it is given.  SPM does not know what
+% is left or what is right but generally the neurological convention that
+% right is right (i,e, looking at slices from the top) is preferred and
+% is adopted by SPM.
+% 
+% See also note (i.c) above:
+% Rather than being prompted during the 'statistics' module of SPM for
+% the orientation of the images, the spatially normalised images should
+% be in neurological convention (with the right side of the brain being
+% at the right side of the image).  The default orientation of the un-
+% normalised images is specified by the global variable "sptl_Ornt" in
+% spm_defaults.m.
+% 
+%_______________________________________________________________________
+%
+%  xvi)    P values and statistical inference
+%
+% The P values associated with the thresholds SPMs now include
+%
+% 1 uncorrected P values based on Z - the voxel height
+% 2 uncorrected P values based on k - the cluster size
+%
+% and corrected P values based on
+
+% 3 Z - the voxel height
+% 4 Z - the voxel height and k - the cluster size
+% 5 c - the number of clusters
+%
+% It is important to distinguish between corrected and uncorrected P
+% values (the former are only used if you did not have an apriori
+% hypothesis) and the level of inference: voxel (1 and 3), cluster (2 and
+% 4) and set [of clusters] (5).  Two thresholds are now requested to
+% define the excursion set (a height threshold and a spatial extent
+% threshold).  The default extent threshold is the expected number of
+% voxels per cluster for both SPM{Z} and SPM{F}.  Setting this threshold
+% to 0 gives a SPM95-like profile.  In this case the set level inference
+% (5) corresponds to an omnibus test based on the observed number of
+% clusters.  The footnotes of the summary tables now include the expected
+% number of clusters and voxels per cluster to guide your
+% interpretation.
+% 
+% 
+%_______________________________________________________________________
+%
+%  xvii)    Conjunctions and masking
+%
+% 
+%_______________________________________________________________________
+%
+% xviii)    Smoothness estimators
+%
+% The smoothness estimator is now based on the normalized residuals and
+% is, we hope, a much more robust estimator.  In particular it is not
+% affected by deviations from the null hypothesis or the contrasts
+% specified
+%
+% ______________________________________________________________________
 %
 % New features - ??? - Miscellaneous
 %
