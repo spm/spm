@@ -247,7 +247,7 @@ function [SPM] = spm_spm(SPM)
 %
 %                           ----------------
 %
-% RVP.{img,hdr}                      - estimated resels per voxel image
+% RPV.{img,hdr}                      - estimated resels per voxel image
 % This is a 32-bit (double) image of the RESELs per voxel estimate.
 % Voxels outside the analysis mask are given value 0.  These images
 % reflect the nonstationary aspects the spatial autocorrelations.
@@ -351,7 +351,7 @@ if exist(fullfile('.','mask.img'),'file') == 2
 	end
 end
 
-files = {	'mask.???','ResMS.???','RVP.???',...
+files = {	'mask.???','ResMS.???','RPV.???',...
 		'beta_????.???','con_????.???','ResI_????.???',...
 		'ess_????.???', 'spm?_????.???'};
 
