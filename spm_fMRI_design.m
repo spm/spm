@@ -182,24 +182,14 @@ Bname = {};
 Sess  = {};
 for s = 1:nsess
 
+	% set prompt string
+	%---------------------------------------------------------------
 	if tim
 		Fstr = 'All sessions';
 	else
 		Fstr = sprintf('Session %d/%d',s,nsess);
 	end
 
-	% initialize variables for first session
-	%---------------------------------------------------------------
-        if   (s == 1)
-		X       = [];			% design matrix
-		B       = [];			% block partition
-		D       = [];			% covariates
-		PST     = {};			% Peri-stimulus times
-		ONS     = {};			% onset times
-		IND     = {};			% design matrix indices
-		name    = {};			% condition names
-		Xn      = {};			% regressor names
-	end
 
 	% Event/epoch related responses			
 	%===============================================================
@@ -209,13 +199,14 @@ for s = 1:nsess
 	%---------------------------------------------------------------
 	if (s == 1) | ~rep
 
-		[SF,Cname,Pv,Pname,DSstr] = spm_get_ons(k,fMRI_T,dt,STOC,Fstr);
-		ntrial     = size(SF,2);
+		[SF,Cname,Pv,Pname,DSstr] = ...
+			spm_get_ons(k,fMRI_T,dt,STOC,Fstr);
+		ntrial = size(SF,2);
 
 	elseif ~tim
 
 		[SF,Cname,Pv,Pname,DSstr] = ...
-				spm_get_ons(k,fMRI_T,dt,STOC,Fstr,ntrial,Cname);
+			spm_get_ons(k,fMRI_T,dt,STOC,Fstr,ntrial,Cname);
 	end
 
 	% get basis functions for this session
@@ -235,36 +226,48 @@ for s = 1:nsess
 		%-Reset ContextHelp
 		%-------------------------------------------------------
 		spm_help('!ContextHelp',mfilename)
+		spm_input('Design matrix options...',1,'d',mfilename)
 
+		if ~ntrial
 
-		% peri-stimulus {PST} and onset {ONS} times in seconds
-		%-------------------------------------------------------
-		for   i = 1:ntrial
-			on     = find(SF{i}(:,1))*dt;
-			pst    = [1:k]*RT - on(1);			
-			for  j = 1:length(on)
-				u      = [1:k]*RT - on(j);
-				v      = find(u >= -1);
-				pst(v) = u(v);
+			% declare variables
+			%-----------------------------------------------
+			ONS     = {};		% onset times
+			PST     = {};		% Peri-stimulus times
+			X       = [];		% design matrix
+			Xn      = {};		% regressor names
+			IND     = {};		% design matrix indices
+			name    = {};		% condition names
+
+		else
+
+			% peri-stimulus {PST} and onset {ONS} (seconds)
+			%-----------------------------------------------
+			for   i = 1:ntrial
+				on     = find(SF{i}(:,1))*dt;
+				pst    = [1:k]*RT - on(1);			
+				for  j = 1:length(on)
+					u      = [1:k]*RT - on(j);
+					v      = find(u >= -1);
+					pst(v) = u(v);
+				end
+				ONS{i} = on;
+				PST{i} = pst;
 			end
-			ONS{i} = on;
-			PST{i} = pst;
-		end
 
-		spm_input('Additional design matrix options...',1,'d',mfilename)
 
-		% convolve with basis functions
-		%-------------------------------------------------------
-		if ntrial
-
+			% convolve with basis functions
+			%-----------------------------------------------
 			str   = 'interactions among trials (Volterra)';
 			if spm_input(str,'+1','y/n',[1 0]);
 
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,2);
+
 			else
 
 			    [X Xn IND BF name] = spm_Volterra(SF,BF,Cname,1);
 			end
+
 
 			% Resample design matrix {X} at acquisition times
 			%-----------------------------------------------
@@ -272,9 +275,9 @@ for s = 1:nsess
 		end
 
 
-
 		% get user specified regressors
 		%=======================================================
+		spm_input('Other regressors',1,'d',Fstr)
 		D     = [];
 		c     = spm_input('user specified regressors','+1','w1',0);
 		while size(D,2) < c
@@ -339,6 +342,7 @@ for s = 1:nsess
 	[x y]   = size(Xb);
 	[i j]   = size(B);
 	Xb(([1:i] + x),([1:j] + y)) = B;
+
 end
 
 % finished
