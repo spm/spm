@@ -143,7 +143,7 @@ if p == 1 | p == 3,
 					['select target image for subject ' num2str(i)]);
 			end;
 		else,
-			PGF = spm_input('batch',{},'target_image');
+			PGF = spm_input('batch',{},'target_image',i);
 		end;
 
 		% select object(s)
@@ -154,7 +154,7 @@ if p == 1 | p == 3,
 					['select object image for subject ' num2str(i)]);
 			end;
 		else,
-			PFF = spm_input('batch',{},'object_image');
+			PFF = spm_input('batch',{},'object_image',i);
 		end;
 
 
@@ -163,7 +163,7 @@ if p == 1 | p == 3,
 			others = spm_get(Inf,'.img',...
 				['select other images for subject ' num2str(i)]);
 		else,
-			others = spm_input('batch',{},'other_image');
+			others = spm_input('batch',{},'other_image',i);
 		end;
 
 		eval(['PGF'    num2str(i) ' = PGF;']);
@@ -179,7 +179,7 @@ if p==2,
 			PGF = spm_get(1,'.img',...
 				['select image defining space for subject ' num2str(i)]);
 		else,
-			PGF = spm_input('batch',{},'target_image');
+			PGF = spm_input('batch',{},'target_image',i);
 		end;
 
 		% select images to reslice
@@ -188,7 +188,7 @@ if p==2,
 			PFF = spm_get(Inf,'.img',...
 				['select images to reslice ' num2str(i)]);
 		else,
-			PFF = spm_input('batch',{},'reslice_image');
+			PFF = spm_input('batch',{},'reslice_image',i);
 		end;
 
 		eval(['PGF'    num2str(i) ' = PGF;']);
