@@ -725,16 +725,16 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%===============================================================
 	if nVar == 1				% univariate
 
-		%-Assemble <Y*Y'> for REML covariance estimation
+		%-Assemble <Y*Y'> for ReML covariance estimation
 		%-------------------------------------------------------
 		if iscell(xX.xVi.Vi)
-			Cy  = Cy + Y*Y';
+			Cy = Cy + Y*Y';
 		end
 
-		%-Temporal smoothing
+		%-Temporal filtering
 		%-------------------------------------------------------
 		fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-					'...temporal smoothing')     %-#
+					'...temporal filtering')     %-#
 
 		KY        = spm_filter('apply',xX.K, Y);
 
@@ -1062,6 +1062,7 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 %-Non-sphericity: Vi
 %=======================================================================
 if iscell(xX.xVi.Vi)
+
 	%-REML estimate of residual correlations through hyperparameters (h)
 	%---------------------------------------------------------------
 	fprintf('%-40s: %30s','Non-sphericity','...REML estimation') %-#
