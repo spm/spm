@@ -9,7 +9,7 @@ function VO = spm_segment(VF,PG,flags)
 % flags - a structure normally based on defaults.segment
 % VO    - optional output volume
 %
-%                      The algorithm is three step:
+%                      The algorithm is four step:
 %
 % 1) Determine the affine transform which best matches the image with a
 %    template image. If the name of more than one image is passed, then
