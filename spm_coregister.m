@@ -1,4 +1,4 @@
-function spm_coregister(PGF, PFF, PGG, PFG, others)
+function spm_coregister(PGF, PFF, PGG, PFG, others,flags)
 % Between and within mode image coregistration.
 %
 %____________________________________________________________________________
@@ -43,13 +43,14 @@ function spm_coregister(PGF, PFF, PGG, PFG, others)
 
 % programers notes
 %
-% FORMAT spm_coregister(PGF, PFF, PGG, PFG, others)
+% FORMAT spm_coregister(PGF, PFF, PGG, PFG, others,flags)
 % 		PGF    - target image (the image to act as template).
 % 		PFF    - object image (the image to reposition).
 % 		PGG    - image to affine normalise target image to.
 % 		PFG    - image to affine normalise object image to.
 % 		others - other images to apply same transformation to.
-%
+%		flags  - any flags
+%			n - only do first pass rough coregistration.
 % FORMAT spm_coregister(PGF, PFF)
 % 		PGF    - target image.
 % 		PFF    - object image.
@@ -87,25 +88,33 @@ if (nargin == 0)
 	end
 
 	if (p == 1 | p == 3)
+		flags = '';
 		templates = str2mat([DIR1 'PET.img'], ...
-			[DIR1 'T1.img'], [DIR1 'T2.img']);
+			[DIR1 'T1.img'], [DIR1 'T2.img'],...
+			[DIR1 'EPI.img'],[DIR1 'Transm.img']);
 
 		% Get modality of target
 		%-----------------------------------------------------------------------
 		respt = spm_input('Modality of first target image?',3,'m',...
-			'target - PET|target - T1 MRI|target - T2 MRI',...
-			[1 2 3],1);
+			'target - PET|target - T1 MRI|target - T2 MRI|target - EPI|target - Transm',...
+			[1 2 3 4 5],1);
 		PGG = deblank(templates(respt,:));
 
 		% Get modality of object
 		%-----------------------------------------------------------------------
 		respo = spm_input('Modality of first object image?',4,'m',...
-			'object - PET|object - T1 MRI|object - T2 MRI',...
-			[1 2 3],2);
+			'object - PET|object - T1 MRI|object - T2 MRI|object - EPI|object - Transm',...
+			[1 2 3 4 5],2);
 		PFG = deblank(templates(respo,:));
 
+		if (respo==5 | respt==5),
+			% only perform the first step of the registration
+			% because transmission/CT images do not segment very
+			% well.
+			flags = [flags 'n'];
+		end
 		if (respt == respo)
-		n_images = 1;
+			n_images = 1;
 		else
 			n_images = Inf;
 		end
@@ -165,7 +174,7 @@ if (nargin == 0)
 		eval(['others = others' num2str(i) ';']);
 
 		if (p == 1 | p == 3)
-			spm_coregister(PGF, PFF, PGG, PFG, others);
+			spm_coregister(PGF, PFF, PGG, PFG, others,flags);
 		end
 		if (p == 2 | p == 3)
 			% Write the coregistered images
@@ -340,7 +349,7 @@ fprintf('time=%g seconds\n',toc);
 	end
 
 	global QUICK_COREG
-	if ~any(QUICK_COREG == 1)
+	if ~any(QUICK_COREG == 1 | any(flags=='n'))
 
 		% Partition the target image(s) into smoothed segments
 		%-----------------------------------------------------------------------
