@@ -593,7 +593,7 @@ if (length(sessions)==1),
 	P = realign_series(P,PW,Flags);
 else
 	fprintf('Registering together the first image of each session..\n');
-	tmp = [1 sessions(1:(end-1))-1];
+	tmp = [1 sessions(1:(end-1))+1];
 	Ptmp = realign_series(P(tmp),PW,Flags);
 	ss=1;
 	for s=1:length(sessions)
@@ -638,7 +638,6 @@ function P = realign_series(P,Wt,Flags)
 % The scaling (and offset) parameters are also set to contain the
 % optimum scaling required to match the images.
 %_______________________________________________________________________
-% %W% John Ashburner %E%
 
 if nargin < 2, Wt = []; end;
 if nargin < 3, Flags = ' '; end;
@@ -946,6 +945,8 @@ return;
 
 %_______________________________________________________________________
 function edit_defaults
+global MODALITY sptl_WhchPtn sptl_DjstFMRI sptl_CrtWht sptl_MskOptn SWD
+
 tmp = 1;
 if sptl_WhchPtn == 1, tmp = 2; end;
 sptl_WhchPtn = spm_input(...
