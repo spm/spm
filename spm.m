@@ -193,7 +193,7 @@ function varargout=spm(varargin)
 % CmdLine    - CommandLine usage? [default spm('isGCmdLine')]
 % F (output) - Handle of figure named
 %
-% FORMAT Fs = spm('ShowSPMfigs')
+% FORMAT Fs = spm('Show')
 % Opens all SPM figure windows (with HandleVisibility) using `figure`.
 %   Maintains current figure.
 % Fs - vector containing all HandleVisible figures (i.e. get(0,'Children'))
@@ -577,7 +577,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 		'CWD=spm_get(-1,''*'',''Select new working directory'',pwd);',...
 		'cd(CWD), clear CWD,',...
 		'fprintf(''\nSPM working directory:\n\t%s\n\n>> '',pwd)'],...
-			'spm(''ShowSPMfigs'');',...
+			'spm(''Show'');',...
 			'run(spm_get(1,''*.m'',''Select mFile to run''))',...
 			'web(''http://www.fil.ion.ucl.ac.uk/spm'')' } )
 
@@ -991,9 +991,9 @@ end
 varargout={F};
 
 
-case 'showspmfigs'
+case 'show'
 %=======================================================================
-% Fs = spm('ShowSPMfigs')
+% Fs = spm('Show')
 cF = get(0,'CurrentFigure');
 Fs = get(0,'Children');
 Fs = findobj(Fs,'flat','Visible','on');
