@@ -21,6 +21,7 @@ function TabDat = spm_VOI(SPM,VOL,Dis,Num,hReg)
 % .FWHM  - smoothness {voxels}
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
+% .Msk   - mask: a list of scalar indicies into image voxel space
 %
 % Dis    - Minimum distance between maxima
 %          (Passed to spm_list.m: Defaults on missing or empty)
@@ -131,7 +132,7 @@ case 'I'                                                         % Image
 		return
 	end
 	mXYZ  = D.mat \ [SPM.XYZmm; ones(1, size(SPM.XYZmm, 2))];
-	j     = spm_sample_vol(D, mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0) > 0;	
+	j     = find(spm_sample_vol(D, mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0) > 0);
 	str   = sprintf('image mask: %s',spm_str_manip(im,'a30'));
 	%-Compute in-mask volume S:
 	% Correct for differences in mask and SPM voxel sizes
@@ -150,6 +151,7 @@ SPM.XYZ   = SPM.XYZ(:,j);
 SPM.XYZmm = SPM.XYZmm(:,j);
 VOL.R     = spm_resels(VOL.FWHM./vsc,D,SPACE);
 VOL.S     = S;
+VOL.Msk   = j;
 
 
 %-Tabulate p values
