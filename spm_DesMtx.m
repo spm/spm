@@ -1,7 +1,7 @@
-function [X,Enames,Index]=spm_DesMtx(varargin);
+function [X,Pnames,Index]=spm_DesMtx(varargin);
 % Design matrix construction from factor level and covariate vectors
-% FORMAT [X,Enames] = spm_DesMtx(<FCLevels-Constraint-FCnames> list)
-% FORMAT [X,Enames,Index] = spm_DesMtx(FCLevels,Constraint,FCnames)
+% FORMAT [X,Pnames] = spm_DesMtx(<FCLevels-Constraint-FCnames> list)
+% FORMAT [X,Pnames,Index] = spm_DesMtx(FCLevels,Constraint,FCnames)
 %
 % <FCLevels-Constraints-FCnames>
 %        - Set of arguments specifying a portion of design matrix (see below)
@@ -11,19 +11,42 @@ function [X,Enames,Index]=spm_DesMtx(varargin);
 % 	   within any triple. The program then works recursively.
 %
 % X      - Design matrix
-% Enames - Effect names (constructed from FCnames)
+% Pnames - Paramater names as (constructed from FCnames) - a cellstr
 % Index  - Integer index of factor levels
 %
 %                           ----------------
+% - Utilities:
 %
-% FORMAT [nX,nEnames] = spm_DesMtx('sca',X1,Enames1,X2,Enames2,...)
+% FORMAT [nX,nPnames] = spm_DesMtx('sca',X1,Pnames1,X2,Pnames2,...)
 % Produces a scaled design matrix nX with max(abs(nX(:))<=1, suitable
 % for imaging with: image((nX+1)*32)
 % X1,X2,...             - Design matrix partitions
-% Enames1, Enames2,...  - Corresponding effect name string matrices (optional)
+% Pnames1, Pnames2,...  - Corresponding parameter name string mtx/cellstr (opt)
 % nX                    - Scaled design matrix
-% nEnames               - COncatenated effect names for columns of nX
+% nPnames               - Concatenated parameter names for columns of nX
 %
+% FORMAT Fnames = spm_DesMtx('Fnames',Pnames)
+% Converts parameter names into suitable filenames
+% Pnames - string mtx/cellstr containing parameter names
+% Fnames - filenames derived from Pnames. (cellstr)
+%
+% FORMAT TPnames = spm_DesMtx('TeXnames',Pnames)
+% Removes '*'s and '@'s from Pnames, so TPnames suitable for TeX interpretation
+% Pnames  - string mtx/cellstr containing parameter names
+% TPnames - TeX-ified parameter names
+%
+% FORMAT Map = spm_DesMtx('ParMap',aMap)
+% Returns Nx2 cellstr mapping (greek TeX) parameters to English names,
+% using the notation established in the SPMcourse notes.
+% aMap - (optional) Mx2 cellstr of additional or over-ride mappings
+% Map  - cellstr of parameter names (col1) and corresponding English names (col2)
+%
+% FORMAT EPnames = spm_DesMtx('ETeXnames',Pnames,aMap)
+% Translates greek (TeX) parameter names into English using mapping given by
+% spm_DesMtx('ParMap',aMap)
+% Pnames  - string mtx/cellstr containing parameter names
+% aMap    - (optional) Mx2 cellstr of additional or over-ride mappings
+% EPnames - cellstr of converted parameter names
 %_______________________________________________________________________
 %
 % Returns design matrix corresponding to given vectors containing
@@ -42,7 +65,7 @@ function [X,Enames,Index]=spm_DesMtx(varargin);
 % matrix is an integer vector whose values represent the levels of the
 % factor. The integer factor levels need not be positive, nor in order.
 % Effects for the factor levels are entered into the design matrix *in
-% increasing order* of the factor levels. Check Enames to find out which
+% increasing order* of the factor levels. Check Pnames to find out which
 % columns correspond to which levels of the factor.
 %
 % TWO WAY INTERACTIONS: For a two way interaction effect between two
@@ -91,22 +114,23 @@ function [X,Enames,Index]=spm_DesMtx(varargin);
 % covariate.
 %
 % NAMES: Each Factor/Covariate can be 'named', by passing a name
-% string.  Pass a string matrix, with rows naming the
-% factors/covariates in the respective columns of the FCLevels matrix.
-% These names default to <Fac>, <Cov>, <Fac1>, <Fac2> &c., and are used
-% in the construction of the Enames effect names matrix.
+% string.  Pass a string matrix, or cell array (vector) of strings,
+% with rows (cells) naming the factors/covariates in the respective
+% columns of the FCLevels matrix.  These names default to <Fac>, <Cov>,
+% <Fac1>, <Fac2> &c., and are used in the construction of the Pnames
+% parameter names.
 % E.g. for an interaction, spm_DesMtx([F1,F2],'+ij0',['subj';'cond'])
-% giving effect names such as subj*cond_{1,2} etc...
+% giving parameter names such as subj*cond_{1,2} etc...
 %
-% Enames returns a string matrix whose successive rows describe the
+% Pnames returns a string matrix whose successive rows describe the
 % effects parameterised in the corresponding columns of the design
-% matrix. `Fac1*Fac2_{2,3}' would refer to the effect for the
+% matrix. `Fac1*Fac2_{2,3}' would refer to the parameter for the
 % interaction of the two factors Fac1 & Fac2, at the 2nd level of the
 % former and the 3rd level of the latter. Other forms are
 %  - Simple main effect (level 1)        : <Fac>_{1}
 %  - Three way interaction (level 1,2,3) : <Fac1>*<Fac2>*<Fac3>_{1,2,3}
 %  - Two way factor interaction by covariate interaction :
-%                                        : <Fac1>*<Fac2>_{1,1}*<Cov>
+%                                        : <Cov>@<Fac1>*<Fac2>_{1,1}
 %  - Column 3 of prespecified DesMtx block (if unnamed)
 %                                        : <X> (1)
 % The special characters `_*{}()' are recognised by the scaling
@@ -115,7 +139,7 @@ function [X,Enames,Index]=spm_DesMtx(varargin);
 %
 % INDEX: An Integer Index matrix is returned if only a single block of
 % design matrix is being computed (single set of parameters). It
-% indexes the actual order of the effects in the design matrix block.
+% indexes the actual order of the effect levels in the design matrix block.
 % (Factor levels are introduced in order, regardless of order of
 % appearence in the factor index matrices, so that the parameters
 % vector has a sensible order.) This is used to aid recursion.
@@ -127,31 +151,31 @@ function [X,Enames,Index]=spm_DesMtx(varargin);
 % visualisation. Special care is taken to apply the same normalisation
 % to blocks of design matrix reflecting a single effect, to preserve
 % appropriate relationships between columns. Identification of effects
-% corresponding to columns of design matrix portions is via the effect
+% corresponding to columns of design matrix portions is via the parameter
 % names matrices. The design matrix may be passed in any number of
-% parts, provided the corresponding effect names are given. It is
+% parts, provided the corresponding parameter names are given. It is
 % assummed that the block representing an effect is contained within a
-% single partition. Partitions supplied without corresponding effect
-% names are scaled on a column by column basis, the effects labelled as
-% <UnSpec> in the returned nEnames matrix.
+% single partition. Partitions supplied without corresponding parameter
+% names are scaled on a column by column basis, the parameters labelled as
+% <UnSpec> in the returned nPnames matrix.
 % 
 % Effects are identified using the special characters `_*{}()' used in
-% effect naming as follows: (here ? is a wildcard)
+% parameter naming as follows: (here ? is a wildcard)
 %       - ?_{?}         - main effect or interaction of main effects
-%       - ?_{?}*?       - factor by covariate interaction
+%       - ?@?_{?}       - factor by covariate interaction
 %       - ?(?)          - part of a pre-specified block
-% Blocks are identified by looking for runs of effects of the same type
+% Blocks are identified by looking for runs of parameters of the same type
 % with the same names: E.g. a block of main effects for factor 'Fac1'
 % would have names like Fac1_{?}.
 % 
 % Scaling is as follows:
-% 	* No scaling is carried out if max(abs(tX(:))) is in [.4,1]
-% 	  This protects dummy variables from normalisation, even if
-% 	  using implicit sum-to-zero constraints.  * If the block has
-% 	a single value, it's replaced by 1's * FxC blocks are
-% 	normalised so the covariate values cover [-1,1]
-% 	  but leaving zeros as zero.  * Otherwise, block is scaled to
-% 	cover [-1,1].
+%       * No scaling is carried out if max(abs(tX(:))) is in [.4,1]
+%         This protects dummy variables from normalisation, even if
+%         using implicit sum-to-zero constraints.
+%       * If the block has a single value, it's replaced by 1's
+%       * FxC blocks are normalised so the covariate values cover [-1,1]
+%         but leaving zeros as zero.
+%       * Otherwise, block is scaled to cover [-1,1].
 %
 %_______________________________________________________________________
 % %W% Andrew Holmes %E%
@@ -164,20 +188,20 @@ if nargin==0 error('Insufficient arguments'), end
 if ischar(varargin{1})
 	%-Non-recursive action string usage
 	Constraint=varargin{1};
-elseif nargin>=2 & ~ischar(varargin{2})
-	[X1,Enames1]=spm_DesMtx(varargin{1});
-	[X2,Enames2]=spm_DesMtx(varargin{2:end});
-	X=[X1,X2]; Enames=strvcat(Enames1,Enames2);
+elseif nargin>=2 & ~(ischar(varargin{2}) | iscell(varargin{2}))
+	[X1,Pnames1]=spm_DesMtx(varargin{1});
+	[X2,Pnames2]=spm_DesMtx(varargin{2:end});
+	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
 	return
-elseif nargin>=3 & ~ischar(varargin{3})
-	[X1,Enames1]=spm_DesMtx(varargin{1:2});
-	[X2,Enames2]=spm_DesMtx(varargin{3:end});
-	X=[X1,X2]; Enames=strvcat(Enames1,Enames2);
+elseif nargin>=3 & ~(ischar(varargin{3}) | iscell(varargin{3}))
+	[X1,Pnames1]=spm_DesMtx(varargin{1:2});
+	[X2,Pnames2]=spm_DesMtx(varargin{3:end});
+	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
 	return
 elseif nargin>=4
-	[X1,Enames1]=spm_DesMtx(varargin{1:3});
-	[X2,Enames2]=spm_DesMtx(varargin{4:end});
-	X=[X1,X2]; Enames=strvcat(Enames1,Enames2);
+	[X1,Pnames1]=spm_DesMtx(varargin{1:3});
+	[X2,Pnames2]=spm_DesMtx(varargin{4:end});
+	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
 	return
 else
 	%-If I is a vector, make it a column vector
@@ -185,16 +209,17 @@ else
 	%-Sort out constraint and Factor/Covariate name parameters
 	if nargin<2, Constraint='-'; else, Constraint=varargin{2}; end
 	if isempty(I), Constraint='mt'; end
-	if nargin<3, FCnames=''; else, FCnames=varargin{3}; end
+	if nargin<3, FCnames={}; else, FCnames=varargin{3}; end
+	if char(FCnames), FCnames=cellstr(FCnames); end
 end
 
 
 
 switch Constraint, case 'mt'                              %-Empty I case
 %=======================================================================
-X=[];
-Enames=[];
-Index=[];
+X      = [];
+Pnames = {};
+Index  = [];
 
 
 
@@ -203,22 +228,21 @@ case {'C','X'}           %-Covariate effect, or ready-made design matrix
 %-I contains a covariate (C), or is to be inserted "as is" (X)
 X = I;
 
-%-Construct effect name index
+%-Construct parameter name index
 %-----------------------------------------------------------------------
 if isempty(FCnames)
-	if strcmp(Constraint,'C'), FCnames='<Cov>';
-		else, FCnames='<X>'; end
+	if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else, FCnames={'<X>'}; end
 end
 
-if size(FCnames,1)==1 & size(X,2)>1
-	Enames = '';
+if length(FCnames)==1 & size(X,2)>1
+	Pnames = cell(size(X,2),1);
 	for i=1:size(X,2)
-		Enames = strvcat(Enames,sprintf('%s (%d)',FCnames,i));
+		Pnames{i} = sprintf('%s (%d)',FCnames{1},i);
 	end
-elseif size(FCnames,1)~=size(X,2)
+elseif length(FCnames)~=size(X,2)
 	error('FCnames doesn''t match covariate/X matrix')
 else
-	Enames = FCnames;
+	Pnames = FCnames;
 end
 
 
@@ -229,27 +253,26 @@ case '-(1)'                                         %-Simple main effect
 %-----------------------------------------------------------------------
 if size(I,2)>1, error('Simple main effect requires vector index'), end
 if any(I~=floor(I)), error('Non-integer indicator vector'), end
-if isempty(FCnames), FCnames = '<Fac>';
-elseif size(FCnames,1)>1, error('Too many FCnames in matrix'), end
+if isempty(FCnames), FCnames = {'<Fac>'};
+elseif length(FCnames)>1, error('Too many FCnames'), end
 
 tmp   = sort(I');
 Index = tmp([1,1+find(diff(tmp))]);
-clear tmp
 
 %-Determine sizes of design matrix X
 nXrows = size(I,1);
 nXcols = length(Index);
 
-%-Set up unconstrained X matrix & construct effect name index
+%-Set up unconstrained X matrix & construct parameter name index
 %-----------------------------------------------------------------------
 %-Columns in ascending order of corresponding factor level
 X      = zeros(nXrows,nXcols);
-Enames = '';
+Pnames = cell(nXcols,1);
 for ii=1:nXcols			%-ii indexes i in Index
 	X(:,ii) = I==Index(ii);
 	%-Can't use: for i=Index, X(:,i) = I==i; end
 	% in case Index has holes &/or doesn't start at 1!
-	Enames = strvcat(Enames,sprintf('%s_{%d}',FCnames,Index(ii)));
+	Pnames{ii} = sprintf('%s_{%d}',FCnames{1},Index(ii));
 end
 
 
@@ -257,7 +280,7 @@ end
 case {'-','-(*)'}             %-Main effect or unconstrained interaction
 %=======================================================================
 if size(I,2)==1
-	[X,Enames,Index] = spm_DesMtx(I,'-(1)',FCnames);
+	[X,Pnames,Index] = spm_DesMtx(I,'-(1)',FCnames);
 	return
 end
 
@@ -280,22 +303,20 @@ for c = 1:length(sIndex)
 	Index(:,c) = I(min(find(rIndex==sIndex(c))),:)';
 end
 
-%-Construct effect name index
+%-Construct parameter name index
 %-----------------------------------------------------------------------
 if isempty(FCnames)
 	tmp = ['<Fac1>',sprintf('*<Fac%d>',2:size(I,2))];
-elseif size(FCnames,1)==size(I,2)
-	tmp = [deblank(FCnames(1,:))];
-	for i = 2:size(I,2), tmp=[tmp,'*',deblank(FCnames(i,:))]; end
+elseif length(FCnames)==size(I,2)
+	tmp = [FCnames{1},sprintf('*%s',FCnames{2:end})];
 else
 	error('#FCnames mismatches #Factors in interaction')
 end
 
-Enames = '';
+Pnames = cell(size(Index,2),1);
 for c = 1:size(Index,2)
-    Enames = strvcat(Enames,...
-	[sprintf('%s_{%d',tmp,Index(1,c)),...
-	 sprintf(',%d',Index(2:end,c)),'}']);
+    Pnames{c} = ...
+	[sprintf('%s_{%d',tmp,Index(1,c)),sprintf(',%d',Index(2:end,c)),'}'];
 end
 
 
@@ -313,20 +334,20 @@ if ~all(all(F==floor(F),1),2)
 	error('non-integer indicies in F partition of FxC'), end
 
 if isempty(FCnames)
-	Fnames = '';
+	Fnames = {''};
 	Cnames = '<Cov>';
-elseif size(FCnames,1)==size(I,2)
-	Fnames = FCnames(1:end-1,:);
-	Cnames = deblank(FCnames(end,:));
+elseif length(FCnames)==size(I,2)
+	Fnames = FCnames(1:end-1);
+	Cnames = FCnames{end};
 else
 	error('#FCnames mismatches #Factors+#Cov in FxC')
 end
 
 %-Set up design matrix X & names matrix
 %-----------------------------------------------------------------------
-[X,Enames,Index] = spm_DesMtx(F,'-',Fnames);
+[X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
 X = X.*(C*ones(1,size(X,2)));
-Enames = [Enames,repmat(['*',Cnames],length(Index),1)];
+Pnames = cellstr([repmat([Cnames,'@'],length(Index),1),char(Pnames)]);
 
 
 
@@ -335,7 +356,7 @@ case {'.','+0','+0m'}                   %-Constrained simple main effect
 
 if size(I,2)~=1, error('Simple main effect requires vector index'), end
 
-[X,Enames,Index] = spm_DesMtx(I,'-(1)',FCnames);
+[X,Pnames,Index] = spm_DesMtx(I,'-(1)',FCnames);
 
 %-Impose constraint if more than one effect
 %-----------------------------------------------------------------------
@@ -345,10 +366,10 @@ nXcols = size(X,2);
 if nXcols==1
 	error('Can''t constrain a constant effect!')
 elseif strcmp(Constraint,'.')
-	X(:,nXcols)=[];	Enames(nXcols,:)=''; Index(nXcols)=[];
+	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'+0')
 	X(find(X(:,nXcols)),:)=-1;
-	X(:,nXcols)=[];	Enames(nXcols,:)=''; Index(nXcols)=[];
+	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'+0m')
 	X = X - 1/nXcols;
 end
@@ -360,7 +381,7 @@ case {'.i','.j','.ij','+i0','+j0','+ij0','+i0m','+j0m'}
 %=======================================================================
 if size(I,2)~=2, error('Two way interaction requires Nx2 index'), end
 
-[X,Enames,Index] = spm_DesMtx(I,'-',FCnames);
+[X,Pnames,Index] = spm_DesMtx(I,'-',FCnames);
 
 %-Implicit sum to zero
 %-----------------------------------------------------------------------
@@ -419,7 +440,7 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
 % X(t_rows,t_cols)=-1*ones(length(t_rows),length(t_cols));
 		end
 		%-delete columns
-		X(:,cols)=[]; Enames(cols,:)=''; Index(:,cols)=[];
+		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 
 	if SumJToZero	%-impose explicit SumJToZero constraints
@@ -435,7 +456,7 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
 			    -X(t_rows,c)*ones(1,length(t_cols));
 		end
 		%-delete columns
-		X(:,cols)=[]; Enames(cols,:)=''; Index(:,cols)=[];
+		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 
 %-Corner point constraints
@@ -451,7 +472,7 @@ elseif any(strcmp(Constraint,{'.i','.j','.ij'}))
 		end
 		cols=find(Index(1,:)==i); %-columns to delete
 		%-delete columns
-		X(:,cols)=[]; Enames(cols,:)=''; Index(:,cols)=[];
+		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 
 	if CornerPointJ	%-impose CornerPointJ constraints
@@ -460,92 +481,151 @@ elseif any(strcmp(Constraint,{'.i','.j','.ij'}))
 			error('Only one j level: Can''t constrain')
 		end
 		cols=find(Index(2,:)==j);
-		X(:,cols)=[]; Enames(cols,:)=''; Index(:,cols)=[];
+		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
 	end
 end
 
 
 
-case 'sca'                                   %-Scale DesMtx for imaging
+case {'Sca','sca'}                            %-Scale DesMtx for imaging
 %=======================================================================
-nX   = []; nEnames = ''; Carg = 2;
+nX   = []; nPnames = {}; Carg = 2;
 
 %-Loop through the arguments accumulating scaled design matrix nX
 %-----------------------------------------------------------------------
 while(Carg <= nargin)
     rX = varargin{Carg}; Carg=Carg+1;
-    if Carg<=nargin & isstr(varargin{Carg})
-	rEnames = varargin{Carg}; Carg=Carg+1;
+    if Carg<=nargin & (isstr(varargin{Carg}) | iscellstr(varargin{Carg}))
+	rPnames = char(varargin{Carg}); Carg=Carg+1;
     else	%-No names to work out blocks from - normalise by column
-	rEnames = repmat('<UnSpec>',size(rX,2),1);
+	rPnames = repmat('<UnSpec>',size(rX,2),1);
     end
-    %-Pad out rEnames with 20 spaces to permit looking past line ends
-    rEnames = [rEnames,repmat(' ',size(rEnames,1),20)];
+    %-Pad out rPnames with 20 spaces to permit looking past line ends
+    rPnames = [rPnames,repmat(' ',size(rPnames,1),20)];
 
 
     while(~isempty(rX))
-	if size(rX,2)>1 & max(1,findstr(rEnames(1,:),'_{')) < ...
-					max(0,find(rEnames(1,:)=='}'))
-	%-Factor, interaction of factors, or FxC: find the rest
+	if size(rX,2)>1 & max(1,findstr(rPnames(1,:),'_{')) < ...
+					max(0,find(rPnames(1,:)=='}'))
+	%-Factor, interaction of factors, or FxC: find the rest...
 	%===============================================================
-		c1 = max(findstr(rEnames(1,:),'_{'));
-		d  = any(diff(abs(rEnames(:,1:c1+1))),2)...
-			| ~any(rEnames(2:end,c1+2:end)=='}',2);
+		c1 = max(findstr(rPnames(1,:),'_{'));
+		d  = any(diff(abs(rPnames(:,1:c1+1))),2)...
+			| ~any(rPnames(2:end,c1+2:end)=='}',2);
 		t  = min(find([d;1]));
-		if t>1
-			%-Guard against following terms involving same factors
-			[null,c2] = find(rEnames(1:t,c1+2:end)=='}');
-			c2 = min(c2,[],2);
-			d  = any(diff(abs(rEnames(1:t,c1+1+c2:c1+c2+21))),2);
-			t  = min(find([d;1]));
-		end
 
 		%-Normalise block
 		%-------------------------------------------------------
 		tX = rX(:,1:t);
-		if any(findstr(rEnames(1,c1:end),'}*'))
-			%-Factor by covariate interaction
+		if any(rPnames(1,1:c1)=='@')	%-FxC interaction
 			C         = tX(tX~=0);
 			tX(tX~=0) = 2*(C-min(C))/max(C-min(C))-1;
 			nX        = [nX,tX];
-		else
+		else				%-Straight interaction
 			nX = [nX,tXsca(tX)];
 		end
-		nEnames  = strvcat(nEnames,rEnames(1:t,:));
-		rX(:,1:t) = []; rEnames(1:t,:)=[];
+		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-	elseif size(rX,2)>1 & max(1,find(rEnames(1,:)=='(')) < ...
-					max(0,find(rEnames(1,:)==')'))
+	elseif size(rX,2)>1 & max(1,find(rPnames(1,:)=='(')) < ...
+					max(0,find(rPnames(1,:)==')'))
 	%-Block: find the rest & normalise together
 	%===============================================================
-		c1 = max(find(rEnames(1,:)=='('));
-		d  = any(diff(abs(rEnames(:,1:c1))),2)...
-			| ~any(rEnames(2:end,c1+1:end)==')',2);
+		c1 = max(find(rPnames(1,:)=='('));
+		d  = any(diff(abs(rPnames(:,1:c1))),2)...
+			| ~any(rPnames(2:end,c1+1:end)==')',2);
 		t  = min(find([d;1]));
 
 		%-Normalise block
 		%-------------------------------------------------------
 		nX = [nX,tXsca(rX(:,1:t))];
-		nEnames  = strvcat(nEnames,rEnames(1:t,:));
-		rX(:,1:t) = []; rEnames(1:t,:)=[];
+		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+		rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
 	else                              %-Dunno! Just column normalise
 	%===============================================================
-		nX = [nX,tXsca(rX(:,1))];
-		nEnames  = strvcat(nEnames,rEnames(1,:));
-		rX(:,1) = []; rEnames(1,:)=[];
+		nX       = [nX,tXsca(rX(:,1))];
+		nPnames  = [nPnames; cellstr(rPnames(1,:))];
+		rX(:,1)  = []; rPnames(1,:)=[];
 
 	end
     end
 end
 
-%-Trim off redundent trailing spaces from nEnames
 X      = nX;
-Enames = nEnames(:,1:...
-		min(find([fliplr(cumprod(fliplr(all(nEnames==' ',1)))),1]))-1 );
+Pnames = nPnames;
 
+
+case {'Fnames','fnames'}     %-Turn parameter names into valid filenames
+%=======================================================================
+% Fnames = spm_DesMtx('FNames',Pnames)
+if nargin<2, varargout={''}; return, end
+Fnames = varargin{2};
+for i=1:prod(size(Fnames))
+	str = Fnames{i};
+	str(str==',')='x';			%-',' to 'x'
+	str(str=='*')='-';			%-'*' to '-'
+	str(str=='@')='-';			%-'@' to '-'
+	str(str==' ')='_';			%-' ' to '_'
+	str(str=='/')='';			%- delete '/'
+	str(str=='.')='';			%- delete '.'
+	Fnames{i} = str;
+end
+Fnames = spm_str_manip(Fnames,'v');		%- retain only legal characters
+X = Fnames;
+
+
+case {'TeXnames','texnames'}   %-Remove '@' & '*' for TeX interpretation
+%=======================================================================
+% TPnames = spm_DesMtx('TeXnames',Pnames)
+if nargin<2, varargout={''}; return, end
+TPnames = varargin{2};
+for i=1:prod(size(TPnames))
+	str = TPnames{i};
+	str(str=='*')='';			%- delete '*'
+	str(str=='@')='';			%- delete '@'
+	TPnames{i} = str;
+end
+X = TPnames;
+
+
+case {'ParMap','parmap'}          %-Parameter mappings: greek to english
+%=======================================================================
+% Map = spm_DesMtx('ParMap',aMap)
+Map = {	'\mu',		'const';...
+	'\theta',	'repl';...
+	'\alpha',	'cond';...
+	'\gamma',	'subj';...
+	'\rho',		'covint';...
+	'\zeta',	'global';...
+	'\epsilon',	'error'};
+if nargin<2, aMap={}; else, aMap = varargin{2}; end
+if isempty(aMap), X=Map; return, end
+if ~(iscellstr(aMap) & ndims(aMap)==2), error('aMap must be an nx2 cellstr'), end
+for i=1:size(aMap,1)
+	j = find(strcmp(aMap{i,1},Map(:,1)));
+	if isempty(j)
+		Map=[aMap(i,:); Map];
+	else
+		Map(j,2) = aMap(i,2);
+	end
+end
+X = Map;
+
+
+case {'ETeXNames','etexnames'} %-Search & replace: for Englishifying TeX
+%=======================================================================
+% EPnames = spm_DesMtx('TeXnames',Pnames,aMap)
+if nargin<2, varargout={''}; return, end
+if nargin<3, aMap={}; else, aMap = varargin{3}; end
+Map = spm_DesMtx('ParMap',aMap);
+EPnames = varargin{2};
+for i=1:size(Map,1)
+	EPnames = strrep(EPnames,Map{i,1},Map{i,2});
+end
+X = EPnames;
 
 
 otherwise                              %-Mis-specified arguments - ERROR
@@ -570,6 +650,8 @@ if abs(max(abs(tX(:)))-0.7)<(.3+eps)
 	nX = tX;
 elseif all(tX(:)==tX(1))
 	nX = ones(size(tX));
+elseif max(abs(tX(:)))<eps*100
+	nX = zeros(size(tX));
 else
 	nX = 2*(tX-min(tX(:)))/max(tX(:)-min(tX(:)))-1;
 end
