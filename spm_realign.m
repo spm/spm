@@ -496,7 +496,6 @@ if any(Flags == 'c'),
 	npix   = 0;
 	for x3 = 1:P(1).dim(3),
 		tmp = spm_slice_vol(P(1),spm_matrix([0 0 x3]),P(1).dim(1:2),0);
-		paddlewheel;
 		msk = find(tmp > gl*0.8);
 		tmp = reshape(interp_errors(tmp,Hold),prod(P(1).dim(1:2)),4);
 		varerr = varerr + sum(sum(tmp(msk,:).^2));
@@ -527,7 +526,6 @@ for x3 = 1:P(1).dim(3)
 		Count = Count + Mask;
 
 		d  = spm_sample_vol(P(i),y1,y2,y3,Hold);
-		paddlewheel;
 		if take_abs==1, d = abs(d); end;
 		X(:,i)= d;
 
@@ -736,7 +734,6 @@ x3 = x3(:);
 if ~isempty(Wt),
 	[y1,y2,y3]=coords([0 0 0  0 0 0],P(1).mat,Wt.mat,x1,x2,x3);
 	wt = spm_sample_vol(Wt,y1,y2,y3,1);
-	paddlewheel;
 	msk = find(wt>0.01);
 	x1=x1(msk);
 	x2=x2(msk);
@@ -754,7 +751,6 @@ n=prod(size(x1));
 %-----------------------------------------------------------------------
 V=smooth_vol(P(1),fwhm);
 [b,dG1,dG2,dG3]=spm_sample_vol(V,x1,x2,x3,Hold1);
-paddlewheel;
 clear V
 A0 = make_A(P(1).mat,x1,x2,x3,dG1,dG2,dG3,wt,lkp);
 if ~isempty(wt), b = b.*wt; end
@@ -781,7 +777,6 @@ for i=2:length(P),
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold);
-		paddlewheel;
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -809,7 +804,6 @@ for i=2:length(P),
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end;
-		paddlewheel;
 	end;
 
 	if register_to_mean,
@@ -820,7 +814,6 @@ for i=2:length(P),
 		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
 		count(msk) = count(msk) + 1;
 		[G,dG1,dG2,dG3] = spm_sample_vol(V,y1(msk),y2(msk),y3(msk),Hold1);
-		paddlewheel;
 		ave(msk)   = ave(msk)   + G.*soln(end);
 		grad1(msk) = grad1(msk) + dG1.*soln(end);
 		grad2(msk) = grad2(msk) + dG2.*soln(end);
@@ -852,7 +845,6 @@ for i=1:length(P),
 		if length(msk)<32, error_message(P(i)); end;
 
 		F          = spm_sample_vol(V, y1(msk),y2(msk),y3(msk),Hold1);
-		paddlewheel;
 		if ~isempty(wt), F = F.*wt(msk); end;
 
 		A          = [A0(msk,:) F];
@@ -873,7 +865,6 @@ for i=1:length(P),
 			if countdown==0, break; end;
 			countdown = countdown -1;
 		end;
-		paddlewheel;
 	end;
 	spm_progress_bar('Set',i);
 end;
@@ -1119,7 +1110,6 @@ if any(Flags == 'k') | any(Flags == 'i'),
 		if any(Flags == 'k'), msk{x3} = find(tmp ~= prod(size(P))); end;
 		if any(Flags == 'i'), Count(:,:,x3) = tmp; end;
 		spm_progress_bar('Set',x3);
-		paddlewheel;
 	end;
 end;
 
@@ -1164,7 +1154,6 @@ for i = start_vol:prod(size(P)),
 			if (i>1) | ~any(Flags == 'n') | any(Flags == 'i'),
 				M = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(P(1).mat)*P(i).mat);
 				v = spm_slice_vol(P(i),M,P(1).dim(1:2),Hold);
-				paddlewheel;
 			end;
 			if any(Flags == 'i'),
 				Integral(:,:,x3) = Integral(:,:,x3) + v;
@@ -1225,70 +1214,60 @@ for k=1:g(3),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
-paddlewheel;
 t  = trf([1 1 g(3)],-p(3));
 for j=1:g(2),
 	for i=1:g(1),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
-paddlewheel;
 for k=1:g(3),
 	t = trf([1 g(2) 1],-tan(p(4)/2)*k-p(2));
 	for i=1:g(1),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
-paddlewheel;
 for j=1:g(2),
 	t = trf([1 1 g(3)], sin(p(4)  )*j);
 	for i=1:g(1),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
-paddlewheel;
 for k=1:g(3),
 	t = trf([1 g(2) 1],-tan(p(4)/2)*k);
 	for i=1:g(1),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
-paddlewheel;
 for k=1:g(3),
 	t = trf([g(1) 1 1],-tan(p(5)/2)*k);
 	for j=1:g(2),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
-paddlewheel;
 for i=1:g(1),
 	t = trf([1 1 g(3)], sin(p(5)  )*i);
 	for j=1:g(2),
 		v(i,j,:)=ifft(fft(v(i,j,:)).*t);
 	end;
 end;
-paddlewheel;
 for k=1:g(3),
 	for j=1:g(2),
 		t = trf([g(1) 1 1],-tan(p(6)/2)*j-tan(p(5)/2)*k);
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
-paddlewheel;
 for i=1:g(1),
 	t = trf([1 g(2) 1], sin(p(6)  )*i);
 	for k=1:g(3),
 		v(i,:,k)=ifft(fft(v(i,:,k)).*t);
 	end;
 end;
-paddlewheel;
 for j=1:g(2),
 	t = trf([g(1) 1 1],-tan(p(6)/2)*j);
 	for k=1:g(3),
 		v(:,j,k)=ifft(fft(v(:,j,k)).*t);
 	end;
 end;
-paddlewheel;
 if r==1, v=real(v); end
 if any(g~=d), tmp = v; v = tmp(1:d(1),1:d(2),1:d(3)); clear tmp; end;
 
@@ -1341,7 +1320,6 @@ function v = loadvol(V)
 v = zeros(V.dim(1:3));
 for i=1:V.dim(3),
 	v(:,:,i) = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
-	paddlewheel;
 end;
 return;
 %_______________________________________________________________________
@@ -1397,16 +1375,5 @@ return;
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
-return;
-
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function paddlewheel
-str = '|/-\';
-global paddle;
-if isempty(paddle), paddle = 0; end;
-paddle = rem(paddle,4)+1;
-fprintf('%c\b',str(paddle));
 return;
 %_______________________________________________________________________
