@@ -64,7 +64,7 @@ for i=1:size(llist,1),
 	dim      = [sh.X_DIMENSION sh.Y_DIMENSION sh.Z_DIMENSION 4];
 	if ~spm_platform('bigend') & dim(4)~=2, dim(4) = dim(4)*256; end;
 
-	pinfo    = [sh.SCALE_FACTOR ; 0 ; 512*llist(i,2)];
+	pinfo    = [sh.SCALE_FACTOR*mh.ECAT_CALIBRATION_FACTOR ; 0 ; 512*llist(i,2)];
 
 	dircos   = diag([-1 -1 -1]);
 	step     = ([sh.X_PIXEL_SIZE sh.Y_PIXEL_SIZE sh.Z_PIXEL_SIZE]*10);
@@ -145,8 +145,8 @@ y_offset                = fread(fid,1,'float32',0);
 z_offset                = fread(fid,1,'float32',0);
 recon_zoom              = fread(fid,1,'float32',0);
 scale_factor            = fread(fid,1,'float32',0);
-image_min               = fread(fid,1,'uint16',0);
-image_max               = fread(fid,1,'uint16',0);
+image_min               = fread(fid,1,'int16',0);
+image_max               = fread(fid,1,'int16',0);
 x_pixel_size            = fread(fid,1,'float32',0);
 y_pixel_size            = fread(fid,1,'float32',0);
 z_pixel_size            = fread(fid,1,'float32',0);
