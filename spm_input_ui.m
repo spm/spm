@@ -17,11 +17,16 @@ function p = spm_input(Prompt,YPos,Type,Labels,Values)
 % p        - results
 %_______________________________________________________________________
 %
-% spm_input prompts for input by creating objects in Figure 2 and
-% setting the background color to a delicate lilac (bleurgh).  All
-% processes stop until something is entered. After the query, the
-% (uneditable) response is displayed on a light gray background.
-% Previous spm_input transactions at YPos are deleted.
+% spm_input prompts for input by creating objects in the SPM
+% Interactive window and setting the background color to a delicate
+% lilac (bleurgh).  All processes stop until something is entered.
+% After the query, the (uneditable) response is displayed on a light
+% gray background.  Previous spm_input transactions at YPos are
+% deleted.
+%
+% If there is no SPM 'Interactive' 'Tag'ged window, then the current
+% figure is used, or an 'Interactive' window created if no windown are
+% open.
 %
 % If YPos is 0 or global CMDLINE is true, then the command line is used.
 % Negative YPos ensures the GUI is used, at YPos=abs(YPos).
@@ -125,8 +130,8 @@ function p = spm_input(Prompt,YPos,Type,Labels,Values)
 % 		the respective choice.
 % 	p = spm_input(str,0,'m',...
 % 		'Single Subject|Multi Subject|Multi Study',['SS';'MS';'SP'])
-% 		As above, but the menu is presented in the command window as a 
-% 		numbered list.
+% 		As above, but the menu is presented in the command window as
+% 		a numbered list.
 %
 %
 % See      : input.m (MATLAB Reference Guide)
@@ -154,7 +159,7 @@ if any(Type=='|'), Values=Labels; Labels=Type; Type='b'; end
 if nargin<2, YPos=[]; end
 if isempty(YPos), YPos=0; end
 if nargin<1, Prompt=''; end
-if isempty(Prompt), Prompt='Select '; end
+if isempty(Prompt), Prompt='Enter '; end
 
 %-Check Type
 if ~any(Type(1)=='esbm'), error('Unrecognised question Type'), end
@@ -180,11 +185,22 @@ if CmdLine
 	fprintf('\t%s\n',Prompt)
 	fprintf('%c',setstr(ones(1,70)*'=')), fprintf('\n')
 else
+	%-Locate (or open) figure to work in
+	%-------------------------------------------------------------------
+	Finter = spm_figure('FindWin','Interactive');
+	if isempty(Finter)
+		if any(get(0,'Children'))
+			Finter = gcf;
+		else
+			Finter = spm('CreateIntWin');
+		end
+	end
+
 	%-Determine position of objects
 	%-------------------------------------------------------------------
-	figure(2)
-	set(2,'Units','pixels')
-	FigPos = get(2,'Position');
+	figure(Finter)
+	set(Finter,'Units','pixels')
+	FigPos = get(Finter,'Position');
 	Xdim = FigPos(3); Ydim = FigPos(4);
 	
 	a = 5.5/10;
@@ -194,7 +210,7 @@ else
 	
 	%-Delete any previous inputs using position YPos
 	%-------------------------------------------------------------------
-	delete(findobj(2,'Tag',['GUIinput_',int2str(YPos)]))
+	delete(findobj(Finter,'Tag',['GUIinput_',int2str(YPos)]))
 
 	%-Place pointer over control object
 	%-------------------------------------------------------------------
@@ -230,7 +246,7 @@ else
 
 	%-Create text and edit control objects
 	%-------------------------------------------------------------------
-	uicontrol(2,'Style','Text',...
+	uicontrol(Finter,'Style','Text',...
 		'String',Prompt,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'HorizontalAlignment','Right',...
@@ -247,7 +263,7 @@ else
 	end
 
 		%-Edit widget: Callback sets UserData to 1 when edited
-	h = uicontrol(2,'Style','Edit',...
+	h = uicontrol(Finter,'Style','Edit',...
 		'String',DefString,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'UserData',[],...
@@ -259,7 +275,7 @@ else
 	%-Setup return-keypress CallBack to process contents of edit widget
 	%-Necessary for quick acceptance of default values.
 	% (Edit widget callback is only executed if an edit is made.)
-	set(2,'UserData',h)
+	set(Finter,'UserData',h)
 	if Type(1)=='e'
 		cb = ['set(get(gcf,''UserData''),''UserData'',',...
 			'eval([''['',get(get(gcf,''UserData''),''String''),'']''],',...
@@ -268,7 +284,7 @@ else
 		cb = ['set(get(gcf,''UserData''),''UserData'',',...
 			'get(get(gcf,''UserData''),''String'') )'];
 	end
-	set(2,'KeyPressFcn',...
+	set(Finter,'KeyPressFcn',...
 		['if abs(get(gcf,''CurrentCharacter''))==13, ',cb,', end'])
 
 	%-Wait for edit, evaluate string if input not a string variable
@@ -289,7 +305,7 @@ else
 	%-Fix edit window & clean up
 	set(h,'Style','Text','HorizontalAlignment','Center',...
 		'BackgroundColor',[.7,.7,.7]), drawnow
-	set(2,'UserData',[],'KeyPressFcn','')
+	set(Finter,'UserData',[],'KeyPressFcn','')
 
 end % (if CmdLine)
 
@@ -395,7 +411,7 @@ else
 
 	%-Create text and edit control objects
 	%-------------------------------------------------------------------
-	hPrmpt = uicontrol(2,'Style','Text',...
+	hPrmpt = uicontrol(Finter,'Style','Text',...
 		'String',Prompt,...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'HorizontalAlignment','Right',...
@@ -405,7 +421,7 @@ else
 
 	H = [];
 	for lab=1:NoLabels
-		h = uicontrol(2,'Style','Pushbutton',...
+		h = uicontrol(Finter,'Style','Pushbutton',...
 			'String',deblank(Labels(lab,:)),...
 			'Tag','',...
 			'UserData',lab,...
@@ -416,7 +432,7 @@ else
 	end
 
 	%-Enable keyboard shortcuts - use an invisible frame
-	hF = uicontrol(2,'Style','Frame',...
+	hF = uicontrol(Finter,'Style','Frame',...
 		'Visible','off',...
 		'Tag','','UserData',[],...
 		'Position',PPos);
@@ -425,7 +441,7 @@ else
 	% Store handle of invisible frame in figures UserData
 	cb = ['set(get(gcf,''UserData''),',...
 		'''Tag'',''Pressed'',''UserData'',get(gcf,''CurrentCharacter''))'];
-	set(2,'KeyPressFcn',cb,'UserData',h)
+	set(Finter,'KeyPressFcn',cb,'UserData',h)
 
 	%-Wait for button press, process results
 	%-------------------------------------------------------------------
@@ -444,8 +460,8 @@ else
 
 	p = Values(k,:); if isstr(p), p=deblank(p); end
 	delete(H)
-	set(2,'KeyPressFcn','','UserData',[])
-	uicontrol(2,'Style','Text','Tag','',...
+	set(Finter,'KeyPressFcn','','UserData',[])
+	uicontrol(Finter,'Style','Text','Tag','',...
 		'String',deblank(Labels(k,:)),...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'Horizontalalignment','Center',...
@@ -485,7 +501,7 @@ else
 	cb = ['if (get(get(gco,''UserData''),''Value'')>1),',...
 			'set(gco,''Tag'',''Pressed''),',...
 			'else, fprintf(''%c'',7), end'];
-	hOK = uicontrol(2,'Style','Pushbutton','Tag','',...
+	hOK = uicontrol(Finter,'Style','Pushbutton','Tag','',...
 		'String','OK',...
 		'UserData',hPopUp,...
 		'Callback',cb,...
@@ -497,7 +513,7 @@ else
 	while isempty(get(hOK,'Tag')), pause(0.01), end
 	k = get(hPopUp,'Value')-1;
 
-	uicontrol(2,'Style','Text',...
+	uicontrol(Finter,'Style','Text',...
 		'String',deblank(Labels(k,:)),...
 		'Tag',['GUIinput_',int2str(YPos)],...
 		'Horizontalalignment','Center',...
