@@ -398,13 +398,13 @@ uicontrol(Fmenu,'String','Eigenimages',	'Position',[220 245 140 30].*A,...
 %-Results
 %-----------------------------------------------------------------------
 uicontrol(Fmenu,'String','SPM{F}',	'Position',[045 165 070 30].*A,...
-	'CallBack','spm_projectionsF_ui','Interruptible','yes');
+	'CallBack','spm_projectionsF_ui;','Interruptible','yes');
 
 uicontrol(Fmenu,'String','Results',	'Position',[165 165 070 30].*A,...
 	'CallBack','spm_results_ui',	'Interruptible','yes');
 
 uicontrol(Fmenu,'String','SPM{Z}',	'Position',[285 165 070 30].*A,...
-	'CallBack','spm_projections_ui','Interruptible','yes');
+	'CallBack','spm_projections_ui;','Interruptible','yes');
 
 %-Utility buttons (first line)
 %-----------------------------------------------------------------------
