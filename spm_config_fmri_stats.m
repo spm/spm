@@ -757,6 +757,15 @@ end;
 
 fprintf('%30s\n','...SPM.mat with mask saved')                     %-#
 
+if ~classical
+    if isfield(job.estim.Method.Bayesian.space,'Slices')
+        SPM.PPM.space_type='Slices';
+        SPM.PPM.AN_slices=job.estim.Method.Bayesian.space.Slices;
+    end
+else
+    SPM.PPM.space_type='Volume';
+end
+
 if strcmp(job.estim.when,'At Run Time')
     if classical
         SPM = spm_spm(SPM);
