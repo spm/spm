@@ -89,6 +89,7 @@ end
 %------------------------------------------------------------------
 mx = max(max(Output));
 SCALE  = mx/32767;
+if SCALE==0, SCALE=1; end; %For images of all zeros
 fp = fopen(Q,'w');
 for j = 1:DIM(3)
 	d = round(Output(:,j)/SCALE);
