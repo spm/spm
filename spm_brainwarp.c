@@ -405,9 +405,6 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 			/* intensity component of beta */
 			beta[nx*ny*nz*3 + y1] += betaxy[nx*ny*3 + y1];
 		}
-
-		mexPrintf(".");
-
 	}
 
 
@@ -465,8 +462,6 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 			mxFree((char *)Jy[i1][i2]);
 		}
 	}
-
-	mexPrintf("\n");
 }
 
 static void scale(int m, double dat[], double s)
@@ -480,7 +475,6 @@ static void scale(int m, double dat[], double s)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	extern double rint(double);
 	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2, *get_maps();
 	int i, nx,ny,nz,ni=1, samp[3], nsamp, edgeskip[3];
 	double *M, *BX, *BY, *BZ, *dBX, *dBY, *dBZ, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
