@@ -23,8 +23,7 @@
 %
 % The current voxel specifies the voxel, suprathreshold cluster, or
 % orthogonal planes (planes passing through that voxel) for subsequent
-% localised utilities. Only voxels saved by the statistical analysis
-% that survive the specified thresholds are available for analysis.
+% localised utilities.
 %
 % A control panel in the interactive window enables interactive
 % exploration of the results and is divided into volume, cluster, and 
@@ -103,6 +102,7 @@
 %
 %___________________________________________________________________________
 % %W% Karl Friston, Andrew Holmes %E%
+SCCSid = '%I%';
 
 %-Programers notes
 %---------------------------------------------------------------------------
@@ -114,58 +114,65 @@
 
 % Initialise 
 %---------------------------------------------------------------------------
-Fgraph = spm_figure('FindWin','Graphics');
-Finter = spm_figure('FindWin','Interactive');
-spm_clf(Fgraph)
-spm_clf(Finter)
-set(Finter,'Name','SPM results')
-global CWD
+SPMid = spm('FnBanner',mfilename,SCCSid);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Results');
 
-%-Get thresholded data and parameters of design
+global CWD	%-**** Want to get rid of this global CWD!
+
+
+%-Get thresholded SPM data and parameters of design
 %===========================================================================
-
-%-Get SPM
-%---------------------------------------------------------------------------
 [SPM,VOL,DES] = spm_getSPM;
 
 
 %-Setup Results User Interface; Display MIP, design matrix & parameters
 %===========================================================================
+spm('Pointer','Watch')
+
 
 %-Setup results GUI
 %---------------------------------------------------------------------------
 hReg   = spm_results_ui('SetupGUI',VOL.M,VOL.DIM);
+figure(Fgraph)
+
+
+%-Print summary information
+%---------------------------------------------------------------------------
+hTxtAx = axes('Position',[0.05 0.92 0.90 0.03],...
+		'DefaultTextFontSize',10,...
+		'DefaultTextVerticalAlignment','baseline',...
+		'Visible','off');
+h = text(0,1,'SPM results: ','FontWeight','Bold','FontSize',14)
+text(get(h,'Extent')*[0;0;1;0],1,spm_str_manip(CWD,'a30'))
+text(0.1,0.5,sprintf('Height threshold {u} = %0.2f',SPM.u))
+text(0.1,0.0,sprintf('Extent threshold {k} = %0.0f resels',SPM.k));
 
 
 %-Setup Maximium intensity projection (MIP) & register
 %---------------------------------------------------------------------------
-figure(Fgraph)
 hMIPax = axes('Position',[0.05 0.55 0.55 0.4],'Visible','off');
 hMIPax = spm_mip_ui(SPM.Z,VOL.XYZ,[VOL.DIM;VOL.VOX;VOL.ORG],hMIPax);
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
 text(260,260,['SPM{' SPM.STAT '}'],'FontSize',16,'Fontweight','Bold')
 
 
-%-Design matrix & contrast
+%-Design matrix & contrast(s)
 %---------------------------------------------------------------------------
-axes('Position',[0.65 0.55 0.25 0.25],'Tag','Empty')
-image(spm_DesMtx('sca',DES.X)*64)
-xlabel 'Design matrix'
+axes('Position',[0.65 0.55 0.25 0.25])
+image(spm_DesMtx('sca',DES.X)*64)	%-****Need names for proper DesMtxSca
+xlabel('Design matrix')
 dy     = 0.1/size(DES.C,1);
-for  i = 1:size(DES.C,1)
+for i = 1:size(DES.C,1)
 	axes('Position',[0.65 (0.8 + dy*(i - 1)) 0.25 dy])
 	bar(DES.C(i,:));
 	axis tight, axis off
 end
-str    = str2mat(spm_str_manip(CWD,'a30'),...
-	sprintf('Height threshold {u} = %0.2f',SPM.u),...
-	sprintf('Extent threshold {k} = %0.0f resels',SPM.k));
-title(str,'FontSize',9)
+title('Contrast(s)')
 
 
-% Finished
+%-Finished
 %===========================================================================
-set(Finter,'Pointer','Arrow')
+spm('Pointer','Arrow')
 
 
 
