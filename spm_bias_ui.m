@@ -84,7 +84,7 @@ function bias_ui(flags)
 SPMid = spm('FnBanner',mfilename,'$Rev$');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Flatten');
 spm_help('!ContextHelp',mfilename);
-PP = spm_get(Inf, 'IMAGE', 'Scans to correct');
+PP = spm_select(Inf, 'image', 'Scans to correct');
 spm('Pointer','Watch');
 for i=1:size(PP,1),
 	spm('FigName',['Flatten: working on scan ' num2str(i)],Finter,CmdLine);

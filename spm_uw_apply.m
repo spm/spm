@@ -144,8 +144,8 @@ if exist('defaults','var') & isfield(defaults,'realign') & isfield(defaults.real
 end
 
 if nargin < 1 | isempty(ds)
-    % ds = load(spm_get(1,'*uw.mat','Select Unwarp result file'));
-    ds   = getfield(load(spm_get(1,'*uw.mat','Select Unwarp result file')),'ds');
+    % ds = load(spm_select(1,'.*uw.mat$','Select Unwarp result file'));
+    ds   = getfield(load(spm_select(1,'.*uw.mat$','Select Unwarp result file')),'ds');
 end
 
 %

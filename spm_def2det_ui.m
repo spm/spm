@@ -3,7 +3,7 @@ function spm_def2det_ui
 %_______________________________________________________________________
 % John Ashburner $Id$
 
-P    = spm_get(Inf,{'*y_*.img','noexpand'},'Select deformation fields');
+P    = spm_select(Inf,'.*y_.*\.img$','Select deformation fields');
 n    = size(P,1);
 spm_progress_bar('Init',n,'Writing Jacobian Determinants','volumes completed');
 for i=1:n,

@@ -1,7 +1,11 @@
 function entry = findindict(c,dcode)
 % Look up an entry in the dictionary
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 entry = [];
 d = getdict;

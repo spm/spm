@@ -1,7 +1,11 @@
 function M = decode_qform0(hdr)
 % Decode qform info from NIFTI-1 headers.
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 dim    = double(hdr.dim);
 pixdim = double(hdr.pixdim);

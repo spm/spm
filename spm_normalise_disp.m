@@ -12,7 +12,7 @@ function spm_normalise_disp(matname,VF)
 fg = spm_figure('FindWin','Graphics');
 if isempty(fg), return; end;
 
-if nargin<1, matname = spm_get(1,'*_sn3d.mat'); end;
+if nargin<1, matname = spm_select(1,'.*_sn.mat$','Select parameter file'); end;
 
 if ischar(matname),
 	t = load(deblank(matname));

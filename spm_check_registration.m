@@ -15,7 +15,7 @@ function spm_check_registration(images)
 
 
 if nargin==0,
-	images = spm_get([1 15],'IMAGE',['Select images']);
+	images = spm_select([1 15],'image','Select images');
 	spm_check_registration(images);
 elseif nargin==1,
 	fg = spm_figure('Findwin','Graphics');

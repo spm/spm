@@ -1,7 +1,11 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 persistent dict;
 if ~isempty(dict),

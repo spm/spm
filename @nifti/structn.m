@@ -1,7 +1,11 @@
 function t = structn(obj)
 % Convert a NIFTI-1 object into a form of struct
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if numel(obj)~=1,
     error('Too many elements to convert');

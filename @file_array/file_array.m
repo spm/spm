@@ -9,7 +9,11 @@ function a = file_array(varargin)
 % scale  - scalefactor (default = 1)
 % inter  - DC offset, such that dat = raw*scale + inter (default = 0)
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if nargin==1
     if isstruct(varargin{1}),

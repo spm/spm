@@ -1,7 +1,11 @@
 function d = size(a,varargin)
 % overloaded size function for file_array objects.
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 sa  = struct(a);
 dim = ones(length(sa),32);

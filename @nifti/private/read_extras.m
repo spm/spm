@@ -1,7 +1,11 @@
 function extras = read_extras(fname)
 % Read extra bits of information
 %_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 extras = [];
 [pth,nam,ext] = fileparts(fname);

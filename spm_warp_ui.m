@@ -11,8 +11,8 @@ function spm_warp_ui
 % $Id$
 
 
-VG = spm_vol(spm_get(1, '*.img', 'Reference image'));
-VF = spm_vol(spm_get(1, '*.img', 'Image to warp'));
+VG = spm_vol(spm_select(1, 'image', 'Reference image'));
+VF = spm_vol(spm_select(1, 'image', 'Image to warp'));
 
 reg = spm_input('Regularisation constant','+0', 'e', '4', 1);
 nit = spm_input('Number of iterations','+0', 'n', '8', 1);

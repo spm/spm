@@ -1,7 +1,11 @@
 function o = niftistruc
 % Create a data structure describing NIFTI headers
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 persistent org;
 if ~isempty(org),

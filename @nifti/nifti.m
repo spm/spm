@@ -1,7 +1,11 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 switch nargin
 case 0,
@@ -23,16 +27,16 @@ case 1
 
         % Over-ride sform if a .mat file exists
         extras = read_extras(fname);
-        %if isfield(extras,'mat') && size(extras.mat,3)>=1,
-        %    mat            = extras.mat(:,:,1)*[eye(4,3) [1 1 1 1]'];
-        %    vol.hdr.srow_x = mat(1,:);
-        %    vol.hdr.srow_y = mat(2,:);
-        %    vol.hdr.srow_z = mat(3,:);
-        %    if vol.hdr.sform_code == 0, vol.hdr.sform_code = 2; end;
-        %    if vol.hdr.sform_code == vol.hdr.qform_code,
-        %        vol.hdr = encode_qform(extras.mat(:,:,1),vol.hdr);
-        %    end;
-        %end;
+        if isfield(extras,'mat') && size(extras.mat,3)>=1,
+            mat            = extras.mat(:,:,1)*[eye(4,3) [1 1 1 1]'];
+            vol.hdr.srow_x = mat(1,:);
+            vol.hdr.srow_y = mat(2,:);
+            vol.hdr.srow_z = mat(3,:);
+            if vol.hdr.sform_code == 0, vol.hdr.sform_code = 2; end;
+            if vol.hdr.sform_code == vol.hdr.qform_code,
+                vol.hdr = encode_qform0(extras.mat(:,:,1),vol.hdr);
+            end;
+        end;
 
         dim   = double(vol.hdr.dim);
         dim   = dim(2:(dim(1)+1));

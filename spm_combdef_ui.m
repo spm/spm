@@ -7,7 +7,7 @@ function spm_combdef_ui
 % $Id$
 
 
-P = spm_get(Inf,{'*y_*.img','noexpand'},['Select deformation fields']);
+P = spm_select(Inf,'.*y_.*\.img$',['Select deformation fields']);
 for i=1:size(P,1),
 	V{i}   = spm_vol([repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')]);
 end;

@@ -1,7 +1,11 @@
 function display(obj)
 % Display a file_array object
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if numel(struct(obj))>1,
     fprintf('       %s object: ', class(obj));

@@ -1,7 +1,11 @@
 function dt = datatypes
 % Datatype
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 persistent dtype
 if isempty(dtype),

@@ -2,7 +2,11 @@ function varargout=subsref(obj,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 % _________________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if isempty(subs)
     t = obj;

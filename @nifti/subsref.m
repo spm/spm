@@ -36,7 +36,11 @@ function varargout = subsref(opt,subs)
 % cal         - a two-element vector containing cal_min and cal_max
 % aux_file    - name of an auxiliary file
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 varargout = rec(opt,subs);
 return;

@@ -19,7 +19,7 @@ function spm_surf(P,mode)
 % Matlab's isosurface function.
 % This extracted brain surface can be viewed using code something
 % like:
-%    FV = load(spm_get(1,'surf_*.mat','Select surface data'));
+%    FV = load(spm_select(1,'^surf_.*\.mat$','Select surface data'));
 %    fg = spm_figure('GetWin','Graphics');
 %    ax = axes('Parent',fg);
 %    p  = patch(FV, 'Parent',ax,...

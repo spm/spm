@@ -3,7 +3,11 @@ function create(obj)
 % This writes out the header information, and an empty image
 % volume if necesary.
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if ~isa(obj.dat,'file_array'),
     error('Data must be a file-array');

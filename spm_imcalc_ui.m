@@ -106,7 +106,7 @@ if nargin<3, f=''; end
 if nargin<2, Q=''; end
 if nargin<1, P={}; end
 
-if isempty(P), P = spm_get(Inf,'IMAGE',{'Select images to work on'}); end
+if isempty(P), P = spm_select(Inf,'image','Select images to work on'); end
 if isempty(P), error('no input images specified'), end
 if isempty(Q), Q = spm_input('Output filename',1,'s'); end
 if isempty(f), f = spm_input('Evaluated Function',2,'s'); end

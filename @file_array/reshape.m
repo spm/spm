@@ -1,7 +1,11 @@
 function a = reshape(b,varargin)
 % Overloaded reshape function for file_array objects
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if length(struct(b))~=1, error('Can only reshape simple file_array objects.'); end;
 

@@ -6,7 +6,11 @@ function varargout = dim(varargin)
 % For setting the value
 % obj = dim(obj,dat)
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if nargin==2,
     varargout{1} = asgn(varargin{:});

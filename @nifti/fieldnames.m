@@ -1,7 +1,11 @@
 function t = fieldnames(obj)
 % Fieldnames of a NIFTI-1 object
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 if isfield(obj.hdr,'magic')
     t = {...

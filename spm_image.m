@@ -65,7 +65,7 @@ if nargin == 0,
 
 	% get the image's filename {P}
 	%-----------------------------------------------------------------------
-	P      = spm_get(1,'IMAGE','please select image',[],0);
+	P      = spm_select(1,'image','Select image',[],0);
 	spm_image('init',P);
 	return;
 end;
@@ -186,7 +186,7 @@ if strcmp(op,'reorient'),
 	if det(mat)<=0
 		spm('alert!','This will flip the images',mfilename,0,1);
 	end;
-	P = spm_get(Inf, 'IMAGE','Images to reorient');
+	P = spm_select(Inf, 'image','Images to reorient');
 	Mats = zeros(4,4,size(P,1));
 	spm_progress_bar('Init',size(P,1),'Reading current orientations',...
 		'Images Complete');
@@ -212,7 +212,7 @@ if strcmp(op,'resetorient'),
 	% Time to modify the ``.mat'' files for the images.
 	% I hope that giving people this facility is the right thing to do....
 	%-----------------------------------------------------------------------
-	P = spm_get(Inf, 'IMAGE','Images to reset orientation of');
+	P = spm_select(Inf, 'image','Images to reset orientation of');
 	V = spm_vol(P);
 	spm_progress_bar('Init',size(P,1),'Resetting orientations',...
 		'Images Complete');

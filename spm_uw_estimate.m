@@ -175,7 +175,7 @@ function ds = spm_uw_estimate(P,par)
 
 global defaults
 
-if nargin < 1 | isempty(P), P = spm_get(Inf,'*.img'); end
+if nargin < 1 | isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
 
 %

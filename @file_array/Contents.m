@@ -43,5 +43,9 @@
 % size(fa2)
 % length(fa0)
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 

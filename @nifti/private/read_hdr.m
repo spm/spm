@@ -4,7 +4,11 @@ function vol = read_hdr(fname)
 % fname - filename of image
 % vol   - various bits of information
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 persistent dict
 if isempty(dict), dict = getdict; end;

@@ -26,8 +26,8 @@ function spm_mask(P1,P2, thresh)
 
 
 if nargin==0,
-	P1=spm_get(Inf,'IMAGE','Images to compute mask from');
-	P2=spm_get(Inf,'IMAGE','Images to apply mask to');
+	P1=spm_select(Inf,'image','Images to compute mask from');
+	P2=spm_select(Inf,'image','Images to apply mask to');
 end;
 if nargin==1,
 	P2 = P1;

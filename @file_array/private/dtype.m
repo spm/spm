@@ -6,7 +6,11 @@ function varargout = dtype(varargin)
 % For setting the value
 % obj = dtype(obj,dat)
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 
 if nargin==2,

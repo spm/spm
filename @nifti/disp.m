@@ -1,7 +1,11 @@
 function disp(obj)
 % Disp a NIFTI-1 object
 % _______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+%
 % $Id$
+
 
 sz = size(obj);
 fprintf('NIFTI object: ');

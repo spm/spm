@@ -10,8 +10,8 @@ function spm_applydef_ui(P,PT)
 if nargin<2
 	n = spm_input('Number of subjects','+0', 'n', '1', 1)';
 	for i=1:n
-		P{i}    = spm_get(1,{'*y_*.img','noexpand'},['Select deformation field ' num2str(i)]);
-		PT{i}   = spm_get(Inf,'*.img',['Image(s) to warp (' num2str(i) ')']);
+		P{i}    = spm_select(1,'.*y_.*\.img',['Select deformation field ' num2str(i)]);
+		PT{i}   = spm_select(Inf,'image',['Image(s) to warp (' num2str(i) ')']);
 	end;
 else
 	n = length(P);
