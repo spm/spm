@@ -1,27 +1,31 @@
 
 % The analysis of fMRI activation studies
-%___________________________________________________________________________
+%_______________________________________________________________________
 %
 % SEE ALSO
-%    spm_fmri_spm_ui.m
-%    spm_fmri_spm.m
-% 
+%    spm_fmri_spm_ui.m   -   User interface to fMRI statistics
+%    spm_spm.m           -   Main statistical routine
+%    spm.man             -   Annotated bibliography & Abstracts
+%                            New features of this version
+%_______________________________________________________________________
+%
 % Introduction
 % 
-%    The following outline and selected abstracts represent a summary
-%    of the analytic stages proposed for the analysis of fMRI
-%    activation studies.  We are concerned principally with the
-%    analysis of fast techniques (e.g. EPI) that provide volumetric
-%    data (e.g. multislice acquisition) although many components are
-%    still relevant to single slice data.  The stages of analysis
-%    include (i) realignment, (ii) spatial normalisation and
+%    The following outline and selected abstracts (in spm.man )
+%    represent a summary of the analytic stages proposed for the
+%    analysis of fMRI activation studies.  We are concerned principally
+%    with the analysis of fast techniques (e.g. EPI) that provide
+%    volumetric data (e.g. multislice acquisition) although many
+%    components are still relevant to single slice data.  The stages of
+%    analysis include (i) realignment, (ii) spatial normalisation and
 %    resampling, (iii) spatial smoothing, (iv) voxel-wise statistical
 %    analysis (using an extended general linear model that accommodates
 %    temporal smoothing and autocorrelations)  and (v) statistical
 %    inference based on the spatial extent and maxima of the activation
 %    foci that ensue (using the theory of Gaussian fields).
 % 
-% 
+%-----------------------------------------------------------------------
+%
 % Outline of Stages
 % 
 % Realignment
@@ -53,7 +57,9 @@
 %    and the corresponding voxels in both images should be specified
 %    using the ORIGIN in the header.  Clearly if the structural and
 %    functional data are exactly congruent (same position and voxel
-%    size) than the ORIGIN can be any voxel, as long as it is the
+%    size) than the ORIGIN can be any voxel, as long as it is the same
+%    in all the images. (See spm_header_edit.m for details on editing
+%    headers.)
 % 
 %    It is not necessary to spatially normalise the data (this is only
 %    a pre-requisite for intersubject averaging or reporting in the
@@ -89,8 +95,8 @@
 %    the error terms, that result from this smoothing, require the
 %    analysis to use the 'effective degrees of freedom' associated with
 %    the error term. Specific hypotheses, using reference waveforms or
-%    other more general covariates, are tested with a t value at each
-%    and every voxel.  These t values constitute the statistical
+%    other more general covariates, are tested with a t-value at each
+%    and every voxel.  These t-values constitute the statistical
 %    parametric map SPM{t}.  The SPM{t} is transformed to the unit
 %    normal distribution to give a SPM{Z}.  The assessment of
 %    condition-specific effects depends on how one models the brain's
@@ -112,263 +118,16 @@
 %    results [the SPM{Z} and associated p-value] are the endpoint of
 %    the analysis.
 % 
+%-----------------------------------------------------------------------
 % 
 % Selected Bibliography
 % 
 %    The key papers detailing the framework described above are listed,
-%    with their abstracts, below.  These papers are not a comprehensive
-%    bibliography of the field and are restricted to our own work (the
-%    background and converging work of others will be found in these
-%    papers).  Unfortunately most of these papers are still in press
-%    but should be available in the next month or so.
-% 
-% 
-% Spatial registration and normalisation of images Friston KJ,
-% Ashburner J, Frith CD, Poline J-B,  Heather JD and Frackowiak RSJ
-% Hum. Brain Mapping. in press
-% 
-% Abstract
-%    This paper concerns the spatial and intensity transformations that
-%    map one image onto another.  We present a general technique that
-%    facilitates non-linear spatial (stereotactic) normalisation and
-%    image realignment.  This technique minimises the sum of squares
-%    between two images following non-linear spatial deformations and
-%    transformations of the voxel (intensity) values.  The spatial and
-%    intensity transformations are obtained simultaneously, and
-%    explicitly, using a least squares solution and a series of
-%    linearising devices.  The approach is completely noninteractive
-%    (automatic), non-linear and non iterative.  It can be applied in
-%    any number of dimensions.  Various applications are considered,
-%    including the realignment of functional MRI time-series, linear
-%    (affine) and non-linear spatial normalisation of PET and
-%    structural MRI images, the coregistration of PET to structural MRI
-%    and, implicitly, the conjoining of PET and MRI to obtain high
-%    resolution functional images.
-% 
-% 
-% This paper describes the general approach to estimating movement
-% parameters and is a useful background read for the special use of
-% these estimates in fMRI.
-% 
-% 
-% Movement-related effects in fMRI time-series Friston KJ, Williams SR,
-% Howard R, Frackowiak RSJ and Turner R.  Magnetic Resonance in
-% Medicine - submitted
-% 
-% Abstract
-%    This paper concerns the spatial and intensity transformations that
-%    are required to adjust for the confounding effects of subject
-%    movement during fMRI activation studies.  We present an approach
-%    that models, and removes, movement-related artefacts from fMRI
-%    time-series.  This approach is predicated on the observation that
-%    movement-related effects are extant even after perfect
-%    realignment.  These effects can be divided into those that are
-%    some function of position of the object in the frame of reference
-%    of the scanner, and a component that is due to movement in
-%    previous scans.  This second component depends on the history of
-%    excitation experienced by spins in a small volume and consequent
-%    differences in local saturation.  The spin excitation history will
-%    itself be a function of previous positions.  This suggests an
-%    autoregression-moving average model for the effects of previous
-%    displacements on the current signal.  We describe such a model and
-%    the adjustments for movement-related components that ensue.  Our
-% 
-% 
-% This paper provides the theory and operational equations that use the
-% estimates described in the previous paper to (i) realign and (ii)
-% adjust the time-series to remove movement-related effects.  Its most
-% important contribution was the notion of adjusting for
-% movement-related effects in a theoretically driven and mathematical
-% way.
-% 
-% 
-% The analysis of functional MRI time-series Friston KJ, Jezzard P
-% and Turner R Human Brain Mapping  2:69-78
-% 
-% Abstract
-%    We present a method for detecting significant and regionally
-%    specific correlations between sensory input and the brain's
-%    physiological response, as measured with functional MRI.  The
-%    method involves testing for correlations, between sensory input
-%    and the hemodynamic response, after convolving the sensory input
-%    with an estimate of the hemodynamic response function.  This
-%    estimate is obtained without reference to any assumed input.  To
-%    lend the approach statistical validity, it is brought into the
-%    framework of statistical parametric mapping by using a measure of
-%    cross-correlations, between sensory input and hemodynamic
-%    response, that is valid in the presence of intrinsic
-%    autocorrelations.  These autocorrelations are necessarily present,
-%    due to the hemodynamic response function or temporal point spread
-%    function.
-% 
-% This is a useful, early paper that sets up the notion of temporal
-% correlations and effective degrees of freedom in the context of
-% fMRI.  Its most important contribution was a formal introduction of
-% the hemodynamic response function.
-% 
-% 
-% Statistical parametric maps in functional imaging: A general linear
-% approach Friston KJ, Holmes AP, Worsley KJ, Poline J-P Frith CD and
-% Frackowiak RSJ Human Brain Mapping - in press
-% 
-% Abstract
-%    Statistical parametric maps are spatially extended statistical
-%    processes that are used to test hypotheses about regionally
-%    specific effects in neuroimaging data.   The most established
-%    sorts of statistical parametric maps (e.g. Friston et al 1991,
-%    Worsley et al 1992) are based on linear models, for example
-%    ANCOVA, correlation coefficients and t tests.  In the sense that
-%    these examples are all special cases of the general linear model
-%    it should be possible to implement them (and many others) within a
-%    unified framework.  We present here a general approach that
-%    accommodates most forms of experimental layout and ensuing
-%    analysis (designed experiments with fixed effects for factors,
-%    covariates and interaction of factors).  This approach brings
-%    together two well established bodies of theory (the general linear
-%    model and the theory of Gaussian Fields) to provide a complete and
-%    simple framework for the analysis of imaging data.  The importance
-%    of this framework is twofold:  (i) Conceptual and mathematical
-%    simplicity, in that the small number of operational equations used
-%    are the same, irrespective of the complexity of the experiment or
-%    nature of the statistical model and (ii) the generality of the
-%    framework provides for great latitude in experimental design and
-%    analysis.
-% 
-% This is a general introduction to the general linear model in the
-% context of functional imaging.  Statistical parametric mapping can be
-% seen as the combined use of the general liner model to create a
-% spatially extended statistical process, that is then interpreted with
-% reference to the theory of Gaussian fields.
-% 
-% 
-% Analysis of fMRI time-series revisited Friston KJ, Holmes AP, Poline
-% J-B, Grasby PJ, Williams SCR, Frackowiak RSJ and Turner R NeuroImage
-% - in press
-% 
-% Abstract
-%    This paper presents a general approach to the analysis of
-%    functional MRI time-series from one or more subjects.  The
-%    approach is predicated on an extension of the general linear model
-%    that allows for correlations between error terms due to
-%    physiological noise, or correlations that ensue after temporal
-%    smoothing.  This extension uses the effective degrees of freedom
-%    associated with the error term.  The effective degrees of freedom
-%    are a simple function of the number of scans and the temporal
-%    autocorrelation function.  A specific form for the latter can be
-%    assumed if the data are smoothed, in time, to accentuate
-%    hemodynamic responses with a neural basis.  This assumption leads
-%    to an expedient implementation of a flexible statistical
-%    framework.  The importance of this small extension is that, in
-%    contradistinction to our previous approach, any parametric
-%    statistical analysis can be implemented.  We demonstrate this
-%    point using a multiple regression analysis that tests for effects
-%    of interest (activations due to word generation), while taking
-%    explicit account of some obvious confounds.
-% 
-% This paper brings together the previous two papers in the sense that
-% is combines the effective degrees of freedom (of temporal smoothed
-% data) and the general linear model to provide a flexible framework
-% for the analysis of fMRI time-series.  In retrospect however the
-% story did not end here.
-% 
-% 
-% Analysis of fMRI time-series revisited - again Worsley KJ and Friston
-% KJ NeuroImage - submitted
-% 
-% Abstract
-%    Friston et al (1995) presented a method for detecting activations
-%    in fMRI time-series based on the general linear model and a
-%    heuristic analysis of the effective degrees of freedom.  In this
-%    communication we present correct results that replace those of the
-%    previous paper and solve the same problem without recourse to
-%    heuristic arguments.  Specifically we introduce a proper and
-%    unbiased estimator for the error terms and provide a more
-%    generally correct expression for the effective degrees of
-%    freedom.  Our previous estimates of error variance were biased,
-%    and in some instances could lead to a 10-20% overestimate of Z
-%    values.  Although the previous results are almost correct for
-%    random repressors , that were chosen for validation, the present
-%    results are correct for any covariate or waveform.  We comment on
-%    some aspects of experimental design and data analysis in the light
-%    of the theoretical framework discussed here.
-% 
-% 
-% This paper provides a more thorough and correct mathematical
-% treatment of some of the statistical equations presented in the
-% previous paper.  It also discusses the ways in which theory can
-% impinges upon experimental design and the treatment of data (e.g.
-% spatial smoothing).
-% 
-% 
-% Characterising dynamic brain responses with fMRI: A multivariate
-% approach Friston KJ, Frith CD, Frackowiak RSJ, & Turner R NeuroImage
-% - in press
-% 
-% Abstract
-%    In this paper we present a multivariate analysis of evoked
-%    hemodynamic responses and their spatiotemporal dynamics as
-%    measured with fast fMRI.  This analysis uses standard multivariate
-%    statistics (ManCova) and the general linear model to make
-%    inferences about effects of interest and canonical variates
-%    analysis (CVA) to describe the important features of these
-%    effects.  We have used these techniques to characterise the form
-%    of hemodynamic transients that are evoked during a cognitive or
-%    sensori-motor task.  In particular we do not assume that the
-%    neural or hemodynamic response reaches some 'steady state' but
-%    acknowledge that these physiological changes could show profound
-%    task-dependent adaptation and time-dependent changes during the
-%    task.  To address this issue we have modelled hemodynamic
-%    responses using appropriate temporal basis functions and estimated
-%    their exact form within the general linear model using ManCova.
-%    We do not propose that this analysis is a particularly powerful
-%    way to make inferences about functional specialisation (or more
-%    generally functional anatomy) because it only provides statistical
-%    inferences about the distributed (whole brain) responses evoked by
-%    different conditions.  However its application to characterising
-%    the temporal aspects of evoked hemodynamic responses reveals some
-%    compelling and somewhat unexpected perspectives on transient but
-%    stereotyped responses to changes in cognitive or sensori-motor
-%    processing.  The most remarkable observation is that these
-%    responses an be biphasic and show profound differences in their
-%    form depending on the extant task or condition.   Furthermore
-%    these differences can be seen in the absence of changes in mean
-%    signal.
-% 
-% This paper describes a multivariate approach  hat, while probably not
-% very important in its own right, points towards the complexity of
-% hemodynamic responses and questions the nature of an 'activation'.
-% These observations were taken and built into the univariate approach
-% as described in the next paper.
-% 
-% 
-% Characterising evoked hemodynamics with fMRI Friston KJ, Frith CD,
-% Turner R, & Frackowiak RSJ NeuroImage - in press
-% 
-% Abstract
-%      We describe an implementation of the general linear model that
-%      facilitates the characterisation of evoked hemodynamic responses
-%      to sensori-motor or cognitive processing, when the exact form of
-%      these response is not known.  The importance of this approach is
-%      that one can test for differential responses among tasks that
-%      may elude more conventional analyses.  In particular we suppose
-%      that an evoked response has early and late components and that a
-%      differential response may involve (i) both components to the
-%      same degree, as in a conventional 'activation' or (ii)
-%      differential expression of the early and late components in two
-%      tasks, as might be seen in differential adaptation, or
-%      differences associated with the tasks (e.g. requiring and not
-%      requiring sustained attention).  Using this approach we were
-%      able to demonstrate that the anterior cingulate differentiates,
-%      in terms of its response, to two motor tasks that did, and did
-%      not, require sustained attention.  This differential response
-%      was observed even thou
-% 
-% At the present time this represents the state of our theoretical and
-% software development:-  Using an extended general linear model and
-% temporal basis functions to make inferences about differences in
-% hemodynamics responses to changing tasks or conditions.
-% 
-% 
-%__________________________________________________________________________
-% %W% %E%
+%    with their abstracts, in spm.man. These papers are not a comprehensive
+%    bibliography of the field and are restricted to our own recent
+%    work (the background and converging work of others will be found
+%    in these papers).
+%
+%_______________________________________________________________________
+% %W% Karl Friston %E%
 

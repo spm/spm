@@ -2,28 +2,14 @@
 % Display the SPM{F}
 %___________________________________________________________________________
 %
-% SEE ALSO
-% 
-% spm_spmF.m
-%
 % This facility simply allows you to display the SPM of the F value
 % that ensues following an AnCova.  The F value is the ratio of the variance
 % due to effects of interest relative to error variance.  It can be thought
 % of as an SPM of the significance of variance introduced by experimental
 % design.
 %
-% References and further information
-%
-% Friston KJ Frith CD Liddle PF Dolan RJ Lammertsma AA & Frackowiak RSJ 
-% (1990) The relationship between global and local changes in PET scans J. 
-% Cereb. Blood Flow Metab. 10:458-466
-%
-% Friston KJ, Holmes A, Worsley KJ, Poline JP, Frith CD & Frackowiak RSJ 
-% (1994b) Statistical Parametric Maps in functional imaging: A general 
-% approach, Human Brain Mapping - in press
-%
 %__________________________________________________________________________
-% %W% %E%
+% %W% Karl Friston %E%
 
 
 
