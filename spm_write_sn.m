@@ -75,7 +75,7 @@ for i=1:prod(size(V)),
 	VO(i).mat      = [Vox(1) 0 0 off(1) ; 0 Vox(2) 0 off(2) ; 0 0 Vox(3) off(3) ; 0 0 0 1];
 	VO(i).dim(1:3) = Dim;
 	VO(i).descrip  = ['spm - 3D normalized'];
-	spm_create_image(VO);
+	spm_create_image(VO(i));
 end;
 
 % Start progress plot
