@@ -289,19 +289,29 @@ Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
 try
 	SPM.xY.VY;
 catch
-	helpdlg('Please assign data to this design');
+	helpdlg({	'Please assign data to this design',...
+			'Use fMRI under model specification'});
+	spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
 	return
 end
 
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if exist(fullfile('.','mask.img'),'file') == 2
-	msgbox({'Current directory contains some SPM results files!',...
-    		'pwd = ',pwd,...
-		'Existing results are being overwritten!',...
-		mfilename},'warning','warn');
-	warning(sprintf('Overwriting existing results\n\t (pwd = %s) ',pwd))
-	drawnow
+
+	str   = {'Current directory contains SPM estimation files:',...
+		 'pwd = ',pwd,...
+		 'Existing results will be overwritten!'};
+
+	abort = spm_input(str,1,'bd','stop|continue',[1,0],1);
+	if abort
+		spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+		return
+	else
+		str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd)
+		warning(str)
+		drawnow
+	end
 end
 
 files = {	'mask.???','ResMS.???','RVP.???',...
