@@ -47,7 +47,6 @@ return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function init(SPM,VOL,hReg)
-global transv
 
 %-Get figure handles
 %-----------------------------------------------------------------------
@@ -63,8 +62,8 @@ spm('Pointer','Watch');
 %-----------------------------------------------------------------------
 spm_results_ui('Clear',Fgraph);
 
-
-transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg);
+global transv
+transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg,'fig',Fgraph);
 transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',VOL.DIM(1:3),...
 	             'iM',VOL.iM,...
 		     'vox', sqrt(sum(VOL.M(1:3,1:3).^2)), 'u', SPM.u);
@@ -119,9 +118,13 @@ end;
 
 %-Configure {128 level} colormap
 %-----------------------------------------------------------------------
-if size(colormap,1)~=128, colormap([gray(64); hot(64)]); end;
+cmap = get(transv.fig,'Colormap');
+if size(cmap,1)~=128,
+	cmap = [gray(64); hot(64)];
+	set(transv.fig,'Colormap',cmap);
+end;
 
-D      = length(colormap)/2;
+D      = length(cmap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
 
 if transv.blob.dim(3) > 1
@@ -207,9 +210,11 @@ return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function reposition(xyzmm)
+global transv
+if ~isstruct(transv), return; end;
+
 spm('Pointer','Watch');
 
-global transv
 
 %-Get current location and convert to pixel co-ordinates
 %-----------------------------------------------------------------------
@@ -261,8 +266,12 @@ end;
 
 %-Configure {128 level} colormap
 %-----------------------------------------------------------------------
-if size(colormap,1)~=128, colormap([gray(64); hot(64)]); end;
-D      = length(colormap)/2;
+cmap = get(transv.fig,'Colormap');
+if size(cmap,1)~=128,
+	cmap = [gray(64); hot(64)];
+	set(transv.fig,'Colormap',cmap);
+end;
+D      = length(cmap)/2;
 Q      = T2(:) > transv.blob.u; T2 = T2(Q)/d; D2(Q) = 1 + T2; T2 = D*D2;
 
 if transv.blob.dim(3) > 1
@@ -318,10 +327,10 @@ function clear_global
 global transv
 if isstruct(transv),
 	for h=transv.h,
-		if ishandle(h), 
-			set(h,'DeleteFcn',';');
-			delete(h);
-		end;
+		if ishandle(h), set(h,'DeleteFcn',';'); end;
+	end;
+	for h=transv.h,
+		if ishandle(h), delete(h); end;
 	end;
 	transv = [];
 	clear global transv;

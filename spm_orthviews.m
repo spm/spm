@@ -658,7 +658,10 @@ for i = valid_handles(arg1),
 				msk  = find(tmpt>0); imgt(msk) = 64+tmpt(msk)*(64/mx);
 				msk  = find(tmpc>0); imgc(msk) = 64+tmpc(msk)*(64/mx);
 				msk  = find(tmps>0); imgs(msk) = 64+tmps(msk)*(64/mx);
-				if size(colormap,1)~=128, colormap([gray(64); hot(64)]); end;
+				cmap = get(st.fig,'Colormap');
+				if size(cmap,1)~=128,
+					set(st.fig,'Colormap',[gray(64); hot(64)]);
+				end;
 			else,
 				% Add full colour blobs - several sets at once
 				scal = 1/(mx-mn);
