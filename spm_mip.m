@@ -53,7 +53,6 @@ if VOL.DIM(3) == 1,
 	axis xy image; 
 	set(gca,'FontSize',8,'TickDir','in')
 	xlabel('x'); ylabel('y');
-disp('WARNING... ...This stuff hasn''t been fully worked out yet...');
 	return;
 end;
 
@@ -66,7 +65,7 @@ mip  = mip96*GRID;
 c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
 	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1]-0.5;
 c    = (VOL.M(1:3,1:3)*c')';
-dim  = [(max(c)-min(c)) size(mip)]
+dim  = [(max(c)-min(c)) size(mip)];
 d    = spm_project(X,round(L),dim);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis image; axis off;
