@@ -26,6 +26,10 @@ function V = spm_vol(P)
 % The images are not memory mapped at this step, but are mapped when
 % the mex routines using the volume information are called.
 %
+% Note that spm_vol can also be applied to the filename(s) of 4-dim
+% volumes. In that case, the elements of V will point to a series of 3-dim
+% images.
+%
 % This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
 % MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
@@ -58,18 +62,24 @@ if isempty(P),
 	return;
 end;
 
-V(size(P,1),1) = struct('fname','', 'dim', [0 0 0 0], 'mat',eye(4), 'pinfo', [1 0 0]');
+counter = 0;
 for i=1:size(P,1),
 	v = subfunc(P(i,:));
+    [V(1, counter+1:counter+size(v, 2)).fname] = deal('');
+    [V(1, counter+1:counter+size(v, 2)).mat] = deal([0 0 0 0]);
+    [V(1, counter+1:counter+size(v, 2)).mat] = deal(eye(4));
+    [V(1, counter+1:counter+size(v, 2)).mat] = deal([1 0 0]');
 	if isempty(v),
 		hread_error_message(P(i,:));
 		error(['Can''t get volume information for ''' P(i,:) '''']);
 	end;
+    
 	f = fieldnames(v);
 	for j=1:size(f,1),
-		eval(['V(i).' f{j} ' = v.' f{j} ';']);
+		eval(['[V(counter+1:counter+size(v,2)).' f{j} '] = deal(v.' f{j} ');']);
 		%V(i) = setfield(V(i),f{j},getfield(v,f{j}));
 	end;
+    counter = counter + size(v,2);
 end;
 return;
 
@@ -93,6 +103,15 @@ p = fullfile(pth,[nam   ext]);
 if strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2,
 	if isempty(n), V = spm_vol_ana(p);
 	else,          V = spm_vol_ana(p,n); end;
+    
+    % sjk
+    if isempty(n) & V.private.hdr.dime.dim(5) > 1
+        V0(1) = V;
+        for i = 2:V.private.hdr.dime.dim(5)
+            V0(i) = spm_vol_ana(p, i);
+        end
+        V = V0;
+    end
 	if ~isempty(V), return; end;
 else, % Try other formats
 
