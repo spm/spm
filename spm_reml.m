@@ -1,16 +1,21 @@
-function [Ce,h] = spm_reml(Cy,X,Q);
+function [Ce,h,W] = spm_reml(Cy,X,Q,TOL);
 % REML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h] = spm_reml(Cy,X,Q);
+% FORMAT [Ce,h,W] = spm_reml(Cy,X,Q,TOL);
 %
-% Cy  - (m x m) data covariance matrix y*y'
+% Cy  - (m x m) data covariance matrix y*y'  {y = (m x n) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance constraints
+% TOL - Tolerance {default = 1e-6}
 %
 % Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) hyperparameters
+% W   - (q x q) W*n = precision of hyperparameter estimates 
 %___________________________________________________________________________
 % %W% John Ashburner, Karl Friston %E%
 
+% set tolerance if not specified
+%---------------------------------------------------------------------------
+if nargin < 4, TOL = 1e-6; end
 
 % ensure X is not rank deficient
 %---------------------------------------------------------------------------
@@ -112,7 +117,7 @@ for k = 1:32
 		% dF/dh = -trace(dF/diCe*iCe*Q{i}*iCe) = 
 		%---------------------------------------------------
 		PQ{i}   = P*Q{i};
-		dFdh(i) = sum(sum(PCy.*PQ{i})) ;
+		dFdh(i) = sum(sum(PCy.*PQ{i}))/2;
 
 	end
 
@@ -124,7 +129,7 @@ for k = 1:32
 
 			% ddF/dhh = -trace{P*Q{i}*P*Q{j}}
 			%---------------------------------------------------
-			ddFdhh = sum(sum(PQ{i}.*PQ{j}'));
+			ddFdhh = sum(sum(PQ{i}.*PQ{j}'))/2;
 			W(i,j) = ddFdhh;
 			W(j,i) = ddFdhh;
 		end
@@ -138,8 +143,8 @@ for k = 1:32
 
 	% Convergence (or break if there is only one hyperparameter)
 	%===================================================================
-	w     = dh'*dh;
-	if w < 1e-6, break, end
+	w     = dFdh'*dFdh;
+	if w < TOL, break, end
 	fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
 	if m == 1,   break, end
 end
