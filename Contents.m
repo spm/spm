@@ -1,5 +1,5 @@
-% SPM96
-% Statistical Parametric Mapping - SPM96
+% SPM97d
+% Statistical Parametric Mapping - SPM97d (FIL final ML4 devel version)
 %_______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -15,7 +15,7 @@
 % SPM96 is written for Matlab 4.2c under UNIX
 %-----------------------------------------------------------------------
 % README                   1.1      (New for SPM96)
-% Contents.m               %I%
+% Contents.m               1.3
 % Grid.mat
 % MIP.mat                  1.2
 % Split.mat
@@ -249,7 +249,7 @@
 % The following SPM96 files have been updated since the beta release:
 %
 % README                1.1             - Basic README file (New for SPM96)
-% Contents.m            %I%             - This file, Manifest updated
+% Contents.m            1.3             - This file, Manifest updated
 % spm_motd.man          1.2      (1.1 ) - Message of the day file updated
 % spm.man               1.19     (1.17) - Truncated paragraph, FLIP explained
 % spm_type.m            1.2      (1.1 ) + Spelling corrections!
