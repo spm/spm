@@ -1,8 +1,9 @@
-function spm_imwrite(V,dat)
+function V = spm_imwrite(V,dat)
 % Write an image volume to disk.
-% FORMAT spm_imwrite(V,dat)
+% FORMAT Vo = spm_imwrite(V,dat)
 % V   - a structure containing image volume information (see spm_vol).
 % dat - a one, two or three dimensional matrix containing the image voxels.
+% Vo  - data structure after modification for writing.
 % ____________________________________________________________________________
 % %W% John Ashburner %E%
 
@@ -41,7 +42,7 @@ if ~isempty(s),
 	end;
 end;
 
-spm_create_image(V);
+V = spm_create_image(V);
 for p=1:V.dim(3),
 	spm_write_plane(V,dat(:,:,p),p);
 end;
