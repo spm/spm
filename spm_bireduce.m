@@ -32,8 +32,8 @@ function [A,B,C,D,L,O] = spm_bireduce(M,P)
 
 % create inline functions
 %---------------------------------------------------------------------------
-funx   = fcnchk(M.fx);
-funl   = fcnchk(M.lx);
+funx   = fcnchk(M.fx,'x','u','P');
+funl   = fcnchk(M.lx,'x','P');
 
 % compute Jacobian and partial derivatives involving x and u
 %===========================================================================
@@ -95,12 +95,13 @@ end
 
 % derivatives involving l(x) for output kernels
 %===========================================================================
-if nargout == 4, return, end
+L      = zeros(n,l);
+O      = zeros(n,n,l);
+
+if nargout <= 4 | ~l return, end
 
 %    L = dl(x(t))/dx
 %---------------------------------------------------------------------------
-L      = zeros(n,l);
-O      = zeros(n,n,l);
 for  i = 1:n
     xi      = x;
     xi(i)   = xi(i) + dx;
