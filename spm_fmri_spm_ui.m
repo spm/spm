@@ -192,6 +192,7 @@ ER    = spm_input('epoch or event-related fMRI','!+1','epoch|event',[0 1]);
 
 % estimated hemodynamic response function
 %---------------------------------------------------------------------------
+HRF   = 1;					% convolve with hrf {default}
 dt    = RT/8;
 u     = 0:(32/dt);
 hrf   = spm_Gpdf(u,[6 dt]) - spm_Gpdf(u,[16 dt])/6;
@@ -512,6 +513,8 @@ else
 					D    = [D d];
 				end	
 			end
+
+		HRF   = spm_input('convolve with hrf','!+0','b','no|yes',[0 1]);
 		end
 
 		% add labels
@@ -625,7 +628,7 @@ else
 
 		% convolve with hemodynamic response function - hrf
 		%-----------------------------------------------------------
-		if Cov ~= 5
+		if HRF
 			d = length(hrf);
 			D = [ones(d,1)*D(1,:); D];
 			D = spm_sptop(hrf,k + d)*D;
@@ -793,7 +796,8 @@ if TxC
 	D     = [];
 	Ttype = str2mat(...
 		'basis functions (Discrete Cosine Set)',...
-		'basis functions (Exponential decay)',...
+		'Exponential decay',...
+		'Linear decay',...
 		'User specified');
 	str   = 'Select type of response';
 	Tov   = spm_input(str,'!+1','m',Ttype,[1:size(Ttype,1)]);
@@ -810,8 +814,10 @@ if TxC
 		d   = spm_input('time constant {secs}','!+0','e',round(k/3*RT));
 		D   = exp(-[0:(k - 1)]/(d/RT))';
 
-
 	elseif Tov == 3
+		D   = [0:(k - 1)]'/(k - 1);
+
+	elseif Tov == 4
 		% get covariates of interest
 		%----------------------------------------------------------
 		t     = spm_input('number of functions','!+0');
@@ -834,7 +840,7 @@ if TxC
 	t     = spm_input('which responses eg 1:2','!+0','e',1);
 	for i = 1:length(t)
 		d = C(:,t(i));
-		d = d - min(d);
+		d = spm_detrend(d);
 		d = (d*ones(1,size(D,2))).*D;
 		T = [T d];
 	end
@@ -892,7 +898,7 @@ end
 
 % get contrasts or linear compound for parameters of interest - C
 %---------------------------------------------------------------------------
-t     = spm_input('# of contrasts','!+1'); end
+t     = spm_input('# of contrasts','!+1');
 
 while size(CONTRAST,1) ~= t
 	d   = [];
@@ -900,12 +906,12 @@ while size(CONTRAST,1) ~= t
 	while size(d,2) ~= size([H C],2)
 		d = spm_input(str,'!+0');
 	end
-     	CONTRAST = [CONTRAST; d]; end
+     	CONTRAST = [CONTRAST; d];
 end
 
 % temporal smoothing
 %---------------------------------------------------------------------------
-SIGMA  = spm_input('temporal smoothing fwhm-secs','!+1','e',6);
+SIGMA  = spm_input('temporal smoothing fwhm-secs','!+1','e',(6 - 2*ER));
 SIGMA  = SIGMA/sqrt(8*log(2))/RT;
 
 
