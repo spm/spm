@@ -186,8 +186,8 @@ bbprompt =  [' -78:78 -112:76  -50:85  (MNI)     |'...
 	    ' -90:91 -126:91  -72:109 (Template)'];
 voxdims    = [ 1   1   1 ; 1.5 1.5 1.5 ; 2   2   2 ; 3   3   3 ; 4   4   4 ; 1   1   2 ; 2   2   4];
 voxprompts = ' 1   1   1 | 1.5 1.5 1.5 | 2   2   2 | 3   3   3 | 4   4   4 | 1   1   2 | 2   2   4';
-bases =     [2 2 2;2 3 2;3 3 3;3 4 3;4 4 4;4 5 4;5 5 5;5 6 5;6 6 6;6 7 6;7 7 7;7 8 7;8 8 8];
-basprompt = '2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x7x7|7x8x7|8x8x8';
+bases =     [0 0 0;2 2 2;2 3 2;3 3 3;3 4 3;4 4 4;4 5 4;5 5 5;5 6 5;6 6 6;6 7 6;7 7 7;7 8 7;8 8 8];
+basprompt = 'none|2x2x2|2x3x2|3x3x3|3x4x3|4x4x4|4x5x4|5x5x5|5x6x5|6x6x6|6x7x6|7x7x7|7x8x7|8x8x8';
 
 
 if (nargin == 0)
@@ -602,7 +602,21 @@ fprintf(' ..done\n');
 MF = spm_get_space(P(1,:));
 MG = spm_get_space(spms(1,:));
 
-[prms,scales] = spm_affine(VG,VF,MG,MF,aff_parms,free,1,0.25);
+
+% Affine Normalisation
+%-----------------------------------------------------------------------
+np     = size(VG,2);
+pdesc  = ones(12+np,1);
+gorder = ones(1,np);
+fr     = [zeros(12,1); ones(np,1)];
+fr(1:length(free)) = free;
+mean0  = [aff_parms ones(1,np)]';
+mg     = reshape(MG,16,1);
+mf     = reshape(MF,16,1);
+p1     = spm_affsub2(VG,VF, mg,mf, 1,8, mean0,fr,pdesc,gorder);
+p1     = spm_affsub2(VG,VF, mg,mf, 1,4, p1   ,fr,pdesc,gorder);
+prms   = p1(1:12);
+scales = p1(12 + (1:np));
 Affine = inv(inv(MG)*spm_matrix(prms')*MF);
 
 if (~any(params==0))

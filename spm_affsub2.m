@@ -1,6 +1,6 @@
-function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,mean0,covar,pdesc,gorder)
+function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,free,pdesc,gorder)
 % Another subroutine involved in affine transformations.
-% FORMAT nP = spm_affsub2(VG,VF,MG,MF,Hold,samp,oP,covar,mean0,pdesc,gorder)
+% FORMAT nP = spm_affsub2(VG,VF,MG,MF,Hold,samp,oP,free,pdesc,gorder)
 %
 % VG        - Vector of memory mapped template image(s).
 % VF        - Memory mapped object image.
@@ -9,8 +9,7 @@ function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,mean0,covar,pdesc,gorder)
 % Hold      - Interpolation method.
 % samp      - Frequency (in mm) of sampling.
 % oP        - Old parameter estimates.
-% mean0     - A-priori mean value of parameters.
-% covar     - A-priori covariance matrix of parameters.
+% free      - Ones and zeros indicating which parameters to fit.
 % pdesc     - Description of parameters.
 % gorder    - Order in which the template images are used.
 %
@@ -25,7 +24,7 @@ function P = spm_affsub2(VG,VF, MG,MF, Hold,samp, P,mean0,covar,pdesc,gorder)
 
 % Minimal amount of input checking.
 %-----------------------------------------------------------------------
-if nargin ~= 11
+if nargin ~= 10
 	error('Incorrect usage.');
 end
 if size(VF,2) ~= size(MF,2) | size(VG,2) ~= size(MG,2)
@@ -44,22 +43,19 @@ end
 if any(gorder > size(VG,2))
 	error(['Problem with gorder']);
 end
-if ~all([size(covar) size(mean0,1)] == size(pdesc,1)) | size(mean0,2) ~= 1
-	error('Problem with covar or mean0');
+if ~all(size(free) == size(P)) | ~all(size(pdesc) == size(P)) | size(P,2) ~= 1
+	error('Problem with vector sizes');
 end
-
-
-% Updating scheme is a weighted average of mean0 and (P + alpha\beta):
-% P = (alpha + inv(covar))\(alpha\(P + alpha\beta) + covar\mean0)
-%-----------------------------------------------------------------------
-alpha0    = pinv(covar);
-beta0     = alpha0*mean0;
 
 pchi2     = 9e99;
 iter      = 1;
 countdown = 0;
 bestP     = P;
 bestchi2  = 9e99;
+
+qq  = find(free);
+qqq = find(free*free');
+nf  = sum(free ~= 0);
 
 while iter <= 64 & countdown < 3
 
@@ -68,8 +64,9 @@ while iter <= 64 & countdown < 3
 
 	% generate alpha and beta
 	%-----------------------------------------------------------------------
-	alpha = alpha0;
-	beta  = beta0;
+	alpha = zeros(length(P));
+	beta  = zeros(length(P),1);
+
 	for im = 1:size(pdesc,2)
 
 		pp  = find(pdesc(:,im));
@@ -103,7 +100,7 @@ while iter <= 64 & countdown < 3
 
 	% Update parameter estimates
 	%-----------------------------------------------------------------------
-	P = pinv(alpha)*(alpha*P + beta);
+	P(qq) = P(qq) + pinv(reshape(alpha(qqq), nf, nf))*beta(qq);
 
 	% Check stopping criteria. If satisfied then just do another few more
 	% iterations before stopping.

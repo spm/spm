@@ -51,12 +51,7 @@ if strcmp(mode,'register1')
 	pdesc  = [1 1 1 1 1 1 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 		  0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1]';
 	gorder = [1 2];
-	covar = diag([...
-		1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		0.2 0.2 0.2 0.02 0.02 0.02 ...
-		1e12 1e12].^2);
-	mean0  = [0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1]';
+	free   = [ones(1,18) ones(1, 2)];
 
 elseif strcmp(mode,'rigid1')
 	% Rigid body registration.
@@ -69,9 +64,7 @@ elseif strcmp(mode,'rigid1')
 
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
-	covar  = diag([[1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		eps eps eps eps eps eps] ones(1, np)*0.05].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,6) zeros(1,6) zeros(1, np)];
 
 elseif strcmp(mode,'rigid2')
 	% Rigid body registration.
@@ -84,9 +77,7 @@ elseif strcmp(mode,'rigid2')
 
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
-	covar  = diag([[1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		eps eps eps eps eps eps] ones(1, np)*1e12].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,6) zeros(1,6) ones(1, np)];
 
 elseif strcmp(mode,'rigid3')
 	% Rigid body registration.
@@ -99,9 +90,7 @@ elseif strcmp(mode,'rigid3')
 
 	pdesc  = ones(12+np,1);
 	gorder = ones(1,np);
-	covar  = diag([[1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		eps eps eps eps eps eps] ones(1, np)*1e12].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,6) zeros(1,6) ones(1, np)];
 
 elseif strcmp(mode,'affine1')
 	% Affine normalisation.
@@ -114,9 +103,7 @@ elseif strcmp(mode,'affine1')
 
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
-	covar  = diag([[1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		0.2 0.2 0.2 0.02 0.02 0.02] ones(1, np)*0.05].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,12) zeros(1, np)];
 
 elseif strcmp(mode,'affine2')
 	% Affine normalisation.
@@ -129,9 +116,7 @@ elseif strcmp(mode,'affine2')
 
 	pdesc  = [ones(12,np); eye(np)];
 	gorder = 1:np;
-	covar  = diag([[1000 1000 1000 30*pi/180 30*pi/180 30*pi/180 ...
-		0.2 0.2 0.2 0.02 0.02 0.02] ones(1, np)*1e12].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,12) ones(1, np)];
 
 elseif strcmp(mode,'affine3')
 	% Affine normalisation.
@@ -144,16 +129,11 @@ elseif strcmp(mode,'affine3')
 
 	pdesc  = ones(12+np,1);
 	gorder = ones(1,np);
-	covar  = diag([[1000 1000 1000 30*pi/180 10*pi/180 20*pi/180 ...
-		0.2 0.2 0.2 0.02 0.02 0.02] ones(1, np)*1e12].^2);
-	mean0  = [[0 0 0 0 0 0 1 1 1 0 0 0] ones(1,np)]';
+	free   = [ones(1,12) ones(1, np)];
 else
 	error('I dont understand');
 end
 
-if nargin==5
-	params = mean0;
-end
 
 % Map the images & get their positions in space.
 %-----------------------------------------------------------------------
@@ -171,7 +151,7 @@ end
 
 % Do the optimisation
 %-----------------------------------------------------------------------
-params = spm_affsub2(VG,VF, MG,MF, Hold,samp,params,mean0,covar,pdesc,gorder);
+params = spm_affsub2(VG,VF, MG,MF, Hold,samp,params,free,pdesc,gorder);
 
 
 % Tidy up
