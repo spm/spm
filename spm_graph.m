@@ -97,12 +97,18 @@ if exist('ERI')
 
 	% cycle over selected events
 	%--------------------------------------------------------------
-	figure(Fgraph)
-	hold on
 	dx    = 0.1;
 	x     = [0:(size(DER,1) - 1)]*dx - 4;
 	K     = spm_sptop(SIGMA*RT/dx,length(x));
 	KDER  = K*DER;
+	if Cp ~=4
+		if spm_input('smooth fitted effects','!+1','b','yes|no',[0 1])
+			KDER  = DER;
+		end
+	end
+	figure(Fgraph)
+	hold on
+
 	for i = j
 		Y      = KDER*BETA(ERI(:,i));
 		se     = sqrt(diag(KDER*BCOV(ERI(:,i),ERI(:,i))*KDER')*RES);
