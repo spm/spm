@@ -1,6 +1,6 @@
-function [y] = spm_lx_dcm(x,P)
+function [y] = spm_lx_dcm(x,u,P)
 % simulated BOLD response to input
-% FORMAT [y] = spm_lx_dcm(x,P)
+% FORMAT [y] = spm_lx_dcm(x,u,P)
 % y    - BOLD response (%)
 %
 % x    - state vector     (see spm_fx_HRF)

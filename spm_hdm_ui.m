@@ -27,7 +27,7 @@ set(Finter,'Name','Hemodynamic modelling')
 %---------------------------------------------------------------------------
 s    = length(SPM.Sess);
 if s > 1
-	s = spm_input('which session',1,'n1',1,1,s);
+	s = spm_input('which session',1,'n1',s,s);
 end
 Sess = SPM.Sess(s);
 
@@ -63,27 +63,16 @@ xY     = struct(	'Ic'		,1,...
  	   		'name'		,'HDM',...
  	   		'Sess'		,s);
 
-
 % get region stucture
 %---------------------------------------------------------------------------
 [y xY] = spm_regions(xSPM,SPM,hReg,xY);
 
-
-%-confounds
-%---------------------------------------------------------------------------
-i      = SPM.Sess(1).row;
-j      = [SPM.xX.iB SPM.xX.iG];
-X0     = SPM.xX.X(i,j);
-try
-	X0 = [X0 full(SPM.xX.K(s).KH)];
-end
-
-%-adjust and place in response variable structure
+%-place response and confounds in response structure
 %---------------------------------------------------------------------------
 y      = xY.u;
 Y.y    = y;
 Y.dt   = SPM.xY.RT;
-Y.X0   = X0;
+Y.X0   = xY.X0;
 
 % estimate
 %===========================================================================
@@ -117,8 +106,8 @@ m       = size(U.u,2);
 
 % model
 %---------------------------------------------------------------------------
-M.fx    = 'spm_fx_HRF';
-M.lx    = 'spm_lambda_HRF';
+M.f     = 'spm_fx_HRF';
+M.g     = 'spm_lambda_HRF';
 M.x     = [0 1 1 1]';
 M.pE    = pE;    
 M.pC    = pC;

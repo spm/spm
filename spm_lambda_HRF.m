@@ -1,10 +1,10 @@
-function [y] = spm_lambda_HRF(x,P)
+function [y] = spm_lambda_HRF(x,u,P)
 % simulated BOLD response to input
-% FORMAT [y] = spm_lambda_HRF(x,P)
-% y    - BOLD response (%)         (y)
+% FORMAT [y] = spm_lambda_HRF(x,u,P)
+% y    - BOLD response (%) (y)
 %
-% x    - state vector     (see spm_fx_HRF)
-% P    - Parameter vector (see spm_fx_HRF)
+% x    - state vector      (see spm_fx_HRF)
+% P    - Parameter vector  (see spm_fx_HRF)
 %___________________________________________________________________________
 %
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation

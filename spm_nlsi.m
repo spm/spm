@@ -5,8 +5,8 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % Model specification
 %---------------------------------------------------------------------------
-% M.fx  - dx/dt = f(x,u,P) 	{function string or m-file}
-% M.lx  - y(t)  = l(x,P)    	{function string or m-file}
+% M.f   - dx/dt = f(x,u,P) 	{function string or m-file}
+% M.g   - y     = g(x,u,P)    	{function string or m-file}
 %
 % M.pE  - (p x 1)		Prior expectation of p model parameters
 % M.pC  - (p x p)		Prior covariance for p model parameters
@@ -44,10 +44,10 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % System identification     - Bilinear approximation
 %---------------------------------------------------------------------------
-% M0    - (n x n)     		dq/dx
-% M1    - {m}(n x n) 		d2q/dxdu
-% L1    - (n x l)     		dl/dq
-% L2    - {m}(n x n)     	d2l/dqdq
+% M0    - (n x n)     		df/dq
+% M1    - {m}(n x n) 		d2f/dqdu
+% L1    - (l x n)     		dg/dq
+% L2    - {l}(n x n)     	d2g/dqdq
 %
 %___________________________________________________________________________
 %
@@ -55,7 +55,7 @@ function varargout = spm_nlsi(M,U,Y)
 % nonlinear MIMO model under Gaussian assumptions
 %
 %              dx/dt  = f(x,u,P)
-%                y(t) = l(x,P) + e                               (1
+%                y    = g(x,u,P) + e                               (1
 %
 % evaluated at x(0) = x0, using a Bayesian estimation scheme with priors
 % on the model parameters P, specified in terms of expectations and 
@@ -83,6 +83,8 @@ function varargout = spm_nlsi(M,U,Y)
 % spm_nlsi_GN:   Bayesian parameter estimation using an EM/Gauss-Newton method
 % spm_bi_reduce: Reduction of a fully nonlinear MIMO system to Bilinear form
 % spm_kernels:   Returns global Volterra kernels for a MIMO Bilinear system
+%
+% SEE NOTES AT THE END OF THIS SCRIPT FOT EXAMPLES
 %
 %---------------------------------------------------------------------------
 % %W% Karl Friston %E%
@@ -120,13 +122,97 @@ end
 
 % Volterra kernels
 %===========================================================================
-[K0,K1,K2]    = spm_kernels(M0,M1,L1,L2,M.N,M.dt);
+
+% time bins (if not specified)
+%---------------------------------------------------------------------------
+try 
+	dt   = M.dt;
+	N    = M.N;
+catch
+	s    = real(eig(full(M0)));
+	s    = max(s(find(s < 0)));
+	N    = 32;
+	dt   = -4/(s*N);
+	M.dt = dt;
+	M.N  = N;
+end
+
+% get kernels
+%---------------------------------------------------------------------------
+[K0,K1,K2]   = spm_kernels(M0,M1,L1,L2,N,dt);
+
+% graphics
+%===========================================================================
+if length(dbstack) < 2
+
+	subplot(2,1,1)
+	plot([1:N]*dt,K1(:,:,1))
+	xlabel('time')
+	ylabel('response')
+	title('1st-order kernel')
+	grid on
+
+	subplot(2,1,2)
+	imagesc([1:N]*dt,[1:N]*dt,K2(:,:,1,1,1))
+	xlabel('time')
+	ylabel('time')
+	title('2nd-order kernel')
+	grid on
+	axis image
+	drawnow
+end
 
 
 % output arguments
 %---------------------------------------------------------------------------
 if nargin == 3
-	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1};
+	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2};
 else
 	varargout = {K0,K1,K2,M0,M1,L1,L2};
 end
+
+
+return
+
+% NOTES ON USE
+%===========================================================================
+% Consider the system
+%
+%              dx/dt  = 1./(1 + exp(-x*P)) + u
+%                y    = x + e
+%
+% Specify a model structure:
+%---------------------------------------------------------------------------
+M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P');
+M.g  = inline('x','x','u','P');
+M.pE = [-1 .3;.5 -1];			% Prior expectation of parameters
+M.pC = speye(4,4);			% Prior covariance for parameters
+M.x  = zeros(2,1)			% intial state x(0)
+M.m  = 1;				% number of inputs
+M.n  = 2;				% number of states
+M.l  = 2;				% number of outputs
+
+% characterise M in terms of Volterra kernels and Bilinear matrices:
+%---------------------------------------------------------------------------
+[K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M);
+
+
+% or estimate the model parameters with inputs and outputs
+%===========================================================================
+
+% inputs
+%---------------------------------------------------------------------------
+U.name = 'input'
+U.u    = randn(128,1);
+U.dt   = 1;
+
+% outputs
+%---------------------------------------------------------------------------
+Y.name = 'response';
+y      = spm_int(M.pE,M,U,64);
+Y.y    = y + randn(size(y))/32;
+Y.dt   = U.dt*length(U.u)/length(Y.y);
+
+% estimate
+%---------------------------------------------------------------------------
+[Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y);

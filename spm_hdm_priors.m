@@ -74,8 +74,8 @@ qC    = diag(diag(qC));
 
 % model specification (single node DCM)
 %---------------------------------------------------------------------------
-M.fx  = 'spm_fx_HRF';
-M.lx  = 'spm_lambda_HRF';
+M.f   = 'spm_fx_HRF';
+M.g  = 'spm_lambda_HRF';
 M.x   = [0 1 1 1]';
 M.pE  = [pE(1:5) 1];
 M.m   = 1;

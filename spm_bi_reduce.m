@@ -5,8 +5,8 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 %
 % M   - model specification structure
 % Required fields:
-%   M.fx  - dx/dt    = f(x,u,P)                     {function string or m-file}
-%   M.lx  - y(t)     = l(x,P)                       {function string or m-file}
+%   M.f   - dx/dt    = f(x,u,P)                     {function string or m-file}
+%   M.g   - y(t)     = l(x,u,P)                     {function string or m-file}
 %   M.bi  - bilinear form [M0,M1,L1,L2] = bi(M,P)   {function string or m-file}
 %   M.m   - m inputs
 %   M.n   - n states
@@ -29,7 +29,7 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 % system described by
 %
 %		dx/dt = f(x,u,P)
-% 		 y(t) = l(x,P)
+% 		 y(t) = g(x,u,P)
 %
 % evaluated at x(0) = x and u = 0
 %
@@ -45,13 +45,21 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 
 % use M.bi if provided
 %---------------------------------------------------------------------------
-if isfield(M,'bi')
+if  isfield(M,'bi')
 	funbi      = fcnchk(M.bi,'M','P');
 	[M0,M1,L1] = feval(funbi,M,P);
 	return
 end
 
-% default = 2nd order
+% add [0] states if not specified
+%---------------------------------------------------------------------------
+if ~isfield(M,'f')
+	M.f = inline('sparse(0,1)','x','u','P');
+	M.n = 0;
+	M.x = sparse(0,0);
+end
+
+% default = 1st order
 %---------------------------------------------------------------------------
 if nargin ~= 3, O = 1; end
 
@@ -65,14 +73,14 @@ u     = zeros(m,1);
 
 % create inline functions
 %---------------------------------------------------------------------------
-funx  = fcnchk(M.fx,'x','u','P');
-funl  = fcnchk(M.lx,'x','P');
+funx  = fcnchk(M.f,'x','u','P');
+funl  = fcnchk(M.g,'x','u','P');
 
 
 % f(x(0),0) and l(x(0),0)
 %---------------------------------------------------------------------------
 f0    = feval(funx,x,u,P);
-l0    = feval(funl,x,P);
+l0    = feval(funl,x,u,P);
 
 
 % Partial derivatives for 1st order Bilinear operators
@@ -80,22 +88,26 @@ l0    = feval(funl,x,P);
 
 % dl(x(0))/dx
 %---------------------------------------------------------------------------
+lx    = zeros(l,n);
+dldx  = zeros(l,n);
 for i = 1:n
     xi        = x;
     xi(i)     = xi(i) + dx;
-    lx(:,i)   = feval(funl,xi,P);
+    lx(:,i)   = feval(funl,xi,u,P);
     dldx(:,i) = (lx(:,i) - l0)/dx;
 end
 
 % dl(x(0))/dxdx (& L2)
 %---------------------------------------------------------------------------
+dldxx = zeros(l,n,n);
+dldqq = zeros(n + 1,n + 1,l);
 for i = 1:n
 	for j = 1:n
-		xi                = x;
-    		xi(i)             = xi(i) + dx;
-    		xi(j)             = xi(j) + dx;
-		lxx               = feval(funl,xi,P);
-		dldxx(:,i,j)      = ((lxx - lx(:,j))/dx - dldx(:,i))/dx;
+		xi                   = x;
+    		xi(i)                = xi(i) + dx;
+    		xi(j)                = xi(j) + dx;
+		lxx                  = feval(funl,xi,u,P);
+		dldxx(:,i,j)         = ((lxx - lx(:,j))/dx - dldx(:,i))/dx;
 		dldqq(i + 1,j + 1,:) = dldxx(:,i,j);
 	end
 end
@@ -103,6 +115,7 @@ end
 
 % df(x,0)/du
 %---------------------------------------------------------------------------
+fu    = zeros(n,m);
 dfdu  = zeros(n,m);
 for i = 1:m
 	ui         = u;
@@ -113,8 +126,10 @@ end
 
 % df(x,0)/dx 
 %---------------------------------------------------------------------------
+fx    = zeros(n,n);
 dfdx  = zeros(n,n);
 dfdxx = zeros(n,n,n);
+fxu   = zeros(n,n,m);
 dfdxu = zeros(n,n,m);
 for i = 1:n
 	xi         = x;
