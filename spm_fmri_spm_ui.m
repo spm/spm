@@ -120,25 +120,22 @@ function [xX,Sess] = spm_fmri_spm_ui
 % is important to ensure that bias in estimates of the standard error are
 % minimized.  This bias results from a discrepancy between the estimated
 % (or assumed) auto-correlation structure of the data and the actual
-% intrinsic correlations.  The intrinsic correlations will be estimated
-% automatically using an AR(1) model during parameter estimation.  The
-% discrepancy between estimated and actual intrinsic (i.e. prior to
+% intrinsic correlations.  The serial correlations will be estimated
+% with an REML (restricted maximum likelihood) algorithm using an AR(1)
+% plus white noise model during parameter estimation.  This estimate
+% assumes the same correlation structure for each voxel, within each
+% session.  The REML estimates are then used to correct for
+% non-sphericity during inference by adjusting the statistics and degrees
+% of freedom appropriately.
+% The discrepancy between estimated and actual intrinsic (i.e. prior to
 % filtering) correlations are greatest at low frequencies.  Therefore
 % specification of the high-pass component of the filter is particularly
-% important.  High pass filtering is now implemented at the level of the
+% important.  High-pass filtering is now implemented at the level of the
 % filtering matrix K (as opposed to entering as confounds in the design
 % matrix).  The default cutoff period is twice the maximum time interval
 % between the most frequently occurring event or epoch (i.e the minium of
 % all maximum intervals over event or epochs).
 %
-% Burst Mode is a specialist design for intermittent epochs of acquisitions
-% (used for example to allow for intercalated EEG recording).  Each burst
-% is treated as a session but consistent within-session effects (e.g. T1
-% effects) are modeled in X.bX.  The primary use of this mode is to generate
-% parameter estimate images for a second level analysis.
-%
-% N.B: Burst Mode is an unsupported 'in-house' developmental feature.
-%      The feature is currently hidden from the user.
 %
 %-----------------------------------------------------------------------
 % Refs:
@@ -290,7 +287,8 @@ switch MT
 
 end
 
-% Assemble other deisgn parameters
+
+% Assemble other design parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
 spm_input('Global intensity normalisation...',1,'d',mfilename,'batch')
@@ -314,48 +312,15 @@ if ischar(Global),
 end
 
 
-% Burst mode
-%-----------------------------------------------------------------------
-% if length(nscan) > 16 & ~any(diff(nscan))
-% 	spm_input('Burst mode?','+1','d',mfilename,'batch')
-% 	BM    = spm_input('Burst mode?','+1','y/n',[1 0],2,...
-% 			    'batch',{},'burst_mode');
-% else
-% 	BM    = 0;
-% end
-
-%-** Burst mode is a developmental feature, disabled due to problems!
-%-** See (KJF) http://www.mailbase.ac.uk/lists/spm/1999-10/0009.html
-BM = 0;
-
-% Model scan effects as oppsed to session effects if burst mode
-%-----------------------------------------------------------------------
-if BM
-	k         = nscan(1);
-	l         = length(xX.iC);
-	xX.X      = xX.X(:,xX.iC);
-	xX.Xnames = xX.Xnames(xX.iC);
-	xX.X      = [xX.X kron(ones(nsess,1),eye(k))];
-	xX.iB     = [1:k] + l;
-	for   i = 1:k
-		X.Xnames{l + i} = sprintf('scan: %i ',i);
-	end
-	DSstr = '[burst-mode]';
-end
-
-
 % Temporal filtering
 %=======================================================================
 spm_input('Temporal autocorrelation options','+1','d',mfilename,'batch')
 
 % High-pass filtering
 %-----------------------------------------------------------------------
-if BM
-	cLF = 'none';
-else
-	cLF = spm_input('High-pass filter?','+1','b','none|specify',...
+cLF = spm_input('High-pass filter?','+1','b','none|specify',...
 			'batch',{},'HF_fil');
-end
+
 switch cLF
 
 	case 'specify'
@@ -389,14 +354,8 @@ end
 
 % Low-pass filtering
 %-----------------------------------------------------------------------
-if BM
-	cHF = 'none';
-else
-	cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf',...
+cHF = spm_input('Low-pass filter?','+1','none|Gaussian|hrf',...
 			'batch',{},'LF_fil');
-
-
-end
 switch cHF
 
 	case 'Gaussian'
@@ -427,7 +386,7 @@ end
 
 % intrinsic autocorrelations (Vi)
 %-----------------------------------------------------------------------
-str     = 'Model intrinsic correlations?';
+str     = 'Correct for serial correlations?';
 cVimenu = {'none','AR(1)'};
 cVi     = spm_input(str,'+1','b',cVimenu,'batch',{},'int_corr');
 
@@ -465,11 +424,20 @@ K       = spm_filter('set',K);
 
 % create Vi struct
 %-----------------------------------------------------------------------
-Vi      = speye(sum(nscan));
-xVi     = struct('Vi',Vi,'Form',cVi);
-for   i = 1:nsess
-	xVi.row{i} = row{i};
+switch cVi
+
+	case 'AR(1)'
+	%---------------------------------------------------------------
+	Q  = spm_Ce(nscan,2);
+
+	case 'none'
+	%---------------------------------------------------------------
+	Q  = speye(sum(nscan));
+
 end
+xVi.Vi   = Q;
+xVi.form = cVi;
+
 
 % get file identifiers and Global values
 %=======================================================================
@@ -526,7 +494,6 @@ xX.K   = K;
 xX.xVi = xVi;
 
 
-
 %-Effects designated "of interest" - constuct F-contrast structure array
 %-----------------------------------------------------------------------
 if length(xX.iC)
@@ -539,7 +506,6 @@ end
 
 %-Trial-specifc effects specified by Sess
 %-----------------------------------------------------------------------
-%-NB: With many sessions, these default F-contrasts can make xCon huge!
 if bFcon
 	i      = length(F_iX0) + 1;
 	if (Sess{1}.rep)
@@ -581,7 +547,7 @@ xsDes    = struct(	'Design',			DSstr,...
 			'Interscan_interval',		sprintf('%0.2f',RT),...
 			'High_pass_Filter',		LFstr,...
 			'Low_pass_Filter',		HFstr,...
-			'Intrinsic_correlations',	xVi.Form,...
+			'Intrinsic_correlations',	xVi.form,...
 			'Global_calculation',		sGXcalc,...
 			'Grand_mean_scaling',		sGMsca,...
 			'Global_normalisation',		Global);

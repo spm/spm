@@ -98,34 +98,19 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 % 
 %                           ----------------
 %
-% For temporally correlated (fMRI) data, the algorithm implements the
-% technique of Worsley & Friston (1995). In this approach the model is
-% assummed to fit such that the residuals have (slight) short-term
-% (intrinsic) autocorrelation given by Vi. (I.e. Residuals e =
-% sqrt(Vi)*e', where e' is an (unobserved) white noise time series).
-% The data and model are then temporally filtered prior to model
-% fitting by a linear filter given by matrix K, giving model K*Y =
-% K*X*beta + K*e. K=inv(sqrt(Vi)) corresponds to pre-whitening (leaving
-% residuals e'), K=I to no temporal smoothing (appropriate for
-% independent data when Vi=I), and K=S (a temporal filter matrix - see
-% spm_make_filter) for band-pass filtering.
-% 
-% The autocorrelation in the filtered time series is then K*Vi*K'
-% Standard results for serially correlated regression can then be used
-% to produce variance estimates and effective degrees of freedom
-% corrected for the temporal auto-correlation. Note that these
-% corrections give non-integer degrees of freedom.
-% 
-% Vi can be passed as a parameter. If Vi is not specified then it is
-% taken as I. Often Vi is unknown (or spatially variant, or just
-% difficult to estimate). Provided the intrinsic autocorrelation Vi is
-% small relative to that imposed by temporal smoothing (i.e. the
-% temporal smoothing swamps the intrinsic autocorrelation), the
-% variance-covariance structure of the residuals is approximately that
-% imposed by the smoothing, i.e K*Ve*K' ~ K*Vi*K' (Ve = estimated Vi).
-% if xX.xVi.row{n} is specified Vi is estimated using an AR(1) model
-% for each session (n). 
-% 
+% In some instances the i.i.d. assumptions about errors do not hold.  For
+% example, with serially correlated (fMRI) data or correlations among the
+% levels of a factor in repeated measures designs.  This non-sphericity
+% can be specified in terms of constraints (xX.xVi.Vi) Covariance
+% components and correlations will be estimated with an REML (restricted
+% maximum likelihood) algorithm using these contraints.  This estimation
+% assumes the same correlation structure for each voxel.  The REML
+% estimates are then used to correct for non-sphericity during inference
+% by adjusting the statistics and degrees of freedom appropriately.
+% Because spm_spm uses an OLS estimator (as opposed to a Gauss-Markov
+% estimator) the parameter estimates will not be affected.Note that the
+% non-sphereicity correction can give non-integer degrees of freedom.
+%
 % The volume analsed is the intersection of the threshold masks,
 % explicit masks and implicit masks. See spm_spm_ui for further details
 % on masking options.
@@ -178,7 +163,7 @@ function spm_spm(VY,xX,xM,F_iX0,varargin)
 %     xX        - design matrix structure
 %               - all the fields of the input xX are retained
 %               - the following additional fields are added:
-%     xX.V      - V matrix (xX.K*xX.xVi.Vi*xX.K')
+%     xX.V      - V matrix (xX.K*Vi*xX.K')
 %     xX.xKXs   - space structure for K*X (xX.K*xX.X), the temporally smoothed
 %                 design matrix
 %               - given as spm_sp('Set',xX.K*xX.X) - see spm_sp for details
@@ -358,7 +343,7 @@ if ~isfield(xX,'K')
 end
 if ~isfield(xX,'xVi')
 	xX.xVi = struct(	'Vi',	speye(size(xX.X,1)),...
-				'Form',	'none'); 
+				'form',	'none'); 
 end
 
 %-If xM is not a structure then assumme it's a vector of thresholds
@@ -434,10 +419,21 @@ fprintf('%-40s: %30s','Initialising design space','...computing')    %-#
 % trRV,trRVRV  - Variance expectations
 % erdf         - Effective residual d.f.
 %-----------------------------------------------------------------------
+
+%-Get provisional correlation structure (V)
+%-----------------------------------------------------------------------
 [nScan nBeta] = size(xX.X);
 [nScan nVar]  = size(VY);
-KVi           = spm_filter('apply',xX.K, xX.xVi.Vi);
+if iscell(xX.xVi.Vi)
+	Vi    = speye(nScan);
+else
+	Vi    = xX.xVi.Vi;
+end
+KVi           = spm_filter('apply',xX.K, Vi);
 V             = spm_filter('apply',xX.K,KVi');
+
+%-Parameter projection matrix and traces
+%-----------------------------------------------------------------------
 xX.xKXs       = spm_sp('Set',spm_filter('apply',xX.K, xX.X));
 xX.pKX        = spm_sp('x-',xX.xKXs);
 [trRV trRVRV] = spm_SpUtil('trRV',xX.xKXs,V);
@@ -517,7 +513,7 @@ end
 
 
 
-%-Compute UF, the F-threshold (using approximate Vi)
+%-Compute UF, the F-threshold
 %-----------------------------------------------------------------------
 if UFp > 0 & UFp < 1				%-F-filter for Y.mad file
 	UF   = spm_invFcdf(1 - UFp,[eidf,erdf]);
@@ -644,9 +640,9 @@ RESEL  = 0;					% RESEL per voxels
 nSres  = min(nScan,maxRes4S);			% # residual images to use
 i_res  = round(linspace(1,nScan,nSres))';	% Indices
 
-%-parameter for estimation of intrinsic correlations AR(1) model
+%-<Y*Y'> over non-masked voxels (used by REML)
 %-----------------------------------------------------------------------
-A      = 0;					%-regression coeficient	
+Cy      = zeros(nScan,nScan);			%-regression coeficient	
 
 %-Cycle over bunches of lines within planes (planks) to avoid memory problems
 %=======================================================================
@@ -729,21 +725,10 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 	%===============================================================
 	if nVar == 1				% univariate
 
-		%-Estimate intrinsic correlation structure AR(1) model
+		%-Assemble <Y*Y'> for REML covariance estimation
 		%-------------------------------------------------------
-		switch xX.xVi.Form
-
-		    case 'AR(1)'
-		    %---------------------------------------------------
-		    fprintf('%s%30s',sprintf('\b')*ones(1,30),...
-					'...AR(1) estimation')	     %-#
-
-		    for i = 1:length(xX.xVi.row)
-			y = spm_detrend(Y(xX.xVi.row{i},:));
-			q = 1:(size(y,1) - 1);
-			a = sum(y(q,:).*y(q + 1,:))./sum(y(q,:).*y(q,:));
-			A = A + [1; -mean(a)];
-		    end
+		if iscell(xX.xVi.Vi)
+			Cy  = Cy + Y*Y';
 		end
 
 		%-Temporal smoothing
@@ -842,12 +827,12 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 			%-----------------------------------------------
 			if nVar == 1
 
-				tmp  = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
+				tmp = (sum((h*beta).^2,1)/trMV) > UF*ResSS/trRV;
 
 			% mvF-threshold
 			%-----------------------------------------------
 			else
-				tmp  = mvF > UF;
+				tmp = mvF > UF;
 
 			end
 			spm_append(Y(:,tmp),'Y.mad',2);
@@ -1042,8 +1027,8 @@ for z = 1:zdim				%-loop over planes (2D or 3D data)
 
     %-Write ResSS into ResMS (variance) image
     % (Scaling of ResSS to ResMS by trRV is accomplished by adjusting the
-    % (scalefactor at the end, once the intrinsic temporal autocorrelation
-    % (Vi has been estimated.
+    % (scalefactor at the end, after the error correlations (Vi) have been
+    % (estimated.
     %-------------------------------------------------------------------
     if length(Q), tmp(Q) = CrResSS; end
     VResMS = spm_write_plane(VResMS,tmp,z);		
@@ -1074,40 +1059,30 @@ fprintf('\n')                                                        %-#
 if S == 0, warning('No inmask voxels - empty analysis!'), end
 
 
-%-Intrinsic autocorrelations: Vi
+%-Non-sphericity: Vi
 %=======================================================================
-fprintf('%-40s: %30s','Design parameters','...intrinsic autocorrelation') %-#
+fprintf('%-40s: %30s','Non-sphericity','...REML estimation')         %-#
 
-%-Compute (session specific) intrinsic autocorrelation Vi
+
+%-REML estimation of correlation structure though hyperparameters (h)
 %-----------------------------------------------------------------------
-switch xX.xVi.Form
-	case 'AR(1)'
-	%---------------------------------------------------
-	p     = length(A) - 1;			% order AR(p)
-	A     = A/A(1);
-	for i = 1:length(xX.xVi.row)
-		q     = xX.xVi.row{i};
-		n     = length(q);
-		Ki    = inv(spdiags(ones(n,1)*A',-[0:p],n,n));
-		Ki    = Ki.*(Ki > 1e-6);
-		Vi    = Ki*Ki';
-		D     = spdiags(sqrt(1./diag(Vi)),0,n,n);
-		Vi    = D*Vi*D;
-		xX.xVi.Vi(q,q) = Vi;
-	end
+hp     = [];
+if iscell(xX.xVi.Vi)
+	[Vi,h]       = spm_reml(Cy/S,xX.X,xX.xVi.Vi);
+	Vi           = Vi*nScan/trace(Vi);
+	xX.xVi.Param = h;
 end
-xX.xVi.Param = A;
 
 
 %-[Re]-enter Vi & derived values into design structure xX
 %-----------------------------------------------------------------------
 fprintf('%s%30s',sprintf('\b')*ones(1,30),'...V, & traces')          %-#
 
-KVi      = spm_filter('apply',xX.K, xX.xVi.Vi);
+KVi      = spm_filter('apply',xX.K, Vi);
 xX.V     = spm_filter('apply',xX.K,KVi'); 	%-V matrix
 xX.pKXV  = xX.pKX*xX.V;				%-for contrast variance weight
 xX.Bcov  = xX.pKXV*xX.pKX';			%-Variance of est. param.
-[xX.trRV,xX.trRVRV] ...				%-Variance expectations
+[xX.trRV xX.trRVRV] ...				%-Variance expectations
          = spm_SpUtil('trRV',xX.xKXs,xX.V);
 xX.erdf  = xX.trRV^2/xX.trRVRV;			%-Effective residual d.f.
 
