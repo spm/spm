@@ -44,7 +44,7 @@ R     = y - Y;					% residuals
 RES   = sum(R.^2);				% SSQ of residuals
 SE    = sqrt(diag(BCOV));			% standard error of estimates
 HC    = [H C];
-Msize = 12;
+MSize = 12;
 
 % Inference (for title)
 %-----------------------------------------------------------------------
