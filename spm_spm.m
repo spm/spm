@@ -344,6 +344,10 @@ end			% (loop over planes)
 
 
 %-Smoothness estimates %-----------------------------------------------------------------------
+sx_res = sx_res(1:min(size(V, 2),MaxSmooEst),:);
+sy_res = sy_res(1:min(size(V, 2),MaxSmooEst),:);
+sz_res = sz_res(1:min(size(V, 2),MaxSmooEst),:);
+
 if ~isempty(sx_res)
 	W = sqrt([	 sx_res(:,1)./sx_res(:,2)...
 			 sy_res(:,1)./sy_res(:,2)...
