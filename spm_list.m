@@ -1,6 +1,6 @@
 function spm_list(SPM,VOL,Dis,Num,title)
 % Display and analysis of SPM{.}
-% FORMAT spm_list(SPM,VOL)
+% FORMAT spm_list(SPM,VOL,Dis,Num,title)
 %
 % SPM    - structure containing SPM, distribution & filtering details
 %        - required fields are:
@@ -99,27 +99,27 @@ XYZmm     = VOL.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
 %-Table axes & headings
 %=======================================================================
 hAx   = axes('Position',[0.05 0.1 0.9 0.42],...
-	'DefaultTextFontSize',FS(1),...
+	'DefaultTextFontSize',FS(8),...
 	'DefaultTextInterpreter','Tex',...
 	'DefaultTextVerticalAlignment','Baseline',...
 	'Units','points',...
 	'Visible','off');
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
-dy    = FS(2);
+dy    = FS(9);
 y     = floor(AxPos(4)) - dy;
 
-text(0,y,['Statistics:  \it\fontsize{',num2str(FS(2)),'}',title],...
-	'FontSize',FS(3),'FontWeight','Bold');	y = y - dy/2;
+text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',title],...
+	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
 line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 3*dy/2;
 
 %-Construct tables
 %-----------------------------------------------------------------------
-text(0.00,y,'set-level \{\it{c}\rm\}','FontSize',FS(2));
-text(0.15,y,'cluster-level \{\it{k}\rm_{max}\}','FontSize',FS(2));
+text(0.00,y,'set-level \{\it{c}\rm\}','FontSize',FS(9));
+text(0.15,y,'cluster-level \{\it{k}\rm_{max}\}','FontSize',FS(9));
 text(0.38,y,['voxel-level \{\it{',STAT,'}\rm_{max} \equiv \it{Z}\rm_{max}\}'],...
-							'FontSize',FS(2));
-text(0.66,y,['uncorrected \it{k}\rm & \it{',STAT,'}'],'FontSize',FS(2));
-text(0.90,y,['x,y,z \fontsize{',num2str(FS(1)),'}\{mm\}'],'FontSize',FS(2));
+							'FontSize',FS(9));
+text(0.66,y,['uncorrected \it{k}\rm & \it{',STAT,'}'],'FontSize',FS(9));
+text(0.90,y,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}'],'FontSize',FS(9));
 
 y     = y - dy/2;
 line([0 1],[y y],'LineWidth',1,'Color','r')
@@ -130,7 +130,7 @@ y     = y - 3*dy/2;
 y0    = y;
 hPage = [];
 
-set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(1)-1)
+set(gca,'DefaultTextFontName','Courier','DefaultTextFontSize',FS(7))
 
 %-Set-level p values {c}
 %-----------------------------------------------------------------------
@@ -151,7 +151,7 @@ while max(Z)
 		h     = text(0.5,-5*dy,...
 			sprintf('Page %d',spm_figure('#page')),...
 			'FontName','Helvetica','FontAngle','Italic',...
-			'FontSize',FS(1));
+			'FontSize',FS(8));
 		spm_figure('NewPage',[hPage,h])
 		hPage = [];
 		y     = y0;
@@ -187,7 +187,8 @@ while max(Z)
 	h     = text(0.88,y,sprintf('%3.0f %3.0f %3.0f',XYZmm(:,i)),...
 		'FontWeight','Bold',...
 		'ButtonDownFcn','spm_mip_ui(''ShowGreens'')',...
-		'Interruptible','off',...
+		'Interruptible','off','BusyAction','Cancel',...
+		'UIContextMenu',sf_xyzConMen(XYZmm(:,i)),...
 		'UserData',XYZmm(:,i));
 	hPage = [hPage, h];
  
@@ -218,7 +219,8 @@ while max(Z)
 				sprintf('%3.0f %3.0f %3.0f',XYZmm(:,d)),...
 				'ButtonDownFcn',...
 				'spm_mip_ui(''ShowGreens'')',...
-				'Interruptible','off',...
+				'Interruptible','off','BusyAction','Cancel',...
+				'UIContextMenu',sf_xyzConMen(XYZmm(:,d)),...
 				'UserData',XYZmm(:,d));
 			hPage = [hPage, h];
 			D     = [D d];
@@ -234,7 +236,7 @@ end				% end region
 %-----------------------------------------------------------------------
 if spm_figure('#page')>1
 	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-		'FontName','Helvetica','FontSize',FS(1),'FontAngle','Italic');
+		'FontName','Helvetica','FontSize',FS(8),'FontAngle','Italic');
 	spm_figure('NewPage',[hPage,h])
 end
 
@@ -244,7 +246,7 @@ end
 str = sprintf(['table shows at most %d subsidiary maxima ',...
 	'>%.1fmm apart per cluster'],Num,Dis);
 text(0.5,4,str,'HorizontalAlignment','Center',...
-	'FontAngle','Italic','FontSize',FS(1)-1)
+	'FontAngle','Italic','FontSize',FS(7))
 
 
 %-Volume, resels and smoothness 
@@ -257,7 +259,7 @@ Pz              = spm_P(1,0,u,df,STAT,1,n);
 %-----------------------------------------------------------------------
 line([0 1],[0 0],'LineWidth',1,'Color','r')
 set(gca,'DefaultTextFontName','Helvetica',...
-	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(1))
+	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 str = sprintf('Height threshold {u} = %0.2f, p = %0.3f (%0.3f)',u,Pz,P);
 text(0.0,-1*dy,str);
 str = sprintf('Extent threshold {k} = %0.2f resels, p = %0.3f',k,Pn);
@@ -281,3 +283,18 @@ text(0.5,-4*dy,str);
 %-End
 %=======================================================================
 spm('Pointer','Arrow')
+
+
+
+
+%=======================================================================
+%- S U B - F U N C T I O N S
+%=======================================================================
+
+function h=sf_xyzConMen(xyz)
+%=======================================================================
+h = uicontextmenu('UserData',xyz);
+uimenu(h,'Label','Jump to here',...
+	'CallBack',...
+	'spm_mip_ui(''SetCoords'',get(get(gcbo,''Parent''),''UserData''));',...
+	'Interruptible','off','BusyAction','Cancel');
