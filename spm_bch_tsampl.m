@@ -14,7 +14,7 @@ function [xXa,Sessa,Ka,Pa,nscana,rowa] = spm_bch_tsampl(xX,Sess,K,P,nscan,row)
 % nscana - 
 % rowa   - 
 %_______________________________________________________________________
-% %W% Stephanie Rouquette %E%
+% @(#)spm_bch_tsampl.m	2.6 Stephanie Rouquette 99/10/27
 
 %=======================================================================
 % Programmers Guide
@@ -45,10 +45,10 @@ if ~isempty(BCH)
 		xXa.X = [xXa.X;xX.X(compt1+sample,:)];
 		Pa = [Pa;P(compt1+sample,:)];
 		rowa{s} = (compt2+(1:nscana(s)))';
-		Sessa{s}.rowa = rowa{s};
-		Ka{s}.rowa = rowa{s};	
-		compt1 = compt1+spm_input('batch',{},'nscans',s);
-		compt2 = compt2+nscan(s);
+		Sessa{s}.row = rowa{s};
+		Ka{s}.row = rowa{s};	
+		compt1 = compt1+nscan(s);
+		compt2 = compt2+nscana(s);
 	end % for s = 1:length(Sess)
 end
 
