@@ -59,10 +59,10 @@ if ~isempty(flags.WF),
 	if length(flags.WF)>1,
 		error('Can only use one source weighting image');
 	end;
-	if any(any(VF.mat-WF.mat)),
+	if any(any(VF.mat-flags.WF.mat)),
 		error('Source and its weighting image must have same orientation');
 	end;
-	if any(any(VF.dim(1:3)-WF.dim(1:3))),
+	if any(any(VF.dim(1:3)-flags.WF.dim(1:3))),
 		error('Source and its weighting image must have same dimensions');
 	end;
 end;
