@@ -77,7 +77,7 @@ p = deblank(p);
 [pth,nam,ext] = fileparts(deblank(p));
 t = find(ext==',');
 
-n = 1;
+n = [];
 if ~isempty(t),
 	if length(t)==1,
 		n1 = ext((t+1):end);
@@ -102,7 +102,7 @@ else, % Try other formats
 
 	% Try Ecat 7
 	if isempty(n), V=spm_vol_ecat7(p);
-	else,          V=spm_vol_ecat7(p,n); end;
+	else,          V=spm_vol_ecat7(p,num2str(n)); end;
 	if ~isempty(V), return; end;
 end;
 return;
