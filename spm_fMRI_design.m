@@ -1,4 +1,4 @@
-function [SPM] = spm_fMRI_design(SPM)
+function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Assembles a design for fMRI studies
 % FORMAT [SPM] = spm_fMRI_design(SPM)
 %
@@ -79,7 +79,7 @@ function [SPM] = spm_fMRI_design(SPM)
 %                    i: - sub-indices of U(i).u for plotting
 %  
 %
-% saves SPM.mat
+% saves SPM.mat if save_SPM==1 (this is the default)
 %_______________________________________________________________________
 %
 % spm_fMRI_design allows you to build design matrices with separable
@@ -176,6 +176,9 @@ SPMid = spm('SFnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
+if nargin==1
+    save_SPM=1;
+end
 
 % construct Design matrix {X} - cycle over sessions
 %=======================================================================
@@ -363,15 +366,16 @@ SPM.xX.iB     = [1:size(Xb,2)] + size(Xx,2);
 SPM.xX.iG     = [];
 SPM.xX.name   = {Xname{:} Bname{:}};
 
-
-%-End: Save SPM.mat
-%-----------------------------------------------------------------------
-fprintf('\t%-32s:\n ','Saving fMRI design')                            %-#
-if str2num(version('-release'))>=14,
-    save('SPM', 'SPM', '-V6');
-else
-    save('SPM', 'SPM');
-end;
-fprintf('%30s\n','...SPM.mat saved')
+if save_SPM
+    %-End: Save SPM.mat
+    %-----------------------------------------------------------------------
+    fprintf('\t%-32s:\n ','Saving fMRI design')                            %-#
+    if str2num(version('-release'))>=14,
+        save('SPM', 'SPM', '-V6');
+    else
+        save('SPM', 'SPM');
+    end;
+    fprintf('%30s\n','...SPM.mat saved');
+end
 spm_input('!DeleteInputObj')
 

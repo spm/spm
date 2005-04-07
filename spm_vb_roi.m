@@ -1,5 +1,5 @@
 function [F,pm,Fabs] = spm_vb_roi (VOI_fname,SPM,model)
-% Compare sp_glm_ar models for a region of interest
+% Compare sp_glm_ar models for a cluster of interest
 % FORMAT [F,pm,Fabs] = spm_vb_roi (VOI_fname,SPM,model)
 %
 % VOI_fname     VOI filename
@@ -14,15 +14,15 @@ function [F,pm,Fabs] = spm_vb_roi (VOI_fname,SPM,model)
 % Will Penny 
 % $Id$
 
+expr=['load ',VOI_fname];
+eval(expr);
+
 if nargin == 1
     %-Get SPM.mat 
     swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
 end
-
-expr=['load ',VOI_fname];
-eval(expr);
 
 Y=xY.y;
 xyz=xY.XYZmm;
@@ -46,7 +46,7 @@ catch
     if N==1
         SPM.PPM.priors.W = 'Voxel - Shrinkage';
     else
-        SPM.PPM.priors.W = 'Spatial - LORETA';
+        SPM.PPM.priors.W = 'Spatial - GMRF';
     end
 end
 
@@ -57,7 +57,7 @@ catch
     if N==1
         SPM.PPM.priors.A = 'Voxel - Shrinkage';
     else
-        SPM.PPM.priors.A = 'Spatial - LORETA';
+        SPM.PPM.priors.A = 'Spatial - GMRF';
     end
 end
     
@@ -129,8 +129,6 @@ end
 M=length(model);
 F=[];
 
-original_SPM=SPM;
-
 sname=[];
 % Fit models
 for m=1:M,
@@ -141,7 +139,7 @@ for m=1:M,
     SPM.xBF.length=model(m).length;
     SPM.xBF = spm_get_bf(SPM.xBF);
     
-    SPM = spm_fmri_design(SPM);
+    SPM = spm_fmri_design(SPM,0);  % 0 to override writing of SPM.mat file
     slice = spm_vb_init_volume (SPM.xX.X,SPM.PPM.AR_P);
     
     slice.maxits=SPM.PPM.maxits;
@@ -163,7 +161,9 @@ F=F-mean(F);
 figure
 pm=exp(F)./sum(exp(F));
 if sum(isnan(pm))
-    pm=isnan(pm);
+    [pF,pi]=max(F);
+    pm=zeros(M,1);
+    pm(pi)=1;
 end
 bar(pm);
 set(gca,'XTickLabel',sname);
@@ -177,8 +177,3 @@ set(gca,'XTickLabel',sname);
 ylabel('Log Evidence');
 set(gca,'FontSize',12);
 
-% Put back original SPM
-SPM=original_SPM;
-save SPM SPM;
-
-%spm_clf(Finter);
