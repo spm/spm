@@ -1,12 +1,23 @@
-function [F,pm,Fabs] = spm_vb_roi (VOI_fname,SPM,model)
+function [F,pm] = spm_vb_roi (VOI_fname,SPM,bases,model)
 % Compare sp_glm_ar models for a cluster of interest
-% FORMAT [F,pm,Fabs] = spm_vb_roi (VOI_fname,SPM,model)
+% FORMAT [F,pm] = spm_vb_roi (VOI_fname,SPM,bases,model)
 %
 % VOI_fname     VOI filename
 % SPM           SPM data structure
-% model         data structure specifying which basis functions to compare
+% bases         Specifies which basis sets to compare:
 %
-% F             model evidence
+%               'all'   - the 7 default types 
+%               'fir'   - varies number of bins
+%               'fh'    - varies number of bins
+%               'user'  - user specified models set by model variable 
+%                         (see below)
+%
+%               The default option is 'all'
+%
+% model         Specify model(i).name,model(i).sname,model(i).order,
+%               model(i).length of ith basis set for i=1..number of models
+%
+% F             model evidences 
 % pm            posterior model probability
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
@@ -22,6 +33,10 @@ if nargin == 1
     swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
+end
+
+if nargin <3 | isempty(bases)
+    bases='all';
 end
 
 Y=xY.y;
@@ -86,44 +101,73 @@ catch
     SPM.PPM.tol=0.00001;
 end
 
+window_length=32; % length in seconds
+
 % Specify basis functions
-try
-    model
-catch
-    model(1).name='hrf';
-    model(1).sname='Inf-1';
-    model(1).order=1;
-    model(1).length=32; % length in seconds
-    
-    model(2).name='hrf (with time derivative)';
-    model(2).sname='Inf-2';
-    model(2).order=2;
-    model(2).length=32;
-    
-    model(3).name='hrf (with time and dispersion derivatives)';
-    model(3).sname='Inf-3';
-    model(3).order      = 3;  
-    model(3).length     = 32;                
-    
-    model(4).name='Fourier set';
-    model(4).sname='F    ';
-    model(4).order=5;
-    model(4).length=20;
-    
-    model(5).name='Fourier set (Hanning)';
-    model(5).sname='FH   ';
-    model(5).order=5;
-    model(5).length=20;
-    
-    model(6).name='Gamma functions';
-    model(6).sname='Gamm3';
-    model(6).order      = 3;  
-    model(6).length     = 32;                
-    
-    model(7).name='Finite Impulse Response';
-    model(7).sname='FIR  ';
-    model(7).order      = 10; 
-    model(7).length     = 20;                
+switch bases,
+    case 'fir',
+        bins=[1:1:10];
+        for i=1:length(bins),
+            model(i).name='Finite Impulse Response';
+            if bins(i)>9
+                model(i).sname=int2str(bins(i));
+            else
+                model(i).sname=[' ',int2str(bins(i))];
+            end
+            model(i).order      = bins(i); 
+            model(i).length     = window_length; 
+        end
+    case 'fh',
+        bins=[1:1:10];
+        for i=1:length(bins),
+            model(i).name='Fourier set (Hanning)';
+            if bins(i)>9
+                model(i).sname=int2str(bins(i));
+            else
+                model(i).sname=[' ',int2str(bins(i))];
+            end
+            model(i).order      = bins(i); 
+            model(i).length     = window_length; 
+        end
+    case 'all'
+        model(1).name='hrf';
+        model(1).sname='Inf-1';
+        model(1).order=1;
+        model(1).length=window_length; 
+        
+        model(2).name='hrf (with time derivative)';
+        model(2).sname='Inf-2';
+        model(2).order=2;
+        model(2).length=window_length;
+        
+        model(3).name='hrf (with time and dispersion derivatives)';
+        model(3).sname='Inf-3';
+        model(3).order      = 3;  
+        model(3).length     = window_length;                
+        
+        model(4).name='Fourier set';
+        model(4).sname='F    ';
+        model(4).order=5;
+        model(4).length=window_length;
+        
+        model(5).name='Fourier set (Hanning)';
+        model(5).sname='FH   ';
+        model(5).order=5;
+        model(5).length=window_length;
+        
+        model(6).name='Gamma functions';
+        model(6).sname='Gamm3';
+        model(6).order      = 3;  
+        model(6).length     = window_length;                
+        
+        model(7).name='Finite Impulse Response';
+        model(7).sname='FIR  ';
+        model(7).order      = 10; 
+        model(7).length     = window_length;        
+    case 'user',
+        disp('Using user-specified models');
+    otherwise
+        disp('Error in spm_vb_voi: unknown bases option');
 end
 
 M=length(model);
@@ -155,11 +199,10 @@ for m=1:M,
     F=[F,slice.F];
     sname=[sname; model(m).sname];
 end
-Fabs=F;
 
-F=F-mean(F);
+Fm=F-mean(F);
 figure
-pm=exp(F)./sum(exp(F));
+pm=exp(Fm)./sum(exp(Fm));
 if sum(isnan(pm))
     [pF,pi]=max(F);
     pm=zeros(M,1);
@@ -171,8 +214,8 @@ ylabel('Posterior model probability');
 set(gca,'FontSize',12);
 
 figure
-F=F-min(F);
-bar(F);
+Fnorm=F-min(F);
+bar(Fnorm);
 set(gca,'XTickLabel',sname);
 ylabel('Log Evidence');
 set(gca,'FontSize',12);
