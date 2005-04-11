@@ -1,4 +1,4 @@
-function D = spm_eeg_rdata_bdf(S)
+function D = spm_eeg_rdata_egi64(S)
 % converts EEG data from BDF- to SPM-format
 % FORMAT D = spm_eeg_rdata_bdf(S)
 % 

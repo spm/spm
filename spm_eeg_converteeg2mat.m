@@ -101,7 +101,7 @@ switch fmt
 	case {'EGI-txt'}
         for i = 1:Nfiles
             S2.Fdata = deblank(Mname(i, :));            
-            D{i} = spm_eeg_rdata(S2);
+            D{i} = spm_eeg_rdata_egi64(S2);
         end
                
     otherwise
