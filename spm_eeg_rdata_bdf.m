@@ -276,7 +276,7 @@ for t = 1:Nblocks
             % take average
             ref = mean(data.Record(Creference, :));
         else
-            data.Record(Creference(1), :);
+          ref=  data.Record(Creference(1), :);
         end    
         d = [d; ref];
         d = d - repmat(ref, D.Nchannels, 1);

@@ -40,7 +40,8 @@ catch
     spm_input('data format', 1, 'd')
     Ctype = {
         'CNT',...
-            'BDF'};
+            'BDF',...
+			'EGI-txt'};
     str   = 'Select format';
 	Sel   = spm_input(str, 2, 'm', Ctype);
 	fmt = Ctype{Sel};
@@ -55,6 +56,8 @@ catch
             str = '\.cnt$';
         case {'BDF'}
             str = '\.bdf$';
+		case {'EGI-txt'}
+            str = '\.txt$';
         otherwise
             error(sprintf('Unknown format: %s', fmt));
     end
@@ -95,7 +98,12 @@ switch fmt
             S2.Fdata = deblank(Mname(i, :));
             D{i} = spm_eeg_rdata_bdf(S2);
         end
-       
+	case {'EGI-txt'}
+        for i = 1:Nfiles
+            S2.Fdata = deblank(Mname(i, :));            
+            D{i} = spm_eeg_rdata(S2);
+        end
+               
     otherwise
         error('Unknown format');
         
