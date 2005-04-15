@@ -106,6 +106,7 @@ window_length=32; % length in seconds
 % Specify basis functions
 switch bases,
     case 'fir',
+        window_length=20; % length in seconds
         bins=[1:1:10];
         for i=1:length(bins),
             model(i).name='Finite Impulse Response';
@@ -118,6 +119,7 @@ switch bases,
             model(i).length     = window_length; 
         end
     case 'fh',
+        window_length=20; % length in seconds
         bins=[1:1:10];
         for i=1:length(bins),
             model(i).name='Fourier set (Hanning)';

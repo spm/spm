@@ -72,8 +72,6 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %                   .Gamma, default effect size threshold (used in spm_getSPM)
 %
-%                   .M_X, set to 1 if an explicit mask is used (otherwise 0)
-%
 %                   The following parameters are set if the space
 %                   to be analysed chosen as 'Slices'
 %                       .AN_slices, numbers of slices analysed
@@ -424,20 +422,6 @@ catch
 	xM = -ones(nScan,1)/0;
 end
 
-% Explicit masking ?
-try
-    SPM.PPM.M_X;
-catch
-    %SPM.PPM.M_X = spm_input('Explicitly mask images?','+1','y/n',[1,0],2);
-    SPM.PPM.M_X=0;
-end
-
-if SPM.PPM.M_X, 
-    M_P = spm_select(Inf,'image','Select mask images'); 
-else, 
-    M_P = {}; 
-end
-
 % Analyse volume/slices ?
 try 
     SPM.PPM.space_type;
@@ -461,10 +445,6 @@ switch SPM.PPM.space_type,
         catch
             SPM.PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
         end
-end
-
-if ~isempty(M_P)
-	xM.VM  = spm_vol(char(M_P));
 end
 
 if ~isstruct(xM)
