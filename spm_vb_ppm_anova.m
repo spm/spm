@@ -39,7 +39,7 @@ for m=1:length(model)-1,
     model_subdir=['model_',int2str(m)];
     mkdir(analysis_dir,model_subdir);
     new_dir=[analysis_dir,'\',model_subdir];
-    my_cd(new_dir);
+    cd(new_dir);
     SPM.Sess(1).U=model(m).U;
     SPM.Sess(1).U=spm_get_ons(SPM,1);
     SPM=spm_fmri_design(SPM);   
@@ -47,6 +47,7 @@ for m=1:length(model)-1,
     SPM.PPM.compute_det_D=1; 
     spm_spm_vb(SPM);
 end
+cd(analysis_dir);
 
 % Compute differences in contributions to log-evidence images
 % to assess main effects and interactions
@@ -61,7 +62,7 @@ if nf==1
     img_subtract(image1,image2,imout);
     
     % Main effect of factor
-    image1='model_2/LogEv.img';
+    image1='model_2\LogEv.img';
     image2='LogEv.img        ';
     imout='main_effect.img';
     img_subtract(image1,image2,imout);
@@ -70,25 +71,25 @@ elseif nf==2
     % For two factors
     
     % Average effect
-    image1='model_1/LogEv.img';
-    image2='model_2/LogEv.img';
+    image1='model_1\LogEv.img';
+    image2='model_2\LogEv.img';
     imout='avg_effect.img';
     img_subtract(image1,image2,imout);
     
     % Main effect of factor 1
-    image1='model_2/LogEv.img';
-    image2='model_3/LogEv.img';
+    image1='model_2\LogEv.img';
+    image2='model_3\LogEv.img';
     imout=['main_effect_',SPM.factor(1).name,'.img'];
     img_subtract(image1,image2,imout);
     
     % Main effect of factor 2
-    image1='model_2/LogEv.img';
-    image2='model_4/LogEv.img';
+    image1='model_2\LogEv.img';
+    image2='model_4\LogEv.img';
     imout=['main_effect_',SPM.factor(2).name,'.img'];
     img_subtract(image1,image2,imout);
     
     % Interaction
-    image1='model_5/LogEv.img';
+    image1='model_5\LogEv.img';
     image2='LogEv.img        ';
     imout='interaction.img';
     img_subtract(image1,image2,imout);
@@ -101,8 +102,8 @@ function [] = img_subtract(image1,image2,image_out)
 % Subtract image 1 from image 2 and write to image out
 % Note: parameters are names of files
 
-P(1,:)=[pwd,image1];
-P(2,:)=[pwd,image2];
+P(1,:)=[pwd,'\',image1];
+P(2,:)=[pwd,'\',image2];
 Vi = spm_vol(char(P));
 Vo = struct(	'fname',	image_out,...
     'dim',		[Vi(1).dim(1:3)],...
