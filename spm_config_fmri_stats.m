@@ -36,6 +36,10 @@ choice = inline(['struct(''type'',''choice'',''name'',name,'...
 
 %-----------------------------------------------------------------------
 
+sp_text = ['                                                      ',...
+      '                                                      '];
+%-----------------------------------------------------------------------
+
 onset   = entry('Onsets','onset','e',[Inf 1],'Vector of onsets');
 p1 = 'Specify a vector of onset times for this trial/condition type.';
 p2 = [...
@@ -252,6 +256,56 @@ p2 = [...
   'basis functions.'];
 block.help = {'Specify the Data and Design','',p1,'',p2};
 
+% Specification of factorial designs
+
+fname.type    = 'entry';
+fname.name    = 'Name';
+fname.tag     = 'name';
+fname.strtype = 's';
+fname.num     = [1 1];
+fname.help    = {'Name of factor'};
+
+cond.type    = 'entry';
+cond.name    = 'Level';
+cond.tag     = 'conds';
+cond.strtype = 's';
+cond.num     = [1 1];
+p1=['Enter the numbers of the experimental conditions for this level ',...
+    'of this factor (the conditions are numbered in the order you enter them) ',...
+    'This is best done by writing down the contingency table for your factorial ',...
+    'design. This relates the numbers of the conditions to the levels of the factors. '];
+p2=['For example, if you have four conditions and a two-by-two factorial design ',...
+    'then you have a two-by-two contingency table with eg. conditions 1 and 2 ',...
+    'in the first row and conditions 3 and 4 in the second. Factor 1 would eg. ',...
+    'span the rows and Factor 2 the columns. Then, the entries for Factor 1, Level 1 ',...
+    'would be [1 2], Factor 1, Level 2 = [3 4], Factor 2, Level 1 = [1 3], ',...
+    'Factor 2, Level 2 = [2 4].'];
+cond.help    = {p1,sp_text,p2};
+
+levels.type = 'repeat'; 
+levels.name = 'Levels';
+levels.tag  = 'level';
+levels.values  = {cond};
+levels.help ={'Add a new level to this factor'};
+
+factor.type   = 'branch';
+factor.name   = 'Factor';
+factor.tag    = 'fact';
+factor.val    = {fname,levels};
+factor.help = {'Add a new factor to your experimental design'};
+
+factors.type = 'repeat';
+factors.name = 'Factorial design';
+factors.tag  = 'factors';
+factors.values = {factor};
+p1 = ['If you have a factorial design then SPM can automatically generate ',...
+      'the contrasts necessary to test for the main effects and interactions.'];
+p2 = ['This includes the models/F-contrasts necessary to test for these effects at ',...
+      'the within-subject level (first level) and the simple contrasts necessary ',...
+      'to generate the contrast images for a between-subject (second-level) ',...
+      'analysis.'];
+factors.help ={p1,sp_text,p2};
+    
 %-------------------------------------------------------------------------
 
 rt       = entry('Interscan interval','RT','e',[1 1],'Interscan interval {secs}');
@@ -298,11 +352,14 @@ cvi.help = {p1,p2,p3};
  
 % Bayesian estimation over slices or whole volume ?
 
-sp_text = ['                                                      ',...
-      '                                                      '];
+
 slices  = entry('Slices','Slices','e',[Inf 1],'Enter Slice Numbers');
 
 volume  = struct('type','const','name','Volume','tag','Volume','val',{{1}});
+p1=['You have selected the Volume option. SPM will analyse fMRI ',...
+    'time series in all slices of each volume.'];
+volume.help={p1};
+
 
 space   = choice('Analysis Space','space',{volume,slices},'Analyse whole volume or selected slices only');
 space.val={volume};
@@ -342,6 +399,40 @@ p3=['[Tissue-type] = AR estimates at each voxel are biased towards typical ',...
     'values for that tissue type. '];
 a_prior.help={p1,p2,p3};
 
+% ANOVA options
+
+first  = mnu('First level','first',...
+    {'No','Yes'},{'No','Yes'},{''});
+first.val={'No'};
+p1=['[First level ANOVA ?] '];
+p2=['This is implemented using Bayesian model comparison. ',...
+    'This requires explicit fitting of several models at each voxel and is ',...
+    'computationally demanding (requiring several hours of computation). ',...
+    'The recommended option is therefore NO.'];
+p3=['To use this option you must also specify your Factorial design (see options ',...
+    'under FMRI Stats).'];
+first.help={p1,sp_text,p2,sp_text,p3};
+
+second  = mnu('Second level','second',...
+    {'No','Yes'},{'No','Yes'},{''});
+second.val={'Yes'};
+p1=['[Second level ANOVA ?] '];
+p2=['This option tells SPM to automatically generate ',...
+    'the simple contrasts that are necessary to produce the contrast images ',...
+    'for a second-level (between-subject) ANOVA. With the Bayesian estimation ',...
+    'option it is recommended that contrasts are computed during the parameter ',...
+    'estimation stage (see HELP for Simple contrasts). ',...
+    'The recommended option here is therefore YES.'];
+p3=['To use this option you must also specify your Factorial design (see options ',...
+    'under FMRI Stats).'];
+second.help={p1,sp_text,p2,sp_text,p3};
+
+anova.type   = 'branch';
+anova.name   = 'ANOVA';
+anova.tag    = 'anova';
+anova.val    = {first,second};
+anova.help = {'Perform 1st or 2nd level ANOVAs'};
+
 % Contrasts to be computed during Bayesian estimation
 
 name.type    = 'entry';
@@ -369,19 +460,25 @@ contrast.name = 'Simple contrasts';
 contrast.tag  = 'contrasts';
 contrast.values = {gcon};
 p1 =['Specify simple one-dimensional contrasts'];
-p2 =['When using the Bayesian estimation option it is computationally more ',...
+p2 =['If you have a factoral design then the contrasts needed to generate ',...
+     'the contrast images for a 2nd-level ANOVA can be specified automatically ',...
+     'using the ANOVA->Second level option.'];
+p3 =['When using the Bayesian estimation option it is computationally more ',...
      'efficient to compute the contrasts when the parameters are estimated. ',...
      'This is because estimated parameter vectors have potentially different ',...
      'posterior covariance matrices at different voxels ',...
-     'and these matrices are not stored. If you compute constrasts ',...
-     'post-hoc these matrices must be (approximately) re-computed. ',...
+     'and these matrices are not stored. If you compute contrasts ',...
+     'post-hoc these matrices must be recomputed (an approximate reconstruction ',...
+     'based on a Taylor series expansion is used). ',...
      'It is therefore recommended to specify as many contrasts as possible ',...
      'prior to parameter estimation.'];
-contrast.help={p1,p2};
+contrast.help={p1,sp_text,p2,sp_text,p3};
+
+
 
 % Bayesian estimation
 
-est_bayes = branch('Bayesian','Bayesian',{space,w_prior,arp,a_prior,contrast},'Bayesian Estimation');
+est_bayes = branch('Bayesian','Bayesian',{space,w_prior,arp,a_prior,anova,contrast},'Bayesian Estimation');
 bayes_1 = ['[Bayesian] - model parameters are estimated using Variational Bayes. ',...
      'This allows you to specify spatial priors for regression coefficients ',...
      'and regularised voxel-wise AR(P) models for fMRI noise processes. ',...
@@ -556,7 +653,7 @@ cdir.help = {[...
 %     {block,bases,volt,cdir,rt,units,glob,cvi,mask},'fMRI design');
 
 conf = branch('FMRI Stats','fmri_stats',...
-    {units,block,bases,volt,cdir,rt,glob,mask,estim},'fMRI design');
+    {units,block,factors,bases,volt,cdir,rt,glob,mask,estim},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
 conf.check  = @check_dir;
@@ -846,6 +943,18 @@ for i = 1:numel(job.sess),
 
 end
 
+% Factorial design
+%-------------------------------------------------------------
+if isfield(job,'fact')
+    for i=1:length(job.fact)
+        SPM.factor(i).name=job.fact(i).name;
+        for j=1:length(job.fact(i).conds)
+            conds=job.fact(i).conds{j};
+            SPM.factor(i).level(j).conditions=sscanf(conds,'%d');
+        end
+    end
+end
+
 % Globals
 %-------------------------------------------------------------
 SPM.xGX.iGXcalc = job.global;
@@ -854,7 +963,9 @@ SPM.xGX.sGMsca  = 'session specific';
 
 % High Pass filter
 %-------------------------------------------------------------
-SPM.xX.K(1).HParam = job.sess(i).hpf;
+for i = 1:numel(job.sess),
+    SPM.xX.K(i).HParam = job.sess(i).hpf;
+end
 
 % Autocorrelation
 %-------------------------------------------------------------
@@ -926,10 +1037,19 @@ if ~classical
         SPM.PPM.priors.SY=job.estim.Method.Bayesian.noise.tissue_type;
     end
     
+    % Set up contrasts for 2nd-level ANOVA
+    if strcmp(job.estim.Method.Bayesian.anova.second,'Yes')
+        disp('Not yet implemented !');
+        xCon=[];
+    else
+        xCon=[];
+    end
+    anova_cons=length(xCon);
+    
     % Set up contrasts
     ncon=length(job.estim.Method.Bayesian.gcon);
     K=size(SPM.xX.X,2);
-    for c = 1:ncon,
+    for c = 1+anova_cons:ncon+anova_cons,
         xCon(c).name = job.estim.Method.Bayesian.gcon(c).name;
         convec=sscanf(job.estim.Method.Bayesian.gcon(c).convec,'%f');
         if length(convec)==K
@@ -950,12 +1070,26 @@ if ~classical
 
 end
 
+if ~classical
+    if strcmp(job.estim.Method.Bayesian.anova.first,'Yes')
+        bayes_anova=1;
+    end
+end
+
 if strcmp(job.estim.when,'At Run Time')
     if classical
         SPM = spm_spm(SPM);
     else
+        if bayes_anova
+            SPM.PPM.update_F=1; % Compute evidence for each model
+            SPM.PPM.compute_det_D=1; 
+        end
         SPM = spm_spm_vb(SPM);
     end
+end
+
+if bayes_anova
+    spm_vb_ppm_anova(SPM);
 end
 
 my_cd(original_dir); % Change back

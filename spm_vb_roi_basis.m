@@ -1,6 +1,6 @@
-function [F,pm] = spm_vb_roi (VOI_fname,SPM,bases,model)
-% Compare sp_glm_ar models for a cluster of interest
-% FORMAT [F,pm] = spm_vb_roi (VOI_fname,SPM,bases,model)
+function [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
+% Compare Hemodynamic Basis sets for a cluster of interest
+% FORMAT [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
 %
 % VOI_fname     VOI filename
 % SPM           SPM data structure

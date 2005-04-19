@@ -10,7 +10,8 @@ function [SPM] = spm_spm_vb(SPM)
 %            Inference for fMRI time series. NeuroImage 19, pp 727-741.
 %
 % Paper VB2: W.Penny, N. Trujillo-Barreto and K. Friston (2005). Bayesian fMRI 
-%            time series analysis with spatial priors. Submitted to NeuroImage.
+%            time series analysis with spatial priors. NeuroImage 24(2), pp
+%            350-362.
 %
 % Paper VB3: W.Penny and G. Flandin (2005). Bayesian analysis of single-subject fMRI: 
 %            SPM implementation. Technical Report. WDIN, UCL.
@@ -360,23 +361,25 @@ VPsd(1:nPsd)        = deal(struct(...
 for i = 1:nPsd
 	VPsd(i).fname   = sprintf('SDbeta_%04d.img',i);
 	VPsd(i).descrip = sprintf('Posterior SD of beta (%04d)',i);
-	spm_unlink(VPsd(i).fname)
+	spm_unlink(VPsd(i).fname);
 end
 VPsd   = spm_create_vol(VPsd);
 
 % Initialise AR images
 for s=1:nsess,
-    SPM.PPM.Sess(s).VAR(1:SPM.PPM.AR_P)        = deal(struct(...
-        'fname',	[],...
+    for i = 1:SPM.PPM.AR_P,
+        SPM.PPM.Sess(s).VAR(i) = deal(struct(...
+        'fname',	'',...
         'dim',		DIM',...
         'dt',		[spm_type('float32') spm_platform('bigend')],...
         'mat',		M,...
         'pinfo',	[1 0 0]',...
-        'descrip',	''));
-    for i = 1:SPM.PPM.AR_P
+        'descrip',	'',...
+        'n',        1,...
+        'private',  []));
         SPM.PPM.Sess(s).VAR(i).fname   = sprintf('Sess%d_AR_%04d.img',s,i);
         SPM.PPM.Sess(s).VAR(i).descrip = sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
-        spm_unlink(SPM.PPM.Sess(s).VAR(i).fname)
+        spm_unlink(SPM.PPM.Sess(s).VAR(i).fname);
     end
     SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR);
 end
