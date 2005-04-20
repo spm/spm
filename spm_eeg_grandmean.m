@@ -98,9 +98,9 @@ Do.fname = ['g' D{1}.fname];
 D = Do;
 
 if str2num(version('-release'))>=14
-    save(fullfile(P, D.fname), '-V6', 'D');
+    save(fullfile(D.path, D.fname), '-V6', 'D');
 else
-    save(fullfile(P, D.fname), 'D');
+    save(fullfile(D.path, D.fname), 'D');
 end
 
 
