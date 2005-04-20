@@ -31,7 +31,8 @@ function D = spm_eeg_TF_images(S)
 try
 	D = S.D;
 catch
-	D = spm_get(1, '.mat', 'Select EEG mat file');
+	D = spm_select(inf, '\.mat$', 'Select EEG mat file');
+
 end
 P = spm_str_manip(D, 'H');
 
@@ -151,5 +152,7 @@ if isfield(D, 'Nfrequencies');
 			pause
 	end
 else
-	spm_eeg_convertmat2ana;
+    clear S;
+    S.Fname = fullfile(D.path, D.fname);
+	spm_eeg_convertmat2ana(S);
 end
