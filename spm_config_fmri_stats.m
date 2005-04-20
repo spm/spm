@@ -1070,6 +1070,7 @@ if ~classical
 
 end
 
+bayes_anova=0;
 if ~classical
     if strcmp(job.estim.Method.Bayesian.anova.first,'Yes')
         bayes_anova=1;

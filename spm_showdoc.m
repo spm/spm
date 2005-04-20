@@ -1,8 +1,7 @@
 function spm_showdoc(c)
 % Show SPM documentation
 %
-% This function extracts and displays a load of documentation about the
-% things that are entered into SPM.
+% This function extracts and displays SPM documentation.
 %
 % Example usage:
 %   diary('spmdoc.txt'); spm_showdoc; diary off
