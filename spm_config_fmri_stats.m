@@ -851,7 +851,12 @@ if strcmp(fieldnames(job.bases),'hrf')
         error('Unrecognized hrf derivative choices.')
     end
 else
-    nam = fieldnames(job.bases);
+    nambase = fieldnames(job.bases);
+    if isstr(nambase)
+        nam=nambase;
+    else
+        nam=nambase{1};
+    end
     switch nam,
         case 'fourier',
             SPM.xBF.name = 'Fourier set';
@@ -1035,36 +1040,78 @@ if ~classical
         SPM.PPM.priors.SY=job.estim.Method.Bayesian.noise.tissue_type;
     end
     
+    % Define an empty contrast
+    NullCon.name=[];
+    NullCon.c=[];
+    NullCon.STAT = 'P';
+    NullCon.X0=[];
+    NullCon.iX0=[];
+    NullCon.X1o=[];
+    NullCon.eidf=1;
+    NullCon.Vcon=[];
+    NullCon.Vspm=[];
+        
+    SPM.xCon=[];
     % Set up contrasts for 2nd-level ANOVA
     if strcmp(job.estim.Method.Bayesian.anova.second,'Yes')
-        disp('Not yet implemented !');
-        xCon=[];
-    else
-        xCon=[];
+        cons=spm_design_contrasts(SPM);
+        for i=1:length(cons),
+            % Create a simple contrast for each row of each F-contrast
+            % The resulting contrast image can be used in a 2nd-level analysis
+            Fcon=cons(i).c;
+            nrows=size(Fcon,1);
+            STAT='P';
+            for r=1:nrows,
+                con=Fcon(r,:);     
+                
+                % Normalise contrast st. sum of positive elements is 1
+                % and sum of negative elements  is 1
+                s1=length(find(con==1));
+                con=con./s1;
+                
+                % Change name 
+                str=cons(i).name;
+                sp1=min(find(str==' '));
+                if strcmp(str(1:11),'Interaction')
+                    name=['Positive ',str,'_',int2str(r)];
+                else
+                    name=['Positive',str(sp1:end),'_',int2str(r)];
+                end
+                
+                DxCon=NullCon;
+                DxCon.name=name;
+                DxCon.c=con';
+                
+                if isempty(SPM.xCon),
+                    SPM.xCon = DxCon;
+                else
+                    SPM.xCon(end+1) = DxCon;
+                end
+            end
+        end
     end
-    anova_cons=length(xCon);
     
-    % Set up contrasts
+    % Set up user-specified simple contrasts
     ncon=length(job.estim.Method.Bayesian.gcon);
     K=size(SPM.xX.X,2);
-    for c = 1+anova_cons:ncon+anova_cons,
-        xCon(c).name = job.estim.Method.Bayesian.gcon(c).name;
+    for c = 1:ncon,
+        DxCon=NullCon;
+        DxCon.name = job.estim.Method.Bayesian.gcon(c).name;
         convec=sscanf(job.estim.Method.Bayesian.gcon(c).convec,'%f');
         if length(convec)==K
-            xCon(c).c = convec;
+            DxCon.c = convec;
         else
             disp('Error in spm_config_fmri_stats: contrast does not match design');
             return
         end
-        xCon(c).STAT = 'P';
-        xCon(c).X0=[];
-        xCon(c).iX0=[];
-        xCon(c).X1o=[];
-        xCon(c).eidf=1;
-        xCon(c).Vcon=[];
-        xCon(c).Vspm=[];
+        
+        if isempty(SPM.xCon),
+            SPM.xCon = DxCon;
+        else
+            SPM.xCon(end+1) = DxCon;
+        end;
     end
-    SPM.xCon=xCon;
+    
 
 end
 
@@ -1119,11 +1166,20 @@ if classical & isfield(SPM,'factor')
         % Create a t-contrast for each row of each F-contrast
         % The resulting contrast image can be used in a 2nd-level analysis
         Fcon=cons(i).c;
-        nrows=size(con,1);
+        nrows=size(Fcon,1);
         STAT='T';
         for r=1:nrows,
             con=Fcon(r,:);     
-            name=[cons(i).name,'_',int2str(r)];
+            
+            % Change name 
+            str=cons(i).name;
+            sp1=min(find(str==' '));
+            if strcmp(str(1:11),'Interaction')
+                name=['Positive ',str,'_',int2str(r)];
+            else
+                name=['Positive',str(sp1:end),'_',int2str(r)];
+            end
+            
             [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
             if all(I)
                 DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);

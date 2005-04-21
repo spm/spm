@@ -20,8 +20,9 @@ function [con] = spm_design_contrasts (SPM)
 % Will Penny
 % $Id$
 
-s=1;
-disp('Warning: spm_design_contrasts only works for single session data');
+if length(SPM.Sess) > 1
+    disp('Warning: spm_design_contrasts only works for single session data');
+end
 
 nf=length(SPM.factor);
 k1=SPM.factor(1).levels;
