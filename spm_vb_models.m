@@ -5,8 +5,9 @@ function [model] = spm_vb_models (SPM,factor)
 % SPM       SPM structure
 % factor    Structure specifying factors and levels
 %           factor(i).name                  Name of ith factor
-%           factor(i).level(j).conditions   The conditions for jth level
-%                                           of ith factor
+%           factor(i).levels                Number of levels
+%           It is assumed that the levels of the first factor change
+%           slowest with condition
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -14,7 +15,20 @@ function [model] = spm_vb_models (SPM,factor)
 % $Id$
 
 nf=length(factor); % Number of factors
+k1=factor(1).levels
+if nf==2
+    k2=factor(2).levels;
+end
+
 NC=length(SPM.Sess(1).U); % Number of conditions
+
+if ~(k1*k2==NC)
+    disp('Error in spm_vb_models: factors do not match conditions');
+    return
+end
+% Get contingency table - factor 1 levels on rows, factor 2 levels on columns
+ctable=reshape([1:1:NC],k2,k1);
+
 dt=SPM.Sess(1).U(1).dt;
 P=SPM.Sess(1).U(1).P;
 
@@ -47,14 +61,14 @@ if nf==2
     
     % Create model for factor A
     model(3).name=factor(1).name;
-    nA=length(factor(1).level);
+    nA=factor(1).levels;
     for i=1:nA,
         % Has as many inputs as levels of factor A
         ons=[];dur=[];
-        nAi=length(factor(1).level(i).conditions);
+        nAi=factor(2).levels;
         for j=1:nAi,
             % Concatenate inputs from relevant conditions
-            c=factor(1).level(i).conditions(j);
+            c=ctable(i,j);
             ons=[ons;SPM.Sess(1).U(c).ons];
             dur=[dur;SPM.Sess(1).U(c).dur];
         end
@@ -67,14 +81,14 @@ if nf==2
     
     % Create model for factor B
     model(4).name=factor(2).name;
-    nB=length(factor(2).level);
+    nB=factor(2).levels;
     for i=1:nB,
         % Has as many inputs as levels of factor A
         ons=[];dur=[];
-        nBi=length(factor(2).level(i).conditions);
+        nBi=factor(1).levels;
         for j=1:nBi,
             % Concatenate inputs from relevant conditions
-            c=factor(2).level(i).conditions(j);
+            c=ctable(j,i);
             ons=[ons;SPM.Sess(1).U(c).ons];
             dur=[dur;SPM.Sess(1).U(c).dur];
         end

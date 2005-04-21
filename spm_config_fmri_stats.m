@@ -265,28 +265,15 @@ fname.strtype = 's';
 fname.num     = [1 1];
 fname.help    = {'Name of factor'};
 
-cond.type    = 'entry';
-cond.name    = 'Level';
-cond.tag     = 'conds';
-cond.strtype = 's';
-cond.num     = [1 1];
-p1=['Enter the numbers of the experimental conditions for this level ',...
-    'of this factor (the conditions are numbered in the order you enter them) ',...
-    'This is best done by writing down the contingency table for your factorial ',...
-    'design. This relates the numbers of the conditions to the levels of the factors. '];
-p2=['For example, if you have four conditions and a two-by-two factorial design ',...
-    'then you have a two-by-two contingency table with eg. conditions 1 and 2 ',...
-    'in the first row and conditions 3 and 4 in the second. Factor 1 would eg. ',...
-    'span the rows and Factor 2 the columns. Then, the entries for Factor 1, Level 1 ',...
-    'would be [1 2], Factor 1, Level 2 = [3 4], Factor 2, Level 1 = [1 3], ',...
-    'Factor 2, Level 2 = [2 4].'];
-cond.help    = {p1,sp_text,p2};
+% arp   = entry('AR model order','ARP','e',[Inf 1],'Enter AR model order');
+% arp.val={3};
+% p1=['An AR model order of 3 is recommended'];
+% arp.help={p1};
 
-levels.type = 'repeat'; 
-levels.name = 'Levels';
-levels.tag  = 'level';
-levels.values  = {cond};
-levels.help ={'Add a new level to this factor'};
+levels = entry('Levels','levels','e',[Inf 1],''); 
+levels.val = {2};
+p1=['Enter number of levels for this factor'];
+levels.help ={p1};
 
 factor.type   = 'branch';
 factor.name   = 'Factor';
@@ -304,7 +291,16 @@ p2 = ['This includes the models/F-contrasts necessary to test for these effects 
       'the within-subject level (first level) and the simple contrasts necessary ',...
       'to generate the contrast images for a between-subject (second-level) ',...
       'analysis.'];
-factors.help ={p1,sp_text,p2};
+p3 = ['To use this option you should know that the conditions are numbered ',...
+      'in the order you enter them. You should also write down the contingency ',...
+      'table for your design. The table relates the levels of each factor to the ',...
+      ' conditions. If you have C conditions and a k1-by-k2 design ',...
+      ' your contingency table is given by the transpose of reshape([1:1:C],k2,k1) ',...
+      ' (try entering this at the matlab command prompt). The ',...
+      'levels of the first factor are then given by the rows, and the levels of ',...
+      'the second factor by the columns.'];
+  
+factors.help ={p1,sp_text,p2,sp_text,p3};
     
 %-------------------------------------------------------------------------
 
@@ -352,14 +348,12 @@ cvi.help = {p1,p2,p3};
  
 % Bayesian estimation over slices or whole volume ?
 
-
 slices  = entry('Slices','Slices','e',[Inf 1],'Enter Slice Numbers');
 
 volume  = struct('type','const','name','Volume','tag','Volume','val',{{1}});
 p1=['You have selected the Volume option. SPM will analyse fMRI ',...
     'time series in all slices of each volume.'];
 volume.help={p1};
-
 
 space   = choice('Analysis Space','space',{volume,slices},'Analyse whole volume or selected slices only');
 space.val={volume};
@@ -946,12 +940,16 @@ end
 % Factorial design
 %-------------------------------------------------------------
 if isfield(job,'fact')
+    NC=length(SPM.Sess(1).U); % Number of conditions
+    CheckNC=1;
     for i=1:length(job.fact)
         SPM.factor(i).name=job.fact(i).name;
-        for j=1:length(job.fact(i).conds)
-            conds=job.fact(i).conds{j};
-            SPM.factor(i).level(j).conditions=sscanf(conds,'%d');
-        end
+        SPM.factor(i).levels=job.fact(i).levels;
+        CheckNC=CheckNC*SPM.factor(i).levels;
+    end
+    if ~(CheckNC==NC)
+        disp('Error in fmri_stats job: factors do not match conditions');
+        return
     end
 end
 
@@ -1091,6 +1089,28 @@ end
 
 if bayes_anova
     spm_vb_ppm_anova(SPM);
+end
+
+% Automatically set up contrasts for factorial designs
+if classical & isfield(SPM,'factor')
+    cons=spm_design_contrasts(SPM);
+    for i=1:length(cons),
+        con=cons(i).c;
+        name=cons(i).name;
+        STAT='F';
+        [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
+        if all(I)
+            DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
+        else
+            DxCon = [];
+        end
+        if isempty(SPM.xCon),
+            SPM.xCon = DxCon;
+        else
+            SPM.xCon(end+1) = DxCon;
+        end;
+        spm_contrasts(SPM,length(SPM.xCon));
+    end
 end
 
 my_cd(original_dir); % Change back
