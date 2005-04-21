@@ -66,40 +66,26 @@ if isempty(P),
 	V = [];
 	return;
 end;
-for i=1:size(P,1),
-    v = subfunc(P(i,:));
-    if isempty(v),
-        hread_error_message(P(i,:));
-        error(['Can''t get volume information for ''' P(i,:) '''']);
-    end;
 
-    f = fieldnames(v);
-    for j=1:size(f,1),
-        V(i).(f{j}) = v.(f{j});
-    end;
-end;
-
-if 0,
 counter = 0;
 for i=1:size(P,1),
-	v = subfunc(P(i,:));
+    v = subfunc(P(i,:));
 	[V(counter+1:counter+size(v, 2),1).fname] = deal('');
 	[V(counter+1:counter+size(v, 2),1).mat] = deal([0 0 0 0]);
 	[V(counter+1:counter+size(v, 2),1).mat] = deal(eye(4));
 	[V(counter+1:counter+size(v, 2),1).mat] = deal([1 0 0]');
-	if isempty(v),
-		hread_error_message(P(i,:));
-		error(['Can''t get volume information for ''' P(i,:) '''']);
-	end;
-    
-	f = fieldnames(v);
-	for j=1:size(f,1),
+    if isempty(v),
+        hread_error_message(P(i,:));
+        error(['Can''t get volume information for ''' P(i,:) '''']);
+    end
+
+    f = fieldnames(v);
+	for j=1:size(f,1)
 		eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
-		%V(i) = setfield(V(i),f{j},getfield(v,f{j}));
-	end;
+    end
 	counter = counter + size(v,2);
-end;
-end;
+end
+
 return;
 
 function V = subfunc(p)
@@ -121,6 +107,15 @@ p = fullfile(pth,[nam   ext]);
 if strcmp(ext,'.nii') || (strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2),
 	if isempty(n), V = spm_vol_nifti(p);
 	else,          V = spm_vol_nifti(p,n); end;
+    
+    if isempty(n) & length(V.private.dat.dim) > 3
+        V0(1) = V;
+        for i = 2:V.private.dat.dim(4)
+            V0(i) = spm_vol_nifti(p, i);
+        end
+        V = V0;
+    end
+
 	if ~isempty(V), return; end;
 
 else, % Try other formats
