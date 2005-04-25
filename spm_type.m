@@ -26,7 +26,7 @@ function T = spm_type(x, arg)
 
 
 
-prec = str2mat('uint8','int16','int32','float32','float64','int8','uint16','uint32');
+prec = char('uint8','int16','int32','float32','float64','int8','uint16','uint32');
 types   = [    2      4      8   16   64   256    512    768];
 maxval  = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1];
 minval  = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0];

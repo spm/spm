@@ -299,7 +299,7 @@ function varargout=spm(varargin)
 
 %-Parameters
 %-----------------------------------------------------------------------
-Modalities = str2mat('PET','FMRI','EEG');
+Modalities = char('PET','FMRI','EEG');
 
 %-Format arguments
 %-----------------------------------------------------------------------
