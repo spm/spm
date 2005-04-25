@@ -152,7 +152,7 @@ function varargout=spm_XYZreg(varargin)
 % FORMAT hReg = spm_XYZreg('FindReg',h)
 % Find/check registry object
 % h    - handle of Registry, or figure containing Registry (default gcf)
-%        If isstr(h), then uses spm_figure('FindWin',h) to locate named figures
+%        If ischar(h), then uses spm_figure('FindWin',h) to locate named figures
 % hReg - handle of confirmed registry object
 %        Errors if h is not a registry or a figure containing a unique registry
 %        Registry object is identified by 'hReg' 'Tag'
@@ -714,7 +714,7 @@ case 'findreg'			% Find/check registry object
 %=======================================================================
 % hReg = spm_XYZreg('FindReg',h)
 if nargin<2, h=get(0,'CurrentFigure'); else, h=varargin{2}; end
-if isstr(h), h=spm_figure('FindWin',h); end
+if ischar(h), h=spm_figure('FindWin',h); end
 if ~ishandle(h), error('invalid handle'), end
 if ~strcmp(get(h,'Tag'),'hReg'), h=findobj(h,'Tag','hReg'); end
 if isempty(h), error('Registry object not found'), end

@@ -50,7 +50,7 @@ end
 %-Write log
 %-----------------------------------------------------------------------
 for arg = 1:nargin
-	if isstr(varargin{arg})
+	if ischar(varargin{arg})
 		Str = cellstr(varargin{arg});
 	elseif isempty(varargin{arg})
 	        Str = {'[]'};

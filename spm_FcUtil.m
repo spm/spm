@@ -172,10 +172,10 @@ if nargout > 1, error('Too many output arguments Set'), end;
 
 %-check arguments...
 %--------------------------------------------------------------------------
-if ~isstr(varargin{2}), error('~isstr(name)'), end;
+if ~ischar(varargin{2}), error('~ischar(name)'), end;
 if ~(varargin{3}=='F'|varargin{3}=='T'|varargin{3}=='P'), 
 	error('~(STAT==F|STAT==T|STAT==P)'), end;
-if ~isstr(varargin{4}), error('~isstr(varargin{4})'); 
+if ~ischar(varargin{4}), error('~ischar(varargin{4})'); 
 else set_action = varargin{4}; end;
 
 sX = varargin{6};

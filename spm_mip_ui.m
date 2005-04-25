@@ -153,7 +153,7 @@ function varargout=spm_mip_ui(varargin)
 %=======================================================================
 if nargin==0
 	error('Insufficient arguments')
-elseif ~isstr(varargin{1})
+elseif ~ischar(varargin{1})
 	varargout={spm_mip_ui('Display',varargin{1:end})}; return
 end
 
@@ -186,7 +186,7 @@ if nargin<5
 	hMIPax = [];
 else
 	F = varargin{6};
-	if isstr(F), F=spm_figure('FindWin',F); end
+	if ischar(F), F=spm_figure('FindWin',F); end
 	if ~ishandle(F), error('Invalid handle'), end
 	switch get(F,'Type'), case 'figure'
 		hMIPax = [];
@@ -482,7 +482,7 @@ case 'findmipax'
 % Checks / finds hMIPax handles
 %-**** h is handle of hMIPax, or figure containing MIP (default gcf)
 if nargin<2, h=get(0,'CurrentFigure'); else, h=varargin{2}; end
-if isstr(h), h=spm_figure('FindWin',h); end
+if ischar(h), h=spm_figure('FindWin',h); end
 if ~ishandle(h), error('invalid handle'), end
 if ~strcmp(get(h,'Tag'),'hMIPax'), h=findobj(h,'Tag','hMIPax'); end
 if isempty(h), error('MIP axes not found'), end

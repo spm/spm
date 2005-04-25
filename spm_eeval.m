@@ -176,8 +176,8 @@ elseif length(i)==1 & prod(n)>1
 end
 
 %-Check size of i & #conditions
-if ~isstr(i), [i,msg] = sf_SzChk(i,n,msg); end
-if ~isstr(i) & isfinite(m) & length(unique(i))~=m
+if ~ischar(i), [i,msg] = sf_SzChk(i,n,msg); end
+if ~ischar(i) & isfinite(m) & length(unique(i))~=m
     i = '!'; msg = sprintf('%d conditions required',m);
 end
 return;

@@ -1419,7 +1419,7 @@ case 'parsecon'                       %-Parse (cell)string into contrast
     elseif iscell(cstr)
         if size(cstr,1)~=1, cstr=cstr(:); end
         c    = cstr;
-    elseif isstr(cstr)
+    elseif ischar(cstr)
         cstr = cellstr(cstr);
         c    = cstr;
     elseif isnumeric(cstr)
@@ -1437,10 +1437,10 @@ case 'parsecon'                       %-Parse (cell)string into contrast
     I   = zeros(size(c,1),1);
     msg = cell(size(c)); [msg{:}] = deal(' (OK)');
     for i=1:size(c,1)
-        if isstr(c{i})
+        if ischar(c{i})
             c{i} = evalin('base',['[',c{i},']'],'''!''');
         end
-        if isstr(c{i})
+        if ischar(c{i})
             msg{i} = '!evaluation error';
         else
             if isempty(c{i})
@@ -1465,7 +1465,7 @@ case 'parsecon'                       %-Parse (cell)string into contrast
                 end
             end
         end
-        I(i)=~isstr(c{i});
+        I(i)=~ischar(c{i});
     end
     
     %-Construct contrast matrix, validity indicator, and collate parsing messages
@@ -1502,7 +1502,7 @@ case 'parseistr'                     %-Parse index string
     %-----------------------------------------------------------------------
     I = evalin('base',['[',str,']'],'''!''');
     
-    if isstr(I)
+    if ischar(I)
         varargout = {'!',0,[str,'  <- !evaluation error'],''};
         return
     end

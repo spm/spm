@@ -852,7 +852,7 @@ if strcmp(fieldnames(job.bases),'hrf')
     end
 else
     nambase = fieldnames(job.bases);
-    if isstr(nambase)
+    if ischar(nambase)
         nam=nambase;
     else
         nam=nambase{1};

@@ -208,7 +208,7 @@ SCCSid = '$Rev$';
 % FORMAT hFxyz = spm_results_ui('FindXYZframe',h)
 % Find/check XYZ edit widgets frame handle, 'Tag'ged 'hFxyz'
 % h     - handle of frame enclosing widgets, or containing figure [default gcf]
-%         If isstr(h), then uses spm_figure('FindWin',h) to locate named figures
+%         If ischar(h), then uses spm_figure('FindWin',h) to locate named figures
 % hFxyz - handle of confirmed XYZ editable widgets control
 %         Errors if hFxyz is not an XYZ widget control, or a figure containing
 %         a unique such control
@@ -805,7 +805,7 @@ case 'findxyzframe'                                   % Find hFxyz frame
 % hFxyz = spm_results_ui('FindXYZframe',h)
 % Sorts out hFxyz handles
 if nargin<2, h='Interactive'; else, h=varargin{2}; end
-if isstr(h), h=spm_figure('FindWin',h); end
+if ischar(h), h=spm_figure('FindWin',h); end
 if ~ishandle(h), error('invalid handle'), end
 if ~strcmp(get(h,'Tag'),'hFxyz'), h=findobj(h,'Tag','hFxyz'); end
 if isempty(h), error('XYZ frame not found'), end

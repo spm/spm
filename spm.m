@@ -1203,7 +1203,7 @@ if isempty(Modality)
 	if isfield(defaults,'modality'), Modality = defaults.modality;
 	else, Modality = 'UNKNOWN'; end
 end
-if isstr(Modality)
+if ischar(Modality)
     ModNum = find(all(Modalities(:,1:length(Modality))'==...
         Modality'*ones(1,size(Modalities,1))));
 else

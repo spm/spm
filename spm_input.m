@@ -753,7 +753,7 @@ if CmdLine                                   %-Use CmdLine to get answer
 		if isempty(str), str=DefStr; end
 		[p,msg] = sf_eEval(str,Type,n,m);
 
-		while isstr(p)
+		while ischar(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
 			if isempty(str), str=DefStr; end
@@ -844,7 +844,7 @@ else                                             %-Use GUI to get answer
 		p = cellstr(str); msg = '';
 	otherwise
 		[p,msg] = sf_eEval(str,Type,n,m);
-		while isstr(p)
+		while ischar(p)
 			set(h,'Style','Text',...
 				'String',msg,'HorizontalAlignment','Center',...
 				'ForegroundColor','r')
@@ -1160,7 +1160,7 @@ if CmdLine
 	%---------------------------------------------------------------
 	if ~isempty(DefItem)
 		[DefVal,msg] = sf_eEval(DefStr,Type(2),1);
-		if isstr(DefVal), error(['Invalid DefItem: ',msg]), end
+		if ischar(DefVal), error(['Invalid DefItem: ',msg]), end
 		Labels  = strvcat(Labels,DefStr);
 		Values  = [Values;DefVal];
 		DefItem = size(Labels,1);
@@ -1242,7 +1242,7 @@ if CmdLine
 	
 		%-Eval in Base workspace, catch errors
 		[p,msg] = sf_eEval(str,Type(2),1,m);
-		while isstr(p)
+		while ischar(p)
 			spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
 			str = input([Prompt,' : '],'s');
 			if isempty(str), str=DefStr; end
@@ -1347,14 +1347,14 @@ else
 	if ~ishandle(hPrmpt), error(['Input objects cleared whilst waiting ',...
 		'for response: Bailing out!']), end
 	p = get(hPrmpt,'UserData');
-	if ~isstr(p)
+	if ~ischar(p)
 		k = p;
 		p = Values(k,:); if ischar(p), p=deblank(p); end
 	else
 		Labels  = strvcat(Labels,'specify...');
 		k       = size(Labels,1);
 		[p,msg] = sf_eEval(p,Type(2),1,m);
-		while isstr(p)
+		while ischar(p)
 			set(H,'Visible','off')
 			h = uicontrol('Style','Text','String',msg,...
 				'Horizontalalignment','Center',...
@@ -1367,7 +1367,7 @@ else
 			if ~ishandle(hPrmpt), error(['Input objects cleared ',...
 				'whilst waiting for response: Bailing out!']),end
 			p = get(hPrmpt,'UserData');
-			if isstr(p), [p,msg] = sf_eEval(p,Type(2),1,m); end
+			if ischar(p), [p,msg] = sf_eEval(p,Type(2),1,m); end
 		end
 	end
 
@@ -1708,8 +1708,8 @@ elseif length(i)==1 & prod(n)>1
 end
 
 %-Check size of i & #conditions
-if ~isstr(i), [i,msg] = sf_SzChk(i,n,msg); end
-if ~isstr(i) & isfinite(m) & length(unique(i))~=m
+if ~ischar(i), [i,msg] = sf_SzChk(i,n,msg); end
+if ~ischar(i) & isfinite(m) & length(unique(i))~=m
 	i = '!'; msg = sprintf('%d conditions required',m);
 end
 
@@ -2188,14 +2188,14 @@ case 's'
 	p = str; msg = '';
 case 'e'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	else
 		[p,msg] = sf_SzChk(p,n);
 	end
 case 'n'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<1)|~isreal(p)
 		p='!'; msg='natural number(s) required';
@@ -2206,7 +2206,7 @@ case 'n'
 	end
 case 'w'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:)|p(:)<0)|~isreal(p)
 		p='!'; msg='whole number(s) required';
@@ -2217,7 +2217,7 @@ case 'w'
 	end
 case 'i'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	elseif any(floor(p(:))~=p(:))|~isreal(p)
 		p='!'; msg='integer(s) required';
@@ -2226,7 +2226,7 @@ case 'i'
 	end
 case 'p'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	elseif length(setxor(p(:)',m))
 		p='!'; msg='invalid permutation';
@@ -2235,7 +2235,7 @@ case 'p'
 	end
 case 'r'
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	elseif ~isreal(p)
 		p='!'; msg='real number(s) required';
@@ -2258,7 +2258,7 @@ case 'x'
 	end
 
 	p = evalin('base',['[',str,']'],'''!''');
-	if isstr(p)
+	if ischar(p)
 		msg = 'evaluation error';
 	else
 		if isfinite(n(2)) & size(p,2)<n(2)
@@ -2316,7 +2316,7 @@ if nargin<3, msg=''; end
 if nargin<2, n=[]; end, if isempty(n), n=NaN; else, n=n(:)'; end
 if nargin<1, error('insufficient arguments'), end
 
-if isstr(p) | any(isnan(n(:))), return, end
+if ischar(p) | any(isnan(n(:))), return, end
 if length(n)==1, n=[n,1]; end
 
 dn = length(n);

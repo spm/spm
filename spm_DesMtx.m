@@ -624,7 +624,7 @@ nX   = []; nPnames = {}; Carg = 2;
 while(Carg <= nargin)
     rX = varargin{Carg}; Carg=Carg+1;
     if Carg<=nargin & ~isempty(varargin{Carg}) & ...
-    		(isstr(varargin{Carg}) | iscellstr(varargin{Carg}))
+    		(ischar(varargin{Carg}) | iscellstr(varargin{Carg}))
 	rPnames = char(varargin{Carg}); Carg=Carg+1;
     else	%-No names to work out blocks from - normalise by column
 	rPnames = repmat('<UnSpec>',size(rX,2),1);

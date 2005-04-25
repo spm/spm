@@ -276,7 +276,7 @@ for i = length(C):-1:1
     if isempty(c.Tag) || strcmp(c.Tag, 'Modality') || ~isempty(strfind(c.Tag, modality))
         if strcmp(c.Type,'uicontrol')
 
-            if isstr(c.UserData)
+            if ischar(c.UserData)
                 Callback = sprintf('spm_help(''%s'')',c.UserData);
             else
                 Callback = '';
