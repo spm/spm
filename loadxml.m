@@ -23,12 +23,9 @@ function varargout = loadxml(filename,varargin)
 %  See also LOAD, XML2MAT, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  INRIA Sophia Antipolis / CEA-SHFJ
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+%  $Revision: 1.0 $  $Date: 2003/07/10 13:50 $
 
-%  Guillaume Flandin
-% $Id$
-
+%  $Id$
 
 if nargin == 0
 	filename = 'matlab.xml';
@@ -64,7 +61,7 @@ for i=1:length(uid)
 	if strcmp(get(t,uid(i),'type'),'element')
 		vname = get(t,uid(i),'name');
 		% TODO % No need to parse the whole tree 
-		if isempty(varargin) || ismember(varargin,vname)
+		if isempty(varargin) | ismember(varargin,vname)
 			v = xml_create_var(t,uid(i));
 			if nargout == 1
 				if flagfirstvar

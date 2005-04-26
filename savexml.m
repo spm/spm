@@ -19,12 +19,9 @@ function savexml(filename, varargin)
 %  See also SAVE, MAT2XML, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  INRIA Sophia Antipolis / CEA-SHFJ
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+%  $Revision: 1.0 $  $Date: 2003/07/10 13:50 $
 
-%  Guillaume Flandin
-% $Id$
-
+%  $Id$
 
 if nargin == 0
 	filename = 'matlab.xml';
@@ -54,7 +51,8 @@ if strcmpi(varargin{end},'-append')
 		% TODO % No need to parse the whole tree ? detect duplicate variables ?
 		t = xmltree(filename);
 	else
-		error('[SAVEXML] Unable to write file %s: file does not exist.',filename);
+		error(sprintf(...
+		'[SAVEXML] Unable to write file %s: file does not exist.',filename));
 	end
 else
 	t = xmltree('<matfile/>');
@@ -94,7 +92,7 @@ function t = xml_var2xml(t,v,uid)
 			t = add(t,uid2,'chardata',xml_num2str(s));
 		case 'struct'
 			names = fieldnames(v);
-			for j=1:numel(v)
+			for j=1:prod(size(v))
 				for i=1:length(names)
 					[t, uid2] = add(t,uid,'element',names{i});
 					t = attributes(t,'add',uid2,'index',num2str(j));
@@ -106,7 +104,7 @@ function t = xml_var2xml(t,v,uid)
 				end
 			end
 		case 'cell'
-			for i=1:numel(v)
+			for i=1:prod(size(v))
 				[t, uid2] = add(t,uid,'element','cell'); 
 				% TODO % special handling of cellstr ?
 				t = attributes(t,'add',uid2,'index',num2str(i));
@@ -125,7 +123,8 @@ function t = xml_var2xml(t,v,uid)
 				% TODO % is CData necessary for class output ?
 				t = add(t,uid,'cdata',serialize(v));
 			else
-				warning('[SAVEXML] Cannot convert from %s to XML.',class(v));
+				warning(sprintf(...
+				'[SAVEXML] Cannot convert from %s to XML.',class(v)));
 			end
 	end
 
