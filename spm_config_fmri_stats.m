@@ -1135,6 +1135,9 @@ if strcmp(job.estim.when,'At Run Time')
 end
 
 if bayes_anova
+    % We don't want to estimate contrasts for each different model
+    SPM.xCon=[];
+    
     spm_vb_ppm_anova(SPM);
 end
 
