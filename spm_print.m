@@ -1,4 +1,4 @@
-function spm_print
+function spm_print(fname)
 % Print the graphics window
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
@@ -21,14 +21,18 @@ try,
     t   = clock;
     nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d',t(3))];
 
-    if pd.append,
-        nam1 = fullfile(pwd,[nam pd.ext]);
-    else
-        nam1 = sprintf('%s_%3d',nam,1);
-        for i=1:100000,
-            nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
-            if ~exist(nam1,'file'), break; end;
+    if nargin<1,
+        if pd.append,
+            nam1 = fullfile(pwd,[nam pd.ext]);
+        else
+            nam1 = sprintf('%s_%3d',nam,1);
+            for i=1:100000,
+                nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
+                if ~exist(nam1,'file'), break; end;
+            end;
         end;
+    else
+        nam1 = fname;
     end;
     opts = {nam1,'-noui','-painters',pd.opt{:}};
     print(opts{:});

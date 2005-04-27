@@ -19,9 +19,7 @@ function varargout=spm_figure(varargin)
 % background "ContextMenu" - right-clicking on the figure background
 % should bring up the menu.)
 %
-% Print: Creates a footnote (detailing the SPM version, user & date)
-% and evaluates defaults.printstr (see spm_defaults.m). Graphics windows with
-% multi-page axes are printed page by page.
+% Print: Graphics windows with multi-page axes are printed page by page.
 %
 % Clear: Clears the Graphics window. If in SPM usage (figure 'Tag'ed as
 % 'Graphics') then all SPM windows are cleared and reset.
@@ -130,16 +128,11 @@ function varargout=spm_figure(varargin)
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
-% FORMAT str = spm_figure('DefPrintCmd')
-% Returns default print command for SPM, as a string
 %
 % FORMAT spm_figure('Print',F)
-% SPM print function: Appends footnote & executes PRINTSTR
 % F	- [Optional] Figure to print. ('Tag' or figure number)
 %	  Defaults to figure 'Tag'ed as 'Graphics'.
 %	  If none found, uses CurrentFigure if avaliable.
-% defaults.printstr - global variable holding print command to be evaluated
-%	  Defaults to 'print -dps2 fig.ps'
 % If objects 'Tag'ed 'NextPage' and 'PrevPage' are found, then the
 % pages are shown and printed in order. In breif, pages are held as
 % seperate axes, with ony one 'Visible' at any one time. The handles of
@@ -323,11 +316,6 @@ end
 set(F,'Pointer','Arrow')
 movegui(F);
 
-case 'defprintcmd'
-%=======================================================================
-% spm_figure('DefPrintCmd')
-varargout = {'print -dpsc2 -painters -append -noui '};
-
 
 case 'print'
 %=======================================================================
@@ -355,28 +343,19 @@ iPaged    = ~isempty(hNextPage);
 %-Construct print command
 %-----------------------------------------------------------------------
 
-%-Create footnote with SPM version, username, date and time (now removed).
-%-----------------------------------------------------------------------
-%FNote = sprintf('%s%s: %s',spm('ver'),spm('GetUser',' (%s)'),spm('time'));
-%-Delete old tag lines, and print new one
-%delete(findobj(F,'Tag','SPMprintFootnote'));
-%axes('Position',[0.005,0.005,0.1,0.1],...
-%	'Visible','off',...
-%	'Tag','SPMprintFootnote')
-%text(0,0,FNote,'FontSize',6);
-
 %-Temporarily change all units to normalized prior to printing
 % (Fixes bizzarre problem with stuff jumping around!)
 %-----------------------------------------------------------------------
 H  = findobj(get(F,'Children'),'flat','Type','axes');
-un = cellstr(get(H,'Units'));
-set(H,'Units','normalized')
-
+if ~isempty(H),
+    un = cellstr(get(H,'Units'));
+    set(H,'Units','normalized')
+end;
 
 %-Print
 %-----------------------------------------------------------------------
 if ~iPaged
-	do_print;
+	spm_print;
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -387,55 +366,14 @@ else
 		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
 		set(hPg{p,1},'Visible','on');
-		do_print;
+		spm_print;
 		set(hPg{p,1},'Visible','off')
 	end
 	set(hPg{Cpage,1},'Visible','on')
 	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
-set(H,{'Units'},un)
+if ~isempty(H), set(H,{'Units'},un); end;
 set(0,'CurrentFigure',cF)
-
-
-case 'printto'
-%=======================================================================
-% spm_figure('PrintTo',F)
-
-%-Arguments & defaults
-if nargin<2, F='Graphics'; else, F=varargin{2}; end
-
-%-Find window to print, default to gcf if specified figure not found
-% Return if no figures
-F=spm_figure('FindWin',F);
-if isempty(F), F = get(0,'CurrentFigure'); end
-if isempty(F), return, end
-
-global defaults;
-% Get probable file name
-invdefname=strtok(defaults.printstr(end:-1:1));
-
-% construct input dialog
-f=figure('Position',[get(0,'pointerlocation')+[-10 -20] 80 40], ...
-	'Menu','none', 'resize','off', 'Windowstyle','modal');
-h=uicontrol('Style','edit', 'parent',f, 'String',invdefname(end:-1:1), ...
-	'Position',[10 10 60 20], ...
-	'Callback',['spm_figure(''PrintToCB'',' num2str(F) ',' num2str(f) ');']);
-set(f,'CurrentObject',h);
-
-
-case 'printtocb'
-%=======================================================================
-% spm_figure('PrintToCB',F,H)
-
-F = varargin{2};
-H = varargin{3};
-
-global defaults;
-[tmp invprintstr]=strtok(defaults.printstr(end:-1:1));
-defaults.printstr=[invprintstr(end:-1:1) ' ' get(gcbo,'String')];
-spm_figure('print',F);
-close(H);
-
 
 case 'newpage'
 %=======================================================================
@@ -732,10 +670,8 @@ t2=uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
 t2=uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
 t2=uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
 t0=uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
-t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
-t1=uimenu( t0,'Label','Current print file','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
-t1=uimenu( t0,'Label','Other print file', 'HandleVisibility','off', ...
-	'CallBack',['spm_figure(''PrintTo'',' num2str(F) ');']);
+%t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
+t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
 
 % ### CODE FOR SATELLITE FIGURE ###
 % Code checks if there is a satellite window and if results are currently displayed
@@ -878,47 +814,3 @@ for F1=handles',
 end;
 return;
 %=======================================================================
-
-%=======================================================================
-function do_print
-%=======================================================================
-global defaults
-try,
-
-    if isfield(defaults,'ui') && isfield(defaults.ui,'print'),
-        pd = defaults.ui.print;
-    else
-        pd = struct('opt',{{'-dpsc2'  '-append'}},'append',true,'ext','.ps');
-    end;
-
-    mon = {'Jan','Feb','Mar','Apr','May','Jun',...
-            'Jul','Aug','Sep','Oct','Nov','Dec'};
-    t   = clock;
-    nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d\n',t(3))];
-
-    if pd.append,
-        nam1 = fullfile(pwd,[nam pd.ext]);
-    else
-        nam1 = sprintf('%s_%.3d',1);
-        for i=1:100000,
-            nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
-            if ~exist(nam1,'file'), break; end;
-        end;
-    end;
-    opts = {nam1,'-noui','-painters',pd.opt{:}};
-    print(opts{:});
-catch,
-    errstr = lasterr;
-    tmp = [find(abs(errstr)==10),length(errstr)+1];
-    str = {errstr(1:tmp(1)-1)};
-    for i = 1:length(tmp)-1
-        if tmp(i)+1 < tmp(i+1)
-            str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
-        end
-    end
-    str = {str{:},  '','- Print options are:', opts{:},...
-                    '','- Current directory is:',['    ',pwd],...
-                    '','            * nothing has been printed *'};
-    spm('alert!',str,'printing problem...',sqrt(-1));
-end;
-

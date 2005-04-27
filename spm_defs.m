@@ -178,7 +178,11 @@ function [Def,mat] = get_inv(job)
 
 VT          = spm_vol(job.space{:});
 [Def0,mat0] = get_comp(job.comp);
-[Def{1},Def{2},Def{3}]    = spm_invdef(Def0{:},VT.dim(1:3),inv(VT.mat),mat0);
+M0      = mat0;
+M1      = inv(VT.mat);
+M0(4,:) = [0 0 0 1];
+M1(4,:) = [0 0 0 1];
+[Def{1},Def{2},Def{3}]    = spm_invdef(Def0{:},VT.dim(1:3),M1,M0);
 mat         = VT.mat;
 %_______________________________________________________________________
 
