@@ -265,11 +265,6 @@ fname.strtype = 's';
 fname.num     = [1 1];
 fname.help    = {'Name of factor'};
 
-% arp   = entry('AR model order','ARP','e',[Inf 1],'Enter AR model order');
-% arp.val={3};
-% p1=['An AR model order of 3 is recommended'];
-% arp.help={p1};
-
 levels = entry('Levels','levels','e',[Inf 1],''); 
 levels.val = {2};
 p1=['Enter number of levels for this factor'];
@@ -1122,22 +1117,26 @@ if ~classical
     end
 end
 
-if strcmp(job.estim.when,'At Run Time')
-    if classical
-        SPM = spm_spm(SPM);
-    else
-        if bayes_anova
-            SPM.PPM.update_F=1; % Compute evidence for each model
-            SPM.PPM.compute_det_D=1; 
-        end
-        SPM = spm_spm_vb(SPM);
+if strcmp(job.estim.when,'Later')
+    my_cd(original_dir); % Change back dir
+    
+    fprintf('Done\n')
+    return
+end
+
+if classical
+    SPM = spm_spm(SPM);
+else
+    if bayes_anova
+        SPM.PPM.update_F=1; % Compute evidence for each model
+        SPM.PPM.compute_det_D=1; 
     end
+    SPM = spm_spm_vb(SPM);
 end
 
 if bayes_anova
     % We don't want to estimate contrasts for each different model
     SPM.xCon=[];
-    
     spm_vb_ppm_anova(SPM);
 end
 
@@ -1198,9 +1197,8 @@ if classical & isfield(SPM,'factor')
         end
     end
 end
-
+    
 my_cd(original_dir); % Change back
-
 fprintf('Done\n')
 return
 %-------------------------------------------------------------------------
