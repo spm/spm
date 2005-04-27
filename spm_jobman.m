@@ -1246,7 +1246,7 @@ c = get(batch_box,'UserData'); spm('Pointer','Watch');
 [unused,jobs] = harvest(c);
 spm('Pointer');
 %eval([tag '=val;']);
-cll = {'*.xml','XML file';'*.mat','Matlab .mat file'};
+cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
 [filename, pathname] = uiputfile(cll,'Save job as');
 if ischar(filename)
     [unused,unused,ext] = fileparts(filename);
@@ -1271,7 +1271,7 @@ return;
 function load_job(varargin)
 % Load a batch job
 
-cll = {'*.xml','XML file';'*.mat','Matlab .mat file'};
+cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
 [filename, pathname] = uigetfile(cll,'Save job as');
 if ischar(filename)
     [unused,nam,ext] = fileparts(filename);

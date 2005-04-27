@@ -266,13 +266,14 @@ spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
 
 tiny = 5e-2; % From spm_vol_utils.c
 
-PO = ds(1).P(1);
+PO         = ds(1).P(1);
 PO.descrip = 'spm - undeformed';
-jP = ds(1).P(1);
-jP = rmfield(jP,{'fname','descrip','n','private'});
-jP.dim = [jP.dim(1:3) 64];
+jP       = ds(1).P(1);
+jP       = rmfield(jP,{'fname','descrip','n','private'});
+jP.dim   = jP.dim(1:3);
+jP.dt    = [spm_type('float64'), spm_platform('bigend')];
 jP.pinfo = [1 0]';
-tv = 1;
+tv       = 1;
 for s=1:length(ds)
    def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
    Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
@@ -363,8 +364,8 @@ if flags.mean
    PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
    PO.descrip = 'spm - mean undeformed image';
-   PO.dim(4)  = 4;
-   ivol = reshape(Integral,PO.dim(1:3));
+   PO.dt      = [4 spm_platform('bigend')];
+   ivol = reshape(Integral,PO.dim);
    spm_write_vol(PO,ivol);
 end
 
