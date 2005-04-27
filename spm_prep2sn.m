@@ -42,7 +42,7 @@ flags       = struct(...
 
 if nargout==0,
     [pth,nam,ext] = fileparts(VF.fname);
-    fnam          = fullfile(pth,['vbm_' nam '_sn.mat']);
+    fnam          = fullfile(pth,[nam '_seg_sn.mat']);
     if str2num(version('-release'))>=14,
         save(fnam,'-V6','VG','VF','Tr','Affine','flags');
     else

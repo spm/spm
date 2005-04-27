@@ -347,7 +347,7 @@ flags.estimate.bb     = job.custom.bb;
 flags.write.cleanup = job.cleanup;
 flags.write.wrt_cor = job.bias.wrt_cor;
 
-data = {''};
+data = {{}};
 if isfield(job.data,'singlespec'),
 	data = {};
 	singlespec = job.data.singlespec;

@@ -31,7 +31,7 @@ weight.name   = 'Weighting';
 weight.tag    = 'weight';
 weight.filter = 'image';
 weight.num    = [0 1];
-weight.val    = {''};
+weight.val    = {{}};
 weight.help   = {[...
     'The option of providing a weighting image to weight each voxel ',...
     'of the reference image differently when estimating the realignment ',...
@@ -459,7 +459,7 @@ pmscan.type = 'files';
 pmscan.name = 'Phase map (vdm* file)';
 pmscan.tag  = 'pmscan';
 pmscan.num  = [0 1];
-pmscan.val  = {''};
+pmscan.val  = {{}};
 pmscan.filter = 'vdm_*';
 pmscan.help   = {[...
     'Select precalculated phase map, or leave empty for no phase correction. ',...

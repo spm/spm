@@ -1,5 +1,5 @@
-function job = spm_config_vbm
-% Configuration file for VBM preproc jobs
+function job = spm_config_preproc
+% Configuration file for Segment jobs
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -375,7 +375,7 @@ csf.help   = {'Options to produce c3*.img, wc3*.img and mwc3*.img',p1{:}};
 
 output     = branch('Output Files','output',{biascor,grey,white,csf});
 output.help = {[...
-'This routine produces spatial normalisation parameters (*_vbm_sn.mat files) by default. ',...
+'This routine produces spatial normalisation parameters (*_seg_sn.mat files) by default. ',...
 'In addition, it also produces files that can be used for doing inverse normalisation. ',...
 'If you have an image of regions defined in the standard space, then the inverse deformations ',...
 'can be used to warp these regions so that it approximately overlay your image. ',...
@@ -392,7 +392,7 @@ output.help = {[...
 'about how to do "optimized VBM").']};
 %------------------------------------------------------------------------
 
-job        = branch('VBM Preproc','preproc',{data,opts,output});
+job        = branch('Segment','preproc',{data,opts,output});
 job.prog   = @execute;
 job.vfiles = @vfiles;
 job.help   = {[...
@@ -441,8 +441,8 @@ for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);
     [sn(i),isn]   = spm_prep2sn(res);
     [pth,nam,ext] = spm_fileparts(job.data{i});
-    savefields(fullfile(pth,[nam '_vbm_sn.mat']),sn(i));
-    savefields(fullfile(pth,[nam '_vbm_inv_sn.mat']),isn);
+    savefields(fullfile(pth,[nam '_seg_sn.mat']),sn(i));
+    savefields(fullfile(pth,[nam '_seg_inv_sn.mat']),isn);
 end;
 spm_preproc_write(sn,job.output);
 return;
@@ -467,8 +467,8 @@ sopts = [opts.GM;opts.WM;opts.CSF];
 vf    = cell(numel(job.data),2);
 for i=1:numel(job.data),
     [pth,nam,ext,num] = spm_fileparts(job.data{i});
-    vf{i,1} = fullfile(pth,[nam '_vbm_sn.mat']);
-    vf{i,2} = fullfile(pth,[nam '_vbm_inv_sn.mat']);
+    vf{i,1} = fullfile(pth,[nam '_seg_sn.mat']);
+    vf{i,2} = fullfile(pth,[nam '_seg_inv_sn.mat']);
     j       = 3;
     if opts.biascor,
         vf{i,j} = fullfile(pth,['m' nam ext ',1']);

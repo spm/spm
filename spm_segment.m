@@ -534,7 +534,7 @@ for i=1:size(CP.mom0,2),
 	CP.mn(:,i)   = sum(CP.mom1(:,i,:),3)/CP.mg(1,i);
 
 	tmp          = (CP.mg(1,i).*CP.mn(:,i))*CP.mn(:,i)';
-	tmp          = tmp-eye(size(tmp))*eps*10000;
+	tmp          = tmp-eye(size(tmp))*eps*1e6;
 	CP.cv(:,:,i) = (sum(CP.mom2(:,:,i,:),4) - tmp)/CP.mg(1,i) + CP.cv0;
 end;
 CP.mg   = CP.mg/sum(CP.mg);
