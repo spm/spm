@@ -1562,7 +1562,7 @@ case 'files&indices'
                 n21 = Dn(2)*Dn(1);
                 for v=1:nV
                     vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                    ttP = spm_select(n21,'image',{[str,'select images',vstr]});
+                    ttP = cellstr(spm_select(n21,'image',[str,'select images',vstr]));
                     n21 = length(ttP);
                     tP  = [tP,ttP];
                 end
@@ -1598,7 +1598,7 @@ case 'files&indices'
                 tP = {};
                 for v=1:nV
                     vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                    ttP = spm_select(n3,'image',{[str,vstr]});
+                    ttP = cellstr(spm_select(n3,'image',[str,vstr]));
                     tP = [tP,ttP];
                 end
                 P   = [P;tP];
@@ -1619,7 +1619,7 @@ case 'files&indices'
                         tP = {};
                         for v=1:nV
                             vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                            ttP = spm_select(n2,'image',{[str,vstr]});
+                            ttP = cellstr(spm_select(n2,'image',[str,vstr]));
                             tP = [tP,ttP];
                         end
                         P   = [P;tP];
@@ -1638,7 +1638,7 @@ case 'files&indices'
                             n1  = Dn(1);
                             for v=1:nV
                                 vstr=''; if bMV, vstr=sprintf(' (var-%d)',v); end
-                                ttP = spm_select(n1,'image',{[str,vstr]});
+                                ttP = cellstr(spm_select(n1,'image',[str,vstr]));
                                 n1  = length(ttP);
                                 tP  = [tP,ttP];
                             end
