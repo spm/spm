@@ -286,8 +286,8 @@ bias.help = {[...
 %------------------------------------------------------------------------
 
 opts.type = 'branch';
-opts.tag  = 'segment';
-opts.name = 'Segment';
+opts.tag  = 'oldsegment';
+opts.name = 'Old Segment';
 opts.prog = @execute;
 opts.vfiles = @vfiles;
 opts.dim  =  Inf;

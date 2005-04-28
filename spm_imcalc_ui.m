@@ -123,8 +123,6 @@ if isempty(dmtx), dmtx=0; end
 spm('FigName','ImCalc: working',Finter,CmdLine);
 spm('Pointer','Watch')
 
-keyboard
-
 %-Map input files
 %-----------------------------------------------------------------------
 Vi = spm_vol(char(P));
@@ -161,7 +159,6 @@ Vo = struct(	'fname',	Q,...
 %------------------------------------------------------------------
 args = {{dmtx,mask,hold},varargin{:}};
 
-keyboard
 Vo   = spm_imcalc(Vi,Vo,f,args{:});
 
 %-End
