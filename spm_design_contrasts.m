@@ -29,7 +29,7 @@ k1=SPM.factor(1).levels;
 if nf==2
     k2=SPM.factor(2).levels;
 else
-    k1=1;
+    k2=1;
 end
 
 icon=spm_make_contrasts(k1,k2);

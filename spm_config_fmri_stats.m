@@ -939,17 +939,19 @@ end
 
 % Factorial design
 %-------------------------------------------------------------
-if isfield(job,'fact')
-    NC=length(SPM.Sess(1).U); % Number of conditions
-    CheckNC=1;
-    for i=1:length(job.fact)
-        SPM.factor(i).name=job.fact(i).name;
-        SPM.factor(i).levels=job.fact(i).levels;
-        CheckNC=CheckNC*SPM.factor(i).levels;
-    end
-    if ~(CheckNC==NC)
-        disp('Error in fmri_stats job: factors do not match conditions');
-        return
+if isfield(job,'fact') 
+    if ~isempty(job.fact)
+        NC=length(SPM.Sess(1).U); % Number of conditions
+        CheckNC=1;
+        for i=1:length(job.fact)
+            SPM.factor(i).name=job.fact(i).name;
+            SPM.factor(i).levels=job.fact(i).levels;
+            CheckNC=CheckNC*SPM.factor(i).levels;
+        end
+        if ~(CheckNC==NC)
+            disp('Error in fmri_stats job: factors do not match conditions');
+            return
+        end
     end
 end
 
