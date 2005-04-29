@@ -1,6 +1,6 @@
 function D = spm_eeg_downsample(S)
 % function used for down-sampling EEG/MEG data
-% FORMAT D = spm_eeg_epochs(S)
+% FORMAT D = spm_eeg_downsample(S)
 % 
 % S		    - optional input struct
 % (optional) fields of S:

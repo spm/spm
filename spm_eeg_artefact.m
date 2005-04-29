@@ -1,27 +1,5 @@
 function D = spm_eeg_artefact(S)
-% performs simple artefact detection and correction on epoched EEG data
-% FORMAT D = spm_eeg_artefact(S)
-%
-% S		            - optional struct with the following fields:
-% thresholds        - struct with the following (optional) fields:
-%   Check_Threshold - switch (0/1) whether to use thresholding
-%   threshold       - vector of channelwise thresholds [\mu Volt]
-%   External_list   - switch (0/1) whether user has information about
-%                       clean or artefactual trials
-%   out_list        - indices of trials that are artefactual (SPM will not
-%                     examine these trials for artefacts)
-%   in_list         - indices of trials that are clean (SPM will not
-%                     examine these trials for artefacts)
-%
-% Output:
-% D			- EEG data struct (also written to files)
-%_______________________________________________________________________
-%
-% spm_eeg_artefact implements a simple artefact detection. Note that SPM
-% will not remove any data, but just flag, whether it is an artefact or
-% not for subsequent processing stages. This information is stored in the
-% 0/1-vector D.events.reject will. Alternatively, one can also provide
-% flags (e.g. from another program) in an out_list and in_list, see above.
+% simple artefact detection
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 

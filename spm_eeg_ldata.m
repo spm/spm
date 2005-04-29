@@ -22,7 +22,7 @@ catch
 end
 
 Ppath = spm_str_manip(P, 'H');
-if strcmp('.', Ppath)
+if strcmp('.', Ppath) | strcmp('..', Ppath)
     Ppath = pwd;
 end
 

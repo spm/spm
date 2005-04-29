@@ -108,7 +108,7 @@ if size(D.data, 3) > 1
     else, Ibar = [1:D.Nevents]; end
 
     for i = 1:D.Nevents
-        i
+
         d = squeeze(D.data(:, :, i));
 
         for j = 1:D.Nchannels

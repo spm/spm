@@ -50,7 +50,7 @@ catch
     
     % Number of observations of factor 1
     Nobs = size(SPM.eeg.Xind{end-1}, 1);
-
+    
 	P     = [];
 	for i = 1:Nobs
 		str = sprintf('Select images for ');
@@ -60,9 +60,7 @@ catch
         end
         Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
         
-        % spm_get doesn't know how many 3D-images are in a 4D-image volume
-        % (inf instead of Nimages):
-        q = spm_select(inf, 'image', str);
+        q = spm_select(Nimages, 'image', str);
 		P = strvcat(P, q);
 	end
 
@@ -75,36 +73,6 @@ end
 % Assemble remaining design parameters
 %=======================================================================
 spm_help('!ContextHelp',mfilename)
-% SPM.SPMid = spm('FnBanner',mfilename,SCCSid);
-
-
-% Global normalization
-% definitely skip proportional scaling
-% maybe do ERP specific scaling, but still have to look at data
-%-----------------------------------------------------------------------
-SPM.xGX.sGXcalc = 'mean voxel value';
-SPM.xGX.sGMsca  = 'session specific';
-
-% 
-%=======================================================================
-
-% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-% that's the place where the lowpass filter should go.
-% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-% for now, we don't filter the data
-% highpass filter has no effect
-% HParam = Inf*ones(1,nsess);
-
-% % create and set filter struct
-% %---------------------------------------------------------------
-% for  i = 1:nsess
-% 	K(i) = struct(	'HParam',	HParam(i),...
-% 			'row',		SPM.Sess(i).row,...
-% 			'RT',		SPM.xY.RT);
-% end
-% SPM.xX.K = spm_filter(K);
 
 %=======================================================================
 % - C O N F I G U R E   D E S I G N
@@ -125,7 +93,7 @@ fprintf('%30s\n','...done')                                 	     %-#
 
 %-check internal consistency of images
 %-----------------------------------------------------------------------
-if any(any(diff(cat(1,VY.dim),1,1),1) & [1,1,1,0])
+if any(any(diff(cat(1,VY.dim),1,1),1))
 error('images do not all have the same dimensions'),           end
 if any(any(any(diff(cat(3,VY.mat),1,3),3)))
 error('images do not all have same orientation & voxel size'), end
@@ -134,60 +102,14 @@ error('images do not all have same orientation & voxel size'), end
 %-----------------------------------------------------------------------
 SPM.xY.VY = VY;
 
-
-%-Compute Global variate
+%-Only implicit mask
 %=======================================================================
-GM    = 100;
-q     = length(VY);
-% g     = zeros(q, 1);
-% fprintf('%-40s: %30s','Calculating globals',' ')                     %-#
-% for i = 1:q
-% 	fprintf('%s%30s',sprintf('\b')*ones(1,30),sprintf('%4d/%-4d',i,q)) %-#
-% 	g(i) = spm_global(VY(i));
-% end
-% fprintf('%s%30s\n',sprintf('\b')*ones(1,30),'...done')               %-#
-% 
-% gSF = ones(sum(nscan), 1);
-% 
-% ERP specific scaling
-%-----------------------------------------------------------------------
-% for i = 1:nsess
-%	 gSF(SPM.Sess(i).row) = GM./mean(g(SPM.Sess(i).row));
-% end
-
-%-Apply gSF to memory-mapped scalefactors to implement scaling
-%-----------------------------------------------------------------------
-% for i = 1:q
-% 	 SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:)*gSF(i);
-% end
-
-%-place global variates in global structure
-%-----------------------------------------------------------------------
-% SPM.xGX.rg    = g;
-% SPM.xGX.GM    = GM;
-% SPM.xGX.gSF   = gSF;
-% 
-
-% Don't use mask for 2D interpolated images
-% (maybe make it an option when having the choice between 2D and 3D)
-
-%-Masking structure automatically set to 80% of mean
-%=======================================================================
-if 0
-SPM.xM        = struct(	'T',	ones(q,1),...
-			'TH',	g.*gSF*0.8,...
-			'I',	0,...
-			'VM',	{[]},...
-			'xs',	struct('Masking','analysis threshold'));
-else
-SPM.xM        = struct('T',	ones(q,1),...
-			'TH',	-inf*ones(q,1),...
+SPM.xM        = struct('T',	ones(length(VY), 1),...
+			'TH',	-inf*ones(length(VY), 1),...
 			'I',	0,...
 			'VM',	{[]},...
 			'xs',	struct('Masking','analysis threshold'));
 	
-end
-
 %-Design description - for saving and display
 %=======================================================================
 % SPM.xsDes = struct(...
@@ -201,7 +123,7 @@ end
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                        %-#
 if str2num(version('-release'))>=14
-    save('SPM, '-V6', 'SPM');
+    save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');
 end
