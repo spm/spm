@@ -1,6 +1,6 @@
 function [t,sts] = spm_select(varargin)
 % File selector
-% FORMAT [t,sts] = spm_select(n,typ,mesg,sel,wd)
+% FORMAT [t,sts] = spm_select(n,typ,mesg,sel,wd,filt,frames)
 %     n    - Number of files
 %            A single value or a range.  e.g.
 %            1       - Select one file
@@ -22,6 +22,8 @@ function [t,sts] = spm_select(varargin)
 %      mesg - a prompt (default 'Select files...')
 %      sel  - list of already selected files
 %      wd   - Directory to start off in
+%      filt - value for user-editable filter (default '.*')
+%      frames - Image frame numbers to include (default '1')
 %
 %      t    - selected files
 %      sts  - status (1 means OK, 0 means window quit)
@@ -63,12 +65,14 @@ return;
 %=======================================================================
 
 %=======================================================================
-function [t,ok] = selector(n,typ,mesg,already,wd,varargin)
-if nargin<5, wd   = pwd; end;
-if nargin<4, already = {''}; end;
-if nargin<3, mesg = 'Select files...'; end;
-if nargin<2, typ  = 'any'; end;
-if nargin<1, n    = [0 Inf]; end;
+function [t,ok] = selector(n,typ,mesg,already,wd,filt,frames,varargin)
+if nargin<7, frames  = '1';     end;
+if nargin<6, filt    = '.*';    end;
+if nargin<5, wd      = pwd;     end;
+if nargin<4, already = {''};    end;
+if nargin<3, mesg    = 'Select files...'; end;
+if nargin<2, typ     = 'any';   end;
+if nargin<1, n       = [0 Inf]; end;
 ok  = 0;
 if numel(n)==1,   n    = [n n];    end;
 if n(1)>n(2),     n    = n([2 1]); end;
@@ -159,7 +163,7 @@ if strcmpi(typ,'image'),
         'tag','frame',...
         'FontSize',fs,...
         'BackgroundColor',col1,...
-        'String','1','UserData',1);
+        'String',frames,'UserData',eval(frames));
 % 'ForegroundGolor',col3,...
 end;
 
@@ -236,7 +240,7 @@ uicontrol(fg,...
     'FontSize',fs,...
     'Callback',@update,...
     'tag','regexp',...
-    'String','.*',...
+    'String',filt,...
     'UserData',ud);
 
 % Directories

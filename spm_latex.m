@@ -102,12 +102,21 @@ str = texify(hlp);
 fprintf(fp,'%s\n\n',str);
 return;
 
-function str = texify(str)
-str = strrep(str,'$','\$');
-str = strrep(str,'&','\&');
-str = strrep(str,'_','\_');
-%str = strrep(str,'\','$\\$');
-str = strrep(str,'|','$|$');
-str = strrep(str,'>','$>$');
-str = strrep(str,'<','$<$');
+function str1 = texify(str0)
+[st,en,tok]=regexp(str0,'/\*([^(/\*)]*)\*/','start','end','tokens');
+str1 = [];
+st1  = [1 en+1];
+en1  = [st-1 numel(str0)];
+for i=1:numel(st1),
+    str  = str0(st1(i):en1(i));
+    str  = strrep(str,'$','\$');
+    str  = strrep(str,'&','\&');
+    str  = strrep(str,'_','\_');
+   %str  = strrep(str,'\','$\\$');
+    str  = strrep(str,'|','$|$');
+    str  = strrep(str,'>','$>$');
+    str  = strrep(str,'<','$<$');
+    str1 = [str1 str];
+    if i<numel(st1), str1 = [str1 tok{i}{1}]; end;
+end;
 return;

@@ -44,6 +44,7 @@ for i=1:nargin-1,
 end;
 
 function out = justify_paragraph(n,txt)
+txt = regexprep(txt,'/\*([^(/\*)]*)\*/','');
 off = find((txt'>='a' & txt'<='z') | (txt'>='A' & txt'<='Z'));
 off = off(off<n);
 if isempty(off),

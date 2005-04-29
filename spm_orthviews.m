@@ -210,9 +210,11 @@ case 'image',
 		if length(varargin)>=2, st.vols{H}.area = varargin{2}; end;
 		if isempty(st.bb), st.bb = maxbb; end;
 		bbox;
-		redraw(H);
+		cm_pos;
 	end;
 	varargout{1} = H;
+	st.centre    = mean(maxbb);
+	redraw_all
 
 case 'bb',
 	if length(varargin)> 0 & all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end;
@@ -1186,7 +1188,7 @@ return;
 function reset_st
 global st
 fig     = spm_figure('FindWin','Graphics');
-bb      = [ [-78 78]' [-112 76]' [-50 85]' ];
+bb      = []; %[ [-78 78]' [-112 76]' [-50 85]' ];
 st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1,'plugins',[]);
 st.vols = cell(24,1);
 
