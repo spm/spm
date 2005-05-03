@@ -22,7 +22,7 @@ function varargout = spm_DesRep(varargin)
 %
 % * Design Matrix  - Displays graphical summary of the design matrix
 %
-%     The design matrix is labelled with the corresponding parameter and
+%     The design is labelled with the corresponding parameter and
 %     file names, and is displayed as an image scaled (using
 %     spm_DesMtx('sca',...) such that zero is mid-grey, -1 is black, and +1
 %     is white. Covariates exceeding this randge are scaled to fit.

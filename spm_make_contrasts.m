@@ -23,7 +23,7 @@ function [Con] = spm_make_contrasts (k1,k2)
     
 % See section 5 of 
 % http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
-% for further info
+% for details of kronecker operations
 
 C1=ones(k1,1);
 C2=ones(k2,1);

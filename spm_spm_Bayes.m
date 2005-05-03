@@ -83,15 +83,6 @@ if ~nargin
 	cd(swd)
 end
 
-% Single subject fMRI ?
-str = 'Single Subject fMRI ?';
-ss_fMRI = spm_input(str,1,'b',{'yes','no'},[1 0]);
-if ss_fMRI
-    % Use VB-GLM-AR algorithm
-    spm_spm_vb(SPM);
-    return
-end
-
 try
 	M      = SPM.xVol.M;
 	DIM    = SPM.xVol.DIM;

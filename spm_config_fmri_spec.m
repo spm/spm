@@ -1,5 +1,5 @@
-function conf = spm_config_fmri_stats
-% Configuration file for fmri statistics jobs
+function conf = spm_config_fmri_spec
+% Configuration file for specification of fMRI model
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -211,7 +211,7 @@ scans.help = {[...
 %-------------------------------------------------------------------------
 
 hpf      = entry('High-pass filter','hpf','e',[1 1],'');
-hpf.val  = {Inf};
+hpf.val  = {128};
 hpf.help = {[...
     'High-pass filtering is implemented at the level of the ',...
     'filtering matrix K (as opposed to entering as confounds in the design ',...
@@ -317,233 +317,6 @@ glob.val={'None'};
 
 %-------------------------------------------------------------------------
 
-cvi   = mnu('Serial correlations','cvi',{'none','AR(1)'},{'none','AR(1)'},...
-    {'Correct for serial correlations'});
-cvi.val={'AR(1)'};
-p1 = [...
-    'Serial correlations in fast fMRI time-series are dealt with as ',...
-    'described in spm_spm.  At this stage you need to specify the filtering ',...
-    'that will be applied to the data (and design matrix) to give a ',...
-    'generalized least squares (GLS) estimate of the parameters required. ',...
-    'This filtering is important to ensure that the GLS estimate is ',...
-    'efficient and that the error variance is estimated in an unbiased way.'];
-p2 = ['                                                      ',...
-      '                                                      '];
-p3 = [...
-    'The serial correlations will be estimated with a ReML (restricted ',...
-    'maximum likelihood) algorithm using an autoregressive AR(1) plus ',...
-    ' white noise model during parameter estimation.  This estimate assumes the same ',...
-    'correlation structure for each voxel, within each session.  The ReML ',...
-    'estimates are then used to correct for non-sphericity during inference ',...
-    'by adjusting the statistics and degrees of freedom appropriately.  The ',...
-    'discrepancy between estimated and actual intrinsic (i.e. prior to ',...
-    'filtering) correlations are greatest at low frequencies.  Therefore ',...
-    'specification of the high-pass filter is particularly important.'];
-cvi.help = {p1,p2,p3};
- 
-% Bayesian estimation over slices or whole volume ?
-
-slices  = entry('Slices','Slices','e',[Inf 1],'Enter Slice Numbers');
-
-volume  = struct('type','const','name','Volume','tag','Volume','val',{{1}});
-p1=['You have selected the Volume option. SPM will analyse fMRI ',...
-    'time series in all slices of each volume.'];
-volume.help={p1};
-
-space   = choice('Analysis Space','space',{volume,slices},'Analyse whole volume or selected slices only');
-space.val={volume};
-
-% Regression coefficient  priors for Bayesian estimation
-
-w_prior  = mnu('Signal priors','signal',{'GMRF','LORETA','Global','Uninformative'},...
-    {'GMRF','LORETA','Global','Uninformative'},{'Signal priors'});
-w_prior.val={'GMRF'};
-p1=['[GMRF] = Gaussian Markov Random Field. This spatial prior is the recommended option. '];
-p2=['[LORETA] = Low resolution Tomography Prior. This spatial prior is popular in the EEG world. '];
-p3=['[Global] = Global Shrinkage prior. This is not a spatial prior.'];
-p4=['[Uninformative] = A flat prior. Essentially, no prior information is used. '];
-w_prior.help={p1,p2,p3,p4};
-
-% AR model order for Bayesian estimation
-
-arp   = entry('AR model order','ARP','e',[Inf 1],'Enter AR model order');
-arp.val={3};
-p1=['An AR model order of 3 is recommended'];
-arp.help={p1};
-
-% AR coefficient  priors for Bayesian estimation
-
-a_gmrf = struct('type','const','name','GMRF','tag','GMRF','val',{{1}});
-a_loreta = struct('type','const','name','LORETA','tag','LORETA','val',{{1}});
-a_tissue_type = files('Tissue-type','tissue_type','image',[1 Inf],'Select tissue-type images');
-p1=['Select files that specify tissue types. These are typically chosen to be ',...
-    'Grey Matter, White Matter and CSF images derived from segmentation of ',...
-    'registered structural scans.'];
-a_tissue_type.help={p1};
-a_prior = choice('Noise priors','noise',{a_gmrf,a_loreta,a_tissue_type},'Noise priors');
-a_prior.val={a_gmrf};
-p1=['[GMRF] = Gaussian Markov Random Field. This spatial prior is the recommended option. '];
-p2=['[LORETA] = Low resolution Tomography Prior. This spatial prior is popular in the EEG world. '];
-p3=['[Tissue-type] = AR estimates at each voxel are biased towards typical ',...
-    'values for that tissue type. '];
-a_prior.help={p1,p2,p3};
-
-% ANOVA options
-
-first  = mnu('First level','first',...
-    {'No','Yes'},{'No','Yes'},{''});
-first.val={'No'};
-p1=['[First level ANOVA ?] '];
-p2=['This is implemented using Bayesian model comparison. ',...
-    'This requires explicit fitting of several models at each voxel and is ',...
-    'computationally demanding (requiring several hours of computation). ',...
-    'The recommended option is therefore NO.'];
-p3=['To use this option you must also specify your Factorial design (see options ',...
-    'under FMRI Stats).'];
-first.help={p1,sp_text,p2,sp_text,p3};
-
-second  = mnu('Second level','second',...
-    {'No','Yes'},{'No','Yes'},{''});
-second.val={'Yes'};
-p1=['[Second level ANOVA ?] '];
-p2=['This option tells SPM to automatically generate ',...
-    'the simple contrasts that are necessary to produce the contrast images ',...
-    'for a second-level (between-subject) ANOVA. With the Bayesian estimation ',...
-    'option it is recommended that contrasts are computed during the parameter ',...
-    'estimation stage (see HELP for Simple contrasts). ',...
-    'The recommended option here is therefore YES.'];
-p3=['To use this option you must also specify your Factorial design (see options ',...
-    'under FMRI Stats).'];
-second.help={p1,sp_text,p2,sp_text,p3};
-
-anova.type   = 'branch';
-anova.name   = 'ANOVA';
-anova.tag    = 'anova';
-anova.val    = {first,second};
-anova.help = {'Perform 1st or 2nd level ANOVAs'};
-
-% Contrasts to be computed during Bayesian estimation
-
-name.type    = 'entry';
-name.name    = 'Name';
-name.tag     = 'name';
-name.strtype = 's';
-name.num     = [1 1];
-name.help    = {'Name of contrast'};
-
-gconvec.type    = 'entry';
-gconvec.name    = 'Contrast vector';
-gconvec.tag     = 'convec';
-gconvec.strtype = 's';
-gconvec.num     = [1 1];
-gconvec.help    = {''};
-            
-gcon.type   = 'branch';
-gcon.name   = 'Simple contrast';
-gcon.tag    = 'gcon';
-gcon.val    = {name,gconvec};
-gcon.help = {''};
-            
-contrast.type = 'repeat';
-contrast.name = 'Simple contrasts';
-contrast.tag  = 'contrasts';
-contrast.values = {gcon};
-p1 =['Specify simple one-dimensional contrasts'];
-p2 =['If you have a factoral design then the contrasts needed to generate ',...
-     'the contrast images for a 2nd-level ANOVA can be specified automatically ',...
-     'using the ANOVA->Second level option.'];
-p3 =['When using the Bayesian estimation option it is computationally more ',...
-     'efficient to compute the contrasts when the parameters are estimated. ',...
-     'This is because estimated parameter vectors have potentially different ',...
-     'posterior covariance matrices at different voxels ',...
-     'and these matrices are not stored. If you compute contrasts ',...
-     'post-hoc these matrices must be recomputed (an approximate reconstruction ',...
-     'based on a Taylor series expansion is used). ',...
-     'It is therefore recommended to specify as many contrasts as possible ',...
-     'prior to parameter estimation.'];
-contrast.help={p1,sp_text,p2,sp_text,p3};
-
-
-
-% Bayesian estimation
-
-est_bayes = branch('Bayesian','Bayesian',{space,w_prior,arp,a_prior,anova,contrast},'Bayesian Estimation');
-bayes_1 = ['[Bayesian] - model parameters are estimated using Variational Bayes. ',...
-     'This allows you to specify spatial priors for regression coefficients ',...
-     'and regularised voxel-wise AR(P) models for fMRI noise processes. ',...
-     'The algorithm does not require functional images to be spatially smoothed. ',...
-     'Estimation will take about 5 times longer than with the classical approach.' ];
-bayes_2 = ['After estimation, contrasts are used to find regions with effects larger ',...
-      'than a user-specified size eg. 1 per cent of the global mean signal. ',...
-      'These effects are assessed statistically using a Posterior Probability Map (PPM).'];
-est_bayes.help={bayes_1,sp_text,bayes_2};
-
-% Classical (ReML) estimation
-
-est_class = branch('Classical','Classical',{cvi},{'Classical Estimation'});
-classical_1 =['[Classical] - model parameters are estimated using Restricted Maximum ',...
-     'Likelihood (ReML). This assumes the error correlation structure is the ',...
-     'same at each voxel. This correlation can be specified using an ',...
-     'AR(1) plus white noise model. The algorithm should be applied to spatially ',...
-     'smoothed functional images.'];
-classical_2 = ['After estimation, specific profiles of parameters are tested using a linear ',...
-      'compound or contrast with the T or F statistic. The resulting statistical map ',...
-      'constitutes an SPM. The SPM{T}/{F} is then characterised in terms of ',...
-      'focal or regional differences by assuming that (under the null hypothesis) ',...
-      'the components of the SPM (ie. residual fields) behave as smooth stationary ',...
-      'Gaussian fields.'];
-est_class.help={classical_1,sp_text,classical_2};
-
-% Select method of estimation - Bayesian or classical
-
-meth   = choice('Method','Method',{est_class,est_bayes},{'Type of estimation procedure'});
-meth.val={est_class};
-p1 = [...
-     'Estimation procedure:'];
-
-meth.help={classical_1,sp_text,classical_2,sp_text,bayes_1,sp_text,bayes_2};
-
-% Select when to estimate model
-
-when   = mnu('Execution','when',{'At Run Time','Later'},{'At Run Time','Later'},...
-    {'Specify when estimation will take place'});
-when.val={'At Run Time'};
-p1 = ['Estimate this model:'];
-p2 = ['                                                      ',...
-      '                                                        '];
-
-p3 =['At Run Time - ie. when you press the RUN button or run the script ',...
-     'using spm_jobman'];
-p4 = ['Later - at some point later on. When you run this batch job SPM ',...
-     'will only create the design matrix and assign data to it. This allows '...
-     'you to visually inspect the design (using the Review Design button)',...
-     'to make sure you have got it right'];
-when.help={p1,p2,p3,p2,p4};
-
-% Specify estimation procedure
-
-estim   = branch('Estimation','estim',{when,meth},{'Specify estimation procedure'});
-p1 = ['These options allow you to specify when parameters will be ',...
-      'estimated and what method will be used (Bayesian or Classical).'];
-estim.help={p1};
-
-%-----------------------------------------------------------------------
-
-% These are currently unused
-%hrfpar = entry('Parameters','params','e',[1 7],'HRF Parameters');
-%hrfpar.val = {[6 16 1 1 6 0 32]};
-%hrfpar.help = {...
-%    'The parameters are:',...
-%    '   p(1) - delay of response (relative to onset)       6',...
-%    '   p(2) - delay of undershoot (relative to onset)    16',...
-%    '   p(3) - dispersion of response                      1',...
-%    '   p(4) - dispersion of undershoot                    1',...
-%    '   p(5) - ratio of response to undershoot             6',...
-%    '   p(6) - onset (seconds)                             0',...
-%    '   p(7) - length of kernel (seconds)                 32'};
-
-%-------------------------------------------------------------------------
-
 derivs = mnu('Model derivatives','derivs',...
     {'No derivatives', 'Time derivatives', 'Time and Dispersion derivatives'},...
     {[0 0],[1 0],[1 1]},'Model HRF Derivatives');
@@ -641,8 +414,8 @@ cdir.help = {[...
 % conf = branch('FMRI Stats','fmri_stats',...
 %     {block,bases,volt,cdir,rt,units,glob,cvi,mask},'fMRI design');
 
-conf = branch('FMRI Stats','fmri_stats',...
-    {units,block,factors,bases,volt,cdir,rt,glob,mask,estim},'fMRI design');
+conf = branch('fMRI model specification','fmri_spec',...
+    {units,block,factors,bases,volt,cdir,rt,glob,mask},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
 conf.check  = @check_dir;
@@ -969,15 +742,7 @@ end
 
 % Autocorrelation
 %-------------------------------------------------------------
-classical=isfield(job.estim.Method,'Classical');
-
-if classical,
-    SPM.xVi.form = job.estim.Method.Classical.cvi;
-else
-    % Autocorrelation is specified in a different way
-    % for Bayesian estimation
-    SPM.xVi.form = 'none';
-end
+SPM.xVi.form = 'none';
 
 % Let SPM configure the design
 %-------------------------------------------------------------
@@ -990,217 +755,17 @@ end
 
 %-Save SPM.mat
 %-----------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration with explicit mask')   %-#
+fprintf('%-40s: ','Saving SPM configuration')   %-#
 if str2num(version('-release'))>=14,
     save('SPM','-V6','SPM');
 else
     save('SPM','SPM');
 end;
 
-fprintf('%30s\n','...SPM.mat with mask saved')                     %-#
+fprintf('%30s\n','...SPM.mat saved')                     %-#
 
-if ~classical
-    % Bayesian estimation options
-    
-    % Analyse specific slices or whole volume
-    if isfield(job.estim.Method.Bayesian.space,'Slices')
-        SPM.PPM.space_type='Slices';
-        SPM.PPM.AN_slices=job.estim.Method.Bayesian.space.Slices;
-    else
-        SPM.PPM.space_type='Volume';
-    end
-    
-    % Regression coefficient priors
-    switch job.estim.Method.Bayesian.signal
-        case 'GMRF',
-            SPM.PPM.priors.W='Spatial - GMRF';
-        case 'LORETA',
-            SPM.PPM.priors.W='Spatial - LORETA';
-        case 'Global',
-            SPM.PPM.priors.W='Voxel - Shrinkage';
-        case 'Uninformative',
-            SPM.PPM.priors.W='Voxel - Uninformative';
-        otherwise
-            disp('Unkown prior for W in spm_config_fmri_stats');
-    end
-    
-    % Number of AR coefficients
-    SPM.PPM.AR_P=job.estim.Method.Bayesian.ARP;
-    
-    % AR coefficient priors
-    if isfield(job.estim.Method.Bayesian.noise,'GMRF')
-        SPM.PPM.priors.W='Spatial - GMRF';
-    elseif isfield(job.estim.Method.Bayesian.noise,'LORETA')
-        SPM.PPM.priors.W='Spatial - LORETA';
-    elseif isfield(job.estim.Method.Bayesian.noise,'tissue_type')
-        SPM.PPM.priors.W='Discrete';
-        SPM.PPM.priors.SY=job.estim.Method.Bayesian.noise.tissue_type;
-    end
-    
-    % Define an empty contrast
-    NullCon.name=[];
-    NullCon.c=[];
-    NullCon.STAT = 'P';
-    NullCon.X0=[];
-    NullCon.iX0=[];
-    NullCon.X1o=[];
-    NullCon.eidf=1;
-    NullCon.Vcon=[];
-    NullCon.Vspm=[];
-        
-    SPM.xCon=[];
-    % Set up contrasts for 2nd-level ANOVA
-    if strcmp(job.estim.Method.Bayesian.anova.second,'Yes')
-        cons=spm_design_contrasts(SPM);
-        for i=1:length(cons),
-            % Create a simple contrast for each row of each F-contrast
-            % The resulting contrast image can be used in a 2nd-level analysis
-            Fcon=cons(i).c;
-            nrows=size(Fcon,1);
-            STAT='P';
-            for r=1:nrows,
-                con=Fcon(r,:);     
-                
-                % Normalise contrast st. sum of positive elements is 1
-                % and sum of negative elements  is 1
-                s1=length(find(con==1));
-                con=con./s1;
-                
-                % Change name 
-                str=cons(i).name;
-                sp1=min(find(str==' '));
-                if strcmp(str(1:11),'Interaction')
-                    name=['Positive ',str,'_',int2str(r)];
-                else
-                    name=['Positive',str(sp1:end),'_',int2str(r)];
-                end
-                
-                DxCon=NullCon;
-                DxCon.name=name;
-                DxCon.c=con';
-                
-                if isempty(SPM.xCon),
-                    SPM.xCon = DxCon;
-                else
-                    SPM.xCon(end+1) = DxCon;
-                end
-            end
-        end
-    end
-    
-    % Set up user-specified simple contrasts
-    ncon=length(job.estim.Method.Bayesian.gcon);
-    K=size(SPM.xX.X,2);
-    for c = 1:ncon,
-        DxCon=NullCon;
-        DxCon.name = job.estim.Method.Bayesian.gcon(c).name;
-        convec=sscanf(job.estim.Method.Bayesian.gcon(c).convec,'%f');
-        if length(convec)==K
-            DxCon.c = convec;
-        else
-            disp('Error in spm_config_fmri_stats: contrast does not match design');
-            return
-        end
-        
-        if isempty(SPM.xCon),
-            SPM.xCon = DxCon;
-        else
-            SPM.xCon(end+1) = DxCon;
-        end;
-    end
-    
 
-end
-
-bayes_anova=0;
-if ~classical
-    if strcmp(job.estim.Method.Bayesian.anova.first,'Yes')
-        bayes_anova=1;
-    end
-end
-
-if strcmp(job.estim.when,'Later')
-    my_cd(original_dir); % Change back dir
-    
-    fprintf('Done\n')
-    return
-end
-
-if classical
-    SPM = spm_spm(SPM);
-else
-    if bayes_anova
-        SPM.PPM.update_F=1; % Compute evidence for each model
-        SPM.PPM.compute_det_D=1; 
-    end
-    SPM = spm_spm_vb(SPM);
-end
-
-if bayes_anova
-    % We don't want to estimate contrasts for each different model
-    SPM.xCon=[];
-    spm_vb_ppm_anova(SPM);
-end
-
-% Automatically set up contrasts for factorial designs
-if classical & isfield(SPM,'factor')
-    cons=spm_design_contrasts(SPM);
-    
-    % Create F-contrasts
-    for i=1:length(cons),
-        con=cons(i).c;
-        name=cons(i).name;
-        STAT='F';
-        [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
-        if all(I)
-            DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-        else
-            DxCon = [];
-        end
-        if isempty(SPM.xCon),
-            SPM.xCon = DxCon;
-        else
-            SPM.xCon(end+1) = DxCon;
-        end;
-        spm_contrasts(SPM,length(SPM.xCon));
-    end
-    
-    % Create t-contrasts
-    for i=1:length(cons),
-        % Create a t-contrast for each row of each F-contrast
-        % The resulting contrast image can be used in a 2nd-level analysis
-        Fcon=cons(i).c;
-        nrows=size(Fcon,1);
-        STAT='T';
-        for r=1:nrows,
-            con=Fcon(r,:);     
-            
-            % Change name 
-            str=cons(i).name;
-            sp1=min(find(str==' '));
-            if strcmp(str(1:11),'Interaction')
-                name=['Positive ',str,'_',int2str(r)];
-            else
-                name=['Positive',str(sp1:end),'_',int2str(r)];
-            end
-            
-            [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
-            if all(I)
-                DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-            else
-                DxCon = [];
-            end
-            if isempty(SPM.xCon),
-                SPM.xCon = DxCon;
-            else
-                SPM.xCon(end+1) = DxCon;
-            end;
-            spm_contrasts(SPM,length(SPM.xCon));
-        end
-    end
-end
-    
-my_cd(original_dir); % Change back
+my_cd(original_dir); % Change back dir
 fprintf('Done\n')
 return
 %-------------------------------------------------------------------------
