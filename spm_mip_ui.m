@@ -425,7 +425,7 @@ case 'nrmax'
 	[xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,XYZ);
 case 'glmax'
 	str       = 'global maxima';
-	i         = find(MD.Z==max(MD.Z));
+	[null, i] = max(MD.Z); i = i(1);
 	xyz       = MD.XYZ(:,i);
 	d         = sqrt(sum((oxyz-xyz).^2));
 otherwise
