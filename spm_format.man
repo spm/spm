@@ -11,7 +11,7 @@
 % set appropriately for your data.
 %
 % The MINC and ECAT7 formats can not be read straight into SPM5, although
-% conversion utilities have been included in SPM5.  Similarly, a number
-% of DICOM flavours can also be converted to NIFTI-1.
+% conversion utilities have been provided.  Similarly, a number of DICOM
+% flavours can also be converted to NIFTI-1 using tools in SPM5.
 %___________________________________________________________________________
 

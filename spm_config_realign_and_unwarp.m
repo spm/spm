@@ -316,7 +316,8 @@ eoptions.type = 'branch';
 eoptions.name = 'Estimation Options';
 eoptions.tag  = 'eoptions';
 eoptions.val  = {quality,sep,fwhm,rtm,einterp,ewrap,weight};
-eoptions.help = {'Various registration options.'};
+eoptions.help = {['Various registration options that could be modified to improve the results. ',...
+'Whenever possible, the authors of SPM try to choose reasonable settings, but sometimes they can be improved.']};
 
 %------------------------------------------------------------------------
 
@@ -472,11 +473,10 @@ data.type = 'branch';
 data.name = 'Session';
 data.tag  = 'data';
 data.val  = {scans, pmscan};
-p1        = 'Choose data with or without phasemap correction';
 p2        = [...
-    'Only add similar session data to a realign+unwarp branch, i.e., ',...
-    'choose Data or Data+phase map for all sessions, but don''t use them ',...
-    'interchangably.'];
+'Only add similar session data to a realign+unwarp branch, i.e., ',...
+'choose Data or Data+phase map for all sessions, but don''t use them ',...
+'interchangably.'];
 p3        = [...
 'In the coregistration step, the sessions are first realigned to ',...
 'each other, by aligning the first scan from each session to the ',...
@@ -485,14 +485,14 @@ p3        = [...
 'The parameter estimation is performed this way because it is assumed ',...
 '(rightly or not) that there may be systematic differences ',...
 'in the images between sessions.'];
-data.help   = {p1,'',p2,'',p3};
+data.help   = {p2,'',p3};
 
 %------------------------------------------------------------------------
 ruwdata.type   = 'repeat';
 ruwdata.name   = 'Data';
 ruwdata.tag    = 'ruwdata';
 ruwdata.values = {data};
-ruwdata.help   = {'Data sessions to unwarp'};
+ruwdata.help   = {'Data sessions to unwarp.'};
 %------------------------------------------------------------------------
 
 opts.type = 'branch';

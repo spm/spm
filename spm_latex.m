@@ -6,6 +6,8 @@ function spm_latex(c)
 % John Ashburner
 % $Id$
 
+if nargin==0, c = spm_config; end;
+
 fp = fopen('spm_manual.tex','w');
 fprintf(fp,'\\documentclass[a4paper,titlepage]{book}\n');
 fprintf(fp,'\\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}\n');
@@ -15,7 +17,7 @@ fprintf(fp,'\\oddsidemargin=0mm\n\\evensidemargin=0mm\n\\topmargin=0mm\n');
 fprintf(fp,'\\headheight=12pt\n\\headsep=10mm\n\\textheight=240mm\n\\textwidth=148mm\n');
 fprintf(fp,'\\marginparsep=5mm\n\\marginparwidth=21mm\n\\footskip=10mm\n\n');
 
-fprintf(fp,'\\title{\\huge{SPM5 Manual}}\n');
+fprintf(fp,'\\title{\\huge{SPM5b (beta version) Manual}}\n');
 fprintf(fp,'\\author{The FIL Methods Group}\n');
 fprintf(fp,'\\begin{document}\n');
 fprintf(fp,'\\maketitle\n');

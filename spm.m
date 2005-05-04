@@ -1461,6 +1461,11 @@ case 'colour'                                     %-SPM interface colour
 %-Distribution livery
 % varargout = {[0.8 0.8 1.0],'vile violet'};;
 
+global defaults
+if isempty(defaults), spm_defaults; end;
+if isfield(defaults,'ui') && isfield(defaults.ui,'colour2'),
+	varargout{1} = defaults.ui.colour2;
+end;
 
 %=======================================================================
 case 'getglobal'                           %-Get global variable cleanly
