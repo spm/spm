@@ -1,7 +1,7 @@
 function spm_def2det_ui
 %
 %_______________________________________________________________________
-% John Ashburner $Id$
+% John Ashburner $Id: spm_def2det_ui.m 112 2005-05-04 18:20:52Z john $
 
 P    = spm_select(Inf,'.*y_.*\.img$','Select deformation fields');
 n    = size(P,1);

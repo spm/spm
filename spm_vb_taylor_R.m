@@ -8,7 +8,7 @@ function [slice] = spm_vb_taylor_R (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_vb_taylor_R.m 112 2005-05-04 18:20:52Z john $
 
 % Get mean hyperparameter values
 h0=[];

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_warp.c 112 2005-05-04 18:20:52Z john $
  */
 
 /* Note that according to the Matlab documentation, one should "avoid

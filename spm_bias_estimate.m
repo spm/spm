@@ -21,7 +21,7 @@ function T = spm_bias_estimate(V,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_bias_estimate.m 112 2005-05-04 18:20:52Z john $
 
 
 def_flags = struct('nbins',256,'reg',0.01,'cutoff',30);

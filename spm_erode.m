@@ -34,7 +34,7 @@ function ima = spm_erode(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id$
+% $Id: spm_erode.m 112 2005-05-04 18:20:52Z john $
 
 
 if exist('spm_dilate_erode')~=3 

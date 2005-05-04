@@ -41,13 +41,13 @@ function spm_surf(P,mode)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_surf.m 112 2005-05-04 18:20:52Z john $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
 if nargin==0,
-	SPMid = spm('FnBanner',mfilename,'$Rev$');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
 	spm_help('!ContextHelp',mfilename);
 
 	P    = spm_select([1 Inf],'image','Select images');
@@ -122,7 +122,7 @@ if any(mode==[2 3 4]),
 	if any(mode==[4]),
 		fname = fullfile(pth,[nam '.obj']);
 		fid   = fopen(fname,'w');
-		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev$',date);
+		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 112 $',date);
 		fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
 		fprintf(fid,'g Cortex\n'); % Group Cortex
 		fprintf(fid,'f %d %d %d\n',faces');

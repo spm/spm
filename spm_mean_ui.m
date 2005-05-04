@@ -15,9 +15,9 @@ function spm_mean_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id$
+% $Id: spm_mean_ui.m 112 2005-05-04 18:20:52Z john $
 
-SCCSid = '$Rev$';
+SCCSid = '$Rev: 112 $';
 
 
 %-Say hello

@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_write_sn.m 112 2005-05-04 18:20:52Z john $
 
 
 if isempty(V), return; end;

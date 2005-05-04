@@ -13,7 +13,7 @@ function [R1,...] = spm_FCN(P1,...)
 % Copyright (C) YEAR Wellcome Department of Imaging Neuroscience
 
 % AUTHOR
-% $Id$
+% $Id: spm_FcnTpl.txt 112 2005-05-04 18:20:52Z john $
 
 %=======================================================================
 % - B A N N E R   S E C T I O N   H E A D I N G

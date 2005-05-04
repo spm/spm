@@ -23,9 +23,9 @@ function varargout = loadxml(filename,varargin)
 %  See also LOAD, XML2MAT, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 1.0 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 112 $  $Date: 2003/07/10 13:50 $
 
-%  $Id$
+%  $Id: loadxml.m 112 2005-05-04 18:20:52Z john $
 
 if nargin == 0
 	filename = 'matlab.xml';

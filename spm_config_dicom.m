@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_dicom.m 112 2005-05-04 18:20:52Z john $
 
 
 %_______________________________________________________________________

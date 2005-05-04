@@ -136,7 +136,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id$
+% $Id: spm_spm_vb.m 112 2005-05-04 18:20:52Z john $
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB

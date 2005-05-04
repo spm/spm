@@ -20,7 +20,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_cat.m 112 2005-05-04 18:20:52Z john $
 
 
 % check x is not already a matrix

@@ -22,7 +22,7 @@ function c = spm_eeg_contrast_project(SPM, i, c_in)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_contrast_project.m 112 2005-05-04 18:20:52Z john $
 
 
 Fname = SPM.eeg.factor{i};

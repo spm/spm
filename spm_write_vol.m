@@ -8,7 +8,7 @@ function V = spm_write_vol(V,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_write_vol.m 112 2005-05-04 18:20:52Z john $
 
 
 if ndims(Y)>3, error('Can only handle a maximum of 3 dimensions.'), end

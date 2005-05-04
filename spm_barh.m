@@ -8,7 +8,7 @@ function spm_barh(E,C,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_barh.m 112 2005-05-04 18:20:52Z john $
 
 
 

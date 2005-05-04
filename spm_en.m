@@ -10,7 +10,7 @@ function [X] = spm_en(X)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_en.m 112 2005-05-04 18:20:52Z john $
 
 
 for i = 1:size(X,2)

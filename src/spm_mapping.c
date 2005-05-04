@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_mapping.c 112 2005-05-04 18:20:52Z john $
  */
 
 /* matlab dependent high level data access and map manipulation routines */

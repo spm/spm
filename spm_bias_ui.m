@@ -65,7 +65,7 @@ function spm_bias_ui(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_bias_ui.m 112 2005-05-04 18:20:52Z john $
 
 
 global defaults
@@ -81,7 +81,7 @@ return;
 %=======================================================================
 function bias_ui(flags)
 % User interface for nonuniformity correction
-SPMid = spm('FnBanner',mfilename,'$Rev$');
+SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Flatten');
 spm_help('!ContextHelp',mfilename);
 PP = spm_select(Inf, 'image', 'Scans to correct');

@@ -28,7 +28,7 @@ function out = spm_justify(n,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_justify.m 112 2005-05-04 18:20:52Z john $
 
 out = {};
 for i=1:nargin-1,

@@ -18,7 +18,7 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$     
+% $Id: spm_vb_roi_anova.m 112 2005-05-04 18:20:52Z john $     
 
 if nargin == 1
     %-Get SPM.mat 

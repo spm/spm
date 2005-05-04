@@ -54,7 +54,7 @@ function f = spm_Ppdf(x,l)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_Ppdf.m 112 2005-05-04 18:20:52Z john $
 
 
 %-Format arguments, note & check sizes

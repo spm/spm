@@ -1,7 +1,7 @@
 function [B,Wf]=robust_average(data);
 
 % James Kilner
-% $Id$
+% $Id: spm_eeg_robust_average.m 112 2005-05-04 18:20:52Z john $
 
 data=data';
 %figure(1)

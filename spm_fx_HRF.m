@@ -25,7 +25,7 @@ function [f] = spm_fx_HRF(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_fx_HRF.m 112 2005-05-04 18:20:52Z john $
 
 
 % Fout = f(v) - outflow

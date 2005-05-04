@@ -19,7 +19,7 @@ function [Con] = spm_make_contrasts (k1,k2)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_make_contrasts.m 112 2005-05-04 18:20:52Z john $
     
 % See section 5 of 
 % http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf

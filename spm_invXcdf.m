@@ -45,7 +45,7 @@ function x = spm_invXcdf(F,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_invXcdf.m 112 2005-05-04 18:20:52Z john $
 
 
 %-Check enough arguments

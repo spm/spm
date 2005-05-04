@@ -25,7 +25,7 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Matthew Brett
-% $Id$
+% $Id: spm_resels.m 112 2005-05-04 18:20:52Z john $
 
 
 % Dimensionality

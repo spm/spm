@@ -31,7 +31,7 @@ function [F,df,xX,xCon,beta,V] = spm_reml_ancova(y,P,Fc)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_reml_ancova.m 112 2005-05-04 18:20:52Z john $
 
 
 

@@ -28,7 +28,7 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id$
+% $Id: spm_uc.m 112 2005-05-04 18:20:52Z john $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni.

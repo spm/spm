@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: spm_sys_deps.h 112 2005-05-04 18:20:52Z john $ */
 
 #ifndef SYS_DEP
 #define SYS_DEP

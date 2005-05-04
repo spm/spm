@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_vol_utils.c 112 2005-05-04 18:20:52Z john $
  */
 
 #define TINY 5e-2

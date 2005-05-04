@@ -17,7 +17,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_dcm_contrasts.m 112 2005-05-04 18:20:52Z john $
 
 
 Finter = spm_figure('GetWin','Interactive');

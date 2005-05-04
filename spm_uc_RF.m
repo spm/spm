@@ -22,7 +22,7 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_uc_RF.m 112 2005-05-04 18:20:52Z john $
 
 
 % find approximate value

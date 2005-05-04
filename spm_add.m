@@ -20,7 +20,7 @@ function varargout = spm_add(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: spm_add.m 112 2005-05-04 18:20:52Z john $
 
 
 %-This is merely the help file for the compiled routine

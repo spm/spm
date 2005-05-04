@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_resels_vol.c 112 2005-05-04 18:20:52Z john $
  */
 /*
 See Worsley et al. (1996), Human Brain Mapping 4:58-73 for a description

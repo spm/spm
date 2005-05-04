@@ -15,6 +15,6 @@ function [y] = spm_digamma(x)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_digamma.m 112 2005-05-04 18:20:52Z john $
 
 error('spm_digamma.c has not been compiled')

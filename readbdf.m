@@ -37,7 +37,7 @@ function [DAT,S]=readbdf(DAT,Records,Mode)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: readbdf.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin<3 Mode=0; end;

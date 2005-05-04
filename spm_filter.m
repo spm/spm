@@ -26,7 +26,7 @@ function [argout] = spm_filter(K,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_filter.m 112 2005-05-04 18:20:52Z john $
 
 
 

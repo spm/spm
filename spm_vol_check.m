@@ -11,7 +11,7 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id$
+% $Id: spm_vol_check.m 112 2005-05-04 18:20:52Z john $
 
 
 [fnames samef msg] = deal({},1,{});

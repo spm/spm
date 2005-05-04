@@ -22,7 +22,7 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id$
+% $Id: spm_uc_Bonf.m 112 2005-05-04 18:20:52Z john $
 
 
 u   = spm_u((a/S).^(1/n),df,STAT);

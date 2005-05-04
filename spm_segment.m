@@ -45,7 +45,7 @@ function VO = spm_segment(VF,PG,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_segment.m 112 2005-05-04 18:20:52Z john $
 
 
 % Create some suitable default values

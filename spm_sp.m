@@ -179,7 +179,7 @@ function varargout = spm_sp(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jean-Baptiste Poline
-% $Id$
+% $Id: spm_sp.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin==0

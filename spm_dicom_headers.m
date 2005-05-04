@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_dicom_headers.m 112 2005-05-04 18:20:52Z john $
 
 
 ver = sscanf(version,'%d');

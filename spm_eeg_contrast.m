@@ -4,7 +4,7 @@ function c = spm_eeg_contrast(SPM, xCon)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_contrast.m 112 2005-05-04 18:20:52Z john $
 
 c = 1; 
 for j = 1:SPM.eeg.Nfactors            

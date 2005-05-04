@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id$
+% $Id: spm_peb_ppi.m 112 2005-05-04 18:20:52Z john $
 
 
 % set up the graphical interface

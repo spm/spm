@@ -43,7 +43,7 @@ function f = spm_Npdf(x,u,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_Npdf.m 112 2005-05-04 18:20:52Z john $
 
 
 

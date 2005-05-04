@@ -42,7 +42,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id$
+% $Id: spm_get_image_def.m 112 2005-05-04 18:20:52Z john $
 
 
 

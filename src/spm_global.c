@@ -10,7 +10,7 @@
   The mean is estimated after discounting voxels outside the object
   using a criteria of greater than > (global mean)/8
 
-  $Id$
+  $Id: spm_global.c 112 2005-05-04 18:20:52Z john $
 */
 
 

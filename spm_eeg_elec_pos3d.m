@@ -4,7 +4,7 @@ function [pos, name] = spm_eeg_elec_pos3d
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner
-% $Id$
+% $Id: spm_eeg_elec_pos3d.m 112 2005-05-04 18:20:52Z john $
 
 inter_ring_dist=2;
 pos=zeros(128,4); %x and y coordinates for each electrode

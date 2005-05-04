@@ -33,7 +33,7 @@ function [DAT,H1]=openbdf(FILENAME)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: openbdf.m 112 2005-05-04 18:20:52Z john $
 
 
 SLASH='/';		% defines Seperator for Subdirectories

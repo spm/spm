@@ -58,7 +58,7 @@ function [C,P,F] = spm_PEB(y,P,TOL)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_PEB.m 112 2005-05-04 18:20:52Z john $
 
 
 % set tolerance if not specified

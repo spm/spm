@@ -13,7 +13,7 @@ function data = spm_chi2_plot(action,arg1,arg2,arg3,arg4)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_chi2_plot.m 112 2005-05-04 18:20:52Z john $
 
 
 global pb_pointer pb_name ax

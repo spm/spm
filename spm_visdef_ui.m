@@ -4,7 +4,7 @@ function spm_visdef_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_visdef_ui.m 112 2005-05-04 18:20:52Z john $
 
 
 P = spm_select(1,'.*y_.*\.img','Select deformation field');

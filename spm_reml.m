@@ -21,7 +21,7 @@ function [Ce,h,W,u,F] = spm_reml(Cy,X,Q);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id$
+% $Id: spm_reml.m 112 2005-05-04 18:20:52Z john $
 
 
 % Tolerances 

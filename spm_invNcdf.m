@@ -62,7 +62,7 @@ function x = spm_invNcdf(F,u,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_invNcdf.m 112 2005-05-04 18:20:52Z john $
 
 
 

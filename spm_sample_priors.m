@@ -12,7 +12,7 @@ function [s,ds1,ds2,ds3] = spm_sample_priors(b,x1,x2,x3,bg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_sample_priors.m 112 2005-05-04 18:20:52Z john $
 
 
 deg = 3;

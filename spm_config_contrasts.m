@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id$
+% $Id: spm_config_contrasts.m 112 2005-05-04 18:20:52Z john $
 
 
 %_______________________________________________________________________

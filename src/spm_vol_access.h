@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id: spm_vol_access.h 112 2005-05-04 18:20:52Z john $
    matlab independent image access routines */
 
 #include <sys/types.h>

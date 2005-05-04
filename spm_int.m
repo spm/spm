@@ -22,7 +22,7 @@ function [y,dy] = spm_int(P,M,U,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_int.m 112 2005-05-04 18:20:52Z john $
 
 
 % convert U to U.u if necessary

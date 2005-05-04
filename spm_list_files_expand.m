@@ -16,7 +16,7 @@ function [Files,Dirs] = spm_list_files_expand(WDir,Filter,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_list_files_expand.m 112 2005-05-04 18:20:52Z john $
 
 
 global defaults

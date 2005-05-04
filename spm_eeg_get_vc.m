@@ -29,7 +29,7 @@ function SPM = spm_eeg_get_vc(SPM);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_get_vc.m 112 2005-05-04 18:20:52Z john $
 
 
 

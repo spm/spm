@@ -25,7 +25,7 @@ function [] = spm_dcm_average (num_models,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_dcm_average.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin < 1

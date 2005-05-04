@@ -4,7 +4,7 @@ function opts = spm_config_mkdir
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id$
+% $Id: spm_config_runbatch.m 112 2005-05-04 18:20:52Z john $
 
 data.type = 'files';
 data.name = 'Batch Files';

@@ -121,7 +121,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston
-% $Id$
+% $Id: spm_help.m 112 2005-05-04 18:20:52Z john $
 
 
 %=======================================================================

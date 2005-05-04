@@ -10,7 +10,7 @@ function [po,pin] = spm_prep2sn(p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_prep2sn.m 112 2005-05-04 18:20:52Z john $
 
 
 if ischar(p), p = load(p); end;

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_bsplins.c 112 2005-05-04 18:20:52Z john $
 */
 /*
  * This code is based on that of Philippe Thevenaz, which I took from:

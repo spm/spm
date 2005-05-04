@@ -14,7 +14,7 @@ function spm_progress_bar(action,arg1,arg2,arg3,arg4)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_progress_bar.m 112 2005-05-04 18:20:52Z john $
 
 
 global pb_pointer pb_name ax

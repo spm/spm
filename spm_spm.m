@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id$
+% $Id: spm_spm.m 112 2005-05-04 18:20:52Z john $
 
-SCCSid   = '$Rev$';
+SCCSid   = '$Rev: 112 $';
 
 %-Say hello
 %-----------------------------------------------------------------------

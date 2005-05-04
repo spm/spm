@@ -1,4 +1,4 @@
-<!-- $Id: info.xml 44 2005-03-31 11:42:09Z guillaume $ -->
+<!-- $Id: info.xml 112 2005-05-04 18:20:52Z john $ -->
 <productinfo
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">

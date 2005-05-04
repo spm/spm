@@ -19,9 +19,9 @@ function savexml(filename, varargin)
 %  See also SAVE, MAT2XML, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 1.0 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 112 $  $Date: 2003/07/10 13:50 $
 
-%  $Id$
+%  $Id: savexml.m 112 2005-05-04 18:20:52Z john $
 
 if nargin == 0
 	filename = 'matlab.xml';

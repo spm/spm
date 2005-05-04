@@ -16,7 +16,7 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_rdata.m 112 2005-05-04 18:20:52Z john $
 
 try
     Fdata = S.Fdata;

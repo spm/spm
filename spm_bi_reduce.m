@@ -40,7 +40,7 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_bi_reduce.m 112 2005-05-04 18:20:52Z john $
 
 
 % set up

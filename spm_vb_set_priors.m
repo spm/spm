@@ -28,7 +28,7 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_vb_set_priors.m 112 2005-05-04 18:20:52Z john $
 
 if ~isfield(slice,'verbose')
     slice.verbose=0;

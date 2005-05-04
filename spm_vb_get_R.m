@@ -10,7 +10,7 @@ function [R] = spm_vb_get_R (slice,h0)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_vb_get_R.m 112 2005-05-04 18:20:52Z john $
 
 
 lambda=h0(end);

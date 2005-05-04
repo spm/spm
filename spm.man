@@ -287,5 +287,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id$
+% $Id: spm.man 112 2005-05-04 18:20:52Z john $
 

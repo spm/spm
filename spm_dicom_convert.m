@@ -13,7 +13,7 @@ function spm_dicom_convert(hdr,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id$
+% $Id: spm_dicom_convert.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin<2, opts = 'all'; end;

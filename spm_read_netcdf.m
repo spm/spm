@@ -9,7 +9,7 @@ function cdf = spm_read_netcdf(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_read_netcdf.m 112 2005-05-04 18:20:52Z john $
 
 
 dsiz     = [1 1 2 4 4 8];

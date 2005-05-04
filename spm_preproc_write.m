@@ -11,7 +11,7 @@ function spm_preproc_apply(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_preproc_write.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin==1,

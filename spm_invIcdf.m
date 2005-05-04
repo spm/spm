@@ -47,7 +47,7 @@ function r = spm_invIcdf(F,n,p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_invIcdf.m 112 2005-05-04 18:20:52Z john $
 
 
 

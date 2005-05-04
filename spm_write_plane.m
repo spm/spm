@@ -14,7 +14,7 @@ function V = spm_write_plane(V,dat,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_write_plane.m 112 2005-05-04 18:20:52Z john $
 
 
 if isfield(V,'n'), n = num2cell([n V.n]); else, n = {n}; end;

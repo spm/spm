@@ -15,7 +15,7 @@ function V = spm_vol_ecat7(fname,required)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Roger Gunn
-% $Id$
+% $Id: spm_vol_ecat7.m 112 2005-05-04 18:20:52Z john $
 
 
 V        = [];

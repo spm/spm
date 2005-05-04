@@ -36,7 +36,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id$
+% $Id: spm_P.m 112 2005-05-04 18:20:52Z john $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni

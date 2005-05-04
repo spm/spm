@@ -11,7 +11,7 @@ function [x] = spm_vec(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_vec.m 112 2005-05-04 18:20:52Z john $
 
 
 % de-reference input cell if possible

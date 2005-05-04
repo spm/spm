@@ -4,7 +4,7 @@ function spm_applydef_ui(P,PT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_applydef_ui.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin<2

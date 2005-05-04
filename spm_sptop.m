@@ -20,7 +20,7 @@ function [K] = spm_sptop(sigma,q,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_sptop.m 112 2005-05-04 18:20:52Z john $
 
 
 % if sigma = 0, return identity matrix; if q = 1, return 1.

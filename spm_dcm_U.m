@@ -14,7 +14,7 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_dcm_U.m 112 2005-05-04 18:20:52Z john $
 
 
 load(DCM_filename);

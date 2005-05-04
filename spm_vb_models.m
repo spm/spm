@@ -12,7 +12,7 @@ function [model] = spm_vb_models (SPM,factor)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % W. Penny
-% $Id$
+% $Id: spm_vb_models.m 112 2005-05-04 18:20:52Z john $
 
 nf=length(factor); % Number of factors
 k1=factor(1).levels

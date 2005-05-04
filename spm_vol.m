@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_vol.m 112 2005-05-04 18:20:52Z john $
 
 
 % If is already a vol structure then just return;

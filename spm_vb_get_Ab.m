@@ -14,7 +14,7 @@ function [voxel] = spm_vb_get_Ab (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id$
+% $Id: spm_vb_get_Ab.m 112 2005-05-04 18:20:52Z john $
 
 k=slice.k;
 N=slice.N;

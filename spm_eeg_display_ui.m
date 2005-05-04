@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_display_ui.m 112 2005-05-04 18:20:52Z john $
 
 if nargin == 1
     S = varargin{1};

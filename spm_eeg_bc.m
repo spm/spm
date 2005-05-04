@@ -7,7 +7,7 @@ function d = spm_eeg_bc(D, d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_bc.m 112 2005-05-04 18:20:52Z john $
 
 
 for i = 1 : length(D.tf.channels)

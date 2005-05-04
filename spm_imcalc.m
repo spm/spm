@@ -39,7 +39,7 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id$
+% $Id: spm_imcalc.m 112 2005-05-04 18:20:52Z john $
 
 
 

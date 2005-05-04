@@ -8,7 +8,7 @@ function [slice] = spm_vb_beta (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id$
+% $Id: spm_vb_beta.m 112 2005-05-04 18:20:52Z john $
 
 if slice.verbose
     disp('Updating beta');

@@ -5,7 +5,7 @@ function [x,y,z] = spm_eeg_scalp2d(D, d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner & Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_scalp2d.m 112 2005-05-04 18:20:52Z john $
 
 load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
 

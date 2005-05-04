@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_win32utils.c 112 2005-05-04 18:20:52Z john $
  */
 
 #include <windows.h>

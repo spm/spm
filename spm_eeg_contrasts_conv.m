@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_contrasts_conv(SPM, Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_contrasts_conv.m 112 2005-05-04 18:20:52Z john $
 
 % Get and change to results directory
 %-----------------------------------------------------------------------

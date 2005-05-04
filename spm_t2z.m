@@ -54,7 +54,7 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id$
+% $Id: spm_t2z.m 112 2005-05-04 18:20:52Z john $
 
 
 %-Initialisation

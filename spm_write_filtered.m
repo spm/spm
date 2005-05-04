@@ -21,7 +21,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: spm_write_filtered.m 112 2005-05-04 18:20:52Z john $
 
 
 %-Parse arguments

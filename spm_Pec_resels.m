@@ -11,7 +11,7 @@ function R = spm_Pec_resels(L,W)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_Pec_resels.m 112 2005-05-04 18:20:52Z john $
 
 
 % Resel Counts

@@ -25,7 +25,7 @@ function [N,Z,M,A] = spm_max(X,L)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id$
+% $Id: spm_max.m 112 2005-05-04 18:20:52Z john $
 
 
 % Ensure that L contains exactly integers

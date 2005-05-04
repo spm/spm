@@ -7,7 +7,7 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_locate_channels.m 112 2005-05-04 18:20:52Z john $
 
 % load channel template file (contains location of channels)
 Ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));

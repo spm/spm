@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id: spm_make_lookup.h 112 2005-05-04 18:20:52Z john $
 */
 
 void make_lookup_poly(double coord, int q, int dim, int *d1,

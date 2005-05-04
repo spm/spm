@@ -16,7 +16,7 @@ function spm_sections(SPM,hReg,spms)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_sections.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin < 3 | isempty(spms)

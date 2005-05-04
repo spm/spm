@@ -75,7 +75,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes & John Ashburner
-% $Id$
+% $Id: spm_resss.m 112 2005-05-04 18:20:52Z john $
 
 
 

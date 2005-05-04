@@ -11,7 +11,7 @@ function spm_check_registration(images)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_check_registration.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin==0,

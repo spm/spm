@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id: spm_datatypes.h 112 2005-05-04 18:20:52Z john $
    constants etc defining analyze / spm image data types */
 
 #define SPM_UNSIGNED_CHAR     2

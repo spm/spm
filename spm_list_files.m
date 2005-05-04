@@ -12,7 +12,7 @@ function varargout = spm_list_files(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_list_files.m 112 2005-05-04 18:20:52Z john $
 
 
 %-This is merely the help file for the compiled routine

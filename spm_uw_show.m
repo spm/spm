@@ -13,7 +13,7 @@ function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id$
+% $Id: spm_uw_show.m 112 2005-05-04 18:20:52Z john $
 
 
 persistent iter;

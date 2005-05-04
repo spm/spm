@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_create_vol.m 112 2005-05-04 18:20:52Z john $
 
 
 for i=1:prod(size(V)),

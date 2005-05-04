@@ -21,7 +21,7 @@ function def = spm_get_def(Bx,By,Bz,beta)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id$
+% $Id: spm_get_def.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin == 4

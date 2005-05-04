@@ -37,7 +37,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_est_smoothness.m 112 2005-05-04 18:20:52Z john $
 
 
 % assign input argumants

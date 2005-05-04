@@ -6,7 +6,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id$
+% $Id: spm_contrasts.m 112 2005-05-04 18:20:52Z john $
 
 
 

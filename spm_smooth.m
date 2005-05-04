@@ -22,7 +22,7 @@ function spm_smooth(P,Q,s)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Tom Nichols
-% $Id$
+% $Id: spm_smooth.m 112 2005-05-04 18:20:52Z john $
 
 
 %-----------------------------------------------------------------------

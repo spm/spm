@@ -13,7 +13,7 @@ function [y] = spm_lambda_HRF(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_lambda_HRF.m 112 2005-05-04 18:20:52Z john $
 
 
 % resting venous volume

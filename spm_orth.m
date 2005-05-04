@@ -7,7 +7,7 @@ function x = spm_orth(X)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_orth.m 112 2005-05-04 18:20:52Z john $
 
 
 x     = X(:,1);

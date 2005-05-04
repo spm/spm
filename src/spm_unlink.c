@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_unlink.c 112 2005-05-04 18:20:52Z john $
  */
 
 /* Do a silent deletion of files on disk */

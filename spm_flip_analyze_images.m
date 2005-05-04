@@ -4,7 +4,7 @@ function flip = spm_flip_analyze_images
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: spm_flip_analyze_images.m 112 2005-05-04 18:20:52Z john $
 
 
 global defaults

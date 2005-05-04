@@ -96,10 +96,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: spm_slice_timing.m 112 2005-05-04 18:20:52Z john $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev$');
+SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 

@@ -111,4 +111,4 @@ ________________________________________________________________________
 SPM is developed by members and collaborators of the
                               Wellcome Department of Cognitive Neurology
 
-$Id$
+$Id: README.txt 112 2005-05-04 18:20:52Z john $

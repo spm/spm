@@ -13,7 +13,7 @@ function VO = spm_bias_apply(V,T)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_bias_apply.m 112 2005-05-04 18:20:52Z john $
 
 
 if ischar(V),

@@ -89,12 +89,12 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id$
+% $Id: spm_imcalc_ui.m 112 2005-05-04 18:20:52Z john $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev$';
+SCCSid = '$Rev: 112 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 SPMid = spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])

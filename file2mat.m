@@ -10,7 +10,7 @@ function file2mat
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: file2mat.m 112 2005-05-04 18:20:52Z john $
 
 
 error('This function needs to be compiled.');

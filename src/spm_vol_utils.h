@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id: spm_vol_utils.h 112 2005-05-04 18:20:52Z john $
 */
 #define UNSIGNED_CHAR     2
 #define SIGNED_SHORT      4

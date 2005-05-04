@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_make_lookup.c 112 2005-05-04 18:20:52Z john $
  */
 
 /* Generate a lookup table for Lagrange interpolation

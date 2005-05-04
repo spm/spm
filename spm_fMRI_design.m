@@ -165,10 +165,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_fMRI_design.m 112 2005-05-04 18:20:52Z john $
 
 
-SCCSid  = '$Rev$';
+SCCSid  = '$Rev: 112 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------

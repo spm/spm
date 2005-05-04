@@ -18,7 +18,7 @@ unmap_file is very similar to munmap, except it does not
 want the (second) length parameter, which is not easily
 implemented using Win32 
 
-$Id$
+$Id: win32mmap.c 112 2005-05-04 18:20:52Z john $
 */
 
 #include <windows.h>

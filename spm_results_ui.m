@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id$
+% $Id: spm_results_ui.m 112 2005-05-04 18:20:52Z john $
 
-SCCSid = '$Rev$';
+SCCSid = '$Rev: 112 $';
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions

@@ -79,7 +79,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id$
+% $Id: spm_uc_FDR.m 112 2005-05-04 18:20:52Z john $
 
 
 if (nargin<6), Vm = []; end

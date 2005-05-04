@@ -20,7 +20,7 @@ function [hrf,p] = spm_hrf(RT,P);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_hrf.m 112 2005-05-04 18:20:52Z john $
 
 
 % global parameter

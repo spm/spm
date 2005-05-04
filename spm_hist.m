@@ -12,7 +12,7 @@ function h = spm_hist(ind,val)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_hist.m 112 2005-05-04 18:20:52Z john $
 
 
 persistent flg

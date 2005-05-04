@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 %
 % Will Penny & Klaas Enno Stephan
-% $Id$
+% $Id: spm_dcm_generate.m 112 2005-05-04 18:20:52Z john $
 
 
 randn('state',sum(100*clock));

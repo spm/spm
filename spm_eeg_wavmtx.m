@@ -29,7 +29,7 @@ function [W, Nres] = spm_eeg_wavmtx(n, wname, order)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_wavmtx.m 112 2005-05-04 18:20:52Z john $
 
 
 switch wname

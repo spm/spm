@@ -12,7 +12,7 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_mnc2nifti.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin==1,

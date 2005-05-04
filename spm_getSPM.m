@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id$
+% $Id: spm_getSPM.m 112 2005-05-04 18:20:52Z john $
 
 
 
-SCCSid = '$Rev$';
+SCCSid = '$Rev: 112 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------

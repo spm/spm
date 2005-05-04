@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_defs.m 112 2005-05-04 18:20:52Z john $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...

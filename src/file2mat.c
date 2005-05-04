@@ -2,7 +2,7 @@
 Memory mapping is used by this module. For more information on this, see:
 http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 
-$Id$
+$Id: file2mat.c 112 2005-05-04 18:20:52Z john $
 */
 
 #include <math.h>

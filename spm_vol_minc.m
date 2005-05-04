@@ -18,7 +18,7 @@ function V=spm_vol_minc(fname,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %  John Ashburner
-% $Id$
+% $Id: spm_vol_minc.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin<2, n = 1; end;

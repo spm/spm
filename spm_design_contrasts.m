@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id$
+% $Id: spm_design_contrasts.m 112 2005-05-04 18:20:52Z john $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified

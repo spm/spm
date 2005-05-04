@@ -27,7 +27,7 @@ function [w,ind,b0] = spm_rvc(K,t,bs,alpha,th)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_rvc.m 112 2005-05-04 18:20:52Z john $
 
 
 if nargin<3, bs = 0; end;

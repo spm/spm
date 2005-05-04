@@ -68,7 +68,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id$
+% $Id: spm_P_FDR.m 112 2005-05-04 18:20:52Z john $
 
 
 
