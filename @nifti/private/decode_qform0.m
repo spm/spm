@@ -11,15 +11,15 @@ dim    = double(hdr.dim);
 pixdim = double(hdr.pixdim);
 if ~isfield(hdr,'magic') || hdr.qform_code <= 0,
     flp = spm_flip_analyze_images;
-    disp('------------------------------------------------------');
-    disp('The images are in a form whereby it is not possible to');
-    disp('tell the left and right sides of the brain apart.');
-    if flp,
-        disp('They are assumed to be stored right-handed.');
-    else
-        disp('They are assumed to be stored left-handed.');
-    end;
-    disp('------------------------------------------------------');
+    %disp('------------------------------------------------------');
+    %disp('The images are in a form whereby it is not possible to');
+    %disp('tell the left and right sides of the brain apart.');
+    %if flp,
+    %    disp('They are assumed to be stored right-handed.');
+    %else
+    %    disp('They are assumed to be stored left-handed.');
+    %end;
+    %disp('------------------------------------------------------');
 
     R      = eye(4);
     n      = min(dim(1),3);

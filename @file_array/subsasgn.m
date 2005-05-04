@@ -114,6 +114,7 @@ end;
 dt  = datatypes;
 ind = find(cat(1,dt.code)==sobj.dtype);
 if isempty(ind) error('Unknown datatype'); end;
+if dt(ind).isint, dat = round(dat); end;
 dat   = feval(dt(ind).conv,dat);
 nelem = dt(ind).nelem;
 if nelem==1,

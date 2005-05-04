@@ -37,10 +37,10 @@ if nargin<2,
     mat    = [vox(1) 0 0 off(1) ; 0 vox(2) 0 off(2) ; 0 0 vox(3) off(3) ; 0 0 0 1];
     flp    = spm_flip_analyze_images;
     if flp,
-        disp(['Assuming that image is stored left-handed']);
+        %disp(['Assuming that image is stored left-handed']);
         mat = diag([-1 1 1 1])*mat;
     else
-        disp(['Assuming that image is stored right-handed']);
+        %disp(['Assuming that image is stored right-handed']);
     end;
 end;
 
