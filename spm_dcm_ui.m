@@ -793,7 +793,7 @@ case 'compare',
     Vscale(4)=1;
     axis(Vscale);
     set(gca,'FontSize',18);
-    ylabel('p(y|m)');
+    ylabel('p(y|m)');  % given the flat prior p(m), p(y|m)=p(m|y)
     xlabel('m');
     title('Posterior probabilities of models from AIC');
     
