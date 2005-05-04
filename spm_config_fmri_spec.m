@@ -41,24 +41,8 @@ sp_text = ['                                                      ',...
 %-----------------------------------------------------------------------
 
 onset   = entry('Onsets','onset','e',[Inf 1],'Vector of onsets');
-p1 = ['Specify a vector of onset times for this condition type eg. ',...
-      '1.7 3.22 5.67 10.2 '];
-p2 = [...
-  'With longs TRs you may want to shift the regressors so that they are ',...
-  'aligned to a particular slice.  This is effected by resetting the ',...
-  'values of defaults.stats.fmri.t and defaults.stats.fmri.t0 in ',...
-  'spm_defaults. defaults.stats.fmri.t is the number of time-bins per ',...
-  'scan used when building regressors.  Onsets are defined ',...
-  'in temporal units of scans starting at 0.  defaults.stats.fmri.t0 is ',...
-  'the first time-bin at which the regressors are resampled to coincide ',...
-  'with data acquisition.  If defaults.stats.fmri.t0 = 1 then the ',...
-  'regressors will be appropriate for the first slice.  If you want to ',...
-  'temporally realign the regressors so that they match responses in the ',...
-  'middle slice then make defaults.stats.fmri.t0 = ',...
-  'defaults.stats.fmri.t/2 (assuming there is a negligible gap between ',...
-  'volume acquisitions). Default values are defaults.stats.fmri.t = 16 ',...
-  'and defaults.stats.fmri.t0 = 1.'];
-onset.help = {p1,sp_text,'Slice Timing Information:',p2};
+p1 = ['Specify a vector of onset times for this condition type. '];
+onset.help = {p1};
 
 %-------------------------------------------------------------------------
 
@@ -305,18 +289,7 @@ p4= ['For example, if you have 2-by-3 design ',...
   
 factors.help ={p1,sp_text,p2,sp_text,p3,sp_text,p4};
     
-%-------------------------------------------------------------------------
 
-rt       = entry('Interscan interval','RT','e',[1 1],'Interscan interval {secs}');
-rt.help = {[...
-'Interscan interval {secs}.  This is the time between acquiring a plane of one volume ',...
-'and the same plane in the next volume.  It is assumed to be constant throughout.']};
-
-%-------------------------------------------------------------------------
-
-units    = mnu('Units for design','units',{'Scans','Seconds'},{'scans','secs'},'');
-p1=['The onsets of events or blocks can be specified in either scans or seconds.'];
-units.help = {};
 
 %-------------------------------------------------------------------------
 
@@ -328,29 +301,34 @@ glob.val={'None'};
 
 derivs = mnu('Model derivatives','derivs',...
     {'No derivatives', 'Time derivatives', 'Time and Dispersion derivatives'},...
-    {[0 0],[1 0],[1 1]},'Model HRF Derivatives');
+    {[0 0],[1 0],[1 1]},'');
 derivs.val = {[0 0]};
-derivs.help = {[...
-'Model HRF Derivatives.  Modelling time and dispersion derivatives is recommended ',...
-'if you plan to use a second level analyses of event related fMRI.']}; 
-
+p1=['Model HRF Derivatives. The canonical HRF combined with time and ',...
+    'dispersion derivatives comprise an ''informed'' basis set, as ',...
+    'the shape of the canonical response conforms to the hemodynamic ',...
+    'response that is commonly observed. The incorporation of the derivate ',...
+    'terms allow for variations in subject-to-subject and voxel-to-voxel ',...
+    'responses. The time derivative allows the peak response to vary by plus or ',...
+    'minus a second and the dispersion derivative allows the width of the response ',...
+    'to vary. ']; 
+derivs.help = {p1};
 %-------------------------------------------------------------------------
 
 hrf   = branch('Canonical HRF','hrf',{derivs},'Canonical Heamodynamic Response Function');
 hrf.help = {[...
-'Canonical Heamodynamic Response Function - Useful if (i) you wish to use a SPM{T} to ',...
-'look separately at activations and deactivations or (ii) you wish to proceed to a second ',...
-'(random-effect) level of analysis. ',...
-'Unlike other bases, contrasts of these effects have a physical interpretation ',...
+'Canonical Heamodynamic Response Function. This is the default option. ',...
+'Contrasts of these effects have a physical interpretation ',...
 'and represent a parsimonious way of characterising event-related ',...
-'responses.']};
+'responses. This option is also',...
+'useful if you wish to ',...
+'look separately at activations and deactivations ']};
 
 %-------------------------------------------------------------------------
 
 len   = entry('Window length','length','e',[1 1],'window length {secs}');
 order = entry('Order','order','e',[1 1],'order');
 o1    = branch('Fourier Set','fourier',{len,order},'');
-o1.help = {'Fourier basis functions - requires SPM{F} for inference.'};
+o1.help = {'Fourier basis functions. This option requires an SPM{F} for inference.'};
 o2    = branch('Fourier Set (Hanning)','fourier_han',{len,order},'');
 o2.help = {'Fourier basis functions with Hanning Window - requires SPM{F} for inference.'};
 o3    = branch('Gamma Functions','gamma',{len,order},'');
@@ -419,12 +397,52 @@ cdir.help = {[...
 'This is where the results of the statistics will be written.']};
 
 %-------------------------------------------------------------------------
+fmri_t0 = entry('Microtime onset','fmri_t0','e',[1 1],'');
+p1=['The microtime onset, t0, is the first time-bin at which the regressors ',...
+    'are resampled to coincide ',...
+  'with data acquisition.  If t0 = 1 then the ',...
+  'regressors will be appropriate for the first slice.  If you want to ',...
+  'temporally realign the regressors so that they match responses in the ',...
+  'middle slice then make t0 = t/2 ',...
+  '(assuming there is a negligible gap between ',...
+  'volume acquisitions). '];
+p2=['Do not change the default setting unless you have a long TR. '];
+fmri_t0.val={1};
+fmri_t0.help={p1,sp_text,p2};
 
-% conf = branch('FMRI Stats','fmri_stats',...
-%     {block,bases,volt,cdir,rt,units,glob,cvi,mask},'fMRI design');
+fmri_t = entry('Microtime resolution','fmri_t','e',[1 1],'');
+p1=['The microtime resolution, t, is the number of time-bins per ',...
+    'scan used when building regressors. '];
+p2=['Do not change this parameter unless you have a long TR and wish to ',...
+        'shift regressors so that they are ',...
+  'aligned to a particular slice. '];
+fmri_t.val={16};
+fmri_t.help={p1,sp_text,p2};
+
+rt       = entry('Interscan interval','RT','e',[1 1],'Interscan interval {secs}');
+rt.help = {[...
+'Interscan interval, TR, (specified in seconds).  This is the time between acquiring a plane of one volume ',...
+'and the same plane in the next volume.  It is assumed to be constant throughout.']};
+
+%-------------------------------------------------------------------------
+
+units    = mnu('Units for design','units',{'Scans','Seconds'},{'scans','secs'},'');
+p1=['The onsets of events or blocks can be specified in either scans or seconds.'];
+units.help = {p1};
+
+timing = branch('Timing parameters','timing',{units,rt,fmri_t,fmri_t0},'');
+p1=['Specify various timing parameters needed to construct the design matrix. ',...
+    'This includes the units of the design specification and the interscan interval.'];
+
+p2 = ['Also, with longs TRs you may want to shift the regressors so that they are ',...
+  'aligned to a particular slice.  This is effected by changing the ',...
+  'microtime resolution and onset. '];
+timing.help={p1,sp_text,p2};
+
+%-------------------------------------------------------------------------
 
 conf = branch('fMRI model specification','fmri_spec',...
-    {units,block,factors,bases,volt,cdir,rt,glob,mask},'fMRI design');
+    {timing,block,factors,bases,volt,cdir,glob,mask},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
 conf.check  = @check_dir;
@@ -495,10 +513,10 @@ t = {};
 %disp(fullfile(job.dir{1},'SPM.mat'));
 
 % Should really include a check for a "virtual" SPM.mat
-if exist(fullfile(job.dir{1},'SPM.mat'),'file'),
-    t = {'SPM files exist in the analysis directory.'};
-end;
-return;
+%if exist(fullfile(job.dir{1},'SPM.mat'),'file'),
+ %   t = {'SPM files exist in the analysis directory.'};
+ %end;
+%return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
@@ -554,6 +572,18 @@ defaults.modality='FMRI';
 
 original_dir = pwd;
 my_cd(job.dir);
+    
+%-Ask about overwriting files from previous analyses...
+%-------------------------------------------------------------------
+if exist(fullfile(job.dir{1},'SPM.mat'),'file')
+    str = {	'Current directory contains existing SPM file:',...
+            'Continuing will overwrite existing file!'};
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+        fprintf('%-40s: %30s\n\n',...
+            'Abort...   (existing SPM file)',spm('time'));
+        return
+    end
+end
 
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
@@ -575,13 +605,17 @@ end
 
 % Variables
 %-------------------------------------------------------------
-SPM.xY.RT = job.RT;
+SPM.xY.RT = job.timing.RT;
 SPM.xY.P = [];
+
+% Slice timing
+defaults.stats.fmri.t=job.timing.fmri_t;
+defaults.stats.fmri.t0=job.timing.fmri_t0;
 
 % Basis function variables
 %-------------------------------------------------------------
-SPM.xBF.UNITS = job.units;
-SPM.xBF.dt    = job.RT/defaults.stats.fmri.t;
+SPM.xBF.UNITS = job.timing.units;
+SPM.xBF.dt    = job.timing.RT/defaults.stats.fmri.t;
 SPM.xBF.T     = defaults.stats.fmri.t;
 SPM.xBF.T0    = defaults.stats.fmri.t0;
 
@@ -701,10 +735,12 @@ if isfield(job,'fact')
             CheckNC=CheckNC*SPM.factor(i).levels;
         end
         if ~(CheckNC==NC)
-            disp('Error in fmri_stats job: factors do not match conditions');
+            disp('Error in fmri_spec job: factors do not match conditions');
             return
         end
     end
+else
+    SPM.factor=[];
 end
 
 % Globals

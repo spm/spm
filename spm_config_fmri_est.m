@@ -346,9 +346,9 @@ t = {};
 %disp(fullfile(job.dir{1},'SPM.mat'));
 
 % Should really include a check for a "virtual" SPM.mat
-if exist(fullfile(job.dir{1},'SPM.mat'),'file'),
-    t = {'SPM files exist in the analysis directory.'};
-end;
+% if exist(fullfile(job.dir{1},'SPM.mat'),'file'),
+%     t = {'SPM files exist in the analysis directory.'};
+% end;
 return;
 %-------------------------------------------------------------------------
 
@@ -383,6 +383,18 @@ load(job.spmmat{:});
 original_dir = pwd;
 my_cd(job.dir);
 
+%-Ask about overwriting files from previous analyses...
+%-------------------------------------------------------------------
+if exist(fullfile(job.dir{1},'SPM.mat'),'file')
+    str = {	'Current directory contains existing SPM file:',...
+            'Continuing will overwrite existing file!'};
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+        fprintf('%-40s: %30s\n\n',...
+            'Abort...   (existing SPM file)',spm('time'));
+        return
+    end
+end
+    
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %------------------------------------------------------------------------
@@ -574,7 +586,7 @@ for c = 1:ncon,
     if length(convec)==K
         DxCon.c = convec;
     else
-        disp('Error in spm_config_fmri_stats: contrast does not match design');
+        disp('Error in spm_config_fmri_est: contrast does not match design');
         return
     end
     

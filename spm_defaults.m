@@ -35,8 +35,6 @@ defaults.analyze.flip     = 1; % <<= Very important.  Relates to L/R
 defaults.stats.maxmem   = 2^20;
 defaults.stats.maxres   = 64;
 defaults.stats.fmri.ufp = 0.001;
-defaults.stats.fmri.t   = 16;
-defaults.stats.fmri.t0  = 1;
 defaults.stats.pet.ufp  = 0.05;
 defaults.stats.eeg.ufp  = 1;
 

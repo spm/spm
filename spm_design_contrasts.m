@@ -20,6 +20,12 @@ function [con] = spm_design_contrasts (SPM)
 % Will Penny
 % $Id$
 
+if isempty(SPM.factor)
+    % Can't create contrasts if factorial design has not been specified
+    con=[];
+    return;
+end
+
 if length(SPM.Sess) > 1
     disp('Warning: spm_design_contrasts only works for single session data');
 end
