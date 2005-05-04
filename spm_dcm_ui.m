@@ -118,9 +118,9 @@ case 'specify'
 	% get cell array of region structures
 	%-------------------------------------------------------------------
 	P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'});
-	m     = length(P);
+	m     = size(P,1);
 	for i = 1:m
-		p     = load(P{i},'xY');
+		p     = load(P(i,:),'xY');
 		xY(i) = p.xY;
 	end
 
@@ -333,7 +333,7 @@ case 'review'
 	%-get results
 	%-------------------------------------------------------------------
 	P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
-	load(P{:})
+	load(P);
 	m     = DCM.M.m;
 	n     = DCM.M.n;
 	l     = DCM.M.l;
@@ -757,7 +757,7 @@ case 'compare',
     
     % load all models and compute their evidence
     for model_index=1:num_models,
-	    load(P{model_index});
+	    load(P(model_index,:));
         model_VOIs{model_index}   = [];
         % concatenate names of all VOIs for each model
         for k   = 1:size(DCM.xY,2),

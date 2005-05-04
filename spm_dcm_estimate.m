@@ -19,10 +19,10 @@ if nargin < 1
     %-------------------------------------------------------------------
     P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
 else
-    P{1} = DCM_filename;
+    P = DCM_filename;
 end
 
-load(P{:})
+load(P)
 if nargin < 1
     spm('Pointer','Watch')
     spm('FigName','Estimation in progress');
@@ -111,9 +111,9 @@ DCM.Ce     = Ce;
 %-Save and reset title
 %-------------------------------------------------------------------
 if str2num(version('-release'))>=14,
-    save(P{:},'-V6','DCM');
+    save(P,'-V6','DCM');
 else
-    save(P{:},'DCM');
+    save(P,'DCM');
 end;
 
 if nargin < 1
