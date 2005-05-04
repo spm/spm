@@ -1,7 +1,7 @@
 function [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 % Specify a DCM model without having to use an SPM.mat file
-% FORMAT [] = spm_dcm_create (SNR)
+% FORMAT [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 % syn_model     name of the synthetic DCM to be created 
 % source_model  - define new model ('GUI') or 
@@ -19,7 +19,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+%
 % Will Penny & Klaas Enno Stephan
 % $Id$
 

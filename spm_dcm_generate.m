@@ -13,7 +13,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.Ce    Error covariance
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+%
 % Will Penny & Klaas Enno Stephan
 % $Id$
 
@@ -35,35 +35,11 @@ m   = size(U.u,2);  % number of inputs
 
 
 % Check whether the model is stable by examining the eigenvalue 
-% spectrum for the combined connectivity matrix at each time
-% point (i.e. scan). Admittedly, this is not very elegant and over-conservative, 
-% but very sensitive.
+% spectrum for the intrinsic connectivity matrix 
 %-------------------------------------------------------------------
-stable  = 1;
-s       = 2;    % index for current scan
-u       = 1;    % index for current input 
-TR      = DCM.Y.dt;
-warn    = 0;
-while s<=v
-    while u<=m
-        % compute index for current input for current time point (i.e. scan)
-        switch upper(source_model)
-            case 'GUI'
-                u_t             = round(s*TR/U.dt) + 32;    % NB: spm_get_ons uses an offset of 32 bins!
-            otherwise   % source model name was imported or specified directly
-                u_t             = round(s*TR/U.dt);         % NB: spm_dcm_ui (line 138) has already corrected for the offset!                 
-        end
-        eigval          = eig(DCM.A + U.u(u_t,u)*DCM.B(:,:,u));
-        if max(eigval) > 0 
-            warn    = 1;
-        end
-        u   = u + 1;
-    end
-    u   = 1;
-    s   = s + 1;
-end
+eigval = eig(DCM.A);
 % display stability warning if necessary
-if warn
+if max(eigval) >= 0
     disp (['Modelled system is potentially unstable: Lyapunov exponent of combined connectivity matrix is ' num2str(max(eigval))]);
     disp ('Check the output to ensure that values are in a normal range.')
 end
@@ -118,7 +94,6 @@ end
 DCM.Y = Y;
 
 % Save synthetic DCM
-%eval (['save ' syn_model ' DCM']);
 if str2num(version('-release'))>=14,
     save(syn_model, 'DCM', '-V6');
 else
