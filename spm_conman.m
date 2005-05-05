@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_conman.m 118 2005-05-05 12:41:18Z john $
 
 
 %=======================================================================
@@ -1767,7 +1767,7 @@ case 'createfig'
         'DefaultUicontrolFontSize',FS(10),...
         'DefaultUicontrolInterruptible','on',...
         'Colormap',gray(64),...
-        'Renderer','zbuffer',...
+        'Renderer','painters',...
         'Visible','off');
     
     %-Draw GUI objects

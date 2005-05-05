@@ -150,7 +150,7 @@ SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
-	spm_atranspa.$(SUF) spm_unlink.$(SUF)\
+	spm_atranspa.$(SUF) spm_unlink.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
 	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
@@ -344,6 +344,10 @@ spm_unlink.$(SUF): spm_unlink.c spm_sys_deps.h
 
 spm_hist2.$(SUF): spm_hist2.c spm_sys_deps.h
 	$(MEX) spm_hist2.c
+	@ $(CHMODIT) $@
+
+spm_hist$(SUF): spm_hist.c spm_sys_deps.h
+	$(MEX) spm_hist.c
 	@ $(CHMODIT) $@
 
 spm_krutil.$(SUF): spm_krutil.c spm_sys_deps.h
