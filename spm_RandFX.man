@@ -331,4 +331,7 @@
 % define an appropriate model and extract an appropriate contrast image
 % as summary image.
 %_______________________________________________________________________
-% @(#)spm_RandFX.man	2.2 Andrew Holmes 00/01/25
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Andrew Holmes
+% $Id: spm_RandFX.man 115 2005-05-05 10:14:15Z guillaume $

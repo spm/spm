@@ -15,3 +15,5 @@
 % flavours can also be converted to NIFTI-1 using tools in SPM5.
 %___________________________________________________________________________
 
+% John Ashburner
+% $Id: spm_format.man 115 2005-05-05 10:14:15Z guillaume $

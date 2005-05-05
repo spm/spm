@@ -35,4 +35,7 @@
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
-% @(#)spm_motd.man	2.8 03/05/09
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% The FIL Methods Group
+% Id$

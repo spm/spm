@@ -1,5 +1,4 @@
 %
-%
 % Unwarp function -  Usage and Description
 % _____________________________________________________________________
 %
@@ -326,6 +325,7 @@
 % to our faces!).
 %
 % _____________________________________________________________________
-% @(#)spm_uw_estimate.man	1.1 Good Luck! Jesper Andersson & Chloe Hutton 04/02/19
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-
+% Jesper Andersson & Chloe Hutton
+% $Id: spm_uw_estimate.man 115 2005-05-05 10:14:15Z guillaume $
