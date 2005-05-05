@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_ui.m 113 2005-05-05 09:50:08Z klaas $
 
 
 
@@ -120,7 +120,7 @@ case 'specify'
 	P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'});
 	m     = size(P,1);
 	for i = 1:m
-		p     = load(P(i,:),'xY');
+		p     = load(P(i,:),'xY','-mat');
 		xY(i) = p.xY;
 	end
 
