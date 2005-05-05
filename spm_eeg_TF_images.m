@@ -25,7 +25,10 @@ function D = spm_eeg_TF_images(S)
 % straightforward fashion, (ii) providing a new channel template file and
 % (iii) adding the actual conversion routine to the SPM-code.
 %_______________________________________________________________________
-% %W% Stefan Kiebel %E% 
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Stefan Kiebel
+% $Id: spm_eeg_TF_images.m 117 2005-05-05 10:43:40Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
