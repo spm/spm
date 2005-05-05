@@ -14,6 +14,7 @@
 % conversion utilities have been provided.  Similarly, a number of DICOM
 % flavours can also be converted to NIFTI-1 using tools in SPM5.
 %___________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_format.man 115 2005-05-05 10:14:15Z guillaume $
+% $Id: spm_format.man 116 2005-05-05 10:24:12Z guillaume $

@@ -359,7 +359,7 @@
 % library.  If this is what you want to do, use the GNU Library General
 % Public License instead of this License.
 %_______________________________________________________________________
-% @(#)spm_LICENCE.man	2.4 FIL 99/05/16
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm_LICENCE.man 115 2005-05-05 10:14:15Z guillaume $
+% $Id: spm_LICENCE.man 116 2005-05-05 10:24:12Z guillaume $
