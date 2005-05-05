@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 113 2005-05-05 09:50:08Z klaas $
+% $Id: spm_dcm_ui.m 114 2005-05-05 09:54:50Z klaas $
 
 
 
@@ -806,7 +806,7 @@ case 'compare',
     Vscale(4)=1;
     axis(Vscale);
     set(gca,'FontSize',18);
-    ylabel('p(y|m)');
+    ylabel('p(y|m)');  % given the flat prior p(m), p(y|m)=p(m|y)
     xlabel('m');
     title('Posterior probabilities of models from BIC');
     
