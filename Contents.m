@@ -12,7 +12,7 @@
 %
 % SPM5 is written for Matlab 6.5.1 or Matlab 7.0.1 under UNIX and Windows
 % ( Compiled binaries of external MEX functions are provided for:       )
-% (                   Solaris2, Linux, MacOS7 and Windows               )
+% (                   Solaris2, Linux and Windows                       )
 %
 % See spm.man for details of this release.
 % See README.txt for information on installation and getting started.
@@ -27,7 +27,7 @@
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% $Id: Contents.m 112 2005-05-04 18:20:52Z john $
+% $Id: Contents.m 123 2005-05-06 12:15:13Z john $
 
 %=======================================================================
 % PROGRAMMERS NOTE:

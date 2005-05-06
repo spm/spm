@@ -1,16 +1,28 @@
 function spm_latex(c)
 % Convert a job configuration structure into a series of LaTeX documents
+%
+% Note that this function works rather better in Matlab 7.x, than it
+% does under Matlab 6.x.  This is primarily because of the slightly
+% different usage of the 'regexp' function.
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_latex.m 123 2005-05-06 12:15:13Z john $
 
 if nargin==0, c = spm_config; end;
 
 fp = fopen('spm_manual.tex','w');
 fprintf(fp,'\\documentclass[a4paper,titlepage]{book}\n');
 fprintf(fp,'\\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}\n');
+fprintf(fp,'%s\n%s\n%s\n%s\n%s\n%s\n%s\n',...
+    '\usepackage[colorlinks=true,',...
+    'pdfpagemode=UseOutlines,',...
+    'pdftitle={SPM5b Manual},','pdfauthor={The SPM Team},',...
+    'pdfsubject={Statistical Parametric Mapping},',...
+    'pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}',...
+    ']{hyperref}');
+
 fprintf(fp,'\\pagestyle{headings}\n\\bibliographystyle{authordate1}\n\n');
 fprintf(fp,'\\hoffset=15mm\n\\voffset=-5mm\n');
 fprintf(fp,'\\oddsidemargin=0mm\n\\evensidemargin=0mm\n\\topmargin=0mm\n');
@@ -18,7 +30,7 @@ fprintf(fp,'\\headheight=12pt\n\\headsep=10mm\n\\textheight=240mm\n\\textwidth=1
 fprintf(fp,'\\marginparsep=5mm\n\\marginparwidth=21mm\n\\footskip=10mm\n\n');
 
 fprintf(fp,'\\title{\\huge{SPM5b (beta version) Manual}}\n');
-fprintf(fp,'\\author{The FIL Methods Group}\n');
+fprintf(fp,'\\author{The FIL Methods Group (and honorary members)}\n');
 fprintf(fp,'\\begin{document}\n');
 fprintf(fp,'\\maketitle\n');
 fprintf(fp,'\\dominitoc\\tableofcontents\n\n');
@@ -41,6 +53,14 @@ if isstruct(c) && isfield(c,'tag'),
             if isfield(c.values{i},'tag'),
                 fprintf(fp,'\\include{%s}\n',c.values{i}.tag);
                 chapter(c.values{i});
+            end;
+        end;
+    end;
+    if isfield(c,'val'),
+        for i=1:numel(c.val),
+            if isfield(c.val{i},'tag'),
+                fprintf(fp,'\\include{%s}\n',c.val{i}.tag);
+                chapter(c.val{i});
             end;
         end;
     end;

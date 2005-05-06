@@ -4,7 +4,7 @@ function opts = spm_config_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_ui.m 123 2005-05-06 12:15:13Z john $
 
 %_______________________________________________________________________
 col1 = struct('type','entry','name','Background Colour 1','tag','colour1',...
@@ -36,7 +36,7 @@ pap = struct('type','menu','name','Paper Size','tag','papersize',...
 
 app.type = 'branch';
 app.name = 'Appearance';
-app.tag  = 'disp';
+app.tag  = 'appearance';
 app.val  = {col1,col2,col3,fs};
 app.help = {'Appearance of user interface'};
 
