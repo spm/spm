@@ -56,14 +56,14 @@ function varargout=spm(varargin)
 %
 %_______________________________________________________________________
 % SPM is developed by members and collaborators of the
-%                             Wellcome Department of Cognitive Neurology
+% Wellcome Department of Imaging Neuroscience
 
 %-SVN ID and authorship of this program...
 %-----------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 120 2005-05-05 16:11:05Z will $
+% $Id: spm.m 121 2005-05-06 10:36:55Z will $
 
 
 %=======================================================================
