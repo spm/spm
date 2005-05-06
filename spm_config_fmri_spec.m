@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 121 2005-05-06 10:36:55Z will $
+% $Id: spm_config_fmri_spec.m 122 2005-05-06 10:53:23Z will $
 
 
 % Define inline types.
@@ -310,13 +310,14 @@ p1=['Model HRF Derivatives. The canonical HRF combined with time and ',...
     'terms allow for variations in subject-to-subject and voxel-to-voxel ',...
     'responses. The time derivative allows the peak response to vary by plus or ',...
     'minus a second and the dispersion derivative allows the width of the response ',...
-    'to vary. ']; 
+    'to vary. The informed basis set requires an SPM{F} for inference. T-contrasts ',...
+    'over just the canonical are perfectly valid but assume constant delay/dispersion.']; 
 derivs.help = {p1};
 %-------------------------------------------------------------------------
 
-hrf   = branch('Canonical HRF','hrf',{derivs},'Canonical Heamodynamic Response Function');
+hrf   = branch('Canonical HRF','hrf',{derivs},'Canonical Hemodynamic Response Function');
 hrf.help = {[...
-'Canonical Heamodynamic Response Function. This is the default option. ',...
+'Canonical Hemodynamic Response Function. This is the default option. ',...
 'Contrasts of these effects have a physical interpretation ',...
 'and represent a parsimonious way of characterising event-related ',...
 'responses. This option is also ',...
@@ -326,8 +327,10 @@ hrf.help = {[...
 
 %-------------------------------------------------------------------------
 
-len   = entry('Window length','length','e',[1 1],'window length {secs}');
-order = entry('Order','order','e',[1 1],'order');
+len   = entry('Window length','length','e',[1 1],'');
+len.help={'Post-stimulus window length (in seconds)'};
+order = entry('Order','order','e',[1 1],'');
+order.help={'Number of basis functions'};
 o1    = branch('Fourier Set','fourier',{len,order},'');
 o1.help = {'Fourier basis functions. This option requires an SPM{F} for inference.'};
 o2    = branch('Fourier Set (Hanning)','fourier_han',{len,order},'');
