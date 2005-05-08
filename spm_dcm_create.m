@@ -19,9 +19,9 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-%
+
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_create.m 125 2005-05-08 16:41:39Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');

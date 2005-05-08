@@ -13,9 +13,9 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.Ce    Error covariance
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-%
+
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_generate.m 125 2005-05-08 16:41:39Z klaas $
 
 
 randn('state',sum(100*clock));

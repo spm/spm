@@ -17,7 +17,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_contrasts.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_contrasts.m 125 2005-05-08 16:41:39Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -25,8 +25,8 @@ header = get(Finter,'Name');
 set(Finter,'Name','Dynamic Causal Modelling')
 WS     = spm('WinScale');
 
-P{1} = DCM_filename;
-load(P{:});
+P = DCM_filename;
+load(P);
 
 m=DCM.n;
 xY=DCM.xY;
@@ -240,9 +240,9 @@ DCM.contrast(num_contrast).con_mat=con_mat;
 DCM.contrast(num_contrast).con_type=D;
 
 if str2num(version('-release'))>=14,
-    save(P{:},'-V6','DCM');
+    save(P(:),'-V6','DCM');
 else
-    save(P{:},'DCM');
+    save(P(:),'DCM');
 end;
 
 if nargin < 2

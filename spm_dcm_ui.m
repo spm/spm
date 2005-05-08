@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 114 2005-05-05 09:54:50Z klaas $
+% $Id: spm_dcm_ui.m 125 2005-05-08 16:41:39Z klaas $
 
 
 
@@ -487,7 +487,7 @@ case 'review'
 			%---------------------------------------------------
 % 			str     = sprintf('[%.0f]contrast for A(:)',l*l);
 % 			C       = spm_input(str,1,'e');
-            C       = spm_dcm_contrasts(P{1},'A');
+            C       = spm_dcm_contrasts(P(:),'A');
 			i       = find(C); j = 1;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
@@ -497,7 +497,7 @@ case 'review'
 			%---------------------------------------------------
 % 			str     = sprintf('[%.0f]contrast for B(:)',l*l*m);
 % 			C       = spm_input(str,1,'e');
-            C       = spm_dcm_contrasts(P{1},'B');
+            C       = spm_dcm_contrasts(P(:),'B');
 			i       = find(C); j = 1 + l*l;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
@@ -505,7 +505,7 @@ case 'review'
 			%---------------------------------------------------
 % 			str     = sprintf('[%.0f]contrast for C(:)',l*m);
 % 			C       = spm_input(str,1,'e');
-            C       = spm_dcm_contrasts(P{1},'C');
+            C       = spm_dcm_contrasts(P(:),'C');
 			i       = find(C); j = 1 + l*l + l*l*m;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
@@ -815,12 +815,11 @@ case 'compare',
         for jj=1:num_models,
             if ~(jj==ii)
                 disp('---------------------------------------------------------------');
-                    disp(sprintf('Model %d: %s',ii,P{ii}));
+                    disp(sprintf('Model %d: %s',ii,P(ii)));
                     disp('          versus ');
-                    disp(sprintf('Model %d: %s',jj,P{jj}));
+                    disp(sprintf('Model %d: %s',jj,P(jj)));
                     diff=1;
                 disp(' ');
-                
                 disp('All costs are in units of binary bits');
                 disp(' ');
                 for k=1:size(DCM.A,1),
