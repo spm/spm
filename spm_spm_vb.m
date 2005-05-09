@@ -57,7 +57,6 @@ function [SPM] = spm_spm_vb(SPM)
 %
 %	SPM.VCbeta     - Handles of posterior parameter estimates (Cbeta_????)
 %   SPM.VPsd       - Handles of SD of posterior parameter estimates (SDbeta_????)
-
 %
 %   SPM.PPM        - Posterior Probability Map data structure
 %
@@ -83,8 +82,8 @@ function [SPM] = spm_spm_vb(SPM)
 %
 % For each session the following fields are also specified:
 %
-%	SPM.PPM.Sess(s).VHp        - Handle of standard deviation of the error (SDerror)
-%   SPM.PPM.Sess(s).VAR        - Handles of AR coefficient images (AR_????)
+%	SPM.PPM.Sess(s).VHp    - Handle of standard deviation of the error (SDerror)
+%   SPM.PPM.Sess(s).VAR    - Handles of AR coefficient images (AR_????)
 %
 % If contrasts have been specified prior to estimation (this is recommended) 
 % the following fields are also updated:
@@ -136,7 +135,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_spm_vb.m 129 2005-05-09 11:23:10Z guillaume $
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
