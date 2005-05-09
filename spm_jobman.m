@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_jobman.m 132 2005-05-09 17:09:58Z john $
 
 
 if nargin==0
@@ -396,7 +396,7 @@ if strcmp(get(get(varargin{1},'Parent'),'SelectionType'),'open')
     val       = min(get(batch_box,'Value'),length(str));
     set(batch_box,'String',str,'Value',val);
 else
-    update_ui;
+    run_in_current_node(@click_batch_box_fun,false);
 end;
 return;
 %------------------------------------------------------------------------
