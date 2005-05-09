@@ -106,7 +106,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_list.m 134 2005-05-09 18:44:12Z guillaume $
 
 
 
@@ -365,8 +365,9 @@ text(0.5,-3*dy,TabDat.ftr{8},...
 text(0.5,-4*dy,TabDat.ftr{9},...
 	'UserData',[VOX,prod(FWHM)],...
 	'ButtonDownFcn','get(gcbo,''UserData'')')
-
-end % Classical
+else
+TabDat.ftr = {};
+end 
 
 
 %-Characterize excursion set in terms of maxima
