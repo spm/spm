@@ -16,9 +16,9 @@
 % of SPM5.
 %
 % Further information may be found at the SPMweb site:
-%                  http://www.fil.ion.ucl.ac.uk/spm
+%                  http://www.fil.ion.ucl.ac.uk/spm/
 % ...where details of the SPM email discussion list can be found:
-%                  http://www.fil.ion.ucl.ac.uk/spm/help
+%                  http://www.fil.ion.ucl.ac.uk/spm/support/
 %
 %                           ----------------
 %
@@ -38,4 +38,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm_motd.man 116 2005-05-05 10:24:12Z guillaume $
+% $Id: spm_motd.man 127 2005-05-09 10:13:35Z guillaume $

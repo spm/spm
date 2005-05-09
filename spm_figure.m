@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 118 2005-05-05 12:41:18Z john $
+% $Id: spm_figure.m 127 2005-05-09 10:13:35Z guillaume $
 
 
 %=======================================================================
@@ -651,7 +651,7 @@ if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
 set(findobj(t0,'Position',1),'Separator','on');
 t1 = uimenu(t0,'Position',1,...
 	'Label','SPM web',...
-	'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm'');');
+	'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
 t1 = uimenu(t0,'Position',1,...
 	'Label','SPM help','ForegroundColor',[0 1 0],...
 	'CallBack','spm_help');

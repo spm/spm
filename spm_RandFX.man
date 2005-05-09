@@ -234,7 +234,7 @@
 %         "Generalisability, Random Effects & Population Inference"
 %         NeuroImage 7(4-2/3):S754
 % The corresponding poster (HBM'98) is available from
-%         http://www.fil.ion.ucl.ac.uk/spm/RFXposter.pdf
+%         http://www.fil.ion.ucl.ac.uk/spm/doc/RFXposter.pdf
 %
 %                           ----------------
 %
@@ -286,11 +286,11 @@
 % With SPM96, basic random effects analyses for simple categorical
 % compariosns were retrospectively implemented in a limited way using
 % the "Random Effects Kit":
-% http://www.fil.ion.ucl.ac.uk/spm/spm96.html#RFX96 This allowed random
-% effects analyses of simple categorical comparisons by computing
-% adjusted mean condition images. With two conditions, this resulted in
-% two images per subject, which were then assessed at the subject level
-% using a paired t-test.
+% http://www.fil.ion.ucl.ac.uk/spm/software/spm96/#RFX96
+% This allowed random effects analyses of simple categorical comparisons
+% by computing adjusted mean condition images. With two conditions, this 
+% resulted in two images per subject, which were then assessed at the 
+% subject level using a paired t-test.
 %
 % The adjusted condition images obtained from the SPM96 AdjMean/fMRI
 % are the parameter estimates for a very simple model using box-cars,
@@ -334,4 +334,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_RandFX.man 115 2005-05-05 10:14:15Z guillaume $
+% $Id: spm_RandFX.man 127 2005-05-09 10:13:35Z guillaume $

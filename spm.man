@@ -5,7 +5,7 @@
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
 % \__ \ )___/ )    (   Statistical Parametric Mapping
-% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm
+% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm/
 %
 % ______________________________________________________________________
 %
@@ -79,18 +79,18 @@
 %                                                              Resources
 % 
 % The SPMweb site is the central repository for SPM resources:
-%                  http://www.fil.ion.ucl.ac.uk/spm
+%                  http://www.fil.ion.ucl.ac.uk/spm/
 % Introductory material, installation details, documentation, course
 % details and patches are published on the site.
 %
 % There is an SPM eMail discussion list, hosted at
-% <spm@mailbase.ac.uk>.  The list is monitored by the authors, and
+% <spm@jiscmail.ac.uk>.  The list is monitored by the authors, and
 % discusses theoretical, methodological and practical issues of
 % Statistical Parametric Mapping and SPM. Subscribe by sending the one
 % line message: "join spm firstname lastname" to
-% <mailbase@mailbase.ac.uk>. (Users at NIH or UC-Davis should join
+% <jiscmail@jiscmail.ac.uk>. (Users at NIH or UC-Davis should join
 % their local SPM feeds.) The SPMweb site has further details:
-%                  http://www.fil.ion.ucl.ac.uk/spm/help
+%                  http://www.fil.ion.ucl.ac.uk/spm/support/
 % 
 %                           ----------------
 %
@@ -104,7 +104,7 @@
 %
 % Please report bugs to the authors at <spm-authors@fil.ion.ucl.ac.uk>
 % Peculiarities may actually be features(!), and should be raised on the
-% SPM eMail discussion list, <spm@mailbase.ac.uk>.
+% SPM eMail discussion list, <spm@jiscmail.ac.uk>.
 % ______________________________________________________________________
 %                                                   The SPM distribution
 %
@@ -287,5 +287,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm.man 112 2005-05-04 18:20:52Z john $
+% $Id: spm.man 127 2005-05-09 10:13:35Z guillaume $
 

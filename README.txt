@@ -1,7 +1,7 @@
   ___  ____  __  __
  / __)(  _ \(  \/  )  
  \__ \ )___/ )    (   Statistical Parametric Mapping
- (___/(__)  (_/\/\_)  SPM -  http://www.fil.ion.ucl.ac.uk/spm
+ (___/(__)  (_/\/\_)  SPM -  http://www.fil.ion.ucl.ac.uk/spm/
 
                               R E A D M E
 
@@ -9,7 +9,7 @@ ________________________________________________________________________
 
 This README gives a brief introduction to the installation and use of
 the SPM package. Full details can be found on the SPMweb site:
-                 http://www.fil.ion.ucl.ac.uk/spm
+                 http://www.fil.ion.ucl.ac.uk/spm/
 
 A manifest for this release is contained in the file Contents.m
 The release is described in the file spm.man
@@ -35,10 +35,10 @@ special toolboxes are required).
 
 SPM5 is written for Matlab versions 6.5.1 and 7.0.1 under UNIX. (SPM5
 will not work with versions of Matlab prior to 6.5.
-Binaries of the external C-mex routines are provided for
-Solaris, Linux, Windows and MacOS X only, users of other UNIX platforms
-need an ANSI C compiler to compile the supplied C source (Makefile
-provided). See http://www.fil.ion.ucl.ac.uk/spm/spm5.html for details.
+Binaries of the external C-mex routines are provided for Solaris, Linux 
+and Windows, users of other UNIX platforms need an ANSI C compiler to 
+compile the supplied C source (Makefile provided). 
+See http://www.fil.ion.ucl.ac.uk/spm/software/spm5/ for details.
 
 ( Whilst the majority of the code is implemented as MatLab functions    )
 ( & scripts containing standard MatLab commands, a number of features   )
@@ -81,7 +81,7 @@ ________________________________________________________________________
                                                                Resources
 
 The SPMweb site is the central repository for SPM resources:
-                 http://www.fil.ion.ucl.ac.uk/spm
+                 http://www.fil.ion.ucl.ac.uk/spm/
 Introductory material, installation details, documentation, course
 details and patches are published on the site.
 
@@ -89,26 +89,25 @@ There is an SPM eMail discussion list, hosted at <spm@jiscmail.ac.uk>.
 The list is monitored by the authors, and discusses theoretical,
 methodological and practical issues of Statistical Parametric Mapping
 and SPM. The SPMweb site has further details:
-                 http://www.fil.ion.ucl.ac.uk/spm/help
+                 http://www.fil.ion.ucl.ac.uk/spm/support/
 
 Please report bugs to the authors at <spm-authors@fil.ion.ucl.ac.uk>.
 Peculiarities may actually be features, and should be raised on the SPM
-eMail discussion list, <spm@mailbase.ac.uk>.
+eMail discussion list, <spm@jiscmail.ac.uk>.
 
 ________________________________________________________________________
                                        Disclaimer, copyright & licencing
 
 SPM (being the collection of files given in the manifest in the
 Contents.m file) is free but copyright software, distributed under the
-terms of the GNU General Public Licence as published by the Free
-Software Foundation (either version 2, as given in file spm_LICENCE.man, or
-at your option, any later version). Further details on "copyleft" can
-be found at http://www.gnu.org/copyleft/. In particular, SPM is
-supplied as is.  No formal support or maintenance is provided or
-implied.
+terms of the GNU General Public Licence as published by the Free 
+Software Foundation (either version 2, as given in file spm_LICENCE.man,
+or at your option, any later version). Further details on "copyleft" can
+be found at http://www.gnu.org/copyleft/. In particular, SPM is supplied
+as is.  No formal support or maintenance is provided or implied.
 
 ________________________________________________________________________
 SPM is developed by members and collaborators of the
                               Wellcome Department of Cognitive Neurology
 
-$Id: README.txt 112 2005-05-04 18:20:52Z john $
+$Id: README.txt 127 2005-05-09 10:13:35Z guillaume $
