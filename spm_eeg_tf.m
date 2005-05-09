@@ -17,7 +17,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_tf.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -117,7 +117,7 @@ for k = 1 : D.Nevents
 	
 	% Remove baseline over frequencies and trials
 	if D.tf.rm_baseline == 1
-		d = sjk_bc(D, d);
+		d = spm_eeg_bc(D, d);
 	end
 	
 	D.scale.values(:, k) = (max(abs(reshape(d, [D.Nfrequencies*D.Nsamples length(D.tf.channels)])))./32767)';

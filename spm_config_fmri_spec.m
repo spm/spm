@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 124 2005-05-06 16:04:34Z will $
+% $Id: spm_config_fmri_spec.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 % Define inline types.
@@ -708,7 +708,7 @@ for i = 1:numel(job.sess),
         if cond.tmod>0,
             % time effects
             P(1).name = 'time';
-            P(1).P    = U(j).ons*RT;
+            P(1).P    = U(j).ons*job.timing.RT;
             P(1).h    = cond.tmod;
             q1        = 1;
         end;

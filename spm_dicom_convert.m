@@ -13,7 +13,7 @@ function spm_dicom_convert(hdr,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dicom_convert.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 if nargin<2, opts = 'all'; end;
@@ -630,7 +630,7 @@ else
 	descrip = hdr{1}.Modality;
 end;
 
-if ~TRUE, % LEFT-HANDED STORAGE
+if ~true, % LEFT-HANDED STORAGE
 	mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 end; 
 

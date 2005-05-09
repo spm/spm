@@ -15,7 +15,7 @@ function V = spm_vol_ecat7(fname,required)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Roger Gunn
-% $Id: spm_vol_ecat7.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vol_ecat7.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 V        = [];
@@ -60,7 +60,7 @@ else,
 		matnum   = sscanf(required(i,:),'%x');
 		matches  = find( (list(:,1) == matnum) & ((list(:,4) == 1) | (list(:,4) == 2)));
 		if (size(matches,1) ~= 1)
-			Error(['"' spm_str_manip(fname,'k20d') '" doesn''t have the required image.']);
+			error(['"' spm_str_manip(fname,'k20d') '" doesn''t have the required image.']);
 			fclose(fp);
 		end;
 		llist(i,:) = list(matches,:);

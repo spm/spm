@@ -1,13 +1,13 @@
 function d = spm_eeg_bc(D, d)
 % 'baseline correction' for D: subtract average baseline energy of the 
 % samples (start:stop) per epoch.
-% FORMAT d = sjk_eeg_bc(D, d)
+% FORMAT d = spm_eeg_bc(D, d)
 %
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_bc.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 for i = 1 : length(D.tf.channels)

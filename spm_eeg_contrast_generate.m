@@ -23,7 +23,7 @@ function [c, comp] = spm_eeg_contrast_generate(SPM, comp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_contrast_generate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_contrast_generate.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 try
@@ -108,7 +108,7 @@ elseif strcmpi(type, 'Time/frequency')
         comp.eeg.h = h;
     end
 
-    M = sjk_morlet(s, RT, h);
+    M = spm_eeg_morlet(s, RT, h);
 
     c = zeros(Nbins, 2*length(h));
     

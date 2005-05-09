@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_input.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_input.m 133 2005-05-09 17:29:37Z guillaume $
 
 
 %=======================================================================
@@ -2164,7 +2164,7 @@ nLabels = size(Labels,1);
 if any(~diff(abs(sort(lower(Keys)))))
 	if nLabels<10
 		Keys = sprintf('%d',[1:nLabels]);
-	elseif NoLables<=26
+	elseif nLabels<=26
 		Keys = sprintf('%c',abs('a')+[0:nLabels-1]);
 	else
 		error('Too many buttons!')
