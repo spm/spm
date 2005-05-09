@@ -21,7 +21,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_grandmean.m 135 2005-05-09 18:57:16Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -31,7 +31,7 @@ catch
     P = spm_select(inf, '\.mat$', 'Select EEG mat files');
 end
 
-clear D
+D = cell(1, size(P, 1));
 for i = 1:size(P, 1)
     try
         D{i} = spm_eeg_ldata(deblank(P(i, :)));
