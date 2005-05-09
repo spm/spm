@@ -246,9 +246,9 @@ switch cmd
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);
-    Vqfnames = spm_get(3,'evec1*.img','Components of 1st eigenvector');
-    Vmaskfname = spm_get(1,'*.img','Mask image');
-    Vfafname = spm_get(Inf,'fa*.img','Fractional anisotropy image');
+    Vqfnames = spm_select(3,'evec1.*\.img','Components of 1st eigenvector');
+    Vmaskfname = spm_select(1,'image','Mask image');
+    Vfafname = spm_select(Inf,'fa.*\.img','Fractional anisotropy image');
     feval('spm_ov_quiver','init',volhandle,Vqfnames,Vmaskfname,Vfafname);
     obj = findobj(0, 'Tag',  ['QUIVER_1_', num2str(volhandle)]);
     set(obj, 'Visible', 'on');

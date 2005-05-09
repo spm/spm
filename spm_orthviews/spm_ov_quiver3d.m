@@ -349,11 +349,11 @@ switch cmd
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);
-    Ve1fnames = spm_get(3,'evec1*.img','Components of 1st eigenvector');
-    Ve2fnames = spm_get(3,'evec2*.img','Components of 2nd eigenvector');
-    Ve3fnames = spm_get(3,'evec3*.img','Components of 3rd eigenvector');
-    Vlafnames = spm_get(3,'eval*.img','Eigenvalue images');
-    Vmaskfname = spm_get(1,'*.img','Mask image');
+    Ve1fnames = spm_select(3,'evec1.*\.img','Components of 1st eigenvector');
+    Ve2fnames = spm_select(3,'evec2.*\.img','Components of 2nd eigenvector');
+    Ve3fnames = spm_select(3,'evec3.*\.img','Components of 3rd eigenvector');
+    Vlafnames = spm_select(3,'eval.*\.img','Eigenvalue images');
+    Vmaskfname = spm_select(1,'image','Mask image');
     feval('spm_ov_quiver3d','init',volhandle,Ve1fnames,Ve2fnames,Ve3fnames,Vlafnames,Vmaskfname);
     obj = findobj(0, 'Tag',  ['QUIVER3D_1_', num2str(volhandle)]);
     set(obj, 'Visible', 'on');

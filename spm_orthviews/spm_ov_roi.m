@@ -289,10 +289,10 @@ switch cmd
     spm_input('!DeleteInputObj',Finter);
     usefile = spm_input('Load existing ROI image?','!+1','b','yes|no',[1 0],1);
     if usefile
-      imfname = spm_get(1, '*.img', 'Select ROI image');
+      imfname = spm_select(1, 'image', 'Select ROI image');
       roifname = [];
     else
-      imfname = spm_get(1, '*.img', 'Select image defining ROI space');
+      imfname = spm_select(1, 'image', 'Select image defining ROI space');
       [p n e v] = fileparts(imfname);
       roifname = fullfile(p,['roitool' e v]);
       roifname = spm_input('ROI filename','!+1','s',roifname);

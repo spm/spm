@@ -18,11 +18,11 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_roi_anova.m 112 2005-05-04 18:20:52Z john $     
+% $Id: spm_vb_roi_anova.m 128 2005-05-09 10:23:15Z john $     
 
 if nargin == 1
     %-Get SPM.mat 
-    swd     = spm_str_manip(spm_get(1,'SPM.mat','Select SPM.mat'),'H');
+    swd     = spm_str_manip(spm_select(1,'SPM.mat','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
 end
