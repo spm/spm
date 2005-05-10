@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 137 2005-05-10 15:46:04Z will $
+% $Id: spm_design_contrasts.m 138 2005-05-10 15:47:52Z will $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -84,5 +84,3 @@ for c=1:ncon,
 end
 
 % What about user-specified regressors ?! - ignore for now
-
-keyboard
