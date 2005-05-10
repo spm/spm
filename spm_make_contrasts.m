@@ -1,17 +1,18 @@
-function [Con] = spm_make_contrasts (k1,k2)
-% Make contrasts for one/two-way ANOVAs
-% FORMAT [Con] = spm_make_contrasts (k1,k2)
+function [Con] = spm_make_contrasts (k)
+% Make contrasts for one, two or three-way ANOVAs
+% FORMAT [Con] = spm_make_contrasts (k)
 %
-% k1    Number of levels of factor 1
-% k2    Number of levels of factor 2
+% k    A vector where the ith entry is the number of levels of factor i
 %
-% This function computes contrasts for a generic k1-by-k2 design. 
+% This function computes contrasts for a generic k(1)-by-k(2)-by-k(3) design. 
 % It is assumed that the levels of the first factor 
-% change slowest. For one-way ANOVAs set k2=1. 
+% change slowest. 
+% 
+% For one-way ANOVAs set k=L, where L is the number of
+% levels, for two-way ANOVAs set k=[L1 L2], for three way set k=[L1 L2 L3]
 %
-% This function generates (transposed) contrast matrices to test:
-% (1) average effect of condition, (2) main effect of factor 1
-% (3) main effect of factor 2, (4) interaction
+% This function generates (transposed) contrast matrices to test
+% average effect, main effect of each factor and interactions
 %
 % Con(c).c      Contrast matrix
 %       .name   Name
@@ -19,24 +20,51 @@ function [Con] = spm_make_contrasts (k1,k2)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_make_contrasts.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_make_contrasts.m 137 2005-05-10 15:46:04Z will $
     
 % See section 5 of 
 % http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
 % for details of kronecker operations
 
-C1=ones(k1,1);
-C2=ones(k2,1);
+% Number of factors
+nf=length(k);
 
-D1=-1*diff(eye(k1))';
-D2=-1*diff(eye(k2))';
+if nf==1
+    k=[k 1 1];
+elseif nf==2
+    k=[k 1];
+elseif nf>3
+    disp(sprintf('Error: spm_make_contrasts not written for %d-way ANOVAs !',nf));
+    return
+end
 
-Con(1).c=kron(C1,C2)';
-Con(2).c=kron(D1,C2)';
-Con(3).c=kron(C1,D2)';
-Con(4).c=kron(D1,D2)';
+% Get common and differential vectors
+C1=ones(k(1),1);
+C2=ones(k(2),1);
+C3=ones(k(3),1);
+D1=-1*diff(eye(k(1)))';
+D2=-1*diff(eye(k(2)))';
+D3=-1*diff(eye(k(3)))';
 
+Con(1).c=kron(kron(C1,C2),C3)';
+Con(2).c=kron(kron(D1,C2),C3)';
 Con(1).name='Average effect of condition';
 Con(2).name='Main effect of factor 1';
-Con(3).name='Main effect of factor 2';
-Con(4).name='Interaction';
+
+if nf>1
+    Con(3).c=kron(kron(C1,D2),C3)';
+    Con(4).c=kron(kron(D1,D2),C3)';
+    Con(3).name='Main effect of factor 2';
+    Con(4).name='Interaction, factor 1 x 2';
+end
+
+if nf>2
+    Con(5).c=kron(kron(C1,C2),D3)';
+    Con(6).c=kron(kron(D1,C2),D3)';
+    Con(7).c=kron(kron(C1,D2),D3)';
+    Con(8).c=kron(kron(D1,D2),D3)';
+    Con(5).name='Main effect of factor 3';
+    Con(6).name='Interaction, factor 1 x 3';
+    Con(7).name='Interaction, factor 2 x 3';
+    Con(8).name='Interaction, factor 1 x 2 x 3';
+end

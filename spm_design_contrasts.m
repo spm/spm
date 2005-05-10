@@ -1,5 +1,5 @@
 function [con] = spm_design_contrasts (SPM)
-% Make contrasts for one/two-way ANOVAs
+% Make contrasts for one, two or three-way ANOVAs
 % FORMAT [con] = spm_design_contrasts (SPM)
 %
 % SPM   SPM data structure
@@ -8,9 +8,9 @@ function [con] = spm_design_contrasts (SPM)
 % design. This is specified in SPM.factor (how the factors relate to the
 % conditions) and SPM.xBF.order (how many basis functions per condition). 
 %
-% This function generates (transposed) contrast matrices to test:
-% (1) average effect of condition, (2) main effect of factor 1
-% (3) main effect of factor 2, (4) interaction
+% This function generates (transposed) contrast matrices to test
+% for the average effect of condition, main effects of factors and
+% interactions
 %
 % con(c).c      Contrast matrix
 %       .name   Name
@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_design_contrasts.m 137 2005-05-10 15:46:04Z will $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -26,40 +26,63 @@ if isempty(SPM.factor)
     return;
 end
 
-if length(SPM.Sess) > 1
-    disp('Warning: spm_design_contrasts only works for single session data');
-end
-
 nf=length(SPM.factor);
-k1=SPM.factor(1).levels;
-if nf==2
-    k2=SPM.factor(2).levels;
-else
-    k2=1;
+kf=[];
+for f=1:nf,
+    kf=[kf SPM.factor(f).levels];
 end
 
-icon=spm_make_contrasts(k1,k2);
-
-if nf==1
-    icon(3)=[];
-    icon(4)=[];
-end
+icon=spm_make_contrasts(kf);
 
 % Get number of basis functions per condition
 nbases=SPM.xBF.order;
-% Number of regressors in design
-k=size(SPM.xX.X,2);
+% Number of regressors in first session
+k=length(SPM.Sess(1).col);
 
 for c=1:length(icon),
-    z=kron(icon(c).c,eye(nbases));
-    [zr,zc]=size(z);
-    con(c).c=zeros(zr,k);
-    con(c).c(1:zr,1:zc)=z;
+    con(c).c=kron(icon(c).c,eye(nbases));
 end
 
 con(1).name='Average effect of condition';
 con(2).name=['Main effect of ',SPM.factor(1).name];
-if nf==2
+if nf>1
     con(3).name=['Main effect of ',SPM.factor(2).name];
-    con(4).name=['Interaction between ',SPM.factor(1).name,' and ',SPM.factor(2).name];
+    con(4).name=['Interaction: ',SPM.factor(1).name,' x ',SPM.factor(2).name];
 end
+if nf>2
+    con(5).name=['Main effect of ',SPM.factor(3).name];
+    con(6).name=['Interaction: ',SPM.factor(1).name,' x ',SPM.factor(3).name];
+    con(7).name=['Interaction: ',SPM.factor(2).name,' x ',SPM.factor(3).name];
+    con(8).name=['Interaction: ',SPM.factor(1).name,' x ',SPM.factor(2).name,' x ',SPM.factor(3).name];
+end
+
+% If there are multiple sessions, replicate each contrast matrix over
+% sessions - this assumes the conditions are identical in each session
+nsess=length(SPM.Sess);
+if nsess>1
+    conds=length(SPM.Sess(1).U);
+    for s=1:nsess,
+        nconds=length(SPM.Sess(s).U);
+        if ~(nconds==conds)
+            disp('Error in spm_design_contrasts: number of conditions must be same in all sessions');
+            return
+        end
+    end
+    ncon=length(con);
+    for c=1:ncon,
+        con(c).c=kron(ones(1,nsess),con(c).c);
+    end
+end
+
+% Pad contrasts out - add columns for session effects
+k=size(SPM.xX.X,2);
+for c=1:ncon,
+    [zr,zc]=size(con(c).c);
+    cmat=zeros(zr,k);
+    cmat(1:zr,1:zc)=con(c).c;
+    con(c).c=cmat;
+end
+
+% What about user-specified regressors ?! - ignore for now
+
+keyboard
