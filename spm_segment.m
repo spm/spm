@@ -8,6 +8,7 @@ function VO = spm_segment(VF,PG,flags)
 %         the set of templates.
 % flags - a structure normally based on defaults.segment
 % VO    - optional output volume
+% M     - affine transformation between template and image to segment
 %
 %                      The algorithm is four step:
 %
@@ -45,7 +46,7 @@ function VO = spm_segment(VF,PG,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_segment.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_segment.m 139 2005-05-11 14:08:58Z christophe $
 
 
 % Create some suitable default values
