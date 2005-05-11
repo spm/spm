@@ -36,7 +36,7 @@ function varargout = spm_eegip_DrawDip(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_DrawDip.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegip_DrawDip.m 144 2005-05-11 17:32:36Z christophe $
 
 global st
 global defaults
@@ -59,7 +59,7 @@ case 'init'
 spm('Clear')
 
 if nargin<2
-    load(spm_get(1,'*dip*.mat','Select dipole file'));
+    load(spm_select(1,'*dip*.mat','Select dipole file'));
     if ~exist('sdip') & exist('result')
         sdip = result;
     end
@@ -69,12 +69,12 @@ end
 
 if nargin<3
 	if ~isstruct(st)
-        P = spm_get(1,'*img','Image to display dipoles on');
+        P = spm_select(1,'*img','Image to display dipoles on');
 %         spm_orthviews('Reset');
 %         spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
 	%     spm_image
 	elseif isempty(st.vols{1})
-        P = spm_get(1,'*img','Image to display dipoles on');
+        P = spm_select(1,'*img','Image to display dipoles on');
 %         spm_orthviews('Reset');
 %         spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
 	%     spm_image

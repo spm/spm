@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDip_gui.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegip_fitDip_gui.m 144 2005-05-11 17:32:36Z christophe $
 
 % Loading various bits
 %_____________________
@@ -50,9 +50,9 @@ spm('FigName','Fitting ECD on EEG data') ;
 % At the moment, use only the realistic sphere!
 q_model=2;
 if q_model==1
-    Pmod = spm_get(1,'*model*ifs*.mat','Model mat file');
+    Pmod = spm_select(1,'*model*ifs*.mat','Model mat file');
 else
-    Pmod = spm_get(1,'*model*Rs*.mat','Model mat file');
+    Pmod = spm_select(1,'*model*Rs*.mat','Model mat file');
 end
 load(Pmod)
 
@@ -72,7 +72,7 @@ if q_data==1
         cond = 1;
     end
 elseif q_data==2
-    Pdata = spm_get(1,'*.mat','Data mat file');
+    Pdata = spm_select(1,'*.mat','Data mat file');
     load(Pdata);
     [DNchan,Dtb] = size(data);
 else
@@ -239,7 +239,7 @@ else
     or_opt = 1;
 end
 
-Vbr = spm_vol(spm_get(1,'*obrain*.img','Brain mask image'));
+Vbr = spm_vol(spm_select(1,'*obrain*.img','Brain mask image'));
 
 Psdip = ['S',num2str(n_dip),'dip_',spm_str_manip(Pdata,'rt'), ...
         '_n',num2str(n_seeds),'_o',num2str(or_opt),'_t',num2str(wind_be(1)),'_',num2str(wind_be(2))];

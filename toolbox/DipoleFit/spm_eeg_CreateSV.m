@@ -37,7 +37,7 @@ function SV = spm_eeg_CreateSV(data,t_wind,avg,el_set,type,maxphi)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_CreateSV.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eeg_CreateSV.m 144 2005-05-11 17:32:36Z christophe $
 
 
 gui=0;
@@ -56,7 +56,7 @@ order = 3;
 Niter = 20;
 
 if gui
-    Pdata = spm_get(1,'*.mat','Data mat file');
+    Pdata = spm_select(1,'*.mat','Data mat file');
     load(Pdata);
 end
 [DNchan,Dtb] = size(data);

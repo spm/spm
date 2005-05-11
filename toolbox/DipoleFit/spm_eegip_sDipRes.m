@@ -45,11 +45,11 @@ function result = spm_eegip_sDipRes(sdip)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_sDipRes.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegip_sDipRes.m 144 2005-05-11 17:32:36Z christophe $
 
 flag_file = 0;
 if nargin<1
-    Pdip = spm_get(1,'*dip*.mat','Select dipole file');
+    Pdip = spm_select(1,'*dip*.mat','Select dipole file');
     load(Pdip);
     flag_file = 1;
 end

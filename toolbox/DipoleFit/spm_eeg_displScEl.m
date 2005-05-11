@@ -8,11 +8,11 @@ function [p,f] = spm_eeg_displScEl(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_displScEl.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eeg_displScEl.m 144 2005-05-11 17:32:36Z christophe $
 
 if nargin<2
     if nargin==0
-        Pmod = spm_get(1,'model*.mat','Select model to display');
+        Pmod = spm_select(1,'model*.mat','Select model to display');
         load(Pmod)
     else
         model = varargin{1};

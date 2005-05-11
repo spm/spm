@@ -62,7 +62,7 @@ function [spheres,dipoles,L,Lan,flags] = spm_eegfp_Rsph(model,dipoles,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_Rsph.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegfp_Rsph.m 144 2005-05-11 17:32:36Z christophe $
 
 def_flags = struct('br_only',0,'use_br',0,'figs',0,'sk_sc_th',[8 8],...
                     'calc_dip',0,'calc_L',0);
@@ -82,7 +82,7 @@ end
 % Pm : filename of head model file
 
 if nargin<2
-    Pd = spm_get(Inf,'*dipoles*.mat','Dipoles set or nothing');
+    Pd = spm_select(Inf,'*dipoles*.mat','Dipoles set or nothing');
 	if isempty(Pd)
         flags.calc_dip = 0;
         flags.calc_L = 0;
@@ -99,7 +99,7 @@ else
 end
 Pm = [];
 if nargin<1
-    Pm = spm_get(1,'*model*.mat','Head model');
+    Pm = spm_select(1,'*model*.mat','Head model');
     load(Pm)
 end
 

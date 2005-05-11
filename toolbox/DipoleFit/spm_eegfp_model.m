@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegfp_model.m 144 2005-05-11 17:32:36Z christophe $
 
 % Format of 'model' structure :
 % #############################
@@ -321,7 +321,7 @@ case 'init'
     %======================
     if gener==1 | gener==5
     % Generate scalp/brain vol & tessalate
-        Pvol = spm_get(1,'*.IMAGE','Image to build model');
+        Pvol = spm_select(1,'*.IMAGE','Image to build model');
         flag_bi.img_type = spm_input('Image type :','+1','T1 MRI|PET|EPI',[1,2,3],1);
         flag_bi.img_norm = spm_input('Image normalised already :','+1','y/n',[1,0],2);
         if flag_bi.img_type==1
@@ -335,14 +335,14 @@ case 'init'
         
     if gener==2
     % Tessalate predefined binarized volume
-		Pvol = spm_get(Inf,'*_o*.img','1-2-3 bin images to tessalate (br-sk-sc)');
+		Pvol = spm_select(Inf,'*_o*.img','1-2-3 bin images to tessalate (br-sk-sc)');
         flag_te.Nvol = size(Pvol,1);
         if flag_te.Nvol==1
             flag_te.br_only = spm_input('Is this the brain bin volume ?','+1','y/n',[1,0],0);
         else
             flag_te.br_only=0;
         end
-        PMtempl = spm_get(1,'*Mtempl.mat','Affine normalisation matrix ?');
+        PMtempl = spm_select(1,'*Mtempl.mat','Affine normalisation matrix ?');
         if ~isempty(PMtempl)
             load(PMtempl)
         else
@@ -371,7 +371,7 @@ case 'init'
 	if gener==3 | gener==5
     % Project electrodes coord (spher or real) on scalp/brain surface
         if gener==3
-            Pmod = spm_get(1,'*model*.mat','Head model file');
+            Pmod = spm_select(1,'*model*.mat','Head model file');
             load(Pmod)
         end
         if exist('flag_te') & isfield(flag_te,'br_only')
@@ -423,7 +423,7 @@ case 'init'
 
     if gener==4
     % Define realistic sphere
-        Pmod = spm_get(1,'*model*.mat','Head model file');
+        Pmod = spm_select(1,'*model*.mat','Head model file');
     end
 
 
@@ -652,7 +652,7 @@ case 'ctrbin'
 % Determine the "centre of mass" (vx and mm) of a bin image.
 %------------------------------------------------------------------------
 	if nargin<2
-		P = spm_get(1,'o*.img','Bin image to use');
+		P = spm_select(1,'o*.img','Bin image to use');
     else
         P = varargin{1};
 	end
@@ -989,18 +989,18 @@ case 'tesbin'
 %------------------------------------------------------------------------
 	if nargin==1
         n = 32;
-        P = spm_get(1,'outer*.img','Bin image to tessalate');
+        P = spm_select(1,'outer*.img','Bin image to tessalate');
 		[ctr_vol_vx,ctr_vol] = spm_eegfp_model('CtrBin',P) ;
 		info = 'realistic model' ;
 	elseif nargin==2
         n = varargin{1};
-        P = spm_get(1,'outer*.img','Bin image to tessalate');
+        P = spm_select(1,'outer*.img','Bin image to tessalate');
 		[ctr_vol_vx,ctr_vol] = spm_eegfp_model('CtrBin',P) ;
 		info = 'realistic model' ;
 	elseif nargin==3
         n = varargin{1};
         ctr_vol = varargin{2};
-        P = spm_get(1,'outer.img','Bin image to tessalate');
+        P = spm_select(1,'outer.img','Bin image to tessalate');
 		info = 'realistic model' ;
 	elseif nargin==4
         n = varargin{1};
@@ -1294,7 +1294,7 @@ case 'erodegrow'
 %------------------------------------------------------------------------
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2
-    P = spm_get(1,'*img','Image to erode-grow');
+    P = spm_select(1,'*img','Image to erode-grow');
     nPin = size(P,1);
     Vp = spm_vol(P);
     fl_rvol = 1;
