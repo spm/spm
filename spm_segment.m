@@ -47,14 +47,14 @@ function [VO,M] = spm_segment(VF,PG,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_segment.m 140 2005-05-11 15:20:25Z christophe $
+% $Id: spm_segment.m 145 2005-05-11 17:52:20Z christophe $
 
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
 
 def_flags.estimate.priors = char(...
-        fullfile(spm('Dir'),'apriori','gray.nii'),...
+        fullfile(spm('Dir'),'apriori','grey.nii'),...
         fullfile(spm('Dir'),'apriori','white.nii'),...
         fullfile(spm('Dir'),'apriori','csf.nii'));
 def_flags.estimate.reg    = 0.01;
