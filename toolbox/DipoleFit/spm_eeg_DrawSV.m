@@ -34,7 +34,7 @@ function [SV,h] = spm_eeg_DrawSV(SV,fig,name_el,label_t,film,paper)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_DrawSV.m 143 2005-05-11 17:13:13Z christophe $
 
 if nargin<6, paper = 0; end     % Normal font and line width
 if nargin<5, film = 0; end      % No film display

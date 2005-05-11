@@ -8,7 +8,7 @@ function [p,f] = spm_eeg_displScEl(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_displScEl.m 143 2005-05-11 17:13:13Z christophe $
 
 if nargin<2
     if nargin==0

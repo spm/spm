@@ -45,7 +45,7 @@ function [sdip,fit_opt] = spm_eegip_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_opt,di
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegip_fitDipS.m 143 2005-05-11 17:13:13Z christophe $
 
 
 global MODEL V_BR V_EEG OR_OPT FXD_OR sdip

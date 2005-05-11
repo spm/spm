@@ -22,7 +22,7 @@ function [Lan,nit]=Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegfp_Lana.m 143 2005-05-11 17:13:13Z christophe $
 
 if nargin<6
     sigma = [.33 .004 .33];

@@ -8,7 +8,7 @@ function [p,f] = spm_eeg_displTes(tsurf,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_displTes.m 143 2005-05-11 17:13:13Z christophe $
 
 % mono_c = 1/0 uses monocolor or provided c
 % tri_c = 1/0 , color specified on triangles or vertices

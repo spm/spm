@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegip_fitDip_gui.m 143 2005-05-11 17:13:13Z christophe $
 
 % Loading various bits
 %_____________________

@@ -37,7 +37,7 @@ function SV = spm_eeg_CreateSV(data,t_wind,avg,el_set,type,maxphi)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_CreateSV.m 143 2005-05-11 17:13:13Z christophe $
 
 
 gui=0;

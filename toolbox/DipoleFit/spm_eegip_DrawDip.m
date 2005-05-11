@@ -36,7 +36,7 @@ function varargout = spm_eegip_DrawDip(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegip_DrawDip.m 143 2005-05-11 17:13:13Z christophe $
 
 global st
 global defaults

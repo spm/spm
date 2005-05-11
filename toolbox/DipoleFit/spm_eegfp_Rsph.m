@@ -62,7 +62,7 @@ function [spheres,dipoles,L,Lan,flags] = spm_eegfp_Rsph(model,dipoles,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegfp_Rsph.m 143 2005-05-11 17:13:13Z christophe $
 
 def_flags = struct('br_only',0,'use_br',0,'figs',0,'sk_sc_th',[8 8],...
                     'calc_dip',0,'calc_L',0);

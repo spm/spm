@@ -25,7 +25,7 @@ function [Vfit,SV] = spm_eegip_fittedEEG(sdip,ind_s,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegip_fittedEEG.m 143 2005-05-11 17:13:13Z christophe $
 
 
 calcSV = 0;

@@ -10,7 +10,7 @@ function [el_sphc,el_name] = spm_eegfp_electrset(el_set)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eegfp_electrset.m 143 2005-05-11 17:13:13Z christophe $
 
 set_name = strvcat('10-20 system with 23 electrodes.', ...
     '10-20 system with 19 electrodes.', ...
