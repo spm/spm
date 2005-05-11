@@ -34,17 +34,17 @@ function spm_DipoleFit
 %   interpolated and displayed on a plane disk [spm_eeg_DrawSV.m,
 %   spm_eegip_fittedEEG.m].
 % 
-% The routines can also be called from the command line or with a script. This will offer a few  
-% more "hidden" options...
+% The routines can also be called from the command line or with a script.
+% This will offer a few more "hidden" options...
 % Things still to be done:
 % - make it compatible with MEG data
-% - allow more options for the dipole fitting. Eg. a mix of fixed and moving sources, symmetric 
-% sources.
+% - allow more options for the dipole fitting. Eg. a mix of fixed 
+%   and moving sources, symmetric sources.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_DipoleFit.m 142 2005-05-11 17:07:03Z christophe $
 
 SPMid = spm('FnBanner',mfilename,'1.2');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Dipole Fitting');
