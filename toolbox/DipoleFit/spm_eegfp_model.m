@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 144 2005-05-11 17:32:36Z christophe $
+% $Id: spm_eegfp_model.m 146 2005-05-11 17:56:32Z christophe $
 
 % Format of 'model' structure :
 % #############################
@@ -321,7 +321,7 @@ case 'init'
     %======================
     if gener==1 | gener==5
     % Generate scalp/brain vol & tessalate
-        Pvol = spm_select(1,'*.IMAGE','Image to build model');
+        Pvol = spm_select(1,'image','Image to build model');
         flag_bi.img_type = spm_input('Image type :','+1','T1 MRI|PET|EPI',[1,2,3],1);
         flag_bi.img_norm = spm_input('Image normalised already :','+1','y/n',[1,0],2);
         if flag_bi.img_type==1
@@ -525,16 +525,16 @@ case 'genbin'
 	else
 		switch flags.img_type
 		case 1
-            Ptempl = fullfile(spm('Dir'),'templates','T1.mnc');
+            Ptempl = fullfile(spm('Dir'),'templates','T1.nii');
 		case 2
-            Ptempl = fullfile(spm('Dir'),'templates','PET.mnc');
+            Ptempl = fullfile(spm('Dir'),'templates','PET.nii');
 		case 3
-            Ptempl = fullfile(spm('Dir'),'templates','EPI.mnc');
+            Ptempl = fullfile(spm('Dir'),'templates','EPI.nii');
 		end
 	end
 	fl.write.wrt_brV   = 1;
 	fl.write.wrt_cor   = 0;
-	fl.estimate.affreg.weight = fullfile(spm('Dir'),'apriori','brainmask.mnc');
+	fl.estimate.affreg.weight = fullfile(spm('Dir'),'apriori','brainmask.nii');
 	[VO,M] = spm_segment(Pvol,Ptempl,fl);
     
 % 2.Use a little bit of erosion/growing to refine the model
