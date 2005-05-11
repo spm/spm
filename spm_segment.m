@@ -1,4 +1,4 @@
-function VO = spm_segment(VF,PG,flags)
+function [VO,M] = spm_segment(VF,PG,flags)
 % Segment an MR image into Gray, White & CSF.
 %
 % FORMAT VO = spm_segment(PF,PG,flags)
@@ -27,9 +27,10 @@ function VO = spm_segment(VF,PG,flags)
 %    in order to more accurately identify brain tissue. This is then used
 %    to clean up the grey and white matter segments. 
 %
-% 4) If no output argument is specified, then the segmented images are
-%    written to disk. The names of these images have "c1", "c2"
-%    & "c3" appended to the name of the first image passed.
+% 4) If no or 2 output arguments is/are specified, then the segmented 
+%    images are written to disk. The names of these images have "c1", 
+%    "c2" & "c3" appended to the name of the first image passed. The 
+%    'brainmask' is also created with "BrMsk_" as an appendix.
 %
 %_______________________________________________________________________
 % Refs:
@@ -46,7 +47,7 @@ function VO = spm_segment(VF,PG,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_segment.m 139 2005-05-11 14:08:58Z christophe $
+% $Id: spm_segment.m 140 2005-05-11 15:20:25Z christophe $
 
 
 % Create some suitable default values
@@ -65,6 +66,7 @@ def_flags.estimate.affreg.regtype = 'mni';
 def_flags.estimate.affreg.weight = '';
 def_flags.write.cleanup   = 1;
 def_flags.write.wrt_cor   = 1;
+def_flags.write.wrt_brV   = 0;
 def_flags.graphics        = 1;
 
 if nargin<3, flags = def_flags; end;
@@ -87,6 +89,7 @@ end;
 if ~isfield(flags,'write'),         flags.write         = def_flags.write;         end;
 if ~isfield(flags.write,'cleanup'), flags.write.cleanup = def_flags.write.cleanup; end;
 if ~isfield(flags.write,'wrt_cor'), flags.write.wrt_cor = def_flags.write.wrt_cor; end;
+if ~isfield(flags.write,'wrt_brV'), flags.write.wrt_brV = def_flags.write.wrt_brV; end;
 if ~isfield(flags,'graphics'),      flags.graphics      = def_flags.graphics;      end;
 
 %-----------------------------------------------------------------------
@@ -113,15 +116,23 @@ CP   = shake_cp(CP);
 %save segmentation_results.mat CP BP SP VF sums
 
 [g,w,c] = get_gwc(VF,BP,SP,CP,sums,flags.write.wrt_cor);
-if flags.write.cleanup, [g,w,c] = clean_gwc(g,w,c); end;
+if flags.write.cleanup, [g,w,c,b] = clean_gwc(g,w,c); end;
 
-% Create the segmented images.
+% Create the segmented images + the brain mask.
 %-----------------------------------------------------------------------
 %offs  = cumsum(repmat(prod(VF(1).dim(1:2)),1,VF(1).dim(3)))-prod(VF(1).dim(1:2));
 %pinfo = [repmat([1/255 0]',1,VF(1).dim(3)) ; offs];
 [pth,nm,xt] = fileparts(deblank(VF(1).fname));
-for j=1:3,
+
+if flags.write.wrt_brV
+    Nwrt = 4;
+else
+    Nwrt = 3;
+end
+for j=1:Nwrt,
 	tmp   = fullfile(pth,['c', num2str(j), nm, xt]);
+    if j==4, tmp = fullfile(pth,['BrMsk_', nm  xt]); end
+
 	VO(j) = struct(...
 		'fname',tmp,...
 		'dim',    VF(1).dim(1:3),...
@@ -131,7 +142,7 @@ for j=1:3,
 		'descrip','Segmented image');
 end;
 
-if nargout==0,
+if nargout==0 || nargout==2,
 	VO = spm_create_vol(VO);
 
 	spm_progress_bar('Init',VF(1).dim(3),'Writing Segmented','planes completed');
@@ -139,6 +150,9 @@ if nargout==0,
 		VO(1) = spm_write_plane(VO(1),double(g(:,:,pp))/255,pp);
 		VO(2) = spm_write_plane(VO(2),double(w(:,:,pp))/255,pp);
 		VO(3) = spm_write_plane(VO(3),double(c(:,:,pp))/255,pp);
+        if flags.write.wrt_brV
+    		VO(4) = spm_write_plane(VO(4),double(b(:,:,pp))/255,pp);
+        end
 		spm_progress_bar('Set',pp);
 	end;
 	spm_progress_bar('Clear');
@@ -147,6 +161,12 @@ end;
 VO(1).dat = g; VO(1).pinfo = VO(1).pinfo(1:2,:);
 VO(2).dat = w; VO(2).pinfo = VO(2).pinfo(1:2,:);
 VO(3).dat = c; VO(3).pinfo = VO(3).pinfo(1:2,:);
+if flags.write.wrt_brV
+    VO(4).dat = b; VO(4).pinfo = VO(4).pinfo(1:2,:);
+end
+if nargout==2
+    M = SP.MM/VF(1).mat;
+end
 
 if flags.graphics, display_graphics(VF,VO,CP.mn,CP.cv,CP.mg); end;
 
@@ -635,7 +655,7 @@ return;
 %=======================================================================
  
 %=======================================================================
-function [g,w,c] = clean_gwc(g,w,c)
+function [g,w,c,b] = clean_gwc(g,w,c)
 b    = w;
 b(1) = w(1);
 
@@ -673,6 +693,7 @@ for i=1:size(b,3),
 	g(:,:,i) = uint8(round(255*gp.*bp./(gp+wp+cp+eps)));
 	w(:,:,i) = uint8(round(255*wp.*bp./(gp+wp+cp+eps)));
 	c(:,:,i) = uint8(round(255*(cp.*bp./(gp+wp+cp+eps)+cp.*(1-bp))));
+    b(:,:,i) = uint8(round(255*bp));
 end;
 spm_progress_bar('Clear');
 return;

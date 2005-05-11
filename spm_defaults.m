@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_defaults.m 140 2005-05-11 15:20:25Z christophe $
 
 
 global defaults
@@ -113,6 +113,7 @@ defaults.segment.estimate.affreg.regtype = 'mni';
 defaults.segment.estimate.affreg.weight = '';
 defaults.segment.write.cleanup   = 1;
 defaults.segment.write.wrt_cor   = 1;
+defaults.segment.write.wrt_brV   = 1;
 
 % Bias field estimation defaults (UNUSED)
 %=======================================================================

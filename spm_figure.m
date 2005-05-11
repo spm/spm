@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 127 2005-05-09 10:13:35Z guillaume $
+% $Id: spm_figure.m 140 2005-05-11 15:20:25Z christophe $
 
 
 %=======================================================================
@@ -661,6 +661,7 @@ t1=uimenu(t0,'Label','ColorMap');
 t2=uimenu(t1,'Label','Gray',     'CallBack','spm_figure(''ColorMap'',''gray'')');
 t2=uimenu(t1,'Label','Hot',      'CallBack','spm_figure(''ColorMap'',''hot'')');
 t2=uimenu(t1,'Label','Pink',     'CallBack','spm_figure(''ColorMap'',''pink'')');
+t2=uimenu(t1,'Label','Jet','CallBack','spm_figure(''ColorMap'',''jet'')');
 t2=uimenu(t1,'Label','Gray-Hot', 'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
 t2=uimenu(t1,'Label','Gray-Cool','CallBack','spm_figure(''ColorMap'',''gray-cool'')');
 t2=uimenu(t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
@@ -730,6 +731,8 @@ case 'hot'
 	colormap(hot(64))
 case 'pink'
 	colormap(pink(64))
+case 'jet'
+	colormap(jet(64))
 case 'gray-hot'
 	tmp = hot(64 + 16);  tmp = tmp([1:64] + 16,:);
 	colormap([gray(64); tmp]);
