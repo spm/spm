@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 146 2005-05-11 17:56:32Z christophe $
+% $Id: spm_eegfp_model.m 147 2005-05-11 18:05:39Z christophe $
 
 % Format of 'model' structure :
 % #############################
@@ -543,7 +543,7 @@ case 'genbin'
 	ne = flags.ne(1); ng = flags.ng(1); thr_im = flags.thr_im(1);
 	[Vbr.dat] = spm_eegfp_model('ErodeGrow',VO(4).dat,ne,ng,thr_im);
 	[pth,nm,xt,vr] = fileparts(deblank(Pvol));
-	Vbr.fname = fullfile(pth,[nm,'_obrain',xt]);
+	Vbr.fname = fullfile(pth,[nm,'_obrain',xt(1:4)]);
 	Vbr = spm_create_vol(Vbr);
 	spm_progress_bar('Init',Vbr.dim(3),'Writing Outer-brain','planes completed');
 	for pp=1:Vbr.dim(3),
@@ -551,7 +551,6 @@ case 'genbin'
             % No need to divide by 255 as output from Erode grow is [0 1].
 		spm_progress_bar('Set',pp);
 	end;
-	Vbr = spm_close_vol(Vbr);
 	spm_progress_bar('Clear');
     varargout{1} = Vbr.fname;
 
@@ -592,7 +591,6 @@ case 'genbin'
                 % No need to divide by 255 as output from Erode grow is [0 1].
 			spm_progress_bar('Set',pp);
 		end;
-		Vsc = spm_close_vol(Vsc);
 		spm_progress_bar('Clear');
         varargout{1} = strvcat(Vbr.fname,Vsc.fname);
     end
