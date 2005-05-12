@@ -8,11 +8,11 @@ function [p,f] = spm_eeg_displScEl(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_displScEl.m 144 2005-05-11 17:32:36Z christophe $
+% $Id: spm_eeg_displScEl.m 148 2005-05-12 09:42:57Z christophe $
 
 if nargin<2
     if nargin==0
-        Pmod = spm_select(1,'model*.mat','Select model to display');
+        Pmod = spm_select(1,'^model.*e\d.*\.mat','Select model to display');
         load(Pmod)
     else
         model = varargin{1};
@@ -75,7 +75,6 @@ caxis([0 5])
 view(3)
 axis equal
 axis vis3d
-rotate3d on
 axis off
 
 view(135,15)
@@ -84,3 +83,4 @@ h1 = light('Position',[1 3 3]) ;
 h2 = light('Position',[1 -1 -1]) ;
 h3 = light('Position',[-3 -1 0]) ;
 
+rotate3d on

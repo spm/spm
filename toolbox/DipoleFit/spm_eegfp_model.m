@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 147 2005-05-11 18:05:39Z christophe $
+% $Id: spm_eegfp_model.m 148 2005-05-12 09:42:57Z christophe $
 
 % Format of 'model' structure :
 % #############################
@@ -301,9 +301,9 @@ case 'init'
 	pos = 1 ;
 
     % Select the operation through the GUI or from passed variable
-    if nargin==2 & isnumeric(varargin{1})
+    if nargin==2 && isnumeric(varargin{1})
         gener = round(varargin{1});
-        if gener<1 | gener>5
+        if gener<1 || gener>5
             gener = 5;
             warning('Wrong options for model, I assume "generate all at once"');
         end
@@ -319,7 +319,7 @@ case 'init'
 
     % Load required inputs
     %======================
-    if gener==1 | gener==5
+    if gener==1 || gener==5
     % Generate scalp/brain vol & tessalate
         Pvol = spm_select(1,'image','Image to build model');
         flag_bi.img_type = spm_input('Image type :','+1','T1 MRI|PET|EPI',[1,2,3],1);
@@ -350,9 +350,9 @@ case 'init'
             Mtempl = eye(4);
         end
     end
-    if gener==1 | gener==2 | gener==5
+    if gener==1 || gener==2 || gener==5
     % Generate scalp/brain vol & tessalate binarized volume
-        if flag_te.Nvol>1 | flag_te.br_only
+        if flag_te.Nvol>1 || flag_te.br_only
     		Npt = spm_input('Approx. nr of vertices on brain surf','+1','e',4000);
             flag_te.n = zeros(1,3); flag_te.n(1) = 2*round((sqrt((Npt-2)*4/5))/2);
         end
@@ -368,15 +368,15 @@ case 'init'
         Pmod = ['model_head_',num2str(flag_te.n(1)),'_',num2str(flag_te.n(2))];
 	end
 
-	if gener==3 | gener==5
+	if gener==3 || gener==5
     % Project electrodes coord (spher or real) on scalp/brain surface
         if gener==3
-            Pmod = spm_select(1,'*model*.mat','Head model file');
+            Pmod = spm_select(1,'^model.*\.mat$','Head model file');
             load(Pmod)
         end
-        if exist('flag_te') & isfield(flag_te,'br_only')
+        if exist('flag_te') && isfield(flag_te,'br_only')
             flags_el.br_only = flag_te.br_only;
-        elseif exist('model') & isfield(model.param,'br_only');
+        elseif exist('model') && isfield(model.param,'br_only');
             flags_el.br_only = model.param.br_only;
         else
             if length(model.head)>1
@@ -392,7 +392,7 @@ case 'init'
         end
         if exist('Mtempl')
             flags_el.Mtempl = Mtempl;
-        elseif exist('model') & isfield(model.param,'Mtempl');
+        elseif exist('model') && isfield(model.param,'Mtempl');
             flags_el.Mtempl = model.param.Mtempl;
         else
             warning('It is assumed that your original image was in template space.')
@@ -423,13 +423,13 @@ case 'init'
 
     if gener==4
     % Define realistic sphere
-        Pmod = spm_select(1,'*model*.mat','Head model file');
+        Pmod = spm_select(1,'^model.*\.mat$','Head model file');
     end
 
 
     % Create things as selected
     %==========================
-    if gener==1 | gener==5
+    if gener==1 || gener==5
         % Segment image, and create brain volume
         [Pvol,Mtempl,flags_bi] = spm_eegfp_model('GenBin',Pvol,flag_bi);
         if gener==1
@@ -439,7 +439,7 @@ case 'init'
         end
     end
     
-    if gener==1 | gener==2 | gener==5
+    if gener==1 || gener==2 || gener==5
     % Tessalate predefined binarized volume
         [head,cc,flags_te] = spm_eegfp_model('GenMesh',Pvol,flag_te); % n,br_only,q_elast_m
         model.head = head;
@@ -453,7 +453,7 @@ case 'init'
         varargout{1} = model ;    
     end
         
-    if gener==3 | gener==5
+    if gener==3 || gener==5
     % Project electrodes coord (spher or real) on scalp/brain surface
 		fname_el = ['el_sphc',num2str(size(el_sphc,2))];
 		save(fname_el,'el_sphc','el_name');
@@ -468,7 +468,7 @@ case 'init'
         varargout{1} = model ;    
     end
     
-    if gener==4 | gener==5
+    if gener==4 || gener==5
     % Define realistic sphere model
         if gener==4, load(Pmod); end
         if isfield(model,'br_only')
@@ -825,8 +825,8 @@ case 'elec2scalp'
 			% orient vect. of scalp vertices
 		alpha = acos(v_el'*v_sv) ;
 		[m_a,ind_v] = min(abs(alpha)) ; % Find the vertex with closest orientation
-		list_t = find( (surf.tri(1,:)==ind_v) | ...
-				(surf.tri(2,:)==ind_v) | ...
+		list_t = find( (surf.tri(1,:)==ind_v) || ...
+				(surf.tri(2,:)==ind_v) || ...
 				(surf.tri(3,:)==ind_v) ) ; % Triangles linked to that vertex.
 		Nlist = length(list_t) ;
 		is_in = zeros(Nlist,1) ;
@@ -1136,9 +1136,9 @@ for i=1:ts.nr(2) % Go through all the triangles
 	e1 = ts.tri(1:2,i); % 3 edges of the ith triangle (counter-clock wise)
 	e2 = ts.tri(2:3,i);
 	e3 = ts.tri([3 1],i);
-	p1 = find((edges(:,2)==e1(2)) & (edges(:,3)==e1(1))); % check if edge was already seen.
-	p2 = find((edges(:,2)==e2(2)) & (edges(:,3)==e2(1)));
-	p3 = find((edges(:,2)==e3(2)) & (edges(:,3)==e3(1)));
+	p1 = find((edges(:,2)==e1(2)) && (edges(:,3)==e1(1))); % check if edge was already seen.
+	p2 = find((edges(:,2)==e2(2)) && (edges(:,3)==e2(1)));
+	p3 = find((edges(:,2)==e3(2)) && (edges(:,3)==e3(1)));
 	if isempty(p1) % new edge
 		edges(i_ed,:) = [norm(XYZmm(:,e1(1))-XYZmm(:,e1(2))) e1' i 0] ;
 		i_ed = i_ed+1;
@@ -1292,11 +1292,11 @@ case 'erodegrow'
 %------------------------------------------------------------------------
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2
-    P = spm_select(1,'*img','Image to erode-grow');
+    P = spm_select(1,'image','Image to erode-grow');
     nPin = size(P,1);
-    Vp = spm_vol(P);
+    V = spm_vol(P);
     fl_rvol = 1;
-    dim = Vp.dim;
+    dim = V.dim;
     cr_file = 1; % Cretate (1) or not (0) a file at the end of the process.
 end
 
@@ -1322,7 +1322,7 @@ if length(varargin)>=1
 end
 
 if fl_rvol
-    val = loaduint8(V)
+    val = loaduint8(V);
 end
 
 ne = 1; ng = 1; thr_im = .1 ;
@@ -1343,7 +1343,9 @@ p3_2 = uint8(zeros(dim(1),dim(2)-1,1));
 
 % Erosion !
 % val = val>thr_im*max(max(max(abs(val)))) ;
-val = val>thr_im*double(max(val(:))) ;
+val = uint8(val>thr_im*double(max(val(:)))) ; 
+    % added uint8 otherwise is considered as a logical variable 
+    %   -> no math operation (addition) possible
 Nbin = length(find(val(:)));
 fprintf('\tOriginal number of voxels %d .\n',Nbin)
 for i=1:ne
@@ -1363,7 +1365,7 @@ for i=1:ne
         + cat(3,p3,cat(1,val(2:end,:,1:end-1),p1_3)) ...
         + cat(3,cat(1,p1_3,val(1:end-1,:,1:end-1)),p3) ...
         + cat(3,cat(1,val(2:end,:,1:end-1),p1_3),p3) ;
-    val = temp>17 ;
+    val = uint8(temp>17) ;
  %   val = temp>6 ;
     Nbin = length(find(val(:)));
     fprintf('\tErosion step %d , %d voxels left.\n',i,Nbin)
@@ -1391,7 +1393,7 @@ for i=1:ng
         + cat(3,p3,cat(1,val(2:end,:,1:end-1),p1_3)) ...
         + cat(3,cat(1,p1_3,val(1:end-1,:,1:end-1)),p3) ...
         + cat(3,cat(1,val(2:end,:,1:end-1),p1_3),p3) ;
-    val = temp>1 ;
+    val = uint8(temp>1) ;
     Nbin = length(find(val(:)));
     fprintf('\tGrowing step %d , %d voxels left.\n',i,Nbin)
 end
@@ -1558,7 +1560,7 @@ end
 ntr_qr=size(ind_qr,2) ; % nbr of triangle per 5th of sphere
 [S_i,S_j]=find(ind_qr==1) ;
 [B_i,B_j]=find(ind_qr==npt_sph) ;
-[qs_i,qs_j]=find((ind_qr>(npt_qr+1))&(ind_qr<(3*npt_qr))) ;
+[qs_i,qs_j]=find((ind_qr>(npt_qr+1))&&(ind_qr<(3*npt_qr))) ;
 ind_tr=[] ;
 
 % shift all indices to cover the sphere
@@ -1584,7 +1586,7 @@ return
 function udat = loaduint8(V)
 % Load data from file indicated by V into an array of unsigned bytes.
 
-if size(V.pinfo,2)==1 & V.pinfo(1) == 2,
+if size(V.pinfo,2)==1 && V.pinfo(1) == 2,
 	mx = 255*V.pinfo(1) + V.pinfo(2);
 	mn = V.pinfo(2);
 else,
@@ -1622,7 +1624,8 @@ spm_progress_bar('Clear');
 return;
 
 function acc = paccuracy(V,p)
-if ~spm_type(V.dim(4),'intt'),
+% if ~spm_type(V.dim(4),'intt'),
+if ~spm_type(V.dt(1),'intt'),
 	acc = 0;
 else,
 	if size(V.pinfo,2)==1,

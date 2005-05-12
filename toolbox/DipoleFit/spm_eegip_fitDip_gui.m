@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDip_gui.m 144 2005-05-11 17:32:36Z christophe $
+% $Id: spm_eegip_fitDip_gui.m 148 2005-05-12 09:42:57Z christophe $
 
 % Loading various bits
 %_____________________
@@ -50,9 +50,9 @@ spm('FigName','Fitting ECD on EEG data') ;
 % At the moment, use only the realistic sphere!
 q_model=2;
 if q_model==1
-    Pmod = spm_select(1,'*model*ifs*.mat','Model mat file');
+    Pmod = spm_select(1,'^model.*\ifs.*\.mat$','Model mat file');
 else
-    Pmod = spm_select(1,'*model*Rs*.mat','Model mat file');
+    Pmod = spm_select(1,'^model.*\Rs.*\.mat$','Model mat file');
 end
 load(Pmod)
 
@@ -72,7 +72,7 @@ if q_data==1
         cond = 1;
     end
 elseif q_data==2
-    Pdata = spm_select(1,'*.mat','Data mat file');
+    Pdata = spm_select(1,'mat','Data mat file');
     load(Pdata);
     [DNchan,Dtb] = size(data);
 else
@@ -175,12 +175,12 @@ flag=0; pos = pos+1;
 while flag==0
     [wind_be,pos] = spm_input(['Time window to use'],pos,'e',[1 Dtb]);
     if length(wind_be)==1
-        if wind_be(1)>0 & wind_be(1)<=Dtb
+        if wind_be(1)>0 && wind_be(1)<=Dtb
             wind_be(2) = wind_be(1); 
             flag = 1;
         end
     elseif length(wind_be)==2
-        if wind_be(2)>wind_be(1) & all(wind_be>0) & all(wind_be<=Dtb)
+        if wind_be(2)>wind_be(1) && all(wind_be>0) && all(wind_be<=Dtb)
             flag = 1;
         end
     end
@@ -191,7 +191,7 @@ flag=0; pos = pos+1;
 while flag==0
     [n_dip,pos] = spm_input(['Number of dipoles to be used'],pos,'e',1);
     if n_dip<=floor(DNchan/6), flag=1; end
-    if (n_dip<=floor(DNchan/6)) & (n_dip>floor(DNchan/12)),
+    if (n_dip<=floor(DNchan/6)) && (n_dip>floor(DNchan/12)),
         spm('alert!',{['You really have a lot of dipoles to fit (',num2str(n_dip),')'] ...
             ['compared to the number of channels (',num2str(DNchan),')'] ...
             ['Results may be unstable and unreliable']},'Ndipoles warning')
@@ -228,7 +228,7 @@ if n_seeds==1
 end
 
 % Orientation of the dipoles
-if (wind_be(2)-wind_be(1))>1 & ~q_fxd_or
+if (wind_be(2)-wind_be(1))>1 && ~q_fxd_or
     text_opt = ['totally free orientation|',...
             'fixed orientation, weighted (EEG pow) mean of orientations over time|',...
             'fixed orientation, as at the max of EEG power'];
@@ -239,7 +239,8 @@ else
     or_opt = 1;
 end
 
-Vbr = spm_vol(spm_select(1,'*obrain*.img','Brain mask image'));
+% Select obrain volume to constrain sources
+Vbr = spm_vol(spm_select(1,'^.*obrain.*\..*$','Brain mask image'));
 
 Psdip = ['S',num2str(n_dip),'dip_',spm_str_manip(Pdata,'rt'), ...
         '_n',num2str(n_seeds),'_o',num2str(or_opt),'_t',num2str(wind_be(1)),'_',num2str(wind_be(2))];

@@ -8,13 +8,13 @@ function [p,f] = spm_eeg_displTes(tsurf,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_displTes.m 144 2005-05-11 17:32:36Z christophe $
+% $Id: spm_eeg_displTes.m 148 2005-05-12 09:42:57Z christophe $
 
 % mono_c = 1/0 uses monocolor or provided c
 % tri_c = 1/0 , color specified on triangles or vertices
 
 if nargin==0
-    Pmod = spm_select(1,'model*.mat','Select model to display');
+    Pmod = spm_select(1,'^model.*\.mat$','Select model to display');
     load(Pmod)
     if length(model.head)>1
         % Select surface to display
