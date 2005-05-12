@@ -10,7 +10,7 @@ function [el_sphc,el_name] = spm_eegfp_electrset(el_set)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_electrset.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegfp_electrset.m 151 2005-05-12 17:30:30Z christophe $
 
 set_name = strvcat('10-20 system with 23 electrodes.', ...
     '10-20 system with 19 electrodes.', ...
@@ -19,8 +19,9 @@ set_name = strvcat('10-20 system with 23 electrodes.', ...
     '31 electrodes, Rik''s set.', ...
     '10-20 system with 21 electrodes.', ...
     '10-20 system with 29 electrodes.', ...
-    '62 electrodes on ext. 10-20 system.');
-Nr_electr = [23 19 61 148 31 21 29 62];
+    '62 electrodes on ext. 10-20 system.', ...
+    'Select CTF from EEGtemplates');
+Nr_electr = [23 19 61 148 31 21 29 62 -1];
 if nargin<1
     el_sphc = Nr_electr;
     el_name = set_name;
@@ -60,16 +61,74 @@ else
 				[el_sphc,el_name] = sys1020_29 ;
             case 8
 				fprintf(['\n',set_name(el_set,:),'\n\n']);
-				[el_sphc,el_name] = sys1020_62 ;               
+				[el_sphc,el_name] = sys1020_62 ;   
+            case 9
+                Fchannels = spm_select(1, '\.mat$', 'Select channel template file', ...
+                    {}, fullfile(spm('dir'), 'EEGtemplates'));
+                [Fpath,Fname] =  fileparts(Fchannels);
+                elec = load(Fchannels);
+                [el_sphc,el_name] = treatCTF(elec,Fname);
 			otherwise
 				warning('Unknown electrodes set !!!')
                 el_sphc = []; el_name = [];
 		end
-        el_name = cellstr(el_name);
+        if ~iscell(el_name)
+            el_name = cellstr(el_name);
+        end
     catch
         error(['Provide the electrode set number : from 1 to ',num2str(length(Nr_electr))])
     end
 end
+
+return
+
+%________________________________________________________________________
+% A few subfunctions
+%________________________________________________________________________
+
+function [el_sphc,el_name] = treatCTF(elec,Fname);
+% Takes the info from the CTF and creates the standard 3D electrode set
+% from the 2D map.
+
+switch lower(Fname)
+case 'bdf_setup'
+    xf = elec.Cpos(1,:)-.45;
+	yf = elec.Cpos(2,:)-.55;
+	rf = sqrt(xf.^2+yf.^2);
+	xf = xf./max(rf)*pi/2;
+	yf = yf./max(rf)*pi/2;
+    chan_to_remove = [129 130] ; % HEOG & VEOG
+case '61channels'
+    xf = elec.Cpos(1,:)-.5;
+	yf = elec.Cpos(2,:)-.5;
+	rf = sqrt(xf.^2+yf.^2);
+	xf = xf./max(rf)*pi/2;
+	yf = yf./max(rf)*pi/2;   
+    chan_to_remove = [1 2] ; % HEOG & VEOG
+otherwise
+    error('Unknown CTF')
+end
+[ x, y, z ] = FlatToCart(xf, yf);
+el_sphc = [x;y;z]; el_sphc(:,chan_to_remove) = [];
+el_name = elec.Cnames; el_name(chan_to_remove) = [];
+
+return
+
+%________________________________________________________________________
+function [ x, y, z ] = FlatToCart(xf, yf)
+% Convert 2D Cartesian Flat Map coordinates into Cartesian 
+% coordinates on surface of unit sphere 
+
+theta = atan2(yf,xf);
+phi = xf./cos(theta);
+
+z = sqrt(1./(1+tan(phi).^2));
+rh = sqrt(1-z.^2);
+x = rh.*cos(theta);
+y = rh.*sin(theta);
+
+return
+
 
 %________________________________________________________________________
 %

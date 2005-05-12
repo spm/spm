@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDip_gui.m 148 2005-05-12 09:42:57Z christophe $
+% $Id: spm_eegip_fitDip_gui.m 151 2005-05-12 17:30:30Z christophe $
 
 % Loading various bits
 %_____________________
@@ -97,6 +97,12 @@ if q_data==1
     end
     if isfield(D.channels,'others')
         chan_to_rem = [chan_to_rem D.channels.others];
+    end
+    if isfield(D.channels,'Bad')
+        chan_to_rem = [chan_to_rem D.channels.Bad];
+    end
+    if isfield(D.channels,'reference')
+        chan_to_rem = [chan_to_rem D.channels.reference];
     end
     Use_chan(chan_to_rem) = []; % and possibly some other channels.
     
