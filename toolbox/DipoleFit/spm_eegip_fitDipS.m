@@ -45,7 +45,7 @@ function [sdip,fit_opt] = spm_eegip_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_opt,di
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDipS.m 143 2005-05-11 17:13:13Z christophe $
+% $Id: spm_eegip_fitDipS.m 150 2005-05-12 10:53:16Z christophe $
 
 
 global MODEL V_BR V_EEG OR_OPT FXD_OR sdip
@@ -91,9 +91,9 @@ if ~MCS_f
         set_loc_1seed = [[-30 0 0]' [30 0 0]' [0 0 30]' [0 30 0]' [0 -30 0]'  [0 0 0]'];
         % This will be ok for up to 6 dipoles
         % Otherwise pick at random in brain volume.
-        if n_seeds==1 & n_dip==1
+        if n_seeds==1 && n_dip==1
             fit_opt.set_loc_o = zeros(3,1);
-        elseif n_seeds==1 & n_dip>1
+        elseif n_seeds==1 && n_dip>1
             fit_opt.set_loc_o = set_loc_1seed(:,1:n_dip);
         else
             loc_rand = rand(n_seeds*20,3).*(ones(n_seeds*20,1)*Vbr.dim(1:3));
@@ -171,7 +171,7 @@ end
 
 % Optimization bit
 %-----------------
-if ~fit_opt.q_fxd_loc & ~fit_opt.q_fxd_or % Both localisation and orientation have to be optimized
+if ~fit_opt.q_fxd_loc && ~fit_opt.q_fxd_or % Both localisation and orientation have to be optimized
     sdip.exitflag = zeros(1,n_seeds);
 	opts = optimset('MaxIter',1000*n_dip,'MaxFunEvals',5000*n_dip);
 	% opts = optimset('MaxIter',2000,'MaxFunEvals',10000,'Display','iter','Diagnostics','on')
@@ -180,19 +180,19 @@ if ~fit_opt.q_fxd_loc & ~fit_opt.q_fxd_or % Both localisation and orientation ha
         [sdip.Sloc{ii},fval,sdip.exitflag(ii),outp] = fminsearch('spm_eegip_costSd',...
                 fit_opt.set_loc_o(:,ii+(1:n_dip)-1),opts) ;
         [sdip.cost(ii),sdip.L{ii},sdip.j{ii},sdip.res(ii)] = spm_eegip_costSd(sdip.Sloc{ii}) ;
-        if n_dip==1 & disp_f
+        if n_dip==1 && disp_f
             fprintf('\t Sphere location: %4.2f %4.2f %4.2f , source str: %4.2f \n', ...
                 [sdip.Sloc{ii}' norm(sdip.j{ii}(:,sdip.Mtb))])
             fprintf('\t Source or: %4.2f %4.2f %4.2f , residual: %4.2f \n', ...
                 [sdip.j{ii}(:,sdip.Mtb)'/norm(sdip.j{ii}(:,sdip.Mtb)) sdip.res(ii)])
         end
 	end
-elseif fit_opt.q_fxd_loc & ~fit_opt.q_fxd_or % Localisation is fixed but not the orientation
+elseif fit_opt.q_fxd_loc && ~fit_opt.q_fxd_or % Localisation is fixed but not the orientation
     sdip.Sloc{1} = fit_opt.set_loc_o;
-    [sdip.cost(1),sdip.L{1},sdip.j{1},sdip.res(1)] = cost_Sd(sdip.Sloc{1}) ;
+    [sdip.cost(1),sdip.L{1},sdip.j{1},sdip.res(1)] = spm_eegip_costSd(sdip.Sloc{1}) ;
 else % Both localisation and orientation are fixed
     sdip.Sloc{1} = fit_opt.set_loc_o;
-    [sdip.cost(1),sdip.L{1},sdip.j{1},sdip.res(1)] = cost_Sd(sdip.Sloc{1}) ;
+    [sdip.cost(1),sdip.L{1},sdip.j{1},sdip.res(1)] = spm_eegip_costSd(sdip.Sloc{1}) ;
 end
 
 sdip.rres = sdip.res/norm(V_EEG,'fro'); 
