@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_filter.m 149 2005-05-12 09:48:42Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -40,7 +40,7 @@ try
     D.filter.type = S.filter.type;
 catch
 	D.filter.type =...
-	 	spm_input('filter type', '+1', 'b', 'Butterworth');
+	 	spm_input('filter type', '+1', 'b', 'butterworth');
 end
 
 try
@@ -80,12 +80,14 @@ catch
     D.filter.PHz = PHz;
 end
 
-if strcmp(D.filter.type, 'Butterworth')
+if strcmpi(D.filter.type, 'butterworth')
     % butterworth coefficients
     D.filter.para = [];
     [B, A] = butter(5, 2*D.filter.PHz/D.Radc);
     D.filter.para{1} = B;
     D.filter.para{2} = A;
+else
+    error('Unknown filter type: %s', D.filter.type);
 end
 
 spm('Pointer', 'Watch');drawnow;
@@ -112,7 +114,7 @@ if size(D.data, 3) > 1
         d = squeeze(D.data(:, :, i));
 
         for j = 1:D.Nchannels
-            if strcmp(D.filter.type, 'Butterworth')
+            if strcmpi(D.filter.type, 'butterworth')
                 d(j,:) = filtfilt(D.filter.para{1}, D.filter.para{2}, d(j,:));
             end
         end
@@ -136,7 +138,10 @@ else
     else, Ibar = [1:D.Nchannels]; end
 
     for i = 1:D.Nchannels
-        d = filtfilt(B, A, squeeze(D.data(i, :, :)));
+        if strcmpi(D.filter.type, 'butterworth')
+            d = filtfilt(B, A, squeeze(D.data(i, :, :)));
+        end
+        
         if i == 1
             data = zeros(D.Nchannels, D.Nsamples);
         end
