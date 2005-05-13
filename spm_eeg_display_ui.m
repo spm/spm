@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_display_ui.m 152 2005-05-13 12:01:02Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -40,7 +40,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
 
 
     if D.Nevents == 1 & ~isfield(D.events, 'start')
-        errordlg({'Continuous data cannot be displayed.', 'Epoch first.'});
+        errordlg({'Continuous data cannot be displayed (yet).', 'Epoch first please.'});
         return;
     end
 
@@ -64,8 +64,6 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     FS1 = spm('FontSize', 14);
 
     figure(F);clf
-
-
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % setup of GUI elements
@@ -144,7 +142,6 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'HorizontalAlignment', 'right', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
 
-
     % Save pushbutton
     uicontrol('Tag', 'savebutton', 'Style', 'pushbutton',...
         'Units', 'normalized', 'Position', [0.615 0.02 0.11 0.03],...
@@ -208,15 +205,9 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     text(D.Nsamples, -scale, sprintf('%d ms', round(D.Nsamples*1000/D.Radc)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
 
-    % setup vectors for selecting which channels to display
-    % initial display is set to excludebad channels
-ind = setdiff([1:length(D.channels.order)], D.channels.Bad);
-D.gfx.channels = D.channels.order(ind);
+    % channels to display, initially exclude bad channels
+    D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);
 
-% D.gfx.measured: observed channels (in order of channel template file)
-D.gfx.measured = sort(D.channels.order(D.channels.order ~= 0));
-
-    
 else
     % this is a re-display with different set of selected channels, delete plots
     handles = guidata(S.Hfig);
@@ -322,8 +313,6 @@ handles.Heegfigures = cell(1, Npos);
 handles.Heegaxes2 = cell(1, Npos);
 
 % plot the graphs
-Imeasured = zeros(1, Csetup.Nchannels);
-Imeasured(D.gfx.measured) = 1;
 for i = 1:Npos
     
     % uicontextmenus for axes

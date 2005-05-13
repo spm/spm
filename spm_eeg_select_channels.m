@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_select_channels.m 152 2005-05-13 12:01:02Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -67,7 +67,8 @@ D = varargin{1};
 P = fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf);
 load(P)
 
-% correct Cnames (can sometimes have more than one entry per channel)
+% correct Cnames (channel template file entries can have more than one
+% entry per channel)
 for i = 1:Nchannels
     if iscell(Cnames{i})
         Cnames{i} = Cnames{i}{1};
@@ -85,38 +86,30 @@ Htext = cell(1, Nchannels);
 Cselect = [1 1 1];
 Cdeselect = [0.5 0.5 0.5];
 
-ind = zeros(1, Nchannels);
-measured = zeros(1, Nchannels);
-if isfield(D, 'gfx') & isfield(D.gfx, 'channels')
-    ind(D.gfx.channels) = 1;
-    measured(D.gfx.measured) = 1;
-end
-
-D.gfx.Imeasured = measured;
-
-for i = 1:Nchannels
-    if measured(i) ~= 0
-        if ind(i) == 0
-            Hpatch{i} = patch(Xrec+Cpos(1,i), Yrec+Cpos(2,i), Cdeselect,...
-                'EdgeColor', 'none');
-        else
-            Hpatch{i} = patch(Xrec+Cpos(1,i), Yrec+Cpos(2,i), Cselect,...
-                'EdgeColor', 'none');
-        end
-        xy = get(Hpatch{i}, 'Vertices');
-        Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{i});
-        set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
+ind = zeros(1,length(D.channels.order));
+ind(D.gfx.channels) = 1;
+    
+for i = 1:length(D.channels.order)
+    if ~ind(i)
+        Hpatch{i} = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cdeselect,...
+            'EdgeColor', 'none');
+    else
+        Hpatch{i} = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cselect,...
+            'EdgeColor', 'none');
     end
-
+    xy = get(Hpatch{i}, 'Vertices');
+        Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{D.channels.order(i)});
+        set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
 end
 axis square
 axis off
 
 % listbox
-set(handles.listbox1, 'String', Cnames(find(measured)));
-set(handles.listbox1, 'Value', find(ismember(D.gfx.measured, D.gfx.channels)));
+set(handles.listbox1, 'String', Cnames(D.channels.order([1:length(ind)])));
+set(handles.listbox1, 'Value', find(ind));
 
 handles.D = D;
+handles.ind = ind;
 handles.Cnames = Cnames;
 handles.Cpos = Cpos;
 handles.Nchannels = Nchannels;
@@ -125,11 +118,11 @@ handles.Htext = Htext;
 handles.Cselect = Cselect;
 handles.Cdeselect = Cdeselect;
 
-for i = 1:Nchannels
+for i = 1:length(D.gfx.channels)
     % callbacks for patches and text
-    if measured(i) ~=0
-        set(Hpatch{i}, 'ButtonDownFcn', {@patch_select, handles, i, sum(measured(1:i))});
-        set(Htext{i}, 'ButtonDownFcn', {@patch_select, handles, i, sum(measured(1:i))});
+    if D.gfx.channels(i) ~=0
+        set(Hpatch{i}, 'ButtonDownFcn', {@patch_select, handles, i});
+        set(Htext{i}, 'ButtonDownFcn', {@patch_select, handles, i});
     end
 end
 
@@ -144,12 +137,12 @@ function patch_select(obj, eventdata, handles, i, ind);
 s = get(handles.listbox1, 'Value');
 h = handles.Hpatch{i};
 
-if isempty(find(s == ind))
+if ~ismember(s,i)
     set(h, 'FaceColor', handles.Cselect);
-    set(handles.listbox1, 'Value', sort([s, ind]));
+    set(handles.listbox1, 'Value', sort([s, i]));
 else
     set(h, 'FaceColor', handles.Cdeselect);
-    set(handles.listbox1, 'Value', setdiff(s, ind));
+    set(handles.listbox1, 'Value', setdiff(s, i));
 end
 
 % --- Outputs from this function are returned to the command line.
@@ -189,11 +182,11 @@ function listbox1_Callback(hObject, eventdata, handles)
 
 s = get(handles.listbox1, 'Value');
 
-for i = 1:length(handles.D.gfx.measured)
+for i = 1:length(handles.ind)
     if ismember(i, s)
-        set(handles.Hpatch{handles.D.gfx.measured(i)}, 'FaceColor', handles.Cselect);
+        set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
     else
-        set(handles.Hpatch{handles.D.gfx.measured(i)}, 'FaceColor', handles.Cdeselect);
+        set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
     end
 end
 
@@ -204,15 +197,12 @@ function select_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Cycle through patch elements and recolour
-for i = 1:handles.Nchannels
-    if ~isempty(handles.Hpatch{i})
-        set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
-    end
+for i = 1:length(handles.ind)
+    set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
 end
 
 % set all listbox entries to selected
-set(handles.listbox1, 'Value', [1:sum(handles.D.gfx.measured~=0)]);
-
+set(handles.listbox1, 'Value', [1:length(handles.ind)]);
 
 % --- Executes on button press in deselect.
 function deselect_Callback(hObject, eventdata, handles)
@@ -221,10 +211,8 @@ function deselect_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Cycle through patch elements and recolour
-for i = 1:handles.Nchannels
-    if ~isempty(handles.Hpatch{i})
-        set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
-    end
+for i = 1:length(handles.ind)
+    set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
 end
 
 % set all listbox entries to selected
@@ -241,7 +229,7 @@ load(fullfile(P2, P1), 'Iselectedchannels');
 if ~exist('Iselectedchannels', 'var')
     errordlg('This file doesn''t contain channel indices', 'Wrong file?');
 else
-    if max(Iselectedchannels) > length(get(handles.listbox1, 'Value'))
+    if max(Iselectedchannels) > length(handles.ind)
         errordlg('This file doesn''t channel indices for these data', 'Wrong file?');
     else
         set(handles.listbox1, 'Value', Iselectedchannels);
@@ -281,9 +269,8 @@ function ok_Callback(hObject, eventdata, handles)
 if isempty(get(handles.listbox1, 'Value'))
     h = errordlg('Must select at least one channel!', 'Selection error', 'modal');
 else
-    % return indices of selected (and measured) channels
-    ind = find(handles.D.gfx.Imeasured);
-    handles.output = ind(get(handles.listbox1, 'Value'));
+    % return indices of selected channels
+    handles.output = get(handles.listbox1, 'Value');
     guidata(hObject, handles);
     uiresume;
 
