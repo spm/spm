@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 148 2005-05-12 09:42:57Z christophe $
+% $Id: spm_eegfp_model.m 153 2005-05-13 13:15:25Z christophe $
 
 % Format of 'model' structure :
 % #############################
@@ -825,8 +825,8 @@ case 'elec2scalp'
 			% orient vect. of scalp vertices
 		alpha = acos(v_el'*v_sv) ;
 		[m_a,ind_v] = min(abs(alpha)) ; % Find the vertex with closest orientation
-		list_t = find( (surf.tri(1,:)==ind_v) || ...
-				(surf.tri(2,:)==ind_v) || ...
+		list_t = find( (surf.tri(1,:)==ind_v) | ...
+				(surf.tri(2,:)==ind_v) | ...
 				(surf.tri(3,:)==ind_v) ) ; % Triangles linked to that vertex.
 		Nlist = length(list_t) ;
 		is_in = zeros(Nlist,1) ;

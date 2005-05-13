@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDip_gui.m 151 2005-05-12 17:30:30Z christophe $
+% $Id: spm_eegip_fitDip_gui.m 153 2005-05-13 13:15:25Z christophe $
 
 % Loading various bits
 %_____________________
@@ -133,7 +133,8 @@ elseif q_data==2
 end
 
 % Use a reduce set of electrodes ?
-dNchannels = model.electrodes.nr-DNchan ;
+% dNchannels = model.electrodes.nr-DNchan ;
+dNchannels = model.electrodes.nr-NUse_chan ;
 if dNchannels<0
     spm('alert*',{'Your data have more channels than the model,' ...
             'I can''t deal with this...'},'Nchannels error')
@@ -179,7 +180,18 @@ end
 % Window of time used
 flag=0; pos = pos+1;
 while flag==0
-    [wind_be,pos] = spm_input(['Time window to use'],pos,'e',[1 Dtb]);
+    if q_data==1
+        % Express time window in ms.
+        ms_tb = 1000/D.Radc ; % milisecond per time bin
+        b_ms = -D.events.start*ms_tb;
+        e_ms = D.events.stop*ms_tb;
+        [wind_be_ms,pos] = spm_input(...
+                ['Time window to use (in ms, [',num2str(ms_tb),'])'], ...
+                pos,'e',[b_ms e_ms]);
+        wind_be = round((wind_be_ms-b_ms)/ms_tb+1);
+    else
+        [wind_be,pos] = spm_input(['Time window to use'],pos,'e',[1 Dtb]);
+    end
     if length(wind_be)==1
         if wind_be(1)>0 && wind_be(1)<=Dtb
             wind_be(2) = wind_be(1); 
@@ -279,8 +291,9 @@ if q_model==1
 elseif q_model==2
     if q_data==1
         [sdip,fit_opt] = ...
-            spm_eegip_fitDipS(squeeze(D.data(order_dat2mod,wind_be(1):wind_be(2),cond(1))), ...
-            model,Vbr,n_dip,n_seeds,fit_opt);
+            spm_eegip_fitDipS(squeeze(D.data(order_dat2mod, ...
+                                wind_be(1):wind_be(2),cond(1))), ...
+                                model,Vbr,n_dip,n_seeds,fit_opt);
     elseif q_data==2
         [sdip,fit_opt] = spm_eegip_fitDipS(data(:,wind_be(1):wind_be(2)), ...
             model,Vbr,n_dip,n_seeds,fit_opt);
