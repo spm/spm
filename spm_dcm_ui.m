@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 125 2005-05-08 16:41:39Z klaas $
+% $Id: spm_dcm_ui.m 154 2005-05-14 12:43:53Z klaas $
 
 
 
@@ -757,7 +757,7 @@ case 'compare',
     
     % load all models and compute their evidence
     for model_index=1:num_models,
-	    load(P(model_index,:));
+	    load(P(model_index,:),'DCM','-mat');
         model_VOIs{model_index}   = [];
         % concatenate names of all VOIs for each model
         for k   = 1:size(DCM.xY,2),

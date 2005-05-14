@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_spm_Bayes.m 154 2005-05-14 12:43:53Z klaas $
 
 
 %-Say hello
@@ -151,7 +151,7 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 %=======================================================================
 % - E M P I R I C A L  B A Y E S  F O R  P R I O R  V A R I A N C E
 %=======================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimatng priors')   %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimating priors')   %-#
 
 % get row u{i} and column v{i}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
