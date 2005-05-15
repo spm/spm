@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 154 2005-05-14 12:43:53Z klaas $
+% $Id: spm_dcm_ui.m 155 2005-05-15 11:46:28Z klaas $
 
 
 
@@ -482,29 +482,20 @@ case 'review'
 
 		switch D
 
-			case 'A' % intrinsic
-                
+			case 'A' % intrinsic connections
 			%---------------------------------------------------
-% 			str     = sprintf('[%.0f]contrast for A(:)',l*l);
-% 			C       = spm_input(str,1,'e');
             C       = spm_dcm_contrasts(P(:),'A');
 			i       = find(C); j = 1;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
-
             
-            
-			case 'B' % intrinsic
+			case 'B' % modulatory inputs
 			%---------------------------------------------------
-% 			str     = sprintf('[%.0f]contrast for B(:)',l*l*m);
-% 			C       = spm_input(str,1,'e');
             C       = spm_dcm_contrasts(P(:),'B');
 			i       = find(C); j = 1 + l*l;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
-			case 'C' % intrinsic
+			case 'C' % direct (driving) inputs
 			%---------------------------------------------------
-% 			str     = sprintf('[%.0f]contrast for C(:)',l*m);
-% 			C       = spm_input(str,1,'e');
             C       = spm_dcm_contrasts(P(:),'C');
 			i       = find(C); j = 1 + l*l + l*l*m;
 			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
@@ -513,11 +504,10 @@ case 'review'
 
 		%-posterior density and inference
 		%-----------------------------------------------------------
-
 		c    = C'*DCM.Ep;
 		v    = C'*DCM.Cp*C;
 		x    = c + [-32:32]*sqrt(v)*6/32;
-		p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
+		p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
 		PP   = 1 - spm_Ncdf(DCM.T,c,v);
 
 		figure(Fgraph)
