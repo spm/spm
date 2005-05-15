@@ -28,7 +28,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % things much more computationally efficient and avoids inefficient
 % voxel-specific multiple hyperparameter estimates.
 %
-% spm_spm_Bayes adds the following feilds to SPM:
+% spm_spm_Bayes adds the following fields to SPM:
 %
 %                           ----------------
 %
@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 154 2005-05-14 12:43:53Z klaas $
+% $Id: spm_spm_Bayes.m 157 2005-05-15 13:23:00Z klaas $
 
 
 %-Say hello
@@ -341,19 +341,41 @@ for i = 1:s
 
 	% derivatives of conditional covariance w.r.t. hyperparameters
 	%---------------------------------------------------------------
-	d     = P{1}.X'*inv(P{1}.C{1})*P{1}.X;
-	Cby   = inv(d/l(i) + inv(P{2}.C));
-	d     = d*Cby;
-	dC    = Cby*d/(l(i)^2);
-	ddC   = 2*(dC/(l(i)^2) - Cby/(l(i)^3))*d;
+    if str2num(version('-release')) == 13,
+        % MATLAB 6.5.0 R13 has a bug in dealing with sparse matrices so revert to full matrices
+        fprintf('%-40s','MATLAB 6.5.0 R13: must use full matrices - this could cause memory problems...');
+        d     = full(P{1}.X'*inv(P{1}.C{1})*P{1}.X);
+        Cby   = full(inv(d/l(i) + inv(P{2}.C)));
+        d     = full(d*Cby);
+        dC    = full(Cby*d/(l(i)^2));
+        ddC   = full(2*(dC/(l(i)^2) - Cby/(l(i)^3))*d);
+    else
+        % all other MATLAB versions: use sparse matrices
+        d     = P{1}.X'*inv(P{1}.C{1})*P{1}.X;
+        Cby   = inv(d/l(i) + inv(P{2}.C));
+        d     = d*Cby;
+        dC    = Cby*d/(l(i)^2);
+        ddC   = 2*(dC/(l(i)^2) - Cby/(l(i)^3))*d;
+    end
 
 	% place in output structure
 	%---------------------------------------------------------------
-	j               = 1:length(v);
-	PPM.Cb(v,v)     = P{2}.C(j,j);
-	PPM.Cby(v,v)    = Cby(j,j);
-	PPM.dC{i}(v,v)  = dC(j,j);
-	PPM.ddC{i}(v,v) = ddC(j,j);
+    if str2num(version('-release')) == 13,
+        % MATLAB 6.5.0 R13: revert to full matrices
+        j               = 1:length(v);
+        PPM.Cb(v,v)     = full(P{2}.C(j,j));
+        PPM.Cby(v,v)    = full(Cby(j,j));
+        PPM.dC{i}(v,v)  = full(dC(j,j));
+        PPM.ddC{i}(v,v) = full(ddC(j,j));
+    else
+        % all other MATLAB versions: use sparse matrices
+        j               = 1:length(v);
+        PPM.Cb(v,v)     = P{2}.C(j,j);
+        PPM.Cby(v,v)    = Cby(j,j);
+        PPM.dC{i}(v,v)  = dC(j,j);
+        PPM.ddC{i}(v,v) = ddC(j,j);        
+    end
+    
 end
 
 %-Save remaining results files and analysis parameters
