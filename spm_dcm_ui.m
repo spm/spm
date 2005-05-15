@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 155 2005-05-15 11:46:28Z klaas $
+% $Id: spm_dcm_ui.m 156 2005-05-15 11:57:51Z klaas $
 
 
 
@@ -805,9 +805,9 @@ case 'compare',
         for jj=1:num_models,
             if ~(jj==ii)
                 disp('---------------------------------------------------------------');
-                    disp(sprintf('Model %d: %s',ii,P(ii)));
+                    disp(sprintf('Model %d: %s',ii,P(ii,:)));
                     disp('          versus ');
-                    disp(sprintf('Model %d: %s',jj,P(jj)));
+                    disp(sprintf('Model %d: %s',jj,P(jj,:)));
                     diff=1;
                 disp(' ');
                 disp('All costs are in units of binary bits');
@@ -815,35 +815,35 @@ case 'compare',
                 for k=1:size(DCM.A,1),
                     nats=-(evidence(ii).region_cost(k)-evidence(jj).region_cost(k));
                     bits=nats/log(2);
-                    disp(sprintf('Region %s: relative cost  = %1.2f, BF= %1.2f',DCM.Y.name{k},bits,2^(-bits)));
+                    disp(sprintf('Region %s: relative cost  = %1.4f, BF= %1.4f',DCM.Y.name{k},bits,2^(-bits)));
                 end
                 % AIC penalty
                 nats=evidence(ii).aic_penalty-evidence(jj).aic_penalty;
                 bits=nats/log(2);
-                disp(sprintf('AIC Penalty = %1.2f, BF = %1.2f',bits,2^(-bits)));
+                disp(sprintf('AIC Penalty = %1.4f, BF = %1.4f',bits,2^(-bits)));
                 % BIC penalty
                 nats=evidence(ii).bic_penalty-evidence(jj).bic_penalty;
                 bits=nats/log(2);
-                disp(sprintf('BIC Penalty = %1.2f, BF = %1.2f',bits,2^(-bits)));
+                disp(sprintf('BIC Penalty = %1.4f, BF = %1.4f',bits,2^(-bits)));
                 % AIC overall
                 nats=-diff*(aic(ii)-aic(jj));
                 bits=nats/log(2);
                 bf_aic=2^(-bits);
-                disp(sprintf('AIC Overall = %1.2f, BF = %1.2f',bits,bf_aic));
+                disp(sprintf('AIC Overall = %1.4f, BF = %1.4f',bits,bf_aic));
                 % BIC overall
                 nats=-diff*(bic(ii)-bic(jj));
                 bits=nats/log(2);
                 bf_bic=2^(-bits);
-                disp(sprintf('BIC Overall = %1.2f, BF = %1.2f',bits,bf_bic));
+                disp(sprintf('BIC Overall = %1.4f, BF = %1.4f',bits,bf_bic));
                 disp(' ');
                 
                 if (bf_bic > exp(1)) & (bf_aic > exp(1))
                     disp(sprintf('Consistent evidence in favour of model %d',ii));
-                    disp(sprintf('Bayes factor >= %1.2f', min(bf_aic,bf_bic)));
+                    disp(sprintf('Bayes factor >= %1.4f', min(bf_aic,bf_bic)));
                     disp(' ');
                 elseif ((1/bf_bic) > exp(1)) & ((1/bf_aic) > exp(1))
                     disp(sprintf('Consistent evidence in favour of model %d',jj));
-                     disp(sprintf('Bayes factor >= %1.2f', min(1/bf_aic,1/bf_bic)));
+                     disp(sprintf('Bayes factor >= %1.4f', min(1/bf_aic,1/bf_bic)));
                     disp(' ');
                 else
                     disp('No consistent evidence in favour of either model');
