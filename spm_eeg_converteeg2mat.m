@@ -28,7 +28,7 @@ function D = spm_eeg_converteeg2mat(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel 
-% $Id: spm_eeg_converteeg2mat.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_converteeg2mat.m 161 2005-05-16 14:48:27Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
@@ -74,17 +74,6 @@ end
 Nfiles = size(Mname, 1);
 
 S2.Fchannels = Fchannels;
-
-% reference channel
-switch fmt
-    case{'CNT'}
-        try
-            S2.reference = S.reference;
-        catch
-            S2.reference = spm_input('Input reference channel(s)', '+1', 's+');
-        end
-end
-
 
 switch fmt
 	case {'CNT'}

@@ -16,7 +16,7 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_rdata.m 161 2005-05-16 14:48:27Z stefan $
 
 try
     Fdata = S.Fdata;
@@ -30,13 +30,13 @@ catch
     Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 
-% % There doesn't seem to be information in the CNT-file which channel(s) is the reference
-% % so ask for it now
-% try
-%     S.reference;
-% catch
-%     S.reference{1} = spm_input('Input reference channel', '+1', 's');
-% end
+% There doesn't seem to be information in the CNT-file which channel(s) is the reference
+% so ask for it now
+try
+    S.reference;
+catch
+    S.reference = spm_input('Input reference channel name', '+1', 's');
+end
 
 spm('Pointer','Watch'); drawnow;
 
@@ -131,7 +131,7 @@ D.channels.ctf = spm_str_manip(Fchannels, 't');
 % match cn to D.channels.name, and then update D.channels.calib to cg
 %%%%%%%%%
 
-% Read the electrode name
+% Read the electrode names
 for i = 1:Nchannels
 	fseek(fp, 900 + 75*(i-1), -1);
 	tmp = char(fread(fp, 10, 'uchar'))';
@@ -182,9 +182,26 @@ for i = 1:length(D.channels.name)
 	else
 		% take only the first found channel descriptor
 		D.channels.order(i) = index(1);
-	end
-
+    end
 end
+
+% Report about reference channel
+index = [];
+for j = 1:Csetup.Nchannels
+    if ~isempty(find(strcmpi(S.reference, Csetup.Cnames{j})))
+        index = j;
+    end
+end
+if isempty(index)
+    warning(sprintf('Reference %s not found in channel template file.', S.reference));
+    D.channels.reference = 0;
+else
+    D.channels.reference = index;
+end
+D.channels.ref_name = S.reference;
+
+% initialize Bad channels vector
+D.channels.Bad = [];
 
 % indices of EEG channels (without EOGs)
 D.channels.eeg = setdiff(1:length(D.channels.order), [D.channels.heog D.channels.veog]);
@@ -215,9 +232,20 @@ end
 % Conversion to microvolt saved as scalefactor
 D.scale.values = (1/204.8 .* D.channels.sens .* D.channels.calib)';
 
+% progress bar
+spm_progress_bar('Init', Nsamples, 'Time bins converted'); drawnow;
+if Nsamples > 100, Ibar = floor(linspace(1, Nsamples,100));
+else, Ibar = [1:Nsamples]; end
+
 for i = 1:Nsamples
 	d = int16(fread(fp, Nchannels, 'short'));
 	fwrite(fpd, d, 'int16');
+
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i);
+        drawnow;
+    end
+
 end
 
 fclose(fp);
@@ -237,5 +265,7 @@ if str2num(version('-release'))>=14
 else
     save(fullfile(P, D.fname), 'D');
 end
+
+spm_progress_bar('Clear');
 
 spm('Pointer','Arrow');

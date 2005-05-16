@@ -19,7 +19,9 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_rdata_bdf.m 161 2005-05-16 14:48:27Z stefan $
+
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
 try
     Fdata = S.Fdata;
@@ -181,12 +183,8 @@ if Cveog ~= 0
 
 end
 
-if Creference ~= 0
-    counter = counter + 1;
-    D.channels.name{Neeg + counter} = 'reference';
-    D.channels.reference = Neeg + counter;
-    
-end
+D.channels.reference = 0;
+D.channels.ref_name = 'NIL';
 
 D.Nchannels = Neeg + counter;
 if D.Nchannels < length(D.channels.name);
@@ -232,7 +230,7 @@ else
     f = 0;
 end
 
-% progress bars
+% progress bar
 spm_progress_bar('Init', Hdata.Head.NRec, 'Seconds converted'); drawnow;
 if Hdata.Head.NRec > 100, Ibar = floor(linspace(1, Hdata.Head.NRec,100));
 else, Ibar = [1:Hdata.Head.NRec]; end
@@ -276,9 +274,8 @@ for t = 1:Nblocks
             % take average
             ref = mean(data.Record(Creference, :));
         else
-          ref=  data.Record(Creference(1), :);
+            ref =  data.Record(Creference(1), :);
         end    
-        d = [d; ref];
         d = d - repmat(ref, D.Nchannels, 1);
     end
     

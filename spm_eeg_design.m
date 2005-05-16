@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_design(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_design.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_design.m 161 2005-05-16 14:48:27Z stefan $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -31,10 +31,14 @@ catch
 end
 
 if Ilevel == 1
-    % ask for generating ERP file to get at timing parameters
-    D = spm_eeg_ldata(spm_select(1, 'mat', 'Select associated ERP-mat file'));
+    try
+        D = spm_eeg_ldata(SPM.eeg.D);
+    catch
+        % ask for generating ERP file to get at timing parameters
+        D = spm_eeg_ldata(spm_select(1, 'mat', 'Select associated ERP-mat file'));
+    end
     SPM.xY.RT = 1/D.Radc;
-    SPM.eeg.pt = 1000/D.Radc*[-D.events.start:D.events.stop];
+    SPM.eeg.pt = 1000/D.Radc*[-D.events.start D.events.stop];
 end
 
 % construct Design matrix {X}
