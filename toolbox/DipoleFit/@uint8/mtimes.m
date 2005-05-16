@@ -6,7 +6,15 @@ function c = times(a,b)
 % Only the multiplication of a matrix by a scalar is overloaded !
 % Beware that when values get over the range (255), it is set at 255.
 %
-% Written by c.phillips@ulg.ac.be, on 2004/11/25
+% There are no clever trick. Bits of vectors/matrices and transformed
+% back into doubles, the operation is done then the result converted
+% back to unit8
+%
+%_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Christophe Phillips,
+% $Id: mtimes.m 158 2005-05-16 12:23:09Z christophe $
 
 
 sz = size(a); Nsz = length(sz);

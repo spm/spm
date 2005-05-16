@@ -5,7 +5,16 @@ function c = plus(a,b)
 % Simply overloads the 'plus' (+) function for datatype uint8.
 % Beware that when values get over the range (255), it is set at 255.
 %
-% Written by c.phillips@ulg.ac.be, on 2004/11/25
+%
+% There are no clever trick. Bits of vectors/matrices and transformed
+% back into doubles, the operation is done then the result converted 
+% back to unit8
+%
+%_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Christophe Phillips,
+% $Id: plus.m 158 2005-05-16 12:23:09Z christophe $
 
 
 sz_a = size(a); Nsz_a = length(sz_a);
