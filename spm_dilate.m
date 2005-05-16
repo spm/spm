@@ -1,5 +1,4 @@
 function ima = spm_dilate(varargin)
-% 
 % Performs a 2 or 3D dilate on ima using either the supplied
 % kernel or a standard 6-connectivity kernel.
 % FORMAT: ima = spm_dilate(ima)
@@ -30,15 +29,15 @@ function ima = spm_dilate(varargin)
 % twice as fast.
 % The actual job is done by spm_dilate_erode.c that serves both
 % spm_dilate.m and op_erode.m
-%__________________________________________________________________
+%_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_dilate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dilate.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 if exist('spm_dilate_erode')~=3 
-   error('mex-file spm_dilate_erode.c has not been compiled');
+   error('spm_dilate_erode.c not compiled - see Makefile');
 end
 
 if nargin < 1 | nargin > 2 | nargout ~= 1

@@ -1,5 +1,4 @@
 function varargout = spm_bwlabel(varargin)
-%
 % Connected component labelling in 2D or 3D. 
 %
 % FORMAT: [L,NUM] = spm_bwlabel(bw,conn)
@@ -28,15 +27,14 @@ function varargout = spm_bwlabel(varargin)
 % components labeling algorithm with simultaneous object
 % feature extraction capability. CVGIP: Graphical Models 
 % and Image Processing 54(4):357-364.
-%
-%__________________________________________________________
+%_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_bwlabel.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_bwlabel.m 159 2005-05-16 14:00:56Z guillaume $
 
 
-error('spm_bwlabel.c has not been compiled');
+error('spm_bwlabel.c not compiled - see Makefile');
 
 
 

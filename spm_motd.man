@@ -1,5 +1,5 @@
 
-% Welcome to SP5M
+% Welcome to SPM5
 %_______________________________________________________________________
 %
 % Please refer to this version as "SPM5" in papers and communications.
@@ -38,4 +38,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm_motd.man 127 2005-05-09 10:13:35Z guillaume $
+% $Id: spm_motd.man 159 2005-05-16 14:00:56Z guillaume $

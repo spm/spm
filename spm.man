@@ -116,16 +116,16 @@
 % eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 % special toolboxes are required).
 % 
-% SPM5 is written for Matlab versions 6.0, 6.1 and 6.5 under UNIX,
-% LINUX and Windows(95/98/NT). SPM5 may not will not work with versions
-% of Matlab prior to 6.0. Later versions of Matlab (released after
-% SPM5), will probably need additional patches in order to run.  Once
-% developed, these will be made available from:
+% SPM5 is written for Matlab versions 6.5.1 or 7.0.1 under UNIX, LINUX
+% and Windows. SPM5 may not will not work with versions of Matlab prior
+% to 6.5. Later versions of Matlab (released after SPM5), will probably
+% need additional patches in order to run.  Once developed, these will 
+% be made available from:
 %     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm5_updates/
 % 
-% Binaries of the external C-mex routines are provided for Solaris,
-% Macintosh, Linux and Windows only. Users of other platforms need an
-% ANSI C compiler to compile the supplied C source (Makefile provided)
+% Binaries of the external C-mex routines are provided for Solaris2,
+% Linux and Windows only. Users of other platforms need an ANSI C 
+% compiler to compile the supplied C source (Makefile provided).
 % ______________________________________________________________________
 %                                                  Copyright & licencing
 % 
@@ -157,10 +157,10 @@
 % efficacy. Further, MatLab *is* optimised for matrix and vector
 % operations, which are utilised whenever possible.
 % 
-% spm_*.c:       ASCII files that are complied in a MATLAB-specific
+% src/spm_*.c:   ASCII files that are complied in a MATLAB-specific
 %       fashion to produce programs that can be called directly from
 %       MATLAB.  Once compiled these routines are suffixed in a
-%       platform dependent fashion (e.g. spm_*.mexsol or mexlx).  These
+%       platform dependent fashion (e.g. spm_*.mexsol or mexglx). These
 %       routines implement memory mapping and some numerical and image
 %       operations that are called frequently.  Precompiled Mex files
 %       are provided for Solaris2, Linux and Windows platforms, a
@@ -287,5 +287,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm.man 136 2005-05-09 18:57:50Z guillaume $
+% $Id: spm.man 159 2005-05-16 14:00:56Z guillaume $
 

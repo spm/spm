@@ -12,8 +12,8 @@ function varargout = spm_list_files(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_list_files.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_list_files.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 %-This is merely the help file for the compiled routine
-error('spm_list_files.c not compiled - see spm_MAKE.sh')
+error('spm_list_files.c not compiled - see Makefile')

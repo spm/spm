@@ -33,9 +33,9 @@ function varargout = spm_bsplinc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_bsplinc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_bsplinc.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 %-This is merely the help file for the compiled routine
-error('spm_bsplinc.c not compiled.');
+error('spm_bsplinc.c not compiled - see Makefile');
 

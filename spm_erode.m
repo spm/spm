@@ -1,5 +1,4 @@
 function ima = spm_erode(varargin)
-% 
 % Performs a 2 or 3D erode on ima using either the supplied
 % kernel or a standard 6-connectivity kernel.
 % FORMAT: ima = spm_erode(ima)
@@ -17,7 +16,7 @@ function ima = spm_erode(varargin)
 %          0 1 0
 %
 % Output:
-% ima    : Dilated image.
+% ima    : Eroded image.
 %
 % The functionality of this routine has been modelled on the function
 % imerode from the Matlab Image processing toolbox. It doesn't (yet)
@@ -30,15 +29,15 @@ function ima = spm_erode(varargin)
 % twice as fast.
 % The actual job is done by spm_dilate_erode.c that serves both
 % spm_dilate.m and op_erode.m
-%__________________________________________________________________
+%_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_erode.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_erode.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 if exist('spm_dilate_erode')~=3 
-   error('mex-file spm_dilate_erode.c has not been compiled');
+   error('spm_dilate_erode.c not compiled - see Makefile');
 end
 
 if nargin < 1 | nargin > 2 | nargout ~= 1
@@ -60,4 +59,3 @@ end
 ima = spm_dilate_erode(varargin{1},kernel,'erode');
 
 return;
-

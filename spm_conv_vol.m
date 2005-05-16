@@ -34,8 +34,8 @@ function varargout = spm_conv_vol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Tom Nichols
-% $Id: spm_conv_vol.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_conv_vol.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 %-This is merely the help file for the compiled routine
-error('spm_conv_vol.c not compiled - see spm_MAKE.sh')
+error('spm_conv_vol.c not compiled - see Makefile')

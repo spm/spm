@@ -13,8 +13,8 @@ function varargout = spm_atranspa(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_atranspa.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_atranspa.m 159 2005-05-16 14:00:56Z guillaume $
 
 
 %-This is merely the help file for the compiled routine
-error('spm_atranspa.c not compiled - see spm_MAKE.sh')
+error('spm_atranspa.c not compiled - see Makefile')

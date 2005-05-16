@@ -21,7 +21,7 @@ function varargout = spm_get_lm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson 
-% $Id: spm_get_lm.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_get_lm.m 159 2005-05-16 14:00:56Z guillaume $
 
 
-error('spm_get_lm.c has not been compiled');
+error('spm_get_lm.c not compiled - see Makefile');
