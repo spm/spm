@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_nlsi_GN.m 160 2005-05-16 14:27:43Z karl $
 
 
 
@@ -66,6 +66,14 @@ try
     f = fcnchk(M.IS);
 catch
     f = 'spm_int';
+end
+
+% intial states
+%---------------------------------------------------------------------------
+try
+    M.x;
+catch
+    M.x = sparse(M.n,1);
 end
 
 % data y
@@ -105,7 +113,7 @@ pC    = M.pC;
 try
     Ju = kron(speye(nr,nr),Y.X0);
 catch
-    Ju = [];
+    Ju = sparse(ns*nr,0);
 end
 
 % dimension reduction of parameter space
@@ -120,7 +128,7 @@ iu    = [1:nu] + np;
 %---------------------------------------------------------------------------
 pC    = V'*pC*V;
 uC    = speye(nu)*1e+8;
-ipC   = inv(blkdiag(pC, uC));
+ipC   = inv(spm_cat(diag({pC,uC})));
 
 % intialise
 %---------------------------------------------------------------------------
