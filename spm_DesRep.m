@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_DesRep.m 164 2005-05-17 14:26:15Z guillaume $
 
 
 
@@ -277,7 +277,11 @@ case 'desrepui'                                    %-Design reporting UI
 %-----------------------------------------------------------------------
 if nargin < 2
 	swd     = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
-	load(fullfile(swd,'SPM.mat'));
+	try
+		load(fullfile(swd,'SPM.mat'));
+	catch
+		return;
+	end
 	SPM.swd = swd;
 else
 	SPM     = varargin{2};
@@ -630,20 +634,20 @@ spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Child
  
 %-Show components of covariance matrix
 %-----------------------------------------------------------------------
-
-for k = 1:length(varargin{2}.Vi)
-%-Display covariance component xVi.Vi{k}
-%-----------------------------------------------------------------------
-  hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
-  hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
-  xlabel(sprintf('Covariance component Vi{%d}', k));
-  if k<length(varargin{2}.Vi)
-    spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
-  end;
-end;
-
-if spm_figure('#page')>1
-      spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+if isfield(varargin{2},'Vi')
+	for k = 1:length(varargin{2}.Vi)
+		%-Display covariance component xVi.Vi{k}
+		%-----------------------------------------------------------------------
+		hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
+		hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
+		xlabel(sprintf('Covariance component Vi{%d}', k));
+		if k<length(varargin{2}.Vi)
+			spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+		end
+	end
+	if spm_figure('#page')>1
+		spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+	end
 end
 axes(hCovMtx(1));
 
@@ -1353,37 +1357,44 @@ mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
 ij  = get(gca,'CurrentPoint');
 ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
 istr = 'none';
+
 switch get(gcbf,'SelectionType')
 case 'normal'
-      try, str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
-              subsref(get(gco,'UserData'),...
-              struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
-      catch, str='(no cached covariance matrix to surf)'; end
+	try
+		str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
+			  subsref(get(gco,'UserData'),...
+			  struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
+	catch
+		str = '(no cached covariance matrix to surf)';
+	end
 case 'extend'
-        try,
-        ind = 1:length(subsref(get(gco,'Userdata'),...
-            struct('type','.','subs','h')));
-        isel = logical(zeros(size(ind)));
-        for k = 1:length(ind)
-          isel(k) = subsref(get(gco,'UserData'),...
-              struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;
-        end,
-        if any(isel)
-          str = [sprintf('V(%d,%d): ',ij(1),ij(2)) sprintf('Vi{%d}',ind(isel))];
-        else
-          str = sprintf('no Vi at (%d,%d)',ij(1),ij(2));
-        end;
-      catch
-      end;
+	try
+		ind = 1:length(subsref(get(gco,'Userdata'),...
+			struct('type','.','subs','h')));
+		isel = logical(zeros(size(ind)));
+		for k = 1:length(ind)
+			isel(k) = subsref(get(gco,'UserData'),...
+				struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;
+		end
+		if any(isel)
+			str = [sprintf('V(%d,%d): ',ij(1),ij(2)) sprintf('Vi{%d}',ind(isel))];
+		else
+			str = sprintf('no Vi at (%d,%d)',ij(1),ij(2));
+		end
+	catch
+	    return
+	end
 case 'alt'
-        return;
+	return
 case 'open'
-      try,    assignin('base','ans',subsref(get(gco,'UserData'),...
-                      struct('type',{'.'},'subs',{'V'})))
-              evalin('base','ans')
-      catch,  fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
-      end
-      return
+	try
+		assignin('base','ans',subsref(get(gco,'UserData'),...
+			struct('type',{'.'},'subs',{'V'})));
+		evalin('base','ans');
+	catch
+		fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
+	end
+	return
 end
 
 set(h,'String',str,'Interpreter',istr)

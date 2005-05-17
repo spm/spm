@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_getSPM.m 164 2005-05-17 14:26:15Z guillaume $
 
 
 
-SCCSid = '$Rev: 112 $';
+SCCSid = '$Rev: 164 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -178,7 +178,12 @@ swd    = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 
 %-Load SPM.mat
 %-----------------------------------------------------------------------
-load(fullfile(swd,'SPM.mat'));
+try
+	load(fullfile(swd,'SPM.mat'));
+catch
+	SPM = []; xSPM = [];
+	return;
+end
 SPM.swd = swd;
 
 %-Get volumetric data from SPM.mat
