@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 132 2005-05-09 17:09:58Z john $
+% $Id: spm_jobman.m 167 2005-05-18 16:05:03Z john $
 
 
 if nargin==0
@@ -1272,7 +1272,7 @@ function load_job(varargin)
 % Load a batch job
 
 cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
-[filename, pathname] = uigetfile(cll,'Save job as');
+[filename, pathname] = uigetfile(cll,'Load job file');
 if ischar(filename)
     [unused,nam,ext] = fileparts(filename);
     if strcmp(ext,'.xml')
