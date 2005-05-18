@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_select.m 169 2005-05-18 20:07:23Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -108,9 +108,10 @@ fg = figure('IntegerHandle','off',...
 fh = 0.05;
 %fs = 10;
 
+sbh = 0.03; % Scroll-bar height.  This should be worked out properly
 h1 = (0.96-4*fh-5*0.01)/2;
-if n(2)*fh<h1,
-    h1 = n(2)*fh;
+if n(2)*fh+sbh<h1,
+    h1 = n(2)*fh+sbh;
 end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
