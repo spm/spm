@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 164 2005-05-17 14:26:15Z guillaume $
+% $Id: spm_getSPM.m 165 2005-05-18 15:44:00Z guillaume $
 
 
 
-SCCSid = '$Rev: 164 $';
+SCCSid = '$Rev: 165 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -385,6 +385,7 @@ if isfield(SPM,'PPM') & (xCon(Ic(1)).STAT == 'T') | (xCon(Ic(1)).STAT == 'P')
         % For VB Gamma is stored explicitly
         Gamma=SPM.PPM.Gamma;
         xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+		xCon(Ic).STAT = 'P';
     elseif nc == 1 & isempty(xCon(Ic).Vcon)
         % con image not yet written
         if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);

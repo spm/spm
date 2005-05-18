@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 162 2005-05-17 11:18:05Z will $
+% $Id: spm_config_fmri_est.m 165 2005-05-18 15:44:00Z guillaume $
 
 
 % Define inline types.
@@ -530,15 +530,11 @@ elseif isfield(job.method.Bayesian.noise,'tissue_type')
 end
 
 % Define an empty contrast
-NullCon.name=[];
-NullCon.c=[];
-NullCon.STAT = 'P';
-NullCon.X0=[];
-NullCon.iX0=[];
-NullCon.X1o=[];
-NullCon.eidf=1;
-NullCon.Vcon=[];
-NullCon.Vspm=[];
+NullCon      = spm_FcUtil('Set','','P','c',[],1);
+NullCon.X0   = [];
+NullCon.iX0  = [];
+NullCon.X1o  = [];
+NullCon.eidf = 1;
 
 SPM.xCon=[];
 % Set up contrasts for 2nd-level ANOVA

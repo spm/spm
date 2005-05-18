@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 138 2005-05-10 15:47:52Z will $
+% $Id: spm_design_contrasts.m 165 2005-05-18 15:44:00Z guillaume $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -59,6 +59,7 @@ end
 % If there are multiple sessions, replicate each contrast matrix over
 % sessions - this assumes the conditions are identical in each session
 nsess=length(SPM.Sess);
+ncon=length(con);
 if nsess>1
     conds=length(SPM.Sess(1).U);
     for s=1:nsess,
@@ -68,7 +69,6 @@ if nsess>1
             return
         end
     end
-    ncon=length(con);
     for c=1:ncon,
         con(c).c=kron(ones(1,nsess),con(c).c);
     end
