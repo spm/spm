@@ -14,11 +14,11 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dicom_headers.m 166 2005-05-18 15:46:13Z john $
 
 
 ver = sscanf(version,'%d');
-if ver<6, error('Need Matlab 6.0 or higher for this function.'); end;
+if ver<6, error('Need Matlab 6.5 or higher for this function.'); end;
 
 dict = readdict;
 j    = 0;

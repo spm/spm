@@ -34,6 +34,16 @@ end
 if isempty(hdr)
     error(['Error reading header file "' hname '"']);
 end;
+
+if ~isfield(hdr,'magic'),
+    % A patch for some possible SPM2 datatypes
+    switch hdr.datatype,
+    case 130, hdr.datatype = 256; %  int8
+    case 132, hdr.datatype = 512; % uint16
+    case 136, hdr.datatype = 768; % uint32
+    end;
+end;
+
 dt = [];
 for i=1:length(d.dtype)
     if hdr.datatype == d.dtype(i).code

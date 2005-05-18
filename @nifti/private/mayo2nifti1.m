@@ -27,6 +27,12 @@ hdr.cal_max    = ohdr.cal_max;
 hdr.cal_min    = ohdr.cal_min;
 hdr.magic      = 'ni1';
 
+switch hdr.datatype,
+case 130, hdr.datatype = 256; %  int8
+case 132, hdr.datatype = 512; % uint16
+case 136, hdr.datatype = 768; % uint32
+end;
+
 if nargin<2,
     % No mat, so create the equivalent from the hdr...
     if any(ohdr.origin(1:3)), origin = double(ohdr.origin(1:3));
@@ -49,5 +55,7 @@ mat            = mat*[eye(4,3) [1 1 1 1]'];
 hdr.srow_x     = mat(1,:);
 hdr.srow_y     = mat(2,:);
 hdr.srow_z     = mat(3,:);
+hdr.qform_code = 2;
+hdr.sform_code = 2;
 return;
 

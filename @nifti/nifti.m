@@ -22,24 +22,24 @@ case 1
             h = nifti(cellstr(varargin{1}));
             return;
         end;
-        fname = deblank(varargin{1});
-        vol   = read_hdr(fname);
-
-        % Over-ride sform if a .mat file exists
+        fname  = deblank(varargin{1});
+        vol    = read_hdr(fname);
         extras = read_extras(fname);
-        if isfield(extras,'mat') && size(extras.mat,3)>=1,
-            mat            = extras.mat(:,:,1);
-            vol.hdr        = mayo2nifti1(vol.hdr,mat);
-            mat1           = mat*[eye(4,3) [1 1 1 1]'];
-            vol.hdr.srow_x = mat1(1,:);
-            vol.hdr.srow_y = mat1(2,:);
-            vol.hdr.srow_z = mat1(3,:);
-            if vol.hdr.sform_code == 0, vol.hdr.sform_code = 2; end;
-            if vol.hdr.sform_code == vol.hdr.qform_code,
+
+        if ~isfield(vol.hdr,'magic'),
+            vol.hdr = mayo2nifti1(vol.hdr);
+
+            % Over-ride sform if a .mat file exists
+            if isfield(extras,'mat') && size(extras.mat,3)>=1,
+                mat            = extras.mat(:,:,1);
+                mat1           = mat*[eye(4,3) [1 1 1 1]'];
+                vol.hdr.srow_x = mat1(1,:);
+                vol.hdr.srow_y = mat1(2,:);
+                vol.hdr.srow_z = mat1(3,:);
+                vol.hdr.sform_code = 2;
+                vol.hdr.qform_code = 2;
                 vol.hdr = encode_qform0(mat,vol.hdr);
             end;
-        else
-            vol.hdr = mayo2nifti1(vol.hdr);
         end;
 
         if isfield(extras,'M'), extras = rmfield(extras,'M'); end;
@@ -52,19 +52,11 @@ case 1
         dt    = double(vol.hdr.datatype);
         offs  = double(vol.hdr.vox_offset);
 
-        if isfield(vol.hdr,'magic'),
-            if ~vol.hdr.scl_slope && ~vol.hdr.scl_inter,
-                vol.hdr.scl_slope = 1;
-            end;
-            slope = double(vol.hdr.scl_slope);
-            inter = double(vol.hdr.scl_inter);
-        else,
-            if ~vol.hdr.roi_scale && ~vol.hdr.funused1,
-                vol.hdr.roi_scale = 1;
-            end;
-            slope = double(vol.hdr.roi_scale);
-            inter = double(vol.hdr.funused1);
+        if ~vol.hdr.scl_slope && ~vol.hdr.scl_inter,
+            vol.hdr.scl_slope = 1;
         end;
+        slope = double(vol.hdr.scl_slope);
+        inter = double(vol.hdr.scl_inter);
 
         dat   = file_array(vol.iname,dim,[dt,vol.be],offs,slope,inter);
         h     = struct('hdr',vol.hdr,'dat',dat,'extras',extras);

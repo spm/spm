@@ -170,7 +170,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_uw_estimate.m 166 2005-05-18 15:46:13Z john $
 
 
 global defaults
@@ -281,13 +281,10 @@ if ds.fwhm ~= 0
    spm_uw_show('SmoothEnd');
 end
 
-%
 % Now that we have littered the disk with smooth
 % temporary files we  should use a try-catch
 % block for the rest of the function, to ensure files
-% get deleted in the event of an error. Hence, this
-% routine will work only with Matlab 5.2 and higher.
-%
+% get deleted in the event of an error.
 
 try        % Try block starts here
 

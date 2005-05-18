@@ -59,6 +59,8 @@ for i=1:length(org)
     else,
         dat = org(i).def;
     end;
+    % fprintf('%s=\n',org(i).label)
+    % disp(dat)
     len = fwrite(fp,dat,org(i).dtype.prec);
     if len ~= org(i).len,
         ok = false;
