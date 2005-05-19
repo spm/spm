@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 167 2005-05-18 16:05:03Z john $
+% $Id: spm_jobman.m 170 2005-05-19 11:19:37Z guillaume $
 
 
 if nargin==0
@@ -1247,9 +1247,13 @@ c = get(batch_box,'UserData'); spm('Pointer','Watch');
 spm('Pointer');
 %eval([tag '=val;']);
 cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
-[filename, pathname] = uiputfile(cll,'Save job as');
+[filename, pathname, FilterIndex] = uiputfile(cll,'Save job as');
 if ischar(filename)
     [unused,unused,ext] = fileparts(filename);
+    if isempty(ext)
+        ext = cll{FilterIndex}(2:end);
+        filename = [filename ext];
+    end
     if strcmp(ext,'.xml')
         spm('Pointer','Watch');
         savexml(fullfile(pathname,filename),'jobs');
