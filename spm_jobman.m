@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 170 2005-05-19 11:19:37Z guillaume $
+% $Id: spm_jobman.m 171 2005-05-20 19:20:10Z john $
 
 
 if nargin==0
@@ -445,6 +445,15 @@ end;
 if isfield(c,'name'), nam = c.name; end;
 
 if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
+
+    if strcmp(c.type,'repeat') && isfield(c,'num')
+        sts = (length(c.val) >= c.num(1)) &&...
+              (length(c.val) <= c.num(2));
+        if ~sts
+            mrk = ' <-X';
+        end;
+    end;
+
     if c.expanded
         str = {[repmat('.   ',1,l) '-' nam]};
         for i=1:length(c.val)
@@ -472,6 +481,14 @@ else
             mrk = ' <-X';
             sts = 0;
         end;
+    case 'repeat' % don't know, whether this ever gets executed
+        if isfield(c,'num')
+            sts = (length(c.val) >= c.num(1)) &&...
+                  (length(c.val) <= c.num(2));
+            if ~sts
+                mrk = ' <-X';
+            end;
+        end;
     end;
     str = {[repmat('.   ',1,l) ' ' nam mrk]};
 end;
@@ -498,10 +515,16 @@ case {'files','menu','entry','const','choice'}
     end;
 
 case {'branch','repeat'}
-    for i=1:length(c.val),
-        ok1 = all_set(c.val{i});
-        ok  = ok && ok1;
-        if ~ok, break; end;
+    if strcmp(c.type,'repeat') && isfield(c,'num')
+        ok = ok && (length(c.val) >= c.num(1)) && ...
+                   (length(c.val) <= c.num(2));
+    end;
+    if ok,
+        for i=1:length(c.val),
+            ok1 = all_set(c.val{i});
+            ok  = ok && ok1;
+            if ~ok, break; end;
+        end;
     end;
 end;
 return;
@@ -2173,6 +2196,14 @@ case {'repeat'}
     end;
     c.expanded = true;
     if ~isfield(c,'help'), c.help = {'Repeated structure'}; end;
+
+    if isfield(c,'num') && numel(c.num)==1,
+        if finite(c.num),
+            c.num = [c.num c.num];
+        else
+            c.num = [0 c.num];
+        end;
+    end;
 
 end;
 

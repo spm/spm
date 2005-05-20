@@ -5,12 +5,12 @@ function opts = spm_config_vbm
 
 %_______________________________________________________________________
 
-w = spm_jobman('HelpWidth');
+w = 1000;
 
 %------------------------------------------------------------------------
 
 norm    = spm_config_norm;
-seg     = spm_config_segment;
+seg     = spm_config_segment_old;
 
 % Eventually, I'll get around to doing a VBM pre-processing strategy for
 % serial scans of the same subject.

@@ -55,7 +55,7 @@ function vals = spm_config
 %
 % * 'repeat' - Repeated kids in the tree structure
 %   - required fields: 'type', 'name', 'tag', 'values'
-%   - optional fields: 'help'
+%   - optional fields: 'num', 'help'
 %
 %   If the number of elements in the 'values' field is greater than
 %   one, then the resulting data structure is a cell array.  Each
@@ -70,6 +70,11 @@ function vals = spm_config
 %   then the data structure is a cell array, where each element is the value
 %   of the child node ((in which case the 'tag' of the current node can be
 %   ignored).
+%
+%   If the 'num' field is present, it is a 2-vector [min max] which
+%   limits the occurence of the repeated substructure(s). This can
+%   be used to check inputs whether there is at least one repeated
+%   entry.
 %
 %
 %
@@ -182,7 +187,7 @@ function vals = spm_config
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config.m 171 2005-05-20 19:20:10Z john $
 
 
 tempo   = struct('type','repeat','name','Temporal','tag','temporal',...

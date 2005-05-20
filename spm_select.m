@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 169 2005-05-18 20:07:23Z john $
+% $Id: spm_select.m 171 2005-05-20 19:20:10Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -999,15 +999,17 @@ if isempty(regexp(t,mch,'once')),
     t = [d fs t];
 end;
 
-% Replace (most) occurences of '/./' by '/' (problems with e.g. /././././././')
-for i=1:5, % Should really repeat until no more substitutions are made
-    t  = regexprep(t,[fs1 '\.' fs1], fs);
+% Replace occurences of '/./' by '/' (problems with e.g. /././././././')
+re = [fs1 '\.' fs1];
+while ~isempty(regexp(t,re)),
+    t  = regexprep(t,re,fs);
 end;
 t  = regexprep(t,[fs1 '\.' '$'], fs);
 
-% Replace (most) occurences of '/abc/../' by '/'
-for i=1:5, % Should really repeat until no more substitutions are made
-    t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '\.\.' fs1],fs,'once');
+% Replace occurences of '/abc/../' by '/'
+re = [fs1 '[^' fs1 ']+' fs1 '\.\.' fs1];
+while ~isempty(regexp(t,re)),
+    t  = regexprep(t,re,fs,'once');
 end;
 t  = regexprep(t,[fs1 '[^' fs1 ']+' fs1 '\.\.' '$'],fs,'once');
 

@@ -229,7 +229,7 @@ function varargout = spm_eegfp_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegfp_model.m 153 2005-05-13 13:15:25Z christophe $
+% $Id: spm_eegfp_model.m 171 2005-05-20 19:20:10Z john $
 
 % Format of 'model' structure :
 % #############################
@@ -542,7 +542,7 @@ case 'genbin'
     Vbr = VO(4);
 	ne = flags.ne(1); ng = flags.ng(1); thr_im = flags.thr_im(1);
 	[Vbr.dat] = spm_eegfp_model('ErodeGrow',VO(4).dat,ne,ng,thr_im);
-	[pth,nm,xt,vr] = fileparts(deblank(Pvol));
+	[pth,nm,xt,vr] = spm_fileparts(deblank(Pvol));
 	Vbr.fname = fullfile(pth,[nm,'_obrain',xt(1:4)]);
 	Vbr = spm_create_vol(Vbr);
 	spm_progress_bar('Init',Vbr.dim(3),'Writing Outer-brain','planes completed');
@@ -1560,7 +1560,7 @@ end
 ntr_qr=size(ind_qr,2) ; % nbr of triangle per 5th of sphere
 [S_i,S_j]=find(ind_qr==1) ;
 [B_i,B_j]=find(ind_qr==npt_sph) ;
-[qs_i,qs_j]=find((ind_qr>(npt_qr+1))&&(ind_qr<(3*npt_qr))) ;
+[qs_i,qs_j]=find((ind_qr>(npt_qr+1))&(ind_qr<(3*npt_qr))) ;
 ind_tr=[] ;
 
 % shift all indices to cover the sphere

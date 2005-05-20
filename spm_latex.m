@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 126 2005-05-09 09:21:05Z will $
+% $Id: spm_latex.m 171 2005-05-20 19:20:10Z john $
 
 if nargin==0, c = spm_config; end;
 
@@ -125,8 +125,15 @@ fprintf(fp,'%s\n\n',str);
 return;
 
 function str1 = texify(str0)
-
-[st,en,tok]=regexp(str0,'/\*([^(/\*)]*)\*/','start','end','tokens');
+if str2num(version('-release'))>13,
+    [st,en,tok]=regexp(str0,'/\*([^(/\*)]*)\*/','start','end','tokens');
+else
+    [st,en,t]=regexp(str0,'/\*([^(/\*)]*)\*/');
+    tok = cell(1,numel(t));
+    for i=1:numel(t),
+        tok{i}{1} = str0(t{i}(1):t{i}(2));
+    end;
+end;
 str1 = [];
 st1  = [1 en+1];
 en1  = [st-1 numel(str0)];

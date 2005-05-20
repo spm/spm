@@ -4,13 +4,13 @@ function opts = spm_config_checkreg
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_checkreg.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_checkreg.m 171 2005-05-20 19:20:10Z john $
 
 data.type = 'files';
 data.name = 'Images to Display';
 data.tag  = 'data';
 data.filter = 'image';
-data.num  = Inf;
+data.num  = [1 15];
 data.help = {'Images to display.'};
 
 opts.type = 'branch';
