@@ -20,7 +20,7 @@ function D = spm_eeg_rereference(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_rereference.m 173 2005-05-23 12:51:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 
@@ -40,20 +40,19 @@ end
 
 D.fnamedat = ['R' D.fnamedat];
 
-
 if ~isfield(D, 'reref')
 	D.reref = [];
 end
 
 % type all channel names and their indices in matlab window
 for i = 1:D.Nchannels
-   disp(sprintf('%d: %s', i, D.channels.name{i})) 
+   disp(sprintf('%d: %s', i, D.channels.name{i}))
 end
 
 try
     D.reref.newref = S.newref;
 catch
-	D.reref.newref = ...			
+	D.reref.newref = ...
         spm_input('New reference channel(s)', '+1', 'n', '');
 end
 
@@ -72,7 +71,6 @@ for i = 1:D.Nevents
 end
 
 Csetup = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
-
 
 % delete new reference channel from channel struct
 reference_old = D.channels.reference;
@@ -148,7 +146,6 @@ for i = 1:D.Nevents
         spm_progress_bar('Set', i);
         drawnow;
     end
-
 end
 
 fclose(fpd);

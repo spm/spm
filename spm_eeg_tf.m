@@ -4,8 +4,7 @@ function D = spm_eeg_tf(S)
 % 
 % D		- filename of EEG-data file or EEG data struct
 % stored in struct D.events:
-% fmin			- minimum frequency
-% fmax			- maximum frequency
+% frequencies	- vector of frequencies
 % rm_baseline	- baseline removal (1/0) yes/no
 % 
 % D				- EEG data struct with time-frequency data (also written to files)
@@ -17,8 +16,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 133 2005-05-09 17:29:37Z guillaume $
-
+% $Id: spm_eeg_tf.m 173 2005-05-23 12:51:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
 
