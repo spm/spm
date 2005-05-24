@@ -6,7 +6,7 @@ function M = Q2M(Q)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: Q2M.m 174 2005-05-24 11:03:32Z john $
 
 
 Q = Q(1:3); % Assume rigid body

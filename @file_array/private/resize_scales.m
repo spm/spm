@@ -4,7 +4,7 @@ function s1 = resize_scales(s0,dim,args)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: resize_scales.m 174 2005-05-24 11:03:32Z john $
 
 args1 = cell(1,numel(args));
 for i=1:numel(args),

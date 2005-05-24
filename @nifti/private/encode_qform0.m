@@ -4,7 +4,7 @@ function hdr = encode_qform(M,hdr)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: encode_qform0.m 174 2005-05-24 11:03:32Z john $
 
 
 % Convert from first voxel at [1,1,1] to first voxel at [0,0,0]

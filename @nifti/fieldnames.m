@@ -4,7 +4,7 @@ function t = fieldnames(obj)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: fieldnames.m 174 2005-05-24 11:03:32Z john $
 
 
 if isfield(obj.hdr,'magic')

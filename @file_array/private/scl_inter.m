@@ -9,7 +9,7 @@ function varargout = scl_inter(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: scl_inter.m 174 2005-05-24 11:03:32Z john $
 
 
 

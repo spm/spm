@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: subsasgn.m 174 2005-05-24 11:03:32Z john $
 
 
 switch subs(1).type,
@@ -97,7 +97,7 @@ case {'.'},
             end;
 
         case {'mat0'}
-            if ~isnumeric(val1) || ndims(val1)~=2 || any(size(val1)~=[4 4]) || any(val1(4,:)~=[0 0 0 1])
+            if ~isnumeric(val1) || ndims(val1)~=2 || any(size(val1)~=[4 4]) || sum((val1(4,:)-[0 0 0 1]).^2)>1e-8,
                 error('"mat0" should be a 4x4 matrix, with a last row of 0,0,0,1.');
             end;
             if obj.hdr.qform_code==0, obj.hdr.qform_code=2; end;
@@ -117,7 +117,7 @@ case {'.'},
             end;
 
         case {'mat'}
-            if ~isnumeric(val1) || ndims(val1)~=2 || any(size(val1)~=[4 4]) || sum(((val1(4,:)-[0 0 0 1]).^2))>1e-8
+            if ~isnumeric(val1) || ndims(val1)~=2 || any(size(val1)~=[4 4]) || sum((val1(4,:)-[0 0 0 1]).^2)>1e-8
                 error('"mat" should be a 4x4 matrix, with a last row of 0,0,0,1.');
             end;
             if obj.hdr.sform_code==0, obj.hdr.sform_code=2; end;

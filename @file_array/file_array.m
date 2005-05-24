@@ -12,7 +12,7 @@ function a = file_array(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: file_array.m 174 2005-05-24 11:03:32Z john $
 
 
 if nargin==1

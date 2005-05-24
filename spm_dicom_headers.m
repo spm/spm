@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 166 2005-05-18 15:46:13Z john $
+% $Id: spm_dicom_headers.m 174 2005-05-24 11:03:32Z john $
 
 
 ver = sscanf(version,'%d');
@@ -50,6 +50,10 @@ if ~strcmp(dcm,'DICM'),
 	fseek(fp,0,'bof');
 	tag.group   = fread(fp,1,'ushort');
 	tag.element = fread(fp,1,'ushort');
+	if isempty(tag.group) || isempty(tag.element),
+		warning(sprintf('Truncated file "%s"',P));
+		return;
+	end;
 	%t          = dict.tags(tag.group+1,tag.element+1);
 	t           = find(dict.group==tag.group & dict.element==tag.element);
 	if isempty(t),  % entry not found in DICOM dict

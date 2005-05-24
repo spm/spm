@@ -30,7 +30,7 @@ function varargout = nifti_stats(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: nifti_stats.m 174 2005-05-24 11:03:32Z john $
 
 
 fprintf('******************************************\n');
