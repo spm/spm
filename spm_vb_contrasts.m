@@ -10,7 +10,7 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 165 2005-05-18 15:44:00Z guillaume $
+% $Id: spm_vb_contrasts.m 175 2005-05-24 17:44:08Z will $
 
 
 % Get approximate posterior covariance for ic
@@ -88,7 +88,10 @@ for v=1:Nvoxels,
 	end
 	
 	Y(XYZ(1,v),XYZ(2,v),XYZ(3,v)) = sqrt(y);
-	spm_progress_bar('Set',100*v/Nvoxels);
+    if rem(v,100)==0
+        % update progress bar every 100th voxel
+        spm_progress_bar('Set',100*v/Nvoxels);
+    end
 	
 end
 

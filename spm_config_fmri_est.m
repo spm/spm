@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 165 2005-05-18 15:44:00Z guillaume $
+% $Id: spm_config_fmri_est.m 175 2005-05-24 17:44:08Z will $
 
 
 % Define inline types.
@@ -203,11 +203,7 @@ name.strtype = 's';
 name.num     = [1 1];
 name.help    = {'Name of contrast eg. ''Positive Effect'''};
 
-gconvec.type    = 'entry';
-gconvec.name    = 'Contrast vector';
-gconvec.tag     = 'convec';
-gconvec.strtype = 's';
-gconvec.num     = [1 1];
+gconvec   = entry('Contrast vector','convec','e',[Inf 1],'');
 p1=['These contrasts are used to generate PPMs which ',...
         'characterise effect ',...
         'sizes at each voxel. This is in contrast to SPMs in which eg. maps of t-statistics ',...
@@ -582,11 +578,12 @@ K=size(SPM.xX.X,2);
 for c = 1:ncon,
     DxCon=NullCon;
     DxCon.name = job.method.Bayesian.gcon(c).name;
-    convec=sscanf(job.method.Bayesian.gcon(c).convec,'%f');
+    convec=job.method.Bayesian.gcon(c).convec(:);
     if length(convec)==K
         DxCon.c = convec;
     else
-        disp('Error in spm_config_fmri_est: contrast does not match design');
+        disp(sprintf('Error in contrast specification: contrast has %d entries',length(convec)));
+        disp(sprintf('but there are %d regressors !',K));
         return
     end
     

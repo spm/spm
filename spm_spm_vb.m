@@ -135,7 +135,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 129 2005-05-09 11:23:10Z guillaume $
+% $Id: spm_spm_vb.m 175 2005-05-24 17:44:08Z will $
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
@@ -671,6 +671,7 @@ for  z = 1:zdim,
             % Estimate model for each session separately
             for s=1:nsess;
                 
+                disp(sprintf('Session %d',s));
                 slice = slice_template(s);
                 slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
                 
