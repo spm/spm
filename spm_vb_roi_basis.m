@@ -1,6 +1,6 @@
-function [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases)
+function [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
 % Compare Hemodynamic Basis sets for a cluster of interest
-% FORMAT [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases)
+% FORMAT [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
 %
 % VOI_fname     VOI filename
 % SPM           SPM data structure
@@ -14,13 +14,23 @@ function [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases)
 %
 %               The default option is 'all'
 %
+% model         Specify model(i).name,model(i).sname,model(i).order,
+%               model(i).length of ith basis set for i=1..number of models
+%               This variable only needs to be specified if the bases option
+%               is set to 'user'.
+%
+%               Typical function usages: 
+%               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM);
+%               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM,'fir');
+%               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM,'user',model);
+%
 % F             model evidences 
 % pm            posterior model probability
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 176 2005-05-25 11:02:20Z will $
+% $Id: spm_vb_roi_basis.m 177 2005-05-25 11:16:24Z will $
 
 expr=['load ',VOI_fname];
 eval(expr);
