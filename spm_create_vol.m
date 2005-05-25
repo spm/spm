@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_create_vol.m 178 2005-05-25 11:53:51Z john $
 
 
 for i=1:prod(size(V)),
@@ -99,6 +99,37 @@ if ~isempty(N0),
     end;
     if single(N.dat.offset) ~= single(N0.dat.offset),
         warning(['Incompatible intercept in "' V.fname '" ' num2str(N0.dat.offset) '~=' num2str(N.dat.offset) '.']);
+    end;
+
+    if V.n(1)==1,
+
+        % Ensure volumes 2..N have the original matrix
+        nt = size(N.dat,4);
+        if nt>1 && sum(sum((N0.mat-V.mat).^2))>1e-8,
+            M0 = N0.mat;
+            if ~isfield(N0.extras,'mat'),
+                N0.extras.mat = zeros([4 4 nt]);
+            else
+                if size(N0.extras.mat,4)<nt,
+                    N0.extras.mat(:,:,nt) = zeros(4);
+                end;
+            end;
+            for i=2:nt,
+                if sum(sum(N0.extras.mat(:,:,i).^2))==0,
+                    N0.extras.mat(:,:,i) = M0;
+                end;
+            end;
+            N.extras.mat = N0.extras.mat;
+        end;
+
+        N0.mat = V.mat;
+        if strcmp(N0.mat0_intent,'Aligned'), N.mat0 = V.mat; end;
+        if ~isempty(N.extras) && isstruct(N.extras) && isfield(N.extras,'mat') &&...
+            size(N.extras.mat,3)>=1,
+            N.extras.mat(:,:,V.n(1)) = V.mat;
+        end;
+    else
+        N.extras.mat(:,:,V.n(1)) = V.mat;
     end;
 
     if ~isempty(N0.extras) && isstruct(N0.extras) && isfield(N0.extras,'mat'),

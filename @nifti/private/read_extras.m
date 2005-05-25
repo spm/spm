@@ -4,10 +4,10 @@ function extras = read_extras(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_extras.m 174 2005-05-24 11:03:32Z john $
+% $Id: read_extras.m 178 2005-05-25 11:53:51Z john $
 
 
-extras = struct([]);
+extras = struct;
 [pth,nam,ext] = fileparts(fname);
 switch ext
 case {'.hdr','.img','.nii'}

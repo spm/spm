@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: nifti.m 174 2005-05-24 11:03:32Z john $
+% $Id: nifti.m 178 2005-05-25 11:53:51Z john $
 
 
 switch nargin
@@ -14,7 +14,7 @@ case 0,
     for i=1:length(org),
         hdr.(org(i).label) = feval(org(i).dtype.conv,org(i).def);
     end;
-    h = struct('hdr',hdr,'dat',[],'extras',struct([]));
+    h = struct('hdr',hdr,'dat',[],'extras',struct);
     h = class(h,'nifti');
 case 1
     if ischar(varargin{1})
@@ -65,7 +65,7 @@ case 1
         h     = class(varargin{1},'nifti');
     elseif iscell(varargin{1})
         fnames = varargin{1};
-        h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',struct([]));
+        h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',struct);
         h     = class(h,'nifti');
         for i=1:numel(fnames),
             h(i) = nifti(fnames{i});
