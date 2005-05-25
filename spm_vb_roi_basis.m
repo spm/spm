@@ -2,35 +2,52 @@ function [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
 % Compare Hemodynamic Basis sets for a cluster of interest
 % FORMAT [F,pm] = spm_vb_roi_basis (VOI_fname,SPM,bases,model)
 %
-% VOI_fname     VOI filename
-% SPM           SPM data structure
+% VOI_fname     VOI filename eg. 'Test_VOI.mat'
+%
+% SPM           SPM data structure (this must be loaded in from an 
+%               SPM.mat file). If this field is not specified this function
+%               wil prompt you for the name of an SPM.mat file
+%
 % bases         Specifies which basis sets to compare:
 %
-%               'all'   - the 7 default types 
-%               'fir'   - varies number of bins
-%               'fh'    - varies number of bins
+%               'all'   - the 7 default types (see help spm_get_bf)
+%               'fir'   - Finite Impulse Response with variable number of bins
+%               'fh'    - Fourier + Hanning window with variable number of bins
 %               'user'  - user specified models set by model variable 
-%                         (see below)
+%                         (see below). This allows a user-specified set of
+%                         models to be compared.
 %
 %               The default option is 'all'
 %
-% model         Specify model(i).name,model(i).sname,model(i).order,
-%               model(i).length of ith basis set for i=1..number of models
+% model         For ith basis set specify
+%
+%               model(i).name - see help spm_get_bf
+%               model(i).sname - short name to be used in results histogram 
+%               model(i).order - number of basis functions/number of bins
+%               model(i).length - overall window length in seconds
+%
+%               for i=1..number of models
+%
 %               This variable only needs to be specified if the bases option
 %               is set to 'user'.
 %
 %               Typical function usages: 
+%
+%               [F,pm]=spm_vb_roi_basis('Test_VOI.mat');
 %               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM);
 %               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM,'fir');
 %               [F,pm]=spm_vb_roi_basis('Test_VOI.mat',SPM,'user',model);
 %
 % F             model evidences 
 % pm            posterior model probability
+%
+% See W.Penny et al. (2005) Bayesian Model Comparison of Spatially Regularised
+% General Linear Models. Submitted.
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 177 2005-05-25 11:16:24Z will $
+% $Id: spm_vb_roi_basis.m 179 2005-05-25 15:45:44Z will $
 
 expr=['load ',VOI_fname];
 eval(expr);

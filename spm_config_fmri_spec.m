@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 163 2005-05-17 11:35:15Z will $
+% $Id: spm_config_fmri_spec.m 179 2005-05-25 15:45:44Z will $
 
 
 % Define inline types.
@@ -172,6 +172,22 @@ conditions.help = {[...
 
 %-------------------------------------------------------------------------
 
+multi    = files('Multiple conditions','multi','.*',[0 1],'');
+p1=['Select the *.mat file containing details of your multiple experimental conditions. '];
+p2=['If you have mutliple conditions then entering the details a condition ',...
+'at a time is very inefficient. This option can be used to load all the ',...
+'required information in one go. You will first need to create a *.mat file ',...
+'containing the relevant information. '];
+p3=['This *.mat file must include the following cell arrays: names, onsets and durations ',...
+'eg. names{2}=''SSent-DSpeak'', onsets{2}=[3 5 19 222], durations{2}=[0 0 0 0] ',...
+'contain the required details of the second condition. These cell arrays may be made available ',...
+'by your stimulus delivery program eg. COGENT. The duration vectors can ',...
+'contain a single entry if the durations are identical for all events. '];
+multi.help = {p1,sp_text,p2,sp_text,p3};
+multi.val={''};
+
+%-------------------------------------------------------------------------
+
 name     = entry('Name','name','s',[1 Inf],'');
 name.val = {'Regressor'};
 p1=['Enter name of regressor eg. First movement parameter'];
@@ -215,7 +231,7 @@ hpf.help = {[...
 
 %-------------------------------------------------------------------------
 
-sess  = branch('Subject/Session','sess',{scans,conditions,regressors,hpf},'Session');
+sess  = branch('Subject/Session','sess',{scans,conditions,multi,regressors,hpf},'Session');
 sess.check = @sess_check;
 p1 = [...
 'The design matrix for fMRI data consists of one or more separable, ',...
@@ -703,6 +719,25 @@ for i = 1:numel(job.sess),
 
     U = [];
 
+    % Augment the singly-specified conditions with the multiple conditions
+    % specified in the conditions.mat file 
+    %------------------------------------------------------------
+    if ~strcmp(sess.multi,'')
+        names=[];onsets=[];durations=[];
+        load(char(sess.multi{:}));
+        
+        k=length(onsets);
+        j=length(sess.cond);
+        for ii=1:k,
+            cond.name=names{ii};
+            cond.onset=onsets{ii};
+            cond.duration=durations{ii};
+            cond.tmod=0;
+            cond.mod={};
+            sess.cond(ii+j)=cond;    
+        end
+    end
+    
     % Configure the input structure array
     %-------------------------------------------------------------
     for j = 1:length(sess.cond),
