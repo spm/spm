@@ -28,7 +28,7 @@ function D = spm_eeg_converteeg2mat(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel 
-% $Id: spm_eeg_converteeg2mat.m 181 2005-05-27 15:57:38Z james $
+% $Id: spm_eeg_converteeg2mat.m 182 2005-05-27 17:44:15Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
@@ -65,7 +65,7 @@ catch
         otherwise
             error(sprintf('Unknown format: %s', fmt));
 	end
-	if fmt ~= 'CTF275'
+	if strcmp(fmt, 'CTF275')
 		Mname = spm_select(inf, str, sprintf('Select %s-files', str));
 	else
 		Mname = spm_select(inf, 'dir');

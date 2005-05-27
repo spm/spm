@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_downsample.m 182 2005-05-27 17:44:15Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -78,6 +78,9 @@ else
     D.scale.dim = 1;
     D.scale.values = zeros(D.Nchannels, 1);
 
+    % adjust the timing information
+    D.events.time = round(D.events.time*Radc_new/D.Radc);
+    
     spm_progress_bar('Init', D.Nchannels, 'Channels downsampled'); drawnow;
     if D.Nchannels > 100, Ibar = floor(linspace(1, D.Nchannels, 100));
     else, Ibar = [1:D.Nchannels]; end
