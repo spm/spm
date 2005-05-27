@@ -28,7 +28,7 @@ function D = spm_eeg_converteeg2mat(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel 
-% $Id: spm_eeg_converteeg2mat.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_converteeg2mat.m 181 2005-05-27 15:57:38Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
@@ -41,7 +41,8 @@ catch
     Ctype = {
         'CNT',...
             'BDF',...
-			'EGI-txt'};
+			'EGI-txt', ...
+			'CTF275'};
     str   = 'Select format';
 	Sel   = spm_input(str, 2, 'm', Ctype);
 	fmt = Ctype{Sel};
@@ -55,13 +56,20 @@ catch
         case {'CNT'}
             str = '\.cnt$';
         case {'BDF'}
-            str = '\.bdf$';
+			str = '\.bdf$';
 		case {'EGI-txt'}
-            str = '\.txt$';
+			str = '\.txt$';
+		case {'CTF275'}
+			str = '\.ds$';
+			
         otherwise
             error(sprintf('Unknown format: %s', fmt));
-    end
-    Mname = spm_select(inf, str, sprintf('Select %s-files', str));
+	end
+	if fmt ~= 'CTF275'
+		Mname = spm_select(inf, str, sprintf('Select %s-files', str));
+	else
+		Mname = spm_select(inf, 'dir');
+	end
 end
 
 % which channel template file
@@ -91,8 +99,12 @@ switch fmt
         for i = 1:Nfiles
             S2.Fdata = deblank(Mname(i, :));            
             D{i} = spm_eeg_rdata_egi64(S2);
-        end
-               
+		end
+	case {'CTF275'}
+		for i = 1:Nfiles
+			S2.Fdata = deblank(Mname(i, :));            
+			D{i} = spm_eeg_rdata_CTF275(S2);
+		end         
     otherwise
         error('Unknown format');
         

@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 152 2005-05-13 12:01:02Z stefan $
+% $Id: spm_eeg_display_ui.m 181 2005-05-27 15:57:38Z james $
 
 if nargin == 1
     S = varargin{1};
@@ -106,9 +106,13 @@ if nargin == 0 | ~isfield(S, 'rebuild')
 
     % Scaling slider
     %-----------------
-    % estimate of maximum scaling value
-    handles.scalemax = 2*ceil(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :, 1)))));
-    scale = handles.scalemax/2;
+	% estimate of maximum scaling value
+	if isfield (D,'Nfrequencies')
+		handles.scalemax = 2*ceil(max(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :,:, 1))))));
+	else
+		handles.scalemax = 2*ceil(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :, 1)))));
+	end
+	scale = handles.scalemax/2;
 
     % slider
     handles.scaleslider = uicontrol('Tag', 'scaleslider', 'Style', 'slider',...
@@ -329,16 +333,29 @@ for i = 1:Npos
     % , 'UIContextMenu', Heegmenus(i)
     
     % make axes current
-    axes(handles.Heegaxes(i));
-    
-    for j = 1:length(handles.Tselection)
-        h = plot(D.data(handles.Cselection2(i), :, handles.Tselection(j)), 'Color', handles.colour{j});
-        set(h, 'ButtonDownFcn', {@windowplot, i},...
-            'Clipping', 'off');
-    end
-
-   set(gca, 'YLim', [-scale scale],...
-       'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
+	axes(handles.Heegaxes(i));
+	
+	for j = 1:length(handles.Tselection)
+		
+		if isfield(D,'Nfrequencies')
+			h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, handles.Tselection(j))));
+			set(h, 'ButtonDownFcn', {@windowplot, i},...
+				'Clipping', 'off');
+		else
+			h = plot(D.data(handles.Cselection2(i), :, handles.Tselection(j)), 'Color', handles.colour{j});
+			set(h, 'ButtonDownFcn', {@windowplot, i},...
+				'Clipping', 'off');
+		end
+	end
+	if isfield(D,'Nfrequencies')
+		set(gca, 'ZLim', [-scale scale],...
+			'XLim', [1 D.Nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+		caxis([0 scale])
+		colormap('jet')		
+	else
+		set(gca, 'YLim', [-scale scale],...
+			'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
+	end
 end
 
 
@@ -427,22 +444,36 @@ for i = 1:length(handles.Heegaxes)
     % make ith subplot current
     axes(handles.Heegaxes(i));
     
-    set(gca, 'YLim', [-scale scale],...
-        'XLim', [1 size(D.data, 2)]);
+   if isfield(D,'Nfrequencies')
+		set(gca, 'ZLim', [0 scale],...
+			'XLim', [1 D.Nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+		caxis([0 scale])
+	else
+		set(gca, 'YLim', [-scale scale],...
+			'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
+	end
 end
 
 % rescale separate windows (if there are any)
 for i = 1:length(handles.Heegfigures)
-    if ~isempty(handles.Heegfigures{i})
-        
-        axes(handles.Heegaxes2{i});
-        set(gca, 'YLim', [-scale scale],...
-            'XLim', [-D.events.start D.events.stop]*1000/D.Radc);
-        % update legend
-        legend;
-        
-    end
-    
+	if ~isempty(handles.Heegfigures{i})
+		
+		axes(handles.Heegaxes2{i});
+		
+		if isfield(D,'Nfrequencies')
+
+			caxis([0 scale])
+		else
+			set(gca, 'YLim', [-scale scale],...
+				'XLim', [-D.events.start D.events.stop]*1000/D.Radc);
+		end
+		
+		
+		% update legend
+		legend;
+		
+	end
+	
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -491,22 +522,39 @@ else
         'DeleteFcn', {@delete_Heegwindows, ind});
 
     handles.Heegaxes2{ind} = gca;
-    set(handles.Heegaxes2{ind}, 'NextPlot', 'add');
-    xlabel('ms', 'FontSize', 16); 
-    ylabel('\muV', 'FontSize', 16, 'Interpreter', 'Tex')
-    
-    for i = 1:length(handles.Tselection)
-        plot([-D.events.start:D.events.stop]*1000/D.Radc,...
-            D.data(handles.Cselection2(ind), :, handles.Tselection(i)),...
-            'Color', handles.colour{i}, 'LineWidth', 2);
-    end
-    
-    scale = get(handles.scaleslider, 'Value');
-    
-    set(gca, 'YLim', [-scale scale],...
-        'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'on');
-    grid on
-    
+	set(handles.Heegaxes2{ind}, 'NextPlot', 'add');
+	
+	if isfield(D,'Nfrequencies')
+		xlabel('ms', 'FontSize', 16); 
+		ylabel('Hz', 'FontSize', 16, 'Interpreter', 'Tex')
+		
+		for i = 1:length(handles.Tselection)
+			
+			imagesc([-D.events.start:D.events.stop]*1000/D.Radc,D.tf.frequencies,squeeze(D.data(handles.Cselection2(ind), :,:, handles.Tselection(i))));
+			
+		end
+		
+		scale = get(handles.scaleslider, 'Value');
+		set(gca, 'ZLim', [0 scale],...
+			'XLim',  [-D.events.start D.events.stop]*1000/D.Radc, 'YLim', [min(D.tf.frequencies) max(D.tf.frequencies)], 'Box', 'on');
+		colormap('jet')	
+		caxis([0 scale])
+	else
+		xlabel('ms', 'FontSize', 16); 
+		ylabel('\muV', 'FontSize', 16, 'Interpreter', 'Tex')
+		
+		for i = 1:length(handles.Tselection)
+			plot([-D.events.start:D.events.stop]*1000/D.Radc,...
+				D.data(handles.Cselection2(ind), :, handles.Tselection(i)),...
+				'Color', handles.colour{i}, 'LineWidth', 2);
+		end
+		
+		scale = get(handles.scaleslider, 'Value');
+		
+		set(gca, 'YLim', [-scale scale],...
+			'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'on');
+		grid on
+	end
     title(D.channels.name{handles.Cselection2(ind)}, 'FontSize', 16);
     
     if D.Nevents > 1
@@ -618,19 +666,27 @@ while ~ok
 
     answer = inputdlg(prompt, name, numlines, defaultanswer);
     t = str2num(answer{1});
-    s = deblank(answer{2});
-    if t >= -D.events.start*1000/D.Radc...
-            & t <= D.events.stop*1000/D.Radc...
-            & (strcmpi(s, '2d') | strcmpi(s, '3d'))
-        ok = 1;
-    end
+	s = deblank(answer{2});
+	for n=1:length(t)
+		if t(n) >= -D.events.start*1000/D.Radc...
+				& t(n) <= D.events.stop*1000/D.Radc...
+				& (strcmpi(s, '2d') | strcmpi(s, '3d'))
+			ok = 1;
+		end
+	end
+end
+for n=1:length(t)
+	tmp = (t(n) - [-D.events.start:D.events.stop]*1000/D.Radc).^2;
+	[m, i(n)] = min(tmp);
 end
 
-t = (t - [-D.events.start:D.events.stop]*1000/D.Radc).^2;
-[m, i] = min(t);
+if length(t) == 1
+	% display the first selected trial (if there are multiple selections)
+	d = squeeze(D.data(D.channels.eeg, i, handles.Tselection(1)));
+else
+	d = squeeze(mean(D.data(D.channels.eeg, i, handles.Tselection(1)),2));
+end
 
-% display the first selected trial (if there are multiple selections)
-d = squeeze(D.data(D.channels.eeg, i, handles.Tselection(1)));
 d(D.channels.Bad) = NaN;
 
 % call scalp2d or 3d
