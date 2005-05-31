@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_realign_and_unwarp.m 184 2005-05-31 13:23:32Z john $
 
 
 %_______________________________________________________________________
@@ -264,8 +264,8 @@ uwfwhm.tag     = 'uwfwhm';
 uwfwhm.num     = [1 1];
 uwfwhm.strtype = 'r';
 uwfwhm.def     = 'unwarp.estimate.fwhm';
-uwfwhm.help    = {[...
-'FWHM (mm) of smoothing filter applied to images prior to estimation of deformation fields']};
+uwfwhm.help    = {...
+'FWHM (mm) of smoothing filter applied to images prior to estimation of deformation fields.'};
 
 %----------------------------------------------------------------------
 noi.type = 'entry';
@@ -799,7 +799,7 @@ for i = 1:numel(P)
     [path,name] = fileparts(P{i}(1,:));
     pefile =  fullfile(path,[name '_uw.mat']);
 
-    if str2num(version('-release'))>=14,
+    if str2double(version('-release'))>=14,
         save(pefile,'-V6','ds');
     else
         save(pefile,'ds');

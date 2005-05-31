@@ -21,7 +21,7 @@ function def = spm_get_def(Bx,By,Bz,beta)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_get_def.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_get_def.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin == 4
@@ -33,7 +33,7 @@ if nargin == 4
       return
    end
 elseif nargin == 3
-   if prod(size(Bx)) ~= 3 | prod(size(By)) ~= 3
+   if numel(Bx) ~= 3 || numel(By) ~= 3
       warning('get_def: Wrong dimensionality on input');
    elseif prod(By) ~= size(Bz,1)
       warning('get_def: Size mismatch between beta and basis-set');

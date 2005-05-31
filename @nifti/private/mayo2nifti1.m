@@ -4,7 +4,7 @@ function hdr = mayo2nifti1(ohdr,mat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: mayo2nifti1.m 174 2005-05-24 11:03:32Z john $
+% $Id: mayo2nifti1.m 184 2005-05-31 13:23:32Z john $
 
 
 if isfield(ohdr,'magic'),
@@ -36,7 +36,7 @@ end;
 if nargin<2,
     % No mat, so create the equivalent from the hdr...
     if any(ohdr.origin(1:3)), origin = double(ohdr.origin(1:3));
-    else,                     origin = (double(ohdr.dim(2:4))+1)/2; end;
+    else                      origin = (double(ohdr.dim(2:4))+1)/2; end;
     vox    = double(ohdr.pixdim(2:4));
     if all(vox == 0), vox = [1 1 1]; end;
     off    = -vox.*origin;

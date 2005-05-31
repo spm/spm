@@ -4,7 +4,7 @@ function opts = spm_config_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_ui.m 123 2005-05-06 12:15:13Z john $
+% $Id: spm_config_ui.m 184 2005-05-31 13:23:32Z john $
 
 %_______________________________________________________________________
 col1 = struct('type','entry','name','Background Colour 1','tag','colour1',...
@@ -24,14 +24,14 @@ fs   = struct('type','menu','name','Font Size','tag','fs',...
 
 
 % This is currently unused, but may be unleased when the world is ready for it
-a4p       = struct('PaperType','A4',       'dim',[210   297  ],'PaperOrientation','Portrait');
-usletterp = struct('PaperType','USLetter', 'dim',[215.9 279.4],'PaperOrientation','Portrait');
-a4l       = struct('PaperType','A4',       'dim',[297   210  ],'PaperOrientation','Landscape');
-usletterl = struct('PaperType','USLetter', 'dim',[279.4 215.9],'PaperOrientation','Landscape');
-pap = struct('type','menu','name','Paper Size','tag','papersize',...
-    'labels',{{'A4 [Portrait]','US Letter [Portrait]','A4 [Landscape]','US Letter [Landscape]'}},...
-    'values',{{a4p,usletterp,a4l,usletterl}},'val',{{usletterl}},...
-    'prog',@resize,'def','ui.paper');
+% a4p       = struct('PaperType','A4',       'dim',[210   297  ],'PaperOrientation','Portrait');
+% usletterp = struct('PaperType','USLetter', 'dim',[215.9 279.4],'PaperOrientation','Portrait');
+% a4l       = struct('PaperType','A4',       'dim',[297   210  ],'PaperOrientation','Landscape');
+% usletterl = struct('PaperType','USLetter', 'dim',[279.4 215.9],'PaperOrientation','Landscape');
+% pap = struct('type','menu','name','Paper Size','tag','papersize',...
+%     'labels',{{'A4 [Portrait]','US Letter [Portrait]','A4 [Landscape]','US Letter [Landscape]'}},...
+%     'values',{{a4p,usletterp,a4l,usletterl}},'val',{{usletterl}},...
+%     'prog',@resize,'def','ui.paper');
 
 
 app.type = 'branch';
@@ -94,17 +94,17 @@ opt.help    = {[...
 opts = struct('type','branch','name','User Interface','tag','ui','val',{{app,opt}});
 
 % Unused code
-function resize(val)
-fg = findobj(0,'tag','Graphics');
-if length(fg)~=1, return; end;
-S0  = get(0,'ScreenSize');
-S0  = S0(3:4);
-pos = get(fg,'Position');
-pos(1:2) = [(pos(1)+pos(3)) (pos(2)+pos(4))]/2;
-pos(3:4) = min(0.9*(S0./val.dim))*val.dim;
-pos(1:2) = pos(1:2)-pos(3:4)/2;
-set(fg,'PaperType',val.PaperType,'Position',pos,'PaperOrientation',val.PaperOrientation);
-return;
+% function resize(val)
+% fg = findobj(0,'tag','Graphics');
+% if length(fg)~=1, return; end;
+% S0  = get(0,'ScreenSize');
+% S0  = S0(3:4);
+% pos = get(fg,'Position');
+% pos(1:2) = [(pos(1)+pos(3)) (pos(2)+pos(4))]/2;
+% pos(3:4) = min(0.9*(S0./val.dim))*val.dim;
+% pos(1:2) = pos(1:2)-pos(3:4)/2;
+% set(fg,'PaperType',val.PaperType,'Position',pos,'PaperOrientation',val.PaperOrientation);
+% return;
 
 %function s = pop(opt,app,ext)
 %s = struct('opt',{opt},'append',app,'ext',ext);

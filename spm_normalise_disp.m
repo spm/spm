@@ -6,7 +6,7 @@ function spm_normalise_disp(matname,VF)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise_disp.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_normalise_disp.m 184 2005-05-31 13:23:32Z john $
 
 
 fg = spm_figure('FindWin','Graphics');
@@ -16,7 +16,7 @@ if nargin<1, matname = spm_select(1,'.*_sn.mat$','Select parameter file'); end;
 
 if ischar(matname),
 	t = load(deblank(matname));
-else, %assume it is a structure
+else %assume it is a structure
 	t = matname;
 end;
 
@@ -35,7 +35,7 @@ text(0,0.75, [ 'Image     : ' VF.fname],'FontSize',12,'FontWeight','Bold',...
 
 %str = 'no flipping';
 %if det(t.Affine(1:3,1:3))<0, str = 'image flipped'; end;
-text(0,0.6, ['Linear {affine} component'],'FontWeight','Bold',...
+text(0,0.6, 'Linear {affine} component','FontWeight','Bold',...
 	'Interpreter','none','Parent',ax);
 text(0,0.55, sprintf('X1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(1,:)),...
 	'Interpreter','none','Parent',ax);
@@ -47,18 +47,18 @@ text(0,0.45, sprintf('Z1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(3,:)),...
 d = [size(t.Tr) 1 1 1];
 d = d(1:3);
 
-if prod(d)>1 & finite(t.flags.reg),
+if prod(d)>1 && finite(t.flags.reg),
 	text(0,0.35, sprintf('%d nonlinear iterations',t.flags.nits),...
 		'Interpreter','none','Parent',ax);
 	text(0,0.30, sprintf('%d x %d x %d basis functions',d),...
 		'Interpreter','none','Parent',ax);
-else,
+else
 	text(0,0.35, 'No nonlinear components',...
 		'Interpreter','none','Parent',ax);
 end;
 
 spm_orthviews('Reset');
-h1 = spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
+spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
 VN = spm_write_sn(VF.fname,matname);
 h2 = spm_orthviews('Image',VN,[.51 0.1 .48 .6]);
 spm_orthviews('Space',h2);

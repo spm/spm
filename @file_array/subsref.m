@@ -5,11 +5,10 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsref.m 174 2005-05-24 11:03:32Z john $
+% $Id: subsref.m 184 2005-05-31 13:23:32Z john $
 
 
 if isempty(subs)
-    t = obj;
     return;
 end;
 
@@ -100,9 +99,8 @@ function c = access_fields(obj,subs)
 %if numel(struct(obj))~=1,
 %    error('Can only access the fields of simple file_array objects.');
 %end;
-c = {};
+c    = {};
 sobj = struct(obj);
-c = cell(1,numel(sobj));
 for i=1:numel(sobj),
     %obj = class(sobj(i),'file_array');
     obj = sobj(i);
@@ -113,7 +111,7 @@ for i=1:numel(sobj),
     case 'dim',       t = dim(obj);
     case 'scl_slope', t = scl_slope(obj);
     case 'scl_inter', t = scl_inter(obj);
-    otherwise error(['Reference to non-existent field "' subs(1).type '".']);
+    otherwise, error(['Reference to non-existent field "' subs(1).type '".']);
     end;
     if numel(subs)>1,
         t = subsref(t,subs(2:end));

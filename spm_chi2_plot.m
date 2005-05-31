@@ -1,4 +1,4 @@
-function data = spm_chi2_plot(action,arg1,arg2,arg3,arg4)
+function data = spm_chi2_plot(action,arg1,arg2,arg3)
 % Display a plot showing convergence of an optimization routine.
 % FORMAT spm_chi2_plot('Init',title,xlabel,ylabel)
 % Initialises the plot in the 'Interactive' window.
@@ -13,7 +13,7 @@ function data = spm_chi2_plot(action,arg1,arg2,arg3,arg4)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_chi2_plot.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_chi2_plot.m 184 2005-05-31 13:23:32Z john $
 
 
 global pb_pointer pb_name ax
@@ -23,7 +23,7 @@ if (nargin == 0)
 else
 	% initialize
 	%---------------------------------------------------------------
-	if (strcmp(lower(action),'init'))
+	if (strcmpi(action,'init'))
 		if (nargin<4)
 			arg3 = 'Iteration #';
 			if (nargin<3)
@@ -55,7 +55,7 @@ else
 
 	% reset
 	%---------------------------------------------------------------
-	elseif (strcmp(lower(action),'set'))
+	elseif (strcmpi(action,'set'))
 		if (nargin<2)
 			arg1 = 0;
 		end
@@ -71,13 +71,13 @@ else
 
 	% clear
 	%---------------------------------------------------------------
-	elseif (strcmp(lower(action),'clear'))
+	elseif (strcmpi(action,'clear'))
 		fg = spm_figure('FindWin','Interactive');
 		spm_figure('Clear',fg);
 		set(fg,'Pointer',pb_pointer);
 		set(fg,'Name',pb_name);
 		drawnow;
-	elseif (strcmp(lower(action),'data'))
+	elseif (strcmpi(action,'data'))
 		F = spm_figure('FindWin','Interactive');
 		br = findobj(F,'Tag','Chi2Plot');
 		if (~isempty(br))

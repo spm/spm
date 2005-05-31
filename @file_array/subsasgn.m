@@ -4,11 +4,10 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 174 2005-05-24 11:03:32Z john $
+% $Id: subsasgn.m 184 2005-05-31 13:23:32Z john $
 
 
 if isempty(subs)
-    t = obj;
     return;
 end;
 if numel(subs)~=1, error('Expression too complicated');end;
@@ -26,7 +25,7 @@ if ~strcmp(subs.type,'()'),
         case 'dim',        obj = dim(obj,dat);
         case 'scl_slope',  obj = scl_slope(obj,dat);
         case 'scl_inter',  obj = scl_inter(obj,dat);
-        otherwise error(['Reference to non-existent field "' subs.type '".']);
+        otherwise, error(['Reference to non-existent field "' subs.type '".']);
         end;
         return;
     end;
@@ -69,7 +68,6 @@ if length(sobj)==1
         subfun(sobj,dat1,args{:});
     end;
 else
-    t = zeros(do);
     for j=1:length(sobj),
         ps  = [sobj(j).pos ones(1,length(args))];
         dm  = [sobj(j).dim ones(1,length(args))];
@@ -113,7 +111,7 @@ end;
 
 dt  = datatypes;
 ind = find(cat(1,dt.code)==sobj.dtype);
-if isempty(ind) error('Unknown datatype'); end;
+if isempty(ind), error('Unknown datatype'); end;
 if dt(ind).isint, dat = round(dat); end;
 dat   = feval(dt(ind).conv,dat);
 nelem = dt(ind).nelem;

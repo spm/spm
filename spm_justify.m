@@ -28,7 +28,7 @@ function out = spm_justify(n,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_justify.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_justify.m 184 2005-05-31 13:23:32Z john $
 
 out = {};
 for i=1:nargin-1,
@@ -97,8 +97,8 @@ while length(str)>n,
 
 	% Pad the line to n characters wide
 	current = str(1:(brk-1));
-	l   = length(current);
-	l   = n-l;
+	% l   = length(current);
+	% l   = n-l;
 	sp  = find(current==' ');
 	if ~isempty(sp),
 
@@ -118,8 +118,7 @@ while length(str)>n,
 
 		% Pad a random selection of spaces by one
 		pad = round((pad-floor(pad))*nsp);
-		r   = rand(pad);
-		[r,ind] = sort(rand(pad,1));
+		[unused,ind] = sort(rand(pad,1));
 		ind = ind(1:pad);
 		sp(ind) = sp(ind)+1;
 

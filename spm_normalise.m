@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_normalise.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -130,7 +130,7 @@ if nargin<3,
 	if nargout==0,
 		[pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
 		matname        = fullfile(pth,[nm '_sn.mat']);
-	else,
+    else
 		matname = '';
 	end;
 end;
@@ -144,10 +144,12 @@ def_flags = struct('smosrc',8,'smoref',0,'regtype','mni',...
 	'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
 if nargin < 6,
 	flags = def_flags;
-else,
+else
 	fnms  = fieldnames(def_flags);
 	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}), flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i})); end;
+		if ~isfield(flags,fnms{i}),
+            flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
+        end;
 	end;
 end;
 
@@ -156,9 +158,9 @@ VF1 = spm_smoothto8bit(VF,flags.smosrc);
 
 % Rescale images so that globals are better conditioned
 VF1.pinfo(1:2,:) = VF1.pinfo(1:2,:)/spm_global(VF1);
-for i=1:prod(size(VG)),
-        VG1(i) = spm_smoothto8bit(VG(i),flags.smoref);
-	VG1(i).pinfo(1:2,:) = VG1(i).pinfo(1:2,:)/spm_global(VG(i));
+for i=1:numel(VG),
+    VG1(i) = spm_smoothto8bit(VG(i),flags.smoref);
+    VG1(i).pinfo(1:2,:) = VG1(i).pinfo(1:2,:)/spm_global(VG(i));
 end;
 
 % Affine Normalisation
@@ -184,11 +186,11 @@ fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
 if any(fov<7.5*flags.smosrc),
 	fprintf('Field of view too small for nonlinear registration\n');
 	Tr = [];
-elseif finite(flags.cutoff) & flags.nits & ~isinf(flags.reg),
+elseif finite(flags.cutoff) && flags.nits && ~isinf(flags.reg),
         fprintf('3D CT Norm...\n');
 	Tr = snbasis(VG1,VF1,VWG,VWF,Affine,...
 		max(flags.smoref,flags.smosrc),flags.cutoff,flags.nits,flags.reg);
-else,
+else
 	Tr = [];
 end;
 clear VF1 VG1
@@ -206,7 +208,7 @@ if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
 if ~isempty(matname),
 	fprintf('Saving Parameters..\n');
-	if str2num(version('-release'))>=14,
+	if str2double(version('-release'))>=14,
 		save(matname,'-V6','Affine','Tr','VF','VG','flags');
 	else
 		save(matname,'Affine','Tr','VF','VG','flags');
@@ -273,7 +275,7 @@ if 1,
         IC0 = reg*IC0*stabilise^6;
         IC0 = [IC0*vx2(1)^4 ; IC0*vx2(2)^4 ; IC0*vx2(3)^4 ; zeros(prod(size(VG))*4,1)];
         IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
-else,
+else
         % MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
         %-----------------------------------------------------------------------
         IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
@@ -285,15 +287,15 @@ end;
 % Generate starting estimates.
 %-----------------------------------------------------------------------
 s1 = 3*prod(k);
-s2 = s1 + prod(size(VG))*4;
+s2 = s1 + numel(VG)*4;
 T  = zeros(s2,1);
-T(s1+(1:4:prod(size(VG))*4)) = 1;
+T(s1+(1:4:numel(VG)*4)) = 1;
 
 pVar = Inf;
 for iter=1:nits,
 	fprintf(' iteration %2d: ', iter);
 	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VWG, VWF);
-	if Var>pVar, scal = pVar/Var ; Var = pVar; else, scal = 1; end;
+	if Var>pVar, scal = pVar/Var ; Var = pVar; else scal = 1; end;
 	pVar = Var;
 	T = (Alpha + IC0*scal)\(Alpha*T + Beta);
 	fwhm(2) = min([fw fwhm(2)]);

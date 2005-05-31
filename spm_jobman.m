@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 171 2005-05-20 19:20:10Z john $
+% $Id: spm_jobman.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin==0
@@ -419,7 +419,7 @@ return;
 
 %------------------------------------------------------------------------
 function [str,sts] = get_strings(c)
-[c,str,sts] = start_node(c,@get_strings1,0);
+[unused,str,sts] = start_node(c,@get_strings1,0);
 return;
 %------------------------------------------------------------------------
 
@@ -551,7 +551,7 @@ c   = get(batch_box,'UserData');
 n   = get(batch_box,'Value');
 show_msg('');
 va = {c,@run_in_current_node1,n,varargin{:}};
-[c,n,varargout{:}] = start_node(va{:});
+[c,unused,varargout{:}] = start_node(va{:});
 set(batch_box,'UserData',c);
 return;
 %------------------------------------------------------------------------
@@ -573,7 +573,7 @@ if nargin==2
     return;
 end;
 va = {c,node,fun,varargin{:}};
-[c,sts,varargout{1:nargout-1}] = start_node1(va{:});
+[c,unused,varargout{1:nargout-1}] = start_node1(va{:});
 return;
 %------------------------------------------------------------------------
 
@@ -1794,7 +1794,7 @@ while(1),
         workaround(help_box);
 
         if isfield(c,'prog'),
-            try,
+            try
                 set(help_box,'HandleVisibility','off');
                 [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
                 spm('FigName',[c.name ': setup'],Finter,CmdLine);

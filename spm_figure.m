@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 140 2005-05-11 15:20:25Z christophe $
+% $Id: spm_figure.m 184 2005-05-31 13:23:32Z john $
 
 
 %=======================================================================
@@ -200,15 +200,15 @@ function varargout=spm_figure(varargin)
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if (nargin==0), Action = 'Create'; else, Action = varargin{1}; end
+if (nargin==0), Action = 'Create'; else Action = varargin{1}; end
 
 switch lower(Action), case 'create'
 %=======================================================================
 % F = spm_figure('Create',Tag,Name,Visible)
 %-Condition arguments
-if nargin<4, Visible='on'; else, Visible=varargin{4}; end
+if nargin<4, Visible='on'; else Visible=varargin{4}; end
 if nargin<3, Name=''; else, Name=varargin{3}; end
-if nargin<2, Tag=''; else, Tag=varargin{2}; end
+if nargin<2, Tag=''; else Tag=varargin{2}; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F);
@@ -223,7 +223,7 @@ case 'findwin'
 %-Find window: Find window with FigureNumber# / 'Tag' attribute
 %-Returns empty if window cannot be found - deletes multiple tagged figs.
 
-if nargin<2, F='Graphics'; else, F=varargin{2}; end
+if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 if isempty(F)
 	% Leave F empty
@@ -246,7 +246,7 @@ case 'getwin'
 %=======================================================================
 % F=spm_figure('GetWin',Tag)
 
-if nargin<2, Tag='Graphics'; else, Tag=varargin{2}; end
+if nargin<2, Tag='Graphics'; else Tag=varargin{2}; end
 F = spm_figure('FindWin',Tag);
 
 if isempty(F)
@@ -265,7 +265,7 @@ varargout = {F};
 case 'parentfig'
 %=======================================================================
 % F=spm_figure('ParentFig',h)
-if nargin<2, error('No object specified'), else, h=varargin{2}; end
+if nargin<2, error('No object specified'), else h=varargin{2}; end
 F = get(h(1),'Parent');
 while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
 varargout = {F};
@@ -277,8 +277,8 @@ case 'clear'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<3, Tags=[]; else, Tags=varargin{3}; end
-if nargin<2, F=get(0,'CurrentFigure'); else, F=varargin{2}; end
+if nargin<3, Tags=[]; else Tags=varargin{3}; end
+if nargin<2, F=get(0,'CurrentFigure'); else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -322,7 +322,7 @@ case 'print'
 % spm_figure('Print',F)
 
 %-Arguments & defaults
-if nargin<2, F='Graphics'; else, F=varargin{2}; end
+if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
@@ -378,8 +378,8 @@ set(0,'CurrentFigure',cF)
 case 'newpage'
 %=======================================================================
 % [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',h)
-if nargin<2 | isempty(varargin{2}), error('No handles to paginate')
-else, h=varargin{2}(:)'; end
+if nargin<2 || isempty(varargin{2}) error('No handles to paginate')
+else h=varargin{2}(:)'; end
 
 %-Work out which figure we're in
 F = spm_figure('ParentFig',h(1));
@@ -454,8 +454,8 @@ if nargout>0, varargout = {[hNextPage, hPrevPage, hPageNo]}; end
 case 'turnpage'
 %=======================================================================
 % spm_figure('TurnPage',move,F)
-if nargin<3, F='Graphics'; else, F=varargin{3}; end
-if nargin<2, move=1; else, move=varargin{2}; end
+if nargin<3, F='Graphics'; else F=varargin{3}; end
+if nargin<2, move=1; else move=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
@@ -468,7 +468,7 @@ Cpage     = get(hPageNo,  'UserData');
 nPages    = size(hPg,1);
 
 %-Sort out new page number
-if ischar(move), Npage = Cpage+eval(move); else, Npage = move; end
+if ischar(move), Npage = Cpage+eval(move); else Npage = move; end
 Npage = max(min(Npage,nPages),1);
 
 %-Make current page invisible, new page visible, set page number string
@@ -484,16 +484,16 @@ end;
 
 %-Disable appropriate page turning control if on first/last page (for neatness)
 if Npage==1, set(hPrevPage,'Enable','off')
-else, set(hPrevPage,'Enable','on'), end
+else set(hPrevPage,'Enable','on'), end
 if Npage==nPages, set(hNextPage,'Enable','off')
-else, set(hNextPage,'Enable','on'), end
+else set(hNextPage,'Enable','on'), end
 
 
 
 case 'deletepagecontrols'
 %=======================================================================
 % spm_figure('DeletePageControls',F)
-if nargin<2, F='Graphics'; else, F=varargin{2}; end
+if nargin<2, F='Graphics'; else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
@@ -507,7 +507,7 @@ delete([hNextPage hPrevPage hPageNo])
 case '#page'
 %=======================================================================
 % n = spm_figure('#Page',F)
-if nargin<2, F='Graphics'; else, F=varargin{2}; end
+if nargin<2, F='Graphics'; else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
@@ -523,12 +523,12 @@ varargout = {n};
 case 'watermark'
 %=======================================================================
 % spm_figure('WaterMark',F,str,Tag,Angle,Perm)
-if nargin<6, HVis='on'; else, HVis='off'; end
-if nargin<5, Angle=-45; else, Angle=varargin{5}; end
-if nargin<4 | isempty(varargin{4}), Tag = 'WaterMark'; else, Tag=varargin{4}; end
-if nargin<3 | isempty(varargin{3}), str = 'SPM';       else, str=varargin{3}; end
-if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
-	else, F=varargin{2}; end
+if nargin<6, HVis='on'; else HVis='off'; end
+if nargin<5, Angle=-45; else Angle=varargin{5}; end
+if nargin<4 || isempty(varargin{4}), Tag = 'WaterMark'; else Tag=varargin{4}; end
+if nargin<3 || isempty(varargin{3}), str = 'SPM';       else str=varargin{3}; end
+if nargin<2, if any(get(0,'Children')), F=gcf; else F=''; end
+else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -572,9 +572,9 @@ case 'createwin'
 
 %-Condition arguments
 %-----------------------------------------------------------------------
-if nargin<4 | isempty(varargin{4}), Visible='on'; else, Visible=varargin{4}; end
-if nargin<3, Name=''; else, Name = varargin{3}; end
-if nargin<2, Tag='';  else, Tag  = varargin{2}; end
+if nargin<4 || isempty(varargin{4}), Visible='on'; else Visible=varargin{4}; end
+if nargin<3, Name=''; else Name = varargin{3}; end
+if nargin<2, Tag='';  else Tag  = varargin{2}; end
 
 WS   = spm('WinScale');				%-Window scaling factors
 FS   = spm('FontSizes');			%-Scaled font sizes
@@ -629,7 +629,7 @@ case 'fontsizes'
 %=======================================================================
 % FS = spm_figure('FontSizes',FS)
 warning('spm_figure(''FontSizes''... is Grandfathered: use spm(''FontSizes''')
-if nargin<2, FS=[08,09,11,13,14,6:36]; else, FS=varargin{2}; end
+if nargin<2, FS=[08,09,11,13,14,6:36]; else FS=varargin{2}; end
 varargout = {round(FS*min(spm('WinScale')))};
 
 
@@ -637,8 +637,8 @@ varargout = {round(FS*min(spm('WinScale')))};
  case 'createbar'
 %=======================================================================
 % spm_figure('CreateBar',F)
-if nargin<2, if any(get(0,'Children')), F=gcf; else, F=''; end
-	else, F=varargin{2}; end
+if nargin<2, if any(get(0,'Children')), F=gcf; else F=''; end
+else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -649,30 +649,30 @@ t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
 if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
 
 set(findobj(t0,'Position',1),'Separator','on');
-t1 = uimenu(t0,'Position',1,...
+uimenu(t0,'Position',1,...
 	'Label','SPM web',...
 	'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
-t1 = uimenu(t0,'Position',1,...
+uimenu(t0,'Position',1,...
 	'Label','SPM help','ForegroundColor',[0 1 0],...
 	'CallBack','spm_help');
 
 t0=uimenu( F,'Label','Colours','HandleVisibility','off');
 t1=uimenu(t0,'Label','ColorMap');
-t2=uimenu(t1,'Label','Gray',     'CallBack','spm_figure(''ColorMap'',''gray'')');
-t2=uimenu(t1,'Label','Hot',      'CallBack','spm_figure(''ColorMap'',''hot'')');
-t2=uimenu(t1,'Label','Pink',     'CallBack','spm_figure(''ColorMap'',''pink'')');
-t2=uimenu(t1,'Label','Jet','CallBack','spm_figure(''ColorMap'',''jet'')');
-t2=uimenu(t1,'Label','Gray-Hot', 'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
-t2=uimenu(t1,'Label','Gray-Cool','CallBack','spm_figure(''ColorMap'',''gray-cool'')');
-t2=uimenu(t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
-t2=uimenu(t1,'Label','Gray-Jet', 'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
+uimenu(t1,'Label','Gray',     'CallBack','spm_figure(''ColorMap'',''gray'')');
+uimenu(t1,'Label','Hot',      'CallBack','spm_figure(''ColorMap'',''hot'')');
+uimenu(t1,'Label','Pink',     'CallBack','spm_figure(''ColorMap'',''pink'')');
+uimenu(t1,'Label','Jet','CallBack','spm_figure(''ColorMap'',''jet'')');
+uimenu(t1,'Label','Gray-Hot', 'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
+uimenu(t1,'Label','Gray-Cool','CallBack','spm_figure(''ColorMap'',''gray-cool'')');
+uimenu(t1,'Label','Gray-Pink','CallBack','spm_figure(''ColorMap'',''gray-pink'')');
+uimenu(t1,'Label','Gray-Jet', 'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
 t1=uimenu(t0,'Label','Effects');
-t2=uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
-t2=uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
-t2=uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
-t0=uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
+uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
+uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
+uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
+uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
 %t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
-t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
 
 % ### CODE FOR SATELLITE FIGURE ###
 % Code checks if there is a satellite window and if results are currently displayed
@@ -692,7 +692,7 @@ cb = ['global SatWindow,',...
         'spm_setup_satfig,',...
         'end,',...
         'end'];
-t0=uimenu( F,'Label','Results-Fig','HandleVisibility','off','Callback',cb);
+uimenu( F,'Label','Results-Fig','HandleVisibility','off','Callback',cb);
 % ### END NEW CODE ###
 
 
@@ -722,8 +722,8 @@ varargout = {h};
 case 'colormap'
 %=======================================================================
 % spm_figure('ColorMap',ColAction,h)
-if nargin<3, h=[]; else, h=varargin{3}; end
-if nargin<2, ColAction='gray'; else, ColAction=varargin{2}; end
+if nargin<3, h=[]; else h=varargin{3}; end
+if nargin<2, ColAction='gray'; else ColAction=varargin{2}; end
 
 switch lower(ColAction), case 'gray'
 	colormap(gray(64))
@@ -734,7 +734,7 @@ case 'pink'
 case 'jet'
 	colormap(jet(64))
 case 'gray-hot'
-	tmp = hot(64 + 16);  tmp = tmp([1:64] + 16,:);
+	tmp = hot(64 + 16);  tmp = tmp((1:64) + 16,:);
 	colormap([gray(64); tmp]);
 case 'gray-cool'
 	cool = [zeros(10,1) zeros(10,1) linspace(0.5,1,10)';
@@ -742,7 +742,7 @@ case 'gray-cool'
 	        linspace(0,1,23)' ones(23,1) ones(23,1) ];
 	colormap([gray(64); cool]);
 case 'gray-pink'
-	tmp = pink(64 + 16); tmp = tmp([1:64] + 16,:);
+	tmp = pink(64 + 16); tmp = tmp((1:64) + 16,:);
 	colormap([gray(64); tmp]);
 case 'gray-jet'
 	colormap([gray(64); jet(64)]);
@@ -759,7 +759,7 @@ end
 case 'graphicshandle'
 %=======================================================================
 % h = spm_figure('GraphicsHandle',F)
-if nargin<2, F=gcbf; else, F=spm_figure('FindWin',varargin{2}); end
+if nargin<2, F=gcbf; else F=spm_figure('FindWin',varargin{2}); end
 if isempty(F), return, end
 
 tmp = get(F,'Name');
@@ -772,7 +772,7 @@ hType    = get(h,'Type');
 SelnType = get(gcf,'SelectionType');
 set(F,'Pointer','Arrow','Name',tmp)
 
-if ~strcmp(SelnType,'alt') & ~isempty(h) & gcf==F
+if ~strcmp(SelnType,'alt') && ~isempty(h) && gcf==F
 	str = sprintf('Selected (%s) object',get(h,'Type'));
 	if strcmp(SelnType,'normal')
 		str = sprintf('%s: handle',str);
@@ -805,7 +805,7 @@ return;
 function copy_menu(F,G)
 %=======================================================================
 handles = findobj(get(F,'Children'),'Flat','Type','uimenu','Visible','on');
-if length(handles)==0, return; end;
+if isempty(handles), return; end;
 for F1=handles',
 	if ~strcmp(get(F1,'Label'),'&Window'),
 		G1 = uimenu(G,'Label',get(F1,'Label'),...

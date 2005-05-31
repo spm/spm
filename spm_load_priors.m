@@ -7,10 +7,10 @@ function b0 = spm_load_priors(B)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_load_priors.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_load_priors.m 184 2005-05-31 13:23:32Z john $
 
 
-deg = 3;
+% deg = 3;
 lm  = 0;
 if ~isstruct(B), B  = spm_vol(B); end;
 Kb = length(B);

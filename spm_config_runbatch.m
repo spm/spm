@@ -1,10 +1,10 @@
-function opts = spm_config_mkdir
-% Configuration file for making directory function
+function opts = spm_config_runbatch
+% Configuration file for running batched jobs
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_runbatch.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_runbatch.m 184 2005-05-31 13:23:32Z john $
 
 data.type = 'files';
 data.name = 'Batch Files';

@@ -13,7 +13,7 @@ function spm_dicom_convert(hdr,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 133 2005-05-09 17:29:37Z guillaume $
+% $Id: spm_dicom_convert.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -38,9 +38,15 @@ for i=1:length(hdr),
 
 	% Output filename
 	%-------------------------------------------------------------------
-	if checkfields(hdr{i},'SeriesNumber','AcquisitionNumber') 
-		fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
-			hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
+	if checkfields(hdr{i},'SeriesNumber','AcquisitionNumber')
+		if checkfields(hdr{i},'EchoNumbers')
+			fname = sprintf('f%s-%.4d-%.5d-%.6d-%.2d.img', strip_unwanted(hdr{i}.PatientID),...
+				hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber,...
+				hdr{i}.EchoNumbers);
+		else
+			fname = sprintf('f%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{i}.PatientID),...
+				hdr{i}.SeriesNumber, hdr{i}.AcquisitionNumber, hdr{i}.InstanceNumber);
+		end;
 	else
 		fname = sprintf('f%s-%.6d.img',strip_unwanted(hdr{i}.PatientID),hdr{i}.InstanceNumber);
 	end;
@@ -81,7 +87,7 @@ for i=1:length(hdr),
 		end;
 		volume(:,:,j) = img;
 	end;
-	dim = [size(volume)];
+	dim = size(volume);
 	dt  = [spm_type('int16') spm_platform('bigend')];
 
 	% Orientation information
@@ -257,23 +263,11 @@ for j=1:length(vol),
 	[z,index] = sort(z);
 	vol{j}    = vol{j}(index);
 	if length(vol{j})>1,
-		dist      = diff(z);
+		% dist      = diff(z);
 		if any(diff(z)==0)
-			% So, if this is a GE scanner we might have
-			% the "DTI-series" problem. Lets assume so.
-
-			% if isfield(vol{j}{1},'Manufacturer') &&... 
-			%	strcmpi(vol{j}{1}.Manufacturer,'ge medical systems') &&...
-			%	isfield(vol{j}{1},'Private_0021_104f') &&...
-			%	isfield(vol{j}{1},'Private_0019_1019') &&...
-			%	isfield(vol{j}{1},'Private_0019_101b')
-			%	vol = sort_ge_into_volumes(vol);
-			%	break;
-			% else
-				tmp = sort_into_vols_again(vol{j});
-				vol{j} = tmp{1};
-				vol2 = {vol2{:} tmp{2:end}};
-			% end
+			tmp = sort_into_vols_again(vol{j});
+			vol{j} = tmp{1};
+			vol2 = {vol2{:} tmp{2:end}};
 		end;
 	end;
 end;
@@ -348,7 +342,7 @@ for i=1:length(volj),
     z(i)  = volj{i}.ImagePositionPatient*proj;
     t(i)  = volj{i}.InstanceNumber;
 end;
-msg = 0;
+% msg = 0;
 [t,index] = sort(t);
 volj      = volj(index);
 z         = z(index);
@@ -362,14 +356,14 @@ if any(msk),
     %    fprintf('* %s%s = %s%s (%d)\n', nam1,ext1,nam2,ext2, volj{msk(i)}.InstanceNumber);
     % end;
     % fprintf('***************************************************\n');
-    index = [logical(1) ; diff(t)~=0];
+    index = [true ; diff(t)~=0];
     t     = t(index);
     z     = z(index);
     d     = d(index);
     volj  = volj(index);
 end;
 
-if any(diff(sort(t))~=1), msg = 1; end;
+%if any(diff(sort(t))~=1), msg = 1; end;
 [z,index] = sort(z);
 volj      = volj(index);
 t         = t(index);
@@ -413,155 +407,19 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function vol = sort_ge_into_volumes(pvol)
-%
-% This is a routine that will take the p(rovisional)
-% volumes in pvol and subdivide them into more volumes
-% based on circumstancial (at best) evidence in GE
-% file headers.
-%
-
-%
-% First of all check how many slices there "should" be
-% in each volume. And that there is agreement.
-%
-
-nsl = zeros(1,length(pvol));
-for i=1:length(pvol)
-	nsl(i) = pvol{i}{1}.Private_0021_104f;
-	for j=1:length(pvol{i})
-		if pvol{i}{j}.Private_0021_104f ~= nsl(i)
-			warning('Looks like there is something wrong with the conversion software.');
-			vol = pvol;
-			return
-		end
-	end
-end
-
-%
-% Next use independent method to assess
-% number of slices and check agreement.
-%
-
-for i=1:length(pvol)
-	insl = abs(pvol{i}{1}.Private_0019_101b - pvol{i}{1}.Private_0019_1019);
-	insl = round((insl + pvol{i}{1}.SliceThickness) / pvol{i}{1}.SpacingBetweenSlices);
-	if insl ~= nsl(i)
-		warning('Looks like there is something wrong with the conversion software.');
-		vol = pvol;
-		return
-	end
-end
-
-%
-% OK, so we have volumes with multiple slices with the
-% same slice-position. They could have been acquired in
-% volume order (i.e. complete one volume first and then
-% start on the next volume etc.) or they could have been
-% acquired in slice order (i.e. do e.g. all diffusion 
-% directions for one slice then go to next slice etc.).
-% We'll use the .InstanceNumber and .SliceLocation to
-% try and figure it out (don't you just love the DICOM
-% standard?).
-%
-
-in = zeros(1,length(pvol{1}));
-for i=1:length(pvol{1})
-	in(i) = pvol{1}{i}.InstanceNumber;
-end
-[in,index] = sort(in);
-if pvol{1}{index(1)}.SliceLocation == pvol{1}{index(2)}.SliceLocation % Slice First
-	order = 'SF';
-elseif pvol{1}{index(1)}.SliceLocation == pvol{1}{index(nsl(1)+1)}.SliceLocation % Volume first
-	order = 'VF';
-else  
-	warning('Looks like there is something wrong with the conversion software.');
-	vol = pvol;
-	return
-end
-
-vol{1}{1} = [];
-switch order
-case 'SF'
-	for i=1:length(pvol)
-		z = zeros(1,length(pvol{i}));
-		for j=1:length(pvol{i})
-			z(j) = pvol{i}{j}.SliceLocation;
-		end
-		[z,zindex] = sort(z);
-		tmp = pvol{i}(zindex);
-		nvol = length(pvol{i})/nsl(i);
-		for j=1:nsl(i)
-			in = zeros(1,nvol);
-			for k=1:nvol
-				in = tmp{(j-1)*nvol+k}.InstanceNumber;
-			end
-			[in,index] = sort(in);
-			tmp((j-1)*nvol+1:j*nvol) = tmp((j-1)*nvol+index);
-		end
-		for j=1:nvol
-			if isempty(vol{1}{1})
-				vol{end} = pvol{i}(j:nvol:length(pvol{i}));
-			else
-				vol{end+1} = pvol{i}(j:nvol:length(pvol{i}));
-			end
-		end
-	end
-case 'VF'
-	for i=1:length(pvol) 
-		in = zeros(1,length(pvol{i}));
-		for j=1:length(pvol{i})
-			in(j) = pvol{i}{j}.InstanceNumber;
-		end
-		[in,index] = sort(in);
-		for j=1:(length(pvol{i}) / nsl(i))
-			if isempty(vol{1}{1})
-				vol{end} = pvol{i}(index((j-1)*nsl(i)+1:j*nsl(i)));
-			else
-				vol{end+1} = pvol{i}(index((j-1)*nsl(i)+1:j*nsl(i)));
-			end
-		end
-	end
-end
-
-%
-% Finally, cut and paste from Johns code to sort 
-% the volumes acoording to his cunning scheme.
-%
-
-for j=1:length(vol),
-	orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
-	proj   = null(orient');
-	if det([orient proj])<0, proj = -proj; end;
-
-	z      = zeros(length(vol{j}),1);
-	for i=1:length(vol{j}),
-		z(i)  = vol{j}{i}.ImagePositionPatient*proj;
-	end;
-	[z,index] = sort(z);
-	vol{j}    = vol{j}(index);
-	if length(vol{j})>1,
-		dist      = diff(z);
-		if any(diff(z)==0)  % I give up!
-			warning('Looks like there is something wrong with the conversion software.');
-		end
-		if sum((dist-mean(dist)).^2)/length(dist)>0.001,
-			warning('Variable slice spacing');
-		end
-	end
-end
-
-return
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function write_volume(hdr)
 
 % Output filename
 %-------------------------------------------------------------------
 if checkfields(hdr{1},'SeriesNumber','AcquisitionNumber')
-	fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
-		hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
+	if checkfields(hdr{1},'EchoNumbers')
+		fname = sprintf('s%s-%.4d-%.5d-%.6d-%.2d.img', strip_unwanted(hdr{1}.PatientID),...
+			hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber,...
+			hdr{1}.EchoNumbers);
+	else
+		fname = sprintf('s%s-%.4d-%.5d-%.6d.img', strip_unwanted(hdr{1}.PatientID),...
+			hdr{1}.SeriesNumber, hdr{1}.AcquisitionNumber, hdr{1}.InstanceNumber);
+	end;
 else
 	fname = sprintf('s%s-%.6d.img', strip_unwanted(hdr{1}.PatientID),hdr{1}.InstanceNumber);
 end;

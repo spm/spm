@@ -13,7 +13,7 @@ function VO = spm_bias_apply(V,T)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_bias_apply.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_bias_apply.m 184 2005-05-31 13:23:32Z john $
 
 
 if ischar(V),
@@ -39,7 +39,7 @@ if nargout==0,
 	%VO.fname      = ['m' nm xt vr];
 	VO.pinfo       = [1 0 0]';
 	VO             = spm_create_vol(VO);
-else,
+else
 	VO.fname       = 'bias_corrected.img';
 	VO.pinfo       = [1 0]';
 	VO.dat(1,1,1)  = single(0);
@@ -54,7 +54,7 @@ for p=1:V.dim(3),
 	img = img.*exp(B1*t*B2');
 	if nargout==0,
 		VO  = spm_write_plane(VO,img,p);
-	else,
+    else
 		VO.dat(:,:,p) = single(img);
 	end;
 end;

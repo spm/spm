@@ -4,7 +4,7 @@ function extras = read_extras(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_extras.m 178 2005-05-25 11:53:51Z john $
+% $Id: read_extras.m 184 2005-05-31 13:23:32Z john $
 
 
 extras = struct;
@@ -18,6 +18,6 @@ otherwise
     mname = fullfile(pth,[nam '.mat']);
 end
 
-if exist(mname) == 2,
+if exist(mname,'file'),
     extras = load(mname);
 end;

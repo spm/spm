@@ -22,7 +22,7 @@ function spm_mask(P1,P2, thresh)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mask.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_mask.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin==0,
@@ -33,10 +33,10 @@ if nargin==1,
 	P2 = P1;
 end;
 if nargin==4,
-	if prod(size(thresh))==1,
-		thresh = ones(prod(size(P1)),1)*thresh;
-	else,
-		if prod(size(P1)) ~= prod(size(thresh)),
+	if numel(thresh)==1,
+		thresh = ones(numel(P1),1)*thresh;
+    else
+		if numel(P1) ~= numel(thresh),
 			error('thresh vector is wrong size.');
 		end;
 		thresh=thresh(:);
@@ -46,13 +46,13 @@ end;
 V1=spm_vol(P1);
 V2=spm_vol(P2);
 
-m1=prod(size(V1));
-m2=prod(size(V2));
+m1=numel(V1);
+m2=numel(V2);
 
 % Create headers
 VO=V2;
 for i=1:m2,
-	[pth,nm,ext,num] = spm_fileparts(deblank(VO(i).fname));
+	[unused,nm,ext,num] = spm_fileparts(deblank(VO(i).fname));
 	VO(i).fname    = ['m', nm, ext, num];
 	VO(i).descrip  = 'Masked';
 	VO(i).mat      = VO(1).mat;
@@ -77,10 +77,10 @@ for j=1:dim(3),
 		if nargin<3
 			if ~spm_type(V1(i).dt(1),'nanrep'),
 				msk = msk + (img~=0 & finite(img));
-			else,
+            else
 				msk = msk + finite(img);
 			end;
-		else,
+        else
 			msk = msk + (img>=thresh & finite(img));
 		end;
 	end;

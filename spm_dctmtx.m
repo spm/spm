@@ -19,7 +19,7 @@ function C = spm_dctmtx(N,K,n,f)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dctmtx.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dctmtx.m 184 2005-05-31 13:23:32Z john $
 
 
 d = 0;
@@ -66,7 +66,7 @@ elseif d == 2,
 	for k=2:K,
 		C(:,k) = -2^(1/2)*(1/N)^(1/2)*cos(1/2*pi*(2*n+1)*(k-1)/N)*pi^2*(k-1)^2/N^2;
 	end;
-else,
+else
 	error('Can''t do this');
 end
 

@@ -7,7 +7,7 @@ function [x] = spm_load(f)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_load.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_load.m 184 2005-05-31 13:23:32Z john $
 
 
 
@@ -40,7 +40,7 @@ function x = getdata(s)
 x = [];
 f = fieldnames(s);
 for i = 1:length(f)
-    x = getfield(s,f{i});
+    x = s.(f{i});
     if isnumeric(x),return;         end
     if isstruct(x), x = getdata(x); end
 end

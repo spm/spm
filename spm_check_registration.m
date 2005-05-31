@@ -11,7 +11,7 @@ function spm_check_registration(images)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_check_registration.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_check_registration.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin==0,
@@ -24,7 +24,7 @@ elseif nargin==1,
 		if isempty(fg),
 			error('Cant create graphics window');
 		end;
-	else,
+    else
 		spm_figure('Clear','Graphics');
 	end;
 	if ischar(images), images=spm_vol(images); end;
@@ -43,6 +43,6 @@ elseif nargin==1,
 		if ij==1, spm_orthviews('Space'); end;
 		spm_orthviews('AddContext',handle(ij));
 	end;
-else,
+else
 	error('Incorrect Usage');
 end;

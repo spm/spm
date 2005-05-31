@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_defs.m 184 2005-05-31 13:23:32Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -99,7 +99,7 @@ of  = -vox.*(round(-bb(1,:)./vox)+1);
 M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
 mat = sn.VG(1).mat*inv(M1)*M2;
-dim = [length(x) length(y) length(z)];
+% dim = [length(x) length(y) length(z)];
 
 [X,Y] = ndgrid(x,y);
 
@@ -107,10 +107,10 @@ st = size(sn.Tr);
 
 if (prod(st) == 0),
     affine_only = true;
-    basX = 0; tx = 0;
-    basY = 0; ty = 0;
-    basZ = 0; tz = 0;
-else,
+    basX = 0;
+    basY = 0;
+    basZ = 0;
+else
     affine_only = false;
     basX = spm_dctmtx(sn.VG(1).dim(1),st(1),x-1);
     basY = spm_dctmtx(sn.VG(1).dim(2),st(2),y-1);
@@ -161,7 +161,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [Def,mat] = get_def(job)
+function Def = get_def(job)
 % Load a deformation field saved as an image
 
 P      = [repmat(job{:},3,1), [',1,1';',1,2';',1,3']];
@@ -223,7 +223,7 @@ function apply_def(Def,mat,fnames)
 for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
     M = inv(V.mat);
-    [pth,nam,ext,num] = spm_fileparts(fnames(i,:));
+    [pth,nam,ext] = spm_fileparts(fnames(i,:));
     ofname = ['w',nam,ext];
     Vo = struct('fname',ofname,...
                 'dim',[size(Def{1},1) size(Def{1},2) size(Def{1},3)],...

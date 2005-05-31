@@ -4,7 +4,7 @@ function d = getdict
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: getdict.m 174 2005-05-24 11:03:32Z john $
+% $Id: getdict.m 184 2005-05-31 13:23:32Z john $
 
 
 persistent dict;
@@ -115,7 +115,7 @@ table = {...
 units = struct('code',table(:,1),'label',table(:,3),'rescale',table(:,2));
 
 % Reference space
-code  = {0,1,2,3,4};
+% code  = {0,1,2,3,4};
 table = {...
     0,'UNKNOWN'
     1,'Scanner Anat'

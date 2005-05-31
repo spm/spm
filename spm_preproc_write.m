@@ -1,7 +1,7 @@
-function spm_preproc_apply(p,opts)
+function spm_preproc_write(p,opts)
 % Write out VBM preprocessed data
-% FORMAT spm_preproc_apply(p,opts)
-% p    - results from spm_preproc
+% FORMAT spm_preproc_write(p,opts)
+% p    - results from spm_prep2sn
 % opts - writing options.  A struct containing these fields:
 %        biascor - write bias corrected image
 %        GM      - flags for which images should be written
@@ -11,7 +11,7 @@ function spm_preproc_apply(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_preproc_write.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin==1,

@@ -14,7 +14,7 @@ function [J] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_diff.m 184 2005-05-31 13:23:32Z john $
 
 
 
@@ -72,12 +72,12 @@ if length(n) == 1
 
     % if f and x{n} are vectors 
     %----------------------------------------------------------------------
-    if min(size(f0)) == 1 & min(size(x{n})) == 1
+    if min(size(f0)) == 1 && min(size(x{n})) == 1
         J = spm_cat(J(:)');
 
     % if f or x{n} are scalars 
     %----------------------------------------------------------------------
-    elseif length(f0) == 1 | length(x{n}) == 1
+    elseif length(f0) == 1 || length(x{n}) == 1
         J = spm_cat(J);
     end
 end

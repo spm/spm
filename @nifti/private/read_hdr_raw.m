@@ -8,7 +8,7 @@ function [hdr,be] = read_hdr_raw(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr_raw.m 174 2005-05-24 11:03:32Z john $
+% $Id: read_hdr_raw.m 184 2005-05-31 13:23:32Z john $
 
 
 hdr = [];
@@ -30,7 +30,6 @@ end;
 fp  = fopen(hname,'r','native');
 if fp==-1
     hdr = [];
-    ok  = false;
     return;
 end;
 
@@ -47,7 +46,6 @@ nd = fread(fp,1,'int16')';
 if isempty(nd),
     fclose(fp);
     hdr = [];
-    ok  = false;
     return;
 elseif nd<1 || nd>7
     be = ~be;
@@ -58,7 +56,6 @@ elseif nd<1 || nd>7
     fp = fopen(hname,'r',mach);
     if fp==-1
         hdr = [];
-        ok  = false;
         return;
     end;
 end;

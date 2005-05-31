@@ -1,4 +1,4 @@
-function [y] = spm_detrend(x,p);
+function [y] = spm_detrend(x,p)
 % polynomial detrending over columns
 % FORMAT [y] = spm_detrend(x,p)
 %___________________________________________________________________________
@@ -13,7 +13,7 @@ function [y] = spm_detrend(x,p);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_detrend.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_detrend.m 184 2005-05-31 13:23:32Z john $
 
 
 % defaults
@@ -38,7 +38,7 @@ end
 %---------------------------------------------------------------------------
 G     = [];
 for i = 0:p
-	d = [1:m].^i;
+	d = (1:m).^i;
 	G = [G d(:)];
 end
 y     = x - G*(pinv(G)*x);

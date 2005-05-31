@@ -170,7 +170,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 166 2005-05-18 15:46:13Z john $
+% $Id: spm_uw_estimate.m 184 2005-05-31 13:23:32Z john $
 
 
 global defaults
@@ -719,7 +719,7 @@ for i=1:length(P)
    end;
    c     = spm_bsplinc(P(i),ds.hold);
    f     = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds.hold);
-   if ds.jm ~= 0 & exist('jac')==1
+   if ds.jm ~= 0 && exist('jac')==1
       f = f .* jac;
    end
    indx  = find(~isnan(f));
@@ -813,7 +813,7 @@ return
 function cleanup(P,ds)
 % Delete temporary smooth files.
 %
-if ~isempty(ds.fwhm) & ds.fwhm > 0
+if ~isempty(ds.fwhm) && ds.fwhm > 0
    for i=1:length(P)
       spm_unlink(P(i).fname);
       [fpath,fname,ext] = fileparts(P(i).fname);
@@ -840,7 +840,7 @@ p(2)    = -mean(1:rsP.dim(2))*p(8);
 p(3)    = -mean(1:rsP.dim(3))*p(9);
 rsP.mat = spm_matrix(p); clear p;
 [x,y,z] = ndgrid(1:rsP.dim(1),1:rsP.dim(2),1:rsP.dim(3));
-xyz     = [x(:) y(:) z(:) ones(prod(size(x)),1)];
+xyz     = [x(:) y(:) z(:) ones(numel(x),1)];
 txyz    = ((inv(dispP.mat)*rsP.mat)*xyz')';
 Bx      = spm_dctmtx(rsP.dim(1),ds.order(1));
 By      = spm_dctmtx(rsP.dim(2),ds.order(2));
@@ -848,7 +848,7 @@ Bz      = spm_dctmtx(rsP.dim(3),ds.order(3));
 nx      = rsP.dim(1); mx = ds.order(1);
 ny      = rsP.dim(2); my = ds.order(2);
 nz      = rsP.dim(3); mz = ds.order(3);
-nof     = prod(size(ds.fot)) + size(ds.sot,1);
+nof     = numel(ds.fot) + size(ds.sot,1);
 for i=1:nof
    dispP.dat   = reshape(def(:,i),dispP.dim(1:3));
    c           = spm_bsplinc(dispP,ds.hold);
@@ -886,7 +886,7 @@ function msk = get_mask(P,xyz,ds,dm)
 % parameters and movement-by-susceptibility effects.
 %
 spm_uw_show('MaskStart',length(P));
-msk = logical(ones(length(xyz),1));
+msk = true(length(xyz),1);
 for i=1:length(P)
    txyz = xyz * (P(i).mat\ds.M)';
    tmsk = (txyz(:,1)>=1 & txyz(:,1)<=P(1).dim(1) &...
@@ -899,7 +899,7 @@ end
 % Include static field in mask estimation
 % if one has been supplied.
 %
-if isfield(ds,'sfP') & ~isempty(ds.sfP)
+if isfield(ds,'sfP') && ~isempty(ds.sfP)
    txyz = xyz * (ds.sfP.mat\ds.M)';
    tmsk = (txyz(:,1)>=1 & txyz(:,1)<=P(1).dim(1) &...
            txyz(:,2)>=1 & txyz(:,2)<=P(1).dim(2) &...

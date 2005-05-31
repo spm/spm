@@ -5,7 +5,7 @@ function Q = M2Q(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: M2Q.m 174 2005-05-24 11:03:32Z john $
+% $Id: M2Q.m 184 2005-05-31 13:23:32Z john $
 
 
 d = diag(M(1:3,1:3));
@@ -13,7 +13,7 @@ t = sum(d) + 1;
 if t>0.5,
     s = sqrt(t)*2;
     Q = [(M(3,2)-M(2,3))/s (M(1,3)-M(3,1))/s (M(2,1)-M(1,2))/s 0.25*s]';
-else,
+else
     t = find(d==max(d));
     t = t(1);
     switch(t),

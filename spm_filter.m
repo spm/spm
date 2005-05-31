@@ -26,13 +26,13 @@ function [argout] = spm_filter(K,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_filter.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_filter.m 184 2005-05-31 13:23:32Z john $
 
 
 
 % set or apply
 %---------------------------------------------------------------------------
-if nargin == 1 & isstruct(K)
+if nargin == 1 && isstruct(K)
 
 	% set K.X0
 	%-------------------------------------------------------------------

@@ -9,7 +9,7 @@ function ok = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: write_hdr_raw.m 174 2005-05-24 11:03:32Z john $
+% $Id: write_hdr_raw.m 184 2005-05-31 13:23:32Z john $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -24,7 +24,7 @@ if isfield(hdr,'magic')
     otherwise
         error('Bad header.');
     end;
-else,
+else
     org   = mayostruc;
     hname = fullfile(pth,[nam '.hdr']);
 end;
@@ -52,11 +52,11 @@ for i=1:length(org)
         if length(dat) ~= org(i).len,
             if length(dat)< org(i).len,
                 dat = [dat(:) ; zeros(org(i).len-length(dat),1)];
-            else,
+            else
                 dat = dat(1:org(i).len);
             end;
         end;
-    else,
+    else
         dat = org(i).def;
     end;
     % fprintf('%s=\n',org(i).label)

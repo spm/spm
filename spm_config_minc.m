@@ -4,7 +4,7 @@ function opts = spm_config_minc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_minc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_minc.m 184 2005-05-31 13:23:32Z john $
 
 %_______________________________________________________________________
 
@@ -47,7 +47,7 @@ opts.name = 'MINC Import';
 opts.tag  = 'minc';
 opts.val  = {data,op1};
 opts.prog = @convert_minc;
-%opts.vfiles = @vfiles;
+opts.vfiles = @vfiles;
 opts.help = {[...
 'MINC Conversion.  MINC is the image data format used for exchanging data '...
 'within the ICBM community, and the format used by the MNI software tools. '...

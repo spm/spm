@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 183 2005-05-31 13:20:19Z will $
+% $Id: spm_design_contrasts.m 184 2005-05-31 13:23:32Z john $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -36,8 +36,9 @@ icon=spm_make_contrasts(kf);
 
 % Get number of basis functions per condition
 nbases=SPM.xBF.order;
+
 % Number of regressors in first session
-k=length(SPM.Sess(1).col);
+%k=length(SPM.Sess(1).col);
 
 for c=1:length(icon),
     con(c).c=kron(icon(c).c,eye(nbases));

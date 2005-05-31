@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_image.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_image.m 184 2005-05-31 13:23:32Z john $
 
 
 global st
 
 if nargin == 0,
-	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Display',0);
-	SPMid  = spm('FnBanner',mfilename,'$Rev: 112 $');
+	spm('FnUIsetup','Display',0);
+	spm('FnBanner',mfilename,'$Rev: 184 $');
 	spm_help('!ContextHelp',[mfilename,'.m']);
 
 	% get the image's filename {P}
@@ -71,7 +71,7 @@ if nargin == 0,
 end;
 
 try
-	if ~strcmp(op,'init') & ~strcmp(op,'reset') & isempty(st.vols{1})
+	if ~strcmp(op,'init') && ~strcmp(op,'reset') && isempty(st.vols{1})
 		my_reset; warning('Lost all the image information');
 		return;
 	end;
@@ -99,15 +99,15 @@ if strcmp(op,'shopos'),
 	if isfield(st,'mp'),
 		fg  = spm_figure('Findwin','Graphics');
 		if any(findobj(fg) == st.mp),
-		set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('pos')));
-		pos = spm_orthviews('pos',1);
-		set(st.vp,'String',sprintf('%.1f %.1f %.1f',pos));
-		set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),st.hld)));
-		else,
+            set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('pos')));
+            pos = spm_orthviews('pos',1);
+            set(st.vp,'String',sprintf('%.1f %.1f %.1f',pos));
+            set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),st.hld)));
+        else
 			st.Callback = ';';
-			rmfield(st,{'mp','vp','in'});
+			st = rmfield(st,{'mp','vp','in'});
 		end;
-	else,
+    else
 		st.Callback = ';';
 	end;
 	return;
@@ -172,7 +172,7 @@ if strcmp(op,'window'),
 	op = get(st.win,'Value');
 	if op == 1,
 		spm_orthviews('window',1);
-	else,
+    else
 		spm_orthviews('window',1,spm_input('Range','+1','e','',2));
 	end;
 end;
@@ -213,7 +213,6 @@ if strcmp(op,'resetorient'),
 	% I hope that giving people this facility is the right thing to do....
 	%-----------------------------------------------------------------------
 	P = spm_select(Inf, 'image','Images to reset orientation of');
-	V = spm_vol(P);
 	spm_progress_bar('Init',size(P,1),'Resetting orientations',...
 		'Images Complete');
 	for i=1:size(P,1),
@@ -254,18 +253,18 @@ if strcmp(op,'update_info'),
 	R = spm_matrix([0 0 0 R(4:6)]);
 	R = R(1:3,1:3);
 
-	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(find(tmp2=='+')) = ' ';
+	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(tmp2=='+') = ' ';
 	set(st.posinf.m1, 'String', tmp2);
-	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(find(tmp2=='+')) = ' ';
+	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(tmp2=='+') = ' ';
 	set(st.posinf.m2, 'String', tmp2);
-	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(find(tmp2=='+')) = ' ';
+	tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(tmp2=='+') = ' ';
 	set(st.posinf.m3, 'String', tmp2);
 
 	tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
 
 	if sum(tmp(:).^2)>1e-8,
 		set(st.posinf.w, 'String', 'Warning: shears involved');
-	else,
+    else
 		set(st.posinf.w, 'String', '');
 	end;
 
@@ -281,7 +280,7 @@ if strcmp(op,'zoom_in'),
 	if op==1,
 		spm_orthviews('resolution',1);
 		spm_orthviews('MaxBB');
-	else,
+    else
 		vx = sqrt(sum(st.Space(1:3,1:3).^2));
 		vx = vx.^(-1);
 		pos = spm_orthviews('pos');
@@ -291,7 +290,7 @@ if strcmp(op,'zoom_in'),
 		elseif op == 3, st.bb = [pos-40*vx ; pos+40*vx] ; spm_orthviews('resolution',.5);
 		elseif op == 4, st.bb = [pos-20*vx ; pos+20*vx] ; spm_orthviews('resolution',.25);
 		elseif op == 5, st.bb = [pos-10*vx ; pos+10*vx] ; spm_orthviews('resolution',.125);
-		else          , st.bb = [pos- 5*vx ; pos+ 5*vx] ; spm_orthviews('resolution',.125);
+        else            st.bb = [pos- 5*vx ; pos+ 5*vx] ; spm_orthviews('resolution',.125);
 		end;
 	end;
 	return;
@@ -385,7 +384,7 @@ str = 'varied';
 if size(st.vols{1}.pinfo,2) == 1,
 	if st.vols{1}.pinfo(2),
 		str = sprintf('Y = %g X + %g', st.vols{1}.pinfo(1:2)');
-	else,
+    else
 		str = sprintf('Y = %g X', st.vols{1}.pinfo(1)');
 	end;
 end;
@@ -420,13 +419,13 @@ R = R(1:3,1:3);
 
 uicontrol(fg,'Style','Text','Position' ,[310 170 100 016].*WS,...
 	'HorizontalAlignment','right', 'String', 'Dir Cos:');
-tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(find(tmp2=='+')) = ' ';
+tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(tmp2=='+') = ' ';
 st.posinf.m1 = uicontrol(fg,'Style','Text','Position' ,[410 170 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
-tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(find(tmp2=='+')) = ' ';
+tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(tmp2=='+') = ' ';
 st.posinf.m2 = uicontrol(fg,'Style','Text','Position' ,[410 150 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
-tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(find(tmp2=='+')) = ' ';
+tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(tmp2=='+') = ' ';
 st.posinf.m3 = uicontrol(fg,'Style','Text','Position' ,[410 130 160 016].*WS,...
 	'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
 

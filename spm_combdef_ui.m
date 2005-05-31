@@ -4,10 +4,11 @@ function spm_combdef_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_combdef_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_combdef_ui.m 184 2005-05-31 13:23:32Z john $
 
 
-P = spm_select(Inf,'.*y_.*\.img$',['Select deformation fields']);
+P = spm_select(Inf,'.*y_.*\.img$','Select deformation fields');
+V = cell(size(P,1),1);
 for i=1:size(P,1),
 	V{i}   = spm_vol([repmat([deblank(P(i,:)) ','],3,1) num2str([1 2 3]')]);
 end;

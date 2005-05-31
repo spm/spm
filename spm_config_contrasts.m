@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_contrasts.m 184 2005-05-31 13:23:32Z john $
 
 
 %_______________________________________________________________________
@@ -48,15 +48,15 @@ fconvecs.type = 'repeat';
 fconvecs.name = 'Contrast vectors';
 fconvecs.tag  = 'convecs';
 fconvecs.values = {fconvec};
-fconvecs.help = {[...
-'F contrasts are defined by a series of vectors.']};
+fconvecs.help = {...
+'F contrasts are defined by a series of vectors.'};
 
 tcon.type   = 'branch';
 tcon.name   = 'T-contrast';
 tcon.tag    = 'tcon';
 tcon.val    = {name,tconvec};
-tcon.help = {[...
-'* Simple one-dimensional contrasts for an SPM{T}'],'',[...
+tcon.help = {...
+'* Simple one-dimensional contrasts for an SPM{T}','',[...
 'A simple contrast for an SPM{T} tests the null hypothesis c''B=0 ',...
 'against the one-sided alternative c''B>0, where c is a column vector. '],'',[...
 '    Note that throughout SPM, the transpose of the contrast weights is ',...
@@ -394,7 +394,7 @@ job = varargin{1};
 %------------------------------------------------------------
 if ~isempty(job)
     try
-        [pth fn] = fileparts(job.spmmat{:});
+        pth = fileparts(job.spmmat{:});
     cd(char(pth));
     fprintf('   Changing directory to: %s\n',char(pth));
     catch

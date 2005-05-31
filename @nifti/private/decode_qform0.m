@@ -4,7 +4,7 @@ function M = decode_qform0(hdr)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: decode_qform0.m 174 2005-05-24 11:03:32Z john $
+% $Id: decode_qform0.m 184 2005-05-31 13:23:32Z john $
 
 
 dim    = double(hdr.dim);
@@ -21,13 +21,13 @@ if ~isfield(hdr,'magic') || hdr.qform_code <= 0,
     %end;
     %disp('------------------------------------------------------');
 
-    R      = eye(4);
+    %R     = eye(4);
     n      = min(dim(1),3);
     vox    = [pixdim(2:(n+1)) ones(1,3-n)];
 
     if ~isfield(hdr,'origin') || ~any(hdr.origin(1:3)),
        origin = (dim(2:4)+1)/2;
-    else,
+    else
         origin = double(hdr.origin(1:3));
     end;
     off     = -vox.*origin;

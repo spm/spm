@@ -21,16 +21,18 @@ function T = spm_bias_estimate(V,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_bias_estimate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_bias_estimate.m 184 2005-05-31 13:23:32Z john $
 
 
 def_flags = struct('nbins',256,'reg',0.01,'cutoff',30);
 if nargin < 2,
         flags = def_flags;
-else,
+else
         fnms = fieldnames(def_flags);
         for i=1:length(fnms),
-                if ~isfield(flags,fnms{i}), flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i})); end;
+                if ~isfield(flags,fnms{i}),
+                    flags.(fnms{i}) = def_flags.(fnms{i});
+                end;
         end;
 end;
 
@@ -49,10 +51,10 @@ B3      = spm_dctmtx(V(1).dim(3),nbas(3));
 
 [T,IC0] = get_priors(V,nbas,reg,4);
 IC0     = IC0(2:end,2:end);
-tmp     = diag(IC0);
-tmp     = tmp(tmp>0);
-offset  = 0.5*(log(2*pi)*length(tmp) + sum(log(tmp)));
-offset = 0;
+%tmp     = diag(IC0);
+%tmp     = tmp(tmp>0);
+%offset = 0.5*(log(2*pi)*length(tmp) + sum(log(tmp)));
+offset  = 0;
 fprintf('*** %s ***\nmax = %g, Bases = %dx%dx%d\n', V.fname, mx, nbas);
 
 olpp     = Inf;
@@ -72,9 +74,9 @@ for iter = 1:128,
 	T     = (Alpha + IC0)\(Alpha*T - Beta);
 	T     = reshape([0 ; T],nbas);
 
-	[pth,nm,xt,vr] = fileparts(deblank(V.fname));
-	S              = fullfile(pth,['bias_' nm '.mat']);
-	%S             = ['bias_' nm '.mat'];
+	[pth,nm] = fileparts(deblank(V.fname));
+	S        = fullfile(pth,['bias_' nm '.mat']);
+	%S       = ['bias_' nm '.mat'];
 	save(S,'V','T','h');
 	fprintf('%g %g\n', ll, lp);
 

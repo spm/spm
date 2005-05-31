@@ -38,20 +38,20 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_affreg.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_affreg.m 184 2005-05-31 13:23:32Z john $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
 if nargin<4, M    = eye(4);             end;
 
 def_flags = struct('sep',5, 'regtype','subj','WG',[],'WF',[],'globnorm',1,'debug',0);
-if nargin < 2 | ~isstruct(flags),
+if nargin < 2 || ~isstruct(flags),
 	flags = def_flags;
-else,
+else
 	fnms = fieldnames(def_flags);
 	for i=1:length(fnms),
 		if ~isfield(flags,fnms{i}),
-			flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
+			flags.(fnms{i}) = def_flags.(fnms{i});
 		end;
 	end;
 end;
@@ -75,7 +75,7 @@ if ~isempty(flags.WG),
 		error('Can only use one template weighting image');
 	end;
 	tmp = reshape(cat(3,VG(:).mat,flags.WG.mat),16,length(VG)+length(flags.WG));
-else,
+else
 	tmp = reshape(cat(3,VG(:).mat),16,length(VG));
 end;
 if any(any(diff(tmp,1,2))),
@@ -83,7 +83,7 @@ if any(any(diff(tmp,1,2))),
 end;
 if ~isempty(flags.WG),
 	tmp = cat(1,VG(:).dim,flags.WG.dim);
-else,
+else
 	tmp = cat(1,VG(:).dim);
 end;
 if any(any(diff(tmp(:,1:3),1,1))),
@@ -180,16 +180,16 @@ for iter=1:256,
 
 		% Get weights
 		% ---------------------------------------------------------------
-		if ~isempty(flags.WF) | ~isempty(flags.WG),
+		if ~isempty(flags.WF) || ~isempty(flags.WG),
 			if isempty(flags.WF),
 				wt = WG(msk);
-			else,
+            else
 				wt = spm_sample_vol(flags.WF(1), t1,t2,t3,1)+eps;
 				if ~isempty(flags.WG), wt = 1./(1./wt + 1./WG(msk)); end;
 			end;
 			wt = sparse(1:length(wt),1:length(wt),wt);
-		else,
-			wt = speye(length(msk));
+        else
+			% wt = speye(length(msk));
 			wt = [];
 		end;
 		% ---------------------------------------------------------------
@@ -202,7 +202,7 @@ for iter=1:256,
 		Beta  = Beta  + R'*Ab;
 		ss    = ss    + ss1;
 		n     = n     + n1;
-		t     = G(msk) - (1/scal)*t;
+		% t     = G(msk) - (1/scal)*t;
 	end;
 
 	if 1,
@@ -232,15 +232,15 @@ for iter=1:256,
 
 		% Get weights
 		% ---------------------------------------------------------------
-		if ~isempty(flags.WF) | ~isempty(flags.WG),
+		if ~isempty(flags.WF) || ~isempty(flags.WG),
 			if isempty(flags.WG),
 				wt = WF(msk);
-			else,
+            else
 				wt = spm_sample_vol(flags.WG(1), t1,t2,t3,1)+eps;
 				if ~isempty(flags.WF), wt = 1./(1./wt + 1./WF(msk)); end;
 			end;
 			wt = sparse(1:length(wt),1:length(wt),wt);
-		else,
+        else
 			wt = speye(length(msk));
 		end;
 		% ---------------------------------------------------------------
@@ -257,7 +257,7 @@ for iter=1:256,
 			end;
 			dss   = [ds1'*wt*ds1 ds2'*wt*ds2 ds3'*wt*ds3];
 			clear ds1 ds2 ds3
-		else,
+        else
 			for i=1:length(VG),
 				t(:,i)= spm_sample_vol(VG(i), t1,t2,t3,1);
 			end;
@@ -286,7 +286,7 @@ for iter=1:256,
 		W      = (2*dss/ss2).^(-.5).*vx;
 		W      = min(pW,W);
 		if flags.debug, fprintf('\nSmoothness FWHM:  %.3g x %.3g x %.3g mm\n', W*sqrt(8*log(2))); end;
-		if length(VG)==1, dens=2; else, dens=1; end;
+		if length(VG)==1, dens=2; else dens=1; end;
 		smo    = prod(min(dens*flags.sep/sqrt(2*pi)./W,[1 1 1]));
 		est_smo=0;
 		n_main_its = n_main_its + 1;
@@ -331,7 +331,7 @@ t1 = Mat(1:3,1:3);
 t2 = eye(3);
 if sum((t1(:)-t2(:)).^2) < 1e-12,
         X1 = X;Y1 = Y; Z1 = Z;
-else,
+else
         X1    = Mat(1,1)*X + Mat(1,2)*Y + Mat(1,3)*Z;
         Y1    = Mat(2,1)*X + Mat(2,2)*Y + Mat(2,3)*Z;
         Z1    = Mat(3,1)*X + Mat(3,2)*Y + Mat(3,3)*Z;
@@ -492,7 +492,7 @@ for i=1:ceil(lm/chunk),
 		ss    = ss  + b1'*wt1*b1;
 		n     = n   + trace(wt1);
 		clear wt1
-	else,
+    else
 		AA    = AA  + spm_atranspa(A1);
 		%Ab   = Ab  + A1'*b1;
 		Ab    = Ab  + (b1'*A1)';
@@ -513,7 +513,6 @@ str = {	'There is not enough overlap in the images',...
 	'Please check that your header information is OK.'};
 spm('alert*',str,mfilename,sqrt(-1));
 error('insufficient image overlap')
-return
 %_______________________________________________________________________
 
 %_______________________________________________________________________

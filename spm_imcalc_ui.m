@@ -89,14 +89,14 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_imcalc_ui.m 184 2005-05-31 13:23:32Z john $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 112 $';
+SCCSid = '$Rev: 184 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
-SPMid = spm('FnBanner',mfilename,SCCSid);
+spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])
 
 %-Condition arguments
@@ -111,13 +111,13 @@ if isempty(P), error('no input images specified'), end
 if isempty(Q), Q = spm_input('Output filename',1,'s'); end
 if isempty(f), f = spm_input('Evaluated Function',2,'s'); end
 
-if length(flags)<4, hold=[]; else, hold=flags{4}; end
+if length(flags)<4, hold=[]; else hold=flags{4}; end
 if isempty(hold), hold=0; end
-if length(flags)<3, type=[]; else, type=flags{3}; end
+if length(flags)<3, type=[]; else type=flags{3}; end
 if isempty(type), type=4; end, if ischar(type), type=spm_type(type); end
-if length(flags)<2, mask=[]; else, mask=flags{2}; end
+if length(flags)<2, mask=[]; else mask=flags{2}; end
 if isempty(mask), mask=0; end
-if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
+if length(flags)<1, dmtx=[]; else dmtx=flags{1}; end
 if isempty(dmtx), dmtx=0; end
 
 spm('FigName','ImCalc: working',Finter,CmdLine);
@@ -130,12 +130,14 @@ if isempty(Vi), error('no input images specified'), end
 
 %-Check for consistency of image dimensions and orientation / voxel size
 %-----------------------------------------------------------------------
-if length(Vi)>1 & any(any(diff(cat(1,Vi.dim),1,1),1))
+if length(Vi)>1 && any(any(diff(cat(1,Vi.dim),1,1),1))
 	warning(['images don''t all have same dimensions',...
-		' - using those of 1st image']), end
+		' - using those of 1st image']);
+end
 if any(any(any(diff(cat(3,Vi.mat),1,3),3)))
 	warning(['images don''t all have same orientation & voxel size',...
-		' - using 1st image']), end
+		' - using 1st image']);
+end
 
 
 %-Work out filename for output image
@@ -149,7 +151,7 @@ end
 Q = spm_select('CPath',Qfil,Qdir);
 
 Vo = struct(	'fname',	Q,...
-		'dim',		[Vi(1).dim(1:3)],...
+		'dim',		Vi(1).dim(1:3),...
 		'dt',		[type spm_platform('bigend')],...
 		'mat',		Vi(1).mat,...
 		'descrip',	'spm - algebra');

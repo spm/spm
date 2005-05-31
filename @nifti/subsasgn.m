@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 174 2005-05-24 11:03:32Z john $
+% $Id: subsasgn.m 184 2005-05-31 13:23:32Z john $
 
 
 switch subs(1).type,
@@ -79,7 +79,7 @@ case {'.'},
         end;
 
         if isempty(obj.hdr), obj.hdr = empty_hdr; end;
-        if ~isfield(obj.hdr,'magic') error('Not a NIFTI-1 header'); end;
+        if ~isfield(obj.hdr,'magic'), error('Not a NIFTI-1 header'); end;
 
         if length(subs)>1, % && ~strcmpi(subs(1).subs,{'raw','dat'}),
             val0 = subsref(class(obj,'nifti'),subs(1));
@@ -218,7 +218,7 @@ case {'.'},
                         obj.hdr.end_slice      = 0;
                         obj.hdr.slice_duration = 0;
                     else
-                        sld = double(bitget(obj.hdr.dim_info,5)) + 2*double(bitget(obj.hdr.dim_info,6));
+                        % sld = double(bitget(obj.hdr.dim_info,5)) + 2*double(bitget(obj.hdr.dim_info,6));
 
                         if isfield(tim,'start'),
                             ss = double(tim.start);

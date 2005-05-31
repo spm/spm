@@ -39,21 +39,20 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_imcalc.m 184 2005-05-31 13:23:32Z john $
 
 
 
 %-Parameters & arguments
 %=======================================================================
-if nargin==0, sf=spm_imcalc_ui; return, end
 if nargin<3, error('insufficient arguments'), end
 if nargin<4, flags={}; end
 
-if length(flags)<3, hold=[]; else, hold=flags{3}; end
+if length(flags)<3, hold=[]; else hold=flags{3}; end
 if isempty(hold), hold=0; end
-if length(flags)<2, mask=[]; else, mask=flags{2}; end
+if length(flags)<2, mask=[]; else mask=flags{2}; end
 if isempty(mask), mask=0; end
-if length(flags)<1, dmtx=[]; else, dmtx=flags{1}; end
+if length(flags)<1, dmtx=[]; else dmtx=flags{1}; end
 if isempty(dmtx), dmtx=0; end
 
 
@@ -75,7 +74,7 @@ end
 %=======================================================================
 %-Computation
 %=======================================================================
-n   = prod(size(Vi));			%-#images
+n   = numel(Vi);                %-#images
 if n==0, error('no input images specified'), end
 Y   = zeros(Vo.dim(1:3));		%-result of calculations
 
@@ -95,12 +94,12 @@ for p = 1:Vo.dim(3),
 		M = inv(B*inv(Vo.mat)*Vi(i).mat);
 		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),[hold,NaN]);
 		if (mask<0), d(isnan(d))=0; end;
-		if (mask>0) & ~spm_type(Vi(i).dt(1),'nanrep'), d(d==0)=NaN; end
-		if dmtx, X(i,:) = d(:)'; else, eval(['i',num2str(i),'=d;']); end
+		if (mask>0) && ~spm_type(Vi(i).dt(1),'nanrep'), d(d==0)=NaN; end
+		if dmtx, X(i,:) = d(:)'; else eval(['i',num2str(i),'=d;']); end
 	end
 
 	eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
-	if (prod(Vo.dim(1:2)) ~= prod(size(Yp)))
+	if prod(Vo.dim(1:2)) ~= numel(Yp),
 		error(['"',f,'" produced incompatible image.']); end
 	if (mask<0), Yp(isnan(Yp))=0; end
 	Y(:,:,p) = reshape(Yp,Vo.dim(1:2));

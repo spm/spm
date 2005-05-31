@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 174 2005-05-24 11:03:32Z john $
+% $Id: spm_dicom_headers.m 184 2005-05-31 13:23:32Z john $
 
 
 ver = sscanf(version,'%d');
@@ -51,7 +51,7 @@ if ~strcmp(dcm,'DICM'),
 	tag.group   = fread(fp,1,'ushort');
 	tag.element = fread(fp,1,'ushort');
 	if isempty(tag.group) || isempty(tag.element),
-		warning(sprintf('Truncated file "%s"',P));
+		warning('Truncated file "%s"',P);
 		return;
 	end;
 	%t          = dict.tags(tag.group+1,tag.element+1);
@@ -111,7 +111,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 				return;
 			case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
 				%warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
-				flg = 'eb';
+				flg = 'eb'; % Unused
 			otherwise,
 				warning(['Unknown Transfer Syntax UID for "' fopen(fp) '".']);
 				return;
@@ -401,7 +401,7 @@ if n>128 || n < 0,
 	t = struct('junk','Don''t know how to read this damned file format');
 	return;
 end;
-xx  = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
+unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 tot = 2*4;
 for i=1:n,
 	t(i).name    = fread(fp,64,'char')';
@@ -437,15 +437,15 @@ return;
 
 %_______________________________________________________________________
 function t = decode_csa2(fp,lim)
-c   = fread(fp,4,'char'); % Unused
-n   = fread(fp,4,'char'); % Unused
+unused = fread(fp,4,'char'); % Unused
+unused = fread(fp,4,'char'); % Unused
 n   = fread(fp,1,'uint32');
 if n>128 || n < 0,
 	fseek(fp,lim-4,'cof');
 	t = struct('junk','Don''t know how to read this damned file format');
 	return;
 end;
-xx  = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
+unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 for i=1:n,
 	t(i).name    = fread(fp,64,'char')';
 	msk          = find(~t(i).name)-1;

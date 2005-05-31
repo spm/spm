@@ -11,7 +11,7 @@ function [x] = spm_vec(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_vec.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vec.m 184 2005-05-31 13:23:32Z john $
 
 
 % de-reference input cell if possible
@@ -27,7 +27,7 @@ if isstruct(x)
     f = fieldnames(x);
     y = f(:);
     for i = 1:length(f)
-         y{i} = spm_vec(getfield(x,f{i}));
+         y{i} = spm_vec(x.(f{i}));
     end
     x = y;
 end

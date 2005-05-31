@@ -121,7 +121,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 127 2005-05-09 10:13:35Z guillaume $
+% $Id: spm_help.m 184 2005-05-31 13:23:32Z john $
 
 
 %=======================================================================
@@ -207,10 +207,10 @@ function varargout=spm_help(varargin)
 %-Condition arguments
 %-----------------------------------------------------------------------
 %-All actions begin '!' - Other (string) actions are topics
-if nargin==0 | isempty(varargin{1})
+if nargin==0 || isempty(varargin{1})
 	Fhelp = spm_figure('FindWin','Help');
 	if ~isempty(Fhelp), set(Fhelp,'Visible','on')
-		else, spm_help('!Topic','MenuWin'), end
+    else spm_help('!Topic','MenuWin'), end
 	return
 elseif varargin{1}(1)~='!'
 	spm_help('!Topic',varargin{:}), return
@@ -242,7 +242,7 @@ if length(H), set(H,'Visible','on'), return, end
 %-----------------------------------------------------------------------
 S     = get(Fhelp,'Position');			%-Help window position
 WS    = [S(3)/600 S(4)/865 S(3)/600 S(4)/865];	%-Window scaling factors
-FS    = spm('FontSizes');			%-Scaled font sizes
+% FS    = spm('FontSizes');			%-Scaled font sizes
 PF    = spm_platform('fonts');			%-Font names (for this platform)
 [SPMver, SPMc] = spm('Ver');			%-SPM version & (c) info
 O     = [170 050 000 000].*WS;			%-Offset for MenuWin plot
@@ -389,7 +389,7 @@ uicontrol(Fhelp,'String',SPMc,...
 case '!shorttopics'
 %=======================================================================
 % [S,Err] = spm_help('!ShortTopics',Topic)
-if nargin<2, Topic='!Topics'; else, Topic=varargin{2}; end
+if nargin<2, Topic='!Topics'; else Topic=varargin{2}; end
 
 Usep = sprintf('%%%s',repmat('_',1,71));
 Err = 0;
@@ -540,7 +540,7 @@ elseif strcmp(Topic,'QuitSPM')
 		'%s\n%%\n%% The FIL methods group\n'],Usep,Usep);
 else
 	doc = spm_jobman('help',Topic);
-        if ~isempty(doc),
+    if ~isempty(doc),
 		doc = char(doc{:});
 		doc = [repmat('% ',size(doc,1),1) doc repmat(sprintf('\n'),size(doc,1),1)]';
 		S   = doc(:)';
@@ -559,7 +559,7 @@ varargout = {S,Err};
 case '!topic'
 %=======================================================================
 % spm_help('!Topic',Topic)
-if nargin<2, Topic='MenuWin'; else, Topic=varargin{2}; end
+if nargin<2, Topic='MenuWin'; else Topic=varargin{2}; end
 
 %-Find (or create) help window.
 %-----------------------------------------------------------------------
@@ -600,7 +600,7 @@ bMenuWin = strcmp(Topic,'MenuWin');
 %-Load text file or get text from 'ShortTopics'
 %-----------------------------------------------------------------------
 Fname = which(Topic);			%-Try to find file on MATLABPATH
-if isempty(Fname) | ...			%-No such file
+if isempty(Fname) || ...		%-No such file
 	exist(Fname,'file')==3		%-Watch out for MEX files!
 	Fname = which([Topic,'.m']);	%-if MEX, try *.m file
 end
@@ -609,7 +609,7 @@ fid = fopen(Fname,'rt');			%-Try to open file
 if fid<0				%-No file - try 'ShortTopics'
 	[S,Err] = spm_help('!ShortTopics',Topic);
 else					%-Read help text from file
-	S = setstr(fread(fid))';
+	S = fread(fid,'*char')';
 	Err = 0;
 	fclose(fid);
 end
@@ -649,7 +649,7 @@ if ~bDonePrevTopics
 	% 	PrevTopics(IDRows,:)=[];
 	% end
 	%-Truncate to 20 items max
-	if size(PrevTopics,1)>20 PrevTopics(21:size(PrevTopics,1),:)=[]; end
+	if size(PrevTopics,1)>20, PrevTopics(21:size(PrevTopics,1),:)=[]; end
 	PrevTopics=char(Prompt,PrevTopics);
 end
 %-Update popup
@@ -661,7 +661,7 @@ RefdTopics = cellstr(get(HD.hRefdTopics,'String'));
 RefdTopics = {RefdTopics{1};Topic};	%-Add current topic at top of references
 q     = findstr(S,'spm_');		%-Find 'spm_' strings
 for i = 1:length(q)
-    d = [0:31] + q(i);			%-32 is max "spm_*" length considered
+    d = (0:31) + q(i);			%-32 is max "spm_*" length considered
     Q = S(d(d <= length(S)));		%-string (len<=32) starting "spm_"
     d = find(Q==';'|Q=='('|Q==')'|Q==10|Q=='.'|Q==','|Q==' ');
     if length(d)			%-Look for filename extensions
@@ -672,7 +672,7 @@ for i = 1:length(q)
 	else
 		Q = Q(1:min(d)-1);
 	end
-	if exist(Q,'file') == 2 & ~any(strcmp(RefdTopics,Q))
+	if exist(Q,'file') == 2 && ~any(strcmp(RefdTopics,Q))
 		RefdTopics = [RefdTopics;{Q}]; end
     else
 	warning('spm_* string end not found - neglecting reference')
@@ -689,10 +689,10 @@ set(Fhelp,'Pointer','Arrow')
 case '!disp'
 %=======================================================================
 % spm_help('!Disp',Fname,S,F,TTitle)
-if nargin<5, TTitle=''; else, TTitle=varargin{5}; end
-if nargin<4, F='Help'; else, F=varargin{4}; end
-if nargin<3, S=''; else, S=varargin{3}; end
-if nargin<2, Fname='spm.man'; else, Fname=varargin{2}; end
+if nargin<5, TTitle=''; else TTitle=varargin{5}; end
+if nargin<4, F='Help'; else F=varargin{4}; end
+if nargin<3, S=''; else S=varargin{3}; end
+if nargin<2, Fname='spm.man'; else Fname=varargin{2}; end
 if isempty(TTitle), TTitle=Fname; end
 
 
@@ -716,12 +716,12 @@ if isempty(S)
 	if fid<0
 		[S,Err] = spm_help('!ShortTopics',Fname);
 	else
-		S = setstr(fread(fid))';
-		Err = 0;
+		S = fread(fid,'*char')';
+		% Err = 0;
 		fclose(fid);
 	end
 end
-q     = min([length(S),findstr(S,setstr([10 10]))]);	% find empty lines
+q     = min([length(S),findstr(S,char([10 10]))]);	% find empty lines
 q     = find(S(1:q(1)) == 10);				% find line breaks
 
 figure(Fhelp)
@@ -730,7 +730,7 @@ hAxes = axes('Position',[0.028,0.05,0.85,0.85],...
 		'Units','Points','Visible','off');
 AxPos = get(hAxes,'Position'); set(hAxes,'YLim',[0,AxPos(4)])
 
-dy = FS(10)*1.2; y0 = floor(AxPos(4)) -dy; y  = y0;
+dy = FS(10)*1.2; y0 = floor(AxPos(4)) -dy;
 
 text(-0.03,y0,TTitle,'FontSize',FS(14),'FontWeight','bold');
 y     = y0 - FS(14);
@@ -849,7 +849,7 @@ case '!createbar'
 % About SPMver  | Referenced Topics |   Previous Topics  | Close
 %-----------------------------------------------------------------------
 
-if nargin<2, F='Help'; else F=varargin{2}; end
+% if nargin<2, F='Help'; else F=varargin{2}; end
 F = spm_figure('FindWin','Help');
 if isempty(F)
 	error('Help figure not found')
@@ -1027,8 +1027,8 @@ spm_help('!Topic',Topics{Topic})
 case '!figkeypressfcn'
 %=======================================================================
 % spm_help('!FigKeyPressFcn',h,ch)
-if nargin<2, error('Insufficient arguments'), else, h=varargin{2}; end
-if nargin<3, ch=get(gcf,'CurrentCharacter'); else, ch=varargin{3}; end
+if nargin<2, error('Insufficient arguments'); else h=varargin{2};  end
+if nargin<3, ch=get(gcf,'CurrentCharacter');  else ch=varargin{3}; end
 
 tmp = get(h,'String');
 
@@ -1039,7 +1039,7 @@ elseif abs(ch)==13
 	%-Goto topic
 	spm_help(tmp)
 	return
-elseif any(abs(ch)==[32:126])
+elseif any(abs(ch)==32:126)
 	tmp = [tmp, ch];
 elseif abs(ch)==21
 	%- ^U - kill
@@ -1065,7 +1065,7 @@ case '!clear'
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, F='Help'; else, F = varargin{2}; end
+if nargin<2, F='Help'; else F = varargin{2}; end
 F=spm_figure('FindWin',F);
 if isempty(F), return, end
 
@@ -1093,7 +1093,7 @@ case '!contexthelp'
 %-----------------------------------------------------------------------
 if nargin<2
 	st = dbstack;
-	if length(st)>1, Topic=st(2).name; else, Topic='MenuWin'; end
+	if length(st)>1, Topic=st(2).name; else Topic='MenuWin'; end
 else
 	Topic=varargin{2};
 end

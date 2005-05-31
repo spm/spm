@@ -11,7 +11,7 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_vol_check.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vol_check.m 184 2005-05-31 13:23:32Z john $
 
 
 [fnames samef msg] = deal({},1,{});
@@ -20,7 +20,7 @@ if nargin < 1,
 	return;
 end;
 
-for i = 1:prod(size(varargin)),
+for i = 1:numel(varargin),
 	vols   = varargin{i};
 	if ~isempty(vols),
 		if i == 1,

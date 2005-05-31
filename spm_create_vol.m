@@ -6,10 +6,10 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 178 2005-05-25 11:53:51Z john $
+% $Id: spm_create_vol.m 184 2005-05-31 13:23:32Z john $
 
 
-for i=1:prod(size(V)),
+for i=1:numel(V),
     if nargin>1,
         v = create_vol(V(i),varargin{:});
     else
@@ -21,6 +21,8 @@ for i=1:prod(size(V)),
     end;
 end;
 
+
+
 function V = create_vol(V,varargin)
 if ~isstruct(V),        error('Not a structure.'); end;
 if ~isfield(V,'fname'), error('No "fname" field'); end;
@@ -28,6 +30,17 @@ if ~isfield(V,'fname'), error('No "fname" field'); end;
 if ~isfield(V,'dim'), error('No "dim" field'); end;
 if ~all(size(V.dim)==[1 3]),
     error(['"dim" field is the wrong size (' num2str(size(V.dim)) ').']);
+end;
+
+if ~isfield(V,'n'),
+    V.n       = [1 1];
+else
+    V.n       = [V.n(:)' 1 1];
+    V.n       =  V.n(1:2);
+end;
+
+if V.n(1)>1 && V.n(2)>1,
+    error('Can only do up to 4D data (%s).',V.fname);
 end;
 
 if ~isfield(V,'dt'),
@@ -38,31 +51,27 @@ dt{1} = spm_type(V.dt(1));
 if strcmp(dt{1},'unknown'),
     error(['"' dt(1) '" is an unrecognised datatype (' num2str(V.dt(1)) ').']);
 end;
-if V.dt(2), dt{2} = 'BE'; else, dt{2} = 'LE'; end;
+if V.dt(2), dt{2} = 'BE'; else dt{2} = 'LE'; end;
 
 if ~isfield(V,'pinfo'), V.pinfo      = [1 0 0]'; end;
-if size(V.pinfo,1)==2,  V.pinfo(3,1) = 0;        end;
+if size(V.pinfo,1)==2,  V.pinfo(3,:) = 0;        end;
 V.fname       = deblank(V.fname);
 [pth,nam,ext] = fileparts(V.fname);
 switch ext,
 case {'.img'}
     minoff = 0;
-    V.pinfo(3,:) = max(V.pinfo(3,:),minoff);
 case {'.nii'}
     minoff = 352;
-    V.pinfo(3,:) = max(V.pinfo(3,:),minoff);
 otherwise
     error(['"' ext '" is not a recognised extension.']);
 end;
+bits   = spm_type(V.dt(1),'bits');
+minoff = minoff + ceil(prod(V.dim(1:2))*bits/8)*V.dim(3)*(V.n(1)-1+V.n(2)-1);
+
+V.pinfo(3,1) = max(V.pinfo(3,:),minoff);
 
 if ~isfield(V,'descrip'), V.descrip = '';    end;
-if ~isfield(V,'n'),
-    V.n       = [1 1];
-else
-    V.n       = [V.n(:)' 1 1];
-    V.n       =  V.n(1:2);
-end;
-if ~isfield(V,'private'), V.private = [];    end;
+if ~isfield(V,'private'), V.private = struct;    end;
 
 dim    = [V.dim(1:3) V.n];
 dat    = file_array(V.fname,dim,[dt{1} '-' dt{2}],V.pinfo(3),V.pinfo(1),V.pinfo(2));
@@ -74,11 +83,12 @@ N.mat_intent  = 'Aligned';
 N.mat0_intent = 'Aligned';
 N.descrip = V.descrip;
 
-try,
+try
     N0  = nifti(V.fname);
-catch,
+catch
     N0  = [];
 end;
+
 if ~isempty(N0),
     tmp = [N0.dat.dim ones(1,5)];
     if any(tmp(1:3) ~= dim(1:3))

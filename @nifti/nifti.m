@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: nifti.m 178 2005-05-25 11:53:51Z john $
+% $Id: nifti.m 184 2005-05-31 13:23:32Z john $
 
 
 switch nargin
@@ -16,6 +16,7 @@ case 0,
     end;
     h = struct('hdr',hdr,'dat',[],'extras',struct);
     h = class(h,'nifti');
+
 case 1
     if ischar(varargin{1})
         if size(varargin{1},1)>1,
@@ -28,6 +29,14 @@ case 1
 
         if ~isfield(vol.hdr,'magic'),
             vol.hdr = mayo2nifti1(vol.hdr);
+
+            % For SPM99 compatibility
+            if isfield(extras,'M') && ~isfield(extras,'mat'),
+                 extras.mat = extras.M;
+                 if spm_flip_analyze_images,
+                     extras.mat = diag([-1 1 1 1])*mat;
+                 end;
+            end;
 
             % Over-ride sform if a .mat file exists
             if isfield(extras,'mat') && size(extras.mat,3)>=1,
@@ -61,8 +70,10 @@ case 1
         dat   = file_array(vol.iname,dim,[dt,vol.be],offs,slope,inter);
         h     = struct('hdr',vol.hdr,'dat',dat,'extras',extras);
         h     = class(h,'nifti');
+
     elseif isstruct(varargin{1})
         h     = class(varargin{1},'nifti');
+
     elseif iscell(varargin{1})
         fnames = varargin{1};
         h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',struct);
@@ -70,6 +81,7 @@ case 1
         for i=1:numel(fnames),
             h(i) = nifti(fnames{i});
         end;
+
     else
         error('Dont know what to do yet.');
     end;

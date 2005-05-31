@@ -14,9 +14,9 @@ function V = spm_write_plane(V,dat,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_plane.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_write_plane.m 184 2005-05-31 13:23:32Z john $
 
 
-if isfield(V,'n'), n = num2cell([n V.n]); else, n = {n}; end;
+if isfield(V,'n'), n = num2cell([n V.n]); else n = {n}; end;
 S     = struct('type','()','subs',{{':',':',n{:}}});
 V.private.dat = subsasgn(V.private.dat,S,dat);

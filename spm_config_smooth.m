@@ -4,7 +4,7 @@ function opts = spm_config_smooth
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_smooth.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_smooth.m 184 2005-05-31 13:23:32Z john $
 
 
 %_______________________________________________________________________
@@ -62,7 +62,7 @@ spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
         Q = deblank(P(i,:));
         [pth,nam,xt,nm] = spm_fileparts(deblank(Q));
-        U = fullfile(pth,['s' nam xt]);
+        U = fullfile(pth,['s' nam xt nm]);
         spm_smooth(Q,U,s);
         spm_progress_bar('Set',i);
 end

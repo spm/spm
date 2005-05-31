@@ -7,7 +7,7 @@ function vol = read_hdr(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr.m 174 2005-05-24 11:03:32Z john $
+% $Id: read_hdr.m 184 2005-05-31 13:23:32Z john $
 
 
 persistent d
@@ -64,7 +64,7 @@ if isfield(hdr,'magic')
     case {'ni1'}
         if strcmp(ext,lower(ext)),
             iname = fullfile(pth,[nam '.img']);
-        else,
+        else
             iname = fullfile(pth,[nam '.IMG']);
         end;
     otherwise
@@ -73,7 +73,7 @@ if isfield(hdr,'magic')
 else
     if strcmp(ext,lower(ext)),
         iname = fullfile(pth,[nam '.img']);
-    else,
+    else
         iname = fullfile(pth,[nam '.IMG']);
     end;
 end

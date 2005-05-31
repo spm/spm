@@ -1,10 +1,10 @@
-function opts = spm_config_segment
+function opts = spm_config_segment_old
 % Configuration file for segment jobs
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_segment_old.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_segment_old.m 184 2005-05-31 13:23:32Z john $
 
 %_______________________________________________________________________
 

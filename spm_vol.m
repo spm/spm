@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 178 2005-05-25 11:53:51Z john $
+% $Id: spm_vol.m 184 2005-05-31 13:23:32Z john $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -60,10 +60,10 @@ return;
 function V = subfunc2(P)
 if iscell(P),
 	V = cell(size(P));
-	for j=1:prod(size(P)),
+	for j=1:numel(P),
 		if iscell(P{j}),
 			V{j} = subfunc2(P{j});
-		else,
+		else
 			V{j} = subfunc1(P{j});
 		end;
 	end;
@@ -91,8 +91,8 @@ for i=1:size(P,1),
     end
 
     f = fieldnames(v);
-	for j=1:size(f,1)
-		eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
+    for j=1:size(f,1)
+        eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
     end
 	counter = counter + size(v,2);
 end
@@ -115,11 +115,12 @@ if ~isempty(t),
 end;
 p = fullfile(pth,[nam   ext]);
 
-if strcmp(ext,'.nii') || (strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr'])) == 2),
+if strcmpi(ext,'.nii') || (strcmpi(ext,'.img') && ...
+    (exist(fullfile(pth,[nam '.hdr']),'file') || exist(fullfile(pth,[nam '.HDR']),'file'))),
 	if isempty(n), V = spm_vol_nifti(p);
-	else,          V = spm_vol_nifti(p,n); end;
+	else           V = spm_vol_nifti(p,n); end;
     
-    if isempty(n) & length(V.private.dat.dim) > 3
+    if isempty(n) && length(V.private.dat.dim) > 3
         V0(1) = V;
         for i = 2:V.private.dat.dim(4)
             V0(i) = spm_vol_nifti(p, i);
@@ -129,7 +130,7 @@ if strcmp(ext,'.nii') || (strcmp(ext,'.img') & exist(fullfile(pth,[nam '.hdr']))
 
 	if ~isempty(V), return; end;
 
-else, % Try other formats
+else % Try other formats
 
 	%% Try MINC format
 	%if isempty(n), V=spm_vol_minc(p);

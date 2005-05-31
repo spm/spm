@@ -12,7 +12,7 @@ function h = spm_hist(ind,val)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_hist.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_hist.m 184 2005-05-31 13:23:32Z john $
 
 
 persistent flg
@@ -27,9 +27,9 @@ persistent flg
 %end;
 
 if isempty(flg),
-    try,
+    try
         h   = accumarray(double(ind(:))+1,double(val(:)),[256 1]);
-    catch,
+    catch
         flg = true;
         h   = full(sparse(double(ind)+1,ones(size(ind)),val,256,1));
     end;
