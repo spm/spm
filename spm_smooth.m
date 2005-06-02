@@ -22,7 +22,7 @@ function spm_smooth(P,Q,s)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_smooth.m 185 2005-06-02 11:24:27Z john $
 
 
 %-----------------------------------------------------------------------
@@ -31,14 +31,18 @@ if length(s) == 1; s = [s s s]; end
 if ischar(P), P = spm_vol(P); end;
 if isstruct(P),
 	VOX = sqrt(sum(P.mat(1:3,1:3).^2));
-else,
+else
 	VOX = [1 1 1];
 end;
 
-if ischar(Q) & isstruct(P),
-	q         = Q;
+if ischar(Q) && isstruct(P),
+	[pth,nam,ext,num] = spm_fileparts(Q);
+	q         = fullfile(pth,[nam,ext]);
 	Q         = P;
 	Q.fname   = q;
+	if ~isempty(num),
+		Q.n       = str2num(num);
+	end;
 	if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end;
 	Q.descrip = sprintf('%s - conv(%g,%g,%g)',Q.descrip, s);
 end;
