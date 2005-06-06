@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: nifti.m 184 2005-05-31 13:23:32Z john $
+% $Id: nifti.m 186 2005-06-06 10:00:50Z john $
 
 
 switch nargin
@@ -34,7 +34,7 @@ case 1
             if isfield(extras,'M') && ~isfield(extras,'mat'),
                  extras.mat = extras.M;
                  if spm_flip_analyze_images,
-                     extras.mat = diag([-1 1 1 1])*mat;
+                     extras.mat = diag([-1 1 1 1])*extras.mat;
                  end;
             end;
 
