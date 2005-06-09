@@ -20,7 +20,7 @@ function spm_eeg_convertmat2ana(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_convertmat2ana.m 187 2005-06-09 16:28:40Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
@@ -65,14 +65,6 @@ for k = 1:Nsub
 
     % nr of (good) channels
     Nel = length(Cel);
-
-    % structure for spm_vol
-    Vi.dim = [n n 1];
-    Vi.mat = eye(4);
-    Vi.pinfo = zeros(3,1);
-    Vi.pinfo(1,1) = 1;
-    Vi.dt(1) = 16; % float in old and new version...
-    Vi.dt(2) = spm_platform('bigend');
     
     % generate data directory into which converted data goes
     [P, F] = fileparts(spm_str_manip(Fname(k, :), 'r'));
@@ -102,18 +94,17 @@ for k = 1:Nsub
                 fname = 'average.img';
             end
             
-            Vi.fname = fname;
+            dat = file_array(fname,[n n 1 D{k}.Nsamples],'FLOAT32');
+            N = nifti;
+            N.dat = dat;
+            N.mat = eye(4);
+            N.mat_intent = 'Aligned';
+            create(N);
                         
-            % remove file, if there is one
-            spm_unlink([fname, '.hdr'], [fname, '.img']);
-            
             for j = 1 : D{k}.Nsamples % time bins
                 di = zeros(n, n);                
                 di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l),x,y, 'linear');
-                
-                Vi.n = j;
-                Vo = spm_write_vol(Vi, di);
-                
+                N.dat(:,:,1,j) = di;
             end        
             
             if D{k}.Nevents ~= D{k}.events.Ntypes
