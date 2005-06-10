@@ -15,9 +15,9 @@ function spm_mean_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_mean_ui.m 189 2005-06-10 16:35:13Z john $
 
-SCCSid = '$Rev: 112 $';
+SCCSid = '$Rev: 189 $';
 
 
 %-Say hello
@@ -35,7 +35,7 @@ Vi = spm_vol(P);
 n  = prod(size(Vi));
 if n==0, fprintf('\t%s : no images selected\n\n',mfilename), return, end
 
-if n>1 & any(any(diff(cat(1,Vi.dim),1,1),1)&[1,1,1,0])
+if n>1 & any(any(diff(cat(1,Vi.dim),1,1),1))
 	error('images don''t all have same dimensions'), end
 if any(any(any(diff(cat(3,Vi.mat),1,3),3)))
 	error('images don''t all have same orientation & voxel size'), end

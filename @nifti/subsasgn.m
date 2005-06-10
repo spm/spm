@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 184 2005-05-31 13:23:32Z john $
+% $Id: subsasgn.m 189 2005-06-10 16:35:13Z john $
 
 
 switch subs(1).type,
@@ -317,6 +317,9 @@ case {'.'},
             else
                 error('"aux_file" must be a string.');
             end;
+
+        case {'hdr'}
+            error('hdr is a read-only field.');
 
         otherwise
             error(['Reference to non-existent field ''' subs(1).subs '''.']);
