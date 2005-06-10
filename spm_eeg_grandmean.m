@@ -21,7 +21,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 135 2005-05-09 18:57:16Z stefan $
+% $Id: spm_eeg_grandmean.m 188 2005-06-10 11:54:52Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -71,24 +71,44 @@ fpd = fopen(fullfile(Do.path, Do.fnamedat), 'w');
 
 spm('Pointer', 'Watch'); drawnow;
 
-Do.scale.dim = [1 3];
-Do.scale.values = zeros(D{1}.Nchannels, D{1}.Nevents);
+
+
+if isfield(D{1}, 'Nfrequencies');
+	Do.scale.dim = [1 4];
+	Do.scale.values = zeros(D{1}.Nchannels, D{1}.events.Ntypes);
 	
-for i = 1:D{1}.Nevents
-        
-    d = zeros(D{1}.Nchannels, D{1}.Nsamples);
+	for i = 1:D{1}.events.Ntypes
+		d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
+		for k = 1:length(D)
+			d=d+squeeze(D{k}.data(:,:,:,i));
+		end
+		d=d./length(D);
+		
+		Do.scale.values(:, i) = max(max(abs(d), [], 3), [], 2)./32767;
+		d = int16(d./repmat(Do.scale.values(:, i), [1, Do.Nfrequencies, Do.Nsamples]));
+		fwrite(fpd, d, 'int16');
+	end
+	
+else
 
-    for j = 1:D{1}.Nchannels			
-        for k = 1:length(D)
-            d(j, :) = d(j, :) + D{k}.data(j, :, i);
-        end
-        d(j, :) = d(j, :)./length(D);
-    end
-    
-    Do.scale.values(:, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
-
+	Do.scale.dim = [1 3];
+	Do.scale.values = zeros(D{1}.Nchannels, D{1}.Nevents);
+	
+	for i = 1:D{1}.Nevents
+		
+		d = zeros(D{1}.Nchannels, D{1}.Nsamples);
+		
+		for j = 1:D{1}.Nchannels			
+			for k = 1:length(D)
+				d(j, :) = d(j, :) + D{k}.data(j, :, i);
+			end
+			d(j, :) = d(j, :)./length(D);
+		end
+		
+		Do.scale.values(:, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
+		
+	end
 end
-
 fclose(fpd);
 
 Do.data = [];

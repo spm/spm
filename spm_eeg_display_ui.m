@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 181 2005-05-27 15:57:38Z james $
+% $Id: spm_eeg_display_ui.m 188 2005-06-10 11:54:52Z james $
 
 if nargin == 1
     S = varargin{1};
@@ -350,7 +350,7 @@ for i = 1:Npos
 	if isfield(D,'Nfrequencies')
 		set(gca, 'ZLim', [-scale scale],...
 			'XLim', [1 D.Nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-		caxis([0 scale])
+		caxis([-scale scale])
 		colormap('jet')		
 	else
 		set(gca, 'YLim', [-scale scale],...
@@ -447,7 +447,7 @@ for i = 1:length(handles.Heegaxes)
    if isfield(D,'Nfrequencies')
 		set(gca, 'ZLim', [0 scale],...
 			'XLim', [1 D.Nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-		caxis([0 scale])
+		caxis([-scale scale])
 	else
 		set(gca, 'YLim', [-scale scale],...
 			'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
@@ -462,7 +462,7 @@ for i = 1:length(handles.Heegfigures)
 		
 		if isfield(D,'Nfrequencies')
 
-			caxis([0 scale])
+		caxis([-scale scale])
 		else
 			set(gca, 'YLim', [-scale scale],...
 				'XLim', [-D.events.start D.events.stop]*1000/D.Radc);
@@ -535,10 +535,11 @@ else
 		end
 		
 		scale = get(handles.scaleslider, 'Value');
-		set(gca, 'ZLim', [0 scale],...
+		set(gca, 'ZLim', [-scale scale],...
 			'XLim',  [-D.events.start D.events.stop]*1000/D.Radc, 'YLim', [min(D.tf.frequencies) max(D.tf.frequencies)], 'Box', 'on');
 		colormap('jet')	
-		caxis([0 scale])
+				caxis([-scale scale])
+
 	else
 		xlabel('ms', 'FontSize', 16); 
 		ylabel('\muV', 'FontSize', 16, 'Interpreter', 'Tex')
