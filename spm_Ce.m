@@ -1,20 +1,19 @@
 function [C] = spm_Ce(v,a)
 % return error covariance constraints for serially correlated data
 % FORMAT [C] = spm_Ce(v,a)
-% v  - (1 x l) v(i) = number of obervations for ith block
-% a  - AR coeficient expansion point  (default a = [])
+% v  - (1 x l) v(i) = number of observations for ith block
+% a  - AR coefficient expansion point  (default a = [])
 % 
 %  C{1} = h(1)*AR(a)
 %  C{2} = h(1)*AR(a) + h(2)*dAR(a)/da(1);
 %  C{3} = h(1)*AR(a) + h(2)*dAR(a)/da(1) + h(3)*dAR(a)/da(2);
 %
-% this is sweet as
-% See also; spm_Q.m
+% See also: spm_Q.m
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_Ce.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Ce.m 190 2005-06-20 07:04:35Z klaas $
 
 
 

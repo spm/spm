@@ -28,7 +28,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Y.y   - (v x l)         	l outputs
 % Y.X0  - (v x c)		Confounds or null space
 % Y.dt  - 			sampling interval for outputs
-% Y.Ce  -			obervation error covariance constraints
+% Y.Ce  -			observation error covariance constraints
 %
 % Model Parameter estimates - conditional moments
 %---------------------------------------------------------------------------
@@ -61,13 +61,13 @@ function varargout = spm_nlsi(M,U,Y)
 % on the model parameters P, specified in terms of expectations and 
 % covariance. The estimation uses a Gauss-Newton method with MAP point 
 % estimators at each iteration.  Both Volterra kernel and state-space 
-% representations of the Bilinear approximation are provided,
+% representations of the Bilinear approximation are provided.
 % The Bilinear approximation to (1), evaluated at x(0) = x and u = 0 is:
 %
 %		dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
 %		 y(i) = L1(i,:)*q + q'*L2{i}*q;
 %
-% whwew the states are augmented with a constant
+% where the states are augmented with a constant
 %
 %		 q(t) = [1; x(t) - x(0)]
 %
@@ -84,13 +84,13 @@ function varargout = spm_nlsi(M,U,Y)
 % spm_bi_reduce: Reduction of a fully nonlinear MIMO system to Bilinear form
 % spm_kernels:   Returns global Volterra kernels for a MIMO Bilinear system
 %
-% SEE NOTES AT THE END OF THIS SCRIPT FOT EXAMPLES
+% SEE NOTES AT THE END OF THIS SCRIPT FOR EXAMPLES
 %
 %---------------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_nlsi.m 190 2005-06-20 07:04:35Z klaas $
 
 
 % Expansion point (in parameter space) for Bilinear and kernel representations

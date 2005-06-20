@@ -20,7 +20,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Y.y  - outputs
 % Y.X0 - Confounds or null space
 % Y.dt - sampling interval for outputs
-% Y.Ce - error covariance contraints
+% Y.Ce - error covariance constraints
 %
 %
 % Parameter estimates
@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 160 2005-05-16 14:27:43Z karl $
+% $Id: spm_nlsi_GN.m 190 2005-06-20 07:04:35Z klaas $
 
 
 
