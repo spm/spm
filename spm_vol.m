@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_vol.m 191 2005-06-21 14:27:08Z john $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -100,6 +100,7 @@ end
 return;
 
 function V = subfunc(p)
+V = [];
 p = deblank(p);
 [pth,nam,ext] = fileparts(deblank(p));
 t = find(ext==',');

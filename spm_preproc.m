@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_preproc.m 191 2005-06-21 14:27:08Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -528,6 +528,7 @@ results.mg     = mg;
 results.mn     = mn;
 results.vr     = vr;
 results.thresh = thresh;
+results.ll     = ll;
 return;
 %=======================================================================
 

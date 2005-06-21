@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_jobman.m 191 2005-06-21 14:27:08Z john $
 
 
 if nargin==0
@@ -1429,17 +1429,24 @@ case {'branch'}
 
 case {'repeat'}
     tag = gettag(c);
-    val = {};
-    if isfield(c,'val')
-        for i=1:length(c.val),
-            [tag1,val1,typ1] = harvest(c.val{i});
-            if length(c.values)==1 && strcmp(typ1,'branch'),
-                if i==1
-                    val    = val1;
-                else
-                    val(i) = val1;
-                end;
-            else
+    if length(c.values)==1 && strcmp(c.values{1}.type,'branch'),
+        cargs = {};
+        for i=1:numel(c.values{1}.val),
+            cargs = {cargs{:},gettag(c.values{1}.val{i}),{}};
+        end;
+        val = struct(cargs{:});
+
+        if isfield(c,'val')
+            for i=1:length(c.val),
+                [tag1,val1,typ1] = harvest(c.val{i});
+                val(i) = val1;
+            end;
+        end;
+    else
+        val = {};
+        if isfield(c,'val')
+            for i=1:length(c.val),
+                [tag1,val1,typ1] = harvest(c.val{i});
                 if length(c.values)>1,
                     if iscell(val1)
                         val1 = struct(tag1,{val1});
@@ -1447,11 +1454,7 @@ case {'repeat'}
                         val1 = struct(tag1,val1);
                     end;
                 end;
-                if i==1
-                    val = {val1};
-                else
-                    val = {val{:}, val1};
-                end;
+                val = {val{:}, val1};
             end;
         end;
     end;
