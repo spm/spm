@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_artefact.m 193 2005-07-01 13:37:59Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -171,7 +171,7 @@ if MustDoWork
 	% flag channels as bad if 20% of events above threshold
 	s = sum(Mbad, 2)/D.Nevents;
 	ind = find(s > 0.2);
-	if isfield(D.channels.heog) & isfield(D.channels.veog)
+	if isfield(D,'channels.heog') & isfield(D,'channels.veog')
 		% remove EOGs from bad channels
 		ind = setdiff(ind, [D.channels.heog D.channels.veog]);
 	end

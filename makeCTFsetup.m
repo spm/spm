@@ -5,6 +5,11 @@ sens=pre_data.sensor.index.all_sens;
 xd=pre_data.sensor.location(1,sens);
 yd=pre_data.sensor.location(2,sens);
 zd=pre_data.sensor.location(3,sens);
+
+[th,ph,r] = cart2sph(xd,yd,zd);
+[xd1,yd1,zd1] = sph2cart(th,ph,1);
+pos=[yd1',xd1',zd1',sens'];
+save('d:/spm5/eegtemplates/3d_ctf','pos');
 [th,r]=cart2pol(xd,yd);
 [x,xi]=min(r);
 xdata=pre_data.sensor.location(1,sens)-xd(xi);

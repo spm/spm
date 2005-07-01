@@ -3,7 +3,7 @@ function scalp3d(data)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner
-% $Id: spm_eeg_scalp3d.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_scalp3d.m 193 2005-07-01 13:37:59Z james $
 
 
 [xs,ys,zs]=sphere(50);
@@ -12,36 +12,27 @@ ys=ys.*0.90;
 zs=zs.*0.90;
 
 P = fullfile(spm('dir'), 'EEGtemplates');
-
-load(fullfile(P, '3d_bdf'));
+if length(data)==128
+	load(fullfile(P, '3d_bdf'));
+end
+if length(data)==275
+	load(fullfile(P, '3d_ctf'));
+end
 
 spm_defaults
-%% Plot first scalp map
-%data=[ones(32,1);ones(32,1).*2;ones(32,1).*3;ones(32,1).*4];
+
 
 map=griddata3(pos(:,1),pos(:,2),pos(:,3),data,xs,ys,zs,'nearest');
 
 
-% [xs1,ys1,zs1]=sphere(50);
-% [rzi,rzj]=find(zs1<-.55);
-% xs1(rzi,rzj)=0;
-% ys1(rzi,rzj)=0;
-% zs1(rzi,rzj)=0;
-% 
-% [rzi,rzj]=find(zs1<-.2);
-% [ryi,ryj]=find(ys1(rzi,rzj)>-0.4);
-% 
-% xs1(rzi(ryi),rzj(ryj))=0;
-% ys1(rzi(ryi),rzj(ryj))=0;
-% zs1(rzi(ryi),rzj(ryj))=0;
-
 load(fullfile(P, 'params.mat'));
-%[F,V,C]=make_faces(xs1,ys1,zs1,map);
+
 map=map(:);
 map(aind)='';
 C=map;
+%[col_scalp]=spm_eeg_marry_scalp_head_quick(V,C,V3,elec_verts,dv,id);
 [col_scalp]=spm_eeg_marry_scalp_head_quick(V,C,V3,elec_verts,dv,id);
-%[V3,col_scalp,elec_pos]=marry_scalp_head(V,C,pos);
+
 
 figure
 load(fullfile(P, 'head2'));

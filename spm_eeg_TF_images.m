@@ -28,14 +28,14 @@ function D = spm_eeg_TF_images(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_TF_images.m 117 2005-05-05 10:43:40Z guillaume $
+% $Id: spm_eeg_TF_images.m 193 2005-07-01 13:37:59Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
 	D = S.D;
 catch
 	D = spm_select(inf, '\.mat$', 'Select EEG mat file');
-
+	
 end
 P = spm_str_manip(D, 'H');
 
@@ -61,7 +61,7 @@ if isfield(D, 'Nfrequencies');
 	switch fmt
 		case {'electrodes'}
 			try
-				elecs = S.thresholds.elecs;
+				D.electrodes_of_interest = S.thresholds.elecs;
 			catch 
 				str = 'electrodes[s]';
 				Ypos = -1;
@@ -72,6 +72,8 @@ if isfield(D, 'Nfrequencies');
 					else
 						D.electrodes_of_interest = spm_input(str, Ypos, 'r', [], [1 Inf]);
 					end
+					
+					
 					t=1:D.Nchannels;
 					tmp=[];
 					for en=D.electrodes_of_interest;
@@ -81,44 +83,59 @@ if isfield(D, 'Nfrequencies');
 					end
 					if isempty(tmp) break, end
 				end
-				%[P, F] = fileparts(spm_str_manip(fname(:), 'r'));
-				%[m, sta] = mkdir(P, spm_str_manip(Fname(:), 'tr'));
-				%cd(fullfile(P, F));
-				
-				for i = 1 : D.events.Ntypes
-					Itrials = find(D.events.code == D.events.types(i) & ~D.events.reject);
-					cd(D.path)
-					dname = sprintf('ROI_TF_trialtype%d', D.events.types(i));
-					[m, sta] = mkdir(dname);
-					cd(dname);
-					
-					for l = Itrials
-						% if single trial data make new directory for single trials,
-						% otherwise just write images to trialtype directory
-						if D.Nevents ~= D.events.Ntypes
-							% single trial data
-							dname = sprintf('trial%d.img', l);
-							fname = dname;
-							[m, sta] = mkdir(dname);
-							cd(dname);
-						else
-							fname = 'average.img';
-						end
-						data=squeeze(mean(D.data(D.electrodes_of_interest,:,:,i),1));	
-						V.fname = fname;
-						V.dim = [D.Nfrequencies D.Nsamples  1 ];
-						V.dt=[spm_type('float64') 0]; %%%check later with john
-						V.mat = eye(4);
-						V.pinfo = [1 0 0]';
-						
-						spm_write_vol(V, data); % d is data
-					end
-					
-				end
 			end
+			try
+				D.Nregion = S.region_no;
+			catch 
+				str = 'region number';
+				Ypos = -1;
+				
+				while 1
+					if Ypos == -1   
+						[D.Nregion, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
+					else
+						D.Nregion = spm_input(str, Ypos, 'r', [], [1 Inf]);
+					end
+					if ~isempty(D.Nregion) break, end
+					str = 'No data';
+				end
+				
+			end
+			
+			for i = 1 : D.events.Ntypes
+				Itrials = find(D.events.code == D.events.types(i) & ~D.events.reject);
+				cd(D.path)
+				dname = sprintf('%dROI_TF_trialtype%d', D.Nregion, D.events.types(i));
+				[m, sta] = mkdir(dname);
+				cd(dname);
+				
+				for l = Itrials
+					% if single trial data make new directory for single trials,
+					% otherwise just write images to trialtype directory
+					if D.Nevents ~= D.events.Ntypes
+						% single trial data
+						dname = sprintf('trial%d.img', l);
+						fname = dname;
+						[m, sta] = mkdir(dname);
+						cd(dname);
+					else
+						fname = 'average.img';
+					end
+					data=squeeze(mean(D.data(D.electrodes_of_interest,:,:,i),1));	
+					V.fname = fname;
+					V.dim = [D.Nfrequencies D.Nsamples  1 ];
+					V.dt=[spm_type('float64') 0]; %%%check later with john
+					V.mat = eye(4);
+					V.pinfo = [1 0 0]';
+					
+					spm_write_vol(V, data); % d is data
+				end
+				
+			end
+			
 		case {'frequency'}
 			try
-				freqs = S.freqs;
+				D.Frequency_window = S.freqs;
 			catch 
 				str = 'Frequency window';
 				Ypos = -1;
@@ -155,7 +172,7 @@ if isfield(D, 'Nfrequencies');
 			pause
 	end
 else
-    clear S;
-    S.Fname = fullfile(D.path, D.fname);
+	clear S;
+	S.Fname = fullfile(D.path, D.fname);
 	spm_eeg_convertmat2ana(S);
 end
