@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 188 2005-06-10 11:54:52Z james $
+% $Id: spm_eeg_display_ui.m 194 2005-07-06 15:50:16Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -206,7 +206,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     handles.scaletexttop = text(0, scale, sprintf(' %d \\muV', 2*scale), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'VerticalAlignment', 'top',...
         'Tag', 'scaletext2');
-    text(D.Nsamples, -scale, sprintf('%d ms', round(D.Nsamples*1000/D.Radc)), 'Interpreter', 'Tex',...
+    text(D.Nsamples, -scale, sprintf('%d ms', round((D.Nsamples-1)*1000/D.Radc)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
 
     % channels to display, initially exclude bad channels

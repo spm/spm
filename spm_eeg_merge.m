@@ -6,7 +6,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_merge.m 194 2005-07-06 15:50:16Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -63,7 +63,7 @@ for i = 2:Nfiles
 		Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end
     
-    Dout.channels.Bad = unique([Dout.channels.Bad Dtmp.channels.Bad]);
+    Dout.channels.Bad = unique([Dout.channels.Bad; Dtmp.channels.Bad]);
 end
 
 Dout.events.types = unique(Dout.events.code);
