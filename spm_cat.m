@@ -20,7 +20,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_cat.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_cat.m 195 2005-07-11 08:29:53Z klaas $
 
 
 % check x is not already a matrix
@@ -49,7 +49,7 @@ if nargin > 1
             y{i} = spm_cat(x(i,:));
         end
 
-    % only vaible for 2-D arrays
+    % only viable for 2-D arrays
     %------------------------------------------------------------------------
     else
         error('uknown option')

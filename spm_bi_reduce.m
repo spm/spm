@@ -10,7 +10,7 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 %   M.m   - m inputs
 %   M.n   - n states
 %   M.l   - l outputs
-%   M.x   - (n x 1) = x(0) = expanston point
+%   M.x   - (n x 1) = x(0) = expansion point
 %
 % P   - model parameters
 %
@@ -40,7 +40,7 @@ function [M0,M1,L1,L2] = spm_bi_reduce(M,P,O)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_bi_reduce.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_bi_reduce.m 195 2005-07-11 08:29:53Z klaas $
 
 
 % set up

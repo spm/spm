@@ -1,7 +1,7 @@
 function [y] = spm_fx_dcm(x,u,P)
 % state equation for a dynamic [Bilinear/Balloon] model of fMRI responses
 % FORMAT [y] = spm_fx_dcm(x,u,P)
-% x      - statw vector
+% x      - state vector
 %   x(:,1) - neuronal acivity
 %   x(:,2) - vascular signal           (s)
 %   x(:,3) - rCBF                      (f)
@@ -16,7 +16,7 @@ function [y] = spm_fx_dcm(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_fx_dcm.m 195 2005-07-11 08:29:53Z klaas $
 
 
 
@@ -30,7 +30,13 @@ function [y] = spm_fx_dcm(x,u,P)
 
 % get dimensions
 %---------------------------------------------------------------------------
-m         = size(u,1);  				% number of inputs
+if size(u,2) > size(u,1)                % make sure u is a column vector
+    u = u';
+end
+m         = size(u,1);                  % number of inputs
+if size(x,2) > size(x,1)                % make sure x is a column vector
+    x = x';
+end
 n         = size(x,1)/5;  				% number of regions
 
 % reshape parameters
@@ -50,11 +56,11 @@ x(:,3:5)  = x(:,3:5) + 1;
 
 % Fout = f(v) - outflow
 %---------------------------------------------------------------------------
-fv        = x(:,4).^(1./H(:,4));
+fv        = x(:,4).^(1./H(:,4));   % *** this gives a "divide by zero" warning when called from spm_int_U  - why not when called from spm_int?
 
 % e = f(f) - oxygen extraction
 %---------------------------------------------------------------------------
-ff        = (1 - (1 - H(:,5)).^(1./x(:,3)))./H(:,5);
+ff        = (1 - (1 - H(:,5)).^(1./x(:,3)))./H(:,5);   % *** this gives a "divide by zero" warning when called from spm_int_U  - why not when called from spm_int?
 
 % implement differential state equation y = dx/dt
 %---------------------------------------------------------------------------
