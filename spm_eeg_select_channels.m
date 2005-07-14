@@ -22,13 +22,13 @@ function varargout = spm_eeg_select_channels(varargin)
 
 % Edit the above text to modify the response to help spm_eeg_select_channels
 
-% Last Modified by GUIDE v2.5 08-Dec-2004 11:36:27
+% Last Modified by GUIDE v2.5 13-Jul-2005 14:18:07
 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 152 2005-05-13 12:01:02Z stefan $
+% $Id: spm_eeg_select_channels.m 196 2005-07-14 17:10:12Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -170,7 +170,6 @@ else
     set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 
-
 % --- Executes on selection change in listbox1.
 function listbox1_Callback(hObject, eventdata, handles)
 % hObject    handle to listbox1 (see GCBO)
@@ -273,5 +272,27 @@ else
     handles.output = get(handles.listbox1, 'Value');
     guidata(hObject, handles);
     uiresume;
-
 end
+
+% --- Executes on button press in removebad.
+function removebad_Callback(hObject, eventdata, handles)
+% hObject    handle to removebad (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+D = handles.D;
+
+s = get(handles.listbox1, 'Value');
+
+s = setdiff(s, D.channels.Bad);
+
+set(handles.listbox1, 'Value', s);
+
+for i = 1:handles.Nchannels
+    if isempty(find(s == i))
+        set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
+    else
+        set(handles.Hpatch{i}, 'FaceColor', handles.Cselect);
+    end
+end
+
