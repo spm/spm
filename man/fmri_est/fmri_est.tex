@@ -1,6 +1,31 @@
 \documentclass[a4paper,titlepage]{book}
-\usepackage{graphicx}
-%\usepackage{c:/home/wpenny/software/latex-graphics/graphicx.sty}
+
+% are we using pdftex or normaltex ?
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \DeclareGraphicsExtensions{.jpg}
+\else
+  \usepackage[final]{graphicx}
+  \DeclareGraphicsExtensions{.ps,.eps}
+\fi
+
+\ifpdf
+\pdfinfo{
+   /Author (FIL Methods Group)
+   /Title  (fMRI model estimation)
+   /CreationDate (D:20050719192900)
+   /Subject (fMRI model estimation)
+   /Keywords (fmri,model,estimation,reml,bayes,spm,ppm)
+}
+\fi
 
 \begin{document}
 
@@ -71,11 +96,11 @@ Enter Slice Numbers. This can be a single slice or multiple slices. If you selec
 
                                                                                                             
 
-\item{[LORETA] Low Resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standatd choice for M/EEG source localisation algorithms. It does, however, have undesirable edge effects.}
+\item{[LORETA] Low Resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standard choice for M/EEG source localisation algorithms. It does, however, have undesirable edge effects.}
 
                                                                                                             
 
-\item{[Global] Global Shrinkage prior. This is not a spatial prior in the sense that regression coefficients are constrained to be similar to neighboring voxels. Instead, the average effect over all voxels (global effect) is assumed to be zero and all regression coefficients are shrunk towards this value in proporation to the prior precision. This is the same prior that is used for Bayesian estimation at the second level 
+\item{[Global] Global Shrinkage prior. This is not a spatial prior in the sense that regression coefficients are constrained to be similar to neighboring voxels. Instead, the average effect over all voxels (global effect) is assumed to be zero and all regression coefficients are shrunk towards this value in proportion to the prior precision. This is the same prior that is used for Bayesian estimation at the second level 
 (see also \cite{karl_posterior}), except that here the prior precision is estimated separately for each slice. }
 
                                                                                                             
@@ -103,10 +128,10 @@ There are three noise prior options.
 
 \item{[GMRF] Gaussian Markov Random Field. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc.}
 
-\item{[LORETA] Low Resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.}
+\item{[LORETA] Low Resolution Tomography Prior. See comments on LORETA priors for regression coefficients.}
 
 
-\item{[Tissue-type] This provides an estimaton of AR coefficients at each voxel that are biased towards typical values for that tissue type (eg. gray, white, CSF). If you select this option you will need to then select files that contain tissue type maps (see below). These are typically chosen to be Grey Matter, White Matter and CSF images derived from segmentation of registered structural scans.}
+\item{[Tissue-type] This provides an estimation of AR coefficients at each voxel that are biased towards typical values for that tissue type (eg. gray, white, CSF). If you select this option you will need to then select files that contain tissue type maps (see below). These are typically chosen to be Grey Matter, White Matter and CSF images derived from segmentation of registered structural scans.}
 
 \end{itemize}
                                                                                                             
@@ -148,7 +173,7 @@ If you wish to use these contrast images for a second-level analysis then you wi
 
                                                                                                             
 
-If you have a factoral design then the contrasts needed to generate the contrast images for a 2nd-level ANOVA (or to assess these simple effects within-subject) can be specified automatically using the ANOVA-$>$Second level option.
+If you have a factorial design then the contrasts needed to generate the contrast images for a 2nd-level ANOVA (or to assess these simple effects within-subject) can be specified automatically using the ANOVA-$>$Second level option.
 
                                                                                                             
 
@@ -185,9 +210,9 @@ can then compare GLMs based on different hemodynamic basis sets
 using the Bayesian model evidence. 
 
 This is described in \cite{vb4} and implemented 
-using the command line option `spm-vb-roi-basis'. This 
+using the command line option `spm\_vb\_roi\_basis'. This 
 requires a VOI filename (created using the ROI button) and an SPM
-data structure. Type `help spm-vb-roi-basis' at the matlab command 
+data structure. Type `help spm\_vb\_roi\_basis' at the matlab command 
 prompt for further information. Figure~\ref{basis} shows an 
 example output from the function indicating that, for the data in 
 this brain region, an informed basis set has the highest model evidence.
@@ -202,7 +227,8 @@ a Finite Impulse Response function. An informed basis set provides
 the best model of the data for the selected region.  \label{basis}}
 \end{figure}
 
-\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
+%\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
+\bibliography{/home/spm/web/doc/biblio/methods_macros,/home/spm/web/doc/biblio/methods_group}
 
 \bibliographystyle{plain}
 

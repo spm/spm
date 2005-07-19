@@ -1,11 +1,36 @@
 \documentclass[a4paper,titlepage]{book}
-\usepackage{graphicx}
-%\usepackage{c:/home/wpenny/software/latex-graphics/graphicx.sty}
+
+% are we using pdftex or normaltex ?
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \DeclareGraphicsExtensions{.jpg}
+\else
+  \usepackage[final]{graphicx}
+  \DeclareGraphicsExtensions{.ps,.eps}
+\fi
+
+\ifpdf
+\pdfinfo{
+   /Author (FIL Methods Group)
+   /Title  (fMRI model specification)
+   /CreationDate (D:20050719192900)
+   /Subject (fMRI model specification)
+   /Keywords (fmri,model,specification,glm,spm)
+}
+\fi
 
 \begin{document}
 \chapter{fMRI model specification}
 
-Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM paramaters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).
+Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM parameters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).
 
 
 
@@ -96,7 +121,7 @@ You are allowed to combine both event- and epoch-related responses in the same m
 
 
 \paragraph{Condition}
-An array of input functions is contructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.
+An array of input functions is constructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.
 
 
 \subparagraph{Name}
@@ -218,12 +243,12 @@ is equivalent to the method of `selective averaging'. See
 \section{Model Interactions (Volterra)}
 Generalized convolution of inputs, $U$, with basis set, $bf$.
 
-For first order expansions the causes are simply convolved (e.g. stick functions) in $U$ by the basis functions in $bf$ to create a design matrix $X$.  For second order expansions new entries appear that correspond to the interaction among the orginal causes. The basis functions for these efects are two dimensional and are used to assemble the second order kernel. 
+For first order expansions the causes are simply convolved (e.g. stick functions) in $U$ by the basis functions in $bf$ to create a design matrix $X$.  For second order expansions new entries appear that correspond to the interaction among the original causes. The basis functions for these effects are two dimensional and are used to assemble the second order kernel. 
 
 Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate. This can be time or some trial-specific variate like reaction time modeling the interaction between the trial and the variate. Secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types). 
 
 This last option is useful 
-for accomodating nonlinearities in the hemodynamic response. For 
+for accommodating nonlinearities in the hemodynamic response. For 
 example, if two events occur within a 
 second or so of each other then the hemodynamic response to 
 the pair may be less than the sum of the responses to each event when occuring in isolation. This type of `sub-linear' response can be modelled using
@@ -243,13 +268,13 @@ If you select `Scaling', SPM will multiply each fMRI value in scan $n$ and sessi
 
 If you select `None' then SPM computes the grand mean value, $g_s=\frac{\sum_{n=1}^N g_{ns}}{N}$ where N is the number of scans in that 
 session.
-This is the fMRI signal averaged over all voxels within the brain and all time points within session $s$. SPM then implements `Session-specific grand mean scaling' by muliplying each fMRI data point in session $s$ by $100/g_s$. 
+This is the fMRI signal averaged over all voxels within the brain and all time points within session $s$. SPM then implements `Session-specific grand mean scaling' by multiplying each fMRI data point in session $s$ by $100/g_s$. 
  
 See \cite{ja_global} for further discussion of this issue.
 
 
 \section{Explicit mask}
-Specify an image for explicitly masking the analysis. A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailble or no masking is required, then leave this field empty.
+Specify an image for explicitly masking the analysis. A sensible option here is to use a segmentation of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.
 
 
 \section{Serial correlations}
@@ -283,7 +308,8 @@ removed by high-pass filtering. The grayed out section of the
 frequency plot shows those frequencies which are removed. For this regressor we have plenty of remaining experimental variance (see the peak at about 0.04Hz). \label{rev4}}
 \end{figure}
 
-\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
+%\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
+\bibliography{/home/spm/web/doc/biblio/methods_macros,/home/spm/web/doc/biblio/methods_group}
 
 \bibliographystyle{plain}
 
