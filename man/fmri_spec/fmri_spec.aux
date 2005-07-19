@@ -1,0 +1,65 @@
+\relax 
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}fMRI model specification}{1}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces \em  After starting SPM in fMRI mode, pressing the `Specify 1st-level' button, and then double-clicking on the `+fMRI model specification' text, the SPM graphics window should appear as above. The options under `-fMRI model specification' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). A double-click on options prefixed by a '+' will allow you to specify options at a greater level of detail. Options highlighted with a `$<$-X' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. }}{2}}
+\newlabel{spec}{{1.1}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}Timing parameters}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.1}Units for design}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Interscan interval}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.3}Microtime resolution}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.4}Microtime onset}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Data \& Design}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}Subject/Session}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{Scans}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{Conditions}{4}}
+\@writefile{toc}{\contentsline {paragraph}{Condition}{4}}
+\@writefile{toc}{\contentsline {subparagraph}{Name}{4}}
+\@writefile{toc}{\contentsline {subparagraph}{Onsets}{4}}
+\@writefile{toc}{\contentsline {subparagraph}{Durations}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces \em  Design matrix for fMRI data from two sessions. There are 24 experimental conditions for each session. The last two columns model the average activity in each session, giving a total of 50 regressors. There are 191 fMRI scans for each session. The overall design matrix therefore has 382 rows and 50 columns. }}{5}}
+\newlabel{design}{{1.2}{5}}
+\citation{parametric_pet}
+\citation{parametric_fmri}
+\@writefile{toc}{\contentsline {subparagraph}{Time Modulation}{6}}
+\@writefile{toc}{\contentsline {subparagraph}{Parametric Modulations}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{Regressors}{6}}
+\@writefile{toc}{\contentsline {paragraph}{Regressor}{6}}
+\@writefile{toc}{\contentsline {subparagraph}{Name}{6}}
+\@writefile{toc}{\contentsline {subparagraph}{Value}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{High-pass filter}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}Factorial design}{6}}
+\citation{rnah_anova}
+\citation{rnah_basis}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}Factor}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{Name}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{Levels}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.4}Basis Functions}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4.1}Canonical HRF}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{Model derivatives}{7}}
+\citation{rnah_conv}
+\citation{balloon}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4.2}Other basis sets}{8}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.5}Model Interactions (Volterra)}{8}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.6}Directory}{8}}
+\citation{ja_global}
+\citation{peb1}
+\citation{vb_fmri_ar}
+\bibdata{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
+\@writefile{toc}{\contentsline {section}{\numberline {1.7}Global normalisation}{9}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.8}Explicit mask}{9}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.9}Serial correlations}{9}}
+\newlabel{explore}{{1.10}{9}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.10}Reviewing your design }{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.3}{\ignorespaces \em  After pressing `Review', selecting the pull-down `Design' menu, Explore-$>$Session, and selecting the regressor you wish to look at, you should get a plot similar to the one above. The top row shows time and frequency domain plots of the time-series corresponding to this regressor. In this particular case we have four events. Each event or `stick function' has been convolved with the hemodynamic response function shown in the bottom panel. The frequency domain graph is useful for checking that experimental variance is not removed by high-pass filtering. The grayed out section of the frequency plot shows those frequencies which are removed. For this regressor we have plenty of remaining experimental variance (see the peak at about 0.04Hz). }}{10}}
+\newlabel{rev4}{{1.3}{10}}
+\bibcite{ja_global}{1}
+\bibcite{parametric_fmri}{2}
+\bibcite{parametric_pet}{3}
+\bibcite{balloon}{4}
+\bibcite{peb1}{5}
+\bibcite{rnah_conv}{6}
+\bibcite{rnah_anova}{7}
+\bibcite{rnah_basis}{8}
+\bibcite{vb_fmri_ar}{9}
+\bibstyle{plain}

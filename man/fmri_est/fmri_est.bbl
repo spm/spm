@@ -1,0 +1,41 @@
+\begin{thebibliography}{1}
+
+\bibitem{peb2}
+K.J. Friston, D.E. Glaser, R.N.A. Henson, S.J. Kiebel, C.~Phillips, and
+  J.~Ashburner.
+\newblock Classical and {B}ayesian inference in neuroimaging: Applications.
+\newblock {\em {N}euro{I}mage}, 16:484--512, 2002.
+
+\bibitem{karl_posterior}
+K.J. Friston and W.D. Penny.
+\newblock Posterior probability maps and {SPM}s.
+\newblock {\em {N}euro{I}mage}, 19(3):1240--1249, 2003.
+
+\bibitem{peb1}
+K.J. Friston, W.D. Penny, C.~Phillips, S.J. Kiebel, G.~Hinton, and
+  J.~Ashburner.
+\newblock Classical and {Bayesian} inference in neuroimaging: Theory.
+\newblock {\em {N}euro{I}mage}, 16:465--483, 2002.
+
+\bibitem{vb_fmri_ar}
+W.D. Penny, S.J. Kiebel, and K.J. Friston.
+\newblock Variational {B}ayesian {I}nference for f{MRI} time series.
+\newblock {\em {N}euro{I}mage}, 19(3):727--741, 2003.
+
+\bibitem{vb4}
+W.D. Penny and N.~Trujillo-Bareto.
+\newblock Bayesian comparison of spatially regularised general linear models.
+\newblock {\em {H}uman {B}rain {M}apping}, 2005.
+\newblock Accepted.
+
+\bibitem{vb2}
+W.D. Penny, N.~Trujillo-Bareto, and K.J. Friston.
+\newblock Bayesian f{MRI} time series analysis with spatial priors.
+\newblock {\em {N}euro{I}mage}, 24(2):350--362, 2005.
+
+\bibitem{vb3}
+W.Penny and G.~Flandin.
+\newblock Bayesian analysis of single-subject {fMRI}: {SPM} implementation.
+\newblock Technical report, Wellcome Department of Imaging Neuroscience, 2005.
+
+\end{thebibliography}
