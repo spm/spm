@@ -25,7 +25,7 @@ inds=find(diff(PP1)>0);
 D.events.code=PP1(inds+1)';
 D.events.time=inds'+1;
 inds=find(diff(PP2)<0);
-D.events.code=[D.events.code,PP2(inds+1)'];
+D.events.code=[D.events.code,PP2(inds+1)'+255];
 D.events.time=[D.events.time,inds'+1];
 
 [X,I]=sort(D.events.time);

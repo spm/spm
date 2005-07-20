@@ -1,7 +1,7 @@
 function [B,Wf]=robust_average(data);
 
 % James Kilner
-% $Id: spm_eeg_robust_average.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_robust_average.m 200 2005-07-20 09:05:40Z james $
 
 data=data';
 %figure(1)
@@ -30,7 +30,7 @@ while abs(ores-nres)>sqrt(1E-8)
 	if sum(isnan(B))>0
 		break
 	end
-	if n>25
+	if n>500
 		break
 	end
 	res=ndata-Xs*B;

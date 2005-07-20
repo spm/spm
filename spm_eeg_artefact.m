@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 193 2005-07-01 13:37:59Z james $
+% $Id: spm_eeg_artefact.m 200 2005-07-20 09:05:40Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -210,9 +210,9 @@ if MustDoWork
 				tdata = squeeze(D.data(j, :, trials));
 				
 				if wtrials == 1
-					[B, bc] = robust_average(tdata);
+					[B, bc] = spm_eeg_robust_average(tdata);
 				else
-					[B, bc] = robust_averaget(tdata);
+					[B, bc] = spm_eeg_robust_averaget(tdata);
 					
 				end
 				ins=0;
