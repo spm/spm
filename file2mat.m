@@ -1,4 +1,4 @@
-function file2mat
+function val = file2mat(a,varargin)
 % Function for reading from file_array objects.
 % FORMAT val = file2mat(a,ind1,ind2,ind3,...)
 % a      - file_array object
@@ -10,7 +10,7 @@ function file2mat
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: file2mat.m 112 2005-05-04 18:20:52Z john $
+% $Id: file2mat.m 201 2005-07-20 10:57:13Z guillaume $
 
-
-error('This function needs to be compiled.');
+%-This is merely the help file for the compiled routine
+error('file2mat.c not compiled - see Makefile');

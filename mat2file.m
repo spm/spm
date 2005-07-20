@@ -1,4 +1,4 @@
-function mat2file
+function mat2file(a,val,varargin)
 % Function for writing to file_array objects.
 % FORMAT mat2file(a,val,ind1,ind2,ind3,...)
 % a      - file_array object
@@ -10,7 +10,7 @@ function mat2file
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: mat2file.m 112 2005-05-04 18:20:52Z john $
+% $Id: mat2file.m 201 2005-07-20 10:57:13Z guillaume $
 
-
-error('This function needs to be compiled.');
+%-This is merely the help file for the compiled routine
+error('mat2file.c not compiled - see Makefile');

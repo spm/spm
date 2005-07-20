@@ -73,10 +73,10 @@ function [slice] = spm_vb_glmar (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_glmar.m 201 2005-07-20 10:57:13Z guillaume $
 
 
-tic;
+t0 = clock;
 
 % Check arguments and set defaults
 if nargin < 2, 
@@ -164,5 +164,5 @@ end
     
 slice=spm_vb_gamma(Y,slice);
 
-slice.elapsed_seconds=toc;
+slice.elapsed_seconds = etime(clock,t0);
 

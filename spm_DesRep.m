@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 164 2005-05-17 14:26:15Z guillaume $
+% $Id: spm_DesRep.m 201 2005-07-20 10:57:13Z guillaume $
 
 
 
@@ -276,11 +276,13 @@ case 'desrepui'                                    %-Design reporting UI
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
 if nargin < 2
-	swd     = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+	[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+	if ~sts, return; end
+	swd = spm_str_manip(spmmatfile,'H');
 	try
 		load(fullfile(swd,'SPM.mat'));
 	catch
-		return;
+		error(['Cannot read ' fullfile(swd,'SPM.mat')]);
 	end
 	SPM.swd = swd;
 else

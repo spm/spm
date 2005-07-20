@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 165 2005-05-18 15:44:00Z guillaume $
+% $Id: spm_getSPM.m 201 2005-07-20 10:57:13Z guillaume $
 
 
 
-SCCSid = '$Rev: 165 $';
+SCCSid = '$Rev: 201 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -171,7 +171,9 @@ spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-swd    = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+if ~sts, SPM = []; xSPM = []; return; end
+swd = spm_str_manip(spmmatfile,'H');
 
 %-Preliminaries...
 %=======================================================================
@@ -181,8 +183,7 @@ swd    = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
 try
 	load(fullfile(swd,'SPM.mat'));
 catch
-	SPM = []; xSPM = [];
-	return;
+	error(['Cannot read ' fullfile(swd,'SPM.mat')]);
 end
 SPM.swd = swd;
 
