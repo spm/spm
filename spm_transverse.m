@@ -35,7 +35,7 @@ function spm_transverse(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_transverse.m 202 2005-07-20 14:01:00Z john $
 
 
 switch lower(varargin{1})
@@ -76,7 +76,7 @@ spm('Pointer','Watch');
 spm_results_ui('Clear',Fgraph);
 
 global transv
-transv = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg,'fig',Fgraph);
+transv      = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg,'fig',Fgraph);
 transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',SPM.DIM(1:3),...
 	             'iM',SPM.iM,...
 		     'vox', sqrt(sum(SPM.M(1:3,1:3).^2)), 'u', SPM.u);
@@ -168,55 +168,55 @@ if transv.blob.dim(3) > 1
 	xo     = (siz(1)-(dim(1)*zm*3)-120)/2;
 	yo     = (siz(2)/2 - dim(2)*zm - 60)/2;
 
-	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
-	transv.h(2) = image(rot90(spm_grid(T1)));
+	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm]);
+	transv.h(2) = image(rot90(spm_grid(T1)),'Parent',transv.h(1));
 	axis image; axis off;
 	tmp = SPM.iM\[xyz(1:2)' (xyz(3)-1) 1]';
 	title(sprintf('z = %0.0fmm',tmp(3)));
-	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w');
-	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
+	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
+	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(1));
 
-	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
-	transv.h(6) = image(rot90(spm_grid(T2)));
+	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm]);
+	transv.h(6) = image(rot90(spm_grid(T2)),'Parent',transv.h(5));
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',xyzmm(3)));
-	transv.h(7) = line([1 1]*P(1),[0 dim(2)],'Color','w');
-	transv.h(8) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
+	transv.h(7) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(5));
+	transv.h(8) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(5));
 
-	transv.h(9) = axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
-	transv.h(10) = image(rot90(spm_grid(T3)));
+	transv.h(9) = axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm]);
+	transv.h(10) = image(rot90(spm_grid(T3)),'Parent',transv.h(9));
 	axis image; axis off;
 	tmp = SPM.iM\[xyz(1:2)' (xyz(3)+1) 1]';
 	title(sprintf('z = %0.0fmm',tmp(3)));
-	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w');
-	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
+	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(9));
+	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(9));
 
 	% colorbar
 	%-----------------------------------------------------------------------
 	q      = [80+dim(1)*zm*3+xo 20+yo 20 dim(2)*zm];
-	transv.h(13) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off','DeleteFcn','spm_transverse(''clear'');');
-	transv.h(14) = image([0 mx/32],[mn mx],[1:D]' + D);
+	transv.h(13) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
+	transv.h(14) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(13));
 	str    = [SPM.STAT ' value'];
 	axis xy; title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
 
-else,
+else
 	zm     = min([(siz(1) - 80)/dim(1),(siz(2)/2 - 60)/dim(2)]);
 	xo     = (siz(1)-(dim(1)*zm)-80)/2;
 	yo     = (siz(2)/2 - dim(2)*zm - 60)/2;
 
-	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm],'DeleteFcn','spm_transverse(''clear'');');
-	transv.h(2) = image(rot90(spm_grid(T2)));
+	transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm]);
+	transv.h(2) = image(rot90(spm_grid(T2)),'Parent',transv.h(1));
 	axis image; axis off;
 	title(sprintf('z = %0.0fmm',xyzmm(3)));
-	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w');
-	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w');
+	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
+	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(1));
 
 	% colorbar
 	%-----------------------------------------------------------------------
 	q      = [40+dim(1)*zm+xo 20+yo 20 dim(2)*zm];
-	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off','DeleteFcn','spm_transverse(''clear'');');
-	transv.h(6) = image([0 mx/32],[mn mx],[1:D]' + D);
+	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
+	transv.h(6) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(5));
 	str    = [SPM.STAT ' value'];
 	axis xy; title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
@@ -225,7 +225,7 @@ end;
 spm_XYZreg('Add2Reg',transv.hReg,transv.h(1), 'spm_transverse');
 
 for h=transv.h,
-	set(h,'DeleteFcn','spm_transverse(''clear'');');
+	set(h,'DeleteFcn',@clear_global);
 end;
 
 %-Reset pointer
@@ -340,9 +340,9 @@ if transv.blob.dim(3) > 1
 
 	% colorbar
 	%-----------------------------------------------------------------------
-	set(transv.h(14), 'Ydata',[mn mx], 'Cdata',[1:D]' + D);
+	set(transv.h(14), 'Ydata',[mn mx], 'Cdata',(1:D)' + D);
 	set(transv.h(13),'XTickLabel',[],'Ylim',[mn mx]);
-else,
+else
 	set(transv.h(2),'Cdata',rot90(spm_grid(T2)));
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
 	set(transv.h(3),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
@@ -350,7 +350,7 @@ else,
 
 	% colorbar
 	%-----------------------------------------------------------------------
-	set(transv.h(6), 'Ydata',[0 d], 'Cdata',[1:D]' + D);
+	set(transv.h(6), 'Ydata',[0 d], 'Cdata',(1:D)' + D);
 	set(transv.h(5),'XTickLabel',[],'Ylim',[0 d]);
 end;
 
@@ -361,11 +361,11 @@ spm('Pointer','Arrow')
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function clear_global
+function clear_global(varargin)
 global transv
 if isstruct(transv),
 	for h = transv.h,
-		if ishandle(h), set(h,'DeleteFcn',';'); end;
+		if ishandle(h), set(h,'DeleteFcn',''); end;
 	end;
 	for h = transv.h,
 		if ishandle(h), delete(h); end;

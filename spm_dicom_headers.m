@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_dicom_headers.m 202 2005-07-20 14:01:00Z john $
 
 
 ver = sscanf(version,'%d');
@@ -56,7 +56,10 @@ if ~strcmp(dcm,'DICM'),
 	end;
 	%t          = dict.tags(tag.group+1,tag.element+1);
 	t           = find(dict.group==tag.group & dict.element==tag.element);
-	if isempty(t),  % entry not found in DICOM dict
+	if isempty(t) && ~(tag.group==8 && tag.element==0),
+		% entry not found in DICOM dict and not from a GE Twin+excite
+		% that starts with with an 8/0 tag that I can't find any
+		% documentation for.
 		fclose(fp);
 		warning(['"' P '" is not a DICOM file.']);
 		return;

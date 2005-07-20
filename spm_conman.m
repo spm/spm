@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 118 2005-05-05 12:41:18Z john $
+% $Id: spm_conman.m 202 2005-07-20 14:01:00Z john $
 
 
 %=======================================================================
@@ -1749,8 +1749,13 @@ case 'createfig'
     WS = spm('WinScale');				%-Window scaling factors
     FS = spm('FontSizes');				%-Scaled font sizes
     PF = spm_platform('fonts');			%-Font names (for this platform)
-    S0 = get(0,'ScreenSize');			%-Screen size
-    
+    if str2double(version('-release'))>=14, 	%-Screen size
+        S0 = get(0, 'MonitorPosition');
+        S0 = S0(1,:);
+    else
+        S0 = get(0,'ScreenSize');
+    end;
+ 
     F = figure('IntegerHandle','off',...
         'Tag','ConMan',...
         'Name','SPM contrast manager','NumberTitle','off',...

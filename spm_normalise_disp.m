@@ -6,7 +6,7 @@ function spm_normalise_disp(matname,VF)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise_disp.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_normalise_disp.m 202 2005-07-20 14:01:00Z john $
 
 
 fg = spm_figure('FindWin','Graphics');
@@ -59,7 +59,7 @@ end;
 
 spm_orthviews('Reset');
 spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
-VN = spm_write_sn(VF.fname,matname);
+VN = spm_write_sn(VF,matname);
 h2 = spm_orthviews('Image',VN,[.51 0.1 .48 .6]);
 spm_orthviews('Space',h2);
 spm_print;

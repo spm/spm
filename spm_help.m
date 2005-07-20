@@ -121,7 +121,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_help.m 202 2005-07-20 14:01:00Z john $
 
 
 %=======================================================================
@@ -804,7 +804,12 @@ if any(F), return, end
 WS     = spm('WinScale');			%-Window scaling factors
 FS     = spm('FontSizes');			%-Scaled font sizes
 PF     = spm_platform('fonts');			%-Font names (for this platform)
-S0     = get(0,'ScreenSize');			%-Screen size
+if str2double(version('-release'))>=14,		%-Screen size
+	S0 = get(0, 'MonitorPosition');
+	S0 = S0(1,:);
+else
+	S0     = get(0,'ScreenSize');
+end;
 
 F      = figure('IntegerHandle','off',...
 	'Position',[S0(3)/2,0,0,0] + [-300 008 600 865].*WS,...

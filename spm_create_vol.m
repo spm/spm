@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_create_vol.m 202 2005-07-20 14:01:00Z john $
 
 
 for i=1:numel(V),
@@ -67,14 +67,13 @@ otherwise
 end;
 bits   = spm_type(V.dt(1),'bits');
 minoff = minoff + ceil(prod(V.dim(1:2))*bits/8)*V.dim(3)*(V.n(1)-1+V.n(2)-1);
-
 V.pinfo(3,1) = max(V.pinfo(3,:),minoff);
 
 if ~isfield(V,'descrip'), V.descrip = '';    end;
 if ~isfield(V,'private'), V.private = struct;    end;
 
 dim    = [V.dim(1:3) V.n];
-dat    = file_array(V.fname,dim,[dt{1} '-' dt{2}],V.pinfo(3),V.pinfo(1),V.pinfo(2));
+dat    = file_array(V.fname,dim,[dt{1} '-' dt{2}],0,V.pinfo(1),V.pinfo(2));
 N      = nifti;
 N.dat  = dat;
 N.mat  = V.mat;

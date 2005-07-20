@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 121 2005-05-06 10:36:55Z will $
+% $Id: spm.m 202 2005-07-20 14:01:00Z john $
 
 
 %=======================================================================
@@ -316,7 +316,13 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end;
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-S  = get(0,'ScreenSize');
+if str2double(version('-release'))>=14,
+	S = get(0, 'MonitorPosition');
+	S = S(1,:);
+else
+	S  = get(0,'ScreenSize');
+end;
+
 if all(S==1), error('Can''t open any graphics windows...'), end
 [SPMver,SPMc] = spm('Ver','',1);
 PF = spm_platform('fonts');
@@ -1268,7 +1274,12 @@ case {'winscale','getwinscale'}  %-Window scale factors (to fit display)
 if strcmp(lower(Action),'getwinscale')
 	warning('spm(''GetWinScale'' GrandFathered, use ''WinScale''')
 end
-S0   = get(0,'ScreenSize');
+if str2double(version('-release'))>=14,
+	S0 = get(0, 'MonitorPosition');
+	S0 = S0(1,:);
+else
+	S0   = get(0,'ScreenSize');
+end;
 if all(S0==1), error('Can''t open any graphics windows...'), end
 
 tmp = [S0(3)/1152 (S0(4)-50)/900 S0(3)/1152 (S0(4)-50)/900];
@@ -1324,7 +1335,12 @@ elseif upper(Win(1))=='G'
 	Rect = Rect(3,:);
 elseif Win(1)=='0'
 	%-Root workspace
-	Rect = get(0,'ScreenSize');
+	if str2double(version('-release'))>=14,
+		Rect = get(0, 'MonitorPosition');
+		Rect = Rect(1,:);
+	else
+		Rect = get(0,'ScreenSize');
+	end;
 else
 	error('Unknown Win type');
 end

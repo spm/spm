@@ -31,7 +31,7 @@ function varargout = spm_eeg_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_conman.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_conman.m 202 2005-07-20 14:01:00Z john $
 
 
 % Begin initialization code - DO NOT EDIT
@@ -97,7 +97,12 @@ set(handles.conman_eeg, 'Color', colour.background);
 WS = spm('WinScale');				%-Window scaling factors
 FS = spm('FontSizes');				%-Scaled font sizes
 PF = spm_platform('fonts');			%-Font names (for this platform)
-S0 = get(0,'ScreenSize');			%-Screen size
+if str2double(version('-release'))>=14,		%-Screen size
+	S0 = get(0, 'MonitorPosition');
+	S0 = S0(1,:);
+else
+	S0 = get(0,'ScreenSize');
+end;
 
 names = fieldnames(handles);
 for i = 1:length(names)
