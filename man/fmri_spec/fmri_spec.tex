@@ -11,7 +11,8 @@
 
 \ifpdf
   \usepackage[pdftex]{graphicx}
-  \DeclareGraphicsExtensions{.jpg}
+  \usepackage[bookmarks=true]{hyperref}
+  \DeclareGraphicsExtensions{.jpg,.pdf,.png}
 \else
   \usepackage[final]{graphicx}
   \DeclareGraphicsExtensions{.ps,.eps}
@@ -28,6 +29,7 @@
 \fi
 
 \begin{document}
+
 \chapter{fMRI model specification}
 
 Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM parameters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).

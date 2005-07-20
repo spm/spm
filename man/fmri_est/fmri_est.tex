@@ -11,7 +11,8 @@
 
 \ifpdf
   \usepackage[pdftex]{graphicx}
-  \DeclareGraphicsExtensions{.jpg}
+  \usepackage[bookmarks=true]{hyperref}
+  \DeclareGraphicsExtensions{.jpg,.pdf,.png}
 \else
   \usepackage[final]{graphicx}
   \DeclareGraphicsExtensions{.ps,.eps}
