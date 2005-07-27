@@ -1,7 +1,7 @@
 function [B,Wf]=robust_average(data);
 
 % James Kilner
-% $Id: spm_eeg_robust_average.m 200 2005-07-20 09:05:40Z james $
+% $Id: spm_eeg_robust_average.m 204 2005-07-27 08:51:55Z james $
 
 data=data';
 %figure(1)
@@ -40,7 +40,7 @@ while abs(ores-nres)>sqrt(1E-8)
 	res=reshape(res,s2,s1);
 	res=repmat((mean(abs(res)).*sign(sum(res))),[s2,1]);
 	res=reshape(res,s1*s2,1);
-	res=abs(res)-1;
+	res=abs(res)-2;
 	res(res<0)=0;
 	nres=(sum(res.^2));
 	Wf=(((abs(res)<1) .* (1 - res.^2).^2));
