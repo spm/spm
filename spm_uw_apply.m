@@ -118,7 +118,9 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_uw_apply.m 205 2005-07-28 16:23:07Z john $
+
+tiny = 5e-2;
 
 global defaults
 
@@ -135,15 +137,16 @@ defnames = fieldnames(def_flags);
 % Replace hardcoded defaults with spm_defaults
 % when exist and defined.
 %
-if exist('defaults','var') & isfield(defaults,'realign') & isfield(defaults.realign,'write')
+if exist('defaults','var') && isfield(defaults,'realign') && isfield(defaults.realign,'write')
    wd = defaults.realign.write;
    if isfield(wd,'interp'),    def_flags.interp = wd.interp; end
    if isfield(wd,'wrap'),      def_flags.wrap = wd.wrap; end
    if isfield(wd,'mask'),      def_flags.mask = wd.mask; end
 end
 
-if nargin < 1 | isempty(ds)
-    ds   = getfield(load(spm_select(1,'.*uw\.mat$','Select Unwarp result file')),'ds');
+if nargin < 1 || isempty(ds)
+    ds = load(spm_select(1,'.*uw\.mat$','Select Unwarp result file'),'ds');
+    ds = ds.ds;
 end
 
 %
@@ -159,18 +162,19 @@ end
 % defined by user. Also, warn user of any invalid fields,
 % probably reflecting misspellings.
 %
-if nargin < 2 | isempty(flags)
+if nargin < 2 || isempty(flags)
    flags = def_flags;
 end
 for i=1:length(defnames)
    if ~isfield(flags,defnames{i})
-      flags = setfield(flags,defnames{i},getfield(def_flags,defnames{i}));
+      %flags = setfield(flags,defnames{i},getfield(def_flags,defnames{i}));
+      flags.(defnames{i}) = def_flags.(defnames{i});
    end
 end
 flagnames = fieldnames(flags);
 for i=1:length(flagnames)
    if ~isfield(def_flags,flagnames{i})
-      warning(sprintf('Warning, unknown flag field %s',flagnames{i}));
+      warning('Warning, unknown flag field %s',flagnames{i});
    end
 end
 
@@ -199,7 +203,7 @@ end
 % First, create mask if so required.
 %
 
-if flags.mask | flags.mean,
+if flags.mask || flags.mean,
    linfun('Computing mask..');
    spm_progress_bar('Init',ntot,'Computing available voxels',...
                     'volumes completed');
@@ -218,7 +222,7 @@ if flags.mask | flags.mean,
       Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
       By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
       Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-      if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+      if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
          T = ds(s).sfP.mat\ds(1).P(1).mat;
          txyz = xyz * T';
          c = spm_bsplinc(ds(s).sfP,ds(s).hold);
@@ -230,8 +234,7 @@ if flags.mask | flags.mean,
          def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
       end
       sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
-      tiny = 5e-2; 
-      for i = 1:prod(size(ds(s).P))
+      for i = 1:numel(ds(s).P)
          T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
          txyz = xyz * T';
          txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
@@ -247,14 +250,14 @@ if flags.mask | flags.mean,
       %
       % Include static field in estmation of mask.
       %
-      if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+      if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
          T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
          txyz = xyz * T';
-         msk = msk + real(txyz(:,1) < 1 | txyz(:,1) > ds(s).sfP.dim(1) |...
-                          txyz(:,2) < 1 | txyz(:,2) > ds(s).sfP.dim(2) |...
-                          txyz(:,3) < 1 | txyz(:,3) > ds(s).sfP.dim(3)); 
+         msk = msk + real(txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(1)+tiny) |...
+                          txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).sfP.dim(2)+tiny) |...
+                          txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).sfP.dim(3)+tiny)); 
       end
-      if isfield(ds(s),'sfield') & ~isempty(ds(s).sfield)
+      if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
          ds(s).sfield = [];
       end
    end
@@ -264,10 +267,6 @@ end
 linfun('Reslicing images..');
 spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
 
-tiny = 5e-2; % From spm_vol_utils.c
-
-PO         = ds(1).P(1);
-PO.descrip = 'spm - undeformed';
 jP       = ds(1).P(1);
 jP       = rmfield(jP,{'fname','descrip','n','private'});
 jP.dim   = jP.dim(1:3);
@@ -279,7 +278,7 @@ for s=1:length(ds)
    Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
    By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
    Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-   if isfield(ds(s),'sfP') & ~isempty(ds(s).sfP)
+   if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
       T = ds(s).sfP.mat\ds(1).P(1).mat;
       txyz = xyz * T';
       c = spm_bsplinc(ds(s).sfP,ds(s).hold);
@@ -325,19 +324,20 @@ for s=1:length(ds)
       % Write it if so required.
       %
       if flags.which
-         PO.fname   = prepend(ds(s).P(i).fname,'u');
+         PO         = ds(s).P(i);
+         PO.fname   = prepend(PO.fname,'u');
+         PO.descrip = 'spm - undeformed';
 	 ivol       = ima; 
          if flags.mask
-	    %
-	    % Changed to fix "lost data in mean" bug.
-	    % 23/3-05 Jesper A
-	    %
 	    ivol(msk) = NaN;
          end
          ivol = reshape(ivol,PO.dim(1:3));
-         tP = spm_write_vol(PO,ivol);
+         PO   = spm_create_vol(PO);
+         for ii=1:PO.dim(3),
+             PO = spm_write_plane(PO,ivol(:,:,ii),ii);
+         end;
 	 if nargout > 0
-	    oP{s}(i) = tP;
+	    oP{s}(i) = PO;
 	 end
       end
       %
@@ -349,7 +349,7 @@ for s=1:length(ds)
       spm_progress_bar('Set',tv);
       tv = tv+1;
    end
-   if isfield(ds(s),'sfield') & ~isempty(ds(s).sfield)
+   if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
       ds(s).sfield = [];
    end
 end
@@ -357,9 +357,9 @@ end
 if flags.mean
    % Write integral image (16 bit signed)
    %-----------------------------------------------------------
-   warning off; % Shame on me!
+   warning('off','Divide by zero.'); % Shame on me!
    Integral   = Integral./Count;
-   warning on;
+   warning('on','Divide by zero.');
    PO         = ds(1).P(1);
    PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
