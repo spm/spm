@@ -20,7 +20,7 @@ function D = spm_eeg_rereference(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 173 2005-05-23 12:51:11Z stefan $
+% $Id: spm_eeg_rereference.m 206 2005-07-29 09:30:41Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 
@@ -79,9 +79,11 @@ ref_name_old = D.channels.ref_name;
 if length(D.reref.newref) == 1
         
     D.channels.reference = D.channels.order(D.reref.newref);
-    D.channels.ref_name = D.channels.name{D.reref.newref};
-
-    D.Nchannels = D.Nchannels - 1;
+	D.channels.ref_name = D.channels.name{D.reref.newref};
+	
+	if reference_old < length(D.channels.eeg)
+		D.Nchannels = D.Nchannels - 1;
+	end
     D.channels.order(D.reref.newref) = [];
     D.channels.name(D.reref.newref) = [];
     D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
@@ -107,7 +109,7 @@ else
 end
 
 % restore old reference channel, if possible
-if reference_old ~= 0
+if reference_old ~= 0 & reference_old > length(D.channels.eeg)
     D.Nchannels = D.Nchannels + 1;
     D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
     D.channels.order(D.Nchannels) = reference_old;
@@ -129,17 +131,18 @@ for i = 1:D.Nevents
     d = squeeze(D.data(:, :, i));
     
     % if old ref channel restored, add it now
-    if reference_old ~= 0
+    if reference_old ~= 0 &  D.channels.reference > length(D.channels.eeg)
         d = [d; zeros(1, size(d, 2))];
     end
     
     % Subtract new reference time series from other channels
     d(D.channels.eeg, :) = d(D.channels.eeg, :) - repmat(Tref(:,i)', length(D.channels.eeg), 1);
     
-    % remove data of new (single) reference channel
-    if length(D.reref.newref) == 1
-        d(D.reref.newref, :) = [];
-    end
+    % remove data of new (single) reference channel potentially causes
+    % problem later on.
+%     if length(D.reref.newref) == 1 
+%         d(D.reref.newref, :) = [];
+%     end
 
     D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
     if ismember(i, Ibar)

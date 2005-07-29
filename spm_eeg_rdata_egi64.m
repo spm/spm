@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_egi64(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_egi64.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_rdata_egi64.m 206 2005-07-29 09:30:41Z james $
 
 try
 	Fdata = S.Fdata;
@@ -32,6 +32,11 @@ try
 catch
 	Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
+
+
+
+
+
 
 D.channels.ctf = spm_str_manip(Fchannels, 't');
 Csetup = load(Fchannels);
@@ -77,6 +82,14 @@ for t=1:D.events.Ntypes
 	D.Radc=fgetl(fh);
 	D.Radc=str2num(D.Radc(end-3:end));
 end
+try 
+    D.events.start = S.events.start;
+catch
+    D.events.start =...
+        spm_input('start of pres-stimulus time [ms]', '+1', 'r', '', 1);
+end
+D.events.start = ceil(-D.events.start*D.Radc/1000);
+D.events.stop = D.Nsamples-D.events.start-1;
 D.Nevents=length(D.events.code);
 D.channels.Bad=[];
 for n=1:D.Nchannels
@@ -87,7 +100,12 @@ D.channels.eeg=1:D.Nchannels;
 D.channels.order=1:D.Nchannels;
 D.channels.heog=[];
 D.channels.veog=[];
-D.channels.rereference=65; %%% need to check
+
+D.channels.reference = 0;
+D.channels.ref_name = 'NIL';
+D.channels.reference = 65;
+D.channels.ref_name = 'Cz';
+%%% need to check
 D.datatype= 'int16';
 
 fgetl(fh);

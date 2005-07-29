@@ -1,7 +1,7 @@
 function [B,Wf]=robust_averaget(data);
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 204 2005-07-27 08:51:55Z james $
+% $Id: spm_eeg_robust_averaget.m 206 2005-07-29 09:30:41Z james $
 
 data=data';
 % figure(1)
@@ -31,14 +31,14 @@ while abs(ores-nres)>sqrt(1E-8)
 	end
 	res=ndata-(Xs*B);
 	
-	
-	sm=gauss(25,2);
-	sm=sm/sum(sm);
-	res=conv(sm,res);
-	res=res(10:end-10);
+
 	mad=median(abs(res-median(res)));	
 	res=(res)./mad;
-
+		
+ 	sm=gauss(12,2);
+ 	sm=sm/sum(sm);
+ 	res=conv(sm,res);
+	res=res(6:end-6);
 	res=abs(res)-3;
 	res(res<0)=0;	
 	nres=(sum(res.^2));
