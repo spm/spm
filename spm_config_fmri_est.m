@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 180 2005-05-25 16:24:24Z will $
+% $Id: spm_config_fmri_est.m 209 2005-08-02 17:09:13Z will $
 
 
 % Define inline types.
@@ -524,11 +524,11 @@ SPM.PPM.AR_P=job.method.Bayesian.ARP;
 
 % AR coefficient priors
 if isfield(job.method.Bayesian.noise,'GMRF')
-    SPM.PPM.priors.W='Spatial - GMRF';
+    SPM.PPM.priors.A='Spatial - GMRF';
 elseif isfield(job.method.Bayesian.noise,'LORETA')
-    SPM.PPM.priors.W='Spatial - LORETA';
+    SPM.PPM.priors.A='Spatial - LORETA';
 elseif isfield(job.method.Bayesian.noise,'tissue_type')
-    SPM.PPM.priors.W='Discrete';
+    SPM.PPM.priors.A='Discrete';
     SPM.PPM.priors.SY=job.method.Bayesian.noise.tissue_type;
 end
 
@@ -542,38 +542,40 @@ NullCon.eidf = 1;
 SPM.xCon=[];
 % Set up contrasts for 2nd-level ANOVA
 if strcmp(job.method.Bayesian.anova.second,'Yes')
-    cons=spm_design_contrasts(SPM);
-    for i=1:length(cons),
-        % Create a simple contrast for each row of each F-contrast
-        % The resulting contrast image can be used in a 2nd-level analysis
-        Fcon=cons(i).c;
-        nrows=size(Fcon,1);
-        STAT='P';
-        for r=1:nrows,
-            con=Fcon(r,:);     
-            
-            % Normalise contrast st. sum of positive elements is 1
-            % and sum of negative elements  is 1
-            s1=length(find(con==1));
-            con=con./s1;
-            
-            % Change name 
-            str=cons(i).name;
-            sp1=min(find(str==' '));
-            if strcmp(str(1:11),'Interaction')
-                name=['Positive ',str,'_',int2str(r)];
-            else
-                name=['Positive',str(sp1:end),'_',int2str(r)];
-            end
-            
-            DxCon=NullCon;
-            DxCon.name=name;
-            DxCon.c=con';
-            
-            if isempty(SPM.xCon),
-                SPM.xCon = DxCon;
-            else
-                SPM.xCon(end+1) = DxCon;
+    if isfield(SPM,'factor')
+        cons=spm_design_contrasts(SPM);
+        for i=1:length(cons),
+            % Create a simple contrast for each row of each F-contrast
+            % The resulting contrast image can be used in a 2nd-level analysis
+            Fcon=cons(i).c;
+            nrows=size(Fcon,1);
+            STAT='P';
+            for r=1:nrows,
+                con=Fcon(r,:);     
+                
+                % Normalise contrast st. sum of positive elements is 1
+                % and sum of negative elements  is 1
+                s1=length(find(con==1));
+                con=con./s1;
+                
+                % Change name 
+                str=cons(i).name;
+                sp1=min(find(str==' '));
+                if strcmp(str(1:11),'Interaction')
+                    name=['Positive ',str,'_',int2str(r)];
+                else
+                    name=['Positive',str(sp1:end),'_',int2str(r)];
+                end
+                
+                DxCon=NullCon;
+                DxCon.name=name;
+                DxCon.c=con';
+                
+                if isempty(SPM.xCon),
+                    SPM.xCon = DxCon;
+                else
+                    SPM.xCon(end+1) = DxCon;
+                end
             end
         end
     end

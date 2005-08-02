@@ -28,7 +28,7 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_set_priors.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_set_priors.m 209 2005-08-02 17:09:13Z will $
 
 if ~isfield(slice,'verbose')
     slice.verbose=0;
@@ -47,7 +47,7 @@ slice.c_beta_prior=0.1*ones(p,1);
 slice.c_lambda_prior=0.1*ones(N,1);
 
 slice.mean_alpha=ones(k,1);
-slice.mean_beta=ones(p,1);
+slice.mean_beta=1000*ones(p,1);
 slice.mean_lambda=ones(N,1);
 
 switch priors.W,
@@ -124,7 +124,8 @@ switch priors.A,
         for s=1:priors.S
             priors.voxel(s).i=find(priors.gamma(:,s)==1);  
         end
-        slice.mean_beta=100*ones(p,1);
+        %slice.mean_beta=1000*ones(p,1);
+        %slice.mean_beta=100*ones(p,1);
         
     otherwise
         % Estimate spatial precision from data
