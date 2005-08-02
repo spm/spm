@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 204 2005-07-27 08:51:55Z james $
+% $Id: spm_eeg_artefact.m 208 2005-08-02 14:40:29Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -190,7 +190,7 @@ if MustDoWork
 	if Weighted == 1
 		% weighted averaging
 		
-		allWf=zeros(D.Nchannels, D.Nevents*D.Nsamples,D.events.Ntypes);
+		allWf=zeros(D.Nchannels, D.Nevents*D.Nsamples);
 		tloops = [1:D.Nchannels];
 		tloops(ind) = [];
 		
@@ -218,7 +218,7 @@ if MustDoWork
 				ins=0;
 				for n=trials
 					ins=ins+1;
-					allWf(j, (n-1)*D.Nsamples+1:n*D.Nsamples,i) = bc((ins-1)*D.Nsamples+1:ins*D.Nsamples)';
+					allWf(j, (n-1)*D.Nsamples+1:n*D.Nsamples) = bc((ins-1)*D.Nsamples+1:ins*D.Nsamples)';
 				end
 			end
 			
