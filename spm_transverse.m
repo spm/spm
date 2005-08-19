@@ -35,7 +35,7 @@ function spm_transverse(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 211 2005-08-19 09:57:25Z will $
+% $Id: spm_transverse.m 212 2005-08-19 10:50:18Z will $
 
 
 switch lower(varargin{1})
@@ -43,7 +43,6 @@ switch lower(varargin{1})
 	case 'set'
 	% draw slices
 	%---------------------------------------------------------------
-        disp('Init');
 
 	init(varargin{2},varargin{3});
 
@@ -51,7 +50,6 @@ switch lower(varargin{1})
 	% reposition
 	%---------------------------------------------------------------
     disp('Reposition');
-	reposition(varargin{2});
 
 	case 'clear'
 	% clear
@@ -175,22 +173,34 @@ if transv.blob.dim(3) > 1
 	transv.h(2) = image(rot90(spm_grid(T1)),'Parent',transv.h(1));
 	axis image; axis off;
 	tmp = SPM.iM\[xyz(1:2)' (xyz(3)-1) 1]';
-	title(sprintf('z = %0.0fmm',tmp(3)));
+    
+    ax=transv.h(1);tpoint=get(ax,'title');
+    str=sprintf('z = %0.0fmm',tmp(3));
+	set(tpoint,'string',str);
+    
 	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
 	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(1));
 
 	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm]);
 	transv.h(6) = image(rot90(spm_grid(T2)),'Parent',transv.h(5));
 	axis image; axis off;
-	title(sprintf('z = %0.0fmm',xyzmm(3)));
-	transv.h(7) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(5));
+    
+    ax=transv.h(5);tpoint=get(ax,'title');
+    str=sprintf('z = %0.0fmm',tmp(3));
+	set(tpoint,'string',str);
+    
+    transv.h(7) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(5));
 	transv.h(8) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(5));
 
 	transv.h(9) = axes('Units','pixels','Parent',Fgraph,'Position',[60+dim(1)*zm*2+xo 20+yo dim(1)*zm dim(2)*zm]);
 	transv.h(10) = image(rot90(spm_grid(T3)),'Parent',transv.h(9));
 	axis image; axis off;
 	tmp = SPM.iM\[xyz(1:2)' (xyz(3)+1) 1]';
-	title(sprintf('z = %0.0fmm',tmp(3)));
+
+    ax=transv.h(9);tpoint=get(ax,'title');
+    str=sprintf('z = %0.0fmm',tmp(3));
+	set(tpoint,'string',str);
+    
 	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(9));
 	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(9));
     
@@ -205,11 +215,13 @@ if transv.blob.dim(3) > 1
 	transv.h(13) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
 	transv.h(14) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(13));
 
-    gcf=Fgraph;
-    gca=transv.h(13);
-    title(str,'FontSize',9);
-	set(gca,'XTickLabel',[]);
-    axis xy;
+    ax=transv.h(13);
+    tpoint=get(ax,'title');
+    set(tpoint,'string',str);
+    set(tpoint,'FontSize',9);
+    %title(ax,str,'FontSize',9);
+	set(ax,'XTickLabel',[]);
+    axis(ax,'xy');
 
 else
 	zm     = min([(siz(1) - 80)/dim(1),(siz(2)/2 - 60)/dim(2)]);
@@ -233,8 +245,7 @@ else
     else
         str=[SPM.STAT ' value'];
     end
-    gcf=Fgraph;
-    gca=transv.h(5);
+    
 	title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
     axis xy;
