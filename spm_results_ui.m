@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_results_ui.m 211 2005-08-19 09:57:25Z will $
 
-SCCSid = '$Rev: 112 $';
+SCCSid = '$Rev: 211 $';
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -330,7 +330,7 @@ AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
 h     = text(0,24,'SPMresults:','Parent',hResAx,...
 	'FontWeight','Bold','FontSize',FS(14));
 text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(SPM.swd,'a30'),'Parent',hResAx)
-text(0,12,sprintf('Height threshold %c = %0.2f',xSPM.STAT,xSPM.u),'Parent',hResAx)
+text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
 text(0,00,sprintf('Extent threshold k = %0.0f voxels',xSPM.k), 'Parent',hResAx)
 
 
@@ -554,6 +554,9 @@ uicontrol(Finter,'Style','PushButton','String','plot','FontSize',FS(10),...
 str  = { 'overlays...','slices','sections','render','previous sections'};
 tstr = { 'overlay filtered SPM on another image: ',...
 	 '3 slices / ','ortho sections / ','render /','previous ortho sections'};
+
+
+
 tmp  = { 'spm_transverse(''set'',xSPM,hReg)',...
 	 'spm_sections(xSPM,hReg)',...
 	['spm_render(	struct(	''XYZ'',	xSPM.XYZ,',...
@@ -561,6 +564,8 @@ tmp  = { 'spm_transverse(''set'',xSPM,hReg)',...
 				'''mat'',	xSPM.M,',...
 				'''dim'',	xSPM.DIM))'],...
 	['global prevsect;','spm_sections(xSPM,hReg,prevsect)']};
+
+
 if DIM(3) == 1, str(2 + 1) = []; tstr(2 + 1) = []; tmp(2) = []; end
 uicontrol(Finter,'Style','PopUp','String',str,'FontSize',FS(10),...
 	'ToolTipString',cat(2,tstr{:}),...

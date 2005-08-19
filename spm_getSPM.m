@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 201 2005-07-20 10:57:13Z guillaume $
+% $Id: spm_getSPM.m 211 2005-08-19 09:57:25Z will $
 
 
 
-SCCSid = '$Rev: 201 $';
+SCCSid = '$Rev: 211 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -383,8 +383,8 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 if isfield(SPM,'PPM') & (xCon(Ic(1)).STAT == 'T') | (xCon(Ic(1)).STAT == 'P')
     str           = 'Effect size threshold for PPM';
     if isfield(SPM.PPM,'VB')
-        % For VB Gamma is stored explicitly
-        Gamma=SPM.PPM.Gamma;
+        % For VB - set default effect size to zero
+        Gamma=0;
         xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
 		xCon(Ic).STAT = 'P';
     elseif nc == 1 & isempty(xCon(Ic).Vcon)
@@ -415,8 +415,8 @@ else
 end
 
 xCon     = SPM.xCon;
-VspmSv   = cat(1,xCon(Ic).Vspm);
 STAT     = xCon(Ic(1)).STAT;
+VspmSv   = cat(1,xCon(Ic).Vspm);
 
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
@@ -541,7 +541,8 @@ if STAT ~= 'P'
 %-----------------------------------------------------------------------
 elseif STAT == 'P'
 
-	u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',.95,1);
+    u_default = 1- 1/SPM.xVol.S;
+	u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',u_default,1);
 
 end % (if STAT)
 
@@ -594,6 +595,12 @@ end % (if ~isempty(XYZ))
 % - E N D
 %=======================================================================
 fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
+
+% For Bayesian inference display contrast values
+if STAT=='P'
+	CC = spm_get_data(xCon(Ic).Vcon,XYZ); 
+    Z = CC(:,Q);
+end
 
 %-Assemble output structures of unfiltered data
 %=======================================================================

@@ -35,7 +35,7 @@ function spm_transverse(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm_transverse.m 211 2005-08-19 09:57:25Z will $
 
 
 switch lower(varargin{1})
@@ -43,11 +43,14 @@ switch lower(varargin{1})
 	case 'set'
 	% draw slices
 	%---------------------------------------------------------------
+        disp('Init');
+
 	init(varargin{2},varargin{3});
 
 	case 'setcoords'
 	% reposition
 	%---------------------------------------------------------------
+    disp('Reposition');
 	reposition(varargin{2});
 
 	case 'clear'
@@ -190,15 +193,23 @@ if transv.blob.dim(3) > 1
 	title(sprintf('z = %0.0fmm',tmp(3)));
 	transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(9));
 	transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(9));
-
+    
 	% colorbar
 	%-----------------------------------------------------------------------
 	q      = [80+dim(1)*zm*3+xo 20+yo 20 dim(2)*zm];
+    if SPM.STAT=='P'
+        str='Effect size';
+    else
+        str=[SPM.STAT ' value'];
+    end
 	transv.h(13) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
 	transv.h(14) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(13));
-	str    = [SPM.STAT ' value'];
-	axis xy; title(str,'FontSize',9);
+
+    gcf=Fgraph;
+    gca=transv.h(13);
+    title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
+    axis xy;
 
 else
 	zm     = min([(siz(1) - 80)/dim(1),(siz(2)/2 - 60)/dim(2)]);
@@ -211,15 +222,24 @@ else
 	title(sprintf('z = %0.0fmm',xyzmm(3)));
 	transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
 	transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(1));
-
+    
 	% colorbar
 	%-----------------------------------------------------------------------
 	q      = [40+dim(1)*zm+xo 20+yo 20 dim(2)*zm];
 	transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
 	transv.h(6) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(5));
-	str    = [SPM.STAT ' value'];
-	axis xy; title(str,'FontSize',9);
+	if SPM.STAT=='P'
+        str='Effect size';
+    else
+        str=[SPM.STAT ' value'];
+    end
+    gcf=Fgraph;
+    gca=transv.h(5);
+	title(str,'FontSize',9);
 	set(gca,'XTickLabel',[]);
+    axis xy;
+    
+    
 end;
 
 spm_XYZreg('Add2Reg',transv.hReg,transv.h(1), 'spm_transverse');
@@ -337,11 +357,12 @@ if transv.blob.dim(3) > 1
 	set(get(transv.h(9),'Title'),'String',sprintf('z = %0.0fmm',tmp(3)));
 	set(transv.h(11),'Xdata',[1 1]*P(1),'Ydata',[0 dim(2)]);
 	set(transv.h(12),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
-
+   
 	% colorbar
 	%-----------------------------------------------------------------------
 	set(transv.h(14), 'Ydata',[mn mx], 'Cdata',(1:D)' + D);
 	set(transv.h(13),'XTickLabel',[],'Ylim',[mn mx]);
+    
 else
 	set(transv.h(2),'Cdata',rot90(spm_grid(T2)));
 	set(get(transv.h(1),'Title'),'String',sprintf('z = %0.0fmm',xyzmm(3)));
@@ -352,6 +373,7 @@ else
 	%-----------------------------------------------------------------------
 	set(transv.h(6), 'Ydata',[0 d], 'Cdata',(1:D)' + D);
 	set(transv.h(5),'XTickLabel',[],'Ylim',[0 d]);
+    
 end;
 
 
