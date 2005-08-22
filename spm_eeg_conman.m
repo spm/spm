@@ -31,7 +31,7 @@ function varargout = spm_eeg_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_conman.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm_eeg_conman.m 213 2005-08-22 12:43:29Z stefan $
 
 
 % Begin initialization code - DO NOT EDIT
@@ -142,10 +142,6 @@ Mfactor = 8;
 if SPM.eeg.Nfactors > Mfactor
     error('The component editor cannot handle more than 8 factors');
 end
-
-% if SPM.eeg.Ncomp_d > 1
-%      warning('The component editor can only handle the first partition.');
-% end
 
 % adjust appearance to number of factors
 %-----------------------------------------
@@ -446,6 +442,7 @@ for i = 1:SPM.eeg.Nfactors
     eval(sprintf('c{%d} = getappdata(handles.Generate%d, ''c'');', i, i));
     if isempty(c{i})
         eval(sprintf('str = get(handles.factor%d, ''String'');', i, i));
+
         for j = 1:size(str, 1)
             tmp{j} = str2num(str(j,:));
         end
@@ -453,6 +450,12 @@ for i = 1:SPM.eeg.Nfactors
         for j = 1:length(tmp)
             ml = max(ml, length(tmp{j}));
         end
+
+        if ml == 0
+            spm('alert*', sprintf('Input weights for factor %s', SPM.eeg.factor{i}))
+            return;
+        end
+
         c{i} = zeros(size(str, 1), ml);
         for j = 1:size(str, 1)
             c{i}(j, 1:length(tmp{j})) = tmp{j};
@@ -481,9 +484,9 @@ if ~w
     for i = 1:SPM.eeg.Nfactors
         xCon.eeg.Con{1, i} = c{i};
     end
-
-    c_out = spm_eeg_contrast(SPM, xCon);
     
+    c_out = spm_eeg_contrast(SPM, xCon);
+
     % output
     handles.output.c_out = c_out;
     handles.output.c = c; % components

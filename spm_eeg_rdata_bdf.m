@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_rdata_bdf.m 213 2005-08-22 12:43:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -349,6 +349,9 @@ end
 D.Nevents = 1;
 D.events.types = unique(D.events.code);
 D.datatype = 'float';
+
+% units
+D.units = '\muV';
 
 fclose(fpout);
 

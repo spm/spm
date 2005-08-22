@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 211 2005-08-19 09:57:25Z will $
+% $Id: spm_getSPM.m 213 2005-08-22 12:43:29Z stefan $
 
 
 
-SCCSid = '$Rev: 211 $';
+SCCSid = '$Rev: 213 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -190,7 +190,7 @@ SPM.swd = swd;
 %-Get volumetric data from SPM.mat
 %-----------------------------------------------------------------------
 try
-    if strcmp(spm('CheckModality'), 'EEG') & rank(full(SPM.xX.X)) == size(SPM.xX.X, 1)
+    if strcmp(spm('CheckModality'), 'EEG') & isfield(SPM.xX, 'fullrank')
         Vbeta = SPM.Vbeta;
     else
         xX   = SPM.xX;				%-Design definition structure
@@ -406,7 +406,7 @@ end
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %=======================================================================
 SPM.xCon = xCon;
-if size(SPM.xX.X, 1) > rank(full(SPM.xX.X))
+if ~isfield(SPM.xX, 'fullrank')
     SPM = spm_contrasts(SPM, unique([Ic, Im]));
 else
     SPM = spm_eeg_contrasts_conv(SPM, unique([Ic, Im]));

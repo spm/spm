@@ -15,12 +15,45 @@ function [SPM] = spm_eeg_design(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_design.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_design.m 213 2005-08-22 12:43:29Z stefan $
 
 %-GUI setup
 %-----------------------------------------------------------------------
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG stats model setup',0);
 spm_help('!ContextHelp', mfilename)
+
+Oanalysis = SPM.eeg.Oanalysis;
+
+% set all options if shortcut
+if Oanalysis == 1
+    % single trial analysis
+    SPM.eeg.Ilevel = 1;
+    SPM.eeg.Nfactors = 2;
+    SPM.eeg.factor{1} = 'trials';
+    SPM.eeg.factor{2} = 'time';
+    SPM.eeg.Ncomp_d = 1;
+    SPM.xBF.name_d{1, 1} = 'Identity';
+    SPM.xBF.name_d{1, 2} = 'Identity';    
+    SPM.xVi.Qidentical{1} = 1;
+    SPM.xVi.Qindependent{1} = 1;
+    SPM.xVi.Qidentical{2} = 1;
+    SPM.xVi.Qindependent{2} = 1;
+    SPM.xX.fullrank = 1;
+elseif Oanalysis == 2
+    % ERP analysis
+    SPM.eeg.Ilevel = 1;
+    SPM.eeg.Nfactors = 2;
+    SPM.eeg.factor{1} = 'conditions';
+    SPM.eeg.factor{2} = 'time';
+    SPM.eeg.Ncomp_d = 1;
+    SPM.xBF.name_d{1, 1} = 'Identity';
+    SPM.xBF.name_d{1, 2} = 'Identity';    
+    SPM.xVi.Qidentical{1} = 1;
+    SPM.xVi.Qindependent{1} = 1;
+    SPM.xVi.Qidentical{2} = 1;
+    SPM.xVi.Qindependent{2} = 1;
+    SPM.xX.fullrank = 1;
+end
 
 % is this the first level?
 %-----------------------------------------------------------------------
@@ -35,7 +68,7 @@ if Ilevel == 1
         D = spm_eeg_ldata(SPM.eeg.D);
     catch
         % ask for generating ERP file to get at timing parameters
-        D = spm_eeg_ldata(spm_select(1, 'mat', 'Select associated ERP-mat file'));
+        D = spm_eeg_ldata(spm_select(1, 'mat', 'Select one of the original M/EEG-mat file(s)'));
     end
     SPM.xY.RT = 1/D.Radc;
     SPM.eeg.pt = 1000/D.Radc*[-D.events.start D.events.stop];
@@ -44,14 +77,13 @@ end
 % construct Design matrix {X}
 %=======================================================================
 
-
 % get number of factors
 try
-	SPM.eeg.Nfactors;
+    SPM.eeg.Nfactors;
 catch
-	SPM.eeg.Nfactors = spm_input(['How many factors?'], '+1');
+    SPM.eeg.Nfactors = spm_input(['How many factors?'], '+1');
 end
-
+    
 for i = 1:SPM.eeg.Nfactors
     
     % get factor name
@@ -82,15 +114,22 @@ for i = 1:SPM.eeg.Nfactors
             end
         end
         
-        str = sprintf('How many levels for factor %s', SPM.eeg.factor{i});
+        str = sprintf('#levels for factor %s', SPM.eeg.factor{i});
         Ypos = -1;
         while 1
-            if Ypos == -1   
-                [SPM.eeg.Nlevels{i}, Ypos] = spm_input(str, '+1', 'n');
+            if Ypos == -1
+                if strcmpi(SPM.eeg.factor{i}, 'time')
+                    if ~isempty(who('D'))
+                        defstr = sprintf('%d', D.Nsamples); 
+                    end
+                else
+                    defstr = '';
+                end
+                [SPM.eeg.Nlevels{i}, Ypos] = spm_input(str, '+1', 'n', defstr);
             else
-                SPM.eeg.Nlevels{i} = spm_input(sprintf(str, SPM.eeg.factor{i}), Ypos, 'n');
+                SPM.eeg.Nlevels{i} = spm_input(sprintf(str, SPM.eeg.factor{i}), Ypos, 'n', defstr);
             end
-
+            
             if length(SPM.eeg.Nlevels{i}) == 1 | length(SPM.eeg.Nlevels{i}) == Ntotal(i), break, end
             str = sprintf('enter a scalar or [%d] vector', Ntotal(i));
         end
@@ -288,7 +327,7 @@ end
 
 % remove all-zero regressors and save indices for
 % contrast vector/matrix generation
-ind = find(all(~SPM.xX.X));
+ind = find(~any(SPM.xX.X));
 SPM.xX.X(:, ind) = [];
 Xname(ind) = [];
 SPM.eeg.remove = ind;

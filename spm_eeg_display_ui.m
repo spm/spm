@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 196 2005-07-14 17:10:12Z stefan $
+% $Id: spm_eeg_display_ui.m 213 2005-08-22 12:43:29Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -44,6 +44,11 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         return;
     end
 
+    % which units?
+    if ~isfield(D, 'units')
+        D.units = '\muV';
+    end
+    
     try
         % Use your own window
         F = S.Hfig;
@@ -219,17 +224,24 @@ if nargin == 0 | ~isfield(S, 'rebuild')
             'CallBack', @triallistbox_update,...
             'Parent', F);
     end
-
+    % display file name at top of page
+    uicontrol('Style', 'text', 'String', fullfile(D.path, D.fname),...
+        'Units', 'normalized', 'Position', [0.05 0.98 0.8 0.02],...
+        'Background', 'white', 'FontSize', 14, 'HorizontalAlignment', 'Left');
+    
     % axes with scaling and ms display
     axes('Position', [0.05 0.15 0.2 0.07]);
     set(gca, 'YLim', [-scale scale], 'XLim', [1 D.Nsamples],...
         'XTick', [], 'YTick', [], 'LineWidth', 2);
-    handles.scaletexttop = text(0, scale, sprintf(' %d \\muV', 2*scale), 'Interpreter', 'Tex',...
+    handles.scaletexttop = text(0, scale, sprintf(' %d', 2*scale), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'VerticalAlignment', 'top',...
         'Tag', 'scaletext2');
-    text(D.Nsamples, -scale, sprintf('%d ms', round((D.Nsamples-1)*1000/D.Radc)), 'Interpreter', 'Tex',...
+    ylabel(D.units, 'Interpreter', 'tex', 'FontSize', FS1);
+    text(D.Nsamples, -scale, sprintf('%d', round((D.Nsamples-1)*1000/D.Radc)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
-
+    xlabel('ms', 'Interpreter', 'tex', 'FontSize', FS1);
+    
+    
     % channels to display, initially exclude bad channels
     D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);
 
@@ -254,7 +266,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % position of plotting area for eeg data in graphics figure
-Pos = [0.01 0.23 0.98 0.75];
+Pos = [0.03 0.23 0.95 0.75];
 
 % Compute width of display boxes
 %-------------------------------
@@ -343,11 +355,14 @@ for i = 1:Npos
     % uicontextmenus for axes
     Heegmenus(i) = uicontextmenu;
     if ismember(i, D.channels.Bad)
-        labelstring = sprintf('Declare %s as good', D.channels.name{handles.Cselection2(i)});
+        labelstring = 'Declare as good';
     else
-        labelstring = sprintf('Declare %s as bad', D.channels.name{handles.Cselection2(i)});
+        labelstring = 'Declare as bad';
     end
 
+    uimenu(Heegmenus(i), 'Label',...
+        sprintf('%s (%d)', D.channels.name{handles.Cselection2(i)}, handles.Cselection2(i)));
+    uimenu(Heegmenus(i), 'Separator', 'on');
     uimenu(Heegmenus(i), 'Label', labelstring,...
         'CallBack', {@switch_bad, i});
     
@@ -368,7 +383,9 @@ for i = 1:Npos
 			set(h, 'ButtonDownFcn', {@windowplot, i},...
 				'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
 		else
-			h = plot(D.data(handles.Cselection2(i), :, handles.Tselection(j)), 'Color', handles.colour{j});
+			h = plot([-D.events.start:D.events.stop]*1000/D.Radc,...
+                D.data(handles.Cselection2(i), :, handles.Tselection(j)),...
+                'Color', handles.colour{j});
 			set(h, 'ButtonDownFcn', {@windowplot, i},...
 				'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
 		end
@@ -378,9 +395,16 @@ for i = 1:Npos
 			'XLim', [1 D.Nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
 		caxis([-scale scale])
 		colormap('jet')		
-	else
-		set(gca, 'YLim', [-scale scale],...
-			'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
+    else
+        if Lxrec > 0.1
+            % boxes are quite large
+            		set(gca, 'YLim', [-scale scale],...
+                        'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'off', 'Xgrid', 'on');
+        else
+            % otherwise remove tickmarks
+            set(gca, 'YLim', [-scale scale],...
+                'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'XTick', [], 'YTick', [], 'Box', 'off');
+        end
 	end
 end
 
@@ -491,7 +515,7 @@ set(hObject, 'Value', scale);
 set(handles.scaletext, 'String', mat2str(scale));
 
 % text at top of figure
-set(handles.scaletexttop, 'String', sprintf(' %d \\muV', 2*scale));
+set(handles.scaletexttop, 'String', sprintf(' %d', 2*scale));
 
 % rescale plots
 for i = 1:length(handles.Heegaxes)
@@ -502,10 +526,17 @@ for i = 1:length(handles.Heegaxes)
    if isfield(D,'Nfrequencies')
 		set(gca, 'ZLim', [0 scale],...
 			'XLim', [1 D.Nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-		caxis([-scale scale])
-	else
-		set(gca, 'YLim', [-scale scale],...
-			'XLim', [1 D.Nsamples], 'XTick', [], 'YTick', [], 'Box', 'off');
+        caxis([-scale scale])
+   else
+       if handles.Lxrec > 0.1
+           % boxes are quite large
+           set(gca, 'YLim', [-scale scale],...
+               'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'off', 'Xgrid', 'on');
+       else
+           % otherwise remove tickmarks
+           set(gca, 'YLim', [-scale scale],...
+               'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'XTick', [], 'YTick', [], 'Box', 'off');
+       end
 	end
 end
 
@@ -535,6 +566,8 @@ end
 function draw_subplots(handles, ind)
 % This function plots data in the subplots
 
+D = handles.D;
+
 scale = round(get(handles.scaleslider, 'Value'));
 
 for i = 1:length(handles.Heegaxes)
@@ -546,8 +579,9 @@ for i = 1:length(handles.Heegaxes)
     set(handles.Heegaxes(i), 'NextPlot', 'add');
     
     for j = 1:length(ind)
-        plot(handles.D.data(handles.Cselection2(i), :, ind(j)), 'Color', handles.colour{j},...
-            'Clipping', 'off',...
+        plot([-D.events.start:D.events.stop]*1000/D.Radc,...
+            D.data(handles.Cselection2(i), :, ind(j)),...
+            'Color', handles.colour{j}, 'Clipping', 'off',...
             'ButtonDownFcn', {@windowplot, i});
 
     end
@@ -604,7 +638,7 @@ else
 
 	else
 		xlabel('ms', 'FontSize', 16); 
-		ylabel('\muV', 'FontSize', 16, 'Interpreter', 'Tex')
+		ylabel(D.units, 'FontSize', 16, 'Interpreter', 'Tex')
 		
 		for i = 1:length(handles.Tselection)
 			plot([-D.events.start:D.events.stop]*1000/D.Radc,...
@@ -618,7 +652,7 @@ else
 			'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'on');
 		grid on
 	end
-    title(D.channels.name{handles.Cselection2(ind)}, 'FontSize', 16);
+    title(sprintf('%s (%d)', D.channels.name{handles.Cselection2(ind)}, handles.Cselection2(ind)), 'FontSize', 16);
     
     if D.Nevents > 1
         legend(handles.trialnames{handles.Tselection}, 0);

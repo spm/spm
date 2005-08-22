@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 196 2005-07-14 17:10:12Z stefan $
+% $Id: spm_eeg_select_channels.m 213 2005-08-22 12:43:29Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -137,7 +137,7 @@ function patch_select(obj, eventdata, handles, i, ind);
 s = get(handles.listbox1, 'Value');
 h = handles.Hpatch{i};
 
-if ~ismember(s,i)
+if ~ismember(i, s)
     set(h, 'FaceColor', handles.Cselect);
     set(handles.listbox1, 'Value', sort([s, i]));
 else
@@ -214,7 +214,7 @@ for i = 1:length(handles.ind)
     set(handles.Hpatch{i}, 'FaceColor', handles.Cdeselect);
 end
 
-% set all listbox entries to selected
+% remove all listbox entries
 set(handles.listbox1, 'Value', []);
 
 % --- Executes on button press in load.

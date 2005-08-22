@@ -20,7 +20,7 @@ function spm_eeg_convertmat2ana(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 188 2005-06-10 11:54:52Z james $
+% $Id: spm_eeg_convertmat2ana.m 213 2005-08-22 12:43:29Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
@@ -82,14 +82,9 @@ for k = 1:Nsub
         cd(dname);
         
         for l = Itrials
-            % if single trial data make new directory for single trials,
-            % otherwise just write images to trialtype directory
             if D{k}.Nevents ~= D{k}.events.Ntypes
                 % single trial data
-                dname = sprintf('trial%d.img', l);
-                fname = dname;
-                [m, sta] = mkdir(dname);
-                cd(dname);
+                fname = sprintf('trial%d.img', l);
             else
                 fname = 'average.img';
             end
@@ -110,7 +105,6 @@ for k = 1:Nsub
             if D{k}.Nevents ~= D{k}.events.Ntypes
                 % single trial data
                 disp(sprintf('Subject %d, type %d, trial %d', k, i, l))
-                cd ..
             else
                 % averaged data
                 disp(sprintf('Subject %d, type %d', k, i))

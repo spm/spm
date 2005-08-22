@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm_conman.m 213 2005-08-22 12:43:29Z stefan $
 
 
 %=======================================================================
@@ -1596,7 +1596,34 @@ case {'d_conmtx_cb','d_x1cols_cb'}
         set(hD_X1cols,'String','')
         [c,I,emsg,imsg] = spm_conman('ParseCon',str,xX.xKXs,STAT);
         if all(I)
-            DxCon = spm_FcUtil('Set','',STAT,'c',c,xX.xKXs);
+            if isfield(xX, 'fullrank')
+                % fullrank is set by EEG/MEG mode for 'models' with
+                % zero error df. This code does exactly the same as the
+                % usual contrast computation, but produces (space-saving)  
+                % sparse matrices only.
+                rk = xX.xKXs.rk;
+                
+                sXc = spm_sp('set', c); sXc.u = sparse(sXc.u);
+                op = sXc.u(:,[1:sXc.rk])*sXc.u(:,[1:sXc.rk])';
+                r = speye(size(xX.xKXs.X,1)) - op;
+
+                if strcmp(STAT, 'T')
+                    DxCon.name = '';
+                    DxCon.STAT = STAT;
+                    DxCon.c = spm_sp(':', xX.xKXs, c);
+                    DxCon.X0.ukX0 = diag(xX.xKXs.ds(1:rk))*xX.xKXs.v(:,1:rk)'*r;
+                    DxCon.iX0 = 'c';
+                    DxCon.X1o.ukX1o = spm_sp('cukxp-:',xX.xKXs,c);
+                    DxCon.eidf = [];
+                    DxCon.Vcon = [];
+                    DxCon.Vspm = [];
+                else
+                    error('Can only compute 1-dim contrasts for this design');
+                end
+                
+            else
+                DxCon = spm_FcUtil('Set','',STAT,'c',c,xX.xKXs);
+            end
         else
             DxCon = [];
         end

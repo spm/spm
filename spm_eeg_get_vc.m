@@ -29,7 +29,7 @@ function SPM = spm_eeg_get_vc(SPM);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_get_vc.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_get_vc.m 213 2005-08-22 12:43:29Z stefan $
 
 
 
@@ -175,7 +175,7 @@ end
 % remove all-zero variance components
 ind = [];
 for i = 1:length(tmp)
-    if all(~tmp{i}(:))
+    if sum(tmp{i}(:)) == 0
         ind = [ind i];
     end
 end

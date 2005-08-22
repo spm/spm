@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 182 2005-05-27 17:44:15Z stefan $
+% $Id: spm_eeg_downsample.m 213 2005-08-22 12:43:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -70,7 +70,7 @@ if size(D.data, 3) > 1
         end
 
     end
-    D.events.start = round(D.events.start./(D.Radc/Radc_new));
+    D.events.start = round(D.events.start*Radc_new/D.Radc);
     D.events.stop = size(d2, 2) - D.events.start - 1;
     D.Nsamples = size(d2, 2);
 else
@@ -99,7 +99,7 @@ else
    
     end
     D.scale.values = spm_eeg_write(fpd, data, 2, D.datatype);
-    D.Nsamples = size(d2, 1);
+    D.Nsamples = size(data, 2);
 
     
 end
@@ -108,7 +108,6 @@ spm_progress_bar('Clear');
 
 fclose(fpd);
 
-D.events.time = round(D.events.time./(D.Radc/Radc_new));
 D.Radc = Radc_new;
 D.data = [];
 D.fname = ['d' D.fname];

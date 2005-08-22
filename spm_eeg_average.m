@@ -5,23 +5,17 @@ function D = spm_eeg_average(S);
 % S		    - optional input struct
 % (optional) fields of S:
 % D			- filename of EEG mat-file with epoched data
-% c         - contrast matrix, each column computes a contrast of the data
 %
 % Output:
 % D			- EEG data struct (also written to files)
 %_______________________________________________________________________
 %
-% spm_eeg_average averages data, either over single trials or averaged
-% data. By default, if applied to single trial data, the function will
-% average within trial type. Additionally, one can supply a contrast matrix
-% c that can be used to average over trial types or take differences
-% between trial types.
-%
+% spm_eeg_average averages single trial data within trial type. 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 208 2005-08-02 14:40:29Z james $
+% $Id: spm_eeg_average.m 213 2005-08-22 12:43:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -38,23 +32,6 @@ try
 catch    
 	error(sprintf('Trouble reading file %s', D));
 end
-
-try
-	c = S.c;
-catch
-	% if there is no S.c, assume that user wants default average within
-	% trial type
-	c = eye(D.events.Ntypes);
-end
-
-if size(c, 1) ~= D.events.Ntypes
-	error('length of contrast must be number of trial types');
-end
-
-if sign(c(:)) ~= c(:)
-	error('contrast can only take 1, -1 or 0');
-end
-
 
 D.fnamedat = ['m' D.fnamedat];
 
@@ -112,76 +89,33 @@ else
 			D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 			
 		end           
-		
-		for i = 1:size(c, 2)
-			
-			c_tmp = zeros(D.Nevents, 1);
-			for j = 1:size(c, 1)
-				if c(j, i)
-					ind = (D.events.code == D.events.types(j) & ~D.events.reject)';
-					c_tmp = c_tmp + c(j, i)*ind;
-				end
-			end
-			
-			% weight contrast vectors
-			if ~isempty(find(c_tmp == 1))
-				w1 = sum(c_tmp == 1);
-				c_tmp(c_tmp == 1) = 1/w1*c_tmp(c_tmp == 1);
-			end
-			if ~isempty(find(c_tmp == -1))
-				wm1 = sum(c_tmp == -1);
-				c_tmp(c_tmp == -1) = 1/wm1*c_tmp(c_tmp == -1);
-			end
-			
-			% identify the case when there is only one observation (single
-			% trial)
-			ni(i) = sum(c_tmp ~= 0);
-		end
-		
-		
 	else
 		
 		D.scale.dim = [1 3];
-		D.scale.values = zeros(D.Nchannels, size(c, 2));
+        Ntypes = D.events.Ntypes;
+		D.scale.values = zeros(D.Nchannels, Ntypes);
 		
-		spm_progress_bar('Init', size(c, 2), 'Averages done'); drawnow;
-		if size(c, 2) > 100, Ibar = floor(linspace(1, size(c, 2),100));
-		else, Ibar = [1:size(c, 2)]; end
+		spm_progress_bar('Init', Ntypes, 'Averages done'); drawnow;
+		if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
+		else, Ibar = [1:Ntypes]; end
 		
-		for i = 1:size(c, 2)
+		for i = 1:Ntypes
 			
-			c_tmp = zeros(D.Nevents, 1);
-			for j = 1:size(c, 1)
-				if c(j, i)
-					ind = (D.events.code == D.events.types(j) & ~D.events.reject)';
-					c_tmp = c_tmp + c(j, i)*ind;
-				end
-			end
+            w = (D.events.code == D.events.types(i) & ~D.events.reject)';
 			
-			% weight contrast vectors
-			if ~isempty(find(c_tmp == 1))
-				w1 = sum(c_tmp == 1);
-				c_tmp(c_tmp == 1) = 1/w1*c_tmp(c_tmp == 1);
-			end
-			if ~isempty(find(c_tmp == -1))
-				wm1 = sum(c_tmp == -1);
-				c_tmp(c_tmp == -1) = 1/wm1*c_tmp(c_tmp == -1);
-			end
-			
-			% identify the case when there is only one observation (single
-			% trial)
-			ni(i) = sum(c_tmp ~= 0);
+			ni(i) = length(w);
 			
 			d = zeros(D.Nchannels, D.Nsamples);
 			
 			if ni(i) == 0
-				warning('%s: No trials for contrast %d', D.fname, i); 
-			else
+				warning('%s: No trials for trial type %d', D.fname, D.events.types(i)); 
+            else
+                
+                w = w./sum(w); % vector of trial-wise weights
 				for j = 1:D.Nchannels
-					d(j, :) = c_tmp'*squeeze(D.data(j, :, :))';           
-					
+					d(j, :) = w'*squeeze(D.data(j, :, :))';
 				end
-			end           
+            end
 			
 			D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 			
@@ -197,31 +131,18 @@ else
 end
 fclose(fpd);
 
-D.Nevents = size(c, 2);
+D.Nevents = Ntypes;
 
-% labeling of resulting contrasts, take care to keep numbers of old trial
-% types
-% check this again: can be problematic, when user mixes within-trialtype
-% and over-trial type contrasts
-D.events.code = size(1, size(c, 2));
-for i = 1:size(c, 2)
-	if sum(c(:, i)) == 1 & sum(~c(:, i)) == size(c, 1)-1
-		D.events.code(i) = find(c(:, i));
-	else
-		D.events.code(i) = i;
-	end
-end
-
+D.events.code = D.events.types;
 D.events.time = [];
-D.events.types = D.events.code;
-D.events.Ntypes = length(D.events.types);
 
 if ~isfield(D, 'Nfrequencies');
-	D.events.repl = ni;
+
+    D.events.repl = ni;
 	disp(sprintf('%s: Number of replications per contrast:', D.fname))
 	s = [];
-	for i = 1:size(c, 2)
-		s = [s sprintf('Contrast %d: %d', D.events.types(i), D.events.repl(i))];
+	for i = Ntypes
+		s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
 		if i < D.events.Ntypes
 			s = [s sprintf(', ')];
 		else

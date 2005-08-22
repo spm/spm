@@ -27,7 +27,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_epochs.m 213 2005-08-22 12:43:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -125,6 +125,7 @@ spm_progress_bar('Init', length(D.events.time), 'Events read'); drawnow;
 if length(D.events.time) > 100, Ibar = floor(linspace(1, length(D.events.time),100));
 else, Ibar = [1:length(D.events.time)]; end
 
+index = [];
 for i = 1:length(D.events.time)
 	if any(D.events.code(i) == D.events.types)
         

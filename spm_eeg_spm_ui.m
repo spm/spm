@@ -10,7 +10,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Karl Friston
-% $Id: spm_eeg_spm_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_spm_ui.m 213 2005-08-22 12:43:29Z stefan $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -26,7 +26,12 @@ if ~nargin
 		% specify a design
 		%-------------------------------------------------------
 		if sf_abort, spm_clf(Finter), return, end
-		SPM = spm_eeg_design;
+        
+        % choose either normal design specification or shortcut
+        Oanalysis = spm_input('Choose design options', 1,'m',{'all options', 'single trials', 'ERPs'}, [0 1 2]);
+        SPM.eeg.Oanalysis = Oanalysis;
+
+		SPM = spm_eeg_design(SPM);
 
 		return
 	else
@@ -45,25 +50,52 @@ end
 try 
 	SPM.xY.P;
 catch
-	% get filenames
-	%---------------------------------------------------------------
     
-    % Number of observations of factor 1
-    Nobs = size(SPM.eeg.Xind{end-1}, 1);
-    
-	P     = [];
-	for i = 1:Nobs
-		str = sprintf('Select images for ');
-        for j = 1:SPM.eeg.Nfactors-1
-            str = [str sprintf('%s (%d)', SPM.eeg.factor{j}, SPM.eeg.Xind{end-1}(i, j))];
-            if j < 1:SPM.eeg.Nfactors-1, str = [str ', ']; end
+    if SPM.eeg.Oanalysis == 1
+        % single trial analysis
+        Nobs = SPM.eeg.Nlevels{1}; % Ntrials
+        tmp = spm_select(Nobs, 'image', 'Select trials (1st frame only)');
+        clear q
+        for i = 1:Nobs
+            [p1, p2, p3] = spm_fileparts(deblank(tmp(i, :)));
+            q{i} = fullfile(p1, [p2 p3]); % removes ,1
         end
-        Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
+        P = strvcat(q);
         
-        q = spm_select(Nimages, 'image', str);
-		P = strvcat(P, q);
-	end
+    elseif SPM.eeg.Oanalysis == 2
+        % ERP analysis, only 2 factors (condition and time)
+        Nobs = SPM.eeg.Nlevels{1}; % Nerps
+        tmp = spm_select(Nobs, 'image', 'Select ERPs (1st frame only)');
+        clear q
+        for i = 1:Nobs
+            [p1, p2, p3] = spm_fileparts(deblank(tmp(i, :)));
+            q{i} = fullfile(p1, [p2 p3]); % removes ,1
+        end
+        P = strvcat(q);
 
+    else
+        % defaults to normal design specification
+        % get filenames
+        %---------------------------------------------------------------
+        
+        % Number of observations of factor 1
+        Nobs = size(SPM.eeg.Xind{end-1}, 1);
+        
+        P     = [];
+        oldpwd = pwd;
+        
+        for i = 1:Nobs
+            str = sprintf('Select images for ');
+            for j = 1:SPM.eeg.Nfactors-1
+                str = [str sprintf('%s(%d)', SPM.eeg.factor{j}, SPM.eeg.Xind{end-1}(i, j))];
+                if j < SPM.eeg.Nfactors-1, str = [str ', ']; end
+            end
+            Nimages = sum(all(kron(ones(size(SPM.eeg.Xind{end}, 1), 1), SPM.eeg.Xind{end-1}(i, :)) == SPM.eeg.Xind{end}(:, 1:end-1), 2));
+            
+            q = spm_select(Nimages, 'image', str, '', oldpwd);
+            P = strvcat(P, q);
+        end
+    end
 	% place in data field
 	%---------------------------------------------------------------
 	SPM.xY.P = P;
