@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_peb_ppi.m 214 2005-08-22 18:21:23Z christophe $
 
 
 % set up the graphical interface
@@ -205,7 +205,7 @@ end
 
 % remove confounds and save Y in ouput structure
 %-------------------------------------------------------------------------
-Yc    = Y - X0*inv(X0'*X0)*X0'*Y;
+Yc    = Y - X0*pinv(X0'*X0)*X0'*Y;
 PPI.Y = Yc(:,1);
 if size(Y,2) == 2
     PPI.P  = Yc(:,2);
