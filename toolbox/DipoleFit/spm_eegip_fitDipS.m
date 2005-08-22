@@ -45,7 +45,7 @@ function [sdip,fit_opt] = spm_eegip_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_opt,di
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDipS.m 150 2005-05-12 10:53:16Z christophe $
+% $Id: spm_eegip_fitDipS.m 215 2005-08-22 20:42:42Z Christophe $
 
 
 global MODEL V_BR V_EEG OR_OPT FXD_OR sdip
@@ -139,20 +139,20 @@ if ~MCS_f
     end
     
     % Remove the "unused" electrodes
-    if ~isempty(fit_opt.rem_electr)
-        keep_electr = 1:model.electrodes.nr;
-        keep_electr(fit_opt.rem_electr) = [];
-        MODEL.spheres.Sc_elXYZ(:,fit_opt.rem_electr) = [];
-        MODEL.electrodes.vert(fit_opt.rem_electr) = [];
-        MODEL.electrodes.tri(fit_opt.rem_electr) = [];
-        MODEL.electrodes.XYZvx(:,fit_opt.rem_electr) = [];
-        MODEL.electrodes.names(fit_opt.rem_electr,:) = [];
-        MODEL.electrodes.nr = length(keep_electr);
-        MODEL.electrodes.info = [MODEL.electrodes.info,' ; some electrodes removed ''cos of data'];
-        % for ii=1:length(MODEL.IFS)
-        %     MODEL.IFS{ii}(fit_opt.rem_electr,:) = [];
-        % end
-    end
+    % It's already done in the GUI routine !!!
+%     if ~isempty(fit_opt.rem_electr)
+%         keep_electr = 1:model.electrodes.nr;
+%         keep_electr(fit_opt.rem_electr) = [];
+%         MODEL.spheres.Sc_elXYZ(:,fit_opt.rem_electr) = [];
+%         MODEL.electrodes.vert(fit_opt.rem_electr) = [];
+%         MODEL.electrodes.tri(fit_opt.rem_electr) = [];
+% %         MODEL.electrodes.names(fit_opt.rem_electr,:) = [];
+%         MODEL.electrodes.nr = length(keep_electr);
+%         MODEL.electrodes.info = [MODEL.electrodes.info,' ; some electrodes removed ''cos of data'];
+%         % for ii=1:length(MODEL.IFS)
+%         %     MODEL.IFS{ii}(fit_opt.rem_electr,:) = [];
+%         % end
+%     end
     
 	% Prepare result files.
 	%----------------------

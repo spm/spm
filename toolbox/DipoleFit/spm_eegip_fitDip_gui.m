@@ -38,7 +38,7 @@ function [sdip,fit_opt,Psave] = spm_eegip_fitDip_gui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eegip_fitDip_gui.m 153 2005-05-13 13:15:25Z christophe $
+% $Id: spm_eegip_fitDip_gui.m 215 2005-08-22 20:42:42Z Christophe $
 
 % Loading various bits
 %_____________________
@@ -65,8 +65,12 @@ if q_data==1
     DNchan = ss(1);
     Dtb = ss(2);
     if length(ss)==3
-        [cond,pos] = spm_input(['Condition to use: ',num2str(1:ss(3)),' ?'],'+1','e',1) ;
-        %         data = squeeze(D.data(:,:,cond(1))) ;
+        if ss(3)>1
+            [cond,pos] = spm_input(['Condition to use: ',num2str(1:ss(3)),' ?'],'+1','e',1) ;
+            %         data = squeeze(D.data(:,:,cond(1))) ;
+        else
+            cond = 1;
+        end
     else
         %         data = squeeze(D.data(:,:,1)) ;
         cond = 1;
@@ -99,7 +103,7 @@ if q_data==1
         chan_to_rem = [chan_to_rem D.channels.others];
     end
     if isfield(D.channels,'Bad')
-        chan_to_rem = [chan_to_rem D.channels.Bad];
+        chan_to_rem = [chan_to_rem D.channels.Bad'];
     end
     if isfield(D.channels,'reference')
         chan_to_rem = [chan_to_rem D.channels.reference];
@@ -140,26 +144,43 @@ if dNchannels<0
             'I can''t deal with this...'},'Nchannels error')
     return
 elseif dNchannels>0
-    spm('alert!',{['Your data have less channels (',num2str(DNchan),...
+    spm('alert!',{['Your data have less channels (',num2str(NUse_chan),...
                 ') than the model (',num2str(model.electrodes.nr),'),'] ...
-            ['you need to ''remove'' ',num2str(dNchannels),...
-                ' in the leadfield matrix']},'Nchannels warning')
-    flag = 0; pos = pos+1;
-    while flag==0
-        [rem_electr,pos] = spm_input(['List (',num2str(dNchannels), ...
-                ') of electrodes to remove in the model'],pos,'e',missing_chan,dNchannels);
+            [num2str(dNchannels),...
+                ' in the leadfield matrix will be ''removed''.']},'Nchannels warning')
+    try
+        rem_electr = [];
+        for ii=chan_to_rem
+            p_rem = find(order_dat2mod==ii);
+            if ~isempty(p_rem)
+                rem_electr = [rem_electr p_rem];
+            end
+        end
+        if length(rem_electr)~=dNchannels
+            error('Input channels to remove manually!')
+        end
         keep_electr = 1:model.electrodes.nr;
         keep_electr(rem_electr) = [];
-        if length(keep_electr)==DNchan, flag=1; end
+    catch
+        flag = 0; pos = pos+1;
+        while flag==0
+            [rem_electr,pos] = spm_input(['List (',num2str(dNchannels), ...
+                    ') of electrodes to remove in the model'],pos,'e',missing_chan,dNchannels);
+            keep_electr = 1:model.electrodes.nr;
+            keep_electr(rem_electr) = [];
+            if length(keep_electr)==DNchan, flag=1; end
+        end
     end
+    order_dat2mod(rem_electr) = [];
     % 	% Modifying the electrodes structure
     model.electrodes.vert(rem_electr) = [];
     model.electrodes.tri(rem_electr) = [];
     model.electrodes.XYZmm(:,rem_electr) = [];
     
     model.electrodes.names(rem_electr,:) = [];
-    model.electrodes.nr = DNchan;
+    model.electrodes.nr = NUse_chan;
     model.electrodes.info = [model.electrodes.info,' ; some electrodes removed ''cos of data'];
+    
     if q_model==1
         % Modifying the IFS matrices
         tr_rem_electr = [3*rem_electr-2 ; 3*rem_electr-1 ; 3*rem_electr];
