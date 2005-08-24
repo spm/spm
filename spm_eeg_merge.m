@@ -6,7 +6,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 194 2005-07-06 15:50:16Z stefan $
+% $Id: spm_eeg_merge.m 216 2005-08-24 11:55:34Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -41,7 +41,18 @@ Dout.fname = ['c' spm_str_manip(D{1}.fname, 't')];
 
 for i = 2:Nfiles
 
-    % should check: same channels, Nsamples, scale, start/stop, reref, Radc, etc...
+    % checks about same number of channels, Nsamples and Radc
+    if D{1}.Nchannels ~= D{i}.Nchannels
+        error(sprintf('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname));
+    end
+
+    if D{1}.Nsamples ~= D{i}.Nsamples
+        error(sprintf('Data don''t have the same number of time points.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname));
+    end
+
+    if D{1}.Radc ~= D{i}.Radc
+        error(sprintf('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname));
+    end
 
 	Dtmp = D{i};
 
@@ -51,8 +62,8 @@ for i = 2:Nfiles
     try
         S.recode{i};
     catch
-        S.recode{i} = spm_input(sprintf('Recode %s', Dtmp.fname),...
-            '+1', 'n', sprintf('%d ', unique(Dtmp.events.code)), max(Dtmp.events.types))';
+        S.recode{i} = spm_input(sprintf('Types: %s', spm_str_manip(Dtmp.fname, 'r')),...
+            '+1', 'n', sprintf('%d ', unique(Dtmp.events.code)), Dtmp.Ntypes))';
     end
 
     Dout.events.code = [Dout.events.code S.recode{i}(Dtmp.events.code)];

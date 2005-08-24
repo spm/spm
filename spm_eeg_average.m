@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_average.m 216 2005-08-24 11:55:34Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -110,7 +110,6 @@ else
 			if ni(i) == 0
 				warning('%s: No trials for trial type %d', D.fname, D.events.types(i)); 
             else
-                
                 w = w./sum(w); % vector of trial-wise weights
 				for j = 1:D.Nchannels
 					d(j, :) = w'*squeeze(D.data(j, :, :))';
