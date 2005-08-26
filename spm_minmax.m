@@ -13,11 +13,11 @@ function [mnv,mxv] = spm_minmax(g)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_minmax.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_minmax.m 217 2005-08-26 11:57:17Z Christophe $
 
 
 d   = [size(g) 1];
-mxv = max(g(:));
+mxv = double(max(g(:)));
 h   = zeros(256,1);
 spm_progress_bar('Init',d(3),'Initial histogram','Planes loaded');
 for i=1:d(3)
