@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 191 2005-06-21 14:27:08Z john $
+% $Id: spm_jobman.m 218 2005-08-26 14:18:37Z john $
 
 
 if nargin==0
@@ -1904,7 +1904,8 @@ while(1),
         end;
         tmp = spm_input(ci.name,pos,'m',lab,1:length(ci.values));
         ci.val = {uniq_id(ci.values{tmp})};
-
+    otherwise
+        error('This should not happen.');
     end;
     c = set_node(c,nod,ci);
 end;
@@ -1915,11 +1916,24 @@ function [ci,n,hlp] = get_node(c,n)
 ci  = [];
 hlp = '';
 switch c.type,
-case {'const','files','menu','entry','choice'}
+case {'const','files','menu','entry'}
     n = n-1;
     if n==0,
         ci  = c;
         hlp = {['* ' upper(c.name)],c.help{:},'',''};
+        return;
+    end;
+
+case 'choice'
+    n = n-1;
+    if n==0,
+        ci  = c;
+        hlp = {['* ' upper(c.name)],c.help{:},'',''};
+        return;
+    end;
+    [ci,n,hlp] = get_node(c.val{1},n);
+    if ~isempty(ci),
+        hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
         return;
     end;
 
@@ -1946,6 +1960,8 @@ case 'repeat',
         hlp = {['* ' upper(c.name)],c.help{:},'',''};
         return;
     end;
+otherwise
+    error('This should not happen');
 
 end;
 %------------------------------------------------------------------------
@@ -1953,12 +1969,21 @@ end;
 %------------------------------------------------------------------------
 function [c,n] = set_node(c,n,ci)
 switch c.type,
-case {'const','files','menu','entry','choice'}
+case {'const','files','menu','entry'}
     n = n-1;
     if n==0,
         c = ci;
         return;
     end;
+
+case 'choice'
+    n = n-1;
+    if n==0,
+        c = ci;
+        return;
+    end;
+    [c.val{1},n] = set_node(c.val{1},n,ci);
+    if n<0,return; end;
 
 case 'branch',
     for i=1:numel(c.val),
@@ -2149,6 +2174,11 @@ case {'files'}
     if length(c.num)~=1 && length(c.num)~=2
         disp(c); warning(['Num field for "' c.name '" is wrong length']);
         c.num = Inf;
+    end;
+    if isfield(c,'val') && iscell(c.val) && numel(c.val)>=1,
+        if ischar(c.val{1})
+            c.val{1} = cellstr(c.val{1});
+        end;
     end;
     if ~isfield(c,'help'), c.help = {'File selection'}; end;
 

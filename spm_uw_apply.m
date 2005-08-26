@@ -118,7 +118,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 205 2005-07-28 16:23:07Z john $
+% $Id: spm_uw_apply.m 218 2005-08-26 14:18:37Z john $
 
 tiny = 5e-2;
 
@@ -213,9 +213,11 @@ if flags.mask || flags.mean,
       Count    = zeros(prod(ds(1).P(1).dim(1:3)),1);
       Integral = zeros(prod(ds(1).P(1).dim(1:3)),1);
    end
-   if flags.mask 
-      msk = zeros(prod(ds(1).P(1).dim(1:3)),1);  
-   end
+
+   % if flags.mask 
+   msk = zeros(prod(ds(1).P(1).dim(1:3)),1);  
+   % end
+
    tv = 1;
    for s=1:length(ds)
       def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
@@ -357,9 +359,9 @@ end
 if flags.mean
    % Write integral image (16 bit signed)
    %-----------------------------------------------------------
-   warning('off','Divide by zero.'); % Shame on me!
+   warning('off'); % Shame on me!
    Integral   = Integral./Count;
-   warning('on','Divide by zero.');
+   warning('on');
    PO         = ds(1).P(1);
    PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';

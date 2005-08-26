@@ -43,7 +43,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_str_manip.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_str_manip.m 218 2005-08-26 14:18:37Z john $
 
 
 if nargin<2, options=''; end
@@ -162,6 +162,7 @@ while (~isempty(options))
 				( str>='0' & str<='9' ) | ...
 				  str=='-' | str=='_'   | ...
 				  str=='.' | str==' '   | ...
+				  str=='(' | str==')'   | ...
 				  str==sep | str==':');
 			str = str(tmp);
 

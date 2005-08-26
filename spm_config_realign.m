@@ -4,7 +4,7 @@ function opts = spm_config_realign
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_realign.m 123 2005-05-06 12:15:13Z john $
+% $Id: spm_config_realign.m 218 2005-08-26 14:18:37Z john $
 
 
 %_______________________________________________________________________
@@ -268,9 +268,10 @@ scans.help   = {[...
 
 data.type   = 'repeat';
 data.name   = 'Data';
-% data.tag    = 'data';
+% data.tag  = 'data';
 data.values = {scans};
-data.help = {[...
+data.num    = [1 Inf];
+data.help   = {[...
 'Add new sessions for this subject. ',...
 'In the coregistration step, the sessions are first realigned to ',...
 'each other, by aligning the first scan from each session to the ',...

@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_reslice.m 218 2005-08-26 14:18:37Z john $
 
 
 
@@ -214,7 +214,7 @@ for i = 1:prod(size(P)),
 			VO         = P(i);
 			VO.fname   = prepend(P(i).fname,'r');
 			VO.dim     = P(1).dim(1:3);
-			V0.dt      = P(i).dt;
+			VO.dt      = P(i).dt;
 			VO.mat     = P(1).mat;
 			VO.descrip = 'spm - realigned';
 			VO         = spm_create_vol(VO);
@@ -228,7 +228,9 @@ for i = 1:prod(size(P)),
 						nan2zero(v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap));
 				end;
 				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
-				if write_vol,  VO = spm_write_plane(VO,v,x3); end;
+				if write_vol,
+					VO = spm_write_plane(VO,v(:,:,x3),x3);
+				end;
 			end;
 		else,
 			C = spm_bsplinc(P(i), d);

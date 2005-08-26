@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 171 2005-05-20 19:20:10Z john $
+% $Id: spm_select.m 218 2005-08-26 14:18:37Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -610,6 +610,7 @@ return;
 %=======================================================================
 function unselect(lb,varargin)
 vl      = get(lb,'Value');
+if isempty(vl), return; end;
 str     = get(lb,'String');
 msk     = ones(size(str,1),1);
 if vl~=0, msk(vl) = 0; end;

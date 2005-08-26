@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_normalise.m 218 2005-08-26 14:18:37Z john $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -168,6 +168,9 @@ end;
 fprintf('Coarse Affine Registration..\n');
 aflags    = struct('sep',max(flags.smoref,flags.smosrc), 'regtype',flags.regtype,...
 	'WG',[],'WF',[],'globnorm',0);
+aflags.sep = max(aflags.sep,max(sqrt(sum(VG(1).mat(1:3,1:3).^2))));
+aflags.sep = max(aflags.sep,max(sqrt(sum(VF(1).mat(1:3,1:3).^2))));
+
 M         = eye(4); %spm_matrix(prms');
 spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration');
 [M,scal]  = spm_affreg(VG1, VF1, aflags, M);
@@ -175,7 +178,7 @@ spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration'
 fprintf('Fine Affine Registration..\n');
 aflags.WG  = VWG;
 aflags.WF  = VWF;
-aflags.sep = max(flags.smoref,flags.smosrc)/2;
+aflags.sep = aflags.sep/2;
 [M,scal]   = spm_affreg(VG1, VF1, aflags, M,scal);
 Affine     = inv(VG(1).mat\M*VF1(1).mat);
 spm_chi2_plot('Clear');
@@ -183,7 +186,7 @@ spm_chi2_plot('Clear');
 % Basis function Normalisation
 %-----------------------------------------------------------------------
 fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
-if any(fov<7.5*flags.smosrc),
+if any(fov<15*flags.smosrc/2 && VF1(1).dim(1:3)<15),
 	fprintf('Field of view too small for nonlinear registration\n');
 	Tr = [];
 elseif finite(flags.cutoff) && flags.nits && ~isinf(flags.reg),

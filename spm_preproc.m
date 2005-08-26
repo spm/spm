@@ -4,7 +4,7 @@ function results = spm_preproc(varargin)
 % FORMAT results = spm_preproc(V,opts)
 %  V    - image to work with
 %  opts - options
-%  opts.tpm   - n prior probability images for each class
+%  opts.tpm      - n tissue probability images for each class
 %  opts.ngaus    - number of Gaussians per class (n+1 classes)
 %  opts.warpreg  - warping regularisation
 %  opts.warpco   - cutoff distance for DCT basis functions
@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 191 2005-06-21 14:27:08Z john $
+% $Id: spm_preproc.m 218 2005-08-26 14:18:37Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -34,7 +34,7 @@ opts0.biasfwhm = 75;
 opts0.regtype  = 'mni';
 opts0.fudge    = 5;
 opts0.samp     = 3;
-opts0.msk      = ''; % <<<<<===================================
+opts0.msk      = '';% <<<<<===================================
 
 if nargin==0
     V = spm_select(1,'image');
