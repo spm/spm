@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_normalise.m 219 2005-08-31 16:17:08Z john $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -186,7 +186,7 @@ spm_chi2_plot('Clear');
 % Basis function Normalisation
 %-----------------------------------------------------------------------
 fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
-if any(fov<15*flags.smosrc/2 && VF1(1).dim(1:3)<15),
+if any(fov<15*flags.smosrc/2 & VF1(1).dim(1:3)<15),
 	fprintf('Field of view too small for nonlinear registration\n');
 	Tr = [];
 elseif finite(flags.cutoff) && flags.nits && ~isinf(flags.reg),

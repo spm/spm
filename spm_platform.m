@@ -16,6 +16,7 @@ function varargout=spm_platform(varargin)
 %        - 'rootlen' - returns number of chars in root directory name
 %        - 'user'    - returns username
 %        - 'tempdir' - returns name of temp directory
+%        - 'drives'  - returns string containing valid drive letters
 %
 % FORMAT PlatFontNames = spm_platform('fonts')
 % Returns structure with fields named after the generic (UNIX) fonts, the
@@ -55,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_platform.m 219 2005-08-31 16:17:08Z john $
 
 
 
@@ -100,6 +101,10 @@ varargout = {PLATFORM.rootlen};
 case 'user'                                         %-Return user string
 %=======================================================================
 varargout = {PLATFORM.user};
+
+case 'drives'                                            %-Return drives
+%=======================================================================
+varargout = {PLATFORM.drives};
 
 case 'tempdir'                              %-Return temporary directory
 %=======================================================================
@@ -199,10 +204,22 @@ case 'win'
 	PLATFORM.rootlen = 3;
 	PLATFORM.user    = getenv('USERNAME');
 	if isempty(PLATFORM.user)
-		PLATFORM.user = spm_win32utils('username'); end
+		PLATFORM.user = 'anon';
+	end
 otherwise
 	error(['Don''t know filesystem ',PLATFORM.filesys])
 end
+
+%-Drives
+%-----------------------------------------------------------------------
+PLATFORM.drives = '';
+if strcmp(comp,'PCWIN'),
+    for i='C':'Z',
+        if exist([i ':\']) == 7,
+            PLATFORM.drives = [PLATFORM.drives i];
+        end
+    end
+end;
 
 %-Fonts
 %-----------------------------------------------------------------------

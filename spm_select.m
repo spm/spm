@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_select.m 219 2005-08-31 16:17:08Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -282,7 +282,7 @@ uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
 % Drives
 if strcmpi(computer,'PCWIN'),
-    dr  = spm_win32utils('drives');
+    dr  = spm_platform('drives');
     drivestr = cell(1,numel(dr));
     for i=1:numel(dr),
         drivestr{i} = [dr(i) ':'];

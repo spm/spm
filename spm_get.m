@@ -143,7 +143,7 @@ function varargout = spm_get(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes (X-platform stuff with Matthew Brett)
-% $Id: spm_get.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_get.m 219 2005-08-31 16:17:08Z john $
 
 
 %=======================================================================
@@ -1763,7 +1763,7 @@ if ischar(varargin{2}), varargout={char(cpath)}; else, varargout={cpath}; end
 case 'drivespulldownstr'
 %=======================================================================
 % str = spm_get('DrivesPullDownStr')
-drivestr  = spm_win32utils('drives');
+drivestr  = spm_platform('drives');
 n         = length(drivestr);
 varargout = ...
 	{['Drives...',reshape(['|'*ones(1,n);drivestr;':'*ones(1,n)],1,3*n)]};

@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_conman.m 219 2005-08-31 16:17:08Z john $
 
 
 %=======================================================================
@@ -1578,7 +1578,7 @@ case {'d_conmtx_cb','d_x1cols_cb'}
     hD_X1cols  = findobj(F,'Tag','D_X1cols');
 
     if strcmpi(get(hD_ConMtx, 'Enable'), 'on')
-        str = get(hD_ConMtx,'String');
+        str = get(hD_X1cols,'String');
     else
         % i.e. compute button on components was used to get here 
         str = getappdata(findobj('Tag', 'conman_eeg'), 'c');

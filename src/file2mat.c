@@ -2,19 +2,19 @@
 Memory mapping is used by this module. For more information on this, see:
 http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 
-$Id: file2mat.c 112 2005-05-04 18:20:52Z john $
+$Id: file2mat.c 219 2005-08-31 16:17:08Z john $
 */
 
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include "mex.h"
 
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
-#include <sys/types.h>
 HANDLE hFile, hMapping;
 typedef char *caddr_t;
 #else

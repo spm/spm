@@ -28,26 +28,28 @@ tidy:
 ###############################################################################
 # Architecture specific makes
 ###############################################################################
+ifndef MEX_BIN
+MEX_BIN=mex
+endif
 
-MEX = mex -O
+MEX = $(MEX_BIN) -O
 CC  = cc
 # mex output object suffix
 MOSUF = o
 CHMODIT = chmod 644
 RANLIB  = 
 ADDED_OBS=
-ADDED_MEX=
 
 SunOS:
 	make all SUF=mexsol  CC="cc -xO5 -DBIGENDIAN"\
-	         MEX="mex COPTIMFLAGS=-xO5 -DBIGENDIAN"
+	         MEX="$(MEX_BIN) COPTIMFLAGS=-xO5 -DBIGENDIAN"
 SunOS.gcc:
 # Assumes that gccopts.sh has been copied to the current directory
 	make all SUF=mexsol  CC="gcc -O3 -funroll-loops -DBIGENDIAN -fPIC"\
-	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN' -f gccopts.sh"
+	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN' -f gccopts.sh"
 Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops -fPIC -fexceptions"\
-	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
+	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
 Linux.A64:
 # The '-fPIC' option is nexessary to allow the linking proces to complete. 
 # '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
@@ -55,25 +57,25 @@ Linux.A64:
 # '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
 # Also possibly use '-march=k8' for 64 bit Athlon.
 	make all SUF=mexa64  CC="gcc -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse"\
-	       MEX="mex COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'"
+	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'"
 HP-UX:
 	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN"
-	       MEX="mex COPTIMFLAGS=-O -DBIGENDIAN"
+	       MEX="$(MEX_BIN) COPTIMFLAGS=-O -DBIGENDIAN"
 IRIX:
 	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON -DBIGENDIAN"\
-	       MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
+	       MEX="$(MEX_BIN) COPTIMFLAGS='-O' -DBIGENDIAN"
 IRIX64:
 	make all SUF=mexsg64   CC="cc  -O -mips4 -64 -DBIGENDIAN"\
-	       MEX="mex COPTIMFLAGS='-O' -DBIGENDIAN"
+	       MEX="$(MEX_BIN) COPTIMFLAGS='-O' -DBIGENDIAN"
 AIX:
 	make all SUF=mexrs6 CC="cc -DBIGENDIAN"\
-	       MEX = "mex -O -DBIGENDIAN"
+	       MEX = "$(MEX_BIN) -O -DBIGENDIAN"
 OSF1:
 	make all SUF=mexaxp CC="cc -DBIGENDIAN"\
-	       MEX = "mex -O -DBIGENDIAN"
-MAC:
+	       MEX = "$(MEX_BIN) -O -DBIGENDIAN"
+Darwin:
 	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"\
-	       MEX="mex -O -DBIGENDIAN"
+	       MEX="$(MEX_BIN) -O -DBIGENDIAN"
 
 windows:
 #
@@ -94,8 +96,7 @@ windows:
 #
 	make all SUF=dll\
 	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
-	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="chmod 755"\
-	        ADDED_MEX=spm_win32utils.dll
+	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="chmod 755"
 
 CYGWIN_NT-4.0: windows
 
@@ -126,7 +127,7 @@ clean.AIX:
 	make clean SUF=mexrs6
 clean.OSF1:
 	make clean SUF=mexaxp
-clean.MAC:
+clean.Darwin:
 	make clean SUF=mexmac
 clean.windows:
 	make clean SUF=dll
@@ -157,7 +158,7 @@ SPMMEX =\
 	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
-	spm_list_files.$(SUF) $(ADDED_MEX)
+	spm_list_files.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -346,7 +347,7 @@ spm_hist2.$(SUF): spm_hist2.c spm_sys_deps.h
 	$(MEX) spm_hist2.c
 	@ $(CHMODIT) $@
 
-spm_hist$(SUF): spm_hist.c spm_sys_deps.h
+spm_hist.$(SUF): spm_hist.c spm_sys_deps.h
 	$(MEX) spm_hist.c
 	@ $(CHMODIT) $@
 
@@ -394,10 +395,6 @@ spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
 
 spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
 	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a
-	@ $(CHMODIT) $@
-
-spm_win32utils.$(SUF): spm_win32utils.c 
-	$(MEX) spm_win32utils.c
 	@ $(CHMODIT) $@
 
 spm_invdef.$(SUF): spm_invdef.c
