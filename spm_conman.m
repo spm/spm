@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 219 2005-08-31 16:17:08Z john $
+% $Id: spm_conman.m 220 2005-09-01 09:48:16Z john $
 
 
 %=======================================================================
@@ -1572,18 +1572,24 @@ case {'d_conmtx_cb','d_x1cols_cb'}
     % spm_conman('D_X1cols_CB')
     
     fcn = find(strcmp(lower(varargin{1}),{'d_conmtx_cb','d_x1cols_cb'}));
-    
+
     F   = findobj('Tag', 'ConMan');
     hD_ConMtx  = findobj(F,'Tag','D_ConMtx');
     hD_X1cols  = findobj(F,'Tag','D_X1cols');
 
     if strcmpi(get(hD_ConMtx, 'Enable'), 'on')
-        str = get(hD_X1cols,'String');
+       if fcn == 1
+          str = get(hD_ConMtx,'String');
+       elseif fcn == 2
+          str = get(hD_X1cols,'String');
+       else
+	  % This shouldn't happen
+       end
     else
-        % i.e. compute button on components was used to get here 
+        % i.e. compute button on components was used to get here
         str = getappdata(findobj('Tag', 'conman_eeg'), 'c');
     end
-    
+ 
     %-Extract info from holding objects
     %-----------------------------------------------------------------------
     xX   = get(findobj(F,'Tag','DesMtxAx'),'UserData');
