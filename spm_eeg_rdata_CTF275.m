@@ -16,7 +16,7 @@ end
 
 D.channels.ctf = spm_str_manip(Fchannels, 't');
 
-
+D.channels.Bad = [];
 
 PP1=squeeze(pre_data.data(:,1));
 PP2=squeeze(pre_data.data(:,2));

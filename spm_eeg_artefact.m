@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 208 2005-08-02 14:40:29Z james $
+% $Id: spm_eeg_artefact.m 221 2005-09-05 11:32:24Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -181,6 +181,7 @@ if MustDoWork
 	% report on command line
 	if isempty(ind)
 		disp(sprintf('There isn''t a bad channel.'));
+        D.channels.Bad = [];
 	else
 		disp(['Bad channels: ', sprintf('%s ', D.channels.name{ind})])
 		D.channels.Bad = ind;
