@@ -1,168 +1,213 @@
-function [Ce,h,W,u,F] = spm_reml(Cy,X,Q);
-% ReML estimation of covariance components from Cov{y}
-% FORMAT [Ce,h,W,u,F] = spm_reml(Cy,X,Q);
+function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
+% ReML estimation of covariance components from y*y'
+% FORMAT [C,h,Ph,F] = spm_reml(YY,X,Q,N,[OPT]);
 %
-% Cy  - (m x m) data covariance matrix y*y'/n  {y = (m x n) data matrix}
+% YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x n) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
+% N   - number of samples
 %
-% Ce  - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
-% h   - (q x 1) hyperparameters
-% W   - (q x q) W*n = precision of hyperparameter estimates
-% u   - {1 x p} estimable components C{i} = u(1,i)*Q{1} + u(2,i)*Q{2} +...
+% OPT(1) = 1 : log-normal hyperparameterisation
+% OPT(2) = 1 : invoke priors on h - default [0 0]
 %
-% F   - [-ve] free energy F = log evidence = p(y|X,Q) = ReML objective
+% C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
+% h   - (q x 1) ReML hyperparameters h
+% Ph  - (q x q) conditional precision of h [or log(h), if OPT(1)]
+%
+% F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
 %
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
-% esitmates.  An SVD of the curvature is used to realign the covariance
-% components with its principal axes to ensure all components are estimated
-% with finite precision.
-%_______________________________________________________________________
+% estimates.
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 112 2005-05-04 18:20:52Z john $
-
-
-% Tolerances 
-%-----------------------------------------------------------------------
-TOL   = 1e-6;       % for convergence [norm of gradient df/dh]
-TOS   = 1e-6;	    % for SVD of curvature [ddf/dhdh]
-
-% ensure X is not rank deficient
-%-----------------------------------------------------------------------
-X     = full(X);
-X     = orth(X);
-X     = sparse(X);
-
-% find estimable components (encoded in the precision matrix W)
-%-----------------------------------------------------------------------
-m     = length(Q);
-n     = length(Cy);
-W     = zeros(m,m);
-for i = 1:m
-    RQ{i}  = Q{i} - X*(X'*Q{i});
+% $Id: spm_reml.m 222 2005-09-07 16:49:37Z karl $
+ 
+% assume a single sample if not specified
+%--------------------------------------------------------------------------
+try
+    N;
+catch
+    N  = 1;
 end
+ 
+% assume OPT = [0 0]
+%--------------------------------------------------------------------------
+try
+    OPT;
+catch
+    OPT = [0 0];
+end
+ 
+% ortho-normalise X
+%--------------------------------------------------------------------------
+X     = sparse(orth(full(X)));
+[n p] = size(X);
+ 
+% ensure estimable components
+%--------------------------------------------------------------------------
+m     = length(Q);
+dh    = sparse(m,1);
+dFdh  = zeros(m,1);
+dFdhh = zeros(m,m);
 for i = 1:m
     for j = i:m
-        dFdhh  = sum(sum(RQ{i}.*RQ{j}'));
-        W(i,j) = dFdhh;
-        W(j,i) = dFdhh;
+        dFdhh(i,j) = sum(sum(Q{i}.*Q{j}'));
+        dFdhh(j,i) = dFdhh(i,j);
     end
 end
-
-% eliminate inestimable components
-%-----------------------------------------------------------------------
-[u s] = spm_svd(W,TOS);
-for i = 1:size(u,2)
-    C{i}  = sparse(n,n);
-    for j = 1:m
-        C{i} = C{i} + Q{j}*u(j,i);
+ 
+% enforce hyperpriors if curvature is rank deficient
+%--------------------------------------------------------------------------
+if rank(dFdhh) < m
+    OPT(2) = 1;
+end
+ 
+if OPT(1)
+ 
+    % log-normal hyperpriors - expectation and precision
+    %----------------------------------------------------------------------
+    hE    = ones(m,1);
+    hP    = speye(m,m)/8;
+    h     = hE;
+    
+else
+ 
+    % Gaussian hyperpriors - expectation and precision
+    %----------------------------------------------------------------------
+    hE    = sparse(m,1);
+    hP    = speye(m,m)/1e6;
+ 
+    % initialise h
+    %----------------------------------------------------------------------
+    C     = [];
+    R     = speye(n,n) - X*X';
+    for i = 1:m
+        RQR = R*Q{i}*R';
+        C   = [C RQR(:)];
     end
+    R     = R*YY*R'/N;
+    h     = inv(C'*C)*(C'*R(:));
+ 
 end
-Q     = C;
-
-% initialize hyperparameters
-%-----------------------------------------------------------------------
-m     = length(Q);
-dFdh  = zeros(m,1);
-W     = zeros(m,m); 
-C     = [];
-for i = 1:m
-    C = [C Q{i}(:)];
+ 
+% hyperpriors
+%--------------------------------------------------------------------------
+if ~OPT(2)
+    hP = hP*0;
 end
-R     = speye(n,n) - X*X';
-R     = R*Cy*R';
-h     = inv(C'*C)*(C'*R(:));
-dh    = sparse(m,1);
-
-% and Ce		
-%-----------------------------------------------------------------------
-Ce    = sparse(n,n);
-for i = 1:m
-    Ce = Ce + h(i)*Q{i};
-end
-
-% Iterative EM
-%-----------------------------------------------------------------------
+ 
+% ReML (EM/VB)
+%--------------------------------------------------------------------------
 for k = 1:32
-    
-    % Q are variance components		
-    %-------------------------------------------------------------------
-    dC    = sparse(n,n);
+ 
+    % compute current estimate of covariance
+    %----------------------------------------------------------------------
+    C     = sparse(n,n);
     for i = 1:m
-        dC = dC + dh(i)*Q{i};
+        if OPT(1)
+            C = C + Q{i}*exp(h(i));
+        else
+            C = C + Q{i}*h(i);
+        end
     end
-    
-    % Check Ce is positive semi-definite
-    %-------------------------------------------------------------------
-    if any(diag(Ce + dC) < 0)
-        Ce = Ce + dC/2;
-        h  = h  + dh/2;
-    else
-        Ce = Ce + dC;
-        h  = h  + dh;
-    end
-    iCe   = inv(Ce);
-    
-    
-    % E-step: conditional covariance cov(B|y) {Cby}
-    %===================================================================
-    iCeX  = iCe*X;
-    Cby   = inv(X'*iCeX);
-    
-    % M-step: ReML estimate of hyperparameters 
-    %===================================================================
-    
-    % Gradient dFd/h (first derivatives)
-    %-------------------------------------------------------------------
-    P     = iCe  - iCeX*Cby*iCeX';
-    PCy   = Cy*P'- speye(n,n);
+    iC    = inv(C);
+ 
+    % E-step: conditional covariance cov(B|y) {Cq}
+    %======================================================================
+    iCX   = iC*X;
+    Cq    = inv(X'*iCX);
+    XCXiC = X*Cq*iCX';
+     
+    % M-step: ReML estimate of hyperparameters
+    %======================================================================
+ 
+    % Gradient dF/dh (first derivatives)
+    %----------------------------------------------------------------------
+    P     = iC - iC*XCXiC;
+    PYY   = P*YY;
     for i = 1:m
-        
-        % dF/dh = -trace(dF/diCe*iCe*Q{i}*iCe) = 
-        %---------------------------------------------------------------
-        PQ{i}   = P*Q{i};
-        dFdh(i) = sum(sum(PCy.*PQ{i}))/2;
+ 
+        % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
+        %------------------------------------------------------------------
+        PQ{i}     = P*Q{i};
+        if OPT(1)
+            PQ{i} = PQ{i}*exp(h(i));
+        end
+        dFdh(i)   = -trace(PQ{i})*N/2 + sum(sum(PQ{i}.*PYY'))/2;
+
+ 
     end
-    
+    dFdh  = dFdh - hP*(h - hE);
+ 
     % Expected curvature E{ddF/dhh} (second derivatives)
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for i = 1:m
         for j = i:m
-            
+ 
             % ddF/dhh = -trace{P*Q{i}*P*Q{j}}
-            %-----------------------------------------------------------
-            dFdhh  = sum(sum(PQ{i}.*PQ{j}))/2;
-            W(i,j) = dFdhh;
-            W(j,i) = dFdhh;
+            %--------------------------------------------------------------
+            dFdhh(i,j)  = -sum(sum(PQ{i}.*PQ{j}'))*N/2 - hP(i,j);
+            dFdhh(j,i)  =  dFdhh(i,j);
+
+        end
+    end
+ 
+    % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
+    %----------------------------------------------------------------------
+    dh    = -pinv(dFdhh)*dFdh;
+    h     = h + dh;
+ 
+    % Convergence (1% change in log-evidence)
+    %======================================================================
+    w     = dFdh'*dh;
+    fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
+    if w < 1e-2, break, end
+ 
+end
+ 
+% hyperpriors - precision
+%--------------------------------------------------------------------------
+if OPT(1)
+    h  = exp(h);
+end
+
+% log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
+%--------------------------------------------------------------------------
+if nargout > 3
+
+    % compute condotional covariance of h
+    %----------------------------------------------------------------------
+    for i = 1:m
+        CP{i} = -Q{i}*iC;
+        if OPT(1)
+            CP{i} = CP{i}*exp(h(i));
         end
     end
     
-    % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
-    %-------------------------------------------------------------------
-    dh    = pinv(W)*dFdh(:);
-    
-    % Convergence
-    %===================================================================
-    w     = (dh'*dh)/(h'*h);
-    fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
-    if w < TOL, break, end
+    % P(h) = -ddF/dhh - ...
+    %----------------------------------------------------------------------
+    for i = 1:m
+        for j = i:m
+            CPCP     =  CP{i}*CP{j};
+            Ph(i,j)  = -sum(sum(CPCP.*XCXiC'))*N;
+            Ph(j,i)  =  Ph(i,j);
+        end
+    end
+    Ph = Ph - dFdhh;
 
+    % log evidence = F
+    %----------------------------------------------------------------------
+    F = - trace(C*PYY*P)/2 ...
+        - N*n*log(2*pi)/2 ...
+        - N*spm_logdet(C)/2 ...
+        + N*spm_logdet(Cq)/2 ...
+        +   spm_logdet(hP)/2 ...
+        -   spm_logdet(Ph)/2 ...
+        - N*p/2 - m/2;
 end
 
-% project hyperparameter esimates and precision back to user-specifed Q
-%-----------------------------------------------------------------------
-if nargout > 1
-    h     = u*h;
-    W     = u*W*u';
-end
 
-% log evidence = ln p(y|X,Q) = ReML objective = F
-%-----------------------------------------------------------------------
-if nargout > 3
-     F = -trace(P'*Ce'*P*Cy)/2 ...
-         -n*log(2*pi)/2 ...
-         -spm_logdet(Ce)/2 ...
-         +spm_logdet(Cby)/2;
-end
+
+

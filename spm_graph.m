@@ -27,6 +27,16 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % 
 % c) (fMRI only).  Evoked responses using the basis functions to give
 % impulse responses that would have been seen in the absence of other effects.
+% The PSTH (peristimulus-time histogram) option provides a finite impulse 
+% response (FIR) estimate of the trial-specific evoked response as a function 
+% of peristimulus time.  This is estimated by refitting a convolution model
+% to the selected voxel using an FIR basis set.  This is simply a set of
+% small boxes covering successive time bins after trial onset.  The width
+% of each bin is usually the TR.  This option provides a more time-resolved
+% quantitative characterisation of the evoked hemodynamic response.  However,
+% it should not be over-interpreted because inference is usually made using a
+% simpler and more efficient basis set (e.g., canonical hrf, or canonical
+% plus time derivative).
 % 
 % Getting adjusted data:
 % Ensuring the data are adjusted properly can be important (e.g. in
@@ -54,7 +64,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_graph.m 222 2005-09-07 16:49:37Z karl $
 
 
 

@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 157 2005-05-15 13:23:00Z klaas $
+% $Id: spm_spm_Bayes.m 222 2005-09-07 16:49:37Z karl $
 
 
 %-Say hello
@@ -201,7 +201,7 @@ for i = 1:s
 
 	% ReML covariance component estimation
 	%---------------------------------------------------------------
-	[C h W] = spm_reml(SPM.xVi.CY,X0,Q);
+	[C h]   = spm_reml(SPM.xVi.CY,X0,Q);
 
 	% check for negative variance components
 	%---------------------------------------------------------------
