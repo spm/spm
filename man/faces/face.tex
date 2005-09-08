@@ -350,7 +350,7 @@ In addition to analysing the data in the above "categorical" design, an alternat
 
 \section{Inference for categorical design}
 
-Press 'Results' and select the SPM.mat file from 
+Press `Results' and select the SPM.mat file from 
 \verb!DIR\classical\categorical!. This will again invoke the contrast manager. Because we specified that 
 our model was using a `Factorial design' a number of 
 contrasts have been specified automatically, as shown 
@@ -361,18 +361,16 @@ in Figure~\ref{cat_contrasts}.
 \caption{\em Contrast Manager containing default contrasts for categorical design. \label{cat_contrasts}}
 \end{center}
 \end{figure}
-To assess the main effects of viewing faces vs. baseline, select `Define new contrast' and type `Canonical HRF: Faces $>$ Baseline' (name) and `1 0 1 0 1 0 1 0' (contrast), and press `Done'.
-
 
 \bi
 \item{Select contrast number 5. This is a t-contrast \verb!Positive effect of condition_1! This will show 
-regions where the average effect of presenting faces (condition) is significantly positive, as modelled by 
+regions where the average effect of presenting faces is significantly positive, as modelled by 
 the first regressor (hence the \verb!_1!), the 
 canonical HRF. Press `Done'.}
 \item{\em Mask with other contrast ? [Yes/No]}
 \item{Specify No.}
 \item{\em Title for comparison ?}
-\item{Enter `Canonical HRF: Faces > Baseline'}
+\item{Enter `Canonical HRF: Faces $>$ Baseline'}
 \item{\em p value adjustment to control: [FWE/FDR/none]}
 \item{Select FWE}
 \item{\em Corrected p value(family-wise error)}
@@ -380,11 +378,11 @@ canonical HRF. Press `Done'.}
 \item{\em Extent threshold \{voxels\} [0]}
 \item{Accept the default value, 0}
 \ei
-SPM will produce a MIP.
+SPM will then produce the MIP shown in Figure~\ref{cat5_volume}.
 
 \subsection{Statistical tables}
 
-To get a summary of local maxima, press the `volume' button in the 
+To get a summary of local maxima, press the `Volume' button in the 
 p-values section of the interactive window. This will list all clusters above the chosen level of significance as well as separate ($>$8mm apart) maxima within a cluster, with details of significance thresholds and search volume underneath, as shown in Figure~\ref{cat5_volume}
 \begin{figure}
 \begin{center}
@@ -400,17 +398,41 @@ The columns in volume table show, from right to left:
 \item{set-level: the chance (p) of finding this (c) or a greater number of clusters in the search volume}
 \ei
 
-To assess both the hrf and its temporal derivative, an F-contrast is required. 
+
 
 \subsection{F-contrasts}
 
-Press 'Results', select the SPM.mat file, and press 'F-contrast' (radio button). Next, select 'Define new contrast', specify 'hrf + temp deriv: Faces vs. Baseline' (name) and enter
-'1 0 1 0 1 0 1 0
-0 1 0 1 0 1 0 1 ' (contrast) and press 'Done':
- 
-Select the new contrast, specify 'mask with other images?' (no), specify 'name of comparison' (accept default), specify 'corrected height threshold' (yes), specify 'corrected p value' (accept default). Again, when the MIP appears, press 'Volume'.
+To assess the effect of presenting faces, as characterised by both the hrf {\em and} its temporal derivative, an F-contrast is required. Again, because we have told SPM that we have a factorial design, this required contrast will have been created automatically. 
+\bi
+\item{Press 'Results' and select the SPM.mat file in the 
+\verb!DIR/classical/categorical! directory}
+\item{Select contrast number 1, as shown in Figure~\ref{cat1_contrast}. Press `Done'.}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify No.}
+\item{\em Title for comparison ?}
+\item{Enter `HRF + deriv: Faces $>$ Baseline'}
+\item{\em p value adjustment to control: [FWE/FDR/none]}
+\item{Select FWE}
+\item{\em Corrected p value(family-wise error)}
+\item{Accept the default value, 0.05}
+\item{\em Extent threshold \{voxels\} [0]}
+\item{Accept the default value, 0}
+\ei
+Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{cat1_contrast}
+\caption{\em Contrast manager showing selection of the first contrast 'Average effect of condition', also known as `HRF + deriv: Faces  $>$ Baseline'. \label{cat1_contrast} }
+\end{center}
+\end{figure}
 
-Although the MIP of this F-contrast looks similar to the previous t-contrast, note that the present contrast shows the areas for which the mean of the parameter estimates for the canonical hrf OR its temporal derivative for the four conditions are different from zero (baseline). In other words, the F-contrast is two-sided, and tests two t-contrasts simultaneously. Also note that an F- (or t-) contrast such as 1 1 1 1 1 1 1 1, which tests whether the mean of the canonical hrf AND its temporal derivative for all conditions are different from (larger than) zero is not sensible. This is because the canonical hrf and its temporal derivative may cancel each other out while being significant in their own right. Finally, note that single F-contrasts can be regarded as $t^2$-contrasts, so that the F-contrasts 1 0 -1 0 1 0 -1 0 and -1 0 1 0 -1 0 1 0 are equivalent. 
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{cat1_volume}
+\caption{\em MIP and Volume table for Canonical HRF: Faces  $>$ Baseline. \label{cat1_volume} }
+\end{center}
+\end{figure}
+Although the MIP of this F-contrast looks similar to the previous t-contrast, note that the present contrast shows the areas for which the mean of the parameter estimates for the canonical hrf OR its temporal derivative for the four conditions are different from zero (baseline). In other words, the F-contrast is two-sided, and tests two t-contrasts simultaneously. Also note that an F- (or t-) contrast such as [1 1 1 1 1 1 1 1], which tests whether the mean of the canonical hrf AND its temporal derivative for all conditions are different from (larger than) zero is not sensible. This is because the canonical hrf and its temporal derivative may cancel each other out while being significant in their own right. Finally, note that single F-contrasts can be regarded as $t^2$-contrasts, so that the F-contrasts [1 0 -1 0 1 0 -1 0] and [-1 0 1 0 -1 0 1 0] are equivalent. 
 
 The relative contributions of the canonical hrf and its temporal derivative at a given voxel may also be assessed using F-contrasts to estimate a reduced model, removing all confounds. Press 'Results', select the SPM.mat file, press 'F-contrast' in the contrast manager, and select 'Define new contrast'. Specify 'Effects of Real Interest' (name) and type '9:19' in the small window labelled 'columns for reduced design'. This will remove columns 9 to 19 (i.e., hrf and temporal derivative for events representing error judgements and nuisance covariates) from the design. 
 
