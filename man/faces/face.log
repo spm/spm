@@ -1,0 +1,244 @@
+This is pdfeTeX, Version 3.141592-1.20a-rc7.2-2.2 (MiKTeX 2.4) (preloaded format=latex 2005.7.11)  7 SEP 2005 19:10
+entering extended mode
+**C:/home/wpenny/fil/spm5-manual/faces/face.tex
+(C:/home/wpenny/fil/spm5-manual/faces/face.tex
+LaTeX2e <2003/12/01>
+Babel <v3.8a> and hyphenation patterns for english, french, german, ngerman, dumylang, nohyphenation, loaded.
+(C:\texmf\tex\latex\base\book.cls
+Document Class: book 2004/02/16 v1.4f Standard LaTeX document class
+(C:\texmf\tex\latex\base\bk10.clo
+File: bk10.clo 2004/02/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (C:\texmf\tex\latex\graphics\graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+ (C:\texmf\tex\latex\graphics\keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(C:\texmf\tex\latex\graphics\graphics.sty
+Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+ (C:\texmf\tex\latex\graphics\trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(C:\texmf\tex\latex\00miktex\graphics.cfg
+File: graphics.cfg 2003/03/12 v1.1 MiKTeX 'graphics' configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 80.
+ (C:\texmf\tex\latex\graphics\pdftex.def
+File: pdftex.def 2002/06/19 v0.03k graphics/color for pdftex
+\Gread@gobject=\count88
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+) (face.aux)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+
+(C:\texmf\tex\context\base\supp-pdf.tex (C:\texmf\tex\context\base\supp-mis.tex
+loading : Context Support Macros / Miscellaneous 
+\protectiondepth=\count89
+\scratchcounter=\count90
+\scratchtoks=\toks15
+\scratchdimen=\dimen105
+\scratchskip=\skip43
+\scratchmuskip=\muskip10
+\scratchbox=\box26
+\scratchread=\read1
+\scratchwrite=\write3
+\zeropoint=\dimen106
+\onepoint=\dimen107
+\onebasepoint=\dimen108
+\minusone=\count91
+\thousandpoint=\dimen109
+\onerealpoint=\dimen110
+\emptytoks=\toks16
+\nextbox=\box27
+\nextdepth=\dimen111
+\everyline=\toks17
+\!!counta=\count92
+\!!countb=\count93
+\recursecounter=\count94
+)
+loading : Context Support Macros / PDF (2004.03.26)
+\nofMPsegments=\count95
+\nofMParguments=\count96
+\everyMPtoPDFconversion=\toks18
+)
+Chapter 1.
+<face_paradigm.jpg, id=1, 688.5725pt x 288.07625pt>
+File: face_paradigm.jpg Graphic file (type jpg)
+ <use face_paradigm.jpg>
+Overfull \hbox (81.79134pt too wide) in paragraph at lines 16--19
+ [] 
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 25.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 25.
+
+Overfull \hbox (4.2117pt too wide) in paragraph at lines 24--31
+\OT1/cmr/m/n/10 3mmx3mmx4.5mm vox-els. A stru-cural im-age is also pro-vided []\OT1/cmtt/m/n/10 sM03953_0007.img
+ []
+
+<command.jpg, id=2, 338.76563pt x 392.96812pt>
+File: command.jpg Graphic file (type jpg)
+ <use command.jpg> <dropout.jpg, id=3, 506.6428pt x 762.59906pt>
+File: dropout.jpg Graphic file (type jpg)
+
+<use dropout.jpg>
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [1
+
+
+{sfonts.map}]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 87.
+ (C:\texmf\tex\latex\base\omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 87.
+[2 <face_paradigm.jpg>] [3 <command.jpg>] [4 <dropout.jpg>] <realign.jpg, id=47, 506.6428pt x 762.59906pt>
+File: realign.jpg Graphic file (type jpg)
+
+<use realign.jpg>
+! Extra }, or forgotten \endgroup.
+l.122 filter \verb!^r.*!.}}
+                           
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+
+Overfull \hbox (46.32385pt too wide) in paragraph at lines 144--146
+[]\OT1/cmr/m/n/10 Highlight `Source Im-age' and then se-lect the struc-tural im-age eg. []\OT1/cmtt/m/n/10 sM03953_0007.
+img\OT1/cmr/m/n/10 . 
+ []
+
+<coreg.jpg, id=48, 506.6428pt x 762.59906pt>
+File: coreg.jpg Graphic file (type jpg)
+ <use coreg.jpg> [5] [6 <realign.jpg>]
+
+LaTeX Warning: Reference `aud_gray' on page 7 undefined on input line 175.
+
+<gray.jpg, id=55, 506.6428pt x 762.59906pt>
+File: gray.jpg Graphic file (type jpg)
+ <use gray.jpg>
+Overfull \hbox (43.86052pt too wide) in paragraph at lines 199--202
+[]\OT1/cmr/m/n/10 Open `Sub-ject', high-light `Pa-ra-me-ter File' and se-lect the []\OT1/cmtt/m/n/10 sM03952_0007_seg_sn
+.mat
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 207.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 207.
+[7] [8 <coreg.jpg>] [9 <gray.jpg>]
+Overfull \hbox (60.29599pt too wide) in paragraph at lines 224--226
+[]\OT1/cmr/m/n/10 Highlight `Im-ages to Write', se-lect the bias-corrected struc-tural eg. []\OT1/cmtt/m/n/10 msM03952_0
+007.img\OT1/cmr/m/n/10 ,
+ []
+
+<smooth.jpg, id=72, 506.6428pt x 762.59906pt>
+File: smooth.jpg Graphic file (type jpg)
+ <use smooth.jpg> [10] [11 <smooth.jpg>]
+Overfull \hbox (5.1667pt too wide) in paragraph at lines 277--280
+\OT1/cmr/m/n/10 nor-malised, slice-time cor-rected, re-aligned func-tional im-ages ie []\OT1/cmtt/m/n/10 swarsM.img\OT1/
+cmr/m/n/10 .
+ []
+
+[12] <cat_design.jpg, id=82, 506.6428pt x 762.59906pt>
+File: cat_design.jpg Graphic file (type jpg)
+ <use cat_design.jpg>
+<cat_explore.jpg, id=83, 506.6428pt x 762.59906pt>
+File: cat_explore.jpg Graphic file (type jpg)
+ <use cat_explore.jpg>
+! Extra }, or forgotten \endgroup.
+l.327 ...f 128s or 0.008Hz).} \label{cat_explore}}
+                                                  
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+
+Overfull \hbox (35.94374pt too wide) in paragraph at lines 338--340
+[]\OT1/cmr/m/n/10 Highlight the `Di-rec-tory' op-tion and then choose the []\OT1/cmtt/m/n/10 DIR/classical/categorical
+ []
+
+[13] [14 <cat_design.jpg>] [15 <cat_explore.jpg>]
+
+LaTeX Warning: Reference `cat_contrasts' on page 16 undefined on input line 357.
+
+<cat_contrasts.jpg, id=94, 423.08063pt x 358.33875pt>
+File: cat_contrasts.jpg Graphic file (type jpg)
+ <use cat_contrasts.jpg>
+Overfull \hbox (32.71188pt too wide) in paragraph at lines 368--372
+[]\OT1/cmr/m/n/10 Select con-trast num-ber 5. This is a t-contrast []\OT1/cmtt/m/n/10 Positive effect of condition_1
+ []
+
+[16 <cat_contrasts.jpg>]
+LaTeX Font Info:    Font shape `OMS/cmr/m/it' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 380.
+
+
+LaTeX Warning: Reference `cat5_volume' on page 17 undefined on input line 388.
+
+<cat5_volume.jpg, id=98, 506.6428pt x 762.59906pt>
+File: cat5_volume.jpg Graphic file (type jpg)
+ <use cat5_volume.jpg> [17] [18 <cat5_volume.jpg>] [19] [20]
+Overfull \hbox (0.6117pt too wide) in paragraph at lines 469--470
+[]\OT1/cmr/m/n/10 After com-ple-tion of model es-ti-ma-tion, press `Re-sults' and se-lect the SPM.mat
+ []
+
+[21] (face.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 1105 strings out of 95519
+ 12267 string characters out of 1189651
+ 60915 words of memory out of 1060595
+ 4148 multiletter control sequences out of 35000
+ 9066 words of font info for 32 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 607
+ 25i,8n,19p,917b,252s stack positions out of 1500i,500n,5000p,200000b,32768s
+ 114 PDF objects out of 300000
+ 0 named destinations out of 300000
+ 56 words of extra memory for PDF output out of 65536
+<C:\texmf\fonts\type1\bluesky\cm\cmr8.pfb><C:\texmf\fonts\type1\bluesky\cm\cmr6.pfb><C:\texmf\fonts\type1\bluesky\cm\c
+mss10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmsy10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmbx10.pfb><C:\texmf\fonts\type1\
+bluesky\cm\cmsl10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmti10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmtt10.pfb><C:\texmf\
+fonts\type1\bluesky\cm\cmr7.pfb><C:\texmf\fonts\type1\bluesky\cm\cmmi10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmr10.pfb><
+C:\texmf\fonts\type1\bluesky\cm\cmbx12.pfb>
+Output written on face.pdf (21 pages, 1445000 bytes).
