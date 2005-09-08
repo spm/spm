@@ -342,12 +342,6 @@ file saved in the \verb!DIR/designs/categorical! directory}
 SPM will write a number of files into the selected directory including 
 an \verb!SPM.mat! file.
 
-
-
-\section{Modelling parametric responses}
-
-In addition to analysing the data in the above "categorical" design, an alternative "parametric" design is illustrated in which repetition is viewed as a continuum. In this case, the response to each presentation of famous and non-famous faces is modulated by the time interval (lag) since the previous presentation of that face (for first presentations, this lag is infinite). 
-
 \section{Inference for categorical design}
 
 Press `Results' and select the SPM.mat file from 
@@ -418,7 +412,7 @@ To assess the effect of presenting faces, as characterised by both the hrf {\em 
 \item{\em Extent threshold \{voxels\} [0]}
 \item{Accept the default value, 0}
 \ei
-Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{}.
+Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{cat1_volume}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{cat1_contrast}
@@ -432,71 +426,79 @@ Again, when the MIP appears, press 'Volume'. This should result in the display s
 \caption{\em MIP and Volume table for Canonical HRF: Faces  $>$ Baseline. \label{cat1_volume} }
 \end{center}
 \end{figure}
-Although the MIP of this F-contrast looks similar to the previous t-contrast, note that the present contrast shows the areas for which the mean of the parameter estimates for the canonical hrf OR its temporal derivative for the four conditions are different from zero (baseline). In other words, the F-contrast is two-sided, and tests two t-contrasts simultaneously. Also note that an F- (or t-) contrast such as [1 1 1 1 1 1 1 1], which tests whether the mean of the canonical hrf AND its temporal derivative for all conditions are different from (larger than) zero is not sensible. This is because the canonical hrf and its temporal derivative may cancel each other out while being significant in their own right. Finally, note that single F-contrasts can be regarded as $t^2$-contrasts, so that the F-contrasts [1 0 -1 0 1 0 -1 0] and [-1 0 1 0 -1 0 1 0] are equivalent. 
+Although the MIP of this F-contrast looks similar to the previous t-contrast, note that the present contrast shows the areas for which the mean of the parameter estimates for the canonical hrf {\em or} its temporal derivative for the four conditions are different from zero (baseline). In other words, the F-contrast is two-sided, and tests two t-contrasts simultaneously. Also note that an F- (or t-) contrast such as [1 1 1 1 1 1 1 1], which tests whether the mean of the canonical hrf AND its temporal derivative for all conditions are different from (larger than) zero is not sensible. This is because the canonical hrf and its temporal derivative may cancel each other out while being significant in their own right. Finally, note that single F-contrasts can be regarded as $t^2$-contrasts, so that the F-contrasts [1 0 -1 0 1 0 -1 0] and [-1 0 1 0 -1 0 1 0] are equivalent. 
 
-The relative contributions of the canonical hrf and its temporal derivative at a given voxel may also be assessed using F-contrasts to estimate a reduced model, removing all confounds. Press 'Results', select the SPM.mat file, press 'F-contrast' in the contrast manager, and select 'Define new contrast'. Specify 'Effects of Real Interest' (name) and type '9:19' in the small window labelled 'columns for reduced design'. This will remove columns 9 to 19 (i.e., hrf and temporal derivative for events representing error judgements and nuisance covariates) from the design. 
+The relative contributions of the canonical hrf and its temporal derivative may also be assessed using the following F-contrast approach. This will allow us to plot the estimated effect sizes at a given voxel.
+\bi
+\item{Press 'Results' and select the SPM.mat file in the 
+\verb!DIR/classical/categorical! directory}
+\item{Press `Define new contrast', enter the name `All effects of interest', press the `F-contrast' radio button, enter [9:15] in the `columns in reduced design' window, press `OK', press `Done'.}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify No.}
+\item{\em Title for comparison ?}
+\item{Accept what is offered}
+\item{\em p value adjustment to control: [FWE/FDR/none]}
+\item{Select FWE}
+\item{\em Corrected p value(family-wise error)}
+\item{Accept the default value, 0.05}
+\item{\em Extent threshold \{voxels\} [0]}
+\item{Accept the default value, 0}
+\ei
+Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{cat_all_volume}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{cat_all_contrast}
+\caption{\em Contrast manager showing specification of `All effects of interest'. \label{cat_all_contrast} }
+\end{center}
+\end{figure}
 
-Submit and select the new contrast, specify 'mask with other images?' (no), specify 'name of comparison' (accept default), specify 'corrected height threshold' (yes), specify 'corrected p value' (accept default). Again, when the MIP appears, press 'Volume'.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{cat_all_volume}
+\caption{\em MIP and Volume table for `All effects of interest'. \label{cat_all_volume} }
+\end{center}
+\end{figure}
+
+
+ 
 
 \subsection{Plotting parameter estimates at a voxel}
 
-Move the cursor to e.g. the anterior right fusiform blob (the R fusiform face area) by clicking the second set of coordinates in the cluster (45 -48 -27) and press 'plot'. Select 'Contrast of parameter estimates' and select 'Effects of real interest'.
+Move the cursor to e.g. the anterior right fusiform blob (the R fusiform face area) by clicking the second set of coordinates in the cluster (45 -48 -21) and press the `plot' button in SPM's interactive window. Select `Contrast of estimates and 90\% CI' and select 'All effects of interest'. This will produce the plot in 
+Figure~\ref{con_all_plot}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{con_all_plot}
+\caption{\em Estimated effect sizes and 90\% confidence intervals for all effects of interest. Columns 1,3,5,7 are the canonical hrfs for N1 (non-famous faces, first presentation), N2 (non-famous faces, second presentation), F1 (famous faces, 1st presentation) and F2 (famous faces, 2nd presentation), whereas columns 2,4,6,8 are the temporal derivatives. \label{con_all_plot} }
+\end{center}
+\end{figure}
+A positive coefficient for the canonical indicates a 
+positive response to faces, whereas a positive coefficient for the derivative indicates a later peak 
+response to faces. 
+ Note, however, the large amplitudes and smaller error bars of the canonical hrfs compared to the temporal derivatives. This suggests that, for this region at least, the timing of the canonical model is adequate. Also note the repetition x stimulus type interaction; F1 seems larger than F2, whereas there is no 
+ difference between N1 and N2. 
 
-Columns 1,3,5,7 are the canonical hrfs for N1 (non-famous faces, first presentation), N2 (non-famous faces, second presentation), F1 (famous faces, 1st presentation) and F2 (famous faces, 2nd presentation), whereas columns 2,4,6,8 are the temporal derivatives. Note that the amplitude of the canonical hrfs is large compared to the temporal derivatives, suggesting that, for this region at least, the timing of the model is adequate. Also note the repetition x stimulus type interaction (the decrease from N1 to N2 is smaller than for F1 to F2).
-
-\subsection{Masking F-contrasts}
-
-To assess further the effects of stimulus repetition, press 'Results', select the SPM.mat file, and press 'F-contrast'. Specify e.g. 'hrf + temp deriv: 1 vs. 2' (name) and
-'1 0 -1 0 1 0 -1 0
-0 1 0 -1 0 1 0 -1' (contrast). Submit and select the contrast. Specify 'mask with another contrast' (yes), select the 'Canonical HRF: Faces $>$ Baseline' t-contrast, specify 'threshold for mask' (accept default of p=0.05 uncorrected), specify 'nature of mask' (inclusive), specify 'title for comparison' (accept default), specify 'corrected height threshold' (no), specify threshold (0.001). 
-Again, when the MIP appears, press 'Volume'.
-
-The MIP shows all clusters where the difference between the parameter estimates for first and second presentations for the canonical hrf OR its temporal derivative is significantly different from zero AND the canonical hrf for all four conditions is significantly larger than zero. Note that although the mask does not alter the threshold for the target contrast, the combined probability for a voxel to appear in the masked contrast is in the order of 0.05 x 0.001 uncorrected due to the orthogonality of the contrasts. 
-
-\subsection{Plotting event-related responses}
-
-To plot repetition suppression effects for the R fusiform region, select the third cluster from the top (by clicking 48 60 -15; slightly more posterior to that identified above) and press 'plot'.
-Select  'event-related responses'.
-\bi
-\item{\em Which trials or conditions (1 to 6)}
-\item{Specify `1:4'}
-\item{\em Plot in terms of ...}
-\item{Select fitted response and PSTH}
-\ei
-To adjust the scale of the x-axis (time), press 'attrib' from the plot controls panel.
-Select Xlim, and change the default (-4 32) to '0 10'.
-
-Note the signal decrease between first and second presentations of both famous and non-famous faces.
-Other options from the plot controls panel:
-\bi
-\item{Hold: allows overlaying of plots}
-\item{Grid: toggles between grid on/off}
-\item{Box: toggles between axes/box}
-\item{Text: allows editing of title and/or axis labels.}
-\ei
 
 \subsection{F-contrasts for testing effects of movement}
 
-To assess movement-related activation, press 'Results', select the SPM.mat file, and select 'F-contrast' in the Contrast Manager. Specify e.g. 'Movement-related activation' (name) and either {\sf [zeros(6,12),eye(6)]}
-in the 'contrasts weights matrix' window, or '1:12 19' in the 'columns for reduced design' window. 
- 
-Submit and select the contrast, specify 'mask with other contrasts?' (no), 'title for comparison' (accept default), 'corrected height threshold' (yes), and 'corrected p-value' (accept default). When the MIP appears, press `Volume'.
+To assess movement-related activation
+\bi
+\item{Press 'Results', select the SPM.mat file, select 'F-contrast' in the Contrast Manager. Specify e.g. 'Rotation-related activation' (name) and 
+in the 'contrasts weights matrix' window, or '1:11 15' in the 'columns for reduced design' window.} 
+\item{
+Submit and select the contrast, specify `mask with other contrasts?' (no), `title for comparison' (accept default), `corrected height threshold' (FWE), and `corrected p-value' (accept default).}
+ \item{When the MIP appears, select `sections' from the `overlays' pulldown
+ menu, and select the normalised structural image
+ \verb!wmsM03953_0007.img!}
+ \ei
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{rotations}
+\caption{\em Rotation-related activations. These spurious `activations' are due to rotation of the head during the scanning session. Many of these effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences 
+are greatest. Including these regressors in the design matrix means these effects cannot be falsely attributed 
+to neuronal activity. \label{rotations} }
+\end{center}
+\end{figure}
 
-The table displays all clusters where signal changes correlated with any of the six movement parameters are significantly different from zero. Note the large edge effects, which, however, are not apparent in the fusiform regions.
-
-\subsection{Parametric modulation}
-
-Finally, consider the effects of the interval between first and second presentations of famous and non-famous faces. For this purpose, an alternative statistical model needs to be estimated, with four trial types. (1) First and second presentation of a non-famous face (N1 and N2 collapsed). (2) First and second presentation of a famous face (F1 and F2 collapsed). (3) Errors in judging non-famous faces. (4) Errors in judging famous faces. These are modelled with the canonical hrf alone, with two parametric (exponential) modulations added for second presentations of non-famous and famous faces. See the README.txt for details of design specification.
-
-After completion of model estimation, press `Results' and select the SPM.mat file. When the Contrast Manager appears, define an F-contrast `Effect of Lag (on canonical N+F)' (name) and `0 1 0 1', and a t-contrast `Canonical: Faces $>$ Baseline' (name) and `1 0 1 0'. Select the F-contrast, specify `mask with other contrasts' (yes), select `Canonical: Faces $>$ Baseline', specify `uncorrected mask p-value' (accept default), `nature of mask (inclusive), `title for comparison' (accept default), `corrected height threshold' (no), and `corrected p-value' (accept default). When the MIP appears, press `Volume'.
-
-The table displays all clusters where the exponential change in activation between first and second presentations for famous OR non-famous faces for the canonical hrf is significantly different from zero AND the canonical hrf for the first two conditions is significantly larger than zero (baseline). We can now 
-plot these parametric effects at particular voxels.
-
-\subsection{Plotting parametric responses}
-
-To plot these parametric effects, select the R fusiform region (45 -60 -18, similar to the region identified in the previous categorical analysis for repetition effects), and press 'plot'. Select 'Plots of parametric responses' and select 'F' (or 'N').  Note that the 'attrib' option does not allow adjustment of the scale of the Z-axis; therefore, to change the scale for all axes, type e.g. 'figure (1), axis ([0 30 0 100 0 1])' in the Matlab window.
-
-Note that these repetition effects are transient (decrease with increasing intervals between first and second presentations), especially for famous faces.
 
 \end{document}
