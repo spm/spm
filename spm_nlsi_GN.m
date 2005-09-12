@@ -56,8 +56,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 222 2005-09-07 16:49:37Z karl $
- 
+% $Id: spm_nlsi_GN.m 226 2005-09-12 15:00:59Z karl $
+
+% figure
+%--------------------------------------------------------------------------
+Fsi = spm_figure;
+set(Fsi,'name','System identification')
+figure(Fsi)
  
  
 % integration scheme
@@ -134,7 +139,7 @@ dFdhh = sparse(nh,nh);
  
 % EM
 %==========================================================================
-for k = 1:64
+for k = 1:32
  
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
@@ -178,7 +183,7 @@ for k = 1:64
         %------------------------------------------------------------------
         for i = 1:nh
             dFdh(i,1)      =  trace(QS{i})/2 - e'*Q{i}*e/2 ...
-                -sum(sum(Cp.*(J'*QJ{i})))/2;
+                             -sum(sum(Cp.*(J'*QJ{i})))/2;
             for j = i:nh
                 dFdhh(i,j) = -sum(sum(QS{i}.*QS{j}))/2;
                 dFdhh(j,i) =  dFdhh(i,j);
@@ -193,8 +198,8 @@ for k = 1:64
  
         % convergence
         %------------------------------------------------------------------
-        nmh   = dFdh'*dh;
-        if nmh < 1e-2, break, end
+        dF    = dFdh'*dh;
+        if dF < 1e-2, break, end
  
     end
  
@@ -255,37 +260,34 @@ for k = 1:64
     Ep    = pE + V*p(ip);
     
     % graphics
-    %------------------------------------------------------------------
-    if length(dbstack) < 4
- 
-        % subplot parameters
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        plot([1:ns]*Y.dt,g),                        hold on
-        plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
-        xlabel('time')
-        title(sprintf('%s: %i','E-Step',k))
-        grid on
-        drawnow
- 
-        % subplot parameters
-        %------------------------------------------------------------------
-        subplot(2,1,2)
-        bar(full(V*p(ip)))
-        xlabel('parameter')
-        title('conditional [minus prior] expectation')
-        grid on
-        drawnow
-    end
-  
+    %----------------------------------------------------------------------
+    figure(Fsi)
+
+    % subplot parameters
+    %----------------------------------------------------------------------
+    subplot(2,1,1)
+    plot([1:ns]*Y.dt,g),                        hold on
+    plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
+    xlabel('time')
+    title(sprintf('%s: %i','E-Step',k))
+    grid on
+    drawnow
+
+    % subplot parameters
+    %----------------------------------------------------------------------
+    subplot(2,1,2)
+    bar(full(V*p(ip)))
+    xlabel('parameter')
+    title('conditional [minus prior] expectation')
+    grid on
+    drawnow
+
     % convergence
     %----------------------------------------------------------------------
-    nmp    = dp'*ipC*dp;
-    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(nmp))
-    if nmp < 1e-5, break, end
+    dF  = dFdp'*dp;
+    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(dF))
+    if k > 2 && dF < 1e-2, break, end
     
-    
- 
 end
  
 % outputs

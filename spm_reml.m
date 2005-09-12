@@ -7,8 +7,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Q   - {1 x q} covariance components
 % N   - number of samples
 %
-% OPT(1) = 1 : log-normal hyperparameterisation
-% OPT(2) = 1 : invoke priors on h - default [0 0]
+% OPT = 1 : log-normal hyper-parameterisation
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -22,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_reml.m 226 2005-09-12 15:00:59Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -37,7 +36,7 @@ end
 try
     OPT;
 catch
-    OPT = [0 0];
+    OPT = 0;
 end
  
 % ortho-normalise X
@@ -45,68 +44,47 @@ end
 X     = sparse(orth(full(X)));
 [n p] = size(X);
  
-% ensure estimable components
+% initialise h
 %--------------------------------------------------------------------------
 m     = length(Q);
 dh    = sparse(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
+ 
+% check norms
+%--------------------------------------------------------------------------
+nY    = norm(YY,1);
+nQ    = 0;
 for i = 1:m
-    for j = i:m
-        dFdhh(i,j) = sum(sum(Q{i}.*Q{j}'));
-        dFdhh(j,i) = dFdhh(i,j);
-    end
+    nQ = max(nQ,norm(Q{i},1));
 end
+nY    = nY/nQ;
  
-% enforce hyperpriors if curvature is rank deficient
+% rescale to avoid numerical problems
 %--------------------------------------------------------------------------
-if rank(dFdhh) < m
-    OPT(2) = 1;
-end
- 
-if OPT(1)
- 
-    % log-normal hyperpriors - expectation and precision
-    %----------------------------------------------------------------------
-    hE    = ones(m,1);
-    hP    = speye(m,m)/8;
-    h     = hE;
-    
+if abs(log(nY)) > 8
+    [C,h] = spm_reml(YY/nY,X,Q,N,OPT);
+    h     = h*nY;
 else
- 
-    % Gaussian hyperpriors - expectation and precision
-    %----------------------------------------------------------------------
-    hE    = sparse(m,1);
-    hP    = speye(m,m)/1e6;
- 
-    % initialise h
-    %----------------------------------------------------------------------
-    C     = [];
-    R     = speye(n,n) - X*X';
-    for i = 1:m
-        RQR = R*Q{i}*R';
-        C   = [C RQR(:)];
-    end
-    R     = R*YY*R'/N;
-    h     = inv(C'*C)*(C'*R(:));
- 
+    h     = ones(m,1);
 end
  
-% hyperpriors
+% log-transform if necessary
 %--------------------------------------------------------------------------
-if ~OPT(2)
-    hP = hP*0;
+if OPT
+    h = log(h);
 end
+ 
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 for k = 1:32
- 
+    
     % compute current estimate of covariance
     %----------------------------------------------------------------------
     C     = sparse(n,n);
     for i = 1:m
-        if OPT(1)
+        if OPT
             C = C + Q{i}*exp(h(i));
         else
             C = C + Q{i}*h(i);
@@ -119,7 +97,7 @@ for k = 1:32
     iCX   = iC*X;
     Cq    = inv(X'*iCX);
     XCXiC = X*Cq*iCX';
-     
+ 
     % M-step: ReML estimate of hyperparameters
     %======================================================================
  
@@ -132,25 +110,24 @@ for k = 1:32
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
         PQ{i}     = P*Q{i};
-        if OPT(1)
+        if OPT
             PQ{i} = PQ{i}*exp(h(i));
         end
         dFdh(i)   = -trace(PQ{i})*N/2 + sum(sum(PQ{i}.*PYY'))/2;
-
+ 
  
     end
-    dFdh  = dFdh - hP*(h - hE);
  
-    % Expected curvature E{ddF/dhh} (second derivatives)
+    % Expected curvature E{dF/dhh} (second derivatives)
     %----------------------------------------------------------------------
     for i = 1:m
         for j = i:m
  
-            % ddF/dhh = -trace{P*Q{i}*P*Q{j}}
+            % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
-            dFdhh(i,j)  = -sum(sum(PQ{i}.*PQ{j}'))*N/2 - hP(i,j);
+            dFdhh(i,j)  = -sum(sum(PQ{i}.*PQ{j}'))*N/2;
             dFdhh(j,i)  =  dFdhh(i,j);
-
+ 
         end
     end
  
@@ -158,7 +135,7 @@ for k = 1:32
     %----------------------------------------------------------------------
     dh    = -pinv(dFdhh)*dFdh;
     h     = h + dh;
- 
+    
     % Convergence (1% change in log-evidence)
     %======================================================================
     w     = dFdh'*dh;
@@ -167,25 +144,19 @@ for k = 1:32
  
 end
  
-% hyperpriors - precision
-%--------------------------------------------------------------------------
-if OPT(1)
-    h  = exp(h);
-end
-
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 if nargout > 3
-
+ 
     % compute condotional covariance of h
     %----------------------------------------------------------------------
     for i = 1:m
         CP{i} = -Q{i}*iC;
-        if OPT(1)
+        if OPT
             CP{i} = CP{i}*exp(h(i));
         end
     end
-    
+ 
     % P(h) = -ddF/dhh - ...
     %----------------------------------------------------------------------
     for i = 1:m
@@ -196,18 +167,19 @@ if nargout > 3
         end
     end
     Ph = Ph - dFdhh;
-
+ 
     % log evidence = F
     %----------------------------------------------------------------------
     F = - trace(C*PYY*P)/2 ...
         - N*n*log(2*pi)/2 ...
         - N*spm_logdet(C)/2 ...
         + N*spm_logdet(Cq)/2 ...
-        +   spm_logdet(hP)/2 ...
         -   spm_logdet(Ph)/2 ...
         - N*p/2 - m/2;
 end
-
-
-
-
+ 
+% return exp(h) if log-normal hyperpriors
+%--------------------------------------------------------------------------
+if OPT
+    h  = exp(h);
+end
