@@ -10,16 +10,21 @@
 \chapter{Face fMRI data}
 
 As a third and more sophisticated example, consider the data from a repetition priming experiment performed using event-related fMRI. Briefly, this is a 2x2 factorial study with factors `fame' and `repetition' where famous and non-famous faces were presented twice against a checkerboard baseline. The subject was asked to make fame judgements by making key presses. There are thus four event-types of interest; first and second presentations of famous and non-famous faces, which 
-we denote N1, N2, F1 and F2. The experimental design is shown shematically in Figure~\ref{face_design}.
+we denote N1, N2, F1 and F2. The experimental stimuli and timings of events are shown in Figures~\ref{face_stim} and \ref{face_timing}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{face_paradigm}
-\caption{\em Face repetition paradigm. {\bf Left} There were 2 presentations of 26 Famous and 26 Nonfamous Greyscale photographs, for 0.5s each, randomly intermixed. The 
+\includegraphics[width=120mm]{face_stim}
+\caption{\em Face repetition paradigm.  There were 2 presentations of 26 Famous and 26 Nonfamous Greyscale photographs, for 0.5s each, randomly intermixed. The 
 minimal Stimulus Onset Asynchrony (SOA)=4.5s, with probability 2/3 (ie 1/3 null events). The subject made one of two 
-right finger key presses denoting whether or not the subject thought the face was famous. {\bf Right} The time series of events. \label{face_design}}
+right finger key presses denoting whether or not the subject thought the face was famous. \label{face_stim}}
 \end{center}
 \end{figure}
-
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{face_timing}
+\caption{\em Time series of events. \label{face_timing}}
+\end{center}
+\end{figure}
 
 Images were acquired using continuous Echo-Planar 
 Imaging (EPI) with TE=40ms, TR=2s and 24 descending slices (64x64 3x3$mm^2$), 3mm thick with a 1.5mm gap.
@@ -106,7 +111,7 @@ step of spatial processing - coregistration.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{realign}
-\caption{\em Realignment of face data.\label{face_realign}}
+\caption{\em Realignment of face data. Movement less than the size of a voxel, which for this data set is 3mm, is not considered problematic. \label{face_realign}}
 \end{center}
 \end{figure}
 
@@ -172,11 +177,11 @@ SPM will create, by default, gray and white matter
 images and bias-field corrected structral image.
 These can be viewed using the CheckReg facility 
 as described in the previous section (press segement 
-and select . Figure \ref{aud_gray} shows the gray matter image, \verb!c1sM03953_0007.img! along with the original structural.
+and select . Figure \ref{face_gray} shows the gray matter image, \verb!c1sM03953_0007.img! along with the original structural.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{gray}
-\caption{\em Gray matter image and `registered' structural image. \label{face_gray}}
+\caption{\em Gray matter (top) produced by segmentation of structural image (below). \label{face_gray}}
 \end{center}
 \end{figure}
 
@@ -244,7 +249,7 @@ the default smoothing kernel width.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{smooth}
-\caption{\em Functional image (top) and 8mm-smoothed functional image (bottom). These images were obtained using SPM's `CheckReg' facility. \label{face_smooth}}
+\caption{\em Functional image (top) and 8mm-smoothed functional image (bottom). These images were plotted using SPM's `CheckReg' facility. \label{face_smooth}}
 \end{center}
 \end{figure}
 
@@ -342,7 +347,7 @@ file saved in the \verb!DIR/designs/categorical! directory}
 SPM will write a number of files into the selected directory including 
 an \verb!SPM.mat! file.
 
-\section{Inference for categorical design}
+\subsection{Inference for categorical design}
 
 Press `Results' and select the SPM.mat file from 
 \verb!DIR\classical\categorical!. This will again invoke the contrast manager. Because we specified that 
@@ -494,11 +499,137 @@ Submit and select the contrast, specify `mask with other contrasts?' (no), `titl
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{rotations}
-\caption{\em Rotation-related activations. These spurious `activations' are due to rotation of the head during the scanning session. Many of these effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences 
+\caption{\em Rotation-related activations. These spurious `activations' are due to rotation of the head during scanning. These effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences 
 are greatest. Including these regressors in the design matrix means these effects cannot be falsely attributed 
 to neuronal activity. \label{rotations} }
 \end{center}
 \end{figure}
 
+\section{Modelling parametric responses}
 
+Before setting up the design matrix we must first 
+load the Stimulus Onsets Times (SOTs), Lag times, and movement
+parameters into matlab. SOTs are stored in the 
+\verb!sots.mat! file in a 
+cell array such that eg. \verb!sot{1}! contains 
+stimulus onset times in TRs for event type 1, which is N1. Event-types 2,3 and 4 are N2, F1 and F2\footnote{Also included included with this data set are variables describing two event-types of no interest - the (rare) errors made by this subject on the fame-judgement task. 
+We will not, however, be using these in our analyses.}.
+
+\bi
+\item{At the matlab command prompt type 'load sots'. This loads the stimulus onset times (and the lag times).}
+\item{Then type `load movepars.txt'}
+\ei
+
+Now press the `Specify 1st-level' button. This will call up the specification of a fMRI specification job in the graphics window. Then
+\bi
+\item{Open the fMRI model specification option}
+\item{Pres, `Load' and select the \verb!categorical_spec.mat! job file you created earlier}
+\item{Open `Conditions' and then open the second `Condition'}
+\item{Highlight `Parametric Modulations', select `New Parameter' and open the newly created `Parameter' option.}
+\item{Highlight `Name' and enter 'Lag', highlight values and enter \verb!itemlag{2}!, highlight polynomial expansion and `2nd order'.}
+\item{Now open the fourth `Condition' under `Conditions'}
+\item{Highlight `Parametric Modulations', select `New Parameter' and open the newly created `Parameter' option.}
+\item{Highlight `Name' and enter 'Lag', highlight values and enter \verb!itemlag{4}!, highlight polynomial expansion and `2nd order'.}
+\item{Open `Canonical HRF' under `Basis Functions', highlight `Model derivatives' and select 
+`No derivatives'.}
+\item{Highlight `Directory' and select \verb!DIR/designs/parametric!}
+\item{Save the job as \verb!parametric_spec! and press `Run'}
+\ei
+This should produce the design matrix shown in Figure~\ref{par_design}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{par_design}
+\caption{\em Design matrix for testing repetition effects parametrically. Regressor 2 indicates the second occurence of a nonfamous face. Regressor 3 modulates this linearly as a function of lag (ie. how many faces have been shown since that face was first presented), and regressor 4 modulates this quadratically as a function of lag. Regressors 6,7 and 8 play the same roles, but for famous faces. \label{par_design} }
+\end{center}
+\end{figure}
+
+\subsection{Estimate}
+
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+\bi
+\item{Open the `fMRI model estimation' option}
+\item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
+file saved in the \verb!DIR/designs/parametric! directory}
+\item{Highlight the `Directory' option and then choose the 
+\verb!DIR/classical/parametric! directory}
+\item{Save the job as \verb!parametric_est.job! and press Run}
+\ei
+SPM will write a number of files into the selected directory including 
+an \verb!SPM.mat! file.
+
+\subsection{Plotting parametric responses}
+
+To plot parametric responses, we first set up a contrast that captures positive responses to F2.
+\bi
+\item{Press 'Results' and select the SPM.mat file in the 
+\verb!DIR/classical/parametric! directory}
+\item{Press `Define new contrast', enter the name `Pos F2', press the `t-contrast' radio button, enter 
+the contrast [0 0 0 0 0 1], press `submit', press `Done'.}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify Yes.}
+\item{\em Title for comparison ?}
+\item{Accept what is offered}
+\item{\em p value adjustment to control: [FWE/FDR/none]}
+\item{Select FWE}
+\item{\em Corrected p value(family-wise error)}
+\item{Accept the default value, 0.05}
+\item{\em Extent threshold \{voxels\} [0]}
+\item{Accept the default value, 0}
+\ei
+We then set up a contrast that captures some 
+parametric modulation of F2.
+\bi
+\item{Press 'Results' and select the SPM.mat file in the 
+\verb!DIR/classical/parametric! directory}
+\item{Press `Define new contrast', enter the name `Famous Lag', press the `F-contrast' radio button, enter `1:6 9:15' in the `columns in reduced design' window, press `submit', press `Done'.}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify No.}
+\item{\em Title for comparison ?}
+\item{Accept what is offered}
+\item{\em p value adjustment to control: [FWE/FDR/none]}
+\item{Select FWE}
+\item{\em Corrected p value(family-wise error)}
+\item{Accept the default value, 0.05}
+\item{\em Extent threshold \{voxels\} [0]}
+\item{Accept the default value, 0}
+\ei
+Now we will look at the modulation but masking it to restrict our attention to positive F2 effects. To do this
+\bi
+\item{Press 'Results' and select the SPM.mat file in the 
+\verb!DIR/classical/parametric! directory}
+\item{Select the `Famous Lag' contrast.}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify Yes.}
+\item{Select the `Pos F2' contrast}
+\item{Accept the 0.05 uncorrected mask p-value}
+\item{Nature of Mask ? inclusive}
+\item{\em Title for comparison ?}
+\item{Accept what is offered}
+\item{\em p value adjustment to control: [FWE/FDR/none]}
+\item{Select None}
+\item{\em Threshold \{F or p value\}}
+\item{Accept the default value, 0.001}
+\item{\em Extent threshold \{voxels\} [0]}
+\item{Accept the default value, 0}
+\ei
+Figure~\ref{famous_lag_mip} shows the MIP and an
+overlay of this parametric effect using overlays, sections and selecting the \verb!wmsM03953_0007.img! image. 
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{famous_lag_mip}
+\caption{\em MIP and overlay of parametric lag effect in parietal cortex. \label{famous_lag_mip} }
+\end{center}
+\end{figure}
+The effect is plotted in the time domain in figure~\ref{famous_lag}. This was obtained by
+\bi
+\item{Right clicking on the MIP and selecting `global maxima'}
+\item{Pressing Plot, and selecting `parametric responses' from the pull-down menu}
+\item{Which effect ? select `F2'}
+\ei
+\begin{figure}
+\begin{center}
+\includegraphics[width=150mm]{famous_lag}
+\caption{\em Response as a function of lag. \label{famous_lag} }
+\end{center}
+\end{figure}
 \end{document}

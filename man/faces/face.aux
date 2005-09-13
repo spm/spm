@@ -2,52 +2,63 @@
 \@writefile{toc}{\contentsline {chapter}{\numberline {1}Face fMRI data}{1}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces \em  Face repetition paradigm. {\bf  Left} There were 2 presentations of 26 Famous and 26 Nonfamous Greyscale photographs, for 0.5s each, randomly intermixed. The minimal Stimulus Onset Asynchrony (SOA)=4.5s, with probability 2/3 (ie 1/3 null events). The subject made one of two right finger key presses denoting whether or not the subject thought the face was famous. {\bf  Right} The time series of events. }}{2}}
-\newlabel{face_design}{{1.1}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces \em  Face repetition paradigm. There were 2 presentations of 26 Famous and 26 Nonfamous Greyscale photographs, for 0.5s each, randomly intermixed. The minimal Stimulus Onset Asynchrony (SOA)=4.5s, with probability 2/3 (ie 1/3 null events). The subject made one of two right finger key presses denoting whether or not the subject thought the face was famous. }}{2}}
+\newlabel{face_stim}{{1.1}{2}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.1}Spatial pre-processing}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1.1}Display}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1.2}Realignment}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces \em  The SPM base window comprises three sections i) spatial pre-processing, (ii) model specification, review and estimation and (iii) inference. }}{3}}
-\newlabel{command}{{1.2}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.3}{\ignorespaces \em  Signal dropout in EPI images. }}{4}}
-\newlabel{dropout}{{1.3}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.3}Slice timing correction}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.4}Coregistration}{5}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.4}{\ignorespaces \em  Realignment of face data.}}{6}}
-\newlabel{face_realign}{{1.4}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.5}Segmentation}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.6}Normalize}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.5}{\ignorespaces \em  Mutual Information Coeregistration of Auditory data. }}{8}}
-\newlabel{aud_coreg}{{1.5}{8}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.6}{\ignorespaces \em  Gray matter image and `registered' structural image. }}{9}}
-\newlabel{face_gray}{{1.6}{9}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.7}Smoothing}{10}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.2}Modelling categorical responses}{10}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.7}{\ignorespaces \em  Functional image (top) and 8mm-smoothed functional image (bottom). These images were obtained using SPM's `CheckReg' facility. }}{11}}
-\newlabel{face_smooth}{{1.7}{11}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}Estimate}{13}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.8}{\ignorespaces \em  Design matrix. }}{14}}
-\newlabel{cat_design}{{1.8}{14}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.9}{\ignorespaces \em  Exploring the design matrix in Figure\nobreakspace  {}1.8\hbox {}. This shows the time series of the `active' regressor (top left), a frequency domain plot of the active regressor (top right) and the basis function used to convert assumed neuronal activity into hemodynamic activity. In this model we used the default option - the canonical basis function. The frequency domain plot shows that the frequency content of the `N1' regressor is above the set frequencies that are removed by the High Pass Filter (HPF) (these are shown in gray - in this model we accepted the default HPF cut-off of 128s or 0.008Hz).}}{15}}
-\newlabel{cat_explore}{{1.9}{15}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.10}{\ignorespaces \em  Contrast Manager containing default contrasts for categorical design. }}{16}}
-\newlabel{cat_contrasts}{{1.10}{16}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.3}Inference for categorical design}{16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}Statistical tables}{17}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}F-contrasts}{17}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.11}{\ignorespaces \em  MIP and Volume table for Canonical HRF: Faces $>$ Baseline.  }}{18}}
-\newlabel{cat5_volume}{{1.11}{18}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.12}{\ignorespaces \em  Contrast manager showing selection of the first contrast 'Average effect of condition', also known as `HRF + deriv: Faces $>$ Baseline'.  }}{19}}
-\newlabel{cat1_contrast}{{1.12}{19}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.13}{\ignorespaces \em  MIP and Volume table for Canonical HRF: Faces $>$ Baseline.  }}{20}}
-\newlabel{cat1_volume}{{1.13}{20}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.14}{\ignorespaces \em  Contrast manager showing specification of `All effects of interest'.  }}{21}}
-\newlabel{cat_all_contrast}{{1.14}{21}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.3}Plotting parameter estimates at a voxel}{21}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.4}F-contrasts for testing effects of movement}{21}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.15}{\ignorespaces \em  MIP and Volume table for `All effects of interest'.  }}{22}}
-\newlabel{cat_all_volume}{{1.15}{22}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.16}{\ignorespaces \em  Estimated effect sizes and 90\% confidence intervals for all effects of interest. Columns 1,3,5,7 are the canonical hrfs for N1 (non-famous faces, first presentation), N2 (non-famous faces, second presentation), F1 (famous faces, 1st presentation) and F2 (famous faces, 2nd presentation), whereas columns 2,4,6,8 are the temporal derivatives.  }}{23}}
-\newlabel{con_all_plot}{{1.16}{23}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.17}{\ignorespaces \em  Rotation-related activations. These spurious `activations' are due to rotation of the head during the scanning session. Many of these effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences are greatest. Including these regressors in the design matrix means these effects cannot be falsely attributed to neuronal activity.  }}{24}}
-\newlabel{rotations}{{1.17}{24}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces \em  Time series of events. }}{3}}
+\newlabel{face_timing}{{1.2}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.3}{\ignorespaces \em  The SPM base window comprises three sections i) spatial pre-processing, (ii) model specification, review and estimation and (iii) inference. }}{4}}
+\newlabel{command}{{1.3}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.4}{\ignorespaces \em  Signal dropout in EPI images. }}{5}}
+\newlabel{dropout}{{1.4}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.3}Slice timing correction}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.4}Coregistration}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.5}{\ignorespaces \em  Realignment of face data.}}{7}}
+\newlabel{face_realign}{{1.5}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.5}Segmentation}{8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.6}Normalize}{8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.6}{\ignorespaces \em  Mutual Information Coeregistration of Auditory data. }}{9}}
+\newlabel{aud_coreg}{{1.6}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.7}{\ignorespaces \em  Gray matter (top) produced by segmentation of structural image (below). }}{10}}
+\newlabel{face_gray}{{1.7}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1.7}Smoothing}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Modelling categorical responses}{11}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.8}{\ignorespaces \em  Functional image (top) and 8mm-smoothed functional image (bottom). These images were plotted using SPM's `CheckReg' facility. }}{12}}
+\newlabel{face_smooth}{{1.8}{12}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}Estimate}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.9}{\ignorespaces \em  Design matrix. }}{15}}
+\newlabel{cat_design}{{1.9}{15}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.10}{\ignorespaces \em  Exploring the design matrix in Figure\nobreakspace  {}1.9\hbox {}. This shows the time series of the `active' regressor (top left), a frequency domain plot of the active regressor (top right) and the basis function used to convert assumed neuronal activity into hemodynamic activity. In this model we used the default option - the canonical basis function. The frequency domain plot shows that the frequency content of the `N1' regressor is above the set frequencies that are removed by the High Pass Filter (HPF) (these are shown in gray - in this model we accepted the default HPF cut-off of 128s or 0.008Hz).}}{16}}
+\newlabel{cat_explore}{{1.10}{16}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.11}{\ignorespaces \em  Contrast Manager containing default contrasts for categorical design. }}{17}}
+\newlabel{cat_contrasts}{{1.11}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.2}Inference for categorical design}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.3}Statistical tables}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.4}F-contrasts}{18}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.12}{\ignorespaces \em  MIP and Volume table for Canonical HRF: Faces $>$ Baseline.  }}{19}}
+\newlabel{cat5_volume}{{1.12}{19}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.13}{\ignorespaces \em  Contrast manager showing selection of the first contrast 'Average effect of condition', also known as `HRF + deriv: Faces $>$ Baseline'.  }}{20}}
+\newlabel{cat1_contrast}{{1.13}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.14}{\ignorespaces \em  MIP and Volume table for Canonical HRF: Faces $>$ Baseline.  }}{21}}
+\newlabel{cat1_volume}{{1.14}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.15}{\ignorespaces \em  Contrast manager showing specification of `All effects of interest'.  }}{22}}
+\newlabel{cat_all_contrast}{{1.15}{22}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.16}{\ignorespaces \em  MIP and Volume table for `All effects of interest'.  }}{23}}
+\newlabel{cat_all_volume}{{1.16}{23}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.17}{\ignorespaces \em  Estimated effect sizes and 90\% confidence intervals for all effects of interest. Columns 1,3,5,7 are the canonical hrfs for N1 (non-famous faces, first presentation), N2 (non-famous faces, second presentation), F1 (famous faces, 1st presentation) and F2 (famous faces, 2nd presentation), whereas columns 2,4,6,8 are the temporal derivatives.  }}{24}}
+\newlabel{con_all_plot}{{1.17}{24}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.5}Plotting parameter estimates at a voxel}{24}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.6}F-contrasts for testing effects of movement}{24}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}Modelling parametric responses}{25}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.18}{\ignorespaces \em  Rotation-related activations. These spurious `activations' are due to rotation of the head during scanning. These effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences are greatest. Including these regressors in the design matrix means these effects cannot be falsely attributed to neuronal activity.  }}{26}}
+\newlabel{rotations}{{1.18}{26}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.19}{\ignorespaces \em  Design matrix for testing repetition effects parametrically. Regressor 2 indicates the second occurence of a nonfamous face. Regressor 3 modulates this linearly as a function of lag (ie. how many faces have been shown since that face was first presented), and regressor 4 modulates this quadratically as a function of lag. Regressors 6,7 and 8 play the same roles, but for famous faces.  }}{27}}
+\newlabel{par_design}{{1.19}{27}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}Estimate}{28}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}Plotting parametric responses}{28}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.20}{\ignorespaces \em  MIP and overlay of parametric lag effect in parietal cortex.  }}{30}}
+\newlabel{famous_lag_mip}{{1.20}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.21}{\ignorespaces \em  Response as a function of lag.  }}{31}}
+\newlabel{famous_lag}{{1.21}{31}}
