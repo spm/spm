@@ -50,13 +50,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % approximation to estimate the conditional expectation and covariance of P
 % If the free-energy starts to increase, a Levenburg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
-% of [Re]ML point estimators.
+% of [Re]ML point estimators of the log-precisions.
 %
 %--------------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 226 2005-09-12 15:00:59Z karl $
+% $Id: spm_nlsi_GN.m 228 2005-09-13 13:27:48Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ catch
 end
 nh    = length(Q);          % number of precision components
 ne    = length(Q{1});       % number of error terms
-h     = ones(nh,1);         % initialise hyperparameters
+h     = zeros(nh,1);         % initialise hyperparameters
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -133,8 +133,8 @@ Cp    = pC;
 C.F   = -Inf;
 dv    = 1/128;
 lm    = 0;
-dFdh  = sparse(nh,1);
-dFdhh = sparse(nh,nh);
+dFdh  = zeros(nh,1);
+dFdhh = zeros(nh,nh);
  
  
 % EM
@@ -167,7 +167,7 @@ for k = 1:32
         %------------------------------------------------------------------
         iS    = sparse(ne,ne);
         for i = 1:nh
-            iS = iS + h(i)*Q{i};
+            iS = iS + Q{i}*exp(h(i));
         end
         S     = inv(iS);
         Cp    = inv(J'*iS*J + ipC);
@@ -175,24 +175,24 @@ for k = 1:32
         % precision operators for M-Step
         %------------------------------------------------------------------
         for i = 1:nh
-            QS{i} = Q{i}*S;
-            QJ{i} = Q{i}*J;
+            P{i}  = Q{i}*exp(h(i));
+            PS{i} = P{i}*S;
         end
  
         % derivatives: dLdh = dL/dh,...
         %------------------------------------------------------------------
         for i = 1:nh
-            dFdh(i,1)      =  trace(QS{i})/2 - e'*Q{i}*e/2 ...
-                             -sum(sum(Cp.*(J'*QJ{i})))/2;
+            dFdh(i,1)      =  trace(PS{i})/2 - e'*P{i}*e/2 ...
+                             -sum(sum(Cp.*(J'*P{i}*J)))/2;
             for j = i:nh
-                dFdhh(i,j) = -sum(sum(QS{i}.*QS{j}))/2;
+                dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))/2;
                 dFdhh(j,i) =  dFdhh(i,j);
             end
         end
  
         % update ReML estimate
         %------------------------------------------------------------------
-        Ch    = inv(-dFdhh);
+        Ch    = pinv(-dFdhh);
         dh    = Ch*dFdh;
         h     = h  + dh;
  
