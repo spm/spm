@@ -23,12 +23,14 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
+global M
+
 % get dimensions and configure state variables
 %---------------------------------------------------------------------------
 t     = x(1);                       % peristimulus time (sec)
 x     = x(2:end);                   % neuronal states
-m     = length(u);  				% number of inputs
-n     = length(x)/9;  				% number of regions
+m     = M.m;  				        % number of inputs
+n     = M.Nareas;  				    % number of regions
 x     = reshape(x,n,9);             % neuronal states
 
 % configure parameters: Af,...
@@ -37,7 +39,7 @@ P     = spm_erp_pack(P,m,n);
 
 % dfdx = [] if t exceeds trial duration (invoking a return to initial state)
 %---------------------------------------------------------------------------
-if nargout == 1 & t >= P.U, f = []; return, end
+if nargout == 1 & (t - P.U) > 10^(-6), f = []; return, end
 
 % effective extrinsic connectivity
 %---------------------------------------------------------------------------

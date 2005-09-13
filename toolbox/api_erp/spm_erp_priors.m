@@ -44,8 +44,17 @@ E.H   = log(n1);        V.H = n1/16;               % synaptic density
 
 % set observer parameters
 %---------------------------------------------------------------------------
-E.K   = n1*0;           V.K = sparse(n1);          % pyramidal CSD
-E.L   = L;              V.L = sparse(0*L);         % lead field
+if ~isstruct(L)
+    % static leadfield
+    E.K   = n1*0;           V.K = sparse(n1);          % pyramidal CSD
+    E.L   = L;              V.L = sparse(0*L);         % lead field
+else
+   % parameterised leadfield based on equivalent current dipoles 
+   % prior distributions given by user
+   E.K = L.K;                   V.K = L.VK;
+   E.Lpos = L.pos;              V.Lpos = L.Vpos;         % dipole positions
+   E.Lmom = L.mom;              V.Lmom = L.Vmom;         % dipole orientations
+end
 
 % set extrinsic connectivity
 %---------------------------------------------------------------------------
@@ -72,6 +81,7 @@ V.D        = Q/16;
 %---------------------------------------------------------------------------
 E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
 E.N        = sparse(m,1);  V.N = ones(m,1);        % DCT coefficients
+% E.N        = sparse(m,1);  V.N = 0.5*ones(m,1);    % DCT coefficients
 E.U        = U;            V.U = 0;                % trial duration (s)
 
 % vectorize

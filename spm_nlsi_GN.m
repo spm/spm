@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 228 2005-09-13 13:27:48Z karl $
+% $Id: spm_nlsi_GN.m 229 2005-09-13 15:53:53Z stefan $
 
 % figure
 %--------------------------------------------------------------------------
@@ -139,7 +139,7 @@ dFdhh = zeros(nh,nh);
  
 % EM
 %==========================================================================
-for k = 1:32
+for k = 1:64
  
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
@@ -286,7 +286,7 @@ for k = 1:32
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(dF))
-    if k > 2 && dF < 1e-2, break, end
+    if k > 2 && dF < 1e-5, break, end
     
 end
  

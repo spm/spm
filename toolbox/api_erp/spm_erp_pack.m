@@ -12,10 +12,14 @@ function [E] = spm_erp_pack(P,m,n)
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
+global M
+
+o = M.l; % number of outputs
+
+
 % number of outputs
 %---------------------------------------------------------------------------
 u            = 8;                                        % noise components
-o            = (length(P) - u - 3)/n - 4*n - m*n - 4;    % number of outputs
 s            = 0;
 
 % get intrinic parameters
@@ -29,8 +33,18 @@ E.H(:)       = P([1:l] + s);  s = s + l;
 %---------------------------------------------------------------------------
 E.K          = sparse(n,1);   l = length(E.K(:));
 E.K(:)       = P([1:l] + s);  s = s + l;
-E.L          = sparse(o,n);   l = length(E.L(:));
-E.L(:)       = P([1:l] + s);  s = s + l;
+
+if isfield(M, 'dipfit')
+    % parameterised leadfield
+    E.Lpos          = sparse(3,n);   l = length(E.Lpos(:));
+    E.Lpos(:)       = P([1:l] + s);  s = s + l;
+    E.Lmom          = sparse(3,n);   l = length(E.Lmom(:));
+    E.Lmom(:)       = P([1:l] + s);  s = s + l;
+else
+    % static leadfield
+    E.L          = sparse(o,n);   l = length(E.L(:));
+    E.L(:)       = P([1:l] + s);  s = s + l;
+end
 
 % get extrinsic connectivity
 %---------------------------------------------------------------------------
@@ -42,7 +56,7 @@ for i = 1:m
     E.B{i}    = sparse(n,n);   l = length(E.B{i}(:));
     E.B{i}(:) = P([1:l] + s);  s = s + l;
 end
-E.C           = sparse(n,1);   l = length(E.C(:));
+E.C           = sparse(n,m);   l = length(E.C(:));
 E.C(:)        = P([1:l] + s);  s = s + l;
 
 % get conduction delays

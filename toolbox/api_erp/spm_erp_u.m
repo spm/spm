@@ -17,9 +17,11 @@ function [U] = spm_erp_u(P,t)
 %___________________________________________________________________________
 % %W% Karl Friston %E%
 
+global M
+
 % stimulus parameters
 %---------------------------------------------------------------------------
-R     = exp(P.R).*[96 1];                          % [Gamma] parameters
+R     = exp(P.R).*[M.onset 1];                          % [Gamma] parameters
 U     = spm_Gpdf(t*1000,R(1)*R(2),R(2))*1000;      % input
 for i = 1:length(P.N)
     U = U + P.N(i)*cos((i - 1)*pi*t/P.U);          % [DCT] fluctuations

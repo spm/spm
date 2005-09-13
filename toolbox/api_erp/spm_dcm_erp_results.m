@@ -47,18 +47,22 @@ case{lower('ERPs (channel)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
     %--------------------------------------------------------------------
+    co = {'k', 'k'};
+    lo = {'-', '--'};
     T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
     for i = 1:nc
-        subplot(nc,1,i), hold on
+        subplot(ceil(nc/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(T,DCM.H{j}(:,i), ...
-                'Color',[1 1 1] - j/nt, ...
+            plot(T,DCM.H{j}(:,i), lo{1},...
+                'Color', co{j},...
                 'LineWidth',2);
             str{end + 1} = sprintf('trial %i (predicted)',j);
-            plot(T,DCM.H{j}(:,i) + DCM.R{j}(:,i), ...
-                'Color',[1 1 1] - j/nt);
+            plot(T,DCM.H{j}(:,i) + DCM.R{j}(:,i), lo{2},...
+                'Color',co{j});
             str{end + 1} = sprintf('trial %i (observed)',j);
+                        set(gca, 'XLim', [0 T(end)]);
+
         end
         hold off
         title(sprintf('channel %i',i))
@@ -74,6 +78,10 @@ case{lower('ERPs (sources)')}
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
     %--------------------------------------------------------------------
     T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
+    
+    mx = max(max(cat(2, DCM.K{:})));
+    mi = min(min(cat(2, DCM.K{:})));
+    
     for i = 1:ns
         subplot(ceil(ns/2),2,i), hold on
         str   = {};
@@ -83,6 +91,7 @@ case{lower('ERPs (sources)')}
                 'LineWidth',1);
             str{end + 1} = sprintf('trial %i',j);
         end
+        set(gca, 'YLim', [mi mx]);
         hold off
         title(DCM.Sname{i})
         grid on
@@ -113,7 +122,7 @@ case{lower('Coupling (A)')}
         % tables
         %--------------------------------------------------------------------
         subplot(4,3,i + 3)
-        text(0,1/2,num2str(exp(DCM.Qp.A{i}),' %.2f'),'FontSize',8)
+        text(0,1/2,num2str(full(exp(DCM.Qp.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
 
     
@@ -157,7 +166,7 @@ case{lower('Coupling (C)')}
     % table
     %--------------------------------------------------------------------
     subplot(2,4,2)
-    text(0,1/2,num2str(exp(DCM.Qp.C),' %.2f'),'FontSize',8)
+    text(0,1/2,num2str(full(exp(DCM.Qp.C)),' %.2f'),'FontSize',8)
     axis off
 
     % table
@@ -187,7 +196,7 @@ case{lower('Coupling (B)')}
         % tables
         %--------------------------------------------------------------------
         subplot(4,nu,i + nu)
-        text(0,1/2,num2str(exp(DCM.Qp.B{i}),' %.2f'),'FontSize',8)
+        text(0,1/2,num2str(full(exp(DCM.Qp.B{i})),' %.2f'),'FontSize',8)
         axis off
         axis square
         

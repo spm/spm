@@ -16,7 +16,7 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 161 2005-05-16 14:48:27Z stefan $
+% $Id: spm_eeg_rdata.m 229 2005-09-13 15:53:53Z stefan $
 
 try
     Fdata = S.Fdata;
@@ -225,9 +225,9 @@ fseek(fp, 900 + 75*Nchannels, -1);
 D.scale.dim = 1;
 D.scale.values = zeros(Nchannels, 1);
 
-if any(D.channels.base~=0)
-	error('base is unequal zero');
-end
+% if any(D.channels.base~=0)
+% 	error('base is unequal zero');
+% end
 
 % Conversion to microvolt saved as scalefactor
 D.scale.values = (1/204.8 .* D.channels.sens .* D.channels.calib)';

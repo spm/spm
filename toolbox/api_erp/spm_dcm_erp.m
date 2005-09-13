@@ -52,7 +52,11 @@ try
 catch
     h = 3;
 end
-X0    = spm_dctmtx(ns,h);
+if h == 0
+    X0 = zeros(ns, 0);
+else
+    X0    = spm_dctmtx(ns,h);
+end
 X0    = kron(speye(nt,nt),X0);
 R0    = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0 = X0;
@@ -82,10 +86,18 @@ xU.dt   = xY.dt;
 xU.dur  = xU.dt*(ns - 1);
 xU.name = DCM.U.name;
 
-
+% make model specification DCM.M global variable
+global M
+M = DCM.M;
 % prior moments
 %-------------------------------------------------------------------
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,L,xU.dur);
+if isfield(DCM.M, 'dipfit')
+    % model with parameterised leadfield
+    [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
+else
+    % model w/ static leadfield
+    [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,L,xU.dur);
+end
 
 % model specification and nonlinear system identification
 %-------------------------------------------------------------------
@@ -98,11 +110,13 @@ M.m   = nu;
 M.n   = nx;
 M.l   = nc;
 M.IS  = 'spm_int_U';
+M.Nareas = length(DCM.Sname);
+M.S = xY.S; % to pre-multiply L in spm_gx_erp
 
 
 % EM estimation
 %-------------------------------------------------------------------
-[Ep,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
+[Ep,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY); % note that M is changed as a global variable
 
 % Bayesian inference {threshold = 0}
 %-------------------------------------------------------------------
@@ -121,8 +135,10 @@ r     = r*xY.S';
 
 % neuronal responses (x)
 %-------------------------------------------------------------------
-Qp.L  = [];
-x     = feval(M.IS,spm_vec(Qp),M,xU);
+L = M.L;
+M.L = [];
+x = feval(M.IS,spm_vec(Qp),M,xU);
+M.L = L;
 
 % trial specific respsonses
 %-------------------------------------------------------------------
