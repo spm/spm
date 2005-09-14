@@ -10,7 +10,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Karl Friston
-% $Id: spm_eeg_spm_ui.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_spm_ui.m 231 2005-09-14 13:26:28Z john $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -125,10 +125,7 @@ fprintf('%30s\n','...done')                                 	     %-#
 
 %-check internal consistency of images
 %-----------------------------------------------------------------------
-if any(any(diff(cat(1,VY.dim),1,1),1))
-error('images do not all have the same dimensions'),           end
-if any(any(any(diff(cat(3,VY.mat),1,3),3)))
-error('images do not all have same orientation & voxel size'), end
+spm_check_orientations(VY);
 
 %-place in xY
 %-----------------------------------------------------------------------

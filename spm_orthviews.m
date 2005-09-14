@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_orthviews.m 231 2005-09-14 13:26:28Z john $
 
 
 
@@ -142,6 +142,9 @@ function varargout = spm_orthviews(action,varargin)
 %                  for re-orienting images.
 %         window - either 'auto' or an intensity range to display the
 %                  image with.
+%         mapping- Mapping of image intensities to grey values. Currently
+%                  one of 'linear', 'histeq', loghisteq',
+%                  'quadhisteq'. Default is 'linear'.
 % 
 %         ax     - a cell array containing an element for the three
 %                  views.  The fields of each element are handles for
@@ -728,6 +731,7 @@ for i=1:3,
 end;
 V.premul    = eye(4);
 V.window    = 'auto';
+V.mapping   = 'linear';
 st.vols{ii} = V;
 
 H = ii;
@@ -901,28 +905,75 @@ for i = valid_handles(arg1),
 	eval('imgs  = (spm_slice_vol(st.vols{i},SM,SD,st.hld))'';','ok=0;');
 	if (ok==0), fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
 	else,
-		if strcmp(st.vols{i}.window,'auto'),
-			mx = -Inf; mn = Inf;
-			if ~isempty(imgt),
-				mx = max([mx max(max(imgt))]);
-				mn = min([mn min(min(imgt))]);
-			end;
-			if ~isempty(imgc),
-				mx = max([mx max(max(imgc))]);
-				mn = min([mn min(min(imgc))]);
-			end;
-			if ~isempty(imgs),
-				mx = max([mx max(max(imgs))]);
-				mn = min([mn min(min(imgs))]);
-			end;
-			if mx==mn, mx=mn+eps; end;
-		else,
-			mx = st.vols{i}.window(2);
-			mn = st.vols{i}.window(1);
-			r=min([mn mx]);imgt = max(imgt,r); r=max([mn mx]);imgt = min(imgt,r);
-			r=min([mn mx]);imgc = max(imgc,r); r=max([mn mx]);imgc = min(imgc,r);
-			r=min([mn mx]);imgs = max(imgs,r); r=max([mn mx]);imgs = min(imgs,r);
-		end;
+                % get min/max threshold
+                if strcmp(st.vols{i}.window,'auto')
+                        mn = -Inf;
+                        mx = Inf;
+                else
+                        mn = min(st.vols{i}.window);
+                        mx = max(st.vols{i}.window);
+                end;
+                % threshold images
+                imgt = max(imgt,mn); imgt = min(imgt,mx);
+                imgc = max(imgc,mn); imgc = min(imgc,mx);
+                imgs = max(imgs,mn); imgs = min(imgs,mx);
+                % compute intensity mapping
+                switch st.vols{i}.mapping,
+                 case 'linear',
+                 case 'histeq',
+                  % scale images to a range between 0 and 1
+                  imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
+                  imgc1=(imgc-min(imgc(:)))/(max(imgc(:)-min(imgc(:)))+eps);
+                  imgs1=(imgs-min(imgs(:)))/(max(imgs(:)-min(imgs(:)))+eps);
+                  img  = histeq([imgt1(:); imgc1(:); imgs1(:)],1024);
+                  imgt = reshape(img(1:numel(imgt1)),size(imgt1));
+                  imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
+                  imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                 case 'quadhisteq',
+                  % scale images to a range between 0 and 1
+                  imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
+                  imgc1=(imgc-min(imgc(:)))/(max(imgc(:)-min(imgc(:)))+eps);
+                  imgs1=(imgs-min(imgs(:)))/(max(imgs(:)-min(imgs(:)))+eps);
+                  img  = histeq([imgt1(:).^2; imgc1(:).^2; imgs1(:).^2],1024);
+                  imgt = reshape(img(1:numel(imgt1)),size(imgt1));
+                  imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
+                  imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                 case 'loghisteq',
+                  warning off % messy - but it may avoid extra queries
+                  imgt = log(imgt-min(imgt(:)));
+                  imgc = log(imgc-min(imgc(:)));
+                  imgs = log(imgs-min(imgs(:)));
+                  warning on
+                  imgt(~isfinite(imgt)) = 0;
+                  imgc(~isfinite(imgc)) = 0;
+                  imgs(~isfinite(imgs)) = 0;
+                  % scale log images to a range between 0 and 1
+                  imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
+                  imgc1=(imgc-min(imgc(:)))/(max(imgc(:)-min(imgc(:)))+eps);
+                  imgs1=(imgs-min(imgs(:)))/(max(imgs(:)-min(imgs(:)))+eps);
+                  img  = histeq([imgt1(:); imgc1(:); imgs1(:)],1024);
+                  imgt = reshape(img(1:numel(imgt1)),size(imgt1));
+                  imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
+                  imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                end;
+                % recompute min/max for display
+                mx = -inf; mn = inf;
+                if ~isempty(imgt),
+			tmp = imgt(finite(imgt));
+                        mx = max([mx max(max(tmp))]);
+                        mn = min([mn min(min(tmp))]);
+                end;
+                if ~isempty(imgc),
+			tmp = imgc(finite(imgc));
+                        mx = max([mx max(max(tmp))]);
+                        mn = min([mn min(min(tmp))]);
+                end;
+                if ~isempty(imgs),
+			tmp = imgs(finite(imgs));
+                        mx = max([mx max(max(tmp))]);
+                        mn = min([mn min(min(tmp))]);
+                end;
+                if mx==mn, mx=mn+eps; end;
 
 		if isfield(st.vols{i},'blobs'),
 			if ~isfield(st.vols{i}.blobs{1},'colour'),
@@ -1305,22 +1356,47 @@ item6_1_1_2 = uimenu(item6_1_1,  'Label','manual',     'Callback','spm_orthviews
 item6_1_2   = uimenu(item6_1,    'Label','global');
 item6_1_2_1 = uimenu(item6_1_2,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
 item6_1_2_2 = uimenu(item6_1_2,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
+offon = {'off', 'on'};
+checked = offon(strcmp(st.vols{volhandle}.mapping, ...
+                 {'linear', 'histeq', 'loghisteq', 'quadhisteq'})+1);
+item6_2     = uimenu(item6,      'Label','Intensity mapping');
+item6_2_1   = uimenu(item6_2,    'Label','local');
+item6_2_1_1 = uimenu(item6_2_1,  'Label','Linear', 'Checked',checked{1}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping'',''linear'');');
+item6_2_1_2 = uimenu(item6_2_1,  'Label','Equalised histogram', 'Checked',checked{2}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping'',''histeq'');');
+item6_2_1_3 = uimenu(item6_2_1,  'Label','Equalised log-histogram', 'Checked',checked{3}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping'',''loghisteq'');');
+item6_2_1_4 = uimenu(item6_2_1,  'Label','Equalised squared-histogram', 'Checked',checked{4}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping'',''quadhisteq'');');
+item6_2_2   = uimenu(item6_2,    'Label','global');
+item6_2_2_1 = uimenu(item6_2_2,  'Label','Linear', 'Checked',checked{1}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''linear'');');
+item6_2_2_2 = uimenu(item6_2_2,  'Label','Equalised histogram', 'Checked',checked{2}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''histeq'');');
+item6_2_2_3 = uimenu(item6_2_2,  'Label','Equalised log-histogram', 'Checked',checked{3}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''loghisteq'');');
+item6_2_2_4 = uimenu(item6_2_2,  'Label','Equalised squared-histogram', 'Checked',checked{4}, ...
+                     'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''quadhisteq'');');
 
 %contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Blobs');
 item7_1   = uimenu(item7,      'Label','Add blobs');
 item7_1_1 = uimenu(item7_1,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
 item7_1_2 = uimenu(item7_1,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
-item7_2   = uimenu(item7,      'Label','Add colored blobs');
-item7_2_1 = uimenu(item7_2,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
-item7_2_2 = uimenu(item7_2,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
-item7_3   = uimenu(item7,      'Label','Add colored image');
-item7_3_1 = uimenu(item7_3,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
-item7_3_2 = uimenu(item7_3,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
-item7_4   = uimenu(item7,      'Label','Remove blobs',        'Visible','off','Separator','on');
-item7_5   = uimenu(item7,      'Label','Remove colored blobs','Visible','off');
-item7_5_1 = uimenu(item7_5,    'Label','local', 'Visible','on');
-item7_5_2 = uimenu(item7_5,    'Label','global','Visible','on');
+item7_2   = uimenu(item7,      'Label','Add image');
+item7_2_1 = uimenu(item7_2,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_image'',2);');
+item7_2_2 = uimenu(item7_2,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_image'',1);');
+item7_3   = uimenu(item7,      'Label','Add colored blobs','Separator','on');
+item7_3_1 = uimenu(item7_3,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
+item7_3_2 = uimenu(item7_3,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
+item7_4   = uimenu(item7,      'Label','Add colored image');
+item7_4_1 = uimenu(item7_4,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
+item7_4_2 = uimenu(item7_4,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
+item7_5   = uimenu(item7,      'Label','Remove blobs',        'Visible','off','Separator','on');
+item7_6   = uimenu(item7,      'Label','Remove colored blobs','Visible','off');
+item7_6_1 = uimenu(item7_6,    'Label','local', 'Visible','on');
+item7_6_2 = uimenu(item7_6,    'Label','global','Visible','on');
 
 if ~isempty(st.plugins) % process any plugins
 	for k = 1:prod(size(st.plugins)),
@@ -1353,11 +1429,7 @@ case 'image_info',
 		item2 = uimenu(varargin{2}, 'Label',...
 		st.vols{current_handle}.descrip);
 	end;
-	if isfield(st.vols{current_handle},'dt'),
-		dt = st.vols{current_handle}.dt(1);
-	else,
-		dt = st.vols{current_handle}.dt(1);
-	end;
+	dt = st.vols{current_handle}.dt(1);
 	item3 = uimenu(varargin{2}, 'Label', sprintf('Data type: %s', spm_type(dt)));
 	str   = 'Intensity: varied';
 	if size(st.vols{current_handle}.pinfo,2) == 1,
@@ -1479,7 +1551,41 @@ case 'window_gl',
 		end;
 	end;
 	redraw_all;
-
+        
+case 'mapping',
+        checked = strcmp(varargin{2}, ...
+                         {'linear', 'histeq', 'loghisteq', ...
+                          'quadhisteq'});
+        checked = checked(end:-1:1); % Handles are stored in inverse order
+	current_handle = get_current_handle;        
+        cm_handles = get_cm_handles;
+        st.vols{current_handle}.mapping = varargin{2};
+        z_handle = get(findobj(cm_handles(current_handle), ...
+                               'label','Intensity mapping'),'Children');
+        for k = 1:numel(z_handle)
+                c_handle = get(z_handle(k), 'Children');
+                set(c_handle, 'checked', 'off');
+                set(c_handle(checked), 'checked', 'on');
+        end;
+        redraw_all;
+        
+case 'mapping_gl',
+        checked = strcmp(varargin{2}, ...
+                         {'linear', 'histeq', 'loghisteq', 'quadhisteq'});
+        checked = checked(end:-1:1); % Handles are stored in inverse order
+        cm_handles = get_cm_handles;
+        for k = valid_handles(1:24),
+                st.vols{k}.mapping = varargin{2};
+                z_handle = get(findobj(cm_handles(k), ...
+                                       'label','Intensity mapping'),'Children');
+                for l = 1:numel(z_handle)
+                        c_handle = get(z_handle(l), 'Children');
+                        set(c_handle, 'checked', 'off');
+                        set(c_handle(checked), 'checked', 'on');
+                end;
+        end;
+        redraw_all;
+        
 case 'swap_img',
 	current_handle = get_current_handle;
 	new_info = spm_vol(spm_select(1,'image','select new image'));
@@ -1517,6 +1623,24 @@ case 'remove_blobs',
 		c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
 		delete(get(c_handle,'Children'));
 		set(c_handle,'Visible','off');
+	end;
+	redraw_all;
+
+case 'add_image',
+	% Add blobs to the image - in split colortable
+	cm_handles = valid_handles(1:24);
+	if varargin{2} == 2, cm_handles = get_current_handle; end;
+	spm_figure('Clear','Interactive');
+	fname = spm_select(1,'image','select image');
+	for i = 1:length(cm_handles),
+		addimage(cm_handles(i),fname);
+		c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+		set(c_handle,'Visible','on');
+		delete(get(c_handle,'Children'));
+		item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+		if varargin{2} == 1,
+			item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+		end;
 	end;
 	redraw_all;
 

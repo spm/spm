@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsref.m 184 2005-05-31 13:23:32Z john $
+% $Id: subsref.m 231 2005-09-14 13:26:28Z john $
 
 
 if isempty(subs)
@@ -27,7 +27,7 @@ end;
 
 if numel(subs)~=1, error('Expression too complicated');end;
 
-dim  = size(obj);
+dim  = [size(obj) ones(1,16)];
 sobj = struct(obj);
 
 if length(subs.subs) < length(dim),
