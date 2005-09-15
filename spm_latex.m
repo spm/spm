@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 171 2005-05-20 19:20:10Z john $
+% $Id: spm_latex.m 232 2005-09-15 19:02:59Z john $
 
 if nargin==0, c = spm_config; end;
 
@@ -23,7 +23,7 @@ fprintf(fp,'%s\n%s\n%s\n%s\n%s\n%s\n%s\n',...
     'pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}',...
     ']{hyperref}');
 
-fprintf(fp,'\\pagestyle{headings}\n\\bibliographystyle{authordate1}\n\n');
+fprintf(fp,'\\pagestyle{headings}\n\\bibliographystyle{plain}\n\n');
 fprintf(fp,'\\hoffset=15mm\n\\voffset=-5mm\n');
 fprintf(fp,'\\oddsidemargin=0mm\n\\evensidemargin=0mm\n\\topmargin=0mm\n');
 fprintf(fp,'\\headheight=12pt\n\\headsep=10mm\n\\textheight=240mm\n\\textwidth=148mm\n');
@@ -34,13 +34,14 @@ fprintf(fp,'\\author{The FIL Methods Group (and honorary members)}\n');
 fprintf(fp,'\\begin{document}\n');
 fprintf(fp,'\\maketitle\n');
 fprintf(fp,'\\dominitoc\\tableofcontents\n\n');
-% write_help(c,fp);
+fprintf(fp,'\\newpage\n\\section*{The SPM5 User Interface}\n');
+write_help(c,fp);
 for i=1:numel(c.values),
    if isfield(c.values{i},'tag'),
        part(c.values{i},fp);
    end;
 end;
-fprintf(fp,'\\parskip=0mm\n\\bibliography{refs}\n\\end{document}\n\n');
+fprintf(fp,'\\parskip=0mm\n\\bibliography{methods_macros,methods_group,external}\n\\end{document}\n\n');
 fclose(fp);
 return;
 
@@ -69,7 +70,7 @@ return;
 
 function chapter(c)
 fp = fopen([c.tag '.tex'],'w');
-fprintf(fp,'\\chapter{%s}\n\\minitoc\n\n',texify(c.name));
+fprintf(fp,'\\chapter{%s}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name));
 write_help(c,fp);
 
 switch c.type,
@@ -124,29 +125,35 @@ str = texify(hlp);
 fprintf(fp,'%s\n\n',str);
 return;
 
-function str1 = texify(str0)
-if str2num(version('-release'))>13,
-    [st,en,tok]=regexp(str0,'/\*([^(/\*)]*)\*/','start','end','tokens');
-else
-    [st,en,t]=regexp(str0,'/\*([^(/\*)]*)\*/');
-    tok = cell(1,numel(t));
-    for i=1:numel(t),
-        tok{i}{1} = str0(t{i}(1):t{i}(2));
+function str = texify(str0)
+st1  = findstr(str0,'/*');
+en1  = findstr(str0,'*/');
+st = [];
+en = [];
+for i=1:numel(st1),
+    en1  = en1(en1>st1(i));
+    if ~isempty(en1),
+        st  = [st st1(i)];
+        en  = [en en1(1)];
+        en1 = en1(2:end);
     end;
 end;
-str1 = [];
-st1  = [1 en+1];
-en1  = [st-1 numel(str0)];
-for i=1:numel(st1),
-    str  = str0(st1(i):en1(i));
-    str  = strrep(str,'$','\$');
-    str  = strrep(str,'&','\&');
-    str  = strrep(str,'_','\_');
-   %str  = strrep(str,'\','$\\$');
-    str  = strrep(str,'|','$|$');
-    str  = strrep(str,'>','$>$');
-    str  = strrep(str,'<','$<$');
-    str1 = [str1 str];
-    if i<numel(st1), str1 = [str1 tok{i}{1}]; end;
+
+str = [];
+pen = 1;
+for i=1:numel(st),
+    str = [str clean_latex(str0(pen:st(i)-1)) str0(st(i)+2:en(i)-1)];
+    pen = en(i)+2;
 end;
+str = [str clean_latex(str0(pen:numel(str0)))];
+return;
+
+function str = clean_latex(str)
+str  = strrep(str,'$','\$');
+str  = strrep(str,'&','\&');
+str  = strrep(str,'_','\_');
+%str  = strrep(str,'\','$\\$');
+str  = strrep(str,'|','$|$');
+str  = strrep(str,'>','$>$');
+str  = strrep(str,'<','$<$');
 return;

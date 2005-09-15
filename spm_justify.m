@@ -28,7 +28,7 @@ function out = spm_justify(n,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_justify.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_justify.m 232 2005-09-15 19:02:59Z john $
 
 out = {};
 for i=1:nargin-1,
@@ -44,7 +44,32 @@ for i=1:nargin-1,
 end;
 
 function out = justify_paragraph(n,txt)
-txt = regexprep(txt,'/\*([^(/\*)]*)\*/','');
+if numel(txt)>1 && txt(1)=='%',
+    txt = txt(2:end);
+end;
+%txt = regexprep(txt,'/\*([^(/\*)]*)\*/','');
+st1  = findstr(txt,'/*');
+en1  = findstr(txt,'*/');
+st = [];
+en = [];
+for i=1:numel(st1),
+    en1  = en1(en1>st1(i));
+    if ~isempty(en1),
+        st  = [st st1(i)];
+        en  = [en en1(1)];
+        en1 = en1(2:end);
+    end;
+end;
+
+str = [];
+pen = 1;
+for i=1:numel(st),
+    str = [str txt(pen:st(i)-1)];
+    pen = en(i)+2;
+end;
+str = [str txt(pen:numel(txt))];
+txt = str;
+
 off = find((txt'>='a' & txt'<='z') | (txt'>='A' & txt'<='Z'));
 off = off(off<n);
 if isempty(off),
