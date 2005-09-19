@@ -1,8 +1,10 @@
-function [B,Wf]=robust_averaget(data);
+function [B,Wf]=robust_averaget(data,ks);
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 206 2005-07-29 09:30:41Z james $
-
+% $Id: spm_eeg_robust_averaget.m 233 2005-09-19 11:00:04Z james $
+if nargin==1
+	ks=3;
+end
 data=data';
 % figure(1)
 % plot(mean(data));
@@ -19,7 +21,7 @@ ores=1;
 nres=10;
 n=0;
 while abs(ores-nres)>sqrt(1E-8)
-	abs(ores-nres)
+	abs(ores-nres);
 	ores=nres;
 	n=n+1;
 	B=((Xs'*Wis*Xs)^-1)*Xs'*Wis*ndata;
@@ -34,12 +36,12 @@ while abs(ores-nres)>sqrt(1E-8)
 
 	mad=median(abs(res-median(res)));	
 	res=(res)./mad;
-		
+	res=res.*h;	
  	sm=gauss(12,2);
  	sm=sm/sum(sm);
  	res=conv(sm,res);
 	res=res(6:end-6);
-	res=abs(res)-3;
+	res=abs(res)-ks;
 	res(res<0)=0;	
 	nres=(sum(res.^2));
 	Wf=(((abs(res)<1) .* (1 - res.^2).^2));
