@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 232 2005-09-15 19:02:59Z john $
+% $Id: spm_latex.m 236 2005-09-20 09:50:57Z john $
 
 if nargin==0, c = spm_config; end;
 
@@ -60,16 +60,19 @@ if isstruct(c) && isfield(c,'tag'),
     if isfield(c,'val'),
         for i=1:numel(c.val),
             if isfield(c.val{i},'tag'),
-                fprintf(fp,'\\include{%s}\n',c.val{i}.tag);
-                chapter(c.val{i});
+                if chapter(c.val{i}),
+                    fprintf(fp,'\\include{%s}\n',c.val{i}.tag);
+                end;
             end;
         end;
     end;
 end;
 return;
 
-function chapter(c)
+function sts = chapter(c)
 fp = fopen([c.tag '.tex'],'w');
+if fp==-1, sts = false; return; end;
+
 fprintf(fp,'\\chapter{%s}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name));
 write_help(c,fp);
 
@@ -84,6 +87,7 @@ case {'repeat','choice'},
     end;
 end;
 fclose(fp);
+sts = true;
 return;
 
 function section(c,fp,lev)
