@@ -135,7 +135,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 175 2005-05-24 17:44:08Z will $
+% $Id: spm_spm_vb.m 234 2005-09-20 09:36:11Z will $
 
 % Let later functions know (eg. spm_contrasts) that 
 % estimation was with VB
@@ -147,7 +147,7 @@ nsess=length(SPM.Sess);
 try 
     SPM.PPM.window;
 catch
-    SPM.PPM.window=0;
+    SPM.PPM.window=1;
 end
 
 if SPM.PPM.window
@@ -260,8 +260,6 @@ Vbeta = spm_create_vol(Vbeta);
 try 
     SPM.PPM.AR_P;
 catch
-    %     str=' AR model order';
-    %     SPM.PPM.AR_P      = spm_input(str,1,'e',0,[1 1]);
     SPM.PPM.AR_P=3;
 end
 
@@ -269,15 +267,6 @@ end
 try
     SPM.PPM.priors.W;
 catch
-%     spm_input('Regression coefficient priors ...',1,'d');
-%     Ctype = {
-%         'Spatial - GMRF',...
-%             'Spatial - LORETA',...
-%             'Voxel - Shrinkage',...
-%             'Voxel - Uninformative'};
-%     str   = 'Select prior';
-%     Sel   = spm_input(str,2,'m',Ctype);
-%     SPM.PPM.priors.W = Ctype{Sel};
     SPM.PPM.priors.W='Spatial - GMRF';
 end
 
@@ -285,14 +274,6 @@ end
 try
     SPM.PPM.priors.A;
 catch
-%     spm_input('AR coefficient priors ...',1,'d');
-%     Ctype = {
-%         'Spatial - GMRF',...
-%             'Spatial - LORETA',...
-%             'Discrete'};
-%     str   = 'Select prior';
-%     Sel   = spm_input(str,2,'m',Ctype);
-%     SPM.PPM.priors.A = Ctype{Sel};
     SPM.PPM.priors.A='Spatial - GMRF'
 end
 
@@ -380,7 +361,9 @@ for s=1:nsess,
         SPM.PPM.Sess(s).VAR(i).descrip = sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
         spm_unlink(SPM.PPM.Sess(s).VAR(i).fname);
     end
-    SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR);
+    if SPM.PPM.AR_P > 0
+        SPM.PPM.Sess(s).VAR   = spm_create_vol(SPM.PPM.Sess(s).VAR);
+    end
 end
 
 % Find number of pre-specified contrasts
@@ -834,7 +817,7 @@ for  z = 1:zdim,
 	        SPM.PPM.Vcon_sd(ic)    = spm_write_plane(SPM.PPM.Vcon_sd(ic),j,z);
         end
     end
-
+    
     if SPM.PPM.window
         %-Report progress
         %-------------------------------------------------------------------

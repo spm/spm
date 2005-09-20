@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 179 2005-05-25 15:45:44Z will $
+% $Id: spm_config_fmri_spec.m 234 2005-09-20 09:36:11Z will $
 
 
 % Define inline types.
@@ -186,6 +186,7 @@ p3=['This *.mat file must include the following cell arrays: names, onsets and d
 multi.help = {p1,sp_text,p2,sp_text,p3};
 multi.val={''};
 
+
 %-------------------------------------------------------------------------
 
 name     = entry('Name','name','s',[1 Inf],'');
@@ -196,7 +197,7 @@ name.help={p1};
 %-------------------------------------------------------------------------
 
 val      = entry('Value','val','e',[Inf 1],'');
-val.help={['Enter the what ?']};
+val.help={['Enter the vector of regressor values']};
 
 %-------------------------------------------------------------------------
 
@@ -207,6 +208,20 @@ regressors.help = {[...
   'which may model effects that would not be convolved with the ',...
   'haemodynamic response.  One such example would be the estimated movement ',...
   'parameters, which may confound the data.']};
+
+%-------------------------------------------------------------------------
+
+multi_reg    = files('Multiple regressors','multi_reg','.*',[0 1],'');
+p1=['Select the *.mat file containing details of your multiple regressors. '];
+p2=['If you have mutliple regressors eg. realignment parameters, then entering the ',...
+'details a regressor at a time is very inefficient. ',...
+'This option can be used to load all the ',...
+'required information in one go. '];
+p3=['You will first need to create a *.mat file ',...
+'containing a matrix R. Each column of R will contain a different regressor. ',...
+'When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'];
+multi_reg.help = {p1,sp_text,p2,sp_text,p3};
+multi_reg.val={''};
 
 %-------------------------------------------------------------------------
 
@@ -231,7 +246,7 @@ hpf.help = {[...
 
 %-------------------------------------------------------------------------
 
-sess  = branch('Subject/Session','sess',{scans,conditions,multi,regressors,hpf},'Session');
+sess  = branch('Subject/Session','sess',{scans,conditions,multi,regressors,multi_reg,hpf},'Session');
 sess.check = @sess_check;
 p1 = [...
 'The design matrix for fMRI data consists of one or more separable, ',...
@@ -270,7 +285,6 @@ fname.num     = [1 1];
 fname.help    = {'Name of factor, eg. ''Repetition'' '};
 
 levels = entry('Levels','levels','e',[Inf 1],''); 
-levels.val = {2};
 p1=['Enter number of levels for this factor, eg. 2'];
 levels.help ={p1};
 
@@ -786,9 +800,23 @@ for i = 1:numel(job.sess),
         Cname{q} = sess.regress(q).name;
         C         = [C, sess.regress(q).val(:)];
     end
+    
+    % Augment the singly-specified regressors with the multiple regressors
+    % specified in the regressors.mat file 
+    %------------------------------------------------------------
+    if ~strcmp(sess.multi_reg,'')
+        load(char(sess.multi_reg{:}));
+        C=[C, R];
+        nr=size(R,2);
+        nq=length(Cname);
+        for inr=1:nr,
+            Cname{inr+nq}=['R',int2str(inr)];
+        end
+    end
     SPM.Sess(i).C.C    = C;
     SPM.Sess(i).C.name = Cname;
 
+    
 end
 
 % Factorial design

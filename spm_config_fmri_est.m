@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 209 2005-08-02 17:09:13Z will $
+% $Id: spm_config_fmri_est.m 234 2005-09-20 09:36:11Z will $
 
 
 % Define inline types.
@@ -311,18 +311,11 @@ p2=['To use option (3) you must have already estimated the model using option (1
         'estimation of 1st-level models using VB does not require a prior ReML estimation.'];
 meth.help={p1,sp_text,p2};
 
-%-------------------------------------------------------------------------
-
-cdir = files('Directory','dir','dir',1,'');
-cdir.help = {[...
-'Select an output directory to write the estimation results in. This can be the ',...
-'same as the input directory  ',...
-'or different. ',]};
 
 %-------------------------------------------------------------------------
 
 conf = branch('fMRI model estimation','fmri_est',...
-    {spm,cdir,meth},'fMRI model estimation');
+    {spm,meth},'fMRI model estimation');
 conf.prog   = @run_est;
 conf.vfiles = @vfiles_stats;
 conf.check  = @check_dir;
@@ -358,22 +351,6 @@ t = {};
 %     t = {'SPM files exist in the analysis directory.'};
 % end;
 return;
-%-------------------------------------------------------------------------
-
-
-%-------------------------------------------------------------------------
-function my_cd(varargin)
-job = varargin{1};
-if ~isempty(job)
-    try
-    cd(char(job));
-    fprintf('Changing directory to: %s\n',char(job));
-    catch
-        error('Failed to change directory. Aborting run.')
-    end
-end
-return;
-%------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function run_est(job)
@@ -389,20 +366,10 @@ SPM=[];
 load(job.spmmat{:});
 
 original_dir = pwd;
-my_cd(job.dir);
 
-%-Ask about overwriting files from previous analyses...
-%-------------------------------------------------------------------
-if exist(fullfile(job.dir{1},'SPM.mat'),'file')
-    str = {	'Current directory contains existing SPM file:',...
-            'Continuing will overwrite existing file!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
-        fprintf('%-40s: %30s\n\n',...
-            'Abort...   (existing SPM file)',spm('time'));
-        return
-    end
-end
-    
+% Move to the directory where the SPM.mat file is
+cd(fileparts(job.spmmat{:}));
+
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %------------------------------------------------------------------------
@@ -434,6 +401,7 @@ if isfield(job.method,'Classical'),
     
     % Automatically set up contrasts for factorial designs
     if isfield(SPM,'factor')
+        
         cons=spm_design_contrasts(SPM);
         
         % Create F-contrasts
@@ -490,7 +458,7 @@ if isfield(job.method,'Classical'),
         end
     end
     
-    my_cd(original_dir); % Change back
+    cd(original_dir); % Change back
     fprintf('Done\n')
     return
 end
@@ -617,7 +585,7 @@ if bayes_anova
     spm_vb_ppm_anova(SPM);
 end
 
-my_cd(original_dir); % Change back
+cd(original_dir); % Change back
 fprintf('Done\n')
 return
 

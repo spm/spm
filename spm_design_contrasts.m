@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_design_contrasts.m 234 2005-09-20 09:36:11Z will $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -36,12 +36,22 @@ icon=spm_make_contrasts(kf);
 
 % Get number of basis functions per condition
 nbases=SPM.xBF.order;
-
-% Number of regressors in first session
-%k=length(SPM.Sess(1).col);
-
 for c=1:length(icon),
     con(c).c=kron(icon(c).c,eye(nbases));
+end
+
+% Pad out parametric modulation columns with zeros
+for c=1:length(icon),
+    conds=length(SPM.Sess(1).U);
+    nr=size(con(c).c,1);
+    col=1;
+    block=[];
+    for cc=1:conds,
+        block=[block,con(c).c(:,col:col+nbases-1)];
+        block=[block,zeros(nr,SPM.Sess(1).U(cc).P.h)];
+        col=col+nbases;
+    end
+    con(c).c=block;
 end
 
 con(1).name='Average effect of condition';

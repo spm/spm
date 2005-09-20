@@ -32,12 +32,13 @@
 
 \chapter{fMRI model estimation}
 
-Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.
-
+Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs), Effect Size Maps (ESMs) or Posterior Probability Maps (PPMs) and tables of statistics. 
 
 \section{Select SPM.mat}
 Select the SPM.mat file that contains the design specification. 
-The directory containing this file is known as the input directory.
+SPM will output the results of its analysis into this directory. This includes overwriting the SPM.mat file.
+When the estimation job is run, no warning will be given that the SPM.mat file will be overwritten. 
+A warning is given at the specification stage. When it comes to estimation, SPM assumes that you've now sorted out your directory structures.
 
 \begin{figure}
 \includegraphics[width=100mm]{fmri_est}
@@ -45,10 +46,6 @@ The directory containing this file is known as the input directory.
 A double-click on options prefixed by a '+' will allow you to specify 
 options at a greater level of detail. Options highlighted with a `$<$-X' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{est}}
 \end{figure}
-
-\section{Directory}
-Select an output directory to write the estimation results in. This can be the same as the input directory  or different. 
-
 
 \section{Method}
 There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses a Variational Bayes (VB) algorithm that is new to SPM5. Option (3) uses the Empirical Bayes algorithm with global shrinkage priors that was also in SPM2. 
@@ -97,7 +94,7 @@ Enter Slice Numbers. This can be a single slice or multiple slices. If you selec
 
                                                                                                             
 
-\item{[LORETA] Low Resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standard choice for M/EEG source localisation algorithms. It does, however, have undesirable edge effects.}
+\item{[LORETA] Low Resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standard choice for MEG/EEG source localisation algorithms. It does, however, have undesirable edge effects.}
 
                                                                                                             
 
@@ -201,6 +198,45 @@ These contrasts are used to generate PPMs which characterise effect sizes at eac
 Bayesian estimation of 2nd level models. This option uses the Empirical Bayes algorithm with global shrinkage priors that was previously implemented in SPM2. It is described in detail in \cite{karl_posterior}.
 Use of the global shrinkage prior embodies a prior belief that, on average over all voxels, there is no net experimental effect. Some voxels will respond negatively and some positively with a variability determined by the prior precision. This prior precision can be estimated from the data using Empirical Bayes. 
 
+\section{Output files}
+
+After estimation a number of files are written to the
+output directory. These are
+\begin{itemize}
+\item{An \verb!SPM.mat! file containing specification of the design and estimated model parameters}
+\end{itemize}
+
+\subsection{Classical 1st-level}
+
+For classical 1st-level models the following 
+files are also produced
+\begin{itemize}
+\item{Images of estimated regression coefficients  \verb!beta_000k.img! where $k$ indexes the $k$th regression coefficient.}
+\item{An image of the variance of the 
+error \verb!ResMS.img!.}
+\item{An image \verb!mask.img! indicating which voxels 
+were included in the analysis.}
+\item{The image \verb!RPV.img!, the estimated resels per voxel.}
+\item{If contrasts have been specified SPM also writes \verb!con_000i.img!  if the $i$th contrast is a t-contrast and the extra sum of squares image \verb!ess_000i.img! if it is an F-contrast.} 
+\end{itemize}
+Type \verb!help spm_spm! at the matlab command prompt for further information.
+
+\subsection{Bayesian 1st-level}
+For Bayesian 1st-level models the following 
+files are also produced
+\begin{itemize}
+\item{Images of estimated regression coefficients  \verb!Cbeta_000k.img! where $k$ indexes the $k$th regression coefficient. These filenames are prefixed with a `C' indicating that these
+are the mean values of the `Conditional' or `Posterior' density.}
+\item{Images of error bars/standard deviations on the regression coefficients \verb!SDbeta_000k.img!.}
+\item{An image of the standard deviation of the 
+error \verb!Sess1_SDerror.img!.}
+\item{An image \verb!mask.img! indicating which voxels 
+were included in the analysis.}
+\item{If a non-zero AR model order is specified then 
+SPM also writes images \verb!Sess1_AR_000p.img! where $p$ indexes the $p$th AR coefficient.}
+\item{If contrasts have been specified SPM also writes \verb!con_000i.img! and \verb!con_sd_000i.img! which are the mean and standard deviation of the $i$th pre-defined contrast.} 
+\end{itemize}
+Each of these images can be inspected using the `Display' button. Type \verb!help spm_spm_vb! at the matlab command prompt for further information.
 
 \section{Model comparison}
 

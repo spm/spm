@@ -76,22 +76,28 @@ Interscan interval, TR, (specified in seconds).  This is the time between acquir
 
 \subsection{Microtime resolution}
 
-Because experimental events may occur
-between scan acquisition times, SPM builds its 
-regressors using a `microtime' time-scale. The microtime resolution, t, is the number of time-bins per scan. 
+In Echo-Planar Imaging (EPI), data is acquired a plane
+at a time. To acquire a whole volume of data takes at least a second or two.
 
-                                                                                                            
+It is possible, however, that 
+experimental events may occur
+between scan (volume) acquisition times. This can be specified when building your design matrix either by (i) specifying your design in scans and using non-integer values  or (ii) specifying your design in seconds at a 
+resolution greater than the TR.
+
+SPM takes these timing specifications and builds its 
+regressors using a `microtime' time-scale. The microtime resolution, t, is the number of time-bins per scan. 
 
 Do not change this parameter unless you have a long TR and wish to shift regressors so that they are aligned to a particular slice. 
 
 
 \subsection{Microtime onset}
-The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions). 
-
-                                                                                                            
+The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions).                                           
 
 Do not change the default setting unless you have a long TR. 
 
+A typical use of the t and t0 parameters is to set them 
+to correspond to the results of any slice timing correction you have made eg. if you have 24 slices and have made slice 12 the reference slice you would set 
+t=24, t0=12. 
 
 \section{Data \& Design}
 The design matrix defines the experimental design and the nature of hypothesis testing to be implemented.  The design matrix has one row for each scan and one column for each effect or explanatory variable. (e.g. regressor or stimulus function).  Figure~\ref{design} shows an example
@@ -132,7 +138,18 @@ Condition Name
 
 \subparagraph{Onsets}
 Specify a vector of onset times for this condition type. 
+This can be entered using the keyboard eg. typing in 
+`100 300' and then hitting return or `100;300' or 
+`[100,300]' or `[100,300]''.
 
+More usually, however, this specification takes place 
+using variables that have been created before and loaded into matlab. For example, an \verb!my_onsets! cell array\footnote{Cell arrays are usually used in preferencec to matrices as different event types can then have different numbers of events.} might 
+exist in a file you created earlier called \verb!my_design.mat!. You would then type 
+\verb!load my_design! at the matlab command prompt before pressing the `Specify 1st-level' button. 
+
+You could then specify the onsets for condition 2 by typing in eg. \verb!my_onsets{2}! instead of entering 
+the numbers via the keyboard.
+ 
 
 \subparagraph{Durations}
 Specify the event durations (in seconds). Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.
@@ -146,6 +163,23 @@ The stick function itself can be modulated by some parametric variate (this can 
 
 See \cite{parametric_pet,parametric_fmri} for further details of 
 parametric modulations.
+
+\subsubsection{Multiple conditions}
+
+If you have mutliple conditions then entering the details a condition 
+at a time is very inefficient. This option can be used to load all the 
+required information in one go. 
+
+You will need to create a \verb!*.mat! file 
+containing the relevant information. 
+This \verb!*.mat! file must include the following cell arrays: names, onsets and durations 
+eg. \verb!names{2}='SSent-DSpeak'!, 
+\verb!onsets{2}=[3 5 19 222]!, \verb!durations{2}=[0 0 0 0]! contain the required details of the second condition. These cell arrays may be made available 
+by your stimulus delivery program eg. COGENT. The duration vectors can 
+contain a single entry if the durations are identical for all events. 
+
+You then need to use SPM's file selector to select this
+\verb!*.mat! file.
 
 \subsubsection{Regressors}
 Regressors are additional columns included in the design matrix, which may model effects that would not be convolved with the haemodynamic response.  One such example would be the estimated movement parameters, which may confound the data.
@@ -163,6 +197,17 @@ Enter the values that the regressor takes. This could also be, for example, the 
 have previously loaded in from a file. This might be a subjects
 movement parameters or reaction times.
 
+\subsubsection{Multiple regressors}
+
+If you have mutliple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. 
+This option can be used to load all the 
+required information in one go. 
+
+You will first need to create a *.mat file 
+containing a matrix R. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.
+
+You then need to use SPM's file selector to select this
+\verb!*.mat! file.
 
 \subsubsection{High-pass filter}
 The default high-pass filter cutoff is 128 seconds. Slow signal drifts with a period longer than this will be removed. Use `Explore design' to ensure this cut-off is not removing too much experimental variance. 
@@ -210,8 +255,15 @@ Canonical Hemodynamic Response Function (HRF). This is the default option. Contr
 
 
 \subsubsection{Model derivatives}
-Model HRF Derivatives. The canonical HRF combined with time and dispersion derivatives comprise an `informed' basis set, as the shape of the canonical response conforms to the hemodynamic response that is commonly observed. The incorporation of the derivate terms allow for variations in subject-to-subject and voxel-to-voxel responses. The time derivative allows the peak response to vary by plus or minus a second and the dispersion derivative allows the width of the response to vary by a 
-similar amount. The informed basis set requires an SPM{F} for inference. T-contrasts over just the canonical are perfectly valid but assume constant delay/dispersion. The informed basis set compares favourably with eg. FIR bases on many data sets \cite{rnah_basis}.
+Model HRF Derivatives. The canonical HRF combined with time and dispersion derivatives comprise an `informed' basis set, as the shape of the canonical response conforms to the hemodynamic response that is commonly observed. The incorporation of the derivative terms allow for variations in subject-to-subject and voxel-to-voxel responses. The time derivative allows the peak response to vary by plus or minus a second and the dispersion derivative allows the width of the response to vary by a similar amount. 
+
+A positive estimate of the time-derivative regression coefficient implies that the peak 
+hemodynamic response occurs later than usual ie. than
+would be expected using just the canonical regressor. 
+A positive estimate for the dispersion derivative implies
+a more dispersed response than usual.
+
+The informed basis set requires an SPM{F} for inference. T-contrasts over just the canonical are perfectly valid but assume constant delay/dispersion. The informed basis set compares favourably with eg. FIR bases on many data sets \cite{rnah_basis}.
 
 \subsection{Other basis sets}
 
@@ -257,7 +309,7 @@ the pair may be less than the sum of the responses to each event when occuring i
 Volterra kernels. See \cite{balloon} for further details.
 
 \section{Directory}
-Select a directory where the SPM.mat file containing the specified design matrix will be written.
+Select a directory where the SPM.mat file containing the specified design matrix will be written. If this directory already contains an SPM.mat file then SPM will warn you of this before overwriting it, when the specification job is run.
 
 
 \section{Global normalisation}

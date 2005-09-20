@@ -1,4 +1,4 @@
-This is pdfeTeX, Version 3.141592-1.20a-rc7.2-2.2 (MiKTeX 2.4) (preloaded format=latex 2005.7.11)  9 SEP 2005 16:52
+This is pdfeTeX, Version 3.141592-1.20a-rc7.2-2.2 (MiKTeX 2.4) (preloaded format=latex 2005.7.11)  14 SEP 2005 17:06
 entering extended mode
 **C:/home/wpenny/spm5/man/faces/face.tex
 (C:/home/wpenny/spm5/man/faces/face.tex
@@ -124,16 +124,6 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 <realign.jpg, id=48, 506.6428pt x 762.59906pt>
 File: realign.jpg Graphic file (type jpg)
  <use realign.jpg>
-! Extra }, or forgotten \endgroup.
-l.127 filter \verb!^r.*!.}}
-                           
-I've deleted a group-closing symbol because it seems to be
-spurious, as in `$x}$'. But perhaps the } is legitimate and
-you forgot something else, as in `\hbox{$x}'. In such cases
-the way to recover is to insert both the forgotten and the
-deleted material, e.g., by typing `I$}'.
-
-
 Overfull \hbox (46.32385pt too wide) in paragraph at lines 149--151
 []\OT1/cmr/m/n/10 Highlight `Source Im-age' and then se-lect the struc-tural im-age eg. []\OT1/cmtt/m/n/10 sM03953_0007.
 img\OT1/cmr/m/n/10 . 
@@ -168,14 +158,14 @@ Overfull \hbox (5.1667pt too wide) in paragraph at lines 282--285
 cmr/m/n/10 .
  []
 
-[13] <cat_design.jpg, id=84, 506.6428pt x 762.59906pt>
+[13] <cat_design.jpg, id=87, 506.6428pt x 762.59906pt>
 File: cat_design.jpg Graphic file (type jpg)
  <use cat_design.jpg>
-<cat_explore.jpg, id=85, 506.6428pt x 762.59906pt>
+<cat_explore.jpg, id=88, 506.6428pt x 762.59906pt>
 File: cat_explore.jpg Graphic file (type jpg)
  <use cat_explore.jpg>
 ! Extra }, or forgotten \endgroup.
-l.332 ...f 128s or 0.008Hz).} \label{cat_explore}}
+l.334 ...f 128s or 0.008Hz).} \label{cat_explore}}
                                                   
 I've deleted a group-closing symbol because it seems to be
 spurious, as in `$x}$'. But perhaps the } is legitimate and
@@ -183,12 +173,7 @@ you forgot something else, as in `\hbox{$x}'. In such cases
 the way to recover is to insert both the forgotten and the
 deleted material, e.g., by typing `I$}'.
 
-
-Overfull \hbox (35.94374pt too wide) in paragraph at lines 343--345
-[]\OT1/cmr/m/n/10 Highlight the `Di-rec-tory' op-tion and then choose the []\OT1/cmtt/m/n/10 DIR/classical/categorical
- []
-
-[14] [15 <cat_design.jpg>] [16 <cat_explore.jpg>] <cat_contrasts.jpg, id=95, 423.08063pt x 358.33875pt>
+[14] [15 <cat_design.jpg>] [16 <cat_explore.jpg>] <cat_contrasts.jpg, id=98, 423.08063pt x 358.33875pt>
 File: cat_contrasts.jpg Graphic file (type jpg)
 
 <use cat_contrasts.jpg>
@@ -199,82 +184,76 @@ Overfull \hbox (32.71188pt too wide) in paragraph at lines 365--369
 [17 <cat_contrasts.jpg>]
 LaTeX Font Info:    Font shape `OMS/cmr/m/it' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 377.
- <cat5_volume.jpg, id=99, 506.6428pt x 762.59906pt>
+ <cat5_volume.jpg, id=102, 506.6428pt x 762.59906pt>
 File: cat5_volume.jpg Graphic file (type jpg)
- <use cat5_volume.jpg>
-Overfull \hbox (22.24916pt too wide) in paragraph at lines 406--408
-[]\OT1/cmr/m/n/10 Press 'Re-sults' and se-lect the SPM.mat file in the []\OT1/cmtt/m/n/10 DIR/classical/categorical
- []
-
-[18] [19 <cat5_volume.jpg>] <cat1_contrast.jpg, id=107, 423.08063pt x 358.33875pt>
+ <use cat5_volume.jpg> [18] [19 <cat5_volume.jpg>] <cat1_contrast.jpg, id=110, 423.08063pt x 358.33875pt>
 File: cat1_contrast.jpg Graphic file (type jpg)
  <use cat1_contrast.jpg>
-<cat1_volume.jpg, id=108, 506.6428pt x 762.59906pt>
+<cat1_volume.jpg, id=111, 506.6428pt x 762.59906pt>
 File: cat1_volume.jpg Graphic file (type jpg)
- <use cat1_volume.jpg>
-Overfull \hbox (22.24916pt too wide) in paragraph at lines 438--440
-[]\OT1/cmr/m/n/10 Press 'Re-sults' and se-lect the SPM.mat file in the []\OT1/cmtt/m/n/10 DIR/classical/categorical
- []
-
-[20 <cat1_contrast.jpg>] [21 <cat1_volume.jpg>] <cat_all_contrast.jpg, id=115, 423.08063pt x 358.33875pt>
+ <use cat1_volume.jpg> [20 <cat1_contrast.jpg>] [21 <cat1_volume.jpg>] <cat_all_contrast.jpg, id=118, 423.08063pt x 358.
+33875pt>
 File: cat_all_contrast.jpg Graphic file (type jpg)
-
-<use cat_all_contrast.jpg> <cat_all_volume.jpg, id=116, 506.6428pt x 762.59906pt>
+ <use cat_all_contrast.jpg>
+<cat_all_volume.jpg, id=119, 506.6428pt x 762.59906pt>
 File: cat_all_volume.jpg Graphic file (type jpg)
  <use cat_all_volume.jpg>
-<con_all_plot.jpg, id=117, 469.755pt x 331.99031pt>
+<con_all_plot.jpg, id=120, 469.755pt x 331.99031pt>
 File: con_all_plot.jpg Graphic file (type jpg)
  <use con_all_plot.jpg> [22 <cat_all_contrast.jpg>] [23 <cat_all_volume.jpg>] [24 <con_all_plot.jpg>] <rotations.jpg, id
-=127, 506.6428pt x 762.59906pt>
+=130, 506.6428pt x 762.59906pt>
 File: rotations.jpg Graphic file (type jpg)
  <use rotations.jpg>
-<par_design.jpg, id=128, 506.6428pt x 762.59906pt>
+<par_design.jpg, id=131, 506.6428pt x 762.59906pt>
 File: par_design.jpg Graphic file (type jpg)
  <use par_design.jpg> [25] [26 <rotations.jpg>] [27 <par_design.jpg>]
-Overfull \hbox (30.69379pt too wide) in paragraph at lines 553--555
-[]\OT1/cmr/m/n/10 Highlight the `Di-rec-tory' op-tion and then choose the []\OT1/cmtt/m/n/10 DIR/classical/parametric
- []
-
-
-Overfull \hbox (16.9992pt too wide) in paragraph at lines 564--566
-[]\OT1/cmr/m/n/10 Press 'Re-sults' and se-lect the SPM.mat file in the []\OT1/cmtt/m/n/10 DIR/classical/parametric
- []
-
-
-Overfull \hbox (16.9992pt too wide) in paragraph at lines 582--584
-[]\OT1/cmr/m/n/10 Press 'Re-sults' and se-lect the SPM.mat file in the []\OT1/cmtt/m/n/10 DIR/classical/parametric
- []
-
-[28]
-Overfull \hbox (16.9992pt too wide) in paragraph at lines 598--600
-[]\OT1/cmr/m/n/10 Press 'Re-sults' and se-lect the SPM.mat file in the []\OT1/cmtt/m/n/10 DIR/classical/parametric
- []
-
-<famous_lag_mip.jpg, id=142, 506.6428pt x 762.59906pt>
+[28] <famous_lag_mip.jpg, id=145, 506.6428pt x 762.59906pt>
 File: famous_lag_mip.jpg Graphic file (type jpg)
  <use famous_lag_mip.jpg>
-<famous_lag.jpg, id=143, 473.51906pt x 284.56313pt>
+<famous_lag.jpg, id=146, 473.51906pt x 284.56313pt>
 File: famous_lag.jpg Graphic file (type jpg)
  <use famous_lag.jpg>
-Overfull \hbox (81.79134pt too wide) in paragraph at lines 631--632
+Overfull \hbox (81.79134pt too wide) in paragraph at lines 628--629
  [] 
  []
 
-[29] [30 <famous_lag_mip.jpg>] [31 <famous_lag.jpg>] (face.aux) ) 
+[29] [30 <famous_lag_mip.jpg>] [31 <famous_lag.jpg>] <face_ar1.jpg, id=157, 506.6428pt x 762.59906pt>
+File: face_ar1.jpg Graphic file (type jpg)
+
+<use face_ar1.jpg>
+
+LaTeX Warning: Reference `face_ar1' on page 32 undefined on input line 679.
+
+
+Overfull \hbox (7.4156pt too wide) in paragraph at lines 690--691
+[]\OT1/cmr/m/n/10 Select con-trast num-ber 1: []\OT1/cmtt/m/n/10 Positive effect of condition_1\OT1/cmr/m/n/10 , type `D
+one'. 
+ []
+
+[32] [33 <face_ar1.jpg>] <face_bayes.jpg, id=167, 506.6428pt x 762.59906pt>
+File: face_bayes.jpg Graphic file (type jpg)
+ <use face_bayes.jpg> [34] [35 <face_bayes.jpg>] (face.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 1212 strings out of 95519
- 13675 string characters out of 1189651
- 61059 words of memory out of 1060739
- 4196 multiletter control sequences out of 35000
- 8758 words of font info for 31 fonts, out of 500000 for 1000
+ 1238 strings out of 95519
+ 13965 string characters out of 1189651
+ 61071 words of memory out of 1060751
+ 4208 multiletter control sequences out of 35000
+ 9366 words of font info for 33 fonts, out of 500000 for 1000
  14 hyphenation exceptions out of 607
  25i,8n,19p,936b,252s stack positions out of 1500i,500n,5000p,200000b,32768s
- 153 PDF objects out of 300000
+ 173 PDF objects out of 300000
  0 named destinations out of 300000
- 106 words of extra memory for PDF output out of 65536
-<C:\texmf\fonts\type1\bluesky\cm\cmr8.pfb><C:\texmf\fon
-ts\type1\bluesky\cm\cmr6.pfb><C:\texmf\fonts\type1\bluesky\cm\cmss10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmsy10.pfb><C:
-\texmf\fonts\type1\bluesky\cm\cmsl10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmti10.pfb><C:\texmf\fonts\type1\bluesky\cm\cm
-tt10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmr7.pfb><C:\texmf\fonts\type1\bluesky\cm\cmmi10.pfb><C:\texmf\fonts\type1\blu
-esky\cm\cmr10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmbx12.pfb>
-Output written on face.pdf (31 pages, 2568279 bytes).
+ 116 words of extra memory for PDF output out of 65536
+<C:\texmf\fonts\type1\bluesky\cm\cmbx10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmss8.pfb><C:\texmf\fonts\type1\bluesky\c
+m\cmr8.pfb><C:\texmf\fonts\type1\bluesky\cm\cmr6.pfb><C:\texmf\fonts\type1\bluesky\cm\cmss10.pfb><C:\texmf\fonts\type1\b
+luesky\cm\cmsy10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmsl10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmti10.pfb><C:\texmf\f
+onts\type1\bluesky\cm\cmtt10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmr7.pfb><C:\texmf\fonts\type1\bluesky\cm\cmmi10.pfb><
+C:\texmf\fonts\type1\bluesky\cm\cmr10.pfb><C:\texmf\fonts\type1\bluesky\cm\cmbx12.pfb>
+Output written on face.pdf (35 pages, 2882181 bytes).

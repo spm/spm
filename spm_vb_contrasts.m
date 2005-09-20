@@ -10,7 +10,7 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 175 2005-05-24 17:44:08Z will $
+% $Id: spm_vb_contrasts.m 234 2005-09-20 09:36:11Z will $
 
 
 % Get approximate posterior covariance for ic
@@ -64,12 +64,13 @@ for v=1:Nvoxels,
 		%-Reconstruct approximation to voxel wise correlation matrix
 		%---------------------------------------------------------------
 		R = SPM.PPM.Sess(s).slice(slice_index).mean.R;
-		dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
-		dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
-		for i=1:length(dh),
-			R = R + SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i) * dh(i);
-		end 
-        
+        if SPM.PPM.AR_P > 0
+            dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
+            dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
+            for i=1:length(dh),
+                R = R + SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i) * dh(i);
+            end 
+        end
 		%-Get indexes of regressors specific to this session
 		%---------------------------------------------------------------
 		scol           = SPM.Sess(s).col; 

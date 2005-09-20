@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 165 2005-05-18 15:44:00Z guillaume $
+% $Id: spm_contrasts.m 234 2005-09-20 09:36:11Z will $
 
 
 %-Get and change to results directory
@@ -70,38 +70,51 @@ for i = 1:length(Ic)
  
 		switch(xCon(ic).STAT)
 
-		case {'T','P'} %-Implement contrast as sum of scaled beta images
-		%---------------------------------------------------------------
-            fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
-                                      '(spm_add)','...initialising') %-#
-
-			Q     = find(abs(xCon(ic).c) > 0);
-			V     = Vbeta(Q);
-			for j = 1:length(Q)
-				V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(ic).c(Q(j));
-			end
-	    
-			%-Prepare handle for contrast image
-			%-----------------------------------------------------------
-			xCon(ic).Vcon = struct(...
-				'fname',  sprintf('con_%04d.img',ic),...
-				'dim',    SPM.xVol.DIM',...
-				'dt',     [16 spm_platform('bigend')],...
-				'mat',    SPM.xVol.M,...
-				'pinfo',  [1,0,0]',...
-				'descrip',sprintf('SPM contrast - %d: %s',ic,xCon(ic).name));
-
-			%-Write image
-			%-----------------------------------------------------------
-			fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
-			xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
-			xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
-			xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
-            
-			fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-				'...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
-
-
+            case {'T','P'} 
+                
+                if strcmp(xCon(ic).STAT,'P') & strcmp(xCon(ic).PSTAT,'F')
+                    % Chi^2 Bayesian inference for compound contrast
+                    
+                    disp('Chi^2 Bayesian inference for compound contrast');
+                    fprintf('\t%-32s: %30s',sprintf('X2 image %2d',i),...
+                        '...computing') %-#
+                    
+                    xCon=spm_vb_x2(SPM,XYZ,xCon,ic);
+                
+                else  %-Implement contrast as sum of scaled beta images
+                %---------------------------------------------------------------
+                
+                    fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
+                        '(spm_add)','...initialising') %-#
+                    
+                    Q     = find(abs(xCon(ic).c) > 0);
+                    V     = Vbeta(Q);
+                    for j = 1:length(Q)
+                        V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(ic).c(Q(j));
+                    end
+                    
+                    %-Prepare handle for contrast image
+                    %-----------------------------------------------------------
+                    xCon(ic).Vcon = struct(...
+                        'fname',  sprintf('con_%04d.img',ic),...
+                        'dim',    SPM.xVol.DIM',...
+                        'dt',     [16 spm_platform('bigend')],...
+                        'mat',    SPM.xVol.M,...
+                        'pinfo',  [1,0,0]',...
+                        'descrip',sprintf('SPM contrast - %d: %s',ic,xCon(ic).name));
+                    
+                    %-Write image
+                    %-----------------------------------------------------------
+                    fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
+                    xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
+                    xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
+                    xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
+                    
+                    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+                        '...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
+                    
+                end
+                
 		case 'F'  %-Implement ESS as sum of squared weighted beta images
 		%---------------------------------------------------------------
 			fprintf('\t%-32s: %30s',sprintf('ESS image %2d',i),...
@@ -160,6 +173,10 @@ for i = 1:length(Ic)
 
 		case 'P'                                  %-Compute PPM{P} image
 		%---------------------------------------------------------------
+        
+        if strcmp(xCon(Ic).PSTAT,'T')
+            % Simple contrast - Gaussian distributed
+            
 			c     = xCon(ic).c;
 			cB    = spm_get_data(xCon(ic).Vcon,XYZ);
 			if isfield(SPM.PPM,'VB');
@@ -190,6 +207,14 @@ for i = 1:length(Ic)
 			Z              = 1 - spm_Ncdf(Gamma,cB,VcB);
 			str            = sprintf('[%.2f]',Gamma);
 			%xCon(ic).name = [xCon(ic).name ' ' str];
+        else
+            % Compound contrast - Chi^2 distributed
+            disp('Chi^2 Bayesian inference for compound contrast');
+            d = spm_get_data(xCon(ic).Vcon,XYZ);
+            Z = spm_Xcdf(d,xCon(ic).eidf);
+            
+            str = sprintf('[%1.2f]',xCon(ic).eidf);
+        end
 
 
 		case 'F'                                  %-Compute SPM{F} image

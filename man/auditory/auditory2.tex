@@ -26,8 +26,7 @@ effects it is advisable to discard the first few scans (there were no
 mother of all experiments (MoAE).
 
 To analyse the data, first create a new directory DIR \newline \verb!eg. c:\home\wpenny\fmri_analysis\auditory!, in which to place the results
-of your analysis. Then create 3 subdirectories (i) \verb!jobs!, 
-(ii) \verb!designs!, (iii) \verb!classical! and (iv) \verb!bayesian!. As the analysis 
+of your analysis. Then create 3 subdirectories (i) \verb!jobs!, (ii) \verb!classical! and (iii) \verb!bayesian!. As the analysis 
 proceeds these directories will be filled with job-specification files, design matrices 
 and models estimated using classical or Bayesian 
 methods.
@@ -254,16 +253,16 @@ choose the 84 smoothed, normalised functional images ie  \verb!swrfM00223_016.im
 easily using the \verb!^s.*'! filter, and select all (provided you have moved the scans 4 to 15 into a different directory). Then press `Done'.}
 \item{Highlight `Condition' and select `New condition'}
 \item{Open the newly created `Condition' option. Highlight `Name' and enter `active'. Highlight `Onsets' and enter `6:12:84'. Highlight `Durations' and enter `6'.}
-\item{Highlight `Directory' and select the \verb!DIR/design! directory you created earlier.}
+\item{Highlight `Directory' and select the \verb!DIR/classical! directory you created earlier.}
 \item{Save the job as \verb!specify.mat! and press `RUN'}
 \ei
 SPM will then write an \verb$SPM.mat$ file to the 
-\verb!DIR/design! directory. It will also plot the design
+\verb!DIR/classical! directory. It will also plot the design
 matrix, as shown in Figure~\ref{aud_design}. 
 \begin{figure}
 \begin{center}
 \includegraphics[width=60mm]{design}
-\caption{\em Design matrix. \label{aud_design}}
+\caption{\em Design matrix. The filenames on the right-hand side of the design matrix indicate the scan associated with each row. \label{aud_design}}
 \end{center}
 \end{figure}
 
@@ -283,7 +282,24 @@ used to convert assumed neuronal activity into hemodynamic
 activity. In this model we used the default option - the canonical basis function. The 
 frequency domain plot shows that the frequency content of the `active' regressor is above the set
 frequencies that are removed by the High Pass Filter (HPF) (these are shown in 
-gray - in this model we accepted the default HPF cut-off of 128s or 0.008Hz).} \label{aud_explore}}
+gray - in this model we accepted the default HPF cut-off of 128s or 0.008Hz). \label{aud_explore}}
+\end{center}
+\end{figure}
+
+If you select the second item on the `Design' tab, `Design Orthogonality', SPM will produce the plot shown in Figure~\ref{aud_orth}. Columns $x_1$ and $x_2$ are orthogonal if the inner product $x_1^T x_2=0$. The inner product can also be written $x_1^T x_2 = |x_1||x_2| cos \theta$ where $|x|$ denotes the length 
+of $x$ and $\theta$ is the angle between the 
+two vectors. So, the vectors will be orthogonal 
+if $cos \theta=0$. The upper-diagonal elements in the matrix at the bottom of 
+figure~\ref{aud_orth} plot $cos\theta$ for each pair
+of columns in the design matrix. Here we have a single entry.  A degree of non-orthogonality 
+or collinearity is indicated by the gray shading.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{aud_orth}
+\caption{\em Design Orthogonality. The description above the first column in the design matrix {\sf Sn(1)Active*bf(1)} means that this column refers to the first session of data (in this analysis there is only 1 session), the name of this condition/trial is `Active' and the trial information
+has been convolved with the first basis function (the canonical hemodynamic response). The constant regressor for session 1 is referred to as {\sf Sn(1)Constant}. The orthogonality matrix at the bottom indicates a degree of collinearity between 
+regressors.
+\label{aud_orth}}
 \end{center}
 \end{figure}
 
@@ -293,9 +309,7 @@ Press the `Estimate' button. This will call up the specification of an fMRI esti
 \bi
 \item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
-file saved in the design subdirectory}
-\item{Highlight the `Directory' option and then choose the 
-\verb!DIR\classical! directory}
+file saved in the classical subdirectory}
 \item{Save the job as \verb!estimate.job! and press Run}
 \ei
 SPM will write a number of files into the selected directory including 
@@ -504,7 +518,7 @@ with three options
 \item{Render: overlay on a volume rendered brain, with options for using a smoothed brain, and old (left) and new (right) style rendering.}
 \end{enumerate}
 Renderings can be saved as {\sf filename.img} and {\sf filename.hdr} in the working directory by using the {\em write filtered} option.
-In Figures~\ref{aud_slices}\ref{aud_sections}\ref{aud_render} the `active $>$ rest' activation has been superimposed on the spatially normalised, bias-corrected 
+In Figures~\ref{aud_slices}, \ref{aud_sections} and \ref{aud_render} the `active $>$ rest' activation has been superimposed on the spatially normalised, bias-corrected 
 anatomical image \verb!wmsM00223_002.img! created earlier. 
 \begin{figure}
 \begin{center}
@@ -548,4 +562,115 @@ Other options (in the results controls panel):
 \item{exit: exits the results section}
 \item{? : launches spm-results-ui help}
 \ei
+
+\section{Bayesian analysis}
+
+\subsection{Specification}
+
+Press the `Specify 1st-level' button. This will call up an fMRI specification job in the graphics window. Then
+
+\bi
+\item{Open the fMRI model specification option}
+\item{Load the `specify.mat' job file created for the 
+classical analysis}
+\item{Open `Subject/Session', highlight `Scans'} \item{Deselect the smoothed functional images using the `unselect all' option available from a right mouse click in the SPM file selector (bottom window)}
+\item{Select the 
+unsmoothed functional images using the \verb!^w.*! filter and `select all' option available from a right mouse click in the SPM file selector (top right window)\footnote{Remember not to select the first 12 scans, scans 4 to 15, as these may contain T1 effects. This can be done during selection or by first moving the files to a different directory.}.
+The Bayesian analysis uses a spatial prior where the spatial regularity in the signal is estimated from the data. It is therefore not necessary to create smoothed images if you are only going to do a Bayesian analysis.}
+\item{Press `Done'}
+\item{Highlight `Directory' and select the 
+\verb!DIR/bayesian! directory you created earlier (you will first need to deselect the \verb!DIR/classical! directory).}
+\item{Save the job as \verb!specify_bayesian.mat! and press `Run'}
+\ei
+
+\subsection{Estimation}
+
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+\bi
+\item{Open the `fMRI model estimation' option}
+\item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
+file saved in the \verb!DIR/bayesian! directory}
+\item{Highlight `Method' and select the `Choose Bayesian 1st-level' option.}
+\item{Open the newly created `Bayesian 1st-level' option, highlight `AR model order' and select 0. This data set has a TR=7s, so is unlikley to have temporally autocorrelated errors.}
+\item{Save the job as \verb!estimate_bayesian.job! and press `Run'.}
+\ei
+SPM will write a number of files into the output directory including 
+\bi
+\item{An \verb!SPM.mat! file.}
+\item{Images of estimated regression coefficients  \verb!Cbeta_0001.img! and \verb!Cbeta_0002.img!. These filenames are prefixed with a `C' indicating that these
+are the mean values of the `Conditional' or `Posterior' density.}
+\item{Images of error bars/standard deviations on the regression coefficients \verb!SDbeta_0001.img! and \verb!SDbeta_0002.img!.}
+\item{An image of the standard deviation of the 
+error \verb!Sess1_SDerror.img!.}
+\item{An image \verb!mask.img! indicating which voxels 
+were included in the analysis.}
+\ei
+
+\subsection{Inference}
+
+After estimation:
+
+\bi
+\item{Press `Results'}
+\item{Select the \verb!SPM.mat! file created in the last section}
+\item{Select `Define new contrast'}
+\item{Enter the name `active $>$ rest'}
+\item{Enter the value `1', press `Submit', `OK', `Done'}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify No}
+\item{Title for comparison, accept the default}
+\item{\em Effect size threshold for PPM}
+\item{Enter the value 2}
+\item{\em Posterior probability threshold for PPM}
+\item{Enter the value 0.99}
+\item{\em Extent threshold [0]}
+\item{Accept the default value}
+\item{\em Plot effect size [Yes/No]}
+\item{Select the default `Yes'}
+\ei
+SPM will then plot a map of effect sizes at voxels 
+where it is 99\% sure that the effect size is greater 
+than 2\% of the global mean. This is a large activation.
+Then use overlays, sections, select the 
+normalised structural image created earlier and move the cursor to the activation in the left hemisphere. This should create the plot shown in Figure~\ref{aud_bayes}
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{aud_bayes}
+\caption{\em {\bf Bayesian analysis:} MIP and overlay of effect sizes at voxels 
+where SPM is 99\% sure that the effect size is greater 
+than 2\% of the global mean. \label{aud_bayes} }
+\end{center}
+\end{figure}
+
+It is also possible to look for regions where responses in the active condition are different to those at rest. Active responses could be greater or 
+smaller.
+\bi
+\item{Press `Results'}
+\item{Select the \verb!SPM.mat! file created in the last section}
+\item{Select `Define new contrast' and highlight the `F' radio button}
+\item{Enter the name `active != rest'}
+\item{Enter the value `1', press `Submit', `OK', `Done'}
+\item{\em Mask with other contrast ? [Yes/No]}
+\item{Specify No}
+\item{Title for comparison, accept the default}
+\item{\em Posterior probability threshold for PPM}
+\item{Accept the default value\footnote{The default PPM threshold is set to $1-1/S$ where S is the number of voxels in the volume being analysed. The rationale for this is that inference is based on an approximate posterior distribution, $Q$, which factorises across voxels. The approximate posterior is chosen to best match the true posterior in the sense of KL-divergence. Given the factorisation in $Q$, the expected number of false positives in the PPM is 1. }}
+\item{\em Extent threshold [0]}
+\item{Accept the default value,0}
+\item{\em Plot effect size [Yes/No]}
+\item{Select the default `Yes'.}
+\ei
+SPM will then plot a map of $\chi^2$ statistic values at above threshold voxels.
+Then use overlays, sections, select the 
+normalised structural image created earlier and move the cursor to the activation in the left hemisphere. This should create the plot shown in Figure~\ref{aud_bayes2}
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{aud_bayes2}
+\caption{\em {\bf Two-sided Bayesian analysis:} MIP and overlay of $\chi^2$ statistic values at above threshold voxels. This shows regions where activity is different between active and rest conditions, whether positive or negative. \label{aud_bayes2} }
+\end{center}
+\end{figure}
+
+When you revisit the contrast manager this contrast will be referred to as a `P' contrast, rather than an `F' contrast. This indicates that Bayes rule is used to make the inference. 
+To indicate that we are testing a two-sided effect it is advisable to make this clear when naming the contrast (as we have done with the label `active != rest).
+
 \end{document}
