@@ -1,34 +1,3 @@
-\documentclass[a4paper,titlepage]{book}
-
-% are we using pdftex or normaltex ?
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-   \pdffalse
-\else
-   \pdfoutput=1
-   \pdftrue
-\fi
-
-\ifpdf
-  \usepackage[pdftex]{graphicx}
-  \usepackage[bookmarks=true]{hyperref}
-  \DeclareGraphicsExtensions{.jpg,.pdf,.png}
-\else
-  \usepackage[final]{graphicx}
-  \DeclareGraphicsExtensions{.ps,.eps}
-\fi
-
-\ifpdf
-\pdfinfo{
-   /Author (FIL Methods Group)
-   /Title  (fMRI model specification)
-   /CreationDate (D:20050719192900)
-   /Subject (fMRI model specification)
-   /Keywords (fmri,model,specification,glm,spm)
-}
-\fi
-
-\begin{document}
 
 \chapter{fMRI model specification}
 
@@ -46,7 +15,7 @@ Responses can be either event- or epoch related, the only distinction is the dur
 Event-related designs may be stochastic or deterministic.  Stochastic designs involve one of a number of trial-types occurring with a specified probability at successive intervals in time.  These probabilities can be fixed (stationary designs) or time-dependent (modulated or non-stationary designs).  The most efficient designs obtain when the probabilities of every trial type are equal. A critical issue in stochastic designs is whether to include null events. If you wish to estimate the evoked response to a specific event type (as opposed to differential responses) then a null event must be included (even if it is not modeled explicitly).
 
 \begin{figure}
-\includegraphics[width=100mm]{fmri_model}
+\includegraphics[width=100mm]{fmri_spec/fmri_model}
 \caption{\em After starting SPM in fMRI mode, pressing the `Specify 1st-level' button, and then double-clicking on the `+fMRI model specification' text, the SPM graphics window should appear as above. The options under `-fMRI model specification' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). 
 A double-click on options prefixed by a '+' will allow you to specify 
 options at a greater level of detail. Options highlighted with a `$<$-X' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{spec}}
@@ -104,7 +73,7 @@ The design matrix defines the experimental design and the nature of hypothesis t
 of a design matrix.
 
 \begin{figure}
-\includegraphics[width=100mm]{design}
+\includegraphics[width=100mm]{fmri_spec/design}
 \caption{\em Design matrix for fMRI data from two sessions. 
 There are 24 experimental conditions for each session. The last two columns 
 model the average activity in each session, giving a total of 50 regressors.
@@ -353,7 +322,7 @@ checking that your experimental variance has not been removed
 by high-pass filtering, as shown in Figure~\ref{rev4}.
 
 \begin{figure}
-\includegraphics[width=100mm]{reg4}
+\includegraphics[width=100mm]{fmri_spec/reg4}
 \caption{\em After pressing `Review', selecting the pull-down 
 `Design' menu, Explore-$>$Session, and selecting the 
 regressor you wish to look at, you should get a plot similar to the one above. The top row shows time and frequency domain plots of the time-series corresponding to this regressor. In this particular case we have four events. Each event or `stick function' has been convolved with the 
@@ -361,10 +330,3 @@ hemodynamic response function shown in the bottom panel. The frequency domain gr
 removed by high-pass filtering. The grayed out section of the 
 frequency plot shows those frequencies which are removed. For this regressor we have plenty of remaining experimental variance (see the peak at about 0.04Hz). \label{rev4}}
 \end{figure}
-
-%\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
-\bibliography{/home/spm/web/doc/biblio/methods_macros,/home/spm/web/doc/biblio/methods_group}
-
-\bibliographystyle{plain}
-
-\end{document}

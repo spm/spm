@@ -1,35 +1,3 @@
-\documentclass[a4paper,titlepage]{book}
-
-% are we using pdftex or normaltex ?
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-   \pdffalse
-\else
-   \pdfoutput=1
-   \pdftrue
-\fi
-
-\ifpdf
-  \usepackage[pdftex]{graphicx}
-  \usepackage[bookmarks=true]{hyperref}
-  \DeclareGraphicsExtensions{.jpg,.pdf,.png}
-\else
-  \usepackage[final]{graphicx}
-  \DeclareGraphicsExtensions{.ps,.eps}
-\fi
-
-\ifpdf
-\pdfinfo{
-   /Author (FIL Methods Group)
-   /Title  (fMRI model estimation)
-   /CreationDate (D:20050719192900)
-   /Subject (fMRI model estimation)
-   /Keywords (fmri,model,estimation,reml,bayes,spm,ppm)
-}
-\fi
-
-\begin{document}
-
 \chapter{fMRI model estimation}
 
 Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs), Effect Size Maps (ESMs) or Posterior Probability Maps (PPMs) and tables of statistics. 
@@ -41,7 +9,7 @@ When the estimation job is run, no warning will be given that the SPM.mat file w
 A warning is given at the specification stage. When it comes to estimation, SPM assumes that you've now sorted out your directory structures.
 
 \begin{figure}
-\includegraphics[width=100mm]{fmri_est}
+\includegraphics[width=100mm]{fmri_est/est_method}
 \caption{\em After starting SPM in fMRI mode, pressing the `Estimate' button, and then double-clicking on the `+fMRI model estimation' text, the SPM graphics window should appear as above. The options under `-fMRI model estimation' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). 
 A double-click on options prefixed by a '+' will allow you to specify 
 options at a greater level of detail. Options highlighted with a `$<$-X' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{est}}
@@ -71,7 +39,7 @@ Model parameters are estimated using Variational Bayes (VB). This allows you to 
 After estimation, contrasts are used to find regions with effects larger than a user-specified size eg. 1 per cent of the global mean signal. These effects are assessed statistically using a Posterior Probability Map (PPM) \cite{karl_posterior}.
 
 \begin{figure}
-\includegraphics[width=100mm]{bayes_options}
+\includegraphics[width=100mm]{fmri_est/bayes_options}
 \caption{\em After choosing Bayesian 1st-level under `Method' and then double-clicking on the `+Bayesian 1st-level' text, the SPM graphics window should appear as above. Each of the options shown above is described in this chapter. \label{bayes_options}}
 \end{figure}
 
@@ -255,7 +223,7 @@ example output from the function indicating that, for the data in
 this brain region, an informed basis set has the highest model evidence.
 
 \begin{figure}
-\includegraphics[width=150mm]{basis}
+\includegraphics[width=150mm]{fmri_est/basis}
 \caption{\em This plot shows the model evidence for a number 
 of different hemodynamic basis sets: Inf1 - Canonical HRF, Inf2 - Canonical plus temporal derivative, Inf3 - Canonical plus 
 temporal and dispersion derivatives, F - Fourier, FH - Fourier 
@@ -263,10 +231,3 @@ with a Hanning Window, Gamm3 - 3 Gamma basis functions and FIR -
 a Finite Impulse Response function. An informed basis set provides 
 the best model of the data for the selected region.  \label{basis}}
 \end{figure}
-
-%\bibliography{c:/home/wpenny/bibfiles/methods_macros,c:/home/wpenny/bibfiles/methods_group}
-\bibliography{/home/spm/web/doc/biblio/methods_macros,/home/spm/web/doc/biblio/methods_group}
-
-\bibliographystyle{plain}
-
-\end{document}
