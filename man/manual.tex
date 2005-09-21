@@ -23,10 +23,34 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \marginparwidth=21mm
 \footskip=10mm
 
-\title{\huge{SPM5b (beta version) Manual}}
-\author{The FIL Methods Group (and honorary members)}
 \begin{document}
-\maketitle
+
+\newlength{\centeroffset}
+\setlength{\centeroffset}{-0.5\oddsidemargin}
+\addtolength{\centeroffset}{0.5\evensidemargin}
+%\addtolength{\textwidth}{-\centeroffset}
+\thispagestyle{empty}
+\vspace*{\stretch{1}}
+\noindent\hspace*{\centeroffset}\makebox[0pt][l]{\begin{minipage}{\textwidth}
+\flushright
+\textbf{\Huge{SPM5b (beta version) Manual}}
+{\noindent\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]}
+\hfill{\huge The FIL Methods Group \\(and honorary members)}
+\end{minipage}}
+
+\vspace{\stretch{2}}
+\noindent\hspace*{\centeroffset}\makebox[0pt][l]{\begin{minipage}{\textwidth}
+\flushright
+{\footnotesize
+Functional Imaging Laboratory\\
+Wellcome Department of Imaging Neuroscience\\
+Institute of Neurology, UCL\\ 
+12 Queen Square, London WC1N 3BG, UK\\
+\today\\
+\url{http://www.fil.ion.ucl.ac.uk/spm/}}
+\end{minipage}}
+
+
 \dominitoc\tableofcontents
 
 \newpage
