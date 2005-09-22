@@ -2,7 +2,7 @@
 \usepackage{epsfig,amsmath,pifont,moreverb,minitoc}
 \usepackage[colorlinks=true,
 pdfpagemode=UseOutlines,
-pdftitle={SPM5b Manual},
+pdftitle={SPM5 Manual},
 pdfauthor={The SPM Team},
 pdfsubject={Statistical Parametric Mapping},
 pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
@@ -23,6 +23,9 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \marginparwidth=21mm
 \footskip=10mm
 
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+
 \begin{document}
 
 \newlength{\centeroffset}
@@ -33,9 +36,9 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \vspace*{\stretch{1}}
 \noindent\hspace*{\centeroffset}\makebox[0pt][l]{\begin{minipage}{\textwidth}
 \flushright
-\textbf{\Huge{SPM5b (beta version) Manual}}
+\textbf{\Huge{SPM5 Manual}}
 {\noindent\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]}
-\hfill{\huge The FIL Methods Group \\(and honorary members)}
+\hfill{\huge The FIL Methods Group \\}
 \end{minipage}}
 
 \vspace{\stretch{2}}
@@ -49,7 +52,6 @@ Institute of Neurology, UCL\\
 \today\\
 \url{http://www.fil.ion.ucl.ac.uk/spm/}}
 \end{minipage}}
-
 
 \dominitoc\tableofcontents
 
@@ -85,8 +87,6 @@ This panel shows the current value of the highlighted item (where relevant).
 
 Jobs can be saved and loaded at a later time, either as XML or Matlab .mat files.  The format depends on the extension you give the filename. XML files can be loaded into Matlab via "loadxml", modified, and saved again by "savexml", whereas "load" and "save" can be used for Matlab .mat files. Incomplete jobs can be loaded or saved, but the specification needs to be complete for a job to be run.
 
-
-
 %* Bottom Panel
 
 \subsection*{Bottom Panel}
@@ -95,21 +95,23 @@ This panel provides information about the meaning of the current item.
 
 \begin{figure} \begin{center} \epsfig{file=ui1,width=70mm} \epsfig{file=ui2,width=70mm} \epsfig{file=ui3,width=70mm} \epsfig{file=ui4,width=70mm}\end{center} \caption{The SPM5 user interface. Top left: The usual user-interface.  Top right: The Defaults user-interface. Bottom left: The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file. Bottom right: more online help can be obtained via the main help button.} \end{figure} 
 
-\part{Temporal}
+\part{Temporal processing}
+
 \include{st}
 \include{eeg_filter}
-\part{Spatial}
+\part{Spatial processing}
 \include{realign}
 \include{realignunwarp}
 \include{coreg}
 \include{preproc}
 \include{normalise}
 \include{smooth}
-\part{Stats}
+
+\part{fMRI Statistics}
 \include{fmri_spec/fmri_spec}
 \include{fmri_est/fmri_est}
-\include{con}
-\part{Util}
+
+\part{Utilities}
 \include{disp}
 \include{checkreg}
 \include{imcalc}
@@ -121,10 +123,14 @@ This panel provides information about the meaning of the current item.
 \include{md}
 \include{defs}
 \include{ui}
-\part{Tools}
-\include{cat}
-\include{unused}
-\parskip=0mm
+
+\part{Data sets}
+\include{auditory/auditory}
+\include{faces/face}
+
 \bibliography{methods_macros,methods_group,external}
+
+\parskip=0mm
+
 \end{document}
 

@@ -1,11 +1,3 @@
-\documentclass[a4paper,titlepage]{book}
-\usepackage{graphicx}
-%\usepackage{c:/home/wpenny/software/latex-graphics/graphicx.sty}
-
-\newcommand{\bi}{\begin{itemize}}
-\newcommand{\ei}{\end{itemize}}
-
-\begin{document}
 
 \chapter{Face fMRI data}
 
@@ -13,7 +5,7 @@ As a third and more sophisticated example, consider the data from a repetition p
 we denote N1, N2, F1 and F2. The experimental stimuli and timings of events are shown in Figures~\ref{face_stim} and \ref{face_timing}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=120mm]{face_stim}
+\includegraphics[width=120mm]{faces/face_stim}
 \caption{\em Face repetition paradigm.  There were 2 presentations of 26 Famous and 26 Nonfamous Greyscale photographs, for 0.5s each, randomly intermixed. The 
 minimal Stimulus Onset Asynchrony (SOA)=4.5s, with probability 2/3 (ie 1/3 null events). The subject made one of two 
 right finger key presses denoting whether or not the subject thought the face was famous. \label{face_stim}}
@@ -21,7 +13,7 @@ right finger key presses denoting whether or not the subject thought the face wa
 \end{figure}
 \begin{figure}
 \begin{center}
-\includegraphics[width=120mm]{face_timing}
+\includegraphics[width=120mm]{faces/face_timing}
 \caption{\em Time series of events. \label{face_timing}}
 \end{center}
 \end{figure}
@@ -59,7 +51,7 @@ and estimation and (iii) inference. These stages organise the buttons
 in SPM's base window.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{command}
+\includegraphics[width=100mm]{faces/command}
 \caption{\em The SPM base window comprises 
 three sections i) 
 spatial pre-processing, (ii) model specification, review 
@@ -78,7 +70,7 @@ Display eg. the first functional image using the
   graphics window.
   \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{dropout}
+\includegraphics[width=100mm]{faces/dropout}
 \caption{\em Signal dropout in EPI images. \label{dropout}}
 \end{center}
 \end{figure}
@@ -110,7 +102,7 @@ SPM will also create a mean image eg.
 step of spatial processing - coregistration.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{realign}
+\includegraphics[width=100mm]{faces/realign}
 \caption{\em Realignment of face data. Movement less than the size of a voxel, which for this data set is 3mm, is not considered problematic. \label{face_realign}}
 \end{center}
 \end{figure}
@@ -158,7 +150,7 @@ of the source file which in this case is the
 structural image \verb!sM03953_0007.img!.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{coreg}
+\includegraphics[width=100mm]{faces/coreg}
 \caption{\em Mutual Information Coeregistration  of Auditory data. \label{aud_coreg}}
 \end{center}
 \end{figure}
@@ -180,7 +172,7 @@ as described in the previous section (press segement
 and select . Figure \ref{face_gray} shows the gray matter image, \verb!c1sM03953_0007.img! along with the original structural.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{gray}
+\includegraphics[width=100mm]{faces/gray}
 \caption{\em Gray matter (top) produced by segmentation of structural image (below). \label{face_gray}}
 \end{center}
 \end{figure}
@@ -248,7 +240,7 @@ This will smooth the data by 8mm in each direction,
 the default smoothing kernel width.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{smooth}
+\includegraphics[width=100mm]{faces/smooth}
 \caption{\em Functional image (top) and 8mm-smoothed functional image (bottom). These images were plotted using SPM's `CheckReg' facility. \label{face_smooth}}
 \end{center}
 \end{figure}
@@ -310,7 +302,7 @@ SPM will then write an \verb$SPM.mat$ file to the
 matrix, as shown in Figure~\ref{cat_design}. 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat_design}
+\includegraphics[width=100mm]{faces/cat_design}
 \caption{\em Design matrix. \label{cat_design}}
 \end{center}
 \end{figure}
@@ -325,7 +317,7 @@ If you select `Explore' then `Session 1' then `N1', SPM will produce
 the plots shown in Figure~\ref{cat_explore}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat_explore}
+\includegraphics[width=100mm]{faces/cat_explore}
 \caption{\em Exploring the design matrix in Figure~\ref{cat_design}. This shows the time series of 
 the `active' regressor (top left), a frequency domain plot of the active regressor (top right) and 
 the basis function used to convert assumed neuronal activity into hemodynamic activity. In this model 
@@ -357,7 +349,7 @@ contrasts have been specified automatically, as shown
 in Figure~\ref{cat_contrasts}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat_contrasts}
+\includegraphics[width=100mm]{faces/cat_contrasts}
 \caption{\em Contrast Manager containing default contrasts for categorical design. \label{cat_contrasts}}
 \end{center}
 \end{figure}
@@ -386,7 +378,7 @@ To get a summary of local maxima, press the `Volume' button in the
 p-values section of the interactive window. This will list all clusters above the chosen level of significance as well as separate ($>$8mm apart) maxima within a cluster, with details of significance thresholds and search volume underneath, as shown in Figure~\ref{cat5_volume}
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat5_volume}
+\includegraphics[width=100mm]{faces/cat5_volume}
 \caption{\em MIP and Volume table for Canonical HRF: Faces  $>$ Baseline. \label{cat5_volume} }
 \end{center}
 \end{figure}
@@ -421,14 +413,14 @@ To assess the effect of presenting faces, as characterised by both the hrf {\em 
 Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{cat1_volume}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat1_contrast}
+\includegraphics[width=100mm]{faces/cat1_contrast}
 \caption{\em Contrast manager showing selection of the first contrast 'Average effect of condition', also known as `HRF + deriv: Faces  $>$ Baseline'. \label{cat1_contrast} }
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat1_volume}
+\includegraphics[width=100mm]{faces/cat1_volume}
 \caption{\em MIP and Volume table for Canonical HRF: Faces  $>$ Baseline. \label{cat1_volume} }
 \end{center}
 \end{figure}
@@ -453,14 +445,14 @@ The relative contributions of the canonical hrf and its temporal derivative may 
 Again, when the MIP appears, press 'Volume'. This should result in the display should in Figure~\ref{cat_all_volume}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat_all_contrast}
+\includegraphics[width=100mm]{faces/cat_all_contrast}
 \caption{\em Contrast manager showing specification of `All effects of interest'. \label{cat_all_contrast} }
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{cat_all_volume}
+\includegraphics[width=100mm]{faces/cat_all_volume}
 \caption{\em MIP and Volume table for `All effects of interest'. \label{cat_all_volume} }
 \end{center}
 \end{figure}
@@ -474,7 +466,7 @@ Move the cursor to e.g. the anterior right fusiform blob (the R fusiform face ar
 Figure~\ref{con_all_plot}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{con_all_plot}
+\includegraphics[width=100mm]{faces/con_all_plot}
 \caption{\em Estimated effect sizes and 90\% confidence intervals for all effects of interest. Columns 1,3,5,7 are the canonical hrfs for N1 (non-famous faces, first presentation), N2 (non-famous faces, second presentation), F1 (famous faces, 1st presentation) and F2 (famous faces, 2nd presentation), whereas columns 2,4,6,8 are the temporal derivatives. \label{con_all_plot} }
 \end{center}
 \end{figure}
@@ -499,7 +491,7 @@ Submit and select the contrast, specify `mask with other contrasts?' (no), `titl
  \ei
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{rotations}
+\includegraphics[width=100mm]{faces/rotations}
 \caption{\em Rotation-related activations. These spurious `activations' are due to rotation of the head during scanning. These effects occur at tissue boundaries and boundaries between brain and non-brain, as this is where contrast differences 
 are greatest. Including these regressors in the design matrix means these effects cannot be falsely attributed 
 to neuronal activity. \label{rotations} }
@@ -538,7 +530,7 @@ Now press the `Specify 1st-level' button. This will call up the specification of
 This should produce the design matrix shown in Figure~\ref{par_design}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{par_design}
+\includegraphics[width=100mm]{faces/par_design}
 \caption{\em Design matrix for testing repetition effects parametrically. Regressor 2 indicates the second occurence of a nonfamous face. Regressor 3 modulates this linearly as a function of lag (ie. how many faces have been shown since that face was first presented), and regressor 4 modulates this quadratically as a function of lag. Regressors 6,7 and 8 play the same roles, but for famous faces. \label{par_design} }
 \end{center}
 \end{figure}
@@ -614,7 +606,7 @@ Figure~\ref{famous_lag_mip} shows the MIP and an
 overlay of this parametric effect using overlays, sections and selecting the \verb!wmsM03953_0007.img! image. 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{famous_lag_mip}
+\includegraphics[width=100mm]{faces/famous_lag_mip}
 \caption{\em MIP and overlay of parametric lag effect in parietal cortex. \label{famous_lag_mip} }
 \end{center}
 \end{figure}
@@ -626,7 +618,7 @@ The effect is plotted in the time domain in figure~\ref{famous_lag}. This was ob
 \ei
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{famous_lag}
+\includegraphics[width=150mm]{faces/famous_lag}
 \caption{\em Response as a function of lag. \label{famous_lag} }
 \end{center}
 \end{figure}
@@ -663,7 +655,7 @@ file saved in the \verb!DIR\bayesian! subdirectory}
 \ei
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{face_ar1}
+\includegraphics[width=100mm]{faces/face_ar1}
 \caption{\em {\bf Bayesian analysis: Estimated AR(1) coefficient image indicating heterogeneity near the circle of Willis} \label{face_ar1} }
 \end{center}
 \end{figure}
@@ -710,11 +702,11 @@ normalised structural image created earlier and move the cursor to the activatio
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{face_bayes}
+\includegraphics[width=100mm]{faces/face_bayes}
 \caption{\em {\bf Bayesian analysis:} MIP and overlay of effect sizes at voxels 
 where SPM is 99\% sure that the effect size is greater 
 than 2\% of the global mean. The cursor is at the location $x=45,y=-48,z=-21$mm\label{face_bayes} }
 \end{center}
 \end{figure}
 
-\end{document}
+
