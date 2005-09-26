@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 229 2005-09-13 15:53:53Z stefan $
+% $Id: spm_nlsi_GN.m 244 2005-09-26 18:39:36Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ iu    = [1:nu] + np;
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
 pC    = V'*pC*V;
-uC    = speye(nu)*1e+8;
+uC    = speye(nu)/1e-8;
 ipC   = inv(spm_cat(diag({pC,uC})));
  
 % initialise
@@ -165,7 +165,7 @@ for k = 1:64
  
         % precision and conditional covariance
         %------------------------------------------------------------------
-        iS    = sparse(ne,ne);
+        iS    = speye(ne,ne)*1e-8;
         for i = 1:nh
             iS = iS + Q{i}*exp(h(i));
         end
