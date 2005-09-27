@@ -14,7 +14,7 @@ function ob = spm_config_dummy(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_dummy.m 245 2005-09-27 14:16:41Z guillaume $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 ob.help = {[...

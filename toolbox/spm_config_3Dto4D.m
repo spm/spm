@@ -4,7 +4,7 @@ function c = spm_config_3Dto4D(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_3Dto4D.m 245 2005-09-27 14:16:41Z guillaume $
 
 vols.type = 'files';
 vols.name = '3D Volumes';

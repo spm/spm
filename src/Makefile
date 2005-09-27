@@ -1,6 +1,6 @@
 #!make -f
 #
-# $Id$
+# $Id: Makefile 245 2005-09-27 14:16:41Z guillaume $
 #
 ###############################################################################
 #
@@ -12,8 +12,6 @@
 # For a list of compatible compilers, see
 # http://www.mathworks.com/support/tech-notes/1600/1601.html
 # http://www.mathworks.com/support/tech-notes/1600/1601_files/1601_65.html
-#
-# $Log$
 #
 ###############################################################################
 
@@ -51,7 +49,7 @@ Linux:
 	make all SUF=mexglx  CC="gcc -O3 -funroll-loops -fPIC -fexceptions"\
 	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
 Linux.A64:
-# The '-fPIC' option is nexessary to allow the linking proces to complete. 
+# The '-fPIC' option is necessary to allow the linking process to complete. 
 # '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
 # If the code is running on a 64bit Xeon you can change '-march=x86-64' to 
 # '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
@@ -415,7 +413,6 @@ spm_def2det.$(SUF): spm_def2det.c
 
 verb.unknown:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "PROBLEM: Dont know how to do this."
 	@ echo "_____________________________________________________________"
@@ -423,7 +420,6 @@ verb.unknown:
 
 verb.mexhp7:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "unix compile for hpux cc, and maybe aix cc"
 	@ echo ""
@@ -438,7 +434,6 @@ verb.mexhp7:
 
 verb.mexsg:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
 	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
@@ -454,7 +449,6 @@ verb.mexsg:
 
 verb.mexsg64:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "not optimised sgi 64 bit compile for CC"
 	@ echo ""
@@ -464,7 +458,6 @@ verb.mexsg64:
 
 verb.dll:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Windows compile with gcc/cygwin"
 	@ echo "see http://gnumex.sourceforge.net/"
@@ -475,7 +468,6 @@ verb.dll:
 
 verb.mexsol:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Unix compile"
 	@ echo "_____________________________________________________________"
@@ -483,7 +475,6 @@ verb.mexsol:
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation - using gcc"
 	@ echo "_____________________________________________________________"
@@ -491,7 +482,6 @@ verb.mexglx:
 
 verb.mexa64:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Linux compilation (Matlab 7.x, 64bits) - using gcc"
 	@ echo "_____________________________________________________________"
@@ -499,7 +489,6 @@ verb.mexa64:
 
 verb.mexaxp:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "keep your fingers crossed"
 	@ echo "_____________________________________________________________"
@@ -507,9 +496,7 @@ verb.mexaxp:
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
-	@ echo "%M% %I% %E%"
 	@ echo ""
 	@ echo "Unix compile for MacOS X"
 	@ echo "_____________________________________________________________"
 	@ echo ""
-

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_mapping.c 245 2005-09-27 14:16:41Z guillaume $
  */
 
 /* matlab dependent high level data access and map manipulation routines */
@@ -11,7 +11,6 @@
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
-typedef char *caddr_t;
 #else
 #include <unistd.h>
 #endif

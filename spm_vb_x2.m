@@ -2,14 +2,15 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % Compute and write Chi^2 image
 % FORMAT [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 %
-% SPM   SPM data structure
-% XYZ   voxel list
-% xCon  Contrast info
-% ic    contrast number
+% SPM  - SPM data structure
+% XYZ  - voxel list
+% xCon - contrast info
+% ic   - contrast number
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
+% $Id: spm_vb_x2.m 245 2005-09-27 14:16:41Z guillaume $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
@@ -25,7 +26,7 @@ kc = size(c,2);
 
 %-Get posterior beta's
 %-----------------------------------------------------------------------
-Nk    = size(SPM.xX.X,2);
+Nk = size(SPM.xX.X,2);
 
 for k=1:Nk,
 	beta(k,:) = spm_get_data(SPM.VCbeta(k),XYZ);
@@ -33,7 +34,7 @@ end
 
 %-Get posterior SD beta's
 %-----------------------------------------------------------------------
-Nk    = size(SPM.xX.X,2);
+Nk = size(SPM.xX.X,2);
 
 for k=1:Nk,
 	sd_beta(k,:) = spm_get_data(SPM.VPsd(k),XYZ);
@@ -42,7 +43,7 @@ end
 %-Get AR coefficients
 %-----------------------------------------------------------------------
 for s=1:nsess,
-	for p=1:SPM.PPM.AR_P
+	for p=1:SPM.PPM.AR_P,
 		Sess(s).a(p,:) = spm_get_data(SPM.PPM.Sess(s).VAR(p),XYZ);
 	end
 end
@@ -68,7 +69,7 @@ for v=1:Nvoxels,
 	V = zeros(kc,kc);
     m = zeros(kc,1);
     d = 0;
-	for s=1:nsess
+	for s=1:nsess,
         
 		%-Reconstruct approximation to voxel wise correlation matrix
 		%---------------------------------------------------------------

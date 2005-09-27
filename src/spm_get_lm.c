@@ -5,7 +5,7 @@
  ** the coordinate list for those maxima.
  **
  ***************************************************************/
-/* $Id: spm_get_lm.c 112 2005-05-04 18:20:52Z john $ */
+/* $Id: spm_get_lm.c 245 2005-09-27 14:16:41Z guillaume $ */
 
 #include "mex.h"
 #include <math.h>
@@ -31,7 +31,7 @@ unsigned int get_maxima(double        *vol,
                         unsigned int  cc,
                         unsigned int  **lindex);
 
-int index(int          x,
+int get_index(int          x,
           int          y,
           int          z,
           unsigned int dim[3]);
@@ -69,7 +69,7 @@ unsigned int get_maxima(double        *vol,
 
       ix = ((int) (list[j]+0.1)); iy = ((int) (list[j+1]+0.1)); iz = ((int) (list[j+2]+0.1));
       
-      if (index(ix,iy,iz,vdim) > 0)
+      if (get_index(ix,iy,iz,vdim) > 0)
       {
 	 if (is_maxima(vol,vdim,ix,iy,iz,cc))
 	 {
@@ -86,7 +86,7 @@ unsigned int get_maxima(double        *vol,
 }
 
 
-int index(int          x,
+int get_index(int          x,
           int          y,
           int          z,
           unsigned int dim[3])
@@ -105,43 +105,43 @@ int is_maxima(double       *v,
    int   ii = 0, i = 0;
    double cv = 0.0;
 
-   if ((ii=index(x,y,z,dim))<0) {return(0);}
+   if ((ii=get_index(x,y,z,dim))<0) {return(0);}
    cv = v[ii];
 
    if (cc >= 6)
    {
-      if ((i=index(x+1,y,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y+1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y-1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y+1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y-1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y,z-1,dim))>0 && v[i] > cv) {return(0);}
    }
    if (cc >= 18)
    {
-      if ((i=index(x+1,y+1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y-1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y+1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y-1,z,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y+1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y-1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y+1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y-1,z,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
    }
    if (cc == 26)
    {
-      if ((i=index(x+1,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x+1,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
-      if ((i=index(x-1,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x+1,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y+1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y+1,z-1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y-1,z+1,dim))>0 && v[i] > cv) {return(0);}
+      if ((i=get_index(x-1,y-1,z-1,dim))>0 && v[i] > cv) {return(0);}
    }
      
    return(1);
