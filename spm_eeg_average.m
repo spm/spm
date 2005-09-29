@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 216 2005-08-24 11:55:34Z stefan $
+% $Id: spm_eeg_average.m 246 2005-09-29 13:27:54Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -51,13 +51,14 @@ if isfield(D, 'Nfrequencies');
 		d = int16(d./repmat(D.scale.values(:, i), [1, D.Nfrequencies, D.Nsamples]));
 		fwrite(fpd, d, 'int16');
 	end
-	
+	    Ntypes = D.events.Ntypes;
 else
 	
 	if isfield(D, 'weights');	
 		d = zeros(D.Nchannels, D.Nsamples);
 		D.scale.dim = [1 3];
 		D.scale.values = zeros(D.Nchannels, D.events.Ntypes);
+        Ntypes = D.events.Ntypes;
 		for i = 1:D.events.Ntypes
 			
 			for j = 1:D.Nchannels
@@ -135,7 +136,7 @@ D.Nevents = Ntypes;
 D.events.code = D.events.types;
 D.events.time = [];
 
-if ~isfield(D, 'Nfrequencies');
+if ~isfield(D, 'Nfrequencies') & ~isfield(D, 'weights');
 
     D.events.repl = ni;
 	disp(sprintf('%s: Number of replications per contrast:', D.fname))

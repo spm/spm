@@ -1,7 +1,7 @@
 function [B,Wf]=robust_averaget(data,ks);
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 233 2005-09-19 11:00:04Z james $
+% $Id: spm_eeg_robust_averaget.m 246 2005-09-29 13:27:54Z james $
 if nargin==1
 	ks=3;
 end
@@ -37,7 +37,7 @@ while abs(ores-nres)>sqrt(1E-8)
 	mad=median(abs(res-median(res)));	
 	res=(res)./mad;
 	res=res.*h;	
- 	sm=gauss(12,2);
+ 	sm=gausswin(12);
  	sm=sm/sum(sm);
  	res=conv(sm,res);
 	res=res(6:end-6);
