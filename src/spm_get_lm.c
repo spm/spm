@@ -1,3 +1,7 @@
+/*
+ * $Id: spm_get_lm.c 247 2005-10-04 17:20:34Z guillaume $
+ */
+
 /****************************************************************
  **
  ** Routine that identifies which voxels in a list of coordinates
@@ -5,11 +9,11 @@
  ** the coordinate list for those maxima.
  **
  ***************************************************************/
-/* $Id: spm_get_lm.c 245 2005-09-27 14:16:41Z guillaume $ */
 
-#include "mex.h"
 #include <math.h>
 #include <limits.h>
+#include <string.h>
+#include "mex.h"
 
 /* Silly little macros. */
 
@@ -31,17 +35,17 @@ unsigned int get_maxima(double        *vol,
                         unsigned int  cc,
                         unsigned int  **lindex);
 
-int get_index(int          x,
-          int          y,
-          int          z,
-          unsigned int dim[3]);
+int get_index(int       x,
+          int           y,
+          int           z,
+          unsigned int  dim[3]);
 
-int is_maxima(double       *v,
-              unsigned int vdim[3],
-              int          x,
-              int          y,
-              int          z,
-              unsigned int cc);
+int is_maxima(double        *v,
+              unsigned int  vdim[3],
+              int           x,
+              int           y,
+              int           z,
+              unsigned int  cc);
 
 /* Here starts actual code. */
 
@@ -52,9 +56,9 @@ unsigned int get_maxima(double        *vol,
                         unsigned int  cc,
                         unsigned int  **ldx)
 {
-   int            i = 0, j = 0;
-   int            ix = 0, iy = 0, iz = 0;
-   unsigned int   ldx_sz = 0, ldx_n = 0;
+   int           i = 0, j = 0;
+   int           ix = 0, iy = 0, iz = 0;
+   unsigned int  ldx_sz = 0, ldx_n = 0;
 
    *ldx = (unsigned int *) mxCalloc((ldx_sz = 1000),sizeof(unsigned int));
 
@@ -86,21 +90,22 @@ unsigned int get_maxima(double        *vol,
 }
 
 
-int get_index(int          x,
-          int          y,
-          int          z,
-          unsigned int dim[3])
+int get_index(int       x,
+          int           y,
+          int           z,
+          unsigned int  dim[3])
 {
    if (x < 1 || x > dim[0] || y < 1 || y > dim[1] || z < 1 || z > dim[2]) {return(-1);}
    else {return((z-1)*dim[0]*dim[1]+(y-1)*dim[0]+x-1);}
 }
 
-int is_maxima(double       *v,
-              unsigned int dim[3],
-              int          x,
-              int          y,
-              int          z,
-              unsigned int cc)
+
+int is_maxima(double        *v,
+              unsigned int  dim[3],
+              int           x,
+              int           y,
+              int           z,
+              unsigned int  cc)
 {
    int   ii = 0, i = 0;
    double cv = 0.0;
@@ -149,27 +154,28 @@ int is_maxima(double       *v,
 
 /* Gateway function with error check. */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int            nlhs,      /* No. of output arguments */
+                 mxArray        *plhs[],   /* Output arguments. */ 
+                 int            nrhs,      /* No. of input arguments. */
+                 const mxArray  *prhs[])   /* Input arguments. */
 {
-   int                  i = 0, j = 0, k = 0;
-   int                  tmpint = 0;
-   unsigned int         ndim = 0;
-   const unsigned int   *pdim = NULL;
-   unsigned int         vdim[3];
-   unsigned int         ln = 0, lm = 0;
-   unsigned int         n_lindex = 0;
-   unsigned int         *lindex = NULL;
-   double               *vol = NULL;
-   double               *lp = NULL;
-   double               *list = NULL;
-   double               *plindex = NULL;
+   int                 i = 0, j = 0, k = 0;
+   int                 tmpint = 0;
+   unsigned int        ndim = 0;
+   const unsigned int  *pdim = NULL;
+   unsigned int        vdim[3];
+   unsigned int        ln = 0, lm = 0;
+   unsigned int        n_lindex = 0;
+   unsigned int        *lindex = NULL;
+   double              *vol = NULL;
+   double              *lp = NULL;
+   double              *list = NULL;
+   double              *plindex = NULL;
    
-   if (nrhs == 0) mexErrMsgTxt("usage: Lindex=spm_get_lm(VOL,L)");
-   if (nrhs != 2) mexErrMsgTxt("spm_get_lm: 2 input arguments required");
-   if (nlhs != 1) mexErrMsgTxt("spm_get_lm: 1 output argument required");
+   if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
+   if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
+   if (nlhs < 1) mexErrMsgTxt("Not enough output arguments");
+   if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
 
    /* Get binary map. */
 
@@ -239,4 +245,3 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 
    return;
 }
-

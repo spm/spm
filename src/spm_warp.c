@@ -1,5 +1,5 @@
 /*
- * $Id: spm_warp.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_warp.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 /* Note that according to the Matlab documentation, one should "avoid
@@ -89,10 +89,10 @@ static float resample_d(unsigned char vol[], float x1, float x2, float x3, int d
 }
 
 #ifdef ZEROMASK
-#define known(x) (((x)!=0) && mxIsFinite(x))
+#define KNOWN(x) (((x)!=0) && mxIsFinite(x))
 #endif
 #ifndef ZEROMASK
-#define known(x) mxIsFinite(x)
+#define KNOWN(x) mxIsFinite(x)
 #endif
 
 static void invertX(float X[4][3], float IX[4][4], float *dt)
@@ -403,9 +403,9 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 	float *hf, float *hp, int *n, float *sumf, float *sumg, int *cnt, int sgn)
 {
 	float h0, dh0, dh1, dh2, t0, t1, t2, tt0, tt1, tt2, d;
-	float hf0, hf1;
+	float hf0 = 0, hf1 = 0;
 	float hp0, hp1, dhp0, dhp1, dhp2;
-	float f, df0, df1, df2, g;
+	float f, df0, df1, df2, g = 0;
 	float *y0, *y1, *y2;
 	int i, iter, o;
 	int flg = 0;
@@ -438,7 +438,7 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 	dhp2 *= vox_f[2];
 
 	f    = resample_d(fvol, t0, t1, t2, dim_f, &df0,&df1,&df2);
-	if (!known(f))
+	if (!KNOWN(f))
 	{
 		flg  = 1;
 		h0   =  hp0*lambda;
@@ -459,9 +459,9 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 		dh2    = d*df2+dhp2*lambda;
 	}
 
-	if (!known(h0))
+	if (!KNOWN(h0))
 	{
-		(void)mexPrintf("X");
+		mexPrintf("X");
 		return;
 	}
 
@@ -489,7 +489,7 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 				tt2      = t2 - dh2*epsilon;
 				if (++iter>32)
 				{
-					(void)mexPrintf("x");
+					mexPrintf("x");
 					*hp += hp0;
 					if (!flg)
 					{
@@ -525,7 +525,7 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 		if (!flg)
 		{
 			f    = resample(fvol, tt0, tt1, tt2, dim_f);
-			if (!known(f))
+			if (!KNOWN(f))
 			{
 				h0   = hp0*lambda;
 				h1   = hp1*lambda;
@@ -618,13 +618,13 @@ static void warp3d(unsigned char g[], unsigned char f[],
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 				}
 			}
-			/* (void)mexPrintf("."); */
+			/* mexPrintf("."); */
 		}
 	}
 	*epsilon = *epsilon/cnt*n;
 	*scale = sumg/sumf;
 	*sigma2 = hf/n;
-	(void)mexPrintf("%.8g\n", hf/n);
+	mexPrintf("%.8g\n", hf/n);
 
 	sumf = sumg = 0.0;
 	hf = 0.0; hp = 0.0; n = 0; cnt = 0;
@@ -655,13 +655,13 @@ static void warp3d(unsigned char g[], unsigned char f[],
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 				}
 			}
-			/* (void)mexPrintf("."); */
+			/* mexPrintf("."); */
 		}
 	}
 	*epsilon = *epsilon/cnt*n;
 	*scale   = sumg/sumf;
 	*sigma2  = hf/n;
-	(void)mexPrintf("%.8g\n", hf/n);
+	mexPrintf("%.8g\n", hf/n);
 }
 
 static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y1[], float y2[], int dim_g[3], int dim_f[3])
@@ -677,7 +677,7 @@ static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y
 				o = x0 + dim_g[0]*(x1 + x2*dim_g[1]);
 				gpix = g[o];
 				fpix = resample(f, y0[o], y1[o], y2[o], dim_f);
-				if (known(fpix))
+				if (KNOWN(fpix))
 				{
 					sumg += gpix;
 					sumf += fpix;
@@ -702,7 +702,7 @@ static float get_sumsq(unsigned char g[], unsigned char f[], float y0[], float y
 				o = x0 + dim_g[0]*(x1 + x2*dim_g[1]);
 				gpix = g[o];
 				fpix = resample(f, y0[o], y1[o], y2[o], dim_f);
-				if (known(fpix))
+				if (KNOWN(fpix))
 				{
 					tmp     = gpix-fpix*scale;
 					sigma2 += tmp*tmp;
@@ -724,7 +724,7 @@ static void estimate_warps(unsigned char g[], unsigned char f[],
 	sigma2 = get_sumsq(g,f,y0,y1,y2,dim_g,dim_f, scale);
 	for(iter=0; iter<its; iter++)
 	{
-		/* (void)mexPrintf("%d: ", iter+1); */
+		/* mexPrintf("%d: ", iter+1); */
 		warp3d(g,f,y0,y1,y2, dim_g,vox_g, dim_f,vox_f, &lambda, &epsilon, &sigma2, &scale, meth);
 	}
 }

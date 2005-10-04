@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_access.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_vol_access.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 /* matlab independent image access routines;
@@ -22,10 +22,7 @@ int get_datasize(int type)
 	return(0);
 }
 
-int resample(m,vol,out,x,y,z,hold, background)
-int m, hold;
-double out[], x[], y[], z[], background;
-MAPTYPE *vol;
+int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, int hold, double background)
 {
 	extern void resample_uchar(), resample_short(), resample_int(), resample_float(),
 		resample_double(), resample_short_s(), resample_int_s(), resample_float_s(),
@@ -81,10 +78,7 @@ MAPTYPE *vol;
 	return(0);
 }
 
-int resample_d(m,vol,out,gradx,grady,gradz,x,y,z, hold, background)
-int m, hold;
-double out[], gradx[],grady[],gradz[], x[], y[], z[], background;
-MAPTYPE *vol;
+int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, double *gradz, double *x, double *y, double *z, int hold, double background)
 {
 	extern void resample_d_uchar(), resample_d_short(), resample_d_int(), resample_d_float(),
 		resample_d_double(), resample_d_short_s(), resample_d_int_s(), resample_d_float_s(),
@@ -140,10 +134,7 @@ MAPTYPE *vol;
 	return(0);
 }
 
-int slice(mat, image, xdim1,ydim1, vol, hold,background)
-int ydim1,xdim1, hold;
-double image[], mat[], background;
-MAPTYPE *vol;
+int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int hold, double background)
 {
 	int sts = 1;
 	if (vol->dtype == SPM_UNSIGNED_CHAR)
@@ -195,4 +186,3 @@ MAPTYPE *vol;
 	}
 	return(sts);
 }
-

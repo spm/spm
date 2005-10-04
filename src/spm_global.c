@@ -1,3 +1,7 @@
+/*
+ * $Id: spm_global.c 247 2005-10-04 17:20:34Z guillaume $
+ */
+
 /* returns the global mean for a memory mapped volume image
   FORMAT [G] = spm_global(V)
   V   - memory mapped volume
@@ -9,12 +13,10 @@
  
   The mean is estimated after discounting voxels outside the object
   using a criteria of greater than > (global mean)/8
-
-  $Id: spm_global.c 112 2005-05-04 18:20:52Z john $
 */
 
-
-#include "spm_sys_deps.h"
+#include <math.h>
+#include "mex.h"
 #include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -27,7 +29,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if (nrhs != 1 || nlhs > 1)
 	{
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 
 	map = get_maps(prhs[0], &j);
@@ -35,7 +37,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (j != 1)
 	{
 		free_maps(map, j);
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 	n = (map->dim[0])*(map->dim[1]);
 	dat = (double *)mxCalloc(n, sizeof(double));
@@ -47,7 +49,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		M[14] = i+1;
 		slice(M, dat, map->dim[0],map->dim[1], map, 0,0);
 		for(j=0;j<n; j++)
-			if (finite(dat[j]))
+			if (mxIsFinite(dat[j]))
 			{
 				s1 += dat[j];
 				m ++;

@@ -1,12 +1,12 @@
 /*
- * $Id: spm_matfuns.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_matfuns.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 #include <math.h>
 
 int gaussj(double *a, int n, double *b, int m)
 {
-	int icol, ipiv[64], irow, i, j, k, l, indxc[64], indxr[64], ll;
+	int icol = 0, ipiv[64], irow = 0, i, j, k, l, indxc[64], indxr[64], ll;
 	double pivinv, big, dum;
 
 	if (n>64) return(1);

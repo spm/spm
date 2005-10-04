@@ -1,3 +1,7 @@
+/*
+ * $Id: spm_bwlabel.c 247 2005-10-04 17:20:34Z guillaume $
+ */
+
 /****************************************************************
  **
  ** Set of routines implementing a 2D or 3D connected component
@@ -16,12 +20,9 @@
  ** and Image Processing 54(4):357-364.
  **
  ***************************************************************/
-/**
- ** $Id: spm_bwlabel.c 112 2005-05-04 18:20:52Z john $
- **/
 
-#include "mex.h"
 #include <math.h>
+#include "mex.h"
 #include <limits.h>
 
 /* Silly little macros. */
@@ -103,11 +104,11 @@ unsigned int do_initial_labelling(double         *bw,   /* Binary map */
                {
                   if (r)
                   {
-                     if (l = il[index(r-1,c,sl,dim)]) {nabo[nr_set++] = l;}
+                     if ((l = il[index(r-1,c,sl,dim)])) {nabo[nr_set++] = l;}
                   }
                   if (c)
                   {
-                     if (l = il[index(r,c-1,sl,dim)]) {nabo[nr_set++] = l;}
+                     if ((l = il[index(r,c-1,sl,dim)])) {nabo[nr_set++] = l;}
                   }
                }
                /*
@@ -118,11 +119,11 @@ unsigned int do_initial_labelling(double         *bw,   /* Binary map */
 	       {
                   if (c && r)
                   {
-                     if (l = il[index(r-1,c-1,sl,dim)]) {nabo[nr_set++] = l;}
+                     if ((l = il[index(r-1,c-1,sl,dim)])) {nabo[nr_set++] = l;}
                   }
                   if (c && (r < dim[0]-1))
                   {
-                     if (l = il[index(r+1,c-1,sl,dim)]) {nabo[nr_set++] = l;}
+                     if ((l = il[index(r+1,c-1,sl,dim)])) {nabo[nr_set++] = l;}
                   }
                }
                if (nr_set)
@@ -177,21 +178,21 @@ unsigned int check_previous_slice(unsigned int *il,     /* Initial labelling map
   
    if (conn >= 6)
    {
-      if (l = il[index(r,c,sl-1,dim)]) {nabo[nr_set++] = l;}
+      if ((l = il[index(r,c,sl-1,dim)])) {nabo[nr_set++] = l;}
    }
    if (conn >= 18)
    {
-      if (r) {if (l = il[index(r-1,c,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if (c) {if (l = il[index(r,c-1,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if (r < dim[0]-1) {if (l = il[index(r+1,c,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if (c < dim[1]-1) {if (l = il[index(r,c+1,sl-1,dim)]) {nabo[nr_set++] = l;}}
+      if (r) {if ((l = il[index(r-1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (c) {if ((l = il[index(r,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (r < dim[0]-1) {if ((l = il[index(r+1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (c < dim[1]-1) {if ((l = il[index(r,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
    }
    if (conn == 26)
    {
-      if (r && c) {if (l = il[index(r-1,c-1,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if ((r < dim[0]-1) && c) {if (l = il[index(r+1,c-1,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if (r && (c < dim[1]-1)) {if (l = il[index(r-1,c+1,sl-1,dim)]) {nabo[nr_set++] = l;}}
-      if ((r < dim[0]-1) && (c < dim[1]-1)) {if (l = il[index(r+1,c+1,sl-1,dim)]) {nabo[nr_set++] = l;}}
+      if (r && c) {if ((l = il[index(r-1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if ((r < dim[0]-1) && c) {if ((l = il[index(r+1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (r && (c < dim[1]-1)) {if ((l = il[index(r-1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if ((r < dim[0]-1) && (c < dim[1]-1)) {if ((l = il[index(r+1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
    }
 
    if (nr_set) 
@@ -284,7 +285,6 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
                  const mxArray   *prhs[])   /* Input arguments. */
 {
    int            ndim;
-   int            num;
    int            n, i;
    const int      *cdim = NULL;
    unsigned int   conn;
@@ -296,14 +296,13 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    unsigned int   *tt = NULL;
    double         *bw = NULL;
    double         *l = NULL;
-   double         *tratab = NULL;
    double         dconn = 0.0;
    double         nl = 0.0;
 
-
-   if (nrhs == 0) mexErrMsgTxt("usage: [L,NUM]=spm_bwlabel(BW,CONN)");
-   if (nrhs != 2) mexErrMsgTxt("spm_bwlabel: 2 input arguments required");
-   if (nlhs != 2) mexErrMsgTxt("spm_bwlabel: 2 output argument required");
+   if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
+   if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
+   if (nlhs < 2) mexErrMsgTxt("Not enough output arguments");
+   if (nlhs > 2) mexErrMsgTxt("Too many output arguments.");
 
    /* Get binary map. */
 
@@ -346,8 +345,8 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    l = mxGetPr(plhs[0]);
   
    /* Initialise output maps to zero. */
-
-   memset(l,0,n*sizeof(double));
+   /* => mxCreateNumericArray initializes all its real data elements to 0. */
+   /* memset(l,0,n*sizeof(double)); */
 
    /* Allocate memory for initial labelling map. */
 

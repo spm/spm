@@ -1,5 +1,5 @@
 /*
- * $Id: spm_list_files.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_list_files.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 #include <string.h>
@@ -144,7 +144,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	static struct stat stbuf;
 
 	if ((nrhs != 2) || (nlhs != 2))
-		mexErrMsgTxt("Incorrect Usage.");
+		mexErrMsgTxt("Incorrect usage.");
 
 	if (mxIsNumeric(prhs[0]) || mxIsNumeric(prhs[1]))
 		mexErrMsgTxt("Arguments must be strings.");

@@ -1,13 +1,11 @@
 /*
- * $Id: spm_unlink.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_unlink.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 /* Do a silent deletion of files on disk */
 
+#include <stdio.h>
 #include "mex.h"
-#ifndef SPM_WIN32
-#include <unistd.h>
-#endif
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -16,11 +14,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	for(i=0; i<nrhs; i++)
 	{
-		const mxArray *matptr;
-		matptr = prhs[i];
+		const mxArray *matptr = prhs[i];
 		if (!mxIsNumeric(matptr))
 		{
-			char *str;
+			char *str = NULL;
 			int k, stlen;
 			
 			stlen = mxGetN(matptr);
@@ -34,7 +31,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 					str[k] = '\0';
 					break;
 				}
-			unlink(str); /* not bothered about return status */
+			remove(str); /* not bothered about return status */
 			mxFree(str);
 		}
 		else

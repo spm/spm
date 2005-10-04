@@ -1,18 +1,18 @@
-/* $Id: spm_sys_deps.h 112 2005-05-04 18:20:52Z john $ */
+/*
+ * $Id: spm_sys_deps.h 247 2005-10-04 17:20:34Z guillaume $
+ */
 
-#ifndef SYS_DEP
-#define SYS_DEP
+#ifndef _SPM_SYS_DEP_H_
+#define _SPM_SYS_DEP_H_
+
 #ifdef SPM_WIN32
-#define rint(x) floor((x)+0.5)  /* round to nearest int */
-#define finite(x) mxIsFinite(x) /* finite */
-#define SEPCHAR      '\\'          /* directory separator */
-#include <process.h>
+  #define SEPCHAR      '\\'  /* directory separator */
 #else /* SPM_WIN32 */
-#define SEPCHAR      '/'           /* directory separator */
-extern double rint(double);
+  #define SEPCHAR      '/'   /* directory separator */
 #endif /* SPM_WIN32 */
+
 #ifndef MAXNAMLEN
-/* default (very long) maximum filename length */
-#define MAXNAMLEN 1024
+#define MAXNAMLEN 1024       /* default (very long) maximum filename length */
 #endif
-#endif /* SYS_DEP */
+
+#endif /* _SPM_SYS_DEP_H_ */

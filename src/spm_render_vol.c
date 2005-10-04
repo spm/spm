@@ -1,10 +1,10 @@
 /*
- * $Id: spm_render_vol.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_render_vol.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
-#include "spm_mapping.h"
 #include <math.h>
-#include "spm_sys_deps.h"
+#include "mex.h"
+#include "spm_mapping.h"
 
 void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, vol, thresh)
 double  mat[16];
@@ -209,13 +209,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *out, *odims, *params, *zbuff, *x, *y, *z;
 	double light[3];
 
-	if (nrhs != 4 || nlhs > 5) mexErrMsgTxt("Inappropriate usage.");
+	if (nrhs != 4 || nlhs > 5) mexErrMsgTxt("Incorrect usage.");
 
 	map = get_maps(prhs[0], &n);
 	if (n!=1)
 	{
 		free_maps(map, n);
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 
 	for(k=1; k<nrhs; k++)

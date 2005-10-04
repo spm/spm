@@ -1,5 +1,5 @@
 /*
- * $Id: spm_make_lookup.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_make_lookup.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 /* Generate a lookup table for Lagrange interpolation
@@ -7,16 +7,13 @@
 */
 
 #include <math.h>
-#include "spm_sys_deps.h"
+#include "spm_make_lookup.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846
 #endif
 
-void make_lookup_poly(coord,q,dim, d1, table,ptpend)
-double coord;
-double table[], **ptpend;
-int q, dim, *d1;
+void make_lookup_poly(double coord, int q, int dim, int *d1, double *table, double **ptpend)
 {
 	register int d2, fcoord;
 	register int k, m;
@@ -117,10 +114,7 @@ int q, dim, *d1;
    and also one for the derivatives (produced numerically)
    See page 98 of `Fundamentals of Digital Image Processing'
 */
-void make_lookup_poly_grad(coord,q,dim, d1, table,dtable,ptpend)
-double coord;
-double table[], dtable[], **ptpend;
-int q, dim, *d1;
+void make_lookup_poly_grad(double coord, int q, int dim, int *d1, double *table, double *dtable, double **ptpend)
 {
 	register int d2, fcoord;
 	register int k, m;
@@ -243,10 +237,7 @@ int q, dim, *d1;
 
 /* Generate a sinc lookup table with a Hanning filter envelope
    The function now integrates to unity. */
-void make_lookup_sinc(coord,q,dim, d1, table,ptpend)
-double coord;
-double table[], **ptpend;
-int q, dim, *d1;
+void make_lookup_sinc(double coord, int q, int dim, int *d1, double *table, double **ptpend)
 {
 	register int d2, d, fcoord;
 	register double *tp, *tpend, dtmp, sm;
@@ -308,10 +299,7 @@ int q, dim, *d1;
 /* Generate a sinc lookup table with a Hanning filter envelope + a lookup of the
    derivatives.
    The function now integrates to unity. */
-void make_lookup_sinc_grad(coord,q,dim, d1, table,dtable,ptpend)
-double coord;
-double table[], dtable[], **ptpend;
-int q, dim, *d1;
+void make_lookup_sinc_grad(double coord, int q, int dim, int *d1, double *table, double *dtable, double **ptpend)
 {
 	register int d2, d, fcoord;
 	register double *tp, *dtp, *tpend, dtmp0, dtmp1, sdtmp,cdtmp, sm, sm1;

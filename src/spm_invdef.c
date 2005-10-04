@@ -1,5 +1,5 @@
 /*
- * $Id: spm_invdef.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_invdef.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 /*  Invert a deformation field.
@@ -22,8 +22,9 @@
 	Human Brain Mapping 9(4):212-225.
 */
 
-#include "mex.h"
 #include <math.h>
+#include "mex.h"
+
 #define MAXV 2048
 #define REAL float
 
@@ -504,7 +505,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int dim_g[3], dim_f[3];
 	REAL U[4][3], V[4][3];
 
-        if (nrhs != 6 || nlhs > 3) mexErrMsgTxt("Inappropriate usage.");
+        if (nrhs != 6 || nlhs > 3) mexErrMsgTxt("Incorrect usage.");
 
 	y0 = get_volume(prhs[0], dim_g);
 	y1 = get_volume(prhs[1], dim_f);

@@ -1,8 +1,10 @@
 /*
+ * $Id: file2mat.c 247 2005-10-04 17:20:34Z guillaume $
+ */
+
+/*
 Memory mapping is used by this module. For more information on this, see:
 http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
-
-$Id: file2mat.c 219 2005-08-31 16:17:08Z john $
 */
 
 #include <math.h>
@@ -19,6 +21,7 @@ HANDLE hFile, hMapping;
 typedef char *caddr_t;
 #else
 #include <sys/mman.h>
+#include <unistd.h>
 #endif
 
 #define MXDIMS 256

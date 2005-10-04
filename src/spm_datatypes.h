@@ -1,5 +1,11 @@
-/* $Id: spm_datatypes.h 112 2005-05-04 18:20:52Z john $
-   constants etc defining analyze / spm image data types */
+/* 
+ * $Id: spm_datatypes.h 247 2005-10-04 17:20:34Z guillaume $
+ */
+
+/* SPM image data types */
+
+#ifndef _SPM_DATATYPES_H_
+#define _SPM_DATATYPES_H_
 
 #define SPM_UNSIGNED_CHAR     2
 #define SPM_SIGNED_SHORT      4
@@ -18,5 +24,4 @@
 #define SPM_UNSIGNED_SHORT_S  (SPM_UNSIGNED_SHORT<<8)
 #define SPM_UNSIGNED_INT_S    (SPM_UNSIGNED_INT<<8)
 
-#define ISSWAPPED(A) 	(A > 256)
-#define DESWAP(A)		(A >> 8)
+#endif /* _SPM_DATATYPES_H_ */

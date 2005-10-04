@@ -1,8 +1,8 @@
 /*
- * $Id: spm_mapping.c 245 2005-09-27 14:16:41Z guillaume $
+ * $Id: spm_mapping.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
-/* matlab dependent high level data access and map manipulation routines */
+/* Matlab dependent high level data access and map manipulation routines */
 
 #include <math.h>
 #include <fcntl.h>
@@ -13,8 +13,9 @@
 #include <memory.h>
 #else
 #include <unistd.h>
+#include <sys/mman.h>
 #endif
-#include "spm_sys_deps.h"
+
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
 
@@ -28,9 +29,9 @@ void free_maps(MAPTYPE *maps, int n)
 		if (maps[j].addr)
 		{
 #ifdef SPM_WIN32
-                        (void)UnmapViewOfFile((LPVOID)(maps[j].addr));
+	(void)UnmapViewOfFile((LPVOID)(maps[j].addr));
 #else
-			(void)munmap((caddr_t)maps[j].addr, maps[j].len);
+	(void)munmap((caddr_t)maps[j].addr, maps[j].len);
 #endif
 			maps[j].addr=0;
 		}
@@ -59,7 +60,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 {
 	mxArray *tmp;
 	double *pr;
-	int num_dims, j, t, dtype;
+	int num_dims, j, t, dtype = 0;
 	const int *dims;
 	unsigned char *dptr;
 
@@ -200,7 +201,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 	int j;
 	mxArray *tmp;
 	double *pr;
-	int dsize, off;
+	int dsize = 0, off;
 #ifdef BIGENDIAN
 	int be = 1;
 #else
@@ -457,7 +458,7 @@ static MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 
 static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 {
-	int num_dims, jj, t, dtype;
+	int num_dims, jj, t, dtype = 0;
 	const int *dims;
 	MAPTYPE *maps;
 	unsigned char *dptr;

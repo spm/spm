@@ -1,6 +1,6 @@
 /*
-$Id: spm_add.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_add.c 247 2005-10-04 17:20:34Z guillaume $
+ */
  
 /*
 % add a series of images - a compiled routine
@@ -28,30 +28,28 @@ $Id: spm_add.c 112 2005-05-04 18:20:52Z john $
 */
 
 #include <math.h>
-#include "spm_sys_deps.h"
+#include "mex.h"
 #include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	MAPTYPE *maps, *get_maps();
-	double *sptr, *scales, *image, scale;
-	short **dptr;
+	MAPTYPE *maps = NULL, *get_maps();
+	double *sptr = NULL, *scales = NULL, *image = NULL, scale;
+	short **dptr = NULL;
 	int ni, nj, nk, i, j, k;
 	static double mat[] = {1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1};
 	int mask0flag = 0, floatflag = 0;
-	double NaN;
+	double NaN = mxGetNaN();
 	mxArray *wplane_args[3];
-	int maxval, minval;
+	int maxval = 0, minval = 0;
 	int dtype;
 
-	NaN = mxGetNaN();
-
 	if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
  	if (nrhs == 3)
  	{
  		if (!mxIsChar(prhs[2]))
- 			mexErrMsgTxt("Inappropriate usage.");
+ 			mexErrMsgTxt("Incorrect usage.");
  		else
  		{
  			char *buf;
@@ -173,7 +171,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			mn = 9e99;
 			for(k=0; k<nk; k++)
 			{
-				if (!floatflag && !finite(sptr[k])) sptr[k] = 0.0;
+				if (!floatflag && !mxIsFinite(sptr[k])) sptr[k] = 0.0;
 				if (sptr[k]>mx) mx=sptr[k];
 				if (sptr[k]<mn) mn=sptr[k];
 			}

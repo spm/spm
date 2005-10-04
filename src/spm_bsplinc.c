@@ -1,6 +1,7 @@
 /*
- * $Id: spm_bsplinc.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_bsplinc.c 247 2005-10-04 17:20:34Z guillaume $
  */
+ 
 /*
  * This code is a modified version of that of Philippe Thevenaz, which I took from:
  *	http://bigwww.epfl.ch/algorithms.html
@@ -24,10 +25,8 @@
 */
 
 #include <math.h>
-#include <mex.h>
-#include "spm_sys_deps.h"
+#include "mex.h"
 #include "spm_mapping.h"
-#include "spm_datatypes.h"
 
 
 /***************************************************************************************
@@ -350,7 +349,7 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
 				resample(1,vol,cp,&di,&dj,&dk,0, 0.0);
 
 				/* Not sure how best to handle NaNs */
-				if (!finite(*cp)) *cp = 0.0;
+				if (!mxIsFinite(*cp)) *cp = 0.0;
 			}
 		}
 	}
@@ -361,7 +360,7 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
 		if (get_poles(d[0], &np, p)) return(1);
 		for(k=0; k<vol->dim[2]; k++)
 		{
-			double dk = k+1;
+			/* double dk = k+1; */
 			for(j=0; j<vol->dim[1]; j++)
 			{
 				cp = &c[vol->dim[0]*(j+vol->dim[1]*k)];
@@ -422,10 +421,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	void (*splinc[3])();
 
 	if (nrhs < 2 || nlhs > 1)
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	if (mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) ||
 		(mxGetM(prhs[1])*mxGetN(prhs[1]) != 3 && mxGetM(prhs[1])*mxGetN(prhs[1]) != 6))
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 
 	for(k=0; k<3; k++)
 	{

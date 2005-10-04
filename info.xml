@@ -1,4 +1,4 @@
-<!-- $Id: info.xml 112 2005-05-04 18:20:52Z john $ -->
+<!-- $Id: info.xml 247 2005-10-04 17:20:34Z guillaume $ -->
 <productinfo
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">
@@ -9,7 +9,7 @@
   <type>toolbox</type>
   <icon>$toolbox/matlab/icons/matlabicon.gif</icon>
   
-  <!-- <help_location>./helpfiles/</help_location>  -->
+  <help_location>./man/</help_location>
   <!-- http://www.mathworks.com/support/solutions/data/1-1C77F.html?solution=1-1C77F -->
   <!-- http://www.mathworks.com/support/solutions/data/1-18U6Q.html?solution=1-18U6Q -->
   <!-- http://www.mathworks.com/access/helpdesk/help/techdoc/matlab_env/guiref16.html -->

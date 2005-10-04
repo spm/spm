@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!-- $Date: 2005-09-22 17:23:52 $ -->
+
+<toc version="1.0">
+
+<tocitem target="manual.html" image="$toolbox/matlab/icons/book_mat.gif">SPM Manual
+</tocitem>
+
+</toc>

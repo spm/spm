@@ -1,7 +1,8 @@
 /*
- * $Id: spm_slice_vol.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_slice_vol.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
+#include "mex.h"
 #include "spm_mapping.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -12,7 +13,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if (nrhs != 4 || nlhs > 1)
 	{
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 
 	map = get_maps(prhs[0], &n);

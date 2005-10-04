@@ -1,5 +1,5 @@
 /*
- * $Id: spm_project.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_project.c 247 2005-10-04 17:20:34Z guillaume $
  */
  
 /*
@@ -26,11 +26,10 @@ spm_project.c
 
 #include <math.h>
 #include <stdio.h>
-#include "spm_sys_deps.h"
 #include "mex.h"
 
-#define	max(A, B)	((A) > (B) ? (A) : (B))
-#define	min(A, B)	((A) < (B) ? (A) : (B))
+#define	MAX(A, B)	((A) > (B) ? (A) : (B))
+#define	MIN(A, B)	((A) < (B) ? (A) : (B))
 
 #define DX 182
 #define DY 218
@@ -46,7 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int		x,y,z,xdim,ydim,zdim;
 	double		q;
 
-	if (nrhs != 3 || nlhs > 1) mexErrMsgTxt("Inappropriate usage.");
+	if (nrhs != 3 || nlhs > 1) mexErrMsgTxt("Incorrect usage.");
 
 	for(k=0; k<nrhs; k++)
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
@@ -126,7 +125,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    z = (int) l[i*3 + 2];
     
 	    /* transverse */
-	    q = max(v[i], spm[(124 + y) + (104 - x)*m]);
+	    q = MAX(v[i], spm[(124 + y) + (104 - x)*m]);
 	    for (j = 0; j < ydim; j++) {
 		    for (k = 0; k < xdim; k++) {
 				spm[124 + j + y + (104 + k - x)*m] = q;
@@ -134,7 +133,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    }
     
 	    /* sagittal */
-	    q = max(v[i], spm[(124 + y) + (240 + z)*m]);
+	    q = MAX(v[i], spm[(124 + y) + (240 + z)*m]);
 	    for (j = 0; j < ydim; j++) {
 		    for (k = 0; k < zdim; k++) {
 				spm[124 + j + y + (238 + k + z)*m] = q;
@@ -142,7 +141,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    }
     
 	    /* coronal */
-	    q = max(v[i], spm[(276 + x) + (240 + z)*m]);
+	    q = MAX(v[i], spm[(276 + x) + (240 + z)*m]);
 	    for (j = 0; j < xdim; j++) {
 		    for (k = 0; k < zdim; k++) {
 				spm[276 + j + x + (238 + k + z)*m] = q;

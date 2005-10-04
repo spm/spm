@@ -1,13 +1,12 @@
 /*
-$Id: spm_atranspa.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_atranspa.c 247 2005-10-04 17:20:34Z guillaume $
+ */
 
 #include "mex.h"
 
 /* C = A'*A */
-void atranspa(m,n,A,C)
-int m,n;
-double A[/* m,n */], C[/* n,n */];
+/* A[m,n], C[n,n] */
+void atranspa(int m, int n, double A[], double C[]) 
 {
 	int i, j1,j2;
 	double *p1, *p2, c;
@@ -46,7 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	if (nrhs == 0) mexErrMsgTxt("Incorrect usage.");
 	if (nrhs != 1) mexErrMsgTxt("Only 1 input argument required.");
-	if (nlhs > 1) mexErrMsgTxt("Only 1 output argument required.");
+	if (nlhs > 1)  mexErrMsgTxt("Only 1 output argument required.");
 
 	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
 		mexErrMsgTxt("spm_atranspa: A must be numeric, real, full and double");
@@ -58,6 +57,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	C = mxGetPr(plhs[0]);
 
 	atranspa(m,n,A,C);
-
 }
 

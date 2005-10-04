@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_utils.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_vol_utils.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 #define TINY 5e-2
@@ -239,15 +239,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "spm_sys_deps.h"
 #include "spm_make_lookup.h"
-
-short getshort(short x);
-unsigned short getushort(unsigned short x);
-int getint(int x);
-unsigned int getuint(unsigned int x);
-float getfloat(float x);
-double getdouble(double x);
+#include "spm_getdata.h"
 
 static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
 

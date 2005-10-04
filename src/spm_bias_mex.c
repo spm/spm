@@ -1,13 +1,12 @@
 /*
-$Id: spm_bias_mex.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_bias_mex.c 247 2005-10-04 17:20:34Z guillaume $
+ */
 
+#include <math.h>
+#include "mex.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
-#include "spm_sys_deps.h"
-/* #include "spm_vol_utils.h" */
-#include "mex.h"
-/* #include <math.h> */
+
 #define EPS 2.2204460492503130808e-16
 #define MAXB 128 /* Maximum number of bases functions in each dimension */
 
@@ -529,7 +528,7 @@ void mexFunction1(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (n0!=1)
 	{
 		free_maps(vol, n0);
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 	n0 = vol->dim[0];
 	n1 = vol->dim[1];
@@ -571,7 +570,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexFunction1(nlhs, plhs, nrhs, prhs);
 		return;
 	}
-	if (nrhs != 6 || nlhs > 5) mexErrMsgTxt("Inappropriate usage.");
+	if (nrhs != 6 || nlhs > 5) mexErrMsgTxt("Incorrect usage.");
 
 	vol = get_maps(prhs[0], &n0);
 	if (n0!=1)

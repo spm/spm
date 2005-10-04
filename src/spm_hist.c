@@ -1,10 +1,10 @@
 /*
- * $Id: spm_hist.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_hist.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
 #include "mex.h"
 
-create_hist(int n, unsigned char c[], double f[], double h[])
+void create_hist(int n, unsigned char c[], double f[], double h[])
 {
     int i;
     for(i=0; i<n; i++)

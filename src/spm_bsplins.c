@@ -1,6 +1,7 @@
 /*
- * $Id: spm_bsplins.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_bsplins.c 247 2005-10-04 17:20:34Z guillaume $
+ */
+
 /*
  * This code is based on that of Philippe Thevenaz, which I took from:
  *	http://bigwww.epfl.ch/algorithms.html
@@ -19,9 +20,8 @@
 */
 
 
-#include <mex.h>
 #include <math.h>
-#include "spm_sys_deps.h"
+#include "mex.h"
 
 /***************************************************************************************
 Different degrees of B-splines
@@ -29,11 +29,11 @@ Different degrees of B-splines
 	returns value of basis function at x
 */
 
-static double wt1(double x)
+/*static double wt1(double x)
 {
 	x = fabs(x);
 	return((x > 1.0) ? (0.0) : (1.0 - x));
-}
+}*/
 
 static double wt2(double x)
 {
@@ -624,7 +624,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 				df0, df1, df2	- sampled derivatives
 	*/
 	if (nrhs < 5 || nlhs>4)
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 
 	for(k=0; k<5; k++)
 	{
@@ -634,7 +634,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	if ((mxGetM(prhs[4])*mxGetN(prhs[4]) != 3) && (mxGetM(prhs[4])*mxGetN(prhs[4]) != 6))
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 
 	/* Degree of spline */
 	for(k=0; k<3; k++)

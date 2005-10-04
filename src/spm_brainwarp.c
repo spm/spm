@@ -1,13 +1,13 @@
 /*
-$Id: spm_brainwarp.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_brainwarp.c 247 2005-10-04 17:20:34Z guillaume $
+ */
 
 #include <math.h>
-#include "spm_sys_deps.h"
+#include "mex.h"
 #include "spm_mapping.h"
+
 extern int AbackslashB(double *, double *, double *);
 extern void MtimesX(double *, double *, double *);
-
 
 /*
 INPUTS
@@ -481,14 +481,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	MAPTYPE *map1, *map2, *mapw, /** object */ *mapw2;
 	int i, nx,ny,nz,ni=1, samp[3], edgeskip[3];
-	double *M, *B0, *B1, *B2, *dB0, *dB1, *dB2, *T, fwhm, fwhm2, fwhm3, df, chi2=0.0, ss_deriv[3];
+	double *M, *B0, *B1, *B2, *dB0, *dB1, *dB2, *T, fwhm = 0, fwhm2 = 0, fwhm3, df, chi2=0.0, ss_deriv[3];
 	double pixdim[3], nsamp;
 
 	/* also accept 13th argument - object volume weighting */
 	int iW;
         if (((nrhs != 11) && (nrhs != 12) && (nrhs != 13)) || (nlhs > 4))
         {
-                mexErrMsgTxt("Inappropriate usage. ([A,B,var,fwhm]=f(V1,V2,M,B0,B1,B2,dB0,dB1,dB2,T,fwhm);)");
+                mexErrMsgTxt("Incorrect usage.");
         }
 
         map1 = get_maps(prhs[0], &ni);
@@ -497,7 +497,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 		free_maps(map1, ni);
 		free_maps(map2,  i);
-		mexErrMsgTxt("Inappropriate usage.");
+		mexErrMsgTxt("Incorrect usage.");
 	}
 
 	for (i=2; i<=10; i++)
@@ -629,7 +629,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 				free_maps(map1, ni);
 				free_maps(map2,  1);
 				free_maps(mapw,  i);
-				mexErrMsgTxt("Inappropriate usage.");
+				mexErrMsgTxt("Incorrect usage.");
 			}
 
 		}
@@ -643,7 +643,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 				free_maps(map2,  1);
 				free_maps(mapw2,  iW);
 				free_maps(mapw,  i);
-				mexErrMsgTxt("Inappropriate usage.");
+				mexErrMsgTxt("Incorrect usage.");
 			}
 		}
 	}

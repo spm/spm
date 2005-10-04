@@ -1,6 +1,6 @@
 /*
-$Id: spm_affdef.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: spm_affdef.c 247 2005-10-04 17:20:34Z guillaume $
+ */
 
 /* Note that according to the Matlab documentation, one should "avoid
    modifying input arguments in MEX-files".
@@ -42,7 +42,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *M;
 
         if (nrhs != 4 || nlhs >0)
-                mexErrMsgTxt("Inappropriate usage.");
+                mexErrMsgTxt("Incorrect usage.");
 
 	y0 = get_volume(prhs[0], dim_g);
 	y1 = get_volume(prhs[1], dim_f);

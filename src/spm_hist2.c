@@ -1,9 +1,9 @@
 /*
- * $Id: spm_hist2.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_hist2.c 247 2005-10-04 17:20:34Z guillaume $
  */
 
-#include "math.h"
-#include "spm_sys_deps.h"
+#include <math.h>
+#include "mex.h"
 
 float samp(const int d[3], unsigned char f[], float x, float y, float z)
 {
@@ -99,7 +99,6 @@ double H[65536], float s[3])
 	}
 }
 
-#include "mex.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

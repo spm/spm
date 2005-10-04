@@ -1,6 +1,6 @@
 /*
-$Id: mat2file.c 112 2005-05-04 18:20:52Z john $
-*/
+ * $Id: mat2file.c 247 2005-10-04 17:20:34Z guillaume $
+ */
 
 #include <math.h>
 #include <fcntl.h>

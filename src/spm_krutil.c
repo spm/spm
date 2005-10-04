@@ -1,10 +1,10 @@
 /*
- * $Id: spm_krutil.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_krutil.c 247 2005-10-04 17:20:34Z guillaume $
  */
-
-#include "mex.h"
+ 
 #include <math.h>
 #include <limits.h>
+#include "mex.h"
 
 /****************************************************************
  **
@@ -460,19 +460,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	double *alpha, *beta, *img, *b1x, *b1y, *b2x, *b2y;
 
-        if (nrhs==3 & nlhs==0)
+        if ((nrhs==3) && (nlhs==0))
 	{
 		mexFunction_kronadd(nlhs, plhs, nrhs, prhs);
 		return;
 	}
-	if (nrhs==2 & nlhs<=1)
+	if ((nrhs==2) && (nlhs<=1))
 	{
 		mexFunction_kron(nlhs, plhs, nrhs, prhs);
 		return;
 	}
 	if (nrhs == 0) mexErrMsgTxt("Incorrect usage");
 
-	if (nrhs != 4 & nrhs != 5) mexErrMsgTxt("4 or 5 input arguments required");
+	if ((nrhs != 4) && (nrhs != 5)) mexErrMsgTxt("4 or 5 input arguments required");
 	if (nlhs > 1) mexErrMsgTxt("only 1 output argument required");
 
 	if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))

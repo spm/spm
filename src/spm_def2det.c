@@ -1,10 +1,11 @@
 /*
- * $Id: spm_def2det.c 112 2005-05-04 18:20:52Z john $
+ * $Id: spm_def2det.c 247 2005-10-04 17:20:34Z guillaume $
  */
-
-#include "mex.h"
-#include <math.h>
+ 
 #include <stdio.h>
+#include <math.h>
+#include "mex.h"
+
 #define REAL float
 
 typedef struct
@@ -302,7 +303,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int dim[3], dimtmp[3];
 	REAL M[4][3];
 
-        if (nrhs != 4 || nlhs > 1) mexErrMsgTxt("Inappropriate usage.");
+        if (nrhs != 4 || nlhs > 1) mexErrMsgTxt("Incorrect usage.");
 
 	y0 = get_volume(prhs[0], dim);
 	y1 = get_volume(prhs[1], dimtmp);

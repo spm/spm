@@ -1,16 +1,14 @@
-/* $Id: spm_mapping.h 112 2005-05-04 18:20:52Z john $
-   matlab dependent high level data access and map manipulation routines */
+/* 
+ * $Id: spm_mapping.h 247 2005-10-04 17:20:34Z guillaume $
+ */
+ 
+/* Matlab dependent high level data access and map manipulation routines */
 
-#include <sys/types.h>
-#ifdef SPM_WIN32
-#include <windows.h>
-#include <memory.h>
-#else
-#include <sys/mman.h>
-#endif
-
-#include "spm_vol_access.h"
 #include "mex.h"
+#include "spm_vol_access.h"
+
+#ifndef _SPM_MAPPING_H_
+#define _SPM_MAPPING_H_
 
 void free_maps(MAPTYPE *maps, int n);
 
@@ -20,3 +18,4 @@ void voxdim(MAPTYPE *map, double vdim[3]);
 
 int get_dtype(const mxArray *ptr);
 
+#endif /* _SPM_MAPPING_H_ */

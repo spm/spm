@@ -1,142 +1,148 @@
-#!make -f
+#!/usr/bin/env make -f
+# General Makefile to compile SPM C-MEX files
 #
-# $Id: Makefile 245 2005-09-27 14:16:41Z guillaume $
+# Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+#
+# $Id: Makefile 247 2005-10-04 17:20:34Z guillaume $
 #
 ###############################################################################
 #
-# Suggestions for how to make this file a bit more elegant are welcome.  So far
-# it works under SunOS and Linux (at the FIL) and some Windows systems
+# This Makefile has been tested under Linux, SunOS and Windows (at the FIL).
+# 
+# If you have to tweak this Makefile to compile the SPM mex-files for your 
+# platform, please send the details to <spm-authors@fil.ion.ucl.ac.uk> so they 
+# can be included here. 
 #
-# Thanks to Matthew, Darren, Alle Meije and others for various suggestions.
+# You can specify a particular platform with the following syntax:
+#    make PLATFORM=Your_Platform
+# The standard targets are 'all', 'clean', 'distclean' and 'install'.
 #
 # For a list of compatible compilers, see
 # http://www.mathworks.com/support/tech-notes/1600/1601.html
-# http://www.mathworks.com/support/tech-notes/1600/1601_files/1601_65.html
 #
 ###############################################################################
 
-###############################################################################
-# Default make
-###############################################################################
-unknown:
-	@ make `uname`
-tidy:
-	@ make clean.`uname`
+SHELL         = /bin/sh
+MEX_BIN       = mex
+MEXOPTS       = -O
+MEXEND        = 
+CC            = cc
+CFLAGS        = 
+MOSUF         = o # mex output object suffix
+CHMODIT       = chmod 644
+ADDED_OBS     = 
+AR            = ar rcs
+RANLIB        = ranlib
+COPY          = cp -f
+DEL           = rm -f
+MOVE          = mv -f
 
-###############################################################################
-# Architecture specific makes
-###############################################################################
-ifndef MEX_BIN
-MEX_BIN=mex
+ifndef SUF
+  ifndef PLATFORM
+    PLATFORM  = $(shell uname)
+  endif
+  ifeq (SunOS,$(PLATFORM))
+    SUF       = mexsol
+    CFLAGS    = -xO5 -DBIGENDIAN
+    MEXOPTS   = COPTIMFLAGS='-xO5 -DBIGENDIAN'
+  endif
+  ifeq (SunOS.gcc,$(PLATFORM))
+    # See http://en.wikibooks.org/wiki/SPM-Installation_on_SunOS
+    SUF       = mexsol
+    CC        = gcc
+    CFLAGS    = -O3 -funroll-loops -DBIGENDIAN -fPIC
+    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+  endif
+  ifeq (Linux,$(PLATFORM))
+    HARDWARE  = $(shell uname -i)
+    ifeq (i386,$(HARDWARE))
+      SUF     = mexglx
+      CC      = gcc
+      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
+      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
+    endif
+    ifeq (x86_64,$(HARDWARE))
+      # See http://en.wikibooks.org/wiki/SPM-Installation_on_64bit_Linux 
+      SUF     = mexa64
+      CC      = gcc
+      # The '-fPIC' option is necessary to allow the linking process to complete. 
+      # '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
+      # If the code is running on a 64bit Xeon you can change '-march=x86-64' to 
+      # '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
+      # Also possibly use '-march=k8' for 64 bit Athlon.
+      CFLAGS  = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
+      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
+    endif
+    ifndef SUF
+      $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
+    endif
+  endif
+  ifeq (HP-UX,$(PLATFORM))
+    SUF       = mexphux
+    CFLAGS    = -O +z -Ae +DAportable -DBIGENDIAN
+    MEXOPTS   = -O -DBIGENDIAN
+  endif
+  ifeq (Darwin,$(PLATFORM))
+    # See http://en.wikibooks.org/wiki/SPM-Installation_on_Mac_OS
+    #
+    # Patch for gcc 3.x with Matlab 6.5 and 6.5.1 on Mac OS X:
+    # http://www.mathworks.com/support/solutions/data/1-1BEIS.html?solution=1-1BEIS
+    SUF       = mexmac
+    CFLAGS    = -DBIGENDIAN
+    MEXOPTS   = -O -DBIGENDIAN
+  endif
+  # See Matthew Brett's web page on mex files for Windows:
+  # http://gnumex.sourceforge.net/
+  #
+  # New extension .mexw32 for MEX-files on 32-bit versions of Windows in Matlab 7.1:
+  # http://www.mathworks.com/access/helpdesk/help/techdoc/rn/r14sp3_external_upgrade.html
+  ifeq (windows,$(PLATFORM))
+    # Assume a Cygwin/MinGW Windows compilation
+    override PLATFORM = CYGWIN
+  endif
+  ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
+    # MinGW (Minimalist GNU for Windows) can be obtained from:
+    #     http://www.mingw.org/
+    # Packages required are mingw-runtime, w32api, binutils, gcc-core and mingw32-make
+    SUF       = dll
+    CC        = gcc
+    CFLAGS    = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
+    MEX_BIN   = cmd /c "mex.bat
+    MEXOPTS   = -O -DSPM_WIN32
+    MEXEND    = "
+    MOSUF     = obj
+    CHMODIT   = chmod 755
+  endif
+  ifeq (CYGWIN,$(word 1,$(subst _, ,$(PLATFORM))))
+    # Cygwin packages can be obtained from:
+    #     http://www.cygwin.com/
+    # (install the Default configuration, along with the gcc C compiler, 
+    # and make from the "Devel" options)   
+    SUF       = dll
+    CC        = gcc
+    # Consider adding either of the following, depending on your platform:
+    #       -march=pentium3
+    #       -march=pentium4
+    # Consider also: -mfpmath=sse and: -mno-cygwin
+    CFLAGS    = -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
+    MEX_BIN   = mex.bat
+    MEXOPTS   = -O -DSPM_WIN32
+    MOSUF     = obj
+    CHMODIT   = chmod 755
+  endif
+  ifndef SUF
+    $(error Unknowm platform $(PLATFORM))
+  endif
 endif
 
-MEX = $(MEX_BIN) -O
-CC  = cc
-# mex output object suffix
-MOSUF = o
-CHMODIT = chmod 644
-RANLIB  = 
-ADDED_OBS=
-
-SunOS:
-	make all SUF=mexsol  CC="cc -xO5 -DBIGENDIAN"\
-	         MEX="$(MEX_BIN) COPTIMFLAGS=-xO5 -DBIGENDIAN"
-SunOS.gcc:
-# Assumes that gccopts.sh has been copied to the current directory
-	make all SUF=mexsol  CC="gcc -O3 -funroll-loops -DBIGENDIAN -fPIC"\
-	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN' -f gccopts.sh"
-Linux:
-	make all SUF=mexglx  CC="gcc -O3 -funroll-loops -fPIC -fexceptions"\
-	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -fexceptions'"
-Linux.A64:
-# The '-fPIC' option is necessary to allow the linking process to complete. 
-# '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
-# If the code is running on a 64bit Xeon you can change '-march=x86-64' to 
-# '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
-# Also possibly use '-march=k8' for 64 bit Athlon.
-	make all SUF=mexa64  CC="gcc -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse"\
-	       MEX="$(MEX_BIN) COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'"
-HP-UX:
-	make all SUF=mexhp7  CC="cc  -O +z -Ae +DAportable -DBIGENDIAN"
-	       MEX="$(MEX_BIN) COPTIMFLAGS=-O -DBIGENDIAN"
-IRIX:
-	make all SUF=mexsg   CC="cc  -O -n32 -dont_warn_unused -OPT:IEEE_NaN_inf=ON -DBIGENDIAN"\
-	       MEX="$(MEX_BIN) COPTIMFLAGS='-O' -DBIGENDIAN"
-IRIX64:
-	make all SUF=mexsg64   CC="cc  -O -mips4 -64 -DBIGENDIAN"\
-	       MEX="$(MEX_BIN) COPTIMFLAGS='-O' -DBIGENDIAN"
-AIX:
-	make all SUF=mexrs6 CC="cc -DBIGENDIAN"\
-	       MEX = "$(MEX_BIN) -O -DBIGENDIAN"
-OSF1:
-	make all SUF=mexaxp CC="cc -DBIGENDIAN"\
-	       MEX = "$(MEX_BIN) -O -DBIGENDIAN"
-Darwin:
-	make all SUF=mexmac RANLIB="ranlib spm_vol_utils.mexmac.a" CC="cc -DBIGENDIAN"\
-	       MEX="$(MEX_BIN) -O -DBIGENDIAN"
-
-windows:
-#
-# This lot can be compiled using CygWin, which you can obtain from
-#     http://sourceware.org/cygwin/
-# Install the Default configuration, along with the gcc C compiler, and make
-# from the "Devel" options.
-#
-# Consider adding either of the following, depending on your platform:
-#       -march=pentium3
-#       -march=pentium4
-# Consider also: -mfpmath=sse and: -mno-cygwin
-#
-# See Matthew's web page on mex files for Windows:
-#    http://gnumex.sourceforge.net/
-#
-# After this, I have no idea what to do... because it's Windows
-#
-	make all SUF=dll\
-	        CC="gcc -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32"\
-	        MEX="mex.bat -DSPM_WIN32" MOSUF=obj CHMODIT="chmod 755"
-
-CYGWIN_NT-4.0: windows
-
-CYGWIN_NT-5.0: windows
-
-CYGWIN_NT-5.1: windows
-
-###############################################################################
-# Architecture specific cleaning
-###############################################################################
-clean.SunOS:
-	make clean SUF=mexsol
-clean.SunOS.gcc:
-	make clean SUF=mexsol
-clean.Linux:
-	make clean SUF=mexglx
-clean.Linux.5:
-	make clean SUF=mexlx
-clean.Linux.A64:
-	make clean SUF=mexa64
-clean.HP-UX:
-	make clean SUF=mexhp7
-clean.IRIX:
-	make clean SUF=mexsg
-clean.IRIX64:
-	make clean SUF=mexsg64
-clean.AIX:
-	make clean SUF=mexrs6
-clean.OSF1:
-	make clean SUF=mexaxp
-clean.Darwin:
-	make clean SUF=mexmac
-clean.windows:
-	make clean SUF=dll
+MEX           = $(MEX_BIN) $(MEXOPTS)
 
 ###############################################################################
 # Objects to go in the archive and mexfiles
 ###############################################################################
 
-SUF = unknown
-
-OBS =	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
+OBS    =\
+	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
 	utils_schar.$(SUF).o utils_ushort.$(SUF).o utils_uint.$(SUF).o\
 	utils_float.$(SUF).o utils_double.$(SUF).o\
 	utils_short_s.$(SUF).o utils_int_s.$(SUF).o\
@@ -149,11 +155,10 @@ SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
+	spm_bsplinc.$(SUF) spm_bsplins.$(SUF) spm_bias_mex.$(SUF)\
 	spm_atranspa.$(SUF) spm_unlink.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
-	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_bias_mex.$(SUF) spm_dilate.$(SUF)\
-	spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
+	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
 	spm_list_files.$(SUF)
@@ -169,334 +174,297 @@ all: verb.$(SUF) $(SPMMEX)
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
-very_clean: clean
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting mex and archive (.a) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	rm -f $(SPMMEX) spm_vol_utils.$(SUF).a
-
 clean:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Deleting object (.o) files"
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	rm -f $(OBS)
+	$(DEL) $(OBS)
+
+distclean: clean
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Deleting mex and archive (.a) files"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
 
 archive: spm_vol_utils.$(SUF).a
+
+install: $(SPMMEX)
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Installing mex files"
+	@ echo "_____________________________________________________________"
+	@ echo ""	
+	$(COPY) $(SPMMEX) ..
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
 ###############################################################################
-                                                                                                          
+
 spm_vol_utils.$(SUF).a: $(OBS)
-	rm -f $@
-	ar rcv $@ $(OBS)
-	$(RANLIB)
+	$(DEL) $@
+	$(AR) $@ $(OBS)
 	@ $(CHMODIT) $@
 
-UTILS=spm_vol_utils.c spm_sys_deps.h spm_make_lookup.h
+UTILS = spm_vol_utils.c spm_make_lookup.h spm_getdata.h
 
 utils_uchar.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_CHAR
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_UNSIGNED_CHAR
 	@ $(CHMODIT) $@
 
 utils_short.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT
 	@ $(CHMODIT) $@
 
 utils_int.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_INT
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_SIGNED_INT
 	@ $(CHMODIT) $@
 
 utils_schar.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_CHAR
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_SIGNED_CHAR
 	@ $(CHMODIT) $@
 
 utils_ushort.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT
 	@ $(CHMODIT) $@
 
 utils_uint.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT
 	@ $(CHMODIT) $@
 
 utils_float.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_FLOAT
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_FLOAT
 	@ $(CHMODIT) $@
 
 utils_double.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_DOUBLE
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_DOUBLE
 	@ $(CHMODIT) $@
 
 utils_short_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 utils_int_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_SIGNED_INT -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_SIGNED_INT -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 utils_ushort_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_UNSIGNED_SHORT -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 utils_uint_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_UNSIGNED_INT -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 utils_float_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_FLOAT -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_FLOAT -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 utils_double_s.$(SUF).o: $(UTILS)
-	$(CC) -c -o $@ spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP
 	@ $(CHMODIT) $@
 
 ###############################################################################
 # Compile a few additional C routines for linking
 ###############################################################################
 
-%.$(SUF).o : %.c spm_sys_deps.h
-	$(CC) -c -o $@ $<
+%.$(SUF).o : %.c
+	$(CC) -c $(CFLAGS) -o $@ $<
 	@ $(CHMODIT) $@
 
-spm_getdata.$(SUF).o: spm_getdata.c spm_sys_deps.h
-	$(CC) -c -o $@ spm_getdata.c
+spm_getdata.$(SUF).o: spm_getdata.c spm_getdata.h
+	$(CC) -c $(CFLAGS) -o $@ spm_getdata.c
 	@ $(CHMODIT) $@
 
-spm_vol_access.$(SUF).o:  spm_vol_access.c spm_datatypes.h
-	$(CC) -c -o $@ spm_vol_access.c
+spm_vol_access.$(SUF).o: spm_vol_access.c spm_vol_access.h spm_datatypes.h
+	$(CC) -c $(CFLAGS) -o $@ spm_vol_access.c
 	@ $(CHMODIT) $@
 
-spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_sys_deps.h
-	$(CC) -c -o $@ spm_make_lookup.c
+spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_make_lookup.h
+	$(CC) -c $(CFLAGS) -o $@ spm_make_lookup.c
 	@ $(CHMODIT) $@
 
-spm_mapping.$(SUF).o:     spm_mapping.c spm_sys_deps.h spm_mapping.h spm_datatypes.h
-	$(MEX) -c spm_mapping.c
-	mv spm_mapping.$(MOSUF) $@
+spm_mapping.$(SUF).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes.h
+	$(MEX) -c spm_mapping.c $(MEXEND)
+	$(MOVE) spm_mapping.$(MOSUF) $@
 	@ $(CHMODIT) $@
 
 ###############################################################################
 # Compile the mex files themselves
 ###############################################################################
 
-%.$(SUF) : %.c spm_sys_deps.h
-	$(MEX) $<
+%.$(SUF) : %.c
+	$(MEX) $< $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_add.c spm_vol_utils.$(SUF).a
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_add.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_brainwarp.$(SUF): spm_brainwarp.c  spm_vol_utils.$(SUF).a spm_matfuns.c\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c
+spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a\
+		spm_mapping.h spm_datatypes.h
+	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h spm_datatypes.h
-	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a
-	@ $(CHMODIT) $@
-
-spm_bsplins.$(SUF): spm_bsplins.c spm_sys_deps.h
-	$(MEX) spm_bsplins.c
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h spm_datatypes.h
-	$(MEX) spm_conv_vol.c spm_vol_utils.$(SUF).a
+		spm_mapping.h spm_vol_access.h spm_datatypes.h
+	$(MEX) spm_conv_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_global.c spm_vol_utils.$(SUF).a
-	@ $(CHMODIT) $@
-
-spm_warp.$(SUF): spm_warp.c spm_vol_utils.$(SUF).a
-	$(MEX) spm_warp.c spm_vol_utils.$(SUF).a
-	@ $(CHMODIT) $@
-
-spm_atranspa.$(SUF): spm_atranspa.c spm_sys_deps.h
-	$(MEX) spm_atranspa.c
-	@ $(CHMODIT) $@
-
-file2mat.$(SUF): file2mat.c
-	$(MEX) file2mat.c
-	@ $(CHMODIT) $@
-
-mat2file.$(SUF): mat2file.c
-	$(MEX) mat2file.c
-	@ $(CHMODIT) $@
-
-spm_digamma.$(SUF): spm_digamma.c
-	$(MEX) spm_digamma.c
-	@ $(CHMODIT) $@
-
-spm_unlink.$(SUF): spm_unlink.c spm_sys_deps.h
-	$(MEX) spm_unlink.c
-	@ $(CHMODIT) $@
-
-spm_hist2.$(SUF): spm_hist2.c spm_sys_deps.h
-	$(MEX) spm_hist2.c
-	@ $(CHMODIT) $@
-
-spm_hist.$(SUF): spm_hist.c spm_sys_deps.h
-	$(MEX) spm_hist.c
-	@ $(CHMODIT) $@
-
-spm_krutil.$(SUF): spm_krutil.c spm_sys_deps.h
-	$(MEX) spm_krutil.c
-	@ $(CHMODIT) $@
-
-spm_dilate.$(SUF): spm_dilate.c
-	$(MEX) spm_dilate.c
-	@ $(CHMODIT) $@
-
-spm_bwlabel.$(SUF): spm_bwlabel.c
-	$(MEX) spm_bwlabel.c
-	@ $(CHMODIT) $@
-
-spm_get_lm.$(SUF): spm_get_lm.c
-	$(MEX) spm_get_lm.c
-	@ $(CHMODIT) $@
-
-spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
-	$(MEX) spm_list_files.c
-	@ $(CHMODIT) $@
-
-spm_project.$(SUF): spm_project.c spm_sys_deps.h
-	$(MEX) spm_project.c
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_global.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_render_vol.$(SUF): spm_render_vol.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_render_vol.c spm_vol_utils.$(SUF).a
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_render_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_resels_vol.$(SUF): spm_resels_vol.c spm_vol_utils.$(SUF).a\
-		spm_sys_deps.h spm_mapping.h
-	$(MEX) spm_resels_vol.c spm_vol_utils.$(SUF).a
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_resels_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_sample_vol.c spm_vol_utils.$(SUF).a
+spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a\
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_sample_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a
+spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a\
+		spm_mapping.h spm_vol_access.h
+	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a spm_mapping.h
-	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a
+spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
+	$(MEX) spm_list_files.c $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_invdef.$(SUF): spm_invdef.c
-	$(MEX) spm_invdef.c
+file2mat.$(SUF): file2mat.c
+	$(MEX) file2mat.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+mat2file.$(SUF): mat2file.c
+	$(MEX) mat2file.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_affdef.$(SUF): spm_affdef.c
-	$(MEX) spm_affdef.c
+	$(MEX) spm_affdef.c $(MEXEND)
+	@ $(CHMODIT) $@
+	
+spm_atranspa.$(SUF): spm_atranspa.c 
+	$(MEX) spm_atranspa.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_bsplins.$(SUF): spm_bsplins.c
+	$(MEX) spm_bsplins.c $(MEXEND)
+	@ $(CHMODIT) $@
+	
+spm_bwlabel.$(SUF): spm_bwlabel.c
+	$(MEX) spm_bwlabel.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_def2det.$(SUF): spm_def2det.c
-	$(MEX) spm_def2det.c
+	$(MEX) spm_def2det.c $(MEXEND)
 	@ $(CHMODIT) $@
 
+spm_digamma.$(SUF): spm_digamma.c
+	$(MEX) spm_digamma.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_dilate_erode.$(SUF): spm_dilate_erode.c
+	$(MEX) spm_dilate_erode.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_get_lm.$(SUF): spm_get_lm.c
+	$(MEX) spm_get_lm.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_hist.$(SUF): spm_hist.c
+	$(MEX) spm_hist.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_hist2.$(SUF): spm_hist2.c
+	$(MEX) spm_hist2.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_invdef.$(SUF): spm_invdef.c
+	$(MEX) spm_invdef.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_krutil.$(SUF): spm_krutil.c
+	$(MEX) spm_krutil.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_project.$(SUF): spm_project.c
+	$(MEX) spm_project.c $(MEXEND)
+	@ $(CHMODIT) $@	
+
+spm_unlink.$(SUF): spm_unlink.c
+	$(MEX) spm_unlink.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_warp.$(SUF): spm_warp.c 
+	$(MEX) spm_warp.c $(MEXEND)
+	@ $(CHMODIT) $@
+	
 ###############################################################################
 # Assorted architecture dependent messages
 ###############################################################################
 
-verb.unknown:
+verb.dll verb.mexw32:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "PROBLEM: Dont know how to do this."
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexhp7:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "unix compile for hpux cc, and maybe aix cc"
-	@ echo ""
-	@ echo "Under HPUX 10.20 with MATLAB 5.2.1 and gcc, you may wish"
-	@ echo "to modify this Makefile to say something like:"
-	@ echo '  CC=gcc -O -fpic'
-	@ echo '  MEX=mex COPTIMFLAGS=-O -f gccopts.sh'
-	@ echo "where the gccopts.sh file is modified to remove the +z"
-	@ echo "(which is used with version 9.0 and possibly also 10.0)."
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexsg:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "Feedback from users with R10000 O2 and R10000 Indigo2 systems"
-	@ echo "running IRIX6.5 suggests that the cmex program with Matlab 5.x"
-	@ echo "compiles with the old 32bit (o32) instruction set (MIPS2) only,"
-	@ echo "while cc by default compiles with the new32 bit (n32 or MIPS4)."
-	@ echo "Matlab 5.x only likes o32 for O2 R10000 systems."
-	@ echo ""
-	@ echo "We also suggest you modify your options file mexopts.sh in"
-	@ echo 'the sgi section: change LD="ld" to LD="ld -o32"'
-	@ echo "this tells the linker to use o32 instead of n32."
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexsg64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "not optimised sgi 64 bit compile for CC"
-	@ echo ""
-	@ echo "Note that this option is only for Matlab versions below 6.0"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.dll:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "Windows compile with gcc/cygwin"
-	@ echo "see http://gnumex.sourceforge.net/"
-	@ echo "for instructions about installing gcc/cygwin for"
-	@ echo "compiling Mex files."
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexsol:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "Unix compile"
+	@ echo "        Windows compilation - using $(CC)/`uname`"
+	@ echo "        see http://gnumex.sourceforge.net/"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.mexglx:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "Linux compilation - using gcc"
+	@ echo "        Linux compilation (x86-32) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.mexa64:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "Linux compilation (Matlab 7.x, 64bits) - using gcc"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexaxp:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "keep your fingers crossed"
+	@ echo "        Linux compilation (x86-64) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.mexmac:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "Unix compile for MacOS X"
+	@ echo "        Unix compilation (MacOS X) - using $(CC)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexsol:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Unix compilation (Solaris) - using $(CC)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.hpux:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Unix compilation (HP-UX) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
