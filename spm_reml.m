@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 244 2005-09-26 18:39:36Z karl $
+% $Id: spm_reml.m 249 2005-10-05 17:58:37Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -60,6 +60,7 @@ if OPT
     [C,h] = spm_reml(YY,X,Q,N);
     fprintf('%s:\n','Applying log-normal hyperpriors');
     h     = log(max(h,1e-6));
+
 else
     h     = ones(m,1);
 end

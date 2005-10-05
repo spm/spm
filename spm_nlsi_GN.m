@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 244 2005-09-26 18:39:36Z karl $
+% $Id: spm_nlsi_GN.m 249 2005-10-05 17:58:37Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -286,7 +286,7 @@ for k = 1:64
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(dF))
-    if k > 2 && dF < 1e-5, break, end
+    if k > 2 && dF < 1e-2, break, end
     
 end
  

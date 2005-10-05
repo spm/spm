@@ -6,7 +6,7 @@ function varargout = spm_spm_ui(varargin)
 % spm_spm_ui.m configures the design matrix (describing the general
 % linear model), data specification, and other parameters necessary for
 % the statistical analysis. These parameters are saved in a
-% configuration file (SPMcfg.mat) in the current directory, and are
+% configuration file (SPM.mat) in the current directory, and are
 % passed on to spm_spm.m which estimates the design. Inference on these
 % estimated parameters is then handled by the SPM results section.
 %
@@ -482,9 +482,9 @@ function varargout = spm_spm_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_spm_ui.m 231 2005-09-14 13:26:28Z john $
+% $Id: spm_spm_ui.m 249 2005-10-05 17:58:37Z karl $
 
-SCCSid  = '$Rev: 231 $';
+SCCSid  = '$Rev: 249 $';
 
 %=======================================================================
 % - FORMAT specifications for programers
@@ -1471,7 +1471,7 @@ case 'cfg'
     %===================================================================
     SPM.xY.P	= P;			% filenames
     SPM.xY.VY	= VY;			% mapped data
-    SPM.nscan	= size(xX.X,1);		% scan number
+    SPM.nscan	= size(xX.X,1); % scan number
     SPM.xX		= xX;			% design structure
     SPM.xC		= xC;			% covariate structure
     SPM.xGX		= xGX;			% global structure
