@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 219 2005-08-31 16:17:08Z john $
+% $Id: spm_select.m 250 2005-10-07 16:08:39Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -623,8 +623,10 @@ else
     set(sib(lb,'D'),'Enable','off');
 end;
 
-if size(str2,1) == 1, ss = ''; else ss = 's'; end;
-msg(lb,['Unselected ' num2str(size(str2,1)) ' file' ss '.']);
+%if size(str2,1) == 1, ss = ''; else ss = 's'; end;
+%msg(lb,[num2str(size(str2,1)) ' file' ss ' remaining.']);
+if numel(vl) == 1, ss = ''; else ss = 's'; end;
+msg(lb,['Unselected ' num2str(numel(vl)) ' file' ss '.']);
 return;
 %=======================================================================
 

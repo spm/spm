@@ -4,35 +4,33 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 231 2005-09-14 13:26:28Z john $
+% $Id: subsasgn.m 250 2005-10-07 16:08:39Z john $
 
 
 if isempty(subs)
     return;
 end;
-if numel(subs)~=1, error('Expression too complicated');end;
-if ~strcmp(subs.type,'()'),
-if ~strcmp(subs.type,'()'),
-    if strcmp(subs.type,'.'),
+if ~strcmp(subs(1).type,'()'),
+    if strcmp(subs(1).type,'.'),
         %error('Attempt to reference field of non-structure array.');
         if numel(struct(obj))~=1,
             error('Can only change the fields of simple file_array objects.');
         end;
-        switch(subs.subs)
-        case 'fname',      obj = fname(obj,dat);
-        case 'dtype',      obj = dtype(obj,dat);
-        case 'offset',     obj = offset(obj,dat);
-        case 'dim',        obj = dim(obj,dat);
-        case 'scl_slope',  obj = scl_slope(obj,dat);
-        case 'scl_inter',  obj = scl_inter(obj,dat);
+        switch(subs(1).subs)
+        case 'fname',      obj = asgn(obj,@fname,    subs(2:end),dat); %fname(obj,dat);
+        case 'dtype',      obj = asgn(obj,@dtype,    subs(2:end),dat); %dtype(obj,dat);
+        case 'offset',     obj = asgn(obj,@offset,   subs(2:end),dat); %offset(obj,dat);
+        case 'dim',        obj = asgn(obj,@dim,      subs(2:end),dat); %obj = dim(obj,dat);
+        case 'scl_slope',  obj = asgn(obj,@scl_slope,subs(2:end),dat); %scl_slope(obj,dat);
+        case 'scl_inter',  obj = asgn(obj,@scl_inter,subs(2:end),dat); %scl_inter(obj,dat);
         otherwise, error(['Reference to non-existent field "' subs.type '".']);
         end;
         return;
     end;
-    if strcmp(subs.type,'{}'), error('Cell contents reference from a non-cell array object.'); end;
+    if strcmp(subs(1).type,'{}'), error('Cell contents reference from a non-cell array object.'); end;
 end;
-    if strcmp(subs.type,'{}'), error('Cell contents reference from a non-cell array object.'); end;
-end;
+
+if numel(subs)~=1, error('Expression too complicated');end;
 
 dm   = [size(obj) ones(1,16)];
 sobj = struct(obj);
@@ -91,6 +89,11 @@ return
 function sobj = subfun(sobj,dat,varargin)
 va = varargin;
 
+dt  = datatypes;
+ind = find(cat(1,dt.code)==sobj.dtype);
+if isempty(ind), error('Unknown datatype'); end;
+if dt(ind).isint, dat(~finite(dat)) = 0; end;
+
 if ~isempty(sobj.scl_inter),
     inter = sobj.scl_inter;
     if numel(inter)>1,
@@ -109,9 +112,6 @@ if ~isempty(sobj.scl_slope),
     end;
 end;
 
-dt  = datatypes;
-ind = find(cat(1,dt.code)==sobj.dtype);
-if isempty(ind), error('Unknown datatype'); end;
 if dt(ind).isint, dat = round(dat); end;
 dat   = feval(dt(ind).conv,dat);
 nelem = dt(ind).nelem;
@@ -128,3 +128,13 @@ else
     error('Inappropriate number of elements per voxel.');
 end;
 return
+
+function obj = asgn(obj,fun,subs,dat)
+if ~isempty(subs),
+    tmp = feval(fun,obj);
+    tmp = subsasgn(tmp,subs,dat);
+    obj = feval(fun,obj,tmp);
+else
+    obj = feval(fun,obj,dat);
+end;
+

@@ -8,7 +8,7 @@ function V = spm_write_vol(V,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_vol.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_write_vol.m 250 2005-10-07 16:08:39Z john $
 
 
 if ndims(Y)>3, error('Can only handle a maximum of 3 dimensions.'), end
@@ -26,7 +26,9 @@ end
 dt           = V.dt(1);
 s            = find(dt == [2 4 8 256 512 768]);
 dmnmx        = [0 -2^15 -2^31 -2^7 0 0 ; 2^8-1 2^15-1 2^31-1 2^7-1 2^16 2^32];
+dmnmx(1,:)   = 0; % assume an intercept of zero
 dmnmx        = dmnmx(:,s);
+
 V.pinfo(1,:) = 1;
 V.pinfo(2,:) = 0;
 mxs          = zeros(dim(3),1)+NaN;

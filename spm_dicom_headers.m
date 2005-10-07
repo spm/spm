@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm_dicom_headers.m 250 2005-10-07 16:08:39Z john $
 
 
 ver = sscanf(version,'%d');
@@ -173,9 +173,12 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 			otherwise,
 				dat = '';
 				fseek(fp,tag.length,'cof');
-				warning(['Unknown VR "' tag.vr '" in "' fopen(fp) '".']);
+				warning(['Unknown VR [' num2str(tag.vr+0) '] in "'...
+					fopen(fp) '" (offset=' num2str(ftell(fp)) ').']);
 			end;
-			ret.(tag.name) = dat;
+			if ~isempty(tag.name),
+				ret.(tag.name) = dat;
+			end;
 		end;
 	end;
 	len = len + tag.le + tag.length;
@@ -258,6 +261,10 @@ if t>0,
 	tag.name = dict.values(t).name;
 	tag.vr   = dict.values(t).vr{1};
 else
+	% Set tag.name = '' in order to restrict the fields to those
+	% in the dictionary.  With a reduced dictionary, this could
+	% speed things up considerably.
+	% tag.name = '';
 	tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
 	tag.vr   = 'UN';
 end;

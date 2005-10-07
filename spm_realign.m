@@ -80,7 +80,7 @@ function P = spm_realign(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_realign.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_realign.m 250 2005-10-07 16:08:39Z john $
 
 
 if nargin==0, return; end;
@@ -275,7 +275,7 @@ for i=2:length(P),
 		soln       = spm_atranspa(A)\(A'*b1);
 
 		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = soln;
+		p(lkp)     = p(lkp) + soln';
 		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
 		pss        = ss;
@@ -337,7 +337,7 @@ for i=1:length(P),
 		soln       = spm_atranspa(A)\(A'*b1);
 
 		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = soln;
+		p(lkp)     = p(lkp) + soln';
 		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
 		pss        = ss;
@@ -370,7 +370,7 @@ return;
 %_______________________________________________________________________
 function [y1,y2,y3]=coords(p,M1,M2,x1,x2,x3)
 % Rigid body transformation of a set of coordinates.
-M  = (inv(M2)*inv(spm_matrix(p(1:6)))*M1);
+M  = (inv(M2)*inv(spm_matrix(p))*M1);
 y1 = M(1,1)*x1 + M(1,2)*x2 + M(1,3)*x3 + M(1,4);
 y2 = M(2,1)*x1 + M(2,2)*x2 + M(2,3)*x3 + M(2,4);
 y3 = M(3,1)*x1 + M(3,2)*x2 + M(3,3)*x3 + M(3,4);

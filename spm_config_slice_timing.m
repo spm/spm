@@ -4,7 +4,7 @@ function opts = spm_config_slice_timing
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_slice_timing.m 232 2005-09-15 19:02:59Z john $
+% $Id: spm_config_slice_timing.m 250 2005-10-07 16:08:39Z john $
 
 % ---------------------------------------------------------------------
 scans.type = 'files';
@@ -18,6 +18,7 @@ scans.help = {'Select images to acquisition correct.'};
 data.type = 'repeat';
 data.name = 'Data';
 data.values = {scans};
+data.num  = [1 Inf];
 data.help = {[...
     'Subjects or sessions. The same parameters specified below will ',...
     'be applied to all sessions.']};

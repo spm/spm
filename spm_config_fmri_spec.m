@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 234 2005-09-20 09:36:11Z will $
+% $Id: spm_config_fmri_spec.m 250 2005-10-07 16:08:39Z john $
 
 
 % Define inline types.
@@ -212,13 +212,14 @@ regressors.help = {[...
 %-------------------------------------------------------------------------
 
 multi_reg    = files('Multiple regressors','multi_reg','.*',[0 1],'');
-p1=['Select the *.mat file containing details of your multiple regressors. '];
+p1=['Select the *.mat/*.txt file containing details of your multiple regressors. '];
 p2=['If you have mutliple regressors eg. realignment parameters, then entering the ',...
 'details a regressor at a time is very inefficient. ',...
 'This option can be used to load all the ',...
 'required information in one go. '];
 p3=['You will first need to create a *.mat file ',...
-'containing a matrix R. Each column of R will contain a different regressor. ',...
+'containing a matrix R or a *.txt file containing the regressors. ',...
+'Each column of R will contain a different regressor. ',...
 'When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'];
 multi_reg.help = {p1,sp_text,p2,sp_text,p3};
 multi_reg.val={''};
@@ -257,6 +258,7 @@ sess.help = {p1};
 %-------------------------------------------------------------------------
 
 block = repeat('Data & Design','blocks',{sess},'');
+block.num = [1 Inf];
 p1 = [...
   'The design matrix defines the experimental design and the nature of ',...
   'hypothesis testing to be implemented.  The design matrix has one row ',...
@@ -805,7 +807,18 @@ for i = 1:numel(job.sess),
     % specified in the regressors.mat file 
     %------------------------------------------------------------
     if ~strcmp(sess.multi_reg,'')
-        load(char(sess.multi_reg{:}));
+        tmp=load(char(sess.multi_reg{:}));
+        if isstruct(tmp) && isfield(tmp,'R')
+            R = tmp.R;
+        elseif isnumeric(tmp)
+            % load from e.g. text file
+            R = tmp;
+        else
+            warning('Can''t load user specified regressors in %s', ...
+                    char(sess.multi_reg{:}));
+            R = [];
+        end
+
         C=[C, R];
         nr=size(R,2);
         nq=length(Cname);

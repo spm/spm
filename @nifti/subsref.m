@@ -7,12 +7,12 @@ function varargout = subsref(opt,subs)
 %               Note that the mapping is from voxels (where the first
 %               is considered to be at [1,1,1], to millimetres.  See
 %               mat0_interp for the meaning of the transform.
-% mat1        - a 12-parameter affine transform (from sform0)
+% mat         - a 12-parameter affine transform (from sform0)
 %               Note that the mapping is from voxels (where the first
 %               is considered to be at [1,1,1], to millimetres.  See
 %               mat1_interp for the meaning of the transform.
 % mat_intent  - intention of mat.  This field may be missing/empty.
-% mat_intent  - intention of mat0. This field may be missing/empty.
+% mat0_intent - intention of mat0. This field may be missing/empty.
 % intent      - interpretation of image. When present, this structure
 %               contains the fields
 %               code   - name of interpretation
@@ -39,7 +39,7 @@ function varargout = subsref(opt,subs)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsref.m 174 2005-05-24 11:03:32Z john $
+% $Id: subsref.m 250 2005-10-07 16:08:39Z john $
 
 
 varargout = rec(opt,subs);

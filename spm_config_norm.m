@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 232 2005-09-15 19:02:59Z john $
+% $Id: spm_config_norm.m 250 2005-10-07 16:08:39Z john $
 
 
 %_______________________________________________________________________
@@ -288,6 +288,7 @@ subj.help = {'Data for this subject.  The same parameters are used within subjec
 data.type = 'repeat';
 data.name = 'Data';
 data.values = {subj};
+data.num  = [1 Inf];
 data.help = {'List of subjects. Images of each subject should be warped differently.'};
 
 est.type = 'branch';
@@ -312,6 +313,7 @@ subj.help = {'Data for this subject.  The same parameters are used within subjec
 data.type = 'repeat';
 data.name = 'Data';
 data.values = {subj};
+data.num  = [1 Inf];
 data.help = {'List of subjects. Images of each subject should be warped differently.'};
 
 writ.type = 'branch';
@@ -335,6 +337,7 @@ subj.help = {'Data for this subject.  The same parameters are used within subjec
 data.type = 'repeat';
 data.name = 'Data';
 data.values = {subj};
+data.num  = [1 Inf];
 data.help = {'List of subjects. Images of each subject should be warped differently.'};
 
 estwrit.type = 'branch';

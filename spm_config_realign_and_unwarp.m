@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 232 2005-09-15 19:02:59Z john $
+% $Id: spm_config_realign_and_unwarp.m 250 2005-10-07 16:08:39Z john $
 
 
 %_______________________________________________________________________
@@ -480,6 +480,7 @@ ruwdata.type   = 'repeat';
 ruwdata.name   = 'Data';
 ruwdata.tag    = 'ruwdata';
 ruwdata.values = {data};
+ruwdata.num    = [1 Inf];
 ruwdata.help   = {'Data sessions to unwarp.'};
 %------------------------------------------------------------------------
 

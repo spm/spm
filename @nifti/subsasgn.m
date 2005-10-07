@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 189 2005-06-10 16:35:13Z john $
+% $Id: subsasgn.m 250 2005-10-07 16:08:39Z john $
 
 
 switch subs(1).type,
@@ -101,6 +101,11 @@ case {'.'},
                 error('"mat0" should be a 4x4 matrix, with a last row of 0,0,0,1.');
             end;
             if obj.hdr.qform_code==0, obj.hdr.qform_code=2; end;
+            s = double(bitand(obj.hdr.xyzt_units,7));
+            if s
+                d = findindict(s,'units');
+                val1 = diag([[1 1 1]/d.rescale 1])*val1;
+            end;
             obj.hdr = encode_qform0(double(val1), obj.hdr);
 
         case {'mat0_intent'}
@@ -320,6 +325,7 @@ case {'.'},
 
         case {'hdr'}
             error('hdr is a read-only field.');
+            obj.hdr = val1;
 
         otherwise
             error(['Reference to non-existent field ''' subs(1).subs '''.']);

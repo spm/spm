@@ -56,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 219 2005-08-31 16:17:08Z john $
+% $Id: spm_platform.m 250 2005-10-07 16:08:39Z john $
 
 
 
@@ -214,12 +214,13 @@ end
 %-----------------------------------------------------------------------
 PLATFORM.drives = '';
 if strcmp(comp,'PCWIN'),
-    for i='C':'Z',
-        if exist([i ':\']) == 7,
-            PLATFORM.drives = [PLATFORM.drives i];
+    driveLett = cellstr(char(('C':'Z')'));
+    for i=1:numel(driveLett),
+        if exist([driveLett{i} ':\']) == 7,
+            PLATFORM.drives = [PLATFORM.drives driveLett{i}];
         end
     end
-end;
+end
 
 %-Fonts
 %-----------------------------------------------------------------------
