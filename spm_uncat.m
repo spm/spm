@@ -4,7 +4,10 @@ function [a] = spm_uncat(x,a)
 % x - matrix
 % a - cell array
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id$
 
 % fill in varargout
 %--------------------------------------------------------------------------
