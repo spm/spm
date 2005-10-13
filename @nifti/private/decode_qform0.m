@@ -4,7 +4,7 @@ function M = decode_qform0(hdr)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: decode_qform0.m 184 2005-05-31 13:23:32Z john $
+% $Id: decode_qform0.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 dim    = double(hdr.dim);

@@ -4,7 +4,7 @@ function hdr = mayo2nifti1(ohdr,mat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: mayo2nifti1.m 184 2005-05-31 13:23:32Z john $
+% $Id: mayo2nifti1.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 if isfield(ohdr,'magic'),

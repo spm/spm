@@ -67,7 +67,7 @@ function [ctf] = ctf_read(folder,CHAN,TIME,TRIALS,COEFS);
 
 
 
-% $Revision: 1.1 $ $Date: 2004/08/19 03:17:10 $
+% $Revision: 253 $ $Date: 2004/08/19 03:17:10 $
 
 % Copyright (C) 2004  Darren L. Weber
 % 

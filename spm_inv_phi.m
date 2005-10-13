@@ -7,7 +7,7 @@ function [x] = spm_inv_phi(y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_inv_phi.m 253 2005-10-13 15:31:34Z guillaume $
 
 % apply
 %--------------------------------------------------------------------------

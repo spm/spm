@@ -12,7 +12,7 @@ function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_kl_normal.m 253 2005-10-13 15:31:34Z guillaume $
 
 d=length(m_q);
 m_q=m_q(:);

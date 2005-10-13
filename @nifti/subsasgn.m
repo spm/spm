@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 250 2005-10-07 16:08:39Z john $
+% $Id: subsasgn.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 switch subs(1).type,

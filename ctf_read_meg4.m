@@ -80,7 +80,7 @@ function [ctf] = ctf_read_meg4(folder,ctf,CHAN,TIME,TRIALS,COEFS);
 %
 
 
-% $Revision: 1.1 $ $Date: 2004/08/19 03:17:10 $
+% $Revision: 253 $ $Date: 2004/08/19 03:17:10 $
 
 % Copyright (C) 2003  Darren L. Weber
 % 
@@ -139,7 +139,7 @@ end
 
 
 %--------------------------------------------------------------
-ver = '$Revision: 1.1 $';
+ver = '$Revision: 253 $';
 fprintf('\nCTF_READ_MEG4 [v %s]\n',ver(11:15)); tic;
 
 

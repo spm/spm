@@ -6,7 +6,7 @@ function create(obj)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: create.m 174 2005-05-24 11:03:32Z john $
+% $Id: create.m 253 2005-10-13 15:31:34Z guillaume $
 
 for i=1:numel(obj)
     create_each(obj(i));

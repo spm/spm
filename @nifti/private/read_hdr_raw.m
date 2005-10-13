@@ -8,7 +8,7 @@ function [hdr,be] = read_hdr_raw(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr_raw.m 184 2005-05-31 13:23:32Z john $
+% $Id: read_hdr_raw.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 hdr = [];

@@ -9,7 +9,7 @@ function varargout = offset(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: offset.m 174 2005-05-24 11:03:32Z john $
+% $Id: offset.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 

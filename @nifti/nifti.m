@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: nifti.m 186 2005-06-06 10:00:50Z john $
+% $Id: nifti.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 switch nargin

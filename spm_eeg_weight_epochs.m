@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 208 2005-08-02 14:40:29Z james $
+% $Id: spm_eeg_weight_epochs.m 253 2005-10-13 15:31:34Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

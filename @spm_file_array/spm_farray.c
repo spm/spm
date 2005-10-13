@@ -1,18 +1,24 @@
-#ifndef lint
-static char sccsid[] = "@(#)spm_farray.c	1.1 John Ashburner 04/06/28";
-#endif
+/*
+ * $Id: spm_farray.c 253 2005-10-13 15:31:34Z guillaume $
+ */
+
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-/*
-#include <sys/types.h>
-#include <unistd.h>
-*/
 #include <stdlib.h>
-#include "spm_sys_deps.h"
+#include <sys/types.h>
+
+#ifdef SPM_WIN32
+#include <windows.h>
+#include <memory.h>
+typedef char *caddr_t;
+#else
+#include <unistd.h>
+#endif
+
+#include "mex.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
-#include "mex.h"
 
 #define MXDIMS 256
 

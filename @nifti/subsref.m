@@ -39,7 +39,7 @@ function varargout = subsref(opt,subs)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsref.m 250 2005-10-07 16:08:39Z john $
+% $Id: subsref.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 varargout = rec(opt,subs);

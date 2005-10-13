@@ -42,5 +42,5 @@
 %   xmldemo2    - Read an XML file and access fields.
 %   xmldemo3    - Read an XML file, modify some fields and save it.
 
-% Copyright 2002 Guillaume Flandin - INRIA Sophia Antipolis
+% Copyright 2002 Guillaume Flandin <Guillaume@artefact.tk>
 % $Revision: 1.0 $

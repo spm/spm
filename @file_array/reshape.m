@@ -4,7 +4,7 @@ function a = reshape(b,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: reshape.m 174 2005-05-24 11:03:32Z john $
+% $Id: reshape.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 if length(struct(b))~=1, error('Can only reshape simple file_array objects.'); end;

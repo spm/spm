@@ -4,6 +4,6 @@ function varargout = ctranspose(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: ctranspose.m 174 2005-05-24 11:03:32Z john $
+% $Id: ctranspose.m 253 2005-10-13 15:31:34Z guillaume $
 
 error('file_array objects can not be transposed.');

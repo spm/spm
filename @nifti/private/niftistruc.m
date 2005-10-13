@@ -4,7 +4,7 @@ function o = niftistruc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: niftistruc.m 174 2005-05-24 11:03:32Z john $
+% $Id: niftistruc.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 persistent org;

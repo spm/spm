@@ -7,7 +7,7 @@ function spm_check_orientations(V)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_check_orientations.m 253 2005-10-13 15:31:34Z guillaume $
 
 if numel(V)<=1, return; end;
 

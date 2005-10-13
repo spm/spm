@@ -2,7 +2,10 @@ function t=subsref(opt,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 % _________________________________________________________________________________
-% %W% John Ashburner %E%
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id: subsref.m 253 2005-10-13 15:31:34Z guillaume $
 
 if prod(size(subs))~=1, error('Expression too complicated');end;
 if ~strcmp(subs.type,'()'),

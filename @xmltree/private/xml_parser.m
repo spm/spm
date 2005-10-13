@@ -16,7 +16,7 @@ function tree = xml_parser(xmlstr)
 % @(#)xml_parser.m              Guillaume Flandin            2002/04/04
 
 % XML Processor for MATLAB (The Mathworks, Inc.).
-% Copyright (C) 2002-2003 Guillaume Flandin
+% Copyright (C) 2002-2003 Guillaume Flandin <Guillaume@artefact.tk>
 %
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -35,13 +35,13 @@ function tree = xml_parser(xmlstr)
 
 % Please feel free to email the author any comment/suggestion/bug report
 % to improve this XML processor in Matlab.
-% Email: Guillaume.Flandin@sophia.inria.fr
+% Email: <Guillaume@artefact.tk>
 % Check also the latest developments on the following webpage:
-% http://www-sop.inria.fr/epidaure/personnel/flandin/xml/
+% http://www.artefact.tk/software/matlab/xml/
 %-----------------------------------------------------------------------
 
 % The implementation of this XML parser is much inspired from a 
-% Javascript parser available at http://www.jeremie.com
+% Javascript parser available at http://www.jeremie.com/
 
 % A mex-file xml_findstr.c is also required, to encompass some
 % limitations of the built-in findstr Matlab function.

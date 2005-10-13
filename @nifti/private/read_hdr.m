@@ -7,7 +7,7 @@ function vol = read_hdr(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr.m 184 2005-05-31 13:23:32Z john $
+% $Id: read_hdr.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 persistent d

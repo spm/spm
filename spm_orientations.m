@@ -48,7 +48,7 @@ function spm_orientations(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_orientations.m 253 2005-10-13 15:31:34Z guillaume $
 
 if nargin<1,
     if strcmp(spm('ver'),'SPM5'),

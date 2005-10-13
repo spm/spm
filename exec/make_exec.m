@@ -1,5 +1,5 @@
 function make_exec
-% SPM can be complied using Matlab 7.
+% SPM can be compiled using Matlab 7.
 % This will generate a standalone program, which can be run
 % outside Matlab, and therefore does not use up a Matlab license.
 % The executable needs to be dynamically linked with runtime libraries
@@ -12,7 +12,10 @@ function make_exec
 % startup.m file.  See the following link for more information:
 % http://www.mathworks.com/support/solutions/data/1-QXFMQ.html?1-QXFMQ
 %_______________________________________________________________________
-% John Ashburner $Id$ 
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id: make_exec.m 253 2005-10-13 15:31:34Z guillaume $ 
 
 mcc('-m','-v','-o',['spm_'    computer],'exec_spm.m'   ,'spm_load.m', '-I',spm('Dir'),'-R','-nojvm')
 mcc('-m','-v','-o',['jobman_' computer],'exec_jobman.m','spm_load.m', '-I',spm('Dir'),'-R','-nojvm')

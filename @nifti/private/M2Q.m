@@ -5,7 +5,7 @@ function Q = M2Q(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: M2Q.m 250 2005-10-07 16:08:39Z john $
+% $Id: M2Q.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 d = diag(M(1:3,1:3));

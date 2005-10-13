@@ -11,7 +11,7 @@ function D = spm_eeg_weight_time(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_weight_time.m 253 2005-10-13 15:31:34Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG weighting setup',0);
 

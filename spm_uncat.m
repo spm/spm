@@ -7,7 +7,7 @@ function [a] = spm_uncat(x,a)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_uncat.m 253 2005-10-13 15:31:34Z guillaume $
 
 % fill in varargout
 %--------------------------------------------------------------------------

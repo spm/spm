@@ -4,7 +4,7 @@ function d = getdict
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: getdict.m 184 2005-05-31 13:23:32Z john $
+% $Id: getdict.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 persistent dict;

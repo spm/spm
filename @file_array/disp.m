@@ -4,7 +4,7 @@ function disp(obj)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: disp.m 184 2005-05-31 13:23:32Z john $
+% $Id: disp.m 253 2005-10-13 15:31:34Z guillaume $
 
 
 if numel(struct(obj))>1,

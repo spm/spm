@@ -4,7 +4,7 @@ function en = end(a,k,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: end.m 174 2005-05-24 11:03:32Z john $
+% $Id: end.m 253 2005-10-13 15:31:34Z guillaume $
 
 dim = size(a);
 if k>length(dim)

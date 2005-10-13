@@ -15,7 +15,7 @@ function [dx] = spm_int_J(J,f,t)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id$
+% $Id: spm_int_J.m 253 2005-10-13 15:31:34Z guillaume $
  
 % augment Jacobian and take matrix exponential
 %==========================================================================

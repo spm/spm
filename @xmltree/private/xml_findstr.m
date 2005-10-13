@@ -20,8 +20,7 @@ function k = xml_findstr(s,p,i,n)
 %
 %   See also STRFIND, FINDSTR
 
-%   Guillaume Flandin
-%   Copyright 2002 INRIA Sophia Antipolis
+%   Copyright (C) 2002 Guillaume Flandin <Guillaume@artefact.tk>
 %   $Revision: 1.0 $  $Date: 2002/04/10 22:50:32 $
 %   Implemented in a MATLAB mex file.
 
