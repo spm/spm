@@ -17,7 +17,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 188 2005-06-10 11:54:52Z james $
+% $Id: spm_eeg_tf.m 254 2005-10-14 17:07:09Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -146,11 +146,11 @@ D1=D;
 if str2num(version('-release'))>=14
     save(fullfile(P, D.fname), '-V6', 'D');
     D = D2;
-    save(fullfile(P, D2.fname), '-V6', 'D2');
+    save(fullfile(P, D2.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');
     D = D2;
-    save(fullfile(P, D2.fname), 'D2');
+    save(fullfile(P, D2.fname), 'D');
 end
 D=D1;
 spm('Pointer', 'Arrow');
