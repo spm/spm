@@ -1,5 +1,5 @@
 /*
- * $Id: spm_farray.c 253 2005-10-13 15:31:34Z guillaume $
+ * $Id: spm_farray.c 256 2005-10-17 18:57:24Z guillaume $
  */
 
 #include <math.h>
@@ -11,13 +11,14 @@
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
+HANDLE hFile, hMapping;
 typedef char *caddr_t;
 #else
+#include <sys/mman.h>
 #include <unistd.h>
 #endif
 
 #include "mex.h"
-#include "spm_mapping.h"
 #include "spm_datatypes.h"
 
 #define MXDIMS 256
@@ -38,7 +39,7 @@ void do_unmap_file(MTYPE *map)
 	if (map->addr)
 	{
 #ifdef SPM_WIN32
-		(void)unmap_file(map->addr);
+		(void)UnmapViewOfFile((LPVOID)(map->addr));
 #else
 		(void)munmap(map->addr, map->len);
 #endif
@@ -130,21 +131,59 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 			mexErrMsgTxt("File too small.");
 		}
 #ifdef SPM_WIN32
-		(void)close(fd);
-		map->addr = map_file(buf, (caddr_t)0, map->len,
-			PROT_READ, MAP_SHARED, (off_t)0);
+        (void)close(fd);
+
+        /* http://msdn.microsoft.com/library/default.asp?
+               url=/library/en-us/fileio/base/createfile.asp */
+        hFile = CreateFile(
+            buf,
+            GENERIC_READ,
+            FILE_SHARE_READ,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS,
+            NULL);
+        mxFree(buf);
+        if (hFile == NULL)
+            mexErrMsgTxt("Cant open file.  It may be locked by another program.");
+
+        /* http://msdn.microsoft.com/library/default.asp?
+               url=/library/en-us/fileio/base/createfilemapping.asp */
+        hMapping = CreateFileMapping(
+            hFile,
+            NULL,
+            PAGE_READONLY,
+            0,
+            0,
+            NULL);
+        (void)CloseHandle(hFile);
+        if (hMapping == NULL)
+            mexErrMsgTxt("Cant create file mapping.  It may be locked by another program.");
+
+        /* http://msdn.microsoft.com/library/default.asp?
+               url=/library/en-us/fileio/base/mapviewoffile.asp */
+        map->addr    = (caddr_t)MapViewOfFileEx(
+            hMapping,
+            FILE_MAP_READ,
+            0,
+            0,
+            map->len,
+            0);
+        (void)CloseHandle(hMapping);
+        if (map->addr == NULL)
+            mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");
+
 #else
 		map->addr = mmap((caddr_t)0, map->len,
 			PROT_READ, MAP_SHARED, fd, (off_t)0);
 		(void)close(fd);
-#endif
+		mxFree(buf);
 		if (map->addr == (caddr_t)-1)
 		{
 			(void)perror("Memory Map");
-			mxFree(buf);
 			mexErrMsgTxt("Cant map image file.");
 		}
-		mxFree(buf);
+#endif	
 	}
 	map->data = (void *)map->addr;
 }

@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_input.m 133 2005-05-09 17:29:37Z guillaume $
+% $Id: spm_input.m 256 2005-10-17 18:57:24Z guillaume $
 
 
 %=======================================================================
@@ -872,17 +872,8 @@ else                                             %-Use GUI to get answer
 
 end % (if CmdLine)
 
-%-Log the transaction & return response
+%-Return response
 %-----------------------------------------------------------------------
-if exist('spm_log')==2
-	switch lower(Type), case 's'
-		spm_log([mfilename,' : ',Prompt,':',p]);
-	case 's+'
-		spm_log([mfilename,' : ',Prompt,':'],p);
-	otherwise
-		spm_log([mfilename,' : ',Prompt,': (',str,')'],p);
-	end
-end
 varargout = {p,YPos};
 
 

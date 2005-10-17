@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 140 2005-05-11 15:20:25Z christophe $
+% $Id: spm_defaults.m 256 2005-10-17 18:57:24Z guillaume $
 
 
 global defaults
@@ -23,7 +23,6 @@ global defaults
 %=======================================================================
 defaults.grid     = 0.4;
 defaults.cmdline  = 0;
-defaults.logfile  = '';
 
 % File format specific
 %=======================================================================

@@ -4,7 +4,7 @@ function opts = spm_config_surf
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id$
+% $Id: spm_config_surf.m 256 2005-10-17 18:57:24Z guillaume $
 
 data.type = 'files';
 data.name = 'Grey+white matter image';

@@ -143,7 +143,7 @@ function varargout = spm_get(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes (X-platform stuff with Matthew Brett)
-% $Id: spm_get.m 219 2005-08-31 16:17:08Z john $
+% $Id: spm_get.m 256 2005-10-17 18:57:24Z guillaume $
 
 
 %=======================================================================
@@ -400,11 +400,6 @@ end
 %-Convert P to cellstr if Prompt is one
 %-----------------------------------------------------------------------
 if iscellstr(Prompt), if isempty(P), P={}; else, P = cellstr(P); end, end
-
-%-Log the transaction
-%-----------------------------------------------------------------------
-if exist('spm_log')==2
-	spm_log([mfilename,' : ',char(Prompt),' :'],P); end
 
 varargout = {P};
 return

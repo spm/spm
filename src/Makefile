@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 247 2005-10-04 17:20:34Z guillaume $
+# $Id: Makefile 256 2005-10-17 18:57:24Z guillaume $
 #
 ###############################################################################
 #
@@ -161,7 +161,7 @@ SPMMEX =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
-	spm_list_files.$(SUF)
+	spm_list_files.$(SUF) spm_farray.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -199,6 +199,7 @@ install: $(SPMMEX)
 	@ echo "_____________________________________________________________"
 	@ echo ""	
 	$(COPY) $(SPMMEX) ..
+	$(MOVE) ../spm_farray.$(SUF) ../@spm_file_array
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
@@ -388,6 +389,10 @@ spm_digamma.$(SUF): spm_digamma.c
 
 spm_dilate_erode.$(SUF): spm_dilate_erode.c
 	$(MEX) spm_dilate_erode.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_farray.$(SUF): spm_farray.c spm_datatypes.h
+	$(MEX) spm_farray.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_get_lm.$(SUF): spm_get_lm.c
