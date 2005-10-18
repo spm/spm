@@ -1,54 +1,47 @@
-function [x] = spm_vec(varargin)
-% FORMAT [x] = spm_vec(x);
-% vectorises an array or structure of hierarchically embedded matrices
-% x - cell array
-% x - vec(x)
-%____________________________________________________________________________
+function [vX] = spm_vec(X)
+% vectorises a numeric, cell or structure array
+% FORMAT [vX] = spm_vec(X);
+% X  - numeric, cell or stucture array
+% vX - vec(X)
+%__________________________________________________________________________
 %
 % e.g.:
 % spm_vec({eye(2) 3}) = [1 0 0 1 3]'
-%____________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % Karl Friston
-% $Id: spm_vec.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_vec.m 258 2005-10-18 18:21:07Z karl $
 
 
-% de-reference input cell if possible
-%----------------------------------------------------------------------------
-x = varargin;
-if length(x) == 1
-    x = x{1};
-end
+% initialise vX
+%--------------------------------------------------------------------------
+vX = [];
 
 % vectorise structure into cell arrays
-%----------------------------------------------------------------------------
-if isstruct(x)
-    f = fieldnames(x);
-    y = f(:);
+%--------------------------------------------------------------------------
+if isstruct(X)
+    f = fieldnames(X);
+    X = X(:);
     for i = 1:length(f)
-         y{i} = spm_vec(x.(f{i}));
+            vX = [vX; spm_vec({X.(f{i})})];
     end
-    x = y;
+    return
 end
-
-% vectorise cells into numberical arrays
-%----------------------------------------------------------------------------
-if iscell(x)
-    x     = x(:);
-    for i = 1:length(x)
-         x{i} = spm_vec(x{i});
+ 
+% vectorise cells into numerical arrays
+%--------------------------------------------------------------------------
+if iscell(X)
+    X     = X(:);
+    for i = 1:length(X)
+         vX = [vX; spm_vec(X{i})];
     end
-    x         = spm_cat(x);
+    return
 end
-
+ 
 % vectorise numerical arrays
-%----------------------------------------------------------------------------
-if isnumeric(x)
-    x = x(:);
-else
-    x = [];
+%--------------------------------------------------------------------------
+if isnumeric(X)
+    vX = X(:);
 end
-
-
 

@@ -1,5 +1,5 @@
 function [x] = spm_cat(x,d)
-% converts an array into a matrix
+% converts a cell array into a matrix
 % FORMAT [x] = spm_cat(x,d);
 % x - cell array
 % d - dimension over which to concatenate [default - both]
@@ -20,7 +20,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_cat.m 252 2005-10-10 18:00:14Z karl $
+% $Id: spm_cat.m 258 2005-10-18 18:21:07Z karl $
  
 % check x is not already a matrix
 %--------------------------------------------------------------------------
