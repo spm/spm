@@ -81,7 +81,6 @@ V.D        = Q/16;
 %---------------------------------------------------------------------------
 E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
 E.N        = sparse(m,1);  V.N = ones(m,1);        % DCT coefficients
-% E.N        = sparse(m,1);  V.N = 0.5*ones(m,1);    % DCT coefficients
 E.U        = U;            V.U = 0;                % trial duration (s)
 
 % vectorize
