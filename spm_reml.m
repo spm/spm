@@ -7,7 +7,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Q   - {1 x q} covariance components
 % N   - number of samples
 %
-% OPT = 1 : log-normal hyper-parameterisation
+% OPT = 1 : log-normal hyper-parameterisation (with hyperpriors)
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 249 2005-10-05 17:58:37Z karl $
+% $Id: spm_reml.m 261 2005-10-18 18:25:12Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -60,9 +60,11 @@ if OPT
     [C,h] = spm_reml(YY,X,Q,N);
     fprintf('%s:\n','Applying log-normal hyperpriors');
     h     = log(max(h,1e-6));
+    hP    = speye(m,m)/16;
 
 else
     h     = ones(m,1);
+    hP    = sparse(m,m);
 end
  
  
@@ -120,6 +122,10 @@ for k = 1:32
         end
     end
     
+    % add hyperpriors
+    %----------------------------------------------------------------------
+    dFdhh = dFdhh - hP;
+    
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
     Ph    = -dFdhh;
@@ -138,7 +144,7 @@ end
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 if nargout > 3
- 
+    
     F = - trace(C*P*YY*P)/2 ...
         - N*n*log(2*pi)/2 ...
         - N*spm_logdet(C)/2 ...

@@ -1,6 +1,6 @@
-function [C,P,F] = spm_PEB(y,P,LogN)
+function [C,P,F] = spm_PEB(y,P,OPT)
 % parametric empirical Bayes (PEB) for hierarchical linear models
-% FORMAT [C,P,F] = spm_PEB(y,P,[LogN])
+% FORMAT [C,P,F] = spm_PEB(y,P,OPT)
 %
 % y       - (n x 1)     response variable
 %
@@ -9,8 +9,8 @@ function [C,P,F] = spm_PEB(y,P,LogN)
 % P{i}.X  - (n x m)     ith level design matrix i.e: constraints on <Eb{i - 1}>
 % P{i}.C  - {q}(n x n)  ith level contraints on Cov{e{i}} = Cov{b{i - 1}}
 %
-% LogN    - enforces positively constraints on the covariance hyperparameters
-%           by adopting a log-normal [flat] hyperprior. default = 0
+% OPT    - enforces positively constraints on the covariance hyperparameters
+%          by adopting a log-normal [flat] hyperprior. default = 0
 %
 % POSTERIOR OR CONDITIONAL ESTIMATES
 %
@@ -18,7 +18,7 @@ function [C,P,F] = spm_PEB(y,P,LogN)
 % C{i}.C  - (n x n)     conditional covariance  Cov{b{i - 1}|y} = Cov{e{i}|y}
 % C{i}.M  - (n x n)     ML estimate of Cov{b{i - 1}} = Cov{e{i}}
 % C{i}.h  - (q x 1)     ith level ReML  hyperparameters for covariance:
-%                       [inv]Cov{e{i}} = P{i}.h(1)*P{i}.C{1} +  ...
+%                       Cov{e{i}} = P{i}.h(1)*P{i}.C{1} +  ...
 %
 % LOG EVIDENCE
 %
@@ -55,14 +55,14 @@ function [C,P,F] = spm_PEB(y,P,LogN)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_PEB.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_PEB.m 261 2005-10-18 18:25:12Z karl $
 
 % set default
 %--------------------------------------------------------------------------
 try
-    LogN;
+    OPT;
 catch
-    LogN = 0;
+    OPT = 0;
 end
 
 % number of levels (p)
@@ -129,16 +129,16 @@ if ~iscell(P{end}.C)
     % Full Bayes: (i.e. Cov(b) = 0, <b> = 1)
     %----------------------------------------------------------------------
     y( I{end})        = sparse(1:n,1,1);
-    Cb(I{end},I{end}) = sparse(1:n,1:n,1e-6);
+    Cb(I{end},I{end}) = sparse(1:n,1:n,1e-8);
 else
 
     % Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
     %----------------------------------------------------------------------
-    Cb(I{end},I{end}) = sparse(1:n,1:n,1e+6);
+    Cb(I{end},I{end}) = sparse(1:n,1:n,1e+8);
 end
 
 
-% assemble augmented  constraints Q: [inv]Cov{e} = Cb + h(i)*Q{i} + ...
+% assemble augmented  constraints Q: Cov{e} = Cb + h(i)*Q{i} + ...
 %==========================================================================
 if ~isfield(P{1},'Q')
 
@@ -148,7 +148,7 @@ if ~isfield(P{1},'Q')
     Q     = {};
     for i = 1:p
 
-        % collect constraints on prior covariances - [inv]Cov{e{i}}
+        % collect constraints on prior covariances - Cov{e{i}}
         %------------------------------------------------------------------
         if iscell(P{i}.C)
             m     = length(P{i}.C);
@@ -159,7 +159,7 @@ if ~isfield(P{1},'Q')
                 Q{end + 1} = sparse(u,v,s,q,q);
             end
 
-            % indices for ith level hyperparameters
+            % indices for ith-level hyperparameters
             %--------------------------------------------------------------
             try
                 K{i}  = [1:m] + K{end}(end);
@@ -176,7 +176,7 @@ if ~isfield(P{1},'Q')
             v       = v + I{i}(1) - 1;
             Cb      = Cb + sparse(u,v,s,q,q);
 
-            % indices for ith level hyperparameters
+            % indices for ith-level hyperparameters
             %--------------------------------------------------------------
             K{i}  = [];
 
@@ -201,11 +201,14 @@ if ~isfield(P{1},'Q')
 
     % log-transform and save
     %----------------------------------------------------------------------
-    if LogN
-        h       = zeros(m,1);
+    if OPT
+        h   = zeros(m,1);
+        hP  = speye(m,m)/16;
     else
-        h = ones(m,1);
+        h   = ones(m,1);
+        hP  = zeros(m,m);
     end
+    P{1}.hP = hP;
     P{1}.Cb = Cb;
     P{1}.Q  = Q;
     P{1}.h  = h;
@@ -213,12 +216,12 @@ if ~isfield(P{1},'Q')
     P{1}.d  = d;
 
 end
+hP    = P{1}.hP;
 Cb    = P{1}.Cb;
 Q     = P{1}.Q;
 h     = P{1}.h;
 K     = P{1}.K;
 d     = P{1}.d;
-
 
 % Iterative EM
 %--------------------------------------------------------------------------
@@ -231,7 +234,7 @@ for k = 1:M
     %----------------------------------------------------------------------
     Ce    = Cb;
     for i = 1:m
-        if LogN
+        if OPT
             Ce = Ce + Q{i}*exp(h(i));
         else
             Ce = Ce + Q{i}*h(i);
@@ -259,11 +262,11 @@ for k = 1:M
 
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
-        PQ{i}   = iC*Q{i} - iCXC*(iCX'*Q{i});
-        if LogN
+        PQ{i}     = iC*Q{i} - iCXC*(iCX'*Q{i});
+        if OPT
             PQ{i} = PQ{i}*exp(h(i));
         end
-        dFdh(i) = -trace(PQ{i})/2 + y'*PQ{i}*Py/2;
+        dFdh(i)   = -trace(PQ{i})/2 + y'*PQ{i}*Py/2;
 
     end
 
@@ -282,6 +285,10 @@ for k = 1:M
         end
     end
 
+    % add hyperpriors
+    %----------------------------------------------------------------------
+    dFdhh = dFdhh - hP;
+    
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
     dh    = -pinv(dFdhh)*dFdh;
@@ -297,9 +304,9 @@ end
 
 % place hyperparameters in P{1} and output structure for {n + 1}
 %--------------------------------------------------------------------------
-P{1}.h             = h;
-C{p + 1}.E         = B(J{p});
-C{p + 1}.M         = Cb(I{end},I{end});
+P{1}.h         = h;
+C{p + 1}.E     = B(J{p});
+C{p + 1}.M     = Cb(I{end},I{end});
 
 % recursive computation of conditional means E{b|y}
 %--------------------------------------------------------------------------
@@ -309,7 +316,7 @@ end
 
 % hyperpriors - precision
 %--------------------------------------------------------------------------
-if LogN
+if OPT
     h          = exp(h);
 end
 
@@ -325,27 +332,9 @@ end
 %--------------------------------------------------------------------------
 if nargout > 2
 
-    % compute condotional covariance of h
+    % condotional covariance of h
     %----------------------------------------------------------------------
-    XCXiC = XX*Cby*iCX';
-    for i = 1:m
-        CP{i} = -Q{i}*iC;
-        if LogN
-            CP{i} = CP{i}*exp(h(i));
-        end
-    end
-    
-    % P(h) = -ddF/dhh - ...
-    %----------------------------------------------------------------------
-    for i = 1:m
-        for j = i:m
-            CPCP     =  CP{i}*CP{j};
-            Ph(i,j)  = -sum(sum(CPCP.*XCXiC'));
-            Ph(j,i)  =  Ph(i,j);
-
-        end
-    end
-    Ph = Ph - dFdhh;
+    Ph = -dFdhh;
 
     % log evidence = F
     %----------------------------------------------------------------------
@@ -354,7 +343,7 @@ if nargout > 2
         - spm_logdet(Ce)/2 ...
         - spm_logdet(Ph)/2 ...
         + spm_logdet(Cby)/2 ...
-        - length(Cby)/2 - m/2;
+        - sum(diag(Cby < 1e+6))/2 - m/2;
 end
 
 % warning
