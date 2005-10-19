@@ -1,9 +1,9 @@
 function [B,Wf]=robust_averaget(data,ks);
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 246 2005-09-29 13:27:54Z james $
+% $Id: spm_eeg_robust_averaget.m 262 2005-10-19 17:09:35Z james $
 if nargin==1
-	ks=3;
+	ks=0;
 end
 data=data';
 % figure(1)
