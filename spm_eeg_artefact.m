@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 264 2005-10-19 17:15:48Z james $
+% $Id: spm_eeg_artefact.m 265 2005-10-19 17:24:54Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -208,10 +208,10 @@ if MustDoWork
 					spm_progress_bar('Set', (i-1)*length(tloops)+j);
 					drawnow;
 				end
-                tempdata=max(squeeze(D.data(j, :, trials)));
+                tempdata=max(abs(squeeze(D.data(j, :, trials))));
                 itrials=trials;
                
-                itrials(find(abs(tempdata)>Tchannel(j)))='';
+                itrials(find(tempdata>Tchannel(j)))='';
 				tdata = squeeze(D.data(j, :, itrials));
 				
 				if wtrials == 1
