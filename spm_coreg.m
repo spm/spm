@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_coreg.m 266 2005-10-24 09:21:00Z john $
 
 
 if nargin>=4,
@@ -135,7 +135,7 @@ for k=1:numel(VF),
 		x(k,:) = xk(:)';
 	end;
 	if flags.graphics,
-		display_results(VG,VFk,xk(:)',flags);
+		display_results(VG(1),VFk(1),xk(:)',flags);
 	end;
 end;
 return;
@@ -360,8 +360,8 @@ ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);
 % Display ortho-views
 %-----------------------------------------------------------------------
 spm_orthviews('Reset');
-     spm_orthviews('Image',VG.fname,[0.01 0.01 .48 .49]);
-h2 = spm_orthviews('Image',VF.fname,[.51 0.01 .48 .49]);
+     spm_orthviews('Image',VG,[0.01 0.01 .48 .49]);
+h2 = spm_orthviews('Image',VF,[.51 0.01 .48 .49]);
 global st
 st.vols{h2}.premul = inv(spm_matrix(x(:)'));
 spm_orthviews('Space');
