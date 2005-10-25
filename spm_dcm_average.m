@@ -3,7 +3,7 @@ function [] = spm_dcm_average (num_models,P,name)
 % FORMAT [] = spm_dcm_average (num_models,P,name)
 %
 % num_models        The number of models
-% P                 Cell array of DCM filenames eg. P{1}='DCM1', P{2}='DCM2'
+% P                 Array of DCM filenames eg. P(1,:)='DCM1', P(2,:)='DCM2'
 % name              Name of DCM output file. This is prefixed by 'DCM_avg_'.
 %
 % This routine creates a new DCM model which is the average over a 
@@ -25,7 +25,7 @@ function [] = spm_dcm_average (num_models,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_average.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_average.m 269 2005-10-25 15:28:26Z klaas $
 
 
 if nargin < 1
@@ -44,7 +44,7 @@ end
 
 % Average models using Bayesian fixed effects analysis by computing new Ep,Cp
 for model=1:num_models,
-    load(P{model});
+    load(P(model,:));
     
     % Only look at those parameters with non-zero prior covariance
     pCdiag=diag(DCM.M.pC);
