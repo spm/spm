@@ -2,8 +2,8 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Graphical display of adjusted data
 % FORMAT [Y y beta Bcov] = spm_graph(xSPM,SPM,hReg)
 %
-% SPM    - structure containing SPM, distributional & filtering details
-%	   about the excusion set
+% xSPM   - structure containing SPM, distributional & filtering details
+%	       about the excursion set
 % SPM    - structure containing generic details about the analysis
 % hReg   - handle of MIP register
 %
@@ -64,7 +64,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_graph.m 272 2005-10-25 20:05:27Z guillaume $
 
 
 

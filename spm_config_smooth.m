@@ -4,7 +4,7 @@ function opts = spm_config_smooth
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_smooth.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_smooth.m 272 2005-10-25 20:05:27Z guillaume $
 
 
 %_______________________________________________________________________
@@ -66,7 +66,7 @@ for i = 1:n
         spm_smooth(Q,U,s);
         spm_progress_bar('Set',i);
 end
-spm_progress_bar('Clear',i);
+spm_progress_bar('Clear');
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

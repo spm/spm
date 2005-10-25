@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm.m 272 2005-10-25 20:05:27Z guillaume $
 
 
 %=======================================================================
@@ -299,7 +299,7 @@ function varargout=spm(varargin)
 
 %-Parameters
 %-----------------------------------------------------------------------
-Modalities = char('PET','FMRI','EEG');
+Modalities = {'PET','FMRI','EEG'};
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -441,52 +441,52 @@ set(F,'Pointer','Arrow','Visible','on')
 %=======================================================================
 case 'asciiwelcome'                           %-ASCII SPM banner welcome
 %=======================================================================
-disp( ' ___  ____  __  __                                                  ')
-disp( '/ __)(  _ \(  \/  )                                                 ')
-disp( '\__ \ )___/ )    (   Statistical Parametric Mapping                 ')
-disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm/'])
-fprintf('\n')
+disp( ' ___  ____  __  __                                            ');
+disp( '/ __)(  _ \(  \/  )                                           ');
+disp( '\__ \ )___/ )    (   Statistical Parametric Mapping           ');
+disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm/']);
+fprintf('\n');
 
 
 %=======================================================================
-case {'pet','fmri','eeg'}             %-Initialise SPM in PET, fMRI modality
+case lower(Modalities)            %-Initialise SPM in PET, fMRI modality
 %=======================================================================
 % spm(Modality)
 
-%-Turn on warning messages for debugging - disabled as syntax for Matlab 6.5 has changed
+%-Turn on warning messages for debugging 
+%- disabled as syntax for Matlab 6.5 has changed
 %warning always, warning backtrace
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
 local_clc, spm('SetCmdWinLabel')
-spm('AsciiWelcome'),			fprintf('\n\nInitialising SPM')
-Modality = upper(Action);					fprintf('.')
-delete(get(0,'Children')),					fprintf('.')
+spm('AsciiWelcome');                    fprintf('\n\nInitialising SPM');
+Modality = upper(Action);                                  fprintf('.');
+delete(get(0,'Children'));                                 fprintf('.');
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------
-Fmenu  = spm('CreateMenuWin','off');				fprintf('.')
-Finter = spm('CreateIntWin','off');				fprintf('.')
-spm_figure('WaterMark',Finter,spm('Ver'),'',45),		fprintf('.')
-Fgraph = spm_figure('Create','Graphics','Graphics','off');	fprintf('.')
+Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
+Finter = spm('CreateIntWin','off');	                       fprintf('.');
+spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
+Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
 spm_jobman('pulldown');
 
 Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
 if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
-								fprintf('.')
+                                                           fprintf('.');
 
 %-Load startup global defaults
 %-----------------------------------------------------------------------
-spm_defaults,							fprintf('.')
+spm_defaults;                                              fprintf('.');
 
 %-Setup for current modality
 %-----------------------------------------------------------------------
-spm('ChMod',Modality),						fprintf('.')
+spm('ChMod',Modality);                                     fprintf('.');
 
 %-Reveal windows
 %-----------------------------------------------------------------------
-set([Fmenu,Finter,Fgraph],'Visible','on')
-							fprintf('done\n\n')
+set([Fmenu,Finter,Fgraph],'Visible','on');          fprintf('done\n\n');
 
 %-Print present working directory
 %-----------------------------------------------------------------------
@@ -1250,15 +1250,14 @@ if isempty(Modality)
 	else, Modality = 'UNKNOWN'; end
 end
 if ischar(Modality)
-    ModNum = find(all(Modalities(:,1:length(Modality))'==...
-        Modality'*ones(1,size(Modalities,1))));
+	ModNum = find(ismember(Modalities,Modality));
 else
-	if ~any(Modality==[1:size(Modalities,1)])
+	if ~any(Modality == [1:length(Modalities)])
 		Modality = 'ERROR';
 		ModNum   = [];
 	else
 		ModNum   = Modality;
-		Modality = deblank(Modalities(ModNum,:));
+		Modality = Modalities{ModNum};
 	end
 end
 
@@ -1442,30 +1441,37 @@ case 'tbs'                                %-Identify installed toolboxes
 % xTB = spm('TBs')
 %-----------------------------------------------------------------------
 
-Tdir   = fullfile(spm('Dir'),'toolbox');
+% Toolbox directory
+%-----------------------------------------------------------------------
+Tdir  = fullfile(spm('Dir'),'toolbox');
 
+% List of potential installed toolboxes directories
+%-----------------------------------------------------------------------
 if exist(Tdir,'dir')
-	[null,tmp] = spm_list_files(Tdir,'-');
-	tmp = cellstr(tmp(tmp(:,1)~='.',:))';
+	d = dir(Tdir); 
+	d = char(d([d.isdir]).name);
+	d = cellstr(d(d(:,1)~='.',:))';
 else
-	tmp = {};
+	d = {};
 end
 
-tboxs = {};
-tprog = {};
-tdirs = {};
-for tbox = tmp
-	tbox = char(tbox);
-	tdir = fullfile(Tdir,tbox);
-	[fn,null]=spm_list_files(tdir,['*',tbox,'.m']);
-	if size(fn,1)==1,
-		tboxs = [tboxs, {strrep(tbox,'_','')}];
-		tprog = [tprog, {spm_str_manip(fn,'r')}];
-		tdirs = [tdirs, {tdir}];
+% Look for a "main" M-file in each potential directory
+%-----------------------------------------------------------------------
+xTB = [];
+for i = 1:length(d)
+	tdir = fullfile(Tdir,d{i});
+	f    = dir(fullfile(tdir,['*' d{i} '.m']));
+	fn   = {f(~[f.isdir]).name};
+	if numel(fn) == 1
+		xTB(end+1).name = strrep(d{i},'_','');
+		xTB(end).prog   = spm_str_manip(fn{1},'r');
+		xTB(end).dir    = tdir;
+	elseif numel(fn) > 1
+		% there's an ambiguity there....
 	end
 end
 
-varargout = {struct('name',tboxs,'prog',tprog,'dir',tdirs)};
+varargout{1} = xTB;
 
 
 %=======================================================================
@@ -1474,23 +1480,23 @@ case 'tblaunch'                                  %-Launch an SPM toolbox
 % xTB = spm('TBlaunch',xTB,i)
 %-----------------------------------------------------------------------
 
-if nargin<3, i=1; else, i=varargin{3}; end
-if nargin<2, error('insufficient arguments'), end
+if nargin < 3, i   = 1;          else i   = varargin{3}; end
+if nargin < 2, xTB = spm('TBs'); else xTB = varargin{2}; end
 
-%-Addpath (& report)
-%-----------------------------------------------------------------------
-if i>0,
-	if isempty(findstr(varargin{2}(i).dir,path))
-		addpath(varargin{2}(i).dir,'-begin')
-		spm('alert"',{'Toolbox directory prepended to MatLab path:',...
-			varargin{2}(i).dir},...
-			[varargin{2}(i).name,' toolbox'],1);
+if i > 0
+	%-Addpath (& report)
+	%-------------------------------------------------------------------
+	if isempty(findstr(xTB(i).dir,path))
+		addpath(xTB(i).dir,'-begin');
+		spm('alert"',{'Toolbox directory prepended to Matlab path:',...
+			xTB(i).dir},...
+			[xTB(i).name,' toolbox'],1);
 	end
 
 	%-Launch
-	%-----------------------------------------------------------------------
-	evalin('base',varargin{2}(i).prog)
-end;
+	%-------------------------------------------------------------------
+	evalin('base',xTB(i).prog);
+end
 
 
 %=======================================================================
@@ -1856,10 +1862,12 @@ if get(ob,'Value')==1,
 	spm_jobman('interactive','','jobs.spatial.realign');
 else
 	spm_jobman('interactive','','jobs.spatial.realignunwarp');
-end;
+end
 
+
+%=======================================================================
 function local_clc
+%=======================================================================
 if str2num(version('-release'))~=14 || ~isdeployed,
     clc
 end
-

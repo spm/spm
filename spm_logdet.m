@@ -5,12 +5,15 @@ function [H] = spm_logdet(C)
 %
 % spm_logdet is a computationally efficient operator that can deal with
 % sparse matrices
-%__________________________________________________________________________
-% %W% Karl Friston %E%
+%_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Karl Friston
+% $Id: spm_logdet.m 272 2005-10-25 20:05:27Z guillaume $
 
 % assume diagonal form
-%--------------------------------------------------------------------------
-TOL   = 1e-8;                                           % c.f. n*max(s)*eps
+%-----------------------------------------------------------------------
+TOL   = 1e-8;                                        % c.f. n*max(s)*eps
 n     = length(C);
 s     = diag(C);
 i     = find(s > TOL & s < 1/TOL);
@@ -18,7 +21,7 @@ C     = C(i,i);
 H     = sum(log(diag(C)));
 
 % invoke det if non-diagonal
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 w     = warning;
 warning off
 [i j] = find(C);
@@ -30,7 +33,7 @@ end
 warning(w)
 
 % invoke svd is rank deficient
-%--------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 if imag(H) | isinf(H)
     s  = svd(full(C));
     H  = sum(log(s(s > TOL & s < 1/TOL)));
