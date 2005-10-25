@@ -165,10 +165,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_fMRI_design.m 268 2005-10-25 13:40:58Z klaas $
 
 
-SCCSid  = '$Rev: 112 $';
+SCCSid  = '$Rev: 268 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -189,16 +189,10 @@ try
 	fMRI_T     = SPM.xBF.T;
 	fMRI_T0    = SPM.xBF.T0;
 catch
-	global defaults
-	if ~isempty(defaults),
-		fMRI_T  = defaults.stats.fmri.t;
-		fMRI_T0 = defaults.stats.fmri.t0;
-	else,
-		fMRI_T  = 16;
-		fMRI_T0 = 1;
-	end;
-	SPM.xBF.T  = fMRI_T;
-	SPM.xBF.T0 = fMRI_T0;
+    fMRI_T  = 16;
+    fMRI_T0 = 1;
+    SPM.xBF.T  = fMRI_T;
+    SPM.xBF.T0 = fMRI_T0;
 end
 
 
@@ -226,7 +220,7 @@ catch
 	SPM.xBF.UNITS = spm_input(str,'+1','scans|secs');
 end
 
-% separate specifications for non-relicated sessions
+% separate specifications for non-replicated sessions
 %-----------------------------------------------------------------------
 rep     = 0;
 if length(SPM.nscan) > 1 & ~any(diff(SPM.nscan)) & ~isfield(SPM,'Sess')
