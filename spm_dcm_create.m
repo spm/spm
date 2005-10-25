@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 125 2005-05-08 16:41:39Z klaas $
+% $Id: spm_dcm_create.m 270 2005-10-25 17:25:49Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -33,8 +33,8 @@ WS     = spm('WinScale');
 %===================================================================
 if nargin == 0
     syn_model       = spm_input('Name for target DCM_???.mat','+1','s');
+    SNR             = spm_input('Signal-to-noise ratio (SNR)? ','+1','r',[],1);
     source_model    = 'GUI';
-    SNR             = 1;
 else
     if nargin == 1
         source_model    = 'GUI'

@@ -7,7 +7,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_estimate.m 270 2005-10-25 17:25:49Z klaas $
 
  
 if nargin < 1
@@ -70,10 +70,12 @@ R     = R - X0*inv(X0'*X0)*(X0'*R);
 L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
 [K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
 
-% Bayesian inference and reshape {threshold T1/2 = log(2)/T}
+% Bayesian inference and reshape {default threshold T = 0}
 %-------------------------------------------------------------------
-T          = log(2)/4;			
+T          = 0;
+warning off; % switch off NaN-related warning of spm_Ncdf
 pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
+warning on;
 [ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
 [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
 

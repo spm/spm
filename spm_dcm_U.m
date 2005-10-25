@@ -14,11 +14,11 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_U.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_U.m 270 2005-10-25 17:25:49Z klaas $
 
 
-load(DCM_filename);
-load(SPM_filename);
+load(DCM_filename,'-mat');
+load(SPM_filename,'-mat');
 
 if session>length(SPM.Sess)
     disp(sprintf('Error in spm_dcm_U: SPM file doesnt have %d sessions',session));
