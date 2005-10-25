@@ -31,7 +31,7 @@ function vals = spm_config
 %
 % * 'files' - Entry by file selection
 %   - required fields: 'type', 'name', 'tag', 'filter', 'num'
-%   - optional fields: 'val', 'def', 'help'
+%   - optional fields: 'val', 'def', 'help', 'dir'
 %
 %   The resulting data structure simply contains a cell array
 %   of filenames (from val{1} ).
@@ -119,7 +119,9 @@ function vals = spm_config
 % It is used by nodes of type 'menu'.
 %
 % 'filter'
-% A filter for file selection.  See spm_select for filter usage.
+% A filter for file selection.  See spm_select for filter usage. Note
+% that a filter of 'image' will allow .*\.nii and .*\.img files to be
+% selected, along with their volume number.
 %
 % 'strtype'
 % The type of values that are entered by typing.  e.g. 'e' for evaluated.
@@ -144,6 +146,10 @@ function vals = spm_config
 % array.  For 'files' nodes, it is the min and max number of files.
 % Negative values have special meaning in both cases.  These refer
 % to elements of a 'dim' field.  See spm_select for more.
+%
+% 'dir'
+% A string containing the name of a starting directory for use when
+% selecting files.
 %
 % 'prog'
 % This is a function handle that may be invoked.  The tree structure
@@ -187,7 +193,7 @@ function vals = spm_config
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config.m 255 2005-10-17 14:46:13Z john $
+% $Id: spm_config.m 267 2005-10-25 11:49:37Z john $
 
 
 tempo   = struct('type','repeat','name','Temporal','tag','temporal',...
@@ -216,16 +222,24 @@ vals.values = {tempo,spat,stat,utils};
 
 [f,unused]  = spm_list_files(fullfile(spm('Dir'),'toolbox'),'*_config_*.m');
 if ~isempty(f),
-	tools      = struct('type','repeat','tag','tools','name','Tools','values',{{}});
-	tools.help = {'Other tools'};
-	for i=1:size(f,1),
-		[unused,fl,unused] = fileparts(deblank(f(i,:)));
-		if exist(fl,'file')~=2
-			path(path,fullfile(spm('Dir'),'toolbox'));
-		end;
-		tools.values{i} = feval(fl);
-	end;
-	vals.values = {vals.values{:},tools};
+    ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
+    ob.help = {[...
+    'Toolbox configuration files should be placed in the toolbox directory, ',...
+    'with their own spm_config_*.m files. ',...
+    'If you write a toolbox, then you can include it in this directory - ',...
+    'but remember to try to keep the function names unique (to reduce ',...
+    'clashes with other toolboxes.  See spm_config.m for information about ',...
+    'the form of SPM''s configuration files.']};
+    tools      = struct('type','repeat','tag','tools','name','Tools','values',{{ob}});
+    tools.help = {'Other tools'};
+    for i=1:size(f,1),
+        [unused,fl,unused] = fileparts(deblank(f(i,:)));
+        if exist(fl,'file')~=2
+            path(path,fullfile(spm('Dir'),'toolbox'));
+        end;
+        tools.values{i+1} = feval(fl);
+    end;
+    vals.values = {vals.values{:},tools};
 end;
 
 

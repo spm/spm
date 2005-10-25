@@ -4,7 +4,7 @@ function spm_print(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_print.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_print.m 267 2005-10-25 11:49:37Z john $
 
 
 global defaults
@@ -35,7 +35,8 @@ try,
         nam1 = fname;
     end;
     opts = {nam1,'-noui','-painters',pd.opt{:}};
-    print(opts{:});
+    fg = spm_figure('FindWin','Graphics');
+    print(fg,opts{:});
 catch,
     errstr = lasterr;
     tmp = [find(abs(errstr)==10),length(errstr)+1];

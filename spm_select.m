@@ -45,7 +45,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_select.m 267 2005-10-25 11:49:37Z john $
 
 
 if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
@@ -450,16 +450,19 @@ return;
 
 %=======================================================================
 function dr = current_dir(lb,varargin)
-pd  = get(sib(lb,'edit'),'String');
 vl  = get(lb,'Value');
 str = get(lb,'String');
-dr = fullfile(pd,deblank(str(vl,:)));
-if vl==1, % Current directory
-    dr = fileparts(dr);
-end;
-if vl==2, % Parent directory
-    dr = fileparts(dr);
-    dr = fileparts(dr);
+pd  = get(sib(lb,'edit'),'String');
+while ~isempty(pd) & strcmp(pd(end),filesep) 
+    pd=pd(1:end-1);      % Remove any trailing fileseps
+end 
+sel = deblank(str(vl,:));
+if strcmp(sel,'..'),     % Parent directory 
+    dr = fileparts(pd);
+elseif strcmp(sel,'.'),  % Current directory 
+    dr = pd;
+else
+    dr = fullfile(pd,sel);    
 end;
 return;
 %=======================================================================

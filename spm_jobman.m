@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_jobman.m 267 2005-10-25 11:49:37Z john $
 
 
 if nargin==0
@@ -801,7 +801,12 @@ try
     else
         sel = '';
     end;
-    [s,ok] = spm_select(c.num,c.filter,c.name,sel);
+    if isfield(c,'dir'),
+        dr = c.dir;
+    else
+        dr = pwd;
+    end;
+    [s,ok] = spm_select(c.num,c.filter,c.name,sel,dr);
     if ok, c.val{1} = cellstr(s); end;
 catch
 end;
@@ -1836,7 +1841,12 @@ while(1),
                     sel = '';
                 end;
                 addvfiles(ci.id,c);
-                [ci.val{1},ok] = spm_select(num,ci.filter,ci.name,sel);
+                if isfield(ci,'dir'),
+                    dr = ci.dir;
+                else
+                    dr = pwd;
+                end;
+                [ci.val{1},ok] = spm_select(num,ci.filter,ci.name,sel,dr);
                 if ~ok,
                     error('File Selector was deleted.');
                 end;
