@@ -16,7 +16,7 @@ function [y] = spm_fx_dcm(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 195 2005-07-11 08:29:53Z klaas $
+% $Id: spm_fx_dcm.m 271 2005-10-25 18:16:59Z klaas $
 
 
 
@@ -56,11 +56,11 @@ x(:,3:5)  = x(:,3:5) + 1;
 
 % Fout = f(v) - outflow
 %---------------------------------------------------------------------------
-fv        = x(:,4).^(1./H(:,4));   % *** this gives a "divide by zero" warning when called from spm_int_U  - why not when called from spm_int?
+fv        = x(:,4).^(1./H(:,4));
 
 % e = f(f) - oxygen extraction
 %---------------------------------------------------------------------------
-ff        = (1 - (1 - H(:,5)).^(1./x(:,3)))./H(:,5);   % *** this gives a "divide by zero" warning when called from spm_int_U  - why not when called from spm_int?
+ff        = (1 - (1 - H(:,5)).^(1./x(:,3)))./H(:,5);
 
 % implement differential state equation y = dx/dt
 %---------------------------------------------------------------------------
