@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 272 2005-10-25 20:05:27Z guillaume $
+% $Id: spm.m 273 2005-10-27 16:52:41Z guillaume $
 
 
 %=======================================================================
@@ -1445,29 +1445,34 @@ case 'tbs'                                %-Identify installed toolboxes
 %-----------------------------------------------------------------------
 Tdir  = fullfile(spm('Dir'),'toolbox');
 
-% List of potential installed toolboxes directories
+%-List of potential installed toolboxes directories
 %-----------------------------------------------------------------------
 if exist(Tdir,'dir')
 	d = dir(Tdir); 
-	d = char(d([d.isdir]).name);
-	d = cellstr(d(d(:,1)~='.',:))';
+	d = {d([d.isdir]).name};
+	d = {d{cellfun('isempty',regexp(d,'^\.'))}};
 else
 	d = {};
 end
 
-% Look for a "main" M-file in each potential directory
+%-Look for a "main" M-file in each potential directory
 %-----------------------------------------------------------------------
 xTB = [];
 for i = 1:length(d)
 	tdir = fullfile(Tdir,d{i});
 	f    = dir(fullfile(tdir,['*' d{i} '.m']));
 	fn   = {f(~[f.isdir]).name};
+	if numel(fn) > 1
+		%-Discard possible config files if ambiguity
+		%---------------------------------------------------------------
+		fn = {fn{cellfun('isempty',regexp(fn,'.*_config_.*'))}};
+	end
 	if numel(fn) == 1
 		xTB(end+1).name = strrep(d{i},'_','');
 		xTB(end).prog   = spm_str_manip(fn{1},'r');
 		xTB(end).dir    = tdir;
 	elseif numel(fn) > 1
-		% there's an ambiguity there....
+		% there's still an ambiguity there....
 	end
 end
 

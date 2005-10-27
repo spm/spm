@@ -45,23 +45,29 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 267 2005-10-25 11:49:37Z john $
+% $Id: spm_select.m 273 2005-10-27 16:52:41Z guillaume $
 
-
-if nargin>1 && ischar(varargin{1}) && strcmpi(varargin{1},'addvfiles'),
-    vfiles('add',varargin{2:end});
-    return;
-elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'clearvfiles'),
-    vfiles('clear');
-elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'vfiles'),
-    t = vfiles('all');
-    return;
-elseif nargin>0 && ischar(varargin{1}) && strcmpi(varargin{1},'cpath'),
-    t = cpath(varargin{2:end});
+if nargin > 0 && ischar(varargin{1})
+	switch lower(varargin{1})
+		case 'addvfiles'
+			error(nargchk(2,Inf,nargin));
+			vfiles('add',varargin{2:end});
+		case 'clearvfiles'
+			error(nargchk(1,1,nargin));
+			vfiles('clear');
+		case 'vfiles'
+			error(nargchk(1,1,nargin));
+			t = vfiles('all');
+		case 'cpath'
+			error(nargchk(2,Inf,nargin));
+			t = cpath(varargin{2:end});
+		otherwise 
+			error('Inappropriate usage.');
+	end
 else
-    [t,sts] = selector(varargin{:});
-end;
-return;
+	[t,sts] = selector(varargin{:});
+end
+
 %=======================================================================
 
 %=======================================================================
@@ -731,12 +737,12 @@ if nargin<2, filt = '';  end;
 if nargin<1, dr   = '.'; end;
 de      = dir(dr);
 if ~isempty(de),
-    d       = {de(find( cell2mat({de.isdir}))).name};
+    d     = {de([de.isdir]).name};
     if filt.code~=-1,
-        f   = {de(find(~cell2mat({de.isdir}))).name};
+        f = {de(~[de.isdir]).name};
     else
         % f = d(3:end);
-        f   = d;
+        f = d;
     end;
 else
     d = {'.','..'};
