@@ -32,9 +32,6 @@ D.events.time=[D.events.time,inds'+1];
 D.events.time=D.events.time(I);
 D.events.code=D.events.code(I);
 
-
-
-
 sens=pre_data.sensor.index.all_sens;
 D.channels.name=pre_data.sensor.label(sens);
 D.channels.order=[1:length(sens)];
@@ -51,15 +48,93 @@ D.fnamedat=[name,'.dat'];
 
 D.scale.dim = 1;
 D.scale.values = ones(D.Nchannels, 1);
-fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 
+fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 for n=1:D.Nsamples
 	
 		fwrite(fpd, pre_data.data(n,sens).*1e15, 'float');
 	
 end
-
 fclose(fpd);
+
+% --- Save coil and sensor positions for source reconstruction (in mm) ---
+
+% - channel locations
+SensLoc = [];
+for i = 1:length(pre_data.sensor.location);
+    if any(pre_data.sensor.location(:,i)) & pre_data.sensor.label{i}(1) == 'M'
+        SensLoc = [SensLoc ; pre_data.sensor.location(:,i)'];
+    end
+end
+SensLoc = 10*SensLoc; % convertion from cm to mm
+if length(SensLoc) > 275
+    warning(sprintf('Found more than 275 channels!\n'));
+end
+
+[pth,nam,ext] = fileparts(D.fname);
+fic_sensloc   = fullfile(D.path,[nam '_sensloc.mat']);
+save(fic_sensloc,'SensLoc');
+clear SensLoc
+
+% - coil locations (in this order - NZ:nazion , LE: left ear , RE: right ear)
+CurrentDir = pwd;
+cd(pre_data.folder);
+hc_files = dir('*.hc');
+if isempty(hc_files)
+    warning(sprintf('Impossible to find head coil file\n'));
+elseif length(hc_files) > 1
+    hc_file = spm_select(1, '\.hc$', 'Select head coil file');
+else
+    hc_file = fullfile(pre_data.folder,hc_files.name);
+end
+clear hc_files
+fid = fopen(hc_file,'r');
+for i = 1:24
+    UnusedLines = fgetl(fid);
+end
+UnusedLines = fgetl(fid);
+for i = 1:3 % Nazion coordinates
+    UsedLine    = fgetl(fid);
+    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+    if ~isempty(ERRMSG) | (COUNT ~= 2)
+        warning(sprintf('Unable to read head coil file\n'));
+    else
+        NZ(i) = A(2);
+    end
+end
+UnusedLines = fgetl(fid);
+for i = 1:3 % Left Ear coordinates
+    UsedLine    = fgetl(fid);
+    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+    if ~isempty(ERRMSG) | (COUNT ~= 2)
+        warning(sprintf('Unable to read head coil file\n'));
+    else
+        LE(i) = A(2);
+    end
+end
+UnusedLines = fgetl(fid);
+for i = 1:3 % Right Ear coordinates
+    UsedLine    = fgetl(fid);
+    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+    if ~isempty(ERRMSG) | (COUNT ~= 2)
+        warning(sprintf('Unable to read head coil file\n'));
+    else
+        RE(i) = A(2);
+    end
+end
+fclose(fid);
+CoiLoc = 10*[NZ ; LE ; RE]; % convertion from cm to mm
+cd(CurrentDir);
+
+fic_sensloc   = fullfile(D.path,[nam '_fidloc_meeg.mat']);
+save(fic_sensloc,'CoiLoc');
+clear hc_file CoiLoc UnusedLines UsedLine A COUNT ERRMSG NEXTINDEX
+% -------
+
+
 if str2num(version('-release'))>=14
     save(fullfile(D.path, D.fname), '-V6', 'D');
 else
