@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_grandmean.m 275 2005-11-01 11:19:16Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -55,7 +55,7 @@ Nfiles = length(D);
 % check dimensionality of data
 dim = []; s = [];
 for i = 1:Nfiles
-    dim(i,:) = size(D{i}.data);
+    dim(i,:) = [length(D{i}.channels.eeg) size(D{i}.data, [2:length(size(D{i}.data))])];
     s(i) = D{i}.Radc;
     
     try
@@ -84,6 +84,7 @@ end
 
 % output
 Do = D{1};
+
 try
     [f1, f2, f3] = fileparts(S.Pout);
     Do.path = f1;
@@ -98,14 +99,14 @@ spm('Pointer', 'Watch'); drawnow;
 
 if isfield(D{1}, 'Nfrequencies');
 	Do.scale.dim = [1 4];
-	Do.scale.values = zeros(D{1}.Nchannels, D{1}.events.Ntypes);
+	Do.scale.values = zeros(length(D{1}.channels.eeg), D{1}.events.Ntypes);
 	
 	for i = 1:D{1}.events.Ntypes
-		d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
+		d = zeros(length(D{1}.channels.eeg), D{1}.Nfrequencies, D{1}.Nsamples);
 		for k = 1:length(D)
-			d=d+squeeze(D{k}.data(:,:,:,i));
+			d = d+squeeze(D{k}.data(D{k}.channels.eeg,:,:,i));
 		end
-		d=d./length(D);
+		d = d./length(D);
 		
 		Do.scale.values(:, i) = max(max(abs(d), [], 3), [], 2)./32767;
 		d = int16(d./repmat(Do.scale.values(:, i), [1, Do.Nfrequencies, Do.Nsamples]));
@@ -115,10 +116,10 @@ if isfield(D{1}, 'Nfrequencies');
 else
 
 	Do.scale.dim = [1 3];
-	Do.scale.values = zeros(D{1}.Nchannels, D{1}.Nevents);
+	Do.scale.values = zeros(length(D{1}.channels.eeg), D{1}.Nevents);
 	
     % how many different trial types and bad channels
-    types = []; Bad = zeros(D{1}.Nchannels, Nfiles);
+    types = [];
     for i = 1:Nfiles
         types = unique([types D{i}.events.types]);       
     end
@@ -126,7 +127,7 @@ else
     Ntypes = length(types);
     
     % for determining bad channels of the grandmean
-    w = zeros(D{1}.Nchannels, Ntypes);
+    w = zeros(length(D{1}.channels.eeg), Ntypes);
     
     % how many repetitons per trial type
     repl = zeros(1, Ntypes);
@@ -135,9 +136,9 @@ else
     end
 
     for i = 1:Ntypes
-        d = zeros(D{1}.Nchannels, D{1}.Nsamples);
+        d = zeros(length(D{1}.channels.eeg), D{1}.Nsamples);
 
-        for j = 1:D{1}.Nchannels
+        for j = 1:length(D{1}.channels.eeg)
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.channels.Bad)
@@ -164,6 +165,17 @@ Do.data = [];
 
 Do.fname = [spm_str_manip(Do.fnamedat, 'r') '.mat'];
 
+
+Do.Nchannels = length(D{1}.channels.eeg);
+Do.channels.name = D{1}.channels.name(D{1}.channels.eeg);
+
+% remove eog and ref channels
+Do.channels.order = setdiff(Do.channels.order, Do.channels.heog);
+Do.channels.order = setdiff(Do.channels.order, Do.channels.veog);
+Do.channels.heog = 0;
+Do.channels.veog = 0;
+Do.channels.reference = 0;
+
 D = Do;
 
 D.channels.Bad = find(~any(w'));
@@ -174,6 +186,7 @@ D.events.repl = repl;
 D.Nevents = Ntypes;
 D.events.reject = zeros(1, Ntypes);
 D.events.blinks = zeros(1, Ntypes);
+
 
 if str2num(version('-release'))>=14
     save(fullfile(D.path, D.fname), '-V6', 'D');
