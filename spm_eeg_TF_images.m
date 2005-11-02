@@ -28,7 +28,7 @@ function D = spm_eeg_TF_images(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_TF_images.m 193 2005-07-01 13:37:59Z james $
+% $Id: spm_eeg_TF_images.m 276 2005-11-02 10:05:31Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -133,46 +133,74 @@ if isfield(D, 'Nfrequencies');
 				
 			end
 			
-		case {'frequency'}
-			try
-				D.Frequency_window = S.freqs;
-			catch 
-				str = 'Frequency window';
-				Ypos = -1;
+        case {'frequency'}
+            try
+                D.Frequency_window = S.freqs;
+                Ypos = -1;
+                while 1
+                    if Ypos == -1
+                        Ypos = '+1';
+                    end
+                    
+                    inds=find(D.tf.frequencies>=D.Frequency_window(1) & D.tf.frequencies<=D.Frequency_window(2))
+                    if ~isempty(inds) break, end
+                    str = 'No data in range';
+                end
+            catch 
+                str = 'Frequency window';
+				
 				
 				while 1
 					if Ypos == -1
 						Ypos = '+1';
 					end
-					[D.Frequency_window, Ypos] = spm_input(str, Ypos, 'r', [], 2);
-					inds=find(D.tf.frequencies>=D.Frequency_window(1) & D.tf.frequencies<=D.Frequency_window(2))
-					if ~isempty(inds) break, end
-					str = 'No data in range';
-				end
-			end
-			data=squeeze(mean(D.data(:,inds,:,:),2));
-			D.fnamedat = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fnamedat];
-			fpd = fopen(fullfile(P, D.fnamedat), 'w');
-			for i=1:D.Nevents;
-				D.scale.values(:, i) = spm_eeg_write(fpd, squeeze(data(:,:,i)), 2, D.datatype);
-			end
-			D.scale.dim=[1 3];
-			D=rmfield(D,'Nfrequencies');
-			D=rmfield(D,'tf');
-			D.fname = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fname];
-			D.data = [];
-			cd(D.path)
-			if str2num(version('-release'))>=14
-				save(fullfile(P, D.fname), '-V6', 'D');
-			else
-				save(fullfile(P, D.fname), 'D');
-			end
-			S.Fname=D.fname;
-			spm_eeg_convertmat2ana(S);
-			pause
-	end
+                    [D.Frequency_window, Ypos] = spm_input(str, Ypos, 'r', [], 2);
+                    
+                    inds=find(D.tf.frequencies>=D.Frequency_window(1) & D.tf.frequencies<=D.Frequency_window(2))
+                    if ~isempty(inds) break, end
+                    str = 'No data in range';
+                end
+            end
+            data=squeeze(mean(D.data(:,inds,:,:),2));
+            D.fnamedat = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fnamedat];
+            fpd = fopen(fullfile(P, D.fnamedat), 'w');
+            for i=1:D.Nevents;
+                D.scale.values(:, i) = spm_eeg_write(fpd, squeeze(data(:,:,i)), 2, D.datatype);
+            end
+            fclose(fpd);
+            D.scale.dim=[1 3];
+            D=rmfield(D,'Nfrequencies');
+            D=rmfield(D,'tf');
+            D.fname = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fname];
+            D.data = [];
+            cd(D.path)
+            if str2num(version('-release'))>=14
+                save(fullfile(P, D.fname), '-V6', 'D');
+            else
+                save(fullfile(P, D.fname), 'D');
+            end
+            S.Fname=D.fname;
+            
+            try
+                n = S.n;
+            catch
+                S.n = spm_input('Output image dimension', '+1', 'n', '32', 1);
+            end
+            
+            if length(n) > 1
+                error('n must be scalar');
+            end
+            
+            try
+                interpolate_bad = S.interpolate_bad;
+            catch
+                S.interpolate_bad = spm_input('Interpolate bad channels or mask out?',...
+                    '+1', 'b', 'Interpolate|Mask out', [1,0]);
+            end
+            spm_eeg_convertmat2ana(S);
+    end
 else
-	clear S;
-	S.Fname = fullfile(D.path, D.fname);
-	spm_eeg_convertmat2ana(S);
+    clear S;
+    S.Fname = fullfile(D.path, D.fname);
+    spm_eeg_convertmat2ana(S);
 end
