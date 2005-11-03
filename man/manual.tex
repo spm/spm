@@ -56,6 +56,9 @@ Institute of Neurology, UCL\\
 \dominitoc\tableofcontents
 
 \newpage
+
+%%%%%% THE SPM5 USER INTERFACE %%%%%%
+
 \section*{The SPM5 User Interface}
 
 %* Top Left Panel
@@ -90,18 +93,20 @@ This panel provides information about the meaning of the current item.
 
 \begin{figure}
 \begin{center}
-\epsfig{file=ui1,width=70mm}
-\epsfig{file=ui2,width=70mm}
-\epsfig{file=ui3,width=70mm}
-\epsfig{file=ui4,width=70mm}
+\includegraphics[width=70mm]{images/ui1}
+\includegraphics[width=70mm]{images/ui2}
+\includegraphics[width=70mm]{images/ui3}
+\includegraphics[width=70mm]{images/ui4}
 \end{center}
-\caption{The SPM5 user interface. Top left: The usual user-interface.  Top right: The Defaults user-interface. Bottom left: The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file. Bottom right: more online help can be obtained via the main help button.}
+\caption{The SPM5 user interface. \emph{Top left:} The usual user-interface.  \emph{Top right:} The Defaults user-interface. \emph{Bottom left:} The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file). \emph{Bottom right:} more online help can be obtained via the main help button.}
 \end{figure} 
+
+%%%%%% TEMPORAL PROCESSING %%%%%%
 
 \part{Temporal processing}
 
 \include{st}
-\include{eeg_filter}
+%\include{eeg_filter}
 \part{Spatial processing}
 \include{realign}
 \include{realignunwarp}
@@ -110,14 +115,22 @@ This panel provides information about the meaning of the current item.
 \include{normalise}
 \include{smooth}
 
+%%%%%% FMRI STATISTICS %%%%%%
+
 \part{fMRI Statistics}
+
 \include{fmri_spec/fmri_spec}
 \include{fmri_est/fmri_est}
+\include{con}
+
+%%%%%% UTILITIES %%%%%%
 
 \part{Utilities}
+
 \include{disp}
 \include{checkreg}
 \include{imcalc}
+\include{spm_surf}
 \include{dicom}
 \include{minc}
 \include{ecat}
@@ -127,12 +140,23 @@ This panel provides information about the meaning of the current item.
 \include{defs}
 \include{ui}
 
+%%%%%% TOOLS %%%%%%
+
+\part{Tools}
+
+\include{unused}
+\include{cat}
+
+%%%%%% DATASETS %%%%%%
+
 \part{Data sets}
+
 \include{auditory/auditory}
 \include{faces/face}
 
-\bibliography{methods_macros,methods_group,external}
+%%%%%% BIBLIOGRAPHY %%%%%%
 
-\parskip=0mm
+\bibliography{biblio/methods_macros,biblio/methods_group,biblio/external}
+
 
 \end{document}
