@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 156 2005-05-15 11:57:51Z klaas $
+% $Id: spm_dcm_ui.m 278 2005-11-04 16:11:36Z klaas $
 
 
 
@@ -86,13 +86,11 @@ WS     = spm('WinScale');
 % options
 %---------------------------------------------------------------------------
 if ~nargin
-	str    = 'Action: ';
-	%Action = spm_input(str,1,'b',{'specify','estimate','review','compare'});
-    
     % Use pull-down menu
-    Actions={'specify','estimate','review','compare','average','quit'};
+	str      = 'Action: ';
+    Actions  = {'specify','estimate','review','compare','average','quit'};
     selected = spm_input(str,1,'m',Actions);
-    Action=Actions{selected};
+    Action   = Actions{selected};
 end
 
 
@@ -342,7 +340,9 @@ case 'review'
 	%-------------------------------------------------------------------
 	str        = 'Threshold {Hz}';
 	DCM.T      = spm_input(str,1,'e',0,[1 1]);
+    warning off;
 	pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
+    warning on;
 	[pA pB pC] = spm_dcm_reshape(pp,m,l,1);
 	DCM.pA     = pA;
 	DCM.pB     = pB;
@@ -508,8 +508,10 @@ case 'review'
 		v    = C'*DCM.Cp*C;
 		x    = c + [-32:32]*sqrt(v)*6/32;
 		p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
+        warning off
 		PP   = 1 - spm_Ncdf(DCM.T,c,v);
-
+        warning on
+        
 		figure(Fgraph)
 		subplot(2,1,1)
 		plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
@@ -855,20 +857,20 @@ case 'compare',
         end
     end
     
-    
     spm_input('Model comparison details in MATLAB command window',1,'d');
     spm_input('Thank you',3,'d');
     return
+
     
-case 'average',
-    
-    spm_dcm_average;
-    spm_clf
-    spm('FigName',header);
-    spm('Pointer','Arrow')
-    spm_input('Thank you',1,'d')
+% average several models (Bayesian FFX)
+%-------------------------------------------------------------------------
+case 'average',    
+    spm_dcm_average(1);  % ERP: 0; fMRI: any value > 0
     return
+
     
+% quit DCM GUI
+%-------------------------------------------------------------------------
 case 'quit',
     spm_clf
     spm('FigName',header);
@@ -876,3 +878,5 @@ case 'quit',
     spm_input('Thank you',1,'d')
     return
 end
+
+return
