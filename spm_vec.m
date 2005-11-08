@@ -1,7 +1,7 @@
-function [vX] = spm_vec(X)
+function [vX] = spm_vec(varargin)
 % vectorises a numeric, cell or structure array
 % FORMAT [vX] = spm_vec(X);
-% X  - numeric, cell or stucture array
+% X  - numeric, cell or stucture array[s]
 % vX - vec(X)
 %__________________________________________________________________________
 %
@@ -11,12 +11,15 @@ function [vX] = spm_vec(X)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_vec.m 258 2005-10-18 18:21:07Z karl $
+% $Id: spm_vec.m 279 2005-11-08 19:11:28Z karl $
 
-
-% initialise vX
+% initialise X and vX
 %--------------------------------------------------------------------------
-vX = [];
+X     = varargin;
+if length(X) == 1
+    X = X{1};
+end
+vX    = [];
 
 % vectorise structure into cell arrays
 %--------------------------------------------------------------------------
@@ -24,7 +27,7 @@ if isstruct(X)
     f = fieldnames(X);
     X = X(:);
     for i = 1:length(f)
-            vX = [vX; spm_vec({X.(f{i})})];
+            vX = cat(1,vX,spm_vec({X.(f{i})}));
     end
     return
 end
@@ -34,7 +37,7 @@ end
 if iscell(X)
     X     = X(:);
     for i = 1:length(X)
-         vX = [vX; spm_vec(X{i})];
+         vX = cat(1,vX,spm_vec(X{i}));
     end
     return
 end

@@ -1,10 +1,12 @@
-function [X] = spm_vec(vX,X)
+function [varargout] = spm_unvec(vX,varargin)
 % unvectorises a vectorised array 
-% FORMAT [X] = spm_vec(vX,X);
+% FORMAT [X] = spm_unvec(vX,X);
 % X  - numeric, cell or stucture array
 % vX - spm_vec(X)
 %
-% i.e. X = spm_unvec(spm_vec(X),X)
+% i.e. X      = spm_unvec(spm_vec(X),X)
+%      [X{:}] = spm_unvec(spm_vec(X{:}),X{:}) 
+%                                              - (i.e. can also deal)
 %
 % see spm_vec
 %__________________________________________________________________________
@@ -13,17 +15,30 @@ function [X] = spm_vec(vX,X)
 % Karl Friston
 % $Id: spm_vec.m 184 2005-05-31 13:23:32Z karl $
 
+% deal to multiple outputs if necessary
+%--------------------------------------------------------------------------
+if nargout > 1
+    varargout = spm_unvec(vX,varargin);
+    return
+end
+if length(varargin) == 1
+    X = varargin{1};
+else
+    X = varargin;
+end
+
 % fill in structure arrays
 %--------------------------------------------------------------------------
 if isstruct(X)
     f = fieldnames(X);
     for i = 1:length(f)
         c          = {X.(f{i})};
-        n          = 1:length(spm_vec(c));
-        c          = spm_unvec(vX(n),c);
+        n          = length(spm_vec(c));
+        c          = spm_unvec(vX(1:n),c);
         [X.(f{i})] = deal(c{:});
-        vX(n)      = [];
+        vX         = vX(n + 1:end);
     end
+    varargout      = {X};
     return
 end
 
@@ -31,10 +46,11 @@ end
 %--------------------------------------------------------------------------
 if iscell(X)
     for i = 1:length(X(:))
-        n     = 1:length(spm_vec(X{i}));
-        X{i}  = spm_unvec(vX(n),X{i});
-        vX(n) = [];
+        n     = length(spm_vec(X{i}));
+        X{i}  = spm_unvec(vX(1:n),X{i});
+        vX    = vX(n + 1:end);
     end
+    varargout      = {X};
     return
 end
 
@@ -45,3 +61,4 @@ if isnumeric(X)
 else
     X     = [];
 end
+varargout = {X};
