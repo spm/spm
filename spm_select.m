@@ -41,33 +41,43 @@ function [t,sts] = spm_select(varargin)
 % path     - string matrix (or cell array of strings) containing path names
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
+%
+% FORMAT [files,dirs]=spm_select('List',direc,filt)
+% Returns files matching the filter (filt) and directories within dire
+% direc    - directory to search
+% filt     - filter to select files with (see regexp) e.g. '^w.*\.img$'
+% files    - files matching 'filt' in directory 'direc'
+% dirs     - subdirectories of 'direc'
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 273 2005-10-27 16:52:41Z guillaume $
+% $Id: spm_select.m 282 2005-11-09 11:52:57Z john $
 
 if nargin > 0 && ischar(varargin{1})
-	switch lower(varargin{1})
-		case 'addvfiles'
-			error(nargchk(2,Inf,nargin));
-			vfiles('add',varargin{2:end});
-		case 'clearvfiles'
-			error(nargchk(1,1,nargin));
-			vfiles('clear');
-		case 'vfiles'
-			error(nargchk(1,1,nargin));
-			t = vfiles('all');
-		case 'cpath'
-			error(nargchk(2,Inf,nargin));
-			t = cpath(varargin{2:end});
-		otherwise 
-			error('Inappropriate usage.');
-	end
+    switch lower(varargin{1})
+        case 'addvfiles'
+            error(nargchk(2,Inf,nargin));
+            vfiles('add',varargin{2:end});
+        case 'clearvfiles'
+            error(nargchk(1,1,nargin));
+            vfiles('clear');
+        case 'vfiles'
+            error(nargchk(1,1,nargin));
+            t = vfiles('all');
+        case 'cpath'
+            error(nargchk(2,Inf,nargin));
+            t = cpath(varargin{2:end});
+        case 'list'
+            filt    = struct('code',0,'frames',[],'ext',{{'.*'}},...
+                             'filt',{{varargin{3}}});
+            [t,sts] = listfiles(varargin{2},filt);
+        otherwise 
+            error('Inappropriate usage.');
+    end
 else
-	[t,sts] = selector(varargin{:});
+    [t,sts] = selector(varargin{:});
 end
-
 %=======================================================================
 
 %=======================================================================
@@ -110,6 +120,37 @@ fg = figure('IntegerHandle','off',...
         'DefaultUicontrolInterruptible','on',...
         'ResizeFcn',@resize_fun,...
         'KeyPressFcn',@hitkey);
+
+% Code from Brian Lenoski for dealing with multiple monitors
+if str2double(version('-release'))>=14,
+    S    = get(0, 'MonitorPosition');
+    Rect = get(fg,'Position');
+    pointer_loc = get(0,'PointerLocation');
+
+    for i = 1:size(S,1), % Loop over monitors
+        h_min   = S(i,1);
+        h_width = S(i,3);
+        h_max   = h_width + h_min - 1;
+        v_min   = S(i,2);
+        v_len   = S(i,4);
+        v_max   = v_min + v_len;
+
+        % Use the monitor containing the pointer
+        if pointer_loc(1) >= h_min && pointer_loc(1) < h_max && ...
+           pointer_loc(2) >= v_min && pointer_loc(2) < v_max,
+            hor_min   = h_min;
+            hor_width = h_width;
+            hor_max   = h_max;
+            ver_min   = v_min;
+            ver_len   = v_len;
+            ver_max   = v_max;
+        end
+    end
+    Rect(1) = (hor_max - 0.5*hor_width) - 0.5*Rect(3); % Horizontal
+    Rect(2) = (ver_max - 0.5*ver_len)   - 0.5*Rect(4); % Vertical
+    set(fg,'Position',Rect);
+end
+
 
 fh = 0.05;
 %fs = 10;

@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 267 2005-10-25 11:49:37Z john $
+% $Id: spm_jobman.m 282 2005-11-09 11:52:57Z john $
 
 
 if nargin==0
@@ -1303,14 +1303,15 @@ return;
 function load_job(varargin)
 % Load a batch job
 
-cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
-[filename, pathname] = uigetfile(cll,'Load job file');
+%cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
+%[filename, pathname] = uigetfile(cll,'Load job file');
+filename = spm_select(1,'batch','Load job file');
 if ischar(filename)
     [unused,nam,ext] = fileparts(filename);
     if strcmp(ext,'.xml')
         spm('Pointer','Watch');
         try
-            loadxml(fullfile(pathname,filename),'jobs');
+            loadxml(filename,'jobs');
         catch
             questdlg('LoadXML failed',filename,'OK','OK');
             return;
@@ -1318,7 +1319,7 @@ if ischar(filename)
         spm('Pointer');
     elseif strcmp(ext,'.mat')
         try
-            load(fullfile(pathname,filename),'jobs');
+            load(filename,'jobs');
         catch
             questdlg('Load failed',filename,'OK','OK');
         end;

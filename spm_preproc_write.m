@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_preproc_write.m 282 2005-11-09 11:52:57Z john $
 
 
 if nargin==1,
@@ -49,7 +49,7 @@ sopts = [opts.GM ; opts.WM ; opts.CSF];
 [pth,nam,ext]=fileparts(p.VF.fname);
 T    = p.flags.Twarp;
 bsol = p.flags.Tbias;
-d2   = size(T);
+d2   = [size(T) 1];
 d    = p.VF.dim(1:3);
 
 [x1,x2,o] = ndgrid(1:d(1),1:d(2),1);

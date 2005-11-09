@@ -588,7 +588,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 220 2005-09-01 09:48:16Z john $
+% $Id: spm_conman.m 282 2005-11-09 11:52:57Z john $
 
 
 %=======================================================================
@@ -1784,7 +1784,13 @@ case 'createfig'
     PF = spm_platform('fonts');			%-Font names (for this platform)
     if str2double(version('-release'))>=14, 	%-Screen size
         S0 = get(0, 'MonitorPosition');
-        S0 = S0(1,:);
+
+        % Monitor containing the pointer (thanks to Brian Lenoski)
+        pl = get(0,'PointerLocation');
+        i  = find(pl(1)>=S0(:,1) & pl(1)<S0(:,1)+S0(:,3)-1 &...
+                  pl(2)>=S0(:,2) & pl(1)<S0(:,2)+S0(:,4));
+        if numel(i)~=1, i=1; end;
+        S0 = S0(i,:);
     else
         S0 = get(0,'ScreenSize');
     end;
@@ -1807,7 +1813,8 @@ case 'createfig'
         'Colormap',gray(64),...
         'Renderer','painters',...
         'Visible','off');
-    
+
+ 
     %-Draw GUI objects
     %-----------------------------------------------------------------------
     hPrompt = uicontrol(F,'Style','Text','Tag','Prompt','UserData',[],...

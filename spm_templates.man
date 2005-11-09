@@ -8,7 +8,8 @@
 %
 % The original datasets were affine transformed to match the MNI152
 % space (by affine registration of the grey matter with the grey
-% matter image in the apriori directory).
+% matter image in the apriori directory: smosrc=8, smoref=0,
+% regtype=mni, cutoff=Inf).
 % _______________________________________________________________________
 %
 % /TEMPLATES/ DIRECTORY
@@ -235,4 +236,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_templates.man 115 2005-05-05 10:14:15Z guillaume $
+% $Id: spm_templates.man 282 2005-11-09 11:52:57Z john $
