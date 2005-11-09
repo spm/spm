@@ -30,8 +30,12 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % get figure handle
 %-----------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
-figure(Fgraph)
-clf
+
+if ~strcmp(lower(Action), 'dipoles')
+    figure(Fgraph)
+    clf
+end
+
 try
     nt     = length(DCM.H);
     nu     = size(DCM.C,2);
@@ -251,4 +255,21 @@ case{lower('Response')}
         axis square, grid on
     end
 
+case{lower('Dipoles')}
+    
+    if DCM.options.Spatial_type ~= 3
+        P = spm_erp_pack(DCM.Ep,DCM.M.m, DCM.M.Nareas);
+
+        clear mod
+        for i = 1:DCM.M.Nareas
+            mod(i).posxyz = P.Lpos(:, i)';
+            mod(i).momxyz = (P.Lmom(:,i).*P.K(i))';
+            mod(i).rv = 0.5155;
+        end
+
+        % plotoptions
+        plotopt = {'normlen', 'on', 'image', 'fullmri'};
+        eeglab_dipplot(mod, 'sphere', max(DCM.M.dipfit.vol.r), plotopt{:});
+    end
+    
 end

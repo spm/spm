@@ -37,13 +37,13 @@ P    = spm_erp_pack(P,M.m,n);
 if isempty(M.L)
     y = x(:,9);
 else
-    if ~isfield(M, 'dipfit')
+    if M.Spatial_type == 3
         
-        % static lead field
+        % fixed lead field
         y = P.L*(x(:,9).*P.K);
         
-    else
-        % parameterised lead field
+    elseif M.Spatial_type == 1
+        % parameterised lead field ECD/EEG
         
         % leadfield
         L = M.L;
@@ -53,7 +53,7 @@ else
 
         if ~isempty(Id)
             for i = Id
-                Lf = eeg_leadfield4(P.Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
+                Lf = fieldtrip_eeg_leadfield4(P.Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
                 L(:,i) = M.E*Lf*P.Lmom(:,i);
             end
 
@@ -66,6 +66,28 @@ else
 
         % output
         y = M.S'*L*(x(:, 9)*(2*10^4).*P.K);
+    elseif M.Spatial_type == 2
+        % parameterised lead field ECD/MEG
+        L = M.L;
 
+        % re-compute lead field only if any dipoles changed
+        Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
+
+        if ~isempty(Id)
+            for i = Id
+                Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
+                L(:,i) = M.E*Lf(M.Ichannels, :)*P.Lmom(:,i);
+            end
+
+            % store new leadfield and parameters
+            M.L = L;
+            M.Lpos = P.Lpos;
+            M.Lmom = P.Lmom;
+        end
+
+        % output
+        y = M.S'*L*(x(:, 9)*(10^20).*P.K);
+
+        
     end
 end

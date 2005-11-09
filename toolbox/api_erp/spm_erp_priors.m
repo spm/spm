@@ -39,8 +39,10 @@ n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %---------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/16;               % time constants
-E.H   = log(n1);        V.H = n1/16;               % synaptic density
+% E.T   = log(n1);        V.T = n1/16;               % time constants
+% E.H   = log(n1);        V.H = n1/16;               % synaptic density
+E.T   = log(n1);        V.T = n1;               % time constants
+E.H   = log(n1);        V.H = n1;               % synaptic density
 
 % set observer parameters
 %---------------------------------------------------------------------------
@@ -64,6 +66,7 @@ for i = 1:length(A)
     V.A{i} = A{i}/2;                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
+
 for i = 1:length(B)
     E.B{i} = 0*B{i};                               % input-dependent scaling 
     V.B{i} = B{i}/2;

@@ -1,10 +1,10 @@
 function D = spm_eeg_rdata_CTF275(S)
 %%%% function to read in CTF data to Matlab
-clear pre_data
 try
    pre_data = ctf_read(S.Fdata);
 catch
- 	pre_data=ctf_read;
+ 	pre_data = ctf_read;
+    S.Fdata = pre_data.folder;
 end
 
 try
@@ -63,7 +63,7 @@ fclose(fpd);
 SensLoc = [];
 for i = 1:length(pre_data.sensor.location);
     if any(pre_data.sensor.location(:,i)) & pre_data.sensor.label{i}(1) == 'M'
-        SensLoc = [SensLoc ; pre_data.sensor.location(:,i)'];
+        SensLoc = [SensLoc; pre_data.sensor.location(:,i)'];
     end
 end
 SensLoc = 10*SensLoc; % convertion from cm to mm
@@ -73,8 +73,14 @@ end
 
 [pth,nam,ext] = fileparts(D.fname);
 fic_sensloc   = fullfile(D.path,[nam '_sensloc.mat']);
-save(fic_sensloc,'SensLoc');
+save(fic_sensloc, 'SensLoc');
 clear SensLoc
+
+% for DCM/ERF: Use fieldtrip functions to retrieve sensor location and
+% orientation structure
+hdr = read_ctf_res4(findres4file(S.Fdata));
+grad = ctf2grad(hdr);
+D.channels.grad = grad;
 
 % - coil locations (in this order - NZ:nazion , LE: left ear , RE: right ear)
 CurrentDir = pwd;
@@ -141,5 +147,19 @@ else
 	save(fullfile(D.path, D.fname), 'D');
 end
 
+% find file name if truncated or with uppercase extension
+% added by Arnaud Delorme June 15, 2004
+% -------------------------------------------------------
+function res4name = findres4file( folder )
 
-clear pre_data
+res4name = dir([ folder filesep '*.res4' ]);
+if isempty(res4name)
+    res4name = dir([ folder filesep '*.RES4' ]);
+end
+
+if isempty(res4name)
+    error('No file with extension .res4 or .RES4 in selected folder');
+else
+    res4name = [ folder filesep res4name.name ];
+end;
+return
