@@ -493,7 +493,7 @@ set(handles.reset,      'Enable','off')
 %     set(handles.C(i),'enable','off');
 %     handles.DCM.C(i)       = 0;
 % end
-guidata(h,handles)
+guidata(h,handles);
 
 % --------------------------------------------------------------------
 function varargout = contrast_Callback(h, eventdata, handles, varargin)
@@ -1190,6 +1190,6 @@ if Nlocations
     % plotoptions
     plotopt = {'normlen', 'on', 'image', 'fullmri'};
     dipfit.vol.r = [71 72 79 85];
-    dipplot(mod, 'sphere', max(dipfit.vol.r), plotopt{:});
+    eeglab_dipplot(mod, 'sphere', max(dipfit.vol.r), plotopt{:});
     
 end
