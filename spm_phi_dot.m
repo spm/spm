@@ -6,7 +6,7 @@ function [y] = spm_phi_dot(x)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_phi_dot.m 289 2005-11-10 17:15:04Z guillaume $
 
 % apply
 %--------------------------------------------------------------------------
