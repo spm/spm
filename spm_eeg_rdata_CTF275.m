@@ -79,7 +79,7 @@ clear SensLoc
 % for DCM/ERF: Use fieldtrip functions to retrieve sensor location and
 % orientation structure
 hdr = read_ctf_res4(findres4file(S.Fdata));
-grad = ctf2grad(hdr);
+grad = fieldtrip_ctf2grad(hdr);
 D.channels.grad = grad;
 
 % - coil locations (in this order - NZ:nazion , LE: left ear , RE: right ear)
