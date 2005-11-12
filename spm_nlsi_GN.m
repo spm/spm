@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 249 2005-10-05 17:58:37Z karl $
+% $Id: spm_nlsi_GN.m 292 2005-11-12 11:33:29Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -135,6 +135,7 @@ dv    = 1/128;
 lm    = 0;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
+hP    = eye(nh,nh)/16;
  
  
 % EM
@@ -161,7 +162,7 @@ for k = 1:64
  
     % iterate a Fisher scoring scheme to find h = max{F(p,h)}
     %----------------------------------------------------------------------
-    for m = 1:64
+    for m = 1:16
  
         % precision and conditional covariance
         %------------------------------------------------------------------
@@ -189,13 +190,22 @@ for k = 1:64
                 dFdhh(j,i) =  dFdhh(i,j);
             end
         end
- 
+        
+        % add hyperpriors
+        %------------------------------------------------------------------
+        dFdh  = dFdh  - hP*h;
+        dFdhh = dFdhh - hP;
+    
         % update ReML estimate
         %------------------------------------------------------------------
         Ch    = pinv(-dFdhh);
         dh    = Ch*dFdh;
         h     = h  + dh;
  
+        % prevent overflow
+        %------------------------------------------------------------------
+        h     = max(h,-16);
+        
         % convergence
         %------------------------------------------------------------------
         dF    = dFdh'*dh;
