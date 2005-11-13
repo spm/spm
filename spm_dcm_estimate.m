@@ -7,7 +7,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 270 2005-10-25 17:25:49Z klaas $
+% $Id: spm_dcm_estimate.m 294 2005-11-13 13:55:40Z klaas $
 
  
 if nargin < 1
@@ -55,7 +55,6 @@ M.n   = size(M.x,1);
 M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
-M.maxits=32;
 
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L] = spm_nlsi(M,U,Y);
 
@@ -122,3 +121,5 @@ if nargin < 1
     spm('Pointer','Arrow');
     spm_input('Thank you',1,'d');
 end
+
+return
