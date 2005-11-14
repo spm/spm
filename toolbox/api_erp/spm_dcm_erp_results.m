@@ -51,7 +51,7 @@ case{lower('ERPs (channel)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
     %--------------------------------------------------------------------
-    co = {'k', 'k'};
+    co = {'b', 'r'};
     lo = {'-', '--'};
     T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
     for i = 1:nc
