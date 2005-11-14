@@ -4,7 +4,7 @@ function opts = spm_config_imcalc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_imcalc.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_imcalc.m 298 2005-11-14 14:23:31Z john $
 
  
 %_______________________________________________________________________
@@ -141,6 +141,13 @@ spm_imcalc_ui(strvcat(opt.input{:}),opt.output,opt.expression,flags);
 return;
 
 function vf = vfiles(job)
-[unused,nam,unused2,num] = spm_fileparts(job.output);
-vf{1} = fullfile(pwd,['s' nam '.img' num]);
+[p,nam,ext,num] = spm_fileparts(job.output);
+if isempty(p)
+    p=pwd;
+end;
+if isempty(strfind(ext,','))
+    ext=[ext ',1'];
+end;
+vf{1} = fullfile(p,[nam ext num]);
 return;
+
