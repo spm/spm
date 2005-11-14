@@ -7,7 +7,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 294 2005-11-13 13:55:40Z klaas $
+% $Id: spm_dcm_estimate.m 295 2005-11-14 09:36:44Z klaas $
 
  
 if nargin < 1
@@ -56,7 +56,7 @@ M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
 
-[Ep,Cp,Ce,H0,H1,H2,M0,M1,L] = spm_nlsi(M,U,Y);
+[Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
 
 % predicted responses and residuals
 %-------------------------------------------------------------------
@@ -108,6 +108,12 @@ DCM.y      = y;
 DCM.xY     = xY;
 DCM.T      = T;
 DCM.Ce     = Ce;
+% Save approximations to model evidence: negative free energy, AIC, BIC
+DCM.F      = F;
+evidence   = spm_dcm_evidence (DCM);
+DCM.AIC    = evidence.aic_overall;
+DCM.BIC    = evidence.bic_overall;
+
 
 %-Save and reset title
 %-------------------------------------------------------------------

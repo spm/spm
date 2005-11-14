@@ -90,7 +90,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 190 2005-06-20 07:04:35Z klaas $
+% $Id: spm_nlsi.m 295 2005-11-14 09:36:44Z klaas $
 
 
 % Expansion point (in parameter space) for Bilinear and kernel representations
@@ -108,7 +108,7 @@ if nargin == 3
 
 	% Gauss-Newton/Bayesian/EM estimation
 	%===================================================================
-	[Ep,Cp,Ce] = spm_nlsi_GN(M,U,Y);
+	[Ep,Cp,Ce,F] = spm_nlsi_GN(M,U,Y);
 
 	if nargout < 4, varargout = {Ep,Cp,Ce}; return, end
 
@@ -170,7 +170,7 @@ end
 % output arguments
 %---------------------------------------------------------------------------
 if nargin == 3
-	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2};
+	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F};
 else
 	varargout = {K0,K1,K2,M0,M1,L1,L2};
 end
@@ -219,4 +219,4 @@ Y.dt   = U.dt*length(U.u)/length(Y.y);
 
 % estimate
 %---------------------------------------------------------------------------
-[Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y);
+[Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
