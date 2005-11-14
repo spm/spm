@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_input.m 256 2005-10-17 18:57:24Z guillaume $
+% $Id: spm_input.m 297 2005-11-14 13:52:13Z john $
 
 
 %=======================================================================
@@ -810,6 +810,7 @@ else                                             %-Use GUI to get answer
 		'BackgroundColor',COLOUR,...
 		'Position',RRec);
 	set(hDef,'UserData',[hPrmpt,h])
+	uifocus(h);
 	if TTips, set(h,'ToolTipString',TTstr), end
 
 	%-Figure ContextMenu for shortcuts
@@ -1093,6 +1094,9 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 					'Callback',cb,...
 					'Position',[RRec(1)+(i-1)*dX+1 ...
 							RRec(2) dX-2 RRec(4)]);
+				if i == DefItem,
+					uifocus(h);
+				end
 				H = [H,h];
 			end
 		
@@ -1316,6 +1320,7 @@ else
 		'Position',...
 			[RRec(1)+RRec(3)*(2/3)+2 RRec(2) RRec(3)/3-2 RRec(4)]);
 	set(hDef,'UserData',[hPrmpt,h])
+	uifocus(h);
 	H = [H,h];
 
 	%-Figure ContextMenu for shortcuts
@@ -2351,3 +2356,24 @@ else
 	end
 
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%        UIFOCUS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function uifocus(h)
+% MATLAB R14 NO LONGER KEEPS FOCUS ON THE UICONTROL, UNLESS IT IS
+% EXPLICITLY SPECIFIED, OTHERWISE CONTROL IS GIVEN TO THE FIGURE'S
+% KEYPRESS FUNCTION. THEREFORE WE MUST EXPLICITLY SET THE FOCUS TO
+% A UICONTROL OR THE USER IS FORCED TO CLICK INTO THE CONTROL TO
+% ENTER DATA OR PRESS A BUTTON. MATLAB 7 HAS EXTENDED THE FUNCTIONALITY
+% OF THE UICONTROL FUNCTION. UICONTROL(HANDLE) SETS THE FOCUS
+% TO THE DESIGNATED UIONTROL'S HANDLE.
+% -DRG 05/1/13
+%------------------------------------------------------------------
+a = ver('Matlab');
+if str2num(a.Version) > 7
+    uicontrol(h);
+end
+return
+%-------------------------------------------------------------------
+
