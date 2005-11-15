@@ -28,7 +28,7 @@ function D = spm_eeg_TF_images(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_TF_images.m 276 2005-11-02 10:05:31Z james $
+% $Id: spm_eeg_TF_images.m 299 2005-11-15 15:25:17Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -149,7 +149,7 @@ if isfield(D, 'Nfrequencies');
             catch 
                 str = 'Frequency window';
 				
-				
+				  Ypos = -1;
 				while 1
 					if Ypos == -1
 						Ypos = '+1';
@@ -185,6 +185,7 @@ if isfield(D, 'Nfrequencies');
                 n = S.n;
             catch
                 S.n = spm_input('Output image dimension', '+1', 'n', '32', 1);
+                n=S.n;
             end
             
             if length(n) > 1

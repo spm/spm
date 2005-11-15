@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_rdata_bdf.m 299 2005-11-15 15:25:17Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -81,6 +81,14 @@ catch
     Creference = spm_input('Reference channel(s)', 'i+1', 'i', '', inf, length(Cexg));
 end
 
+more_exg =spm_input('Do you have any other external data?', '+1', 'y/n', [1,0], 2);
+no_exg=0;
+if more_exg==1
+    no_exg=spm_input('how many extra channels?', '+1', 'i', '', 1);
+    Chexg = spm_input('Enter exg channel(s)', 'i+1', 'i', '', inf, length(Cexg));
+end
+        
+    
 spm('Pointer','Watch'); drawnow;
 
 % number of EEG channels
@@ -114,6 +122,10 @@ else
     Creference = Creference + Neeg;
 end
 
+if more_exg==1
+    Chexg = Chexg + Neeg;
+end
+        
 % Map name of channels (EEG only) to channel order specified in channel
 % template file. EOG channels will be added further below!
 for i = D.channels.eeg
@@ -183,8 +195,32 @@ if Cveog ~= 0
 
 end
 
+
 D.channels.reference = 0;
 D.channels.ref_name = 'NIL';
+
+if more_exg ==1
+    D.channels.exg=[];
+    for kl=1:no_exg
+        counter = counter + 1;
+        
+        D.channels.name{Neeg + counter} = ['exg',num2str(kl)];
+        D.channels.exg = [ D.channels.exg ,Neeg + counter];
+        index = [];
+        for j = 1:Csetup.Nchannels
+            if ~isempty(find(strcmpi(['exg',num2str(kl)], Csetup.Cnames{j})))
+                index = j; break;
+            end
+        end
+        if isempty(index)
+            warning(sprintf('No exg channel found in channel template file.'));
+        else
+            % take only the first found channel descriptor
+            D.channels.order(Neeg+counter) = index;
+        end
+        
+    end
+end
 
 D.Nchannels = Neeg + counter;
 if D.Nchannels < length(D.channels.name);
@@ -276,8 +312,17 @@ for t = 1:Nblocks
         else
             ref =  data.Record(Creference(1), :);
         end    
-        d = d - repmat(ref, D.Nchannels, 1);
+        d = d - repmat(ref, D.Nchannels-no_exg, 1);
     end
+
+    if more_exg ==1
+        for kl=1:no_exg
+     
+          d = [d; data.Record(Chexg(kl), :)];
+      end
+    end
+
+    
     
     % downsampling by simple decimating
     d = d(:, 1:2^f:end);

@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 211 2005-08-19 09:57:25Z will $
+% $Id: spm_results_ui.m 299 2005-11-15 15:25:17Z james $
 
-SCCSid = '$Rev: 211 $';
+SCCSid = '$Rev: 299 $';
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -292,7 +292,9 @@ figure(Finter)
 %-Setup Maximium intensity projection (MIP) & register
 %-----------------------------------------------------------------------
 hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
+
 hMIPax = spm_mip_ui(xSPM.Z,xSPM.XYZmm,M,DIM,hMIPax);
+
 spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
 if xSPM.STAT == 'P'
 	str = xSPM.STATstr;
