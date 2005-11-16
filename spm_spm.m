@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 249 2005-10-05 17:58:37Z karl $
+% $Id: spm_spm.m 300 2005-11-16 21:05:24Z guillaume $
 
-SCCSid   = '$Rev: 249 $';
+SCCSid   = '$Rev: 300 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -358,18 +358,14 @@ if exist(fullfile('.','mask.img'),'file') == 2
     end
 end
 
-files = {'mask.???','ResMS.???','RPV.???',...
-    'beta_????.???','con_????.???','ResI_????.???',...
-    'ess_????.???', 'spm?_????.???'};
+files = {'^mask\..{3}$','^ResMS\..{3}$','^RVP\..{3}$',...
+         '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
+         '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
 
-for i = 1:length(files)
-    if any(files{i} == '*'|files{i} == '?' )
-        [j,null] = spm_list_files(pwd,files{i});
-        for i = 1:size(j,1)
-            spm_unlink(deblank(j(i,:)))
-        end
-    else
-        spm_unlink(files{i})
+for i=1:length(files)
+    j = spm_select('List',pwd,files{i});
+    for k=1:size(j,1)
+        spm_unlink(deblank(j(k,:)));
     end
 end
 

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 256 2005-10-17 18:57:24Z guillaume $
+# $Id: Makefile 300 2005-11-16 21:05:24Z guillaume $
 #
 ###############################################################################
 #
@@ -161,7 +161,7 @@ SPMMEX =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
 	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
-	spm_list_files.$(SUF) spm_farray.$(SUF)
+	spm_farray.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -349,10 +349,6 @@ spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a\
 spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a $(MEXEND)
-	@ $(CHMODIT) $@
-
-spm_list_files.$(SUF): spm_list_files.c spm_sys_deps.h
-	$(MEX) spm_list_files.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 file2mat.$(SUF): file2mat.c

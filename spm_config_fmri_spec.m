@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_config_fmri_spec.m 300 2005-11-16 21:05:24Z guillaume $
 
 
 % Define inline types.
@@ -653,20 +653,16 @@ end
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %------------------------------------------------------------------------
-files = {'mask.???','ResMS.???','RVP.???',...
-    'beta_????.???','con_????.???','ResI_????.???',...
-    'ess_????.???', 'spm?_????.???'};
-for i=1:numel(files),
-    if any(files{i} == '*' | files{i} == '?')
-        [j,unused] = spm_list_files(pwd,files{i});
-        for i=1:size(j,1),
-            spm_unlink(deblank(j(i,:)));
-        end
-    else
-        spm_unlink(files{i});
+files = {'^mask\..{3}$','^ResMS\..{3}$','^RVP\..{3}$',...
+         '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
+         '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
+
+for i=1:length(files)
+    j = spm_select('List',pwd,files{i});
+    for k=1:size(j,1)
+        spm_unlink(deblank(j(k,:)));
     end
 end
-
 
 % Variables
 %-------------------------------------------------------------
@@ -898,6 +894,3 @@ return
 function vf = vfiles_stats(job)
 direc = job.dir{1};
 vf    = {fullfile(direc,'SPM.mat')};
-
-% Should really create a few vfiles for beta images etc here as well.
-
