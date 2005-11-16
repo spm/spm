@@ -4,7 +4,7 @@ function c = spm_config_sendmail(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Guillaume Flandin
-% $Id: spm_config_sendmail.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_config_sendmail.m 302 2005-11-16 21:42:45Z guillaume $
 
 to.type = 'entry';
 to.name = 'Recipient';
@@ -43,16 +43,20 @@ smtpserver.name = 'SMTP Server';
 smtpserver.tag  = 'smtp';
 smtpserver.strtype = 's';
 smtpserver.num  = [1 1];
-smtpserver.val  = {getpref('Internet','SMTP_Server')};
-smtpserver.help = {'Your SMTP server.'};
+try
+	smtpserver.val = {getpref('Internet','SMTP_Server')};
+end
+smtpserver.help = {'Your SMTP server. If not specified, look for sendmail help.'};
 
 email.type = 'entry';
 email.name = 'E-mail';
 email.tag  = 'email';
 email.strtype = 's';
 email.num  = [1 1];
-email.val  = {getpref('Internet','E_mail')};
-email.help = {'Your e-mail address.'};
+try
+	email.val = {getpref('Internet','E_mail')};
+end
+email.help = {'Your e-mail address. Look in sendmail help how to store it.'};
 
 zipattach.type = 'menu';
 zipattach.name = 'Zip attachments';
