@@ -141,7 +141,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_spm_vb.m 301 2005-11-16 21:14:58Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -202,7 +202,7 @@ if SPM.PPM.window
     end
 end
 
-fspm = {'^mask\..{3}$','^ResMS\..{3}$','^RVP\..{3}$',...
+fspm = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
         '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
         '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
 

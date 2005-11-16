@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_config_fmri_est.m 301 2005-11-16 21:14:58Z guillaume $
 
 
 % Define inline types.
@@ -353,7 +353,7 @@ cd(fileparts(job.spmmat{:}));
 %-If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %-----------------------------------------------------------------------
-files = {'^mask\..{3}$','^ResMS\..{3}$','^RVP\..{3}$',...
+files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
          '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
          '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
 
