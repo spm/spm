@@ -14,10 +14,10 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_voi.m 270 2005-10-25 17:25:49Z klaas $
+% $Id: spm_dcm_voi.m 303 2005-11-19 12:04:41Z klaas $
 
 
-load(DCM_filename,'-mat');
+load(DCM_filename);
 
 % Check we have matching number of regions
 n=length(voi_filenames);
@@ -42,12 +42,10 @@ for i = 1:n
     DCM.xY(i) = xY;
 end
 
-
-%instr=['save ',DCM_filename,' DCM'];
-%eval(instr);
 if str2num(version('-release'))>=14,
     save(DCM_filename, 'DCM', '-V6');
 else
     save(DCM_filename, 'DCM');
 end;
 
+return

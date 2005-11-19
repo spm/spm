@@ -14,11 +14,11 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_U.m 270 2005-10-25 17:25:49Z klaas $
+% $Id: spm_dcm_U.m 303 2005-11-19 12:04:41Z klaas $
 
 
-load(DCM_filename,'-mat');
-load(SPM_filename,'-mat');
+load(DCM_filename);
+load(SPM_filename);
 
 if session>length(SPM.Sess)
     disp(sprintf('Error in spm_dcm_U: SPM file doesnt have %d sessions',session));
@@ -36,7 +36,7 @@ u      = length(Sess.U);
 m_sel=length(input_nos);
 
 % Number of inputs in DCM file
-m = size(DCM.C,2);
+m = size(DCM.c,2);
 
 if ~(m_sel==m)
     disp(sprintf('Error in spm_dcm_U: must include %d inputs',m));
@@ -76,3 +76,4 @@ else
     save(DCM_filename, 'DCM');
 end;
 
+return
