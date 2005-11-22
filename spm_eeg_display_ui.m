@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_display_ui.m 304 2005-11-22 19:43:44Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -44,7 +44,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         return;
     end
 
-    % which units?
+    % units, default EEG
     if ~isfield(D, 'units')
         D.units = '\muV';
     end
@@ -733,7 +733,6 @@ handles.D = D;
 guidata(hObject, handles);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function channelselectbutton_update(hObject, events)
 handles = guidata(hObject);
 D = handles.D;
@@ -747,7 +746,6 @@ S.Hfig = handles.Graphics;
 
 spm_eeg_display_ui(S);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function scalp3d_select(hObject, events)
 % ask user for peri-stimulus time and call scalp3d
 
@@ -756,14 +754,13 @@ D = handles.D;
 
 ok = 0;
 while ~ok
-    prompt={'Peri-stimulus time [ms]:','Display 2D or 3D:'};
-    name = 'Scalp topography';
-    numlines = 1;
-    defaultanswer={'100', '3D'};
-
-    answer = inputdlg(prompt, name, numlines, defaultanswer);
-    t = str2num(answer{1});
-	s = deblank(answer{2});
+    try
+        answer = spm_eeg_scalp_dlg;
+    catch
+        return
+    end
+    t = answer{1};
+	s = answer{2};
 	for n=1:length(t)
 		if t(n) >= -D.events.start*1000/D.Radc...
 				& t(n) <= D.events.stop*1000/D.Radc...
@@ -772,25 +769,12 @@ while ~ok
 		end
 	end
 end
-for n=1:length(t)
-	tmp = (t(n) - [-D.events.start:D.events.stop]*1000/D.Radc).^2;
-	[m, i(n)] = min(tmp);
-end
-
-if length(t) == 1
-	% display the first selected trial (if there are multiple selections)
-	d = squeeze(D.data(D.channels.eeg, i, handles.Tselection(1)));
-else
-	d = squeeze(mean(D.data(D.channels.eeg, i, handles.Tselection(1)),2));
-end
-
-d(D.channels.Bad) = NaN;
 
 % call scalp2d or 3d
 spm('Pointer', 'Watch');drawnow;
 
 if strcmpi(s, '2d')
-    spm_eeg_scalp2d(D, d);
+    spm_eeg_scalp2d_ext(D, t, handles.Tselection(1));
 else
     spm_eeg_scalp3d(d);
 end

@@ -16,7 +16,7 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 229 2005-09-13 15:53:53Z stefan $
+% $Id: spm_eeg_rdata.m 304 2005-11-22 19:43:44Z stefan $
 
 try
     Fdata = S.Fdata;
@@ -259,6 +259,9 @@ D.events.code = Ec;
 D.fname = [F '.mat'];
 
 D.datatype = 'int16';
+D.units = '\muV';
+
+D.modality = 'EEG';
 
 if str2num(version('-release'))>=14
     save(fullfile(P, D.fname), '-V6', 'D');

@@ -7,6 +7,7 @@ function D = spm_eeg_tf(S)
 % fmin			- minimum frequency
 % fmax			- maximum frequency
 % rm_baseline	- baseline removal (1/0) yes/no
+% Mfactor       - Morlet wavelet factor (can not be accessed by GUI)
 % 
 % D				- EEG data struct with time-frequency data (also written to files)
 %_______________________________________________________________________
@@ -17,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 254 2005-10-14 17:07:09Z stefan $
+% $Id: spm_eeg_tf.m 304 2005-11-22 19:43:44Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -45,7 +46,7 @@ try
     D.tf.frequencies = S.frequencies;
 catch
     D.tf.frequencies = ...
-	 	spm_input('Frequencies (Hz)', '+1', 'i', '', [1, inf]);
+	 	spm_input('Frequencies (Hz)', '+1', 'r', '', [1, inf]);
 end
 
 try
@@ -64,6 +65,13 @@ if D.tf.rm_baseline
     end
 end
 
+try
+    D.tf.Mfactor = S.Mfactor;
+catch
+    D.tf.Mfactor = ...
+        spm_input('Which Morlet wavelet factor?', '+1', 'r', '7', 1);
+end
+
 % NB: D.tf.channels maps directly into the data. To retrieve the position of the channel,
 % use D.channels.order
 try
@@ -75,7 +83,7 @@ end
 
 spm('Pointer', 'Watch'); drawnow;
 
-M = spm_eeg_morlet(7, 1000/D.Radc, D.tf.frequencies);
+M = spm_eeg_morlet(D.tf.Mfactor, 1000/D.Radc, D.tf.frequencies);
 
 D.Nfrequencies = length(D.tf.frequencies);
 fnamedat = D.fnamedat;

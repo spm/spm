@@ -140,6 +140,8 @@ save(fic_sensloc,'CoiLoc');
 clear hc_file CoiLoc UnusedLines UsedLine A COUNT ERRMSG NEXTINDEX
 % -------
 
+D.modality = 'MEG';
+D.units = 'femto T';
 
 if str2num(version('-release'))>=14
     save(fullfile(D.path, D.fname), '-V6', 'D');

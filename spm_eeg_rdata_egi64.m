@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_egi64(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_egi64.m 206 2005-07-29 09:30:41Z james $
+% $Id: spm_eeg_rdata_egi64.m 304 2005-11-22 19:43:44Z stefan $
 
 try
 	Fdata = S.Fdata;
@@ -150,6 +150,10 @@ end
 D.events.reject=zeros(1,D.Nevents);
 spm_progress_bar('Clear');
 fclose(fpd);
+
+D.modality = 'EEG';
+D.units = '\muV';
+
 D.fname = [F '.mat'];
 D.fname = ['e_' D.fname];
 if str2num(version('-release'))>=14
