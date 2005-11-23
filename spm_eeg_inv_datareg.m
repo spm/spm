@@ -45,7 +45,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_datareg.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 
@@ -267,7 +267,7 @@ function [R, t, corr, data2reg] = spm_eeg_inv_icp(data1, data2, tol, varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id$
+% $Id: spm_eeg_inv_datareg.m 308 2005-11-23 19:21:56Z jeremie $
 
 % Landmarks (fiduciales) based registration
 % Fiducial coordinates must be given in the same order in both files

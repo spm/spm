@@ -21,7 +21,7 @@ function ts = spm_eeg_inv_ElastM(ts);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_ElastM.m 308 2005-11-23 19:21:56Z jeremie $
 
 
 M_con = sparse([ts.tri(1,:)';ts.tri(1,:)';ts.tri(2,:)';ts.tri(3,:)';ts.tri(2,:)';ts.tri(3,:)'], ...

@@ -18,7 +18,7 @@ function tsph = spm_eeg_inv_TesSph(r,n);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_TesSph.m 308 2005-11-23 19:21:56Z jeremie $
 
 if nargin == 0 
     n = 40;

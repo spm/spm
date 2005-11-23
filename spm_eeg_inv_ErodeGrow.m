@@ -24,7 +24,7 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_ErodeGrow.m 308 2005-11-23 19:21:56Z jeremie $
 
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2

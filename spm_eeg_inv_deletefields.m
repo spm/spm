@@ -19,7 +19,7 @@ function D = spm_eeg_inv_deletefields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_deletefields.m 308 2005-11-23 19:21:56Z jeremie $
 
 def_Ian   = [];
 def_Flock = 0;

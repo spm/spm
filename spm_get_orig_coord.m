@@ -18,7 +18,7 @@ function orig_coord = spm_get_orig_coord(coord, matname,PU)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_get_orig_coord.m 308 2005-11-23 19:21:56Z jeremie $
 
 if ischar(matname)
     t  = load(matname);

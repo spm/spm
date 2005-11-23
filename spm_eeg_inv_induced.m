@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_induced.m 308 2005-11-23 19:21:56Z jeremie $
 
 
 if length(D.events.code) ~= D.Nevents

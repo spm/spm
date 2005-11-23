@@ -13,7 +13,7 @@ function D = spm_eeg_inv_datareg_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_datareg_ui.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 

@@ -36,7 +36,7 @@ function D = spm_eeg_inv_inverse(S,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_inverse.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 s = 8; % smoothness parameter (millimeters)

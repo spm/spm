@@ -16,7 +16,7 @@ function    [Center,Radius] = spm_eeg_inv_BestFitSph(points,varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_BestFitSph.m 308 2005-11-23 19:21:56Z jeremie $
 
 if nargin > 2
     disp('Wrong input format');

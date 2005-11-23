@@ -16,7 +16,7 @@ function H = spm_eeg_inv_interpmesh(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_interpmesh.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 

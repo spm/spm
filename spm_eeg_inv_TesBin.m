@@ -21,7 +21,7 @@ function ts = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_TesBin.m 308 2005-11-23 19:21:56Z jeremie $
 
 if nargin > 4
     error('Wrong input arguments for ''TesBin''.') ;

@@ -19,7 +19,7 @@ function D = spm_eeg_inv_copyfields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_copyfields.m 308 2005-11-23 19:21:56Z jeremie $
 
 def_Cflags = [1 1 1 0];
 def_Vcheck = 1;

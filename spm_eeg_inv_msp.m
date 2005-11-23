@@ -32,7 +32,7 @@ function [varargout] = spm_eeg_inv_msp(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id$
+% $Id: spm_eeg_inv_msp.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 

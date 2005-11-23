@@ -15,7 +15,7 @@ function D = spm_eeg_inv_forward_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id$
+% $Id: spm_eeg_inv_forward_ui.m 308 2005-11-23 19:21:56Z jeremie $
 
 spm_defaults
 
