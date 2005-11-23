@@ -1,0 +1,244 @@
+function D = spm_eeg_inv_induced(D,Qe,Qp)
+
+%=======================================================================
+% Inverse Solution for induced (and evoked) power
+%
+% FORMAT D = spm_eeg_inv_induced(D,Qe,Qp)
+% Input:
+% D		    - input data structure
+% Qe        - noise covariance structure
+% Qp        - prior source covaraince structure
+% Output:
+% D			- same data struct including the inverse solution files and variables
+%=======================================================================
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jeremie Mattout
+% $Id$
+
+
+if length(D.events.code) ~= D.Nevents
+    error(sprintf('Single trial data required\n'));
+end
+val = length(D.inv);
+
+qe = length(Qe);
+qp = length(GQpG);
+
+% LOAD GAIN MATRIX
+variabl = load(D.inv{val}.forward.gainmat);
+name    = fieldnames(variabl);
+G       = getfield(variabl , name(1));
+
+
+% SOURCE SPACE DIMENSION REDUCTION
+if (D.inv{val}.inverse.Ctx_Nv - D.inv{val}.inverse.dim)
+    Msize     = D.inv{val}.inverse.dim
+    if isempty(D.inv{val}.inverse.priors.level2{3}.filename)
+        error(sprintf('Multivariate Source Prelocalisation has not been performed\n'));
+    end
+    variabl   = load(D.inv{val}.inverse.priors.level2{3}.filename);
+    name      = fieldnames(variabl);
+    APM       = getfield(variabl , name(1));
+    [APMs,Is] = sort(-APM);
+    APMs      = -APMs;
+    Is        = Is(1:Msize);
+    G         = G(:,Is);
+    GQpG      = {};
+    for i = 1:length(Qp)
+        Qp{i}   = Qp{i}(Is,Is);
+    end
+end
+
+
+% VARIANCE COMPONENTS
+for i = 1:length(Qp)
+    GQpG{i} = G*Qp{i}*G';
+    GQpG{i} = GQpG{i}/norm(GQpG{i},'fro');
+end
+
+for i = 1:length(Qe)
+    Qe{i}   = Qe{i}/norm(Q{i},'fro');
+end
+
+woi        = D.inv{val}.inverse.woi;
+contrast   = D.inv{val}.inverse.contrast;
+Nsens      = D.Nchannels;
+Nsour      = size(G,2);
+
+woi(1) = round(woi(1)*(D.Radc/1000)) + D.events.start + 1;
+woi(2) = round(woi(2)*(D.Radc/1000)) + D.events.start + 1;
+Nsamp  = woi(2) - woi(1) + 1;
+
+Ic = find(contrast);
+if length(Ic) > 1
+    error('You should select one trial type onlym\n');
+end
+It = find(D.events.code == D.events.types(Ic));
+Ntrial = length(It);
+Yi = [];
+for i = 1:Ntrial
+Yi = [Yi squeeze(D.data(:,woi(1):woi(2),It(i)))];
+end
+
+
+% PARAMETERS
+r     = 50;                      % dimension of signal subspace
+V     = eye(Nsamp,Nsamp);        % temporal correlations
+
+
+% SOURCE SUBSPACE
+T     = convmtx(spm_Npdf(-8:8,0,2^2),Nsamp);
+T     = T(:,[1:Nsamp] + 8);                           % temporal dispersion
+w     = diag([1:Nsamp].^(9/8).*exp(-[1:Nsamp]*3.1641/Nsamp));     % window
+[S v] = eig(w*T*T'*w);
+S     = S(:,[1:r]);
+SVS   = S'*V*S;                                       % correlation (signal)
+
+
+MODIFY THE ABOVE....
+
+
+% EVOKED RESPONSE
+Ye = Yi*kron(ones(Ntrial,1),speye(Nsamp))/Ntrial;
+if D.inv{val}.inverse.activity == 'evoked & induced';
+    YY = Ye*S*inv(SVS)*S'*Ye'/r;
+    X  = ones(Nsens,1);
+    Q  = {Qe{:} GQpG{:}};
+
+    % ReML hyperparameter estimates
+    [Cev,hev,Phev,Fev] = spm_reml(YY,X,Q,Nsamp,1);
+    clear YY Q
+    
+    % Display ReML outcome
+    disp(sprintf('\n'));
+    disp('--- EVOKED RESPONSE ---');
+    disp(['Model Log-Evidence:  ' num2str(Fev)]);
+    DisplayString = ['Noise covariance hyperparameters:  '];
+    for i = 1:qe
+        DisplayString = [DisplayString '  ' num2str(hev(i))];
+    end
+    disp(DisplayString);
+    DisplayString = ['Source covariance hyperparameters:  '];
+    for i = 1:qp
+        DisplayString = [DisplayString '  ' num2str(hev(qe + i))];
+    end
+    disp(DisplayString);
+        
+    % MAP parameter estimates
+    Ce = sparse(Nsens,Nsens);
+    for i = 1:qe
+        Ce = Ce + hev(i)*Qe{i};
+    end
+    Cp = sparse(Nsour,Nsour);
+    for i = 1:qp
+        Cp = Cp + hev(qe + i)*Qp{i};
+    end
+    clear Qp
+    
+    CpG  = Cp*G';
+    GCpG = G*CpG;
+    MAP  = CpG*inv(GCpG + Ce);
+    C    = inv(G'*inv(Ce)*G + inv(Cp + speye(Nsour,Nsour)*1e-6));
+    clear CpG GCpG Ce Cp
+    
+        % instantaneous source activity
+    J = MAP*Ye*S*S';
+    if (D.inv{val}.inverse.Ctx_Nv - D.inv{val}.inverse.dim)
+        Jfull       = sparse(Nsour,Nsamp);
+        Jfull(Is,:) = J;
+        Jev         = Jfull;
+        clear J Jfull
+    end
+    
+        % cross-energy in channel space
+    K    = S*S'*W*W'*S*S';
+    Eev  = Ye*K*Ye';
+
+        % cross-energy in source space
+    Gev  = MAP*Eev*MAP' + C*trace(K*V);   
+end
+
+
+% INDUCED RESPONSE
+Yi = Yi - kron(ones(1,Ntrial),Ye);
+clear Ye
+YY = Yi*kron(speye(Ntrial),S*inv(SVS)*S')*Yi'/(Ntrial*r);
+X  = ones(Nsens,1);
+Q  = {Qe{:} GQpG{:}};
+
+% ReML hyperparameter estimates
+[Cind,hind,Phind,Find] = spm_reml(YY,X,Q,Nsamp,1);
+clear YY Q
+
+% Display ReML outcome
+disp(sprintf('\n'));
+disp('--- INDUCED RESPONSE ---');
+disp(['Model Log-Evidence:  ' num2str(Find)]);
+DisplayString = ['Noise covariance hyperparameters:  '];
+for i = 1:qe
+    DisplayString = [DisplayString '  ' num2str(hind(i))];
+end
+disp(DisplayString);
+DisplayString = ['Source covariance hyperparameters:  '];
+for i = 1:qp
+    DisplayString = [DisplayString '  ' num2str(hind(qe + i))];
+end
+disp(DisplayString);
+
+% MAP estimate of the energy
+Ce = sparse(Nsens,Nsens);
+for i = 1:qe
+    Ce = Ce + hind(i)*Qe{i};
+end
+Cp = sparse(Nsour,Nsour);
+for i = 1:qp
+    Cp = Cp + hind(qe + i)*Qp{i};
+end
+clear Qe Qp
+    
+CpG   = Cp*G';
+GCpG  = G*CpG;
+MAP   = CpG*inv(GCpG + Ce);
+C     = inv(G'*inv(Ce)*G + inv(Cp + speye(Nsour,Nsour)*1e-6));
+SSVSS = S*SVS*S';
+clear CpG GCpG Ce Cp
+
+    % time-frequency subspace
+W = 2*pi*[1:Nsamp]'/Nsamp;
+W = [sin(5.04*W) cos(5.04*W) sin(6.048*W) cos(6.048*W) sin(7.056*W) cos(7.056*W)]; % frequency of interest
+v = spm_Npdf(1:Nsamp,112,(Nsamp/24)^2); % time window
+W = diag(v)*W;
+
+    % cross-energy in channel space
+K    = S*S'*W*W'*S*S';
+Eind = Yi*kron(speye(Ntrial),K)*Yi'/Ntrial;
+clear Yi Ce Cp YY X
+
+    % cross-energy in source space
+Gind = MAP*Eind*MAP' + C*trace(K*V);
+
+
+% Save results
+if D.inv{val}.inverse.activity == 'induced'
+    [pth,nam,ext] = spm_fileparts(D.fname);
+    woi           = D.inv{val}.inverse.woi;
+    Ntime         = clock;
+    D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_induced_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    D.inv{val}.inverse.LogEv   = Find;
+    save(fullfile(pth,D.inv{val}.inverse.resfile),'Cind','hind','Phind','Find','Eind','Gind');
+    clear Cind hind Phind Find Eind Gind
+else
+    [pth,nam,ext] = spm_fileparts(D.fname);
+    woi           = D.inv{val}.inverse.woi;
+    Ntime         = clock;
+    D.inv{val}.inverse.LogEv = [Fev Find];
+    D.inv{val}.inverse.resfile{1} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_evoked' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    save(fullfile(pth,D.inv{val}.inverse.resfile{1}),'Cev','hev','Phev','Fev','Jev','Eev','Gev');    
+    clear Cev hev Phev Fev Jev Eev Gev
+    D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    save(fullfile(pth,D.inv{val}.inverse.resfile{2}),'Cind','hind','Phind','Find','Eind','Gind');    
+    clear Cind hind Phind Find Eind Gind
+end
+
+save(fullfile(D.path,D.fname),'D');

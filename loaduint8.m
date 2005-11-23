@@ -1,0 +1,39 @@
+function udat = loaduint8(V)
+% Load data from file indicated by V into an array of unsigned bytes.
+
+if size(V.pinfo,2)==1 && V.pinfo(1) == 2,
+	mx = 255*V.pinfo(1) + V.pinfo(2);
+	mn = V.pinfo(2);
+else,
+	spm_progress_bar('Init',V.dim(3),...
+		['Computing max/min of ' spm_str_manip(V.fname,'t')],...
+		'Planes complete');
+	mx = -Inf; mn =  Inf;
+	for p=1:V.dim(3),
+		img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+		mx  = max([max(img(:))+paccuracy(V,p) mx]);
+		mn  = min([min(img(:)) mn]);
+		spm_progress_bar('Set',p);
+	end;
+end;
+spm_progress_bar('Init',V.dim(3),...
+	['Loading ' spm_str_manip(V.fname,'t')],...
+	'Planes loaded');
+
+udat = uint8(0);
+udat(V.dim(1),V.dim(2),V.dim(3))=0;
+rand('state',100);
+for p=1:V.dim(3),
+	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+	acc = paccuracy(V,p);
+	if acc==0,
+		udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
+	else,
+		% Add random numbers before rounding to reduce aliasing artifact
+		r = rand(size(img))*acc;
+		udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
+	end;
+	spm_progress_bar('Set',p);
+end;
+spm_progress_bar('Clear');
+return;
