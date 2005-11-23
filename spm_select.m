@@ -52,7 +52,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 282 2005-11-09 11:52:57Z john $
+% $Id: spm_select.m 305 2005-11-23 17:52:16Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -98,13 +98,13 @@ already = strvcat(already);
 
 t = '';
 switch lower(typ),
-case {'any'},   code = 0; ext = {'.*'};
-case {'image'}, code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
-case {'xml'},   code = 0; ext = {'.*\.xml$','.*\.XML$'};
-case {'mat'},   code = 0; ext = {'.*\.mat$','.*\.MAT$'};
-case {'batch'}, code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
-case {'dir'},   code =-1; ext = {'.*'};
-otherwise,      code = 0; ext = {typ};
+case {'any','*'}, code = 0; ext = {'.*'};
+case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
+case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$'};
+case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
+case {'dir'},     code =-1; ext = {'.*'};
+otherwise,        code = 0; ext = {typ};
 end;
 
 [col1,col2,col3,fs] = colours;

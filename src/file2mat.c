@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: file2mat.c 305 2005-11-23 17:52:16Z john $
  */
 
 /*
@@ -333,7 +333,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
     int i, dtype;
     const double *pr;
     mxArray *arr;
-    int siz;
+    unsigned int siz;
     if (!mxIsStruct(ptr)) mexErrMsgTxt("Not a structure.");
 
     dtype = (int)(getpr(ptr, "dtype", 1, &n)[0]);
@@ -348,13 +348,19 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
     if (map->dtype == NULL) mexErrMsgTxt("Unrecognised 'dtype' value.");
     pr        = getpr(ptr, "dim", -MXDIMS, &n);
     map->ndim = n;
-    siz       = map->dtype->bytes;
+    siz       = 1;
     for(i=0; i<map->ndim; i++)
     {
         map->dim[i] = (int)fabs(pr[i]);
         siz  = siz*map->dim[i];
     }
-    siz      = (siz+7)/8;
+
+    /* Avoid overflow if possible */
+    if (map->dtype->bytes % 8)
+        siz = (map->dtype->bytes*siz+7)/8;
+    else
+        siz = siz*(map->dtype->bytes/8);
+
     pr       = getpr(ptr, "be",1, &n);
 #ifdef BIGENDIAN
     map->swap = (int)pr[0]==0;

@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_figure.m 305 2005-11-23 17:52:16Z john $
 
 
 %=======================================================================
@@ -697,6 +697,7 @@ uimenu( F,'Label','Results-Fig','HandleVisibility','off','Callback',cb);
 
 
 set(0,'ShowHiddenHandles',cSHH)
+spm_jobman('pulldown');
 %=======================================================================
 
 

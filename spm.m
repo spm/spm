@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 287 2005-11-10 13:52:24Z james $
+% $Id: spm.m 305 2005-11-23 17:52:16Z john $
 
 
 %=======================================================================
@@ -470,7 +470,7 @@ Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
 Finter = spm('CreateIntWin','off');	                       fprintf('.');
 spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
 Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
-spm_jobman('pulldown');
+%spm_jobman('pulldown');
 
 Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
 if exist(Fmotd), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
@@ -1793,7 +1793,7 @@ case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
 %-----------------------------------------------------------------------
-P = spm_select(Inf,'*','Select file(s) to delete');
+P = spm_select(Inf,'.*','Select file(s) to delete');
 n = length(P);
 if n==0
 	spm('alert"','Nothing selected to delete!','file delete',0);
