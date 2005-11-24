@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 292 2005-11-12 11:33:29Z karl $
+% $Id: spm_nlsi_GN.m 310 2005-11-24 16:27:02Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -132,7 +132,7 @@ Cp    = pC;
  
 C.F   = -Inf;
 dv    = 1/128;
-lm    = 0;
+t     = 64;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 hP    = eye(nh,nh)/16;
@@ -245,7 +245,7 @@ for k = 1:64
  
         % decrease regularization
         %------------------------------------------------------------------
-        lm    = lm/2;
+        t     = t*2;
         str   = 'E-Step(-)';
  
     else
@@ -257,15 +257,14 @@ for k = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        lm    = max(lm*4,1/512);
+        t     = min(t/2,1);
         str   = 'E-Step(+)';
  
     end
  
     % E-Step: update
     %======================================================================
-    l     = lm*norm(full(dFdpp))*speye(np + nu);
-    dp    = inv(-dFdpp + l)*dFdp;
+    dp    = spm_dx(dFdpp,dFdp,{t});
     p     = p  + dp;
     Ep    = pE + V*p(ip);
     
