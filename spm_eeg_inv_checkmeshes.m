@@ -3,19 +3,19 @@ function [varargout] = spm_eeg_inv_checkmeshes(varargin);
 %=======================================================================
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
-% FORMAT D = spm_eeg_inv_getmeshes(S)
+% FORMAT D = spm_eeg_inv_checkmeshes(S)
 % Input:
 % S		    - input data struct (optional)
 % Output:
 % D			- data struct including the new files and parameters
 %
-% FORMAT spm_eeg_inv_getmeshes(Mcortex, Miskull, Mscalp);
+% FORMAT spm_eeg_inv_checkmeshes(Mcortex, Miskull, Mscalp);
 % Input :
 % Mcortex   - filename of the cortical mesh (.mat file containing faces and vertices variables)
 % Miskull   - inner-skull mesh
 % Mscalp    - scalp mesh
 %
-% FORMAT [h_ctx, h_skl, h_slp] = spm_eeg_inv_getmeshes(Mcortex, Miskull, Mscalp);
+% FORMAT [h_ctx, h_skl, h_slp] = spm_eeg_inv_checkmeshes(Mcortex, Miskull, Mscalp);
 % Input :
 % Mcortex   - filename of the cortical mesh (.mat file containing faces and vertices variables)
 % Miskull   - inner-skull mesh
@@ -29,10 +29,11 @@ function [varargout] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_checkmeshes.m 312 2005-11-24 19:35:42Z jeremie $
 
 spm_defaults
 
+Nmeshes = [1 1];
 
 if nargin <= 1
     
@@ -57,15 +58,23 @@ if nargin <= 1
     end
     
     if isempty(D.inv{val}.mesh.tess_iskull)
-        Miskull = spm_select(1,'.mat','Select skull mesh');
-        D.inv{val}.mesh.tess_iskull = Miskull;
+        try
+            Miskull = spm_select(1,'.mat','Select skull mesh');
+            D.inv{val}.mesh.tess_iskull = Miskull;
+        catch
+            Nmeshes(1) = 0;
+        end
     else
         Miskull = D.inv{val}.mesh.tess_iskull;
     end
     
     if isempty(D.inv{val}.mesh.tess_scalp)
-        Mscalp = spm_select(1,'.mat','Select scalp mesh');
-        D.inv{val}.mesh.tess_scalp = Mscalp;
+        try
+            Mscalp = spm_select(1,'.mat','Select scalp mesh');
+            D.inv{val}.mesh.tess_scalp = Mscalp;
+        catch
+            Nmeshes(2) = 0;
+        end
     else
         Mscalp = D.inv{val}.mesh.tess_scalp;
     end
@@ -94,32 +103,32 @@ clf
 
 % Cortex Mesh Display
 variabl = load(Mcortex);
-name    = fieldnames(variabl);
-face    = getfield(variabl,name{2});
-vert    = getfield(variabl,name{3});
+face    = getfield(variabl,'face');
+vert    = getfield(variabl,'vert');
 h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 hold on
 
 % Inner-skull Mesh Display
-variabl = load(Miskull);
-name    = fieldnames(variabl);
-face    = getfield(variabl,name{2});
-vert    = getfield(variabl,name{3});
-h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
+if Nmeshes(1)
+    variabl = load(Miskull);
+    face    = getfield(variabl,'face');
+    vert    = getfield(variabl,'vert');
+    h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
+end
 
 % Scalp Mesh Display
-variabl = load(Mscalp);
-name    = fieldnames(variabl);
-face    = getfield(variabl,name{2});
-vert    = getfield(variabl,name{3});
-h_slp   = patch('vertices',vert,'faces',face,'EdgeColor','k','FaceColor','none');
+if Nmeshes(2)
+    variabl = load(Mscalp);
+    face    = getfield(variabl,'face');
+    vert    = getfield(variabl,'vert');
+    h_slp   = patch('vertices',vert,'faces',face,'EdgeColor','k','FaceColor','none');
+end
 
 
 axis equal;
 axis off;
 set(gcf,'color','white');
 view(-135,45);
-% cameramenu('noreset');
 zoom(1.5)
 rotate3d
 drawnow
@@ -134,26 +143,3 @@ elseif nargout == 3
 else
     return
 end    
-    
-%     
-% %=======================================================================
-% function ph = spm_eeg_inv_DisplayMesh(vertices,faces,Ecolor,Fcolor)
-% 
-% Position(1,:) = [100*min(vertices(:,1)),100*mean(vertices(:,2)),mean(vertices(:,3))];
-% Position(2,:) = [-100*min(vertices(:,1)),100*mean(vertices(:,2)),mean(vertices(:,3))];
-% Position(3,:) = [100*mean(vertices(:,1)),100*min(vertices(:,2)),mean(vertices(:,3))];
-% Position(4,:) = [100*mean(vertices(:,1)),-100*min(vertices(:,2)),mean(vertices(:,3))];
-% 
-% for i = 1:size(Position,1)
-%     lh(i) = light('Position',Position(i,:),'Color',[1 1 1],'Style','infinite');
-% end
-% set(ph,'DiffuseStrength',.6,'SpecularStrength',0,'AmbientStrength',.4,'SpecularExponent',5);
-% axis equal;
-% axis off;
-% set(gcf,'color','white');
-% cameramenu
-% view(-90,0);
-% material dull
-% 
-% return
-% %=======================================================================

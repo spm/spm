@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 312 2005-11-24 19:35:42Z jeremie $
 
 spm_defaults
 
@@ -147,7 +147,11 @@ save(fullfile(pth,TessName),'Comment','Curvature','Faces','VertConn','Vertices')
 % Sensor Information
 OPTIONS.ChannelFile = [nam '_BSTChannelFile.mat'];
 OPTIONS.ChannelType = D.modality;
-ChannelLoc          = load(D.inv{val}.datareg.sens_coreg);
+if ~isempty(D.inv{val}.datareg.sens_coreg)
+    ChannelLoc = load(D.inv{val}.datareg.sens_coreg);
+else
+    ChannelLoc = load(spm_select(1, '.mat', 'Sensor coordinates in MRI native space'));
+end
 FldName             = fieldnames(ChannelLoc); 
 OPTIONS.ChannelLoc  = getfield(ChannelLoc,FldName{1})';
 
