@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_config_norm.m 314 2005-11-24 21:08:58Z john $
 
 
 %_______________________________________________________________________
@@ -439,7 +439,8 @@ eflags = struct(...
 	'reg',    o.reg);
 
 for i=1:length(job.subj),
-	matname = [spm_str_manip(strvcat(job.subj(i).source{:}),'sd') '_sn.mat'];
+	[pth,nam,ext,ind] = spm_fileparts(strvcat(job.subj(i).source{:}));
+	matname = fullfile(pth,[nam '_sn.mat']);
 	spm_normalise(strvcat(job.eoptions.template{:}),...
 		strvcat(job.subj(i).source{:}), matname,...
 		strvcat(job.eoptions.weight{:}), strvcat(job.subj(i).wtsrc{:}), eflags);
