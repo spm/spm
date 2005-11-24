@@ -14,9 +14,7 @@ function [J] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 279 2005-11-08 19:11:28Z karl $
-
-
+% $Id: spm_diff.m 309 2005-11-24 16:24:04Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -57,12 +55,11 @@ else
         fi       = spm_diff(f,xi{:},n(1:end - 1));
         J{i}     = spm_dfdx(fi,f0,dx);
     end
-    return
 
 end
 
-% return numeric array if for first order derivatives
-%--------------------------------------------------------------------------
+% return numeric array for first order derivatives
+%==========================================================================
 if length(n) == 1
 
     % vectorise f
@@ -86,7 +83,7 @@ if length(n) == 1
     % if f is a scalar 
     %----------------------------------------------------------------------
     if length(f) == 1
-        J = spm_unvec(spm_vec(J),x{n});
+        J = spm_cat(J);
         return
     end
     
@@ -104,6 +101,18 @@ if length(n) == 1
     end
     J    = spm_cat(J);
 
+end
+
+% return numeric array for second-order vector derivatives of scalars
+%==========================================================================
+if length(n) == 2
+    if n(1) == n(2) 
+        if size(J{1},1) == 1
+            J = spm_cat(J');
+        else
+            J = spm_cat(J); 
+        end
+    end
 end
 
 

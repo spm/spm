@@ -1,5 +1,5 @@
 function [H] = spm_logdet(C)
-% returns the log of the determinant of the positive definite matrix C
+% returns the log of the determinant of positive semi-definite matrix C
 % FORMAT [H] = spm_logdet(C)
 % H = log(det(C))
 %
@@ -9,7 +9,7 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_logdet.m 272 2005-10-25 20:05:27Z guillaume $
+% $Id: spm_logdet.m 309 2005-11-24 16:24:04Z karl $
 
 % assume diagonal form
 %-----------------------------------------------------------------------
