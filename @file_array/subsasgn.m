@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: subsasgn.m 316 2005-11-28 16:56:43Z john $
 
 
 if isempty(subs)
@@ -31,8 +31,7 @@ if ~strcmp(subs(1).type,'()'),
 end;
 
 if numel(subs)~=1, error('Expression too complicated');end;
-
-dm   = [size(obj) ones(1,16)];
+dm   = size(obj);
 sobj = struct(obj);
 
 if length(subs.subs) < length(dm),
@@ -46,6 +45,7 @@ if length(subs.subs) < length(dm),
     end;
 end;
 
+dm   = [size(obj) ones(1,16)];
 do   = ones(1,16);
 args = {};
 for i=1:length(subs.subs),
