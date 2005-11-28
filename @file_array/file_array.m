@@ -1,18 +1,18 @@
 function a = file_array(varargin)
 % Function for creating file_array objects.
-% FORMAT a = file_array(fname,dim,dtype,off,scale,inter)
-% a      - file_array object
-% fname  - filename
-% dim    - dimensions (default = [0 0] )
-% dtype  - datatype   (default = 'uint8-le')
-% off    - offset into file (default = 0)
-% scale  - scalefactor (default = 1)
-% inter  - DC offset, such that dat = raw*scale + inter (default = 0)
+% FORMAT a = file_array(fname,dim,dtype,offset,scl_slope,scl_inter)
+% a         - file_array object
+% fname     - filename
+% dim       - dimensions (default = [0 0] )
+% dtype     - datatype   (default = 'uint8-le')
+% offset    - offset into file (default = 0)
+% scl_slope - scalefactor (default = 1)
+% scl_inter - DC offset, such that dat = raw*scale + inter (default = 0)
 % _______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: file_array.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: file_array.m 315 2005-11-28 16:48:59Z john $
 
 
 if nargin==1

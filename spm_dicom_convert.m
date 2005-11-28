@@ -13,7 +13,7 @@ function spm_dicom_convert(hdr,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_dicom_convert.m 315 2005-11-28 16:48:59Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -182,7 +182,9 @@ for i=1:length(hdr),
 	create(N);
 
 	% Write the data unscaled
-	dat = file_array(fname,dim,dt,0);
+	dat           = N.dat;
+	dat.scl_slope = [];
+	dat.scl_inter = [];
 	for i=1:dim(3),
 		dat(:,:,i) = volume(:,:,i);
 	end;

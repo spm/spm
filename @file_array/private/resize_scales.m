@@ -4,8 +4,9 @@ function s1 = resize_scales(s0,dim,args)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: resize_scales.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: resize_scales.m 315 2005-11-28 16:48:59Z john $
 
+dim = [dim ones(1,max(numel(args)-numel(dim),0))];
 args1 = cell(1,numel(args));
 for i=1:numel(args),
     if max(args{i})>dim(i) || min(args{i})<1,

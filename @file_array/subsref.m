@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsref.m 255 2005-10-17 14:46:13Z john $
+% $Id: subsref.m 315 2005-11-28 16:48:59Z john $
 
 
 if isempty(subs)
@@ -76,6 +76,7 @@ varargout = {t};
 return;
 
 function t = subfun(sobj,varargin)
+%sobj.dim = [sobj.dim ones(1,16)];
 t = file2mat(sobj,varargin{:});
 if ~isempty(sobj.scl_slope) || ~isempty(sobj.scl_inter)
     slope = 1;

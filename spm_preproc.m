@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_preproc.m 315 2005-11-28 16:48:59Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -473,7 +473,11 @@ if finalit, fprintf('Bia: %g\n',ll); end;
         clear A
 
         for subit1 = 1:3,
-            nTwarp = (Alpha+lmR*lam + Cwarp)\((Alpha+lmR*lam)*Twarp(:) - Beta);
+            if iter==1,
+                nTwarp = (Alpha+lmR*lam + 10*Cwarp)\((Alpha+lmR*lam)*Twarp(:) - Beta);
+            else
+                nTwarp = (Alpha+lmR*lam +    Cwarp)\((Alpha+lmR*lam)*Twarp(:) - Beta);
+            end;
             nTwarp = reshape(nTwarp,[d2 3]);
             nllr   = -0.5*nTwarp(:)'*Cwarp*nTwarp(:);
             nll    = nllr+llrb;
