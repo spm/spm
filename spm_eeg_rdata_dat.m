@@ -12,7 +12,7 @@ function D = spm_eeg_rdata_dat(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_dat.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_rdata_dat.m 317 2005-11-28 18:31:24Z stefan $
 
 
 try
@@ -109,9 +109,9 @@ if length(ind_data) ~= D.Nevents, warning('Data mismatch'), end
 
 % Assemble epochs
 k = 1;
-D.scale.dim = [1 3];
 
-D.scale.values = zeros(D.Nchannels, D.Nevents);
+D.scale = zeros(D.Nchannels, D.Nevents);
+
 D.events.code = zeros(1, D.Nevents);
 D.events.reject = zeros(1, D.Nevents);
 
@@ -133,7 +133,7 @@ for i = 1 : D.Nevents
     
     d = sscanf(cat(2, txt{ind_data(i)+1 : ind_data(i) + D.Nsamples}), '%f', [D.Nchannels D.Nsamples]);
     
-    D.scale.values(:, k) = spm_eeg_write(fpout, d, 2, D.datatype);
+    D.scale(:, 1, k) = spm_eeg_write(fpout, d, 2, D.datatype);
        
     k = k +1;
     

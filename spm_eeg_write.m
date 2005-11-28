@@ -18,32 +18,25 @@ function scales = spm_eeg_write(fpout, d, direc, dtype)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_write.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_write.m 317 2005-11-28 18:31:24Z stefan $
 
 
-if dtype == 'float'
-    if direc == 1
-        scales = ones(size(d, 2), 1);
-    else
-        scales = ones(size(d, 1), 1);
-    end
-    fwrite(fpout, d, dtype);
-elseif dtype == 'int16'
+if strcmp(dtype, 'float32')
+    scales = ones(size(d, 3-direc), 1);
+elseif strcmp(dtype, 'int16')
     scales = max(abs(d), [], direc)./32767;
-    if direc == 1
-        scales = scales';
-    end
+    scales = scales(:);
     ind = find(scales == 0);
     scales(ind) = ones(size(ind));
     d = int16(round(d./repmat(scales, 1, size(d, 2))));
-    fwrite(fpout, d, dtype);
- elseif dtype == 'int32'
+elseif strcmp(dtype, 'int32')
     scales = max(abs(d), [], direc)./2147483647;
-    if direc == 1
-        scales = scales';
-    end
+    scales = scales(:);
     ind = find(scales == 0);
     scales(ind) = ones(size(ind));
     d = int32(d./repmat(scales, 1, size(d, 2)));
-    fwrite(fpout, d, dtype);   
+end
+
+if fpout ~= - 1
+    fwrite(fpout, d, dtype);
 end

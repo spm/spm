@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 149 2005-05-12 09:48:42Z stefan $
+% $Id: spm_eeg_filter.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -102,8 +102,7 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 if size(D.data, 3) > 1
     % epoched
     d = zeros(D.Nchannels, D.Nsamples);
-    D.scale.dim = [1 3];
-    D.scale.values = zeros(D.Nchannels, D.Nevents);
+    D.scale = zeros(D.Nchannels, 1, D.Nevents);
     
     spm_progress_bar('Init', D.Nevents, 'Events filtered'); drawnow;
     if D.Nevents > 100, Ibar = floor(linspace(1, D.Nevents,100));
@@ -122,7 +121,7 @@ if size(D.data, 3) > 1
         % base line correction
         d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
 
-        D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+        D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
@@ -130,8 +129,7 @@ if size(D.data, 3) > 1
     end
 else
     % continuous
-    D.scale.dim = 1;
-    D.scale.values = zeros(D.Nchannels, 1);
+    D.scale = zeros(D.Nchannels, 1);
 
     spm_progress_bar('Init', D.Nchannels, 'Channels filtered'); drawnow;
     if D.Nchannels > 100, Ibar = floor(linspace(1, D.Nchannels, 100));
@@ -139,20 +137,17 @@ else
 
     for i = 1:D.Nchannels
         if strcmpi(D.filter.type, 'butterworth')
-            d = filtfilt(B, A, squeeze(D.data(i, :, :)));
+            d = filtfilt(D.filter.para{1}, D.filter.para{2}, squeeze(D.data(i, :, 1)));
         end
         
-        if i == 1
-            data = zeros(D.Nchannels, D.Nsamples);
-        end
-        data(i, :) = d;
-        
+        D.scale(i) = spm_eeg_write(-1, d, 2, D.datatype);
+        D.data(i, :) = d;
+
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
 
     end
-    D.scale.values = spm_eeg_write(fpd, data, 2, D.datatype);
 
 end
 

@@ -20,7 +20,7 @@ function D = spm_eeg_rereference(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 206 2005-07-29 09:30:41Z james $
+% $Id: spm_eeg_rereference.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 
@@ -117,8 +117,7 @@ if reference_old ~= 0 & reference_old > length(D.channels.eeg)
 end
 
 d = zeros(D.Nchannels, D.Nsamples);
-D.scale.dim = [1 3];
-D.scale.values = zeros(D.Nchannels, D.Nevents);
+D.scale = zeros(D.Nchannels, 1, D.Nevents);
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
@@ -144,7 +143,7 @@ for i = 1:D.Nevents
 %         d(D.reref.newref, :) = [];
 %     end
 
-    D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+    D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
         drawnow;

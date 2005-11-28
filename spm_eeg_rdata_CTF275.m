@@ -46,8 +46,7 @@ D.fname=[name,'.mat'];
 D.path=pwd;
 D.fnamedat=[name,'.dat'];
 
-D.scale.dim = 1;
-D.scale.values = ones(D.Nchannels, 1);
+D.scale = ones(D.Nchannels, 1, 1);
 
 fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 for n=1:D.Nsamples

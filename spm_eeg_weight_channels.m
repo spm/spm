@@ -11,7 +11,7 @@ function D = spm_eeg_weight_channels(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_channels.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: spm_eeg_weight_channels.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG weighting setup',0);
 
@@ -44,8 +44,7 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 % treat continuous and epoched data differently because of different
 % scaling method
 
-D.scale.dim = [1 3];
-D.scale.values = zeros(D.Nchannels, D.Nevents);
+D.scale = zeros(D.Nchannels, 1, D.Nevents);
 
 spm_progress_bar('Init', D.Nevents, 'Events mixed'); drawnow;
 if D.Nevents > 100, Ibar = floor(linspace(1, D.Nevents,100));
@@ -54,7 +53,7 @@ else, Ibar = [1:D.Nevents]; end
 for i = 1:D.Nevents
     d = squeeze(D.data(:, :, i));
     d = W*d;
-    D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+    D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;
     end

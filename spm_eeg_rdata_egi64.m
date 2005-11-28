@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_egi64(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_egi64.m 304 2005-11-22 19:43:44Z stefan $
+% $Id: spm_eeg_rdata_egi64.m 317 2005-11-28 18:31:24Z stefan $
 
 try
 	Fdata = S.Fdata;
@@ -32,10 +32,6 @@ try
 catch
 	Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
-
-
-
-
 
 
 D.channels.ctf = spm_str_manip(Fchannels, 't');
@@ -125,7 +121,7 @@ fgetl(fh);
 spm_progress_bar('Init', (D.Nevents), 'Events read'); drawnow;
 if (D.Nevents) > 100, Ibar = floor(linspace(1, (D.Nevents),100));
 else, Ibar = [1:D.Nevents]; end
-D.scale.dim = [1 3];
+
 D.events.time=[];
 for n=1:D.Nevents
 	d=zeros(D.Nsamples,D.Nchannels);
@@ -143,7 +139,7 @@ for n=1:D.Nevents
 		
 	end
 	D.events.time=[D.events.time,(n-1)*D.Nsamples+1];
-	D.scale.values(:, n) = spm_eeg_write(fpd, d', 2, D.datatype);
+	D.scale(:, 1, n) = spm_eeg_write(fpd, d', 2, D.datatype);
 	fgetl(fh);
 end
 

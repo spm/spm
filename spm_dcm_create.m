@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 270 2005-10-25 17:25:49Z klaas $
+% $Id: spm_dcm_create.m 317 2005-11-28 18:31:24Z stefan $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -75,10 +75,10 @@ switch upper(source_model)
 
         % global parameters
         global defaults
-        if ~isempty(defaults),
+        try
             fMRI_T  = defaults.stats.fmri.t;
             fMRI_T0 = defaults.stats.fmri.t0;
-        else,
+        catch
             fMRI_T  = 16;
             fMRI_T0 = 1;
         end;

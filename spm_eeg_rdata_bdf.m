@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 304 2005-11-22 19:43:44Z stefan $
+% $Id: spm_eeg_rdata_bdf.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -81,12 +81,12 @@ catch
     Creference = spm_input('Reference channel(s)', 'i+1', 'i', '', inf, length(Cexg));
 end
 
-more_exg =spm_input('Do you have any other external data?', '+1', 'y/n', [1,0], 2);
-no_exg=0;
-if more_exg==1
-    no_exg=spm_input('how many extra channels?', '+1', 'i', '', 1);
-    Chexg = spm_input('Enter exg channel(s)', 'i+1', 'i', '', inf, length(Cexg));
+try
+    Chexg = S.Chexg;
+catch
+    Chexg = spm_input('Other channel(s)', 'i+1', 'i', '', inf, length(Cexg));
 end
+Nother_exg = length(Chexg);
         
     
 spm('Pointer','Watch'); drawnow;
@@ -122,7 +122,7 @@ else
     Creference = Creference + Neeg;
 end
 
-if more_exg==1
+if length(Chexg) > 0
     Chexg = Chexg + Neeg;
 end
         
@@ -199,9 +199,9 @@ end
 D.channels.reference = 0;
 D.channels.ref_name = 'NIL';
 
-if more_exg ==1
+if length(Chexg) > 1
     D.channels.exg=[];
-    for kl=1:no_exg
+    for kl=1:Nother_exg
         counter = counter + 1;
         
         D.channels.name{Neeg + counter} = ['exg',num2str(kl)];
@@ -227,9 +227,8 @@ if D.Nchannels < length(D.channels.name);
     D.channels.name(D.Nchannels+1:end) = [];
 end
 
-% No scaling, represent as float
-D.scale.dim = 1;
-D.scale.values = ones(D.Nchannels, 1);
+% No scaling, represent as float32
+D.scale = ones(D.Nchannels, 1, 1);
 
 D.events.code = [];
 D.events.time = [];
@@ -312,21 +311,21 @@ for t = 1:Nblocks
         else
             ref =  data.Record(Creference(1), :);
         end    
-        d = d - repmat(ref, D.Nchannels-no_exg, 1);
+        d = d - repmat(ref, D.Nchannels-Nother_exg, 1);
     end
 
-    if more_exg ==1
-        for kl=1:no_exg
-     
-          d = [d; data.Record(Chexg(kl), :)];
-      end
+    if length(Chexg) > 1
+        for kl=1:Nother_exg
+
+            d = [d; data.Record(Chexg(kl), :)];
+        end
     end
 
-    
-    
+
+
     % downsampling by simple decimating
     d = d(:, 1:2^f:end);
-    fwrite(fpout, d, 'float');
+    fwrite(fpout, d, 'float32');
     Nsamples = size(data.Record, 2); % the original size is needed for events below
     D.Nsamples = D.Nsamples + size(d, 2); % save downsampled Nsamples
 
@@ -393,7 +392,7 @@ end
 
 D.Nevents = 1;
 D.events.types = unique(D.events.code);
-D.datatype = 'float';
+D.datatype = 'float32';
 
 D.modality = 'EEG';
 D.units = '\muV';

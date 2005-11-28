@@ -10,7 +10,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Karl Friston
-% $Id: spm_eeg_spm_ui.m 231 2005-09-14 13:26:28Z john $
+% $Id: spm_eeg_spm_ui.m 317 2005-11-28 18:31:24Z stefan $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -28,7 +28,7 @@ if ~nargin
 		if sf_abort, spm_clf(Finter), return, end
         
         % choose either normal design specification or shortcut
-        Oanalysis = spm_input('Choose design options', 1,'m',{'all options', 'single trials', 'ERPs'}, [0 1 2]);
+        Oanalysis = spm_input('Choose design options', 1,'m',{'all options', 'ERP/ERF'}, [0 1]);
         SPM.eeg.Oanalysis = Oanalysis;
 
 		SPM = spm_eeg_design(SPM);
@@ -48,21 +48,15 @@ end
 % check data are specified
 %-----------------------------------------------------------------------
 try 
-	SPM.xY.P;
-catch
+    if ~nargin
+        % was called by GUI, i.e. user _wants_ to input data
+        SPM.xY = rmfield(SPM.xY, 'P');
+    end
     
+	SPM.xY.P;
+    
+catch
     if SPM.eeg.Oanalysis == 1
-        % single trial analysis
-        Nobs = SPM.eeg.Nlevels{1}; % Ntrials
-        tmp = spm_select(Nobs, 'image', 'Select trials (1st frame only)');
-        clear q
-        for i = 1:Nobs
-            [p1, p2, p3] = spm_fileparts(deblank(tmp(i, :)));
-            q{i} = fullfile(p1, [p2 p3]); % removes ,1
-        end
-        P = strvcat(q);
-        
-    elseif SPM.eeg.Oanalysis == 2
         % ERP analysis, only 2 factors (condition and time)
         Nobs = SPM.eeg.Nlevels{1}; % Nerps
         tmp = spm_select(Nobs, 'image', 'Select ERPs (1st frame only)');
@@ -72,7 +66,6 @@ catch
             q{i} = fullfile(p1, [p2 p3]); % removes ,1
         end
         P = strvcat(q);
-
     else
         % defaults to normal design specification
         % get filenames

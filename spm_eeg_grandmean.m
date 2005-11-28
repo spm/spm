@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 275 2005-11-01 11:19:16Z stefan $
+% $Id: spm_eeg_grandmean.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -98,8 +98,7 @@ fpd = fopen(fullfile(Do.path, Do.fnamedat), 'w');
 spm('Pointer', 'Watch'); drawnow;
 
 if isfield(D{1}, 'Nfrequencies');
-	Do.scale.dim = [1 4];
-	Do.scale.values = zeros(length(D{1}.channels.eeg), D{1}.events.Ntypes);
+	Do.scale = zeros(length(D{1}.channels.eeg), 1, 1, D{1}.events.Ntypes);
 	
 	for i = 1:D{1}.events.Ntypes
 		d = zeros(length(D{1}.channels.eeg), D{1}.Nfrequencies, D{1}.Nsamples);
@@ -108,15 +107,14 @@ if isfield(D{1}, 'Nfrequencies');
 		end
 		d = d./length(D);
 		
-		Do.scale.values(:, i) = max(max(abs(d), [], 3), [], 2)./32767;
-		d = int16(d./repmat(Do.scale.values(:, i), [1, Do.Nfrequencies, Do.Nsamples]));
+		Do.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
+		d = int16(d./repmat(Do.scale.values(:, 1, 1, i), [1, Do.Nfrequencies, Do.Nsamples]));
 		fwrite(fpd, d, 'int16');
 	end
 	
 else
 
-	Do.scale.dim = [1 3];
-	Do.scale.values = zeros(length(D{1}.channels.eeg), D{1}.Nevents);
+	Do.scale = zeros(length(D{1}.channels.eeg), 1, D{1}.Nevents);
 	
     % how many different trial types and bad channels
     types = [];
@@ -155,7 +153,7 @@ else
 
         end
 		
-		Do.scale.values(:, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
+		Do.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
 		
 	end
 end

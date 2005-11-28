@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 246 2005-09-29 13:27:54Z james $
+% $Id: spm_eeg_average.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -39,32 +39,29 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
 spm('Pointer', 'Watch'); drawnow;
 
-
 if isfield(D, 'Nfrequencies');
-	D.scale.dim = [1 4];
-	D.scale.values = zeros(D.Nchannels, D.events.Ntypes);
-	
-	for i = 1:D.events.Ntypes
-		d = mean(D.data(:,:,:, find((D.events.code == D.events.types(i)) & ~D.events.reject)), 4);
-		
-		D.scale.values(:, i) = max(max(abs(d), [], 3), [], 2)./32767;
-		d = int16(d./repmat(D.scale.values(:, i), [1, D.Nfrequencies, D.Nsamples]));
-		fwrite(fpd, d, 'int16');
-	end
-	    Ntypes = D.events.Ntypes;
+    D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
+
+    for i = 1:D.events.Ntypes
+        d = mean(D.data(:,:,:, find((D.events.code == D.events.types(i)) & ~D.events.reject)), 4);
+
+        D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
+        d = int16(d./repmat(D.scale.values(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
+        fwrite(fpd, d, 'int16');
+    end
+    Ntypes = D.events.Ntypes;
 else
-	
-	if isfield(D, 'weights');	
-		d = zeros(D.Nchannels, D.Nsamples);
-		D.scale.dim = [1 3];
-		D.scale.values = zeros(D.Nchannels, D.events.Ntypes);
+
+    if isfield(D, 'weights');
+        d = zeros(D.Nchannels, D.Nsamples);
+        D.scale = zeros(D.Nchannels, 1, D.events.Ntypes);
         Ntypes = D.events.Ntypes;
-		for i = 1:D.events.Ntypes
-			
-			for j = 1:D.Nchannels
-				tempwf=[];
-				ti=0;
-				ts=0;
+        for i = 1:D.events.Ntypes
+
+            for j = 1:D.Nchannels
+                tempwf=[];
+                ti=0;
+                ts=0;
 				while ts==0
 					ti=ti+1;
 					ts=(j==D.channels.thresholded{ti});
@@ -87,14 +84,13 @@ else
 					d(j,:)=zeros(1,D.Nsamples);
 				end
 			end
-			D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+			D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 			
 		end           
 	else
 		
-		D.scale.dim = [1 3];
         Ntypes = D.events.Ntypes;
-		D.scale.values = zeros(D.Nchannels, Ntypes);
+		D.scale = zeros(D.Nchannels, 1, Ntypes);
 		
 		spm_progress_bar('Init', Ntypes, 'Averages done'); drawnow;
 		if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
@@ -104,7 +100,7 @@ else
 			
             w = (D.events.code == D.events.types(i) & ~D.events.reject)';
 			
-			ni(i) = length(w);
+			ni(i) = length(find(w));
 			
 			d = zeros(D.Nchannels, D.Nsamples);
 			
@@ -117,7 +113,7 @@ else
 				end
             end
 			
-			D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+			D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 			
 			if ismember(i, Ibar)
 				spm_progress_bar('Set', i);
@@ -141,7 +137,7 @@ if ~isfield(D, 'Nfrequencies') & ~isfield(D, 'weights');
     D.events.repl = ni;
 	disp(sprintf('%s: Number of replications per contrast:', D.fname))
 	s = [];
-	for i = Ntypes
+	for i = 1:Ntypes
 		s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
 		if i < D.events.Ntypes
 			s = [s sprintf(', ')];

@@ -260,16 +260,36 @@ case{lower('Dipoles')}
     if DCM.options.Spatial_type ~= 3
         P = spm_erp_pack(DCM.Ep,DCM.M.m, DCM.M.Nareas);
 
-        clear mod
-        for i = 1:DCM.M.Nareas
-            mod(i).posxyz = P.Lpos(:, i)';
-            mod(i).momxyz = (P.Lmom(:,i).*P.K(i))';
-            mod(i).rv = 0.5155;
-        end
+% code for using EEGLab function
+%         clear mod
+%         for i = 1:DCM.M.Nareas
+%             mod(i).posxyz = P.Lpos(:, i)';
+%             mod(i).momxyz = (P.Lmom(:,i).*P.K(i))';
+%             mod(i).rv = 0.5155;
+%         end
+% 
+%         % plotoptions
+%         plotopt = {'normlen', 'on', 'image', 'fullmri'};
+%         eeglab_dipplot(mod, 'sphere', max(DCM.M.dipfit.vol.r), plotopt{:});
+        
 
-        % plotoptions
-        plotopt = {'normlen', 'on', 'image', 'fullmri'};
-        eeglab_dipplot(mod, 'sphere', max(DCM.M.dipfit.vol.r), plotopt{:});
+        sdip.n_seeds = 1;
+        sdip.n_dip = DCM.M.Nareas;
+        sdip.Mtb = 1;
+        sdip.j{1} = P.Lmom.*repmat(P.K', 3, 1);
+        St = [[0 -1 0 0]; [1 0 0 0]; [0 0 1 0]; [0 0 0 1]];
+        sdip.j{1} = St*[sdip.j{1}; ones(1, DCM.M.Nareas)];
+        sdip.j{1} = sdip.j{1}(1:3, :);
+        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), DCM.M.Nareas, 1);
+        sdip.j{1} = sdip.j{1}(:);
+        sdip.loc{1} = P.Lpos;
+
+        % transformation matrix from dip to MNI
+        Mt = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
+        sdip.loc{1} = Mt * [P.Lpos; ones(1, DCM.M.Nareas)];
+        sdip.loc{1} = sdip.loc{1}(1:3,:);
+
+        spm_eeg_inv_ecd_DrawDip('Init', sdip)
     end
     
 end

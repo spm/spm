@@ -6,7 +6,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 221 2005-09-05 11:32:24Z stefan $
+% $Id: spm_eeg_merge.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -82,15 +82,14 @@ Dout.events.Ntypes = length(Dout.events.types);
 
 fpd = fopen(fullfile(P, Dout.fnamedat), 'w');
 
-Dout.scale.dim = [1 3];
-Dout.scale.values = zeros(Dout.Nchannels, Dout.Nevents);
+Dout.scale = zeros(Dout.Nchannels, 1, Dout.Nevents);
 
 k = 1;
 for i = 1:Nfiles
     for j = 1:D{i}.Nevents
 
         d = squeeze(D{i}.data(:, :, j));
-        Dout.scale.values(:, k) = spm_eeg_write(fpd, d, 2, Dout.datatype);
+        Dout.scale(:, 1, k) = spm_eeg_write(fpd, d, 2, Dout.datatype);
         k = k + 1;
     end
 end

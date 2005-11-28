@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: spm_eeg_weight_epochs.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -56,8 +56,8 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 spm('Pointer', 'Watch'); drawnow;
 
 N_contrasts = size(c, 1);
-D.scale.dim = [1 3];
-D.scale.values = zeros(D.Nchannels, N_contrasts);
+
+D.scale = zeros(D.Nchannels, 1, N_contrasts);
 
 spm_progress_bar('Init', N_contrasts, 'Contrasts computed'); drawnow;
 if N_contrasts > 100, Ibar = floor(linspace(1, N_contrasts, 100));
@@ -75,7 +75,7 @@ for i = 1:N_contrasts
         end
     end
 
-    D.scale.values(:, i) = spm_eeg_write(fpd, d, 2, D.datatype);
+    D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);

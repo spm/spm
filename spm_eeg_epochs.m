@@ -27,7 +27,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_epochs.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -116,9 +116,8 @@ d = zeros(D.Nchannels, D.Nsamples);
 
 % Assemble epochs
 k = 1;
-D.scale.dim = [1 3];
 
-D.scale.values = zeros(D.Nchannels, D.Nevents);
+D.scale = zeros(D.Nchannels, 1, D.Nevents);
 D.datatype  = 'int16';
 
 spm_progress_bar('Init', length(D.events.time), 'Events read'); drawnow;
@@ -146,7 +145,7 @@ for i = 1:length(D.events.time)
             
             d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
             
-            D.scale.values(:, k) = spm_eeg_write(fpd, d, 2, D.datatype);
+            D.scale(:, 1, k) = spm_eeg_write(fpd, d, 2, D.datatype);
             						
 			index(k) = i;
 			k = k +1;

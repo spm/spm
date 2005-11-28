@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_downsample.m 317 2005-11-28 18:31:24Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -54,8 +54,7 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
 if size(D.data, 3) > 1
     % epoched
-    D.scale.dim = [1 3];
-    D.scale.values = zeros(D.Nchannels, D.Nevents);
+    D.scale = zeros(D.Nchannels, 1, D.Nevents);
 
     spm_progress_bar('Init', D.Nevents, 'Events downsampled'); drawnow;
     if D.Nevents > 100, Ibar = floor(linspace(1, D.Nevents,100));
@@ -64,7 +63,7 @@ if size(D.data, 3) > 1
     for i = 1:D.Nevents
         d = squeeze(D.data(:, :, i));
         d2 = resample(d', Radc_new, D.Radc)';
-        D.scale.values(:, i) = spm_eeg_write(fpd, d2, 2, D.datatype);
+        D.scale(:, 1, i) = spm_eeg_write(fpd, d2, 2, D.datatype);
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
@@ -75,8 +74,7 @@ if size(D.data, 3) > 1
     D.Nsamples = size(d2, 2);
 else
     % continuous
-    D.scale.dim = 1;
-    D.scale.values = zeros(D.Nchannels, 1);
+    D.scale = zeros(D.Nchannels, 1);
 
     % adjust the timing information
     D.events.time = round(D.events.time*Radc_new/D.Radc);
@@ -98,7 +96,7 @@ else
         end
    
     end
-    D.scale.values = spm_eeg_write(fpd, data, 2, D.datatype);
+    D.scale = spm_eeg_write(fpd, data, 2, D.datatype);
     D.Nsamples = size(data, 2);
 
     

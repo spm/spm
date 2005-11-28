@@ -31,7 +31,7 @@ function varargout = spm_eeg_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_conman.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_conman.m 317 2005-11-28 18:31:24Z stefan $
 
 
 % Begin initialization code - DO NOT EDIT
@@ -124,6 +124,7 @@ end
 
 if ~isfield(SPM, 'eeg')
     error('No design components found. Use the EEG model setup.');
+    return;
 end
 
 handles.current_data = SPM;

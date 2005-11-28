@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_design(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_design.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_design.m 317 2005-11-28 18:31:24Z stefan $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -26,20 +26,6 @@ Oanalysis = SPM.eeg.Oanalysis;
 
 % set all options if shortcut
 if Oanalysis == 1
-    % single trial analysis
-    SPM.eeg.Ilevel = 1;
-    SPM.eeg.Nfactors = 2;
-    SPM.eeg.factor{1} = 'trials';
-    SPM.eeg.factor{2} = 'time';
-    SPM.eeg.Ncomp_d = 1;
-    SPM.xBF.name_d{1, 1} = 'Identity';
-    SPM.xBF.name_d{1, 2} = 'Identity';    
-    SPM.xVi.Qidentical{1} = 1;
-    SPM.xVi.Qindependent{1} = 1;
-    SPM.xVi.Qidentical{2} = 1;
-    SPM.xVi.Qindependent{2} = 1;
-    SPM.xX.fullrank = 1;
-elseif Oanalysis == 2
     % ERP analysis
     SPM.eeg.Ilevel = 1;
     SPM.eeg.Nfactors = 2;
@@ -61,6 +47,7 @@ try
     Ilevel = SPM.eeg.Ilevel;
 catch
     Ilevel = spm_input('Is this a first-level design?', '+1', 'yes|no', [1 0]);
+    SPM.eeg.Ilevel = Ilevel;
 end
 
 if Ilevel == 1
@@ -145,7 +132,11 @@ SPM.xBF.UNITS = 'millisecs';
 try
 	SPM.eeg.Ncomp_d;
 catch
-	SPM.eeg.Ncomp_d = spm_input(['How many design partitions?'], '+1');
+    if Ilevel ~= 1
+        SPM.eeg.Ncomp_d = spm_input(['How many design partitions?'], '+1');
+    else
+        SPM.eeg.Ncomp_d = 1;
+    end
 end
 
 try
@@ -280,7 +271,7 @@ for i = 1:SPM.eeg.Ncomp_d
                             else
                                 ind_2 = 1:Lmax;
                             end
-                            Xpart = SPM.eeg.X_d{i, j}(ind_1, ind_2);
+                            Xpart = SPM.eeg.X_d{i, j}(ind_2, ind_2);
                         otherwise
                             error('Unknown design partition type');                            
                     end
@@ -339,6 +330,15 @@ SPM.xX.iC     = [1:size(X,2)];
 SPM.xX.iB     = [];
 SPM.xX.iG     = [];
 SPM.xX.name   = {Xname{:}};
+
+if size(SPM.xX.X, 1) == size(SPM.xX.X, 2)
+    % i.e. we cannot estimate any error
+    SPM.xX.fullrank = 1;
+    for i = 1 : SPM.eeg.Nfactors
+        SPM.xVi.Qidentical{i} = 1;
+        SPM.xVi.Qindependent{i} = 1;
+    end
+end
 
 % get variance components
 %===============================================================
