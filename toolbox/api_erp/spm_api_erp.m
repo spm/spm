@@ -939,10 +939,6 @@ end
 T1 = str2num(get(handles.T1, 'String'));
 T2 = str2num(get(handles.T2, 'String'));
 
-if T1 <= 0
-    errordlg('Specify positive first peri-stimulus time'); return;
-end
-
 if T2 <= T1
     errorldg('Second must be greater than first peri-stimulus time'); return;
 end
