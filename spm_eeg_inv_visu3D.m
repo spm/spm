@@ -19,7 +19,7 @@ function spm_eeg_inv_visu3D(S,Cflags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_visu3D.m 324 2005-11-29 16:36:00Z john $
 
 spm_defaults
 
@@ -141,7 +141,6 @@ V = spm_create_vol(V);
 for j=1:V.dim(3),
         V = spm_write_plane(V,image(:,:,j),j);
 end
-V = spm_close_vol(V);
 
 return
 %=======================================================================

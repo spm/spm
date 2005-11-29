@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 300 2005-11-16 21:05:24Z guillaume $
+# $Id: Makefile 324 2005-11-29 16:36:00Z john $
 #
 ###############################################################################
 #
@@ -160,8 +160,7 @@ SPMMEX =\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
-	spm_affdef.$(SUF) spm_invdef.$(SUF) spm_warp.$(SUF) spm_def2det.$(SUF)\
-	spm_farray.$(SUF)
+	spm_invdef.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -359,10 +358,6 @@ mat2file.$(SUF): mat2file.c
 	$(MEX) mat2file.c $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_affdef.$(SUF): spm_affdef.c
-	$(MEX) spm_affdef.c $(MEXEND)
-	@ $(CHMODIT) $@
-	
 spm_atranspa.$(SUF): spm_atranspa.c 
 	$(MEX) spm_atranspa.c $(MEXEND)
 	@ $(CHMODIT) $@
@@ -375,20 +370,12 @@ spm_bwlabel.$(SUF): spm_bwlabel.c
 	$(MEX) spm_bwlabel.c $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_def2det.$(SUF): spm_def2det.c
-	$(MEX) spm_def2det.c $(MEXEND)
-	@ $(CHMODIT) $@
-
 spm_digamma.$(SUF): spm_digamma.c
 	$(MEX) spm_digamma.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_dilate_erode.$(SUF): spm_dilate_erode.c
 	$(MEX) spm_dilate_erode.c $(MEXEND)
-	@ $(CHMODIT) $@
-
-spm_farray.$(SUF): spm_farray.c spm_datatypes.h
-	$(MEX) spm_farray.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_get_lm.$(SUF): spm_get_lm.c
@@ -419,10 +406,6 @@ spm_unlink.$(SUF): spm_unlink.c
 	$(MEX) spm_unlink.c $(MEXEND)
 	@ $(CHMODIT) $@
 
-spm_warp.$(SUF): spm_warp.c 
-	$(MEX) spm_warp.c $(MEXEND)
-	@ $(CHMODIT) $@
-	
 ###############################################################################
 # Assorted architecture dependent messages
 ###############################################################################

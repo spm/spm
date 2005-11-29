@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_contrasts_conv(SPM, Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_contrasts_conv.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_contrasts_conv.m 324 2005-11-29 16:36:00Z john $
 
 % Get and change to results directory
 %-----------------------------------------------------------------------
@@ -98,9 +98,7 @@ for i = 1:length(Ic)
                 fprintf('%s',repmat(sprintf('\b'),1,30))                   %-#
                 xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
                 xCon(ic).Vcon = spm_resss(SPM.Vbeta,xCon(ic).Vcon,h);
-                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
                 xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon,'noopen');
-                xCon(ic).Vcon = spm_close_vol(xCon(ic).Vcon);
         end
 end
 SPM.xCon = xCon;

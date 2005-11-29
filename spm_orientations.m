@@ -48,14 +48,10 @@ function spm_orientations(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_orientations.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: spm_orientations.m 324 2005-11-29 16:36:00Z john $
 
 if nargin<1,
-    if strcmp(spm('ver'),'SPM5'),
-        P = spm_select(Inf,'image','Select the images...');
-    else
-        P = spm_get(Inf,'IMAGE','Select the images...');
-    end;
+    P = spm_select(Inf,'image','Select the images...');
 end;
 
 global defaults

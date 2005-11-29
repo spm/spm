@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 191 2005-06-21 14:27:08Z john $
+% $Id: spm_vol.m 324 2005-11-29 16:36:00Z john $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -132,16 +132,7 @@ if strcmpi(ext,'.nii') || (strcmpi(ext,'.img') && ...
 	if ~isempty(V), return; end;
 
 else % Try other formats
-
-	%% Try MINC format
-	%if isempty(n), V=spm_vol_minc(p);
-	%else,          V=spm_vol_minc(p,n); end;
-	%if ~isempty(V), return; end;
-
-	%% Try Ecat 7
-	%if isempty(n), V=spm_vol_ecat7(p);
-	%else,          V=spm_vol_ecat7(p,n); end;
-	%if ~isempty(V), return; end;
+    error('Unknown file format.');
 end;
 return;
 
