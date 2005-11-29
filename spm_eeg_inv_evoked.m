@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_evoked.m 320 2005-11-29 11:50:12Z jeremie $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -53,7 +53,7 @@ end
 
 
 % DATA VARIANCE PARTITIONING (Call for ReML)
-ExpScal     = max(G(:));
+ExpScal     = max(Y(:));
 Scal        = floor( log10(ExpScal) );
 Scal        = 10^(-Scal);
 
