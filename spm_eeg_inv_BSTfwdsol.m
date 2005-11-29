@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 312 2005-11-24 19:35:42Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 319 2005-11-29 11:17:23Z jeremie $
 
 spm_defaults
 
@@ -32,10 +32,10 @@ end
 
 val = length(D.inv);
 
-OPTIONS                 = bst_headmodeler;
+OPTIONS = bst_headmodeler;
 
 % Forward approach
-OPTIONS.HeadModelFile   = '';
+OPTIONS.HeadModelFile = '';
 
 if ~isfield(D,'modality')
     ModFlag = spm_input('Data type?','+1','EEG|MEG',[1 2]);
@@ -90,6 +90,14 @@ OPTIONS.Verbose = '0';
 TessName = [nam '_tesselation.mat'];
 
 load(D.inv{val}.mesh.tess_ctx);
+% convert positions into m
+if max(max(vert)) > 1 % non m
+    if max(max(vert)) < 20 % cm
+        vert = vert/100;
+    elseif max(max(vert)) < 200 % mm
+        vert = vert/1000;
+    end
+end        
 Comment{1}      = 'Cortex Mesh';
 Faces{1}        = face;
 Vertices{1}     = vert';
@@ -104,6 +112,14 @@ end
 
 if ~isempty(D.inv{val}.mesh.tess_iskull)
     load(D.inv{val}.mesh.tess_iskull);
+    % convert positions into m
+    if max(max(vert)) > 1 % non m
+        if max(max(vert)) < 20 % cm
+            vert = vert/100;
+        elseif max(max(vert)) < 200 % mm
+            vert = vert/1000;
+        end
+    end        
     Comment{2}      = 'Inner Skull Mesh';
     Faces{2}        = face;
     Vertices{2}     = vert';
@@ -116,6 +132,14 @@ end
 
 if ~isempty(D.inv{val}.mesh.tess_scalp)
     load(D.inv{val}.mesh.tess_scalp);
+    % convert positions into m
+    if max(max(vert)) > 1 % non m
+        if max(max(vert)) < 20 % cm
+            vert = vert/100;
+        elseif max(max(vert)) < 200 % mm
+            vert = vert/1000;
+        end
+    end        
     Comment{indx}      = 'Scalp Mesh';
     Faces{indx}        = face;
     Vertices{indx}     = vert';
@@ -138,8 +162,12 @@ end
 clear vert face norm;
 
 D.inv{val}.forward.bst_tess = fullfile(pth,TessName);
-save(fullfile(pth,TessName),'Comment','Curvature','Faces','VertConn','Vertices');
+if str2num(version('-release'))>=14
+    save(fullfile(pth,TessName),'-V6','Comment','Curvature','Faces','VertConn','Vertices');
+else
+    save(fullfile(pth,TessName),'Comment','Curvature','Faces','VertConn','Vertices');
 
+end
 
 % Set OPTIONS.EEGRef here !
 
@@ -153,7 +181,18 @@ else
     ChannelLoc = load(spm_select(1, '.mat', 'Sensor coordinates in MRI native space'));
 end
 FldName             = fieldnames(ChannelLoc); 
-OPTIONS.ChannelLoc  = getfield(ChannelLoc,FldName{1})';
+sens                = getfield(ChannelLoc,FldName{1})';
+% convert positions into m
+if max(max(sens)) > 1 % non m
+     if max(max(sens)) < 20 % cm
+         sens = sens/100;
+     elseif max(max(sens)) < 200 % mm
+         sens = sens/1000;
+     end
+end        
+OPTIONS.ChannelLoc  = sens;
+clear sens
+
 
 D.inv{val}.forward.bst_channel = fullfile(pth,OPTIONS.ChannelFile);
 
@@ -163,6 +202,14 @@ OPTIONS.SourceModel         = -1; % current dipole model
 OPTIONS.Cortex.FileName     = TessName;
 OPTIONS.Cortex.iGrid        = 1;
 load(D.inv{val}.mesh.tess_ctx);
+% convert positions into m
+if max(max(vert)) > 1 % non m
+    if max(max(vert)) < 20 % cm
+        vert = vert/100;
+    elseif max(max(vert)) < 200 % mm
+        vert = vert/1000;
+    end
+end        
 OPTIONS.GridLoc             = vert';
 OPTIONS.GridOrient          = normal';
 clear vert face norm
@@ -174,18 +221,39 @@ OPTIONS.SourceOrient        = OPTIONS.GridOrient;
 
 % Forward computation
 [G,OPTIONS] = bst_headmodeler(OPTIONS);
-
-
 % PCA of the gain matrix
 [Gnorm,VectP,ValP] = spm_eeg_inv_PCAgain(G);
+
+
+% Remove big and useless matrices from the bst_otptions structure
+OPTIONS.Channel       = [];
+OPTIONS.ChannelLoc    = [];
+OPTIONS.ChannelOrient = [];
+OPTIONS.GridOrient    = [];
+OPTIONS.SourceLoc     = [];
+OPTIONS.SourceOrient  = [];
+OPTIONS.GridLoc       = [];
 
 
 % Savings
 D.inv{val}.forward.bst_options = OPTIONS;
 D.inv{val}.forward.gainmat     = fullfile(pth,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
 D.inv{val}.forward.pcagain     = fullfile(pth,[nam '_SPMgainmatrix_pca_' num2str(val) '.mat']);
-save(D.inv{val}.forward.gainmat,'G');
-save(D.inv{val}.forward.pcagain,'Gnorm','VectP','ValP');
+if str2num(version('-release'))>=14
+    save(D.inv{val}.forward.gainmat,'-V6','G');
+else
+    save(D.inv{val}.forward.gainmat,'G');
+end
+if str2num(version('-release'))>=14
+    save(D.inv{val}.forward.pcagain,'-V6','Gnorm','VectP','ValP');
+else
+    save(D.inv{val}.forward.pcagain,'Gnorm','VectP','ValP');
+end
 clear G Gnorm VectP ValP
 
-save(fullfile(pth,D.fname),'D');
+
+if str2num(version('-release'))>=14
+	save(fullfile(pth, D.fname), '-V6', 'D');
+else
+	save(fullfile(pth, D.fname), 'D');
+end
