@@ -11,7 +11,7 @@ end
 
 Vp = spm_vol(P) ;
 
-Vp.dat = loaduint8(Vp);
+Vp.dat = spm_loaduint8(Vp);
 X = (1:Vp.dim(1))'*ones(1,Vp.dim(2)); X =X(:)';
 Y = ones(Vp.dim(1),1)*(1:Vp.dim(2)); Y = Y(:)';
 Z = zeros(Vp.dim(1),Vp.dim(2)); Z = Z(:)'; 

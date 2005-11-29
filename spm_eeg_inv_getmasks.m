@@ -30,7 +30,7 @@ function varargout = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_getmasks.m 325 2005-11-29 16:49:24Z john $
 
 spm_defaults
 
@@ -116,7 +116,7 @@ Iout    = spm_eeg_inv_ErodeGrow(Iarg,ne,ng,thr_im);
 
 % Generate the outer-scalp volume, if possible
 Iscl       = spm_vol(Ivol);
-Iscl.dat   = loaduint8(Iscl);
+Iscl.dat   = spm_loaduint8(Iscl);
 ne         = flags.ne(end);
 ng         = flags.ng(end);
 thr_im     = flags.thr_im(end);
