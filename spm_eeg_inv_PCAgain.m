@@ -29,7 +29,7 @@ function varargout = PCAgain(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_PCAgain.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_PCAgain.m 329 2005-11-29 21:31:02Z jeremie $
 
 
 % Input
@@ -76,10 +76,18 @@ if nargout == 3
     varargout{2} = VectP;
     varargout{3} = ValP;
 elseif nargout == 1
-    save(varargout{1},'Gnorm','VectP','ValP');
+    if str2num(version('-release'))>=14
+        save(varargout{1},'-V6','Gnorm','VectP','ValP');
+    else
+    	save(varargout{1},'Gnorm','VectP','ValP');
+    end
 else
     fname_out = fullfile(pth,[nam '_pca.mat']);
-    save(fname_out,'Gnorm','VectP','ValP');
+    if str2num(version('-release'))>=14
+        save(fname_out,'-V6','Gnorm','VectP','ValP');
+    else
+    	save(fname_out,'Gnorm','VectP','ValP');
+    end
     if nargout ~= 0
         disp('Wrong output format');
         return

@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 320 2005-11-29 11:50:12Z jeremie $
+% $Id: spm_eeg_inv_evoked.m 329 2005-11-29 21:31:02Z jeremie $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -140,6 +140,15 @@ woi           = D.inv{val}.inverse.woi;
 Ntime         = clock;
 D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_evoked_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
 D.inv{val}.inverse.LogEv   = F;
-save(fullfile(pth,D.inv{val}.inverse.resfile),'C','h','Ph','F','J');
 
-save(fullfile(D.path,D.fname),'D');
+if str2num(version('-release'))>=14
+    save(fullfile(pth,D.inv{val}.inverse.resfile), '-V6', 'C','h','Ph','F','J');
+else
+    save(fullfile(pth,D.inv{val}.inverse.resfile), 'C','h','Ph','F','J');
+end
+
+if str2num(version('-release'))>=14
+    save(fullfile(D.path,D.fname), '-V6','D');
+else
+    save(fullfile(D.path,D.fname), 'D');
+end

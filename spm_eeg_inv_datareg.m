@@ -45,7 +45,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 329 2005-11-29 21:31:02Z jeremie $
 
 spm_defaults
 
@@ -64,6 +64,13 @@ if nargout == 1
 
     val = length(D.inv);
 
+    if isempty(D.inv{val}.datareg.sens) & D.modality == 'EEG'
+        Fpol = spm_input('Read Polhemus files?','+1','Yes|No',[1 2]);
+        if Fpol == 1
+            D = spm_eeg_inv_ReadPolhemus(D);
+        end
+    end    
+    
     if nargin <= 2
         if isempty(D.inv{val}.datareg.sens)
             sensors_file = spm_select(1,'.mat','Select EEG/MEG sensor file');
@@ -79,6 +86,11 @@ if nargout == 1
         end
         if isempty(D.inv{val}.datareg.fidmri)
             fid_mri = spm_select(1,'.mat','Select fiducials in sMRI space');
+            if isempty(fid_mri)
+                spm_image('init',D.inv{val}.mesh.sMRI);
+                disp(sprintf('\nYou Should Build a .mat file containing the fiducial mm coordinates in MRI space\n'));
+                return
+            end
             D.inv{val}.datareg.fidmri = fid_mri;
         else
             fid_mri = D.inv{val}.datareg.fidmri;
@@ -186,33 +198,65 @@ sensreg = (sensreg + Trans*ones(1,length(sensreg)))';
 [fpath1,fname,fext] = fileparts(fid_eeg);
 fname_fid = [fname '_coreg.mat'];
 if nargout == 1
-    save(fullfile(D.path,fname_fid),'fideegreg');
+    if str2num(version('-release'))>=14
+        save(fullfile(D.path, fname_fid), '-V6', 'fideegreg');
+    else
+     	save(fullfile(D.path, fname_fid), 'fideegreg');
+    end
 else
-    save(fullfile(fpath1,fname_fid),'fideegreg');
+    if str2num(version('-release'))>=14
+        save(fullfile(fpath1, fname_fid), '-V6', 'fideegreg');
+    else
+     	save(fullfile(fpath1, fname_fid), 'fideegreg');
+    end
 end
 
 [fpath2,fname,fext] = fileparts(sensors_file);
 fname_sens = [fname '_coreg.mat'];
 if nargout == 1
-    save(fullfile(D.path,fname_sens),'sensreg');
+    if str2num(version('-release'))>=14
+        save(fullfile(D.path, fname_sens), '-V6', 'sensreg');
+    else
+     	save(fullfile(D.path, fname_sens), 'sensreg');
+    end
 else
-    save(fullfile(fpath2,fname_sens),'sensreg');
+    if str2num(version('-release'))>=14
+        save(fullfile(fpath2, fname_sens), '-V6', 'sensreg');
+    else
+     	save(fullfile(fpath2, fname_sens), 'sensreg');
+    end
 end
 
 fname_transf = ['RegMat.mat'];
 if nargout == 1
-    save(fullfile(D.path,fname_transf),'Rot','Trans');
+    if str2num(version('-release'))>=14
+        save(fullfile(D.path, fname_transf), '-V6', 'Rot', 'Trans');
+    else
+     	save(fullfile(D.path, fname_transf), 'Rot','Trans');
+    end
 else
-    save(fullfile(fpath1,fname_transf),'Rot','Trans');
+    if str2num(version('-release'))>=14
+        save(fullfile(fpath1, fname_transf), '-V6', 'Rot', 'Trans');
+    else
+     	save(fullfile(fpath1, fname_transf), 'Rot','Trans');
+    end
 end
 
 if typ == 2
    [fpath3,fname,fext] = fileparts(headshape);
    fname_hsp = [fname '_coreg.mat'];
    if nargout == 1
-       save(fullfile(D.path,fname_hsp),'data2reg');
+       if str2num(version('-release'))>=14
+           save(fullfile(D.path, fname_hsp), '-V6', 'data2reg');
+       else
+       	   save(fullfile(D.path, fname_transf), 'data2reg');
+       end
    else
-       save(fullfile(fpath3,fname_hsp),'data2reg');
+       if str2num(version('-release'))>=14
+           save(fullfile(fpath3, fname_hsp), '-V6', 'data2reg');
+       else
+       	   save(fullfile(fpath3, fname_transf), 'data2reg');
+       end
    end   
 end
 
@@ -267,7 +311,7 @@ function [R, t, corr, data2reg] = spm_eeg_inv_icp(data1, data2, tol, varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id: spm_eeg_inv_datareg.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 329 2005-11-29 21:31:02Z jeremie $
 
 % Landmarks (fiduciales) based registration
 % Fiducial coordinates must be given in the same order in both files
