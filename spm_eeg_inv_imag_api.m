@@ -135,7 +135,11 @@ function varargout = spm_eeg_inv_imag_api_OutputFcn(hObject, eventdata, handles)
 
 try
     D = get(handles.figure1,'UserData');
-    save(fullfile(D.path,D.fname),'D');
+    if str2num(version('-release'))>=14
+        save(fullfile(D.path, D.fname), '-V6', 'D');
+    else
+      	save(fullfile(D.path, D.fname), 'D');
+    end
     varargout{1} = D;
 end
 
@@ -399,6 +403,8 @@ D        = handles.D;
 switch task
     case 'check meshes'
         spm_eeg_inv_checkmeshes(D);
+    case 'read polhemus'
+        spm_eeg_inv_ReadPolhemus(D);
     case 'check datareg'
         spm_eeg_inv_checkdatareg(D);
     case 'visualisation'
