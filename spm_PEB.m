@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_PEB.m 280 2005-11-08 19:35:33Z karl $
+% $Id: spm_PEB.m 327 2005-11-29 19:44:11Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -343,8 +343,7 @@ if nargout > 2
         - spm_logdet(Ce)/2 ...
         - spm_logdet(Ph)/2 ...
         + spm_logdet(hP)/2 ...
-        + spm_logdet(Cby)/2 ...
-        - m/2;
+        + spm_logdet(Cby)/2;
 end
 
 % warning

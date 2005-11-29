@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 280 2005-11-08 19:35:33Z karl $
+% $Id: spm_reml.m 327 2005-11-29 19:44:11Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -57,13 +57,13 @@ dFdhh = zeros(m,m);
 % initialise and specify hyperpriors
 %--------------------------------------------------------------------------
 if OPT
-    h     = zeros(m,1);
-    hP    = eye(m,m)/32;
-    hE    = h - 32;
+    h   = zeros(m,1);
+    hP  = eye(m,m)/32;
+    hE  = h - 32;
 else
-    hE    = zeros(m,1);
-    hP    = zeros(m,m);
-    h     = hE + 1;
+    hE  = zeros(m,1);
+    hP  = zeros(m,m);
+    h   = hE + 1;
 end
 
 
@@ -153,8 +153,7 @@ if nargout > 3
         - N*spm_logdet(C)/2 ...
         + N*spm_logdet(Cq)/2 ...
         -   spm_logdet(Ph)/2 ...
-        +   spm_logdet(hP)/2 ...
-        - N*p/2 - m/2;
+        +   spm_logdet(hP)/2;
 end
 
 % return exp(h) if log-normal hyperpriors

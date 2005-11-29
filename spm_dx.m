@@ -52,26 +52,3 @@ end
 Jx    = spm_cat({0 []; f dfdx});
 dx    = spm_expm(Jx*t);
 dx    = dx(2:end,1);
-
-% if system is unstable
-%==========================================================================
-if norm(dx,1) > 1e6
-
-    % find the eigen-system and remove unstable modes
-    %----------------------------------------------------------------------
-    [v d] = eig(full(dfdx));
-    v     = v(find(real(diag(d))) > 0,:);
-    f     = f - v*pinv(v)*f;
-    dx    = spm_dx(dfdx,f,t);
-
-end
-
-return
-
-% report system is non-dissipative
-%--------------------------------------------------------------------------
-LE     = max(real(d));
-if LE > 0
-    warndlg(sprintf('Lyapunov exponent = %.2e',LE))
-end
-

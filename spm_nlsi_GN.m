@@ -56,7 +56,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 310 2005-11-24 16:27:02Z karl $
+% $Id: spm_nlsi_GN.m 327 2005-11-29 19:44:11Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -224,8 +224,7 @@ for k = 1:64
         + spm_logdet(iS )/2 ...
         + spm_logdet(ipC)/2 ...
         + spm_logdet(Cp )/2 ...
-        + spm_logdet(Ch )/2 ...
-        - nh/2 - np/2;
+        + spm_logdet(Ch )/2;
  
  
     % if F has increased, update gradients and curvatures for E-Step
