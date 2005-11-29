@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 324 2005-11-29 16:36:00Z john $
+# $Id: Makefile 326 2005-11-29 16:51:52Z guillaume $
 #
 ###############################################################################
 #
@@ -198,7 +198,6 @@ install: $(SPMMEX)
 	@ echo "_____________________________________________________________"
 	@ echo ""	
 	$(COPY) $(SPMMEX) ..
-	$(MOVE) ../spm_farray.$(SUF) ../@spm_file_array
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
