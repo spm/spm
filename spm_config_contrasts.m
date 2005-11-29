@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_contrasts.m 322 2005-11-29 14:36:02Z guillaume $
 
 
 %_______________________________________________________________________
@@ -27,8 +27,8 @@ name.help    = {'Name of contrast'};
 tconvec.type    = 'entry';
 tconvec.name    = 'T contrast vector';
 tconvec.tag     = 'convec';
-tconvec.strtype = 's';
-tconvec.num     = [1 1];
+tconvec.strtype = 'e';
+tconvec.num     = [1 Inf];
 tconvec.help    = {[...
     'Enter T contrast vector. This is done similarly to the ',...
     'SPM2 contrast manager. A 1 x n vector should be entered ',...
@@ -37,8 +37,8 @@ tconvec.help    = {[...
 fconvec.type    = 'entry';
 fconvec.name    = 'F contrast vector';
 fconvec.tag     = 'convec';
-fconvec.strtype = 's';
-fconvec.num     = [1 1];
+fconvec.strtype = 'e';
+fconvec.num     = [Inf Inf];
 fconvec.help    = {[...
     'Enter F contrast vector. This is done similarly to the ',...
     'SPM2 contrast manager. One or multiline contrasts ',...
@@ -395,8 +395,8 @@ job = varargin{1};
 if ~isempty(job)
     try
         pth = fileparts(job.spmmat{:});
-    cd(char(pth));
-    fprintf('   Changing directory to: %s\n',char(pth));
+        cd(char(pth));
+        fprintf('   Changing directory to: %s\n',char(pth));
     catch
         error('Failed to change directory. Aborting contrast setup.')
     end

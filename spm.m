@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 307 2005-11-23 18:39:10Z jeremie $
+% $Id: spm.m 322 2005-11-29 14:36:02Z guillaume $
 
 
 %=======================================================================
@@ -1460,8 +1460,7 @@ end
 xTB = [];
 for i = 1:length(d)
 	tdir = fullfile(Tdir,d{i});
-	f    = dir(fullfile(tdir,['*' d{i} '.m']));
-	fn   = {f(~[f.isdir]).name};
+	fn   = cellstr(spm_select('List',tdir,['^.*' d{i} '\.m$']));
 	if numel(fn) > 1
 		%-Discard possible config files if ambiguity
 		%---------------------------------------------------------------
