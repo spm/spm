@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 304 2005-11-22 19:43:44Z stefan $
+% $Id: spm_eeg_display_ui.m 318 2005-11-29 09:49:39Z james $
 
 if nargin == 1
     S = varargin{1};
@@ -579,11 +579,17 @@ for i = 1:length(handles.Heegaxes)
     set(handles.Heegaxes(i), 'NextPlot', 'add');
     
     for j = 1:length(ind)
-        plot([-D.events.start:D.events.stop]*1000/D.Radc,...
-            D.data(handles.Cselection2(i), :, ind(j)),...
-            'Color', handles.colour{j}, 'Clipping', 'off',...
-            'ButtonDownFcn', {@windowplot, i});
-
+      if isfield(D,'Nfrequencies')
+			h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, ind(j))));
+			set(h, 'ButtonDownFcn', {@windowplot, i},...
+				'Clipping', 'off');
+		else
+			h = plot([-D.events.start:D.events.stop]*1000/D.Radc,...
+                D.data(handles.Cselection2(i), :, ind(j)),...
+                'Color', handles.colour{j});
+			set(h, 'ButtonDownFcn', {@windowplot, i},...
+				'Clipping', 'off');
+		end
     end
 end
 
