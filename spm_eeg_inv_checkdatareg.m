@@ -1,16 +1,20 @@
 function spm_eeg_inv_checkdatareg(varargin);
 
 %=======================================================================
-% Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
+% Display of the coregistred meshes and sensor locations in MRI space for
+% quality check by eye.
+% Fiducials which were used for rigid registration are also displayed
 %
-% FORMAT [handles...] = spm_eeg_inv_getmeshes(S)
+% if no input, user will be prompted to provide the needed files.
+%
+% FORMAT spm_eeg_inv_checkdatareg(S)
 % Input:
 % S		    - input data struct (optional)
 %=======================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_checkdatareg.m 321 2005-11-29 11:50:29Z jeremie $
 
 spm_defaults
 
