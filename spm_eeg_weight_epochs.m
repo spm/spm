@@ -11,10 +11,10 @@ function D = spm_eeg_weight_epochs(S);
 % D			- EEG data struct (also written to files)
 %_______________________________________________________________________
 %
-% spm_eeg_weight_trials computes contrasts of data, over epoched data. The
+% spm_eeg_weight_epochs computes contrasts of data, over epochs of data. The
 % input is a single MEEG file.
 % The argument c must have dimensions N_contrasts x N_epochs, where N_contrasts is
-% the number of contrats and N_epochs the number of epochs, i.e. each row of c
+% the number of contrasts and N_epochs the number of epochs, i.e. each row of c
 % contains one contrast vector. The output
 % is a MEEG file with N_contrasts epochs. The typical use is to compute,
 % for display purposes, contrasts like the difference or interaction
@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_weight_epochs.m 341 2005-11-30 18:08:16Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

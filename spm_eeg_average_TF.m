@@ -38,10 +38,11 @@ D.fnamedat = ['m' D.fnamedat];
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
 D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
+
 for n=1:D.events.Ntypes
 	dat=squeeze(d(:,:,:,n)./length(find(D.events.code==D.events.types(n))));
 	D.scale(:, 1, 1, n) = max(max(squeeze(abs(dat)), [], 3), [], 2)./32767;
-	dat = int16(dat./repmat(D.scale.values(:, n), [1, D.Nfrequencies, D.Nsamples]));
+	dat = int16(dat./repmat(D.scale(:, 1, 1, n), [1, D.Nfrequencies, D.Nsamples]));
 	fwrite(fpd, dat, 'int16');
 end
 fclose (fh)	;

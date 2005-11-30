@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_tf.m 341 2005-11-30 18:08:16Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -98,7 +98,7 @@ fpd2 = fopen(fullfile(P, D2.fnamedat), 'w');
 D.scale = zeros(length(D.tf.channels), 1, 1, D.Nevents);
 D.datatype = 'int16';
 
-D2.scale.values = zeros(length(D.tf.channels), 1, 1, D.Nevents);
+D2.scale = zeros(length(D.tf.channels), 1, 1, D.Nevents);
 D2.datatype = 'int16';
 
 for k = 1 : D.Nevents
@@ -127,10 +127,10 @@ for k = 1 : D.Nevents
 	end
 	
 	D.scale(:, 1, 1, k) = (max(abs(reshape(d, [D.Nfrequencies*D.Nsamples length(D.tf.channels)])))./32767)';
-	d = int16(d./repmat(D.scale.values(:, k), [1 D.Nfrequencies D.Nsamples]));
+	d = int16(d./repmat(D.scale(:, 1, 1, k), [1 D.Nfrequencies D.Nsamples]));
     
 	D2.scale(:, 1, 1, k) = (max(abs(reshape(d2, [D2.Nfrequencies*D2.Nsamples length(D2.tf.channels)])))./32767)';
-	d2 = int16(d2./repmat(D2.scale.values(:, k), [1 D2.Nfrequencies D2.Nsamples]));
+	d2 = int16(d2./repmat(D2.scale(:, 1, 1, k), [1 D2.Nfrequencies D2.Nsamples]));
 
 	fwrite(fpd, d, 'int16');	
 	fwrite(fpd2, d2, 'int16');	
