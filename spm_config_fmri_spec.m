@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 301 2005-11-16 21:14:58Z guillaume $
+% $Id: spm_config_fmri_spec.m 339 2005-11-30 14:49:00Z guillaume $
 
 
 % Define inline types.
@@ -172,9 +172,9 @@ conditions.help = {[...
 
 %-------------------------------------------------------------------------
 
-multi    = files('Multiple conditions','multi','.*',[0 1],'');
+multi    = files('Multiple conditions','multi','\.mat$',[0 1],'');
 p1=['Select the *.mat file containing details of your multiple experimental conditions. '];
-p2=['If you have mutliple conditions then entering the details a condition ',...
+p2=['If you have multiple conditions then entering the details a condition ',...
 'at a time is very inefficient. This option can be used to load all the ',...
 'required information in one go. You will first need to create a *.mat file ',...
 'containing the relevant information. '];
@@ -732,21 +732,29 @@ for i = 1:numel(job.sess),
     U = [];
 
     % Augment the singly-specified conditions with the multiple conditions
-    % specified in the conditions.mat file 
+    % specified in a .mat file provided by the user
     %------------------------------------------------------------
-    if ~strcmp(sess.multi,'')
-        names=[];onsets=[];durations=[];
-        load(char(sess.multi{:}));
-        
-        k=length(onsets);
-        j=length(sess.cond);
-        for ii=1:k,
-            cond.name=names{ii};
-            cond.onset=onsets{ii};
-            cond.duration=durations{ii};
-            cond.tmod=0;
-            cond.mod={};
-            sess.cond(ii+j)=cond;    
+    if ~isempty(sess.multi{1})
+		try
+        	multicond = load(sess.multi{1});
+		catch
+			error(sprintf('Cannot load %s',sess.multi{1}));
+		end
+		try
+			multicond.name;
+			multicond.onsets;
+			multicond.durations;
+		catch
+			error(sprintf('Multiple conditions MAT-file %s is invalid',sess.multi{1}));
+		end
+		%-contains three cell arrays: names, onsets and durations
+        for j=1:length(multicond.onsets)
+            cond.name     = multicond.names{j};
+            cond.onset    = multicond.onsets{j};
+            cond.duration = multicond.durations{j};
+            cond.tmod     = 0;
+            cond.mod      = {};
+            sess.cond(end+1) = cond;    
         end
     end
     
