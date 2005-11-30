@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 318 2005-11-29 09:49:39Z james $
+% $Id: spm_eeg_display_ui.m 344 2005-11-30 19:27:27Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -782,6 +782,12 @@ spm('Pointer', 'Watch');drawnow;
 if strcmpi(s, '2d')
     spm_eeg_scalp2d_ext(D, t, handles.Tselection(1));
 else
+    if length(t) == 1
+        d = squeeze(D.data(D.channels.eeg, t, handles.Tselection(1)));
+    else
+        d = squeeze(mean(D.data(D.channels.eeg, t, handles.Tselection(1)), 2));
+    end
+
     spm_eeg_scalp3d(d);
 end
  
