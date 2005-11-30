@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 236 2005-09-20 09:50:57Z john $
+% $Id: spm_latex.m 335 2005-11-30 12:47:35Z john $
 
 if nargin==0, c = spm_config; end;
 
@@ -73,7 +73,7 @@ function sts = chapter(c)
 fp = fopen([c.tag '.tex'],'w');
 if fp==-1, sts = false; return; end;
 
-fprintf(fp,'\\chapter{%s}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name));
+fprintf(fp,'\\chapter{%s  \\label{Chap:%s}}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name),c.tag);
 write_help(c,fp);
 
 switch c.type,
