@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_induced.m 329 2005-11-29 21:31:02Z jeremie $
+% $Id: spm_eeg_inv_induced.m 336 2005-11-30 12:54:25Z jeremie $
 
 
 if length(D.events.code) ~= D.Nevents
@@ -82,21 +82,22 @@ Yi = [Yi squeeze(D.data(:,woi(1):woi(2),It(i)))];
 end
 
 
-% PARAMETERS
-r     = 50;                      % dimension of signal subspace
+% SOURCE TEMPORAL STRUCTURE
 V     = eye(Nsamp,Nsamp);        % temporal correlations
-
-
-% SOURCE SUBSPACE
 T     = convmtx(spm_Npdf(-8:8,0,2^2),Nsamp);
 T     = T(:,[1:Nsamp] + 8);                           % temporal dispersion
 w     = diag([1:Nsamp].^(9/8).*exp(-[1:Nsamp]*3.1641/Nsamp));     % window
 [S v] = eig(w*T*T'*w);
+dv    = diag(v)/sum(diag(v));
+dr = 0; ir = 0;
+while dr < 0.95
+    ir = ir + 1;
+    dr = dr + dv(ir);
+end 
+r     = ir;                      % dimension of signal subspace
+clear dv dr ir
 S     = S(:,[1:r]);
 SVS   = S'*V*S;                                       % correlation (signal)
-
-
-% MODIFY THE ABOVE....
 
 
 % EVOKED RESPONSE
@@ -204,11 +205,21 @@ C     = inv(G'*inv(Ce)*G + inv(Cp + speye(Nsour,Nsour)*1e-6));
 SSVSS = S*SVS*S';
 clear CpG GCpG Ce Cp
 
+
     % time-frequency subspace
-W = 2*pi*[1:Nsamp]'/Nsamp;
-W = [sin(5.04*W) cos(5.04*W) sin(6.048*W) cos(6.048*W) sin(7.056*W) cos(7.056*W)]; % frequency of interest
-v = spm_Npdf(1:Nsamp,112,(Nsamp/24)^2); % time window
+Fband = D.inv{val}.inverse.fboi(2) - D.inv{val}.inverse.fboi(1) + 1;
+Fstep = floor((Fband-1)/10) + 1;
+WT = 2*pi*[1:Nsamp]'/D.Radc;
+W = [];
+Fc = D.inv{val}.inverse.fboi(1);
+while Fc < D.inv{val}.inverse.fboi(2)
+    W = [W sin(Fc*WT) cos(Fc*WT)];
+    Fc = Fc + Fstep;
+end
+v = spm_Npdf(1:Nsamp,round(Nsamp/2),(Nsamp/4)^2); % time window
 W = diag(v)*W;
+clear WT Fc Fstep Fband
+
 
     % cross-energy in channel space
 K    = S*S'*W*W'*S*S';
