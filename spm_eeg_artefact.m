@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 265 2005-10-19 17:24:54Z james $
+% $Id: spm_eeg_artefact.m 340 2005-11-30 17:25:26Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -81,12 +81,18 @@ catch
 	Weighted = spm_input('robust average?','+1','yes|no',[1 0]);
 end
 
-if Weighted ==1
-	try
-		wtrials = S.artefact.wtrials;
-	catch
-		wtrials = spm_input('robust across trials?','+1','yes|no',[1 0]);
-	end
+if Weighted == 1
+    try 
+        Weightingfunction = S.artefact.weightingfunction;
+    catch
+        Weightingfunction = spm_input('Offset weighting function by', '+1', 'r', '3', 1);
+    end
+        try 
+        Smoothing = S.artefact.smoothing;
+    catch
+        Smoothing = spm_input('FWHM for residual smoothing (ms)', '+1', 'r', '20', 1);
+    end
+    Smoothing=round(Smoothing/1000*D.Radc);
 end
 
 spm('Clear',Finter, Fgraph);
@@ -212,14 +218,10 @@ if MustDoWork
                 itrials=trials;
                
                 itrials(find(tempdata>Tchannel(j)))='';
-				tdata = squeeze(D.data(j, :, itrials));
-				
-				if wtrials == 1
-					[B, bc] = spm_eeg_robust_average(tdata);
-				else
-					[B, bc] = spm_eeg_robust_averaget(tdata);
-					
-				end
+                tdata = squeeze(D.data(j, :, itrials));
+
+                [B, bc] = spm_eeg_robust_averaget(tdata,Weightingfunction,Smoothing);
+                
 				ins=0;
 				for n=itrials
 					ins=ins+1;

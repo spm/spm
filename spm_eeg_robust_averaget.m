@@ -1,15 +1,17 @@
-function [B,Wf]=robust_averaget(data,ks);
+function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
+
+% function to apply robust averaging routine to data sets and return the
+% ERP (B) and the weights (Wf)
+% ks is the offest of the weighting function the default is 3.
+
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 263 2005-10-19 17:11:06Z james $
+% $Id: spm_eeg_robust_averaget.m 340 2005-11-30 17:25:26Z james $
 if nargin==1
 	ks=3;
 end
 data=data';
-% figure(1)
-% plot(mean(data));
-% clear D
-% clear d1
+Wf=zeros(size(data(:)));
 ndata=reshape(data',size(data,1)*size(data,2),1);
 Xs=sparse(repmat(speye(size(data,2)),[size(data,1),1]));
 s1=size(data,1);
@@ -37,10 +39,10 @@ while abs(ores-nres)>sqrt(1E-8)
 	mad=median(abs(res-median(res)));	
 	res=(res)./mad;
 	res=res.*h;	
- 	sm=gausswin(12);
+ 	sm=gausswin(FS);
  	sm=sm/sum(sm);
  	res=conv(sm,res);
-	res=res(6:end-6);
+	res=res(floor(FS/2):end-ceil(FS/2));
 	res=abs(res)-ks;
 	res(res<0)=0;	
 	nres=(sum(res.^2));
