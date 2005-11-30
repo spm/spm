@@ -25,7 +25,7 @@ function [x,P] = spm_ekf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_ekf.m 338 2005-11-30 13:55:04Z guillaume $
 
 % check model specification
 %--------------------------------------------------------------------------

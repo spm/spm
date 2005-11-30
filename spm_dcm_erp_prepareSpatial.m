@@ -1,6 +1,9 @@
 function DCM = spm_dcm_erp_prepareSpatial(DCM)
 % prepares structures for ECD forward model (both EEG and MEG)
 
+% Stefan Kiebel
+% $Id: spm_dcm_erp_prepareSpatial.m 338 2005-11-30 13:55:04Z guillaume $
+
 if DCM.options.Spatial_type == 1
     % EEG
     

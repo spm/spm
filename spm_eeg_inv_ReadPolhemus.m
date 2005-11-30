@@ -37,7 +37,7 @@ function [varargout] = spm_eeg_inv_ReadPolhemus(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_ReadPolhemus.m 338 2005-11-30 13:55:04Z guillaume $
 
 spm_defaults
 

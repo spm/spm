@@ -1,5 +1,5 @@
 function [qx,qP] = spm_pf(M,y)
-% Partilce Filtering for dynamic models
+% Particle Filtering for dynamic models
 % FORMAT [x,P] = spm_pf(M,y)
 % M - model specification structure
 % y - output or data (N x T)
@@ -25,7 +25,7 @@ function [qx,qP] = spm_pf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_pf.m 338 2005-11-30 13:55:04Z guillaume $
 
 % check model specification
 %--------------------------------------------------------------------------
