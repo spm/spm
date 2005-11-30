@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 344 2005-11-30 19:27:27Z stefan $
+% $Id: spm_eeg_display_ui.m 347 2005-11-30 20:43:20Z james $
 
 if nargin == 1
     S = varargin{1};
@@ -778,7 +778,7 @@ end
 
 % call scalp2d or 3d
 spm('Pointer', 'Watch');drawnow;
-
+t=round(t/1000*D.Radc)+D.events.start;
 if strcmpi(s, '2d')
     spm_eeg_scalp2d_ext(D, t, handles.Tselection(1));
 else
@@ -787,8 +787,14 @@ else
     else
         d = squeeze(mean(D.data(D.channels.eeg, t, handles.Tselection(1)), 2));
     end
-
-    spm_eeg_scalp3d(d);
+    if strmatch(D.channels.ctf,'bdf_setup.mat')
+        spm_eeg_scalp3d(d);
+    else
+        errordlg({'This can only be used for 128 channel BDF data at the moment'});
+        return;
+    end
+        
+           
 end
  
 
