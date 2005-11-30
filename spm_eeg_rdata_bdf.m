@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_rdata_bdf.m 333 2005-11-30 08:52:31Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -81,14 +81,14 @@ catch
     Creference = spm_input('Reference channel(s)', 'i+1', 'i', '', inf, length(Cexg));
 end
 
-try
-    Chexg = S.Chexg;
-catch
-    Chexg = spm_input('Other channel(s)', 'i+1', 'i', '', inf, length(Cexg));
-end
-Nother_exg = length(Chexg);
-        
-    
+
+
+more_exg =spm_input('Do you have any other data?', '+1', 'y/n', [1,0], 2);
+no_exg=0;
+if more_exg==1
+    no_exg=spm_input('how many extra channels?', '+1', 'i', '', 1);
+    Chexg = spm_input('Enter exg (nose or others) channel(s)', 'i+1', 'i', '', inf, length(Cexg));
+end    
 spm('Pointer','Watch'); drawnow;
 
 % number of EEG channels
@@ -122,9 +122,10 @@ else
     Creference = Creference + Neeg;
 end
 
-if length(Chexg) > 0
+if more_exg==1
     Chexg = Chexg + Neeg;
 end
+        
         
 % Map name of channels (EEG only) to channel order specified in channel
 % template file. EOG channels will be added further below!
@@ -199,9 +200,9 @@ end
 D.channels.reference = 0;
 D.channels.ref_name = 'NIL';
 
-if length(Chexg) > 1
+if more_exg ==1
     D.channels.exg=[];
-    for kl=1:Nother_exg
+    for kl=1:no_exg
         counter = counter + 1;
         
         D.channels.name{Neeg + counter} = ['exg',num2str(kl)];
@@ -311,14 +312,15 @@ for t = 1:Nblocks
         else
             ref =  data.Record(Creference(1), :);
         end    
-        d = d - repmat(ref, D.Nchannels-Nother_exg, 1);
+        d = d - repmat(ref, D.Nchannels-no_exg, 1);
     end
 
-    if length(Chexg) > 1
-        for kl=1:Nother_exg
 
-            d = [d; data.Record(Chexg(kl), :)];
-        end
+    if more_exg ==1
+        for kl=1:no_exg
+     
+          d = [d; data.Record(Chexg(kl), :)];
+      end
     end
 
 
