@@ -1,0 +1,234 @@
+\chapter{Dynamic Causal Modelling for evoked responses}
+\label{ch:eeg_DCM}
+Dynamic Causal Modelling for ERP/ERFs is described in
+ \cite{david_dcm_erp} and \cite{sjk_dcm_erp}, see also\\
+\href{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/}{\texttt{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/}}.
+We recommend reading these two communications as a starter, because it will
+enable you to better understand all the modelling options presented
+in this chapter.
+
+In summary, the goal of DCM is to explain evoked responses as the output of an
+interacting network consisting of a few areas that receive an input
+stimulus. The difference between two evoked responses that receive
+comparable stimuli under two conditions is modelled as a 
+modulation of some of the inter-areal connections
+\cite{david_dcm_erp}. This interpretation 
+of the ERP makes hypotheses about connectivity directly testable. For
+example, one can ask, whether the difference between two
+evoked responses can be explained by some top-down modulation of early areas
+(Garrido et al., in preparation). Additionally, because DCM is framed
+in a Bayesian way, one can also compute model evidences. These can be
+used to compare alternative, equally plausible, models and decide
+which model is the better one \cite{cdcm}.
+
+DCM for ERP/ERFs takes the spatial forward model into account. To do
+this, we parameterise the lead field, i.e.,~the spatial projection of source
+activity to the sensors. In the present version, this is done by
+assuming that each area is modelled by one equivalent current dipole
+(ECD) \cite{sjk_dcm_erp}. In other words, DCM is used not only to
+solve for the connectivity but, simultaneously, also for the spatial
+parameters.
+
+In the following, we will describe the graphical user interface
+(GUI). The GUI allows to comfortably specify all parameters of a
+model. If you want to specify lots of models, we recommend using a
+batch script. An example of such a script
+(\textit{DCM\_ERP\_example}), which can be adapted to your own
+data, can be found in the \textit{man/example\_scripts/} folder of the
+distribution.
+
+\section{Calling DCM for ERP/ERF}
+Currently, the GUI is hidden away as a toolbox. You can find it under
+\textit{Toolboxes} $\to$ \textit{apierp}. The GUI is partitioned into 5
+parts, going from the top to the bottom. The first part is about
+loading and saving DCMs. The second part is about selecting some
+data, the third is used to specify a spatial forward model, the
+fourth is for specifying the connectivity model, and the last allows
+you to estimate parameters and view results.
+
+In general, you have to specify the data and model in a specific
+order. The first stage is data selection, the second the spatial model,
+followed by the connectivity model specification. This order is
+necessary, because there are dependencies among the three parts that
+would be hard to resolve without this order. However, at any time, you
+can switch forth and back between model parts. Also, within each part,
+you can specify information in any order you like.
+
+\section{cd, load and save}
+At the top of the GUI, you can \textit{cd} to a new working directory,
+load existing DCMs or save a new one. In general, you can
+\textit{save} and \textit{load} during model
+specification at any time.
+
+\section{Data selection}
+In this part, you select the data. These can be either event-related
+potentials or fields (i.e.~a data matrix (channels $\times$
+peri-stimulus time), averaged over single trials). Currently, you can
+only analyse one or two evoked responses in the same
+model\footnote{Note however, that the theoretical framework allows
+  analysis of any number of evoked responses}. To select
+data, click on the button \textit{choose data}. Select an M/EEG
+SPM-matfile which is the output of the SPM preprocessing. Alternatively, if your
+data are in another format, you have to convert this file to the
+SPM-format (see the preprocessing chapter of this manual to see how
+this can be done). Below the \textit{choose data} button, you can
+choose under \textit{nr} which of the evoked responses in the
+SPM-matfile you want to model. For example, if you want to model the
+second and third evoked response within a SPM-matfile, specify
+indices 2 and 3. If your two evoked responses are in different files,
+you have to merge these files first. You can do this with the SPM
+preprocessing function \textit{merge} (\textit{spm\_eeg\_merge}),
+s.~chapter \ref{ch:eeg_preprocessing}.
+Under \textit{ms} you can specify the period of peri-stimulus time
+which you want to model. After your data are loaded, the time-series of
+all sensors are displayed in the SPM Graphics window. 
+
+In DCM, we use a projection of the data to some subspace to reduce the
+amount of data. Additionally, this data selection also serves as a
+tool to model only the salient features of the
+data. Currently, we are using a simple singular value decomposition
+(SVD) to decompose the data. You can select the number of (first)
+modes you want to keep. The default is 3, which we experimentally
+found to be a good value for our own data.
+
+Furthermore, you can choose whether you want to model the mean or
+drifts of the data at sensor level. If you don't want any such terms,
+select 0 for detrending. Otherwise, select the number of discrete cosine
+transform terms you want to use to model the mean (1) or low-frequency
+drifts ($> 1$).
+
+If you are happy with your data, the projection and the detrending
+terms, you can click on the $>$ (forward) button, which will bring you to
+the next stage \textit{Spatial model specification}. Additionally,
+when pressing the forward button, the reduced data is displayed in the
+Graphics window. If you want to try other choices, you can press
+the $<$ button (backward) button in the spatial modelling
+part. This will take you back to the data selection part, where you
+can change parameters and hit the forward button again.
+
+\section{Spatial model specification}
+With the present version of DCM, you have two options how to spatially
+model your data. Either you compute the leadfield, for each area,
+yourself, or you parameterise the leadfield using an equivalent
+current dipole model.\\
+
+For the first option, you need to choose
+\textit{fixed} in the pull-down menu. Then click on \textit{load lead
+field} and specify a matfile. This matfile must contain a matrix with
+one column for each area. Each column must have one entry for each
+channel. For an example, see \cite{david_dcm_erp}. Of course, you must have some
+means of computing the leadfield for your experiment. Alternatively,
+you can opt for the alternative and make the leadfield a function of
+equivalent current dipoles (ECDs). The parameters of the ECDs
+(location and orientation) can be estimated by DCM. To do this, you
+need to either select \textit{ECD EEG} or \textit{ECD MEG}. For
+\textit{ECD EEG}, you also need to select a sensor location file. This
+can be either a Polehmus file or a matfile with a coordinate
+matrix. Under \textit{names} specify the names of all areas, one name
+per row. Under \textit{locations}, specify the locations of these
+areas in MNI-space, again one location (three coordinates --- x y z) per
+row. You can check the locations of dipoles by clicking on the
+\textit{plot} button. This will visualize the dipole locations
+overlaid on an MRI template in MNI space. Note that DCM uses by
+default uninformative priors on 
+dipole orientations, but rather tight priors on locations
+\cite{sjk_dcm_erp}. One reason for the tight priors on locations is to
+ensure that 
+each dipole stays in its designated area and retains its meaning. The
+prior location for each dipole can be found either by using available
+anatomical knowledge or by relying on source reconstruction of
+comparable studies. Also note that the prior location doesn't need to
+be overly exact, because the spatial resolution of M/EEG is on a scale
+of several millimeters. When you want to proceed to the next model
+specification stage, hit the $>$ (forward) button and proceed
+to the \textit{connectivity model specification}.
+
+
+\section{Connectivity model specification}
+Press \textit{specify connections} to get access to selecting your model's
+connections between areas. There are 5 elements
+which you need to go through. The first three are the intrinsic
+connectivities. In DCM for ERP/ERF there are three types of connections,
+\textit{forward}, \textit{backward} and \textit{lateral}. In each of
+these matrices you specify a connection \textit{from} a source area
+\textit{to} a target area. For example, switching on the element
+$(2,\;1)$ in the intrinsic forward connectivity matrix means that you
+specify a forward connection from area 1 to 2. Some people find the
+meaning of each element slightly counter-intuitive, because the
+column index corresponds to the source area, and the row index to the
+target area\footnote{Currently, you can't model self-connections, which may
+be introduced with a later SPM update.}.
+
+In the present implementation, there is only one input allowed. This
+input can go to any area, where it only goes to early
+areas typically. You can select these receiving areas by selecting area indices in
+the \textit{C} vector.
+
+The \textit{B} matrix contains all gain modulations of intrinsic
+connections. These modulations model the difference between the first
+and second evoked response. In other words, the DCM explains two
+evoked responses by explaining the first response by using the intrinsic
+connections only. The 2nd response is modelled by modulating these
+intrinsic connections by the weights in matrix \textit{B}. For
+instance, if you want to allow modulations of forward connections
+only, you switch on those connections in \textit{B} which are also
+selected in the intrinsic forward connectivity matrix.
+
+\section{Estimation}
+When you are done with model specification, you can hit the
+\textit{estimate} button in the lower left corner. DCM will first try
+to save your DCM. Select a file to save to. After saving, DCM will
+estimate model parameters. You can follow the estimation process by
+observing the model fit in the output window. In the matlab command
+window, you will see each iteration commented by iteration number,
+free energy $F$, and the change of $F$ with respect to the
+updated variance parameters.
+
+Note that a DCM for evoked responses is more complex than a
+DCM for fMRI. This means that more model parameters are used and,
+consequently, the estimation process takes longer. Expect something
+like 15 - 60 minutes, depending on model/data/computer specification.
+
+\section{Results}After estimation finished, you can assess the results by choosing from
+the pull-down menu at the bottom (middle). 
+
+With \textit{ERPs channel} you can plot, for each mode, the data for
+both evoked responses, and its fit by the model. 
+
+When you select \textit{ERPs sources}, the dynamics of each area are
+plotted. These corresponds to the (output) states of the dynamic
+system \cite{david_dcm_erp}.
+
+The option \textit{coupling (A)} will take you to a summary about the
+posterior distributions of the intrinsic connectivities. In the upper
+row, you see the posterior means for all intrinsic connectivities. As
+above, element $(i,\; j)$ corresponds to a connection from area $j$
+to $i$. In the lower row, you'll find, for each connection, the
+probability that its posterior mean is different from the prior
+mean, taking into account the posterior variance.
+
+With the option \textit{coupling(B)} you can access the equivalent
+posterior means for the gain modulations of the intrinsic
+connectivities and their probability that they are unequal the prior
+means.
+
+With \textit{coupling(C)} you see the same summary of the posterior
+distribution for the strength of the input into the input receiving
+area. On the left hand side, DCM plots the posterior means for each
+area. On the right hand side, you can see the corresponding
+probabilities (s.~above).
+
+The option \textit{Input} shows you the estimated input function. As
+described by \cite{david_dcm_erp}, this is a gamma function with an
+addition of some low-frequency terms.
+
+With \textit{Response}, you can plot the selected data, i.e.~the modes
+you have selected for DCM analysis.
+
+And finally, with the option \textit{Dipoles}, DCM displays an
+overlay of each dipole on an MRI template using the posterior means of
+its 3 orientation and 3 location parameters.
+
+
+ 
+

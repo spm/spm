@@ -1,0 +1,820 @@
+\chapter{EEG/MEG preprocessing --- Reference}
+\label{ch:eeg_preprocessing}
+In this chapter we will describe the purpose and syntax of all
+SPM/MEEG preprocessing functions. These functions can be called either from
+SPM's graphical user interface (GUI) or from the matlab command
+line. For the command line, we follow the concept of providing only one input
+argument to each function. This input argument is usually a structure (struct)
+that contains all input arguments as fields. This has the advantage
+that the input does not need to follow a specific input argument
+order. If an obligatory input argument is missing, the function will
+invoke the GUI and ask the user for the missing argument. When using
+the GUI, a function is called without any input argument, i.e.~SPM
+will ask for all input arguments. If using the command line, you
+can specify all arguments in advance and use SPM/MEEG functions in
+batch mode. We provided some sample batch script
+(\textit{meeg\_preprocess}) in the \textit{man/example\_scripts/}
+folder of the distribution.
+
+\section{Conversion of data}
+The conversion of data is necessary to read data from a native
+machine-dependent format to a matlab-based, common SPM format. This
+format stores the data in a *.dat file and all other information in a
+*.mat file. The contents of the *.mat file is a single struct with
+fields that contain all information about the data (described
+further below). Currently, SPM can deal with a few formats (s.~below). 
+
+\subsection{Converting data yourself}
+If your format is not one of these, you need to convert the data
+yourself. This might sound difficult, but it is actually easier than
+most people think. If things go wrong, the SPM developer team is
+usually quick to answer questions concerning help with the conversion
+of data. What we can't do though is to provide a conversion routine
+for every M/EEG format. The reason is that there are many formats
+around, which also evolve over time. To support all these formats
+would be simply too much work for us. 
+
+To write a conversion routine, you (or a helpful colleague) need a
+minimum knowledge of MatLab. To make things easier and to provide you
+with a starting point, we wrote a generic conversion script that can
+be easily modified to work with your specific data. You find this
+script (\textit{meeg\_read\_data}) in the \textit{man/example\_scripts/}
+folder of the distribution.
+
+There are three parts to this script. In the first part you provide SPM
+with information about your data, e.g.~sample rate, 
+number of conditions, etc. The second part will read the actual data
+into the MatLab workspace. To do this you'll need to write a a few 
+lines of matlab. This can be easy, if your data is in ASCII
+format. It's more difficult, when the data is still in its native (binary)
+format. In that case you must know the file specification. Alternatively, you 
+might be fortunate and find free third-party MatLab-software, somewhere on
+the internet, that does this job for you! In the third part, the data
+and all information is converted to the SPM format.
+
+The final step is to generate a channel template
+file. This is necessary to determine the coordinates of the channels
+in 2D-space. These coordinates are needed for viewing data and
+projection to voxel-space\footnote{If you don't want to look at your
+  data, or project to 2D voxel-space, you can actually proceed without
+  this channel template file.}. See below how such a channel template file
+can be generated. If you're using a standard setup, it's likely that
+we or someone else have already provided such a file.
+
+\section{Converting CNT or BDF files}
+The conversion routine can be started either by using the GUI
+(Convert) or by calling the function \textit{spm\_eeg\_convert2mat}.
+This function is simply a wrapper function that calls the appropriate
+conversion function.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_converteeg2mat(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{lcp{9cm}}
+{\bf fmt} & - & string that determines type of input file. Currently,
+this string can be either 'CNT', 'BDF', 'EGI-txt'\\
+{\bf Mname} & - & char matrix of input file name(s)\\
+{\bf Fchannels} & - & String containing name of channel template file 
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the converted
+file. This struct has been written to a *.mat file of the same name as
+the converted file. The data has been written to a corresponding *.dat
+file.
+
+\section{BDF data}
+The Biosemi Data format (BDF) can be converted with the function {\it
+spm\_eeg\_rdata\_bdf}. There is no explicit reference electrode,
+because the Biosemi system uses reference-free measurements. Nearly
+all information is contained in the raw *.bdf file. The only
+information that is not in the file is the actual usage of the 8
+external channels. Typically these are used for EOG and some reference 
+measurement. These information must be supplied to SPM. Keep in mind
+that a false declaration of external channels can severely degrade
+the quality of your data.
+
+The conversion routine can be started by calling the function
+\textit{spm\_eeg\_rdata\_bdf}. 
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_rdata\_bdf(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{lcp{9cm}}
+{\bf Fdata} & - & filename of bdf-file\\
+{\bf Fchannels} & - & String containing name of channel template
+file\\
+{\bf Cheog} & - & One or two indices of external channels used for
+HEOG. Valid indices lie between 1 and 8.\\
+{\bf Cveog} & - & indices (1 - 8) of external channels used for
+VEOG. Valid indices lie between 1 and 8.\\
+{\bf Creference} & - & indices (1 - 8) of external channels used for
+reference. Valid indices lie between 1 and 8.
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the converted
+file. This struct has been written to a *.mat file of the same name as
+the converted file. The data has been written to a corresponding *.dat
+file.
+
+\section{CNT data}
+The neuroscan CNT format can be converted with the function {\it
+spm\_eeg\_rdata}. Nearly
+all information is contained in the raw *.cnt file. The only
+information that is not in there is about the reference used. SPM will
+ask you explicitly about the reference. However, if you
+don't want to re-reference your data at a later stage, you don't need
+to supply information about the reference electrode. The same is true,
+if you want to re-reference, but don't want to transform the reference
+channel again to an EEG channel. For example, this is the case when
+the reference were the earlobes.
+
+The conversion routine can be started by calling the function
+\textit{spm\_eeg\_rdata}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_rdata(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{lcp{9cm}}
+{\bf Fdata} & - & filename of CNT-file\\
+{\bf Fchannels} & - & String containing name of channel template file\\
+{\bf reference} & - & name of reference channel. If you want to make this
+channel an EEG channel at a later re-referencing, you need to supply
+the exact name of the channel. If you just want to store the reference
+name (e.g.~earlobes), just enter any descriptive text.
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the converted
+file. This struct has been written to a *.mat file of the same name as
+the converted file. The data has been written to a corresponding *.dat
+file.
+
+\section{The MEEG SPM format}
+The SPM-format stores the binary data in a *.dat file. All header
+information are stored in a *.mat file. This *.mat file contains a
+single struct named {\it D} which contains several fields. Note that
+the data should always be read using the routine {\it spm\_eeg\_ldata},
+see section \ref{sec:ldata}. In the following, we will first describe
+all single-element entries, and then all entries that are itself structs.
+
+\begin{tabular}{lcp{9cm}}
+{\bf Nchannels} & - & The number of channels. This number also
+includes channels like EOG or other external channels\\
+{\bf Nevents} & - & The number of epochs\\
+{\bf Nsamples} & - & The number of time bins in one epoch\\
+{\bf Radc} & - &  The sampling rate measured in Hertz\\
+{\bf fnamedat} & - &  The name of the *.dat file without leading
+path\\
+{\bf fname} & - &  The name of the *.mat file without leading path\\
+{\bf path} & - &  The path to the directory where the *.mat and *.dat
+file are stored\\
+{\bf datatype} & - &  The datatype with which the data in the *.dat
+file is stored. Possible datatypes are 'int16' and 'float'\\
+{\bf data} & - & This is a spm\_file\_array struct that contains the
+memory mapped data. For epoch data this is effectively a
+three-dimensional array of the dimensions {\it Nchannels} $\times$
+{\it Nsamples} $\times$ {\it Nevents}.\\
+{\bf scale} & - &  A matrix with internally used scaling values for
+the memory mapping of data. For documentation, see the directory
+\textit{file\_array} in the SPM main directory.\\
+{\bf modality} & - &  A string that is (currently) either 'EEG' or
+'MEG' and describes the type of data in the file \\
+{\bf units} & - &  A string that determines the units of the data in
+tex-format, e.g.~$\mu V$ for micro V \\
+\end{tabular}
+
+\subsection{channels}
+The substruct {\it channels} contains all channel-related
+information.
+
+\begin{tabular}{lcp{9cm}}
+{\bf ctf} & - & The name of a channel template file (CTF) without leading
+path. It is assumed that the CTF is located in the EEGtemplates
+sub-directory of the SPM5 main directory. This file
+contains standard channel names for a given setup and their
+coordinates on a 2D plane. When converting a file to the SPM-format, a
+link is made to a CTF. Identification of channels in the data file is
+via the channel names. (See also sec.~\ref{sec:ctf})\\
+{\bf Bad} & - & An index vector of bad channels\\
+{\bf name} & - & A cell vector of channel names\\
+{\bf eeg} & - & The indices of actual EEG channels. For example, these
+exclude the EOG channels.\\ 
+{\bf order} & - & An index vector that maps from the data order of
+channels to the corresponding channel in the CTF.\\
+{\bf heog} & - & The channel index of the HEOG channel.\\
+{\bf veog} & - & The channel index of the VEOG channel.\\
+{\bf reference} & - & If available, this is an index of the reference
+channel in the order of the CTF. Otherwise this is 0.\\
+{\bf ref\_name} & - & If available, the name of the reference
+channel. This actually does not need to be a valid channel name, but
+is just used as a reminder for the user (e.g. 'earlobes').\\
+{\bf thresholded} & - & A cell vector that contain channel indices (in
+data order) of epochs with data surpassing some threshold. This is
+usually generated by the {\it spm\_eeg\_artefact} function.\\
+\end{tabular}
+
+\subsection{events}
+The substruct {\it events} contains information related to the epochs.
+
+\begin{tabular}{lcp{9cm}}
+{\bf code} & - & A vector which contains event numbers for each event.
+These were read during the conversion from the event channel of the
+raw data.\\
+{\bf time} & - & A vector which contains the timing of stimulus
+presentation for each event (measured in time bins). This is used for
+epoching the data.\\
+{\bf start} & - & The number of time bins before onset of the
+stimulus\\
+{\bf stop} & - & The number of time bins after onset of the
+stimulus\\
+{\bf Ntypes} & - & The number of different event types\\
+{\bf reject} & - & A vector which for each event a 0 or 1's indicating
+whether this trial was rejected or not.\\
+{\bf repl} & - & A vector with the number of single trials which were
+used for each event-type by the averaging function.\\
+\end{tabular}
+
+
+\subsection{filter}
+The substruct {\it filter} contains information about filtering the
+data. This struct is usually filled by the function {\it
+  spm\_eeg\_filter}.
+
+\begin{tabular}{lcp{9cm}}
+{\bf type} & - & The name of the used filter\\
+{\bf band} & - & 'lowpass' or 'bandpass'\\
+{\bf PHz} & - & The cutoff of the filter in Hertz\\
+{\bf para} & - & A cell vector with filter parameters. See the matlab
+function {\it filter} for a description of what these parameters are.
+\end{tabular}
+
+\subsection{threshold}
+The substruct {\it threshold} contains information about thresholding
+  the data. This struct is usually filled by the function {\it
+  spm\_eeg\_artefact}.
+
+\begin{tabular}{lcp{9cm}}
+{\bf External\_list} & - & Indicator (0/1) whether external information
+was used which trials were artefactual or clean.\\
+{\bf threshold} & - & The threshold used in microVolt
+\end{tabular}
+
+
+\section{Reading of data}
+\label{sec:ldata}
+Once the data is in SPM-format, it can be read into matlab. This should
+be done using the routine {\it spm\_eeg\_ldata}. (Note: If you only
+work with the GUI, you won't need to call this function.) The
+routine will mainly do two things. First, it will load the header struct in the
+*.mat-file. Secondly, it will memory map the data in the *.dat file to
+a field in this struct. The memory mapped data can be addressed like a
+matrix which is convenient for accessing the data in a random access
+way. However, a word of caution: If you write new values to the
+D.data-matrix, the matrix is not only changed in the matlab variable
+(in memory), but also physically on the hard disk. 
+
+This function can only be called via matlab command line.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_ldata(P)}
+\\
+
+\subsubsection{Input}
+The input string {\it P} is optional and contains the file name of the
+*.mat file.
+
+\subsubsection{Output}
+The output struct {\it D} contains all header information about the
+data. The data are memory mapped and can be accessed as the field {\it data}.
+
+\section{The channel template file}
+\label{sec:ctf}
+The channel template file is SPM's way of connecting acquired channel
+data to a spatial location. The locations of channels are typically not
+contained in the MEEG raw data file. A channel template
+file contains channel names for a given setup and their locations in
+some coordinate system. All channel template files are contained in
+the subdirectory {\it EEGtemplates} in the SPM5-directory.
+During the initial conversion of data each channel is
+identified by its name and mapped to the corresponding channel
+location contained in the channel template file. If a channel's name
+is not contained in the user-specified channel template file, a
+warning is issued. Many warnings usually mean that the wrong channel
+template file for a specific setup was selected. Note that
+even if the mapping from channels to their locations were not
+identified correctly, it is still possible to perform preprocessing
+operations (e.g.~epoching, filtering, etc.) on the converted
+data. However, the channels' locations are needed for display and
+mapping to voxel space. 
+
+Currently, the channel template files in SPM5b all map into some standard
+2D space on the scalp. This is useful for mapping multiple subjects'
+data to a standard space and performing SPM analyses in 2D scalp
+space. Future updates of SPM5b will supply channel
+template files that map to a 3D sensor space, which is critical for
+3D source reconstruction. This 3D space can be some standard space
+which might be useful for MEG data and EEG data acquired with a
+cap. Alternatively, one can also use digitized sensor positions as
+locations, e.g. acquired with a Polyhmus system.
+
+\subsection{Structure}
+A channel template file (CTF) is a mat-file that contains four
+variables:\\
+
+\begin{tabular}{llcp{9cm}}
+{\bf Nchannels} & &  - & The number of channels known to the CTF\\
+{\bf Cnames}&  & - & A cell vector of channel names. Each cell can
+contain either a string or a cell vector of strings. The latter allows
+to have multiple versions of a given channel name. Case can be
+ignored, i.e.~it doesn't matter whether channel names are in small or
+captial letters.\\
+{\bf Cpos} & & - & A $2 \times Nchannels$-matrix of channel
+coordinates on a 2D plane. In $x$- and $y$-direction the minimum
+coordinate must be $\leq 0.05$ and the maximum coordinate
+must be $\geq 0.95$. \\ 
+{\bf Rxy} & & - & A factor that determines the width of the display
+plots to their heigth when displaying the data. Standard is 1.5. \\
+\end{tabular}
+
+\subsection{Creating your own channel template file}
+The channel template file is important for using SPM's full
+functionality for MEEG data. The channel template files contained in
+the EEGtemplates directory are the ones that we or our collaborators
+found useful. Other groups will need different channel template files,
+because they might have different setups, i.e.~they use different
+channel names and/or different channel coordinates. Note that if a
+specific setup is just a subset of channels of an existing setup, the
+CTF of the full setup can be used.  
+
+If a new channel template file is needed, this can be simply created by
+saving the variables {\it Nchannels, Cnames, Cpos and Rxy} to a new
+channel template file. Typically this would be done by running a
+script that creates these four variables and saves them to a file. The
+creative bit is to list the actual coordinates of the channels on a
+2D plane. We found two feasible ways for doing this. The first is to
+note that many electrode setups consist of electrodes sitting on
+concentric rings equidistant to other electrodes on each ring. Such a 
+setup can be programmed as a script which places electrodes on each of
+these rings. A second way is that at least some producers of EEG caps
+provide coordinates for specific setups in 3D space. For example,
+have a look at
+http://www.easycap.de/easycap/e/downloads/electrode\_sites\_coordinates.htm.
+The projection to 2D coordinates could be done by first using Matlab's
+{\it sph2cart} function to transform to Cartesian coordinates. This is
+followed by applying the subfunction {\it CartToFlat} of {\it
+  spm\_eeg\_DrawSV} (SPM5 DipoleFit toolbox) to the Cartesian coordinates.
+We provided an example script (\textit{make\_Easycap\_montage1}) in the
+\textit{man/example\_scripts/} folder of the distribution to illustrate
+this process.
+
+\section{Epoching the data}
+Epoching cuts out little chunks of data and saves them as 'single
+trials'. For each stimulus onset, the epoched trial starts at some
+user-specified pre-stimulus time and end at some post-stimulus time,
+e.g.~from -100 to 400 milliseconds in peri-stimulus
+time. The epoched data is also baseline-corrected, i.e.~the mean of
+the pre-stimulus time is subtracted from the whole trial. The
+resulting event codes are the same as saved in the *.mat file. One can
+re-code events by supplying a vector of event codes.
+
+The epoching routine can be started either by using the GUI
+(Epoching) or by calling the function \textit{spm\_eeg\_epochs}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_epochs(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & &  - & filename of MEEG mat file\\
+{\bf events}&  & - & a struct containing the following fields\\
+& {\bf start} & - & pre-stimulus start of epoch[ms]\\
+& {\bf stop} & - & post-stimulus end of epoch[ms]\\
+& {\bf types} & - & vector of event types to extract\\
+& {\bf Inewlist} & - & indicate (0/1) to use new list of event codes\\
+& {\bf Ec} & - & vector of new event codes
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the epoched
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it e\_}. The data has been
+written to a corresponding *.dat file.
+
+
+\section{Filtering the data}
+Continuous or epoched data can be filtered with a low- or
+bandpass-filter. SPM uses a Butterworth filter to do this. Phase
+delays are minimised by using matlab's {\it filtfilt} function which
+filters the data twice, forwards and
+backwards. SPM's filter function {\it spm\_eeg\_filter} uses matlab's
+signal processing toolbox. If you don't have this toolbox, you cannot
+filter your data using SPM. 
+
+The filter routine can be started either by using the GUI
+(Filter) or by calling the function \textit{spm\_eeg\_filter}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_filter(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf filter}&  & - & a struct containing the following fields\\
+& {\bf type} & - & type of filter, currently must be 'butterworth'\\
+& {\bf band} & - & a string, 'lowpass' or 'bandpass' \\
+& {\bf PHz} & - & one (lowpass) or two (bandpass) cut-offs [Hz]\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the filtered
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it f}. The data has been
+written to a corresponding *.dat file.
+
+
+\section{Artefact detection and rejection}
+Some trials are likely to not only contain neuronal signals of
+interest, but also signal from other sources like eye movements or
+muscular activity. These signal components are referred to as
+artefacts. In SPM, we use only two simple automatic artefact detection
+schemes. The first is thresholding the data and the second is robust
+averaging. One can also choose to detect artefacts manually by
+visualizing each trial (see below). Another option is to use a
+more shophisticated artefact detection approach (implemented by some
+other software) and supply that information to SPM. 
+
+Thresholding the data is done in two passes. In the first pass, SPM
+detects all instances for which the treshold was passed by the
+absolute value for a channel and single trial. If a channel has more
+than a certain percentage of artefactual trials, it is defined as a
+bad channel. In a second pass the thresholding is repeated, but
+without taking into account bad channels. A trial for which the
+absolute data surpasses the treshold in some channel (excluding bad
+channels) is considered artefactual.
+
+The function only indicates which trials are artefactual or clean and
+subsequent processing steps (e.g.~averaging) will take this
+information into account. However, no data is actually removed from
+the *.dat file.
+
+The artefact routine can be started either by using the GUI
+(Artefacts) or by calling the function \textit{spm\_eeg\_artefact}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_artefact(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf thresholds}&  & - & a struct containing the following fields\\
+& {\bf External\_list} & - & indicate (0/1) to use external arefact list\\
+& {\bf out\_list} & - & index vector of artefactual trials \\
+& {\bf in\_list} & - & index vector of clean trials\\
+& {\bf Check\_Threshold} & - & indicate (0/1) whether to threshold
+channels\\
+& {\bf threshold} & - & threshold to use: can be either a scalar which
+is the treshold for all channels, or a vector of channel-wise
+thresholds\\ 
+& {\bf in\_list} & - & index vector of clean trials\\
+{\bf artefact}&  & - & a struct containing the following fields\\
+& {\bf weighted} & - & indicate (0/1) whether to use robust averaging\\
+& {\bf wtrials} & - &  indicate (0/1) whether to use robust averaging
+across trials\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the artefact-detected
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it a}. The data has been
+written to a corresponding *.dat file.
+
+\section{Downsampling}
+The data can be downsampled to any sample rate. This is useful if the
+data was acquired at a higher sampling rate than one needs for
+making inferences about low-frequency components. SPM's downsampling
+routine uses the matlab function {\it resample}, which is part of
+matlab's signal processing toolbox. If you don't have this toolbox, you cannot
+downsample your data using SPM. 
+
+The downsampling routine can be started either by using the GUI
+(Other/downsample) or by calling the function
+\textit{spm\_eeg\_downsample}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_downsample(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf Radc\_new} &  & - & the new sampling rate in Hertz
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the downsampled
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it d}. The data has been
+written to a corresponding *.dat file.
+
+\section{Rereferencing}
+When you acquired data to a certain reference, you can simply
+re-reference the data to another channel or to the average over a set
+of channels. Bad channels are excluded from an average reference. If
+there was only a single reference channel before, one can add it again
+to the data. The rereferencing routine displays the indices of all
+channels of the data as a help to decide which indices to select as a
+new reference.
+
+The rereferencing routine can be started either by using the GUI
+(Other/rereference) or by calling the function
+\textit{spm\_eeg\_rereference}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_rereference(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf newref}&  & - & a struct containing the following fields\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the rereferenced
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it R}. The data has been
+written to a corresponding *.dat file.
+
+
+\section{Grand mean}
+The grand mean is usually understood as the average of ERPs over
+subjects. The grand mean function in SPM is typically used to do
+exactly this, but can also be used to average over multiple
+EEG files, e.g.~multiple sessions of a single subject. The averaged
+file will be written into the same directory as the first selected
+file.
+
+The grand mean routine can be started either by using the GUI
+(Other/grand mean) or by calling the function
+\textit{spm\_eeg\_grandmean}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_grandmean(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf P} & & - & filenames of M/EEG mat files (char matrix)\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the averaged
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it g}. The data has been
+written to a corresponding *.dat file.
+
+
+\section{Merge}
+Merging several MEEG files can be useful for concatenating multiple
+sessions of a single subject. Another use is to merge files and then
+use the display tool on the concatenated file. This is the preferred
+way in SPM to display data together that is split up into several
+files. The merged file will be written into the same directory as the
+first selected file.
+
+The merge routine can be started either by using the GUI
+(Other/merge) or by calling the function
+\textit{spm\_eeg\_merge}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_merge(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf P} & & - & filenames of MEEG mat files (char matrix)\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the merged
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it c}. The data has been
+written to a corresponding *.dat file.
+
+
+\section{Time-frequency decomposition}
+\label{sec:tf}
+The time-frequency decomposition is performed by using a continuous
+Morlet wavelet transform. The result is written as two result files,
+one contains the instantaneous power and the other the phase
+estimates. One can select the channels and frequencies for which power
+and phase should be estimated. Optionally, one can apply a baseline
+correction to the power estimates, i.e.~the mean power of the
+pre-stimulus time is subtracted from the power estimates.
+
+The time-frequency decomposition routine can be started either by
+using the GUI (Other/time-frequency) or by calling the function
+\textit{spm\_eeg\_tf}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_tf(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf frequencies} & & - & vector of frequencies [Hertz] at which
+decomposition is performed\\
+{\bf rm\_baseline} & & - & indicate (0/1) whether baseline should be
+substracted\\
+{\bf Sbaseline} & & - & start and stop of baseline (in time bins)\\
+{\bf channels} & & - & indices of channels for which to perform
+time-frequency decomposition\\
+{\bf Mfactor} & & - & the so called Morlet wavelet factor, defaults to
+7.\\
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the phase
+information. This struct has been written to a *.mat file of the same
+name as the input file, but prepended with {\it t2\_}. The data has
+been written to a corresponding *.dat file. The power data has been
+written to a file prepended with {\it t1\_}.
+
+\section{Averaging}
+Averaging of the single trial data is the crucial step to obtain the
+ERP. By default, when averaging single trial data, single trials are
+averaged within trial type. Power data of single trials (see
+sec.~\ref{sec:tf}) can also be averaged.
+
+The averaging routine can be started either by using the GUI (average)
+or by calling the function \textit{spm\_eeg\_average}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_average(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+\end{tabular}
+
+\section{Linear combinations of epochs}
+As an extension to the averaging functionality, SPM can also be used
+to compute linear combinations of single trials 
+or epochs. For example, you might be interested in computing the
+difference between two ERPs. This can be done by calling the function
+\textit{spm\_eeg\_weight\_epochs}. 
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_weight\_epochs(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf c} & & - & a weight (contrast) matrix with dimensions
+$N_{contrasts} \times N_{epochs}$. Each row of $c$ contrains one contrast
+vector. For a simple difference between two ERPs use $[-1 \; 1]$.
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the averaged
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it m}. The data has been
+written to a corresponding *.dat file.
+
+\section{Mixing of channels}
+SPM can also be used to compute the mixing of channels by a square
+matrix. For example, we found this useful for computing a weighting
+of the data with an independent component analysis (ICA) mixing
+matrix. You can do this by calling the function
+\textit{spm\_eeg\_weight\_channels}.
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_weight\_channels(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf W} & & - & a mixing matrix with dimensions $N_{channels} \times
+N_{channels}$. Hint: If you call the function without arguments, prepare a
+variable that contains this matrix.
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the averaged
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it w}. The data has been
+written to a corresponding *.dat file.
+
+\section{Weighting of the time-series}
+You can use SPM to multiply your
+data, over peri-stimulus time, by some weighting function. For
+example, we found this useful for removing stimulus-related artefacts
+due to an electrical impulse at peri-stimulus time 0. The weighting
+would be a function over peri-stimulus time consisting of 1s
+everywhere, except for time 0, where you would remove data by putting
+in a 0. You can do this by calling the function
+\textit{spm\_eeg\_weight\_time}. 
+
+\subsection{Syntax}
+\textit{D = spm\_eeg\_weight\_time(S)}
+\\
+
+\subsubsection{Input}
+The input struct {\it S} is optional and has the following optional fields:
+
+\begin{tabular}{llcp{9cm}}
+{\bf D} & & - & filename of MEEG mat file\\
+{\bf weight} & & - & a weighting function (vector) with length peri-stimulus
+time points. Hint: If you call the function without arguments, prepare a
+variable that contains this vector.
+\end{tabular}
+
+\subsubsection{Output}
+The output struct {\it D} contains the header struct of the averaged
+file. This struct has been written to a *.mat file of the same name as
+the input file, but prepended with {\it w}. The data has been
+written to a corresponding *.dat file.
+
+\section{Displaying data}
+SPM can be used to display epoched data. The viewer is called by
+choosing the EEG/MEG modality and clicking on the {\it M/EEG} entry in
+the {\it Display} menu. After selecting an epoched M/EEG file in SPM
+format, the viewer displays all channels of the first trial or trial
+type. The position of the channels is taken from the channel template
+file (see above). 
+
+Navigation through trials or trial types is either by the trial
+slider or by the trial listbox. The scaling of the displayed data (for
+EEG: $\mu$Volt, for MEG: in $10^2$ femto Tesla) can be changed by using
+the scaling slider. Up to four trials or trial types can be plotted at
+the same time by using the shift or ctrl-button while selecting files
+with the left mouse button in the listbox.
+
+Single trials can be classified as either artefactual or clean by
+pressing the {\it Reject} button. This information can be saved to the
+*.mat file by pressing the {\it Save} button.
+
+A left-clicking on a single channel plot will plot the time-series of
+this channel in much more detail in a pop-up figure. Another
+left-click on the (small) channel plot will close the pop-up figure
+again. 
+
+The topography at a specific time point can be displayed either in 2D
+or in 3D by clicking on the {\it Topography} button and selecting a
+peri-stimulus time and choosing between 2D/3D. In this display, bad
+channels will not be interpolated, but no data is plotted in the
+location of the bad channel.
+
+The set of displayed channels can be changed by clicking on the {\it
+channel} button. This is useful for (i) faster plotting of single
+trial data by choosing less channels to display and (ii) having larger
+plots in the display tool. In the channel select tool, you can click on
+the channel to select or deselect this channel. Alternatively, you can
+also use the listbox with shift/ctrl to select or deselect
+channels. Channel selection can be saved and loaded to
+mat-files. Pressing {\it Ok} will confirm your selected channels and
+update your display.
+

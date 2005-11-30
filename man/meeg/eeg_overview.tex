@@ -1,0 +1,82 @@
+\chapter{SPM for EEG/MEG overview}
+\label{ch:eeg_overview}
+Unlike previous versions, SPM5 provides for
+the analysis of EEG and MEG data. The initial main motivation for this big
+leap came from the insight that any integration of modalities like
+fMRI and EEG should be based on a common theoretical and practical
+basis. Historically, research into fMRI and EEG/MEG models and
+analysis has been quite divorced. The same is partially true for the
+EEG and MEG field. It is our hope that SPM5 provides a common analysis
+ground for modellers and experimentalists of both the PET/fMRI and 
+EEG/MEG fields.
+\\
+
+SPM for EEG/MEG was primarily developed for the analysis of epoched
+data. This is because we are mostly interested in experiments which
+perturb the system with a designed stimulus. The analysis of
+continuous data is typically performed for experiments without
+designed stimuli like in sleep or epilepsy research. Note that although
+SPM5 does not provide for an analysis of continuous data per se, many
+SPM5 routines can be used for these data.
+\\
+
+SPM for EEG/MEG can be partitioned into four parts. These are (i)
+preprocessing, (ii) projection to voxel-space/source reconstruction,
+(iii) statistical analysis, and (iv) Dynamical Causal Modelling (DCM). 
+
+The preprocessing functions provide for simple operations that are
+standard in other software packages. 
+
+The projection to voxel-space is a critical step. When using a source
+reconstruction, it takes the analysis to brain space. But even when
+using a simple projection to some 2D-sensor plane, we can then use SPM
+functions and concepts that were developed for voxel-based data. The
+projection to a 2D-plane is performed using a simple interpolation and
+is mostly equivalent to widely used sensor-based analyses. The source
+reconstruction to brain space is based on models that assume many
+distributed dipoles in brain space. Solutions to these models
+typically show dispersed activity and are well-suited for SPM
+mass-univariate analysis approach.
+\\
+
+The statistical analysis is one of the strong points of SPM. PET/fMRI
+users already familiar with the graphical representation of
+general linear models won't have difficulties to use SPM for the
+analysis of EEG/MEG data. SPM5 provides for a comprehensive range of
+classical linear models that can be used to model the data. These
+models are basically the same as used in the EEG/MEG field
+for random effects analyses of multiple subjects. In SPM, we assume
+that the data in voxel-space is a sampled version of some continuous Gaussian
+random field. This allows us to use Random field theory (GFT)
+for the correction of multiple comparisons to control family-wise
+error over voxels. The GFT approach has the advantage that
+super-threshold maxima are assessed for their significance, whereas
+conventional approaches have to specify a-priori the locations of
+expected activations.
+\\
+
+Dynamical Causal Modelling (DCM) is a departure from the mass-univariate
+approach and is an extension of the SPM software package. DCM for ERP/ERFs is a
+generative model for evoked responses. The observed data is modelled
+as the spatiotemporal expression of a small hierarchical network that
+responds to a stimulus. Differences between evoked responses due to different
+stimuli are modelled as modulations of the coupling between specific
+areas. Importantly, this approach is based on a neurobiologically
+grounded model. This allows us to obtain parameter estimates that have
+some physiological interpretation.
+\\
+
+The following chapters will go through all the EEG/MEG related
+functionality of SPM5. All users will probably find the tutorial
+useful for a quick start. A further detailed description of the
+preprocessing functions is given in chapter
+\ref{ch:eeg_preprocessing}. The 3D-source reconstruction is described
+in chapter \ref{ch:eeg_imaging} and some dipole fitting technique in
+chapter \ref{ch:eeg_ecd}. In chapter \ref{ch:eeg_stats}, we
+guide you through the modelling of M/EEG data at the first and second
+level of a hierarchical linear model. Finally, in chapter
+\ref{ch:eeg_DCM}, we describe the graphical user interface for
+dynamical causal modelling for evoked 
+responses, i.e.~event-related potentials (ERPs) and event-related
+fields (ERFs).
+

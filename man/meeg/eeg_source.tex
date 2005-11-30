@@ -1,0 +1,80 @@
+\chapter{Spatial projections}
+\label{ch:eeg_source}
+After pre-processing the M/EEG data, the data is projected to voxel
+space. This is a critical departure from most standard analyses for
+ERP data which typically analyse data in channel space. The main
+motviation to project data to voxel space is our overall goal to integrate
+M/EEG with other modalities like functional magnetic resonance imaging
+(fMRI). A minimum requirement for integration is that both kinds of
+data are in the same space. Naturally, this space is the 3D-brain
+space, because it is here where neuronal sources are active and cause
+observed M/EEG activity in the sensors. 
+
+Projection to brain space, i.e.~source reconstruction, is usually done
+using one of two approaches. The first is based on the assumption that
+the potential fields measured on the scalp can be explained by a few
+equivalent current dipoles (ECD). Although this is a very parsimonious
+model and widely used in the M/EEG community, this is not the approach
+we are going to use for mass-univariate analysis in SPM. Rather we use
+a second approach, which models the observed sensor data by hundreds to
+thousands of dipoles in brain space. Such a model has many more
+parameters than the sparse dipole model, but parameters can be
+estimated efficiently using Baysian techniques with informed
+functional and anatomical priors. The solutions from these distributed
+models lead to reconstructed sources that can be extended and don't
+need to be focal like in the ECD approach.
+
+However, note that we do not exclude ECD models from the SPM
+software. Although we won't use ECD models for the mass-univariate
+analysis, we are actively pursuing dynamical causal modelling based on
+spatial forward models that use ECD representations (see chapter
+??). Furthermore, there is a toolbox available for ECD reconstruction
+using classical techniques (see below). One can use this toolbox to derive
+dipolar solutions for multiple subjects and analyse the reconstructed
+source activity outside of SPM (i.e.~the mass-univariate approach).
+
+In cases when one is not interested in source reconstruction, one can
+instead project to the 2D scalp surface. This procedure basically
+leads to a conventional sensor-based analysis. 
+
+
+\section{Distributed linear models}
+Jermemie's bit.
+
+\section{Equivalent current dipoles}
+Christophe's bit.
+
+\section{Interpolation on scalp}
+The interpolation of sensor data in 2D voxel space is mostly equivalent to
+a sensor-based analysis. The critical difference to conventional
+analysis approaches lies hidden in the treatment of the factor {\it
+space}. In the ERP community, the factor space is traditionally 
+considered a factor with only a couple of levels. Each level is
+usually an average over a region on the scalp, e.g.~left frontal
+electrodes. This allows to test for specific contrasts in a step-down
+fashion and is appropriate for setups that measure up to ca.~32
+channels. For example, one first establishes overall significance for 
+some global F-test and then tests differences or interactions. While
+this procedure has its established place in the literature, it has the
+disadvantage that one has to specify some contrast over
+channels before testing. With high-density acquisitions, it is not
+obvious which of the many possible averages will lead to the most
+sensitive test. An alternative is to analyse the data in a
+mass-univariate fashion over space and use GFT to assess
+significance, adjusted for multiple comparisons, of topological
+features like maxima. This approach has the advantage that one doesn't
+have to specify expected locations of activations prior to the
+test. This principle was recently demonstrated by Kilner et al. (2005)
+for EEG power data.
+
+Note that when using this mass-univariate approach, it is not possible
+to test for region $\times$ condition interactions. By this we mean
+that one tests for differences between voxels. For this one needs
+multivariate models that take correlations over space directly into
+account. In conventional ERP analyses testing for region $\times$
+condition interactions is a standard procedure. So why can't you do
+this in SPM? Although this issue sounds like a technical subtlety, the
+main assumption behind such a test are vulnerable: When comparing
+effects between voxels, one effectively assumes that the underlying
+causes in different regions have the same effect on the scalp. This is
+not necessarily true. 

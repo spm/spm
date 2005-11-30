@@ -1,0 +1,315 @@
+\chapter{M/EEG modelling and statistics}
+\label{ch:eeg_stats}
+After projection to 2D- or a 3D-space (source reconstruction), the
+data is in voxel-space and ready to be analysed. There are several
+ways how one can proceed. In this chapter, we will focus on analyzing
+epoched time-series data. These can be event-related responses (ERPs),
+event-related fields (ERFs) or single trials (M/EEG). 
+
+In the following, we will go through the various stages of modelling
+using typical examples to illustrate the procedures.
+
+\section{Preliminary remarks}
+All analyses can be done using either the graphical user interface
+(GUI) or a batch system (i.e. using scripts in the SPM2-fashion,
+s.~below). The GUI has the advantage that one doesn't need
+matlab-knowledge to analyse data. The batch system has the
+advantage that it is a fast and efficient way of entering model and
+data. Its disadvantage is that some Matlab-Knowledge is
+required. However, with this distribution, we provide some template
+scripts to analyse (typical) data in batch mode. We assume that with slight
+modifications these scripts can be used for most analyses.
+
+\section{How epoched time-series are analysed in SPM}
+After preprocessing the data (i.e.~epoching, filtering, etc...) and
+projection to voxel-space, we have discretely sampled versions of
+continuous fields \cite{kiebel_spm_eeg1}. These data can be analysed
+with a mass-univariate approach using results from Random Field theory
+(RFT) to adjust p-values for multiple comparisons \cite{kjw_hbf2}. The
+model used at each voxel is a general linear model
+\cite{kiebel_spm_eeg2}. Typically one wants to analyse
+multiple subjects' data acquired under multiple conditions. Given that
+each evoked-response has up to hundreds of time points, this is an
+awful lot of data at each voxel. The ideal way to analyse these data
+would be to specify a single hierarchical model (1st level: within-subject,
+2nd level: over subjects) and estimate its parameters. However, this
+is computationally not feasible because of the length of the data
+vector at each voxel. Fortunately, such a 2-level model can usually be
+split up into two models: The 1st level and the 2nd level model. The
+input data to the 2nd model are contrasts of the 1st level model
+\cite{kiebel_spm_eeg2}. In all cases considered in this chapter, this
+2-stage procedure 
+gives exactly the same results as the 2-level model. The reason for
+this is that we are not really \textit{modelling} the data at the 1st
+level, but simply forming weighted sums of the data, over time. For
+example, if we are interested in the N170 component, one could average
+the data from 150 to 190 milliseconds. This is exactly the approach
+used in conventional ERP analysis. This approach is not a model,
+because simply taking sums corresponds to using an identity matrix as
+design matrix. This procedure leaves no degrees of freedom for error
+estimation.\\
+
+In summary, the SPM-approach is to form, at each voxel, weighted sums of
+the data, over time, at the 1st level. We refer to these weighted sums
+as contrast images. These form the input to the 2nd level, where
+one usually tests for differences betwen conditions or between groups
+(s.~below). The second level models are usually the same as the ones
+one would use for functional magnetic resonance imaging (fMRI). Importantly,
+these 2nd level models have enough degrees of freedom to estimate the
+error, i.e.~statistics can be computed.\\
+
+The output of such a 2nd level analysis is a
+voxel-volume (or map), where each voxel contains one statistical
+value. The associated p-value is adjusted for multiple
+comparisons \cite{kjw_hbf2}. This adjustment is important, because there are many
+other voxels or channels. One (disadvantageous) alternative to
+adjustment is to consider only pre-selected channels or averages over
+channels. This is why the adjustment is especially important for
+high-density measurements, because there are many channels to
+select from. We believe that it is generally too subjective
+to select channels for analysis a-priori. We see the
+GFT-adjustment as a good way of looking at the whole data without any
+prior selection. This has been already demonstrated for EEG data (in
+another context) by \cite{james_rft}.
+
+\section{1st level}
+At the 1st level, we select periods or time points in
+peri-stimulus time that we would like to analyse. Critically, this
+choice must be made a-priori by you. The alternative would be to not
+treat peri-stimulus time as a factor, but as a dimension of a Random
+Field approach. This alternative approach is often used in
+time-frequency analysis of induced and evoked oscillations, where it
+seems sometimes difficult to specifiy areas of interest on the
+time-frequency plane a-priori \cite{james_rft}. 
+
+In the present approach, time is a factor, and
+you have to form weighted-sums over peri-stimulus time to provide
+input to the 2nd level. Of course, you don't need to constrain
+yourself to a single contrast around a specific peri-stimulus time,
+but you can compute as many as you like. For example, to analyse
+multiple aspects of an ERP, it is not uncommon to form averages around
+several time-points of an ERP. At the 2nd level, these can be either
+analysed independently or within one model to make inferences about
+interactions between conditions and peri-stimulus time.
+
+In the follwing, we will go through model specification and
+computation of contrast images. This guide is not written as a
+tutorial (i.e.~detailed instructions for a given data set), but
+describes each design option and hopefully provides deeper background
+knowledge.
+
+\subsection{The aim}
+The aim of the 1st level is to compute contrast images that provide
+the input to the 2nd level. We will describe this using the example of
+2D-data, i.e.~data that has not been source reconstructed but, for
+each peri-stimulus time point, has been projected to a 2D-plane
+(s.~chapter \ref{ch:eeg_source}).
+
+\subsection{Start}
+Start SPM by the command \textit{'spm eeg'} from the matlab command
+line. Press the \textit{EEG/MEG} button. Your first choice is to
+either specify the model design or the input data. One always starts
+with the design. Currently, there are two design options: (i)
+\textit{all options} and (ii) \textit{ERP/ERF}. The latter option is a
+shortcut to quickly input an evoked responses study. We will first
+describe \textit{all options} and then treat the \textit{ERP/ERF}
+option as a special case.
+
+\subsection{All options} 
+You first have to answer the question whether
+this is a 1st level design. This determines whether SPM expects to
+model peri-stimulus time as a factor. Also, if one models first-level
+data, SPM will ask next for \textbf{one} M/EEG-matfile before the
+data was projected to voxel-space. The reason for this is that the voxel-images
+lost important information during the conversion. For example, all timing
+information were lost. With the nifti-images only, SPM doesn't
+know the peri-stimulus time of each data point. However, this
+information is critical as soon as you try to specify (later on)
+linear weights in terms of peri-stimulus time. So, when you select an
+M/EEG file, SPM will read timing information from this file. For an
+ERP-study, the M/EEG-file of the average (ERP) is a good choice.
+
+\subsection{How many factors?}
+This question starts off the design specification proper. SPM needs to
+know the number of factors which you want to model. At the 1st level,
+there are typically only factors \textit{peri-stimulus time} and
+\textit{condition}. If you like, you can further subdivide the
+condition-factor in its components. For instance, if you have a 2x2
+factorial design, you may want to specify 3 factors: \textit{factor1},
+\textit{factor2} and  \textit{peri-stimulus time}. 
+
+\subsection{Factor names and \# of levels for factors}
+For each factor, you now input its name, e.g.~condition, and enter the
+number of levels. For instance, if you have 2 conditions, you enter
+2. For peri-stimulus time, you enter the number of time points in your
+evoked responses. Important: You should call the peri-stimulus time
+factor  'time'. For the number of levels for this special factor, SPM
+defaults to the correct number of peri-stimulus time points. (Note
+that it is currently not possible to model only a subset of time points.)
+
+\subsection{Select design component}
+You have the choice between \textit{Identity} and
+\textit{Constant}. Your selected design components are combined (by
+Kronecker tensor product) to form the 1st level design matrix. This
+has also been described in \cite{kiebel_spm_eeg2}. For the 1st level,
+you simply choose for all factors \textit{identity}. This completes
+model specification.
+
+\subsection{Data}
+For selecting data, press the \textit{EEG/MEG} button again. After
+selecting the \textit{SPM.mat} file, you are asked to select data for
+each factor. The order in which you input data  depends on the order
+of how you named the individual factors. We recommend that you make
+the \textit{peri-stimulus time} factor the last factor. After
+projection to voxel-space, the data are stored as 4-dimensional files
+with the third dimension $z = 1$. If you want to input all
+peri-stimulus time points for a given file, you have to select all
+volumes along the 4th dimension. This is done by setting the number
+'1' in the SPM-file selector (below the 'Filt' line) to '1:101', where
+'101' is the total number of peri-stimulus time points. Of course, you
+have to replace '101' by the number of time points of your
+data (or by any natural number bigger than that). This choice will make
+all time points selectable. Then right-click over the file 
+names and \textit{Select all}. Press \textit{done} to confirm your
+choice. This completes data selection.
+
+\subsection{'Estimation'}
+Although there is actually nothing to estimate, clicking the
+\textit{Estimation} button will prepare some internal structure for
+the results section. We kept this (otherwise redundant) estimation step to
+provide for greater similiarity with other analyses using SPM.
+
+\subsection{Results}
+After clicking on \textit{Results}, choose the appropriate
+\textit{SPM} and the contrast manager will pop up. In contrast to a usual
+SPM study, we don't use the contrast manager to compute
+statistics, but contrasts only!
+
+Click \textit{Define new contrast...} and enter a name for your
+contrast. Then note a (new) button called \textit{components} which is
+only visible for M/EEG models. Clicking this button opens the contrast
+components manager. This is simply a tool that exploits the knowledge
+about the factors which you have specified earlier. Knowing the
+factors and their levels makes it easy to split up a (long) contrast
+weight vector into a few components. For each contrast weight vector,
+each factor contributes one component. By using the Kronecker tensor
+product, these components can be combined into the resulting contrast
+weight vector. This is not only time-saving, but many people tend to
+find this approach more intuitive than the usual approach of figuring
+our the contrasts yourself. For instance, if you have specified
+two conditions, you might be interested in their difference. Enter a
+$[-1 \; \; 1]$ as contrast component. For the \textit{time} factor,
+instead of entering one number for each time point, better click on 
+the \textit{Generate} button. Click on the 'Time' button and specify
+a rectangular averaging window by providing the start and end of this
+window (in milliseconds). Press \textit{Compute}. You can see now in
+the contrast manager window that your contrast weights have been
+computed and are displayed above the identity (design)
+matrix. You can also specify the contrast weights as usual in the
+contrast box, but this would require to enter several hundreds to
+thousands of numbers. Press \textit{ok} to proceed and compute the
+contrast.
+
+\subsection{Display}
+You can display the resulting contrast image by using the
+\textit{Display} button.
+
+\subsection{ERP/ERF}
+You can shortcut some of the question and especially the data
+selection by choosing the \textit{ERP/ERF} option (instead of
+\textit{all options} when specifying a design. This options assumes
+that you have two factors, \textit{condition} and \textit{time}. There
+are less questions during design specification. When selecting data,
+you don't need to select all time point, but only the first! SPM will
+assume that you want to select all time points of the selected
+file. Using this option will otherwise result in the same model
+as described above.
+
+\subsection{Multiple subjects}
+For each of your subjects, you perform these operations in a separate
+1st-level analysis. For each subject, you want to compute the same
+contrasts and use them as input to a model, where subjects is the
+repetition factor. 
+
+\section{2nd level models}
+For 2nd level modelling, you can use different ways to specify a
+model. There is \textit{Basic models} which was primarily developed for
+PET/fMRI but is equally appropriate for EEG/MEG data. These are
+suited best when the model is simple (like a 1-sample or 2-sample
+t-test). In our experience, most EEG/MEG models fall into this
+category of simple models. If models are more complicated, like, e.g.,
+two groups with multiple subjects/conditions, we recommend using the
+\textit{EEG/MEG} models.
+
+\subsection{All options}
+As above, go for \textit{All options}. This time, press 'no' for the
+question 'Is this a first-level design'. 
+
+\subsection{Factors}
+This includes all factors, even repetition factors. For example, at
+the 2nd level a 2x2 factorial design has 3 factors: \textit{subject},
+\textit{factor1} and \textit{factor2}.
+ 
+\subsection{Design partitions and design components}
+The way this modelling device constructs a design matrix is by using the
+Kronecker tensor product on the hierarchy of specified design
+components. However, some/many designs can't be constructed in this
+way. For example, the design matrix of a paired two sample-test
+consists of two merged partitions, each of which is a Kronecker tensor
+product of design components. For each partition, the factors and the
+levels are the same. The difference is in the choice of the design
+components for each factor under each partition. For example, for a
+paired two-sample-test, one has 2 factors (subjects and conditions)
+and 2 design partitions. For the 1st partition, choose
+\textit{Constant} for subjects and \textit{Identity} for
+conditions. For the 2nd partition, it's the other way around,
+i.e.~\textit{Identity} for subjects and \textit{Constant} for
+conditions.
+
+\subsection{Covariance components}
+Specification of the covariance components determines the error
+model \cite{daniel_hbf2}. For each factor, there are two questions:
+(i) Identical variance for
+factor $xxx$, and (ii) Independence for factor $xxx$. SPM constructs all the
+variance components from your answers. The first question pertains to
+the assumption whether each level of this factor has identical
+variance. The second questions asks whether the different levels for a
+given factor are correlated. Some examples: For a repetition factor
+like subjects, you should always answer both questions with yes. For a
+group factor, one would assume that the levels of this factor (the
+groups) have unequal variance structures, but are uncorrelated (i.e.,
+(i) no, (ii) yes). For a condition factor, the choice is up to
+you. A very restrained model would follow from using (i) yes (ii)
+yes, whereas the most liberal model is given by (i) no (ii) no. 
+
+\subsection{Data}
+For each combination of factors, SPM asks you for the filenames of the
+data. Sometimes, this process can be more convient for you, when you
+have specified the factors in a specific order. For example, if you
+have two factors \textit{subjects} and \textit{condition}, the order
+(i) subjects, (ii) condition will ask for all images for each
+subject. This is convienient if you have stored the contrast images
+in their individual subject folder. This is the case, if you
+have computed 1st level contrasts following the approach described
+above. However, if, in an intermediate step, you have saved contrasts
+in condition-specific folders, the alternative order ((i) condition, (ii)
+subjects) is more appropriate.
+
+\subsection{Estimation and Results}
+The estimation follows the usual scheme, i.e.~for a classical
+estimation procedure we use exactly the same routine as for PET/fMRI
+data (i.e.~maximum-likelihood estimators for the parameters and Restricted 
+Maximum Likelihood for estimation of the variance parameters).
+
+For specification of contrasts, you have the option to specify
+contrasts component-wise. This can be useful for complex designs, when
+it's no longer easy to work out the interaction contrasts.
+
+For 2D data the statistical map is displayed instead of the usual
+glass brain. You can invoke all the usual functions that are also
+available for fMRI/PET data. An additional option is \textit{channels}
+which let you visualise to which voxel each channel maps. You can
+select this option by right-clicking the button on the statistical 
+map background. SPM asks you then for one of the original M/EEG-mat
+files to read the channel mapping.
+
