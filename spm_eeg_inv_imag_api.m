@@ -189,7 +189,7 @@ load('defaults_eeg_inv.mat') % load default structure invdetfs
 if Meth
     D.inv{val} = invdefts.imag;
 else
-    D.inv{val} = invdefts.ecd;
+    D.inv{val} = invdefts.ECD;
 end
 
 if NewInv
@@ -224,7 +224,7 @@ if NewInv
     if Meth
         D.inv{val} = invdefts.imag;
     else
-        D.inv{val} = invdefts.ecd;
+        D.inv{val} = invdefts.ECD;
     end
     D = set_CommentDate(D);
 end
@@ -249,7 +249,7 @@ set(handles.Analysis,'Value',0);
 guidata(hObject,handles);
 
 
-% --- Executes on button press in Inverse Sol.
+% --- Executes on button press in Forward Sol.
 function Forward_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton Inverse (see GCBO)
 NewInv = get(handles.Analysis,'Value');
@@ -268,7 +268,7 @@ if NewInv
     if Meth
         D.inv{val} = invdefts.imag;
     else
-        D.inv{val} = invdefts.ecd;
+        D.inv{val} = invdefts.ECD;
     end
     D = set_CommentDate(D);
 end
@@ -297,7 +297,7 @@ end
 if Meth
     D = spm_eeg_inv_forward_ui(D);
 else
-    D = spm_eeg_fp_elec_Rsph_ui(D); 
+    D = spm_eeg_inv_fp_elec_Rsph_ui(D); 
 end
 
 handles.D = D;
@@ -325,7 +325,7 @@ if NewInv
     if Meth
         D.inv{val} = invdefts.imag;
     else
-        D.inv{val} = invdefts.ecd;
+        D.inv{val} = invdefts.ECD;
     end
     D = set_CommentDate(D);
 end
@@ -363,7 +363,7 @@ end
 if Meth
     D = spm_eeg_inv_inverse_ui(D);
 else
-    D = spm_eeg_ip_ECD_ui(D);
+    D = spm_eeg_inv_ecd_ui(D);
 end
 
 handles.D = D;

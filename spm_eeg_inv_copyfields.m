@@ -19,7 +19,7 @@ function D = spm_eeg_inv_copyfields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_copyfields.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_copyfields.m 342 2005-11-30 18:27:52Z jeremie $
 
 def_Cflags = [1 1 1 0];
 def_Vcheck = 1;
@@ -159,6 +159,13 @@ if Cflags(4) ~= 0
             D.inv{val}.inverse.priors       = D.inv{val-1}.inverse.priors;
         end
         disp('Inverse fields copied');
+    end
+end
+
+% headmodel to copy for ECD
+if any(Cflags) & strcmp(D.inv{val}.method,'ECD')
+    if length(D.inv{val-1}.model)
+        D.inv{val}.model = D.inv{val-1}.model;
     end
 end
 

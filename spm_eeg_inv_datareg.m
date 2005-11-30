@@ -45,7 +45,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 329 2005-11-29 21:31:02Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 342 2005-11-30 18:27:52Z jeremie $
 
 spm_defaults
 
@@ -308,10 +308,10 @@ function [R, t, corr, data2reg] = spm_eeg_inv_icp(data1, data2, tol, varargin)
 %            scalptess and eeg_file
 % data2reg    - 3 x m matrix of the registered points in data2
 %=======================================================================
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Adapted from (http://www.csse.uwa.edu.au/~ajmal/icp.m) written by Ajmal Saeed Mian {ajmal@csse.uwa.edu.au}
+% Computer Science, The University of Western Australia.
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id: spm_eeg_inv_datareg.m 329 2005-11-29 21:31:02Z jeremie $
 
 % Landmarks (fiduciales) based registration
 % Fiducial coordinates must be given in the same order in both files
