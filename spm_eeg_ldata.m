@@ -12,7 +12,7 @@ function D = spm_eeg_ldata(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_ldata.m 356 2005-12-01 18:43:23Z stefan $
 
 
 try
@@ -37,7 +37,7 @@ if ~isfield(D, 'datatype')
     dtype = spm_type('int16');
 else
     % compatablity with old spm_file_array
-    if strcmp(spm_type(D.datatype), 'float')
+    if strcmp(D.datatype, 'float')
         D.datatype = 'float32';
     end
     

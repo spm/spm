@@ -68,7 +68,7 @@ function varargout=spm_mip_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 133 2005-05-09 17:29:37Z guillaume $
+% $Id: spm_mip_ui.m 356 2005-12-01 18:43:23Z stefan $
 
 
 %=======================================================================
@@ -675,13 +675,20 @@ if ~isfield(MD, 'hChanPlot')
     % first time call
     D = spm_eeg_ldata;
 
-    [Cel, Cind, x, y] = spm_eeg_locate_channels(D, 64, 1);
+    DIM = get(findobj('Tag','hFxyz'), 'UserData');
+    DIM = DIM.DIM;
+    
+    [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM(1), 1);
     ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
 
     hold on, hChanPlot = plot(Cel(:, 1), Cel(:, 2), 'g*');
+    
     hChanText = cell(1,size(Cel,1));
     for i = 1:size(Cel, 1)
-        hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), ctf.Cnames{Cind(i)}, 'Color', 'g');
+        % only display first name if multiple names
+        tmp = ctf.Cnames{D.channels.order(Cind(i))};
+        if iscell(tmp), tmp = tmp{1}; end
+        hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), tmp, 'Color', 'g');
     end
 
     MD.hChanPlot = hChanPlot;
