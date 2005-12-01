@@ -1,5 +1,10 @@
 function [I,P,H,Hnames] = spm_set_factorial_design (job)
 % Extract factorial matrix, file list and H partition of design matrix
+%_______________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Will Penny
+% $Id: spm_set_factorial_design.m 349 2005-12-01 10:44:20Z guillaume $
 
 % Get number of factors, names and levels
 sF{1}='Repl'; % - first `factor' (for I) is always replication

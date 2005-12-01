@@ -4,7 +4,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: will $
+% $Id: spm_config_factorial_design.m 349 2005-12-01 10:44:20Z guillaume $
 
 % Define inline types.
 %-----------------------------------------------------------------------
