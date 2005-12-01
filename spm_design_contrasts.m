@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 234 2005-09-20 09:36:11Z will $
+% $Id: spm_design_contrasts.m 351 2005-12-01 12:30:24Z will $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -35,23 +35,60 @@ end
 icon=spm_make_contrasts(kf);
 
 % Get number of basis functions per condition
-nbases=SPM.xBF.order;
+if isfield(SPM,'xBF')
+    nbases=SPM.xBF.order;
+else
+    % for 2nd level designs .xBF not defined
+    nbases=1;
+end
 for c=1:length(icon),
     con(c).c=kron(icon(c).c,eye(nbases));
 end
 
-% Pad out parametric modulation columns with zeros
-for c=1:length(icon),
-    conds=length(SPM.Sess(1).U);
-    nr=size(con(c).c,1);
-    col=1;
-    block=[];
-    for cc=1:conds,
-        block=[block,con(c).c(:,col:col+nbases-1)];
-        block=[block,zeros(nr,SPM.Sess(1).U(cc).P.h)];
-        col=col+nbases;
+if isfield(SPM,'Sess')
+    % For first level designs .Sess won't be specified
+    % and we don't need to worry about parametric mod/multi-sessions
+    
+    % Pad out parametric modulation columns with zeros
+    for c=1:length(icon),
+        conds=length(SPM.Sess(1).U);
+        nr=size(con(c).c,1);
+        col=1;
+        block=[];
+        for cc=1:conds,
+            block=[block,con(c).c(:,col:col+nbases-1)];
+            block=[block,zeros(nr,SPM.Sess(1).U(cc).P.h)];
+            col=col+nbases;
+        end
+        con(c).c=block;
     end
-    con(c).c=block;
+    
+    % If there are multiple sessions, replicate each contrast matrix over
+    % sessions - this assumes the conditions are identical in each session
+    nsess=length(SPM.Sess);
+    ncon=length(con);
+    if nsess>1
+        conds=length(SPM.Sess(1).U);
+        for s=1:nsess,
+            nconds=length(SPM.Sess(s).U);
+            if ~(nconds==conds)
+                disp('Error in spm_design_contrasts: number of conditions must be same in all sessions');
+                return
+            end
+        end
+        for c=1:ncon,
+            con(c).c=kron(ones(1,nsess),con(c).c);
+        end
+    end
+    
+    % Pad contrasts out - add columns for session effects
+    k=size(SPM.xX.X,2);
+    for c=1:ncon,
+        [zr,zc]=size(con(c).c);
+        cmat=zeros(zr,k);
+        cmat(1:zr,1:zc)=con(c).c;
+        con(c).c=cmat;
+    end
 end
 
 con(1).name='Average effect of condition';
@@ -65,31 +102,4 @@ if nf>2
     con(6).name=['Interaction: ',SPM.factor(1).name,' x ',SPM.factor(3).name];
     con(7).name=['Interaction: ',SPM.factor(2).name,' x ',SPM.factor(3).name];
     con(8).name=['Interaction: ',SPM.factor(1).name,' x ',SPM.factor(2).name,' x ',SPM.factor(3).name];
-end
-
-% If there are multiple sessions, replicate each contrast matrix over
-% sessions - this assumes the conditions are identical in each session
-nsess=length(SPM.Sess);
-ncon=length(con);
-if nsess>1
-    conds=length(SPM.Sess(1).U);
-    for s=1:nsess,
-        nconds=length(SPM.Sess(s).U);
-        if ~(nconds==conds)
-            disp('Error in spm_design_contrasts: number of conditions must be same in all sessions');
-            return
-        end
-    end
-    for c=1:ncon,
-        con(c).c=kron(ones(1,nsess),con(c).c);
-    end
-end
-
-% Pad contrasts out - add columns for session effects
-k=size(SPM.xX.X,2);
-for c=1:ncon,
-    [zr,zc]=size(con(c).c);
-    cmat=zeros(zr,k);
-    cmat(1:zr,1:zc)=con(c).c;
-    con(c).c=cmat;
 end

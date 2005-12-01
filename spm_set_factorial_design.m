@@ -1,10 +1,13 @@
 function [I,P,H,Hnames] = spm_set_factorial_design (job)
 % Extract factorial matrix, file list and H partition of design matrix
-%_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
-% Will Penny
-% $Id: spm_set_factorial_design.m 349 2005-12-01 10:44:20Z guillaume $
+% FORMAT [I,P,H,Hnames] = spm_set_factorial_design (job)
+%
+% job       job structure defined in spm_config_factorial_design
+%
+% I         Nscan x 4 factor matrix
+% P         List of scans
+% H         Component of design matrix describing conditions
+% Hnames    Condition names
 
 % Get number of factors, names and levels
 sF{1}='Repl'; % - first `factor' (for I) is always replication
@@ -119,7 +122,7 @@ switch Nfactors,
         for i=1:job.des.fd.fact(1).levels,
             for j=1:job.des.fd.fact(2).levels,
                 for k=1:job.des.fd.fact(3).levels,
-                    I=[I;[1:ns(c)]',repmat([i j k],[ns(c) 1]),ones(ns(c),1)];
+                    I=[I;[1:ns(c)]',repmat([i j k],[ns(c) 1])];
                     c=c+1;
                 end
             end
