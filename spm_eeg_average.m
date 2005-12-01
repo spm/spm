@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_average.m 353 2005-12-01 15:18:10Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -46,7 +46,7 @@ if isfield(D, 'Nfrequencies');
         d = mean(D.data(:,:,:, find((D.events.code == D.events.types(i)) & ~D.events.reject)), 4);
 
         D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
-        d = int16(d./repmat(D.scale.values(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
+        d = int16(d./repmat(D.scale(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
         fwrite(fpd, d, 'int16');
     end
     Ntypes = D.events.Ntypes;
