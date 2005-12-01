@@ -1,0 +1,132 @@
+\chapter{3D source reconstruction: Imaging approach}
+\label{ch:eeg_imaging}
+
+Here is a brief help to the 3D reconstruction based on the Imaging approach. In the near future, this will be improved by including more theoretical details upon the different procedures as well as a practical tutorial that will guide the user through the SPM interface via the analysis of a sample dataset.
+
+\section{Introduction}
+\label{sec:imaginv_intro}
+This chapter focuses on the imaging (or distributed) method for doing EEG/MEG source reconstruction in SPM.
+Such an approach to spatial projection onto (3D) brain space consists in considering a large amount of dipolar sources all over the cortical sheet, with fixed locations and orientations. This renders the observation model linear, the unknown variables being the source amplitudes or power.\\
+Given epoched and preprocessed data (see chapter ...), the evoked and/or induced activity for each dipolar source can be estimated, for a single time-sample or a wider peristimulus time window.\\
+The obtained reconstructed activity is in 3D voxel space and enables mass-univariate analysis in SPM (see chapter...).
+
+Contrary to PET/fMRI data reconstruction, EEG/MEG source reconstruction is a non trivial operation. Often compared to estimating a body shape from its shadow, inferring brain activity from scalp data is mathematically ill-posed and requires prior information such as anatomical, functional or mathematical constraints to isolate a unique and most probable solution~\cite{Baillet01}.
+
+Distributed linear models have been around for more than a decade now~\cite{Dale93} and the proposed pipeline in SPM for 'Imaging' solution is classical and very similar to common approaches in the field. However, at least two aspects are quite original and should be emphasized here:
+\begin{itemize}
+\item Based on an empirical Bayesian formalism, the inversion is meant to be generic in the sense it can incorporate and estimate the relevance of multiple constraints of various nature; data-driven relevance estimation being made possible through Bayesian model comparison~\cite{peb1,Phillips05,Mattout06,karl_induced}.
+\item The subject's specific anatomy is incorporated in the generative model of the data, in a fashion that eschews individual cortical surface extraction. The individual cortical mesh is obtained automatically from a canonical mesh in MNI space, providing a simple and efficient way of reporting results in stereotactic coordinates.
+\end{itemize}
+
+The EEG/MEG imaging pipeline is divided into four consecutive steps which characterize any inverse procedure. In this chapter, we go through each of those steps that all need to be completed when proceeding with a full inverse analysis:
+\begin{enumerate}
+	\item Source space modeling,
+	\item Data co-registration,
+	\item Forward computation,
+	\item Inverse reconstruction.
+\end{enumerate}
+
+Whereas the three first steps are part of the whole generative model, the last step consists in the Bayesian inversion and is the only one involving the actual EEG/MEG data.\\
+
+Everything which is described hereafter is a new feature in SPM and is accessible from SPM5 user-interface by choosing the 'EEG/MEG' application, '3D source reconstruction' and 'Imaging'.
+
+\section{Data structure}
+\label{sec:datastruct}
+The Matlab structure describing a given EEG/MEG dataset in SPM is denoted as \textit{D}. Within that structure, each new inverse analysis will be described by a new cell of sub-structure field \textit{D.inv} and will be made of the following fields:
+
+\begin{itemize}
+	\item \textit{method}: character string indicating the method, either 'ECD' or 'Imaging' in present case;
+	\item \textit{mesh}: sub-structure with relevant variables and filenames for source space and head modeling;
+	\item \textit{datareg}: sub-structure with relevant variables and filenames for EEG/MEG data registration into MRI space;
+	\item \textit{forward}: sub-structure with relevant variables and filenames for forward computation;
+	\item \textit{inverse}: sub-structure with relevant variable, filenames as well as results files;
+	\item \textit{comment}: character string provided by the user to characterize the present analysis;
+	\item \textit{date}: date of the last modification made to this analysis.
+\end{itemize}
+
+
+\section{Source space modeling (\textit{mesh})}
+The individual cortical mesh is obtained from a template mesh. Four Mesh sizes are available (3004, 4004, 5004 and 7204 vertices). If not yet obtained, the spatial normalization of the subject's T1 MRI into MNI space is performed (see \textit{spm\_preproc.m} based on tissue probability maps). The inverse of that transformation is computed and applied to the template mesh to furnish the individual cortical mesh.\\
+
+Individual meshes for the inner-skull and scalp surfaces are also computed from the individual T1 MRI. They are obtained by performing a binary mask of the the volumes delimited by the inner-skull and scalp surface respectively. Then, using an initial spherical mesh, a realistic-shaped mesh is obtained for each of the two tissues and further regularized via an erosion and growing procedure.
+
+The meshing module includes the following functions:
+\begin{itemize}
+	\item \textit{spm\_eeg\_inv\_mesh\_ui.m}: run the user interface for this module,
+	\item \textit{spm\_eeg\_inv\_spatnorm.m}: normalize the T1 image if needed,
+	\item \textit{spm\_eeg\_inv\_meshing.m}: main function to produce Cortex, Inner-skull and Scalp meshes,
+	\item \textit{spm\_eeg\_inv\_getmasks.m}: produce masks of Inner-skull and Scalp,
+	\item \textit{spm\_eeg\_inv\_ErodeGrow.m}: erosion and growing procedure,
+	\item \textit{spm\_eeg\_inv\_getmeshes.m}: obtains the inner-skull and scalp meshes from correpsonding binary masks,
+	\item \textit{spm\_eeg\_inv\_CtrBin.m}
+	\item \textit{spm\_eeg\_inv\_TesBin.m}
+	\item \textit{spm\_eeg\_inv\_ElastM.m}
+	\item \textit{spm\_eeg\_inv\_checkmeshes.m}: displays the computed three meshes in the SPM main figure
+\end{itemize}
+
+
+\section{Data Registration (\textit{datareg})}
+\label{sec:datareg}
+There are two possible ways of coregistrating the EEG/MEG data into the structural MRI space.
+
+\begin{enumerate}
+	\item A Landmark based coregistration (using fiducials only).\\
+	The rigid transformation matrices (Rotation and Translation) are computed such that they match each fiducial in the EEG/MEG space into the corresponding one in sMRI space. The same 					transformation is then applied to the sensor positions.
+	\item Surface matching (between some headshape in MEG/EEG space and some sMRI derived scalp tesselation).
+For EEG, the sensor locations can be used instead of the headshape. For MEG, the headshape is first coregistrated into sMRI space; the same transformation is then applied to the sensors.\\
+Surface matching is performed using an Iterative Closest Point algorithm (ICP). The ICP algorithm~\cite{Besl_McKay} is an iterative alignment algorithm that works in three phases:
+\begin{itemize}
+	\item Establish correspondence between pairs of features in the two structures that are to be aligned based on proximity;
+	\item Estimate the rigid transformation that best maps the first member of the pair onto the second;
+	\item Apply that transformation to all features in the first structure. These three steps are then reapplied until convergence is concluded.
+Although simple, the algorithm works quite effectively when given a good initial estimate.
+\end{itemize}
+\end{enumerate}
+
+The data-registration module includes the following functions:
+\begin{itemize}
+	\item \textit{spm\_eeg\_inv\_datareg\_ui.m}: run the user interface for this module,
+	\item \textit{spm\_eeg\_inv\_datareg.m}:	main co-registration function,
+	\item \textit{spm\_eeg\_inv\_checkdatareg.m}: display meshes, sensor locations and fiducials in native MRI space to enable one checking the co-registration by eye.
+\end{itemize}
+
+
+\section{Forward computation (\textit{forward})}
+Several methods are proposed, depending on the modality (EEG or MEG). All these approaches/functions are identical to the one initialy developed and provided by the BrainSTorm package (Matlab open-source and free software: http://neuroimage.usc.edu/brainstorm/).
+
+For EEG~\cite{Ermer2001}:
+\begin{enumerate}
+	\item single sphere (scalp surface),
+	\item three spheres (inner, outer skull and scalp surfaces),
+	\item three spheres (+ Berg correction),
+	\item overlapping spheres (one fitted sphere per sensor).
+\end{enumerate}
+
+For MEG~\cite{Huang1999}:
+\begin{enumerate}
+	\item single sphere,
+	\item overlapping spheres
+\end{enumerate}
+
+
+The forward module includes the following functions:
+\begin{enumerate}
+	\item \textit{spm\_eeg\_inv\_forward\_ui.m}: run the user interface for this module,
+	\item \textit{spm\_eeg\_inv\_BSTcreatefiles.m}:	create the structure and required files and parameters to interface SPM and BrainSTorm,
+	\item \textit{spm\_eeg\_inv\_BSTfwdsol.m}:	compute the BrainSTorm forward solution, calling function \textit{bst\_headmodeler.m},
+	\item \textit{spm\_eeg\_inv\_PCAgain}: compute the svd of the gain matrix.
+\end{enumerate}
+
+
+\section{Inverse reconstruction (\textit{inverse})}
+The reconstruction is based on an empirical Bayesian approach to localize either the evoked response, the evoked power or the induced power, as measured by EEG or MEG.
+
+The inverse module includes the following functions:
+\begin{itemize}
+	\item \textit{spm\_eeg\_inv\_inverse\_ui.m}: run the user interface for this module,
+	\item \textit{spm\_eeg\_inv\_inverse.m}: main function,
+	\item \textit{spm\_eeg\_inv\_evoked.m}:	compute the evoked response,
+	\item \textit{spm\_eeg\_inv\_induced.m}:	compute the evoked and/or induced power,
+	\item \textit{spm\_eeg\_inv\_msp.m}: Multivariate Source Prelocalisation~\cite{Mattout2005a}.
+\end{itemize}
+	

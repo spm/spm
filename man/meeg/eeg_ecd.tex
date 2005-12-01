@@ -1,0 +1,103 @@
+\chapter{Equivalent current Dipole fitting}
+\label{ch:eeg_ecd}
+
+This little chapter demonstrates how to use the ECD (Equivalent Current Dipole) routines with the multimodal dataset available on the FIL website. The aim is to fit a single dipole on the N170 wave visible in the 3 conditions.
+I will briefly describe how to analyse the dataset. For more details about the implementation, please refer to the help bit of and comments in the routines themselves.
+
+\section{Necessary data}
+Before proceeding any further, we have to make sure that we have all the necessary data in the right format
+We need 
+\begin{itemize}
+\item the {\it amri.img/hdr} structural MRI of the subject. It will be used to build the head model and display the results in the subject's anatomical space.\\
+\item the {\it mae\_eeg.dat/mat} EEG data files. These are the fully processed data with one ERP per condition.
+\item the coordinates of the sensors, fiducial markers and scalp points (headshape) in 3 distinct {\it *.mat} files.
+\end{itemize}
+
+In the dataset provided on the web, the raw {\it *.pol} files are available. It is necessary to prepare these files to use them with the source reconstruction routines. This is a crucial step as the registration between the "EEG space" and "patient/image space" relies entirely on these files! 
+To prepare these files, use the little script {\it create\_fid\_files.m} distributed with SPM5. A copy is also available at the end of this chapter.
+
+Once we have all the files ready, we can proceed with the 3 main steps: building the model, fitting the dipole and displaying the results. To launch the GUI, press "3D source reconstruction" in the main window of SPM.
+
+\section{Model building}
+After selecting the data file {\it mae\_eeg.mat} and the method "ECD", the first step is building the meshes for the scalp and inner skull volume. This is done automatically through the "Meshes" button. Select the structural MRI to use ({\it amri.img} here) and wait...
+
+This step takes some time as the MRI is normalised and segmented. The normalisation parameters are saved in the {\it amri\_vbm\_inv\_sn.mat} file and will be used later to map coordinates between the template and subject spaces. With the segmentation, the brain and scalp binary volumes are built ({\it amri\_iskull.img} and {\it amri\_oscalp.img} ). These are used to build the outer scalp and inner skull surface meshes. These are saved in the {\it model\_head\_amri.mat} file with other information. The scalp mesh is also saved in the file {\it amri\_scVert.mat}.
+
+Once the head model is ready, we can co-register the EEG space with subject/image space. Use the "Data Reg." button and decide if the registration should be based on the fiducials only (which is quite approximate) or the fiducials and the scalp surface (which should be more precise). Then select the appropriate files: {\it fid\_eeg.mat}, {\it fid\_MRI.mat}, {\it headshape\_orig.mat}, {\it amri\_scVert.mat} and let the routine work.
+
+To prepare the model for the forward solution, simply press "ForwardComp." and "individual" to use the subject's own MRI. The forward model uses a spherical approximation. The best fitting sphere are adjusted on the scalp surface and 2 other spheres are added to model the scalp and skull outer surfaces. Obviously the head is not spherical and there will be a mismatch between the scalp/brain surfaces and their respective spheres. We have used the idea proposed by Spinelli et al., 2000 \cite{Spinelli2000}, where the brain volume is warped into a sphere. This allows us to use an analytical formula to calculate the forward solution for each dipole location while preserving some anatomical characteristics: superficial (resp. deep) sources remain superficial (resp. deep) in the spherical head model.
+
+At this last step, the electrodes are also introduced in the head
+model and positioned relative to the subject head, as in the MRI. The
+{\it model\_head\_amri.m} at contains the information about the fitted spheres and electrodes. Dipole fitting of the data is now possible.
+
+\section{Dipole fitting}
+By pressing the "Inverse Sol." you launch the dipole fitting procedure. A number of questions have to be answered in order to specify the kind of solution you want:
+\begin{itemize}
+\item "Condition to use", select which condition is used to fit the dipole(s). So far, it is not possible to fit multiple conditions (or linear combinations of them) at the same time. For example, for differences between conditions, you should pre-calculate this difference before trying to fit ECDs. \\
+\item "Time window", define the time window in ms on which the ECDs should be fitted. With the N170 demo data, a good window is 150 to 180.\\
+\item "Number of dipoles", this is the crucial questions. How many dipoles should be used? It's up to you to decide... With the demo data, from the look of the EEG scalp map, 1 ECD should be enough.\\
+\item "Number of random seeds". In order to avoid being trapped in a local minimum during the optimisation process because of a peculiar starting point. The algorithm can be launched from multiple random starting 'seeds'. If they all converge to approximately the same solution, then we'll have most surely reached the local optimum.\\
+\item "Orientation of the dipoles". The location of the ECD will be constant throughout the time window but its orientation can be left free or be fixed as well. Leaving the orientation free allows the dipoles to rotate over time. To fix the orientation, we can use the (weighted according to the EEG power)) mean over the time window or use the orientation of the ECD fitting the time instant with maximum EEG power.\\
+\item "File name". File names are suggested but feel free to change it!
+\end{itemize}
+
+After fitting the N random seeds, the routine tries to group them in clusters of similar ECDs according to their location and signal variance explained. Eventually, these 'grouped' ECDs are displayed on the subject anatomy. The result of this clustering is saved in a mat file starting by {\it res\_} and finishing with the name you entered.
+
+\section{Result display}
+
+Results can be redisplayed with the routine {\it spm\_eeg\_inv\_ecd\_DrawDip.m}. The routine asks you to select the solution file you want to display and the MR image to be used.
+
+\section{Preparing the *.pol files}
+\begin{quote}
+% Just quick and dirty programming to extract the information from the .pol
+% files: fiducials, sensors & headshape in EEG space.
+ 
+% Actually, I just opened the ascii files and copy the coord of the EEG 
+% fiducials here... Much easier.
+ 
+% Order of the fiducials is: LE, RE, Na
+fid\_eeg = ([-0.0587687  6.79448 -0.00636311 ; ...
+            0.0352661   -6.78906    -0.00369206 ; ...
+            9.3675  0.0260009   0.00481311] + ...
+           [-0.0328487  6.78991 0.00636288 ; ...
+            0.0563513   -6.79533    0.00369206 ; ...
+            9.45206 -0.0260009  -0.00481297])/2 ...
+            * 10 ; % To convert cm into mm
+ 
+% These are coordinates picked by hand on the sMRI.
+% So it's quite an approximation of where the fiducials are really...
+fid\_mri = [-71.8 3.5 -58.8 ; ...
+            71.3 -6  -62.5 ; ...
+            0   90.6 -28.4]        ;
+            
+% I edited the .pol files to REMOVE the first few lines with
+% fiducial information.
+sensors = load('sensors\_noFid.pol','-ASCII')*10;
+headshape = load('headshape\_noFid.pol','-ASCII')*10;
+    % Again, multiply by 10 to get the measures in mm instead of cm
+ 
+% ATTENTION !!!
+% Polhemus, uses the axes in a different orientation!
+% It's still a right handed system but axes are:
+% - x: from back to front (versus left to right)
+% - y: from right to left (versus back to front)
+% - z: from bottom to top
+%
+% To make coord systems compatible, it is necessary to rotate clockwise the
+% coord by 90 degree around the z axis.
+ 
+Rot = spm\_matrix([0 0 0 0 0 -pi/2]); Rot = Rot(1:3,1:3);
+fid\_eeg = (Rot*fid\_eeg')';
+sensors = (Rot*sensors')';
+headshape = (Rot*headshape')';
+ 
+save fid\_eeg fid\_eeg
+save fid\_mri fid\_mri
+save sensors\_orig sensors
+save headshape\_orig headshape
+
+\end{quote}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
