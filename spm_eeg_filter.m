@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_filter.m 357 2005-12-01 20:06:14Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -92,15 +92,17 @@ end
 
 spm('Pointer', 'Watch');drawnow;
 
-% Prepare for writing data
-D.fnamedat = ['f' D.fnamedat];
-fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
 % treat continuous and epoched data differently because of different
 % scaling method
 
 if size(D.data, 3) > 1
     % epoched
+
+    % Prepare for writing data
+    D.fnamedat = ['f' D.fnamedat];
+    fpd = fopen(fullfile(P, D.fnamedat), 'w');
+
     d = zeros(D.Nchannels, D.Nsamples);
     D.scale = zeros(D.Nchannels, 1, D.Nevents);
     
@@ -127,8 +129,26 @@ if size(D.data, 3) > 1
         end
 
     end
+    
+    fclose(fpd);
+
 else
     % continuous
+
+    % make copy of the original file
+    if ~copyfile(fullfile(P, D.fnamedat), fullfile(P, ['f' D.fnamedat]));
+        error('Could not copy continuous file to %s', fullfile(P, ['f' D.fnamedat]));
+    end
+
+    % save existing matfile
+    D.data = [];
+    D.fnamedat = ['f' D.fnamedat];
+    save(fullfile(P, ['f' D.fname]), 'D');
+
+    % reload copied file
+    D = spm_eeg_ldata(fullfile(P, ['f' D.fname]));
+    
+
     D.scale = zeros(D.Nchannels, 1);
 
     spm_progress_bar('Init', D.Nchannels, 'Channels filtered'); drawnow;
@@ -139,7 +159,7 @@ else
         if strcmpi(D.filter.type, 'butterworth')
             d = filtfilt(D.filter.para{1}, D.filter.para{2}, squeeze(D.data(i, :, 1)));
         end
-        
+
         D.scale(i) = spm_eeg_write(-1, d, 2, D.datatype);
         D.data(i, :) = d;
 
@@ -153,7 +173,6 @@ end
 
 spm_progress_bar('Clear');
 
-fclose(fpd);
 
 D.data = [];
 
