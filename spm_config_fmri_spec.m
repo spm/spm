@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 339 2005-11-30 14:49:00Z guillaume $
+% $Id: spm_config_fmri_spec.m 350 2005-12-01 11:17:35Z guillaume $
 
 
 % Define inline types.
@@ -741,7 +741,7 @@ for i = 1:numel(job.sess),
 			error(sprintf('Cannot load %s',sess.multi{1}));
 		end
 		try
-			multicond.name;
+			multicond.names;
 			multicond.onsets;
 			multicond.durations;
 		catch
