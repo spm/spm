@@ -193,7 +193,7 @@ function vals = spm_config
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config.m 337 2005-11-30 12:54:59Z john $
+% $Id: spm_config.m 348 2005-12-01 07:39:48Z will $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 
@@ -207,7 +207,7 @@ spat    = struct('type','repeat','name','Spatial','tag','spatial',...
           'help',{'Various spatial and other pre-processing functions.'});
 
 stat    = struct('type','repeat','name','Stats','tag','stats',...
-          'values',{{spm_config_fmri_spec,spm_config_fmri_est,spm_config_contrasts}},...
+          'values',{{spm_config_fmri_spec,spm_config_fmri_est,spm_config_contrasts,spm_config_factorial_design}},...
           'help',{'Various analysis utilities.'});
 
 utils   = struct('type','repeat','name','Util','tag','util',...

@@ -47,7 +47,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 282 2005-11-09 11:52:57Z john $
+% $Id: spm_jobman.m 348 2005-12-01 07:39:48Z will $
 
 
 if nargin==0
@@ -621,6 +621,7 @@ if isfield(c,'val'),
         if sts, return; end;
     end;
 end;
+keyboard
 error('No such node'); % Should never execute
 %------------------------------------------------------------------------
 
