@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dicom.m 322 2005-11-29 14:36:02Z guillaume $
+% $Id: spm_config_dicom.m 361 2005-12-02 15:05:56Z john $
 
 
 %_______________________________________________________________________
@@ -12,7 +12,7 @@ function opts = spm_config_dicom
 data.type   = 'files';
 data.name   = 'DICOM files';
 data.tag    = 'data';
-data.filter = '.*\.dcm$';
+data.filter = '.*';
 data.num    = Inf;
 data.help   = {'Select the DICOM files to convert.'};
 
@@ -62,3 +62,4 @@ if ~isempty(job.isdir)
     fprintf('   Changing back to directory: %s\n', wd);
     cd(wd);
 end
+
