@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 351 2005-12-01 12:30:24Z will $
+% $Id: spm_config_factorial_design.m 358 2005-12-02 12:56:04Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -817,19 +817,17 @@ end
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %------------------------------------------------------------------------
-files = {'mask.???','ResMS.???','RVP.???',...
-    'beta_????.???','con_????.???','ResI_????.???',...
-    'ess_????.???', 'spm?_????.???'};
-for i=1:numel(files),
-    if any(files{i} == '*' | files{i} == '?')
-        [j,unused] = spm_list_files(pwd,files{i});
-        for i=1:size(j,1),
-            spm_unlink(deblank(j(i,:)));
-        end
-    else
-        spm_unlink(files{i});
+files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
+         '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
+         '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
+
+for i=1:length(files)
+    j = spm_select('List',pwd,files{i});
+    for k=1:size(j,1)
+        spm_unlink(deblank(j(k,:)));
     end
 end
+
 
 %-Option definitions
 %-------------------------------------------------------------------
