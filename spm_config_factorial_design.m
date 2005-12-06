@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 364 2005-12-06 14:26:34Z will $
+% $Id: spm_config_factorial_design.m 366 2005-12-06 18:45:38Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1497,8 +1497,8 @@ xGX = struct(...
 %-------------------------------------------------------------------
 %-Work out available options:
 % -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
-
-switch strvcat(fieldnames(job.tm)),
+M_T=-Inf;
+switch strvcat(fieldnames(job.masking.tm)),
     case 'tma',
         % Absolute 
         M_T = job.masking.tma.athresh;
