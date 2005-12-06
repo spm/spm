@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_defs.m 367 2005-12-06 19:36:10Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -161,7 +161,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function Def = get_def(job)
+function [Def,mat] = get_def(job)
 % Load a deformation field saved as an image
 
 P      = [repmat(job{:},3,1), [',1,1';',1,2';',1,3']];
@@ -170,6 +170,7 @@ Def    = cell(3,1);
 Def{1} = spm_load_float(V(1));
 Def{2} = spm_load_float(V(2));
 Def{3} = spm_load_float(V(3));
+mat    = V(1).mat;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
