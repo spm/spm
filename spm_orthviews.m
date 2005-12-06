@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 231 2005-09-14 13:26:28Z john $
+% $Id: spm_orthviews.m 362 2005-12-06 11:14:54Z john $
 
 
 
@@ -253,12 +253,13 @@ case 'space',
 	if length(varargin)<1,
 		st.Space = eye(4);
 		st.bb = maxbb;
+		bbox;
 		redraw_all;
 	else,
 		space(varargin{1});
+		bbox;
 		redraw_all;
 	end;
-	bbox;
 
 case 'maxbb',
 	st.bb = maxbb;
@@ -1021,6 +1022,20 @@ for i = valid_handles(arg1),
 			elseif isstruct(st.vols{i}.blobs{1}.colour),
 				% Add blobs for display using a defined
                                 % colourmap
+
+				% Volkmar's fix for colorbar
+				if isfield(st.vols{i}.blobs{1},'cbar')
+					if st.mode == 0,
+						axpos = get(st.vols{i}.ax{2}.ax,'Position');
+					else,
+						axpos = get(st.vols{i}.ax{1}.ax,'Position');
+					end;
+					image([0 1],[mn mx],[1:64]' + 64,'Parent',st.vols{i}.blobs{1}.cbar);
+					set(st.vols{i}.blobs{1}.cbar, ...
+						'Position',[(axpos(1)+axpos(3)+0.05)...
+						(axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+						'YDir','normal','XTickLabel',[]);
+				end;
 
 				% colourmaps
 				gryc = [0:63]'*ones(1,3)/63;

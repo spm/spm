@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 359 2005-12-02 13:22:29Z will $
+% $Id: spm_config_factorial_design.m 362 2005-12-06 11:14:54Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -595,7 +595,7 @@ fd.help={pfull1,sp_text,pfull2,sp_text,pfull3,sp_text};
 
 
 
-des = branch('Design','des',...
+des = choice('Design','des',...
     {t1,t2,pt,mreg,fd,fblock},'');
 
 
@@ -904,7 +904,8 @@ xVi.dep=zeros(1,4);
 B=[];
 Bnames={};
 
-if length(job.des.t1.scans) > 1
+switch strvcat(fieldnames(job.des)),
+case 't1',
     % One sample t-test
     DesName='One sample t-test';
     
@@ -917,8 +918,8 @@ if length(job.des.t1.scans) > 1
     
     SPM.factor(1).name='Group';
     SPM.factor(1).levels=1;
-    
-elseif length(job.des.t2.scans1) > 1 | length(job.des.t2.scans2) > 1
+
+case 't2', 
     % Two-sample t-test
     DesName='Two-sample t-test';
     
@@ -946,8 +947,8 @@ elseif length(job.des.t2.scans1) > 1 | length(job.des.t2.scans2) > 1
     % Ancova options
     SPM.factor(1).gmsca=job.des.t2.gmsca;
     SPM.factor(1).ancova=job.des.t2.ancova;
-        
-elseif length(job.des.pt.pair) > 0
+
+case 'pt', 
     % Paired t-test
     DesName='Paired t-test';
     
@@ -976,8 +977,8 @@ elseif length(job.des.pt.pair) > 0
     % Ancova options
     SPM.factor(1).gmsca=job.des.pt.gmsca;
     SPM.factor(1).ancova=job.des.pt.ancova;
-    
-elseif length(job.des.mreg.scans) > 1
+
+case 'mreg', 
     % Multiple regression
     DesName='Multiple regression';
     
@@ -999,8 +1000,8 @@ elseif length(job.des.mreg.scans) > 1
         job.cov(i).iCFI=1;
         job.cov(i).iCC=1;
     end
-    
-elseif length(job.des.fd.fact) > 0
+
+case 'fd', 
     % Full Factorial Design
     DesName='Full factorial';
     
@@ -1021,9 +1022,7 @@ elseif length(job.des.fd.fact) > 0
         SPM.factor(i).ancova=job.des.fd.fact(i).ancova;
     end
 
-    
-    
-elseif length(job.des.fblock.fac) > 0
+case 'fblock',
     % Flexible factorial design
     DesName='Flexible factorial';
     
