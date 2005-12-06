@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 362 2005-12-06 11:14:54Z john $
+% $Id: spm_config_factorial_design.m 364 2005-12-06 14:26:34Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -338,7 +338,7 @@ p1=['Selecting YES will specify ''ANCOVA-by-factor'' regressors. ',...
      'This includes eg. ''Ancova by subject'' or ''Ancova by effect''. ',... 
      'These options allow eg. different subjects ',...
     'to have different relationships between local and global measurements. '];
-ancova.help={p0,sp_text,p1,sp_text,p1,sp_text};
+ancova.help={p0,sp_text,p1,sp_text};
 
 factor.type   = 'branch';
 factor.name   = 'Factor';
@@ -630,43 +630,48 @@ p3=['Explicit mask images can have any orientation and voxel/image ',...
     'of the mask image.'];
 em.help = {p1,sp_text,p2,sp_text,p3,sp_text};
 
-aselect    = mnu('Select','aselect',{'No','Yes'},{0,1},'');
-aselect.val={0};
-p1=['Threshold Masking: Images are thresholded at a given value and ',...
-    'only voxels at which all images exceed the threshold are included. ',...
-    'This option allows you to specify the absolute value of the threshold.'];
-
-p2=['By default, Absolute Threshold Masking is turned off. '];
-aselect.help = {p1,sp_text,p2,sp_text};
+tm_none.type = 'const';
+tm_none.name = 'None';
+tm_none.tag = 'none';
+tm_none.val = {[]};
+tm_none.help = {'No threshold masking'};
 
 athresh = entry('Threshold','athresh','e',[1 1],'');
 athresh.val={100};
-athresh.help = {p1,sp_text,p2,sp_text};
+p1=['Enter the absolute value of the threshold.'];
+athresh.help = {p1,sp_text};
 
-tma = branch('Threshold masking (absolute)','tma',...
-    {aselect,athresh},'');
+tma = branch('Absolute','tma',...
+    {athresh},'');
+p1=['Images are thresholded at a given value and ',...
+    'only voxels at which all images exceed the threshold are included. '];
+p2=['This option allows you to specify the absolute value of the threshold.'];
 tma.help = {p1,sp_text,p2,sp_text};
-
-rselect    = mnu('Select','rselect',{'No','Yes'},{0,1},'');
-rselect.val={0};
-p1=['Threshold Masking: Images are thresholded at a given value and ',...
-    'only voxels at which all images exceed the threshold are included. ',...
-    'This option allows you to specify the value of the threshold ',...
-    'as a proportion of the global value '];
 
 p2=['By default, Relative Threshold Masking is turned off. '];
 rselect.help = {p1,sp_text,p2,sp_text};
 
 rthresh = entry('Threshold','rthresh','e',[1 1],'');
 rthresh.val={0.8};
-rthresh.help = {p1,sp_text,p2,sp_text};
+p1=['Enter the threshold as a proportion of the global value'];
+rthresh.help = {p1,sp_text};
 
-tmr = branch('Threshold masking (relative)','tmr',...
-    {rselect,rthresh},'');
+tmr = branch('Relative','tmr',...
+    {rthresh},'');
+p1=['Images are thresholded at a given value and ',...
+    'only voxels at which all images exceed the threshold are included. '];
+p2=['This option allows you to specify the value of the threshold ',...
+    'as a proportion of the global value. '];
 tmr.help = {p1,sp_text,p2,sp_text};
 
+tm = choice('Threshold masking','tm',...
+    {tm_none,tma,tmr},'');
+p1=['Images are thresholded at a given value and ',...
+    'only voxels at which all images exceed the threshold are included. '];
+tm.help={p1,sp_text};
+
 masking = branch('Masking','masking',...
-    {tma,tmr,im,em},'');
+    {tm,im,em},'');
 p1=['The mask specifies the voxels within the image volume which are to be ',...
     'assessed. SPM supports three methods of masking (1) Threshold, ',...
     '(2) Implicit and (3) Explicit. The volume analysed ',...
@@ -676,46 +681,68 @@ masking.help={p1,sp_text};
 %-------------------------------------------------------------------------
 % Global calculation
 
-global_uval      = entry('Global values','global_uval','e',[Inf 1],'');
-p1=['If you are using the user-defined option you must enter the ',...
-    'vector of global values'];
+global_uval = entry('Global values','global_uval','e',[Inf 1],'');
+p1=['Enter the vector of global values'];
 global_uval.val={0};
 global_uval.help={p1,sp_text};
 
-global_type = mnu('Global calculation','global_type',...
-    {'Omit','User','Mean'},{1,2,3},'');
-global_type.val={1};
-p1=['There are three methods to estimate global effects ',...
+g_user = branch('User','g_user',{global_uval},'');
+g_user.help={'User defined  global effects (enter your own ',...
+        'vector of global values)'};
+
+g_mean.type = 'const';
+g_mean.name = 'Mean';
+g_mean.tag = 'g_mean';
+g_mean.val = {[]};
+g_mean.help = {'SPM standard mean voxel value (within per image fullmean/8 mask)'};
+
+g_omit.type = 'const';
+g_omit.name = 'Omit';
+g_omit.tag = 'g_omit';
+g_omit.val = {[]};
+g_omit.help = {'Omit'};
+
+globalc = choice('Global calculation','globalc',...
+    {g_omit,g_user,g_mean},'');
+p1=['There are three methods for estimating global effects ',...
     '(1) Omit (assumming no other options requiring the global value chosen) ',...
     '(2) User defined (enter your own vector of global values) ',...
     '(3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '];
-global_type.help={p1,sp_text};
-
-globalc = branch('Global calculation','globalc',...
-    {global_type,global_uval},'');
 globalc.help={p0,sp_text,p1,sp_text};
 
 %-------------------------------------------------------------------------
 % Global options
 
-gmsca = mnu('Overall grand mean scaling','gmsca',...
-    {'No','Yes'},{0,1},'');
-gmsca.val={0};
+gmsca_no.type = 'const';
+gmsca_no.name = 'No';
+gmsca_no.tag  = 'gmsca_no';
+gmsca_no.val  = {[]};
+gmsca_no.help = {'No overall grand mean scaling'};
+
+gmscv      = entry('Grand mean scaled value','gmscv','e',[Inf 1],'');
+gmscv.val={50};
+
+gmsca_yes=branch('Yes','gmsca_yes',{gmscv},'');
 p1 =['Scaling of the overall grand mean simply ',...
     'scales all the data by a common factor such that the mean of all the ',...
     'global values is the value specified. For qualitative data, this puts ',...
     'the data into an intuitively accessible scale without altering the ',...
-    'statistics. When proportional scaling global normalisation is used ',...
-    'each image is seperately scaled such that it''s global ',...
+    'statistics. '];
+gmsca_yes.help={p1,sp_text};
+
+gmsca = choice('Overall grand mean scaling','gmsca',...
+    {gmsca_no,gmsca_yes},'');
+
+p2=['When proportional scaling global normalisation is used ',...
+    'each image is separately scaled such that it''s global ',...
     'value is that specified (in which case the grand mean is also ',...
     'implicitly scaled to that value). When using AnCova or no global ',...
     'normalisation, with data from different subjects or sessions, an ',...
     'intermediate situation may be appropriate, and you may be given the ',...
-    'option to scale group, session or subject grand means seperately. '];
-gmsca.help={p1,sp_text};
+    'option to scale group, session or subject grand means separately. '];
+gmsca.help={p1,sp_text,p2,sp_text};
 
-gmscv      = entry('Grand mean scaled value','gmscv','e',[Inf 1],'');
-gmscv.val={50};
+
 
 glonorm = mnu('Normalisation','glonorm',...
     {'None','Proportional','ANCOVA'},{1,2,3},'');
@@ -745,10 +772,9 @@ p3 =['Since differences between subjects may be due to gain and sensitivity ',..
 glonorm.help={p1,sp_text,p2,sp_text,p3,sp_text};
 
 globalm = branch('Global normalisation','globalm',...
-    {gmsca,gmscv,glonorm},'');
-
-
+    {gmsca,glonorm},'');
 globalm.help={p0,sp_text,p1,sp_text,p2,sp_text,p3,sp_text};
+
 %-------------------------------------------------------------------------
 % Directory
 
@@ -1240,7 +1266,14 @@ fprintf('%30s\n','...done')                                      %-#
 %===================================================================
 %-Compute global values
 %-------------------------------------------------------------------
-iGXcalc=job.globalc.global_type;  
+switch strvcat(fieldnames(job.globalc))
+    case 'g_omit',
+        iGXcalc=1;
+    case 'g_user',
+        iGXcalc=2;
+    case 'g_mean',
+        iGXcalc=3;
+end
 
 switch job.globalm.glonorm
     case 1,
@@ -1277,7 +1310,7 @@ switch iGXcalc,
         g = [];
     case 2
         %-User specified globals
-        g = job.globalc.global_uval;
+        g = job.globalc.g_user.global_uval;
     case 3 
         %-Compute as mean voxel value (within per image fullmean/8 mask)
         g = zeros(nScan,1 );
@@ -1298,10 +1331,11 @@ fprintf('%-40s: ','Design configuration')                        %-#
 if iGloNorm==8
     iGMsca=8;	%-grand mean scaling implicit in PropSca GloNorm
 else
-    if job.globalm.gmsca
-        iGMsca=1;
-    else
-        iGMsca=9;
+    switch strvcat(fieldnames(job.globalm.gmsca))
+        case 'gmsca_yes',
+            iGMsca=1;
+        case 'gmsca_no',
+            iGMsca=9;
     end
     if SPM.factor(1).levels > 1
         % Over-ride if factor-specific scaling has been specified
@@ -1318,7 +1352,7 @@ end
 if iGMsca == 9                      %-Not scaling (GMsca or PropSca)
     GM = 0;                         %-Set GM to zero when not scaling
 else                                %-Ask user value of GM
-    GM = job.globalm.gmscv;
+    GM = job.globalm.gmsca_yes.gmscv;
     %-If GM is zero then don't GMsca! or PropSca GloNorm
     if GM==0, 
         iGMsca=9; 
@@ -1463,19 +1497,17 @@ xGX = struct(...
 %-------------------------------------------------------------------
 %-Work out available options:
 % -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
-M_T = [-Inf, 100, 0.8*sqrt(-1)]; 
-M_T = -Inf;  % No threshold masking by default
-if job.masking.tma.aselect
-    % Absolute 
-    M_T = job.masking.tma.athresh;
-end
-if job.masking.tmr.rselect
-    % Relative
-    M_T= job.masking.tmr.rthresh*sqrt(-1);
-end
-if job.masking.tma.aselect & job.masking.tmr.rselect
-    % If both specified then select None
-    M_T=-Inf;
+
+switch strvcat(fieldnames(job.tm)),
+    case 'tma',
+        % Absolute 
+        M_T = job.masking.tma.athresh;
+    case 'tmr',
+        % Relative
+        M_T= job.masking.tmr.rthresh*sqrt(-1);
+    case 'tm_none'
+        % None
+        M_T=-Inf;
 end
     
 %-Make a description string
