@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_defs.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_defs.m 365 2005-12-06 18:03:47Z john $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -100,7 +100,7 @@ himg = {[...
 'Specify the image file on which to base the dimensions, orientation etc ',...
 'of the inverse.']};
 
-def          = files('Deformation Field','def','.*y_.*\.img$',1);
+def          = files('Deformation Field','def','.*y_.*\.nii$',1);
 def.help     = himgr;
 
 matname      = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
