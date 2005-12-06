@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dicom.m 361 2005-12-02 15:05:56Z john $
+% $Id: spm_config_dicom.m 363 2005-12-06 11:29:12Z john $
 
 
 %_______________________________________________________________________
@@ -58,7 +58,7 @@ end
 hdr = spm_dicom_headers(strvcat(job.data));
 spm_dicom_convert(hdr);
 
-if ~isempty(job.isdir)
+if ~isempty(job.outdir)
     fprintf('   Changing back to directory: %s\n', wd);
     cd(wd);
 end
