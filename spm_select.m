@@ -52,7 +52,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 311 2005-11-24 16:34:47Z karl $
+% $Id: spm_select.m 369 2005-12-08 13:58:49Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -1095,12 +1095,32 @@ uimenu('Label','Accept', 'Parent',c0,'Callback',@editdone);
 %=======================================================================
 function editdone(ob,varargin)
 ob  = get(ob,'Parent');
-fg  = get(ob,'Parent');
-ob  = findobj(fg,'Tag','EditWindow');
-str = deblank(get(ob,'String'));
-str = strvcat(cellstr(str));
-lb  = findobj(fg,'Tag','selected');
-set(lb,'String',str,'Value',[]);
+ob  = sib(ob,'EditWindow');
+str = get(ob,'String');
+str = deblank(cellstr(strvcat(str)));
+if isempty(str{1}), str = {}; end;
+
+lim = get(sib(ob,'files'),'UserData');
+if numel(str)>lim(2),
+    msg(ob,['Retained ' num2str(lim(2)) ' of the ' num2str(numel(str)) ' files.']);
+    beep;
+    str = str(1:lim(2));
+elseif finite(lim(2)),
+    if lim(1)==lim(2),
+        msg(ob,['Specified ' num2str(numel(str)) '/' num2str(lim(2)) ' files.']);
+    else
+        msg(ob,['Selected ' num2str(numel(str)) '/' num2str(lim(1)) '-' num2str(lim(2)) ' files.']);
+    end;
+else
+    if numel(str) == 1, ss = ''; else ss = 's'; end;
+    msg(ob,['Specified ' num2str(numel(str)) ' file' ss '.']);
+end;
+if ~finite(lim(1)) || numel(str)>=lim(1),
+    set(sib(ob,'D'),'Enable','on');
+else
+    set(sib(ob,'D'),'Enable','off');
+end;
+set(sib(ob,'selected'),'String',strvcat(str),'Value',[]);
 delete(ob);
 %=======================================================================
 
