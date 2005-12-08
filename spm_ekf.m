@@ -25,7 +25,7 @@ function [x,P] = spm_ekf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ekf.m 338 2005-11-30 13:55:04Z guillaume $
+% $Id: spm_ekf.m 372 2005-12-08 17:12:13Z karl $
 
 % check model specification
 %--------------------------------------------------------------------------
@@ -38,12 +38,13 @@ end
 % INITIALISATION:
 % =========================================================================
 Jv = spm_diff(M(1).f,M(1).x,M(2).v,M(1).P,2);
+Jy = spm_diff(M(1).g,M(1).x,M(2).v,M(1).P,1);
 
 T  = length(y);              % number of time points
 x  = M(1).x;                 % EKF estimate of the mean of the states
 R  = inv(M(1).V);            % EKF measurement noise variance.
 Q  = Jv*inv(M(2).V)*Jv';     % EKF process noise variance.
-P  = {Q};                    % EKF conditional covariance of the states.
+P  = {pinv(full(Jy'*R*Jy))}; % EKF conditional covariance of the states.
 
 for t = 2:T
 

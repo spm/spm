@@ -482,9 +482,9 @@ function varargout = spm_spm_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_spm_ui.m 249 2005-10-05 17:58:37Z karl $
+% $Id: spm_spm_ui.m 372 2005-12-08 17:12:13Z karl $
 
-SCCSid  = '$Rev: 249 $';
+SCCSid  = '$Rev: 372 $';
 
 %=======================================================================
 % - FORMAT specifications for programers
@@ -1207,8 +1207,8 @@ case 'cfg'
     % Non-sphericity correction (set xVi.var and .dep)
     %===================================================================
     xVi.I   = I;
-    nL      = max(I);		                     % number of levels
-    mL      = find(nL > 1);		             % multilevel factors
+    nL      = max(I);		                         % number of levels
+    mL      = find(nL > 1);		                     % multilevel factors
     xVi.var = sparse(1,4);                           % unequal variances
     xVi.dep = sparse(1,4);                           % dependencies
 
@@ -1220,22 +1220,23 @@ case 'cfg'
 
             % make menu strings
             %-----------------------------------------------------------
-            for i = mL
+            for i = 1:4
                 mstr{i} = sprintf('%s (%i levels)',D.sF{i},nL(i));
             end
-
+            mstr = mstr(mL);
+            
             % are errors identical
             %-----------------------------------------------------------
             if spm_input('are errors identical','+1','y/n',[0,1],0)
-                str        = 'unequal variances are between';
-                [i j]      = min(nL(mL));
-                i          = spm_input(str,'+0','m',mstr,mL,j);
+                str    = 'unequal variances are between';
+                [i j]  = min(nL(mL));
+                i      = spm_input(str,'+0','m',mstr,[],j);
 
                 % set in xVi and eliminate from dependency option
                 %-------------------------------------------------------
-                xVi.var(i) = 1;
-                mL(i)      = [];
-                mstr(i)    = [];
+                xVi.var(mL(i)) = 1;
+                mL(i)          = [];
+                mstr(i)        = [];
             end
             
             % are errors independent
@@ -1243,11 +1244,11 @@ case 'cfg'
             if spm_input('are errors independent','+1','y/n',[0,1],0)
                 str        = ' dependencies are within';
                 [i j]      = max(nL(mL));
-                i          = spm_input(str,'+0','m',mstr,mL,j);
+                i          = spm_input(str,'+0','m',mstr,[],j);
 
                 % set in xVi
                 %-------------------------------------------------------
-                xVi.dep(i) = 1;
+                xVi.dep(mL(i)) = 1;
             end
 
         end

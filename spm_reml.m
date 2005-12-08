@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 327 2005-11-29 19:44:11Z karl $
+% $Id: spm_reml.m 372 2005-12-08 17:12:13Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -50,7 +50,8 @@ X     = orth(full(X));
 % initialise h
 %--------------------------------------------------------------------------
 m     = length(Q);
-dh    = sparse(m,1);
+h     = zeros(m,1);
+dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
 
@@ -63,7 +64,9 @@ if OPT
 else
     hE  = zeros(m,1);
     hP  = zeros(m,m);
-    h   = hE + 1;
+    for i = 1:m
+        h(i) = any(diag(Q{i}));
+    end
 end
 
 
