@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 322 2005-11-29 14:36:02Z guillaume $
+% $Id: spm_config_contrasts.m 368 2005-12-08 10:43:13Z guillaume $
 
 
 %_______________________________________________________________________
@@ -384,14 +384,14 @@ con.val = {spm,consess};
 con.prog   = @setupcon;
 con.help = {'Set up T and F contrasts.'};
 
-%--------------------------------------------------------
+%-----------------------------------------------------------------------
 function setupcon(varargin)
 
 wd  = pwd;
 job = varargin{1};
 
 % Change to the analysis directory
-%------------------------------------------------------------
+%-----------------------------------------------------------------------
 if ~isempty(job)
     try
         pth = fileparts(job.spmmat{:});
@@ -403,7 +403,7 @@ if ~isempty(job)
 end
 
 % Load SPM.mat file
-%------------------------------------------------------------
+%-----------------------------------------------------------------------
 load(job.spmmat{:});
 
 for i = 1:length(job.consess)
@@ -415,16 +415,16 @@ for i = 1:length(job.consess)
     else %fcon
         name = job.consess{i}.fcon.name;
         STAT = 'F';
-        con = job.consess{i}.fcon.convec;
+        con  = job.consess{i}.fcon.convec;
 
     end
     
     % Basic checking of contrast
-    %------------------------------------------------------------
+    %-------------------------------------------------------------------
     [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
     
     % Fill-in the contrast structure
-    %------------------------------------------------------------
+    %-------------------------------------------------------------------
     if all(I)
         DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
     else
@@ -433,16 +433,16 @@ for i = 1:length(job.consess)
     
     % Append to SPM.xCon. SPM will automatically save any contrasts that
     % evaluate successfully.
-    %------------------------------------------------------------
-    if isempty(SPM.xCon),
+    %-------------------------------------------------------------------
+    if isempty(SPM.xCon)
         SPM.xCon = DxCon;
     else
         SPM.xCon(end+1) = DxCon;
-    end;
+    end
     spm_contrasts(SPM,length(SPM.xCon));
-
-    fprintf('   Changing back to directory: %s\n', wd);
-    cd(wd); 
 end
 
-
+% Change back directory
+%-----------------------------------------------------------------------
+fprintf('   Changing back to directory: %s\n', wd);
+cd(wd); 
