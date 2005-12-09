@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 348 2005-12-01 07:39:48Z will $
+% $Id: spm.m 374 2005-12-09 13:40:33Z john $
 
 
 %=======================================================================
@@ -1364,9 +1364,11 @@ if isempty(SPMdir)			%-Not found or full pathname given
 end
 [SPMdir,junk] = fileparts(SPMdir);
 
-if str2num(version('-release'))==14 && isdeployed,
-    ind = findstr(SPMdir,'_mcr')-1;
-    [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
+if str2num(version('-release'))==14,
+    if  isdeployed,
+        ind = findstr(SPMdir,'_mcr')-1;
+        [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
+    end;
 end;
 varargout = {SPMdir};
 
@@ -1872,6 +1874,8 @@ end
 %=======================================================================
 function local_clc
 %=======================================================================
-if str2num(version('-release'))~=14 || ~isdeployed,
+if ~(str2num(version('-release'))>=14),
+    clc
+elseif ~isdeployed,
     clc
 end
