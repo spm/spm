@@ -36,28 +36,36 @@ function D = spm_eeg_inv_inverse(S,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_inverse.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_inverse.m 376 2005-12-12 15:37:43Z jeremie $
 
 spm_defaults
 s = 8; % smoothness parameter (millimeters)
-
+        
 try
-    D = S; 
+    D = S;
     clear S
+    if nargin == 3
+        Vsens = varargin{1};
+        Vsour = varargin{2};
+    elseif nargin == 1
+        Vsens = [1 0 0];
+        Vsour = [1 0 0];
+    else
+        error(sprintf('Wrong input arguments\n'));
+    end
 catch
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
+    if nargin == 2
+        Vsens = varargin{1};
+        Vsour = varargin{2};
+    elseif nargin == 0
+        Vsens = [1 0 0];
+        Vsour = [1 0 0];
+    else
+        error(sprintf('Wrong input arguments\n'));
+    end
 end
-
-if nargin == 3
-    Vsens = varargin{1};
-    Vsour = varargin{2};
-elseif nargin == 1
-    Vsens = [1 0 0];
-    Vsour = [1 0 0];
-else
-    error(sprintf('Wrong input arguments\n'));
-end  
 
 val = length(D.inv);
 Nv  = D.inv{val}.mesh.Ctx_Nv;
@@ -246,9 +254,9 @@ end
 
 
 % INVERSE COMPUTATION
-if D.inv{val}.inverse.activity == 'evoked'
+if strcmp(D.inv{val}.inverse.activity,'evoked')
     D = spm_eeg_inv_evoked(D,Qe,Qp);
-elseif (D.inv{val}.inverse.activity == 'induced') | (D.inv{val}.inverse.activity == 'evoked & induced')
+elseif strcmp(D.inv{val}.inverse.activity,'induced') | strcmp(D.inv{val}.inverse.activity,'evoked & induced')
     D = spm_eeg_inv_induced(D,Qe,Qp)
 else
     error(sprintf('Missing analysis type\n'));

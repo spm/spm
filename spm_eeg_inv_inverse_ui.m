@@ -14,7 +14,7 @@ function D = spm_eeg_inv_inverse_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_inverse_ui.m 338 2005-11-30 13:55:04Z guillaume $
+% $Id: spm_eeg_inv_inverse_ui.m 376 2005-12-12 15:37:43Z jeremie $
 
 spm_defaults
 
@@ -118,7 +118,7 @@ else
         if isempty(D.inv{val}.inverse.fboi)
             Flow   = 8;
             Fhigh  = 12;
-            fboi = spm_input('Frequecny band of interest (Hz)','+1','r',[Flow Fhigh]));
+            fboi = spm_input('Frequecny band of interest (Hz)','+1','r',[Flow Fhigh]);
             if fboi(1) <= 0 | fboi(2) <= 0 | fboi(1) > fboi(2)
                 error(sprintf('Wrong entry!\n'));
             end
@@ -154,7 +154,7 @@ if strcmp(D.inv{val}.inverse.activity,'evoked')
     l1f3 = spm_input('Estimated noise (1st level)','+1','Yes|No',[1 0]);
     l1d  = spm_input('#other covar to load (1st level)','+1','i',0);
 else
-    l1f1 = spm_input('i.i.d','+1','Yes|No',[1 0]);
+    l1f1 = spm_input('i.i.d (1st level)','+1','Yes|No',[1 0]);
     l1f2 = 0;
     l1f3 = 0;
     l1d  = spm_input('#other covar to load (1st level)?','+1','i',0);
@@ -175,14 +175,14 @@ for i = 1:l1d
 end
        
 % Source space (level 2)
-if D.inv{val}.inverse.activity == 'evoked'
+if strcmp(D.inv{val}.inverse.activity,'evoked')
     l2f1 = spm_input('Smoothness prior (2nd level)','+1','Yes|No',[1 0]);
     l2f2 = spm_input('Minimum Norm (2nd level)','+1','Yes|No',[1 0]);
     l2f3 = spm_input('Multi. Source Preloc. (2nd level)','+1','Yes|No',[1 0]);
     l2d  = spm_input('#other prior to load (2nd level)','+1','i',0);
 else
-    l2f1 = spm_input('Smoothness prior','+1','Yes|No',[1 0]);
-    l2f2 = spm_input('Minimum Norm','+1','Yes|No',[1 0]);
+    l2f1 = spm_input('Smoothness prior (2nd level)','+1','Yes|No',[1 0]);
+    l2f2 = spm_input('Minimum Norm (2nd level)','+1','Yes|No',[1 0]);
     l2f3 = 0;
     l2d  = spm_input('#other prior to load (2nd level)','+1','i',0);
 end

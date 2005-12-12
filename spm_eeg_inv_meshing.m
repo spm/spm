@@ -14,7 +14,7 @@ function D = spm_eeg_inv_meshing(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_meshing.m 376 2005-12-12 15:37:43Z jeremie $
 
 spm_defaults
 
@@ -98,7 +98,7 @@ D.inv{val}.mesh.CtxGeoDist = fullfile(pth,distname);
 if str2num(version('-release')) >= 14
 	save(D.inv{val}.mesh.tess_ctx,'-V6','vert','face','normal');
     save(D.inv{val}.mesh.CtxGeoDist,'-V6','Mdist');
-	save(D.inv{val}.mesh.InterpMat, '-V6', 'H');
+% 	save(D.inv{val}.mesh.InterpMat, '-V6', 'H');
 else
 	save(D.inv{val}.mesh.tess_ctx,'vert','face','normal');
     save(D.inv{val}.mesh.CtxGeoDist,'Mdist');

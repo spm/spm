@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_induced.m 336 2005-11-30 12:54:25Z jeremie $
+% $Id: spm_eeg_inv_induced.m 376 2005-12-12 15:37:43Z jeremie $
 
 
 if length(D.events.code) ~= D.Nevents
@@ -23,16 +23,16 @@ end
 val = length(D.inv);
 
 qe = length(Qe);
-qp = length(GQpG);
+qp = length(Qp);
 
 % LOAD GAIN MATRIX
 variabl = load(D.inv{val}.forward.gainmat);
 name    = fieldnames(variabl);
-G       = getfield(variabl , name(1));
+G       = getfield(variabl , name{1});
 
 
 % SOURCE SPACE DIMENSION REDUCTION
-if (D.inv{val}.inverse.Ctx_Nv - D.inv{val}.inverse.dim)
+if (D.inv{val}.mesh.Ctx_Nv - D.inv{val}.inverse.dim)
     Msize     = D.inv{val}.inverse.dim
     if isempty(D.inv{val}.inverse.priors.level2{3}.filename)
         error(sprintf('Multivariate Source Prelocalisation has not been performed\n'));
@@ -58,7 +58,7 @@ for i = 1:length(Qp)
 end
 
 for i = 1:length(Qe)
-    Qe{i}   = Qe{i}/norm(Q{i},'fro');
+    Qe{i}   = Qe{i}/norm(Qe{i},'fro');
 end
 
 woi        = D.inv{val}.inverse.woi;
@@ -99,6 +99,20 @@ clear dv dr ir
 S     = S(:,[1:r]);
 SVS   = S'*V*S;                                       % correlation (signal)
 
+    % time-frequency subspace
+Fband = D.inv{val}.inverse.fboi(2) - D.inv{val}.inverse.fboi(1) + 1;
+Fstep = floor((Fband-1)/10) + 1;
+WT = 2*pi*[1:Nsamp]'/D.Radc;
+W = [];
+Fc = D.inv{val}.inverse.fboi(1);
+while Fc < D.inv{val}.inverse.fboi(2)
+    W = [W sin(Fc*WT) cos(Fc*WT)];
+    Fc = Fc + Fstep;
+end
+v = spm_Npdf(1:Nsamp,round(Nsamp/2),(Nsamp/4)^2); % time window
+W = diag(v)*W;
+clear WT Fc Fstep Fband
+
 
 % EVOKED RESPONSE
 Ye = Yi*kron(ones(Ntrial,1),speye(Nsamp))/Ntrial;
@@ -135,7 +149,6 @@ if D.inv{val}.inverse.activity == 'evoked & induced';
     for i = 1:qp
         Cp = Cp + hev(qe + i)*Qp{i};
     end
-    clear Qp
     
     CpG  = Cp*G';
     GCpG = G*CpG;
@@ -145,12 +158,14 @@ if D.inv{val}.inverse.activity == 'evoked & induced';
     
         % instantaneous source activity
     J = MAP*Ye*S*S';
-    if (D.inv{val}.inverse.Ctx_Nv - D.inv{val}.inverse.dim)
+    if (D.inv{val}.mesh.Ctx_Nv - D.inv{val}.inverse.dim)
         Jfull       = sparse(Nsour,Nsamp);
         Jfull(Is,:) = J;
         Jev         = Jfull;
-        clear J Jfull
+    else
+        Jev         = J;
     end
+    clear J Jfull
     
         % cross-energy in channel space
     K    = S*S'*W*W'*S*S';
@@ -206,21 +221,6 @@ SSVSS = S*SVS*S';
 clear CpG GCpG Ce Cp
 
 
-    % time-frequency subspace
-Fband = D.inv{val}.inverse.fboi(2) - D.inv{val}.inverse.fboi(1) + 1;
-Fstep = floor((Fband-1)/10) + 1;
-WT = 2*pi*[1:Nsamp]'/D.Radc;
-W = [];
-Fc = D.inv{val}.inverse.fboi(1);
-while Fc < D.inv{val}.inverse.fboi(2)
-    W = [W sin(Fc*WT) cos(Fc*WT)];
-    Fc = Fc + Fstep;
-end
-v = spm_Npdf(1:Nsamp,round(Nsamp/2),(Nsamp/4)^2); % time window
-W = diag(v)*W;
-clear WT Fc Fstep Fband
-
-
     % cross-energy in channel space
 K    = S*S'*W*W'*S*S';
 Eind = Yi*kron(speye(Ntrial),K)*Yi'/Ntrial;
@@ -231,11 +231,11 @@ Gind = MAP*Eind*MAP' + C*trace(K*V);
 
 
 % Save results
-if D.inv{val}.inverse.activity == 'induced'
+if strcmp(D.inv{val}.inverse.activity,'induced')
     [pth,nam,ext] = spm_fileparts(D.fname);
     woi           = D.inv{val}.inverse.woi;
     Ntime         = clock;
-    D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_induced_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     D.inv{val}.inverse.LogEv   = Find;
     if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile), '-V6','Cind','hind','Phind','Find','Eind','Gind');
@@ -248,14 +248,14 @@ else
     woi           = D.inv{val}.inverse.woi;
     Ntime         = clock;
     D.inv{val}.inverse.LogEv = [Fev Find];
-    D.inv{val}.inverse.resfile{1} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_evoked' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    D.inv{val}.inverse.resfile{1} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_evoked' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}), '-V6','Cev','hev','Phev','Fev','Jev','Eev','Gev');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}),'Cev','hev','Phev','Fev','Jev','Eev','Gev');
     end
     clear Cev hev Phev Fev Jev Eev Gev
-    D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
+    D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}), '-V6','Cind','hind','Phind','Find','Eind','Gind');
     else
