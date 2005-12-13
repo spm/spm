@@ -1,0 +1,198 @@
+This is pdfTeX, Version 3.14159-14f-released-20000525 (MiKTeX 2.1) (preloaded format=latex 2000.11.28)  13 DEC 2005 17:22
+**D:/home/wpenny/spm5/man/faces_group/face_group.tex
+(D:/home/wpenny/spm5/man/faces_group/face_group.tex{pdftex.cfg}
+LaTeX2e <2000/06/01>
+Babel <v3.7h> and hyphenation patterns for english, french, german, ngerman, du
+mylang, nohyphenation, loaded.
+(c:\program files\texmf\tex\latex\base\article.cls
+Document Class: article 2000/05/19 v1.4b Standard LaTeX document class
+(c:\program files\texmf\tex\latex\base\size10.clo
+File: size10.clo 2000/05/19 v1.4b Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(c:\program files\texmf\tex\latex\graphics\graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(c:\program files\texmf\tex\latex\graphics\keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(c:\program files\texmf\tex\latex\graphics\graphics.sty
+Package: graphics 1999/02/16 v1.0l Standard LaTeX Graphics (DPC,SPQR)
+
+(c:\program files\texmf\tex\latex\graphics\trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(c:\program files\texmf\tex\latex\00miktex\graphics.cfg)
+Package graphics Info: Driver file: pdftex.def on input line 80.
+
+(c:\program files\texmf\tex\latex\graphics\pdftex.def
+File: pdftex.def 2001/05/25 v0.03g graphics/color for pdftex
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+) (face_group.aux)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+
+(c:\program files\texmf\tex\context\base\supp-pdf.tex
+(c:\program files\texmf\tex\context\base\supp-mis.tex
+loading : Context Support Macros / Missing
+\protectiondepth=\count88
+\scratchcounter=\count89
+\scratchdimen=\dimen105
+\scratchskip=\skip43
+\scratchmuskip=\muskip10
+\scratchbox=\box26
+\scratchread=\read1
+\scratchwrite=\write3
+\nextbox=\box27
+\nextdepth=\dimen106
+\everyline=\toks15
+\!!counta=\count90
+\!!countb=\count91
+\recursecounter=\count92
+)
+loading : Context Support Macros / PDF
+\nofMPsegments=\count93
+\nofMParguments=\count94
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 11.
+
+
+LaTeX Warning: No \author given.
+
+[1
+
+{psfonts.map}]
+
+LaTeX Warning: Citation `will_hbf2_rfx' on page 1 undefined on input line 15.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 15.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 15.
+
+LaTeX Warning: Citation `rik_face_rep' on page 1 undefined on input line 32.
+
+[1]
+Overfull \hbox (9.52472pt too wide) in paragraph at lines 53--54
+[]/cmtt10/ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_informed.zip/c
+mr10/. 
+ []
+
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 72.
+(c:\program files\texmf\tex\latex\base\omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 72.
+
+<t1.jpg, id=35, 493.845pt x 739.26187pt>
+File: t1.jpg Graphic file (type jpg)
+ <use t1.jpg> [2]
+<t1_res.jpg, id=45, 493.845pt x 739.26187pt>
+File: t1_res.jpg Graphic file (type jpg)
+ <use t1_res.jpg> [3] [4 <t1.jpg>]
+[5 <t1_res.jpg>] [6]
+<informed_covariance.jpg, id=65, 357.58594pt x 419.31656pt>
+File: informed_covariance.jpg Graphic file (type jpg)
+
+<use informed_covariance.jpg>
+Overfull \hbox (75.2785pt too wide) in paragraph at lines 170--179
+/cmr10/ing es-ti-mated co-vari-ance ma-trix can be shown by press-ing Review$/c
+msy10/!$/cmr10/Design$/cmsy10/!$/cmr10/Explore$/cmsy10/!$/cmr10/Covariance
+ []
+
+<informed_design.jpg, id=66, 493.845pt x 739.26187pt>
+File: informed_design.jpg Graphic file (type jpg)
+
+<use informed_design.jpg>
+<informed_results.jpg, id=67, 493.845pt x 739.26187pt>
+File: informed_results.jpg Graphic file (type jpg)
+
+<use informed_results.jpg> [7] [8 <informed_covariance.jpg>] [9 <informed_desig
+n.jpg>] <informed_t.jpg, id=77, 485.56406pt x 369.63094pt>
+File: informed_t.jpg Graphic file (type jpg)
+
+<use informed_t.jpg>
+
+LaTeX Warning: Citation `daniel_hbf2' on page 10 undefined on input line 227.
+
+<Ftemp.jpg, id=78, 478.03593pt x 385.44pt>
+File: Ftemp.jpg Graphic file (type jpg)
+ <use Ftemp.jpg>
+<Fdisp.jpg, id=79, 485.56406pt x 380.17032pt>
+File: Fdisp.jpg Graphic file (type jpg)
+ <use Fdisp.jpg>
+
+LaTeX Warning: Citation `rnah_basis' on page 10 undefined on input line 244.
+
+
+LaTeX Warning: Citation `rnah_latency' on page 10 undefined on input line 248.
+
+[10] [11 <informed_results.jpg>] [12 <informed_t.jpg> <Ftemp.jpg>] [13 <Fdisp.j
+pg>] <fir_covariance.jpg, id=93, 373.395pt x 407.27156pt>
+File: fir_covariance.jpg Graphic file (type jpg)
+
+<use fir_covariance.jpg> <fir_design.jpg, id=94, 493.845pt x 739.26187pt>
+File: fir_design.jpg Graphic file (type jpg)
+
+<use fir_design.jpg> [14] [15 <fir_covariance.jpg>] [16 <fir_design.jpg>]
+<fir_results.jpg, id=104, 493.845pt x 739.26187pt>
+File: fir_results.jpg Graphic file (type jpg)
+ <use fir_results.jpg>
+[17] [18 <fir_results.jpg>]
+
+LaTeX Warning: Citation `daniel_hbf2' on page 19 undefined on input line 351.
+
+<can_weighted_fir.jpg, id=112, 462.22687pt x 373.395pt>
+File: can_weighted_fir.jpg Graphic file (type jpg)
+
+<use can_weighted_fir.jpg> [19 <can_weighted_fir.jpg>]
+
+LaTeX Warning: Citation `daniel_hbf2' on page 20 undefined on input line 366.
+
+<nullcan.jpg, id=116, 468.24937pt x 374.14781pt>
+File: nullcan.jpg Graphic file (type jpg)
+ <use nullcan.jpg>
+<nullall.jpg, id=117, 465.23813pt x 347.79938pt>
+File: nullall.jpg Graphic file (type jpg)
+ <use nullall.jpg>
+
+LaTeX Warning: Citation `rnah_basis' on page 20 undefined on input line 388.
+
+[20 <nullcan.jpg>] [21 <nullall.jpg>] (face_group.aux)
+
+LaTeX Warning: There were undefined references.
+
+ )<cmti10.pfb><cmss10.pfb><cmsy10.pfb><cmtt10.pfb><cmss8.pfb><cmr8.pfb><cmr6.pf
+b><cmr7.pfb><cmbx10.pfb><cmr10.pfb><cmbx12.pfb><cmr12.pfb><cmr17.pfb>
+Output written on face_group.pdf (22 pages, 1308046 bytes).
