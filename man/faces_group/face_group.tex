@@ -81,7 +81,7 @@ subdirectory `canonical', to place the design matrix in.}
 SPM will then show you the design matrix shown in Figure~\ref{t1}. This is simply a single column of 1's which will appear as a white box on a white background. This design is encoded in the `SPM.mat' file that is written to the output directory.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{t1}
+\includegraphics[width=100mm]{faces_group/t1}
 \caption{\em Design matrix for canonical responses. This corresponds to a one-sample t-test. \label{t1}}
 \end{center}
 \end{figure}
@@ -104,7 +104,7 @@ SPM will now estimate the parameters, that is, the size of the population effect
 SPM will now display the thresholded t-statistic image. This shows voxels that are significantly active (correcting for multiple comparisons across all voxels) in the population from which the subjects were drawn. They include bilateral posterior fusiform (e.g, 30 -63 -27, Z=6.15), SMA, and, at a more liberal threshold, left motor cortex). 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{t1_res}
+\includegraphics[width=100mm]{faces_group/t1_res}
 \caption{\em Main population effect of faces, as characterised using the Canonical HRF. \label{t1_res}}
 \end{center}
 \end{figure}
@@ -162,7 +162,7 @@ After estimation the actual covariance values (hyper-parameters) are given by SP
 covariance matrix can be shown by pressing Review$\rightarrow$Design$\rightarrow$Explore$\rightarrow$Covariance Structure. The estimated covariance for this data is shown in Figure~\ref{informed_covariance}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{informed_covariance}
+\includegraphics[width=100mm]{faces_group/informed_covariance}
 \caption{\em Estimated covariance matrix for informed basis set. The 6 differently valued hyperparameters are shown in different shades of gray. \label{informed_covariance}}
 \end{center}
 \end{figure}
@@ -195,7 +195,7 @@ appropriate for our purposes.}.}
 This contrast will reveal voxels that show some form of event-related response that can be captured by (ie, lies in the space spanned by) the three basis functions (e.g, 30 -60 -27, Z=7.43), as shown in Figure~\ref{informed_results}. 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{informed_results}
+\includegraphics[width=100mm]{faces_group/informed_results}
 \caption{\em Main population effect of faces, as characterised with the informed basis set. \label{informed_results}}
 \end{center}
 \end{figure}
@@ -210,7 +210,7 @@ Note that because the data have also been pre-whitened our interpretation of the
 	shown in Figure~\ref{informed_t}.
 	\begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{informed_t}
+\includegraphics[width=100mm]{faces_group/informed_t}
 \caption{\em Main population effect of faces, as characterised with the canonical using a [1 0 0] t-contrast on the informed basis coefficients. \label{informed_t}}
 \end{center}
 \end{figure}
@@ -219,13 +219,13 @@ The main reason for this increased power is the increase in the degrees of freed
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{Ftemp}
+\includegraphics[width=100mm]{faces_group/Ftemp}
 \caption{\em Significantly non-zero temporal derivative coefficients. These voxels show earlier or later than canonical responses. \label{informed_Ftemp}}
 \end{center}
 \end{figure}
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{Fdisp}
+\includegraphics[width=100mm]{faces_group/Fdisp}
 \caption{\em Significantly non-zero dispersion derivative coefficients. These voxels show narrower or wider than canonical responses. \label{informed_Fdisp}}
 \end{center}
 \end{figure}
@@ -278,7 +278,7 @@ After estimation the actual covariance values (hyper-parameters) are given by SP
 covariance matrix can be shown by pressing Review$\rightarrow$Design$\rightarrow$Explore$\rightarrow$Covariance Structure. The estimated covariance for this data is shown in Figure~\ref{fir_covariance}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{fir_covariance}
+\includegraphics[width=100mm]{faces_group/fir_covariance}
 \caption{\em Estimated covariance matrix for FIR basis set. The differently valued hyperparameters are shown in different shades of gray. Notice that the most variable responses occur in the third time bin (scans 25 to 36) corresponding to responses 4-6 seconds post stimulus, ie. at the peak of the hemodynamic response. \label{fir_covariance}}
 \end{center}
 \end{figure}
@@ -287,7 +287,7 @@ Note that these are `global' values which are scaled by a voxel specific-value t
 SPM will then show you the design matrix shown in Figure~\ref{fir_design}. This design is encoded in the `SPM.mat' file that is written to the output directory.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{fir_design}
+\includegraphics[width=100mm]{faces_group/fir_design}
 \caption{\em Design matrix for FIR basis set. This corresponds to a one-way ANOVA with 12 levels. \label{fir_design}}
 \end{center}
 \end{figure}
@@ -312,7 +312,7 @@ Note how the design matrix, shown in Figure~\ref{fir_results} appears to be diff
 The above contrast will reveal voxels that show {\em any} form of event-related response, within the range 0-24s post-stimulus and with 2s resolution, as shown in Figure~\ref{fir_results}. 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{fir_results}
+\includegraphics[width=100mm]{faces_group/fir_results}
 \caption{\em Main population effect of faces, as characterised with the FIR basis set. \label{fir_results}}
 \end{center}
 \end{figure}
@@ -342,7 +342,7 @@ If you type `corrcoef(all')', you will see that the basis functions are slightly
 This produces the MIP in Figure~\ref{can_weighted_fir}.At a FWE correct p value of 0.05, note more voxels compared to the equivalent contrasts for the canonical HRF. The main reason for this increased power is again the increase in the degrees of freedom, which entails better estimators of the underlying error (co)variance (though if the FIR parameters were estimated very inefficiently, the extra contrast images might add more noise, outweighing any advantage of higher degrees of freedom). Again, this increased power comes with a stronger assumption about the nonsphericity, namely that it has the same structure across (activated) voxels \cite{daniel_hbf2}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{can_weighted_fir}
+\includegraphics[width=100mm]{faces_group/can_weighted_fir}
 \caption{\em Main population effect of faces, as characterised with a canonically weighted contrast of FIR bases. \label{can_weighted_fir}}
 \end{center}
 \end{figure}
@@ -357,7 +357,7 @@ This creates a matrix for an F-contrast that spans the `null space' of the canon
 \cite{daniel_hbf2}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{nullcan}
+\includegraphics[width=100mm]{faces_group/nullcan}
 \caption{\em Regions expressing variability across subjects not captured by canonical HRF. \label{nullcan}}
 \end{center}
 \end{figure}
@@ -372,7 +372,7 @@ This creates a matrix for an F-contrast that spans the 1null space' of all three
 \ei
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{nullall}
+\includegraphics[width=100mm]{faces_group/nullall}
 \caption{\em Regions expressing variability across subjects not captured by informed basis set. \label{nullall}}
 \end{center}
 \end{figure}
