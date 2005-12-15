@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 382 2005-12-15 11:42:05Z john $
+% $Id: spm_config_factorial_design.m 383 2005-12-15 15:24:51Z guillaume $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -618,7 +618,7 @@ p4=['By default, an implicit mask is used. '];
 im.help = {p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text};
 
 em = files('Explicit Mask','em','image',1,'');
-em.val={'None'};
+em.val={''};
 em.help = {['Select an explicit mask ']};
 p1=['Explicit masks are other images containing (implicit) masks ',...
     'that are to be applied to the current analysis.'];
@@ -1510,17 +1510,17 @@ xGX = struct(...
 %-------------------------------------------------------------------
 %-Work out available options:
 % -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
-M_T=-Inf;
+M_T = -Inf;
 switch strvcat(fieldnames(job.masking.tm)),
     case 'tma',
         % Absolute 
-        M_T = job.masking.tma.athresh;
+        M_T = job.masking.tm.tma.athresh;
     case 'tmr',
         % Relative
-        M_T= job.masking.tmr.rthresh*sqrt(-1);
+        M_T = job.masking.tm.tmr.rthresh*sqrt(-1);
     case 'tm_none'
         % None
-        M_T=-Inf;
+        M_T = -Inf;
 end
     
 %-Make a description string
@@ -1559,12 +1559,13 @@ else
     xsM.Implicit_masking = 'Yes: NaN''s treated as missing';
 end
     
-% Explicit masking  
-if strcmp(job.masking.em,'None')
-    VM  = [];
+%-Explicit masking  
+%-------------------------------------------------------------------
+if isempty(job.masking.em{:})
+    VM = [];
     xsM.Explicit_masking = 'No'; 
 else
-    VM=job.masking.em;
+    VM = job.masking.em;
     xsM.Explicit_masking = 'Yes';
 end
 
