@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 366 2005-12-06 18:45:38Z will $
+% $Id: spm_config_factorial_design.m 382 2005-12-15 11:42:05Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -350,6 +350,7 @@ factors.type = 'repeat';
 factors.name = 'Factors';
 factors.tag  = 'factors';
 factors.values = {factor};
+factors.num  = [1 Inf];
 p1 = ['Specify your design a factor at a time. '];
 factors.help ={p1,sp_text};
 
@@ -380,6 +381,7 @@ cells.type = 'repeat';
 cells.name = 'Specify cells';
 cells.tag  = 'cells';
 cells.values = {icell};
+cells.num  = [1 Inf];
 p1 = ['Enter the scans a cell at a time'];
 cells.help={p1,sp_text};
 
@@ -409,6 +411,7 @@ facs.type = 'repeat';
 facs.name = 'Factors';
 facs.tag  = 'facs';
 facs.values = {fac};
+facs.num  = [1 Inf];
 p1=['Specify your design a factor at a time.'];
 facs.help={p1,sp_text};
 
@@ -426,24 +429,19 @@ fmain.tag    = 'fmain';
 fmain.val    = {fnum};
 fmain.help = {'Add a main effect to your design matrix'};
 
-fmains.type = 'repeat';
-fmains.name = 'Main effects';
-fmains.tag  = 'fmains';
-fmains.values = {fmain};
-
 inter.type   = 'branch';
 inter.name   = 'Interaction';
 inter.tag    = 'inter';
 inter.val    = {fnums};
 inter.help = {'Add an interaction to your design matrix'};
 
-inters.type = 'repeat';
-inters.name = 'Interactions';
-inters.tag  = 'inters';
-inters.values = {inter};
+maininters.type = 'repeat';
+maininters.name = 'Main effects & Interactions';
+maininters.num  = [1 Inf];
+maininters.tag  = 'maininters';
+maininters.values = {fmain, inter};
 
 scans    = files('Scans','scans','image',[1 Inf],'Select scans');
-scans.val = {''};
 scans.help = {[...
 'Select the images to be analysed.  They must all have the same ',...
 'image dimensions, orientation, voxel size etc.']};
@@ -469,18 +467,22 @@ fsubjects.type = 'repeat';
 fsubjects.name = 'Subjects';
 fsubjects.tag  = 'fsubjects';
 fsubjects.values = {fsubject};
+fsubjects.num  = [1 Inf];
+
+fsuball.type = 'choice';
+fsuball.name = 'Specify Subjects or all Scans & Factors';
+fsuball.tag  = 'fsuball';
+fsuball.values = {fsubjects specall};
 
 %-------------------------------------------------------------------------
 % Two-sample t-test
 
 scans1    = files('Group 1 scans','scans1','image',[1 Inf],'Select scans');
-scans1.val = {''};
 scans1.help = {[...
 'Select the images from sample 1.  They must all have the same ',...
 'image dimensions, orientation, voxel size etc.']};
 
 scans2    = files('Group 2 scans','scans2','image',[1 Inf],'Select scans');
-scans2.val = {''};
 scans2.help = {[...
 'Select the images from sample 2.  They must all have the same ',...
 'image dimensions, orientation, voxel size etc.']};
@@ -489,7 +491,6 @@ scans2.help = {[...
 % Paired t-test
 
 pscans    = files('Scans [1,2]','scans','image',[1 2],'Select scans');
-pscans.val = {''};
 pscans.help = {[...
 'Select the pair of images. ']};
 
@@ -502,6 +503,7 @@ pair.help = {'Add a new pair of scans to your experimental design'};
 pairs.type = 'repeat';
 pairs.name = 'Pairs';
 pairs.tag  = 'pairs';
+pairs.num  = [1 Inf];
 pairs.values = {pair};
 p1 = [' ',...
       ' '];
@@ -511,7 +513,6 @@ pairs.help ={p1,sp_text};
 % One sample t-test
 
 t1scans    = files('Scans','scans','image',[1 Inf],'Select scans');
-t1scans.val = {''};
 t1scans.help = {[...
 'Select the images.  They must all have the same ',...
 'image dimensions, orientation, voxel size etc.']};
@@ -532,7 +533,7 @@ mreg = branch('Multiple regression','mreg',...
     {t1scans,mcovs},'');
 
 fblock = branch('Flexible factorial','fblock',...
-    {facs,specall,fsubjects,fmains,inters},'');
+    {facs,fsuball,maininters},'');
 pb1 = ['Create a design matrix a block at a time by specifying which ',...
       'main effects and interactions you wish to be included.'];
 
@@ -632,7 +633,7 @@ em.help = {p1,sp_text,p2,sp_text,p3,sp_text};
 
 tm_none.type = 'const';
 tm_none.name = 'None';
-tm_none.tag = 'none';
+tm_none.tag = 'tm_none';
 tm_none.val = {[]};
 tm_none.help = {'No threshold masking'};
 
@@ -1052,15 +1053,16 @@ case 'fblock',
     % Flexible factorial design
     DesName='Flexible factorial';
     
-    nsub=length(job.des.fblock.fsubject);
-    if nsub > 0
+    if isfield(job.des.fblock.fsuball,'fsubject')
+        nsub=length(job.des.fblock.fsuball.fsubject);
         % Specify design subject-by-subject
         P=[];I=[];
         subj=[];
         for s=1:nsub,
-            P = [P; job.des.fblock.fsubject(s).scans];
-            ns = length(job.des.fblock.fsubject(s).scans);
-            cc=job.des.fblock.fsubject(s).conds;
+            P  = [P; job.des.fblock.fsuball.fsubject(s).scans];
+            ns = length(job.des.fblock.fsuball.fsubject(s).scans);
+            cc = job.des.fblock.fsuball.fsubject(s).conds;
+
             [ccr,ccc] = size(cc);
             if ~(ccr==ns) & ~(ccc==ns)
                 disp(sprintf('Error for subject %d: conditions not specified for each scan',s));
@@ -1092,15 +1094,14 @@ case 'fblock',
             end
         end
         
-        
     else
-        [ns,nf]=size(job.des.fblock.specall.imatrix);
+        [ns,nf]=size(job.des.fblock.fsuball.specall.imatrix);
         if nf > 4
             disp('Error in factorial matrix: number of factors should be less than 5');
             return
         end
-        I=job.des.fblock.specall.imatrix;
-        P=job.des.fblock.specall.scans;
+        I=job.des.fblock.fsuball.specall.imatrix;
+        P=job.des.fblock.fsuball.specall.scans;
     end
     
     % Pad out factorial matrix to cover the four canonical factors
@@ -1108,12 +1109,23 @@ case 'fblock',
     if nI < 4
         I = [I, ones(ns,4-nI)];
     end
-    
+
+    % Sort main effects and interactions
+    fmain = struct('fnum',{});
+    inter = struct('fnums',{});
+    for k=1:numel(job.des.fblock.maininters)
+        if isfield(job.des.fblock.maininters{k},'fmain')
+            fmain(end+1)=job.des.fblock.maininters{k}.fmain;
+        elseif isfield(job.des.fblock.maininters{k},'inter')
+            inter(end+1)=job.des.fblock.maininters{k}.inter;
+        end;
+    end;
+
     % Create main effects
     H=[];Hnames=[];
     nmain=length(job.des.fblock.fmain);
     for f=1:nmain,
-        fcol=job.des.fblock.fmain(f).fnum;
+        fcol=fmain(f).fnum;
         fname=job.des.fblock.fac(fcol).name;
         
         % Augment H partition - explicit factor numbers are 1 lower than in I matrix
@@ -1123,10 +1135,10 @@ case 'fblock',
     end
     
     % Create interactions
-    ni=length(job.des.fblock.inter);
+    ni=length(inter);
     for i=1:ni,
         % Get the two factors for this interaction
-        fnums=job.des.fblock.inter(i).fnums;
+        fnums=inter(i).fnums;
         f1=fnums(1);f2=fnums(2);
         
         % Names
@@ -1353,6 +1365,7 @@ if iGMsca == 9                      %-Not scaling (GMsca or PropSca)
     GM = 0;                         %-Set GM to zero when not scaling
 else                                %-Ask user value of GM
     GM = job.globalm.gmsca_yes.gmscv;
+    GM = job.globalm.gmsca.gmsca_yes.gmscv;
     %-If GM is zero then don't GMsca! or PropSca GloNorm
     if GM==0, 
         iGMsca=9; 
