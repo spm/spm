@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 383 2005-12-15 15:24:51Z guillaume $
+% $Id: spm_config_factorial_design.m 384 2005-12-15 19:18:41Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -695,7 +695,12 @@ g_mean.type = 'const';
 g_mean.name = 'Mean';
 g_mean.tag = 'g_mean';
 g_mean.val = {[]};
-g_mean.help = {'SPM standard mean voxel value (within per image fullmean/8 mask)'};
+p1=['SPM standard mean voxel value'];
+p2=['This defines the global mean via a two-step process. Firstly, the overall ',...
+        'mean is computed. Voxels with values less than 1/8 of this value are then ',...
+        'deemed extra-cranial and get masked out. The mean is then recomputed on the ',...
+        'remaining voxels.'];
+g_mean.help = {p1,sp_text,p2_sp_text};
 
 g_omit.type = 'const';
 g_omit.name = 'Omit';
@@ -722,6 +727,8 @@ gmsca_no.help = {'No overall grand mean scaling'};
 
 gmscv      = entry('Grand mean scaled value','gmscv','e',[Inf 1],'');
 gmscv.val={50};
+gmscv.help{'The default value of 50, scales the global flow to a physiologically ',...
+        'realistic value of 50ml/dl/min.'};
 
 gmsca_yes=branch('Yes','gmsca_yes',{gmscv},'');
 p1 =['Scaling of the overall grand mean simply ',...
@@ -1123,7 +1130,7 @@ case 'fblock',
 
     % Create main effects
     H=[];Hnames=[];
-    nmain=length(job.des.fblock.fmain);
+    nmain=length(fmain);
     for f=1:nmain,
         fcol=fmain(f).fnum;
         fname=job.des.fblock.fac(fcol).name;
@@ -1364,7 +1371,6 @@ end
 if iGMsca == 9                      %-Not scaling (GMsca or PropSca)
     GM = 0;                         %-Set GM to zero when not scaling
 else                                %-Ask user value of GM
-    GM = job.globalm.gmsca_yes.gmscv;
     GM = job.globalm.gmsca.gmsca_yes.gmscv;
     %-If GM is zero then don't GMsca! or PropSca GloNorm
     if GM==0, 
