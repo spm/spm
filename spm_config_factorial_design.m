@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 384 2005-12-15 19:18:41Z will $
+% $Id: spm_config_factorial_design.m 386 2005-12-16 10:48:02Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -700,7 +700,7 @@ p2=['This defines the global mean via a two-step process. Firstly, the overall '
         'mean is computed. Voxels with values less than 1/8 of this value are then ',...
         'deemed extra-cranial and get masked out. The mean is then recomputed on the ',...
         'remaining voxels.'];
-g_mean.help = {p1,sp_text,p2_sp_text};
+g_mean.help = {p1,sp_text,p2,sp_text};
 
 g_omit.type = 'const';
 g_omit.name = 'Omit';
@@ -727,8 +727,9 @@ gmsca_no.help = {'No overall grand mean scaling'};
 
 gmscv      = entry('Grand mean scaled value','gmscv','e',[Inf 1],'');
 gmscv.val={50};
-gmscv.help{'The default value of 50, scales the global flow to a physiologically ',...
-        'realistic value of 50ml/dl/min.'};
+p1=['The default value of 50, scales the global flow to a physiologically ',...
+        'realistic value of 50ml/dl/min.'];
+gmscv.help={p1,sp_text};
 
 gmsca_yes=branch('Yes','gmsca_yes',{gmscv},'');
 p1 =['Scaling of the overall grand mean simply ',...
