@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 329 2005-11-29 21:31:02Z jeremie $
+% $Id: spm_eeg_inv_evoked.m 385 2005-12-16 10:47:52Z jeremie $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -51,12 +51,6 @@ if (D.inv{val}.mesh.Ctx_Nv - D.inv{val}.inverse.dim)
     end
 end
 
-
-% DATA VARIANCE PARTITIONING (Call for ReML)
-ExpScal     = max(Y(:));
-Scal        = floor( log10(ExpScal) );
-Scal        = 10^(-Scal);
-
 woi        = D.inv{val}.inverse.woi;
 contrast   = D.inv{val}.inverse.contrast;
 Nsens      = D.Nchannels;
@@ -70,6 +64,11 @@ for i = 1:D.Nevents
     k = find(D.events.code == D.events.types(i));
     Y = Y + contrast(i)*squeeze(D.data(:,woi(1):woi(2),k));
 end
+
+% DATA VARIANCE PARTITIONING (Call for ReML)
+ExpScal     = max(Y(:));
+Scal        = floor( log10(ExpScal) );
+Scal        = 10^(-Scal);
 
 Y     = Scal*Y;
 G     = Scal*G;
