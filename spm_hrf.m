@@ -20,15 +20,15 @@ function [hrf,p] = spm_hrf(RT,P);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hrf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_hrf.m 387 2005-12-17 18:31:23Z klaas $
 
 
 % global parameter
 %-----------------------------------------------------------------------
 global defaults
-if ~isempty(defaults),
+try
 	fMRI_T = defaults.stats.fmri.t;
-else,
+catch
 	fMRI_T = 16;
 end;
 
