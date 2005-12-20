@@ -14,7 +14,7 @@ function D = spm_eeg_inv_mesh_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 342 2005-11-30 18:27:52Z jeremie $
+% $Id: spm_eeg_inv_mesh_ui.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -40,10 +40,8 @@ switch D.inv{end}.method
             D = spm_eeg_inv_spatnorm(D);     
         end
 
-        if Mflag == 2       % compute a template-based individual cortex mesh
-            D = spm_eeg_inv_meshing(D);
-            spm_eeg_inv_checkmeshes(D);
-        end
+        D = spm_eeg_inv_meshing(D);
+        spm_eeg_inv_checkmeshes(D);
         
     case 'ECD'
         val = length(D.inv);

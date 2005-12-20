@@ -15,7 +15,7 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_spatnorm.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -54,13 +54,13 @@ savefields(D.inv{val}.mesh.invdef,isn);
 
 % Writing the images
 spm_preproc_write(sn,jobs{1}.spatial{1}.preproc.output);
-nobias_name = ['m' nam '.img'];
+nobias_name = ['m' nam ext];
 D.inv{val}.mesh.nobias = fullfile(pth,nobias_name);
 
 % Downsampling the segmented images (by a factor 2 in each direction)
 for i = 1:3
-    PI = fullfile(pth,['c' num2str(i) nam '.img']);
-    PO = fullfile(pth,['dc' num2str(i) nam '.img']);
+    PI = fullfile(pth,['c' num2str(i) nam ext]);
+    PO = fullfile(pth,['dc' num2str(i) nam ext]);
     VI = spm_vol(PI);
     dim = round(VI.dim/2);
     mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
@@ -71,17 +71,19 @@ for i = 1:3
     else
         error(sprintf('Impossible to write file downsampled segmented volume\n'));
     end
-    HI = fullfile(pth,['c' num2str(i) nam '.hdr']);
-    HO = fullfile(pth,['dc' num2str(i) nam '.hdr']);
-    [success] = copyfile(HO,HI);
-    if success
-        delete(HO);
-    else
-        error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+    if strcmp(ext,'.img')
+        HI = fullfile(pth,['c' num2str(i) nam '.hdr']);
+        HO = fullfile(pth,['dc' num2str(i) nam '.hdr']);
+        [success] = copyfile(HO,HI);
+        if success
+            delete(HO);
+        else
+            error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+        end
     end
 end
 PI = D.inv{val}.mesh.nobias;
-PO = fullfile(pth,'temp_downsampled_mask.img');
+PO = fullfile(pth,['temp_downsampled_mask' ext]);
 VI = spm_vol(PI);
 dim = round(VI.dim/2);
 mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
@@ -93,13 +95,15 @@ else
     error(sprintf('Impossible to write file downsampled segmented volume\n'));
 end
 [pth,nam,ext] = spm_fileparts(PI);
-HI = fullfile(pth,[nam '.hdr']);
-HO = fullfile(pth,'temp_downsampled_mask.hdr');
-[success] = copyfile(HO,HI);
-if success
-    delete(HO);
-else
-    error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+if strcmp(ext,'.img')
+    HI = fullfile(pth,[nam '.hdr']);
+    HO = fullfile(pth,'temp_downsampled_mask.hdr');
+    [success] = copyfile(HO,HI);
+    if success
+        delete(HO);
+    else
+        error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+    end
 end
 
 clear jobs

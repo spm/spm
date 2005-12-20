@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 319 2005-11-29 11:17:23Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -170,7 +170,6 @@ else
 end
 
 % Set OPTIONS.EEGRef here !
-
 
 % Sensor Information
 OPTIONS.ChannelFile = [nam '_BSTChannelFile.mat'];

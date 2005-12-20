@@ -30,7 +30,7 @@ function varargout = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 329 2005-11-29 21:31:02Z jeremie $
+% $Id: spm_eeg_inv_getmasks.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -54,7 +54,7 @@ if nargout == 1
     val = length(D.inv);
 
     if isempty(D.inv{val}.mesh.nobias)
-        Ivol = spm_select(1,'.img','Select nobias file');
+        Ivol = spm_select(1,'image','Select nobias file');
         D.inv{val}.mesh.nobias = Ivol;
     else
         Ivol = D.inv{val}.mesh.nobias;

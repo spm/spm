@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 385 2005-12-16 10:47:52Z jeremie $
+% $Id: spm_eeg_inv_evoked.m 389 2005-12-20 12:17:18Z jeremie $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -80,6 +80,7 @@ end
 Q      = {Qe{:} GQpG{:}};
 Nsamp  = woi(2) - woi(1) + 1;
 
+Q{2} = Q{2}(1:60,1:60);
 [C,h,Ph,F] = spm_reml(YY,X,Q,Nsamp,1);
 clear YY Q
 

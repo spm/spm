@@ -14,7 +14,7 @@ function D = spm_eeg_inv_meshing(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 376 2005-12-12 15:37:43Z jeremie $
+% $Id: spm_eeg_inv_meshing.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -31,8 +31,12 @@ if isempty(D.inv{val}.mesh.sMRI)
     D.inv{val}.mesh.sMRI = spm_select(1,'image','Select subject sMRI');
 end
 
+if isempty(D.inv{val}.mesh.def)
+    D.inv{val}.mesh.def = spm_select(1,'mat','Select deformation');
+end
+
 if isempty(D.inv{val}.mesh.invdef)
-    D.inv{val}.mesh.invdef = spm_select(1,'mat','Select deformation');
+    D.inv{val}.mesh.invdef = spm_select(1,'mat','Select inv deformation');
 end
 
 Msize = spm_input('Mesh size (vertices)','+1','3000|4000|5000|7200',[1 2 3 4]);

@@ -22,7 +22,7 @@ function varargout = spm_eeg_inv_getmeshes(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmeshes.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_getmeshes.m 389 2005-12-20 12:17:18Z jeremie $
 
 spm_defaults
 
@@ -44,14 +44,14 @@ if nargout == 1
     val = length(D.inv);
     
     if isempty(D.inv{val}.mesh.msk_iskull)
-        Iisk = spm_select(1,'.img','Select inner-skull bin mask');
+        Iisk = spm_select(1,'image','Select inner-skull bin mask');
         D.inv{val}.mesh.msk_iskull = Iisk;
     else
         Iisk = D.inv{val}.mesh.msk_iskull;
     end
     
     if isempty(D.inv{val}.mesh.msk_scalp)
-        Iscl = spm_select(1,'.img','Select scalp bin mask');
+        Iscl = spm_select(1,'image','Select scalp bin mask');
         D.inv{val}.mesh.msk_scalp = Iscl;
     else
         Iscl = D.inv{val}.mesh.msk_scalp;
