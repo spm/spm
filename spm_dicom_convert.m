@@ -13,7 +13,7 @@ function spm_dicom_convert(hdr,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 362 2005-12-06 11:14:54Z john $
+% $Id: spm_dicom_convert.m 392 2005-12-21 17:45:58Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -107,7 +107,7 @@ for i=1:length(hdr),
 	% y increases posterior to anterior
 	% z increases  inferior to superior
 
-	analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
+	analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 
 	vox    = [hdr{i}.PixelSpacing hdr{i}.SpacingBetweenSlices];
 	pos    = hdr{i}.ImagePositionPatient';
@@ -452,7 +452,7 @@ dt     = [spm_type('int16') spm_platform('bigend')];
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
+analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
 orient(:,3)      = null(orient');
 if det(orient)<0, orient(:,3) = -orient(:,3); end;
