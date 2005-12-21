@@ -22,6 +22,12 @@ function [SPM] = spm_spm_vb(SPM)
 %            Bayesian comparison of spatially regularised general linear
 %            models. Human Brain Mapping. Accepted for publication.
 %
+% Paper VB5: W. Penny and G. Flandin (2005).
+%            Bayesian analysis of fMRI data with spatial priors.
+%            2005 Proceedings of the Joint Statistical Meeting, Section on
+%            Statistical Graphics [CDROM], Alexandria, VA: American 
+%            Statistical Association.  
+%
 % The space to be analysed is a 'Volume' or 'Slices'.
 % For 'Slices' the numbers of the slices to be analysed are then entered.
 %
@@ -141,7 +147,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 301 2005-11-16 21:14:58Z guillaume $
+% $Id: spm_spm_vb.m 391 2005-12-21 10:12:27Z will $
 
 
 %-Get SPM.mat if necessary
