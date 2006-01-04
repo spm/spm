@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 375 2005-12-09 14:09:28Z john $
+% $Id: spm.m 395 2006-01-04 16:36:01Z john $
 
 
 %=======================================================================
@@ -1792,8 +1792,8 @@ case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
 %-----------------------------------------------------------------------
-P = spm_select(Inf,'.*','Select file(s) to delete');
-n = length(P);
+P = cellstr(spm_select(Inf,'.*','Select file(s) to delete'));
+n = numel(P);
 if n==0
 	spm('alert"','Nothing selected to delete!','file delete',0);
 	return
