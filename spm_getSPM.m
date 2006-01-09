@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 234 2005-09-20 09:36:11Z will $
+% $Id: spm_getSPM.m 396 2006-01-09 13:31:41Z will $
 
 
 
-SCCSid = '$Rev: 234 $';
+SCCSid = '$Rev: 396 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -381,22 +381,30 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
 if isfield(SPM,'PPM') 
-    if (xCon(Ic(1)).STAT == 'T') | ((xCon(Ic(1)).STAT == 'P') & xCon(Ic(1)).PSTAT=='T')
+    if ~isfield(xCon,'PSTAT')
+        if xCon(Ic).STAT=='P'
+            % SPM has no way of knowing if PPM contrast should be T or F
+            % - so set to T by default
+            xCon(Ic).PSTAT='T';
+        else
+            xCon(Ic).PSTAT=xCon(Ic).STAT;
+            xCon(Ic).STAT='P';
+        end
+    else
+        % Make sure STAT is set to specify PPM 
+        xCon(Ic).STAT='P';
+    end
+    
+    if (xCon(Ic).PSTAT == 'T') 
         % Simple contrast
-        xCon(Ic).PSTAT='T';
         str           = 'Effect size threshold for PPM';
         if isfield(SPM.PPM,'VB')
             % For VB - set default effect size to zero
             Gamma=0;
             xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
-            xCon(Ic).STAT = 'P';
         elseif nc == 1 & isempty(xCon(Ic).Vcon)
             % con image not yet written
             if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
-                
-                % set STAT to 'P'
-                %---------------------------------------------------------------
-                xCon(Ic).STAT = 'P';
                 %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
                 % The default is one conditional s.d. of the contrast
                 Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
@@ -405,8 +413,6 @@ if isfield(SPM,'PPM')
         end
     else
         % Compound contrast using Chi^2 statistic
-        xCon(Ic).STAT='P';
-        xCon(Ic).PSTAT='F';
         if ~isfield(xCon(Ic),'eidf')
             xCon(Ic).eidf=0; % temporarily
         end
