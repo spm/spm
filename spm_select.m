@@ -38,7 +38,7 @@ function [t,sts] = spm_select(varargin)
 % FORMAT cpath = spm_select('CPath',path,cwd)
 % function to canonicalise paths: Prepends cwd to relative paths, processes
 % '..' & '.' directories embedded in path.
-% path     - string matrix (or cell array of strings) containing path names
+% path     - string matrix containing path name
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
@@ -52,7 +52,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 369 2005-12-08 13:58:49Z john $
+% $Id: spm_select.m 400 2006-01-11 18:41:15Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
