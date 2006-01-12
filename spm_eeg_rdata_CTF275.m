@@ -22,7 +22,7 @@ PP1=squeeze(pre_data.data(:,1));
 PP2=squeeze(pre_data.data(:,2));
 
 inds=find(diff(PP1)>0);
-D.events.code=PP1(inds+1)';
+D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
 D.events.time=inds'+1;
 inds=find(diff(PP2)<0);
 D.events.code=[D.events.code,PP2(inds+1)'+255];
