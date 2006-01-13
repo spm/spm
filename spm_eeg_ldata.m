@@ -12,7 +12,7 @@ function D = spm_eeg_ldata(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 356 2005-12-01 18:43:23Z stefan $
+% $Id: spm_eeg_ldata.m 404 2006-01-13 18:42:21Z stefan $
 
 
 try
@@ -33,6 +33,12 @@ catch
 end
 
 spm('Pointer', 'Watch');
+
+% check whether there is a struct D
+if exist('D') ~= 1
+    error('%s doesn''t contain SPM M/EEG data', P);
+end
+
 if ~isfield(D, 'datatype')
     dtype = spm_type('int16');
 else

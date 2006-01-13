@@ -280,7 +280,7 @@ case{lower('Dipoles')}
         St = [[0 -1 0 0]; [1 0 0 0]; [0 0 1 0]; [0 0 0 1]];
         sdip.j{1} = St*[sdip.j{1}; ones(1, DCM.M.Nareas)];
         sdip.j{1} = sdip.j{1}(1:3, :);
-        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), DCM.M.Nareas, 1);
+        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
         sdip.j{1} = sdip.j{1}(:);
         sdip.loc{1} = P.Lpos;
 

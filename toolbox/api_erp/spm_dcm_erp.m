@@ -94,10 +94,6 @@ M = DCM.M;
 if isfield(DCM.M, 'dipfit')
     % model with parameterised leadfield
     [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
-%    tmp=load('D:\data_james\DCM_paper\DCMjames_3areas_3comp.mat');
-%    pE2=pE;
-%    pE2(1:end-1)=tmp.DCM.Ep(1:end-1);
-%    save test pE pE2 
 else
     % model w/ static leadfield
     [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,L,xU.dur);

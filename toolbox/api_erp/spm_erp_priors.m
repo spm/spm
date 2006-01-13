@@ -39,10 +39,8 @@ n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %---------------------------------------------------------------------------
-% E.T   = log(n1);        V.T = n1/16;               % time constants
-% E.H   = log(n1);        V.H = n1/16;               % synaptic density
-E.T   = log(n1);        V.T = n1;               % time constants
-E.H   = log(n1);        V.H = n1;               % synaptic density
+E.T   = log(n1);        V.T = n1/16;               % time constants
+E.H   = log(n1);        V.H = n1/16;               % synaptic density
 
 % set observer parameters
 %---------------------------------------------------------------------------

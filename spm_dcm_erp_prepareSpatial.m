@@ -2,7 +2,7 @@ function DCM = spm_dcm_erp_prepareSpatial(DCM)
 % prepares structures for ECD forward model (both EEG and MEG)
 
 % Stefan Kiebel
-% $Id: spm_dcm_erp_prepareSpatial.m 338 2005-11-30 13:55:04Z guillaume $
+% $Id: spm_dcm_erp_prepareSpatial.m 404 2006-01-13 18:42:21Z stefan $
 
 if DCM.options.Spatial_type == 1
     % EEG
@@ -20,7 +20,10 @@ if DCM.options.Spatial_type == 1
     else
         try
             tmp = load(sensorfile, '-mat');
-            x = tmp(:, 1); y = y(:, 2); y = y(:, 3);
+            xyz = fieldnames(tmp);
+            eval(['xyz = tmp.' xyz{1}]);
+           
+            x = xyz(:, 1); y = xyz(:, 2); z = xyz(:, 3);
         catch
             errordlg('Could not read sensor location file');
         end

@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 333 2005-11-30 08:52:31Z james $
+% $Id: spm_eeg_rdata_bdf.m 404 2006-01-13 18:42:21Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -60,7 +60,18 @@ for i = 1:D.Nchannels
 end
 
 % go through 'external' channels and ask what they are
-Cexg = find(strncmpi('exg', D.channels.name, 3));
+% Cexg = find(strncmpi('exg', D.channels.name, 3));
+
+% assume that external channels are always the 8 channels after the EEG
+% channels
+Neeg = 2^fix(log2(D.Nchannels));
+Cexg = [Neeg+1:Neeg+8];
+
+% print names of external channels in matlab command window
+disp(sprintf('External channels:'))
+for i = 1:8
+   disp(sprintf('%d: %s', i, D.channels.name{Neeg+i}))
+end
 
 % HEOG, VEOG and reference
 try

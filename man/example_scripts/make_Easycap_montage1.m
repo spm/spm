@@ -16,7 +16,6 @@
 
 % read channel names and coordinates
 [Cnames, x, y, z] = textread('M1_XYZ.txt', '%s %f %f %f', 'delimiter','\t ', 'headerlines', 1);
-Nchannels = length(Cnames);
 coord = [x y z];
 
 % distance of each electrode from Cz (0,0)
@@ -41,9 +40,11 @@ Cpos = [x y]';
 
 % add veog, heog
 Cpos = [Cpos [0.6; 0.95]];
-Cnames(end+1) = {'VEOG', 'VEOGR'};
+Cnames{end+1} = {'VEOG', 'VEOGR'};
 Cpos = [Cpos [0.4; 0.95]];
 Cnames{end+1} = 'HEOG';
+
+Nchannels = length(Cnames);
 
 % display ratio of x- and y-axis (used by SPM's display of M/EEG data)
 Rxy = 1.5;
