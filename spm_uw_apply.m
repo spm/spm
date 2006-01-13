@@ -118,7 +118,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_uw_apply.m 403 2006-01-13 18:17:18Z john $
 
 tiny = 5e-2;
 
@@ -328,6 +328,7 @@ for s=1:length(ds)
       if flags.which
          PO         = ds(s).P(i);
          PO.fname   = prepend(PO.fname,'u');
+         PO.mat     = ds(1).P(1).mat;
          PO.descrip = 'spm - undeformed';
 	 ivol       = ima; 
          if flags.mask
