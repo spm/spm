@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 386 2005-12-16 10:48:02Z will $
+% $Id: spm_config_factorial_design.m 405 2006-01-16 13:58:37Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -973,7 +973,7 @@ case 't2',
     
     % Nonsphericity options
     xVi.var(2)=job.des.t2.variance;
-    xVi.dep(1)=job.des.t2.dept;  
+    xVi.dep(2)=job.des.t2.dept;  
     
     % Names and levels
     SPM.factor(1).name='Group';
@@ -1003,7 +1003,7 @@ case 'pt',
     
     % Nonsphericity options
     xVi.var(2)=job.des.pt.variance;
-    xVi.dep(1)=job.des.pt.dept;  
+    xVi.dep(2)=job.des.pt.dept;  
     
     % Names and levels
     SPM.factor(1).name='Group';
@@ -1046,7 +1046,7 @@ case 'fd',
     for i=1:Nfactors,
         % Nonsphericity
         xVi.var(i+1)=job.des.fd.fact(i).variance;
-        xVi.dep(i)=job.des.fd.fact(i).dept; 
+        xVi.dep(i+1)=job.des.fd.fact(i).dept; 
         
         % Store names and levels
         SPM.factor(i).name=job.des.fd.fact(i).name; 
@@ -1083,6 +1083,7 @@ case 'fblock',
         end
         
         nf=length(job.des.fblock.fac);
+        subject_factor=0;
         for i=1:nf,
             if strcmp(job.des.fblock.fac(i).name,'Repl') | ...
                     strcmp(job.des.fblock.fac(i).name,'repl')
@@ -1099,8 +1100,32 @@ case 'fblock',
                     nI=[nI,subj];
                     nI=[nI,I(:,i+1:end)];
                     I=nI;
+                    subject_factor=1;
             end
+            
         end
+        
+        % Re-order scans and conditions into standard format
+        % This is to ensure compatibility with how variance components are created
+        if subject_factor
+             U=unique(I(:,2:nf+1),'rows');
+             Un=length(U);
+             Uc=zeros(Un,1);
+             r=1;rj=[];
+             for k=1:Un,
+                 for j=1:size(I,1),
+                     match=sum(I(j,2:nf+1)==U(k,:))==nf;
+                     if match
+                         Uc(k)=Uc(k)+1;
+                         Ir(r,:)=[Uc(k),I(j,2:end)];
+                         r=r+1;
+                         rj=[rj;j];
+                     end
+                 end
+             end
+        end
+        P=P(rj); % -scans
+        I=Ir;    % -conditions
         
     else
         [ns,nf]=size(job.des.fblock.fsuball.specall.imatrix);
@@ -1169,11 +1194,11 @@ case 'fblock',
     for i=1:nf,
         % Set nonsphericity options
         xVi.var(i+1)=job.des.fblock.fac(i).variance;
-        xVi.dep(i)=job.des.fblock.fac(i).dept;
+        xVi.dep(i+1)=job.des.fblock.fac(i).dept;
         
         % Store names and levels
         SPM.factor(i).name=job.des.fblock.fac(i).name;
-        SPM.factor(i).levels=length(unique(I(:,i)));
+        SPM.factor(i).levels=length(unique(I(:,i+1)));
         
         % Ancova options
         SPM.factor(i).gmsca=job.des.fblock.fac(i).gmsca;
@@ -1183,8 +1208,39 @@ case 'fblock',
     
 end
 nScan=size(I,1); %-#obs
-xVi.I=I; 
-xVi=spm_non_sphericity(xVi);
+
+% Set up data strucutres for `EEG' non-sphericity routine
+nf=length(SPM.factor);nef=nf+1;
+If=[I(:,2:nef),I(:,1)];
+for i=1:length(SPM.factor), % Other factors
+    SPM.eeg.Nlevels{i}=SPM.factor(i).levels;    
+    SPM.eeg.Xind{i}=unique(If(:,1:i),'rows');
+    SPM.xVi.Qidentical{i}=1-xVi.var(i+1);
+    SPM.xVi.Qindependent{i}=1-xVi.dep(i+1);
+end
+SPM.eeg.Nlevels{nef}=length(unique(I(:,1))); % Repetition factor
+SPM.eeg.Xind{nef}=unique(If(:,1:nef),'rows');
+SPM.xVi.Qidentical{nef}=1;
+SPM.xVi.Qindependent{nef}=1;
+SPM.eeg.Nfactors=nef;
+SPM = spm_eeg_get_vc(SPM);  % Call `EEG' non-sphericity routine
+SPM.xVi.I=I;
+% Find covariance elements with missing repetitions
+ncells=prod([SPM.eeg.Nlevels{1:nf}]);
+fullreps=repmat([1:SPM.eeg.Nlevels{nef}]',[ncells,1]);
+missing=[];j=1;
+for i=1:length(fullreps),
+    if ~(fullreps(i)==I(j))
+        missing=[missing i];
+    else
+        j=j+1;
+    end
+end
+% Remove covariance elements with missing repetitions
+for i=1:length(SPM.xVi.Vi)
+    SPM.xVi.Vi{i}(missing,:)=[];
+    SPM.xVi.Vi{i}(:,missing)=[];
+end
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %===================================================================
@@ -1616,8 +1672,7 @@ SPM.xY.VY	= VY;			% mapped data
 SPM.nscan	= size(xX.X,1); % scan number
 SPM.xX		= xX;			% design structure
 SPM.xC		= xC;			% covariate structure
-SPM.xGX		= xGX;			% global structure
-SPM.xVi		= xVi;			% non-sphericity structure
+SPM.xGX		= xGX;			% global structure 
 SPM.xM		= xM;			% mask structure
 SPM.xsDes	= xsDes;		% description
 
