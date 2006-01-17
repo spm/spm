@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 406 2006-01-17 18:33:27Z will $
+% $Id: spm_config_factorial_design.m 407 2006-01-17 19:15:59Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1444,17 +1444,22 @@ end
 
 %-Value for PropSca / GMsca                                     (GM)
 %-------------------------------------------------------------------
-if iGMsca == 9                      %-Not scaling (GMsca or PropSca)
-    GM = 0;                         %-Set GM to zero when not scaling
-else                                %-Ask user value of GM
-    GM = job.globalm.gmsca.gmsca_yes.gmscv;
-    %-If GM is zero then don't GMsca! or PropSca GloNorm
-    if GM==0, 
-        iGMsca=9; 
-        if iGloNorm==8, 
-            iGloNorm=9; 
+switch iGMsca,
+    case 9                      %-Not scaling (GMsca or PropSca)
+        GM = 0;                         %-Set GM to zero when not scaling
+    case 1                                %-Ask user value of GM
+        GM = job.globalm.gmsca.gmsca_yes.gmscv;
+        %-If GM is zero then don't GMsca! or PropSca GloNorm
+        if GM==0, 
+            iGMsca=9; 
+            if iGloNorm==8, 
+                iGloNorm=9; 
+            end
         end
-    end
+    otherwise
+        % Grand mean scaling by factor eg. scans are scaled so that the 
+        % mean global value over each level of the factor is set to GM
+        GM=50;
 end
 
 %-Sort out description strings for GloNorm and GMsca
