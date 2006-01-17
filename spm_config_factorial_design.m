@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 405 2006-01-16 13:58:37Z will $
+% $Id: spm_config_factorial_design.m 406 2006-01-17 18:33:27Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1368,6 +1368,25 @@ if SPM.factor(1).levels > 1
     end
 end
 
+%-Analysis threshold mask
+%-------------------------------------------------------------------
+%-Work out available options:
+% -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
+M_T = -Inf;
+switch strvcat(fieldnames(job.masking.tm)),
+    case 'tma',
+        % Absolute 
+        M_T = job.masking.tm.tma.athresh;
+    case 'tmr',
+        % Relative
+        M_T = job.masking.tm.tmr.rthresh*sqrt(-1);
+        % Need to force calculation of globals
+        iGXcalc=3;
+    case 'tm_none'
+        % None
+        M_T = -Inf;
+end
+
 if (any(iGloNorm == [1:5]) | iGloNorm==8) & iGXcalc==1
     % Over-ride omission of global calculation if we need it
     disp(' ');
@@ -1447,8 +1466,7 @@ if iGloNorm==8
 elseif iGMsca<8
     sGMsca   = sprintf('%s to %-4g',sGMsca,GM);
 end
-    
-    
+
 %-Scaling: compute global scaling factors gSF required to implement
 % proportional scaling global normalisation (PropSca) or grand mean
 % scaling (GMsca), as specified by iGMsca (& iGloNorm)
@@ -1567,24 +1585,6 @@ xGX = struct(...
     'iGMsca',iGMsca,	'sGMsca',sGMsca,	'GM',GM,'gSF',gSF,...
     'iGC',	iGC,		'sGC',	sCC{iGC},	'gc',	gc,...
     'iGloNorm',iGloNorm,	'sGloNorm',sGloNorm);
-    
-    
-%-Analysis threshold mask
-%-------------------------------------------------------------------
-%-Work out available options:
-% -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
-M_T = -Inf;
-switch strvcat(fieldnames(job.masking.tm)),
-    case 'tma',
-        % Absolute 
-        M_T = job.masking.tm.tma.athresh;
-    case 'tmr',
-        % Relative
-        M_T = job.masking.tm.tmr.rthresh*sqrt(-1);
-    case 'tm_none'
-        % None
-        M_T = -Inf;
-end
     
 %-Make a description string
 %-------------------------------------------------------------------
