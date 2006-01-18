@@ -173,9 +173,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_fmri_spm_ui.m 408 2006-01-18 17:12:52Z john $
 
-SCCSid  = '$Rev: 112 $';
+SCCSid  = '$Rev: 408 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -365,12 +365,10 @@ fprintf('%-40s: ','Mapping files')                          	     %-#
 VY    = spm_vol(SPM.xY.P);
 fprintf('%30s\n','...done')                                 	     %-#
 
+
 %-check internal consistency of images
 %-----------------------------------------------------------------------
-if any(any(diff(cat(1,VY.dim),1,1),1))
-error('images do not all have the same dimensions'),           end
-if any(any(any(diff(cat(3,VY.mat),1,3),3)))
-error('images do not all have same orientation & voxel size'), end
+spm_check_orientations(VY);
 
 %-place in xY
 %-----------------------------------------------------------------------

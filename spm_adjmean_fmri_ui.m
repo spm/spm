@@ -192,7 +192,7 @@ function spm_adjmean_fmri_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_adjmean_fmri_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_adjmean_fmri_ui.m 408 2006-01-18 17:12:52Z john $
 
 
 
@@ -333,13 +333,7 @@ spm('Pointer','Watch');
 %-Memory map files
 %-----------------------------------------------------------------------
 V = spm_vol(char(P));
-
-%-Check for consistency of image dimensions and orientation / voxel size
-%-----------------------------------------------------------------------
-if any(any(diff(cat(1,V.dim),1,1),1)&[1,1,1,0])	%NB: Bombs for single image
-	error('images do not all have the same dimensions'), end
-if any(any(any(diff(cat(3,V.mat),1,3),3)))
-	error('images do not all have same orientation & voxel size'), end
+spm_check_orientations(V);
 
 %-Work out required Analyze header info from handles
 %-----------------------------------------------------------------------
