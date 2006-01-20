@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 407 2006-01-17 19:15:59Z will $
+% $Id: spm_config_factorial_design.m 411 2006-01-20 15:45:10Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -617,7 +617,7 @@ p3=['For image data-types without a representation of NaN, zero is ',...
 p4=['By default, an implicit mask is used. '];
 im.help = {p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text};
 
-em = files('Explicit Mask','em','image',1,'');
+em = files('Explicit Mask','em','image',[0 1],'');
 em.val={''};
 em.help = {['Select an explicit mask ']};
 p1=['Explicit masks are other images containing (implicit) masks ',...
