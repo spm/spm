@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 343 2005-11-30 19:20:18Z stefan $
+% $Id: spm_eeg_artefact.m 412 2006-01-24 16:13:50Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -108,7 +108,10 @@ if MustDoWork
 	
 	if Check_Threshold
 		try
-			D.thresholds.threshold = S.thresholds.threshold;
+            D.thresholds.threshold = S.thresholds.threshold;
+            if length(D.thresholds.threshold) == 1
+                D.thresholds.threshold = D.thresholds.threshold * ones(1, D.Nchannels);
+            end
 		catch
 			str = 'threshold[s]';
 			Ypos = -1;
