@@ -31,7 +31,7 @@ function vals = spm_config
 %
 % * 'files' - Entry by file selection
 %   - required fields: 'type', 'name', 'tag', 'filter', 'num'
-%   - optional fields: 'val', 'def', 'help', 'dir'
+%   - optional fields: 'val', 'def', 'help', 'dir', 'ufilter'
 %
 %   The resulting data structure simply contains a cell array
 %   of filenames (from val{1} ).
@@ -121,7 +121,13 @@ function vals = spm_config
 % 'filter'
 % A filter for file selection.  See spm_select for filter usage. Note
 % that a filter of 'image' will allow .*\.nii and .*\.img files to be
-% selected, along with their volume number.
+% selected, along with their volume number. This sets the 'typ' input
+% argument of spm_select, which is not user editable.
+%
+% 'ufilter'
+% A user editable filter for file selection. See spm_select for filter
+% usage. This sets the 'filter' input argument for spm_select. If not
+% specified, this defaults to '.*'.
 %
 % 'strtype'
 % The type of values that are entered by typing.  e.g. 'e' for evaluated.
@@ -193,7 +199,7 @@ function vals = spm_config
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config.m 348 2005-12-01 07:39:48Z will $
+% $Id: spm_config.m 414 2006-01-31 17:36:23Z john $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 

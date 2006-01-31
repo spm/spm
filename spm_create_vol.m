@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 202 2005-07-20 14:01:00Z john $
+% $Id: spm_create_vol.m 414 2006-01-31 17:36:23Z john $
 
 
 for i=1:numel(V),
@@ -49,7 +49,7 @@ end;
 
 dt{1} = spm_type(V.dt(1));
 if strcmp(dt{1},'unknown'),
-    error(['"' dt(1) '" is an unrecognised datatype (' num2str(V.dt(1)) ').']);
+    error(['"' dt{1} '" is an unrecognised datatype (' num2str(V.dt(1)) ').']);
 end;
 if V.dt(2), dt{2} = 'BE'; else dt{2} = 'LE'; end;
 
