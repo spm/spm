@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 411 2006-01-20 15:45:10Z john $
+% $Id: spm_config_factorial_design.m 413 2006-01-31 14:45:23Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1633,7 +1633,7 @@ if isempty(job.masking.em{:})
     VM = [];
     xsM.Explicit_masking = 'No'; 
 else
-    VM = job.masking.em;
+    VM = spm_vol(char(job.masking.em));
     xsM.Explicit_masking = 'Yes';
 end
 
