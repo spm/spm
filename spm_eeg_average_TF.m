@@ -31,6 +31,7 @@ for n=1:D.Nevents
 	[m,i]=find(D.events.types==D.events.code(n));
 	data=fread(fh,[1,size(D.data,1)*size(D.data,2)*size(D.data,3)],'short');
 	data=reshape(data,size(D.data,1),size(D.data,2),size(D.data,3),1);
+    data=data.*repmat(D.scale(:,1,1,n),[1,D.Nfrequencies, D.Nsamples]);
 	d(:,:,:,i)=d(:,:,:,i)+data;
 end
 
