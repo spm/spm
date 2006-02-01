@@ -8,7 +8,8 @@ function [M,h] = spm_maff(varargin)
 %         M       - starting estimate
 %         tpm     - filenames of belonging probability images
 %         regtype - regularisation type, a string of either
-%                   'mni'   - registration with MNI space
+%                   'mni'   - registration of European brains with MNI space
+%                   'eastern' - registration of East Asian brains with MNI space
 %                   'rigid' - rigid(ish)-body registration
 %                   'subj'  - inter-subject registration
 %                   'none'  - no regularisation
@@ -37,7 +38,7 @@ function [M,h] = spm_maff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_maff.m 420 2006-02-01 16:26:47Z john $
 
 
 if nargin>2,
@@ -286,6 +287,28 @@ function [mu,isig] = priors(typ)
 % The parameters for this distribution were derived empirically from 227
 % scans, that were matched to the ICBM space.
 
+%% Values can be derived by...
+%sn = spm_select(Inf,'.*seg_inv_sn.mat$');
+%X  = zeros(size(sn,1),12);
+%for i=1:size(sn,1),
+%    p  = load(deblank(sn(i,:)));
+%    M  = p.VF(1).mat*p.Affine/p.VG(1).mat;
+%    J  = M(1:3,1:3);
+%    V  = sqrtm(J*J');
+%    R  = V\J;
+%    lV      =  logm(V);
+%    lR      = -logm(R);
+%    P       = zeros(12,1);
+%    P(1:3)  = M(1:3,4);
+%    P(4:6)  = lR([2 3 6]);
+%    P(7:12) = lV([1 2 3 5 6 9]);
+%    X(i,:)  = P';
+%end;
+%mu   = mean(X(:,7:12));
+%XR   = X(:,7:12) - repmat(mu,[size(X,1),1]);
+%isig = inv(XR'*XR/(size(X,1)-1))
+
+
 mu   = zeros(6,1);
 isig = zeros(6);
 switch deblank(lower(typ))
@@ -323,6 +346,16 @@ case 'subj', % For inter-subject registration...
            -0.1749    0.0784    0.0784    0.8876    0.0784   -0.1749
             0.0784    0.2655    0.2655    0.0784    5.3894    0.0784
            -0.1749    0.0784    0.0784   -0.1749    0.0784    0.8876];
+
+case 'eastern', % For East Asian brains to MNI...
+	mu   = [0.0719   -0.0040   -0.0032    0.1416    0.0601    0.2578]';
+	isig = 1e4 * [
+	    0.0757    0.0220   -0.0224   -0.0049    0.0304   -0.0327
+	    0.0220    0.3125   -0.1555    0.0280   -0.0012   -0.0284
+	   -0.0224   -0.1555    1.9727    0.0196   -0.0019    0.0122
+	   -0.0049    0.0280    0.0196    0.0576   -0.0282   -0.0200
+	    0.0304   -0.0012   -0.0019   -0.0282    0.2128   -0.0275
+	   -0.0327   -0.0284    0.0122   -0.0200   -0.0275    0.0511];
 
 case 'none', % No regularisation...
         mu   = zeros(6,1);
