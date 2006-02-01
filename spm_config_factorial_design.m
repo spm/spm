@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 413 2006-01-31 14:45:23Z john $
+% $Id: spm_config_factorial_design.m 416 2006-02-01 13:40:59Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -453,7 +453,20 @@ specall.type   = 'branch';
 specall.name   = 'Specify all';
 specall.tag    = 'specall';
 specall.val    = {scans,imatrix};
-specall.help = {'Specify (i) all scans in one go and (ii) all conditions using a factor matrix'};
+p1=['Specify (i) all scans in one go and (ii) all conditions using a ',...
+    'factor matrix, I. This option is for ''power users''. The matrix ',...
+    'I must have four columns and as ',...
+    'as many rows as scans. It has the same format as SPM''s internal ',...
+    'variable SPM.xX.I. '];
+p2=['The first column of I denotes the replication ',...
+    'number and entries in the other columns denote the levels of each ',...
+    'experimental factor. Columns containing all 1''s indicate the abscence ',...
+    'of a factor. '];
+p3=['So, for eg. a two-factor design the first column ',...
+    'denotes the replication number and columns two and three have entries ',...
+    'like 2 3 denoting the 2nd level of the first factor and 3rd level of ',...
+    'the second factor. The 4th column in I would contain all 1s.'];
+specall.help = {p1,sp_text,p2,sp_text,p3};
 
 conds   = entry('Conditions','conds','e',[Inf Inf],'');
 
@@ -1128,12 +1141,21 @@ case 'fblock',
         I=Ir;    % -conditions
         
     else
-        [ns,nf]=size(job.des.fblock.fsuball.specall.imatrix);
-        if nf > 4
-            disp('Error in factorial matrix: number of factors should be less than 5');
+        [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
+        if ~(nc==4)
+            disp('Error: factor matrix must have four columns');
             return
         end
         I=job.des.fblock.fsuball.specall.imatrix;
+        
+        % Get number of factors
+        nf=0;
+        for i=2:4,
+            if length(unique(I(:,i)))>1
+                nf=nf+1;
+            end
+        end
+        
         P=job.des.fblock.fsuball.specall.scans;
     end
     
