@@ -14,7 +14,7 @@ function spm_eeg_inv_checkdatareg(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 321 2005-11-29 11:50:29Z jeremie $
+% $Id: spm_eeg_inv_checkdatareg.m 419 2006-02-01 15:27:36Z jeremie $
 
 spm_defaults
 
@@ -75,8 +75,8 @@ end
 % Cortex Mesh
 variabl = load(Mcortex);
 name    = fieldnames(variabl);
-face    = getfield(variabl,name{2});
-vert    = getfield(variabl,name{3});
+face    = getfield(variabl,'face');
+vert    = getfield(variabl,'vert');
 h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 axis equal
 axis off
@@ -87,16 +87,16 @@ hold on
 if ~isempty(Miskull)
     variabl = load(Miskull);
     name    = fieldnames(variabl);
-    face    = getfield(variabl,name{2});
-    vert    = getfield(variabl,name{3});
+    face    = getfield(variabl,'face');
+    vert    = getfield(variabl,'vert');
     h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
 end
 
 % Scalp Mesh
 variabl = load(Mscalp);
 name    = fieldnames(variabl);
-face    = getfield(variabl,name{2});
-vert    = getfield(variabl,name{3});
+face    = getfield(variabl,'face');
+vert    = getfield(variabl,'vert');
 h_slp   = patch('vertices',vert,'faces',face,'EdgeColor','k','FaceColor','none');
 
 % --- DISPLAY SETUP ---
