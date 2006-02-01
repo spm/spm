@@ -30,7 +30,7 @@ function varargout = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 389 2005-12-20 12:17:18Z jeremie $
+% $Id: spm_eeg_inv_getmasks.m 415 2006-02-01 09:45:57Z jeremie $
 
 spm_defaults
 
@@ -169,7 +169,7 @@ if nargout == 1
     if str2num(version('-release'))>=14
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
-        save(fullfile(fpath3, D.fname), 'D');
+        save(fullfile(D.path, D.fname), 'D');
     end
     varargout{1} = D;
 elseif nargout == 2
