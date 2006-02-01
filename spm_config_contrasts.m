@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 368 2005-12-08 10:43:13Z guillaume $
+% $Id: spm_config_contrasts.m 421 2006-02-01 16:31:54Z will $
 
 
 %_______________________________________________________________________
@@ -436,7 +436,7 @@ for i = 1:length(job.consess)
     %-------------------------------------------------------------------
     if isempty(SPM.xCon)
         SPM.xCon = DxCon;
-    else
+    elseif ~isempty(DxCon)
         SPM.xCon(end+1) = DxCon;
     end
     spm_contrasts(SPM,length(SPM.xCon));
