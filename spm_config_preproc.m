@@ -4,7 +4,7 @@ function job = spm_config_preproc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc.m 420 2006-02-01 16:26:47Z john $
+% $Id: spm_config_preproc.m 424 2006-02-01 20:11:24Z john $
 
 
 %_______________________________________________________________________
@@ -235,14 +235,16 @@ samp.help = {[...
 'is slower.']};
 
 %------------------------------------------------------------------------
-
-% weight = files('Weighting image','weight','image',[0 1]);
-% weight.def  = 'segment.estimate.affreg.weight';
-% weight.help = {[...
-% 'The affine registration can be weighted by an image that conforms to ',...
-% 'the same space as the template image.  If an image is selected, then ',...
-% 'it must match the template(s) voxel-for voxel, and have the same ',...
-% 'voxel-to-world mapping.']};
+% This field can be added to opts, by replacing a line below, with:
+% opts      = branch('Custom','opts',{priors,ngaus,regtype,warpreg,warpco,biasreg,biasfwhm,samp,msk});
+msk = files('Masking image','msk','image',[0 1]);
+msk.val = {''};
+msk.help = {[...
+'The segmentation can be masked by an image that conforms to ',...
+'the same space as the images to be segmented.  If an image is selected, then ',...
+'it must match the image(s) voxel-for voxel, and have the same ',...
+'voxel-to-world mapping.  Regions containing a value of zero in this image ',...
+'do not contribute when estimating the various parameters. ']};
 
 %------------------------------------------------------------------------
 
@@ -463,6 +465,9 @@ return;
 %------------------------------------------------------------------------
 function execute(job)
 job.opts.tpm = strvcat(job.opts.tpm{:});
+if isfield(job.opts,'msk'),
+    job.opts.msk = strvcat(job.opts.msk{:});
+end;
 for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);
     [sn(i),isn]   = spm_prep2sn(res);
