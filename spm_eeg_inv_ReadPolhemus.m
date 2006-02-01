@@ -37,7 +37,7 @@ function [varargout] = spm_eeg_inv_ReadPolhemus(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 338 2005-11-30 13:55:04Z guillaume $
+% $Id: spm_eeg_inv_ReadPolhemus.m 418 2006-02-01 14:37:08Z jeremie $
 
 spm_defaults
 
@@ -206,7 +206,7 @@ sens = 10*sens; % convert from cm to mm
 try
     % select channels
     if ~isempty(Isens) & length(Isens) <= length(sens)
-        sens = sens(end-length(Isens)+1:end);
+        sens = sens(end-length(Isens)+1:end,:);
     end    
     [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
     sensname = [nam '_sensors_EEG_sens.mat'];

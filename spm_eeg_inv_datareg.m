@@ -45,7 +45,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 342 2005-11-30 18:27:52Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 418 2006-02-01 14:37:08Z jeremie $
 
 spm_defaults
 
@@ -161,7 +161,7 @@ if typ == 2
     
     scalpvar    = load(scalpvert);
     name        = fieldnames(scalpvar);
-    scalpmesh   = getfield(scalpvar,name{1});
+    scalpmesh   = getfield(scalpvar,'vert');
     if size(scalpmesh,2) > size(scalpmesh,1)
         scalpmesh = scalpmesh';
     end    
@@ -169,7 +169,7 @@ if typ == 2
     
     h = spm_figure;
     set(h,'DoubleBuffer','on','BackingStore','on');
-    cameratoolbar;cameramenu;
+%     cameratoolbar;cameramenu;
     plot3(scalpmesh(:,1),scalpmesh(:,2),scalpmesh(:,3),'ro','MarkerFaceColor','r');
     hold on;
     g = plot3(hspvarloc(:,1),hspvarloc(:,2),hspvarloc(:,3),'bs','MarkerFaceColor','b');
