@@ -81,7 +81,73 @@ end
  
 % consistency and format check on states, parameters and functions
 %==========================================================================
+
+
+% prior expectation of parameters M.pE and initial values M.P
+%--------------------------------------------------------------------------
+try
+    M.pE;
+catch
+    % Assume fixed parameters
+    %----------------------------------------------------------------------
+    for i = 1:(g - 1)
+        M(i).pE = sparse(0,0);
+    end
+end
+try
+    M.P;
+catch
+    % Assume prior expectations
+    %----------------------------------------------------------------------
+    for i = 1:(g - 1)
+        M(i).P = M(i).pE;
+    end
+end
+for i = 1:(g - 1)
+    if length(spm_vec(M(i).P)) ~= length(spm_vec(M(i).pE))
+        errordlg(sprintf('please check: M(%i).pE/P',i))
+    end
+end
+
+% and priors covariances - p
+%--------------------------------------------------------------------------
+try
+    M.pC;
+catch
+    % Assume fixed parameters
+    %----------------------------------------------------------------------
+    for i = 1:(g - 1)
+        p       = length(spm_vec(M(i).pE));
+        M(i).pC = sparse(p,p);
+    end
+end
+
+% check pC
+%--------------------------------------------------------------------------
+for i = 1:(g - 1)
  
+    % Assume fixed parameters if not specified
+    %----------------------------------------------------------------------
+    if min(size(M(i).pC)) == 0
+        p       = length(spm_vec(M(i).pE));
+        M(i).pC = sparse(p,p);
+    end
+ 
+    % convert variances to covariances if necessary
+    %----------------------------------------------------------------------
+    if min(size(M(i).pC)) == 1
+        M(i).pC = sparse(diag(M(i).pC));
+    end
+ 
+    % check size
+    %----------------------------------------------------------------------
+    if length(M(i).pC) ~= length(spm_vec(M(i).pE))
+        errordlg(sprintf('please check: M(%i).pC',i))
+    end
+ 
+end
+
+
 % get inputs
 %--------------------------------------------------------------------------
 try
@@ -127,7 +193,6 @@ for i = (g - 1):-1:1
     catch
         errordlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
     end
- 
  
     % check g(x,v,P)
     %----------------------------------------------------------------------
@@ -205,11 +270,16 @@ for i = 1:g
     % check V and assume V = 0 if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).V) ~= M(i).l
-        M(i).V = sparse(M(i).l,M(i).l);
+        try
+            M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
+            warndlg(sprintf('expanding M(%i).V',i))
+        catch
+            M(i).V = sparse(M(i).l,M(i).l);
+        end
     end
 end
  
-% Parameters and hyperparameters
+% Hyperparameters
 %==========================================================================
  
 % check hyperpriors h - [log]hyper-parameters and starting values M.h
@@ -217,46 +287,40 @@ end
 try
     M.hE;
 catch
-    M(1).hE = [];
+    for i = 1:g
+        % Assume prior expectation of 0
+        %----------------------------------------------------------------------
+        M(i).hE = sparse(length(M(i).Q),1);
+    end
 end
- 
+try
+    M.h;
+catch
+    % Assume prior expectations
+    %----------------------------------------------------------------------
+    for i = 1:g
+        M(i).h = M(i).hE;
+    end
+end
 for i = 1:g
  
     % check h and assume h = 0 if Q encodes a component (not in V)
     %----------------------------------------------------------------------
     M(i).hE = M(i).hE(:);
+    M(i).h  = M(i).h(:);
     if length(M(i).hE) ~= length(M(i).Q)
-        M(i).hE = sparse(length(M(i).Q),1);
-    end
-    try
-        M(i).h  = M(i).h(:);
-    catch
-        M(i).h  = M(i).hE(:);
+        errordlg(sprintf('please check: M(%i).hE/Q',i))
     end
     if length(M(i).h) ~= length(M(i).hE)
-        M(i).h  = M(i).hE;
+        errordlg(sprintf('please check: M(%i).hE/h',i))
     end
 end
- 
-% prior expectation of parameters M.pE and starting values M.P
-%--------------------------------------------------------------------------
-for i = 1:(g - 1)
-    try
-        M(i).P;
-    catch
-        M(i).P = M(i).pE;
-    end
-    if length(spm_vec(M(i).P)) ~= length(spm_vec(M(i).pE))
-        M(i).P = M(i).pE;
-    end
-end
- 
+
 % and prior covariances - h
 %--------------------------------------------------------------------------
 try
     M.hC;
 catch
- 
     % Assume fixed parameters
     %----------------------------------------------------------------------
     for i = 1:(g - 1)
@@ -264,55 +328,15 @@ catch
         M(i).hC = speye(h,h)*16;
     end
 end
- 
-% and priors covariances - p
-%--------------------------------------------------------------------------
-try
-    M.pC;
-catch
- 
-    % Assume fixed parameters
-    %----------------------------------------------------------------------
-    for i = 1:(g - 1)
-        p       = length(spm_vec(M(i).pE));
-        M(i).pC = sparse(p,p);
-    end
-end
- 
+
 % check size of hC
 %--------------------------------------------------------------------------
 for i = 1:(g - 1)
     if length(M(i).hC) ~= length(M(i).Q)
-        h       = length(M(i).Q);
-        M(i).hC = speye(h,h)*16;
+        errordlg(sprintf('please check: M(%i).hC',i))
     end
 end
- 
-% check pC
-%--------------------------------------------------------------------------
-for i = 1:(g - 1)
- 
-    % Assume fixed parameters if not specified
-    %----------------------------------------------------------------------
-    if min(size(M(i).pC)) == 0
-        p       = length(spm_vec(M(i).pE));
-        M(i).pC = sparse(p,p);
-    end
- 
-    % convert variances to covariances if necessary
-    %----------------------------------------------------------------------
-    if min(size(M(i).pC)) == 1
-        M(i).pC = sparse(diag(M(i).pC));
-    end
- 
-    % check size
-    %----------------------------------------------------------------------
-    if length(M(i).pC) ~= length(spm_vec(M(i).pE))
-        errordlg(sprintf('incorrect priors: M(%i).pC',i))
-    end
- 
-end
- 
+
  
 % estimation parameters M(1).E.s, n,...
 %==========================================================================
@@ -325,11 +349,12 @@ nx     = sum(cat(1,M.n));            % number of x (hidden states)
  
 % temporal smoothness - s.d. of kernel
 %--------------------------------------------------------------------------
-try M(1).E.s;  catch, if nx, M(1).E.s = 1;  else M(1).E.s = 0;  end, end
+try M(1).E.s;  catch, if nx, M(1).E.s = 1; else M(1).E.s = 0;   end, end
  
 % time step
 %--------------------------------------------------------------------------
-try M(1).E.dt; catch M(1).E.dt = 1;  end
+try M(1).E.dt; catch M(1).E.dt = 1;   end
+try M(1).E.pt; catch M(1).E.pt = 1;   end
  
 % embedding orders
 %--------------------------------------------------------------------------

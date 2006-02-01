@@ -33,17 +33,14 @@ function [dx] = spm_dx(dfdx,f,t)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3, t = 1e16;               end
+if nargin < 3, t = Inf;              ; end
 if iscell(t),  t = t{1}/normest(dfdx); end
+
 
 % use a [pseudo]inverse if t > 1e8
 %==========================================================================
 if t > 1e8
-    if condest(dfdx) < 1e8
-        dx = -inv(dfdx)*f;
-    else
-        dx = -pinv(full(dfdx))*f;
-    end
+    dx = -pinv(full(dfdx))*f;
     return
 end
 

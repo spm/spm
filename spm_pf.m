@@ -25,11 +25,12 @@ function [qx,qP] = spm_pf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_pf.m 338 2005-11-30 13:55:04Z guillaume $
+% $Id: spm_pf.m 417 2006-02-01 13:50:14Z karl $
 
 % check model specification
 %--------------------------------------------------------------------------
 M  = spm_M_set(M);
+dt = M(1).E.dt;
 if length(M) ~=2
     errordlg('spm_pf requires a two-level model')
     return
@@ -37,12 +38,12 @@ end
 
 % INITIALISATION:
 %==========================================================================
-T  = length(y);              % number of time points
-N  = 200;                    % number of particles.
+T  = length(y);                    % number of time points
+N  = 200;                          % number of particles.
 
-P  = M(1).P;                 % parameters
-R  = M(1).V;                 % Precision of measurement noise
-Q  = sqrtm(inv(M(2).V));     % sqrt covariance of process noise
+P  = M(1).P;                       % parameters
+R  = M(1).V;                       % Precision of measurement noise
+Q  = sqrtm(inv(full(M(2).V)));     % sqrt covariance of process noise
 v  = M(2).v;
 x  = kron(ones(1,N),M(1).x);
 
@@ -54,7 +55,7 @@ for t = 1:T
         v          = Q*randn(size(v));
         f          = M(1).f(x(:,i),v,P);
         dfdx       = spm_diff(M(1).f,x(:,i),v,P,1);
-        xPred(:,i) = x(:,i) + spm_dx(dfdx,f,1);
+        xPred(:,i) = x(:,i) + spm_dx(dfdx,f,dt);
     end
 
     % EVALUATE IMPORTANCE WEIGHTS: and normalise

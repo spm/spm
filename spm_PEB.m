@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_PEB.m 327 2005-11-29 19:44:11Z karl $
+% $Id: spm_PEB.m 417 2006-02-01 13:50:14Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ end
 
 % number of levels (p)
 %--------------------------------------------------------------------------
-M     = 32;				% maximum number of iterations
+M     = 32;                                  % maximum number of iterations
 p     = length(P);
 
 % check covariance constraints - assume i.i.d. errors conforming to X{i}
@@ -201,12 +201,14 @@ if ~isfield(P{1},'Q')
 
     % log-transform and save
     %----------------------------------------------------------------------
+    h   = zeros(m,1);
     if OPT
-        h   = zeros(m,1);
         hP  = speye(m,m)/16;
     else
-        h   = ones(m,1);
-        hP  = zeros(m,m);
+        hP  = speye(m,m)/exp(16);
+        for i = 1:m
+            h(i) = any(diag(Q{i}));
+        end
     end
     P{1}.hP = hP;
     P{1}.Cb = Cb;
@@ -296,9 +298,20 @@ for k = 1:M
 
     % Convergence
     %======================================================================
-    w     = dFdh'*dh;
+    w     = norm(dh,1);
     fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
-    if w < 1e-2, break, end
+    
+    % if dF < 0.01
+    %----------------------------------------------------------------------
+    if dFdh'*dh < 1e-2, break, end
+    
+    % if dh^2 < 1e-8
+    %----------------------------------------------------------------------
+    if w < 1e-4,        break, end
+    
+    % if log-normal hyperpriors and h < exp(-16)
+    %----------------------------------------------------------------------
+    if OPT && h < -16,  break, end
 
 end
 

@@ -25,11 +25,12 @@ function [x,P] = spm_ekf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ekf.m 372 2005-12-08 17:12:13Z karl $
+% $Id: spm_ekf.m 417 2006-02-01 13:50:14Z karl $
 
 % check model specification
 %--------------------------------------------------------------------------
 M  = spm_M_set(M);
+dt = M(1).E.dt;
 if length(M) ~=2
     errordlg('spm_ekf requires a two-level model')
     return
@@ -52,7 +53,7 @@ for t = 2:T
     %----------------------------------------------------------------------
     f        = M(1).f(M(1).x,M(2).v,M(1).P);
     dfdx     = spm_diff(M(1).f,M(1).x,M(2).v,M(1).P,1);
-    xPred    = M(1).x + spm_dx(dfdx,f,1);
+    xPred    = M(1).x + spm_dx(dfdx,f,dt);
     Jx       = spm_expm(dfdx);
     PPred    = Q + Jx*P{t-1}*Jx';
 
