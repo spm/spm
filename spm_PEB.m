@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_PEB.m 417 2006-02-01 13:50:14Z karl $
+% $Id: spm_PEB.m 423 2006-02-01 19:41:59Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -129,12 +129,11 @@ if ~iscell(P{end}.C)
     % Full Bayes: (i.e. Cov(b) = 0, <b> = 1)
     %----------------------------------------------------------------------
     y( I{end})        = sparse(1:n,1,1);
-    Cb(I{end},I{end}) = sparse(1:n,1:n,1e-8);
 else
 
     % Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)
     %----------------------------------------------------------------------
-    Cb(I{end},I{end}) = sparse(1:n,1:n,1e+8);
+    Cb(I{end},I{end}) = sparse(1:n,1:n,exp(32));
 end
 
 
@@ -242,12 +241,12 @@ for k = 1:M
             Ce = Ce + Q{i}*h(i);
         end
     end
-    iC    = inv(Ce);
+    iC    = spm_inv(Ce);
 
     % E-step: conditional mean E{B|y} and covariance cov(B|y)
     %======================================================================
     iCX   = iC*XX;
-    Cby   = inv(XX'*iCX);
+    Cby   = spm_inv(XX'*iCX);
     B     = Cby*(iCX'*y);
 
 
@@ -317,7 +316,7 @@ end
 
 % place hyperparameters in P{1} and output structure for {n + 1}
 %--------------------------------------------------------------------------
-P{1}.h         = h;
+P{1}.h         = h + exp(-32);
 C{p + 1}.E     = B(J{p});
 C{p + 1}.M     = Cb(I{end},I{end});
 
@@ -362,4 +361,12 @@ end
 % warning
 %--------------------------------------------------------------------------
 if k == M, warning('maximum number of iterations exceeded'), end
+
+return
+
+function [C] = spm_inv(C);
+% inversion of sparse matrices
+%__________________________________________________________________________
+
+C  = inv(C + speye(length(C))*exp(-32));
 
