@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 389 2005-12-20 12:17:18Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 427 2006-02-03 14:47:49Z jeremie $
 
 spm_defaults
 
@@ -156,7 +156,7 @@ if ~isempty(D.inv{val}.mesh.tess_scalp)
         return
     end
     [Center,Radius]    = spm_eeg_inv_BestFitSph(vert(Iz,:));
-    OPTIONS.HeadCenter = Center';
+    OPTIONS.HeadCenter = Center;
     OPTIONS.Radii      = [.88 .93 1]*Radius;
 end
 clear vert face norm;
@@ -189,7 +189,7 @@ if max(max(sens)) > 1 % non m
          sens = sens/1000;
      end
 end        
-OPTIONS.ChannelLoc  = sens;
+OPTIONS.ChannelLoc  = [];
 clear sens
 
 
