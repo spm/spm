@@ -14,14 +14,16 @@ function D = spm_eeg_inv_mesh_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 389 2005-12-20 12:17:18Z jeremie $
+% $Id: spm_eeg_inv_mesh_ui.m 431 2006-02-06 16:51:03Z jeremie $
 
 spm_defaults
 
 if nargin == 0
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+  	D = spm_eeg_ldata(D);
 elseif nargin == 1
     D = S;
+    clear S;
 else
 	error(sprintf('Trouble reading the data file\n'));    
 end
