@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 416 2006-02-01 13:40:59Z will $
+% $Id: spm_config_factorial_design.m 430 2006-02-06 15:21:21Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1007,25 +1007,31 @@ case 'pt',
     end
     
     I=ones(Npairs*2,1);
-    I(:,2)=kron(ones(Npairs,1),[1 2]');
-    I(:,3)=kron([1:Npairs]',ones(2,1));
+    I(:,2)=kron([1:Npairs]',ones(2,1));
+    I(:,3)=kron(ones(Npairs,1),[1 2]');
     I(:,4)=I(:,1);
     
-    [H,Hnames]=spm_DesMtx(I(:,2),'-','Condition');
-    [B,Bnames]=spm_DesMtx(I(:,3),'-','Subject');
+    [H,Hnames]=spm_DesMtx(I(:,2),'-','Subject');
+    [B,Bnames]=spm_DesMtx(I(:,3),'-','Condition');
     
     % Nonsphericity options
-    xVi.var(2)=job.des.pt.variance;
-    xVi.dep(2)=job.des.pt.dept;  
+    xVi.var(2)=0;
+    xVi.dep(2)=0;  
+    xVi.var(3)=job.des.pt.variance;
+    xVi.dep(3)=job.des.pt.dept;  
     
     % Names and levels
-    SPM.factor(1).name='Group';
-    SPM.factor(1).levels=2;
+    SPM.factor(1).name='Subject';
+    SPM.factor(1).levels=Npairs;
+    SPM.factor(2).name='Condition';
+    SPM.factor(2).levels=2;
     
     % Ancova options
-    SPM.factor(1).gmsca=job.des.pt.gmsca;
-    SPM.factor(1).ancova=job.des.pt.ancova;
-
+    SPM.factor(1).gmsca=0;
+    SPM.factor(1).ancova=0;
+    SPM.factor(2).gmsca=job.des.pt.gmsca;
+    SPM.factor(2).ancova=job.des.pt.ancova;
+    
 case 'mreg', 
     % Multiple regression
     DesName='Multiple regression';
@@ -1240,28 +1246,35 @@ for i=1:length(SPM.factor), % Other factors
     SPM.xVi.Qidentical{i}=1-xVi.var(i+1);
     SPM.xVi.Qindependent{i}=1-xVi.dep(i+1);
 end
-SPM.eeg.Nlevels{nef}=length(unique(I(:,1))); % Repetition factor
-SPM.eeg.Xind{nef}=unique(If(:,1:nef),'rows');
-SPM.xVi.Qidentical{nef}=1;
-SPM.xVi.Qindependent{nef}=1;
-SPM.eeg.Nfactors=nef;
+Nreps=length(unique(I(:,1)));
+if Nreps > 1 % Replicate nonsphericity structure over repetitions 
+    SPM.eeg.Nlevels{nef}=Nreps; % Repetition factor
+    SPM.eeg.Xind{nef}=unique(If(:,1:nef),'rows');
+    SPM.xVi.Qidentical{nef}=1;
+    SPM.xVi.Qindependent{nef}=1;
+    SPM.eeg.Nfactors=nef;
+else
+    SPM.eeg.Nfactors=nf;
+end
 SPM = spm_eeg_get_vc(SPM);  % Call `EEG' non-sphericity routine
 SPM.xVi.I=I;
-% Find covariance elements with missing repetitions
-ncells=prod([SPM.eeg.Nlevels{1:nf}]);
-fullreps=repmat([1:SPM.eeg.Nlevels{nef}]',[ncells,1]);
-missing=[];j=1;
-for i=1:length(fullreps),
-    if ~(fullreps(i)==I(j))
-        missing=[missing i];
-    else
-        j=j+1;
+if Nreps > 1
+    % Find covariance elements with missing repetitions
+    ncells=prod([SPM.eeg.Nlevels{1:nf}]);
+    fullreps=repmat([1:SPM.eeg.Nlevels{nef}]',[ncells,1]);
+    missing=[];j=1;
+    for i=1:length(fullreps),
+        if ~(fullreps(i)==I(j))
+            missing=[missing i];
+        else
+            j=j+1;
+        end
     end
-end
-% Remove covariance elements with missing repetitions
-for i=1:length(SPM.xVi.Vi)
-    SPM.xVi.Vi{i}(missing,:)=[];
-    SPM.xVi.Vi{i}(:,missing)=[];
+    % Remove covariance elements with missing repetitions
+    for i=1:length(SPM.xVi.Vi)
+        SPM.xVi.Vi{i}(missing,:)=[];
+        SPM.xVi.Vi{i}(:,missing)=[];
+    end
 end
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
