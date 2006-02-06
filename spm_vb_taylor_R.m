@@ -8,14 +8,20 @@ function [slice] = spm_vb_taylor_R (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_taylor_R.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_taylor_R.m 429 2006-02-06 14:34:05Z will $
 
 % Get mean hyperparameter values
 h0=[];
 if slice.p > 0
-    a=mean(slice.ap_mean');
-    a_covs=cat(3,slice.a_cov{:});
-    a_cov=mean(a_covs,3);
+    if size(slice.ap_mean,2)==1
+        % Single voxel in slice
+        a=slice.ap_mean';
+        a_cov=slice.a_cov{1};
+    else
+        a=mean(slice.ap_mean');
+        a_covs=cat(3,slice.a_cov{:});
+        a_cov=mean(a_covs,3);
+    end
     slice.mean.a=a;
     slice.mean.a_cov=a_cov;
     h0=a';
