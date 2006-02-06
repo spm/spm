@@ -227,7 +227,7 @@ function [varargout] = bst_headmodeler(varargin);
 %                     gradiometer set. In the case of a mixture of MEG magneto
 %                     and MEG gradio-meters, .ChannelLoc needs to be a 6xNsens
 %                     matrix where the last 3 rows are filled with NaN for
-%                     MEG-magnetometers If ones wants to handle both EEG and MEG
+%                     MEG-magnetometers. If ones wants to handle both EEG and MEG
 %                     sensors, please create a full ChannelFile and use the
 %                     .ChannelFile option.
 %                     Default is empty (Information extracted from the ChannelFile).
@@ -356,7 +356,7 @@ function [varargout] = bst_headmodeler(varargin);
 %   BEMGaingridFname = bem_GainGrid(DataType,OPTIONS,BEMChanNdx)
 %   g = gterm_constant(r,rq)
 %
-% At Check-in: $Author: Mosher $  $Revision: 66 $  $Date: 6/27/05 8:59a $
+% At Check-in: $Author: Silvin $  $Revision: 68 $  $Date: 12/15/05 4:14a $
 %
 % This software is part of BrainStorm Toolbox Version 27-June-2005  
 % 
@@ -423,7 +423,9 @@ function [varargout] = bst_headmodeler(varargin);
 %                 Example:
 %                 status = fseek(fdest,0,'bof');
 %                 status = fseek(fdest,offset,'bof');
-% SB  08-Mar-05   Fixed bug in BEM computation 
+% SB  08-Mar-2005 Fixed bug in BEM computation 
+% SB  02-Feb-2005 Fixed bug that occured when ChannelLoc field is used to
+%                 passed EEG channel locations (thanks Jeremie Mattout at the FIL)
 % ----------------------------- Script History ---------------------------------
 
 % Default options settings--------------------------------------------------------------------------------------------------
@@ -600,15 +602,18 @@ if OPTIONS.Verbose,
     
 end
 
-% -- modified from original version: JM 29/10/05 --
-User = [];% User = get_user_directory; 
+User = get_user_directory;
 if isempty(User) % Function is called from command line: BrainStorm is not running 
     % Use default folders
     User.SUBJECTS = pwd;
     User.STUDIES = pwd;
 end
 
-cd(User.STUDIES)
+try
+    cd(User.STUDIES)
+catch
+end
+
 
 
 % Get all Subject and Study information------------------------------------------------------------------------------------------------------
@@ -711,8 +716,10 @@ else
             else
                 if strcmp(ChanType,'MEG')
                     Channel(k).Loc = OPTIONS.ChannelLoc(:,ichan);
+                %elseif strcmp(ChanType,'EEG') % Artificially add a dummy column full of zeros to each Channel(k).Loc 
+                    %Channel(k).Loc = [OPTIONS.ChannelLoc(:,ichan) [0 0 0]'];;
                 elseif strcmp(ChanType,'EEG') % Artificially add a dummy column full of zeros to each Channel(k).Loc 
-                    Channel(k).Loc = [OPTIONS.ChannelLoc(:,ichan) [0 0 0]'];;
+                    Channel(k).Loc = [OPTIONS.ChannelLoc(:,ichan)];;
                 end
                 ichan = ichan+1;
             end
@@ -768,11 +775,7 @@ else
         
         if strcmp(ChanType,'MEG')
             for k=1:nchan
-                % -- modified from original version: JM 30/10/05 --
-                Istart = max(((1+(iGradFlag==1))*k-1),1);
-                Iend   = min((1+(iGradFlag==1))*k,nchan);
-                Channel(k).Orient = OPTIONS.ChannelOrient(:,Istart:Iend);
-%                 Channel(k).Orient = OPTIONS.ChannelOrient(:,((1+(iGradFlag==1))*k-1):(1+(iGradFlag==1))*k);
+                Channel(k).Orient = OPTIONS.ChannelOrient(:,((1+(iGradFlag==1))*k-1):(1+(iGradFlag==1))*k);
             end
         end
         
@@ -1389,7 +1392,11 @@ if OPTIONS.VolumeSourceGrid % if SearchGain matrices are requested
         [HeadModelFilePath,HeadModelFile,ext] = fileparts(OPTIONS.HeadModelFile);
     end
     
+try
     cd(User.STUDIES)
+catch
+end
+
     
     for k = 1:length(GUI.VALIDORDER) % One file per source order 
         
@@ -1653,29 +1660,31 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
         catch
             cd(PATH)
         end
-
-        % -- modified from original version: JM 30/10/05 --
-
-%         hdml = 1;
-%         while exist(destname,'file')
-%             if hdml == 1
-%                 destname = strrep(destname,'.bin',['_',int2str(hdml),'.bin']);
-%             else
-%                 destname = strrep(destname,[int2str(hdml-1),'.bin'],[int2str(hdml),'.bin']);
-%             end
-%             
-%             hdml = hdml+1;
-%         end
-%         clear hdml
         
+        hdml = 1;
+        while exist(destname,'file')
+            if hdml == 1
+                destname = strrep(destname,'.bin',['_',int2str(hdml),'.bin']);
+            else
+                destname = strrep(destname,[int2str(hdml-1),'.bin'],[int2str(hdml),'.bin']);
+            end
+            
+            hdml = hdml+1;
+        end
+        clear hdml
+        
+        destnamexyz = [destname(1:end-4) '_xyz.bin'];
         fdest = fopen(destname,'w','ieee-be');
-        if fdest < 0
+        fdestxyz = fopen(destnamexyz,'w','ieee-be');
+        if ((fdest < 0) | (fdestxyz < 0))
             errordlg('Error creating the file for the cortical image forward model; Please check for disk space availability')
             return
         end
         frewind(fdest);
+        frewind(fdestxyz)
         
         fwrite(fdest,length([OPTIONS.Channel]),'uint32'); 
+        fwrite(fdestxyz,length([OPTIONS.Channel]),'uint32'); 
         
         %         % BEM and non-interpolative, store gain matrix already computed 
         %         if isfield(OPTIONS,'BEM') % BEM computation
@@ -1684,7 +1693,7 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
         %             end
         %         end
         
-        if fdest < 0 , errordlg('Please Check Write Permissions', ['Cannot create ',destname]), return, end
+        if ((fdest < 0) | (fdestxyz < 0)) , errordlg('Please Check Write Permissions', ['Cannot create ',destname]), return, end
     else % If no ImageGridFile was specified
         %OPTIONS.ImageGridBlockSize = nv; % Force a one-time computation of all source forward fields
     end
@@ -1760,11 +1769,8 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
             Geeg = [];
         end
         
-        if OPTIONS.ApplyGridOrient
             G = NaN*zeros(length(OPTIONS.Channel),length(ndx));
-        else
-            G = NaN*zeros(length(OPTIONS.Channel),Dims*length(ndx));
-        end
+            Gxyz = NaN*zeros(length(OPTIONS.Channel),Dims*length(ndx));
         
         if OPTIONS.Verbose, bst_message_window(...
                 ['Computing Cortical Gain Vectors. . . Block # ',int2str(jj),...
@@ -1778,7 +1784,7 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
         
         src = 0;
         % Options on cortical source orientation
-        if OPTIONS.ApplyGridOrient % Apply source orientation
+%        if OPTIONS.ApplyGridOrient % Apply source orientation
             
             for k = 1:Dims:Dims*length(ndx)-2
                 src = src+1;
@@ -1798,16 +1804,16 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
                 
             end
             
-        else % Do not apply cortical orientation. Keep full gain matrix at each cortical location
+%        else % Do not apply cortical orientation. Keep full gain matrix at each cortical location
             
             if MEG 
-                G(MEGndx,:) = Gmeg;   
+                Gxyz(MEGndx,:) = Gmeg;   
             end
             if EEG
-                G(EEGndx,:) = Geeg;
+                Gxyz(EEGndx,:) = Geeg;
             end
             
-        end
+%        end
         
         if OPTIONS.Verbose, 
            if ~rem(src_ind,1000)
@@ -1821,11 +1827,7 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
         
         if ~isempty(OPTIONS.ImageGridFile) 
             % 4 bytes per element, find starting point
-            if OPTIONS.ApplyGridOrient % Apply source orientation
-                offset = 4 + (ndx(1)-1)*length(Channel)*4;
-            else
-                offset = 4 + 3*(ndx(1)-1)*length(Channel)*4;
-            end
+            offset = 4 + (ndx(1)-1)*length(Channel)*4;
             
             % Matlab 6.5.0 bug, Technical Solution Number: 1-19NOK
             % http://www.mathworks.com/support/solutions/data/1-19NOK.html?solution=1-19NOK
@@ -1837,8 +1839,18 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
             if(status == -1),
                 errordlg('Error writing Image Gain Matrix file'); return
             end
-            
+
             fwrite(fdest,G,'float32');
+
+            %save xyz forward matrix
+            offset = 4 + 3*(ndx(1)-1)*length(Channel)*4;
+            status = fseek(fdestxyz,0,'bof');
+            status = fseek(fdestxyz,offset,'bof');
+            if(status == -1),
+                errordlg('Error writing Image Gain Matrix file'); return
+            end
+            fwrite(fdestxyz,Gxyz,'float32');
+        
         end
         
     end

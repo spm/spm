@@ -18,9 +18,10 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 427 2006-02-03 14:47:49Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 428 2006-02-06 12:26:11Z jeremie $
 
 spm_defaults
+
 
 try
     D = S; 
@@ -31,6 +32,15 @@ catch
 end
 
 val = length(D.inv);
+
+UserDB(1).STUDIES = D.path;
+UserDB(1).SUBJECTS = D.path;
+UserDB(1).FILELIST = '';
+StudyFile = '';
+% Store this information in Matlab's preferences
+setpref('BrainStorm','UserDataBase',UserDB);
+setpref('BrainStorm','iUserDataBase',1);
+   
 
 OPTIONS = bst_headmodeler;
 
@@ -80,7 +90,7 @@ end
 
 % I/O functions
 [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
-OPTIONS.ImageGridFile = [nam '_BSTGainMatrix.mat'];
+OPTIONS.ImageGridFile = [nam '_BSTGainMatrix.bin'];
 OPTIONS.ImageGridBlockSize = D.inv{val}.mesh.Ctx_Nv + 1;
 OPTIONS.FileNamePrefix = '';
 OPTIONS.Verbose = '0';
@@ -169,8 +179,6 @@ else
 
 end
 
-% Set OPTIONS.EEGRef here !
-
 % Sensor Information
 OPTIONS.ChannelFile = [nam '_BSTChannelFile.mat'];
 OPTIONS.ChannelType = D.modality;
@@ -189,11 +197,24 @@ if max(max(sens)) > 1 % non m
          sens = sens/1000;
      end
 end        
+for i = 1:length(sens)
+    Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
+    Channel(i).Loc = sens(:,i);
+    Channel(i).Orient = [];
+    Channel(i).Comment = num2str(i);
+    Channel(i).Weight = 1;
+    Channel(i).Type = 'EEG';
+    Channel(i).Name = ['EEG ' num2str(i)];
+end
+    
+save(fullfile(D.path,OPTIONS.ChannelFile),'Channel');
+    
 OPTIONS.ChannelLoc  = [];
 clear sens
 
-
 D.inv{val}.forward.bst_channel = fullfile(pth,OPTIONS.ChannelFile);
+
+% Set OPTIONS.EEGRef here !
 
 
 % Source Model
