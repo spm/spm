@@ -2,7 +2,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % ReML estimation of covariance components from y*y'
 % FORMAT [C,h,Ph,F] = spm_reml(YY,X,Q,N,[OPT]);
 %
-% YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x n) data matrix}
+% YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
 % N   - number of samples
@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 372 2005-12-08 17:12:13Z karl $
+% $Id: spm_reml.m 432 2006-02-08 19:26:46Z jeremie $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -55,18 +55,35 @@ dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
 
+% informed initialisation of h
+%--------------------------------------------------------------------------
+C = [];
+for i = 1:m
+    C = [C Q{i}(:)];
+end
+[U,S,V] = svds(C);
+r = rank(S'*S);
+if r < m
+    S = S(1:r,1:r);
+    U = U(:,1:r);
+    V = V(:,1:r);
+end
+iC = V*inv(S'*S)*S'*U';
+h  = iC*YY(:);
+clear iC U S V C r
+
+
 % initialise and specify hyperpriors
 %--------------------------------------------------------------------------
 if OPT
-    h   = zeros(m,1);
     hP  = eye(m,m)/32;
     hE  = h - 32;
 else
     hE  = zeros(m,1);
     hP  = zeros(m,m);
-    for i = 1:m
-        h(i) = any(diag(Q{i}));
-    end
+%     for i = 1:m
+%         h(i) = any(diag(Q{i}));
+%     end
 end
 
 
@@ -142,8 +159,8 @@ for k = 1:64
     % Convergence (1% change in log-evidence)
     %======================================================================
     w     = dFdh'*dh;
-    if w < 1e-2, break, end
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(w));
+    if w < 1e-2, break, end
 
 end
 
@@ -164,3 +181,4 @@ end
 if OPT
     h  = exp(h);
 end
+    
