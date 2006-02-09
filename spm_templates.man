@@ -6,6 +6,9 @@
 % Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga.
 % http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html
 %
+% The 452 subjects were between 20 and 32 years old, and were
+% approximately 50-50 male/female.
+%
 % The original datasets were affine transformed to match the MNI152
 % space (by affine registration of the grey matter with the grey
 % matter image in the apriori directory: smosrc=8, smoref=0,
@@ -236,4 +239,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_templates.man 282 2005-11-09 11:52:57Z john $
+% $Id: spm_templates.man 433 2006-02-09 11:45:02Z john $

@@ -1,12 +1,15 @@
-function create(obj)
+function create(obj,wrt)
 % Create a NIFTI-1 file
-% This writes out the header information, and an empty image
-% volume if necesary.
+% FORMAT create(obj)
+% This writes out the header information for the nifti object
+%
+% create(obj,wrt)
+% This also writes out an empty image volume if wrt==1
 % _______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: create.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: create.m 433 2006-02-09 11:45:02Z john $
 
 for i=1:numel(obj)
     create_each(obj(i));
@@ -28,24 +31,25 @@ end;
 
 write_extras(fname,obj.extras);
 
-% Create an empty image file if necessary
-d   = findindict(obj.hdr.datatype, 'dtype');
-dim = double(obj.hdr.dim(2:end));
-dim((double(obj.hdr.dim(1))+1):end) = 1;
-nbytes = ceil(d.size*d.nelem*prod(dim(1:2)))*prod(dim(3:end))+double(obj.hdr.vox_offset);
-[pth,nam,ext] = fileparts(obj.dat.fname);
-if any(strcmp(deblank(obj.hdr.magic),{'n+1','nx1'})),
-    ext = '.nii';
-else
-    ext = '.img';
-end;
-iname = fullfile(pth,[nam ext]);
-fp    = fopen(iname,'a+');
-if fp==-1,
-    error(['Unable to create image for "' fname '".']);
-end;
+if nargin>2 && any(wrt==1),
+    % Create an empty image file if necessary
+    d   = findindict(obj.hdr.datatype, 'dtype');
+    dim = double(obj.hdr.dim(2:end));
+    dim((double(obj.hdr.dim(1))+1):end) = 1;
+    nbytes = ceil(d.size*d.nelem*prod(dim(1:2)))*prod(dim(3:end))+double(obj.hdr.vox_offset);
+    [pth,nam,ext] = fileparts(obj.dat.fname);
 
-if 0,
+    if any(strcmp(deblank(obj.hdr.magic),{'n+1','nx1'})),
+        ext = '.nii';
+    else
+        ext = '.img';
+    end;
+    iname = fullfile(pth,[nam ext]);
+    fp    = fopen(iname,'a+');
+    if fp==-1,
+        error(['Unable to create image for "' fname '".']);
+    end;
+
     fseek(fp,0,'eof');
     pos = ftell(fp);
     if pos<nbytes,
@@ -63,8 +67,8 @@ if 0,
             nbytes = nbytes - nw;
         end;
     end;
+    fclose(fp);
 end;
 
-fclose(fp);
 return;
 
