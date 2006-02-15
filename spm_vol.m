@@ -6,7 +6,7 @@ function V = spm_vol(P)
 % The elements of the structures are:
 %       V.fname - the filename of the image.
 %       V.dim   - the x, y and z dimensions of the volume
-%       V.dt    - A 1x2 array.  First element is datatype (see spm_types).
+%       V.dt    - A 1x2 array.  First element is datatype (see spm_type).
 %                 The second is 1 or 0 depending on the endian-ness.
 %       V.mat   - a 4x4 affine transformation matrix mapping from
 %                 voxel coordinates to real world coordinates.
@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 324 2005-11-29 16:36:00Z john $
+% $Id: spm_vol.m 434 2006-02-15 13:46:45Z john $
 
 if nargin==0,
     V   = struct('fname', {},...

@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 430 2006-02-06 15:21:21Z will $
+% $Id: spm_config_factorial_design.m 434 2006-02-15 13:46:45Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1655,7 +1655,7 @@ if ~spm_type(type,'nanrep')
     if M_I, 
         xsM.Implicit_masking = 'Yes: zero''s treated as missing';
     else,   
-        xsm.Implicit_masking = 'No'; 
+        xsM.Implicit_masking = 'No'; 
     end
 else
     M_I = 1;
