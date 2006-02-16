@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 432 2006-02-08 19:26:46Z jeremie $
+% $Id: spm_reml.m 437 2006-02-16 18:41:52Z jeremie $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -55,35 +55,21 @@ dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
 
-% informed initialisation of h
-%--------------------------------------------------------------------------
-C = [];
-for i = 1:m
-    C = [C Q{i}(:)];
-end
-[U,S,V] = svds(C);
-r = rank(S'*S);
-if r < m
-    S = S(1:r,1:r);
-    U = U(:,1:r);
-    V = V(:,1:r);
-end
-iC = V*inv(S'*S)*S'*U';
-h  = iC*YY(:);
-clear iC U S V C r
-
 
 % initialise and specify hyperpriors
 %--------------------------------------------------------------------------
 if OPT
     hP  = eye(m,m)/32;
     hE  = h - 32;
+    for i = 1:m
+        h(i) = -log(normest(Q{i}));
+    end
 else
     hE  = zeros(m,1);
     hP  = zeros(m,m);
-%     for i = 1:m
-%         h(i) = any(diag(Q{i}));
-%     end
+    for i = 1:m
+        h(i) = any(diag(Q{i}));
+    end
 end
 
 
@@ -150,11 +136,14 @@ for k = 1:64
     %----------------------------------------------------------------------
     Ph    = -dFdhh;
     dh    = -pinv(dFdhh)*dFdh;
-    h     = h + dh;
-    
+
     % preclude numerical overflow
     %----------------------------------------------------------------------
-    if OPT, h = min(h,16); end
+    if OPT
+        dh = min(dh, 8);
+        dh = max(dh,-8);
+    end
+    h     = h + dh;
     
     % Convergence (1% change in log-evidence)
     %======================================================================
