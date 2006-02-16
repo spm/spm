@@ -4,7 +4,7 @@ function extras = read_extras(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_extras.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: read_extras.m 438 2006-02-16 21:24:52Z john $
 
 
 extras = struct;
@@ -19,5 +19,8 @@ otherwise
 end
 
 if exist(mname,'file'),
-    extras = load(mname);
+    try,
+        extras = load(mname);
+    catch,
+        warning('Can not load "%s" as a binary MAT file.\n', mname);
 end;
