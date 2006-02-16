@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 434 2006-02-15 13:46:45Z john $
+% $Id: spm_config_factorial_design.m 435 2006-02-16 11:40:14Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1043,7 +1043,7 @@ case 'mreg',
     
     % Names and levels
     SPM.factor(1).name='';
-    SPM.factor(1).levels=0;
+    SPM.factor(1).levels=1;
     
     H=[];Hnames=[];
     [B,Bnames]=spm_DesMtx(I(:,2),'-','mean');
