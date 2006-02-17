@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 441 2006-02-17 15:50:13Z will $
+% $Id: spm_config_factorial_design.m 442 2006-02-17 16:12:46Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1492,8 +1492,13 @@ switch iGMsca,
         GM = job.globalm.gmsca.gmsca_yes.gmscv;
     otherwise
         if iGloNorm==8 
-            % Proportionally scale to this value
-            GM = job.globalm.gmsca.gmsca_yes.gmscv;
+            switch strvcat(fieldnames(job.globalm.gmsca))
+                case 'gmsca_yes',
+                    % Proportionally scale to this value
+                    GM = job.globalm.gmsca.gmsca_yes.gmscv;
+                case 'gmsca_no',
+                    GM = 50;
+            end
         else
             % Grand mean scaling by factor eg. scans are scaled so that the 
             % mean global value over each level of the factor is set to GM
