@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 435 2006-02-16 11:40:14Z will $
+% $Id: spm_config_factorial_design.m 441 2006-02-17 15:50:13Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -758,11 +758,15 @@ gmsca = choice('Overall grand mean scaling','gmsca',...
 p2=['When proportional scaling global normalisation is used ',...
     'each image is separately scaled such that it''s global ',...
     'value is that specified (in which case the grand mean is also ',...
-    'implicitly scaled to that value). When using AnCova or no global ',...
+    'implicitly scaled to that value). ',...
+    'So, to proportionally scale each image so that its global value is ',...
+    'eg. 20, select <Yes> then type in 20 for the grand mean scaled value.'];
+    
+p3=['When using AnCova or no global ',...
     'normalisation, with data from different subjects or sessions, an ',...
     'intermediate situation may be appropriate, and you may be given the ',...
     'option to scale group, session or subject grand means separately. '];
-gmsca.help={p1,sp_text,p2,sp_text};
+gmsca.help={p1,sp_text,p2,sp_text,p3,sp_text};
 
 
 
@@ -1458,6 +1462,8 @@ rg = g;
     
 fprintf('%-40s: ','Design configuration')                        %-#
 
+%-Grand mean scaling options                                 (GMsca)
+%-------------------------------------------------------------------
 if iGloNorm==8
     iGMsca=8;	%-grand mean scaling implicit in PropSca GloNorm
 else
@@ -1484,17 +1490,23 @@ switch iGMsca,
         GM = 0;                         %-Set GM to zero when not scaling
     case 1                                %-Ask user value of GM
         GM = job.globalm.gmsca.gmsca_yes.gmscv;
-        %-If GM is zero then don't GMsca! or PropSca GloNorm
-        if GM==0, 
-            iGMsca=9; 
-            if iGloNorm==8, 
-                iGloNorm=9; 
-            end
-        end
     otherwise
-        % Grand mean scaling by factor eg. scans are scaled so that the 
-        % mean global value over each level of the factor is set to GM
-        GM=50;
+        if iGloNorm==8 
+            % Proportionally scale to this value
+            GM = job.globalm.gmsca.gmsca_yes.gmscv;
+        else
+            % Grand mean scaling by factor eg. scans are scaled so that the 
+            % mean global value over each level of the factor is set to GM
+            GM=50;
+        end
+end
+
+%-If GM is zero then don't GMsca! or PropSca GloNorm
+if GM==0, 
+    iGMsca=9; 
+    if iGloNorm==8, 
+        iGloNorm=9; 
+    end
 end
 
 %-Sort out description strings for GloNorm and GMsca
