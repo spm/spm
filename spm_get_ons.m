@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_get_ons.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_get_ons.m 444 2006-02-17 19:43:17Z klaas $
 
 
 %-GUI setup
@@ -218,8 +218,7 @@ for i = 1:v
 	for q = 1:length(xP)
 		xP(q).i = [1, ([1:xP(q).h] + size(u,2))];
 		for   j = 1:xP(q).h
-			P   = spm_en(xP(q).P);
- 			u   = [u P.^j];
+ 			u   = [u xP(q).P.^j];
 			str = sprintf('%sx%s^%d',Uname{1},xP(q).name,j);
 			Uname{end + 1} = str;
 		end
