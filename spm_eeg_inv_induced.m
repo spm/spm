@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_induced.m 376 2005-12-12 15:37:43Z jeremie $
+% $Id: spm_eeg_inv_induced.m 445 2006-02-17 20:05:18Z jeremie $
 
 
 if length(D.events.code) ~= D.Nevents
@@ -232,6 +232,7 @@ Gind = MAP*Eind*MAP' + C*trace(K*V);
 
 % Save results
 if strcmp(D.inv{val}.inverse.activity,'induced')
+    
     [pth,nam,ext] = spm_fileparts(D.fname);
     woi           = D.inv{val}.inverse.woi;
     Ntime         = clock;
@@ -243,7 +244,21 @@ if strcmp(D.inv{val}.inverse.activity,'induced')
         save(fullfile(pth,D.inv{val}.inverse.resfile),'Cind','hind','Phind','Find','Eind','Gind');
     end
     clear Cind hind Phind Find Eind Gind
+    
+    % Temporary Visualization
+    Rind = diag(Gind);
+    load(D.inv{val}.mesh.tess_ctx);
+    colormap jet
+    axis off
+    patch('Vertices',vert,'Faces',face,'FaceVertexCData',Rind,'FaceColor','flat');
+    shading interp
+    colorbar
+    title('Induced Power');
+    view(-90,0);
+    cameramenu
+    
 else
+    
     [pth,nam,ext] = spm_fileparts(D.fname);
     woi           = D.inv{val}.inverse.woi;
     Ntime         = clock;
@@ -255,6 +270,20 @@ else
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}),'Cev','hev','Phev','Fev','Jev','Eev','Gev');
     end
     clear Cev hev Phev Fev Jev Eev Gev
+    
+    % Temporary Visualization
+    Rev = diag(Gev);
+    load(D.inv{val}.mesh.tess_ctx);
+    colormap jet
+    axis off
+    patch('Vertices',vert,'Faces',face,'FaceVertexCData',Rev,'FaceColor','flat');
+    view(-90,0);
+    shading interp
+    colorbar
+    title('Evoked Power');
+    cameramenu
+
+    
     D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}), '-V6','Cind','hind','Phind','Find','Eind','Gind');
@@ -262,6 +291,18 @@ else
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}),'Cind','hind','Phind','Find','Eind','Gind');
     end
     clear Cind hind Phind Find Eind Gind
+    
+    % Temporary Visualization
+    spm_figure
+    Rind = diag(Gind);
+    axis off
+    patch('Vertices',vert,'Faces',face,'FaceVertexCData',Rind,'FaceColor','flat');
+    view(-90,0);
+    shading interp
+    colorbar
+    title('Induced Power');
+    cameramenu
+
 end
 
 if str2num(version('-release'))>=14

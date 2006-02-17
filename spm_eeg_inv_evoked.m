@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 390 2005-12-20 14:54:29Z jeremie $
+% $Id: spm_eeg_inv_evoked.m 445 2006-02-17 20:05:18Z jeremie $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -151,3 +151,15 @@ if str2num(version('-release'))>=14
 else
     save(fullfile(D.path,D.fname), 'D');
 end
+
+% Temporary Visualization
+AvJev = mean(J')';
+load(D.inv{val}.mesh.tess_ctx);
+colormap jet
+axis off
+patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+view(-90,0);
+shading interp
+colorbar
+title('Averaged activity over the whole time window');
+cameramenu
