@@ -56,13 +56,15 @@ for n=1:D.Nsamples
 end
 fclose(fpd);
 
-% --- Save coil and sensor positions for source reconstruction (in mm) ---
+% --- Save coil/sensor positions and orientations for source reconstruction (in mm) ---
 
-% - channel locations
+% - channel locations and orientations
 SensLoc = [];
+SensOr  = [];
 for i = 1:length(pre_data.sensor.location);
     if any(pre_data.sensor.location(:,i)) & pre_data.sensor.label{i}(1) == 'M'
         SensLoc = [SensLoc; pre_data.sensor.location(:,i)'];
+        SensOr  = [SensOr ; pre_data.sensor.orientation(:,i)'];
     end
 end
 SensLoc = 10*SensLoc; % convertion from cm to mm
@@ -70,9 +72,11 @@ if length(SensLoc) > 275
     warning(sprintf('Found more than 275 channels!\n'));
 end
 
-[pth,nam,ext] = fileparts(D.fname);
-fic_sensloc   = fullfile(D.path,[nam '_sensloc.mat']);
+[pth,nam,ext]  = fileparts(D.fname);
+fic_sensloc    = fullfile(D.path,[nam '_sensloc.mat']);
+fic_sensorient = fullfile(D.path,[nam '_sensorient.mat']);
 save(fic_sensloc, 'SensLoc');
+save(fic_sensorient, 'SensOr');
 clear SensLoc
 
 % for DCM/ERF: Use fieldtrip functions to retrieve sensor location and

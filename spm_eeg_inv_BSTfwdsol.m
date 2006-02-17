@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 428 2006-02-06 12:26:11Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 439 2006-02-17 12:44:13Z jeremie $
 
 spm_defaults
 
@@ -197,19 +197,34 @@ if max(max(sens)) > 1 % non m
          sens = sens/1000;
      end
 end        
+% sensor orientations
+if (D.modality == 'MEG')
+    D.inv{val}.forward.sens_orient = spm_select(1, '.mat', 'Sensor orientations');
+    ChannelOrient = load(D.inv{val}.forward.sens_orient);
+    if ~isempty(ChannelOrient)
+        FldName       = fieldnames(ChannelOrient); 
+        orient        = getfield(ChannelOrient,FldName{1})';
+    end
+end
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
     Channel(i).Loc = sens(:,i);
-    Channel(i).Orient = [];
+    if exist('orient')
+        Channel(i).Orient = orient(:,i);
+    else
+        Channel(i).Orient = [];
+    end
     Channel(i).Comment = num2str(i);
     Channel(i).Weight = 1;
-    Channel(i).Type = 'EEG';
-    Channel(i).Name = ['EEG ' num2str(i)];
+    Channel(i).Type = D.modality;
+    Channel(i).Name = [D.modality ' ' num2str(i)];
 end
     
 save(fullfile(D.path,OPTIONS.ChannelFile),'Channel');
     
-OPTIONS.ChannelLoc  = [];
+if strcmp(D.modality,'EEG')
+    OPTIONS.ChannelLoc  = [];
+end
 clear sens
 
 D.inv{val}.forward.bst_channel = fullfile(pth,OPTIONS.ChannelFile);
