@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_write_sn.m 446 2006-02-20 13:47:05Z john $
 
 
 if isempty(V), return; end;
@@ -141,6 +141,9 @@ d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
 	VO     = make_hdr_struct(V(i),x,y,z,mat);
+	if flags.preserve
+		VO.fname = prepend(VO.fname,'m');
+	end
 	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 	if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
 
@@ -196,6 +199,9 @@ d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
 	VO     = make_hdr_struct(V(i),x,y,z,mat);
+	if flags.preserve
+		VO.fname = prepend(VO.fname,'m');
+	end
 	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 
 	if flags.preserve || nargout>0,
