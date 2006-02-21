@@ -33,13 +33,13 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_render.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_render.m 447 2006-02-21 11:28:34Z john $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-	SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 447 $');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -81,7 +81,22 @@ end;
 %=======================================================================
 spm('Pointer','Watch')
 
-load(rendfile);
+try,
+    load(rendfile);
+catch,
+    fprintf('\nCan not read the file "%s".\n', rendfile);
+    if strcmp(computer,'PCWIN'),
+        fprintf('This may  be because of the way that the .tar.gz files\n');
+        fprintf('were unpacked  when  the SPM software  was  installed.\n');
+        fprintf('If installing on a Windows platform, then the software\n');
+        fprintf('used  for  unpacking may  try to  be clever and insert\n');
+        fprintf('additional  unwanted control  characters.   If you use\n');
+        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
+        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
+        fprintf('Configuration Options).\n\n');
+    end;
+    error(lasterr);
+end;
 
 if (exist('rend') ~= 1), % Assume old format...
 	rend = cell(size(Matrixes,1),1);

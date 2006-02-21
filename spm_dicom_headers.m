@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_dicom_headers.m 447 2006-02-21 11:28:34Z john $
 
 
 ver = sscanf(version,'%d');
@@ -326,7 +326,22 @@ return;
 
 %_______________________________________________________________________
 function dict = readdict
-dict = load('spm_dicom_dict.mat');
+try,
+    dict = load('spm_dicom_dict.mat');
+catch,
+    fprintf('\nUnable to load the file "spm_dicom_dict.mat".\n');
+    if strcmp(computer,'PCWIN'),
+        fprintf('This may  be because of the way that the .tar.gz files\n');
+        fprintf('were unpacked  when  the SPM software  was  installed.\n');
+        fprintf('If installing on a Windows platform, then the software\n');
+        fprintf('used  for  unpacking may  try to  be clever and insert\n');
+        fprintf('additional  unwanted control  characters.   If you use\n');
+        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
+        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
+        fprintf('Configuration Options).\n\n');
+    end;
+    error(lasterr);
+end;
 return;
 %_______________________________________________________________________
 

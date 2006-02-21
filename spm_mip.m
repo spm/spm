@@ -29,7 +29,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_mip.m 447 2006-02-21 11:28:34Z john $
 
 
 
@@ -78,7 +78,23 @@ end
 %=======================================================================
 %-Load mip and create maximum intensity projection
 %-----------------------------------------------------------------------
-load MIP
+try,
+    load('MIP.mat');
+catch,
+    fprintf('\nCan not read the file "MIP.mat".\n');
+    if strcmp(computer,'PCWIN'),
+        fprintf('This may  be because of the way that the .tar.gz files\n');
+        fprintf('were unpacked  when  the SPM software  was  installed.\n');
+        fprintf('If installing on a Windows platform, then the software\n');
+        fprintf('used  for  unpacking may  try to  be clever and insert\n');
+        fprintf('additional  unwanted control  characters.   If you use\n');
+        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
+        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
+        fprintf('Configuration Options).\n\n');
+    end;
+    error(lasterr);
+end;
+
 mip  = mip96*GRID;
 c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
 	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1] - 0.5;
