@@ -14,7 +14,7 @@ function D = spm_eeg_inv_inverse_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_inverse_ui.m 376 2005-12-12 15:37:43Z jeremie $
+% $Id: spm_eeg_inv_inverse_ui.m 449 2006-02-21 12:20:53Z jeremie $
 
 spm_defaults
 
@@ -101,9 +101,9 @@ else
         if (woi(1) < 0) & (abs(Sstart) > D.events.start)
             Sstart = -D.events.start;
         end
-        if woi(2) <= 0
-            error(sprintf('Wrong entry!\n'));
-        end
+%         if woi(2) <= 0
+%             error(sprintf('Wrong entry!\n'));
+%         end
         Sstop = round(woi(2)*(D.Radc/1000));
         if Sstop > D.events.stop
             Sstop = D.events.stop;
