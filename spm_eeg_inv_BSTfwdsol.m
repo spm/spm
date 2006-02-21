@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 439 2006-02-17 12:44:13Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 450 2006-02-21 12:22:09Z jeremie $
 
 spm_defaults
 
@@ -199,8 +199,10 @@ if max(max(sens)) > 1 % non m
 end        
 % sensor orientations
 if (D.modality == 'MEG')
-    D.inv{val}.forward.sens_orient = spm_select(1, '.mat', 'Sensor orientations');
-    ChannelOrient = load(D.inv{val}.forward.sens_orient);
+    if isempty(D.inv{val}.datareg.sens_orient)
+        D.inv{val}.datareg.sens_orient = spm_select(1, '.mat', 'Sensor orientations');
+    end
+    ChannelOrient = load(D.inv{val}.datareg.sens_orient);
     if ~isempty(ChannelOrient)
         FldName       = fieldnames(ChannelOrient); 
         orient        = getfield(ChannelOrient,FldName{1})';

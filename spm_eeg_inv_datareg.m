@@ -13,8 +13,8 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Output:
 % D			- data struct including the new files and parameters
 %
-% FORMAT [RT,sensors_reg,fid_reg,headshape_reg]
-%        = spm_eeg_inv_datareg(typ,sensors_file,fid_eeg,fid_mri,headshape,scalpvert)
+% FORMAT [RT,sensors_reg,fid_reg,headshape_reg,orient_reg]
+%        = spm_eeg_inv_datareg(typ,sensors_file,fid_eeg,fid_mri,headshape,scalpvert,orient)
 % Input:
 % typ
 % sensors_file  - mat file containing a matrix coordinate of the sensor
@@ -29,6 +29,8 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % scalpvert     - mat file containing the vertices coordinates of the scalp
 %               tesselation in mri space ([vx1 vy1 vz1 ; vx2 vy2 vz2 ; ...])
 %               (only if option typ = 2)
+% orient        - mat file containing the sensor orientations ([ox1 oy1 oz1 ; ox2 oy2 oz2 ; ...])
+%               (MEG only)
 %
 % IMPORTANT: all the coordinates must be in the same unit (usually mm).
 %
@@ -41,11 +43,12 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 %                 in sMRI space
 % headshape_reg - mat file conaining the registrated headshap point coordinates
 %                 in sMRI space (only if option typ = 2)
+% orient_reg    - mat file conaining the registrated sensor orientations (MEG only)
 %=======================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 418 2006-02-01 14:37:08Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 450 2006-02-21 12:22:09Z jeremie $
 
 spm_defaults
 
@@ -64,7 +67,7 @@ if nargout == 1
 
     val = length(D.inv);
 
-    if isempty(D.inv{val}.datareg.sens) & D.modality == 'EEG'
+    if isempty(D.inv{val}.datareg.sens) & strcmp(D.modality == 'EEG')
         Fpol = spm_input('Read Polhemus files?','+1','Yes|No',[1 2]);
         if Fpol == 1
             D = spm_eeg_inv_ReadPolhemus(D);
@@ -95,6 +98,14 @@ if nargout == 1
         else
             fid_mri = D.inv{val}.datareg.fidmri;
         end
+        if strcmp(D.modality,'MEG')
+            if isempty(D.inv{val}.datareg.sens_orient)
+                sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+                D.inv{val}.datareg.sens_orient = sens_or_file;
+            else
+                sens_or_file = D.inv{val}.datareg.sens_orient;
+            end
+        end
         if typ == 2
             if isempty(D.inv{val}.datareg.hsp)
                 headshape = spm_select(1,'.mat','Select headshape file');
@@ -113,10 +124,17 @@ if nargout == 1
 else
     sensors_file = varargin{1};
     fid_eeg      = varargin{2};
-    fid_mri      = varargin{3};    
+    fid_mri      = varargin{3};   
     if typ == 2
         headshape   = varargin{4};
         scalpvert   = varargin{5};
+        if nargin == 6
+            sens_or_file = varargin{6};
+        end
+    else
+        if nargin == 4
+            sens_or_fil = varargin{4};
+        end
     end
 end
 
@@ -169,7 +187,6 @@ if typ == 2
     
     h = spm_figure;
     set(h,'DoubleBuffer','on','BackingStore','on');
-%     cameratoolbar;cameramenu;
     plot3(scalpmesh(:,1),scalpmesh(:,2),scalpmesh(:,3),'ro','MarkerFaceColor','r');
     hold on;
     g = plot3(hspvarloc(:,1),hspvarloc(:,2),hspvarloc(:,3),'bs','MarkerFaceColor','b');
@@ -189,11 +206,36 @@ else
 end
 
 sensvar = load(sensors_file);
-name = fieldnames(sensvar);
+name    = fieldnames(sensvar);
 sensloc = getfield(sensvar,name{1});
 clear sensvar name
 sensreg = Rot*sensloc';
 sensreg = (sensreg + Trans*ones(1,length(sensreg)))';
+
+% Update the MEG sensor orientation
+if exist(sens_or_file) == 2
+    sensvar = load(sens_or_file);
+    name    = fieldnames(sensor);
+    sensor  = getfield(sensvar,name{1});
+    clear sensvar name
+    sensorreg = (Rot*sensor')';
+   
+    [fpatho,fname,fext] = fileparts(sens_or_file);
+    fname_or = [fname '_coreg.mat'];
+    if nargout == 1
+        if str2num(version('-release'))>=14
+            save(fullfile(D.path, fname_or), '-V6', 'sensorreg');
+        else
+         	save(fullfile(D.path, fname_or), 'sensorreg');
+        end
+    else
+        if str2num(version('-release'))>=14
+            save(fullfile(fpatho, fname_or), '-V6', 'sensorreg');
+        else
+         	save(fullfile(fpatho, fname_or), 'sensorreg');
+        end
+    end
+end
 
 [fpath1,fname,fext] = fileparts(fid_eeg);
 fname_fid = [fname '_coreg.mat'];
@@ -267,17 +309,27 @@ if nargout == 1
     if typ == 2
         D.inv{val}.datareg.hsp_coreg     = fullfile(fpath3,fname_hsp);    
     end
+    if strcmp(D.modality,'MEG')
+        D.inv{val}.datareg.sens_orient_coreg    = fullfile(fpatho,fname_or);   
+    end
     save(fullfile(D.path, D.fname), 'D');
     varargout{1} = D;
-elseif nargout == 3
+elseif nargout >= 3
     varargout{1} = fname_transf;
     varargout{2} = fname_sens;
     varargout{3} = fname_fid;
-elseif nargout == 4
-    varargout{1} = fname_transf;
-    varargout{2} = fname_sens;
-    varargout{3} = fname_fid;
-    varargout{4} = fname_hsp;
+    if typ == 2
+        varargout{4} = fname_hsp;
+        if nargout == 5
+            varargout{5} = fname_or;
+        end
+    else
+        if nargout == 4
+            varargout{5} = fname_or;
+        end
+    end
+else
+    errordlg('Wrong output argument');
 end
 
 return
