@@ -45,8 +45,8 @@ D.units = '\muV';
 D.channels.reference = 0;
 D.channels.ref_name = 'none';
 
-D.events.type = [1:D.Nevents];
-D.events.Ntypes = length(D.events.type);
+D.events.types = [1:D.Nevents];
+D.events.Ntypes = length(D.events.types);
 D.events.code = [1:D.Nevents];
 D.events.reject = zeros(1, D.events.Ntypes);
 
