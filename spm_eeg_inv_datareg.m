@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 450 2006-02-21 12:22:09Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 452 2006-02-22 10:54:58Z jeremie $
 
 spm_defaults
 
@@ -215,7 +215,7 @@ sensreg = (sensreg + Trans*ones(1,length(sensreg)))';
 % Update the MEG sensor orientation
 if exist(sens_or_file) == 2
     sensvar = load(sens_or_file);
-    name    = fieldnames(sensor);
+    name    = fieldnames(sensvar);
     sensor  = getfield(sensvar,name{1});
     clear sensvar name
     sensorreg = (Rot*sensor')';
