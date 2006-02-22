@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 437 2006-02-16 18:41:52Z jeremie $
+% $Id: spm_reml.m 456 2006-02-22 18:46:29Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
