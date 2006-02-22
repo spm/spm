@@ -30,7 +30,7 @@ function varargout = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 415 2006-02-01 09:45:57Z jeremie $
+% $Id: spm_eeg_inv_getmasks.m 453 2006-02-22 11:00:12Z jeremie $
 
 spm_defaults
 
@@ -146,7 +146,6 @@ Iscl.fname = fullfile(pth,[nam,'_scalp',ext]);
 Iscl       = spm_create_vol(Iscl);
 spm_progress_bar('Init',Iscl.dim(3),'Writing scalp','planes completed');
 for pp=1:Iscl.dim(3)
-    pp
     spm_progress_bar('Set',pp);
     XYZ             = Iscl.mat*[X ; Y ; Z+pp ; Unit]; % coord in mm of voxels of scalp img
     XYZ             = spm_get_orig_coord(XYZ(1:3,:)', isn_tmp)';           
