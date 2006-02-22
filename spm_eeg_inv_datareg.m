@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 452 2006-02-22 10:54:58Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 454 2006-02-22 13:20:02Z jeremie $
 
 spm_defaults
 
@@ -67,7 +67,7 @@ if nargout == 1
 
     val = length(D.inv);
 
-    if isempty(D.inv{val}.datareg.sens) & strcmp(D.modality == 'EEG')
+    if isempty(D.inv{val}.datareg.sens) & strcmp(D.modality,'EEG')
         Fpol = spm_input('Read Polhemus files?','+1','Yes|No',[1 2]);
         if Fpol == 1
             D = spm_eeg_inv_ReadPolhemus(D);
