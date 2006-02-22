@@ -1,8 +1,9 @@
-function [qx,qP] = spm_pf(M,y)
+function [qx,qP] = spm_pf(M,y,U)
 % Particle Filtering for dynamic models
 % FORMAT [x,P] = spm_pf(M,y)
 % M - model specification structure
 % y - output or data (N x T)
+% U - exogenous input
 %
 % M(1).x                            % initial states
 % M(1).f  = inline(f,'x','v','P')   % state equation
@@ -25,11 +26,14 @@ function [qx,qP] = spm_pf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_pf.m 417 2006-02-01 13:50:14Z karl $
+% $Id: spm_pf.m 455 2006-02-22 18:40:33Z karl $
+
+
+
 
 % check model specification
 %--------------------------------------------------------------------------
-M  = spm_M_set(M);
+M  = spm_DEM_M_set(M);
 dt = M(1).E.dt;
 if length(M) ~=2
     errordlg('spm_pf requires a two-level model')
@@ -38,30 +42,42 @@ end
 
 % INITIALISATION:
 %==========================================================================
-T  = length(y);                    % number of time points
-N  = 200;                          % number of particles.
+T    = length(y);                          % number of time points
+n    = M(2).l;                             % number of innovations
+N    = 200;                                % number of particles.
+    
+% precision of measurement noise
+%--------------------------------------------------------------------------
+R    = M(1).V;
+for i = 1:length(M(1).Q)
+    R = R + M(1).Q{i}*exp(M(1).h(i));
+end
+P  = M(1).P;                               % parameters
+Q  = M(2).V.^-.5;                          % root covariance of innovations
+v  = kron(ones(1,N),M(2).v);               % innovations
+x  = kron(ones(1,N),M(1).x);               % hidden states
 
-P  = M(1).P;                       % parameters
-R  = M(1).V;                       % Precision of measurement noise
-Q  = sqrtm(inv(full(M(2).V)));     % sqrt covariance of process noise
-v  = M(2).v;
-x  = kron(ones(1,N),M(1).x);
+% inputs
+%--------------------------------------------------------------------------
+if nargin < 3
+    U = sparse(n,T);
+end
 
 for t = 1:T
 
     % PREDICTION STEP: with the transition prior as proposal
     %----------------------------------------------------------------------
     for i = 1:N
-        v          = Q*randn(size(v));
-        f          = M(1).f(x(:,i),v,P);
-        dfdx       = spm_diff(M(1).f,x(:,i),v,P,1);
+        v(:,i)     = Q*randn(n,1) + U(:,t);
+        f          = M(1).f(x(:,i),v(:,i),P);
+        dfdx       = spm_diff(M(1).f,x(:,i),v(:,i),P,1);
         xPred(:,i) = x(:,i) + spm_dx(dfdx,f,dt);
     end
 
     % EVALUATE IMPORTANCE WEIGHTS: and normalise
     %----------------------------------------------------------------------
     for i = 1:N
-        yPred  = M(1).g(xPred(:,i),M(2).v,P);
+        yPred  = M(1).g(xPred(:,i),v(:,i),P);
         ePred  = yPred - y(:,t);
         w(i)   = ePred'*R*ePred;
     end
@@ -80,6 +96,8 @@ for t = 1:T
     fprintf('PF: time-step = %i : %i\n',t,T);
 
 end
+
+return
 
 function I = multinomial(inIndex,q);
 %==========================================================================
@@ -154,7 +172,7 @@ M(2).V  = 2.4;                     % process log(noise) precision
 % generate data (output)
 %--------------------------------------------------------------------------
 T       = 60;                      % number of time points
-S       = spm_DEM_generate(M,sparse(1,T + 1));
+S       = spm_DEM_generate(M,T);
 
 % Particle filtering
 %--------------------------------------------------------------------------

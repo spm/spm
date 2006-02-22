@@ -1,6 +1,6 @@
-function [QU,qP,qH,F] = spm_DEM(M,Y,U,X)
-% FORMAT [qU,qP,qH,F] = spm_DEM(M,Y,U,X)
-% FORMAT DEM          = spm_DEM(DEM)
+function [DEM] = spm_DEM(DEM)
+% Dynamic expectation maxmisation
+% FORMAT DEM   = spm_DEM(DEM)
 %
 % DEM.M  - hierarchical model
 % DEM.Y  - inputs or data
@@ -18,7 +18,7 @@ function [QU,qP,qH,F] = spm_DEM(M,Y,U,X)
 %   M(i).hE = prior expectation of h hyper-parameters
 %   M(i).hC = prior covariances of h hyper-parameters
 %   M(i).Q  = precision components
-%   M(i).V  = fixed covariance component
+%   M(i).V  = fixed precision
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i);
@@ -83,104 +83,59 @@ function [QU,qP,qH,F] = spm_DEM(M,Y,U,X)
 % Karl Friston
 % $Id$
 
-% create a graphics figure
+% Check model, data, priros and confounds and unpack
+%--------------------------------------------------------------------------
+[M Y U X] = spm_DEM_set(DEM);
+
+% find or create a DEM figure
 %--------------------------------------------------------------------------
 warning off
-fig = get(0,'children');
-for i = 1:length(fig)
-    if strcmp(get(fig(i),'name'),'Dynamic Expectation Maximisation')
-        Fdem = gcf;
-    end
+Fdem     = spm_figure('GetWin','DEM');
+if isempty(Fdem)
+    name = 'Dynamic Expectation Maximisation';
+    Fdem = spm_figure('CreateWin','DEM',name,'on');
 end
-try
-    Fdem;
-catch
-    Fdem = spm_figure;
-    set(Fdem,'name','Dynamic Expectation Maximisation')
-end
- 
-% unpack structures and variables
-%--------------------------------------------------------------------------
-if nargin == 1
-    DEM    = M;
-    M      = DEM.M;
-    Y      = DEM.Y;
-    try  U = DEM.U; end
-    try  X = DEM.X; end
-end
-if ~exist('U','var'), U = []; end
-if ~exist('X','var'), X = []; end
- 
-% set model indices and missing fields
-%--------------------------------------------------------------------------
-M    = spm_M_set(M);
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
 TOL  = 1e-3;
 
+% order parameters (d = n = 1 for static models) and checks
+%==========================================================================
+d    = M(1).E.d;                       % truncation order of q(x,v)
+n    = M(1).E.n;                       % truncation order of e (n >= d)
+s    = M(1).E.s;                       % smoothness - s.d. of kernel (secs)
+dt   = M(1).E.dt;                      % time bins {secs}
+
+
 % number of states and parameters
 %--------------------------------------------------------------------------
-
-nt   = size(Y,2);                       % number of samples
+ns   = size(Y,2);                       % number of samples
 nl   = size(M,2);                       % number of levels
 ne   = sum(cat(1,M.l));                 % number of e (errors)
 nv   = sum(cat(1,M.m));                 % number of v (casual states)
 nx   = sum(cat(1,M.n));                 % number of x (hidden states)
 ny   = M(1).l;                          % number of y (inputs)
 nc   = M(end).l;                        % number of c (prior causes)
- 
-% order parameters (d = n = 1 for static models) and checks
-%==========================================================================
-d    = M(1).E.d;                       % approximation order of q(x,v)
-n    = M(1).E.n;                       % embedding order      (n >= d)
-r    = M(1).E.r;                       % restriction order    (r <= d)
-s    = M(1).E.s;                       % smoothness - s.d. of kernel
-dt   = M(1).E.dt;                      % time bins {seconds}
+nu   = nv*d + nx;                       % number of generalised states
+kt   = 1;                               % rate constant for D-Step
 
 % number of iterations
 %--------------------------------------------------------------------------
 try nD = M(1).E.nD; catch nD = 8; end
-try nE = M(1).E.nE; catch nE = 8; end
+try nE = M(1).E.nE; catch nE = 4; end
 try nM = M(1).E.nM; catch nM = 8; end
 try nI = M(1).E.nI; catch nI = 16;end
 
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 if nx
-    kt = exp(8);                          % rate constant for D-Step
     td = dt/nD;                           % integration time for D-Step
-    te = 64;
+    te = 64;                              % integration time for E-Step
 else
-    kt = 1;
     td = {64};
     te = 64;
 end
-
-% check length of time-series
-%--------------------------------------------------------------------------
-if nt < n
-    warndlg({'Please ensure time-series is longer than embedding order'})
-    error(' ')
-end
- 
-% check prior expectations are not all zero
-%--------------------------------------------------------------------------
-if ~any(spm_vec({M.P}')) && ~any(any(U))
-    warndlg({'Please initialise'})
-    error(' ')
-end
- 
-% check prior expectation of causes (at level n) and confounds
-%--------------------------------------------------------------------------
-if ~nnz(U), U = sparse(nc,nt); end
-if ~nnz(X), X = sparse(0 ,nt); end
- 
-% transpose causes and confounds, if specified in conventional fashion
-%--------------------------------------------------------------------------
-if size(U,2) < nt, U = U';    end
-if size(X,2) < nt, X = X';    end
- 
  
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
@@ -199,23 +154,23 @@ end
 % and fixed components P
 %--------------------------------------------------------------------------
 P     = spm_cat(diag({M.V}));
-nh    = length(Q);                      % number of hyperparameters
- 
+nh    = length(Q);                         % number of hyperparameters
+
 % hyperpriors
 %--------------------------------------------------------------------------
 try
-    ph.h = spm_vec(M.hE);               % prior expectation of h
-    ph.c = spm_cat(diag({M.hC}));       % prior covariances of h
+    ph.h = spm_vec(M.hE);                  % prior expectation of h
+    ph.c = spm_cat(diag({M.hC}));          % prior covariances of h
 catch
-    ph.h = sparse(nh,1);                % prior expectation of h
-    ph.c = speye(nh,nh)*16;             % prior covariances of h
+    ph.h = sparse(nh,1);                   % prior expectation of h
+    ph.c = speye(nh,nh)*16;                % prior covariances of h
 end
-ph.ic    = inv(ph.c);                   % prior precision
-qh.h     = spm_vec(M.h);                % conditional expectation
-qh.c     = ph.c;                        % conditional covariance
+ph.ic    = inv(ph.c);                      % prior precision
+qh.h     = spm_vec(M.h);                   % conditional expectation
+qh.c     = ph.c;                           % conditional covariance
 qh.e     = qh.h - ph.h;
  
- 
+
 % priors on parameters (in reduced parameter space)
 %==========================================================================
 pp.c  = cell(nl,nl);
@@ -224,7 +179,7 @@ for i = 1:(nl - 1)
  
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
-    qp.u{i}   = spm_svd(M(i).pC,0,1-8);              % basis for parameters
+    qp.u{i}   = spm_svd(M(i).pC);                    % basis for parameters
     qp.p{i}   = spm_vec(M(i).P) - spm_vec(M(i).pE);  % initial estimate
     qp.p{i}   = qp.u{i}'*qp.p{i};                    % projection
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
@@ -240,18 +195,21 @@ np    = sum(cat(1,M.p));                    % number of model parameters
 nb    = size(X,1);                          % number of confounds
 nn    = nb*ny;                              % number of nuisance parameters
 nf    = np + nn;                            % numer of free parameters
-pp.c  = spm_cat(diag({pp.c,speye(nn,nn)*1e8}));
+ip    = [1:np];
+ib    = [1:nn] + np;
+pp.c  = spm_cat(pp.c);
 pp.ic = inv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
-qp.e  = spm_vec({qp.p sparse(nn,1)});
+qp.e  = spm_vec(qp.p);
 qp.c  = sparse(nf,nf);
+qb    = sparse(nn,1 );
 
 % initialise dedb
 %--------------------------------------------------------------------------
 for i = 1:nl
-    dedbi{i} = sparse(M(i).l,nn);
+    dedbi{i,1} = sparse(M(i).l,nn);
 end
  
  
@@ -267,6 +225,8 @@ qu.u      = cell(n + 1,1);
 [qu.v{:}] = deal(sparse(nv,1));
 [qu.y{:}] = deal(sparse(ny,1));
 [qu.u{:}] = deal(sparse(nc,1));
+
+dq        = {qu.v{1:d} qu.x{1} qu.y{1:n} qu.u{1:d}};
  
 % initialise cell arrays for hierarchical structure of x[0] and v[0]
 %--------------------------------------------------------------------------
@@ -277,56 +237,38 @@ qu.x{1}   = spm_vec(x);
 qu.v{1}   = spm_vec(v);
 qU        = qu;
 qU.c      = [];
-qU.C      = [];
 
-% fixed-form derivatives for Jacobian of D-step
+% derivatives for Jacobian of D-step
 %--------------------------------------------------------------------------
-dhdx      = cell(d,1);
-dhdv      = cell(d,d);
-dhdy      = cell(d,n);
-dhdc      = cell(d,d);
-dydy      = cell(n,n);
-dcdc      = cell(d,d);
-[dhdx{:}] = deal(sparse(nv,nx));
-[dhdv{:}] = deal(sparse(nv,nv));
-[dhdy{:}] = deal(sparse(nv,ny));
-[dhdc{:}] = deal(sparse(nv,nc));
-[dydy{:}] = deal(sparse(ny,ny));
-[dcdc{:}] = deal(sparse(nc,nc));
+Dv        = cell(d,d);
+Dx        = cell(1,1);
+Dy        = cell(n,n);
+Dc        = cell(d,d);
+[Dv{:}]   = deal(sparse(nv,nv));
+[Dx{:}]   = deal(sparse(nv,nx));
+[Dy{:}]   = deal(sparse(ny,ny));
+[Dc{:}]   = deal(sparse(nc,nc));
  
 % add constant terms
 %--------------------------------------------------------------------------
 for i = 2:d
-    dhdv{i - 1,i}  =  speye(nv,nv);
-    dcdc{i - 1,i}  =  speye(nc,nc);
+    Dv{i - 1,i} = speye(nv,nv);
+    Dc{i - 1,i} = speye(nc,nc);
 end
 for i = 2:n
-    dydy{i - 1,i}  =  speye(ny,ny);
+    Dy{i - 1,i} = speye(ny,ny);
 end
-dhdy  = spm_cat(dhdy,2);
-dhdc  = spm_cat(dhdc,2);
-dydy  = spm_cat(dydy);
-dcdc  = spm_cat(dcdc);
- 
-% Embedding operator (D) for updating response and related matrices
-%--------------------------------------------------------------------------
-pt    = spm_DEM_t(n,r,s,dt);
-[R,V] = spm_DEM_P(n,r,s,dt,pt);
- 
-% projector for conditional covariance of states - cov{v(t + pt)}
-%--------------------------------------------------------------------------
-j     = 1:(d - 1);
-Le    = [1 pt.^j./cumprod(j)];
-Le    = kron(Le,speye(nv,nv));
+Du        = spm_cat({Dv Dx});
+Dy        = spm_cat( Dy);
+Dc        = spm_cat( Dc);
+
 
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
-dUdv       = sparse(nv,1);
-dUdp       = sparse(nf,1);
-dUdvx      = sparse(nv,nx);
-dUdpp      = sparse(nf,nf);
-dUdvv      = cell(1,d);
-[dUdvv{:}] = deal(zeros(nv,nv));
+dUdu      = sparse(nu,1);
+dUdp      = sparse(nf,1);
+dUduu     = sparse(nu,nu);
+dUdpp     = sparse(nf,nf);
 
 % preclude unneceassry iterations
 %--------------------------------------------------------------------------
@@ -334,35 +276,41 @@ if ~nh,        nM = 1; end
 if ~nf,        nE = 1; end
 if ~nf && ~nh, nI = 1; end
 
+%  Precision (R) and covariance of generalised errors
+%--------------------------------------------------------------------------
+[R V]  = spm_DEM_R(n,s);
+if s < 1/2
+    Rd = R;
+else
+    Rd = sparse(1,1,R(1),n,n);
+end
+
+
 % Iterate DEM
 %==========================================================================
-Fm     = -Inf;
+Fm     = -exp(64);
 for iI = 1:nI
  
     % E-Step: (with embedded D-Step)
     %======================================================================
     mp     = zeros(nf,1);
-    Fe     = -Inf;
+    Fe     = -exp(64);
     for iE = 1:nE
  
-        % [re-]set states & their derivatives
-        %------------------------------------------------------------------
-        qu     = qU(1);
-        
+
         % [re-]set accumulators for E-Step
         %------------------------------------------------------------------
-        dFdp   = zeros(nf,1);
-        dFdpp  = zeros(nf,nf);
-        EE     = sparse(0);
-        EJCJ   = sparse(0);
-        qp.ic  = sparse(0);
-        qu.c   = speye(1);
+        dFdp  = zeros(nf,1);
+        dFdpp = zeros(nf,nf);
+        EE    = sparse(0);
+        JCJ   = sparse(0);
+        qp.ic = sparse(0);
+        qu_c  = speye(1);
  
         
         % [re-]set hierarchical parameters
         %------------------------------------------------------------------
-        qp.p   = spm_unvec(qp.e,qp.p);
-        qp.b   = qp.e([1:nn] + np,1);
+        qp.p  = spm_unvec(qp.e,qp.p);
         
         
         % [re-]set precisions using ReML hyperparameter estimates
@@ -373,49 +321,46 @@ for iI = 1:nI
         end
         iS    = kron(R,iC);
  
-        % [re-]set precision operator for D-Step
-        %------------------------------------------------------------------
-        for i = 1:d
-            W{i} = kron(V{i},iC);
-        end
- 
         % [re-]adjust for confounds
         %------------------------------------------------------------------
-        Y      = Y - reshape(qp.b,ny,nb)*X;
- 
-        % D-Step: (with embedded S-Step)
+        Y     = Y - reshape(qb,ny,nb)*X;
+        
+        % [re-]set states & their derivatives
+        %------------------------------------------------------------------
+        qu    = qU(1);
+        
+        % D-Step: (nD D-Steps for each sample)
         %==================================================================
-        for t  = 1:nt
-            
-            % [re-]set states & their derivatives for static systems
+        for t = 1:ns
+
+            % [re-]set states for static systems
             %--------------------------------------------------------------
-            if ~nx && iE > 1
-                qu = qU(t);
+            if ~nx
+                try, qu = qU(t); end
             end
 
-            % derivatives of responses and inputs,
-            %--------------------------------------------------------------
-            qu.y(1:n) = spm_DEM_embed(Y,t,n);
-            qu.u(1:d) = spm_DEM_embed(U,t,d);
- 
-            % compute dEdb
-            %--------------------------------------------------------------
-            if nb
-                for i = 1:n
-                    dedbi{1,1} = -kron(D(i,:)*X(:,kn)',speye(ny,ny));
-                    dedb{i,1}  = spm_cat(dedbi);
-                end
-                dEdb  = spm_cat(dedb);
-            else
-                dEdb  = sparse(ne*n,0);
-            end
- 
- 
             % D-Step: until convergence for static systems
             %==============================================================
-            Fd     = -Inf;
+            Fd     = -exp(64);
             for iD = 1:nD
- 
+                
+                % sampling time
+                %----------------------------------------------------------
+                ts        = (t + (iD - 1)/nD)*dt;
+                
+                % derivatives of responses and inputs
+                %----------------------------------------------------------
+                qu.y(1:n) = spm_DEM_embed(Y,n,ts,dt);
+                qu.u(1:d) = spm_DEM_embed(U,d,ts,dt);
+
+                % compute dEdb (derivatives of confounds)
+                %----------------------------------------------------------
+                b     = spm_DEM_embed(X,n,ts,dt);
+                for i = 1:n
+                    dedbi{1}  = -kron(b{i}',speye(ny,ny));
+                    dEdb{i,1} =  spm_cat(dedbi);
+                end
+
                 % evaluate functions:
                 % e = v - g(x,v), dx/dt = f(x,v) and derivatives dE.dx, ...
                 %==========================================================       
@@ -423,33 +368,35 @@ for iI = 1:nI
                 
                 % and conditional covariance [of states {v}]
                 %----------------------------------------------------------
-                qu.C       = inv(dE.dV'*iS*dE.dV);
-                qU(t)      = qu;
+                qu.c       = inv(dE.du'*iS*dE.du);
+                
+                % save states at qu(t)
+                %----------------------------------------------------------
+                if iD == 1, qU(t)  = qu; end
                 
                 % vectorise error
                 %----------------------------------------------------------
-                dE.dP      = [dE.dp dEdb];
-                E          = spm_vec(qu.e);
-                JCJ        = dE.dV*qu.C*dE.dV' + dE.dP*qp.c*dE.dP';
+                dE.dP  = [dE.dp spm_cat(dEdb)];
+                E      = spm_vec(qu.e);
+                JCJu   = dE.du*qu.c*dE.du';
+                JCJp   = dE.dP*qp.c*dE.dP';
           
-                % and evaluate objective function F(t) (for static models)
+                % and evaluate objective function L(t) (for static models)
                 %----------------------------------------------------------
                 if ~nx
                     
-                    L = - trace(E'*iS*E)/(2*r) ...  % states (u)
-                        - trace(iS*JCJ)/(2*r) ...      % expectation
-                        + spm_logdet(qu.C)/(2*r);         % entropy q(u)
+                    L = - trace(E'*iS*E)/2 ...           % states (u)
+                        - trace(iS*JCJp)/2;              % expectation q(p)
 
-                    % if F is increasing, save expansion point and dervatives
-                    %----------------------------------------------------------
+                    % if F is increasing, save expansion point
+                    %------------------------------------------------------
                     if L > Fd
-                        td  = {td{1}*2};
+                        td  = {min(td{1}*2,256)};
                         Fd  = L;
-                        save tempD qu df dE
+                        save tempD qu df dE E JCJu JCJp
                     else
-
                         % otherwise, return to previous expansion point
-                        %------------------------------------------------------
+                        %--------------------------------------------------
                         load tempD
                         td  = {min(td{1}/2,16)};
                     end
@@ -458,59 +405,61 @@ for iI = 1:nI
                 % conditional uncertainty about parameters
                 %==========================================================
                 if np
-                    for i = 1:nv
+                    for i = 1:nu
                         
                         % 1st-order derivatives: dUdv, ... ; U = ln(|qp.c|)
                         %--------------------------------------------------
-                        CJ                    = qp.c(1:np,1:np)*dE.dpv{i}';
-                        dUdv(i,1)             = trace(CJ*W{1}*dE.dp);
+                        CJ             = qp.c(ip,ip)*dE.dpu{i}'*iS;
+                        dUdu(i,1)      = trace(CJ*dE.dp);
 
                         % 2nd-order derivatives
                         %--------------------------------------------------
-                        for j = 1:nx
-                            dUdvx(i,j)        = trace(CJ*W{1}*dE.dpx{j});
-                        end
-                        for j = 1:nv
-                            for k = 1:d
-                                dUdvv{k}(i,j) = trace(CJ*W{k}*dE.dpv{j});
-                            end
+                        for j = 1:nu
+                            dUduu(i,j) = trace(CJ*dE.dpu{j});
                         end
                     end
                 end
 
- 
+
                 % D-step update: of causes v{i}, and other states u(i)
                 %==========================================================
 
-                % compute h = dv[d]/dt, dh/dx, ...
+                % compute dqdt: q = {u y c}; and dudt: u = {v{1:d} x}
                 %----------------------------------------------------------
-                dE.dh    =  dE.dv'*W{1};
-                h        = -kt*(dE.dh*E     + dUdv );
-                dhdx{d}  = -kt*(dE.dh*dE.dx + dUdvx);
-                dhdy{d}  = -kt*(dE.dh*dE.dy        );
-                dhdc{d}  = -kt*(dE.dh*dE.dc        );
- 
-                % & d-th derivatives
+                dIdu  = -dE.du'*iS*E - dUdu/2; 
+                
+                % and second-order derivatives
                 %----------------------------------------------------------
-                for i = 1:d
-                    dhdv{d,i} = -kt*(dE.dv'*W{i}*dE.dv + dUdvv{i});
+                dIduu = -dE.du'*iS*dE.du - dUduu/2;
+                dIduy = -dE.du'*iS*dE.dy;
+                dIduc = -dE.du'*iS*dE.dc;
+                
+                % mean field effects
+                %----------------------------------------------------------
+                D     = spm_cat({Du; df.du});
+                if nx
+                    kt = exp(32)*normest(D)/normest(dIduu);
                 end
- 
-                % Curvature and gradients for states u = {v x y c}
+                
+                % gradient
                 %----------------------------------------------------------
-                dFduu = spm_cat({dhdv  dhdx  dhdy  dhdc  ;
-                                 df.dv df.dx []    []    ;
-                                 []    []    dydy  []    ;
-                                 []    []    []    dcdc});                         
+                dFdu  = spm_vec({qu.v(2:d + 1) qu.x(2)}) + kt*dIdu;
+                dFdu  = spm_vec({dFdu           ;
+                                 qu.y(2:n + 1)  ;
+                                 qu.u(2:d + 1)});
                 
-                dudt  = {qu.v{2:d} h qu.x{2} qu.y{2:n + 1} qu.u{2:d + 1}};
-                dFdu  = spm_vec(dudt);
                 
-                           
-                % update conditional expecatiions of states u = {x,v,y,u}
+                % Jacobian
+                %----------------------------------------------------------
+                dFduu = spm_cat({(D + kt*dIduu) kt*dIduy    kt*dIduc;
+                                  []            Dy          []      ;
+                                  []            []          Dc   }) ;                         
+                
+      
+                % update conditional modes of states
                 %----------------------------------------------------------
                 du    = spm_dx(dFduu,dFdu,td);
-                dq    = spm_unvec(du,dudt);
+                dq    = spm_unvec(du,dq);
                 for i = 1:d
                     qu.v{i} = qu.v{i} + dq{i};
                     qu.u{i} = qu.u{i} + dq{d + 1 + n + i};
@@ -520,71 +469,68 @@ for iI = 1:nI
                 end
                 qu.x{1}     = qu.x{1} + dq{d + 1};
                 
+        
                 % D-Step: break if convergence (for static models)
                 %----------------------------------------------------------
+                if ~nx, qU(t)  = qu; end
                 if ~nx && ((dFdu'*du < 1e-2) | (norm(du,1) < TOL))
                     break
                 end
-
-                % report (D-Steps)
-                %----------------------------------------------------------
-                str{1} = 'D-Step: ';
-                str{2} = sprintf('%i',t);
-                str{3} = sprintf('%i',iD);
-                str{4} = sprintf('F:%.6e',full(Fd));
-                str{5} = sprintf('u:%.2e',full(du'*du));
-                if ~nx, fprintf('%-8s%-4s%-4s%-20s%-16s\n',str{1:5}), end
+                if ~nx && ns < 8
+                    % report (D-Steps)
+                    %------------------------------------------------------
+                    str{1} = 'D-Step: ';
+                    str{2} = sprintf('%i',t);
+                    str{3} = sprintf('%i',iD);
+                    str{4} = sprintf('I:%.6e',full(Fd));
+                    str{5} = sprintf('u:%.2e',full(du'*du));
+                    fprintf('%-8s%-4s%-4s%-20s%-16s\n',str{1:5})
+                end
 
             end % D-Step
             
             % Gradients and curvatures for E-Step:
             %==============================================================
-            qu.c  = qu.c*qu.C;
-            EE    = E*E'+ EE;
-            EJCJ  = EJCJ + JCJ;
-            for i = 1:np
+            for i = ip
                 
                 % 1st-order derivatives: U = tr(C*J'*iS*J)
                 %----------------------------------------------------------
-                CJ        = qu.C*dE.dVp{i}'*iS;
-                dUdp(i,1) = trace(CJ*dE.dV);
+                CJ             = qu.c*dE.dup{i}'*iS;
+                dUdp(i,1)      = trace(CJ*dE.du);
  
                 % 2nd-order derivatives
                 %----------------------------------------------------------
-                for j = 1:np
-                    dUdpp(i,j) = trace(CJ*dE.dVp{j});
+                for j = ip
+                    dUdpp(i,j) = trace(CJ*dE.dup{j});
                 end
             end
  
             % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
             %--------------------------------------------------------------
-            dFdp   = dFdp  - dUdp  - dE.dP'*iS*E;
-            dFdpp  = dFdpp - dUdpp - dE.dP'*iS*dE.dP;
-            qp.ic  = qp.ic         + dE.dP'*iS*dE.dP;
+            dFdp  = dFdp  - dUdp/2  - dE.dP'*iS*E;
+            dFdpp = dFdpp - dUdpp/2 - dE.dP'*iS*dE.dP;
+            qp.ic = qp.ic           + dE.dP'*iS*dE.dP;
  
+            % and quantities for M-Step
+            %--------------------------------------------------------------
+            qu_c  = qu_c*qu.c;
+            EE    = E*E'+ EE;
+            JCJ   = JCJ + JCJu + JCJp;
             
-        end % sequence
+        end % sequence (t)
  
         % augment with priors
         %------------------------------------------------------------------
-        dFdp   = dFdp/r  - pp.ic*qp.e;
-        dFdpp  = dFdpp/r - pp.ic;
-        qp.ic  = qp.ic/r + pp.ic;
-        qp.c   = inv(qp.ic);
-            
-        % evaluate objective function L(t)
+        dFdp(ip)     = dFdp(ip)     - pp.ic*qp.e;
+        dFdpp(ip,ip) = dFdpp(ip,ip) - pp.ic;
+        qp.ic(ip,ip) = qp.ic(ip,ip) + pp.ic;
+        qp.c         = inv(qp.ic);
+             
+        % evaluate objective function <L(t)>
         %==================================================================
-        L = - trace(iS*EE)/(2*r)  ...            % states (u)
-            - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
-            - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-            - trace(iS*EJCJ)/(2*r)   ...         % expectation under q
-            + spm_logdet(qu.c)/(2*r) ...         % entropy q(u)
-            + spm_logdet(qp.c)/2     ...         % entropy q(p)
-            + spm_logdet(qh.c)/2     ...         % entropy q(h)
-            - spm_logdet(pp.c)/2     ...         % entropy - prior p
-            - spm_logdet(ph.c)/2     ...         % entropy - prior h     
-            + spm_logdet(iS)*nt/(2*r) ...        % entropy - error
-            - ne*nt*log(2*pi)/(2*r);
+        L = - trace(iS*EE)/2  ...                    % states (u)
+            - trace(qp.e'*pp.ic*qp.e)/2;             % parameters (p)
+
  
         % if F is increasing, save expansion point and dervatives
         %------------------------------------------------------------------
@@ -608,8 +554,9 @@ for iI = 1:nI
         % update conditional expectation
         %------------------------------------------------------------------
         dp   = spm_dx(dFdpp,dFdp,{te});
-        qp.e = qp.e + dp;
-        mp   = mp   + dp;
+        qp.e = qp.e + dp(ip);
+        db   = dp(ib);
+        mp   = mp + dp;
         
         % convergence (E-Step)
         %------------------------------------------------------------------
@@ -620,19 +567,18 @@ for iI = 1:nI
         str{1} = 'E-Step: ';
         str{2} = sprintf('%i',iE);
         str{3} = sprintf('%i',iD);
-        str{4} = sprintf('F:%.6e',full(Fe));
+        str{4} = sprintf('I:%.6e',full(Fe));
         str{5} = sprintf('p:%.2e',full(dp'*dp));
         fprintf('%-8s%-4s%-4s%-20s%-16s\n',str{1:5})
         
     end % E-Step
     
-  
+    
     % M-step - hyperparameters (h = exp(l))
     %======================================================================
     mh     = zeros(nh,1);
     dFdh   = zeros(nh,1);
     dFdhh  = zeros(nh,nh);
-    
     for iM = 1:nM
  
         % [re-]set precisions using ReML hyperparameter estimates
@@ -641,20 +587,21 @@ for iI = 1:nI
         for i = 1:nh
            iC = iC + Q{i}*exp(qh.h(i));
         end
-        S     = kron(pinv(R),inv(iC));
- 
+        S     = kron(V,inv(iC));
+        dS    = JCJ + EE - S*ns;
+         
         % 1st-order derivatives: dFdh = dF/dh
         %------------------------------------------------------------------
         for i = 1:nh
-            dPdh{i}        =  kron(R,Q{i}*exp(qh.h(i)));
-            dFdh(i,1)      = -trace(dPdh{i}*(EJCJ + EE - S*nt))/(2*r);
+            dPdh{i}        =  kron(Rd,Q{i}*exp(qh.h(i)));
+            dFdh(i,1)      = -trace(dPdh{i}*dS)/2;
         end
  
         % 2nd-order derivatives: dFdhh
         %------------------------------------------------------------------
         for i = 1:nh
             for j = 1:nh
-                dFdhh(i,j) =  -trace(dPdh{i}*S*dPdh{j}*S*nt)/(2*r);
+                dFdhh(i,j) = -trace(dPdh{i}*S*dPdh{j}*S*ns)/2;
             end
         end
         
@@ -667,9 +614,17 @@ for iI = 1:nI
         % update ReML estimate of parameters
         %------------------------------------------------------------------
         dh    = spm_dx(dFdhh,dFdh);
+        dh    = min(dh, 8);
+        dh    = max(dh,-8);
         qh.h  = qh.h + dh;
         mh    = mh   + dh;
- 
+        
+        % conditional covariance of hyperparameters
+        %------------------------------------------------------------------
+        if iM == 1
+            qh.c = -inv(dFdhh);
+        end
+        
         % convergence (M-Step)
         %------------------------------------------------------------------
         if (dFdh'*dh < 1e-2) | (norm(dh,1) < TOL), break, end
@@ -678,22 +633,18 @@ for iI = 1:nI
  
     % evaluate objective function (F)
     %======================================================================
-    qh.ic = -dFdhh;
-    qh.c  = inv(qh.ic);
-    iS    = kron(R,iC);
-
-    L   = - trace(iS*EE)/(2*r)  ...            % states (u)
+    L   = - trace(iS*EE)/2  ...                % states (u)
           - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
           - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-          - trace(iS*EJCJ)/(2*r)   ...         % expectation under q
-          + spm_logdet(qu.c)/(2*r) ...         % entropy q(u)
-          + spm_logdet(qp.c)/2     ...         % entropy q(p)
-          + spm_logdet(qh.c)/2     ...         % entropy q(h)
-          - spm_logdet(pp.c)/2     ...         % entropy - prior p
-          - spm_logdet(ph.c)/2     ...         % entropy - prior h
-          + spm_logdet(iS)*nt/(2*r) ...        % entropy - error
-          - ne*nt*log(2*pi)/(2*r);
+          + spm_logdet(qu_c)/2  ...            % entropy q(u)
+          + spm_logdet(qp.c)/2  ...            % entropy q(p)
+          + spm_logdet(qh.c)/2  ...            % entropy q(h)
+          - spm_logdet(pp.c)/2  ...            % entropy - prior p
+          - spm_logdet(ph.c)/2  ...            % entropy - prior h
+          + spm_logdet(iS)*ns/2 ...            % entropy - error
+          - ny*ns*log(2*pi)/2;
 
+    
     % if F is increasing, save expansion point and dervatives
     %----------------------------------------------------------------------
     if L > (Fm + 1e-2)
@@ -719,7 +670,10 @@ for iI = 1:nI
 
             % and conditional covariances
             %--------------------------------------------------------------
-            QU.C{t} = Le*qU(t).C*Le';
+            i       = [1:nv];
+            QU.C{t} = qU(t).c(i,i);
+            i       = [1:nx] + nv*d;
+            QU.S{t} = qU(t).c(i,i);
         end
 
         save tempM
@@ -730,7 +684,7 @@ for iI = 1:nI
         spm_DEM_qU(QU)
         if np
             subplot(nl,4,4*nl)
-            bar(full(Up*qp.e(1:np,1)))
+            bar(full(Up*qp.e))
             xlabel({'parameters';'{minus prior}'})
             axis square, grid on
         end
@@ -747,7 +701,7 @@ for iI = 1:nI
         %------------------------------------------------------------------   
         str{1} = 'M-Step: ';
         str{2} = sprintf('%i',iI);
-        str{3} = sprintf('%i',iE);
+        str{3} = sprintf('%i',iM);
         str{4} = sprintf('F:%.6e',full(Fm));
         str{5} = sprintf('p:%.2e',full(mp'*mp));
         str{6} = sprintf('h:%.2e',full(mh'*mh));
@@ -767,9 +721,9 @@ end
 
 % conditional moments of model-parameters (rotated into original space)
 %--------------------------------------------------------------------------
-qP.P  = Up*qp.e(1:np) + spm_vec(M.pE);
+qP.P  = Up*qp.e + spm_vec(M.pE);
 qP.Pi = spm_unvec(qP.P,M.pE);
-qP.C  = Up*qp.c(1:np,1:np)*Up';
+qP.C  = Up*qp.c(ip,ip)*Up';
  
 % conditional moments of hyper-parameters (log-transformed)
 %--------------------------------------------------------------------------
@@ -782,17 +736,13 @@ qH.iV = R;
  
 % assign output variables
 %--------------------------------------------------------------------------
-if nargout == 1
+DEM.U  = U;                   % causes
+DEM.X  = X;                   % confounds
  
-    DEM.U  = U;                   % causes
-    DEM.X  = X;                   % confounds
+DEM.qU = QU;                  % conditional moments of states
+DEM.qP = qP;                  % conditional moments of model-parameters
+DEM.qH = qH;                  % conditional moments of hyper-parameters
  
-    DEM.qU = QU;                  % conditional moments of states
-    DEM.qP = qP;                  % conditional moments of model-parameters
-    DEM.qH = qH;                  % conditional moments of hyper-parameters
- 
-    DEM.F  = F;                   % [-ve] Free energy
-    QU     = DEM;
-end
- 
+DEM.F  = F;                   % [-ve] Free energy
+
 warning on

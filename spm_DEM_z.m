@@ -4,9 +4,9 @@ function [z,C,K] = spm_DEM_z(M,N)
 % M    - model structure
 % N    - length of data sequence
 %
-% z{i} - innovations for level i (N.B. z{end} correspond to causes)
+% z{i} - innovations for level i (N.B. z{end} corresponds to causes)
 % C    - component covariance
-% K    - sequential covariance
+% K    - autocovariance
 %
 %--------------------------------------------------------------------------
 % If the precision is zero, unit variance innovations are assumed
@@ -20,12 +20,14 @@ function [z,C,K] = spm_DEM_z(M,N)
  
 % set model structure
 %--------------------------------------------------------------------------
-M     = spm_M_set(M);
+M     = spm_DEM_M_set(M);
  
 % temporal convolution matrix
 %--------------------------------------------------------------------------
-s     = sqrt(2)*M(1).E.s + eps;
-K     = toeplitz(exp(-(([1:N] - 1)).^2/(s^2)));
+s     = M(1).E.s + eps;
+dt    = M(1).E.dt;
+t     = ([1:N] - 1)*dt;
+K     = toeplitz(exp(-t.^2/(2*s^2)));
  
  
 % create innovations z{i} [assume unit variance if precision is 0]
@@ -36,7 +38,7 @@ for i = 1:length(M)
     for j = 1:length(M(i).Q)
         P = P + M(i).Q{j}*exp(M(i).h(j));
     end
-    if ~norm(P,1)
+    if ~normest(P,1)
         C{i} = speye(M(i).l,M(i).l);
     else
         C{i} = inv(P);

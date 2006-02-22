@@ -36,10 +36,14 @@ for i = 1:(g - 1)
     
     % conditional expectations
     %----------------------------------------------------------------------
-    j     = length(qP.Pi{i});
+    qi    = spm_vec(qP.Pi{i});
+    try
+        pi = spm_vec(M.pE{i});
+    end
+    j     = length(qi);
     if j
         subplot(g,1,i)
-        bar(qP.Pi{i},'c')        
+        bar(qi,'c')        
         title(sprintf('parameters - level %i',i));
         grid on
         axis square
@@ -49,7 +53,7 @@ for i = 1:(g - 1)
         %------------------------------------------------------------------
         try
             for k = 1:j
-                line([k k],[-1 1]*ci*c(k) + qP.Pi{i}(k),...
+                line([k k],[-1 1]*ci*c(k) + qi(k),...
                     'LineWidth',4,'Color',[0 0 0] + 2/8);
             end
             c(1:j) = [];
@@ -59,7 +63,7 @@ for i = 1:(g - 1)
         %------------------------------------------------------------------
         try
             for k = 1:j
-                line([k k] + 1/2,[-1 1]*ci*p(k) + M.pE{i}(k),...
+                line([k k] + 1/2,[-1 1]*ci*p(k) + pi(k),...
                     'LineWidth',8,'Color',[0 0 0] + 6/8);
             end
             p(1:j) = [];

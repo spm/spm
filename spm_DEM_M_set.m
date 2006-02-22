@@ -1,6 +1,6 @@
-function [M] = spm_M_set(M)
+function [M] = spm_DEM_M_set(M)
 % sets indices and performs checks on hierarchical models
-% FORMAT [M] = spm_M_set(M)
+% FORMAT [M] = spm_DEM_M_set(M)
 %
 % for each level (i); required fields
 %

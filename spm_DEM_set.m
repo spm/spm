@@ -1,4 +1,4 @@
-function [DEM] = spm_DEM_set(DEM)
+function [varargout] = spm_DEM_set(DEM)
 % Performs checks on DEM structures
 % FORMAT [DEM] = spm_DEM_set(DEM)
 %
@@ -15,16 +15,14 @@ function [DEM] = spm_DEM_set(DEM)
 % check model and data
 % -------------------------------------------------------------------------
 try
-    DEM.M = spm_M_set(DEM.M);
+    DEM.M = spm_DEM_M_set(DEM.M);
 catch
-    msgbox('please check your model')
-    error(' ')
+    errordlg('please check your model')
 end
 try
     N     = size(DEM.Y,2);
 catch
-    msgbox('please specify data')
-    error(' ')
+    errordlg('please specify data')
 end
 try
     DEM.class;
@@ -35,36 +33,68 @@ end
 % ensure model and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.Y,1) ~= DEM.M(1).l
-    errordlg('Outputs and data are not compatible')
+    errordlg('DCM outputs and data are incompatible')
 end
  
 % Default priors and confounds
 % -------------------------------------------------------------------------
-try
-    if ~isfield(DEM,'U')
-        DEM.U = sparse(DEM.M(end).l,N);
-    end
+n  = DEM.M(end).l;
+if ~isfield(DEM,'U')
+    DEM.U = sparse(n,N);
 end
-try
-    if ~isfield(DEM,'X')
-        DEM.X = sparse(0,N);
-    end
+if ~isfield(DEM,'X')
+    DEM.X = sparse(0,N);
 end
+
+% transpose causes and confounds, if specified in conventional fashion
+%--------------------------------------------------------------------------
+if size(DEM.U,2) < N, DEM.U = DEM.U';    end
+if size(DEM.X,2) < N, DEM.X = DEM.X';    end
+
+% check prior expectation of causes (at level n) and confounds
+%--------------------------------------------------------------------------
+if ~nnz(DEM.U), DEM.U = sparse(n,N); end
+if ~nnz(DEM.X), DEM.X = sparse(0,N); end
  
-% ensure Inputs and cause dimensions check
+% ensure inputs and cause dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.U,1) ~= DEM.M(end).l
-    errordlg('Inputs and causes are not compatible')
+    errordlg('DCM inputs and priors are not compatible')
 end
  
 % ensure causes and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.U,2) < N
-    errordlg('causes and data not compatible')
+    errordlg('priors and data have different lengths')
 end
  
 % ensure confounds and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.X,2) < N
-    errordlg('confounds and data not compatible')
+    errordlg('confounds and data have different lengths')
 end
+
+% check length of time-series
+%--------------------------------------------------------------------------
+if N < DEM.M(1).E.n
+    errordlg('Please ensure time-series is longer than embedding order')
+    return
+end
+
+% ensure parameters and casues are not all zero
+% -------------------------------------------------------------------------
+if ~any(spm_vec(DEM.M.P)) && ~any(spm_vec(DEM.U))
+    warndlg('please intialise parameters or inputs')
+end
+
+% unpack DEM if necessary
+% -------------------------------------------------------------------------
+if nargout == 4
+    varargout{1} = DEM.M;
+    varargout{2} = DEM.Y;
+    varargout{3} = DEM.U;
+    varargout{4} = DEM.X;
+else
+    varargout{1} = DEM;
+end
+
