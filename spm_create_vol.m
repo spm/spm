@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 414 2006-01-31 17:36:23Z john $
+% $Id: spm_create_vol.m 458 2006-02-24 11:50:42Z john $
 
 
 for i=1:numel(V),
@@ -89,6 +89,8 @@ catch
 end;
 
 if ~isempty(N0),
+
+    % If the dimensions differ, then there is the potential for things to go badly wrong.
     tmp = [N0.dat.dim ones(1,5)];
     if any(tmp(1:3) ~= dim(1:3))
         warning(['Incompatible x,y,z dimensions in file "' V.fname '" [' num2str(tmp(1:3)) ']~=[' num2str(dim(1:3)) '].']);
@@ -96,7 +98,8 @@ if ~isempty(N0),
     if dim(5) > tmp(5) && tmp(4) > 1,
         warning(['Incompatible 4th and 5th dimensions in file "' V.fname '" (' num2str([tmp(4:5) dim(4:5)]) ').']);
     end;
-    N.dat.dim = max(dim(1:5),tmp(1:5));
+    N.dat.dim = [dim(1:3) max(dim(4:5),tmp(4:5))];
+
     if ~strcmp(dat.dtype,N0.dat.dtype),
         warning(['Incompatible datatype in file "' V.fname '" ' N0.dat.dtype ' ~= ' dat.dtype '.']);
     end;

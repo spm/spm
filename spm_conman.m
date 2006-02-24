@@ -1,5 +1,5 @@
 function varargout=spm_conman(varargin)
-% Contrast manager: GUI for defining valid contrasts & managing xCon
+% Contrast manager: GUI for defining valid contrasts
 % FORMAT varargout=spm_conman(varargin)
 %       - An embedded callback, multi-function function
 %       - For detailed programmers comments,
@@ -567,9 +567,8 @@ function varargout=spm_conman(varargin)
 % S P M   C o n t r a s t   m a n a g e m e n t
 %=======================================================================
 %
-% Contrasts are stored by SPM in a single structure, which is saved in
-% the xCon.mat file alongside an analysis. (See spm_FcUtil.m for the
-% definition and handling of the contrast structure.)
+% Contrasts are stored by SPM in a single structure (See spm_FcUtil.m
+% for the definition and handling of the contrast structure.)
 %
 % Note that the xCon structure for each contrast contains data specific
 % to the current experimental design. Therefore, contrast structures
@@ -588,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 396 2006-01-09 13:31:41Z will $
+% $Id: spm_conman.m 458 2006-02-24 11:50:42Z john $
 
 
 %=======================================================================
@@ -1426,7 +1425,7 @@ switch lower(varargin{1}), case 'initialise'
             varargout = {[],0,{'    <- !empty input'},{},{}};
             return
         elseif iscell(cstr)
-            if size(cstr,1)~=1, cstr=cstr(:); end
+            if numel(cstr)~=1, cstr=cstr(:); end
             c    = cstr;
         elseif ischar(cstr)
             cstr = cellstr(cstr);

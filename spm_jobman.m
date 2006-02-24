@@ -42,12 +42,16 @@ function varargout = spm_jobman(varargin)
 %
 % FORMAT spm_jobman('chmod')
 % Changes the modality for the TASKS pulldown.
+%
+% FORMAT [tag,dat] = spm_jobman('harvest',c)
+% Take a data structure, and extract what is needed to save it
+% as a batch job (for experts only).
 % 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 414 2006-01-31 17:36:23Z john $
+% $Id: spm_jobman.m 458 2006-02-24 11:50:42Z john $
 
 
 if nargin==0
@@ -91,6 +95,9 @@ else
         else
             varargout{1} = showdoc;
         end;
+
+    case {'harvest'}
+        [varargout{1:nargout}] = harvest(varargin{2:nargin});
 
     otherwise
         error(['"' varargin{1} '" - unknown option']);
