@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 454 2006-02-22 13:20:02Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 459 2006-02-24 11:55:50Z jeremie $
 
 spm_defaults
 
@@ -133,7 +133,7 @@ else
         end
     else
         if nargin == 4
-            sens_or_fil = varargin{4};
+            sens_or_file = varargin{4};
         end
     end
 end
