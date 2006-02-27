@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 460 2006-02-27 12:22:17Z john $
+% $Id: subsasgn.m 461 2006-02-27 17:17:29Z john $
 
 
 if isempty(subs)
@@ -113,7 +113,13 @@ if ~isempty(sobj.scl_slope),
 end;
 
 if dt(ind).isint, dat = round(dat); end;
+
+% Avoid warning messages in R14 SP3
+wrn = warning;
+warning('off');
 dat   = feval(dt(ind).conv,dat);
+warning(wrn);
+
 nelem = dt(ind).nelem;
 if nelem==1,
     mat2file(sobj,dat,va{:});
