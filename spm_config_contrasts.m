@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 421 2006-02-01 16:31:54Z will $
+% $Id: spm_config_contrasts.m 460 2006-02-27 12:22:17Z john $
 
 
 %_______________________________________________________________________
@@ -415,7 +415,7 @@ for i = 1:length(job.consess)
     else %fcon
         name = job.consess{i}.fcon.name;
         STAT = 'F';
-        con  = job.consess{i}.fcon.convec;
+        con  = cat(1,job.consess{i}.fcon.convec{:});
 
     end
     

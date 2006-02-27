@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 458 2006-02-24 11:50:42Z john $
+% $Id: spm_create_vol.m 460 2006-02-27 12:22:17Z john $
 
 
 for i=1:numel(V),
@@ -84,6 +84,12 @@ N.descrip = V.descrip;
 
 try
     N0  = nifti(V.fname);
+
+    % Just overwrite if both are single volume files.
+    tmp = [N0.dat.dim ones(1,5)];
+    if prod(tmp(4:end))==1 && prod(dim(4:end)==1)
+        N0 = [];
+    end;
 catch
     N0  = [];
 end;

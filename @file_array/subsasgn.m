@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 316 2005-11-28 16:56:43Z john $
+% $Id: subsasgn.m 460 2006-02-27 12:22:17Z john $
 
 
 if isempty(subs)
@@ -45,7 +45,7 @@ if length(subs.subs) < length(dm),
     end;
 end;
 
-dm   = [size(obj) ones(1,16)];
+dm   = [dm ones(1,16)];
 do   = ones(1,16);
 args = {};
 for i=1:length(subs.subs),
