@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 362 2005-12-06 11:14:54Z john $
+% $Id: spm_orthviews.m 462 2006-02-28 12:15:56Z john $
 
 
 
@@ -1675,11 +1675,12 @@ case 'add_c_blobs',
 		ch_c_handle = get(c_handle,'Children');
 		set(c_handle,'Visible','on');
 		%set(ch_c_handle,'Visible',on');
-		item7_4_1   = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+		hlabel = sprintf('%s (%s)',VOL.title,c_names{c});
+		item7_4_1   = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
 			'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);',...
 			'UserData',c);
 		if varargin{2} == 1,
-			item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+			item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
 				'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
 				'UserData',c);
 		end;
@@ -1724,10 +1725,11 @@ case 'add_c_image',
 		ch_c_handle = get(c_handle,'Children');
 		set(c_handle,'Visible','on');
 		%set(ch_c_handle,'Visible',on');
-		item7_4_1 = uimenu(ch_c_handle(2),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+		hlabel = sprintf('%s (%s)',fname,c_names{c});
+		item7_4_1 = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
 			'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
 		if varargin{2} == 1
-			item7_4_2 = uimenu(ch_c_handle(1),'Label',c_names{c},'ForegroundColor',colours(c,:),...
+			item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
 				'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
 				'UserData',c);
 		end
