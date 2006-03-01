@@ -27,7 +27,7 @@ The rest of this chapter describes the Bayesian estimation options. So, please s
 
 \subsection{Bayesian 1st-level}
 
-Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. The VB approach has been described in a number of papers \cite{vb_fmri_ar,vb2,vb3,vb4}.
+Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. The VB approach has been described in a number of papers \cite{vb_fmri_ar,vb2,vb3,will_bayes_srglm}.
                                                           
 After estimation, contrasts are used to find regions with effects larger than a user-specified size eg. 1 per cent of the global mean signal. These effects are assessed statistically using a Posterior Probability Map (PPM) \cite{karl_posterior}.
 
@@ -86,7 +86,7 @@ There are three noise prior options.
 
 \end{itemize}
                                                                                                             
-Previous work has shown that there is significant variation in AR values with tissue type. However, GMRF priors have previously been favoured by Bayesian model comparison \cite{vb4}.
+Previous work has shown that there is significant variation in AR values with tissue type. However, GMRF priors have previously been favoured by Bayesian model comparison \cite{will_bayes_srglm}.
 
 \subsubsection{ANOVA}
 
@@ -94,7 +94,7 @@ Perform 1st or 2nd level Analysis of Variance.
 
 \paragraph{First level}
 
-This is implemented using Bayesian model comparison as described in \cite{vb4}. For example, to test for the main effect of a factor two models are compared, one where the levels are represented using different regressors and one using the same regressor. This therefore requires explicit fitting of several models at each voxel and is computationally demanding (requiring several hours of computation). The recommended option is therefore NO.
+This is implemented using Bayesian model comparison as described in \cite{will_bayes_srglm}. For example, to test for the main effect of a factor two models are compared, one where the levels are represented using different regressors and one using the same regressor. This therefore requires explicit fitting of several models at each voxel and is computationally demanding (requiring several hours of computation). The recommended option is therefore NO.
 
 To use this option you must have already specified your factorial design during the model specification stage. 
 
@@ -188,7 +188,7 @@ Each of these images can be inspected using the `Display' button. Type \verb!hel
 
 Once you have estimated a model you can use SPM's results button to look at the results. You can also extract fMRI data from regions of interest using the ROI button. You can then compare GLMs based on different hemodynamic basis sets using the Bayesian model evidence. 
 
-This is described in \cite{vb4} and implemented using the command line option `spm\_vb\_roi\_basis'. This requires a VOI filename (created using the ROI button) and an SPM data structure. Type `help spm\_vb\_roi\_basis' at the matlab command prompt for further information. Figure~\ref{basis} shows an example output from the function indicating that, for the data in this brain region, an informed basis set has the highest model evidence.
+This is described in \cite{will_bayes_srglm} and implemented using the command line option `spm\_vb\_roi\_basis'. This requires a VOI filename (created using the ROI button) and an SPM data structure. Type `help spm\_vb\_roi\_basis' at the matlab command prompt for further information. Figure~\ref{basis} shows an example output from the function indicating that, for the data in this brain region, an informed basis set has the highest model evidence.
 
 \begin{figure}
 \begin{center}

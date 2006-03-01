@@ -9,7 +9,7 @@ function varargout = dtype(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: dtype.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: dtype.m 466 2006-03-01 15:14:22Z john $
 
 
 
@@ -35,10 +35,12 @@ if isnumeric(dat)
     if numel(dat)>=1,
         mch = find(cat(1,d.code)==dat(1));
         if isempty(mch) || mch==0,
+            fprintf('Invalid datatype (%d).', dat(1));
             disp('First part of datatype should be of one of the following');
             disp(sortrows([num2str(cat(1,d.code)) ...
                 repmat(' ',numel(d),2) strvcat(d.label)]));
-            error(['Invalid datatype (' num2str(dat(1)) ').']);
+            %error(['Invalid datatype (' num2str(dat(1)) ').']);
+            return;
         end;
         obj.dtype = double(dat(1));
     end;
@@ -64,12 +66,15 @@ elseif ischar(dat),
         disp('First part of datatype should be of one of the following');
         disp(sortrows([num2str(cat(1,d.code)) ...
             repmat(' ',numel(d),2) strvcat(d.label)]));
-        error(['Invalid datatype (' c1 ').']);
+        %error(['Invalid datatype (' c1 ').']);
+        return;
     else
         obj.dtype = double(d(mch(1)).code);
     end;
     if any(c2=='b'),
-        if any(c2=='l'), error('Cannot be both big and little endian.'); end;
+        if any(c2=='l'),
+            error('Cannot be both big and little endian.');
+        end;
         obj.be = 1;
     elseif any(c2=='l'),
         obj.be = 0;

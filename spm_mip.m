@@ -29,7 +29,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 447 2006-02-21 11:28:34Z john $
+% $Id: spm_mip.m 466 2006-03-01 15:14:22Z john $
 
 
 
@@ -52,7 +52,7 @@ end
 Z    = Z(:)';
 Z    = Z - min(Z);
 m    = max(Z);
-if m
+if finite(m) && m
 	Z = (1 + 3*Z/m)/4;
 else
 	Z = ones(1,length(Z));
@@ -103,3 +103,4 @@ dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim);
 mip  = max(d,mip);
 image(rot90((1 - mip)*64)); axis tight; axis off;
+
