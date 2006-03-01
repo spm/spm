@@ -1,32 +1,3 @@
-\documentclass[a4paper,titlepage]{book}
-\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}
-\usepackage[colorlinks=true,
-pdfpagemode=UseOutlines,
-pdftitle={SPM5 Manual},
-pdfauthor={The SPM Team},
-pdfsubject={Statistical Parametric Mapping},
-pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
-]{hyperref}
-\pagestyle{headings}
-\bibliographystyle{plain}
-
-\hoffset=15mm
-\voffset=-5mm
-\oddsidemargin=0mm
-\evensidemargin=0mm
-\topmargin=0mm
-\headheight=12pt
-\headsep=10mm
-\textheight=240mm
-\textwidth=148mm
-\marginparsep=5mm
-\marginparwidth=21mm
-\footskip=10mm
-
-\newcommand{\bi}{\begin{itemize}}
-\newcommand{\ei}{\end{itemize}}
-
-\begin{document}
 
 \chapter{Face group data}
 
@@ -443,6 +414,4 @@ This creates a matrix for an F-contrast that spans the 'null space' of all three
 \end{figure}
 You will see, in Figure~\ref{nullall} that only 2 voxels (in one cluster with maximum -21 -18 27) express variability not captured by the informed basis set. This reinforces the point that, while there is certainly variability in the HRF across different brain regions, the canonical HRF and its two derivatives are sufficient to capture the majority of this regional variability (at least on average across the 12 subjects in this dataset). See \cite{rnah_basis} for further details.
 
-
-\end{document}
 
