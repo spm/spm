@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 442 2006-02-17 16:12:46Z will $
+% $Id: spm_config_factorial_design.m 465 2006-03-01 14:58:18Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -256,8 +256,11 @@ covs.help={p1,sp_text};
 %-------------------------------------------------------------------------
 % Covariates for multiple regression
 
-mcov  = branch('Covariate','mcov',{c,cname},'Covariate');
+miCC    = mnu('Centering','iCC',{'Overall mean','No centering'},...
+               {1,5},'');
+miCC.val= {1};
 
+mcov  = branch('Covariate','mcov',{c,cname,miCC},'Covariate');
 mcov.help = {'Add a new covariate to your experimental design'};
 
 mcovs = repeat('Covariates','covariates',{mcov},'Covariates');
@@ -1053,10 +1056,10 @@ case 'mreg',
     [B,Bnames]=spm_DesMtx(I(:,2),'-','mean');
     
     for i=1:length(job.des.mreg.mcov)
-        job.cov(i).c=job.des.mreg.mcov(i).c;
-        job.cov(i).cname=job.des.mreg.mcov(i).cname;
-        job.cov(i).iCFI=1;
-        job.cov(i).iCC=1;
+        job.cov(end+1).c   = job.des.mreg.mcov(i).c;
+        job.cov(end).cname = job.des.mreg.mcov(i).cname;
+        job.cov(end).iCC   = job.des.mreg.mcov(i).iCC;
+        job.cov(end).iCFI  = 1;
     end
 
 case 'fd', 
