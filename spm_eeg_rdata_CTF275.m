@@ -18,6 +18,11 @@ D.channels.ctf = spm_str_manip(Fchannels, 't');
 
 D.channels.Bad = [];
 
+% compatibility with some preprocessing functions
+D.channels.heog = 0;
+D.channels.veog = 0;
+D.channels.reference = 0;
+
 PP1=squeeze(pre_data.data(:,1));
 PP2=squeeze(pre_data.data(:,2));
 

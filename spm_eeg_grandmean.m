@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_grandmean.m 467 2006-03-01 20:25:56Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -35,7 +35,7 @@ catch
 end
 
 try
-    P = S.Pout;
+    S.Pout;
 catch
     [filename, pathname] = uiputfile('*.mat', 'Select output file please');
     S.Pout = fullfile(pathname, filename);
@@ -130,7 +130,10 @@ else
     % how many repetitons per trial type
     repl = zeros(1, Ntypes);
     for i = 1:Nfiles
-        repl(D{i}.events.types) =  repl(D{i}.events.types) + 1;
+        for j = 1:D{i}.events.Ntypes
+            ind = find(D{i}.events.types(j) == types);
+            repl(ind) =  repl(ind) + D{i}.events.repl(j);
+        end
     end
 
     for i = 1:Ntypes

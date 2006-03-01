@@ -1,12 +1,22 @@
 function Dout = spm_eeg_merge(S);
 % FORMAT D = spm_eeg_merge(S)
+%
+% S		    - optional input struct
+% (optional) fields of S:
+% D			- filename of EEG mat-file with continuous data
+% recode    - a cell vector with one cell for each file. A vector in each cell
+%             codes the new event type. This allows to either recode events
+%             or keep their old codes.
+% Output:
+% D			- EEG data struct (also written to files)
+
 % concatenates epoched single trial files
 % concatenated file overwrites first file selected
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 410 2006-01-19 16:14:24Z stefan $
+% $Id: spm_eeg_merge.m 467 2006-03-01 20:25:56Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -84,7 +94,7 @@ for i = 2:Nfiles
 		Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end
     
-    Dout.channels.Bad = unique([Dout.channels.Bad; Dtmp.channels.Bad]);
+    Dout.channels.Bad = unique([Dout.channels.Bad Dtmp.channels.Bad]);
 end
 
 Dout.events.types = unique(Dout.events.code);
