@@ -1,3 +1,32 @@
+\documentclass[a4paper,titlepage]{book}
+\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}
+\usepackage[colorlinks=true,
+pdfpagemode=UseOutlines,
+pdftitle={SPM5 Manual},
+pdfauthor={The SPM Team},
+pdfsubject={Statistical Parametric Mapping},
+pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
+]{hyperref}
+\pagestyle{headings}
+\bibliographystyle{plain}
+
+\hoffset=15mm
+\voffset=-5mm
+\oddsidemargin=0mm
+\evensidemargin=0mm
+\topmargin=0mm
+\headheight=12pt
+\headsep=10mm
+\textheight=240mm
+\textwidth=148mm
+\marginparsep=5mm
+\marginparwidth=21mm
+\footskip=10mm
+
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+
+\begin{document}
 
 \chapter{Face group data}
 
@@ -20,9 +49,9 @@ analysed using a `One-way ANOVA' with 12 levels.}
 \section{Data}
 
 The data come from the `implicit' condition of the Henson 
-et al. study \cite{rik_face_rep}. Although the 1st-level design matrices (and therefore resulting contrast images) used do not correspond exactly to those used in that study.
+et al. study \cite{rik_face_rep} ***WILL - NEED TO UPDATE***. Although the 1st-level design matrices (and therefore resulting contrast images) used do not correspond exactly to those used in that study.
 
-It is also the same study from which one subject is used to illustrate a single-subject fixed effects analysis (see earlier in manual).
+It is also the same study from which one subject is used to illustrate a single-subject fixed effects analysis (see earlier Chapter in this manual).
 
 Unlike the single-subject fixed effects example dataset, only two event-types were modelled: famous and nonfamous faces (initial and repeated presentations were collapsed together, as were correct and incorrect responses). Briefly, greyscale photographs of 52 famous and 52 nonfamous face were presented for 0.5s for fame judgment task (one of two right finger key presses). The minimal SOA (SOAmin) was 4.5s, with all faces randomly intermixed together with a further 52 null events (ie 2/3 probability of a face every SOAmin).
 
@@ -41,9 +70,12 @@ For each type of model, two types of 1st-level contrast are examined:
 \item{The differential effect of famous versus nonfamous faces (eg, a [-1 ... 1] contrast for each basis function, or "kron(eye(Nf),[-1 1])" more generally.}
 \end{enumerate}
 
-The 12 (subjects) x 3 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the informed basis (M1i) set are in the zipped file \verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_informed.zip!.
+The 12 (subjects) x 3 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the informed basis (M1i) set are in the zipped file
+\newline \verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_informed.zip!.
 
-The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the FIR basis (M1f) set are in the zipped file \verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_fir.zip!.
+The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the FIR basis (M1f) set are in the zipped file 
+\newline
+\verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_fir.zip!.
 
 Each contrast-type is examined in a separate SPM analysis. This 
 chapter just describes analysis of the main effect of 
@@ -91,24 +123,24 @@ SPM will now estimate the parameters, that is, the size of the population effect
 \bi
 \item{Now press the 'Results' button.}
 \item{Select the SPM.mat file.}
-\item{In the contrast manager press 'Define new contrast' (select T). Enter [1] in the contrast section and enter 'activation' as a 'name'. Note: A [1] contrast tests for "activations" vs baseline, a [-1] for "deactivations".}
+\item{In the contrast manager press 'Define new contrast' (select F). Enter [1] in the contrast section and enter 'Faces vs Baseline: Canonical HRF' as a 'name'. Note: This [1] F-contrast tests for both "activations" and ``deactivations'' versus the interstimulus baseline, though in the present case, the regions are nearly all activations, as can be seen by entering the same contrast weight [1], but as a T rather than F contrast.}
 \item{Press the '..submit' button. Press OK.}
 \item{Now press the 'Done' button.}
 \item{Mask with other contrast(s) [No]}
-\item{Title for comparison [activation: Can HRF only]}
+\item{Title for comparison: accept [Faces vs Baseline: Canonical HRF]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
 
-SPM will now display the thresholded t-statistic image. This shows voxels that are significantly active (correcting for multiple comparisons across all voxels) in the population from which the subjects were drawn. They include bilateral posterior fusiform (e.g, 30 -63 -27, Z=6.15), SMA, and, at a more liberal threshold, left motor cortex). 
+SPM will now display the thresholded F-statistic image. This shows voxels that are significantly active (correcting for multiple comparisons across all voxels) in the population from which the subjects were drawn. They include bilateral posterior fusiform (e.g, +30 -63 -27, Z=6.04), SMA, and, at a more liberal threshold, left motor cortex). 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{faces_group/t1_res}
-\caption{\em Main population effect of faces, as characterised using the Canonical HRF. \label{t1_res}}
+\includegraphics[width=100mm]{faces_group/f1_res}
+\caption{\em Main population effect of faces vs baseline, as characterised using the Canonical HRF. \label{f1_res}}
 \end{center}
 \end{figure}
-You can then press the volume to get a table of stastical information for clusters of activated voxels. SPM's graphics window should look like Figure~\ref{t1_res}.
+You can then press the volume to get a table of stastical information for clusters of activated voxels. SPM's graphics window should look like Figure~\ref{f1_res}.
 
 \section{Informed basis set}
 
@@ -119,12 +151,10 @@ For this example, 3 contrast images per subject are taken to the 2nd-level. Thes
 \item{\verb!con_0004.img!		(canonical HRF, subject 2)}
 \item{...}
 \item{\verb!con_0014.img!		(canonical HRF, subject 12)}
-\item{...}
 \item{\verb!con_0015.img!		(temporal derivative, subject 1)}
 \item{\verb!con_0016.img!		(temporal derivative, subject 2)}
 \item{...}
 \item{\verb!con_0026.img!		(temporal derivative, subject 12)}
-\item{...}
 \item{\verb!con_0027.img!		(dispersion derivative, subject 1)}
 \item{\verb!con_0028.img!		(dispersion derivative, subject 2)}
 \item{...}
@@ -133,24 +163,37 @@ For this example, 3 contrast images per subject are taken to the 2nd-level. Thes
 \ei
 These images comprise the data for M2c, which is simply a `One-way ANOVA' with 3-levels. This can be implemented as follows.
 \bi
-\item{Start up matlab and type `spm fmri' at the prompt}
 \item{Press the `Specify 2nd-level' button.}
-\item{Double click on the `+Factorial design specification'\footnote{In SPM2, this data was analysed using the `One-way ANOVA without a constant' design. This option is no longer available in SPM5, as one-way ANOVA's are considered as factorial designs with a single factor.}text.}
+\item{Double click on the `+Factorial design specification' text.}
 \item{Highlight `Design' and then choose `Full Factorial'}
 \item{Double click `+Full Factorial', and under `Factors' create a single `New Factor'}
 \item{Open this Factor and type in 'Basis' for Name and enter 3 under `Levels'.}
-\item{Highlight independence and select `No'. SPM will then take into account possible correlations between these repeated measures\footnote{Very occasionally, SPM will be unable to estimate these correlations. This will result in a program crash and is more likely to happen, the more levels you have in a factor eg. for FIR models. If SPM does crash, try reverting the `independence' option to 'yes'.}.}                                \item{Now highlight `Specify cells', and create 3 new cells}  \item{For the first cell, set `Levels' to 1, and enter the 
-canonical contrast images under scans.}    
+\item{Highlight independence and select `No'. SPM will then take into account possible correlations between these repeated measures (see section on Nonsphericity below for further discussion).}
+\item{Now highlight `Specify cells', and create 3 new cells}  
+\item{For the first cell, set `Levels' to 1, and enter the canonical contrast images under scans (ie contrast images numbered 0003 to 0014).}    
 \item{For the second cell, set `Levels' to 2, and enter the 
-temporal derivative contrast images under scans.}   
+temporal derivative contrast images under scans (ie contrast images numbered 0015 to 0026).}   
 \item{For the third cell, set `Levels' to 3, and enter the 
-dispersion derivative contrast images under scans.}               \item{Highlight Directory, Specify files and select the 
+dispersion derivative contrast images under scans (ie contrast images numbered 0027 to 0038.}
+\item{Highlight Directory, Specify files and select the 
 subdirectory `informed', to place the design matrix in.}
 \item{Save the job file as eg. {\sf DIR/informed.mat}}.
 \item{Press the RUN button in the graphics window.}
 \ei
 
-Setting the independence option to `No' allows SPM to take into account possible correlations between levels of the factor. Note that, by default, SPM assumes different variances 
+SPM will then show you the design matrix shown in Figure~\ref{informed_design}. This design is encoded in the `SPM.mat' file that is written to the output directory.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{faces_group/informed_design}
+\caption{\em Design matrix for informed basis set. This corresponds to a one-way ANOVA with three levels (but no constant term, since we want to test whether the basis functions are different from zero, not whether they are different from each other). \label{informed_design}}
+\end{center}
+\end{figure}
+Then press `Estimate', double click on `+fMRI model   estimation', select the SPM.mat file just created, and press `RUN'.
+SPM will now estimate the parameters of the model (and hyperparameters governing the nonsphericity).
+
+\subsection{Nonsphericity}
+
+Setting the independence option described above to `No' allows SPM to take into account possible correlations between levels of the factor. Note that, by default, SPM assumes different variances 
 for different levels of the factor (you can change this by setting `Variance' to `Equal' under the options for the factor). 
 
 In this way SPM can account for possible `non-sphericity' in the data. This is implemented in SPM using a set of matrices (bases) that characterise the covariance matrix. The first three correspond to the variance of each of the canonical, temporal and dispersion derivatives:  SPM.xVi.Vi\{1\}, SPM.xVi.Vi\{2\}, and SPM.xVi.Vi\{3\}.
@@ -168,31 +211,24 @@ covariance matrix can be shown by pressing Review$\rightarrow$Design$\rightarrow
 \end{figure}
 Note that these are `global' values which are scaled by a voxel specific-value to achieve a model covariance that best matches the empirical covariance at each voxel. 
 
-SPM will then show you the design matrix shown in Figure~\ref{informed_design}. This design is encoded in the `SPM.mat' file that is written to the output directory.
-\begin{figure}
-\begin{center}
-\includegraphics[width=100mm]{faces_group/informed_design}
-\caption{\em Design matrix for informed basis set. This corresponds to a one-way ANOVA with three levels. \label{informed_design}}
-\end{center}
-\end{figure}
-Then press `Estimate', double click on `+fMRI model   estimation', select the SPM.mat file just created, and press `RUN'.
-SPM will now estimate the parameters of the model.
+
+\subsection{Informed Results}
 
 \bi
 \item{Now press the 'Results' button.}
 \item{Select the SPM.mat file.}
-\item{In the contrast manager press 'Define new contrast' (select F). Enter [`eye(3)'] in the contrast section and enter 'activation: informed' as a 'name'. Note: In matlab `eye(3)' evaluates to [1 0 0; 0 1 0; 0 0 1].\footnote{SPM will have produced some contrasts automatically, one of them being the `main effect of basis'. This contrast is, however, not 
+\item{In the contrast manager press 'Define new contrast' (select F). Enter [`eye(3)'] in the contrast section and enter 'Faces vs Baseline: Informed' as a 'name'. Note: In matlab `eye(3)' evaluates to [1 0 0; 0 1 0; 0 0 1].\footnote{SPM will have produced some contrasts automatically, one of them being the `main effect of basis'. This contrast is, however, not 
 appropriate for our purposes.}.}
 \item{Press the '..submit' button. Press OK.}
 \item{Now press the 'Done' button.}
 \item{Mask with other contrast(s) [No]}
-\item{Title for comparison [activation: informed]}
+\item{Title for comparison: accept [Faces vs Baseline: Informed]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
 
-This contrast will reveal voxels that show some form of event-related response that can be captured by (ie, lies in the space spanned by) the three basis functions (e.g, 30 -60 -27, Z=7.43), as shown in Figure~\ref{informed_results}. 
+This contrast will reveal voxels that show some form of event-related response that can be captured by (ie, lies in the space spanned by) the three basis functions (e.g, 30 -60 -27, Z=7.43), as shown in Figure~\ref{informed_results}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/informed_results}
@@ -200,43 +236,50 @@ This contrast will reveal voxels that show some form of event-related response t
 \end{center}
 \end{figure}
 
-Note how the design matrix appears to be different after estimation. This is because it has been pre-whitened. In particular, the (barely visible) off-diagonal entries in the design matrix give an indication of the degree of correlation between the basis functions across subjects.
+Note how the design matrix appears to be different after estimation. This is because it has been pre-whitened (via the estimated nonsphericity). In particular, the (barely visible) off-diagonal entries in the design matrix give an indication of the degree of correlation between the basis functions across subjects. However, because the data have also been pre-whitened our interpretation of the parameter estimates (the 'betas') is unchanged. Effectively the parameters have been estimated using 'Weighted Least Squares (WLS)', where the weights relate to the estimated error covariance structure. SPM implements WLS by pre-whitening the data and the design matrix and then using 'Ordinary Least Squares' (OLS).
 
-Note that because the data have also been pre-whitened our interpretation of the parameter estimates (the 'betas') is unchanged. Effectively the parameters have been estimated using 'Weighted Least Squares (WLS)', where the weights relate to the estimated error covariance structure. SPM implements WLS by pre-whitening the data and the design matrix and then using 'Ordinary Least Squares' (OLS).
+Note also how this F-contrast (Figure~\ref{informed_results}) produces more significant results than the corresponding F-contrast in the model with the canonical HRF shown in Figure~\ref{f1_res}. This suggests significant additional information in the two derivatives of the canonical HRF. If you right-click on the MIP and select ``goto global maxima'', then press ``plot'', select ``Contrast estimates and 90\% C.I.'', and select the ``Faces vs Baseline: Informed'' contrast, you will get three bars and their confidence intervals, as in Figure~\ref{informed_plot}. You can see that the canonical HRF (first bar) carries most of the response vs baseline, but nonetheless, both the temporal and dispersion derivatives (second and third bars) contribute significant additional effects (given that the error bars do not overlap zero). Note that the size of the bars cannot be compared directly since they depend on the (different) scaling of the three basis functions (their size RELATIVE TO the error bars is a fairer way to compare the contributions of the different basis functions).
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{faces_group/informed_plot}
+\caption{\em Plotting the three basis functions for the global maximum showing reliable effects of the canonical HRF and its time and dispersion derivatives. \label{informed_plot}}
+\end{center}
+\end{figure}
 
 \subsection{T- and F-contrasts}
 
-	It is also informative to evaluate the T-contrast [1 0 0] (ie positive loadings on the canonical HRF only). This is 
-	shown in Figure~\ref{informed_t}.
-	\begin{figure}
+It is also informative to evaluate the T-contrast [1 0 0] (ie positive loadings on the canonical HRF only). This is shown in Figure~\ref{informed_t}.
+
+\begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/informed_t}
-\caption{\em Main population effect of faces, as characterised with the canonical using a [1 0 0] t-contrast on the informed basis coefficients. \label{informed_t}}
+\caption{\em Main population effect of faces, as characterised with the canonical HRF using a [1 0 0] t-contrast on the informed basis coefficients. \label{informed_t}}
 \end{center}
 \end{figure}
-At a FWE correct p-value of 0.05, note more voxels (including now left motor cortex) and higher Z-values (e.g, 39 -57 -30, Z=7.51) for this main effect vs baseline compared to the equivalent contrast ([1]) in the model that uses only the canonical HRF. 
+At a FWE correct p-value of 0.05, note more voxels (including now left motor cortex) and higher Z-values (e.g, 39 -57 -30, Z=7.51) for this main effect vs baseline compared to the equivalent T-contrast ([1]) in the model that uses only the canonical HRF (as in previous Section). 
 The main reason for this increased power is the increase in the degrees of freedom, which entails better estimators of the underlying error (co)variance. The price of this increased power is a stronger assumption about the nonsphericity, namely that it has the same structure across (activated) voxels - the "pooling device", see Glaser et al. (2003) \cite{daniel_hbf2}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/Ftemp}
-\caption{\em Significantly non-zero temporal derivative coefficients. These voxels show earlier or later than canonical responses. \label{informed_Ftemp}}
+\caption{\em Significantly non-zero temporal derivative coefficients. These voxels show responses earlier or later than canonical responses. \label{informed_Ftemp}}
 \end{center}
 \end{figure}
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/Fdisp}
-\caption{\em Significantly non-zero dispersion derivative coefficients. These voxels show narrower or wider than canonical responses. \label{informed_Fdisp}}
+\caption{\em Significantly non-zero dispersion derivative coefficients. These voxels show responses narrower or wider than canonical responses. \label{informed_Fdisp}}
 \end{center}
 \end{figure}
 
 	Finally, evaluate the F-contrasts [0 1 0] and [0 0 1]. These 
 	are shown in Figures~\ref{informed_Ftemp} and~\ref{informed_Fdisp}.
-These contrasts reveal voxels that load (positively or negatively) on the temporal and dispersion derivatives respectively. These contrasts reveal that there is significant variability (at p<.05 corrected) that is not captured by the canonical HRF alone (see Eg3.1 below for more discussion; see also to Henson et al (2000) \cite{rnah_basis}.
+These contrasts reveal voxels that load (positively or negatively) on the temporal and dispersion derivatives respectively. These contrasts reveal that there is significant variability (at p$<$.05 corrected) that is not captured by the canonical HRF alone (see Eg3.1 below for more discussion; see also to Henson et al (2000) \cite{rnah_basis}.
 
 In other words, some regions have earlier or later, or wider or narrower, BOLD impulse responses than the canonical HRF. This may reflect differences in vasculature (or even face-related neural differences across regions).  
 
-On the other hand, note that most voxels in the above F-contrasts also show a positive loading on the canonical HRF (ie the previous [1 0 0] T-contrast), as can be revealed by Inclusive (or Exclusive) masking of the relevant contrasts. This is because the loadings on the derivatives reflect deviations ABOUT the canonical form (via a first-order Taylor expansion; see eg. Henson et al, 2002 \cite{rnah_latency}. Indeed, loadings on either derivative in the absence of a reliable loading (positive or negative) on the canonical HRF would be difficult to interpret (i.e, the derivative waveforms are probably too high frequency to reflect BOLD changes on their own).   
+On the other hand, note that most voxels in the above F-contrasts also show a positive loading on the canonical HRF (ie the previous [1 0 0] T-contrast), as can be revealed by Inclusive (or Exclusive) masking of the relevant contrasts. This is because the loadings on the derivatives reflect deviations ABOUT the canonical form (via a first-order Taylor expansion; see eg. Henson et al, 2002 \cite{rnah_latency}). Indeed, loadings on either derivative in the absence of a reliable loading (positive or negative) on the canonical HRF would be difficult to interpret (i.e, the derivative waveforms are probably too high frequency to reflect BOLD changes on their own).   
 
 One can also confirm this by going to various voxels in the above F-contrasts, pressing "plot", "contrast estimates" and selecting the "Can+Tem+Dis" F-contrast. The three bars indicate the loadings (and 90\% confidence intervals) on the three different basis functions. Note that a positive estimate for the temporal derivative corresponds to an earlier response than the canonical (and negative for later), while a positive estimate for the dispersion derivative corresponds to a narrower (less dispersed) response (and negative for wider).
 
@@ -259,14 +302,30 @@ These images comprise the data for M2f, which is simply a `One-way ANOVA' with 1
 \item{Highlight `Design' and then choose `Full Factorial'}
 \item{Double click `+Full Factorial', and under `Factors' create a single `New Factor'}
 \item{Open this Factor and type in 'TimeBin' for Name and enter 12 under `Levels'.}
-\item{Highlight independence and select `No'. SPM will then take into account possible correlations between these repeated measures\footnote{Very occasionally, SPM will be unable to estimate these correlations. This will result in a program crash and is more likely to happen, the more levels you have in a factor eg. for FIR models. If SPM does crash, try reverting the `independence' option to 'yes'.}.}                                \item{Now highlight `Specify cells', and create 12 new cells}  \item{For the first cell, set `Levels' to 1, and enter the contrast images for time bin 1 under scans.}    
+\item{Highlight independence and select `No'. SPM will then take into account possible correlations between these repeated measures.}
+\item{Now highlight `Specify cells', and create 12 new cells}  
+\item{For the first cell, set `Levels' to 1, and enter the contrast images for time bin 1 under scans. This is most easily done by changing the filter to \verb!^\w*bin01.*!.}    
 \item{For the second cell, set `Levels' to 2, and, under scans, enter the 
-contrast images for time bin 2.}   
-\item{Similarly for Levels 3 to 12.}               \item{Highlight Directory, Specify files and select the 
+contrast images for time bin 2 This is most easily done by changing the filter to \verb!^\w*bin02.*!.}   
+\item{Similarly for Levels 3 to 12.}               
+\item{Highlight Directory, Specify files and select the 
 subdirectory `FIR', to place the design matrix in.}
 \item{Save the job file as eg. {\sf DIR/fir.mat}}.
 \item{Press the RUN button in the graphics window.}
 \ei
+
+
+SPM will then show you the design matrix shown in Figure~\ref{fir_design}. This design is encoded in the `SPM.mat' file that is written to the output directory.
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{faces_group/fir_design}
+\caption{\em Design matrix for FIR basis set. This corresponds to a one-way ANOVA with 12 levels. \label{fir_design}}
+\end{center}
+\end{figure}
+Then press `Estimate', double click on `+fMRI model   estimation', select the SPM.mat file just created, and press `RUN'.
+SPM will now estimate the parameters of the model.
+
+\subsection{Nonsphericity again}
 
 Setting the independence option to `No' allows SPM to take into account possible correlations between levels of the factor. Note that, by default, SPM assumes different variances 
 for different levels of the factor (you can change this by setting `Variance' to `Equal' under the options for the factor). 
@@ -279,30 +338,26 @@ covariance matrix can be shown by pressing Review$\rightarrow$Design$\rightarrow
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/fir_covariance}
-\caption{\em Estimated covariance matrix for FIR basis set. The differently valued hyperparameters are shown in different shades of gray. Notice that the most variable responses occur in the third time bin (scans 25 to 36) corresponding to responses 4-6 seconds post stimulus, ie. at the peak of the hemodynamic response. \label{fir_covariance}}
+\caption{\em Estimated covariance matrix for FIR basis set. The differently valued hyperparameters are shown in different shades of gray. Notice that the most variable responses occur in the third time bin (scans 25 to 36) corresponding to responses 4-6 seconds post stimulus, ie. at the peak of the hemodynamic response, as expected. \label{fir_covariance}}
 \end{center}
 \end{figure}
 Note that these are `global' values which are scaled by a voxel specific-value to achieve a model covariance that best matches the empirical covariance at each voxel. 
 
-SPM will then show you the design matrix shown in Figure~\ref{fir_design}. This design is encoded in the `SPM.mat' file that is written to the output directory.
-\begin{figure}
-\begin{center}
-\includegraphics[width=100mm]{faces_group/fir_design}
-\caption{\em Design matrix for FIR basis set. This corresponds to a one-way ANOVA with 12 levels. \label{fir_design}}
-\end{center}
-\end{figure}
-Then press `Estimate', double click on `+fMRI model   estimation', select the SPM.mat file just created, and press `RUN'.
-SPM will now estimate the parameters of the model.
+You can see the highest values on the leading diagonal occur for timebins 2-4 (scans 13-48). This is where the peak response occurs, and the large values imply that, as expected, the variance tends to increase with the mean. This ``inhomogeniety of variance'' is a problem for conventional ANOVAs, but not here, where it is explicitly modelled.
+
+Notice also the high values close to the diagonal, which reflect the positive correlation between the error across adjacent timebins (as also expected).
+
+\subsection{FIR Results}
 
 \bi
 \item{Now press the 'Results' button.}
 \item{Select the SPM.mat file.}
-\item{In the contrast manager press 'Define new contrast' (select F). Enter [`eye(12)'] in the contrast section and enter 'activation: FIR' as a 'name'.\footnote{SPM will have produced some contrasts automatically, one of them being the `main effect of TimeBin'. This contrast is, however, not 
+\item{In the contrast manager press 'Define new contrast' (select F). Enter [`eye(12)'] in the contrast section and enter 'Faces vs Baseline: FIR' as a 'name'.\footnote{SPM will have produced some contrasts automatically, one of them being the `main effect of TimeBin'. This contrast is, however, not 
 appropriate for our purposes.}.}
 \item{Press the '..submit' button. Press OK.}
 \item{Now press the 'Done' button.}
 \item{Mask with other contrast(s) [No]}
-\item{Title for comparison [activation: informed]}
+\item{Title for comparison: accept [Faces vs Baseline: FIR]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
@@ -323,32 +378,37 @@ One can also test for more constrained shapes of event-related responses within 
 \item{\verb!xBF.name = 'hrf (with time and dispersion derivatives)';!}
 \item{\verb!xBF.length = 32;!}
 \item{\verb!xBF.order = 1;!}
-\item{\verb!global defaults!}
-\item{\verb!defaults.stats.fmri.t=16;!}
 \item{\verb!xBF = spm_get_bf(xBF);!}
 \ei
-This returns the canonical and two derivatives in the matrix `xBF.bf' (type \verb!help spm_get_bf! for more info). For convenience, define:
+
+This returns the canonical and two derivatives in the matrix `xBF.bf' (type \verb!help spm_get_bf! for more info), with one value every 1 second. For convenience, then define:
 \bi
-\item{\verb!can = xBF.bf(2:2:24,1)';!}
-\item{\verb!tem = xBF.bf(2:2:24,2)';!}
-\item{\verb!dis = xBF.bf(2:2:24,3)';!}
-\item{\verb!all = [can; tem; dis];!}
+\item{\verb!all		= xBF.bf(2:2:24,:)';!}
+\item{\verb!can 	= all(1,:);!}
+\item{\verb!tem 	= all(2,:);!}
+\item{\verb!dis 	= all(3,:);!}
 \ei
-If you type `corrcoef(all')', you will see that the basis functions are slightly correlated (in the off-diagonal terms), due to their undersampling every 2s.
+
+These commands down-sample the basis functions every 2s, which is the bin-width of the FIR.
+If you type `corrcoef(all')', you will see that the basis functions are slightly correlated (in the off-diagonal terms), due to this undersampling every 2s.
 \bi
 \item{In the contrast manager press 'Define new contrast' (select T).}
 \item{Enter [`can'] as the contrast weights (defined in Matlab workspace as above), and `Can-weighted FIR' as the name.}
 \ei
-This produces the MIP in Figure~\ref{can_weighted_fir}.At a FWE correct p value of 0.05, note more voxels compared to the equivalent contrasts for the canonical HRF. The main reason for this increased power is again the increase in the degrees of freedom, which entails better estimators of the underlying error (co)variance (though if the FIR parameters were estimated very inefficiently, the extra contrast images might add more noise, outweighing any advantage of higher degrees of freedom). Again, this increased power comes with a stronger assumption about the nonsphericity, namely that it has the same structure across (activated) voxels \cite{daniel_hbf2}.
+This produces the MIP in Figure~\ref{can_weighted_fir}. At a FWE correct p value of 0.05, there are many more voxels compared to the equivalent T-contrast [1] in the model using only canonical HRF. The main reason for this increased power is again the increase in the degrees of freedom, which entails better estimators of the underlying error (co)variance (though if the FIR parameters were estimated very inefficiently, the extra contrast images might add more noise, outweighing any advantage of higher degrees of freedom). Again, this increased power comes with a stronger assumption about the nonsphericity, namely that it has the same structure across (activated) voxels \cite{daniel_hbf2}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces_group/can_weighted_fir}
 \caption{\em Main population effect of faces, as characterised with a canonically weighted contrast of FIR bases. \label{can_weighted_fir}}
 \end{center}
 \end{figure}
-One can also test the variance captured by the temporal and dispersion derivatives by creating new contrasts (though perhaps better as an F rather than T contrast) and simply typing `tem' and `dis' respectively as the contrast weights.
+One can also test the variance captured by the temporal and dispersion derivatives by creating new contrasts (though as F rather than T contrasts) and simply typing `tem' and `dis' respectively as the contrast weights.
 
-More interesting is the ability to ask, within this model, how much event-related variance is {\em not} captured by the canonical HRF. To do this, first create the variable in Matlab: \verb!nullcan = eye(12) - pinv(can)*can;!.
+More interesting is the ability to ask, within this model, how much event-related variance is {\em not} captured by the canonical HRF. To do this, first create the variable in Matlab:
+\bi
+\item{\verb!nullcan = eye(12) - pinv(can)*can;!}
+\ei
+
 This creates a matrix for an F-contrast that spans the `null space' of the canonical HRF.
 \bi
 \item{In the contrast manager press 'Define new contrast' (select F).}
@@ -363,8 +423,13 @@ This creates a matrix for an F-contrast that spans the `null space' of the canon
 \end{figure}
 You can see, in Figure~\ref{nullcan} that several regions express variability not captured by the canonical HRF. This is not surprising, because you will notice that many of these regions appeared in the individual F-tests on the temporal and dispersion derivatives above, suggesting that what is not captured by the canonical HRF is captured by its two derivatives.
 
-Yet even more interesting is the ability to ask how much event-related variance is {\em not} captured by the canonical HRF or its two derivatives (ie. not captured by SPM's `informed' basis set). To do this, first create the variable in Matlab: \verb!nullall = eye(12) - pinv(all)*all;!.
-This creates a matrix for an F-contrast that spans the 1null space' of all three informed basis functions.
+Yet even more interesting is the ability to ask how much event-related variance is {\em not} captured by the canonical HRF or its two derivatives (ie. not captured by SPM's `informed' basis set). To do this, first create the variable in Matlab: 
+
+\bi
+\item{\verb!nullall = eye(12) - pinv(all)*all;!}
+\ei
+
+This creates a matrix for an F-contrast that spans the 'null space' of all three informed basis functions.
 \bi
 \item{In the contrast manager press 'Define new contrast' (select F).}
 \item{Enter [`nullall'] as the contrast weights (defined in Matlab workspace
@@ -379,5 +444,5 @@ This creates a matrix for an F-contrast that spans the 1null space' of all three
 You will see, in Figure~\ref{nullall} that only 2 voxels (in one cluster with maximum -21 -18 27) express variability not captured by the informed basis set. This reinforces the point that, while there is certainly variability in the HRF across different brain regions, the canonical HRF and its two derivatives are sufficient to capture the majority of this regional variability (at least on average across the 12 subjects in this dataset). See \cite{rnah_basis} for further details.
 
 
-
+\end{document}
 
