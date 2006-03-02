@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 335 2005-11-30 12:47:35Z john $
+% $Id: spm_latex.m 469 2006-03-02 18:01:45Z john $
 
 if nargin==0, c = spm_config; end;
 
@@ -41,7 +41,21 @@ for i=1:numel(c.values),
        part(c.values{i},fp);
    end;
 end;
-fprintf(fp,'\\parskip=0mm\n\\bibliography{methods_macros,methods_group,external}\n\\end{document}\n\n');
+%fprintf(fp,'\\parskip=0mm\n\\bibliography{methods_macros,methods_group,external}\n\\end{document}\n\n');
+fprintf(fp,'\\parskip=0mm\n');
+bibcstr = get_bib(fullfile(spm('dir'),'man','biblio'));
+
+tbxlist = dir(fullfile(spm('dir'),'toolbox'));
+for k = 1:numel(tbxlist)
+    if tbxlist(k).isdir,
+        bibcstr=[bibcstr(:); get_bib(fullfile(spm('dir'),'toolbox', ...
+                 tbxlist(k).name))];
+    end;
+end;
+bibcstr = strcat(bibcstr,',');
+bibstr  = strcat(bibcstr{:});
+fprintf(fp,'\\bibliography{%s}\n',bibstr(1:end-1));
+fprintf(fp,'\\end{document}\n\n');
 fclose(fp);
 return;
 
@@ -161,3 +175,12 @@ str  = strrep(str,'|','$|$');
 str  = strrep(str,'>','$>$');
 str  = strrep(str,'<','$<$');
 return;
+
+function bibcstr = get_bib(bibdir)
+biblist = dir(fullfile(bibdir,'*.bib'));
+bibcstr={};
+for k = 1:numel(biblist)
+    [p n e v] = fileparts(biblist(k).name);
+    bibcstr{k}  = fullfile(bibdir,n);
+end;
+
