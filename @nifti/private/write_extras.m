@@ -4,7 +4,7 @@ function extras = write_extras(fname,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: write_extras.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: write_extras.m 473 2006-03-08 18:11:59Z john $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -25,6 +25,9 @@ if length(p)>1, error('Can''t save fields.'); end;
 fn = fieldnames(p);
 for i_=1:length(fn),
     eval([fn{i_} '= p.' fn{i_} ';']);
+end;
+if str2num(version('-release'))>=14,
+    fn = {'-V6',fn{:}};
 end;
 if numel(fn)>0,
     save(fnam,fn{:});
