@@ -4,7 +4,7 @@ function opts = spm_config_mkdir
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_mkdir.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_config_mkdir.m 472 2006-03-08 17:48:52Z john $
 
 %_______________________________________________________________________
 
@@ -28,7 +28,7 @@ opts.name = 'Make Directory';
 opts.tag  = 'md';
 opts.val  = {data,name};
 opts.prog = @my_mkdir;
-opts.files = @vdirs_mydirs;
+opts.vfiles = @vdirs_mydirs;
 opts.help = {[...
 'This facilty allows programming a directory change. Directories are ',...
 'selected in the right listbox.']};
