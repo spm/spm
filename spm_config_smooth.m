@@ -4,7 +4,7 @@ function opts = spm_config_smooth
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_smooth.m 272 2005-10-25 20:05:27Z guillaume $
+% $Id: spm_config_smooth.m 471 2006-03-08 17:46:45Z john $
 
 
 %_______________________________________________________________________
@@ -34,10 +34,22 @@ fwhm.help = {[...
 
 %------------------------------------------------------------------------
 
+dtype.type = 'menu';
+dtype.name = 'Data Type';
+dtype.tag  = 'dtype';
+dtype.labels = {'SAME','UINT8  - unsigned char','INT16 - signed short','INT32 - signed int',...
+                'FLOAT - single prec. float','DOUBLE - double prec. float'};
+dtype.values = {0,spm_type('uint8'),spm_type('int16'),spm_type('int32'),...
+                spm_type('float32'),spm_type('float64')};
+dtype.val = {0};
+dtype.help = {'Data-type of output images.  SAME indicates the same datatype as the original images.'};
+
+%------------------------------------------------------------------------
+
 opts.type = 'branch';
 opts.name = 'Smooth';
 opts.tag  = 'smooth';
-opts.val  = {data,fwhm};
+opts.val  = {data,fwhm,dtype};
 opts.prog = @smooth;
 opts.vfiles = @vfiles;
 opts.help = {...
@@ -54,16 +66,17 @@ return;
 function smooth(varargin)
 job = varargin{1};
 
-P   = strvcat(job.data);
-s   = job.fwhm;
-n   = size(P,1);
+P     = strvcat(job.data);
+s     = job.fwhm;
+dtype = job.dtype;
+n     = size(P,1);
 
 spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
         Q = deblank(P(i,:));
         [pth,nam,xt,nm] = spm_fileparts(deblank(Q));
         U = fullfile(pth,['s' nam xt nm]);
-        spm_smooth(Q,U,s);
+        spm_smooth(Q,U,s,dtype);
         spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');

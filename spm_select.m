@@ -52,7 +52,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 400 2006-01-11 18:41:15Z john $
+% $Id: spm_select.m 471 2006-03-08 17:46:45Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -244,6 +244,20 @@ uicontrol(fg,...
     'ToolTipString','Edit Selected Files',...
     'FontSize',fs);
 
+% uicontrol(fg,...
+%    'Style','pushbutton',...
+%    'units','normalized',...
+%    'Position',[0.04+2*fh hp fh fh],...
+%    'FontSize',fs,...
+%    'Callback',@select_rec,...
+%    'tag','Rec',...
+%    'ForegroundColor',col3,...
+%    'BackgroundColor',col1,...
+%    'String','Rec',...
+%    'FontWeight','bold',...
+%    'ToolTipString','Recursively Select Files with Current Filter',...
+%    'FontSize',fs);
+
 % Done
 dne = uicontrol(fg,...
     'Style','pushbutton',...
@@ -407,6 +421,9 @@ update(sel,wd)
 waitfor(dne);
 if ishandle(sel),
     t  = get(sel,'String');
+    % if code == -1
+    %    t = cpath(t,pwd);
+    % end;
     ok = 1;
 end;
 if ishandle(fg),  delete(fg); end;
@@ -1145,6 +1162,48 @@ if isfield(defaults,'ui'),
     if isfield(ui,'colour2'), c2 = ui.colour2; end;
     if isfield(ui,'colour3'), c3 = ui.colour3; end;
     if isfield(ui,'fs'),      fs = ui.fs;      end;
+end;
+%=======================================================================
+
+%=======================================================================
+% This lot is currently unused - but may be re-instated in future
+function select_rec(ob, varargin)
+sel=[];
+top = get(get(ob,'Parent'),'Parent');
+start = get(findobj(top,'Tag','edit'),'String');
+filt = get(findobj(top,'Tag','regexp'),'Userdata');
+filt.filt = {get(findobj(top,'Tag','regexp'), 'String')};
+fob = findobj(top,'Tag','frame');
+if ~isempty(fob)
+    filt.frames = get(fob,'Userdata');
+else
+    filt.frames = [];
+end;
+sel=select_rec1(start,filt);
+fb=sib(ob,'files');
+lim=get(fb,'Userdata');
+limsel = min(lim(2),size(sel,1));
+set(findobj(top,'Tag','selected'),'String',sel(1:limsel,:),'Value',[]);
+msg(ob,sprintf('Selected %d/%d matching Files.', limsel, size(sel,1)));
+if ~finite(lim(1)) || size(sel,1)>=lim(1),
+    set(sib(ob,'D'),'Enable','on');
+else
+    set(sib(ob,'D'),'Enable','off');
+end;
+%=======================================================================
+
+%=======================================================================
+function sel=select_rec1(cdir,filt)
+sel=[];
+[t sts] = listfiles(cdir,filt);
+if ~isempty(t)
+    sel = strcat(cdir,filesep,t);
+end;
+for k = 1:size(sts,1)
+    if ~strcmp(deblank(sts(k,:)),'.') && ~strcmp(deblank(sts(k,:)),'..')
+        sel = strvcat(sel, select_rec1(fullfile(cdir, ...
+                                                deblank(sts(k,:))),filt));
+    end;
 end;
 %=======================================================================
 

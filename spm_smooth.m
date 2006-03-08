@@ -1,9 +1,10 @@
-function spm_smooth(P,Q,s)
+function spm_smooth(P,Q,s,dtype)
 % 3 dimensional convolution of an image
-% FORMAT spm_smooth(P,Q,S)
+% FORMAT spm_smooth(P,Q,S,dtype)
 % P  - image to be smoothed
 % Q  - filename for smoothed image
 % S  - [sx sy sz] Guassian filter width {FWHM} in mm
+% dtype - datatype
 %____________________________________________________________________________
 %
 % spm_smooth is used to smooth or convolve images in a file (maybe).
@@ -22,11 +23,12 @@ function spm_smooth(P,Q,s)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 185 2005-06-02 11:24:27Z john $
+% $Id: spm_smooth.m 471 2006-03-08 17:46:45Z john $
 
 
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
+if nargin<4, dtype = 0; end;
 
 if ischar(P), P = spm_vol(P); end;
 if isstruct(P),
@@ -45,6 +47,16 @@ if ischar(Q) && isstruct(P),
 	end;
 	if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end;
 	Q.descrip = sprintf('%s - conv(%g,%g,%g)',Q.descrip, s);
+	if dtype~=0 && (finite(spm_type(P.dt(1),'maxval')) || ~finite(spm_type(Q.dt(1),'maxval'))),
+		Q.dt(1) = dtype;
+		if ~finite(spm_type(dtype,'maxval')),
+			Q.pinfo = [1 0 0]';
+		else
+			maxv = spm_type(P.dt(1),'maxval')*P.pinfo(1) + P.pinfo(2);
+			sf   = maxv/spm_type(Q.dt(1),'maxval');
+			Q.pinfo = [sf 0 0]';
+		end;
+	end;
 end;
 
 % compute parameters for spm_conv_vol

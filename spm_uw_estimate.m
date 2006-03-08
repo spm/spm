@@ -170,7 +170,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_uw_estimate.m 471 2006-03-08 17:46:45Z john $
 
 
 global defaults
@@ -274,8 +274,9 @@ if ds.fwhm ~= 0
    spm_uw_show('SmoothStart',length(P));
    for i=1:length(old_P)
       spm_uw_show('SmoothUpdate',i);
-      sfname(i,:) = [tempname '.img']; 
-      spm_smooth(old_P(i).fname,sfname(i,:),ds.fwhm);
+      sfname(i,:) = [tempname '.img,1,1'];
+      to_smooth = sprintf('%s,%d,%d',old_P(i).fname,old_P(i).n);
+      spm_smooth(to_smooth,sfname(i,:),ds.fwhm);
    end
    P = spm_vol(sfname);
    spm_uw_show('SmoothEnd');
