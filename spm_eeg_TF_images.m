@@ -27,14 +27,14 @@ function D = spm_eeg_TF_images(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel
-% $Id: spm_eeg_TF_images.m 299 2005-11-15 15:25:17Z james $
+% James Kilner 
+% $Id: spm_eeg_TF_images.m 475 2006-03-10 10:56:05Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
 	D = S.D;
 catch
-	D = spm_select(inf, '\.mat$', 'Select EEG mat file');
+	D = spm_select(1, '\.mat$', 'Select EEG mat file');
 	
 end
 P = spm_str_manip(D, 'H');
@@ -165,10 +165,10 @@ if isfield(D, 'Nfrequencies');
             D.fnamedat = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fnamedat];
             fpd = fopen(fullfile(P, D.fnamedat), 'w');
             for i=1:D.Nevents;
-                D.scale.values(:, i) = spm_eeg_write(fpd, squeeze(data(:,:,i)), 2, D.datatype);
+                D.scale(:,1,i) = spm_eeg_write(fpd, squeeze(data(:,:,i)), 2, D.datatype);
             end
             fclose(fpd);
-            D.scale.dim=[1 3];
+           
             D=rmfield(D,'Nfrequencies');
             D=rmfield(D,'tf');
             D.fname = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fname];
