@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 465 2006-03-01 14:58:18Z will $
+% $Id: spm_config_factorial_design.m 479 2006-03-10 16:33:46Z will $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1134,24 +1134,24 @@ case 'fblock',
         % Re-order scans and conditions into standard format
         % This is to ensure compatibility with how variance components are created
         if subject_factor
-             U=unique(I(:,2:nf+1),'rows');
-             Un=length(U);
-             Uc=zeros(Un,1);
-             r=1;rj=[];
-             for k=1:Un,
-                 for j=1:size(I,1),
-                     match=sum(I(j,2:nf+1)==U(k,:))==nf;
-                     if match
-                         Uc(k)=Uc(k)+1;
-                         Ir(r,:)=[Uc(k),I(j,2:end)];
-                         r=r+1;
-                         rj=[rj;j];
-                     end
-                 end
-             end
+            U=unique(I(:,2:nf+1),'rows');
+            Un=length(U);
+            Uc=zeros(Un,1);
+            r=1;rj=[];
+            for k=1:Un,
+                for j=1:size(I,1),
+                    match=sum(I(j,2:nf+1)==U(k,:))==nf;
+                    if match
+                        Uc(k)=Uc(k)+1;
+                        Ir(r,:)=[Uc(k),I(j,2:end)];
+                        r=r+1;
+                        rj=[rj;j];
+                    end
+                end
+            end
+            P=P(rj); % -scans
+            I=Ir;    % -conditions
         end
-        P=P(rj); % -scans
-        I=Ir;    % -conditions
         
     else
         [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
