@@ -1,6 +1,6 @@
-function [DEM] = spm_DEM(DEM)
-% Dynamic expectation maxmisation
-% FORMAT DEM   = spm_DEM(DEM)
+function [DEM] = spm_DVB(DEM)
+% Dynamic varaitional Bayes (c.f., DEM but with no system noise)
+% FORMAT DEM   = spm_DVB(DEM)
 %
 % DEM.M  - hierarchical model
 % DEM.Y  - inputs or data
@@ -117,7 +117,7 @@ nv   = sum(cat(1,M.m));                 % number of v (casual states)
 nx   = sum(cat(1,M.n));                 % number of x (hidden states)
 ny   = M(1).l;                          % number of y (inputs)
 nc   = M(end).l;                        % number of c (prior causes)
-nu   = nv*d + nx*n;                     % number of generalised states
+nu   = nv*d + nx;                       % number of generalised states
 kt   = 1;                               % rate constant for D-Step
 
 % number of iterations
@@ -150,15 +150,7 @@ for i = 1:nl
         Q{end + 1} = spm_cat(q);
     end
 end
-
-% [high] precision for flucutations of hidden states
-%--------------------------------------------------------------------------
-for i = 1:nl - 1
-    iW{i,i} = speye(M(i).n,M(i).n);
-end
-iW    = spm_cat(iW)*exp(8);
-dWdh  = sparse(nx*n,nx*n);
-
+ 
 % and fixed components P
 %--------------------------------------------------------------------------
 P     = spm_cat(diag({M.V}));
@@ -223,21 +215,24 @@ end
  
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
 %==========================================================================
+qu.e      = cell(n    ,1);
 qu.x      = cell(n + 1,1);
 qu.v      = cell(n + 1,1);
 qu.y      = cell(n + 1,1);
 qu.u      = cell(n + 1,1);
+[qu.e{:}] = deal(sparse(ne,1));
 [qu.x{:}] = deal(sparse(nx,1));
 [qu.v{:}] = deal(sparse(nv,1));
 [qu.y{:}] = deal(sparse(ny,1));
 [qu.u{:}] = deal(sparse(nc,1));
 
-dq        = {qu.x{1:n} qu.v{1:d} qu.y{1:n} qu.u{1:d}};
+dq        = {qu.v{1:d} qu.x{1} qu.y{1:n} qu.u{1:d}};
  
 % initialise cell arrays for hierarchical structure of x[0] and v[0]
 %--------------------------------------------------------------------------
 v         = {M(2:end).v};
 x         = {M.x};
+e         = {M.v};
 qu.x{1}   = spm_vec(x);
 qu.v{1}   = spm_vec(v);
 qU        = qu;
@@ -245,28 +240,28 @@ qU.c      = [];
 
 % derivatives for Jacobian of D-step
 %--------------------------------------------------------------------------
-Dx        = cell(n,n);
 Dv        = cell(d,d);
+Dx        = cell(1,1);
 Dy        = cell(n,n);
 Dc        = cell(d,d);
-[Dx{:}]   = deal(sparse(nx,nx));
 [Dv{:}]   = deal(sparse(nv,nv));
+[Dx{:}]   = deal(sparse(nv,nx));
 [Dy{:}]   = deal(sparse(ny,ny));
 [Dc{:}]   = deal(sparse(nc,nc));
  
 % add constant terms
 %--------------------------------------------------------------------------
 for i = 2:d
-    Dx{i - 1,i} = speye(nx,nx);
     Dv{i - 1,i} = speye(nv,nv);
     Dc{i - 1,i} = speye(nc,nc);
 end
 for i = 2:n
     Dy{i - 1,i} = speye(ny,ny);
 end
-Du        = spm_cat(diag({Dx,Dv}));
-Dc        = spm_cat(Dc);
-Dy        = spm_cat(Dy);
+Du        = spm_cat({Dv Dx});
+Dy        = spm_cat( Dy);
+Dc        = spm_cat( Dc);
+
 
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
@@ -283,8 +278,13 @@ if ~nf && ~nh, nI = 1; end
 
 %  Precision (R) and covariance of generalised errors
 %--------------------------------------------------------------------------
-[Rn Vn]  = spm_DEM_R(n,s);
-[Rd Vd]  = spm_DEM_R(n,s);
+[R V]  = spm_DEM_R(n,s);
+if s < 1/2
+    Rm = R;
+else
+    Rm = sparse(1,1,R(1),n,n);
+end
+
 
 % Iterate DEM
 %==========================================================================
@@ -319,8 +319,8 @@ for iI = 1:nI
         for i = 1:nh
            iC = iC + Q{i}*exp(qh.h(i));
         end
-        iS    = blkdiag(kron(Rn,iC),kron(Rd,iW));
-        
+        iS    = kron(R,iC);
+ 
         % [re-]adjust for confounds
         %------------------------------------------------------------------
         Y     = Y - reshape(qb,ny,nb)*X;
@@ -364,22 +364,20 @@ for iI = 1:nI
                 % evaluate functions:
                 % e = v - g(x,v), dx/dt = f(x,v) and derivatives dE.dx, ...
                 %==========================================================       
-                [E dE] = spm_DEM_eval(M,qu,qp);
+                [qu df dE] = spm_DEM_diff(M,qu,qp);
                 
                 % and conditional covariance [of states {v}]
                 %----------------------------------------------------------
-                qu.c   = inv(dE.du'*iS*dE.du);
+                qu.c       = inv(dE.du'*iS*dE.du);
                 
                 % save states at qu(t)
                 %----------------------------------------------------------
-                if iD == 1
-                    qE{t} = E;
-                    qU(t) = qu; 
-                end
+                if iD == 1, qU(t)  = qu; end
                 
                 % vectorise error
                 %----------------------------------------------------------
                 dE.dP  = [dE.dp spm_cat(dEdb)];
+                E      = spm_vec(qu.e);
                 JCJu   = dE.du*qu.c*dE.du';
                 JCJp   = dE.dP*qp.c*dE.dP';
           
@@ -395,7 +393,7 @@ for iI = 1:nI
                     if L > Fd
                         td  = {min(td{1}*2,256)};
                         Fd  = L;
-                        save tempD qu dE E JCJu JCJp
+                        save tempD qu df dE E JCJu JCJp
                     else
                         % otherwise, return to previous expansion point
                         %--------------------------------------------------
@@ -428,7 +426,7 @@ for iI = 1:nI
 
                 % compute dqdt: q = {u y c}; and dudt: u = {v{1:d} x}
                 %----------------------------------------------------------
-                dIdu  = -dE.du'*iS*E     - dUdu/2; 
+                dIdu  = -dE.du'*iS*E - dUdu/2; 
                 
                 % and second-order derivatives
                 %----------------------------------------------------------
@@ -438,13 +436,14 @@ for iI = 1:nI
                 
                 % mean field effects
                 %----------------------------------------------------------
+                D     = spm_cat({Du; df.du});
                 if nx
-                    kt = exp(16)/normest(dIduu);
+                    kt = exp(32)*normest(D)/normest(dIduu);
                 end
                 
                 % gradient
                 %----------------------------------------------------------
-                dFdu  = spm_vec({qu.x(2:n + 1) qu.v(2:d + 1)}) + kt*dIdu;
+                dFdu  = spm_vec({qu.v(2:d + 1) qu.x(2)}) + kt*dIdu;
                 dFdu  = spm_vec({dFdu           ;
                                  qu.y(2:n + 1)  ;
                                  qu.u(2:d + 1)});
@@ -452,9 +451,9 @@ for iI = 1:nI
                 
                 % Jacobian
                 %----------------------------------------------------------
-                dFduu = spm_cat({(Du + kt*dIduu) kt*dIduy    kt*dIduc;
-                                  []             Dy          []      ;
-                                  []             []          Dc   }) ;                         
+                dFduu = spm_cat({(D + kt*dIduu) kt*dIduy    kt*dIduc;
+                                  []            Dy          []      ;
+                                  []            []          Dc   }) ;                         
                 
       
                 % update conditional modes of states
@@ -462,14 +461,13 @@ for iI = 1:nI
                 du    = spm_dx(dFduu,dFdu,td);
                 dq    = spm_unvec(du,dq);
                 for i = 1:d
-                    qu.v{i} = qu.v{i} + dq{i + n};
-                    qu.u{i} = qu.u{i} + dq{i + n + d + n};
+                    qu.v{i} = qu.v{i} + dq{i};
+                    qu.u{i} = qu.u{i} + dq{d + 1 + n + i};
                 end
                 for i = 1:n
-                    qu.x{i} = qu.x{i} + dq{i};
-                    qu.y{i} = qu.y{i} + dq{n + d + i};
+                    qu.y{i} = qu.y{i} + dq{d + 1 + i};
                 end
-
+                qu.x{1}     = qu.x{1} + dq{d + 1};
                 
         
                 % D-Step: break if convergence (for static models)
@@ -589,14 +587,13 @@ for iI = 1:nI
         for i = 1:nh
            iC = iC + Q{i}*exp(qh.h(i));
         end
-        S     = blkdiag(kron(Vn,inv(iC)),kron(Vd,inv(iW)));
+        S     = kron(V,inv(iC));
         dS    = JCJ + EE - S*ns;
          
         % 1st-order derivatives: dFdh = dF/dh
         %------------------------------------------------------------------
         for i = 1:nh
-            dPdh{i}        =  kron(Rn,Q{i}*exp(qh.h(i)));
-            dPdh{i}        =  blkdiag(dPdh{i},dWdh);
+            dPdh{i}        =  kron(Rm,Q{i}*exp(qh.h(i)));
             dFdh(i,1)      = -trace(dPdh{i}*dS)/2;
         end
  
@@ -660,7 +657,7 @@ for iI = 1:nI
         for t = 1:length(qU)
             v     = spm_unvec(qU(t).v{1},v);
             x     = spm_unvec(qU(t).x{1},x);
-            e     = spm_unvec(qE{t},{M.v});
+            e     = spm_unvec(qU(t).e{1},e);
             for i = 1:(nl - 1)
                 QU.v{i + 1}(:,t) = spm_vec(v{i});
                 try
@@ -673,10 +670,10 @@ for iI = 1:nI
 
             % and conditional covariances
             %--------------------------------------------------------------
-            i       = [1:nx];
-            QU.S{t} = qU(t).c(i,i);
-            i       = [1:nv] + nx*n;
+            i       = [1:nv];
             QU.C{t} = qU(t).c(i,i);
+            i       = [1:nx] + nv*d;
+            QU.S{t} = qU(t).c(i,i);
         end
 
         save tempM
@@ -735,7 +732,7 @@ qH.hi = spm_unvec(qH.h,M.h);
 qH.C  = qh.c;
  
 qH.iC = iC;
-qH.iV = Rn;
+qH.iV = R;
  
 % assign output variables
 %--------------------------------------------------------------------------

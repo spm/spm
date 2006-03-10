@@ -19,6 +19,8 @@ function [R,V,D] = spm_DEM_R(n,s,dt)
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------
+if ~n,              R = sparse(0,0);
+                    V = R;return, end
 if nargin < 2 | ~s, s = exp(-32); end
 if nargin < 3,     dt = 1;        end
 
