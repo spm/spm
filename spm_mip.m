@@ -29,7 +29,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 466 2006-03-01 15:14:22Z john $
+% $Id: spm_mip.m 480 2006-03-13 15:19:16Z john $
 
 
 
@@ -52,7 +52,9 @@ end
 Z    = Z(:)';
 Z    = Z - min(Z);
 m    = max(Z);
-if finite(m) && m
+if isempty(m),
+	Z = [];
+elseif finite(m),
 	Z = (1 + 3*Z/m)/4;
 else
 	Z = ones(1,length(Z));
