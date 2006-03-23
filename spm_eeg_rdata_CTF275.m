@@ -1,10 +1,34 @@
 function D = spm_eeg_rdata_CTF275(S)
 %%%% function to read in CTF data to Matlab
+
 try
-   pre_data = ctf_read(S.Fdata);
+	timewindow = S.tw;
 catch
- 	pre_data = ctf_read;
-    S.Fdata = pre_data.folder;
+	timewindow = spm_input('do you want to read in all the data','+1','yes|no',[1 0]);
+end
+if timewindow ==1 
+    timeperiod='all';
+else
+    try
+        timeperiod=S.timeperiod;
+    catch
+        [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG data conversion ',0);
+        str = 'time window';
+        YPos = -1;
+        while 1
+            if YPos == -1
+                YPos = '+1';
+            end
+            [timeperiod, YPos] = spm_input(str, YPos, 'r');
+            if timeperiod(1) < timeperiod(2), break, end
+            str = sprintf('window must increase with time');
+        end
+    end
+end
+try
+   pre_data = ctf_read(S.Fdata,[],timeperiod);
+catch
+ error('wrong folder name')
 end
 
 try
