@@ -26,7 +26,7 @@ else
     end
 end
 try
-   pre_data = ctf_read(S.Fdata,[],timeperiod);
+   pre_data = ctf_read(S.Fdata,[],timeperiod,[],0);
 catch
  error('wrong folder name')
 end
@@ -51,6 +51,11 @@ PP1=squeeze(pre_data.data(:,1));
 PP2=squeeze(pre_data.data(:,2));
 
 inds=find(diff(PP1)>0);
+if length(PP1)<inds(end)+2
+    inds(end)='';
+end
+    
+    
 D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
 D.events.time=inds'+1;
 inds=find(diff(PP2)<0);

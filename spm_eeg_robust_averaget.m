@@ -6,16 +6,20 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 475 2006-03-10 10:56:05Z james $
+% $Id: spm_eeg_robust_averaget.m 485 2006-03-28 16:34:00Z james $
 if nargin==1
 	ks=3;
 end
 
 Wf=ones(size(data));
-Xs=sparse(repmat(speye(size(data,2)),[size(data,1),1]));
-h=1./((1-(diag(Xs*(Xs'*Xs)^-1*Xs'))).^0.5);
-h=h(1);
-
+try
+    Xs=sparse(repmat(speye(size(data,2)),[size(data,1),1]));
+    h=1./((1-(diag(Xs*(Xs'*Xs)^-1*Xs'))).^0.5);
+    h=h(1);
+catch
+    h=1;
+    warning(sprintf('File to large assuming h=1 I have no idea what errors this may cause!'));
+end
 ores=1;
 nres=10;
 n=0;
