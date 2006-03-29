@@ -6,12 +6,12 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 485 2006-03-28 16:34:00Z james $
+% $Id: spm_eeg_robust_averaget.m 486 2006-03-29 20:51:03Z james $
 if nargin==1
 	ks=3;
 end
 
-Wf=ones(size(data));
+%Wf=ones(size(data));
 try
     Xs=sparse(repmat(speye(size(data,2)),[size(data,1),1]));
     h=1./((1-(diag(Xs*(Xs'*Xs)^-1*Xs'))).^0.5);
@@ -31,7 +31,9 @@ while abs(ores-nres)>sqrt(1E-8)
 
     % New method
     for t=1:size(data,1)
-        B(t)=sum(Wf(t,:).*data(t,:))/sum(Wf(t,:));
+       % B(t)=sum(Wf(t,:).*data(t,:))/sum(Wf(t,:));
+         B(t)=median(data(t,:));
+
     end
     sm=gausswin(FS);
     sm=sm/sum(sm);
@@ -48,8 +50,8 @@ while abs(ores-nres)>sqrt(1E-8)
 	res=data-repmat(B',[1,size(data,2)]);
 	
 
-	mad=median(abs(res(:)-median(res(:))));	
-	res=(res)./mad;
+	mad=median(abs(res-repmat(median(res')',1,size(res,2)))')';	
+	res=(res)./repmat(mad,1,size(res,2));
 	res=res.*h;	
 	res=abs(res)-ks;
 	res(res<0)=0;	

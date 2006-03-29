@@ -47,20 +47,30 @@ D.channels.heog = 0;
 D.channels.veog = 0;
 D.channels.reference = 0;
 
+I = STRMATCH('UPPT0',pre_data.sensor.label)
+if isempty(I)
+    error(sprintf('No parallel port channel was found in the CTF file'))
+end
 PP1=squeeze(pre_data.data(:,1));
 PP2=squeeze(pre_data.data(:,2));
 
-inds=find(diff(PP1)>0);
-if length(PP1)<inds(end)+2
-    inds(end)='';
+D.events.time=[];
+D.events.code=[];
+if ~isempty(inds)
+    if length(PP1)<inds(end)+2
+        inds(end)='';
+    end
+    D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
+    D.events.time=inds'+1;
 end
-    
-    
-D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
-D.events.time=inds'+1;
+
 inds=find(diff(PP2)<0);
-D.events.code=[D.events.code,PP2(inds+1)'+255];
-D.events.time=[D.events.time,inds'+1];
+if ~isempty(inds)
+    D.events.code=[D.events.code,PP2(inds+1)'+255];
+    
+    D.events.time=[D.events.time,inds'+1];
+end
+
 
 [X,I]=sort(D.events.time);
 D.events.time=D.events.time(I);
