@@ -33,13 +33,13 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_render.m 447 2006-02-21 11:28:34Z john $
+% $Id: spm_render.m 488 2006-03-30 11:59:54Z john $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-	SPMid = spm('FnBanner',mfilename,'$Rev: 447 $');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 488 $');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -85,7 +85,7 @@ try,
     load(rendfile);
 catch,
     fprintf('\nCan not read the file "%s".\n', rendfile);
-    if strcmp(computer,'PCWIN'),
+    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
         fprintf('This may  be because of the way that the .tar.gz files\n');
         fprintf('were unpacked  when  the SPM software  was  installed.\n');
         fprintf('If installing on a Windows platform, then the software\n');

@@ -3,7 +3,7 @@ function t = mystruct(obj)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: mystruct.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: mystruct.m 488 2006-03-30 11:59:54Z john $
 
 
 if numel(obj)~=1,

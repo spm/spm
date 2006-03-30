@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 355 2005-12-01 18:39:33Z guillaume $
+% $Id: spm_config_fmri_est.m 488 2006-03-30 11:59:54Z john $
 
 
 % Define inline types.
@@ -45,7 +45,8 @@ spm.type = 'files';
 spm.name = 'Select SPM.mat';
 spm.tag  = 'spmmat';
 spm.num  = [1 1];
-spm.filter = '^SPM\.mat$';
+spm.filter  = 'mat';
+spm.ufilter = '^SPM\.mat$';
 spm.help   = {'Select the SPM.mat file that contains the design specification. ',...
         'The directory containing this file is known as the input directory.'};
 

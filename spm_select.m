@@ -52,7 +52,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 474 2006-03-09 15:37:50Z john $
+% $Id: spm_select.m 488 2006-03-30 11:59:54Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -341,7 +341,7 @@ set(tmp,'uicontextmenu',c0);
 uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
 % Drives
-if strcmpi(computer,'PCWIN'),
+if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
     dr  = spm_platform('drives');
     drivestr = cell(1,numel(dr));
     for i=1:numel(dr),
@@ -547,7 +547,7 @@ lb = sib(lb,'dirs');
 if nargin<2 || isempty(dr),
     dr = get(lb,'UserData');
 end;
-if ~strcmpi(computer,'PCWIN')
+if ~(strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'))
     dr    = [filesep dr filesep];
 else
     dr    = [dr filesep];

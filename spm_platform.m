@@ -56,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_platform.m 488 2006-03-30 11:59:54Z john $
 
 
 
@@ -153,6 +153,7 @@ if nargin<1, comp=computer; end
 %-Platform definitions
 %-----------------------------------------------------------------------
 PDefs = {	'PCWIN',	'win',	0;...
+		'PCWIN64',	'win',  0;...
 		'MAC',		'unx',	1;...
 		'SUN4',		'unx',	1;...
 		'SOL2',		'unx',	1;...
@@ -213,7 +214,7 @@ end
 %-Drives
 %-----------------------------------------------------------------------
 PLATFORM.drives = '';
-if strcmp(comp,'PCWIN'),
+if strcmp(comp,'PCWIN') || strcmp(comp,'PCWIN64'),
     driveLett = cellstr(char(('C':'Z')'));
     for i=1:numel(driveLett),
         if exist([driveLett{i} ':\']) == 7,
@@ -235,7 +236,7 @@ case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLN
 	PLATFORM.font.times     = 'Times';
 	PLATFORM.font.courier   = 'Courier';
 	PLATFORM.font.symbol    = 'Symbol';
-case {'PCWIN'}
+case {'PCWIN','PCWIN64'}
 	PLATFORM.font.helvetica = 'Arial Narrow';
 	PLATFORM.font.times     = 'Times New Roman';
 	PLATFORM.font.courier   = 'Courier New';

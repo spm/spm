@@ -29,7 +29,7 @@ function spm_mip(Z,XYZ,M,DIM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 480 2006-03-13 15:19:16Z john $
+% $Id: spm_mip.m 488 2006-03-30 11:59:54Z john $
 
 
 
@@ -84,7 +84,7 @@ try,
     load('MIP.mat');
 catch,
     fprintf('\nCan not read the file "MIP.mat".\n');
-    if strcmp(computer,'PCWIN'),
+    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
         fprintf('This may  be because of the way that the .tar.gz files\n');
         fprintf('were unpacked  when  the SPM software  was  installed.\n');
         fprintf('If installing on a Windows platform, then the software\n');

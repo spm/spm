@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 479 2006-03-10 16:33:46Z will $
+% $Id: spm_config_factorial_design.m 488 2006-03-30 11:59:54Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -846,10 +846,19 @@ p4=['Various data and parameters need to be supplied to specify the design ',...
 
 conf.help={p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text};
 conf.prog   = @run_stats;
-
+conf.vfiles = @vfiles_stats;
 return;
 %-------------------------------------------------------------------------
 
+%-------------------------------------------------------------------------
+function vf = vfiles_stats(job)
+direc = job.dir{1};
+vf    = {fullfile(direc,'SPM.mat')};
+
+% Should really create a few vfiles for beta images etc here as well.
+%-------------------------------------------------------------------------
+
+%-------------------------------------------------------------------------
 function run_stats(job)
 
 spm_defaults;

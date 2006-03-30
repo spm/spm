@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 447 2006-02-21 11:28:34Z john $
+% $Id: spm_dicom_headers.m 488 2006-03-30 11:59:54Z john $
 
 
 ver = sscanf(version,'%d');
@@ -330,7 +330,7 @@ try,
     dict = load('spm_dicom_dict.mat');
 catch,
     fprintf('\nUnable to load the file "spm_dicom_dict.mat".\n');
-    if strcmp(computer,'PCWIN'),
+    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
         fprintf('This may  be because of the way that the .tar.gz files\n');
         fprintf('were unpacked  when  the SPM software  was  installed.\n');
         fprintf('If installing on a Windows platform, then the software\n');

@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 314 2005-11-24 21:08:58Z john $
+% $Id: spm_config_norm.m 488 2006-03-30 11:59:54Z john $
 
 
 %_______________________________________________________________________
@@ -271,7 +271,8 @@ matname.type = 'files';
 matname.name = 'Parameter File';
 matname.tag  = 'matname';
 matname.num  = [1 1];
-matname.filter = '.*_sn\.mat$';
+matname.filter  = 'mat';
+matname.ufilter = '.*_sn\.mat$';
 matname.help = {[...
 'Select the ''_sn.mat'' file containing the spatial normalisation ',...
 'parameters for that subject. If nothing is selected, then the routine ',...

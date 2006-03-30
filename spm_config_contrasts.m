@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 460 2006-02-27 12:22:17Z john $
+% $Id: spm_config_contrasts.m 488 2006-03-30 11:59:54Z john $
 
 
 %_______________________________________________________________________
@@ -14,7 +14,8 @@ spm.type = 'files';
 spm.name = 'Select SPM.mat';
 spm.tag  = 'spmmat';
 spm.num  = [1 1];
-spm.filter = '^SPM\.mat$';
+spm.filter  = 'mat';
+spm.ufilter = '^SPM\.mat$';
 spm.help   = {'Select SPM.mat file for contrasts'};
 
 name.type    = 'entry';
