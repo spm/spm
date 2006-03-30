@@ -51,11 +51,12 @@ I = STRMATCH('UPPT0',pre_data.sensor.label)
 if isempty(I)
     error(sprintf('No parallel port channel was found in the CTF file'))
 end
-PP1=squeeze(pre_data.data(:,1));
-PP2=squeeze(pre_data.data(:,2));
+PP1=squeeze(pre_data.data(:,I(1)));
+PP2=squeeze(pre_data.data(:,I(2)));
 
 D.events.time=[];
 D.events.code=[];
+inds=find(diff(PP1)>0);
 if ~isempty(inds)
     if length(PP1)<inds(end)+2
         inds(end)='';

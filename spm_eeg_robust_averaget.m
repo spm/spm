@@ -6,7 +6,7 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 486 2006-03-29 20:51:03Z james $
+% $Id: spm_eeg_robust_averaget.m 487 2006-03-30 10:10:37Z james $
 if nargin==1
 	ks=3;
 end
@@ -31,9 +31,11 @@ while abs(ores-nres)>sqrt(1E-8)
 
     % New method
     for t=1:size(data,1)
-       % B(t)=sum(Wf(t,:).*data(t,:))/sum(Wf(t,:));
-         B(t)=median(data(t,:));
-
+        if n==1
+            B(t)=median(data(t,:));
+        else
+            B(t)=sum(Wf(t,:).*data(t,:))/sum(Wf(t,:));
+        end
     end
     sm=gausswin(FS);
     sm=sm/sum(sm);
