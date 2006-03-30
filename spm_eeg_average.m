@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 487 2006-03-30 10:10:37Z james $
+% $Id: spm_eeg_average.m 489 2006-03-30 12:45:13Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -74,7 +74,7 @@ else
 						tempwf=[tempwf,D.weights(j,(nl-1)*D.Nsamples+1:nl*D.Nsamples)];
 					end
                     data=data';
-                    tempwf=reshape(tempwf,1501,201);
+                    tempwf=reshape(tempwf,length((find(D.events.code==D.events.types(i)))),D.Nsamples);
                     tempwf=tempwf';
                     for t=1:size(data,1)
                         B(t)=sum(tempwf(t,:).*data(t,:))/sum(tempwf(t,:));
