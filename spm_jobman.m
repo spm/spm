@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 458 2006-02-24 11:50:42Z john $
+% $Id: spm_jobman.m 491 2006-03-31 17:36:45Z john $
 
 
 if nargin==0
@@ -749,7 +749,7 @@ if ~isempty(help_box)
     ext = get(help_box,'Extent');
     pos = get(help_box,'position');
     pw   = floor(pos(3)/ext(3)*21-4);
-    set(help_box,'String',spm_justify(pw,txt));
+    set(help_box,'String',spm_justify(help_box,txt));
     workaround(help_box);
 end;
 return;
