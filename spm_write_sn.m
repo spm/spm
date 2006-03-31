@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 446 2006-02-20 13:47:05Z john $
+% $Id: spm_write_sn.m 490 2006-03-31 17:31:26Z john $
 
 
 if isempty(V), return; end;
@@ -457,6 +457,9 @@ bb        = sort(bb);
 bb(:,msk) = flipud(bb(:,msk));
 
 % Adjust bounding box slightly - so it rounds to closest voxel.
+% Comment out if not needed.  I chose not to change it because
+% it would lead to being bombarded by questions about spatially
+% normalised images not having the same dimensions.
 bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
 bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
 bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
@@ -473,7 +476,11 @@ y   = (bb(1,2):vox(2):bb(2,2))/vxg(2) + ogn(2);
 z   = (bb(1,3):vox(3):bb(2,3))/vxg(3) + ogn(3);
 
 og  = -vxg.*ogn;
+
+% Again, chose whether to round to closest voxel.
 of  = -vox.*(round(-bb(1,:)./vox)+1);
+%of = bb(1,:)-vox;
+
 M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
 mat = prm.VG(1).mat*inv(M1)*M2;

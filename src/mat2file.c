@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: mat2file.c 490 2006-03-31 17:31:26Z john $
  */
 
 #include <math.h>
@@ -240,7 +240,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
 #endif
     pr       = getpr(ptr, "offset",1, &n);
     map->off = (int)pr[0];
-    if (map->off < 0) map->off = 0;
+ /* if (map->off < 0) map->off = 0; Unsigned, so not necessary */
 
     arr = mxGetField(ptr,0,"fname");
     if (arr == (mxArray *)0) mexErrMsgTxt("Cant find 'fname' field.");
