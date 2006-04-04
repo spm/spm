@@ -6,7 +6,7 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 487 2006-03-30 10:10:37Z james $
+% $Id: spm_eeg_robust_averaget.m 493 2006-04-04 20:02:47Z james $
 if nargin==1
 	ks=3;
 end
@@ -37,12 +37,14 @@ while abs(ores-nres)>sqrt(1E-8)
             B(t)=sum(Wf(t,:).*data(t,:))/sum(Wf(t,:));
         end
     end
+
     sm=gausswin(FS);
     sm=sm/sum(sm);
     mB=mean(B);
     B=conv(sm,B-mean(B));
     B=B(floor(FS/2):end-ceil(FS/2));
     B=B+mB;
+   
 	if sum(isnan(B))>0
 		break
 	end
@@ -62,7 +64,7 @@ while abs(ores-nres)>sqrt(1E-8)
 	clear res;
 
 end
-
-
+figure(1)
+clf
 
 
