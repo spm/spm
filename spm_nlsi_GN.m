@@ -56,13 +56,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 467 2006-03-01 20:25:56Z stefan $
+% $Id: spm_nlsi_GN.m 498 2006-04-18 17:36:45Z klaas $
 
 % figure
 %--------------------------------------------------------------------------
-% Fsi = spm_figure;
-% set(Fsi,'name','System identification')
-% figure(Fsi)
+Fsi = spm_figure;
+set(Fsi,'name','System identification')
+figure(Fsi)
  
  
 % integration scheme
@@ -269,26 +269,26 @@ for k = 1:64
     
     % graphics
     %----------------------------------------------------------------------
-%     figure(Fsi)
-% 
-%     % subplot parameters
-%     %----------------------------------------------------------------------
-%     subplot(2,1,1)
-%     plot([1:ns]*Y.dt,g),                        hold on
-%     plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
-%     xlabel('time')
-%     title(sprintf('%s: %i','E-Step',k))
-%     grid on
-%     drawnow
-% 
-%     % subplot parameters
-%     %----------------------------------------------------------------------
-%     subplot(2,1,2)
-%     bar(full(V*p(ip)))
-%     xlabel('parameter')
-%     title('conditional [minus prior] expectation')
-%     grid on
-%     drawnow
+    figure(Fsi)
+
+    % subplot parameters
+    %----------------------------------------------------------------------
+    subplot(2,1,1)
+    plot([1:ns]*Y.dt,g),                        hold on
+    plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
+    xlabel('time')
+    title(sprintf('%s: %i','E-Step',k))
+    grid on
+    drawnow
+
+    % subplot parameters
+    %----------------------------------------------------------------------
+    subplot(2,1,2)
+    bar(full(V*p(ip)))
+    xlabel('parameter')
+    title('conditional [minus prior] expectation')
+    grid on
+    drawnow
 
     % convergence
     %----------------------------------------------------------------------
