@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_dcm_create.m 499 2006-04-22 18:34:08Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -99,7 +99,7 @@ switch upper(source_model)
         U.name = {};
         U.u    = [];
         for  i = 1:length(Ui)
-            U.u             = [U.u Ui(i).u];
+            U.u             = [U.u Ui(i).u((2*SPM.xBF.T):end)];   % remove initial offset of 2 TRs
             U.name{end + 1} = Ui(i).name{1};
         end
         U.dt=Ui(1).dt;
