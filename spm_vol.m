@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 434 2006-02-15 13:46:45Z john $
+% $Id: spm_vol.m 504 2006-04-25 13:44:50Z volkmar $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -132,7 +132,7 @@ if strcmpi(ext,'.nii') || (strcmpi(ext,'.img') && ...
 	if ~isempty(V), return; end;
 
 else % Try other formats
-    error('Unknown file format.');
+    error('%s: Unknown file format.',p);
 end;
 return;
 
