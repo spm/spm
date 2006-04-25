@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 309 2005-11-24 16:24:04Z karl $
+% $Id: spm_graph.m 503 2006-04-25 13:39:35Z volkmar $
 
 
 
@@ -639,8 +639,8 @@ switch Cplot
             axis image
 
             title('2nd order Kernel','FontSize',12);
-            xlabel('perstimulus time {secs}')
-            ylabel('perstimulus time {secs}')
+            xlabel('peristimulus time {secs}')
+            ylabel('peristimulus time {secs}')
 
             subplot(2,2,4)
             plot(pst,Y)
@@ -648,7 +648,7 @@ switch Cplot
             grid on
 
             title(Sess(s).Fc(u).name,'FontSize',12);
-            xlabel('perstimulus time {secs}')
+            xlabel('peristimulus time {secs}')
 
 
             % first  order kernel
@@ -667,8 +667,8 @@ switch Cplot
 
             title({'1st order Volterra Kernel' Sess(s).Fc(u).name},...
                 'FontSize',12);
-            xlabel('perstimulus time {secs}')
-            ylabel(['impluse response',XYZstr])
+            xlabel('peristimulus time {secs}')
+            ylabel(['impulse response',XYZstr])
         end
 
 end
