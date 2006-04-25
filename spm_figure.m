@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 305 2005-11-23 17:52:16Z john $
+% $Id: spm_figure.m 502 2006-04-25 13:35:36Z volkmar $
 
 
 %=======================================================================
@@ -438,12 +438,14 @@ end
 %-Make handles for this page invisible if PageNo>1
 %-----------------------------------------------------------------------
 mVis    = strcmp('on',get(h,'Visible'));
+mHit    = strcmp('on',get(h,'HitTest'));
 hPg     = get(hNextPage,'UserData');
 if isempty(hPg)
-	hPg = {h(mVis), h(~mVis)};
+	hPg = {h(mVis), h(~mVis), h(mHit), h(~mHit)};
 else
-	hPg = [hPg; {h(mVis), h(~mVis)}];
-	set(h(mVis),'Visible','off','HitTest','off')
+	hPg = [hPg; {h(mVis), h(~mVis), h(mHit), h(~mHit)}];
+	set(h(mVis),'Visible','off');
+        set(h(mHit),'HitTest','off');
 end
 set(hNextPage,'UserData',hPg)
 
@@ -472,13 +474,15 @@ if ischar(move), Npage = Cpage+eval(move); else Npage = move; end
 Npage = max(min(Npage,nPages),1);
 
 %-Make current page invisible, new page visible, set page number string
-set(hPg{Cpage,1},'Visible','off')
-set(hPg{Npage,1},'Visible','on')
+set(hPg{Cpage,1},'Visible','off');
+set(hPg{Cpage,3},'HitTest','off');
+set(hPg{Npage,1},'Visible','on');
+set(hPg{Npage,3},'HitTest','on');
 set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
 
 for k = 1:length(hPg{Npage,1}) % VG
 	if strcmp(get(hPg{Npage,1}(k),'Type'),'axes')
-		axes(hPg{Npage,1}(k))
+		axes(hPg{Npage,1}(k));
 	end;
 end;
 
