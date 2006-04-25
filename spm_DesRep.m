@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 201 2005-07-20 10:57:13Z guillaume $
+% $Id: spm_DesRep.m 501 2006-04-25 13:27:02Z volkmar $
 
 
 
@@ -615,7 +615,7 @@ if isfield(varargin{2},'V')
   end;
   xlabel(str);
 else
-  text(.5,.5,'Covariance not available', 'HorizontalAlignment','center');
+  text(.5,.5, 'Covariance not (yet) estimated.', 'HorizontalAlignment','center');
 end;
 
 if isfield(varargin{2},'h')
@@ -632,7 +632,7 @@ if isfield(varargin{2},'h')
 else
   hPEstAx = [];
 end;
-spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Children')])
+spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Children');hCovMtxSc])
  
 %-Show components of covariance matrix
 %-----------------------------------------------------------------------
@@ -651,7 +651,6 @@ if isfield(varargin{2},'Vi')
 		spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
 	end
 end
-axes(hCovMtx(1));
 
 %=======================================================================
 case {'desmtx','desorth'} %-Display design matrix / design orthogonality
