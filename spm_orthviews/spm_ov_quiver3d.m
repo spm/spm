@@ -23,10 +23,18 @@ function ret = spm_ov_quiver3d(varargin)
 % spm_orthviews('quiver3d', 'redraw', volhandle)
 %
 % spm_orthviews('quiver3d, 'delete', volhandle)
+%
+% This routine is a plugin to spm_orthviews for SPM5. For general help about
+% spm_orthviews and plugins type
+%             help spm_orthviews
+% at the matlab prompt.
 %_____________________________________________________________________________
-% %W% Volkmar Glauche <glauche@uke.uni-hamburg.de> %E%
+% $Id: spm_ov_quiver3d.m,v 1.7 2005/09/01 11:26:42 glauche Exp $
+
+rev = '$Revision: 1.7 $';
 
 global st;
+global defaults;
 if isempty(st)
   error('spm_ov_quiver3d: This routine can only be called as a plugin for spm_orthviews!');
 end;
@@ -39,7 +47,6 @@ cmd = lower(varargin{1});
 volhandle = varargin{2};
 switch cmd
   case 'init'
-    %function addquiver3d(handle, Ve1fnames, Ve2fnames, Ve3fnames, Vlafnames, Vmaskfname, varargin)
     if nargin < 7
       error('spm_orthviews(''quiver3d'', ''init'',...): Not enough arguments');
     end;
@@ -116,19 +123,24 @@ switch cmd
       Mla3   = st.Space\(st.vols{volhandle}.premul*q3d.la(2).mat);
       Mm     = st.Space\(st.vols{volhandle}.premul*q3d.mask.mat);
 
+      if defaults.analyze.flip
+        flipx = -1;
+      else
+        flipx = 1;
+      end;
       % transversal: Ft, Vt, FVCt
       % laX, eX, x, y, xyz, mask will be reused for all 3 views
       la1	 = spm_slice_vol(q3d.la(1),inv(TM0*Mla1),TD,0);
       la1(la1==0) = NaN;
       la2	 = spm_slice_vol(q3d.la(2),inv(TM0*Mla2),TD,0)./la1; % scale to la1
       la3	 = spm_slice_vol(q3d.la(3),inv(TM0*Mla3),TD,0)./la1; % scale to la1
-      e1   = cat(3, spm_slice_vol(q3d.e1(1),inv(TM0*Me1x),TD,0), ...
+      e1   = cat(3, flipx*spm_slice_vol(q3d.e1(1),inv(TM0*Me1x),TD,0), ...
 	  spm_slice_vol(q3d.e1(2),inv(TM0*Me1y),TD,0), ...
 	  spm_slice_vol(q3d.e1(3),inv(TM0*Me1z),TD,0));
-      e2   = cat(3, la2.*spm_slice_vol(q3d.e2(1),inv(TM0*Me2x),TD,0), ...
+      e2   = cat(3, flipx*la2.*spm_slice_vol(q3d.e2(1),inv(TM0*Me2x),TD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(2),inv(TM0*Me2y),TD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(3),inv(TM0*Me2z),TD,0));
-      e3   = cat(3, la3.*spm_slice_vol(q3d.e3(1),inv(TM0*Me3x),TD,0), ...
+      e3   = cat(3, flipx*la3.*spm_slice_vol(q3d.e3(1),inv(TM0*Me3x),TD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(2),inv(TM0*Me3y),TD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(3),inv(TM0*Me3z),TD,0));
       mask = spm_slice_vol(q3d.mask,inv(TM0*Mm),TD,0);
@@ -175,13 +187,13 @@ switch cmd
       la1(la1==0) = NaN;
       la2	 = spm_slice_vol(q3d.la(2),inv(CM0*Mla2),CD,0)./la1; % scale to la1
       la3	 = spm_slice_vol(q3d.la(3),inv(CM0*Mla3),CD,0)./la1; % scale to la1
-      e1   = cat(3, spm_slice_vol(q3d.e1(1),inv(CM0*Me1x),CD,0), ...
+      e1   = cat(3, flipx*spm_slice_vol(q3d.e1(1),inv(CM0*Me1x),CD,0), ...
 	  spm_slice_vol(q3d.e1(2),inv(CM0*Me1y),CD,0), ...
 	  spm_slice_vol(q3d.e1(3),inv(CM0*Me1z),CD,0));
-      e2   = cat(3, la2.*spm_slice_vol(q3d.e2(1),inv(CM0*Me2x),CD,0), ...
+      e2   = cat(3, flipx*la2.*spm_slice_vol(q3d.e2(1),inv(CM0*Me2x),CD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(2),inv(CM0*Me2y),CD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(3),inv(CM0*Me2z),CD,0));
-      e3   = cat(3, la3.*spm_slice_vol(q3d.e3(1),inv(CM0*Me3x),CD,0), ...
+      e3   = cat(3, flipx*la3.*spm_slice_vol(q3d.e3(1),inv(CM0*Me3x),CD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(2),inv(CM0*Me3y),CD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(3),inv(CM0*Me3z),CD,0));
       mask = spm_slice_vol(q3d.mask,inv(CM0*Mm),CD,0);
@@ -233,13 +245,13 @@ switch cmd
       la1(la1==0) = NaN;
       la2	 = spm_slice_vol(q3d.la(2),inv(SM0*Mla2),SD,0)./la1; % scale to la1
       la3	 = spm_slice_vol(q3d.la(3),inv(SM0*Mla3),SD,0)./la1; % scale to la1
-      e1   = cat(3, spm_slice_vol(q3d.e1(1),inv(SM0*Me1x),SD,0), ...
+      e1   = cat(3, flipx*spm_slice_vol(q3d.e1(1),inv(SM0*Me1x),SD,0), ...
 	  spm_slice_vol(q3d.e1(2),inv(SM0*Me1y),SD,0), ...
 	  spm_slice_vol(q3d.e1(3),inv(SM0*Me1z),SD,0));
-      e2   = cat(3, la2.*spm_slice_vol(q3d.e2(1),inv(SM0*Me2x),SD,0), ...
+      e2   = cat(3, flipx*la2.*spm_slice_vol(q3d.e2(1),inv(SM0*Me2x),SD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(2),inv(SM0*Me2y),SD,0), ...
 	  la2.*spm_slice_vol(q3d.e2(3),inv(SM0*Me2z),SD,0));
-      e3   = cat(3, la3.*spm_slice_vol(q3d.e3(1),inv(SM0*Me3x),SD,0), ...
+      e3   = cat(3, flipx*la3.*spm_slice_vol(q3d.e3(1),inv(SM0*Me3x),SD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(2),inv(SM0*Me3y),SD,0), ...
 	  la3.*spm_slice_vol(q3d.e3(3),inv(SM0*Me3z),SD,0));
       mask = spm_slice_vol(q3d.mask,inv(SM0*Mm),SD,0);
@@ -349,11 +361,23 @@ switch cmd
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);
-    Ve1fnames = spm_select(3,'evec1.*\.img','Components of 1st eigenvector');
-    Ve2fnames = spm_select(3,'evec2.*\.img','Components of 2nd eigenvector');
-    Ve3fnames = spm_select(3,'evec3.*\.img','Components of 3rd eigenvector');
-    Vlafnames = spm_select(3,'eval.*\.img','Eigenvalue images');
-    Vmaskfname = spm_select(1,'image','Mask image');
+    [Ve1fnames sts] = spm_select(3, 'image',...
+                                 'Components of 1st eigenvector', ...
+                                 [], pwd, 'evec1.*');
+    if ~sts return; end;
+    [Ve2fnames sts] = spm_select(3, 'image',...
+                                 'Components of 2nd eigenvector', ...
+                                 [], pwd, 'evec2.*');
+    if ~sts return; end;
+    [Ve3fnames sts] = spm_select(3, 'image',...
+                                 'Components of 3rd eigenvector', ...
+                                 [], pwd, 'evec3.*');
+    if ~sts return; end;
+    [Vlafnames sts] = spm_select(3, 'image', 'Eigenvalue images', [], pwd, ...
+                                 'evec3.*');
+    if ~sts return; end;
+    [Vmaskfname sts] = spm_select(1, 'image', 'Mask image');
+    if ~sts return; end;
     feval('spm_ov_quiver3d','init',volhandle,Ve1fnames,Ve2fnames,Ve3fnames,Vlafnames,Vmaskfname);
     obj = findobj(0, 'Tag',  ['QUIVER3D_1_', num2str(volhandle)]);
     set(obj, 'Visible', 'on');

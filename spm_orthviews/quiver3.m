@@ -31,7 +31,7 @@ function hh = quiver3(varargin)
 
 %   Clay M. Thompson 3-3-94
 %   Copyright 1984-2000 The MathWorks, Inc. 
-%   1.1.1.1  2003/04/01 14:32:41
+%   $Revision: 1.1.1.1 $  $Date: 2003/04/01 14:32:41 $
 
 % Arrow head parameters
 alpha = 0.33; % Size of arrow head relative to the length of the vector

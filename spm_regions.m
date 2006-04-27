@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_regions.m 192 2005-06-23 13:55:27Z karl $
+% $Id: spm_regions.m 505 2006-04-27 09:57:50Z volkmar $
 
 
 
@@ -121,7 +121,7 @@ end
 %-----------------------------------------------------------------------
 if ~isfield(xY,'def')
 	xY.def    = spm_input('VOI definition...','!+1','b',...
-			{'sphere','box','cluster'});
+			{'sphere','box','cluster','mask'});
 end
 Q       = ones(1,size(xSPM.XYZmm,2));
 
@@ -145,7 +145,21 @@ switch xY.def
 			'!+0','r','0 0 0',3);
 	end
 	Q     = find(all(abs(xSPM.XYZmm - xyz*Q) <= xY.spec(:)*Q/2));
-
+	
+	case 'mask'
+	%---------------------------------------------------------------
+	if ~isfield(xY,'spec')
+		xY.spec = spm_vol(spm_select(1,'image','Specify Mask'));
+	else
+	  if ~isstruct(xY.spec)
+	    xY.spec = spm_vol(xY.spec);
+	  end;
+	end;
+	mXYZ=inv(xY.spec.mat)*[xSPM.XYZmm;ones(1,size(xSPM.XYZmm,2))];
+	tmpQ = spm_sample_vol(xY.spec,mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0);
+	tmpQ(~isfinite(tmpQ)) = 0;
+	Q = find(tmpQ);
+	
 	case 'cluster'
 	%---------------------------------------------------------------
 	[x i] = spm_XYZreg('NearestXYZ',xyz,xSPM.XYZmm);

@@ -1,7 +1,17 @@
-function ret = quiver(varargin)
-% %W% Volkmar Glauche <glauche@uke.uni-hamburg.de> %E%
+function ret = spm_ov_quiver(varargin)
+% This routine is a plugin to spm_orthviews for SPM5. For general help about
+% spm_orthviews and plugins type
+%             help spm_orthviews
+% at the matlab prompt.
+%_______________________________________________________________________
+%
+% @(#) spm_ov_quiver.m,v 1.7 2004/06/03 14:00:53 volkmar Exp
+%mk060125 bugfix for for single slice FullVolume display. Not necessary
+%         for zoomed status of orthviews.
 
 global st;
+global defaults;
+
 if isempty(st)
   error('quiver: This routine can only be called as a plugin for spm_orthviews!');
 end;
@@ -22,7 +32,7 @@ switch cmd
     if length(Vq) == 3
       st.vols{volhandle}.quiver = struct('qx',Vq(1),'qy',Vq(2),'qz',Vq(3), ...
 	  'mask',Vmask, 'fa',[], 'thresh', [.1 Inf], 'ls','y.', ...
-	  'qst',3,'ql',.9,'qht',[],'qhc',[],'qhs',[], 'qw', .5);
+          'qst',3,'ql',.9,'qht',[],'qhc',[],'qhs',[], 'qw', .5);
     else
       error('spm_orthviews(''quiver'', ''init'',...): Please specify 3 images!');
     end;
@@ -164,43 +174,61 @@ switch cmd
 	quiverfun = 'quiver3';
 	warning('Function "dti_quiver3.m" not found!\n Using standard Matlab routine "quiver3.m" instead.\n This may not give  nice quiver plots.');
       end;
+      if defaults.analyze.flip
+        flipx = -1;
+      else
+        flipx = 1;
+      end;
+
       % transversal - plot (x y z)
       np = get(st.vols{volhandle}.ax{1}.ax,'NextPlot');
       set(st.vols{volhandle}.ax{1}.ax,'NextPlot','add');
       axes(st.vols{volhandle}.ax{1}.ax);
-      st.vols{volhandle}.quiver.qht = feval(quiverfun,xt(qst1:qst:end),...
-	  yt(qst1:qst:end), zt(qst1:qst:end,qst1:qst:end), ...
-	  qxt(qst1:qst:end,qst1:qst:end),...
-	  qyt(qst1:qst:end,qst1:qst:end),...
-	  qzt(qst1:qst:end,qst1:qst:end),ql,ls);
+      x=xt(qst1:qst:end);
+      y=yt(qst1:qst:end);
+      z=zt(qst1:qst:end,qst1:qst:end);
+      u=flipx*qxt(qst1:qst:end,qst1:qst:end);
+      v=      qzt(qst1:qst:end,qst1:qst:end);
+      w=      qyt(qst1:qst:end,qst1:qst:end);
+      xtt=repmat(x,size(z,1),1); 
+      ytt=repmat(y',1,size(z,2));
+      st.vols{volhandle}.quiver.qht = feval(quiverfun,xtt,ytt,z,u,v,w,ql,ls);
       set(st.vols{volhandle}.ax{1}.ax,'NextPlot',np);
       set(st.vols{volhandle}.quiver.qht, ...
 	  'Parent',st.vols{volhandle}.ax{1}.ax, 'HitTest','off', ...
 	  'Linewidth',st.vols{volhandle}.quiver.qw );
-      
+
       % coronal - plot (x z y)
       np = get(st.vols{volhandle}.ax{2}.ax,'NextPlot');
       set(st.vols{volhandle}.ax{2}.ax,'NextPlot','add');
       axes(st.vols{volhandle}.ax{2}.ax);
-      st.vols{volhandle}.quiver.qhc = feval(quiverfun,xc(qst1:qst:end),...
-	  yc(qst1:qst:end), zc(qst1:qst:end,qst1:qst:end), ...
-	  qxc(qst1:qst:end,qst1:qst:end), ...
-	  qzc(qst1:qst:end,qst1:qst:end), ...
-	  qyc(qst1:qst:end,qst1:qst:end),ql, ls);
+      x=xc(qst1:qst:end);
+      y=yc(qst1:qst:end);
+      z=zc(qst1:qst:end,qst1:qst:end);
+      u=flipx*qxc(qst1:qst:end,qst1:qst:end);
+      v=      qzc(qst1:qst:end,qst1:qst:end);
+      w=      qyc(qst1:qst:end,qst1:qst:end);
+      xtt=repmat(x,size(z,1),1); 
+      ytt=repmat(y',1,size(z,2));
+      st.vols{volhandle}.quiver.qhc = feval(quiverfun,xtt,ytt,z,u,v,w,ql,ls);
       set(st.vols{volhandle}.ax{2}.ax,'NextPlot',np);
       set(st.vols{volhandle}.quiver.qhc, ...
 	  'Parent',st.vols{volhandle}.ax{2}.ax, 'HitTest','off', ... 
 	  'Linewidth',st.vols{volhandle}.quiver.qw );
-      
+
       % sagittal - plot (-y z x)
       np = get(st.vols{volhandle}.ax{3}.ax,'NextPlot');
       set(st.vols{volhandle}.ax{3}.ax,'NextPlot','add');
       axes(st.vols{volhandle}.ax{3}.ax);
-      st.vols{volhandle}.quiver.qhs = feval(quiverfun,xs(qst1:qst:end),...
-	  ys(qst1:qst:end), zs(qst1:qst:end,qst1:qst:end), ...
-	  -qys(qst1:qst:end,qst1:qst:end), ...
-	  qzs(qst1:qst:end,qst1:qst:end), ...
-	  qxs(qst1:qst:end,qst1:qst:end),ql,ls);
+      x=xs(qst1:qst:end);
+      y=ys(qst1:qst:end);
+      z=zs(qst1:qst:end,qst1:qst:end);
+      u=flipx*qxs(qst1:qst:end,qst1:qst:end);
+      v=      qzs(qst1:qst:end,qst1:qst:end);
+      w=      qys(qst1:qst:end,qst1:qst:end);
+      xtt=repmat(x,size(z,1),1); 
+      ytt=repmat(y',1,size(z,2));
+      st.vols{volhandle}.quiver.qhs = feval(quiverfun,xtt,ytt,z,u,v,w,ql,ls);
       set(st.vols{volhandle}.ax{3}.ax,'NextPlot',np);
       set(st.vols{volhandle}.quiver.qhs, ...
 	  'Parent',st.vols{volhandle}.ax{3}.ax, 'HitTest','off', ... 
@@ -246,9 +274,18 @@ switch cmd
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);
-    Vqfnames = spm_select(3,'evec1.*\.img','Components of 1st eigenvector');
-    Vmaskfname = spm_select(1,'image','Mask image');
-    Vfafname = spm_select(Inf,'fa.*\.img','Fractional anisotropy image');
+    [Vqfnames, sts] = spm_select(3, 'image',...
+                                 'Components of 1st eigenvector',[], ...
+                                 pwd, 'evec1.*');
+    if ~sts
+            return;
+    end;
+    [Vmaskfname, sts] = spm_select(1,'image', 'Mask image');
+    if ~sts
+            return;
+    end;
+    Vfafname = spm_select(Inf,'image', 'Fractional anisotropy image', [], ...
+                          pwd, 'fa.*');
     feval('spm_ov_quiver','init',volhandle,Vqfnames,Vmaskfname,Vfafname);
     obj = findobj(0, 'Tag',  ['QUIVER_1_', num2str(volhandle)]);
     set(obj, 'Visible', 'on');
@@ -293,3 +330,4 @@ switch cmd
     fprintf('spm_orthviews(''quiver'',...): Unknown action string %s', cmd);
   end;
   
+
