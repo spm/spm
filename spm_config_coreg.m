@@ -4,7 +4,7 @@ function opts = spm_config_coreg
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_coreg.m 232 2005-09-15 19:02:59Z john $
+% $Id: spm_config_coreg.m 506 2006-04-27 14:46:29Z volkmar $
 
 ref.type = 'files';
 ref.name = 'Reference Image';
@@ -257,6 +257,7 @@ opts.type = 'repeat';
 opts.name = 'Coreg';
 opts.tag  = 'coreg';
 opts.values = {est,write,estwrite};
+opts.num  = [1 Inf];
 opts.modality = {'PET','FMRI','VBM'};
 p1 = [...
 'Within-subject registration using a rigid-body model. ',...

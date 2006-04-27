@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_config_norm.m 506 2006-04-27 14:46:29Z volkmar $
 
 
 %_______________________________________________________________________
@@ -261,7 +261,6 @@ scansr.name = 'Images to Write';
 scansr.tag  = 'resample';
 scansr.num  = [1 Inf];
 scansr.filter = 'image';
-scansr.val  = {{}};
 scansr.help   = {[...
 'These are the images for warping according to the estimated parameters. ',...
 'They can be any images that are in register with the "source" image used ',...
@@ -360,6 +359,7 @@ opts.type = 'repeat';
 opts.name = 'Normalise';
 opts.tag  = 'normalise';
 opts.values = {est,writ,estwrit};
+opts.num  = [1 Inf];
 opts.modality = {'FMRI','PET','VBM'};
 p1 = [...
 'This module spatially (stereotactically) normalizes MRI, PET or SPECT ',...

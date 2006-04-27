@@ -4,7 +4,7 @@ function opts = spm_config_realign
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_realign.m 377 2005-12-13 17:00:53Z john $
+% $Id: spm_config_realign.m 506 2006-04-27 14:46:29Z volkmar $
 
 
 %_______________________________________________________________________
@@ -358,6 +358,7 @@ opts.type = 'repeat';
 opts.name = 'Realign';
 opts.tag  = 'realign';
 opts.values = {est,write,estwrit};
+opts.num  = [1 Inf];
 opts.modality = {'PET','FMRI','VBM'};
 opts.help = {...
 'Within-subject registration of image time series.'};
