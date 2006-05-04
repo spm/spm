@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 315 2005-11-28 16:48:59Z john $
+% $Id: spm_preproc.m 510 2006-05-04 11:03:11Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -168,7 +168,7 @@ clear f
 
 for z=1:length(z0),
     %buf(z).g  = uint8(round((double(buf(z).f)-thresh)*(255/(mx-thresh))));
-    buf(z).g   = uint8(round(double(buf(z).f)*(255/mx)));
+    buf(z).g   = uint8(max(min(round(double(buf(z).f)*(255/mx)),255),0));
 end;
 Affine  = eye(4);
 if ~isempty(opts.regtype),

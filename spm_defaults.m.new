@@ -44,7 +44,7 @@ defaults.mask.thresh    = 0.8;
 % Realignment defaults
 %=======================================================================
 defaults.realign.estimate.quality = 0.9;
-defaults.realign.estimate.weight = '';
+defaults.realign.estimate.weight = {''};
 defaults.realign.estimate.interp = 2;
 defaults.realign.estimate.wrap   = [0 0 0];
 defaults.realign.estimate.sep    = 4;
@@ -85,7 +85,7 @@ defaults.coreg.write.mask        = 0;
 defaults.normalise.estimate.smosrc  = 8;
 defaults.normalise.estimate.smoref  = 0;
 defaults.normalise.estimate.regtype = 'mni';
-defaults.normalise.estimate.weight  = '';
+defaults.normalise.estimate.weight  = {''};
 defaults.normalise.estimate.cutoff  = 25;
 defaults.normalise.estimate.nits    = 16;
 defaults.normalise.estimate.reg     = 1;
@@ -109,7 +109,7 @@ defaults.segment.estimate.bb     =  [[-88 88]' [-122 86]' [-60 95]'];
 defaults.segment.estimate.affreg.smosrc = 8;
 defaults.segment.estimate.affreg.regtype = 'mni';
 %defaults.segment.estimate.affreg.weight = fullfile(spm('Dir'),'apriori','brainmask.nii'); 
-defaults.segment.estimate.affreg.weight = '';
+defaults.segment.estimate.affreg.weight = {''};
 defaults.segment.write.cleanup   = 1;
 defaults.segment.write.wrt_cor   = 1;
 defaults.segment.write.wrt_brV   = 1;

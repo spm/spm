@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_jobman.m 510 2006-05-04 11:03:11Z john $
 
 
 if nargin==0
@@ -2107,7 +2107,11 @@ case {'menu','entry','files'}
     if isfield(c,'def')
         c.val = getdef(c.def);
         if strcmp(c.type,'files') && ~isempty(c.val)
-            c.val = {cellstr(c.val{1})};
+            if ~isempty(c.val{1})
+                c.val = {cellstr(c.val{1})};
+            else
+                c.val = {{}};
+            end;
         end;
     end;
 
