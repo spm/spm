@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_config_fmri_est.m 509 2006-05-04 06:08:25Z Darren $
 
 
 % Define inline types.
@@ -406,7 +406,7 @@ if isfield(job.method,'Classical'),
                 else
                     SPM.xCon(end+1) = DxCon;
                 end
-                spm_contrasts(SPM,length(SPM.xCon));
+               SPM = spm_contrasts(SPM,length(SPM.xCon));
             end
         
             %-Create t-contrasts
@@ -438,7 +438,7 @@ if isfield(job.method,'Classical'),
                     else
                         SPM.xCon(end+1) = DxCon;
                     end
-                    spm_contrasts(SPM,length(SPM.xCon));
+                   SPM = spm_contrasts(SPM,length(SPM.xCon));
                 end
             end
         end % if SPM.factor(1).levels > 1

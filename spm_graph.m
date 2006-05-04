@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 503 2006-04-25 13:39:35Z volkmar $
+% $Id: spm_graph.m 509 2006-05-04 06:08:25Z Darren $
 
 
 
@@ -671,6 +671,14 @@ switch Cplot
             ylabel(['impulse response',XYZstr])
         end
 
+end
+
+
+% Turn hold button off - this will alert the user to press it again
+%--------------------------------------------------------------------------
+try
+    set(get(gcbo,'Userdata'),'Value',0);
+catch
 end
 
 
