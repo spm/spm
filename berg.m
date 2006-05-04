@@ -147,7 +147,7 @@ end
 % OPTIONS=zeros(1,18);                 % Reset all options flags
 % OPTIONS(1:3) = [0 1.e-9 1.e-9];      % Set options termination search criteria
 % OPTIONS(14) = J*1000;                  % Set max number of steps
-if(version('-release')<13)
+if spm_matlab_version_chk('6.5.1') < 0
 OPTIONS = optimset('MaxFunEvals',J*1000,'MaxIter',J*1000,'TolFun',[0 1.e-9 1.e-9]); 
 else
    OPTIONS = optimset('MaxFunEvals',J*1000,'MaxIter',J*1000,'TolFun',[1.e-9]); 

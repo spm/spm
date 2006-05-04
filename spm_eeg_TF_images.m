@@ -28,7 +28,7 @@ function D = spm_eeg_TF_images(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner 
-% $Id: spm_eeg_TF_images.m 475 2006-03-10 10:56:05Z james $
+% $Id: spm_eeg_TF_images.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -174,7 +174,7 @@ if isfield(D, 'Nfrequencies');
             D.fname = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fname];
             D.data = [];
             cd(D.path)
-            if str2num(version('-release'))>=14
+            if spm_matlab_version_chk('7.1') >= 0,
                 save(fullfile(P, D.fname), '-V6', 'D');
             else
                 save(fullfile(P, D.fname), 'D');

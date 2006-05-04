@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 357 2005-12-01 20:06:14Z stefan $
+% $Id: spm_eeg_filter.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -177,7 +177,7 @@ spm_progress_bar('Clear');
 D.data = [];
 
 D.fname = ['f' D.fname];
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

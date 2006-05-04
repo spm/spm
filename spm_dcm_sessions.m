@@ -27,7 +27,7 @@ function [] = spm_dcm_sessions ()
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_sessions.m 507 2006-05-04 05:44:19Z Darren $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -39,8 +39,8 @@ P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
 % Get contrast
 str     = 'contrast for';
 D       = spm_input(str,1,'b',{'A','B','C'});
-load(P{1});
-con=spm_dcm_contrasts(P{1},D);
+load(deblank(P(1,:)));
+con=spm_dcm_contrasts(deblank(P(1,:)),D);
 
 % Get threshold
 str = 'Threshold';
@@ -50,7 +50,8 @@ T=DCM.T;
 % Get mean and variance of effect in each model
 con_error=0;
 for model=1:num_models,
-    load(P{model});
+    load(deblank(P(1,:)));
+    drawnow;
     
     l     = DCM.M.l;
     m     = DCM.M.m;

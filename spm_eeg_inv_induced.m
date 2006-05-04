@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_induced.m 475 2006-03-10 10:56:05Z james $
+% $Id: spm_eeg_inv_induced.m 507 2006-05-04 05:44:19Z Darren $
 
 
 if length(D.events.code) ~= D.Nevents
@@ -238,7 +238,7 @@ if strcmp(D.inv{val}.inverse.activity,'induced')
     Ntime         = clock;
     D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     D.inv{val}.inverse.LogEv   = Find;
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(pth,D.inv{val}.inverse.resfile), '-V6','Cind','hind','Phind','Find','Eind','Gind');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile),'Cind','hind','Phind','Find','Eind','Gind');
@@ -264,7 +264,7 @@ else
     Ntime         = clock;
     D.inv{val}.inverse.LogEv = [Fev Find];
     D.inv{val}.inverse.resfile{1} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_evoked' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}), '-V6','Cev','hev','Phev','Fev','Jev','Eev','Gev');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}),'Cev','hev','Phev','Fev','Jev','Eev','Gev');
@@ -287,7 +287,7 @@ else
 
     
     D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}), '-V6','Cind','hind','Phind','Find','Eind','Gind');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}),'Cind','hind','Phind','Find','Eind','Gind');
@@ -308,7 +308,7 @@ else
 
 end
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(D.path,D.fname), '-V6','D');
 else
     save(fullfile(D.path,D.fname),'D');

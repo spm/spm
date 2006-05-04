@@ -132,7 +132,7 @@ end
 
 
 
-if str2num(version('-release'))>=14 
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

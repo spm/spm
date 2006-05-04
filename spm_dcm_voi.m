@@ -14,7 +14,7 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_voi.m 303 2005-11-19 12:04:41Z klaas $
+% $Id: spm_dcm_voi.m 507 2006-05-04 05:44:19Z Darren $
 
 
 load(DCM_filename);
@@ -42,7 +42,7 @@ for i = 1:n
     DCM.xY(i) = xY;
 end
 
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0
     save(DCM_filename, 'DCM', '-V6');
 else
     save(DCM_filename, 'DCM');

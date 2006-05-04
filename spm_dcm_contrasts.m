@@ -17,7 +17,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_contrasts.m 125 2005-05-08 16:41:39Z klaas $
+% $Id: spm_dcm_contrasts.m 507 2006-05-04 05:44:19Z Darren $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -239,7 +239,7 @@ DCM.contrast(num_contrast).con_vec=con_vec;
 DCM.contrast(num_contrast).con_mat=con_mat;
 DCM.contrast(num_contrast).con_type=D;
 
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0
     save(P(:),'-V6','DCM');
 else
     save(P(:),'DCM');

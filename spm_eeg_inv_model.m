@@ -1638,7 +1638,7 @@ fn = fieldnames(p);
 for i=1:length(fn),
     eval([fn{i} '= p.' fn{i} ';']);
 end;
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0,
     save(fnam,'-V6',fn{:});
 else
     save(fnam,fn{:});

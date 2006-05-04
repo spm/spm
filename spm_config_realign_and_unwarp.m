@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_config_realign_and_unwarp.m 507 2006-05-04 05:44:19Z Darren $
 
 
 %_______________________________________________________________________
@@ -779,7 +779,7 @@ for i = 1:numel(P)
     [path,name] = fileparts(P{i}(1,:));
     pefile =  fullfile(path,[name '_uw.mat']);
 
-    if str2double(version('-release'))>=14,
+    if spm_matlab_version_chk('7.1') >= 0
         save(pefile,'-V6','ds');
     else
         save(pefile,'ds');

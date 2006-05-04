@@ -19,7 +19,7 @@ function D = spm_eeg_inv_deletefields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_deletefields.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_deletefields.m 507 2006-05-04 05:44:19Z Darren $
 
 def_Ian   = [];
 def_Flock = 0;
@@ -320,7 +320,7 @@ S = D.inv(Icomp);
 D.inv = S;
 
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
 	save(fullfile(D.path, D.fname), '-V6', 'D');
 else
 	save(fullfile(D.path, D.fname), 'D');

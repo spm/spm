@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 341 2005-11-30 18:08:16Z stefan $
+% $Id: spm_eeg_weight_epochs.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -102,7 +102,7 @@ D.events. repl = zeros(1, D.Nevents);
 
 D.fname = ['m' D.fname];
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0,
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

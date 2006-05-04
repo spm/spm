@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 459 2006-02-24 11:55:50Z jeremie $
+% $Id: spm_eeg_inv_datareg.m 507 2006-05-04 05:44:19Z Darren $
 
 spm_defaults
 
@@ -223,13 +223,13 @@ if exist(sens_or_file) == 2
     [fpatho,fname,fext] = fileparts(sens_or_file);
     fname_or = [fname '_coreg.mat'];
     if nargout == 1
-        if str2num(version('-release'))>=14
+        if spm_matlab_version_chk('7.1') >=0
             save(fullfile(D.path, fname_or), '-V6', 'sensorreg');
         else
          	save(fullfile(D.path, fname_or), 'sensorreg');
         end
     else
-        if str2num(version('-release'))>=14
+        if spm_matlab_version_chk('7.1') >=0
             save(fullfile(fpatho, fname_or), '-V6', 'sensorreg');
         else
          	save(fullfile(fpatho, fname_or), 'sensorreg');
@@ -240,13 +240,13 @@ end
 [fpath1,fname,fext] = fileparts(fid_eeg);
 fname_fid = [fname '_coreg.mat'];
 if nargout == 1
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_fid), '-V6', 'fideegreg');
     else
      	save(fullfile(D.path, fname_fid), 'fideegreg');
     end
 else
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath1, fname_fid), '-V6', 'fideegreg');
     else
      	save(fullfile(fpath1, fname_fid), 'fideegreg');
@@ -256,13 +256,13 @@ end
 [fpath2,fname,fext] = fileparts(sensors_file);
 fname_sens = [fname '_coreg.mat'];
 if nargout == 1
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_sens), '-V6', 'sensreg');
     else
      	save(fullfile(D.path, fname_sens), 'sensreg');
     end
 else
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath2, fname_sens), '-V6', 'sensreg');
     else
      	save(fullfile(fpath2, fname_sens), 'sensreg');
@@ -271,13 +271,13 @@ end
 
 fname_transf = ['RegMat.mat'];
 if nargout == 1
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_transf), '-V6', 'Rot', 'Trans');
     else
      	save(fullfile(D.path, fname_transf), 'Rot','Trans');
     end
 else
-    if str2num(version('-release'))>=14
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath1, fname_transf), '-V6', 'Rot', 'Trans');
     else
      	save(fullfile(fpath1, fname_transf), 'Rot','Trans');
@@ -288,13 +288,13 @@ if typ == 2
    [fpath3,fname,fext] = fileparts(headshape);
    fname_hsp = [fname '_coreg.mat'];
    if nargout == 1
-       if str2num(version('-release'))>=14
+       if spm_matlab_version_chk('7.1') >=0
            save(fullfile(D.path, fname_hsp), '-V6', 'data2reg');
        else
        	   save(fullfile(D.path, fname_transf), 'data2reg');
        end
    else
-       if str2num(version('-release'))>=14
+       if spm_matlab_version_chk('7.1') >= 0
            save(fullfile(fpath3, fname_hsp), '-V6', 'data2reg');
        else
        	   save(fullfile(fpath3, fname_transf), 'data2reg');

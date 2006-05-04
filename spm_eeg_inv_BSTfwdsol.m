@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 450 2006-02-21 12:22:09Z jeremie $
+% $Id: spm_eeg_inv_BSTfwdsol.m 507 2006-05-04 05:44:19Z Darren $
 
 spm_defaults
 
@@ -172,7 +172,7 @@ end
 clear vert face norm;
 
 D.inv{val}.forward.bst_tess = fullfile(pth,TessName);
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >=0
     save(fullfile(pth,TessName),'-V6','Comment','Curvature','Faces','VertConn','Vertices');
 else
     save(fullfile(pth,TessName),'Comment','Curvature','Faces','VertConn','Vertices');
@@ -276,12 +276,12 @@ OPTIONS.GridLoc       = [];
 D.inv{val}.forward.bst_options = OPTIONS;
 D.inv{val}.forward.gainmat     = fullfile(pth,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
 D.inv{val}.forward.pcagain     = fullfile(pth,[nam '_SPMgainmatrix_pca_' num2str(val) '.mat']);
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >=0
     save(D.inv{val}.forward.gainmat,'-V6','G');
 else
     save(D.inv{val}.forward.gainmat,'G');
 end
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >=0
     save(D.inv{val}.forward.pcagain,'-V6','Gnorm','VectP','ValP');
 else
     save(D.inv{val}.forward.pcagain,'Gnorm','VectP','ValP');
@@ -289,7 +289,7 @@ end
 clear G Gnorm VectP ValP
 
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
 	save(fullfile(pth, D.fname), '-V6', 'D');
 else
 	save(fullfile(pth, D.fname), 'D');

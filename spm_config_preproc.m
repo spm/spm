@@ -4,7 +4,7 @@ function job = spm_config_preproc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc.m 424 2006-02-01 20:11:24Z john $
+% $Id: spm_config_preproc.m 507 2006-05-04 05:44:19Z Darren $
 
 
 %_______________________________________________________________________
@@ -487,7 +487,7 @@ if numel(fn)==0, return; end;
 for i=1:length(fn),
     eval([fn{i} '= p.' fn{i} ';']);
 end;
-if str2double(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0
     save(fnam,'-V6',fn{:});
 else
     save(fnam,fn{:});

@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 404 2006-01-13 18:42:21Z stefan $
+% $Id: spm_eeg_rdata_bdf.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -414,7 +414,7 @@ fclose(fpout);
 
 D.fname = [F '.mat'];
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

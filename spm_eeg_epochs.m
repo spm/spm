@@ -27,7 +27,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_epochs.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -180,7 +180,7 @@ end
 
 D.fname = ['e_' D.fname];
 
-if str2num(version('-release'))>=14 
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

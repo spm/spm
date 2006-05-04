@@ -41,13 +41,13 @@ function spm_surf(P,mode)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_surf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_surf.m 507 2006-05-04 05:44:19Z Darren $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
 if nargin==0,
-	SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 507 $');
 	spm_help('!ContextHelp',mfilename);
 
 	P    = spm_select([1 Inf],'image','Select images');
@@ -113,7 +113,7 @@ if any(mode==[2 3 4]),
 	vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
 	if any(mode==[2 3]),
 		matname = fullfile(pth,['surf_' nam '.mat']);
-		if str2num(version('-release'))>=14,
+r
 			save(matname,'-V6','faces','vertices');
 		else
 			save(matname,'faces','vertices');
@@ -122,7 +122,7 @@ if any(mode==[2 3 4]),
 	if any(mode==[4]),
 		fname = fullfile(pth,[nam '.obj']);
 		fid   = fopen(fname,'w');
-		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 112 $',date);
+		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 507 $',date);
 		fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
 		fprintf(fid,'g Cortex\n'); % Group Cortex
 		fprintf(fid,'f %d %d %d\n',faces');
@@ -167,7 +167,7 @@ linfun('Rendering: Coronal 1..');       rend{5} = make_struct(V,[pi/2 pi/2 0]);
 linfun('Rendering: Coronal 2..');       rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
 linfun('Rendering: Save..');
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >=0
 	save(oname,'-V6','rend');
 else
 	save(oname,'rend');

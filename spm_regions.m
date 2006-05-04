@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_regions.m 505 2006-04-27 09:57:50Z volkmar $
+% $Id: spm_regions.m 507 2006-05-04 05:44:19Z Darren $
 
 
 
@@ -290,7 +290,7 @@ if isfield(xY,'Sess')
 		str = sprintf('VOI_%s_%i',xY.name,xY.Sess);
 	end
 end
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
 	save(fullfile(SPM.swd,str),'-V6','Y','xY')
 else
 	save(fullfile(SPM.swd,str),'Y','xY')

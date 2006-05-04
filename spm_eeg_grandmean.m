@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 483 2006-03-23 14:16:25Z james $
+% $Id: spm_eeg_grandmean.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -199,7 +199,7 @@ D.events.reject = zeros(1, Ntypes);
 D.events.blinks = zeros(1, Ntypes);
 
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
     save(fullfile(D.path, D.fname), '-V6', 'D');
 else
     save(fullfile(D.path, D.fname), 'D');

@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_spm_Bayes.m 507 2006-05-04 05:44:19Z Darren $
 
 
 %-Say hello
@@ -341,7 +341,7 @@ for i = 1:s
 
 	% derivatives of conditional covariance w.r.t. hyperparameters
 	%---------------------------------------------------------------
-    if str2num(version('-release')) == 13,
+    if spm_matlab_version_chk('6.5.1') < 0
         % MATLAB 6.5.0 R13 has a bug in dealing with sparse matrices so revert to full matrices
         fprintf('%-40s','MATLAB 6.5.0 R13: must use full matrices - this could cause memory problems...');
         d     = full(P{1}.X'*inv(P{1}.C{1})*P{1}.X);
@@ -360,7 +360,7 @@ for i = 1:s
 
 	% place in output structure
 	%---------------------------------------------------------------
-    if str2num(version('-release')) == 13,
+    if spm_matlab_version_chk('6.5.1') < 0,
         % MATLAB 6.5.0 R13: revert to full matrices
         j               = 1:length(v);
         PPM.Cb(v,v)     = full(P{2}.C(j,j));
@@ -388,7 +388,7 @@ SPM.VCbeta = Vbeta;			% Filenames - parameters
 SPM.VHp    = VHp;			% Filenames - hyperparameters
 SPM.PPM    = PPM;			% PPM structure
 
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >=0
 	save('SPM', 'SPM', '-V6');
 else
 	save('SPM', 'SPM');

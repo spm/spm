@@ -482,9 +482,9 @@ function varargout = spm_spm_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_spm_ui.m 372 2005-12-08 17:12:13Z karl $
+% $Id: spm_spm_ui.m 507 2006-05-04 05:44:19Z Darren $
 
-SCCSid  = '$Rev: 372 $';
+SCCSid  = '$Rev: 507 $';
 
 %=======================================================================
 % - FORMAT specifications for programers
@@ -1485,7 +1485,7 @@ case 'cfg'
     %-------------------------------------------------------------------
     fprintf('%-40s: ','Saving SPM configuration')                    %-#
 
-    if str2num(version('-release'))>=14,
+    if spm_matlab_version_chk('7.1') >=0
         save('SPM', 'SPM', '-V6');
     else
         save('SPM', 'SPM');

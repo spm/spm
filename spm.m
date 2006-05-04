@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 496 2006-04-10 14:30:20Z john $
+% $Id: spm.m 507 2006-05-04 05:44:19Z Darren $
 
 
 %=======================================================================
@@ -316,7 +316,7 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end;
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-if str2double(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >=0
 	S = get(0, 'MonitorPosition');
 	S = S(1,:);
 else
@@ -1273,7 +1273,7 @@ case {'winscale','getwinscale'}  %-Window scale factors (to fit display)
 if strcmp(lower(Action),'getwinscale')
 	warning('spm(''GetWinScale'' GrandFathered, use ''WinScale''')
 end
-if str2double(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >=0
 	S0 = get(0, 'MonitorPosition');
 	S0 = S0(1,:);
 else
@@ -1334,7 +1334,7 @@ elseif upper(Win(1))=='G'
 	Rect = Rect(3,:);
 elseif Win(1)=='0'
 	%-Root workspace
-	if str2double(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >=0
 		Rect = get(0, 'MonitorPosition');
 		Rect = Rect(1,:);
 	else

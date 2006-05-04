@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 492 2006-03-31 18:23:30Z john $
+% $Id: spm_preproc_write.m 507 2006-05-04 05:44:19Z Darren $
 
 
 if nargin==1,
@@ -33,7 +33,7 @@ fn = fieldnames(p);
 for i=1:length(fn),
     eval([fn{i} '= p.' fn{i} ';']);
 end;
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0,
     save(fnam,'-V6',fn{:});
 else
     save(fnam,fn{:});

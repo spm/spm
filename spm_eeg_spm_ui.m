@@ -10,7 +10,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Karl Friston
-% $Id: spm_eeg_spm_ui.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_spm_ui.m 507 2006-05-04 05:44:19Z Darren $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -144,7 +144,7 @@ SPM.xM        = struct('T',	ones(length(VY), 1),...
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                        %-#
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
     save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');

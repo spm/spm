@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 493 2006-04-04 20:02:47Z james $
+% $Id: spm_eeg_average.m 507 2006-05-04 05:44:19Z Darren $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -156,7 +156,7 @@ if isfield(D, 'weights');
 end
 D.fname = ['m' D.fname];
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0
 	save(fullfile(P, D.fname), '-V6', 'D');
 else
 	save(fullfile(P, D.fname), 'D');

@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 217 2005-08-26 11:57:17Z Christophe $
+% $Id: spm_peb_ppi.m 507 2006-05-04 05:44:19Z Darren $
 
 
 % set up the graphical interface
@@ -393,7 +393,7 @@ PPI.xY  = xY;
 PPI.dt  = dt;
 str     = ['PPI_' PPI.name];
 
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0,
     save(fullfile(SPM.swd,str),'-V6','PPI')
 else
     save(fullfile(SPM.swd,str),'PPI')

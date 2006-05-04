@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_contrasts_conv(SPM, Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_contrasts_conv.m 324 2005-11-29 16:36:00Z john $
+% $Id: spm_eeg_contrasts_conv.m 507 2006-05-04 05:44:19Z Darren $
 
 % Get and change to results directory
 %-----------------------------------------------------------------------
@@ -103,7 +103,7 @@ for i = 1:length(Ic)
 end
 SPM.xCon = xCon;
 
-if str2num(version('-release'))>=14,
+if spm_matlab_version_chk('7.1') >= 0
 	save('SPM', 'SPM', '-V6');
 else
 	save('SPM', 'SPM');

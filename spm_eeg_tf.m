@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 341 2005-11-30 18:08:16Z stefan $
+% $Id: spm_eeg_tf.m 507 2006-05-04 05:44:19Z Darren $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -149,7 +149,7 @@ D2.Nchannels = length(D2.tf.channels);
 D.fname = ['t1_' D.fname];
 D2.fname = ['t2_' D2.fname];
 D1=D;
-if str2num(version('-release'))>=14
+if spm_matlab_version_chk('7.1') >= 0,
     save(fullfile(P, D.fname), '-V6', 'D');
     D = D2;
     save(fullfile(P, D2.fname), '-V6', 'D');
