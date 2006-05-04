@@ -56,11 +56,12 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 %
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_matlab_version_chk.m 508 2006-05-04 05:47:47Z Darren $
 
 % output variable
 %--------------------------------------------------------------------------
 status = [];
+fieldsUsed = [];
 
 %  Check inputs
 %--------------------------------------------------------------------------
