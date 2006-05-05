@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_config_fmri_spec.m 514 2006-05-05 08:21:13Z volkmar $
 
 
 % Define inline types.
@@ -926,7 +926,7 @@ SPM.xVi.form = job.cvi;
 %-------------------------------------------------------------
 SPM = spm_fmri_spm_ui(SPM);
 
-if ~isempty(job.mask)
+if ~isempty(job.mask)&&~isempty(job.mask{1})
     SPM.xM.VM         = spm_vol(job.mask{:});
     SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
 end
