@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 501 2006-04-25 13:27:02Z volkmar $
+% $Id: spm_DesRep.m 521 2006-05-05 11:24:38Z volkmar $
 
 
 
@@ -586,6 +586,7 @@ line('Parent',hTax,...
 %-Display covariance matrix
 %-----------------------------------------------------------------------
 hCovMtx(1) = axes('Position',[.07 .4 .6 .4]);
+hCovMtxSc  = [];
 if isfield(varargin{2},'V')
   clim = [-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]; % scale 0 to gray
   hCovMtxIm(1) = imagesc(varargin{2}.V, clim);
