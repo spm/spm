@@ -35,6 +35,12 @@ function [t,sts] = spm_select(varargin)
 % The list can be cleared by
 %     spm_select('clearvfiles')
 %
+% FORMAT [t,sts] = spm_select('Filter',files,typ,filt,frames)
+% filter the list of files (cell or char array) in the same way as the GUI would do.
+% There is an additional typ 'extimage' which will match images with
+% frame specifications, too. Also, there is a typ 'extdir', which will
+% match canonicalised directory names.
+%
 % FORMAT cpath = spm_select('CPath',path,cwd)
 % function to canonicalise paths: Prepends cwd to relative paths, processes
 % '..' & '.' directories embedded in path.
@@ -52,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_select.m 519 2006-05-05 09:19:50Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -68,9 +74,21 @@ if nargin > 0 && ischar(varargin{1})
         case 'cpath'
             error(nargchk(2,Inf,nargin));
             t = cpath(varargin{2:end});
+        case 'filter'
+            filt    = mk_filter(varargin{3:end});
+            cs      = iscell(varargin{2});
+            if ~cs 
+                t = cellstr(varargin{2});
+            else
+                t = varargin{2};
+            end;
+            [t,sts] = do_filter(t,filt.ext);
+            [t,sts] = do_filter(t,filt.filt);
+            if ~cs
+                t = strvcat(t);
+            end;
         case 'list'
-            filt    = struct('code',0,'frames',[],'ext',{{'.*'}},...
-                             'filt',{{varargin{3}}});
+            filt    = mk_filter('any',varargin{3},[]);
             [t,sts] = listfiles(varargin{2},filt);
         otherwise 
             error('Inappropriate usage.');
@@ -93,19 +111,10 @@ ok  = 0;
 if numel(n)==1,   n    = [n n];    end;
 if n(1)>n(2),     n    = n([2 1]); end;
 if ~finite(n(1)), n(1) = 0;        end;
-if numel(already)>n(2), already = already(1:n(2)); end
 already = strvcat(already);
 
 t = '';
-switch lower(typ),
-case {'any','*'}, code = 0; ext = {'.*'};
-case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
-case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
-case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$'};
-case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
-case {'dir'},     code =-1; ext = {'.*'};
-otherwise,        code = 0; ext = {typ};
-end;
+sfilt = mk_filter(typ,filt,frames);
 
 [col1,col2,col3,fs] = colours;
 
@@ -157,7 +166,7 @@ fh = 0.05;
 sbh = 0.03; % Scroll-bar height.  This should be worked out properly
 h1 = (0.96-4*fh-5*0.01)/2;
 if n(2)*fh+sbh<h1,
-    h1 = n(2)*fh+sbh;
+    h1 = max([n(2) size(already,1)+.2])*fh+sbh;
 end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
@@ -291,7 +300,6 @@ uicontrol(fg,...
     'FontSize',fs);
 
 % Filter
-ud     = struct('ext',{ext},'code',code);
 uicontrol(fg,...
     'style','edit',...
     'units','normalized',...
@@ -302,7 +310,7 @@ uicontrol(fg,...
     'Callback',@update,...
     'tag','regexp',...
     'String',filt,...
-    'UserData',ud);
+    'UserData',sfilt);
 
 % Directories
 hp = hp + fh+0.01;
@@ -421,8 +429,12 @@ update(sel,wd)
 waitfor(dne);
 if ishandle(sel),
     t  = get(sel,'String');
-    if code == -1
-       t = cpath(t,pwd);
+    if sfilt.code == -1
+        t = cellstr(t);
+        for k = 1:numel(t);
+            t{k} = cpath(t{k},pwd);
+        end;
+        t = char(t);
     end;
     ok = 1;
 end;
@@ -689,10 +701,11 @@ else
     set(sib(lb,'D'),'Enable','off');
 end;
 
-%if size(str2,1) == 1, ss = ''; else ss = 's'; end;
+if size(str2,1) == 1, ss1 = ''; else ss1 = 's'; end;
 %msg(lb,[num2str(size(str2,1)) ' file' ss ' remaining.']);
 if numel(vl) == 1, ss = ''; else ss = 's'; end;
-msg(lb,['Unselected ' num2str(numel(vl)) ' file' ss '.']);
+msg(lb,['Unselected ' num2str(numel(vl)) ' file' ss '. ' ...
+        num2str(size(str2,1)) ' file' ss1 ' remaining.']);
 return;
 %=======================================================================
 
@@ -1052,7 +1065,6 @@ return;
 
 %=======================================================================
 function t = cpath(t,d)
-
 switch spm_platform('filesys'),
 case 'unx',
     mch = '^/';
@@ -1219,6 +1231,29 @@ for k = 1:size(d,1)
         end;
     end;
 end;
+%=======================================================================
+
+%=======================================================================
+function sfilt=mk_filter(typ,filt,frames)
+if nargin<3, frames  = '1';     end;
+if nargin<2, filt    = '.*';    end;
+if nargin<1, typ     = 'any';   end;
+switch lower(typ),
+case {'any','*'}, code = 0; ext = {'.*'};
+case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
+                            '.*\.img(,[0-9]*){0,1}$',...
+                            '.*\.NII(,[0-9]*){0,1}$',...
+                            '.*\.IMG(,[0-9]*){0,1}$'};
+case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
+case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$'};
+case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
+case {'dir'},     code =-1; ext = {'.*'};
+case {'extdir'},     code =-1; ext = {['.*' filesep '$']};
+otherwise,        code = 0; ext = {typ};
+end;
+sfilt = struct('code',code,'frames',frames,'ext',{ext},...
+                             'filt',{{filt}});
 %=======================================================================
 
 %=======================================================================
