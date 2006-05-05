@@ -58,8 +58,13 @@ switch cmd
         %-------------------------------------------------------------------------
         % Context menu and callbacks
 case 'context_menu'
+    if exist(fullfile(spm('dir'),'toolbox','Volumes', ...
+                         'Single_Volumes'),'dir')
         addpath(fullfile(spm('dir'),'toolbox','Volumes', ...
                          'Single_Volumes'));
+    else
+        return;
+    end;
         if ~any(exist('tbxvol_extract')==[2:6])
                 warning([mfilename ':init'], 'function tbxvol_extract not found!');
                 return;

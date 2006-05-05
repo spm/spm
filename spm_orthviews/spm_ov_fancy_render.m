@@ -41,8 +41,12 @@ switch cmd
   
   %-------------------------------------------------------------------------
   % Context menu and callbacks
- case 'context_menu'
-  addpath(fullfile(spm('dir'),'toolbox','Render3D'));
+case 'context_menu'
+    if exist(fullfile(spm('dir'),'toolbox','Render3D'),'dir')
+        addpath(fullfile(spm('dir'),'toolbox','Render3D'));
+    else
+        return;
+    end;
   if ~any(exist('tbxrend_fancy_render')==[2:6])
     warning([mfilename ':init'],['function tbxrend_fancy_render not' ...
 		    ' found!']);
