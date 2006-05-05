@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_config_contrasts.m 516 2006-05-05 08:24:28Z volkmar $
 
 
 %_______________________________________________________________________
@@ -423,6 +423,12 @@ for i = 1:length(job.consess)
     % Basic checking of contrast
     %-------------------------------------------------------------------
     [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
+    if ~isempty(emsg)
+        disp(emsg);
+        error('Error in contrast specification');
+    else
+        disp(imsg);
+    end;
     
     % Fill-in the contrast structure
     %-------------------------------------------------------------------
