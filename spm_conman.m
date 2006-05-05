@@ -223,10 +223,10 @@ function varargout=spm_conman(varargin)
 %
 % 3: Testing the significance of effects modelled by multiple columns
 %
-% A conceptially similar situation arises when one wonders whether a
-% set of coufound effects are explaining any variance in the data. One
-% important advantage of testing the with F contrasts rather than one
-% by one using SPM{T}'s is the following. Say you have two covariates
+% A conceptually similar situation arises when one wonders whether a
+% set of confound effects are explaining any variance in the data. One
+% important advantage of testing this with F contrasts rather than
+% T contrasts is the following. Say you have two covariates
 % that you would like to know whether they can "predict" the brain
 % responses, and these two are correlated (even a small correlation
 % would be important in this instance). Testing one and then the other
@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_conman.m 512 2006-05-05 08:14:50Z volkmar $
 
 
 %=======================================================================

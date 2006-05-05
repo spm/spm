@@ -4,7 +4,7 @@ function opts = spm_config_coreg
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_coreg.m 506 2006-04-27 14:46:29Z volkmar $
+% $Id: spm_config_coreg.m 512 2006-05-05 08:14:50Z volkmar $
 
 ref.type = 'files';
 ref.name = 'Reference Image';
@@ -69,7 +69,7 @@ sep.help = {[...
 %------------------------------------------------------------------------
 
 tol.type = 'entry';
-tol.name = 'Tolerences';
+tol.name = 'Tolerances';
 tol.tag = 'tol';
 tol.num = [1 6];
 tol.strtype = 'e';
