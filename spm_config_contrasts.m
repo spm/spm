@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 516 2006-05-05 08:24:28Z volkmar $
+% $Id: spm_config_contrasts.m 523 2006-05-05 12:28:55Z will $
 
 
 %_______________________________________________________________________
@@ -405,17 +405,33 @@ end
 
 % Load SPM.mat file
 %-----------------------------------------------------------------------
-load(job.spmmat{:});
+tmp=load(job.spmmat{:});
+SPM=tmp.SPM;
 
+bayes_con=isfield(SPM,'PPM');
 for i = 1:length(job.consess)
     if isfield(job.consess{i},'tcon')
         name = job.consess{i}.tcon.name;
-        STAT = 'T';
+        if bayes_con
+            STAT = 'P';
+            PSTAT = 'T';
+            SPM.xX.V=[];
+        else
+            STAT = 'T';
+            PSTAT= '';
+        end
         con  = job.consess{i}.tcon.convec(:)';
 
     else %fcon
         name = job.consess{i}.fcon.name;
-        STAT = 'F';
+        if bayes_con
+            STAT = 'P';
+            PSTAT = 'F';
+            SPM.xX.V=[];
+        else
+            STAT = 'F';
+            PSTAT= '';
+        end
         con  = cat(1,job.consess{i}.fcon.convec{:});
 
     end
@@ -437,6 +453,7 @@ for i = 1:length(job.consess)
     else
         DxCon = [];
     end
+    DxCon.PSTAT=PSTAT;
     
     % Append to SPM.xCon. SPM will automatically save any contrasts that
     % evaluate successfully.
@@ -446,7 +463,7 @@ for i = 1:length(job.consess)
     elseif ~isempty(DxCon)
         SPM.xCon(end+1) = DxCon;
     end
-    spm_contrasts(SPM,length(SPM.xCon));
+    SPM = spm_contrasts(SPM,length(SPM.xCon));
 end
 
 % Change back directory
