@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 510 2006-05-04 11:03:11Z john $
+% $Id: spm_jobman.m 520 2006-05-05 09:21:31Z volkmar $
 
 
 if nargin==0
@@ -170,6 +170,7 @@ c0 = cntxtmnu(t);
 c1 = uimenu('Label','Exp/Con All',  'Parent',c0);
 uimenu('Label','Expand All',   'Parent',c1,'Callback',@expandall);
 uimenu('Label','Contract All', 'Parent',c1,'Callback',@contractall);
+uimenu('Label','Expand All Undefined Inputs',   'Parent',c1,'Callback',@expandallopen);
 
 t=uicontrol(fg,...
     'Style','listbox',...
@@ -357,6 +358,33 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
+function expandallopen(varargin)
+c         = expopen(get(gco,'UserData'));
+str       = get_strings(c);
+val       = min(get(gco,'Value'),length(str));
+set(gco,'String',str,'Value',val,'UserData',c);
+return;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function [c,sts] = expopen(c)
+sts = 0;
+if isfield(c,'expanded'), 
+    sts=~all_set(c);
+end;
+if isfield(c,'val'),
+    for i=1:length(c.val),
+        [c.val{i} sts1] = expopen(c.val{i});
+        sts = sts||sts1;
+    end;
+end;
+if isfield(c,'expanded')
+    c.expanded = sts;
+end;
+return;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
 function c = expcon(c,val)
 if isfield(c,'expanded'), c.expanded = val; end;
 if isfield(c,'val'),
@@ -372,6 +400,7 @@ function initialise(job,node)
 % load the config file, possibly adding a job
 % to it, and generally tidy it up.  The batch box
 % is updated to contain the current structure.
+files_select_list('init');
 if nargin<1, job = '';      end;
 if nargin<2, node = 'jobs'; end;
 c = initialise_struct(job);
@@ -483,7 +512,25 @@ if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
     str{1} = [str{1} mrk];
 else
     switch c.type
-    case {'files','menu','entry','const','choice'}
+    case 'files'
+        % If files are selected via "Input to/Output from" shortcuts,
+        % there is no guarantee that an allowed number of files is
+        % specified. This is checked here.
+        cn = c.num;
+        if (numel(cn) == 1)
+                if isfinite(cn) 
+                        cn = [cn cn];
+                else
+                        cn = [0 cn];
+                
+                end;
+        end;
+        if isempty(c.val) || (numel(c.val{1}) < cn(1)) || ...
+                    (numel(c.val{1}) > cn(2))
+            mrk = ' <-X';
+            sts = 0;
+        end;
+    case {'menu','entry','const','choice'}
         if isempty(c.val)
             mrk = ' <-X';
             sts = 0;
@@ -694,7 +741,12 @@ if ~isempty(opts_box)
     case {'files'}
         str = {str{:}, 'Specify Files'};
         dat = {dat{:}, struct('fun',@file_select,'args',{{}},'redraw',1)};
-
+        addvfiles(c.id,[],c);
+        addinfiles(c);
+        [filestr filedat] = files_select_list('listall');
+        str = {str{:}, filestr{:}};
+        dat = {dat{:}, filedat{:}};
+        
     case {'menu'}
         str = {str{:}, 'Specify Menu Item'};
         dat = {dat{:}, struct('fun',@menu_entry,'args',{{}},'redraw',0)};
@@ -803,7 +855,6 @@ try
     set(batch_box,'Enable', 'inactive');
     set(opts_box, 'Enable', 'inactive');
 
-    addvfiles(c.id);
     if ~isempty(c.val),
         sel = c.val{1};
     else
@@ -821,6 +872,8 @@ try
     end;
     [s,ok] = spm_select(c.num,c.filter,c.name,sel,dr,uf);
     if ok, c.val{1} = cellstr(s); end;
+    files_select_list('addinfiles', sprintf('Input to "%s"', c.name), ...
+                      c.val{1}, c.id);
 catch
 end;
 spm_select('clearvfiles');
@@ -1287,7 +1340,7 @@ c = get(batch_box,'UserData'); spm('Pointer','Watch');
 [unused,jobs] = harvest(c);
 spm('Pointer');
 %eval([tag '=val;']);
-cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
+cll = {'*.mat','Matlab .mat file';'*.m','Matlab script file';'*.xml','XML file'};
 [filename, pathname, FilterIndex] = uiputfile(cll,'Save job as');
 if ischar(filename)
     [unused,unused,ext] = fileparts(filename);
@@ -1295,17 +1348,21 @@ if ischar(filename)
         ext = cll{FilterIndex}(2:end);
         filename = [filename ext];
     end
-    if strcmp(ext,'.xml')
+    switch ext
+    case '.xml',
         spm('Pointer','Watch');
         savexml(fullfile(pathname,filename),'jobs');
         spm('Pointer');
-    elseif strcmp(ext,'.mat')
+    case '.mat',
         if spm_matlab_version_chk('7.1') >= 0,
             save(fullfile(pathname,filename),'-V6','jobs');
         else
             save(fullfile(pathname,filename),'jobs');
         end;
-    else
+    case '.m',
+            treelist('jobs',struct('exps',1, 'dval',2, 'fname', ...
+                                   fullfile(pathname,filename)));
+    otherwise
         questdlg(['Unknown extension (' ext ')'],'Nothing saved','OK','OK');
     end;
 end;
@@ -1314,37 +1371,54 @@ return;
 
 %------------------------------------------------------------------------
 function load_job(varargin)
-% Load a batch job
+% Load a set of batch jobs and possibly merge it
 
-%cll = {'*.mat','Matlab .mat file';'*.xml','XML file'};
-%[filename, pathname] = uigetfile(cll,'Load job file');
-filename = spm_select(1,'batch','Load job file');
-if ischar(filename)
-    [unused,nam,ext] = fileparts(filename);
-    if strcmp(ext,'.xml')
-        spm('Pointer','Watch');
-        try
-            loadxml(filename,'jobs');
-        catch
-            questdlg('LoadXML failed',filename,'OK','OK');
-            return;
+[filenames sts] = spm_select([1 Inf], 'batch', 'Load job file(s)');
+if sts
+        filenames = cellstr(filenames);
+        newjobs = {};
+        for cf = 1:numel(filenames)
+                [p,nam,ext] = fileparts(filenames{cf});
+                switch ext
+                case '.xml',
+                        spm('Pointer','Watch');
+                        try
+                                loadxml(filenames{cf},'jobs');
+                        catch
+                                questdlg('LoadXML failed',filenames{cf},'OK','OK');
+                                return;
+                        end;
+                        spm('Pointer');
+                case '.mat'
+                        try
+                                load(filenames{cf},'jobs');
+                        catch
+                                questdlg('Load failed',filenames{cf},'OK','OK');
+                        end;
+                case '.m'
+                        opwd = pwd;
+                        try
+                                cd(p);
+                                eval(nam);
+                        catch
+                                questdlg('Load failed',filenames{cf},'OK','OK');
+                        end;
+                        cd(opwd);
+                otherwise
+                        questdlg(['Job ' nam ': Unknown extension (' ext ')'],...
+                                 'This job not loaded','OK','OK');
+                end;
+                if exist('jobs','var')
+                        newjobs = {newjobs{:} jobs{:}};
+                        clear jobs;
+                else
+                        questdlg(['No jobs (' nam ext ')'],'No jobs','OK','OK');
+                end;
         end;
-        spm('Pointer');
-    elseif strcmp(ext,'.mat')
-        try
-            load(filename,'jobs');
-        catch
-            questdlg('Load failed',filename,'OK','OK');
-        end;
-    else
-        questdlg(['Unknown extension (' ext ')'],'Nothing loaded','OK','OK');
-    end;
-    if exist('jobs','var')
+    if ~isempty(newjobs)
         spm('Pointer','Watch');
-        initialise(jobs);
+        initialise(newjobs);
         spm('Pointer');
-    else
-        questdlg(['No jobs (' nam ext ')'],'No jobs','OK','OK');
     end;
 end;
 return;
@@ -1353,9 +1427,16 @@ return;
 %------------------------------------------------------------------------
 function run_struct(varargin)
 % Get data structure from handle, and run it
-
+% If an error occured, then return to user interface
 c = get(batch_box,'UserData');
+[unused,job] = harvest(c);
+try
 run_struct1(c);
+catch
+        disp('Error running job:');
+        disp(lasterr);
+        setup_ui(job);
+end;        
 disp('--------------------------');
 disp('Done.');
 return;
@@ -1530,18 +1611,22 @@ set(t,'Value',[], 'Enable', 'on', 'Max',2, 'Min',0,'ListBoxTop',1);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function addvfiles(id,c)
-if nargin<2,
+function addvfiles(id,c,c0)
+if (nargin<2)||isempty(c),
     c  = get(batch_box,'UserData');
 end;
-vf =addvfiles1(c,id,{});
+if nargin<3
+        c0 = [];
+end;
+files_select_list('clearvfiles');
+vf =addvfiles1(c,id,{},c0);
 spm_select('clearvfiles');
 spm_select('addvfiles',vf);
 return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function [vf,sts]=addvfiles1(c,id,vf)
+function [vf,sts]=addvfiles1(c,id,vf,c0)
 sts = 0;
 if ~isstruct(c) || ~isfield(c,'type'),
     return;
@@ -1553,6 +1638,16 @@ if isfield(c,'vfiles'),
         if ok,
             [unused,job] = harvest(c);
             vf1          = feval(c.vfiles,job);
+            if ~isempty(c0)
+                    files = filter_files(c0, vf1);
+            else
+                    files = vf1;
+            end;
+            if ~isempty(files)
+                    files_select_list('addvfiles', sprintf('Output from "%s"', ...
+                                                           c.name), ...
+                                      files, c.id);
+            end;
             vf           = {vf{:}, vf1{:}};
         end;
     else
@@ -1564,11 +1659,158 @@ end;
 switch c.type,
 case {'repeat','choice','branch'},
     for i=1:length(c.val),
-        [vf,sts]=addvfiles1(c.val{i},id,vf);
+        [vf,sts]=addvfiles1(c.val{i},id,vf,c0);
         if sts, return; end;
     end;
 end;
 
+return;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function addinfiles(c0,c)
+id = c0.id;
+if nargin<2,
+    c  = get(batch_box,'UserData');
+end;
+files_select_list('clearinfiles');
+addinfiles1(c,id,'',c0);
+return;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function sts=addinfiles1(c,id,progname,c0)
+sts = 0;
+if ~isstruct(c) || ~isfield(c,'type'),
+    return;
+end;
+
+if find_id(c,id),
+        sts = 1;
+end;
+
+switch c.type,
+case 'files'
+        if ~isempty(c.val) && ~isempty(c.val{1})
+                files = filter_files(c0,c.val{1});
+                if ~isempty(files)
+                        files_select_list('addinfiles', ...
+                                          sprintf('Input to "%s->%s"', ...
+                                                  progname, c.name), ...
+                                          files, c.id);
+                end;
+        end;
+case {'repeat','choice','branch'},
+    if isfield(c,'prog')
+            progname = c.name;
+            oldin = files_select_list('getinnum');
+    end;
+    for i=1:length(c.val),
+            sts=addinfiles1(c.val{i},id,progname,c0);
+        if sts, return; end;
+    end;
+    if isfield(c,'prog')
+            newin = files_select_list('getinnum');
+            if (newin-oldin > 1)
+                    files_select_list('allinfiles', ...
+                                      sprintf('All inputs to %s',progname),...
+                                      oldin+1, newin);
+            end;
+    end;
+end;
+
+return;
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function ffiles = filter_files(c,files)
+if strcmp(c.filter, 'image')||strcmp(c.filter,'dir')
+        filter = ['ext' c.filter];
+else
+        filter = c.filter;
+end;
+if isfield(c,'ufilter')
+        uf = c.ufilter;
+        if uf(1) == '^' % This will not work with full pathnames
+                uf=uf(2:end);
+        end;
+else
+        uf = '.*';
+end;
+ffiles = spm_select('filter', files, ...
+                    filter, uf);
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function varargout = files_select_list(c,varargin)
+persistent vfstr;
+persistent vfdat;
+persistent vffiles;
+persistent vfid;
+persistent instr;
+persistent indat;
+persistent infiles;
+persistent inid;
+if isstruct(c)
+        switch lower(varargin{1})
+        case 'getvf'
+                c.val{1} = vffiles{varargin{2}};
+        case 'getin'
+                c.val{1} = infiles{varargin{2}};
+        end;
+        varargout{1} = c;
+        return;
+end;
+if ~iscell(vfstr) && ~strcmp(lower(c),'init')
+        files_select_list('init');
+end;
+switch lower(c)
+case 'init'
+        vfstr = {};
+        vfdat = {};
+        vffiles = {};
+        vfid = [];
+        instr = {};
+        indat = {};
+        infiles = {};
+        inid = [];
+case 'clearvfiles'
+        vfstr = {};
+        vfdat = {};
+        vffiles = {};
+        vfid = [];
+case 'clearinfiles'
+        instr = {};
+        indat = {};
+        infiles = {};
+        inid = [];
+case 'addvfiles'
+        nvfind = numel(vfstr)+1;
+        vfid(nvfind) = varargin{3};
+        vfstr{nvfind} = varargin{1};
+        vfdat{nvfind} = struct('fun',@files_select_list,'args',{{'getvf', nvfind}}, ...
+                             'redraw',1);
+        vffiles{nvfind} = varargin{2}(:);
+case 'addinfiles'
+        ninind = numel(instr)+1;
+        inid(ninind) = varargin{3};
+        instr{ninind} = varargin{1};
+        indat{ninind} = struct('fun',@files_select_list,'args',{{'getin', ninind}}, ...
+                             'redraw',1);
+        infiles{ninind} = varargin{2}(:);
+case 'allinfiles'
+        ninind = numel(instr)+1;
+        inid(ninind) = -1;
+        instr{ninind} = varargin{1};
+        indat{ninind} = struct('fun',@files_select_list,'args',{{'getin', ninind}}, ...
+                             'redraw',1);
+        infiles{ninind} = cat(1,infiles{varargin{2}:varargin{3}});        
+case 'getinnum'
+        varargout{1} = numel(instr);
+case 'listall'
+        varargout{1} = {vfstr{:} instr{:}};
+        varargout{2} = {vfdat{:} indat{:}};
+end
 return;
 %------------------------------------------------------------------------
 
