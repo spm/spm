@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 509 2006-05-04 06:08:25Z Darren $
+% $Id: spm_config_fmri_est.m 515 2006-05-05 08:22:39Z volkmar $
 
 
 % Define inline types.
@@ -315,11 +315,11 @@ meth.help={p1,sp_text,p2};
 
 %-------------------------------------------------------------------------
 
-conf = branch('fMRI model estimation','fmri_est',...
-    {spm,meth},'fMRI model estimation');
+conf = branch('Model estimation','fmri_est',...
+    {spm,meth},'Model estimation');
 conf.prog   = @run_est;
 conf.vfiles = @vfiles_stats;
-conf.modality = {'FMRI'};
+conf.modality = {'FMRI','PET'};
 p1 = [...
   'Model parameters can be estimated using ',...
   'classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. ',...
@@ -336,9 +336,13 @@ return;
 function run_est(job)
 % Set up the design matrix and run a design.
 
-spm_defaults;
 global defaults
-defaults.modality = 'FMRI';
+if isempty(defaults)
+    spm_defaults;
+end;
+if ~isfield(defaults,'modality')
+    defaults.modality = 'FMRI';
+end;
 
 %-Load SPM.mat file
 %-----------------------------------------------------------------------
