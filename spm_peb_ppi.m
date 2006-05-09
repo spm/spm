@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_peb_ppi.m 525 2006-05-09 17:00:50Z klaas $
 
 
 % set up the graphical interface
@@ -112,8 +112,8 @@ switch ppiflag
 case  'simple deconvolution'
     %=====================================================================
     spm_input('physiological variable:...  ',2,'d');
-    P      = spm_select(1,'^VOI.*\.mat$',{'select VOIs'});
-    p      = load(P{1},'xY');
+    voi      = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
+    p      = load(deblank(voi(:))','xY');
     xY(i)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
 
@@ -122,9 +122,9 @@ case  'simple deconvolution'
 case  'physiophysiologic interaction' % interactions between 2 regions
     %=====================================================================
     spm_input('physiological variables:...  ',2,'d');
-    P      = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
+    voi      = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
     for  i = 1:2
-        p      = load(P{i},'xY');
+        p      = load(deblank(voi(i,:)),'xY');
         xY(i)  = p.xY;
     end
     Sess   = SPM.Sess(xY(1).Sess);
@@ -134,8 +134,8 @@ case  'physiophysiologic interaction' % interactions between 2 regions
 case  'psychophysiologic interaction'  % get hemodynamic response 
     %=====================================================================
     spm_input('physiological variable:...  ',2,'d');
-    P      = spm_select(1,'^VOI.*\.mat$',{'select VOIs'});
-    p      = load(P{1},'xY');
+    voi      = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
+    p      = load(deblank(voi(:))','xY');
     xY(1)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
     
