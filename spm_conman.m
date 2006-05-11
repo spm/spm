@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 512 2006-05-05 08:14:50Z volkmar $
+% $Id: spm_conman.m 526 2006-05-11 09:31:49Z will $
 
 
 %=======================================================================
@@ -1740,6 +1740,8 @@ switch lower(varargin{1}), case 'initialise'
         else
             if isfield(SPM,'PPM')
                 DxCon.PSTAT=STAT;
+            else
+                DxCon.PSTAT=[];
             end
             xCon = [xCon, DxCon];
         end
