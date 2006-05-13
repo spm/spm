@@ -4,7 +4,7 @@ function job = spm_config_preproc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_config_preproc.m 527 2006-05-13 11:52:00Z john $
 
 
 %_______________________________________________________________________
@@ -248,7 +248,7 @@ msk.help = {[...
 
 %------------------------------------------------------------------------
 
-opts      = branch('Custom','opts',{priors,ngaus,regtype,warpreg,warpco,biasreg,biasfwhm,samp});
+opts      = branch('Custom','opts',{priors,ngaus,regtype,warpreg,warpco,biasreg,biasfwhm,samp,msk});
 opts.help = {[...
 'Various options can be adjusted in order to improve the performance of the '...
 'algorithm with your data.  Knowing what works best should be a matter '...
