@@ -22,7 +22,7 @@ function spm_mask(P1,P2, thresh)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mask.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_mask.m 529 2006-05-15 15:25:51Z john $
 
 
 if nargin==0,
@@ -77,10 +77,10 @@ for j=1:dim(3),
 		if nargin<3
 			if ~spm_type(V1(i).dt(1),'nanrep'),
 				msk = msk + (img~=0 & finite(img));
-            else
+			else
 				msk = msk + finite(img);
 			end;
-        else
+		else
 			msk = msk + (img>=thresh & finite(img));
 		end;
 	end;
