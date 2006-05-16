@@ -21,7 +21,7 @@ function spm_dicom_convert(hdr,opts,root_dir)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 511 2006-05-05 07:59:40Z volkmar $
+% $Id: spm_dicom_convert.m 531 2006-05-16 09:17:55Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -1004,13 +1004,16 @@ fname = fullfile(dname, fname);
 
 function suc = mkdir_rec(str);
 % works on full pathnames only
+opwd=pwd;
 if str(end) ~= filesep, str = [str filesep];end;
 pos = findstr(str,filesep);
 suc = zeros(1,length(pos));
 for g=2:length(pos)
   if exist(str(1:pos(g)-1)) ~= 7
-    suc(g) = mkdir(str(1:pos(g)-1));
+      cd(str(1:pos(g-1)-1));
+    suc(g) = mkdir(str(pos(g-1)+1:pos(g)-1));
   end;
 end;
+cd(opwd);
 return;
 %_______________________________________________________________________
