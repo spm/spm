@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 519 2006-05-05 09:19:50Z volkmar $
+% $Id: spm_select.m 530 2006-05-16 09:14:46Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -808,6 +808,9 @@ if nargin<1, dr   = '.'; end;
 de      = dir(dr);
 if ~isempty(de),
     d     = {de([de.isdir]).name};
+    if ~any(strcmp(d, '.'))
+        d = {'.', d{:}};
+    end;
     if filt.code~=-1,
         f = {de(~[de.isdir]).name};
     else
