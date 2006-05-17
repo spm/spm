@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 528 2006-05-13 17:13:18Z john $
+% $Id: spm_conman.m 533 2006-05-17 09:48:08Z will $
 
 
 %=======================================================================
@@ -1735,23 +1735,31 @@ switch lower(varargin{1}), case 'initialise'
         if ~strcmp(DxCon.STAT,STAT), error('STAT & DxCon.STAT mismatch!'), end
         SPM      = get(F,'UserData');
         xCon     = SPM.xCon;
+        
+        % Due to an earlier bug in SPM, a spurious field 
+        % PSTAT may have been created. Remove this if it exists.
+        if isfield(xCon,'PSTAT')
+            xCon=rmfield(xCon,'PSTAT');
+        end
+            
         if isempty(xCon)
             xCon = DxCon;
         else
-            if ~isfield(xCon,'PSTAT'),
-                xCon(1).PSTAT = [];
-            end;
-            if isfield(SPM,'PPM')
-                DxCon.PSTAT=STAT;
-            else
-                DxCon.PSTAT=[];
-            end
             xCon = [xCon, DxCon];
         end
         SPM.xCon = xCon;
         set(F,'UserData',SPM);
 
-
+        % For contrasts with Bayesian estimated models
+        if isfield(SPM,'PPM')
+            if isfield(SPM.PPM,'xCon')
+                Nc=length(SPM.PPM.xCon);
+                SPM.PPM.xCon(Nc+1).PSTAT=STAT;
+            else
+                SPM.PPM.xCon(1).PSTAT=STAT;
+            end
+        end
+        
         %-Redisplay the new list of contrasts, with the new one selected
         %-----------------------------------------------------------------------
         hConList = findobj(F,'Tag','ConList');

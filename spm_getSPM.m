@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 396 2006-01-09 13:31:41Z will $
+% $Id: spm_getSPM.m 533 2006-05-17 09:48:08Z will $
 
 
 
-SCCSid = '$Rev: 396 $';
+SCCSid = '$Rev: 533 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -381,21 +381,21 @@ titlestr     = spm_input('title for comparison','+1','s',str);
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
 if isfield(SPM,'PPM') 
-    if ~isfield(xCon,'PSTAT')
-        if xCon(Ic).STAT=='P'
-            % SPM has no way of knowing if PPM contrast should be T or F
-            % - so set to T by default
-            xCon(Ic).PSTAT='T';
-        else
-            xCon(Ic).PSTAT=xCon(Ic).STAT;
-            xCon(Ic).STAT='P';
-        end
-    else
-        % Make sure STAT is set to specify PPM 
-        xCon(Ic).STAT='P';
+    
+    % Make sure SPM.PPM.xCon field exists
+    if ~isfield(SPM.PPM,'xCon')
+        SPM.PPM.xCon=[];
     end
     
-    if (xCon(Ic).PSTAT == 'T') 
+    % Set Bayesian con type
+    if length(SPM.PPM.xCon) < Ic 
+       SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
+    end
+    
+    % Make this one a Bayesian contrast
+    xCon(Ic).STAT='P';
+    
+    if (SPM.PPM.xCon(Ic).PSTAT == 'T') 
         % Simple contrast
         str           = 'Effect size threshold for PPM';
         if isfield(SPM.PPM,'VB')

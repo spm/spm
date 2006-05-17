@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 523 2006-05-05 12:28:55Z will $
+% $Id: spm_contrasts.m 533 2006-05-17 09:48:08Z will $
 
 
 %-Get and change to results directory
@@ -72,7 +72,7 @@ for i = 1:length(Ic)
 
             case {'T','P'} 
                 
-                if strcmp(xCon(ic).STAT,'P') & strcmp(xCon(ic).PSTAT,'F')
+                if strcmp(xCon(ic).STAT,'P') & strcmp(SPM.PPM.xCon(ic).PSTAT,'F')
                     % Chi^2 Bayesian inference for compound contrast
                     
                     disp('Chi^2 Bayesian inference for compound contrast');
@@ -174,7 +174,7 @@ for i = 1:length(Ic)
 		case 'P'                                  %-Compute PPM{P} image
 		%---------------------------------------------------------------
         
-        if strcmp(xCon(Ic).PSTAT,'T')
+        if strcmp(SPM.PPM.xCon(Ic).PSTAT,'T')
             % Simple contrast - Gaussian distributed
             
 			c     = xCon(ic).c;
