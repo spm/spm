@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 533 2006-05-17 09:48:08Z will $
+% $Id: spm_config_contrasts.m 534 2006-05-17 11:07:03Z will $
 
 
 %_______________________________________________________________________
@@ -409,6 +409,14 @@ tmp=load(job.spmmat{:});
 SPM=tmp.SPM;
 
 bayes_con=isfield(SPM,'PPM');
+if bayes_con
+    if ~isfield(SPM.PPM,'xCon')
+        % Retrospectively label Bayesian contrasts as T's, if this info is missing
+        for ii=1:length(SPM.xCon)
+            SPM.PPM.xCon(ii).PSTAT='T';
+        end
+    end
+end
 
 for i = 1:length(job.consess)
     if isfield(job.consess{i},'tcon')
@@ -434,7 +442,6 @@ for i = 1:length(job.consess)
         con  = cat(1,job.consess{i}.fcon.convec{:});
 
     end
-    
     % Basic checking of contrast
     %-------------------------------------------------------------------
     [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
