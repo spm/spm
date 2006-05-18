@@ -11,11 +11,11 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_preproc_write.m 536 2006-05-18 12:40:04Z john $
 
 
 if nargin==1,
-    opts = struct('biascor',0,'GM',[0 0 1],'WM',[0 0 1],'CSF',[0 0 0]);
+    opts = struct('biascor',0,'GM',[0 0 1],'WM',[0 0 1],'CSF',[0 0 0],'cleanup',0);
 end;
 if numel(p)>0,
     b0  = spm_load_priors(p(1).VG);
@@ -69,10 +69,8 @@ K   = length(p.flags.mg);
 Kb  = length(p.flags.ngaus);
 
 for k1=1:size(sopts,1),
-    if any(sopts(k1,1:2)),
-        dat{k1}                 = uint8(0);
-	dat{k1}(d(1),d(2),d(3)) = 0;
-    end;
+    dat{k1}                 = uint8(0);
+    dat{k1}(d(1),d(2),d(3)) = 0;
     if sopts(k1,3),
         Vt        = struct('fname',   fullfile(pth,['c', num2str(k1), nam, ext]),...
                            'dim',     p.VF.dim,...
@@ -134,17 +132,26 @@ for z=1:length(x3),
             tmp            = q(:,:,k1);
             tmp(msk)       = 0;
             tmp            = tmp./sq;
-            if any(sopts(k1,1:2)),
-                dat{k1}(:,:,z) = uint8(round(255 * tmp));
-            end;
-            if sopts(k1,3),
-                spm_write_plane(VO(k1),tmp,z);
-            end;
+            dat{k1}(:,:,z) = uint8(round(255 * tmp));
         end;
     end;
     spm_progress_bar('set',z);
 end;
 spm_progress_bar('clear');
+
+if opts.cleanup > 0,
+    [dat{1},dat{2},dat{3}] = clean_gwc(dat{1},dat{2},dat{3}, opts.cleanup);
+end;
+if any(sopts(:,3)),
+    for z=1:length(x3),
+        for k1=1:size(sopts,1),
+            if sopts(k1,3),
+                tmp = double(dat{k1}(:,:,z))/255;
+                spm_write_plane(VO(k1),tmp,z);
+            end;
+        end;
+    end;
+end;
 
 for k1=1:size(sopts,1),
     if any(sopts(k1,1:2)),
@@ -215,7 +222,9 @@ return;
 %=======================================================================
 
 %=======================================================================
-function [g,w,c] = clean_gwc(g,w,c)
+function [g,w,c] = clean_gwc(g,w,c, level)
+if nargin<4, level = 1; end;
+
 b    = w;
 b(1) = w(1);
 
@@ -227,12 +236,14 @@ kz=[0.75 1 0.75];
 sm=sum(kron(kron(kz,ky),kx))^(1/3);
 kx=kx/sm; ky=ky/sm; kz=kz/sm;
 
+th1 = 0.15;
+if level==2, th1 = 0.2; end;
 % Erosions and conditional dilations
 %-----------------------------------------------------------------------
 niter = 32;
 spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
 for j=1:niter,
-        if j>2, th=0.15; else th=0.6; end; % Dilate after two its of erosion.
+        if j>2, th=th1; else th=0.6; end; % Dilate after two its of erosion.
         for i=1:size(b,3),
                 gp = double(g(:,:,i));
                 wp = double(w(:,:,i));
