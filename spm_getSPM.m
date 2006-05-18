@@ -158,11 +158,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 533 2006-05-17 09:48:08Z will $
+% $Id: spm_getSPM.m 535 2006-05-18 11:34:39Z volkmar $
 
 
 
-SCCSid = '$Rev: 533 $';
+SCCSid = '$Rev: 535 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -302,25 +302,26 @@ if nc>1 & n>1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
 	    %-Contrast unchanged or already defined - note index
 	    %-----------------------------------------------------------
-	    Ic(i) = min(d);
+            Ic(i) = min(d);
 
-	else
+        else
 
-	    OrthWarn = OrthWarn + 1;
+            OrthWarn = OrthWarn + 1;
 
-	    %-Define orthogonalised contrast as new contrast
-	    %-----------------------------------------------------------
-	    oxCon.name = [xCon(Ic(i)).name,' (orth. w.r.t {',...
-    	    	sprintf('%d,',Ic(1:i-2)), sprintf('%d})',Ic(i-1))];
-    	    xCon  = [xCon, oxCon];
-	    Ic(i) = length(xCon); 
-	end
+            %-Define orthogonalised contrast as new contrast
+            %-----------------------------------------------------------
+            conlst = sprintf('%d,',Ic(1:i-1));
+            oxCon.name = sprintf('%s (orth. w.r.t {%s})', xCon(Ic(i)).name,...
+                                 conlst(1:end-1));
+            xCon  = [xCon, oxCon];
+            Ic(i) = length(xCon); 
+        end
 
     end % while...
     
     if OrthWarn
-      warning(sprintf('Contrasts changed!  %d contrasts orthogonalized ',...
-		      'to allow conjunction inf.', OrthWarn))
+      warning(sprintf(['Contrasts changed!  %d contrasts orthogonalized ',...
+		      'to allow conjunction inf.'], OrthWarn))
     end
 
     SPM.xCon = xCon;

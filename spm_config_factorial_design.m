@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_config_factorial_design.m 535 2006-05-18 11:34:39Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -221,7 +221,7 @@ iCFI.help={p1,sp_text};
 
 iCC    = mnu('Centering','iCC',{'Overall mean','Factor 1 mean',...
         'Factor 2 mean','Factor 3 mean','No centering',...
-        'User specifified value','As implied by ANCOVA',...
+        'User specified value','As implied by ANCOVA',...
         'GM'},{1,2,3,4,5,6,7,8},'');
 iCC.val={1};
 p1 = ['The appropriate centering option is usually the one that ',...
