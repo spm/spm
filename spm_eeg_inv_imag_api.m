@@ -135,7 +135,7 @@ function varargout = spm_eeg_inv_imag_api_OutputFcn(hObject, eventdata, handles)
 
 try
     D = get(handles.figure1,'UserData');
-    if spm_matlab_version_chk('7.1') >= 0
+    if spm_matlab_version_chk('7') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
       	save(fullfile(D.path, D.fname), 'D');

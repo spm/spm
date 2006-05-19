@@ -72,9 +72,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_mfx.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_mfx.m 539 2006-05-19 17:59:30Z Darren $
 
-SCCSid = '$Rev: 507 $';
+SCCSid = '$Rev: 539 $';
 
 %-Say hello
 %-----------------------------------------------------------------------
@@ -263,7 +263,7 @@ end
 try
 	cd mfx
 	SPM.swd = pwd;
-    if spm_matlab_version_chk('7.1') >= 0,
+    if spm_matlab_version_chk('7') >= 0,
 		save('SPM', 'SPM', '-V6');
 	else
 		save('SPM', 'SPM');

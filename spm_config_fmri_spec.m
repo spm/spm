@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 514 2006-05-05 08:21:13Z volkmar $
+% $Id: spm_config_fmri_spec.m 539 2006-05-19 17:59:30Z Darren $
 
 
 % Define inline types.
@@ -934,7 +934,7 @@ end
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')   %-#
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save('SPM','-V6','SPM');
 else
     save('SPM','SPM');

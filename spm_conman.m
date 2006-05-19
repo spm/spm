@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 533 2006-05-17 09:48:08Z will $
+% $Id: spm_conman.m 539 2006-05-19 17:59:30Z Darren $
 
 
 %=======================================================================
@@ -1811,7 +1811,7 @@ switch lower(varargin{1}), case 'initialise'
         WS = spm('WinScale');				%-Window scaling factors
         FS = spm('FontSizes');				%-Scaled font sizes
         PF = spm_platform('fonts');			%-Font names (for this platform)
-        if spm_matlab_version_chk('7.1') >= 0, 	%-Screen size
+        if spm_matlab_version_chk('7') >= 0, 	%-Screen size
             S0 = get(0, 'MonitorPosition');
 
             % Monitor containing the pointer (thanks to Brian Lenoski)

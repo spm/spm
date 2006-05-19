@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_spm.m 539 2006-05-19 17:59:30Z Darren $
 
-SCCSid   = '$Rev: 507 $';
+SCCSid   = '$Rev: 539 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -313,7 +313,7 @@ if strcmp(spm('CheckModality'), 'EEG')
     [Ishortcut, SPM] = spm_eeg_shortcut(SPM);
 
     if Ishortcut
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save('SPM', 'SPM', '-V6');
         else
             save('SPM', 'SPM');
@@ -871,7 +871,7 @@ if ~isfield(xVi,'V')
     % If xX.W is not specified use W*W' = inv(V) to give ML estimators
     %----------------------------------------------------------------------
     if ~isfield(xX,'W')
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save('SPM','SPM','-V6');
         else
             save('SPM','SPM');
@@ -957,7 +957,7 @@ SPM.swd        = pwd;
 
 %-Save analysis parameters in SPM.mat file
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >=0
+if spm_matlab_version_chk('7') >=0
     save('SPM','SPM','-V6');
 else
     save('SPM','SPM');

@@ -30,7 +30,7 @@ function varargout = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_inv_getmasks.m 539 2006-05-19 17:59:30Z Darren $
 
 spm_defaults
 
@@ -165,7 +165,7 @@ if nargout == 1
     D.inv{val}.mesh.msk_iskull = Iisk;
     D.inv{val}.mesh.msk_scalp  = Iscl.fname;
     D.inv{val}.mesh.msk_flags  = flags;
-    if spm_matlab_version_chk('7.1') >= 0
+    if spm_matlab_version_chk('7') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
         save(fullfile(D.path, D.fname), 'D');

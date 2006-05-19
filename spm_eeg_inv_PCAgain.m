@@ -29,7 +29,7 @@ function varargout = PCAgain(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_PCAgain.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_inv_PCAgain.m 539 2006-05-19 17:59:30Z Darren $
 
 
 % Input
@@ -76,14 +76,14 @@ if nargout == 3
     varargout{2} = VectP;
     varargout{3} = ValP;
 elseif nargout == 1
-    if spm_matlab_version_chk('7.1') >=0
+    if spm_matlab_version_chk('7') >=0
         save(varargout{1},'-V6','Gnorm','VectP','ValP');
     else
     	save(varargout{1},'Gnorm','VectP','ValP');
     end
 else
     fname_out = fullfile(pth,[nam '_pca.mat']);
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
         save(fname_out,'-V6','Gnorm','VectP','ValP');
     else
     	save(fname_out,'Gnorm','VectP','ValP');

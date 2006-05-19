@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 530 2006-05-16 09:14:46Z volkmar $
+% $Id: spm_select.m 539 2006-05-19 17:59:30Z Darren $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -130,7 +130,7 @@ fg = figure('IntegerHandle','off',...
         'KeyPressFcn',@hitkey);
 
 % Code from Brian Lenoski for dealing with multiple monitors
-if spm_matlab_version_chk('7.1') >=0
+if spm_matlab_version_chk('7') >=0
     S    = get(0, 'MonitorPosition');
     Rect = get(fg,'Position');
     pointer_loc = get(0,'PointerLocation');
@@ -171,7 +171,7 @@ end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
 SPMdir = fileparts(which(mfilename));
-if ( spm_matlab_version_chk('7.1') >= 0 ) && isdeployed,
+if ( spm_matlab_version_chk('7') >= 0 ) && isdeployed,
     ind = findstr(SPMdir,'_mcr')-1;
     [SPMdir,junk] = fileparts(SPMdir(1:ind(1)));
 end;

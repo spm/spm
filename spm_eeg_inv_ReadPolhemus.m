@@ -37,7 +37,7 @@ function [varargout] = spm_eeg_inv_ReadPolhemus(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_inv_ReadPolhemus.m 539 2006-05-19 17:59:30Z Darren $
 
 spm_defaults
 
@@ -184,14 +184,14 @@ try
     [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
     fidname = [nam '_fid_EEG_sens.mat'];
     D.inv{val}.datareg.fid = fidname;
-    if spm_matlab_version_chk('7.1') >=0
+    if spm_matlab_version_chk('7') >=0
         save(fullfile(D.path, fidname), '-V6', 'fid');
     else
     	save(fullfile(D.path, fidname), 'fid');
     end
 catch
     fidname = 'fid_EEG_sens.mat';
-    if spm_matlab_version_chk('7.1') >=0
+    if spm_matlab_version_chk('7') >=0
         save(fidname, '-V6', 'fid');
     else
     	save(fidname, 'fid');
@@ -211,14 +211,14 @@ try
     [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
     sensname = [nam '_sensors_EEG_sens.mat'];
     D.inv{val}.datareg.fid = sensname;
-    if spm_matlab_version_chk('7.1') >=0
+    if spm_matlab_version_chk('7') >=0
         save(fullfile(D.path, sensname), '-V6', 'sens');
     else
     	save(fullfile(D.path, sensname), 'sens');
     end
 catch
     sensname = 'sensors_EEG_sens.mat';
-    if spm_matlab_version_chk('7.1') >=0
+    if spm_matlab_version_chk('7') >=0
         save(sensname, '-V6', 'sens');
     else
     	save(sensname, 'sens');
@@ -265,14 +265,14 @@ if ~isempty(Filenames{2})
     try
         [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
         fidname2 = [nam '_fid_EEG_hsp.mat'];
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save(fullfile(D.path, fidname2), '-V6', 'fid2');
         else
         	save(fullfile(D.path, fidname2), 'fid2');
         end
     catch
         fidname2 = 'fid_EEG_hsp.mat';
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save(fidname2, '-V6', 'fid2');
         else
         	save(fidname2, 'fid2');
@@ -288,14 +288,14 @@ if ~isempty(Filenames{2})
         [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
         hspname = [nam '_headshape_EEG.mat'];
         D.inv{val}.datareg.fid = hspname;
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save(fullfile(D.path, hspname), '-V6', 'hsp');
         else
         	save(fullfile(D.path, hspname), 'hsp');
         end
     catch
         hspname = 'headshape_EEG.mat';
-        if spm_matlab_version_chk('7.1') >=0
+        if spm_matlab_version_chk('7') >=0
             save(hspname, '-V6', 'hsp');
         else
         	save(hspname, 'hsp');
@@ -306,7 +306,7 @@ end
 
 % Save results
 if nargout == 1
-    if spm_matlab_version_chk('7.1') >= 0
+    if spm_matlab_version_chk('7') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
      	save(fullfile(D.path, D.fname), 'D');

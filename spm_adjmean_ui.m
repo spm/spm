@@ -178,7 +178,7 @@ function spm_adjmean_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_adjmean_ui.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_adjmean_ui.m 539 2006-05-19 17:59:30Z Darren $
 
 
 
@@ -641,7 +641,7 @@ Des = struct(...
 		'aPMap',	aPMap,...
 		'EXnames',	EXnames,...
 		'iX',		iX		);
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
 	save('SPMadj','-V6','SPMid','DesDef','Des','V','c','cNames','W','Fnames','rGX','GX');
 else
 	save('SPMadj','SPMid','DesDef','Des','V','c','cNames','W','Fnames','rGX','GX');

@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_dcm_average.m 539 2006-05-19 17:59:30Z Darren $
 
 
 if nargin <= 1
@@ -148,7 +148,7 @@ end
 
 % Save new DCM
 DCM.name = [name ' (Bayesian FFX average)'];
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(['DCM_avg_' name], 'DCM', '-V6');
 else
     save(['DCM_avg_' name], 'DCM');

@@ -173,9 +173,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_fmri_spm_ui.m 539 2006-05-19 17:59:30Z Darren $
 
-SCCSid  = '$Rev: 507 $';
+SCCSid  = '$Rev: 539 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -441,7 +441,7 @@ SPM.xsDes = struct(...
 %-Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                        %-#
-if spm_matlab_version_chk('7.1') >= 0,
+if spm_matlab_version_chk('7') >= 0,
 	save('SPM', 'SPM', '-V6');
 else
 	save('SPM', 'SPM');

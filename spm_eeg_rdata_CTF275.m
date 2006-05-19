@@ -191,7 +191,7 @@ clear hc_file CoiLoc UnusedLines UsedLine A COUNT ERRMSG NEXTINDEX
 D.modality = 'MEG';
 D.units = 'femto T';
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(fullfile(D.path, D.fname), '-V6', 'D');
 else
 	save(fullfile(D.path, D.fname), 'D');

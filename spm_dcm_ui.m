@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_dcm_ui.m 539 2006-05-19 17:59:30Z Darren $
 
 
 
@@ -303,7 +303,7 @@ case 'specify'
     
     %-Save and reset title
 	%-------------------------------------------------------------------
-    if spm_matlab_version_chk('7.1') >= 0
+    if spm_matlab_version_chk('7') >= 0
 		save(fullfile(swd,['DCM_' name]),'-V6','DCM');
 	else
 		save(fullfile(swd,['DCM_' name]),'DCM');

@@ -36,7 +36,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 %       returns status == 0   : major revision numbers are the same.
 %
 %       If the Matlab version is 7.1.0.0, and the user supplied version is '7.1':
-%       status = spm_matlab_version_chk('7.1');
+%       status = spm_matlab_version_chk('7');
 %       returns status == 0   : major and minor revision numbers are the same.
 %
 %       If the Matlab version is 7.1.0.83, and the user supplied version is '7.2':
@@ -56,7 +56,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 %
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 508 2006-05-04 05:47:47Z Darren $
+% $Id: spm_matlab_version_chk.m 539 2006-05-19 17:59:30Z Darren $
 
 % output variable
 %--------------------------------------------------------------------------

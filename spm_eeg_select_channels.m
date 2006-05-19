@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_select_channels.m 539 2006-05-19 17:59:30Z Darren $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -252,7 +252,7 @@ Iselectedchannels = get(handles.listbox1, 'Value');
 
 [P1, P2] = uiputfile('*.mat', 'Choose file name to save to');
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(fullfile(P2, P1), '-V6', 'Iselectedchannels');
 else
     save(fullfile(P2, P1), 'Iselectedchannels');

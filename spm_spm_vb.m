@@ -147,7 +147,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_spm_vb.m 539 2006-05-19 17:59:30Z Darren $
 
 
 %-Get SPM.mat if necessary
@@ -929,7 +929,7 @@ SPM.xM         = xM;			%-mask structure
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >=0
+if spm_matlab_version_chk('7') >=0
 	save('SPM', 'SPM', '-V6');
 else
 	save('SPM', 'SPM');

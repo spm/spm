@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 535 2006-05-18 11:34:39Z volkmar $
+% $Id: spm_config_factorial_design.m 539 2006-05-19 17:59:30Z Darren $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1755,7 +1755,7 @@ end
 %-------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                    %-#
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');

@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_design(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_design.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_design.m 539 2006-05-19 17:59:30Z Darren $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -348,7 +348,7 @@ SPM = spm_eeg_get_vc(SPM);
 %-End: Save SPM.mat
 %-----------------------------------------------------------------------
 fprintf('\t%-32s: ','Saving ERP design')                            %-#
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');

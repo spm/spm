@@ -73,7 +73,7 @@ D.data = [];
 D.events.reject = zeros(1, D.Nevents);
 D.events.blinks = zeros(1, D.Nevents);
 D.fname = ['m' D.fname];
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(fullfile(P, D.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');

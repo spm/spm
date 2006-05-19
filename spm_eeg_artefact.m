@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_artefact.m 539 2006-05-19 17:59:30Z Darren $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -299,7 +299,7 @@ spm_progress_bar('Clear');
 D.data = [];
 D.fname = ['a' D.fname];
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
 	save(fullfile(P, D.fname), '-V6', 'D');
 else
 	save(fullfile(P, D.fname), 'D');

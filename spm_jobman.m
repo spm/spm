@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 520 2006-05-05 09:21:31Z volkmar $
+% $Id: spm_jobman.m 539 2006-05-19 17:59:30Z Darren $
 
 
 if nargin==0
@@ -1354,7 +1354,7 @@ if ischar(filename)
         savexml(fullfile(pathname,filename),'jobs');
         spm('Pointer');
     case '.mat',
-        if spm_matlab_version_chk('7.1') >= 0,
+        if spm_matlab_version_chk('7') >= 0,
             save(fullfile(pathname,filename),'-V6','jobs');
         else
             save(fullfile(pathname,filename),'jobs');

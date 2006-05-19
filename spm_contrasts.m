@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 533 2006-05-17 09:48:08Z will $
+% $Id: spm_contrasts.m 539 2006-05-19 17:59:30Z Darren $
 
 
 %-Get and change to results directory
@@ -261,7 +261,7 @@ end % (for i = 1:length(Ic))
 % place xCon back in SPM
 %-----------------------------------------------------------------------
 SPM.xCon = xCon;
-if spm_matlab_version_chk('7.1') >=0
+if spm_matlab_version_chk('7') >=0
 	save('SPM', 'SPM', '-V6');
 else
 	save('SPM', 'SPM');

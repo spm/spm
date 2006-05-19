@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_eeg_display_ui.m 539 2006-05-19 17:59:30Z Darren $
 
 if nargin == 1
     S = varargin{1};
@@ -698,7 +698,7 @@ spm('Pointer', 'Watch');
 % remove gfx struct
 D = rmfield(D, 'gfx');
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(fullfile(D.path, D.fname), '-V6', 'D');
 else
     save(fullfile(D.path, D.fname), 'D');

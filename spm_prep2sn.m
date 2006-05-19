@@ -10,7 +10,7 @@ function [po,pin] = spm_prep2sn(p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_prep2sn.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_prep2sn.m 539 2006-05-19 17:59:30Z Darren $
 
 
 if ischar(p), p = load(p); end;
@@ -43,7 +43,7 @@ flags       = struct(...
 if nargout==0,
     [pth,nam,ext] = fileparts(VF.fname);
     fnam          = fullfile(pth,[nam '_seg_sn.mat']);
-    if spm_matlab_version_chk('7.1') >= 0,
+    if spm_matlab_version_chk('7') >= 0,
         save(fnam,'-V6','VG','VF','Tr','Affine','flags');
     else
         save(fnam,'VG','VF','Tr','Affine','flags');

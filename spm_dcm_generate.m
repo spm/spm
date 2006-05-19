@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_dcm_generate.m 539 2006-05-19 17:59:30Z Darren $
 
 
 randn('state',sum(100*clock));
@@ -94,7 +94,7 @@ end
 DCM.Y = Y;
 
 % Save synthetic DCM
-if spm_matlab_version_chk('7.1') >= 0
+if spm_matlab_version_chk('7') >= 0
     save(syn_model, 'DCM', '-V6');
 else
     save(syn_model, 'DCM');
