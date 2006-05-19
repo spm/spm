@@ -4,7 +4,7 @@ function opts = spm_config_cd
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelmann
-% $Id: spm_config_cd.m 123 2005-05-06 12:15:13Z john $
+% $Id: spm_config_cd.m 538 2006-05-19 08:05:24Z volkmar $
 
 data.type = 'files';
 data.name = 'Select a directory';
@@ -31,5 +31,6 @@ function my_cd(varargin)
 job = varargin{1};
 if ~isempty(job.directory),
     cd(job.directory{:});
+    fprintf('New working directory: %s\n', job.directory{:});
 end;
 return;
