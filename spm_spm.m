@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_spm.m 541 2006-05-23 16:09:40Z volkmar $
 
-SCCSid   = '$Rev: 539 $';
+SCCSid   = '$Rev: 541 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -568,10 +568,8 @@ if isfield(xX,'W')
         spm_unlink(VResI(i).fname);
     end
     VResI = spm_create_vol(VResI);
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 end % (xX,'W')
-
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
-
 
 %==========================================================================
 % - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
