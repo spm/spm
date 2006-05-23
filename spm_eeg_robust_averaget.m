@@ -6,7 +6,7 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 493 2006-04-04 20:02:47Z james $
+% $Id: spm_eeg_robust_averaget.m 540 2006-05-23 14:01:40Z james $
 if nargin==1
 	ks=3;
 end
@@ -18,7 +18,7 @@ try
     h=h(1);
 catch
     h=1;
-    warning(sprintf('File to large assuming h=1 I have no idea what errors this may cause!'));
+    warning(sprintf('File too large assuming h=1 '));
 end
 ores=1;
 nres=10;

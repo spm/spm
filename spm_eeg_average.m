@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_average.m 540 2006-05-23 14:01:40Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -44,7 +44,8 @@ if isfield(D, 'Nfrequencies');
 
     for i = 1:D.events.Ntypes
         d = mean(D.data(:,:,:, find((D.events.code == D.events.types(i)) & ~D.events.reject)), 4);
-
+        w = (D.events.code == D.events.types(i) & ~D.events.reject)';
+        ni(i) = length(find(w));
         D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
         d = int16(d./repmat(D.scale(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
         fwrite(fpd, d, 'int16');
@@ -67,7 +68,8 @@ else
 					ts=(j==D.channels.thresholded{ti});
 					
 				end
-				
+				w = (D.events.code == D.events.types(i) & ~D.events.reject)';
+                ni(i) = length(find(w));
 				if isempty(ts)
 					data=squeeze(D.data(j,:,find(D.events.code==D.events.types(i))))';
 					for nl=(find(D.events.code==D.events.types(i)));
@@ -78,6 +80,14 @@ else
                     
                     for t=1:size(data,1)
                         B(t)=sum(tempwf(t,:).*data(t,:))/sum(tempwf(t,:));
+                    end
+                    if isfield(D,'Smoothing')
+                        sm=gausswin(D.Smoothing);
+                        sm=sm/sum(sm);
+                        mB=mean(B);
+                        B=conv(sm,B-mean(B));
+                        B=B(floor(D.Smoothing/2):end-ceil(D.Smoothing/2));
+                        B=B+mB;
                     end
                     d(j, :) =B;
 				else
@@ -132,21 +142,20 @@ D.Nevents = Ntypes;
 D.events.code = D.events.types;
 D.events.time = [];
 
-if ~isfield(D, 'Nfrequencies') & ~isfield(D, 'weights');
 
-    D.events.repl = ni;
-	disp(sprintf('%s: Number of replications per contrast:', D.fname))
-	s = [];
-	for i = 1:Ntypes
-		s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
-		if i < D.events.Ntypes
-			s = [s sprintf(', ')];
-		else
-			s = [s '\n'];
-		end
-	end 
-	disp(sprintf(s))
-end
+D.events.repl = ni;
+disp(sprintf('%s: Number of replications per contrast:', D.fname))
+s = [];
+for i = 1:Ntypes
+    s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
+    if i < D.events.Ntypes
+        s = [s sprintf(', ')];
+    else
+        s = [s '\n'];
+    end
+end 
+disp(sprintf(s))
+
 
 D.data = [];
 D.events.reject = zeros(1, D.Nevents);

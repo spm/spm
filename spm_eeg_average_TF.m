@@ -26,10 +26,12 @@ end
 
 d=zeros(size(D.data,1),size(D.data,2),size(D.data,3),D.events.Ntypes);
 fh=fopen(fullfile(D.path,D.fnamedat),'r');
-
+ni=zeros(1,D.events.Ntypes);
 for n=1:D.Nevents
     if D.events.reject(n)== 0
-        [m,i]=find(D.events.types==D.events.code(n));
+  
+        [m,i]=find(D.events.types==D.events.code(n));  
+      
         data=fread(fh,[1,size(D.data,1)*size(D.data,2)*size(D.data,3)],'short');
         data=reshape(data,size(D.data,1),size(D.data,2),size(D.data,3),1);
         data=data.*repmat(D.scale(:,1,1,n),[1,D.Nfrequencies, D.Nsamples]);
@@ -44,6 +46,7 @@ D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
 
 for n=1:D.events.Ntypes
     dat=squeeze(d(:,:,:,n)./length(find(D.events.code==D.events.types(n) & ~D.events.reject)));
+    ni(n)=length(find(D.events.code==D.events.types(n) & ~D.events.reject));
     D.scale(:, 1, 1, n) = max(max(squeeze(abs(dat)), [], 3), [], 2)./32767;
     dat = int16(dat./repmat(D.scale(:, 1, 1, n), [1, D.Nfrequencies, D.Nsamples]));
     fwrite(fpd, dat, 'int16');
@@ -52,7 +55,18 @@ fclose (fh)	;
 
 fclose(fpd);
 D.Nevents = size(c, 2);
-
+D.events.repl = ni;
+disp(sprintf('%s: Number of replications per contrast:', D.fname))
+s = [];
+for i = 1:D.events.Ntypes
+    s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
+    if i < D.events.Ntypes
+        s = [s sprintf(', ')];
+    else
+        s = [s '\n'];
+    end
+end 
+disp(sprintf(s))
 % labeling of resulting contrasts, take care to keep numbers of old trial
 % types
 % check this again: can be problematic, when user mixes within-trialtype

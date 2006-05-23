@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_artefact.m 540 2006-05-23 14:01:40Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -242,7 +242,8 @@ if MustDoWork
 		spm_progress_bar('Clear');
 		
 		D.weights = allWf;
-		
+		D.Weighting = Weightingfunction;
+        D.Smoothing = Smoothing;
 	else
 		
 		% 2nd round of thresholding, but excluding bad channels
