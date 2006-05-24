@@ -346,8 +346,8 @@ if p ~= 0
     % store all the options for loading again
     DCM.options.Y1 = str2num(get(handles.Y1, 'String'));
     DCM.options.Y2 = str2num(get(handles.Y2, 'String'));
-    DCM.options.T1 = str2num(get(handles.T1, 'String'));
-    DCM.options.T2 = str2num(get(handles.T2, 'String'));
+    DCM.options.Tdcm(1) = str2num(get(handles.T1, 'String'));
+    DCM.options.Tdcm(2) = str2num(get(handles.T2, 'String'));
     DCM.options.Spatial_type = get(handles.Spatial_type, 'Value');
     DCM.M.Spatial_type = DCM.options.Spatial_type; % store for use as switch in spm_gx_erp
     DCM.options.Nmodes = get(handles.Nmodes, 'Value');
@@ -388,8 +388,8 @@ end
 
 try, set(handles.Y1, 'String', num2str(DCM.options.Y1)); end
 try, set(handles.Y2, 'String', num2str(DCM.options.Y2)); end
-try, set(handles.T1, 'String', num2str(DCM.options.T1)); end
-try, set(handles.T2, 'String', num2str(DCM.options.T2)); end
+try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1))); end
+try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2))); end
 try, set(handles.Spatial_type, 'Value', DCM.options.Spatial_type); end
 try, set(handles.Nmodes, 'Value', DCM.options.Nmodes); end
 try, set(handles.h, 'Value', DCM.options.h+1); end
@@ -409,11 +409,11 @@ try, set(handles.Sname, 'String', strvcat(DCM.Sname)); end
 
 if DCM.options.Spatial_type ~= 3
     % transform locations back to MNI space first
-    M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]]; % transformation matrix from dip to MNI
-    tmp = M*[DCM.M.dipfit.L.pos; ones(1, size(DCM.M.dipfit.L.pos, 2))];
-
-    try, set(handles.Slocation, 'String', num2str(tmp(1:3, :)')); end
-
+    %     M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]]; % transformation matrix from dip to MNI
+    %     tmp = M*[DCM.M.dipfit.L.pos; ones(1, size(DCM.M.dipfit.L.pos, 2))];
+    %
+    %     try, set(handles.Slocation, 'String', num2str(tmp(1:3, :)')); end
+    try, set(handles.Slocation, 'String', num2str(DCM.M.dipfit.L.pos')); end
 end
 
 % saving DCM
@@ -870,12 +870,13 @@ if Spatial_type == 1 || Spatial_type == 2
     % prior distributions of spatial parameters
     % they are kept here (and not in spm_erp_priors, because I want
     % them to be changeable by (power-)user
-    % also: transform to eeglab coordinates
+    % also: transform to eeglab coordinates using
     % transformation matrix from dip to MNI
-    M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
-
-    Slocations = inv(M)*[Slocations ones(Nareas, 1)]';
-    DCM.M.dipfit.L.pos = Slocations(1:3,:);
+%     M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
+% 
+%     Slocations = inv(M)*[Slocations ones(Nareas, 1)]';
+%     DCM.M.dipfit.L.pos = Slocations(1:3,:);
+    DCM.M.dipfit.L.pos = Slocations;
 
     % zero prior mean on dipole orientation
     DCM.M.dipfit.L.mom = zeros(3,Nareas);
@@ -941,10 +942,6 @@ end
 T1 = str2num(get(handles.T1, 'String'));
 T2 = str2num(get(handles.T2, 'String'));
 
-if T1 <= 0
-    errordlg('Specify positive first peri-stimulus time'); return;
-end
-
 if T2 <= T1
     errorldg('Second must be greater than first peri-stimulus time'); return;
 end
@@ -952,6 +949,7 @@ end
 [m, T1] = min(abs(DCM.Y.Time-T1));
 [m, T2] = min(abs(DCM.Y.Time-T2));
 
+% update peri-stimulus times
 DCM.Y.Time = DCM.Y.Time(T1:T2);
 
 for i = 1:Nresponses
@@ -1176,6 +1174,14 @@ if ~isempty(tmp)
 end
 
 Nlocations = size(Slocations, 2);
+
+% transformation matrix from dip to MNI
+% M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
+% 
+% 
+% Slocations = inv(M)*[Slocations ones(Nlocations, 1)]';
+% Slocations = Slocations(1:3,:);
+
 
 sdip.n_seeds = 1;
 sdip.n_dip = Nlocations;
