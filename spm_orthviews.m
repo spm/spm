@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 506 2006-04-27 14:46:29Z volkmar $
+% $Id: spm_orthviews.m 543 2006-05-29 10:15:08Z volkmar $
 
 
 
@@ -943,6 +943,8 @@ for i = valid_handles(arg1),
                   imgt = reshape(img(1:numel(imgt1)),size(imgt1));
                   imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
                   imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                  mn = 0;
+                  mx = 1;
                  case 'quadhisteq',
                   % scale images to a range between 0 and 1
                   imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
@@ -952,6 +954,8 @@ for i = valid_handles(arg1),
                   imgt = reshape(img(1:numel(imgt1)),size(imgt1));
                   imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
                   imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                  mn = 0;
+                  mx = 1;
                  case 'loghisteq',
                   warning off % messy - but it may avoid extra queries
                   imgt = log(imgt-min(imgt(:)));
@@ -969,9 +973,13 @@ for i = valid_handles(arg1),
                   imgt = reshape(img(1:numel(imgt1)),size(imgt1));
                   imgc = reshape(img(numel(imgt1)+[1:numel(imgc1)]),size(imgc1));
                   imgs = reshape(img(numel(imgt1)+numel(imgc1)+[1:numel(imgs1)]),size(imgs1));
+                  mn = 0;
+                  mx = 1;
                 end;
                 % recompute min/max for display
-                mx = -inf; mn = inf;
+                if strcmp(st.vols{i}.window,'auto')
+                    mx = -inf; mn = inf;
+                end;
                 if ~isempty(imgt),
 			tmp = imgt(finite(imgt));
                         mx = max([mx max(max(tmp))]);
