@@ -4,7 +4,7 @@ function opts = spm_config_movefile
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id: spm_config_movefile.m 506 2006-04-27 14:46:29Z volkmar $
+% $Id: spm_config_movefile.m 544 2006-05-30 12:23:29Z volkmar $
 
 %_______________________________________________________________________
 
@@ -72,21 +72,21 @@ function vf = vfiles_movefile(varargin)
 job = varargin{1};
 vf={};
 for k = 1:numel(job.srcfiles)
-    [p n e v] = fileparts(job.srcfiles{k});
+    [p n e v] = spm_fileparts(job.srcfiles{k});
     if strncmp(e,'.img',4)||strncmp(e,'.nii',4)
         vi = strfind(e,',');
         if ~isempty(vi)
             e=e(1:vi-1);
         end;
         vf{end+1} = fullfile(job.targetdir{1},[n e v]);
-        if exist(fullfile(p,[n '.mat' v]),'file')
-            vf{end+1} = fullfile(job.targetdir{1},[n '.mat' v]);
+        if exist(fullfile(p,[n '.mat']),'file')
+            vf{end+1} = fullfile(job.targetdir{1},[n '.mat']);
         end;
-        if exist(fullfile(p,[n '.hdr' v]))
-            vf{end+1}= fullfile(job.targetdir{1},[n '.hdr' v]);
-        else
-            vf{end+1} = fullfile(job.targetdir{1},[n e v]);
+        if exist(fullfile(p,[n '.hdr']))
+            vf{end+1}= fullfile(job.targetdir{1},[n '.hdr']);
         end;
+    else
+        vf{end+1} = fullfile(job.targetdir{1},[n e v]);
     end;
 end;
 return;
