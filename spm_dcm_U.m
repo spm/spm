@@ -21,7 +21,7 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_U.m 545 2006-05-31 18:33:29Z klaas $
 
 
 load(DCM_filename);
@@ -67,7 +67,7 @@ U.dt   = DCM.U.dt;
 for k = 1:u_last,
     if find(input_nos{k})
         mo = find(input_nos{k});
-        if ~(all(mo <= length(Sess.U(k).P.i))) 
+        if length(mo) > length(Sess.U(k).P)
             disp(['Error in spm_dcm_U: more parametric modulations specified than exist for input ' Sess.U(k).name{1} 'in SPM file.']);
             return
         end
