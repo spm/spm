@@ -8,7 +8,14 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_contrasts.m 546 2006-06-05 14:39:16Z Darren $
+
+% Temporary SPM variable to check for any changes to SPM. We want to avoid
+% always having to save SPM.mat unless it has changed, because this is
+% slow. A side benefit is one can look at results with just read
+% privileges. -DRG
+%-----------------------------------------------------------------------
+tmpSPM = SPM;
 
 
 %-Get and change to results directory
@@ -261,9 +268,14 @@ end % (for i = 1:length(Ic))
 % place xCon back in SPM
 %-----------------------------------------------------------------------
 SPM.xCon = xCon;
-if spm_matlab_version_chk('7') >=0
-	save('SPM', 'SPM', '-V6');
-else
-	save('SPM', 'SPM');
+
+% Check if SPM has changed. Save only if it has.
+%-----------------------------------------------------------------------
+if ~isequal(tmpSPM,SPM)
+    if spm_matlab_version_chk('7') >=0
+        save('SPM', 'SPM', '-V6');
+    else
+        save('SPM', 'SPM');
+    end
 end
 
