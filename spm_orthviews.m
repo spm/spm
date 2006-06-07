@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 543 2006-05-29 10:15:08Z volkmar $
+% $Id: spm_orthviews.m 548 2006-06-07 12:36:37Z volkmar $
 
 
 
@@ -1056,20 +1056,6 @@ for i = valid_handles(arg1),
 				% Add blobs for display using a defined
                                 % colourmap
 
-				% Volkmar's fix for colorbar
-				if isfield(st.vols{i}.blobs{1},'cbar')
-					if st.mode == 0,
-						axpos = get(st.vols{i}.ax{2}.ax,'Position');
-					else,
-						axpos = get(st.vols{i}.ax{1}.ax,'Position');
-					end;
-					image([0 1],[mn mx],[1:64]' + 64,'Parent',st.vols{i}.blobs{1}.cbar);
-					set(st.vols{i}.blobs{1}.cbar, ...
-						'Position',[(axpos(1)+axpos(3)+0.05)...
-						(axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-						'YDir','normal','XTickLabel',[]);
-				end;
-
 				% colourmaps
 				gryc = [0:63]'*ones(1,3)/63;
 				actc = ...
@@ -1091,6 +1077,11 @@ for i = valid_handles(arg1),
 				else,
 					cmx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
 				end;
+				if isfield(st.vols{i}.blobs{1},'min'),
+					cmn = st.vols{i}.blobs{1}.min;
+				else,
+					cmn = -cmx;
+				end;
 
 				% get blob data
 				vol  = st.vols{i}.blobs{1}.vol;
@@ -1101,9 +1092,9 @@ for i = valid_handles(arg1),
 				
 				% actimg scaled round 0, black NaNs
 				topc = size(actc,1)+1;
-				tmpt = scaletocmap(tmpt,-cmx,cmx,actc,topc);
-				tmpc = scaletocmap(tmpc,-cmx,cmx,actc,topc);
-				tmps = scaletocmap(tmps,-cmx,cmx,actc,topc);
+				tmpt = scaletocmap(tmpt,cmn,cmx,actc,topc);
+				tmpc = scaletocmap(tmpc,cmn,cmx,actc,topc);
+				tmps = scaletocmap(tmps,cmn,cmx,actc,topc);
 				actc = [actc; 0 0 0];
 				
 				% combine gray and blob data to
@@ -1118,6 +1109,20 @@ for i = valid_handles(arg1),
 					       gryc(imgs(:),:)*(1-actp), ...
 					       [size(imgs) 3]);
 				
+				% Volkmar's fix for colorbar
+				if isfield(st.vols{i}.blobs{1},'cbar')
+					if st.mode == 0,
+						axpos = get(st.vols{i}.ax{2}.ax,'Position');
+					else,
+						axpos = get(st.vols{i}.ax{1}.ax,'Position');
+					end;
+					image([0 1],[cmn cmx],[1:64]' + 64,'Parent',st.vols{i}.blobs{1}.cbar);
+					set(st.vols{i}.blobs{1}.cbar, ...
+						'Position',[(axpos(1)+axpos(3)+0.05)...
+						(axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+						'YDir','normal','XTickLabel',[]);
+				end;
+
 				
 			else,
 				% Add full colour blobs - several sets at once
