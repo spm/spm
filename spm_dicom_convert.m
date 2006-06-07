@@ -21,7 +21,7 @@ function spm_dicom_convert(hdr,opts,root_dir)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 531 2006-05-16 09:17:55Z volkmar $
+% $Id: spm_dicom_convert.m 550 2006-06-07 12:38:50Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -737,9 +737,18 @@ for i=1:length(hdr),
 	elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1210')),
 		disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
 		guff = {guff{:},hdr{i}};
-	elseif ~checkfields(hdr{i},'PatientID','InstanceNumber'),
-            %elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+        elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
             disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
+            if ~isfield(hdr{i},'SeriesNumber')
+                disp('Setting SeriesNumber to 1');
+                hdr{i}.SeriesNumber=1;
+                images = {images{:},hdr{i}};
+            end;
+            if ~isfield(hdr{i},'AcquisitionNumber')
+                disp('Setting AcquisitionNumber to 1');
+                hdr{i}.AcquisitionNumber=1;
+                images = {images{:},hdr{i}};
+            end;
             if ~isfield(hdr{i},'InstanceNumber')
                 disp('Setting InstanceNumber to 1');
                 hdr{i}.InstanceNumber=1;
