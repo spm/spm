@@ -6,6 +6,10 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
 % Last Modified by GUIDE v2.5 21-Nov-2005 16:33:57
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Jeremie Mattout
+% $Id: spm_eeg_inv_imag_api.m 547 2006-06-07 12:23:17Z john $
 
 spm_defaults
 spm('Clear')
@@ -36,15 +40,15 @@ if ~nargin  % LAUNCH GUI
        
 elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
 
-	try
+% 	try
 		if nargout
 			[varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
 		else
 			feval(varargin{:}); % FEVAL switchyard
 		end
-	catch
-	    error(sprintf('Wrong input format\n'));
-	end
+% 	catch
+% 	    error(sprintf('Wrong input format\n'));
+% 	end
     
 else
     
@@ -135,7 +139,7 @@ function varargout = spm_eeg_inv_imag_api_OutputFcn(hObject, eventdata, handles)
 
 try
     D = get(handles.figure1,'UserData');
-    if spm_matlab_version_chk('7') >= 0
+    if spm_matlab_version_chk('7.1') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
       	save(fullfile(D.path, D.fname), 'D');
@@ -297,7 +301,7 @@ end
 if Meth
     D = spm_eeg_inv_forward_ui(D);
 else
-    D = spm_eeg_inv_fp_elec_Rsph_ui(D); 
+    D = spm_eeg_inv_elec_Rsph_ui(D); 
 end
 
 handles.D = D;
@@ -408,7 +412,7 @@ switch task
     case 'check datareg'
         spm_eeg_inv_checkdatareg(D);
     case 'visualisation'
-        return
+        spm_eeg_inv_visu3D(D);
     case 'delete analysis'
         spm_eeg_inv_deletefields(D);
 end

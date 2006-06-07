@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_datareg.m 547 2006-06-07 12:23:17Z john $
 
 spm_defaults
 
@@ -128,12 +128,20 @@ else
     if typ == 2
         headshape   = varargin{4};
         scalpvert   = varargin{5};
-        if nargin == 6
-            sens_or_file = varargin{6};
+        if strcmp(D.modality,'MEG')
+            if nargin == 7
+                sens_or_file = varargin{6};
+            else
+                sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+            end
         end
     else
-        if nargin == 4
-            sens_or_file = varargin{4};
+        if strcmp(D.modality,'MEG')
+            if nargin == 5
+                sens_or_file = varargin{4};
+            else
+                sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+            end
         end
     end
 end
@@ -171,7 +179,7 @@ fideegreg = (fideegreg + t1*ones(1,nfid))';
 if typ == 2    
     hspvar      = load(headshape);
     name        = fieldnames(hspvar);
-    hspvarloc   = getfield(hspvar,name{1});
+    hspvarloc   = getfield(hspvar,'vert');
     if size(hspvarloc,2) > size(hspvarloc,1)
         hspvarloc = hspvarloc';
     end
@@ -213,7 +221,7 @@ sensreg = Rot*sensloc';
 sensreg = (sensreg + Trans*ones(1,length(sensreg)))';
 
 % Update the MEG sensor orientation
-if exist(sens_or_file) == 2
+if exist('sens_or_file') == 1
     sensvar = load(sens_or_file);
     name    = fieldnames(sensvar);
     sensor  = getfield(sensvar,name{1});
@@ -223,13 +231,13 @@ if exist(sens_or_file) == 2
     [fpatho,fname,fext] = fileparts(sens_or_file);
     fname_or = [fname '_coreg.mat'];
     if nargout == 1
-        if spm_matlab_version_chk('7') >=0
+        if spm_matlab_version_chk('7.1') >=0
             save(fullfile(D.path, fname_or), '-V6', 'sensorreg');
         else
          	save(fullfile(D.path, fname_or), 'sensorreg');
         end
     else
-        if spm_matlab_version_chk('7') >=0
+        if spm_matlab_version_chk('7.1') >=0
             save(fullfile(fpatho, fname_or), '-V6', 'sensorreg');
         else
          	save(fullfile(fpatho, fname_or), 'sensorreg');
@@ -240,13 +248,13 @@ end
 [fpath1,fname,fext] = fileparts(fid_eeg);
 fname_fid = [fname '_coreg.mat'];
 if nargout == 1
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_fid), '-V6', 'fideegreg');
     else
      	save(fullfile(D.path, fname_fid), 'fideegreg');
     end
 else
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath1, fname_fid), '-V6', 'fideegreg');
     else
      	save(fullfile(fpath1, fname_fid), 'fideegreg');
@@ -256,13 +264,13 @@ end
 [fpath2,fname,fext] = fileparts(sensors_file);
 fname_sens = [fname '_coreg.mat'];
 if nargout == 1
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_sens), '-V6', 'sensreg');
     else
      	save(fullfile(D.path, fname_sens), 'sensreg');
     end
 else
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath2, fname_sens), '-V6', 'sensreg');
     else
      	save(fullfile(fpath2, fname_sens), 'sensreg');
@@ -271,13 +279,13 @@ end
 
 fname_transf = ['RegMat.mat'];
 if nargout == 1
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(D.path, fname_transf), '-V6', 'Rot', 'Trans');
     else
      	save(fullfile(D.path, fname_transf), 'Rot','Trans');
     end
 else
-    if spm_matlab_version_chk('7') >=0
+    if spm_matlab_version_chk('7.1') >=0
         save(fullfile(fpath1, fname_transf), '-V6', 'Rot', 'Trans');
     else
      	save(fullfile(fpath1, fname_transf), 'Rot','Trans');
@@ -288,13 +296,13 @@ if typ == 2
    [fpath3,fname,fext] = fileparts(headshape);
    fname_hsp = [fname '_coreg.mat'];
    if nargout == 1
-       if spm_matlab_version_chk('7') >=0
+       if spm_matlab_version_chk('7.1') >=0
            save(fullfile(D.path, fname_hsp), '-V6', 'data2reg');
        else
        	   save(fullfile(D.path, fname_transf), 'data2reg');
        end
    else
-       if spm_matlab_version_chk('7') >= 0
+       if spm_matlab_version_chk('7.1') >= 0
            save(fullfile(fpath3, fname_hsp), '-V6', 'data2reg');
        else
        	   save(fullfile(fpath3, fname_transf), 'data2reg');
@@ -303,14 +311,14 @@ if typ == 2
 end
 
 if nargout == 1     
-    D.inv{val}.datareg.fid_coreg     = fullfile(fpath1,fname_fid);
-    D.inv{val}.datareg.eeg2mri       = fullfile(fpath1,fname_transf);
-    D.inv{val}.datareg.sens_coreg    = fullfile(fpath2,fname_sens);   
+    D.inv{val}.datareg.fid_coreg     = fullfile(D.path,fname_fid);
+    D.inv{val}.datareg.eeg2mri       = fullfile(D.path,fname_transf);
+    D.inv{val}.datareg.sens_coreg    = fullfile(D.path,fname_sens);   
     if typ == 2
-        D.inv{val}.datareg.hsp_coreg     = fullfile(fpath3,fname_hsp);    
+        D.inv{val}.datareg.hsp_coreg     = fullfile(D.path,fname_hsp);    
     end
     if strcmp(D.modality,'MEG')
-        D.inv{val}.datareg.sens_orient_coreg    = fullfile(fpatho,fname_or);   
+        D.inv{val}.datareg.sens_orient_coreg    = fullfile(D.path,fname_or);   
     end
     save(fullfile(D.path, D.fname), 'D');
     varargout{1} = D;

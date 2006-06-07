@@ -14,7 +14,7 @@ function D = spm_eeg_inv_induced(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_induced.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_induced.m 547 2006-06-07 12:23:17Z john $
 
 
 if length(D.events.code) ~= D.Nevents
@@ -170,9 +170,11 @@ if D.inv{val}.inverse.activity == 'evoked & induced';
         % cross-energy in channel space
     K    = S*S'*W*W'*S*S';
     Eev  = Ye*K*Ye';
+    Eev  = diag(Eev);
 
         % cross-energy in source space
     Gev  = MAP*Eev*MAP' + C*trace(K*V);   
+    Gev  = diag(Gev);
 end
 
 
@@ -224,10 +226,12 @@ clear CpG GCpG Ce Cp
     % cross-energy in channel space
 K    = S*S'*W*W'*S*S';
 Eind = Yi*kron(speye(Ntrial),K)*Yi'/Ntrial;
+Eind = diag(Eind);
 clear Yi Ce Cp YY X
 
     % cross-energy in source space
 Gind = MAP*Eind*MAP' + C*trace(K*V);
+Gind = diag(Gind);
 
 
 % Save results
@@ -238,7 +242,7 @@ if strcmp(D.inv{val}.inverse.activity,'induced')
     Ntime         = clock;
     D.inv{val}.inverse.resfile = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced_' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
     D.inv{val}.inverse.LogEv   = Find;
-    if spm_matlab_version_chk('7') >=0
+    if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile), '-V6','Cind','hind','Phind','Find','Eind','Gind');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile),'Cind','hind','Phind','Find','Eind','Gind');
@@ -264,12 +268,14 @@ else
     Ntime         = clock;
     D.inv{val}.inverse.LogEv = [Fev Find];
     D.inv{val}.inverse.resfile{1} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_evoked' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
-    if spm_matlab_version_chk('7') >=0
+    if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}), '-V6','Cev','hev','Phev','Fev','Jev','Eev','Gev');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile{1}),'Cev','hev','Phev','Fev','Jev','Eev','Gev');
     end
-    spm_figure
+    clear Cev hev Phev Fev Jev Eev Gev
+    
+    % Temporary Visualization
     Rev = diag(Gev);
     load(D.inv{val}.mesh.tess_ctx);
     colormap jet
@@ -279,19 +285,18 @@ else
     shading interp
     colorbar
     title('Evoked Power');
-
-    clear Cev hev Phev Fev Jev Eev Gev
-    
-    % Temporary Visualization
-  
+    cameramenu
 
     
     D.inv{val}.inverse.resfile{2} = [nam '_remlmat_' num2str(woi(1)) '_' num2str(woi(2)) 'ms_induced' num2str(Ntime(4)) 'H' num2str(Ntime(5)) '.mat'];
-    if spm_matlab_version_chk('7') >=0
+    if str2num(version('-release'))>=14
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}), '-V6','Cind','hind','Phind','Find','Eind','Gind');
     else
         save(fullfile(pth,D.inv{val}.inverse.resfile{2}),'Cind','hind','Phind','Find','Eind','Gind');
-    end    
+    end
+    clear Cind hind Phind Find Eind Gind
+    
+    % Temporary Visualization
     spm_figure
     Rind = diag(Gind);
     axis off
@@ -300,15 +305,11 @@ else
     shading interp
     colorbar
     title('Induced Power');
-    colormap('jet')
-    clear Cind hind Phind Find Eind Gind
-    
-    % Temporary Visualization
-
+    cameramenu
 
 end
 
-if spm_matlab_version_chk('7') >= 0
+if str2num(version('-release'))>=14
     save(fullfile(D.path,D.fname), '-V6','D');
 else
     save(fullfile(D.path,D.fname),'D');

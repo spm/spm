@@ -70,7 +70,7 @@ if nargin==0
         D = spm_eeg_ldata
     end
 else
-    q_data = 1
+    q_data = 1;
 end
 
 if q_data==1
@@ -116,7 +116,11 @@ if q_data==1
         chan_to_rem = [chan_to_rem D.channels.Bad'];
     end
     if isfield(D.channels,'reference')
-        chan_to_rem = [chan_to_rem D.channels.reference];
+%%%% CHANGED BY RIK TO HANDLE BDF DATA WHERE REF=0
+        if D.channels.reference > 0
+    	 chan_to_rem = [chan_to_rem D.channels.reference];
+	end
+%%%%END
     end
     Use_chan(chan_to_rem) = []; % and possibly some other channels.
     

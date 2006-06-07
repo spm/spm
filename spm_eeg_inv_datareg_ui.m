@@ -13,7 +13,7 @@ function D = spm_eeg_inv_datareg_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_datareg_ui.m 547 2006-06-07 12:23:17Z john $
 
 spm_defaults
 
@@ -34,6 +34,8 @@ Rflag = spm_input('Registration type','+1','Landmarks|Surface',[1 2]);
 
 D = spm_eeg_inv_datareg(Rflag,D);
 
-spm_eeg_inv_checkdatareg(D);
+if strcmp(D.inv{end}.method,'Imaging')
+    spm_eeg_inv_checkdatareg(D);
+end
 
 return

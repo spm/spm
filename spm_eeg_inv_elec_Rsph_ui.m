@@ -79,7 +79,7 @@ model.flags.fl_elec = flags_el ;
 % the same as the order of the acquisition of the data
 % => use the data structure to give channels names.
 if length(D.channels.eeg)==model.electrodes.nr
-    model.electrodes.names = D.channels.name(D.channels.eeg)
+    model.electrodes.names = D.channels.name(D.channels.eeg);
 else
     spm('alert!',strvcat('Sorry different # of channels in data and sensors locations you provided',...
         'I''ll proceed but be aware there is a mismatch!'),'Channels problem');

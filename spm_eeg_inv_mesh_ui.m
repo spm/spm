@@ -14,7 +14,7 @@ function D = spm_eeg_inv_mesh_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 431 2006-02-06 16:51:03Z jeremie $
+% $Id: spm_eeg_inv_mesh_ui.m 547 2006-06-07 12:23:17Z john $
 
 spm_defaults
 
@@ -51,20 +51,17 @@ switch D.inv{end}.method
             D = spm_eeg_inv_copyfields(D,[1 0 0 0]);
         end
         [Pbin,Pinv_sn,kk,model] = spm_eeg_inv_model('Init',1);
-        [pth,nam,ext,num] = spm_fileparts(model.fname);
-        D.inv{end}.model = [nam,ext];
+        D.inv{end}.model = model.fname;
+    	D.inv{end}.mesh.sMRI = model.flags.fl_bin.Pimg;
+        D.inv{end}.mesh.msk_iskusll = Pbin(1,:);
+        D.inv{end}.mesh.msk_iscalp = Pbin(2,:);
+        D.inv{end}.mesh.invdef = Pinv_sn(1,:);
+
         [pth,namb,ext,num] = spm_fileparts(model.flags.fl_bin.Pimg);
-        D.inv{end}.mesh.sMRI = [namb,ext];
-        [pth,nam,ext,num] = spm_fileparts(Pbin(1,:));
-        D.inv{end}.mesh.msk_iskusll = [nam,ext];
-        [pth,nam,ext,num] = spm_fileparts(Pbin(2,:));
-        D.inv{end}.mesh.msk_iscalp = [nam,ext];
-        [pth,nam,ext,num] = spm_fileparts(Pinv_sn(1,:));
-        D.inv{end}.mesh.invdef = [nam,ext];
         f_scVert = fullfile(pth,[namb,'_scVert','.mat']);
         scVert = model.head(end).XYZmm';
         save(f_scVert,'scVert')
-        D.inv{end}.datareg.scalpvert = [namb,'_scVert','.mat'];
+        D.inv{end}.datareg.scalpvert = fullfile(pth, [namb,'_scVert','.mat']);
         
     otherwise
         error(sprintf('Trouble finding the method\n'));

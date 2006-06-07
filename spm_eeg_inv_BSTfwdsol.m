@@ -18,7 +18,7 @@ function D = spm_eeg_inv_BSTfwdsol(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_BSTfwdsol.m 547 2006-06-07 12:23:17Z john $
 
 spm_defaults
 
@@ -97,7 +97,8 @@ OPTIONS.Verbose = '0';
 
 
 % Head Geometry (create tesselation file)
-TessName = [nam '_tesselation.mat'];
+TessName = fullfile(pth, [nam '_tesselation.mat']);
+
 
 load(D.inv{val}.mesh.tess_ctx);
 % convert positions into m
@@ -171,12 +172,12 @@ if ~isempty(D.inv{val}.mesh.tess_scalp)
 end
 clear vert face norm;
 
-D.inv{val}.forward.bst_tess = fullfile(pth,TessName);
-if spm_matlab_version_chk('7') >=0
-    save(fullfile(pth,TessName),'-V6','Comment','Curvature','Faces','VertConn','Vertices');
-else
-    save(fullfile(pth,TessName),'Comment','Curvature','Faces','VertConn','Vertices');
 
+D.inv{val}.forward.bst_tess = TessName;
+if spm_matlab_version_chk('7.1')>=0
+    save(D.inv{val}.forward.bst_tess,'-V6','Comment','Curvature','Faces','VertConn','Vertices');
+else
+    save(D.inv{val}.forward.bst_tess,'Comment','Curvature','Faces','VertConn','Vertices');
 end
 
 % Sensor Information
@@ -189,6 +190,9 @@ else
 end
 FldName             = fieldnames(ChannelLoc); 
 sens                = getfield(ChannelLoc,FldName{1})';
+if length(sens) ~= size(sens,2) & length(sens) > 3
+    sens = sens';
+end
 % convert positions into m
 if max(max(sens)) > 1 % non m
      if max(max(sens)) < 20 % cm
@@ -205,14 +209,14 @@ if (D.modality == 'MEG')
     ChannelOrient = load(D.inv{val}.datareg.sens_orient);
     if ~isempty(ChannelOrient)
         FldName       = fieldnames(ChannelOrient); 
-        orient        = getfield(ChannelOrient,FldName{1})';
+        orientation   = getfield(ChannelOrient,FldName{1})';
     end
 end
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
     Channel(i).Loc = sens(:,i);
-    if exist('orient')
-        Channel(i).Orient = orient(:,i);
+    if exist('orientation') == 1
+        Channel(i).Orient = orientation(:,i);
     else
         Channel(i).Orient = [];
     end
@@ -276,21 +280,20 @@ OPTIONS.GridLoc       = [];
 D.inv{val}.forward.bst_options = OPTIONS;
 D.inv{val}.forward.gainmat     = fullfile(pth,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
 D.inv{val}.forward.pcagain     = fullfile(pth,[nam '_SPMgainmatrix_pca_' num2str(val) '.mat']);
-if spm_matlab_version_chk('7') >=0
+if spm_matlab_version_chk('7.1') >=0
     save(D.inv{val}.forward.gainmat,'-V6','G');
 else
     save(D.inv{val}.forward.gainmat,'G');
 end
-if spm_matlab_version_chk('7') >=0
+if spm_matlab_version_chk('7.1') >=0
     save(D.inv{val}.forward.pcagain,'-V6','Gnorm','VectP','ValP');
 else
     save(D.inv{val}.forward.pcagain,'Gnorm','VectP','ValP');
 end
 clear G Gnorm VectP ValP
 
-
-if spm_matlab_version_chk('7') >= 0
-	save(fullfile(pth, D.fname), '-V6', 'D');
+if spm_matlab_version_chk('7.1') >= 0
+	save(fullfile(D.path, D.fname), '-V6', 'D');
 else
-	save(fullfile(pth, D.fname), 'D');
+	save(fullfile(D.path, D.fname), 'D');
 end
