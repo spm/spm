@@ -4,7 +4,7 @@ function opts = spm_config_movefile
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id: spm_config_movefile.m 544 2006-05-30 12:23:29Z volkmar $
+% $Id: spm_config_movefile.m 549 2006-06-07 12:37:29Z volkmar $
 
 %_______________________________________________________________________
 
@@ -43,15 +43,11 @@ opts.help = {[...
 function my_movefile(varargin)
 job = varargin{1};
 for k = 1:numel(job.srcfiles)
-    [p n e v] = fileparts(job.srcfiles{k});
+    [p n e v] = spm_fileparts(job.srcfiles{k});
     if strncmp(e,'.img',4)||strncmp(e,'.nii',4)
-        vi = strfind(e,',');
-        if ~isempty(vi)
-            e=e(1:vi-1);
-        end;
-        try_movefile(fullfile(p,[n e v]),job.targetdir{1});
-        try_movefile(fullfile(p,[n '.mat' v]),job.targetdir{1});
-        try_movefile(fullfile(p,[n '.hdr' v]),job.targetdir{1});
+        try_movefile(fullfile(p,[n e]),job.targetdir{1});
+        try_movefile(fullfile(p,[n '.mat']),job.targetdir{1});
+        try_movefile(fullfile(p,[n '.hdr']),job.targetdir{1});
     else
         try_movefile(job.srcfiles{k},job.targetdir{1});
     end;
