@@ -46,7 +46,7 @@
 function treelist(varargin)
   defflags = struct('dval',0, 'exps',0, 'fid',1, 'fname','');
   if isstruct(varargin{end})
-    flags = checkfields(defflags,varargin{end});
+    flags = fillstruct(defflags,varargin{end});
     nvars = nargin-1;
   else
     flags = defflags;
@@ -269,7 +269,7 @@ function funcstr = get_index_func(dt,varargin)
 
 defflags = struct('indname','ind', 'runname','m', 'subsname','msubstr');
 if nargin > 1
-        flags = checkfields(defflags,varargin{2});
+        flags = fillstruct(defflags,varargin{1});
 else
         flags = defflags;
 end;
