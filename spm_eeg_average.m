@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 540 2006-05-23 14:01:40Z james $
+% $Id: spm_eeg_average.m 555 2006-06-19 17:23:39Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -161,7 +161,8 @@ D.data = [];
 D.events.reject = zeros(1, D.Nevents);
 D.events.blinks = zeros(1, D.Nevents);
 if isfield(D, 'weights');
-    rmfield(D, 'weights');
+    D.weights=[];
+    D=rmfield(D, 'weights');
 end
 D.fname = ['m' D.fname];
 
