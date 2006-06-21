@@ -406,8 +406,8 @@ case 'addfile'
                         ones(1, prod(st.vols{volhandle}.roi.Vroi.dim(1:3)))];
     msk = zeros(1,prod(st.vols{volhandle}.roi.Vroi.dim(1:3)));
     for k = 1:numel(V)
-        xyzvx = inv(V.mat)*xyzmm;
-        msk = msk | spm_sample_vol(V, xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
+        xyzvx = inv(V(k).mat)*xyzmm;
+        msk = msk | spm_sample_vol(V(k), xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
     end;
     [tochange(1,:) tochange(2,:) tochange(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),find(msk));
     clear xyzmm xyzvx msk
