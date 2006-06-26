@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_config_factorial_design.m 558 2006-06-26 08:40:24Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1140,7 +1140,7 @@ case 'fblock',
             
         end
         
-        % Re-order scans and conditions into standard format
+        % Re-order scans conditions and covariates into standard format
         % This is to ensure compatibility with how variance components are created
         if subject_factor
             U=unique(I(:,2:nf+1),'rows');
@@ -1160,6 +1160,9 @@ case 'fblock',
             end
             P=P(rj); % -scans
             I=Ir;    % -conditions
+            for k=1:numel(job.cov) % -covariates
+                job.cov(k).c = job.cov(k).c(rj);
+            end;
         end
         
     else
