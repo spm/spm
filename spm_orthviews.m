@@ -107,7 +107,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 548 2006-06-07 12:36:37Z volkmar $
+% $Id: spm_orthviews.m 560 2006-06-28 11:21:40Z volkmar $
 
 
 
@@ -1483,7 +1483,10 @@ case 'image_info',
 		current_handle = varargin{3};
 	end;
 	if isfield(st.vols{current_handle},'fname'),
-		[p,n,e,v] = fileparts(st.vols{current_handle}.fname);
+		[p,n,e,v] = spm_fileparts(st.vols{current_handle}.fname);
+                if isfield(st.vols{current_handle},'n')
+                    v = sprintf(',%d',st.vols{current_handle}.n);
+                end;
 		set(varargin{2}, 'Label',[n e v]);
 	end;
 	delete(get(varargin{2},'children'));
