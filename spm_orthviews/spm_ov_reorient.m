@@ -153,7 +153,7 @@ switch cmd
     qu=questdlg({'Image positions are changed!', ...
 		 'To make sure images are displayed correctly, it is recommended to quit and restart spm_orthviews now.', ... 
 		 'Do you want to quit?'},'Reorient done','Yes','No','Yes');
-    if qu == 'Yes'
+    if strcmp(lower(qu), 'yes')
       spm_orthviews('reset');
       return;
     end;
