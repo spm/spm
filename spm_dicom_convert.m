@@ -1,6 +1,6 @@
-function spm_dicom_convert(hdr,opts,root_dir)
+function spm_dicom_convert(hdr,opts,root_dir,format)
 % Convert DICOM images into something that SPM can use
-% FORMAT spm_dicom_convert(hdr,opts)
+% FORMAT spm_dicom_convert(hdr,opts,root_dir,format)
 % hdr  - a cell array of DICOM headers from spm_dicom_headers
 % opts - options
 %        'all'      - all DICOM files (default)
@@ -17,41 +17,47 @@ function spm_dicom_convert(hdr,opts,root_dir)
 %            'patid'         - Place files under ./<PatID>
 %            'patid_date'    - Place files under ./<PatID-StudyDate>
 %            'name'          - Place files under ./<PatName>
+% format - output format 
+%          'img' Two file (hdr+img) NIfTI format
+%          'nii' Single file NIfTI format
+%                All images will contain a single 3D dataset, 4D images
+%                will not be created.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 550 2006-06-07 12:38:50Z volkmar $
+% $Id: spm_dicom_convert.m 564 2006-06-29 15:33:34Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
 if nargin<3, root_dir='flat';end;
+if nargin<4, format='img';end;
 
 [images,guff]     = select_tomographic_images(hdr);
 [spect,images]    = select_spectroscopy_images(images);
 [mosaic,standard] = select_mosaic_images(images);
 
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic),
-	convert_mosaic(mosaic,root_dir);
+	convert_mosaic(mosaic,root_dir,format);
 end;
 if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard),
-	convert_standard(standard,root_dir);
+	convert_standard(standard,root_dir,format);
 end;
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect),
-	convert_spectroscopy(spect,root_dir);
+	convert_spectroscopy(spect,root_dir,format);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_mosaic(hdr,root_dir)
+function convert_mosaic(hdr,root_dir,format)
 spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
 for i=1:length(hdr),
 
 	% Output filename
 	%-------------------------------------------------------------------
-        fname = getfilelocation(hdr{i},root_dir,'f');
+        fname = getfilelocation(hdr{i},root_dir,'f',format);
 	
 	% Image dimensions and data
 	%-------------------------------------------------------------------
@@ -196,10 +202,10 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_standard(hdr,root_dir)
+function convert_standard(hdr,root_dir,format)
 hdr = sort_into_volumes(hdr);
 for i=1:length(hdr),
-	write_volume(hdr{i},root_dir);
+	write_volume(hdr{i},root_dir,format);
 end;
 return;
 %_______________________________________________________________________
@@ -451,11 +457,11 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function write_volume(hdr,root_dir)
+function write_volume(hdr,root_dir,format)
 
 % Output filename
 %-------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir,'s');
+fname = getfilelocation(hdr{1}, root_dir,'s',format);
 
 % Image dimensions
 %-------------------------------------------------------------------
@@ -579,19 +585,19 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_spectroscopy(hdr,root_dir)
+function convert_spectroscopy(hdr,root_dir,format)
 
 for i=1:length(hdr),
-	write_spectroscopy_volume(hdr(i),root_dir);
+	write_spectroscopy_volume(hdr(i),root_dir,format);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function write_spectroscopy_volume(hdr,root_dir)
+function write_spectroscopy_volume(hdr,root_dir,format)
 % Output filename
 %-------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir);
+fname = getfilelocation(hdr{1}, root_dir,'S',format);
 
 % Image dimensions
 %-------------------------------------------------------------------
@@ -928,7 +934,7 @@ return;
 
 %_______________________________________________________________________
 
-function fname = getfilelocation(hdr,root_dir,prefix)
+function fname = getfilelocation(hdr,root_dir,prefix,format)
 
 if nargin < 3
     prefix = 'f';
@@ -938,15 +944,17 @@ if strcmp(root_dir, 'flat')
     %-------------------------------------------------------------------
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.img', prefix, strip_unwanted(hdr.PatientID),...
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.%s', prefix, strip_unwanted(hdr.PatientID),...
                             hdr.SeriesNumber, hdr.AcquisitionNumber, hdr.InstanceNumber,...
-                            hdr.EchoNumbers);
+                            hdr.EchoNumbers, format);
         else
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d.img', prefix, strip_unwanted(hdr.PatientID),...
-                            hdr.SeriesNumber, hdr.AcquisitionNumber, hdr.InstanceNumber);
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d.%s', prefix, strip_unwanted(hdr.PatientID),...
+                            hdr.SeriesNumber, hdr.AcquisitionNumber, ...
+                            hdr.InstanceNumber, format);
         end;
     else
-        fname = sprintf('%s%s-%.6d.img',prefix,strip_unwanted(hdr.PatientID),hdr.InstanceNumber);
+        fname = sprintf('%s%s-%.6d.%s',prefix, ...
+                        strip_unwanted(hdr.PatientID),hdr.InstanceNumber, format);
     end;
     
     fname = fullfile(pwd,fname);
@@ -996,13 +1004,13 @@ end;
 
 switch root_dir
 case 'date_time',
-    fname = sprintf('%s%s-%.5d-%.5d-%d.img', prefix, studydate, ...
+    fname = sprintf('%s%s-%.5d-%.5d-%d.%s', prefix, studydate, ...
                     hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-                    hdr.EchoNumbers);
+                    hdr.EchoNumbers,format);
 case {'patid', 'patid_date', 'patname'},
-    fname = sprintf('%s%s-%.5d-%.5d-%d.img', prefix, strip_unwanted(hdr.PatientID), ...
+    fname = sprintf('%s%s-%.5d-%.5d-%d.%s', prefix, strip_unwanted(hdr.PatientID), ...
                     hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-                    hdr.EchoNumbers);
+                    hdr.EchoNumbers,format);
 end;
 
 fname = fullfile(dname, fname);
