@@ -140,7 +140,7 @@ switch cmd
   
  case 'apply'
   [p n e v] = fileparts(st.vols{volhandle}.fname);
-  P = cellstr{spm_select(Inf, 'image', {'Image(s) to reorient'}, '', p)};
+  P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, '', p));
   if ~isempty(P)
     spm_progress_bar('Init', numel(P), 'Reorient', 'Images completed');
     for k = 1:numel(P)
