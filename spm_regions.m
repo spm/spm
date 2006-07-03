@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_regions.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_regions.m 567 2006-07-03 14:33:08Z volkmar $
 
 
 
@@ -75,6 +75,8 @@ catch
 		      spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
 	xY.xyz  = xyz;
 end
+
+posstr = sprintf('at [%3.0f %3.0f %3.0f]',xyz);
 
 % and update GUI location
 %-----------------------------------------------------------------------
@@ -159,7 +161,8 @@ switch xY.def
 	tmpQ = spm_sample_vol(xY.spec,mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0);
 	tmpQ(~isfinite(tmpQ)) = 0;
 	Q = find(tmpQ);
-	
+	posstr = sprintf('in mask %s', xY.spec.fname);
+        
 	case 'cluster'
 	%---------------------------------------------------------------
 	[x i] = spm_XYZreg('NearestXYZ',xyz,xSPM.XYZmm);
@@ -276,8 +279,8 @@ catch
 end
 title(['1st eigenvariate: ' xY.name],'FontSize',10)
 str = {	str;' ';sprintf(...
-		'%d voxels in VOI at [%3.0f %3.0f %3.0f]',...
-		length(Q),xyz);sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
+		'%d voxels in VOI %s',...
+		length(Q),posstr);sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
 xlabel(str)
 axis tight square
 
