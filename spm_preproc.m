@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 510 2006-05-04 11:03:11Z john $
+% $Id: spm_preproc.m 570 2006-07-05 14:29:24Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -34,7 +34,7 @@ opts0.biasfwhm = 75;
 opts0.regtype  = 'mni';
 opts0.fudge    = 5;
 opts0.samp     = 3;
-opts0.msk      = '';% <<<<<===================================
+opts0.msk      = '';
 
 if nargin==0
     V = spm_select(1,'image');
@@ -130,7 +130,6 @@ f = zeros(d);
 for z=1:length(z0),
     f(:,:,z) = spm_sample_vol(V,x0,y0,o*z0(z),0);
 end;
-
 [thresh,mx]  = spm_minmax(f);
 mn           = zeros(K,1);
 rand('state',0); % give same results each time
@@ -147,10 +146,22 @@ if ~isempty(opts.msk),
         error('Mask must have the same dimensions and orientation as the image.');
     end;
 end;
-nm = 0;
+
+Affine  = eye(4);
+if ~isempty(opts.regtype),
+    Affine  = spm_maff(V,{x0,y0,z0},b0,B(1).mat,Affine,opts.regtype,ff*100);
+    Affine  = spm_maff(V,{x0,y0,z0},b0,B(1).mat,Affine,opts.regtype,ff);
+end;
+M       = B(1).mat\Affine*V(1).mat;
+
+nm      = 0;
 for z=1:length(z0),
+    x1  = M(1,1)*x0 + M(1,2)*y0 + (M(1,3)*z0(z) + M(1,4));
+    y1  = M(2,1)*x0 + M(2,2)*y0 + (M(2,3)*z0(z) + M(2,4));
+    z1  = M(3,1)*x0 + M(3,2)*y0 + (M(3,3)*z0(z) + M(3,4));
+    buf(z).msk = spm_sample_priors(b0{end},x1,y1,z1,1)<(1-1/512);
     fz         = f(:,:,z);
-    buf(z).msk = fz>thresh;
+    %buf(z).msk = fz>thresh;
     if ~isempty(opts.msk),
         msk = spm_sample_vol(VM,x0,y0,o*z0(z),0);
         buf(z).msk = buf(z).msk & msk;
@@ -165,18 +176,6 @@ for z=1:length(z0),
     end;
 end;
 clear f
-
-for z=1:length(z0),
-    %buf(z).g  = uint8(round((double(buf(z).f)-thresh)*(255/(mx-thresh))));
-    buf(z).g   = uint8(max(min(round(double(buf(z).f)*(255/mx)),255),0));
-end;
-Affine  = eye(4);
-if ~isempty(opts.regtype),
-    Affine  = spm_maff(buf,{x0,y0,z0},b0,V(1).mat,B(1).mat,Affine,opts.regtype,ff*100);
-    Affine  = spm_maff(buf,{x0,y0,z0},b0,V(1).mat,B(1).mat,Affine,opts.regtype,ff);
-end;
-M       = B(1).mat\Affine*V(1).mat;
-buf     = rmfield(buf,'g');
 
 finalit = 0;
 
@@ -531,7 +530,7 @@ results.Tbias  = Tbias;
 results.mg     = mg;
 results.mn     = mn;
 results.vr     = vr;
-results.thresh = thresh;
+results.thresh = 0; %thresh;
 results.ll     = ll;
 return;
 %=======================================================================
