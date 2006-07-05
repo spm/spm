@@ -21,7 +21,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,OPT);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 456 2006-02-22 18:46:29Z karl $
+% $Id: spm_reml.m 569 2006-07-05 11:58:36Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -43,12 +43,13 @@ end
 %--------------------------------------------------------------------------
 if isempty(X)
     X = sparse(length(Q{1}),1);
+else
+    X = orth(full(X));
 end
-X     = orth(full(X));
-[n p] = size(X);
 
 % initialise h
 %--------------------------------------------------------------------------
+n     = length(Q{1});
 m     = length(Q);
 h     = zeros(m,1);
 dh    = zeros(m,1);
@@ -59,14 +60,14 @@ dFdhh = zeros(m,m);
 % initialise and specify hyperpriors
 %--------------------------------------------------------------------------
 if OPT
-    hP  = eye(m,m)/32;
-    hE  = h - 32;
     for i = 1:m
         h(i) = -log(normest(Q{i}));
     end
+    hE  = h - 16;
+    hP  = eye(m,m)/32;
 else
     hE  = zeros(m,1);
-    hP  = zeros(m,m);
+    hP  = speye(m,m)/exp(32);
     for i = 1:m
         h(i) = any(diag(Q{i}));
     end
@@ -129,7 +130,8 @@ for k = 1:64
 
     % add hyperpriors
     %----------------------------------------------------------------------
-    dFdh  = dFdh  - hP*(h - hE);
+    e     = h - hE;
+    dFdh  = dFdh  - hP*e;
     dFdhh = dFdhh - hP;
     
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
@@ -156,8 +158,9 @@ end
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 if nargout > 3
-
+    
     F = - trace(C*P*YY*P)/2 ...
+        - e'*hP*e/2 ...
         - N*n*log(2*pi)/2 ...
         - N*spm_logdet(C)/2 ...
         + N*spm_logdet(Cq)/2 ...
