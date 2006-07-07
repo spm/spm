@@ -548,6 +548,7 @@ case 'genbin'
     jobs{1}.spatial{1}.preproc.output.GM = [0 0 1];
     jobs{1}.spatial{1}.preproc.output.WM = [0 0 1];
     jobs{1}.spatial{1}.preproc.output.CSF = [0 0 1];
+    jobs{1}.spatial{1}.preproc.output.cleanup = 0;
 
     res = spm_preproc(Pvol);
     [sn,isn] = spm_prep2sn(res);
