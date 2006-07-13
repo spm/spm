@@ -3,7 +3,7 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 24-Oct-2005 11:46:40
+% Last Modified by GUIDE v2.5 06-Jul-2006 19:12:58
 
 if nargin == 0  % LAUNCH GUI
 
@@ -119,6 +119,7 @@ DCM = handles.DCM;
 
 if p ~=0
     f     = fullfile(p,f);
+    DCM.M.Dfile = f;
     D = spm_eeg_ldata(f);
 else, return, end
 
@@ -219,7 +220,8 @@ n = size(handles.DCM.L,2);    % number of sources
 m = size(handles.DCM.U.X,2);  % number of inputs
 
 % put onset here (later: enable user to change this using GUI)
-handles.DCM.M.onset = 15;
+% handles.DCM.M.onset = 15;
+handles.DCM.M.onset = str2num(get(handles.onset, 'String'));
 
 % reset connection buttons
 %---------------------------------------------------------------------
@@ -352,6 +354,7 @@ if p ~= 0
     DCM.M.Spatial_type = DCM.options.Spatial_type; % store for use as switch in spm_gx_erp
     DCM.options.Nmodes = get(handles.Nmodes, 'Value');
     DCM.options.h = get(handles.h, 'Value')-1;
+    DCM.M.onset = str2num(get(handles.onset, 'String'));
 
     handles.DCM = DCM;
 
@@ -393,6 +396,10 @@ try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2))); end
 try, set(handles.Spatial_type, 'Value', DCM.options.Spatial_type); end
 try, set(handles.Nmodes, 'Value', DCM.options.Nmodes); end
 try, set(handles.h, 'Value', DCM.options.h+1); end
+try, set(handles.onset, 'String', num2str(DCM.M.onset)); end
+
+% bad bad bad code, replace by better
+try, set(handles.Vlocation, 'String', num2str(DCM.M.dipfit.L.Vpos(1,1))); end
 
 handles.DCM = DCM;
 guidata(h, handles);
@@ -876,7 +883,7 @@ if Spatial_type == 1 || Spatial_type == 2
 % 
 %     Slocations = inv(M)*[Slocations ones(Nareas, 1)]';
 %     DCM.M.dipfit.L.pos = Slocations(1:3,:);
-    DCM.M.dipfit.L.pos = Slocations;
+    DCM.M.dipfit.L.pos = Slocations';
 
     % zero prior mean on dipole orientation
     DCM.M.dipfit.L.mom = zeros(3,Nareas);
@@ -885,7 +892,8 @@ if Spatial_type == 1 || Spatial_type == 2
     DCM.M.dipfit.L.K = ones(Nareas, 1);
 
     % tight priors on location, broad priors on moments
-    DCM.M.dipfit.L.Vpos = [8*ones(3, Nareas)];
+%     DCM.M.dipfit.L.Vpos = [8*ones(3, Nareas)];
+    DCM.M.dipfit.L.Vpos = str2num(get(handles.Vlocation, 'String'))*ones(3, Nareas);
     DCM.M.dipfit.L.Vmom = [8*ones(3, Nareas)];
 
     % prior precision on K is a bit redundant because there is already broad
@@ -908,6 +916,7 @@ set(handles.spatial_ok, 'Enable', 'off');
 set(handles.Sname, 'Enable', 'off');
 set(handles.Slocation, 'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
+set(handles.Vlocation, 'Enable', 'off');
 
 set(handles.connections, 'Enable', 'on');
 set(handles.connectivity_back, 'Enable', 'on');
@@ -1001,24 +1010,29 @@ if get(handles.Spatial_type, 'Value') == 1
     set(handles.L, 'Enable', 'off');
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation, 'Enable', 'on');
+    set(handles.Vlocation, 'Enable', 'on');
 elseif get(handles.Spatial_type, 'Value') == 2
     % ECD MEG
     set(handles.sensorfile, 'Enable', 'off');
     set(handles.L, 'Enable', 'off');    
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation, 'Enable', 'on');    
+    set(handles.Vlocation, 'Enable', 'on');
+
 else
     % fixed
     set(handles.sensorfile, 'Enable', 'off');
     set(handles.L, 'Enable', 'on');    
     set(handles.plot_dipoles, 'Enable', 'off');
     set(handles.Slocation, 'Enable', 'off');
+    set(handles.Vlocation, 'Enable', 'off');
 end
 
 set(handles.spatial_ok, 'Enable', 'on');
 set(handles.Sname, 'Enable', 'on');
 set(handles.Slocation, 'Enable', 'on');
 set(handles.spatial_back, 'Enable', 'on');
+set(handles.Vlocation, 'Enable', 'on');
 
 
 guidata(hObject, handles);
@@ -1051,6 +1065,7 @@ set(handles.Sname, 'Enable', 'off');
 set(handles.Slocation, 'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
 set(handles.plot_dipoles, 'Enable', 'off');
+set(handles.Vlocation, 'Enable', 'off');
 
 guidata(hObject, handles);
 
@@ -1121,6 +1136,7 @@ set(handles.spatial_ok, 'Enable', 'on');
 set(handles.Sname, 'Enable', 'on');
 set(handles.Slocation, 'Enable', 'on');
 set(handles.spatial_back, 'Enable', 'on');
+set(handles.Vlocation, 'Enable', 'on');
 
 set(handles.connections, 'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
@@ -1190,3 +1206,74 @@ sdip.j{1} = zeros(3*Nlocations, 1);
 sdip.loc{1} = Slocations;
 
 spm_eeg_inv_ecd_DrawDip('Init', sdip)
+
+
+
+function onset_Callback(hObject, eventdata, handles)
+% hObject    handle to onset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of onset as text
+%        str2double(get(hObject,'String')) returns contents of onset as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function onset_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to onset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit16_Callback(hObject, eventdata, handles)
+% hObject    handle to edit16 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit16 as text
+%        str2double(get(hObject,'String')) returns contents of edit16 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit16_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit16 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Vlocation_Callback(hObject, eventdata, handles)
+% hObject    handle to Vlocation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Vlocation as text
+%        str2double(get(hObject,'String')) returns contents of Vlocation as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Vlocation_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Vlocation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+

@@ -40,7 +40,7 @@ else
     if M.Spatial_type == 3
         
         % fixed lead field
-        y = P.L*(x(:,9).*P.K);
+        y = M.S'*P.L*(x(:,9).*P.K);
         
     elseif M.Spatial_type == 1
         % parameterised lead field ECD/EEG
@@ -52,15 +52,29 @@ else
         Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
 
         if ~isempty(Id)
+            % store new parameters
+            M.Lpos = P.Lpos;
+            M.Lmom = P.Lmom;
+            
+            % note that in all DCM code, EEG coordinates are in MNI
+            % space-orientation. Transform here to fieldtrip.
+
+            % transformation matrix from MNI-oriented coordinate system
+            % to fieldtrip
+            iMt = [[0 1 0 20]; [-1 0 0 0]; [0 0 1 10]; [0 0 0 1]];
+            iSt = [[0 1 0 0]; [-1 0 0 0]; [0 0 1 0]; [0 0 0 1]];
+            P.Lpos = iMt*[P.Lpos; ones(1, size(P.Lpos, 2))];
+            P.Lmom = iSt*[P.Lmom; ones(1, size(P.Lmom, 2))];
+            P.Lpos = P.Lpos(1:3, :); P.Lmom = P.Lmom(1:3, :);
+
             for i = Id
+                
                 Lf = fieldtrip_eeg_leadfield4(P.Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
                 L(:,i) = M.E*Lf*P.Lmom(:,i);
             end
 
-            % store new leadfield and parameters
+            % store new leadfield
             M.L = L;
-            M.Lpos = P.Lpos;
-            M.Lmom = P.Lmom;
         end
 
 

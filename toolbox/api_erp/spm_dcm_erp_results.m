@@ -53,7 +53,12 @@ case{lower('ERPs (channel)')}
     %--------------------------------------------------------------------
     co = {'b', 'r'};
     lo = {'-', '--'};
-    T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
+    
+    try
+        T = DCM.Y.Time;
+    catch
+        T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
+    end
     for i = 1:nc
         subplot(ceil(nc/2),2,i), hold on
         str   = {};
@@ -243,13 +248,15 @@ case{lower('Response')}
     xY    = DCM.Y;
     n     = length(xY.xy);
     try
-        dt = xY.dt;
+        t = xY.Time;
     catch
-        dt = 1;
+        % some old DCM files might not have correct peri-stimulus time
+        t = xY.dt*[1:n];
     end
+    
     for i = 1:n
         subplot(n,1,i)
-        plot([1:size(xY.xy{i},1)]*dt,xY.xy{i})
+        plot(xY.Time,xY.xy{i})
         xlabel('time (ms)')
         title(sprintf('ERP %i',i))
         axis square, grid on
@@ -258,7 +265,7 @@ case{lower('Response')}
 case{lower('Dipoles')}
     
     if DCM.options.Spatial_type ~= 3
-        P = spm_erp_pack(DCM.Ep,DCM.M.m, DCM.M.Nareas);
+        P = DCM.Qp;
 
 % code for using EEGLab function
 %         clear mod
@@ -276,20 +283,14 @@ case{lower('Dipoles')}
         sdip.n_seeds = 1;
         sdip.n_dip = DCM.M.Nareas;
         sdip.Mtb = 1;
-        sdip.j{1} = P.Lmom.*repmat(P.K', 3, 1);
-        St = [[0 -1 0 0]; [1 0 0 0]; [0 0 1 0]; [0 0 0 1]];
-        sdip.j{1} = St*[sdip.j{1}; ones(1, DCM.M.Nareas)];
-        sdip.j{1} = sdip.j{1}(1:3, :);
-        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
+        sdip.j{1} = full(P.Lmom).*repmat(P.K', 3, 1);
+%        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
         sdip.j{1} = sdip.j{1}(:);
-        sdip.loc{1} = P.Lpos;
+        sdip.loc{1} = full(P.Lpos);
 
-        % transformation matrix from dip to MNI
-        Mt = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
-        sdip.loc{1} = Mt * [P.Lpos; ones(1, DCM.M.Nareas)];
-        sdip.loc{1} = sdip.loc{1}(1:3,:);
 
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     end
-    
+    case{lower('spatial stuff')}
+        spm_dcm_erp_viewspatial(DCM)
 end
