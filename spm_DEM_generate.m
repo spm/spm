@@ -80,9 +80,9 @@ DEM.pH.h = {M.h};
  
 % remove true values from M
 %--------------------------------------------------------------------------
-M         = rmfield(M,'P');
-M         = rmfield(M,'h');
-DEM.M     = M;
+M        = rmfield(M,'P');
+M        = rmfield(M,'h');
+DEM.M    = M;
  
 
 

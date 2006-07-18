@@ -102,8 +102,8 @@ TOL  = 1e-3;
 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
-d    = M(1).E.d;                       % truncation order of q(x,v)
-n    = M(1).E.n;                       % truncation order of e (n >= d)
+d    = M(1).E.d;                       % truncation order of q(v)
+n    = M(1).E.n;                       % truncation order of q(x) (n >= d)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
 
 % number of states and parameters
@@ -222,8 +222,18 @@ qb    = sparse(nn,1 );
 for i = 1:nl
     dedbi{i,1} = sparse(M(i).l,nn);
 end
- 
- 
+for i = 1:nl - 1
+    dndbi{i,1} = sparse(M(i).n,nn);
+end
+for i = 1:n
+    dEdb{i,1}  = spm_cat(dedbi);
+end
+for i = 1:n
+    dNdb{i,1}  = spm_cat(dndbi);
+end
+dEdb  = [dEdb; dNdb];
+
+
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
 %==========================================================================
 qu.x      = cell(n + 1,1);
@@ -370,7 +380,7 @@ for iI = 1:nI
                 
                 % save states at qu(t)
                 %----------------------------------------------------------
-                if iD == nD
+                if iD == 1
                     qE{iY} = E;
                     qU(iY) = qu; 
                 end
@@ -467,7 +477,9 @@ for iI = 1:nI
         
                 % D-Step: break if convergence (for static models)
                 %----------------------------------------------------------
-                if ~nx, qU(iY) = qu; end
+                if ~nx
+                    qU(iY) = qu; 
+                end
                 if ~nx && ((dFdu'*du < 1e-2) | (norm(du,1) < TOL))
                     break
                 end

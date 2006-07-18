@@ -294,11 +294,11 @@ end
 %--------------------------------------------------------------------------
 try, M.hC; catch
     
-    % Assume fixed parameters
+    % Assume flat hyperpriors
     %----------------------------------------------------------------------
     for i = 1:(g - 1)
         h       = length(M(i).hE);
-        M(i).hC = speye(h,h)*16;
+        M(i).hC = speye(h,h)*32;
     end
 end
 
@@ -319,8 +319,8 @@ try, M.W; catch, M(1).W = []; end
 %--------------------------------------------------------------------------
 try, M.gE; catch
     for i = 1:g - 1
-        if M(i).n > 1 && length(M(i).W) < 1
-            M(i).gE = 1;
+        if length(M(i).R)
+            M(i).gE = zeros(length(M(i).R),1);
         else
             M(i).gE = [];  
         end
@@ -364,14 +364,18 @@ end
 % check W (expansion point for covariances) and hyperparameters
 %--------------------------------------------------------------------------
 for i = 1:g - 1
- 
-    % check W and assume W = 0 if improperly specified
+
+    % check W and assume high precision if not specified
     %----------------------------------------------------------------------
     if length(M(i).W) ~= M(i).n
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
         catch
-            M(i).W = sparse(M(i).n,M(i).n);
+            if length(M(i).gE)
+                M(i).W = sparse(M(i).n,M(i).n);
+            else
+                M(i).W = speye(M(i).n,M(i).n)*exp(8);
+            end
         end
     end
 end
