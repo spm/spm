@@ -1,5 +1,5 @@
 /*
- * $Id: spm_project.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_project.c 574 2006-07-25 17:59:36Z john $
  */
  
 /*
@@ -27,7 +27,7 @@ spm_project.c
 #include <math.h>
 #include <stdio.h>
 #include "mex.h"
-
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 #define	MAX(A, B)	((A) > (B) ? (A) : (B))
 #define	MIN(A, B)	((A) < (B) ? (A) : (B))
 
@@ -79,9 +79,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		/* go though point list */
 		for (i = 0; i < n; i++)
 		{
-			x = (int)rint(l[i*3 + 0]) + CX;
-			y = (int)rint(l[i*3 + 1]) + CY;
-			z = (int)rint(l[i*3 + 2]) + CZ;
+			x = (int)RINT(l[i*3 + 0]) + CX;
+			y = (int)RINT(l[i*3 + 1]) + CY;
+			z = (int)RINT(l[i*3 + 2]) + CZ;
 
 			if (2*CX-x-xdim/2>=0 && 2*CX-x+xdim/2<DX && y-ydim/2>=0 && y+ydim/2<DY) /* transverse */
 			{

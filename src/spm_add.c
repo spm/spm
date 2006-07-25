@@ -1,5 +1,5 @@
 /*
- * $Id: spm_add.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_add.c 574 2006-07-25 17:59:36Z john $
  */
  
 /*
@@ -30,6 +30,7 @@
 #include <math.h>
 #include "mex.h"
 #include "spm_mapping.h"
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -184,7 +185,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			dptr[j] = (short *)mxCalloc(nk, sizeof(short));
 			for(k=0; k<nk; k++)
 			{
-				dptr[j][k] = (short)rint(sptr[k]/scales[j]);
+				dptr[j][k] = (short)RINT(sptr[k]/scales[j]);
 			}
 		}
 	}

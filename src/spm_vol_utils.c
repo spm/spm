@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_utils.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_vol_utils.c 574 2006-07-25 17:59:36Z john $
  */
 
 #define TINY 5e-2
@@ -238,7 +238,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 #include "spm_make_lookup.h"
 #include "spm_getdata.h"
 
@@ -716,7 +716,7 @@ IMAGE_DTYPE *vol[];
 	    mat[2+0*4] > -t  && mat[2+0*4] < t   &&
 	    mat[2+1*4] > -t  && mat[2+1*4] < t   &&
 	    mat[2+2*4] > 1-t && mat[2+2*4] < 1+t &&
-	    fabs(rint(mat[2+3*4])-mat[2+3*4])<t  &&
+	    fabs(RINT(mat[2+3*4])-mat[2+3*4])<t  &&
 	    mat[3+0*4] > -t  && mat[3+0*4] < t   &&
 	    mat[3+1*4] > -t  && mat[3+1*4] < t   &&
 	    mat[3+2*4] > -t  && mat[3+2*4] < t   &&
@@ -724,7 +724,7 @@ IMAGE_DTYPE *vol[];
 	    xdim1 == xdim2 && ydim1 == ydim2 && mat[2+3*4]>=1.0 && mat[2+3*4]<=zdim2)
 	{
 		int p;
-		p = rint(mat[2+3*4]);
+		p = RINT(mat[2+3*4]);
 		PLANE(p,image,vol,xdim2,ydim2,scale,offset);
 		return(0);
 	}

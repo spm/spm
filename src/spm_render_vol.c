@@ -1,10 +1,11 @@
 /*
- * $Id: spm_render_vol.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_render_vol.c 574 2006-07-25 17:59:36Z john $
  */
 
 #include <math.h>
 #include "mex.h"
 #include "spm_mapping.h"
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 
 void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, vol, thresh)
 double  mat[16];
@@ -90,13 +91,13 @@ double thresh;
 					double x4 = (x3 + x*mat[0]);
 					double y4 = (y3 + x*mat[1]);
 					double z4 = (z3 + x*mat[2]);
-					ixstart = (int)rint(x4);
+					ixstart = (int)RINT(x4);
 					if (ixstart < 0) ixstart = 0;
-					ixend = (int)rint(x4+xs);
+					ixend = (int)RINT(x4+xs);
 					if (ixend >= xdim1) ixend = xdim1-1;
-					iystart = (int)rint(y4);
+					iystart = (int)RINT(y4);
 					if (iystart < 0) iystart = 0;
-					iyend = (int)rint(y4+ys);
+					iyend = (int)RINT(y4+ys);
 					if (iyend >= ydim1) iyend = ydim1-1;
 					for(iy4 = iystart ; iy4<=iyend; iy4++)
 						for(ix4 = ixstart ; ix4<=ixend; ix4++)

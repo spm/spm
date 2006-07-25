@@ -1,12 +1,12 @@
 /*
- * $Id: spm_bias_mex.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_bias_mex.c 574 2006-07-25 17:59:36Z john $
  */
 
 #include <math.h>
 #include "mex.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
-
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 #define EPS 2.2204460492503130808e-16
 #define MAXB 128 /* Maximum number of bases functions in each dimension */
 
@@ -126,7 +126,7 @@ static void normhist(int nh, double h[], double binwidth, int *psh)
 		sh += h[i];
 	for(i=0; i<nh; i++)
 		h[i]/= binwidth*sh;
-	*psh = rint(sh);
+	*psh = RINT(sh);
 }
 
 /********************************************************************************/

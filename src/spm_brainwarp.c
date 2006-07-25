@@ -1,11 +1,11 @@
 /*
- * $Id: spm_brainwarp.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_brainwarp.c 574 2006-07-25 17:59:36Z john $
  */
 
 #include <math.h>
 #include "mex.h"
 #include "spm_mapping.h"
-
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 extern int AbackslashB(double *, double *, double *);
 extern void MtimesX(double *, double *, double *);
 
@@ -593,16 +593,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	voxdim(&map2[0],pixdim);
 	/* Because of edge effects from the smoothing, ignore voxels that are too close */
-	edgeskip[0]   = rint(fwhm/pixdim[0]); edgeskip[0] = ((edgeskip[0]<1) ? 0 : edgeskip[0]);
-	edgeskip[1]   = rint(fwhm/pixdim[1]); edgeskip[1] = ((edgeskip[1]<1) ? 0 : edgeskip[1]);
-	edgeskip[2]   = rint(fwhm/pixdim[2]); edgeskip[2] = ((edgeskip[2]<1) ? 0 : edgeskip[2]);
+	edgeskip[0]   = RINT(fwhm/pixdim[0]); edgeskip[0] = ((edgeskip[0]<1) ? 0 : edgeskip[0]);
+	edgeskip[1]   = RINT(fwhm/pixdim[1]); edgeskip[1] = ((edgeskip[1]<1) ? 0 : edgeskip[1]);
+	edgeskip[2]   = RINT(fwhm/pixdim[2]); edgeskip[2] = ((edgeskip[2]<1) ? 0 : edgeskip[2]);
 
 	voxdim(&map1[0],pixdim);
 
 	/* sample about every fwhm/2 */
-	samp[0]   = rint(fwhm/2.0/pixdim[0]); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
-	samp[1]   = rint(fwhm/2.0/pixdim[1]); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
-	samp[2]   = rint(fwhm/2.0/pixdim[2]); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
+	samp[0]   = RINT(fwhm/2.0/pixdim[0]); samp[0] = ((samp[0]<1) ? 1 : samp[0]);
+	samp[1]   = RINT(fwhm/2.0/pixdim[1]); samp[1] = ((samp[1]<1) ? 1 : samp[1]);
+	samp[2]   = RINT(fwhm/2.0/pixdim[2]); samp[2] = ((samp[2]<1) ? 1 : samp[2]);
 
 	for(i=0; i<ni; i++)
 	{

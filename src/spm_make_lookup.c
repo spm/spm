@@ -1,5 +1,5 @@
 /*
- * $Id: spm_make_lookup.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_make_lookup.c 574 2006-07-25 17:59:36Z john $
  */
 
 /* Generate a lookup table for Lagrange interpolation
@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include "spm_make_lookup.h"
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 
 #ifndef PI
 #define PI 3.14159265358979323846
@@ -55,10 +56,10 @@ void make_lookup_poly(double coord, int q, int dim, int *d1, double *table, doub
 		}
 	}
 
-	if (fabs(coord-rint(coord))<0.00001)
+	if (fabs(coord-RINT(coord))<0.00001)
 	{
 		/* Close enough to use nearest neighbour */
-		*d1=rint(coord);
+		*d1=RINT(coord);
 		if (*d1<0 || *d1>=dim) /* Pixel location outside image */
 			*ptpend = table-1;
 		else
@@ -245,10 +246,10 @@ void make_lookup_sinc(double coord, int q, int dim, int *d1, double *table, doub
 
 	coord --;
 
-	if (fabs(coord-rint(coord))<0.00001)
+	if (fabs(coord-RINT(coord))<0.00001)
 	{
 		/* Close enough to use nearest neighbour */
-		*d1=rint(coord);
+		*d1=RINT(coord);
 		if (*d1<0 || *d1>=dim) /* Pixel location outside image */
 			*ptpend = table-1;
 		else

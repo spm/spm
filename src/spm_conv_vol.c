@@ -1,11 +1,12 @@
 /*
- * $Id: spm_conv_vol.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_conv_vol.c 574 2006-07-25 17:59:36Z john $
  */
 
 #include <math.h>
 #include "mex.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
+#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
 
 static void convxy(out, xdim, ydim, filtx, filty, fxdim, fydim, xoff, yoff, buff)
 int xdim, ydim, fxdim, fydim, xoff, yoff;
@@ -164,7 +165,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp< -2147483648.0) tmp = -2147483648.0;
 							else if (tmp>2147483647.0) tmp = 2147483647.0;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
@@ -186,7 +187,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp<0) tmp = 0.0;
 							else if (tmp>4294967295.0) tmp = 4294967295.0;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
@@ -209,7 +210,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp<-32768) tmp = -32768;
 							else if (tmp>32767) tmp = 32767;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
@@ -231,7 +232,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp<0) tmp = 0;
 							else if (tmp>65535) tmp = 65535;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
@@ -253,7 +254,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp<-128) tmp = -128;
 							else if (tmp>127) tmp = 127;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
@@ -275,7 +276,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 							tmp = sum1/sum2;
 							if (tmp<0) tmp = 0;
 							else if (tmp>255) tmp = 255;
-							obuf[xy] = rint(tmp);
+							obuf[xy] = RINT(tmp);
 						}
 					}
 					else
