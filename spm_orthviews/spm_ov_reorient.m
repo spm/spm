@@ -172,7 +172,7 @@ switch cmd
   spm_orthviews('redraw');
   
  case 'redraw'
-  if numel(volhandle)==1
+  if numel(st.vols{1}.reorient.e)==10
     if isfield(st.vols{volhandle}.reorient,'lh')
       if ~isempty(st.vols{volhandle}.reorient.lh)
 	delete(cat(1,st.vols{volhandle}.reorient.lh{:}));
