@@ -55,7 +55,7 @@ end
 if h == 0
     X0 = zeros(ns, 0);
 else
-    X0    = spm_dctmtx(ns,h);
+    X0 = spm_dctmtx(ns,h);
 end
 X0    = kron(speye(nt,nt),X0);
 R0    = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
@@ -86,9 +86,11 @@ xU.dt   = xY.dt;
 xU.dur  = xU.dt*(ns - 1);
 xU.name = DCM.U.name;
 
-% make model specification DCM.M global variable
+% make model specification DCM.M a global variable
+%-------------------------------------------------------------------
 global M
-M = DCM.M;
+M     = DCM.M;
+
 % prior moments
 %-------------------------------------------------------------------
 if isfield(DCM.M, 'dipfit')
@@ -110,35 +112,32 @@ M.m   = nu;
 M.n   = nx;
 M.l   = nc;
 M.IS  = 'spm_int_U';
-M.Nareas = length(DCM.Sname);
-M.S = xY.S; % to pre-multiply L in spm_gx_erp
+M.Nareas = length(DCM.C);
+M.S   = xY.S; % to pre-multiply L in spm_gx_erp
 
 
-% EM estimation
+% EM estimation (note that M is changed as a global variable)
 %-------------------------------------------------------------------
-[Ep,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY); % note that M is changed as a global variable
+[Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
 
 % Bayesian inference {threshold = 0}
 %-------------------------------------------------------------------
 warning off
-Pp    = 1 - spm_Ncdf(0,abs(Ep - pE),diag(Cp));
-Pp    = spm_erp_pack(Pp,M.m,nr);
-Qp    = spm_erp_pack(Ep,M.m,nr);
+dp  = spm_vec(Qp) - spm_vec(pE);
+Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning on
 
 % predicted responses (y) and residuals (r) (in channel space)
 %-------------------------------------------------------------------
-y     = feval(M.IS,Ep,M,xU);
-r     = R0*(xY.y - y);
-y     = y*xY.S';
-r     = r*xY.S';
+y    = feval(M.IS,Qp,M,xU);
+r    = R0*(xY.y - y);
+y    = y*xY.S';
+r    = r*xY.S';
 
 % neuronal responses (x)
 %-------------------------------------------------------------------
-L = M.L;
-M.L = [];
-x = feval(M.IS,spm_vec(Qp),M,xU);
-M.L = L;
+Qp.L = speye(M.Nareas,M.Nareas);
+x    = feval(M.IS,Qp,M,xU);
 
 % trial specific respsonses
 %-------------------------------------------------------------------

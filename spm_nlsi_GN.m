@@ -11,8 +11,9 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %   P  - free parameters
 % M.pE - prior expectation  - E{P}
 % M.pC - prior covariance   - Cov{P}
-% M.IS - integration scheme (function name or handle f(P,M,U,varargin))
-%
+% M.IS - function name or handle f(P,M,U,varargin)
+%        an integration scheme of function returning a predicted response
+
 %
 % U.u  - inputs
 % U.dt - sampling interval
@@ -56,7 +57,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 498 2006-04-18 17:36:45Z klaas $
+% $Id: spm_nlsi_GN.m 579 2006-08-01 18:32:10Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -65,7 +66,7 @@ set(Fsi,'name','System identification')
 figure(Fsi)
  
  
-% integration scheme
+% prediction scheme (usually an integrator)
 %--------------------------------------------------------------------------
 try
     f = fcnchk(M.IS);
@@ -80,6 +81,15 @@ try
 catch
     M.x = sparse(M.n,1);
 end
+
+% initial states
+%--------------------------------------------------------------------------
+try
+    U;
+catch
+    U = [];
+end
+
  
 % data y
 %--------------------------------------------------------------------------
@@ -95,7 +105,7 @@ catch
 end
 nh    = length(Q);          % number of precision components
 ne    = length(Q{1});       % number of error terms
-h     = zeros(nh,1);         % initialise hyperparameters
+h     = zeros(nh,1);        % initialise hyperparameters
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -155,7 +165,8 @@ for k = 1:64
     %----------------------------------------------------------------------
     for i = ip
         dV      = dv*sqrt(Cp(i,i));
-        dg      = feval(f,Ep + V(:,i)*dV,M,U,ns) - g;
+        pi      = spm_unvec(spm_vec(Ep) + V(:,i)*dV,pE);
+        dg      = feval(f,pi,M,U,ns) - g;
         Jp(:,i) = dg(:)/dV;
     end
     J     = -[Jp Ju];
@@ -265,13 +276,13 @@ for k = 1:64
     %======================================================================
     dp    = spm_dx(dFdpp,dFdp,{t});
     p     = p  + dp;
-    Ep    = pE + V*p(ip);
+    Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
     
     % graphics
     %----------------------------------------------------------------------
     figure(Fsi)
 
-    % subplot parameters
+    % subplot prediction
     %----------------------------------------------------------------------
     subplot(2,1,1)
     plot([1:ns]*Y.dt,g),                        hold on
@@ -300,7 +311,7 @@ end
  
 % outputs
 %--------------------------------------------------------------------------
-Ep     = pE + V*p(ip);
+Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
 

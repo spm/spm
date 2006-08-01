@@ -1,12 +1,12 @@
-function [varargout] = spm_erp_priors(A,B,C,L,U)
+function [varargout] = spm_lfp_priors(A,B,C,L,H)
 % prior moments for a neural mass model of erps
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C,L,U)
-% FORMAT [M]     = spm_erp_priors(A,B,C,L,U)
-% FORMAT           spm_erp_priors(A,B,C,L,U)
+% FORMAT [pE,pC] = spm_lfp_priors(A,B,C,L,H)
+% FORMAT [M]     = spm_lfp_priors(A,B,C,L,H)
+% FORMAT           spm_lfp_priors(A,B,C,L,H)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - lead field matrix         [default = 1 s]
-% U              - trial duration (sec)      [default = 1 s]
+% L              - lead field matrix    [default = I]
+% H              - contributing states  [default = x(9) - pyramidal]
 %
 % pE - prior expectation
 %
@@ -20,19 +20,19 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 %    pE.K - dipole contribution
 %    pE.L - Lead field (fixed) OR pE.Lpos - position
 %                                 pE.Lmon - moment (orientation):
+%    pE.M - contributing states
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
-%    pE.A - extrinsic
-%    pE.B - trial-dependent
-%    pE.C - stimulus input
+%    pE.A - extrinsic - coupling
+%    pE.B - extrinsic - trial-dependent
+%    pE.C - extrinsic - stimulus input
+%    pE.G - intrinsic
 %    pE.D - delays
 %
-% stimulus parameters
+% NB: This is the same as spm_erp_priors but without stimulus parameters 
+% and treating stimulus and experimental inputs in the same way
 %--------------------------------------------------------------------------
-%    pE.R - onset and dispersion (Gamma paramters)
-%    pE.N - background fluctuation (DCT parameters)
-%    pE.U - trial dutation (secs)
 %
 % pC - prior covariances: cov(spm_vec(pE))
 %
@@ -40,7 +40,7 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 % parameters are simply scaling coefficients with a prior expectation
 % and variance of one.  After log transform this renders pE = 0 and
 % pC = 1;  The prior expectations of what they scale are specified in
-% spm_erp_fx
+% spm_lfp_fx or M.fP
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -50,67 +50,71 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin <  3                                 % a single source model
+if nargin <  3                                  % a single source model
     A   = {0 0 0};
-    B   = {};
+    B   = {0};
     C   = 1;
 end
-if nargin <  4, L = speye(length(C)); end
-if nargin <  5, U = 1;                end
+n   = size(C,1);                                % number of sources
+N   = n*13;                                     % number of states
+if nargin <  4, L = speye(length(C));  end
+if nargin <  5, H = sparse(2,1,1,N,1); end
 
-warning off
+
 
 % disable log zero warning
 %--------------------------------------------------------------------------
-n     = size(C,1);                                 % number of sources
-m     = 8;                                         % and noise components
-n1    = ones(n,1);
+warning off
+
+% sigmoid parameters
+%--------------------------------------------------------------------------
+E.R   = [0 0];          V.R = [1 1]/8;
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/16;               % time constants
-E.H   = log(n1);        V.H = n1/16;               % synaptic density
+E.T   = log(ones(n,2));        V.T = ones(n,2)/8;  % time constants
+E.H   = log(ones(n,1));        V.H = ones(n,1)/8;  % synaptic density
+E.G   = log(ones(n,5));        V.G = ones(n,5)/8;  % intrinsic connections
+
+% set observer parameters
+%--------------------------------------------------------------------------
+E.M   = H;              V.M = H*0;                 % contributing states
 
 % set observer parameters
 %--------------------------------------------------------------------------
 if ~isstruct(L)                                    % static leadfield
     
-    E.K   = n1*0;           V.K = sparse(n1);      % pyramidal CSD
-    E.L   = L;              V.L = sparse(0*L);     % lead field
+    E.K    = ones(n,1); V.K = sparse(n,1);         % pyramidal CSD
+    E.L    = L;         V.L = L*0;                 % lead field
     
 else  % parameterised leadfield based on equivalent current dipoles
-%--------------------------------------------------------------------------
-    E.Lpos = L.pos;          V.Lpos = L.Vpos;       % dipole positions
-    E.Lmom = L.mom;          V.Lmom = L.Vmom;       % dipole orientations
+%------------------------------------------------------------------------
+    E.K    = L.K;       V.K    = L.VK;
+    E.Lpos = L.pos;     V.Lpos = L.Vpos;           % dipole positions
+    E.Lmom = L.mom;     V.Lmom = L.Vmom;           % dipole orientations
 end
 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    E.A{i} = log(A{i} + eps);                      % forward
+    E.A{i} = log(~~A{i} + eps);                    % forward
     V.A{i} = A{i}/2;                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
 
 for i = 1:length(B)
     E.B{i} = 0*B{i};                               % input-dependent scaling
-    V.B{i} = B{i}/2;
+    V.B{i} = ~~B{i}/2;
     Q      = Q | B{i};
 end
-E.C        = log(C + eps);                         % where inputs enter
+E.C        = log(~~C + eps);                       % where inputs enter
 V.C        = C/2;
 
-% set delay (enforcing symmetric delays)
+% set delay
 %--------------------------------------------------------------------------
 E.D        = sparse(n,n);
-V.D        = Q/16;
-
-% set stimulus parameters
-%--------------------------------------------------------------------------
-E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
-E.N        = sparse(m,1);  V.N = ones(m,1);        % DCT coefficients
-E.U        = U;            V.U = 0;                % trial duration (s)
+V.D        = Q/8;
 
 % vectorize
 %--------------------------------------------------------------------------
@@ -119,8 +123,6 @@ pV         = spm_vec(V);
 pC         = diag(sparse(pV));
 warning on
 
-
-
 % prior momments if two arguments
 %--------------------------------------------------------------------------
 if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
@@ -128,31 +130,27 @@ if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
 
 % Model specification
 %==========================================================================
-clear global M
 global M
 
-M.IS     = 'spm_int_U';
-M.f      = 'spm_fx_erp';
-M.g      = 'spm_gx_erp';
-M.x      = sparse(n*9 + 1,1);
+M.f      = 'spm_fx_lfp';
+M.g      = 'spm_gx_lfp';
+M.x      = sparse(N,1);
 M.pE     = pE;
 M.pC     = pC;
 M.m      = length(B);
-M.n      = length(M.x);
-M.l      = n;
-M.Nareas = n;
+M.n      = size(M.x,1);
+M.l      = size(pE.L,1);
+M.IS     = 'spm_int';
+
 M.Spatial_type = 3;
 
 if nargout == 1, varargout{1} = M; return, end
 
 % compute impulse response
 %--------------------------------------------------------------------------
-clear U
-M.pE.K  = 1;
-M.onset = 128;
 N       = 128;
-U.u     = sparse(N,M.m);
 U.dt    = 8/1000;
+U.u     = sparse(1,1,1/U.dt,N,M.m);
 y       = feval(M.IS,M.pE,M,U);
 plot([1:N]*U.dt*1000,y)
 

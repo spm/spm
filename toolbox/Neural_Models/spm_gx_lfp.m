@@ -1,6 +1,6 @@
-function [y] = spm_gx_erp(x,u,P)
+function [y] = spm_gx_lfp(x,u,P)
 % observer for a neural mass model of erps
-% FORMAT [y] = spm_gx_erp(x,u,P)
+% FORMAT [y] = spm_gx_lfp(x,u,P)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -15,6 +15,8 @@ function [y] = spm_gx_erp(x,u,P)
 % y        - measured voltage
 %__________________________________________________________________________
 %
+% This is a simplified version of spm_gx_erp
+%
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
@@ -24,18 +26,33 @@ global M
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x    = x(2:end);
+m    = length(x);
 n    = length(P.A{1});
-x    = reshape(x,n,9);
+x    = reshape(x,n,m);
 
-% output
+% slect mixture of neuronal states providing signal for each source
+% default - pyramidal cell depolarization
+%--------------------------------------------------------------------------
+try
+    P.M;
+catch
+    P.M = sparse(9,1,1,m,1);                   
+end
+x  = x*P.M;
+
+% output (mixtures of sources specified by lead field)
 %==========================================================================
+try
+    M.Spatial_type;
+catch
+    M.Spatial_type = 3;                   
+end
 
 % fixed lead field (note; L has already been rotated by S: P.L = S*L)
 %--------------------------------------------------------------------------
 if M.Spatial_type == 3
 
-    y = P.L*(x(:,9).*P.K);
+    y = P.L*(x.*P.K);
 
 % parameterised lead field ECD/EEG
 %--------------------------------------------------------------------------
@@ -77,7 +94,7 @@ elseif M.Spatial_type == 1
 
     % output
     %----------------------------------------------------------------------
-    y = M.S'*L*(x(:, 9)*(2*10^4));
+    y = M.S'*L*(x(:,9)*(2*10^4).*P.K);
 
 % parameterised lead field ECD/MEG
 %--------------------------------------------------------------------------
@@ -101,6 +118,6 @@ elseif M.Spatial_type == 2
 
     % output
     %----------------------------------------------------------------------
-    y = M.S'*L*(x(:, 9)*(10^20));
+    y = M.S'*L*(x(:,9)*(10^20).*P.K);
 
 end

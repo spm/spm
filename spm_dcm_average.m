@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_average.m 579 2006-08-01 18:32:10Z karl $
 
 
 if nargin <= 1
@@ -127,8 +127,6 @@ if mtype
     DCM.vC = vC;    
 else
     % DCM for ERP
-    global M;
-    M = DCM.M;    % model specification - required as a global variable by spm_erp_pack
     % get priors (note: these are the priors of the first model)
     if isfield(M, 'dipfit')
         % model with parameterised leadfield
@@ -140,10 +138,10 @@ else
     end
     % store in DCM data structure
     warning off;
-    Pp = 1 - spm_Ncdf(0,abs(DCM.Ep - pE),diag(DCM.Cp));
+    Pp = 1 - spm_Ncdf(0,abs(spm_vec(DCM.Ep) - spm_vec(pE)),diag(DCM.Cp));
     warning on;    
-    DCM.Pp = spm_erp_pack(Pp,M.m,n);
-    DCM.Qp = spm_erp_pack(DCM.Ep,m,n);
+    DCM.Pp = spm_unvec(Pp,pE);
+    DCM.Qp = DCM.Ep;
 end
 
 % Save new DCM

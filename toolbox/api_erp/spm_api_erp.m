@@ -504,28 +504,6 @@ set(handles.reset,      'Enable','off')
 % end
 guidata(h,handles);
 
-% --------------------------------------------------------------------
-function varargout = contrast_Callback(h, eventdata, handles, varargin)
-% This callback has no link to it. I'll put it into results later.
-% get contrast
-%---------------------------------------------------------------------
-[n m] = size(handles.DCM.C);
-c     = handles.DCM.Ep*0;
-c     = spm_erp_pack(c,m,n);
-c.A   = handles.DCM.A;
-c.B   = handles.DCM.B;
-c.C   = handles.DCM.C;
-c     = spm_vec(c);
-c     = c/sum(c);
-
-warning off
-Ec    = full(c'*handles.DCM.Ep);
-Cc    = full(c'*handles.DCM.Cp*c);
-x     = Ec + [-32:32]*sqrt(Cc)*4/32;
-pdf   =     spm_Npdf(x,Ec,Cc);
-PP    = 1 - spm_Ncdf(0,abs(Ec),Cc);
-warning on
-
 % plot conditional density
 %---------------------------------------------------------------------
 figure(handles.Fgraph)

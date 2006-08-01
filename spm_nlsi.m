@@ -81,7 +81,7 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % see also
 % spm_nlsi_GN:   Bayesian parameter estimation using an EM/Gauss-Newton method
-% spm_bi_reduce: Reduction of a fully nonlinear MIMO system to Bilinear form
+% spm_bireduce: Reduction of a fully nonlinear MIMO system to Bilinear form
 % spm_kernels:   Returns global Volterra kernels for a MIMO Bilinear system
 %
 % SEE NOTES AT THE END OF THIS SCRIPT FOR EXAMPLES
@@ -90,7 +90,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 295 2005-11-14 09:36:44Z klaas $
+% $Id: spm_nlsi.m 579 2006-08-01 18:32:10Z karl $
 
 
 % Expansion point (in parameter space) for Bilinear and kernel representations
@@ -121,7 +121,7 @@ end
 
 % Bilinear representation
 %===========================================================================
-[M0,M1,L1,L2] = spm_bi_reduce(M,Ep);
+[M0,M1,L1,L2] = spm_bireduce(M,Ep);
 
 
 % Volterra kernels
