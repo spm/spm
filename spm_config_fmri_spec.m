@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_config_fmri_spec.m 581 2006-08-02 12:46:21Z volkmar $
 
 
 % Define inline types.
@@ -235,7 +235,7 @@ regressors.help = {[...
 
 multi_reg    = files('Multiple regressors','multi_reg','.*',[0 1],'');
 p1=['Select the *.mat/*.txt file containing details of your multiple regressors. '];
-p2=['If you have mutliple regressors eg. realignment parameters, then entering the ',...
+p2=['If you have multiple regressors eg. realignment parameters, then entering the ',...
     'details a regressor at a time is very inefficient. ',...
     'This option can be used to load all the ',...
     'required information in one go. '];
