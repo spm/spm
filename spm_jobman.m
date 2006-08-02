@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_jobman.m 580 2006-08-02 12:36:40Z volkmar $
 
 
 if nargin==0
@@ -739,6 +739,7 @@ if ~isempty(opts_box)
         % do nothing
 
     case {'files'}
+        spm('pointer','watch');
         str = {str{:}, 'Specify Files'};
         dat = {dat{:}, struct('fun',@file_select,'args',{{}},'redraw',1)};
         addvfiles(c.id,[],c);
@@ -746,6 +747,7 @@ if ~isempty(opts_box)
         [filestr filedat] = files_select_list('listall');
         str = {str{:}, filestr{:}};
         dat = {dat{:}, filedat{:}};
+        spm('pointer','arrow');
         
     case {'menu'}
         str = {str{:}, 'Specify Menu Item'};
