@@ -17,9 +17,8 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    pE.K - dipole contribution
-%    pE.L - Lead field (fixed) OR pE.Lpos - position
-%                                 pE.Lmon - moment (orientation):
+%    pE.Lpos - position
+%    pE.Lmon - moment (orientation):
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -73,16 +72,8 @@ E.H   = log(n1);        V.H = n1/16;               % synaptic density
 
 % set observer parameters
 %--------------------------------------------------------------------------
-if ~isstruct(L)                                    % static leadfield
-    
-    E.K   = n1*0;           V.K = sparse(n1);      % pyramidal CSD
-    E.L   = L;              V.L = sparse(0*L);     % lead field
-    
-else  % parameterised leadfield based on equivalent current dipoles
-%--------------------------------------------------------------------------
-    E.Lpos = L.pos;          V.Lpos = L.Vpos;       % dipole positions
-    E.Lmom = L.mom;          V.Lmom = L.Vmom;       % dipole orientations
-end
+E.Lpos = L.pos;         V.Lpos = L.Vpos;           % dipole positions
+E.Lmom = L.mom;         V.Lmom = L.Vmom;           % dipole orientations
 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------

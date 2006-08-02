@@ -115,6 +115,6 @@ for i = 1:l
     end
 end
 for i = 1:l
-    L2{i} = spm_cat(diag{0, D{i}});
+    L2{i} = spm_cat(diag({0, D{i}}));
 end
     

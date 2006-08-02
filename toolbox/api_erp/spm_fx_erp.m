@@ -33,8 +33,6 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-global M
-
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
 t     = x(1);                       % peristimulus time (sec)
@@ -57,21 +55,14 @@ end
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-try
-    E = M.pF.E;
-    G = M.pF.G;
-    H = M.pF.H;
-    D = M.pF.D;
-    T = M.pF.T;
-    R = M.pF.R;
-catch
-    E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
-    G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
-    D = [2 16];              % propogation delays (intrinsic, extrinsic)
-    H = [4 32];              % receptor densities (excitatory, inhibitory)
-    T = [8 16];              % synaptic constants (excitatory, inhibitory)
-    R = 0.56;                % parameter of staic nonlinearity
-end
+
+E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
+G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
+D = [2 16];              % propogation delays (intrinsic, extrinsic)
+H = [4 32];              % receptor densities (excitatory, inhibitory)
+T = [8 16];              % synaptic constants (excitatory, inhibitory)
+R = 0.56;                % parameter of staic nonlinearity
+
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------

@@ -12,11 +12,11 @@ function DCM = spm_dcm_erp(DCM)
 %       B: {[nr x nr double], ...}   Connection constaints
 %       C: [nr x 1 double]
 %     swd: working directory
-%___________________________________________________________________
+%__________________________________________________________________________
 % %W% Karl Friston %E%
 
 % swd
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     swd     = DCM.swd;
     cd(swd)
@@ -26,16 +26,17 @@ catch
 end
 
 % Data
-%===================================================================
+%==========================================================================
 nt    = length(DCM.Y.xy);                   % number of trials
-nr    = size(DCM.L,2);                      % number of sources
-nc    = size(DCM.L,1);                      % number of channels
+nr    = length(DCM.A{1});                   % number of sources
+nc    = size(DCM.Y.xy{1},2);                % number of channels
 ns    = size(DCM.Y.xy{1},1);                % number of samples
 nu    = size(DCM.U.X,2);                    % number of inputs
 nx    = nr*9 + 1;                           % number of states
+nm    = DCM.options.Nmodes;                 % number of modes
 
-% decimate (to about 8ms) and window
-%-------------------------------------------------------------------
+% decimate (to about 8ms)
+%--------------------------------------------------------------------------
 R     = fix(8/DCM.Y.dt);                    % decimation factor
 j     = [R:R:ns]';                          % time bins
 for i = 1:nt
@@ -46,34 +47,43 @@ xY.dt = DCM.Y.dt*R/1000;                    % sampling in seconds
 ns    = length(j);                          % number of time samples
 
 % confounds - DCT and Gamma functions
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
-    h = DCM.Y.h;
+    h = DCM.options.h;
 catch
-    h = 3;
+    h = 2;
 end
 if h == 0
-    X0 = zeros(ns, 0);
+    X0 = sparse(ns,0);
 else
     X0 = spm_dctmtx(ns,h);
 end
-X0    = kron(speye(nt,nt),X0);
-R0    = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
-xY.X0 = X0;
+X0     = kron(speye(nt,nt),X0);
+R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
+xY.X0  = X0;
+
+
+% make model specification DCM.M a global variable
+%--------------------------------------------------------------------------
+global M
+M      = DCM.M;
 
 % orthogonalise response y (and reduce dimension if necessary)
-%-------------------------------------------------------------------
-nc    = min(nc,8);
-xY.S  = spm_svd(xY.y'*R0*xY.y);
-xY.S  = xY.S(:,[1:nc]);
-xY.y  = xY.y*xY.S;
-L     = xY.S'*DCM.L;
+%--------------------------------------------------------------------------
+P.Lpos  = M.pE.Lpos;
+P.Lmom  = M.pE.Lmom;
+dLdp    = spm_diff('spm_erp_L',P,1);
+[i j J] = find(dLdp);
+J       = sparse(rem(i - 1,nc) + 1,j - min(j) + 1,J);
+xY.E    = spm_svd(J);
+xY.E    = xY.E(:,[1:nm]);
+xY.y    = xY.y*xY.E;
 
 % Inputs
-%===================================================================
+%==========================================================================
 
 % trial effects
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     xU.u = kron(DCM.U.X,ones(ns,1));
 catch
@@ -81,66 +91,54 @@ catch
 end
 
 % stimulus parameters
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xU.dt   = xY.dt;
 xU.dur  = xU.dt*(ns - 1);
 xU.name = DCM.U.name;
 
-% make model specification DCM.M a global variable
-%-------------------------------------------------------------------
-global M
-M     = DCM.M;
-
 % prior moments
-%-------------------------------------------------------------------
-if isfield(DCM.M, 'dipfit')
-    % model with parameterised leadfield
-    [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
-else
-    % model w/ static leadfield
-    [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,L,xU.dur);
-end
+%--------------------------------------------------------------------------
+[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
 
 % model specification and nonlinear system identification
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M.f   = 'spm_fx_erp';
 M.g   = 'spm_gx_erp';
+M.IS  = 'spm_int_U';
 M.x   = sparse(nx,1);
 M.pE  = pE;
 M.pC  = pC;
 M.m   = nu;
 M.n   = nx;
 M.l   = nc;
-M.IS  = 'spm_int_U';
-M.Nareas = length(DCM.C);
-M.S   = xY.S; % to pre-multiply L in spm_gx_erp
-
+M.E   = xY.E;
 
 % EM estimation (note that M is changed as a global variable)
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
 
 % Bayesian inference {threshold = 0}
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 warning off
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning on
 
 % predicted responses (y) and residuals (r) (in channel space)
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 y    = feval(M.IS,Qp,M,xU);
 r    = R0*(xY.y - y);
-y    = y*xY.S';
-r    = r*xY.S';
+y    = y*M.E';
+r    = r*M.E';
 
 % neuronal responses (x)
-%-------------------------------------------------------------------
-Qp.L = speye(M.Nareas,M.Nareas);
-x    = feval(M.IS,Qp,M,xU);
+%--------------------------------------------------------------------------
+M.Spatial_type = 4;
+x              = feval(M.IS,Qp,M,xU);
+M.Spatial_type = DCM.M.Spatial_type;
 
 % trial specific respsonses
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for  i = 1:nt
     j    = [1:ns] + (i - 1)*ns;
     H{i} = y(j,:);
@@ -150,13 +148,12 @@ end
 
 
 % store estimates in DCM
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 DCM.M    = M;                             % model specification
 DCM.xY   = xY;                            % data structure
 DCM.xU   = xU;                            % input structure
-DCM.Ep   = Ep;                            % conditional expectation
+DCM.Ep   = Qp;                            % conditional expectation
 DCM.Cp   = Cp;                            % conditional covariances
-DCM.Qp   = Qp;                            % conditional expectation
 DCM.Pp   = Pp;                            % conditional probability
 DCM.H    = H;                             % conditional responses (y)
 DCM.K    = K;                             % conditional responses (x)
@@ -165,6 +162,6 @@ DCM.Ce   = Ce;                            % ReML error covariance
 DCM.F    = F;                             % Laplace log evidence
 
 % and save
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 save(['DCM', DCM.name],'DCM');
 

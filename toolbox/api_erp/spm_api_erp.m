@@ -955,14 +955,11 @@ else
     Nmodes = Nchannels;
 end
 
-% project data
-P.projection = projection;
-P.Nmodes = Nmodes;
-DCM = spm_dcm_eeg_selectdata(DCM, P);
-
+% show data (selected time bins)
+%--------------------------------------------------------------------------
 spm_dcm_erp_results(DCM, 'Response');
 
-s = get(handles.h, 'String');
+s   = get(handles.h, 'String');
 DCM.Y.h = str2num(s{get(handles.h, 'Value')});
 
 DCM.options.data_ok = 1;
