@@ -61,7 +61,7 @@ G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
 D = [2 16];              % propogation delays (intrinsic, extrinsic)
 H = [4 32];              % receptor densities (excitatory, inhibitory)
 T = [8 16];              % synaptic constants (excitatory, inhibitory)
-R = [2 1]/3;              % parameters of static nonlinearity
+R = [2 1]/3;             % parameters of static nonlinearity
 
 
 % exponential transform to ensure positivity constraints

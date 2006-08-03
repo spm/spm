@@ -38,8 +38,8 @@ nm    = DCM.options.Nmodes;                 % number of modes
 %--------------------------------------------------------------------------
 T1      = DCM.options.Tdcm(1);
 T2      = DCM.options.Tdcm(2);
-[m, T1] = min(abs(DCM.Y.Time-T1));
-[m, T2] = min(abs(DCM.Y.Time-T2));
+[m, T1] = min(abs(DCM.Y.Time - T1));
+[m, T2] = min(abs(DCM.Y.Time - T2));
 
 % and decimate (to about 8ms)
 %--------------------------------------------------------------------------
@@ -86,9 +86,9 @@ if DCM.options.projection == 1
 
 % or data 
 %--------------------------------------------------------------------------
-elseif DCM.options.projection == 1
+elseif DCM.options.projection == 2
 
-    xY.E  = spm_svd(xY.y'*R0*xY.y);
+    xY.E = spm_svd(xY.y'*R0*xY.y);
 end
 xY.E    = xY.E(:,[1:nm]);
 xY.y    = xY.y*xY.E;
