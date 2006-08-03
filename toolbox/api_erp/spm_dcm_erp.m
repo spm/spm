@@ -30,15 +30,21 @@ end
 nt    = length(DCM.Y.xy);                   % number of trials
 nr    = length(DCM.A{1});                   % number of sources
 nc    = size(DCM.Y.xy{1},2);                % number of channels
-ns    = size(DCM.Y.xy{1},1);                % number of samples
 nu    = size(DCM.U.X,2);                    % number of inputs
 nx    = nr*9 + 1;                           % number of states
 nm    = DCM.options.Nmodes;                 % number of modes
 
-% decimate (to about 8ms)
+% slect time window for modelling
 %--------------------------------------------------------------------------
-R     = fix(8/DCM.Y.dt);                    % decimation factor
-j     = [R:R:ns]';                          % time bins
+T1      = DCM.options.Tdcm(1);
+T2      = DCM.options.Tdcm(2);
+[m, T1] = min(abs(DCM.Y.Time-T1));
+[m, T2] = min(abs(DCM.Y.Time-T2));
+
+% and decimate (to about 8ms)
+%--------------------------------------------------------------------------
+R     = ceil(8/DCM.Y.dt);                   % decimation factor
+j     = [T1:R:T2]';                         % time bins
 for i = 1:nt
     xy{i} = DCM.Y.xy{i}(j,:);
 end
@@ -66,16 +72,24 @@ xY.X0  = X0;
 % make model specification DCM.M a global variable
 %--------------------------------------------------------------------------
 global M
-M      = DCM.M;
+M       = DCM.M;
 
-% orthogonalise response y (and reduce dimension if necessary)
+% Project data onto the principal components of channel space priors 
 %--------------------------------------------------------------------------
-P.Lpos  = M.pE.Lpos;
-P.Lmom  = M.pE.Lmom;
-dLdp    = spm_diff('spm_erp_L',P,1);
-[i j J] = find(dLdp);
-J       = sparse(rem(i - 1,nc) + 1,j - min(j) + 1,J);
-xY.E    = spm_svd(J);
+M       = rmfield(M,'E');
+if DCM.options.projection == 1
+    P.Lpos  = M.pE.Lpos;
+    P.Lmom  = M.pE.Lmom;
+    dLdp    = spm_diff('spm_erp_L',P,1);
+    [i j J] = find(dLdp);
+    xY.E    = spm_svd(sparse(rem(i - 1,nc) + 1,j,J));
+
+% or data 
+%--------------------------------------------------------------------------
+elseif DCM.options.projection == 1
+
+    xY.E  = spm_svd(xY.y'*R0*xY.y);
+end
 xY.E    = xY.E(:,[1:nm]);
 xY.y    = xY.y*xY.E;
 
@@ -126,10 +140,10 @@ warning on
 
 % predicted responses (y) and residuals (r) (in channel space)
 %--------------------------------------------------------------------------
-y    = feval(M.IS,Qp,M,xU);
-r    = R0*(xY.y - y);
-y    = y*M.E';
-r    = r*M.E';
+y   = feval(M.IS,Qp,M,xU);
+r   = R0*(xY.y - y);
+y   = y*M.E';
+r   = r*M.E';
 
 % neuronal responses (x)
 %--------------------------------------------------------------------------

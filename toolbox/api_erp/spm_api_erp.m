@@ -3,7 +3,7 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 06-Jul-2006 19:12:58
+% Last Modified by GUIDE v2.5 03-Aug-2006 13:52:08
 
 if nargin == 0  % LAUNCH GUI
 
@@ -147,9 +147,6 @@ if ~isempty(deblank(get(handles.Y2, 'String')))
     end
 end
 
-% save original data here
-DCM.Y.xy_original = DCM.Y.xy;
-DCM.Y.Time_original = DCM.Y.Time;
 
 % update X
 %---------------------------------------------------------------------
@@ -311,7 +308,8 @@ for k = 1:4
         'Position',[x y nsx nsy],...
         'HorizontalAlignment','left',...
         'Style','text',...
-        'String',str, 'BackgroundColor', [1 1 1]);
+        'String',str,...
+        'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 constr         = handles.DCM.U.name;
 for k = 1:m
@@ -323,7 +321,8 @@ for k = 1:m
                 'Position',[x y nsx nsy],...
                 'HorizontalAlignment','left',...
                 'Style','text',...
-                'String',str, 'BackgroundColor', [1 1 1]);
+                'String',str,...
+                'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 handles.S = S;
 handles.A = A;
@@ -331,8 +330,8 @@ handles.B = B;
 handles.C = C;
 set(handles.connections,'Enable','off')
 set(handles.reset,      'Enable','on' )
-set(handles.estimate, 'Enable', 'on');
-
+set(handles.estimate,   'Enable', 'on');
+set(handles.initialise, 'Enable', 'on');
 
 guidata(h,handles)
 
@@ -353,14 +352,16 @@ if p ~= 0
     DCM.options.Spatial_type = get(handles.Spatial_type, 'Value');
     DCM.M.Spatial_type = DCM.options.Spatial_type; % store for use as switch in spm_gx_erp
     DCM.options.Nmodes = get(handles.Nmodes, 'Value');
+    DCM.options.projection = get(handles.projection, 'Value');
     DCM.options.h = get(handles.h, 'Value')-1;
     DCM.M.onset = str2num(get(handles.onset, 'String'));
 
     handles.DCM = DCM;
 
-    save(fullfile(p, f), 'DCM')
-    set(handles.estimate, 'Enable', 'on')
-    set(handles.results, 'Enable', 'off')
+    save(fullfile(p, f),    'DCM')
+    set(handles.estimate,   'Enable', 'on')
+    set(handles.initialise, 'Enable', 'on');
+    set(handles.results,    'Enable', 'off')
 
     try
         handles.DCM.F;
@@ -381,13 +382,7 @@ if p ~= 0
     handles.DCM = DCM;
     guidata(h, handles)
 else, return, end
-% enter options from saved options and try to execute data_ok and spatial_ok
-
-% put back original data and restore settings
-try
-    DCM.Y.xy = DCM.Y.xy_original;
-    DCM.Y.Time = DCM.Y.Time_original;
-end
+% enter options from saved options and execute data_ok andspatial_ok
 
 try, set(handles.Y1, 'String', num2str(DCM.options.Y1)); end
 try, set(handles.Y2, 'String', num2str(DCM.options.Y2)); end
@@ -437,7 +432,8 @@ if isfield(DCM.options, 'spatial_ok')
 
     try
         spm_api_erp('connections_Callback', gcbo, [], handles); 
-        set(handles.estimate, 'Enable', 'on');
+        set(handles.estimate,   'Enable', 'on');
+        set(handles.initialise, 'Enable', 'on');
     end
 end
 
@@ -447,12 +443,14 @@ M = handles.DCM.M;
 
 try
     handles.DCM.F;
-    set(handles.results, 'Enable','on');
-    set(handles.estimate,'String','Re-estimate','Foregroundcolor', [0 0 0]);
+    set(handles.results,    'Enable','on');
+    set(handles.estimate,   'String','Re-estimate','Foregroundcolor', [0 0 0]);
+    set(handles.initialise, 'Enable', 'on');
 catch
     % if something has been estimated earlier
-    set(handles.results, 'Enable','off');
-    set(handles.estimate,'String','Estimate','Foregroundcolor', [0 0 0]);
+    set(handles.results,    'Enable','off');
+    set(handles.estimate,   'String','Estimate','Foregroundcolor', [0 0 0]);
+    set(handles.initialise, 'Enable', 'on');
 end
 
 % --------------------------------------------------------------------
@@ -472,50 +470,6 @@ set(handles.L,          'Enable','off')
 set(handles.name,       'Enable','off')
 set(handles.swd,        'Enable','off')
 set(handles.reset,      'Enable','off')
-
-% reset and disable connections for contrast specification
-%-------------------------------------------------------------------
-% for i = 1:length(handles.A)
-%     for j = 1:length(handles.A{i})
-%         for k = 1:length(handles.A{i})
-%             if ~handles.DCM.A{i}(j,k)
-%                 set(handles.A{i}(j,k),'enable','off');
-%             end
-%             set(handles.A{i}(j,k),'Value',0);
-%             handles.DCM.A{i}(j,k)       = 0;
-%         end
-%     end
-% end
-% for i = 1:length(handles.B)
-%     for j = 1:length(handles.B{i})
-%         for k = 1:length(handles.B{i})
-%             if ~handles.DCM.B{i}(j,k)
-%                 set(handles.B{i}(j,k),'enable','off');
-%             end
-%             set(handles.B{i}(j,k),'Value',0);
-%             handles.DCM.B{i}(j,k)       = 0;
-%         end
-%     end
-% end
-% for i = 1:length(handles.C)
-%     set(handles.C(i),'Value',0);
-%     set(handles.C(i),'enable','off');
-%     handles.DCM.C(i)       = 0;
-% end
-guidata(h,handles);
-
-% plot conditional density
-%---------------------------------------------------------------------
-figure(handles.Fgraph)
-clf
-subplot(2,1,1);
-plot(x,pdf);
-title({'Posterior density of contrast',...
-        sprintf('P(contrast > 0) = %.1f%s',PP*100,'%')},...
-       'FontSize',12)
-xlabel('contrast')
-ylabel('probability density')
-axis square, grid on
 
 % --------------------------------------------------------------------
 function varargout = results_Callback(h, eventdata, handles, varargin)
@@ -722,7 +676,7 @@ function projection_Callback(hObject, eventdata, handles)
 % Hints: contents = get(hObject,'String') returns projection contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from projection
 
-if get(handles.projection, 'Value') == 1
+if get(handles.projection, 'Value') < 2
     % if SVD
     set(handles.Nmodes, 'Enable', 'on')
 else
@@ -933,16 +887,6 @@ if T2 <= T1
     errorldg('Second must be greater than first peri-stimulus time'); return;
 end
 
-[m, T1] = min(abs(DCM.Y.Time-T1));
-[m, T2] = min(abs(DCM.Y.Time-T2));
-
-% update peri-stimulus times
-DCM.Y.Time = DCM.Y.Time(T1:T2);
-
-for i = 1:Nresponses
-    DCM.Y.xy{i} = DCM.Y.xy{i}(T1:T2, :);
-end
-
 Nchannels = size(DCM.Y.xy{1}, 2);
 
 % nr of modes
@@ -958,9 +902,6 @@ end
 % show data (selected time bins)
 %--------------------------------------------------------------------------
 spm_dcm_erp_results(DCM, 'Response');
-
-s   = get(handles.h, 'String');
-DCM.Y.h = str2num(s{get(handles.h, 'Value')});
 
 DCM.options.data_ok = 1;
 
@@ -1018,10 +959,6 @@ function spatial_back_Callback(hObject, eventdata, handles)
 % hObject    handle to spatial_back (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% restore original data (before projection)
-handles.DCM.Y.xy = handles.DCM.Y.xy_original;
-handles.DCM.Y.Time = handles.DCM.Y.Time_original;
 
 set(handles.Y, 'Enable', 'on');
 set(handles.Y1, 'Enable', 'on');
@@ -1252,3 +1189,14 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+% --- Executes on button press in initialise.
+function initialise_Callback(hObject, eventdata, handles)
+% hObject    handle to initialise (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[f,p]       = uigetfile('DCM*.mat','please select estimated DCM');
+DCM         = load(fullfile(p,f), '-mat');
+handles.DCM.M.P = DCM.DCM.Ep;
+guidata(hObject, handles)
+return

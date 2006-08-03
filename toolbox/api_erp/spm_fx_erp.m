@@ -61,7 +61,7 @@ G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
 D = [2 16];              % propogation delays (intrinsic, extrinsic)
 H = [4 32];              % receptor densities (excitatory, inhibitory)
 T = [8 16];              % synaptic constants (excitatory, inhibitory)
-R = 0.56;                % parameter of staic nonlinearity
+R = [2 1]/3;              % parameters of static nonlinearity
 
 
 % exponential transform to ensure positivity constraints
@@ -80,8 +80,9 @@ Hi   = H(2);                         % inhibitory receptor density
 
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-S    = 1./(1 + exp(-R*x)) - 1/2;
-dSdx = 1./(1 + exp(-R*x)).^2.*(R*exp(-R*x));
+R    = R.*exp(P.S);
+S    = 1./(1 + exp(-R(1)*(x - R(2)))) - 1./(1 + exp(R(1)*R(2)));
+dSdx = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 
 % input
 %--------------------------------------------------------------------------

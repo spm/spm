@@ -13,7 +13,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % M.pC - prior covariance   - Cov{P}
 % M.IS - function name or handle f(P,M,U,varargin)
 %        an integration scheme of function returning a predicted response
-
+%
+% M.P  - optional starting estimtes for parameters
 %
 % U.u  - inputs
 % U.dt - sampling interval
@@ -57,7 +58,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 579 2006-08-01 18:32:10Z karl $
+% $Id: spm_nlsi_GN.m 583 2006-08-03 14:11:11Z karl $
 
 % figure
 %--------------------------------------------------------------------------
@@ -90,6 +91,13 @@ catch
     U = [];
 end
 
+% initial parameters
+%--------------------------------------------------------------------------
+try
+    M.P;
+catch
+    M.P = M.pE;
+end
  
 % data y
 %--------------------------------------------------------------------------
@@ -136,8 +144,8 @@ ipC   = inv(spm_cat(diag({pC,uC})));
  
 % initialise
 %--------------------------------------------------------------------------
-p     = sparse(np + nu,1);
-Ep    = pE;
+p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); sparse(nu,1)];
+Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp    = pC;
  
 C.F   = -Inf;
@@ -275,7 +283,7 @@ for k = 1:64
     % E-Step: update
     %======================================================================
     dp    = spm_dx(dFdpp,dFdp,{t});
-    p     = p  + dp;
+    p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
     
     % graphics

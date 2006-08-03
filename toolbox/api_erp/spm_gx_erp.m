@@ -22,31 +22,12 @@ function [y] = spm_gx_erp(x,u,P)
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x    = x(2:end);
-n    = length(P.A{1});
-x    = reshape(x,n,9);
+x  = x(2:end);
+n  = length(P.A{1});
+x  = reshape(x,n,9);
 
-% output
-%==========================================================================
-global M
+% parameterised lead field ECD (pre-multiplied by projector M.E)
+%--------------------------------------------------------------------------
+L  = spm_erp_L(P);
+y  = L*x(:,9);
 
-switch M.Spatial_type
-
-    % parameterised lead field ECD
-    %----------------------------------------------------------------------
-    case{1,2,3}
-        
-        L = spm_erp_L(P);
-        y = M.E'*L*x(:, 9);
-        return
-
-    % LFP or sources
-    %----------------------------------------------------------------------
-    case{4}
-
-        y = x(:,9); return
-
-    otherwise
-        warndlg('unknown type of lead field')
-        
-end

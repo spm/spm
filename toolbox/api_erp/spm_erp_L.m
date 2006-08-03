@@ -1,5 +1,5 @@
 function [L] = spm_erp_L(P)
-% returns lead field L as a function of position and momments
+% returns [projected] lead field L as a function of position and momments
 % FORMAT [L] = spm_erp_L(P)
 % P  - model parameters
 % L  - lead field
@@ -15,6 +15,7 @@ function [L] = spm_erp_L(P)
 % output
 %==========================================================================
 global M
+n   = size(P.Lpos,2);                                   % number of sources
 
 switch M.Spatial_type
         
@@ -27,7 +28,7 @@ switch M.Spatial_type
         try
            Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
         catch
-           Id = 1:size(P.Lpos,2);
+           Id = 1:n;
         end
         
         % record new spatial parameters
@@ -71,7 +72,7 @@ switch M.Spatial_type
         try
            Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
         catch
-           Id = 1:size(P.Lpos,2);
+           Id = 1:n;
         end
         
         % record new spatial parameters
@@ -94,11 +95,21 @@ switch M.Spatial_type
 
         M.L = M.L;
         
+    % LFP or sources - no lead feild required
+    %----------------------------------------------------------------------
+    case{4}
+
+        L = speye(n,n); return
+        
     otherwise
         warndlg('unknown type of lead field')
 end
 
-% lead feild
+% lead field (times projector, if specified)
 %--------------------------------------------------------------------------
-L   = M.L;
+try
+   L  = M.E'*M.L;
+catch
+   L  = M.L;
+end
 

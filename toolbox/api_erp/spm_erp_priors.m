@@ -67,8 +67,12 @@ n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/16;               % time constants
-E.H   = log(n1);        V.H = n1/16;               % synaptic density
+E.T   = log(n1);        V.T = n1/8;               % time constants
+E.H   = log(n1);        V.H = n1/8;               % synaptic density
+
+% set intrinic [excitatory] time constants
+%--------------------------------------------------------------------------
+E.S   = [0 0];          V.S = [1 1]/8;               % dispersion & threshold
 
 % set observer parameters
 %--------------------------------------------------------------------------

@@ -25,11 +25,11 @@ function [f] = spm_fx_lfp(x,u,P,s)
 % Fixed parameter scaling [Defaults]
 %
 %  E = [32 16 4];             % extrinsic rates (forward, backward, lateral)
-%  G = [1 1 1/4 1/4 1/2]*128; % intrinsic rates (g1, g2 g3, g4, g5)
+%  G = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2 g3, g4, g5)
 %  D = [2 16];                % propogation delays (intrinsic, extrinsic)
 %  H = [4 32];                % receptor densities (excitatory, inhibitory)
-%  T = [8 16];                % synaptic constants (excitatory, inhibitory)
-%  R = 1;                     % parameter of static nonlinearity
+%  T = [4 16];                % synaptic constants (excitatory, inhibitory)
+%  R = [2 1];                 % parameters of static nonlinearity
 %
 %__________________________________________________________________________
 %
