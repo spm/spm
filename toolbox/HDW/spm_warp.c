@@ -608,13 +608,13 @@ static void warp3d(unsigned char g[], unsigned char f[],
 					if (x1 == dim_g[1]) msk2 |= 8;
 
 					if (meth & 1)
-						tweek(0, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 1|msk2,
+						tweek(1, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 1|msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 					for(x0=2; x0<dim_g[0]; x0++)
 						tweek(x0, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 					if (meth & 1)
-						tweek(dim_g[0]-1, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 2|msk2,
+						tweek(dim_g[0], x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 2|msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 				}
 			}
@@ -645,13 +645,13 @@ static void warp3d(unsigned char g[], unsigned char f[],
 					if (x1 == dim_g[1]) msk2 |= 8;
 
 					if (meth & 1)
-						tweek(dim_g[0]-1, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 2|msk2,
+						tweek(dim_g[0], x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 2|msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 					for(x0=dim_g[0]-1; x0>1; x0--)
 						tweek(x0, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 					if (meth & 1)
-						tweek(0, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 1|msk2,
+						tweek(1, x1, x2, y0, y1, y2, dim_g, g, dim_f, vox_f, f, 1|msk2,
 							*lambda, *epsilon, *sigma2, *scale, &hf, &hp, &n, &sumf, &sumg, &cnt,sgn);
 				}
 			}
@@ -805,8 +805,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Can't use options data.");
 	its     =  mxGetPr(prhs[6])[0];
 	lambda  =  mxGetPr(prhs[6])[1];
-	epsilon =  mxGetPr(prhs[6])[3];
-	meth    =  mxGetPr(prhs[6])[4];
-
+	epsilon =  mxGetPr(prhs[6])[2];
+	meth    =  mxGetPr(prhs[6])[3];
 	estimate_warps(g,f,y0,y1,y2, dim_g, vox_g, dim_f, vox_f, its, lambda, epsilon, meth);
 }

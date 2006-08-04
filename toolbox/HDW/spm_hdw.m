@@ -64,7 +64,7 @@ vxf = sqrt(sum(VF.mat(1:3,1:3).^2))';if det(VF.mat(1:3,1:3))<0, vxf(1) = -vxf(1)
 % Do warping
 %-----------------------------------------------------------------------
 fprintf('Warping (iterations=%d regularisation=%g)\n', nit, reg);
-spm_warp(VG.uint8,VF.uint8,Def{:},[vxg vxf],[nit,reg,1,1]);
+spm_warp(VG.uint8,VF.uint8,Def{:},[vxg vxf],[nit,reg,1,0]);
 
 % Convert mapping from voxels to mm
 %-----------------------------------------------------------------------
