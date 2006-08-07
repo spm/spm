@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 581 2006-08-02 12:46:21Z volkmar $
+% $Id: spm_config_fmri_spec.m 587 2006-08-07 04:38:22Z Darren $
 
 
 % Define inline types.
@@ -517,10 +517,10 @@ cvi.help = {p1,sp_text,p2,sp_text,p3};
 %-------------------------------------------------------------------------
 
 conf = branch('fMRI model specification','fmri_spec',...
-    {timing,block,factors,bases,volt,cdir,glob,mask,cvi},'fMRI design');
+    {cdir,timing,block,factors,bases,volt,glob,mask,cvi},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
-conf.check  = @check_dir;
+% conf.check  = @check_dir;
 conf.modality = {'FMRI'};
 p1=['Statistical analysis of fMRI data uses a mass-univariate approach ',...
     'based on General Linear Models (GLMs). It comprises the following ',...
@@ -586,9 +586,11 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
-
-function t = check_dir(job)
-t = {};
+% COMMENTED OUT BY DRG. I THINK THIS SUB-FUNCTION WAS A HOLDOVER FROM AN
+% EARLY VERSION OF THIS FILE. PLEASE REMOVE IF REALLY NOT USED. ALSO REMOVE
+% REFERENCE ON LINE 523 (COMMENTED OUT) TO CHECK_DIR
+% function t = check_dir(job)
+% t = {};
 %d = pwd;
 %try,
 %    cd(job.dir{1});
@@ -604,6 +606,7 @@ t = {};
 %   t = {'SPM files exist in the analysis directory.'};
 %end;
 %return;
+% END COMMENTED OUT BY DRG
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
@@ -637,11 +640,12 @@ return;
 
 %-------------------------------------------------------------------------
 function my_cd(varargin)
-job = varargin{1};
-if ~isempty(job)
+% jobDir must be the actual directory to change to, NOT the job structure.
+jobDir = varargin{1};
+if ~isempty(jobDir)
     try
-        cd(char(job));
-        fprintf('Changing directory to: %s\n',char(job));
+        cd(char(jobDir));
+        fprintf('Changing directory to: %s\n',char(jobDir));
     catch
         error('Failed to change directory. Aborting run.')
     end

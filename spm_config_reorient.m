@@ -23,20 +23,41 @@ transM.name = 'Reorientation matrix';
 transM.tag  = 'transM';
 transM.strtype = 'e';
 transM.num  = [4 4];
-transM.help = {'Enter a valid 4x4 matrix for reorientation.'};
+p1 = 'Enter a valid 4x4 matrix for reorientation.';
+p2 = 'Example: This will L-R flip the images.';
+p3 = '   -1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1';
+transM.help = {p1,'',p2,'',p3};
 
 transprm.type = 'entry';
 transprm.name = 'Reorientation parameters';
 transprm.tag  = 'transprm';
 transprm.strtype = 'e';
 transprm.num  = [1 12];
-transprm.help = {'Enter 12 reorientation parameters (see spm_matrix for details).'};
+p0  = 'Enter 12 reorientation parameters.';
+p1  = 'P(1)  - x translation';
+p2  = 'P(2)  - y translation';
+p3  = 'P(3)  - z translation';
+p4  = 'P(4)  - x rotation about - {pitch} (radians)';
+p5  = 'P(5)  - y rotation about - {roll}  (radians)';
+p6  = 'P(6)  - z rotation about - {yaw}   (radians)';
+p7  = 'P(7)  - x scaling';
+p8  = 'P(8)  - y scaling';
+p9  = 'P(9)  - z scaling';
+p10 = 'P(10) - x affine';
+p11 = 'P(11) - y affine';
+p12 = 'P(12) - z affine';
+p13 = 'Parameters are entered as listed above and then processed by spm_matrix.';
+p14 = ['Example: This will L-R flip the images (extra spaces are inserted between ',...
+       'each group for illustration purposes).'];
+p15 = '   0 0 0   0 0 0   -1 0 0   0 0 0';
+
+transprm.help = {p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,'',p14,'',p15,''};
 
 transform.type = 'choice';
 transform.name = 'Reorient by';
 transform.tag  = 'transform';
 transform.values = {transM, transprm};
-transform.help = {'Specify reorientation parameters.'};
+transform.help = {'Specify reorientation method.'};
 
 opts.type = 'branch';
 opts.name = 'Reorient images';
@@ -47,7 +68,7 @@ opts.vfiles = @vfiles_reorient;
 opts.help = {[...
     'This facilty allows to reorient images in a batch. The reorientation parameters ' ...
     'can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. ' ...
-    'The new image orientation will be computed by left-multiplying the original '...
+    'The new image orientation will be computed by PRE-multiplying the original '...
     'orientation matrix with the supplied matrix.']};
 
 %------------------------------------------------------------------------
@@ -66,3 +87,8 @@ for k = 1:numel(job.srcfiles)
 end;
 spm_progress_bar('Clear');
 return;
+%-------------------------------------------------------------------------
+
+function vf = vfiles_reorient(job)
+srcfiles = job.srcfiles{1};
+vf    = {spm_select('CPath','image',srcfiles)};

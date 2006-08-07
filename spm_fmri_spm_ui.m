@@ -173,9 +173,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_fmri_spm_ui.m 587 2006-08-07 04:38:22Z Darren $
 
-SCCSid  = '$Rev: 539 $';
+SCCSid  = '$Rev: 587 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -281,7 +281,7 @@ try
 	HParam   = SPM.xX.K(1).HParam;
 	HParam   = HParam*ones(1,nsess);
 catch
-	% specify low frequnecy confounds
+	% specify low frequency confounds
 	%---------------------------------------------------------------
 	spm_input('Temporal autocorrelation options','+1','d',mfilename)
 	switch spm_input('High-pass filter?','+1','b','none|specify');

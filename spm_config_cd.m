@@ -3,8 +3,8 @@ function opts = spm_config_cd
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Darren Gitelmann
-% $Id: spm_config_cd.m 538 2006-05-19 08:05:24Z volkmar $
+% Darren Gitelman
+% $Id: spm_config_cd.m 587 2006-08-07 04:38:22Z Darren $
 
 data.type = 'files';
 data.name = 'Select a directory';
@@ -17,7 +17,7 @@ opts.type = 'branch';
 opts.name = 'Change Directory';
 opts.tag  = 'cdir';
 opts.val  = {data};
-opts.prog = @my_cd;
+opts.prog = @my_job_cd;
 p1 = [...
 'This facilty allows programming a directory change. Directories are ',...
 'selected in the right listbox.'];
@@ -27,10 +27,16 @@ opts.help = {p1};
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function my_cd(varargin)
+function my_job_cd(varargin)
+% job can be a job structure or the directory to change to.
 job = varargin{1};
-if ~isempty(job.directory),
-    cd(job.directory{:});
-    fprintf('New working directory: %s\n', job.directory{:});
+if isstruct(job)
+    jobDir = job.directory;
+else
+    jobDir = job;
+end
+if ~isempty(jobDir),
+    cd(char(jobDir));
+    fprintf('New working directory: %s\n', char(jobDir));
 end;
 return;

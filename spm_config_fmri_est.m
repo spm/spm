@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 515 2006-05-05 08:22:39Z volkmar $
+% $Id: spm_config_fmri_est.m 587 2006-08-07 04:38:22Z Darren $
 
 
 % Define inline types.
@@ -355,19 +355,22 @@ original_dir = pwd;
 %-----------------------------------------------------------------------
 cd(fileparts(job.spmmat{:}));
 
+% COMMENTED OUT BY DRG. THIS SHOULD BE TAKEN CARE OF WITHIN SPM_SPM AND
+% SPM_SPM_BAYES. REMOVE THIS SECTION ONCE THIS HAS BEEN VERIFIED.
 %-If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
 %-----------------------------------------------------------------------
-files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
-         '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
-         '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
-
-for i=1:length(files)
-    j = spm_select('List',pwd,files{i});
-    for k=1:size(j,1)
-        spm_unlink(deblank(j(k,:)));
-    end
-end
+% files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
+%          '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
+%          '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
+% 
+% for i=1:length(files)
+%     j = spm_select('List',pwd,files{i});
+%     for k=1:size(j,1)
+%         spm_unlink(deblank(j(k,:)));
+%     end
+% end
+% END COMMENTED OUT BY DRG
 
 %=======================================================================
 % B A Y E S I A N   2nd   L E V E L   E S T I M A T I O N

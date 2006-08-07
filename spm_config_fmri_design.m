@@ -504,10 +504,10 @@ cvi.help = {p1,sp_text,p2,sp_text,p3};
 %-------------------------------------------------------------------------
 
 conf = branch('fMRI model specification (design only)','fmri_design',...
-    {timing,block,factors,bases,volt,cdir,glob,cvi},'fMRI design');
+    {cdir,timing,block,factors,bases,volt,glob,cvi},'fMRI design');
 conf.prog   = @run_stats;
 conf.vfiles = @vfiles_stats;
-conf.check  = @check_dir;
+% conf.check  = @check_dir;
 conf.modality = {'FMRI'};
 p1=['Statistical analysis of fMRI data uses a mass-univariate approach ',...
     'based on General Linear Models (GLMs). It comprises the following ',...
@@ -573,9 +573,11 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
-
-function t = check_dir(job)
-t = {};
+% COMMENTED OUT BY DRG. I THINK THIS SUB-FUNCTION WAS A HOLDOVER FROM AN
+% EARLY VERSION OF THIS FILE. PLEASE REMOVE IF REALLY NOT USED. ALSO REMOVE
+% REFERENCE ON LINE 510 (COMMENTED OUT) TO CHECK_DIR
+% function t = check_dir(job)
+% t = {};
 %d = pwd;
 %try,
 %    cd(job.dir{1});
@@ -591,6 +593,7 @@ t = {};
 %   t = {'SPM files exist in the analysis directory.'};
 %end;
 %return;
+% END COMMENTED OUT BY DRG
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
@@ -624,11 +627,12 @@ return;
 
 %-------------------------------------------------------------------------
 function my_cd(varargin)
-job = varargin{1};
-if ~isempty(job)
+% jobDir must be the actual directory to change to, NOT the job structure. 
+jobDir = varargin{1};
+if ~isempty(jobDir)
     try
-        cd(char(job));
-        fprintf('Changing directory to: %s\n',char(job));
+        cd(char(jobDir));
+        fprintf('Changing directory to: %s\n',char(jobDir));
     catch
         error('Failed to change directory. Aborting run.')
     end

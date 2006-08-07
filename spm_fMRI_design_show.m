@@ -8,7 +8,7 @@ function spm_fMRI_design_show(SPM,s,i)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fMRI_design_show.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_fMRI_design_show.m 587 2006-08-07 04:38:22Z Darren $
 
 
 % SPM
@@ -93,13 +93,14 @@ q     = size(gX,1);
 Hz    = [0:(q - 1)]/(q*SPM.xY.RT);
 q     = 2:fix(q/2);
 plot(Hz(q),gX(q,:))
-patch([0 1 1 0]/128,[0 0 1 1]*max(max(gX)),[1 1 1]*.9)
+HPF = SPM.xX.K(s).HParam;
+patch([0 1 1 0]/HPF,[0 0 1 1]*max(max(gX)),[1 1 1]*.9);
 xlabel('Frequency (Hz)')
 ylabel('relative spectral density')
-title({'Frequency domain','128 second High-pass filter'})
+h=title(['Frequency domain',sprintf('\n'), ' {\bf',num2str(HPF),'}', ...
+    ' second High-pass filter'],'Interpreter','Tex');
 grid on
 axis tight
-
 
 % if trial (as opposed to trial x trial interaction)
 %-----------------------------------------------------------------------

@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 546 2006-06-05 14:39:16Z Darren $
+% $Id: spm_contrasts.m 587 2006-08-07 04:38:22Z Darren $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -164,7 +164,7 @@ for i = 1:length(Ic)
 		% As PPM effect size threshold, gamma, may have changed
 		% always update PPM file
 
-		fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,i),...
+		fprintf('\t%-32s: %30s\n',sprintf('spm{%c} image %2d',xCon(ic).STAT,i),...
                                                     '...computing')  %-#
 
 		switch(xCon(ic).STAT)
@@ -216,7 +216,8 @@ for i = 1:length(Ic)
 			%xCon(ic).name = [xCon(ic).name ' ' str];
         else
             % Compound contrast - Chi^2 distributed
-            disp('Chi^2 Bayesian inference for compound contrast');
+            fprintf('\t\t%-75s\n','Chi^2 Bayesian inference for compound contrast');
+            fprintf('\t%-32s: %29s\n',' ',' ');
             d = spm_get_data(xCon(ic).Vcon,XYZ);
             Z = spm_Xcdf(d,xCon(ic).eidf);
             

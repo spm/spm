@@ -10,14 +10,14 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_x2.m 245 2005-09-27 14:16:41Z guillaume $
+% $Id: spm_vb_x2.m 587 2006-08-07 04:38:22Z Darren $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
         
 %-Get number of sessions
 %-----------------------------------------------------------------------
-nsess = length(SPM.Sess);
+nsess = length(SPM.nscan); %length(SPM.Sess);
 
 %- Compound Contrast
 %-----------------------------------------------------------------------

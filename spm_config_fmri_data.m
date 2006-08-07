@@ -4,7 +4,7 @@ function conf = spm_config_fmri_data
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_data.m 513 2006-05-05 08:20:10Z volkmar $
+% $Id: spm_config_fmri_data.m 587 2006-08-07 04:38:22Z Darren $
 
 
 % Define inline types.
@@ -80,11 +80,12 @@ return;
 
 %-------------------------------------------------------------------------
 function my_cd(varargin)
-job = varargin{1};
-if ~isempty(job)
+% jobDir must be the actual directory to change to, NOT the job structure.
+jobDir = varargin{1};
+if ~isempty(jobDir)
     try
-    cd(char(job));
-    fprintf('Changing directory to: %s\n',char(job));
+    cd(char(jobDir));
+    fprintf('Changing directory to: %s\n',char(jobDir));
     catch
         error('Failed to change directory. Aborting run.')
     end
