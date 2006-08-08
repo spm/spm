@@ -43,8 +43,11 @@ T2      = DCM.options.Tdcm(2);
 
 % and decimate (to about 8ms)
 %--------------------------------------------------------------------------
-R     = ceil(8/DCM.Y.dt);                   % decimation factor
+% R     = ceil(8/DCM.Y.dt); % decimation factor
+R =1;
 j     = [T1:R:T2]';                         % time bins
+DCM.xY.Time = DCM.Y.Time(j);                % Time [ms] of downsampled data
+
 for i = 1:nt
     xy{i} = DCM.Y.xy{i}(j,:);
 end
@@ -76,7 +79,7 @@ M       = DCM.M;
 
 % Project data onto the principal components of channel space priors 
 %--------------------------------------------------------------------------
-M       = rmfield(M,'E');
+%M       = rmfield(M,'E');
 if DCM.options.projection == 1
     P.Lpos  = M.pE.Lpos;
     P.Lmom  = M.pE.Lmom;
@@ -138,12 +141,12 @@ dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning on
 
-% predicted responses (y) and residuals (r) (in channel space)
+% predicted responses (y) and residuals (r) (in projected and in channel space)
 %--------------------------------------------------------------------------
 y   = feval(M.IS,Qp,M,xU);
 r   = R0*(xY.y - y);
-y   = y*M.E';
-r   = r*M.E';
+yc   = y*M.E';
+rc   = r*M.E';
 
 % neuronal responses (x)
 %--------------------------------------------------------------------------
@@ -157,6 +160,9 @@ for  i = 1:nt
     j    = [1:ns] + (i - 1)*ns;
     H{i} = y(j,:);
     E{i} = r(j,:);
+    Hc{i} = yc(j,:);
+    Ec{i} = rc(j,:);
+
     K{i} = x(j,:);
 end
 
@@ -169,9 +175,11 @@ DCM.xU   = xU;                            % input structure
 DCM.Ep   = Qp;                            % conditional expectation
 DCM.Cp   = Cp;                            % conditional covariances
 DCM.Pp   = Pp;                            % conditional probability
-DCM.H    = H;                             % conditional responses (y)
+DCM.H    = H;                             % conditional responses (y), projected space
+DCM.Hc    = Hc;                             % conditional responses (y), channel space
 DCM.K    = K;                             % conditional responses (x)
 DCM.R    = E;                             % conditional residuals (y)
+DCM.Rc    = Ec;                             % conditional residuals (y), channel space
 DCM.Ce   = Ce;                            % ReML error covariance
 DCM.F    = F;                             % Laplace log evidence
 

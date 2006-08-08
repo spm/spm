@@ -37,10 +37,10 @@ if ~strcmp(lower(Action), 'dipoles')
 end
 
 try
-    nt     = length(DCM.H);
+    nt     = length(DCM.H); % Nr of trials
     nu     = size(DCM.C,2);
     nc     = size(DCM.H{1},2);
-    ns     = size(DCM.K{1},2);
+    ns     = size(DCM.K{1},2); % Nr of sources
 end
 
 % switch
@@ -55,7 +55,7 @@ case{lower('ERPs (channel)')}
     lo = {'-', '--'};
     
     try
-        T = DCM.Y.Time;
+        T = DCM.xY.Time;
     catch
         T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
     end
@@ -120,7 +120,7 @@ case{lower('Coupling (A)')}
         % images
         %-----------------------------------------------------------
         subplot(4,3,i)
-        imagesc(exp(DCM.Qp.A{i}))
+        imagesc(exp(DCM.Ep.A{i}))
         title(str{i},'FontSize',10)
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
@@ -131,7 +131,7 @@ case{lower('Coupling (A)')}
         % tables
         %--------------------------------------------------------------------
         subplot(4,3,i + 3)
-        text(0,1/2,num2str(full(exp(DCM.Qp.A{i})),' %.2f'),'FontSize',8)
+        text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
 
     
@@ -159,7 +159,7 @@ case{lower('Coupling (C)')}
     % images
     %-----------------------------------------------------------
     subplot(2,4,1)
-    imagesc(exp(DCM.Qp.C))
+    imagesc(exp(DCM.Ep.C))
     title('Factors','FontSize',10)
     set(gca,'XTick',[1:nu],'XTickLabel',DCM.U.name,'FontSize',8)
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
@@ -175,7 +175,7 @@ case{lower('Coupling (C)')}
     % table
     %--------------------------------------------------------------------
     subplot(2,4,2)
-    text(0,1/2,num2str(full(exp(DCM.Qp.C)),' %.2f'),'FontSize',8)
+    text(0,1/2,num2str(full(exp(DCM.Ep.C)),' %.2f'),'FontSize',8)
     axis off
 
     % table
@@ -194,7 +194,7 @@ case{lower('Coupling (B)')}
         % images
         %-----------------------------------------------------------
         subplot(4,nu,i)
-        imagesc(exp(DCM.Qp.B{i}))
+        imagesc(exp(DCM.Ep.B{i}))
         title(DCM.U.name{i},'FontSize',10)
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
@@ -205,7 +205,7 @@ case{lower('Coupling (B)')}
         % tables
         %--------------------------------------------------------------------
         subplot(4,nu,i + nu)
-        text(0,1/2,num2str(full(exp(DCM.Qp.B{i})),' %.2f'),'FontSize',8)
+        text(0,1/2,num2str(full(exp(DCM.Ep.B{i})),' %.2f'),'FontSize',8)
         axis off
         axis square
         
@@ -232,7 +232,7 @@ case{lower('Input')}
     % --------------------------------------------------------------------
     xU   = DCM.xU;
     t    = xU.dt:xU.dt:xU.dur;
-    U    = spm_erp_u(DCM.Qp,t);
+    U    = spm_erp_u(DCM.Ep,t);
     
     subplot(2,1,1)
     plot(t*1000,U)
@@ -265,25 +265,14 @@ case{lower('Response')}
 case{lower('Dipoles')}
     
     if DCM.options.Spatial_type ~= 3
-        P = DCM.Qp;
-
-% code for using EEGLab function
-%         clear mod
-%         for i = 1:DCM.M.Nareas
-%             mod(i).posxyz = P.Lpos(:, i)';
-%             mod(i).momxyz = (P.Lmom(:,i).*P.K(i))';
-%             mod(i).rv = 0.5155;
-%         end
-% 
-%         % plotoptions
-%         plotopt = {'normlen', 'on', 'image', 'fullmri'};
-%         eeglab_dipplot(mod, 'sphere', max(DCM.M.dipfit.vol.r), plotopt{:});
-        
+        P = DCM.Ep;        
 
         sdip.n_seeds = 1;
-        sdip.n_dip = DCM.M.Nareas;
+        sdip.n_dip = ns;
         sdip.Mtb = 1;
-        sdip.j{1} = full(P.Lmom).*repmat(P.K', 3, 1);
+        % sdip.j{1} = full(P.Lmom).*repmat(P.K', 3, 1);
+        sdip.j{1} = full(P.Lmom);
+
 %        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
         sdip.j{1} = sdip.j{1}(:);
         sdip.loc{1} = full(P.Lpos);

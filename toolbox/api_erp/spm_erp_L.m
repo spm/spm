@@ -8,7 +8,7 @@ function [L] = spm_erp_L(P)
 % paramters in M.Lpos and M.Lmon.  This enables spm_erp_L to compute a new 
 % lead field only when necessary (i.e., when the parameters change)
 %
-% see; Kiebel et al.
+% see; Kiebel et al. (2006) NeuroImage
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -39,18 +39,12 @@ switch M.Spatial_type
         if length(Id)
 
             % note that in all DCM code, EEG coordinates are in MNI
-            % space-orientation. Transform here to fieldtrip.
-            % transformation matrix from MNI-oriented coordinate system
-            % to fieldtrip
+            % space-orientation. Transform here to POL space and add
+            % translation to relate coordinates to centre of sphere
             %--------------------------------------------------------------
-            iMt = [0 1 0 20;
-                  -1 0 0 0;
-                   0 0 1 10;
-                   0 0 0 1];
-            iSt = [0 1 0 0;
-                  -1 0 0 0;
-                   0 0 1 0;
-                   0 0 0 1];
+            iMt = M.dipfit.Mmni2polsphere;
+            iSt = iMt; iSt(1:3,4) = 0;
+
             
             P.Lpos = iMt*[P.Lpos; ones(1, size(P.Lpos, 2))];
             P.Lmom = iSt*[P.Lmom; ones(1, size(P.Lmom, 2))];

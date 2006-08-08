@@ -6,14 +6,14 @@ function varargout = spm_api_erp(varargin)
 % Last Modified by GUIDE v2.5 03-Aug-2006 13:52:08
 
 if nargin == 0  % LAUNCH GUI
-
-	fig     = openfig(mfilename,'reuse');
+    
+    fig     = openfig(mfilename,'reuse');
     Fgraph  = spm_figure('GetWin','Graphics');
-	% Use system color scheme for figure:
-	set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
-
-	% Generate a structure of handles to pass to callbacks, and store it. 
-	handles = guihandles(fig);
+    % Use system color scheme for figure:
+    set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
+    
+    % Generate a structure of handles to pass to callbacks, and store it. 
+    handles = guihandles(fig);
     
     DCM.name = 'ERP';
     DCM.Y.xy = {};
@@ -21,24 +21,24 @@ if nargin == 0  % LAUNCH GUI
     handles.DCM    = DCM;
     handles.X = [];
     handles.Fgraph = Fgraph;
-	guidata(fig, handles);
-
-	if nargout > 0
-		varargout{1} = fig;
-	end
-
+    guidata(fig, handles);
+    
+    if nargout > 0
+        varargout{1} = fig;
+    end
+    
 elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
-
-	try
-		if (nargout)
-			[varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
-		else
-			feval(varargin{:}); % FEVAL switchyard
-		end
-	catch
-		disp(lasterr);
-	end
-
+    
+    try
+        if (nargout)
+            [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
+        else
+            feval(varargin{:}); % FEVAL switchyard
+        end
+    catch
+        disp(lasterr);
+    end
+    
 end
 
 
@@ -183,11 +183,11 @@ if p ~= 0
         L = load(f,'-ascii');
     end
     try
-    L = load(f,'-mat');
-    while ~isnumeric(L)
-        s = fieldnames(L);
-        L = getfield(L,s{1});
-    end
+        L = load(f,'-mat');
+        while ~isnumeric(L)
+            s = fieldnames(L);
+            L = getfield(L,s{1});
+        end
     end
 else, return, end
 
@@ -213,11 +213,10 @@ end
 
 % --------------------------------------------------------------------
 function varargout = connections_Callback(h, eventdata, handles, varargin)
-n = size(handles.DCM.L,2);    % number of sources
+n = size(handles.DCM.M.L,2);    % number of sources
 m = size(handles.DCM.U.X,2);  % number of inputs
 
-% put onset here (later: enable user to change this using GUI)
-% handles.DCM.M.onset = 15;
+% put onset here
 handles.DCM.M.onset = str2num(get(handles.onset, 'String'));
 
 % reset connection buttons
@@ -240,11 +239,11 @@ for i = 1:n
             str        = sprintf('data.DCM.A{%i}(%i,%i)',k,i,j);
             str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
             A{k}(i,j)  = uicontrol(handles.SPM,...
-                      'Units','Normalized',...
-                      'Position',[x y sx sy],...
-                      'Style','radiobutton',...
-                      'Tag','',...
-                      'Callback',str);
+                'Units','Normalized',...
+                'Position',[x y sx sy],...
+                'Style','radiobutton',...
+                'Tag','',...
+                'Callback',str);
             if i == j
                 set(A{k}(i,j),'Enable','off')
             end
@@ -260,11 +259,11 @@ for i = 1:n
             str        = sprintf('data.DCM.B{%i}(%i,%i)',k,i,j); 
             str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
             B{k}(i,j)  = uicontrol(handles.SPM,...
-                      'Units','Normalized',...
-                      'Position',[x y sx sy],...
-                      'Style','radiobutton',...
-                      'Tag','',...
-                      'Callback',str);
+                'Units','Normalized',...
+                'Position',[x y sx sy],...
+                'Style','radiobutton',...
+                'Tag','',...
+                'Callback',str);
             if i == j
                 set(B{k}(i,j),'Enable','off')
             end
@@ -282,11 +281,11 @@ for i = 1:n
     str        = sprintf('data.DCM.C(%i)',i);
     str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
     C(i)       = uicontrol(handles.SPM,...
-                      'Units','Normalized',...
-                      'Position',[x y sx sy],...
-                      'Style','radiobutton',...
-                      'Tag','',...
-                      'Callback',str);
+        'Units','Normalized',...
+        'Position',[x y sx sy],...
+        'Style','radiobutton',...
+        'Tag','',...
+        'Callback',str);
     try
         set(C(i),'Value',handles.DCM.C(i));
     catch
@@ -317,12 +316,12 @@ for k = 1:m
     y          = y0 - 6*sy - 2*(n + 1)*sy;
     str        = ['B ' constr{k}];
     S(4 + k)   = uicontrol(handles.SPM,...
-                'Units','Normalized',...
-                'Position',[x y nsx nsy],...
-                'HorizontalAlignment','left',...
-                'Style','text',...
-                'String',str,...
-                'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+        'Units','Normalized',...
+        'Position',[x y nsx nsy],...
+        'HorizontalAlignment','left',...
+        'Style','text',...
+        'String',str,...
+        'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 handles.S = S;
 handles.A = A;
@@ -350,19 +349,19 @@ if p ~= 0
     DCM.options.Tdcm(1) = str2num(get(handles.T1, 'String'));
     DCM.options.Tdcm(2) = str2num(get(handles.T2, 'String'));
     DCM.options.Spatial_type = get(handles.Spatial_type, 'Value');
-    DCM.M.Spatial_type = DCM.options.Spatial_type; % store for use as switch in spm_gx_erp
+    DCM.M.Spatial_type = DCM.options.Spatial_type; % switch for spatial forward model
     DCM.options.Nmodes = get(handles.Nmodes, 'Value');
     DCM.options.projection = get(handles.projection, 'Value');
     DCM.options.h = get(handles.h, 'Value')-1;
     DCM.M.onset = str2num(get(handles.onset, 'String'));
-
+    
     handles.DCM = DCM;
-
+    
     save(fullfile(p, f),    'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
     set(handles.results,    'Enable', 'off')
-
+    
     try
         handles.DCM.F;
         set(handles.estimate,'String','re-estimate')
@@ -382,8 +381,8 @@ if p ~= 0
     handles.DCM = DCM;
     guidata(h, handles)
 else, return, end
-% enter options from saved options and execute data_ok andspatial_ok
 
+% enter options from saved options and execute data_ok and spatial_ok
 try, set(handles.Y1, 'String', num2str(DCM.options.Y1)); end
 try, set(handles.Y2, 'String', num2str(DCM.options.Y2)); end
 try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1))); end
@@ -393,7 +392,6 @@ try, set(handles.Nmodes, 'Value', DCM.options.Nmodes); end
 try, set(handles.h, 'Value', DCM.options.h+1); end
 try, set(handles.onset, 'String', num2str(DCM.M.onset)); end
 
-% bad bad bad code, replace by better
 try, set(handles.Vlocation, 'String', num2str(DCM.M.dipfit.L.Vpos(1,1))); end
 
 handles.DCM = DCM;
@@ -410,11 +408,6 @@ try, set(handles.name, 'String', DCM.name); end
 try, set(handles.Sname, 'String', strvcat(DCM.Sname)); end
 
 if DCM.options.Spatial_type ~= 3
-    % transform locations back to MNI space first
-    %     M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]]; % transformation matrix from dip to MNI
-    %     tmp = M*[DCM.M.dipfit.L.pos; ones(1, size(DCM.M.dipfit.L.pos, 2))];
-    %
-    %     try, set(handles.Slocation, 'String', num2str(tmp(1:3, :)')); end
     try, set(handles.Slocation, 'String', num2str(DCM.M.dipfit.L.pos')); end
 end
 
@@ -426,10 +419,10 @@ if isfield(DCM.options, 'spatial_ok')
     try
         handles = spatial_ok_Callback(h, eventdata, handles);
     end
-
+    
     % saving DCM
     guidata(h, handles);
-
+    
     try
         spm_api_erp('connections_Callback', gcbo, [], handles); 
         set(handles.estimate,   'Enable', 'on');
@@ -473,9 +466,9 @@ set(handles.reset,      'Enable','off')
 
 % --------------------------------------------------------------------
 function varargout = results_Callback(h, eventdata, handles, varargin)
-Action  = get(handles.results,'String');
-Action  = Action{get(handles.results,'Value')};
-spm_dcm_erp_results(handles.DCM,Action);
+Action  = get(handles.results, 'String');
+Action  = Action{get(handles.results, 'Value')};
+spm_dcm_erp_results(handles.DCM, Action);
 
 % remove existing buttons
 %---------------------------------------------------------------------
@@ -504,7 +497,7 @@ try
     handles.DCM = rmfield(handles.DCM,{'A','B','C'});
     handles     = rmfield(handles,{'A','B','C','S'});
     guidata(h,handles)
-
+    
 end
 set(handles.connections,'Enable','on')
 
@@ -570,7 +563,7 @@ elseif get(handles.Spatial_type, 'Value') == 2
     set(handles.sensorfile, 'Enable', 'off');
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation, 'Enable', 'on');
-
+    
 else
     % if EEG ECD
     set(handles.L, 'Enable', 'off');
@@ -701,7 +694,7 @@ if Spatial_type == 1
     f     = fullfile(p,f);
     
     DCM.M.dipfit.sensorfile = f;
-        
+    
     handles.DCM = DCM;
 end
 
@@ -734,21 +727,20 @@ for i = 1:size(tmp, 1)
 end
 
 Nareas = length(Sname);
-Nmodes = size(DCM.E, 1);
+Nmodes = get(handles.Nmodes, 'Value');
 
 DCM.Sname = Sname;
 
 Spatial_type = get(handles.Spatial_type, 'Value');
 DCM.options.Spatial_type = Spatial_type;
-DCM.M.Spatial_type = Spatial_type; % store for use as switch in spm_gx_erp
-
+DCM.M.Spatial_type = Spatial_type; % switch for spatial forward model
 
 if Spatial_type ~= 3
     % user chose an ECD model
     % read location coordinates
     Slocations = zeros(Nareas, 3);
     tmp = get(handles.Slocation, 'String');
-
+    
     if ~isempty(tmp) & size(tmp, 1) == Nareas
         for i = 1:Nareas
             tmp2 = str2num(tmp(i, :));
@@ -763,12 +755,12 @@ if Spatial_type ~= 3
         end
     else
         errordlg(sprintf('Please specify %d source locations.', Nareas)); return
-
+        
     end
 else
     
     % fixed lead field
-
+    
     set(handles.Slocation, 'String', '');
     
     try
@@ -780,7 +772,7 @@ else
     if size(DCM.L, 2) ~= Nareas
         errordlg(sprintf('fixed lead field (%d) and nr of components (%d) don''t correspond.', size(DCM.L, 2), Nareas)); return;
     end
-
+    
     DCM.L = DCM.E*DCM.L;
     DCM.M.L = DCM.L;
     
@@ -803,37 +795,24 @@ if Spatial_type == 1 || Spatial_type == 2
     % prepare forward model
     DCM = spm_dcm_erp_prepareSpatial(DCM);
     
-    % specify prior distributions for ECD model parameters
-    DCM.L = zeros(Nmodes, Nareas);
-
+    if ~isfield(DCM, 'L')
+        % contains estimated leadfield
+        DCM.L = zeros(Nmodes, Nareas);
+    end
+    
     % prior distributions of spatial parameters
     % they are kept here (and not in spm_erp_priors, because I want
     % them to be changeable by (power-)user
-    % also: transform to eeglab coordinates using
-    % transformation matrix from dip to MNI
-%     M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
-% 
-%     Slocations = inv(M)*[Slocations ones(Nareas, 1)]';
-%     DCM.M.dipfit.L.pos = Slocations(1:3,:);
     DCM.M.dipfit.L.pos = Slocations';
-
+    
     % zero prior mean on dipole orientation
     DCM.M.dipfit.L.mom = zeros(3,Nareas);
-
-    % prior mean of one on K
-    DCM.M.dipfit.L.K = ones(Nareas, 1);
-
+        
     % tight priors on location, broad priors on moments
-%     DCM.M.dipfit.L.Vpos = [8*ones(3, Nareas)];
     DCM.M.dipfit.L.Vpos = str2num(get(handles.Vlocation, 'String'))*ones(3, Nareas);
     DCM.M.dipfit.L.Vmom = [8*ones(3, Nareas)];
-
-    % prior precision on K is a bit redundant because there is already broad
-    % prior on moments
-    DCM.M.dipfit.L.VK = 1*ones(size(DCM.M.dipfit.L.K));
-
-    DCM.M.E = DCM.E;
-    DCM.M.L = zeros(Nmodes, Nareas);
+        
+    DCM.M.L = zeros(length(DCM.M.Ichannels), Nareas);
     DCM.M.Lpos = NaN*DCM.M.dipfit.L.pos; % NaN forces spm_gx_erp to compute initial lead field
     DCM.M.Lmom = NaN*DCM.M.dipfit.L.mom; %
 end
@@ -858,7 +837,7 @@ try
     if Nareas ~= handles.Nareas_old
         reset_Callback(hObject, eventdata, handles);
         handles.DCM = rmfield(handles.DCM,{'A','B','C'});
-
+        
     end
 end
 guidata(hObject, handles);
@@ -934,7 +913,7 @@ elseif get(handles.Spatial_type, 'Value') == 2
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation, 'Enable', 'on');    
     set(handles.Vlocation, 'Enable', 'on');
-
+    
 else
     % fixed
     set(handles.sensorfile, 'Enable', 'off');
@@ -1073,7 +1052,7 @@ try
     for i = 1:length(handles.C)
         set(handles.C(i), 'Enable', 'off');
     end
-
+    
 end
 
 % save old nr of areas
@@ -1102,14 +1081,6 @@ if ~isempty(tmp)
 end
 
 Nlocations = size(Slocations, 2);
-
-% transformation matrix from dip to MNI
-% M = [[0 -1 0 0]; [1 0 0 -20]; [0 0 1 -10]; [0 0 0 1]];
-% 
-% 
-% Slocations = inv(M)*[Slocations ones(Nlocations, 1)]';
-% Slocations = Slocations(1:3,:);
-
 
 sdip.n_seeds = 1;
 sdip.n_dip = Nlocations;
