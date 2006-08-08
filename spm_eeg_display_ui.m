@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_display_ui.m 589 2006-08-08 17:44:39Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -55,6 +55,9 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     catch
         % use SPM graphics window
         F = findobj('Tag', 'Graphics');
+        if isempty(F)
+            F = spm_figure('create','Graphics','Graphics','on');
+        end
     end
 
     set(F, 'SelectionType', 'normal');
@@ -778,10 +781,11 @@ end
 
 % call scalp2d or 3d
 spm('Pointer', 'Watch');drawnow;
-t=round(t/1000*D.Radc)+D.events.start;
 if strcmpi(s, '2d')
     spm_eeg_scalp2d_ext(D, t, handles.Tselection(1));
 else
+    % change time for james' function
+    t=round(t/1000*D.Radc)+D.events.start+1;
     if length(t) == 1
         d = squeeze(D.data(D.channels.eeg, t, handles.Tselection(1)));
     else

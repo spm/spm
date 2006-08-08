@@ -48,7 +48,7 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 547 2006-06-07 12:23:17Z john $
+% $Id: spm_eeg_inv_datareg.m 589 2006-08-08 17:44:39Z stefan $
 
 spm_defaults
 
@@ -136,13 +136,13 @@ else
             end
         end
     else
-        if strcmp(D.modality,'MEG')
-            if nargin == 5
-                sens_or_file = varargin{4};
-            else
-                sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
-            end
-        end
+%         if strcmp(D.modality,'MEG')
+%             if nargin == 5
+%                 sens_or_file = varargin{4};
+%             else
+%                 sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+%             end
+%         end
     end
 end
 

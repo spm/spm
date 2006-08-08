@@ -1,9 +1,9 @@
-function scalp3d(data)
+function spm_eeg_scalp3d(data)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner
-% $Id: spm_eeg_scalp3d.m 193 2005-07-01 13:37:59Z james $
+% $Id: spm_eeg_scalp3d.m 589 2006-08-08 17:44:39Z stefan $
 
 
 [xs,ys,zs]=sphere(50);

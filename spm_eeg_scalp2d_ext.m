@@ -58,7 +58,7 @@ function spm_eeg_scalp2d_ext_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 handles.D = varargin{1};
-handles.T = varargin{2};
+handles.T = varargin{2}; % input in peri-stimulus time (ms)
 
 handles.ms = [-handles.D.events.start:handles.D.events.stop]*1000/handles.D.Radc;
 
@@ -96,7 +96,7 @@ end
 % Update handles structure
 guidata(hObject, handles);
 
-plot_image(hObject, handles);
+plot_spatial(hObject, handles);
 
 % UIWAIT makes spm_eeg_scalp2d_ext wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -131,7 +131,7 @@ handles.T = i;
 
 guidata(hObject, handles);
 
-plot_image(hObject, handles);
+plot_spatial(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function slider1_CreateFcn(hObject, eventdata, handles)
@@ -144,7 +144,7 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-function plot_image(hObject, handles)
+function plot_spatial(hObject, handles)
 
 T = handles.T;
 D = handles.D;

@@ -37,7 +37,7 @@ function [varargout] = spm_eeg_inv_ReadPolhemus(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_ReadPolhemus.m 589 2006-08-08 17:44:39Z stefan $
 
 spm_defaults
 
@@ -126,12 +126,12 @@ switch length(Filenames)
         Filenames{1} = spm_select(1, '.pol', 'Select sensor Polhemus file');
         Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
     case 1
-        HSPflag = spm_input('Download Head Shape?','+1','Yes|No',[1 2]);
-        if HSPflag == 1
-            Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
-        else
+%         HSPflag = spm_input('Download Head Shape?','+1','Yes|No',[1 2]);
+%         if HSPflag == 1
+%             Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
+%         else
             Filenames{2} = '';
-        end
+%         end
 end
 
 if figflag
