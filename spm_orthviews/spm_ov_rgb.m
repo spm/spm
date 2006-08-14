@@ -11,9 +11,9 @@ function ret = spm_ov_rgb(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_rgb.m,v 1.5 2006/03/17 08:16:22 glauche Exp $
+% @(#) $Id: spm_ov_rgb.m 591 2006-08-14 11:06:49Z volkmar $
 
-rev = '$Revision: 1.5 $';
+rev = '$Revision: 591 $';
 
 global st;
 if isempty(st)

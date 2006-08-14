@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m,v 1.6 2006/01/18 10:25:21 glauche Exp $
+% $Id: spm_ov_reorient.m 591 2006-08-14 11:06:49Z volkmar $
 
-rev = '$Revision: 1.6 $';
+rev = '$Revision: 591 $';
 
 global st;
 if isempty(st)

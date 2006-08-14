@@ -60,14 +60,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m,v 1.16 2006/03/29 11:51:27 glauche Exp $
+% $Id: spm_ov_roi.m 591 2006-08-14 11:06:49Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 1.16 $';
+rev = '$Revision: 591 $';
 
 global st;
 if isempty(st)

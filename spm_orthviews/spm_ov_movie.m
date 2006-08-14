@@ -12,7 +12,7 @@ function ret = spm_ov_movie(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m,v 1.9 2006/04/03 09:33:47 glauche Exp $
+% @(#) $Id: spm_ov_movie.m 591 2006-08-14 11:06:49Z volkmar $
 
 global st;
 if isempty(st)
