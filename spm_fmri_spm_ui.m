@@ -173,9 +173,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_fmri_spm_ui.m 592 2006-08-14 18:36:21Z Darren $
 
-SCCSid  = '$Rev: 587 $';
+SCCSid  = '$Rev: 592 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -278,24 +278,42 @@ SPM.xGX.sGMsca  = 'session specific';
 % low frequency confounds
 %-----------------------------------------------------------------------
 try
-	HParam   = SPM.xX.K(1).HParam;
-	HParam   = HParam*ones(1,nsess);
+    myLastWarn = 0;
+    HParam   = [SPM.xX.K(:).HParam];
+    if ( length(HParam) == 1 )
+        HParam = HParam*ones(1,nsess);
+    elseif ( length(HParam) ~= nsess )
+        % Uh Oh - somehow the number of specified HParam values and
+        % sessions don't match. Throw an error, continue with manual HPF
+        % specification, and alert! the user.
+         % go to the catch block
+         myLastWarn = 1;
+         error;
+    end
 catch
-	% specify low frequency confounds
-	%---------------------------------------------------------------
-	spm_input('Temporal autocorrelation options','+1','d',mfilename)
-	switch spm_input('High-pass filter?','+1','b','none|specify');
+    % specify low frequency confounds
+    %---------------------------------------------------------------
+    spm_input('Temporal autocorrelation options','+1','d',mfilename)
+    switch spm_input('High-pass filter?','+1','b','none|specify');
 
-		case 'specify'  % default 128 seconds
-		%-------------------------------------------------------
-		HParam = 128*ones(1,nsess);
-		str    = 'cutoff period (secs)';
-		HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
+        case 'specify'  % default 128 seconds
+            %-------------------------------------------------------
+            HParam = 128*ones(1,nsess);
+            str    = 'cutoff period (secs)';
+            HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
 
-		case 'none'     % Inf seconds (i.e. constant term only)
-		%-------------------------------------------------------
-		HParam = Inf*ones(1,nsess);
-	end
+        case 'none'     % Inf seconds (i.e. constant term only)
+            %-------------------------------------------------------
+            HParam = Inf*ones(1,nsess);
+    end
+     % This avoids displaying the warning if we had existed the try block
+     % at the level of accessing HParam.
+    if myLastWarn
+        warning('SPM:InvalidHighPassFilterSpec',...
+                ['Different number of High-pass filter values and sessions.\n',...
+                 'HPF filter configured manually. Design setup will proceed.']);
+        clear myLastWarn
+    end
 end
 
 % create and set filter struct
