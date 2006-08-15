@@ -49,34 +49,39 @@ D.channels.reference = 0;
 
 I = STRMATCH('UPPT0',pre_data.sensor.label)
 if isempty(I)
-    error(sprintf('No parallel port channel was found in the CTF file'))
-end
-PP1=squeeze(pre_data.data(:,I(1)));
-PP2=squeeze(pre_data.data(:,I(2)));
-
-D.events.time=[];
-D.events.code=[];
-inds=find(diff(PP1)>0);
-if ~isempty(inds)
-    if length(PP1)<inds(end)+2
-        inds(end)='';
+    warning(sprintf('No parallel port event channel was found in the CTF file: your data will be read without events'))
+    D.events.time=[];
+    D.events.code=[];
+else
+    if length(I)==1
+        PP1=squeeze(pre_data.data(:,I(1)));
+    else
+        PP1=squeeze(pre_data.data(:,I(1)));
+        PP2=squeeze(pre_data.data(:,I(2)));
     end
-    D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
-    D.events.time=inds'+1;
-end
-
-inds=find(diff(PP2)<0);
-if ~isempty(inds)
-    D.events.code=[D.events.code,PP2(inds+1)'+255];
+    D.events.time=[];
+    D.events.code=[];
+    inds=find(diff(PP1)>0);
+    if ~isempty(inds)
+        if length(PP1)<inds(end)+2
+            inds(end)='';
+        end
+        D.events.code=PP1(inds+2)'; %changed to +2 from +1 to avoid errors when changing event code without passing by zero.
+        D.events.time=inds'+1;
+    end
+    if length(I)>1
+        inds=find(diff(PP2)<0);
+        if ~isempty(inds)
+            D.events.code=[D.events.code,PP2(inds+1)'+255];
+            
+            D.events.time=[D.events.time,inds'+1];
+        end
+    end
     
-    D.events.time=[D.events.time,inds'+1];
+    [X,I]=sort(D.events.time);
+    D.events.time=D.events.time(I);
+    D.events.code=D.events.code(I);
 end
-
-
-[X,I]=sort(D.events.time);
-D.events.time=D.events.time(I);
-D.events.code=D.events.code(I);
-
 sens=pre_data.sensor.index.all_sens;
 D.channels.name=pre_data.sensor.label(sens);
 D.channels.order=[1:length(sens)];
@@ -90,15 +95,27 @@ D.datatype= 'float';
 D.fname=[name,'.mat'];
 D.path=pwd;
 D.fnamedat=[name,'.dat'];
-
-D.scale = ones(D.Nchannels, 1, 1);
+if D.Nevents>1
+    D.events.start=pre_data.setup.pretrigger_samples;
+    D.events.stop=D.Nsamples-pre_data.setup.pretrigger_samples-1;
+    D.events.reject=zeros(1,D.Nevents);
+    D.events.code=ones(1,D.Nevents);
+    D.events.types=1;
+    D.events.Ntypes=1;
+end
+D.scale = ones(D.Nchannels, 1, D.Nevents);
 
 fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
-for n=1:D.Nsamples
+for ev=1:D.Nevents
+    for n=1:D.Nsamples
 	
-		fwrite(fpd, pre_data.data(n,sens).*1e15, 'float');
+		fwrite(fpd, pre_data.data(n,sens,ev).*1e15, 'float');
 	
+    end
 end
+
+
+    
 fclose(fpd);
 
 % --- Save coil/sensor positions and orientations for source reconstruction (in mm) ---
