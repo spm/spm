@@ -27,6 +27,7 @@ function [SPM,xSPM] = spm_getSPM
 % .DIM      - image dimensions {voxels} - column vector
 % .Vspm     - Mapped statistic image(s)
 % .Ps       - list of P values for voxels at SPM.xVol.XYZ (used by FDR)
+% .thresDesc - description of height threshold (string)
 %
 % Required fields of SPM
 %
@@ -158,11 +159,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 535 2006-05-18 11:34:39Z volkmar $
+% $Id: spm_getSPM.m 596 2006-08-18 13:45:59Z volkmar $
 
 
 
-SCCSid = '$Rev: 535 $';
+SCCSid = '$Rev: 596 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -537,24 +538,32 @@ if STAT ~= 'P'
     %-------------------------------------------------------------------
     str = 'FWE|FDR|none';
     % str = 'FWE|none';      % Use this line to disable FDR threshold
-    switch spm_input('p value adjustment to control','+1','b',str,[],1)
+    thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
+    switch thresDesc
 
 
 	case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
 	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
+        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc(u,df,STAT,R,n,S);
 
 	case 'FDR' % False discovery rate
 	%---------------------------------------------------------------	
 	u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
+        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
 
 	otherwise  %-NB: no adjustment
 	% p for conjunctions is p of the conjunction SPM
    	%---------------------------------------------------------------
 	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
-	if u <= 1; u = spm_u(u^(1/n),df,STAT); end
+	if u <= 1
+            thresDesc = ['p<' num2str(u) ' (unc.)'];
+            u = spm_u(u^(1/n),df,STAT); 
+        else
+            thresDesc = [STAT '=' num2str(u) ];
+        end
 
     end
 
@@ -563,7 +572,8 @@ if STAT ~= 'P'
 elseif STAT == 'P'
 
     u_default = 1- 1/SPM.xVol.S;
-	u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',u_default,1);
+    u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',u_default,1);
+    thresDesc = ['P>'  num2str(u) ' (PPM)'];
 
 end % (if STAT)
 
@@ -650,7 +660,8 @@ xSPM   = struct('swd',		swd,...
 		'DIM',		SPM.xVol.DIM,...
 		'VOX',		VOX,...
 		'Vspm',		VspmSv,...
-		'Ps',		Ps);
+		'Ps',		Ps,...
+                'thresDesc',    thresDesc);
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------

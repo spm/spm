@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 509 2006-05-04 06:08:25Z Darren $
+% $Id: spm_results_ui.m 596 2006-08-18 13:45:59Z volkmar $
 
-SCCSid = '$Rev: 509 $';
+SCCSid = '$Rev: 596 $';
 
 %=======================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -332,7 +332,12 @@ AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
 h     = text(0,24,'SPMresults:','Parent',hResAx,...
 	'FontWeight','Bold','FontSize',FS(14));
 text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(SPM.swd,'a30'),'Parent',hResAx)
-text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
+try
+    thresDesc = xSPM.thresDesc;
+    text(0,12,sprintf('Height threshold %c = %0.6f  {%s}',xSPM.STAT,xSPM.u,thresDesc),'Parent',hResAx)
+catch
+    text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
+end
 text(0,00,sprintf('Extent threshold k = %0.0f voxels',xSPM.k), 'Parent',hResAx)
 
 

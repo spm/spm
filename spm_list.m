@@ -23,6 +23,7 @@ function varargout = spm_list(varargin)
 % .VOX   - voxel dimensions {mm}
 % .Vspm  - mapped statistic image(s)
 % .Ps    - uncorrected P values in searched volume (for FDR)
+% .thresDesc - description of height threshold (string)
 %
 % (see spm_getSPM for further details of xSPM structures)
 %
@@ -106,7 +107,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 134 2005-05-09 18:44:12Z guillaume $
+% $Id: spm_list.m 596 2006-08-18 13:45:59Z volkmar $
 
 
 
@@ -145,6 +146,12 @@ u     = varargin{2}.u;
 M     = varargin{2}.M;
 k     = varargin{2}.k;
 QPs   = varargin{2}.Ps;
+try
+    thresDesc = sprintf('{%s}', varargin{2}.thresDesc);
+catch
+    thresDesc = '';
+end
+
 
 if STAT~='P'
     R     = varargin{2}.R;
@@ -322,8 +329,8 @@ set(gca,'DefaultTextFontName',PF.helvetica,...
 	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
 TabDat.ftr    = cell(5,2);
 TabDat.ftr{1} = ...
-	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f)',...
-		 STAT,u,Pz,Pu);
+	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f) %s',...
+		 STAT,u,Pz,Pu,thresDesc);
 TabDat.ftr{2} = ...
 	sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)',...
 	         k/v2r,Pn,P);
