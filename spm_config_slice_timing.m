@@ -4,11 +4,11 @@ function opts = spm_config_slice_timing
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_slice_timing.m 250 2005-10-07 16:08:39Z john $
+% $Id: spm_config_slice_timing.m 595 2006-08-18 13:39:46Z volkmar $
 
 % ---------------------------------------------------------------------
 scans.type = 'files';
-scans.name = 'Sessions';
+scans.name = 'Session';
 scans.tag  = 'scans';
 scans.filter = 'image';
 scans.num  = [2 Inf];
