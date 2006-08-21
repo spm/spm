@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_ui.m 597 2006-08-21 18:32:29Z klaas $
 
 
 
@@ -151,7 +151,7 @@ case 'specify'
 	c     = zeros(m,n);
 	b     = zeros(m,m,n);
 	d     = uicontrol(Finter,'String','done',...
-			'Position',[300 200 060 020].*WS);
+          'Position',[300 100 060 020].*WS);
 	dx    = 20;
 
 
