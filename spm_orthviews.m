@@ -61,7 +61,7 @@ function varargout = spm_orthviews(action,varargin)
 % This method only adds one set of blobs, and displays them using a
 % split colour table.
 %
-% spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour)
+% FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations (currently in millimeters)
@@ -72,7 +72,12 @@ function varargout = spm_orthviews(action,varargin)
 % Although it may not be particularly attractive on the screen, the colour
 % blobs print well.
 %
-% spm_orthviews('Register',hReg)
+% FORMAT spm_orthviews('AddColourBar',handle,blobno)
+% Adds colourbar for a specified blob set
+% handle   - image number
+% blobno   - blob number
+%
+% FORMAT spm_orthviews('Register',hReg)
 % See spm_XYZreg for more information.
 %
 % FORMAT spm_orthviews('RemoveBlobs',handle)
@@ -107,7 +112,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 560 2006-06-28 11:21:40Z volkmar $
+% $Id: spm_orthviews.m 601 2006-08-22 08:34:24Z volkmar $
 
 
 
@@ -374,6 +379,9 @@ case 'addtruecolourimage',
 	                   varargin{5}, varargin{6});
 	% redraw(varargin{1});
 
+case 'addcolourbar',
+    addcolourbar(varargin{1}, varargin{2});
+        
 case 'rmblobs',
 	rmblobs(varargin{1});
 	% redraw(varargin{1});
@@ -436,13 +444,10 @@ for i=valid_handles(handle),
 		else,
 			axpos = get(st.vols{i}.ax{1}.ax,'Position');
 		end;
-		ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-			'Box','on');
 		mx = max([eps max(t)]);
 		mn = min([0 min(t)]);
-		image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
-		set(ax,'YDir','normal','XTickLabel',[]);
-		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx, 'min',mn);
+		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx, 'min',mn);
+		addcolourbar(handle,1);
 	end;
 end;
 return;
@@ -458,18 +463,10 @@ for i=valid_handles(handle),
 	end;
 	mat = vol.mat;
 	st.vols{i}.blobs=cell(1,1);
-	if st.mode == 0,
-		axpos = get(st.vols{i}.ax{2}.ax,'Position');
-	else,
-		axpos = get(st.vols{i}.ax{1}.ax,'Position');
-	end;
-	ax = axes('Parent',st.fig,'Position',[(axpos(1)+axpos(3)+0.05) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-		'Box','on');
 	mx = max([eps maxval(vol)]);
 	mn = min([0 minval(vol)]);
-	image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
-	set(ax,'YDir','normal','XTickLabel',[]);
-	st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'cbar',ax,'max',mx);
+	st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx,'min',mn);
+	addcolourbar(handle,1);
 end;
 return;
 %_______________________________________________________________________
@@ -490,9 +487,8 @@ for i=valid_handles(handle),
 		else,
 			bset = length(st.vols{i}.blobs)+1;
 		end;
-		axpos = get(st.vols{i}.ax{2}.ax,'Position');
-		mx = max([eps maxval(vol)]);
-		mn = min([0 minval(vol)]);
+                mx = max([eps maxval(vol)]);
+                mn = min([0 minval(vol)]);
 		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
 	end;
 end;
@@ -514,7 +510,6 @@ for i=valid_handles(handle),
 	else,
 		bset = length(st.vols{i}.blobs)+1;
 	end;
-	axpos = get(st.vols{i}.ax{2}.ax,'Position');
 	mx = max([eps maxval(vol)]);
 	mn = min([0 minval(vol)]);
 	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
@@ -538,18 +533,24 @@ for i=valid_handles(handle),
 	else,
 		bset = length(st.vols{i}.blobs)+1;
 	end;
-
-	axpos = get(st.vols{i}.ax{2}.ax,'Position');
-	ax = axes('Parent',st.fig,'Position',...
-	    [(axpos(1)+axpos(3)+0.18) (axpos(2)-axpos(4)-0.03) 0.05 (axpos(4)-0.01)],...
-	    'Box','on');
-	image([0 1],[mn mx],[1:64]' + 64,'Parent',ax);
-	set(ax,'YDir','normal','XTickLabel',[]);
-	title(spm_str_manip(fname,'t'),'FontSize',8)
-
 	c = struct('cmap', colourmap,'prop',prop);
-	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',c);
+	st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx, ...
+                                        'min',mn,'colour',c);
+	addcolourbar(handle,bset);
 end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function addcolourbar(vh,bh)
+global st
+if st.mode == 0,
+    axpos = get(st.vols{vh}.ax{2}.ax,'Position');
+else,
+    axpos = get(st.vols{vh}.ax{1}.ax,'Position');
+end;
+st.vols{vh}.blobs{bh}.cbar = axes('Parent',st.fig,...
+          'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+          'Box','on', 'YDir','normal', 'XTickLabel',[], 'XTick',[]);
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -1040,18 +1041,7 @@ for i = valid_handles(arg1),
 					figure(st.fig)
 					spm_figure('Colormap','gray-hot')
 				end;
-                                if isfield(st.vols{i}.blobs{1},'cbar')
-                                        if st.mode == 0,
-                                                axpos = get(st.vols{i}.ax{2}.ax,'Position');
-                                        else,
-                                                axpos = get(st.vols{i}.ax{1}.ax,'Position');
-                                        end;
-                                	image([0 1],[mn mx],[1:64]' + 64,'Parent',st.vols{i}.blobs{1}.cbar);
-                                        set(st.vols{i}.blobs{1}.cbar, ...
-                                            'Position',[(axpos(1)+axpos(3)+0.05)...
-                                                        (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-                                            'YDir','normal','XTickLabel',[]);
-                                end;
+                                redraw_colourbar(i,1,[mn mx],[1:64]'+64); 
 			elseif isstruct(st.vols{i}.blobs{1}.colour),
 				% Add blobs for display using a defined
                                 % colourmap
@@ -1109,20 +1099,7 @@ for i = valid_handles(arg1),
 					       gryc(imgs(:),:)*(1-actp), ...
 					       [size(imgs) 3]);
 				
-				% Volkmar's fix for colorbar
-				if isfield(st.vols{i}.blobs{1},'cbar')
-					if st.mode == 0,
-						axpos = get(st.vols{i}.ax{2}.ax,'Position');
-					else,
-						axpos = get(st.vols{i}.ax{1}.ax,'Position');
-					end;
-					image([0 1],[cmn cmx],[1:64]' + 64,'Parent',st.vols{i}.blobs{1}.cbar);
-					set(st.vols{i}.blobs{1}.cbar, ...
-						'Position',[(axpos(1)+axpos(3)+0.05)...
-						(axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
-						'YDir','normal','XTickLabel',[]);
-				end;
-
+                                redraw_colourbar(i,1,[cmn cmx],[1:64]'+64); 
 				
 			else,
 				% Add full colour blobs - several sets at once
@@ -1166,9 +1143,20 @@ for i = valid_handles(arg1),
 
 					vol  = st.vols{i}.blobs{j}.vol;
 					M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
-					tmpt = (spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])'+mn)/(mx-mn);
-					tmpc = (spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])'+mn)/(mx-mn);
-					tmps = (spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])'+mn)/(mx-mn);
+                                        tmpt = spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])';
+                                        tmpc = spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])';
+                                        tmps = spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])';
+                                        % check min/max of sampled image
+                                        % against mn/mx as given in st
+                                        tmpt(tmpt(:)<mn) = mn;
+                                        tmpc(tmpc(:)<mn) = mn;
+                                        tmps(tmps(:)<mn) = mn;
+                                        tmpt(tmpt(:)>mx) = mx;
+                                        tmpc(tmpc(:)>mx) = mx;
+                                        tmps(tmps(:)>mx) = mx;
+                                        tmpt = (tmpt-mn)/(mx-mn);
+					tmpc = (tmpc-mn)/(mx-mn);
+					tmps = (tmps-mn)/(mx-mn);
 					tmpt(~finite(tmpt)) = 0;
 					tmpc(~finite(tmpc)) = 0;
 					tmps(~finite(tmps)) = 0;
@@ -1180,11 +1168,10 @@ for i = valid_handles(arg1),
 					wt = wt + tmpt;
 					wc = wc + tmpc;
 					ws = ws + tmps;
+                                        cdata=permute(shiftdim([1/64:1/64:1]'* ...
+                                                               colour(j,:),-1),[2 1 3]);
+                                        redraw_colourbar(i,j,[mn mx],cdata);
 				end;
-
-				%cimgt(cimgt<0)=0; cimgt(cimgt>1)=1;
-				%cimgc(cimgc<0)=0; cimgc(cimgc>1)=1;
-				%cimgs(cimgs<0)=0; cimgs(cimgs>1)=1;
 
 				imgt = repmat(1-wt,[1 1 3]).*imgt+cimgt;
 				imgc = repmat(1-wc,[1 1 3]).*imgc+cimgc;
@@ -1239,6 +1226,26 @@ for i = valid_handles(arg1),
 end;
 drawnow;
 return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function redraw_colourbar(vh,bh,interval,cdata)
+global st
+if isfield(st.vols{vh}.blobs{bh},'cbar')
+    if st.mode == 0,
+        axpos = get(st.vols{vh}.ax{2}.ax,'Position');
+    else,
+        axpos = get(st.vols{vh}.ax{1}.ax,'Position');
+    end;
+    % only scale cdata if we have out-of-range truecolour values
+    if ndims(cdata)==3 && max(cdata(:))>1
+        cdata=cdata./max(cdata(:));
+    end;
+    image([0 1],interval,cdata,'Parent',st.vols{vh}.blobs{bh}.cbar);
+    set(st.vols{vh}.blobs{bh}.cbar, ...
+        'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1)...
+                    (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
+        'YDir','normal','XTickLabel',[],'XTick',[]);
+end;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function centre = findcent
@@ -1745,6 +1752,7 @@ case 'add_c_blobs',
         hlabel = sprintf('%s (%s)',VOL.title,c_names{c});
 	for i = 1:length(cm_handles),
 		addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
+                addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
 		c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
 		ch_c_handle = get(c_handle,'Children');
 		set(c_handle,'Visible','on');
@@ -1761,27 +1769,30 @@ case 'add_c_blobs',
 	redraw_all;
 
 case 'remove_c_blobs',
-	cm_handles = valid_handles(1:24);
-	if varargin{2} == 2, cm_handles = get_current_handle; end;
-	colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-	c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-	for i = 1:length(cm_handles),
-		if isfield(st.vols{cm_handles(i)},'blobs'),
-			for j = 1:length(st.vols{cm_handles(i)}.blobs),
-				if st.vols{cm_handles(i)}.blobs{j}.colour == colours(varargin{3},:);
-					st.vols{cm_handles(i)}.blobs(j) = [];
-					break;
-				end;
-			end;
-			rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
-			delete(findobj(rm_c_menu,'Label',c_names{varargin{3}}));
-			if isempty(st.vols{cm_handles(i)}.blobs),
-				st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
-				set(rm_c_menu, 'Visible', 'off');
-			end;
-		end;
-	end;
-	redraw_all;
+    cm_handles = valid_handles(1:24);
+    if varargin{2} == 2, cm_handles = get_current_handle; end;
+    colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+    c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+    for i = 1:length(cm_handles),
+        if isfield(st.vols{cm_handles(i)},'blobs'),
+            for j = 1:length(st.vols{cm_handles(i)}.blobs),
+                if st.vols{cm_handles(i)}.blobs{j}.colour == colours(varargin{3},:);
+                    if isfield(st.vols{cm_handles(i)}.blobs{j},'cbar')
+                        delete(st.vols{cm_handles(i)}.blobs{j}.cbar);
+                    end
+                    st.vols{cm_handles(i)}.blobs(j) = [];
+                    break;
+                end;
+            end;
+            rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
+            delete(findobj(rm_c_menu,'Label',c_names{varargin{3}}));
+            if isempty(st.vols{cm_handles(i)}.blobs),
+                st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
+                set(rm_c_menu, 'Visible', 'off');
+            end;
+        end;
+    end;
+    redraw_all;
 
 case 'add_c_image',
 	% Add truecolored image
@@ -1795,6 +1806,7 @@ case 'add_c_image',
         hlabel = sprintf('%s (%s)',fname,c_names{c});
 	for i = 1:length(cm_handles),
 		addcolouredimage(cm_handles(i),fname,colours(c,:));
+                addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
 		c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
 		ch_c_handle = get(c_handle,'Children');
 		set(c_handle,'Visible','on');
