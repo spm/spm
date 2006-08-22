@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 558 2006-06-26 08:40:24Z volkmar $
+% $Id: spm_config_factorial_design.m 600 2006-08-22 08:25:22Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -293,7 +293,7 @@ p4=['Restricted Maximum Likelihood (REML): The ensuing covariance components ',.
     'statistics and degrees of freedom during inference. By default spm_spm ',...
     'will use weighted least squares to produce Gauss-Markov or Maximum ',...
     'likelihood estimators using the non-sphericity structure specified at this ',...
-    'stage. The components will be found in xX.xVi and enter the estimation ',...
+    'stage. The components will be found in SPM.xVi and enter the estimation ',...
     'procedure exactly as the serial correlations in fMRI models.'];
 variance.help = {p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text};
 
@@ -960,10 +960,6 @@ sGMsca = {	'scaling of overall grand mean';...			%-1
         '<no grand Mean scaling>'	};			%-9
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
 
-% Nonsphericity defaults
-xVi.var=zeros(1,4);
-xVi.dep=zeros(1,4);
-
 % Conditions of no interest defaults
 B=[];
 Bnames={};
@@ -982,7 +978,8 @@ case 't1',
     
     SPM.factor(1).name='Group';
     SPM.factor(1).levels=1;
-
+    SPM.factor(1).variance=0;
+    SPM.factor(1).dept=0;
 case 't2', 
     % Two-sample t-test
     DesName='Two-sample t-test';
@@ -1000,10 +997,6 @@ case 't2',
     
     [H,Hnames]=spm_DesMtx(I(:,2),'-','Group');
     
-    % Nonsphericity options
-    xVi.var(2)=job.des.t2.variance;
-    xVi.dep(2)=job.des.t2.dept;  
-    
     % Names and levels
     SPM.factor(1).name='Group';
     SPM.factor(1).levels=2;
@@ -1012,6 +1005,10 @@ case 't2',
     SPM.factor(1).gmsca=job.des.t2.gmsca;
     SPM.factor(1).ancova=job.des.t2.ancova;
 
+    % Nonsphericity options
+    SPM.factor(1).variance=job.des.t2.variance;
+    SPM.factor(1).dept=job.des.t2.dept;  
+    
 case 'pt', 
     % Paired t-test
     DesName='Paired t-test';
@@ -1030,12 +1027,6 @@ case 'pt',
     [H,Hnames]=spm_DesMtx(I(:,2),'-','Subject');
     [B,Bnames]=spm_DesMtx(I(:,3),'-','Condition');
     
-    % Nonsphericity options
-    xVi.var(2)=0;
-    xVi.dep(2)=0;  
-    xVi.var(3)=job.des.pt.variance;
-    xVi.dep(3)=job.des.pt.dept;  
-    
     % Names and levels
     SPM.factor(1).name='Subject';
     SPM.factor(1).levels=Npairs;
@@ -1047,6 +1038,12 @@ case 'pt',
     SPM.factor(1).ancova=0;
     SPM.factor(2).gmsca=job.des.pt.gmsca;
     SPM.factor(2).ancova=job.des.pt.ancova;
+    
+    % Nonsphericity options
+    SPM.factor(1).variance=0;
+    SPM.factor(1).dept=0;  
+    SPM.factor(2).variance=job.des.pt.variance;
+    SPM.factor(2).dept=job.des.pt.dept;  
     
 case 'mreg', 
     % Multiple regression
@@ -1061,6 +1058,10 @@ case 'mreg',
     SPM.factor(1).name='';
     SPM.factor(1).levels=1;
     
+    % Nonsphericity options
+    SPM.factor(1).variance=0;
+    SPM.factor(1).dept=0;  
+
     H=[];Hnames=[];
     [B,Bnames]=spm_DesMtx(I(:,2),'-','mean');
     
@@ -1079,17 +1080,18 @@ case 'fd',
     
     Nfactors=length(job.des.fd.fact);
     for i=1:Nfactors,
-        % Nonsphericity
-        xVi.var(i+1)=job.des.fd.fact(i).variance;
-        xVi.dep(i+1)=job.des.fd.fact(i).dept; 
-        
-        % Store names and levels
+        % Names and levels
         SPM.factor(i).name=job.des.fd.fact(i).name; 
         SPM.factor(i).levels=job.des.fd.fact(i).levels; 
         
         % Ancova options
         SPM.factor(i).gmsca=job.des.fd.fact(i).gmsca;
         SPM.factor(i).ancova=job.des.fd.fact(i).ancova;
+
+        % Nonsphericity options
+        SPM.factor(i).variance=job.des.fd.fact(i).variance;
+        SPM.factor(i).dept=job.des.fd.fact(i).dept; 
+        
     end
 
 case 'fblock',
@@ -1239,62 +1241,27 @@ case 'fblock',
     end
     
     for i=1:nf,
-        % Set nonsphericity options
-        xVi.var(i+1)=job.des.fblock.fac(i).variance;
-        xVi.dep(i+1)=job.des.fblock.fac(i).dept;
-        
-        % Store names and levels
+        % Names and levels
         SPM.factor(i).name=job.des.fblock.fac(i).name;
         SPM.factor(i).levels=length(unique(I(:,i+1)));
         
         % Ancova options
         SPM.factor(i).gmsca=job.des.fblock.fac(i).gmsca;
         SPM.factor(i).ancova=job.des.fblock.fac(i).ancova;
+    
+        % Nonsphericity options
+        SPM.factor(i).variance=job.des.fblock.fac(i).variance;
+        SPM.factor(i).dept=job.des.fblock.fac(i).dept;
+        
     end
     
     
 end
 nScan=size(I,1); %-#obs
 
-% Set up data strucutres for `EEG' non-sphericity routine
-nf=length(SPM.factor);nef=nf+1;
-If=[I(:,2:nef),I(:,1)];
-for i=1:length(SPM.factor), % Other factors
-    SPM.eeg.Nlevels{i}=SPM.factor(i).levels;    
-    SPM.eeg.Xind{i}=unique(If(:,1:i),'rows');
-    SPM.xVi.Qidentical{i}=1-xVi.var(i+1);
-    SPM.xVi.Qindependent{i}=1-xVi.dep(i+1);
-end
-Nreps=length(unique(I(:,1)));
-if Nreps > 1 % Replicate nonsphericity structure over repetitions 
-    SPM.eeg.Nlevels{nef}=Nreps; % Repetition factor
-    SPM.eeg.Xind{nef}=unique(If(:,1:nef),'rows');
-    SPM.xVi.Qidentical{nef}=1;
-    SPM.xVi.Qindependent{nef}=1;
-    SPM.eeg.Nfactors=nef;
-else
-    SPM.eeg.Nfactors=nf;
-end
-SPM = spm_eeg_get_vc(SPM);  % Call `EEG' non-sphericity routine
+% Set up data structures for non-sphericity routine
 SPM.xVi.I=I;
-if Nreps > 1
-    % Find covariance elements with missing repetitions
-    ncells=prod([SPM.eeg.Nlevels{1:nf}]);
-    fullreps=repmat([1:SPM.eeg.Nlevels{nef}]',[ncells,1]);
-    missing=[];j=1;
-    for i=1:length(fullreps),
-        if ~(fullreps(i)==I(j))
-            missing=[missing i];
-        else
-            j=j+1;
-        end
-    end
-    % Remove covariance elements with missing repetitions
-    for i=1:length(SPM.xVi.Vi)
-        SPM.xVi.Vi{i}(missing,:)=[];
-        SPM.xVi.Vi{i}(:,missing)=[];
-    end
-end
+SPM = spm_get_vc(SPM);
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %===================================================================
