@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_select.m 599 2006-08-22 08:22:49Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -549,7 +549,7 @@ ud  = get(ob,'UserData');
 re  = struct('code',ud.code,...
              'frames',get(sib(ob,'frame'),'UserData'),...
              'ext',{ud.ext},...
-             'filt',get(sib(ob,'regexp'),'String'));
+             'filt',{{get(sib(ob,'regexp'),'String')}});
 return;
 %=======================================================================
 
@@ -731,16 +731,22 @@ case {'clear'}
     vfs = newvfs;
 case {'add'}
     for j=1:numel(varargin),
+        pth = {};
+        fle = {};
         if ischar(varargin{j}),
             for i=1:size(varargin{j},1),
-                fle = deblank(varargin{j}(i,:));
-                vfs = addvfile(vfs,fle);
+                [pth{i} n e v] = spm_fileparts(deblank(varargin{j}(i,:)));
+                fle{i} = [n e v];
             end;
         elseif iscell(varargin{j}),
             for i=1:numel(varargin{j}),
-                fle = deblank(varargin{j}{i});
-                vfs = addvfile(vfs,fle);
+                [pth{i} n e v] = spm_fileparts(deblank(varargin{j}{i}));
+                fle{i} = [n e v];
             end;
+        end;
+        [pu pi pj] = unique(pth);
+        for k = 1:numel(pu)
+            vfs = addvfile(vfs,pu{k},fle(pj==k));
         end;
     end;
 case {'list'}
@@ -761,14 +767,10 @@ return;
 %=======================================================================
 
 %=======================================================================
-function vfs = addvfile(vfs,fle)
-ind = find(fle==filesep);
-if any(ind==1),
-    ind = ind(2:end)-1;
-    fle = fle(2:end);
-end;
-if isempty(ind),
-    [unused,nam,ext,num] = spm_fileparts(fle);
+function vfs = addvfile(vfs,pth,fle)
+if isempty(pth),
+    for k = 1:numel(fle)
+    [unused,nam,ext,num] = spm_fileparts(fle{k});
     if ~isempty(num),
         ind = [str2num(num) 1 1];
         ind = ind(1);
@@ -784,9 +786,20 @@ if isempty(ind),
         vfs.files(end+1).name = fname;
         vfs.files(end).ind    = ind;
     end;
+    end;
 else
-    dr   = fle(1:(ind(1)-1));
-    fle  = fle((ind(1)+1):end);
+    ind = find(pth==filesep);
+    if isempty(ind)
+        dr  = pth;
+        pth = '';
+    else
+        if any(ind==1),
+            ind = ind(2:end)-1;
+            pth = pth(2:end);
+        end;
+        dr   = pth(1:(ind(1)-1));
+        pth  = pth((ind(1)+1):end);
+    end;
     mch  = strcmp(dr,{vfs.dirs.name});
     if any(mch),
         mch           = find(mch);
@@ -794,7 +807,7 @@ else
         mch           = numel(vfs.dirs)+1;
         vfs.dirs(mch) = newvfs(dr);
     end;
-    vfs.dirs(mch)     = addvfile(vfs.dirs(mch),fle);
+    vfs.dirs(mch)     = addvfile(vfs.dirs(mch),pth,fle);
 end;
 return;
 %=======================================================================
@@ -824,7 +837,7 @@ end;
 
 msg(ob,['Filtering ' num2str(numel(f)) ' files...']);
 f  = do_filter(f,filt.ext);
-f  = do_filter(f,{filt.filt});
+f  = do_filter(f,filt.filt);
 ii = cell(1,numel(f));
 if filt.code==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
     msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
@@ -855,7 +868,7 @@ end;
 msg(ob,['Filtering ' num2str(numel(fv)) ' virtual files...']);
 [fv,ind]   = do_filter(fv,filt.ext);
 iv         = iv(ind);
-[fv,ind]   = do_filter(fv,{filt.filt});
+[fv,ind]   = do_filter(fv,filt.filt);
 iv         = iv(ind);
 if filt.code==1,
     for i=1:numel(iv),
@@ -914,12 +927,11 @@ return;
 %=======================================================================
 function [f,ind] = do_filter(f,filt)
 t2 = false(numel(f),1);
-for j=1:numel(filt),
-    t1 = regexp(f,filt{j});
-    if numel(f)==1 && ~iscell(t1), t1 = {t1}; end;
-    for i=1:numel(t1),
-        t2(i) = t2(i) || ~isempty(t1{i});
-    end;
+filt_or = sprintf('(%s)|',filt{:});
+t1 = regexp(f,filt_or(1:end-1));
+if numel(f)==1 && ~iscell(t1), t1 = {t1}; end;
+for i=1:numel(t1),
+    t2(i) = ~isempty(t1{i});
 end;
 ind = find(t2);
 f   = f(ind);
