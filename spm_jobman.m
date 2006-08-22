@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 580 2006-08-02 12:36:40Z volkmar $
+% $Id: spm_jobman.m 598 2006-08-22 08:16:20Z volkmar $
 
 
 if nargin==0
@@ -2298,6 +2298,7 @@ else
     if nargin>0 && ~isempty(job),
         job = fromfile(job);
         c   = job_to_struct(c,job,'jobs');
+        c   = uniq_id(c);
     end;
 end;
 return;
