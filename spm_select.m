@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 599 2006-08-22 08:22:49Z volkmar $
+% $Id: spm_select.m 602 2006-08-23 06:28:00Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -927,11 +927,20 @@ return;
 %=======================================================================
 function [f,ind] = do_filter(f,filt)
 t2 = false(numel(f),1);
-filt_or = sprintf('(%s)|',filt{:});
-t1 = regexp(f,filt_or(1:end-1));
-if numel(f)==1 && ~iscell(t1), t1 = {t1}; end;
-for i=1:numel(t1),
-    t2(i) = ~isempty(t1{i});
+% This would be a speedup, but does not work on MATLAB < R14SP3 due to
+% changes in regexp handling
+% filt_or = sprintf('(%s)|',filt{:});
+% t1 = regexp(f,filt_or(1:end-1));
+% if numel(f)==1 && ~iscell(t1), t1 = {t1}; end;
+% for i=1:numel(t1),
+%     t2(i) = ~isempty(t1{i});
+% end;
+for j=1:numel(filt),
+    t1 = regexp(f,filt{j});
+    if numel(f)==1 && ~iscell(t1), t1 = {t1}; end;
+    for i=1:numel(t1),
+        t2(i) = t2(i) || ~isempty(t1{i});
+    end;
 end;
 ind = find(t2);
 f   = f(ind);
