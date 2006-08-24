@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 574 2006-07-25 17:59:36Z john $
+% $Id: spm_dicom_headers.m 603 2006-08-24 11:03:42Z john $
 
 
 dict = readdict;
@@ -52,8 +52,7 @@ if ~strcmp(dcm,'DICM'),
 		return;
 	end;
 	%t          = dict.tags(tag.group+1,tag.element+1);
-	t           = find(dict.group==tag.group & dict.element==tag.element);
-	if isempty(t) && ~(tag.group==8 && tag.element==0),
+	if isempty(find(dict.group==tag.group & dict.element==tag.element,1)) && ~(tag.group==8 && tag.element==0),
 		% entry not found in DICOM dict and not from a GE Twin+excite
 		% that starts with with an 8/0 tag that I can't find any
 		% documentation for.
@@ -151,6 +150,8 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 					if isempty(m), m = 0; end;
 					if isempty(s), s = 0; end;
 					dat = s+60*(m+60*h);
+				case {'LO'},
+					dat = uscore_subst(dat);
 				otherwise,
 				end;
 			case {'OB'},
@@ -294,7 +295,7 @@ if flg(1) =='e',
 		tag.length = double(fread(fp,1,'ushort'));
 		tag.le     = tag.le + 2;
          case char([0 0])
-          if (tag.group == 65534) & (tag.element == 57357)
+          if (tag.group == 65534) && (tag.element == 57357)
             % at least on GE, ItemDeliminationItem does not have a
             % VR, but 4 bytes zeroes as length
             tag.le    = 8;
@@ -337,9 +338,9 @@ return;
 
 %_______________________________________________________________________
 function dict = readdict
-try,
+try
     dict = load('spm_dicom_dict.mat');
-catch,
+catch
     fprintf('\nUnable to load the file "spm_dicom_dict.mat".\n');
     if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
         fprintf('This may  be because of the way that the .tar.gz files\n');
@@ -351,7 +352,7 @@ catch,
         fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
         fprintf('Configuration Options).\n\n');
     end;
-    error(lasterr);
+    rethrow(lasterr);
 end;
 return;
 %_______________________________________________________________________
@@ -375,8 +376,8 @@ for i0=1:length(file),
 				vr{j}  = words{4}(2*(j-1)+1:2*(j-1)+2);
 			end;
 			name       = words{3};
-			msk        = find(~(name>='a' & name<='z') & ~(name>='A' & name<='Z') &...
-			                  ~(name>='0' & name<='9') & ~(name=='_'));
+			msk        = ~(name>='a' & name<='z') & ~(name>='A' & name<='Z') &...
+			             ~(name>='0' & name<='9') & ~(name=='_');
 			name(msk)  = '';
 			values(i)  = struct('name',name,'vr',{vr},'vm',words{5});
 		end;
@@ -543,3 +544,21 @@ if ~isempty(ascstart) && ~isempty(ascend)
         end;
 end;
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function str_out = uscore_subst(str_in)
+str_out='';
+pos = findstr(str_in,'+AF8-');
+pos = [pos, length(str_in)];
+for pos_nr = 1:length(pos),
+	if pos_nr == 1,
+		str_out = [str_out, str_in(1:(pos(1)-1)), '_'];
+	elseif pos_nr == length(pos),
+		str_out = [str_out, str_in((pos(pos_nr-1)+5):length(str_in))];
+	else
+		str_out = [str_out, str_in((pos(pos_nr-1)+5):(pos(pos_nr)-1)), '_'];
+	end
+end
+return;
+%_______________________________________________________________________
+
