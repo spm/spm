@@ -8,36 +8,37 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 %
 % FORMAT D = spm_eeg_inv_spatnorm(S)
 % Input:
-% S		    - input data struct (optional)
+% S                 - input data struct (optional)
 % Output:
-% D			- same data struct including the inverse deformation .mat file
+% D                     - same data struct including the inverse deformation .mat file
 %=======================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_spatnorm.m 607 2006-08-31 12:29:39Z james $
 
 spm_defaults
 
 load('defaults_eeg_mesh.mat');
 
 if nargin == 0
-    D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+   D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+       D = spm_eeg_ldata(D);
 elseif nargin == 1
-    D = varargin{1};
+   D = varargin{1};
 else
-	error(sprintf('Trouble reading the data file\n'));
-    return
+       error(sprintf('Trouble reading the data file\n'));
+   return
 end
 
 val = length(D.inv);
 
 if isempty(D.inv{val}.mesh.sMRI)
-    D.inv{val}.mesh.sMRI = spm_select(1,'image','Select subject T1 MRI');
+   D.inv{val}.mesh.sMRI = spm_select(1,'image','Select subject T1 MRI');
 end
 
 jobs{1}.spatial{1}.preproc.data = D.inv{val}.mesh.sMRI;
+jobs{1}.spatial{1}.preproc.output.cleanup = 0;
 
 % Spatial Transformation into MNI space
 res = spm_preproc(jobs{1}.spatial{1}.preproc.data);
@@ -59,28 +60,28 @@ D.inv{val}.mesh.nobias = fullfile(pth,nobias_name);
 
 % Downsampling the segmented images (by a factor 2 in each direction)
 for i = 1:3
-    PI = fullfile(pth,['c' num2str(i) nam ext]);
-    PO = fullfile(pth,['dc' num2str(i) nam ext]);
-    VI = spm_vol(PI);
-    dim = round(VI.dim/2);
-    mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
-    reslice(PI,PO,dim,mat,1);
-    [success] = copyfile(PO,PI);
-    if success
-        delete(PO);
-    else
-        error(sprintf('Impossible to write file downsampled segmented volume\n'));
-    end
-    if strcmp(ext,'.img')
-        HI = fullfile(pth,['c' num2str(i) nam '.hdr']);
-        HO = fullfile(pth,['dc' num2str(i) nam '.hdr']);
-        [success] = copyfile(HO,HI);
-        if success
-            delete(HO);
-        else
-            error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
-        end
-    end
+   PI = fullfile(pth,['c' num2str(i) nam ext]);
+   PO = fullfile(pth,['dc' num2str(i) nam ext]);
+   VI = spm_vol(PI);
+   dim = round(VI.dim/2);
+   mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
+   reslice(PI,PO,dim,mat,1);
+   [success] = copyfile(PO,PI);
+   if success
+       delete(PO);
+   else
+       error(sprintf('Impossible to write file downsampled segmented volume\n'));
+   end
+   if strcmp(ext,'.img')
+       HI = fullfile(pth,['c' num2str(i) nam '.hdr']);
+       HO = fullfile(pth,['dc' num2str(i) nam '.hdr']);
+       [success] = copyfile(HO,HI);
+       if success
+           delete(HO);
+       else
+           error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+       end
+   end
 end
 PI = D.inv{val}.mesh.nobias;
 PO = fullfile(pth,['temp_downsampled_mask' ext]);
@@ -90,20 +91,20 @@ mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
 reslice(PI,PO,dim,mat,1);
 [success] = copyfile(PO,PI);
 if success
-    delete(PO);
+   delete(PO);
 else
-    error(sprintf('Impossible to write file downsampled segmented volume\n'));
+   error(sprintf('Impossible to write file downsampled segmented volume\n'));
 end
 [pth,nam,ext] = spm_fileparts(PI);
 if strcmp(ext,'.img')
-    HI = fullfile(pth,[nam '.hdr']);
-    HO = fullfile(pth,'temp_downsampled_mask.hdr');
-    [success] = copyfile(HO,HI);
-    if success
-        delete(HO);
-    else
-        error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
-    end
+   HI = fullfile(pth,[nam '.hdr']);
+   HO = fullfile(pth,'temp_downsampled_mask.hdr');
+   [success] = copyfile(HO,HI);
+   if success
+       delete(HO);
+   else
+       error(sprintf('Impossible to write file header of downsampled segmented volume\n'));
+   end
 end
 
 clear jobs
@@ -117,16 +118,16 @@ D.inv{val}.mesh
 %=======================================================================
 function savefields(fnam,p)
 if length(p)>1
-    error('Can''t save fields.')
+   error('Can''t save fields.')
 end
 fn = fieldnames(p);
 for i=1:length(fn)
-    eval([fn{i} '= p.' fn{i} ';']);
+   eval([fn{i} '= p.' fn{i} ';']);
 end
 if spm_matlab_version_chk('7') >= 0
-    save(fnam,'-V6',fn{:});
+   save(fnam,'-V6',fn{:});
 else
-    save(fnam,fn{:});
+   save(fnam,fn{:});
 end
 %=======================================================================
 
@@ -158,8 +159,8 @@ VO.dim(1:3) = dim;
 
 VO = spm_create_vol(VO); % changed from spm_create_image, KCR
 for x3 = 1:VO.dim(3)
-    M  = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(VO.mat)*VI.mat);
-    v  = spm_slice_vol(VI,M,VO.dim(1:2),hld);
-    VO = spm_write_plane(VO,v,x3);
+   M  = inv(spm_matrix([0 0 -x3 0 0 0 1 1 1])*inv(VO.mat)*VI.mat);
+   v  = spm_slice_vol(VI,M,VO.dim(1:2),hld);
+   VO = spm_write_plane(VO,v,x3);
 end
 %=======================================================================

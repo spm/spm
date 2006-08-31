@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_weight_epochs.m 607 2006-08-31 12:29:39Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -67,13 +67,13 @@ for i = 1:N_contrasts
 
     d = zeros(D.Nchannels, D.Nsamples);
 
-    if D.events.repl(i) == 0
-        warning('%s: No trials for contrast %d', D.fname, i);
-    else
+    %if D.events.repl(i) == 0
+      %  warning('%s: No trials for contrast %d', D.fname, i);
+      % else
         for j = 1:D.Nchannels
             d(j, :) = c(i,:)*squeeze(D.data(j, :, :))';
         end
-    end
+    %end
 
     D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 
