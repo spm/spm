@@ -19,7 +19,7 @@ function C = spm_dctmtx(N,K,n,f)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dctmtx.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_dctmtx.m 605 2006-08-31 12:10:50Z volkmar $
 
 
 d = 0;
@@ -42,7 +42,7 @@ elseif nargin == 4,
 	n = n(:);
 	if strcmp(f,'diff'),
 		d = 1;
-	elseif strcmp(n,'diff2'),
+	elseif strcmp(f,'diff2'),
 		d = 2;
 	else
 		error('Incorrect Usage');
