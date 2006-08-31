@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 602 2006-08-23 06:28:00Z volkmar $
+% $Id: spm_select.m 606 2006-08-31 12:19:35Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -1226,11 +1226,12 @@ catch,
     sel = '';
 end;
 set(top,'Pointer',ptr);
+already= get(findobj(top,'Tag','selected'),'String');
 fb     = sib(ob,'files');
 lim    = get(fb,'Userdata');
-limsel = min(lim(2),size(sel,1));
-set(findobj(top,'Tag','selected'),'String',sel(1:limsel,:),'Value',[]);
-msg(ob,sprintf('Selected %d/%d matching Files.', limsel, size(sel,1)));
+limsel = min(lim(2)-size(already,1),size(sel,1));
+set(findobj(top,'Tag','selected'),'String',strvcat(already,sel(1:limsel,:)),'Value',[]);
+msg(ob,sprintf('Added %d/%d matching files to selection.', limsel, size(sel,1)));
 if ~finite(lim(1)) || size(sel,1)>=lim(1),
     set(sib(ob,'D'),'Enable','on');
 else
