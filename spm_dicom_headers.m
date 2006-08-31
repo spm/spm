@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 603 2006-08-24 11:03:42Z john $
+% $Id: spm_dicom_headers.m 608 2006-08-31 15:26:26Z john $
 
 
 dict = readdict;
@@ -550,14 +550,18 @@ function str_out = uscore_subst(str_in)
 str_out='';
 pos = findstr(str_in,'+AF8-');
 pos = [pos, length(str_in)];
-for pos_nr = 1:length(pos),
-	if pos_nr == 1,
-		str_out = [str_out, str_in(1:(pos(1)-1)), '_'];
-	elseif pos_nr == length(pos),
-		str_out = [str_out, str_in((pos(pos_nr-1)+5):length(str_in))];
-	else
-		str_out = [str_out, str_in((pos(pos_nr-1)+5):(pos(pos_nr)-1)), '_'];
-	end
+if ~isempty(pos),
+    for pos_nr = 1:length(pos),
+        if pos_nr == 1,
+            str_out = [str_out, str_in(1:(pos(1)-1)), '_'];
+        elseif pos_nr == length(pos),
+            str_out = [str_out, str_in((pos(pos_nr-1)+5):length(str_in))];
+        else
+            str_out = [str_out, str_in((pos(pos_nr-1)+5):(pos(pos_nr)-1)), '_'];
+        end
+    end
+else
+    str_out=str_in;
 end
 return;
 %_______________________________________________________________________
