@@ -115,7 +115,7 @@ f(:,4)  = (He.*((A{1} + A{3})*S(:,9) + G(:,1).*S(:,9) + U) ...
        
 % Granular layer (spiny stellate cells): hyperpolarizing current
 %--------------------------------------------------------------------------
-f(:,13) = x(:,1) - x(:,13)./Tk;
+f(:,13) = (4*S(:,1) - x(:,13))./Tk;
 
 % Infra-granular layer (pyramidal cells): depolarizing current
 %--------------------------------------------------------------------------

@@ -17,7 +17,6 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    pE.K - dipole contribution
 %    pE.L - Lead field (fixed) OR pE.Lpos - position
 %                                 pE.Lmon - moment (orientation):
 %    pE.M - contributing states
@@ -83,13 +82,10 @@ E.M   = H;              V.M = H*0;                 % contributing states
 % set observer parameters
 %--------------------------------------------------------------------------
 if ~isstruct(L)                                    % static leadfield
-    
-    E.K    = ones(n,1); V.K = sparse(n,1);         % pyramidal CSD
     E.L    = L;         V.L = L*0;                 % lead field
     
 else  % parameterised leadfield based on equivalent current dipoles
 %------------------------------------------------------------------------
-    E.K    = L.K;       V.K    = L.VK;
     E.Lpos = L.pos;     V.Lpos = L.Vpos;           % dipole positions
     E.Lmom = L.mom;     V.Lmom = L.Vmom;           % dipole orientations
 end

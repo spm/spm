@@ -34,8 +34,6 @@ H     = sparse(9,1,1,13,1);
 
 % create LFP model
 %--------------------------------------------------------------------------
-global M
-
 [l n] = size(L);
 
 M.f   = 'spm_fx_lfp';
@@ -181,14 +179,7 @@ title('Frequency')
 
 % compute transfer functions
 %--------------------------------------------------------------------------
-N          = 128;
-dt         = 8/1000;
-t          = 1:(N/2);
-w          = (t - 1)/(N*dt);
-[M0,M1,L1] = spm_bireduce(M,M.pE);
-[K0,K1]    = spm_kernels(M0,M1,L1,N,dt);
-S          = fft(K1);
-G          = abs(S(t,:)).^2;
+[G w] = spm_lfp_mtf(P,M);
 
 subplot(2,1,1)
 plot(w,G)
@@ -202,12 +193,9 @@ p       = log([1:35]/4);
 pE      = M.pE;
 pE.T(2) = log(2);
 for i = 1:length(p)
-    P          = pE;
-    P.G(:,5)   = P.G(:,5) + p(i);
-    [M0,M1,L1] = spm_bireduce(M,P);
-    [K0,K1]    = spm_kernels(M0,M1,L1,N,dt);
-    S          = fft(K1);
-    GW(:,i)    = abs(S(t,:)).^2;
+    Pi        = pE;
+    Pi.G(:,5) = Pi.G(:,5) + p(i);
+    GW(:,i)   = spm_lfp_mtf(Pi,M);
 end
 
 subplot(2,1,1)
@@ -223,11 +211,7 @@ ylabel('g(w)')
 
 % to Rosalyn again; inversion (in frequency space)
 %==========================================================================
-[M0,M1,L1] = spm_bireduce(M,M.pE);
-[K0,K1]    = spm_kernels(M0,M1,L1,N,dt);
-S          = fft(K1);
-G          = abs(S(t,:)).^2;
-
+G          = spm_lfp_mtf(M.pE,M);
 
 % target density (e.g., emprical data)
 %--------------------------------------------------------------------------

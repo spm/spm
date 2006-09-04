@@ -11,20 +11,7 @@ function [G,w] = spm_lfp_prediction(P,M,varargin)
 
 % compute log-spectral density
 %==========================================================================
-
-% augment and bi-linearise
-%--------------------------------------------------------------------------
-[M0,M1,L1] = spm_bireduce(M,P);
-
-% compute transfer functions
-%--------------------------------------------------------------------------
-N          = 128;
-dt         = 8/1000;
-t          = 1:(N/2);
-w          = (t - 1)/(N*dt);
-[K0,K1]    = spm_kernels(M0,M1,L1,N,dt);
-S          = fft(K1);
-G          = log((abs(S(t,:)).^2));
+G  = log(spm_lfp_mtf(P,M));
 
 
 
