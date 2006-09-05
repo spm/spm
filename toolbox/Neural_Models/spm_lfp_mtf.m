@@ -21,35 +21,29 @@ N       = 128;
 dt      = 1/N;
 f       = [1:N/2]/(N*dt);
 
-
 % augment and bi-linearise
 %--------------------------------------------------------------------------
 [M0,M1,L1] = spm_bireduce(M,P);
 
 % compute modulation transfer function using FFT of the kernels
 %--------------------------------------------------------------------------
-N       = 128;
-dt      = 1/N;
-f       = [1:N/2]/(N*dt);
-
-[K0,K1] = spm_kernels(M0,M1,L1,N,dt);
-S       = fft(K1(:,:,i));
-G       = abs(S([1:N/2] + 1,j)).^2;
+warning off
+A         = full(M0(2:end,2:end));
+B         = full(M1{i}(2:end,1));
+C         = full(L1(j,2:end));
+[b,a]     = ss2tf(A,B,C,0,i);
+[num,den] = bilinear(b,a,1/dt);
+[S f]     = freqz(num,den,f,1/dt);
+G         = abs(S).^2;
+warning on
 
 return
 
 % compute modulation transfer function using FFT of the kernels
 %--------------------------------------------------------------------------
-A       = full(M0(2:end,2:end));
-B       = full(M1{i}(2:end,1));
-C       = full(L1(:,2:end));
-[z,p]   = ss2zp(A,B,C,0,i);
-[S f]   = freqz(exp(z*dt),exp(p*dt),f,1/dt);
-G       = abs(S).^2;
-
-
-
-
+[K0,K1] = spm_kernels(M0,M1,L1,N,dt);
+S       = fft(K1(:,:,i));
+G       = abs(S([1:N/2] + 1,j)).^2;
 
 
 

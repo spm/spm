@@ -179,7 +179,7 @@ title('Frequency')
 
 % compute transfer functions
 %--------------------------------------------------------------------------
-[G w] = spm_lfp_mtf(P,M);
+[G w] = spm_lfp_mtf(M.pE,M);
 
 subplot(2,1,1)
 plot(w,G)
