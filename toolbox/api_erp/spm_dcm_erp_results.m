@@ -37,10 +37,10 @@ if ~strcmp(lower(Action), 'dipoles')
 end
 
 try
-    nt     = length(DCM.H); % Nr of trials
-    nu     = size(DCM.C,2);
-    nc     = size(DCM.H{1},2);
-    ns     = size(DCM.K{1},2); % Nr of sources
+    nt     = length(DCM.H);          % Nr of trials
+    nu     = size(DCM.C,2);          % Nr inputs
+    nc     = size(DCM.H{1},2);       % Nr modes
+    ns     = size(DCM.K{1},2);       % Nr of sources
 end
 
 % switch
@@ -54,11 +54,7 @@ case{lower('ERPs (channel)')}
     co = {'b', 'r'};
     lo = {'-', '--'};
     
-    try
-        T = DCM.xY.Time;
-    catch
-        T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
-    end
+    T    = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
     for i = 1:nc
         subplot(ceil(nc/2),2,i), hold on
         str   = {};

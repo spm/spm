@@ -47,15 +47,22 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% defaults
+% default: a single source model
 %--------------------------------------------------------------------------
-if nargin <  3                                 % a single source model
+if nargin < 3
     A   = {0 0 0};
     B   = {};
     C   = 1;
 end
-if nargin <  4, L = speye(length(C)); end
-if nargin <  5, U = 1;                end
+if nargin < 4
+    L.pos  = sparse(3,1);
+    L.mom  = sparse(3,1);
+    L.Vpos = sparse(3,1);
+    L.Vmom = sparse(3,1);
+end
+if nargin <  5
+    U = 1;
+end
 
 warning off
 
@@ -135,7 +142,6 @@ M.pC     = pC;
 M.m      = length(B);
 M.n      = length(M.x);
 M.l      = n;
-M.Nareas = n;
 M.Spatial_type = 3;
 
 if nargout == 1, varargout{1} = M; return, end

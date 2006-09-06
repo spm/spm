@@ -4,97 +4,78 @@ function DCM = spm_dcm_erp(DCM)
 %
 % DCM     
 %    name: name string
+%       M: Forward model
+%              M.dipfit - leadfield specification
 %       Y: data   [1x1 struct]
 %       U: design [1x1 struct]
-%       L: [nc x nr double] lead feild
+%
 %   Sname: cell of source name strings
 %       A: {[nr x nr double]  [nr x nr double]  [nr x nr double]}
-%       B: {[nr x nr double], ...}   Connection constaints
+%       B: {[nr x nr double], ...}   Connection constraints
 %       C: [nr x 1 double]
-%     swd: working directory
+%
+%   options.Tdcm         - [start end] time window in ms
+%   options.D            - time bin decimation       (usually 1 or 2)
+%   options.h            - number of DCT drift terms (usually 1 or 2)
+%   options.Nmodes       - number of spatial models to invert
+%   options.Spatial_type - EEG-MEG-LFP swtich (see spm_erp_L)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
+
+% check options 
+%==========================================================================
+
 % swd
 %--------------------------------------------------------------------------
-try
-    swd     = DCM.swd;
-    cd(swd)
-catch
-    swd     = pwd;
-    DCM.swd = swd;
-end
+try, DCM.swd; cd(swd);       catch, DCM.swd = pwd;              end
+try, DCM.options.D;          catch, DCM.options.D = 1;          end
+try, DCM.options.h;          catch, DCM.options.h = 1;          end
+try, DCM.options.projection; catch, DCM.options.projection = 1; end
+try, DCM.options.Nmodes;     catch, DCM.options.Nmodes = 4;     end
+try, DCM.options.Tdcm;       catch, 
+     DCM.options.Tdcm = [DCM.Y.Time(1) DCM.Y.Time(end)];        end
+
 
 % Data
 %==========================================================================
-nt    = length(DCM.Y.xy);                   % number of trials
-nr    = length(DCM.A{1});                   % number of sources
-nc    = size(DCM.Y.xy{1},2);                % number of channels
-nu    = size(DCM.U.X,2);                    % number of inputs
-nx    = nr*9 + 1;                           % number of states
-nm    = DCM.options.Nmodes;                 % number of modes
+nt      = length(DCM.Y.xy);                 % number of trials
+nr      = length(DCM.A{1});                 % number of sources
+nc      = size(DCM.Y.xy{1},2);              % number of channels
+nu      = size(DCM.U.X,2);                  % number of inputs
+nx      = nr*9 + 1;                         % number of states
+nm      = DCM.options.Nmodes;               % number of modes
 
-% slect time window for modelling
+% time window and bins for modelling
 %--------------------------------------------------------------------------
 T1      = DCM.options.Tdcm(1);
 T2      = DCM.options.Tdcm(2);
+D       = DCM.options.D;
 [m, T1] = min(abs(DCM.Y.Time - T1));
 [m, T2] = min(abs(DCM.Y.Time - T2));
-
-% and decimate (to about 8ms)
-%--------------------------------------------------------------------------
-% R     = ceil(8/DCM.Y.dt); % decimation factor
-R =1;
-j     = [T1:R:T2]';                         % time bins
-DCM.xY.Time = DCM.Y.Time(j);                % Time [ms] of downsampled data
+j       = [T1:D:T2]';                       % time bins
+xY.Time = DCM.Y.Time(j);                    % Time [ms] of downsampled data
 
 for i = 1:nt
-    xy{i} = DCM.Y.xy{i}(j,:);
+    xY.xy{i} = DCM.Y.xy{i}(j,:);
 end
-xY.y  = spm_cat(xy(:));                     % concatenated response
-xY.dt = DCM.Y.dt*R/1000;                    % sampling in seconds
+xY.y  = spm_cat(xY.xy(:));                  % concatenated response
+xY.dt = DCM.Y.dt*D/1000;                    % sampling in seconds
 ns    = length(j);                          % number of time samples
 
 % confounds - DCT and Gamma functions
 %--------------------------------------------------------------------------
-try
-    h = DCM.options.h;
-catch
-    h = 2;
-end
+h = DCM.options.h;
 if h == 0
-    X0 = sparse(ns,0);
+    X0 = sparse(ns,1);
 else
     X0 = spm_dctmtx(ns,h);
 end
+warning off
 X0     = kron(speye(nt,nt),X0);
 R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0  = X0;
-
-
-% make model specification DCM.M a global variable
-%--------------------------------------------------------------------------
-global M
-M       = DCM.M;
-
-% Project data onto the principal components of channel space priors 
-%--------------------------------------------------------------------------
-%M       = rmfield(M,'E');
-if DCM.options.projection == 1
-    P.Lpos  = M.pE.Lpos;
-    P.Lmom  = M.pE.Lmom;
-    dLdp    = spm_diff('spm_erp_L',P,1);
-    [i j J] = find(dLdp);
-    xY.E    = spm_svd(sparse(rem(i - 1,nc) + 1,j,J));
-
-% or data 
-%--------------------------------------------------------------------------
-elseif DCM.options.projection == 2
-
-    xY.E = spm_svd(xY.y'*R0*xY.y);
-end
-xY.E    = xY.E(:,[1:nm]);
-xY.y    = xY.y*xY.E;
+warning on
 
 % Inputs
 %==========================================================================
@@ -113,26 +94,61 @@ xU.dt   = xY.dt;
 xU.dur  = xU.dt*(ns - 1);
 xU.name = DCM.U.name;
 
-% prior moments
-%--------------------------------------------------------------------------
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
 
 % model specification and nonlinear system identification
+%==========================================================================
+
+% make model specification a global variable
+%--------------------------------------------------------------------------
+global M; M = DCM.M;
+
+% prior moments
+%--------------------------------------------------------------------------
+[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,DCM.M.dipfit.L,xU.dur);
+
+% likelihood model
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_erp';
 M.g   = 'spm_gx_erp';
 M.IS  = 'spm_int_U';
+M.FS  = 'y*E';
 M.x   = sparse(nx,1);
 M.pE  = pE;
 M.pC  = pC;
 M.m   = nu;
 M.n   = nx;
 M.l   = nc;
-M.E   = xY.E;
 
-% EM estimation (note that M is changed as a global variable)
+% Project data onto the principal components of channel space
 %--------------------------------------------------------------------------
-[Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
+y     = R0*xY.y;
+S     = spm_svd(y'*y);
+M.E   = S;
+M.E   = M.E(:,[1:nm]);
+
+% EM: This is a hidden loop that will perfom cnaonical feature selection
+%--------------------------------------------------------------------------
+ML    = exp(32);                          % switch off feature selection
+for i = 1:8
+    
+    % inversion
+    %----------------------------------------------------------------------
+    [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
+    
+    if F < ML(end), break, end
+
+    % Canonical feature selection
+    %----------------------------------------------------------------------
+    r     = y - R0*feval(M.IS,Qp,M,xU);
+    M.E   = spm_svd(inv(S'*r'*r*S)*(S'*y'*y*S),0);
+    M.E   = orth(full(S*M.E(:,1:nm)));
+    
+    % reset stating estimates
+    %----------------------------------------------------------------------
+    ML(i) = F;
+    M.P   = Qp;
+    
+end
 
 % Bayesian inference {threshold = 0}
 %--------------------------------------------------------------------------
@@ -141,29 +157,21 @@ dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning on
 
-% predicted responses (y) and residuals (r) (in projected and in channel space)
-%--------------------------------------------------------------------------
-y   = feval(M.IS,Qp,M,xU);
-r   = R0*(xY.y - y);
-yc   = y*M.E';
-rc   = r*M.E';
-
 % neuronal responses (x)
 %--------------------------------------------------------------------------
 M.Spatial_type = 4;
 x              = feval(M.IS,Qp,M,xU);
 M.Spatial_type = DCM.M.Spatial_type;
 
-% trial specific respsonses
+% trial specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for  i = 1:nt
-    j    = [1:ns] + (i - 1)*ns;
-    H{i} = y(j,:);
-    E{i} = r(j,:);
-    Hc{i} = yc(j,:);
-    Ec{i} = rc(j,:);
-
-    K{i} = x(j,:);
+    j     = [1:ns] + (i - 1)*ns;
+    H{i}  = x(j,:)*M.L'*M.E;
+    E{i}  = r(j,:)*M.E;
+    Hc{i} = x(j,:)*M.L';
+    Ec{i} = r(j,:);
+    K{i}  = x(j,:);
 end
 
 
@@ -176,10 +184,10 @@ DCM.Ep   = Qp;                            % conditional expectation
 DCM.Cp   = Cp;                            % conditional covariances
 DCM.Pp   = Pp;                            % conditional probability
 DCM.H    = H;                             % conditional responses (y), projected space
-DCM.Hc    = Hc;                             % conditional responses (y), channel space
+DCM.Hc   = Hc;                            % conditional responses (y), channel space
 DCM.K    = K;                             % conditional responses (x)
 DCM.R    = E;                             % conditional residuals (y)
-DCM.Rc    = Ec;                             % conditional residuals (y), channel space
+DCM.Rc   = Ec;                            % conditional residuals (y), channel space
 DCM.Ce   = Ce;                            % ReML error covariance
 DCM.F    = F;                             % Laplace log evidence
 

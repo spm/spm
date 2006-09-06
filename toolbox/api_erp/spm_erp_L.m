@@ -74,14 +74,12 @@ switch M.Spatial_type
         M.Lpos = P.Lpos;
         M.Lmom = P.Lmom;
             
-        if length(Id)
-            for i = Id
-                Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-                M.L(:,i) = Lf(M.Ichannels,:)*P.Lmom(:,i)*(10^20);
-            end
 
-
+        for i = Id
+            Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
+            M.L(:,i) = Lf(M.Ichannels,:)*P.Lmom(:,i)*(10^20);
         end
+
         
     % fixed lead field {specified in M.L}
     %----------------------------------------------------------------------
@@ -99,11 +97,7 @@ switch M.Spatial_type
         warndlg('unknown type of lead field')
 end
 
-% lead field (times projector, if specified)
+% lead field
 %--------------------------------------------------------------------------
-try
-   L  = M.E'*M.L;
-catch
-   L  = M.L;
-end
+L  = M.L;
 
