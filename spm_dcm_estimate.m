@@ -1,50 +1,53 @@
 function [] = spm_dcm_estimate (DCM_filename)   
-% Estimate parameters of a DCM model
+% Estimate parameters of a DCM
 % FORMAT [] = spm_dcm_estimate (DCM_filename)   
 %
 % DCM_filename  - the DCM model
+%__________________________________________________________________________
 %
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_estimate.m 615 2006-09-08 16:16:06Z karl $
 
  
 if nargin < 1
+    
     %-display model details
+    %----------------------------------------------------------------------
     Finter = spm_figure('GetWin','Interactive');
-    %-------------------------------------------------------------------
     set(Finter,'name','Dynamic Causal Modeling')
-    %-get results
-    %-------------------------------------------------------------------
-    P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    
+    %-get DCM
+    %----------------------------------------------------------------------
+    P = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    
+    spm('Pointer','Watch')
+    spm('FigName','Estimation in progress');
 else
     P = DCM_filename;
 end
 
+% load and unpack
+%--------------------------------------------------------------------------
 load(P)
-if nargin < 1
-    spm('Pointer','Watch')
-    spm('FigName','Estimation in progress');
-end
-
-a=DCM.a;
-b=DCM.b;
-c=DCM.c;
-U=DCM.U;
-Y=DCM.Y;
-xY=DCM.xY;
-n=DCM.n;
-v=DCM.v;
-X0=DCM.Y.X0;
+a  = DCM.a;
+b  = DCM.b;
+c  = DCM.c;
+U  = DCM.U;
+Y  = DCM.Y;
+xY = DCM.xY;
+n  = DCM.n;
+v  = DCM.v;
+X0 = DCM.Y.X0;
 
 
 % priors - expectations
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
 
 % model specification and nonlinear system identification
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M.f   = 'spm_fx_dcm';
 M.g   = 'spm_lx_dcm';
 M.x   = sparse(n*5,1);
@@ -55,22 +58,23 @@ M.n   = size(M.x,1);
 M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
+M.nx  = size(Y.y,1);
 
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
 
 % predicted responses and residuals
-%-------------------------------------------------------------------
-y     = spm_int(Ep,M,U,v);
+%--------------------------------------------------------------------------
+y     = spm_int(Ep,M,U);
 R     = Y.y - y;
 R     = R - X0*inv(X0'*X0)*(X0'*R);
 
 % neuronal kernels
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
 [K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
 
 % Bayesian inference and reshape {default threshold T = 0}
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 T          = 0;
 warning off; % switch off NaN-related warning of spm_Ncdf
 pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
@@ -78,12 +82,12 @@ warning on;
 [ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
 [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
 
-% Also record variances - this helps in doing Bayesian inference eg. across sessions
+% Also record variances - this helps Bayesian inference eg. across sessions
+%--------------------------------------------------------------------------
 vv         = diag(Cp);
 [vA vB vC] = spm_dcm_reshape(vv,M.m,n,1);
 
-
-% Record parameters
+% Store parameters
 %-------------------------------------------------------------------
 DCM.M      = M;
 DCM.Y      = Y;
@@ -108,9 +112,11 @@ DCM.y      = y;
 DCM.xY     = xY;
 DCM.T      = T;
 DCM.Ce     = Ce;
+
 % Save approximations to model evidence: negative free energy, AIC, BIC
-DCM.F      = F;
+%--------------------------------------------------------------------------
 evidence   = spm_dcm_evidence (DCM);
+DCM.F      = F;
 DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;
 

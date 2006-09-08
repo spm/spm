@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_create.m 615 2006-09-08 16:16:06Z karl $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -283,9 +283,8 @@ Y.X0  = X0;
 for i = 1:DCM.n,
     Y.name{i} = DCM.xY(i).name;
 end
-Y.Ce  = spm_Ce(ones(1,DCM.n)*DCM.v);
-
-DCM.Y   = Y;
+Y.Q   = spm_Ce(ones(1,DCM.n)*DCM.v);
+DCM.Y = Y;
 
 
 %-Save and reset title

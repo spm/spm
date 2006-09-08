@@ -1,13 +1,13 @@
-function [F,P] = spm_MH_reml(YY,X,Q,N,OPT);
+function [F,P] = spm_MH_reml(YY,X,Q,N,hE);
 % Estimation of covariance components from y*y' using sampling
-% FORMAT [F,P] = spm_MH_reml(YY,X,Q,N,[OPT]);
+% FORMAT [F,P] = spm_MH_reml(YY,X,Q,N,[hE]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
 % N   - number of samples
 %
-% OPT = 1 : log-normal hyper-parameterisation (with hyperpriors)
+% hE  - prior expectation: log-normal hyper-parameterisation (with hyperpriors)
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q)
 % P   - smaple of hyperparameters from thier posterioir p(h|YY,X,Q)
@@ -31,7 +31,8 @@ end
 % assume OPT = 0
 %--------------------------------------------------------------------------
 try
-    OPT;
+    hE;
+    OPT = hE;
 catch
     OPT = 0;
 end

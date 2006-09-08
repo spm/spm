@@ -4,17 +4,28 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
-% M.f  - f(x,u,P)
-% M.g  - g(x,u,P)
-%   x  - state  variables
-%   u  - inputs or causes
-%   P  - free parameters
+% M.IS - function name or handle f(P,M,U)
+%        This function specifies the nonlinear model: 
+%        y = Y.y = IS(P,M,U) + X0*P0 + e
+%        were e ~ N(0,C).  For dunamic systems this would be an intgration
+%        scheme (e.g. spm_int). spm_int expects the following:
+%
+%     M.f  - f(x,u,P)
+%     M.g  - g(x,u,P)
+%       x  - state variables
+%       u  - inputs or causes
+%       P  - free parameters
+%
+% M.FS - function name or handle f(P,M,U,varargin)
+%        This [optional] function perfoms feature selection assuming the
+%        generlised model y = FS(Y,E) = FS(IS(P,M,U)) + e
+%        where E are the parameters of the selection function
+%
+% M.E  - starting estimates for selection parameters
+% M.P  - starting estimtes for model parameters [optional]
+%
 % M.pE - prior expectation  - E{P}
 % M.pC - prior covariance   - Cov{P}
-% M.IS - function name or handle f(P,M,U,varargin)
-%        an integration scheme of function returning a predicted response
-%
-% M.P  - optional starting estimtes for parameters
 %
 % U.u  - inputs
 % U.dt - sampling interval
@@ -22,7 +33,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Y.y  - outputs
 % Y.X0 - Confounds or null space
 % Y.dt - sampling interval for outputs
-% Y.Ce - error precision constraints
+% Y.Q  - error precision components
 %
 %
 % Parameter estimates
@@ -37,7 +48,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% dynamic MIMO input-state-output model under Gaussian assumptions
+% nonliner model speficied by IS(P,M,U) under Gaussian assumptions. Usually,
+% IS would be an integrator of a dynamic MIMO input-state-output model 
 %
 %              dx/dt = f(x,u,P)
 %              y     = g(x,u,P) + e
@@ -53,37 +65,56 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % If the free-energy starts to increase, a Levenburg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
+% An option feature slection can be specified with paramers M.E.
 %
 %--------------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 589 2006-08-08 17:44:39Z stefan $
+% $Id: spm_nlsi_GN.m 615 2006-09-08 16:16:06Z karl $
 
-% figure
+% figure (unless disabled)
 %--------------------------------------------------------------------------
-% Fsi = spm_figure;
-% set(Fsi,'name','System identification')
-% figure(Fsi)
- 
- 
+try
+    M.nograph;
+catch
+    if strcmp(get(gcf,'name'),'System identification')
+        Fsi = gcf;
+    else
+        Fsi = spm_figure;
+        set(Fsi,'name','System identification')
+        figure(Fsi)
+    end
+end
+
 % prediction scheme (usually an integrator)
 %--------------------------------------------------------------------------
 try
-    f = fcnchk(M.IS);
+    IS = fcnchk(M.IS,'P','M','U');
 catch
-    f = 'spm_int';
+    IS = fcnchk('spm_int','P','M','U');
 end
- 
+
+% feature slection
+%--------------------------------------------------------------------------
+try
+    FS  = fcnchk(M.FS,'y','E');
+    E   = M.E;
+catch
+    FS  = inline('y','y','E');
+    E   = [];
+end
+
 % initial states
 %--------------------------------------------------------------------------
 try
     M.x;
 catch
+    if ~isfield(M,'n'), M.n = 0;    end
     M.x = sparse(M.n,1);
 end
 
-% initial states
+% input
 %--------------------------------------------------------------------------
 try
     U;
@@ -98,16 +129,25 @@ try
 catch
     M.P = M.pE;
 end
+
+% time-step
+%--------------------------------------------------------------------------
+try
+    Y.dt;
+catch
+    Y.dt = 1;
+end
  
 % data y
 %--------------------------------------------------------------------------
-y       = Y.y;
+y       = FS(Y.y,E);
 [ns nr] = size(y);          % number of samples and responses
+M.ns    = ns;
  
 % precision components Q
 %--------------------------------------------------------------------------
 try
-    Q = Y.Ce;
+    Q = Y.Q;
 catch
     Q = spm_Ce(ns*ones(1,nr));
 end
@@ -123,16 +163,16 @@ pC    = M.pC;
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
-    Ju = kron(speye(nr,nr),Y.X0);
+    dgdu = kron(speye(nr,nr),Y.X0);
 catch
-    Ju = sparse(ns*nr,0);
+    dgdu = sparse(ns*nr,0);
 end
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
 V     = spm_svd(pC,1e-8);
-nu    = size(Ju,2);                   % number of parameters (confounds)
-np    = size(V, 2);                   % number of parameters (effective)
+nu    = size(dgdu,2);                 % number of parameters (confounds)
+np    = size(V,2);                    % number of parameters (effective)
 ip    = [1:np];
 iu    = [1:nu] + np;
  
@@ -142,43 +182,45 @@ pC    = V'*pC*V;
 uC    = speye(nu)/1e-8;
 ipC   = inv(spm_cat(diag({pC,uC})));
  
-% initialise
+% initialise conditional density
 %--------------------------------------------------------------------------
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); sparse(nu,1)];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
-
 Cp    = pC;
  
+% EM
+%==========================================================================
 C.F   = -Inf;
 dv    = 1/128;
 t     = 64;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 hP    = eye(nh,nh)/16;
- 
- 
-% EM
-%==========================================================================
 for k = 1:128
  
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
  
-    % prediction and errors
+    % prediction (of features)
     %----------------------------------------------------------------------
-    g     = feval(f,Ep,M,U,ns);
-    e     = y(:) - g(:) - Ju*p(iu);
- 
-    % compute partial derivatives [Jp] df(p)/dp*V {p = parameters}
+    g     = IS(Ep,M,U);
+    g     = FS(g,E);
+    
+    % compute partial derivatives; dgdp
     %----------------------------------------------------------------------
     for i = ip
-        dV      = dv*sqrt(Cp(i,i));
-        pi      = spm_unvec(spm_vec(Ep) + V(:,i)*dV,pE);
-        dg      = feval(f,pi,M,U,ns) - g;
-        Jp(:,i) = dg(:)/dV;
+        dV        = dv*sqrt(Cp(i,i));
+        pi        = spm_unvec(spm_vec(Ep) + V(:,i)*dV,pE);
+        gi        = IS(pi,M,U);
+        dg        = FS(gi,E)  - g;
+        dgdp(:,i) = spm_vec(dg)/dV;
     end
-    J     = -[Jp Ju];
+
+    % prediction error and gradients
+    %----------------------------------------------------------------------
+    e     = spm_vec(y) - spm_vec(g) - dgdu*p(iu);
+    J     = -[dgdp dgdu];
  
     % iterate a Fisher scoring scheme to find h = max{F(p,h)}
     %----------------------------------------------------------------------
@@ -256,7 +298,7 @@ for k = 1:128
         C.p   = p;
         C.h   = h;
         C.F   = F;
- 
+        
         % E-Step: Conditional update of gradients and curvature
         %------------------------------------------------------------------
         dFdp  = -J'*iS*e - ipC*p;
@@ -286,36 +328,39 @@ for k = 1:128
     dp    = spm_dx(dFdpp,dFdp,{t});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-    
+
     % graphics
     %----------------------------------------------------------------------
-%     figure(Fsi)
-% 
-%     % subplot prediction
-%     %----------------------------------------------------------------------
-%     subplot(2,1,1)
-%     plot([1:ns]*Y.dt,g),                        hold on
-%     plot([1:ns]*Y.dt,g + reshape(e,ns,nr),':'), hold off
-%     xlabel('time')
-%     title(sprintf('%s: %i','E-Step',k))
-%     grid on
-%     % drawnow
-% 
-%     % subplot parameters
-%     %----------------------------------------------------------------------
-%     subplot(2,1,2)
-%     bar(full(V*p(ip)))
-%     xlabel('parameter')
-%     title('conditional [minus prior] expectation')
-%     grid on
-%     drawnow
-% 
+    try
+        M.nograph;
+    catch
+        figure(Fsi)
+
+        % subplot prediction
+        %----------------------------------------------------------------------
+        subplot(2,1,1)
+        plot([1:ns]*Y.dt,g),                      hold on
+        plot([1:ns]*Y.dt,g + spm_unvec(e,g),':'), hold off
+        xlabel('time')
+        title(sprintf('%s: %i','E-Step',k))
+        grid on
+
+        % subplot parameters
+        %----------------------------------------------------------------------
+        subplot(2,1,2)
+        bar(full(V*p(ip)))
+        xlabel('parameter')
+        title('conditional [minus prior] expectation')
+        grid on
+        drawnow
+    end
+
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dp:',full(dF))
-    if k > 2 && dF < 1e-2, break, end
-    
+    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dF:',full(dF))
+    if k > 2 && dF < 1e-1, break, end
+
 end
  
 % outputs

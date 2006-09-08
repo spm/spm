@@ -1,5 +1,4 @@
 function [] = spm_dcm_generate(syn_model,source_model,SNR)
-
 % Generate synthetic data from a DCM model specification
 % FORMAT [] = spm_dcm_generate(syn_model,source_model,SNR)
 % 
@@ -10,20 +9,18 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % This routine will update the DCM.Y field as follows: 
 %           Y.y     synthetic BOLD data
 %           Y.secs  overall number of seconds
-%           Y.Ce    Error covariance
+%           Y.Q     Components of error precision
 %
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 539 2006-05-19 17:59:30Z Darren $
-
-
-randn('state',sum(100*clock));
+% $Id: spm_dcm_generate.m 615 2006-09-08 16:16:06Z karl $
 
 % Check parameters and load specified DCM
-%-------------------------------------------------------------------
-if (nargin<3) | isempty(SNR)
-    SNR         = 1;
+%--------------------------------------------------------------------------
+if (nargin <3 ) | isempty(SNR)
+    SNR  = 1;
 end
 
 load(syn_model)
@@ -36,7 +33,7 @@ m   = size(U.u,2);  % number of inputs
 
 % Check whether the model is stable by examining the eigenvalue 
 % spectrum for the intrinsic connectivity matrix 
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 eigval = eig(DCM.A);
 % display stability warning if necessary
 if max(eigval) >= 0
@@ -46,32 +43,31 @@ end
 
 
 % Create M matrix for spm_int
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M.f  = 'spm_fx_dcm';
 M.g  = 'spm_lx_dcm';
-M.x   = sparse(n*5,1);
-M.m   = size(U.u,2);
-M.n   = size(M.x,1);
-M.l   = n;
+M.x  = sparse(n*5,1);
+M.m  = size(U.u,2);
+M.n  = size(M.x,1);
+M.l  = n;
+M.ns = v;
 
 % Create P vector for spm_int
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 P=[1; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:)];
 
 
 % Compute hemodynamic response at v sample points
-%---------------------------------------------------------------------------
-[y,dy]    = spm_int(P,M,U,v);
+%--------------------------------------------------------------------------
+y    = spm_int(P,M,U);
 
 
-% Add noise to all areas
-%---------------------------------------------------------------------------
-% Compute required r, the standard deviation of additive noise, for all areas
-r   = std(y)/SNR;
-% Turn r into a diagonal matrix
-r   = diag(r);
+% Compute required r: standard deviation of additive noise, for all areas
+%--------------------------------------------------------------------------
+r   = diag(std(y)/SNR);
 
-% Add noise 
+% Add noise
+%--------------------------------------------------------------------------
 p       = 1;
 a       = 0;    % AR(1) coeff: for the moment set to zero
 a       = [1 -a];
@@ -80,12 +76,13 @@ K       = K*sqrt(v/trace(K*K'));
 z       = randn(v,n);
 e       = K*z;
 Y       = DCM.Y;
-Y.Ce    = spm_Ce(v*ones(1,n));
+Y.Q     = spm_Ce(v*ones(1,n));
 Y.y     = y + e*r;
 Y.secs  = Y.dt*v;
 
 % Now orthogonalise data with respect to effects of no interest
 % If X0 is just a vector of 1s this amounts to making the data zero mean
+%--------------------------------------------------------------------------
 X0  = Y.X0;
 Xp  = X0*inv(X0'*X0)*X0';
 for i = 1:n,
@@ -94,16 +91,17 @@ end
 DCM.Y = Y;
 
 % Save synthetic DCM
+%--------------------------------------------------------------------------
 if spm_matlab_version_chk('7') >= 0
     save(syn_model, 'DCM', '-V6');
 else
     save(syn_model, 'DCM');
 end;
 
-
-% Display the generated time series
+% Display the time series generated
+%--------------------------------------------------------------------------
 F = spm_figure('CreateWin','Simulated BOLD time series');
-t=Y.dt*[1:1:v];
+t = Y.dt*[1:1:v];
 for i=1:n,
     subplot(n,1,i);
     plot(t,Y.y(:,i));

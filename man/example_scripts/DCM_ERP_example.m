@@ -23,8 +23,6 @@ DCM.options.Y1 = 1; % index of 1st ERP within ERP/ERF file
 DCM.options.Y2 = 2; % index of 2nd ERP within ERP/ERF file
 DCM.options.Tdcm(1) = 5; % start of peri-stimulus time to be modelled
 DCM.options.Tdcm(2) = 150; % end of peri-stimulus time to be modelled
-DCM.options.Tsvd(1) = 5; % start of peri-stimulus time for data selection
-DCM.options.Tsvd(2) = 150; % end of peri-stimulus time for data selection
 DCM.options.Nmodes = 3; % nr of modes for data selection
 DCM.options.h = 2; % nr of DCT components
 DCM.options.Spatial_type = 1; % spatial model is ECD/EEG (2: ECD/MEG, 3: fixed)
@@ -56,8 +54,7 @@ DCM.Y.dt = 1000/D.Radc; % ms
 % data selection using SVD
 P.projection = 1;
 P.Nmodes = DCM.options.Nmodes;
-P.Tselection = DCM.options.Tsvd;
-DCM = spm_dcm_eeg_selectdata(DCM, P);
+DCM      = spm_dcm_eeg_selectdata(DCM, P);
 
 % number of DCT components to model drift at observation level
 DCM.Y.h = DCM.options.h;

@@ -1,20 +1,18 @@
-function [y,dy] = spm_int(P,M,U,v)
+function [y] = spm_int(P,M,U)
 % integrates a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
-% FORMAT [y,dy] = spm_int(P,M,U,v)
+% FORMAT [y] = spm_int(P,M,U)
 % P   - model parameters
 % M   - model structure
 % U   - input structure or matrix
-% v   - number of sample points [default = size(U.u,1)]
 %
 % y   - (v x l)  response y = g(x,u,P)
-% dy  - (v x 1)  first temporal derivative dy/dt
 %__________________________________________________________________________
 % Integrates the bilinear approximation to the MIMO system described by
 %
 %    dx/dt = f(x,u,P) = A*x + u*B*x + C*u + D
 %    y     = g(x,u,P) = L*x;
 %
-% at v sampling points over the input time
+% at v = M.ns is the number of smaples [default v = size(U.u,1)]
 %
 % spm_int will also handle static observation models by evaluating
 % g(x,u,P)
@@ -22,7 +20,7 @@ function [y,dy] = spm_int(P,M,U,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_int.m 579 2006-08-01 18:32:10Z karl $
+% $Id: spm_int.m 615 2006-09-08 16:16:06Z karl $
 
 
 % convert U to U.u if necessary
@@ -50,10 +48,10 @@ end
 
 % number of times to sample
 %--------------------------------------------------------------------------
-if nargin < 4,
-    v  = size(U.u,1);
-else
-    v  = min([v size(U.u,1)]);
+try
+    v = M.ns;
+catch
+    v = size(U.u,1);
 end
 
 % output nonlinearity, if specified
@@ -105,10 +103,6 @@ for  i = 1:length(T)
         else
             y(:,s(i))  = L*x;
         end
-
-        if nargout > 1
-            dy(:,s(i)) = L*J*x;
-        end
     end
 
     % compute updated states x = expm(J*dt)*x;
@@ -117,4 +111,3 @@ for  i = 1:length(T)
 
 end
 y      = real(y');
-dy     = real(dy');

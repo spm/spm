@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 597 2006-08-21 18:32:29Z klaas $
+% $Id: spm_dcm_ui.m 615 2006-09-08 16:16:06Z karl $
 
 
 
@@ -287,9 +287,9 @@ case 'specify'
 		Y.name{i} = xY(i).name;
 	end
 
-	% error components (one for each region) - i.i.d. (because of W)
+	% error precision components (one for each region) - i.i.d. (because of W)
 	%-------------------------------------------------------------------
-	Y.Ce  = spm_Ce(ones(1,n)*v);
+	Y.Q = spm_Ce(ones(1,n)*v);
 
     DCM.a=a;
     DCM.b=b;

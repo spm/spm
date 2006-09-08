@@ -2,7 +2,7 @@ function DCM = spm_dcm_erp_prepareSpatial(DCM)
 % prepares structures for ECD forward model (both EEG and MEG)
 
 % Stefan Kiebel
-% $Id: spm_dcm_erp_prepareSpatial.m 589 2006-08-08 17:44:39Z stefan $
+% $Id: spm_dcm_erp_prepareSpatial.m 615 2006-09-08 16:16:06Z karl $
 
 if DCM.options.Spatial_type == 1
     % EEG
@@ -17,7 +17,8 @@ if DCM.options.Spatial_type == 1
             % coordinates are in CTF coordinate system
             [Fname_fid, Fname_sens] = spm_eeg_inv_ReadPolhemus(sensorfile, 0);
         catch
-            errordlg('Could not read sensor location file');
+            warndlg('Could not read sensor location file');
+            return
         end
     else
         try
@@ -28,15 +29,16 @@ if DCM.options.Spatial_type == 1
             x = xyz(:, 1); y = xyz(:, 2); z = xyz(:, 3);
 
         catch
-            errordlg('Could not read sensor location file');
+            warndlg('Could not read sensor location file');
+            return
         end
     end
 
     % Use approximated MRI fiducials (MNI space)... for now
     MNI_FID = [[0.0 86 -39];...
-        [-85 -17 -35];...
-        [84 -14 -35]];
-
+              [-85 -17 -35];...
+              [84 -14 -35]];
+ 
     save MNI_FID MNI_FID
 
     mni_fid = 'MNI_FID';
@@ -94,7 +96,7 @@ if DCM.options.Spatial_type == 1
     elc = elc(1:3,:)';
     
     % centre of sphere in POL space
-    o = inv(dipfit.Mpol2mni)*[dipfit.vol.o_sphere'; 1];
+    o   = inv(dipfit.Mpol2mni)*[dipfit.vol.o_sphere'; 1];
     elc = elc - kron(ones(size(elc, 1), 1), o(1:3)');
     
     % transformation matrix from MNI-space to sphere in POL space
@@ -105,9 +107,9 @@ if DCM.options.Spatial_type == 1
     
     % projecting channels to outer sphere (remove origin, necessary for forward model)    
     dist = sqrt(sum((elc).^2,2));
-    elc = dipfit.vol.r(4) * elc ./[dist dist dist];
+    elc  = dipfit.vol.r(4) * elc ./[dist dist dist];
     
-    dipfit.elc = elc;
+    dipfit.elc   = elc;
     
     DCM.M.dipfit = dipfit;
     
@@ -124,10 +126,8 @@ end
 % used for fitting sphere to sensors
 function x = d_elc_sphere(x, elc, r)
 % returns sum of squares of distances between sensors elc and sphere.
-
 Nelc = size(elc, 1);
-
-d = sqrt(sum((elc - repmat(x, Nelc, 1)).^2, 2));
-x  = sum((d - r).^2);
+d    = sqrt(sum((elc - repmat(x, Nelc, 1)).^2, 2));
+x    = sum((d - r).^2);
 
 
