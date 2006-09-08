@@ -278,8 +278,8 @@ spm('Pointer', 'Watch');drawnow
 % compute and write contrast images
 for j = 1:size(fnames, 1); % over files
     
-    % map file
-    Vbeta = spm_vol(deblank(fnames{j}));
+    % map file    
+    Vbeta = nifti(deblank(fnames{j}));  
     
     % cd to target directory
     [path, f] = fileparts(fnames{j});
@@ -287,15 +287,9 @@ for j = 1:size(fnames, 1); % over files
     
     for i = 1:size(C, 2) % over contrasts
               
-       % code cannibalized from spm_contrasts
+       % code taken from spm_contrasts
        fprintf('\t%-32s: %-10s%20s', sprintf('file %s, contrast %d', fnames{j}, i),...
            '(spm_add)','...initialising') %-#
-
-       Q     = find(abs(C(:,i)) > 0);
-       V     = Vbeta(Q);
-       for k = 1:length(Q)
-           V(k).pinfo(1:2,:) = V(k).pinfo(1:2,:)*C(Q(k), i);
-       end
 
        %-Prepare handle for contrast image
        %-----------------------------------------------------------
@@ -306,23 +300,41 @@ for j = 1:size(fnames, 1); % over files
            descrip = sprintf('SPM contrast - %d: %s', i, con_type{i, 1});
        end
        
-       Vcon = struct(...
-           'fname',  sprintf('%s_con_%04d.img', f, i),...
-           'dim',    Vbeta(1).dim,...
-           'dt',     [16 spm_platform('bigend')],...
-           'mat',    Vbeta(1).mat,...
-           'pinfo',  [1,0,0]',...
-           'descrip', descrip);
+       % prepare nifti image (the usual spm_add doesn't seem to work for
+       % many input files under windows)
+       Vcon = nifti;
+       Vcon.descrip = descrip;
 
+       Dcon = file_array;
+       Dcon.fname = sprintf('%s_con_%04d.img', f, i);
+       Dcon.dtype = spm_type('float32');
+       Dcon.offset  = ceil(348/8)*8;
+       Dcon.dim = Vbeta.dat.dim(1:3);
+
+       Vcon.dat = Dcon;
+       
        %-Write image
        %-----------------------------------------------------------
        fprintf('%s%20s', repmat(sprintf('\b'),1,20),'...computing')%-#
-       Vcon = spm_create_vol(Vcon);
-       Vcon.pinfo(1,1) = spm_add(V, Vcon);
-       Vcon = spm_create_vol(Vcon);
+
+       % replace loop by one line if possible
+       d = zeros(Vbeta.dat.dim(1:3));
+       for k = 1:Vbeta.dat.dim(4)
+           d = d + Vbeta.dat(:,:,:, k)*C(k,i);
+       end
+       
+       if Vbeta.dat.dim(3) == 1
+           Dcon(:,:) = d;
+       else
+           Dcon.dat(:,:,:) = d;
+       end
+       
+       Vcon.dat = Dcon;
+       create(Vcon);
+       
 
        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-           '...written %s',spm_str_manip(Vcon.fname,'t')))%-#
+           '...written %s',spm_str_manip(Vcon.dat.fname,'t')))%-#
 
 
    end
