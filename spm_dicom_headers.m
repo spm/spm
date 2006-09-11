@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 608 2006-08-31 15:26:26Z john $
+% $Id: spm_dicom_headers.m 616 2006-09-11 18:28:30Z john $
 
 
 dict = readdict;
@@ -41,7 +41,7 @@ fp  = fopen(P,'r','ieee-le');
 if fp==-1, warning(['Cant open "' P '".']); return; end;
 
 fseek(fp,128,'bof');
-dcm = fread(fp,4,'*char')';
+dcm = fread(fp,4,'*uchar')';
 if ~strcmp(dcm,'DICM'),
 	% Try truncated DICOM file fomat
 	fseek(fp,0,'bof');
@@ -100,7 +100,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 			dat  = decode_csa(fp,tag.length);
 			ret.(tag.name) = dat;
 		case {'TransferSyntaxUID'},
-			dat = fread(fp,tag.length,'*char')';
+			dat = fread(fp,tag.length,'*uchar')';
 			dat = deblank(dat);
 			ret.(tag.name) = dat;
 			switch dat,
@@ -123,11 +123,11 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 			switch tag.vr,
 			case {'UN'},
 				% Unknown - read as char
-				dat = fread(fp,tag.length,'char')';
+				dat = fread(fp,tag.length,'uchar')';
 			case {'AE', 'AS', 'CS', 'DA', 'DS', 'DT', 'IS', 'LO', 'LT',...
 				  'PN', 'SH', 'ST', 'TM', 'UI', 'UT'},
 				% Character strings
-				dat = fread(fp,tag.length,'*char')';
+				dat = fread(fp,tag.length,'*uchar')';
 
 				switch tag.vr,
 				case {'UI','ST'},
@@ -156,7 +156,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 				end;
 			case {'OB'},
 				% dont know if this should be signed or unsigned
-				dat = fread(fp,tag.length,'char')';
+				dat = fread(fp,tag.length,'uchar')';
 			case {'US', 'AT', 'OW'},
 				dat = fread(fp,tag.length/2,'uint16')';
 			case {'SS'},
@@ -282,7 +282,7 @@ if flg(2) == 'b',
 end;
 
 if flg(1) =='e',
-	tag.vr      = fread(fp,2,'*char')';
+	tag.vr      = fread(fp,2,'*uchar')';
 	tag.le      = 6;
 	switch tag.vr,
 	case {'OB','OW','SQ','UN','UT'}
@@ -337,11 +337,12 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function dict = readdict
+function dict = readdict(P)
+if nargin<1, P = 'spm_dicom_dict.mat'; end;
 try
-    dict = load('spm_dicom_dict.mat');
+    dict = load(P);
 catch
-    fprintf('\nUnable to load the file "spm_dicom_dict.mat".\n');
+    fprintf('\nUnable to load the file "%s".\n', P);
     if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
         fprintf('This may  be because of the way that the .tar.gz files\n');
         fprintf('were unpacked  when  the SPM software  was  installed.\n');
@@ -413,7 +414,7 @@ if strcmp(fmt,'ieee-be'),
         fseek(fp,pos,'bof');
 end;
 
-c   = fread(fp,4,'char');
+c   = fread(fp,4,'uchar');
 fseek(fp,pos,'bof');
 
 if all(c'==[83 86 49 48]), % "SV10"
@@ -441,7 +442,7 @@ end;
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 tot = 2*4;
 for i=1:n,
-	t(i).name    = fread(fp,64,'char')';
+	t(i).name    = fread(fp,64,'uchar')';
 	msk          = find(~t(i).name)-1;
 	if ~isempty(msk),
 		t(i).name    = char(t(i).name(1:msk(1)));
@@ -449,7 +450,7 @@ for i=1:n,
 		t(i).name    = char(t(i).name);
 	end;
 	t(i).vm      = fread(fp,1,'int32')';
-	t(i).vr      = fread(fp,4,'char')';
+	t(i).vr      = fread(fp,4,'uchar')';
 	t(i).vr      = char(t(i).vr(1:3));
 	t(i).syngodt = fread(fp,1,'int32')';
 	t(i).nitems  = fread(fp,1,'int32')';
@@ -464,8 +465,8 @@ for i=1:n,
 			tot              = tot + 4*4;
 			break;
 		end;
-		t(i).item(j).val = fread(fp,len,'*char')';
-		fread(fp,4-rem(len,4),'char');
+		t(i).item(j).val = fread(fp,len,'*uchar')';
+		fread(fp,4-rem(len,4),'uchar');
 		tot              = tot + 4*4+len+(4-rem(len,4));
 	end;
 end;
@@ -474,8 +475,8 @@ return;
 
 %_______________________________________________________________________
 function t = decode_csa2(fp,lim)
-unused = fread(fp,4,'char'); % Unused
-unused = fread(fp,4,'char'); % Unused
+unused = fread(fp,4,'uchar'); % Unused
+unused = fread(fp,4,'uchar'); % Unused
 n   = fread(fp,1,'uint32');
 if n>128 || n < 0,
 	fseek(fp,lim-4,'cof');
@@ -484,7 +485,7 @@ if n>128 || n < 0,
 end;
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 for i=1:n,
-	t(i).name    = fread(fp,64,'char')';
+	t(i).name    = fread(fp,64,'uchar')';
 	msk          = find(~t(i).name)-1;
 	if ~isempty(msk),
 		t(i).name    = char(t(i).name(1:msk(1)));
@@ -492,7 +493,7 @@ for i=1:n,
 		t(i).name    = char(t(i).name);
 	end;
 	t(i).vm      = fread(fp,1,'int32')';
-	t(i).vr      = fread(fp,4,'char')';
+	t(i).vr      = fread(fp,4,'uchar')';
 	t(i).vr      = char(t(i).vr(1:3));
 	t(i).syngodt = fread(fp,1,'int32')';
 	t(i).nitems  = fread(fp,1,'int32')';
@@ -500,8 +501,8 @@ for i=1:n,
 	for j=1:t(i).nitems
 		t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
 		len              = t(i).item(j).xx(2);
-		t(i).item(j).val = fread(fp,len,'*char')';
-		fread(fp,rem(4-rem(len,4),4),'char');
+		t(i).item(j).val = fread(fp,len,'*uchar')';
+		fread(fp,rem(4-rem(len,4),4),'uchar');
 	end;
 end;
 return;
