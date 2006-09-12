@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 564 2006-06-29 15:33:34Z volkmar $
+% $Id: spm_dicom_convert.m 617 2006-09-12 09:11:02Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -223,23 +223,21 @@ for i=2:length(hdr),
 	orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
 	xy1    = hdr{i}.ImagePositionPatient*orient;
 	match  = 0;
-	if isfield(hdr{i},'CSAImageHeaderInfo')     
-	  ice1 = sscanf( ...
-	      strrep(get_numaris4_val(hdr{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
-	      'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
-	  dimsel = logical([1 1 1 1 1 1 0 0 1]);
-	else
-	  ice1 = [];
+	if isfield(hdr{i},'CSAImageHeaderInfo')
+        ice1 = sscanf( ...
+            strrep(get_numaris4_val(hdr{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
+            'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
+        dimsel = logical([1 1 1 1 1 1 0 0 1]);
+    else
+        ice1 = [];
 	end;
 	for j=1:length(vol),
           orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
           xy2    = vol{j}{1}.ImagePositionPatient*orient;
           dist2  = sum((xy1-xy2).^2);
+          dist2 = 0; % MR seems to have shears sometimes...
 	  if strcmp(hdr{i}.Modality,'CT') && ...
-		strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to
-                                                % have shears in
-                                                % slice positions
-	    dist2 = 0;
+		strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
 	  end;
           if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo')
             % Replace 'X' in ICE_Dims by '-1'
@@ -260,7 +258,7 @@ for i=2:length(hdr),
                     hdr{i}.Rows                    == vol{j}{1}.Rows &&...
                     hdr{i}.Columns                 == vol{j}{1}.Columns &&...
                     all(hdr{i}.ImageOrientationPatient == vol{j}{1}.ImageOrientationPatient) &&...
-                    all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing) && dist2<0.00001 &&...
+                    all(hdr{i}.PixelSpacing            == vol{j}{1}.PixelSpacing) && dist2<0.1 &&...
                     identical_ice_dims;
 	    if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber)|| ...
 		  (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
@@ -333,7 +331,7 @@ for j=1:length(vol),
 		end;
 		[z,index] = sort(z);
 		dist      = diff(z);
-		if sum((dist-mean(dist)).^2)/length(dist)>0.00001,
+		if sum((dist-mean(dist)).^2)/length(dist)>0.01,
 			fprintf('***************************************************\n');
 			fprintf('* VARIABLE SLICE SPACING                          *\n');
 			fprintf('* This may be due to missing DICOM files.         *\n');
