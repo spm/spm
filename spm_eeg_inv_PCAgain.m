@@ -29,7 +29,7 @@ function varargout = PCAgain(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_PCAgain.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_PCAgain.m 621 2006-09-12 17:22:42Z karl $
 
 
 % Input
@@ -56,10 +56,10 @@ end
 
 
 % Lead-field normalization
-NCG = sqrt(sum(G.*G));
+NCG   = sqrt(sum(G.*G)) + exp(-32);
 Gsize = size(G,1);
-P = ones(Gsize,1);
-Lc = P*NCG;
+P     = ones(Gsize,1);
+Lc    = P*NCG;
 Gnorm = G./Lc;
 clear NCG Gsize P Lc; 
 

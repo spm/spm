@@ -15,7 +15,7 @@ function D = spm_eeg_inv_forward_ui(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_forward_ui.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -25,11 +25,6 @@ try
 catch
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
 	D = spm_eeg_ldata(D);
-end
-
-val = length(D.inv);
-if val > 1
-    D = spm_eeg_inv_copyfields(D,[0 0 1 0]);
 end
 
 D = spm_eeg_inv_BSTfwdsol(D);

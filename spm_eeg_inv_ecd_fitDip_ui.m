@@ -48,83 +48,55 @@ function [sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
 spm('Clear')
 spm('FigName','Fitting ECD on EEG data') ;
 
-q_model=2; % At the moment, only consider the spherical model
-if nargin==0
-    % Select the head model
-    % [q_model,pos] = spm_input('Model type :','+1','realistic BEM|3 fitted sph ',[1,2],2) ;
+q_model = 2; % At the moment, only consider the spherical model
+if nargin == 0
+    % Select the head model 'model'
+    % q_model = spm_input('Model type :','+1','realistic BEM|3 fitted sph ',[1,2],2) ;
     % At the moment, use only the realistic sphere!
-    if q_model==1
+    if q_model == 1
         Pmod = spm_select(1,'^model.*\ifs.*\.mat$','Model mat file');
     else
         Pmod = spm_select(1,'^model.*\Rs.*\.mat$','Model mat file');
     end
+    load(Pmod)
 else
-    Pmod = D.inv{end}.model;
+    model = D.inv{D.val}.forward;
 end
-load(Pmod)
 
-if nargin==0
+
+if nargin == 0
     % Select the data
-    [q_data,pos] = spm_input('Data format :','+1','in-house bin|simple mat file',[1,2],2) ;
-    if q_data==1
+    q_data = spm_input('Data format :','+1','in-house bin|simple mat file',[1,2],2) ;
+    if q_data == 1
         D = spm_eeg_ldata
     end
 else
     q_data = 1;
 end
 
-if q_data==1
-    Pdata = D.fname;
-    ss = size(D.data) ;
+if q_data == 1
+    Pdata  = D.fname;
+    ss     = size(D.data) ;
     DNchan = ss(1);
-    Dtb = ss(2);
+    Dtb    = ss(2);
     if length(ss)==3
         if ss(3)>1
-            [cond,pos] = spm_input(['Condition to use: ',num2str(1:ss(3)),' ?'],'+1','e',1) ;
+            cond = spm_input(['Condition to use: ',num2str(1:ss(3)),' ?'],'+1','e',1) ;
         else
             cond = 1;
         end
     else
         cond = 1;
     end
-elseif q_data==2
+elseif q_data == 2
     Pdata = spm_select(1,'mat','Data mat file');
     load(Pdata);
     [DNchan,Dtb] = size(data);
 end
 
-if q_data==1
+if q_data == 1
     % Check the data, channels to use, nr of electrodes, etc
-    Use_chan = 1:D.Nchannels;
-    chan_to_rem = [];
-    if isfield(D.channels,'heog')
-        chan_to_rem = [chan_to_rem D.channels.heog];
-    end
-    if isfield(D.channels,'veog')
-        chan_to_rem = [chan_to_rem D.channels.veog];
-    end
-    if isfield(D.channels,'eog')
-        chan_to_rem = [chan_to_rem D.channels.eog];
-    end
-    if isfield(D.channels,'ecg')
-        chan_to_rem = [chan_to_rem D.channels.ecg];
-    end
-    if isfield(D.channels,'others')
-        chan_to_rem = [chan_to_rem D.channels.others];
-    end
-    if isfield(D.channels,'Bad')
-        chan_to_rem = [chan_to_rem D.channels.Bad'];
-    end
-    if isfield(D.channels,'reference')
-%%%% CHANGED BY RIK TO HANDLE BDF DATA WHERE REF=0
-        if D.channels.reference > 0
-    	 chan_to_rem = [chan_to_rem D.channels.reference];
-	end
-%%%%END
-    end
-    Use_chan(chan_to_rem) = []; % and possibly some other channels.
-    
-    % NUse_chan = length(D.cov.Use_chan);
+    Use_chan  = D.channels.eeg;
     NUse_chan = length(Use_chan);
     
     order_dat2mod = zeros(1,model.electrodes.nr); missing_chan = [];
@@ -147,7 +119,7 @@ if q_data==1
     end
     %     D.channels.name(order_dat2mod)
 elseif q_data==2
-    disp('I assume the data channels are in same order as model !')
+    warndlg('Assuing the data channels are in same order as model !')
 end
 
 % Use a reduce set of electrodes ?
@@ -176,10 +148,10 @@ elseif dNchannels>0
         keep_electr = 1:model.electrodes.nr;
         keep_electr(rem_electr) = [];
     catch
-        flag = 0; pos = pos+1;
-        while flag==0
-            [rem_electr,pos] = spm_input(['List (',num2str(dNchannels), ...
-                    ') of electrodes to remove in the model'],pos,'e',missing_chan,dNchannels);
+        flag = 0;
+        while ~flag
+            rem_electr = spm_input(['List (',num2str(dNchannels), ...
+                    ') of electrodes to remove in the model'],'+1','e',missing_chan,dNchannels);
             keep_electr = 1:model.electrodes.nr;
             keep_electr(rem_electr) = [];
             if length(keep_electr)==DNchan, flag=1; end
@@ -213,19 +185,19 @@ else
 end
 
 % Window of time used
-flag=0; pos = pos+1;
-while flag==0
+flag = 0;
+while ~flag
     if q_data==1
         % Express time window in ms.
         ms_tb = 1000/D.Radc ; % milisecond per time bin
         b_ms = -D.events.start*ms_tb;
         e_ms = D.events.stop*ms_tb;
-        [wind_be_ms,pos] = spm_input(...
+        wind_be_ms = spm_input(...
                 ['Time window to use (in ms, [',num2str(ms_tb),'])'], ...
-                pos,'e',round([b_ms e_ms]));
+                '+1','e',round([b_ms e_ms]));
         wind_be = round((wind_be_ms-b_ms)/ms_tb+1);
     else
-        [wind_be,pos] = spm_input(['Time window to use'],pos,'e',[1 Dtb]);
+        wind_be = spm_input(['Time window to use'],'+1','e',[1 Dtb]);
     end
     if length(wind_be)==1
         if wind_be(1)>0 && wind_be(1)<=Dtb
@@ -240,9 +212,9 @@ while flag==0
 end
 
 % Number of dipoles per set
-flag=0; pos = pos+1;
-while flag==0
-    [n_dip,pos] = spm_input(['Number of dipoles to be used'],pos,'e',1);
+flag = 0;
+while ~flag
+    n_dip = spm_input(['Number of dipoles to be used'],'+1','e',1);
     if n_dip<=floor(DNchan/6), flag=1; end
     if (n_dip<=floor(DNchan/6)) && (n_dip>floor(DNchan/12)),
         spm('alert!',{['You really have a lot of dipoles to fit (',num2str(n_dip),')'] ...
@@ -252,7 +224,7 @@ while flag==0
 end
 
 % Number of random seed sets
-[n_seeds,pos] = spm_input(['Number of random seeding locations to be used (1 for a priori loc.)'],'+1','e',n_dip*20);
+n_seeds = spm_input(['Number of random seeding locations to be used (1 for a priori loc.)'],'+1','e',n_dip*20);
 
 % If only 1 seed, I should define myself the a priori location, and possibly fix these locations.
 % In this last case, I should be able to fix the orientation too.
@@ -262,20 +234,18 @@ if n_seeds==1
     %     set_loc_1seed = [[0 0 0]' [-30 0 0]' [30 0 0]' [0 0 30]' [0 30 0]' [0 -30 0]' ];
     set_loc_1seed = [[-.3 .9 42.8]' [41 -4 47]' [30 0 0]' [0 0 30]' [0 30 0]' [0 -30 0]' ];
     for ii=1:n_dip
-        [set_loc_o(:,ii)] = spm_input(['A priori location of dipole # ',num2str(ii)],pos+1, ...
+        [set_loc_o(:,ii)] = spm_input(['A priori location of dipole # ',num2str(ii)],'+1', ...
             'e',set_loc_1seed(:,ii)',3);
     end
-    pos = pos+1;
-    [q_fxd_loc,pos] = spm_input('Leave the dipoles location fixed ?','+1','y/n',[1,0],2);
+    q_fxd_loc = spm_input('Leave the dipoles location fixed ?','+1','y/n',[1,0],2);
     if q_fxd_loc
-        [q_fxd_or,pos] = spm_input('Fix the dipoles orientation ?','+1','y/n',[1,0],2);
+        q_fxd_or = spm_input('Fix the dipoles orientation ?','+1','y/n',[1,0],2);
         if q_fxd_or % Define the dipoles orientation
             fxd_or = zeros(3,n_dip);
             for ii=1:n_dip
-                tmp_or = spm_input(['A priori orientation of dipole # ',num2str(ii)],pos+1,'e',[],3);
+                tmp_or = spm_input(['A priori orientation of dipole # ',num2str(ii)],'+1','e',[],3);
                 fxd_or(:,ii) = tmp_or/norm(tmp_or);
             end
-            pos = pos+1;
         end
     end
 end
@@ -283,9 +253,9 @@ end
 % Orientation of the dipoles
 if (wind_be(2)-wind_be(1))>1 && ~q_fxd_or
     text_opt = ['totally free orientation|',...
-            'fixed orientation, weighted (EEG pow) mean of orientations over time|',...
-            'fixed orientation, as at the max of EEG power'];
-    [or_opt,pos] = spm_input('Dipoles orientation over time?',pos+1,'m',text_opt);
+                'fixed orientation, weighted (EEG pow) mean of orientations over time|',...
+                'fixed orientation, as at the max of EEG power'];
+    or_opt = spm_input('Dipoles orientation over time?','+1','m',text_opt);
 elseif q_fxd_or
     or_opt = 4;
 else
@@ -296,18 +266,22 @@ end
 if nargin==0
     Vbr = spm_vol(spm_select(1,'^.*obrain.*\..*$','Brain mask image'));
 else
-    Vbr = spm_vol(D.inv{end}.mesh.msk_iskull);
+    Vbr = spm_vol(D.inv{D.val}.mesh.msk_iskull);
     if isempty(Vbr)
         Vbr = spm_vol(model.flags.fl_bin.Pisk);
     end
 end
 
-Psdip = ['S',num2str(n_dip),'dip_',spm_str_manip(Pdata,'rt'), ...
-        '_n',num2str(n_seeds),'_o',num2str(or_opt),'_t',num2str(wind_be(1)),'_',num2str(wind_be(2))];
-[Psave,pos] = spm_input(['Save results in'],'+1','s',Psdip);
+if nargout > 1
+    Psdip = ['S',num2str(n_dip),'dip_',spm_str_manip(Pdata,'rt'), ...
+             '_n',num2str(n_seeds),'_o',num2str(or_opt),'_t',num2str(wind_be(1)),'_',num2str(wind_be(2))];
+    Psave = spm_input(['Save results in'],'+1','s',Psdip);
+end
 
-if ~isfield(model.param,'sigma')
-    model.param.sigma = spm_input('Conductivity for the br-sk-sc volumes','+1','e',[.33 .004 .33])
+try
+   model.param.sigma;
+catch
+   model.param.sigma = [.33 .004 .33];
 end
 
 % Fitting the dipoles !
@@ -321,8 +295,8 @@ fit_opt.set_loc_o = set_loc_o;      % Def: none
 fit_opt.q_fxd_or = q_fxd_or;        % Def: 0
 fit_opt.fxd_or = fxd_or;            % Def: none
 
-if q_model==1
-    if q_data==1
+if q_model == 1
+    if q_data == 1
         [sdip,fit_opt] = ...
             spm_eeg_inv_ecd_fitDip(squeeze(D.data(order_dat2mod, ...
                 wind_be(1):wind_be(2),cond(1))), ...
@@ -344,9 +318,11 @@ elseif q_model==2
 end
 sdip.wind_be = wind_be;
 sdip.Pdata = Pdata;
-sdip.fname = Psave;
 
 % Save results
 %______________
-save(Psave,'sdip','fit_opt')
+if nargout > 1
+    sdip.fname = Psave;
+    save(Psave,'sdip','fit_opt')
+end
 

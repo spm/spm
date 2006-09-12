@@ -8,14 +8,14 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 %
 % FORMAT D = spm_eeg_inv_spatnorm(S)
 % Input:
-% S                 - input data struct (optional)
+% S        - input data struct (optional)
 % Output:
-% D                     - same data struct including the inverse deformation .mat file
+% D        - same data struct including the inverse deformation .mat file
 %=======================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 607 2006-08-31 12:29:39Z james $
+% $Id: spm_eeg_inv_spatnorm.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -31,7 +31,11 @@ else
    return
 end
 
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 if isempty(D.inv{val}.mesh.sMRI)
    D.inv{val}.mesh.sMRI = spm_select(1,'image','Select subject T1 MRI');
@@ -46,9 +50,9 @@ res = spm_preproc(jobs{1}.spatial{1}.preproc.data);
 
 [pth,nam,ext] = spm_fileparts(jobs{1}.spatial{1}.preproc.data);
 
-def_name = [nam '_vbm_sn_' num2str(val) '.mat'];
+def_name    = [nam '_vbm_sn_' num2str(val) '.mat'];
 isndef_name = [nam '_vbm_inv_sn_' num2str(val) '.mat'];
-D.inv{val}.mesh.def = fullfile(pth,def_name);
+D.inv{val}.mesh.def    = fullfile(pth,def_name);
 D.inv{val}.mesh.invdef = fullfile(pth,isndef_name);
 savefields(D.inv{val}.mesh.def,sn);
 savefields(D.inv{val}.mesh.invdef,isn);
@@ -83,9 +87,9 @@ for i = 1:3
        end
    end
 end
-PI = D.inv{val}.mesh.nobias;
-PO = fullfile(pth,['temp_downsampled_mask' ext]);
-VI = spm_vol(PI);
+PI  = D.inv{val}.mesh.nobias;
+PO  = fullfile(pth,['temp_downsampled_mask' ext]);
+VI  = spm_vol(PI);
 dim = round(VI.dim/2);
 mat = [2*VI.mat(:,1:3) VI.mat(:,4)];
 reslice(PI,PO,dim,mat,1);

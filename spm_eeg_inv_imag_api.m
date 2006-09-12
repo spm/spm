@@ -5,18 +5,18 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    analyse data D (default newInv = 1 i.e. new inverse analysis).
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 21-Nov-2005 16:33:57
+% Last Modified by GUIDE v2.5 08-Sep-2006 15:55:36
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 547 2006-06-07 12:23:17Z john $
+% $Id: spm_eeg_inv_imag_api.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 spm('Clear')
 
 if ~nargin  % LAUNCH GUI
 
-	fig     = openfig(mfilename,'new');
+    fig     = openfig(mfilename,'new');
     WS      = spm('WinScale');
     Rect    = spm('WinSize','Menu','raw').*WS;
     set(fig,'units','pixels');
@@ -25,33 +25,35 @@ if ~nargin  % LAUNCH GUI
     handles = guihandles(fig);
 
     % Use system color scheme for figure:
-	set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
-    
+    set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
+
     S = spm_select(1, '.mat', 'Select EEG/MEG mat file');
     D = spm_eeg_ldata(S);
+    try
+        D.modality;
+    catch
+        D.modality = 'EEG';
+        warndlg('Assuming data is EEG')
+    end
     handles.D = D;
     set(handles.DataFile,'String',D.fname);
     [pth,nam,ext] = fileparts(S);
     cd(pth);
     
+    handles.fig = fig;
     guidata(fig,handles);
-
     spm_eeg_inv_imag_api_OpeningFcn(fig, [], handles);
-       
+
 elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
 
-% 	try
-		if nargout
-			[varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
-		else
-			feval(varargin{:}); % FEVAL switchyard
-		end
-% 	catch
-% 	    error(sprintf('Wrong input format\n'));
-% 	end
-    
+    if nargout
+        [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
+    else
+        feval(varargin{:}); % FEVAL switchyard
+    end
+
 else
-    
+
     error(sprintf('Wrong input format\n'));
 
 end
@@ -60,14 +62,14 @@ end
 % Last Modified by GUIDE v2.5 20-Nov-2005 16:17:15
 
 %| ABOUT CALLBACKS:
-%| GUIDE automatically appends subfunction prototypes to this file, and 
-%| sets objects' callback properties to call them through the FEVAL 
+%| GUIDE automatically appends subfunction prototypes to this file, and
+%| sets objects' callback properties to call them through the FEVAL
 %| switchyard above. This comment describes that mechanism.
 %|
 %| Each callback subfunction declaration has the following form:
 %| <SUBFUNCTION_NAME>(H, EVENTDATA, HANDLES, VARARGIN)
 %|
-%| The subfunction name is composed using the object's Tag and the 
+%| The subfunction name is composed using the object's Tag and the
 %| callback type separated by '_', e.g. 'slider2_Callback',
 %| 'figure1_CloseRequestFcn', 'axis1_ButtondownFcn'.
 %|
@@ -112,19 +114,9 @@ catch
     D         = spm_eeg_ldata(S);
     handles.D = D;
 end
+Reset(hObject, eventdata, handles)
 
-if ~isfield(D,'inv')
-    set(handles.Analysis,'Value',1);
-end
 
-cd(D.path);
-set(handles.Imaging,'Value',1);
-set(handles.DataFile,'String',D.fname);
-
-guidata(hObject,handles);
-
-% UIWAIT makes spm_eeg_inv_imag_api wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -142,238 +134,122 @@ try
     if spm_matlab_version_chk('7.1') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
-      	save(fullfile(D.path, D.fname), 'D');
+        save(fullfile(D.path, D.fname), 'D');
     end
     varargout{1} = D;
+    assignin('base','D',handles.D)
 end
 
-
-% --- Executes on button press in radiobutton Analysis.
-function Analysis_Callback(hObject, eventdata, handles)
-% hObject    handle to radiobutton 'Analysis' (see GCBO)
-NewInv = get(handles.Analysis,'Value');
-try
-    D         = handles.D;
-catch
-    spm_eeg_inv_imag_api_OpeningFcn(hObject, eventdata, handles);
-end
-if ~NewInv & ~isfield(D,'inv')
-    set(handles.Analysis,'Value',1);
-end
-
-guidata(hObject,handles);
-
-
-% --- Executes on button press in togglebutton Imaging.
-function Imaging_Callback(hObject, eventdata, handles)
-% hObject    handle to togglebutton 'Imaging' (see GCBO)
-set(handles.ECD,'Value',0);
-
-% --- Executes on button press in togglebutton ECD.
-function ECD_Callback(hObject, eventdata, handles)
-% hObject    handle to togglebutton 'ECD' (see GCBO)
-set(handles.Imaging,'Value',0);
 
 % --- Executes on button press in CreateMeshes.
 function CreateMeshes_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton CreateMeshes (see GCBO)
 
-NewInv = get(handles.Analysis,'Value');
-Meth   = get(handles.Imaging,'Value');
-D      = handles.D;
+handles.D = spm_eeg_inv_mesh_ui(handles.D);
+Reset(hObject, eventdata, handles);
 
-if ~isfield(D,'inv')
-    val = 1;
-else
-    val = length(D.inv) + NewInv;
-end
+% --- Executes on button press in For2tem.
+function Reg2tem_Callback(hObject, eventdata, handles)
+% hObject    handle to For2tem (see GCBO)
 
-load('defaults_eeg_inv.mat') % load default structure invdetfs
+global defaults
+Cdir = [defaults.SWD filesep 'EEGcanonical'];
+D    = handles.D;
+val  = D.val;
 
-if Meth
-    D.inv{val} = invdefts.imag;
-else
-    D.inv{val} = invdefts.ECD;
-end
+D.inv{val}.mesh.sMRI         = fullfile(Cdir,'smri.img,1');
+D.inv{val}.mesh.def          = fullfile(Cdir,'smri_vbm_sn_1.mat');
+D.inv{val}.mesh.invdef       = fullfile(Cdir,'smri_vbm_inv_sn_1.mat');
+D.inv{val}.mesh.msk_iskull   = fullfile(Cdir,'smri_iskull.img');
+D.inv{val}.mesh.msk_scalp    = fullfile(Cdir,'smri_scalp.img');
+D.inv{val}.mesh.tess_ctx     = fullfile(Cdir,'smri_CortexMesh_3004.mat');
+D.inv{val}.mesh.tess_iskull  = fullfile(Cdir,'smri_iskull_Mesh_2002.mat');
+D.inv{val}.mesh.tess_scalp   = fullfile(Cdir,'smri_scalp_Mesh_2002.mat');
+D.inv{val}.mesh.CtxGeoDist   = fullfile(Cdir,'smri_CortexGeoDist_3004.mat');
+D.inv{val}.mesh.Ctx_Nv       = 3004;
+D.inv{val}.mesh.Ctx_Nf       = 6000;
+D.inv{val}.mesh.Iskull_Nv    = 3004;
+D.inv{val}.mesh.Iskull_Nf    = 4000;
+D.inv{val}.mesh.Scalp_Nv     = 3004;
+D.inv{val}.mesh.Scalp_Nf     = 4000;
 
-if NewInv
-    D = set_CommentDate(D);
-end
-
-D = spm_eeg_inv_mesh_ui(D);
+D.inv{val}.datareg.scalpvert = D.inv{val}.mesh.tess_scalp;
+D.inv{val}.datareg.fidmri    = fullfile(Cdir,'smri_fids.mat');
 
 handles.D = D;
-set(handles.Analysis,'Value',0);
-
-guidata(hObject,handles);
-
+DataReg_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in Data Reg.
 function DataReg_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton DataReg (see GCBO)
 
-NewInv = get(handles.Analysis,'Value');
-
-D      = handles.D;
-if ~isfield(D,'inv')
-    error(sprintf('You need to compute the Meshes first\n'));
-end
-
-val    = length(D.inv);
-
-if NewInv
-    val = val + 1;
-    load('defaults_eeg_inv.mat') % load default structure invdetfs
-    Meth   = get(handles.Imaging,'Value');
-    if Meth
-        D.inv{val} = invdefts.imag;
-    else
-        D.inv{val} = invdefts.ECD;
-    end
-    D = set_CommentDate(D);
-end
-    
-if val > 1
-    names_m = fieldnames(D.inv{val-1}.mesh);
-    count_m = 0;
-    for i = 1:length(names_m)
-        count_m = count_m + isempty(getfield(D.inv{val}.mesh,names_m{i}));
-    end
-    if count_m == length(names_m)
-        disp('Copy Mesh files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[2 0 0 0]);
-    end
-end
-                 
-D = spm_eeg_inv_datareg_ui(D);
-
-handles.D = D;
-set(handles.Analysis,'Value',0);
-
-guidata(hObject,handles);
+handles.D = spm_eeg_inv_datareg_ui(handles.D);
+Reset(hObject, eventdata, handles);
 
 
-% --- Executes on button press in Forward Sol.
+% --- Executes on button press in Forward Model.
 function Forward_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton Inverse (see GCBO)
-NewInv = get(handles.Analysis,'Value');
-Meth   = get(handles.Imaging,'Value');
 
-D      = handles.D;
-if ~isfield(D,'inv')
-    error(sprintf('You need to compute Meshes and Registrate the Data first\n'));
-end
+method = questdlg('recontruction','Please select','Imaging','ECD','Imaging')
+handles.D.inv{handles.D.val}.method = method;
 
-val    = length(D.inv);
-
-if NewInv
-    val = val + 1;
-    load('defaults_eeg_inv.mat') % load default structure invdetfs
-    if Meth
-        D.inv{val} = invdefts.imag;
-    else
-        D.inv{val} = invdefts.ECD;
-    end
-    D = set_CommentDate(D);
-end
-
-if val > 1
-    names_m = fieldnames(D.inv{val-1}.mesh);
-    count_m = 0;
-    for i = 1:length(names_m)
-        count_m = count_m + isempty(getfield(D.inv{val}.mesh,names_m{i}));
-    end
-    if count_m == length(names_m)
-        disp('Copy Mesh files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[2 0 0 0]);
-    end
-    names_d = fieldnames(D.inv{val-1}.datareg);
-    count_d = 0;
-    for i = 1:length(names_d)
-        count_d = count_d + isempty(getfield(D.inv{val}.datareg,names_d{i}));
-    end
-    if count_d == length(names_d)
-        disp('Copy Datareg files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[0 2 0 0]);
-    end
-end
-                  
-if Meth
-    D = spm_eeg_inv_forward_ui(D);
+if strcmp(method,'Imaging')
+    handles.D = spm_eeg_inv_forward_ui(handles.D);
 else
-    D = spm_eeg_inv_elec_Rsph_ui(D); 
+    handles.D = spm_eeg_inv_elec_Rsph_ui(handles.D);
 end
+Reset(hObject, eventdata, handles);
 
+% --- Executes on button press in Reg2tem.
+%--------------------------------------------------------------------------
+function For2tem_Callback(hObject, eventdata, handles)
+% hObject    handle to Reg2tem (see GCBO)
+
+% get standard head model
+%--------------------------------------------------------------------------
+global defaults
+load(fullfile(defaults.SWD,'EEGcanonical','standard_head_model.mat'))
+
+% Input standard electrode sets
+%--------------------------------------------------------------------------
+[set_Nel,set_name]   = spm_eeg_inv_electrset;
+el_set               = spm_input('Which set of electrodes','+1','m',set_name);
+[el_sphc,el_name]    = spm_eeg_inv_electrset(el_set);
+flags_el.q_RealLoc   = 0;
+flags_el.q_RealNI    = 0;
+[electrodes,f_el]    = spm_eeg_inv_model('Elec2Scalp',model.head(end), ...
+                       el_sphc,el_name,flags_el);
+model.electrodes     = electrodes;
+model.flags.fl_elec  = f_el;
+
+% [re]-set the sphere model
+%--------------------------------------------------------------------------
+try, model           = rmfield(model,'spheres'); end
+[spheres,d,L,q,f_Rs] = spm_eeg_inv_Rsph(model,[]);
+model.spheres        = spheres;
+model.flags.fl_RealS = f_Rs;
+
+% set in D
+%--------------------------------------------------------------------------
+D  = handles.D;
+D.inv{D.val}.forward     = model;
+D.inv{D.val}.mesh.sMRI   = fullfile(defaults.SWD,'EEGcanonical','smri.img');
+D.inv{D.val}.mesh.invdef = fullfile(defaults.SWD,'EEGcanonical','smri_vbm_inv_sn.mat');
 handles.D = D;
-set(handles.Analysis,'Value',0);
-
-guidata(hObject,handles);
+Reset(hObject, eventdata, handles);
 
 
-% --- Executes on button press in CreateMeshes.
+% --- Executes on button press in Invert.
 function Inverse_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton CreateMeshes (see GCBO)
-NewInv = get(handles.Analysis,'Value');
-Meth   = get(handles.Imaging,'Value');
 
-D      = handles.D;
-if ~isfield(D,'inv')
-    error(sprintf('You need to compute the whole generative model first (Meshes/DataReg/Forward)\n'));
-end
-
-val    = length(D.inv);
-
-if NewInv
-    val = val + 1;
-    load('defaults_eeg_inv.mat') % load default structure invdetfs
-    if Meth
-        D.inv{val} = invdefts.imag;
-    else
-        D.inv{val} = invdefts.ECD;
-    end
-    D = set_CommentDate(D);
-end
-
-if val > 1
-    names_m = fieldnames(D.inv{val-1}.mesh);
-    count_m = 0;
-    for i = 1:length(names_m)
-        count_m = count_m + isempty(getfield(D.inv{val}.mesh,names_m{i}));
-    end
-    if count_m == length(names_m)
-        disp('Copy Mesh files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[2 0 0 0]);
-    end
-    names_d = fieldnames(D.inv{val-1}.datareg);
-    count_d = 0;
-    for i = 1:length(names_d)
-        count_d = count_d + isempty(getfield(D.inv{val}.datareg,names_d{i}));
-    end
-    if count_d == length(names_d)
-        disp('Copy Datareg files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[0 2 0 0]);
-    end
-    names_f = fieldnames(D.inv{1}.forward);
-    count_f = 0;
-    for i = 1:length(names_f)
-        count_f = count_f + isempty(getfield(D.inv{val}.forward,names_f{i}));
-    end
-    if count_f == length(names_f)
-        disp('Copy Forward files from previous analysis');
-        D = spm_eeg_inv_copyfields(D,[0 0 2 0]);
-    end
-end
-
-if Meth
-    D = spm_eeg_inv_inverse_ui(D);
+if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
+    handles.D = spm_eeg_inv_inverse_ui(handles.D);
 else
-    D = spm_eeg_inv_ecd_ui(D);
+    handles.D = spm_eeg_inv_ecd_ui(handles.D);
 end
-
-handles.D = D;
-set(handles.Analysis,'Value',0);
-
-guidata(hObject,handles);
+Reset(hObject, eventdata, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -412,14 +288,39 @@ switch task
     case 'check datareg'
         spm_eeg_inv_checkdatareg(D);
     case 'visualisation'
-        spm_eeg_inv_visu3D(D);
-    case 'delete analysis'
-        spm_eeg_inv_deletefields(D);
+
+        if strcmp(D.inv{D.val}.method,'ECD')
+            sMRI   = D.inv{D.val}.mesh.sMRI;
+            resdip = D.inv{D.val}.inverse.resdip;
+            spm_eeg_inv_ecd_DrawDip('Init',resdip,sMRI)
+            assignin('base','resdip',resdip);
+        else
+            try
+                load(D.inv{D.val}.inverse.resfile);
+                AvJev = abs(mean(J,2));
+                load(D.inv{D.val}.mesh.tess_ctx);
+                
+                % Temporary Visualization
+                [Finter,Fgraph] = spm('FnUIsetup','Stats: Results');
+                figure(Fgraph);
+                subplot(3,1,2)
+
+                patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+                view(-90,0);
+                shading interp
+                colormap('pink')
+                axis image
+                colorbar
+                title('Averaged activity over the whole time window');
+            catch
+                warndlg('please invert model')
+            end
+            
+            return
+            warndlg('under construction')
+            spm_eeg_inv_visu3D(D);
+        end
 end
-
-handles.D = D;
-
-guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -442,12 +343,12 @@ try
         cd(pth)
     end
     D = spm_eeg_ldata(S);
-    handles.D = D;        
-    guidata(hObject,handles);
+    handles.D = D;
+    Reset(hObject, eventdata, handles);
 catch
     Load_Callback(hObject, eventdata, handles);
 end
-   
+
 
 % --- Executes on button press in Load.
 function Load_Callback(hObject, eventdata, handles)
@@ -461,8 +362,7 @@ handles.D = D;
 set(handles.DataFile,'String',D.fname);
 [pth,nam,ext] = fileparts(S);
 cd(pth);
-guidata(hObject,handles);
-
+Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in Exit.
 function Exit_Callback(hObject, eventdata, handles)
@@ -474,10 +374,157 @@ spm_eeg_inv_imag_api_OutputFcn(hObject, eventdata, handles);
 close(handles.figure1);
 
 
-% --- Set Comment and Date for new inverse analysis
-function S = set_CommentDate(D)
+% --- Executes on button press in new.
+function new_Callback(hObject, eventdata, handles)
+% hObject    handle to new (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
-val = length(D.inv);
+D  = handles.D;
+
+if ~isfield(D,'inv')
+    val   = 1;
+    D.val = 1;
+else
+    val   = length(D.inv) + 1;
+end
+
+% if this is the first analysis, or method has changed, get defaults
+%--------------------------------------------------------------------------
+load('defaults_eeg_inv.mat')
+if val == 1
+    D.inv      = {invdefts.imag};
+else
+    D.inv{val} = D.inv{D.val};
+    D.inv{val}.inverse = invdefts.imag.inverse;
+end
+
+% set D in handles and update analysis specific buttons
+%--------------------------------------------------------------------------
+D.val     = val;
+D         = set_CommentDate(D);
+handles.D = D;
+Reset(hObject, eventdata, handles);
+
+
+% --- Executes on button press in next.
+function next_Callback(hObject, eventdata, handles)
+% hObject    handle to next (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if handles.D.val < length(handles.D.inv)
+    handles.D.val = handles.D.val + 1;
+end
+Reset(hObject, eventdata, handles);
+
+
+% --- Executes on button press in previous.
+function previous_Callback(hObject, eventdata, handles)
+% hObject    handle to previous (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if handles.D.val > 1
+    handles.D.val = handles.D.val - 1;
+end
+Reset(hObject, eventdata, handles);
+
+% --- Executes on button press in delete.
+function delete_Callback(hObject, eventdata, handles)
+% hObject    handle to delete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if length(handles.D.inv)
+    str = handles.D.inv{handles.D.val}.comment;
+    warndlg({'you are about to delete:',str{1}});
+    uiwait
+    handles.D.inv(handles.D.val) = [];
+    handles.D.val                = handles.D.val - 1;
+end
+Reset(hObject, eventdata, handles);
+
+
+
+% Auxillary functions
+%==========================================================================
+function Reset(hObject, eventdata, handles)
+% hObject    handle to previous (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Check to see if a new analysis is required
+%--------------------------------------------------------------------------
+if ~isfield(handles.D,'inv')
+    new_Callback(hObject, eventdata, handles)
+    return
+end
+if ~length(handles.D.inv)
+    new_Callback(hObject, eventdata, handles)
+    return
+end
+try
+    val = handles.D.val;
+    handles.D.inv{val};
+catch
+    handles.D.val = 1;
+    val           = 1;
+end
+
+% analysis specification buttons
+%--------------------------------------------------------------------------
+Q   = handles.D.inv{val};
+set(handles.new,      'enable','on')
+set(handles.new,      'value',0)
+set(handles.next,     'value',0)
+set(handles.previous, 'value',0)
+set(handles.delete,   'value',0)
+if val < length(handles.D.inv)
+    set(handles.next,    'enable','on')
+end
+if val > 1
+    set(handles.previous,'enable','on')
+end
+if val == 1
+    set(handles.previous,'enable','off')
+end
+if val == length(handles.D.inv)
+    set(handles.next,    'enable','off')
+end
+try
+    str = sprintf('%i: %s',val,Q.comment{1});
+catch
+    str = sprintf('%i',val);
+end
+set(handles.val, 'Value',val,'string',str);
+
+
+
+% check anaylsis buttons
+%--------------------------------------------------------------------------
+set(handles.DataReg,'enable','off')
+set(handles.Forward,'enable','off')
+set(handles.Inverse,'enable','off')
+
+if length(Q.mesh.sMRI)
+    set(handles.DataReg,'enable','on')
+    if length(Q.datareg.eeg2mri)
+        set(handles.Forward,'enable','on')
+           if length(spm_vec(Q.forward))
+               set(handles.Inverse,'enable','on')
+           end
+    end
+end
+
+set(handles.fig,'Pointer','arrow')
+assignin('base','D',handles.D)
+guidata(hObject,handles);
+
+
+% Set Comment and Date for new inverse analysis
+%--------------------------------------------------------------------------
+function S = set_CommentDate(D)
 
 clck = fix(clock);
 if clck(5) < 10
@@ -485,16 +532,16 @@ if clck(5) < 10
 else
     clck = [num2str(clck(4)) ':' num2str(clck(5))];
 end
-D.inv{val}.date = strvcat(date,clck);
-D.inv{val}.comment = inputdlg('Comment/Label for this analysis:');
-
+D.inv{D.val}.date    = strvcat(date,clck);
+D.inv{D.val}.comment = inputdlg('Comment/Label for this analysis:');
 S = D;
 
-
-% --------------------------------------------------------------------
-% --- FRAMES
+% FRAMES
+%--------------------------------------------------------------------------
 function bigframe1_Callback(hObject, eventdata, handles)
 function bigframe2_Callback(hObject, eventdata, handles)
 function bigframe3_Callback(hObject, eventdata, handles)
+
+
 
 

@@ -37,7 +37,7 @@ function [varargout] = spm_eeg_inv_ReadPolhemus(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 589 2006-08-08 17:44:39Z stefan $
+% $Id: spm_eeg_inv_ReadPolhemus.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -56,15 +56,19 @@ if nargout == 0 | nargout == 1
     if ~isfield(D,'inv')
         error(sprintf('No inverse structure has been created for this data set\n'));
     end
-    
-    val = length(D.inv);
-   
+
+    try
+        val = D.val;
+    catch
+        val = length(D.inv);
+    end
+
     try
         Isens = D.channels.eeg;
     catch
         Isens = [];
     end
-    
+
     if nargin > 1
         figflag = varargin{2};
     else
@@ -72,7 +76,7 @@ if nargout == 0 | nargout == 1
     end
 
 elseif nargout == 2
-    
+
     if nargin >= 1 & nargin <= 2
         Filenames{1} = varargin{1};
         [pth,nam,ext] = fileparts(Filenames{1});
@@ -85,11 +89,11 @@ elseif nargout == 2
             figflag = def_figflag;
         end
     else
-        error(sprintf('Wrong input arguments: one .pol files required\n'));    
+        error(sprintf('Wrong input arguments: one .pol files required\n'));
     end
-    
+
 elseif nargout == 4
-    
+
     if nargin >= 2 & nargin <= 3
         Filenames{1} = varargin{1};
         [pth,nam,ext] = fileparts(Filenames{1});
@@ -108,13 +112,13 @@ elseif nargout == 4
             figflag = def_figflag;
         end
     else
-        error(sprintf('Wrong input arguments: two .pol files required\n'));    
+        error(sprintf('Wrong input arguments: two .pol files required\n'));
     end
-         
+
 elseif nargout > 4 | nargin > 3
-        
+
     error(sprintf('Wrong output arguments\n'));
-    
+
 end
 
 if isempty(intersect(figflag,[0 1]))
@@ -126,21 +130,21 @@ switch length(Filenames)
         Filenames{1} = spm_select(1, '.pol', 'Select sensor Polhemus file');
         Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
     case 1
-%         HSPflag = spm_input('Download Head Shape?','+1','Yes|No',[1 2]);
-%         if HSPflag == 1
-%             Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
-%         else
-            Filenames{2} = '';
-%         end
+        %         HSPflag = spm_input('Download Head Shape?','+1','Yes|No',[1 2]);
+        %         if HSPflag == 1
+        %             Filenames{2} = spm_select(1, '.pol', 'Select headshape Polhemus file');
+        %         else
+        Filenames{2} = '';
+        %         end
 end
 
 if figflag
     F = findobj('Tag', 'Graphics');
-    
+
     if isempty(F)
         F = spm_figure;
     end
-    
+
     figure(F);
     clf
 end
@@ -187,14 +191,14 @@ try
     if spm_matlab_version_chk('7') >=0
         save(fullfile(D.path, fidname), '-V6', 'fid');
     else
-    	save(fullfile(D.path, fidname), 'fid');
+        save(fullfile(D.path, fidname), 'fid');
     end
 catch
     fidname = 'fid_EEG_sens.mat';
     if spm_matlab_version_chk('7') >=0
         save(fidname, '-V6', 'fid');
     else
-    	save(fidname, 'fid');
+        save(fidname, 'fid');
     end
 end
 
@@ -207,21 +211,21 @@ try
     % select channels
     if ~isempty(Isens) & length(Isens) <= length(sens)
         sens = sens(end-length(Isens)+1:end,:);
-    end    
+    end
     [pth,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
     sensname = [nam '_sensors_EEG_sens.mat'];
     D.inv{val}.datareg.fid = sensname;
     if spm_matlab_version_chk('7') >=0
         save(fullfile(D.path, sensname), '-V6', 'sens');
     else
-    	save(fullfile(D.path, sensname), 'sens');
+        save(fullfile(D.path, sensname), 'sens');
     end
 catch
     sensname = 'sensors_EEG_sens.mat';
     if spm_matlab_version_chk('7') >=0
         save(sensname, '-V6', 'sens');
     else
-    	save(sensname, 'sens');
+        save(sensname, 'sens');
     end
 end
 clear file
@@ -268,17 +272,17 @@ if ~isempty(Filenames{2})
         if spm_matlab_version_chk('7') >=0
             save(fullfile(D.path, fidname2), '-V6', 'fid2');
         else
-        	save(fullfile(D.path, fidname2), 'fid2');
+            save(fullfile(D.path, fidname2), 'fid2');
         end
     catch
         fidname2 = 'fid_EEG_hsp.mat';
         if spm_matlab_version_chk('7') >=0
             save(fidname2, '-V6', 'fid2');
         else
-        	save(fidname2, 'fid2');
+            save(fidname2, 'fid2');
         end
     end
-    
+
     hsp = [];
     for i = nl:3:length(file)
         hsp = [hsp ; str2num(file{i}) str2num(file{i+1}) str2num(file{i+2})];
@@ -291,14 +295,14 @@ if ~isempty(Filenames{2})
         if spm_matlab_version_chk('7') >=0
             save(fullfile(D.path, hspname), '-V6', 'hsp');
         else
-        	save(fullfile(D.path, hspname), 'hsp');
+            save(fullfile(D.path, hspname), 'hsp');
         end
     catch
         hspname = 'headshape_EEG.mat';
         if spm_matlab_version_chk('7') >=0
             save(hspname, '-V6', 'hsp');
         else
-        	save(hspname, 'hsp');
+            save(hspname, 'hsp');
         end
     end
 end
@@ -309,7 +313,7 @@ if nargout == 1
     if spm_matlab_version_chk('7') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else
-     	save(fullfile(D.path, D.fname), 'D');
+        save(fullfile(D.path, D.fname), 'D');
     end
     varargout{1} = D;
 elseif nargout == 2
@@ -321,19 +325,19 @@ elseif nargout == 4
     varargout{3} = fidname2;
     varargout{4} = hspname;
 end
-    
-        
- 
+
+
+
 % Display
 if figflag
-    
+
     % Display sensors
     h_sens = plot3(sens(:,1),sens(:,2),sens(:,3),'or');
     set(h_sens,'MarkerFaceColor','r','MarkerSize',12,'MarkerEdgeColor','k');
     hold on
     h_fid1 = plot3(fid(:,1),fid(:,2),fid(:,3),'om');
     set(h_fid1,'MarkerFaceColor','m','MarkerSize',12,'MarkerEdgeColor','k');
-    
+
     % Display head-shape if any
     if ~isempty(Filenames{2})
         h_hsp = plot3(hsp(:,1),hsp(:,2),hsp(:,3),'.b');
@@ -341,12 +345,12 @@ if figflag
         h_fid2 = plot3(fid2(:,1),fid2(:,2),fid2(:,3),'sc');
         set(h_fid1,'MarkerFaceColor','c','MarkerSize',12,'MarkerEdgeColor','k');
     end
- 
-% cameramenu
-zoom(1.5)
-axis off;
-axis equal;
-rotate3d
-drawnow
+
+    % cameramenu
+    zoom(1.5)
+    axis off;
+    axis equal;
+    rotate3d
+    drawnow
 
 end

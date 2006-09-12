@@ -353,7 +353,7 @@ elseif (NL>1)&(method==1)  % Multi-shell Case Using Legendre Expansion
     Rq_mag = rownorm(Rq);
     %
     if ~all( Rq_mag < R(1)+eps )    % check if dipoles within the brain
-        errordlg('Legendre method assumes all dipoles(s) inside brain layer - please modify dipole locations OR use the "Berg" approach')
+        warndlg('Legendre method assumes all dipoles(s) inside brain layer - please modify dipole locations OR use the "Berg" approach')
         return
     end
     %

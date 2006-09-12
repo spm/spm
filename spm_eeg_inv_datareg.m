@@ -48,98 +48,96 @@ function [varargout] = spm_eeg_inv_datareg(typ,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 607 2006-08-31 12:29:39Z james $
+% $Id: spm_eeg_inv_datareg.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
 if nargout == 1
-   try
-       D = varargin{1};
-   catch
-       D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-       D = spm_eeg_ldata(D);
-   end
+    try
+        D = varargin{1};
+    catch
+        D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+        D = spm_eeg_ldata(D);
+    end
 
-   if ~isfield(D,'inv')
-       disp('Error: no inverse structure has been created for this data set');
-       return
-   end
+    if ~isfield(D,'inv')
+        disp('Error: no inverse structure has been created for this data set');
+        return
+    end
 
-   val = length(D.inv);
+    try
+        val = D.val;
+    catch
+        val = length(D.inv);
+    end
 
-   if isempty(D.inv{val}.datareg.sens) & strcmp(D.modality,'EEG')
-       Fpol = spm_input('Read Polhemus files?','+1','Yes|No',[1 2]);
-       if Fpol == 1
-           D = spm_eeg_inv_ReadPolhemus(D);
-       end
-   end
+    if isempty(D.inv{val}.datareg.sens) & strcmp(D.modality,'EEG')
+        Fpol = spm_input('Read Polhemus files?','+1','Yes|No',[1 2]);
+        if Fpol == 1
+            D = spm_eeg_inv_ReadPolhemus(D);
+        end
+    end
 
-   if nargin <= 2
-       if isempty(D.inv{val}.datareg.sens)
-           sensors_file = spm_select(1,'.mat','Select EEG/MEG sensor file');
-           D.inv{val}.datareg.sens = sensors_file;
-       else
-           sensors_file = D.inv{val}.datareg.sens;
-       end
-       if isempty(D.inv{val}.datareg.fid)
-           fid_eeg = spm_select(1,'.mat','Select fiducials in EEG/MEG space');
-           D.inv{val}.datareg.fid = fid_eeg;
-       else
-           fid_eeg = D.inv{val}.datareg.fid;
-       end
-       if isempty(D.inv{val}.datareg.fidmri)
-           fid_mri = spm_select(1,'.mat','Select fiducials in sMRI space');
-           if isempty(fid_mri)
-               spm_image('init',D.inv{val}.mesh.sMRI);
-               disp(sprintf('\nYou Should Build a .mat file containing the fiducial mm coordinates in MRI space\n'));
-               return
-           end
-           D.inv{val}.datareg.fidmri = fid_mri;
-       else
-           fid_mri = D.inv{val}.datareg.fidmri;
-       end
-       if strcmp(D.modality,'MEG')
-           if isempty(D.inv{val}.datareg.sens_orient)
-               sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
-               D.inv{val}.datareg.sens_orient = sens_or_file;
-           else
-               sens_or_file = D.inv{val}.datareg.sens_orient;
-           end
-       end
-       if typ == 2
-           if isempty(D.inv{val}.datareg.hsp)
-               headshape = spm_select(1,'.mat','Select headshape file');
-               D.inv{val}.datareg.hsp = headshape;
-           else
-               headshape = D.inv{val}.datareg.hsp;
-           end
-           if isempty(D.inv{val}.datareg.scalpvert)
-               scalpvert = spm_select(1,'.mat','Select scalp vertices');
-               D.inv{val}.datareg.scalpvert = scalpvert;
-           else
-               scalpvert = D.inv{val}.datareg.scalpvert;
-           end
-       end
-   end
+    if nargin <= 2
+        if isempty(D.inv{val}.datareg.sens)
+            sensors_file = spm_select(1,'.mat','Select EEG/MEG sensor file');
+            D.inv{val}.datareg.sens = sensors_file;
+        else
+            sensors_file = D.inv{val}.datareg.sens;
+        end
+        if isempty(D.inv{val}.datareg.fid)
+            fid_eeg = spm_select(1,'.mat','Select fiducials in EEG/MEG space');
+            D.inv{val}.datareg.fid = fid_eeg;
+        else
+            fid_eeg = D.inv{val}.datareg.fid;
+        end
+        if isempty(D.inv{val}.datareg.fidmri)
+            fid_mri = spm_select(1,'.mat','Select fiducials in sMRI space');
+            if isempty(fid_mri)
+                spm_image('init',D.inv{val}.mesh.sMRI);
+                disp(sprintf('\nYou Should Build a .mat file containing the fiducial mm coordinates in MRI space\n'));
+                return
+            end
+            D.inv{val}.datareg.fidmri = fid_mri;
+        else
+            fid_mri = D.inv{val}.datareg.fidmri;
+        end
+        if strcmp(D.modality,'MEG')
+            if isempty(D.inv{val}.datareg.sens_orient)
+                sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+                D.inv{val}.datareg.sens_orient = sens_or_file;
+            else
+                sens_or_file = D.inv{val}.datareg.sens_orient;
+            end
+        end
+        if typ == 2
+            if isempty(D.inv{val}.datareg.hsp)
+                headshape = spm_select(1,'.mat','Select headshape file');
+                D.inv{val}.datareg.hsp = headshape;
+            else
+                headshape = D.inv{val}.datareg.hsp;
+            end
+            if isempty(D.inv{val}.datareg.scalpvert)
+                try
+                    D.inv{val}.datareg.scalpvert = D.inv{val}.mesh.tess_scalp;
+                catch
+                    scalpvert = spm_select(1,'.mat','Select scalp vertices');
+                    D.inv{val}.datareg.scalpvert = scalpvert;
+                end
+            else
+                scalpvert = D.inv{val}.datareg.scalpvert;
+            end
+        end
+    end
 else
-   sensors_file = varargin{1};
-   fid_eeg      = varargin{2};
-   fid_mri      = varargin{3};
-   if typ == 2
-       headshape   = varargin{4};
-       scalpvert   = varargin{5};
-       if nargin == 7
-           sens_or_file = varargin{6};
-       else
-           try
-               if strcmp(D.modality,'MEG')
-                   sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
-               end
-           end
-       end
-   else
-        if nargin == 5
-               sens_or_file = varargin{4};
+    sensors_file = varargin{1};
+    fid_eeg      = varargin{2};
+    fid_mri      = varargin{3};
+    if typ == 2
+        headshape   = varargin{4};
+        scalpvert   = varargin{5};
+        if nargin == 7
+            sens_or_file = varargin{6};
         else
             try
                 if strcmp(D.modality,'MEG')
@@ -147,7 +145,17 @@ else
                 end
             end
         end
-   end
+    else
+        if nargin == 5
+            sens_or_file = varargin{4};
+        else
+            try
+                if strcmp(D.modality,'MEG')
+                    sens_or_file = spm_select(1,'.mat','Select MEG sensor orientation file');
+                end
+            end
+        end
+    end
 end
 
 fidmrivar   = load(fid_mri);
@@ -168,7 +176,9 @@ clear fideegvar name
 
 nfid = size(fideegloc,1);
 if nfid ~= size(fidmriloc,1)
-   error(sprintf('You need to specify as much MRI as EEG/MEG fiducials'));
+    errordlg({'You need to specify the same number of MRI and EEG/MEG fiducials';...
+        'please try again'});
+    return
 end
 
 corr = [1 2 3]'*ones(1,2);
@@ -181,44 +191,48 @@ fideegreg = (fideegreg + t1*ones(1,nfid))';
 % (option typ = 2)
 
 if typ == 2
-   hspvar      = load(headshape);
-   name        = fieldnames(hspvar);
-   try
-       hspvarloc   = getfield(hspvar,'vert');
-   catch
-       hspvarloc   = getfield(hspvar,name{1});
-   end
-   if size(hspvarloc,2) > size(hspvarloc,1)
-       hspvarloc = hspvarloc';
-   end
-   clear hspvar name
+    hspvar      = load(headshape);
+    name        = fieldnames(hspvar);
+    try
+        hspvarloc   = getfield(hspvar,'vert');
+    catch
+        hspvarloc   = getfield(hspvar,name{1});
+    end
+    if size(hspvarloc,2) > size(hspvarloc,1)
+        hspvarloc = hspvarloc';
+    end
+    clear hspvar name
 
-   scalpvar    = load(scalpvert);
-   name        = fieldnames(scalpvar);
-   scalpmesh   = getfield(scalpvar,'vert');
-   if size(scalpmesh,2) > size(scalpmesh,1)
-       scalpmesh = scalpmesh';
-   end
-   clear scalpvar name
+    scalpvar    = load(scalpvert);
+    name        = fieldnames(scalpvar);
+    try
+        scalpmesh   = getfield(scalpvar,'vert');
+    catch
+        scalpmesh   = getfield(scalpvar,name{1});
+    end
+    if size(scalpmesh,2) > size(scalpmesh,1)
+        scalpmesh = scalpmesh';
+    end
+    clear scalpvar name
 
-   h = spm_figure;
-   set(h,'DoubleBuffer','on','BackingStore','on');
-   plot3(scalpmesh(:,1),scalpmesh(:,2),scalpmesh(:,3),'ro','MarkerFaceColor','r');
-   hold on;
-   g = plot3(hspvarloc(:,1),hspvarloc(:,2),hspvarloc(:,3),'bs','MarkerFaceColor','b');
-   axis off
-   pause(1)
+    h = spm_figure;
+    set(h,'DoubleBuffer','on','BackingStore','on');
+    plot3(scalpmesh(:,1),scalpmesh(:,2),scalpmesh(:,3),'ro','MarkerFaceColor','r');
+    hold on;
+    g = plot3(hspvarloc(:,1),hspvarloc(:,2),hspvarloc(:,3),'bs','MarkerFaceColor','b');
+    axis off
+    pause(1)
 
-   hspvarloc = R1*hspvarloc';
-   hspvarloc = (hspvarloc + t1*ones(1,length(hspvarloc)))';
+    hspvarloc = R1*hspvarloc';
+    hspvarloc = (hspvarloc + t1*ones(1,length(hspvarloc)))';
 
-   Tol = max(max(fidmriloc))/1000;
-   [Rot,Trans,coor,data2reg] = spm_eeg_inv_icp(scalpmesh',hspvarloc',Tol,g);
-   Rot = R1*Rot;
-   Trans = R1*Trans + t1;
+    Tol = max(max(fidmriloc))/1000;
+    [Rot,Trans,coor,data2reg] = spm_eeg_inv_icp(scalpmesh',hspvarloc',Tol,g);
+    Rot = R1*Rot;
+    Trans = R1*Trans + t1;
 else
-   Rot = R1;
-   Trans = t1;
+    Rot = R1;
+    Trans = t1;
 end
 
 sensvar = load(sensors_file);
@@ -230,122 +244,122 @@ sensreg = (sensreg + Trans*ones(1,length(sensreg)))';
 
 % Update the MEG sensor orientation
 if exist('sens_or_file') == 1
-   sensvar = load(sens_or_file);
-   name    = fieldnames(sensvar);
-   sensor  = getfield(sensvar,name{1});
-   clear sensvar name
-   sensorreg = (Rot*sensor')';
+    sensvar = load(sens_or_file);
+    name    = fieldnames(sensvar);
+    sensor  = getfield(sensvar,name{1});
+    clear sensvar name
+    sensorreg = (Rot*sensor')';
 
-   [fpatho,fname,fext] = fileparts(sens_or_file);
-   fname_or = [fname '_coreg.mat'];
-   if nargout == 1
-       if spm_matlab_version_chk('7.1') >=0
-           save(fullfile(D.path, fname_or), '-V6', 'sensorreg');
-       else
-               save(fullfile(D.path, fname_or), 'sensorreg');
-       end
-   else
-       if spm_matlab_version_chk('7.1') >=0
-           save(fullfile(fpatho, fname_or), '-V6', 'sensorreg');
-       else
-               save(fullfile(fpatho, fname_or), 'sensorreg');
-       end
-   end
+    [fpatho,fname,fext] = fileparts(sens_or_file);
+    fname_or = [fname '_coreg.mat'];
+    if nargout == 1
+        if spm_matlab_version_chk('7.1') >=0
+            save(fullfile(D.path, fname_or), '-V6', 'sensorreg');
+        else
+            save(fullfile(D.path, fname_or), 'sensorreg');
+        end
+    else
+        if spm_matlab_version_chk('7.1') >=0
+            save(fullfile(fpatho, fname_or), '-V6', 'sensorreg');
+        else
+            save(fullfile(fpatho, fname_or), 'sensorreg');
+        end
+    end
 end
 
 [fpath1,fname,fext] = fileparts(fid_eeg);
 fname_fid = [fname '_coreg.mat'];
 if nargout == 1
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(D.path, fname_fid), '-V6', 'fideegreg');
-   else
-       save(fullfile(D.path, fname_fid), 'fideegreg');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(D.path, fname_fid), '-V6', 'fideegreg');
+    else
+        save(fullfile(D.path, fname_fid), 'fideegreg');
+    end
 else
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(fpath1, fname_fid), '-V6', 'fideegreg');
-   else
-       save(fullfile(fpath1, fname_fid), 'fideegreg');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(fpath1, fname_fid), '-V6', 'fideegreg');
+    else
+        save(fullfile(fpath1, fname_fid), 'fideegreg');
+    end
 end
 
 [fpath2,fname,fext] = fileparts(sensors_file);
 fname_sens = [fname '_coreg.mat'];
 if nargout == 1
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(D.path, fname_sens), '-V6', 'sensreg');
-   else
-       save(fullfile(D.path, fname_sens), 'sensreg');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(D.path, fname_sens), '-V6', 'sensreg');
+    else
+        save(fullfile(D.path, fname_sens), 'sensreg');
+    end
 else
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(fpath2, fname_sens), '-V6', 'sensreg');
-   else
-       save(fullfile(fpath2, fname_sens), 'sensreg');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(fpath2, fname_sens), '-V6', 'sensreg');
+    else
+        save(fullfile(fpath2, fname_sens), 'sensreg');
+    end
 end
 
 fname_transf = ['RegMat.mat'];
 if nargout == 1
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(D.path, fname_transf), '-V6', 'Rot', 'Trans');
-   else
-       save(fullfile(D.path, fname_transf), 'Rot','Trans');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(D.path, fname_transf), '-V6', 'Rot', 'Trans');
+    else
+        save(fullfile(D.path, fname_transf), 'Rot','Trans');
+    end
 else
-   if spm_matlab_version_chk('7.1') >=0
-       save(fullfile(fpath1, fname_transf), '-V6', 'Rot', 'Trans');
-   else
-       save(fullfile(fpath1, fname_transf), 'Rot','Trans');
-   end
+    if spm_matlab_version_chk('7.1') >=0
+        save(fullfile(fpath1, fname_transf), '-V6', 'Rot', 'Trans');
+    else
+        save(fullfile(fpath1, fname_transf), 'Rot','Trans');
+    end
 end
 
 if typ == 2
-  [fpath3,fname,fext] = fileparts(headshape);
-  fname_hsp = [fname '_coreg.mat'];
-  if nargout == 1
-      if spm_matlab_version_chk('7.1') >=0
-          save(fullfile(D.path, fname_hsp), '-V6', 'data2reg');
-      else
-          save(fullfile(D.path, fname_transf), 'data2reg');
-      end
-  else
-      if spm_matlab_version_chk('7.1') >= 0
-          save(fullfile(fpath3, fname_hsp), '-V6', 'data2reg');
-      else
-          save(fullfile(fpath3, fname_transf), 'data2reg');
-      end
-  end
+    [fpath3,fname,fext] = fileparts(headshape);
+    fname_hsp = [fname '_coreg.mat'];
+    if nargout == 1
+        if spm_matlab_version_chk('7.1') >=0
+            save(fullfile(D.path, fname_hsp), '-V6', 'data2reg');
+        else
+            save(fullfile(D.path, fname_transf), 'data2reg');
+        end
+    else
+        if spm_matlab_version_chk('7.1') >= 0
+            save(fullfile(fpath3, fname_hsp), '-V6', 'data2reg');
+        else
+            save(fullfile(fpath3, fname_transf), 'data2reg');
+        end
+    end
 end
 
 if nargout == 1
-   D.inv{val}.datareg.fid_coreg     = fullfile(D.path,fname_fid);
-   D.inv{val}.datareg.eeg2mri       = fullfile(D.path,fname_transf);
-   D.inv{val}.datareg.sens_coreg    = fullfile(D.path,fname_sens);
-   if typ == 2
-       D.inv{val}.datareg.hsp_coreg     = fullfile(D.path,fname_hsp);
-   end
-   if strcmp(D.modality,'MEG')
-       D.inv{val}.datareg.sens_orient_coreg    = fullfile(D.path,fname_or);
-   end
-   save(fullfile(D.path, D.fname), 'D');
-   varargout{1} = D;
+    D.inv{val}.datareg.fid_coreg     = fullfile(D.path,fname_fid);
+    D.inv{val}.datareg.eeg2mri       = fullfile(D.path,fname_transf);
+    D.inv{val}.datareg.sens_coreg    = fullfile(D.path,fname_sens);
+    if typ == 2
+        D.inv{val}.datareg.hsp_coreg     = fullfile(D.path,fname_hsp);
+    end
+    if strcmp(D.modality,'MEG')
+        D.inv{val}.datareg.sens_orient_coreg    = fullfile(D.path,fname_or);
+    end
+    save(fullfile(D.path, D.fname), 'D');
+    varargout{1} = D;
 elseif nargout >= 3
-   varargout{1} = fname_transf;
-   varargout{2} = fname_sens;
-   varargout{3} = fname_fid;
-   if typ == 2
-       varargout{4} = fname_hsp;
-       if nargout == 5
-           varargout{5} = fname_or;
-       end
-   else
-       if nargout == 4
-           varargout{5} = fname_or;
-       end
-   end
+    varargout{1} = fname_transf;
+    varargout{2} = fname_sens;
+    varargout{3} = fname_fid;
+    if typ == 2
+        varargout{4} = fname_hsp;
+        if nargout == 5
+            varargout{5} = fname_or;
+        end
+    else
+        if nargout == 4
+            varargout{5} = fname_or;
+        end
+    end
 else
-   errordlg('Wrong output argument');
+    errordlg('Wrong output argument');
 end
 
 return
@@ -385,7 +399,7 @@ function [R, t, corr, data2reg] = spm_eeg_inv_icp(data1, data2, tol, varargin)
 % Fiducial coordinates must be given in the same order in both files
 
 if nargin == 4
-   fig_h = varargin{1};
+    fig_h = varargin{1};
 end
 
 R = eye(3);
@@ -393,21 +407,21 @@ t = zeros(3,1);
 tri = delaunayn(data1');
 dist_iter = 1;
 while dist_iter > tol
-   data2reg = data2;
-   [corr, D] = dsearchn(data1', tri, data2reg');
-   corr(:,2) = [1 : length(corr)]';
-   ii = find(D < tol);
-   corr(ii,:) = [];
-   [R1, t1] = spm_eeg_inv_rigidreg(data1, data2, corr);
-   data2 = R1*data2;
-   data2 = data2 + t1*ones(1,length(data2));
-   R = R1*R;
-   t = R1*t + t1;
+    data2reg = data2;
+    [corr, D] = dsearchn(data1', tri, data2reg');
+    corr(:,2) = [1 : length(corr)]';
+    ii = find(D < tol);
+    corr(ii,:) = [];
+    [R1, t1] = spm_eeg_inv_rigidreg(data1, data2, corr);
+    data2 = R1*data2;
+    data2 = data2 + t1*ones(1,length(data2));
+    R = R1*R;
+    t = R1*t + t1;
 
-       set(fig_h,'XData', data2reg(1,:), 'YData', data2reg(2,:), 'ZData', data2reg(3,:));
-   pause(1)
+    set(fig_h,'XData', data2reg(1,:), 'YData', data2reg(2,:), 'ZData', data2reg(3,:));
+    pause(1)
 
-   dist_iter = max(sqrt(sum((data2reg - data2).^2)));
+    dist_iter = max(sqrt(sum((data2reg - data2).^2)));
 end
 pause(3)
 return
@@ -428,9 +442,9 @@ K = K/n;
 [U A V] = svd(K);
 R1 = V*U';
 if det(R1)<0
-   B = eye(3);
-   B(3,3) = det(V*U');
-   R1 = V*B*U';
+    B = eye(3);
+    B(3,3) = det(V*U');
+    R1 = V*B*U';
 end
 t1 = mm - R1*ms;
 return

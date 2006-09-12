@@ -27,7 +27,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % at the end of this help.
 %
 %__________________________________________________________________________
-% FORMAT [Pvol,Pinv_sn,flags] = spm_eeg_fp_model('GenBin',Pvol,flag_bi);
+% FORMAT [Pvol,Pinv_sn,flags] = spm_eeg_inv_model('GenBin',Pvol,flag_bi);
 %
 % Generate the binarised image of the brain (and scalp if the image allows).
 % 
@@ -40,7 +40,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 %      * thr_im  : threhold applied to binarise image
 %   NOTE: these flags are not always necessary anymore...
 % Output :
-%   Pvol    : file name of the bin images gnerated, oscalp and iskull
+%   Pvol    : file name of the bin images gnerated, scalp and iskull
 %   Pinv_sn : file name of mat file containing inverse of the normalisation
 %             transform.
 %   flags   : all the flags with added file names for original image, brain
@@ -52,11 +52,11 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Generate the tesselated surface of the 1 to 3 head volumes
 % (brain-skull-scalp) from the binarized volumes.
 % Input :
-%   Pvol    : filenames of 3 head volumes 'outerbrain', '-skull' & '-scalp'.
+%   Pvol    : filenames of 3 head volumes 'brain', 'skull' & 'scalp'.
 %   flags    : various flags
 %      * n       : (1x3) provides the number of vertices on each surface
 %                   Npt = n(i)^2*5/4+2
-%      * br_only : onlyt use the binarised brain volume (1) or scalp (0, default)
+%      * br_only : only use the binarised brain volume (1) or scalp (0, default)
 %      * q_elastm: Correct mesh using an elastic model (1, default), or not (0).
 %      * q_meased: Measure edges of mesh (1), or not (0, default)
 %      * q_4thpt : Determine 4th point central of each traingle (1), or not (0, default)
@@ -439,11 +439,10 @@ case 'init'
 
     % Create things as selected
     %==========================
-    if gener==1 || gener==5
+    if gener == 1 || gener == 5
         % Segment image, and create brain volume
         [Pbin,Pinv_sn,flags_bi] = spm_eeg_inv_model('GenBin',Pvol,flag_bi);
-        if gener==1
-%             Porig = Pvol;
+        if gener == 1 
             varargout{1} = Pbin;
             varargout{2} = Pinv_sn;
             varargout{3} = flags_bi;
@@ -518,14 +517,14 @@ case 'genbin'
 %      * thr_im  : threhold applied to binarise image
 %   NOTE: these flags are not always necessary anymore...
 % Output :
-%   Pbin    : file name of the bin images generated, oscalp and iskull
+%   Pbin    : file name of the bin images generated, scalp and iskull
 %   Pinv_sn : file name of mat file containing inverse of the normalisation
 %             transform.
 %   flags   : all the flags with added file names for original image, brain
 %             mask and spatial transformation
 %------------------------------------------------------------------------
     fprintf('\n\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
-    fprintf(['\tGenerate binarized volumes from image.\n']);
+    fprintf(['\tGenerating binarized volumes from image: Please wait.\n']);
     Pvol = varargin{1} ;
     def_flags = struct('img_type',1,'img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .1]);
     if nargin<3
@@ -561,23 +560,23 @@ case 'genbin'
         % write the segmented images in native space + bias corrected MRI
 
 % 2.Adds up GM/WM/CSF to produce inner skull surface
-    Pin = strvcat(fullfile(pth,['c1',nam,ext]), ...
+    Pin   = strvcat(fullfile(pth,['c1',nam,ext]), ...
                     fullfile(pth,['c2',nam,ext]), ...
                     fullfile(pth,['c3',nam,ext]));
-    Pisk = fullfile(pth,[nam,'_iskull',ext]);
+    Pisk  = fullfile(pth,[nam,'_iskull',ext]);
     fl_ic = {[],[],'uint8',[]};
-    Pisk = spm_imcalc_ui(Pin,Pisk,'i1+i2+i3',fl_ic);
+    Pisk  = spm_imcalc_ui(Pin,Pisk,'i1+i2+i3',fl_ic);
     
 % 3.Use a little bit of erosion/growing to refine the model
 %   and write the *_iskull img on disk
     Parg = strvcat(Pisk,Pisk);
-    ne = flags.ne(1); ng = flags.ng(1); thr_im = flags.thr_im(1);
+    ne   = flags.ne(1); ng = flags.ng(1); thr_im = flags.thr_im(1);
 	[Pout] = spm_eeg_inv_model('ErodeGrow',Parg,ne,ng,thr_im);
 
     if flags.img_type==1
 % 4.Generate the outer-scalp volume, if possible
-        Pvolc = fullfile(pth,['m',nam,ext]);
-		Vsc = spm_vol(Pvolc);
+        Pvolc   = fullfile(pth,['m',nam,ext]);
+		Vsc     = spm_vol(Pvolc);
 		Vsc.dat = spm_loaduint8(Vsc);
 %         [mnv,mxv] = spm_minmax(Vsc.dat)
 		ne = flags.ne(end); ng = flags.ng(end); thr_im = flags.thr_im(end);
@@ -609,7 +608,7 @@ case 'genbin'
 		end
 		
         % Write the file
-        Vsc.fname = fullfile(pth,[nam,'_oscalp',ext]);
+        Vsc.fname = fullfile(pth,[nam,'_scalp',ext]);
         Vsc.dt = [2 0];
         Vsc.pinfo = [1/255 0 0]';
 		Vsc = spm_create_vol(Vsc);
@@ -742,11 +741,11 @@ case 'elec2scalp'
 % The electrodes substructure is created at the end.
 %------------------------------------------------------------------------
 	fprintf('\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
-    fprintf(['Place electrodes on the scalpe surface.\n']);
+    fprintf(['Placing electrodes on the scalp surface.\n']);
     fprintf('%c','='*ones(1,80)), fprintf('\n')
-    surf = varargin{1};
+    surf   = varargin{1};
 	el_loc = varargin{2};
-	M = surf.M;
+	M      = surf.M;
 	Nel = size(el_loc,2);
     if nargin<4
         [set_Nel,set_name] = spm_eeg_inv_electrset;
@@ -802,7 +801,7 @@ case 'elec2scalp'
     % figure, plot3(el_rsc(1,:)',el_rsc(2,:)',el_rsc(3,:)','*'), axis equal, xlabel('axe x'),ylabel('axe y')
     
 	electrodes.vert = zeros(Nel,1);
-	electrodes.tri = zeros(Nel,1);
+	electrodes.tri  = zeros(Nel,1);
 	pos_el_mm = zeros(3,Nel);
 
 	% projection of the el_rsc on the scalp surface.
@@ -877,7 +876,6 @@ case 'elec2scalp'
     	electrodes.info	= 'Electrode location projected on scalp surface' ;
     end
 	electrodes.M 	= M ;
-%     electrodes.flags = flags ;
     electrodes.names = el_name' ;
 
 	varargout{1} = electrodes;
@@ -890,7 +888,7 @@ case 'genmesh'
 % Generate the tesselated surface of the 1 to 3 head volumes
 % (brain-skull-scalp) from the binarized volumes.
 % Input :
-%   Pvol    : filenames of 3 (or 1-2) head volumes 'obrain', 'oskull' & 'oscalp'.
+%   Pvol    : filenames of 3 (or 1-2) head volumes 'brain', 'skull' & 'scalp'.
 %   flags    : various flags
 %      * n       : (1x3) provides the number of vertices on each surface
 %                   Npt = n(i)^2*5/4+2
@@ -905,7 +903,7 @@ case 'genmesh'
     fprintf(['\tGenerate surface meshes from binarized volumes\n']);
     Pvol = varargin{1};
     
-    def_flags = struct('Nvol',1,'n',[4000 2000 2000],'br_only',0, ...
+    def_flags = struct('Nvol',1,'n',[32 32 32],'br_only',0, ...
                         'q_elast_m',1,'q_meased',0,'q_4thpt',0);
     if nargin<3
         flags = def_flags;
@@ -1006,11 +1004,13 @@ case 'tesbin'
 		info = varargin{4} ;
 	elseif nargin>5
 		error('Wrong input arguments for ''TesBin''.') ;
-	end
+    end
+    
 	% Load volume information
 	%------------------------
-	Vv = spm_vol(P);
+	Vv    = spm_vol(P);
     VOX   = sqrt(sum(Vv.mat(1:3,1:3).^2));
+    
 	% A few defintions
 	%-----------------
 	ho = 1 ; % Trilinear interpolation shoud be enough
@@ -1020,10 +1020,11 @@ case 'tesbin'
 	dr = rad/n_div; % size of sampling step (mm)
 	d_li = 0:dr:rad; % Sampling location on radius (mm)
 	nd_li = length(d_li); unit = ones(1,nd_li);
+    
 	% Create a tessalated sphere
 	%---------------------------
-	tsph = spm_eeg_inv_model('TesSph',n,rad);             % tesselated sphere of radius rad,
-    vert = [tsph.vert ; ones(1,tsph.nr(1))] ;           % centered around [0 0 0]
+	tsph = spm_eeg_inv_model('TesSph',n,rad);    % tesselated sphere of radius rad,
+    vert = [tsph.vert ; ones(1,tsph.nr(1))] ;    % centered around [0 0 0]
 	vert = spm_matrix([ctr_vol 0 pi/2 0])*vert ;        
 	vert = vert(1:3,:) ;                                
     % Rotate the sphere by 90deg around y axis and centre sphere around the "centre" of the brain, 
@@ -1043,15 +1044,15 @@ case 'tesbin'
     end
     spm_progress_bar('Clear');
 
-	srf_vert_mm = spm_eeg_inv_model('vx2mm',srf_vert,Vv.mat);
-	surf.XYZmm = srf_vert_mm(1:3,:);
-	surf.tri = tsph.tri;
-	surf.nr = tsph.nr;
-	surf.M = Vv.mat;
-	surf.info.str = info;
+	srf_vert_mm      = spm_eeg_inv_model('vx2mm',srf_vert,Vv.mat);
+	surf.XYZmm       = srf_vert_mm(1:3,:);
+	surf.tri         = tsph.tri;
+	surf.nr          = tsph.nr;
+	surf.M           = Vv.mat;
+	surf.info.str    = info;
     surf.info.bin_fn = P;
-    surf.Centre = ctr_vol;
-	varargout{1} = surf;
+    surf.Centre      = ctr_vol;
+	varargout{1}     = surf;
 
 %________________________________________________________________________
 case 'elastm'

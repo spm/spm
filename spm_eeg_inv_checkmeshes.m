@@ -25,18 +25,18 @@ function [varargout] = spm_eeg_inv_checkmeshes(varargin);
 % h_ctx     - handle for cortex mesh
 % h_skl     - handle for inner-skull mesh
 % h_slp     - handle for scalp mesh
-%=======================================================================
+%==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 312 2005-11-24 19:35:42Z jeremie $
+% $Id: spm_eeg_inv_checkmeshes.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
 Nmeshes = [1 1];
 
 if nargin <= 1
-    
+
     try
         D = varargin{1};
     catch
@@ -47,16 +47,20 @@ if nargin <= 1
     if ~isfield(D,'inv')
         error(sprintf('no inverse structure has been created for this data set\n'));
     end
-    
-    val = length(D.inv);
-    
+
+    try
+        val = D.val;
+    catch
+        val = length(D.inv);
+    end
+
     if isempty(D.inv{val}.mesh.tess_ctx)
         Mcortex = spm_select(1,'.mat','Select cortex mesh');
         D.inv{val}.mesh.tess_ctx = Mcortex;
     else
         Mcortex = D.inv{val}.mesh.tess_ctx;
     end
-    
+
     if isempty(D.inv{val}.mesh.tess_iskull)
         try
             Miskull = spm_select(1,'.mat','Select skull mesh');
@@ -67,7 +71,7 @@ if nargin <= 1
     else
         Miskull = D.inv{val}.mesh.tess_iskull;
     end
-    
+
     if isempty(D.inv{val}.mesh.tess_scalp)
         try
             Mscalp = spm_select(1,'.mat','Select scalp mesh');
@@ -78,17 +82,17 @@ if nargin <= 1
     else
         Mscalp = D.inv{val}.mesh.tess_scalp;
     end
-    
+
 elseif nargin == 3
-    
+
     Mcortex = varargin{1};
     Miskull = varargin{2};
     Mscalp  = varargin{3};
-    
+
 else
-    
+
     error(sprintf('Wrong input arguments\n'));
-    
+
 end
 
 
@@ -142,4 +146,4 @@ elseif nargout == 3
     varargout{3} = h_slp;
 else
     return
-end    
+end

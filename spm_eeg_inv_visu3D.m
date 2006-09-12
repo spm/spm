@@ -19,7 +19,7 @@ function spm_eeg_inv_visu3D(S,Cflags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D.m 324 2005-11-29 16:36:00Z john $
+% $Id: spm_eeg_inv_visu3D.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -27,17 +27,20 @@ def_Cflags = [1 1];
 
 if nargin == 1
     Cflags = def_Cflags
-end    
+end
 
-    
 try
     D = S;
 catch
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 end
 
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 
 % Load the mesh
@@ -71,7 +74,7 @@ switch activity
         [pth,nam,ext]   = fileparts(D.inv{val}.inverse.resfile);
         outputimg       = fullfile(pth,[nam '.img']);
         V               = saverecons(MRIcurrent,spm_vol(D.inv{val}.mesh.sMRI),outputimg);
-        
+
         % Display
         if Cflags(1)
             J = abs(J);
@@ -80,16 +83,16 @@ switch activity
             J = J./max(abs(J(:)));
         end
 
-        
-        
+
+
     case 'induced'
-        
-        
-        
+
+
+
     case 'evoked & induced'
-        
-        
-        
+
+
+
 end
 
 Jas = zeros(N_src,1);
@@ -133,13 +136,13 @@ function V = blob2img(IMG,filename,image)
 V = IMG;
 [pathstr, name, ext] = fileparts(V.fname);
 V = struct('fname',   filename,...
-            'dim',    [V.dim(1:3), spm_type('float')],...
-            'mat',    V.mat,...
-            'pinfo',  [1 0 0]',...
-            'descrip', 'EEG/MEG activation');
+    'dim',    [V.dim(1:3), spm_type('float')],...
+    'mat',    V.mat,...
+    'pinfo',  [1 0 0]',...
+    'descrip', 'EEG/MEG activation');
 V = spm_create_vol(V);
 for j=1:V.dim(3),
-        V = spm_write_plane(V,image(:,:,j),j);
+    V = spm_write_plane(V,image(:,:,j),j);
 end
 
 return

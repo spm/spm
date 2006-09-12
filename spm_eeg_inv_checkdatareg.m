@@ -14,36 +14,40 @@ function spm_eeg_inv_checkdatareg(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 419 2006-02-01 15:27:36Z jeremie $
+% $Id: spm_eeg_inv_checkdatareg.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
 
 if nargin == 1
-    
+
     try
         D = varargin{1};
     catch
         D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
         D = spm_eeg_ldata(D);
     end
-    
+
 elseif nargin == 0
 
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
     D = spm_eeg_ldata(D);
 
 else
-        
+
     error(sprintf('Wrong input arguments\n'));
-    
+
 end
 
 if ~isfield(D,'inv')
     error(sprintf('no inverse structure has been created for this data set\n'));
 end
-    
-val = length(D.inv); 
+
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 F = findobj('Tag', 'Graphics');
 

@@ -27,9 +27,10 @@ set_name = strvcat('10-20 system with 23 electrodes.', ...
     '10-20 system with 21 electrodes.', ...
     '10-20 system with 29 electrodes.', ...
     '62 electrodes on ext. 10-20 system.', ...
+    'Select BDF from EEGtemplates.', ...
     'Select CTF from EEGtemplates');
 Nr_electr = [23 19 61 148 31 21 29 62 -1];
-if nargin<1
+if nargin < 1
     el_sphc = Nr_electr;
     el_name = set_name;
 else
@@ -68,13 +69,25 @@ else
 				[el_sphc,el_name] = sys1020_29 ;
             case 8
 				fprintf(['\n',set_name(el_set,:),'\n\n']);
-				[el_sphc,el_name] = sys1020_62 ;   
+				[el_sphc,el_name] = sys1020_62 ;
             case 9
                 Fchannels = spm_select(1, '\.mat$', 'Select channel template file', ...
                     {}, fullfile(spm('dir'), 'EEGtemplates'));
                 [Fpath,Fname] =  fileparts(Fchannels);
+                elec          = load(Fchannels);
+                el_sphc       = elec.pos(:,1:3)';
+                el_name       = elec.allelecs;
+            case 10
+                Fchannels = spm_select(1, '\.mat$', 'Select channel template file', ...
+                    {}, fullfile(spm('dir'), 'EEGtemplates'));
+                [Fpath,Fname] =  fileparts(Fchannels);
                 elec = load(Fchannels);
-                [el_sphc,el_name] = treatCTF(elec,Fname);
+                try
+                    [el_sphc,el_name] = treatCTF(elec,Fname);
+                catch
+                    el_sphc = elec.pos3D;
+                    el_name = elec.Cnames;
+                end
 			otherwise
 				warning('Unknown electrodes set !!!')
                 el_sphc = []; el_name = [];

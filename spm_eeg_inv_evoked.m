@@ -14,22 +14,25 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 547 2006-06-07 12:23:17Z john $
+% $Id: spm_eeg_inv_evoked.m 621 2006-09-12 17:22:42Z karl $
 
 
 if D.events.Ntypes ~= D.Nevents
     error(sprintf('Evoked data required\n'));
 end
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 qe = length(Qe);
 qp = length(Qp);
 
-
 % LOAD GAIN MATRIX
 variabl = load(D.inv{val}.forward.gainmat);
 name    = fieldnames(variabl);
-G       = getfield(variabl , name{1});
+G       = getfield(variabl, name{1});
 
 
 % SOURCE SPACE DIMENSION REDUCTION
@@ -51,38 +54,49 @@ if (D.inv{val}.mesh.Ctx_Nv - D.inv{val}.inverse.dim)
     end
 end
 
-woi        = D.inv{val}.inverse.woi;
-contrast   = D.inv{val}.inverse.contrast;
-Nsens      = D.Nchannels;
-Nsour      = size(G,2);
+woi      = D.inv{val}.inverse.woi;
+contrast = D.inv{val}.inverse.contrast;
+woi(1)   = round(woi(1)*(D.Radc/1000)) + D.events.start + 1;
+woi(2)   = round(woi(2)*(D.Radc/1000)) + D.events.start + 1;
+Nsens    = size(G,1);
+Nsour    = size(G,2);
 
-woi(1) = round(woi(1)*(D.Radc/1000)) + D.events.start + 1;
-woi(2) = round(woi(2)*(D.Radc/1000)) + D.events.start + 1;
-
-Y     = sparse(zeros(size(D.data,1),(woi(2)-woi(1)+1)));
+% get data
+%--------------------------------------------------------------------------
+y = sparse(0);
+Y = sparse(0);
+j = D.channels.eeg;
+k = woi(1):woi(2);
+t = D.events.start:D.events.stop;
 for i = 1:D.Nevents
-    k = find(D.events.code == D.events.types(i));
-    Y = Y + contrast(i)*squeeze(D.data(:,woi(1):woi(2),k));
+    l = find(D.events.code == D.events.types(i));
+    y = y + contrast(i)*squeeze(D.data(j,k,l));
+    Y = Y + contrast(i)*squeeze(D.data(j,t,l));
 end
 
 % DATA VARIANCE PARTITIONING (Call for ReML)
-ExpScal     = max(Y(:));
-Scal        = floor( log10(ExpScal) );
-Scal        = 10^(-Scal);
+%==========================================================================
+Yscal = 1/norm(Y,1);   % change the units of the data
+Gscal = 1/norm(G,1);   % change the units of the sources
 
-Y     = Scal*Y;
-G     = Scal*G;
+Y     = Yscal*Y;
+y     = Yscal*y;
+G     = Gscal*G;
 YY    = Y*Y';
 X     = ones(Nsens,1);
+for i = 1:qe
+    Qe{i}   = Qe{i}/norm(Qe{i},1);
+end
 for i = 1:qp
+    Qp{i}   = Qp{i}/norm(Qp{i},1);
     GQpG{i} = G*Qp{i}*G';
 end
 Q      = {Qe{:} GQpG{:}};
-Nsamp  = woi(2) - woi(1) + 1;
+Nbins  = size(Y,2);
 
-[C,h,Ph,F] = spm_reml(YY,X,Q,Nsamp,1);
-clear YY Q
-
+% ReML (using all the data - Y)
+%--------------------------------------------------------------------------
+[C,h,Ph,F] = spm_reml(YY,X,Q,Nbins,0);
 
 % DISPLAY ReML OUTCOME
 disp(['Model Log-Evidence:  ' num2str(F)]);
@@ -98,10 +112,10 @@ end
 disp(DisplayString);
 
 
-% COMPUTE THE SOURCE MAP ESTIMATE
+% COMPUTE THE SOURCE MAP OPERATOR
 Ce = sparse(Nsens,Nsens);
 for i = 1:qe
-   Ce = Ce + h(i)*Qe{i};
+    Ce = Ce + h(i)*Qe{i};
 end
 clear Qe GQpG
 Cp = sparse(Nsour,Nsour);
@@ -115,20 +129,27 @@ GCpG = G*CpG;
 MAP  = CpG*inv(GCpG + Ce);
 clear CpG GCpG Ce Cp
 
-J = MAP*Y;
+% compute MPA for time-windowed data (Y = y)
+%--------------------------------------------------------------------------
+Y     = y;
+Nbins = size(Y,2);
+J     = MAP*Y;
 
+% Compute the proportion explained variance
+%--------------------------------------------------------------------------
+TotVar = sum(var(Y,      0,2));
+ExpVar = sum(var(Y - G*J,0,2));
+R2     = 100*(ExpVar/TotVar)
 
-% Compute the explained variance
-TotVar = norm(Y - mean(Y,1)*ones(Nsamp,1),'fro')^2;
-ExpVar = TotVar - norm(Y - G*J,'fro')^2;
-R2 = 100*(ExpVar/TotVar)
-
+% and rescale
+%--------------------------------------------------------------------------
+J      = Gscal*J/Yscal;
 
 clear Y
 if (D.inv{val}.mesh.Ctx_Nv - D.inv{val}.inverse.dim)
-    Jfull = sparse(D.inv{val}.mesh.Ctx_Nv,Nsamp);
+    Jfull       = sparse(D.inv{val}.mesh.Ctx_Nv,Nbins);
     Jfull(Is,:) = J;
-    J = Jfull;
+    J           = Jfull;
     clear Jfull
 end
 
@@ -160,15 +181,45 @@ else
     save(fullfile(D.path,D.fname), 'D');
 end
 
-% Temporary Visualization
-AvJev = mean(J')';
-load(D.inv{val}.mesh.tess_ctx);
-spm_figure;
-colormap jet
-axis off
+
+% temporary visualisation
+%--------------------------------------------------------------------------
+[Finter,Fgraph] = spm('FnUIsetup','Stats: Results');
+figure(Fgraph);
+colormap('pink')
+
+AvJev = abs(mean(J,2));
+load(D.inv{D.val}.mesh.tess_ctx);
+
+subplot(3,1,2)
 patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
 view(-90,0);
 shading interp
-colorbar
+axis image
 title('Averaged activity over the whole time window');
+
+subplot(3,2,1)
+patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+view(-90,0);
+shading interp
+axis image
+subplot(3,2,2)
+patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+view(90,0);
+shading interp
+axis image
+subplot(3,2,5)
+patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+view(0,90);
+shading interp
+axis image
+subplot(3,2,6)
+patch('Vertices',vert,'Faces',face,'FaceVertexCData',AvJev,'FaceColor','flat');
+view(0,-90);
+shading interp
+axis image
+
+return
+
+
 

@@ -18,23 +18,22 @@ if nargin<2
         model = varargin{1};
     end
     if isfield(model,'head') & isfield(model,'electrodes')
-        scalp = model.head(length(model.head));
+        scalp  = model.head(length(model.head));
         electr = model.electrodes;
     else
         error('Wrong input arguments')
     end
-elseif nargin==2
-    scalp = varargin{1};
+elseif nargin == 2
+    scalp  = varargin{1};
     electr = varargin{2};
 else
     error('Wrong input arguments')
 end
 
 Nvert = scalp.nr(1) ;
-Ntri = scalp.nr(2) ;
-% vert = scalp.M*[scalp.XYZvx ; ones(1,Nvert)]; vert = vert(1:3,:)';
-vert = scalp.XYZmm';
-tri = scalp.tri' ;
+Ntri  = scalp.nr(2) ;
+vert  = scalp.XYZmm';
+tri   = scalp.tri'  ;
 
 % Generate the electrodes.
 [x_sph,y_sph,z_sph] = sphere ;
@@ -46,16 +45,16 @@ colo_skin = [1 .7 .55] ;
 % colo_skin = [.6 .6 .6] ;
 % colo_skin = [1 .5 .45] ;
 % colo_skin = [1 0 0] ;
-c = ones(Ntri,1)*colo_skin ;
-hFig = spm_figure('FindWin');
+c    = ones(Ntri,1)*colo_skin ;
+hFig = spm_figure('FindWin','Graphics');
 if isempty(hFig)
-    hFig = figure;
+    hFig = spm_figure;
 else
     spm_figure('Clear',hFig);
-    spm_figure('ColorMap','jet');
+    spm_figure('ColorMap','gray');
 end
 
-figure(hFig) ;
+figure(hFig);
 % set(hFig,'Render','OpenGL')
 set(hFig,'Render','zbuffer')
 p = patch('Vertices',vert,'Faces',tri,'FaceColor',colo_skin) ;

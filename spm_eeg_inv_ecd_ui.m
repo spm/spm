@@ -30,23 +30,14 @@ else
 end
 
 % 1. call dipfit gui to get all the parameters and fit the dipoles
-[sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D);
-if ~isfield(D.inv{end}.inverse,'sdip') || isempty(D.inv{end}.inverse.sdip)
-    D.inv{end}.inverse.sdip{1} = Psave;
-else
-    D.inv{end}.inverse.sdip{end+1} = Psave;
-end
+sdip = spm_eeg_inv_ecd_fitDip_ui(D);
+D.inv{D.val}.inverse.sdip   = sdip;
 
-% 2. if multiple seeds were used, summarise the results by grouping the
-% solutions
-[resdip,Pres] = spm_eeg_inv_ecd_sDipRes(sdip);
-if ~isfield(D.inv{end}.inverse,'resdip') || isempty(D.inv{end}.inverse.resdip)
-    D.inv{end}.inverse.resdip{1} = Pres;
-else
-    D.inv{end}.inverse.resdip{end+1} = Pres;
-end
+% 2. if multiple seeds were used, summarise results by grouping solutions
+resdip = spm_eeg_inv_ecd_sDipRes(sdip);
+D.inv{D.val}.inverse.resdip = resdip;
 
 % 3. display the results on the MRI
-spm_eeg_inv_ecd_DrawDip('Init',resdip,D.inv{end}.mesh.sMRI)
+spm_eeg_inv_ecd_DrawDip('Init',resdip,D.inv{D.val}.mesh.sMRI)
 
 save(D.fname,'D');

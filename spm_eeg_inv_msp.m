@@ -32,7 +32,7 @@ function [varargout] = spm_eeg_inv_msp(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_msp.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_msp.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -53,7 +53,11 @@ if nargin == 1
             D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
         	D = spm_eeg_ldata(D);
         end
-        val = length(D.inv);
+        try
+            val = D.val;
+        catch
+            val = length(D.inv);
+        end
         variabl = load(D.inv{val}.forward.pcagain);
         names   = fieldnames(variabl);
         Gnorm   = getfield(variabl,'Gnorm');

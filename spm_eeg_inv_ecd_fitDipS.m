@@ -138,21 +138,6 @@ if ~MCS_f
         MODEL.orW = kron(sqrt(pow2EEG'),eye(n_dip));
     end
     
-    % Remove the "unused" electrodes
-    % It's already done in the GUI routine !!!
-%     if ~isempty(fit_opt.rem_electr)
-%         keep_electr = 1:model.electrodes.nr;
-%         keep_electr(fit_opt.rem_electr) = [];
-%         MODEL.spheres.Sc_elXYZ(:,fit_opt.rem_electr) = [];
-%         MODEL.electrodes.vert(fit_opt.rem_electr) = [];
-%         MODEL.electrodes.tri(fit_opt.rem_electr) = [];
-% %         MODEL.electrodes.names(fit_opt.rem_electr,:) = [];
-%         MODEL.electrodes.nr = length(keep_electr);
-%         MODEL.electrodes.info = [MODEL.electrodes.info,' ; some electrodes removed ''cos of data'];
-%         % for ii=1:length(MODEL.IFS)
-%         %     MODEL.IFS{ii}(fit_opt.rem_electr,:) = [];
-%         % end
-%     end
     
 	% Prepare result files.
 	%----------------------

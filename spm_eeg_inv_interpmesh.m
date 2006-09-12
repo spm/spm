@@ -16,7 +16,7 @@ function H = spm_eeg_inv_interpmesh(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_interpmesh.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_interpmesh.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
@@ -24,10 +24,14 @@ try
     D = S;
 catch
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 end
 
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 % Load the mesh
 load(D.inv{val}.mesh.tess_ctx);

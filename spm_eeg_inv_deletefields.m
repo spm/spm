@@ -19,14 +19,14 @@ function D = spm_eeg_inv_deletefields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_deletefields.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_inv_deletefields.m 621 2006-09-12 17:22:42Z karl $
 
 def_Ian   = [];
 def_Flock = 0;
 
 if nargin == 0
     D     = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D     = spm_eeg_ldata(D);
+    D     = spm_eeg_ldata(D);
     Ian   = def_Ian;
     Flock = def_Flock;
 elseif nargin == 1
@@ -50,7 +50,11 @@ if ~isfield(D,'inv')
     error(sprintf('No inverse structure for these data\n'));
 end
 
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 if isempty(Ian)
     for i = 1:val
@@ -67,11 +71,11 @@ Icomp = [1:val];
 Icomp = setdiff(Icomp,Ian);
 
 if Flock == 1   % Deleting files also
-    
+
     tbd_priors = [];
     tbk_priors = [];
     for k = 1:val
-        
+
         % Mesh
         files_sMRI(k)           = D.inv{k}.mesh.sMRI;
         files_nobias(k)         = D.inv{k}.mesh.nobias;
@@ -83,7 +87,7 @@ if Flock == 1   % Deleting files also
         files_tess_iskull(k)    = D.inv{k}.mesh.tess_iskull;
         files_tess_scalp(k)     = D.inv{k}.mesh.tess_scalp;
         files_CtxGeoDist(k)     = D.inv{k}.mesh.CtxGeoDist;
-        
+
         % Datareg
         files_sens(k)           = D.inv{k}.datareg.sens;
         files_fid(k)            = D.inv{k}.datareg.fid;
@@ -94,7 +98,7 @@ if Flock == 1   % Deleting files also
         files_fid_coreg(k)      = D.inv{k}.datareg.fid_coreg;
         files_hsp_coreg(k)      = D.inv{k}.datareg.hsp_coreg;
         files_eeg2mri(k)        = D.inv{k}.datareg.eeg2mri;
-        
+
         % Forward
         files_bst_options(k)    = D.inv{k}.forward.bst_options;
         files_bst_channel(k)    = D.inv{k}.forward.bst_channel;
@@ -102,7 +106,7 @@ if Flock == 1   % Deleting files also
         files_bst_gainmat(k)    = D.inv{k}.forward.bst_gainmat;
         files_gainmat(k)        = D.inv{k}.forward.gainmat;
         files_pcagain(k)        = D.inv{k}.forward.pcagain;
-        
+
         % Inverse
         files_resfile(k)        = D.inv{k}.inverse.resfile;
         if ~isempty(find(Ian == k))
@@ -128,9 +132,9 @@ if Flock == 1   % Deleting files also
                 end
             end
         end
-        
+
     end
-    
+
     % Mesh - deletion
     tbd_sMRI           = unique(files_sMRI(Ian));
     tbd_nobias         = unique(files_nobias(Ian));
@@ -142,7 +146,7 @@ if Flock == 1   % Deleting files also
     tbd_tess_iskull    = unique(files_tess_iskull(Ian));
     tbd_tess_scalp     = unique(files_tess_scalp(Ian));
     tbd_CtxGeoDist     = unique(files_CtxGeoDist(Ian));
-    
+
     tbk_sMRI           = unique(files_sMRI(Icomp));
     tbk_nobias         = unique(files_nobias(Icomp));
     tbk_def            = unique(files_def(Icomp));
@@ -153,7 +157,7 @@ if Flock == 1   % Deleting files also
     tbk_tess_iskull    = unique(files_tess_iskull(Icomp));
     tbk_tess_scalp     = unique(files_tess_scalp(Icomp));
     tbk_CtxGeoDist     = unique(files_CtxGeoDist(Icomp));
-    
+
     indd_sMRI = setdiff(tbd_sMRI,tbk_sMRI);
     for i = 1:length(indd_sMRI)
         delete(indd_sMRI(i));
@@ -194,8 +198,8 @@ if Flock == 1   % Deleting files also
     for i = 1:length(indd_CtxGeoDist)
         delete(indd_CtxGeoDist(i));
     end
-    
-    
+
+
     % Datareg
     tbd_sens           = unique(files_sens(Ian));
     tbd_fid            = unique(files_fid(Ian));
@@ -206,7 +210,7 @@ if Flock == 1   % Deleting files also
     tbd_fid_coreg      = unique(files_fid_coreg(Ian));
     tbd_hsp_coreg      = unique(files_hsp_coreg(Ian));
     tbd_eeg2mri        = unique(files_eeg2mri(Ian));
-    
+
     tbk_sens           = unique(files_sens(Icomp));
     tbk_fid            = unique(files_fid(Icomp));
     tbk_fidmri         = unique(files_fidmri(Icomp));
@@ -216,7 +220,7 @@ if Flock == 1   % Deleting files also
     tbk_fid_coreg      = unique(files_fid_coreg(Icomp));
     tbk_hsp_coreg      = unique(files_hsp_coreg(Icomp));
     tbk_eeg2mri        = unique(files_eeg2mri(Icomp));
-    
+
     indd_sens = setdiff(tbd_sens,tbk_sens);
     for i = 1:length(indd_sens)
         delete(indd_sens(i));
@@ -254,7 +258,7 @@ if Flock == 1   % Deleting files also
         delete(indd_eeg2mri(i));
     end
 
-    
+
     % Forward
     tbd_bst_options    = unique(files_bst_options(Ian));
     tbd_bst_channel    = unique(files_bst_channel(Ian));
@@ -262,14 +266,14 @@ if Flock == 1   % Deleting files also
     tbd_bst_gainmat    = unique(files_bst_gainmat(Ian));
     tbd_gainmat        = unique(files_gainmat(Ian));
     tbd_pcagain        = unique(files_pcagain(Ian));
-    
+
     tbk_bst_options    = unique(files_bst_options(Icomp));
     tbk_bst_channel    = unique(files_bst_channel(Icomp));
     tbk_bst_tess       = unique(files_bst_tess(Icomp));
     tbk_bst_gainmat    = unique(files_bst_gainmat(Icomp));
     tbk_gainmat        = unique(files_gainmat(Icomp));
     tbk_pcagain        = unique(files_pcagain(Icomp));
-    
+
     indd_bst_options   = setdiff(tbd_bst_options,tbk_bst_options);
     for i = 1:length(indd_bst_options)
         delete(indd_bst_options(i));
@@ -295,14 +299,14 @@ if Flock == 1   % Deleting files also
         delete(indd_pcagain(i));
     end
 
-    
+
     % Inverse
     tbd_resfile        = unique(files_resfile(Ian));
     tbd_priors         = unique(tbd_priors);
 
     tbk_resfile        = unique(files_resfile(Icomp));
     tbk_priors         = unique(tbk_priors);
-    
+
     indd_resfile       = setdiff(tbd_resfile,tbk_resfile);
     for i = 1:length(indd_resfile)
         delete(indd_resfile(i));
@@ -321,7 +325,7 @@ D.inv = S;
 
 
 if spm_matlab_version_chk('7') >= 0
-	save(fullfile(D.path, D.fname), '-V6', 'D');
+    save(fullfile(D.path, D.fname), '-V6', 'D');
 else
-	save(fullfile(D.path, D.fname), 'D');
+    save(fullfile(D.path, D.fname), 'D');
 end

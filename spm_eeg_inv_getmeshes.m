@@ -22,45 +22,49 @@ function varargout = spm_eeg_inv_getmeshes(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmeshes.m 389 2005-12-20 12:17:18Z jeremie $
+% $Id: spm_eeg_inv_getmeshes.m 621 2006-09-12 17:22:42Z karl $
 
 spm_defaults
 
 def_Nvert = [2002 2002];
-   
+
 if nargout == 1
-    
+
     try
         D = varargin{1};
     catch
         D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
         D = spm_eeg_ldata(D);
     end
- 
+
     if ~isfield(D,'inv')
         error(sprintf('no inverse structure has been created for this data set\n'));
     end
-    
-    val = length(D.inv);
-    
+
+    try
+        val = D.val;
+    catch
+        val = length(D.inv);
+    end
+
     if isempty(D.inv{val}.mesh.msk_iskull)
         Iisk = spm_select(1,'image','Select inner-skull bin mask');
         D.inv{val}.mesh.msk_iskull = Iisk;
     else
         Iisk = D.inv{val}.mesh.msk_iskull;
     end
-    
+
     if isempty(D.inv{val}.mesh.msk_scalp)
         Iscl = spm_select(1,'image','Select scalp bin mask');
         D.inv{val}.mesh.msk_scalp = Iscl;
     else
         Iscl = D.inv{val}.mesh.msk_scalp;
     end
-    
+
 elseif nargout == 3
-    
+
     Pvol = varargin{1};
-    
+
     if length(Pvol) == 2
         Iisk = Pvol{1};
         Iscl = Pvol{2};
@@ -68,11 +72,11 @@ elseif nargout == 3
         disp('Error: wrong entry Pvol');
         return
     end
-    
+
 else
-    
+
     error(sprintf('Error: wrong number of arguments\n'));
-    
+
 end
 
 if nargin < 2
@@ -81,14 +85,14 @@ if nargin < 2
 else
     Centre_mm = varargin{2};
     Nvert = varargin{3};
-end  
+end
 
 fprintf('\n\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
 fprintf(['\tGenerate surface meshes from binary volumes\n']);
-    
+
 mesh_labels = strvcat('Tess. inner skull','Tess. scalp');
-head(1) = spm_eeg_inv_TesBin(Nvert(1),Centre_mm,Iisk,mesh_labels(1,:));    
-head(2) = spm_eeg_inv_TesBin(Nvert(2),Centre_mm,Iscl,mesh_labels(2,:));    
+head(1) = spm_eeg_inv_TesBin(Nvert(1),Centre_mm,Iisk,mesh_labels(1,:));
+head(2) = spm_eeg_inv_TesBin(Nvert(2),Centre_mm,Iscl,mesh_labels(2,:));
 
 fprintf(['\t\tCorrect position of vertices\n']);
 head(1) = spm_eeg_inv_ElastM(head(1));
@@ -113,7 +117,7 @@ if nargout == 1
     norm = spm_eeg_inv_normals(vert,face);
     save(D.inv{val}.mesh.tess_scalp,'face','norm','vert');
     D.inv{val}.mesh.Scalp_Nv = Nvert(2);
-    D.inv{val}.mesh.Scalp_Nf = length(face);    
+    D.inv{val}.mesh.Scalp_Nf = length(face);
 
     save(fullfile(D.path, D.fname), 'D');
     varargout{1} = D;
@@ -122,7 +126,7 @@ else
     varargout{2} = Centre_mm;
     varargout{3} = Nvert;
 end
-    
+
 fprintf('%c','='*ones(1,80)), fprintf('\n')
 
 

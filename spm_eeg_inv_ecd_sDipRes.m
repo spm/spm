@@ -47,14 +47,12 @@ function [result,Pres] = spm_eeg_inv_ecd_sDipRes(sdip)
 % Christophe Phillips,
 % $Id$
 
-% flag_file = 0;
-flag_file = 1;
-if nargin<1
+if nargin < 1
     Pdip = spm_select(1,'^S.*dip.*\.mat$','Select dipole file');
     load(Pdip);
     flag_file = 1;
 else
-    Pdip = sdip.fname;
+    flag_file = 0;
 end
 
 
@@ -62,20 +60,20 @@ end
 %=====================================================
 [srres,lrres] = sort(sdip.rres);
 rdsrres = diff(srres/min(srres)*100);
-l_gr = find(rdsrres>=.1);
-ll_gr = [0 l_gr];
-n_gr = diff([ll_gr sdip.n_seeds]);
-N_gr = length(n_gr);
+l_gr   = find(rdsrres>=.1);
+ll_gr  = [0 l_gr];
+n_gr   = diff([ll_gr sdip.n_seeds]);
+N_gr   = length(n_gr);
 
 [sn_gr,perm_gr] = sort(-n_gr);
 sn_gr = -sn_gr;
-kk = [];
+kk    = [];
 for ii=1:N_gr
     l_g = ll_gr(perm_gr(ii))+(1:n_gr(perm_gr(ii)));
     kk = [kk lrres(l_g)];
 end
 lrres = kk;
-n_gr = sn_gr;
+n_gr  = sn_gr;
 ll_gr = [0 cumsum(n_gr)];
 
 % Prepare result structure
@@ -143,8 +141,6 @@ for ii=1:N_gr
             result.loc{ii} = result.loc{ii} + sdip.loc{lrres(l_g(jj))}(:,result.perm{ii}(jj,:));
             result.L{ii} = result.L{ii} + ...
                 sdip.L{lrres(l_g(jj))}(:,kron(3*result.perm{ii}(jj,:),[1 1 1])+pp);
-%             result.L{ii} = result.L{ii} + ...
-%                 sdip.L{lrres(l_g(jj))}(:,kron(3*result.perm{ii}(jj,:),[1 1 1])+shift);
             j_tmp = j_tmp + ...
                 sdip.j{lrres(l_g(jj))}(kron(result.perm{ii}(jj,:)*3,[1 1 1])+pp,:);
         end
@@ -160,12 +156,11 @@ for ii=1:N_gr
         result.cost(ii) = mean(sdip.cost(lrres(l_g)));
     end
     or_tmp = result.j3{ii}./repmat(sqrt(sum(result.j3{ii}.^2)),[3,1,1]);
-%     result.or{ii} = result.j3{ii}./repmat(sqrt(sum(result.j3{ii}.^2)),[3,1,1]);
     if size(or_tmp,2)==1
        result.or{ii} = or_tmp;
    else
        if ~isfield(sdip,'fit_opt')
-           result.or{ii} = or_tmp;
+          result.or{ii} = or_tmp;
        elseif sdip.fit_opt.or_opt==2 | sdip.fit_opt.or_opt==3
           result.or{ii} = squeeze(or_tmp(:,1,:));
        elseif sdip.fit_opt.or_opt==4 & sdip.fit_opt.q_fxd_or
@@ -197,7 +192,6 @@ if flag_file
     resdip = result;
     Pres = [spm_str_manip(Pdip,'H'),filesep,'res_',spm_str_manip(Pdip,'t')];
     save(Pres,'resdip')
-%     spm_eeg_inv_ecd_DrawDip('init',result)
 else
     Pres = '';
 end

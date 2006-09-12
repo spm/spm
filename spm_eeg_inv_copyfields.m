@@ -19,14 +19,14 @@ function D = spm_eeg_inv_copyfields(S,Cflags,Vcheck)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_copyfields.m 342 2005-11-30 18:27:52Z jeremie $
+% $Id: spm_eeg_inv_copyfields.m 621 2006-09-12 17:22:42Z karl $
 
 def_Cflags = [1 1 1 0];
 def_Vcheck = 1;
 
 if nargin == 0
     D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
     Cflags = def_Cflags;
     Vcheck = def_Vcheck;
 elseif nargin == 1
@@ -51,7 +51,11 @@ if ~isfield(D,'inv')
     error(sprintf('Error: no inverse structure for these data\n'));
 end
 
-val = length(D.inv);
+try
+    val = D.val;
+catch
+    val = length(D.inv);
+end
 
 % Meshing
 if Cflags(1) ~= 0
@@ -69,7 +73,7 @@ if Cflags(1) ~= 0
     end
     if Vcheck == 0 | count_m == length(names_m);
         % copy fields according to options
-        if Cflags(1) == 2 
+        if Cflags(1) == 2
             D.inv{val}.mesh = D.inv{val-1}.mesh;
         elseif Cflags(1) == 1
             D.inv{val}.mesh.sMRI        = D.inv{val-1}.mesh.sMRI;
@@ -152,7 +156,7 @@ if Cflags(4) ~= 0
         if (Cflags(4) == 1) | (Cflags(4) == 2)
             D.inv{val}.inverse.activity     = D.inv{val-1}.inverse.activity;
             D.inv{val}.inverse.contrast     = D.inv{val-1}.inverse.contrast;
-            D.inv{val}.inverse.woi          = D.inv{val-1}.inverse.woi; 
+            D.inv{val}.inverse.woi          = D.inv{val-1}.inverse.woi;
         end
         if Cflags(4) == 2
             D.inv{val}.inverse.dim          = D.inv{val-1}.inverse.dim;

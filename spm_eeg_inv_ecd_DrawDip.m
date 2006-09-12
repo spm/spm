@@ -50,9 +50,9 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 global st
 global defaults
 
-Fig = spm_figure('FindWin');
-colors = strvcat('y','b','g','r','c','m');              % 6 possible colors
-marker = strvcat('o','x','+','*','s','d','v','p','h');  % 9 possible markers
+Fig     = spm_figure('FindWin');
+colors  = strvcat('y','b','g','r','c','m');              % 6 possible colors
+marker  = strvcat('o','x','+','*','s','d','v','p','h');  % 9 possible markers
 Ncolors = length(colors);
 Nmarker = length(marker);
 
@@ -68,7 +68,7 @@ case 'init'
 %------------------------------------------------------------------------
 spm('Clear')
 
-if nargin<2
+if nargin < 2
     load(spm_select(1,'^.*S.*dip.*\.mat$','Select dipole file'));
     if ~exist('sdip') & exist('result')
         sdip = result;
@@ -86,10 +86,8 @@ Pcanonical = fullfile(spm('dir'),'canonical','avg152T1.nii');
 
 if nargin<3
 	if ~isstruct(st)
-%         P = spm_select(1,'image','Image to display dipoles on');
         P = Pcanonical;
 	elseif isempty(st.vols{1})
-%         P = spm_select(1,'image','Image to display dipoles on');
         P = Pcanonical;
 	end
 else
@@ -201,7 +199,7 @@ case 'drawdip'
 % lim_cl = 10; %mm
 % No more limit. All source displayed as projected on mean 3D cut.
 
-if nargin<2
+if nargin < 2
     error('At least i_seed')
 end
 i_seed = varargin{1};
@@ -227,8 +225,8 @@ if any(i_seed>sdip.n_seeds) | i_dip>(sdip.n_dip+1)
 end
 
 % Note if i_dip==(sdip.n_dip+1) all dipoles are displayed simultaneously
-if i_dip==(sdip.n_dip+1)
-    i_dip=1:sdip.n_dip;
+if i_dip == (sdip.n_dip+1)
+    i_dip = 1:sdip.n_dip;
 end
 
 % if seed indexes passed is wrong (no convergence) remove the wrong ones

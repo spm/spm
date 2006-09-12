@@ -1015,7 +1015,11 @@ if ~isempty(findstr('os',[OPTIONS.Method{:}])) % Overlapping-Sphere EEG or MEG i
     end
     
     % load(fullfile(User.SUBJECTS,BrainStorm.SubjectTess),'Faces');
-    load(fullfile(User.SUBJECTS,OPTIONS.Scalp.FileName),'Faces','Vertices');
+    try
+        load(fullfile(User.SUBJECTS,OPTIONS.Scalp.FileName),'Faces','Vertices');
+    catch
+        load(OPTIONS.Scalp.FileName,'Faces','Vertices');
+    end
 
     Faces = Faces{OPTIONS.Scalp.iGrid};
     Vertices = Vertices{OPTIONS.Scalp.iGrid}';
@@ -1058,14 +1062,16 @@ if ~isempty(findstr('os',[OPTIONS.Method{:}])) % Overlapping-Sphere EEG or MEG i
     end
     
     if isempty(OPTIONS.HeadModelFile) | OPTIONS.OS_ComputeParam
-    
-        Sphere = overlapping_sphere(Channel(ndx),SubjectFV,OPTIONS.Verbose,OPTIONS.Verbose); % Compute all spheres parameters
+        
+        % Compute all spheres parameters
+        %------------------------------------------------------------------
+        Sphere = overlapping_sphere(Channel(ndx),SubjectFV,OPTIONS.Verbose,OPTIONS.Verbose);
         if OPTIONS.Verbose
             bst_message_window({...
                     'Computing Overlapping-sphere model -> DONE',' '}) 
         end
         [Param(ndx).Center] = deal(Sphere.Center);
-        [Param(ndx).Radii] = deal(Sphere.Radius);
+        [Param(ndx).Radii]  = deal(Sphere.Radius);
         [Param(ndx).Conductivity] = deal(OPTIONS.Conductivity);
         
     elseif exist(OPTIONS.HeadModelFile,'file')
@@ -1106,8 +1112,8 @@ end
 
 if ~isempty(findstr('sphere',[OPTIONS.Method{:}])) % Single or nested-sphere approaches 
     
-    [Param([MEGndx, EEGndx, EEGREFndx]).Center] = deal(OPTIONS.HeadCenter);
-    [Param([MEGndx, EEGndx, EEGREFndx]).Radii] = deal(OPTIONS.Radii);
+    [Param([MEGndx, EEGndx, EEGREFndx]).Center]       = deal(OPTIONS.HeadCenter);
+    [Param([MEGndx, EEGndx, EEGREFndx]).Radii]        = deal(OPTIONS.Radii);
     [Param([MEGndx, EEGndx, EEGREFndx]).Conductivity] = deal(OPTIONS.Conductivity);
     
     if EEG & strcmpi('eeg_3sphereberg',lower(OPTIONS.Method{DataType.EEG})) % BERG APPROACH
@@ -2053,7 +2059,7 @@ function BEMGaingridFname = bem_GainGrid(DataType,OPTIONS,BEMChanNdx)
 
 User = get_user_directory;
 if isempty(User)
-    User.STUDIES = pwd;
+    User.STUDIES  = pwd;
     User.SUBJECTS = pwd;
 end
 
