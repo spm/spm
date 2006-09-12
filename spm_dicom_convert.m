@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 618 2006-09-12 13:50:42Z john $
+% $Id: spm_dicom_convert.m 619 2006-09-12 15:02:10Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -238,6 +238,7 @@ for i=2:length(hdr),
         %dist2 = 0; % MR seems to have shears sometimes...
         if strcmp(hdr{i}.Modality,'CT') && ...
                 strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
+            dist2 = 0;
         end;
         if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo')
             % Replace 'X' in ICE_Dims by '-1'
@@ -263,6 +264,12 @@ for i=2:length(hdr),
             if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber)|| ...
                     (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
                 match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber);
+	    end;
+            % For raw image data, tell apart real/complex or phase/magnitude
+            if isfield(hdr{i},'ImageType') && isfield(vol{j}{1}, ...
+                                                        'ImageType')
+              match = match && strcmp(hdr{i}.ImageType, ...
+                                     vol{j}{1}.ImageType);
             end;
             if isfield(hdr{i},'SequenceName') && isfield(vol{j}{1}, ...
                     'SequenceName')
