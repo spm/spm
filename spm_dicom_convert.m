@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 620 2006-09-12 15:38:55Z john $
+% $Id: spm_dicom_convert.m 623 2006-09-13 15:04:24Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -977,8 +977,8 @@ if ~isfield(hdr,'EchoNumbers')
     hdr.EchoNumbers = 0;
 end;
 
-m = sprintf('%02d', round(rem(hdr.StudyTime/60,60)));
-h = sprintf('%02d', round(hdr.StudyTime/3600));
+m = sprintf('%02d', floor(rem(hdr.StudyTime/60,60)));
+h = sprintf('%02d', floor(hdr.StudyTime/3600));
 studydate = sprintf('%s_%s-%s', datestr(hdr.StudyDate,'yyyy-mm-dd'), ...
     h,m);
 serdes = strrep(strip_unwanted(hdr.SeriesDescription),...
