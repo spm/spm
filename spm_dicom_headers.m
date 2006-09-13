@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 617 2006-09-12 09:11:02Z john $
+% $Id: spm_dicom_headers.m 624 2006-09-13 17:24:39Z john $
 
 
 dict = readdict;
@@ -133,7 +133,11 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
 				case {'UI','ST'},
 					dat = deblank(dat);
 				case {'DS'},
-					dat = strread(dat,'%f','delimiter','\\')';
+                    try
+					    dat = strread(dat,'%f','delimiter','\\')';
+                    catch
+                        dat = strread(dat,'%f','delimiter','/')';
+                    end
 				case {'IS'},
 					dat = strread(dat,'%d','delimiter','\\')';
 				case {'DA'},

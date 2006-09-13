@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 623 2006-09-13 15:04:24Z volkmar $
+% $Id: spm_dicom_convert.m 624 2006-09-13 17:24:39Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -264,12 +264,12 @@ for i=2:length(hdr),
             if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber)|| ...
                     (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
                 match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber);
-	    end;
+            end;
             % For raw image data, tell apart real/complex or phase/magnitude
             if isfield(hdr{i},'ImageType') && isfield(vol{j}{1}, ...
-                                                        'ImageType')
-              match = match && strcmp(hdr{i}.ImageType, ...
-                                     vol{j}{1}.ImageType);
+                    'ImageType')
+                match = match && strcmp(hdr{i}.ImageType, ...
+                    vol{j}{1}.ImageType);
             end;
             if isfield(hdr{i},'SequenceName') && isfield(vol{j}{1}, ...
                     'SequenceName')
@@ -291,7 +291,6 @@ for i=2:length(hdr),
         end
         if match
             vol{j}{end+1} = hdr{i};
-            match = 1;
             break;
         end;
     end;
@@ -1002,7 +1001,7 @@ switch root_dir
     otherwise
         error('unknown file root specification');
 end;
-if exist(dname) ~= 7
+if ~exist(dname,7),
     mkdir_rec(dname);
 end;
 
@@ -1023,14 +1022,14 @@ fname = fullfile(dname, fname);
 
 %_______________________________________________________________________
 
-function suc = mkdir_rec(str);
+function suc = mkdir_rec(str)
 % works on full pathnames only
 opwd=pwd;
 if str(end) ~= filesep, str = [str filesep];end;
 pos = findstr(str,filesep);
 suc = zeros(1,length(pos));
 for g=2:length(pos)
-    if exist(str(1:pos(g)-1)) ~= 7
+    if ~exist(str(1:pos(g)-1),7),
         cd(str(1:pos(g-1)-1));
         suc(g) = mkdir(str(pos(g-1)+1:pos(g)-1));
     end;
