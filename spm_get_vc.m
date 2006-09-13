@@ -24,7 +24,7 @@ function SPM=spm_get_vc(SPM)
 % Copyright (C) 2006 Freiburg Brain Imaging 
 
 % Volkmar Glauche
-% $Id: spm_get_vc.m 600 2006-08-22 08:25:22Z volkmar $
+% $Id: spm_get_vc.m 622 2006-09-13 06:04:27Z volkmar $
 
 nscan = size(SPM.xVi.I,1);
 depVi={};
@@ -40,7 +40,7 @@ for f=1:numel(SPM.factor)
         varVi{f}{1} = speye(nscan,nscan);
     else
         for l=1:max(SPM.factor(f).levels)
-            varVi{f}{l}=spdiags(SPM.xVi.I(:,f+1)==l,0,nscan,nscan);
+            varVi{f}{l}=double(spdiags(SPM.xVi.I(:,f+1)==l,0,nscan,nscan));
         end;
     end;
 end;
