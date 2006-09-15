@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 625 2006-09-15 15:29:51Z john $
+% $Id: spm_dicom_convert.m 626 2006-09-15 16:04:39Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -235,7 +235,12 @@ for i=2:length(hdr),
         orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
         xy2    = vol{j}{1}.ImagePositionPatient*orient;
         dist2  = sum((xy1-xy2).^2);
-        %dist2 = 0; % MR seems to have shears sometimes...
+        
+        % This line is a fudge because of some problematic data that Bogdan,
+        % Cynthia and Stefan were trying to convert.  I hope it won't cause
+        % problems for others -JA
+        dist2 = 0;
+        
         if strcmp(hdr{i}.Modality,'CT') && ...
                 strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
             dist2 = 0;
@@ -259,8 +264,8 @@ for i=2:length(hdr),
                 hdr{i}.Rows                        == vol{j}{1}.Rows &&...
                 hdr{i}.Columns                     == vol{j}{1}.Columns &&...
                 sum((hdr{i}.ImageOrientationPatient - vol{j}{1}.ImageOrientationPatient).^2)<1e-5 &&...
-                sum((hdr{i}.PixelSpacing            - vol{j}{1}.PixelSpacing).^2)<1e-5 && dist2<1e-1 &&...
-                identical_ice_dims;
+                sum((hdr{i}.PixelSpacing            - vol{j}{1}.PixelSpacing).^2)<1e-5 && ...
+                identical_ice_dims && dist2<1e-3;
             if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber)|| ...
                     (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
                 match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber);
