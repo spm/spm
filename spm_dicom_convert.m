@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 624 2006-09-13 17:24:39Z john $
+% $Id: spm_dicom_convert.m 625 2006-09-15 15:29:51Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -1001,7 +1001,7 @@ switch root_dir
     otherwise
         error('unknown file root specification');
 end;
-if ~exist(dname,7),
+if ~exist(dname,'dir'),
     mkdir_rec(dname);
 end;
 
@@ -1029,7 +1029,7 @@ if str(end) ~= filesep, str = [str filesep];end;
 pos = findstr(str,filesep);
 suc = zeros(1,length(pos));
 for g=2:length(pos)
-    if ~exist(str(1:pos(g)-1),7),
+    if ~exist(str(1:pos(g)-1),'dir'),
         cd(str(1:pos(g-1)-1));
         suc(g) = mkdir(str(pos(g-1)+1:pos(g)-1));
     end;
