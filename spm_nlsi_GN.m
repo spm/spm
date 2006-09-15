@@ -71,7 +71,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_nlsi_GN.m 627 2006-09-15 16:53:25Z klaas $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -204,16 +204,16 @@ for k = 1:128
  
     % prediction (of features)
     %----------------------------------------------------------------------
-    g     = IS(Ep,M,U);
-    g     = FS(g,E);
+    g     = feval(IS,Ep,M,U);
+    g     = feval(FS,g,E);
     
     % compute partial derivatives; dgdp
     %----------------------------------------------------------------------
     for i = ip
         dV        = dv*sqrt(Cp(i,i));
         pi        = spm_unvec(spm_vec(Ep) + V(:,i)*dV,pE);
-        gi        = IS(pi,M,U);
-        dg        = FS(gi,E)  - g;
+        gi        = feval(IS,pi,M,U);
+        dg        = feval(FS,gi,E)  - g;
         dgdp(:,i) = spm_vec(dg)/dV;
     end
 
