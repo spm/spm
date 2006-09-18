@@ -9,7 +9,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_imag_api.m 628 2006-09-18 13:33:26Z karl $
 
 spm_defaults
 spm('Clear')
@@ -232,12 +232,13 @@ model.flags.fl_RealS = f_Rs;
 
 % set in D
 %--------------------------------------------------------------------------
-D  = handles.D;
+D = handles.D;
 D.inv{D.val}.forward     = model;
 D.inv{D.val}.mesh.sMRI   = fullfile(defaults.SWD,'EEGcanonical','smri.img');
 D.inv{D.val}.mesh.invdef = fullfile(defaults.SWD,'EEGcanonical','smri_vbm_inv_sn.mat');
+
 handles.D = D;
-Reset(hObject, eventdata, handles);
+Forward_Callback(hObject, eventdata, handles);
 
 
 % --- Executes on button press in Invert.

@@ -55,7 +55,7 @@ function [xVi] = spm_non_sphericity(xVi)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_non_sphericity.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_non_sphericity.m 628 2006-09-18 13:33:26Z karl $
 
 
 % create covariance components Q{:}
@@ -88,7 +88,8 @@ for i = find(~xVi.dep & (l > 1))
     end
 end
 
-% dependencies among repeated measures created by the hadamrad product %---------------------------------------------------------------------------
+% dependencies among repeated measures created by the hadamrad product
+%---------------------------------------------------------------------------
 for i = find(xVi.dep)
     q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
     P     = q*q';
