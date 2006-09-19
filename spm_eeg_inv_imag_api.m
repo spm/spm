@@ -9,7 +9,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 628 2006-09-18 13:33:26Z karl $
+% $Id: spm_eeg_inv_imag_api.m 630 2006-09-19 15:21:04Z karl $
 
 spm_defaults
 spm('Clear')
@@ -229,6 +229,8 @@ try, model           = rmfield(model,'spheres'); end
 [spheres,d,L,q,f_Rs] = spm_eeg_inv_Rsph(model,[]);
 model.spheres        = spheres;
 model.flags.fl_RealS = f_Rs;
+D.inv{D.val}.forward     = model;
+
 
 % set in D
 %--------------------------------------------------------------------------
@@ -499,6 +501,10 @@ catch
     str = sprintf('%i',val);
 end
 set(handles.val, 'Value',val,'string',str);
+
+if strcmp(handles.D.modality,'MEG')
+    set(handles.For2tem,'enable','off');
+end
 
 
 

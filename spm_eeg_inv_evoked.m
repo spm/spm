@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_evoked.m 630 2006-09-19 15:21:04Z karl $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -137,8 +137,8 @@ J     = MAP*Y;
 
 % Compute the proportion explained variance
 %--------------------------------------------------------------------------
-TotVar = sum(var(Y,      0,2));
-ExpVar = sum(var(Y - G*J,0,2));
+TotVar = sum(var(Y,  0,2));
+ExpVar = sum(var(G*J,0,2));
 R2     = 100*(ExpVar/TotVar)
 
 % and rescale
