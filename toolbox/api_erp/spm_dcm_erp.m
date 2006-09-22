@@ -135,11 +135,11 @@ for i = 1:8
     %----------------------------------------------------------------------
     [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
     
+    r     = y - R0*feval(M.IS,Qp,M,xU);
     if F < ML(end), break, end
 
     % Canonical feature selection
     %----------------------------------------------------------------------
-    r     = y - R0*feval(M.IS,Qp,M,xU);
     M.E   = spm_svd(inv(S'*r'*r*S)*(S'*y'*y*S),0);
     M.E   = orth(full(S*M.E(:,1:nm)));
     

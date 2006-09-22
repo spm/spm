@@ -202,11 +202,11 @@ end
 try
     handles.DCM.U.X;
 catch
-    Xdefault(hObject,handles,m);
+    [handles.DCM.U.X handles.DCM.U.name] = Xdefault(hObject,handles,m);
     warndlg({'Your design matrix has been initialised','Please check it'})
 end
 if m ~= size(handles.DCM.U.X,1)
-    Xdefault(hObject,handles,m);
+    [handles.DCM.U.X handles.DCM.U.name] = Xdefault(hObject,handles,m);
     warndlg({'Your design matrix has been re-set','Please check it'})
 end
 set(handles.design,'enable','on')

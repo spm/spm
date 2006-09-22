@@ -24,7 +24,7 @@ global M
 try
     O = M.onset;
 catch
-    O = 120/8;                                     % defaolt prior of 120ms
+    O = 120/8;                                     % default prior of 120ms
 end
 
 % stimulus parameters

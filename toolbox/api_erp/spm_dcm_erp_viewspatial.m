@@ -75,8 +75,9 @@ handles.xp = CTF.Cpos(1,:)';
 handles.yp = CTF.Cpos(2,:)';
 
 Nchannels = size(CTF.Cpos, 2);
+handles.Nchannels = Nchannels;
 
-handles.y_proj = DCM.xY.y;
+handles.y_proj = DCM.xY.y*DCM.M.E;
 handles.CLim1_yp = min(min(handles.y_proj));
 handles.CLim2_yp = max(max(handles.y_proj));
 
@@ -185,7 +186,7 @@ Nt = size(DCM.Y.xy{1}, 1);
 
 % data and model prediction, cond 1
 axes(handles.axes3); cla
-plot(handles.ms, DCM.xY.y(1:Nt, :));
+plot(handles.ms, handles.y_proj(1:Nt, :));
 hold on
 plot(handles.ms, DCM.H{1}, '--');
 set(handles.axes3, 'XLim', [0 handles.ms(end)]);
@@ -196,7 +197,7 @@ grid on
 
 % data and model prediction, cond 2
 axes(handles.axes4); cla
-plot(handles.ms, handles.DCM.xY.y(Nt+1:end, :));
+plot(handles.ms, handles.y_proj(Nt+1:end, :));
 hold on
 plot(handles.ms, handles.DCM.H{2}, '--');
 set(handles.axes4, 'XLim', [0 handles.ms(end)]);
@@ -240,7 +241,7 @@ for j = 1:Nsources
     surf(x, y, z, 'EdgeColor', 'none', 'FaceColor', 'g');
     hold on
     
-    % plot dipole moments, multiply through with K
+    % plot dipole moments
     plot3([Lpos(1, j) Lpos(1, j) + 5*Lmom(1, j)],...
         [Lpos(2, j) Lpos(2, j) + 5*Lmom(2, j)],...
         [Lpos(3, j) Lpos(3, j) + 5*Lmom(3, j)], 'b', 'LineWidth', 4);
@@ -253,15 +254,19 @@ rotate3d(handles.axes5);
 
 axis equal
 
+%--------------------------------------------------------------------
 function plot_components_space(hObject, handles)
 % plots spatial expression of each dipole
 DCM = handles.DCM;
 Nsources = size(DCM.L, 2);
 
+lf = NaN*ones(handles.Nchannels, Nsources);
+lfo = NaN*ones(handles.Nchannels, Nsources);
+
 x = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
-lf = DCM.M.E*spm_erp_L(DCM.Ep); % projected leadfield
+lf(DCM.M.Ichannels, :)  = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
 E = DCM.M.E; global M; M = rmfield(DCM.M, 'E'); 
-lfo = spm_erp_L(DCM.Ep); % leadfield not projected
+lfo(DCM.M.Ichannels, :) = spm_erp_L(DCM.Ep); % leadfield not projected
 M.E = E;
 
 % use subplots in new figure
@@ -291,17 +296,19 @@ end
 function plot_components_time(hObject, handles)
 
 DCM = handles.DCM;
+Lmom = sqrt(sum(DCM.Ep.Lmom).^2);
+
 Nsources = size(DCM.L, 2);
 
 h = figure;
-set(h, 'Name', 'Temporal expression of sources');
-% multiply through with K
+set(h, 'Name', 'Effective source amplitudes');
+% multiply with dipole amplitudes
 for i = 1:Nsources
     handles.hcomponents_time{2*(i-1)+1} = subplot(Nsources, 2, 2*(i-1)+1);
-    plot(handles.ms, DCM.K{1}(:, i));
+    plot(handles.ms, Lmom(i)*DCM.K{1}(:, i));
     title([handles.DCM.Sname{i} ', ERP 1'], 'FontSize', 16);
     handles.hcomponents_time{2*(i-1)+2} = subplot(Nsources, 2, 2*(i-1)+2);
-    plot(handles.ms, DCM.K{2}(:, i));
+    plot(handles.ms, Lmom(i)*DCM.K{2}(:, i));
     title([handles.DCM.Sname{i} ', ERP 2'], 'FontSize', 16);
 
 end
