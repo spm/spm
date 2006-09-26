@@ -1,10 +1,44 @@
 function SPM=spm_get_vc(SPM)
+% generate variance components for factorial designs
+% FORMAT SPM = spm_get_vc(SPM)
+%
+% SPM - SPM struct
+% required fields
+% SPM.xVi.I           - matrix containing factor levels for each scan and factor
+% SPM.factor.variance - for each factor, indicate whether variances are
+%                       equal (0) or unequal (1) between levels
+% SPM.factor.dept     - for each factor, indicate whether variances are
+%                       independent (0) or dependent (1) between levels
+% set in output
+% SPM.xVi.Vi          - cell vector of covariance components
+%_______________________________________________________________________
+%
+% spm_get_vc generates variance components for a given design. For each
+% factor, the user specifies whether its levels have identical variances
+% and are uncorrelated. The individual components for each factor are
+% combined into covariance components by using the kronecker tensor
+% product. If there are unequal number of observations at different levels,
+% the function specifies covariance components for a full factorial
+% design first and subsequently removes unwanted rows and columns from
+% the covariance matrices.
+%
+% The functionality of spm_get_vc is similar to that of
+% spm_non_sphericity. The difference is that spm_get_vc can accomodate 
+% any number of factors and is more general, because it can cope with
+% different number of observations under different levels of a factor.
+%_______________________________________________________________________
+% Copyright (C) 2006 Freiburg Brain Imaging 
+% This code is part of SPM5, which is
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% $Id: spm_get_vc.m 633 2006-09-26 08:15:34Z volkmar $
 
 Nlevels = max(SPM.xVi.I);
 [nscan nfactor] = size(SPM.xVi.I);
 Vi = {};
 
 % first factor in SPM is replications, assume identical variance and independence
+% pad with zeroes in case there are less than nfactor factors specified
 variance = [0 cat(2, SPM.factor.variance) zeros(1,nfactor)];
 dept = [0 cat(2, SPM.factor.dept) zeros(1,nfactor)];
 
