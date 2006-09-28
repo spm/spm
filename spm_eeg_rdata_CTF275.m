@@ -82,7 +82,7 @@ else
     D.events.time=D.events.time(I);
     D.events.code=D.events.code(I);
 end
-sens=pre_data.sensor.index.all_sens;
+sens=strmatch('M',pre_data.sensor.label);
 D.channels.name=pre_data.sensor.label(sens);
 D.channels.order=[1:length(sens)];
 D.Nchannels=length(sens);
@@ -159,44 +159,56 @@ else
     hc_file = fullfile(pre_data.folder,hc_files.name);
 end
 clear hc_files
-fid = fopen(hc_file,'r');
-for i = 1:24
-    UnusedLines = fgetl(fid);
-end
-UnusedLines = fgetl(fid);
-for i = 1:3 % Nazion coordinates
-    UsedLine    = fgetl(fid);
-    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
-    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
-    if ~isempty(ERRMSG) | (COUNT ~= 2)
-        warning(sprintf('Unable to read head coil file\n'));
-    else
-        NZ(i) = A(2);
+for coils=1:3
+    fid = fopen(hc_file,'r');
+    testlines = fgetl(fid);
+    t=0;
+    while t==0
+        if coils==1 & strmatch('measured nasion coil position relative to head (cm):',testlines);
+            t=1;
+            for i = 1:3 % Nazion coordinates
+                UsedLine    = fgetl(fid);
+                UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+                [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+                if ~isempty(ERRMSG) | (COUNT ~= 2)
+                    warning(sprintf('Unable to read head coil file\n'));
+                else
+                    NZ(i) = A(2);
+                end
+            end
+        end
+        if coils==2 & strmatch('measured left ear coil position relative to head (cm):',testlines);
+            t=1;
+            for i = 1:3 % Nazion coordinates
+                UsedLine    = fgetl(fid);
+                UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+                [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+                if ~isempty(ERRMSG) | (COUNT ~= 2)
+                    warning(sprintf('Unable to read head coil file\n'));
+                else
+                    LE(i) = A(2);
+                end
+            end
+        end
+        if coils==3 & strmatch('measured right ear coil position relative to head (cm):',testlines);
+            t=1;
+            for i = 1:3 % Nazion coordinates
+                UsedLine    = fgetl(fid);
+                UsedLine    = fliplr(deblank(fliplr(UsedLine)));
+                [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
+                if ~isempty(ERRMSG) | (COUNT ~= 2)
+                    warning(sprintf('Unable to read head coil file\n'));
+                else
+                    RE(i) = A(2);
+                end
+            end
+        end
+        testlines = fgetl(fid);
     end
+    fclose(fid);
 end
-UnusedLines = fgetl(fid);
-for i = 1:3 % Left Ear coordinates
-    UsedLine    = fgetl(fid);
-    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
-    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
-    if ~isempty(ERRMSG) | (COUNT ~= 2)
-        warning(sprintf('Unable to read head coil file\n'));
-    else
-        LE(i) = A(2);
-    end
-end
-UnusedLines = fgetl(fid);
-for i = 1:3 % Right Ear coordinates
-    UsedLine    = fgetl(fid);
-    UsedLine    = fliplr(deblank(fliplr(UsedLine)));
-    [A,COUNT,ERRMSG,NEXTINDEX] = sscanf(UsedLine,'%c = %f');
-    if ~isempty(ERRMSG) | (COUNT ~= 2)
-        warning(sprintf('Unable to read head coil file\n'));
-    else
-        RE(i) = A(2);
-    end
-end
-fclose(fid);
+
+
 CoiLoc = 10*[NZ ; LE ; RE]; % convertion from cm to mm
 cd(CurrentDir);
 

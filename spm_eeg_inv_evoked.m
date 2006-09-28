@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 630 2006-09-19 15:21:04Z karl $
+% $Id: spm_eeg_inv_evoked.m 637 2006-09-28 15:33:51Z james $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -67,7 +67,7 @@ y = sparse(0);
 Y = sparse(0);
 j = D.channels.eeg;
 k = woi(1):woi(2);
-t = D.events.start:D.events.stop;
+t=1:D.Nsamples;
 for i = 1:D.Nevents
     l = find(D.events.code == D.events.types(i));
     y = y + contrast(i)*squeeze(D.data(j,k,l));
@@ -137,10 +137,10 @@ J     = MAP*Y;
 
 % Compute the proportion explained variance
 %--------------------------------------------------------------------------
-TotVar = sum(var(Y,  0,2));
-ExpVar = sum(var(G*J,0,2));
-R2     = 100*(ExpVar/TotVar)
 
+SSR    = sum(var(Y - G*J,0,2))
+SST    = sum(var(Y,0,2));
+R2     = 100*SST/(SST + SSR)
 % and rescale
 %--------------------------------------------------------------------------
 J      = Gscal*J/Yscal;

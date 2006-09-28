@@ -68,6 +68,8 @@ if isempty(I)
     error(sprintf('No ADC channel was found in the CTF file'))
 end
 photodiode=pre_data.data(:,I);
+[B,A] = BUTTER(3,40/(D.Radc/2));
+photodiode=FILTFILT(B, A, photodiode);
 clear pre_data;
 xax=0:1:50;
 xax=xax*1000/D.Radc;

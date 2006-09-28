@@ -446,13 +446,13 @@ function [el_sphc,el_name] = treatCTF(elec,Fname);
 % from the 2D map.
 
 switch lower(Fname)
-case 'bdf_setup'
+case 'ctf275_setup'
     xf = elec.Cpos(1,:)-.45;
 	yf = elec.Cpos(2,:)-.55;
 	rf = sqrt(xf.^2+yf.^2);
 	xf = xf./max(rf)*pi/2;
 	yf = yf./max(rf)*pi/2;
-    chan_to_remove = [129 130] ; % HEOG & VEOG
+    chan_to_remove = [] ; % HEOG & VEOG
 case '61channels'
     xf = elec.Cpos(1,:)-.5;
 	yf = elec.Cpos(2,:)-.5;
