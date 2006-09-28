@@ -20,7 +20,7 @@ function spm_eeg_convertmat2ana(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 637 2006-09-28 15:33:51Z james $
+% $Id: spm_eeg_convertmat2ana.m 638 2006-09-28 16:26:54Z james $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
@@ -68,7 +68,7 @@ for k = 1:Nsub
     
     % generate data directory into which converted data goes
     [P, F] = fileparts(spm_str_manip(Fname(k, :), 'r'));
-    [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
+    [m, sta] = mkdir(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     cd(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     
     d = (D{k}.data(Cind, :,:));
