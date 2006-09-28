@@ -27,17 +27,12 @@ function varargout = spm_jobman(varargin)
 %     h = spm_jobman('help','jobs.spatial.coreg.estimate');
 %     for i=1:numel(h),fprintf('%s\n',h{i}); end;
 %
-% FORMAT spm_jobman('jobhelp')
-% Creates a cell array containing help information specific for a certain
-% job. Help is only printed for items where job specific help is
-% present. This can be used together with spm_jobman('help') to create a
-% job specific manual.
-%
 %     node - indicates which part of the configuration is to be used.
 %            For example, it could be 'jobs.spatial.coreg'.
 %
 %     job  - can be the name of a jobfile (as a .mat or a .xml), or a
 %            'jobs' variable loaded from a jobfile.
+%
 %
 % FORMAT spm_jobman('defaults')
 % Runs the interactive defaults editor.
@@ -48,15 +43,15 @@ function varargout = spm_jobman(varargin)
 % FORMAT spm_jobman('chmod')
 % Changes the modality for the TASKS pulldown.
 %
-% FORMAT [tag,dat, helpdat] = spm_jobman('harvest',c)
+% FORMAT [tag,dat] = spm_jobman('harvest',c)
 % Take a data structure, and extract what is needed to save it
-% as a batch job (for experts only). If c is omitted, use the currently
-% displayed job tree as source. 
+% as a batch job (for experts only).
+% 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 635 2006-09-28 11:44:03Z volkmar $
+% $Id: spm_jobman.m 639 2006-09-28 17:09:17Z volkmar $
 
 
 if nargin==0
@@ -101,16 +96,8 @@ else
             varargout{1} = showdoc;
         end;
 
-    case {'jobhelp'}
-        varargout{1} = showjobhelp;
-        
     case {'harvest'}
-        if nargin == 1
-            args{1} = get(batch_box,'Userdata');
-        else
-            args = varargin(2:nargin);
-        end;
-        [varargout{1:nargout}] = harvest(args{:});
+        [varargout{1:nargout}] = harvest(varargin{2:nargin});
 
     otherwise
         error(['"' varargin{1} '" - unknown option']);
@@ -189,7 +176,7 @@ t=uicontrol(fg,...
     'Style','listbox',...
     'ListBoxTop',1,...
     'Units','normalized',...
-    'Position',[0.02 0.02 0.96 0.25],...
+    'Position',[0.02 0.02 0.96 0.28],...
     'Tag','help_box',...
     'FontName','fixedwidth',...
     'FontSize',fs,...
@@ -198,23 +185,6 @@ t=uicontrol(fg,...
 set(t,'Value',[], 'Enable', 'inactive', 'Max',2, 'Min',0);
 workaround(t);
 cntxtmnu(t);
-
-t=uibuttongroup('parent',fg,...
-                'units','normalized', ...
-                'position',[.02 .27 .5 .03],...
-                'tag','help_box_switch', ... 
-                'SelectionChangeFcn',@click_batch_box);
-t1=uicontrol('parent',t,...
-             'style','radio',...
-             'string','General help', ...
-             'units','normalized',...
-             'position',[0 .05 .5 .95]);
-l2=uicontrol('parent',t,...
-             'style','radio',...
-             'string','Job specific help', ...
-             'units','normalized',...
-             'position',[.5 .05 .5 .95]);
-
 
 t=uicontrol(fg,...
     'Style','listbox',...
@@ -371,55 +341,37 @@ return;
 
 %------------------------------------------------------------------------
 function expandall(varargin)
-c         = expcon(get(batch_box,'UserData'),1);
+c         = expcon(get(gco,'UserData'),1);
 str       = get_strings(c);
-val       = min(get(batch_box,'Value'),length(str));
-set(batch_box,'String',str,'Value',val,'UserData',c);
-update_ui;
+val       = min(get(gco,'Value'),length(str));
+set(gco,'String',str,'Value',val,'UserData',c);
 return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function contractall(varargin)
-c         = expcon(get(batch_box,'UserData'),0);
+c         = expcon(get(gco,'UserData'),0);
 str       = get_strings(c);
-val       = min(get(batch_box,'Value'),length(str));
-set(batch_box,'String',str,'Value',val,'UserData',c);
-update_ui;
+val       = min(get(gco,'Value'),length(str));
+set(gco,'String',str,'Value',val,'UserData',c);
 return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function expandallopen(varargin)
-c         = expopen(get(batch_box,'UserData'));
+c         = expopen(get(gco,'UserData'));
 str       = get_strings(c);
-op        = strfind(str,'<-X');
-fop       = Inf;
-% find 1st open input
-for k=1:numel(op) 
-    if ~isempty(op{k}) 
-        fop=k; 
-        break; 
-    end;
-end;
-if isinf(fop)
-    val       = min(get(batch_box,'Value'),length(str));
-else
-    val       = fop;
-end;
-set(batch_box,'String',str,'Value',val,'UserData',c);
-update_ui;
+val       = min(get(gco,'Value'),length(str));
+set(gco,'String',str,'Value',val,'UserData',c);
 return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function [c,sts] = expopen(c)
-if ~isstruct(c)
-    sts = 0;
-    return;
+sts = 0;
+if isfield(c,'expanded'), 
+    sts=~all_set(c);
 end;
-sts=~all_set(c);
-
 if isfield(c,'val'),
     for i=1:length(c.val),
         [c.val{i} sts1] = expopen(c.val{i});
@@ -429,7 +381,6 @@ end;
 if isfield(c,'expanded')
     c.expanded = sts;
 end;
-sts = sts||isfield(c,'prog');
 return;
 %------------------------------------------------------------------------
 
@@ -454,7 +405,7 @@ if nargin<1, job = '';      end;
 if nargin<2, node = 'jobs'; end;
 c = initialise_struct(job);
 set(batch_box,'UserData',start_node(c,node));
-expandallopen;
+update_ui;
 return;
 %------------------------------------------------------------------------
 
@@ -844,31 +795,7 @@ show_value(c);
 
 % Update help
 txt = '';
-hs=findobj(0, 'tag','help_box_switch');
-cntxt=get(findobj(0,'tag','help_box'),'UIContextMenu');
-if strcmp(c.type, 'repeat')||strcmp(c.type, 'choice')
-    set(hs, 'Visible','Off');
-    help_box_switch = 2;
-else
-    set(hs, 'Visible','On');
-    hc=get(get(hs,'children'));
-    help_box_switch = find(cat(1,hc.Value));
-end;
-switch help_box_switch
-case 2,
-    if isfield(c,'help'), txt = c.help; end;
-    set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','off');
-case 1,
-    if isfield(c,'jobhelp'), txt = c.jobhelp; end;
-    if isempty(findobj(cntxt,'tag','cntxt_edit_jobhelp'))
-        cedit=uimenu('parent',cntxt,...
-                     'Label','Edit help',...
-                     'Callback',@edit_jobhelp,...
-                     'Tag','cntxt_edit_jobhelp');
-    else
-        set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','on');
-    end;
-end;
+if isfield(c,'help'), txt = c.help; end;
 help_box = findobj(0,'tag','help_box');
 if ~isempty(help_box)
     set(help_box,'String','                    ');
@@ -1411,29 +1338,13 @@ t = findobj(0,'tag','opts_box');
 %------------------------------------------------------------------------
 function save_job(varargin)
 % Save a batch job
-% if job has been loaded from somewhere, cd into this directory for file selection
-ljobs = get(findobj(0,'tag','load'),'Userdata');
+c = get(batch_box,'UserData'); spm('Pointer','Watch');
+[unused,jobs] = harvest(c);
+spm('Pointer');
+%eval([tag '=val;']);
 cll = {'*.mat','Matlab .mat file';'*.m','Matlab script file';'*.xml','XML file'};
-if ~isempty(ljobs) && ischar(ljobs)
-    [spwd unused defext] = fileparts(ljobs(1,:));
-    extind = strfind(cll(:,1),defext);
-    ccll = false(1,size(cll,1));
-    for k = 1:size(cll,1)
-        ccll(k) = ~isempty(extind{k});
-    end;
-    cll = [cll(ccll,:); cll(~ccll,:)];
-else
-    spwd = pwd;
-end;
-opwd = pwd;
-cd(spwd);
 [filename, pathname, FilterIndex] = uiputfile(cll,'Save job as');
-cd(opwd);
 if ischar(filename)
-    spm('Pointer','Watch');
-    c = get(batch_box,'UserData'); 
-    [unused,jobs,unused,jobhelps] = harvest(c);
-    %eval([tag '=val;']);
     [unused,unused,ext] = fileparts(filename);
     if isempty(ext)
         ext = cll{FilterIndex}(2:end);
@@ -1441,39 +1352,76 @@ if ischar(filename)
     end
     switch ext
     case '.xml',
-        savexml(fullfile(pathname,filename),'jobs','jobhelps');
+        spm('Pointer','Watch');
+        savexml(fullfile(pathname,filename),'jobs');
+        spm('Pointer');
     case '.mat',
         if spm_matlab_version_chk('7') >= 0,
-            save(fullfile(pathname,filename),'-V6','jobs','jobhelps');
+            save(fullfile(pathname,filename),'-V6','jobs');
         else
-            save(fullfile(pathname,filename),'jobs','jobhelps');
+            save(fullfile(pathname,filename),'jobs');
         end;
     case '.m',
-            treelist('jobs','jobhelps',struct('exps',1, 'dval',2, 'fname', ...
+            treelist('jobs',struct('exps',1, 'dval',2, 'fname', ...
                                    fullfile(pathname,filename)));
     otherwise
         questdlg(['Unknown extension (' ext ')'],'Nothing saved','OK','OK');
     end;
 end;
-spm('Pointer');
 return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
 function load_job(varargin)
 % Load a set of batch jobs and possibly merge it
-ljobs = get(findobj(0,'tag','load'),'Userdata');
-if ~isempty(ljobs) && ischar(ljobs)
-    spwd = fileparts(ljobs(1,:));
-else
-    spwd = pwd;
-end;
-[jobfiles sts] = spm_select([1 Inf], 'batch', 'Load job file(s)',[],spwd);
+
+[filenames sts] = spm_select([1 Inf], 'batch', 'Load job file(s)');
 if sts
-    spm('Pointer','Watch');
-    initialise(jobfiles);
-    set(gcbo,'Userdata',jobfiles);
-    spm('Pointer');
+        filenames = cellstr(filenames);
+        newjobs = {};
+        for cf = 1:numel(filenames)
+                [p,nam,ext] = fileparts(filenames{cf});
+                switch ext
+                case '.xml',
+                        spm('Pointer','Watch');
+                        try
+                                loadxml(filenames{cf},'jobs');
+                        catch
+                                questdlg('LoadXML failed',filenames{cf},'OK','OK');
+                                return;
+                        end;
+                        spm('Pointer');
+                case '.mat'
+                        try
+                                load(filenames{cf},'jobs');
+                        catch
+                                questdlg('Load failed',filenames{cf},'OK','OK');
+                        end;
+                case '.m'
+                        opwd = pwd;
+                        try
+                                cd(p);
+                                eval(nam);
+                        catch
+                                questdlg('Load failed',filenames{cf},'OK','OK');
+                        end;
+                        cd(opwd);
+                otherwise
+                        questdlg(['Job ' nam ': Unknown extension (' ext ')'],...
+                                 'This job not loaded','OK','OK');
+                end;
+                if exist('jobs','var')
+                        newjobs = {newjobs{:} jobs{:}};
+                        clear jobs;
+                else
+                        questdlg(['No jobs (' nam ext ')'],'No jobs','OK','OK');
+                end;
+        end;
+    if ~isempty(newjobs)
+        spm('Pointer','Watch');
+        initialise(newjobs);
+        spm('Pointer');
+    end;
 end;
 return;
 %------------------------------------------------------------------------
@@ -1555,19 +1503,13 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function [tag,val,typ,jobhelp] = harvest(c)
+function [tag,val,typ] = harvest(c)
 % Take a data structure, and extract what is needed to save it
 % as a batch job
 
 tag = 'unknown';
 val = [];
 typ = c.type;
-if isfield(c,'jobhelp')
-    jobhelp.jobhelp = c.jobhelp;
-else
-    jobhelp = [];
-end;
-
 switch(typ)
 case {'const','menu','files','entry'}
     tag = gettag(c);
@@ -1576,18 +1518,14 @@ case {'const','menu','files','entry'}
     else
         val = '<UNDEFINED>';
     end;
-    if isfield(c,'jobhelp')
-        jobhelp = c.jobhelp;
-    end;
-    
+
 case {'branch'}
     tag = gettag(c);
     if isfield(c,'val')
         val = [];
         for i=1:length(c.val)
-            [tag1,val1,unused,jobhelp1] = harvest(c.val{i});
+            [tag1,val1] = harvest(c.val{i});
             val.(tag1)  = val1;
-            jobhelp.(tag1)  = jobhelp1;
         end;
     end;
 
@@ -1599,50 +1537,37 @@ case {'repeat'}
             cargs = {cargs{:},gettag(c.values{1}.val{i}),{}};
         end;
         val = struct(cargs{:});
-        jobhelp = struct(cargs{:});
+
         if isfield(c,'val')
             for i=1:length(c.val),
-                [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
+                [tag1,val1,typ1] = harvest(c.val{i});
                 val(i) = val1;
-                jobhelp(i) = jobhelp1;
             end;
         end;
     else
         val = {};
-        jobhelp = {};
         if isfield(c,'val')
             for i=1:length(c.val),
-                [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
+                [tag1,val1,typ1] = harvest(c.val{i});
                 if length(c.values)>1,
                     if iscell(val1)
                         val1 = struct(tag1,{val1});
                     else
                         val1 = struct(tag1,val1);
                     end;
-                    if iscell(jobhelp1)
-                        jobhelp1 = struct(tag1,{jobhelp1});
-                    else
-                        jobhelp1 = struct(tag1,jobhelp1);
-                    end;
                 end;
                 val = {val{:}, val1};
-                jobhelp = {jobhelp{:}, jobhelp1};
             end;
         end;
     end;
 
 case {'choice'}
     if isfield(c,'tag'), tag = gettag(c); end;
-    [tag1,val1,unused,jobhelp1] = harvest(c.val{1});
+    [tag1,val1] = harvest(c.val{1});
     if iscell(val1)
         val = struct(tag1,{val1});
     else
         val = struct(tag1,val1);
-    end;
-    if iscell(jobhelp1)
-        jobhelp = struct(tag1,{jobhelp1});
-    else
-        jobhelp = struct(tag1,jobhelp1);
     end;
 end;
 return;
@@ -2371,14 +2296,8 @@ if nargin==1 && ischar(job) && strcmp(job,'defaults'),
 else
     c      = hide_null_jobs(c);
     if nargin>0 && ~isempty(job),
-        if ischar(job)||iscellstr(job)
-            % only call fromfile if job(s) are identified by strings 
-            [job,jobhelp] = fromfile(job);
-        else
-            % job structure given, we therefore don't have jobhelp
-            jobhelp = [];
-        end;
-        c   = job_to_struct(c,job,jobhelp,'jobs');
+        job = fromfile(job);
+        c   = job_to_struct(c,job,'jobs');
         c   = uniq_id(c);
     end;
 end;
@@ -2628,61 +2547,30 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function [newjobs,newjobhelps] = fromfile(job)
+function job = fromfile(job)
 if ischar(job)
-    filenames = cellstr(job);
-else
-    filenames = job;
-end;
-newjobs = {};
-newjobhelps = {};
-for cf = 1:numel(filenames)
-    jobhelps = {[]};
-    [p,nam,ext] = fileparts(filenames{cf});
-    switch ext
-    case '.xml',
+    [pth,nam,ext] = fileparts(job);
+    if strcmp(ext,'.xml')
         spm('Pointer','Watch');
         try
-            loadxml(filenames{cf},'jobs');
+            loadxml(job,'jobs');
         catch
-            questdlg('LoadXML failed',filenames{cf},'OK','OK');
+            questdlg('LoadXML failed',job,'OK','OK');
             return;
         end;
-        try
-            loadxml(filenames{cf},'jobhelps');
-        end;
         spm('Pointer');
-    case '.mat'
+    elseif strcmp(ext,'.mat')
         try
-            S=load(filenames{cf});
-            jobs = S.jobs;
-            if isfield(S,'jobhelps')
-                jobhelps=S.jobhelps;
-            end;
+            load(job,'jobs');
         catch
-            questdlg('Load failed',filenames{cf},'OK','OK');
+            questdlg('Load failed',job,'OK','OK');
+            return;
         end;
-     case '.m'
-        opwd = pwd;
-        try
-            cd(p);
-            eval(nam);
-        catch
-            questdlg('Load failed',filenames{cf},'OK','OK');
-        end;
-        cd(opwd);
-    otherwise
-        questdlg(['Job ' nam ': Unknown extension (' ext ')'],...
-                 'This job not loaded','OK','OK');
-    end;
-    if exist('jobs','var')
-        newjobs = {newjobs{:} jobs{:}};
-        clear jobs;
-        newjobhelps = {newjobhelps{:} jobhelps{:}};
-        clear jobhelps;
     else
-        questdlg(['No jobs (' nam ext ')'],'No jobs','OK','OK');
+        questdlg(['Unknown extension (' ext ')'],'Nothing loaded','OK','OK');
+        return;
     end;
+    job = jobs;
 end;
 return;
 %------------------------------------------------------------------------
@@ -2788,7 +2676,7 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function c = job_to_struct(c,job,jobhelp,tag)
+function c = job_to_struct(c,job,tag)
 % Modify a structure based on a batch job
 if isstruct(c) && isfield(c,'hidden'),
     return;
@@ -2801,26 +2689,16 @@ case {'const','menu','files','entry'}
     else
         c.val{1} = job;
     end;
-    c.jobhelp = jobhelp;
-    
+
 case {'branch'}
     if ~strcmp(gettag(c),tag), return; end;
     if ~isstruct(job), return; end;
-    if ~isempty(jobhelp) && isstruct(jobhelp) && isfield(jobhelp, 'jobhelp')
-        c.jobhelp = jobhelp.jobhelp;
-    end;
-    
+
     tag = fieldnames(job);
     for i=1:length(tag)
         for j=1:length(c.val)
             if strcmp(gettag(c.val{j}),tag{i})
-                try
-                    c.val{j} = job_to_struct(c.val{j},job.(tag{i}),jobhelp.(tag{i}), ...
-                                             tag{i});
-                catch
-                    c.val{j} = job_to_struct(c.val{j},job.(tag{i}),[], ...
-                                             tag{i});
-                end;
+                c.val{j} = job_to_struct(c.val{j},job.(tag{i}),tag{i});
                 break;
             end;
         end;
@@ -2834,11 +2712,7 @@ case {'choice'}
     tag = tag{1};
     for j=1:length(c.values)
         if strcmp(gettag(c.values{j}),tag)
-            try
-                c.val = {job_to_struct(c.values{j},job.(tag),jobhelp.(tag),tag)};
-            catch
-                c.val = {job_to_struct(c.values{j},job.(tag),[],tag)};
-            end;
+            c.val = {job_to_struct(c.values{j},job.(tag),tag)};
         end;
     end;
 
@@ -2848,11 +2722,7 @@ case {'repeat'}
         if ~isstruct(job), return; end;
         for i=1:length(job)
             if strcmp(gettag(c.values{1}),tag)
-                try
-                    c.val{i} = job_to_struct(c.values{1},job(i),jobhelp(i), tag);
-                catch
-                    c.val{i} = job_to_struct(c.values{1},job(i),[],tag);
-                end;
+                c.val{i} = job_to_struct(c.values{1},job(i),tag);
                 c.val{i}.removable = true;
             end;
         end;
@@ -2864,11 +2734,7 @@ case {'repeat'}
             tag = tag{1};
             for j=1:length(c.values)
                 if strcmp(gettag(c.values{j}),tag)
-                    try
-                        c.val{i} = job_to_struct(c.values{j},job{i}.(tag),jobhelp{i}.(tag),tag);
-                    catch
-                        c.val{i} = job_to_struct(c.values{j}, job{i}.(tag),[],tag);
-                    end;
+                    c.val{i} = job_to_struct(c.values{j},job{i}.(tag),tag);
                     c.val{i}.removable = true;
                     break;
                 end;
@@ -2877,11 +2743,7 @@ case {'repeat'}
     else
         if ~iscell(job), return; end;
         for i=1:length(job)
-            try
-                c.val{i} = job_to_struct(c.values{1},job{i},jobhelp{i},tag);
-            catch
-                c.val{i} = job_to_struct(c.values{1},job{i},[],tag);
-            end;
+            c.val{i} = job_to_struct(c.values{1},job{i},tag);
             c.val{i}.removable = true;
         end;
     end;
@@ -3055,121 +2917,5 @@ if isfield(c,'name'),
     end;
     doc = {doc{:}, ''};
 end;
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
-function jobhelp = showjobhelp(str,wid)
-if nargin<1, str = ''; end;
-if nargin<2, wid = 60; end;
 
-tmp = [0 find([str '.']=='.')];
-node = {};
-for i=1:length(tmp)-1,
-    tmp1 = str((tmp(i)+1):(tmp(i+1)-1));
-    if ~isempty(tmp1),
-        node = {node{:},tmp1};
-    end;
-end;
-if numel(node)>1 && strcmp(node{1},'jobs'),
-    node = node(2:end);
-end;
-
-c = get(batch_box,'userdata');
-jobhelp = showjobhelp1(node,c,wid);
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function jobhelp = showjobhelp1(node,c,wid)
-jobhelp   = {};
-if isempty(node),
-    jobhelp = showjobhelp2(c,'',wid);
-    return;
-end;
-
-%if isfield(c,'values'),
-%    for i=1:numel(c.values),
-%        if isfield(c.values{i},'tag') && strcmp(node(1),c.values{i}.tag),
-%            jobhelp = showjobhelp1(node(2:end),c.values{i},wid);
-%            return;
-%        end;
-%    end;
-%end;
-
-if isfield(c,'val'),
-    for i=1:numel(c.val),
-        if isfield(c.val{i},'tag') && strcmp(node(1),c.val{i}.tag),
-            jobhelp = showjobhelp1(node(2:end),c.val{i},wid);
-            return;
-        end;
-    end;
-end;
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function jobhelp = showjobhelp2(c,lev,wid)
-jobhelp = {''};
-if ~isempty(lev) && sum(lev=='.')==1,
-        % jobhelp = {jobhelp{:},repmat('_',1,80),''};
-end;
-
-if isfield(c,'name') && isfield(c,'jobhelp'),
-    str   = sprintf('%s %s', lev, c.name);
-    jobhelp = {jobhelp{:},str};
-    hlp = spm_justify(wid,c.jobhelp);
-    jobhelp = {jobhelp{:},hlp{:}};
-    jobhelp = {jobhelp{:}, ''};
-end;
-i = 0;
-if isfield(c,'val'),
-    for ii=1:length(c.val),
-        if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
-            i    = i+1;
-            lev1 = sprintf('%s%d.', lev, i);
-            jobhelp1 = showjobhelp2(c.val{ii},lev1,wid);
-            jobhelp  = {jobhelp{:}, jobhelp1{:}};
-        end;
-    end;
-end;
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function edit_jobhelp(varargin)
-h = findobj(0,'tag','help_box');
-col1 = getdef('ui.colour1');
-if numel(col1)~=1 || ~isnumeric(col1{1}) || numel(col1{1})~=3,
-    col1 = [0.8 0.8 1];
-else
-    col1 = col1{1};
-end;
-set(h,'Style','edit','HorizontalAlignment','left', 'Callback', ...
-      @edit_jobhelp_accept, 'BackgroundColor',col1);
-run_in_current_node(@get_jobhelp,0,h);
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function c=get_jobhelp(c,h)
-% for editing, use unjustified version of help string
-if isfield(c,'jobhelp')
-    set(h,'String',c.jobhelp);
-end;
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function edit_jobhelp_accept(varargin)
-h = findobj(0,'tag','help_box');
-col2 = getdef('ui.colour2');
-if numel(col2)~=1 || ~isnumeric(col2{1}) || numel(col2{1})~=3,
-    col2 = [1 1 0.8];
-else
-    col2 = col2{1};
-end;
-jobhelp = get(h,'string');
-set(h,'Style','listbox', 'HorizontalAlignment', ...
-      'Center', 'Callback',[], 'BackgroundColor',col2, 'String', ...
-      spm_justify(h,jobhelp));
-run_in_current_node(@set_jobhelp,1,jobhelp);
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
-function c=set_jobhelp(c,txt)
-c.jobhelp = txt;
