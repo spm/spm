@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 626 2006-09-15 16:04:39Z john $
+% $Id: spm_dicom_convert.m 634 2006-09-28 11:42:43Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -976,6 +976,9 @@ if ~isfield(hdr,'ProtocolName')
     else
         hdr.ProtocolName='unknown';
     end;
+end;
+if ~isfield(hdr,'SeriesDescription')
+    hdr.SeriesDescription = 'unknown';
 end;
 if ~isfield(hdr,'EchoNumbers')
     hdr.EchoNumbers = 0;
