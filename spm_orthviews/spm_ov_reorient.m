@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 591 2006-08-14 11:06:49Z volkmar $
+% $Id: spm_ov_reorient.m 640 2006-09-29 09:53:58Z volkmar $
 
-rev = '$Revision: 591 $';
+rev = '$Revision: 640 $';
 
 global st;
 if isempty(st)
@@ -172,7 +172,7 @@ switch cmd
   spm_orthviews('redraw');
   
  case 'redraw'
-  if numel(st.vols{1}.reorient.e)==10
+  if numel(st.vols{volhandle}.reorient.e)==10
     if isfield(st.vols{volhandle}.reorient,'lh')
       if ~isempty(st.vols{volhandle}.reorient.lh)
 	delete(cat(1,st.vols{volhandle}.reorient.lh{:}));
