@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 606 2006-08-31 12:19:35Z volkmar $
+% $Id: spm_select.m 641 2006-10-02 11:51:11Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -797,8 +797,13 @@ else
             ind = ind(2:end)-1;
             pth = pth(2:end);
         end;
-        dr   = pth(1:(ind(1)-1));
-        pth  = pth((ind(1)+1):end);
+        if isempty(ind)
+            dr  = pth;
+            pth = '';
+        else
+            dr   = pth(1:(ind(1)-1));
+            pth  = pth((ind(1)+1):end);
+        end;
     end;
     mch  = strcmp(dr,{vfs.dirs.name});
     if any(mch),
