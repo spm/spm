@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 641 2006-10-02 11:51:11Z volkmar $
+% $Id: spm_select.m 642 2006-10-04 08:01:16Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -166,7 +166,7 @@ fh = 0.05;
 sbh = 0.03; % Scroll-bar height.  This should be worked out properly
 h1 = (0.96-4*fh-5*0.01)/2;
 if n(2)*fh+sbh<h1,
-    h1 = max([n(2) size(already,1)+.2])*fh+sbh;
+    h1 = min([(n(2)+.2)*fh+sbh, h1]);
 end;
 h2 = 0.96-4*fh-5*0.01-h1;
 
