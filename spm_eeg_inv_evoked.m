@@ -14,7 +14,7 @@ function D = spm_eeg_inv_evoked(D,Qe,Qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_evoked.m 637 2006-09-28 15:33:51Z james $
+% $Id: spm_eeg_inv_evoked.m 644 2006-10-10 14:08:32Z james $
 
 
 if D.events.Ntypes ~= D.Nevents
@@ -140,7 +140,7 @@ J     = MAP*Y;
 
 SSR    = sum(var(Y - G*J,0,2))
 SST    = sum(var(Y,0,2));
-R2     = 100*SST/(SST + SSR)
+R2     = 100*(SST - SSR)/SST
 % and rescale
 %--------------------------------------------------------------------------
 J      = Gscal*J/Yscal;
