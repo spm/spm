@@ -32,7 +32,7 @@ function [y] = spm_int_U(P,M,U)
 %
 %    J(d)         = D(d)df/dx
 %
-% T invoke this simply delay scheme, f must return D (i.e. [fx J D] =
+% To invoke this simply delay scheme, f must return D (i.e. [fx J D] =
 % feval(f,M.x,u,P);
 %
 % spm_int will also handle static observation models by evaluating
@@ -118,6 +118,9 @@ for i = 1:size(U.u,1)
     % update dx = (expm(dt*J) - I)*inv(J)*fx = Q*fx;
     %----------------------------------------------------------------------
     fx = feval(f,x,u,P);
+    
+    % reset if fx = []
+    %----------------------------------------------------------------------
     if ~length(fx)
         x  = M.x;
         fx = feval(f,x,u,P);

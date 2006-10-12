@@ -71,7 +71,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 627 2006-09-15 16:53:25Z klaas $
+% $Id: spm_nlsi_GN.m 645 2006-10-12 19:38:35Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ end
 % initial parameters
 %--------------------------------------------------------------------------
 try
-    M.P;
+    spm_vec(M.P) - spm_vec(M.pE);
 catch
     M.P = M.pE;
 end
@@ -142,8 +142,8 @@ end
 %--------------------------------------------------------------------------
 y       = FS(Y.y,E);
 [ns nr] = size(y);          % number of samples and responses
-M.ns    = ns;
- 
+M.ns    = ns;               % store in M.ns for integrator
+
 % precision components Q
 %--------------------------------------------------------------------------
 try
@@ -260,7 +260,7 @@ for k = 1:128
     
         % update ReML estimate
         %------------------------------------------------------------------
-        Ch    = pinv(-dFdhh);
+        Ch    = inv(-dFdhh);
         dh    = Ch*dFdh;
         h     = h  + dh;
  
@@ -307,7 +307,7 @@ for k = 1:128
         % decrease regularization
         %------------------------------------------------------------------
         t     = t*2;
-        str   = 'E-Step(-)';
+        str   = 'EM-Step(-)';
  
     else
  
@@ -319,7 +319,7 @@ for k = 1:128
         % and increase regularization
         %------------------------------------------------------------------
         t     = min(t/2,1);
-        str   = 'E-Step(+)';
+        str   = 'EM-Step(+)';
  
     end
  
@@ -332,8 +332,6 @@ for k = 1:128
     % graphics
     %----------------------------------------------------------------------
     try
-        M.nograph;
-    catch
         figure(Fsi)
 
         % subplot prediction
@@ -359,7 +357,7 @@ for k = 1:128
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dF:',full(dF))
-    if k > 2 && dF < 1e-1, break, end
+    if k > 2 && dF < 1e-2, break, end
 
 end
  

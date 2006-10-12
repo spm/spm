@@ -31,7 +31,6 @@ function DCM = spm_dcm_erp(DCM)
 try, DCM.swd; cd(swd);       catch, DCM.swd = pwd;              end
 try, DCM.options.D;          catch, DCM.options.D = 1;          end
 try, DCM.options.h;          catch, DCM.options.h = 1;          end
-try, DCM.options.projection; catch, DCM.options.projection = 1; end
 try, DCM.options.Nmodes;     catch, DCM.options.Nmodes = 4;     end
 try, DCM.options.Tdcm;       catch, 
      DCM.options.Tdcm = [DCM.Y.Time(1) DCM.Y.Time(end)];        end
@@ -76,6 +75,10 @@ X0     = kron(speye(nt,nt),X0);
 R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0  = X0;
 warning on
+
+% assume noise variance is the same over modes
+%--------------------------------------------------------------------------
+xY.Q   = {speye(ns*nm*nt,ns*nm*nt)};
 
 % Inputs
 %==========================================================================
@@ -134,6 +137,7 @@ for i = 1:8
     % inversion
     %----------------------------------------------------------------------
     [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
+    r            = y - R0*feval(M.IS,Qp,M,xU);
     
     r     = y - R0*feval(M.IS,Qp,M,xU);
     if F < ML(end), break, end

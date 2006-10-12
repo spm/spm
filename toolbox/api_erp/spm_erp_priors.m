@@ -91,17 +91,17 @@ E.Lmom = L.mom;         V.Lmom = L.Vmom;           % dipole orientations
 Q     = sparse(n,n);
 for i = 1:length(A)
     E.A{i} = log(A{i} + eps);                      % forward
-    V.A{i} = A{i}/2;                               % backward
+    V.A{i} = A{i};                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
 
 for i = 1:length(B)
     E.B{i} = 0*B{i};                               % input-dependent scaling
-    V.B{i} = B{i}/2;
+    V.B{i} = B{i};
     Q      = Q | B{i};
 end
 E.C        = log(C + eps);                         % where inputs enter
-V.C        = C/2;
+V.C        = C;
 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
