@@ -38,7 +38,7 @@ end
 
 try
     nt     = length(DCM.H);          % Nr of trials
-    nu     = size(DCM.C,2);          % Nr inputs
+    nu     = length(DCM.B);          % Nr inputs
     nc     = size(DCM.H{1},2);       % Nr modes
     ns     = size(DCM.K{1},2);       % Nr of sources
 end

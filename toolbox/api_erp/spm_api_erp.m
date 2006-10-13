@@ -43,35 +43,10 @@ elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
 end
 
 
-% DCM files and directories
+% Callbacks
 %==========================================================================
 
-% -------------------------------------------------------------------------
-function varargout = swd_Callback(hObject, eventdata, handles, varargin)
-try
-    cd(get(handles.swd,'String'));
-end
-handles.DCM.swd = pwd;
-set(handles.swd,'String',pwd)
-guidata(hObject,handles);
-
-% -------------------------------------------------------------------------
-function varargout = cd_Callback(hObject, eventdata, handles, varargin)
-try
-    cd(uigetdir(pwd, 'select SWD'));
-end
-handles.DCM.swd = pwd;
-set(handles.swd, 'String', pwd)
-guidata(hObject,handles);
-
-% -------------------------------------------------------------------------
-function varargout = name_Callback(hObject, eventdata, handles, varargin)
-handles.DCM.name   = get(handles.name,'String');
-set(handles.save,'enable','on')
-guidata(hObject,handles);
-
-
-%-Load and save
+%-DCM files and directories: Load and save
 %==========================================================================
 
 % load
@@ -79,19 +54,22 @@ guidata(hObject,handles);
 function varargout = load_Callback(hObject, eventdata, handles, varargin)
 try
     [f,p]       = uigetfile('DCM*.mat','please select DCM');
-    DCM         = load(fullfile(p,f),'-mat');
+    name        = fullfile(p,f);
+    DCM         = load(name,'-mat');
     DCM         = DCM.DCM;
+    DCM.name    = name;
     handles.DCM = DCM;
-    guidata(hObject, handles);
+    guidata(hObject,handles);
 end
 
+% Filename
 %--------------------------------------------------------------------------
-set(handles.name,'String',handles.DCM.name);
-name_Callback(hObject,eventdata, handles);
-
+try, set(handles.name,'String',handles.DCM.name);                 end
 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
+Vpos = sqrt(DCM.M.dipfit.L.Vpos(1,1));
+
 try, set(handles.Y1, 'String', num2str(DCM.options.trials));      end
 try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));     end
 try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));     end
@@ -103,8 +81,7 @@ try, set(handles.D ,          'Value', DCM.options.D);            end
 try, set(handles.onset,       'String',num2str(DCM.M.onset));     end
 try, set(handles.design,      'String',num2str(DCM.U.X'));        end
 try, set(handles.Uname,       'String',DCM.U.name);               end
-try, set(handles.Vlocation,   'String',num2str(DCM.M.dipfit.L.Vpos(1,1))); 
-end
+try, set(handles.Vlocation,   'String',num2str(Vpos));            end
 
 handles.DCM = DCM;
 guidata(hObject, handles);
@@ -133,7 +110,7 @@ if isfield(DCM.options, 'spatial_ok')
     guidata(hObject, handles);
 
     try
-        spm_api_erp('connections_Callback', gcbo, [], handles);
+        connections_Callback(hObject, eventdata, handles);
         set(handles.estimate,   'Enable', 'on');
         set(handles.initialise, 'Enable', 'on');
     end
@@ -142,19 +119,15 @@ end
 try
     handles.DCM.F;
     set(handles.results,    'Enable','on');
-    set(handles.estimate,   'String','Re-estimate','Foregroundcolor', [0 0 0]);
-    set(handles.initialise, 'Enable','on');
 catch
     set(handles.results,    'Enable','off');
-    set(handles.estimate,   'String','Estimate','Foregroundcolor', [0 0 0]);
-    set(handles.initialise, 'Enable','on');
 end
 
 % -------------------------------------------------------------------------
 function handles = save_Callback(hObject, eventdata, handles, varargin)
 
 DCM   = handles.DCM;
-[f,p] = uiputfile(['DCM' DCM.name '.mat'],'save DCM');
+[f,p] = uiputfile(['DCM*.mat'],'DCM file to save');
 
 if p ~= 0
     
@@ -168,20 +141,15 @@ if p ~= 0
     DCM.options.h            = get(handles.h,            'Value') - 1;
     DCM.options.D            = get(handles.D,            'Value');
     
-    DCM.M.onset        = str2num(get(handles.onset,      'String'));
-    DCM.M.Spatial_type = DCM.options.Spatial_type;
-    
+    DCM.M.onset = str2num(get(handles.onset,      'String'));
+    DCM.name    = fullfile(p,f);
+    set(handles.name,'String',DCM.name);
     handles.DCM = DCM;
 
-    save(fullfile(p,f),     'DCM')
+    save(DCM.name,          'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
-    set(handles.results,    'Enable', 'off')
 
-    try
-        handles.DCM.F;
-        set(handles.estimate,'String','re-estimate')
-    end
 end
 guidata(hObject,handles);
 
@@ -189,77 +157,25 @@ guidata(hObject,handles);
 % Data selection and design
 %==========================================================================
 
-%-Get trials to model
+%-Get trials and data
 %--------------------------------------------------------------------------
 function Y1_Callback(hObject, eventdata, handles)
+DCM    = handles.DCM;
 try
-    handles.DCM.options.trials = str2num(get(handles.Y1,'String'));
+    DCM.options.trials = str2num(get(handles.Y1,'String'));
     m  = length(handles.DCM.options.trials);
 catch
     m  = 1;
     set(handles.Y1,'String','1')
 end
 handles = Xdefault(hObject,handles,m);
-warndlg({'Your design matrix has been re-set','Please check it'})
-
-set(handles.design,'enable','on')
-set(handles.Uname, 'enable','on')
-set(handles.Y,     'enable','on')
-guidata(hObject,handles);
 
 %-Get new trials from file
 %--------------------------------------------------------------------------
-Y_Callback(hObject,[],handles);
-
-%--------------------------------------------------------------------------
-function Uname_Callback(hObject, eventdata, handles)
-try
-    m = length(handles.DCM.options.trials);
-catch
-    warndlg('please select trials')
-    handles = Xdefault(hObject,handles,1);
-    return
-end
-Uname = get(handles.Uname,'String');
-try 
-    n  = size(handles.DCM.U.X,2);
-    handles.DCM.U.name = Uname(1:n);
-catch
-    handles.DCM.U.name = Uname;
-end
-set(handles.Uname, 'String',handles.DCM.U.name);
-guidata(hObject,handles);
-
-%--------------------------------------------------------------------------
-function design_Callback(hObject, eventdata, handles)
-try
-    m  = length(handles.DCM.options.trials);
-catch
-    handles = Xdefault(hObject,handles,1);
-    warndlg('please select trials')
-    return
-end
-try
-    X               = str2num(get(handles.design,'String'))';
-    handles.DCM.U.X = X(1:m,:);
-    set(handles.design, 'String',num2str(handles.DCM.U.X'));
-catch
-    handles = Xdefault(hObject,handles,m);
-end
-if length(get(handles.DCM.U.name,'string')) ~= size(handles.DCM.U.X,2)
-    handles = Xdefault(hObject,handles,m);
-end
-guidata(hObject,handles);
-
-%-Get data
-% -------------------------------------------------------------------------
-function varargout = Y_Callback(hObject, eventdata, handles, varargin)
-DCM   = handles.DCM;
 [f,p] = uigetfile({'*.mat'}, 'please select ERP/ERF.mat file (SPM format)');
 try
-    f           = fullfile(p,f);
-    DCM.M.Dfile = f;
-    D           = spm_eeg_ldata(f);
+    DCM.M.Dfile = fullfile(p,f);
+    D           = spm_eeg_ldata(DCM.M.Dfile);
 end
 
 % indices of EEG channel (excluding bad channels)
@@ -285,37 +201,85 @@ catch
     return
 end
 
-% show data
+% Display data
 %--------------------------------------------------------------------------
 try
     spm_dcm_erp_results(DCM, 'Response');
 end
 
-% check design
-%--------------------------------------------------------------------------
-try
-    m  = length(DCM.Y.xy);
-    X  = DCM.U.X;
-
-    % default design
-    %----------------------------------------------------------------------
-    if size(X,1) ~= m
-        handles = Xdefault(hObject,handles,m);
-        warndlg({'Your design matrix has been re-set','Please check it'})
-    end
-end
 set(handles.design,'enable','on')
+set(handles.Uname, 'enable','on')
+set(handles.Y,     'enable','on')
 handles.DCM = DCM;
 guidata(hObject,handles);
+warndlg({'Your design matrix has been re-set'})
+
+%-Display data
+%--------------------------------------------------------------------------
+function Y_Callback(hObject, eventdata, handles)
+try
+    spm_dcm_erp_results(handles.DCM,'Response');
+catch
+    wanrdlg('please specify trials to load');
+end
+
+
+%--------------------------------------------------------------------------
+function Uname_Callback(hObject, eventdata, handles)
+try
+    m = length(handles.DCM.options.trials);
+catch
+    warndlg('please select trials')
+    handles = Xdefault(hObject,handles,1);
+    return
+end
+Str   = get(handles.Uname,'String');
+n     = size(handles.DCM.U.X,2);
+for i = 1:n
+    try
+        Uname{i} = Str{i};
+    catch
+        Uname{i} = sprintf('effect %i',i);
+    end
+end
+set(handles.Uname,'string',Uname(:))
+handles.DCM.U.name = Uname;
+guidata(hObject,handles);
+
+%--------------------------------------------------------------------------
+function design_Callback(hObject, eventdata, handles)
+try
+    m  = length(handles.DCM.options.trials);
+catch
+    handles = Xdefault(hObject,handles,1);
+    warndlg('please select trials')
+    return
+end
+try
+    X               = str2num(get(handles.design,'String'))';
+    handles.DCM.U.X = X(1:m,:);
+    set(handles.design, 'String',num2str(handles.DCM.U.X'));
+catch
+    handles = Xdefault(hObject,handles,m);
+end
+n   = size(handles.DCM.U.X,2);
+for i = 1:n
+    try
+        Uname{i} = handles.DCM.U.name{i};
+    catch
+        Uname{i} = sprintf('effect %i',i);
+    end
+end
+set(handles.Uname,'string',Uname(:))
+handles.DCM.U.name = Uname;
+guidata(hObject,handles);
+
 
 % Spatial model specification
 %==========================================================================
 
 %--------------------------------------------------------------------------
 function Spatial_type_Callback(hObject, eventdata, handles)
-% hObject    handle to Spatial_type (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 if get(handles.Spatial_type,'Value') == 2
     % if MEG ECD
@@ -331,34 +295,25 @@ end
 guidata(hObject,handles);
 
 
-%---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 function sensorfile_Callback(hObject, eventdata, handles)
 Spatial_type = get(handles.Spatial_type, 'Value');
-DCM          = handles.DCM;
 
-% EEG
-%---------------------------------------------------------------------
 if Spatial_type == 1
     [f,p] = uigetfile({'*.pol';'*.mat'}, 'please select sensor location file');
-    if p == 0, return, end
-    f                       = fullfile(p,f);
-    DCM.M.dipfit.sensorfile = f;
-    handles.DCM             = DCM;
+    handles.DCM.M.dipfit.sensorfile = fullfile(p,f);
 end
 guidata(hObject, handles);
 
 
-%---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 function handles = spatial_ok_Callback(hObject, eventdata, handles)
-% hObject    handle to spatial_ok (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 % spatial model
-%------------------------
+%--------------------------------------------------------------------------
 DCM = handles.DCM;
 tmp = deblank(get(handles.Sname, 'String'));
-if size(tmp, 1) == 0
+if size(tmp,1) == 0
     warndlg('Please specify the source names'); return
 end
 k = 1;
@@ -373,11 +328,12 @@ Nmodes    = get(handles.Nmodes, 'Value');
 DCM.Sname = Sname;
 
 % switch for spatial forward model
+%--------------------------------------------------------------------------
 Spatial_type             = get(handles.Spatial_type, 'Value');
 DCM.options.Spatial_type = Spatial_type;
-DCM.M.Spatial_type       = Spatial_type;
 
 % read location coordinates
+%--------------------------------------------------------------------------
 Slocations = zeros(Nareas, 3);
 tmp        = get(handles.Slocation, 'String');
 if ~isempty(tmp) & size(tmp,1) == Nareas
@@ -397,26 +353,30 @@ else
 end
 if Spatial_type == 1
     try
-        f = DCM.M.dipfit.sensorfile;
+        DCM.M.dipfit.sensorfile;
     catch
-        errordlg('Please specify sensor location file'); return;
+        warndlg('Please specify sensor location file'); return;
     end
 elseif Spatial_type == 2
     try
-    DCM.M.grad = handles.grad;
+        handles.grad;
     catch
-        warndlg({'Grad. is not defined',...
-            'Please ensure this is MEG data'})
+        warndlg({'Grad. is not defined','Please ensure this is MEG data'})
         return
     end
 end
 
 % prepare forward model
+%--------------------------------------------------------------------------
+Vpos = str2num(get(handles.Vlocation,'String'))*ones(3,Nareas);
+Vpos = Vpos.^2;
+Vmom = 256*ones(3,Nareas);
+
 DCM                 = spm_dcm_erp_prepareSpatial(DCM);
 DCM.M.dipfit.L.pos  = Slocations';
-DCM.M.dipfit.L.mom  = zeros(3,Nareas);
-DCM.M.dipfit.L.Vpos = str2num(get(handles.Vlocation,'String'))*ones(3, Nareas);
-DCM.M.dipfit.L.Vmom = [128*ones(3, Nareas)];
+DCM.M.dipfit.L.mom  = sparse(3,Nareas);
+DCM.M.dipfit.L.Vpos = Vpos;
+DCM.M.dipfit.L.Vmom = Vmom;
 
 DCM.M.Lpos = NaN*DCM.M.dipfit.L.pos; %
 DCM.M.Lmom = NaN*DCM.M.dipfit.L.mom; %
@@ -434,31 +394,18 @@ set(handles.Vlocation,        'Enable', 'off');
 set(handles.connections,      'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
 
-% check whether user has already specified connections earlier
-try
-    if Nareas ~= handles.Nareas_old
-        reset_Callback(hObject, eventdata, handles);
-        try
-            handles.DCM = rmfield(handles.DCM,{'A','B','C'});
-        catch
-            handles.DCM = rmfield(handles.DCM,{'A','C'});
-        end
-    end
-end
-guidata(hObject, handles);
+% [re]-set connections
+%--------------------------------------------------------------------------
+handles = connections_Callback(hObject, eventdata, handles);
+guidata(hObject,handles);
 
-
-% --- Executes on button press in data_ok.
+%-Executes on button press in data_ok.
 %--------------------------------------------------------------------------
 function handles = data_ok_Callback(hObject, eventdata, handles)
-% hObject    handle to data_ok (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-DCM        = handles.DCM;
-Nresponses = length(DCM.Y.xy);
-if Nresponses == 0
-    errordlg('Please choose some data'); return;
+DCM    = handles.DCM;
+if length(DCM.Y.xy) == 0
+    errordlg('Please choose some trials'); return;
 end
 T1     = str2num(get(handles.T1, 'String'));
 T2     = str2num(get(handles.T2, 'String'));
@@ -466,16 +413,15 @@ if T2 <= T1
     warnldg('Second must be greater than first peri-stimulus time')
     return
 end
-Nchannels = size(DCM.Y.xy{1}, 2);
-Nmodes    = get(handles.Nmodes, 'Value');
 
 % show data
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm_dcm_erp_results(DCM, 'Response');
 DCM.options.data_ok = 1;
-handles.DCM = DCM;
+handles.DCM         = DCM;
 
 % enable next stage, disable data specification
+%--------------------------------------------------------------------------
 set(handles.Y,             'Enable', 'off');
 set(handles.Y1,            'Enable', 'off');
 set(handles.T1,            'Enable', 'off');
@@ -484,6 +430,7 @@ set(handles.Nmodes,        'Enable', 'off');
 set(handles.h,             'Enable', 'off');
 set(handles.D,             'Enable', 'off');
 set(handles.design,        'Enable', 'off');
+set(handles.Uname,         'Enable', 'off');
 set(handles.data_ok,       'Enable', 'off');
 set(handles.Spatial_type,  'Enable', 'on');
 set(handles.plot_dipoles,  'Enable', 'on');
@@ -508,12 +455,9 @@ set(handles.Vlocation,     'Enable', 'on');
 guidata(hObject, handles);
 
 
-% --- Executes on button press in spatial_back.
+%-Executes on button press in spatial_back.
 %----------------------------------------------------------------------
 function spatial_back_Callback(hObject, eventdata, handles)
-% hObject    handle to spatial_back (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 set(handles.Y,            'Enable', 'on');
 set(handles.Y1,           'Enable', 'on');
@@ -523,6 +467,7 @@ set(handles.Nmodes,       'Enable', 'on');
 set(handles.h,            'Enable', 'on');
 set(handles.D,            'Enable', 'on');
 set(handles.design,       'Enable', 'on');
+set(handles.Uname,        'Enable', 'on');
 set(handles.data_ok,      'Enable', 'on');
 set(handles.Spatial_type, 'Enable', 'off');
 set(handles.sensorfile,   'Enable', 'off');
@@ -534,14 +479,9 @@ set(handles.plot_dipoles, 'Enable', 'off');
 set(handles.Vlocation,    'Enable', 'off');
 guidata(hObject, handles);
 
-
-
-% --- Executes on button press in plot_dipoles.
+%-Executes on button press in plot_dipoles.
 %--------------------------------------------------------------------------
 function plot_dipoles_Callback(hObject, eventdata, handles)
-% hObject    handle to plot_dipoles (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 % read location coordinates
 tmp = get(handles.Slocation, 'String');
@@ -563,20 +503,28 @@ sdip.j{1}    = zeros(3*Nlocations, 1);
 sdip.loc{1}  = Slocations;
 spm_eeg_inv_ecd_DrawDip('Init', sdip)
 
-
 %-Connectivity
 %==========================================================================
-function varargout = connections_Callback(hObject, eventdata, handles, varargin)
+function handles = connections_Callback(hObject, eventdata, handles)
+
+% delete previous connection buttons
+%--------------------------------------------------------------------------
+reset_Callback(hObject, eventdata, handles);
+
 n = length(handles.DCM.Sname);    % number of sources
 m = size(handles.DCM.U.X,2);      % number of inputs
-if ~m
-    B             = {};
-    handles.DCM.B = B;
-end
 
-% reset connection buttons
+% no changes in coupling
 %--------------------------------------------------------------------------
-reset_Callback(hObject, eventdata, handles, varargin)
+if ~m, B = {}; handles.DCM.B = {}; end
+
+% check DCM.A, DCM.B, ...
+%--------------------------------------------------------------------------
+try
+if length(handle.DCM.A{1}) ~= n, handle.DCM = rmfield(handle.DCM,'A'); end
+if length(handle.DCM.B)    ~= m, handle.DCM = rmfield(handle.DCM,'B'); end
+if length(handle.DCM.C)    ~= n, handle.DCM = rmfield(handle.DCM,'C'); end
+end
 
 % connection buttons
 %--------------------------------------------------------------------------
@@ -682,15 +630,13 @@ handles.S = S;
 handles.A = A;
 handles.B = B;
 handles.C = C;
-set(handles.connections,'Enable','off')
-set(handles.reset,      'Enable','on' )
 set(handles.estimate,   'Enable','on');
 set(handles.initialise, 'Enable','on');
 guidata(hObject,handles)
 
 % remove existing buttons
 %--------------------------------------------------------------------------
-function varargout = reset_Callback(hObject, eventdata, handles, varargin)
+function reset_Callback(hObject, eventdata, handles)
 try
     for i = 1:length(handles.A)
         for j = 1:length(handles.A{i})
@@ -712,14 +658,10 @@ try
     for i = 1:length(handles.S)
         delete(handles.S(i));
     end
-    handles.DCM = rmfield(handles.DCM,{'A','B','C'});
-    handles     = rmfield(handles,{'A','B','C','S'});
-    guidata(hObject,handles)
-    
 end
 set(handles.connections,'Enable','on')
 
-% --- Executes on button press in connectivity_back.
+%-Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
 function connectivity_back_Callback(hObject, eventdata, handles)
 
@@ -739,9 +681,9 @@ set(handles.Vlocation,         'Enable', 'on');
 
 set(handles.connections,       'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
-set(handles.reset,             'Enable', 'off');
 
 % connection buttons
+%--------------------------------------------------------------------------
 try
     for i = 1:length(handles.A)
         for j = 1:length(handles.A{i})
@@ -761,10 +703,6 @@ try
         set(handles.C(i), 'Enable', 'off');
     end
 end
-% save old nr of areas
-handles.Nareas_old = size(handles.A{1}, 1);
-guidata(hObject,handles)
-
 
 %-Estimate, initalise and review
 %==========================================================================
@@ -773,22 +711,34 @@ guidata(hObject,handles)
 function varargout = estimate_Callback(hObject, eventdata, handles, varargin)
 set(handles.estimate,'String','Estimating','Foregroundcolor',[1 0 0])
 
-
-% get parameters and save
+% initialise if required
 % -------------------------------------------------------------------------
-handles     = save_Callback(hObject, eventdata, handles, varargin);
+try
+    Ep  = handles.DCM.Ep;
+    Str = questdlg('intialise with revious esimates');
+    if strcmp(Str,'Yes')
+        handles.DCM.M.P = Ep;
+    elseif strcmp(Str,'No')
+        handles.DCM.M.P = [];
+    elseif strcmp(Str,'Cancel')
+        return
+    end
+end
+
+% get filename and save
+% -------------------------------------------------------------------------
+handles     = save_Callback(hObject, eventdata, handles);
+
+% invert and save
+% -------------------------------------------------------------------------
 handles.DCM = spm_dcm_erp(handles.DCM);
 
 assignin('base','DCM',handles.DCM)
 guidata(hObject, handles);
 
-set(handles.results,    'Enable','on' )
-set(handles.save,       'Enable','on')
-set(handles.Y,          'Enable','off')
-set(handles.name,       'Enable','off')
-set(handles.swd,        'Enable','off')
-set(handles.reset,      'Enable','off')
-
+set(handles.results,  'Enable','on' )
+set(handles.save,     'Enable','on')
+set(handles.estimate, 'String','Estimated','Foregroundcolor',[0 0 0])
 
 % -------------------------------------------------------------------------
 function varargout = results_Callback(hObject, eventdata, handles, varargin)

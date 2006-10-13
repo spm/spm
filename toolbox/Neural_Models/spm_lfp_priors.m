@@ -138,8 +138,6 @@ M.n      = size(M.x,1);
 M.l      = size(pE.L,1);
 M.IS     = 'spm_int';
 
-M.Spatial_type = 3;
-
 if nargout == 1, varargout{1} = M; return, end
 
 % compute impulse response

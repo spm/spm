@@ -49,6 +49,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 
 global st
 global defaults
+warning off
 
 Fig     = spm_figure('FindWin');
 colors  = strvcat('y','b','g','r','c','m');              % 6 possible colors
@@ -518,7 +519,7 @@ st.vols{1}.sdip = sdip;
 otherwise,
 	warning('Unknown action string')
 end;
-
+warning on
 return;
 
 %________________________________________________________________________

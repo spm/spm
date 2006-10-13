@@ -26,15 +26,20 @@ function DCM = spm_dcm_erp(DCM)
 % check options 
 %==========================================================================
 
-% swd
+% Filename and options
 %--------------------------------------------------------------------------
-try, DCM.swd; cd(swd);       catch, DCM.swd = pwd;              end
-try, DCM.options.D;          catch, DCM.options.D = 1;          end
-try, DCM.options.h;          catch, DCM.options.h = 1;          end
-try, DCM.options.Nmodes;     catch, DCM.options.Nmodes = 4;     end
-try, DCM.options.Tdcm;       catch, 
-     DCM.options.Tdcm = [DCM.Y.Time(1) DCM.Y.Time(end)];        end
+try,   DCM.name;                 catch, DCM.name = 'DCM_ERP';  end
 
+try,   D  = DCM.options.D;       catch, D = 1;                 end
+try,   h  = DCM.options.h;       catch, h = 1;                 end
+try,   nm = DCM.options.Nmodes;  catch, nm = 4;                end
+try,   T1 = DCM.options.Tdcm(1); catch, T1 = DCM.Y.Time(1);    end
+try,   T2 = DCM.options.Tdcm(2); catch, T2 = DCM.Y.Time(end);  end
+
+% data type
+%--------------------------------------------------------------------------
+try,   DCM.M.Spatial_type = DCM.options.Spatial_type;
+catch, DCM.M.Spatial_type = 1;                                 end
 
 % Data
 %==========================================================================
@@ -47,14 +52,10 @@ nm      = DCM.options.Nmodes;               % number of modes
 
 % time window and bins for modelling
 %--------------------------------------------------------------------------
-T1      = DCM.options.Tdcm(1);
-T2      = DCM.options.Tdcm(2);
-D       = DCM.options.D;
 [m, T1] = min(abs(DCM.Y.Time - T1));
 [m, T2] = min(abs(DCM.Y.Time - T2));
 j       = [T1:D:T2]';                       % time bins
 xY.Time = DCM.Y.Time(j);                    % Time [ms] of downsampled data
-
 for i = 1:nt
     xY.xy{i} = DCM.Y.xy{i}(j,:);
 end
@@ -64,7 +65,6 @@ ns    = length(j);                          % number of time samples
 
 % confounds - DCT and Gamma functions
 %--------------------------------------------------------------------------
-h = DCM.options.h;
 if h == 0
     X0 = sparse(ns,1);
 else
@@ -139,7 +139,6 @@ for i = 1:8
     [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
     r            = y - R0*feval(M.IS,Qp,M,xU);
     
-    r     = y - R0*feval(M.IS,Qp,M,xU);
     if F < ML(end), break, end
 
     % Canonical feature selection
@@ -181,21 +180,21 @@ end
 
 % store estimates in DCM
 %--------------------------------------------------------------------------
-DCM.M    = M;                             % model specification
-DCM.xY   = xY;                            % data structure
-DCM.xU   = xU;                            % input structure
-DCM.Ep   = Qp;                            % conditional expectation
-DCM.Cp   = Cp;                            % conditional covariances
-DCM.Pp   = Pp;                            % conditional probability
-DCM.H    = H;                             % conditional responses (y), projected space
-DCM.Hc   = Hc;                            % conditional responses (y), channel space
-DCM.K    = K;                             % conditional responses (x)
-DCM.R    = E;                             % conditional residuals (y)
-DCM.Rc   = Ec;                            % conditional residuals (y), channel space
-DCM.Ce   = Ce;                            % ReML error covariance
-DCM.F    = F;                             % Laplace log evidence
+DCM.M    = M;                    % model specification
+DCM.xY   = xY;                   % data structure
+DCM.xU   = xU;                   % input structure
+DCM.Ep   = Qp;                   % conditional expectation
+DCM.Cp   = Cp;                   % conditional covariances
+DCM.Pp   = Pp;                   % conditional probability
+DCM.H    = H;                    % conditional responses (y), projected space
+DCM.Hc   = Hc;                   % conditional responses (y), channel space
+DCM.K    = K;                    % conditional responses (x)
+DCM.R    = E;                    % conditional residuals (y)
+DCM.Rc   = Ec;                   % conditional residuals (y), channel space
+DCM.Ce   = Ce;                   % ReML error covariance
+DCM.F    = F;                    % Laplace log evidence
 
 % and save
 %--------------------------------------------------------------------------
-save(['DCM', DCM.name],'DCM');
+save(DCM.name,'DCM');
 

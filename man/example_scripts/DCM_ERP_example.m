@@ -26,7 +26,7 @@ DCM.options.Tdcm(2) = 150; % end of peri-stimulus time to be modelled
 DCM.options.Nmodes = 3; % nr of modes for data selection
 DCM.options.h = 2; % nr of DCT components
 DCM.options.Spatial_type = 1; % spatial model is ECD/EEG (2: ECD/MEG, 3: fixed)
-DCM.M.onset = 15; % selection of onset (prior mean)
+DCM.M.onset = 60; % selection of onset (prior mean)
 %----------------------------------------------------------
 % data and observation level
 %----------------------------------------------------------
@@ -124,13 +124,9 @@ dipfit.L.Vmom = 8*ones(3,Nareas); % wide
 dipfit.L.VK = ones(size(dipfit.L.K)); % doesn't matter much
 
 DCM.M.dipfit = dipfit;
-DCM.M.E = DCM.E;
-DCM.M.L = DCM.L; 
+
 DCM.M.Lpos = NaN*dipfit.L.pos; % NaN forces spm_gx_erp to compute initial lead field
 DCM.M.Lmom = NaN*dipfit.L.mom; % NaN forces spm_gx_erp to compute initial lead field
-
-% make model type known
-DCM.M.Spatial_type = DCM.options.Spatial_type;
 
 % necessary for making GUI work
 DCM.options.data_ok = 1;
