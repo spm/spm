@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 541 2006-05-23 16:09:40Z volkmar $
+% $Id: spm_spm.m 649 2006-10-16 10:13:12Z volkmar $
 
-SCCSid   = '$Rev: 541 $';
+SCCSid   = '$Rev: 649 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -806,10 +806,12 @@ if ~isfield(xVi,'V')
     %-check there are signficant voxels
     %----------------------------------------------------------------------
     if ~s
+        spm('FigName','Stats: no sign voxels',Finter); spm('Pointer','Arrow')
+        figure(Finter);
+        plot(SPM.xGX.rg)
         warndlg({'Please check your data'; ...
                  'There are no significant voxels';...
                  'The globals are plotted for diagnosis'})
-        plot(SPM.xGX.rg)
         return
     end
 
