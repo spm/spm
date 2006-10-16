@@ -27,6 +27,9 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % M.pE - prior expectation  - E{P}
 % M.pC - prior covariance   - Cov{P}
 %
+% M.hE - prior expectation  - E{h}
+% M.hC - prior covariance   - Cov{h}
+%
 % U.u  - inputs
 % U.dt - sampling interval
 %
@@ -71,7 +74,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 645 2006-10-12 19:38:35Z karl $
+% $Id: spm_nlsi_GN.m 650 2006-10-16 13:36:04Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -137,6 +140,7 @@ try
 catch
     Y.dt = 1;
 end
+
  
 % data y
 %--------------------------------------------------------------------------
@@ -167,7 +171,23 @@ try
 catch
     dgdu = sparse(ns*nr,0);
 end
- 
+
+% hyperpriors - expectation
+%--------------------------------------------------------------------------
+try
+    hE = M.hE;
+catch
+    hE = sparse(nh,1) - 4;
+end
+
+% hyperpriors - covariance
+%--------------------------------------------------------------------------
+try
+    hP = inv(M.hC);
+catch
+    hP = eye(nh,nh)/4;
+end
+
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
 V     = spm_svd(pC,1e-8);
@@ -195,7 +215,6 @@ dv    = 1/128;
 t     = 64;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-hP    = eye(nh,nh)/16;
 for k = 1:128
  
  
@@ -255,7 +274,7 @@ for k = 1:128
         
         % add hyperpriors
         %------------------------------------------------------------------
-        dFdh  = dFdh  - hP*h;
+        dFdh  = dFdh  - hP*(h - hE);
         dFdhh = dFdhh - hP;
     
         % update ReML estimate

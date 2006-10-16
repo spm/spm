@@ -522,19 +522,21 @@ function handles = connections_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 reset_Callback(hObject, eventdata, handles);
 
-n = length(handles.DCM.Sname);    % number of sources
-m = size(handles.DCM.U.X,2);      % number of inputs
+DCM = handles.DCM;
+n   = length(DCM.Sname);    % number of sources
+m   = size(DCM.U.X,2);      % number of inputs
+
 
 % no changes in coupling
 %--------------------------------------------------------------------------
-if ~m, B = {}; handles.DCM.B = {}; end
+if ~m, B = {}; DCM.B = {}; end
 
 % check DCM.A, DCM.B, ...
 %--------------------------------------------------------------------------
 try
-if length(handle.DCM.A{1}) ~= n, handle.DCM = rmfield(handle.DCM,'A'); end
-if length(handle.DCM.B)    ~= m, handle.DCM = rmfield(handle.DCM,'B'); end
-if length(handle.DCM.C)    ~= n, handle.DCM = rmfield(handle.DCM,'C'); end
+    if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end
+    if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end
+    if length(DCM.C)    ~= n, DCM = rmfield(DCM,'C'); end
 end
 
 % connection buttons
@@ -562,9 +564,9 @@ for i = 1:n
                 set(A{k}(i,j),'Enable','off')
             end
             try
-                set(A{k}(i,j),'Value',handles.DCM.A{k}(i,j));
+                set(A{k}(i,j),'Value',DCM.A{k}(i,j));
             catch
-                handles.DCM.A{k}(i,j) = get(A{k}(i,j),'Value');
+                DCM.A{k}(i,j) = get(A{k}(i,j),'Value');
             end
         end
         for k = 1:m
@@ -582,9 +584,9 @@ for i = 1:n
                 set(B{k}(i,j),'Enable','off')
             end
             try
-                set(B{k}(i,j),'Value',handles.DCM.B{k}(i,j));
+                set(B{k}(i,j),'Value',DCM.B{k}(i,j));
             catch
-                handles.DCM.B{k}(i,j) = get(B{k}(i,j),'Value');
+                DCM.B{k}(i,j) = get(B{k}(i,j),'Value');
             end
         end
     end
@@ -601,9 +603,9 @@ for i = 1:n
         'Tag','',...
         'Callback',str);
     try
-        set(C(i),'Value',handles.DCM.C(i));
+        set(C(i),'Value',DCM.C(i));
     catch
-        handles.DCM.C(i,1) = get(C(i),'Value');
+        DCM.C(i,1) = get(C(i),'Value');
     end
 end
 
@@ -624,7 +626,7 @@ for k = 1:4
         'String',str,...
         'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
-constr         = handles.DCM.U.name;
+constr         = DCM.U.name;
 for k = 1:m
     x          = x0 + (k - 1)*nsx;
     y          = y0 - 6*sy - 2*(n + 1)*sy;
@@ -637,10 +639,11 @@ for k = 1:m
         'String',str,...
         'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
-handles.S = S;
-handles.A = A;
-handles.B = B;
-handles.C = C;
+handles.S   = S;
+handles.A   = A;
+handles.B   = B;
+handles.C   = C;
+handles.DCM = DCM;
 set(handles.estimate,   'Enable','on');
 set(handles.initialise, 'Enable','on');
 guidata(hObject,handles)
