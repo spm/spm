@@ -51,7 +51,7 @@ case{lower('ERPs (channel)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
     %--------------------------------------------------------------------
-    co = {'b', 'r'};
+    co = {'b', 'r', 'g', 'm', 'y', 'k'};
     lo = {'-', '--'};
     
     T    = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
@@ -149,7 +149,7 @@ case{lower('Coupling (A)')}
     
 case{lower('Coupling (C)')}
     
-    % spm_dcm_erp_results(DCM,'coupling (A)');
+    % spm_dcm_erp_results(DCM,'coupling (C)');
     %--------------------------------------------------------------------
     
     % images
@@ -157,14 +157,14 @@ case{lower('Coupling (C)')}
     subplot(2,4,1)
     imagesc(exp(DCM.Ep.C))
     title('Factors','FontSize',10)
-    set(gca,'XTick',[1:nu],'XTickLabel',DCM.U.name,'FontSize',8)
+    set(gca,'XTick',[1:nu],'XTickLabel','Input','FontSize',8)
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
     axis square
     
     subplot(2,4,3)
     imagesc(DCM.Pp.C)
     title('Factors','FontSize',10)
-    set(gca,'XTick',[1:nu],'XTickLabel',DCM.U.name,'FontSize',8)
+    set(gca,'XTick',[1:nu],'XTickLabel','Input','FontSize',8)
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
     axis square
     
@@ -183,6 +183,7 @@ case{lower('Coupling (C)')}
  
 case{lower('Coupling (B)')}
     
+    nu = nt-1; % nr of modulatory inputs
     % spm_dcm_erp_results(DCM,'coupling (B)');
     %--------------------------------------------------------------------
     for i = 1:nu

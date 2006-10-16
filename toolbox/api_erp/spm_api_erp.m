@@ -144,6 +144,12 @@ if p ~= 0
     DCM.M.onset = str2num(get(handles.onset,      'String'));
     DCM.name    = fullfile(p,f);
     set(handles.name,'String',DCM.name);
+    % change name/path variables
+    DCM.swd = p;
+    if strcmp(f(1:3), 'DCM')
+        DCM.name = spm_str_manip(f(4:end), 'r');
+    end
+    
     handles.DCM = DCM;
 
     save(DCM.name,          'DCM')
@@ -372,7 +378,12 @@ Vpos = str2num(get(handles.Vlocation,'String'))*ones(3,Nareas);
 Vpos = Vpos.^2;
 Vmom = 256*ones(3,Nareas);
 
-DCM                 = spm_dcm_erp_prepareSpatial(DCM);
+try
+    DCM.M.dipfit.MNIelc;
+catch
+    DCM = spm_dcm_erp_prepareSpatial(DCM);
+end
+
 DCM.M.dipfit.L.pos  = Slocations';
 DCM.M.dipfit.L.mom  = sparse(3,Nareas);
 DCM.M.dipfit.L.Vpos = Vpos;

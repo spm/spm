@@ -87,7 +87,7 @@ handles.Nt = size(handles.y_proj, 1);
 handles.yd = NaN*ones(handles.Nt, Nchannels);
 handles.ym = NaN*ones(handles.Nt, Nchannels);
 handles.yd(:, DCM.M.Ichannels) = handles.y_proj*DCM.M.E'; % data (back-projected to channel space)
-handles.ym(:, DCM.M.Ichannels) = [DCM.Hc{1}; DCM.Hc{2}]; % model fit
+handles.ym(:, DCM.M.Ichannels) = cat(1,DCM.Hc{:}); % model fit
 
 handles.CLim1 = min(min([handles.yd handles.ym]));
 handles.CLim2 = max(max([handles.yd handles.ym]));
@@ -183,41 +183,43 @@ function plot_modes(hObject, handles)
 % plot temporal expression of modes
 DCM = handles.DCM;
 Nt = size(DCM.Y.xy{1}, 1);
+Ntrials = length(DCM.H);
 
+xvalues = kron(ones(1, Ntrials), handles.ms);
 % data and model prediction, cond 1
 axes(handles.axes3); cla
-plot(handles.ms, handles.y_proj(1:Nt, :));
+plot(handles.y_proj);
 hold on
-plot(handles.ms, DCM.H{1}, '--');
-set(handles.axes3, 'XLim', [0 handles.ms(end)]);
+plot(cat(1, DCM.H{:}), '--');
+% set(handles.axes3, 'XLim', [0 handles.ms(end)]);
 set(handles.axes3, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
 xlabel('ms');
-title('ERP 1', 'FontSize', 16);
+title('temporal expressions of modes', 'FontSize', 16);
 grid on
-
-% data and model prediction, cond 2
-axes(handles.axes4); cla
-plot(handles.ms, handles.y_proj(Nt+1:end, :));
-hold on
-plot(handles.ms, handles.DCM.H{2}, '--');
-set(handles.axes4, 'XLim', [0 handles.ms(end)]);
-set(handles.axes4, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
-xlabel('ms');
-title('ERP 2', 'FontSize', 16);
-grid on
-
+% 
+% % data and model prediction, cond 2
+% axes(handles.axes4); cla
+% plot(handles.ms, handles.y_proj(Nt+1:end, :));
+% hold on
+% plot(handles.ms, handles.DCM.H{2}, '--');
+% set(handles.axes4, 'XLim', [0 handles.ms(end)]);
+% set(handles.axes4, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
+% xlabel('ms');
+% title('ERP 2', 'FontSize', 16);
+% grid on
+% 
 % time point indicator
-nt = length(handles.ms);
-T = handles.T;
-
-if T > nt
-    axes(handles.axes4);
-    T = T - nt;
-else
-    axes(handles.axes3);
-end
-
-plot([handles.ms(T) handles.ms(T)], [handles.CLim1_yp handles.CLim2_yp], 'k', 'LineWidth', 3);
+% nt = length(handles.ms);
+% T = handles.T;
+% 
+% if T > nt
+%     axes(handles.axes4);
+%     T = T - nt;
+% else
+%     axes(handles.axes3);
+% end
+% 
+% plot([handles.ms(T) handles.ms(T)], [handles.CLim1_yp handles.CLim2_yp], 'k', 'LineWidth', 3);
 
 %--------------------------------------------------------------------
 function plot_dipoles(hObject, handles)
