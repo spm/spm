@@ -9,8 +9,8 @@ function varargout = spm_list(varargin)
 %        - required fields are:
 % .swd   - SPM working directory - directory containing current SPM.mat
 % .Z     - minimum of n Statistics {filtered on u and k}
-% .n     - number of conjoint tests        
-% .STAT  - distribution {Z, T, X or F}     
+% .n     - number of conjoint tests
+% .STAT  - distribution {Z, T, X or F}
 % .df    - degrees of freedom [df{interest}, df{residual}]
 % .u     - height threshold
 % .k     - extent threshold {voxels}
@@ -18,7 +18,7 @@ function varargout = spm_list(varargin)
 % .XYZmm - location of voxels {mm}
 % .S     - search Volume {voxels}
 % .R     - search Volume {resels}
-% .FWHM  - smoothness {voxels}     
+% .FWHM  - smoothness {voxels}
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 % .Vspm  - mapped statistic image(s)
@@ -103,722 +103,708 @@ function varargout = spm_list(varargin)
 % providing options to print the current table as a text table, or to
 % extract the table data to the Matlab workspace.
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 596 2006-08-18 13:45:59Z volkmar $
+% $Id: spm_list.m 652 2006-10-17 16:51:32Z karl $
 
 
 
 % satellite figure global variable
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 global SatWindow
 
-%=======================================================================
+%==========================================================================
 switch lower(varargin{1}), case 'list'                            %-List
-%=======================================================================
+%==========================================================================
 % FORMAT TabDat = spm_list('list',SPM,hReg)
 
-%-Tolerance for p-value underflow, when computing equivalent Z's
-%-----------------------------------------------------------------------
-tol = eps*10;
+    %-Tolerance for p-value underflow, when computing equivalent Z's
+    %----------------------------------------------------------------------
+    tol = eps*10;
 
-%-Parse arguments and set maxima number and separation
-%-----------------------------------------------------------------------
-if nargin < 2,	error('insufficient arguments'),     end
-if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
-
-
-%-Get current location (to highlight selected voxel in table)
-%-----------------------------------------------------------------------
-xyzmm     = spm_results_ui('GetCoords');
-
-%-Extract data from xSPM
-%-----------------------------------------------------------------------
-S     = varargin{2}.S;
-VOX   = varargin{2}.VOX;
-DIM   = varargin{2}.DIM;
-n     = varargin{2}.n;
-STAT  = varargin{2}.STAT;
-df    = varargin{2}.df;
-u     = varargin{2}.u;
-M     = varargin{2}.M;
-k     = varargin{2}.k;
-QPs   = varargin{2}.Ps;
-try
-    thresDesc = sprintf('{%s}', varargin{2}.thresDesc);
-catch
-    thresDesc = '';
-end
+    %-Parse arguments and set maxima number and separation
+    %----------------------------------------------------------------------
+    if nargin < 2,	error('insufficient arguments'),     end
+    if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
 
 
-if STAT~='P'
-    R     = varargin{2}.R;
-    FWHM  = varargin{2}.FWHM;
-end
+    %-Get current location (to highlight selected voxel in table)
+    %----------------------------------------------------------------------
+    xyzmm     = spm_results_ui('GetCoords');
 
-try
-      global defaults
-      units = defaults.units;
-catch
-      units = {'mm'};
-end 
+    %-Extract data from xSPM
+    %----------------------------------------------------------------------
+    S     = varargin{2}.S;
+    VOX   = varargin{2}.VOX;
+    DIM   = varargin{2}.DIM;
+    n     = varargin{2}.n;
+    STAT  = varargin{2}.STAT;
+    df    = varargin{2}.df;
+    u     = varargin{2}.u;
+    M     = varargin{2}.M;
+    k     = varargin{2}.k;
+    QPs   = varargin{2}.Ps;
+    try
+        thresDesc = sprintf('{%s}', varargin{2}.thresDesc);
+    catch
+        thresDesc = '';
+    end
+    
+    if STAT~='P'
+        R     = varargin{2}.R;
+        FWHM  = varargin{2}.FWHM;
+    end
 
-DIM   = DIM > 1;				% dimensions
-VOX   = VOX(DIM);				% scaling
+    try
+        global defaults
+        units = defaults.units;
+    catch
+        units = {'mm' 'mm' 'mm'};
+    end
+    units{1} = [units{1} ' '];
+    units{2} = [units{2} ' '];
 
-if STAT~='P'
-    FWHM  = FWHM(DIM);				% Full width at max/2
-    FWmm  = FWHM.*VOX; 				% FWHM {units}
-    v2r   = 1/prod(FWHM);				% voxels to resels
-    k     = k*v2r;					% extent threshold in resels
-    R(find(~DIM) + 1) = [];				% eliminate null resel counts
-end
+    DIM   = DIM > 1;				% dimensions
+    VOX   = VOX(DIM);				% scaling
 
-QPs   = sort(QPs(:));				% Needed for FDR
+    if STAT~='P'
+        FWHM  = FWHM(DIM);			% Full width at max/2
+        FWmm  = FWHM.*VOX; 			% FWHM {units}
+        v2r   = 1/prod(FWHM);		% voxels to resels
+        k     = k*v2r;				% extent threshold in resels
+        R(find(~DIM) + 1) = [];		% eliminate null resel counts
+    end
 
-
-%-get number and separation for maxima to be reported
-%-----------------------------------------------------------------------
-if length(varargin) > 3
-
-	Num    = varargin{4};		% number of maxima per cluster
-	Dis    = varargin{5};		% distance among clusters (mm)
-else
-	Num    = 3;
-	Dis    = 8;
-end
-if length(varargin) > 5
-
-	Title  = varargin{6};
-else
-	Title  = 'p-values adjusted for search volume';
-end
-
-
-%-Setup graphics panel
-%-----------------------------------------------------------------------
-spm('Pointer','Watch')
-if SatWindow
-	Fgraph = SatWindow;
-	figure(Fgraph);
-else
-	Fgraph = spm_figure('GetWin','Graphics');
-end
-spm_results_ui('Clear',Fgraph)
-FS    = spm('FontSizes');			%-Scaled font sizes
-PF    = spm_platform('fonts');			%-Font names (for this platform)
+    QPs   = sort(QPs(:));			% Needed for FDR
 
 
-%-Table header & footer
-%=======================================================================
+    %-get number and separation for maxima to be reported
+    %----------------------------------------------------------------------
+    if length(varargin) > 3
+        Num    = varargin{4};		% number of maxima per cluster
+        Dis    = varargin{5};		% distance among clusters (mm)
+    else
+        Num    = 3;
+        Dis    = 8;
+    end
+    if length(varargin) > 5
+        Title  = varargin{6};
+    else
+        Title  = 'p-values adjusted for search volume';
+    end
 
-%-Table axes & Title
-%----------------------------------------------------------------------
-if SatWindow, ht = 0.85; bot = .14; else, ht = 0.4; bot = .1; end;
-
-if STAT == 'P'
-	Title = 'Posterior Probabilities';
-end
-	
-hAx   = axes('Position',[0.025 bot 0.9 ht],...
-	'DefaultTextFontSize',FS(8),...
-	'DefaultTextInterpreter','Tex',...
-	'DefaultTextVerticalAlignment','Baseline',...
-	'Units','points',...
-	'Visible','off');
-
-AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
-dy    = FS(9);
-y     = floor(AxPos(4)) - dy;
-
-text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',Title],...
-	'FontSize',FS(11),'FontWeight','Bold');	y = y - dy/2;
-line([0 1],[y y],'LineWidth',3,'Color','r'),	y = y - 9*dy/8;
-
-
-%-Construct table header
-%-----------------------------------------------------------------------
-set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
-
-Hc = [];
-Hp = [];
-h  = text(0.01,y,	'set-level','FontSize',FS(9));		Hc = [Hc,h];
-h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');	Hc = [Hc,h];
-h  = text(0.08,y-9*dy/8,	'\itc ');			Hc = [Hc,h];
-h  = text(0.02,y-9*dy/8,	'\itp ');			Hc = [Hc,h];
-								Hp = [Hp,h];
-text(0.22,y,		'cluster-level','FontSize',FS(9));
-line([0.15,0.41],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
-h  = text(0.16,y-9*dy/8,	'\itp \rm_{corrected}');	Hp = [Hp,h];
-h  = text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
-h  = text(0.26,y-9*dy/8,	'\itk \rm_E');
-
-text(0.60,y,		'voxel-level','FontSize',FS(9));
-line([0.46,0.86],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
-h  = text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}');		Hp = [Hp,h];
-h  = text(0.55,y-9*dy/8,        '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
-h  = text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
-h  = text(0.64,y-9*dy/8,	 sprintf('\\it%c',STAT));
-h  = text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)');
-
-text(0.93,y - dy/2,['x,y,z \fontsize{',num2str(FS(8)),'}\{mm\}']);
+    %-Setup graphics panel
+    %----------------------------------------------------------------------
+    spm('Pointer','Watch')
+    if SatWindow
+        Fgraph = SatWindow;
+        figure(Fgraph);
+    else
+        Fgraph = spm_figure('GetWin','Graphics');
+    end
+    spm_results_ui('Clear',Fgraph)
+    FS    = spm('FontSizes');			%-Scaled font sizes
+    PF    = spm_platform('fonts');	    %-Font names (for this platform)
 
 
-%-Headers for text table...
-%-----------------------------------------------------------------------
-TabDat.tit = Title;
-TabDat.hdr = {	'set',		'c';...
-		'set',		'p';...
-		'cluster',	'p(cor)';...
-		'cluster',	'equivk';...
-		'cluster',	'p(unc)';...
-		'voxel',	'p(FWE-cor)';...
-		'voxel',	'p(FDR-cor)';...
-		'voxel',	 STAT;...
-		'voxel',	'equivZ';...
-		'voxel',	'p(unc)';...
-		'',		'x,y,z {mm}'}';...
-		
-TabDat.fmt = {	'%-0.3f','%g',...				%-Set
-		'%0.3f', '%0.0f', '%0.3f',...			%-Cluster
-		'%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...	%-Voxel
-		'%3.0f %3.0f %3.0f'};				%-XYZ
+    %-Table header & footer
+    %======================================================================
 
-%-Column Locations
-%-----------------------------------------------------------------------
-tCol       = [  0.00      0.07 ...				%-Set
-	        0.16      0.26      0.34 ...			%-Cluster
-	        0.46      0.55      0.62      0.71      0.80 ...%-Voxel
-                0.92];						%-XYZ
+    %-Table axes & Title
+    %----------------------------------------------------------------------
+    if SatWindow, ht = 0.85; bot = .14; else, ht = 0.4; bot = .1; end;
 
-% move to next vertial postion marker
-%-----------------------------------------------------------------------
-y     = y - 7*dy/4;
-line([0 1],[y y],'LineWidth',1,'Color','r')
-y     = y - 5*dy/4;
-y0    = y;
+    if STAT == 'P'
+        Title = 'Posterior Probabilities';
+    end
 
+    hAx   = axes('Position',[0.025 bot 0.9 ht],...
+                'DefaultTextFontSize',FS(8),...
+                'DefaultTextInterpreter','Tex',...
+                'DefaultTextVerticalAlignment','Baseline',...
+                'Units','points',...
+                'Visible','off');
 
-%-Table filtering note
-%-----------------------------------------------------------------------
-if isinf(Num)
-	TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
-else
-	TabDat.str = sprintf(['table shows %d local maxima ',...
-		'more than %.1fmm apart'],Num,Dis);
-end
-text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
-    'FontSize',FS(8),'FontAngle','Italic')
+    AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
+    dy    = FS(9);
+    y     = floor(AxPos(4)) - dy;
 
+    text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',Title],...
+              'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
+    line([0 1],[y y],'LineWidth',3,'Color','r'),        y = y - 9*dy/8;
 
-%-Volume, resels and smoothness (if classical inference)
-%-----------------------------------------------------------------------
-line([0 1],[0 0],'LineWidth',1,'Color','r')
-if STAT ~= 'P'
-%-----------------------------------------------------------------------
-Pz              = spm_P(1,0,u,df,STAT,1,n,S);
-Pu              = spm_P(1,0,u,df,STAT,R,n,S);
-Qu              = spm_P_FDR(u,df,STAT,n,QPs);
-[P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
+    %-Construct table header
+    %----------------------------------------------------------------------
+    set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
-%-Footnote with SPM parameters
-%-----------------------------------------------------------------------
-set(gca,'DefaultTextFontName',PF.helvetica,...
-	'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
-TabDat.ftr    = cell(5,2);
-TabDat.ftr{1} = ...
-	sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f) %s',...
-		 STAT,u,Pz,Pu,thresDesc);
-TabDat.ftr{2} = ...
-	sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)',...
-	         k/v2r,Pn,P);
-TabDat.ftr{3} = ...
-	sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
-TabDat.ftr{4} = ...
-	sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
-TabDat.ftr{5} = ...
-	sprintf('Expected false discovery rate, <= %0.2f',Qu);
-TabDat.ftr{6} = ...
-	sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
-TabDat.ftr{7} = ...
-	['FWHM = ' sprintf('%0.1f ', FWmm) units{:} '; ' ...
-                   sprintf('%0.1f ', FWHM) '{voxels}; '];
-TabDat.ftr{8} = ...
-	sprintf('Volume: %0.0f; %0.0f voxels; %0.1f resels', ...
-                 S*prod(VOX),S,R(end));
-TabDat.ftr{9} = ...
-	['Voxel size: ' sprintf('%0.1f ',VOX) units{:} '; ' ...
-	  sprintf('(resel = %0.2f voxels)',prod(FWHM))];
+    Hc = [];
+    Hp = [];
+    h  = text(0.01,y,	'set-level','FontSize',FS(9)); Hc = [Hc,h];
+    h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');	Hc = [Hc,h];
+    h  = text(0.08,y-9*dy/8,	'\itc ');			   Hc = [Hc,h];
+    h  = text(0.02,y-9*dy/8,	'\itp ');			   Hc = [Hc,h];
+    Hp = [Hp,h];
+    text(0.22,y,		'cluster-level','FontSize',FS(9));
+    line([0.15,0.41],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h  = text(0.16,y-9*dy/8,	'\itp \rm_{corrected}');	Hp = [Hp,h];
+    h  = text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
+    h  = text(0.26,y-9*dy/8,	'\itk \rm_E');
 
-text(0.0,-1*dy,TabDat.ftr{1},...
-	'UserData',[u,Pz,Pu,Qu],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-2*dy,TabDat.ftr{2},...
-	'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-3*dy,TabDat.ftr{3},...
-	'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-4*dy,TabDat.ftr{4},...
-	'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.0,-5*dy,TabDat.ftr{5},...
-	'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-1*dy,TabDat.ftr{6},...
-	'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-2*dy,TabDat.ftr{7},...
-	'UserData',FWmm,'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-3*dy,TabDat.ftr{8},...
-	'UserData',[S*prod(VOX),S,R(end)],...
-	'ButtonDownFcn','get(gcbo,''UserData'')')
-text(0.5,-4*dy,TabDat.ftr{9},...
-	'UserData',[VOX,prod(FWHM)],...
-	'ButtonDownFcn','get(gcbo,''UserData'')')
-else
-TabDat.ftr = {};
-end 
+    text(0.60,y,		'voxel-level','FontSize',FS(9));
+    line([0.46,0.86],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h  = text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}');		Hp = [Hp,h];
+    h  = text(0.55,y-9*dy/8,        '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
+    h  = text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
+    h  = text(0.64,y-9*dy/8,	 sprintf('\\it%c',STAT));
+    h  = text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)');
+
+    text(0.93,y - dy/2,[units{:}],'Fontsize',FS(8));
 
 
-%-Characterize excursion set in terms of maxima
-% (sorted on Z values and grouped by regions)
-%=======================================================================
-if ~length(varargin{2}.Z)
-	text(0.5,y-6*dy,'no suprathreshold clusters',...
-		'HorizontalAlignment','Center',...
-		'FontAngle','Italic','FontWeight','Bold',...
-		'FontSize',FS(16),'Color',[1,1,1]*.5);
-	TabDat.dat = cell(0,11);
-	varargout  = {TabDat};
-	spm('Pointer','Arrow')
-	return
-end
+    %-Headers for text table...
+    %-----------------------------------------------------------------------
+    TabDat.tit = Title;
+    TabDat.hdr = {	'set',		'c';...
+        'set',		'p';...
+        'cluster',	'p(cor)';...
+        'cluster',	'equivk';...
+        'cluster',	'p(unc)';...
+        'voxel',	'p(FWE-cor)';...
+        'voxel',	'p(FDR-cor)';...
+        'voxel',	 STAT;...
+        'voxel',	'equivZ';...
+        'voxel',	'p(unc)';...
+        '',		'x,y,z {mm}'}';...
 
-% Includes Darren Gitelman's code for working around
-% spm_max for conjunctions with negative thresholds
-%-----------------------------------------------------------------------
-minz        = abs(min(min(varargin{2}.Z)));
-zscores     = 1 + minz + varargin{2}.Z;
-[N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
-Z           = Z - minz - 1;
+    TabDat.fmt = {	'%-0.3f','%g',...				           %-Set
+        '%0.3f', '%0.0f', '%0.3f',...			               %-Cluster
+        '%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...	       %-Voxel
+        '%3.0f %3.0f %3.0f'};				                   %-XYZ
 
-%-Convert cluster sizes from voxels to resels
-%-----------------------------------------------------------------------
-if STAT~='P'
-  if isfield(varargin{2},'VRvp')
-	V2R = spm_get_data(varargin{2}.VRvp,XYZ);
-  else
-	V2R = v2r;
-  end
-  N           = N.*V2R;
-end
+    %-Column Locations
+    %----------------------------------------------------------------------
+    tCol = [ 0.00      0.07 ...				                   %-Set
+             0.16      0.26      0.34 ...			           %-Cluster
+             0.46      0.55      0.62      0.71      0.80 ...  %-Voxel
+            0.92];						                       %-XYZ
 
-%-Convert maxima locations from voxels to mm
-%-----------------------------------------------------------------------
-XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+    % move to next vertial postion marker
+    %----------------------------------------------------------------------
+    y     = y - 7*dy/4;
+    line([0 1],[y y],'LineWidth',1,'Color','r')
+    y     = y - 5*dy/4;
+    y0    = y;
 
 
-
-%-Table proper (& note all data in cell array)
-%=======================================================================
-
-%-Pagination variables
-%-----------------------------------------------------------------------
-hPage = [];
-set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
-
-
-%-Set-level p values {c} - do not display if reporting a single cluster
-%-----------------------------------------------------------------------
-c     = max(A);					%-Number of clusters
-if STAT ~= 'P'
-	Pc    = spm_P(c,k,u,df,STAT,R,n,S);	%-Set-level p-value
-else
-	Pc    = [];
-	set(Hp,'Visible','off')
-end
-
-if c > 1;
-	h     = text(tCol(1),y,sprintf(TabDat.fmt{1},Pc),'FontWeight','Bold',...
-		'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = text(tCol(2),y,sprintf(TabDat.fmt{2},c),'FontWeight','Bold',...
-		'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-else
-	set(Hc,'Visible','off')
-end
-
-TabDat.dat = {Pc,c};				%-Table data
-TabLin     = 1;					%-Table data line
+    %-Table filtering note
+    %-----------------------------------------------------------------------
+    if isinf(Num)
+        TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
+    else
+        TabDat.str = sprintf(['table shows %d local maxima ',...
+            'more than %.1fmm apart'],Num,Dis);
+    end
+    text(0.5,4,TabDat.str,'HorizontalAlignment','Center','FontName',PF.helvetica,...
+        'FontSize',FS(8),'FontAngle','Italic')
 
 
-%-Local maxima p-values & statistics
-%-----------------------------------------------------------------------
-HlistXYZ = [];
-while prod(size(find(finite(Z))))
+    %-Volume, resels and smoothness (if classical inference)
+    %-----------------------------------------------------------------------
+    line([0 1],[0 0],'LineWidth',1,'Color','r')
+    if STAT ~= 'P'
+        %-----------------------------------------------------------------------
+        Pz              = spm_P(1,0,u,df,STAT,1,n,S);
+        Pu              = spm_P(1,0,u,df,STAT,R,n,S);
+        Qu              = spm_P_FDR(u,df,STAT,n,QPs);
+        [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
 
-	% Paginate if necessary
-	%---------------------------------------------------------------
-	if y < min(Num + 1,3)*dy
+        %-Footnote with SPM parameters
+        %-----------------------------------------------------------------------
+        set(gca,'DefaultTextFontName',PF.helvetica,...
+            'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
+        TabDat.ftr    = cell(5,2);
+        TabDat.ftr{1} = ...
+            sprintf('Height threshold: %c = %0.2f, p = %0.3f (%0.3f) %s',...
+            STAT,u,Pz,Pu,thresDesc);
+        TabDat.ftr{2} = ...
+            sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)',...
+            k/v2r,Pn,P);
+        TabDat.ftr{3} = ...
+            sprintf('Expected voxels per cluster, <k> = %0.3f',En/v2r);
+        TabDat.ftr{4} = ...
+            sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
+        TabDat.ftr{5} = ...
+            sprintf('Expected false discovery rate, <= %0.2f',Qu);
+        TabDat.ftr{6} = ...
+            sprintf('Degrees of freedom = [%0.1f, %0.1f]',df);
+        TabDat.ftr{7} = ...
+            ['FWHM = ' sprintf('%0.1f ', FWmm) units{:} '; ' ...
+            sprintf('%0.1f ', FWHM) '{voxels}; '];
+        TabDat.ftr{8} = ...
+            sprintf('Volume: %0.0f; %0.0f voxels; %0.1f resels', ...
+            S*prod(VOX),S,R(end));
+        TabDat.ftr{9} = ...
+            ['Voxel size: ' sprintf('%0.1f ',VOX) units{:} '; ' ...
+            sprintf('(resel = %0.2f voxels)',prod(FWHM))];
 
-		% added Fgraph term to paginate on Satellite window
-		%-------------------------------------------------------
-		h     = text(0.5,-5*dy,...
-			sprintf('Page %d',spm_figure('#page',Fgraph)),...
-			'FontName',PF.helvetica,'FontAngle','Italic',...
-			'FontSize',FS(8));
+        text(0.0,-1*dy,TabDat.ftr{1},...
+            'UserData',[u,Pz,Pu,Qu],'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.0,-2*dy,TabDat.ftr{2},...
+            'UserData',[k/v2r,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.0,-3*dy,TabDat.ftr{3},...
+            'UserData',En/v2r,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.0,-4*dy,TabDat.ftr{4},...
+            'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.0,-5*dy,TabDat.ftr{5},...
+            'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-1*dy,TabDat.ftr{6},...
+            'UserData',df,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-2*dy,TabDat.ftr{7},...
+            'UserData',FWmm,'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-3*dy,TabDat.ftr{8},...
+            'UserData',[S*prod(VOX),S,R(end)],...
+            'ButtonDownFcn','get(gcbo,''UserData'')')
+        text(0.5,-4*dy,TabDat.ftr{9},...
+            'UserData',[VOX,prod(FWHM)],...
+            'ButtonDownFcn','get(gcbo,''UserData'')')
+    else
+        TabDat.ftr = {};
+    end
 
-		spm_figure('NewPage',[hPage,h])
-		hPage = [];
-		y     = y0;
-	end
 
-    	%-Find largest remaining local maximum
-    	%---------------------------------------------------------------
-	[U,i]   = max(Z);			% largest maxima
-	j       = find(A == A(i));		% maxima in cluster
+    %-Characterize excursion set in terms of maxima
+    % (sorted on Z values and grouped by regions)
+    %======================================================================
+    if ~length(varargin{2}.Z)
+        text(0.5,y-6*dy,'no suprathreshold clusters',...
+            'HorizontalAlignment','Center',...
+            'FontAngle','Italic','FontWeight','Bold',...
+            'FontSize',FS(16),'Color',[1,1,1]*.5);
+        TabDat.dat = cell(0,11);
+        varargout  = {TabDat};
+        spm('Pointer','Arrow')
+        return
+    end
 
+    % Includes Darren Gitelman's code for working around
+    % spm_max for conjunctions with negative thresholds
+    %----------------------------------------------------------------------
+    minz        = abs(min(min(varargin{2}.Z)));
+    zscores     = 1 + minz + varargin{2}.Z;
+    [N Z XYZ A] = spm_max(zscores,varargin{2}.XYZ);
+    Z           = Z - minz - 1;
 
-    	%-Compute cluster {k} and voxel-level {u} p values for this cluster
-    	%---------------------------------------------------------------
-	if STAT~='P'
-           Nv= N(i)/v2r;			% extent        {voxels}
+    %-Convert cluster sizes from voxels to resels
+    %----------------------------------------------------------------------
+    if STAT~='P'
+        if isfield(varargin{2},'VRvp')
+            V2R = spm_get_data(varargin{2}.VRvp,XYZ);
         else
-           Nv =N(i);
+            V2R = v2r;
+        end
+        N           = N.*V2R;
+    end
+
+    %-Convert maxima locations from voxels to mm
+    %----------------------------------------------------------------------
+    XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+
+
+
+    %-Table proper (& note all data in cell array)
+    %======================================================================
+
+    %-Pagination variables
+    %----------------------------------------------------------------------
+    hPage = [];
+    set(gca,'DefaultTextFontName',PF.courier,'DefaultTextFontSize',FS(7))
+
+
+    %-Set-level p values {c} - do not display if reporting a single cluster
+    %----------------------------------------------------------------------
+    c     = max(A);					                   %-Number of clusters
+    if STAT ~= 'P'
+        Pc    = spm_P(c,k,u,df,STAT,R,n,S);            %-Set-level p-value
+    else
+        Pc    = [];
+        set(Hp,'Visible','off')
+    end
+
+    if c > 1;
+        h     = text(tCol(1),y,sprintf(TabDat.fmt{1},Pc),'FontWeight','Bold',...
+            'UserData',Pc,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = text(tCol(2),y,sprintf(TabDat.fmt{2},c),'FontWeight','Bold',...
+            'UserData',c,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+    else
+        set(Hc,'Visible','off')
+    end
+
+    TabDat.dat = {Pc,c};			%-Table data
+    TabLin     = 1;					%-Table data line
+
+
+    %-Local maxima p-values & statistics
+    %----------------------------------------------------------------------
+    HlistXYZ = [];
+    while prod(size(find(finite(Z))))
+
+        % Paginate if necessary
+        %------------------------------------------------------------------
+        if y < min(Num + 1,3)*dy
+
+            % added Fgraph term to paginate on Satellite window
+            %--------------------------------------------------------------
+            h     = text(0.5,-5*dy,...
+                sprintf('Page %d',spm_figure('#page',Fgraph)),...
+                'FontName',PF.helvetica,'FontAngle','Italic',...
+                'FontSize',FS(8));
+
+            spm_figure('NewPage',[hPage,h])
+            hPage = [];
+            y     = y0;
+        end
+
+        %-Find largest remaining local maximum
+        %------------------------------------------------------------------
+        [U,i]   = max(Z);			% largest maxima
+        j       = find(A == A(i));		% maxima in cluster
+
+
+        %-Compute cluster {k} and voxel-level {u} p values for this cluster
+        %-------------------------------------------------------------------
+        if STAT~='P'
+            Nv= N(i)/v2r;			% extent {voxels}
+        else
+            Nv =N(i);
+        end
+
+        if STAT ~= 'P'
+            Pz      = spm_P(1,0,   U,df,STAT,1,n,S);  % uncorrected p value
+            Pu      = spm_P(1,0,   U,df,STAT,R,n,S);  % FWE-corrected {based on Z)
+            Qu      = spm_P_FDR(   U,df,STAT,n,QPs);  % FDR-corrected {based on Z)
+            [Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n,S);  % [un]corrected {based on k)
+
+            if Pz < tol				                  % Equivalent Z-variate
+                Ze  = Inf;	 			              % (underflow => can't compute)
+            else
+                Ze  = spm_invNcdf(1 - Pz);
+            end
+        else
+            Pz	= [];
+            Pu      = [];
+            Qu      = [];
+            Pk	= [];
+            Pn	= [];
+            Ze      = spm_invNcdf(U);
         end
 
 
-	if STAT ~= 'P'
-	Pz      = spm_P(1,0,   U,df,STAT,1,n,S);% uncorrected p value
-	Pu      = spm_P(1,0,   U,df,STAT,R,n,S);% FWE-corrected {based on Z)
-	Qu      = spm_P_FDR(   U,df,STAT,n,QPs);% FDR-corrected {based on Z)
-	[Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n,S);% [un]corrected {based on k)
+        %-Print cluster and maximum voxel-level p values {Z}
+        %---------------------------------------------------------------
+        h     = text(tCol(3),y,sprintf(TabDat.fmt{3},Pk),'FontWeight','Bold',...
+            'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
 
-	if Pz < tol				% Equivalent Z-variate
-	    Ze  = Inf;	 			% (underflow => can't compute)
-	else
-	    Ze  = spm_invNcdf(1 - Pz);
-	end
-	else
-		Pz	= [];
-		Pu      = [];
-		Qu      = [];
-		Pk	= [];
-		Pn	= [];
-		Ze      = spm_invNcdf(U);
-	end
+        h     = text(tCol(4),y,sprintf(TabDat.fmt{4},Nv),'FontWeight','Bold',...
+            'UserData',Nv,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = text(tCol(5),y,sprintf(TabDat.fmt{5},Pn),'FontWeight','Bold',...
+            'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
 
+        h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pu),'FontWeight','Bold',...
+            'UserData',Pu,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Qu),'FontWeight','Bold',...
+            'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = text(tCol(8),y,sprintf(TabDat.fmt{8},U),'FontWeight','Bold',...
+            'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Ze),'FontWeight','Bold',...
+            'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
+        h     = ...
+            text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),'FontWeight','Bold',...
+            'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
+        hPage = [hPage, h];
 
-	%-Print cluster and maximum voxel-level p values {Z}
-    	%---------------------------------------------------------------
-	h     = text(tCol(3),y,sprintf(TabDat.fmt{3},Pk),'FontWeight','Bold',...
-		'UserData',Pk,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
+        % Specifically changed so it properly finds hMIPax
+        %------------------------------------------------------------------
+        h     = text(tCol(11),y,sprintf(TabDat.fmt{11},XYZmm(:,i)),...
+            'FontWeight','Bold',...
+            'Tag','ListXYZ',...
+            'ButtonDownFcn',[...
+            'hMIPax = findobj(''tag'',''hMIPax'');',...
+            'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),hMIPax);'],...
+            'Interruptible','off','BusyAction','Cancel',...
+            'UserData',XYZmm(:,i));
 
-	h     = text(tCol(4),y,sprintf(TabDat.fmt{4},Nv),'FontWeight','Bold',...
-		'UserData',Nv,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = text(tCol(5),y,sprintf(TabDat.fmt{5},Pn),'FontWeight','Bold',...
-		'UserData',Pn,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
+        HlistXYZ = [HlistXYZ, h];
+        if spm_XYZreg('Edist',xyzmm,XYZmm(:,i))<tol & ~isempty(hReg)
+            set(h,'Color','r')
+        end
+        hPage  = [hPage, h];
 
-	h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pu),'FontWeight','Bold',...
-		'UserData',Pu,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Qu),'FontWeight','Bold',...
-		'UserData',Qu,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = text(tCol(8),y,sprintf(TabDat.fmt{8},U),'FontWeight','Bold',...
-		'UserData',U,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Ze),'FontWeight','Bold',...
-		'UserData',Ze,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
-	h     = ...
-	text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),'FontWeight','Bold',...
-		'UserData',Pz,'ButtonDownFcn','get(gcbo,''UserData'')');
-	hPage = [hPage, h];
+        y      = y - dy;
 
-	% Specifically changed so it properly finds hMIPax
-	%---------------------------------------------------------------------
-	h     = text(tCol(11),y,sprintf(TabDat.fmt{11},XYZmm(:,i)),...
-		'FontWeight','Bold',...
-		'Tag','ListXYZ',...
-		'ButtonDownFcn',[...
-		'hMIPax = findobj(''tag'',''hMIPax'');',...
-		'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),hMIPax);'],...
-		'Interruptible','off','BusyAction','Cancel',...
-		'UserData',XYZmm(:,i));
+        [TabDat.dat{TabLin,3:11}] = deal(Pk,Nv,Pn,Pu,Qu,U,Ze,Pz,XYZmm(:,i));
+        TabLin = TabLin + 1;
 
-	HlistXYZ = [HlistXYZ, h];
-	if spm_XYZreg('Edist',xyzmm,XYZmm(:,i))<tol & ~isempty(hReg)
-		set(h,'Color','r')
-	end
-	hPage  = [hPage, h];
- 
-	y      = y - dy;
-	
-	[TabDat.dat{TabLin,3:11}] = deal(Pk,Nv,Pn,Pu,Qu,U,Ze,Pz,XYZmm(:,i));
-	TabLin = TabLin + 1;
+        %-Print Num secondary maxima (> Dis mm apart)
+        %------------------------------------------------------------------
+        [l q] = sort(-Z(j));				% sort on Z value
+        D     = i;
+        for i = 1:length(q)
+            d = j(q(i));
+            if min(sqrt(sum((XYZmm(:,D)-XYZmm(:,d)*ones(1,size(D,2))).^2)))>Dis;
 
-	%-Print Num secondary maxima (> Dis mm apart)
-    	%---------------------------------------------------------------
-	[l q] = sort(-Z(j));				% sort on Z value
-	D     = i;
-	for i = 1:length(q)
-	    d = j(q(i));
-	    if min(sqrt(sum((XYZmm(:,D)-XYZmm(:,d)*ones(1,size(D,2))).^2)))>Dis;
+                if length(D) < Num
 
-		if length(D) < Num
-			
-			% Paginate if necessary
-			%-----------------------------------------------
-			if y < dy	
-				h = text(0.5,-5*dy,sprintf('Page %d',...
-					spm_figure('#page',Fgraph)),...
-					'FontName',PF.helvetica,...
-					'FontAngle','Italic',...
-					'FontSize',FS(8));
+                    % Paginate if necessary
+                    %------------------------------------------------------
+                    if y < dy
+                        h = text(0.5,-5*dy,sprintf('Page %d',...
+                            spm_figure('#page',Fgraph)),...
+                            'FontName',PF.helvetica,...
+                            'FontAngle','Italic',...
+                            'FontSize',FS(8));
 
-				spm_figure('NewPage',[hPage,h])
-				hPage = [];
-				y     = y0;
-			end
+                        spm_figure('NewPage',[hPage,h])
+                        hPage = [];
+                        y     = y0;
+                    end
 
-			% voxel-level p values {Z}
-			%-----------------------------------------------
-			if STAT ~= 'P'
-				Pz    = spm_P(1,0,Z(d),df,STAT,1,n,S);
-				Pu    = spm_P(1,0,Z(d),df,STAT,R,n,S);
-				Qu    = spm_P_FDR(Z(d),df,STAT,n,QPs);
-				if Pz < tol
-					Ze = Inf;
-				else,   Ze = spm_invNcdf(1 - Pz); end
-			else
-				Pz    = [];
-				Pu    = [];
-				Qu    = [];
-				Ze    = spm_invNcdf(Z(d));
-			end
+                    % voxel-level p values {Z}
+                    %------------------------------------------------------
+                    if STAT ~= 'P'
+                        Pz    = spm_P(1,0,Z(d),df,STAT,1,n,S);
+                        Pu    = spm_P(1,0,Z(d),df,STAT,R,n,S);
+                        Qu    = spm_P_FDR(Z(d),df,STAT,n,QPs);
+                        if Pz < tol
+                            Ze = Inf;
+                        else,   Ze = spm_invNcdf(1 - Pz); end
+                    else
+                        Pz    = [];
+                        Pu    = [];
+                        Qu    = [];
+                        Ze    = spm_invNcdf(Z(d));
+                    end
 
-			h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pu),...
-				'UserData',Pu,...
-				'ButtonDownFcn','get(gcbo,''UserData'')');
-			hPage = [hPage, h];
+                    h     = text(tCol(6),y,sprintf(TabDat.fmt{6},Pu),...
+                        'UserData',Pu,...
+                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    hPage = [hPage, h];
 
-			h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Qu),...
-				'UserData',Qu,...
-				'ButtonDownFcn','get(gcbo,''UserData'')');
-			hPage = [hPage, h];
-			h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Z(d)),...
-				'UserData',Z(d),...
-				'ButtonDownFcn','get(gcbo,''UserData'')');
-			hPage = [hPage, h];
-			h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Ze),...
-				'UserData',Ze,...
-				'ButtonDownFcn','get(gcbo,''UserData'')');
-			hPage = [hPage, h];
-			h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),...
-				'UserData',Pz,...
-				'ButtonDownFcn','get(gcbo,''UserData'')');
-			hPage = [hPage, h];
+                    h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Qu),...
+                        'UserData',Qu,...
+                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    hPage = [hPage, h];
+                    h     = text(tCol(8),y,sprintf(TabDat.fmt{8},Z(d)),...
+                        'UserData',Z(d),...
+                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    hPage = [hPage, h];
+                    h     = text(tCol(9),y,sprintf(TabDat.fmt{9},Ze),...
+                        'UserData',Ze,...
+                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    hPage = [hPage, h];
+                    h     = text(tCol(10),y,sprintf(TabDat.fmt{10},Pz),...
+                        'UserData',Pz,...
+                        'ButtonDownFcn','get(gcbo,''UserData'')');
+                    hPage = [hPage, h];
 
-			% specifically modified line to use hMIPax
-			%-----------------------------------------------
-			h     = text(tCol(11),y,...
-				sprintf(TabDat.fmt{11},XYZmm(:,d)),...
-				'Tag','ListXYZ',...
-				'ButtonDownFcn',[...
-				    'hMIPax = findobj(''tag'',''hMIPax'');',...
-				    'spm_mip_ui(''SetCoords'',',...
-				    'get(gcbo,''UserData''),hMIPax);'],...
-				'Interruptible','off','BusyAction','Cancel',...
-				'UserData',XYZmm(:,d));
+                    % specifically modified line to use hMIPax
+                    %------------------------------------------------------
+                    h     = text(tCol(11),y,...
+                        sprintf(TabDat.fmt{11},XYZmm(:,d)),...
+                        'Tag','ListXYZ',...
+                        'ButtonDownFcn',[...
+                        'hMIPax = findobj(''tag'',''hMIPax'');',...
+                        'spm_mip_ui(''SetCoords'',',...
+                        'get(gcbo,''UserData''),hMIPax);'],...
+                        'Interruptible','off','BusyAction','Cancel',...
+                        'UserData',XYZmm(:,d));
 
-			HlistXYZ = [HlistXYZ, h];
-			if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ...
-				~isempty(hReg)
-				set(h,'Color','r')
-			end
-			hPage = [hPage, h];
-			D     = [D d];
-			y     = y - dy;
-			[TabDat.dat{TabLin,6:11}] = ...
-				deal(Pu,Qu,Z(d),Ze,Pz,XYZmm(:,d));
-			TabLin = TabLin+1;
-		end
-	    end
-	end
-	Z(j) = NaN;		% Set local maxima to NaN
-end				% end region
+                    HlistXYZ = [HlistXYZ, h];
+                    if spm_XYZreg('Edist',xyzmm,XYZmm(:,d))<tol & ...
+                            ~isempty(hReg)
+                        set(h,'Color','r')
+                    end
+                    hPage = [hPage, h];
+                    D     = [D d];
+                    y     = y - dy;
+                    [TabDat.dat{TabLin,6:11}] = ...
+                        deal(Pu,Qu,Z(d),Ze,Pz,XYZmm(:,d));
+                    TabLin = TabLin+1;
+                end
+            end
+        end
+        Z(j) = NaN;		% Set local maxima to NaN
+    end				% end region
 
 
-%-Number and register last page (if paginated)
-%-Changed to use Fgraph for numbering
-%-----------------------------------------------------------------------
-if spm_figure('#page',Fgraph)>1
-	h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
-		'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
-	spm_figure('NewPage',[hPage,h])
-end
+    %-Number and register last page (if paginated)
+    %-Changed to use Fgraph for numbering
+    %----------------------------------------------------------------------
+    if spm_figure('#page',Fgraph)>1
+        h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
+            'FontName',PF.helvetica,'FontSize',FS(8),'FontAngle','Italic');
+        spm_figure('NewPage',[hPage,h])
+    end
 
-%-End: Store TabDat in UserData of axes & reset pointer
-%=======================================================================
-h      = uicontextmenu('Tag','TabDat',...
-		'UserData',TabDat);
-set(gca,'UIContextMenu',h,...
-	'Visible','on',...
-	'XColor','w','YColor','w')
-uimenu(h,'Label','Table')
-uimenu(h,'Separator','on','Label','Print text table',...
-	'Tag','TD_TxtTab',...
-	'CallBack',...
-	'spm_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
-	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','off','Label','Extract table data structure',...
-	'Tag','TD_Xdat',...
-	'CallBack','get(get(gcbo,''Parent''),''UserData'')',...
-	'Interruptible','off','BusyAction','Cancel');
-uimenu(h,'Separator','on','Label','help',...
-	'Tag','TD_Xdat',...
-	'CallBack','spm_help(''spm_list'')',...
-	'Interruptible','off','BusyAction','Cancel');
+    %-End: Store TabDat in UserData of axes & reset pointer
+    %======================================================================
+    h      = uicontextmenu('Tag','TabDat',...
+        'UserData',TabDat);
+    set(gca,'UIContextMenu',h,...
+        'Visible','on',...
+        'XColor','w','YColor','w')
+    uimenu(h,'Label','Table')
+    uimenu(h,'Separator','on','Label','Print text table',...
+        'Tag','TD_TxtTab',...
+        'CallBack',...
+        'spm_list(''txtlist'',get(get(gcbo,''Parent''),''UserData''),3)',...
+        'Interruptible','off','BusyAction','Cancel');
+    uimenu(h,'Separator','off','Label','Extract table data structure',...
+        'Tag','TD_Xdat',...
+        'CallBack','get(get(gcbo,''Parent''),''UserData'')',...
+        'Interruptible','off','BusyAction','Cancel');
+    uimenu(h,'Separator','on','Label','help',...
+        'Tag','TD_Xdat',...
+        'CallBack','spm_help(''spm_list'')',...
+        'Interruptible','off','BusyAction','Cancel');
 
-%-Setup registry
-%-----------------------------------------------------------------------
-set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ))
-spm_XYZreg('Add2Reg',hReg,hAx,'spm_list');
+    %-Setup registry
+    %----------------------------------------------------------------------
+    set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ))
+    spm_XYZreg('Add2Reg',hReg,hAx,'spm_list');
 
-%-Return TabDat structure & reset pointer
-%-----------------------------------------------------------------------
-varargout = {TabDat};
-spm('Pointer','Arrow')
-
-
+    %-Return TabDat structure & reset pointer
+    %----------------------------------------------------------------------
+    varargout = {TabDat};
+    spm('Pointer','Arrow')
 
 
+    %======================================================================
+    case 'listcluster'                      %-List for current cluster only
+    %======================================================================
+    % FORMAT TabDat = spm_list('listcluster',SPM,hReg)
 
-%=======================================================================
-case 'listcluster'                       %-List for current cluster only
-%=======================================================================
-% FORMAT TabDat = spm_list('listcluster',SPM,hReg)
+        spm('Pointer','Watch')
 
-spm('Pointer','Watch')
+        %-Parse arguments
+        %------------------------------------------------------------------
+        if nargin < 2,	error('insufficient arguments'),     end
+        if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
+        SPM    = varargin{2};
 
-%-Parse arguments
-%-----------------------------------------------------------------------
-if nargin < 2,	error('insufficient arguments'),     end
-if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
-SPM    = varargin{2};
+        %-get number and separation for maxima to be reported
+        %------------------------------------------------------------------
+        if length(varargin) > 3
 
-%-get number and separation for maxima to be reported
-%-----------------------------------------------------------------------
-if length(varargin) > 3
-
-	Num    = varargin{4};		% number of maxima per cluster
-	Dis    = varargin{5};		% distance among clusters (mm)
-else
-	Num    = 32;
-	Dis    = 4;
-end
-
-
-%-if there are suprathreshold voxels, filter out all but current cluster
-%-----------------------------------------------------------------------
-if length(SPM.Z)
-
-	%-Jump to voxel nearest current location
-	%--------------------------------------------------------------
-	[xyzmm,i] = spm_XYZreg('NearestXYZ',...
-			spm_results_ui('GetCoords'),SPM.XYZmm);
-	spm_results_ui('SetCoords',SPM.XYZmm(:,i));
-	
-	%-Find selected cluster
-	%--------------------------------------------------------------
-	A         = spm_clusters(SPM.XYZ);
-	j         = find(A == A(i));
-	SPM.Z     = SPM.Z(j);
-	SPM.XYZ   = SPM.XYZ(:,j);
-	SPM.XYZmm = SPM.XYZmm(:,j);
-	if isfield(SPM,'Rd'), SPM.Rd = SPM.Rd(:,j); end
-end
-
-%-Call 'list' functionality to produce table
-%-----------------------------------------------------------------------
-varargout = {spm_list('list',SPM,hReg,Num,Dis)};
+            Num    = varargin{4};		% number of maxima per cluster
+            Dis    = varargin{5};		% distance among clusters (mm)
+        else
+            Num    = 32;
+            Dis    = 4;
+        end
 
 
+        %-if there are suprathreshold voxels, filter out all but current cluster
+        %------------------------------------------------------------------
+        if length(SPM.Z)
+
+            %-Jump to voxel nearest current location
+            %--------------------------------------------------------------
+            [xyzmm,i] = spm_XYZreg('NearestXYZ',...
+                spm_results_ui('GetCoords'),SPM.XYZmm);
+            spm_results_ui('SetCoords',SPM.XYZmm(:,i));
+
+            %-Find selected cluster
+            %--------------------------------------------------------------
+            A         = spm_clusters(SPM.XYZ);
+            j         = find(A == A(i));
+            SPM.Z     = SPM.Z(j);
+            SPM.XYZ   = SPM.XYZ(:,j);
+            SPM.XYZmm = SPM.XYZmm(:,j);
+            if isfield(SPM,'Rd'), SPM.Rd = SPM.Rd(:,j); end
+        end
+
+        %-Call 'list' functionality to produce table
+        %------------------------------------------------------------------
+        varargout = {spm_list('list',SPM,hReg,Num,Dis)};
 
 
+    %======================================================================
+    case 'txtlist'                                 %-Print ASCII text table
+    %======================================================================
+    % FORMAT spm_list('TxtList',TabDat,c)
 
-%=======================================================================
-case 'txtlist'                                  %-Print ASCII text table
-%=======================================================================
-% FORMAT spm_list('TxtList',TabDat,c)
+        if nargin<2, error('Insufficient arguments'), end
+        if nargin<3, c=1; else, c=varargin{3}; end
+        TabDat = varargin{2};
 
-if nargin<2, error('Insufficient arguments'), end
-if nargin<3, c=1; else, c=varargin{3}; end
-TabDat = varargin{2};
+        %-Table Title
+        %------------------------------------------------------------------
+        fprintf('\n\nSTATISTICS: %s\n',TabDat.tit)
+        fprintf('%c',repmat('=',1,80)), fprintf('\n')
 
-%-Table Title
-%-----------------------------------------------------------------------
-fprintf('\n\nSTATISTICS: %s\n',TabDat.tit)
-fprintf('%c',repmat('=',1,80)), fprintf('\n')
+        %-Table header
+        %------------------------------------------------------------------
+        fprintf('%s\t',TabDat.hdr{1,c:end-1}), fprintf('%s\n',TabDat.hdr{1,end})
+        fprintf('%s\t',TabDat.hdr{2,c:end-1}), fprintf('%s\n',TabDat.hdr{2,end})
+        fprintf('%c',repmat('-',1,80)), fprintf('\n')
 
-%-Table header
-%-----------------------------------------------------------------------
-fprintf('%s\t',TabDat.hdr{1,c:end-1}), fprintf('%s\n',TabDat.hdr{1,end})
-fprintf('%s\t',TabDat.hdr{2,c:end-1}), fprintf('%s\n',TabDat.hdr{2,end})
-fprintf('%c',repmat('-',1,80)), fprintf('\n')
+        %-Table data
+        %------------------------------------------------------------------
+        for i = 1:size(TabDat.dat,1)
+            for j=c:size(TabDat.dat,2)
+                fprintf(TabDat.fmt{j},TabDat.dat{i,j})
+                fprintf('\t')
+            end
+            fprintf('\n')
+        end
+        for i=1:max(1,11-size(TabDat.dat,1)), fprintf('\n'), end
+        fprintf('%s\n',TabDat.str)
+        fprintf('%c',repmat('-',1,80)), fprintf('\n')
 
-%-Table data
-%-----------------------------------------------------------------------
-for i = 1:size(TabDat.dat,1)
-	for j=c:size(TabDat.dat,2)
-		fprintf(TabDat.fmt{j},TabDat.dat{i,j})
-		fprintf('\t')
-	end
-	fprintf('\n')
-end
-for i=1:max(1,11-size(TabDat.dat,1)), fprintf('\n'), end
-fprintf('%s\n',TabDat.str)
-fprintf('%c',repmat('-',1,80)), fprintf('\n')
-
-%-Table footer
-%-----------------------------------------------------------------------
-fprintf('%s\n',TabDat.ftr{:})
-fprintf('%c',repmat('=',1,80)), fprintf('\n\n')
+        %-Table footer
+        %------------------------------------------------------------------
+        fprintf('%s\n',TabDat.ftr{:})
+        fprintf('%c',repmat('=',1,80)), fprintf('\n\n')
 
 
 
-%=======================================================================
-case 'setcoords'                                    %-Co-ordinate change
-%=======================================================================
-% FORMAT spm_list('SetCoords',xyz,hAx,hReg)
-if nargin<3, error('Insufficient arguments'), end
-hAx      = varargin{3};
-xyz      = varargin{2};
-UD       = get(hAx,'UserData');
-HlistXYZ = UD.HlistXYZ(ishandle(UD.HlistXYZ));
+        %==================================================================
+    case 'setcoords'                                   %-Co-ordinate change
+        %==================================================================
+        % FORMAT spm_list('SetCoords',xyz,hAx,hReg)
+        if nargin<3, error('Insufficient arguments'), end
+        hAx      = varargin{3};
+        xyz      = varargin{2};
+        UD       = get(hAx,'UserData');
+        HlistXYZ = UD.HlistXYZ(ishandle(UD.HlistXYZ));
 
-%-Set all co-ord strings to black
-%-----------------------------------------------------------------------
-set(HlistXYZ,'Color','k')
+        %-Set all co-ord strings to black
+        %------------------------------------------------------------------
+        set(HlistXYZ,'Color','k')
 
-%-If co-ord matches a string, highlight it in red
-%-----------------------------------------------------------------------
-XYZ      = get(HlistXYZ,'UserData');
-if iscell(XYZ), XYZ = cat(2,XYZ{:}); end
-[null,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ);
-if d<eps
-	set(HlistXYZ(i),'Color','r')
-end
+        %-If co-ord matches a string, highlight it in red
+        %------------------------------------------------------------------
+        XYZ      = get(HlistXYZ,'UserData');
+        if iscell(XYZ), XYZ = cat(2,XYZ{:}); end
+        [null,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ);
+        if d<eps
+            set(HlistXYZ(i),'Color','r')
+        end
 
-
-%=======================================================================
-otherwise                                        %-Unknown action string
-%=======================================================================
-error('Unknown action string')
-
-
-%=======================================================================
+        %==================================================================
+    otherwise                                       %-Unknown action string
+        %==================================================================
+        error('Unknown action string')
 end
 %=======================================================================

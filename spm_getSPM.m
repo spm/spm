@@ -159,15 +159,11 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 596 2006-08-18 13:45:59Z volkmar $
+% $Id: spm_getSPM.m 652 2006-10-17 16:51:32Z karl $
 
-
-
-SCCSid = '$Rev: 596 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SPMid  = spm('SFnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',mfilename)
 
 %-Select SPM.mat & note SPM results directory
@@ -189,24 +185,70 @@ end
 SPM.swd = swd;
 
 %-Get volumetric data from SPM.mat
+%=======================================================================
+% Dimensions: X: -68:68, Y: -100:72, Z: -42:82 DIM: [136; 172; 124]
+
+% adjust volumetrics if this is non-Talairach data
+%-----------------------------------------------------------------------
+global defaults
+
+% voxel-to-space mapping
+%-----------------------------------------------------------------------
+q   = SPM.xVol.M - speye(4,4);
+
+
+% 3-D case
+%-----------------------------------------------------------------------
+if ~any(q(:))
+    
+    % map x and y into anatomical space and make z a %
+    %-------------------------------------------------------------------
+    D   = [136; 172; 100];
+    C   = [68;  100; 0];
+    D   = SPM.xVol.DIM./D;
+    C   = D.*C;
+    iM  = [D(1) 0    0    C(1);
+           0    D(2) 0    C(2);
+           0    0    D(3) C(3);
+           0    0    0      1];
+
+    SPM.xVol.iM = iM;
+    SPM.xVol.M  = inv(iM);
+
+    % re-set units
+    %-------------------------------------------------------------------
+    defaults.units = {'mm' 'mm' '%'};
+else
+    defaults.units = {'mm' 'mm' 'mm'};
+end
+
+% 2-D case
+%-----------------------------------------------------------------------
+if  SPM.xVol.DIM(3) == 1
+    
+    defaults.units = {'mm' 'mm' ''};
+    
+end
+
+% get volumetrics
 %-----------------------------------------------------------------------
 try
     if strcmp(spm('CheckModality'), 'EEG') & isfield(SPM.xX, 'fullrank')
         Vbeta = SPM.Vbeta;
     else
-        xX   = SPM.xX;				%-Design definition structure
+        xX   = SPM.xX;				    %-Design definition structure
         XYZ  = SPM.xVol.XYZ;			%-XYZ coordinates
-        S    = SPM.xVol.S;			%-search Volume {voxels}
-        R    = SPM.xVol.R;			%-search Volume {resels}
+        S    = SPM.xVol.S;			    %-search Volume {voxels}
+        R    = SPM.xVol.R;			    %-search Volume {resels}
         M    = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
         VOX  = sqrt(diag(M'*M))';		%-voxel dimensions
     end
 catch
     
 	% check the model has been estimated
-	%---------------------------------------------------------------
+	%-------------------------------------------------------------------
 	str = {	'This model has not been estimated.';...
-		'Would you like to estimate it now?'};
+		    'Would you like to estimate it now?'};
 	if spm_input(str,1,'bd','yes|no',[1,0],1)
 		[SPM] = spm_spm(SPM);
 	else
@@ -429,9 +471,9 @@ end
 %=======================================================================
 SPM.xCon = xCon;
 if ~isfield(SPM.xX, 'fullrank')
-    SPM = spm_contrasts(SPM, unique([Ic, Im]));
+    SPM  = spm_contrasts(SPM, unique([Ic, Im]));
 else
-    SPM = spm_eeg_contrasts_conv(SPM, unique([Ic, Im]));
+    SPM  = spm_eeg_contrasts_conv(SPM, unique([Ic, Im]));
     xSPM = [];
     return;
 end
@@ -545,13 +587,13 @@ if STAT ~= 'P'
 	case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
 	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc(u,df,STAT,R,n,S);
 
 	case 'FDR' % False discovery rate
 	%---------------------------------------------------------------	
 	u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
 
 	otherwise  %-NB: no adjustment
@@ -637,7 +679,8 @@ end
 
 %-Assemble output structures of unfiltered data
 %=======================================================================
-xSPM   = struct('swd',		swd,...
+xSPM   = struct( ...
+        'swd',		swd,...
 		'title',	titlestr,...
 		'Z',		Z,...
 		'n',		n,...
@@ -661,7 +704,7 @@ xSPM   = struct('swd',		swd,...
 		'VOX',		VOX,...
 		'Vspm',		VspmSv,...
 		'Ps',		Ps,...
-                'thresDesc',    thresDesc);
+        'thresDesc',thresDesc);
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------

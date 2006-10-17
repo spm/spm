@@ -13,13 +13,13 @@ function I = spm_grid(I)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_grid.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_grid.m 652 2006-10-17 16:51:32Z karl $
 
 
 %---------------------------------------------------------------------------
 global defaults
 if ~isempty(defaults) & isfield(defaults,'grid'),
-	GRID = defaults.grid;
+	GRID = defaults.grid/4;
 else,
 	return;
 end;

@@ -1,10 +1,9 @@
-function spm_mip(Z,XYZ,M,DIM)
+function spm_mip(Z,XYZ,M)
 % SPM maximum intensity projection
-% FORMAT spm_mip(Z,XYZ,M,DIM);
-% Z       - {1 x ?} vector point list of SPM values for MIP
-% XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
-% M       - voxels - > mm matrix
-% DIM     - image dimensions {voxels}
+% FORMAT spm_mip(Z,XYZ,M);
+% Z       - vector point list of SPM values for MIP
+% XYZ     - matrix of coordinates of points (Talairach coordinates)
+% M       - voxels - > mm matrix or size of voxels (mm)
 %_______________________________________________________________________
 %
 % If the data are 2 dimensional [DIM(3) = 1] the projection is simply an
@@ -13,94 +12,88 @@ function spm_mip(Z,XYZ,M,DIM)
 % spm_mip creates and displays a maximum intensity projection of a point
 % list of voxel values (Z) and their location (XYZ) in three orthogonal
 % views of the brain.  It is assumed voxel locations conform to the space
-% defined in the atlas of Talairach and Tournoux (1988).
+% defined in the atlas of Talairach and Tournoux (1988); unless the third
+% dimnesion is time.
 %
 % This routine loads a mip putline from MIP.mat. This is an image with
 % contours and grids defining the space of Talairach & Tournoux (1988).
-% mip95 corresponds to the Talairach atlas, mip96 to the MNI templates.
+% mip05 corresponds to the Talairach atlas, mip96 to the MNI templates.
 % The outline and grid are superimposed at intensity defaults.grid,
-% defaulting to 0.6.
+% defaulting to 0.4.
 %
 % A default colormap of 64 levels is assumed. The pointlist image is
 % scaled to fit in the interval [0.25,1]*64 for display. Flat images
 % are scaled to 1*64.
 %
-%_______________________________________________________________________
+% If M or DIM are not specified, it is assumed the XYZ locations are
+% in Talairach mm.
+%
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 488 2006-03-30 11:59:54Z john $
-
-
+% $Id: spm_mip.m 652 2006-10-17 16:51:32Z karl $
 
 %-Get GRID value
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 global defaults
-try
-	GRID  = defaults.grid;
-catch
-	GRID  = 0.6;
-end
-try
-	units = defaults.units;
-catch
-	units = {'mm' 'mm' 'mm'};
-end
+try, GRID  = defaults.grid;  catch, GRID  = 0.4;              end
+try, units = defaults.units; catch, units = {'mm' 'mm' 'mm'}; end
+
+% transpose locations if necessary
+%--------------------------------------------------------------------------
+if size(XYZ,1) ~= 3, XYZ = XYZ';         end
+if size(Z,1)   ~= 1, Z   = Z';           end
+if size(M,1)   == 1, M   = speye(4,4)*M; end
 
 %-Scale & offset point list values to fit in [0.25,1]
-%-----------------------------------------------------------------------
-Z    = Z(:)';
-Z    = Z - min(Z);
-m    = max(Z);
+%==========================================================================
+Z   = Z - min(Z);
+m   = max(Z);
 if isempty(m),
-	Z = [];
+    Z = [];
 elseif finite(m),
-	Z = (1 + 3*Z/m)/4;
+    Z = (1 + 3*Z/m)/4;
 else
-	Z = ones(1,length(Z));
+    Z = ones(1,length(Z));
 end
+
+%-Display format
+%==========================================================================
+load('MIP.mat');
 
 %-Single slice case
-%=======================================================================
-if DIM(3) == 1,
-        set(gca,'Position',[0.08 0.62 0.48 0.32])
-	IJK = round(M\[XYZ; ones(1,size(XYZ,2))]);
-	MIP = full(sparse(IJK(1,:),IJK(2,:),Z,DIM(1),DIM(2)));
-	MIP = (1 - MIP'/max(MIP(:)))*64;
-        x   = M(1:2,1:2)*[1 DIM(1); 1 DIM(2)];
-	image([x(1,1) x(1,2)],[x(2,1) x(2,2)],MIP);
-        axis xy
-        xlabel(units{1})
-	axis tight
-        set(gca,'XTick',[],'YTick',[],'XTickLabel',[],'YTickLabel',[])
-	return
+%--------------------------------------------------------------------------
+if isempty(units{3})
+
+    %-3d case; Load mip and create maximum intensity projection
+    %----------------------------------------------------------------------
+    mip = 4*grid_trans + mask_trans;
+        
+elseif units{3} == '%'
+    
+    %-3d case: Space-time
+    %----------------------------------------------------------------------
+    mip = 4*grid_time + mask_trans;
+
+else
+    %-3d case: Space
+    %----------------------------------------------------------------------
+    mip = 4*grid_all + mask_all;
 end
 
-%-3d case
-%=======================================================================
-%-Load mip and create maximum intensity projection
-%-----------------------------------------------------------------------
-try,
-    load('MIP.mat');
-catch,
-    fprintf('\nCan not read the file "MIP.mat".\n');
-    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
-        fprintf('This may  be because of the way that the .tar.gz files\n');
-        fprintf('were unpacked  when  the SPM software  was  installed.\n');
-        fprintf('If installing on a Windows platform, then the software\n');
-        fprintf('used  for  unpacking may  try to  be clever and insert\n');
-        fprintf('additional  unwanted control  characters.   If you use\n');
-        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
-        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
-        fprintf('Configuration Options).\n\n');
-    end;
-    error(lasterr);
-end;
-
-mip  = mip96*GRID;
-c    = [0 0 0 ; 0 0 1 ; 0 1 0 ; 0 1 1 
-	1 0 0 ; 1 0 1 ; 1 1 0 ; 1 1 1] - 0.5;
-c    = (M(1:3,1:3)*c')';
+%-3d case; Load mip and create maximum intensity projection
+%----------------------------------------------------------------------
+mip  = mip/max(mip(:));
+c    = [0 0 0 ;
+        0 0 1 ;
+        0 1 0 ;
+        0 1 1 ;
+        1 0 0 ;
+        1 0 1 ; 
+        1 1 0 ; 
+        1 1 1 ] - 0.5;
+c    = c*M(1:3,1:3);
 dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim);
 mip  = max(d,mip);
