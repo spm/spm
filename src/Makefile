@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 481 2006-03-15 11:10:28Z john $
+# $Id: Makefile 651 2006-10-17 10:32:23Z john $
 #
 ###############################################################################
 #
@@ -91,6 +91,14 @@ ifndef SUF
     SUF       = mexmac
     CFLAGS    = -DBIGENDIAN
     MEXOPTS   = -O -DBIGENDIAN
+  endif
+  # mac intel
+  ifeq (Darwin.intel,$(PLATFORM))
+    # See http://en.wikibooks.org/wiki/SPM-Installation_on_Mac_OS
+    #
+    SUF       = mexmaci
+    CFLAGS    = 
+    MEXOPTS   = -O 
   endif
   # See Matthew Brett's web page on mex files for Windows:
   # http://gnumex.sourceforge.net/
@@ -436,6 +444,13 @@ verb.mexmac:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (MacOS X) - using $(CC)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexmaci:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Unix compilation (MacOS X Intel) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 

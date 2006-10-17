@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 570 2006-07-05 14:29:24Z john $
+% $Id: spm_preproc.m 651 2006-10-17 10:32:23Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -26,7 +26,7 @@ opts0.tpm   = char(...
                fullfile(dir,'tpm','grey.nii'),...
                fullfile(dir,'tpm','white.nii'),...
                fullfile(dir,'tpm','csf.nii'));
-opts0.ngaus    = [3 2 2 5];
+opts0.ngaus    = [2 2 2 4];
 opts0.warpreg  = 1;
 opts0.warpco   = 25;
 opts0.biasreg  = 0.0001;

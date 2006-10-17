@@ -56,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_platform.m 651 2006-10-17 10:32:23Z john $
 
 
 
@@ -155,6 +155,7 @@ if nargin<1, comp=computer; end
 PDefs = {	'PCWIN',	'win',	0;...
 		'PCWIN64',	'win',  0;...
 		'MAC',		'unx',	1;...
+		'MACI',		'unx',	0;...
 		'SUN4',		'unx',	1;...
 		'SOL2',		'unx',	1;...
 		'HP700',	'unx',	1;...
@@ -231,7 +232,7 @@ case {'SOL2'}	%-Some Sol2 platforms give segmentation violations with Helvetica
 	PLATFORM.font.times     = 'Times';
 	PLATFORM.font.courier   = 'Courier';
 	PLATFORM.font.symbol    = 'Symbol';
-case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC'}
+case {'SUN4','SOL2','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC','MACI'}
 	PLATFORM.font.helvetica = 'Helvetica';
 	PLATFORM.font.times     = 'Times';
 	PLATFORM.font.courier   = 'Courier';
