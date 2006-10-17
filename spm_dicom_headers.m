@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 625 2006-09-15 15:29:51Z john $
+% $Id: spm_dicom_headers.m 653 2006-10-17 16:59:13Z john $
 
 
 dict = readdict;
@@ -489,7 +489,7 @@ if n>128 || n < 0,
 end;
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 for i=1:n,
-    t(i).name    = fread(fp,64,'char')';
+    t(i).name    = fread(fp,64,'uint8')';
     msk          = find(~t(i).name)-1;
     if ~isempty(msk),
         t(i).name    = char(t(i).name(1:msk(1)));
@@ -497,7 +497,7 @@ for i=1:n,
         t(i).name    = char(t(i).name);
     end;
     t(i).vm      = fread(fp,1,'int32')';
-    t(i).vr      = fread(fp,4,'char')';
+    t(i).vr      = fread(fp,4,'uint8')';
     t(i).vr      = char(t(i).vr(1:3));
     t(i).syngodt = fread(fp,1,'int32')';
     t(i).nitems  = fread(fp,1,'int32')';
