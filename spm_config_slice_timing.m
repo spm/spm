@@ -4,7 +4,7 @@ function opts = spm_config_slice_timing
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_slice_timing.m 595 2006-08-18 13:39:46Z volkmar $
+% $Id: spm_config_slice_timing.m 654 2006-10-17 17:17:27Z john $
 
 % ---------------------------------------------------------------------
 scans.type = 'files';
@@ -175,8 +175,10 @@ return;
 % ---------------------------------------------------------------------
 function vf = vfiles(varargin)
 job = varargin{1};
-vf  = cell(numel([job.scans{:}]),1);
-n = 1;
+n   = 0;
+for i=1:numel(job.scans), n = n + numel(job.scans{i}); end;
+vf  = cell(n,1);
+n   = 1;
 for i=1:numel(job.scans),
     for j = 1:numel(job.scans{i})
     [pth,nam,ext,num] = spm_fileparts(job.scans{i}{j});
