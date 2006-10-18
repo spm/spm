@@ -14,7 +14,7 @@ function D = spm_eeg_inv_meshing(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_meshing.m 656 2006-10-18 19:00:10Z karl $
 
 spm_defaults
 
@@ -138,7 +138,7 @@ function Mdist = spm_eeg_inv_meshdist(vert,face)
 Nv = length(vert);
 Nf = length(face);
 
-edge = zeros(Nv);
+edge  = sparse(Nv,Nv);
 for i = 1:size(face,1);
     Diff  = [vert(face(i,[1 2 3]),:) - vert(face(i,[2 3 1]),:)];
     EuclD = sqrt( sum(Diff.^2, 2) );
