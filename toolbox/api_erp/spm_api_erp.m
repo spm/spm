@@ -53,13 +53,15 @@ end
 % -------------------------------------------------------------------------
 function varargout = load_Callback(hObject, eventdata, handles, varargin)
 try
-    [f,p]       = uigetfile('DCM*.mat','please select DCM');
+    [f,p]       = uigetfile('*.mat','please select DCM file');
     name        = fullfile(p,f);
     DCM         = load(name,'-mat');
     DCM         = DCM.DCM;
     DCM.name    = name;
     handles.DCM = DCM;
     guidata(hObject,handles);
+catch
+    return;
 end
 
 % Filename
@@ -166,15 +168,17 @@ guidata(hObject,handles);
 %-Get trials and data
 %--------------------------------------------------------------------------
 function Y1_Callback(hObject, eventdata, handles)
-DCM    = handles.DCM;
+
 try
-    DCM.options.trials = str2num(get(handles.Y1,'String'));
+    handles.DCM.options.trials = str2num(get(handles.Y1,'String'));
     m  = length(handles.DCM.options.trials);
 catch
     m  = 1;
     set(handles.Y1,'String','1')
 end
 handles = Xdefault(hObject,handles,m);
+
+DCM = handles.DCM;
 
 %-Get new trials from file
 %--------------------------------------------------------------------------
@@ -376,7 +380,8 @@ end
 %--------------------------------------------------------------------------
 Vpos = str2num(get(handles.Vlocation,'String'))*ones(3,Nareas);
 Vpos = Vpos.^2;
-Vmom = 256*ones(3,Nareas);
+Vmom = 4*ones(3,Nareas);
+% Vmom = 256*ones(3,Nareas);
 
 try
     DCM.M.dipfit.MNIelc;
@@ -580,9 +585,10 @@ for i = 1:n
                 'Style','radiobutton',...
                 'Tag','',...
                 'Callback',str);
-            if i == j
-                set(B{k}(i,j),'Enable','off')
-            end
+%             % intrinsic modulation
+%             if i == j
+%                 set(B{k}(i,j),'Enable','on')
+%             end
             try
                 set(B{k}(i,j),'Value',DCM.B{k}(i,j));
             catch

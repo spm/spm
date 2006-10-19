@@ -277,6 +277,6 @@ case{lower('Dipoles')}
 
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     end
-    case{lower('spatial stuff')}
+    case{lower('Spatial stuff')}
         spm_dcm_erp_viewspatial(DCM)
 end

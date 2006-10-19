@@ -57,8 +57,11 @@ handles.output = hObject;
 
 DCM = varargin{1};
 handles.DCM = DCM;
-handles.ms = DCM.Y.Time;
+handles.ms = DCM.xY.Time;
 handles.T = 1;
+
+global M
+M = DCM.M;
 
 load(DCM.M.Dfile); % ----> returns SPM/EEG struct D
 handles.D = D;
@@ -225,7 +228,7 @@ grid on
 function plot_dipoles(hObject, handles)
 
 DCM = handles.DCM;
-Nsources = size(DCM.L, 2);
+Nsources = size(DCM.M.L, 2);
 Lpos = handles.DCM.Ep.Lpos;
 Lmom = handles.DCM.Ep.Lmom;
 elc = handles.DCM.M.dipfit.elc;
@@ -260,7 +263,7 @@ axis equal
 function plot_components_space(hObject, handles)
 % plots spatial expression of each dipole
 DCM = handles.DCM;
-Nsources = size(DCM.L, 2);
+Nsources = size(DCM.M.L, 2);
 
 lf = NaN*ones(handles.Nchannels, Nsources);
 lfo = NaN*ones(handles.Nchannels, Nsources);
@@ -300,7 +303,7 @@ function plot_components_time(hObject, handles)
 DCM = handles.DCM;
 Lmom = sqrt(sum(DCM.Ep.Lmom).^2);
 
-Nsources = size(DCM.L, 2);
+Nsources = size(DCM.M.L, 2);
 
 h = figure;
 set(h, 'Name', 'Effective source amplitudes');
