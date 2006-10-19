@@ -114,19 +114,8 @@ dipfit.L.pos = dipfit.L.pos(1:3,:);
 
 % priors on dipole orientation as well (zero priors == no orientation
 % specified)
-dipfit.L.mom = zeros(3, Nareas);
-
-dipfit.L.K = ones(Nareas, 1);
-
-% priors variances
-dipfit.L.Vpos = 8*ones(3,Nareas); % tight
-dipfit.L.Vmom = 8*ones(3,Nareas); % wide
-dipfit.L.VK = ones(size(dipfit.L.K)); % doesn't matter much
 
 DCM.M.dipfit = dipfit;
-
-DCM.M.Lpos = NaN*dipfit.L.pos; % NaN forces spm_gx_erp to compute initial lead field
-DCM.M.Lmom = NaN*dipfit.L.mom; % NaN forces spm_gx_erp to compute initial lead field
 
 % necessary for making GUI work
 DCM.options.data_ok = 1;

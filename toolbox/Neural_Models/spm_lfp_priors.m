@@ -86,8 +86,8 @@ if ~isstruct(L)                                    % static leadfield
     
 else  % parameterised leadfield based on equivalent current dipoles
 %------------------------------------------------------------------------
-    E.Lpos = L.pos;     V.Lpos = L.Vpos;           % dipole positions
-    E.Lmom = L.mom;     V.Lmom = L.Vmom;           % dipole orientations
+    E.Lpos = L.pos;        V.Lpos = 256*ones(3,n);           % dipole positions
+    E.Lmom = sparse(3,n);  V.Lmom = 256*ones(3,n);           % dipole orientations
 end
 
 % set extrinsic connectivity

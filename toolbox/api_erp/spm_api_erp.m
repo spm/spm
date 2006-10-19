@@ -14,13 +14,7 @@ if nargin == 0  % LAUNCH GUI
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
 
     % Generate a structure of handles to pass to callbacks, and store it.
-    handles = guihandles(fig);
-
-    DCM.name = 'ERP';
-    DCM.Y.xy = {};
-
-    handles.DCM    = DCM;
-    handles.X      = [];
+    handles  = guihandles(fig);
     handles.Fgraph = Fgraph;
     guidata(fig, handles);
 
@@ -66,12 +60,10 @@ end
 
 % Filename
 %--------------------------------------------------------------------------
-try, set(handles.name,'String',handles.DCM.name);                 end
+try, set(handles.name,'String',f); end
 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
-Vpos = sqrt(DCM.M.dipfit.L.Vpos(1,1));
-
 try, set(handles.Y1, 'String', num2str(DCM.options.trials));      end
 try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));     end
 try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));     end
@@ -83,7 +75,6 @@ try, set(handles.D ,          'Value', DCM.options.D);            end
 try, set(handles.onset,       'String',num2str(DCM.M.onset));     end
 try, set(handles.design,      'String',num2str(DCM.U.X'));        end
 try, set(handles.Uname,       'String',DCM.U.name);               end
-try, set(handles.Vlocation,   'String',num2str(Vpos));            end
 
 handles.DCM = DCM;
 guidata(hObject, handles);
@@ -145,15 +136,9 @@ if p ~= 0
     
     DCM.M.onset = str2num(get(handles.onset,      'String'));
     DCM.name    = fullfile(p,f);
-    set(handles.name,'String',DCM.name);
-    % change name/path variables
-    DCM.swd = p;
-    if strcmp(f(1:3), 'DCM')
-        DCM.name = spm_str_manip(f(4:end), 'r');
-    end
+    set(handles.name,'String',f);
     
     handles.DCM = DCM;
-
     save(DCM.name,          'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
@@ -378,24 +363,16 @@ end
 
 % prepare forward model
 %--------------------------------------------------------------------------
-Vpos = str2num(get(handles.Vlocation,'String'))*ones(3,Nareas);
-Vpos = Vpos.^2;
-Vmom = 4*ones(3,Nareas);
-% Vmom = 256*ones(3,Nareas);
-
 try
     DCM.M.dipfit.MNIelc;
 catch
     DCM = spm_dcm_erp_prepareSpatial(DCM);
 end
 
+% set prior expectations about locations
+%--------------------------------------------------------------------------
 DCM.M.dipfit.L.pos  = Slocations';
-DCM.M.dipfit.L.mom  = sparse(3,Nareas);
-DCM.M.dipfit.L.Vpos = Vpos;
-DCM.M.dipfit.L.Vmom = Vmom;
 
-DCM.M.Lpos = NaN*DCM.M.dipfit.L.pos; %
-DCM.M.Lmom = NaN*DCM.M.dipfit.L.mom; %
 
 DCM.options.spatial_ok = 1;
 
@@ -406,7 +383,6 @@ set(handles.spatial_ok,       'Enable', 'off');
 set(handles.Sname,            'Enable', 'off');
 set(handles.Slocation,        'Enable', 'off');
 set(handles.spatial_back,     'Enable', 'off');
-set(handles.Vlocation,        'Enable', 'off');
 set(handles.connections,      'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
 
@@ -455,19 +431,16 @@ if get(handles.Spatial_type,  'Value') == 1
     set(handles.sensorfile,   'Enable', 'on');
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation,    'Enable', 'on');
-    set(handles.Vlocation,    'Enable', 'on');
 elseif get(handles.Spatial_type, 'Value') == 2
     set(handles.sensorfile,   'Enable', 'off');
     set(handles.plot_dipoles, 'Enable', 'on');
     set(handles.Slocation,    'Enable', 'on');
-    set(handles.Vlocation,    'Enable', 'on');
 end
 
 set(handles.spatial_ok,    'Enable', 'on');
 set(handles.Sname,         'Enable', 'on');
 set(handles.Slocation,     'Enable', 'on');
 set(handles.spatial_back,  'Enable', 'on');
-set(handles.Vlocation,     'Enable', 'on');
 guidata(hObject, handles);
 
 
@@ -492,7 +465,6 @@ set(handles.Sname,        'Enable', 'off');
 set(handles.Slocation,    'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
 set(handles.plot_dipoles, 'Enable', 'off');
-set(handles.Vlocation,    'Enable', 'off');
 guidata(hObject, handles);
 
 %-Executes on button press in plot_dipoles.
@@ -697,7 +669,6 @@ set(handles.spatial_ok,        'Enable', 'on');
 set(handles.Sname,             'Enable', 'on');
 set(handles.Slocation,         'Enable', 'on');
 set(handles.spatial_back,      'Enable', 'on');
-set(handles.Vlocation,         'Enable', 'on');
 
 set(handles.connections,       'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');

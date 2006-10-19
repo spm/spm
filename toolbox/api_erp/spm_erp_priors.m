@@ -5,7 +5,7 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 % FORMAT           spm_erp_priors(A,B,C,L,U)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - lead field matrix         [default = 1 s]
+% L              - prior expecation of source locations
 % U              - trial duration (sec)      [default = 1 s]
 %
 % pE - prior expectation
@@ -55,10 +55,7 @@ if nargin < 3
     C   = 1;
 end
 if nargin < 4
-    L.pos  = sparse(3,1);
-    L.mom  = sparse(3,1);
-    L.Vpos = sparse(3,1);
-    L.Vmom = sparse(3,1);
+    L = sparse(3,1);
 end
 if nargin <  5
     U = 1;
@@ -74,24 +71,24 @@ n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/8;               % time constants
-E.H   = log(n1);        V.H = n1/8;               % synaptic density
+E.T   = log(n1);        V.T = n1/8;                % time constants
+E.H   = log(n1);        V.H = n1/8;                % synaptic density
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/8;               % dispersion & threshold
+E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
 % set observer parameters
 %--------------------------------------------------------------------------
-E.Lpos = L.pos;         V.Lpos = L.Vpos;           % dipole positions
-E.Lmom = L.mom;         V.Lmom = L.Vmom;           % dipole orientations
+E.Lpos = L;             V.Lpos = 256*ones(3,n);    % dipole positions
+E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
     E.A{i} = log(A{i} + eps);                      % forward
-    V.A{i} = A{i};                               % backward
+    V.A{i} = A{i};                                 % backward
     Q      = Q | A{i};                             % and lateral connections
 end
 
