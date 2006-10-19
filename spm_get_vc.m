@@ -31,10 +31,22 @@ function SPM=spm_get_vc(SPM)
 % This code is part of SPM5, which is
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% $Id: spm_get_vc.m 633 2006-09-26 08:15:34Z volkmar $
+% $Id: spm_get_vc.m 658 2006-10-19 12:28:44Z volkmar $
 
-Nlevels = max(SPM.xVi.I);
-[nscan nfactor] = size(SPM.xVi.I);
+Iin = SPM.xVi.I;
+[nscan nfactor] = size(Iin);
+
+% first, make sure each row of Iin is unique
+[Iu Ii Ij] = unique(Iin,'rows');
+if size(Iu,1) < nscan
+    nfactor = nfactor+1;
+    uf = zeros(nscan, 1);
+    for k=1:max(Ij)
+        uf(Ij==k) = 1:sum(Ij==k);
+    end;
+    Iin = [Iin uf];
+end;
+Nlevels = max(Iin);
 Vi = {};
 
 % first factor in SPM is replications, assume identical variance and independence
@@ -43,15 +55,14 @@ variance = [0 cat(2, SPM.factor.variance) zeros(1,nfactor)];
 dept = [0 cat(2, SPM.factor.dept) zeros(1,nfactor)];
 
 % first, generate generic index
-Igen = zeros(prod(Nlevels), nfactor);
+ngen = prod(Nlevels);
+Igen = zeros(ngen, nfactor);
 Igen(:,1) = kron(ones(1,prod(Nlevels(2:end))),1:Nlevels(1))';
 for cf=2:(nfactor-1)
     Igen(:,cf) = kron(ones(1,prod(Nlevels((cf+1):end))),kron(1:Nlevels(cf),ones(1,prod(Nlevels(1:(cf-1))))))';
 end;        
 Igen(:,nfactor) = kron(1:Nlevels(nfactor),ones(1,prod(Nlevels(1:(nfactor-1)))))';
         
-ngen = prod(Nlevels);
-
 % second, generate error variance components
 for f=1:nfactor
     % identical/non-identical variances
@@ -90,7 +101,7 @@ for f=1:nfactor
 end;
 
 % third, sort out rows/columns for real design
-[unused ind] = ismember(SPM.xVi.I,Igen,'rows');
+[unused ind] = ismember(Iin,Igen,'rows');
 
 for cVi = 1:numel(Vi)
     Vi{cVi} = Vi{cVi}(ind,ind);

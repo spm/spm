@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 600 2006-08-22 08:25:22Z volkmar $
+% $Id: spm_config_factorial_design.m 658 2006-10-19 12:28:44Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1116,7 +1116,13 @@ case 'fblock',
                 cc=cc';
             end
             subj=[subj;s*ones(ns,1)];
-            I = [I; [[1:ns]',cc]];
+            % get real replications within each subject cell
+            [unused cci  ccj] = unique(cc,'rows');
+            repl = zeros(ns, 1);
+            for k=1:max(ccj)
+                repl(ccj==k) = 1:sum(ccj==k);
+            end;
+            I = [I; [repl cc]];
         end
         
         nf=length(job.des.fblock.fac);
@@ -1167,7 +1173,7 @@ case 'fblock',
             end;
         end
         
-    else
+    else % specify all scans and factor matrix
         [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
         if ~(nc==4)
             disp('Error: factor matrix must have four columns');
