@@ -1,10 +1,12 @@
-function spm_surf(P,mode)
+function spm_surf(P,mode,thresh)
 % Surface extraction.
 % FORMAT spm_surf
 %
 % This surface extraction is not particularly sophisticated.  It simply
 % smooths the data slightly and extracts the surface at a threshold of
-% 0.5.
+% 0.5. Optionally, a vector of thresholds can be supplied and a surface
+% will be extracted for each threshold. This does only work for extracted
+% surfaces, not for renderings.
 %
 % Inputs:
 % c1xxx.img & c2xxx.img - grey and white matter segments created
@@ -41,13 +43,13 @@ function spm_surf(P,mode)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_surf.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_surf.m 660 2006-10-20 12:22:05Z volkmar $
 
-
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
 if nargin==0,
-	SPMid = spm('FnBanner',mfilename,'$Rev: 539 $');
+        [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
+
+	SPMid = spm('FnBanner',mfilename,'$Rev: 660 $');
 	spm_help('!ContextHelp',mfilename);
 
 	P    = spm_select([1 Inf],'image','Select images');
@@ -55,17 +57,24 @@ if nargin==0,
 	mode = spm_input('Save','+1','m',...
 		['Save Rendering|Save Extracted Surface|'...
 		 'Save Rendering and Surface|Save Surface as OBJ format'],[1 2 3 4],3);
+else
+    CmdLine = 0;
+    Finter = spm_figure('GetWin','Interactive');
+end;
+
+if nargin < 3
+    thresh = .5;
 end;
 
 spm('FigName','Surface: working',Finter,CmdLine);
-do_it(P,mode);
+do_it(P,mode,thresh);
 spm('FigName','Surface: done',Finter,CmdLine);
 
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function do_it(P,mode)
+function do_it(P,mode,thresh)
 
 spm('Pointer','Watch')
 
@@ -104,31 +113,37 @@ if any(mode==[2 3 4]),
 	% Produce extracted surface
 	%-----------------------------------------------------------------------
 	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
+        for k=1:numel(thresh)
+            [faces,vertices] = isosurface(br,thresh(k));
 
-	[faces,vertices] = isosurface(br,0.5);
-
-	% Swap around x and y because isosurface does for some
-	% wierd and wonderful reason.
-	Mat      = V(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
-	vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
-	if any(mode==[2 3]),
-		matname = fullfile(pth,['surf_' nam '.mat']);
+            % Swap around x and y because isosurface does for some
+            % wierd and wonderful reason.
+            Mat      = V(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
+            vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
+            if numel(thresh)==1
+                nam1 = nam;
+            else
+                nam1 = sprintf('%s-%d',nam,k);
+            end;
+            if any(mode==[2 3]),
+		matname = fullfile(pth,['surf_' nam1 '.mat']);
 		if spm_matlab_version_chk('7.0') >=0,
-			save(matname,'-V6','faces','vertices');
+                    save(matname,'-V6','faces','vertices');
 		else
-			save(matname,'faces','vertices');
+                    save(matname,'faces','vertices');
 		end;
-	end;
-	if any(mode==[4]),
-		fname = fullfile(pth,[nam '.obj']);
+            end;
+            if any(mode==[4]),
+		fname = fullfile(pth,[nam1 '.obj']);
 		fid   = fopen(fname,'w');
-		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 539 $',date);
+		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 660 $',date);
 		fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
 		fprintf(fid,'g Cortex\n'); % Group Cortex
 		fprintf(fid,'f %d %d %d\n',faces');
 		fprintf(fid,'g\n');
 		fclose(fid);
-	end;
+            end;
+        end;
 end;
 spm('Pointer')
 
