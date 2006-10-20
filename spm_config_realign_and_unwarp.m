@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_config_realign_and_unwarp.m 661 2006-10-20 14:50:58Z john $
 
 
 %_______________________________________________________________________
@@ -768,7 +768,7 @@ end
 spm_realign(P,flags);
 
 for i = 1:numel(P)
-    uweflag.sfP = sfP{i};
+    uweflags.sfP = sfP{i};
 
     % unwarp estimate
     %----------------------------------------------------------------

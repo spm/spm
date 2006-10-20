@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 643 2006-10-04 11:23:14Z volkmar $
+% $Id: spm_select.m 661 2006-10-20 14:50:58Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -427,6 +427,7 @@ resize_fun(fg);
 update(sel,wd)
 
 waitfor(dne);
+drawnow;
 if ishandle(sel),
     t  = get(sel,'String');
     if sfilt.code == -1
@@ -439,6 +440,7 @@ if ishandle(sel),
     ok = 1;
 end;
 if ishandle(fg),  delete(fg); end;
+drawnow;
 return;
 %=======================================================================
 
