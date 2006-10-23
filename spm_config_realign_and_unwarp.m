@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 661 2006-10-20 14:50:58Z john $
+% $Id: spm_config_realign_and_unwarp.m 663 2006-10-23 17:18:32Z john $
 
 
 %_______________________________________________________________________
@@ -758,7 +758,7 @@ P             = {};
 for i = 1:numel(job.data)
         P{i} = strvcat(job.data(i).scans{:});
         if ~isempty(job.data(i).pmscan)
-            sfP{i} = job.data(i).pmscan;
+            sfP{i} = job.data(i).pmscan{1};
         else
             sfP{i} = [];
         end
