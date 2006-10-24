@@ -4,7 +4,7 @@ function conf = spm_config_fmri_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_design.m,v 1.3 2006/02/17 08:27:18 glauche Exp $
+% $Id: spm_config_fmri_design.m 664 2006-10-24 11:50:03Z volkmar $
 
 
 % Define inline types.
