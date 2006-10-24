@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 652 2006-10-17 16:51:32Z karl $
+% $Id: spm_getSPM.m 665 2006-10-24 11:51:52Z volkmar $
 
 
 %-GUI setup
@@ -224,7 +224,7 @@ end
 
 % 2-D case
 %-----------------------------------------------------------------------
-if  SPM.xVol.DIM(3) == 1
+if  strcmp(spm('CheckModality'), 'EEG') & SPM.xVol.DIM(3) == 1
     
     defaults.units = {'mm' 'mm' ''};
     
