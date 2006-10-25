@@ -2,14 +2,19 @@ function DCM = spm_dcm_erp_prepareSpatial(DCM)
 % prepares structures for ECD forward model (both EEG and MEG)
 
 % Stefan Kiebel
-% $Id: spm_dcm_erp_prepareSpatial.m 650 2006-10-16 13:36:04Z karl $
+% $Id: spm_dcm_erp_prepareSpatial.m 666 2006-10-25 14:05:00Z karl $
 
 % EEG
 %--------------------------------------------------------------------------
 if DCM.options.Spatial_type == 1
 
-    sensorfile       = DCM.M.dipfit.sensorfile;
-    EEGfiducialsfile = DCM.M.dipfit.sensorfile;
+    try
+        sensorfile = DCM.M.dipfit.sensorfile;
+    catch
+        [f p] = uigetfile({'*.mat'},'Please select sensor location file');
+        DCM.M.dipfit.sensorfile = fullfile(p,f);
+        sensorfile = DCM.M.dipfit.sensorfile;
+    end
 
     % Polyhmus file
     %----------------------------------------------------------------------
@@ -51,7 +56,7 @@ if DCM.options.Spatial_type == 1
 %----------------------------------------------------------------------
 MNI_FID = [[0.0 86 -39];...
           [-85 -17 -35];...
-          [84 -14  -35]];
+          [ 84 -14 -35]];
 
 save MNI_FID MNI_FID
 mni_fid = 'MNI_FID';

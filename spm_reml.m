@@ -1,15 +1,15 @@
-function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,K);
+function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,hC);
 % ReML estimation of covariance components from y*y'
-% FORMAT [C,h,Ph,F] = spm_reml(YY,X,Q,N,[hE,K]);
+% FORMAT [C,h,Ph,F] = spm_reml(YY,X,Q,N,[hE,hC]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
 % N   - number of samples
 %
-% hE  - hyperprior expectation in log-space: If specified this induces
-%       log-normal hyper-parameterisation (with hyperpriors)
-% K   - maxmium number of iterations
+% hE  - hyperprior expectation in log-space [default = 0]
+% hC  - hyperprior covariance  in log-space [default = 4]
+%     - If specified hE induces log-normal hyperpriors
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -23,24 +23,20 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,K);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_reml.m 666 2006-10-25 14:05:00Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
-try
-    N;
-catch
-    N  = 1;
-end
+try, N; catch, N  = 1;  end
 
 % default number of iterations
 %--------------------------------------------------------------------------
-try
-    K;
-catch
-    K  = 64;
-end
+try, K; catch, K  = 64; end
 
+% hyperpriors; if not specified
+%--------------------------------------------------------------------------
+try, hE;            catch, hE = 0;   end
+try, hP = inv(hC);  catch, hP = 1/4; end
 
 % ortho-normalise X
 %--------------------------------------------------------------------------
@@ -68,9 +64,7 @@ if nargin > 4
     for i = 1:m
         h(i) = LY - log(normest(Q{i}));
     end
-    hP  = eye(m,m)/32;
 else
-    hE  = 0;
     for i = 1:m
         h(i) = any(diag(Q{i}));
     end

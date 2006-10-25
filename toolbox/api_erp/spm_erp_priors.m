@@ -80,7 +80,7 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
 % set observer parameters
 %--------------------------------------------------------------------------
-E.Lpos = L;             V.Lpos = 256*ones(3,n);    % dipole positions
+E.Lpos = L;             V.Lpos =  64*ones(3,n);    % dipole positions
 E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
 
 % set extrinsic connectivity
@@ -108,7 +108,7 @@ V.D        = Q/16;
 % set stimulus parameters
 %--------------------------------------------------------------------------
 E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
-E.N        = sparse(m,1);  V.N = ones(m,1);        % DCT coefficients
+E.N        = sparse(m,1);  V.N = ones(m,1)/8;      % DCT coefficients
 E.U        = U;            V.U = 0;                % trial duration (s)
 
 % vectorize

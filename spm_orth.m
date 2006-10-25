@@ -10,10 +10,11 @@ function x = spm_orth(X,OPT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_orth.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_orth.m 666 2006-10-25 14:05:00Z karl $
 
 % recursive GM orthogonlisation
 %--------------------------------------------------------------------------
+X     = X(:,any(X));
 x     = X(:,1);
 for i = 2:size(X,2)
         D     = X(:,i);
