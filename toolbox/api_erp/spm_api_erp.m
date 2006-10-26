@@ -76,6 +76,8 @@ try, set(handles.onset,       'String',num2str(DCM.M.onset));     end
 try, set(handles.design,      'String',num2str(DCM.U.X'));        end
 try, set(handles.Uname,       'String',DCM.U.name);               end
 
+set(handles.data_ok,'enable','on')
+
 handles.DCM = DCM;
 guidata(hObject, handles);
 
@@ -169,15 +171,16 @@ DCM = handles.DCM;
 %--------------------------------------------------------------------------
 [f,p] = uigetfile({'*.mat'}, 'please select ERP/ERF.mat file (SPM format)');
 try
-    DCM.M.Dfile = fullfile(p,f);
-    D           = spm_eeg_ldata(DCM.M.Dfile);
+    DCM.Y.Dfile = fullfile(p,f);
+    D           = spm_eeg_ldata(DCM.Y.Dfile);
 end
 
 % indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
-DCM.M.Ichannels = setdiff(D.channels.eeg, D.channels.Bad);
-DCM.Y.Time      = [-D.events.start:D.events.stop]*1000/D.Radc; % ms
-DCM.Y.dt        = 1000/D.Radc;
+chansel    = setdiff(D.channels.eeg, D.channels.Bad);
+DCM.M.dipfit.chansel = chansel;
+DCM.Y.Time = [-D.events.start:D.events.stop]*1000/D.Radc; % ms
+DCM.Y.dt   = 1000/D.Radc;
 
 % if MEG, store grad struct in D.channels
 %--------------------------------------------------------------------------
@@ -189,7 +192,7 @@ try
     trial    = DCM.options.trials;
     DCM.Y.xy = {};
     for i = 1:length(trial);
-        DCM.Y.xy{i} = D.data(DCM.M.Ichannels,:,trial(i))';
+        DCM.Y.xy{i} = D.data(chansel,:,trial(i))';
     end
 catch
     warndlg('please specify appropriate trials');

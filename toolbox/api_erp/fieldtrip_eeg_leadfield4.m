@@ -88,13 +88,13 @@ else
 end
 
 % compute the constant factors for the sphere configuration if needed
+Nmax   = 16;
 if ~isfield(vol, 't')
-  vol.t = fieldtrip_eeg_leadfield4_prepare(vol);
+  vol.t = fieldtrip_eeg_leadfield4_prepare(vol,Nmax);
 end
 
 Nchans = size(elc,1);
 lf     = zeros(Nchans,3);
-Nmax   = length(vol.t);
 n      = 1:Nmax;
 f      = norm(R)/r4;		% following cuffin1979
 % c      = r2/r4;		% following cuffin1979

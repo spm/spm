@@ -1,21 +1,41 @@
-function DCM = spm_dcm_erp_prepareSpatial(DCM)
+function DCM = spm_dcm_erp_prepareSpatial(DCM,Dfile,sensorfile)
 % prepares structures for ECD forward model (both EEG and MEG)
 
 % Stefan Kiebel
-% $Id: spm_dcm_erp_prepareSpatial.m 666 2006-10-25 14:05:00Z karl $
+% $Id: spm_dcm_erp_prepareSpatial.m 668 2006-10-26 16:35:28Z karl $
+
+% Put data file in DCM.Y
+%--------------------------------------------------------------------------
+try
+    DCM.Y.Dfile = Dfile;
+catch
+    try
+        Dfile = DCM.Y.Dfile;
+    catch
+        [f p] = uigetfile({'*.mat'},'Please data file');
+        DCM.Y.Dfile = fullfile(p,f);
+        Dfile = DCM.Y.Dfile;
+    end
+end
 
 % EEG
 %--------------------------------------------------------------------------
 if DCM.options.Spatial_type == 1
-
+    
+    % Get Polyhmus file
+    %----------------------------------------------------------------------
     try
-        sensorfile = DCM.M.dipfit.sensorfile;
+        DCM.M.dipfit.sensorfile = sensorfile;
     catch
-        [f p] = uigetfile({'*.mat'},'Please select sensor location file');
-        DCM.M.dipfit.sensorfile = fullfile(p,f);
-        sensorfile = DCM.M.dipfit.sensorfile;
+        try
+            sensorfile = DCM.M.dipfit.sensorfile;
+        catch
+            [f p] = uigetfile({'*.mat'},'Please select sensor location file');
+            DCM.M.dipfit.sensorfile = fullfile(p,f);
+            sensorfile = DCM.M.dipfit.sensorfile;
+        end
     end
-
+    
     % Polyhmus file
     %----------------------------------------------------------------------
     if strcmpi('pol', spm_str_manip(sensorfile, 'e'))
@@ -28,7 +48,7 @@ if DCM.options.Spatial_type == 1
                 DCM.M.dipfit.vol;
                 return
             catch
-                warndlg('Couod not read sensor file')
+                warndlg('Could not read sensor file')
                 return
             end
         end
@@ -46,7 +66,7 @@ if DCM.options.Spatial_type == 1
                 DCM.M.dipfit.vol;
                 return
             catch
-                warndlg('Couod not read sensor file')
+                warndlg('Could not read sensor file')
                 return
             end
         end
@@ -73,14 +93,20 @@ load(sensors_reg);
 % hard-coded for now (Olivier measured as first 2 channels ear-lobes ->
 % non-standard), and first two channels are (always) CMS and DRL)
 %----------------------------------------------------------------------
+try
+    chansel = DCM.M.dipfit.chansel;
+catch
+    try
+        D = load(DCM.Y.Dfile);
+    catch
+        D = load(DCM.M.Dfile);
+    end
+    chansel = setdiff(D.D.channels.eeg, D.D.channels.Bad);
+    DCM.M.dipfit.chansel = chansel;
+end
+dipfit  = DCM.M.dipfit;
 sensreg = sensreg(5:end, :);
-
-% show figure so user can verify
-load(DCM.M.Dfile);
-
-dipfit         = DCM.M.dipfit;
-dipfit.chansel = DCM.M.Ichannels; % remove bad channels
-elc            = sensreg(DCM.M.Ichannels, :);
+elc     = sensreg(chansel, :);
 
 % fit origin of outer sphere, with fixed radius, to electrodes
 %----------------------------------------------------------------------
@@ -109,8 +135,7 @@ POLvy = cross(POLvz,POLvx); POLvy = POLvy/norm(POLvy);
 % (file RT).
 %----------------------------------------------------------------------
 dipfit.Mpol2mni = [[POLvx' POLvy' POLvz' POLorigin']; [0 0 0 1]];
-dipfit.chansel  = DCM.M.Ichannels; % remove bad channels
-dipfit.MNIelc   = sensreg(dipfit.chansel, :); % save
+dipfit.MNIelc   = sensreg(chansel, :); % save
 
 % original coordinates
 elc = inv(dipfit.Mpol2mni)*[dipfit.MNIelc'; ones(1, size(dipfit.MNIelc, 1))];

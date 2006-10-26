@@ -22,15 +22,20 @@ global M
 % get onset
 %--------------------------------------------------------------------------
 try
-    O = M.onset;
+    onset = M.onset;
 catch
-    O = 120/8;                                     % default prior of 120ms
+    onset = 60;                                       % default of 60ms
 end
 
-% stimulus parameters
+% stimulus - subcortical impluse
 %--------------------------------------------------------------------------
-R     = exp(P.R).*[O 1];                           % [Gamma] parameters
-U     = spm_Gpdf(t*1000,R(1)*R(2),R(2))*1000;      % input
-for i = 1:length(P.N)
-    U = U + P.N(i)*cos((i - 1)*pi*t/P.U);          % [DCT] fluctuations
+R  = exp(P.R).*[onset 1];                             % [Gamma] parameters
+U  = spm_Gpdf(t*1000,R(1)*R(2),R(2))*1000;            % input
+
+% Endogenous fluctuations (if P.N is specified)
+%--------------------------------------------------------------------------
+try
+   f  = P.N(3);
+   U  = U + P.N(1)*cos(2*pi*f*t) + P.N(2)*sin(2*pi*f*t);
 end
+

@@ -1,6 +1,7 @@
 function [f,J,D] = spm_fx_erp(x,u,P)
 % state equations for a neural mass model of erps
 % FORMAT [f,J,D] = spm_fx_erp(x,u,P)
+% FORMAT [f,D*J] = spm_fx_erp(x,u,P)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -15,10 +16,12 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 % NB: the first state is actually time but this hidden here.
 %
 % f        - dx(t)/dt  = f(x(t))
-% J        - df/dx
+% J        - df(t)/dx(t)
 % D        - delay operator dx(t)/dt = f(x(t + d))
 %                                    = D(d)*f(x(t))
-% Protin fixed parameter scaling [Defaults]
+% D*J      - delayed Jacobian        = df(t + d)/dx(t)
+%
+% Prior fixed parameter scaling [Defaults]
 %
 %  M.pF.E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
 %  M.pF.G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
@@ -170,8 +173,6 @@ S  = sparse(6,7,1,9,9); J = J + kron(S,E);
 %--------------------------------------------------------------------------
 J  = blkdiag(0,J);
 
-if nargout == 2, return, end
-
 % delays
 %==========================================================================
 De = D(2).*exp(P.D)/1000;
@@ -184,10 +185,14 @@ Di = kron(Di,eye(n,n));
 D  = Di + De;
 D  = blkdiag(0,D);
 
-% Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t)) -> D*f
+% Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
+%                     = D*f = D*J*x(t)
 %--------------------------------------------------------------------------
 D  = inv(speye(length(J)) - D.*J);
 
+% augment J with delay operator, if D is not requested explicitly
+%--------------------------------------------------------------------------
+if nargout == 2, J = D*J; end
 
 
 

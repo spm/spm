@@ -76,10 +76,6 @@ R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0  = X0;
 warning on
 
-% Project data onto the principal components of channel space
-%--------------------------------------------------------------------------
-y      = R0*xY.y;
-S      = spm_svd(y'*y);
 
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
@@ -128,7 +124,7 @@ M.f   = 'spm_fx_erp';
 M.g   = 'spm_gx_erp';
 M.IS  = 'spm_int_U';
 M.FS  = 'y*E';
-M.E   = S(:,[1:nm]);
+M.x0  = 'spm_x_erp';
 M.x   = sparse(nx,1);
 M.pE  = pE;
 M.pC  = pC;
@@ -136,6 +132,16 @@ M.m   = nu;
 M.n   = nx;
 M.l   = nc;
 M.ns  = ns;
+
+% Feature selection using principal components of channel space
+%--------------------------------------------------------------------------
+try
+    M.S = M.S(:,nm);
+catch
+    y   = R0*xY.y;
+    S   = spm_svd(y'*y);
+    M.E = S(:,[1:nm]);
+end
 
 % EM: inversion
 %--------------------------------------------------------------------------
@@ -159,11 +165,12 @@ r              = R0*(xY.y - y);              % prediction error
 
 % trial specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
+L     = spm_erp_L(Qp);
 for i = 1:nt
     j     = [1:ns] + (i - 1)*ns;
-    H{i}  = x(j,:)*M.L'*M.E;
+    H{i}  = x(j,:)*L'*M.E;
     E{i}  = r(j,:)*M.E;
-    Hc{i} = x(j,:)*M.L';
+    Hc{i} = x(j,:)*L';
     Ec{i} = r(j,:);
     K{i}  = x(j,:);
 end

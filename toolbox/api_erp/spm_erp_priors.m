@@ -30,7 +30,7 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 % stimulus parameters
 %--------------------------------------------------------------------------
 %    pE.R - onset and dispersion (Gamma paramters)
-%    pE.N - background fluctuation (DCT parameters)
+%    pE.N - background fluctuation (3 parameters)
 %    pE.U - trial dutation (secs)
 %
 % pC - prior covariances: cov(spm_vec(pE))
@@ -66,7 +66,6 @@ warning off
 % disable log zero warning
 %--------------------------------------------------------------------------
 n     = size(C,1);                                 % number of sources
-m     = 8;                                         % and noise components
 n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
@@ -105,11 +104,19 @@ V.C        = C;
 E.D        = sparse(n,n);
 V.D        = Q/16;
 
+% set initial states (Spiny stellate depolarisarion))
+%--------------------------------------------------------------------------
+E.x0       = sparse(n,1);
+V.x0       = n1;
+
 % set stimulus parameters
 %--------------------------------------------------------------------------
 E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
-E.N        = sparse(m,1);  V.N = ones(m,1)/8;      % DCT coefficients
 E.U        = U;            V.U = 0;                % trial duration (s)
+
+% background fluctuations
+%--------------------------------------------------------------------------
+% E.N        = [0 0 10];     V.N = [1 1 1];        % amplitude and Hz
 
 % vectorize
 %--------------------------------------------------------------------------
@@ -139,14 +146,13 @@ M.pC     = pC;
 M.m      = length(B);
 M.n      = length(M.x);
 M.l      = n;
-M.Spatial_type = 3;
+M.Spatial_type = 4;
 
 if nargout == 1, varargout{1} = M; return, end
 
 % compute impulse response
 %--------------------------------------------------------------------------
 clear U
-M.pE.K  = 1;
 M.onset = 128;
 N       = 128;
 U.u     = sparse(N,M.m);

@@ -5,7 +5,7 @@ function [L] = spm_erp_L(P)
 % L  - lead field
 %__________________________________________________________________________
 % This routine will autmatically place the lead field in M.L and record the
-% paramters in M.Lpos and M.Lmon.  This enables spm_erp_L to compute a new 
+% paramters in M.Lpos and M.Lmon.  This enables spm_erp_L to compute a new
 % lead field only when necessary (i.e., when the parameters change)
 %
 % see; Kiebel et al. (2006) NeuroImage
@@ -18,7 +18,7 @@ global M
 n   = size(P.Lpos,2);                                   % number of sources
 
 switch M.Spatial_type
-        
+
     % parameterised lead field ECD/EEG
     %----------------------------------------------------------------------
     case{1}
@@ -26,36 +26,35 @@ switch M.Spatial_type
         % re-compute lead field only if any dipoles changed
         %------------------------------------------------------------------
         try
-           Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
+            Id = find(any(M.Lpos ~= P.Lpos));
         catch
-           Id = 1:n;
+            Id = 1:n;
         end
-        
+
         % record new spatial parameters
         %--------------------------------------------------------------
         M.Lpos = P.Lpos;
-        M.Lmom = P.Lmom;
 
-        if length(Id)
+        % note that in all DCM code, EEG coordinates are in MNI
+        % space-orientation. Transform here to POL space and add
+        % translation to relate coordinates to centre of sphere
+        %--------------------------------------------------------------
+        iMt  = M.dipfit.Mmni2polsphere;
+        iSt  = iMt; iSt(1:3,4) = 0;
 
-            % note that in all DCM code, EEG coordinates are in MNI
-            % space-orientation. Transform here to POL space and add
-            % translation to relate coordinates to centre of sphere
-            %--------------------------------------------------------------
-            iMt = M.dipfit.Mmni2polsphere;
-            iSt = iMt; iSt(1:3,4) = 0;
+        Lpos = iMt*[P.Lpos; ones(1, size(P.Lpos, 2))];
+        Lmom = iSt*[P.Lmom; ones(1, size(P.Lmom, 2))];
+        Lpos = Lpos(1:3,:);
+        Lmom = Lmom(1:3,:);
 
-            
-            P.Lpos = iMt*[P.Lpos; ones(1, size(P.Lpos, 2))];
-            P.Lmom = iSt*[P.Lmom; ones(1, size(P.Lmom, 2))];
-            P.Lpos = P.Lpos(1:3,:); P.Lmom = P.Lmom(1:3,:);
-
-            for i = Id
-                Lf = fieldtrip_eeg_leadfield4(P.Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
-                M.L(:,i) = Lf*P.Lmom(:,i)*20000;
-            end
-            
+        for i = Id
+            Lf = fieldtrip_eeg_leadfield4(Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
+            M.L(:,:,i) = Lf*20000;
         end
+        for i = 1:n
+            L(:,i) = M.L(:,:,i)*Lmom(:,i);
+        end
+
 
     % parameterised lead field ECD/MEG
     %----------------------------------------------------------------------
@@ -64,40 +63,36 @@ switch M.Spatial_type
         % re-compute lead field only if any dipoles changed
         %------------------------------------------------------------------
         try
-           Id = find(any([M.Lpos; M.Lmom] ~= [P.Lpos; P.Lmom]));
+            Id = find(any(M.Lpos ~= P.Lpos));
         catch
-           Id = 1:n;
+            Id = 1:n;
         end
-        
-        % record new spatial parameters
+
+        % record new locations and compute new lead field components
         %------------------------------------------------------------------
         M.Lpos = P.Lpos;
-        M.Lmom = P.Lmom;
-            
 
         for i = Id
             Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-            M.L(:,i) = Lf(M.Ichannels,:)*P.Lmom(:,i)*(10^20);
+            M.L(:,:,i) = Lf(M.dipfit.chansel,:)*(10^20);
+        end
+        for i = 1:n
+            L(:,i) = M.L(:,:,i)*P.Lmom(:,i);
         end
 
-        
     % fixed lead field {specified in M.L}
     %----------------------------------------------------------------------
     case{3}
 
-        M.L = M.L;
-        
+        L = M.L;
+
     % LFP or sources - no lead feild required
     %----------------------------------------------------------------------
     case{4}
 
         L = speye(n,n); return
-        
+
     otherwise
         warndlg('unknown type of lead field')
 end
-
-% lead field
-%--------------------------------------------------------------------------
-L  = M.L;
 

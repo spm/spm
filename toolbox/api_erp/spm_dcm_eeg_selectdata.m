@@ -98,7 +98,7 @@ elseif P.projection == 2
         xs = [0; xs];
     
         ym = NaN*ones(1, Nchannels);
-        ym(:, DCM.M.Ichannels) = L(:, i);
+        ym(:, DCM.M.dipfit.chansel) = L(:, i);
         
         figure
         z = griddata(xp, yp, ym, x1, y1);

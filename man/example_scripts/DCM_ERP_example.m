@@ -33,7 +33,7 @@ DCM.M.onset = 60; % selection of onset (prior mean)
 %  ERP file
 D = spm_eeg_ldata(fullfile(Pdata, Dfile));
 Ichannels = setdiff(D.channels.eeg, D.channels.Bad);
-DCM.M.Ichannels = Ichannels;
+DCM.M.dipfit.chansel = Ichannels;
 % 1st
 DCM.Y.xy{1} = squeeze(D.data(Ichannels, :, DCM.options.Y1))';
 %DCM.Y.xy{2} = squeeze(D.data(Ichannels, :, DCM.options.Y2))';
@@ -88,9 +88,6 @@ DCM.U.X = [1];
 DCM.U.name = {'left'};
 
 DCM.Sname = {'left SI', 'left SII', 'right SII'};
-
-% indices of measured channels
-DCM.Ichannels = Ichannels;
 
 %----------------------------------------------------------
 % specify spatial model

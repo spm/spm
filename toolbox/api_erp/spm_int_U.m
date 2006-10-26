@@ -67,17 +67,25 @@ end
 f  = fcnchk(M.f,'x','u','P');
 g  = fcnchk(M.g,'x','u','P');
 
-% Expansion point
+% Initial states and inputs
 %--------------------------------------------------------------------------
 try
-    x   = M.x;
+    u  = U.u(1,:);
+catch
+    u  = sparse(1,M.m);
+end
+try
+    try
+        x = feval(M.x0,P,M,U);
+    catch
+        x = M.x;
+    end
 catch
     x   = sparse(0,1);
     M.x = x;
 end
-u       = sparse(1,M.m);
-du      = sparse(1,M.m);
-D       = speye(M.n,M.n);
+du  = sparse(1,M.m);
+D   = speye(M.n,M.n);
 
 % integrate
 %--------------------------------------------------------------------------
@@ -118,16 +126,23 @@ for i = 1:M.ns
         end
     end
     
-    % update dx = (expm(dt*J) - I)*inv(J)*fx = Q*fx;
+    % dx(t)/dt
     %----------------------------------------------------------------------
     fx = feval(f,x,u,P);
     
-    % reset if fx = []
+    % reset x(0) if fx = []
     %----------------------------------------------------------------------
     if ~length(fx)
-        x  = M.x;
+        try
+            x = feval(M.x0,P,M,U);
+        catch
+            x = M.x;
+        end
         fx = feval(f,x,u,P);
     end
+    
+    % update dx = (expm(dt*J) - I)*inv(J)*fx = Q*fx;
+    %----------------------------------------------------------------------
     x  = x + Q*fx;
     
     % output - implement g(x)

@@ -247,7 +247,6 @@ case{lower('Response')}
     try
         t = xY.Time;
     catch
-        % some old DCM files might not have correct peri-stimulus time
         t = xY.dt*[1:n];
     end
     
@@ -267,10 +266,7 @@ case{lower('Dipoles')}
         sdip.n_seeds = 1;
         sdip.n_dip = ns;
         sdip.Mtb = 1;
-        % sdip.j{1} = full(P.Lmom).*repmat(P.K', 3, 1);
         sdip.j{1} = full(P.Lmom);
-
-%        sdip.j{1} = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
         sdip.j{1} = sdip.j{1}(:);
         sdip.loc{1} = full(P.Lpos);
 
@@ -278,5 +274,6 @@ case{lower('Dipoles')}
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     end
     case{lower('Spatial stuff')}
+        % This routine needs updating %
         spm_dcm_erp_viewspatial(DCM)
 end

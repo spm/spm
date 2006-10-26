@@ -63,7 +63,7 @@ handles.T = 1;
 global M
 M = DCM.M;
 
-load(DCM.M.Dfile); % ----> returns SPM/EEG struct D
+load(DCM.Y.Dfile); % ----> returns SPM/EEG struct D
 handles.D = D;
 
 % locations for plotting
@@ -89,8 +89,8 @@ handles.Nt = size(handles.y_proj, 1);
 % data and model fit
 handles.yd = NaN*ones(handles.Nt, Nchannels);
 handles.ym = NaN*ones(handles.Nt, Nchannels);
-handles.yd(:, DCM.M.Ichannels) = handles.y_proj*DCM.M.E'; % data (back-projected to channel space)
-handles.ym(:, DCM.M.Ichannels) = cat(1,DCM.Hc{:}); % model fit
+handles.yd(:, DCM.M.dipfit.chansel) = handles.y_proj*DCM.M.E'; % data (back-projected to channel space)
+handles.ym(:, DCM.M.dipfit.chansel) = cat(1,DCM.Hc{:}); % model fit
 
 handles.CLim1 = min(min([handles.yd handles.ym]));
 handles.CLim2 = max(max([handles.yd handles.ym]));
@@ -269,9 +269,9 @@ lf = NaN*ones(handles.Nchannels, Nsources);
 lfo = NaN*ones(handles.Nchannels, Nsources);
 
 x = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
-lf(DCM.M.Ichannels, :)  = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
+lf(DCM.M.dipfit.chansel, :)  = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
 E = DCM.M.E; global M; M = rmfield(DCM.M, 'E'); 
-lfo(DCM.M.Ichannels, :) = spm_erp_L(DCM.Ep); % leadfield not projected
+lfo(DCM.M.dipfit.chansel, :) = spm_erp_L(DCM.Ep); % leadfield not projected
 M.E = E;
 
 % use subplots in new figure
