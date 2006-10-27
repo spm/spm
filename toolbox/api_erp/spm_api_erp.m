@@ -73,8 +73,8 @@ try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);       end
 try, set(handles.h,           'Value', DCM.options.h + 1);        end
 try, set(handles.D ,          'Value', DCM.options.D);            end
 try, set(handles.onset,       'String',num2str(DCM.M.onset));     end
-try, set(handles.design,      'String',num2str(DCM.U.X'));        end
-try, set(handles.Uname,       'String',DCM.U.name);               end
+try, set(handles.design,      'String',num2str(DCM.xU.X'));       end
+try, set(handles.Uname,       'String',DCM.xU.name);              end
 
 set(handles.data_ok,'enable','on')
 
@@ -167,37 +167,11 @@ handles = Xdefault(hObject,handles,m);
 
 DCM = handles.DCM;
 
-%-Get new trials from file
+%-Get new trial date from file
 %--------------------------------------------------------------------------
 [f,p] = uigetfile({'*.mat'}, 'please select ERP/ERF.mat file (SPM format)');
-try
-    DCM.Y.Dfile = fullfile(p,f);
-    D           = spm_eeg_ldata(DCM.Y.Dfile);
-end
-
-% indices of EEG channel (excluding bad channels)
-%--------------------------------------------------------------------------
-chansel    = setdiff(D.channels.eeg, D.channels.Bad);
-DCM.M.dipfit.chansel = chansel;
-DCM.Y.Time = [-D.events.start:D.events.stop]*1000/D.Radc; % ms
-DCM.Y.dt   = 1000/D.Radc;
-
-% if MEG, store grad struct in D.channels
-%--------------------------------------------------------------------------
-try
-    handles.grad = D.channels.grad;
-end
-
-try
-    trial    = DCM.options.trials;
-    DCM.Y.xy = {};
-    for i = 1:length(trial);
-        DCM.Y.xy{i} = D.data(chansel,:,trial(i))';
-    end
-catch
-    warndlg('please specify appropriate trials');
-    return
-end
+DCM.xY.Dfile = fullfile(p,f);
+DCM          = spm_dcm_erp_data(DCM);
 
 % Display data
 %--------------------------------------------------------------------------
@@ -216,9 +190,11 @@ warndlg({'Your design matrix has been re-set'})
 %--------------------------------------------------------------------------
 function Y_Callback(hObject, eventdata, handles)
 try
+    handles.DCM = spm_dcm_erp_data(handles.DCM);
     spm_dcm_erp_results(handles.DCM,'Response');
+    guidata(hObject,handles);
 catch
-    wanrdlg('please specify trials to load');
+    warndlg('please specify trials to load');
 end
 
 
@@ -232,7 +208,7 @@ catch
     return
 end
 Str   = get(handles.Uname,'String');
-n     = size(handles.DCM.U.X,2);
+n     = size(handles.DCM.xU.X,2);
 for i = 1:n
     try
         Uname{i} = Str{i};
@@ -241,7 +217,7 @@ for i = 1:n
     end
 end
 set(handles.Uname,'string',Uname(:))
-handles.DCM.U.name = Uname;
+handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
 
 %--------------------------------------------------------------------------
@@ -254,22 +230,23 @@ catch
     return
 end
 try
-    X               = str2num(get(handles.design,'String'))';
-    handles.DCM.U.X = X(1:m,:);
-    set(handles.design, 'String',num2str(handles.DCM.U.X'));
+    X  = str2num(get(handles.design,'String'))';
+    handles.DCM.xU.X = X(1:m,:);
+    set(handles.design, 'String',num2str(handles.DCM.xU.X'));
 catch
     handles = Xdefault(hObject,handles,m);
 end
-n   = size(handles.DCM.U.X,2);
+n     = size(handles.DCM.xU.X,2);
+Uname = {};
 for i = 1:n
     try
-        Uname{i} = handles.DCM.U.name{i};
+        Uname{i} = handles.DCM.xU.name{i};
     catch
         Uname{i} = sprintf('effect %i',i);
     end
 end
 set(handles.Uname,'string',Uname(:))
-handles.DCM.U.name = Uname;
+handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
 
 
@@ -357,25 +334,20 @@ if Spatial_type == 1
     end
 elseif Spatial_type == 2
     try
-        handles.grad;
+        handles.DCM.xY.grad;
     catch
         warndlg({'Grad. is not defined','Please ensure this is MEG data'})
         return
     end
 end
 
-% prepare forward model
+% forward model (spatial)
 %--------------------------------------------------------------------------
-try
-    DCM.M.dipfit.MNIelc;
-catch
-    DCM = spm_dcm_erp_prepareSpatial(DCM);
-end
+DCM = spm_dcm_erp_dipfit(DCM);
 
 % set prior expectations about locations
 %--------------------------------------------------------------------------
 DCM.M.dipfit.L.pos  = Slocations';
-
 
 DCM.options.spatial_ok = 1;
 
@@ -397,23 +369,16 @@ guidata(hObject,handles);
 %-Executes on button press in data_ok.
 %--------------------------------------------------------------------------
 function handles = data_ok_Callback(hObject, eventdata, handles)
-
-DCM    = handles.DCM;
-if length(DCM.Y.xy) == 0
+try
+    handles.DCM = spm_dcm_erp_data(handles.DCM);
+catch
     errordlg('Please choose some trials'); return;
-end
-T1     = str2num(get(handles.T1, 'String'));
-T2     = str2num(get(handles.T2, 'String'));
-if T2 <= T1
-    warnldg('Second must be greater than first peri-stimulus time')
-    return
 end
 
 % show data
 %--------------------------------------------------------------------------
-spm_dcm_erp_results(DCM, 'Response');
-DCM.options.data_ok = 1;
-handles.DCM         = DCM;
+spm_dcm_erp_results(handles.DCM, 'Response');
+handles.DCM.options.data_ok = 1;
 
 % enable next stage, disable data specification
 %--------------------------------------------------------------------------
@@ -504,7 +469,7 @@ reset_Callback(hObject, eventdata, handles);
 
 DCM = handles.DCM;
 n   = length(DCM.Sname);    % number of sources
-m   = size(DCM.U.X,2);      % number of inputs
+m   = size(DCM.xU.X,2);     % number of inputs
 
 
 % no changes in coupling
@@ -607,7 +572,7 @@ for k = 1:4
         'String',str,...
         'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
-constr         = DCM.U.name;
+constr         = DCM.xU.name;
 for k = 1:m
     x          = x0 + (k - 1)*nsx;
     y          = y0 - 6*sy - 2*(n + 1)*sy;
@@ -763,9 +728,9 @@ name    = {};
 for i = 1:size(X,2)
    name{i,1} = sprintf('effect %i',i);
 end
-handles.DCM.U.X    = X;
-handles.DCM.U.name = name;
-set(handles.design,'String',num2str(handles.DCM.U.X'));
-set(handles.Uname, 'String',handles.DCM.U.name);
+handles.DCM.xU.X    = X;
+handles.DCM.xU.name = name;
+set(handles.design,'String',num2str(handles.DCM.xU.X'));
+set(handles.Uname, 'String',handles.DCM.xU.name);
 return
 

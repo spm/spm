@@ -4,10 +4,10 @@ function DCM = spm_dcm_erp(DCM)
 %
 % DCM     
 %    name: name string
-%       M: Forward model
+%       M:  Forward model
 %              M.dipfit - leadfield specification
-%       Y: data   [1x1 struct]
-%       U: design [1x1 struct]
+%       xY: data   [1x1 struct]
+%       xU: design [1x1 struct]
 %
 %   Sname: cell of source name strings
 %       A: {[nr x nr double]  [nr x nr double]  [nr x nr double]}
@@ -29,12 +29,7 @@ function DCM = spm_dcm_erp(DCM)
 % Filename and options
 %--------------------------------------------------------------------------
 try,   DCM.name;                 catch, DCM.name = 'DCM_ERP';  end
-
-try,   D  = DCM.options.D;       catch, D  = 1;                end
 try,   h  = DCM.options.h;       catch, h  = 1;                end
-
-try,   T1 = DCM.options.Tdcm(1); catch, T1 = DCM.Y.Time(1);    end
-try,   T2 = DCM.options.Tdcm(2); catch, T2 = DCM.Y.Time(end);  end
 try,   nm = DCM.options.Nmodes;  catch, nm = 4;                end
 
 % data type
@@ -42,26 +37,27 @@ try,   nm = DCM.options.Nmodes;  catch, nm = 4;                end
 try,   DCM.M.Spatial_type = DCM.options.Spatial_type;
 catch, DCM.M.Spatial_type = 1;                                 end
 
-% Data
-%==========================================================================
-nt      = length(DCM.Y.xy);                 % number of trials
-nr      = length(DCM.A{1});                 % number of sources
-nc      = size(DCM.Y.xy{1},2);              % number of channels
-nu      = size(DCM.U.X,2);                  % number of inputs
-nx      = nr*9 + 1;                         % number of states
 
-% time window and bins for modelling
-%--------------------------------------------------------------------------
-[m, T1] = min(abs(DCM.Y.Time - T1));
-[m, T2] = min(abs(DCM.Y.Time - T2));
-j       = [T1:D:T2]';                       % time bins
-xY.Time = DCM.Y.Time(j);                    % Time [ms] of downsampled data
-for i = 1:nt
-    xY.xy{i} = DCM.Y.xy{i}(j,:);
+% Data and spatial model
+%==========================================================================
+DCM    = spm_dcm_erp_data(DCM);
+DCM    = spm_dcm_erp_dipfit(DCM);
+xY     = DCM.xY;
+try
+    xU = DCM.U;
+catch
+    xU = DCM.xU;
 end
-xY.y    = spm_cat(xY.xy(:));                % concatenated response
-xY.dt   = DCM.Y.dt*D/1000;                  % sampling in seconds
-ns      = length(j);                        % number of time samples
+
+% dimensions
+%--------------------------------------------------------------------------
+nt     = length(xY.xy);                 % number of trials
+nr     = length(DCM.A{1});                 % number of sources
+nc     = size(xY.xy{1},2);              % number of channels
+ns     = size(xY.xy{1},1);              % number of time bins
+nu     = size(xU.X,2);                  % number of inputs
+nx     = nr*9 + 1;                         % number of states
+
 
 % confounds - DCT
 %--------------------------------------------------------------------------
@@ -76,7 +72,6 @@ R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0  = X0;
 warning on
 
-
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
 xY.Q   = {speye(ns*nt*nm,ns*nt*nm)};
@@ -87,15 +82,15 @@ xY.Q   = {speye(ns*nt*nm,ns*nt*nm)};
 % trial effects
 %--------------------------------------------------------------------------
 try
-    if size(DCM.U.X,2) - length(DCM.B)
+    if size(xU.X,2) - length(DCM.B)
         warndlg({'please ensure number of trial specific effects', ...
-            'encoded by DCM.U.X & DCM.B are the same'})
+            'encoded by DCM.xU.X & DCM.B are the same'})
     end
 catch
     DCM.B = {};
 end
 try
-    xU.u  = kron(DCM.U.X,ones(ns,1));
+    xU.u  = kron(xU.X,ones(ns,1));
 catch
     xU.u  = sparse(nt*ns,0);
 end
@@ -104,7 +99,6 @@ end
 %--------------------------------------------------------------------------
 xU.dt   = xY.dt;
 xU.dur  = xU.dt*(ns - 1);
-xU.name = DCM.U.name;
 
 % model specification and nonlinear system identification
 %==========================================================================
@@ -115,7 +109,7 @@ global M; M = DCM.M;
 
 % prior moments
 %--------------------------------------------------------------------------
-Lpos    = DCM.M.dipfit.L.pos;
+Lpos    = M.dipfit.L.pos;
 [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,Lpos,xU.dur);
 
 % likelihood model

@@ -24,16 +24,16 @@ if P.projection == 1
     % SVD
     
     if ~isfield(P, 'Tselection')
-        P.Tselection = [DCM.Y.Time(1) DCM.Y.Time(end)];
+        P.Tselection = [DCM.xY.Time(1) DCM.xY.Time(end)];
     end
     
-    [m, T0] = min(abs(DCM.Y.Time-P.Tselection(1)));
-    [m, T1] = min(abs(DCM.Y.Time-P.Tselection(2)));
+    [m, T0] = min(abs(DCM.xY.Time-P.Tselection(1)));
+    [m, T1] = min(abs(DCM.xY.Time-P.Tselection(2)));
 
     % concatenate data
     y = [];
-    for i = 1:length(DCM.Y.xy)
-        y = [y DCM.Y.xy{i}(T0:T1, :)'];
+    for i = 1:length(DCM.xY.xy)
+        y = [y DCM.xY.xy{i}(T0:T1, :)'];
     end
 
     % maybe include that you use a subset of time points only for data
@@ -43,8 +43,8 @@ if P.projection == 1
     E = (y*u(:, 1:P.Nmodes)*s(1:P.Nmodes, 1:P.Nmodes)^(-1))';
 
     % projection of data
-    for i = 1:length(DCM.Y.xy)
-        DCM.Y.xy{i} = DCM.Y.xy{i}*E';
+    for i = 1:length(DCM.xY.xy)
+        DCM.xY.xy{i} = DCM.xY.xy{i}*E';
     end
     
 elseif P.projection == 2
@@ -73,8 +73,8 @@ elseif P.projection == 2
     E = pinv(L);
     
     % projection of data
-    for i = 1:length(DCM.Y.xy)
-        DCM.Y.xy{i} = DCM.Y.xy{i}*E';
+    for i = 1:length(DCM.xY.xy)
+        DCM.xY.xy{i} = DCM.xY.xy{i}*E';
     end
 
     % display
@@ -116,7 +116,7 @@ elseif P.projection == 2
     
 else
     % no selection, keep all data
-    E = eye(size(DCM.Y.xy{1}, 2));
+    E = eye(size(DCM.xY.xy{1}, 2));
 end
 
 DCM.E = E;

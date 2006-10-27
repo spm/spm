@@ -63,7 +63,7 @@ handles.T = 1;
 global M
 M = DCM.M;
 
-load(DCM.Y.Dfile); % ----> returns SPM/EEG struct D
+load(DCM.xY.Dfile); % ----> returns SPM/EEG struct D
 handles.D = D;
 
 % locations for plotting
@@ -184,8 +184,8 @@ drawnow
 %--------------------------------------------------------------------
 function plot_modes(hObject, handles)
 % plot temporal expression of modes
-DCM = handles.DCM;
-Nt = size(DCM.Y.xy{1}, 1);
+DCM     = handles.DCM;
+Nt      = size(DCM.xY.xy{1}, 1);
 Ntrials = length(DCM.H);
 
 xvalues = kron(ones(1, Ntrials), handles.ms);
@@ -199,30 +199,6 @@ set(handles.axes3, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
 xlabel('ms');
 title('temporal expressions of modes', 'FontSize', 16);
 grid on
-% 
-% % data and model prediction, cond 2
-% axes(handles.axes4); cla
-% plot(handles.ms, handles.y_proj(Nt+1:end, :));
-% hold on
-% plot(handles.ms, handles.DCM.H{2}, '--');
-% set(handles.axes4, 'XLim', [0 handles.ms(end)]);
-% set(handles.axes4, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
-% xlabel('ms');
-% title('ERP 2', 'FontSize', 16);
-% grid on
-% 
-% time point indicator
-% nt = length(handles.ms);
-% T = handles.T;
-% 
-% if T > nt
-%     axes(handles.axes4);
-%     T = T - nt;
-% else
-%     axes(handles.axes3);
-% end
-% 
-% plot([handles.ms(T) handles.ms(T)], [handles.CLim1_yp handles.CLim2_yp], 'k', 'LineWidth', 3);
 
 %--------------------------------------------------------------------
 function plot_dipoles(hObject, handles)

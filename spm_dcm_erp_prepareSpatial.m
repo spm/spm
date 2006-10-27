@@ -2,19 +2,19 @@ function DCM = spm_dcm_erp_prepareSpatial(DCM,Dfile,sensorfile)
 % prepares structures for ECD forward model (both EEG and MEG)
 
 % Stefan Kiebel
-% $Id: spm_dcm_erp_prepareSpatial.m 668 2006-10-26 16:35:28Z karl $
+% $Id: spm_dcm_erp_prepareSpatial.m 669 2006-10-27 18:19:08Z karl $
 
-% Put data file in DCM.Y
+% Put data file in DCM.xY
 %--------------------------------------------------------------------------
 try
-    DCM.Y.Dfile = Dfile;
+    DCM.xY.Dfile = Dfile;
 catch
     try
-        Dfile = DCM.Y.Dfile;
+        Dfile = DCM.xY.Dfile;
     catch
         [f p] = uigetfile({'*.mat'},'Please data file');
-        DCM.Y.Dfile = fullfile(p,f);
-        Dfile = DCM.Y.Dfile;
+        DCM.xY.Dfile = fullfile(p,f);
+        Dfile = DCM.xY.Dfile;
     end
 end
 
@@ -97,7 +97,7 @@ try
     chansel = DCM.M.dipfit.chansel;
 catch
     try
-        D = load(DCM.Y.Dfile);
+        D = load(DCM.xY.Dfile);
     catch
         D = load(DCM.M.Dfile);
     end

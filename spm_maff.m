@@ -21,7 +21,7 @@ function [M,h] = spm_maff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff.m 570 2006-07-05 14:29:24Z john $
+% $Id: spm_maff.m 669 2006-10-27 18:19:08Z karl $
 
 [buf,MG] = loadbuf(varargin{1:2});
 M        = affreg(buf, MG, varargin{2:end});
@@ -49,6 +49,7 @@ spm_progress_bar('Clear');
 
 % Convert the image to unsigned bytes
 [mn,mx] = spm_minmax(g);
+warning off
 for z=1:length(x3),
     gz         = g(:,:,z);
     buf(z).msk = gz>mn;
@@ -56,6 +57,7 @@ for z=1:length(x3),
     gz         = double(gz(buf(z).msk));
     buf(z).g   = uint8(round(gz*(255/mx)));
 end;
+warning on
 MG = V.mat;
 return;
 %_______________________________________________________________________

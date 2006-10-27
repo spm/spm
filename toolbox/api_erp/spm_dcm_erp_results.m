@@ -192,7 +192,7 @@ case{lower('Coupling (B)')}
         %-----------------------------------------------------------
         subplot(4,nu,i)
         imagesc(exp(DCM.Ep.B{i}))
-        title(DCM.U.name{i},'FontSize',10)
+        title(DCM.xU.name{i},'FontSize',10)
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         xlabel('from','FontSize',8)
@@ -242,7 +242,7 @@ case{lower('Response')}
     
     % plot data
     % --------------------------------------------------------------------
-    xY    = DCM.Y;
+    xY    = DCM.xY;
     n     = length(xY.xy);
     try
         t = xY.Time;
