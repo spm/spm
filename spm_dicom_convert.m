@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 634 2006-09-28 11:42:43Z volkmar $
+% $Id: spm_dicom_convert.m 670 2006-11-02 11:02:26Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -731,7 +731,6 @@ for i=1:length(hdr),
     N.dat(:,:,i) = plane;
     spm_progress_bar('Set',i);
 end;
-set_userdata(N,hdr{1});
 spm_progress_bar('Clear');
 return;
 %_______________________________________________________________________
