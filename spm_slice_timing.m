@@ -96,10 +96,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: spm_slice_timing.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_slice_timing.m 671 2006-11-02 12:08:04Z john $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 112 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 671 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
@@ -170,10 +170,10 @@ for subj = 1:nsubjects
 	spm('FigName',task,Finter,CmdLine);
 	PP      = P{subj};
 	Vin 	= spm_vol(PP);
-	nimgo	= size(PP,1);
+	nimgo	= numel(Vin);
 	nimg	= 2^(floor(log2(nimgo))+1);
 	nslices_t= Vin(1).dim(3);
-	if ( nslices_t ~= nslices )
+	if nslices_t ~= nslices,
 		fprintf('Number of slices differ! %d %\n', nimg);
 	else
 
