@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 579 2006-08-01 18:32:10Z karl $
+% $Id: spm_dcm_average.m 672 2006-11-03 09:21:41Z klaas $
 
 
 if nargin <= 1
@@ -125,6 +125,17 @@ if mtype
     DCM.vA = vA;
     DCM.vB = vB;
     DCM.vC = vC;    
+    % Remove fields with subject-specific information (e.g. predicted/observed data)
+    % to prevent the impression that these have also been averaged and set a flag 
+    % indicating that this is an averaged DCM
+    try
+        % DCMs computed with SPM5
+        DCM = rmfield (DCM,{'y','Y','F','AIC','BIC','R','U','M','H1','H2','K1','K2'});
+    catch
+        % DCMs computed prior to SPM5
+        DCM = rmfield (DCM,{'y','Y'});
+    end
+    DCM.averaged = 1;
 else
     % DCM for ERP
     % get priors (note: these are the priors of the first model)
@@ -142,6 +153,7 @@ else
     warning on;    
     DCM.Pp = spm_unvec(Pp,pE);
     DCM.Qp = DCM.Ep;
+    DCM.averaged = 1;
 end
 
 % Save new DCM

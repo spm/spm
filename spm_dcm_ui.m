@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_dcm_ui.m 672 2006-11-03 09:21:41Z klaas $
 
 
 
@@ -749,9 +749,19 @@ case 'compare',
     
     % load all models and compute their evidence
     for model_index=1:num_models,
-	    load(deblank(P(model_index,:)),'DCM','-mat');
-        model_VOIs{model_index}   = [];
+        load(deblank(P(model_index,:)),'DCM','-mat');
+        % check that none of the models is an averaged DCM
+        if isfield(DCM,'averaged')
+            if DCM.averaged
+                str = {	['Model ' deblank(P(model_index,:)) ' is an averaged DCM. ',...
+                            'Please note that model comparison is not valid for averaged DCMs. ',...
+                            'Procedure aborted.']};
+                spm_input(str,1,'bd','OK',[1],1);
+            end
+            return
+        end        
         % concatenate names of all VOIs for each model
+        model_VOIs{model_index}   = [];
         for k   = 1:size(DCM.xY,2),
             model_VOIs{model_index}    = [model_VOIs{model_index} DCM.xY(k).name];
         end
@@ -764,8 +774,8 @@ case 'compare',
     % check that all models refer to the same set of VOIs
     for model_index=1:num_models,
         if ~strcmp(model_VOIs{1}, model_VOIs{model_index})
-        	str = {	'Selected models contain different sets of VOIs!',...
-            		'Model comparison only valid for models with identical VOIs.',...
+        	str = {	'Selected models contain different sets of VOIs! ',...
+            		'Please note that model comparison is only valid for models with identical time series (VOIs). ',...
                     'Procedure aborted.'};
 	        spm_input(str,1,'bd','OK',[1],1);
             return
