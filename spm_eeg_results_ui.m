@@ -43,4 +43,4 @@ D.inv{val}.contrast.fboi = round([fboi(1) fboi(end)]);
 
 % evaluate contrast
 %--------------------------------------------------------------------------
-D     = spm_eeg_results_ui(D);
+D     = spm_eeg_results(D);

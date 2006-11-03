@@ -79,7 +79,7 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
 % set observer parameters
 %--------------------------------------------------------------------------
-E.Lpos = L;             V.Lpos =  64*ones(3,n);    % dipole positions
+E.Lpos = L;             V.Lpos =  16*ones(3,n);    % dipole positions
 E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
 
 % set extrinsic connectivity
@@ -116,7 +116,7 @@ E.U        = U;            V.U = 0;                % trial duration (s)
 
 % background fluctuations
 %--------------------------------------------------------------------------
-% E.N        = [0 0 10];     V.N = [1 1 1];        % amplitude and Hz
+E.N        = [0 0 10];     V.N = [1 1 1];          % amplitude and Hz
 
 % vectorize
 %--------------------------------------------------------------------------

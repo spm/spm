@@ -9,7 +9,13 @@ function [D] = spm_eeg_results(D)
 
 % SPM data structure
 %==========================================================================
-model = D.inv{D.val};
+fprintf('\ncomputing contrast - please wait\n')
+try
+    model = D.inv{D.val};
+catch
+    
+    model = D.inv{end};
+end
 
 % defaults
 %--------------------------------------------------------------------------
@@ -50,7 +56,7 @@ if foi
     W  = diag(t)*W;
     W  = spm_svd(W,1);
 else
-    W  = ones(Nb,1);
+    W  = t(:);
 end
 TTW    = T*(T'*W);
 
@@ -59,7 +65,7 @@ TTW    = T*(T'*W);
 
 % single-trial analysis (or single ERP)
 %--------------------------------------------------------------------------
-j     = D.channels.eeg;
+j     = setdiff(D.channels.eeg, D.channels.Bad);
 JW    = sparse(0);
 JWWJ  = sparse(0);
 c     = find(D.events.code == D.events.types(con));
@@ -84,39 +90,6 @@ GW   = JWWJ + QC*Nt;
 %--------------------------------------------------------------------------
 IW   = GW - sum(JW.^2,2) - QC;
 
-% sqrt(energy) (G)
-%--------------------------------------------------------------------------
-G    = sqrt(sparse(Is,1,GW,Nd,1));
-
-% display
-%==========================================================================
-tess_ctx = model.mesh.tess_ctx;
-load(tess_ctx)
-clf
-colormap(gray)
-
-% display
-%--------------------------------------------------------------------------
-subplot(2,3,1)
-spm_eeg_inv_render(G,tess_ctx)
-view([180 -90])
-title('energy')
-
-i     = find(G > max(G)/8);
-subplot(2,1,2)
-spm_mip(G(i),vert(i,:)',6);
-axis image
-title('energy (> max/8)')
-
-% contrast
-%--------------------------------------------------------------------------
-subplot(2,2,2)
-plot(pst,W)
-axis square
-xlabel('PST {ms}')
-ylabel('contrast')
-
-
 % Save results
 %==========================================================================
 model.contrast.woi    = woi;
@@ -134,5 +107,8 @@ else
     save(fullfile(D.path,D.fname),'D');
 end
 
+% Display
+%==========================================================================
+spm_eeg_results_display(D);
 
 

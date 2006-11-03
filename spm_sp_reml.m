@@ -31,12 +31,7 @@ try, N; catch, N  = 1;  end
 
 % default number of iterations
 %--------------------------------------------------------------------------
-try, K; catch, K  = 128; end
-
-% hyperpriors; if not specified
-%--------------------------------------------------------------------------
-try, hE;            catch, hE = 0;   end
-try, hP = inv(hC);  catch, hP = 1/4; end
+try, K; catch, K  = 256; end
 
 % hyperpriors; if not specified
 %--------------------------------------------------------------------------

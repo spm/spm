@@ -53,7 +53,14 @@ D.inv{val}.inverse.type   = spm_input('Type of inversion','+1','MSP|LOR|IID');
 
 % D.inverse.smooth - smoothness of source priors (mm)
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.smooth = spm_input('Smoothness (mm)','+1','r',32);
+D.inv{val}.inverse.smooth = spm_input('Smoothness (0-1)','+1','r',0.5);
+
+% Number of sparse priors
+%--------------------------------------------------------------------------
+if strcmp(D.inv{val}.inverse.type,'MSP')
+    D.inv{val}.inverse.Np = ...
+    spm_input('Number of MSPs','+1','128|256|512',[128 256 512]);
+end
 
 % invert
 %--------------------------------------------------------------------------

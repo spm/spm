@@ -453,9 +453,7 @@ SourceOrderString = {'Current Dipole',...
     'Current Multipole Expansion Pairs'};
 
 if nargin == 0
-    if nargout > 1
-        varargout{1} = Def_OPTIONS;
-    end
+    varargout{1} = Def_OPTIONS;
     return
 elseif nargin == 1
     OPTIONS = varargin{1};

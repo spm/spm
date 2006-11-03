@@ -73,6 +73,11 @@ case{lower('ERPs (channel)')}
         title(sprintf('channel %i',i))
         grid on
         axis square
+        try
+            axis(A);
+        catch
+            A = axis;
+        end
     end
     xlabel('time (ms)')
     legend(str)
