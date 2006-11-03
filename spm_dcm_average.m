@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 672 2006-11-03 09:21:41Z klaas $
+% $Id: spm_dcm_average.m 674 2006-11-03 14:49:52Z klaas $
 
 
 if nargin <= 1
@@ -44,6 +44,7 @@ if nargin <= 1
 else
     num_models = size(P,1);
 end
+
 
 % Loop through all selected models and get posterior means and variances
 % ----------------------------------------------------------------------
@@ -87,6 +88,7 @@ for model = 1:num_models,
     mEp(:,model) = full(DCM.Ep(cwsel));
 end
 
+
 % Average models using Bayesian fixed effects analysis -> average Ep,Cp
 %--------------------------------------------------------------------------
 % averaged posterior covariance
@@ -99,8 +101,9 @@ for model = 1:num_models,
 end
 Ep = Cp*weighted_Ep;
 
-% copy contents of first DCM into the output DCM and insert averaged values into parameter & covariance vectors
+% Copy contents of first DCM into the output DCM and insert averaged values into parameter & covariance vectors
 DCM                 = DCM_first;
+DCM.models          = P;
 DCM.Ep(cwsel)       = Ep;
 DCM.Cp(cwsel,cwsel) = Cp;
 
@@ -125,17 +128,6 @@ if mtype
     DCM.vA = vA;
     DCM.vB = vB;
     DCM.vC = vC;    
-    % Remove fields with subject-specific information (e.g. predicted/observed data)
-    % to prevent the impression that these have also been averaged and set a flag 
-    % indicating that this is an averaged DCM
-    try
-        % DCMs computed with SPM5
-        DCM = rmfield (DCM,{'y','Y','F','AIC','BIC','R','U','M','H1','H2','K1','K2'});
-    catch
-        % DCMs computed prior to SPM5
-        DCM = rmfield (DCM,{'y','Y'});
-    end
-    DCM.averaged = 1;
 else
     % DCM for ERP
     % get priors (note: these are the priors of the first model)
@@ -156,6 +148,34 @@ else
     DCM.averaged = 1;
 end
 
+
+% Remove fields with subject-specific information (e.g. predicted/observed data)
+% to prevent the impression that these have also been averaged and set a flag 
+% indicating that this is an averaged DCM
+if mtype
+    % DCM for fMRI
+    DCM.VOIs = cell(num_models,1);
+    for k = 1:DCM.n
+        DCM.VOIs{k} = DCM.xY(k).name;
+    end
+    try
+        % DCMs computed with SPM5
+        DCM = rmfield (DCM,{'y','Y','xY','F','AIC','BIC','R','U','M','H1','H2','K1','K2','Ce','T'});
+    catch
+        % minimum: remove time series
+        DCM = rmfield (DCM,{'y','Y'});
+    end
+else
+    % DCM for ERPs
+    try
+        DCM = rmfield (DCM,{'options','M','Y','U','L','xY','xU','H','Hc','K','R','Rc','Ce','F'});
+    catch
+        DCM = rmfield (DCM,{'Y','xY'});
+    end
+end
+DCM.averaged = 1;
+    
+    
 % Save new DCM
 DCM.name = [name ' (Bayesian FFX average)'];
 if spm_matlab_version_chk('7') >= 0
