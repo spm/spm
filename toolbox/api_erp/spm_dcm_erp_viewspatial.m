@@ -274,6 +274,8 @@ for j = 1:2
     end
 end
 
+drawnow
+
 function plot_components_time(hObject, handles)
 
 DCM = handles.DCM;
@@ -288,10 +290,12 @@ for i = 1:Nsources
     handles.hcomponents_time{2*(i-1)+1} = subplot(Nsources, 2, 2*(i-1)+1);
     plot(handles.ms, Lmom(i)*DCM.K{1}(:, i));
     title([handles.DCM.Sname{i} ', ERP 1'], 'FontSize', 16);
+    
+    try
     handles.hcomponents_time{2*(i-1)+2} = subplot(Nsources, 2, 2*(i-1)+2);
     plot(handles.ms, Lmom(i)*DCM.K{2}(:, i));
     title([handles.DCM.Sname{i} ', ERP 2'], 'FontSize', 16);
-
+    end
 end
 
 
