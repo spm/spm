@@ -1,0 +1,1449 @@
+/* %Id$ */
+#include <mex.h>
+#include <math.h>
+#include "optimizer3d.h"
+extern double floor(double x);
+
+#define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
+
+/*
+ * Lie Bracket
+ * C = [A,B]
+ */
+void bracket(int dm[], float *A, float *B, float *C)
+{
+    float *Ax, *Ay, *Az;
+    float *Bx, *By, *Bz;
+    float *Cx, *Cy, *Cz;
+    int i, j, k, mm = dm[0]*dm[1]*dm[2];
+
+    Ax = A;
+    Ay = A + mm;
+    Az = A + mm*2;
+
+    Bx = B;
+    By = B + mm;
+    Bz = B + mm*2;
+
+    Cx = C;
+    Cy = C + mm;
+    Cz = C + mm*2;
+
+    for(k=0; k<dm[2]; k++)
+    {
+        for(j=0; j<dm[1]; j++)
+        {
+            int o1, oi1, opj1, omj1, opk1, omk1;
+            o1   = dm[0]*(j+dm[1]*k);
+            oi1  = dm[0]*(j+dm[1]*k);
+            opj1 = dm[0]*(WRAP(j+1,dm[1])+dm[1]*k);
+            omj1 = dm[0]*(WRAP(j-1,dm[1])+dm[1]*k);
+            opk1 = dm[0]*(j+dm[1]*WRAP(k+1,dm[2]));
+            omk1 = dm[0]*(j+dm[1]*WRAP(k-1,dm[2]));
+
+            for(i=0; i<dm[0]; i++)
+            {
+                int o, opi, omi, opj, omj, opk, omk;
+                double j00, j01, j02,  j10, j11, j12,  j20, j21, j22;
+                double tx, ty, tz,  cx1, cy1, cz1,  cx2, cy2, cz2;
+
+                o   = i+o1;
+                opi = WRAP(i+1,dm[0])+oi1;
+                omi = WRAP(i-1,dm[0])+oi1;
+                opj = i+opj1;
+                omj = i+omj1;
+                opk = i+opk1;
+                omk = i+omk1;
+
+                tx = Ax[o];
+                ty = Ay[o];
+                tz = Az[o];
+
+                j00 = (Bx[opi]-Bx[omi])/2.0;
+                j01 = (By[opi]-By[omi])/2.0;
+                j02 = (Bz[opi]-Bz[omi])/2.0;
+
+                j10 = (Bx[opj]-Bx[omj])/2.0;
+                j11 = (By[opj]-By[omj])/2.0;
+                j12 = (Bz[opj]-Bz[omj])/2.0;
+
+                j20 = (Bx[opk]-Bx[omk])/2.0;
+                j21 = (By[opk]-By[omk])/2.0;
+                j22 = (Bz[opk]-Bz[omk])/2.0;
+
+                cx1 = tx*j00+ty*j10+tz*j20;
+                cy1 = tx*j01+ty*j11+tz*j21;
+                cz1 = tx*j02+ty*j12+tz*j22;
+
+                tx = Bx[o];
+                ty = By[o];
+                tz = Bz[o];
+
+                j00 = (Ax[opi]-Ax[omi])/2.0;
+                j01 = (Ay[opi]-Ay[omi])/2.0;
+                j02 = (Az[opi]-Az[omi])/2.0;
+
+                j10 = (Ax[opj]-Ax[omj])/2.0;
+                j11 = (Ay[opj]-Ay[omj])/2.0;
+                j12 = (Az[opj]-Az[omj])/2.0;
+
+                j20 = (Ax[opk]-Ax[omk])/2.0;
+                j21 = (Ay[opk]-Ay[omk])/2.0;
+                j22 = (Az[opk]-Az[omk])/2.0;
+
+                cx2 = tx*j00+ty*j10+tz*j20;
+                cy2 = tx*j01+ty*j11+tz*j21;
+                cz2 = tx*j02+ty*j12+tz*j22;
+
+                Cx[o] = cx1-cx2;
+                Cy[o] = cy1-cy2;
+                Cz[o] = cz1-cz2;
+            }
+        }
+    }
+}
+
+/*
+ * In place Cholesky decomposition
+ */
+void chol3(int m, float A[])
+{
+    float *p00 = A,     *p11 = A+m,   *p22 = A+m*2,
+          *p01 = A+m*3, *p02 = A+m*4, *p12 = A+m*5;
+    double a00, a11, a22, a01, a02, a12;
+    double s;
+    int i;
+    for(i=0; i<m; i++)
+    {
+        a00 = *p00+1e-6;
+        a11 = *p11+1e-6;
+        a22 = *p22+1e-6;
+        a01 = *p01;
+        a02 = *p02;
+        a12 = *p12;
+        s        = sqrt(a00);
+        *(p00++) = s;
+        *(p01++) = a01/s;
+        *(p02++) = a02/s;
+        s        = a11 - a01*a01/a00;
+        s        = sqrt(s);
+        *(p11++) = s;
+        s        = (a12 - a01*a02/a00)/s;
+        *(p12++) = s;
+        s        = a22 - a02*a02/a00 - s*s;
+        *(p22++) = sqrt(s);
+        /* printf("%g %g %g  %g %g %g\n", *(p00-1), *(p11-1), *(p22-1), *(p01-1), *(p02-1), *(p12-1)); */
+    } 
+}
+
+/*
+ * In place reconstruction from Cholesky decomposition
+ */
+void chol3recon(int m, float A[])
+{
+    float *p00 = A,     *p11 = A+m,   *p22 = A+m*2,
+          *p01 = A+m*3, *p02 = A+m*4, *p12 = A+m*5;
+    double a00, a11, a22, a01, a02, a12;
+    int i;
+    for(i=0; i<m; i++)
+    {
+        a00 = *p00;
+        a11 = *p11;
+        a22 = *p22;
+        a01 = *p01;
+        a02 = *p02;
+        a12 = *p12;
+        *(p00++) = a00*a00+a01*a01+a02*a02;
+        *(p01++) = a00*a01+a01*a11+a02*a12;
+        *(p02++) = a02*a00+a12*a01+a02*a22;
+        *(p11++) = a01*a01+a11*a11+a12*a12;
+        *(p12++) = a01*a02+a11*a12+a12*a22;
+        *(p22++) = a02*a02+a12*a12+a22*a22;
+    }
+}
+
+/*
+ * Composition operation
+ * C(Id) = B(A(Id))
+ */
+void composition(int dm[], float *A, float *B, float *C)
+{
+    float *Ax, *Ay, *Az, *Bx, *By, *Bz, *Cx, *Cy, *Cz;
+    int i, m = dm[0], n = dm[1], l = dm[2], mm = m*n*l;
+
+    Ax = A;
+    Ay = A+mm;
+    Az = A+mm*2;
+    Bx = B;
+    By = B+mm;
+    Bz = B+mm*2;
+    Cx = C;
+    Cy = C+mm;
+    Cz = C+mm*2;
+
+    for(i=0; i<mm; i++)
+    {
+        int o000,o001,o010,o011,o100,o101,o110,o111;
+        double x, y, z;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx1, dx2, dy1, dy2, dz1, dz2;
+        int ix, iy, iz, ix1, iy1, iz1;
+
+        x     = Ax[i]-1.0;
+        y     = Ay[i]-1.0;
+        z     = Az[i]-1.0;
+        ix    = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy    = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz    = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix    = WRAP(ix,m);
+        iy    = WRAP(iy,n);
+        iz    = WRAP(iz,l);
+        ix1   = WRAP(ix+1,m);
+        iy1   = WRAP(iy+1,n);
+        iz1   = WRAP(iz+1,l);
+
+        o000  = ix +m*(iy +n*iz );
+        o100  = ix1+m*(iy +n*iz );
+        o010  = ix +m*(iy1+n*iz );
+        o110  = ix1+m*(iy1+n*iz );
+        o001  = ix +m*(iy +n*iz1);
+        o101  = ix1+m*(iy +n*iz1);
+        o011  = ix +m*(iy1+n*iz1);
+        o111  = ix1+m*(iy1+n*iz1);
+
+        k000  = Bx[o000]-1.0;
+        k100  = Bx[o100]-1.0;
+        k010  = Bx[o010]-1.0;
+        k110  = Bx[o110]-1.0;
+        k001  = Bx[o001]-1.0;
+        k101  = Bx[o101]-1.0;
+        k011  = Bx[o011]-1.0;
+        k111  = Bx[o111]-1.0;
+
+        k100 -= floor((k100-k000)/m+0.5)*m;
+        k010 -= floor((k010-k000)/m+0.5)*m;
+        k110 -= floor((k110-k000)/m+0.5)*m;
+        k001 -= floor((k001-k000)/m+0.5)*m;
+        k101 -= floor((k101-k000)/m+0.5)*m;
+        k011 -= floor((k011-k000)/m+0.5)*m;
+        k111 -= floor((k111-k000)/m+0.5)*m;
+        Cx[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = By[o000]-1.0;
+        k100  = By[o100]-1.0;
+        k010  = By[o010]-1.0;
+        k110  = By[o110]-1.0;
+        k001  = By[o001]-1.0;
+        k101  = By[o101]-1.0;
+        k011  = By[o011]-1.0;
+        k111  = By[o111]-1.0;
+
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cy[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = Bz[o000]-1.0;
+        k100  = Bz[o100]-1.0;
+        k010  = Bz[o010]-1.0;
+        k110  = Bz[o110]-1.0;
+        k001  = Bz[o001]-1.0;
+        k101  = Bz[o101]-1.0;
+        k011  = Bz[o011]-1.0;
+        k111  = Bz[o111]-1.0;
+
+        k100 -= floor((k100-k000)/l+0.5)*l;
+        k010 -= floor((k010-k000)/l+0.5)*l;
+        k110 -= floor((k110-k000)/l+0.5)*l;
+        k001 -= floor((k001-k000)/l+0.5)*l;
+        k101 -= floor((k101-k000)/l+0.5)*l;
+        k011 -= floor((k011-k000)/l+0.5)*l;
+        k111 -= floor((k111-k000)/l+0.5)*l;
+        Cz[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+    }
+}
+
+/*
+ * Composition operation, along with Jacobian matrices
+ * C(Id)  =  B(A(Id))
+ * JC(Id) = JB(A(Id))*JA(Id) ?
+ */
+void composition_jacobian(int dm[],
+                     float *A, float *JA, float *B, float *JB,
+                     float *C, float *JC)
+{
+    float *Ax, *Ay, *Az, *JA00, *JA01, *JA02,  *JA10, *JA11, *JA12,  *JA20, *JA21, *JA22;
+    float *Bx, *By, *Bz, *JB00, *JB01, *JB02,  *JB10, *JB11, *JB12,  *JB20, *JB21, *JB22,  jb[3][3];
+    float *Cx, *Cy, *Cz, *JC00, *JC01, *JC02,  *JC10, *JC11, *JC12,  *JC20, *JC21, *JC22;
+    int i, mm = dm[0]*dm[1]*dm[2];
+
+    Ax   =  A;
+    Ay   =  A+mm;
+    Az   =  A+mm*2;
+    JA00 = JA+mm*0; JA01 = JA+mm*3; JA02 = JA+mm*6;
+    JA10 = JA+mm*1; JA11 = JA+mm*4; JA12 = JA+mm*7;
+    JA20 = JA+mm*2; JA21 = JA+mm*5; JA22 = JA+mm*8;
+
+    Bx   =  B;
+    By   =  B+mm;
+    Bz   =  B+mm*2;
+    JB00 = JB+mm*0; JB01 = JB+mm*3; JB02 = JB+mm*6;
+    JB10 = JB+mm*1; JB11 = JB+mm*4; JB12 = JB+mm*7;
+    JB20 = JB+mm*2; JB21 = JB+mm*5; JB22 = JB+mm*8;
+
+    Cx   =  C;
+    Cy   =  C+mm;
+    Cz   =  C+mm*2;
+    JC00 = JC+mm*0; JC01 = JC+mm*3; JC02 = JC+mm*6;
+    JC10 = JC+mm*1; JC11 = JC+mm*4; JC12 = JC+mm*7;
+    JC20 = JC+mm*2; JC21 = JC+mm*5; JC22 = JC+mm*8;
+
+    for(i=0; i<mm; i++)
+    {
+        double x, y, z;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx1, dx2, dy1, dy2, dz1, dz2;
+        double ja0, ja1, ja2;
+        int ix, iy, iz, ix1, iy1, iz1;
+        int o000, o100, o010, o110, o001, o101, o011, o111;
+        int tmpz, tmpy, n;
+        float *ptr;
+
+        x    = Ax[i]-1.0;
+        y    = Ay[i]-1.0;
+        z    = Az[i]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix  ,dm[0]);
+        iy   = WRAP(iy  ,dm[1]);
+        iz   = WRAP(iz  ,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+
+        tmpz  = dm[1]*iz;
+        tmpy  = dm[0]*(iy + tmpz);
+        o000  = ix +tmpy;
+        o100  = ix1+tmpy;
+        tmpy  = dm[0]*(iy1 + tmpz);
+        o010  = ix +tmpy;
+        o110  = ix1+tmpy;
+        tmpz  = dm[1]*iz1;
+        tmpy  = dm[0]*(iy + tmpz);
+        o001  = ix +tmpy;
+        o101  = ix1+tmpy;
+        tmpy  = dm[0]*(iy1 + tmpz);
+        o011  = ix +tmpy;
+        o111  = ix1+tmpy;
+
+        k000  = Bx[o000]-1.0;
+        k100  = Bx[o100]-1.0;
+        k010  = Bx[o010]-1.0;
+        k110  = Bx[o110]-1.0;
+        k001  = Bx[o001]-1.0;
+        k101  = Bx[o101]-1.0;
+        k011  = Bx[o011]-1.0;
+        k111  = Bx[o111]-1.0;
+
+        n     = dm[0];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cx[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = By[o000]-1.0;
+        k100  = By[o100]-1.0;
+        k010  = By[o010]-1.0;
+        k110  = By[o110]-1.0;
+        k001  = By[o001]-1.0;
+        k101  = By[o101]-1.0;
+        k011  = By[o011]-1.0;
+        k111  = By[o111]-1.0;
+
+        n     = dm[1];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cy[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = Bz[o000]-1.0;
+        k100  = Bz[o100]-1.0;
+        k010  = Bz[o010]-1.0;
+        k110  = Bz[o110]-1.0;
+        k001  = Bz[o001]-1.0;
+        k101  = Bz[o101]-1.0;
+        k011  = Bz[o011]-1.0;
+        k111  = Bz[o111]-1.0;
+
+        n     = dm[0];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cz[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+
+        ptr      = JB00;
+        jb[0][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+        ptr      = JB10;
+        jb[1][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+        ptr      = JB20;
+        jb[2][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+
+        ptr      = JB01;
+        jb[0][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+        ptr      = JB11;
+        jb[1][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+        ptr      = JB21;
+        jb[2][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+
+        ptr      = JB02;
+        jb[0][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+
+        ptr      = JB12;
+        jb[1][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+
+        ptr      = JB22;
+        jb[2][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                 + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+
+
+
+        ja0     = JA00[i];
+        ja1     = JA01[i];
+        ja2     = JA02[i];
+        JC00[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+        JC01[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+        JC02[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+
+        ja0     = JA10[i];
+        ja1     = JA11[i];
+        ja2     = JA12[i];
+        JC10[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+        JC11[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+        JC12[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+
+        ja0     = JA20[i];
+        ja1     = JA21[i];
+        ja2     = JA22[i];
+        JC20[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+        JC21[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+        JC22[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+    }
+}
+
+/*
+ * Sample a point
+ * s = f(x,y,z)
+ */
+double samp(int dm[], float f[], double x, double y, double z)
+{
+    int ix, iy, iz, ix1, iy1, iz1;
+    int o000, o100, o010, o110, o001, o101, o011, o111;
+    int tmpz, tmpy;
+    double dx1, dx2, dy1, dy2, dz1, dz2;
+
+    ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+    iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+    iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+    ix   = WRAP(ix  ,dm[0]);
+    iy   = WRAP(iy  ,dm[1]);
+    iz   = WRAP(iz  ,dm[2]);
+    ix1  = WRAP(ix+1,dm[0]);
+    iy1  = WRAP(iy+1,dm[1]);
+    iz1  = WRAP(iz+1,dm[2]);
+
+    tmpz  = dm[1]*iz;
+    tmpy  = dm[0]*(iy + tmpz);
+    o000  = ix +tmpy;
+    o100  = ix1+tmpy;
+    tmpy  = dm[0]*(iy1 + tmpz);
+    o010  = ix +tmpy;
+    o110  = ix1+tmpy;
+    tmpz  = dm[1]*iz1;
+    tmpy  = dm[0]*(iy + tmpz);
+    o001  = ix +tmpy;
+    o101  = ix1+tmpy;
+    tmpy  = dm[0]*(iy1 + tmpz);
+    o011  = ix +tmpy;
+    o111  = ix1+tmpy;
+
+    return( ((f[o000]*dx2 + f[o100]*dx1)*dy2 + (f[o010]*dx2 + f[o110]*dx1)*dy1)*dz2
+          + ((f[o001]*dx2 + f[o101]*dx1)*dy2 + (f[o011]*dx2 + f[o111]*dx1)*dy1)*dz1 );
+}
+
+/* Sample n points
+ * s1 = f1(x,y,z)
+ * s2 = f2(x,y,z)
+ */
+void sampn(int dm[], float f[], int n, int mm, double x, double y, double z, double v[])
+{
+    int ix, iy, iz, ix1, iy1, iz1, j;
+    int o000, o100, o010, o110, o001, o101, o011, o111;
+    int tmpz, tmpy;
+    double dx1, dx2, dy1, dy2, dz1, dz2;
+
+    ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+    iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+    iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+    ix   = WRAP(ix  ,dm[0]);
+    iy   = WRAP(iy  ,dm[1]);
+    iz   = WRAP(iz  ,dm[2]);
+    ix1  = WRAP(ix+1,dm[0]);
+    iy1  = WRAP(iy+1,dm[1]);
+    iz1  = WRAP(iz+1,dm[2]);
+
+    tmpz  = dm[1]*iz;
+    tmpy  = dm[0]*(iy + tmpz);
+    o000  = ix +tmpy;
+    o100  = ix1+tmpy;
+    tmpy  = dm[0]*(iy1 + tmpz);
+    o010  = ix +tmpy;
+    o110  = ix1+tmpy;
+    tmpz  = dm[1]*iz1;
+    tmpy  = dm[0]*(iy + tmpz);
+    o001  = ix +tmpy;
+    o101  = ix1+tmpy;
+    tmpy  = dm[0]*(iy1 + tmpz);
+    o011  = ix +tmpy;
+    o111  = ix1+tmpy;
+
+    for(j=0; j<n; j++, f += mm)
+    {
+        v[j] = ((f[o000]*dx2 + f[o100]*dx1)*dy2 + (f[o010]*dx2 + f[o110]*dx1)*dy1)*dz2
+             + ((f[o001]*dx2 + f[o101]*dx1)*dy2 + (f[o011]*dx2 + f[o111]*dx1)*dy1)*dz1;
+    }
+}
+
+int pow2(int k)
+{
+    int j0, td = 1;
+    for(j0=0; j0<k; j0++)
+        td = td*2;
+    return(td);
+}
+
+/*
+ * t0 = Id + v0*sc
+ */
+void smalldef(int dm[], double sc, float v0[], float t0[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    float *v1 = v0+m, *v2 = v1+m;
+    float *t1 = t0+m, *t2 = t1+m;
+
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                *(t0++) = (j0+1) + *(v0++)*sc;
+                *(t1++) = (j1+1) + *(v1++)*sc;
+                *(t2++) = (j2+1) + *(v2++)*sc;
+            }
+        }
+    }
+}
+
+/*
+ * t0 = Id + v0*sc
+ * J0 = Id + I+diag(v0)*sc
+ */
+void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    double sc2 = sc/2.0;
+    float *v1 = v0+m, *v2 = v1+m;
+
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        int j2m1, j2p1;
+        j2m1 = WRAP(j2-1,dm[2]);
+        j2p1 = WRAP(j2+1,dm[2]);
+
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            int j1m1, j1p1;
+            j1m1 = WRAP(j1-1,dm[1]);
+            j1p1 = WRAP(j1+1,dm[1]);
+
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                int o, om1, op1;
+                o         = j0+dm[0]*(j1+dm[1]*j2);
+                t0[o    ] = (j0+1) + v0[o]*sc;
+                t0[o+m  ] = (j1+1) + v1[o]*sc;
+                t0[o+m*2] = (j2+1) + v2[o]*sc;
+
+                /*
+                if (v0[o] > 0)
+                {
+                    om1 = o;
+                    op1 = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                }
+                else
+                {
+                    om1 = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                    op1 = o;
+                }
+                */
+
+                om1 = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                J0[o    ] = (v0[op1]-v0[om1])*sc2 + 1.0;
+                J0[o+  m] = (v1[op1]-v1[om1])*sc2;
+                J0[o+2*m] = (v2[op1]-v2[om1])*sc2;
+
+                /*
+                if (v1[o] > 0)
+                {
+                    om1 = o;
+                    op1 = j0+dm[0]*(j1p1+dm[1]*j2);
+                }
+                else
+                {
+                    om1 = j0+dm[0]*(j1m1+dm[1]*j2);
+                    op1 = o;
+                }
+                */
+
+                om1 = j0+dm[0]*(j1m1+dm[1]*j2);
+                op1 = j0+dm[0]*(j1p1+dm[1]*j2);
+                J0[o+3*m] = (v0[op1]-v0[om1])*sc2;
+                J0[o+4*m] = (v1[op1]-v1[om1])*sc2 + 1.0;
+                J0[o+5*m] = (v2[op1]-v2[om1])*sc2;
+
+                /*
+                if (v2[o] > 0)
+                {
+                    om1 = o;
+                    op1 = j0+dm[0]*(j1+dm[1]*j2p1);
+                }
+                {
+                    om1 = j0+dm[0]*(j1+dm[1]*j2m1);
+                    op1 = o;
+                }
+                */
+
+                om1 = j0+dm[0]*(j1+dm[1]*j2m1);
+                op1 = j0+dm[0]*(j1+dm[1]*j2p1);
+                J0[o+6*m] = (v0[op1]-v0[om1])*sc2;
+                J0[o+7*m] = (v1[op1]-v1[om1])*sc2;
+                J0[o+8*m] = (v2[op1]-v2[om1])*sc2 + 1.0;
+            }
+        }
+    }
+}
+
+/*
+ * J0 := J0*inv(I+diag(v0)*sc)
+ */
+void jac_div_smalldef(int dm[], double sc, float v0[], float J0[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    double sc2 = sc/2.0;
+    float *v1 = v0+m, *v2 = v1+m;
+
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        int j2m1, j2p1;
+        j2m1 = WRAP(j2-1,dm[2]);
+        j2p1 = WRAP(j2+1,dm[2]);
+
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            int j1m1, j1p1;
+            j1m1 = WRAP(j1-1,dm[1]);
+            j1p1 = WRAP(j1+1,dm[1]);
+
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                int o, om1, op1;
+                double j00,j01,j02, j10,j11,j12, j20,j21,j22;
+                double t00,t01,t02, t10,t11,t12, t20,t21,t22;
+                double idt;
+
+                om1 = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                j00 = (v0[op1]-v0[om1])*sc2 + 1.0;
+                j10 = (v1[op1]-v1[om1])*sc2;
+                j20 = (v2[op1]-v2[om1])*sc2;
+
+                om1 = j0+dm[0]*(j1m1+dm[1]*j2);
+                op1 = j0+dm[0]*(j1p1+dm[1]*j2);
+                j01 = (v0[op1]-v0[om1])*sc2;
+                j11 = (v1[op1]-v1[om1])*sc2 + 1.0;
+                j21 = (v2[op1]-v2[om1])*sc2;
+
+                om1 = j0+dm[0]*(j1+dm[1]*j2m1);
+                op1 = j0+dm[0]*(j1+dm[1]*j2p1);
+                j02 = (v0[op1]-v0[om1])*sc2;
+                j12 = (v1[op1]-v1[om1])*sc2;
+                j22 = (v2[op1]-v2[om1])*sc2 + 1.0;
+
+                /*
+                syms j00 j01 j02 j10 j11 j12 j20 j21 j22
+                syms d00 d01 d02 d10 d11 d12 d20 d21 d22
+                J1 = [j00 j01 j02; j10 j11 j12; j20 j21 j22];
+                inv(J1)
+                J0 = [d00 d01 d02; d10 d11 d12; d20 d21 d22];
+                J1*J0
+                */
+
+                t00 = j22*j11-j21*j12;
+                t10 = j12*j20-j10*j22;
+                t20 = j21*j10-j20*j11;
+                t01 = j02*j21-j01*j22;
+                t11 = j00*j22-j20*j02;
+                t21 = j20*j01-j00*j21;
+                t02 = j01*j12-j02*j11;
+                t12 = j10*j02-j00*j12;
+                t22 = j00*j11-j10*j01;
+                idt = 1.0/(j00*t00+j01*t10+j02*t20);
+
+                o   = j0+dm[0]*(j1+dm[1]*j2);
+                j00 = J0[o    ]; j01 = J0[o+m*3]; j02 = J0[o+m*6];
+                j10 = J0[o+m  ]; j11 = J0[o+m*4]; j12 = J0[o+m*7];
+                j20 = J0[o+m*2]; j21 = J0[o+m*5]; j22 = J0[o+m*8];
+
+                J0[o    ] = idt*(j00*t00+j01*t10+j02*t20);
+                J0[o+m  ] = idt*(j10*t00+j11*t10+j12*t20);
+                J0[o+m*2] = idt*(j20*t00+j21*t10+j22*t20);
+
+                J0[o+m*3] = idt*(j00*t01+j01*t11+j02*t21);
+                J0[o+m*4] = idt*(j10*t01+j11*t11+j12*t21);
+                J0[o+m*5] = idt*(j20*t01+j21*t11+j22*t21);
+
+                J0[o+m*6] = idt*(j00*t02+j01*t12+j02*t22);
+                J0[o+m*7] = idt*(j10*t02+j11*t12+j12*t22);
+                J0[o+m*8] = idt*(j20*t02+j21*t12+j22*t22);
+            }
+        }
+    }
+}
+
+/*
+ * Exponentiation with Jacobians
+ */
+void expdef(int dm[], int k, double sc, float v[], float t0[], float t1[], float J0[], float J1[])
+{
+    float *optr;
+    int m = dm[0]*dm[1]*dm[2];
+    int j;
+
+    optr = t0;
+
+    if(J0!=(float *)0)
+    {
+        smalldef_jac(dm, sc/pow2(k), v, t0, J0);
+        for(j=0; j<k; j++)
+        {
+            float *tmpp;
+            composition_jacobian(dm, t0, J0, t0, J0, t1, J1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+            tmpp = J0; J0   = J1; J1   = tmpp;
+        }
+    }
+    else
+    {
+        smalldef(dm, sc/pow2(k), v, t0);
+        for(j=0; j<k; j++)
+        {
+            float *tmpp;
+            composition(dm, t0, t0, t1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+        }
+    }
+    if (optr != t0)
+    {
+        for(j=0; j<3*m; j++)
+            t1[j] = t0[j];
+
+        if (J0!=(float *)0)
+            for(j=0; j<9*m; j++)
+                J1[j] = J0[j];
+    }
+}
+
+double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, float b[], float A[])
+{
+    int j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
+    double ssl = 0.0;
+
+    j = 0;
+    for(j2=0; j2<dm[2]; j2++)
+        for(j1=0; j1<dm[1]; j1++)
+            for(j0=0; j0<dm[0]; j0++, j++)
+    {
+        double x, y, z;
+        int   ix, iy, iz, ix1, iy1, iz1, k;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx1, dx2, dy1, dy2, dz1, dz2;
+        double d, dx, dy, dz, sd, sdx, sdy, sdz;
+        
+        x    = j0 + sc*v[j    ];
+        y    = j1 + sc*v[j+m  ];
+        z    = j2 + sc*v[j+m*2];
+        
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix,dm[0]);
+        iy   = WRAP(iy,dm[1]);
+        iz   = WRAP(iz,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+
+        A[j    ] = 0.0;
+        A[j+m  ] = 0.0;
+        A[j+m*2] = 0.0;
+        A[j+m*3] = 0.0;
+        A[j+m*4] = 0.0;
+        A[j+m*5] = 0.0;
+
+        b[j    ] = 0.0;
+        b[j+m  ] = 0.0;
+        b[j+m*2] = 0.0;
+
+        sd  = 0.0;
+        sdx = 0.0;
+        sdy = 0.0;
+        sdz = 0.0;
+
+        for(k=0; k<dm[3]; k++)
+        {
+            int km = k*m;
+            k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];
+            k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];
+            k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];
+            k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];
+            k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];
+            k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];
+            k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];
+            k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];
+
+            d     = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 - g[j+km];
+
+            dx    = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+                  + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
+            dy    = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+                  + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
+            dz    = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+                  - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
+
+            sd  -= d;
+            sdx -= dx;
+            sdy -= dy;
+            sdz -= dz;
+
+            A[j    ] += dx*dx;
+            A[j+m  ] += dy*dy;
+            A[j+m*2] += dz*dz;
+            A[j+m*3] += dx*dy;
+            A[j+m*4] += dx*dz;
+            A[j+m*5] += dy*dz;
+
+            b[j    ] -= dx*d;
+            b[j+m  ] -= dy*d;
+            b[j+m*2] -= dz*d;
+
+            ssl += d*d;
+        }
+        A[j    ] += sdx*sdx;
+        A[j+m  ] += sdy*sdy;
+        A[j+m*2] += sdz*sdz;
+        A[j+m*3] += sdx*sdy;
+        A[j+m*4] += sdx*sdz;
+        A[j+m*5] += sdy*sdz;
+
+        b[j    ] -= sdx*sd;
+        b[j+m  ] -= sdy*sd;
+        b[j+m*2] -= sdz*sd;
+
+        ssl += sd*sd;
+    }
+    return(ssl);
+}
+
+double smalldef_objfun(int dm[], float f[], float g[], float v[], double sc, float b[], float A[])
+{
+    int j,j0,j1,j2, m = dm[0]*dm[1]*dm[2];
+    double ssl = 0.0;
+
+    if (dm[3]>1)
+    {
+        return(smalldef_objfun2(dm, f, g, v, sc, b, A));
+    }
+
+    j = 0;
+    for(j2=0; j2<dm[2]; j2++)
+        for(j1=0; j1<dm[1]; j1++)
+            for(j0=0; j0<dm[0]; j0++, j++)
+    {
+        double x, y, z;
+        int   ix, iy, iz, ix1, iy1, iz1;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx1, dx2, dy1, dy2, dz1, dz2;
+        double d, dx, dy, dz;
+        
+        x    = j0 + sc*v[j    ];
+        y    = j1 + sc*v[j+m  ];
+        z    = j2 + sc*v[j+m*2];
+
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix,dm[0]);
+        iy   = WRAP(iy,dm[1]);
+        iz   = WRAP(iz,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+        
+        k000  = f[ix +dm[0]*(iy +dm[1]*iz )];
+        k100  = f[ix1+dm[0]*(iy +dm[1]*iz )];
+        k010  = f[ix +dm[0]*(iy1+dm[1]*iz )];
+        k110  = f[ix1+dm[0]*(iy1+dm[1]*iz )];
+        k001  = f[ix +dm[0]*(iy +dm[1]*iz1)];
+        k101  = f[ix1+dm[0]*(iy +dm[1]*iz1)];
+        k011  = f[ix +dm[0]*(iy1+dm[1]*iz1)];
+        k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1)];
+        
+        d     = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 - g[j];
+        dx    = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+              + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
+        dy    = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+              + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
+        dz    = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+              - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
+        
+        A[j    ] = dx*dx;
+        A[j+m  ] = dy*dy;
+        A[j+m*2] = dz*dz;
+        A[j+m*3] = dx*dy;
+        A[j+m*4] = dx*dz;
+        A[j+m*5] = dy*dz;
+        
+        b[j    ] = -dx*d;
+        b[j+m  ] = -dy*d;
+        b[j+m*2] = -dz*d;
+        
+        ssl += d*d;
+    }
+    return(ssl);
+}
+
+double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[], float b[], float A[])
+{
+    int j, m = dm[0]*dm[1]*dm[2];
+    double ssl = 0.0;
+    for(j=0; j<m; j++)
+    {
+        double x, y, z;
+        int   ix, iy, iz, ix1, iy1, iz1, k;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx0, dx1, dx2, dy0, dy1, dy2, dz0, dz1, dz2;
+        double d, dx, dy, dz;
+        double sd, sdx, sdy, sdz;
+
+        x    = t0[j    ]-1.0;
+        y    = t0[j+m  ]-1.0;
+        z    = t0[j+m*2]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix,dm[0]);
+        iy   = WRAP(iy,dm[1]);
+        iz   = WRAP(iz,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+
+        A[j    ] = 0.0;
+        A[j+m  ] = 0.0;
+        A[j+m*2] = 0.0;
+        A[j+m*3] = 0.0;
+        A[j+m*4] = 0.0;
+        A[j+m*5] = 0.0;
+
+        b[j    ] = 0.0;
+        b[j+m  ] = 0.0;
+        b[j+m*2] = 0.0;
+
+        sd  = 0.0;
+        sdx = 0.0;
+        sdy = 0.0;
+        sdz = 0.0;
+
+        for(k=0; k<dm[3]; k++)
+        {
+            int km = k*m;
+            k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];
+            k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];
+            k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];
+            k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];
+            k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];
+            k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];
+            k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];
+            k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];
+
+            d     = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 - g[j+km];
+
+            dx0   = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+                  + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
+            dy0   = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+                  + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
+            dz0   = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+                  - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
+
+            dx   = -(J0[j    ]*dx0 + J0[j+  m]*dy0 + J0[j+2*m]*dz0);
+            dy   = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
+            dz   = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
+
+            sd  -= d;
+            sdx -= dx;
+            sdy -= dy;
+            sdz -= dz;
+
+            A[j    ] += dx*dx;
+            A[j+m  ] += dy*dy;
+            A[j+m*2] += dz*dz;
+            A[j+m*3] += dx*dy;
+            A[j+m*4] += dx*dz;
+            A[j+m*5] += dy*dz;
+
+            b[j    ] += dx*d;
+            b[j+m  ] += dy*d;
+            b[j+m*2] += dz*d;
+
+            ssl += d*d;
+        }
+        A[j    ] += sdx*sdx;
+        A[j+m  ] += sdy*sdy;
+        A[j+m*2] += sdz*sdz;
+        A[j+m*3] += sdx*sdy;
+        A[j+m*4] += sdx*sdz;
+        A[j+m*5] += sdy*sdz;
+
+        b[j    ] += sdx*sd;
+        b[j+m  ] += sdy*sd;
+        b[j+m*2] += sdz*sd;
+
+        ssl += sd*sd;
+    }
+    return(ssl);
+}
+
+double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[], float b[], float A[])
+{
+    int j, m = dm[0]*dm[1]*dm[2];
+    double ssl = 0.0;
+
+    if (dm[3]>1)
+    {
+        return(initialise_objfun2(dm, f, g, t0, J0, b, A));
+    }
+
+    for(j=0; j<m; j++)
+    {
+        double x, y, z;
+        int   ix, iy, iz, ix1, iy1, iz1;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx0, dx1, dx2, dy0, dy1, dy2, dz0, dz1, dz2;
+        double d, dx, dy, dz;
+
+        x    = t0[j    ]-1.0;
+        y    = t0[j+m  ]-1.0;
+        z    = t0[j+m*2]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix,dm[0]);
+        iy   = WRAP(iy,dm[1]);
+        iz   = WRAP(iz,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+
+        k000  = f[ix +dm[0]*(iy +dm[1]*iz )];
+        k100  = f[ix1+dm[0]*(iy +dm[1]*iz )];
+        k010  = f[ix +dm[0]*(iy1+dm[1]*iz )];
+        k110  = f[ix1+dm[0]*(iy1+dm[1]*iz )];
+        k001  = f[ix +dm[0]*(iy +dm[1]*iz1)];
+        k101  = f[ix1+dm[0]*(iy +dm[1]*iz1)];
+        k011  = f[ix +dm[0]*(iy1+dm[1]*iz1)];
+        k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1)];
+
+        d     = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 - g[j];
+        dx0   = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+              + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
+        dy0   = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+              + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
+        dz0   = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+              - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
+
+        dx   = -(J0[j    ]*dx0 + J0[j+  m]*dy0 + J0[j+2*m]*dz0);
+        dy   = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
+        dz   = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
+
+        A[j    ] = dx*dx;
+        A[j+m  ] = dy*dy;
+        A[j+m*2] = dz*dz;
+        A[j+m*3] = dx*dy;
+        A[j+m*4] = dx*dz;
+        A[j+m*5] = dy*dz;
+
+        b[j    ] = dx*d;
+        b[j+m  ] = dy*d;
+        b[j+m*2] = dz*d;
+
+        ssl += d*d;
+    }
+    return(ssl);
+}
+
+
+void squaring(int dm[], int k, int save_transf, float b[], float A[], float t0[], float t1[], float J0[], float J1[])
+{
+    int i, j, m = dm[0]*dm[1]*dm[2];
+    float *ptr = t0;
+
+    for(i=0; i<k; i++)
+    {
+        float *buf1, *buf2;
+        buf1 = t1; /* Re-use some memory */
+        buf2 = J1;
+
+#ifdef CHOL
+        chol3(m, A);
+#endif
+
+        for(j=0; j<m; j++)
+        {
+            double x, y, z;
+            double j00, j01, j02, j10, j11, j12, j20, j21, j22, dt;
+            double a00, a11, a22, a01, a02, a12;
+            double b0, b1, b2, tmp0, tmp1, tmp2;
+            double as[6], bs[3];
+
+            /*
+            syms j00 j01 j02 j10 j11 j12 j20 j21 j22
+            syms a00 a11 a22 a01 a02 a12
+            syms b0 b1 b2
+            J = [j00 j01 j02; j10 j11 j12; j20 j21 j22];
+            A = [a00 a01 a02; a01 a11 a12; a02 a12 a22];
+            b = [b0; b1; b2];
+            J.'*b
+            J.'*A*J
+            */
+
+            x   = t0[j    ]-1.0;
+            y   = t0[j+m  ]-1.0;
+            z   = t0[j+m*2]-1.0;
+
+            j00 = J0[j    ]; j01 = J0[j+m*3]; j02 = J0[j+m*6];
+            j10 = J0[j+m  ]; j11 = J0[j+m*4]; j12 = J0[j+m*7];
+            j20 = J0[j+m*2]; j21 = J0[j+m*5]; j22 = J0[j+m*8];
+
+            dt  = j00*(j11*j22-j12*j21)+j10*(j02*j21-j01*j22)+j20*(j01*j12-j02*j11);
+
+            /* J'*b */
+            sampn(dm, b, 3, m, x, y, z, bs);
+            b0 = bs[0];
+            b1 = bs[1];
+            b2 = bs[2];
+
+            buf1[j    ] = dt*(b0*j00+b1*j10+b2*j20);
+            buf1[j+m  ] = dt*(b0*j01+b1*j11+b2*j21);
+            buf1[j+m*2] = dt*(b0*j02+b1*j12+b2*j22);
+
+            /* J'*A*J */
+            sampn(dm, A, 6, m, x, y, z, as);
+            a00 = as[0];
+            a11 = as[1];
+            a22 = as[2];
+            a01 = as[3];
+            a02 = as[4];
+            a12 = as[5];
+
+            /* rearranged for speed */
+            tmp0        = j00*a00+j10*a01+j20*a02;
+            tmp1        = j00*a01+j10*a11+j20*a12;
+            tmp2        = j00*a02+j10*a12+j20*a22;
+            buf2[j    ] = dt*(tmp0*j00+tmp1*j10+tmp2*j20);
+            buf2[j+m*3] = dt*(tmp0*j01+tmp1*j11+tmp2*j21);
+            buf2[j+m*4] = dt*(tmp0*j02+tmp1*j12+tmp2*j22);
+
+            tmp0        = j01*a00+j11*a01+j21*a02;
+            tmp1        = j01*a01+j11*a11+j21*a12;
+            tmp2        = j01*a02+j11*a12+j21*a22;
+            buf2[j+m  ] = dt*(tmp0*j01+tmp1*j11+tmp2*j21);
+            buf2[j+m*5] = dt*(tmp0*j02+tmp1*j12+tmp2*j22);
+
+            buf2[j+m*2] = dt*((j02*a00+j12*a01+j22*a02)*j02+(j02*a01+j12*a11+j22*a12)*j12+(j02*a02+j12*a12+j22*a22)*j22);
+        }
+
+#ifdef CHOL
+        chol3recon(m, A);
+        chol3recon(m, buf2);
+#endif
+
+        for(j=0; j<m*3; j++) b[j] += buf1[j];
+        for(j=0; j<m*6; j++) A[j] += buf2[j];
+        if (save_transf || (i<k-1))
+        {
+            float *tmpp;
+            composition_jacobian(dm, t0, J0, t0, J0, t1, J1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+            tmpp = J0; J0   = J1; J1   = tmpp;
+        }
+    }
+    if (save_transf && ptr!=t0)
+    {
+        for(j=0; j<m*3; j++)
+            t1[j] = t0[j];
+        for(j=0; j<m*9; j++)
+            J1[j] = J0[j];
+    }
+}
+
+/*
+ * Attempt to unwrap the deformations.
+ * Note: this is not always guarunteed to work,
+ * but it should for most cases.
+ */
+void unwrap(int dm[], float f[])
+{
+    int i0, i1, i2;
+
+    for(i2=0; i2<dm[2]; i2++)
+    {
+        float *pt = f + (i2+2*dm[2])*dm[0]*dm[1];
+        if (i2==0)
+        {
+            for(i1=0; i1<dm[1]*dm[0]; i1++)
+                pt[i1] = pt[i1]-floor(pt[i1]/dm[2]+0.5)*dm[2];
+        }
+        else
+        {
+            for(i1=0; i1<dm[1]*dm[0]; i1++)
+                pt[i1] = pt[i1]-floor((pt[i1]-pt[i1-dm[0]*dm[1]])/dm[2]+0.5)*dm[2];
+        }
+    }
+
+    for(i1=0; i1<dm[1]; i1++)
+    {
+        float *pt = f + (i1+dm[2]*dm[1])*dm[0];
+        if (i1==0)
+        {
+            for(i2=0; i2<dm[2]; i2++)
+            {
+                float *pt1 = pt+i2*dm[0]*dm[1];
+                for(i0=0; i0<dm[0]; i0++)
+                {
+                    pt1[i0] = pt1[i0]-floor(pt1[i0]/dm[1]+0.5)*dm[1];
+                }
+            }
+        }
+        else
+        {
+            for(i2=0; i2<dm[2]; i2++)
+            {
+                float *pt1 = pt+i2*dm[0]*dm[1];
+                for(i0=0; i0<dm[0]; i0++)
+                {
+                    pt1[i0] = pt1[i0]-floor((pt1[i0]-pt1[i0-dm[0]])/dm[1]+0.5)*dm[1];
+                }
+            }
+        }
+    }
+
+    for(i0=0; i0<dm[0]; i0++)
+    {
+        float *pt = f+i0;
+        if (i0==0)
+        {
+            for(i2=0; i2<dm[2]; i2++)
+            {
+                float *pt1 = pt + i2*dm[0]*dm[1];
+                for(i1=0; i1<dm[0]*dm[1]; i1+=dm[0])
+                    pt1[i1] = pt1[i1]-floor(pt1[i1]/dm[0]+0.5)*dm[0];
+            }
+        }
+        else
+        {
+            for(i2=0; i2<dm[2]; i2++)
+            {
+                float *pt1 = pt + i2*dm[0]*dm[1];
+                for(i1=0; i1<dm[0]*dm[1]; i1+=dm[0])
+                    pt1[i1] = pt1[i1]-floor((pt1[i1]-pt1[i1-1])/dm[0]+0.5)*dm[0];
+            }
+        }
+    }
+}
+
+int iteration_scratchsize(int dm[], int issym, int k)
+{
+    int m1, m2;
+    int m = dm[0]*dm[1]*dm[2];
+    if (k>0)
+    {
+        m1 = 30*m;
+        if (issym) m1 += 9*m;
+        m2 = 9*m+fmg3_scratchsize(dm);
+        if (m1>m2)
+            return(m1);
+        else
+            return(m2);
+    }
+    else
+    {
+        m1 = 9*m;
+        if (issym) m1 += 6*m;
+        m2 = 9*m + fmg3_scratchsize(dm);
+        if (m1>m2)
+            return(m1);
+        else
+            return(m2);
+    }
+}
+
+void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, double param0[], double lmreg0, int cycles, int its, int issym, float ov[], float *buf)
+{
+    float *sbuf;
+    float *b, *A;
+    double ssl, ssp, normb, sc;
+    static double param[6] = {1.0,1.0,1.0,1.0,0.0,0.0};
+    int m = dm[0]*dm[1]*dm[2];
+    int j;
+
+    /*
+        Allocate memory.
+          0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29
+        [ A  A  A  A  A  A  t  t  t  J  J  J  J  J  J  J  J  J  t  t  t  J  J  J  J  J  J  J  J  J] for computing derivatives
+    */
+    b    = ov;
+    A    = buf;
+    sbuf = buf +  6*m;
+
+    if(k>0)
+    {
+        float *t0, *t1, *J0, *J1;
+        t0   = buf +  6*m;
+        J0   = buf +  9*m;
+        t1   = buf + 18*m;
+        J1   = buf + 21*m;
+
+        sc = 1.0/pow2(k);
+        expdef(dm, k, 1.0, v, t0, t1, J0, J1);
+        jac_div_smalldef(dm, sc, v, J0);
+        ssl = initialise_objfun(dm, f, g, t0, J0, b, A);
+        smalldef_jac(dm, -sc, v, t0, J0);
+        squaring(dm, k, issym, b, A, t0, t1, J0, J1);
+        if (issym)
+        {
+            float *b1, *A1;
+            A1   = buf + 30*m;
+            b1   = buf + 36*m;
+            jac_div_smalldef(dm, -sc, v, J0);
+            ssl += initialise_objfun(dm, g, f, t0, J0, b1, A1);
+            smalldef_jac(dm, sc, v, t0, J0);
+            squaring(dm, k, 0, b1, A1, t0, t1, J0, J1);
+            for(j=0; j<m*3; j++) b[j] -= b1[j];
+            for(j=0; j<m*6; j++) A[j] += A1[j];
+        }
+    }
+    else
+    {
+        sc  = 1.0;
+        ssl = smalldef_objfun(dm, f, g, v, 1.0, b, A);
+        if (issym)
+        {
+            float *b1, *A1;
+            A1   = buf + 6*m;
+            b1   = buf + 12*m;
+            ssl += smalldef_objfun(dm, g, f, v, -1.0, b1, A1);
+            for(j=0; j<m*3; j++) b[j] -= b1[j];
+            for(j=0; j<m*6; j++) A[j] += A1[j];
+        }
+    }
+    
+    param[3] = param0[3];
+    param[4] = param0[4];
+    param[5] = param0[5];
+
+    if (rtype==0)
+        LtLf_le(dm, v, param, sbuf);
+    else if (rtype==1)
+        LtLf_me(dm, v, param, sbuf);
+    else
+        LtLf_be(dm, v, param, sbuf);
+
+    ssp = 0.0;
+    for(j=0; j<m*3; j++)
+    {
+        b[j] = b[j]*sc + sbuf[j];
+        ssp += sbuf[j]*v[j];
+    }
+
+    normb = norm(m*3,b);
+    for(j=0; j<m*6; j++) A[j] *= sc;
+
+    /* Solve equations for Levenberg-Marquardt update:
+     * v = v - inv(H + L'*L + R)*(d + L'*L*v)
+     *     v: velocity or flow field
+     *     H: matrix of second derivatives
+     *     L: regularisation (L'*L is the inverse of the prior covariance)
+     *     R: Levenberg-Marquardt regularisation
+     *     d: vector of first derivatives
+     */
+
+ /* if (lmreg0>0.0) for(j=0; j<m*3; j++) A[j] += lmreg0; */
+    if (lmreg0>0.0) param[5] = param[5] + lmreg0;
+    
+    fmg3(dm, A, b, rtype, param, cycles, its, sbuf, sbuf+3*m); 
+    for(j=0; j<m*3; j++) ov[j] = v[j] - sbuf[j];
+
+    (void)printf("%g\t+ %g\t = %g\t\t%g\n", ssl,ssp,ssl+ssp, normb);
+}
+

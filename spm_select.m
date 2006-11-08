@@ -58,7 +58,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 661 2006-10-20 14:50:58Z john $
+% $Id: spm_select.m 676 2006-11-08 11:36:38Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -1273,6 +1273,7 @@ if nargin<1, typ     = 'any';   end;
 switch lower(typ),
 case {'any','*'}, code = 0; ext = {'.*'};
 case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'nifti'},   code = 0; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
 case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
                             '.*\.img(,[0-9]*){0,1}$',...
                             '.*\.NII(,[0-9]*){0,1}$',...
