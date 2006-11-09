@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 266 2005-10-24 09:21:00Z john $
+% $Id: spm_coreg.m 677 2006-11-09 10:52:54Z john $
 
 
 if nargin>=4,
@@ -235,11 +235,11 @@ for p=1:V.dim(3),
 	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
 	acc = paccuracy(V,p);
 	if acc==0,
-		udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
+		udat(:,:,p) = uint8(max(min(round((img-mn)*(255/(mx-mn))),255),0));
 	else
 		% Add random numbers before rounding to reduce aliasing artifact
 		r = rand(size(img))*acc;
-		udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
+		udat(:,:,p) = uint8(max(min(round((img+r-mn)*(255/(mx-mn))),255),0));
 	end;
 	spm_progress_bar('Set',p);
 end;

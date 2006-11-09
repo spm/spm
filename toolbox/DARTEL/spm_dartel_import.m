@@ -10,7 +10,6 @@ matnames = job.matnames;
 for i=1:numel(matnames),
     p(i) = load(matnames{i});
 end;
-
 if numel(p)>0,
     tmp = strvcat(p(1).VG.fname);
     p(1).VG = spm_vol(tmp);
@@ -22,15 +21,16 @@ vox  = job.vox;
 iopt = job.image;
 opt  = [job.GM, job.WM, job.CSF];
 for i=1:numel(p),
-    preproc_apply(p(i),odir,b0,bb,vox,iopt,opt);
+    preproc_apply(p(i),odir,b0,bb,vox,iopt,opt,matfilename{i});
 end;
 return;
 %=======================================================================
 
 %=======================================================================
-function preproc_apply(p,odir,b0,bb,vx,iopt,opt)
-[pth,nam,ext,num]=spm_fileparts(p.VF(1).fname);
-P = path_search([nam,ext],{pth,odir,pwd});
+function preproc_apply(p,odir,b0,bb,vx,iopt,opt,matfilename)
+[pth0,nam,ext,num] = spm_fileparts(matfilename);
+[pth ,nam,ext,num] = spm_fileparts(p.VF(1).fname);
+P = path_search([nam,ext],{pth,odir,pwd,pth0});
 if isempty(P),
     fprintf('Could not find "%s"\n', [nam,ext]);
     return;
