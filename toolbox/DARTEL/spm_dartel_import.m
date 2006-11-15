@@ -21,14 +21,14 @@ vox  = job.vox;
 iopt = job.image;
 opt  = [job.GM, job.WM, job.CSF];
 for i=1:numel(p),
-    preproc_apply(p(i),odir,b0,bb,vox,iopt,opt,matfilename{i});
+    preproc_apply(p(i),odir,b0,bb,vox,iopt,opt,matnames{i});
 end;
 return;
 %=======================================================================
 
 %=======================================================================
-function preproc_apply(p,odir,b0,bb,vx,iopt,opt,matfilename)
-[pth0,nam,ext,num] = spm_fileparts(matfilename);
+function preproc_apply(p,odir,b0,bb,vx,iopt,opt,matname)
+[pth0,nam,ext,num] = spm_fileparts(matname);
 [pth ,nam,ext,num] = spm_fileparts(p.VF(1).fname);
 P = path_search([nam,ext],{pth,odir,pwd,pth0});
 if isempty(P),
